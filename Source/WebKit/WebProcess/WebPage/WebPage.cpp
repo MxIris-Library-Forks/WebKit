@@ -2274,10 +2274,8 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
     m_pendingNavigationID = parameters.navigationID;
     m_pendingWebsitePolicies = WTFMove(parameters.websitePolicies);
 
-    RefPtr localMainFrame = m_mainFrame->coreLocalFrame() ? m_mainFrame->coreLocalFrame() : m_mainFrame->provisionalFrame();
-    if (!localMainFrame)
-        return;
-    m_page->goToItem(*localMainFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad);
+    if (RefPtr mainFrame = m_mainFrame->provisionalFrame() ? m_mainFrame->provisionalFrame() : m_mainFrame->coreFrame())
+        m_page->goToItem(*mainFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad);
 }
 
 // GoToBackForwardItemWaitingForProcessLaunch should never be sent to the WebProcess. It must always be converted to a GoToBackForwardItem message.
@@ -3319,26 +3317,14 @@ void WebPage::updateDrawingAreaLayerTreeFreezeState()
     if (!m_drawingArea)
         return;
 
-    if (m_layerTreeFreezeReasons.hasExactlyOneBitSet() && m_layerTreeFreezeReasons.contains(LayerTreeFreezeReason::BackgroundApplication)) {
-        // When the browser is in the background, we should not freeze the layer tree
-        // if the page has a video playing in picture-in-picture or if the page is in an
-        // active immersive session.
-        bool shouldSkipFreezingLayerTreeOnBackgrounding = false;
 #if ENABLE(VIDEO_PRESENTATION_MODE)
-        if (m_videoPresentationManager && m_videoPresentationManager->hasVideoPlayingInPictureInPicture())
-            shouldSkipFreezingLayerTreeOnBackgrounding = true;
-#endif
-#if PLATFORM(VISION) && ENABLE(WEBXR)
-        if (RefPtr page = m_page) {
-            if (page->hasActiveImmersiveSession() && page->shouldBlockLayerTreeFreezingForVideo())
-                shouldSkipFreezingLayerTreeOnBackgrounding = true;
-        }
-#endif
-        if (shouldSkipFreezingLayerTreeOnBackgrounding) {
-            m_drawingArea->setLayerTreeStateIsFrozen(false);
-            return;
-        }
+    // When the browser is in the background, we should not freeze the layer tree
+    // if the page has a video playing in picture-in-picture.
+    if (m_videoPresentationManager && m_videoPresentationManager->hasVideoPlayingInPictureInPicture() && m_layerTreeFreezeReasons.hasExactlyOneBitSet() && m_layerTreeFreezeReasons.contains(LayerTreeFreezeReason::BackgroundApplication)) {
+        m_drawingArea->setLayerTreeStateIsFrozen(false);
+        return;
     }
+#endif
 
     m_drawingArea->setLayerTreeStateIsFrozen(!!m_layerTreeFreezeReasons);
 }
@@ -9152,9 +9138,9 @@ void WebPage::lastNavigationWasAppInitiated(CompletionHandler<void(bool)>&& comp
 
 #if ENABLE(UNIFIED_TEXT_REPLACEMENT)
 
-void WebPage::addTextIndicatorStyleForID(const WTF::UUID& uuid, const WebKit::TextIndicatorStyle styleType, const WebCore::TextIndicatorData& data)
+void WebPage::addTextIndicatorStyleForID(const WTF::UUID& uuid, const WebKit::TextIndicatorStyleData& styleData, const WebCore::TextIndicatorData& indicatorData)
 {
-    send(Messages::WebPageProxy::AddTextIndicatorStyleForID(uuid, styleType, data));
+    send(Messages::WebPageProxy::AddTextIndicatorStyleForID(uuid, styleData, indicatorData));
 }
 
 void WebPage::removeTextIndicatorStyleForID(const WTF::UUID& uuid)

@@ -661,7 +661,6 @@ const GlobalObjectMethodTable* JSGlobalObject::baseGlobalObjectMethodTable()
   Map                   JSGlobalObject::m_mapStructure               DontEnum|ClassStructure
   Number                JSGlobalObject::m_numberObjectStructure      DontEnum|ClassStructure
   Set                   JSGlobalObject::m_setStructure               DontEnum|ClassStructure
-  Symbol                JSGlobalObject::m_symbolObjectStructure      DontEnum|ClassStructure
   WeakMap               JSGlobalObject::m_weakMapStructure           DontEnum|ClassStructure
   WeakSet               JSGlobalObject::m_weakSetStructure           DontEnum|ClassStructure
 @end
@@ -891,7 +890,6 @@ void JSGlobalObject::init(VM& vm)
         });
 
     m_functionProtoHasInstanceSymbolFunction.set(vm, this, hasInstanceSymbolFunction);
-
     m_nullGetterFunction.set(vm, this, NullGetterFunction::create(vm, NullGetterFunction::createStructure(vm, this, m_functionPrototype.get())));
     Structure* nullSetterFunctionStructure = NullSetterFunction::createStructure(vm, this, m_functionPrototype.get());
     m_nullSetterFunction.set(vm, this, NullSetterFunction::create(vm, nullSetterFunctionStructure, ECMAMode::sloppy()));
@@ -1721,6 +1719,12 @@ capitalName ## Constructor* lowerName ## Constructor = featureFlag ? capitalName
         init.set(init.vm.emptyPropertyNameEnumerator());
     });
 
+    m_performProxyObjectHasFunction.set(vm, this, jsCast<JSFunction*>(linkTimeConstant(LinkTimeConstant::performProxyObjectHas)));
+    m_performProxyObjectGetFunction.set(vm, this, jsCast<JSFunction*>(linkTimeConstant(LinkTimeConstant::performProxyObjectGet)));
+    m_performProxyObjectGetByValFunction.set(vm, this, jsCast<JSFunction*>(linkTimeConstant(LinkTimeConstant::performProxyObjectGetByVal)));
+    m_performProxyObjectSetStrictFunction.set(vm, this, jsCast<JSFunction*>(linkTimeConstant(LinkTimeConstant::performProxyObjectSetStrict)));
+    m_performProxyObjectSetSloppyFunction.set(vm, this, jsCast<JSFunction*>(linkTimeConstant(LinkTimeConstant::performProxyObjectSetSloppy)));
+
     if (Options::exposeProfilersOnGlobalObject()) {
 #if ENABLE(SAMPLING_PROFILER)
         putDirectWithoutTransition(vm, Identifier::fromString(vm, "__enableSamplingProfiler"_s), JSFunction::create(vm, this, 1, "enableSamplingProfiler"_s, enableSamplingProfiler, ImplementationVisibility::Public), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
@@ -2496,6 +2500,11 @@ void JSGlobalObject::visitChildrenImpl(JSCell* cell, Visitor& visitor)
     visitor.append(thisObject->m_objectProtoValueOfFunction);
     thisObject->m_numberProtoToStringFunction.visit(visitor);
     visitor.append(thisObject->m_functionProtoHasInstanceSymbolFunction);
+    visitor.append(thisObject->m_performProxyObjectHasFunction);
+    visitor.append(thisObject->m_performProxyObjectGetFunction);
+    visitor.append(thisObject->m_performProxyObjectGetByValFunction);
+    visitor.append(thisObject->m_performProxyObjectSetStrictFunction);
+    visitor.append(thisObject->m_performProxyObjectSetSloppyFunction);
     visitor.append(thisObject->m_regExpProtoSymbolReplace);
     thisObject->m_throwTypeErrorArgumentsCalleeGetterSetter.visit(visitor);
     thisObject->m_moduleLoader.visit(visitor);

@@ -285,14 +285,14 @@ void Queue::submit(Vector<std::reference_wrapper<CommandBuffer>>&& commands)
 
     finalizeBlitCommandEncoder();
 
-    NSMutableArray<id<MTLCommandBuffer>> *commandBuffersToSubmit = [NSMutableArray arrayWithCapacity:commands.size()];
+    NSMutableSet<id<MTLCommandBuffer>> *commandBuffersToSubmit = [NSMutableSet setWithCapacity:commands.size()];
     NSString* validationError = nil;
     for (auto commandBuffer : commands) {
         auto& command = commandBuffer.get();
-        if (id<MTLCommandBuffer> mtlBuffer = command.commandBuffer())
+        if (id<MTLCommandBuffer> mtlBuffer = command.commandBuffer(); mtlBuffer && ![commandBuffersToSubmit containsObject:mtlBuffer])
             [commandBuffersToSubmit addObject:mtlBuffer];
         else {
-            validationError = @"Command buffer appears twice.";
+            validationError = command.lastError() ?: @"Command buffer appears twice.";
             break;
         }
     }
@@ -300,8 +300,10 @@ void Queue::submit(Vector<std::reference_wrapper<CommandBuffer>>&& commands)
     invalidateCommandBuffers(WTFMove(commands), ^(CommandBuffer& command) {
         validationError ? command.makeInvalid(command.lastError() ?: validationError) : command.makeInvalidDueToCommit(@"command buffer was submitted");
     });
-    if (validationError)
+    if (validationError) {
+        device->generateAValidationError(@"Command buffer appears twice.");
         return;
+    }
 
     for (id<MTLCommandBuffer> commandBuffer in commandBuffersToSubmit)
         commitMTLCommandBuffer(commandBuffer);

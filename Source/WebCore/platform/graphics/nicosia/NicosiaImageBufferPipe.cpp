@@ -75,7 +75,9 @@ void NicosiaImageBufferPipeSource::handle(ImageBuffer& buffer)
 
     Locker locker { m_imageLock };
     if (!m_image) {
+#if PLATFORM(GTK) || PLATFORM(WPE)
         std::unique_ptr<GLFence> fence;
+#endif // PLATFORM(GTK) || PLATFORM(WPE)
         unsigned textureID = 0;
 #if USE(SKIA)
         auto image = nativeImage->platformImage();
@@ -98,11 +100,17 @@ void NicosiaImageBufferPipeSource::handle(ImageBuffer& buffer)
             if (!textureID)
                 return;
 
+#if PLATFORM(GTK) || PLATFORM(WPE)
             fence = GLFence::create();
+#endif // PLATFORM(GTK) || PLATFORM(WPE)
         }
 #endif
 
+#if PLATFORM(GTK) || PLATFORM(WPE)
         downcast<TextureMapperPlatformLayerProxyGL>(m_nicosiaLayer->proxy()).scheduleUpdateOnCompositorThread([this, textureID, fence = WTFMove(fence)] () mutable {
+#else
+        downcast<TextureMapperPlatformLayerProxyGL>(m_nicosiaLayer->proxy()).scheduleUpdateOnCompositorThread([this, textureID] () mutable {
+#endif // PLATFORM(GTK) || PLATFORM(WPE)
             auto& proxy = m_nicosiaLayer->proxy();
             Locker locker { proxy.lock() };
             if (!proxy.isActive())
@@ -129,9 +137,13 @@ void NicosiaImageBufferPipeSource::handle(ImageBuffer& buffer)
 #elif USE(SKIA)
                 auto image = nativeImage->platformImage();
                 if (image->isTextureBacked()) {
+#if PLATFORM(GTK) || PLATFORM(WPE)
                     fence->wait(WebCore::GLFence::FlushCommands::No);
+#endif // PLATFORM(GTK) || PLATFORM(WPE)
                     texture->copyFromExternalTexture(textureID);
+#if PLATFORM(GTK) || PLATFORM(WPE)
                     fence = GLFence::create();
+#endif // PLATFORM(GTK) || PLATFORM(WPE)
                 } else {
                     SkPixmap pixmap;
                     if (image->peekPixels(&pixmap))
@@ -142,7 +154,9 @@ void NicosiaImageBufferPipeSource::handle(ImageBuffer& buffer)
 
             auto layerBuffer = makeUnique<TextureMapperPlatformLayerBuffer>(WTFMove(texture));
             layerBuffer->setExtraFlags(TextureMapperFlags::ShouldBlend);
+#if PLATFORM(GTK) || PLATFORM(WPE)
             layerBuffer->setFence(WTFMove(fence));
+#endif
             downcast<TextureMapperPlatformLayerProxyGL>(proxy).pushNextBuffer(WTFMove(layerBuffer));
 
         });

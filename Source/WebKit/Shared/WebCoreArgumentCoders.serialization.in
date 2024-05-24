@@ -2593,8 +2593,7 @@ struct WebCore::PromisedAttachmentInfo {
 #if ENABLE(ATTACHMENT_ELEMENT)
     String attachmentIdentifier;
 #endif
-    Vector<String> additionalTypes;
-    Vector<RefPtr<WebCore::SharedBuffer>> additionalData;
+    Vector<std::pair<String, RefPtr<WebCore::SharedBuffer>>> additionalTypesAndData;
 }
 
 header: <WebCore/SearchPopupMenu.h>
@@ -4679,6 +4678,13 @@ enum class WebCore::AudioSessionMode : uint8_t {
     MoviePlayback,
 };
 
+enum class WebCore::AudioSessionSoundStageSize : uint8_t {
+    Automatic,
+    Small,
+    Medium,
+    Large,
+};
+
 [Nested] enum class WebCore::AudioSession::MayResume : bool;
 
 enum class WebCore::AudioSessionRoutingArbitrationError : uint8_t {
@@ -5310,10 +5316,7 @@ class WebCore::RealtimeMediaSourceSupportedConstraints {
     bool supportsBackgroundBlur();
 };
 
-[Nested] class WebCore::RealtimeMediaSource::Type : uint8_t {
-    Audio,
-    Video,
-};
+[Nested] enum class WebCore::RealtimeMediaSource::Type : bool;
 
 enum class WebCore::VideoFacingMode : uint8_t {
     Unknown,

@@ -285,7 +285,7 @@ void Queue::submit(Vector<std::reference_wrapper<CommandBuffer>>&& commands)
 
     finalizeBlitCommandEncoder();
 
-    NSMutableSet<id<MTLCommandBuffer>> *commandBuffersToSubmit = [NSMutableSet setWithCapacity:commands.size()];
+    NSMutableOrderedSet<id<MTLCommandBuffer>> *commandBuffersToSubmit = [NSMutableOrderedSet orderedSetWithCapacity:commands.size()];
     NSString* validationError = nil;
     for (auto commandBuffer : commands) {
         auto& command = commandBuffer.get();

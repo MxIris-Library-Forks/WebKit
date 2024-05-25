@@ -256,8 +256,13 @@ nothing to commit, working tree clean
             ), mocks.Subprocess.Route(
                 self.executable, 'remote', 'add', re.compile(r'.+'),
                 cwd=self.path,
-                completion=mocks.ProcessCompletion(
+                generator=lambda *args, **kwargs: self.add_remote(args[3]),
+            ), mocks.Subprocess.Route(
+                self.executable, 'remote',
+                cwd=self.path,
+                generator=lambda *args, **kwargs: mocks.ProcessCompletion(
                     returncode=0,
+                    stdout='\n'.join(sorted(set([key.split('/')[0] for key in self.remotes.keys()]))),
                 ),
             ), mocks.Subprocess.Route(
                 self.executable, 'branch', '-a', '--format', '.+', '--merged', '.+',
@@ -770,10 +775,9 @@ nothing to commit, working tree clean
 
     def __enter__(self):
         from mock import patch
+        from shutil import which
 
-        # TODO: Use shutil directly when Python 2.7 is removed
-        from whichcraft import which
-        self.patches.append(patch('whichcraft.which', lambda cmd: dict(git=self.executable).get(cmd, which(cmd))))
+        self.patches.append(patch('shutil.which', lambda cmd: dict(git=self.executable).get(cmd, which(cmd))))
         return super(Git, self).__enter__()
 
     @property
@@ -1428,3 +1432,10 @@ nothing to commit, working tree clean
                 )
 
         return mocks.ProcessCompletion(returncode=0 if ancestor in self.rev_list(descendent)else 1)
+
+    def add_remote(self, name):
+        for existing in list(self.remotes.keys()):
+            remote, branch = existing.split('/', 1)
+            if remote == 'origin':
+                self.remotes['{}/{}'.format(name, branch)] = self.remotes[existing][:]
+        return mocks.ProcessCompletion(returncode=0)

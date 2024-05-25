@@ -1999,8 +1999,7 @@ webkit.org/b/225882 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-a
 
 webkit.org/b/226050 imported/w3c/web-platform-tests/IndexedDB/blob-valid-before-commit.any.html [ Pass Failure ]
 
-#webkit.org/b/231328 http/tests/preload/onload_event.html [ Pass Failure ] # uncomment when below is resolved
-webkit.org/b/274591 http/tests/preload/onload_event.html [ Failure ] # delete this and uncomment above when this is resolved
+webkit.org/b/231328 http/tests/preload/onload_event.html [ Pass Failure ]
 
 webkit.org/b/271732 [ Ventura+ ] http/tests/workers/service/openwindow-from-notification-click.html [ Pass Failure Crash ]
 
@@ -2534,9 +2533,5 @@ webkit.org/b/273308 http/tests/media/media-source/mediasource-rvfc.html [ Timeou
 [ Debug ] ipc/dirty-region-overflow.html [ Skip ]
 
 # webkit.org/b/274475 REGRESSION (278960@main?): [ MacOS iOS ] 8X imported/w3c/web-platform-t ests/navigation-api are consistently failing and 1 is crashing
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-anchor-download-userInitiated.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-anchor-download.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/current-basic.html [ Failure ]
 imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/entries-after-navigations-in-multiple-windows.html [ Failure ]
 imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/key-id-location-replace-cross-origin.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigation-methods/sandboxing-navigate-parent.html [ Failure ]

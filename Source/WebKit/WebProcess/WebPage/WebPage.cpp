@@ -7886,13 +7886,13 @@ Ref<DocumentLoader> WebPage::createDocumentLoader(LocalFrame& frame, const Resou
 
     documentLoader->setLastNavigationWasAppInitiated(m_lastNavigationWasAppInitiated);
 
-    if (frame.isMainFrame()) {
+    if (frame.isMainFrame() || m_page->settings().siteIsolationEnabled()) {
         if (m_pendingNavigationID) {
             documentLoader->setNavigationID(m_pendingNavigationID);
             m_pendingNavigationID = 0;
         }
 
-        if (m_pendingWebsitePolicies) {
+        if (m_pendingWebsitePolicies && frame.isMainFrame()) {
             m_allowsContentJavaScriptFromMostRecentNavigation = m_pendingWebsitePolicies->allowsContentJavaScript;
             WebsitePoliciesData::applyToDocumentLoader(WTFMove(*m_pendingWebsitePolicies), documentLoader);
             m_pendingWebsitePolicies = std::nullopt;
@@ -9614,6 +9614,7 @@ void WebPage::setDefaultSpatialTrackingLabel(const String& label)
 
 void WebPage::startObservingNowPlayingMetadata()
 {
+#if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
     if (m_nowPlayingMetadataObserver)
         return;
 
@@ -9623,15 +9624,18 @@ void WebPage::startObservingNowPlayingMetadata()
     });
 
     WebCore::PlatformMediaSessionManager::sharedManager().addNowPlayingMetadataObserver(*m_nowPlayingMetadataObserver);
+#endif
 }
 
 void WebPage::stopObservingNowPlayingMetadata()
 {
+#if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
     auto nowPlayingMetadataObserver = std::exchange(m_nowPlayingMetadataObserver, nullptr);
     if (!nowPlayingMetadataObserver)
         return;
 
     WebCore::PlatformMediaSessionManager::sharedManager().removeNowPlayingMetadataObserver(*nowPlayingMetadataObserver);
+#endif
 }
 
 void WebPage::didAdjustVisibilityWithSelectors(Vector<String>&& selectors)

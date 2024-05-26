@@ -4779,6 +4779,7 @@
 		BC4A533525605A560028C592 /* DataDetectorType.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4A533425605A560028C592 /* DataDetectorType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4A533725605AE10028C592 /* StorageBlockingPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4A533625605AE10028C592 /* StorageBlockingPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4A533B256064E10028C592 /* TextDirection.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4A533A256064E10028C592 /* TextDirection.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC4C223A2C01052A003F561F /* JSDOMConvertResult.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4C222C2C00F312003F561F /* JSDOMConvertResult.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4DDD96273D949900660EBB /* SceneKitModelPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4DDD8F273D84E700660EBB /* SceneKitModelPlayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4DDD97273D94A800660EBB /* SceneKitModelLoaderClient.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4DDD91273D84E700660EBB /* SceneKitModelLoaderClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC51156E12B1749C00C96754 /* ScrollAnimatorMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = BC51156D12B1749C00C96754 /* ScrollAnimatorMac.mm */; };
@@ -17480,6 +17481,14 @@
 		BC4A533425605A560028C592 /* DataDetectorType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataDetectorType.h; sourceTree = "<group>"; };
 		BC4A533625605AE10028C592 /* StorageBlockingPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StorageBlockingPolicy.h; sourceTree = "<group>"; };
 		BC4A533A256064E10028C592 /* TextDirection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextDirection.h; sourceTree = "<group>"; };
+		BC4C222C2C00F312003F561F /* JSDOMConvertResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSDOMConvertResult.h; sourceTree = "<group>"; };
+		BC4C22332C010112003F561F /* JSDOMConvertOptional.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSDOMConvertOptional.h; sourceTree = "<group>"; };
+		BC4C22342C010335003F561F /* Touch.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Touch.cpp; sourceTree = "<group>"; };
+		BC4C22352C01033D003F561F /* Touch.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Touch.idl; sourceTree = "<group>"; };
+		BC4C22362C010346003F561F /* TouchEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TouchEvent.cpp; sourceTree = "<group>"; };
+		BC4C22372C010346003F561F /* TouchEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = TouchEvent.idl; sourceTree = "<group>"; };
+		BC4C22382C010352003F561F /* TouchList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TouchList.cpp; sourceTree = "<group>"; };
+		BC4C22392C010352003F561F /* TouchList.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = TouchList.idl; sourceTree = "<group>"; };
 		BC4DDD8B273D84E700660EBB /* SceneKitModelLoaderUSD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneKitModelLoaderUSD.h; sourceTree = "<group>"; };
 		BC4DDD8C273D84E700660EBB /* SceneKitModelLoaderClient.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SceneKitModelLoaderClient.mm; sourceTree = "<group>"; };
 		BC4DDD8D273D84E700660EBB /* SceneKitModelPlayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SceneKitModelPlayer.mm; sourceTree = "<group>"; };
@@ -28809,8 +28818,10 @@
 				7C8E34A11E4A338E0054CE23 /* JSDOMConvertNumbers.cpp */,
 				7C8E34A21E4A338E0054CE23 /* JSDOMConvertNumbers.h */,
 				7C8E34A31E4A338E0054CE23 /* JSDOMConvertObject.h */,
+				BC4C22332C010112003F561F /* JSDOMConvertOptional.h */,
 				E323CFF91E5AF6A500F0B4A0 /* JSDOMConvertPromise.h */,
 				7C8E34A41E4A338E0054CE23 /* JSDOMConvertRecord.h */,
+				BC4C222C2C00F312003F561F /* JSDOMConvertResult.h */,
 				7C1F5D581F22FF7300A8874F /* JSDOMConvertScheduledAction.h */,
 				7C8E34A51E4A338E0054CE23 /* JSDOMConvertSequences.h */,
 				7C8E34A61E4A338E0054CE23 /* JSDOMConvertSerializedScriptValue.h */,
@@ -37286,9 +37297,15 @@
 				49C66C4B299C294B00073276 /* ToggleEvent.cpp */,
 				49C66C4D299C294C00073276 /* ToggleEvent.h */,
 				49C66C4C299C294B00073276 /* ToggleEvent.idl */,
+				BC4C22342C010335003F561F /* Touch.cpp */,
 				0F54DD051881D5F5003EEDBB /* Touch.h */,
+				BC4C22352C01033D003F561F /* Touch.idl */,
+				BC4C22362C010346003F561F /* TouchEvent.cpp */,
 				0F54DD061881D5F5003EEDBB /* TouchEvent.h */,
+				BC4C22372C010346003F561F /* TouchEvent.idl */,
+				BC4C22382C010352003F561F /* TouchList.cpp */,
 				0F54DD071881D5F5003EEDBB /* TouchList.h */,
+				BC4C22392C010352003F561F /* TouchList.idl */,
 				5DB1BC6810715A6400EFAA49 /* TransformSource.h */,
 				5DB1BC6910715A6400EFAA49 /* TransformSourceLibxslt.cpp */,
 				854FE72C0A2297BE0058D7AD /* Traversal.cpp */,
@@ -40186,6 +40203,7 @@
 				7C8E34BE1E4A33B00054CE23 /* JSDOMConvertObject.h in Headers */,
 				E323CFFA1E5AF6AF00F0B4A0 /* JSDOMConvertPromise.h in Headers */,
 				7C8E34BF1E4A33B00054CE23 /* JSDOMConvertRecord.h in Headers */,
+				BC4C223A2C01052A003F561F /* JSDOMConvertResult.h in Headers */,
 				7C1F5D591F22FF7300A8874F /* JSDOMConvertScheduledAction.h in Headers */,
 				7C8E34C01E4A33B00054CE23 /* JSDOMConvertSequences.h in Headers */,
 				7C8E34C11E4A33B00054CE23 /* JSDOMConvertSerializedScriptValue.h in Headers */,

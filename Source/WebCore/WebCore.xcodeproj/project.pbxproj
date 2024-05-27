@@ -15721,6 +15721,7 @@
 		A1AFEDE51F8BFF6D0087013F /* MockPaymentCoordinator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MockPaymentCoordinator.cpp; sourceTree = "<group>"; };
 		A1B5B29C1AAA846E008B6042 /* MockContentFilterSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MockContentFilterSettings.cpp; sourceTree = "<group>"; };
 		A1B5B29D1AAA846E008B6042 /* MockContentFilterSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MockContentFilterSettings.h; sourceTree = "<group>"; };
+		A1BA90762C028D52008ED9E7 /* tvos-layout-traits.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "tvos-layout-traits.js"; sourceTree = "<group>"; };
 		A1BB85992159AEA10067E07D /* ApplePayErrorCode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ApplePayErrorCode.h; sourceTree = "<group>"; };
 		A1BB859B2159AEA10067E07D /* ApplePayErrorCode.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ApplePayErrorCode.idl; sourceTree = "<group>"; };
 		A1BB85A02159AF570067E07D /* ApplePayErrorContactField.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ApplePayErrorContactField.h; sourceTree = "<group>"; };
@@ -28244,6 +28245,7 @@
 				716FA0FC1DB26591007323CC /* time-label.css */,
 				716FA0FD1DB26591007323CC /* time-label.js */,
 				716FA0FE1DB26591007323CC /* tracks-button.js */,
+				A1BA90762C028D52008ED9E7 /* tvos-layout-traits.js */,
 				E58A6BA22A438301000BC574 /* vision-layout-traits.js */,
 				E58A6BA32A438301000BC574 /* vision-media-controls.css */,
 				E58A6BA12A438300000BC574 /* vision-media-controls.js */,

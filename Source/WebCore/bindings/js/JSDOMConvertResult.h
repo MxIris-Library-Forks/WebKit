@@ -116,7 +116,7 @@ struct ConversionResultStorage<T&> {
         : value([&]() -> Expected<Type, ConversionResultException> {
             if (other.hasException())
                 return makeUnexpected(ConversionResultException());
-            return ReturnType { other.releaseReturnValue() };
+            return static_cast<WebCore::Detail::ConversionResultStorage<T&>::ReturnType>(other.releaseReturnValue());
         }())
     {
     }
@@ -175,7 +175,7 @@ public:
     {
     }
 
-    ConversionResult(nullptr_t) requires std::is_same_v<decltype(IDL::nullValue()), nullptr_t>
+    ConversionResult(std::nullptr_t) requires std::is_same_v<decltype(IDL::nullValue()), std::nullptr_t>
         : m_storage { nullptr }
     {
     }

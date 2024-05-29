@@ -400,12 +400,6 @@ bool Buffer::isDestroyed() const
     return state() == State::Destroyed;
 }
 
-uint32_t Buffer::maxIndex(MTLIndexType indexType) const
-{
-    ASSERT(m_usage & WGPUBufferUsage_Index);
-    return indexType == MTLIndexTypeUInt16 ? m_max16BitIndex : m_max32BitIndex;
-}
-
 id<MTLBuffer> Buffer::indirectBuffer() const
 {
     return m_indirectBuffer;
@@ -487,9 +481,14 @@ void* wgpuBufferGetBufferContents(WGPUBuffer buffer)
     return WebGPU::fromAPI(buffer).getBufferContents();
 }
 
-uint64_t wgpuBufferGetSize(WGPUBuffer buffer)
+uint64_t wgpuBufferGetInitialSize(WGPUBuffer buffer)
 {
     return WebGPU::fromAPI(buffer).initialSize();
+}
+
+uint64_t wgpuBufferGetCurrentSize(WGPUBuffer buffer)
+{
+    return WebGPU::fromAPI(buffer).currentSize();
 }
 
 void wgpuBufferMapAsync(WGPUBuffer buffer, WGPUMapModeFlags mode, size_t offset, size_t size, WGPUBufferMapCallback callback, void* userdata)

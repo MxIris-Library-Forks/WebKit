@@ -3365,6 +3365,7 @@ webkit.org/b/250767 imported/w3c/web-platform-tests/html/user-activation/activat
 # :hover simulation not working on iOS
 imported/w3c/web-platform-tests/css/selectors/hover-002.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-text-decor/invalidation/text-decoration-thickness.html [ Skip ]
+fast/css/link-style-color-invalidation.html [ Skip ]
 
 # Certain versions of iOS use different text security characters.
 webkit.org/b/209692 platform/ios/fast/text/text-security-disc-bullet-pua-ios-new.html [ Pass ]
@@ -7316,3 +7317,7 @@ editing/selection/ios/selection-handles-in-iframe.html [ Timeout ]
 fast/images/text-recognition/ios/select-word-in-image-overlay-inside-link.html [ Timeout ]
 
 webkit.org/b/271916 media/track/track-in-band-layout.html [ Failure ]
+
+webkit.org/b/274766 [ Debug ] http/wpt/webauthn/public-key-credential-get-success-u2f.https.html [ Failure ]
+
+webkit.org/b/274732 [ Debug ] js/dom/missing-exception-check-in-convertVariadicArguments.html [ Skip ]

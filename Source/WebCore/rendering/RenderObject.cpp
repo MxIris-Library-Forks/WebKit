@@ -588,6 +588,8 @@ void RenderObject::scheduleLayout(RenderElement* layoutRoot)
 RenderElement* RenderObject::markContainingBlocksForLayout(RenderElement* layoutRoot)
 {
     ASSERT(!isSetNeedsLayoutForbidden());
+    if (is<RenderView>(*this))
+        return downcast<RenderElement>(this);
 
     CheckedPtr ancestor = container();
 
@@ -1785,6 +1787,17 @@ bool RenderObject::isSelectionBorder() const
         || view().selection().end() == this;
 }
 
+void RenderObject::setCapturedInViewTransition(bool captured)
+{
+    if (capturedInViewTransition() != captured) {
+        m_stateBitfields.setFlag(StateFlag::CapturedInViewTransition, captured);
+        if (isDocumentElementRenderer())
+            view().layer()->setNeedsPostLayoutCompositingUpdate();
+        else if (hasLayer())
+            downcast<RenderLayerModelObject>(*this).layer()->setNeedsPostLayoutCompositingUpdate();
+    }
+}
+
 void RenderObject::willBeDestroyed()
 {
     ASSERT(!m_parent);
@@ -2395,6 +2408,15 @@ void RenderObject::RepaintRects::transform(const TransformationMatrix& matrix, f
         *outlineBoundsRect = clippedOverflowRect;
     else if (outlineBoundsRect)
         *outlineBoundsRect = LayoutRect(encloseRectToDevicePixels(matrix.mapRect(*outlineBoundsRect), deviceScaleFactor));
+}
+
+bool RenderObject::effectiveCapturedInViewTransition() const
+{
+    if (isDocumentElementRenderer())
+        return false;
+    if (isRenderView())
+        return document().activeViewTransitionCapturedDocumentElement();
+    return capturedInViewTransition();
 }
 
 #if PLATFORM(IOS_FAMILY)

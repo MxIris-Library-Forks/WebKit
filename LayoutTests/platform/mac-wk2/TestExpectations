@@ -1122,16 +1122,6 @@ webkit.org/b/179796 http/tests/cache/disk-cache/disk-cache-validation-back-navig
 # <rdar://problem/63547191> webrtc/h265.html consistently times out on several Mac models
 [ Release ] webrtc/h265.html [ Pass Timeout ]
 
-# <rdar://problem/64547962> REGRESSION: fast/multicol/newmulticol/ tests are flaky failing.
-fast/multicol/newmulticol/adjacent-spanners.html [ Pass Failure ImageOnlyFailure ]
-fast/multicol/newmulticol/insert-spanner4.html [ Pass Failure ]
-fast/multicol/newmulticol/remove-row-content2.html [ Pass Failure ]
-fast/multicol/newmulticol/remove-row-content8.html [ Pass Failure ]
-fast/multicol/newmulticol/spanner-last.html [ Pass Failure ]
-
-# <rdar://problem/64700658> imported/w3c/web-platform-tests/css/css-font-loading/idlharness.https.html is a flaky timeout and flaky failure
-imported/w3c/web-platform-tests/css/css-font-loading/idlharness.https.html [ Pass Failure Timeout ]
-
 # rdar://66703773 (REGRESSION (20A2316-20A2348b): http/tests/security/contentSecurityPolicy/plugin-blocked-in-about-blank-window.html is a constant failure)
 [ arm64 ] http/tests/security/contentSecurityPolicy/plugin-blocked-in-about-blank-window.html [ Skip ]
 
@@ -1145,14 +1135,6 @@ imported/w3c/web-platform-tests/css/css-font-loading/idlharness.https.html [ Pas
 [ arm64 ] imported/w3c/web-platform-tests/html/canvas/element/path-objects/2d.path.arc.shape.3.html [ Failure ]
 [ arm64 ] inspector/canvas/memory.html [ Failure ]
 
-webkit.org/b/229671 [ Debug arm64 ] imported/w3c/web-platform-tests/html/rendering/replaced-elements/svg-embedded-sizing/svg-in-img-auto.html [ Pass Crash ]
-
-webkit.org/b/230105 [ Debug arm64 ] imported/w3c/web-platform-tests/html/rendering/replaced-elements/svg-embedded-sizing/svg-in-iframe-percentage.html [ Pass Crash ]
-
-webkit.org/b/230105 [ Debug arm64 ] imported/w3c/web-platform-tests/html/rendering/replaced-elements/svg-embedded-sizing/svg-in-img-fixed.html [ Pass Crash ]
-
-webkit.org/b/230105 [ Debug arm64 ] imported/w3c/web-platform-tests/html/rendering/replaced-elements/svg-embedded-sizing/svg-in-img-percentage.html [ Pass Crash ]
-
 webkit.org/b/230691 [ Release ] imported/w3c/web-platform-tests/html/cross-origin-opener-policy/iframe-popup-unsafe-none-to-unsafe-none.https.html [ Pass Failure ]
 
 # rdar://66806059 (REGRESSION (20A2321a-20A2348b): 4 fast hidpi tests are a flaky image failure)
@@ -1161,9 +1143,6 @@ webkit.org/b/230691 [ Release ] imported/w3c/web-platform-tests/html/cross-origi
 [ arm64 ] fast/inline/hidpi-inline-block-is-subpixel-while-line-is-not.html [ ImageOnlyFailure ]
 
 webkit.org/b/230696 imported/w3c/web-platform-tests/webrtc/RTCDataChannel-close.html [ Pass Failure ]
-
-# rdar://65269589 ([ macOS and iOS ] media/vp9.html is failing consistently.)
-media/vp9.html [ Pass ]
 
 webkit.org/b/214997 [ Release ] http/tests/workers/service/basic-install-event-waitUntil-reject.html [ Pass Timeout ]
 
@@ -1175,9 +1154,6 @@ webkit.org/b/216292 imported/w3c/web-platform-tests/css/css-flexbox/quirks-auto-
 
 # App Bound Domains is for iOS only
 http/tests/resourceLoadStatistics/exemptDomains/ [ Skip ]
-
-#<rdar://68952824> [ macOS iOS wk2 ] media/media-continues-playing-after-replace-source.html is a flaky failure
-media/media-continues-playing-after-replace-source.html [ Pass Failure ]
 
 webkit.org/b/217001 fast/scrolling/latching/latched-scroll-into-nonfast-region.html [ Pass Failure ]
 
@@ -1256,9 +1232,6 @@ webkit.org/b/208022 http/tests/history/back-to-post.py [ Pass Failure Timeout ]
 webkit.org/b/223292 [ arm64 ] fast/table/multiple-captions-crash4.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/223293 media/media-fullscreen-return-to-inline.html [ Pass Failure Timeout ]
-
-# webkit.org/b/223385 Two imported webrtc tests are flakey text failing on Release 
-[ Release ] imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-addIceCandidate-connectionSetup.html [ Pass Failure ]
 
 webkit.org/b/223462 [ Debug arm64 ] imported/w3c/web-platform-tests/mediacapture-streams/GUM-optional-constraint.https.html [ Pass Crash ]
 
@@ -1401,25 +1374,6 @@ webkit.org/b/238880 [ Release ] imported/w3c/web-platform-tests/css/css-text/whi
 webkit.org/b/239095 http/wpt/cache-storage/cache-storage-networkprocess-crash.html [ Pass Crash ]
 
 webkit.org/b/239304 http/tests/cache-storage/cache-origins.https.html [ Pass Failure ]
-
-# WebGL conformance tests are a flaky time out
-webkit.org/b/239386 [ Debug ] webgl/1.0.3/conformance/textures/copy-tex-image-and-sub-image-2d.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-array-buffer-view.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/1.0.3/conformance/textures/texture-size-cube-maps.html [ Pass Timeout ]
-webkit.org/b/239386 [ Debug ] webgl/1.0.3/conformance/textures/texture-size-limit.html [ Pass Timeout ]
-webkit.org/b/239386 [ Debug ] webgl/1.0.3/conformance/textures/texture-size.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/textures/image_bitmap_from_canvas/tex-2d-rgb-rgb-unsigned_byte.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/textures/image_bitmap_from_canvas/tex-2d-rgb-rgb-unsigned_short_5_6_5.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/textures/image_bitmap_from_canvas/tex-2d-rgba-rgba-unsigned_byte.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/textures/misc/copy-tex-image-and-sub-image-2d.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/1.0.3/conformance/uniforms/uniform-default-values.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/canvas/rapid-resizing.html [ Pass Timeout ]
-webkit.org/b/239386 [ Debug ] webgl/2.0.0/conformance/context/context-eviction-with-garbage-collection.html [ Pass Timeout ]
-webkit.org/b/239386 [ Debug ] webgl/2.0.0/conformance/context/context-release-upon-reload.html [ Pass Timeout ]
-webkit.org/b/239386 [ Debug ] webgl/2.0.0/conformance2/buffers/buffer-copying-contents.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/textures/image_bitmap_from_canvas/tex-2d-rgba-rgba-unsigned_short_4_4_4_4.html [ Pass Timeout ]
-webkit.org/b/239386 [ Debug ] webgl/2.0.0/conformance/uniforms/uniform-values-per-program.html [ Pass Timeout ]
-webkit.org/b/239386 webgl/2.0.0/conformance/textures/image_bitmap_from_canvas/tex-2d-rgba-rgba-unsigned_short_5_5_5_1.html [ Pass Timeout ]
 
 # WebGL conformance tests are a flaky time out
 webkit.org/b/239388 webgl/1.0.3/conformance/uniforms/out-of-bounds-uniform-array-access.html [ Pass Timeout ]
@@ -1875,8 +1829,6 @@ webkit.org/b/272685 [ Ventura+ x86_64 ] imported/w3c/web-platform-tests/svg/pain
 
 webkit.org/b/273012 [ Ventura+ x86_64 ] imported/w3c/web-platform-tests/svg/painting/reftests/percentage.svg [ ImageOnlyFailure ]
 
-webkit.org/b/273588 fast/forms/select/mac-wk2/inactive-appearance.html [ Pass ImageOnlyFailure ]
-
 webkit.org/b/273905 [ X86_64 ] svg/filters/filter-on-root-tile-boundary.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/274130 [ Debug ] media/video-pause-immediately.html [ Pass Failure ]
@@ -1885,3 +1837,9 @@ webkit.org/b/274709 imported/w3c/web-platform-tests/pointerevents/pointer-events
 webkit.org/b/274709 imported/w3c/web-platform-tests/pointerevents/pointer-events-none-skip-scroll-will-change-in-iframe.html [ Pass Failure ]
 
 webkit.org/b/274766 http/wpt/webauthn/public-key-credential-get-success-u2f.https.html [ Failure ]
+
+webkit.org/b/258228 [ Sonoma+ ] accessibility/mac/text-input-session-notifications.html [ Pass ]
+
+webkit.org/b/274847 http/tests/site-isolation/opened-window-length.html [ Timeout ]
+
+webkit.org/b/274852 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-flat-transform-ancestor.html [ ImageOnlyFailure ]

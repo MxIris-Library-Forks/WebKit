@@ -125,7 +125,7 @@ public:
     WebCore::FrameView* mainFrameView() const;
 
     CGRect pluginBoundsForAnnotation(RetainPtr<PDFAnnotation>&) const final;
-    void setActiveAnnotation(RetainPtr<PDFAnnotation>&&) final;
+    void setActiveAnnotation(SetActiveAnnotationParams&&) final;
     void focusNextAnnotation() final;
     void focusPreviousAnnotation() final;
 #if PLATFORM(MAC)
@@ -144,6 +144,8 @@ public:
     void didSameDocumentNavigationForFrame(WebFrame&) final;
 
     float documentFittingScale() const { return m_documentLayout.scale(); }
+
+    bool shouldCachePagePreviews() const;
 
 #if PLATFORM(MAC)
     WebCore::FloatRect convertFromPDFPageToScreenForAccessibility(const WebCore::FloatRect&, PDFDocumentLayout::PageIndex) const;
@@ -279,6 +281,8 @@ private:
     RefPtr<WebCore::FragmentedSharedBuffer> liveResourceData() const override;
 
     NSData *liveData() const override;
+
+    void releaseMemory() override;
 
     bool wantsWheelEvents() const override { return false; }
     bool handleMouseEvent(const WebMouseEvent&) override;

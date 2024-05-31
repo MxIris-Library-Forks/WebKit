@@ -202,6 +202,8 @@ void UnifiedPDFPlugin::teardown()
 #if ENABLE(UNIFIED_PDF_DATA_DETECTION)
     std::exchange(m_dataDetectorOverlayController, nullptr)->teardown();
 #endif
+
+    setActiveAnnotation({ nullptr, IsInPluginCleanup::Yes });
 }
 
 GraphicsLayer* UnifiedPDFPlugin::graphicsLayer() const
@@ -522,12 +524,11 @@ void UnifiedPDFPlugin::updatePageBackgroundLayers()
         destinationRect.scale(m_documentLayout.scale());
 
         auto addLayerShadow = [](GraphicsLayer& layer, IntPoint shadowOffset, const Color& shadowColor, int shadowStdDeviation) {
-            Vector<RefPtr<FilterOperation>> filterOperations;
-            filterOperations.append(DropShadowFilterOperation::create(shadowOffset, shadowStdDeviation, shadowColor));
-
-            FilterOperations filters;
-            filters.setOperations(WTFMove(filterOperations));
-            layer.setFilters(filters);
+            layer.setFilters(FilterOperations {
+                Vector<Ref<FilterOperation>> {
+                    DropShadowFilterOperation::create(shadowOffset, shadowStdDeviation, shadowColor)
+                }
+            });
         };
 
         const auto containerShadowOffset = IntPoint { 0, 1 };
@@ -1567,6 +1568,12 @@ NSData *UnifiedPDFPlugin::liveData() const
     return originalData();
 }
 
+void UnifiedPDFPlugin::releaseMemory()
+{
+    if (RefPtr asyncRenderer = asyncRendererIfExists())
+        asyncRenderer->releaseMemory();
+}
+
 void UnifiedPDFPlugin::didChangeScrollOffset()
 {
     if (this->currentScrollType() == ScrollType::User)
@@ -1738,6 +1745,12 @@ DelegatedScrollingMode UnifiedPDFPlugin::scrollingMode() const
 bool UnifiedPDFPlugin::isFullMainFramePlugin() const
 {
     return m_frame->isMainFrame() && isFullFramePlugin();
+}
+
+bool UnifiedPDFPlugin::shouldCachePagePreviews() const
+{
+    // Only main frame plugins are hooked up to releaseMemory().
+    return isFullFramePlugin();
 }
 
 OptionSet<TiledBackingScrollability> UnifiedPDFPlugin::computeScrollability() const
@@ -2335,7 +2348,7 @@ bool UnifiedPDFPlugin::handleMouseEvent(const WebMouseEvent& event)
                     return true;
 
                 if ([annotation isKindOfClass:getPDFAnnotationTextWidgetClass()] || [annotation isKindOfClass:getPDFAnnotationChoiceWidgetClass()]) {
-                    setActiveAnnotation(WTFMove(annotation));
+                    setActiveAnnotation({ WTFMove(annotation) });
                     return true;
                 }
 
@@ -3880,7 +3893,7 @@ void UnifiedPDFPlugin::focusNextAnnotation()
     RetainPtr nextTextAnnotation = this->nextTextAnnotation(AnnotationSearchDirection::Forward);
     if (!nextTextAnnotation || nextTextAnnotation == m_activeAnnotation->annotation())
         return;
-    setActiveAnnotation(WTFMove(nextTextAnnotation));
+    setActiveAnnotation({ WTFMove(nextTextAnnotation) });
 #endif
 }
 
@@ -3892,17 +3905,21 @@ void UnifiedPDFPlugin::focusPreviousAnnotation()
     RetainPtr previousTextAnnotation = this->nextTextAnnotation(AnnotationSearchDirection::Backward);
     if (!previousTextAnnotation || previousTextAnnotation == m_activeAnnotation->annotation())
         return;
-    setActiveAnnotation(WTFMove(previousTextAnnotation));
+    setActiveAnnotation({ WTFMove(previousTextAnnotation) });
 #endif
 }
 
-void UnifiedPDFPlugin::setActiveAnnotation(RetainPtr<PDFAnnotation>&& annotation)
+void UnifiedPDFPlugin::setActiveAnnotation(SetActiveAnnotationParams&& setActiveAnnotationParams)
 {
 #if PLATFORM(MAC)
-    if (!supportsForms())
+    auto&& [annotation, isInPluginCleanup] = setActiveAnnotationParams;
+
+    ASSERT(isInPluginCleanup != IsInPluginCleanup::Yes || !annotation, "Must pass a null annotation when cleaning up the plugin");
+
+    if (isInPluginCleanup != IsInPluginCleanup::Yes && !supportsForms())
         return;
 
-    if (m_activeAnnotation) {
+    if (isInPluginCleanup != IsInPluginCleanup::Yes && m_activeAnnotation) {
         m_activeAnnotation->commit();
         setNeedsRepaintForAnnotation(m_activeAnnotation->annotation(), repaintRequirementsForAnnotation(m_activeAnnotation->annotation(), IsAnnotationCommit::Yes));
     }

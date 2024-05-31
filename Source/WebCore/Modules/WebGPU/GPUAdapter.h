@@ -55,6 +55,8 @@ public:
     using RequestDevicePromise = DOMPromiseDeferred<IDLInterface<GPUDevice>>;
     void requestDevice(ScriptExecutionContext&, const std::optional<GPUDeviceDescriptor>&, RequestDevicePromise&&);
 
+    using RequestAdapterInfoPromise = DOMPromiseDeferred<IDLInterface<GPUAdapterInfo>>;
+    void requestAdapterInfo(const std::optional<Vector<String>>&, RequestAdapterInfoPromise&&);
     Ref<GPUAdapterInfo> info();
 
     WebGPU::Adapter& backing() { return m_backing; }

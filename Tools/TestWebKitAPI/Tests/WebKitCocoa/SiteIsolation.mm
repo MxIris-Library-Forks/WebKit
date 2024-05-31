@@ -3034,6 +3034,36 @@ TEST(SiteIsolation, ProvisionalLoadFailureOnCrossSiteRedirect)
     Util::run(&done);
 }
 
+TEST(SiteIsolation, SynchronouslyExecuteEditCommandSelectAll)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe id='iframe' src='https://webkit.org/frame'></iframe>"_s } },
+        { "/frame"_s, { "test"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    __block bool done = false;
+    [webView evaluateJavaScript:@"document.getElementById('iframe').focus()" completionHandler:^(id, NSError *) {
+        done = true;
+    }];
+    Util::run(&done);
+    done = false;
+
+    __block RetainPtr<_WKFrameTreeNode> childFrameNode;
+    [webView _frames:^(_WKFrameTreeNode *mainFrame) {
+        childFrameNode = mainFrame.childFrames[0];
+        done = true;
+    }];
+    Util::run(&done);
+
+    [webView _synchronouslyExecuteEditCommand:@"SelectAll" argument:nil];
+    while (![webView selectionRangeHasStartOffset:0 endOffset:4 inFrame:childFrameNode.get().info])
+        Util::spinRunLoop();
+}
+
 #if PLATFORM(MAC)
 TEST(SiteIsolation, SelectAll)
 {
@@ -3121,6 +3151,30 @@ TEST(SiteIsolation, CanGoBackAfterLoadingAndNavigatingFrame)
 
     [webView evaluateJavaScript:@"location.href = 'https://webkit.org/destination'" inFrame:childFrameInfo.get() inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
     EXPECT_WK_STREQ([webView _test_waitForAlert], "done");
+    EXPECT_TRUE([webView canGoBack]);
+}
+
+TEST(SiteIsolation, CanGoBackAfterNavigatingFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe id='frame' src='https://domain1.com/source'></iframe>"_s } },
+        { "/source"_s, { ""_s } },
+        { "/destination"_s, { "<script> alert('destination'); </script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    __block RetainPtr<WKFrameInfo> childFrameInfo;
+    __block bool done = false;
+    [webView _frames:^(_WKFrameTreeNode *mainFrame) {
+        childFrameInfo = mainFrame.childFrames.firstObject.info;
+        done = true;
+    }];
+    Util::run(&done);
+
+    [webView evaluateJavaScript:@"location.href = 'https://domain2.com/destination'" inFrame:childFrameInfo.get() inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "destination");
     EXPECT_TRUE([webView canGoBack]);
 }
 

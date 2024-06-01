@@ -10738,7 +10738,7 @@
 		4683DF3C2767DF26007D00C8 /* ShadowRealmGlobalScope.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ShadowRealmGlobalScope.idl; sourceTree = "<group>"; };
 		4683DF3D2767DF98007D00C8 /* JSShadowRealmGlobalScopeBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSShadowRealmGlobalScopeBase.cpp; sourceTree = "<group>"; };
 		4683DF3E2767DF98007D00C8 /* JSShadowRealmGlobalScopeBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSShadowRealmGlobalScopeBase.h; sourceTree = "<group>"; };
-		4688C4B42B6B0697003533C9 /* SharedMemoryCocoa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SharedMemoryCocoa.cpp; sourceTree = "<group>"; };
+		4688C4B42B6B0697003533C9 /* SharedMemoryCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SharedMemoryCocoa.mm; sourceTree = "<group>"; };
 		4688C4B62B6B06F1003533C9 /* SharedMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SharedMemory.cpp; sourceTree = "<group>"; };
 		4688C4B72B6B06F2003533C9 /* SharedMemory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedMemory.h; sourceTree = "<group>"; };
 		4688E97D27B6B44300567CD2 /* CoreLocationGeolocationProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreLocationGeolocationProvider.mm; sourceTree = "<group>"; };
@@ -30791,7 +30791,7 @@
 				0E7058ED1BC5BC190045A507 /* SearchPopupMenuCocoa.mm */,
 				5CFC9C822B71ABF200F8D289 /* SerializedPlatformDataCueValue.mm */,
 				1A4A95510B4EDCFF002D8C3C /* SharedBufferCocoa.mm */,
-				4688C4B42B6B0697003533C9 /* SharedMemoryCocoa.cpp */,
+				4688C4B42B6B0697003533C9 /* SharedMemoryCocoa.mm */,
 				41DC04FB27A83C92008CF968 /* SharedVideoFrameInfo.h */,
 				41DC04FD27A83C93008CF968 /* SharedVideoFrameInfo.mm */,
 				C1692DD423D23AE0006E88F7 /* SystemBattery.h */,

@@ -321,6 +321,11 @@ void UnifiedPDFPlugin::handleClickForDataDetectionResult(const DataDetectorEleme
     page->chrome().client().handleClickForDataDetectionResult(dataDetectorElementInfo, clickPointInPluginSpace);
 }
 
+bool UnifiedPDFPlugin::canShowDataDetectorHighlightOverlays() const
+{
+    return !m_inMagnificationGesture;
+}
+
 void UnifiedPDFPlugin::didInvalidateDataDetectorHighlightOverlayRects()
 {
     auto lastKnownMousePositionInDocumentSpace = convertDown<FloatPoint>(CoordinateSpace::Plugin, CoordinateSpace::PDFDocumentLayout, lastKnownMousePositionInView());
@@ -499,7 +504,6 @@ void UnifiedPDFPlugin::ensureLayers()
         m_selectionLayer->setDrawsContent(true);
         m_selectionLayer->setAcceleratesDrawing(true);
         m_selectionLayer->setBlendMode(BlendMode::Multiply);
-        m_scrolledContentsLayer->addChild(*m_selectionLayer);
     }
 #endif
 }
@@ -1282,6 +1286,10 @@ float UnifiedPDFPlugin::deviceScaleFactor() const
 void UnifiedPDFPlugin::didBeginMagnificationGesture()
 {
     m_inMagnificationGesture = true;
+
+#if ENABLE(UNIFIED_PDF_DATA_DETECTION)
+    dataDetectorOverlayController().hideActiveHighlightOverlay();
+#endif
 }
 
 void UnifiedPDFPlugin::didEndMagnificationGesture()
@@ -1338,10 +1346,6 @@ void UnifiedPDFPlugin::setScaleFactor(double scale, std::optional<WebCore::IntPo
 #if PLATFORM(MAC)
     if (m_activeAnnotation)
         m_activeAnnotation->updateGeometry();
-#endif
-
-#if ENABLE(UNIFIED_PDF_DATA_DETECTION)
-    didInvalidateDataDetectorHighlightOverlayRects();
 #endif
 
     auto scrolledContentsPoint = roundedIntPoint(convertUp(CoordinateSpace::Contents, CoordinateSpace::ScrolledContents, FloatPoint { zoomContentsOrigin }));
@@ -3346,6 +3350,24 @@ void UnifiedPDFPlugin::repaintOnSelectionChange(ActiveStateChangeReason reason, 
         repaintSelection(previousSelection);
 
     repaintSelection(protectedCurrentSelection().get());
+    showOrHideSelectionLayerAsNecessary();
+}
+
+void UnifiedPDFPlugin::showOrHideSelectionLayerAsNecessary()
+{
+#if ENABLE(UNIFIED_PDF_SELECTION_LAYER)
+    if ([m_currentSelection isEmpty]) {
+        m_selectionLayer->removeFromParent();
+        return;
+    }
+
+    if (!m_selectionLayer->parent()) {
+        m_scrolledContentsLayer->addChild(*m_selectionLayer);
+        RefPtr page = this->page();
+        if (page)
+            m_selectionLayer->setIsInWindow(page->isInWindow());
+    }
+#endif
 }
 
 RetainPtr<PDFSelection> UnifiedPDFPlugin::protectedCurrentSelection() const

@@ -17500,6 +17500,8 @@
 		BC4DDD92273D84E700660EBB /* SceneKitModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SceneKitModel.mm; sourceTree = "<group>"; };
 		BC4DDD93273D84E700660EBB /* SceneKitModelLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneKitModelLoader.h; sourceTree = "<group>"; };
 		BC4DDD94273D84E700660EBB /* SceneKitModelLoaderUSD.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SceneKitModelLoaderUSD.mm; sourceTree = "<group>"; };
+		BC4E15E82C078188004A6A52 /* TransformOperationsSharedPrimitivesPrefix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TransformOperationsSharedPrimitivesPrefix.cpp; sourceTree = "<group>"; };
+		BC4E15E92C078188004A6A52 /* TransformOperationsSharedPrimitivesPrefix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TransformOperationsSharedPrimitivesPrefix.h; sourceTree = "<group>"; };
 		BC51156D12B1749C00C96754 /* ScrollAnimatorMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollAnimatorMac.mm; sourceTree = "<group>"; };
 		BC51580A0C03D404008BB0EE /* JSHTMLDocumentCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLDocumentCustom.cpp; sourceTree = "<group>"; };
 		BC53C5F40DA56B920021EB5D /* Gradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gradient.h; sourceTree = "<group>"; };
@@ -25257,6 +25259,8 @@
 				49E911BE0EF86D47009D0CAF /* TransformOperation.h */,
 				49E911BF0EF86D47009D0CAF /* TransformOperations.cpp */,
 				49E911C00EF86D47009D0CAF /* TransformOperations.h */,
+				BC4E15E82C078188004A6A52 /* TransformOperationsSharedPrimitivesPrefix.cpp */,
+				BC4E15E92C078188004A6A52 /* TransformOperationsSharedPrimitivesPrefix.h */,
 				4945BFD113CF809000CC3B38 /* TransformState.cpp */,
 				4945BFD213CF809000CC3B38 /* TransformState.h */,
 				49E911C10EF86D47009D0CAF /* TranslateTransformOperation.cpp */,

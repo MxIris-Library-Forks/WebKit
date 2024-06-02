@@ -285,6 +285,11 @@ void AsyncPDFRenderer::tilingScaleFactorDidChange(TiledBacking&, float)
 {
 }
 
+void AsyncPDFRenderer::didAddGrid(TiledBacking&, TileGridIdentifier)
+{
+
+}
+
 void AsyncPDFRenderer::willRemoveGrid(WebCore::TiledBacking&, TileGridIdentifier gridIdentifier)
 {
     m_rendereredTiles.removeIf([gridIdentifier](const auto& keyValuePair) {
@@ -631,6 +636,9 @@ bool AsyncPDFRenderer::paintTilesForPage(GraphicsContext& context, float documen
 
             auto tileClipInPaintingCoordinates = scaleTransform.mapRect(renderedTile.tileInfo.tileRect);
             if (!pageBoundsInPaintingCoordinates.intersects(tileClipInPaintingCoordinates))
+                continue;
+
+            if (!tileClipInPaintingCoordinates.intersects(clipRect))
                 continue;
 
             LOG_WITH_STREAM(PDFAsyncRendering, stream << "AsyncPDFRenderer::paintTilesForPage " << pageBoundsInPaintingCoordinates  << " - painting tile for " << keyValuePair.key << " with clip " << renderedTile.tileInfo.tileRect << " tiling scale " << tilingScaleFactor);

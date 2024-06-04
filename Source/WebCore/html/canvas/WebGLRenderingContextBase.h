@@ -707,8 +707,6 @@ protected:
 
     bool m_stencilEnabled;
     GCGLuint m_stencilMask, m_stencilMaskBack;
-    GCGLint m_stencilFuncRef, m_stencilFuncRefBack; // Note that these are the user specified values, not the internal clamped value.
-    GCGLuint m_stencilFuncMask, m_stencilFuncMaskBack;
 
     bool m_rasterizerDiscardEnabled { false };
 
@@ -952,9 +950,6 @@ protected:
     // Helper function to validate mode for draw{Arrays/Elements}.
     bool validateDrawMode(ASCIILiteral functionName, GCGLenum);
 
-    // Helper function to validate if front/back stencilMask and stencilFunc settings are the same.
-    bool validateStencilSettings(ASCIILiteral functionName);
-
     // Helper function to validate stencil func.
     bool validateStencilFunc(ASCIILiteral functionName, GCGLenum);
 
@@ -975,9 +970,6 @@ protected:
     // Helper function to validate input parameters for framebuffer functions.
     // Generate GL error if parameters are illegal.
     bool validateFramebufferFuncParameters(ASCIILiteral functionName, GCGLenum target, GCGLenum attachment);
-
-    // Helper function to validate blend equation mode.
-    virtual bool validateBlendEquation(ASCIILiteral functionName, GCGLenum) = 0;
 
     // Helper function to validate a GL capability.
     virtual bool validateCapability(ASCIILiteral functionName, GCGLenum);

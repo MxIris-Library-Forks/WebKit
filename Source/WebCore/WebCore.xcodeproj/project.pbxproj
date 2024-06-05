@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -13019,6 +13019,7 @@
 		721B3EF22968F45D004F5FF6 /* MenuListButtonMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MenuListButtonMac.h; sourceTree = "<group>"; };
 		721B3EF32968F45E004F5FF6 /* MenuListButtonMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MenuListButtonMac.mm; sourceTree = "<group>"; };
 		721B3EF42968F47D004F5FF6 /* MenuListButtonPart.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuListButtonPart.h; sourceTree = "<group>"; };
+		7224ABCF2C0174EE00D85362 /* BitmapImageDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapImageDescriptor.h; sourceTree = "<group>"; };
 		7225E8062A3E298C00947EBF /* RotationDirection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RotationDirection.cpp; sourceTree = "<group>"; };
 		722623BF29486B28006DCCF1 /* ControlFactory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ControlFactory.cpp; sourceTree = "<group>"; };
 		722623C029486B28006DCCF1 /* ControlFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControlFactory.h; sourceTree = "<group>"; };
@@ -13062,6 +13063,7 @@
 		7246F0272A15415900FD74F1 /* PlatformPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformPath.h; sourceTree = "<group>"; };
 		7246F0282A15415900FD74F1 /* PlatformPathImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformPathImpl.h; sourceTree = "<group>"; };
 		7246F02E2A1549CB00FD74F1 /* PathCG.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathCG.h; sourceTree = "<group>"; };
+		724D43202C0F791800934872 /* BitmapImageDescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BitmapImageDescriptor.cpp; sourceTree = "<group>"; };
 		724DCF1B284853650026ACF4 /* ImageBufferAllocator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ImageBufferAllocator.cpp; sourceTree = "<group>"; };
 		724DCF1C284853650026ACF4 /* ImageBufferAllocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageBufferAllocator.h; sourceTree = "<group>"; };
 		724DCF1D28485C330026ACF4 /* FilterResults.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FilterResults.cpp; sourceTree = "<group>"; };
@@ -32773,6 +32775,8 @@
 				2DD87149265F4365005F997C /* BifurcatedGraphicsContext.h */,
 				A89943270B42338700D7C802 /* BitmapImage.cpp */,
 				A89943260B42338700D7C802 /* BitmapImage.h */,
+				724D43202C0F791800934872 /* BitmapImageDescriptor.cpp */,
+				7224ABCF2C0174EE00D85362 /* BitmapImageDescriptor.h */,
 				72854E672B6987B600E0181A /* BitmapImageSource.cpp */,
 				72854E662B6987B600E0181A /* BitmapImageSource.h */,
 				72C11DAB28492A9200E826DD /* ByteArrayPixelBuffer.cpp */,

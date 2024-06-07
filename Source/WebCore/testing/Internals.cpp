@@ -4679,6 +4679,10 @@ void Internals::setMaximumSourceBufferSize(SourceBuffer& buffer, uint64_t maximu
 void Internals::bufferedSamplesForTrackId(SourceBuffer& buffer, const AtomString& trackId, BufferedSamplesPromise&& promise)
 {
     buffer.bufferedSamplesForTrackId(parseInteger<uint64_t>(trackId).value_or(0))->whenSettled(RunLoop::current(), [promise = WTFMove(promise)](auto&& samples) mutable {
+        if (!samples) {
+            promise.reject(Exception { ExceptionCode::OperationError, makeString("Error "_s, samples.error()) });
+            return;
+        }
         promise.resolve(WTFMove(*samples));
     });
 }
@@ -4686,6 +4690,10 @@ void Internals::bufferedSamplesForTrackId(SourceBuffer& buffer, const AtomString
 void Internals::enqueuedSamplesForTrackID(SourceBuffer& buffer, const AtomString& trackID, BufferedSamplesPromise&& promise)
 {
     buffer.enqueuedSamplesForTrackID(parseInteger<uint64_t>(trackID).value_or(0))->whenSettled(RunLoop::current(), [promise = WTFMove(promise)](auto&& samples) mutable {
+        if (!samples) {
+            promise.reject(Exception { ExceptionCode::OperationError, makeString("Error "_s, samples.error()) });
+            return;
+        }
         promise.resolve(WTFMove(*samples));
     });
 }
@@ -7416,13 +7424,9 @@ bool Internals::readyToRetrieveComputedRoleOrLabel(Element& element) const
     if (element.renderer())
         return true;
 
-    auto* computedStyle = element.computedStyle();
-    // If we can't get computed style for some reason, assume we can query for computed role or label.
-    if (!computedStyle)
-        return true;
-
-    // If the element needs a renderer but doesn't have one yet, we aren't ready to query the computed accessibility role or label. Doing so before the renderer has been attached will yield incorrect results.
-    return !element.rendererIsNeeded(*computedStyle);
+    // If the RenderTree is not laid out, we aren't ready to query the computed accessibility role or label. Doing so will yield incorrect results.
+    auto& document = element.document();
+    return !document.inRenderTreeUpdate() && !(document.view() && document.view()->layoutContext().isInRenderTreeLayout());
 }
 
 bool Internals::hasScopeBreakingHasSelectors() const

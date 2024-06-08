@@ -812,7 +812,7 @@ void RenderBundleEncoder::endCurrentICB()
 
 bool RenderBundleEncoder::validToEncodeCommand() const
 {
-    return !m_finished || m_renderPassEncoder;
+    return !m_finished || (m_renderPassEncoder && m_renderPassEncoder->renderCommandEncoder());
 }
 
 Ref<RenderBundle> RenderBundleEncoder::finish(const WGPURenderBundleDescriptor& descriptor)
@@ -980,7 +980,7 @@ void RenderBundleEncoder::setBindGroup(uint32_t groupIndex, const BindGroup& gro
         }
     }
 
-    m_bindGroups.set(groupIndex, group);
+    m_bindGroups.set(groupIndex, &group);
     if (group.vertexArgumentBuffer()) {
         addResource(m_resources, group.vertexArgumentBuffer(), MTLRenderStageVertex);
         m_vertexBuffers[m_device->vertexBufferIndexForBindGroup(groupIndex)] = { .buffer = group.vertexArgumentBuffer(), .offset = 0, .dynamicOffsetCount = dynamicOffsetCount, .dynamicOffsets = dynamicOffsets->data(), .size = group.vertexArgumentBuffer().length };
@@ -994,7 +994,7 @@ void RenderBundleEncoder::setBindGroup(uint32_t groupIndex, const BindGroup& gro
 void RenderBundleEncoder::setIndexBuffer(Buffer& buffer, WGPUIndexFormat format, uint64_t offset, uint64_t size)
 {
     RETURN_IF_FINISHED();
-    m_indexBuffer = buffer;
+    m_indexBuffer = &buffer;
     RELEASE_ASSERT(m_indexBuffer);
     m_indexType = format == WGPUIndexFormat_Uint32 ? MTLIndexTypeUInt32 : MTLIndexTypeUInt16;
     m_indexBufferOffset = offset;

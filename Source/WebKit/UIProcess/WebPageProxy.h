@@ -401,6 +401,7 @@ class RemoteScrollingCoordinatorProxy;
 class RevealItem;
 class SandboxExtensionHandle;
 class SecKeyProxyStore;
+class Site;
 class SpeechRecognitionPermissionManager;
 class SuspendedPageProxy;
 class SystemPreviewController;
@@ -1547,9 +1548,9 @@ public:
 #endif
 
     WebProcessProxy& ensureRunningProcess();
-    WebProcessProxy& process() const { return m_process; }
-    Ref<WebProcessProxy> protectedProcess() const;
-    ProcessID processID() const;
+    WebProcessProxy& legacyMainFrameProcess() const { return m_legacyMainFrameProcess; }
+    Ref<WebProcessProxy> protectedLegacyMainFrameProcess() const;
+    ProcessID legacyMainFrameProcessID() const;
 
     ProcessID gpuProcessID() const;
     ProcessID modelProcessID() const;
@@ -2287,7 +2288,7 @@ public:
     WKQuickLookPreviewController *quickLookPreviewController() const { return m_quickLookPreviewController.get(); }
 #endif
 
-    WebProcessProxy* processForRegistrableDomain(const WebCore::RegistrableDomain&);
+    WebProcessProxy* processForSite(const Site&);
 
     void createRemoteSubframesInOtherProcesses(WebFrameProxy&, const String& frameName);
     void broadcastMainFrameURLChangeToOtherProcesses(IPC::Connection&, const URL&);
@@ -2701,7 +2702,7 @@ private:
     void backForwardAddItem(WebCore::FrameIdentifier, BackForwardListItemState&&);
     void backForwardGoToItem(const WebCore::BackForwardItemIdentifier&, CompletionHandler<void(const WebBackForwardListCounts&)>&&);
     void backForwardListContainsItem(const WebCore::BackForwardItemIdentifier&, CompletionHandler<void(bool)>&&);
-    void backForwardItemAtIndex(int32_t index, CompletionHandler<void(std::optional<WebCore::BackForwardItemIdentifier>&&)>&&);
+    void backForwardItemAtIndex(IPC::Connection&, int32_t index, CompletionHandler<void(std::optional<WebCore::BackForwardItemIdentifier>&&)>&&);
     void backForwardListCounts(CompletionHandler<void(WebBackForwardListCounts&&)>&&);
     void backForwardClear();
 
@@ -3146,7 +3147,7 @@ private:
 #if PLATFORM(COCOA) && ENABLE(ASYNC_SCROLLING)
     std::unique_ptr<RemoteScrollingCoordinatorProxy> m_scrollingCoordinatorProxy;
 #endif
-    Ref<WebProcessProxy> m_process;
+    Ref<WebProcessProxy> m_legacyMainFrameProcess;
     Ref<WebPageGroup> m_pageGroup;
     Ref<WebPreferences> m_preferences;
 
@@ -3259,7 +3260,7 @@ private:
 #endif
     bool m_allowsMediaDocumentInlinePlayback { false };
 
-    ProcessActivityState m_processActivityState;
+    ProcessActivityState m_legacyMainFrameProcessActivityState;
 
     bool m_initialCapitalizationEnabled { false };
     std::optional<double> m_cpuLimit;

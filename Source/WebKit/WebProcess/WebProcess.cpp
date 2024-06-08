@@ -1033,21 +1033,6 @@ void WebProcess::removeWebFrame(FrameIdentifier frameID, std::optional<WebPagePr
     parentProcessConnection()->send(Messages::WebProcessProxy::DidDestroyFrame(frameID, *pageID), 0);
 }
 
-WebPageGroupProxy* WebProcess::webPageGroup(PageGroup* pageGroup)
-{
-    for (auto& page : m_pageGroupMap.values()) {
-        if (page->corePageGroup() == pageGroup)
-            return page.get();
-    }
-
-    return 0;
-}
-
-WebPageGroupProxy* WebProcess::webPageGroup(PageGroupIdentifier pageGroupID)
-{
-    return m_pageGroupMap.get(pageGroupID);
-}
-
 WebPageGroupProxy* WebProcess::webPageGroup(const WebPageGroupData& pageGroupData)
 {
     auto result = m_pageGroupMap.add(pageGroupData.pageGroupID, nullptr);
@@ -1384,11 +1369,9 @@ GPUProcessConnection& WebProcess::ensureGPUProcessConnection()
     return *m_gpuProcessConnection;
 }
 
-void WebProcess::gpuProcessConnectionClosed(GPUProcessConnection& connection)
+void WebProcess::gpuProcessConnectionClosed()
 {
     ASSERT(m_gpuProcessConnection);
-    ASSERT_UNUSED(connection, m_gpuProcessConnection == &connection);
-
     m_gpuProcessConnection = nullptr;
 
     for (auto& page : m_pageMap.values()) {
@@ -1400,6 +1383,12 @@ void WebProcess::gpuProcessConnectionClosed(GPUProcessConnection& connection)
     if (m_audioMediaStreamTrackRendererInternalUnitManager)
         m_audioMediaStreamTrackRendererInternalUnitManager->restartAllUnits();
 #endif
+}
+
+void WebProcess::gpuProcessConnectionDidBecomeUnresponsive()
+{
+    ASSERT(m_gpuProcessConnection);
+    parentProcessConnection()->send(Messages::WebProcessProxy::GPUProcessConnectionDidBecomeUnresponsive(), 0);
 }
 
 #if PLATFORM(COCOA) && USE(LIBWEBRTC)

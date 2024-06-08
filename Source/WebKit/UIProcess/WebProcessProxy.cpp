@@ -242,7 +242,7 @@ Vector<std::pair<WebCore::ProcessIdentifier, WebCore::RegistrableDomain>> WebPro
 {
     Vector<std::pair<WebCore::ProcessIdentifier, WebCore::RegistrableDomain>> result;
     for (Ref page : globalPages())
-        result.append(std::make_pair(page->process().coreProcessIdentifier(), RegistrableDomain(URL(page->currentURL()))));
+        result.append(std::make_pair(page->legacyMainFrameProcess().coreProcessIdentifier(), RegistrableDomain(URL(page->currentURL()))));
     return result;
 }
 
@@ -1081,6 +1081,13 @@ void WebProcessProxy::createGPUProcessConnection(IPC::Connection::Handle&& conne
 #endif
     parameters.isLockdownModeEnabled = lockdownMode() == WebProcessProxy::LockdownMode::Enabled;
     protectedProcessPool()->createGPUProcessConnection(*this, WTFMove(connectionIdentifier), WTFMove(parameters));
+}
+
+void WebProcessProxy::gpuProcessConnectionDidBecomeUnresponsive()
+{
+    WEBPROCESSPROXY_RELEASE_LOG_ERROR(Process, "gpuProcessConnectionDidBecomeUnresponsive");
+    if (RefPtr process = protectedProcessPool()->gpuProcess())
+        process->childConnectionDidBecomeUnresponsive();
 }
 
 void WebProcessProxy::gpuProcessDidFinishLaunching()

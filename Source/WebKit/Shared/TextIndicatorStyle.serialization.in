@@ -21,55 +21,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if ENABLE(UNIFIED_TEXT_REPLACEMENT)
-header: "WebTextReplacementData.h"
-[CustomHeader] enum class WebKit::WebTextReplacementDataState : uint8_t {
-    Pending,
-    Active,
-    Reverted,
-    Invalid
-};
-
-header: "WebTextReplacementData.h"
-[CustomHeader] enum class WebKit::WebTextReplacementDataEditAction : uint8_t {
-    Undo,
-    Redo,
-    UndoAll,
-};
-
-header: "WebTextReplacementData.h"
-[CustomHeader] struct WebKit::WebTextReplacementData {
-    WTF::UUID uuid;
-    WebCore::CharacterRange originalRange;
-    String replacement;
-    String description;
-    WebKit::WebTextReplacementDataState state;
-};
-
-header: "WebUnifiedTextReplacementSessionData.h"
-[CustomHeader] enum class WebKit::WebUnifiedTextReplacementSessionDataReplacementType : uint8_t {
-    PlainText,
-    RichText,
-}
-
-header: "WebUnifiedTextReplacementSessionData.h"
-[CustomHeader] enum class WebKit::WebUnifiedTextReplacementSessionDataCorrectionType : uint8_t {
-    None,
-    Grammar,
-    Spelling,
-};
-
-struct WebKit::WebUnifiedTextReplacementContextData {
-    WTF::UUID uuid;
-    WebCore::AttributedString attributedText;
-    WebCore::CharacterRange range;
-};
-
-header: "WebUnifiedTextReplacementSessionData.h"
-[CustomHeader] struct WebKit::WebUnifiedTextReplacementSessionData {
-    WTF::UUID uuid;
-    WebKit::WebUnifiedTextReplacementSessionDataReplacementType replacementType;
-    WebKit::WebUnifiedTextReplacementSessionDataCorrectionType correctionType;
-};
 
 header: "TextIndicatorStyle.h"
 [CustomHeader] enum class WebKit::TextIndicatorStyle : uint8_t {

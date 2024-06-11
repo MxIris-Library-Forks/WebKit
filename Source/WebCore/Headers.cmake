@@ -818,6 +818,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     crypto/SerializedCryptoKeyWrap.h
 
+    css/CSSAnchorValue.h
     css/CSSConditionRule.h
     css/CSSCounterStyle.h
     css/CSSCounterStyleDescriptors.h
@@ -1661,6 +1662,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     page/text-extraction/TextExtraction.h
     page/text-extraction/TextExtractionTypes.h
+
+    page/unified-text-replacement/UnifiedTextReplacementTypes.h
 
     platform/AbortableTaskQueue.h
     platform/AudioSampleFormat.h

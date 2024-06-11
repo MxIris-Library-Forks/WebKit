@@ -27,38 +27,87 @@
 
 #if ENABLE(UNIFIED_TEXT_REPLACEMENT)
 
-#include <WebCore/AttributedString.h>
-#include <WebCore/CharacterRange.h>
-#include <wtf/UUID.h>
-#include <wtf/text/WTFString.h>
+#include "AttributedString.h"
+#include "CharacterRange.h"
+#include <wtf/Forward.h>
 
-namespace WebKit {
+namespace WebCore {
+namespace UnifiedTextReplacement {
 
-enum class WebTextReplacementDataState : uint8_t {
+enum class ReplacementBehavior : uint8_t {
+    None,
+    Default,
+    Limited,
+    Complete,
+};
+
+enum class EditAction : uint8_t {
+    Undo,
+    Redo,
+    UndoAll,
+};
+
+#pragma mark - Session
+
+enum class SessionReplacementType : uint8_t {
+    PlainText,
+    RichText,
+};
+
+enum class SessionCorrectionType : uint8_t {
+    None,
+    Grammar,
+    Spelling,
+};
+
+using SessionID = WTF::UUID;
+
+struct Session {
+    using ID = SessionID;
+
+    using ReplacementType = SessionReplacementType;
+    using CorrectionType = SessionCorrectionType;
+
+    ID identifier;
+    ReplacementType replacementType { ReplacementType::RichText };
+    CorrectionType correctionType { CorrectionType::None };
+};
+
+#pragma mark - Context
+
+using ContextID = WTF::UUID;
+
+struct Context {
+    using ID = ContextID;
+
+    ID identifier;
+    AttributedString attributedText;
+    CharacterRange range;
+};
+
+#pragma mark - Replacement
+
+enum class ReplacementState : uint8_t {
     Pending,
     Active,
     Reverted,
     Invalid,
 };
 
-enum class WebTextReplacementDataEditAction : uint8_t {
-    Undo,
-    Redo,
-    UndoAll,
-};
+using ReplacementID = WTF::UUID;
 
-struct WebTextReplacementData {
-    using State = WebTextReplacementDataState;
+struct Replacement {
+    using ID = ReplacementID;
 
-    using EditAction = WebTextReplacementDataEditAction;
+    using State = ReplacementState;
 
-    WTF::UUID uuid;
-    WebCore::CharacterRange originalRange;
+    ID identifier;
+    CharacterRange originalRange;
     String replacement;
-    String description;
     State state;
 };
 
-}
+} // namespace UnifiedTextReplacement
+} // namespace WebCore
 
 #endif

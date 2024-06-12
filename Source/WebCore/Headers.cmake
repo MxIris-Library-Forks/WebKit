@@ -817,6 +817,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     contentextensions/URLFilterParser.h
 
     crypto/SerializedCryptoKeyWrap.h
+    crypto/WrappedCryptoKey.h
 
     css/CSSAnchorValue.h
     css/CSSConditionRule.h
@@ -2358,6 +2359,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/HitTestRequest.h
     rendering/HitTestResult.h
     rendering/HitTestSource.h
+    rendering/LayoutRepainter.h
     rendering/LayerAncestorClippingStack.h
     rendering/LayerFragment.h
     rendering/LegacyInlineBox.h

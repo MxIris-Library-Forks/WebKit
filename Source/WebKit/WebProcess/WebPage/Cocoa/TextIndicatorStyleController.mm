@@ -23,7 +23,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
 
 #include "config.h"
 #include "TextIndicatorStyleController.h"
@@ -37,7 +37,7 @@
 #include <WebCore/SimpleRange.h>
 #include <WebCore/TextIndicator.h>
 #include <WebCore/TextIterator.h>
-#include <WebCore/UnifiedTextReplacementController.h>
+#include <WebCore/UnifiedTextReplacementTypes.h>
 
 namespace WebKit {
 
@@ -90,7 +90,7 @@ std::optional<WebCore::SimpleRange> TextIndicatorStyleController::contextRangeFo
         return std::nullopt;
     }
 
-    return corePage->unifiedTextReplacementController().contextRangeForSessionWithID(sessionID);
+    return corePage->contextRangeForSessionWithID(sessionID);
 }
 
 std::optional<WebCore::SimpleRange> TextIndicatorStyleController::contextRangeForTextIndicatorStyle(const WTF::UUID& uuid) const
@@ -349,4 +349,4 @@ void TextIndicatorStyleController::enableTextIndicatorStyleForElementWithID(cons
 
 } // namespace WebKit
 
-#endif // ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#endif // ENABLE(WRITING_TOOLS)

@@ -111,7 +111,7 @@ void ViewTransition::skipViewTransition(ExceptionOr<JSC::JSValue>&& reason)
         });
     }
 
-    document()->clearRenderingIsSuppressedForViewTransition();
+    // FIXME: Set rendering suppression for view transitions to false.
 
     if (document()->activeViewTransition() == this)
         clearViewTransition();
@@ -232,7 +232,7 @@ void ViewTransition::setupViewTransition()
         return;
     }
 
-    document()->setRenderingIsSuppressedForViewTransitionAfterUpdateRendering();
+    // FIXME: Set document’s rendering suppression for view transitions to true.
     protectedDocument()->checkedEventLoop()->queueTask(TaskSource::DOMManipulation, [this, weakThis = WeakPtr { *this }] {
         RefPtr protectedThis = weakThis.get();
         if (!protectedThis)
@@ -307,7 +307,7 @@ static RefPtr<ImageBuffer> snapshotElementVisualOverflowClippedToViewport(LocalF
     ASSERT(frame.document());
     auto hostWindow = (frame.document()->view() && frame.document()->view()->root()) ? frame.document()->view()->root()->hostWindow() : nullptr;
 
-    auto buffer = ImageBuffer::create(paintRect.size(), RenderingPurpose::Snapshot, scaleFactor, DestinationColorSpace::SRGB(), PixelFormat::BGRA8, { ImageBufferOptions::Accelerated }, hostWindow);
+    auto buffer = ImageBuffer::create(paintRect.size(), RenderingPurpose::Snapshot, scaleFactor, DestinationColorSpace::SRGB(), ImageBufferPixelFormat::BGRA8, { ImageBufferOptions::Accelerated }, hostWindow);
     if (!buffer)
         return nullptr;
 
@@ -538,8 +538,6 @@ void ViewTransition::activateViewTransition()
 {
     if (m_phase == ViewTransitionPhase::Done)
         return;
-
-    document()->clearRenderingIsSuppressedForViewTransition();
 
     // Ensure style & render tree are up-to-date.
     protectedDocument()->updateStyleIfNeeded();

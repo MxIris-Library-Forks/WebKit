@@ -205,14 +205,14 @@ static void prepareContextForQRCode(ContextMenuContext& context)
     if (!frame)
         return;
 
-    auto nodeSnapshotImageBuffer = snapshotNode(*frame, *element, { { }, PixelFormat::BGRA8, DestinationColorSpace::SRGB() });
+    auto nodeSnapshotImageBuffer = snapshotNode(*frame, *element, { { }, ImageBufferPixelFormat::BGRA8, DestinationColorSpace::SRGB() });
     RefPtr nodeSnapshotImage = BitmapImage::create(ImageBuffer::sinkIntoNativeImage(WTFMove(nodeSnapshotImageBuffer)));
     context.setPotentialQRCodeNodeSnapshotImage(nodeSnapshotImage.get());
 
     // FIXME: Node snapshotting does not take transforms into account, making it unreliable for QR code detection.
     // As a fallback, also take a viewport-level snapshot. A node snapshot is still required to capture partially
     // obscured elements. This workaround can be removed once rdar://87204215 is fixed.
-    auto viewportSnapshotImageBuffer = snapshotFrameRect(*frame, elementRect, { { }, PixelFormat::BGRA8, DestinationColorSpace::SRGB() });
+    auto viewportSnapshotImageBuffer = snapshotFrameRect(*frame, elementRect, { { }, ImageBufferPixelFormat::BGRA8, DestinationColorSpace::SRGB() });
     RefPtr viewportSnapshotImage = BitmapImage::create(ImageBuffer::sinkIntoNativeImage(WTFMove(viewportSnapshotImageBuffer)));
     context.setPotentialQRCodeViewportSnapshotImage(viewportSnapshotImage.get());
 }
@@ -645,7 +645,7 @@ void ContextMenuController::contextMenuItemSelected(ContextMenuAction action, co
         break;
 
     case ContextMenuItemTagSwapCharacters:
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
         if (RefPtr view = frame->view())
             m_client->handleSwapCharacters(view->contentsToRootView(enclosingIntRect(frame->selection().selectionBounds())));
 #endif
@@ -1040,7 +1040,7 @@ void ContextMenuController::populate()
         appendItem(translateItem, m_contextMenu.get());
 #endif
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
         ContextMenuItem swapCharactersItem(ContextMenuItemType::Action, ContextMenuItemTagSwapCharacters, contextMenuItemTagSwapCharacters());
         appendItem(swapCharactersItem, m_contextMenu.get());
 #endif

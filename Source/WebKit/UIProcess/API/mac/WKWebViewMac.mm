@@ -47,7 +47,6 @@
 #import <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
 
 #if USE(APPLE_INTERNAL_SDK)
-#import <WebKitAdditions/UnifiedTextReplacementAdditions.h>
 #import <WebKitAdditions/WebMultiRepresentationHEICAttachmentAdditions.h>
 #endif
 
@@ -1233,7 +1232,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 {
 }
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
 - (BOOL)_web_wantsCompleteUnifiedTextReplacementBehavior
 {
     return [self _wantsCompleteUnifiedTextReplacementBehavior];

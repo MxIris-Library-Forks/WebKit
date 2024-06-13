@@ -174,7 +174,7 @@ class WheelEventDeltaFilter;
 class WheelEventTestMonitor;
 class WindowEventLoop;
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
 class UnifiedTextReplacementController;
 
 namespace UnifiedTextReplacement {
@@ -1038,7 +1038,6 @@ public:
 #endif
 
     WEBCORE_EXPORT void forEachDocument(const Function<void(Document&)>&) const;
-    void forEachRenderableDocument(const Function<void(Document&)>&) const;
     void forEachMediaElement(const Function<void(HTMLMediaElement&)>&);
     static void forEachDocumentFromMainFrame(const Frame&, const Function<void(Document&)>&);
     void forEachLocalFrame(const Function<void(LocalFrame&)>&);
@@ -1147,7 +1146,7 @@ public:
     void gamepadsRecentlyAccessed();
 #endif
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
     WEBCORE_EXPORT void willBeginTextReplacementSession(const std::optional<UnifiedTextReplacement::Session>&, CompletionHandler<void(const Vector<UnifiedTextReplacement::Context>&)>&&);
 
     WEBCORE_EXPORT void didBeginTextReplacementSession(const UnifiedTextReplacement::Session&, const Vector<UnifiedTextReplacement::Context>&);
@@ -1164,7 +1163,7 @@ public:
 
     WEBCORE_EXPORT void updateStateForSelectedReplacementIfNeeded();
 
-    const UnifiedTextReplacementController& unifiedTextReplacementController() const { return m_unifiedTextReplacementController.get(); }
+    WEBCORE_EXPORT std::optional<SimpleRange> contextRangeForSessionWithID(const UnifiedTextReplacement::SessionID&) const;
 #endif
 
 private:
@@ -1570,7 +1569,7 @@ private:
     MonotonicTime m_lastAccessNotificationTime;
 #endif
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
     UniqueRef<UnifiedTextReplacementController> m_unifiedTextReplacementController;
 #endif
 }; // class Page

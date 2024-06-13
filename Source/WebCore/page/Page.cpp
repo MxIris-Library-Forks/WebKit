@@ -215,7 +215,7 @@
 #include "AccessibilityRootAtspi.h"
 #endif
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
 #include "UnifiedTextReplacementController.h"
 #endif
 
@@ -412,7 +412,7 @@ Page::Page(PageConfiguration&& pageConfiguration)
     , m_contentSecurityPolicyModeForExtension(WTFMove(pageConfiguration.contentSecurityPolicyModeForExtension))
     , m_badgeClient(WTFMove(pageConfiguration.badgeClient))
     , m_historyItemClient(WTFMove(pageConfiguration.historyItemClient))
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
     , m_unifiedTextReplacementController(makeUniqueRef<UnifiedTextReplacementController>(*this))
 #endif
 {
@@ -1876,7 +1876,7 @@ void Page::updateRendering()
 
     auto runProcessingStep = [&](RenderingUpdateStep step, const Function<void(Document&)>& perDocumentFunction) {
         m_renderingUpdateRemainingSteps.last().remove(step);
-        forEachRenderableDocument(perDocumentFunction);
+        forEachDocument(perDocumentFunction);
     };
 
     runProcessingStep(RenderingUpdateStep::RestoreScrollPositionAndViewState, [] (Document& document) {
@@ -2006,7 +2006,7 @@ void Page::doAfterUpdateRendering()
 
     auto runProcessingStep = [&](RenderingUpdateStep step, const Function<void(Document&)>& perDocumentFunction) {
         m_renderingUpdateRemainingSteps.last().remove(step);
-        forEachRenderableDocument(perDocumentFunction);
+        forEachDocument(perDocumentFunction);
     };
 
     runProcessingStep(RenderingUpdateStep::CursorUpdate, [] (Document& document) {
@@ -2014,19 +2014,19 @@ void Page::doAfterUpdateRendering()
             frame->checkedEventHandler()->updateCursorIfNeeded();
     });
 
-    forEachRenderableDocument([] (Document& document) {
+    forEachDocument([] (Document& document) {
         document.enqueuePaintTimingEntryIfNeeded();
     });
 
-    forEachRenderableDocument([] (Document& document) {
+    forEachDocument([] (Document& document) {
         document.checkedSelection()->updateAppearanceAfterUpdatingRendering();
     });
 
-    forEachRenderableDocument([] (Document& document) {
+    forEachDocument([] (Document& document) {
         document.updateHighlightPositions();
     });
 #if ENABLE(APP_HIGHLIGHTS)
-    forEachRenderableDocument([] (Document& document) {
+    forEachDocument([] (Document& document) {
         auto appHighlightStorage = document.appHighlightStorageIfExists();
         if (!appHighlightStorage)
             return;
@@ -2046,7 +2046,7 @@ void Page::doAfterUpdateRendering()
 #endif
 
 #if ENABLE(VIDEO)
-    forEachRenderableDocument([] (Document& document) {
+    forEachDocument([] (Document& document) {
         document.updateTextTrackRepresentationImageIfNeeded();
     });
 #endif
@@ -2075,7 +2075,7 @@ void Page::doAfterUpdateRendering()
     m_renderingUpdateRemainingSteps.last().remove(RenderingUpdateStep::AccessibilityRegionUpdate);
     if (shouldUpdateAccessibilityRegions()) {
         m_lastAccessibilityObjectRegionsUpdate = m_lastRenderingUpdateTimestamp;
-        forEachRenderableDocument([] (Document& document) {
+        forEachDocument([] (Document& document) {
             document.updateAccessibilityObjectRegions();
         });
     }
@@ -2085,7 +2085,7 @@ void Page::doAfterUpdateRendering()
 
     m_renderingUpdateRemainingSteps.last().remove(RenderingUpdateStep::PrepareCanvasesForDisplayOrFlush);
 
-    forEachRenderableDocument([] (Document& document) {
+    forEachDocument([] (Document& document) {
         document.prepareCanvasesForDisplayOrFlushIfNeeded();
     });
 
@@ -2202,10 +2202,6 @@ void Page::didCompleteRenderingFrame()
     // FIXME: Run WindowEventLoop tasks from here: webkit.org/b/249684.
     if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(mainFrame()))
         InspectorInstrumentation::didCompleteRenderingFrame(*localMainFrame);
-
-    forEachDocument([&] (Document& document) {
-        document.flushDeferredRenderingIsSuppressedForViewTransitionChanges();
-    });
 }
 
 void Page::prioritizeVisibleResources()
@@ -2220,7 +2216,7 @@ void Page::prioritizeVisibleResources()
 
     Vector<CachedResourceHandle<CachedResource>> toPrioritize;
 
-    forEachRenderableDocument([&] (Document& document) {
+    forEachDocument([&] (Document& document) {
         toPrioritize.appendVector(document.protectedCachedResourceLoader()->visibleResourcesToPrioritize());
     });
     
@@ -3073,13 +3069,7 @@ void Page::setCurrentKeyboardScrollingAnimator(KeyboardScrollingAnimator* animat
 
 bool Page::fingerprintingProtectionsEnabled() const
 {
-    auto* localMainFrame = dynamicDowncast<LocalFrame>(mainFrame());
-    RefPtr document = localMainFrame ? localMainFrame->document() : nullptr;
-    if (!document)
-        return false;
-
-    RefPtr loader = document->loader();
-    return loader && loader->fingerprintingProtectionsEnabled();
+    return protectedMainFrame()->advancedPrivacyProtections().contains(AdvancedPrivacyProtections::FingerprintingProtections);
 }
 
 #if ENABLE(REMOTE_INSPECTOR)
@@ -3988,24 +3978,6 @@ void Page::forEachDocument(const Function<void(Document&)>& functor) const
     forEachDocumentFromMainFrame(protectedMainFrame(), functor);
 }
 
-void Page::forEachRenderableDocument(const Function<void(Document&)>& functor) const
-{
-    Vector<Ref<Document>> documents;
-    for (const auto* frame = &mainFrame(); frame; frame = frame->tree().traverseNext()) {
-        auto* localFrame = dynamicDowncast<LocalFrame>(frame);
-        if (!localFrame)
-            continue;
-        auto* document = localFrame->document();
-        if (!document)
-            continue;
-        if (document->renderingIsSuppressedForViewTransition())
-            continue;
-        documents.append(*document);
-    }
-    for (auto& document : documents)
-        functor(document);
-}
-
 void Page::forEachMediaElement(const Function<void(HTMLMediaElement&)>& functor)
 {
 #if ENABLE(VIDEO)
@@ -4858,7 +4830,7 @@ void Page::gamepadsRecentlyAccessed()
 }
 #endif
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
 void Page::willBeginTextReplacementSession(const std::optional<UnifiedTextReplacement::Session>& session, CompletionHandler<void(const Vector<UnifiedTextReplacement::Context>&)>&& completionHandler)
 {
     m_unifiedTextReplacementController->willBeginTextReplacementSession(session, WTFMove(completionHandler));
@@ -4894,7 +4866,12 @@ void Page::updateStateForSelectedReplacementIfNeeded()
     m_unifiedTextReplacementController->updateStateForSelectedReplacementIfNeeded();
 }
 
-void Page::textReplacementSessionDidReceiveEditAction(const UnifiedTextReplacement::Session& session, WebCore::UnifiedTextReplacement::EditAction action)
+std::optional<SimpleRange> Page::contextRangeForSessionWithID(const UnifiedTextReplacement::Session::ID& sessionID) const
+{
+    return m_unifiedTextReplacementController->contextRangeForSessionWithID(sessionID);
+}
+
+void Page::textReplacementSessionDidReceiveEditAction(const UnifiedTextReplacement::Session& session, UnifiedTextReplacement::EditAction action)
 {
     m_unifiedTextReplacementController->textReplacementSessionDidReceiveEditAction(session, action);
 }

@@ -379,7 +379,7 @@ public:
     
     virtual DisplayRefreshMonitorFactory* displayRefreshMonitorFactory() const { return nullptr; }
 
-    virtual RefPtr<ImageBuffer> createImageBuffer(const FloatSize&, RenderingPurpose, float, const DestinationColorSpace&, PixelFormat, OptionSet<ImageBufferOptions>) const { return nullptr; }
+    virtual RefPtr<ImageBuffer> createImageBuffer(const FloatSize&, RenderingPurpose, float, const DestinationColorSpace&, ImageBufferPixelFormat, OptionSet<ImageBufferOptions>) const { return nullptr; }
     WEBCORE_EXPORT virtual RefPtr<WebCore::ImageBuffer> sinkIntoImageBuffer(std::unique_ptr<WebCore::SerializedImageBuffer>);
 
 #if ENABLE(WEBGL)
@@ -663,7 +663,7 @@ public:
 
     virtual double baseViewportLayoutSizeScaleFactor() const { return 1; }
 
-#if ENABLE(UNIFIED_TEXT_REPLACEMENT)
+#if ENABLE(WRITING_TOOLS)
     virtual void textReplacementSessionShowInformationForReplacementWithIDRelativeToRect(const UnifiedTextReplacement::SessionID&, const UnifiedTextReplacement::ReplacementID&, IntRect) { }
 
     virtual void textReplacementSessionUpdateStateForReplacementWithID(const UnifiedTextReplacement::SessionID&, UnifiedTextReplacement::ReplacementState, const UnifiedTextReplacement::ReplacementID&) { }

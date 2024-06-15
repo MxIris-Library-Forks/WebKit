@@ -262,6 +262,8 @@ inline bool canUseMegamorphicPutById(VM& vm, UniquedStringImpl* uid)
     return !parseIndex(*uid) && uid != vm.propertyNames->underscoreProto;
 }
 
+bool canBeViaGlobalProxy(AccessCase::AccessType);
+
 inline AccessGenerationResult::AccessGenerationResult(Kind kind, Ref<InlineCacheHandler>&& handler)
     : m_kind(kind)
     , m_handler(WTFMove(handler))
@@ -421,6 +423,10 @@ MacroAssemblerCodeRef<JITThunkPtrTag> putByIdCustomAccessorHandler(VM&);
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdCustomValueHandler(VM&);
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdStrictSetterHandler(VM&);
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdSloppySetterHandler(VM&);
+MacroAssemblerCodeRef<JITThunkPtrTag> inByIdHitHandler(VM&);
+MacroAssemblerCodeRef<JITThunkPtrTag> inByIdMissHandler(VM&);
+MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfHitHandler(VM&);
+MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfMissHandler(VM&);
 
 } // namespace JSC
 

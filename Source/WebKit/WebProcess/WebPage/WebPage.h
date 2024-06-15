@@ -675,7 +675,7 @@ public:
     Ref<API::Array> trackedRepaintRects();
 
     void executeEditingCommand(const String& commandName, const String& argument);
-    bool isEditingCommandEnabled(const String& commandName);
+    void isEditingCommandEnabled(const String& commandName, CompletionHandler<void(bool)>&&);
     void clearMainFrameName();
     void sendClose();
 
@@ -1754,7 +1754,9 @@ public:
     void textReplacementSessionShowInformationForReplacementWithIDRelativeToRect(const WebCore::UnifiedTextReplacement::SessionID&, const WebCore::UnifiedTextReplacement::ReplacementID&, WebCore::IntRect);
 
     void textReplacementSessionUpdateStateForReplacementWithID(const WebCore::UnifiedTextReplacement::SessionID&, WebCore::UnifiedTextReplacement::ReplacementState, const WebCore::UnifiedTextReplacement::ReplacementID&);
+#endif
 
+#if ENABLE(WRITING_TOOLS_UI)
     void enableTextIndicatorStyleAfterElementWithID(const String&, const WTF::UUID&);
     void enableTextIndicatorStyleForElementWithID(const String&, const WTF::UUID&);
 
@@ -2827,7 +2829,7 @@ private:
     String m_mediaEnvironment;
 #endif
 
-#if ENABLE(WRITING_TOOLS)
+#if ENABLE(WRITING_TOOLS_UI)
     UniqueRef<TextIndicatorStyleController> m_textIndicatorStyleController;
 #endif
 

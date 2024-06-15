@@ -3325,9 +3325,6 @@ ExceptionOr<ScrollableArea*> Internals::scrollableAreaForNode(Node* node) const
             return Exception { ExceptionCode::InvalidAccessError };
 
         auto& renderBox = *element.renderBox();
-        if (!renderBox.canBeScrolledAndHasScrollableArea())
-            return Exception { ExceptionCode::InvalidAccessError };
-
         if (is<RenderListBox>(renderBox))
             scrollableArea = &downcast<RenderListBox>(renderBox);
         else {
@@ -6107,6 +6104,11 @@ bool Internals::isMediaStreamSourceInterrupted(MediaStreamTrack& track) const
 bool Internals::isMediaStreamSourceEnded(MediaStreamTrack& track) const
 {
     return track.source().isEnded();
+}
+
+bool Internals::isMediaStreamTrackPowerEfficient(const MediaStreamTrack& track) const
+{
+    return track.source().isPowerEfficient();
 }
 
 bool Internals::isMockRealtimeMediaSourceCenterEnabled()

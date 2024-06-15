@@ -254,12 +254,8 @@ CanvasRenderingContext2DBase::~CanvasRenderingContext2DBase()
 
 bool CanvasRenderingContext2DBase::isAccelerated() const
 {
-#if USE(IOSURFACE_CANVAS_BACKING_STORE) || USE(SKIA)
     auto* context = existingDrawingContext();
     return context && context->renderingMode() == RenderingMode::Accelerated;
-#else
-    return false;
-#endif
 }
 
 bool CanvasRenderingContext2DBase::isSurfaceBufferTransparentBlack(SurfaceBuffer) const
@@ -269,12 +265,19 @@ bool CanvasRenderingContext2DBase::isSurfaceBufferTransparentBlack(SurfaceBuffer
     return !canvasBase().hasCreatedImageBuffer();
 }
 
+#if USE(SKIA)
+bool CanvasRenderingContext2DBase::delegatesDisplay() const
+{
+    return isAccelerated();
+}
+
 RefPtr<GraphicsLayerContentsDisplayDelegate> CanvasRenderingContext2DBase::layerContentsDisplayDelegate()
 {
     if (auto buffer = canvasBase().buffer())
         return buffer->layerContentsDisplayDelegate();
     return nullptr;
 }
+#endif
 
 bool CanvasRenderingContext2DBase::hasDeferredOperations() const
 {
@@ -1214,11 +1217,7 @@ void CanvasRenderingContext2DBase::beginCompositeLayer()
 {
 #if !USE(CAIRO)
     auto* context = drawingContext();
-    context->beginTransparencyLayer(1);
-#if USE(SKIA)
-    // When on transparency layer, we don't want to blend operations as when layer ends, we blend it as a whole.
-    context->setCompositeOperation(CompositeOperator::SourceOver, BlendMode::Normal);
-#endif
+    context->beginTransparencyLayer(state().globalComposite, state().globalBlend);
 #endif
 }
 
@@ -1227,9 +1226,6 @@ void CanvasRenderingContext2DBase::endCompositeLayer()
 #if !USE(CAIRO)
     auto* context = drawingContext();
     context->endTransparencyLayer();
-#if USE(SKIA)
-    context->setCompositeOperation(state().globalComposite, state().globalBlend);
-#endif
 #endif
 }
 
@@ -1360,7 +1356,16 @@ void CanvasRenderingContext2DBase::fillRect(double x, double y, double width, do
 
     bool repaintEntireCanvas = false;
     if (rectContainsCanvas(rect)) {
+#if USE(SKIA)
+        const bool needsCompositeLayer = shouldDrawShadows() && isFullCanvasCompositeMode(state().globalComposite);
+        if (needsCompositeLayer)
+            beginCompositeLayer();
+#endif
         c->fillRect(rect);
+#if USE(SKIA)
+        if (needsCompositeLayer)
+            endCompositeLayer();
+#endif
         repaintEntireCanvas = true;
     } else if (isFullCanvasCompositeMode(state().globalComposite)) {
         beginCompositeLayer();

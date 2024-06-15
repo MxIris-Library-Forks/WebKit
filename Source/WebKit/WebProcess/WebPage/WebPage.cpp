@@ -627,7 +627,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_appHighlightsVisible(parameters.appHighlightsVisible)
 #endif
     , m_historyItemClient(WebHistoryItemClient::create())
-#if ENABLE(WRITING_TOOLS)
+#if ENABLE(WRITING_TOOLS_UI)
     , m_textIndicatorStyleController(makeUniqueRef<TextIndicatorStyleController>(*this))
 #endif
 {
@@ -1771,19 +1771,19 @@ void WebPage::setBaseWritingDirection(WritingDirection direction)
     frame->editor().setBaseWritingDirection(direction);
 }
 
-bool WebPage::isEditingCommandEnabled(const String& commandName)
+void WebPage::isEditingCommandEnabled(const String& commandName, CompletionHandler<void(bool)>&& completionHandler)
 {
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
     if (!frame)
-        return false;
+        return completionHandler(false);
 
 #if ENABLE(PDF_PLUGIN)
     if (auto* pluginView = focusedPluginViewForFrame(*frame))
-        return pluginView->isEditingCommandEnabled(commandName);
+        return completionHandler(pluginView->isEditingCommandEnabled(commandName));
 #endif
 
     Editor::Command command = frame->editor().command(commandName);
-    return command.isSupported() && command.isEnabled();
+    completionHandler(command.isSupported() && command.isEnabled());
 }
     
 void WebPage::clearMainFrameName()
@@ -9150,7 +9150,7 @@ void WebPage::lastNavigationWasAppInitiated(CompletionHandler<void(bool)>&& comp
     return completionHandler(mainFrame->document()->loader()->lastNavigationWasAppInitiated());
 }
 
-#if ENABLE(WRITING_TOOLS)
+#if ENABLE(WRITING_TOOLS_UI)
 
 void WebPage::addTextIndicatorStyleForID(const WTF::UUID& uuid, const WebKit::TextIndicatorStyleData& styleData, const WebCore::TextIndicatorData& indicatorData)
 {

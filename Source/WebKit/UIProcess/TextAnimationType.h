@@ -25,6 +25,19 @@
 
 #pragma once
 
-#if USE(APPLE_INTERNAL_SDK)
-#import <WebKitAdditions/UnifiedTextReplacementSoftLinkAdditions.h>
-#endif
+#include <wtf/UUID.h>
+
+namespace WebKit {
+
+enum class TextAnimationType : uint8_t {
+    Initial,
+    Source,
+    Final
+};
+
+struct TextAnimationData {
+    TextAnimationType style;
+    WTF::UUID remainingRangeUUID { WTF::UUID::emptyValue };
+};
+
+} // namespace WebKit

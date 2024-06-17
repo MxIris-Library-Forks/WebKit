@@ -23,8 +23,29 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#pragma once
 
-#if USE(APPLE_INTERNAL_SDK)
-#import <WebKitAdditions/UnifiedTextReplacementSoftLinkAdditions.mm>
-#endif
+#import <Foundation/Foundation.h>
+
+#if ENABLE(WRITING_TOOLS_UI)
+
+#import "TextAnimationType.h"
+
+namespace WebKit {
+class WebViewImpl;
+}
+
+@interface WKTextAnimationManager : NSObject
+
+- (instancetype)initWithWebViewImpl:(WebKit::WebViewImpl&)view;
+- (void)addTextAnimationTypeForID:(NSUUID *)uuid withData:(const WebKit::TextAnimationData&)data;
+- (void)removeTextAnimationForID:(NSUUID *)uuid;
+
+- (BOOL)hasActiveTextAnimationType;
+
+- (void)suppressTextAnimationType;
+- (void)restoreTextAnimationType;
+
+@end
+
+#endif // ENABLE(WRITING_TOOLS_UI)

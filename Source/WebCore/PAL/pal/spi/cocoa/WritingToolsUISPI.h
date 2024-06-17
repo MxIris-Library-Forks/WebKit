@@ -25,19 +25,17 @@
 
 #pragma once
 
-#include <wtf/UUID.h>
+#if ENABLE(WRITING_TOOLS_UI)
 
-namespace WebKit {
+#if USE(APPLE_INTERNAL_SDK)
 
-enum class TextIndicatorStyle : uint8_t {
-    Initial,
-    Source,
-    Final
-};
+#import <WritingToolsUI/WritingToolsUI.h>
+#import <WritingToolsUI/WritingToolsUI_Private.h>
 
-struct TextIndicatorStyleData {
-    TextIndicatorStyle style;
-    WTF::UUID remainingRangeUUID { WTF::UUID::emptyValue };
-};
+#else
 
-} // namespace WebKit
+#error Symbols must be forward declared once used with non-internal SDKS.
+
+#endif
+
+#endif // ENABLE(WRITING_TOOLS_UI)

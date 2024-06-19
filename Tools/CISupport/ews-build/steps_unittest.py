@@ -2327,7 +2327,7 @@ class TestRunWebKitTestsInStressMode(BuildStepMixinAdditions, unittest.TestCase)
         self.setProperty('fullPlatform', 'ios-simulator')
         self.setProperty('configuration', 'release')
         self.setProperty('modified_tests', ['test1', 'test2'])
-        self.setProperty('additionalArguments', ['--child-processes=6', '--exclude-tests', 'imported/w3c/web-platform-tests'])
+        self.setProperty('additionalArguments', ['--child-processes=5', '--exclude-tests', 'imported/w3c/web-platform-tests'])
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         logfiles={'json': self.jsonFileName},
@@ -6212,6 +6212,8 @@ class TestRetrievePRDataFromLabel(BuildStepMixinAdditions, unittest.TestCase):
                         {'context': 'style', 'state': 'SUCCESS'},
                         {'context': 'tv', 'state': 'SUCCESS'},
                         {'context': 'tv-sim', 'state': 'SUCCESS'},
+                        {'context': 'vision', 'state': 'SUCCESS'},
+                        {'context': 'vision-sim', 'state': 'SUCCESS'},
                         {'context': 'watch', 'state': 'SUCCESS'},
                         {'context': 'watch-sim', 'state': 'SUCCESS'},
                         {'context': 'webkitperl', 'state': 'SUCCESS'},

@@ -881,6 +881,7 @@ public:
 
     PageClient& pageClient() const;
     Ref<PageClient> protectedPageClient() const;
+    RefPtr<PageClient> optionalProtectedPageClient() const;
 
     void setViewNeedsDisplay(const WebCore::Region&);
     void requestScroll(const WebCore::FloatPoint& scrollPosition, const WebCore::IntPoint& scrollOrigin, WebCore::ScrollIsAnimated);
@@ -2483,6 +2484,7 @@ public:
     BrowsingContextGroup& browsingContextGroup() const { return m_browsingContextGroup; }
 
     bool isEditingCommandEnabledForTesting(const String&);
+    void setPermissionLevelForTesting(const String& origin, bool allowed);
 
 private:
     std::optional<Vector<uint8_t>> getWebCryptoMasterKey();

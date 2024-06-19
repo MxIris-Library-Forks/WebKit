@@ -26,20 +26,20 @@
 #pragma once
 
 #include "FilterStyle.h"
-#include "FilterTargetSwitcher.h"
+#include "GraphicsContextSwitcher.h"
 
 namespace WebCore {
 
-class FilterStyleTargetSwitcher : public FilterTargetSwitcher {
+class TransparencyLayerContextSwitcher : public GraphicsContextSwitcher {
     WTF_MAKE_FAST_ALLOCATED;
 public:
-    FilterStyleTargetSwitcher(Filter&, const FloatRect &sourceImageRect);
+    TransparencyLayerContextSwitcher(const FloatRect &sourceImageRect, RefPtr<Filter>&&);
 
 private:
     void beginClipAndDrawSourceImage(GraphicsContext& destinationContext, const FloatRect& repaintRect, const FloatRect& clipRect) override;
     void endClipAndDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace& colorSpace) override { endDrawSourceImage(destinationContext, colorSpace); }
 
-    void beginDrawSourceImage(GraphicsContext& destinationContext) override;
+    void beginDrawSourceImage(GraphicsContext& destinationContext, float opacity = 1.f) override;
     void endDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&) override;
 
     FilterStyleVector m_filterStyles;

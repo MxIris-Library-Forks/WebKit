@@ -34,13 +34,13 @@ class Filter;
 class FilterResults;
 class GraphicsContext;
 
-class FilterTargetSwitcher {
+class GraphicsContextSwitcher {
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    static std::unique_ptr<FilterTargetSwitcher> create(GraphicsContext& destinationContext, Filter&, const FloatRect &sourceImageRect, const DestinationColorSpace&, FilterResults* = nullptr);
+    static std::unique_ptr<GraphicsContextSwitcher> create(GraphicsContext& destinationContext, const FloatRect &sourceImageRect, const DestinationColorSpace&, RefPtr<Filter>&& = nullptr, FilterResults* = nullptr);
 
-    virtual ~FilterTargetSwitcher() = default;
+    virtual ~GraphicsContextSwitcher() = default;
 
     virtual GraphicsContext* drawingContext(GraphicsContext& destinationContext) const { return &destinationContext; }
 
@@ -49,11 +49,11 @@ public:
     virtual void beginClipAndDrawSourceImage(GraphicsContext& destinationContext, const FloatRect& repaintRect, const FloatRect& clipRect) = 0;
     virtual void endClipAndDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&) = 0;
 
-    virtual void beginDrawSourceImage(GraphicsContext& destinationContext) = 0;
+    virtual void beginDrawSourceImage(GraphicsContext& destinationContext, float opacity = 1.f) = 0;
     virtual void endDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&) = 0;
 
 protected:
-    FilterTargetSwitcher(Filter&);
+    GraphicsContextSwitcher(RefPtr<Filter>&&);
 
     RefPtr<Filter> m_filter;
 };

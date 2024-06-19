@@ -23,35 +23,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "CanvasFilterContextSwitcher.h"
 
-#include "DestinationColorSpace.h"
-#include "FilterTargetSwitcher.h"
-#include "FloatRect.h"
-#include <wtf/FastMalloc.h>
+#include "CanvasLayerContextSwitcher.h"
+#include "CanvasRenderingContext2DBase.h"
 
 namespace WebCore {
 
-class CanvasRenderingContext2DBase;
-class Filter;
-class GraphicsContext;
+std::unique_ptr<CanvasFilterContextSwitcher> CanvasFilterContextSwitcher::create(CanvasRenderingContext2DBase& context, const FloatRect& bounds)
+{
+    if (context.state().filterOperations.isEmpty())
+        return nullptr;
 
-class CanvasFilterTargetSwitcher {
-    WTF_MAKE_FAST_ALLOCATED;
-public:
-    static std::unique_ptr<CanvasFilterTargetSwitcher> create(CanvasRenderingContext2DBase&, const DestinationColorSpace&, Function<FloatRect()>&& boundsProvider);
-    static std::unique_ptr<CanvasFilterTargetSwitcher> create(CanvasRenderingContext2DBase&, const DestinationColorSpace&, const FloatRect& bounds);
+    auto filter = context.createFilter(bounds);
+    if (!filter)
+        return nullptr;
 
-    CanvasFilterTargetSwitcher(CanvasRenderingContext2DBase&, const FloatRect& bounds, std::unique_ptr<FilterTargetSwitcher>&&);
-    ~CanvasFilterTargetSwitcher();
+    auto filterSwitcher = makeUnique<CanvasFilterContextSwitcher>(context);
+    if (!filterSwitcher)
+        return nullptr;
 
-    FloatBoxExtent outsets() const;
-    FloatRect expandedBounds() const { return m_bounds + outsets(); }
+    auto targetSwitcher = CanvasLayerContextSwitcher::create(context, bounds, WTFMove(filter));
+    if (!targetSwitcher)
+        return nullptr;
 
-private:
-    CanvasRenderingContext2DBase& m_context;
-    FloatRect m_bounds;
-    std::unique_ptr<FilterTargetSwitcher> m_filterTargetSwitcher;
-};
+    context.modifiableState().targetSwitcher = WTFMove(targetSwitcher);
+    return filterSwitcher;
+}
+
+CanvasFilterContextSwitcher::CanvasFilterContextSwitcher(CanvasRenderingContext2DBase& context)
+    : m_context(context)
+{
+    m_context.save();
+    m_context.realizeSaves();
+}
+
+CanvasFilterContextSwitcher::~CanvasFilterContextSwitcher()
+{
+    m_context.restore();
+}
+
+FloatRect CanvasFilterContextSwitcher::expandedBounds() const
+{
+    return m_context.state().targetSwitcher->expandedBounds();
+}
 
 } // namespace WebCore

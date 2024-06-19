@@ -24,21 +24,25 @@
  */
 
 #include "config.h"
-#include "FilterStyleTargetSwitcher.h"
+#include "TransparencyLayerContextSwitcher.h"
 
 #include "Filter.h"
 #include "GraphicsContext.h"
 
 namespace WebCore {
 
-FilterStyleTargetSwitcher::FilterStyleTargetSwitcher(Filter& filter, const FloatRect& sourceImageRect)
-    : FilterTargetSwitcher(filter)
-    , m_filterStyles(filter.createFilterStyles(sourceImageRect))
+TransparencyLayerContextSwitcher::TransparencyLayerContextSwitcher(const FloatRect& sourceImageRect, RefPtr<Filter>&& filter)
+    : GraphicsContextSwitcher(WTFMove(filter))
 {
+    if (m_filter)
+        m_filterStyles = m_filter->createFilterStyles(sourceImageRect);
 }
 
-void FilterStyleTargetSwitcher::beginClipAndDrawSourceImage(GraphicsContext& destinationContext, const FloatRect&, const FloatRect& clipRect)
+void TransparencyLayerContextSwitcher::beginClipAndDrawSourceImage(GraphicsContext& destinationContext, const FloatRect&, const FloatRect& clipRect)
 {
+    destinationContext.save();
+    destinationContext.beginTransparencyLayer(1);
+
     for (auto& filterStyle : m_filterStyles) {
         destinationContext.save();
         destinationContext.clip(intersection(filterStyle.imageRect, clipRect));
@@ -47,8 +51,11 @@ void FilterStyleTargetSwitcher::beginClipAndDrawSourceImage(GraphicsContext& des
     }
 }
 
-void FilterStyleTargetSwitcher::beginDrawSourceImage(GraphicsContext& destinationContext)
+void TransparencyLayerContextSwitcher::beginDrawSourceImage(GraphicsContext& destinationContext, float opacity)
 {
+    destinationContext.save();
+    destinationContext.beginTransparencyLayer(opacity);
+
     for (auto& filterStyle : m_filterStyles) {
         destinationContext.save();
         destinationContext.clip(filterStyle.imageRect);
@@ -57,12 +64,15 @@ void FilterStyleTargetSwitcher::beginDrawSourceImage(GraphicsContext& destinatio
     }
 }
 
-void FilterStyleTargetSwitcher::endDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&)
+void TransparencyLayerContextSwitcher::endDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&)
 {
     for ([[maybe_unused]] auto& filterStyle : makeReversedRange(m_filterStyles)) {
         destinationContext.endTransparencyLayer();
         destinationContext.restore();
     }
+
+    destinationContext.endTransparencyLayer();
+    destinationContext.restore();
 }
 
 } // namespace WebCore

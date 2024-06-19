@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc.  All rights reserved.
+ * Copyright (C) 2024 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,26 +23,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "FilterTargetSwitcher.h"
+#pragma once
 
-#include "Filter.h"
-#include "FilterImageTargetSwitcher.h"
-#include "FilterStyleTargetSwitcher.h"
-#include "GraphicsContext.h"
+#include "FloatRect.h"
+#include <wtf/RefCounted.h>
+#include <wtf/RefPtr.h>
 
 namespace WebCore {
 
-std::unique_ptr<FilterTargetSwitcher> FilterTargetSwitcher::create(GraphicsContext& destinationContext, Filter& filter, const FloatRect &sourceImageRect, const DestinationColorSpace& colorSpace, FilterResults* results)
-{
-    if (filter.filterRenderingModes().contains(FilterRenderingMode::GraphicsContext))
-        return makeUnique<FilterStyleTargetSwitcher>(filter, sourceImageRect);
-    return makeUnique<FilterImageTargetSwitcher>(destinationContext, filter, sourceImageRect, colorSpace, results);
-}
+class CanvasRenderingContext2DBase;
+class Filter;
+class GraphicsContext;
+class GraphicsContextSwitcher;
 
-FilterTargetSwitcher::FilterTargetSwitcher(Filter& filter)
-    : m_filter(&filter)
-{
-}
+class CanvasLayerContextSwitcher : public RefCounted<CanvasLayerContextSwitcher> {
+public:
+    static RefPtr<CanvasLayerContextSwitcher> create(CanvasRenderingContext2DBase&, const FloatRect& bounds, RefPtr<Filter>&&);
+
+    ~CanvasLayerContextSwitcher();
+
+    GraphicsContext* drawingContext() const;
+    FloatRect expandedBounds() const { return m_bounds + outsets(); }
+
+private:
+    CanvasLayerContextSwitcher(CanvasRenderingContext2DBase&, const FloatRect& bounds, std::unique_ptr<GraphicsContextSwitcher>&&);
+
+    FloatBoxExtent outsets() const;
+
+    CanvasRenderingContext2DBase& m_context;
+    GraphicsContext* m_effectiveDrawingContext;
+    FloatRect m_bounds;
+    std::unique_ptr<GraphicsContextSwitcher> m_targetSwitcher;
+};
 
 } // namespace WebCore

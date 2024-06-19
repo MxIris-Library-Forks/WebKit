@@ -25,16 +25,16 @@
 
 #pragma once
 
-#include "FilterTargetSwitcher.h"
+#include "GraphicsContextSwitcher.h"
 
 namespace WebCore {
 
 class ImageBuffer;
 
-class FilterImageTargetSwitcher final : public FilterTargetSwitcher {
+class ImageBufferContextSwitcher final : public GraphicsContextSwitcher {
     WTF_MAKE_FAST_ALLOCATED;
 public:
-    FilterImageTargetSwitcher(GraphicsContext& destinationContext, Filter&, const FloatRect &sourceImageRect, const DestinationColorSpace&, FilterResults* = nullptr);
+    ImageBufferContextSwitcher(GraphicsContext& destinationContext, const FloatRect &sourceImageRect, const DestinationColorSpace&, RefPtr<Filter>&& = nullptr, FilterResults* = nullptr);
 
 private:
     GraphicsContext* drawingContext(GraphicsContext& destinationContext) const override;
@@ -44,7 +44,7 @@ private:
     void beginClipAndDrawSourceImage(GraphicsContext& destinationContext, const FloatRect& repaintRect, const FloatRect& clipRect) override;
     void endClipAndDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&) override;
 
-    void beginDrawSourceImage(GraphicsContext&) override { }
+    void beginDrawSourceImage(GraphicsContext&, float = 1.f) override { }
     void endDrawSourceImage(GraphicsContext& destinationContext, const DestinationColorSpace&) override;
 
     RefPtr<ImageBuffer> m_sourceImage;

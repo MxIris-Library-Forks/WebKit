@@ -161,22 +161,10 @@
 #include "MediaSessionCoordinatorProxyPrivate.h"
 #endif
 
-#if USE(APPLE_INTERNAL_SDK)
-#import <WebKitAdditions/WebViewImplAdditionsBefore.mm>
-#endif
-
 #import <pal/cocoa/RevealSoftLink.h>
 #import <pal/cocoa/VisionKitCoreSoftLink.h>
 #import <pal/cocoa/TranslationUIServicesSoftLink.h>
 #import <pal/mac/DataDetectorsSoftLink.h>
-
-#if ENABLE(WRITING_TOOLS_UI)
-namespace WebKit {
-void showSwapCharactersViewRelativeToRectOfView(NSRect positioningRect, NSView *positioningView);
-void scheduleShowSwapCharactersViewForSelectionRectOfView(NSRect positioningRect, NSView *positioningView);
-bool webViewCanHandleSwapCharacters();
-}
-#endif
 
 #if HAVE(TOUCH_BAR) && ENABLE(WEB_PLAYBACK_CONTROLS_MANAGER)
 SOFT_LINK_FRAMEWORK(AVKit)
@@ -2802,7 +2790,8 @@ void WebViewImpl::selectionDidChange()
         auto isRange = m_page->editorState().hasPostLayoutData() && m_page->editorState().selectionIsRange;
         auto selectionRect = isRange ? m_page->editorState().postLayoutData->selectionBoundingRect : IntRect { };
 
-        scheduleShowSwapCharactersViewForSelectionRectOfView(selectionRect, m_view.getAutoreleased());
+        // The affordance will only show up if the selected range consists of >= 50 characters.
+        [WTWritingTools.sharedInstance scheduleShowAffordanceForSelectionRect:selectionRect ofView:m_view.getAutoreleased() forDelegate:(NSObject<WTWritingToolsDelegate> *)m_view.getAutoreleased()];
     }
 #endif
 
@@ -3255,8 +3244,8 @@ NSTextCheckingTypes WebViewImpl::getTextCheckingTypes() const
     if (allowsInlinePredictions()) {
         types |= (NSTextCheckingType)_NSTextCheckingTypeSingleCompletion;
 
-#if HAVE(TEXT_CHECKING_TYPE_GRAMMAR)
-        types |= (NSTextCheckingType)_NSTextCheckingTypeGrammar;
+#if HAVE(NS_TEXT_CHECKING_TYPE_MATH_COMPLETION)
+        types |= (NSTextCheckingType)_NSTextCheckingTypeMathCompletion;
 #endif
     }
 #endif
@@ -6479,7 +6468,7 @@ bool WebViewImpl::wantsCompleteUnifiedTextReplacementBehavior() const
 
 bool WebViewImpl::canHandleSwapCharacters() const
 {
-    return webViewCanHandleSwapCharacters() && unifiedTextReplacementBehavior() != WebCore::UnifiedTextReplacement::ReplacementBehavior::None;
+    return WTWritingToolsViewController.isAvailable && unifiedTextReplacementBehavior() != WebCore::UnifiedTextReplacement::ReplacementBehavior::None;
 }
 
 void WebViewImpl::handleContextMenuSwapCharacters(IntRect selectionBoundsInRootView)
@@ -6490,7 +6479,7 @@ void WebViewImpl::handleContextMenuSwapCharacters(IntRect selectionBoundsInRootV
     }
 
     auto view = m_view.get();
-    showSwapCharactersViewRelativeToRectOfView(selectionBoundsInRootView, view.get());
+    [WTWritingTools.sharedInstance showPanelForSelectionRect:selectionBoundsInRootView ofView:view.get() forDelegate:(NSObject<WTWritingToolsDelegate> *)view.get()];
 }
 #endif
 
@@ -6706,26 +6695,6 @@ Ref<WebPageProxy> WebViewImpl::protectedPage() const
 {
     return m_page.get();
 }
-
-#if ENABLE(WRITING_TOOLS_UI)
-
-void showSwapCharactersViewRelativeToRectOfView(NSRect positioningRect, NSView *positioningView)
-{
-    [WTWritingTools.sharedInstance showPanelForSelectionRect:positioningRect ofView:positioningView forDelegate:(NSObject<WTWritingToolsDelegate> *)positioningView];
-}
-
-void scheduleShowSwapCharactersViewForSelectionRectOfView(NSRect positioningRect, NSView *positioningView)
-{
-    // The affordance will only show up if the selected range consists of >= 50 characters.
-    [WTWritingTools.sharedInstance scheduleShowAffordanceForSelectionRect:positioningRect ofView:positioningView forDelegate:(NSObject<WTWritingToolsDelegate> *)positioningView];
-}
-
-bool webViewCanHandleSwapCharacters()
-{
-    return WTWritingToolsViewController.isAvailable;
-}
-
-#endif
 
 } // namespace WebKit
 

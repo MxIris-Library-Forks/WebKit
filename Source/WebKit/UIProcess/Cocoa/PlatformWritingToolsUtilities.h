@@ -32,12 +32,12 @@
 
 namespace WebCore {
 
-namespace UnifiedTextReplacement {
+namespace WritingTools {
 enum class EditAction : uint8_t;
 enum class ReplacementBehavior : uint8_t;
 enum class ReplacementState : uint8_t;
-enum class SessionCorrectionType : uint8_t;
-enum class SessionReplacementType : uint8_t;
+enum class SessionCompositionType : uint8_t;
+enum class SessionType : uint8_t;
 
 struct Context;
 struct Replacement;
@@ -50,29 +50,29 @@ namespace WebKit {
 
 #pragma mark - Conversions from web types to platform types.
 
-PlatformWritingToolsBehavior convertToPlatformWritingToolsBehavior(WebCore::UnifiedTextReplacement::ReplacementBehavior);
+PlatformWritingToolsBehavior convertToPlatformWritingToolsBehavior(WebCore::WritingTools::Behavior);
 
-WTTextSuggestionState convertToPlatformTextSuggestionState(WebCore::UnifiedTextReplacement::ReplacementState);
+WTTextSuggestionState convertToPlatformTextSuggestionState(WebCore::WritingTools::TextSuggestionState);
 
-RetainPtr<WTContext> convertToPlatformContext(const WebCore::UnifiedTextReplacement::Context&);
+RetainPtr<WTContext> convertToPlatformContext(const WebCore::WritingTools::Context&);
 
 #pragma mark - Conversions from platform types to web types.
 
-WebCore::UnifiedTextReplacement::ReplacementBehavior convertToWebWritingToolsBehavior(PlatformWritingToolsBehavior);
+WebCore::WritingTools::Behavior convertToWebWritingToolsBehavior(PlatformWritingToolsBehavior);
 
-WebCore::UnifiedTextReplacement::ReplacementState convertToWebTextSuggestionState(WTTextSuggestionState);
+WebCore::WritingTools::TextSuggestionState convertToWebTextSuggestionState(WTTextSuggestionState);
 
-WebCore::UnifiedTextReplacement::EditAction convertToWebAction(WTAction);
+WebCore::WritingTools::Action convertToWebAction(WTAction);
 
-WebCore::UnifiedTextReplacement::SessionReplacementType convertToWebSessionType(WTSessionType);
+WebCore::WritingTools::SessionType convertToWebSessionType(WTSessionType);
 
-WebCore::UnifiedTextReplacement::SessionCorrectionType convertToWebCompositionSessionType(WTCompositionSessionType);
+WebCore::WritingTools::SessionCompositionType convertToWebCompositionSessionType(WTCompositionSessionType);
 
-std::optional<WebCore::UnifiedTextReplacement::Context> convertToWebContext(WTContext *);
+std::optional<WebCore::WritingTools::Context> convertToWebContext(WTContext *);
 
-std::optional<WebCore::UnifiedTextReplacement::Session> convertToWebSession(WTSession *);
+std::optional<WebCore::WritingTools::Session> convertToWebSession(WTSession *);
 
-std::optional<WebCore::UnifiedTextReplacement::Replacement> convertToWebTextSuggestion(WTTextSuggestion *);
+std::optional<WebCore::WritingTools::TextSuggestion> convertToWebTextSuggestion(WTTextSuggestion *);
 
 } // namespace WebKit
 

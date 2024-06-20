@@ -4434,7 +4434,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 #if ENABLE(WRITING_TOOLS)
     if (action == @selector(_startWritingTools:))
-        return [self unifiedTextReplacementBehavior] != WebCore::UnifiedTextReplacement::ReplacementBehavior::None && [super canPerformAction:action withSender:sender];
+        return [self unifiedTextReplacementBehavior] != WebCore::WritingTools::Behavior::None && [super canPerformAction:action withSender:sender];
 #endif
 
     if (action == @selector(paste:) || action == @selector(_pasteAsQuotation:) || action == @selector(_pasteAndMatchStyle:) || action == @selector(pasteAndMatchStyle:)) {
@@ -8183,7 +8183,7 @@ static BOOL allPasteboardItemOriginsMatchOrigin(UIPasteboard *pasteboard, const 
     return foundAtLeastOneMatchingIdentifier;
 }
 
-- (void)_requestDOMPasteAccessForCategory:(WebCore::DOMPasteAccessCategory)pasteAccessCategory elementRect:(const WebCore::IntRect&)elementRect originIdentifier:(const String&)originIdentifier completionHandler:(CompletionHandler<void(WebCore::DOMPasteAccessResponse)>&&)completionHandler
+- (void)_requestDOMPasteAccessForCategory:(WebCore::DOMPasteAccessCategory)pasteAccessCategory requiresInteraction:(WebCore::DOMPasteRequiresInteraction)requiresInteraction elementRect:(const WebCore::IntRect&)elementRect originIdentifier:(const String&)originIdentifier completionHandler:(CompletionHandler<void(WebCore::DOMPasteAccessResponse)>&&)completionHandler
 {
     if (auto existingCompletionHandler = std::exchange(_domPasteRequestHandler, WTFMove(completionHandler))) {
         ASSERT_NOT_REACHED();
@@ -8192,7 +8192,7 @@ static BOOL allPasteboardItemOriginsMatchOrigin(UIPasteboard *pasteboard, const 
 
     _domPasteRequestCategory = pasteAccessCategory;
 
-    if (allPasteboardItemOriginsMatchOrigin(pasteboardForAccessCategory(pasteAccessCategory), originIdentifier)) {
+    if (requiresInteraction == WebCore::DOMPasteRequiresInteraction::No && allPasteboardItemOriginsMatchOrigin(pasteboardForAccessCategory(pasteAccessCategory), originIdentifier)) {
         [self _handleDOMPasteRequestWithResult:WebCore::DOMPasteAccessResponse::GrantedForCommand];
         return;
     }
@@ -11782,7 +11782,7 @@ static RetainPtr<NSItemProvider> createItemProvider(const WebKit::WebPageProxy& 
 
 #if ENABLE(WRITING_TOOLS)
 
-- (WebCore::UnifiedTextReplacement::ReplacementBehavior)unifiedTextReplacementBehavior
+- (WebCore::WritingTools::Behavior)unifiedTextReplacementBehavior
 {
     return _page->configuration().unifiedTextReplacementBehavior();
 }

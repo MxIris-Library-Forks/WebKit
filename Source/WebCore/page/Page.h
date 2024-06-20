@@ -175,17 +175,17 @@ class WheelEventTestMonitor;
 class WindowEventLoop;
 
 #if ENABLE(WRITING_TOOLS)
-class UnifiedTextReplacementController;
+class WritingToolsController;
 
-namespace UnifiedTextReplacement {
-enum class EditAction : uint8_t;
-enum class ReplacementState : uint8_t;
+namespace WritingTools {
+enum class Action : uint8_t;
+enum class TextSuggestionState : uint8_t;
 
 struct Context;
-struct Replacement;
+struct TextSuggestion;
 struct Session;
 
-using ReplacementID = WTF::UUID;
+using TextSuggestionID = WTF::UUID;
 using SessionID = WTF::UUID;
 }
 #endif
@@ -1148,23 +1148,23 @@ public:
 #endif
 
 #if ENABLE(WRITING_TOOLS)
-    WEBCORE_EXPORT void willBeginTextReplacementSession(const std::optional<UnifiedTextReplacement::Session>&, CompletionHandler<void(const Vector<UnifiedTextReplacement::Context>&)>&&);
+    WEBCORE_EXPORT void willBeginTextReplacementSession(const std::optional<WritingTools::Session>&, CompletionHandler<void(const Vector<WritingTools::Context>&)>&&);
 
-    WEBCORE_EXPORT void didBeginTextReplacementSession(const UnifiedTextReplacement::Session&, const Vector<UnifiedTextReplacement::Context>&);
+    WEBCORE_EXPORT void didBeginTextReplacementSession(const WritingTools::Session&, const Vector<WritingTools::Context>&);
 
-    WEBCORE_EXPORT void textReplacementSessionDidReceiveReplacements(const UnifiedTextReplacement::Session&, const Vector<UnifiedTextReplacement::Replacement>&, const UnifiedTextReplacement::Context&, bool finished);
+    WEBCORE_EXPORT void textReplacementSessionDidReceiveReplacements(const WritingTools::Session&, const Vector<WritingTools::TextSuggestion>&, const WritingTools::Context&, bool finished);
 
-    WEBCORE_EXPORT void textReplacementSessionDidUpdateStateForReplacement(const UnifiedTextReplacement::Session&, UnifiedTextReplacement::ReplacementState, const UnifiedTextReplacement::Replacement&, const UnifiedTextReplacement::Context&);
+    WEBCORE_EXPORT void textReplacementSessionDidUpdateStateForReplacement(const WritingTools::Session&, WritingTools::TextSuggestionState, const WritingTools::TextSuggestion&, const WritingTools::Context&);
 
-    WEBCORE_EXPORT void didEndTextReplacementSession(const UnifiedTextReplacement::Session&, bool accepted);
+    WEBCORE_EXPORT void didEndTextReplacementSession(const WritingTools::Session&, bool accepted);
 
-    WEBCORE_EXPORT void textReplacementSessionDidReceiveTextWithReplacementRange(const UnifiedTextReplacement::Session&, const AttributedString&, const CharacterRange&, const UnifiedTextReplacement::Context&, bool finished);
+    WEBCORE_EXPORT void textReplacementSessionDidReceiveTextWithReplacementRange(const WritingTools::Session&, const AttributedString&, const CharacterRange&, const WritingTools::Context&, bool finished);
 
-    WEBCORE_EXPORT void textReplacementSessionDidReceiveEditAction(const UnifiedTextReplacement::Session&, UnifiedTextReplacement::EditAction);
+    WEBCORE_EXPORT void textReplacementSessionDidReceiveEditAction(const WritingTools::Session&, WritingTools::Action);
 
     WEBCORE_EXPORT void updateStateForSelectedReplacementIfNeeded();
 
-    WEBCORE_EXPORT std::optional<SimpleRange> contextRangeForSessionWithID(const UnifiedTextReplacement::SessionID&) const;
+    WEBCORE_EXPORT std::optional<SimpleRange> contextRangeForSessionWithID(const WritingTools::SessionID&) const;
 #endif
 
 private:
@@ -1571,7 +1571,7 @@ private:
 #endif
 
 #if ENABLE(WRITING_TOOLS)
-    UniqueRef<UnifiedTextReplacementController> m_unifiedTextReplacementController;
+    UniqueRef<WritingToolsController> m_writingToolsController;
 #endif
 }; // class Page
 

@@ -121,7 +121,7 @@ struct TextRecognitionResult;
 struct TranslationContextMenuInfo;
 #endif
 
-namespace UnifiedTextReplacement {
+namespace WritingTools {
 enum class ReplacementBehavior : uint8_t;
 }
 
@@ -706,7 +706,7 @@ public:
     void takeFocus(WebCore::FocusDirection);
     void clearPromisedDragImage();
 
-    void requestDOMPasteAccess(WebCore::DOMPasteAccessCategory, const WebCore::IntRect&, const String& originIdentifier, CompletionHandler<void(WebCore::DOMPasteAccessResponse)>&&);
+    void requestDOMPasteAccess(WebCore::DOMPasteAccessCategory, WebCore::DOMPasteRequiresInteraction, const WebCore::IntRect&, const String& originIdentifier, CompletionHandler<void(WebCore::DOMPasteAccessResponse)>&&);
     void handleDOMPasteRequestForCategoryWithResult(WebCore::DOMPasteAccessCategory, WebCore::DOMPasteAccessResponse);
     NSMenu *domPasteMenu() const { return m_domPasteMenu.get(); }
     void hideDOMPasteMenuWithResult(WebCore::DOMPasteAccessResponse);
@@ -717,7 +717,7 @@ public:
 #endif
 
 #if ENABLE(WRITING_TOOLS)
-    WebCore::UnifiedTextReplacement::ReplacementBehavior unifiedTextReplacementBehavior() const;
+    WebCore::WritingTools::Behavior unifiedTextReplacementBehavior() const;
 #endif
 
 #if ENABLE(WRITING_TOOLS) && ENABLE(CONTEXT_MENUS)

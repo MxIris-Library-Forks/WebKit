@@ -164,6 +164,7 @@
 #import <pal/cocoa/RevealSoftLink.h>
 #import <pal/cocoa/VisionKitCoreSoftLink.h>
 #import <pal/cocoa/TranslationUIServicesSoftLink.h>
+#import <pal/cocoa/WritingToolsUISoftLink.h>
 #import <pal/mac/DataDetectorsSoftLink.h>
 
 #if HAVE(TOUCH_BAR) && ENABLE(WEB_PLAYBACK_CONTROLS_MANAGER)
@@ -2791,7 +2792,7 @@ void WebViewImpl::selectionDidChange()
         auto selectionRect = isRange ? m_page->editorState().postLayoutData->selectionBoundingRect : IntRect { };
 
         // The affordance will only show up if the selected range consists of >= 50 characters.
-        [WTWritingTools.sharedInstance scheduleShowAffordanceForSelectionRect:selectionRect ofView:m_view.getAutoreleased() forDelegate:(NSObject<WTWritingToolsDelegate> *)m_view.getAutoreleased()];
+        [[PAL::getWTWritingToolsClass() sharedInstance] scheduleShowAffordanceForSelectionRect:selectionRect ofView:m_view.getAutoreleased() forDelegate:(NSObject<WTWritingToolsDelegate> *)m_view.getAutoreleased()];
     }
 #endif
 
@@ -4456,14 +4457,14 @@ static NSPasteboard *pasteboardForAccessCategory(WebCore::DOMPasteAccessCategory
     }
 }
 
-void WebViewImpl::requestDOMPasteAccess(WebCore::DOMPasteAccessCategory pasteAccessCategory, const WebCore::IntRect&, const String& originIdentifier, CompletionHandler<void(WebCore::DOMPasteAccessResponse)>&& completion)
+void WebViewImpl::requestDOMPasteAccess(WebCore::DOMPasteAccessCategory pasteAccessCategory, WebCore::DOMPasteRequiresInteraction requiresInteraction, const WebCore::IntRect&, const String& originIdentifier, CompletionHandler<void(WebCore::DOMPasteAccessResponse)>&& completion)
 {
     ASSERT(!m_domPasteRequestHandler);
     hideDOMPasteMenuWithResult(WebCore::DOMPasteAccessResponse::DeniedForGesture);
 
     NSData *data = [pasteboardForAccessCategory(pasteAccessCategory) dataForType:@(WebCore::PasteboardCustomData::cocoaType().characters())];
     auto buffer = WebCore::SharedBuffer::create(data);
-    if (WebCore::PasteboardCustomData::fromSharedBuffer(buffer.get()).origin() == originIdentifier) {
+    if (requiresInteraction == WebCore::DOMPasteRequiresInteraction::No && WebCore::PasteboardCustomData::fromSharedBuffer(buffer.get()).origin() == originIdentifier) {
         m_page->grantAccessToCurrentPasteboardData(pasteboardNameForAccessCategory(pasteAccessCategory));
         completion(WebCore::DOMPasteAccessResponse::GrantedForGesture);
         return;
@@ -6453,7 +6454,7 @@ void WebViewImpl::handleContextMenuTranslation(const WebCore::TranslationContext
 #endif // HAVE(TRANSLATION_UI_SERVICES) && ENABLE(CONTEXT_MENUS)
 
 #if ENABLE(WRITING_TOOLS)
-WebCore::UnifiedTextReplacement::ReplacementBehavior WebViewImpl::unifiedTextReplacementBehavior() const
+WebCore::WritingTools::Behavior WebViewImpl::unifiedTextReplacementBehavior() const
 {
     return m_page->configuration().unifiedTextReplacementBehavior();
 }
@@ -6468,7 +6469,7 @@ bool WebViewImpl::wantsCompleteUnifiedTextReplacementBehavior() const
 
 bool WebViewImpl::canHandleSwapCharacters() const
 {
-    return WTWritingToolsViewController.isAvailable && unifiedTextReplacementBehavior() != WebCore::UnifiedTextReplacement::ReplacementBehavior::None;
+    return [PAL::getWTWritingToolsViewControllerClass() isAvailable] && unifiedTextReplacementBehavior() != WebCore::WritingTools::Behavior::None;
 }
 
 void WebViewImpl::handleContextMenuSwapCharacters(IntRect selectionBoundsInRootView)
@@ -6479,7 +6480,7 @@ void WebViewImpl::handleContextMenuSwapCharacters(IntRect selectionBoundsInRootV
     }
 
     auto view = m_view.get();
-    [WTWritingTools.sharedInstance showPanelForSelectionRect:selectionBoundsInRootView ofView:view.get() forDelegate:(NSObject<WTWritingToolsDelegate> *)view.get()];
+    [[PAL::getWTWritingToolsClass() sharedInstance] showPanelForSelectionRect:selectionBoundsInRootView ofView:view.get() forDelegate:(NSObject<WTWritingToolsDelegate> *)view.get()];
 }
 #endif
 

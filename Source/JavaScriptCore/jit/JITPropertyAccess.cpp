@@ -946,13 +946,18 @@ void JIT::emit_op_resolve_scope(const JSInstruction* currentInstruction)
     else {
         emitGetVirtualRegisterPayload(scope, scopeGPR);
         if (profiledResolveType == ClosureVar) {
-            load32FromMetadata(bytecode, OpResolveScope::Metadata::offsetOfLocalScopeDepth(), scratch1GPR);
             static_assert(scopeGPR == returnValueGPR);
-            Jump done = branchTest32(Zero, scratch1GPR);
-            auto loop = label();
-            loadPtr(Address(returnValueGPR, JSScope::offsetOfNext()), returnValueGPR);
-            branchSub32(NonZero, scratch1GPR, TrustedImm32(1), scratch1GPR).linkTo(loop, this);
-            done.link(this);
+            unsigned localScopeDepth = bytecode.metadata(m_profiledCodeBlock).m_localScopeDepth;
+            if (localScopeDepth < 8) {
+                for (unsigned index = 0; index < localScopeDepth; ++index)
+                    loadPtr(Address(returnValueGPR, JSScope::offsetOfNext()), returnValueGPR);
+            } else {
+                ASSERT(localScopeDepth >= 8);
+                load32FromMetadata(bytecode, OpResolveScope::Metadata::offsetOfLocalScopeDepth(), scratch1GPR);
+                auto loop = label();
+                loadPtr(Address(returnValueGPR, JSScope::offsetOfNext()), returnValueGPR);
+                branchSub32(NonZero, scratch1GPR, TrustedImm32(1), scratch1GPR).linkTo(loop, this);
+            }
         } else {
             uint32_t metadataOffset = m_profiledCodeBlock->metadataTable()->offsetInMetadataTable(bytecode);
             addPtr(TrustedImm32(metadataOffset), s_metadataGPR, metadataGPR);
@@ -1836,8 +1841,6 @@ void JIT::emit_op_enumerator_has_own_property(const JSInstruction* currentInstru
     emit_enumerator_has_propertyImpl(currentInstruction->as<OpEnumeratorHasOwnProperty>(), slow_path_enumerator_has_own_property);
 }
 
-#if !OS(WINDOWS)
-
 void JIT::emit_op_enumerator_get_by_val(const JSInstruction* currentInstruction)
 {
     auto bytecode = currentInstruction->as<OpEnumeratorGetByVal>();
@@ -2025,32 +2028,6 @@ void JIT::emitSlow_op_enumerator_put_by_val(const JSInstruction* currentInstruct
 {
     generatePutByValSlowCase(currentInstruction->as<OpEnumeratorPutByVal>(), iter);
 }
-
-#else
-
-void JIT::emit_op_enumerator_get_by_val(const JSInstruction*)
-{
-    JITSlowPathCall slowPathCall(this, slow_path_enumerator_get_by_val);
-    slowPathCall.call();
-}
-
-void JIT::emitSlow_op_enumerator_get_by_val(const JSInstruction*, Vector<SlowCaseEntry>::iterator&)
-{
-    UNREACHABLE_FOR_PLATFORM();
-}
-
-void JIT::emit_op_enumerator_put_by_val(const JSInstruction*)
-{
-    JITSlowPathCall slowPathCall(this, slow_path_enumerator_put_by_val);
-    slowPathCall.call();
-}
-
-void JIT::emitSlow_op_enumerator_put_by_val(const JSInstruction*, Vector<SlowCaseEntry>::iterator&)
-{
-    UNREACHABLE_FOR_PLATFORM();
-}
-
-#endif
 
 #elif USE(JSVALUE32_64)
 

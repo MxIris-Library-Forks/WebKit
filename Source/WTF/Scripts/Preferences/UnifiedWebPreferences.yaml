@@ -5245,6 +5245,21 @@ ProcessSwapOnCrossSiteNavigationEnabled:
       "PLATFORM(PLAYSTATION)": false
       default: true
 
+PropagateDamagingInformation:
+   type: bool
+   status: testable
+   category: dom
+   humanReadableName: "Propagate Damaging Information"
+   humanReadableDescription: "Propagate Damaging Information"
+   condition: USE(COORDINATED_GRAPHICS)
+   defaultValue:
+     WebCore:
+       default: false
+     WebKitLegacy:
+       default: false
+     WebKit:
+       default: false
+
 PunchOutWhiteBackgroundsInDarkMode:
   type: bool
   status: embedder
@@ -6810,6 +6825,21 @@ UnifiedPDFEnabled:
     WebCore:
       default: false
 
+UnifyDamagedRegions:
+   type: bool
+   status: testable
+   category: dom
+   humanReadableName: "Unify Damaged Regions"
+   humanReadableDescription: "Unify Damaged Regions"
+   condition: USE(COORDINATED_GRAPHICS)
+   defaultValue:
+     WebCore:
+       default: false
+     WebKitLegacy:
+       default: false
+     WebKit:
+       default: false
+
 UpgradeKnownHostsToHTTPSEnabled:
   type: bool
   status: internal
@@ -7736,20 +7766,6 @@ WebRTCH264LowLatencyEncoderEnabled:
       default: true
 
 # FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
-WebRTCH264SimulcastEnabled:
-  type: bool
-  status: internal
-  category: media
-  humanReadableName: "WebRTC H264 Simulcast"
-  humanReadableDescription: "Enable WebRTC H264 Simulcast"
-  webcoreBinding: DeprecatedGlobalSettings
-  condition: ENABLE(WEB_RTC)
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-
 WebRTCH265CodecEnabled:
   type: bool
   status: stable

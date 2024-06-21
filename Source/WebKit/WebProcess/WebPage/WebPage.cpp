@@ -7051,7 +7051,7 @@ void WebPage::didChangeSelection(LocalFrame& frame)
     didChangeSelectionOrOverflowScrollPosition();
 
 #if ENABLE(WRITING_TOOLS)
-    corePage()->updateStateForSelectedReplacementIfNeeded();
+    corePage()->updateStateForSelectedSuggestionIfNeeded();
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -7825,6 +7825,11 @@ void WebPage::updateWebsitePolicies(WebsitePoliciesData&& websitePolicies)
 {
     if (!m_page)
         return;
+
+    if (auto* remoteMainFrameClient = m_mainFrame->remoteFrameClient()) {
+        remoteMainFrameClient->applyWebsitePolicies(WTFMove(websitePolicies));
+        return;
+    }
 
     RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
     RefPtr documentLoader = localMainFrame ? localMainFrame->loader().documentLoader() : nullptr;
@@ -9188,9 +9193,9 @@ void WebPage::handleContextMenuTranslation(const TranslationContextMenuInfo& inf
 #endif
 
 #if ENABLE(WRITING_TOOLS) && ENABLE(CONTEXT_MENUS)
-void WebPage::handleContextMenuSwapCharacters(WebCore::IntRect selectionBoundsInRootView)
+void WebPage::handleContextMenuWritingTools(WebCore::IntRect selectionBoundsInRootView)
 {
-    send(Messages::WebPageProxy::HandleContextMenuSwapCharacters(selectionBoundsInRootView));
+    send(Messages::WebPageProxy::HandleContextMenuWritingTools(selectionBoundsInRootView));
 }
 #endif
 

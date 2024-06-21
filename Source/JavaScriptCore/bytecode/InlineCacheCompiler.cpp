@@ -1141,9 +1141,7 @@ ScratchRegisterAllocator InlineCacheCompiler::makeDefaultScratchAllocator(GPRReg
     return allocator;
 }
 
-#if CPU(X86_64) && OS(WINDOWS)
-static constexpr size_t prologueSizeInBytesDataIC = 5;
-#elif CPU(X86_64)
+#if CPU(X86_64)
 static constexpr size_t prologueSizeInBytesDataIC = 1;
 #elif CPU(ARM64E)
 static constexpr size_t prologueSizeInBytesDataIC = 8;
@@ -1166,11 +1164,7 @@ void InlineCacheCompiler::emitDataICPrologue(CCallHelpers& jit)
     size_t startOffset = jit.debugOffset();
 #endif
 
-#if CPU(X86_64) && OS(WINDOWS)
-    static_assert(maxFrameExtentForSlowPathCall);
-    jit.push(CCallHelpers::framePointerRegister);
-    jit.subPtr(CCallHelpers::TrustedImm32(maxFrameExtentForSlowPathCall), CCallHelpers::stackPointerRegister);
-#elif CPU(X86_64)
+#if CPU(X86_64)
     static_assert(!maxFrameExtentForSlowPathCall);
     jit.push(CCallHelpers::framePointerRegister);
 #elif CPU(ARM64)
@@ -1198,6 +1192,32 @@ void InlineCacheCompiler::emitDataICEpilogue(CCallHelpers& jit)
     if constexpr (!!maxFrameExtentForSlowPathCall)
         jit.addPtr(CCallHelpers::TrustedImm32(maxFrameExtentForSlowPathCall), CCallHelpers::stackPointerRegister);
     jit.emitFunctionEpilogueWithEmptyFrame();
+}
+
+CCallHelpers::Jump InlineCacheCompiler::emitDataICCheckStructure(CCallHelpers& jit, GPRReg baseGPR, GPRReg scratchGPR)
+{
+    JIT_COMMENT(jit, "check structure");
+    jit.load32(CCallHelpers::Address(baseGPR, JSCell::structureIDOffset()), scratchGPR);
+    return jit.branch32(CCallHelpers::NotEqual, scratchGPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID()));
+}
+
+CCallHelpers::JumpList InlineCacheCompiler::emitDataICCheckUid(CCallHelpers& jit, bool isSymbol, JSValueRegs propertyJSR, GPRReg scratchGPR)
+{
+    JIT_COMMENT(jit, "check uid");
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(jit.branchIfNotCell(propertyJSR));
+    if (isSymbol) {
+        fallThrough.append(jit.branchIfNotSymbol(propertyJSR.payloadGPR()));
+        jit.loadPtr(CCallHelpers::Address(propertyJSR.payloadGPR(), Symbol::offsetOfSymbolImpl()), scratchGPR);
+    } else {
+        fallThrough.append(jit.branchIfNotString(propertyJSR.payloadGPR()));
+        jit.loadPtr(CCallHelpers::Address(propertyJSR.payloadGPR(), JSString::offsetOfValue()), scratchGPR);
+        fallThrough.append(jit.branchIfRopeStringImpl(scratchGPR));
+    }
+    fallThrough.append(jit.branchPtr(CCallHelpers::NotEqual, scratchGPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfUid())));
+
+    return fallThrough;
 }
 
 void InlineCacheCompiler::emitDataICJumpNextHandler(CCallHelpers& jit)
@@ -1645,6 +1665,8 @@ Ref<InlineCacheHandler> InlineCacheHandler::createPreCompiled(Ref<InlineCacheHan
     result->m_structureID = accessCase.structureID();
     result->m_offset = accessCase.offset();
     result->m_uid = stubInfo.identifier().uid();
+    if (!result->m_uid)
+        result->m_uid = accessCase.uid();
     switch (accessCase.m_type) {
     case AccessCase::Load:
     case AccessCase::GetGetter:
@@ -1657,6 +1679,10 @@ Ref<InlineCacheHandler> InlineCacheHandler::createPreCompiled(Ref<InlineCacheHan
     }
     case AccessCase::ProxyObjectLoad: {
         result->u.s1.m_holder = accessCase.identifier().cell();
+        break;
+    }
+    case AccessCase::Delete: {
+        result->u.s2.m_newStructureID = accessCase.newStructureID();
         break;
     }
     case AccessCase::Transition: {
@@ -4958,14 +4984,25 @@ AccessGenerationResult InlineCacheCompiler::compile(const GCSafeConcurrentJSLock
 
 #if CPU(ADDRESS64)
 
+template<bool ownProperty>
+static void loadHandlerImpl(VM&, CCallHelpers& jit, JSValueRegs baseJSR, JSValueRegs resultJSR, GPRReg scratch1GPR, GPRReg scratch2GPR)
+{
+    jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch2GPR);
+    if constexpr (ownProperty)
+        jit.loadProperty(baseJSR.payloadGPR(), scratch2GPR, resultJSR);
+    else {
+        jit.loadPtr(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfHolder()), scratch1GPR);
+        jit.loadProperty(scratch1GPR, scratch2GPR, resultJSR);
+    }
+}
+
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
 template<bool ownProperty>
-static MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadHandlerCodeGeneratorImpl(VM&)
+static MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadHandlerImpl(VM& vm)
 {
     CCallHelpers jit;
 
     using BaselineJITRegisters::GetById::baseJSR;
-    using BaselineJITRegisters::GetById::stubInfoGPR;
     using BaselineJITRegisters::GetById::scratch1GPR;
     using BaselineJITRegisters::GetById::scratch2GPR;
     using BaselineJITRegisters::GetById::resultJSR;
@@ -4974,18 +5011,8 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadHandlerCodeGeneratorImpl
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
-
-    jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch2GPR);
-    if constexpr (ownProperty)
-        jit.loadProperty(baseJSR.payloadGPR(), scratch2GPR, resultJSR);
-    else {
-        jit.loadPtr(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfHolder()), scratch1GPR);
-        jit.loadProperty(scratch1GPR, scratch2GPR, resultJSR);
-    }
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    loadHandlerImpl<ownProperty>(vm, jit, baseJSR, resultJSR, scratch1GPR, scratch2GPR);
     InlineCacheCompiler::emitDataICEpilogue(jit);
     jit.ret();
 
@@ -4996,20 +5023,20 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadHandlerCodeGeneratorImpl
     return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "GetById Load handler"_s, "GetById Load handler");
 }
 
-MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadOwnPropertyHandlerCodeGenerator(VM& vm)
+MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadOwnPropertyHandler(VM& vm)
 {
     constexpr bool ownProperty = true;
-    return getByIdLoadHandlerCodeGeneratorImpl<ownProperty>(vm);
+    return getByIdLoadHandlerImpl<ownProperty>(vm);
 }
 
-MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadPrototypePropertyHandlerCodeGenerator(VM& vm)
+MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadPrototypePropertyHandler(VM& vm)
 {
     constexpr bool ownProperty = false;
-    return getByIdLoadHandlerCodeGeneratorImpl<ownProperty>(vm);
+    return getByIdLoadHandlerImpl<ownProperty>(vm);
 }
 
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
-MacroAssemblerCodeRef<JITThunkPtrTag> getByIdMissHandlerCodeGenerator(VM&)
+MacroAssemblerCodeRef<JITThunkPtrTag> getByIdMissHandler(VM&)
 {
     CCallHelpers jit;
 
@@ -5023,10 +5050,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> getByIdMissHandlerCodeGenerator(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     jit.moveTrustedValue(jsUndefined(), resultJSR);
     InlineCacheCompiler::emitDataICEpilogue(jit);
@@ -5057,10 +5081,7 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> getByIdCustomHandlerImpl(VM& vm)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     GPRReg baseForCustom = baseJSR.payloadGPR();
     if constexpr (!isAccessor) {
@@ -5129,10 +5150,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> getByIdGetterHandler(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     jit.loadPtr(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfHolder()), scratch3GPR);
     jit.moveConditionally64(CCallHelpers::Equal, scratch3GPR, CCallHelpers::TrustedImm32(0), baseJSR.payloadGPR(), scratch3GPR, scratch3GPR);
@@ -5220,10 +5238,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> getByIdProxyObjectLoadHandler(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     jit.transfer32(CCallHelpers::Address(stubInfoGPR, StructureStubInfo::offsetOfCallSiteIndex()), CCallHelpers::tagFor(CallFrameSlot::argumentCountIncludingThis));
 
@@ -5320,7 +5335,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> getByIdModuleNamespaceLoadHandler(VM&)
 }
 
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdReplaceHandlerCodeGenerator(VM&)
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdReplaceHandler(VM&)
 {
     CCallHelpers jit;
 
@@ -5334,10 +5349,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> putByIdReplaceHandlerCodeGenerator(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch1GPR);
     jit.storeProperty(valueJSR, baseJSR.payloadGPR(), scratch1GPR, scratch2GPR);
@@ -5353,40 +5365,17 @@ MacroAssemblerCodeRef<JITThunkPtrTag> putByIdReplaceHandlerCodeGenerator(VM&)
 
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
 template<bool allocating, bool reallocating>
-static MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionHandlerCodeGeneratorImpl(VM& vm)
+static void transitionHandlerImpl(VM& vm, CCallHelpers& jit, CCallHelpers::JumpList& failAndIgnore, JSValueRegs baseJSR, JSValueRegs valueJSR, GPRReg scratch1GPR, GPRReg scratch2GPR, GPRReg scratch3GPR, GPRReg scratch4GPR)
 {
-    CCallHelpers jit;
-
-    using BaselineJITRegisters::PutById::baseJSR;
-    using BaselineJITRegisters::PutById::valueJSR;
-    using BaselineJITRegisters::PutById::stubInfoGPR;
-    using BaselineJITRegisters::PutById::scratch1GPR;
-    using BaselineJITRegisters::PutById::scratch2GPR;
-    using BaselineJITRegisters::PutById::scratch3GPR;
-    using BaselineJITRegisters::PutById::scratch4GPR;
-
-    InlineCacheCompiler::emitDataICPrologue(jit);
-
-    CCallHelpers::JumpList fallThrough;
-
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
-
     if constexpr (!allocating) {
         JIT_COMMENT(jit, "storeProperty");
         jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch1GPR);
         jit.storeProperty(valueJSR, baseJSR.payloadGPR(), scratch1GPR, scratch2GPR);
         jit.transfer32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfNewStructureID()), CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()));
-
-        InlineCacheCompiler::emitDataICEpilogue(jit);
-        jit.ret();
     } else {
         JIT_COMMENT(jit, "allocating");
-        CCallHelpers::JumpList slowCases;
         jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfNewSize()), scratch1GPR);
-        jit.emitAllocateVariableSized(scratch2GPR, vm.auxiliarySpace(), scratch1GPR, scratch4GPR, scratch3GPR, slowCases);
+        jit.emitAllocateVariableSized(scratch2GPR, vm.auxiliarySpace(), scratch1GPR, scratch4GPR, scratch3GPR, failAndIgnore);
 
         if constexpr (reallocating) {
             JIT_COMMENT(jit, "reallocating");
@@ -5437,19 +5426,42 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionHandlerCodeGenerat
         JIT_COMMENT(jit, "storeProperty");
         jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch1GPR);
         jit.storeProperty(valueJSR, baseJSR.payloadGPR(), scratch1GPR, scratch2GPR);
+    }
+}
 
-        InlineCacheCompiler::emitDataICEpilogue(jit);
-        jit.ret();
+// FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
+template<bool allocating, bool reallocating>
+static MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionHandlerImpl(VM& vm)
+{
+    CCallHelpers jit;
 
+    using BaselineJITRegisters::PutById::baseJSR;
+    using BaselineJITRegisters::PutById::valueJSR;
+    using BaselineJITRegisters::PutById::stubInfoGPR;
+    using BaselineJITRegisters::PutById::scratch1GPR;
+    using BaselineJITRegisters::PutById::scratch2GPR;
+    using BaselineJITRegisters::PutById::scratch3GPR;
+    using BaselineJITRegisters::PutById::scratch4GPR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+    CCallHelpers::JumpList failAndIgnore;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+
+    transitionHandlerImpl<allocating, reallocating>(vm, jit, failAndIgnore, baseJSR, valueJSR, scratch1GPR, scratch2GPR, scratch3GPR, scratch4GPR);
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    if (!failAndIgnore.empty()) {
         JIT_COMMENT(jit, "failAndIgnore");
-        slowCases.link(&jit);
-
+        failAndIgnore.link(&jit);
         // Make sure that the inline cache optimization code knows that we are taking slow path because
         // of something that isn't patchable. The slow path will decrement "countdown" and will only
         // patch things if the countdown reaches zero. We increment the slow path count here to ensure
         // that the slow path does not try to patch.
         jit.add8(CCallHelpers::TrustedImm32(1), CCallHelpers::Address(stubInfoGPR, StructureStubInfo::offsetOfCountdown()));
-        fallThrough.append(jit.jump());
     }
 
     fallThrough.link(&jit);
@@ -5459,25 +5471,25 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionHandlerCodeGenerat
     return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "PutById Transition handler"_s, "PutById Transition handler");
 }
 
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNonAllocatingHandlerCodeGenerator(VM& vm)
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNonAllocatingHandler(VM& vm)
 {
     constexpr bool allocating = false;
     constexpr bool reallocating = false;
-    return putByIdTransitionHandlerCodeGeneratorImpl<allocating, reallocating>(vm);
+    return putByIdTransitionHandlerImpl<allocating, reallocating>(vm);
 }
 
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNewlyAllocatingHandlerCodeGenerator(VM& vm)
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNewlyAllocatingHandler(VM& vm)
 {
     constexpr bool allocating = true;
     constexpr bool reallocating = false;
-    return putByIdTransitionHandlerCodeGeneratorImpl<allocating, reallocating>(vm);
+    return putByIdTransitionHandlerImpl<allocating, reallocating>(vm);
 }
 
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionReallocatingHandlerCodeGenerator(VM& vm)
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionReallocatingHandler(VM& vm)
 {
     constexpr bool allocating = true;
     constexpr bool reallocating = true;
-    return putByIdTransitionHandlerCodeGeneratorImpl<allocating, reallocating>(vm);
+    return putByIdTransitionHandlerImpl<allocating, reallocating>(vm);
 }
 
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
@@ -5498,10 +5510,7 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> putByIdCustomHandlerImpl(VM& vm)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     GPRReg baseForCustom = baseJSR.payloadGPR();
     if constexpr (!isAccessor) {
@@ -5571,10 +5580,7 @@ static MacroAssemblerCodeRef<JITThunkPtrTag> putByIdSetterHandlerImpl(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     jit.loadPtr(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfHolder()), scratch3GPR);
     jit.moveConditionally64(CCallHelpers::Equal, scratch3GPR, CCallHelpers::TrustedImm32(0), baseJSR.payloadGPR(), scratch3GPR, scratch3GPR);
@@ -5663,7 +5669,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> putByIdSloppySetterHandler(VM& vm)
 
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
 template<bool hit>
-MacroAssemblerCodeRef<JITThunkPtrTag> inByIdInHandlerImpl(VM&)
+static MacroAssemblerCodeRef<JITThunkPtrTag> inByIdInHandlerImpl(VM&)
 {
     CCallHelpers jit;
 
@@ -5675,10 +5681,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> inByIdInHandlerImpl(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
 
     jit.boxBoolean(hit, resultJSR);
     InlineCacheCompiler::emitDataICEpilogue(jit);
@@ -5703,9 +5706,79 @@ MacroAssemblerCodeRef<JITThunkPtrTag> inByIdMissHandler(VM& vm)
     return inByIdInHandlerImpl<hit>(vm);
 }
 
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdDeleteHandler(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::DelById::baseJSR;
+    using BaselineJITRegisters::DelById::scratch1GPR;
+    using BaselineJITRegisters::DelById::scratch2GPR;
+    using BaselineJITRegisters::DelById::scratch3GPR;
+    using BaselineJITRegisters::DelById::resultJSR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+
+    jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch1GPR);
+    jit.moveTrustedValue(JSValue(), JSValueRegs { scratch3GPR });
+    jit.storeProperty(JSValueRegs { scratch3GPR }, baseJSR.payloadGPR(), scratch1GPR, scratch2GPR);
+    jit.transfer32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfNewStructureID()), CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()));
+
+    jit.move(MacroAssembler::TrustedImm32(true), resultJSR.payloadGPR());
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "DeleteById handler"_s, "DeleteById handler");
+}
+
+template<bool returnValue>
+static MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdIgnoreHandlerImpl(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::DelById::baseJSR;
+    using BaselineJITRegisters::DelById::scratch1GPR;
+    using BaselineJITRegisters::DelById::resultJSR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+
+    jit.move(MacroAssembler::TrustedImm32(returnValue), resultJSR.payloadGPR());
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "DeleteById handler"_s, "DeleteById handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdDeleteNonConfigurableHandler(VM& vm)
+{
+    constexpr bool resultValue = false;
+    return deleteByIdIgnoreHandlerImpl<resultValue>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdDeleteMissHandler(VM& vm)
+{
+    constexpr bool resultValue = true;
+    return deleteByIdIgnoreHandlerImpl<resultValue>(vm);
+}
+
 // FIXME: We may need to implement it in offline asm eventually to share it with non JIT environment.
 template<bool hit>
-MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfHandlerImpl(VM&)
+static MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfHandlerImpl(VM&)
 {
     CCallHelpers jit;
 
@@ -5718,10 +5791,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfHandlerImpl(VM&)
 
     CCallHelpers::JumpList fallThrough;
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(valueJSR.payloadGPR(), JSCell::structureIDOffset()), scratch1GPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, scratch1GPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, valueJSR.payloadGPR(), scratch1GPR));
 
     fallThrough.append(jit.branchPtr(CCallHelpers::NotEqual, protoJSR.payloadGPR(), CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfHolder())));
 
@@ -5746,6 +5816,413 @@ MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfMissHandler(VM& vm)
 {
     constexpr bool hit = false;
     return instanceOfHandlerImpl<hit>(vm);
+}
+
+template<bool ownProperty, bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> getByValLoadHandlerImpl(VM& vm)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::GetByVal::baseJSR;
+    using BaselineJITRegisters::GetByVal::propertyJSR;
+    using BaselineJITRegisters::GetByVal::scratch1GPR;
+    using BaselineJITRegisters::GetByVal::scratch2GPR;
+    using BaselineJITRegisters::GetByVal::resultJSR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+    loadHandlerImpl<ownProperty>(vm, jit, baseJSR, resultJSR, scratch1GPR, scratch2GPR);
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "GetByVal Load handler"_s, "GetByVal Load handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithStringLoadOwnPropertyHandler(VM& vm)
+{
+    constexpr bool ownProperty = true;
+    constexpr bool isSymbol = false;
+    return getByValLoadHandlerImpl<ownProperty, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithStringLoadPrototypePropertyHandler(VM& vm)
+{
+    constexpr bool ownProperty = false;
+    constexpr bool isSymbol = false;
+    return getByValLoadHandlerImpl<ownProperty, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithSymbolLoadOwnPropertyHandler(VM& vm)
+{
+    constexpr bool ownProperty = true;
+    constexpr bool isSymbol = true;
+    return getByValLoadHandlerImpl<ownProperty, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithSymbolLoadPrototypePropertyHandler(VM& vm)
+{
+    constexpr bool ownProperty = false;
+    constexpr bool isSymbol = true;
+    return getByValLoadHandlerImpl<ownProperty, isSymbol>(vm);
+}
+
+template<bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> getByValMissHandlerImpl(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::GetByVal::baseJSR;
+    using BaselineJITRegisters::GetByVal::propertyJSR;
+    using BaselineJITRegisters::GetByVal::scratch1GPR;
+    using BaselineJITRegisters::GetByVal::resultJSR;
+    using BaselineJITRegisters::GetByVal::profileGPR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+
+    jit.moveTrustedValue(jsUndefined(), resultJSR);
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "GetByVal Miss handler"_s, "GetByVal Miss handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithStringMissHandler(VM& vm)
+{
+    constexpr bool isSymbol = false;
+    return getByValMissHandlerImpl<isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithSymbolMissHandler(VM& vm)
+{
+    constexpr bool isSymbol = true;
+    return getByValMissHandlerImpl<isSymbol>(vm);
+}
+
+template<bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> putByValReplaceHandlerImpl(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::PutByVal::baseJSR;
+    using BaselineJITRegisters::PutByVal::propertyJSR;
+    using BaselineJITRegisters::PutByVal::valueJSR;
+    using BaselineJITRegisters::PutByVal::stubInfoGPR;
+    using BaselineJITRegisters::PutByVal::scratch1GPR;
+    using BaselineJITRegisters::PutByVal::scratch2GPR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+
+    jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch1GPR);
+    jit.storeProperty(valueJSR, baseJSR.payloadGPR(), scratch1GPR, scratch2GPR);
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "PutByVal Replace handler"_s, "PutByVal Replace handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringReplaceHandler(VM& vm)
+{
+    constexpr bool isSymbol = false;
+    return putByValReplaceHandlerImpl<isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolReplaceHandler(VM& vm)
+{
+    constexpr bool isSymbol = true;
+    return putByValReplaceHandlerImpl<isSymbol>(vm);
+}
+
+template<bool allocating, bool reallocating, bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> putByValTransitionHandlerImpl(VM& vm)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::PutByVal::baseJSR;
+    using BaselineJITRegisters::PutByVal::valueJSR;
+    using BaselineJITRegisters::PutByVal::propertyJSR;
+    using BaselineJITRegisters::PutByVal::stubInfoGPR;
+    using BaselineJITRegisters::PutByVal::scratch1GPR;
+    using BaselineJITRegisters::PutByVal::scratch2GPR;
+    using BaselineJITRegisters::PutByVal::profileGPR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+    CCallHelpers::JumpList failAndIgnore;
+
+    auto usedRegisters = RegisterSetBuilder::stubUnavailableRegisters();
+    usedRegisters.add(profileGPR, IgnoreVectors);
+    ScratchRegisterAllocator allocator(usedRegisters);
+    allocator.lock(baseJSR);
+    allocator.lock(valueJSR);
+    allocator.lock(propertyJSR);
+    allocator.lock(stubInfoGPR);
+    allocator.lock(scratch1GPR);
+    allocator.lock(scratch2GPR);
+    allocator.lock(GPRInfo::handlerGPR);
+
+    GPRReg scratch3GPR = allocator.allocateScratchGPR();
+    GPRReg scratch4GPR = allocator.allocateScratchGPR();
+
+    auto preservedState = allocator.preserveReusedRegistersByPushing(jit, ScratchRegisterAllocator::ExtraStackSpace::NoExtraSpace);
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+
+    transitionHandlerImpl<allocating, reallocating>(vm, jit, failAndIgnore, baseJSR, valueJSR, scratch1GPR, scratch2GPR, scratch3GPR, scratch4GPR);
+    allocator.restoreReusedRegistersByPopping(jit, preservedState);
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    if (!failAndIgnore.empty()) {
+        JIT_COMMENT(jit, "failAndIgnore");
+        failAndIgnore.link(&jit);
+        // Make sure that the inline cache optimization code knows that we are taking slow path because
+        // of something that isn't patchable. The slow path will decrement "countdown" and will only
+        // patch things if the countdown reaches zero. We increment the slow path count here to ensure
+        // that the slow path does not try to patch.
+        jit.add8(CCallHelpers::TrustedImm32(1), CCallHelpers::Address(stubInfoGPR, StructureStubInfo::offsetOfCountdown()));
+    }
+
+    fallThrough.link(&jit);
+    allocator.restoreReusedRegistersByPopping(jit, preservedState);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "PutByVal Transition handler"_s, "PutByVal Transition handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringTransitionNonAllocatingHandler(VM& vm)
+{
+    constexpr bool allocating = false;
+    constexpr bool reallocating = false;
+    constexpr bool isSymbol = false;
+    return putByValTransitionHandlerImpl<allocating, reallocating, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolTransitionNonAllocatingHandler(VM& vm)
+{
+    constexpr bool allocating = false;
+    constexpr bool reallocating = false;
+    constexpr bool isSymbol = true;
+    return putByValTransitionHandlerImpl<allocating, reallocating, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringTransitionNewlyAllocatingHandler(VM& vm)
+{
+    constexpr bool allocating = true;
+    constexpr bool reallocating = false;
+    constexpr bool isSymbol = false;
+    return putByValTransitionHandlerImpl<allocating, reallocating, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolTransitionNewlyAllocatingHandler(VM& vm)
+{
+    constexpr bool allocating = true;
+    constexpr bool reallocating = false;
+    constexpr bool isSymbol = true;
+    return putByValTransitionHandlerImpl<allocating, reallocating, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringTransitionReallocatingHandler(VM& vm)
+{
+    constexpr bool allocating = true;
+    constexpr bool reallocating = true;
+    constexpr bool isSymbol = false;
+    return putByValTransitionHandlerImpl<allocating, reallocating, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolTransitionReallocatingHandler(VM& vm)
+{
+    constexpr bool allocating = true;
+    constexpr bool reallocating = true;
+    constexpr bool isSymbol = true;
+    return putByValTransitionHandlerImpl<allocating, reallocating, isSymbol>(vm);
+}
+
+template<bool hit, bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> inByValInHandlerImpl(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::InByVal::baseJSR;
+    using BaselineJITRegisters::InByVal::propertyJSR;
+    using BaselineJITRegisters::InByVal::scratch1GPR;
+    using BaselineJITRegisters::InByVal::resultJSR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+
+    jit.boxBoolean(hit, resultJSR);
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "InByVal handler"_s, "InByVal handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithStringHitHandler(VM& vm)
+{
+    constexpr bool hit = true;
+    constexpr bool isSymbol = false;
+    return inByValInHandlerImpl<hit, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithStringMissHandler(VM& vm)
+{
+    constexpr bool hit = false;
+    constexpr bool isSymbol = false;
+    return inByValInHandlerImpl<hit, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithSymbolHitHandler(VM& vm)
+{
+    constexpr bool hit = true;
+    constexpr bool isSymbol = true;
+    return inByValInHandlerImpl<hit, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithSymbolMissHandler(VM& vm)
+{
+    constexpr bool hit = false;
+    constexpr bool isSymbol = true;
+    return inByValInHandlerImpl<hit, isSymbol>(vm);
+}
+
+template<bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValDeleteHandlerImpl(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::DelByVal::baseJSR;
+    using BaselineJITRegisters::DelByVal::propertyJSR;
+    using BaselineJITRegisters::DelByVal::scratch1GPR;
+    using BaselineJITRegisters::DelByVal::scratch2GPR;
+    using BaselineJITRegisters::DelByVal::scratch3GPR;
+    using BaselineJITRegisters::DelByVal::resultJSR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+
+    jit.load32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfOffset()), scratch1GPR);
+    jit.moveTrustedValue(JSValue(), JSValueRegs { scratch3GPR });
+    jit.storeProperty(JSValueRegs { scratch3GPR }, baseJSR.payloadGPR(), scratch1GPR, scratch2GPR);
+    jit.transfer32(CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfNewStructureID()), CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()));
+
+    jit.move(MacroAssembler::TrustedImm32(true), resultJSR.payloadGPR());
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "DeleteByVal handler"_s, "DeleteByVal handler");
+}
+
+template<bool returnValue, bool isSymbol>
+static MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValIgnoreHandlerImpl(VM&)
+{
+    CCallHelpers jit;
+
+    using BaselineJITRegisters::DelByVal::baseJSR;
+    using BaselineJITRegisters::DelByVal::propertyJSR;
+    using BaselineJITRegisters::DelByVal::scratch1GPR;
+    using BaselineJITRegisters::DelByVal::resultJSR;
+
+    InlineCacheCompiler::emitDataICPrologue(jit);
+
+    CCallHelpers::JumpList fallThrough;
+
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), scratch1GPR));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckUid(jit, isSymbol, propertyJSR, scratch1GPR));
+
+    jit.move(MacroAssembler::TrustedImm32(returnValue), resultJSR.payloadGPR());
+    InlineCacheCompiler::emitDataICEpilogue(jit);
+    jit.ret();
+
+    fallThrough.link(&jit);
+    InlineCacheCompiler::emitDataICJumpNextHandler(jit);
+
+    LinkBuffer patchBuffer(jit, GLOBAL_THUNK_ID, LinkBuffer::Profile::InlineCache);
+    return FINALIZE_THUNK(patchBuffer, JITThunkPtrTag, "DeleteByVal handler"_s, "DeleteByVal handler");
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithStringDeleteHandler(VM& vm)
+{
+    constexpr bool isSymbol = false;
+    return deleteByValDeleteHandlerImpl<isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithStringDeleteNonConfigurableHandler(VM& vm)
+{
+    constexpr bool isSymbol = false;
+    constexpr bool resultValue = false;
+    return deleteByValIgnoreHandlerImpl<resultValue, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithStringDeleteMissHandler(VM& vm)
+{
+    constexpr bool isSymbol = false;
+    constexpr bool resultValue = true;
+    return deleteByValIgnoreHandlerImpl<resultValue, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithSymbolDeleteHandler(VM& vm)
+{
+    constexpr bool isSymbol = true;
+    return deleteByValDeleteHandlerImpl<isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithSymbolDeleteNonConfigurableHandler(VM& vm)
+{
+    constexpr bool isSymbol = true;
+    constexpr bool resultValue = false;
+    return deleteByValIgnoreHandlerImpl<resultValue, isSymbol>(vm);
+}
+
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithSymbolDeleteMissHandler(VM& vm)
+{
+    constexpr bool isSymbol = true;
+    constexpr bool resultValue = true;
+    return deleteByValIgnoreHandlerImpl<resultValue, isSymbol>(vm);
 }
 
 AccessGenerationResult InlineCacheCompiler::compileHandler(const GCSafeConcurrentJSLocker&, PolymorphicAccess& poly, CodeBlock* codeBlock, Ref<AccessCase>&& accessCase)
@@ -5872,17 +6349,18 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
         }
     } else {
         if (!accessCase.usesPolyProto()) {
+            Vector<ObjectPropertyCondition, 64> watchedConditions;
+            Vector<ObjectPropertyCondition, 64> checkingConditions;
             switch (m_stubInfo.accessType) {
             case AccessType::GetById:
             case AccessType::TryGetById:
-            case AccessType::GetByIdDirect: {
+            case AccessType::GetByIdDirect:
+            case AccessType::GetPrivateNameById: {
                 switch (accessCase.m_type) {
                 case AccessCase::GetGetter:
                 case AccessCase::Load: {
                     ASSERT(canBeViaGlobalProxy(accessCase.m_type));
                     if (!accessCase.viaGlobalProxy()) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             Structure* currStructure = accessCase.structure();
@@ -5906,8 +6384,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 case AccessCase::Miss: {
                     ASSERT(canBeViaGlobalProxy(accessCase.m_type));
                     if (!accessCase.viaGlobalProxy()) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             auto code = vm.getCTIStub(CommonJITThunkID::GetByIdMissHandler).retagged<JITStubRoutinePtrTag>();
@@ -5931,8 +6407,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                                 break;
                         }
 
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             Structure* currStructure = accessCase.structure();
@@ -5961,8 +6435,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 case AccessCase::Getter: {
                     ASSERT(canBeViaGlobalProxy(accessCase.m_type));
                     if (!accessCase.viaGlobalProxy()) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             Structure* currStructure = accessCase.structure();
@@ -5981,8 +6453,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 }
                 case AccessCase::ProxyObjectLoad: {
                     ASSERT(!accessCase.viaGlobalProxy());
-                    Vector<ObjectPropertyCondition, 64> watchedConditions;
-                    Vector<ObjectPropertyCondition, 64> checkingConditions;
                     collectConditions(accessCase, watchedConditions, checkingConditions);
                     if (checkingConditions.isEmpty()) {
                         auto code = vm.getCTIStub(CommonJITThunkID::GetByIdProxyObjectLoadHandler).retagged<JITStubRoutinePtrTag>();
@@ -5996,8 +6466,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                     break;
                 case AccessCase::ModuleNamespaceLoad: {
                     ASSERT(!accessCase.viaGlobalProxy());
-                    Vector<ObjectPropertyCondition, 64> watchedConditions;
-                    Vector<ObjectPropertyCondition, 64> checkingConditions;
                     collectConditions(accessCase, watchedConditions, checkingConditions);
                     if (checkingConditions.isEmpty()) {
                         auto code = vm.getCTIStub(CommonJITThunkID::GetByIdModuleNamespaceLoadHandler).retagged<JITStubRoutinePtrTag>();
@@ -6016,14 +6484,14 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
             case AccessType::PutByIdDirectStrict:
             case AccessType::PutByIdStrict:
             case AccessType::PutByIdSloppy:
-            case AccessType::PutByIdDirectSloppy: {
-                bool isStrict = m_stubInfo.accessType == AccessType::PutByIdDirectStrict || m_stubInfo.accessType == AccessType::PutByIdStrict;
+            case AccessType::PutByIdDirectSloppy:
+            case AccessType::DefinePrivateNameById:
+            case AccessType::SetPrivateNameById: {
+                bool isStrict = m_stubInfo.accessType == AccessType::PutByIdDirectStrict || m_stubInfo.accessType == AccessType::PutByIdStrict || m_stubInfo.accessType == AccessType::DefinePrivateNameById || m_stubInfo.accessType == AccessType::SetPrivateNameById;
                 switch (accessCase.m_type) {
                 case AccessCase::Replace: {
                     ASSERT(canBeViaGlobalProxy(accessCase.m_type));
                     if (!accessCase.viaGlobalProxy()) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             auto code = vm.getCTIStub(CommonJITThunkID::PutByIdReplaceHandler).retagged<JITStubRoutinePtrTag>();
@@ -6040,8 +6508,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                     bool reallocating = allocating && accessCase.structure()->outOfLineCapacity();
                     bool allocatingInline = allocating && !accessCase.structure()->couldHaveIndexingHeader();
                     if (!allocating || allocatingInline) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             MacroAssemblerCodeRef<JITStubRoutinePtrTag> code;
@@ -6062,8 +6528,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 case AccessCase::CustomValueSetter: {
                     ASSERT(canBeViaGlobalProxy(accessCase.m_type));
                     if (!accessCase.viaGlobalProxy()) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             Structure* currStructure = accessCase.structure();
@@ -6087,8 +6551,6 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 case AccessCase::Setter: {
                     ASSERT(canBeViaGlobalProxy(accessCase.m_type));
                     if (!accessCase.viaGlobalProxy()) {
-                        Vector<ObjectPropertyCondition, 64> watchedConditions;
-                        Vector<ObjectPropertyCondition, 64> checkingConditions;
                         collectConditions(accessCase, watchedConditions, checkingConditions);
                         if (checkingConditions.isEmpty()) {
                             Structure* currStructure = accessCase.structure();
@@ -6120,11 +6582,45 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 case AccessCase::InHit:
                 case AccessCase::InMiss: {
                     ASSERT(!accessCase.viaGlobalProxy());
-                    Vector<ObjectPropertyCondition, 64> watchedConditions;
-                    Vector<ObjectPropertyCondition, 64> checkingConditions;
                     collectConditions(accessCase, watchedConditions, checkingConditions);
                     if (checkingConditions.isEmpty()) {
                         auto code = vm.getCTIStub(accessCase.m_type == AccessCase::InHit ? CommonJITThunkID::InByIdHitHandler : CommonJITThunkID::InByIdMissHandler).retagged<JITStubRoutinePtrTag>();
+                        auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                        connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                        return finishPreCompiledCodeGeneration(WTFMove(stub));
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+                break;
+            }
+
+            case AccessType::DeleteByIdStrict:
+            case AccessType::DeleteByIdSloppy: {
+                switch (accessCase.m_type) {
+                case AccessCase::Delete:
+                case AccessCase::DeleteNonConfigurable:
+                case AccessCase::DeleteMiss: {
+                    ASSERT(!accessCase.viaGlobalProxy());
+                    collectConditions(accessCase, watchedConditions, checkingConditions);
+                    if (checkingConditions.isEmpty()) {
+                        CommonJITThunkID thunkID = CommonJITThunkID::DeleteByIdDeleteHandler;
+                        switch (accessCase.m_type) {
+                        case AccessCase::Delete:
+                            thunkID = CommonJITThunkID::DeleteByIdDeleteHandler;
+                            break;
+                        case AccessCase::DeleteNonConfigurable:
+                            thunkID = CommonJITThunkID::DeleteByIdDeleteNonConfigurableHandler;
+                            break;
+                        case AccessCase::DeleteMiss:
+                            thunkID = CommonJITThunkID::DeleteByIdDeleteMissHandler;
+                            break;
+                        default:
+                            break;
+                        }
+                        auto code = vm.getCTIStub(thunkID).retagged<JITStubRoutinePtrTag>();
                         auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
                         connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
                         return finishPreCompiledCodeGeneration(WTFMove(stub));
@@ -6142,11 +6638,187 @@ AccessGenerationResult InlineCacheCompiler::compileOneAccessCaseHandler(Polymorp
                 case AccessCase::InstanceOfHit:
                 case AccessCase::InstanceOfMiss: {
                     ASSERT(!accessCase.viaGlobalProxy());
-                    Vector<ObjectPropertyCondition, 64> watchedConditions;
-                    Vector<ObjectPropertyCondition, 64> checkingConditions;
                     collectConditions(accessCase, watchedConditions, checkingConditions);
                     if (checkingConditions.isEmpty()) {
                         auto code = vm.getCTIStub(accessCase.m_type == AccessCase::InstanceOfHit ? CommonJITThunkID::InstanceOfHitHandler : CommonJITThunkID::InstanceOfMissHandler).retagged<JITStubRoutinePtrTag>();
+                        auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                        connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                        return finishPreCompiledCodeGeneration(WTFMove(stub));
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+                break;
+            }
+
+            case AccessType::GetByVal: {
+                switch (accessCase.m_type) {
+                case AccessCase::GetGetter:
+                case AccessCase::Load: {
+                    ASSERT(canBeViaGlobalProxy(accessCase.m_type));
+                    if (!accessCase.viaGlobalProxy()) {
+                        collectConditions(accessCase, watchedConditions, checkingConditions);
+                        if (checkingConditions.isEmpty()) {
+                            Structure* currStructure = accessCase.structure();
+                            if (auto* object = accessCase.tryGetAlternateBase())
+                                currStructure = object->structure();
+                            if (isValidOffset(accessCase.m_offset))
+                                currStructure->startWatchingPropertyForReplacements(vm, accessCase.offset());
+
+                            MacroAssemblerCodeRef<JITStubRoutinePtrTag> code;
+                            if (!accessCase.tryGetAlternateBase()) {
+                                if (accessCase.uid()->isSymbol())
+                                    code = vm.getCTIStub(CommonJITThunkID::GetByValWithSymbolLoadOwnPropertyHandler).retagged<JITStubRoutinePtrTag>();
+                                else
+                                    code = vm.getCTIStub(CommonJITThunkID::GetByValWithStringLoadOwnPropertyHandler).retagged<JITStubRoutinePtrTag>();
+                            } else {
+                                if (accessCase.uid()->isSymbol())
+                                    code = vm.getCTIStub(CommonJITThunkID::GetByValWithSymbolLoadPrototypePropertyHandler).retagged<JITStubRoutinePtrTag>();
+                                else
+                                    code = vm.getCTIStub(CommonJITThunkID::GetByValWithStringLoadPrototypePropertyHandler).retagged<JITStubRoutinePtrTag>();
+                            }
+                            auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                            connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                            return finishPreCompiledCodeGeneration(WTFMove(stub));
+                        }
+                    }
+                    break;
+                }
+                case AccessCase::Miss: {
+                    ASSERT(canBeViaGlobalProxy(accessCase.m_type));
+                    if (!accessCase.viaGlobalProxy()) {
+                        collectConditions(accessCase, watchedConditions, checkingConditions);
+                        if (checkingConditions.isEmpty()) {
+                            MacroAssemblerCodeRef<JITStubRoutinePtrTag> code;
+                            if (accessCase.uid()->isSymbol())
+                                code = vm.getCTIStub(CommonJITThunkID::GetByValWithSymbolMissHandler).retagged<JITStubRoutinePtrTag>();
+                            else
+                                code = vm.getCTIStub(CommonJITThunkID::GetByValWithStringMissHandler).retagged<JITStubRoutinePtrTag>();
+                            auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                            connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                            return finishPreCompiledCodeGeneration(WTFMove(stub));
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+                break;
+            }
+
+            case AccessType::PutByValDirectStrict:
+            case AccessType::PutByValStrict:
+            case AccessType::PutByValSloppy:
+            case AccessType::PutByValDirectSloppy:
+            case AccessType::DefinePrivateNameByVal:
+            case AccessType::SetPrivateNameByVal: {
+                switch (accessCase.m_type) {
+                case AccessCase::Replace: {
+                    ASSERT(canBeViaGlobalProxy(accessCase.m_type));
+                    if (!accessCase.viaGlobalProxy()) {
+                        collectConditions(accessCase, watchedConditions, checkingConditions);
+                        if (checkingConditions.isEmpty()) {
+                            MacroAssemblerCodeRef<JITStubRoutinePtrTag> code;
+                            if (accessCase.uid()->isSymbol())
+                                code = vm.getCTIStub(CommonJITThunkID::PutByValWithSymbolReplaceHandler).retagged<JITStubRoutinePtrTag>();
+                            else
+                                code = vm.getCTIStub(CommonJITThunkID::PutByValWithStringReplaceHandler).retagged<JITStubRoutinePtrTag>();
+                            auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                            connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                            return finishPreCompiledCodeGeneration(WTFMove(stub));
+                        }
+                    }
+                    break;
+                }
+                case AccessCase::Transition: {
+                    ASSERT(!accessCase.viaGlobalProxy());
+                    bool allocating = accessCase.newStructure()->outOfLineCapacity() != accessCase.structure()->outOfLineCapacity();
+                    bool reallocating = allocating && accessCase.structure()->outOfLineCapacity();
+                    bool allocatingInline = allocating && !accessCase.structure()->couldHaveIndexingHeader();
+                    if (!allocating || allocatingInline) {
+                        collectConditions(accessCase, watchedConditions, checkingConditions);
+                        if (checkingConditions.isEmpty()) {
+                            MacroAssemblerCodeRef<JITStubRoutinePtrTag> code;
+                            if (!allocating) {
+                                if (accessCase.uid()->isSymbol())
+                                    code = vm.getCTIStub(CommonJITThunkID::PutByValWithSymbolTransitionNonAllocatingHandler).retagged<JITStubRoutinePtrTag>();
+                                else
+                                    code = vm.getCTIStub(CommonJITThunkID::PutByValWithStringTransitionNonAllocatingHandler).retagged<JITStubRoutinePtrTag>();
+                            } else if (!reallocating) {
+                                if (accessCase.uid()->isSymbol())
+                                    code = vm.getCTIStub(CommonJITThunkID::PutByValWithSymbolTransitionNewlyAllocatingHandler).retagged<JITStubRoutinePtrTag>();
+                                else
+                                    code = vm.getCTIStub(CommonJITThunkID::PutByValWithStringTransitionNewlyAllocatingHandler).retagged<JITStubRoutinePtrTag>();
+                            } else {
+                                if (accessCase.uid()->isSymbol())
+                                    code = vm.getCTIStub(CommonJITThunkID::PutByValWithSymbolTransitionReallocatingHandler).retagged<JITStubRoutinePtrTag>();
+                                else
+                                    code = vm.getCTIStub(CommonJITThunkID::PutByValWithStringTransitionReallocatingHandler).retagged<JITStubRoutinePtrTag>();
+                            }
+                            auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                            connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                            return finishPreCompiledCodeGeneration(WTFMove(stub));
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+                break;
+            }
+
+            case AccessType::InByVal: {
+                switch (accessCase.m_type) {
+                case AccessCase::InHit:
+                case AccessCase::InMiss: {
+                    ASSERT(!accessCase.viaGlobalProxy());
+                    collectConditions(accessCase, watchedConditions, checkingConditions);
+                    if (checkingConditions.isEmpty()) {
+                        MacroAssemblerCodeRef<JITStubRoutinePtrTag> code;
+                        if (accessCase.uid()->isSymbol())
+                            code = vm.getCTIStub(accessCase.m_type == AccessCase::InHit ? CommonJITThunkID::InByValWithSymbolHitHandler : CommonJITThunkID::InByValWithSymbolMissHandler).retagged<JITStubRoutinePtrTag>();
+                        else
+                            code = vm.getCTIStub(accessCase.m_type == AccessCase::InHit ? CommonJITThunkID::InByValWithStringHitHandler : CommonJITThunkID::InByValWithStringMissHandler).retagged<JITStubRoutinePtrTag>();
+                        auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
+                        connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
+                        return finishPreCompiledCodeGeneration(WTFMove(stub));
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+                break;
+            }
+
+            case AccessType::DeleteByValStrict:
+            case AccessType::DeleteByValSloppy: {
+                switch (accessCase.m_type) {
+                case AccessCase::Delete:
+                case AccessCase::DeleteNonConfigurable:
+                case AccessCase::DeleteMiss: {
+                    ASSERT(!accessCase.viaGlobalProxy());
+                    collectConditions(accessCase, watchedConditions, checkingConditions);
+                    if (checkingConditions.isEmpty()) {
+                        CommonJITThunkID thunkID = CommonJITThunkID::DeleteByValWithStringDeleteHandler;
+                        switch (accessCase.m_type) {
+                        case AccessCase::Delete:
+                            thunkID = accessCase.uid()->isSymbol() ? CommonJITThunkID::DeleteByValWithSymbolDeleteHandler : CommonJITThunkID::DeleteByValWithStringDeleteHandler;
+                            break;
+                        case AccessCase::DeleteNonConfigurable:
+                            thunkID = accessCase.uid()->isSymbol() ? CommonJITThunkID::DeleteByValWithSymbolDeleteNonConfigurableHandler : CommonJITThunkID::DeleteByValWithStringDeleteNonConfigurableHandler;
+                            break;
+                        case AccessCase::DeleteMiss:
+                            thunkID = accessCase.uid()->isSymbol() ? CommonJITThunkID::DeleteByValWithSymbolDeleteMissHandler : CommonJITThunkID::DeleteByValWithStringDeleteMissHandler;
+                            break;
+                        default:
+                            break;
+                        }
+                        auto code = vm.getCTIStub(thunkID).retagged<JITStubRoutinePtrTag>();
                         auto stub = createPreCompiledICJITStubRoutine(WTFMove(code), vm);
                         connectWatchpointSets(stub->watchpoints(), stub->watchpointSet(), WTFMove(watchedConditions), WTFMove(additionalWatchpointSets));
                         return finishPreCompiledCodeGeneration(WTFMove(stub));
@@ -6320,10 +6992,7 @@ MacroAssemblerCodeRef<JITStubRoutinePtrTag> InlineCacheCompiler::compileGetByIdD
 
     m_preservedReusedRegisterState = allocator.preserveReusedRegistersByPushing(jit, ScratchRegisterAllocator::ExtraStackSpace::NoExtraSpace);
 
-    // Default structure guard for the instance.
-    JIT_COMMENT(jit, "check structure");
-    jit.load32(CCallHelpers::Address(baseJSR.payloadGPR(), JSCell::structureIDOffset()), m_scratchGPR);
-    fallThrough.append(jit.branch32(CCallHelpers::NotEqual, m_scratchGPR, CCallHelpers::Address(GPRInfo::handlerGPR, InlineCacheHandler::offsetOfStructureID())));
+    fallThrough.append(InlineCacheCompiler::emitDataICCheckStructure(jit, baseJSR.payloadGPR(), m_scratchGPR));
 
     emitDOMJITGetter(nullptr, domJIT, baseJSR.payloadGPR());
 
@@ -6357,26 +7026,53 @@ MacroAssemblerCodeRef<JITStubRoutinePtrTag> InlineCacheCompiler::compileGetByIdD
 }
 
 #else
-MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadOwnPropertyHandlerCodeGenerator(VM&) { return { }; }
-MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadPrototypePropertyHandlerCodeGenerator(VM&) { return { }; }
-MacroAssemblerCodeRef<JITThunkPtrTag> getByIdMissHandlerCodeGenerator(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadOwnPropertyHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByIdLoadPrototypePropertyHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByIdMissHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> getByIdCustomAccessorHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> getByIdCustomValueHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> getByIdGetterHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> getByIdProxyObjectLoadHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> getByIdModuleNamespaceLoadHandler(VM&) { return { }; }
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdReplaceHandlerCodeGenerator(VM&) { return { }; }
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNonAllocatingHandlerCodeGenerator(VM&) { return { }; }
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNewlyAllocatingHandlerCodeGenerator(VM&) { return { }; }
-MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionReallocatingHandlerCodeGenerator(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdReplaceHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNonAllocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionNewlyAllocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByIdTransitionReallocatingHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdCustomAccessorHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdCustomValueHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdStrictSetterHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> putByIdSloppySetterHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> inByIdHitHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> inByIdMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdDeleteHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdDeleteNonConfigurableHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByIdDeleteMissHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfHitHandler(VM&) { return { }; }
 MacroAssemblerCodeRef<JITThunkPtrTag> instanceOfMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithStringLoadOwnPropertyHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithStringLoadPrototypePropertyHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithStringMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithSymbolLoadOwnPropertyHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithSymbolLoadPrototypePropertyHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> getByValWithSymbolMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringReplaceHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringTransitionNonAllocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringTransitionNewlyAllocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithStringTransitionReallocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolReplaceHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolTransitionNonAllocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolTransitionNewlyAllocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> putByValWithSymbolTransitionReallocatingHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithStringHitHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithStringMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithSymbolHitHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> inByValWithSymbolMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithStringDeleteHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithStringDeleteNonConfigurableHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithStringDeleteMissHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithSymbolDeleteHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithSymbolDeleteNonConfigurableHandler(VM&) { return { }; }
+MacroAssemblerCodeRef<JITThunkPtrTag> deleteByValWithSymbolDeleteMissHandler(VM&) { return { }; }
 AccessGenerationResult InlineCacheCompiler::compileHandler(const GCSafeConcurrentJSLocker&, PolymorphicAccess&, CodeBlock*, Ref<AccessCase>&&) { return { }; }
 #endif
 

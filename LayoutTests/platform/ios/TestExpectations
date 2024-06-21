@@ -3291,8 +3291,6 @@ webkit.org/b/207858 fast/canvas/webgl/uninitialized-test.html [ Pass Failure ]
 webkit.org/b/207858 fast/canvas/webgl/oes-texture-float-linear.html [ Pass Failure ]
 webkit.org/b/207858 fast/canvas/webgl/tex-image-and-sub-image-2d-with-video.html [ Pass Failure ]
 
-webkit.org/b/208023 fast/text/international/system-language/declarative-language.html [ Failure ]
-
 webkit.org/b/204312 imported/w3c/web-platform-tests/svg/import/struct-dom-06-b-manual.svg [ Failure Pass ]
 
 webkit.org/b/209257 svg/as-object/object-box-sizing-no-width-height.html [ Pass Failure ]
@@ -6184,15 +6182,15 @@ webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/text-i
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/text-indent-vrl-014.xht [ ImageOnlyFailure ]
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/text-indent-vrl-016.xht [ ImageOnlyFailure ]
 
-# rdar://problem/59595496
+# webkit.org/b/275710 (REGRESSION (iOS 14): [ iOS ] 8 quicklook tests are constantly failing.)
 quicklook/keynote-09.html [ Failure ]
 quicklook/keynote.html [ ImageOnlyFailure ]
 quicklook/numbers-09.html [ Failure ]
 quicklook/numbers.html [ ImageOnlyFailure ]
 quicklook/pages-09.html [ Failure ]
 quicklook/pages.html [ ImageOnlyFailure ]
-webkit.org/b/175865 quicklook/multi-sheet-numbers-09.html [ Skip ]
-http/tests/quicklook/secure-document-with-subresources.html [ Skip ]
+quicklook/multi-sheet-numbers-09.html [ Failure ]
+http/tests/quicklook/secure-document-with-subresources.html [ ImageOnlyFailure ]
 
 webkit.org/b/209446 imported/w3c/web-platform-tests/navigation-timing/test_timing_attributes_order.html [ Pass Failure ]
 
@@ -6431,12 +6429,6 @@ webkit.org/b/231962 editing/selection/modal-dialog-select-paragraph.html [ Failu
 http/tests/media/modern-media-controls/overflow-support/playback-speed-live-broadcast.html [ Timeout ]
 
 webkit.org/b/168961 fast/events/wheelevent-in-frame.html [ Pass Timeout ]
-
-webkit.org/b/231264 fast/events/ios/rotation/layout-viewport-during-rotation.html [ Failure ]
-
-webkit.org/b/231269 fast/events/ios/rotation/safari-like-rotation.html [ Failure ]
-
-webkit.org/b/231315 fast/events/ios/rotation/safe-area-insets-during-safari-type-rotation.html [ Pass Timeout Failure ]
 
 webkit.org/b/230987 fast/events/ios/viewport-shrink-to-fit-allows-double-tap.html [ Pass Timeout ]
 
@@ -7262,3 +7254,14 @@ fast/images/text-recognition/ios/select-word-in-image-overlay-inside-link.html [
 webkit.org/b/271916 media/track/track-in-band-layout.html [ Failure ]
 
 webkit.org/b/274766 [ Debug ] http/wpt/webauthn/public-key-credential-get-success-u2f.https.html [ Failure ]
+
+#webkit.org/b/231315 fast/events/ios/rotation/safe-area-insets-during-safari-type-rotation.html [ Pass Timeout Failure ]
+# uncomment above after below is resolved
+# webkit.org/b/275696 ([ iOS ] 3 fast/events/ios/rotation/* tests are constantly failing.)
+fast/events/ios/rotation/safe-area-insets-during-safari-type-rotation.html [ Failure ]
+fast/events/ios/rotation/layout-viewport-during-rotation.html [ Failure ]
+fast/events/ios/rotation/safari-like-rotation.html [ Failure ]
+
+webkit.org/b/275713 fast/text/international/system-language/declarative-language.html [ Failure ]
+
+webkit.org/b/275709 [ Debug ] imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-form.html [ Skip ]

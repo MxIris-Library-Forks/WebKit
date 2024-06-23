@@ -4597,7 +4597,6 @@ webkit.org/b/257904 http/tests/site-isolation/draw-after-navigation.html [ Skip 
 webkit.org/b/257904 http/tests/site-isolation/draw-with-size-after-same-origin-navigation.html [ Skip ]
 webkit.org/b/257904 http/tests/site-isolation/page-zoom.html [ Skip ]
 webkit.org/b/257904 http/tests/site-isolation/selection-focus.html [ Skip ]
-webkit.org/b/257904 http/tests/site-isolation/basic-iframe-render-output.html [ Failure Timeout Pass ]
 
 webkit.org/b/269550 http/tests/site-isolation/scrolling/ [ Skip ]
 
@@ -6520,6 +6519,8 @@ webkit.org/b/232252 [ Release ] imported/w3c/web-platform-tests/webrtc/RTCDtlsTr
 # See webkit.org/b/233498 for context on this pointerevents tests
 imported/w3c/web-platform-tests/pointerevents [ Skip ]
 webkit.org/b/237348 pointerevents/mouse [ Skip ]
+
+webkit.org/b/275768 imported/w3c/web-platform-tests/inert/inert-iframe-hittest.html [ Skip ]
 
 # webkit.org/b/234410 Multiple semantics web-platform-tests have become flaky after r286944
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe_sandbox_anchor_download_allow_downloads.tentative.html [ DumpJSConsoleLogInStdErr Pass Failure ]

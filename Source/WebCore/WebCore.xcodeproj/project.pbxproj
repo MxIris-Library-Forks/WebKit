@@ -17833,6 +17833,14 @@
 		BCC206F42BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+UnevaluatedCalc.cpp"; sourceTree = "<group>"; };
 		BCC206F52BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+UnevaluatedCalc.h"; sourceTree = "<group>"; };
 		BCC206F62BE9483A00465A78 /* CSSPropertyParserConsumer+RawTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+RawTypes.cpp"; sourceTree = "<group>"; };
+		BCC38E8E2C25E0270013821F /* CSSPropertyParserConsumer+Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Image.cpp"; sourceTree = "<group>"; };
+		BCC38E8F2C25E0270013821F /* CSSPropertyParserConsumer+Image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Image.h"; sourceTree = "<group>"; };
+		BCC38E902C25E1A80013821F /* CSSPropertyParserConsumer+URL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+URL.cpp"; sourceTree = "<group>"; };
+		BCC38E912C25E1A80013821F /* CSSPropertyParserConsumer+URL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+URL.h"; sourceTree = "<group>"; };
+		BCC38E922C25E5F20013821F /* CSSPropertyParserConsumer+String.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+String.cpp"; sourceTree = "<group>"; };
+		BCC38E932C25E5F20013821F /* CSSPropertyParserConsumer+String.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+String.h"; sourceTree = "<group>"; };
+		BCC38E942C25E83D0013821F /* CSSPropertyParserConsumer+Position.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Position.cpp"; sourceTree = "<group>"; };
+		BCC38E952C25E83D0013821F /* CSSPropertyParserConsumer+Position.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Position.h"; sourceTree = "<group>"; };
 		BCC5BDFE0C0E93110011C2DB /* JSCSSStyleSheet.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSStyleSheet.cpp; sourceTree = "<group>"; };
 		BCC5BDFF0C0E93110011C2DB /* JSCSSStyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSCSSStyleSheet.h; sourceTree = "<group>"; };
 		BCC8CFCA0986CD2400140BF2 /* ColorData.gperf */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = ColorData.gperf; sourceTree = "<group>"; };
@@ -29924,6 +29932,8 @@
 				BCFE79A72BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.h */,
 				BC7C5E662BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.cpp */,
 				BC7C5E672BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.h */,
+				BCC38E8E2C25E0270013821F /* CSSPropertyParserConsumer+Image.cpp */,
+				BCC38E8F2C25E0270013821F /* CSSPropertyParserConsumer+Image.h */,
 				BC7C5E682BE2A8FB00AE645C /* CSSPropertyParserConsumer+Integer.cpp */,
 				BC7C5E692BE2A8FB00AE645C /* CSSPropertyParserConsumer+Integer.h */,
 				BC7C5E9D2BE2BAD500AE645C /* CSSPropertyParserConsumer+IntegerDefinitions.h */,
@@ -29943,6 +29953,8 @@
 				BC7C5E762BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percent.cpp */,
 				BC7C5E772BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percent.h */,
 				BC7C5E782BE2A8FB00AE645C /* CSSPropertyParserConsumer+PercentDefinitions.h */,
+				BCC38E942C25E83D0013821F /* CSSPropertyParserConsumer+Position.cpp */,
+				BCC38E952C25E83D0013821F /* CSSPropertyParserConsumer+Position.h */,
 				BC7C5E792BE2A8FB00AE645C /* CSSPropertyParserConsumer+Primitives.cpp */,
 				BC7C5E7A2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Primitives.h */,
 				BCFE79A42BE2DE6200114272 /* CSSPropertyParserConsumer+RawResolver.cpp */,
@@ -29952,6 +29964,8 @@
 				BC7C5E7C2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Resolution.cpp */,
 				BC7C5E7D2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Resolution.h */,
 				BC7C5E7E2BE2A8FB00AE645C /* CSSPropertyParserConsumer+ResolutionDefinitions.h */,
+				BCC38E922C25E5F20013821F /* CSSPropertyParserConsumer+String.cpp */,
+				BCC38E932C25E5F20013821F /* CSSPropertyParserConsumer+String.h */,
 				BC7C5E9E2BE2BF1C00AE645C /* CSSPropertyParserConsumer+Symbol.cpp */,
 				BC7C5EA02BE2BF4400AE645C /* CSSPropertyParserConsumer+SymbolDefinitions.h */,
 				BC7C5E7F2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Time.cpp */,
@@ -29959,6 +29973,8 @@
 				BC7C5E812BE2A8FB00AE645C /* CSSPropertyParserConsumer+TimeDefinitions.h */,
 				BCC206F42BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.cpp */,
 				BCC206F52BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.h */,
+				BCC38E902C25E1A80013821F /* CSSPropertyParserConsumer+URL.cpp */,
+				BCC38E912C25E1A80013821F /* CSSPropertyParserConsumer+URL.h */,
 				BC7C5E822BE2A8FB00AE645C /* CSSPropertyParserHelpers.cpp */,
 				BC7C5E832BE2A8FB00AE645C /* CSSPropertyParserHelpers.h */,
 				BC7C5E842BE2A8FB00AE645C /* CSSPropertyParserWorkerSafe.cpp */,

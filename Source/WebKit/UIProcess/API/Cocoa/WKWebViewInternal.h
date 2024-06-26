@@ -415,8 +415,8 @@ struct PerWebProcessState {
 #endif // ENABLE(WRITING_TOOLS)
 
 #if ENABLE(WRITING_TOOLS_UI)
-- (void)_addTextAnimationTypeForID:(NSUUID *)uuid withData:(const WebKit::TextAnimationData&)styleData;
-- (void)_removeTextAnimationForID:(NSUUID *)uuid;
+- (void)_addTextAnimationForAnimationID:(NSUUID *)uuid withData:(const WebKit::TextAnimationData&)styleData;
+- (void)_removeTextAnimationForAnimationID:(NSUUID *)uuid;
 #endif
 
 - (void)_internalDoAfterNextPresentationUpdate:(void (^)(void))updateBlock withoutWaitingForPainting:(BOOL)withoutWaitingForPainting withoutWaitingForAnimatedResize:(BOOL)withoutWaitingForAnimatedResize;
@@ -439,6 +439,8 @@ struct PerWebProcessState {
 
 - (WKPageRef)_pageForTesting;
 - (NakedPtr<WebKit::WebPageProxy>)_page;
+
+@property (nonatomic, setter=_setHasActiveNowPlayingSession:) BOOL _hasActiveNowPlayingSession;
 
 @end
 

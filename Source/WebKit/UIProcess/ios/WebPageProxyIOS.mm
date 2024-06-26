@@ -242,7 +242,8 @@ WebCore::FloatRect WebPageProxy::computeLayoutViewportRect(const FloatRect& unob
     FloatSize constrainedSize = isBelowMinimumScale ? constrainedUnobscuredRect.size() : unobscuredContentRect.size();
     FloatRect unobscuredContentRectForViewport = isBelowMinimumScale ? constrainedUnobscuredRect : unobscuredContentRectRespectingInputViewBounds;
 
-    auto layoutViewportSize = LocalFrameView::expandedLayoutViewportSize(internals().baseLayoutViewportSize, LayoutSize(documentRect.size()), m_preferences->layoutViewportHeightExpansionFactor());
+    double heightExpansionFactor = internals().allowsLayoutViewportHeightExpansion ? m_preferences->layoutViewportHeightExpansionFactor() : 0;
+    auto layoutViewportSize = LocalFrameView::expandedLayoutViewportSize(internals().baseLayoutViewportSize, LayoutSize(documentRect.size()), heightExpansionFactor);
     FloatRect layoutViewportRect = LocalFrameView::computeUpdatedLayoutViewportRect(LayoutRect(currentLayoutViewportRect), LayoutRect(documentRect), LayoutSize(constrainedSize), LayoutRect(unobscuredContentRectForViewport), layoutViewportSize, internals().minStableLayoutViewportOrigin, internals().maxStableLayoutViewportOrigin, constraint);
     
     if (layoutViewportRect != currentLayoutViewportRect)
@@ -735,7 +736,10 @@ void WebPageProxy::setSmartInsertDeleteEnabled(bool)
 
 void WebPageProxy::registerWebProcessAccessibilityToken(std::span<const uint8_t> data, FrameIdentifier frameID)
 {
-    pageClient().accessibilityWebProcessTokenReceived(data, frameID, legacyMainFrameProcess().connection()->remoteProcessID());
+    RefPtr webFrame = WebFrameProxy::webFrame(frameID);
+    if (!webFrame)
+        return;
+    pageClient().accessibilityWebProcessTokenReceived(data, frameID, webFrame->process().connection()->remoteProcessID());
 }
 
 void WebPageProxy::relayAccessibilityNotification(const String& notificationName, std::span<const uint8_t> data)
@@ -1057,7 +1061,7 @@ size_t WebPageProxy::computePagesForPrintingiOS(FrameIdentifier frameID, const P
     if (!hasRunningProcess())
         return 0;
 
-    auto sendResult = legacyMainFrameProcess().sendSync(Messages::WebPage::ComputePagesForPrintingiOS(frameID, printInfo), webPageIDInMainFrameProcess(), Seconds::infinity());
+    auto sendResult = sendSyncToProcessContainingFrame(frameID, Messages::WebPage::ComputePagesForPrintingiOS(frameID, printInfo), Seconds::infinity());
     auto [pageCount] = sendResult.takeReplyOr(0);
     return pageCount;
 }
@@ -1069,7 +1073,7 @@ IPC::Connection::AsyncReplyID WebPageProxy::drawToPDFiOS(FrameIdentifier frameID
         return { };
     }
 
-    return legacyMainFrameProcess().sendWithAsyncReply(Messages::WebPage::DrawToPDFiOS(frameID, printInfo, pageCount), WTFMove(completionHandler), webPageIDInMainFrameProcess());
+    return sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawToPDFiOS(frameID, printInfo, pageCount), WTFMove(completionHandler));
 }
 
 IPC::Connection::AsyncReplyID WebPageProxy::drawToImage(FrameIdentifier frameID, const PrintInfo& printInfo, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& completionHandler)
@@ -1079,7 +1083,7 @@ IPC::Connection::AsyncReplyID WebPageProxy::drawToImage(FrameIdentifier frameID,
         return { };
     }
 
-    return legacyMainFrameProcess().sendWithAsyncReply(Messages::WebPage::DrawToImage(frameID, printInfo), WTFMove(completionHandler), webPageIDInMainFrameProcess());
+    return sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawToImage(frameID, printInfo), WTFMove(completionHandler));
 }
 
 void WebPageProxy::contentSizeCategoryDidChange(const String& contentSizeCategory)

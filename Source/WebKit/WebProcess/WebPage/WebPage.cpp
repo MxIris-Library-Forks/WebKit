@@ -3492,7 +3492,7 @@ void WebPage::contextMenuForKeyEvent()
 }
 #endif
 
-void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEvent, std::optional<Vector<SandboxExtension::Handle>>&& sandboxExtensions, CompletionHandler<void(std::optional<WebEventType>, bool, std::optional<RemoteUserInputEventData>)>&& completionHandler)
+void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEvent, std::optional<Vector<SandboxExtension::Handle>>&& sandboxExtensions)
 {
     SetForScope userIsInteractingChange { m_userIsInteracting, true };
 
@@ -3504,8 +3504,10 @@ void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEven
         shouldHandleEvent = false;
 #endif
 
-    if (!shouldHandleEvent)
-        return completionHandler(mouseEvent.type(), false, std::nullopt);
+    if (!shouldHandleEvent) {
+        send(Messages::WebPageProxy::DidReceiveEvent(mouseEvent.type(), false, std::nullopt));
+        return;
+    }
 
     Vector<Ref<SandboxExtension>> mouseEventSandboxExtensions;
     if (sandboxExtensions)
@@ -3525,7 +3527,8 @@ void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEven
         auto mouseEventResult = frame->handleMouseEvent(mouseEvent);
         if (auto remoteMouseEventData = mouseEventResult.remoteUserInputEventData()) {
             revokeSandboxExtensions(mouseEventSandboxExtensions);
-            return completionHandler(mouseEvent.type(), false, *remoteMouseEventData);
+            send(Messages::WebPageProxy::DidReceiveEvent(mouseEvent.type(), false, *remoteMouseEventData));
+            return;
         }
         handled = mouseEventResult.wasHandled();
     }
@@ -3557,11 +3560,11 @@ void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEven
         // This logic works in tandem with the mouse event queue in the UI process, which
         // coalesces mousemove events until the DidReceiveEvent() message is received after
         // the rendering update.
-        m_deferredMouseEventCompletionHandler = { { mouseEvent.type(), handled, WTFMove(completionHandler) } };
+        m_deferredDidReceiveMouseEvent = { { mouseEvent.type(), handled } };
         return;
     }
 
-    completionHandler(mouseEvent.type(), handled, std::nullopt);
+    send(Messages::WebPageProxy::DidReceiveEvent(mouseEvent.type(), handled, std::nullopt));
 }
 
 void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, IntPoint eventPoint, IntPoint globalPoint)
@@ -3575,8 +3578,8 @@ void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, IntPoi
 
 void WebPage::flushDeferredDidReceiveMouseEvent()
 {
-    if (auto info = std::exchange(m_deferredMouseEventCompletionHandler, std::nullopt))
-        info->completionHandler(info->type, info->handled, std::nullopt);
+    if (auto info = std::exchange(m_deferredDidReceiveMouseEvent, std::nullopt))
+        send(Messages::WebPageProxy::DidReceiveEvent(*info->type, info->handled, std::nullopt));
 }
 
 void WebPage::performHitTestForMouseEvent(const WebMouseEvent& event, CompletionHandler<void(WebHitTestResultData&&, OptionSet<WebEventModifier>, UserData&&)>&& completionHandler)
@@ -3658,7 +3661,7 @@ void WebPage::dispatchWheelEventWithoutScrolling(FrameIdentifier frameID, const 
 }
 #endif
 
-void WebPage::keyEvent(FrameIdentifier frameID, const WebKeyboardEvent& keyboardEvent, CompletionHandler<void(std::optional<WebEventType>, bool)>&& completionHandler)
+void WebPage::keyEvent(FrameIdentifier frameID, const WebKeyboardEvent& keyboardEvent)
 {
     SetForScope userIsInteractingChange { m_userIsInteracting, true };
 
@@ -3672,7 +3675,7 @@ void WebPage::keyEvent(FrameIdentifier frameID, const WebKeyboardEvent& keyboard
     if (WebFrame* frame = WebProcess::singleton().webFrame(frameID))
         handled = frame->handleKeyEvent(keyboardEvent);
 
-    completionHandler(keyboardEvent.type(), handled);
+    send(Messages::WebPageProxy::DidReceiveEvent(keyboardEvent.type(), handled, std::nullopt));
 }
 
 bool WebPage::handleKeyEventByRelinquishingFocusToChrome(const KeyboardEvent& event)
@@ -5225,7 +5228,24 @@ void WebPage::isInFullscreenChanged(IsInFullscreenMode isInFullscreenMode)
 #endif
 }
 
-#endif
+void WebPage::closeFullScreen()
+{
+    setAllowsLayoutViewportHeightExpansion(true);
+
+    injectedBundleFullScreenClient().closeFullScreen(this);
+}
+
+void WebPage::prepareToEnterElementFullScreen()
+{
+    setAllowsLayoutViewportHeightExpansion(false);
+}
+
+void WebPage::prepareToExitElementFullScreen()
+{
+    setAllowsLayoutViewportHeightExpansion(true);
+}
+
+#endif // ENABLE(FULLSCREEN_API)
 
 void WebPage::addConsoleMessage(FrameIdentifier frameID, MessageSource messageSource, MessageLevel messageLevel, const String& message, std::optional<WebCore::ResourceLoaderIdentifier> requestID)
 {
@@ -7618,6 +7638,8 @@ void WebPage::didCommitLoad(WebFrame* frame)
     m_loadCommitTime = WallTime::now();
 #endif
 
+    setAllowsLayoutViewportHeightExpansion(true);
+
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
     if (coreFrame->isMainFrame() && !usesEphemeralSession()) {
         if (RefPtr loader = coreFrame->document()->loader(); loader
@@ -9152,20 +9174,31 @@ void WebPage::lastNavigationWasAppInitiated(CompletionHandler<void(bool)>&& comp
 
 #if ENABLE(WRITING_TOOLS_UI)
 
-void WebPage::addTextAnimationTypeForID(const WTF::UUID& uuid, const WebKit::TextAnimationData& styleData, const WebCore::TextIndicatorData& indicatorData)
+void WebPage::addTextAnimationForAnimationID(const WTF::UUID& uuid, const WebKit::TextAnimationData& styleData, const WebCore::TextIndicatorData& indicatorData)
 {
-    send(Messages::WebPageProxy::AddTextAnimationTypeForID(uuid, styleData, indicatorData));
+    send(Messages::WebPageProxy::AddTextAnimationForAnimationID(uuid, styleData, indicatorData));
 }
 
-void WebPage::removeTextAnimationForID(const WTF::UUID& uuid)
+void WebPage::removeTextAnimationForAnimationID(const WTF::UUID& uuid)
 {
-    send(Messages::WebPageProxy::removeTextAnimationForID(uuid));
+    send(Messages::WebPageProxy::RemoveTextAnimationForAnimationID(uuid));
 }
 
-void WebPage::cleanUpTextAnimationsForSessionID(const WTF::UUID& uuid)
+void WebPage::removeTransparentMarkersForSessionID(const WTF::UUID& uuid)
 {
-    m_textAnimationController->cleanUpTextAnimationsForSessionID(uuid);
+    m_textAnimationController->removeTransparentMarkersForSessionID(uuid);
 }
+
+void WebPage::removeInitialTextAnimation(const WTF::UUID& uuid)
+{
+    m_textAnimationController->removeInitialTextAnimation(uuid);
+}
+
+void WebPage::addInitialTextAnimation(const WTF::UUID& uuid)
+{
+    m_textAnimationController->addInitialTextAnimation(uuid);
+}
+
 
 void WebPage::addSourceTextAnimation(const WTF::UUID& uuid, const CharacterRange& range)
 {
@@ -9719,6 +9752,20 @@ void WebPage::setPermissionLevelForTesting(const String& origin, bool allowed)
     UNUSED_PARAM(origin);
     UNUSED_PARAM(allowed);
 #endif
+}
+
+void WebPage::setAllowsLayoutViewportHeightExpansion(bool value)
+{
+    if (m_allowsLayoutViewportHeightExpansion == value)
+        return;
+
+    m_allowsLayoutViewportHeightExpansion = value;
+    send(Messages::WebPageProxy::SetAllowsLayoutViewportHeightExpansion(value));
+}
+
+void WebPage::hasActiveNowPlayingSessionChanged(bool hasActiveNowPlayingSession)
+{
+    send(Messages::WebPageProxy::HasActiveNowPlayingSessionChanged(hasActiveNowPlayingSession));
 }
 
 } // namespace WebKit

@@ -542,7 +542,13 @@ public:
 
     enum class IsInFullscreenMode : bool { No, Yes };
     void isInFullscreenChanged(IsInFullscreenMode);
+
+    void prepareToEnterElementFullScreen();
+    void prepareToExitElementFullScreen();
+    void closeFullScreen();
 #endif
+
+    void setAllowsLayoutViewportHeightExpansion(bool);
 
     void addConsoleMessage(WebCore::FrameIdentifier, MessageSource, MessageLevel, const String&, std::optional<WebCore::ResourceLoaderIdentifier> = std::nullopt);
     void enqueueSecurityPolicyViolationEvent(WebCore::FrameIdentifier, WebCore::SecurityPolicyViolationEventInit&&);
@@ -1759,12 +1765,13 @@ public:
     void enableSourceTextAnimationAfterElementWithID(const String&, const WTF::UUID&);
     void enableTextAnimationTypeForElementWithID(const String&, const WTF::UUID&);
 
-    void addTextAnimationTypeForID(const WTF::UUID&, const WebKit::TextAnimationData&, const WebCore::TextIndicatorData&);
-    // FIXME: try and combine these two and/or clarify why both are needed.
-    // rdar://129882958 (Combine or clarify removeTextAnimationForID and cleanUpTextAnimationsForSessionID)
-    void removeTextAnimationForID(const WebCore::WritingTools::SessionID&);
-    void cleanUpTextAnimationsForSessionID(const WebCore::WritingTools::SessionID&);
+    void addTextAnimationForAnimationID(const WTF::UUID&, const WebKit::TextAnimationData&, const WebCore::TextIndicatorData&);
 
+    void removeTextAnimationForAnimationID(const WTF::UUID&);
+    void removeTransparentMarkersForSessionID(const WebCore::WritingTools::SessionID&);
+
+    void removeInitialTextAnimation(const WebCore::WritingTools::SessionID&);
+    void addInitialTextAnimation(const WebCore::WritingTools::SessionID&);
     void addSourceTextAnimation(const WebCore::WritingTools::SessionID&, const WebCore::CharacterRange&);
     void addDestinationTextAnimation(const WebCore::WritingTools::SessionID&, const WebCore::CharacterRange&);
 
@@ -1778,6 +1785,8 @@ public:
     void didAdjustVisibilityWithSelectors(Vector<String>&&);
 
     void takeSnapshotForTargetedElement(WebCore::ElementIdentifier, WebCore::ScriptExecutionContextIdentifier, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
+
+    void hasActiveNowPlayingSessionChanged(bool);
 
 private:
     WebPage(WebCore::PageIdentifier, WebPageCreationParameters&&);
@@ -1924,8 +1933,8 @@ private:
 
     void setNeedsFontAttributes(bool);
 
-    void mouseEvent(WebCore::FrameIdentifier, const WebMouseEvent&, std::optional<Vector<SandboxExtension::Handle>>&& sandboxExtensions, CompletionHandler<void(std::optional<WebEventType>, bool, std::optional<WebCore::RemoteUserInputEventData>)>&&);
-    void keyEvent(WebCore::FrameIdentifier, const WebKeyboardEvent&, CompletionHandler<void(std::optional<WebEventType>, bool)>&&);
+    void mouseEvent(WebCore::FrameIdentifier, const WebMouseEvent&, std::optional<Vector<SandboxExtension::Handle>>&& sandboxExtensions);
+    void keyEvent(WebCore::FrameIdentifier, const WebKeyboardEvent&);
 
     void setLastKnownMousePosition(WebCore::FrameIdentifier, WebCore::IntPoint eventPoint, WebCore::IntPoint globalPoint);
 
@@ -2558,12 +2567,11 @@ private:
 
     unsigned m_cachedPageCount { 0 };
 
-    struct DeferredMouseEventCompletionHandler {
+    struct DeferredDidReceiveMouseEvent {
         std::optional<WebEventType> type;
         bool handled { false };
-        CompletionHandler<void(std::optional<WebEventType>, bool, std::optional<WebCore::RemoteUserInputEventData>)> completionHandler;
     };
-    std::optional<DeferredMouseEventCompletionHandler> m_deferredMouseEventCompletionHandler;
+    std::optional<DeferredDidReceiveMouseEvent> m_deferredDidReceiveMouseEvent;
 
     HashSet<WebCore::ResourceLoaderIdentifier> m_trackedNetworkResourceRequestIdentifiers;
 
@@ -2777,6 +2785,8 @@ private:
 #if HAVE(APP_ACCENT_COLORS)
     bool m_appUsesCustomAccentColor { false };
 #endif
+
+    bool m_allowsLayoutViewportHeightExpansion { true };
 
     WeakPtr<WebCore::Node, WebCore::WeakPtrImplWithEventTargetData> m_lastNodeBeforeWritingSuggestions;
 

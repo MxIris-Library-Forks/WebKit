@@ -137,6 +137,7 @@
 #include "WebPageMessages.h"
 #include "WebPageOverlay.h"
 #include "WebPageProxyMessages.h"
+#include "WebPageTesting.h"
 #include "WebPaymentCoordinator.h"
 #include "WebPerformanceLoggingClient.h"
 #include "WebPluginInfoProvider.h"
@@ -463,6 +464,7 @@ static const Seconds maximumLayerVolatilityTimerInterval { 2_s };
 
 #if PLATFORM(IOS_FAMILY)
 static constexpr Seconds updateFocusedElementInformationDebounceInterval { 100_ms };
+static constexpr Seconds updateLayoutViewportHeightExpansionTimerInterval { 25_ms };
 #endif
 
 #define WEBPAGE_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [webPageID=%" PRIu64 "] WebPage::" fmt, this, m_identifier.toUInt64(), ##__VA_ARGS__)
@@ -534,6 +536,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_viewSize(parameters.viewSize)
     , m_layerHostingMode(parameters.layerHostingMode)
     , m_drawingArea(DrawingArea::create(*this, parameters))
+    , m_webPageTesting(makeUnique<WebPageTesting>(*this))
     , m_mainFrame(WebFrame::create(*this, parameters.remotePageParameters ? parameters.remotePageParameters->frameTreeParameters.frameID : (parameters.mainFrameIdentifier ? *parameters.mainFrameIdentifier : WebCore::FrameIdentifier::generate())))
     , m_drawingAreaType(parameters.drawingAreaType)
     , m_alwaysShowsHorizontalScroller { parameters.alwaysShowsHorizontalScroller }
@@ -623,6 +626,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_limitsNavigationsToAppBoundDomains(parameters.limitsNavigationsToAppBoundDomains)
 #endif
     , m_lastNavigationWasAppInitiated(parameters.lastNavigationWasAppInitiated)
+#if PLATFORM(IOS_FAMILY)
+    , m_updateLayoutViewportHeightExpansionTimer(*this, &WebPage::updateLayoutViewportHeightExpansionTimerFired, updateLayoutViewportHeightExpansionTimerInterval)
+#endif
 #if ENABLE(APP_HIGHLIGHTS)
     , m_appHighlightsVisible(parameters.appHighlightsVisible)
 #endif
@@ -1770,21 +1776,6 @@ void WebPage::setBaseWritingDirection(WritingDirection direction)
 
     frame->editor().setBaseWritingDirection(direction);
 }
-
-void WebPage::isEditingCommandEnabled(const String& commandName, CompletionHandler<void(bool)>&& completionHandler)
-{
-    RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
-    if (!frame)
-        return completionHandler(false);
-
-#if ENABLE(PDF_PLUGIN)
-    if (auto* pluginView = focusedPluginViewForFrame(*frame))
-        return completionHandler(pluginView->isEditingCommandEnabled(commandName));
-#endif
-
-    Editor::Command command = frame->editor().command(commandName);
-    completionHandler(command.isSupported() && command.isEnabled());
-}
     
 void WebPage::clearMainFrameName()
 {
@@ -1887,6 +1878,7 @@ void WebPage::close()
 #endif
 
     m_drawingArea = nullptr;
+    m_webPageTesting = nullptr;
     m_page = nullptr;
 
     bool isRunningModal = m_isRunningModal;
@@ -2207,11 +2199,6 @@ void WebPage::stopLoadingDueToProcessSwap()
 bool WebPage::defersLoading() const
 {
     return m_page->defersLoading();
-}
-
-void WebPage::setDefersLoading(bool defersLoading)
-{
-    m_page->setDefersLoading(defersLoading);
 }
 
 void WebPage::reload(uint64_t navigationID, OptionSet<WebCore::ReloadOption> reloadOptions, SandboxExtension::Handle&& sandboxExtensionHandle)
@@ -3301,11 +3288,6 @@ void WebPage::unfreezeLayerTree(LayerTreeFreezeReason reason)
     m_layerTreeFreezeReasons.remove(reason);
     WEBPAGE_RELEASE_LOG(ProcessSuspension, "unfreezeLayerTree: Removing a reason to freeze layer tree (reason=%d, new=%d, old=%d)", static_cast<unsigned>(reason), m_layerTreeFreezeReasons.toRaw(), oldReasons);
     updateDrawingAreaLayerTreeFreezeState();
-}
-
-void WebPage::isLayerTreeFrozen(CompletionHandler<void(bool)>&& completionHandler)
-{
-    completionHandler(!!m_layerTreeFreezeReasons);
 }
 
 void WebPage::updateDrawingAreaLayerTreeFreezeState()
@@ -5230,19 +5212,19 @@ void WebPage::isInFullscreenChanged(IsInFullscreenMode isInFullscreenMode)
 
 void WebPage::closeFullScreen()
 {
-    setAllowsLayoutViewportHeightExpansion(true);
+    removeReasonsToDisallowLayoutViewportHeightExpansion(DisallowLayoutViewportHeightExpansionReason::ElementFullScreen);
 
     injectedBundleFullScreenClient().closeFullScreen(this);
 }
 
 void WebPage::prepareToEnterElementFullScreen()
 {
-    setAllowsLayoutViewportHeightExpansion(false);
+    addReasonsToDisallowLayoutViewportHeightExpansion(DisallowLayoutViewportHeightExpansionReason::ElementFullScreen);
 }
 
 void WebPage::prepareToExitElementFullScreen()
 {
-    setAllowsLayoutViewportHeightExpansion(true);
+    removeReasonsToDisallowLayoutViewportHeightExpansion(DisallowLayoutViewportHeightExpansionReason::ElementFullScreen);
 }
 
 #endif // ENABLE(FULLSCREEN_API)
@@ -7638,7 +7620,10 @@ void WebPage::didCommitLoad(WebFrame* frame)
     m_loadCommitTime = WallTime::now();
 #endif
 
-    setAllowsLayoutViewportHeightExpansion(true);
+#if PLATFORM(IOS_FAMILY)
+    m_updateLayoutViewportHeightExpansionTimer.stop();
+#endif
+    removeReasonsToDisallowLayoutViewportHeightExpansion(m_disallowLayoutViewportHeightExpansionReasons);
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
     if (coreFrame->isMainFrame() && !usesEphemeralSession()) {
@@ -7769,13 +7754,13 @@ void WebPage::scheduleFullEditorStateUpdate()
     m_page->scheduleRenderingUpdate(RenderingUpdateStep::LayerFlush);
 }
 
-void WebPage::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::optional<WebCore::FloatSize> sizeConstraint, CompletionHandler<void(std::variant<WebCore::ResourceError, Ref<WebCore::ShareableBitmap>>&&)>&& completionHandler)
+void WebPage::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::optional<WebCore::FloatSize> sizeConstraint, size_t maximumBytesFromNetwork, CompletionHandler<void(std::variant<WebCore::ResourceError, Ref<WebCore::ShareableBitmap>>&&)>&& completionHandler)
 {
-    WebProcess::singleton().ensureNetworkProcessConnection().connection().sendWithAsyncReply(Messages::NetworkConnectionToWebProcess::LoadImageForDecoding(WTFMove(request), m_webPageProxyIdentifier), [completionHandler = WTFMove(completionHandler), sizeConstraint] (std::variant<WebCore::ResourceError, Ref<WebCore::SharedBuffer>>&& result) mutable {
-        WTF::switchOn(result, [&] (const WebCore::ResourceError& error) {
-            completionHandler(error);
-        }, [&] (const Ref<WebCore::SharedBuffer>& buffer) {
-            RefPtr bitmapImage = WebCore::BitmapImage::create(nullptr);
+    WebProcess::singleton().ensureNetworkProcessConnection().connection().sendWithAsyncReply(Messages::NetworkConnectionToWebProcess::LoadImageForDecoding(WTFMove(request), m_webPageProxyIdentifier, maximumBytesFromNetwork), [completionHandler = WTFMove(completionHandler), sizeConstraint] (std::variant<WebCore::ResourceError, Ref<WebCore::FragmentedSharedBuffer>>&& result) mutable {
+        WTF::switchOn(WTFMove(result), [&] (WebCore::ResourceError&& error) {
+            completionHandler(WTFMove(error));
+        }, [&] (Ref<WebCore::FragmentedSharedBuffer>&& buffer) {
+            Ref bitmapImage = WebCore::BitmapImage::create(nullptr);
             bitmapImage->setData(buffer.ptr(), true);
             RefPtr nativeImage = bitmapImage->primaryNativeImage();
             if (!nativeImage)
@@ -8011,14 +7996,6 @@ void WebPage::postSynchronousMessageForTesting(const String& messageName, API::O
         returnData = webProcess.transformHandlesToObjects(returnUserData.object());
     } else
         returnData = nullptr;
-}
-
-void WebPage::clearWheelEventTestMonitor()
-{
-    if (!m_page)
-        return;
-
-    m_page->clearWheelEventTestMonitor();
 }
 
 void WebPage::setShouldScaleViewToFitDocument(bool shouldScaleViewToFitDocument)
@@ -9342,13 +9319,6 @@ void WebPage::removeTextPlaceholder(const ElementContext& placeholder, Completio
 }
 #endif
 
-#if ENABLE(NOTIFICATIONS)
-void WebPage::clearNotificationPermissionState()
-{
-    static_cast<WebNotificationClient&>(WebCore::NotificationController::from(m_page.get())->client()).clearNotificationPermissionState();
-}
-#endif
-
 void WebPage::generateTestReport(String&& message, String&& group)
 {
     RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
@@ -9744,23 +9714,38 @@ void WebPage::updateLastNodeBeforeWritingSuggestions(const KeyboardEvent& event)
         m_lastNodeBeforeWritingSuggestions = frame->editor().nodeBeforeWritingSuggestions();
 }
 
-void WebPage::setPermissionLevelForTesting(const String& origin, bool allowed)
+void WebPage::didAddOrRemoveViewportConstrainedObjects()
 {
-#if ENABLE(NOTIFICATIONS)
-    notificationPermissionRequestManager()->setPermissionLevelForTesting(origin, allowed);
-#else
-    UNUSED_PARAM(origin);
-    UNUSED_PARAM(allowed);
+    if (!m_page->settings().layoutViewportHeightExpansionFactor())
+        return;
+
+#if PLATFORM(IOS_FAMILY)
+    m_updateLayoutViewportHeightExpansionTimer.restart();
 #endif
 }
 
-void WebPage::setAllowsLayoutViewportHeightExpansion(bool value)
+void WebPage::addReasonsToDisallowLayoutViewportHeightExpansion(OptionSet<DisallowLayoutViewportHeightExpansionReason> reasons)
 {
-    if (m_allowsLayoutViewportHeightExpansion == value)
+    bool wasEmpty = m_disallowLayoutViewportHeightExpansionReasons.isEmpty();
+    m_disallowLayoutViewportHeightExpansionReasons.add(reasons);
+
+    if (!m_page->settings().layoutViewportHeightExpansionFactor())
         return;
 
-    m_allowsLayoutViewportHeightExpansion = value;
-    send(Messages::WebPageProxy::SetAllowsLayoutViewportHeightExpansion(value));
+    if (wasEmpty && !m_disallowLayoutViewportHeightExpansionReasons.isEmpty())
+        send(Messages::WebPageProxy::SetAllowsLayoutViewportHeightExpansion(false));
+}
+
+void WebPage::removeReasonsToDisallowLayoutViewportHeightExpansion(OptionSet<DisallowLayoutViewportHeightExpansionReason> reasons)
+{
+    bool wasEmpty = m_disallowLayoutViewportHeightExpansionReasons.isEmpty();
+    m_disallowLayoutViewportHeightExpansionReasons.remove(reasons);
+
+    if (!m_page->settings().layoutViewportHeightExpansionFactor())
+        return;
+
+    if (!wasEmpty && m_disallowLayoutViewportHeightExpansionReasons.isEmpty())
+        send(Messages::WebPageProxy::SetAllowsLayoutViewportHeightExpansion(true));
 }
 
 void WebPage::hasActiveNowPlayingSessionChanged(bool hasActiveNowPlayingSession)

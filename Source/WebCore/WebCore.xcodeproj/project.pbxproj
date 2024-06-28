@@ -243,6 +243,7 @@
 		07C1C0E21BFB600100BD2256 /* MediaTrackSupportedConstraints.h in Headers */ = {isa = PBXBuildFile; fileRef = 07C1C0E01BFB600100BD2256 /* MediaTrackSupportedConstraints.h */; };
 		07C1C0E51BFB60ED00BD2256 /* RealtimeMediaSourceSupportedConstraints.h in Headers */ = {isa = PBXBuildFile; fileRef = 07C1C0E41BFB60ED00BD2256 /* RealtimeMediaSourceSupportedConstraints.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07C6778629ACFB820083C923 /* DisplayCapturePromptType.h in Headers */ = {isa = PBXBuildFile; fileRef = 07C6778529ACF4780083C923 /* DisplayCapturePromptType.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		07CCECF22C25FBC9001FF552 /* WritingToolsCompositionCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = 07CCECF12C25FBC9001FF552 /* WritingToolsCompositionCommand.h */; };
 		07CE77D516712A6A00C55A47 /* InbandTextTrackPrivateClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 07CE77D416712A6A00C55A47 /* InbandTextTrackPrivateClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07D12F5C23DE543F0080997D /* ISOVTTCue.h in Headers */ = {isa = PBXBuildFile; fileRef = CD871C651FB52B6700F0B965 /* ISOVTTCue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07D637401BB0B11300256CE9 /* WebAudioSourceProviderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 07D6373E1BB0B11300256CE9 /* WebAudioSourceProviderCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6965,6 +6966,8 @@
 		07C8AD121D073D630087C5CE /* AVAssetMIMETypeCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVAssetMIMETypeCache.h; sourceTree = "<group>"; };
 		07CB9E6F249C226C00A69489 /* AVRoutePickerViewTargetPicker.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AVRoutePickerViewTargetPicker.mm; sourceTree = "<group>"; };
 		07CB9E71249C226C00A69489 /* AVRoutePickerViewTargetPicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVRoutePickerViewTargetPicker.h; sourceTree = "<group>"; };
+		07CCECF02C25FBC9001FF552 /* WritingToolsCompositionCommand.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WritingToolsCompositionCommand.cpp; sourceTree = "<group>"; };
+		07CCECF12C25FBC9001FF552 /* WritingToolsCompositionCommand.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WritingToolsCompositionCommand.h; sourceTree = "<group>"; };
 		07CE77D416712A6A00C55A47 /* InbandTextTrackPrivateClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InbandTextTrackPrivateClient.h; sourceTree = "<group>"; };
 		07D6373E1BB0B11300256CE9 /* WebAudioSourceProviderCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebAudioSourceProviderCocoa.h; sourceTree = "<group>"; };
 		07D6373F1BB0B11300256CE9 /* WebAudioSourceProviderCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebAudioSourceProviderCocoa.mm; sourceTree = "<group>"; };
@@ -29130,6 +29133,8 @@
 				93309DD4099E64910056E581 /* WrapContentsInDummySpanCommand.cpp */,
 				93309DD5099E64910056E581 /* WrapContentsInDummySpanCommand.h */,
 				9BAF3B2312C1A39800014BF1 /* WritingDirection.h */,
+				07CCECF02C25FBC9001FF552 /* WritingToolsCompositionCommand.cpp */,
+				07CCECF12C25FBC9001FF552 /* WritingToolsCompositionCommand.h */,
 			);
 			path = editing;
 			sourceTree = "<group>";
@@ -43356,6 +43361,7 @@
 				FA93D69D2AA40446006444FB /* WritableStreamSink.h in Headers */,
 				9BAF3B2412C1A39800014BF1 /* WritingDirection.h in Headers */,
 				14476AA815DC4BB100305DB2 /* WritingMode.h in Headers */,
+				07CCECF22C25FBC9001FF552 /* WritingToolsCompositionCommand.h in Headers */,
 				07E2C0772C13A9D100BE6743 /* WritingToolsController.h in Headers */,
 				07E2C0732C1396FE00BE6743 /* WritingToolsTypes.h in Headers */,
 				6565820209D1508D000E61D7 /* XLinkNames.h in Headers */,

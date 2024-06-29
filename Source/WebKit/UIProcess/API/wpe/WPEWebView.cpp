@@ -108,15 +108,18 @@ View::View(struct wpe_view_backend* backend, WPEDisplay* display, const API::Pag
 #if ENABLE(WPE_PLATFORM)
     if (display) {
         m_wpeView = adoptGRef(wpe_view_new(display));
+        m_inputMethodFilter.setUseWPEPlatformEvents(true);
         m_size.setWidth(wpe_view_get_width(m_wpeView.get()));
         m_size.setHeight(wpe_view_get_height(m_wpeView.get()));
         m_pageProxy->setIntrinsicDeviceScaleFactor(wpe_view_get_scale(m_wpeView.get()));
 
-        m_viewStateFlags = { WebCore::ActivityState::WindowIsActive };
         if (wpe_view_get_mapped(m_wpeView.get()))
             m_viewStateFlags.add(WebCore::ActivityState::IsVisible);
-        if (wpe_view_get_toplevel(m_wpeView.get()))
+        if (auto* toplevel = wpe_view_get_toplevel(m_wpeView.get())) {
             m_viewStateFlags.add(WebCore::ActivityState::IsInWindow);
+            if (wpe_toplevel_get_state(toplevel) & WPE_TOPLEVEL_STATE_ACTIVE)
+                m_viewStateFlags.add(WebCore::ActivityState::WindowIsActive);
+        }
 
         if (auto* monitor = wpe_view_get_monitor(m_wpeView.get()))
             m_displayID = wpe_monitor_get_id(monitor);
@@ -196,15 +199,18 @@ View::View(struct wpe_view_backend* backend, WPEDisplay* display, const API::Pag
                     preferences.setResourceUsageOverlayVisible(!preferences.resourceUsageOverlayVisible());
                     return TRUE;
                 }
-                // FIXME: input methods
-                webView.page().handleKeyboardEvent(WebKit::NativeWebKeyboardEvent(event, String(), webView.m_keyAutoRepeatHandler.keyPress(wpe_event_keyboard_get_keycode(event))));
+                auto filterResult = webView.m_inputMethodFilter.filterKeyEvent(event);
+                if (!filterResult.handled)
+                    webView.page().handleKeyboardEvent(WebKit::NativeWebKeyboardEvent(event, filterResult.keyText, webView.m_keyAutoRepeatHandler.keyPress(wpe_event_keyboard_get_keycode(event))));
                 return TRUE;
             }
-            case WPE_EVENT_KEYBOARD_KEY_UP:
-                // FIXME: input methods
+            case WPE_EVENT_KEYBOARD_KEY_UP: {
                 webView.m_keyAutoRepeatHandler.keyRelease();
-                webView.page().handleKeyboardEvent(WebKit::NativeWebKeyboardEvent(event, String(), false));
+                auto filterResult = webView.m_inputMethodFilter.filterKeyEvent(event);
+                if (!filterResult.handled)
+                    webView.page().handleKeyboardEvent(WebKit::NativeWebKeyboardEvent(event, String(), false));
                 return TRUE;
+            }
             case WPE_EVENT_TOUCH_DOWN:
                 // FIXME: gestures
 #if ENABLE(TOUCH_EVENTS)
@@ -240,10 +246,6 @@ View::View(struct wpe_view_backend* backend, WPEDisplay* display, const API::Pag
 
             OptionSet<WebCore::ActivityState> flagsToUpdate { WebCore::ActivityState::IsFocused };
             webView.m_viewStateFlags.add(WebCore::ActivityState::IsFocused);
-            if (!webView.m_viewStateFlags.contains(WebCore::ActivityState::WindowIsActive)) {
-                flagsToUpdate.add(WebCore::ActivityState::WindowIsActive);
-                webView.m_viewStateFlags.add(WebCore::ActivityState::WindowIsActive);
-            }
             webView.m_inputMethodFilter.notifyFocusedIn();
             webView.page().activityStateDidChange(flagsToUpdate);
         }), this);
@@ -254,10 +256,6 @@ View::View(struct wpe_view_backend* backend, WPEDisplay* display, const API::Pag
 
             OptionSet<WebCore::ActivityState> flagsToUpdate { WebCore::ActivityState::IsFocused };
             webView.m_viewStateFlags.remove(WebCore::ActivityState::IsFocused);
-            if (webView.m_viewStateFlags.contains(WebCore::ActivityState::WindowIsActive)) {
-                flagsToUpdate.add(WebCore::ActivityState::WindowIsActive);
-                webView.m_viewStateFlags.remove(WebCore::ActivityState::WindowIsActive);
-            }
             webView.m_inputMethodFilter.notifyFocusedOut();
             webView.page().activityStateDidChange(flagsToUpdate);
         }), this);
@@ -282,6 +280,24 @@ View::View(struct wpe_view_backend* backend, WPEDisplay* display, const API::Pag
                 case WebFullScreenManagerProxy::FullscreenState::NotInFullscreen:
                     break;
                 }
+            }
+            if (changedMask & WPE_TOPLEVEL_STATE_ACTIVE) {
+                OptionSet<WebCore::ActivityState> flagsToUpdate;
+                constexpr auto flagToCheck { WebCore::ActivityState::WindowIsActive };
+
+                if (state & WPE_TOPLEVEL_STATE_ACTIVE) {
+                    if (!webView.m_viewStateFlags.contains(flagToCheck)) {
+                        flagsToUpdate.add(flagToCheck);
+                        webView.m_viewStateFlags.add(flagToCheck);
+                    }
+                } else {
+                    if (webView.m_viewStateFlags.contains(flagToCheck)) {
+                        flagsToUpdate.add(flagToCheck);
+                        webView.m_viewStateFlags.remove(flagToCheck);
+                    }
+                }
+                if (!flagsToUpdate.isEmpty())
+                    webView.page().activityStateDidChange(flagsToUpdate);
             }
         }), this);
         g_signal_connect(m_wpeView.get(), "preferred-dma-buf-formats-changed", G_CALLBACK(+[](WPEView*, gpointer userData) {

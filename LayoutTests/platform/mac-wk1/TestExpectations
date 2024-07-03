@@ -1585,9 +1585,6 @@ fast/dom/HTMLAnchorElement/anchor-file-blob-convert-to-download.html [ Skip ]
 fast/dom/HTMLAnchorElement/anchor-file-blob-convert-to-download-async-delegate.html [ Skip ]
 http/tests/download/convert-cached-load-to-download.html [ Skip ]
 
-# Can't load application/octet-stream in WK1
-http/tests/mime/html-with-nosniff-html.html [ Skip ]
-
 # dumpPolicyDelegateCallbacks is not supported in DumpRenderTree
 fast/loader/iframe-src-invalid-url.html [ Skip ]
 
@@ -2793,4 +2790,6 @@ webkit.org/b/260883 inspector/timeline/timeline-recording.html [ Skip ]
 webkit.org/b/274409 imported/w3c/web-platform-tests/content-security-policy/reporting-api/reporting-api-works-on-frame-src.https.sub.html [ Pass Failure ]
 
 webkit.org/b/274792 compositing/repaint/iframes/compositing-iframe-with-fixed-background-doc-repaint.html [ Pass Failure ]
+
+webkit.org/b/276145 http/tests/security/block-popup-to-all-zero-address.html [ Skip ]
 

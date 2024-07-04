@@ -24,7 +24,7 @@
  */
 
 #import "config.h"
-#if ENABLE(BUILT_IN_NOTIFICATIONS)
+#if ENABLE(WEB_PUSH_NOTIFICATIONS)
 
 #import "WebPushDaemon.h"
 
@@ -225,27 +225,8 @@ void WebPushDaemon::connectionRemoved(xpc_connection_t connection)
     clientConnection->connectionClosed();
 }
 
-void WebPushDaemon::deletePushRegistration(const PushSubscriptionSetIdentifier& identifier, const String& originString, CompletionHandler<void()>&& callback)
-{
-    runAfterStartingPushService([this, identifier, originString, callback = WTFMove(callback)]() mutable {
-        if (!m_pushService) {
-            callback();
-            return;
-        }
-
-        m_pushService->removeRecordsForSubscriptionSetAndOrigin(identifier, originString, [callback = WTFMove(callback)](auto&&) mutable {
-            callback();
-        });
-    });
-}
-
 void WebPushDaemon::setPushAndNotificationsEnabledForOrigin(PushClientConnection& connection, const String& originString, bool enabled, CompletionHandler<void()>&& replySender)
 {
-    if (!canRegisterForNotifications(connection)) {
-        replySender();
-        return;
-    }
-
     runAfterStartingPushService([this, identifier = connection.subscriptionSetIdentifier(), originString, enabled, replySender = WTFMove(replySender)]() mutable {
         if (!m_pushService) {
             replySender();
@@ -253,18 +234,6 @@ void WebPushDaemon::setPushAndNotificationsEnabledForOrigin(PushClientConnection
         }
 
         m_pushService->setPushesEnabledForSubscriptionSetAndOrigin(identifier, originString, enabled, WTFMove(replySender));
-    });
-}
-
-void WebPushDaemon::deletePushAndNotificationRegistration(PushClientConnection& connection, const String& originString, CompletionHandler<void(const String&)>&& replySender)
-{
-    if (!canRegisterForNotifications(connection)) {
-        replySender("Could not delete push and notification registrations for connection: Unknown host application code signing identifier"_s);
-        return;
-    }
-
-    deletePushRegistration(connection.subscriptionSetIdentifier(), originString, [replySender = WTFMove(replySender)]() mutable {
-        replySender(emptyString());
     });
 }
 
@@ -537,16 +506,6 @@ PushClientConnection* WebPushDaemon::toPushClientConnection(xpc_connection_t con
     return clientConnection;
 }
 
-bool WebPushDaemon::canRegisterForNotifications(PushClientConnection& connection)
-{
-    if (connection.hostAppCodeSigningIdentifier().isEmpty()) {
-        RELEASE_LOG_ERROR(Push, "PushClientConnection cannot interact with notifications: Unknown host application code signing identifier");
-        return false;
-    }
-
-    return true;
-}
-
 } // namespace WebPushD
 
-#endif // ENABLE(BUILT_IN_NOTIFICATIONS)
+#endif // ENABLE(WEB_PUSH_NOTIFICATIONS)

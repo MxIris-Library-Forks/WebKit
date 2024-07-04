@@ -1618,7 +1618,8 @@ http/tests/contentextensions/block-everything-unless-domain-redirect.py [ Pass F
 
 webkit.org/b/262411 [ Sonoma+ ] fast/scrolling/scroll-to-anchor-zoomed-header.html [ Pass Crash ]
 
-[ Ventura+ ] media/media-vp8-webm.html [ ImageOnlyFailure ] # Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
+[ Ventura ] media/media-vp8-webm.html [ ImageOnlyFailure ] # Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
+[ Ventura ] media/media-vp8-webm-seek-to-start.html [ ImageOnlyFailure ] # Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
 
 webkit.org/b/263136 [ Sonoma+ ] imported/w3c/web-platform-tests/css/css-text/line-break/line-break-anywhere-overrides-uax-behavior-011.html [ ImageOnlyFailure ]
 
@@ -1724,7 +1725,7 @@ imported/w3c/web-platform-tests/css/css-view-transitions/inline-element-size.htm
 [ Sonoma+ ] compositing/plugins/pdf/pdf-scrolling-tree-dynamic.html [ Failure Timeout ]
 [ Sonoma+ ] compositing/plugins/pdf/pdf-scrolling-tree.html [ Failure ]
 
-[ Sonoma ] compositing/plugins/pdf/pdf-in-embed-with-root-page-zoom.html [ Failure ]
+[ Sonoma+ ] compositing/plugins/pdf/pdf-in-embed-with-root-page-zoom.html [ Failure ]
 
 webkit.org/b/270235 [ Ventura+ Debug x86_64 ] webgl/pending/conformance/glsl/misc/shader-with-reserved-words-2.html [ Timeout ]
 

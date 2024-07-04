@@ -24,7 +24,7 @@
  */
 
 #import "config.h"
-#if ENABLE(BUILT_IN_NOTIFICATIONS)
+#if ENABLE(WEB_PUSH_NOTIFICATIONS)
 
 #import "PushClientConnection.h"
 
@@ -206,11 +206,6 @@ void PushClientConnection::setPushAndNotificationsEnabledForOrigin(const String&
     WebPushDaemon::singleton().setPushAndNotificationsEnabledForOrigin(*this, originString, enabled, WTFMove(replySender));
 }
 
-void PushClientConnection::deletePushAndNotificationRegistration(const String& originString, CompletionHandler<void(const String&)>&& replySender)
-{
-    WebPushDaemon::singleton().deletePushAndNotificationRegistration(*this, originString, WTFMove(replySender));
-}
-
 void PushClientConnection::injectPushMessageForTesting(PushMessageForTesting&& message, CompletionHandler<void(const String&)>&& replySender)
 {
     WebPushDaemon::singleton().injectPushMessageForTesting(*this, WTFMove(message), WTFMove(replySender));
@@ -271,4 +266,4 @@ void PushClientConnection::getPushPermissionState(URL&&, CompletionHandler<void(
 
 } // namespace WebPushD
 
-#endif // ENABLE(BUILT_IN_NOTIFICATIONS)
+#endif // ENABLE(WEB_PUSH_NOTIFICATIONS)

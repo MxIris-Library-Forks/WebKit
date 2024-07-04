@@ -267,8 +267,8 @@ inline Length BuilderConverter::convertLength(const BuilderState& builderState, 
         return Length(primitiveValue.cssCalcValue()->createCalculationValue(conversionData));
 
     if (primitiveValue.isAnchor()) {
-        auto& anchorPositionedElement = *builderState.element();
-        return AnchorPositionEvaluator::resolveAnchorValue(primitiveValue.cssAnchorValue(), anchorPositionedElement);
+        RefPtr anchorPositionedElement = builderState.element();
+        return AnchorPositionEvaluator::resolveAnchorValue(primitiveValue.cssAnchorValue(), anchorPositionedElement.get());
     }
 
     ASSERT_NOT_REACHED();
@@ -757,10 +757,10 @@ inline RefPtr<PathOperation> BuilderConverter::convertRayPathOperation(BuilderSt
     return RayPathOperation::create(rayValue.angle()->computeDegrees(), size, rayValue.isContaining());
 }
 
-inline RefPtr<BasicShapePath> BuilderConverter::convertSVGPath(BuilderState& builderState, const CSSValue& value)
+inline RefPtr<BasicShapePath> BuilderConverter::convertSVGPath(BuilderState&, const CSSValue& value)
 {
     if (auto* pathValue = dynamicDowncast<CSSPathValue>(value))
-        return basicShapePathForValue(*pathValue, builderState.style().usedZoom());
+        return basicShapePathForValue(*pathValue);
 
     ASSERT(is<CSSPrimitiveValue>(value));
     ASSERT(downcast<CSSPrimitiveValue>(value).valueID() == CSSValueNone);

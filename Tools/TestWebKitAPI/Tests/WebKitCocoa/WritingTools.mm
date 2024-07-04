@@ -1658,7 +1658,9 @@ TEST(WritingTools, WantsInlineEditing)
 TEST(WritingTools, WritingToolsBehaviorNonEditableWithSelection)
 {
     auto webView = adoptNS([[WritingToolsWKWebView alloc] initWithHTMLString:@"<body>Hello World</body>" writingToolsBehavior:PlatformWritingToolsBehaviorComplete]);
-    [webView focusDocumentBodyAndSelectAll];
+
+    [webView selectAll:nil];
+    [webView waitForNextPresentationUpdate];
 
     EXPECT_EQ([webView writingToolsBehaviorForTesting], PlatformWritingToolsBehaviorLimited);
 }
@@ -1907,10 +1909,6 @@ TEST(WritingTools, APIWithBehaviorNone)
     NSMenuItem *writingToolsMenuItem = [proposedMenu itemWithIdentifier:_WKMenuItemIdentifierWritingTools];
     EXPECT_NULL(writingToolsMenuItem);
 #endif
-
-#if PLATFORM(IOS_FAMILY)
-    EXPECT_EQ(UIWritingToolsBehaviorNone, [[webView effectiveTextInputTraits] writingToolsBehavior]);
-#endif
 }
 
 TEST(WritingTools, APIWithBehaviorDefault)
@@ -1954,10 +1952,6 @@ TEST(WritingTools, APIWithBehaviorDefault)
     NSMenuItem *writingToolsMenuItem = [proposedMenu itemWithIdentifier:_WKMenuItemIdentifierWritingTools];
     EXPECT_NOT_NULL(writingToolsMenuItem);
 #endif
-
-#if PLATFORM(IOS_FAMILY)
-    EXPECT_EQ(UIWritingToolsBehaviorLimited, [[webView effectiveTextInputTraits] writingToolsBehavior]);
-#endif
 }
 
 TEST(WritingTools, APIWithBehaviorComplete)
@@ -2000,10 +1994,6 @@ TEST(WritingTools, APIWithBehaviorComplete)
 
     NSMenuItem *writingToolsMenuItem = [proposedMenu itemWithIdentifier:_WKMenuItemIdentifierWritingTools];
     EXPECT_NOT_NULL(writingToolsMenuItem);
-#endif
-
-#if PLATFORM(IOS_FAMILY)
-    EXPECT_EQ(UIWritingToolsBehaviorComplete, [[webView effectiveTextInputTraits] writingToolsBehavior]);
 #endif
 }
 

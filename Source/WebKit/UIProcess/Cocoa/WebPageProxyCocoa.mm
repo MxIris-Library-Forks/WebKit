@@ -874,9 +874,9 @@ bool WebPageProxy::canHandleContextMenuWritingTools() const
     return protectedPageClient()->canHandleContextMenuWritingTools();
 }
 
-void WebPageProxy::handleContextMenuWritingTools(WebCore::IntRect selectionBoundsInRootView)
+void WebPageProxy::handleContextMenuWritingToolsDeprecated(WebCore::IntRect selectionBoundsInRootView)
 {
-    protectedPageClient()->handleContextMenuWritingTools(selectionBoundsInRootView);
+    protectedPageClient()->handleContextMenuWritingToolsDeprecated(selectionBoundsInRootView);
 }
 
 #endif // ENABLE(WRITING_TOOLS)
@@ -1165,6 +1165,23 @@ void WebPageProxy::setWritingToolsActive(bool active)
     protectedPageClient()->writingToolsActiveDidChange();
 }
 
+WebCore::WritingTools::Behavior WebPageProxy::writingToolsBehavior() const
+{
+    if (isEditable())
+        return WebCore::WritingTools::Behavior::Complete;
+
+    auto& editorState = this->editorState();
+    auto& configuration = this->configuration();
+
+    if (configuration.writingToolsBehavior() == WebCore::WritingTools::Behavior::None || editorState.selectionIsNone || editorState.isInPasswordField)
+        return WebCore::WritingTools::Behavior::None;
+
+    if (configuration.writingToolsBehavior() == WebCore::WritingTools::Behavior::Complete && editorState.isContentEditable)
+        return WebCore::WritingTools::Behavior::Complete;
+
+    return WebCore::WritingTools::Behavior::Limited;
+}
+
 void WebPageProxy::willBeginWritingToolsSession(const std::optional<WebCore::WritingTools::Session>& session, CompletionHandler<void(const Vector<WebCore::WritingTools::Context>&)>&& completionHandler)
 {
     legacyMainFrameProcess().sendWithAsyncReply(Messages::WebPage::WillBeginWritingToolsSession(session), WTFMove(completionHandler), webPageIDInMainFrameProcess());
@@ -1293,8 +1310,7 @@ void WebPageProxy::playPredominantOrNowPlayingMediaSession(CompletionHandler<voi
         return;
     }
 
-    // FIXME: Fall back by automatically playing the largest video or audio element in the viewport, if possible.
-    completion(false);
+    legacyMainFrameProcess().sendWithAsyncReply(Messages::WebPage::StartPlayingPredominantVideo(), WTFMove(completion), webPageIDInMainFrameProcess());
 }
 
 void WebPageProxy::pauseNowPlayingMediaSession(CompletionHandler<void(bool)>&& completion)

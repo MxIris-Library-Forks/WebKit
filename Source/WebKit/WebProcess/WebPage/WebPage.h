@@ -536,6 +536,8 @@ public:
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
     VideoPresentationManager& videoPresentationManager();
+
+    void startPlayingPredominantVideo(CompletionHandler<void(bool)>&&);
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -1621,7 +1623,7 @@ public:
 #endif
 
 #if ENABLE(WRITING_TOOLS) && ENABLE(CONTEXT_MENUS)
-    void handleContextMenuWritingTools(WebCore::IntRect selectionBoundsInRootView);
+    void handleContextMenuWritingToolsDeprecated(WebCore::IntRect selectionBoundsInRootView);
 #endif
 
 #if ENABLE(MEDIA_CONTROLS_CONTEXT_MENUS) && USE(UICONTEXTMENU)

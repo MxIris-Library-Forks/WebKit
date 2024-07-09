@@ -6146,6 +6146,7 @@
 		E59DD4B821098287003C8B47 /* ListButtonArrow.png in Resources */ = {isa = PBXBuildFile; fileRef = E59DD4B721098285003C8B47 /* ListButtonArrow.png */; };
 		E5BA7D63151437CA00FE1E3F /* LengthFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = E5BA7D62151437CA00FE1E3F /* LengthFunctions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E5C59A9A24D0E1AA003B86E1 /* DateTimeChooserParameters.h in Headers */ = {isa = PBXBuildFile; fileRef = E5C59A9924D0E1AA003B86E1 /* DateTimeChooserParameters.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		E5C5B2092C3795EE00838733 /* PlatformNSAdaptiveImageGlyph.h in Headers */ = {isa = PBXBuildFile; fileRef = E5C5B2082C3795EE00838733 /* PlatformNSAdaptiveImageGlyph.h */; };
 		E5F06AE724D4847B00BBC4F8 /* DateTimeFieldElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E5F06AE524D4847B00BBC4F8 /* DateTimeFieldElement.h */; };
 		E5F06AEB24D49BF700BBC4F8 /* DateTimeNumericFieldElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E5F06AE924D49BF700BBC4F8 /* DateTimeNumericFieldElement.h */; };
 		E5F06AEF24D4A63700BBC4F8 /* DateTimeSymbolicFieldElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E5F06AED24D4A63700BBC4F8 /* DateTimeSymbolicFieldElement.h */; };
@@ -10525,6 +10526,7 @@
 		458FE4081589DF0B005609E6 /* RenderSearchField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderSearchField.h; sourceTree = "<group>"; };
 		45B5D85E2A968620004C85A0 /* LoaderMalloc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoaderMalloc.cpp; sourceTree = "<group>"; };
 		45B5D85F2A968620004C85A0 /* LoaderMalloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoaderMalloc.h; sourceTree = "<group>"; };
+		45F4864B2C38CCE9008B9897 /* JSWebCodecsVideoDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoDecoderCustom.cpp; sourceTree = "<group>"; };
 		45FEA5CD156DDE8C00654101 /* Decimal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Decimal.cpp; sourceTree = "<group>"; };
 		45FEA5CE156DDE8C00654101 /* Decimal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Decimal.h; sourceTree = "<group>"; };
 		46014ACB28333F52004C0B84 /* FrameDestructionObserverInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameDestructionObserverInlines.h; sourceTree = "<group>"; };
@@ -20025,6 +20027,7 @@
 		E59DD4B721098285003C8B47 /* ListButtonArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ListButtonArrow.png; sourceTree = "<group>"; };
 		E5BA7D62151437CA00FE1E3F /* LengthFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LengthFunctions.h; sourceTree = "<group>"; };
 		E5C59A9924D0E1AA003B86E1 /* DateTimeChooserParameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DateTimeChooserParameters.h; sourceTree = "<group>"; };
+		E5C5B2082C3795EE00838733 /* PlatformNSAdaptiveImageGlyph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformNSAdaptiveImageGlyph.h; sourceTree = "<group>"; };
 		E5F06AE524D4847B00BBC4F8 /* DateTimeFieldElement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DateTimeFieldElement.h; sourceTree = "<group>"; };
 		E5F06AE624D4847B00BBC4F8 /* DateTimeFieldElement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DateTimeFieldElement.cpp; sourceTree = "<group>"; };
 		E5F06AE924D49BF700BBC4F8 /* DateTimeNumericFieldElement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DateTimeNumericFieldElement.h; sourceTree = "<group>"; };
@@ -28669,6 +28672,7 @@
 				A38ADF712B8E386D00579A4F /* JSTrustedTypePolicyFactoryCustom.cpp */,
 				F4E1965A21F2395000285078 /* JSUndoItemCustom.cpp */,
 				715DA5D3201BB902002EF2B0 /* JSWebAnimationCustom.cpp */,
+				45F4864B2C38CCE9008B9897 /* JSWebCodecsVideoDecoderCustom.cpp */,
 				D3F3D3591A69A3B00059FC2B /* JSWebGL2RenderingContextCustom.cpp */,
 				49EED14C1051971A00099FAB /* JSWebGLRenderingContextCustom.cpp */,
 				11E6CF1B25F140E30013D3D5 /* JSWebXRReferenceSpaceCustom.cpp */,
@@ -30712,6 +30716,7 @@
 				A18890AC1AA13F250026C301 /* ParentalControlsContentFilter.mm */,
 				9BED2CAF1F7CC06200666018 /* PasteboardCocoa.mm */,
 				F4FB35002350C96200F0094A /* PasteboardCustomDataCocoa.mm */,
+				E5C5B2082C3795EE00838733 /* PlatformNSAdaptiveImageGlyph.h */,
 				F4628A9E234D3BBF00BC884C /* PlatformPasteboardCocoa.mm */,
 				AAE3755D17429BCC006200C2 /* PlatformSpeechSynthesizerCocoa.mm */,
 				F4E90A3B2B52038E002DA469 /* PlatformTextAlternatives.h */,
@@ -41469,6 +41474,7 @@
 				F4CCD0592A993EA600536C6B /* PlatformMediaSession.serialization.in in Headers */,
 				07F944161864D046005D31CB /* PlatformMediaSessionManager.h in Headers */,
 				935C476909AC4D4300A6AAB4 /* PlatformMouseEvent.h in Headers */,
+				E5C5B2092C3795EE00838733 /* PlatformNSAdaptiveImageGlyph.h in Headers */,
 				C598905814E9C29900E8D18B /* PlatformPasteboard.h in Headers */,
 				7246F0312A15519800FD74F1 /* PlatformPath.h in Headers */,
 				A19759492A4F9DE000FEC5EA /* PlatformPlaybackSessionInterface.h in Headers */,

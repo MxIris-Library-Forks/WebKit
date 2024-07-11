@@ -1800,7 +1800,6 @@ imported/w3c/web-platform-tests/mathml/presentation-markup/radicals/radical-rend
 
 imported/w3c/web-platform-tests/mathml/relations/css-styling/mathvariant-auto.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/mathvariant-case-sensitivity.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/mathml/relations/css-styling/padding-border-margin/padding-border-margin-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/fractions/frac-invalid-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/fractions/frac-invalid-3.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/legacy-mfenced-element-001.html [ ImageOnlyFailure ]
@@ -1829,8 +1828,6 @@ imported/w3c/web-platform-tests/mathml/relations/css-styling/floats/floating-ins
 imported/w3c/web-platform-tests/mathml/relations/css-styling/mathvariant-basic-transforms-with-default-font.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/mathvariant-double-struck-font-style-font-weight.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/mi-fontstyle-fontweight.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/mathml/relations/css-styling/padding-border-margin/padding-border-margin-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/mathml/relations/css-styling/padding-border-margin/padding-border-margin-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/width-height-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/width-height-003.html [ ImageOnlyFailure ]
 
@@ -6577,6 +6574,21 @@ imported/w3c/web-platform-tests/screen-orientation/nested-documents.html [ Pass 
 imported/w3c/web-platform-tests/css/css-scrollbars/transparent-on-root.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scrollbars/viewport-scrollbar.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scrollbars/viewport-scrollbar-body.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-006.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-007.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-008.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-009.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-010.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-011.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-012.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-1.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-2.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-3.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-4.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-5.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-6.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-7.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-8.html [ Skip ]
 
 # These tests rely on dynamic scrollbar styling which isn't implemented yet. webkit.org/b/211219
 imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-001.html [ Skip ]

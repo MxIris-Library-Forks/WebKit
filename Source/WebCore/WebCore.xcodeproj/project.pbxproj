@@ -10532,8 +10532,8 @@
 		45B5D85F2A968620004C85A0 /* LoaderMalloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoaderMalloc.h; sourceTree = "<group>"; };
 		45B6A3EA2C3C4FBE0062CB8A /* JSWebCodecsAudioDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsAudioDecoderCustom.cpp; sourceTree = "<group>"; };
 		45BA2FCA2C3C77870042DA4F /* JSWebCodecsAudioEncoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsAudioEncoderCustom.cpp; sourceTree = "<group>"; };
-		45F4864B2C38CCE9008B9897 /* JSWebCodecsVideoDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoDecoderCustom.cpp; sourceTree = "<group>"; };
 		45BA2FCB2C3C77870042DA4F /* JSWebCodecsVideoEncoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoEncoderCustom.cpp; sourceTree = "<group>"; };
+		45F4864B2C38CCE9008B9897 /* JSWebCodecsVideoDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoDecoderCustom.cpp; sourceTree = "<group>"; };
 		45FEA5CD156DDE8C00654101 /* Decimal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Decimal.cpp; sourceTree = "<group>"; };
 		45FEA5CE156DDE8C00654101 /* Decimal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Decimal.h; sourceTree = "<group>"; };
 		46014ACB28333F52004C0B84 /* FrameDestructionObserverInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameDestructionObserverInlines.h; sourceTree = "<group>"; };

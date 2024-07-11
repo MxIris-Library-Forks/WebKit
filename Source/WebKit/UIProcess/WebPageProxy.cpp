@@ -273,6 +273,7 @@
 #if PLATFORM(COCOA)
 #include "InsertTextOptions.h"
 #include "NetworkIssueReporter.h"
+#include "PlaybackSessionInterfaceLMK.h"
 #include "RemoteLayerTreeDrawingAreaProxy.h"
 #include "RemoteLayerTreeScrollingPerformanceData.h"
 #include "UserMediaCaptureManagerProxy.h"
@@ -283,6 +284,9 @@
 #include <WebCore/AttributedString.h>
 #include <WebCore/CoreAudioCaptureDeviceManager.h>
 #include <WebCore/LegacyWebArchive.h>
+#include <WebCore/NullPlaybackSessionInterface.h>
+#include <WebCore/PlaybackSessionInterfaceAVKit.h>
+#include <WebCore/PlaybackSessionInterfaceMac.h>
 #include <WebCore/RunLoopObserver.h>
 #include <WebCore/SystemBattery.h>
 #include <objc/runtime.h>
@@ -2796,7 +2800,7 @@ void WebPageProxy::dispatchActivityStateChange()
         if (isViewVisible())
             viewIsBecomingVisible();
         else
-            protectedLegacyMainFrameProcess()->pageIsBecomingInvisible(internals().webPageID);
+            viewIsBecomingInvisible();
     }
 
 #if PLATFORM(MAC) || PLATFORM(MACCATALYST)
@@ -6793,6 +6797,8 @@ void WebPageProxy::viewIsBecomingVisible()
 {
     WEBPAGEPROXY_RELEASE_LOG(ViewState, "viewIsBecomingVisible:");
     protectedLegacyMainFrameProcess()->markProcessAsRecentlyUsed();
+    if (auto* drawingAreaProxy = drawingArea())
+        drawingAreaProxy->viewIsBecomingVisible();
 #if ENABLE(MEDIA_STREAM)
     if (m_userMediaPermissionRequestManager)
         m_userMediaPermissionRequestManager->viewIsBecomingVisible();
@@ -6800,6 +6806,14 @@ void WebPageProxy::viewIsBecomingVisible()
 
     Ref protectedPageClient { pageClient() };
     protectedPageClient->viewIsBecomingVisible();
+}
+
+void WebPageProxy::viewIsBecomingInvisible()
+{
+    WEBPAGEPROXY_RELEASE_LOG(ViewState, "viewIsBecomingInvisible:");
+    protectedLegacyMainFrameProcess()->pageIsBecomingInvisible(internals().webPageID);
+    if (auto* drawingAreaProxy = drawingArea())
+        drawingAreaProxy->viewIsBecomingInvisible();
 }
 
 void WebPageProxy::processIsNoLongerAssociatedWithPage(WebProcessProxy& process)
@@ -7697,6 +7711,30 @@ void WebPageProxy::fullscreenMayReturnToInline()
 }
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
+
+bool WebPageProxy::canEnterFullscreen()
+{
+    if (RefPtr playbackSessionManager = m_playbackSessionManager)
+        return playbackSessionManager->hasControlsManagerInterface();
+    return false;
+}
+
+void WebPageProxy::enterFullscreen()
+{
+    RefPtr playbackSessionManager = m_playbackSessionManager;
+    if (!playbackSessionManager)
+        return;
+
+    RefPtr controlsManagerInterface = playbackSessionManager->controlsManagerInterface();
+    if (!controlsManagerInterface)
+        return;
+
+    CheckedPtr playbackSessionModel = controlsManagerInterface->playbackSessionModel();
+    if (!playbackSessionModel)
+        return;
+
+    playbackSessionModel->enterFullscreen();
+}
 
 void WebPageProxy::didEnterFullscreen(PlaybackSessionContextIdentifier identifier)
 {

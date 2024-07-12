@@ -41,6 +41,13 @@
 #include <features.h>
 #endif
 
+/* ==== Platform additions: additions to PlatformHave.h from outside the main repository ==== */
+
+// This can't use USE(APPLE_INTERNAL_SDK) because this comes before PlatformUse.h.
+#if PLATFORM(COCOA) && __has_include(<WebKitAdditions/AdditionalPlatformHave.h>)
+#include <WebKitAdditions/AdditionalPlatformHave.h>
+#endif
+
 
 #if CPU(ARM_NEON)
 /* All NEON intrinsics usage can be disabled by this macro. */
@@ -1591,7 +1598,8 @@
 #if !defined(HAVE_WEB_AUTHN_AS_MODERN) \
     && ((PLATFORM(MAC) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 140000) \
     || (PLATFORM(IOS) && __IPHONE_OS_VERSION_MIN_REQUIRED >= 170000) \
-    || PLATFORM(VISION))
+    || PLATFORM(VISION) \
+    || PLATFORM(APPLETV))
 #define HAVE_WEB_AUTHN_AS_MODERN 1
 #endif
 

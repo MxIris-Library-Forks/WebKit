@@ -1672,7 +1672,7 @@
 		4671E0661D67A59600C6B497 /* CanvasPath.h in Headers */ = {isa = PBXBuildFile; fileRef = 4671E0641D67A57B00C6B497 /* CanvasPath.h */; };
 		4672AA9826B0943300E6EC38 /* CrossOriginEmbedderPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 4672AA9626B0942100E6EC38 /* CrossOriginEmbedderPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4672AA9926B0943F00E6EC38 /* CrossOriginOpenerPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 4672AA9726B0942100E6EC38 /* CrossOriginOpenerPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		467302021C4EFE7800BCB357 /* IgnoreOpensDuringUnloadCountIncrementer.h in Headers */ = {isa = PBXBuildFile; fileRef = 467302011C4EFE6600BCB357 /* IgnoreOpensDuringUnloadCountIncrementer.h */; };
+		467302021C4EFE7800BCB357 /* UnloadCountIncrementer.h in Headers */ = {isa = PBXBuildFile; fileRef = 467302011C4EFE6600BCB357 /* UnloadCountIncrementer.h */; };
 		4674BE5128C9A5B800A6C831 /* URLKeepingBlobAlive.h in Headers */ = {isa = PBXBuildFile; fileRef = 4674BE4F28C9A5B400A6C831 /* URLKeepingBlobAlive.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46781A1528EFCF810095AD63 /* FullscreenOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 46781A1428EFCF780095AD63 /* FullscreenOptions.h */; };
 		467A68D7275EA991009B31C5 /* SharedWorkerThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 467A68D4275EA98B009B31C5 /* SharedWorkerThread.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10640,7 +10640,7 @@
 		4672AA9526B0942000E6EC38 /* CrossOriginEmbedderPolicy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CrossOriginEmbedderPolicy.cpp; sourceTree = "<group>"; };
 		4672AA9626B0942100E6EC38 /* CrossOriginEmbedderPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrossOriginEmbedderPolicy.h; sourceTree = "<group>"; };
 		4672AA9726B0942100E6EC38 /* CrossOriginOpenerPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrossOriginOpenerPolicy.h; sourceTree = "<group>"; };
-		467302011C4EFE6600BCB357 /* IgnoreOpensDuringUnloadCountIncrementer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IgnoreOpensDuringUnloadCountIncrementer.h; sourceTree = "<group>"; };
+		467302011C4EFE6600BCB357 /* UnloadCountIncrementer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnloadCountIncrementer.h; sourceTree = "<group>"; };
 		4674BE4F28C9A5B400A6C831 /* URLKeepingBlobAlive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = URLKeepingBlobAlive.h; sourceTree = "<group>"; };
 		4674BE5028C9A5B400A6C831 /* URLKeepingBlobAlive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = URLKeepingBlobAlive.cpp; sourceTree = "<group>"; };
 		467802B02747117B00DA9FB6 /* WebLockManagerSnapshot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebLockManagerSnapshot.h; sourceTree = "<group>"; };
@@ -36946,7 +36946,6 @@
 				C3CF17A215B0063F00276D39 /* IdTargetObserverRegistry.cpp */,
 				C3CF17A315B0063F00276D39 /* IdTargetObserverRegistry.h */,
 				8AB4BC76126FDB7100DEB727 /* IgnoreDestructiveWriteCountIncrementer.h */,
-				467302011C4EFE6600BCB357 /* IgnoreOpensDuringUnloadCountIncrementer.h */,
 				F46D5384273D7E3E0009FA80 /* ImageOverlay.cpp */,
 				F46D5385273D7E3F0009FA80 /* ImageOverlay.h */,
 				E30592611E27A38C00D57C98 /* InlineClassicScript.cpp */,
@@ -37242,6 +37241,7 @@
 				83FE7CA51DA9F1660037237C /* UIEventInit.idl */,
 				93354A3B0B24F8C9003F6DEA /* UIEventWithKeyState.cpp */,
 				85031B390A44EFC700F992E0 /* UIEventWithKeyState.h */,
+				467302011C4EFE6600BCB357 /* UnloadCountIncrementer.h */,
 				A769E96916689D0C005D4529 /* UserActionElementSet.cpp */,
 				A72763BE16689BFB002FCACB /* UserActionElementSet.h */,
 				2542F4D81166C25A00E89A86 /* UserGestureIndicator.cpp */,
@@ -39697,7 +39697,6 @@
 				C3CF17A515B0063F00276D39 /* IdTargetObserver.h in Headers */,
 				C3CF17A715B0063F00276D39 /* IdTargetObserverRegistry.h in Headers */,
 				8AB4BC77126FDB7100DEB727 /* IgnoreDestructiveWriteCountIncrementer.h in Headers */,
-				467302021C4EFE7800BCB357 /* IgnoreOpensDuringUnloadCountIncrementer.h in Headers */,
 				835DA90224F582650022DDA4 /* IIRDSPKernel.h in Headers */,
 				839BE6D524F58762004DF50F /* IIRFilter.h in Headers */,
 				835051A424F573C4009911D7 /* IIRFilterNode.h in Headers */,
@@ -42832,6 +42831,7 @@
 				E4AFCFA50DAF29A300F5F55C /* UnitBezier.h in Headers */,
 				C18CC0A42580EFB1003D75FB /* UniversalAccessZoom.h in Headers */,
 				D086FE9809D53AAB005BC74D /* UnlinkCommand.h in Headers */,
+				467302021C4EFE7800BCB357 /* UnloadCountIncrementer.h in Headers */,
 				FD1762E0176686D900D836A8 /* UpSampler.h in Headers */,
 				93D437A21D57B3FE00AB85EA /* URLDecomposition.h in Headers */,
 				267726051A5DF6F2003C24DD /* URLFilterParser.h in Headers */,

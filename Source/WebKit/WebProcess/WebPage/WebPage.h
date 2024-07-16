@@ -541,6 +541,8 @@ public:
     void startPlayingPredominantVideo(CompletionHandler<void(bool)>&&);
 #endif
 
+    void simulateClickOverFirstMatchingTextInViewportWithUserInteraction(const String& targetText, CompletionHandler<void(bool)>&&);
+
 #if PLATFORM(IOS_FAMILY)
     void setAllowsMediaDocumentInlinePlayback(bool);
     bool allowsMediaDocumentInlinePlayback() const { return m_allowsMediaDocumentInlinePlayback; }
@@ -1626,10 +1628,6 @@ public:
 
 #if HAVE(TRANSLATION_UI_SERVICES) && ENABLE(CONTEXT_MENUS)
     void handleContextMenuTranslation(const WebCore::TranslationContextMenuInfo&);
-#endif
-
-#if ENABLE(WRITING_TOOLS) && ENABLE(CONTEXT_MENUS)
-    void handleContextMenuWritingToolsDeprecated(WebCore::IntRect selectionBoundsInRootView);
 #endif
 
 #if ENABLE(MEDIA_CONTROLS_CONTEXT_MENUS) && USE(UICONTEXTMENU)

@@ -351,6 +351,9 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements
 http/tests/cache/disk-cache/disk-cache-media-small.html
 http/tests/media/audio-load-loadeddata.html [ Pass ]
 
+# Digital Credentials
+http/wpt/identity/identitycredentialscontainer-get-hidden.https.html [ Skip ]
+
 # No touch events
 fast/events/touch [ Skip ]
 fast/shadow-dom/touch-event-ios.html [ Skip ]
@@ -3990,9 +3993,6 @@ media/mediacapabilities/mediacapabilities-allowed-containers.html [ Failure ]
 # Screen Orientation API doesn't support nested frames yet
 # TODO: figure out if this still applies.
 # imported/w3c/web-platform-tests/screen-orientation/onchange-event-subframe.html [ Skip ]
-
-webkit.org/b/248923 fast/rendering/render-style-null-optgroup-crash.html [ Pass Failure ]
-
 
 # Per-process limit is only for WK2
 http/tests/websocket/tests/hybi/multiple-connections-limit.html [ Skip ]

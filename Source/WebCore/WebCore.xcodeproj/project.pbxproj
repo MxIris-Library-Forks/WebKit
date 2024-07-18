@@ -4971,6 +4971,7 @@
 		C0C054CB1118C8E400CE2636 /* CodeGenerator.pm in Headers */ = {isa = PBXBuildFile; fileRef = 93F8B3050A300FE100F61AB8 /* CodeGenerator.pm */; settings = {ATTRIBUTES = (Private, ); }; };
 		C0C054CC1118C8E400CE2636 /* generate-bindings.pl in Headers */ = {isa = PBXBuildFile; fileRef = 93F8B3070A300FEA00F61AB8 /* generate-bindings.pl */; settings = {ATTRIBUTES = (Private, ); }; };
 		C0C054CD1118C8E400CE2636 /* IDLParser.pm in Headers */ = {isa = PBXBuildFile; fileRef = 14813BF309EDF88E00F757E1 /* IDLParser.pm */; settings = {ATTRIBUTES = (Private, ); }; };
+		C0CEA8752C46A30900A32129 /* AXSearchManager.h in Headers */ = {isa = PBXBuildFile; fileRef = C0CEA8732C46A30900A32129 /* AXSearchManager.h */; };
 		C0E208A229379C6F00C0D2D3 /* AXTextMarker.h in Headers */ = {isa = PBXBuildFile; fileRef = C0E208A029379C6E00C0D2D3 /* AXTextMarker.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		C0E2F3272412BF29009C73EC /* libAccessibility.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C0E2F3252412BF29009C73EC /* libAccessibility.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
 		C0E8ADC5294B5A630076CBDC /* AXTreeStore.h in Headers */ = {isa = PBXBuildFile; fileRef = C0E8ADC4294B5A620076CBDC /* AXTreeStore.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -17994,6 +17995,8 @@
 		C05F94852AB8E1A70028AA39 /* AXCoreObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXCoreObject.cpp; sourceTree = "<group>"; };
 		C078376023DF253E00C9C5C8 /* AXIsolatedObjectMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = AXIsolatedObjectMac.mm; path = mac/AXIsolatedObjectMac.mm; sourceTree = "<group>"; };
 		C08F13A1244766DC00AB989F /* AXLogger.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXLogger.cpp; sourceTree = "<group>"; };
+		C0CEA8722C46A30900A32129 /* AXSearchManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AXSearchManager.cpp; sourceTree = "<group>"; };
+		C0CEA8732C46A30900A32129 /* AXSearchManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AXSearchManager.h; sourceTree = "<group>"; };
 		C0E208A029379C6E00C0D2D3 /* AXTextMarker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AXTextMarker.h; sourceTree = "<group>"; };
 		C0E208A129379C6F00C0D2D3 /* AXTextMarker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AXTextMarker.cpp; sourceTree = "<group>"; };
 		C0E208B529393DCF00C0D2D3 /* AXTextMarkerCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AXTextMarkerCocoa.mm; sourceTree = "<group>"; };
@@ -20793,6 +20796,22 @@
 		FFDBC045183D27B700407109 /* LineWidth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LineWidth.h; sourceTree = "<group>"; };
 		FFDBC046183D27B700407109 /* LineWidth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LineWidth.cpp; sourceTree = "<group>"; };
 		FFEFAB2D183BCB6F00514534 /* LineInlineHeaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LineInlineHeaders.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514535 /* Observable.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = Observable.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514536 /* Observable.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = Observable.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514537 /* SubscribeOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscribeOptions.idl; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514538 /* SubscribeOptions.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscribeOptions.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514540 /* Subscriber.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscriber.idl; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514541 /* Subscriber.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscriber.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514542 /* Subscriber.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscriber.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514543 /* SubscriberCallback.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriberCallback.idl; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514544 /* SubscriberCallback.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriberCallback.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514547 /* SubscriptionObserver.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserver.idl; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514548 /* SubscriptionObserver.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserver.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514549 /* SubscriptionObserver.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserver.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514550 /* SubscriptionObserverCallback.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserverCallback.idl; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514551 /* SubscriptionObserverCallback.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserverCallback.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514552 /* SubscriptionObserverCallback.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserverCallback.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSSubscriberCustom.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -23564,6 +23583,8 @@
 				29A8121A0FBB9C1D00510293 /* AXObjectCache.h */,
 				2955CF122B230AE60001BF82 /* AXRemoteFrame.cpp */,
 				2955CF112B230AE60001BF82 /* AXRemoteFrame.h */,
+				C0CEA8722C46A30900A32129 /* AXSearchManager.cpp */,
+				C0CEA8732C46A30900A32129 /* AXSearchManager.h */,
 				C0E208A129379C6F00C0D2D3 /* AXTextMarker.cpp */,
 				C0E208A029379C6E00C0D2D3 /* AXTextMarker.h */,
 				48C4E83C2B34D8380083460A /* AXTextRun.cpp */,
@@ -36959,6 +36980,7 @@
 				49C66C4B299C294B00073279 /* InvokeEvent.cpp */,
 				49C66C4D299C294C00073279 /* InvokeEvent.h */,
 				49C66C4C299C294B00073279 /* InvokeEvent.idl */,
+				FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */,
 				85031B2D0A44EFC700F992E0 /* KeyboardEvent.cpp */,
 				85031B2E0A44EFC700F992E0 /* KeyboardEvent.h */,
 				14CF7C2009F7110600EB3665 /* KeyboardEvent.idl */,
@@ -37043,6 +37065,8 @@
 				9382AAB10D8C386100F357A6 /* NodeWithIndex.h */,
 				8369E58F1AFDD0300087DF68 /* NonDocumentTypeChildNode.idl */,
 				7C6752BA1B06E82000C279CB /* NonElementParentNode.idl */,
+				FFEFAB2D183BCC6F00514536 /* Observable.cpp */,
+				FFEFAB2D183BCC6F00514535 /* Observable.h */,
 				1A0D57340A5C77FE007EDD4C /* OverflowEvent.cpp */,
 				1A0D57350A5C77FE007EDD4C /* OverflowEvent.h */,
 				1A0D57380A5C7812007EDD4C /* OverflowEvent.idl */,
@@ -37158,6 +37182,20 @@
 				81AC6C34131C57C20009A7E0 /* StringCallback.idl */,
 				A8C4A7EC09D563270003AC8D /* StyledElement.cpp */,
 				A8C4A7EB09D563270003AC8D /* StyledElement.h */,
+				FFEFAB2D183BCC6F00514538 /* SubscribeOptions.h */,
+				FFEFAB2D183BCC6F00514537 /* SubscribeOptions.idl */,
+				FFEFAB2D183BCC6F00514542 /* Subscriber.cpp */,
+				FFEFAB2D183BCC6F00514541 /* Subscriber.h */,
+				FFEFAB2D183BCC6F00514540 /* Subscriber.idl */,
+				FFEFAB2D183BCC6F00514544 /* SubscriberCallback.h */,
+				FFEFAB2D183BCC6F00514543 /* SubscriberCallback.idl */,
+				FFEFAB2D183BCC6F00514545 /* SubscriberTbereardownCallback.idl */,
+				FFEFAB2D183BCC6F00514549 /* SubscriptionObserver.cpp */,
+				FFEFAB2D183BCC6F00514547 /* SubscriptionObserver.h */,
+				FFEFAB2D183BCC6F00514548 /* SubscriptionObserver.idl */,
+				FFEFAB2D183BCC6F00514552 /* SubscriptionObserverCallback.cpp */,
+				FFEFAB2D183BCC6F00514551 /* SubscriptionObserverCallback.h */,
+				FFEFAB2D183BCC6F00514550 /* SubscriptionObserverCallback.idl */,
 				463EB6201B8789CB0096ED51 /* TagCollection.cpp */,
 				463EB6211B8789CB0096ED51 /* TagCollection.h */,
 				9B0ABCAC236BB40A00B45085 /* TaskSource.h */,
@@ -38191,6 +38229,7 @@
 				29AE213521ABA48A00869283 /* AXIsolatedObject.h in Headers */,
 				29AE212D21AB9EEB00869283 /* AXIsolatedTree.h in Headers */,
 				29A812380FBB9C1D00510293 /* AXObjectCache.h in Headers */,
+				C0CEA8752C46A30900A32129 /* AXSearchManager.h in Headers */,
 				C0E208A229379C6F00C0D2D3 /* AXTextMarker.h in Headers */,
 				48B0242A2B2A65AA0083D122 /* AXTextRun.h in Headers */,
 				91C9F2F91AE3BEB00095B61C /* AXTextStateChangeIntent.h in Headers */,

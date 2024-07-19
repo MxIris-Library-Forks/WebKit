@@ -137,6 +137,8 @@ http/tests/media/modern-media-controls/overflow-support [ Pass ]
 media/media-source/media-managedmse-airplay.html [ Pass ]
 media/media-source/media-managedmse-airplay-withsrc.html [ Pass ]
 media/media-source/media-managedmse-idl.html [ Pass ]
+media/media-source/media-managedmse-video-with-poster.html [ Pass ]
+
 webkit.org/b/269897 media/media-source/media-managedmse-poster.html [ Skip ]
 
 fast/images/text-recognition [ Pass ]
@@ -1567,6 +1569,14 @@ webkit.org/b/181752 storage/indexeddb/modern/transaction-scheduler-6.html [ Skip
 webkit.org/b/181752 storage/indexeddb/odd-strings.html [ Skip ]
 webkit.org/b/181752 storage/indexeddb/transaction-coordination-within-database.html [ Skip ]
 webkit.org/b/181752 storage/indexeddb/transaction-starvation.html [ Skip ]
+imported/w3c/web-platform-tests/IndexedDB/idbindex_batchGetAll.tentative.any.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/idbindex_batchGetAll.tentative.any.worker.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/idbobjectstore_batchGetAll.tentative.any.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/idbobjectstore_batchGetAll.tentative.any.worker.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/idbobjectstore_batchGetAll_largeValue.tentative.any.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/idbobjectstore_batchGetAll_largeValue.tentative.any.worker.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/transaction-relaxed-durability.tentative.any.html [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/transaction-relaxed-durability.tentative.any.worker.html [ Failure ]
 
 # SVG tests that fail:
 svg/as-object/svg-embedded-in-html-in-iframe.html [ Failure ]
@@ -2338,6 +2348,8 @@ accessibility/insert-text-into-password-field.html [ Pass ]
 accessibility/list-with-dynamically-changing-content.html [ Pass ]
 accessibility/live-region-attributes-update-after-dynamic-change.html [ Pass ]
 accessibility/menu-list-crash2.html [ Pass ]
+accessibility/mixed-contenteditable-visible-character-range-hang.html [ Pass ]
+accessibility/mixed-contenteditable-double-br-visible-character-range-hang.html [ Pass ]
 accessibility/multiple-attribute-change-crash.html [ Pass ]
 accessibility/nested-custom-element-accname.html [ Pass ]
 accessibility/node-only-inert-object.html [ Pass ]
@@ -3347,6 +3359,9 @@ webkit.org/b/212218 webrtc/datachannel/gather-candidates-networkprocess-crash.ht
 
 webkit.org/b/212226 imported/w3c/web-platform-tests/css/css-grid/alignment/self-baseline/grid-self-baseline-changes-grid-area-size-008.html [ ImageOnlyFailure ]
 webkit.org/b/212227 imported/w3c/web-platform-tests/css/css-grid/alignment/self-baseline/grid-self-baseline-changes-grid-area-size-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/alignment/grid-self-baseline-not-applied-if-sizing-cyclic-dependency-001.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-grid/alignment/grid-self-baseline-not-applied-if-sizing-cyclic-dependency-002.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-grid/subgrid/alignment-in-subgridded-axes-001.html [ Skip ]
 
 fast/text/text-styles/-apple-system [ Pass ]
 
@@ -4670,6 +4685,10 @@ imported/w3c/web-platform-tests/css/css-ruby/ruby-text-combine-upright-002a.html
 imported/w3c/web-platform-tests/css/css-ruby/ruby-text-combine-upright-002b.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/line-break-around-ruby-001.html [ Failure ]
 webkit.org/b/271384 imported/w3c/web-platform-tests/css/css-ruby/line-spacing.html [ Failure ]
+imported/w3c/web-platform-tests/css/css-ruby/rt-display-blockified.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-ruby/ruby-bidi-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-ruby/ruby-text-combine-upright-001a.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-ruby/ruby-text-combine-upright-001b.html [ ImageOnlyFailure ]
 fast/ruby/annotation-with-line-gap.html [ ImageOnlyFailure ]
 fast/ruby/tight-line-spacing-with-line-height.html [ ImageOnlyFailure ]
 
@@ -7316,19 +7335,6 @@ imported/w3c/web-platform-tests/fetch/h1-parsing/lone-cr.window.html [ Pass Fail
 # FIXME: needs new bug.
 http/tests/resourceLoadStatistics/do-not-remove-blocking-in-redirect.html [ Failure ]
 http/tests/resourceLoadStatistics/set-all-cookies-to-same-site-strict.html [ Failure ]
-
-# webkit.org/b/276499 REGRESSION(https://commits.webkit.org/280643@main): [ iOS EWS ] 11x media* (layout-tests) are constant/flaky failures
-compositing/geometry/video-opacity-overlay.html [ Pass Failure ]
-compositing/layers-inside-overflow-scroll.html [ Pass Failure ]
-compositing/overflow/overflow-compositing-descendant.html [ Pass Failure ]
-compositing/overflow/scroll-ancestor-update.html [ Pass Failure ]
-compositing/reflections/load-video-in-reflection.html [ Pass Failure ]
-compositing/self-painting-layers.html [ Pass Failure ]
-media/media-captions-no-controls.html [ Failure ]
-media/video-aspect-ratio.html [ Failure ]
-media/video-canvas-alpha.html [ Failure ]
-media/video-layer-crash.html [ Failure ]
-media/video-zoom.html [ Failure ]
 
 # webkit.org/b/276558 ([ iOS18 ] 7 wpt/intersection-observer/* layout tests are flakily failing.)
 imported/w3c/web-platform-tests/intersection-observer/callback-cross-realm-report-exception.html [ Pass Failure ]

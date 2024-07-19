@@ -4095,6 +4095,7 @@
 		A54A0C661DB805360017A90B /* WorkerDebugger.h in Headers */ = {isa = PBXBuildFile; fileRef = A54A0C641DB805320017A90B /* WorkerDebugger.h */; };
 		A54A0C681DB807D90017A90B /* WorkerToPageFrontendChannel.h in Headers */ = {isa = PBXBuildFile; fileRef = A54A0C671DB807D00017A90B /* WorkerToPageFrontendChannel.h */; };
 		A54A0C6C1DB831F90017A90B /* WorkerInspectorProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = A54A0C6A1DB831F20017A90B /* WorkerInspectorProxy.h */; };
+		A54CAA142C409C4500D6A999 /* GridLayoutState.h in Headers */ = {isa = PBXBuildFile; fileRef = A54CAA132C409C4500D6A999 /* GridLayoutState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A554B5F31E38393A001D4E03 /* PerformanceUserTiming.h in Headers */ = {isa = PBXBuildFile; fileRef = A554B5F11E383936001D4E03 /* PerformanceUserTiming.h */; };
 		A55639D11C6F09E300806D8E /* WorkerConsoleClient.h in Headers */ = {isa = PBXBuildFile; fileRef = A55639D01C6EFD5900806D8E /* WorkerConsoleClient.h */; };
 		A56621752A0EFEBE00FF32E4 /* BaselineAlignment.h in Headers */ = {isa = PBXBuildFile; fileRef = A56621742A0EFE2900FF32E4 /* BaselineAlignment.h */; };
@@ -9458,6 +9459,8 @@
 		319BDE531E7A86C100BA296C /* JSRTCIceTransportState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSRTCIceTransportState.h; sourceTree = "<group>"; };
 		319BDE531E7A86C100BA296D /* JSRTCPeerConnectionState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSRTCPeerConnectionState.h; sourceTree = "<group>"; };
 		319FBD5D15D2F444009640A6 /* CachedImageClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedImageClient.h; sourceTree = "<group>"; };
+		31A43B262C4844F000369C4A /* AnimationMalloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AnimationMalloc.h; sourceTree = "<group>"; };
+		31A43B272C48450600369C4A /* AnimationMalloc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AnimationMalloc.cpp; sourceTree = "<group>"; };
 		31A795C11888B72400382F90 /* ANGLEInstancedArrays.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ANGLEInstancedArrays.cpp; sourceTree = "<group>"; };
 		31A795C21888B72400382F90 /* ANGLEInstancedArrays.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANGLEInstancedArrays.h; sourceTree = "<group>"; };
 		31A795C31888B72400382F90 /* ANGLEInstancedArrays.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ANGLEInstancedArrays.idl; sourceTree = "<group>"; };
@@ -15910,6 +15913,7 @@
 		A54A0C671DB807D00017A90B /* WorkerToPageFrontendChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WorkerToPageFrontendChannel.h; sourceTree = "<group>"; };
 		A54A0C691DB831F10017A90B /* WorkerInspectorProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerInspectorProxy.cpp; sourceTree = "<group>"; };
 		A54A0C6A1DB831F20017A90B /* WorkerInspectorProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WorkerInspectorProxy.h; sourceTree = "<group>"; };
+		A54CAA132C409C4500D6A999 /* GridLayoutState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GridLayoutState.h; sourceTree = "<group>"; };
 		A554B5F01E383936001D4E03 /* PerformanceUserTiming.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerformanceUserTiming.cpp; sourceTree = "<group>"; };
 		A554B5F11E383936001D4E03 /* PerformanceUserTiming.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerformanceUserTiming.h; sourceTree = "<group>"; };
 		A55639CF1C6EFD5900806D8E /* WorkerConsoleClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerConsoleClient.cpp; sourceTree = "<group>"; };
@@ -28039,6 +28043,8 @@
 				7C3806DB2505B18900744A7B /* AnimationFrameProvider.idl */,
 				71703FBE276225DD00CC4C2D /* AnimationFrameRatePreset.h */,
 				71703FC0276225DD00CC4C2D /* AnimationFrameRatePreset.idl */,
+				31A43B272C48450600369C4A /* AnimationMalloc.cpp */,
+				31A43B262C4844F000369C4A /* AnimationMalloc.h */,
 				714C7C601FDAD27900F2BEE1 /* AnimationPlaybackEvent.cpp */,
 				714C7C651FDAD27B00F2BEE1 /* AnimationPlaybackEvent.h */,
 				714C7C641FDAD27B00F2BEE1 /* AnimationPlaybackEvent.idl */,
@@ -36367,6 +36373,7 @@
 				0FC692EC2585C9680098E3F9 /* GridBaselineAlignment.h */,
 				0FC692ED2585C9690098E3F9 /* GridLayoutFunctions.cpp */,
 				0FC692EE2585C96A0098E3F9 /* GridLayoutFunctions.h */,
+				A54CAA132C409C4500D6A999 /* GridLayoutState.h */,
 				A51324D6290A234D00C0DCFA /* GridMasonryLayout.cpp */,
 				A51324D7290A235900C0DCFA /* GridMasonryLayout.h */,
 				E12DE7151E4B748700F9ACCF /* GridTrackSizingAlgorithm.cpp */,
@@ -37189,10 +37196,9 @@
 				FFEFAB2D183BCC6F00514540 /* Subscriber.idl */,
 				FFEFAB2D183BCC6F00514544 /* SubscriberCallback.h */,
 				FFEFAB2D183BCC6F00514543 /* SubscriberCallback.idl */,
-				FFEFAB2D183BCC6F00514545 /* SubscriberTbereardownCallback.idl */,
 				FFEFAB2D183BCC6F00514549 /* SubscriptionObserver.cpp */,
-				FFEFAB2D183BCC6F00514547 /* SubscriptionObserver.h */,
-				FFEFAB2D183BCC6F00514548 /* SubscriptionObserver.idl */,
+				FFEFAB2D183BCC6F00514548 /* SubscriptionObserver.h */,
+				FFEFAB2D183BCC6F00514547 /* SubscriptionObserver.idl */,
 				FFEFAB2D183BCC6F00514552 /* SubscriptionObserverCallback.cpp */,
 				FFEFAB2D183BCC6F00514551 /* SubscriptionObserverCallback.h */,
 				FFEFAB2D183BCC6F00514550 /* SubscriptionObserverCallback.idl */,
@@ -39490,6 +39496,7 @@
 				77A17A7B12F2890B004E02F6 /* GraphicsTypesGL.h in Headers */,
 				E112F4721E3A861600D6CDFD /* Grid.h in Headers */,
 				CD3E251C18046B0600E27F56 /* GridArea.h in Headers */,
+				A54CAA142C409C4500D6A999 /* GridLayoutState.h in Headers */,
 				CDEF4FD717E85C8F00AEE24B /* GridLength.h in Headers */,
 				A12705C31656BD6500C2E27C /* GridPosition.h in Headers */,
 				CDF7483F18FEBCEC0006ECC0 /* GridPositionsResolver.h in Headers */,

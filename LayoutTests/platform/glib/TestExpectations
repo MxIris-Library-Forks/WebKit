@@ -1351,7 +1351,6 @@ http/tests/push-api [ Skip ]
 
 webkit.org/b/212080 imported/w3c/web-platform-tests/mathml/presentation-markup/tables/table-002.html [ Failure ]
 webkit.org/b/212080 imported/w3c/web-platform-tests/mathml/relations/css-styling/not-participating-to-parent-layout.html [ Failure ]
-webkit.org/b/212080 imported/w3c/web-platform-tests/mathml/relations/css-styling/padding-border-margin/padding-002.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of MathML-related bugs
@@ -1872,7 +1871,6 @@ webkit.org/b/141831 svg/animations/animate-text-nested-transforms.html [ Failure
 webkit.org/b/98653  svg/text/lengthAdjust-text-metrics.html [ Failure ]
 
 webkit.org/b/240934 imported/w3c/web-platform-tests/css/filter-effects/effect-reference-on-span.html [ ImageOnlyFailure ]
-webkit.org/b/240934 imported/w3c/web-platform-tests/css/filter-effects/root-element-with-opacity-filter-001.html [ ImageOnlyFailure ]
 
 webkit.org/b/264583 imported/w3c/web-platform-tests/css/filter-effects/css-filters-animation-saturate.html [ ImageOnlyFailure ]
 webkit.org/b/264584 imported/w3c/web-platform-tests/fetch/metadata/generated/css-font-face.sub.tentative.html [ Failure ]
@@ -2949,8 +2947,6 @@ webkit.org/b/264933 fast/mediastream/image-capture-take-photo.html [ Pass Failur
 webkit.org/b/264700 imported/w3c/web-platform-tests/css/css-color/filters-under-will-change-opacity.html [ Pass ImageOnlyFailure ]
 webkit.org/b/264700 imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-fixed-scroll.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/264699 webanimations/combining-transform-animations-with-different-acceleration-capabilities-6.html [ Timeout ]
-
 webkit.org/b/264570 imported/w3c/web-platform-tests/css/css-flexbox/intrinsic-size/row-use-cases-001.html [ Failure ]
 
 webkit.org/b/264571 imported/w3c/web-platform-tests/css/css-lists/parsing/list-style-computed.sub.html [ Failure ]
@@ -3218,7 +3214,6 @@ webkit.org/b/187044 webanimations/opacity-animation-yields-compositing-span.html
 webkit.org/b/187271 fast/text/emoji-with-joiner.html [ Failure ]
 webkit.org/b/189343 imported/w3c/web-platform-tests/xhr/sync-no-timeout.any.worker.html [ Failure ]
 webkit.org/b/190707 css-custom-properties-api/length2.html [ Failure ]
-webkit.org/b/191008 webanimations/accelerated-animation-suspension.html [ Failure ]
 webkit.org/b/191497 http/tests/inspector/network/getSerializedCertificate.html [ Skip ]
 webkit.org/b/191497 http/tests/inspector/network/resource-security-certificate.html [ Skip ]
 webkit.org/b/192407 http/tests/inspector/network/resource-security-connection.html [ Skip ]
@@ -3990,11 +3985,19 @@ webkit.org/b/276086 imported/w3c/web-platform-tests/webvtt/rendering/white-space
 
 # Requires layer tiling
 compositing/repaint/scroller-repaints-once.html [ Failure ]
+
+# Ruby failures
 imported/w3c/web-platform-tests/css/css-ruby/line-spacing.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-ruby/position-relative.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-ruby/rt-display-blockified.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-bidi-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-text-dynamic-style.html [ ImageOnlyFailure ]
+
+# render-blocking failures
+imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-010.html [ Failure ]
+imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-011.html [ Failure ]
+imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-020.html [ Failure ]
+imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-021.html [ Failure ]
 
 # End: Common failures between GTK and WPE.
 

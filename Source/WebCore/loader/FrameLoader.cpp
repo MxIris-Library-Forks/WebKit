@@ -493,7 +493,7 @@ bool FrameLoader::upgradeRequestforHTTPSOnlyIfNeeded(const URL& originalURL, Res
 {
     if (shouldUpgradeRequestforHTTPSOnly(originalURL, request)) {
         FRAMELOADER_RELEASE_LOG(ResourceLoading, "upgradeRequestforHTTPSOnlyIfNeeded: upgrading navigation request");
-        request.upgradeToHTTPS();
+        request.upgradeInsecureRequest();
         // FIXME: Make this timeout adaptive based on network conditions
         request.setTimeoutInterval(10);
         return true;
@@ -512,6 +512,7 @@ void FrameLoader::changeLocation(const URL& url, const AtomString& passedTarget,
     frameLoadRequest.setReferrerPolicy(referrerPolicy);
     frameLoadRequest.setShouldOpenExternalURLsPolicy(shouldOpenExternalURLsPolicy);
     frameLoadRequest.disableShouldReplaceDocumentIfJavaScriptURL();
+    frameLoadRequest.setNavigationHistoryBehavior(NavigationHistoryBehavior::Push);
     changeLocation(WTFMove(frameLoadRequest), triggeringEvent, WTFMove(privateClickMeasurement));
 }
 
@@ -1552,7 +1553,18 @@ void FrameLoader::loadURL(FrameLoadRequest&& frameLoadRequest, const String& ref
     action.setShouldReplaceDocumentIfJavaScriptURL(frameLoadRequest.shouldReplaceDocumentIfJavaScriptURL());
     action.setIsInitialFrameSrcLoad(frameLoadRequest.isInitialFrameSrcLoad());
     action.setNewFrameOpenerPolicy(frameLoadRequest.newFrameOpenerPolicy());
-    action.setNavigationAPIType(determineNavigationType(newLoadType, frameLoadRequest.navigationHistoryBehavior()));
+    auto historyHandling = frameLoadRequest.navigationHistoryBehavior();
+    bool isSameOrigin = frameLoadRequest.requesterSecurityOrigin().isSameOriginDomain(frame->document()->securityOrigin());
+    if (historyHandling == NavigationHistoryBehavior::Auto && !isReload(newLoadType)) {
+        RefPtr document = m_frame->document();
+        if ((document->url() == newURL || document->readyState() != Document::ReadyState::Complete) && isSameOrigin)
+            historyHandling = NavigationHistoryBehavior::Replace;
+        else
+            historyHandling = NavigationHistoryBehavior::Push;
+    }
+    if (newURL.protocolIsJavaScript() || (documentLoader() && documentLoader()->isInitialAboutBlank()))
+        historyHandling = NavigationHistoryBehavior::Replace;
+    action.setNavigationAPIType(determineNavigationType(newLoadType, historyHandling));
     if (privateClickMeasurement && frame->isMainFrame())
         action.setPrivateClickMeasurement(WTFMove(*privateClickMeasurement));
 
@@ -1589,7 +1601,7 @@ void FrameLoader::loadURL(FrameLoadRequest&& frameLoadRequest, const String& ref
     // work properly.
     if (shouldPerformFragmentNavigation(isFormSubmission, httpMethod, newLoadType, newURL)) {
 
-        if (!dispatchNavigateEvent(newURL, newLoadType, action, frameLoadRequest.navigationHistoryBehavior(), true))
+        if (!dispatchNavigateEvent(newURL, newLoadType, action, historyHandling, true))
             return;
 
         oldDocumentLoader->setTriggeringAction(WTFMove(action));
@@ -1597,14 +1609,14 @@ void FrameLoader::loadURL(FrameLoadRequest&& frameLoadRequest, const String& ref
         policyChecker().stopCheck();
         policyChecker().setLoadType(newLoadType);
         RELEASE_ASSERT(!isBackForwardLoadType(newLoadType) || frame->history().provisionalItem());
-        policyChecker().checkNavigationPolicy(WTFMove(request), ResourceResponse { } /* redirectResponse */, oldDocumentLoader.get(), WTFMove(formState), [this, frame, requesterOrigin = Ref { frameLoadRequest.requesterSecurityOrigin() }, historyHandling = frameLoadRequest.navigationHistoryBehavior()] (const ResourceRequest& request, WeakPtr<FormState>&&, NavigationPolicyDecision navigationPolicyDecision) {
+        policyChecker().checkNavigationPolicy(WTFMove(request), ResourceResponse { } /* redirectResponse */, oldDocumentLoader.get(), WTFMove(formState), [this, frame, requesterOrigin = Ref { frameLoadRequest.requesterSecurityOrigin() }, historyHandling] (const ResourceRequest& request, WeakPtr<FormState>&&, NavigationPolicyDecision navigationPolicyDecision) {
             continueFragmentScrollAfterNavigationPolicy(request, requesterOrigin.ptr(), navigationPolicyDecision == NavigationPolicyDecision::ContinueLoad, historyHandling);
         }, PolicyDecisionMode::Synchronous);
         return;
     }
 
-    if (frameLoadRequest.requesterSecurityOrigin().isSameOriginDomain(frame->document()->securityOrigin())) {
-        if (!dispatchNavigateEvent(newURL, newLoadType, action, frameLoadRequest.navigationHistoryBehavior(), false))
+    if (isSameOrigin) {
+        if (!dispatchNavigateEvent(newURL, newLoadType, action, historyHandling, false))
             return;
     }
 
@@ -3819,7 +3831,7 @@ bool FrameLoader::dispatchBeforeUnloadEvent(Chrome& chrome, FrameLoader* frameLo
             RefPtr parentDocument = parentFrame->document();
             if (!parentDocument)
                 return true;
-            if (!m_frame->document() || !m_frame->document()->securityOrigin().isSameOriginDomain(parentDocument->protectedSecurityOrigin())) {
+            if (!m_frame->document() || !m_frame->document()->protectedSecurityOrigin()->isSameOriginDomain(parentDocument->protectedSecurityOrigin())) {
                 document->addConsoleMessage(MessageSource::JS, MessageLevel::Error, "Blocked attempt to show beforeunload confirmation dialog on behalf of a frame with different security origin. Protocols, domains, and ports must match."_s);
                 return true;
             }

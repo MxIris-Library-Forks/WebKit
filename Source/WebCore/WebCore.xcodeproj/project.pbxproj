@@ -1557,6 +1557,7 @@
 		43E28B572ACB7C6F0033526B /* RenderSVGResourcePaintServer.h in Headers */ = {isa = PBXBuildFile; fileRef = 43F48A552BAC7C6E0033527C /* RenderSVGResourcePaintServer.h */; };
 		43E632892AC43FB71174B113 /* RenderSVGResourceRadialGradient.h in Headers */ = {isa = PBXBuildFile; fileRef = 43E632872AC43FB71174B113 /* RenderSVGResourceRadialGradient.h */; };
 		43EDD67F1B485DBF00640E75 /* CombinedFiltersAlphabet.h in Headers */ = {isa = PBXBuildFile; fileRef = 43EDD67D1B485DBF00640E75 /* CombinedFiltersAlphabet.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		4403223A2C489E00008A488F /* TextAnimationTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 440322392C4884FC008A488F /* TextAnimationTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		440615562AEAABD3009B8F9C /* LegacyRenderSVGResourceMarkerInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 440615552AEAABD2009B8F9C /* LegacyRenderSVGResourceMarkerInlines.h */; };
 		440615592AEAAC17009B8F9C /* LegacyRenderSVGResourceMarker.h in Headers */ = {isa = PBXBuildFile; fileRef = 440615572AEAABE7009B8F9C /* LegacyRenderSVGResourceMarker.h */; };
 		4406155A2AEAAC1A009B8F9C /* LegacyRenderSVGResourceMasker.h in Headers */ = {isa = PBXBuildFile; fileRef = 440615582AEAABE7009B8F9C /* LegacyRenderSVGResourceMasker.h */; };
@@ -10397,6 +10398,7 @@
 		43EDD67C1B485DBF00640E75 /* CombinedFiltersAlphabet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CombinedFiltersAlphabet.cpp; sourceTree = "<group>"; };
 		43EDD67D1B485DBF00640E75 /* CombinedFiltersAlphabet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CombinedFiltersAlphabet.h; sourceTree = "<group>"; };
 		43F48A552BAC7C6E0033527C /* RenderSVGResourcePaintServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderSVGResourcePaintServer.h; sourceTree = "<group>"; };
+		440322392C4884FC008A488F /* TextAnimationTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextAnimationTypes.h; sourceTree = "<group>"; };
 		4405C3E82981858800F0A098 /* ContentVisibilityDocumentState.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ContentVisibilityDocumentState.cpp; sourceTree = "<group>"; };
 		4405C3E92981859700F0A098 /* ContentVisibilityDocumentState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContentVisibilityDocumentState.h; sourceTree = "<group>"; };
 		440615532AEAABC7009B8F9C /* LegacyRenderSVGResourceMarker.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyRenderSVGResourceMarker.cpp; sourceTree = "<group>"; };
@@ -27802,6 +27804,7 @@
 				BC4A533625605AE10028C592 /* StorageBlockingPolicy.h */,
 				46FEFBC626DD678200B0C488 /* StructuredSerializeOptions.h */,
 				46FEFBC726DD678300B0C488 /* StructuredSerializeOptions.idl */,
+				440322392C4884FC008A488F /* TextAnimationTypes.h */,
 				BC4A5324256055590028C592 /* TextDirectionSubmenuInclusionBehavior.h */,
 				2D4F96F11A1ECC240098BF88 /* TextIndicator.cpp */,
 				2D4F96F21A1ECC240098BF88 /* TextIndicator.h */,
@@ -42720,6 +42723,7 @@
 				6550B6A6099DF0270090D781 /* Text.h in Headers */,
 				93309E17099E64920056E581 /* TextAffinity.h in Headers */,
 				CE7B2DB51586ABAD0098B3FA /* TextAlternativeWithRange.h in Headers */,
+				4403223A2C489E00008A488F /* TextAnimationTypes.h in Headers */,
 				72963B6D29510A38004FF6FB /* TextAreaPart.h in Headers */,
 				F4D9C2F42B338742007C105F /* TextAttachmentForSerialization.h in Headers */,
 				0F54DCE61881051D003EEDBB /* TextAutoSizing.h in Headers */,

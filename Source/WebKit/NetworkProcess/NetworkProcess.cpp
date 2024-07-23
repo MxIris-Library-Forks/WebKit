@@ -2323,6 +2323,9 @@ void NetworkProcess::processDidResume(bool forForegroundActivity)
 
     m_isSuspended = false;
 
+    for (auto& connection : m_webProcessConnections.values())
+        connection->endSuspension();
+
     WebResourceLoadStatisticsStore::resume();
     PCM::PersistentStore::processDidResume();
 
@@ -3031,6 +3034,12 @@ void NetworkProcess::setStorageSiteValidationEnabled(PAL::SessionID sessionID, b
 {
     if (auto* session = networkSession(sessionID))
         session->protectedStorageManager()->setStorageSiteValidationEnabled(enabled);
+}
+
+void NetworkProcess::setPersistedDomains(PAL::SessionID sessionID, HashSet<RegistrableDomain>&& domains)
+{
+    if (auto* session = networkSession(sessionID))
+        session->setPersistedDomains(WTFMove(domains));
 }
 
 } // namespace WebKit

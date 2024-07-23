@@ -5938,31 +5938,44 @@ void WebPage::unmarkAllBadGrammar()
 }
 
 #if USE(APPKIT)
-void WebPage::uppercaseWord()
+void WebPage::uppercaseWord(FrameIdentifier frameID)
 {
-    RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
         return;
 
-    frame->editor().uppercaseWord();
+    RefPtr coreFrame = frame->coreLocalFrame();
+    if (!coreFrame)
+        return;
+
+    coreFrame->editor().uppercaseWord();
 }
 
-void WebPage::lowercaseWord()
+void WebPage::lowercaseWord(FrameIdentifier frameID)
 {
-    RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
         return;
 
-    frame->editor().lowercaseWord();
+    RefPtr coreFrame = frame->coreLocalFrame();
+    if (!coreFrame)
+        return;
+
+    coreFrame->editor().lowercaseWord();
 }
 
-void WebPage::capitalizeWord()
+void WebPage::capitalizeWord(FrameIdentifier frameID)
 {
-    RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
         return;
 
-    frame->editor().capitalizeWord();
+    RefPtr coreFrame = frame->coreLocalFrame();
+    if (!coreFrame)
+        return;
+
+
+    coreFrame->editor().capitalizeWord();
 }
 #endif
     
@@ -9262,7 +9275,7 @@ void WebPage::lastNavigationWasAppInitiated(CompletionHandler<void(bool)>&& comp
 
 #if ENABLE(WRITING_TOOLS_UI)
 
-void WebPage::addTextAnimationForAnimationID(const WTF::UUID& uuid, const WebKit::TextAnimationData& styleData, const WebCore::TextIndicatorData& indicatorData, CompletionHandler<void()>&& completionHandler)
+void WebPage::addTextAnimationForAnimationID(const WTF::UUID& uuid, const WebCore::TextAnimationData& styleData, const WebCore::TextIndicatorData& indicatorData, CompletionHandler<void(WebCore::TextAnimationRunMode)>&& completionHandler)
 {
     sendWithAsyncReply(Messages::WebPageProxy::AddTextAnimationForAnimationID(uuid, styleData, indicatorData), WTFMove(completionHandler));
 }
@@ -9288,7 +9301,7 @@ void WebPage::addInitialTextAnimation(const WTF::UUID& uuid)
 }
 
 
-void WebPage::addSourceTextAnimation(const WTF::UUID& uuid, const CharacterRange& range, const String string, WTF::CompletionHandler<void(void)>&& completionHandler)
+void WebPage::addSourceTextAnimation(const WTF::UUID& uuid, const CharacterRange& range, const String string, WTF::CompletionHandler<void(WebCore::TextAnimationRunMode)>&& completionHandler)
 {
     m_textAnimationController->addSourceTextAnimation(uuid, range, string, WTFMove(completionHandler));
 }

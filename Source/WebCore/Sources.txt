@@ -2845,9 +2845,11 @@ rendering/style/StyleRareInheritedData.cpp
 rendering/style/StyleRareNonInheritedData.cpp
 rendering/style/StyleSelfAlignmentData.cpp
 rendering/style/StyleSurroundData.cpp
+rendering/style/StyleTextBoxEdge.cpp
 rendering/style/StyleTransformData.cpp
 rendering/style/StyleVisitedLinkColorData.cpp
 rendering/style/TextSizeAdjustment.cpp
+rendering/style/TextUnderlinePosition.cpp
 rendering/style/WillChangeData.cpp
 rendering/svg/legacy/LegacyRenderSVGContainer.cpp
 rendering/svg/legacy/LegacyRenderSVGEllipse.cpp

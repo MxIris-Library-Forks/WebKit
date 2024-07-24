@@ -1809,6 +1809,7 @@
 		49C7B9E01042D32F0009D447 /* WebGLRenderingContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C01042D32F0009D447 /* WebGLRenderingContext.h */; };
 		49C7B9E31042D32F0009D447 /* WebGLShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C31042D32F0009D447 /* WebGLShader.h */; };
 		49C7B9E61042D32F0009D447 /* WebGLTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C61042D32F0009D447 /* WebGLTexture.h */; };
+		49D192432C4F4E340001181B /* TextUnderlinePosition.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D192412C4F4E030001181B /* TextUnderlinePosition.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49D5DC2C0F423A73008F20FD /* Matrix3DTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D5DC280F423A73008F20FD /* Matrix3DTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49D5DC2E0F423A73008F20FD /* PerspectiveTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D5DC2A0F423A73008F20FD /* PerspectiveTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49E911C40EF86D47009D0CAF /* TransformationMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 49E911B40EF86D47009D0CAF /* TransformationMatrix.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10845,6 +10846,7 @@
 		494BD79C0F55C94C00747828 /* JSWebKitPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWebKitPoint.h; sourceTree = "<group>"; };
 		494EBD0627AA9C5300F4844F /* PDFDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PDFDocument.h; sourceTree = "<group>"; };
 		494EBD0827AA9C5300F4844F /* PDFDocument.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PDFDocument.cpp; sourceTree = "<group>"; };
+		49560D0C2C4F937200224361 /* StyleTextBoxEdge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextBoxEdge.cpp; sourceTree = "<group>"; };
 		4958781F12A57DDF007238AC /* PlatformCAAnimationCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PlatformCAAnimationCocoa.mm; sourceTree = "<group>"; };
 		4958782012A57DDF007238AC /* PlatformCALayerCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PlatformCALayerCocoa.mm; sourceTree = "<group>"; };
 		4965EA8E2ADF71D5004AE3E0 /* CheckVisibilityOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CheckVisibilityOptions.idl; sourceTree = "<group>"; };
@@ -10920,6 +10922,8 @@
 		49C7B9C71042D32F0009D447 /* WebGLTexture.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebGLTexture.idl; sourceTree = "<group>"; };
 		49C7BA8C1042F5B10009D447 /* JSDocumentCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDocumentCustom.cpp; sourceTree = "<group>"; };
 		49CCE6F72997441F006C91EB /* popover.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = popover.css; sourceTree = "<group>"; };
+		49D192412C4F4E030001181B /* TextUnderlinePosition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextUnderlinePosition.h; sourceTree = "<group>"; };
+		49D192422C4F4E030001181B /* TextUnderlinePosition.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextUnderlinePosition.cpp; sourceTree = "<group>"; };
 		49D5DC270F423A73008F20FD /* Matrix3DTransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Matrix3DTransformOperation.cpp; sourceTree = "<group>"; };
 		49D5DC280F423A73008F20FD /* Matrix3DTransformOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Matrix3DTransformOperation.h; sourceTree = "<group>"; };
 		49D5DC290F423A73008F20FD /* PerspectiveTransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectiveTransformOperation.cpp; sourceTree = "<group>"; };
@@ -33586,6 +33590,7 @@
 				9D63800F1AF16E160031A15C /* StyleSelfAlignmentData.h */,
 				BC5EB5E60E81BFEF00B25965 /* StyleSurroundData.cpp */,
 				BC5EB5E40E81BF6D00B25965 /* StyleSurroundData.h */,
+				49560D0C2C4F937200224361 /* StyleTextBoxEdge.cpp */,
 				DD1C778F29354C75003BD79B /* StyleTextBoxEdge.h */,
 				BC5EB80D0E81F2CE00B25965 /* StyleTransformData.cpp */,
 				BC5EB80E0E81F2CE00B25965 /* StyleTransformData.h */,
@@ -33599,6 +33604,8 @@
 				1CF0BFD42298706800ED2074 /* TextSizeAdjustment.cpp */,
 				448B1B780F3A2F9B0047A9E2 /* TextSizeAdjustment.h */,
 				1CB6B4FB217B83940093B9CD /* TextUnderlineOffset.h */,
+				49D192422C4F4E030001181B /* TextUnderlinePosition.cpp */,
+				49D192412C4F4E030001181B /* TextUnderlinePosition.h */,
 				0F15ED591B7EC7C500EDDFEB /* WillChangeData.cpp */,
 				0F15ED5A1B7EC7C500EDDFEB /* WillChangeData.h */,
 			);
@@ -42791,6 +42798,7 @@
 				E36A00E429CF7B8600AC4E8A /* TextTrackRepresentationCocoa.h in Headers */,
 				BE0787A829B2279E0067473E /* TextTransform.h in Headers */,
 				1C73A7132185757E004CCEA5 /* TextUnderlineOffset.h in Headers */,
+				49D192432C4F4E340001181B /* TextUnderlinePosition.h in Headers */,
 				29FAF4B6195AB08900A522DC /* TextUndoInsertionMarkupMac.h in Headers */,
 				6FB11B5C21783FD000E2A574 /* TextUtil.h in Headers */,
 				BCE658FF0EA9248A007E4533 /* Theme.h in Headers */,

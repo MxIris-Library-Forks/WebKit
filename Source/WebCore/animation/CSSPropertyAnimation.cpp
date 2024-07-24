@@ -67,6 +67,7 @@
 #include "StyleFilterImage.h"
 #include "StylePropertyShorthand.h"
 #include "StyleResolver.h"
+#include "StyleTextBoxEdge.h"
 #include <algorithm>
 #include <memory>
 #include <wtf/MathExtras.h>
@@ -3920,6 +3921,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<BoxSizing>(CSSPropertyBoxSizing, &RenderStyle::boxSizing, &RenderStyle::setBoxSizing),
         new DiscretePropertyWrapper<CaptionSide>(CSSPropertyCaptionSide, &RenderStyle::captionSide, &RenderStyle::setCaptionSide),
         new DiscretePropertyWrapper<Clear>(CSSPropertyClear, &RenderStyle::clear, &RenderStyle::setClear),
+        new DiscretePropertyWrapper<TextBoxEdge>(CSSPropertyTextBoxEdge, &RenderStyle::textBoxEdge, &RenderStyle::setTextBoxEdge),
         new DiscretePropertyWrapper<TextBoxTrim>(CSSPropertyTextBoxTrim, &RenderStyle::textBoxTrim, &RenderStyle::setTextBoxTrim),
         new DiscretePropertyWrapper<PrintColorAdjust>(CSSPropertyPrintColorAdjust, &RenderStyle::printColorAdjust, &RenderStyle::setPrintColorAdjust),
         new DiscretePropertyWrapper<ColumnFill>(CSSPropertyColumnFill, &RenderStyle::columnFill, &RenderStyle::setColumnFill),
@@ -3983,6 +3985,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<OverflowAnchor>(CSSPropertyOverflowAnchor, &RenderStyle::overflowAnchor, &RenderStyle::setOverflowAnchor),
         new DiscretePropertyWrapper<TextSpacingTrim>(CSSPropertyTextSpacingTrim, &RenderStyle::textSpacingTrim, &RenderStyle::setTextSpacingTrim),
         new DiscretePropertyWrapper<TextAutospace>(CSSPropertyTextAutospace, &RenderStyle::textAutospace, &RenderStyle::setTextAutospace),
+        new DiscretePropertyWrapper<TextUnderlinePosition>(CSSPropertyTextUnderlinePosition, &RenderStyle::textUnderlinePosition, &RenderStyle::setTextUnderlinePosition),
 
         new DiscretePropertyWrapper<BoxDecorationBreak>(CSSPropertyWebkitBoxDecorationBreak, &RenderStyle::boxDecorationBreak, &RenderStyle::setBoxDecorationBreak),
         new DiscretePropertyWrapper<Isolation>(CSSPropertyIsolation, &RenderStyle::isolation, &RenderStyle::setIsolation),
@@ -4242,14 +4245,12 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         case CSSPropertyScrollTimeline:
         case CSSPropertyScrollTimelineAxis:
         case CSSPropertyScrollTimelineName:
-        case CSSPropertyTextBoxEdge:
         case CSSPropertySize:
         case CSSPropertySpeakAs:
         case CSSPropertyStrokeColor:
         case CSSPropertyTextCombineUpright:
         case CSSPropertyTextDecoration:
         case CSSPropertyTextDecorationSkip:
-        case CSSPropertyTextUnderlinePosition:
         case CSSPropertyTransition:
         case CSSPropertyTransitionBehavior:
         case CSSPropertyTransitionDelay:

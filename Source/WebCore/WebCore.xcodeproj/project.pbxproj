@@ -2589,6 +2589,7 @@
 		6C4C96DF1AD4483500365672 /* JSReadableStreamBYOBRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 6C4C96DB1AD4483500365672 /* JSReadableStreamBYOBRequest.h */; };
 		6C4C96DF1AD4483500365A50 /* JSReadableStreamDefaultController.h in Headers */ = {isa = PBXBuildFile; fileRef = 6C4C96DB1AD4483500365A50 /* JSReadableStreamDefaultController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		6C638895A96CCEE50C8C946C /* CachedResourceRequestInitiatorTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6C638893A96CCEE50C8C946C /* CachedResourceRequestInitiatorTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6DD53F3D2C49D37F0049F1C5 /* IsLoggedIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 6D46FE012C49C9DA00743D07 /* IsLoggedIn.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		6E0B90692321A68D006223B2 /* WebGLCompressedTextureETC1.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0B90652321A68C006223B2 /* WebGLCompressedTextureETC1.h */; };
 		6E0E569C183BFFE600E0E8D5 /* FloatRoundedRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0E569A183BFFE600E0E8D5 /* FloatRoundedRect.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		6E242B2B23359405002CADD4 /* JSWebGLCompressedTextureETC1.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E242B2A233593D8002CADD4 /* JSWebGLCompressedTextureETC1.h */; };
@@ -12467,8 +12468,10 @@
 		6C4C96DB1AD4483500365A50 /* JSReadableStreamDefaultController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSReadableStreamDefaultController.h; sourceTree = "<group>"; };
 		6C638893A96CCEE50C8C946C /* CachedResourceRequestInitiatorTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CachedResourceRequestInitiatorTypes.h; sourceTree = "<group>"; };
 		6C638894A96CCEE50C8C946C /* CachedResourceRequestInitiatorTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = CachedResourceRequestInitiatorTypes.cpp; sourceTree = "<group>"; };
+		6D46FE012C49C9DA00743D07 /* IsLoggedIn.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IsLoggedIn.h; sourceTree = "<group>"; };
 		6D61E3752C2E016F00F1C6AA /* NavigatorLoginStatus.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavigatorLoginStatus.h; sourceTree = "<group>"; };
 		6D61E3762C2E016F00F1C6AA /* NavigatorLoginStatus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NavigatorLoginStatus.cpp; sourceTree = "<group>"; };
+		6DD53F3E2C49D4E20049F1C5 /* IsLoggedIn.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = IsLoggedIn.idl; sourceTree = "<group>"; };
 		6E0B90652321A68C006223B2 /* WebGLCompressedTextureETC1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebGLCompressedTextureETC1.h; sourceTree = "<group>"; };
 		6E0B90672321A68C006223B2 /* WebGLCompressedTextureETC1.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebGLCompressedTextureETC1.idl; sourceTree = "<group>"; };
 		6E0B90682321A68D006223B2 /* WebGLCompressedTextureETC1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebGLCompressedTextureETC1.cpp; sourceTree = "<group>"; };
@@ -20822,6 +20825,10 @@
 		FFEFAB2D183BCC6F00514551 /* SubscriptionObserverCallback.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserverCallback.h; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514552 /* SubscriptionObserverCallback.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionObserverCallback.cpp; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSSubscriberCustom.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514554 /* InternalObserver.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserver.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514555 /* InternalObserver.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserver.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFromScript.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFromScript.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27570,6 +27577,8 @@
 				0F4710D81DB6FE22002DCEC3 /* IntersectionObserverEntry.cpp */,
 				0F4710D91DB6FE22002DCEC3 /* IntersectionObserverEntry.h */,
 				0F4710DA1DB6FE22002DCEC3 /* IntersectionObserverEntry.idl */,
+				6D46FE012C49C9DA00743D07 /* IsLoggedIn.h */,
+				6DD53F3E2C49D4E20049F1C5 /* IsLoggedIn.idl */,
 				931D72F515FE695300C4C07E /* LayoutMilestone.h */,
 				F45EAC862A8C1972009B986E /* LayoutMilestones.serialization.in */,
 				0245150B297CAF7700DFD845 /* LinkDecorationFilteringData.h */,
@@ -36994,6 +37003,10 @@
 				2EB767551DA19B99003E23B5 /* InputEvent.cpp */,
 				2EB767541DA19B67003E23B5 /* InputEvent.h */,
 				2EB767531DA19313003E23B5 /* InputEvent.idl */,
+				FFEFAB2D183BCC6F00514555 /* InternalObserver.cpp */,
+				FFEFAB2D183BCC6F00514554 /* InternalObserver.h */,
+				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
+				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
 				49C66C4B299C294B00073279 /* InvokeEvent.cpp */,
 				49C66C4D299C294C00073279 /* InvokeEvent.h */,
 				49C66C4C299C294B00073279 /* InvokeEvent.idl */,
@@ -39944,6 +39957,7 @@
 				B27535760B053814002CE64F /* IntSizeHash.h in Headers */,
 				2D0B4AAB18DA1CCD00434DE1 /* IOSurface.h in Headers */,
 				1C21E57D183ED1FF001C289D /* IOSurfacePool.h in Headers */,
+				6DD53F3D2C49D37F0049F1C5 /* IsLoggedIn.h in Headers */,
 				CD5FF4992162E2BE004BD86F /* ISOBox.h in Headers */,
 				CD720B4F2268B51300047FDE /* ISOFairPlayStreamingPsshBox.h in Headers */,
 				CD5FF49E2162E4E8004BD86F /* ISOOriginalFormatBox.h in Headers */,

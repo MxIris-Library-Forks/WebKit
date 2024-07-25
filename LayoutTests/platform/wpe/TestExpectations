@@ -1603,7 +1603,7 @@ compositing/visible-rect/iframe-with-layers-outside-viewport.html [ Failure ]
 compositing/visible-rect/mask-layer-coverage.html [ Failure ]
 compositing/visible-rect/nested-transform.html [ Failure ]
 compositing/visible-rect/scrolled.html [ Failure ]
-compositing/video/video-border-radius-clipping.html [ ImageOnlyFailure ]
+compositing/video/video-border-radius-clipping.html [ Pass ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-visibility-mixed-descendants.html [ ImageOnlyFailure ]
 
@@ -1615,3 +1615,5 @@ webkit.org/b/272426 http/tests/webxr/webxr-third-party-iframe-requestsession-den
 
 imported/w3c/web-platform-tests/uievents/mouse/mousemove_prevent_default_action.html [ Pass Failure ]
 imported/w3c/web-platform-tests/uievents/interface/keyboard-accesskey-click-event.html [ Pass Failure ]
+
+http/tests/login-status/login-status-api-getter-setter-functions.html [ Failure ]

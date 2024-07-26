@@ -1809,7 +1809,6 @@
 		49C7B9E01042D32F0009D447 /* WebGLRenderingContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C01042D32F0009D447 /* WebGLRenderingContext.h */; };
 		49C7B9E31042D32F0009D447 /* WebGLShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C31042D32F0009D447 /* WebGLShader.h */; };
 		49C7B9E61042D32F0009D447 /* WebGLTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C61042D32F0009D447 /* WebGLTexture.h */; };
-		49D192432C4F4E340001181B /* TextUnderlinePosition.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D192412C4F4E030001181B /* TextUnderlinePosition.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49D5DC2C0F423A73008F20FD /* Matrix3DTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D5DC280F423A73008F20FD /* Matrix3DTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49D5DC2E0F423A73008F20FD /* PerspectiveTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D5DC2A0F423A73008F20FD /* PerspectiveTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49E911C40EF86D47009D0CAF /* TransformationMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 49E911B40EF86D47009D0CAF /* TransformationMatrix.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10879,11 +10878,11 @@
 		49B53D412B1AA58A0056A172 /* RenderTreeUpdaterViewTransition.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTreeUpdaterViewTransition.cpp; sourceTree = "<group>"; };
 		49BB8233299A53ED009143CB /* PopoverData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PopoverData.h; sourceTree = "<group>"; };
 		49C66C4B299C294B00073276 /* ToggleEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ToggleEvent.cpp; sourceTree = "<group>"; };
-		49C66C4B299C294B00073279 /* InvokeEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InvokeEvent.cpp; sourceTree = "<group>"; };
+		49C66C4B299C294B00073279 /* CommandEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CommandEvent.cpp; sourceTree = "<group>"; };
 		49C66C4C299C294B00073276 /* ToggleEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ToggleEvent.idl; sourceTree = "<group>"; };
-		49C66C4C299C294B00073279 /* InvokeEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = InvokeEvent.idl; sourceTree = "<group>"; };
+		49C66C4C299C294B00073279 /* CommandEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CommandEvent.idl; sourceTree = "<group>"; };
 		49C66C4D299C294C00073276 /* ToggleEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ToggleEvent.h; sourceTree = "<group>"; };
-		49C66C4D299C294C00073279 /* InvokeEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InvokeEvent.h; sourceTree = "<group>"; };
+		49C66C4D299C294C00073279 /* CommandEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommandEvent.h; sourceTree = "<group>"; };
 		49C7B9801042D2D30009D447 /* JSWebGLBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebGLBuffer.cpp; sourceTree = "<group>"; };
 		49C7B9811042D2D30009D447 /* JSWebGLBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWebGLBuffer.h; sourceTree = "<group>"; };
 		49C7B9841042D2D30009D447 /* JSWebGLFramebuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebGLFramebuffer.cpp; sourceTree = "<group>"; };
@@ -10923,8 +10922,6 @@
 		49C7B9C71042D32F0009D447 /* WebGLTexture.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebGLTexture.idl; sourceTree = "<group>"; };
 		49C7BA8C1042F5B10009D447 /* JSDocumentCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDocumentCustom.cpp; sourceTree = "<group>"; };
 		49CCE6F72997441F006C91EB /* popover.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = popover.css; sourceTree = "<group>"; };
-		49D192412C4F4E030001181B /* TextUnderlinePosition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextUnderlinePosition.h; sourceTree = "<group>"; };
-		49D192422C4F4E030001181B /* TextUnderlinePosition.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextUnderlinePosition.cpp; sourceTree = "<group>"; };
 		49D5DC270F423A73008F20FD /* Matrix3DTransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Matrix3DTransformOperation.cpp; sourceTree = "<group>"; };
 		49D5DC280F423A73008F20FD /* Matrix3DTransformOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Matrix3DTransformOperation.h; sourceTree = "<group>"; };
 		49D5DC290F423A73008F20FD /* PerspectiveTransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectiveTransformOperation.cpp; sourceTree = "<group>"; };
@@ -33613,8 +33610,6 @@
 				1CF0BFD42298706800ED2074 /* TextSizeAdjustment.cpp */,
 				448B1B780F3A2F9B0047A9E2 /* TextSizeAdjustment.h */,
 				1CB6B4FB217B83940093B9CD /* TextUnderlineOffset.h */,
-				49D192422C4F4E030001181B /* TextUnderlinePosition.cpp */,
-				49D192412C4F4E030001181B /* TextUnderlinePosition.h */,
 				0F15ED591B7EC7C500EDDFEB /* WillChangeData.cpp */,
 				0F15ED5A1B7EC7C500EDDFEB /* WillChangeData.h */,
 			);
@@ -36720,6 +36715,9 @@
 				9BD8A95918BEFC7600987E9A /* CollectionIndexCache.cpp */,
 				E425A49918292B840020CFCF /* CollectionIndexCache.h */,
 				CD814C3A2996D870005A780A /* CollectionIndexCacheInlines.h */,
+				49C66C4B299C294B00073279 /* CommandEvent.cpp */,
+				49C66C4D299C294C00073279 /* CommandEvent.h */,
+				49C66C4C299C294B00073279 /* CommandEvent.idl */,
 				6550B697099DF0270090D781 /* Comment.cpp */,
 				6550B698099DF0270090D781 /* Comment.h */,
 				85089CC70A98C22600A275AA /* Comment.idl */,
@@ -37007,9 +37005,6 @@
 				FFEFAB2D183BCC6F00514554 /* InternalObserver.h */,
 				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
 				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
-				49C66C4B299C294B00073279 /* InvokeEvent.cpp */,
-				49C66C4D299C294C00073279 /* InvokeEvent.h */,
-				49C66C4C299C294B00073279 /* InvokeEvent.idl */,
 				FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */,
 				85031B2D0A44EFC700F992E0 /* KeyboardEvent.cpp */,
 				85031B2E0A44EFC700F992E0 /* KeyboardEvent.h */,
@@ -42812,7 +42807,6 @@
 				E36A00E429CF7B8600AC4E8A /* TextTrackRepresentationCocoa.h in Headers */,
 				BE0787A829B2279E0067473E /* TextTransform.h in Headers */,
 				1C73A7132185757E004CCEA5 /* TextUnderlineOffset.h in Headers */,
-				49D192432C4F4E340001181B /* TextUnderlinePosition.h in Headers */,
 				29FAF4B6195AB08900A522DC /* TextUndoInsertionMarkupMac.h in Headers */,
 				6FB11B5C21783FD000E2A574 /* TextUtil.h in Headers */,
 				BCE658FF0EA9248A007E4533 /* Theme.h in Headers */,

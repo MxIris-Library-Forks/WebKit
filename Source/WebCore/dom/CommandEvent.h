@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2021 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,56 +23,45 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "InvokeEvent.h"
+#pragma once
 
-#include "Element.h"
-
-#include <wtf/IsoMallocInlines.h>
+#include "Event.h"
+#include "EventInit.h"
+#include <wtf/Forward.h>
 
 namespace WebCore {
 
-WTF_MAKE_ISO_ALLOCATED_IMPL(InvokeEvent);
+class Element;
+class HTMLElement;
 
-InvokeEvent::InvokeEvent()
-    : Event(EventInterfaceType::InvokeEvent)
-{
-}
+class CommandEvent final : public Event {
+    WTF_MAKE_ISO_ALLOCATED(CommandEvent);
 
-InvokeEvent::InvokeEvent(const AtomString& type, const InvokeEvent::Init& initializer, IsTrusted isTrusted)
-    : Event(EventInterfaceType::InvokeEvent, type, initializer, isTrusted)
-    , m_invoker(initializer.invoker)
-    , m_action(initializer.action)
-{
-}
+public:
+    struct Init : EventInit {
+        RefPtr<Element> invoker;
+        String command;
+    };
 
-Ref<InvokeEvent> InvokeEvent::create(const AtomString& eventType, const InvokeEvent::Init& init, IsTrusted isTrusted)
-{
-    return adoptRef(*new InvokeEvent(eventType, init, isTrusted));
-}
+    static Ref<CommandEvent> create(const AtomString& type, const Init&, IsTrusted = IsTrusted::No);
+    static Ref<CommandEvent> createForBindings();
 
-Ref<InvokeEvent> InvokeEvent::createForBindings()
-{
-    return adoptRef(*new InvokeEvent);
-}
+    RefPtr<Element> invoker() const;
 
-bool InvokeEvent::isInvokeEvent() const
-{
-    return true;
-}
+    String command() const { return m_command; }
 
-RefPtr<Element> InvokeEvent::invoker() const
-{
-    auto* invoker = m_invoker.get();
-    if (!invoker)
-        return nullptr;
+private:
+    CommandEvent();
+    CommandEvent(const AtomString& type, const Init&, IsTrusted = IsTrusted::No);
 
-    if (RefPtr target = dynamicDowncast<Node>(currentTarget())) {
-        auto& treeScope = target->treeScope();
-        auto node = treeScope.retargetToScope(*invoker);
-        return &downcast<Element>(node).get();
-    }
-    return invoker;
-}
+    bool isCommandEvent() const final;
+
+    void setCommandr(RefPtr<Element>&& invoker) { m_invoker = WTFMove(invoker); }
+
+    RefPtr<Element> m_invoker;
+    String m_command;
+};
 
 } // namespace WebCore
+
+SPECIALIZE_TYPE_TRAITS_EVENT(CommandEvent)

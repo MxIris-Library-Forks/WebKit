@@ -23,17 +23,56 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-[
-    EnabledBySetting=InvokerAttributesEnabled,
-    Exposed=Window
-] interface InvokeEvent : Event {
-    constructor([AtomString] DOMString type, optional InvokeEventInit eventInitDict);
+#include "config.h"
+#include "CommandEvent.h"
 
-    readonly attribute Element? invoker;
-    readonly attribute DOMString action;
-};
+#include "Element.h"
 
-dictionary InvokeEventInit : EventInit {
-    Element? invoker = null;
-    DOMString action = "";
-};
+#include <wtf/IsoMallocInlines.h>
+
+namespace WebCore {
+
+WTF_MAKE_ISO_ALLOCATED_IMPL(CommandEvent);
+
+CommandEvent::CommandEvent()
+    : Event(EventInterfaceType::CommandEvent)
+{
+}
+
+CommandEvent::CommandEvent(const AtomString& type, const CommandEvent::Init& initializer, IsTrusted isTrusted)
+    : Event(EventInterfaceType::CommandEvent, type, initializer, isTrusted)
+    , m_invoker(initializer.invoker)
+    , m_command(initializer.command)
+{
+}
+
+Ref<CommandEvent> CommandEvent::create(const AtomString& eventType, const CommandEvent::Init& init, IsTrusted isTrusted)
+{
+    return adoptRef(*new CommandEvent(eventType, init, isTrusted));
+}
+
+Ref<CommandEvent> CommandEvent::createForBindings()
+{
+    return adoptRef(*new CommandEvent);
+}
+
+bool CommandEvent::isCommandEvent() const
+{
+    return true;
+}
+
+RefPtr<Element> CommandEvent::invoker() const
+{
+    auto* invoker = m_invoker.get();
+    if (!invoker)
+        return nullptr;
+
+    if (RefPtr target = dynamicDowncast<Node>(currentTarget())) {
+        auto& treeScope = target->treeScope();
+        auto node = treeScope.retargetToScope(*invoker);
+        return &downcast<Element>(node).get();
+    }
+    return invoker;
+}
+
+} // namespace WebCore

@@ -23,26 +23,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+[
+    EnabledBySetting=InvokerAttributesEnabled,
+    Exposed=Window
+] interface CommandEvent : Event {
+    constructor([AtomString] DOMString type, optional CommandEventInit eventInitDict);
 
-namespace WebKit {
-
-#if ENABLE(GPU_PROCESS)
-
-struct GPUProcessPreferencesForWebProcess {
-    bool isWebGLEnabled { false };
-    bool isWebGPUEnabled { false };
-    bool isWebXREnabled { false };
-    bool isDOMRenderingEnabled { false };
-#if ENABLE(RE_DYNAMIC_CONTENT_SCALING)
-    bool isDynamicContentScalingEnabled { false };
-#endif
-    bool allowTestOnlyIPC { false };
-    bool isLockdownSafeFontParserEnabled { false };
-
-    friend bool operator==(const GPUProcessPreferencesForWebProcess&, const GPUProcessPreferencesForWebProcess&) = default;
+    readonly attribute Element? invoker;
+    readonly attribute DOMString command;
 };
 
-#endif // ENABLE(GPU_PROCESS)
-
-} // namespace WebKit
+dictionary CommandEventInit : EventInit {
+    Element? invoker = null;
+    DOMString command = "";
+};

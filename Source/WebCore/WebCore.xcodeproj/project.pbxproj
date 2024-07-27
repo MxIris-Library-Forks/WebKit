@@ -290,7 +290,6 @@
 		0854B0231255E4E600B9CDD0 /* SVGRootInlineBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 0854B0111255E4E600B9CDD0 /* SVGRootInlineBox.h */; };
 		0854B0251255E4E600B9CDD0 /* SVGTextQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = 0854B0131255E4E600B9CDD0 /* SVGTextQuery.h */; };
 		085B92BB0EFDE73D00E6123C /* FormDataBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = 085B92B90EFDE73D00E6123C /* FormDataBuilder.h */; settings = {ATTRIBUTES = (); }; };
-		08641D4812142F7D008DE9F6 /* RenderImageResourceStyleImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 08641D4612142F7D008DE9F6 /* RenderImageResourceStyleImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		086BBD0F136039C2008B15D8 /* Glyph.h in Headers */ = {isa = PBXBuildFile; fileRef = 086BBD0E136039C2008B15D8 /* Glyph.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0873B86B136064EA00A522C2 /* GlyphPage.h in Headers */ = {isa = PBXBuildFile; fileRef = 0873B86A136064EA00A522C2 /* GlyphPage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0885067F11DA045B00182B98 /* PaintInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 0885067D11DA045B00182B98 /* PaintInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1195,6 +1194,7 @@
 		3227A92E28BD744C00BC2697 /* TagName.h in Headers */ = {isa = PBXBuildFile; fileRef = 3227A92828BD744A00BC2697 /* TagName.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3227A93028BD744C00BC2697 /* NodeName.h in Headers */ = {isa = PBXBuildFile; fileRef = 3227A92A28BD744B00BC2697 /* NodeName.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3227A93128BD744C00BC2697 /* Namespace.h in Headers */ = {isa = PBXBuildFile; fileRef = 3227A92B28BD744B00BC2697 /* Namespace.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		322B61152C50C26300FB5440 /* ImageBufferResourceLimits.h in Headers */ = {isa = PBXBuildFile; fileRef = 322B61142C50C22D00FB5440 /* ImageBufferResourceLimits.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		32488D27299458D400934627 /* StyleMiscNonInheritedData.h in Headers */ = {isa = PBXBuildFile; fileRef = 32488D26299458CF00934627 /* StyleMiscNonInheritedData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		324EBEDB2993544F006F8973 /* StyleNonInheritedData.h in Headers */ = {isa = PBXBuildFile; fileRef = 324EBED929935436006F8973 /* StyleNonInheritedData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		325905DC274DE1D8007B7B65 /* FontDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = 325905DA274DE1D7007B7B65 /* FontDatabase.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -2119,6 +2119,7 @@
 		51FA2EDF27506FDE0011C15D /* SharedBufferChunkReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 51FA2ED6274F78370011C15D /* SharedBufferChunkReader.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51FB5504113E3E9100821176 /* JSCloseEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 51FB5502113E3E9100821176 /* JSCloseEvent.h */; };
 		51FB67DC1AE6B82F00D06C5A /* ContentExtensionStyleSheet.h in Headers */ = {isa = PBXBuildFile; fileRef = 51FB67DA1AE6B5E400D06C5A /* ContentExtensionStyleSheet.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		522373E52C4FE95900F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h in Headers */ = {isa = PBXBuildFile; fileRef = 522373E42C4FE8E300F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		525B0CB12A9F8FD100E8A94B /* MediationRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 525B0CB02A9F8FD100E8A94B /* MediationRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		52688AA627D6A7DA003577A2 /* ResidentKeyRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 52688AA327D6A7DA003577A2 /* ResidentKeyRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5273CC77256103CF00850007 /* PlatformXRCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 5273CC75256103CF00850007 /* PlatformXRCocoa.h */; };
@@ -7048,8 +7049,6 @@
 		0854B0131255E4E600B9CDD0 /* SVGTextQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGTextQuery.h; sourceTree = "<group>"; };
 		085B92B80EFDE73D00E6123C /* FormDataBuilder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FormDataBuilder.cpp; sourceTree = "<group>"; };
 		085B92B90EFDE73D00E6123C /* FormDataBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FormDataBuilder.h; sourceTree = "<group>"; };
-		08641D4512142F7D008DE9F6 /* RenderImageResourceStyleImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderImageResourceStyleImage.cpp; sourceTree = "<group>"; };
-		08641D4612142F7D008DE9F6 /* RenderImageResourceStyleImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderImageResourceStyleImage.h; sourceTree = "<group>"; };
 		086BBD0E136039C2008B15D8 /* Glyph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Glyph.h; sourceTree = "<group>"; };
 		0873B86A136064EA00A522C2 /* GlyphPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlyphPage.h; sourceTree = "<group>"; };
 		087558C413B4A57D00F49307 /* SurrogatePairAwareTextIterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurrogatePairAwareTextIterator.h; sourceTree = "<group>"; };
@@ -9520,6 +9519,7 @@
 		3227A92928BD744B00BC2697 /* Namespace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Namespace.cpp; sourceTree = "<group>"; };
 		3227A92A28BD744B00BC2697 /* NodeName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeName.h; sourceTree = "<group>"; };
 		3227A92B28BD744B00BC2697 /* Namespace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Namespace.h; sourceTree = "<group>"; };
+		322B61142C50C22D00FB5440 /* ImageBufferResourceLimits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageBufferResourceLimits.h; sourceTree = "<group>"; };
 		32488D25299458CF00934627 /* StyleMiscNonInheritedData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleMiscNonInheritedData.cpp; sourceTree = "<group>"; };
 		32488D26299458CF00934627 /* StyleMiscNonInheritedData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleMiscNonInheritedData.h; sourceTree = "<group>"; };
 		324EBED929935436006F8973 /* StyleNonInheritedData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleNonInheritedData.h; sourceTree = "<group>"; };
@@ -11587,6 +11587,7 @@
 		51FB67D91AE6B5E400D06C5A /* ContentExtensionStyleSheet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContentExtensionStyleSheet.cpp; sourceTree = "<group>"; };
 		51FB67DA1AE6B5E400D06C5A /* ContentExtensionStyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContentExtensionStyleSheet.h; sourceTree = "<group>"; };
 		52131E5A1C4F15610033F802 /* VideoPresentationInterfaceMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoPresentationInterfaceMac.mm; sourceTree = "<group>"; };
+		522373E42C4FE8E300F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShouldRequireExplicitConsentForGamepadAccess.h; sourceTree = "<group>"; };
 		525B0CB02A9F8FD100E8A94B /* MediationRequirement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediationRequirement.h; sourceTree = "<group>"; };
 		525B0CB22A9F905900E8A94B /* CredentialMediationRequirement.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CredentialMediationRequirement.idl; sourceTree = "<group>"; };
 		5263BF2027C1B5380085250C /* FakeXRJointStateInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakeXRJointStateInit.h; sourceTree = "<group>"; };
@@ -25553,6 +25554,7 @@
 				510A91F224D324C600BFD89C /* KnownGamepads.h */,
 				515BE18E1D54F5F600DD7C68 /* PlatformGamepad.h */,
 				510A91DB24CF441800BFD89C /* SharedGamepadValue.h */,
+				522373E42C4FE8E300F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h */,
 			);
 			path = gamepad;
 			sourceTree = "<group>";
@@ -32877,6 +32879,7 @@
 				72FE4046292F3D3A001D3855 /* ImageBufferContextSwitcher.h */,
 				3D0F80C52BCA014D006C8023 /* ImageBufferPixelFormat.h */,
 				72BAC3A623E17328008D741C /* ImageBufferPlatformBackend.h */,
+				322B61142C50C22D00FB5440 /* ImageBufferResourceLimits.h */,
 				CD19FEA71F573972000C42FB /* ImageDecoder.cpp */,
 				CD19FEA61F573972000C42FB /* ImageDecoder.h */,
 				1D47658D25CCA778007AF312 /* ImageDecoderIdentifier.h */,
@@ -36510,8 +36513,6 @@
 				BCEA4837097D93020094C9E4 /* RenderImage.h */,
 				08F2F0071213E61700DCEC48 /* RenderImageResource.cpp */,
 				08F2F0081213E61700DCEC48 /* RenderImageResource.h */,
-				08641D4512142F7D008DE9F6 /* RenderImageResourceStyleImage.cpp */,
-				08641D4612142F7D008DE9F6 /* RenderImageResourceStyleImage.h */,
 				BCEA4838097D93020094C9E4 /* RenderInline.cpp */,
 				BCEA4839097D93020094C9E4 /* RenderInline.h */,
 				B595FF461824CEE300FF51CD /* RenderIterator.h */,
@@ -39782,6 +39783,7 @@
 				727A7F3A24078B84004D2931 /* ImageBufferIOSurfaceBackend.h in Headers */,
 				3DFAB6FE2BCDA7AB00EDC3C4 /* ImageBufferPixelFormat.h in Headers */,
 				2D7705C7255276CD001D0C94 /* ImageBufferPlatformBackend.h in Headers */,
+				322B61152C50C26300FB5440 /* ImageBufferResourceLimits.h in Headers */,
 				CD3E21DD2183444A00E66F55 /* ImageBufferUtilitiesCG.h in Headers */,
 				073930C32AC4E85300C1D1B1 /* ImageCapture.h in Headers */,
 				725053152972B4C300D22D5F /* ImageControlsButtonPart.h in Headers */,
@@ -41791,7 +41793,6 @@
 				0FD308D6117D168500A791F7 /* RenderIFrame.h in Headers */,
 				BCEA4876097D93020094C9E4 /* RenderImage.h in Headers */,
 				08F2F00A1213E61700DCEC48 /* RenderImageResource.h in Headers */,
-				08641D4812142F7D008DE9F6 /* RenderImageResourceStyleImage.h in Headers */,
 				7299BC6823D6A53E00CC6883 /* RenderingMode.h in Headers */,
 				72E5023129B669EE00E5B8E7 /* RenderingResource.h in Headers */,
 				729D05302531424300422098 /* RenderingResourceIdentifier.h in Headers */,
@@ -42293,6 +42294,7 @@
 				1C4DB02627339FE0007B0AD1 /* ShouldLocalizeAxisNames.h in Headers */,
 				27A0042F2AD3161800407880 /* ShouldNotFireMutationEventsScope.h in Headers */,
 				DF19E2AC24772BC1007BDACB /* ShouldRelaxThirdPartyCookieBlocking.h in Headers */,
+				522373E52C4FE95900F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h in Headers */,
 				8362E8C120CEF9CB00245886 /* ShouldTreatAsContinuingLoad.h in Headers */,
 				0742C5052926E29500D26990 /* SimpleCaretAnimator.h in Headers */,
 				9316DDFB240C64B4009340AA /* SimpleRange.h in Headers */,

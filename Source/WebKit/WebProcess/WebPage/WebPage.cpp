@@ -466,7 +466,7 @@ static const Seconds maximumLayerVolatilityTimerInterval { 2_s };
 
 #if PLATFORM(IOS_FAMILY)
 static constexpr Seconds updateFocusedElementInformationDebounceInterval { 100_ms };
-static constexpr Seconds updateLayoutViewportHeightExpansionTimerInterval { 25_ms };
+static constexpr Seconds updateLayoutViewportHeightExpansionTimerInterval { 200_ms };
 #endif
 
 #define WEBPAGE_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [webPageID=%" PRIu64 "] WebPage::" fmt, this, m_identifier.toUInt64(), ##__VA_ARGS__)
@@ -787,6 +787,10 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
 #if PLATFORM(IOS_FAMILY)
     pageConfiguration.canShowWhileLocked = parameters.canShowWhileLocked;
+#endif
+
+#if PLATFORM(VISION) && ENABLE(GAMEPAD)
+    pageConfiguration.gamepadAccessRequiresExplicitConsent = parameters.gamepadAccessRequiresExplicitConsent;
 #endif
 
     m_page = Page::create(WTFMove(pageConfiguration));
@@ -2180,7 +2184,7 @@ void WebPage::navigateToPDFLinkWithSimulatedClick(const String& url, IntPoint do
     // FIXME: Set modifier keys.
     // FIXME: This should probably set IsSimulated::Yes.
     auto mouseEvent = MouseEvent::create(eventNames().clickEvent, Event::CanBubble::Yes, Event::IsCancelable::Yes, Event::IsComposed::Yes,
-        MonotonicTime::now(), nullptr, singleClick, screenPoint, documentPoint, 0, 0, { }, MouseButton::Left, 0, nullptr, 0, WebCore::SyntheticClickType::NoTap);
+        MonotonicTime::now(), nullptr, singleClick, screenPoint, documentPoint, 0, 0, { }, MouseButton::Left, 0, nullptr, 0, WebCore::SyntheticClickType::NoTap, { });
 
     mainFrame->loader().changeLocation(mainFrameDocument->completeURL(url), emptyAtom(), mouseEvent.ptr(), ReferrerPolicy::NoReferrer, ShouldOpenExternalURLsPolicy::ShouldAllow);
 }
@@ -7722,6 +7726,7 @@ void WebPage::didCommitLoad(WebFrame* frame)
 
 #if PLATFORM(IOS_FAMILY)
     m_updateLayoutViewportHeightExpansionTimer.stop();
+    m_shouldRescheduleLayoutViewportHeightExpansionTimer = false;
 #endif
     removeReasonsToDisallowLayoutViewportHeightExpansion(m_disallowLayoutViewportHeightExpansionReasons);
 
@@ -8217,7 +8222,14 @@ void WebPage::gamepadsRecentlyAccessed()
     send(Messages::WebPageProxy::GamepadsRecentlyAccessed());
 }
 
+#if PLATFORM(VISION)
+void WebPage::allowGamepadAccess()
+{
+    corePage()->allowGamepadAccess();
+}
 #endif
+
+#endif // ENABLE(GAMEPAD)
 
 #if ENABLE(POINTER_LOCK)
 void WebPage::didAcquirePointerLock()
@@ -9835,11 +9847,8 @@ void WebPage::updateLastNodeBeforeWritingSuggestions(const KeyboardEvent& event)
 
 void WebPage::didAddOrRemoveViewportConstrainedObjects()
 {
-    if (!m_page->settings().layoutViewportHeightExpansionFactor())
-        return;
-
 #if PLATFORM(IOS_FAMILY)
-    m_updateLayoutViewportHeightExpansionTimer.restart();
+    scheduleLayoutViewportHeightExpansionUpdate();
 #endif
 }
 

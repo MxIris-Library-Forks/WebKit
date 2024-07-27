@@ -209,6 +209,13 @@ imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/intrinsic-size-005.h
 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/parsing/aspect-ratio-invalid.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-sizing/slice-intrinsic-size.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-string-001.xht [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-003.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-004.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-015.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-015a.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-015b.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-020.html  [ Pass ]
+imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-020a.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/hanging-punctuation/hanging-punctuation-inline-bound-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-003.html [ Pass ]
@@ -908,7 +915,7 @@ webkit.org/b/233478 imported/w3c/web-platform-tests/css/css-transforms/backface-
 
 webkit.org/b/230277 imported/w3c/web-platform-tests/css/css-transforms/composited-under-rotateY-180deg-clip.html
 webkit.org/b/230277 imported/w3c/web-platform-tests/css/css-transforms/composited-under-rotateY-180deg.html
-webkit.org/b/230277 imported/w3c/web-platform-tests/css/css-transforms/perspective-split-by-zero-w.html [ ImageOnlyFailure ]
+webkit.org/b/230277 imported/w3c/web-platform-tests/css/css-transforms/perspective-split-by-zero-w.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/245862 imported/w3c/web-platform-tests/css/css-transforms/perspective-transforms-equivalence.html [ ImageOnlyFailure ]
 
@@ -1072,7 +1079,7 @@ webkit.org/b/254521 imported/w3c/web-platform-tests/media-source/mediasource-get
 webkit.org/b/262986 imported/w3c/web-platform-tests/media-source/mediasource-detach.html [ Pass Crash ]
 webkit.org/b/254522 media/video-volume.html [ Pass Failure ]
 webkit.org/b/254525 http/tests/media/video-throttled-load-metadata.html [ Pass Failure ]
-media/video-seek-to-current-time.html [ Failure ]
+media/video-seek-to-current-time.html [ Pass Failure ]
 
 webkit.org/b/213699 http/wpt/mediarecorder/mimeType.html [ Failure ]
 webkit.org/b/213699 http/wpt/mediarecorder/mute-tracks.html [ Failure Crash ]
@@ -1697,10 +1704,8 @@ imported/w3c/web-platform-tests/fetch/metadata/generated/css-font-face.https.sub
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-area.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-a.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-frame.sub.html [ DumpJSConsoleLogInStdErr ]
-imported/w3c/web-platform-tests/fetch/metadata/generated/element-iframe.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-img.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-input-image.sub.html [ DumpJSConsoleLogInStdErr ]
-imported/w3c/web-platform-tests/fetch/metadata/generated/element-meta-refresh.optional.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-picture.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-script.https.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/fetch/metadata/generated/element-script.sub.html [ DumpJSConsoleLogInStdErr ]
@@ -1799,20 +1804,6 @@ webkit.org/b/264804 http/tests/resourceLoadStatistics/blocking-in-web-worker-scr
 webkit.org/b/264804 http/tests/resourceLoadStatistics/no-third-party-cookie-blocking-when-itp-is-off.html [ Failure ]
 webkit.org/b/264804 http/tests/resourceLoadStatistics/ping-to-prevalent-resource.html [ Failure ]
 webkit.org/b/264804 http/tests/resourceLoadStatistics/third-party-cookie-blocking-on-sites-without-user-interaction.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/aggregate-sorted-data-with-storage-access.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/grant-storage-access-under-opener-at-popup-user-gesture-ephemeral.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/grant-storage-access-under-opener-at-popup-user-gesture.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/grant-with-prompt-under-general-third-party-cookie-blocking.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/has-storage-access-true-if-third-party-has-cookies.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/has-storage-access-under-general-third-party-cookie-blocking-with-cookie.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-cross-origin-non-sandboxed-iframe-ephemeral.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-iframe-from-prevalent-domain-with-user-interaction-and-access-from-right-frame.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-iframe-from-prevalent-domain-with-user-interaction-but-access-from-wrong-frame.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-nested-iframe.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-then-detach-should-not-have-access.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-then-navigate-cross-site-should-not-have-access.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-then-navigate-same-site-should-have-access.html [ Failure ]
-webkit.org/b/264804 http/tests/storageAccess/request-and-grant-access-with-per-page-scope-access-from-another-frame.html [ Failure ]
 webkit.org/b/264804 http/tests/websocket/tests/hybi/websocket-allowed-setting-cookie-as-third-party.html [ Failure ]
 webkit.org/b/264804 http/tests/websocket/tests/hybi/websocket-cookie-overwrite-behavior.html [ Failure ]
 webkit.org/b/264804 http/tests/resourceLoadStatistics/operating-dates-all-but-cookies-not-removed-with-user-interaction-6-days-ago.html [ Pass Timeout ]
@@ -1858,7 +1849,7 @@ webkit.org/b/151949 streams/pipe-to.html [ Failure ]
 webkit.org/b/189739 svg/gradients/spreadMethodClose2.svg [ ImageOnlyFailure ]
 webkit.org/b/189739 imported/mozilla/svg/linearGradient-basic-03.svg [ ImageOnlyFailure ]
 
-webkit.org/b/107018 svg/animations/animate-linear-discrete-additive.svg [ ImageOnlyFailure ]
+webkit.org/b/107018 svg/animations/animate-linear-discrete-additive.svg  [ Pass ImageOnlyFailure ]
 webkit.org/b/107018 svg/animations/animate-linear-discrete-additive-b.svg [ ImageOnlyFailure ]
 webkit.org/b/107018 svg/animations/animate-linear-discrete-additive-c.svg [ ImageOnlyFailure ]
 webkit.org/b/107018 svg/animations/mozilla/animateMotion-mpath-pathLength-1.svg [ Pass ImageOnlyFailure ]
@@ -2114,7 +2105,8 @@ webkit.org/b/235885 webrtc/datachannel/getStats-no-prflx-remote-candidate.html [
 webkit.org/b/235885 fast/mediastream/RTCPeerConnection-statsSelector.html [ Skip ]
 webkit.org/b/187064 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-getStats.https.html [ Skip ]
 
-webkit.org/b/269285 webrtc/h265.html [ Failure ]
+# FIXME: Remove Timeout expectation once bug #275685 is fixed.
+webkit.org/b/269285 webrtc/h265.html [ Failure Timeout ]
 
 # Too slow with filtering implemented in WebKit. Should be done directly by GstWebRTC.
 webrtc/datachannel/filter-ice-candidate.html [ Skip ]
@@ -2394,6 +2386,15 @@ webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/availa
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-019.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/inline-box-border-vlr-001.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-013.html [ ImageOnlyFailure ]
+
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/background-position-vrl-018.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/background-position-vrl-020.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/background-position-vrl-022.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/normal-flow-overconstrained-vrl-002.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/normal-flow-overconstrained-vrl-004.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/overconstrained-rel-pos-ltr-top-bottom-vrl-002.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/overconstrained-rel-pos-rtl-left-right-vrl-008.xht [ Pass ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/text-combine-upright-layout-rules-001.html [ Pass ImageOnlyFailure ]
 
 # Overrides over general expectations that are shared between GTK and WPE after updating css-text WPT tests
 webkit.org/b/214290 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-none-011.html [ Pass ]
@@ -3626,6 +3627,8 @@ webkit.org/b/243614 imported/w3c/web-platform-tests/IndexedDB/idbobjectstore_put
 webkit.org/b/243614 imported/w3c/web-platform-tests/IndexedDB/idbobjectstore_putall.tentative.any.worker.html [ Failure ]
 webkit.org/b/243614 imported/w3c/web-platform-tests/IndexedDB/structured-clone.any.html?101-last [ Failure ]
 webkit.org/b/243614 imported/w3c/web-platform-tests/IndexedDB/structured-clone.any.worker.html?101-last [ Failure ]
+imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large.html [ Skip ]
+imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.html [ Skip ]
 
 # Requires USE_AUDIO_SESSION, only available in iOS or Mac.
 media/audio-session-category-unmute-mute.html [ Skip ]
@@ -3800,8 +3803,6 @@ webkit.org/b/268068 imported/w3c/web-platform-tests/html/cross-origin-opener-pol
 webkit.org/b/267992 imported/w3c/web-platform-tests/html/anonymous-iframe/initial-empty-document.tentative.https.window.html [ Pass Failure Crash ]
 webkit.org/b/267992 http/wpt/cross-origin-opener-policy/header-parsing-with-report-to.https.html [ Failure Pass Crash ]
 
-webkit.org/b/268281 imported/w3c/web-platform-tests/service-workers/service-worker/navigation-headers.https.html [ Pass Crash ]
-
 # Skip Merchant-Validation API test cases from GTK / WPE
 webkit.org/b/268238  imported/w3c/web-platform-tests/merchant-validation/complete-method.tentative.https.html [ Skip ]
 webkit.org/b/268238  imported/w3c/web-platform-tests/merchant-validation/constructor.tentative.https.html [ Skip ]
@@ -3935,21 +3936,23 @@ webkit.org/b/180134 webanimations/opacity-animation-no-longer-composited-upon-co
 imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/element-stops-grouping-after-animation.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/fragmented-at-start-ignored.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-rendering-invalidation.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/fractional-translation-from-transform.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-rendering-invalidation.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/fractional-translation-from-transform.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-left-of-viewport-partially-onscreen-new.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-left-of-viewport-partially-onscreen-old.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-ident.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-partial.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-wildcard.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-old-with-class-new-without.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/window-resize-aborts-transition.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/window-resize-aborts-transition-before-ready.html [ Failure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-on-top-of-viewport-partially-onscreen-old.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-on-top-of-viewport-partially-onscreen-old.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/element-is-grouping-during-animation.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-name-removed-mid-transition.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/modify-style-via-cssom.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/names-are-tree-scoped.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/no-painting-while-render-blocked.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/no-white-flash-before-activation.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/no-white-flash-before-activation.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/input-targets-root-while-render-blocked.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/no-css-animation-while-render-blocked.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/no-raf-while-render-blocked.html [ ImageOnlyFailure ]
@@ -4004,6 +4007,8 @@ imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking
 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-011.html [ Failure ]
 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-020.html [ Failure ]
 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-021.html [ Failure ]
+
+imported/w3c/web-platform-tests/html/browsers/browsing-the-web/read-media/pageload-video.html [ Failure ]
 
 # End: Common failures between GTK and WPE.
 

@@ -298,7 +298,7 @@ private:
 #endif
 
 #if PLATFORM(MAC)
-    void ensureScrollbarsController(WebCore::Page&, WebCore::ScrollableArea&) const final;
+    void ensureScrollbarsController(WebCore::Page&, WebCore::ScrollableArea&, bool update = false) const final;
 #endif
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
@@ -536,6 +536,10 @@ private:
 #endif
 
     void hasActiveNowPlayingSessionChanged(bool) final;
+
+#if ENABLE(GPU_PROCESS)
+    void getImageBufferResourceLimitsForTesting(CompletionHandler<void(std::optional<WebCore::ImageBufferResourceLimits>)>&&) const final;
+#endif
 
     mutable bool m_cachedMainFrameHasHorizontalScrollbar { false };
     mutable bool m_cachedMainFrameHasVerticalScrollbar { false };

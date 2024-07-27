@@ -2352,8 +2352,9 @@ accessibility/insert-text-into-password-field.html [ Pass ]
 accessibility/list-with-dynamically-changing-content.html [ Pass ]
 accessibility/live-region-attributes-update-after-dynamic-change.html [ Pass ]
 accessibility/menu-list-crash2.html [ Pass ]
-accessibility/mixed-contenteditable-visible-character-range-hang.html [ Pass ]
-accessibility/mixed-contenteditable-double-br-visible-character-range-hang.html [ Pass ]
+# rdar://132587324 These two tests have been flakey on iOS since they were introduced — temporarily disable them for now.
+# accessibility/mixed-contenteditable-visible-character-range-hang.html [ Pass ]
+# accessibility/mixed-contenteditable-double-br-visible-character-range-hang.html [ Pass ]
 accessibility/multiple-attribute-change-crash.html [ Pass ]
 accessibility/nested-custom-element-accname.html [ Pass ]
 accessibility/node-only-inert-object.html [ Pass ]
@@ -3366,6 +3367,8 @@ webkit.org/b/212227 imported/w3c/web-platform-tests/css/css-grid/alignment/self-
 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-self-baseline-not-applied-if-sizing-cyclic-dependency-001.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-self-baseline-not-applied-if-sizing-cyclic-dependency-002.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-grid/subgrid/alignment-in-subgridded-axes-001.html [ Skip ]
+webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-cols-006.html
+
 
 fast/text/text-styles/-apple-system [ Pass ]
 

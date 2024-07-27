@@ -43,6 +43,7 @@
 #include "HostWindow.h"
 #include "Icon.h"
 #include "ImageBuffer.h"
+#include "ImageBufferResourceLimits.h"
 #include "InputMode.h"
 #include "MediaControlsContextMenuItem.h"
 #include "MediaProducer.h"
@@ -435,7 +436,7 @@ public:
     virtual bool layerTreeStateIsFrozen() const { return false; }
 
     virtual RefPtr<ScrollingCoordinator> createScrollingCoordinator(Page&) const { return nullptr; }
-    WEBCORE_EXPORT virtual void ensureScrollbarsController(Page&, ScrollableArea&) const;
+    WEBCORE_EXPORT virtual void ensureScrollbarsController(Page&, ScrollableArea&, bool update = false) const;
 
     virtual bool canEnterVideoFullscreen(HTMLMediaElementEnums::VideoFullscreenMode) const { return false; }
     virtual bool supportsVideoFullscreen(HTMLMediaElementEnums::VideoFullscreenMode) { return false; }
@@ -691,6 +692,8 @@ public:
 #endif
 
     virtual void hasActiveNowPlayingSessionChanged(bool) { }
+
+    virtual void getImageBufferResourceLimitsForTesting(CompletionHandler<void(std::optional<ImageBufferResourceLimits>)>&& callback) const { callback(std::nullopt); }
 
     WEBCORE_EXPORT virtual ~ChromeClient();
 

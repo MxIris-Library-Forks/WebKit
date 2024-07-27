@@ -3753,8 +3753,29 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
         break;
     }
 
+    case UnwrapGlobalProxy: {
+        if (forNode(node->child1()).m_structure.isFinite()) {
+            JSGlobalObject* globalObject = nullptr;
+            bool ok = true;
+            forNode(node->child1()).m_structure.forEach(
+                [&] (RegisteredStructure structure) {
+                    if (!globalObject)
+                        globalObject = structure->globalObject();
+                    else if (globalObject != structure->globalObject())
+                        ok = false;
+                });
+            if (globalObject && ok) {
+                setConstant(node, *m_graph.freeze(JSValue(globalObject)));
+                break;
+            }
+        }
+
+        setTypeForNode(node, SpecObjectOther);
+        break;
+    }
+
     case GetGlobalThis: {
-        setTypeForNode(node, SpecObject);
+        setTypeForNode(node, SpecGlobalProxy);
         break;
     }
 

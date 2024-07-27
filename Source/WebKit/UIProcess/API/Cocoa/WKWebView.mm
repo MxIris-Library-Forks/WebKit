@@ -361,7 +361,7 @@ static void hardwareKeyboardAvailabilityChangedCallback(CFNotificationCenterRef,
 
     // FIXME: This copy is probably not necessary.
     Ref pageConfiguration = _configuration->_pageConfiguration->copy();
-    [self _setupPageConfiguration:pageConfiguration];
+    [self _setupPageConfiguration:pageConfiguration withPool:processPool];
 
     _usePlatformFindUI = YES;
 
@@ -450,7 +450,7 @@ static void hardwareKeyboardAvailabilityChangedCallback(CFNotificationCenterRef,
 #endif
 }
 
-- (void)_setupPageConfiguration:(Ref<API::PageConfiguration>&)pageConfiguration
+- (void)_setupPageConfiguration:(Ref<API::PageConfiguration>&)pageConfiguration withPool:(WebKit::WebProcessPool&)pool
 {
     pageConfiguration->setPreferences([_configuration preferences]->_preferences.get());
     if (WKWebView *relatedWebView = [_configuration _relatedWebView])
@@ -588,7 +588,9 @@ static void hardwareKeyboardAvailabilityChangedCallback(CFNotificationCenterRef,
     pageConfiguration->preferences().setVideoFullscreenRequiresElementFullscreen(WebKit::defaultVideoFullscreenRequiresElementFullscreen());
 #endif
 
+    // For SharedPreferencesForWebProcess
     pageConfiguration->preferences().setAllowTestOnlyIPC(!![_configuration _allowTestOnlyIPC]);
+    pageConfiguration->preferences().setUsesSingleWebProcess(pool.usesSingleWebProcess());
 
     pageConfiguration->preferences().endBatchingUpdates();
 }
@@ -2296,11 +2298,38 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
 #import <WebKitAdditions/WKWebViewAdditionsAfter.mm>
 #endif
 
-#if ENABLE(GAMEPAD) && !__has_include(<WebKitAdditions/WKWebViewAdditionsAfter+Gamepad.mm>)
+#if ENABLE(GAMEPAD)
+#if !__has_include(<WebKitAdditions/WKWebViewAdditionsAfter+Gamepad.mm>)
 - (void)_setGamepadsRecentlyAccessed:(BOOL)gamepadsRecentlyAccessed
 {
 }
 #endif
+
+#if PLATFORM(VISION)
+- (BOOL)_gamepadsConnected
+{
+    return _page->gamepadsConnected();
+}
+
+- (void)_gamepadsConnectedStateChanged
+{
+    id<WKUIDelegatePrivate> uiDelegate = (id<WKUIDelegatePrivate>)self.UIDelegate;
+    if ([uiDelegate respondsToSelector:@selector(_webView:gamepadsConnectedStateDidChange:)])
+        [uiDelegate _webView:self gamepadsConnectedStateDidChange:_page->gamepadsConnected()];
+}
+
+- (void)_setAllowGamepadsAccess
+{
+    _page->allowGamepadAccess();
+}
+
+#if !__has_include(<WebKitAdditions/WKWebViewAdditionsAfter+Gamepad.mm>)
+- (void)_setAllowGamepadsInput:(BOOL)allowGamepadsInput
+{
+}
+#endif
+#endif // PLATFORM(VISION)
+#endif // ENABLE(GAMEPAD)
 
 @end
 

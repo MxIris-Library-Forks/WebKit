@@ -4090,6 +4090,7 @@ header: <WebCore/ScrollingStateNode.h>
     ScrollbarHoverState
     ScrollbarEnabledState
     ScrollbarLayoutDirection
+    ScrollbarWidth
     FrameScaleFactor
     EventTrackingRegion
     RootContentsLayer
@@ -8286,6 +8287,10 @@ enum class WebCore::ShouldContinuePolicyCheck : bool
 
 #if ENABLE(GAMEPAD)
 enum class WebCore::EventMakesGamepadsVisible : bool
+
+#if PLATFORM(VISION)
+enum class WebCore::ShouldRequireExplicitConsentForGamepadAccess : bool;
+#endif
 #endif
 
 enum class WebCore::WillInternallyHandleFailure : bool
@@ -8335,4 +8340,16 @@ struct WebCore::OwnerPermissionsPolicyData {
 
 class WebCore::PermissionsPolicy {
     WebCore::PermissionsPolicy::InheritedPolicy inheritedPolicy()
+};
+
+header: <WebCore/ImageBufferResourceLimits.h>
+struct WebCore::ImageBufferResourceLimits {
+    size_t acceleratedImageBufferForCanvasCount;
+    size_t acceleratedImageBufferForCanvasLimit;
+    size_t globalAcceleratedImageBufferCount;
+    size_t globalAcceleratedImageBufferLimit;
+    size_t globalImageBufferForCanvasCount;
+    size_t globalImageBufferForCanvasLimit;
+    size_t imageBufferForCanvasCount;
+    size_t imageBufferForCanvasLimit;
 };

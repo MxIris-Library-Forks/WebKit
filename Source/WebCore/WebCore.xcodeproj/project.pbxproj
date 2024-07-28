@@ -6359,7 +6359,7 @@
 		FB92DF4B15FED08700994433 /* PathOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = FB92DF4915FED08700994433 /* PathOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FBB0C5B817BBD629003D3677 /* CSSFilterImageValue.h in Headers */ = {isa = PBXBuildFile; fileRef = FB965B8117BBB5F900E835B9 /* CSSFilterImageValue.h */; settings = {ATTRIBUTES = (); }; };
 		FBD6AF8815EF25C9008B7110 /* CSSBasicShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = FBD6AF8715EF21D4008B7110 /* CSSBasicShapes.h */; };
-		FBD6AF8A15EF25DF008B7110 /* BasicShapeFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = FBD6AF8515EF21D4008B7110 /* BasicShapeFunctions.h */; };
+		FBD6AF8A15EF25DF008B7110 /* BasicShapeConversion.h in Headers */ = {isa = PBXBuildFile; fileRef = FBD6AF8515EF21D4008B7110 /* BasicShapeConversion.h */; };
 		FBD6AF8C15EF2604008B7110 /* BasicShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = FBD6AF8315EF21A3008B7110 /* BasicShapes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FBDB619F16D6036500BB3394 /* ElementRuleCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = FBDB619E16D6036500BB3394 /* ElementRuleCollector.h */; };
 		FBDB61A116D6037E00BB3394 /* PageRuleCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = FBDB61A016D6037E00BB3394 /* PageRuleCollector.h */; };
@@ -20500,8 +20500,8 @@
 		FB965B8217BBB62C00E835B9 /* CSSFilterImageValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSFilterImageValue.cpp; sourceTree = "<group>"; };
 		FBD6AF8215EF21A3008B7110 /* BasicShapes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasicShapes.cpp; sourceTree = "<group>"; };
 		FBD6AF8315EF21A3008B7110 /* BasicShapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasicShapes.h; sourceTree = "<group>"; };
-		FBD6AF8415EF21D4008B7110 /* BasicShapeFunctions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasicShapeFunctions.cpp; sourceTree = "<group>"; };
-		FBD6AF8515EF21D4008B7110 /* BasicShapeFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasicShapeFunctions.h; sourceTree = "<group>"; };
+		FBD6AF8415EF21D4008B7110 /* BasicShapeConversion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasicShapeConversion.cpp; sourceTree = "<group>"; };
+		FBD6AF8515EF21D4008B7110 /* BasicShapeConversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasicShapeConversion.h; sourceTree = "<group>"; };
 		FBD6AF8615EF21D4008B7110 /* CSSBasicShapes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSBasicShapes.cpp; sourceTree = "<group>"; };
 		FBD6AF8715EF21D4008B7110 /* CSSBasicShapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSBasicShapes.h; sourceTree = "<group>"; };
 		FBDB619A16D6032A00BB3394 /* ElementRuleCollector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ElementRuleCollector.cpp; sourceTree = "<group>"; };
@@ -35962,8 +35962,8 @@
 				946D37271D6CB2250077084F /* parser */,
 				E4DA5E3E28A2867300849BCF /* query */,
 				4BAFD0DA21921EAD00C0AB64 /* typedom */,
-				FBD6AF8415EF21D4008B7110 /* BasicShapeFunctions.cpp */,
-				FBD6AF8515EF21D4008B7110 /* BasicShapeFunctions.h */,
+				FBD6AF8415EF21D4008B7110 /* BasicShapeConversion.cpp */,
+				FBD6AF8515EF21D4008B7110 /* BasicShapeConversion.h */,
 				713785EE28D9F4C50092D9F2 /* ComputedStyleExtractor.cpp */,
 				713785EF28D9F4C50092D9F2 /* ComputedStyleExtractor.h */,
 				A80E6CDA0A1989CA007FB8C5 /* Counter.h */,
@@ -37004,8 +37004,10 @@
 				2EB767531DA19313003E23B5 /* InputEvent.idl */,
 				FFEFAB2D183BCC6F00514555 /* InternalObserver.cpp */,
 				FFEFAB2D183BCC6F00514554 /* InternalObserver.h */,
-				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
 				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
+				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
+				FFEFAB2D183BCC6F00514558 /* InternalObserverTake.h */,
+				FFEFAB2D183BCC6F00514559 /* InternalObserverTake.cpp */,
 				FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */,
 				85031B2D0A44EFC700F992E0 /* KeyboardEvent.cpp */,
 				85031B2E0A44EFC700F992E0 /* KeyboardEvent.h */,
@@ -38295,7 +38297,7 @@
 				F55B3DAE1251F12D003EF269 /* BaseTextInputType.h in Headers */,
 				57C7A68C1E56967500C67D71 /* BasicCredential.h in Headers */,
 				7156BCA121CA350F00534397 /* BasicEffectTiming.h in Headers */,
-				FBD6AF8A15EF25DF008B7110 /* BasicShapeFunctions.h in Headers */,
+				FBD6AF8A15EF25DF008B7110 /* BasicShapeConversion.h in Headers */,
 				FBD6AF8C15EF2604008B7110 /* BasicShapes.h in Headers */,
 				AB23A32809BBA7D00067CC53 /* BeforeTextInsertedEvent.h in Headers */,
 				85031B3D0A44EFC700F992E0 /* BeforeUnloadEvent.h in Headers */,

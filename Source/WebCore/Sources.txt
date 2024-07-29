@@ -829,6 +829,7 @@ css/BasicShapeConversion.cpp
 css/CSSAnchorValue.cpp
 css/CSSAspectRatioValue.cpp
 css/CSSBackgroundRepeatValue.cpp
+css/CSSShapeSegmentValue.cpp
 css/CSSBasicShapes.cpp
 css/CSSBorderImage.cpp
 css/CSSBorderImageSliceValue.cpp
@@ -1178,6 +1179,7 @@ dom/InlineStyleSheetOwner.cpp
 dom/InputEvent.cpp
 dom/InternalObserver.cpp
 dom/InternalObserverFromScript.cpp
+dom/InternalObserverFilter.cpp
 dom/InternalObserverTake.cpp
 dom/KeyboardEvent.cpp
 dom/LiveNodeList.cpp
@@ -4130,6 +4132,7 @@ JSPopStateEvent.cpp
 JSPositionCallback.cpp
 JSPositionErrorCallback.cpp
 JSPositionOptions.cpp
+JSPredicateCallback.cpp
 JSPredefinedColorSpace.cpp
 JSProcessingInstruction.cpp
 JSProgressEvent.cpp

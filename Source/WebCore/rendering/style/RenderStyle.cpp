@@ -903,6 +903,7 @@ static bool rareInheritedDataChangeRequiresLayout(const StyleRareInheritedData& 
         || first.hyphenationLimitAfter != second.hyphenationLimitAfter
         || first.hyphenationString != second.hyphenationString
         || first.rubyPosition != second.rubyPosition
+        || first.rubyAlign != second.rubyAlign
         || first.textCombine != second.textCombine
         || first.textEmphasisMark != second.textEmphasisMark
         || first.textEmphasisPosition != second.textEmphasisPosition
@@ -1713,9 +1714,10 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
         }
 
         if (first.multiCol != second.multiCol) {
-            changingProperties.m_properties.set(CSSPropertyColumnFill);
-            changingProperties.m_properties.set(CSSPropertyColumnWidth);
             changingProperties.m_properties.set(CSSPropertyColumnCount);
+            changingProperties.m_properties.set(CSSPropertyColumnFill);
+            changingProperties.m_properties.set(CSSPropertyColumnSpan);
+            changingProperties.m_properties.set(CSSPropertyColumnWidth);
             changingProperties.m_properties.set(CSSPropertyColumnRuleColor);
             changingProperties.m_properties.set(CSSPropertyColumnRuleStyle);
             changingProperties.m_properties.set(CSSPropertyColumnRuleWidth);
@@ -1964,6 +1966,7 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyTextAutospace);
             changingProperties.m_properties.set(CSSPropertyFontStyle);
 #if ENABLE(VARIATION_FONTS)
+            changingProperties.m_properties.set(CSSPropertyFontOpticalSizing);
             changingProperties.m_properties.set(CSSPropertyFontVariationSettings);
 #endif
             changingProperties.m_properties.set(CSSPropertyFontWeight);
@@ -2045,6 +2048,8 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyTabSize);
         if (first.imageOrientation != second.imageOrientation)
             changingProperties.m_properties.set(CSSPropertyImageOrientation);
+        if (first.imageRendering != second.imageRendering)
+            changingProperties.m_properties.set(CSSPropertyImageRendering);
         if (first.textAlignLast != second.textAlignLast)
             changingProperties.m_properties.set(CSSPropertyTextAlignLast);
         if (first.textBoxEdge != second.textBoxEdge)
@@ -2057,6 +2062,8 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyTextUnderlinePosition);
         if (first.rubyPosition != second.rubyPosition)
             changingProperties.m_properties.set(CSSPropertyWebkitRubyPosition);
+        if (first.rubyAlign != second.rubyAlign)
+            changingProperties.m_properties.set(CSSPropertyRubyAlign);
         if (first.paintOrder != second.paintOrder)
             changingProperties.m_properties.set(CSSPropertyPaintOrder);
         if (first.capStyle != second.capStyle)
@@ -2071,6 +2078,8 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyScrollbarColor);
         if (first.listStyleType != second.listStyleType)
             changingProperties.m_properties.set(CSSPropertyListStyleType);
+        if (first.hyphenationString != second.hyphenationString)
+            changingProperties.m_properties.set(CSSPropertyHyphenateCharacter);
 
         // customProperties is handled separately.
         // Non animated styles are followings.
@@ -2080,7 +2089,6 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
         // hyphenationLimitBefore
         // hyphenationLimitAfter
         // hyphenationLimitLines
-        // hyphenationString
         // tapHighlightColor
         // nbspMode
         // useTouchOverflowScrolling
@@ -2103,7 +2111,6 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
         // lineBoxContain
         // touchCalloutEnabled
         // lineGrid
-        // imageRendering
         // textZoom
         // lineSnap
         // lineAlign
@@ -2883,6 +2890,16 @@ void RenderStyle::setFontSizeAdjust(FontSizeAdjust sizeAdjust)
     auto selector = fontCascade().fontSelector();
     auto description = fontDescription();
     description.setFontSizeAdjust(sizeAdjust);
+
+    setFontDescription(WTFMove(description));
+    fontCascade().update(selector);
+}
+
+void RenderStyle::setFontOpticalSizing(FontOpticalSizing opticalSizing)
+{
+    auto selector = fontCascade().fontSelector();
+    auto description = fontDescription();
+    description.setOpticalSizing(opticalSizing);
 
     setFontDescription(WTFMove(description));
     fontCascade().update(selector);

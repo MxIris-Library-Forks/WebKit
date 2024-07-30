@@ -95,8 +95,6 @@
 		070756D414239A4F00414161 /* JSHTMLTrackElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 070756D214239A4E00414161 /* JSHTMLTrackElement.h */; };
 		070756DE14239B4E00414161 /* JSTextTrackCue.h in Headers */ = {isa = PBXBuildFile; fileRef = 070756D814239B4B00414161 /* JSTextTrackCue.h */; };
 		070756E014239B4E00414161 /* JSTextTrackCueList.h in Headers */ = {isa = PBXBuildFile; fileRef = 070756DA14239B4E00414161 /* JSTextTrackCueList.h */; };
-		0709723C29D64A2400E8C69C /* CGDisplayStreamScreenCaptureSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 0717765E26C303B700A63299 /* CGDisplayStreamScreenCaptureSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		0709723D29D64B8B00E8C69C /* CGDisplayStreamCaptureSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 416F807C24509F3300B68F02 /* CGDisplayStreamCaptureSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0709D78F1AE55554004E42F8 /* WebMediaSessionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 0709D78D1AE55554004E42F8 /* WebMediaSessionManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0709D7931AE5557E004E42F8 /* WebMediaSessionManagerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 0709D7911AE5557E004E42F8 /* WebMediaSessionManagerMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0709D7951AE55A29004E42F8 /* WebMediaSessionManagerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 0709D7941AE55A29004E42F8 /* WebMediaSessionManagerClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6715,8 +6713,6 @@
 		070E81D01BF27656001FDA48 /* VideoTrackPrivateMediaStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoTrackPrivateMediaStream.h; sourceTree = "<group>"; };
 		070F549717F12F6B00169E04 /* MediaStreamConstraintsValidationClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaStreamConstraintsValidationClient.h; sourceTree = "<group>"; };
 		0711588F17DF633700EDFE2B /* MediaStreamPrivate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaStreamPrivate.cpp; sourceTree = "<group>"; };
-		0717765E26C303B700A63299 /* CGDisplayStreamScreenCaptureSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CGDisplayStreamScreenCaptureSource.h; sourceTree = "<group>"; };
-		0717765F26C303B700A63299 /* CGDisplayStreamScreenCaptureSource.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CGDisplayStreamScreenCaptureSource.mm; sourceTree = "<group>"; };
 		071A9EC0168FB56C002629F9 /* TextTrackCueGeneric.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextTrackCueGeneric.cpp; sourceTree = "<group>"; };
 		071A9EC1168FB56C002629F9 /* TextTrackCueGeneric.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextTrackCueGeneric.h; sourceTree = "<group>"; };
 		071C00322707D94300D027C7 /* ReplayKitCaptureSource.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ReplayKitCaptureSource.mm; sourceTree = "<group>"; };
@@ -9909,8 +9905,6 @@
 		416F429929C0C19600C080DC /* MediaTrackCapabilities.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MediaTrackCapabilities.idl; sourceTree = "<group>"; };
 		416F429A29C0C19600C080DC /* MediaTrackCapabilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaTrackCapabilities.h; sourceTree = "<group>"; };
 		416F429D29C100D200C080DC /* MediaTrackCapabilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaTrackCapabilities.cpp; sourceTree = "<group>"; };
-		416F807A24509F3200B68F02 /* CGDisplayStreamCaptureSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGDisplayStreamCaptureSource.cpp; sourceTree = "<group>"; };
-		416F807C24509F3300B68F02 /* CGDisplayStreamCaptureSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGDisplayStreamCaptureSource.h; sourceTree = "<group>"; };
 		416FD25D240EE1AE006661D8 /* NowPlayingInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NowPlayingInfo.h; sourceTree = "<group>"; };
 		4170A2E91D8C0CC000318452 /* JSDOMWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMWrapper.cpp; sourceTree = "<group>"; };
 		417253A81354BBBC00360F2A /* MediaControlTextTrackContainerElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaControlTextTrackContainerElement.cpp; sourceTree = "<group>"; };
@@ -21268,10 +21262,6 @@
 				070363DF181A1CDC00C074A5 /* AVVideoCaptureSource.mm */,
 				4177F51C2382544000C04486 /* BaseAudioSharedUnit.cpp */,
 				4177F51E2382545E00C04486 /* BaseAudioSharedUnit.h */,
-				416F807A24509F3200B68F02 /* CGDisplayStreamCaptureSource.cpp */,
-				416F807C24509F3300B68F02 /* CGDisplayStreamCaptureSource.h */,
-				0717765E26C303B700A63299 /* CGDisplayStreamScreenCaptureSource.h */,
-				0717765F26C303B700A63299 /* CGDisplayStreamScreenCaptureSource.mm */,
 				3F8020311E9E381D00DEC61D /* CoreAudioCaptureDevice.cpp */,
 				3F8020321E9E381D00DEC61D /* CoreAudioCaptureDevice.h */,
 				3F8020331E9E381D00DEC61D /* CoreAudioCaptureDeviceManager.cpp */,
@@ -38474,8 +38464,6 @@
 				5FA904CA178E61F5004C8A2D /* CertificateInfo.h in Headers */,
 				91B8F0B521953D65000C2B00 /* CertificateSummary.h in Headers */,
 				722AF2E627E1D0A10078D997 /* CGContextStateSaver.h in Headers */,
-				0709723D29D64B8B00E8C69C /* CGDisplayStreamCaptureSource.h in Headers */,
-				0709723C29D64A2400E8C69C /* CGDisplayStreamScreenCaptureSource.h in Headers */,
 				1FC40FBA1655CCB90040F29E /* CGSubimageCacheWithTimer.h in Headers */,
 				FE36FD1516C7826500F887C1 /* ChangeVersionData.h in Headers */,
 				97BC69DD1505F076001B74AC /* ChangeVersionWrapper.h in Headers */,

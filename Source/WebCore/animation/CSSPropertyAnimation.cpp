@@ -3874,6 +3874,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new PropertyWrapperBaselineShift,
         new PropertyWrapper<SVGLengthValue>(CSSPropertyKerning, &RenderStyle::kerning, &RenderStyle::setKerning),
 #if ENABLE(VARIATION_FONTS)
+        new DiscretePropertyWrapper<FontOpticalSizing>(CSSPropertyFontOpticalSizing, &RenderStyle::fontOpticalSizing, &RenderStyle::setFontOpticalSizing),
         new PropertyWrapperFontVariationSettings,
 #endif
         new PropertyWrapperFontSizeAdjust,
@@ -3925,6 +3926,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<TextBoxTrim>(CSSPropertyTextBoxTrim, &RenderStyle::textBoxTrim, &RenderStyle::setTextBoxTrim),
         new DiscretePropertyWrapper<PrintColorAdjust>(CSSPropertyPrintColorAdjust, &RenderStyle::printColorAdjust, &RenderStyle::setPrintColorAdjust),
         new DiscretePropertyWrapper<ColumnFill>(CSSPropertyColumnFill, &RenderStyle::columnFill, &RenderStyle::setColumnFill),
+        new DiscretePropertyWrapper<ColumnSpan>(CSSPropertyColumnSpan, &RenderStyle::columnSpan, &RenderStyle::setColumnSpan),
         new DiscretePropertyWrapper<BorderStyle>(CSSPropertyColumnRuleStyle, &RenderStyle::columnRuleStyle, &RenderStyle::setColumnRuleStyle),
         new NonNormalizedDiscretePropertyWrapper<ContentVisibility>(CSSPropertyContentVisibility, &RenderStyle::contentVisibility, &RenderStyle::setContentVisibility),
         new DiscretePropertyWrapper<CursorType>(CSSPropertyCursor, &RenderStyle::cursor, &RenderStyle::setCursor),
@@ -3942,7 +3944,9 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<const GridPosition&>(CSSPropertyGridRowEnd, &RenderStyle::gridItemRowEnd, &RenderStyle::setGridItemRowEnd),
         new DiscretePropertyWrapper<const GridPosition&>(CSSPropertyGridRowStart, &RenderStyle::gridItemRowStart, &RenderStyle::setGridItemRowStart),
         new DiscretePropertyWrapper<Hyphens>(CSSPropertyHyphens, &RenderStyle::hyphens, &RenderStyle::setHyphens),
+        new DiscretePropertyWrapper<const AtomString&>(CSSPropertyHyphenateCharacter, &RenderStyle::hyphenationString, &RenderStyle::setHyphenationString),
         new DiscretePropertyWrapper<ImageOrientation>(CSSPropertyImageOrientation, &RenderStyle::imageOrientation, &RenderStyle::setImageOrientation),
+        new DiscretePropertyWrapper<ImageRendering>(CSSPropertyImageRendering, &RenderStyle::imageRendering, &RenderStyle::setImageRendering),
         new DiscretePropertyWrapper<const IntSize&>(CSSPropertyWebkitInitialLetter, &RenderStyle::initialLetter, &RenderStyle::setInitialLetter),
         new DiscretePropertyWrapper<const StyleContentAlignmentData&>(CSSPropertyJustifyContent, &RenderStyle::justifyContent, &RenderStyle::setJustifyContent),
         new DiscretePropertyWrapper<const StyleSelfAlignmentData&>(CSSPropertyJustifyItems, &RenderStyle::justifyItems, &RenderStyle::setJustifyItems),
@@ -3963,6 +3967,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<PositionType>(CSSPropertyPosition, &RenderStyle::position, &RenderStyle::setPosition),
         new DiscretePropertyWrapper<Resize>(CSSPropertyResize, &RenderStyle::resize, &RenderStyle::setResize),
         new DiscretePropertyWrapper<RubyPosition>(CSSPropertyWebkitRubyPosition, &RenderStyle::rubyPosition, &RenderStyle::setRubyPosition),
+        new DiscretePropertyWrapper<RubyAlign>(CSSPropertyRubyAlign, &RenderStyle::rubyAlign, &RenderStyle::setRubyAlign),
         new DiscretePropertyWrapper<TableLayoutType>(CSSPropertyTableLayout, &RenderStyle::tableLayout, &RenderStyle::setTableLayout),
         new DiscretePropertyWrapper<TextAlignMode>(CSSPropertyTextAlign, &RenderStyle::textAlign, &RenderStyle::setTextAlign),
         new DiscretePropertyWrapper<TextAlignLast>(CSSPropertyTextAlignLast, &RenderStyle::textAlignLast, &RenderStyle::setTextAlignLast),
@@ -4130,9 +4135,6 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         // or provide a wrapper for it above. If you are adding to this list but the
         // property should be animatable, make sure to file a bug.
         case CSSPropertyDirection:
-#if ENABLE(VARIATION_FONTS)
-        case CSSPropertyFontOpticalSizing:
-#endif
         case CSSPropertyTextOrientation:
         case CSSPropertyWritingMode:
         case CSSPropertyWebkitFontSmoothing:
@@ -4168,7 +4170,6 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         case CSSPropertyBorderInlineWidth: // logical shorthand
         case CSSPropertyBorderStyle:
         case CSSPropertyBufferedRendering:
-        case CSSPropertyColumnSpan:
         case CSSPropertyColumns:
         case CSSPropertyContain:
         case CSSPropertyContainer:
@@ -4185,7 +4186,6 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         case CSSPropertyGridRow:
         case CSSPropertyGridTemplate:
         case CSSPropertyHangingPunctuation:
-        case CSSPropertyImageRendering:
         case CSSPropertyInlineSize:
         case CSSPropertyInputSecurity:
         case CSSPropertyInset:
@@ -4288,7 +4288,6 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         case CSSPropertyWebkitCursorVisibility:
 #endif
         case CSSPropertyWebkitFontSizeDelta:
-        case CSSPropertyHyphenateCharacter:
         case CSSPropertyWebkitHyphenateLimitAfter:
         case CSSPropertyWebkitHyphenateLimitBefore:
         case CSSPropertyWebkitHyphenateLimitLines:

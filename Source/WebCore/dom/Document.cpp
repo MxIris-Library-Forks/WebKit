@@ -162,6 +162,7 @@
 #include "MediaProducer.h"
 #include "MediaQueryList.h"
 #include "MediaQueryMatcher.h"
+#include "MediaSession.h"
 #include "MediaStream.h"
 #include "MessageEvent.h"
 #include "MouseEventWithHitTestResults.h"
@@ -169,6 +170,8 @@
 #include "NameNodeList.h"
 #include "NavigationDisabler.h"
 #include "NavigationScheduler.h"
+#include "Navigator.h"
+#include "NavigatorMediaSession.h"
 #include "NestingLevelIncrementer.h"
 #include "NodeIterator.h"
 #include "NodeRareData.h"
@@ -5323,6 +5326,76 @@ void Document::visibilityAdjustmentStateDidChange()
         audioProducer.visibilityAdjustmentStateDidChange();
 }
 
+#if ENABLE(MEDIA_STREAM) && ENABLE(MEDIA_SESSION)
+static bool hasRealtimeMediaSource(const HashSet<Ref<RealtimeMediaSource>>& sources, const Function<bool(const RealtimeMediaSource&)>& filterSource)
+{
+    for (Ref source : sources) {
+        if (!source->isEnded() && filterSource(source.get()))
+            return true;
+    }
+    return false;
+}
+
+void Document::processCaptureStateDidChange(Function<bool(const Page&)>&& isPageMutedCallback, Function<bool(const RealtimeMediaSource&)>&& filterSource, MediaSessionAction action)
+{
+    RefPtr page = this->page();
+    if (!page)
+        return;
+
+    RefPtr window = domWindow();
+    RefPtr mediaSession = window ? NavigatorMediaSession::mediaSessionIfExists(window->protectedNavigator()) : nullptr;
+    if (!mediaSession)
+        return;
+
+    if (!hasRealtimeMediaSource(m_captureSources, filterSource))
+        return;
+
+    eventLoop().queueTask(TaskSource::MediaElement, [weakDocument = WeakPtr { *this }, weakSession = WeakPtr { *mediaSession }, isPageMuted = isPageMutedCallback(*page), filterSource = WTFMove(filterSource), isPageMutedCallback = WTFMove(isPageMutedCallback), action] {
+        RefPtr protecteDocument = weakDocument.get();
+        if (!protecteDocument)
+            return;
+
+        RefPtr page = protecteDocument->page();
+        if (!page || isPageMuted != isPageMutedCallback(*page) || !hasRealtimeMediaSource(protecteDocument->m_captureSources, filterSource))
+            return;
+
+        if (RefPtr protectedSession = weakSession.get()) {
+            MediaSessionActionDetails details;
+            details.action = action;
+            details.isActivating = !isPageMuted;
+            protectedSession->callActionHandler(details);
+        }
+    });
+}
+
+void Document::cameraCaptureStateDidChange()
+{
+    processCaptureStateDidChange([] (auto& page) {
+        return page.mutedState().contains(MediaProducerMutedState::VideoCaptureIsMuted);
+    }, [] (auto& source) {
+        return source.deviceType() == CaptureDevice::DeviceType::Camera;
+    }, MediaSessionAction::Togglecamera);
+}
+
+void Document::microphoneCaptureStateDidChange()
+{
+    processCaptureStateDidChange([] (auto& page) {
+        return page.mutedState().contains(MediaProducerMutedState::AudioCaptureIsMuted);
+    }, [] (auto& source) {
+        return source.deviceType() == CaptureDevice::DeviceType::Microphone;
+    }, MediaSessionAction::Togglemicrophone);
+}
+
+void Document::screenshareCaptureStateDidChange()
+{
+    processCaptureStateDidChange([] (auto& page) {
+        return page.mutedState().contains(MediaProducerMutedState::ScreenCaptureIsMuted) || page.mutedState().contains(MediaProducerMutedState::WindowCaptureIsMuted);
+    }, [] (auto& source) {
+        return source.deviceType() == CaptureDevice::DeviceType::Screen || source.deviceType() == CaptureDevice::DeviceType::Window;
+    }, MediaSessionAction::Togglescreenshare);
+}
+#endif
+
 void Document::pageMutedStateDidChange()
 {
     for (auto& audioProducer : m_audioProducers)
@@ -6041,7 +6114,7 @@ void Document::textRemoved(Node& text, unsigned offset, unsigned length)
 void Document::textNodesMerged(Text& oldNode, unsigned offset)
 {
     if (!m_ranges.isEmpty()) {
-        NodeWithIndex oldNodeWithIndex(&oldNode);
+        NodeWithIndex oldNodeWithIndex(oldNode);
         for (auto& range : m_ranges)
             Ref { range.get() }->textNodesMerged(oldNodeWithIndex, offset);
     }

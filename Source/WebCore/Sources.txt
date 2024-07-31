@@ -1180,6 +1180,7 @@ dom/InputEvent.cpp
 dom/InternalObserver.cpp
 dom/InternalObserverFromScript.cpp
 dom/InternalObserverFilter.cpp
+dom/InternalObserverMap.cpp
 dom/InternalObserverTake.cpp
 dom/KeyboardEvent.cpp
 dom/LiveNodeList.cpp
@@ -2712,6 +2713,7 @@ rendering/RenderHighlight.cpp
 rendering/RenderIFrame.cpp
 rendering/RenderImage.cpp
 rendering/RenderImageResource.cpp
+rendering/RenderImageResourceStyleImage.cpp
 rendering/RenderInline.cpp
 rendering/RenderLayer.cpp
 rendering/RenderLayerBacking.cpp
@@ -2847,6 +2849,7 @@ rendering/style/StyleNonInheritedData.cpp
 rendering/style/StylePaintImage.cpp
 rendering/style/StyleRareInheritedData.cpp
 rendering/style/StyleRareNonInheritedData.cpp
+rendering/style/StyleScrollSnapPoints.cpp
 rendering/style/StyleSelfAlignmentData.cpp
 rendering/style/StyleSurroundData.cpp
 rendering/style/StyleTextBoxEdge.cpp
@@ -3937,6 +3940,7 @@ JSLandmarkType.cpp
 JSLatencyMode.cpp
 JSLocation.cpp
 JSLongRange.cpp
+JSMapperCallback.cpp
 JSMathMLElement.cpp
 JSMathMLMathElement.cpp
 JSManagedMediaSource.cpp

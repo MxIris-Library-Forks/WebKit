@@ -288,6 +288,7 @@
 		0854B0231255E4E600B9CDD0 /* SVGRootInlineBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 0854B0111255E4E600B9CDD0 /* SVGRootInlineBox.h */; };
 		0854B0251255E4E600B9CDD0 /* SVGTextQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = 0854B0131255E4E600B9CDD0 /* SVGTextQuery.h */; };
 		085B92BB0EFDE73D00E6123C /* FormDataBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = 085B92B90EFDE73D00E6123C /* FormDataBuilder.h */; settings = {ATTRIBUTES = (); }; };
+		08641D4812142F7D008DE9F6 /* RenderImageResourceStyleImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 08641D4612142F7D008DE9F6 /* RenderImageResourceStyleImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		086BBD0F136039C2008B15D8 /* Glyph.h in Headers */ = {isa = PBXBuildFile; fileRef = 086BBD0E136039C2008B15D8 /* Glyph.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0873B86B136064EA00A522C2 /* GlyphPage.h in Headers */ = {isa = PBXBuildFile; fileRef = 0873B86A136064EA00A522C2 /* GlyphPage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0885067F11DA045B00182B98 /* PaintInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 0885067D11DA045B00182B98 /* PaintInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7045,6 +7046,8 @@
 		0854B0131255E4E600B9CDD0 /* SVGTextQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGTextQuery.h; sourceTree = "<group>"; };
 		085B92B80EFDE73D00E6123C /* FormDataBuilder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FormDataBuilder.cpp; sourceTree = "<group>"; };
 		085B92B90EFDE73D00E6123C /* FormDataBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FormDataBuilder.h; sourceTree = "<group>"; };
+		08641D4512142F7D008DE9F6 /* RenderImageResourceStyleImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderImageResourceStyleImage.cpp; sourceTree = "<group>"; };
+		08641D4612142F7D008DE9F6 /* RenderImageResourceStyleImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderImageResourceStyleImage.h; sourceTree = "<group>"; };
 		086BBD0E136039C2008B15D8 /* Glyph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Glyph.h; sourceTree = "<group>"; };
 		0873B86A136064EA00A522C2 /* GlyphPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlyphPage.h; sourceTree = "<group>"; };
 		087558C413B4A57D00F49307 /* SurrogatePairAwareTextIterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurrogatePairAwareTextIterator.h; sourceTree = "<group>"; };
@@ -10821,6 +10824,7 @@
 		491342DA2B43FAA800FEEF18 /* CSSSelectorInlines.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = CSSSelectorInlines.h; sourceTree = "<group>"; };
 		492461E12AA51D420081471E /* CSSColorMixSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSColorMixSerialization.h; sourceTree = "<group>"; };
 		493E5E0812D6420500020081 /* PlatformCALayerClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformCALayerClient.h; sourceTree = "<group>"; };
+		494123272C58CD3800897914 /* StyleScrollSnapPoints.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleScrollSnapPoints.cpp; sourceTree = "<group>"; };
 		494265302B61F7E9000446D5 /* PseudoElementRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PseudoElementRequest.h; sourceTree = "<group>"; };
 		4945BFD113CF809000CC3B38 /* TransformState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformState.cpp; sourceTree = "<group>"; };
 		4945BFD213CF809000CC3B38 /* TransformState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransformState.h; sourceTree = "<group>"; };
@@ -20829,6 +20833,10 @@
 		FFEFAB2D183BCC6F00514561 /* PredicateCallback.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = PredicateCallback.h; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFilter.h; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514563 /* InternalObserverFilter.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFilter.cpp; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514564 /* MapperCallback.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MapperCallback.idl; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514565 /* MapperCallback.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = MapperCallback.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514566 /* InternalObserverMap.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverMap.h; sourceTree = "<group>"; };
+		FFEFAB2D183BCC6F00514567 /* InternalObserverMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverMap.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33592,6 +33600,7 @@
 				BC2272BA0E82EAAE00E7F975 /* StyleRareNonInheritedData.cpp */,
 				BC2272BB0E82EAAE00E7F975 /* StyleRareNonInheritedData.h */,
 				BC2272860E82E70700E7F975 /* StyleReflection.h */,
+				494123272C58CD3800897914 /* StyleScrollSnapPoints.cpp */,
 				F47A5E3B195B8C8A00483100 /* StyleScrollSnapPoints.h */,
 				7199B94F2552103E00494A57 /* StyleSelfAlignmentData.cpp */,
 				9D63800F1AF16E160031A15C /* StyleSelfAlignmentData.h */,
@@ -36513,6 +36522,8 @@
 				BCEA4837097D93020094C9E4 /* RenderImage.h */,
 				08F2F0071213E61700DCEC48 /* RenderImageResource.cpp */,
 				08F2F0081213E61700DCEC48 /* RenderImageResource.h */,
+				08641D4512142F7D008DE9F6 /* RenderImageResourceStyleImage.cpp */,
+				08641D4612142F7D008DE9F6 /* RenderImageResourceStyleImage.h */,
 				BCEA4838097D93020094C9E4 /* RenderInline.cpp */,
 				BCEA4839097D93020094C9E4 /* RenderInline.h */,
 				B595FF461824CEE300FF51CD /* RenderIterator.h */,
@@ -37008,6 +37019,8 @@
 				FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */,
 				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
 				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
+				FFEFAB2D183BCC6F00514567 /* InternalObserverMap.cpp */,
+				FFEFAB2D183BCC6F00514566 /* InternalObserverMap.h */,
 				FFEFAB2D183BCC6F00514559 /* InternalObserverTake.cpp */,
 				FFEFAB2D183BCC6F00514558 /* InternalObserverTake.h */,
 				FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */,
@@ -37029,6 +37042,8 @@
 				46C0D8E428F1E6E900BDE218 /* LoadableScriptError.h */,
 				BC9A6145146859D9006057FD /* make_event_factory.pl */,
 				BC9A6146146859D9006057FD /* make_names.pl */,
+				FFEFAB2D183BCC6F00514565 /* MapperCallback.h */,
+				FFEFAB2D183BCC6F00514564 /* MapperCallback.idl */,
 				E1ADECCD0E76AD8B004A1A5E /* MessageChannel.cpp */,
 				E1ADECCC0E76AD8B004A1A5E /* MessageChannel.h */,
 				E1ADECD00E76ADAB004A1A5E /* MessageChannel.idl */,
@@ -41797,6 +41812,7 @@
 				0FD308D6117D168500A791F7 /* RenderIFrame.h in Headers */,
 				BCEA4876097D93020094C9E4 /* RenderImage.h in Headers */,
 				08F2F00A1213E61700DCEC48 /* RenderImageResource.h in Headers */,
+				08641D4812142F7D008DE9F6 /* RenderImageResourceStyleImage.h in Headers */,
 				7299BC6823D6A53E00CC6883 /* RenderingMode.h in Headers */,
 				72E5023129B669EE00E5B8E7 /* RenderingResource.h in Headers */,
 				729D05302531424300422098 /* RenderingResourceIdentifier.h in Headers */,

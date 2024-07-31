@@ -4395,6 +4395,7 @@ MediaSessionCoordinatorEnabled:
       default: WebKit::defaultMediaSessionCoordinatorEnabled()
     WebCore:
       default: true
+  sharedPreferenceForWebProcess: true
 
 MediaSessionEnabled:
   type: bool
@@ -6470,6 +6471,7 @@ SpeechRecognitionEnabled:
       default: false
     WebCore:
       default: false
+  sharedPreferenceForWebProcess: true
 
 SpeechSynthesisAPIEnabled:
   type: bool

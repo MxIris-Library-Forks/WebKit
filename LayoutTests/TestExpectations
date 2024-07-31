@@ -2739,7 +2739,6 @@ crypto/workers/subtle/rsa-pss-import-key-sign.html [ Skip ]
 crypto/workers/subtle/rsa-pss-import-key-verify.html [ Skip ]
 http/wpt/crypto/rsa-pss-crash.any.html [ Skip ]
 http/wpt/crypto/rsa-pss-crash.any.worker.html [ Skip ]
-editing/deleting/delete-emoji.html [ Slow ]
 
 # New emoji requires system support.
 webkit.org/b/159755 fast/text/emoji-num-glyphs.html [ Failure Timeout ]
@@ -5976,6 +5975,7 @@ webkit.org/b/274089 imported/w3c/web-platform-tests/trusted-types/trusted-types-
 webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/trusted-types-navigation.html [ Pass Failure ]
 webkit.org/b/274088 imported/w3c/web-platform-tests/trusted-types/Element-setAttribute-respects-Elements-node-documents-globals-CSP.html [ Pass Failure ]
 webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/WorkerGlobalScope-eval.html [ Pass Failure ]
+webkit.org/b/277256 imported/w3c/web-platform-tests/trusted-types/block-text-node-insertion-into-svg-script-element.html [ Skip ]
 
 # Close watchers aren't implemented yet
 webkit.org/b/263305 imported/w3c/web-platform-tests/close-watcher/user-activation/n-activate-preventDefault.html?dialog [ Skip ]
@@ -6928,10 +6928,7 @@ imported/w3c/web-platform-tests/css/css-ruby/rbc-rtc-basic-001.html [ ImageOnlyF
 imported/w3c/web-platform-tests/css/css-ruby/root-block-ruby.xhtml [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/root-ruby.xhtml [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/rt-display-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-ruby/ruby-align-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-align-001a.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-ruby/ruby-align-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-ruby/ruby-align-002a.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-annotation-pairing-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-autohide-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-autohide-002.html [ ImageOnlyFailure ]
@@ -7248,11 +7245,7 @@ imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-sun
 imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-with-first-line.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-with-tab-rtl.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-with-tab.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-half-leading-block-box-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-atomic-inline-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-block-in-inline-start-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-block-in-inline-start-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-block-in-inline-start-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-empty-line-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-half-leading-block-box-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-initial-letter-start-001.html [ ImageOnlyFailure ]
@@ -7289,8 +7282,6 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ex [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,leading [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,text [ Skip ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-dynamic-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-dynamic-002.html [ ImageOnlyFailure ]
 
 webkit.org/b/245032 imported/w3c/web-platform-tests/css/compositing/root-element-background-image-transparency-004.html [ ImageOnlyFailure ]
 

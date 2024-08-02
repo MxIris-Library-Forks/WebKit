@@ -578,7 +578,7 @@ bool hasCapacityToUseLargeGigacage();
     v(Bool, useWasmIPIntEpilogueOSR, true, Normal, "Allow IPInt to tier up during function epilogues"_s) \
     v(Bool, wasmIPIntTiersUpToBBQ, true, Normal, "Allow IPInt to tier up to BBQ"_s) \
     v(Bool, wasmIPIntTiersUpToOMG, true, Normal, "Allow IPInt to tier up to OMG"_s) \
-    v(Bool, useInterpretedJSEntryWrappers, false, Normal, "Allow some JS->wasm wrappers to be replaced by jit-less versions."_s) \
+    v(Bool, useInterpretedJSEntryWrappers, true, Normal, "Allow JS->wasm wrappers to be replaced by jit-less versions."_s) \
     v(Bool, forceAllFunctionsToUseSIMD, false, Normal, "Force all functions to act conservatively w.r.t fp/vector registers for testing."_s) \
     \
     /* Feature Flags */\
@@ -591,8 +591,8 @@ bool hasCapacityToUseLargeGigacage();
     v(Bool, useImportAttributes, true, Normal, "Enable import attributes."_s) \
     v(Bool, useIntlDurationFormat, true, Normal, "Expose the Intl DurationFormat."_s) \
     v(Bool, usePromiseWithResolversMethod, true, Normal, "Expose the Promise.withResolvers() method."_s) \
-    v(Bool, usePromiseTryMethod, false, Normal, "Expose the Promise.try() method."_s) \
-    v(Bool, useRegExpEscape, false, Normal, "Expose RegExp.escape feature."_s) \
+    v(Bool, usePromiseTryMethod, true, Normal, "Expose the Promise.try() method."_s) \
+    v(Bool, useRegExpEscape, true, Normal, "Expose RegExp.escape feature."_s) \
     v(Bool, useResizableArrayBuffer, true, Normal, "Expose ResizableArrayBuffer feature."_s) \
     v(Bool, useSharedArrayBuffer, false, Normal, nullptr) \
     v(Bool, useShadowRealm, false, Normal, "Expose the ShadowRealm object."_s) \
@@ -604,7 +604,7 @@ bool hasCapacityToUseLargeGigacage();
     v(Bool, useWasmGC, false, Normal, "Allow gc types from the wasm gc proposal."_s) \
     v(Bool, useWasmSIMD, true, Normal, "Allow the new simd instructions and types from the wasm simd spec."_s) \
     v(Bool, useWasmRelaxedSIMD, false, Normal, "Allow the relaxed simd instructions and types from the wasm relaxed simd spec."_s) \
-    v(Bool, useWasmTailCalls, false, Normal, "Allow the new instructions from the wasm tail calls spec."_s) \
+    v(Bool, useWasmTailCalls, true, Normal, "Allow the new instructions from the wasm tail calls spec."_s) \
     v(Bool, useWasmExtendedConstantExpressions, true, Normal, "Allow the use of global, element, and data init expressions from the extended constant expressions proposal."_s) \
 
 

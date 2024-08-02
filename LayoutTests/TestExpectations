@@ -3120,7 +3120,20 @@ webkit.org/b/195275 imported/w3c/web-platform-tests/css/css-text/writing-system/
 # <rdar://problem/50383285>
 webkit.org/b/195275 imported/w3c/web-platform-tests/css/css-text/writing-system/writing-system-line-break-001.html [ ImageOnlyFailure ]
 webkit.org/b/195275 imported/w3c/web-platform-tests/css/css-text/writing-system/writing-system-line-break-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-text/line-breaking/line-breaking-023.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-vs-float-clearance-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-align/text-align-justify-bidi-control.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-align/text-align-justify-tabs-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-align/text-align-justify-tabs-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-align/text-align-justify-tabs-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-align/text-align-justify-tabs-004.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-break-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-justify/text-justify-word-separators.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-transform/text-transform-uppercase-dynamic.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/white-space/eol-spaces-bidi-004.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/white-space/hanging-whitespace-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/white-space/hanging-whitespace-002.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/white-space/hanging-whitespace-003.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/word-spacing/word-spacing-002.html [ ImageOnlyFailure ]
 # css-text end
 
 webkit.org/b/186045 imported/w3c/web-platform-tests/css/css-animations/animation-delay-008.html [ ImageOnlyFailure Pass ]
@@ -7248,17 +7261,11 @@ imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-sun
 imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-with-first-line.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-with-tab-rtl.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/initial-letter/initial-letter-with-tab.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-atomic-inline-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-empty-line-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-half-leading-block-box-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-initial-letter-start-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-line-clamp-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-multicol-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-ruby-end-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-ruby-start-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-ruby-start-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-tall-line-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-text-emphasis-start-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-first-002.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-first-003.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-last-002.html [ Pass Failure ]
@@ -7529,6 +7536,7 @@ imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-vie
 
 # View transitions Level 2 - cross document transitions.
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation [ Skip ]
+imported/w3c/web-platform-tests/css/css-view-transitions/navigation/at-rule-cssom.html [ Pass ]
 
 # View transitions Level 2 - types.
 imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-match-early-mutation.html [ Skip ]

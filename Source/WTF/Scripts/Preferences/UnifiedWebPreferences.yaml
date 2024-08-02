@@ -1294,6 +1294,20 @@ CSSStyleQueriesEnabled:
     WebCore:
       default: true
 
+CSSTextAutospaceEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS text-autospace property"
+  humanReadableDescription: "Enable the property text-autospace, defined in CSS Text 4"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 CSSTextBoxTrimEnabled:
   type: bool
   status: preview
@@ -1830,6 +1844,20 @@ CoreMathMLEnabled:
       default: false
     WebKit:
       "PLATFORM(GTK) || PLATFORM(WPE)": true
+      default: false
+    WebCore:
+      default: false
+
+CrossDocumentViewTransitionsEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "Cross document view-transitions"
+  humanReadableDescription: "Enable support for view-transitions cross-document"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
       default: false
     WebCore:
       default: false

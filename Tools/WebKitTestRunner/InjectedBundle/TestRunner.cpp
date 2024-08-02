@@ -246,7 +246,9 @@ void TestRunner::notifyDone()
     if (!injectedBundle.isTestRunning())
         return;
 
+    ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     bool mainFrameIsRemote = WKBundleFrameIsRemote(WKBundlePageGetMainFrame(injectedBundle.pageRef()));
+    ALLOW_DEPRECATED_DECLARATIONS_END
     if (mainFrameIsRemote) {
         setWaitUntilDone(false);
         return postPageMessage("NotifyDone");
@@ -1435,9 +1437,15 @@ void TestRunner::statisticsDidScanDataRecordsCallback()
     callTestRunnerCallback(StatisticsDidScanDataRecordsCallbackID);
 }
 
-bool TestRunner::statisticsNotifyObserver()
+void TestRunner::statisticsNotifyObserver(JSContextRef context, JSValueRef callback)
 {
-    return InjectedBundle::singleton().statisticsNotifyObserver();
+    auto globalContext = JSContextGetGlobalContext(context);
+    JSValueProtect(globalContext, callback);
+    InjectedBundle::singleton().statisticsNotifyObserver([callback, globalContext = JSRetainPtr { globalContext }] {
+        JSContextRef context = globalContext.get();
+        JSObjectCallAsFunction(context, JSValueToObject(context, callback, nullptr), JSContextGetGlobalObject(context), 0, nullptr, nullptr);
+        JSValueUnprotect(context, callback);
+    });
 }
 
 void TestRunner::statisticsProcessStatisticsAndDataRecords(JSContextRef context, JSValueRef completionHandler)

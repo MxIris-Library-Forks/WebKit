@@ -924,6 +924,7 @@ css/CSSValuePool.cpp
 css/CSSVariableData.cpp
 css/CSSVariableReferenceValue.cpp
 css/CSSViewValue.cpp
+css/CSSViewTransitionRule.cpp
 css/ComputedStyleExtractor.cpp
 css/DOMCSSNamespace.cpp
 css/DOMCSSPaintWorklet.cpp
@@ -1182,6 +1183,7 @@ dom/InternalObserverFromScript.cpp
 dom/InternalObserverFilter.cpp
 dom/InternalObserverMap.cpp
 dom/InternalObserverTake.cpp
+dom/InternalObserverDrop.cpp
 dom/KeyboardEvent.cpp
 dom/LiveNodeList.cpp
 dom/LoadableClassicScript.cpp
@@ -3397,6 +3399,7 @@ JSCSSSupportsRule.cpp
 JSCSSTransition.cpp
 JSCSSTransitionEvent.cpp
 JSCSSUnknownRule.cpp
+JSCSSViewTransitionRule.cpp
 JSCOEPInheritenceViolationReportBody.cpp
 JSCORPViolationReportBody.cpp
 JSCacheQueryOptions.cpp

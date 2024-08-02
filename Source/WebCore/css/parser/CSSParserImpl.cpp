@@ -55,6 +55,7 @@
 #include "CSSTokenizer.h"
 #include "CSSValueList.h"
 #include "CSSVariableParser.h"
+#include "CSSViewTransitionRule.h"
 #include "ContainerQueryParser.h"
 #include "Document.h"
 #include "Element.h"
@@ -334,7 +335,7 @@ void CSSParserImpl::parseStyleSheetForInspector(const String& string, const CSSP
 
 static CSSParserImpl::AllowedRules computeNewAllowedRules(CSSParserImpl::AllowedRules allowedRules, StyleRuleBase* rule)
 {
-    if (!rule || allowedRules == CSSParserImpl::AllowedRules::FontFeatureValuesRules || allowedRules == CSSParserImpl::AllowedRules::KeyframeRules || allowedRules == CSSParserImpl::AllowedRules::CounterStyleRules || allowedRules == CSSParserImpl::AllowedRules::NoRules)
+    if (!rule || allowedRules == CSSParserImpl::AllowedRules::FontFeatureValuesRules || allowedRules == CSSParserImpl::AllowedRules::KeyframeRules || allowedRules == CSSParserImpl::AllowedRules::CounterStyleRules || allowedRules == CSSParserImpl::AllowedRules::ViewTransitionRules || allowedRules == CSSParserImpl::AllowedRules::NoRules)
         return allowedRules;
 
     ASSERT(allowedRules <= CSSParserImpl::AllowedRules::RegularRules);
@@ -470,6 +471,8 @@ RefPtr<StyleRuleBase> CSSParserImpl::consumeAtRule(CSSParserTokenRange& range, A
         return consumeScopeRule(prelude, block);
     case CSSAtRuleStartingStyle:
         return consumeStartingStyleRule(prelude, block);
+    case CSSAtRuleViewTransition:
+        return consumeViewTransitionRule(prelude, block);
     default:
         return nullptr; // Parse error, unrecognised at-rule with block
     }
@@ -992,9 +995,6 @@ RefPtr<StyleRuleKeyframes> CSSParserImpl::consumeKeyframesRule(CSSParserTokenRan
         keyframeRule->parserAppendKeyframe(downcast<const StyleRuleKeyframe>(keyframe.ptr()));
     });
 
-    // FIXME-NEWPARSER: Find out why this is done. Behavior difference when prefixed?
-    // keyframeRule->setVendorPrefixed(webkitPrefixed);
-
     keyframeRule->shrinkToFit();
     return keyframeRule;
 }
@@ -1011,7 +1011,7 @@ RefPtr<StyleRulePage> CSSParserImpl::consumePageRule(CSSParserTokenRange prelude
         m_observerWrapper->observer().endRuleHeader(endOffset);
     }
 
-    auto declarations = consumeDeclarationListInNewNestingContext(block, StyleRuleType::Style);
+    auto declarations = consumeDeclarationListInNewNestingContext(block, StyleRuleType::Page);
 
     return StyleRulePage::create(createStyleProperties(declarations, m_context.mode), WTFMove(selectorList));
 }
@@ -1038,6 +1038,26 @@ RefPtr<StyleRuleCounterStyle> CSSParserImpl::consumeCounterStyleRule(CSSParserTo
     if (!descriptors.isValid())
         return nullptr;
     return StyleRuleCounterStyle::create(name, WTFMove(descriptors));
+}
+
+RefPtr<StyleRuleViewTransition> CSSParserImpl::consumeViewTransitionRule(CSSParserTokenRange prelude, CSSParserTokenRange block)
+{
+    if (!m_context.propertySettings.crossDocumentViewTransitionsEnabled)
+        return nullptr;
+
+    if (!prelude.atEnd())
+        return nullptr; // Parse error; @view-transition prelude should be empty
+
+    if (m_observerWrapper) {
+        unsigned endOffset = m_observerWrapper->endOffset(prelude);
+        m_observerWrapper->observer().startRuleHeader(StyleRuleType::ViewTransition, m_observerWrapper->startOffset(prelude));
+        m_observerWrapper->observer().endRuleHeader(endOffset);
+        m_observerWrapper->observer().startRuleBody(endOffset);
+        m_observerWrapper->observer().endRuleBody(endOffset);
+    }
+
+    auto declarations = consumeDeclarationListInNewNestingContext(block, StyleRuleType::ViewTransition);
+    return StyleRuleViewTransition::create(createStyleProperties(declarations, m_context.mode));
 }
 
 RefPtr<StyleRuleScope> CSSParserImpl::consumeScopeRule(CSSParserTokenRange prelude, CSSParserTokenRange block)
@@ -1384,7 +1404,7 @@ void CSSParserImpl::consumeBlockContent(CSSParserTokenRange range, StyleRuleType
     ASSERT(topContext().m_parsedProperties.isEmpty());
     ASSERT(topContext().m_parsedRules.isEmpty());
 
-    bool useObserver = m_observerWrapper && (ruleType == StyleRuleType::Style || ruleType == StyleRuleType::Keyframe);
+    bool useObserver = m_observerWrapper && (ruleType == StyleRuleType::Style || ruleType == StyleRuleType::Keyframe || ruleType == StyleRuleType::Page);
     if (useObserver) {
         if (isParsingStyleDeclarationsInRuleList == ParsingStyleDeclarationsInRuleList::No)
             m_observerWrapper->observer().startRuleBody(m_observerWrapper->previousTokenStartOffset(range));
@@ -1536,13 +1556,13 @@ bool CSSParserImpl::consumeDeclaration(CSSParserTokenRange range, StyleRuleType 
         consumeCustomPropertyValue(range, variableName, important);
     }
 
-    if (important == IsImportant::Yes && (ruleType == StyleRuleType::FontFace || ruleType == StyleRuleType::Keyframe || ruleType == StyleRuleType::CounterStyle || ruleType == StyleRuleType::FontPaletteValues))
+    if (important == IsImportant::Yes && (ruleType == StyleRuleType::FontFace || ruleType == StyleRuleType::Keyframe || ruleType == StyleRuleType::CounterStyle || ruleType == StyleRuleType::FontPaletteValues || ruleType == StyleRuleType::ViewTransition))
         return didParseNewProperties();
 
     if (propertyID != CSSPropertyInvalid)
         consumeDeclarationValue(range, propertyID, important, ruleType);
 
-    if (m_observerWrapper && (ruleType == StyleRuleType::Style || ruleType == StyleRuleType::Keyframe)) {
+    if (m_observerWrapper && (ruleType == StyleRuleType::Style || ruleType == StyleRuleType::Keyframe || ruleType == StyleRuleType::Page)) {
         m_observerWrapper->observer().observeProperty(
             m_observerWrapper->startOffset(rangeCopy), m_observerWrapper->endOffset(rangeCopy),
             important == IsImportant::Yes, didParseNewProperties());

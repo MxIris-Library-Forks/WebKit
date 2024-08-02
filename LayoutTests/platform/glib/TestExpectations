@@ -137,7 +137,6 @@ imported/w3c/web-platform-tests/service-workers/service-worker/navigation-redire
 webkit.org/b/172056 fast/text/multiglyph-characters.html [ Pass ]
 
 imported/w3c/web-platform-tests/css/css-break/change-inline-color.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-auto-001.html [ Pass ]
 
 # WTR should allow background-fetch permission.
 http/wpt/background-fetch [ Skip ]
@@ -222,7 +221,6 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-property-020a.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/svg-fill-opacity.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/hanging-punctuation/hanging-punctuation-inline-bound-001.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-003.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/shaping/shaping_lig-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/text-transform/text-transform-capitalize-026.html [ Pass ]
@@ -684,7 +682,7 @@ accessibility/ignored-aria-role-description.html [ Skip ]
 # Failing since added in https://bugs.webkit.org/show_bug.cgi?id=244151.
 accessibility/ignored-textfield-still-accessible.html [ Skip ]
 
-webkit.org/b/229261 accessibility/element-line-rects-and-text.html [ Missing ]
+webkit.org/b/229261 accessibility/element-line-rects-and-text.html [ DumpJSConsoleLogInStdErr ]
 
 webkit.org/b/232249 accessibility/video-element-url-attribute.html [ Failure Timeout ]
 
@@ -747,16 +745,10 @@ webkit.org/b/169916 css3/blending/blend-mode-clip-accelerated-blending-double.ht
 webkit.org/b/169916 css3/blending/blend-mode-clip-accelerated-blending-with-siblings.html [ ImageOnlyFailure ]
 webkit.org/b/169916 css3/blending/blend-mode-clip-accelerated-transformed-blending.html [ ImageOnlyFailure ]
 webkit.org/b/169916 css3/blending/blend-mode-clip-rect-accelerated-blending.html [ ImageOnlyFailure ]
-webkit.org/b/169916 css3/blending/blend-mode-isolated-group-1.html [ Missing Failure ]
-webkit.org/b/169916 css3/blending/blend-mode-isolated-group-2.html [ Missing Failure ]
-webkit.org/b/169916 css3/blending/blend-mode-isolated-group-3.html [ Missing Failure ]
 webkit.org/b/169916 css3/blending/blend-mode-isolation-turn-off-self-painting-layer1.html [ Failure ]
 webkit.org/b/169916 css3/blending/blend-mode-isolation-turn-off-self-painting-layer2.html [ Failure ]
 webkit.org/b/169916 css3/blending/blend-mode-isolation-turn-off-self-painting-layer.html [ Failure ]
 webkit.org/b/169916 css3/blending/blend-mode-isolation-turn-on-self-painting-layer.html [ Failure ]
-webkit.org/b/169916 css3/blending/blend-mode-layers.html [ Missing Failure ]
-webkit.org/b/169916 css3/blending/blend-mode-reflection.html [ Missing Failure ]
-webkit.org/b/169916 css3/blending/blend-mode-simple-composited.html [ Missing Failure ]
 webkit.org/b/169916 imported/blink/css3/blending/mix-blend-mode-with-squashing-layer.html [ ImageOnlyFailure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -824,6 +816,12 @@ fast/forms/vertical-writing-mode/meter.html [ ImageOnlyFailure ]
 fast/forms/vertical-writing-mode/progress.html [ ImageOnlyFailure ]
 webkit.org/b/264558 fast/forms/vertical-writing-mode/listbox-horizontal-scrollbar.html [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-vs-float-clearance-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/line-break/line-break-anywhere-overrides-uax-behavior-015.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/line-breaking/line-breaking-023.html [ ImageOnlyFailure ] 
+imported/w3c/web-platform-tests/css/css-text/text-align/text-align-last-justify-br.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-mixed-001.html [ Failure ]
 webkit.org/b/229389 imported/w3c/web-platform-tests/css/css-text/white-space/control-chars-001.html [ ImageOnlyFailure ]
 webkit.org/b/229389 imported/w3c/web-platform-tests/css/css-text/white-space/control-chars-002.html [ ImageOnlyFailure ]
 webkit.org/b/229389 imported/w3c/web-platform-tests/css/css-text/white-space/control-chars-003.html [ ImageOnlyFailure ]
@@ -4106,6 +4104,9 @@ webkit.org/b/277255 fast/forms/datalist/datalist-searchinput-appearance.html [ F
 webkit.org/b/277255 fast/dynamic/layer-hit-test-crash.html [ Failure Pass ]
 
 webkit.org/b/124566 fast/dom/SelectorAPI/resig-SelectorsAPI-test.xhtml [ Skip ] # Timeout
+
+# Failures related with compositing tests.
+webkit.org/b/169918 compositing/fixed-with-fixed-layout.html [ Crash Pass ]
 
 # End: Common failures between GTK and WPE.
 

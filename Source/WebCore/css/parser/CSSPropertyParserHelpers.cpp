@@ -1203,13 +1203,13 @@ static RefPtr<CSSValue> consumePageSize(CSSParserTokenRange& range)
 RefPtr<CSSValue> consumeSize(CSSParserTokenRange& range, CSSParserMode mode)
 {
     if (consumeIdentRaw<CSSValueAuto>(range))
-        return CSSValueList::createSpaceSeparated(CSSPrimitiveValue::create(CSSValueAuto));
+        return CSSPrimitiveValue::create(CSSValueAuto);
 
     if (auto width = consumeLength(range, mode, ValueRange::NonNegative)) {
         auto height = consumeLength(range, mode, ValueRange::NonNegative);
         if (!height)
-            return CSSValueList::createSpaceSeparated(width.releaseNonNull());
-        return CSSValueList::createSpaceSeparated(width.releaseNonNull(), height.releaseNonNull());
+            return width;
+        return CSSValuePair::create(width.releaseNonNull(), height.releaseNonNull());
     }
 
     auto pageSize = consumePageSize(range);
@@ -1219,10 +1219,10 @@ RefPtr<CSSValue> consumeSize(CSSParserTokenRange& range, CSSParserMode mode)
     if (!orientation && !pageSize)
         return nullptr;
     if (pageSize && !orientation)
-        return CSSValueList::createSpaceSeparated(pageSize.releaseNonNull());
+        return pageSize;
     if (!pageSize)
-        return CSSValueList::createSpaceSeparated(orientation.releaseNonNull());
-    return CSSValueList::createSpaceSeparated(pageSize.releaseNonNull(), orientation.releaseNonNull());
+        return orientation;
+    return CSSValuePair::create(pageSize.releaseNonNull(), orientation.releaseNonNull());
 }
 
 RefPtr<CSSValue> consumeTextTransform(CSSParserTokenRange& range)
@@ -4366,12 +4366,45 @@ RefPtr<CSSValue> consumeTextAutospace(CSSParserTokenRange& range)
 {
     //  normal | auto | no-autospace | [ ideograph-alpha || ideograph-numeric || punctuation ] || [ insert | replace ]
     // FIXME: add remaining values;
-    if (auto value = consumeIdent<CSSValueAuto, CSSValueNoAutospace>(range)) {
+    if (auto value = consumeIdent<CSSValueAuto, CSSValueNoAutospace, CSSValueNormal>(range)) {
         if (!range.atEnd())
             return nullptr;
         return value;
     }
-    return nullptr;
+
+    CSSValueListBuilder list;
+    bool seenIdeographAlpha = false;
+    bool seenIdeographNumeric = false;
+
+    while (!range.atEnd()) {
+        auto valueID = range.peek().id();
+
+        if ((valueID == CSSValueIdeographAlpha && seenIdeographAlpha) || (valueID == CSSValueIdeographNumeric && seenIdeographNumeric))
+            return nullptr;
+
+        auto ident = consumeIdent<CSSValueIdeographAlpha, CSSValueIdeographNumeric>(range);
+        if (!ident)
+            return nullptr;
+        switch (valueID) {
+        case CSSValueIdeographAlpha:
+            seenIdeographAlpha = true;
+            break;
+        case CSSValueIdeographNumeric:
+            seenIdeographNumeric = true;
+            break;
+        default:
+            return nullptr;
+        }
+    }
+
+    if (seenIdeographAlpha)
+        list.append(CSSPrimitiveValue::create(CSSValueIdeographAlpha));
+    if (seenIdeographNumeric)
+        list.append(CSSPrimitiveValue::create(CSSValueIdeographNumeric));
+
+    if (list.isEmpty())
+        return nullptr;
+    return CSSValueList::createSpaceSeparated(WTFMove(list));
 }
 
 RefPtr<CSSValue> consumeAnimationTimeline(CSSParserTokenRange& range, const CSSParserContext& context)

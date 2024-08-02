@@ -1301,8 +1301,6 @@ void WebGLRenderingContextBase::compressedTexImage2D(GCGLenum target, GCGLint le
         return;
     if (!validateTexture2DBinding("compressedTexImage2D"_s, target))
         return;
-    if (!validateCompressedTexFormat("compressedTexImage2D"_s, internalformat))
-        return;
     m_context->compressedTexImage2D(target, level, internalformat, width, height, border, data.byteLength(), data.span());
 }
 
@@ -1311,8 +1309,6 @@ void WebGLRenderingContextBase::compressedTexSubImage2D(GCGLenum target, GCGLint
     if (isContextLost())
         return;
     if (!validateTexture2DBinding("compressedTexSubImage2D"_s, target))
-        return;
-    if (!validateCompressedTexFormat("compressedTexSubImage2D"_s, format))
         return;
     m_context->compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, data.byteLength(), data.span());
 }
@@ -1550,10 +1546,6 @@ void WebGLRenderingContextBase::depthRange(GCGLfloat zNear, GCGLfloat zFar)
 {
     if (isContextLost())
         return;
-    if (zNear > zFar) {
-        synthesizeGLError(GraphicsContextGL::INVALID_OPERATION, "depthRange"_s, "zNear > zFar"_s);
-        return;
-    }
     m_context->depthRange(zNear, zFar);
 }
 
@@ -2774,20 +2766,6 @@ void WebGLRenderingContextBase::hint(GCGLenum target, GCGLenum mode)
 {
     if (isContextLost())
         return;
-    bool isValid = false;
-    switch (target) {
-    case GraphicsContextGL::GENERATE_MIPMAP_HINT:
-        isValid = true;
-        break;
-    case GraphicsContextGL::FRAGMENT_SHADER_DERIVATIVE_HINT_OES: // OES_standard_derivatives, or core in WebGL 2.0
-        if (m_oesStandardDerivatives || isWebGL2())
-            isValid = true;
-        break;
-    }
-    if (!isValid) {
-        synthesizeGLError(GraphicsContextGL::INVALID_ENUM, "hint"_s, "invalid target"_s);
-        return;
-    }
     m_context->hint(target, mode);
 }
 
@@ -4945,15 +4923,6 @@ GCGLint WebGLRenderingContextBase::maxTextureLevelForTarget(GCGLenum target)
         return m_maxCubeMapTextureLevel;
     }
     return 0;
-}
-
-bool WebGLRenderingContextBase::validateCompressedTexFormat(ASCIILiteral functionName, GCGLenum format)
-{
-    if (!m_compressedTextureFormats.contains(format)) {
-        synthesizeGLError(GraphicsContextGL::INVALID_ENUM, functionName, "invalid format"_s);
-        return false;
-    }
-    return true;
 }
 
 bool WebGLRenderingContextBase::shouldPrintToConsole() const

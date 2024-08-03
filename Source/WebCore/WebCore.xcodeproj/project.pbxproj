@@ -319,6 +319,8 @@
 		0D431F002B9053DC001E222F /* DigitalCredentialRequestOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D431F012B905BC4001E222F /* IdentityRequestProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DED2B5DF55000B61C51 /* IdentityRequestProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D44C33E2ABA1B9F0017FB5D /* ThermalMitigationNotifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D8EF8122A9D511F000118F8 /* ThermalMitigationNotifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0D649B392B9EA4E500D7F335 /* CredentialRequestCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D649B382B9EA4E500D7F335 /* CredentialRequestCoordinator.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0D649B482B9EC50300D7F335 /* CredentialRequestCoordinatorClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D649B472B9EC4E200D7F335 /* CredentialRequestCoordinatorClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D77A8522B9063A700BBD327 /* IdentityCredentialProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D431A842B5A42AB00864655 /* IdentityCredentialProtocol.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DFB86682B16CC98009A0A0D /* JSCredentialMediationRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DFB86642B16CC1E009A0A0D /* JSCredentialMediationRequirement.h */; };
 		0E7058F41BC5CEDA0045A507 /* SearchPopupMenuCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 0E7058F31BC5CCD70045A507 /* SearchPopupMenuCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7105,6 +7107,9 @@
 		0D5C81052B8B0F560099BF96 /* WGSLLanguageFeatures.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WGSLLanguageFeatures.h; sourceTree = "<group>"; };
 		0D5C81062B8B0F580099BF96 /* WGSLLanguageFeatures.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WGSLLanguageFeatures.idl; sourceTree = "<group>"; };
 		0D5C81072B8B0FED0099BF96 /* WGSLLanguageFeatures.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WGSLLanguageFeatures.cpp; sourceTree = "<group>"; };
+		0D649B382B9EA4E500D7F335 /* CredentialRequestCoordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CredentialRequestCoordinator.h; sourceTree = "<group>"; };
+		0D649B3A2B9EA50A00D7F335 /* CredentialRequestCoordinator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CredentialRequestCoordinator.cpp; sourceTree = "<group>"; };
+		0D649B472B9EC4E200D7F335 /* CredentialRequestCoordinatorClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CredentialRequestCoordinatorClient.h; sourceTree = "<group>"; };
 		0D84C2F328E6935C0059F63D /* NavigatorUserActivation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NavigatorUserActivation.h; sourceTree = "<group>"; };
 		0D84C2F528E69F250059F63D /* NavigatorUserActivation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NavigatorUserActivation.cpp; sourceTree = "<group>"; };
 		0DA1AE3F2B91808500379D42 /* IdentityCredentialsContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IdentityCredentialsContainer.h; sourceTree = "<group>"; };
@@ -9558,6 +9563,10 @@
 		33503C9F10179AD7003B47E1 /* JSNotification.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSNotification.cpp; sourceTree = "<group>"; };
 		33503CA010179AD7003B47E1 /* JSNotification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSNotification.h; sourceTree = "<group>"; };
 		33503CC61017A1B1003B47E1 /* Notification.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Notification.cpp; sourceTree = "<group>"; };
+		33839EF92C5CB39E00F1E4FA /* InternalObserverTake.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalObserverTake.cpp; sourceTree = "<group>"; };
+		33839EFA2C5CB3A600F1E4FA /* InternalObserverTake.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalObserverTake.h; sourceTree = "<group>"; };
+		33839EFB2C5CB3AF00F1E4FA /* InternalObserverDrop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalObserverDrop.cpp; sourceTree = "<group>"; };
+		33839EFC2C5CB3B600F1E4FA /* InternalObserverDrop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalObserverDrop.h; sourceTree = "<group>"; };
 		357B581C27F7909A00B93E4E /* CSSBorderImageWidthValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSBorderImageWidthValue.h; sourceTree = "<group>"; };
 		357B581E27F790BD00B93E4E /* CSSBorderImageWidthValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSBorderImageWidthValue.cpp; sourceTree = "<group>"; };
 		35C74FD3228A1912000C21A0 /* CSSGridIntegerRepeatValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSGridIntegerRepeatValue.cpp; sourceTree = "<group>"; };
@@ -20828,10 +20837,6 @@
 		FFEFAB2D183BCC6F00514555 /* InternalObserver.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserver.cpp; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFromScript.h; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFromScript.cpp; sourceTree = "<group>"; };
-		FFEFAB2D183BCC6F00514558 /* InternalObserverTake.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverTake.h; sourceTree = "<group>"; };
-		FFEFAB2D183BCC6F00514559 /* InternalObserverTake.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverTake.cpp; sourceTree = "<group>"; };
-		FFEFAB2D183BCC6F00514658 /* InternalObserverDrop.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverTake.h; sourceTree = "<group>"; };
-		FFEFAB2D183BCC6F00514659 /* InternalObserverDrop.cpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverTake.cpp; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514560 /* PredicateCallback.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PredicateCallback.idl; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514561 /* PredicateCallback.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = PredicateCallback.h; sourceTree = "<group>"; };
 		FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */ = {isa = PBXFileReference; lastKnownFileType = text; path = InternalObserverFilter.h; sourceTree = "<group>"; };
@@ -21775,6 +21780,9 @@
 		0DC0AEDC2B706E5700AF1E41 /* identity */ = {
 			isa = PBXGroup;
 			children = (
+				0D649B3A2B9EA50A00D7F335 /* CredentialRequestCoordinator.cpp */,
+				0D649B382B9EA4E500D7F335 /* CredentialRequestCoordinator.h */,
+				0D649B472B9EC4E200D7F335 /* CredentialRequestCoordinatorClient.h */,
 				0D494DEE2B5E0B5200B61C51 /* DigitalCredential.cpp */,
 				0D431A7C2B5A397C00864655 /* DigitalCredential.h */,
 				0D431A7E2B5A3A9700864655 /* DigitalCredential.idl */,
@@ -37022,16 +37030,16 @@
 				2EB767531DA19313003E23B5 /* InputEvent.idl */,
 				FFEFAB2D183BCC6F00514555 /* InternalObserver.cpp */,
 				FFEFAB2D183BCC6F00514554 /* InternalObserver.h */,
+				33839EFB2C5CB3AF00F1E4FA /* InternalObserverDrop.cpp */,
+				33839EFC2C5CB3B600F1E4FA /* InternalObserverDrop.h */,
 				FFEFAB2D183BCC6F00514563 /* InternalObserverFilter.cpp */,
 				FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */,
 				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
 				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
 				FFEFAB2D183BCC6F00514567 /* InternalObserverMap.cpp */,
 				FFEFAB2D183BCC6F00514566 /* InternalObserverMap.h */,
-				FFEFAB2D183BCC6F00514559 /* InternalObserverTake.cpp */,
-				FFEFAB2D183BCC6F00514558 /* InternalObserverTake.h */,
-				FFEFAB2D183BCC6F00514658 /* InternalObserverDrop.h */,
-				FFEFAB2D183BCC6F00514659 /* InternalObserverDrop.cpp */,
+				33839EF92C5CB39E00F1E4FA /* InternalObserverTake.cpp */,
+				33839EFA2C5CB3A600F1E4FA /* InternalObserverTake.h */,
 				FFEFAB2D183BCC6F00514553 /* JSSubscriberCustom.cpp */,
 				85031B2D0A44EFC700F992E0 /* KeyboardEvent.cpp */,
 				85031B2E0A44EFC700F992E0 /* KeyboardEvent.h */,
@@ -38673,6 +38681,8 @@
 				3792917A1985EF3900F4B661 /* CredentialBase.h in Headers */,
 				3792917E1987678F00F4B661 /* CredentialCocoa.h in Headers */,
 				77D5100D1ED5E29500DA4C87 /* CredentialCreationOptions.h in Headers */,
+				0D649B392B9EA4E500D7F335 /* CredentialRequestCoordinator.h in Headers */,
+				0D649B482B9EC50300D7F335 /* CredentialRequestCoordinatorClient.h in Headers */,
 				77D5100B1ED5E28800DA4C87 /* CredentialRequestOptions.h in Headers */,
 				77D510171ED6022200DA4C87 /* CredentialsContainer.h in Headers */,
 				51A052331058774F00CC9E95 /* CredentialStorage.h in Headers */,

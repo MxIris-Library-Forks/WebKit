@@ -515,6 +515,7 @@ AppBadgeEnabled:
       default: false
     WebCore:
       default: false
+  sharedPreferenceForWebProcess: true
 
 AppHighlightsEnabled:
   type: bool
@@ -2911,6 +2912,20 @@ GetCoalescedEventsEnabled:
     WebCore:
       default: true
 
+GetPredictedEventsEnabled:
+  type: bool
+  status: stable
+  category: dom
+  humanReadableName: "Pointer Events getPredictedEvents API"
+  humanReadableDescription: "Enable the `getPredictedEvents` function of the Pointer Events API"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+
 GetUserMediaRequiresFocus:
   type: bool
   status: internal
@@ -3195,7 +3210,7 @@ InWindowFullscreenEnabled:
     WebCore:
       default: false
 
-InactiveMediaCaptureSteamRepromptIntervalInMinutes:
+InactiveMediaCaptureStreamRepromptIntervalInMinutes:
   type: double
   status: embedder
   webcoreBinding: none
@@ -4407,6 +4422,20 @@ MediaRecorderEnabled:
     WebKit:
       "PLATFORM(COCOA)": true
       "USE(GSTREAMER_TRANSCODER)": true
+      default: false
+    WebCore:
+      default: false
+
+MediaSessionCaptureToggleAPIEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "MediaSession capture related API"
+  humanReadableDescription: "Enable MediaSession capture related API"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
       default: false
     WebCore:
       default: false

@@ -9949,6 +9949,8 @@ static bool shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
     case ProcessTerminationReason::NavigationSwap:
     case ProcessTerminationReason::IdleExit:
     case ProcessTerminationReason::RequestedByClient:
+    case ProcessTerminationReason::GPUProcessCrashedTooManyTimes:
+    case ProcessTerminationReason::ModelProcessCrashedTooManyTimes:
         break;
     }
     return false;
@@ -12821,6 +12823,9 @@ void WebPageProxy::serializedAttachmentDataForIdentifiers(const Vector<String>& 
     Vector<WebCore::SerializedAttachmentData> serializedData;
 
     MESSAGE_CHECK_COMPLETION(m_legacyMainFrameProcess, m_preferences->attachmentElementEnabled(), completionHandler(WTFMove(serializedData)));
+
+    for (const auto& identifier : identifiers)
+        MESSAGE_CHECK_COMPLETION(m_legacyMainFrameProcess, IdentifierToAttachmentMap::isValidKey(identifier), completionHandler(WTFMove(serializedData)));
 
     for (const auto& identifier : identifiers) {
         RefPtr attachment = attachmentForIdentifier(identifier);

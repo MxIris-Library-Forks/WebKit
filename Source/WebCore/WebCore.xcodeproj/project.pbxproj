@@ -7310,6 +7310,10 @@
 		0FCF33230F2B9715004B6795 /* ColorCG.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorCG.cpp; sourceTree = "<group>"; };
 		0FCF332A0F2B9A25004B6795 /* WebLayer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebLayer.mm; sourceTree = "<group>"; };
 		0FCF332B0F2B9A25004B6795 /* WebLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebLayer.h; sourceTree = "<group>"; };
+		0FD2C6A12C58485E00ED7278 /* BasicShapesShapeSegmentConversion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BasicShapesShapeSegmentConversion.cpp; sourceTree = "<group>"; };
+		0FD2C6A22C58485E00ED7278 /* BasicShapesShapeSegmentConversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BasicShapesShapeSegmentConversion.h; sourceTree = "<group>"; };
+		0FD2C6A32C5848A900ED7278 /* BasicShapesShape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BasicShapesShape.h; sourceTree = "<group>"; };
+		0FD2C6A42C5848A900ED7278 /* BasicShapesShape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BasicShapesShape.cpp; sourceTree = "<group>"; };
 		0FD3080C117CF7E700A791F7 /* RenderFrameBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFrameBase.cpp; sourceTree = "<group>"; };
 		0FD3080D117CF7E700A791F7 /* RenderFrameBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderFrameBase.h; sourceTree = "<group>"; };
 		0FD308D3117D168400A791F7 /* RenderIFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderIFrame.cpp; sourceTree = "<group>"; };
@@ -33506,6 +33510,8 @@
 			children = (
 				FBD6AF8215EF21A3008B7110 /* BasicShapes.cpp */,
 				FBD6AF8315EF21A3008B7110 /* BasicShapes.h */,
+				0FD2C6A42C5848A900ED7278 /* BasicShapesShape.cpp */,
+				0FD2C6A32C5848A900ED7278 /* BasicShapesShape.h */,
 				0F283A9123563126004794CA /* BorderData.cpp */,
 				BC5EB5E00E81BE8700B25965 /* BorderData.h */,
 				BCD34EEC28ECB6D800472470 /* BorderValue.cpp */,
@@ -35983,6 +35989,8 @@
 				4BAFD0DA21921EAD00C0AB64 /* typedom */,
 				FBD6AF8415EF21D4008B7110 /* BasicShapeConversion.cpp */,
 				FBD6AF8515EF21D4008B7110 /* BasicShapeConversion.h */,
+				0FD2C6A12C58485E00ED7278 /* BasicShapesShapeSegmentConversion.cpp */,
+				0FD2C6A22C58485E00ED7278 /* BasicShapesShapeSegmentConversion.h */,
 				713785EE28D9F4C50092D9F2 /* ComputedStyleExtractor.cpp */,
 				713785EF28D9F4C50092D9F2 /* ComputedStyleExtractor.h */,
 				A80E6CDA0A1989CA007FB8C5 /* Counter.h */,

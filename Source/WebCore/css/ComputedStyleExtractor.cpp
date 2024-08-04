@@ -371,6 +371,10 @@ static Ref<CSSValue> fontSizeAdjustFromStyle(const RenderStyle& style)
 
     auto metric = fontSizeAdjust.metric;
     auto value = fontSizeAdjust.shouldResolveFromFont() ? fontSizeAdjust.resolve(style.computedFontSize(), style.metricsOfPrimaryFont()) : fontSizeAdjust.value.asOptional();
+
+    if (!value)
+        return CSSPrimitiveValue::create(CSSValueNone);
+
     if (metric == FontSizeAdjust::Metric::ExHeight)
         return CSSPrimitiveValue::create(*value);
 
@@ -1797,6 +1801,21 @@ static Ref<CSSValue> createLineBoxContainValue(OptionSet<LineBoxContain> lineBox
     if (!lineBoxContain)
         return CSSPrimitiveValue::create(CSSValueNone);
     return CSSLineBoxContainValue::create(lineBoxContain);
+}
+
+static Ref<CSSValue> valueForWebkitRubyPosition(RubyPosition position)
+{
+    return CSSPrimitiveValue::create([&] {
+        switch (position) {
+        case RubyPosition::Over:
+            return CSSValueBefore;
+        case RubyPosition::Under:
+            return CSSValueAfter;
+        case RubyPosition::InterCharacter:
+            return CSSValueInterCharacter;
+        }
+        return CSSValueBefore;
+    }());
 }
 
 static Element* styleElementForNode(Node* node)
@@ -3992,8 +4011,10 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         return createConvertingToCSSValueID(style.position());
     case CSSPropertyRight:
         return positionOffsetValue(style, CSSPropertyRight, renderer);
-    case CSSPropertyWebkitRubyPosition:
+    case CSSPropertyRubyPosition:
         return createConvertingToCSSValueID(style.rubyPosition());
+    case CSSPropertyWebkitRubyPosition:
+        return valueForWebkitRubyPosition(style.rubyPosition());
     case CSSPropertyRubyAlign:
         return createConvertingToCSSValueID(style.rubyAlign());
     case CSSPropertyTableLayout:

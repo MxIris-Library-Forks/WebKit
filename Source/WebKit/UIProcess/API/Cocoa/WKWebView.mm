@@ -1208,7 +1208,7 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
             return;
         }
 
-        id body = API::SerializedScriptValue::deserialize(result.value()->internalRepresentation(), 0);
+        id body = API::SerializedScriptValue::deserialize(result.value()->internalRepresentation());
         rawHandler(body, nil);
     });
 }
@@ -3673,7 +3673,7 @@ static void convertAndAddHighlight(Vector<Ref<WebCore::SharedMemory>>& buffers, 
 - (void)_showWarningViewWithURL:(NSURL *)url title:(NSString *)title warning:(NSString *)warning detailsWithLinks:(NSAttributedString *)details completionHandler:(void(^)(BOOL, NSURL *))completionHandler
 {
     THROW_IF_SUSPENDED;
-    auto safeBrowsingWarning = WebKit::BrowsingWarning::create(url, title, warning, details);
+    auto safeBrowsingWarning = WebKit::BrowsingWarning::create(url, title, warning, details, WebKit::BrowsingWarning::SafeBrowsingWarningData { });
     auto wrapper = [completionHandler = makeBlockPtr(completionHandler)] (std::variant<WebKit::ContinueUnsafeLoad, URL>&& variant) {
         switchOn(variant, [&] (WebKit::ContinueUnsafeLoad continueUnsafeLoad) {
             switch (continueUnsafeLoad) {

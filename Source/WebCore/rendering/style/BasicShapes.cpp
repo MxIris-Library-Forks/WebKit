@@ -142,6 +142,8 @@ static const Path& cachedTransformedByteStreamPath(const SVGPathByteStream& stre
     return cache.get().get(SVGPathTransformedByteStream { stream, zoom, offset });
 }
 
+// MARK: -
+
 Ref<BasicShapeCircle> BasicShapeCircle::create(BasicShapeCenterCoordinate&& centerX, BasicShapeCenterCoordinate&& centerY, BasicShapeRadius&& radius)
 {
     return adoptRef(*new BasicShapeCircle(WTFMove(centerX), WTFMove(centerY), WTFMove(radius)));
@@ -185,6 +187,12 @@ float BasicShapeCircle::floatValueForRadiusInBox(FloatSize boxSize, FloatPoint c
 
     case BasicShapeRadius::Type::FarthestSide:
         return distanceToFarthestSide(center, boxSize);
+
+    case BasicShapeRadius::Type::ClosestCorner:
+        return distanceToClosestCorner(center, boxSize);
+
+    case BasicShapeRadius::Type::FarthestCorner:
+        return distanceToFarthestCorner(center, boxSize);
     }
     return 0;
 }
@@ -228,6 +236,8 @@ void BasicShapeCircle::dump(TextStream& ts) const
     ts.dumpProperty("radius", radius());
 }
 
+// MARK: -
+
 Ref<BasicShapeEllipse> BasicShapeEllipse::create(BasicShapeCenterCoordinate&& centerX, BasicShapeCenterCoordinate&& centerY, BasicShapeRadius&& radiusX, BasicShapeRadius&& radiusY)
 {
     return adoptRef(*new BasicShapeEllipse(WTFMove(centerX), WTFMove(centerY), WTFMove(radiusX), WTFMove(radiusY)));
@@ -265,16 +275,22 @@ bool BasicShapeEllipse::operator==(const BasicShape& other) const
 
 FloatSize BasicShapeEllipse::floatSizeForRadiusInBox(FloatSize boxSize, FloatPoint center) const
 {
-    auto sizeForAxis = [&](const BasicShapeRadius& radius, float center, float dimensionSize) {
+    auto sizeForAxis = [&](const BasicShapeRadius& radius, float centerValue, float dimensionSize) {
         switch (radius.type()) {
         case BasicShapeRadius::Type::Value:
             return floatValueForLength(radius.value(), std::abs(dimensionSize));
 
         case BasicShapeRadius::Type::ClosestSide:
-            return std::min(std::abs(center), std::abs(dimensionSize - center));
+            return std::min(std::abs(centerValue), std::abs(dimensionSize - centerValue));
 
         case BasicShapeRadius::Type::FarthestSide:
-            return std::max(std::abs(center), std::abs(dimensionSize - center));
+            return std::max(std::abs(centerValue), std::abs(dimensionSize - centerValue));
+
+        case BasicShapeRadius::Type::ClosestCorner:
+            return distanceToClosestCorner(center, boxSize);
+
+        case BasicShapeRadius::Type::FarthestCorner:
+            return distanceToFarthestCorner(center, boxSize);
         }
         return 0.0f;
     };
@@ -332,6 +348,8 @@ void BasicShapeEllipse::dump(TextStream& ts) const
     ts.dumpProperty("radius-x", radiusX());
     ts.dumpProperty("radius-y", radiusY());
 }
+
+// MARK: -
 
 Ref<BasicShapeRect> BasicShapeRect::create(Length&& top, Length&& right, Length&& bottom, Length&& left, LengthSize&& topLeftRadius, LengthSize&& topRightRadius, LengthSize&& bottomRightRadius, LengthSize&& bottomLeftRadius)
 {
@@ -440,6 +458,8 @@ void BasicShapeRect::dump(TextStream& ts) const
     ts.dumpProperty("bottom-left-radius", bottomLeftRadius());
 }
 
+// MARK: -
+
 Ref<BasicShapeXywh> BasicShapeXywh::create(Length&& insetX, Length&& insetY, Length&& width, Length&& height, LengthSize&& topLeftRadius, LengthSize&& topRightRadius, LengthSize&& bottomRightRadius, LengthSize&& bottomLeftRadius)
 {
     return adoptRef(*new BasicShapeXywh(WTFMove(insetX), WTFMove(insetY), WTFMove(width), WTFMove(height), WTFMove(topLeftRadius), WTFMove(topRightRadius), WTFMove(bottomRightRadius), WTFMove(bottomLeftRadius)));
@@ -544,6 +564,8 @@ void BasicShapeXywh::dump(TextStream& ts) const
     ts.dumpProperty("bottom-left-radius", bottomLeftRadius());
 
 }
+
+// MARK: -
 
 Ref<BasicShapePolygon> BasicShapePolygon::create(WindRule windRule, Vector<Length>&& values)
 {
@@ -693,6 +715,8 @@ void BasicShapePath::dump(TextStream& ts) const
     // FIXME: print the byte stream?
 }
 
+// MARK: -
+
 Ref<BasicShapeInset> BasicShapeInset::create(Length&& right, Length&& top, Length&& bottom, Length&& left, LengthSize&& topLeftRadius, LengthSize&& topRightRadius, LengthSize&& bottomRightRadius, LengthSize&& bottomLeftRadius)
 {
     return adoptRef(*new BasicShapeInset(WTFMove(right), WTFMove(top), WTFMove(bottom), WTFMove(left), WTFMove(topLeftRadius), WTFMove(topRightRadius), WTFMove(bottomRightRadius), WTFMove(bottomLeftRadius)));
@@ -798,6 +822,19 @@ static TextStream& operator<<(TextStream& ts, BasicShapeRadius::Type radiusType)
     case BasicShapeRadius::Type::Value: ts << "value"; break;
     case BasicShapeRadius::Type::ClosestSide: ts << "closest-side"; break;
     case BasicShapeRadius::Type::FarthestSide: ts << "farthest-side"; break;
+    case BasicShapeRadius::Type::ClosestCorner: ts << "closest-corner"; break;
+    case BasicShapeRadius::Type::FarthestCorner: ts << "farthest-corner"; break;
+    }
+    return ts;
+}
+
+// MARK: -
+
+TextStream& operator<<(TextStream& ts, CoordinateAffinity affinity)
+{
+    switch (affinity) {
+    case CoordinateAffinity::Relative: ts << "relative"_s; break;
+    case CoordinateAffinity::Absolute: ts << "absolute"_s; break;
     }
     return ts;
 }

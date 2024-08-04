@@ -483,6 +483,7 @@ class StylePropertyCodeGenProperties:
         Schema.Entry("parser-grammar-unused", allowed_types=[str]),
         Schema.Entry("parser-grammar-unused-reason", allowed_types=[str]),
         Schema.Entry("related-property", allowed_types=[str]),
+        Schema.Entry("cascade-alias", allowed_types=[str]),
         Schema.Entry("separator", allowed_types=[str]),
         Schema.Entry("setter", allowed_types=[str]),
         Schema.Entry("settings-flag", allowed_types=[str]),
@@ -492,7 +493,6 @@ class StylePropertyCodeGenProperties:
         Schema.Entry("skip-parser", allowed_types=[bool], default_value=False),
         Schema.Entry("status", allowed_types=[str]),
         Schema.Entry("svg", allowed_types=[bool], default_value=False),
-        Schema.Entry("synonym", allowed_types=[str]),
         Schema.Entry("top-priority", allowed_types=[bool], default_value=False),
         Schema.Entry("url", allowed_types=[str]),
         Schema.Entry("visited-link-color-support", allowed_types=[bool], default_value=False),
@@ -580,6 +580,12 @@ class StylePropertyCodeGenProperties:
             if json_value.get("high-priority", False):
                 raise Exception(f"{key_path} can't have both a related property and be high priority.")
 
+        if json_value.get("cascade-alias"):
+            if json_value.get("cascade-alias") == name:
+                raise Exception(f"{key_path} can't have itself as a cascade alias property.")
+            if json_value.get("longhands"):
+                raise Exception(f"{key_path} can't be both a cascade alias and a shorthand.")
+
         if json_value.get("parser-grammar"):
             for entry_name in ["parser-function", "parser-function-requires-additional-parameters", "parser-function-requires-context", "parser-function-requires-context-mode", "parser-function-requires-current-shorthand", "parser-function-requires-current-property", "parser-function-requires-quirks-mode", "parser-function-requires-value-pool", "skip-parser", "longhands"]:
                 if entry_name in json_value:
@@ -640,7 +646,6 @@ class StyleProperty:
     def __init__(self, **dictionary):
         StyleProperty.schema.set_attributes_from_dictionary(dictionary, instance=self)
         self.property_name = self.codegen_properties.property_name
-        self.synonymous_properties = []
 
     def __str__(self):
         return self.name
@@ -685,17 +690,6 @@ class StyleProperty:
 
         return StyleProperty(**json_value)
 
-    def perform_fixups_for_synonyms(self, all_properties):
-        # If 'synonym' was specified, replace the name with references to the Property object, and vice-versa a back-reference on that Property object back to this.
-        if self.codegen_properties.synonym:
-            if self.codegen_properties.synonym not in all_properties.all_by_name:
-                raise Exception(f"Property {self.name} has an unknown synonym: {self.codegen_properties.synonym}.")
-
-            original = all_properties.all_by_name[self.codegen_properties.synonym]
-            original.synonymous_properties.append(self)
-
-            self.codegen_properties.synonym = original
-
     def perform_fixups_for_longhands(self, all_properties):
         # If 'longhands' was specified, replace the names with references to the Property objects.
         if self.codegen_properties.longhands:
@@ -715,6 +709,16 @@ class StyleProperty:
                 if related_property.codegen_properties.related_property.name != self.name:
                     raise Exception(f"Property {self.name} has {related_property.name} as a related property, but it's not reciprocal.")
             self.codegen_properties.related_property = related_property
+
+    def perform_fixups_for_cascade_alias_properties(self, all_properties):
+        if self.codegen_properties.cascade_alias:
+            if self.codegen_properties.cascade_alias not in all_properties.all_by_name:
+                raise Exception(f"Property {self.name} is a cascade alias for an unknown property: {self.codegen_properties.cascade_alias}.")
+
+            if not self.codegen_properties.skip_builder:
+                raise Exception(f"Property {self.name} is a cascade alias and should also set skip-builder.")
+
+            self.codegen_properties.cascade_alias = all_properties.all_by_name[self.codegen_properties.cascade_alias]
 
     def perform_fixups_for_logical_property_groups(self, all_properties):
         if self.codegen_properties.logical_property_group:
@@ -740,9 +744,9 @@ class StyleProperty:
             all_properties.logical_property_groups[group_name][logic][resolver] = self
 
     def perform_fixups(self, all_properties):
-        self.perform_fixups_for_synonyms(all_properties)
         self.perform_fixups_for_longhands(all_properties)
         self.perform_fixups_for_related_properties(all_properties)
+        self.perform_fixups_for_cascade_alias_properties(all_properties)
         self.perform_fixups_for_logical_property_groups(all_properties)
 
     @property
@@ -2848,6 +2852,14 @@ class GenerateCSSPropertyNames:
 
             self.generation_context.generate_property_id_switch_function(
                 to=writer,
+                signature="CSSPropertyID cascadeAliasProperty(CSSPropertyID id)",
+                iterable=(p for p in self.properties_and_descriptors.style_properties.all if p.codegen_properties.cascade_alias),
+                mapping=lambda p: f"return {p.codegen_properties.cascade_alias.id};",
+                default="return id;"
+            )
+
+            self.generation_context.generate_property_id_switch_function(
+                to=writer,
                 signature="Vector<String> CSSProperty::aliasesForProperty(CSSPropertyID id)",
                 iterable=(p for p in self.properties_and_descriptors.style_properties.all if p.codegen_properties.aliases),
                 mapping=lambda p: f"return {{ {', '.join(quote_iterable(p.codegen_properties.aliases, suffix='_s'))} }};",
@@ -3049,6 +3061,7 @@ class GenerateCSSPropertyNames:
             String nameForIDL(CSSPropertyID);
 
             CSSPropertyID relatedProperty(CSSPropertyID);
+            CSSPropertyID cascadeAliasProperty(CSSPropertyID);
 
             template<CSSPropertyID first, CSSPropertyID last> struct CSSPropertiesRange {
                 struct Iterator {
@@ -3605,8 +3618,6 @@ class GenerateStyleBuilderGenerated:
                     continue
                 if property.codegen_properties.skip_builder:
                     continue
-                if property.codegen_properties.synonym:
-                    continue
 
                 if property.codegen_properties.is_logical:
                     raise Exception(f"Property '{property.name}' is logical but doesn't have skip-builder.")
@@ -3643,14 +3654,8 @@ class GenerateStyleBuilderGenerated:
                     with to.indent():
                         to.write(f"break;")
                     continue
-                
-                if property.codegen_properties.synonym:
-                    continue
 
                 to.write(f"case {property.id}:")
-
-                for synonymous_property in property.synonymous_properties:
-                    to.write(f"case {synonymous_property.id}:")
 
                 with to.indent():
                     if property.codegen_properties.longhands:

@@ -587,6 +587,7 @@ bool hasCapacityToUseLargeGigacage();
     v(Bool, useArrayFromAsync, true, Normal, "Expose the Array.fromAsync."_s) \
     v(Bool, useArrayGroupMethod, true, Normal, "Expose the Object.groupBy() and Map.groupBy() methods."_s) \
     v(Bool, useAtomicsWaitAsync, true, Normal, "Expose the waitAsync() methods on Atomics."_s) \
+    v(Bool, useFloat16Array, true, Normal, "Expose Float16Array."_s) \
     v(Bool, useSetMethods, true, Normal, "Expose the various Set.prototype methods for handling combinations of sets"_s) \
     v(Bool, useImportAttributes, true, Normal, "Enable import attributes."_s) \
     v(Bool, useIntlDurationFormat, true, Normal, "Expose the Intl DurationFormat."_s) \
@@ -599,7 +600,7 @@ bool hasCapacityToUseLargeGigacage();
     v(Bool, useStringWellFormed, true, Normal, "Expose the String well-formed methods."_s) \
     v(Bool, useTemporal, false, Normal, "Expose the Temporal object."_s) \
     v(Bool, useTrustedTypes, false, Normal, "Enable trusted types eval protection feature."_s) \
-    v(Bool, useUint8ArrayBase64Methods, false, Normal, "Expose methods for converting Uint8Array to/from base64 and hex."_s) \
+    v(Bool, useUint8ArrayBase64Methods, true, Normal, "Expose methods for converting Uint8Array to/from base64 and hex."_s) \
     v(Bool, useWasmTypedFunctionReferences, true, Normal, "Allow function types from the wasm typed function references spec."_s) \
     v(Bool, useWasmGC, false, Normal, "Allow gc types from the wasm gc proposal."_s) \
     v(Bool, useWasmSIMD, true, Normal, "Allow the new simd instructions and types from the wasm simd spec."_s) \

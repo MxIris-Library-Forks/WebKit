@@ -1474,7 +1474,11 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     case ArithFRound:
         executeDoubleUnaryOpEffects(node, [](double value) -> double { return static_cast<float>(value); });
         break;
-        
+
+    case ArithF16Round:
+        executeDoubleUnaryOpEffects(node, [](double value) -> double { return static_cast<double>(Float16 { value }); });
+        break;
+
     case ArithUnary:
         executeDoubleUnaryOpEffects(node, arithUnaryFunction(node->arithUnaryType()));
         break;
@@ -2692,12 +2696,8 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
             }
             break;
         }
+        case Array::Float16Array:
         case Array::Float32Array:
-            if (node->op() == GetByVal && arrayMode.isOutOfBounds())
-                setNonCellTypeForNode(node, SpecBytecodeDouble | SpecOther);
-            else
-                setNonCellTypeForNode(node, SpecFullDouble);
-            break;
         case Array::Float64Array:
             if (node->op() == GetByVal && arrayMode.isOutOfBounds())
                 setNonCellTypeForNode(node, SpecBytecodeDouble | SpecOther);
@@ -4238,6 +4238,9 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
             break;
         case Array::BigUint64Array:
             filter(node->child1(), SpecBigUint64Array | admittedTypes);
+            break;
+        case Array::Float16Array:
+            filter(node->child1(), SpecFloat16Array | admittedTypes);
             break;
         case Array::AnyTypedArray:
             filter(node->child1(), SpecTypedArrayView | admittedTypes);

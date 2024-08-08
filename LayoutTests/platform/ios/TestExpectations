@@ -7434,3 +7434,12 @@ http/wpt/service-workers/fetch-service-worker-preload-changing-request.https.htm
 http/wpt/service-workers/fetch-service-worker-preload-download-through-direct-preload.https.html [ Pass Timeout Failure ]
 http/wpt/service-workers/fetch-service-worker-preload-download.https.html [ Pass Timeout ]
 http/wpt/service-workers/fetch-service-worker-preload.https.html [ Pass Failure ]
+
+# webkit.org/b/277758 [ iOS ] imported/w3c/web-platform-tests/css/css-cascade/all-prop-initial-xml.html is a constant text failure
+imported/w3c/web-platform-tests/css/css-cascade/all-prop-initial-xml.html [ Failure ]
+
+# webkit.org/b/277762 [ iOS ] imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/dialog-form-submission.html is a constant text failure
+imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/dialog-form-submission.html [ Failure ]
+
+# webkit.org/b/277763 [ iOS ] imported/w3c/web-platform-tests/screen-orientation/lock-unlock-check.html is a flaky failure
+imported/w3c/web-platform-tests/screen-orientation/lock-unlock-check.html [ Pass Failure ]

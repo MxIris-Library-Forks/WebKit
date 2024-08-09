@@ -502,6 +502,7 @@ struct PrintInfo;
 struct ResourceLoadInfo;
 struct RemotePageParameters;
 struct SessionState;
+struct SharedPreferencesForWebProcess;
 struct TapIdentifierType;
 struct TextCheckerRequestType;
 struct TransactionIDType;
@@ -614,6 +615,8 @@ public:
 
     WebsiteDataStore& websiteDataStore() { return m_websiteDataStore; }
     Ref<WebsiteDataStore> protectedWebsiteDataStore() const;
+
+    const SharedPreferencesForWebProcess& sharedPreferencesForWebProcess(IPC::Connection&) const;
 
     void addPreviouslyVisitedPath(const String&);
 
@@ -3095,6 +3098,10 @@ private:
     struct Internals;
     Internals& internals() { return m_internals; }
     const Internals& internals() const { return m_internals; }
+
+#if HAVE(HOSTED_CORE_ANIMATION)
+    static WTF::MachSendRight createMachSendRightForRemoteLayerServer();
+#endif
 
     class ProcessActivityState {
     public:

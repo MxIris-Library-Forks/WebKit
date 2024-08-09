@@ -869,7 +869,6 @@ imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-framese
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-frameset-and-frame-elements/large-rows-percentage.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-frameset-and-frame-elements/large-rows-relsize.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-hr-element-0/color.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-hr-element-0/width.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-page/body-margin-1i.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-page/body-margin-1j.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-page/body-margin-1k.html [ ImageOnlyFailure ]
@@ -7055,14 +7054,6 @@ imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-6.htm
 imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-7.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-8.html [ Skip ]
 
-# These tests rely on dynamic scrollbar styling which isn't implemented yet. webkit.org/b/211219
-imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-001.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-002.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-003.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-004.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-005.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-width-paint-006.html [ Skip ]
-
 # Imported WPT css-tables which are crashing or fails.
 imported/w3c/web-platform-tests/css/css-tables/calc-percent-plus-0px-auto.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/calc-percent-plus-0px-fixed.html [ ImageOnlyFailure ]
@@ -7974,7 +7965,6 @@ imported/w3c/web-platform-tests/css/css-color/deprecated-sameas-002.html [ Image
 http/tests/site-isolation/touch-events [ Skip ]
 
 # CSS syntax
-imported/w3c/web-platform-tests/css/css-nesting/has-nesting.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-scoping/scoped-reference-animation-002.html [ ImageOnlyFailure ]
 
 # CSS Ruby
@@ -8041,6 +8031,7 @@ imported/w3c/web-platform-tests/svg/painting/reftests/paint-context-002.svg [ Im
 webkit.org/b/271692 imported/w3c/web-platform-tests/css/css-align/blocks/align-content-block-break-overflow-020.html [ ImageOnlyFailure ]
 
 # -- Anchor Positioning -- #
+
 # Anchor positioning is not yet implemented...
 
 # general failures
@@ -8080,9 +8071,9 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-006
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-007.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-vlr.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-vrl.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/inset-area-abs-inline-container.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/inset-area-inline-container.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/inset-area-scroll-adjust.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-anchor-position/position-area-abs-inline-container.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-anchor-position/position-area-inline-container.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-anchor-position/position-area-scroll-adjust.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-anchor-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-anchor-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-switch-from-fixed-anchor.html [ ImageOnlyFailure ]
@@ -8131,7 +8122,11 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-htb-htb.ht
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-htb-vrl.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-vrl-htb.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-vrl-vrl.html [ Failure ]
-# minus wincairo
+
+# mac-wk1 AND wincairo failures
+imported/w3c/web-platform-tests/css/css-anchor-position/popover-anchor-backdrop-transition.html [ Failure ]
+
+# wpe-wk2 AND gtk-wk2 failures
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-getComputedStyle-002.html [ Failure ]
 
 # -- End: Anchor Positioning -- #

@@ -465,6 +465,11 @@ void WebPageProxy::Internals::getPaymentCoordinatorEmbeddingUserAgent(WebPagePro
     completionHandler(page.userAgent());
 }
 
+CocoaWindow *WebPageProxy::Internals::paymentCoordinatorPresentingWindow(const WebPaymentCoordinatorProxy&) const
+{
+    return page.pageClient().platformWindow();
+}
+
 const String& WebPageProxy::Internals::paymentCoordinatorSourceApplicationBundleIdentifier(const WebPaymentCoordinatorProxy&)
 {
     return page.websiteDataStore().configuration().sourceApplicationBundleIdentifier();
@@ -485,7 +490,7 @@ void WebPageProxy::Internals::paymentCoordinatorRemoveMessageReceiver(WebPayment
     page.legacyMainFrameProcess().removeMessageReceiver(receiverName, webPageID);
 }
 
-#endif
+#endif // ENABLE(APPLE_PAY)
 
 #if ENABLE(SPEECH_SYNTHESIS)
 
@@ -1341,6 +1346,13 @@ bool WebPageProxy::tryToSendCommandToActiveControlledVideo(PlatformMediaSession:
 }
 
 #endif // ENABLE(VIDEO_PRESENTATION_MODE)
+
+#if HAVE(HOSTED_CORE_ANIMATION)
+WTF::MachSendRight WebPageProxy::createMachSendRightForRemoteLayerServer()
+{
+    return MachSendRight::create([CARemoteLayerServer sharedServer].serverPort);
+}
+#endif
 
 } // namespace WebKit
 

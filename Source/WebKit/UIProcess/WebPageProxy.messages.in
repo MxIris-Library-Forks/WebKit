@@ -329,8 +329,6 @@ messages -> WebPageProxy {
 
     # Speech messages
     GetIsSpeaking() -> (bool isSpeaking) Synchronous
-    Speak(String string)
-    StopSpeaking()
 
     MakeFirstResponder()
     AssistiveTechnologyMakeFirstResponder()
@@ -368,9 +366,9 @@ messages -> WebPageProxy {
     DictationAlternatives(WebCore::DictationContext dictationContext) -> (Vector<String> alternatives) Synchronous
 #endif
 
-#if ENABLE(VIDEO)
-    BeginTextRecognitionForVideoInElementFullScreen(WebCore::MediaPlayerIdentifier identifier, WebCore::FloatRect videoBounds)
-    CancelTextRecognitionForVideoInElementFullScreen()
+#if ENABLE(IMAGE_ANALYSIS) && ENABLE(VIDEO)
+    [EnabledBy=TextRecognitionInVideosEnabled] BeginTextRecognitionForVideoInElementFullScreen(WebCore::MediaPlayerIdentifier identifier, WebCore::FloatRect videoBounds)
+    [EnabledBy=TextRecognitionInVideosEnabled] CancelTextRecognitionForVideoInElementFullScreen()
 #endif
 
 #if PLATFORM(IOS_FAMILY)

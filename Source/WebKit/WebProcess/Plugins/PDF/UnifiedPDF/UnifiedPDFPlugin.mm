@@ -2011,9 +2011,13 @@ RepaintRequirements UnifiedPDFPlugin::repaintRequirementsForAnnotation(PDFAnnota
 
 void UnifiedPDFPlugin::repaintAnnotationsForFormField(NSString *fieldName)
 {
+#if HAVE(PDFDOCUMENT_ANNOTATIONS_FOR_FIELD_NAME)
     RetainPtr annotations = [m_pdfDocument annotationsForFieldName:fieldName];
     for (PDFAnnotation *annotation in annotations.get())
         setNeedsRepaintForAnnotation(annotation, repaintRequirementsForAnnotation(annotation));
+#else
+    UNUSED_PARAM(fieldName);
+#endif
 }
 
 void UnifiedPDFPlugin::startTrackingAnnotation(RetainPtr<PDFAnnotation>&& annotation, WebEventType mouseEventType, WebMouseEventButton mouseEventButton)
@@ -2660,7 +2664,13 @@ static FloatRect computeMarqueeSelectionRect(const WebCore::FloatPoint& point1, 
 
 void UnifiedPDFPlugin::freezeCursorDuringSelectionDragIfNeeded(IsDraggingSelection isDraggingSelection, IsMarqueeSelection isMarqueeSelection)
 {
-    if (isDraggingSelection == IsDraggingSelection::Yes && !std::exchange(m_selectionTrackingData.cursorIsFrozenForSelectionDrag, true))
+    if (isDraggingSelection == IsDraggingSelection::No)
+        return;
+
+    if (!m_currentSelection || [m_currentSelection isEmpty])
+        return;
+
+    if (!std::exchange(m_selectionTrackingData.cursorIsFrozenForSelectionDrag, true))
         notifyCursorChanged(isMarqueeSelection == IsMarqueeSelection::Yes ? PlatformCursorType::Cross : PlatformCursorType::IBeam);
 }
 

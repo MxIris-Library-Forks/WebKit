@@ -980,7 +980,7 @@ CSSAnchorPositioningEnabled:
 
 CSSBackgroundClipBorderAreaEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: css
   humanReadableName: "CSS background-clip: border-area"
   humanReadableDescription: "Enable the border-area value for background-clip"
@@ -1304,7 +1304,7 @@ CSSScrollbarGutterEnabled:
 
 CSSScrollbarWidthEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS scrollbar-width property"
   humanReadableDescription: "Enable scrollbar-width CSS property"
@@ -1312,9 +1312,9 @@ CSSScrollbarWidthEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSShapeFunctionEnabled:
   type: bool
@@ -3194,6 +3194,21 @@ IPCTestingAPIEnabled:
   defaultValue:
     WebKit:
       default: false
+
+IgnoreIframeEmbeddingProtectionsEnabled:
+  type: bool
+  status: internal
+  category: security
+  humanReadableName: "Ignore iframe Embedding Protections"
+  humanReadableDescription: "Ignores X-Frame-Options and CSP ancestors"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  sharedPreferenceForWebProcess: true
 
 IgnoreInvalidMessageWhenIPCTestingAPIEnabled:
   type: bool
@@ -5151,19 +5166,19 @@ PDFPluginHUDEnabled:
     WebCore:
       default: false
 
-PageAtRuleSupportEnabled:
+PageAtRuleMarginDescriptorsEnabled:
   type: bool
-  status: unstable
+  status: stable
   category: css
-  humanReadableName: "@page CSS at-rule support"
-  humanReadableDescription: "Enable @page support"
+  humanReadableName: "@page CSS at-rule margin descriptors"
+  humanReadableDescription: "Enable support for @page margin descriptors"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 PageVisibilityBasedProcessSuppressionEnabled:
   type: bool
@@ -6925,7 +6940,7 @@ TextRecognitionInVideosEnabled:
   category: media
   humanReadableName: "Text Recognition in Videos"
   humanReadableDescription: "Enable Text Recognition in Videos"
-  condition: ENABLE(IMAGE_ANALYSIS)
+  condition: ENABLE(IMAGE_ANALYSIS) && ENABLE(VIDEO)
   exposed: [ WebKit ]
   defaultValue:
     WebCore:
@@ -8303,6 +8318,20 @@ WebXRHandInputModuleEnabled:
       default: true
     WebCore:
       default: true
+WebXRLayersAPIEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  humanReadableName: "WebXR Layers API"
+  humanReadableDescription: "Adds support for the WebXR Layers API"
+  condition: ENABLE(WEBXR_LAYERS)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
 
 WheelEventGesturesBecomeNonBlocking:
   type: bool

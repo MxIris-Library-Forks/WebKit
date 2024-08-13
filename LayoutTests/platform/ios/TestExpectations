@@ -3492,9 +3492,10 @@ webkit.org/b/229154 webrtc/peer-connection-audio-mute2.html [ Pass Failure ]
 # WebM is not supported on iOS
 http/tests/media/video-webm-stall.html [ Skip ]
 
+# webkit.org/b/277760 [ iOS ] 2x imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html (layout-tests) are ref mismatch
 webkit.org/b/229291 imported/w3c/web-platform-tests/html/rendering/replaced-elements/images/revoked-blob-print.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html [ Failure ]
-imported/w3c/web-platform-tests/html/rendering/widgets/input-date-baseline-min-height.html [ Failure ]
+imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/rendering/widgets/input-date-baseline-min-height.html [ ImageOnlyFailure ]
 
 #rdar://82146367 ([Mac, iOS Release] imported/w3c/web-platform-tests/worklets/layout-worklet-csp.https.html is a flaky failure) imported/w3c/web-platform-tests/worklets/layout-worklet-csp.https.html [ Pass Failure ] 
 
@@ -6969,7 +6970,7 @@ webkit.org/b/271445 fast/events/ios/rotation/resize-iframe-after-orientation-cha
 
 webkit.org/b/271682 imported/w3c/web-platform-tests/css/css-content/quotes-007.html [ ImageOnlyFailure ] # TODO: uncomment line above with explicit pass expectation for this test when issue is resolved.
 
-webkit.org/b/271712 [ Debug ] fast/forms/datalist/datalist-textinput-dynamically-add-options-on-keydown.html [ Timeout ]
+webkit.org/b/271712 fast/forms/datalist/datalist-textinput-dynamically-add-options-on-keydown.html [ Pass Timeout ]
 
 webkit.org/b/271785 media/modern-media-controls/overflow-support/chapters.html [ Timeout ]
 webkit.org/b/271785 media/modern-media-controls/overflow-support/playback-speed.html [ Timeout ]
@@ -7494,3 +7495,14 @@ imported/w3c/web-platform-tests/css/css-content/quotes-026.html [ ImageOnlyFailu
 imported/w3c/web-platform-tests/css/css-content/quotes-027.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-transform/text-transform-fullwidth-004.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-transform/text-transform-fullwidth-005.xht [ ImageOnlyFailure ]
+
+# webkit.org/b/269496 [ iOS17 ] fast/forms/datalist/datalist-option-labels.html is a flaky timeout
+fast/forms/datalist/datalist-option-labels.html [ Pass Timeout ]
+
+# webkit.org/b/277986 [ iOS MacOS ] http/tests/navigation/page-cache-shared-worker.html is a flaky timeout
+http/tests/navigation/page-cache-shared-worker.html [ Pass Timeout ]
+
+# webkit.org/b/277989 [ iOS ] 3x imported/w3c/web-platform-tests/mathml/presentation-markup/* (layout-tests) are flaky failures
+imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/stretch-along-block-axis-001.html [ Pass Failure ]
+imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-minsize-maxsize-001.html [ Pass Failure ]
+imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-stretch-properties-dynamic-001.html [ Pass Failure ]

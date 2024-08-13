@@ -281,6 +281,19 @@ AllowMultiElementImplicitSubmission:
     WebCore:
       default: false
 
+AllowPrivacySensitiveOperationsInNonPersistentDataStores:
+  type: bool
+  status: embedder
+  humanReadableName: "Allow Privacy-Sensitive Operations in Non-Persistent Data Stores"
+  humanReadableDescription: "Allow Privacy-Sensitive Operations in Non-Persistent Data Stores"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 AllowRunningOfInsecureContent:
   type: bool
   status: embedder
@@ -933,8 +946,10 @@ BuiltInNotificationsEnabled:
   condition: ENABLE(WEB_PUSH_NOTIFICATIONS)
   defaultValue:
     WebCore:
+      "PLATFORM(IOS) && !PLATFORM(IOS_FAMILY_SIMULATOR)": true
       default: false
     WebKit:
+      "PLATFORM(IOS) && !PLATFORM(IOS_FAMILY_SIMULATOR)": true
       default: false
 
 CFNetworkNetworkLoaderEnabled:
@@ -980,7 +995,7 @@ CSSAnchorPositioningEnabled:
 
 CSSBackgroundClipBorderAreaEnabled:
   type: bool
-  status: testable
+  status: preview
   category: css
   humanReadableName: "CSS background-clip: border-area"
   humanReadableDescription: "Enable the border-area value for background-clip"
@@ -1248,17 +1263,17 @@ CSSRhythmicSizingEnabled:
 
 CSSRubyAlignEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS ruby-align property"
   humanReadableDescription: "Enable ruby-align"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSScopeAtRuleEnabled:
   type: bool
@@ -8053,7 +8068,7 @@ WebRTCEncodedTransformEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "USE(LIBWEBRTC) && PLATFORM(COCOA)": WebKit::defaultPeerConnectionEnabledAvailable()
+      "USE(LIBWEBRTC) && (PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE))": WebKit::defaultPeerConnectionEnabledAvailable()
       default: false
     WebCore:
       "USE(LIBWEBRTC)": true

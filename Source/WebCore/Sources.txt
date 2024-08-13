@@ -1852,6 +1852,7 @@ layout/integration/inline/LayoutIntegrationPagination.cpp
 layout/integration/inline/LayoutIntegrationBoxGeometryUpdater.cpp
 layout/integration/LayoutIntegrationBoxTree.cpp
 layout/integration/LayoutIntegrationCoverage.cpp
+layout/integration/LayoutIntegrationFormattingContextLayout.cpp
 layout/layouttree/LayoutBox.cpp
 layout/layouttree/LayoutBoxGeometry.cpp
 layout/layouttree/LayoutElementBox.cpp
@@ -2679,6 +2680,7 @@ rendering/GridMasonryLayout.cpp
 rendering/GridTrackSizingAlgorithm.cpp
 rendering/GlyphDisplayListCache.cpp
 rendering/GlyphDisplayListCacheRemoval.cpp
+rendering/GridLayoutState.cpp
 rendering/HitTestLocation.cpp
 rendering/HitTestResult.cpp
 rendering/HitTestingTransformState.cpp

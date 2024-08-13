@@ -6003,6 +6003,7 @@
 		E43105BB16750F1600DB2FB8 /* NodeTraversal.h in Headers */ = {isa = PBXBuildFile; fileRef = E43105BA16750F1600DB2FB8 /* NodeTraversal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E43A023B17EB370A004CDD25 /* RenderElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E43A023A17EB370A004CDD25 /* RenderElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E43AF8E71AC5B7EC00CA717E /* CacheValidation.h in Headers */ = {isa = PBXBuildFile; fileRef = E43AF8E51AC5B7DD00CA717E /* CacheValidation.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		E43E64F72C6365EE0060F493 /* LayoutIntegrationFormattingContextLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = E43E64F62C6365EE0060F493 /* LayoutIntegrationFormattingContextLayout.h */; };
 		E440AA961C68420800A265CC /* ElementAndTextDescendantIterator.h in Headers */ = {isa = PBXBuildFile; fileRef = E440AA951C68420800A265CC /* ElementAndTextDescendantIterator.h */; };
 		E440DF5626EB53E0004AF06B /* TextBoxPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E440DF5426EB53DF004AF06B /* TextBoxPainter.h */; };
 		E440FD5325A4AFDF00F7C849 /* StyledMarkedText.h in Headers */ = {isa = PBXBuildFile; fileRef = E440FD5125A4AFDF00F7C849 /* StyledMarkedText.h */; };
@@ -16041,6 +16042,7 @@
 		A5A993451E380999005B5E4D /* JSPerformanceObserverCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSPerformanceObserverCallback.h; sourceTree = "<group>"; };
 		A5A993461E380999005B5E4D /* JSPerformanceObserverEntryList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSPerformanceObserverEntryList.cpp; sourceTree = "<group>"; };
 		A5A993471E380999005B5E4D /* JSPerformanceObserverEntryList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSPerformanceObserverEntryList.h; sourceTree = "<group>"; };
+		A5AA6E9B2C6A857D0037DB40 /* GridLayoutState.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GridLayoutState.cpp; sourceTree = "<group>"; };
 		A5AFB34D115151A700B045CB /* StepRange.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StepRange.cpp; sourceTree = "<group>"; };
 		A5AFB34E115151A700B045CB /* StepRange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StepRange.h; sourceTree = "<group>"; };
 		A5AFB34E115151A700B045CC /* SwitchTrigger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwitchTrigger.h; sourceTree = "<group>"; };
@@ -19823,6 +19825,8 @@
 		E43A023C17EB3713004CDD25 /* RenderElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderElement.cpp; sourceTree = "<group>"; };
 		E43AF8E41AC5B7DD00CA717E /* CacheValidation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CacheValidation.cpp; sourceTree = "<group>"; };
 		E43AF8E51AC5B7DD00CA717E /* CacheValidation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CacheValidation.h; sourceTree = "<group>"; };
+		E43E64F52C6365E50060F493 /* LayoutIntegrationFormattingContextLayout.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationFormattingContextLayout.cpp; sourceTree = "<group>"; };
+		E43E64F62C6365EE0060F493 /* LayoutIntegrationFormattingContextLayout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationFormattingContextLayout.h; sourceTree = "<group>"; };
 		E440AA951C68420800A265CC /* ElementAndTextDescendantIterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ElementAndTextDescendantIterator.h; sourceTree = "<group>"; };
 		E440DF5426EB53DF004AF06B /* TextBoxPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextBoxPainter.h; sourceTree = "<group>"; };
 		E440DF5726EB53EA004AF06B /* TextBoxPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextBoxPainter.cpp; sourceTree = "<group>"; };
@@ -35953,6 +35957,8 @@
 				E418025323D4549A00FFB071 /* LayoutIntegrationBoxTree.h */,
 				E403B79F251B118B0019E800 /* LayoutIntegrationCoverage.cpp */,
 				E403B7A1251B11930019E800 /* LayoutIntegrationCoverage.h */,
+				E43E64F52C6365E50060F493 /* LayoutIntegrationFormattingContextLayout.cpp */,
+				E43E64F62C6365EE0060F493 /* LayoutIntegrationFormattingContextLayout.h */,
 			);
 			path = integration;
 			sourceTree = "<group>";
@@ -36528,6 +36534,7 @@
 				0FC692EC2585C9680098E3F9 /* GridBaselineAlignment.h */,
 				0FC692ED2585C9690098E3F9 /* GridLayoutFunctions.cpp */,
 				0FC692EE2585C96A0098E3F9 /* GridLayoutFunctions.h */,
+				A5AA6E9B2C6A857D0037DB40 /* GridLayoutState.cpp */,
 				A54CAA132C409C4500D6A999 /* GridLayoutState.h */,
 				A51324D6290A234D00C0DCFA /* GridMasonryLayout.cpp */,
 				A51324D7290A235900C0DCFA /* GridMasonryLayout.h */,
@@ -41017,6 +41024,7 @@
 				E418025523D4549B00FFB071 /* LayoutIntegrationBoxTree.h in Headers */,
 				E403B7A2251B11930019E800 /* LayoutIntegrationCoverage.h in Headers */,
 				6FAC251F281326580045683F /* LayoutIntegrationFlexLayout.h in Headers */,
+				E43E64F72C6365EE0060F493 /* LayoutIntegrationFormattingContextLayout.h in Headers */,
 				E451C6342394058F00993190 /* LayoutIntegrationInlineContent.h in Headers */,
 				6F3FBA982556E313003530FD /* LayoutIntegrationInlineContentBuilder.h in Headers */,
 				6FCE698028B7DD3900956401 /* LayoutIntegrationInlineContentPainter.h in Headers */,

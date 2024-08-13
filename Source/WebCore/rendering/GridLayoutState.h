@@ -30,14 +30,13 @@
 
 namespace WebCore {
 
-enum class ItemLayoutRequirement : bool { NeedsColumnAxisStretchAlignment = 1 };
-using ItemsLayoutRequirements = SingleThreadWeakHashMap<RenderBox, ItemLayoutRequirement>;
+enum class ItemLayoutRequirement : uint8_t { NeedsColumnAxisStretchAlignment = 1 << 0 };
+using ItemsLayoutRequirements = SingleThreadWeakHashMap<RenderBox, OptionSet<ItemLayoutRequirement>>;
 
-class GridLayoutState : public CanMakeCheckedPtr<GridLayoutState>, public CanMakeWeakPtr<GridLayoutState> {
-    WTF_MAKE_FAST_ALLOCATED;
-    WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(GridLayoutState);
+class GridLayoutState {
 public:
-    ItemsLayoutRequirements& itemsLayoutRequirements() { return m_itemsLayoutRequirements; }
+    bool containsLayoutRequirementForGridItem(const RenderBox& gridItem, ItemLayoutRequirement) const;
+    void setLayoutRequirementForGridItem(const RenderBox& gridItem, ItemLayoutRequirement);
 
 private:
     ItemsLayoutRequirements m_itemsLayoutRequirements;

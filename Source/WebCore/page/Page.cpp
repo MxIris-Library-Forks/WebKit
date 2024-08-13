@@ -1995,7 +1995,7 @@ void Page::updateRendering()
     });
 
     runProcessingStep(RenderingUpdateStep::Images, [] (Document& document) {
-        for (auto& image : document.cachedResourceLoader().allCachedSVGImages()) {
+        for (auto& image : document.protectedCachedResourceLoader()->allCachedSVGImages()) {
             if (RefPtr page = image->internalPage())
                 page->isolatedUpdateRendering();
         }
@@ -4962,6 +4962,11 @@ void Page::respondToReappliedWritingToolsEditing(EditCommandComposition* command
 std::optional<SimpleRange> Page::contextRangeForSessionWithID(const WritingTools::Session::ID& sessionID) const
 {
     return m_writingToolsController->contextRangeForSessionWithID(sessionID);
+}
+
+void Page::showSelectionForWritingToolsSessionWithID(const WritingTools::Session::ID& sessionID) const
+{
+    return m_writingToolsController->showSelectionForWritingToolsSessionWithID(sessionID);
 }
 
 void Page::writingToolsSessionDidReceiveAction(const WritingTools::Session& session, WritingTools::Action action)

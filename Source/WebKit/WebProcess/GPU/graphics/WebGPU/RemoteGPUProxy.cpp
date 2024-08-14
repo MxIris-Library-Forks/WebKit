@@ -43,8 +43,11 @@
 #include <WebCore/WebGPUPresentationContextDescriptor.h>
 #include <WebCore/WebGPUSupportedFeatures.h>
 #include <WebCore/WebGPUSupportedLimits.h>
+#include <wtf/TZoneMallocInlines.h>
 
 namespace WebKit {
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RemoteGPUProxy);
 
 RefPtr<RemoteGPUProxy> RemoteGPUProxy::create(WebGPU::ConvertToBackingContext& convertToBackingContext, WebPage& page)
 {
@@ -54,7 +57,8 @@ RefPtr<RemoteGPUProxy> RemoteGPUProxy::create(WebGPU::ConvertToBackingContext& c
 RefPtr<RemoteGPUProxy> RemoteGPUProxy::create(WebGPU::ConvertToBackingContext& convertToBackingContext, RemoteRenderingBackendProxy& renderingBackend, SerialFunctionDispatcher& dispatcher)
 {
     constexpr size_t connectionBufferSizeLog2 = 21;
-    auto connectionPair = IPC::StreamClientConnection::create(connectionBufferSizeLog2);
+    constexpr Seconds defaultTimeoutDuration = 30_s;
+    auto connectionPair = IPC::StreamClientConnection::create(connectionBufferSizeLog2, defaultTimeoutDuration);
     if (!connectionPair)
         return nullptr;
     auto [clientConnection, serverConnectionHandle] = WTFMove(*connectionPair);
@@ -129,7 +133,7 @@ void RemoteGPUProxy::waitUntilInitialized()
 {
     if (m_didInitialize)
         return;
-    if (m_streamConnection->waitForAndDispatchImmediately<Messages::RemoteGPUProxy::WasCreated>(m_backing, defaultSendTimeout) == IPC::Error::NoError)
+    if (m_streamConnection->waitForAndDispatchImmediately<Messages::RemoteGPUProxy::WasCreated>(m_backing) == IPC::Error::NoError)
         return;
     abandonGPUProcess();
 }

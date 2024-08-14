@@ -346,6 +346,15 @@ Length AnchorPositionEvaluator::resolveAnchorValue(const BuilderState& builderSt
         return Length(0, LengthType::Fixed);
     Ref anchorPositionedElement = *builderState.element();
 
+    // FIXME: Support pseudo-elements.
+    if (builderState.style().pseudoElementType() != PseudoId::None)
+        return Length(0, LengthType::Fixed);
+
+    // In-flow elements cannot be anchor-positioned.
+    // FIXME: Should attempt to resolve the fallback value.
+    if (!builderState.style().hasOutOfFlowPosition())
+        return Length(0, LengthType::Fixed);
+
     auto* anchorPositionedStateMap = builderState.cssToLengthConversionData().anchorPositionedStateMap();
     if (!anchorPositionedStateMap)
         return Length(0, LengthType::Fixed);
@@ -359,7 +368,7 @@ Length AnchorPositionEvaluator::resolveAnchorValue(const BuilderState& builderSt
     if (!anchorPositionedElementState.finishedCollectingAnchorNames)
         anchorValue.collectAnchorNames(anchorPositionedElementState.anchorNames);
 
-    // An anchor() instance will be ready to be resolved when all anchor-name strings
+    // An anchor() instance will be ready to be resolved when all referenced anchor-names
     // have been mapped to an actual anchor element in the DOM tree. At that point, we
     // should also have layout information for the anchor-positioned element alongside
     // the anchors referenced by the anchor-positioned element. Until then, we cannot

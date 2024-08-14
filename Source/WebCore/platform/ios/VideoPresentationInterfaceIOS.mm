@@ -158,10 +158,6 @@ std::optional<MediaPlayerIdentifier>VideoPresentationInterfaceIOS::playerIdentif
     return m_playbackSessionInterface->playerIdentifier();
 }
 
-void VideoPresentationInterfaceIOS::setVideoSpatial(bool)
-{
-}
-
 void VideoPresentationInterfaceIOS::setPlayerIdentifier(std::optional<MediaPlayerIdentifier> identifier)
 {
     m_playbackSessionInterface->setPlayerIdentifier(WTFMove(identifier));
@@ -518,7 +514,7 @@ void VideoPresentationInterfaceIOS::cleanupFullscreen()
     m_shouldIgnoreAVKitCallbackAboutExitFullscreenReason = false;
 
     m_cleanupNeedsReturnVideoContentLayer = true;
-    auto model = videoPresentationModel();
+    RefPtr model = videoPresentationModel();
     if (m_hasVideoContentLayer && model) {
         model->returnVideoContentLayer();
         return;

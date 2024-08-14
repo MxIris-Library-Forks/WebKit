@@ -2312,6 +2312,7 @@ accessibility/accessibility-node-reparent.html [ Pass ]
 accessibility/aria-braillelabel.html [ Pass ]
 accessibility/aria-brailleroledescription.html [ Pass ]
 accessibility/aria-checked-mixed-value.html [ Pass ]
+accessibility/aria-controlled-table-row-visibility.html [ Pass ]
 accessibility/aria-describedby-on-input.html [ Pass ]
 accessibility/body-element-aria-hidden.html [ Pass ]
 accessibility/display-contents/aria-hidden.html [ Pass ]
@@ -6300,6 +6301,7 @@ webkit.org/b/214468 imported/w3c/web-platform-tests/css/css-shapes/shape-outside
 webkit.org/b/214468 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-016.html [ ImageOnlyFailure ]
 webkit.org/b/214468 imported/w3c/web-platform-tests/css/css-sizing/thin-element-render.html [ ImageOnlyFailure ]
 webkit.org/b/214468 imported/w3c/web-platform-tests/css/css-values/ch-unit-002.html [ ImageOnlyFailure ]
+webkit.org/b/277995 imported/w3c/web-platform-tests/css/css-values/attr-all-types.html [ Failure ]
 
 webkit.org/b/229874 imported/w3c/web-platform-tests/css/css-sizing/percentage-height-in-flexbox.html [ Pass Failure ]
 
@@ -7506,3 +7508,5 @@ http/tests/navigation/page-cache-shared-worker.html [ Pass Timeout ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/stretch-along-block-axis-001.html [ Pass Failure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-minsize-maxsize-001.html [ Pass Failure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-stretch-properties-dynamic-001.html [ Pass Failure ]
+
+webkit.org/b/278051 http/tests/resourceLoadStatistics/prevalent-resource-unhandled-keydown.html [ Pass Failure ]

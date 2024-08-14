@@ -584,6 +584,7 @@ accessibility/dynamically-ignored-canvas.html [ Skip ]
 accessibility/basic-focusability.html [ Skip ]
 
 # Missing AccessibilityUIElement::uiElementForSearchPredicate implementation.
+accessibility/aria-controlled-table-row-visibility.html [ Skip ]
 accessibility/aria-modal-with-text-crash.html [ Skip ]
 accessibility/button-inside-label-ax-text.html [ Skip ]
 accessibility/display-contents/dynamically-added-children.html [ Skip ]
@@ -2567,6 +2568,7 @@ fast/events/webkit-media-key-events-constructor.html [ Skip ]
 # NowPlaying is macOS and iOS only.
 http/tests/media/now-playing-info-private-browsing.html [ Skip ]
 http/tests/media/now-playing-info.html [ Skip ]
+http/tests/media/now-playing-info-default-artwork-favicon.html [ Skip ]
 http/tests/media/now-playing-info-media-session-artwork-favicon.html [ Skip ]
 media/now-playing-info-media-session-private-browsing.html [ Skip ]
 media/now-playing-info-media-session-suspend-playback.html [ Skip ]

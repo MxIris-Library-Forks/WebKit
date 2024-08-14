@@ -879,6 +879,8 @@ accessibility/mac/lazy-spellchecking.html [ Skip ]
 accessibility/mac/spellcheck-with-voiceover.html [ Skip ]
 accessibility/text-marker/text-marker-range-with-unordered-markers.html
 
+accessibility/aria-controlled-table-row-visibility.html [ Skip ]
+
 # AccessibilityController::setForceInitialFrameCaching not supported on WK1.
 accessibility/mac/initial-relative-frame-cached.html [ Skip ]
 
@@ -1766,9 +1768,6 @@ http/tests/inspector/network/local-resource-override-script-tag.html [ Skip ]
 http/tests/inspector/network/resource-response-inspector-override.html [ Skip ]
 inspector/network/intercept-aborted-request.html [ Skip ]
 inspector/network/interceptContinue.html [ Skip ]
-
-# Test timeout with NowPlaying
-http/tests/media/now-playing-info-media-session-artwork-favicon.html [ Skip ]
 
 # Resource content retrival times out in WebKit1.
 webkit.org/b/257407 http/tests/inspector/network/xhr-request-type.html [ Skip ]

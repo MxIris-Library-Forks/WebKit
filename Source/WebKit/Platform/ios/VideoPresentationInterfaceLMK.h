@@ -28,6 +28,7 @@
 #if ENABLE(LINEAR_MEDIA_PLAYER)
 
 #include <WebCore/VideoPresentationInterfaceIOS.h>
+#include <wtf/TZoneMalloc.h>
 
 OBJC_CLASS LMPlayableViewController;
 OBJC_CLASS WKCaptionLayerLayoutManager;
@@ -40,7 +41,7 @@ class PlaybackSessionInterfaceIOS;
 namespace WebKit {
 
 class VideoPresentationInterfaceLMK final : public WebCore::VideoPresentationInterfaceIOS {
-    WTF_MAKE_FAST_ALLOCATED;
+    WTF_MAKE_TZONE_ALLOCATED(VideoPresentationInterfaceLMK);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(VideoPresentationInterfaceLMK);
 public:
     static Ref<VideoPresentationInterfaceLMK> create(WebCore::PlaybackSessionInterfaceIOS&);
@@ -59,7 +60,6 @@ private:
     bool isPlayingVideoInEnhancedFullscreen() const final { return false; }
     void setupFullscreen(UIView&, const WebCore::FloatRect&, const WebCore::FloatSize&, UIView*, WebCore::HTMLMediaElementEnums::VideoFullscreenMode, bool, bool, bool) final;
     void hasVideoChanged(bool) final { }
-    void setVideoSpatial(bool) final;
     void finalizeSetup() final;
     void updateRouteSharingPolicy() final { }
     void setupPlayerViewController() final;

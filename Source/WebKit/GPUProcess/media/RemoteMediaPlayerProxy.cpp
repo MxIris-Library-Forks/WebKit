@@ -56,6 +56,7 @@
 #include <WebCore/MediaPlayerPrivate.h>
 #include <WebCore/NotImplemented.h>
 #include <WebCore/SecurityOrigin.h>
+#include <wtf/TZoneMallocInlines.h>
 
 #if ENABLE(ENCRYPTED_MEDIA)
 #include "RemoteCDMFactoryProxy.h"
@@ -75,6 +76,8 @@
 namespace WebKit {
 
 using namespace WebCore;
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RemoteMediaPlayerProxy);
 
 Ref<RemoteMediaPlayerProxy> RemoteMediaPlayerProxy::create(RemoteMediaPlayerManagerProxy& manager, MediaPlayerIdentifier identifier, MediaPlayerClientIdentifier clientIdentifier, Ref<IPC::Connection>&& connection, MediaPlayerEnums::MediaEngineIdentifier engineIdentifier, RemoteMediaPlayerProxyConfiguration&& configuration, RemoteVideoFrameObjectHeap& videoFrameObjectHeap, const WebCore::ProcessIdentity& resourceOwner)
 {
@@ -432,7 +435,6 @@ void RemoteMediaPlayerProxy::mediaPlayerReadyStateChanged()
     m_cachedState.canSaveMediaData = m_player->canSaveMediaData();
     m_cachedState.didPassCORSAccessCheck = m_player->didPassCORSAccessCheck();
     m_cachedState.documentIsCrossOrigin = m_player->isCrossOrigin(m_configuration.documentSecurityOrigin.securityOrigin());
-    m_cachedState.videoConfiguration = m_player->videoPlaybackConfiguration();
 
     m_webProcessConnection->send(Messages::MediaPlayerPrivateRemote::ReadyStateChanged(m_cachedState, newReadyState), m_id);
 }
@@ -592,13 +594,6 @@ void RemoteMediaPlayerProxy::mediaPlayerCharacteristicChanged()
     m_cachedState.languageOfPrimaryAudioTrack = m_player->languageOfPrimaryAudioTrack();
 
     m_webProcessConnection->send(Messages::MediaPlayerPrivateRemote::CharacteristicChanged(m_cachedState), m_id);
-}
-
-void RemoteMediaPlayerProxy::mediaPlayerVideoPlaybackConfigurationChanged()
-{
-    updateCachedVideoMetrics();
-    updateCachedState();
-    m_webProcessConnection->send(Messages::MediaPlayerPrivateRemote::VideoPlaybackConfigurationChanged(m_cachedState.videoConfiguration), m_id);
 }
 
 bool RemoteMediaPlayerProxy::mediaPlayerRenderingCanBeAccelerated()

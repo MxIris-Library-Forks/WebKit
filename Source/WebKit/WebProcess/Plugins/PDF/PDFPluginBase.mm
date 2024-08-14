@@ -51,6 +51,7 @@
 #import <WebCore/Document.h>
 #import <WebCore/EventNames.h>
 #import <WebCore/FocusController.h>
+#import <WebCore/FontCocoa.h>
 #import <WebCore/Frame.h>
 #import <WebCore/GraphicsContext.h>
 #import <WebCore/HTMLPlugInElement.h>
@@ -67,6 +68,7 @@
 #import <WebCore/SharedBuffer.h>
 #import <WebCore/VoidCallback.h>
 #import <wtf/StdLibExtras.h>
+#import <wtf/TZoneMallocInlines.h>
 #import <wtf/cf/VectorCF.h>
 #import <wtf/cocoa/VectorCocoa.h>
 #import <wtf/text/MakeString.h>
@@ -76,6 +78,8 @@
 
 namespace WebKit {
 using namespace WebCore;
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(PDFPluginBase);
 
 PluginInfo PDFPluginBase::pluginInfo()
 {
@@ -1132,25 +1136,34 @@ DictionaryPopupInfo PDFPluginBase::dictionaryPopupInfoForSelection(PDFSelection 
     if (!selection.string.length)
         return dictionaryPopupInfo;
 
-#if PLATFORM(MAC)
-    NSRect rangeRect = rectForSelectionInRootView(selection);
-    NSAttributedString *nsAttributedString = selection.attributedString;
+    NSAttributedString *nsAttributedString = [selection] {
+        static constexpr unsigned maximumSelectionLength = 250;
+        if (selection.string.length > maximumSelectionLength)
+            return [selection.attributedString attributedSubstringFromRange:NSMakeRange(0, maximumSelectionLength)];
+        return selection.attributedString;
+    }();
     RetainPtr scaledNSAttributedString = adoptNS([[NSMutableAttributedString alloc] initWithString:[nsAttributedString string]]);
-    NSFontManager *fontManager = [NSFontManager sharedFontManager];
+
     auto scaleFactor = contentScaleFactor();
 
     [nsAttributedString enumerateAttributesInRange:NSMakeRange(0, [nsAttributedString length]) options:0 usingBlock:^(NSDictionary *attributes, NSRange range, BOOL *stop) {
         RetainPtr<NSMutableDictionary> scaledAttributes = adoptNS([attributes mutableCopy]);
 
-        NSFont *font = [scaledAttributes objectForKey:NSFontAttributeName];
+        CocoaFont *font = [scaledAttributes objectForKey:NSFontAttributeName];
         if (font) {
-            font = [fontManager convertFont:font toSize:font.pointSize * scaleFactor];
+            auto desiredFontSize = font.pointSize * scaleFactor;
+#if USE(APPKIT)
+            font = [[NSFontManager sharedFontManager] convertFont:font toSize:desiredFontSize];
+#else
+            font = [font fontWithSize:desiredFontSize];
+#endif
             [scaledAttributes setObject:font forKey:NSFontAttributeName];
         }
 
         [scaledNSAttributedString addAttributes:scaledAttributes.get() range:range];
     }];
 
+    NSRect rangeRect = rectForSelectionInRootView(selection);
     rangeRect.size.height = nsAttributedString.size.height * scaleFactor;
     rangeRect.size.width = nsAttributedString.size.width * scaleFactor;
 
@@ -1163,9 +1176,6 @@ DictionaryPopupInfo PDFPluginBase::dictionaryPopupInfoForSelection(PDFSelection 
     dictionaryPopupInfo.origin = rangeRect.origin;
     dictionaryPopupInfo.textIndicator = dataForSelection;
     dictionaryPopupInfo.platformData.attributedString = WebCore::AttributedString::fromNSAttributedString(scaledNSAttributedString);
-#else
-    UNUSED_PARAM(presentationTransition);
-#endif
 
     return dictionaryPopupInfo;
 }

@@ -11124,6 +11124,7 @@
 		4CA012DB29A7D56700C260C6 /* counterStyles.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = counterStyles.css; sourceTree = "<group>"; };
 		4CB808832964AF4600BC59FE /* CSSCounterStyleDescriptors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSCounterStyleDescriptors.h; sourceTree = "<group>"; };
 		4CB808842964AF4700BC59FE /* CSSCounterStyleDescriptors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCounterStyleDescriptors.cpp; sourceTree = "<group>"; };
+		4CBBE5192C5D41AF00B7786E /* TextSpacing.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextSpacing.cpp; sourceTree = "<group>"; };
 		4CBE86962955BA7F00832AAA /* CSSCounterStyleRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSCounterStyleRegistry.h; sourceTree = "<group>"; };
 		4CBE86972955BA7F00832AAA /* CSSCounterStyleRegistry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCounterStyleRegistry.cpp; sourceTree = "<group>"; };
 		4CF2530E29C09454005CDDAA /* ListStyleType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ListStyleType.cpp; sourceTree = "<group>"; };
@@ -33195,6 +33196,7 @@
 				BC4A533A256064E10028C592 /* TextDirection.h */,
 				71D475A627D741FC00644599 /* TextFlags.cpp */,
 				B2C3DA150D006C1D00EF6F26 /* TextFlags.h */,
+				4CBBE5192C5D41AF00B7786E /* TextSpacing.cpp */,
 				4C05BADF297AD120004FE77D /* TextSpacing.h */,
 				A863E2001343412000274926 /* UnicodeBidi.h */,
 				14476AA715DC4BB100305DB2 /* WritingMode.h */,

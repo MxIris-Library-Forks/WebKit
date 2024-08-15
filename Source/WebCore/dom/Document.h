@@ -423,7 +423,7 @@ class Document
     , public Supplementable<Document>
     , public Logger::Observer
     , public ReportingClient {
-    WTF_MAKE_ISO_ALLOCATED_EXPORT(Document, WEBCORE_EXPORT);
+    WTF_MAKE_TZONE_OR_ISO_ALLOCATED_EXPORT(Document, WEBCORE_EXPORT);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(Document);
 public:
     using EventTarget::weakPtrFactory;
@@ -1388,7 +1388,8 @@ public:
     void enqueueHashchangeEvent(const String& oldURL, const String& newURL);
     void dispatchPopstateEvent(RefPtr<SerializedScriptValue>&& stateObject);
 
-    bool resolveViewTransitionRule();
+    class SkipTransition { };
+    std::variant<SkipTransition, Vector<AtomString>> resolveViewTransitionRule();
 
     WEBCORE_EXPORT void addMediaCanStartListener(MediaCanStartListener&);
     WEBCORE_EXPORT void removeMediaCanStartListener(MediaCanStartListener&);

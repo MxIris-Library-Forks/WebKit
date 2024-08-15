@@ -167,7 +167,7 @@ RefPtr<CSSValue> consumeScrollSnapAlign(CSSParserTokenRange&);
 RefPtr<CSSValue> consumeScrollSnapType(CSSParserTokenRange&);
 RefPtr<CSSValue> consumeScrollbarColor(CSSParserTokenRange&, const CSSParserContext&);
 RefPtr<CSSValue> consumeScrollbarGutter(CSSParserTokenRange&);
-RefPtr<CSSValue> consumeTextBoxEdge(CSSParserTokenRange&);
+RefPtr<CSSValue> consumeTextEdge(CSSPropertyID, CSSParserTokenRange&);
 RefPtr<CSSValue> consumeViewTransitionName(CSSParserTokenRange&);
 RefPtr<CSSValue> consumeBorderRadiusCorner(CSSParserTokenRange&, CSSParserMode);
 bool consumeRadii(std::array<RefPtr<CSSValue>, 4>& horizontalRadii, std::array<RefPtr<CSSValue>, 4>& verticalRadii, CSSParserTokenRange&, CSSParserMode, bool useLegacyParsing);
@@ -226,6 +226,7 @@ RefPtr<CSSValue> consumeAnimationTimelineView(CSSParserTokenRange&, const CSSPar
 RefPtr<CSSValue> consumeViewTimelineInsetListItem(CSSParserTokenRange&, const CSSParserContext&);
 RefPtr<CSSValue> consumeViewTimelineInset(CSSParserTokenRange&, const CSSParserContext&);
 RefPtr<CSSPrimitiveValue> consumeAnchor(CSSParserTokenRange&, CSSParserMode);
+RefPtr<CSSValue> consumeViewTransitionTypes(CSSParserTokenRange&);
 
 RefPtr<CSSValue> consumeDeclarationValue(CSSParserTokenRange&, const CSSParserContext&);
 

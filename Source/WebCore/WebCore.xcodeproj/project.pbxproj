@@ -5379,7 +5379,7 @@
 		DD17C082286EC57400D60B58 /* build in Copy PDF.js */ = {isa = PBXBuildFile; fileRef = DD17C07C286EC51900D60B58 /* build */; };
 		DD17C083286EC57700D60B58 /* LICENSE in Copy PDF.js */ = {isa = PBXBuildFile; fileRef = DD17C080286EC51B00D60B58 /* LICENSE */; };
 		DD17C084286EC57A00D60B58 /* web in Copy PDF.js */ = {isa = PBXBuildFile; fileRef = DD17C07E286EC51A00D60B58 /* web */; };
-		DD1C779029354C77003BD79B /* StyleTextBoxEdge.h in Headers */ = {isa = PBXBuildFile; fileRef = DD1C778F29354C75003BD79B /* StyleTextBoxEdge.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */ = {isa = PBXBuildFile; fileRef = DD1C778F29354C75003BD79B /* StyleTextEdge.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD308A2D2A82F684000A2687 /* AbstractLineBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD5ACFD82B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD763BB20992C2C900740B8E /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DD763BB10992C2C900740B8E /* libxml2.dylib */; };
@@ -10897,7 +10897,7 @@
 		494BD79C0F55C94C00747828 /* JSWebKitPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWebKitPoint.h; sourceTree = "<group>"; };
 		494EBD0627AA9C5300F4844F /* PDFDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PDFDocument.h; sourceTree = "<group>"; };
 		494EBD0827AA9C5300F4844F /* PDFDocument.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PDFDocument.cpp; sourceTree = "<group>"; };
-		49560D0C2C4F937200224361 /* StyleTextBoxEdge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextBoxEdge.cpp; sourceTree = "<group>"; };
+		49560D0C2C4F937200224361 /* StyleTextEdge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextEdge.cpp; sourceTree = "<group>"; };
 		4958781F12A57DDF007238AC /* PlatformCAAnimationCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PlatformCAAnimationCocoa.mm; sourceTree = "<group>"; };
 		4958782012A57DDF007238AC /* PlatformCALayerCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PlatformCALayerCocoa.mm; sourceTree = "<group>"; };
 		4965EA8E2ADF71D5004AE3E0 /* CheckVisibilityOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CheckVisibilityOptions.idl; sourceTree = "<group>"; };
@@ -18907,7 +18907,7 @@
 		DD17C07C286EC51900D60B58 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; path = build; sourceTree = "<group>"; };
 		DD17C07E286EC51A00D60B58 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = web; sourceTree = "<group>"; };
 		DD17C080286EC51B00D60B58 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		DD1C778F29354C75003BD79B /* StyleTextBoxEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleTextBoxEdge.h; sourceTree = "<group>"; };
+		DD1C778F29354C75003BD79B /* StyleTextEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleTextEdge.h; sourceTree = "<group>"; };
 		DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractLineBuilder.h; sourceTree = "<group>"; };
 		DD5ACFD62B14DAD600B36C57 /* LayoutIntegrationBoxGeometryUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationBoxGeometryUpdater.cpp; sourceTree = "<group>"; };
 		DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationBoxGeometryUpdater.h; sourceTree = "<group>"; };
@@ -33691,8 +33691,8 @@
 				9D63800F1AF16E160031A15C /* StyleSelfAlignmentData.h */,
 				BC5EB5E60E81BFEF00B25965 /* StyleSurroundData.cpp */,
 				BC5EB5E40E81BF6D00B25965 /* StyleSurroundData.h */,
-				49560D0C2C4F937200224361 /* StyleTextBoxEdge.cpp */,
-				DD1C778F29354C75003BD79B /* StyleTextBoxEdge.h */,
+				49560D0C2C4F937200224361 /* StyleTextEdge.cpp */,
+				DD1C778F29354C75003BD79B /* StyleTextEdge.h */,
 				BC5EB80D0E81F2CE00B25965 /* StyleTransformData.cpp */,
 				BC5EB80E0E81F2CE00B25965 /* StyleTransformData.h */,
 				32DAE2362994A50C00F0E767 /* StyleVisitedLinkColorData.cpp */,
@@ -42669,7 +42669,7 @@
 				E46B72512B61141D00A1F9B5 /* StyleSheetContentsCache.h in Headers */,
 				A8EA800A0A19516E00A8EF5F /* StyleSheetList.h in Headers */,
 				BC5EB5E50E81BF6D00B25965 /* StyleSurroundData.h in Headers */,
-				DD1C779029354C77003BD79B /* StyleTextBoxEdge.h in Headers */,
+				DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */,
 				BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */,
 				E4DEAA1817A93DC3000E0430 /* StyleTreeResolver.h in Headers */,
 				E42E76DC1C7AF77600E3614D /* StyleUpdate.h in Headers */,

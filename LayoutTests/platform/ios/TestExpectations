@@ -3600,6 +3600,8 @@ imported/w3c/web-platform-tests/css/css-pseudo/selection-background-painting-ord
 imported/w3c/web-platform-tests/css/css-pseudo/selection-originating-decoration-color.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/selection-originating-underline-order.html [ ImageOnlyFailure ]
 
+webkit.org/b/278056 imported/w3c/web-platform-tests/css/css-pseudo/target-text-007.html [ ImageOnlyFailure ]
+
 # These tests require platform support.
 # <rdar://problem/87944426>
 fast/text/locale-shaping-2.html [ Pass ImageOnlyFailure ]
@@ -7509,4 +7511,8 @@ imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/stretch-along-bl
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-minsize-maxsize-001.html [ Pass Failure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-stretch-properties-dynamic-001.html [ Pass Failure ]
 
-webkit.org/b/278051 http/tests/resourceLoadStatistics/prevalent-resource-unhandled-keydown.html [ Pass Failure ]
+# webkit.org/b/278080 (6+ fast/forms/ios/* layout tests are flakily timing out (<20%).)
+fast/forms/ios/focus-button.html [ Pass Timeout ]
+fast/forms/ios/focus-checkbox.html [ Pass Timeout ]
+fast/forms/ios/focus-checked-checkbox.html [ Pass Timeout ]
+fast/forms/ios/focus-checked-radio.html [ Pass Timeout ]

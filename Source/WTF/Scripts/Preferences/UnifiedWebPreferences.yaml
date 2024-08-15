@@ -946,10 +946,8 @@ BuiltInNotificationsEnabled:
   condition: ENABLE(WEB_PUSH_NOTIFICATIONS)
   defaultValue:
     WebCore:
-      "PLATFORM(IOS) && !PLATFORM(IOS_FAMILY_SIMULATOR)": true
       default: false
     WebKit:
-      "PLATFORM(IOS) && !PLATFORM(IOS_FAMILY_SIMULATOR)": true
       default: false
 
 CFNetworkNetworkLoaderEnabled:
@@ -6840,6 +6838,20 @@ TabsToLinks:
       default: false
     WebKit:
       "PLATFORM(GTK) || PLATFORM(WPE)": true
+      default: false
+
+TargetTextPseudoElementEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "::target-text pseudo-element"
+  humanReadableDescription: "Enable the ::target-text CSS pseudo-element"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
       default: false
 
 TelephoneNumberParsingEnabled:

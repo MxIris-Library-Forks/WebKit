@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,28 +23,22 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "WKWebExtensionTabCreationOptions.h"
+#include "config.h"
+#include "StyleTextEdge.h"
 
-WK_HEADER_AUDIT_BEGIN(nullability, sendability)
+#include <wtf/text/TextStream.h>
 
-#if ENABLE(WK_WEB_EXTENSIONS)
+namespace WebCore {
 
-@interface WKWebExtensionTabCreationOptions ()
+WTF::TextStream& operator<<(WTF::TextStream& ts, TextEdge edge)
+{
+    if (edge.over == edge.under) {
+        ts << edge.over;
+        return ts;
+    }
 
-- (instancetype)_init NS_DESIGNATED_INITIALIZER;
+    ts << edge.over << ' ' << edge.under;
+    return ts;
+}
 
-@property (readwrite, setter=_setWindow:) id <WKWebExtensionWindow> window;
-@property (readwrite, setter=_setIndex:) NSUInteger index;
-@property (readwrite, setter=_setParentTab:) id <WKWebExtensionTab> parentTab;
-@property (readwrite, setter=_setURL:) NSURL *url;
-@property (readwrite, setter=_setActive:) BOOL active;
-@property (readwrite, setter=_setSelected:) BOOL selected;
-@property (readwrite, setter=_setPinned:) BOOL pinned;
-@property (readwrite, setter=_setMuted:) BOOL muted;
-@property (readwrite, setter=_setReaderModeShowing:) BOOL readerModeShowing;
-
-@end
-
-#endif // ENABLE(WK_WEB_EXTENSIONS)
-
-WK_HEADER_AUDIT_END(nullability, sendability)
+}

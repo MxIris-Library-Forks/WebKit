@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2023-2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,19 +23,22 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "WKWebExtensionWindowConfiguration.h"
 
-#include "RenderStyleConstants.h"
+#if ENABLE(WK_WEB_EXTENSIONS)
 
-namespace WebCore {
+@interface WKWebExtensionWindowConfiguration ()
 
-struct TextBoxEdge {
-    TextBoxEdgeType over { TextBoxEdgeType::Leading };
-    TextBoxEdgeType under { TextBoxEdgeType::Leading };
+- (instancetype)_init NS_DESIGNATED_INITIALIZER;
 
-    friend bool operator==(const TextBoxEdge&, const TextBoxEdge&) = default;
-};
+@property (readwrite, setter=_setFrame:) CGRect frame;
+@property (readwrite, setter=_setWindowType:) WKWebExtensionWindowType windowType;
+@property (readwrite, setter=_setWindowState:) WKWebExtensionWindowState windowState;
+@property (readwrite, setter=_setTabURLs:) NSArray<NSURL *> *tabURLs;
+@property (readwrite, setter=_setTabs:) NSArray<id <WKWebExtensionTab>> *tabs;
+@property (readwrite, setter=_setShouldBeFocused:) BOOL shouldBeFocused;
+@property (readwrite, setter=_setShouldBePrivate:) BOOL shouldBePrivate;
 
-WTF::TextStream& operator<<(WTF::TextStream&, TextBoxEdge);
+@end
 
-} // namespace WebCore
+#endif // ENABLE(WK_WEB_EXTENSIONS)

@@ -38,9 +38,6 @@ typedef unsigned EGLenum;
 #if USE(LIBDRM)
 typedef void *EGLDeviceEXT;
 #endif
-#if USE(GBM)
-struct gbm_device;
-#endif
 
 #if PLATFORM(GTK)
 #include <wtf/glib/GRefPtr.h>
@@ -119,7 +116,6 @@ public:
     const String& drmRenderNodeFile();
 #endif
 #if USE(GBM)
-    struct gbm_device* gbmDevice();
     struct DMABufFormat {
         uint32_t fourcc { 0 };
         Vector<uint64_t, 1> modifiers;
@@ -145,6 +141,7 @@ public:
 #if USE(SKIA)
     GLContext* skiaGLContext();
     GrDirectContext* skiaGrContext();
+    unsigned msaaSampleCount() const;
 #endif
 
 #if USE(ATSPI)

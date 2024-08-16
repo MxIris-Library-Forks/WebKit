@@ -57,8 +57,7 @@ RefPtr<RemoteGPUProxy> RemoteGPUProxy::create(WebGPU::ConvertToBackingContext& c
 RefPtr<RemoteGPUProxy> RemoteGPUProxy::create(WebGPU::ConvertToBackingContext& convertToBackingContext, RemoteRenderingBackendProxy& renderingBackend, SerialFunctionDispatcher& dispatcher)
 {
     constexpr size_t connectionBufferSizeLog2 = 21;
-    constexpr Seconds defaultTimeoutDuration = 30_s;
-    auto connectionPair = IPC::StreamClientConnection::create(connectionBufferSizeLog2, defaultTimeoutDuration);
+    auto connectionPair = IPC::StreamClientConnection::create(connectionBufferSizeLog2, WebProcess::singleton().gpuProcessTimeoutDuration());
     if (!connectionPair)
         return nullptr;
     auto [clientConnection, serverConnectionHandle] = WTFMove(*connectionPair);
@@ -200,7 +199,7 @@ void RemoteGPUProxy::requestAdapter(const WebCore::WebGPU::RequestAdapterOptions
         response->limits.maxComputeWorkgroupSizeZ,
         response->limits.maxComputeWorkgroupsPerDimension
     );
-    callback(WebGPU::RemoteAdapterProxy::create(WTFMove(response->name), WTFMove(resultSupportedFeatures), WTFMove(resultSupportedLimits), response->isFallbackAdapter, *this, m_convertToBackingContext, identifier));
+    callback(WebGPU::RemoteAdapterProxy::create(WTFMove(response->name), WTFMove(resultSupportedFeatures), WTFMove(resultSupportedLimits), response->isFallbackAdapter, options.xrCompatible, *this, m_convertToBackingContext, identifier));
 }
 
 RefPtr<WebCore::WebGPU::PresentationContext> RemoteGPUProxy::createPresentationContext(const WebCore::WebGPU::PresentationContextDescriptor& descriptor)
@@ -331,6 +330,22 @@ bool RemoteGPUProxy::isValid(const WebCore::WebGPU::Texture&) const
     RELEASE_ASSERT_NOT_REACHED();
 }
 bool RemoteGPUProxy::isValid(const WebCore::WebGPU::TextureView&) const
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+bool RemoteGPUProxy::isValid(const WebCore::WebGPU::XRBinding&) const
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+bool RemoteGPUProxy::isValid(const WebCore::WebGPU::XRSubImage&) const
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+bool RemoteGPUProxy::isValid(const WebCore::WebGPU::XRProjectionLayer&) const
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+bool RemoteGPUProxy::isValid(const WebCore::WebGPU::XRView&) const
 {
     RELEASE_ASSERT_NOT_REACHED();
 }

@@ -1879,12 +1879,15 @@ void Document::setVisualUpdatesAllowed(ReadyState readyState)
     }
 }
 
-void Document::addVisualUpdatePreventedReason(VisualUpdatesPreventedReason reason)
+void Document::addVisualUpdatePreventedReason(VisualUpdatesPreventedReason reason, CompletePageTransition completePageTransition)
 {
     m_visualUpdatesPreventedReasons.add(reason);
 
     if (visualUpdatePreventRequiresLayoutMilestones().contains(reason))
         m_visualUpdatesAllowedChangeRequiresLayoutMilestones = true;
+
+    if (completePageTransition == CompletePageTransition::Yes)
+        m_visualUpdatesAllowedChangeCompletesPageTransition = true;
 
     if (!m_visualUpdatesSuppressionTimer.isActive() && visualUpdatePreventReasonsClearedByTimer().contains(reason))
         m_visualUpdatesSuppressionTimer.startOneShot(1_s * settings().incrementalRenderingSuppressionTimeoutInSeconds());
@@ -1915,8 +1918,10 @@ void Document::removeVisualUpdatePreventedReasons(OptionSet<VisualUpdatesPrevent
     if (CheckedPtr renderView = this->renderView())
         renderView->repaintViewAndCompositedLayers();
 
-    if (RefPtr frame = this->frame())
+    if (RefPtr frame = this->frame(); m_visualUpdatesAllowedChangeCompletesPageTransition)
         frame->checkedLoader()->completePageTransitionIfNeeded();
+    m_visualUpdatesAllowedChangeCompletesPageTransition = false;
+    scheduleRenderingUpdate({ });
 }
 
 void Document::visualUpdatesSuppressionTimerFired()
@@ -2556,6 +2561,10 @@ void Document::resolveStyle(ResolveStyleType type)
             if (RefPtr documentElement = this->documentElement())
                 documentElement->invalidateStyleForSubtree();
         }
+
+        // FIXME: Be smarter about invalidation for anchor positioning.
+        // This simply repeats the entire anchor-positioning process.
+        styleScope().clearAnchorPositioningState();
 
         Style::TreeResolver resolver(*this, WTFMove(m_pendingRenderTreeUpdate));
         auto styleUpdate = resolver.resolve();
@@ -8296,6 +8305,49 @@ void Document::clearScriptedAnimationController()
     // FIXME: consider using ActiveDOMObject.
     if (RefPtr scriptedAnimationController = std::exchange(m_scriptedAnimationController, nullptr))
         scriptedAnimationController->clearDocumentPointer();
+}
+
+// https://html.spec.whatwg.org/multipage/dom.html#render-blocking-mechanism
+bool Document::allowsAddingRenderBlockedElements() const
+{
+    return contentType() == "text/html"_s && !body();
+}
+
+bool Document::isRenderBlocked() const
+{
+    return m_visualUpdatesPreventedReasons.contains(VisualUpdatesPreventedReason::RenderBlocking);
+}
+
+void Document::blockRenderingOn(Element& element, ImplicitRenderBlocking implicit)
+{
+    if (allowsAddingRenderBlockedElements()) {
+        m_renderBlockingElements.add(element);
+
+        // Only forcibly complete the page transition when blocking ends (and override any
+        // rendering freezing from WebKit) if the document has explictly opted-into render blocking.
+        auto completePageTransition = CompletePageTransition::Yes;
+        if (implicit == ImplicitRenderBlocking::Yes)
+            completePageTransition = CompletePageTransition::No;
+
+        addVisualUpdatePreventedReason(VisualUpdatesPreventedReason::RenderBlocking, completePageTransition);
+    }
+}
+
+void Document::unblockRenderingOn(Element& element)
+{
+    m_renderBlockingElements.remove(element);
+    if (m_renderBlockingElements.isEmptyIgnoringNullReferences())
+        removeVisualUpdatePreventedReasons(VisualUpdatesPreventedReason::RenderBlocking);
+}
+
+// https://html.spec.whatwg.org/multipage/links.html#process-internal-resource-links
+void Document::processInternalResourceLinks(HTMLAnchorElement& anchor)
+{
+    auto copy = copyToVector(m_renderBlockingElements);
+    for (auto& element : copy) {
+        if (RefPtr link = dynamicDowncast<HTMLLinkElement>(element.get()))
+            link->processInternalResourceLink(&anchor);
+    }
 }
 
 CheckedRef<FrameSelection> Document::checkedSelection()

@@ -54,6 +54,7 @@
 #include <wtf/CompletionHandler.h>
 #include <wtf/LogInitialization.h>
 #include <wtf/MachSendRight.h>
+#include <wtf/TZoneMallocInlines.h>
 #include <wtf/TranslatedProcess.h>
 
 #if PLATFORM(IOS_FAMILY)
@@ -70,8 +71,8 @@
 #include <wtf/BlockPtr.h>
 #endif
 
-#if USE(GBM)
-#include <WebCore/PlatformDisplay.h>
+#if PLATFORM(GTK) || PLATFORM(WPE)
+#include "DRMDevice.h"
 #endif
 
 #if ENABLE(EXTENSION_CAPABILITIES)
@@ -108,6 +109,8 @@ static RefPtr<GPUProcessProxy>& keptAliveGPUProcessProxy()
     static MainThreadNeverDestroyed<RefPtr<GPUProcessProxy>> keptAliveGPUProcessProxy;
     return keptAliveGPUProcessProxy.get();
 }
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(GPUProcessProxy);
 
 void GPUProcessProxy::keepProcessAliveTemporarily()
 {
@@ -202,7 +205,7 @@ GPUProcessProxy::GPUProcessProxy()
 #endif
 
 #if USE(GBM)
-    parameters.renderDeviceFile = WebCore::PlatformDisplay::sharedDisplay().drmRenderNodeFile();
+    parameters.renderDeviceFile = drmRenderNodeDevice();
 #endif
 
     platformInitializeGPUProcessParameters(parameters);

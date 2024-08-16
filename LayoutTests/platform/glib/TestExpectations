@@ -3642,8 +3642,6 @@ webkit.org/b/232386 fast/xpath/nodeset-duplicates.html [ Failure ]
 webkit.org/b/232386 fast/xsl/extra-lf-at-end.html [ Failure ]
 webkit.org/b/232386 ietestcenter/css3/bordersbackgrounds/background-attachment-local-scrolling.htm [ Failure ]
 webkit.org/b/232386 ietestcenter/css3/bordersbackgrounds/background-size-aspect-ratio.htm [ Failure ]
-webkit.org/b/232386 imported/blink/css3/filters/effect-reference-add-hw.html [ ImageOnlyFailure ]
-webkit.org/b/232386 imported/blink/css3/filters/effect-reference-source-alpha-hw.html [ ImageOnlyFailure ]
 webkit.org/b/232386 imported/blink/svg/as-image/zero-size-buffered-image-nopaint.html [ ImageOnlyFailure ]
 webkit.org/b/232386 scrollbars/scrollbar-drag-thumb-with-large-content.html [ Failure ]
 webkit.org/b/232386 svg/as-object/mutate-on-load.html [ ImageOnlyFailure ]
@@ -4121,6 +4119,8 @@ imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking
 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-011.html [ Failure ]
 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-020.html [ Failure ]
 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-021.html [ Failure ]
+imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-024.html [ Failure ]
+imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-027.html [ Failure ]
 
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/read-media/pageload-video.html [ Failure ]
 

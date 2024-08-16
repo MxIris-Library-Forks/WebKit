@@ -28,6 +28,7 @@
 #include "config.h"
 #include "WebProcessPool.h"
 
+#include "DRMDevice.h"
 #include "LegacyGlobalSettings.h"
 #include "MemoryPressureMonitor.h"
 #include "WebMemoryPressureHandler.h"
@@ -62,8 +63,8 @@
 #include <wpe/wpe-platform.h>
 #endif
 
-#if USE(GBM)
-#include <WebCore/DRMDeviceManager.h>
+#if !USE(SYSTEM_MALLOC) && OS(LINUX)
+#include <bmalloc/valgrind.h>
 #endif
 
 namespace WebKit {
@@ -74,6 +75,20 @@ void WebProcessPool::platformInitialize(NeedsGlobalStaticInitialization)
 
     if (const char* forceComplexText = getenv("WEBKIT_FORCE_COMPLEX_TEXT"))
         m_alwaysUsesComplexTextCodePath = !strcmp(forceComplexText, "1");
+
+#if !ENABLE(2022_GLIB_API)
+    if (const char* forceSandbox = getenv("WEBKIT_FORCE_SANDBOX")) {
+        if (!strcmp(forceSandbox, "1"))
+            setSandboxEnabled(true);
+        else {
+            static bool once = false;
+            if (!once) {
+                g_warning("WEBKIT_FORCE_SANDBOX no longer allows disabling the sandbox. Use WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1 instead.");
+                once = true;
+            }
+        }
+    }
+#endif
 
 #if OS(LINUX)
     if (!MemoryPressureMonitor::disabled())
@@ -88,17 +103,7 @@ void WebProcessPool::platformInitializeWebProcess(const WebProcessProxy& process
 #endif
 
 #if USE(GBM)
-#if PLATFORM(WPE) && ENABLE(WPE_PLATFORM)
-    if (usingWPEPlatformAPI)
-        parameters.renderDeviceFile = String::fromUTF8(wpe_display_get_drm_render_node(wpe_display_get_primary()));
-    else
-        parameters.renderDeviceFile = WebCore::PlatformDisplay::sharedDisplay().drmRenderNodeFile();
-#else
-    parameters.renderDeviceFile = WebCore::PlatformDisplay::sharedDisplay().drmRenderNodeFile();
-#endif
-    auto& manager = WebCore::DRMDeviceManager::singleton();
-    if (!manager.isInitialized())
-        manager.initializeMainDevice(parameters.renderDeviceFile);
+    parameters.renderDeviceFile = drmRenderNodeDevice();
 #endif
 
 #if PLATFORM(GTK)
@@ -180,6 +185,35 @@ void WebProcessPool::platformInvalidateContext()
 
 void WebProcessPool::platformResolvePathsForSandboxExtensions()
 {
+}
+
+void WebProcessPool::setSandboxEnabled(bool enabled)
+{
+    if (m_sandboxEnabled == enabled)
+        return;
+
+    if (!enabled) {
+#if !ENABLE(2022_GLIB_API)
+        if (const char* forceSandbox = getenv("WEBKIT_FORCE_SANDBOX")) {
+            if (!strcmp(forceSandbox, "1"))
+                return;
+        }
+#endif
+        m_sandboxEnabled = false;
+        return;
+    }
+
+#if !USE(SYSTEM_MALLOC)
+    if (RUNNING_ON_VALGRIND)
+        return;
+#endif
+
+    if (const char* disableSandbox = getenv("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS")) {
+        if (strcmp(disableSandbox, "0"))
+            return;
+    }
+
+    m_sandboxEnabled = true;
 }
 
 } // namespace WebKit

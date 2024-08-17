@@ -124,10 +124,19 @@ extern ASCIILiteral errorAsString(Error);
 #define MESSAGE_CHECK_BASE(assertion, connection) MESSAGE_CHECK_COMPLETION_BASE(assertion, connection, (void)0)
 #define MESSAGE_CHECK_BASE_COROUTINE(assertion, connection) MESSAGE_CHECK_COMPLETION_BASE_COROUTINE(assertion, connection, (void)0)
 
+#define MESSAGE_CHECK_OPTIONAL_CONNECTION_BASE(assertion, connection) do { \
+    if (UNLIKELY(!(assertion))) { \
+        RELEASE_LOG_FAULT(IPC, __FILE__ " " CONNECTION_STRINGIFY_MACRO(__LINE__) ": Invalid message dispatched %" PUBLIC_LOG_STRING, WTF_PRETTY_FUNCTION); \
+        if (RefPtr processConnection = connection) \
+            processConnection->markCurrentlyDispatchedMessageAsInvalid(); \
+        return; \
+    } \
+} while (0)
+
 #define MESSAGE_CHECK_COMPLETION_BASE(assertion, connection, completion) do { \
     if (UNLIKELY(!(assertion))) { \
         RELEASE_LOG_FAULT(IPC, __FILE__ " " CONNECTION_STRINGIFY_MACRO(__LINE__) ": Invalid message dispatched %" PUBLIC_LOG_STRING, WTF_PRETTY_FUNCTION); \
-        (connection)->markCurrentlyDispatchedMessageAsInvalid(); \
+        (connection).markCurrentlyDispatchedMessageAsInvalid(); \
         { completion; } \
         return; \
     } \
@@ -136,7 +145,7 @@ extern ASCIILiteral errorAsString(Error);
 #define MESSAGE_CHECK_COMPLETION_BASE_COROUTINE(assertion, connection, completion) do { \
     if (UNLIKELY(!(assertion))) { \
         RELEASE_LOG_FAULT(IPC, __FILE__ " " CONNECTION_STRINGIFY_MACRO(__LINE__) ": Invalid message dispatched %" PUBLIC_LOG_STRING, WTF_PRETTY_FUNCTION); \
-        (connection)->markCurrentlyDispatchedMessageAsInvalid(); \
+        (connection).markCurrentlyDispatchedMessageAsInvalid(); \
         { completion; } \
         co_return { }; \
     } \
@@ -145,7 +154,7 @@ extern ASCIILiteral errorAsString(Error);
 #define MESSAGE_CHECK_WITH_RETURN_VALUE_BASE(assertion, connection, returnValue) do { \
     if (UNLIKELY(!(assertion))) { \
         RELEASE_LOG_FAULT(IPC, __FILE__ " " CONNECTION_STRINGIFY_MACRO(__LINE__) ": Invalid message dispatched %" PUBLIC_LOG_STRING, WTF_PRETTY_FUNCTION); \
-        (connection)->markCurrentlyDispatchedMessageAsInvalid(); \
+        (connection).markCurrentlyDispatchedMessageAsInvalid(); \
         return (returnValue); \
     } \
 } while (0)
@@ -224,7 +233,7 @@ public:
     class Client : public MessageReceiver {
     public:
         virtual void didClose(Connection&) = 0;
-        virtual void didReceiveInvalidMessage(Connection&, MessageName) = 0;
+        virtual void didReceiveInvalidMessage(Connection&, MessageName, int32_t indexOfObjectFailingDecoding) = 0;
         virtual void requestRemoteProcessTermination() { }
 
     protected:
@@ -460,7 +469,7 @@ public:
 
     void dispatchMessageReceiverMessage(MessageReceiver&, UniqueRef<Decoder>&&);
     // Can be called from any thread.
-    void dispatchDidReceiveInvalidMessage(MessageName);
+    void dispatchDidReceiveInvalidMessage(MessageName, int32_t indexOfObjectFailingDecoding);
     void dispatchDidCloseAndInvalidate();
 
     size_t pendingMessageCountForTesting() const;

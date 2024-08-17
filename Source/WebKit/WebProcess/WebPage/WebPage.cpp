@@ -2032,7 +2032,7 @@ void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, st
 
 void WebPage::loadRequest(LoadParameters&& loadParameters)
 {
-    WEBPAGE_RELEASE_LOG(Loading, "loadRequest: navigationID=%" PRIu64 ", shouldTreatAsContinuingLoad=%u, lastNavigationWasAppInitiated=%d, existingNetworkResourceLoadIdentifierToResume=%" PRIu64, loadParameters.navigationID.value_or(NavigationIdentifier { }).toUInt64(), static_cast<unsigned>(loadParameters.shouldTreatAsContinuingLoad), loadParameters.request.isAppInitiated(), valueOrDefault(loadParameters.existingNetworkResourceLoadIdentifierToResume).toUInt64());
+    WEBPAGE_RELEASE_LOG(Loading, "loadRequest: navigationID=%" PRIu64 ", shouldTreatAsContinuingLoad=%u, lastNavigationWasAppInitiated=%d, existingNetworkResourceLoadIdentifierToResume=%" PRIu64, loadParameters.navigationID ? loadParameters.navigationID->toUInt64() : 0, static_cast<unsigned>(loadParameters.shouldTreatAsContinuingLoad), loadParameters.request.isAppInitiated(), valueOrDefault(loadParameters.existingNetworkResourceLoadIdentifierToResume).toUInt64());
 
     RefPtr frame = loadParameters.frameIdentifier ? WebProcess::singleton().webFrame(*loadParameters.frameIdentifier) : m_mainFrame.ptr();
     if (!frame) {
@@ -2058,7 +2058,7 @@ void WebPage::loadRequest(LoadParameters&& loadParameters)
 
     SendStopResponsivenessTimer stopper;
 
-    m_pendingNavigationID = loadParameters.navigationID.value_or(WebCore::NavigationIdentifier { });
+    m_pendingNavigationID = loadParameters.navigationID;
     m_pendingWebsitePolicies = WTFMove(loadParameters.websitePolicies);
 
     m_sandboxExtensionTracker.beginLoad(WTFMove(loadParameters.sandboxExtensionHandle));
@@ -2114,7 +2114,7 @@ void WebPage::loadDataImpl(std::optional<WebCore::NavigationIdentifier> navigati
 
     SendStopResponsivenessTimer stopper;
 
-    m_pendingNavigationID = navigationID.value_or(WebCore::NavigationIdentifier { });
+    m_pendingNavigationID = navigationID;
     m_pendingWebsitePolicies = WTFMove(websitePolicies);
 
     SubstituteData substituteData(WTFMove(sharedBuffer), unreachableURL, response, sessionHistoryVisibility);
@@ -2139,7 +2139,7 @@ void WebPage::loadDataImpl(std::optional<WebCore::NavigationIdentifier> navigati
 
 void WebPage::loadData(LoadParameters&& loadParameters)
 {
-    WEBPAGE_RELEASE_LOG(Loading, "loadData: navigationID=%" PRIu64 ", shouldTreatAsContinuingLoad=%u", loadParameters.navigationID.value_or(WebCore::NavigationIdentifier { }).toUInt64(), static_cast<unsigned>(loadParameters.shouldTreatAsContinuingLoad));
+    WEBPAGE_RELEASE_LOG(Loading, "loadData: navigationID=%" PRIu64 ", shouldTreatAsContinuingLoad=%u", loadParameters.navigationID ? loadParameters.navigationID->toUInt64() : 0, static_cast<unsigned>(loadParameters.shouldTreatAsContinuingLoad));
 
     platformDidReceiveLoadParameters(loadParameters);
 
@@ -2239,7 +2239,7 @@ void WebPage::reload(WebCore::NavigationIdentifier navigationID, OptionSet<WebCo
     if (m_pendingNavigationID) {
         // This can happen if FrameLoader::reload() returns early because the document URL is empty.
         // The reload does nothing so we need to reset the pending navigation. See webkit.org/b/153210.
-        m_pendingNavigationID = { };
+        m_pendingNavigationID = std::nullopt;
     }
 }
 
@@ -6966,20 +6966,28 @@ void WebPage::firstRectForCharacterRangeAsync(const EditingRange& editingRange, 
 
     auto rect = RefPtr(frame->view())->contentsToWindow(frame->editor().firstRectForRange(*range));
     auto startPosition = makeContainerOffsetPosition(range->start);
-    auto lineEndPosition = endOfLine(startPosition);
-    if (lineEndPosition.isNull())
-        lineEndPosition = startPosition;
-    auto lineEndBoundary = makeBoundaryPoint(lineEndPosition);
-    if (!lineEndBoundary)
+
+    auto endPosition = endOfLine(startPosition);
+    if (endPosition.isNull())
+        endPosition = startPosition;
+    else if (endPosition.affinity() == Affinity::Downstream && inSameLine(startPosition, endPosition)) {
+        auto nextLineStartPosition = positionOfNextBoundaryOfGranularity(endPosition, TextGranularity::LineGranularity, SelectionDirection::Forward);
+        if (nextLineStartPosition.isNotNull() && endPosition < nextLineStartPosition)
+            endPosition = nextLineStartPosition;
+    }
+
+    auto endBoundary = makeBoundaryPoint(endPosition);
+    if (!endBoundary)
         return completionHandler({ }, editingRange);
 
-    auto rangeForFirstLine = EditingRange::fromRange(*frame, makeSimpleRange(range->start, WTFMove(lineEndBoundary)));
+    auto rangeForFirstLine = EditingRange::fromRange(*frame, makeSimpleRange(range->start, WTFMove(endBoundary)));
 
     rangeForFirstLine.location = std::min(std::max(rangeForFirstLine.location, editingRange.location), editingRange.location + editingRange.length);
     rangeForFirstLine.length = std::min(rangeForFirstLine.location + rangeForFirstLine.length, editingRange.location + editingRange.length) - rangeForFirstLine.location;
 
     completionHandler(rect, rangeForFirstLine);
 }
+
 void WebPage::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const HashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selection, const EditingRange& replacementEditingRange)
 {
     platformWillPerformEditingCommand();
@@ -7732,13 +7740,13 @@ void WebPage::didSameDocumentNavigationForFrame(WebFrame& frame)
     auto navigationID = frame.coreLocalFrame()->loader().documentLoader()->navigationID();
 
     if (frame.isMainFrame())
-        m_pendingNavigationID = { };
+        m_pendingNavigationID = std::nullopt;
 
     // Notify the bundle client.
     injectedBundleLoaderClient().didSameDocumentNavigationForFrame(*this, frame, SameDocumentNavigationType::AnchorNavigation, userData);
 
     // Notify the UIProcess.
-    send(Messages::WebPageProxy::DidSameDocumentNavigationForFrame(frame.frameID(), navigationID.asOptional(), SameDocumentNavigationType::AnchorNavigation, frame.coreLocalFrame()->document()->url(), UserData(WebProcess::singleton().transformObjectsToHandles(userData.get()).get())));
+    send(Messages::WebPageProxy::DidSameDocumentNavigationForFrame(frame.frameID(), navigationID, SameDocumentNavigationType::AnchorNavigation, frame.coreLocalFrame()->document()->url(), UserData(WebProcess::singleton().transformObjectsToHandles(userData.get()).get())));
 
 #if ENABLE(PDF_PLUGIN)
     for (auto& pluginView : m_pluginViews)
@@ -7973,8 +7981,8 @@ Ref<DocumentLoader> WebPage::createDocumentLoader(LocalFrame& frame, const Resou
 
     if (frame.isMainFrame() || m_page->settings().siteIsolationEnabled()) {
         if (m_pendingNavigationID) {
-            documentLoader->setNavigationID(m_pendingNavigationID);
-            m_pendingNavigationID = { };
+            documentLoader->setNavigationID(*m_pendingNavigationID);
+            m_pendingNavigationID = std::nullopt;
         }
 
         if (m_pendingWebsitePolicies && frame.isMainFrame()) {
@@ -7990,8 +7998,8 @@ Ref<DocumentLoader> WebPage::createDocumentLoader(LocalFrame& frame, const Resou
 void WebPage::updateCachedDocumentLoader(DocumentLoader& documentLoader, LocalFrame& frame)
 {
     if (m_pendingNavigationID && frame.isMainFrame()) {
-        documentLoader.setNavigationID(m_pendingNavigationID);
-        m_pendingNavigationID = { };
+        documentLoader.setNavigationID(*m_pendingNavigationID);
+        m_pendingNavigationID = std::nullopt;
     }
 }
 
@@ -9857,7 +9865,7 @@ void WebPage::simulateClickOverFirstMatchingTextInViewportWithUserInteraction(co
         if (!target)
             continue;
 
-        auto textRects = RenderObject::absoluteTextRects(range, {
+        auto textRects = RenderObject::absoluteBorderAndTextRects(range, {
             RenderObject::BoundingRectBehavior::RespectClipping,
             RenderObject::BoundingRectBehavior::UseVisibleBounds,
             RenderObject::BoundingRectBehavior::IgnoreTinyRects,
@@ -9865,13 +9873,13 @@ void WebPage::simulateClickOverFirstMatchingTextInViewportWithUserInteraction(co
         });
 
         auto indexOfFirstRelevantTextRect = textRects.findIf([&](auto& textRect) {
-            return unobscuredContentRect.intersects(textRect);
+            return unobscuredContentRect.intersects(enclosingIntRect(textRect));
         });
 
         if (indexOfFirstRelevantTextRect == notFound)
             continue;
 
-        candidates.append({ target.releaseNonNull(), textRects[indexOfFirstRelevantTextRect].center() });
+        candidates.append({ target.releaseNonNull(), roundedIntPoint(textRects[indexOfFirstRelevantTextRect].center()) });
     }
 
     removeNonHitTestableCandidates();

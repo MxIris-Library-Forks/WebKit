@@ -3447,10 +3447,11 @@ imported/w3c/web-platform-tests/css/css-pseudo/slider/slider-track-001.html [ Im
 imported/w3c/web-platform-tests/css/css-pseudo/slider/slider-track-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/slider/slider-track-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-002.html [ ImageOnlyFailure ]
-# WPT support ::target-text (webkit.org/b/236817)
+# Implement highlight pseudo-element cascade / painting behaviors (webkit.org/b/278216)
 imported/w3c/web-platform-tests/css/css-pseudo/target-text-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/target-text-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/target-text-009.html [ ImageOnlyFailure ]
+# Incorrect test, needs WPT resync (webkit.org/b/277692)
 imported/w3c/web-platform-tests/css/css-pseudo/target-text-dynamic-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/selection-background-painting-order.html [ ImageOnlyFailure ]
 
@@ -7342,6 +7343,9 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-0
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,alphabetic [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,leading [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,text [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=auto [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vlr,auto [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,auto [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=cap [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ex [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=leading [ Skip ]
@@ -7353,6 +7357,9 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ex [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,leading [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,text [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=auto [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vlr,auto [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,auto [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-atomic-inline-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-float-clear-br-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-float-clear-br-003.html [ ImageOnlyFailure ]
@@ -7364,7 +7371,6 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-multi
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-multicol-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-ruby-end-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-ruby-start-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/parsing/text-box-valid.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-dynamic-001.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-dynamic-002.html [ Skip ]
 
@@ -7565,7 +7571,6 @@ imported/w3c/web-platform-tests/css/css-view-transitions/scroller.html [ ImageOn
 imported/w3c/web-platform-tests/css/css-view-transitions/iframe-and-main-frame-transition-old-main-new-iframe.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/iframe-and-main-frame-transition-old-main-old-iframe.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/paint-holding-in-iframe.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/shadow-part-with-class.html [ ImageOnlyFailure ]
 
 # Timeouts
 imported/w3c/web-platform-tests/css/css-view-transitions/iframe-transition.sub.html [ Skip ]
@@ -7587,24 +7592,21 @@ imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-pars
 imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-parse-pseudo-argument.html?first-pseudo=::view-transition-group(first%20) [ Skip ]
 imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-parse-pseudo-argument.html?first-pseudo=::view-transition-group(first) [ Skip ]
 
+# View transitions Level 2 - types.
+# Test doesn't seem to pass on Chrome Canary.
+imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-mutable-no-document-element-crashtest.html [ Skip ]
+
 # View transitions Level 2 - classes.
-imported/w3c/web-platform-tests/css/css-view-transitions/class-specificity.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-entry.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-exit.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-match-ident.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-match-multiple-wildcard.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-match-multiple.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-match-wildcard.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-match-wildcard-no-star.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-multiple-vt-classes.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-new-with-class-old-without.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-view-transition-group.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-view-transition-image-pair.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-ident.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-partial.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-wildcard.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-old-with-class-new-without.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/shadow-part-with-class-inside-shadow-important.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/shadow-part-with-class-inside-shadow.html [ ImageOnlyFailure ]
 
 # View transitions Level 2 - cross document transitions.
-imported/w3c/web-platform-tests/css/css-view-transitions/navigation/with-types/at-rule-opt-in-auto-with-types-mutable.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/navigation/with-types/at-rule-opt-in-auto-with-types-no-cascade.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/navigation/with-types/at-rule-opt-in-auto-with-types.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/chromium-paint-holding-timeout.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/no-view-transition-with-cross-origin-redirect.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/root-element-transition-iframe-with-startVT-on-main.html [ ImageOnlyFailure ]
@@ -7612,17 +7614,6 @@ imported/w3c/web-platform-tests/css/css-view-transitions/navigation/root-element
 # prerender not supported.
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/prerender-removed-during-navigation.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/transition-to-prerender.html [ Skip ]
-
-# View transitions Level 2 - types.
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-match-early-mutation.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-match-early.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-match-late-mutation.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-matches.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-mutable-no-document-element-crashtest.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-removed.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-reserved-mutation.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-reserved.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-stay.html [ Skip ]
 
 # View transitions Level 2 - nested view-transitions
 imported/w3c/web-platform-tests/css/css-view-transitions/nested/ [ Skip ]
@@ -8119,9 +8110,7 @@ webkit.org/b/271692 imported/w3c/web-platform-tests/css/css-align/blocks/align-c
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-scroll.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-006.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-002.html [ ImageOnlyFailure ]
@@ -8130,13 +8119,11 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-00
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-fallback.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-composited-scrolling-006.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-fixedpos.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-fixedpos-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-nested.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-vrl.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-abs-inline-container.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-inline-container.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-scroll-adjust.html [ ImageOnlyFailure ]

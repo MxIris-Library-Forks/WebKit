@@ -1022,7 +1022,7 @@ CSSColorContrastEnabled:
 CSSColorLayersEnabled:
   type: bool
   category: css
-  status: testable
+  status: preview
   humanReadableName: "CSS color-layers()"
   humanReadableDescription: "Enable support for CSS color-layers()"
   defaultValue:
@@ -1926,12 +1926,12 @@ CookieStoreAPIExtendedAttributesEnabled:
     WebCore:
       default: false
 
-CookieStoreAPIServiceWorkerEnabled:
+CookieStoreManagerEnabled:
   type: bool
   category: dom
   status: testable
-  humanReadableName: "Cookie Store API for Service Workers"
-  humanReadableDescription: "Enable Cookie Store API for Service Workers"
+  humanReadableName: "Cookie Store API CookieStoreManager"
+  humanReadableDescription: "Enable Cookie Store API CookieStoreManager which controls cookie change subscriptions for Service Workers"
   defaultValue:
     WebKitLegacy:
       default: false
@@ -6857,7 +6857,7 @@ TabsToLinks:
 
 TargetTextPseudoElementEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "::target-text pseudo-element"
   humanReadableDescription: "Enable the ::target-text CSS pseudo-element"
@@ -6865,9 +6865,9 @@ TargetTextPseudoElementEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 TelephoneNumberParsingEnabled:
   type: bool
@@ -7552,12 +7552,12 @@ ViewGestureDebuggingEnabled:
     WebKit:
       default: false
 
-ViewTransitionTypesEnabled:
+ViewTransitionClassesEnabled:
   type: bool
   category: animation
   status: testable
-  humanReadableName: "View Transition Types"
-  humanReadableDescription: "Support specifying types for view transitions"
+  humanReadableName: "View Transition Classes"
+  humanReadableDescription: "Support specifying classes for view transitions"
   defaultValue:
     WebKitLegacy:
       default: false
@@ -7565,6 +7565,20 @@ ViewTransitionTypesEnabled:
       default: false
     WebCore:
       default: false
+
+ViewTransitionTypesEnabled:
+  type: bool
+  category: animation
+  status: stable
+  humanReadableName: "View Transition Types"
+  humanReadableDescription: "Support specifying types for view transitions"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
 
 ViewTransitionsEnabled:
   type: bool

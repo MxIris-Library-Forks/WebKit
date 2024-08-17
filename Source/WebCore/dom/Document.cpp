@@ -3,7 +3,7 @@
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
  *           (C) 2006 Alexey Proskuryakov (ap@webkit.org)
- * Copyright (C) 2004-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2004-2024 Apple Inc. All rights reserved.
  * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  * Copyright (C) 2008-2014 Google Inc. All rights reserved.
  * Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)
@@ -2795,16 +2795,16 @@ std::unique_ptr<RenderStyle> Document::styleForElementIgnoringPendingStylesheets
     }
 
     SetForScope change(m_ignorePendingStylesheets, true);
-    auto& resolver = element.styleResolver();
+    Ref resolver = element.styleResolver();
 
     if (pseudoElementIdentifier) {
-        auto style = resolver.styleForPseudoElement(element, { *pseudoElementIdentifier }, { parentStyle });
+        auto style = resolver->styleForPseudoElement(element, { *pseudoElementIdentifier }, { parentStyle });
         if (!style)
             return nullptr;
         return WTFMove(style->style);
     }
 
-    auto elementStyle = resolver.styleForElement(element, { parentStyle });
+    auto elementStyle = resolver->styleForElement(element, { parentStyle });
     if (elementStyle.relations) {
         Style::Update emptyUpdate(*this);
         Style::commitRelations(WTFMove(elementStyle.relations), emptyUpdate);
@@ -9918,7 +9918,7 @@ Vector<RefPtr<WebAnimation>> Document::matchingAnimations(const Function<bool(El
             return true;
 
         if (auto* keyframeEffect = dynamicDowncast<KeyframeEffect>(effect)) {
-            auto* target = keyframeEffect->target();
+            RefPtr target = keyframeEffect->target();
             return target && target->isConnected() && &target->document() == this && function(*target);
         }
 
@@ -9939,7 +9939,7 @@ Vector<RefPtr<WebAnimation>> Document::matchingAnimations(const Function<bool(El
 
 void Document::keyframesRuleDidChange(const String& name)
 {
-    for (auto* animation : WebAnimation::instances()) {
+    for (RefPtr animation : WebAnimation::instances()) {
         auto cssAnimation = dynamicDowncast<CSSAnimation>(*animation);
         if (!cssAnimation || !cssAnimation->isRelevant())
             continue;
@@ -10523,7 +10523,7 @@ void Document::prepareCanvasesForDisplayOrFlushIfNeeded()
             context->flushDeferredOperations();
 
         // Some canvases need to do work when rendering has finished but before their content is composited.
-        if (auto* htmlCanvas = dynamicDowncast<HTMLCanvasElement>(context->canvasBase())) {
+        if (RefPtr htmlCanvas = dynamicDowncast<HTMLCanvasElement>(context->canvasBase())) {
             if (htmlCanvas->needsPreparationForDisplay())
                 htmlCanvas->prepareForDisplay();
         }
@@ -10774,9 +10774,13 @@ bool Document::activeViewTransitionCapturedDocumentElement() const
 
 void Document::setActiveViewTransition(RefPtr<ViewTransition>&& viewTransition)
 {
-    std::optional<Style::PseudoClassChangeInvalidation> styleInvalidation;
-    if (documentElement())
-        styleInvalidation.emplace(*documentElement(), CSSSelector::PseudoClass::ActiveViewTransition, !!viewTransition);
+    std::optional<Style::PseudoClassChangeInvalidation> activeViewTransitionInvalidation;
+    std::optional<Style::PseudoClassChangeInvalidation> activeViewTransitionTypeInvalidation;
+    if (documentElement()) {
+        activeViewTransitionInvalidation.emplace(*documentElement(), CSSSelector::PseudoClass::ActiveViewTransition, !!viewTransition);
+        activeViewTransitionTypeInvalidation.emplace(*documentElement(), CSSSelector::PseudoClass::ActiveViewTransitionType, Style::PseudoClassChangeInvalidation::AnyValue);
+    }
+
     clearRenderingIsSuppressedForViewTransition();
     m_activeViewTransition = WTFMove(viewTransition);
 }

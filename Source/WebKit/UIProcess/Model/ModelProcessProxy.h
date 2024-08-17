@@ -69,6 +69,8 @@ public:
 private:
     explicit ModelProcessProxy();
 
+    void terminateWebProcess(WebCore::ProcessIdentifier);
+
     Type type() const final { return Type::Model; }
 
     void addSession(const WebsiteDataStore&);
@@ -93,7 +95,7 @@ private:
     // IPC::Connection::Client
     void didReceiveMessage(IPC::Connection&, IPC::Decoder&) override;
     void didClose(IPC::Connection&) override;
-    void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName) override;
+    void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName, int32_t indexOfObjectFailingDecoding) override;
 
     // ResponsivenessTimer::Client
     void didBecomeUnresponsive() final;

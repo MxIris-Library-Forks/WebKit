@@ -285,7 +285,7 @@ public:
 private:
     void addMessageReceiver(IPC::ReceiverName messageReceiverName, IPC::MessageReceiver& receiver) final { m_process->addMessageReceiver(messageReceiverName, receiver); }
     void removeMessageReceiver(IPC::ReceiverName messageReceiverName) final { m_process->removeMessageReceiver(messageReceiverName); }
-    IPC::Connection& connection() final { return *m_process->connection(); }
+    IPC::Connection& connection() final { return m_process->connection(); }
 
     Logger& logger() final
     {
@@ -566,6 +566,9 @@ void WebProcessProxy::getLaunchOptions(ProcessLauncher::LaunchOptions& launchOpt
         launchOptions.extraInitializationData.add<HashTranslatorASCIILiteral>("service-worker-process"_s, "1"_s);
         launchOptions.extraInitializationData.add<HashTranslatorASCIILiteral>("registrable-domain"_s, m_registrableDomain->string());
     }
+
+    if (shouldEnableLockdownMode())
+        launchOptions.extraInitializationData.add<HashTranslatorASCIILiteral>("enable-lockdown-mode"_s, "1"_s);
 }
 
 #if !PLATFORM(GTK) && !PLATFORM(WPE)
@@ -635,7 +638,7 @@ bool WebProcessProxy::shouldSendPendingMessage(const PendingMessage& message)
 
 void WebProcessProxy::connectionWillOpen(IPC::Connection& connection)
 {
-    ASSERT(this->connection() == &connection);
+    ASSERT(&this->connection() == &connection);
 
     // Throttling IPC messages coming from the WebProcesses so that the UIProcess stays responsive, even
     // if one of the WebProcesses misbehaves.
@@ -654,7 +657,7 @@ void WebProcessProxy::connectionWillOpen(IPC::Connection& connection)
 void WebProcessProxy::processWillShutDown(IPC::Connection& connection)
 {
     WEBPROCESSPROXY_RELEASE_LOG(Process, "processWillShutDown:");
-    ASSERT_UNUSED(connection, this->connection() == &connection);
+    ASSERT_UNUSED(connection, &this->connection() == &connection);
 
 #if HAVE(DISPLAY_LINK)
     m_displayLinkClient.setConnection(nullptr);
@@ -1307,7 +1310,7 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
         remotePage.processDidTerminate(coreProcessIdentifier());
 }
 
-void WebProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName)
+void WebProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName, int32_t indexOfObjectFailingDecoding)
 {
     logInvalidMessage(connection, messageName);
 

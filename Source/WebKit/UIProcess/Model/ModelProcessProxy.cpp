@@ -50,7 +50,7 @@
 #include <wtf/MachSendRight.h>
 #include <wtf/TZoneMallocInlines.h>
 
-#define MESSAGE_CHECK(assertion) MESSAGE_CHECK_BASE(assertion, this->connection())
+#define MESSAGE_CHECK(assertion) MESSAGE_CHECK_BASE(assertion, connection())
 
 namespace WebKit {
 using namespace WebCore;
@@ -97,6 +97,12 @@ ModelProcessProxy::ModelProcessProxy()
 
 ModelProcessProxy::~ModelProcessProxy() = default;
 
+void ModelProcessProxy::terminateWebProcess(WebCore::ProcessIdentifier webProcessIdentifier)
+{
+    if (auto process = WebProcessProxy::processForIdentifier(webProcessIdentifier))
+        process->requestTermination(ProcessTerminationReason::RequestedByModelProcess);
+}
+
 void ModelProcessProxy::getLaunchOptions(ProcessLauncher::LaunchOptions& launchOptions)
 {
     launchOptions.processType = ProcessLauncher::ProcessType::Model;
@@ -109,7 +115,7 @@ void ModelProcessProxy::connectionWillOpen(IPC::Connection&)
 
 void ModelProcessProxy::processWillShutDown(IPC::Connection& connection)
 {
-    ASSERT_UNUSED(connection, this->connection() == &connection);
+    ASSERT_UNUSED(connection, &this->connection() == &connection);
 }
 
 void ModelProcessProxy::createModelProcessConnection(WebProcessProxy& webProcessProxy, IPC::Connection::Handle&& connectionIdentifier, ModelProcessConnectionParameters&& parameters)
@@ -143,6 +149,7 @@ void ModelProcessProxy::modelProcessExited(ProcessTerminationReason reason)
     case ProcessTerminationReason::NavigationSwap:
     case ProcessTerminationReason::RequestedByNetworkProcess:
     case ProcessTerminationReason::RequestedByGPUProcess:
+    case ProcessTerminationReason::RequestedByModelProcess:
     case ProcessTerminationReason::GPUProcessCrashedTooManyTimes:
     case ProcessTerminationReason::ModelProcessCrashedTooManyTimes:
         ASSERT_NOT_REACHED();
@@ -200,7 +207,7 @@ void ModelProcessProxy::didClose(IPC::Connection&)
     modelProcessExited(ProcessTerminationReason::Crash); // May cause |this| to get deleted.
 }
 
-void ModelProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName)
+void ModelProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName, int32_t)
 {
     logInvalidMessage(connection, messageName);
 

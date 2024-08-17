@@ -174,7 +174,7 @@
 #include "RemoteVideoFrameObjectHeap.h"
 #endif
 
-#define MESSAGE_CHECK(assertion) MESSAGE_CHECK_BASE(assertion, (protectedConnection().ptr()))
+#define MESSAGE_CHECK(assertion) MESSAGE_CHECK_BASE(assertion, protectedConnection().get())
 
 namespace WebKit {
 using namespace WebCore;
@@ -539,7 +539,7 @@ Logger& GPUConnectionToWebProcess::logger()
     return *m_logger;
 }
 
-void GPUConnectionToWebProcess::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName)
+void GPUConnectionToWebProcess::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName, int32_t)
 {
 #if ENABLE(IPC_TESTING_API)
     if (connection.ignoreInvalidMessageForTesting())

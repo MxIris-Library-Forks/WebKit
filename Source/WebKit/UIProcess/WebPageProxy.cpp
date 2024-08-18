@@ -84,6 +84,7 @@
 #include "FrameTreeCreationParameters.h"
 #include "FrameTreeNodeData.h"
 #include "GoToBackForwardItemParameters.h"
+#include "ImageOptions.h"
 #include "LegacyGlobalSettings.h"
 #include "LoadParameters.h"
 #include "LoadedWebArchive.h"
@@ -1393,8 +1394,8 @@ void WebPageProxy::swapToProvisionalPage(std::unique_ptr<ProvisionalPageProxy> p
     auto accessibilityToken = provisionalPage->takeAccessibilityToken();
     if (!accessibilityToken.isEmpty()) {
         registerWebProcessAccessibilityToken({ accessibilityToken.data(), accessibilityToken.size() }, WebCore::FrameIdentifier {
-            ObjectIdentifier<WebCore::FrameIdentifierType>(0),
-            ObjectIdentifier<WebCore::ProcessIdentifierType>(0)
+            LegacyNullableObjectIdentifier<WebCore::FrameIdentifierType>(),
+            LegacyNullableObjectIdentifier<WebCore::ProcessIdentifierType>()
         });
     }
 #endif

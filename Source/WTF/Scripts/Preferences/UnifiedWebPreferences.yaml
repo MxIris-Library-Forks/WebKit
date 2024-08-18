@@ -6056,7 +6056,7 @@ ScrollToTextFragmentFeatureDetectionEnabled:
 
 ScrollToTextFragmentGenerationEnabled:
   type: bool
-  status: unstable
+  status: stable
   category: dom
   humanReadableName: "Scroll To Text Fragment Generation"
   humanReadableDescription: "Enable Scroll To Text Fragment Generation Menu"
@@ -6064,9 +6064,9 @@ ScrollToTextFragmentGenerationEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 ScrollToTextFragmentIndicatorEnabled:
   type: bool
@@ -7555,16 +7555,16 @@ ViewGestureDebuggingEnabled:
 ViewTransitionClassesEnabled:
   type: bool
   category: animation
-  status: testable
+  status: stable
   humanReadableName: "View Transition Classes"
   humanReadableDescription: "Support specifying classes for view transitions"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 ViewTransitionTypesEnabled:
   type: bool

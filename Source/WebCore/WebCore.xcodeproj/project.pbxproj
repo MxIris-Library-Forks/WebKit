@@ -5402,6 +5402,7 @@
 		DDBF8DAF2AB51FC100B3318A /* RubyFormattingContext.h in Headers */ = {isa = PBXBuildFile; fileRef = DDBF8DAE2AB51FC100B3318A /* RubyFormattingContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DDC8E9562A3DE60400FF8ECF /* LogicalFlexItem.h in Headers */ = {isa = PBXBuildFile; fileRef = DDC8E9552A3DE60400FF8ECF /* LogicalFlexItem.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DDD517EC2A9FC5440069AF81 /* LineLayoutResult.h in Headers */ = {isa = PBXBuildFile; fileRef = DDD517EB2A9FC5440069AF81 /* LineLayoutResult.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		DDD5F55C2C703DFC00E1C692 /* TextBoxTrimmer.h in Headers */ = {isa = PBXBuildFile; fileRef = DDD5F55B2C703DFC00E1C692 /* TextBoxTrimmer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DDDFE83E2846ECE2006F1EE5 /* cocoa in Copy PDF.js Extras */ = {isa = PBXBuildFile; fileRef = DDDFE83B2846ECD3006F1EE5 /* cocoa */; };
 		DDDFE83F2846ECE5006F1EE5 /* content-script.js in Copy PDF.js Extras */ = {isa = PBXBuildFile; fileRef = DDDFE83C2846ECD4006F1EE5 /* content-script.js */; };
 		DDE9931E278D0E4B00F60D26 /* libWebKitAdditions.a in Product Dependencies */ = {isa = PBXBuildFile; fileRef = DDE99308278D080B00F60D26 /* libWebKitAdditions.a */; };
@@ -18960,6 +18961,8 @@
 		DDBF8DB02AB51FD100B3318A /* RubyFormattingContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RubyFormattingContext.cpp; sourceTree = "<group>"; };
 		DDC8E9552A3DE60400FF8ECF /* LogicalFlexItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogicalFlexItem.h; sourceTree = "<group>"; };
 		DDD517EB2A9FC5440069AF81 /* LineLayoutResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LineLayoutResult.h; sourceTree = "<group>"; };
+		DDD5F55A2C703DF200E1C692 /* TextBoxTrimmer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextBoxTrimmer.cpp; sourceTree = "<group>"; };
+		DDD5F55B2C703DFC00E1C692 /* TextBoxTrimmer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextBoxTrimmer.h; sourceTree = "<group>"; };
 		DDDBF6712AA8186800E07248 /* AbstractLineBuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AbstractLineBuilder.cpp; sourceTree = "<group>"; };
 		DDDFE83A2846ECD3006F1EE5 /* adwaita */ = {isa = PBXFileReference; lastKnownFileType = folder; path = adwaita; sourceTree = "<group>"; };
 		DDDFE83B2846ECD3006F1EE5 /* cocoa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = cocoa; sourceTree = "<group>"; };
@@ -36843,6 +36846,8 @@
 				E440DF5726EB53EA004AF06B /* TextBoxPainter.cpp */,
 				E440DF5426EB53DF004AF06B /* TextBoxPainter.h */,
 				E447F5B1266CF63D00133F00 /* TextBoxSelectableRange.h */,
+				DDD5F55A2C703DF200E1C692 /* TextBoxTrimmer.cpp */,
+				DDD5F55B2C703DFC00E1C692 /* TextBoxTrimmer.h */,
 				582DE3221C30C85400BE02A8 /* TextDecorationPainter.cpp */,
 				582DE3231C30C85400BE02A8 /* TextDecorationPainter.h */,
 				1C18DA56181AF6A500C4EF22 /* TextPainter.cpp */,
@@ -42982,6 +42987,7 @@
 				722AF2E427E1CF130078D997 /* TextBoxIterator.h in Headers */,
 				E440DF5626EB53E0004AF06B /* TextBoxPainter.h in Headers */,
 				E447F5B3266CF63D00133F00 /* TextBoxSelectableRange.h in Headers */,
+				DDD5F55C2C703DFC00E1C692 /* TextBoxTrimmer.h in Headers */,
 				DD91A3172B8989E500317AF7 /* TextBreakingPositionCache.h in Headers */,
 				DD8E4EBB2B9F952500108D7A /* TextBreakingPositionContext.h in Headers */,
 				A7151BD812F1558F005A0F64 /* TextCheckerClient.h in Headers */,

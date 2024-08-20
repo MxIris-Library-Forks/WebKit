@@ -2937,6 +2937,7 @@
 		7BB34A48253776CA00029D08 /* GraphicsContextGLImageExtractor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB34A45253776C600029D08 /* GraphicsContextGLImageExtractor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BB5984529DC2DC700967DC1 /* PlatformCALayerDelegatedContents.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B434D1329DB0FD00062E8D1 /* PlatformCALayerDelegatedContents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BB680BA25BA1BE4002B8738 /* GraphicsChecksMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB680B825BA1BE4002B8738 /* GraphicsChecksMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7BC12B7D2C71C61B00A7BE80 /* CookieChangeSubscription.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BC12B7C2C71C5E800A7BE80 /* CookieChangeSubscription.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BC9642C291E76BE00377DF1 /* AudioDestinationResampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BC9642A291E765D00377DF1 /* AudioDestinationResampler.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BC9642F291E827200377DF1 /* AudioUtilitiesCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BC9642E291E770400377DF1 /* AudioUtilitiesCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BD9D6CE2A81A64A005B1935 /* CookieChangeEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BD9D6CB2A81A64A005B1935 /* CookieChangeEvent.h */; };
@@ -2950,7 +2951,7 @@
 		7BE37F7E27BB86DB007A6CD3 /* GraphicsContextGLCVCocoa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B10339A2549720000C8C1AC /* GraphicsContextGLCVCocoa.cpp */; };
 		7BE37F8727BBB708007A6CD3 /* VideoFrameCV.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BE37F8627BBB6FF007A6CD3 /* VideoFrameCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BE7427381FA906FBB4F0F2C /* JSSVGGraphicsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 950C4C02BED8936F818E2F99 /* JSSVGGraphicsElement.h */; };
-		7BF6E7002A93E9DF0096DAF8 /* CookieStoreManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E6FD2A93E9CB0096DAF8 /* CookieStoreManager.h */; };
+		7BF6E7002A93E9DF0096DAF8 /* CookieStoreManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E6FD2A93E9CB0096DAF8 /* CookieStoreManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BF6E7032A941EC20096DAF8 /* ExtendableCookieChangeEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E7012A941EBD0096DAF8 /* ExtendableCookieChangeEventInit.h */; };
 		7BF6E7072A9420810096DAF8 /* ExtendableCookieChangeEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E7042A94207D0096DAF8 /* ExtendableCookieChangeEvent.h */; };
 		7C029C6E2493C8F800268204 /* ColorTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C029C6D2493C8F800268204 /* ColorTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -13521,6 +13522,7 @@
 		7BB680B725BA1BE3002B8738 /* GraphicsChecksMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsChecksMac.cpp; sourceTree = "<group>"; };
 		7BB680B825BA1BE4002B8738 /* GraphicsChecksMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsChecksMac.h; sourceTree = "<group>"; };
 		7BBFDECD27428F5400ED0B77 /* GraphicsLayerContentsDisplayDelegate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsLayerContentsDisplayDelegate.cpp; sourceTree = "<group>"; };
+		7BC12B7C2C71C5E800A7BE80 /* CookieChangeSubscription.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CookieChangeSubscription.h; sourceTree = "<group>"; };
 		7BC9642A291E765D00377DF1 /* AudioDestinationResampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioDestinationResampler.h; sourceTree = "<group>"; };
 		7BC9642B291E765D00377DF1 /* AudioDestinationResampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioDestinationResampler.cpp; sourceTree = "<group>"; };
 		7BC9642D291E770300377DF1 /* AudioUtilitiesCocoa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioUtilitiesCocoa.cpp; sourceTree = "<group>"; };
@@ -28712,6 +28714,7 @@
 				7BD9D6CD2A81A64A005B1935 /* CookieChangeEvent.idl */,
 				7BD9D6D12A81AB69005B1935 /* CookieChangeEventInit.h */,
 				7BD9D6D32A81AB69005B1935 /* CookieChangeEventInit.idl */,
+				7BC12B7C2C71C5E800A7BE80 /* CookieChangeSubscription.h */,
 				7B3ED3072A4CDC760042B08A /* CookieInit.h */,
 				7B3ED3082A4CDC760042B08A /* CookieInit.idl */,
 				7B3ED2FB2A4CDA620042B08A /* CookieListItem.h */,
@@ -38840,6 +38843,7 @@
 				7BD9D6CE2A81A64A005B1935 /* CookieChangeEvent.h in Headers */,
 				7BD9D6D42A81AB69005B1935 /* CookieChangeEventInit.h in Headers */,
 				7B3A5D572A7856B30045F1CB /* CookieChangeListener.h in Headers */,
+				7BC12B7D2C71C61B00A7BE80 /* CookieChangeSubscription.h in Headers */,
 				F4034F9D275C4789003A81F8 /* CookieConsentDecisionResult.h in Headers */,
 				7B3ED30D2A4CDDE20042B08A /* CookieInit.h in Headers */,
 				E1424C94164B52C800F32D40 /* CookieJar.h in Headers */,

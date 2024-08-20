@@ -389,6 +389,7 @@ class AuthenticationChallengeProxy;
 class BrowsingContextGroup;
 class CallbackID;
 class ContextMenuContextData;
+class DigitalCredentialsCoordinatorProxy;
 class DownloadProxy;
 class DrawingAreaProxy;
 class GamepadData;
@@ -576,7 +577,7 @@ using TapIdentifier = LegacyNullableObjectIdentifier<TapIdentifierType>;
 using TextCheckerRequestID = LegacyNullableObjectIdentifier<TextCheckerRequestType>;
 using TransactionID = MonotonicObjectIdentifier<TransactionIDType>;
 using WebPageProxyIdentifier = LegacyNullableObjectIdentifier<WebPageProxyIdentifierType>;
-using WebURLSchemeHandlerIdentifier = LegacyNullableObjectIdentifier<WebURLSchemeHandler>;
+using WebURLSchemeHandlerIdentifier = ObjectIdentifier<WebURLSchemeHandler>;
 using WebUndoStepID = uint64_t;
 
 class WebPageProxy final : public API::ObjectImpl<API::Object::Type::Page>, public IPC::MessageReceiver {
@@ -3228,7 +3229,8 @@ private:
 #endif
 
 #if ENABLE(WEB_AUTHN)
-    std::unique_ptr<WebAuthenticatorCoordinatorProxy> m_credentialsMessenger;
+    std::unique_ptr<DigitalCredentialsCoordinatorProxy> m_digitalCredentialsMessenger;
+    std::unique_ptr<WebAuthenticatorCoordinatorProxy> m_webAuthnCredentialsMessenger;
 #endif
 
 #if ENABLE(DATA_DETECTION)

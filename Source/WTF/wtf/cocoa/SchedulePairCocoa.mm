@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Igalia S.L
+ * Copyright (C) 2008-2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,6 +10,9 @@
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Apple Inc. ("Apple") nor the names of
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,52 +26,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "config.h"
+#import <wtf/SchedulePair.h>
 
-#if PLATFORM(X11)
+namespace WTF {
 
-#include "PlatformDisplay.h"
-#include <optional>
+SchedulePair::SchedulePair(NSRunLoop* runLoop, CFStringRef mode)
+    : m_nsRunLoop(runLoop)
+    , m_runLoop([runLoop getCFRunLoop])
+{
+    if (mode)
+        m_mode = adoptCF(CFStringCreateCopy(0, mode));
+}
 
-typedef struct _XDisplay Display;
-
-namespace WebCore {
-
-class PlatformDisplayX11 final : public PlatformDisplay {
-public:
-    static std::unique_ptr<PlatformDisplay> create();
-#if PLATFORM(GTK)
-    static std::unique_ptr<PlatformDisplay> create(GdkDisplay*);
-#endif
-
-    virtual ~PlatformDisplayX11();
-
-    ::Display* native() const { return m_display; }
-
-private:
-    explicit PlatformDisplayX11(::Display*);
-#if PLATFORM(GTK)
-    explicit PlatformDisplayX11(GdkDisplay*);
-
-    void sharedDisplayDidClose() override;
-#endif
-
-    Type type() const override { return PlatformDisplay::Type::X11; }
-
-#if PLATFORM(GTK)
-    GLDisplay* gtkEGLDisplay() override;
-#endif
-    void initializeEGLDisplay() override;
-
-#if USE(ATSPI)
-    String accessibilityBusAddress() const override;
-#endif
-
-    ::Display* m_display { nullptr };
-};
-
-} // namespace WebCore
-
-SPECIALIZE_TYPE_TRAITS_PLATFORM_DISPLAY(PlatformDisplayX11, X11)
-
-#endif // PLATFORM(X11)
+} // namespace

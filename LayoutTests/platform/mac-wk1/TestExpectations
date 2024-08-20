@@ -860,6 +860,7 @@ accessibility/dynamic-colspan.html [ Skip ]
 accessibility/dynamic-table-descendants.html [ Skip ]
 
 # Missing AccessibilityUIElement::isIndeterminate() implementation.
+accessibility/indeterminate-progressbar-custom-element.html [ Skip ]
 accessibility/progress-indeterminate-value.html [ Skip ]
 
 # Missing AccessibilityUIElement::brailleLabel and AccessibilityUIElement::brailleRoleDescription implementations.
@@ -2888,3 +2889,12 @@ imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-007.svg [ Ski
 imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-101.svg [ Skip ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-multiline-001.svg [ Skip ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-multiline-002.svg [ Skip ]
+
+# webkit.org/b/278316
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/white-space_normal_wrapped.html
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/white-space_nowrap_wrapped.html
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/white-space_pre.html
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/not_root_selector.html
+
+# webkit.org/b/278293 [MacOS WK1] imported/w3c/web-platform-tests/content-security-policy/reporting-api/reporting-api-report-to-only-sends-reports-to-first-endpoint.https.sub.html is a flakey failure
+imported/w3c/web-platform-tests/content-security-policy/reporting-api/reporting-api-report-to-only-sends-reports-to-first-endpoint.https.sub.html [ Pass Failure ]

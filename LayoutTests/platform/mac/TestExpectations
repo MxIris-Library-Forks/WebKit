@@ -1448,13 +1448,13 @@ imported/w3c/web-platform-tests/pointerevents/compat/pointerevent_mouseevent_key
 imported/w3c/web-platform-tests/pointerevents/compat/pointerevent_touch-action_two-finger_interaction.html [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_after_target_appended.html?touch [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_after_target_removed.html?touch [ Skip ]
-imported/w3c/web-platform-tests/pointerevents/pointerevent_auxclick_is_a_pointerevent.html?mouse [ Skip ]
+imported/w3c/web-platform-tests/pointerevents/pointerevent_auxclick_is_a_pointerevent.html?mouse [ Pass ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_auxclick_is_a_pointerevent.html?pen [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_boundary_events_in_capturing.html [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_boundary_events_in_capturing.html?touch [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_capture_suppressing_mouse.html [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_change-touch-action-onpointerdown_touch.html [ Skip ]
-imported/w3c/web-platform-tests/pointerevents/pointerevent_click_is_a_pointerevent.html?mouse [ Skip ]
+imported/w3c/web-platform-tests/pointerevents/pointerevent_click_is_a_pointerevent.html?mouse [ Pass ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_click_is_a_pointerevent.html?pen [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_click_is_a_pointerevent.html?touch [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_click_is_a_pointerevent_multiple_clicks.html?touch [ Skip ]
@@ -2511,3 +2511,10 @@ inspector/console/webcore-logging.html [ Pass Failure ]
 
 # webkit.org/b/278352 [ iOS MacOS ] imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html is a flaky image failure
 imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ Pass ImageOnlyFailure ]
+
+# webkit.org/b/278318 [macOS Debug] ASSERTION FAILED: m_wrapper on media/video-playsinline.html, also flaky failure in Release
+[ Debug ] media/video-playsinline.html [ Pass Crash ]
+
+# webkit.org/b/278425 REGRESSION (281435@main): [ macOS ] 2x imported/w3c/web-platform-t ests/css/css-writing-modes/ text-orientation-* is a flaky ImageOnlyFailure. 
+imported/w3c/web-platform-tests/css/css-writing-modes/text-orientation-mixed-srl-016.xht [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-writing-modes/text-orientation-upright-srl-018.xht [ Pass ImageOnlyFailure ]

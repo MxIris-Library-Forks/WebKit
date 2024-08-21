@@ -161,10 +161,10 @@ AccentColorEnabled:
       "PLATFORM(COCOA)" : true
       default: false
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
+      "PLATFORM(COCOA) || USE(THEME_ADWAITA)": true
       default: false
     WebCore:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
+      "PLATFORM(COCOA) || USE(THEME_ADWAITA)": true
       default: false
 
 AccessHandleEnabled:
@@ -6107,20 +6107,6 @@ ScrollingPerformanceTestingEnabled:
       default: false
     WebKit:
       default: false
-    WebCore:
-      default: false
-
-SearchInputIncrementalAttributeAndSearchEventEnabled:
-  type: bool
-  status: embedder
-  category: html
-  humanReadableName: "Search control incremental attribute and search event"
-  humanReadableDescription: "Enable search control incremental attribute and search event support"
-  defaultValue:
-    WebKitLegacy:
-      default: WebKit::defaultSearchInputIncrementalAttributeAndSearchEventEnabled()
-    WebKit:
-      default: WebKit::defaultSearchInputIncrementalAttributeAndSearchEventEnabled()
     WebCore:
       default: false
 

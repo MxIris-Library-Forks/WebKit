@@ -7239,6 +7239,8 @@
 		0F26A7AD205626100090A141 /* SVGUnknownElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SVGUnknownElement.cpp; sourceTree = "<group>"; };
 		0F283A8D235582F8004794CA /* ThemeTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ThemeTypes.cpp; sourceTree = "<group>"; };
 		0F283A9123563126004794CA /* BorderData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BorderData.cpp; sourceTree = "<group>"; };
+		0F29D8732C6EFE3B00CEA122 /* BorderShape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BorderShape.h; sourceTree = "<group>"; };
+		0F29D8742C6EFE3C00CEA122 /* BorderShape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BorderShape.cpp; sourceTree = "<group>"; };
 		0F36E7361BD1837A002DB891 /* LayoutPoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPoint.cpp; sourceTree = "<group>"; };
 		0F36E7381BD184B9002DB891 /* LayoutSize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutSize.cpp; sourceTree = "<group>"; };
 		0F376F3F2994C58D004CA2F9 /* FontSelector.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FontSelector.cpp; sourceTree = "<group>"; };
@@ -11158,6 +11160,7 @@
 		4CA012DB29A7D56700C260C6 /* counterStyles.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = counterStyles.css; sourceTree = "<group>"; };
 		4CB808832964AF4600BC59FE /* CSSCounterStyleDescriptors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSCounterStyleDescriptors.h; sourceTree = "<group>"; };
 		4CB808842964AF4700BC59FE /* CSSCounterStyleDescriptors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCounterStyleDescriptors.cpp; sourceTree = "<group>"; };
+		4CBBE5192C5D41AF00B7786E /* TextSpacing.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextSpacing.cpp; sourceTree = "<group>"; };
 		4CBE86962955BA7F00832AAA /* CSSCounterStyleRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSCounterStyleRegistry.h; sourceTree = "<group>"; };
 		4CBE86972955BA7F00832AAA /* CSSCounterStyleRegistry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCounterStyleRegistry.cpp; sourceTree = "<group>"; };
 		4CF2530E29C09454005CDDAA /* ListStyleType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ListStyleType.cpp; sourceTree = "<group>"; };
@@ -17846,6 +17849,8 @@
 		BCB4779725D46EFF005EF0C8 /* RenderModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderModel.h; sourceTree = "<group>"; };
 		BCB4779825D46EFF005EF0C8 /* RenderModel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderModel.cpp; sourceTree = "<group>"; };
 		BCB92D4E1293550B00C8387F /* FontBaseline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontBaseline.h; sourceTree = "<group>"; };
+		BCB955DB2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Font.cpp"; sourceTree = "<group>"; };
+		BCB955DC2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Font.h"; sourceTree = "<group>"; };
 		BCBB8AB513F1AFB000734DF0 /* PODInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODInterval.h; sourceTree = "<group>"; };
 		BCBB8AB613F1AFB000734DF0 /* PODIntervalTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODIntervalTree.h; sourceTree = "<group>"; };
 		BCBB8AB713F1AFB000734DF0 /* PODRedBlackTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PODRedBlackTree.h; sourceTree = "<group>"; };
@@ -30002,6 +30007,8 @@
 				BC83CE912BEFF65D00DC644F /* CSSPropertyParserConsumer+ColorInterpolationMethod.h */,
 				BCFE79A62BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.cpp */,
 				BCFE79A72BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.h */,
+				BCB955DB2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.cpp */,
+				BCB955DC2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.h */,
 				BC7C5E662BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.cpp */,
 				BC7C5E672BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.h */,
 				BCC38E8E2C25E0270013821F /* CSSPropertyParserConsumer+Image.cpp */,
@@ -33247,6 +33254,7 @@
 				BC4A533A256064E10028C592 /* TextDirection.h */,
 				71D475A627D741FC00644599 /* TextFlags.cpp */,
 				B2C3DA150D006C1D00EF6F26 /* TextFlags.h */,
+				4CBBE5192C5D41AF00B7786E /* TextSpacing.cpp */,
 				4C05BADF297AD120004FE77D /* TextSpacing.h */,
 				A863E2001343412000274926 /* UnicodeBidi.h */,
 				14476AA715DC4BB100305DB2 /* WritingMode.h */,
@@ -36563,6 +36571,8 @@
 				589556EC18D4A44000764B03 /* BorderEdge.h */,
 				E444B0A228C7438400CA560E /* BorderPainter.cpp */,
 				E444B0A028C7437900CA560E /* BorderPainter.h */,
+				0F29D8742C6EFE3C00CEA122 /* BorderShape.cpp */,
+				0F29D8732C6EFE3B00CEA122 /* BorderShape.h */,
 				BCEA4815097D93020094C9E4 /* BreakLines.cpp */,
 				BCEA4816097D93020094C9E4 /* BreakLines.h */,
 				E4F0BE3025710A76009E7431 /* CaretRectComputation.cpp */,

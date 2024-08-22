@@ -76,6 +76,9 @@ http/tests/inspector/paymentrequest [ Pass ]
 imported/w3c/web-platform-tests/payment-request [ Pass ]
 imported/w3c/web-platform-tests/payment-request/payment-request-hasenrolledinstrument-method.tentative.https.html [ DumpJSConsoleLogInStdErr ]
 
+imported/w3c/web-platform-tests/css/css-pseudo/selection-over-highlight-001.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-custom-properties-dynamic-001.html [ Pass ]
+
 # These tests are checking that WebContent is terminated when performing an invalid IPC operation for WK2.
 # They crash in debug (as expected) so we skip them there. <rdar://problem/117742950>
 [ Debug ] ipc/restrictedendpoints/mac/deny-access-modelElement.html [ Skip ]
@@ -1788,17 +1791,19 @@ webkit.org/b/275913 [ Debug ] imported/w3c/web-platform-tests/media-source/dedic
 
 webkit.org/b/275873 storage/indexeddb/database-transaction-cycle.html [ Pass Failure ]
 
-# rdar://124363343 ([ Sequoia+ ] Multiple WebKit tests failing after explicit "SameSite" attribute change)
-# Some of these tests have expectations set elsewhere (marked with inline comment). Please uncomment those when this issue is resolved.
-[ Sequoia+ ] http/tests/resourceLoadStatistics/do-not-remove-blocking-in-redirect.html [ Failure ]
-[ Sequoia+ ] http/tests/resourceLoadStatistics/set-all-cookies-to-same-site-strict.html [ Failure Timeout ] # expectation exists above
-[ Sequoia+ ] http/tests/cookies/same-site/fetch-after-navigating-iframe-in-cross-origin-page.html [ Failure ]
-[ Sequoia+ ] http/tests/cookies/same-site/fetch-in-cross-origin-service-worker.html [ Failure Timeout ]
-[ Sequoia+ ] http/tests/privateClickMeasurement/send-attribution-conversion-request.html [ Failure Timeout ]
+webkit.org/b/278353 [ Sequoia+ ] http/tests/resourceLoadStatistics/do-not-remove-blocking-in-redirect.html [ Failure ]
+webkit.org/b/278353 [ Sequoia+ ] http/tests/resourceLoadStatistics/set-all-cookies-to-same-site-strict.html [ Failure Timeout ] # expectation exists above
+webkit.org/b/278353 [ Sequoia+ ] http/tests/privateClickMeasurement/send-attribution-conversion-request.html [ Failure Timeout ]
+
+# rdar://125587489
 [ Sequoia+ ] imported/w3c/web-platform-tests/fetch/api/cors/cors-cookies-redirect.any.html [ Failure ]
 [ Sequoia+ ] imported/w3c/web-platform-tests/fetch/api/cors/cors-cookies-redirect.any.worker.html [ Failure ]
-[ Sequoia+ ] imported/w3c/web-platform-tests/html/anonymous-iframe/cookie.tentative.https.window.html [ Failure ]
-[ Sequoia+ ] imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/anonymous-iframe/cookie.tentative.https.window.html [ Failure ]
+
+[ Ventura Sonoma ] http/tests/cookies/same-site/fetch-after-navigating-iframe-in-cross-origin-page.html [ Failure ]
+[ Ventura Sonoma ] http/tests/cookies/same-site/fetch-in-cross-origin-service-worker.html [ Failure ]
+[ Ventura Sonoma ] http/tests/cookies/same-site/popup-cross-site-post.html [ Failure ]
+[ Ventura Sonoma ] imported/w3c/web-platform-tests/html/anonymous-iframe/cookie.tentative.https.window.html [ Failure ]
+[ Ventura Sonoma ] imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/anonymous-iframe/cookie.tentative.https.window.html [ Failure ]
 
 webkit.org/b/276389 media/video-transformed.html [ Pass Failure ] 
 
@@ -1832,3 +1837,6 @@ imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-active.https.html
 
 # webkit.org/b/278429 [Sonoma wk2] fast/replaced/pdf-as-embed-with-no-mime-type-is-not-blank.html is a flaky failure
 [ Sonoma+ ] fast/replaced/pdf-as-embed-with-no-mime-type-is-not-blank.html [ Pass Failure ]
+
+# webkit.org/b/278500 REGRESSION (282564@main): [ macOS iOS wk2 debug arm64 ] imported/w3c/web-platform-tests/navigation-api/navigate-event/replaceState-inside-back-handler.html is a constant crash with a  assertion failure.
+[ Debug arm64 ] imported/w3c/web-platform-tests/navigation-api/navigate-event/replaceState-inside-back-handler.html [ Skip ]

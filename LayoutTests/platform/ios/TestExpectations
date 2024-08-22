@@ -3648,11 +3648,10 @@ webkit.org/b/203450 imported/w3c/web-platform-tests/css/css-position/sticky/stic
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/active-selection-043.html [ Pass ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/active-selection-045.html [ Pass ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/active-selection-057.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade-001.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade-004.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-paired-cascade-003.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-paired-cascade-006.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-styling-002.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-cascade-001.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-cascade-004.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-paired-cascade-003.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-paired-cascade-006.html [ Pass ]
 webkit.org/b/214463 imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-dynamic-002.html [ Pass ]
 webkit.org/b/214463 imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-dynamic-003.html [ Pass ]
 webkit.org/b/214463 imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-dynamic-004.html [ Pass ]
@@ -3799,7 +3798,10 @@ webkit.org/b/243690 imported/w3c/web-platform-tests/html/cross-origin-opener-pol
 webkit.org/b/243690 imported/w3c/web-platform-tests/html/cross-origin-opener-policy/iframe-popup-unsafe-none-to-same-origin.https.html [ Pass Failure ]
 webkit.org/b/243690 imported/w3c/web-platform-tests/html/cross-origin-opener-policy/javascript-url.https.html [ Pass Failure ]
 
-webkit.org/b/243962 imported/w3c/web-platform-tests/css/css-pseudo/highlight-paired-cascade-005.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-paired-cascade-005.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-cascade-008.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-styling-001.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-custom-properties-dynamic-001.html [ Pass ]
 
 webkit.org/b/248100 imported/w3c/web-platform-tests/css/css-masking/clip-path-svg-content/clip-path-content-use-007.svg [ DumpJSConsoleLogInStdErr ]
 
@@ -7487,15 +7489,7 @@ imported/w3c/web-platform-tests/mediacapture-insertable-streams/VideoTrackGenera
 imported/w3c/web-platform-tests/WebCryptoAPI/import_export/ec_importKey.https.any.html [ Failure ]
 imported/w3c/web-platform-tests/WebCryptoAPI/import_export/ec_importKey.https.any.worker.html [ Failure ]
 
-# webkit.org/b/277460 (REGRESSION (iOS 18): 9 layout tests need to be re-written to expect new behavior.)
-http/tests/cookies/same-site/fetch-after-navigating-iframe-in-cross-origin-page.html [ Failure ]
-http/tests/cookies/same-site/fetch-in-cross-origin-service-worker.html [ Failure ] # uncomment expectation set for this test (above) when this is resolved
-http/tests/cookies/same-site/popup-cross-site-post.html [ Failure ]
-http/tests/privateClickMeasurement/send-attribution-conversion-request.html [ Failure ]
-imported/w3c/web-platform-tests/fetch/api/cors/cors-cookies-redirect.any.html [ Failure ]
-imported/w3c/web-platform-tests/fetch/api/cors/cors-cookies-redirect.any.worker.html [ Failure ]
-imported/w3c/web-platform-tests/html/anonymous-iframe/cookie.tentative.https.window.html [ Failure ]
-imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/anonymous-iframe/cookie.tentative.https.window.html [ Failure ]
+webkit.org/b/278353 http/tests/privateClickMeasurement/send-attribution-conversion-request.html [ Failure ]
 
 # webkit.org/b/277933 (REGRESSION (iOS 18): 5 WPT CSS layout tests are constantly failing (ImageOnlyFailure). (277933))
 imported/w3c/web-platform-tests/css/css-content/quotes-025.html [ ImageOnlyFailure ]
@@ -7556,3 +7550,6 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-block
 
 # webkit.org/b/278352 [ iOS MacOS ] imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html is a flaky image failure
 imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ Pass ImageOnlyFailure ]
+
+# webkit.org/b/278500 REGRESSION (282564@main): [ macOS iOS wk2 debug arm64 ] imported/w3c/web-platform-tests/navigation-api/navigate-event/replaceState-inside-back-handler.html is a constant crash with a  assertion failure.
+[ Debug arm64 ] imported/w3c/web-platform-tests/navigation-api/navigate-event/replaceState-inside-back-handler.html [ Skip ]

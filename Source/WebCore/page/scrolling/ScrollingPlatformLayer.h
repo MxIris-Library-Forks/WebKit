@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Yusuke Suzuki <utatane.tea@gmail.com>.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,10 +23,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@overriddenName="[Symbol.iterator]"
-function symbolIteratorGetter()
-{
-    "use strict";
+#pragma once
 
-    return this;
+#if USE(NICOSIA)
+namespace Nicosia {
+class CompositionLayer;
 }
+#else
+#include "PlatformLayer.h"
+#endif
+
+namespace WebCore {
+
+#if USE(NICOSIA)
+using ScrollingPlatformLayer = Nicosia::CompositionLayer;
+#else
+using ScrollingPlatformLayer = PlatformLayer;
+#endif
+
+} // namespace WebCore

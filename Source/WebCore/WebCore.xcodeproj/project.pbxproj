@@ -2012,6 +2012,7 @@
 		517A63C51B74318F00E7DCDC /* KeyedDecoderCF.h in Headers */ = {isa = PBXBuildFile; fileRef = 517A63C01B74317E00E7DCDC /* KeyedDecoderCF.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		517A63C61B74319200E7DCDC /* KeyedEncoderCF.h in Headers */ = {isa = PBXBuildFile; fileRef = 517A63C21B74317E00E7DCDC /* KeyedEncoderCF.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		517B25AA1CC82B2A0061C011 /* IDBConnectionProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 517B25A81CC820320061C011 /* IDBConnectionProxy.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		517C11D52C6DD6A100489490 /* SpatialVideoMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = 517C11D42C6DD6A000489490 /* SpatialVideoMetadata.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		517E03F724B6D9840054895A /* MultiGamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 517E03F424B6B9630054895A /* MultiGamepadProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5182C2561F3143CD0059BA7C /* JSServiceWorker.h in Headers */ = {isa = PBXBuildFile; fileRef = 5182C2521F3142500059BA7C /* JSServiceWorker.h */; };
 		5182C2581F3143CD0059BA7C /* JSServiceWorkerContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 5182C2541F3142500059BA7C /* JSServiceWorkerContainer.h */; };
@@ -2907,6 +2908,7 @@
 		7ABA251128B41C64005D4F6D /* Report.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ABA24E528A5C8D1005D4F6D /* Report.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7ABA251228B4457C005D4F6D /* ReportBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ABA24E728A5C90A005D4F6D /* ReportBody.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AC09F4728C0122C004568FC /* TestReportBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AC09F4528C00E5D004568FC /* TestReportBody.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7AD41E7E2C7607AF00ED9467 /* ScrollingPlatformLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AD41E7D2C7607AA00ED9467 /* ScrollingPlatformLayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7ADE722610CBBB9B006B3B3A /* ContextMenuProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ADE722510CBBB9B006B3B3A /* ContextMenuProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AE335F21ACB09E200E401EF /* WheelEventTestMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AE335F01ACB09E200E401EF /* WheelEventTestMonitor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AE6C93C1BE0C60100E19E03 /* MainThreadSharedTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AE6C93A1BE0C60100E19E03 /* MainThreadSharedTimer.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11445,6 +11447,7 @@
 		517A63C21B74317E00E7DCDC /* KeyedEncoderCF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyedEncoderCF.h; sourceTree = "<group>"; };
 		517B25A71CC820320061C011 /* IDBConnectionProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBConnectionProxy.cpp; sourceTree = "<group>"; };
 		517B25A81CC820320061C011 /* IDBConnectionProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBConnectionProxy.h; sourceTree = "<group>"; };
+		517C11D42C6DD6A000489490 /* SpatialVideoMetadata.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialVideoMetadata.h; sourceTree = "<group>"; };
 		517C87101F8EE72E00EB8076 /* ServiceWorkerThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServiceWorkerThread.h; path = workers/service/context/ServiceWorkerThread.h; sourceTree = SOURCE_ROOT; };
 		517C87111F8EE72F00EB8076 /* ServiceWorkerThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServiceWorkerThread.cpp; path = workers/service/context/ServiceWorkerThread.cpp; sourceTree = SOURCE_ROOT; };
 		517C87161F8FD4D300EB8076 /* ServiceWorkerContextData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ServiceWorkerContextData.cpp; sourceTree = "<group>"; };
@@ -13446,6 +13449,7 @@
 		7AC09F4428C00E5D004568FC /* TestReportBody.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestReportBody.cpp; sourceTree = "<group>"; };
 		7AC09F4528C00E5D004568FC /* TestReportBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestReportBody.h; sourceTree = "<group>"; };
 		7AC09F4628C0120C004568FC /* TestReportBody.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestReportBody.idl; sourceTree = "<group>"; };
+		7AD41E7D2C7607AA00ED9467 /* ScrollingPlatformLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingPlatformLayer.h; sourceTree = "<group>"; };
 		7ADE722510CBBB9B006B3B3A /* ContextMenuProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContextMenuProvider.h; sourceTree = "<group>"; };
 		7AE335EF1ACB09E200E401EF /* WheelEventTestMonitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WheelEventTestMonitor.cpp; sourceTree = "<group>"; };
 		7AE335F01ACB09E200E401EF /* WheelEventTestMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WheelEventTestMonitor.h; sourceTree = "<group>"; };
@@ -22624,6 +22628,7 @@
 				0FBCF1BF29498EBE0088936F /* ScrollingCoordinatorTypes.cpp */,
 				712DBA4721F8AD79008F36B2 /* ScrollingCoordinatorTypes.h */,
 				12BB61202B6426090048B442 /* ScrollingNodeID.h */,
+				7AD41E7D2C7607AA00ED9467 /* ScrollingPlatformLayer.h */,
 				93C38BFC164473C700091EB2 /* ScrollingStateFixedNode.cpp */,
 				93C38BFD164473C700091EB2 /* ScrollingStateFixedNode.h */,
 				0FD41E6321F80260000C006D /* ScrollingStateFrameHostingNode.cpp */,
@@ -34393,6 +34398,7 @@
 				C149D55B242EA4FA003EBB12 /* SleepDisablerClient.h */,
 				C149D565242EB765003EBB12 /* SleepDisablerIdentifier.h */,
 				A3FF9B702921E6DC004F7A00 /* SourcesLibWebRTC.txt */,
+				517C11D42C6DD6A000489490 /* SpatialVideoMetadata.h */,
 				F433E9041DBBDBC200EF0D14 /* StaticPasteboard.cpp */,
 				F433E9021DBBDBA200EF0D14 /* StaticPasteboard.h */,
 				722728122947A4090048DD2E /* StyleAppearance.cpp */,
@@ -42357,6 +42363,7 @@
 				0F99059A26F6BE850054FBE0 /* ScrollingMomentumCalculator.h in Headers */,
 				0F99059D26F6BE9A0054FBE0 /* ScrollingMomentumCalculatorMac.h in Headers */,
 				12BB61212B64261C0048B442 /* ScrollingNodeID.h in Headers */,
+				7AD41E7E2C7607AF00ED9467 /* ScrollingPlatformLayer.h in Headers */,
 				93C38BFF164473C700091EB2 /* ScrollingStateFixedNode.h in Headers */,
 				0FD41E6921F80D14000C006D /* ScrollingStateFrameHostingNode.h in Headers */,
 				0FEA3E7B191B2FC5000F1B55 /* ScrollingStateFrameScrollingNode.h in Headers */,
@@ -42551,6 +42558,7 @@
 				72F7E746279B8F7500D82D2D /* SourceImage.h in Headers */,
 				D01A27AE10C9BFD800026A42 /* SpaceSplitString.h in Headers */,
 				626CDE0F1140424C001E5A68 /* SpatialNavigation.h in Headers */,
+				517C11D52C6DD6A100489490 /* SpatialVideoMetadata.h in Headers */,
 				934950CD253943610099F171 /* SpeechRecognition.h in Headers */,
 				934950CE253943650099F171 /* SpeechRecognitionAlternative.h in Headers */,
 				93F6B8222567A65600A08488 /* SpeechRecognitionCaptureSource.h in Headers */,

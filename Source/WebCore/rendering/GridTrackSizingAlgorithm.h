@@ -32,7 +32,6 @@
 #include "LayoutSize.h"
 #include "RenderBoxInlines.h"
 #include <wtf/StdMap.h>
-#include <wtf/StdMultimap.h>
 
 namespace WebCore {
 class GridTrack;
@@ -356,9 +355,9 @@ private:
 class GridTrackSizingAlgorithmStrategy {
     WTF_MAKE_FAST_ALLOCATED;
 public:
-    virtual LayoutUnit minContentForGridItem(RenderBox&, GridLayoutState&) const;
-    LayoutUnit maxContentForGridItem(RenderBox&, GridLayoutState&) const;
-    LayoutUnit minSizeForGridItem(RenderBox&, GridLayoutState&) const;
+    virtual LayoutUnit minContentContributionForGridItem(RenderBox&, GridLayoutState&) const;
+    LayoutUnit maxContentContributionForGridItem(RenderBox&, GridLayoutState&) const;
+    LayoutUnit minContributionForGridItem(RenderBox&, GridLayoutState&) const;
 
     virtual ~GridTrackSizingAlgorithmStrategy() = default;
 

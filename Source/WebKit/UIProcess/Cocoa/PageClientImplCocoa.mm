@@ -308,9 +308,11 @@ bool PageClientImplCocoa::intelligenceTextPonderingAnimationIsComplete()
     return [m_webView _intelligenceTextPonderingAnimationIsComplete];
 }
 
-#endif
+bool PageClientImplCocoa::writingToolsTextReplacementsFinished()
+{
+    return [m_webView _writingToolsTextReplacementsFinished];
+}
 
-#if ENABLE(WRITING_TOOLS_UI)
 void PageClientImplCocoa::addTextAnimationForAnimationID(const WTF::UUID& uuid, const WebCore::TextAnimationData& data)
 {
     [m_webView _addTextAnimationForAnimationID:uuid withData:data];
@@ -320,6 +322,7 @@ void PageClientImplCocoa::removeTextAnimationForAnimationID(const WTF::UUID& uui
 {
     [m_webView _removeTextAnimationForAnimationID:uuid];
 }
+
 #endif
 
 #if ENABLE(GAMEPAD)
@@ -350,6 +353,7 @@ void PageClientImplCocoa::hasActiveNowPlayingSessionChanged(bool hasActiveNowPla
 
 void PageClientImplCocoa::videoControlsManagerDidChange()
 {
+    RELEASE_LOG(ViewState, "%p PageClientImplCocoa::videoControlsManagerDidChange %d", m_webView.get().get(), [m_webView _canEnterFullscreen]);
     [m_webView willChangeValueForKey:@"_canEnterFullscreen"];
     [m_webView didChangeValueForKey:@"_canEnterFullscreen"];
 }

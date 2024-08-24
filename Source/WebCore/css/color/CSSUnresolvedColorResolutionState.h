@@ -48,9 +48,16 @@ public:
     virtual Color webkitFocusRingColor() const { return { }; }      // For CSSValueWebkitFocusRingColor
 };
 
-struct CSSUnresolvedColorResolutionContext {
+struct CSSUnresolvedColorResolutionState {
     // Delegate for lazily computing color values.
     CSSUnresolvedColorResolutionDelegate* delegate = nullptr;
+
+    // Level of nesting inside other colors the resolution currently is.
+    unsigned nestingLevel = 0;
+
+    // Conversion data needed to evaluate `calc()` expressions with relative length units.
+    // If unset, colors that require conversion data will return the invalid Color.
+    std::optional<CSSToLengthConversionData> conversionData = std::nullopt;
 
     // Whether links should be resolved to the visited style.
     Style::ForVisitedLink forVisitedLink = Style::ForVisitedLink::No;
@@ -118,6 +125,22 @@ private:
 
         return { };
     }
+};
+
+// RAII helper to increment/decrement nesting level.
+struct CSSUnresolvedColorResolutionNester {
+    CSSUnresolvedColorResolutionNester(CSSUnresolvedColorResolutionState& state)
+        : state { state }
+    {
+        state.nestingLevel++;
+    }
+
+    ~CSSUnresolvedColorResolutionNester()
+    {
+        state.nestingLevel--;
+    }
+
+    CSSUnresolvedColorResolutionState& state;
 };
 
 } // namespace WebCore

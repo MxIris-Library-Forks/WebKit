@@ -1430,9 +1430,6 @@ http/wpt/service-workers/push-console-messages-showNotification-sync.https.html 
 
 http/tests/media/fairplay [ Skip ]
 
-# Requires specifc encoder behavior.
-http/wpt/webcodecs/encoder-task-failing.html [ Failure ]
-
 #//////////////////////////////////////////////////////////////////////////////////////////
 # End platform-specific tests.
 #//////////////////////////////////////////////////////////////////////////////////////////
@@ -8033,12 +8030,6 @@ webkit.org/b/261557 media/video-remove-insert-repaints.html [ Pass Crash ]
 
 # Out-of-flow line break handling
 [ Debug ] fast/text/remove-renderer-and-select-crash.html [ Skip ]
-
-# web-platform-tests/html/dom/elements/global-attributes failures
-webkit.org/b/267951 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir-shadow-06.html [ ImageOnlyFailure ]
-webkit.org/b/267951 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir-shadow-36.html [ ImageOnlyFailure ]
-webkit.org/b/267951 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir-shadow-38.html [ ImageOnlyFailure ]
-webkit.org/b/267951 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir-shadow-39.html [ ImageOnlyFailure ]
 
 webkit.org/b/250795 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/dialog-focusability.html [ Skip ]
 

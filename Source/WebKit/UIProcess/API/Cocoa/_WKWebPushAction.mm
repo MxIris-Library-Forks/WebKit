@@ -23,11 +23,39 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "CSSUnresolvedColorResolutionContext.h"
+#import "config.h"
+#import "_WKWebPushAction.h"
 
-namespace WebCore {
+#import "WebPushDaemonConstants.h"
 
-CSSUnresolvedColorResolutionDelegate::~CSSUnresolvedColorResolutionDelegate() = default;
+@interface _WKWebPushAction ()
+@property (nonatomic, readwrite) NSNumber *version;
+@property (nonatomic, readwrite) NSString *pushPartition;
+@property (nonatomic, readwrite) NSString *type;
+@end
 
-} // namespace WebCore
+@implementation _WKWebPushAction
+
++ (_WKWebPushAction *)webPushActionWithDictionary:(NSDictionary *)dictionary
+{
+    NSNumber *version = dictionary[WebKit::WebPushD::pushActionVersionKey()];
+    if (!version || ![version isKindOfClass:[NSNumber class]])
+        return nil;
+
+    NSString *pushPartition = dictionary[WebKit::WebPushD::pushActionPartitionKey()];
+    if (!pushPartition || ![pushPartition isKindOfClass:[NSString class]])
+        return nil;
+
+    NSString *type = dictionary[WebKit::WebPushD::pushActionTypeKey()];
+    if (!type || ![type isKindOfClass:[NSString class]])
+        return nil;
+
+    _WKWebPushAction *result = [[_WKWebPushAction alloc] init];
+    result.version = version;
+    result.pushPartition = pushPartition;
+    result.type = type;
+
+    return [result autorelease];
+}
+
+@end

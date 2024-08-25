@@ -1511,7 +1511,8 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
 
         auto computeMasksToBoundsRect = [&] {
             if ((renderer().style().clipPath() || renderer().style().hasBorderRadius())) {
-                auto contentsClippingRect = FloatRoundedRect(renderer().style().getRoundedInnerBorderFor(m_owningLayer.rendererBorderBoxRect()));
+                auto borderShape = BorderShape::shapeForBorderRect(renderer().style(), m_owningLayer.rendererBorderBoxRect());
+                auto contentsClippingRect = borderShape.deprecatedPixelSnappedInnerRoundedRect(deviceScaleFactor);
                 contentsClippingRect.move(LayoutSize(-clipLayer->offsetFromRenderer()));
                 return contentsClippingRect;
             }
@@ -2361,7 +2362,7 @@ bool RenderLayerBacking::updateOverflowControlsLayers(bool needsHorizontalScroll
 
     layersChanged |= createOrDestroyLayer(m_layerForScrollCorner, needsScrollCornerLayer, true, "scroll corner"_s);
 
-    if (auto* scrollingCoordinator = m_owningLayer.page().scrollingCoordinator()) {
+    if (RefPtr scrollingCoordinator = m_owningLayer.page().scrollingCoordinator()) {
         if (auto* scrollableArea = m_owningLayer.scrollableArea()) {
             if (horizontalScrollbarLayerChanged)
                 scrollingCoordinator->scrollableAreaScrollbarLayerDidChange(*scrollableArea, ScrollbarOrientation::Horizontal);
@@ -2598,7 +2599,7 @@ void RenderLayerBacking::detachFromScrollingCoordinator(OptionSet<ScrollCoordina
     if (!m_scrollingNodeID && !m_ancestorClippingStack && !m_frameHostingNodeID && !m_pluginHostingNodeID && !m_viewportConstrainedNodeID && !m_positioningNodeID)
         return;
 
-    auto* scrollingCoordinator = m_owningLayer.page().scrollingCoordinator();
+    RefPtr scrollingCoordinator = m_owningLayer.page().scrollingCoordinator();
     if (!scrollingCoordinator)
         return;
 

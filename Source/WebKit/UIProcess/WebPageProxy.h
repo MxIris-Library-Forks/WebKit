@@ -111,6 +111,7 @@ class Cursor;
 class DataSegment;
 class DestinationColorSpace;
 class DragData;
+class Exception;
 class FloatPoint;
 class FloatQuad;
 class FloatRect;
@@ -338,7 +339,7 @@ using MediaProducerMutedStateFlags = OptionSet<MediaProducerMutedState>;
 using MediaSessionIdentifier = LegacyNullableObjectIdentifier<MediaSessionIdentifierType>;
 using PageIdentifier = LegacyNullableObjectIdentifier<PageIdentifierType>;
 using PlatformDisplayID = uint32_t;
-using PlatformLayerIdentifier = ProcessQualified<LegacyNullableObjectIdentifier<PlatformLayerIdentifierType>>;
+using PlatformLayerIdentifier = ProcessQualified<ObjectIdentifier<PlatformLayerIdentifierType>>;
 using PlaybackTargetClientContextIdentifier = LegacyNullableObjectIdentifier<PlaybackTargetClientContextIdentifierType>;
 using PointerID = uint32_t;
 using ResourceLoaderIdentifier = LegacyNullableAtomicObjectIdentifier<ResourceLoader>;
@@ -412,6 +413,7 @@ class PageLoadState;
 class PageLoadStateObserverBase;
 class PlatformXRSystem;
 class PlaybackSessionManagerProxy;
+class ProcessThrottlerActivity;
 class ProcessThrottlerTimedActivity;
 class ProvisionalPageProxy;
 class RemoteLayerTreeHost;
@@ -1445,7 +1447,7 @@ public:
     void didBeginTextSearchOperation();
 
     void requestRectForFoundTextRange(const WebFoundTextRange&, CompletionHandler<void(WebCore::FloatRect)>&&);
-    void addLayerForFindOverlay(CompletionHandler<void(WebCore::PlatformLayerIdentifier)>&&);
+    void addLayerForFindOverlay(CompletionHandler<void(std::optional<WebCore::PlatformLayerIdentifier>)>&&);
     void removeLayerForFindOverlay(CompletionHandler<void()>&&);
 
     void getContentsAsString(ContentAsStringIncludesChildFrames, CompletionHandler<void(const String&)>&&);
@@ -2462,6 +2464,7 @@ public:
     void sendScrollPositionChangedForNode(std::optional<WebCore::FrameIdentifier>, WebCore::ScrollingNodeID, const WebCore::FloatPoint& scrollPosition, std::optional<WebCore::FloatPoint> layoutViewportOrigin, bool syncLayerPosition, bool isLastUpdate);
 #endif
 
+    bool hasValidAudibleActivity() const;
     bool hasAllowedToRunInTheBackgroundActivity() const;
 
     template<typename M> void sendToProcessContainingFrame(std::optional<WebCore::FrameIdentifier>, M&&, OptionSet<IPC::SendOption> = { });
@@ -2469,7 +2472,7 @@ public:
     template<typename M> IPC::ConnectionSendSyncResult<M> sendSyncToProcessContainingFrame(std::optional<WebCore::FrameIdentifier>, M&&);
     template<typename M> IPC::ConnectionSendSyncResult<M> sendSyncToProcessContainingFrame(std::optional<WebCore::FrameIdentifier>, M&&, const IPC::Timeout&);
 
-    void forEachWebContentProcess(Function<void(WebProcessProxy&, WebCore::PageIdentifier)>&&) const;
+    void forEachWebContentProcess(Function<void(WebProcessProxy&, WebCore::PageIdentifier)>&&);
 
 #if HAVE(SPATIAL_TRACKING_LABEL)
     void setDefaultSpatialTrackingLabel(const String&);
@@ -2645,10 +2648,11 @@ private:
 
 #if ENABLE(MEDIA_STREAM)
     UserMediaPermissionRequestManagerProxy& userMediaPermissionRequestManager();
-#endif
     void requestUserMediaPermissionForFrame(IPC::Connection&, WebCore::UserMediaRequestIdentifier, WebCore::FrameIdentifier, const WebCore::SecurityOriginData& userMediaDocumentOriginIdentifier, const WebCore::SecurityOriginData& topLevelDocumentOriginIdentifier, WebCore::MediaStreamRequest&&);
     void enumerateMediaDevicesForFrame(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::SecurityOriginData& userMediaDocumentOriginData, const WebCore::SecurityOriginData& topLevelDocumentOriginData, CompletionHandler<void(const Vector<WebCore::CaptureDeviceWithCapabilities>&, WebCore::MediaDeviceHashSalts&&)>&&);
     void beginMonitoringCaptureDevices();
+    void validateCaptureStateUpdate(bool isActive, WebCore::MediaProducerMediaCaptureKind, CompletionHandler<void(std::optional<WebCore::Exception>&&)>&&);
+#endif
 
 #if ENABLE(ENCRYPTED_MEDIA)
     MediaKeySystemPermissionRequestManagerProxy& mediaKeySystemPermissionRequestManager();
@@ -3106,24 +3110,45 @@ private:
     static WTF::MachSendRight createMachSendRightForRemoteLayerServer();
 #endif
 
-    void takeVisibleActivity();
-    void takeAudibleActivity();
-    void takeCapturingActivity();
+    class ProcessActivityState {
+    public:
+        explicit ProcessActivityState(WebPageProxy&);
+        void takeVisibleActivity();
+        void takeAudibleActivity();
+        void takeCapturingActivity();
+        void takeMutedCaptureActivity();
 
-    void resetActivityState();
-    void dropVisibleActivity();
-    void dropAudibleActivity();
-    void dropCapturingActivity();
+        void reset();
+        void dropVisibleActivity();
+        void dropAudibleActivity();
+        void dropCapturingActivity();
+        void dropMutedCaptureActivity();
 
-    bool hasValidVisibleActivity() const;
-    bool hasValidAudibleActivity() const;
-    bool hasValidCapturingActivity() const;
+        bool hasValidVisibleActivity() const;
+        bool hasValidAudibleActivity() const;
+        bool hasValidCapturingActivity() const;
+        bool hasValidMutedCaptureActivity() const;
 
 #if PLATFORM(IOS_FAMILY)
-    void takeOpeningAppLinkActivity();
-    void dropOpeningAppLinkActivity();
-    bool hasValidOpeningAppLinkActivity() const;
+        void takeOpeningAppLinkActivity();
+        void dropOpeningAppLinkActivity();
+        bool hasValidOpeningAppLinkActivity() const;
 #endif
+
+    private:
+        WebPageProxy& m_page;
+
+        std::unique_ptr<ProcessThrottlerActivity> m_isVisibleActivity;
+#if PLATFORM(MAC)
+        UniqueRef<ProcessThrottlerTimedActivity> m_wasRecentlyVisibleActivity;
+#endif
+        std::unique_ptr<ProcessThrottlerActivity> m_isAudibleActivity;
+        std::unique_ptr<ProcessThrottlerActivity> m_isCapturingActivity;
+        std::unique_ptr<ProcessThrottlerActivity> m_isMutedCaptureActivity;
+#if PLATFORM(IOS_FAMILY)
+        std::unique_ptr<ProcessThrottlerActivity> m_openingAppLinkActivity;
+#endif
+    };
 
     UniqueRef<Internals> m_internals;
 
@@ -3271,6 +3296,8 @@ private:
     bool m_isListeningForUserFacingStateChangeNotification { false };
 #endif
     bool m_allowsMediaDocumentInlinePlayback { false };
+
+    ProcessActivityState m_legacyMainFrameProcessActivityState;
 
     bool m_initialCapitalizationEnabled { false };
     std::optional<double> m_cpuLimit;

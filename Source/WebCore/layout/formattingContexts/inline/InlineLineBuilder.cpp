@@ -662,7 +662,7 @@ void LineBuilder::candidateContentForLine(LineCandidate& lineCandidate, size_t c
         if (needsLayout) {
             // FIXME: Intrinsic width mode should call into the intrinsic width codepath. Currently we only get here when box has fixed width (meaning no need to run intrinsic width on the box).
             if (!isInIntrinsicWidthMode())
-                formattingContext().layoutWithFormattingContextForBox(downcast<ElementBox>(inlineItem.layoutBox()));
+                formattingContext().integrationUtils().layoutWithFormattingContextForBox(downcast<ElementBox>(inlineItem.layoutBox()));
         }
 
         if (inlineItem.isFloat()) {
@@ -917,23 +917,7 @@ bool LineBuilder::tryPlacingFloatBox(const Box& floatBox, MayOverConstrainLine m
         return false;
 
     auto& floatingContext = this->floatingContext();
-    auto boxGeometry = [&]() -> BoxGeometry {
-        auto marginTrim = rootStyle().marginTrim();
-        if (!marginTrim.containsAny({ MarginTrimType::InlineStart, MarginTrimType::InlineEnd }) || m_lineIsConstrainedByFloat.containsAll({ UsedFloat::Left, UsedFloat::Right }))
-            return formattingContext().geometryForBox(floatBox);
-        // Discarding the inline-start/inline-end margin of an inline-start/inline-end float (or equivalent) whose outer edge on that side coincides with
-        // the inner edge of the container.
-        auto geometry = formattingContext().geometryForBox(floatBox);
-        if (floatingContext.isLogicalLeftPositioned(floatBox)) {
-            if (marginTrim.contains(MarginTrimType::InlineStart) && !m_lineIsConstrainedByFloat.contains(UsedFloat::Left))
-                geometry.setMarginStart({ });
-            return geometry;
-        }
-        if (marginTrim.contains(MarginTrimType::InlineEnd) && !m_lineIsConstrainedByFloat.contains(UsedFloat::Right))
-            geometry.setMarginEnd({ });
-        return geometry;
-    }();
-
+    auto& boxGeometry = formattingContext().geometryForBox(floatBox);
     if (!shouldTryToPlaceFloatBox(floatBox, boxGeometry.marginBoxWidth(), mayOverConstrainLine))
         return false;
 

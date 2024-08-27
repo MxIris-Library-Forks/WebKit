@@ -5380,6 +5380,7 @@
 		DD308A2D2A82F684000A2687 /* AbstractLineBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD5ACFD82B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD763BB20992C2C900740B8E /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DD763BB10992C2C900740B8E /* libxml2.dylib */; };
+		DD76D1522C7B63BE00DFDD70 /* LayoutIntegrationUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD7CDF250A23CF9800069928 /* CSSUnknownRule.h in Headers */ = {isa = PBXBuildFile; fileRef = A80E6CCE0A1989CA007FB8C5 /* CSSUnknownRule.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD8A30B4291DFC8F00AD537C /* BlockLayoutState.h in Headers */ = {isa = PBXBuildFile; fileRef = DD8A30B3291DFC8F00AD537C /* BlockLayoutState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD8E4EBB2B9F952500108D7A /* TextBreakingPositionContext.h in Headers */ = {isa = PBXBuildFile; fileRef = DD8E4EBA2B9F952500108D7A /* TextBreakingPositionContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18944,6 +18945,8 @@
 		DD5ACFD62B14DAD600B36C57 /* LayoutIntegrationBoxGeometryUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationBoxGeometryUpdater.cpp; sourceTree = "<group>"; };
 		DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationBoxGeometryUpdater.h; sourceTree = "<group>"; };
 		DD763BB10992C2C900740B8E /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
+		DD76D1502C7B63B600DFDD70 /* LayoutIntegrationUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationUtils.cpp; sourceTree = "<group>"; };
+		DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationUtils.h; sourceTree = "<group>"; };
 		DD8A30B3291DFC8F00AD537C /* BlockLayoutState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockLayoutState.h; sourceTree = "<group>"; };
 		DD8E4EBA2B9F952500108D7A /* TextBreakingPositionContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextBreakingPositionContext.h; sourceTree = "<group>"; };
 		DD91A3152B8989D900317AF7 /* TextBreakingPositionCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextBreakingPositionCache.cpp; sourceTree = "<group>"; };
@@ -36028,6 +36031,8 @@
 				E403B7A1251B11930019E800 /* LayoutIntegrationCoverage.h */,
 				E43E64F52C6365E50060F493 /* LayoutIntegrationFormattingContextLayout.cpp */,
 				E43E64F62C6365EE0060F493 /* LayoutIntegrationFormattingContextLayout.h */,
+				DD76D1502C7B63B600DFDD70 /* LayoutIntegrationUtils.cpp */,
+				DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */,
 			);
 			path = integration;
 			sourceTree = "<group>";
@@ -41091,6 +41096,7 @@
 				6FCE698028B7DD3900956401 /* LayoutIntegrationInlineContentPainter.h in Headers */,
 				E4ABABDD236088FE00FA4345 /* LayoutIntegrationLineLayout.h in Headers */,
 				E403B7A3251B11C10019E800 /* LayoutIntegrationPagination.h in Headers */,
+				DD76D1522C7B63BE00DFDD70 /* LayoutIntegrationUtils.h in Headers */,
 				11310CF420BA4A3D0065A8D0 /* LayoutIterator.h in Headers */,
 				931D72F615FE695300C4C07E /* LayoutMilestone.h in Headers */,
 				F45EAC872A8C1A65009B986E /* LayoutMilestones.serialization.in in Headers */,

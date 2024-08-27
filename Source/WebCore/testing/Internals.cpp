@@ -2816,6 +2816,11 @@ bool Internals::hasWritingToolsTextSuggestionMarker(int from, int length)
 }
 #endif
 
+bool Internals::hasTransparentContentMarker(int from, int length)
+{
+    return hasMarkerFor(DocumentMarker::Type::TransparentContent, from, length);
+}
+
 void Internals::setContinuousSpellCheckingEnabled(bool enabled)
 {
     if (!contextDocument() || !contextDocument()->frame())
@@ -3242,7 +3247,7 @@ ExceptionOr<uint64_t> Internals::layerIDForElement(Element& element)
         return Exception { ExceptionCode::NotFoundError };
 
     auto* backing = layerModelObject.layer()->backing();
-    return backing->graphicsLayer()->primaryLayerID().object().toUInt64();
+    return backing->graphicsLayer()->primaryLayerID() ? backing->graphicsLayer()->primaryLayerID()->object().toUInt64() : 0;
 }
 
 ExceptionOr<Vector<uint64_t>> Internals::scrollingNodeIDForNode(Node* node)
@@ -3900,7 +3905,7 @@ void Internals::setMockVideoPresentationModeEnabled(bool enabled)
 
 void Internals::setCanvasNoiseInjectionSalt(HTMLCanvasElement& element, unsigned long long salt)
 {
-    return element.setNoiseInjectionSalt(salt);
+    element.setNoiseInjectionSalt(salt);
 }
 
 bool Internals::doesCanvasHavePendingCanvasNoiseInjection(HTMLCanvasElement& element) const

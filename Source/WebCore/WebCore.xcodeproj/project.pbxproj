@@ -19875,6 +19875,8 @@
 		E440DF5726EB53EA004AF06B /* TextBoxPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextBoxPainter.cpp; sourceTree = "<group>"; };
 		E440FD5125A4AFDF00F7C849 /* StyledMarkedText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyledMarkedText.h; sourceTree = "<group>"; };
 		E440FD5425A4AFEE00F7C849 /* StyledMarkedText.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyledMarkedText.cpp; sourceTree = "<group>"; };
+		E44129942C7F251C0047598D /* InlineIteratorSVGTextBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InlineIteratorSVGTextBox.h; sourceTree = "<group>"; };
+		E44129952C7F25260047598D /* InlineIteratorSVGTextBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InlineIteratorSVGTextBox.cpp; sourceTree = "<group>"; };
 		E444B0A028C7437900CA560E /* BorderPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BorderPainter.h; sourceTree = "<group>"; };
 		E444B0A228C7438400CA560E /* BorderPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BorderPainter.cpp; sourceTree = "<group>"; };
 		E444B0A828C8B19900CA560E /* BackgroundPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackgroundPainter.h; sourceTree = "<group>"; };
@@ -28062,6 +28064,8 @@
 				E4D33F45252C50FB00837D05 /* InlineIteratorLineBoxModernPath.h */,
 				E41ACC12271733F3003E9157 /* InlineIteratorLogicalOrderTraversal.cpp */,
 				E41ACC1527173402003E9157 /* InlineIteratorLogicalOrderTraversal.h */,
+				E44129952C7F25260047598D /* InlineIteratorSVGTextBox.cpp */,
+				E44129942C7F251C0047598D /* InlineIteratorSVGTextBox.h */,
 				E47CEBDE2709916400B8D8F5 /* InlineIteratorTextBox.cpp */,
 				E47CEBE02709916D00B8D8F5 /* InlineIteratorTextBox.h */,
 				9331BACC29EC9E0600137ED2 /* InlineIteratorTextBoxInlines.h */,

@@ -598,6 +598,7 @@ public:
     void addWebUndoStep(WebUndoStepID, Ref<WebUndoStep>&&);
     void removeWebEditCommand(WebUndoStepID);
     bool isInRedo() const { return m_isInRedo; }
+    void setIsInRedo(bool isInRedo) { m_isInRedo = isInRedo; }
 
     void closeCurrentTypingCommand();
 
@@ -2601,6 +2602,7 @@ private:
     };
     std::optional<DeferredDidReceiveMouseEvent> m_deferredDidReceiveMouseEvent;
 
+    HashSet<WebCore::ResourceLoaderIdentifier> m_networkResourceRequestIdentifiersForPageLoadTiming;
     HashSet<WebCore::ResourceLoaderIdentifier> m_trackedNetworkResourceRequestIdentifiers;
 
     WebCore::IntSize m_minimumSizeForAutoLayout;

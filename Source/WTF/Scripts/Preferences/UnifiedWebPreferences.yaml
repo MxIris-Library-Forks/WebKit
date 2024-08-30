@@ -429,12 +429,15 @@ AllowsPictureInPictureMediaPlayback:
   status: embedder
   defaultValue:
     WebKitLegacy:
+      "PLATFORM(VISION)": false
       "PLATFORM(IOS_FAMILY)": WebKit::defaultAllowsPictureInPictureMediaPlayback()
       default: false
     WebKit:
+      "PLATFORM(VISION)": false
       "PLATFORM(IOS_FAMILY)": true
       default: false
     WebCore:
+      "PLATFORM(VISION)": false
       default: true
   disableInLockdownMode: true
 
@@ -1005,20 +1008,6 @@ CSSBackgroundClipBorderAreaEnabled:
     WebCore:
       default: true
 
-CSSColorContrastEnabled:
-  type: bool
-  status: testable
-  category: css
-  humanReadableName: "CSS color-contrast()"
-  humanReadableDescription: "Enable support for CSS color-contrast() defined in CSS Color 5"
-  defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: false
-    WebCore:
-      default: false
-
 CSSColorLayersEnabled:
   type: bool
   category: css
@@ -1158,6 +1147,20 @@ CSSLightDarkEnabled:
       default: true
     WebCore:
       default: true
+
+CSSLineClampEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS line-clamp"
+  humanReadableDescription: "Enable CSS line-clamp"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
 
 CSSMarginTrimEnabled:
   type: bool
@@ -5373,10 +5376,13 @@ PictureInPictureAPIEnabled:
   condition: ENABLE(PICTURE_IN_PICTURE_API)
   defaultValue:
     WebKitLegacy:
+      "PLATFORM(VISION)": false
       default: false
     WebKit:
+      "PLATFORM(VISION)": false
       default: true
     WebCore:
+      "PLATFORM(VISION)": false
       default: true
   disableInLockdownMode: true
 

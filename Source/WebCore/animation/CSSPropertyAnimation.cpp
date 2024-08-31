@@ -4010,6 +4010,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<Resize>(CSSPropertyResize, &RenderStyle::resize, &RenderStyle::setResize),
         new DiscretePropertyWrapper<RubyPosition>(CSSPropertyRubyPosition, &RenderStyle::rubyPosition, &RenderStyle::setRubyPosition),
         new DiscretePropertyWrapper<RubyAlign>(CSSPropertyRubyAlign, &RenderStyle::rubyAlign, &RenderStyle::setRubyAlign),
+        new DiscretePropertyWrapper<RubyOverhang>(CSSPropertyRubyOverhang, &RenderStyle::rubyOverhang, &RenderStyle::setRubyOverhang),
         new DiscretePropertyWrapper<TableLayoutType>(CSSPropertyTableLayout, &RenderStyle::tableLayout, &RenderStyle::setTableLayout),
         new DiscretePropertyWrapper<TextAlignMode>(CSSPropertyTextAlign, &RenderStyle::textAlign, &RenderStyle::setTextAlign),
         new DiscretePropertyWrapper<TextAlignLast>(CSSPropertyTextAlignLast, &RenderStyle::textAlignLast, &RenderStyle::setTextAlignLast),
@@ -4099,7 +4100,9 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         new DiscretePropertyWrapper<FieldSizing>(CSSPropertyFieldSizing, &RenderStyle::fieldSizing, &RenderStyle::setFieldSizing),
         new DiscretePropertyWrapper<const Vector<AtomString>&>(CSSPropertyAnchorName, &RenderStyle::anchorNames, &RenderStyle::setAnchorNames),
         new DiscretePropertyWrapper<const AtomString&>(CSSPropertyPositionAnchor, &RenderStyle::positionAnchor, &RenderStyle::setPositionAnchor),
-        new DiscretePropertyWrapper<const BlockEllipsis&>(CSSPropertyBlockEllipsis, &RenderStyle::blockEllipsis, &RenderStyle::setBlockEllipsis)
+        new DiscretePropertyWrapper<const BlockEllipsis&>(CSSPropertyBlockEllipsis, &RenderStyle::blockEllipsis, &RenderStyle::setBlockEllipsis),
+        new DiscretePropertyWrapper<size_t>(CSSPropertyMaxLines, &RenderStyle::maxLines, &RenderStyle::setMaxLines),
+        new DiscretePropertyWrapper<OverflowContinue>(CSSPropertyContinue, &RenderStyle::overflowContinue, &RenderStyle::setOverflowContinue)
     };
     const unsigned animatableLonghandPropertiesCount = std::size(animatableLonghandPropertyWrappers);
 
@@ -4138,6 +4141,7 @@ CSSPropertyAnimationWrapperMap::CSSPropertyAnimationWrapperMap()
         CSSPropertyGridRow,
         CSSPropertyGridTemplate,
         CSSPropertyInsetBlock, // logical shorthand
+        CSSPropertyLineClamp,
         CSSPropertyListStyle, // for list-style-image
         CSSPropertyMargin,
         CSSPropertyMarginBlock, // logical shorthand

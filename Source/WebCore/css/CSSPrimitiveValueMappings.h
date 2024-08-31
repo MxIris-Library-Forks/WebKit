@@ -1573,6 +1573,12 @@ DEFINE_TO_FROM_CSS_VALUE_ID_FUNCTIONS
 #undef TYPE
 #undef FOR_EACH
 
+#define TYPE RubyOverhang
+#define FOR_EACH(CASE) CASE(Auto) CASE(None)
+DEFINE_TO_FROM_CSS_VALUE_ID_FUNCTIONS
+#undef TYPE
+#undef FOR_EACH
+
 #define TYPE TextOverflow
 #define FOR_EACH(CASE) CASE(Clip) CASE(Ellipsis)
 DEFINE_TO_FROM_CSS_VALUE_ID_FUNCTIONS
@@ -2541,6 +2547,12 @@ DEFINE_TO_FROM_CSS_VALUE_ID_FUNCTIONS
 
 #define TYPE QuoteType
 #define FOR_EACH(CASE) CASE(OpenQuote) CASE(CloseQuote) CASE(NoOpenQuote) CASE(NoCloseQuote)
+DEFINE_TO_FROM_CSS_VALUE_ID_FUNCTIONS
+#undef TYPE
+#undef FOR_EACH
+
+#define TYPE OverflowContinue
+#define FOR_EACH(CASE) CASE(Auto) CASE(Discard)
 DEFINE_TO_FROM_CSS_VALUE_ID_FUNCTIONS
 #undef TYPE
 #undef FOR_EACH

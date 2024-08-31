@@ -431,6 +431,7 @@ inline OrderedNamedGridLinesMap RenderStyle::initialOrderedNamedGridColumnLines(
 inline OrderedNamedGridLinesMap RenderStyle::initialOrderedNamedGridRowLines() { return { }; }
 constexpr OutlineIsAuto RenderStyle::initialOutlineStyleIsAuto() { return OutlineIsAuto::Off; }
 constexpr OverflowAnchor RenderStyle::initialOverflowAnchor() { return OverflowAnchor::Auto; }
+inline OverflowContinue RenderStyle::initialOverflowContinue() { return OverflowContinue::Auto; }
 constexpr OverflowWrap RenderStyle::initialOverflowWrap() { return OverflowWrap::Normal; }
 constexpr Overflow RenderStyle::initialOverflowX() { return Overflow::Visible; }
 constexpr Overflow RenderStyle::initialOverflowY() { return Overflow::Visible; }
@@ -450,6 +451,7 @@ constexpr Resize RenderStyle::initialResize() { return Resize::None; }
 inline GapLength RenderStyle::initialRowGap() { return { }; }
 constexpr RubyPosition RenderStyle::initialRubyPosition() { return RubyPosition::Over; }
 constexpr RubyAlign RenderStyle::initialRubyAlign() { return RubyAlign::SpaceAround; }
+constexpr RubyOverhang RenderStyle::initialRubyOverhang() { return RubyOverhang::Auto; }
 inline Length RenderStyle::initialScrollMargin() { return zeroLength(); }
 inline Length RenderStyle::initialScrollPadding() { return { }; }
 inline std::optional<ScrollbarColor> RenderStyle::initialScrollbarColor() { return std::nullopt; }
@@ -606,6 +608,7 @@ inline const Length& RenderStyle::maskYPosition() const { return maskLayers().yP
 inline MasonryAutoFlow RenderStyle::masonryAutoFlow() const { return m_nonInheritedData->rareData->grid->masonryAutoFlow; }
 inline MathStyle RenderStyle::mathStyle() const { return static_cast<MathStyle>(m_rareInheritedData->mathStyle); }
 inline const Length& RenderStyle::maxHeight() const { return m_nonInheritedData->boxData->maxHeight(); }
+inline size_t RenderStyle::maxLines() const { return m_nonInheritedData->rareData->maxLines; }
 inline const Length& RenderStyle::maxWidth() const { return m_nonInheritedData->boxData->maxWidth(); }
 inline const Length& RenderStyle::minHeight() const { return m_nonInheritedData->boxData->minHeight(); }
 inline const Length& RenderStyle::minWidth() const { return m_nonInheritedData->boxData->minWidth(); }
@@ -633,6 +636,7 @@ inline const StyleColor& RenderStyle::outlineColor() const { return m_nonInherit
 inline BorderStyle RenderStyle::outlineStyle() const { return m_nonInheritedData->backgroundData->outline.style(); }
 inline OutlineIsAuto RenderStyle::outlineStyleIsAuto() const { return static_cast<OutlineIsAuto>(m_nonInheritedData->backgroundData->outline.isAuto()); }
 inline OverflowAnchor RenderStyle::overflowAnchor() const { return static_cast<OverflowAnchor>(m_nonInheritedData->rareData->overflowAnchor); }
+inline OverflowContinue RenderStyle::overflowContinue() const { return m_nonInheritedData->rareData->overflowContinue; }
 inline OverflowWrap RenderStyle::overflowWrap() const { return static_cast<OverflowWrap>(m_rareInheritedData->overflowWrap); }
 inline OverscrollBehavior RenderStyle::overscrollBehaviorX() const { return static_cast<OverscrollBehavior>(m_nonInheritedData->rareData->overscrollBehaviorX); }
 inline OverscrollBehavior RenderStyle::overscrollBehaviorY() const { return static_cast<OverscrollBehavior>(m_nonInheritedData->rareData->overscrollBehaviorY); }
@@ -662,6 +666,7 @@ inline RotateTransformOperation* RenderStyle::rotate() const { return m_nonInher
 inline const GapLength& RenderStyle::rowGap() const { return m_nonInheritedData->rareData->rowGap; }
 inline RubyPosition RenderStyle::rubyPosition() const { return static_cast<RubyPosition>(m_rareInheritedData->rubyPosition); }
 inline RubyAlign RenderStyle::rubyAlign() const { return static_cast<RubyAlign>(m_rareInheritedData->rubyAlign); }
+inline RubyOverhang RenderStyle::rubyOverhang() const { return static_cast<RubyOverhang>(m_rareInheritedData->rubyOverhang); }
 inline ScaleTransformOperation* RenderStyle::scale() const { return m_nonInheritedData->rareData->scale.get(); }
 inline const Vector<Ref<ScrollTimeline>>& RenderStyle::scrollTimelines() const { return m_nonInheritedData->rareData->scrollTimelines; }
 inline const Vector<ScrollAxis>& RenderStyle::scrollTimelineAxes() const { return m_nonInheritedData->rareData->scrollTimelineAxes; }

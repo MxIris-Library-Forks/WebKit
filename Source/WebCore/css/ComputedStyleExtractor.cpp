@@ -675,6 +675,28 @@ RefPtr<CSSValue> ComputedStyleExtractor::textBoxShorthandValue(const RenderStyle
     return CSSValuePair::create(createConvertingToCSSValueID(textBoxTrim), valueForTextEdge(CSSPropertyTextBoxEdge, textBoxEdge));
 }
 
+RefPtr<CSSValue> ComputedStyleExtractor::lineClampShorthandValue(const RenderStyle& style) const
+{
+    auto maxLines = style.maxLines();
+    if (!maxLines)
+        return CSSPrimitiveValue::create(CSSValueNone);
+
+    Ref maxLineCount = CSSPrimitiveValue::create(maxLines, CSSUnitType::CSS_INTEGER);
+    auto blockEllipsisType = style.blockEllipsis().type;
+
+    if (blockEllipsisType == BlockEllipsis::Type::None)
+        return CSSValuePair::create(WTFMove(maxLineCount), CSSPrimitiveValue::create(CSSValueNone));
+
+    if (blockEllipsisType == BlockEllipsis::Type::Auto)
+        return CSSValuePair::create(WTFMove(maxLineCount), CSSPrimitiveValue::create(CSSValueAuto));
+
+    if (blockEllipsisType == BlockEllipsis::Type::String)
+        return CSSValuePair::create(WTFMove(maxLineCount), CSSPrimitiveValue::createCustomIdent(style.blockEllipsis().string));
+
+    ASSERT_NOT_REACHED();
+    return { };
+}
+
 Ref<CSSPrimitiveValue> ComputedStyleExtractor::currentColorOrValidColor(const RenderStyle& style, const StyleColor& color)
 {
     // This function does NOT look at visited information, so that computed style doesn't expose that.
@@ -3621,6 +3643,10 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         if (style.hasAutoColumnWidth())
             return CSSPrimitiveValue::create(CSSValueAuto);
         return zoomAdjustedPixelValue(style.columnWidth(), style);
+    case CSSPropertyContinue:
+        if (style.overflowContinue() == OverflowContinue::Discard)
+            return CSSPrimitiveValue::create(CSSValueDiscard);
+        return CSSPrimitiveValue::create(CSSValueAuto);
     case CSSPropertyTabSize:
         return CSSPrimitiveValue::create(style.tabSize().widthInPixels(1.0), style.tabSize().isSpaces() ? CSSUnitType::CSS_NUMBER : CSSUnitType::CSS_PX);
     case CSSPropertyCursor: {
@@ -3864,6 +3890,8 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         }
         return CSSPrimitiveValue::create(spacing, style);
     }
+    case CSSPropertyLineClamp:
+        return lineClampShorthandValue(style);
     case CSSPropertyWebkitLineClamp:
         if (style.lineClamp().isNone())
             return CSSPrimitiveValue::create(CSSValueNone);
@@ -4059,6 +4087,8 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         return valueForWebkitRubyPosition(style.rubyPosition());
     case CSSPropertyRubyAlign:
         return createConvertingToCSSValueID(style.rubyAlign());
+    case CSSPropertyRubyOverhang:
+        return createConvertingToCSSValueID(style.rubyOverhang());
     case CSSPropertyTableLayout:
         return createConvertingToCSSValueID(style.tableLayout());
     case CSSPropertyTextAlign:
@@ -4369,6 +4399,10 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         if (style.maskBorderSource())
             return style.maskBorderSource()->computedStyleValue(style);
         return CSSPrimitiveValue::create(CSSValueNone);
+    case CSSPropertyMaxLines:
+        if (!style.maxLines())
+            return CSSPrimitiveValue::create(CSSValueNone);
+        return CSSPrimitiveValue::create(style.maxLines());
     case CSSPropertyWebkitInitialLetter: {
         auto drop = !style.initialLetterDrop() ? CSSPrimitiveValue::create(CSSValueNormal) : CSSPrimitiveValue::create(style.initialLetterDrop());
         auto size = !style.initialLetterHeight() ? CSSPrimitiveValue::create(CSSValueNormal) : CSSPrimitiveValue::create(style.initialLetterHeight());

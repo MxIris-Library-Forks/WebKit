@@ -1109,7 +1109,6 @@ http/wpt/service-workers/basic-fetch-with-contentfilter.https.html [ Skip ]
 # Reenable it when having a custom gc exposed in service workers.
 [ Debug ] http/wpt/service-workers/fetchEvent.https.html [ Skip ]
 
-webkit.org/b/248743 http/wpt/service-workers/fetch-service-worker-preload-download.https.html [ Pass Failure ]
 webkit.org/b/248743 http/wpt/service-workers/file-upload.html [ Pass Failure ]
 
 # Test file
@@ -5877,8 +5876,6 @@ imported/w3c/web-platform-tests/css/filter-effects/svg-mutation-single-to-multip
 imported/w3c/web-platform-tests/css/filter-effects/svg-mutation-url-to-function.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/svg-shorthand-drop-shadow-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/svg-shorthand-hue-rotate-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/svg-unknown-input-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/svg-unknown-input-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/tainting-feblend-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/tainting-fecomponenttransfer-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/tainting-fecomposite-002.html [ ImageOnlyFailure ]
@@ -5969,12 +5966,6 @@ imported/w3c/web-platform-tests/workers/shared-worker-name-via-options.html [ Du
 [ Release ] fast/text/glyph-display-lists [ Skip ]
 
 webkit.org/b/242498 svg/resource-invalidation/mask-resource-invalidation.html [ ImageOnlyFailure ]
-
-# YouTube plugin replacement
-security/contentSecurityPolicy/object-src-none-blocks-youtube-plugin-replacement.html [ Skip ]
-security/contentSecurityPolicy/plugins-types-allows-youtube-plugin-replacement.html [ Skip ]
-security/contentSecurityPolicy/plugins-types-blocks-youtube-plugin-replacement-without-mime-type.html [ Skip ]
-security/contentSecurityPolicy/plugins-types-blocks-youtube-plugin-replacement.html [ Skip ]
 
 webkit.org/b/242983 imported/w3c/web-platform-tests/css/css-scroll-anchoring/fullscreen-crash.html [ Skip ]
 webkit.org/b/261849 imported/w3c/web-platform-tests/css/css-scroll-anchoring/heuristic-with-offset-update-from-scroll-event-listener.html [ Skip ]

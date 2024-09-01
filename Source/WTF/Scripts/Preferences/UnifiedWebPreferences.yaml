@@ -1278,17 +1278,17 @@ CSSRubyAlignEnabled:
 
 CSSRubyOverhangEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS ruby-overhang property"
   humanReadableDescription: "Enable ruby-overhang"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSScopeAtRuleEnabled:
   type: bool
@@ -4205,6 +4205,21 @@ LoginStatusAPIEnabled:
       default: false
     WebCore:
       default: false
+
+LoginStatusAPIRequiresWebAuthnEnabled:
+  type: bool
+  status: internal
+  category: dom
+  humanReadableName: "Require WebAuthn with the Login Status API"
+  humanReadableDescription: "Require a recent WebAuthn authentication to set login status"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  sharedPreferenceForWebProcess: true
 
 LogsPageMessagesToSystemConsoleEnabled:
   type: bool

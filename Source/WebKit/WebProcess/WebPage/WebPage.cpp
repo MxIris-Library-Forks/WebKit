@@ -644,7 +644,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_textAnimationController(makeUniqueRef<TextAnimationController>(*this))
 #endif
 {
-    ASSERT(m_identifier);
     WEBPAGE_RELEASE_LOG(Loading, "constructor:");
 
 #if PLATFORM(IOS) || PLATFORM(VISION)
@@ -2515,14 +2514,14 @@ String WebPage::dumpHistoryForTesting(const String& directory)
     if (!m_page)
         return { };
 
-    auto& list = m_page->backForward();
+    CheckedRef list = m_page->backForward();
     
     StringBuilder builder;
-    int begin = -list.backCount();
-    if (list.itemAtIndex(begin)->url() == aboutBlankURL())
+    int begin = -list->backCount();
+    if (list->itemAtIndex(begin)->url() == aboutBlankURL())
         ++begin;
-    for (int i = begin; i <= static_cast<int>(list.forwardCount()); ++i)
-        dumpHistoryItem(*list.itemAtIndex(i), 8, !i, builder, directory);
+    for (int i = begin; i <= static_cast<int>(list->forwardCount()); ++i)
+        dumpHistoryItem(*list->itemAtIndex(i), 8, !i, builder, directory);
     return builder.toString();
 }
 
@@ -8375,7 +8374,11 @@ void WebPage::requestStorageAccess(RegistrableDomain&& subFrameDomain, Registrab
 
 void WebPage::setLoginStatus(RegistrableDomain&& domain, IsLoggedIn loggedInStatus, CompletionHandler<void()>&& completionHandler)
 {
-    WebProcess::singleton().ensureNetworkProcessConnection().protectedConnection()->sendWithAsyncReply(Messages::NetworkConnectionToWebProcess::SetLoginStatus(WTFMove(domain), loggedInStatus), WTFMove(completionHandler));
+    RefPtr page = corePage();
+    if (!page)
+        return completionHandler();
+    auto lastAuthentication = page->lastAuthentication();
+    WebProcess::singleton().ensureNetworkProcessConnection().protectedConnection()->sendWithAsyncReply(Messages::NetworkConnectionToWebProcess::SetLoginStatus(WTFMove(domain), loggedInStatus, lastAuthentication), WTFMove(completionHandler));
 }
 
 void WebPage::isLoggedIn(RegistrableDomain&& domain, CompletionHandler<void(bool)>&& completionHandler)

@@ -5382,6 +5382,7 @@
 		DD17C084286EC57A00D60B58 /* web in Copy PDF.js */ = {isa = PBXBuildFile; fileRef = DD17C07E286EC51A00D60B58 /* web */; };
 		DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */ = {isa = PBXBuildFile; fileRef = DD1C778F29354C75003BD79B /* StyleTextEdge.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD308A2D2A82F684000A2687 /* AbstractLineBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		DD4B9CF72C80E8E8001A6830 /* LineClampUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = DD4B9CF62C80E8E8001A6830 /* LineClampUpdater.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD5ACFD82B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD763BB20992C2C900740B8E /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DD763BB10992C2C900740B8E /* libxml2.dylib */; };
 		DD76D1522C7B63BE00DFDD70 /* LayoutIntegrationUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18957,6 +18958,7 @@
 		DD17C080286EC51B00D60B58 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		DD1C778F29354C75003BD79B /* StyleTextEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleTextEdge.h; sourceTree = "<group>"; };
 		DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractLineBuilder.h; sourceTree = "<group>"; };
+		DD4B9CF62C80E8E8001A6830 /* LineClampUpdater.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LineClampUpdater.h; sourceTree = "<group>"; };
 		DD5ACFD62B14DAD600B36C57 /* LayoutIntegrationBoxGeometryUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationBoxGeometryUpdater.cpp; sourceTree = "<group>"; };
 		DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationBoxGeometryUpdater.h; sourceTree = "<group>"; };
 		DD763BB10992C2C900740B8E /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
@@ -36679,6 +36681,7 @@
 				E4A1AC7822FAFD500017B75B /* LegacyLineLayout.h */,
 				A8CFF5E00A155A05000A4234 /* LegacyRootInlineBox.cpp */,
 				A8CFF5DA0A155A05000A4234 /* LegacyRootInlineBox.h */,
+				DD4B9CF62C80E8E8001A6830 /* LineClampUpdater.h */,
 				9BA273F3172206BB0097CE47 /* LogicalSelectionOffsetCaches.h */,
 				CE1866421F72E5B400A0CAB6 /* MarkedText.cpp */,
 				CE1866431F72E5B400A0CAB6 /* MarkedText.h */,
@@ -41216,6 +41219,7 @@
 				A396B1CA29232B4F00469612 /* LibWebRTCVPXVideoEncoder.h in Headers */,
 				84730D911248F0B300D3A9C9 /* LightSource.h in Headers */,
 				B22279650D00BF220071B782 /* LinearGradientAttributes.h in Headers */,
+				DD4B9CF72C80E8E8001A6830 /* LineClampUpdater.h in Headers */,
 				AB31C91E10AE1B8E000C7B92 /* LineClampValue.h in Headers */,
 				DDD517EC2A9FC5440069AF81 /* LineLayoutResult.h in Headers */,
 				6F1B101427E2D524007178E6 /* LineSelection.h in Headers */,

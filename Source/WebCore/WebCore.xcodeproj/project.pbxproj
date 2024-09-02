@@ -17673,6 +17673,8 @@
 		BC6D44EB0C07F2ED0072D2C9 /* JSHTMLEmbedElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLEmbedElement.h; sourceTree = "<group>"; };
 		BC6D6E2509AF943500F59759 /* ScrollView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ScrollView.h; sourceTree = "<group>"; };
 		BC6EB84526266B61003225A7 /* ColorLuminance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorLuminance.cpp; sourceTree = "<group>"; };
+		BC6EF49B2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+TimingFunction.h"; sourceTree = "<group>"; };
+		BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+TimingFunction.cpp"; sourceTree = "<group>"; };
 		BC709DDE266323CE00B9A21C /* CSSCalcSymbolTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcSymbolTable.h; sourceTree = "<group>"; };
 		BC709DDF266323CE00B9A21C /* CSSCalcSymbolTable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcSymbolTable.cpp; sourceTree = "<group>"; };
 		BC772C440C4EB2C60083285F /* XMLHttpRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = XMLHttpRequest.cpp; sourceTree = "<group>"; };
@@ -17745,8 +17747,6 @@
 		BC7C5E812BE2A8FB00AE645C /* CSSPropertyParserConsumer+TimeDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+TimeDefinitions.h"; sourceTree = "<group>"; };
 		BC7C5E822BE2A8FB00AE645C /* CSSPropertyParserHelpers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSPropertyParserHelpers.cpp; sourceTree = "<group>"; };
 		BC7C5E832BE2A8FB00AE645C /* CSSPropertyParserHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPropertyParserHelpers.h; sourceTree = "<group>"; };
-		BC7C5E842BE2A8FB00AE645C /* CSSPropertyParserWorkerSafe.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSPropertyParserWorkerSafe.cpp; sourceTree = "<group>"; };
-		BC7C5E852BE2A8FB00AE645C /* CSSPropertyParserWorkerSafe.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPropertyParserWorkerSafe.h; sourceTree = "<group>"; };
 		BC7C5E862BE2A8FB00AE645C /* CSSSelectorParser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSelectorParser.cpp; sourceTree = "<group>"; };
 		BC7C5E872BE2A8FB00AE645C /* CSSSelectorParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSSelectorParser.h; sourceTree = "<group>"; };
 		BC7C5E882BE2A8FB00AE645C /* CSSSelectorParserContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSelectorParserContext.cpp; sourceTree = "<group>"; };
@@ -17810,6 +17810,9 @@
 		BC94D1500C275C8B006BC617 /* History.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = History.cpp; sourceTree = "<group>"; };
 		BC94D1510C275C8B006BC617 /* History.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = History.h; sourceTree = "<group>"; };
 		BC94D1520C275C8B006BC617 /* History.idl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = History.idl; sourceTree = "<group>"; };
+		BC95FC0C2C838E9C00051FAE /* CSSPropertyParserConsumer+Filter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Filter.h"; sourceTree = "<group>"; };
+		BC95FC0D2C838E9C00051FAE /* CSSPropertyParserConsumer+Filter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Filter.cpp"; sourceTree = "<group>"; };
+		BC95FC102C8398D000051FAE /* CSSFilterFunctionDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSFilterFunctionDescriptor.h; sourceTree = "<group>"; };
 		BC96DB420F3A880E00573CB3 /* RenderBoxModelObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderBoxModelObject.h; sourceTree = "<group>"; };
 		BC96DB450F3A882200573CB3 /* RenderBoxModelObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBoxModelObject.cpp; sourceTree = "<group>"; };
 		BC97E238109144950010D361 /* HTMLAllCollection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLAllCollection.h; sourceTree = "<group>"; };
@@ -30028,6 +30031,8 @@
 				BC83CE912BEFF65D00DC644F /* CSSPropertyParserConsumer+ColorInterpolationMethod.h */,
 				BCFE79A62BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.cpp */,
 				BCFE79A72BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.h */,
+				BC95FC0D2C838E9C00051FAE /* CSSPropertyParserConsumer+Filter.cpp */,
+				BC95FC0C2C838E9C00051FAE /* CSSPropertyParserConsumer+Filter.h */,
 				BCB955DB2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.cpp */,
 				BCB955DC2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.h */,
 				BC7C5E662BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.cpp */,
@@ -30071,14 +30076,14 @@
 				BC7C5E7F2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Time.cpp */,
 				BC7C5E802BE2A8FB00AE645C /* CSSPropertyParserConsumer+Time.h */,
 				BC7C5E812BE2A8FB00AE645C /* CSSPropertyParserConsumer+TimeDefinitions.h */,
+				BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.cpp */,
+				BC6EF49B2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.h */,
 				BCC206F42BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.cpp */,
 				BCC206F52BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.h */,
 				BCC38E902C25E1A80013821F /* CSSPropertyParserConsumer+URL.cpp */,
 				BCC38E912C25E1A80013821F /* CSSPropertyParserConsumer+URL.h */,
 				BC7C5E822BE2A8FB00AE645C /* CSSPropertyParserHelpers.cpp */,
 				BC7C5E832BE2A8FB00AE645C /* CSSPropertyParserHelpers.h */,
-				BC7C5E842BE2A8FB00AE645C /* CSSPropertyParserWorkerSafe.cpp */,
-				BC7C5E852BE2A8FB00AE645C /* CSSPropertyParserWorkerSafe.h */,
 				BC7C5E862BE2A8FB00AE645C /* CSSSelectorParser.cpp */,
 				BC7C5E872BE2A8FB00AE645C /* CSSSelectorParser.h */,
 				BC7C5E882BE2A8FB00AE645C /* CSSSelectorParserContext.cpp */,
@@ -36255,6 +36260,7 @@
 				AA0978EE0ABAA6E100874480 /* CSSCursorImageValue.h */,
 				94D4AC611DC24C810080F02D /* CSSCustomPropertyValue.cpp */,
 				BC779E131BB215BB00CAA8BF /* CSSCustomPropertyValue.h */,
+				BC95FC102C8398D000051FAE /* CSSFilterFunctionDescriptor.h */,
 				FB965B8217BBB62C00E835B9 /* CSSFilterImageValue.cpp */,
 				FB965B8117BBB5F900E835B9 /* CSSFilterImageValue.h */,
 				BC64B4CD0CB4298A005F2B62 /* CSSFontFace.cpp */,

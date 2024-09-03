@@ -37,7 +37,7 @@
 typedef NS_ENUM(NSInteger, _WKPlaceholderPolicy) {
     _WKPlaceholderPolicyDisable,
     _WKPlaceholderPolicyEnable,
-} NS_SWIFT_NAME(WKDownload.PlaceholderPolicy) WK_API_AVAILABLE(WK_MAC_TBA, WK_IOS_TBA);
+} NS_SWIFT_NAME(WKDownload.PlaceholderPolicy) WK_API_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA));
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -52,7 +52,7 @@ WK_SWIFT_UI_ACTOR
  @discussion The placeholder policy specifies whether a placeholder file should be created in
  the Downloads directory when the download is in progress.
  */
-- (void)_download:(WKDownload *)download decidePlaceholderPolicy:(void (^)(_WKPlaceholderPolicy))completionHandler WK_API_AVAILABLE(WK_MAC_TBA, WK_IOS_TBA);
+- (void)_download:(WKDownload *)download decidePlaceholderPolicy:(void (^)(_WKPlaceholderPolicy))completionHandler WK_API_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA));
 
 @end
 

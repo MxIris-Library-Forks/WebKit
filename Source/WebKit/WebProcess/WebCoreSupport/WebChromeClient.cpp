@@ -337,6 +337,7 @@ Page* WebChromeClient::createWindow(LocalFrame& frame, const WindowFeatures& win
         false, /* hasOpenedFrames */
         false, /* openedByDOMWithOpener */
         navigationAction.newFrameOpenerPolicy() == NewFrameOpenerPolicy::Allow, /* hasOpener */
+        frame.loader().isHTTPFallbackInProgress(),
         { }, /* requesterOrigin */
         { }, /* requesterTopOrigin */
         std::nullopt, /* targetBackForwardItemIdentifier */
@@ -344,7 +345,7 @@ Page* WebChromeClient::createWindow(LocalFrame& frame, const WindowFeatures& win
         WebCore::LockHistory::No,
         WebCore::LockBackForwardList::No,
         { }, /* clientRedirectSourceForHistory */
-        0, /* effectiveSandboxFlags */
+        { }, /* effectiveSandboxFlags */
         std::nullopt, /* ownerPermissionsPolicy */
         navigationAction.privateClickMeasurement(),
         { }, /* advancedPrivacyProtections */
@@ -1879,11 +1880,6 @@ void WebChromeClient::proofreadingSessionUpdateStateForSuggestionWithID(WritingT
 void WebChromeClient::removeTextAnimationForAnimationID(const WTF::UUID& animationID)
 {
     protectedPage()->removeTextAnimationForAnimationID(animationID);
-}
-
-void WebChromeClient::removeTransparentMarkersForActiveWritingToolsSession()
-{
-    protectedPage()->removeTransparentMarkersForActiveWritingToolsSession();
 }
 
 void WebChromeClient::removeInitialTextAnimationForActiveWritingToolsSession()

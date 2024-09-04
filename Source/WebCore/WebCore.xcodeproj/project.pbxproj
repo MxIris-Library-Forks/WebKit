@@ -1664,6 +1664,7 @@
 		464CAF09274331A7003B9E41 /* WebLockRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 464CAF0827433199003B9E41 /* WebLockRegistry.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		464D4C7E28D24080001C47C7 /* FetchRequestDestination.h in Headers */ = {isa = PBXBuildFile; fileRef = 464D4C7D28D2407B001C47C7 /* FetchRequestDestination.h */; };
 		464E5D292901A53B0051ACDA /* DeclaredStylePropertyMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 464E5D272901A5330051ACDA /* DeclaredStylePropertyMap.h */; };
+		464F6ECE2C86CED5008A4915 /* SandboxFlags.h in Headers */ = {isa = PBXBuildFile; fileRef = 464F6ECD2C86CED5008A4915 /* SandboxFlags.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4650851828E4AA4700DB9BDF /* RFC7230.h in Headers */ = {isa = PBXBuildFile; fileRef = 4650851628E4AA3C00DB9BDF /* RFC7230.h */; };
 		4650AD1926FCCA650047F7AD /* WorkerThreadMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 4650AD1726FCCA5A0047F7AD /* WorkerThreadMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		465307D01DB6EE4800E4137C /* JSUIEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 83E045EF1DAA104F00B0D8B9 /* JSUIEventInit.h */; };
@@ -10686,6 +10687,7 @@
 		464E5D262901A5330051ACDA /* StylePropertyMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StylePropertyMap.cpp; sourceTree = "<group>"; };
 		464E5D272901A5330051ACDA /* DeclaredStylePropertyMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeclaredStylePropertyMap.h; sourceTree = "<group>"; };
 		464E5D282901A5340051ACDA /* DeclaredStylePropertyMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DeclaredStylePropertyMap.cpp; sourceTree = "<group>"; };
+		464F6ECD2C86CED5008A4915 /* SandboxFlags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SandboxFlags.h; sourceTree = "<group>"; };
 		4650851628E4AA3C00DB9BDF /* RFC7230.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RFC7230.h; sourceTree = "<group>"; };
 		4650851728E4AA3C00DB9BDF /* RFC7230.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RFC7230.cpp; sourceTree = "<group>"; };
 		4650AD1726FCCA5A0047F7AD /* WorkerThreadMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WorkerThreadMode.h; sourceTree = "<group>"; };
@@ -37430,6 +37432,7 @@
 				A76E5F7E135E0DCF00A69837 /* RenderedDocumentMarker.h */,
 				4998AEC413F9D0EA0090B1AA /* RequestAnimationFrameCallback.h */,
 				4998AEC513F9D0EA0090B1AA /* RequestAnimationFrameCallback.idl */,
+				464F6ECD2C86CED5008A4915 /* SandboxFlags.h */,
 				9BD0BF9212A42BF50072FD43 /* ScopedEventQueue.cpp */,
 				9BD0BF9112A42BF50072FD43 /* ScopedEventQueue.h */,
 				A84D82C011D3474800972990 /* ScriptableDocumentParser.cpp */,
@@ -42359,6 +42362,7 @@
 				CE7A6C28208537E200FA2B46 /* SameSiteInfo.h in Headers */,
 				41FCD6B923CE015500C62567 /* SampleBufferDisplayLayer.h in Headers */,
 				CDD7089718359F6F002B3DC6 /* SampleMap.h in Headers */,
+				464F6ECE2C86CED5008A4915 /* SandboxFlags.h in Headers */,
 				49E911CB0EF86D47009D0CAF /* ScaleTransformOperation.h in Headers */,
 				BC4DDD97273D94A800660EBB /* SceneKitModelLoaderClient.h in Headers */,
 				BC4DDD96273D949900660EBB /* SceneKitModelPlayer.h in Headers */,

@@ -573,11 +573,7 @@ Color RenderThemeMac::systemColor(CSSValueID cssValueID, OptionSet<StyleColorOpt
                 return @selector(quaternaryLabelColor);
 #if HAVE(NSCOLOR_FILL_COLOR_HIERARCHY)
             case CSSValueAppleSystemTertiaryFill:
-                // FIXME: Remove selector check when AppKit without tertiary-fill is not used anymore; see rdar://108340604.
-                if ([NSColor respondsToSelector:@selector(tertiarySystemFillColor)])
-                    return @selector(tertiarySystemFillColor);
-                // Handled below.
-                return nullptr;
+                return @selector(tertiarySystemFillColor);
 #endif
             case CSSValueAppleSystemGrid:
                 return @selector(gridColor);
@@ -1392,11 +1388,9 @@ static void paintAttachmentTitleBackground(const RenderAttachment& attachment, G
     });
 
     Color backgroundColor;
-    if (attachment.frame().selection().isFocusedAndActive()) {
-ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-        backgroundColor = colorFromCocoaColor([NSColor alternateSelectedControlColor]);
-ALLOW_DEPRECATED_DECLARATIONS_END
-    } else
+    if (attachment.frame().selection().isFocusedAndActive())
+        backgroundColor = colorFromCocoaColor([NSColor selectedContentBackgroundColor]);
+    else
         backgroundColor = attachmentTitleInactiveBackgroundColor;
 
     backgroundColor = attachment.style().colorByApplyingColorFilter(backgroundColor);

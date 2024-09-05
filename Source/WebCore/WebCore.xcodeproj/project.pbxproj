@@ -2956,6 +2956,7 @@
 		7BE37F7E27BB86DB007A6CD3 /* GraphicsContextGLCVCocoa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B10339A2549720000C8C1AC /* GraphicsContextGLCVCocoa.cpp */; };
 		7BE37F8727BBB708007A6CD3 /* VideoFrameCV.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BE37F8627BBB6FF007A6CD3 /* VideoFrameCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BE7427381FA906FBB4F0F2C /* JSSVGGraphicsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 950C4C02BED8936F818E2F99 /* JSSVGGraphicsElement.h */; };
+		7BED80D62C7993BA005950A4 /* IDBObjectStoreIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BED80D52C79937D005950A4 /* IDBObjectStoreIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BF6E7002A93E9DF0096DAF8 /* CookieStoreManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E6FD2A93E9CB0096DAF8 /* CookieStoreManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BF6E7032A941EC20096DAF8 /* ExtendableCookieChangeEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E7012A941EBD0096DAF8 /* ExtendableCookieChangeEventInit.h */; };
 		7BF6E7072A9420810096DAF8 /* ExtendableCookieChangeEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF6E7042A94207D0096DAF8 /* ExtendableCookieChangeEvent.h */; };
@@ -6013,6 +6014,7 @@
 		E440AA961C68420800A265CC /* ElementAndTextDescendantIterator.h in Headers */ = {isa = PBXBuildFile; fileRef = E440AA951C68420800A265CC /* ElementAndTextDescendantIterator.h */; };
 		E440DF5626EB53E0004AF06B /* TextBoxPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E440DF5426EB53DF004AF06B /* TextBoxPainter.h */; };
 		E440FD5325A4AFDF00F7C849 /* StyledMarkedText.h in Headers */ = {isa = PBXBuildFile; fileRef = E440FD5125A4AFDF00F7C849 /* StyledMarkedText.h */; };
+		E44129A82C86E3D10047598D /* SVGTextBoxPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E44129A62C81E3B40047598D /* SVGTextBoxPainter.h */; };
 		E444B0A128C7437900CA560E /* BorderPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E444B0A028C7437900CA560E /* BorderPainter.h */; };
 		E444B0A928C8B19A00CA560E /* BackgroundPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E444B0A828C8B19900CA560E /* BackgroundPainter.h */; };
 		E44613A20CD6331000FADA75 /* HTMLAudioElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E44613900CD6331000FADA75 /* HTMLAudioElement.h */; };
@@ -13551,6 +13553,7 @@
 		7BDDA34B275A01300038659E /* ProcessIdentity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ProcessIdentity.cpp; sourceTree = "<group>"; };
 		7BE37F8527BBB6FE007A6CD3 /* VideoFrameCV.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoFrameCV.mm; sourceTree = "<group>"; };
 		7BE37F8627BBB6FF007A6CD3 /* VideoFrameCV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoFrameCV.h; sourceTree = "<group>"; };
+		7BED80D52C79937D005950A4 /* IDBObjectStoreIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDBObjectStoreIdentifier.h; sourceTree = "<group>"; };
 		7BF6E6FD2A93E9CB0096DAF8 /* CookieStoreManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CookieStoreManager.h; sourceTree = "<group>"; };
 		7BF6E6FE2A93E9CB0096DAF8 /* CookieStoreManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CookieStoreManager.cpp; sourceTree = "<group>"; };
 		7BF6E6FF2A93E9CB0096DAF8 /* CookieStoreManager.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CookieStoreManager.idl; sourceTree = "<group>"; };
@@ -17857,6 +17860,9 @@
 		BCAFEDAF25966D050030E6AA /* ColorSpace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorSpace.cpp; sourceTree = "<group>"; };
 		BCAFEDB225968D0B0030E6AA /* ColorSpaceCG.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ColorSpaceCG.h; sourceTree = "<group>"; };
 		BCAFEDB325968D0B0030E6AA /* ColorSpaceCG.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorSpaceCG.cpp; sourceTree = "<group>"; };
+		BCB025982C87927E00ACC2B3 /* CSSPropertyParserConsumer+Timeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Timeline.h"; sourceTree = "<group>"; };
+		BCB025992C8792CA00ACC2B3 /* CSSPropertyParserConsumer+Timeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Timeline.cpp"; sourceTree = "<group>"; };
+		BCB0259A2C87DDD800ACC2B3 /* ScrollAxis.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollAxis.cpp; sourceTree = "<group>"; };
 		BCB16BFE0979C3BD00467741 /* MemoryCache.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryCache.cpp; sourceTree = "<group>"; };
 		BCB16BFF0979C3BD00467741 /* MemoryCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MemoryCache.h; sourceTree = "<group>"; };
 		BCB16C000979C3BD00467741 /* CachedCSSStyleSheet.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = CachedCSSStyleSheet.cpp; sourceTree = "<group>"; };
@@ -19897,6 +19903,8 @@
 		E440FD5425A4AFEE00F7C849 /* StyledMarkedText.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyledMarkedText.cpp; sourceTree = "<group>"; };
 		E44129942C7F251C0047598D /* InlineIteratorSVGTextBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InlineIteratorSVGTextBox.h; sourceTree = "<group>"; };
 		E44129952C7F25260047598D /* InlineIteratorSVGTextBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InlineIteratorSVGTextBox.cpp; sourceTree = "<group>"; };
+		E44129A62C81E3B40047598D /* SVGTextBoxPainter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGTextBoxPainter.h; sourceTree = "<group>"; };
+		E44129A72C81E3B40047598D /* SVGTextBoxPainter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SVGTextBoxPainter.cpp; sourceTree = "<group>"; };
 		E444B0A028C7437900CA560E /* BorderPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BorderPainter.h; sourceTree = "<group>"; };
 		E444B0A228C7438400CA560E /* BorderPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BorderPainter.cpp; sourceTree = "<group>"; };
 		E444B0A828C8B19900CA560E /* BackgroundPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackgroundPainter.h; sourceTree = "<group>"; };
@@ -21858,6 +21866,8 @@
 				0854B0101255E4E600B9CDD0 /* SVGRootInlineBox.cpp */,
 				0854B0111255E4E600B9CDD0 /* SVGRootInlineBox.h */,
 				44E8AB4E2AB6014D00F443A8 /* SVGSubpathData.h */,
+				E44129A72C81E3B40047598D /* SVGTextBoxPainter.cpp */,
+				E44129A62C81E3B40047598D /* SVGTextBoxPainter.h */,
 				08F0BFBD1255C53C00075185 /* SVGTextChunk.cpp */,
 				08F0BFBE1255C53C00075185 /* SVGTextChunk.h */,
 				081668D1125603BF006F25DE /* SVGTextChunkBuilder.cpp */,
@@ -28300,6 +28310,7 @@
 				7120733F216DFAF200C78329 /* OptionalEffectTiming.idl */,
 				712BE47E1FE8649D002031CC /* PlaybackDirection.h */,
 				712BE47F1FE8649E002031CC /* PlaybackDirection.idl */,
+				BCB0259A2C87DDD800ACC2B3 /* ScrollAxis.cpp */,
 				713516962AE6D29600718EBE /* ScrollAxis.h */,
 				713516952AE6D29600718EBE /* ScrollAxis.idl */,
 				713516922AE6D00B00718EBE /* ScrollTimeline.cpp */,
@@ -30077,6 +30088,8 @@
 				BC7C5E7F2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Time.cpp */,
 				BC7C5E802BE2A8FB00AE645C /* CSSPropertyParserConsumer+Time.h */,
 				BC7C5E812BE2A8FB00AE645C /* CSSPropertyParserConsumer+TimeDefinitions.h */,
+				BCB025992C8792CA00ACC2B3 /* CSSPropertyParserConsumer+Timeline.cpp */,
+				BCB025982C87927E00ACC2B3 /* CSSPropertyParserConsumer+Timeline.h */,
 				BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.cpp */,
 				BC6EF49B2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.h */,
 				BCDBD32A2C84C27500E6D96B /* CSSPropertyParserConsumer+Transform.cpp */,
@@ -30264,6 +30277,7 @@
 				51645B4A1B9F889B00F789CE /* IDBObjectStore.cpp */,
 				51645B4B1B9F889B00F789CE /* IDBObjectStore.h */,
 				51D7199B181106E00016DC51 /* IDBObjectStore.idl */,
+				7BED80D52C79937D005950A4 /* IDBObjectStoreIdentifier.h */,
 				51645B4C1B9F889B00F789CE /* IDBOpenDBRequest.cpp */,
 				51645B4D1B9F889B00F789CE /* IDBOpenDBRequest.h */,
 				51D7199E181106E00016DC51 /* IDBOpenDBRequest.idl */,
@@ -40015,6 +40029,7 @@
 				5185FC9B1BB4C4E80012898F /* IDBKeyRange.h in Headers */,
 				5185FC9E1BB4C4E80012898F /* IDBKeyRangeData.h in Headers */,
 				5185FCA01BB4C4E80012898F /* IDBObjectStore.h in Headers */,
+				7BED80D62C7993BA005950A4 /* IDBObjectStoreIdentifier.h in Headers */,
 				5160712F1BD8307800DBC4F2 /* IDBObjectStoreInfo.h in Headers */,
 				5185FCA41BB4C4E80012898F /* IDBOpenDBRequest.h in Headers */,
 				3ACCFD112B8958AA00B9CC69 /* IDBOpenRequestData.h in Headers */,
@@ -42955,6 +42970,7 @@
 				B2227ABE0D00BF220071B782 /* SVGSwitchElement.h in Headers */,
 				B2227AC10D00BF220071B782 /* SVGSymbolElement.h in Headers */,
 				B2227AC50D00BF220071B782 /* SVGTests.h in Headers */,
+				E44129A82C86E3D10047598D /* SVGTextBoxPainter.h in Headers */,
 				08F0BFC31255C53C00075185 /* SVGTextChunk.h in Headers */,
 				081668D4125603BF006F25DE /* SVGTextChunkBuilder.h in Headers */,
 				B2227AC80D00BF220071B782 /* SVGTextContentElement.h in Headers */,

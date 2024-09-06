@@ -2318,9 +2318,8 @@ accessibility/list-with-dynamically-changing-content.html [ Pass ]
 accessibility/live-region-attributes-update-after-dynamic-change.html [ Pass ]
 accessibility/menu-list-crash2.html [ Pass ]
 accessibility/menu-with-menuitem-grandchildren.html [ Pass ]
-# rdar://132587324 These two tests have been flakey on iOS since they were introduced — temporarily disable them for now.
-# accessibility/mixed-contenteditable-visible-character-range-hang.html [ Pass ]
-# accessibility/mixed-contenteditable-double-br-visible-character-range-hang.html [ Pass ]
+accessibility/mixed-contenteditable-visible-character-range-hang.html [ Pass ]
+accessibility/mixed-contenteditable-double-br-visible-character-range-hang.html [ Pass ]
 accessibility/multiple-attribute-change-crash.html [ Pass ]
 accessibility/nested-custom-element-accname.html [ Pass ]
 accessibility/node-only-inert-object.html [ Pass ]
@@ -3204,7 +3203,10 @@ webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/backgrou
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-size/vector/tall--contain--width.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-size/vector/wide--contain--height.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-size/vector/wide--contain--width.html [ ImageOnlyFailure ]
-
+webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/borders-on-sub-unit-sized-elements.html [ ImageOnlyFailure ]
+webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/subpixel-border-width.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/subpixel-borders-with-child-border-box-sizing.html [ ImageOnlyFailure ]
+webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/subpixel-borders-with-child.html [ ImageOnlyFailure ]
 
 webkit.org/b/206897 [ Debug ] imported/w3c/web-platform-tests/css/css-backgrounds/background-size/vector/tall--auto-32px--nonpercent-width-omitted-height-viewbox.html [ Skip ]
 webkit.org/b/206897 [ Debug ] imported/w3c/web-platform-tests/css/css-backgrounds/background-size/vector/tall--auto-32px--nonpercent-width-percent-height.html [ Skip ]
@@ -3632,8 +3634,6 @@ webkit.org/b/253095 imported/w3c/web-platform-tests/css/css-images/image-set/ima
 pointerevents/mouse/pointer-event-basic-properties.html [ Timeout ]
 imported/w3c/web-platform-tests/workers/semantics/multiple-workers/004.html [ Failure Pass ]
 [ Release ] perf/nested-combined-selectors.html [ Failure ]
-
-webkit.org/b/238227 fast/dom/intersection-observer-document-leak.html [ Pass Failure ]
 
 webkit.org/b/238519 animations/shadow-host-child-change.html [ Pass ImageOnlyFailure ]
 
@@ -4417,7 +4417,6 @@ webkit.org/b/254398 webgl/2.0.y/conformance/extensions/webgl-compressed-texture-
 
 # webkit.org/b/255177 Batch mark expectations for newly failing tests introduced with iOS 16.4 update
 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-text-multi-line.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-backgrounds/background-repeat-space-5.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-color/parsing/color-computed-color-mix-function.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/disabled-elements/event-propagate-disabled.tentative.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-color/parsing/color-valid-relative-color.html [ Failure ]
@@ -7332,7 +7331,7 @@ imported/w3c/web-platform-tests/fetch/h1-parsing/lone-cr.window.html [ Pass Fail
 
 # rdar://129872343 (REGRESSION: [ iOS 18 ] 19x http/tests/resourceLoadStatistics/* layout-tests are constant failures)
 # FIXME: needs new bug.
-http/tests/resourceLoadStatistics/do-not-remove-blocking-in-redirect.html [ Failure ]
+http/tests/resourceLoadStatistics/do-not-remove-blocking-in-redirect.https.html [ Failure ]
 http/tests/resourceLoadStatistics/set-all-cookies-to-same-site-strict.html [ Failure ]
 
 # webkit.org/b/276558 ([ iOS18 ] 7 wpt/intersection-observer/* layout tests are flakily failing.)
@@ -7434,7 +7433,7 @@ imported/w3c/web-platform-tests/mediacapture-insertable-streams/VideoTrackGenera
 imported/w3c/web-platform-tests/WebCryptoAPI/import_export/ec_importKey.https.any.html [ Failure ]
 imported/w3c/web-platform-tests/WebCryptoAPI/import_export/ec_importKey.https.any.worker.html [ Failure ]
 
-webkit.org/b/278353 http/tests/privateClickMeasurement/send-attribution-conversion-request.html [ Failure ]
+webkit.org/b/278353 http/tests/privateClickMeasurement/send-attribution-conversion-request.https.html [ Failure ]
 
 # webkit.org/b/277933 (REGRESSION (iOS 18): 5 WPT CSS layout tests are constantly failing (ImageOnlyFailure). (277933))
 imported/w3c/web-platform-tests/css/css-content/quotes-025.html [ ImageOnlyFailure ]

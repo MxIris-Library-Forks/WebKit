@@ -445,13 +445,13 @@ public:
     RenderLayer* reflectionLayer() const;
     bool isReflectionLayer(const RenderLayer&) const;
 
-    const LayoutPoint& location() const { return m_topLeft; }
+    inline const LayoutPoint& location() const;
     void setLocation(const LayoutPoint& p) { m_topLeft = p; }
 
-    const IntSize& size() const { return m_layerSize; }
+    inline const IntSize& size() const;
     void setSize(const IntSize& size) { m_layerSize = size; } // Only public for RenderTreeAsText.
 
-    LayoutRect rect() const { return LayoutRect(location(), size()); }
+    inline LayoutRect rect() const;
 
     IntSize visibleSize() const;
 
@@ -500,7 +500,7 @@ public:
 
     void updateLayerPositionsAfterStyleChange();
     enum class CanUseSimplifiedRepaintPass : uint8_t { No, Yes };
-    void updateLayerPositionsAfterLayout(bool isRelayoutingSubtree, bool didFullRepaint, CanUseSimplifiedRepaintPass);
+    void updateLayerPositionsAfterLayout(RenderElement::LayoutIdentifier, bool isRelayoutingSubtree, bool didFullRepaint, CanUseSimplifiedRepaintPass);
     void updateLayerPositionsAfterOverflowScroll();
     void updateLayerPositionsAfterDocumentScroll();
 
@@ -734,6 +734,7 @@ public:
     void setRepaintStatus(RepaintStatus status) { m_repaintStatus = status; }
     RepaintStatus repaintStatus() const { return m_repaintStatus; }
     bool needsFullRepaint() const { return m_repaintStatus == RepaintStatus::NeedsFullRepaint || m_repaintStatus == RepaintStatus::NeedsFullRepaintForPositionedMovementLayout; }
+    void setIsSimplifiedLayoutRoot() { m_isSimplifiedLayoutRoot = true; }
 
     LayoutUnit staticInlinePosition() const { return m_offsetForPosition.width(); }
     LayoutUnit staticBlockPosition() const { return m_offsetForPosition.height(); }
@@ -1005,7 +1006,7 @@ private:
     // Returns true if the position changed.
     bool updateLayerPosition(OptionSet<UpdateLayerPositionsFlag>* = nullptr);
 
-    void recursiveUpdateLayerPositions(OptionSet<UpdateLayerPositionsFlag>, CanUseSimplifiedRepaintPass = CanUseSimplifiedRepaintPass::No);
+    void recursiveUpdateLayerPositions(RenderElement::LayoutIdentifier, OptionSet<UpdateLayerPositionsFlag>, CanUseSimplifiedRepaintPass = CanUseSimplifiedRepaintPass::No);
 
     enum UpdateLayerPositionsAfterScrollFlag {
         IsOverflowScroll                        = 1 << 0,
@@ -1288,6 +1289,8 @@ private:
     bool m_hasIntrinsicallyCompositedDescendantsStatusDirty : 1;
 
     bool m_wasOmittedFromZOrderTree : 1 { false };
+
+    bool m_isSimplifiedLayoutRoot : 1 { false };
 
     RenderLayerModelObject& m_renderer;
 

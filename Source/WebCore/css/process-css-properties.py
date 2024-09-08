@@ -3939,6 +3939,7 @@ class GenerateCSSPropertyParsing:
                     "CSSPropertyParserConsumer+Color.h",
                     "CSSPropertyParserConsumer+Filter.h",
                     "CSSPropertyParserConsumer+Font.h",
+                    "CSSPropertyParserConsumer+Grid.h",
                     "CSSPropertyParserConsumer+Ident.h",
                     "CSSPropertyParserConsumer+Integer.h",
                     "CSSPropertyParserConsumer+Image.h",
@@ -3955,6 +3956,7 @@ class GenerateCSSPropertyParsing:
                     "CSSPropertyParserConsumer+TimingFunction.h",
                     "CSSPropertyParserConsumer+Transform.h",
                     "CSSPropertyParserConsumer+URL.h",
+                    "CSSPropertyParserConsumer+ViewTransition.h",
                     "CSSValuePool.h",
                     "DeprecatedGlobalSettings.h",
                 ]

@@ -1411,7 +1411,7 @@ public:
 
 #if PLATFORM(COCOA)
     // Called by the web process through a message.
-    void registerWebProcessAccessibilityToken(std::span<const uint8_t>, WebCore::FrameIdentifier);
+    void registerWebProcessAccessibilityToken(std::span<const uint8_t>);
     // Called by the UI process when it is ready to send its tokens to the web process.
     void registerUIProcessAccessibilityTokens(std::span<const uint8_t> elementToken, std::span<const uint8_t> windowToken);
     void replaceSelectionWithPasteboardData(const Vector<String>& types, std::span<const uint8_t>);
@@ -3161,7 +3161,7 @@ private:
 #endif
 
     private:
-        WebPageProxy& m_page;
+        WeakRef<WebPageProxy> m_page;
 
         std::unique_ptr<ProcessThrottlerActivity> m_isVisibleActivity;
 #if PLATFORM(MAC)

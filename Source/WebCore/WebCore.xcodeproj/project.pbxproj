@@ -9292,6 +9292,8 @@
 		2D9066040BE141D400956998 /* RenderLayoutState.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLayoutState.cpp; sourceTree = "<group>"; };
 		2D9066050BE141D400956998 /* RenderLayoutState.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderLayoutState.h; sourceTree = "<group>"; };
 		2D90660C0665D937006B6F1A /* DataTransferMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DataTransferMac.mm; sourceTree = "<group>"; tabWidth = 8; usesTabs = 0; };
+		2D933F602C8ACADA0075943E /* FragmentDirectiveUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FragmentDirectiveUtilities.h; sourceTree = "<group>"; };
+		2D933F612C8ACADA0075943E /* FragmentDirectiveUtilities.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FragmentDirectiveUtilities.cpp; sourceTree = "<group>"; };
 		2D93AEE119DF5641002A86C3 /* ServicesOverlayController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServicesOverlayController.h; sourceTree = "<group>"; };
 		2D93AEE219DF5641002A86C3 /* ServicesOverlayController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ServicesOverlayController.mm; sourceTree = "<group>"; };
 		2D9BF6F51DBFB71F007A7D99 /* MediaKeyMessageEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MediaKeyMessageEvent.idl; sourceTree = "<group>"; };
@@ -17684,6 +17686,10 @@
 		BC6D44EA0C07F2ED0072D2C9 /* JSHTMLEmbedElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLEmbedElement.cpp; sourceTree = "<group>"; };
 		BC6D44EB0C07F2ED0072D2C9 /* JSHTMLEmbedElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLEmbedElement.h; sourceTree = "<group>"; };
 		BC6D6E2509AF943500F59759 /* ScrollView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ScrollView.h; sourceTree = "<group>"; };
+		BC6DA0E12C8BD1DE000ECE0F /* CSSPropertyParserConsumer+Grid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Grid.h"; sourceTree = "<group>"; };
+		BC6DA0E22C8BD1DF000ECE0F /* CSSPropertyParserConsumer+Grid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Grid.cpp"; sourceTree = "<group>"; };
+		BC6DA0ED2C8BDD95000ECE0F /* CSSPropertyParserConsumer+ViewTransition.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+ViewTransition.cpp"; sourceTree = "<group>"; };
+		BC6DA0EE2C8BDD95000ECE0F /* CSSPropertyParserConsumer+ViewTransition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+ViewTransition.h"; sourceTree = "<group>"; };
 		BC6EB84526266B61003225A7 /* ColorLuminance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorLuminance.cpp; sourceTree = "<group>"; };
 		BC6EF49B2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+TimingFunction.h"; sourceTree = "<group>"; };
 		BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+TimingFunction.cpp"; sourceTree = "<group>"; };
@@ -30061,6 +30067,8 @@
 				BC95FC0C2C838E9C00051FAE /* CSSPropertyParserConsumer+Filter.h */,
 				BCB955DB2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.cpp */,
 				BCB955DC2C6BBEF5006D6C7F /* CSSPropertyParserConsumer+Font.h */,
+				BC6DA0E22C8BD1DF000ECE0F /* CSSPropertyParserConsumer+Grid.cpp */,
+				BC6DA0E12C8BD1DE000ECE0F /* CSSPropertyParserConsumer+Grid.h */,
 				BC7C5E662BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.cpp */,
 				BC7C5E672BE2A8FB00AE645C /* CSSPropertyParserConsumer+Ident.h */,
 				BCC38E8E2C25E0270013821F /* CSSPropertyParserConsumer+Image.cpp */,
@@ -30111,6 +30119,8 @@
 				BCC206F52BE947B000465A78 /* CSSPropertyParserConsumer+UnevaluatedCalc.h */,
 				BCC38E902C25E1A80013821F /* CSSPropertyParserConsumer+URL.cpp */,
 				BCC38E912C25E1A80013821F /* CSSPropertyParserConsumer+URL.h */,
+				BC6DA0ED2C8BDD95000ECE0F /* CSSPropertyParserConsumer+ViewTransition.cpp */,
+				BC6DA0EE2C8BDD95000ECE0F /* CSSPropertyParserConsumer+ViewTransition.h */,
 				BC7C5E822BE2A8FB00AE645C /* CSSPropertyParserHelpers.cpp */,
 				BC7C5E832BE2A8FB00AE645C /* CSSPropertyParserHelpers.h */,
 				BC7C5E862BE2A8FB00AE645C /* CSSSelectorParser.cpp */,
@@ -37263,6 +37273,8 @@
 				445612AB270F6F3800758C97 /* FragmentDirectiveParser.h */,
 				442E7BED27BC56EC00C69AC1 /* FragmentDirectiveRangeFinder.cpp */,
 				442E7BEE27BC56EC00C69AC1 /* FragmentDirectiveRangeFinder.h */,
+				2D933F612C8ACADA0075943E /* FragmentDirectiveUtilities.cpp */,
+				2D933F602C8ACADA0075943E /* FragmentDirectiveUtilities.h */,
 				CD92F5172261038200F87BB3 /* FullscreenManager.cpp */,
 				CD92F5162261038200F87BB3 /* FullscreenManager.h */,
 				46781A1428EFCF780095AD63 /* FullscreenOptions.h */,

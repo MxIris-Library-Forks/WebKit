@@ -1091,6 +1091,7 @@
 		2DD5A7271EBEE47D009BA597 /* CompositionUnderline.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DD5A7261EBEE47D009BA597 /* CompositionUnderline.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2DD797E82ABD17A200EAB71A /* DynamicContentScalingTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DD797E72ABD17A200EAB71A /* DynamicContentScalingTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2DD8714B265F4366005F997C /* BifurcatedGraphicsContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DD87149265F4365005F997C /* BifurcatedGraphicsContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		2DDF3EE42C8D94B30047786D /* FragmentDirectiveUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D933F602C8ACADA0075943E /* FragmentDirectiveUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2DE70023192FE82A00B0975C /* LegacyDisplayRefreshMonitorMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DE70022192FE82A00B0975C /* LegacyDisplayRefreshMonitorMac.h */; };
 		2DF512CE1D873E47001D6780 /* ReplaceRangeWithTextCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DF512CC1D873E47001D6780 /* ReplaceRangeWithTextCommand.h */; };
 		2DFA488F1DB541D000362B99 /* BufferSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DFA488E1DB541C200362B99 /* BufferSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -17690,6 +17691,8 @@
 		BC6DA0E22C8BD1DF000ECE0F /* CSSPropertyParserConsumer+Grid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Grid.cpp"; sourceTree = "<group>"; };
 		BC6DA0ED2C8BDD95000ECE0F /* CSSPropertyParserConsumer+ViewTransition.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+ViewTransition.cpp"; sourceTree = "<group>"; };
 		BC6DA0EE2C8BDD95000ECE0F /* CSSPropertyParserConsumer+ViewTransition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+ViewTransition.h"; sourceTree = "<group>"; };
+		BC6DA0F52C8CA935000ECE0F /* CSSPropertyParserConsumer+Align.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Align.cpp"; sourceTree = "<group>"; };
+		BC6DA0F62C8CA935000ECE0F /* CSSPropertyParserConsumer+Align.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Align.h"; sourceTree = "<group>"; };
 		BC6EB84526266B61003225A7 /* ColorLuminance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorLuminance.cpp; sourceTree = "<group>"; };
 		BC6EF49B2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+TimingFunction.h"; sourceTree = "<group>"; };
 		BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+TimingFunction.cpp"; sourceTree = "<group>"; };
@@ -30054,6 +30057,8 @@
 				BC7C5E5E2BE2A8FB00AE645C /* CSSParserTokenRange.h */,
 				BC7C5E5F2BE2A8FB00AE645C /* CSSPropertyParser.cpp */,
 				BC7C5E602BE2A8FB00AE645C /* CSSPropertyParser.h */,
+				BC6DA0F52C8CA935000ECE0F /* CSSPropertyParserConsumer+Align.cpp */,
+				BC6DA0F62C8CA935000ECE0F /* CSSPropertyParserConsumer+Align.h */,
 				BC7C5E612BE2A8FB00AE645C /* CSSPropertyParserConsumer+Angle.cpp */,
 				BC7C5E622BE2A8FB00AE645C /* CSSPropertyParserConsumer+Angle.h */,
 				BC7C5E632BE2A8FB00AE645C /* CSSPropertyParserConsumer+AngleDefinitions.h */,
@@ -39742,6 +39747,7 @@
 				441A6BE32B6C281D002A2B27 /* FragmentDirectiveGenerator.h in Headers */,
 				2D9153EF28AE0E280073A385 /* FragmentDirectiveParser.h in Headers */,
 				2D9153F028AE0E330073A385 /* FragmentDirectiveRangeFinder.h in Headers */,
+				2DDF3EE42C8D94B30047786D /* FragmentDirectiveUtilities.h in Headers */,
 				46B95196207D633A00A7D2DD /* Frame.h in Headers */,
 				974A862314B7ADBB003FDC76 /* FrameDestructionObserver.h in Headers */,
 				46014ACC28333F65004C0B84 /* FrameDestructionObserverInlines.h in Headers */,

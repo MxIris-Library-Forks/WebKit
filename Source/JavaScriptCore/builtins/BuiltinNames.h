@@ -115,9 +115,6 @@ namespace JSC {
     macro(generatorValue) \
     macro(generatorThis) \
     macro(generatorResumeMode) \
-    macro(syncIterator) \
-    macro(nextMethod) \
-    macro(asyncGeneratorQueueItemNext) \
     macro(this) \
     macro(toIntegerOrInfinity) \
     macro(toLength) \
@@ -224,11 +221,7 @@ namespace JSC {
     macro(indexOf) \
     macro(pop) \
     macro(wrapForValidIteratorCreate) \
-    macro(wrapForValidIteratorGetIteratedIterator) \
-    macro(wrapForValidIteratorGetIteratedNextMethod) \
     macro(asyncFromSyncIteratorCreate) \
-    macro(asyncFromSyncIteratorGetSyncIterator) \
-    macro(asyncFromSyncIteratorGetNextMethod) \
 
 
 namespace Symbols {

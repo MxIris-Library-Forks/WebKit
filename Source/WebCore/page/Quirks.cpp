@@ -553,15 +553,6 @@ std::optional<Event::IsCancelable> Quirks::simulatedMouseEventTypeForTarget(Even
     return Event::IsCancelable::Yes;
 }
 
-// shutterstock.com rdar://58844166
-bool Quirks::shouldPreventPointerMediaQueryFromEvaluatingToCoarse() const
-{
-    if (!needsQuirks())
-        return false;
-
-    return isDomain("shutterstock.com"_s);
-}
-
 // sites.google.com rdar://58653069
 bool Quirks::shouldPreventDispatchOfTouchEvent(const AtomString& touchEventType, EventTarget* target) const
 {
@@ -576,19 +567,6 @@ bool Quirks::shouldPreventDispatchOfTouchEvent(const AtomString& touchEventType,
     return false;
 }
 
-#endif
-
-#if ENABLE(IOS_TOUCH_EVENTS)
-// mail.yahoo.com rdar://59824469
-bool Quirks::shouldSynthesizeTouchEvents() const
-{
-    if (!needsQuirks())
-        return false;
-
-    if (!m_shouldSynthesizeTouchEventsQuirk)
-        m_shouldSynthesizeTouchEventsQuirk = isYahooMail(*protectedDocument());
-    return m_shouldSynthesizeTouchEventsQuirk.value();
-}
 #endif
 
 // live.com rdar://52116170
@@ -1899,6 +1877,21 @@ std::optional<TargetedElementSelectors> Quirks::defaultVisibilityAdjustmentSelec
     UNUSED_PARAM(requestURL);
     return { };
 #endif
+}
+
+String Quirks::scriptToEvaluateBeforeRunningScriptFromURL(const URL& scriptURL)
+{
+#if ENABLE(DESKTOP_CONTENT_MODE_QUIRKS)
+    if (!needsQuirks())
+        return { };
+
+    auto topDomain = RegistrableDomain(m_document->topDocument().url()).string();
+    if (UNLIKELY(topDomain == "webex.com"_s && scriptURL.lastPathComponent().startsWith("pushdownload."_s)))
+        return "Object.defineProperty(window, 'Touch', { get: () => undefined });"_s;
+#else
+    UNUSED_PARAM(scriptURL);
+#endif
+    return { };
 }
 
 }

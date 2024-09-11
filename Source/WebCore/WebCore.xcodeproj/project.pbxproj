@@ -2753,7 +2753,7 @@
 		7173694C275E0BAB003ADA9B /* CustomAnimationOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 71736947275E0B4B003ADA9B /* CustomAnimationOptions.h */; };
 		7177AD57274295D1002F103B /* HTMLModelElementCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 7177AD5627429590002F103B /* HTMLModelElementCamera.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		717CE23A29335E9C001463BC /* StyleOriginatedAnimationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 717CE23829335E8D001463BC /* StyleOriginatedAnimationEvent.h */; };
-		7181A16C244F0F40007D8A24 /* DocumentTimelinesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7181A169244F0F2C007D8A24 /* DocumentTimelinesController.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7181A16C244F0F40007D8A24 /* AnimationTimelinesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7181A169244F0F2C007D8A24 /* AnimationTimelinesController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		71A1B6081DEE5AD70073BCFB /* modern-media-controls-localized-strings.js in Resources */ = {isa = PBXBuildFile; fileRef = 71A1B6061DEE5A820073BCFB /* modern-media-controls-localized-strings.js */; };
 		71A3D1812562B85B0064E2A6 /* HTMLModelElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 71A3D17D2562B8240064E2A6 /* HTMLModelElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		71A3D1842562BE0B0064E2A6 /* JSHTMLModelElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 71A3D1832562BDDB0064E2A6 /* JSHTMLModelElement.h */; };
@@ -12962,8 +12962,8 @@
 		717F618E1E43D61A00F37024 /* text-tracks.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "text-tracks.css"; sourceTree = "<group>"; };
 		717F90571DC40ED60006F520 /* volume-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "volume-support.js"; sourceTree = "<group>"; };
 		717F90581DC4BB600006F520 /* airplay-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "airplay-support.js"; sourceTree = "<group>"; };
-		7181A169244F0F2C007D8A24 /* DocumentTimelinesController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentTimelinesController.h; sourceTree = "<group>"; };
-		7181A16B244F0F2D007D8A24 /* DocumentTimelinesController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DocumentTimelinesController.cpp; sourceTree = "<group>"; };
+		7181A169244F0F2C007D8A24 /* AnimationTimelinesController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AnimationTimelinesController.h; sourceTree = "<group>"; };
+		7181A16B244F0F2D007D8A24 /* AnimationTimelinesController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AnimationTimelinesController.cpp; sourceTree = "<group>"; };
 		718675431DF101AD0033D7F3 /* seek-button.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "seek-button.js"; sourceTree = "<group>"; };
 		718675441DF101C60033D7F3 /* seek-backward-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "seek-backward-support.js"; sourceTree = "<group>"; };
 		718675451DF101C60033D7F3 /* seek-forward-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "seek-forward-support.js"; sourceTree = "<group>"; };
@@ -18057,6 +18057,7 @@
 		BCEC01C00C274DDD009F4EC9 /* JSScreen.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSScreen.cpp; sourceTree = "<group>"; };
 		BCEC01C10C274DDD009F4EC9 /* JSScreen.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSScreen.h; sourceTree = "<group>"; };
 		BCEC01D60C274EB4009F4EC9 /* PlatformScreen.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PlatformScreen.h; sourceTree = "<group>"; };
+		BCEE71B42C8A918100CF2D31 /* CSSColorConversion+Normalize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSColorConversion+Normalize.h"; sourceTree = "<group>"; };
 		BCEEF6752C6A865C00468D58 /* CSSCalcTree+NumericIdentity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+NumericIdentity.h"; sourceTree = "<group>"; };
 		BCEF43CE0E673DA1001C1287 /* StyleImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleImage.h; sourceTree = "<group>"; };
 		BCEF43DC0E674012001C1287 /* NinePieceImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NinePieceImage.h; sourceTree = "<group>"; };
@@ -28266,6 +28267,8 @@
 				71025EC61F99F096004A250C /* AnimationTimeline.cpp */,
 				71025EC71F99F096004A250C /* AnimationTimeline.h */,
 				71025EC91F99F096004A250C /* AnimationTimeline.idl */,
+				7181A16B244F0F2D007D8A24 /* AnimationTimelinesController.cpp */,
+				7181A169244F0F2C007D8A24 /* AnimationTimelinesController.h */,
 				7156BC9F21CA350600534397 /* BasicEffectTiming.h */,
 				BC5EBA0E0E823E4700B25965 /* BlendingKeyframes.cpp */,
 				BC5EBA0F0E823E4700B25965 /* BlendingKeyframes.h */,
@@ -28305,8 +28308,6 @@
 				71025ECA1F99F096004A250C /* DocumentTimeline.idl */,
 				71729F7A20F3BA3A00801CE6 /* DocumentTimelineOptions.h */,
 				71729F7920F3BA3900801CE6 /* DocumentTimelineOptions.idl */,
-				7181A16B244F0F2D007D8A24 /* DocumentTimelinesController.cpp */,
-				7181A169244F0F2C007D8A24 /* DocumentTimelinesController.h */,
 				712BE47C1FE86448002031CC /* EffectTiming.h */,
 				712BE47A1FE86447002031CC /* EffectTiming.idl */,
 				7119465524181E8400466C11 /* ElementAnimationRareData.cpp */,
@@ -33621,6 +33622,7 @@
 			children = (
 				BC78B57B2BF06BBB00ACC677 /* CSSAbsoluteColorResolver.h */,
 				BC394A392C766D4C001A629A /* CSSAbsoluteColorSerialization.h */,
+				BCEE71B42C8A918100CF2D31 /* CSSColorConversion+Normalize.h */,
 				BC2CFBAA2BEFC6CC008CA222 /* CSSColorConversion+ToColor.h */,
 				BC2CFBAB2BEFC6CC008CA222 /* CSSColorConversion+ToTypedColor.h */,
 				BC2795AF2BDD58AE00595448 /* CSSColorDescriptors.h */,
@@ -38385,6 +38387,7 @@
 				714C7C661FDAD2A100F2BEE1 /* AnimationPlaybackEvent.h in Headers */,
 				714C7C671FDAD2A900F2BEE1 /* AnimationPlaybackEventInit.h in Headers */,
 				71025ECD1F99F0CE004A250C /* AnimationTimeline.h in Headers */,
+				7181A16C244F0F40007D8A24 /* AnimationTimelinesController.h in Headers */,
 				0F580FAF149800D400FB5BD8 /* AnimationUtilities.h in Headers */,
 				57152B5A21CB3E88000C37CA /* ApduCommand.h in Headers */,
 				57152B5C21CC1902000C37CA /* ApduResponse.h in Headers */,
@@ -39396,7 +39399,6 @@
 				0B90561A0F2578BF0095FF6A /* DocumentThreadableLoader.h in Headers */,
 				71025ED01F99F0CE004A250C /* DocumentTimeline.h in Headers */,
 				71729F7B20F3BA4900801CE6 /* DocumentTimelineOptions.h in Headers */,
-				7181A16C244F0F40007D8A24 /* DocumentTimelinesController.h in Headers */,
 				A8185F3909765766005826D9 /* DocumentType.h in Headers */,
 				973889A1116EA9DC00ADF313 /* DocumentWriter.h in Headers */,
 				1A8F6BC30DB55CDC001DB794 /* DOMApplicationCache.h in Headers */,

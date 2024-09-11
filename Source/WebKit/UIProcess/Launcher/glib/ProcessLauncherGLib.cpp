@@ -55,6 +55,27 @@
 
 namespace WebKit {
 
+#if OS(LINUX)
+static bool isFlatpakSpawnUsable()
+{
+    ASSERT(isInsideFlatpak());
+    static std::optional<bool> ret;
+    if (ret)
+        return *ret;
+
+    // For our usage to work we need flatpak >= 1.5.2 on the host and flatpak-xdg-utils > 1.0.1 in the sandbox
+    GRefPtr<GSubprocess> process = adoptGRef(g_subprocess_new(static_cast<GSubprocessFlags>(G_SUBPROCESS_FLAGS_STDOUT_SILENCE | G_SUBPROCESS_FLAGS_STDERR_SILENCE),
+        nullptr, "flatpak-spawn", "--sandbox", "--sandbox-expose-path-ro-try=/this_path_doesnt_exist", "echo", nullptr));
+
+    if (!process.get())
+        ret = false;
+    else
+        ret = g_subprocess_wait_check(process.get(), nullptr, nullptr);
+
+    return *ret;
+}
+#endif
+
 static int connectionOptions()
 {
 #if USE(LIBWPE) && !ENABLE(BUBBLEWRAP_SANDBOX)
@@ -106,7 +127,7 @@ void ProcessLauncher::launchProcess()
 
 #if OS(LINUX)
     IPC::SocketPair pidSocketPair = IPC::createPlatformConnection(IPC::PlatformConnectionOptions::SetCloexecOnClient | IPC::PlatformConnectionOptions::SetCloexecOnServer | IPC::PlatformConnectionOptions::SetPasscredOnServer);
-    GUniquePtr<gchar> pidSocket(g_strdup_printf("%d", pidSocketPair.client));
+    GUniquePtr<gchar> pidSocketString(g_strdup_printf("%d", pidSocketPair.client));
 #endif
 
     String executablePath;
@@ -156,7 +177,7 @@ void ProcessLauncher::launchProcess()
     argv[i++] = const_cast<char*>(realExecutablePath.data());
     argv[i++] = processIdentifier.get();
     argv[i++] = webkitSocket.get();
-    argv[i++] = pidSocket.get();
+    argv[i++] = pidSocketString.get();
 #if ENABLE(DEVELOPER_MODE)
     if (configureJSCForTesting)
         argv[i++] = const_cast<char*>("--configure-jsc-for-testing");
@@ -198,7 +219,7 @@ void ProcessLauncher::launchProcess()
 #if OS(LINUX)
     bool sandboxEnabled = m_launchOptions.extraInitializationData.get<HashTranslatorASCIILiteral>("enable-sandbox"_s) == "true"_s;
 
-    if (sandboxEnabled && isInsideFlatpak())
+    if (sandboxEnabled && isInsideFlatpak() && isFlatpakSpawnUsable())
         process = flatpakSpawn(launcher.get(), m_launchOptions, argv, webkitSocketPair.client, pidSocketPair.client, &error.outPtr());
 #if ENABLE(BUBBLEWRAP_SANDBOX)
     // You cannot use bubblewrap within Flatpak or some containers so lets ensure it never happens.
@@ -214,8 +235,25 @@ void ProcessLauncher::launchProcess()
         g_error("Unable to spawn a new child process: %s", error->message);
 
 #if OS(LINUX)
-    m_processID = IPC::readPIDFromPeer(pidSocketPair.server);
-    RELEASE_ASSERT(!close(pidSocketPair.server));
+    GRefPtr<GSocket> pidSocket = adoptGRef(g_socket_new_from_fd(pidSocketPair.server, &error.outPtr()));
+    if (!pidSocket)
+        g_error("Failed to create pid socket wrapper: %s", error->message);
+
+    // We need to get the pid of the actual WebKit auxiliary process, not the bwrap or flatpak-spawn
+    // intermediate process. And do it without blocking, because process launching is slow.
+    g_socket_set_blocking(pidSocket.get(), FALSE);
+    m_socketMonitor.start(pidSocket.get(), G_IO_IN, RunLoop::main(), [protectedThis = Ref { *this }, this, pidSocket, serverSocket = webkitSocketPair.server](GIOCondition condition) -> gboolean {
+        if (!(condition & G_IO_IN))
+            g_error("Failed to read pid from child process");
+
+        m_processID = IPC::readPIDFromPeer(g_socket_get_fd(pidSocket.get()));
+        RELEASE_ASSERT(m_processID);
+
+        m_socketMonitor.stop();
+
+        didFinishLaunchingProcess(m_processID, IPC::Connection::Identifier { serverSocket });
+        return G_SOURCE_REMOVE;
+    });
 #else
     const char* processIdStr = g_subprocess_get_identifier(process.get());
     if (!processIdStr)
@@ -223,12 +261,11 @@ void ProcessLauncher::launchProcess()
 
     m_processID = g_ascii_strtoll(processIdStr, nullptr, 0);
     RELEASE_ASSERT(m_processID);
-#endif
 
-    // We've finished launching the process, message back to the main run loop.
     RunLoop::main().dispatch([protectedThis = Ref { *this }, this, serverSocket = webkitSocketPair.server] {
         didFinishLaunchingProcess(m_processID, IPC::Connection::Identifier { serverSocket });
     });
+#endif
 }
 
 void ProcessLauncher::terminateProcess()

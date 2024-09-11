@@ -110,6 +110,7 @@ OBJC_PROTOCOL(WKWebExtensionWindow);
 #if PLATFORM(MAC)
 OBJC_CLASS NSEvent;
 OBJC_CLASS NSMenu;
+OBJC_CLASS WKOpenPanelParameters;
 #endif
 
 namespace PAL {
@@ -292,6 +293,7 @@ public:
     bool isLoaded() const { return !!m_extensionController; }
 
     WebExtension& extension() const { return *m_extension; }
+    Ref<WebExtension> protectedExtension() const { return extension(); }
     WebExtensionController* extensionController() const { return m_extensionController.get(); }
 
     const URL& baseURL() const { return m_baseURL; }
@@ -502,6 +504,12 @@ public:
     void didFailNavigation(WKWebView *, WKNavigation *, NSError *);
     void webViewWebContentProcessDidTerminate(WKWebView *);
 
+#if PLATFORM(MAC)
+    void runOpenPanel(WKWebView *, WKOpenPanelParameters *, void (^)(NSArray *));
+#endif
+
+    void sendNativeMessage(const String& applicationID, id message, CompletionHandler<void(Expected<RetainPtr<id>, WebExtensionError>&&)>&&);
+
     void addInjectedContent(WebUserContentControllerProxy&);
     void removeInjectedContent(WebUserContentControllerProxy&);
 
@@ -690,7 +698,7 @@ private:
     // Storage
     void setSessionStorageAllowedInContentScripts(bool);
     bool isSessionStorageAllowedInContentScripts() const { return m_isSessionStorageAllowedInContentScripts; }
-    size_t quoataForStorageType(WebExtensionDataType);
+    size_t quotaForStorageType(WebExtensionDataType);
 
     _WKWebExtensionStorageSQLiteStore *localStorageStore();
     _WKWebExtensionStorageSQLiteStore *sessionStorageStore();

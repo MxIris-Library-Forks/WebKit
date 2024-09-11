@@ -1680,9 +1680,9 @@ imported/w3c/web-platform-tests/css/css-grid/min-size-auto-overflow-clip.html [ 
 imported/w3c/web-platform-tests/css/css-grid/stretch-grid-item-text-input-overflow.html [ ImageOnlyFailure ]
 
 # Crashes:
-imported/w3c/web-platform-tests/css/css-grid/subgrid/alignment-in-subgridded-axes-002.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-baseline-010.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-baseline-012.html [ Skip ]
+webkit.org/b/279411 imported/w3c/web-platform-tests/css/css-grid/subgrid/alignment-in-subgridded-axes-002.html [ Skip ]
+webkit.org/b/279411 imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-baseline-012.html [ Skip ]
+webkit.org/b/279412 imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-baseline-010.html [ Skip ]
 
 # Masonry
 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/alignment/masonry-align-content-001.html [ ImageOnlyFailure ]
@@ -2827,7 +2827,6 @@ webkit.org/b/172056 fast/text/multiglyph-characters.html [ Failure ]
 webkit.org/b/163706 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-010.html [ Skip ]
 webkit.org/b/163706 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-024.html [ Skip ]
 imported/blink/http/tests/security/shape-image-cors-port.html [ ImageOnlyFailure ]
-webkit.org/b/163887 svg/as-image/svg-image-with-data-uri-use-data-uri.svg [ Pass Crash ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-008.html [ ImageOnlyFailure ]
@@ -3469,9 +3468,6 @@ imported/w3c/web-platform-tests/css/css-pseudo/selection-background-painting-ord
 webkit.org/b/177799 accessibility/table-detection.html [ Pass Failure ]
 
 webkit.org/b/179069 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/sandbox_032.htm [ Pass Failure ]
-
-webkit.org/b/157068 [ Debug ] imported/w3c/web-platform-tests/fetch/nosniff/importscripts.html [ Pass Crash ]
-webkit.org/b/157068 [ Release ] imported/w3c/web-platform-tests/fetch/nosniff/importscripts.html [ Pass Failure ]
 
 http/tests/privateClickMeasurement [ Skip ]
 
@@ -4898,7 +4894,8 @@ webkit.org/b/279023 imported/w3c/web-platform-tests/css/css-transforms/transform
 webkit.org/b/279023 imported/w3c/web-platform-tests/css/css-transforms/transform-iframe-scroll-position.html [ ImageOnlyFailure ]
 webkit.org/b/279023 imported/w3c/web-platform-tests/css/css-transforms/transforms-skewY.html [ ImageOnlyFailure ]
 webkit.org/b/279023 imported/w3c/web-platform-tests/css/css-transforms/fractional-scale-gradient-bg-obscure-red-bg.html [ ImageOnlyFailure ]
-webkit.org/b/279023 imported/w3c/web-platform-tests/css/css-transforms/transform-box/cssbox-content-box-002.html [ Crash ]
+
+webkit.org/b/279419 [ Debug ] imported/w3c/web-platform-tests/css/css-transforms/transform-box/cssbox-content-box-002.html [ Skip ] # Crash
 
 webkit.org/b/208396 http/tests/misc/object-embedding-svg-delayed-size-negotiation-2.htm [ Pass Failure ]
 
@@ -5413,14 +5410,15 @@ imported/w3c/web-platform-tests/css/css-multicol/subpixel-column-rule-width.tent
 imported/w3c/web-platform-tests/css/css-multicol/table/table-cell-multicol-nested-002.html [ ImageOnlyFailure ]
 
 # Crashes
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/break-before-multicol-caption.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/inline-float-parallel-flow.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/multicol-table-caption-parallel-flow-after-spanner-in-inline.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/nested-with-multicol-table-caption.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/repeated-table-footer-in-caption-nested-multicol.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/table-caption-in-clipped-overflow.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/crashtests/table-caption-inline-block-remove-child.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-multicol/multicol-span-all-004.html [ Skip ]
+webkit.org/b/279421 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/inline-float-parallel-flow.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/break-before-multicol-caption.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/multicol-table-caption-parallel-flow-after-spanner-in-inline.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/nested-with-multicol-table-caption.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/repeated-table-footer-in-caption-nested-multicol.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/table-caption-in-clipped-overflow.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/table-caption-inline-block-remove-child.html [ Skip ]
+webkit.org/b/277262 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/multicol-span-all-004.html [ Skip ]
+[ Release ] imported/w3c/web-platform-tests/css/css-multicol/multicol-span-all-004.html [ ImageOnlyFailure ]
 
 # -- End CSS multicol -- #
 
@@ -5611,7 +5609,8 @@ imported/w3c/web-platform-tests/css/css-conditional/container-queries/no-layout-
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/no-layout-containment-fixedpos-dynamic.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/no-layout-containment-fixedpos.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/pseudo-elements-010.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-conditional/container-queries/svg-foreignobject-no-size-container.html [ Crash ]
+
+webkit.org/b/279424 [ Debug ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/svg-foreignobject-no-size-container.html [ Skip ] # Crash
 
 # CSS containment tests that fail
 imported/w3c/web-platform-tests/css/css-contain/contain-inline-size-bfc-floats-001.html [ ImageOnlyFailure ]
@@ -7943,8 +7942,6 @@ imported/w3c/web-platform-tests/css/css-break/table/table-caption-with-block.htm
 imported/w3c/web-platform-tests/css/css-break/flexbox/flexbox-fragmentation-layout-001-crash.html [ Skip ]
 # css/css-break missing ref
 imported/w3c/web-platform-tests/css/css-break/chrome-bug-1289999-crash.https.html [ Skip ]
-
-webkit.org/b/264830 [ Debug ] fast/rendering/render-list-marker-select.html [ Skip ]
 
 # webkit.org/b/266168 Two wheel/mousewheel passive event listeners WPT test pass on macOS Sonoma and up
 imported/w3c/web-platform-tests/dom/events/non-cancelable-when-passive/passive-mousewheel-event-listener-on-div.html [ Failure ]

@@ -238,6 +238,7 @@
 #include <WebCore/ShareData.h>
 #include <WebCore/SharedBuffer.h>
 #include <WebCore/ShouldTreatAsContinuingLoad.h>
+#include <WebCore/Site.h>
 #include <WebCore/SleepDisabler.h>
 #include <WebCore/StoredCredentialsPolicy.h>
 #include <WebCore/TextCheckerClient.h>
@@ -877,6 +878,11 @@ WebPageProxy::~WebPageProxy()
     if (preferences->mediaSessionCoordinatorEnabled())
         GroupActivitiesSessionNotifier::sharedNotifier().removeWebPage(*this);
 #endif
+}
+
+Ref<WebPageProxy> WebPageProxy::Internals::protectedPage() const
+{
+    return page.get();
 }
 
 void WebPageProxy::addAllMessageReceivers()
@@ -1603,7 +1609,7 @@ void WebPageProxy::initializeWebPage(const Site& site)
     process->addVisitedLinkStoreUser(visitedLinkStore(), internals().identifier);
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    m_needsInitialLinkDecorationFilteringData = LinkDecorationFilteringController::shared().cachedStrings().isEmpty();
+    m_needsInitialLinkDecorationFilteringData = LinkDecorationFilteringController::shared().cachedListData().isEmpty();
     m_shouldUpdateAllowedQueryParametersForAdvancedPrivacyProtections = cachedAllowedQueryParametersForAdvancedPrivacyProtections().isEmpty();
 #endif
 }
@@ -7344,7 +7350,7 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
 
     auto shouldWaitForInitialLinkDecorationFilteringData = ShouldWaitForInitialLinkDecorationFilteringData::No;
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    if (LinkDecorationFilteringController::shared().cachedStrings().isEmpty())
+    if (LinkDecorationFilteringController::shared().cachedListData().isEmpty())
         shouldWaitForInitialLinkDecorationFilteringData = ShouldWaitForInitialLinkDecorationFilteringData::Yes;
     else if (m_needsInitialLinkDecorationFilteringData)
         sendCachedLinkDecorationFilteringData();
@@ -7882,7 +7888,7 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
         newPage->m_shouldSuppressSOAuthorizationInNextNavigationPolicyDecision = true;
 #endif
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-        newPage->m_needsInitialLinkDecorationFilteringData = LinkDecorationFilteringController::shared().cachedStrings().isEmpty();
+        newPage->m_needsInitialLinkDecorationFilteringData = LinkDecorationFilteringController::shared().cachedListData().isEmpty();
         newPage->m_shouldUpdateAllowedQueryParametersForAdvancedPrivacyProtections = cachedAllowedQueryParametersForAdvancedPrivacyProtections().isEmpty();
 #endif
     };
@@ -8550,10 +8556,11 @@ WebColorPickerClient& WebPageProxy::colorPickerClient()
 
 void WebPageProxy::Internals::didChooseColor(const WebCore::Color& color)
 {
-    if (!page.hasRunningProcess())
+    Ref protectedPage = page.get();
+    if (!protectedPage->hasRunningProcess())
         return;
 
-    page.send(Messages::WebPage::DidChooseColor(color));
+    protectedPage->send(Messages::WebPage::DidChooseColor(color));
 }
 
 void WebPageProxy::Internals::didEndColorPicker()
@@ -8561,10 +8568,11 @@ void WebPageProxy::Internals::didEndColorPicker()
     if (!std::exchange(colorPicker, nullptr))
         return;
 
-    if (!page.hasRunningProcess())
+    Ref protectedPage = page.get();
+    if (!protectedPage->hasRunningProcess())
         return;
 
-    page.send(Messages::WebPage::DidEndColorPicker());
+    protectedPage->send(Messages::WebPage::DidEndColorPicker());
 }
 
 #endif
@@ -9040,16 +9048,16 @@ void WebPageProxy::setTextIndicatorAnimationProgress(float progress)
 
 void WebPageProxy::Internals::valueChangedForPopupMenu(WebPopupMenuProxy*, int32_t newSelectedIndex)
 {
-    Ref page = this->page;
-    RefPtr frame = page->focusedOrMainFrame();
+    Ref protectedPage = page.get();
+    RefPtr frame = protectedPage->focusedOrMainFrame();
     if (!frame)
         return;
-    page->sendToProcessContainingFrame(frame->frameID(), Messages::WebPage::DidChangeSelectedIndexForActivePopupMenu(newSelectedIndex));
+    protectedPage->sendToProcessContainingFrame(frame->frameID(), Messages::WebPage::DidChangeSelectedIndexForActivePopupMenu(newSelectedIndex));
 }
 
 void WebPageProxy::Internals::setTextFromItemForPopupMenu(WebPopupMenuProxy*, int32_t index)
 {
-    Ref { page }->send(Messages::WebPage::SetTextForActivePopupMenu(index));
+    protectedPage()->send(Messages::WebPage::SetTextForActivePopupMenu(index));
 }
 
 bool WebPageProxy::isProcessingKeyboardEvents() const
@@ -9097,7 +9105,7 @@ void WebPageProxy::postMessageToInjectedBundle(const String& messageName, API::O
 #if PLATFORM(GTK)
 void WebPageProxy::Internals::failedToShowPopupMenu()
 {
-    Ref { page }->send(Messages::WebPage::FailedToShowPopupMenu());
+    protectedPage()->send(Messages::WebPage::FailedToShowPopupMenu());
 }
 #endif
 
@@ -9637,7 +9645,7 @@ void WebPageProxy::ignoreWord(IPC::Connection& connection, const String& word)
 
 void WebPageProxy::requestCheckingOfString(TextCheckerRequestID requestID, const TextCheckingRequestData& request, int32_t insertionPoint)
 {
-    TextChecker::requestCheckingOfString(TextCheckerCompletion::create(requestID, request, this), insertionPoint);
+    TextChecker::requestCheckingOfString(TextCheckerCompletion::create(requestID, request, *this), insertionPoint);
 }
 
 void WebPageProxy::didFinishCheckingText(TextCheckerRequestID requestID, const Vector<WebCore::TextCheckingResult>& result)
@@ -10835,7 +10843,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
 #endif
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    parameters.linkDecorationFilteringData = LinkDecorationFilteringController::shared().cachedStrings();
+    parameters.linkDecorationFilteringData = LinkDecorationFilteringController::shared().cachedListData();
     parameters.allowedQueryParametersForAdvancedPrivacyProtections = cachedAllowedQueryParametersForAdvancedPrivacyProtections();
 #endif
 
@@ -12682,34 +12690,38 @@ void WebPageProxy::mockMediaPlaybackTargetPickerDismissPopup()
 
 void WebPageProxy::Internals::setPlaybackTarget(PlaybackTargetClientContextIdentifier contextId, Ref<MediaPlaybackTarget>&& target)
 {
-    if (!page.hasRunningProcess())
+    Ref protectedPage = page.get();
+    if (!protectedPage->hasRunningProcess())
         return;
 
-    page.send(Messages::WebPage::PlaybackTargetSelected(contextId, MediaPlaybackTargetContextSerialized { target->targetContext() }));
+    protectedPage->send(Messages::WebPage::PlaybackTargetSelected(contextId, MediaPlaybackTargetContextSerialized { target->targetContext() }));
 }
 
 void WebPageProxy::Internals::externalOutputDeviceAvailableDidChange(PlaybackTargetClientContextIdentifier contextId, bool available)
 {
-    if (!page.hasRunningProcess())
+    Ref protectedPage = page.get();
+    if (!protectedPage->hasRunningProcess())
         return;
 
-    page.send(Messages::WebPage::PlaybackTargetAvailabilityDidChange(contextId, available));
+    protectedPage->send(Messages::WebPage::PlaybackTargetAvailabilityDidChange(contextId, available));
 }
 
 void WebPageProxy::Internals::setShouldPlayToPlaybackTarget(PlaybackTargetClientContextIdentifier contextId, bool shouldPlay)
 {
-    if (!page.hasRunningProcess())
+    Ref protectedPage = page.get();
+    if (!protectedPage->hasRunningProcess())
         return;
 
-    page.send(Messages::WebPage::SetShouldPlayToPlaybackTarget(contextId, shouldPlay));
+    protectedPage->send(Messages::WebPage::SetShouldPlayToPlaybackTarget(contextId, shouldPlay));
 }
 
 void WebPageProxy::Internals::playbackTargetPickerWasDismissed(PlaybackTargetClientContextIdentifier contextId)
 {
-    if (!page.hasRunningProcess())
+    Ref protectedPage = page.get();
+    if (!protectedPage->hasRunningProcess())
         return;
 
-    page.send(Messages::WebPage::PlaybackTargetPickerWasDismissed(contextId));
+    protectedPage->send(Messages::WebPage::PlaybackTargetPickerWasDismissed(contextId));
 }
 
 #endif
@@ -14211,18 +14223,18 @@ void WebPageProxy::sendCachedLinkDecorationFilteringData()
     if (!hasRunningProcess())
         return;
 
-    if (LinkDecorationFilteringController::shared().cachedStrings().isEmpty())
+    if (LinkDecorationFilteringController::shared().cachedListData().isEmpty())
         return;
 
     m_needsInitialLinkDecorationFilteringData = false;
-    send(Messages::WebPage::SetLinkDecorationFilteringData(LinkDecorationFilteringController::shared().cachedStrings()));
+    send(Messages::WebPage::SetLinkDecorationFilteringData(LinkDecorationFilteringController::shared().cachedListData()));
 #endif // ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
 }
 
 void WebPageProxy::waitForInitialLinkDecorationFilteringData(WebFramePolicyListenerProxy& listener)
 {
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    LinkDecorationFilteringController::shared().updateStrings([listener = Ref { listener }] {
+    LinkDecorationFilteringController::shared().updateList([listener = Ref { listener }] {
         listener->didReceiveInitialLinkDecorationFilteringData();
     });
 #else

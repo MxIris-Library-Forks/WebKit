@@ -3029,6 +3029,14 @@ media/track/in-band/track-in-band-kate-ogg-kind.html [ Skip ]
 media/track/in-band/track-in-band-kate-ogg-language.html [ Skip ]
 media/track/in-band/track-in-band-kate-ogg-track-order.html [ Skip ]
 
+# Skip tests that require the GPU process.
+webkit.org/b/279434 fast/canvas/image-buffer-resource-limits.html [ Skip ]
+webkit.org/b/279434 fast/mediastream/media-stream-video-track-interrupted-from-audio.html [ Skip ]
+webkit.org/b/279434 fast/mediastream/media-stream-video-track-interrupted.html [ Skip ]
+webkit.org/b/279434 fast/transforms/interleaved-2d-transforms-with-gpu-process.html [ Skip ]
+webkit.org/b/279434 webgl/offscreen-webgl-errors-to-console.html [ Skip ]
+webkit.org/b/279434 webgl/webgl-and-dom-in-gpup.html [ Skip ]
+
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of UNSUPPORTED tests.
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -3037,7 +3045,9 @@ media/track/in-band/track-in-band-kate-ogg-track-order.html [ Skip ]
 # NEEDS TRIAGING. If unsure, put it in this section.
 #////////////////////////////////////////////////////////////////////////////////////////
 
-webkit.org/b/264936 http/wpt/webrtc/transfer-datachannel-service-worker.https.html [ Pass Crash ]
+# This test is almost the same as http/wpt/webrtc/transfer-datachannel-service-worker.https.html.
+# The main difference is that in this test an additional message is sent on the data-channel.
+webkit.org/b/264936 imported/w3c/web-platform-tests/webrtc-extensions/transfer-datachannel-service-worker.https.html [ Pass Failure ]
 
 webkit.org/b/264933 fast/mediastream/image-capture-take-photo.html [ Pass Failure Crash ]
 
@@ -4002,6 +4012,11 @@ imported/w3c/web-platform-tests/css/filter-effects/drop-shadow-currentcolor-dyna
 imported/w3c/web-platform-tests/css/filter-effects/effect-reference-rename-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/svg-mutation-function-to-url.html [ ImageOnlyFailure ]
 webkit.org/b/180134 webanimations/opacity-animation-no-longer-composited-upon-completion.html [ Failure ]
+css3/filters/effect-blur.html [ ImageOnlyFailure ]
+css3/filters/effect-combined.html [ ImageOnlyFailure ]
+css3/filters/effect-drop-shadow-clip-abspos.html [ ImageOnlyFailure ]
+css3/filters/effect-hue-rotate.html [ ImageOnlyFailure ]
+css3/filters/effect-saturate.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/element-stops-grouping-after-animation.html [ ImageOnlyFailure ]

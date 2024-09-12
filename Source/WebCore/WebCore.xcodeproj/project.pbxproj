@@ -5359,6 +5359,7 @@
 		D2BB5C65290985E40065457D /* AdvancedPrivacyProtections.h in Headers */ = {isa = PBXBuildFile; fileRef = D2BB5C64290985E40065457D /* AdvancedPrivacyProtections.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D2C4612E2A0C744E00A5F791 /* CanvasNoiseInjection.h in Headers */ = {isa = PBXBuildFile; fileRef = D2C4612C2A0C744E00A5F791 /* CanvasNoiseInjection.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D2DA641F2B0E98BD0003F9B2 /* OrganizationStorageAccessPromptQuirk.h in Headers */ = {isa = PBXBuildFile; fileRef = D2DA641E2B0E98350003F9B2 /* OrganizationStorageAccessPromptQuirk.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D2E7338A2C8F9DA000C7E549 /* Site.h in Headers */ = {isa = PBXBuildFile; fileRef = D2E733872C8F9D9F00C7E549 /* Site.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D302754A12A5FE84004BD828 /* RenderDetailsMarker.h in Headers */ = {isa = PBXBuildFile; fileRef = D302754612A5FE84004BD828 /* RenderDetailsMarker.h */; };
 		D359D78A129CA2710006E5D2 /* HTMLDetailsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D359D787129CA2710006E5D2 /* HTMLDetailsElement.h */; };
 		D359D8BF129CA55C0006E5D2 /* JSHTMLDetailsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D359D8BD129CA55C0006E5D2 /* JSHTMLDetailsElement.h */; };
@@ -10639,6 +10640,7 @@
 		45B6A3EA2C3C4FBE0062CB8A /* JSWebCodecsAudioDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsAudioDecoderCustom.cpp; sourceTree = "<group>"; };
 		45BA2FCA2C3C77870042DA4F /* JSWebCodecsAudioEncoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsAudioEncoderCustom.cpp; sourceTree = "<group>"; };
 		45BA2FCB2C3C77870042DA4F /* JSWebCodecsVideoEncoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoEncoderCustom.cpp; sourceTree = "<group>"; };
+		45D021E32C8B91F40089F09A /* JSStylePropertyMapReadOnlyCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSStylePropertyMapReadOnlyCustom.cpp; sourceTree = "<group>"; };
 		45F4864B2C38CCE9008B9897 /* JSWebCodecsVideoDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoDecoderCustom.cpp; sourceTree = "<group>"; };
 		45FEA5CD156DDE8C00654101 /* Decimal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Decimal.cpp; sourceTree = "<group>"; };
 		45FEA5CE156DDE8C00654101 /* Decimal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Decimal.h; sourceTree = "<group>"; };
@@ -18932,6 +18934,8 @@
 		D2C4612C2A0C744E00A5F791 /* CanvasNoiseInjection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasNoiseInjection.h; sourceTree = "<group>"; };
 		D2CDB5ED638F43AF86F07AA2 /* JSErrorEventCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSErrorEventCustom.cpp; sourceTree = "<group>"; };
 		D2DA641E2B0E98350003F9B2 /* OrganizationStorageAccessPromptQuirk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OrganizationStorageAccessPromptQuirk.h; sourceTree = "<group>"; };
+		D2E733872C8F9D9F00C7E549 /* Site.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Site.h; sourceTree = "<group>"; };
+		D2E733882C8F9D9F00C7E549 /* Site.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Site.cpp; sourceTree = "<group>"; };
 		D302754512A5FE84004BD828 /* RenderDetailsMarker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderDetailsMarker.cpp; sourceTree = "<group>"; };
 		D302754612A5FE84004BD828 /* RenderDetailsMarker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderDetailsMarker.h; sourceTree = "<group>"; };
 		D359D786129CA2710006E5D2 /* HTMLDetailsElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLDetailsElement.cpp; sourceTree = "<group>"; };
@@ -28915,6 +28919,7 @@
 				460D19441FCE21DD00C3DB85 /* JSServiceWorkerGlobalScopeCustom.cpp */,
 				5171A08A2A17E1AC0049390C /* JSSourceBufferCustom.cpp */,
 				9BE84EDC25C5112E00665E93 /* JSStaticRangeCustom.cpp */,
+				45D021E32C8B91F40089F09A /* JSStylePropertyMapReadOnlyCustom.cpp */,
 				BC98A27C0C0C9950004BEBF7 /* JSStyleSheetCustom.cpp */,
 				AD726FEC16D9F4B9003A4E6D /* JSStyleSheetCustom.h */,
 				B2C96D8C0B3AF2B7005E80EC /* JSSVGPathSegCustom.cpp */,
@@ -34496,6 +34501,8 @@
 				93309EA0099EB78C0056E581 /* SharedTimer.h */,
 				0742C5022926E29500D26990 /* SimpleCaretAnimator.cpp */,
 				0742C5032926E29500D26990 /* SimpleCaretAnimator.h */,
+				D2E733882C8F9D9F00C7E549 /* Site.cpp */,
+				D2E733872C8F9D9F00C7E549 /* Site.h */,
 				C149D559242EA4F8003EBB12 /* SleepDisabler.cpp */,
 				C149D55A242EA4F9003EBB12 /* SleepDisabler.h */,
 				C18FB518242F9382007E9875 /* SleepDisablerClient.cpp */,
@@ -42660,6 +42667,7 @@
 				31741AAD16636609008A5B7E /* SimulatedClickOptions.h in Headers */,
 				FD00D7A514A3F61900734011 /* SincResampler.h in Headers */,
 				51327D6011A33A2B004F9D65 /* SinkDocument.h in Headers */,
+				D2E7338A2C8F9DA000C7E549 /* Site.h in Headers */,
 				49E911CD0EF86D47009D0CAF /* SkewTransformOperation.h in Headers */,
 				C149D55D242EA6B9003EBB12 /* SleepDisabler.h in Headers */,
 				C149D55F242EA7B8003EBB12 /* SleepDisablerClient.h in Headers */,

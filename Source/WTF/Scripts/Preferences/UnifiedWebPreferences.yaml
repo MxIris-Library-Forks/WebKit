@@ -4905,11 +4905,13 @@ ModelProcessEnabled:
   humanReadableDescription: "Load <model> content in a separate process"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
+  disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 MomentumScrollingAnimatorEnabled:
   type: bool
@@ -8468,7 +8470,7 @@ WebXRWebGPUBindingsEnabled:
   type: bool
   status: Webgpu_webxr_feature_status
   category: dom
-  humanReadableName: "WebGPU Support for WebXR"
+  humanReadableName: "WebGPU support for WebXR"
   humanReadableDescription: "Adds WebGPU support for WebXR"
   defaultValue:
     WebKitLegacy:

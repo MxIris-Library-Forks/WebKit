@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2023 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,27 +21,27 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- */
+ */ 
 
-#include "config.h"
-#include "Site.h"
+#pragma once
 
-#include <wtf/HashFunctions.h>
+// Handle __IOS_PROHIBITED and friends.
+#undef __OS_AVAILABILITY
+#define __OS_AVAILABILITY(...)
 
-namespace WebKit {
+// Take care of {A,S}PI_AVAILABLE{,_BEGIN,_END}
+#undef __API_AVAILABLE_GET_MACRO
+#define __API_AVAILABLE_GET_MACRO(...) __NULL_AVAILABILITY
 
-Site::Site(const URL& url)
-    : m_protocol(url.protocol().toString())
-    , m_domain(url) { }
+#undef SWIFT_AVAILABILITY
+#define SWIFT_AVAILABILITY __NULL_AVAILABILITY
 
-unsigned Site::hash() const
-{
-    return WTF::pairIntHash(m_protocol.hash(), m_domain.hash());
-}
+// Take care of {A,S}PI_DEPRECATED{,WITH_REPLACEMENT}{,_BEGIN,_END}
+#undef __API_DEPRECATED_MSG_GET_MACRO
+#define __API_DEPRECATED_MSG_GET_MACRO(...) __NULL_AVAILABILITY
 
-bool Site::matches(const URL& url) const
-{
-    return url.protocol() == m_protocol && m_domain.matches(url);
-}
+// Take care of API_UNAVAILABLE{,_BEGIN,_END}
+#undef __API_UNAVAILABLE_GET_MACRO
+#define __API_UNAVAILABLE_GET_MACRO(...) __NULL_AVAILABILITY
 
-} // namespace WebKit
+#define __NULL_AVAILABILITY(...)

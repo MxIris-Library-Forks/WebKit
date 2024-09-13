@@ -13513,6 +13513,7 @@
 		7B10339D2549720100C8C1AC /* GraphicsContextGLCV.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsContextGLCV.h; sourceTree = "<group>"; };
 		7B187BC92AC6FB34009E7993 /* CGUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGUtilities.h; sourceTree = "<group>"; };
 		7B2DDD5F27CCF3A70060ABAB /* ChromeClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ChromeClient.cpp; sourceTree = "<group>"; };
+		7B2EEF232C92ADB7005F674E /* DOMWindow+CookieStore.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "DOMWindow+CookieStore.idl"; sourceTree = "<group>"; };
 		7B3A5D562A7856B30045F1CB /* CookieChangeListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CookieChangeListener.h; sourceTree = "<group>"; };
 		7B3ED2F72A4CD7EC0042B08A /* CookieStore.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CookieStore.idl; sourceTree = "<group>"; };
 		7B3ED2FB2A4CDA620042B08A /* CookieListItem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CookieListItem.h; sourceTree = "<group>"; };
@@ -13526,7 +13527,6 @@
 		7B3ED30A2A4CDCD50042B08A /* CookieSameSite.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CookieSameSite.idl; sourceTree = "<group>"; };
 		7B3ED30B2A4CDD010042B08A /* CookieStoreDeleteOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CookieStoreDeleteOptions.h; sourceTree = "<group>"; };
 		7B3ED30C2A4CDD010042B08A /* CookieStoreDeleteOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CookieStoreDeleteOptions.idl; sourceTree = "<group>"; };
-		7B3ED3132A4CE3B60042B08A /* LocalDOMWindow+CookieStore.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LocalDOMWindow+CookieStore.idl"; sourceTree = "<group>"; };
 		7B3ED3142A4D128A0042B08A /* CookieStore.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CookieStore.cpp; sourceTree = "<group>"; };
 		7B434D1329DB0FD00062E8D1 /* PlatformCALayerDelegatedContents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformCALayerDelegatedContents.h; sourceTree = "<group>"; };
 		7B5A3DAB27ABF8C4006C6F97 /* VideoFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoFrame.cpp; sourceTree = "<group>"; };
@@ -17699,6 +17699,9 @@
 		BC6DA11F2C8E113E000ECE0F /* CSSPropertyParserConsumer+Lists.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Lists.h"; sourceTree = "<group>"; };
 		BC6DA1202C8E142D000ECE0F /* CSSPropertyParserConsumer+CounterStyles.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+CounterStyles.h"; sourceTree = "<group>"; };
 		BC6DA1212C8E142E000ECE0F /* CSSPropertyParserConsumer+CounterStyles.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+CounterStyles.cpp"; sourceTree = "<group>"; };
+		BC6DA1522C90C067000ECE0F /* CSSPropertyParserConsumer+LengthPercentageDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+LengthPercentageDefinitions.h"; sourceTree = "<group>"; };
+		BC6DA1532C90C0B2000ECE0F /* CSSPropertyParserConsumer+LengthPercentage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+LengthPercentage.h"; sourceTree = "<group>"; };
+		BC6DA1542C90C0B2000ECE0F /* CSSPropertyParserConsumer+LengthPercentage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+LengthPercentage.cpp"; sourceTree = "<group>"; };
 		BC6EB84526266B61003225A7 /* ColorLuminance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorLuminance.cpp; sourceTree = "<group>"; };
 		BC6EF49B2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+TimingFunction.h"; sourceTree = "<group>"; };
 		BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+TimingFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+TimingFunction.cpp"; sourceTree = "<group>"; };
@@ -28804,12 +28807,12 @@
 				7BF6E6FE2A93E9CB0096DAF8 /* CookieStoreManager.cpp */,
 				7BF6E6FD2A93E9CB0096DAF8 /* CookieStoreManager.h */,
 				7BF6E6FF2A93E9CB0096DAF8 /* CookieStoreManager.idl */,
+				7B2EEF232C92ADB7005F674E /* DOMWindow+CookieStore.idl */,
 				7BF6E7052A94207D0096DAF8 /* ExtendableCookieChangeEvent.cpp */,
 				7BF6E7042A94207D0096DAF8 /* ExtendableCookieChangeEvent.h */,
 				7BF6E7062A94207D0096DAF8 /* ExtendableCookieChangeEvent.idl */,
 				7BF6E7012A941EBD0096DAF8 /* ExtendableCookieChangeEventInit.h */,
 				7BF6E7022A941EBD0096DAF8 /* ExtendableCookieChangeEventInit.idl */,
-				7B3ED3132A4CE3B60042B08A /* LocalDOMWindow+CookieStore.idl */,
 			);
 			path = "cookie-store";
 			sourceTree = "<group>";
@@ -30096,6 +30099,9 @@
 				BC7C5E6A2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Length.cpp */,
 				BC7C5E6B2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Length.h */,
 				BC7C5E6C2BE2A8FB00AE645C /* CSSPropertyParserConsumer+LengthDefinitions.h */,
+				BC6DA1542C90C0B2000ECE0F /* CSSPropertyParserConsumer+LengthPercentage.cpp */,
+				BC6DA1532C90C0B2000ECE0F /* CSSPropertyParserConsumer+LengthPercentage.h */,
+				BC6DA1522C90C067000ECE0F /* CSSPropertyParserConsumer+LengthPercentageDefinitions.h */,
 				BC7C5E6D2BE2A8FB00AE645C /* CSSPropertyParserConsumer+List.h */,
 				BC6DA11E2C8E113E000ECE0F /* CSSPropertyParserConsumer+Lists.cpp */,
 				BC6DA11F2C8E113E000ECE0F /* CSSPropertyParserConsumer+Lists.h */,

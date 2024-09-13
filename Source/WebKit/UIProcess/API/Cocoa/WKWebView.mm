@@ -746,6 +746,9 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
 
 - (void)_setResourceLoadDelegate:(id<_WKResourceLoadDelegate>)delegate
 {
+    if (!_page || !_resourceLoadDelegate)
+        return;
+
     if (delegate) {
         _page->setResourceLoadClient(_resourceLoadDelegate->createResourceLoadClient());
         _resourceLoadDelegate->setDelegate(delegate);
@@ -2212,7 +2215,7 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
     }
 
     _writingToolsTextReplacementsFinished = finished;
-    _partialIntelligenceTextPonderingAnimationCount += 1;
+    _partialIntelligenceTextAnimationCount += 1;
 
     _page->compositionSessionDidReceiveTextWithReplacementRange(*webSession, WebCore::AttributedString::fromNSAttributedString(attributedText), { range }, *webContext, finished);
 }
@@ -2229,7 +2232,7 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
 
     if (webAction == WebCore::WritingTools::Action::Restart) {
         _writingToolsTextReplacementsFinished = false;
-        _partialIntelligenceTextPonderingAnimationCount = 0;
+        _partialIntelligenceTextAnimationCount = 0;
     }
 
     _page->writingToolsSessionDidReceiveAction(*webSession, webAction);
@@ -2269,16 +2272,16 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
     [textViewDelegate proofreadingSessionWithUUID:[_activeWritingToolsSession uuid] updateState:WebKit::convertToPlatformTextSuggestionState(state) forSuggestionWithUUID:replacementUUID];
 }
 
-- (void)_didEndPartialIntelligenceTextPonderingAnimation
+- (void)_didEndPartialIntelligenceTextAnimation
 {
-    if (!_partialIntelligenceTextPonderingAnimationCount) {
+    if (!_partialIntelligenceTextAnimationCount) {
         ASSERT_NOT_REACHED();
         return;
     }
 
-    _partialIntelligenceTextPonderingAnimationCount -= 1;
+    _partialIntelligenceTextAnimationCount -= 1;
 
-    if (!_partialIntelligenceTextPonderingAnimationCount && _writingToolsTextReplacementsFinished) {
+    if (!_partialIntelligenceTextAnimationCount && _writingToolsTextReplacementsFinished) {
         // If the entire replacement has already been completed, and this is the end of the last animation,
         // then reveal the selection and end the session if needed.
         _page->intelligenceTextAnimationsDidComplete();

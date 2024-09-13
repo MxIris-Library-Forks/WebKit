@@ -80,6 +80,7 @@
     _chunkToEffect = adoptNS([[NSMutableDictionary alloc] init]);
 
     _effectView = adoptNS([PAL::alloc_WTTextEffectViewInstance() initWithAsyncSource:self]);
+    [_effectView setClipsToBounds:YES];
     [_effectView setFrame:webView.view().bounds];
     return self;
 }
@@ -138,7 +139,7 @@
             if (!strongWebView || !animationID)
                 return;
 
-            strongWebView->page().didEndPartialIntelligenceTextPonderingAnimationImpl();
+            strongWebView->page().didEndPartialIntelligenceTextAnimationImpl();
 
             strongWebView->page().updateUnderlyingTextVisibilityForTextAnimationID(remainingID, true);
             strongWebView->page().callCompletionHandlerForAnimationID(*animationID, runMode);

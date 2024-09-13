@@ -197,6 +197,8 @@ void TextAnimationController::addInitialTextAnimationForActiveWritingToolsSessio
     if (!textIndicatorData)
         return;
 
+    removeInitialTextAnimationForActiveWritingToolsSession();
+
     m_webPage->addTextAnimationForAnimationID(initialAnimationID, { WebCore::TextAnimationType::Initial, WebCore::TextAnimationRunMode::RunAnimation }, *textIndicatorData);
 
     m_initialAnimationID = initialAnimationID;
@@ -247,19 +249,19 @@ void TextAnimationController::addSourceTextAnimationForActiveWritingToolsSession
 void TextAnimationController::addDestinationTextAnimationForActiveWritingToolsSession(const WTF::UUID& sourceAnimationUUID, const WTF::UUID& destinationAnimationUUID, const std::optional<WebCore::CharacterRange>& characterRangeAfterReplace, const String& string)
 {
     if (!characterRangeAfterReplace) {
-        m_webPage->didEndPartialIntelligenceTextPonderingAnimation();
+        m_webPage->didEndPartialIntelligenceTextAnimation();
         return;
     }
 
     auto sessionRange = contextRangeForActiveWritingToolsSession();
     if (!sessionRange) {
-        m_webPage->didEndPartialIntelligenceTextPonderingAnimation();
+        m_webPage->didEndPartialIntelligenceTextAnimation();
         return;
     }
 
     RefPtr document = this->document();
     if (!document) {
-        m_webPage->didEndPartialIntelligenceTextPonderingAnimation();
+        m_webPage->didEndPartialIntelligenceTextAnimation();
         ASSERT_NOT_REACHED();
         return;
     }
@@ -288,7 +290,7 @@ void TextAnimationController::addDestinationTextAnimationForActiveWritingToolsSe
     auto textIndicatorData = createTextIndicatorForRange(replacedRangeAfterReplace);
 
     if (!textIndicatorData) {
-        m_webPage->didEndPartialIntelligenceTextPonderingAnimation();
+        m_webPage->didEndPartialIntelligenceTextAnimation();
         return;
     }
 

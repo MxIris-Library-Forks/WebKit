@@ -508,7 +508,8 @@ public:
     bool hasClosedCaptions() const;
     void setClosedCaptionsVisible(bool closedCaptionsVisible);
 
-    void paint(GraphicsContext&, const FloatRect&);
+    void paint(GraphicsContext&, const FloatRect& destination);
+    void paintCurrentFrameInContext(GraphicsContext&, const FloatRect& destination);
 
 #if PLATFORM(COCOA) && !HAVE(AVSAMPLEBUFFERDISPLAYLAYER_COPYDISPLAYEDPIXELBUFFER)
     void willBeAskedToPaintGL();
@@ -618,7 +619,7 @@ public:
     String elementId() const;
 
     CachedResourceLoader* cachedResourceLoader();
-    Ref<PlatformMediaResourceLoader> createResourceLoader();
+    Ref<PlatformMediaResourceLoader> mediaResourceLoader();
 
     void addAudioTrack(AudioTrackPrivate&);
     void addTextTrack(InbandTextTrackPrivate&);
@@ -809,6 +810,7 @@ private:
     bool m_initializingMediaEngine { false };
     DynamicRangeMode m_preferredDynamicRangeMode;
     PitchCorrectionAlgorithm m_pitchCorrectionAlgorithm { PitchCorrectionAlgorithm::BestAllAround };
+    RefPtr<PlatformMediaResourceLoader> m_mediaResourceLoader;
 
 #if ENABLE(MEDIA_SOURCE)
     ThreadSafeWeakPtr<MediaSourcePrivateClient> m_mediaSource;

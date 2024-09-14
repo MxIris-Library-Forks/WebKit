@@ -178,7 +178,7 @@ MediaPlayerPrivateGStreamer::MediaPlayerPrivateGStreamer(MediaPlayer* player)
 #if USE(TEXTURE_MAPPER_DMABUF)
     , m_swapchain(adoptRef(new GBMBufferSwapchain(GBMBufferSwapchain::BufferSwapchainSize::Eight)))
 #endif
-    , m_loader(player->createResourceLoader())
+    , m_loader(player->mediaResourceLoader())
 {
 
 #if !RELEASE_LOG_DISABLED && !defined(GST_DISABLE_GST_DEBUG)
@@ -3883,7 +3883,7 @@ void MediaPlayerPrivateGStreamer::paint(GraphicsContext& context, const FloatRec
         return;
 
     auto frame = VideoFrameGStreamer::createWrappedSample(m_sample);
-    frame->paintInContext(context, rect, m_videoSourceOrientation, false);
+    frame->draw(context, rect, m_videoSourceOrientation, false);
 }
 
 DestinationColorSpace MediaPlayerPrivateGStreamer::colorSpace()

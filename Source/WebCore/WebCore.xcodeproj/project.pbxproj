@@ -17763,9 +17763,9 @@
 		BC7C5E732BE2A8FB00AE645C /* CSSPropertyParserConsumer+Number.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Number.cpp"; sourceTree = "<group>"; };
 		BC7C5E742BE2A8FB00AE645C /* CSSPropertyParserConsumer+Number.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Number.h"; sourceTree = "<group>"; };
 		BC7C5E752BE2A8FB00AE645C /* CSSPropertyParserConsumer+NumberDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+NumberDefinitions.h"; sourceTree = "<group>"; };
-		BC7C5E762BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Percent.cpp"; sourceTree = "<group>"; };
-		BC7C5E772BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Percent.h"; sourceTree = "<group>"; };
-		BC7C5E782BE2A8FB00AE645C /* CSSPropertyParserConsumer+PercentDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+PercentDefinitions.h"; sourceTree = "<group>"; };
+		BC7C5E762BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percentage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Percentage.cpp"; sourceTree = "<group>"; };
+		BC7C5E772BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percentage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Percentage.h"; sourceTree = "<group>"; };
+		BC7C5E782BE2A8FB00AE645C /* CSSPropertyParserConsumer+PercentageDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+PercentageDefinitions.h"; sourceTree = "<group>"; };
 		BC7C5E792BE2A8FB00AE645C /* CSSPropertyParserConsumer+Primitives.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Primitives.cpp"; sourceTree = "<group>"; };
 		BC7C5E7A2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Primitives.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Primitives.h"; sourceTree = "<group>"; };
 		BC7C5E7B2BE2A8FB00AE645C /* CSSPropertyParserConsumer+RawTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+RawTypes.h"; sourceTree = "<group>"; };
@@ -18098,8 +18098,6 @@
 		BCFB2E5D0979E46400BA703D /* CachedResourceClient.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CachedResourceClient.h; sourceTree = "<group>"; };
 		BCFB45F317D8E39200444446 /* RenderBlockFlow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderBlockFlow.h; sourceTree = "<group>"; };
 		BCFB45F417D8E49400444446 /* RenderBlockFlow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBlockFlow.cpp; sourceTree = "<group>"; };
-		BCFE79A42BE2DE6200114272 /* CSSPropertyParserConsumer+RawResolver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+RawResolver.cpp"; sourceTree = "<group>"; };
-		BCFE79A52BE2DE6200114272 /* CSSPropertyParserConsumer+RawResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+RawResolver.h"; sourceTree = "<group>"; };
 		BCFE79A62BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+CSSPrimitiveValueResolver.cpp"; sourceTree = "<group>"; };
 		BCFE79A72BE2DE7600114272 /* CSSPropertyParserConsumer+CSSPrimitiveValueResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+CSSPrimitiveValueResolver.h"; sourceTree = "<group>"; };
 		BCFE79A82BE2E01000114272 /* CSSPropertyParserConsumer+MetaResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+MetaResolver.h"; sourceTree = "<group>"; };
@@ -30113,15 +30111,13 @@
 				BC7C5E732BE2A8FB00AE645C /* CSSPropertyParserConsumer+Number.cpp */,
 				BC7C5E742BE2A8FB00AE645C /* CSSPropertyParserConsumer+Number.h */,
 				BC7C5E752BE2A8FB00AE645C /* CSSPropertyParserConsumer+NumberDefinitions.h */,
-				BC7C5E762BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percent.cpp */,
-				BC7C5E772BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percent.h */,
-				BC7C5E782BE2A8FB00AE645C /* CSSPropertyParserConsumer+PercentDefinitions.h */,
+				BC7C5E762BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percentage.cpp */,
+				BC7C5E772BE2A8FB00AE645C /* CSSPropertyParserConsumer+Percentage.h */,
+				BC7C5E782BE2A8FB00AE645C /* CSSPropertyParserConsumer+PercentageDefinitions.h */,
 				BCC38E942C25E83D0013821F /* CSSPropertyParserConsumer+Position.cpp */,
 				BCC38E952C25E83D0013821F /* CSSPropertyParserConsumer+Position.h */,
 				BC7C5E792BE2A8FB00AE645C /* CSSPropertyParserConsumer+Primitives.cpp */,
 				BC7C5E7A2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Primitives.h */,
-				BCFE79A42BE2DE6200114272 /* CSSPropertyParserConsumer+RawResolver.cpp */,
-				BCFE79A52BE2DE6200114272 /* CSSPropertyParserConsumer+RawResolver.h */,
 				BCC206F62BE9483A00465A78 /* CSSPropertyParserConsumer+RawTypes.cpp */,
 				BC7C5E7B2BE2A8FB00AE645C /* CSSPropertyParserConsumer+RawTypes.h */,
 				BC7C5E7C2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Resolution.cpp */,

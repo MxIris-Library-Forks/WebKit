@@ -1162,9 +1162,14 @@ void MediaPlayer::setPreload(MediaPlayer::Preload preload)
     m_private->setPreload(preload);
 }
 
-void MediaPlayer::paint(GraphicsContext& p, const FloatRect& r)
+void MediaPlayer::paint(GraphicsContext& context, const FloatRect& destination)
 {
-    m_private->paint(p, r);
+    m_private->paint(context, destination);
+}
+
+void MediaPlayer::paintCurrentFrameInContext(GraphicsContext& context, const FloatRect& destination)
+{
+    m_private->paintCurrentFrameInContext(context, destination);
 }
 
 RefPtr<VideoFrame> MediaPlayer::videoFrameForCurrentTime()
@@ -1588,9 +1593,12 @@ CachedResourceLoader* MediaPlayer::cachedResourceLoader()
     return client().mediaPlayerCachedResourceLoader();
 }
 
-Ref<PlatformMediaResourceLoader> MediaPlayer::createResourceLoader()
+Ref<PlatformMediaResourceLoader> MediaPlayer::mediaResourceLoader()
 {
-    return client().mediaPlayerCreateResourceLoader();
+    if (!m_mediaResourceLoader)
+        m_mediaResourceLoader = client().mediaPlayerCreateResourceLoader();
+
+    return *m_mediaResourceLoader;
 }
 
 void MediaPlayer::addAudioTrack(AudioTrackPrivate& track)

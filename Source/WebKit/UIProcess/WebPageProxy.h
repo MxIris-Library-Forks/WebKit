@@ -608,7 +608,7 @@ public:
     using Identifier = WebPageProxyIdentifier;
 
     Identifier identifier() const;
-    WebCore::PageIdentifier webPageIDInMainFrameProcess() const;
+    WebCore::PageIdentifier webPageIDInMainFrameProcess() const { return m_webPageID; }
     WebCore::PageIdentifier identifierInSiteIsolatedProcess() const { return webPageIDInMainFrameProcess(); }
     WebCore::PageIdentifier webPageIDInProcess(const WebProcessProxy&) const;
 
@@ -2575,7 +2575,7 @@ private:
     void didFinishLoadForFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, const UserData&);
     void didFailLoadForFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, const WebCore::ResourceError&, const UserData&);
     void didSameDocumentNavigationForFrame(IPC::Connection&, WebCore::FrameIdentifier, std::optional<WebCore::NavigationIdentifier>, SameDocumentNavigationType, URL&&, const UserData&);
-    void didSameDocumentNavigationForFrameViaJSHistoryAPI(IPC::Connection&, SameDocumentNavigationType, URL, NavigationActionData&&, const UserData&);
+    void didSameDocumentNavigationForFrameViaJS(IPC::Connection&, SameDocumentNavigationType, URL, NavigationActionData&&, const UserData&);
     void didChangeMainDocument(WebCore::FrameIdentifier);
     void didExplicitOpenForFrame(IPC::Connection&, WebCore::FrameIdentifier, URL&&, String&& mimeType);
 
@@ -3126,6 +3126,8 @@ private:
     void resetRecentGamepadAccessState();
 #endif
 
+    void adjustAdvancedPrivacyProtectionsIfNeeded(API::WebsitePolicies&);
+
     void setAllowsLayoutViewportHeightExpansion(bool);
     void setBrowsingContextGroup(BrowsingContextGroup&);
 
@@ -3160,6 +3162,7 @@ private:
 #endif
 
     UniqueRef<Internals> m_internals;
+    WebCore::PageIdentifier m_webPageID;
 
     WeakPtr<PageClient> m_pageClient;
     Ref<API::PageConfiguration> m_configuration;

@@ -45,8 +45,8 @@
 #include "CSSPropertyParserConsumer+MetaConsumer.h"
 #include "CSSPropertyParserConsumer+Number.h"
 #include "CSSPropertyParserConsumer+NumberDefinitions.h"
-#include "CSSPropertyParserConsumer+Percent.h"
-#include "CSSPropertyParserConsumer+PercentDefinitions.h"
+#include "CSSPropertyParserConsumer+Percentage.h"
+#include "CSSPropertyParserConsumer+PercentageDefinitions.h"
 #include "CSSPropertyParserConsumer+Position.h"
 #include "CSSPropertyParserConsumer+Primitives.h"
 #include "CSSPropertyParserConsumer+String.h"
@@ -1142,6 +1142,15 @@ RefPtr<CSSValue> consumeTextEdge(CSSPropertyID property, CSSParserTokenRange& ra
     return CSSValuePair::create(firstValue.releaseNonNull(), secondValue.releaseNonNull());
 }
 
+RefPtr<CSSValue> consumeWebKitRubyPosition(CSSParserTokenRange& range, const CSSParserContext&)
+{
+    if (range.peek().id() == CSSValueInterCharacter) {
+        consumeIdent(range);
+        return CSSPrimitiveValue::create(CSSValueLegacyInterCharacter);
+    }
+    return consumeIdent(range);
+}
+
 RefPtr<CSSValue> consumeBorderRadiusCorner(CSSParserTokenRange& range, CSSParserMode mode)
 {
     auto parsedValue1 = consumeLengthPercentage(range, mode, ValueRange::NonNegative);
@@ -1764,7 +1773,7 @@ RefPtr<CSSValue> consumeBorderImageSlice(CSSPropertyID property, CSSParserTokenR
     std::array<RefPtr<CSSPrimitiveValue>, 4> slices;
 
     for (auto& value : slices) {
-        value = consumePercent(range, ValueRange::NonNegative);
+        value = consumePercentage(range, ValueRange::NonNegative);
         if (!value)
             value = consumeNumber(range, ValueRange::NonNegative);
         if (!value)

@@ -694,6 +694,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     animation/AnimationFrameRatePreset.h
     animation/AnimationTimeline.h
     animation/AnimationTimelinesController.h
+    animation/CSSNumberishTime.h
     animation/CSSPropertyBlendingClient.h
     animation/CustomAnimationOptions.h
     animation/CompositeOperation.h
@@ -1611,6 +1612,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/RenderingUpdateScheduler.h
     page/ScreenOrientationLockType.h
     page/ScreenOrientationType.h
+    page/ScriptTelemetryCategory.h
     page/ScrollBehavior.h
     page/ScrollIntoViewOptions.h
     page/ScrollLogicalPosition.h

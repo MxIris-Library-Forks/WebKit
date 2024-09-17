@@ -590,6 +590,7 @@ animation/AnimationTimeline.cpp
 animation/BlendingKeyframes.cpp
 animation/CSSAnimation.cpp
 animation/CSSAnimationEvent.cpp
+animation/CSSNumberishTime.cpp
 animation/CSSPropertyAnimation.cpp
 animation/CSSTransition.cpp
 animation/CSSTransitionEvent.cpp
@@ -1837,7 +1838,7 @@ layout/floats/FloatingContext.cpp
 layout/floats/PlacedFloats.cpp
 layout/formattingContexts/inline/AbstractLineBuilder.cpp
 layout/formattingContexts/inline/InlineContentAligner.cpp
-layout/formattingContexts/inline/InlineContentBalancer.cpp
+layout/formattingContexts/inline/InlineContentConstrainer.cpp
 layout/formattingContexts/inline/InlineContentBreaker.cpp
 layout/formattingContexts/inline/InlineFormattingContext.cpp
 layout/formattingContexts/inline/InlineFormattingUtils.cpp
@@ -2102,6 +2103,7 @@ page/ResourceUsageOverlay.cpp
 page/ResourceUsageThread.cpp
 page/Screen.cpp
 page/ScreenOrientation.cpp
+page/ScriptTelemetryCategory.cpp
 page/ScrollBehavior.cpp
 page/SecurityOrigin.cpp
 page/SecurityOriginData.cpp

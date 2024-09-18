@@ -801,6 +801,7 @@
 		1CFAE4062A4D8A140004AE37 /* WebGPUExternalTextureDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE2802A4D79B60004AE37 /* WebGPUExternalTextureDescriptor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CFAE4072A4D8A140004AE37 /* WebGPURenderPassLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE29C2A4D79C00004AE37 /* WebGPURenderPassLayout.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CFAE4082A4D8A140004AE37 /* WebGPUCanvasAlphaMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE2522A4D79A60004AE37 /* WebGPUCanvasAlphaMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		1CFAE4083A4D8A140004AE37 /* WebGPUCanvasToneMappingMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE2523A4D79A60004AE37 /* WebGPUCanvasToneMappingMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CFAE40A2A4D8A140004AE37 /* WebGPUCanvasConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE25C2A4D79A90004AE37 /* WebGPUCanvasConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CFAE40B2A4D8A140004AE37 /* WebGPUFeatureName.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE26D2A4D79AF0004AE37 /* WebGPUFeatureName.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CFAE40C2A4D8A140004AE37 /* WebGPUOrigin3D.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CFAE2792A4D79B30004AE37 /* WebGPUOrigin3D.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -8081,6 +8082,8 @@
 		1C66A6EC2A4F78120086DB6F /* GPUQueue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUQueue.cpp; sourceTree = "<group>"; };
 		1C66A6ED2A4F78120086DB6F /* GPUPrimitiveTopology.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUPrimitiveTopology.idl; sourceTree = "<group>"; };
 		1C66A6EE2A4F78130086DB6F /* GPUCanvasAlphaMode.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUCanvasAlphaMode.idl; sourceTree = "<group>"; };
+		1C66A6EE3A4F78130086DB6F /* GPUCanvasToneMappingMode.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUCanvasToneMappingMode.idl; sourceTree = "<group>"; };
+		1C66A6EE4A4F78130086DB6F /* GPUCanvasToneMapping.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUCanvasToneMapping.idl; sourceTree = "<group>"; };
 		1C66A6EF2A4F78130086DB6F /* GPURenderPassColorAttachment.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPURenderPassColorAttachment.h; sourceTree = "<group>"; };
 		1C66A6F02A4F78130086DB6F /* GPUBufferBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUBufferBinding.h; sourceTree = "<group>"; };
 		1C66A6F12A4F78140086DB6F /* GPUPresentationContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUPresentationContext.h; sourceTree = "<group>"; };
@@ -8368,6 +8371,8 @@
 		1C66A80F2A4F786E0086DB6F /* GPUImageDataLayout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUImageDataLayout.h; sourceTree = "<group>"; };
 		1C66A8102A4F786E0086DB6F /* GPUQuerySetDescriptor.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUQuerySetDescriptor.idl; sourceTree = "<group>"; };
 		1C66A8112A4F786E0086DB6F /* GPUCanvasAlphaMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUCanvasAlphaMode.h; sourceTree = "<group>"; };
+		1C66A8113A4F786E0086DB6F /* GPUCanvasToneMappingMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUCanvasToneMappingMode.h; sourceTree = "<group>"; };
+		1C66A8114A4F786E0086DB6F /* GPUCanvasToneMapping.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUCanvasToneMapping.h; sourceTree = "<group>"; };
 		1C66A8122A4F786F0086DB6F /* GPUTextureBindingLayout.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUTextureBindingLayout.idl; sourceTree = "<group>"; };
 		1C66A8132A4F786F0086DB6F /* GPURenderBundleEncoderDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPURenderBundleEncoderDescriptor.h; sourceTree = "<group>"; };
 		1C66A8142A4F786F0086DB6F /* GPUSampler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUSampler.h; sourceTree = "<group>"; };
@@ -8740,6 +8745,7 @@
 		1CFAE2502A4D79A60004AE37 /* WebGPUQuerySetDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUQuerySetDescriptor.h; sourceTree = "<group>"; };
 		1CFAE2512A4D79A60004AE37 /* WebGPUDeviceLostInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUDeviceLostInfo.h; sourceTree = "<group>"; };
 		1CFAE2522A4D79A60004AE37 /* WebGPUCanvasAlphaMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUCanvasAlphaMode.h; sourceTree = "<group>"; };
+		1CFAE2523A4D79A60004AE37 /* WebGPUCanvasToneMappingMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUCanvasToneMappingMode.h; sourceTree = "<group>"; };
 		1CFAE2532A4D79A70004AE37 /* WebGPUPredefinedColorSpace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUPredefinedColorSpace.h; sourceTree = "<group>"; };
 		1CFAE2542A4D79A70004AE37 /* WebGPUBindGroupEntry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUBindGroupEntry.h; sourceTree = "<group>"; };
 		1CFAE2552A4D79A70004AE37 /* WebGPUComputePipelineDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGPUComputePipelineDescriptor.h; sourceTree = "<group>"; };
@@ -22882,6 +22888,10 @@
 				1C66A6EE2A4F78130086DB6F /* GPUCanvasAlphaMode.idl */,
 				1C66A7512A4F78340086DB6F /* GPUCanvasConfiguration.h */,
 				1C66A7A02A4F784D0086DB6F /* GPUCanvasConfiguration.idl */,
+				1C66A8114A4F786E0086DB6F /* GPUCanvasToneMapping.h */,
+				1C66A6EE4A4F78130086DB6F /* GPUCanvasToneMapping.idl */,
+				1C66A8113A4F786E0086DB6F /* GPUCanvasToneMappingMode.h */,
+				1C66A6EE3A4F78130086DB6F /* GPUCanvasToneMappingMode.idl */,
 				1C66A7242A4F78230086DB6F /* GPUColorDict.h */,
 				1C66A77A2A4F78410086DB6F /* GPUColorDict.idl */,
 				1C66A7E42A4F78610086DB6F /* GPUColorTargetState.h */,
@@ -23428,6 +23438,7 @@
 				1CFAE2C12A4D79CE0004AE37 /* WebGPUBufferUsage.h */,
 				1CFAE2522A4D79A60004AE37 /* WebGPUCanvasAlphaMode.h */,
 				1CFAE25C2A4D79A90004AE37 /* WebGPUCanvasConfiguration.h */,
+				1CFAE2523A4D79A60004AE37 /* WebGPUCanvasToneMappingMode.h */,
 				1CFAE2B62A4D79CA0004AE37 /* WebGPUColor.h */,
 				1CFAE2C62A4D79D00004AE37 /* WebGPUColorTargetState.h */,
 				1CFAE2CA2A4D79D20004AE37 /* WebGPUColorWrite.h */,
@@ -43556,6 +43567,7 @@
 				1CFAE3D62A4D8A140004AE37 /* WebGPUBufferUsage.h in Headers */,
 				1CFAE4082A4D8A140004AE37 /* WebGPUCanvasAlphaMode.h in Headers */,
 				1CFAE40A2A4D8A140004AE37 /* WebGPUCanvasConfiguration.h in Headers */,
+				1CFAE4083A4D8A140004AE37 /* WebGPUCanvasToneMappingMode.h in Headers */,
 				1CFAE4112A4D8A140004AE37 /* WebGPUColor.h in Headers */,
 				1CFAE3EA2A4D8A140004AE37 /* WebGPUColorTargetState.h in Headers */,
 				1CFAE3FF2A4D8A140004AE37 /* WebGPUColorWrite.h in Headers */,

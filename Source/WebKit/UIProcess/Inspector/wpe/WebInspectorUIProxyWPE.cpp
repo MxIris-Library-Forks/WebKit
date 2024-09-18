@@ -82,7 +82,7 @@ public:
         listener->ignore();
 
         // Try to load the request in the inspected page.
-        if (RefPtr page = m_proxy.inspectedPage()) {
+        if (RefPtr page = m_proxy.protectedInspectedPage()) {
             auto request = navigationAction->request();
             page->loadRequest(WTFMove(request));
         }
@@ -104,11 +104,11 @@ static Ref<WebsiteDataStore> inspectorWebsiteDataStore()
 
 WebPageProxy* WebInspectorUIProxy::platformCreateFrontendPage()
 {
-    auto* inspectedWPEView = inspectedPage()->wpeView();
+    auto* inspectedWPEView = m_inspectedPage->wpeView();
     if (!inspectedWPEView)
         return nullptr;
 
-    RELEASE_ASSERT(inspectedPage());
+    RELEASE_ASSERT(m_inspectedPage);
     RELEASE_ASSERT(!m_inspectorView);
 
     auto preferences = WebPreferences::create(String(), "WebKit2."_s, "WebKit2."_s);
@@ -125,7 +125,7 @@ WebPageProxy* WebInspectorUIProxy::platformCreateFrontendPage()
     if (m_underTest)
         preferences->setHiddenPageDOMTimerThrottlingEnabled(false);
 
-    auto pageGroup = WebPageGroup::create(WebKit::defaultInspectorPageGroupIdentifierForPage(inspectedPage().get()));
+    auto pageGroup = WebPageGroup::create(WebKit::defaultInspectorPageGroupIdentifierForPage(protectedInspectedPage().get()));
     auto websiteDataStore = inspectorWebsiteDataStore();
     auto& processPool = WebKit::defaultInspectorProcessPool(inspectionLevel());
 

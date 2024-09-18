@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,9 +23,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <PDFKit/PDFKit.h>
+#import "config.h"
+#import "TestNSBundleExtras.h"
 
-@interface PDFAnnotationTextWidget (Details)
-- (BOOL)isMultiline;
-- (BOOL)isReadOnly;
+NS_ASSUME_NONNULL_BEGIN
+
+@implementation NSBundle (TestExtras)
+
++ (instancetype _Nullable)test_resourcesBundle
+{
+    return [NSBundle bundleWithURL:[NSBundle.mainBundle URLForResource:@"TestWebKitAPIResources" withExtension:@"bundle"]];
+}
+
 @end
+
+NS_ASSUME_NONNULL_END

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2022 Metrological Group B.V.
- * Copyright (C) 2022 Igalia S.L.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,19 +23,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "CSSInternalBaseAppearanceRule.h"
 
-#include <cstdint>
+#include "StyleRule.h"
 
 namespace WebCore {
 
-enum class DMABufColorSpace : uint32_t {
-    Invalid,
-    SRGB,
-    BT601,
-    BT709,
-    BT2020,
-    SMPTE240M,
-};
+CSSInternalBaseAppearanceRule::CSSInternalBaseAppearanceRule(StyleRuleInternalBaseAppearance& rule, CSSStyleSheet* parent)
+    : CSSGroupingRule(rule, parent)
+{
+}
 
-} // namespace WebCore
+String CSSInternalBaseAppearanceRule::cssText() const
+{
+    StringBuilder builder;
+    builder.append("@-internal-base-appearance"_s);
+    appendCSSTextForItems(builder);
+    return builder.toString();
+}
+
+}

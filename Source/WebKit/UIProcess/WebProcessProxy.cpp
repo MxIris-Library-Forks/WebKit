@@ -92,6 +92,7 @@
 #include <WebCore/ResourceResponse.h>
 #include <WebCore/SecurityOriginData.h>
 #include <WebCore/SerializedCryptoKeyWrap.h>
+#include <WebCore/SharedMemory.h>
 #include <WebCore/SuddenTermination.h>
 #include <WebCore/WrappedCryptoKey.h>
 #include <optional>
@@ -870,7 +871,7 @@ void WebProcessProxy::removeWebPage(WebPageProxy& webPage, EndsUsingDataStore en
     updateAudibleMediaAssertions();
     updateMediaStreamingActivity();
     updateBackgroundResponsivenessTimer();
-    websiteDataStore()->updateBlobRegistryPartitioningState();
+    protectedWebsiteDataStore()->updateBlobRegistryPartitioningState();
 
     maybeShutDown();
 }
@@ -1110,8 +1111,9 @@ void WebProcessProxy::getNetworkProcessConnection(CompletionHandler<void(Network
 void WebProcessProxy::createGPUProcessConnection(GPUProcessConnectionIdentifier identifier, IPC::Connection::Handle&& connectionHandle)
 {
     WebKit::GPUProcessConnectionParameters parameters;
-#if HAVE(TASK_IDENTITY_TOKEN)
-    ASSERT(m_processIdentity);
+#if ASSERT_ENABLED && HAVE(TASK_IDENTITY_TOKEN)
+    if (!WebCore::isMemoryAttributionDisabled())
+        ASSERT(m_processIdentity);
 #endif
     parameters.webProcessIdentity = m_processIdentity;
     parameters.sharedPreferencesForWebProcess = m_sharedPreferencesForWebProcess;
@@ -1401,8 +1403,9 @@ void WebProcessProxy::didFinishLaunching(ProcessLauncher* launcher, IPC::Connect
     }
 #endif // USE(RUNNINGBOARD) && PLATFORM(MAC)
 
-    throttler().setShouldTakeNearSuspendedAssertion(shouldTakeNearSuspendedAssertion());
-    throttler().setShouldDropNearSuspendedAssertionAfterDelay(shouldDropNearSuspendedAssertionAfterDelay());
+    Ref protectedThrottler = throttler();
+    protectedThrottler->setShouldTakeNearSuspendedAssertion(shouldTakeNearSuspendedAssertion());
+    protectedThrottler->setShouldDropNearSuspendedAssertionAfterDelay(shouldDropNearSuspendedAssertionAfterDelay());
 
 #if PLATFORM(COCOA)
     unblockAccessibilityServerIfNeeded();
@@ -1537,7 +1540,7 @@ bool WebProcessProxy::canBeAddedToWebProcessCache() const
         return false;
     }
 
-    if (WebKit::isInspectorProcessPool(processPool()))
+    if (WebKit::isInspectorProcessPool(protectedProcessPool()))
         return false;
 
     return true;

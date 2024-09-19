@@ -79,7 +79,7 @@ void RemoteRenderBundleEncoder::stopListeningForIPC()
 
 void RemoteRenderBundleEncoder::setPipeline(WebGPUIdentifier renderPipeline)
 {
-    auto convertedRenderPipeline = m_objectHeap->convertRenderPipelineFromBacking(renderPipeline);
+    auto convertedRenderPipeline = protectedObjectHeap()->convertRenderPipelineFromBacking(renderPipeline);
     ASSERT(convertedRenderPipeline);
     if (!convertedRenderPipeline)
         return;
@@ -89,7 +89,7 @@ void RemoteRenderBundleEncoder::setPipeline(WebGPUIdentifier renderPipeline)
 
 void RemoteRenderBundleEncoder::setIndexBuffer(WebGPUIdentifier buffer, WebCore::WebGPU::IndexFormat indexFormat, std::optional<WebCore::WebGPU::Size64> offset, std::optional<WebCore::WebGPU::Size64> size)
 {
-    auto convertedBuffer = m_objectHeap->convertBufferFromBacking(buffer);
+    RefPtr convertedBuffer = protectedObjectHeap()->convertBufferFromBacking(buffer).get();
     ASSERT(convertedBuffer);
     if (!convertedBuffer)
         return;
@@ -99,7 +99,7 @@ void RemoteRenderBundleEncoder::setIndexBuffer(WebGPUIdentifier buffer, WebCore:
 
 void RemoteRenderBundleEncoder::setVertexBuffer(WebCore::WebGPU::Index32 slot, WebGPUIdentifier buffer, std::optional<WebCore::WebGPU::Size64> offset, std::optional<WebCore::WebGPU::Size64> size)
 {
-    auto convertedBuffer = m_objectHeap->convertBufferFromBacking(buffer);
+    RefPtr convertedBuffer = protectedObjectHeap()->convertBufferFromBacking(buffer).get();
     ASSERT(convertedBuffer);
     if (!convertedBuffer)
         return;
@@ -128,7 +128,7 @@ void RemoteRenderBundleEncoder::drawIndexed(WebCore::WebGPU::Size32 indexCount, 
 
 void RemoteRenderBundleEncoder::drawIndirect(WebGPUIdentifier indirectBuffer, WebCore::WebGPU::Size64 indirectOffset)
 {
-    auto convertedIndirectBuffer = m_objectHeap->convertBufferFromBacking(indirectBuffer);
+    RefPtr convertedIndirectBuffer = protectedObjectHeap()->convertBufferFromBacking(indirectBuffer).get();
     ASSERT(convertedIndirectBuffer);
     if (!convertedIndirectBuffer)
         return;
@@ -138,7 +138,7 @@ void RemoteRenderBundleEncoder::drawIndirect(WebGPUIdentifier indirectBuffer, We
 
 void RemoteRenderBundleEncoder::drawIndexedIndirect(WebGPUIdentifier indirectBuffer, WebCore::WebGPU::Size64 indirectOffset)
 {
-    auto convertedIndirectBuffer = m_objectHeap->convertBufferFromBacking(indirectBuffer);
+    RefPtr convertedIndirectBuffer = protectedObjectHeap()->convertBufferFromBacking(indirectBuffer).get();
     ASSERT(convertedIndirectBuffer);
     if (!convertedIndirectBuffer)
         return;
@@ -149,7 +149,7 @@ void RemoteRenderBundleEncoder::drawIndexedIndirect(WebGPUIdentifier indirectBuf
 void RemoteRenderBundleEncoder::setBindGroup(WebCore::WebGPU::Index32 index, WebGPUIdentifier bindGroup,
     std::optional<Vector<WebCore::WebGPU::BufferDynamicOffset>>&& dynamicOffsets)
 {
-    auto convertedBindGroup = m_objectHeap->convertBindGroupFromBacking(bindGroup);
+    auto convertedBindGroup = protectedObjectHeap()->convertBindGroupFromBacking(bindGroup);
     ASSERT(convertedBindGroup);
     if (!convertedBindGroup)
         return;
@@ -174,13 +174,14 @@ void RemoteRenderBundleEncoder::insertDebugMarker(String&& markerLabel)
 
 void RemoteRenderBundleEncoder::finish(const WebGPU::RenderBundleDescriptor& descriptor, WebGPUIdentifier identifier)
 {
-    auto convertedDescriptor = m_objectHeap->convertFromBacking(descriptor);
+    Ref objectHeap = protectedObjectHeap();
+    auto convertedDescriptor = objectHeap->convertFromBacking(descriptor);
     MESSAGE_CHECK(convertedDescriptor);
 
     auto renderBundle = m_backing->finish(*convertedDescriptor);
     MESSAGE_CHECK(renderBundle);
-    auto remoteRenderBundle = RemoteRenderBundle::create(*renderBundle, m_objectHeap, m_streamConnection.copyRef(), m_gpu, identifier);
-    m_objectHeap->addObject(identifier, remoteRenderBundle);
+    auto remoteRenderBundle = RemoteRenderBundle::create(*renderBundle, objectHeap, m_streamConnection.copyRef(), protectedGPU(), identifier);
+    objectHeap->addObject(identifier, remoteRenderBundle);
 }
 
 void RemoteRenderBundleEncoder::setLabel(String&& label)

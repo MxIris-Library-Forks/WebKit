@@ -609,7 +609,7 @@ public:
 
     using Identifier = WebPageProxyIdentifier;
 
-    Identifier identifier() const;
+    Identifier identifier() const { return m_identifier; }
     WebCore::PageIdentifier webPageIDInMainFrameProcess() const { return m_webPageID; }
     WebCore::PageIdentifier identifierInSiteIsolatedProcess() const { return webPageIDInMainFrameProcess(); }
     WebCore::PageIdentifier webPageIDInProcess(const WebProcessProxy&) const;
@@ -2307,7 +2307,7 @@ public:
 
     WebProcessProxy* processForSite(const WebCore::Site&);
 
-    void createRemoteSubframesInOtherProcesses(WebFrameProxy&, const String& frameName);
+    void observeAndCreateRemoteSubframesInOtherProcesses(WebFrameProxy&, const String& frameName);
     void broadcastMainFrameURLChangeToOtherProcesses(IPC::Connection&, const URL&);
 
     void addOpenedPage(WebPageProxy&);
@@ -3165,6 +3165,7 @@ private:
 #endif
 
     UniqueRef<Internals> m_internals;
+    Identifier m_identifier;
     WebCore::PageIdentifier m_webPageID;
 
     WeakPtr<PageClient> m_pageClient;

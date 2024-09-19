@@ -145,6 +145,39 @@ private:
 };
 #endif
 
+class PageLoadTimingFrameLoadStateObserver final : public FrameLoadStateObserver {
+public:
+    bool hasLoadingFrame() const { return !!m_loadingFrameCount; }
+
+private:
+    void didCommitProvisionalLoad(IsMainFrame isMainFrame)
+    {
+        if (isMainFrame == IsMainFrame::Yes) {
+            // Teardown doesn't reliably inform the UI process of each iframe's provisional load failure.
+            m_loadingFrameCount = 1;
+        }
+    }
+
+    void didStartProvisionalLoad(const URL&) final
+    {
+        m_loadingFrameCount++;
+    }
+
+    void didFailProvisionalLoad() final
+    {
+        ASSERT(m_loadingFrameCount);
+        m_loadingFrameCount--;
+    }
+
+    void didFinishLoad(const URL&) final
+    {
+        ASSERT(m_loadingFrameCount);
+        m_loadingFrameCount--;
+    }
+
+    size_t m_loadingFrameCount { 0 };
+};
+
 struct PrivateClickMeasurementAndMetadata {
     WebCore::PrivateClickMeasurement pcm;
     String sourceDescription;
@@ -231,7 +264,6 @@ public:
     WebCore::IntSize fixedLayoutSize;
     GeolocationPermissionRequestManagerProxy geolocationPermissionRequestManager;
     HiddenPageThrottlingAutoIncreasesCounter::Token hiddenPageDOMTimerThrottlingAutoIncreasesCount;
-    Identifier identifier;
     Deque<NativeWebKeyboardEvent> keyEventQueue;
     LayerHostingMode layerHostingMode { LayerHostingMode::InProcess };
     WebCore::RectEdges<bool> mainFramePinnedState { true, true, true, true };
@@ -373,6 +405,7 @@ public:
     std::unique_ptr<WebPageProxyFrameLoadStateObserver> frameLoadStateObserver;
     HashMap<WebCore::RegistrableDomain, OptionSet<WebCore::WindowProxyProperty>> windowOpenerAccessedProperties;
 #endif
+    PageLoadTimingFrameLoadStateObserver pageLoadTimingFrameLoadStateObserver;
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
     RunLoop::Timer activityStateChangeTimer;

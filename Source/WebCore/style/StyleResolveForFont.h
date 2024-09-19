@@ -29,13 +29,22 @@
 
 #pragma once
 
-#include <wtf/OptionSet.h>
+#include <optional>
 
 namespace WebCore {
 
+class CSSToLengthConversionData;
+class CSSValue;
 class FontCascade;
 class FontCascadeDescription;
+class FontSelectionValue;
 class ScriptExecutionContext;
+
+struct FontSizeAdjust;
+
+template<typename> class FontTaggedSettings;
+using FontFeatureSettings = FontTaggedSettings<int>;
+using FontVariationSettings = FontTaggedSettings<float>;
 
 namespace CSSPropertyParserHelpers {
 struct UnresolvedFont;
@@ -43,7 +52,23 @@ struct UnresolvedFont;
 
 namespace Style {
 
+FontSelectionValue fontWeightFromCSSValueDeprecated(const CSSValue&);
+FontSelectionValue fontWeightFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+
+FontSelectionValue fontStretchFromCSSValueDeprecated(const CSSValue&);
+FontSelectionValue fontStretchFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+
+FontSelectionValue fontStyleAngleFromCSSValueDeprecated(const CSSValue&);
+FontSelectionValue fontStyleAngleFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+
+std::optional<FontSelectionValue> fontStyleFromCSSValueDeprecated(const CSSValue&);
+std::optional<FontSelectionValue> fontStyleFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+
+FontFeatureSettings fontFeatureSettingsFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+FontVariationSettings fontVariationSettingsFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+FontSizeAdjust fontSizeAdjustFromCSSValue(const CSSValue&, const CSSToLengthConversionData&);
+
 std::optional<FontCascade> resolveForUnresolvedFont(const CSSPropertyParserHelpers::UnresolvedFont&, FontCascadeDescription&&, ScriptExecutionContext&);
 
-}
-}
+} // namespace Style
+} // namespace WebCore

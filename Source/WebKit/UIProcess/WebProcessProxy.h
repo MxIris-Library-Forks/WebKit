@@ -72,15 +72,6 @@
 #include "DisplayLinkProcessProxyClient.h"
 #endif
 
-namespace WebKit {
-class WebProcessProxy;
-}
-
-namespace WTF {
-template<typename T> struct IsDeprecatedWeakRefSmartPointerException;
-template<> struct IsDeprecatedWeakRefSmartPointerException<WebKit::WebProcessProxy> : std::true_type { };
-}
-
 namespace API {
 class Navigation;
 class PageConfiguration;
@@ -159,7 +150,7 @@ using WebProcessWithMediaStreamingCounter = RefCounter<WebProcessWithMediaStream
 using WebProcessWithMediaStreamingToken = WebProcessWithMediaStreamingCounter::Token;
 enum class CheckBackForwardList : bool { No, Yes };
 
-class WebProcessProxy : public AuxiliaryProcessProxy {
+class WebProcessProxy final : public AuxiliaryProcessProxy {
     WTF_MAKE_TZONE_ALLOCATED(WebProcessProxy);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(WebProcessProxy);
 public:
@@ -591,17 +582,14 @@ private:
     bool didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&) override;
     void didClose(IPC::Connection&) final;
     void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName, int32_t indexOfObjectFailingDecoding) override;
+    bool dispatchMessage(IPC::Connection&, IPC::Decoder&);
+    bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&);
 
     // ResponsivenessTimer::Client
     void didBecomeUnresponsive() override;
     void didBecomeResponsive() override;
     void willChangeIsResponsive() override;
     void didChangeIsResponsive() override;
-
-    // Implemented in generated WebProcessProxyMessageReceiver.cpp
-    void didReceiveWebProcessProxyMessage(IPC::Connection&, IPC::Decoder&);
-    bool didReceiveSyncWebProcessProxyMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&);
-
     bool canTerminateAuxiliaryProcess();
 
     void didCollectPrewarmInformation(const WebCore::RegistrableDomain&, const WebCore::PrewarmInformation&);

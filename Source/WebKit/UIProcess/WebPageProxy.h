@@ -899,9 +899,8 @@ public:
     void clearSelection(std::optional<WebCore::FrameIdentifier> = std::nullopt);
     void restoreSelectionInFocusedEditableElement();
 
-    PageClient& pageClient() const;
-    Ref<PageClient> protectedPageClient() const;
-    RefPtr<PageClient> optionalProtectedPageClient() const;
+    PageClient* pageClient() const;
+    RefPtr<PageClient> protectedPageClient() const;
 
     void setViewNeedsDisplay(const WebCore::Region&);
     void requestScroll(const WebCore::FloatPoint& scrollPosition, const WebCore::IntPoint& scrollOrigin, WebCore::ScrollIsAnimated);
@@ -1692,8 +1691,9 @@ public:
     uint64_t renderTreeSize() const { return m_renderTreeSize; }
 
     void setMediaVolume(float);
-    void setMuted(WebCore::MediaProducerMutedStateFlags);
-    void setMuted(WebCore::MediaProducerMutedStateFlags, CompletionHandler<void()>&&);
+
+    enum class FromApplication : bool { No, Yes };
+    void setMuted(WebCore::MediaProducerMutedStateFlags, FromApplication = FromApplication::No, CompletionHandler<void()>&& = [] { });
     bool isAudioMuted() const;
     void setMayStartMediaWhenInWindow(bool);
     bool mayStartMediaWhenInWindow() const { return m_mayStartMediaWhenInWindow; }
@@ -1718,6 +1718,8 @@ public:
 
 #if PLATFORM(IOS_FAMILY)
     void willStartUserTriggeredZooming();
+    void didEndUserTriggeredZooming();
+    bool mainFramePluginHandlesPageScaleGesture() const { return m_mainFramePluginHandlesPageScaleGesture; }
 
     void potentialTapAtPosition(const WebCore::FloatPoint&, bool shouldRequestMagnificationInformation, TapIdentifier requestID);
     void commitPotentialTap(OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastTouchStart, WebCore::PointerID);
@@ -2097,7 +2099,7 @@ public:
 
 #if ENABLE(MEDIA_STREAM)
     void setMockCaptureDevicesEnabledOverride(std::optional<bool>);
-    void willStartCapture(const UserMediaPermissionRequestProxy&, CompletionHandler<void()>&&);
+    void willStartCapture(UserMediaPermissionRequestProxy&, CompletionHandler<void()>&&);
 #endif
 
     void maybeInitializeSandboxExtensionHandle(WebProcessProxy&, const URL&, const URL& resourceDirectoryURL, bool checkAssumedReadAccessToResourceURL, CompletionHandler<void(std::optional<SandboxExtensionHandle>)>&&);
@@ -3306,6 +3308,7 @@ private:
 #if ENABLE(MEDIA_STREAM)
     std::unique_ptr<UserMediaPermissionRequestManagerProxy> m_userMediaPermissionRequestManager;
     bool m_shouldListenToVoiceActivity { false };
+    OptionSet<WebCore::MediaProducerMediaCaptureKind> m_mutedCaptureKindsDesiredByWebApp;
 #endif
 
 #if ENABLE(ENCRYPTED_MEDIA)

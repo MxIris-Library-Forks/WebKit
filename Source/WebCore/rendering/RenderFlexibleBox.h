@@ -126,6 +126,8 @@ public:
 
     static std::optional<TextDirection> leftRightAxisDirectionFromStyle(const RenderStyle&);
 
+    bool hasModernLayout() const { return m_hasFlexFormattingContextLayout; }
+
 protected:
     void computeIntrinsicLogicalWidths(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const override;
 
@@ -265,7 +267,7 @@ private:
     const RenderBox* firstBaselineCandidateOnLine(OrderIterator, ItemPosition baselinePosition, size_t numberOfItemsOnLine) const;
     const RenderBox* lastBaselineCandidateOnLine(OrderIterator, ItemPosition baselinePosition, size_t numberOfItemsOnLine) const;
 
-    void layoutUsingFlexFormattingContext();
+    bool layoutUsingFlexFormattingContext();
 
     // This is used to cache the preferred size for orthogonal flow children so we
     // don't have to relayout to get it
@@ -301,8 +303,7 @@ private:
     bool m_inLayout { false };
     bool m_shouldResetFlexItemLogicalHeightBeforeLayout { false };
     bool m_isComputingFlexBaseSizes { false };
-
-    std::unique_ptr<LayoutIntegration::FlexLayout> m_modernFlexLayout;
+    bool m_hasFlexFormattingContextLayout { false };
 };
 
 } // namespace WebCore

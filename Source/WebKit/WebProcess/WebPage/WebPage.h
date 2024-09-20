@@ -451,7 +451,7 @@ enum class DisallowLayoutViewportHeightExpansionReason : uint8_t {
 using SnapshotOptions = OptionSet<SnapshotOption>;
 using WKEventModifiers = uint32_t;
 
-class WebPage : public API::ObjectImpl<API::Object::Type::BundlePage>, public IPC::MessageReceiver, public IPC::MessageSender {
+class WebPage final : public API::ObjectImpl<API::Object::Type::BundlePage>, public IPC::MessageReceiver, public IPC::MessageSender {
 public:
     static Ref<WebPage> create(WebCore::PageIdentifier, WebPageCreationParameters&&);
 
@@ -1273,6 +1273,7 @@ public:
     void dynamicViewportSizeUpdate(const DynamicViewportSizeUpdate&);
     bool scaleWasSetByUIProcess() const { return m_scaleWasSetByUIProcess; }
     void willStartUserTriggeredZooming();
+    void didEndUserTriggeredZooming();
     void applicationWillResignActive();
     void applicationDidEnterBackground(bool isSuspendedUnderLock);
     void applicationDidFinishSnapshottingAfterEnteringBackground();
@@ -1525,7 +1526,7 @@ public:
 
     bool isSuspended() const { return m_isSuspended; }
 
-    void didReceiveWebPageMessage(IPC::Connection&, IPC::Decoder&);
+    bool dispatchMessage(IPC::Connection&, IPC::Decoder&);
 
     template<typename T>
     SendSyncResult<T> sendSyncWithDelayedReply(T&& message, OptionSet<IPC::SendSyncOption> sendSyncOptions = { })
@@ -1837,8 +1838,6 @@ private:
     void sendEditorStateUpdate();
 
     void getPlatformEditorStateCommon(const WebCore::LocalFrame&, EditorState&) const;
-
-    bool didReceiveSyncWebPageMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&);
 
     void updateSizeForCSSDefaultViewportUnits();
     void updateSizeForCSSSmallViewportUnits();

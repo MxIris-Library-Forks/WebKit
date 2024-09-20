@@ -1468,7 +1468,6 @@ webkit.org/b/76280 media/W3C/video/networkState/networkState_during_progress.htm
 
 webkit.org/b/112521 [ Release ] webaudio/audioprocessingevent.html [ Pass Failure ]
 webkit.org/b/112521 [ Debug ] webaudio/audioprocessingevent.html [ Skip ]
-webkit.org/b/137359 webaudio/distance-linear.html [ Pass Failure ]
 
 # The test frequently times out, and is just unsuccessful at detecting incorrect behavior when it passes.
 webkit.org/b/72698 media/audio-garbage-collect.html [ Skip ]
@@ -6985,10 +6984,6 @@ imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across
 
 webkit.org/b/242658 http/tests/media/user-gesture-preserved-across-xmlhttprequest.html [ Slow Pass Failure ]
 
-# These tests are crashing in debug since its import.
-webkit.org/b/256976 [ Debug ] imported/w3c/web-platform-tests/html/browsers/browsing-the-web/overlapping-navigations-and-traversals/cross-document-traversal-same-document-nav.html [ Skip ]
-webkit.org/b/256976 [ Debug ] imported/w3c/web-platform-tests/html/browsers/browsing-the-web/overlapping-navigations-and-traversals/same-document-nav-cross-document-traversal.html [ Skip ]
-
 # Test has been timing out since its import.
 imported/w3c/web-platform-tests/dom/events/scrolling/scrollend-event-handler-content-attributes.html [ Skip ]
 
@@ -8044,7 +8039,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-no-o
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-no-overflow.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-remove-anchors-visible.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-remove-no-overflow.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/sticky-anchor-position-invalid.html [ ImageOnlyFailure ]
 
 # timeouts
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-js-expose.html [ Skip ]
@@ -8085,14 +8079,3 @@ imported/w3c/web-platform-tests/WebIDL/ecmascript-binding/global-mutable-prototy
 # Below tests give `Error fetching /interfaces/webidl.idl` in test output
 imported/w3c/web-platform-tests/WebIDL/idlharness.any.html [ Skip ]
 imported/w3c/web-platform-tests/WebIDL/idlharness.any.worker.html [ Skip ]
-
-# https://bugs.webkit.org/show_bug.cgi?id=279917 ([EWS] pre-existing failures in macOS - ASSERTION FAILED: didRemove in Source/WebKit/UIProcess/WebPageProxy (279917))
-fast/loader/stop-provisional-loads.html [ Skip ]
-http/tests/contentextensions/block-cookies-in-image-load-in-onunload.html [ Skip ]
-http/tests/navigation/image-load-in-pagehide-handler.html [ Skip ]
-http/tests/navigation/image-load-in-unload-handler.html [ Skip ]
-http/wpt/beacon/sendBeacon-in-pagehide.html [ Skip ]
-http/wpt/fetch/fetch-in-pagehide.html [ Skip ]
-imported/w3c/web-platform-tests/html/cross-origin-opener-policy/reporting/navigation-reporting/report-only-from-unsafe-none.https.html [ Skip ]
-imported/w3c/web-platform-tests/html/cross-origin-opener-policy/reporting/navigation-reporting/report-only-same-origin-report-to.https.html [ Skip ]
-imported/w3c/web-platform-tests/html/cross-origin-opener-policy/reporting/navigation-reporting/report-only-same-origin.https.html [ Skip ]

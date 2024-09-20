@@ -17875,6 +17875,13 @@
 		BCA2B08A10505BCD0043BD1C /* UserScriptTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserScriptTypes.h; sourceTree = "<group>"; };
 		BCA378BA0D15F64200B793D6 /* ScheduledAction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScheduledAction.cpp; sourceTree = "<group>"; };
 		BCA378BB0D15F64200B793D6 /* ScheduledAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScheduledAction.h; sourceTree = "<group>"; };
+		BCA407B22C9B2DFA006B037F /* CSSUnresolvedContrastColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSUnresolvedContrastColor.h; sourceTree = "<group>"; };
+		BCA407B32C9B2DFB006B037F /* CSSUnresolvedContrastColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSUnresolvedContrastColor.cpp; sourceTree = "<group>"; };
+		BCA407B42C9B2EC8006B037F /* StyleContrastColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleContrastColor.h; sourceTree = "<group>"; };
+		BCA407B52C9B2EC8006B037F /* StyleContrastColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleContrastColor.cpp; sourceTree = "<group>"; };
+		BCA407B62C9B2FC0006B037F /* CSSContrastColorResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSContrastColorResolver.h; sourceTree = "<group>"; };
+		BCA407B72C9B2FC0006B037F /* CSSContrastColorSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSContrastColorSerialization.h; sourceTree = "<group>"; };
+		BCA407B82C9B30CD006B037F /* CSSContrastColorResolver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSContrastColorResolver.cpp; sourceTree = "<group>"; };
 		BCA55912263DBD79007F19B3 /* PixelFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelFormat.h; sourceTree = "<group>"; };
 		BCA5591A263F10B9007F19B3 /* PredefinedColorSpace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PredefinedColorSpace.h; sourceTree = "<group>"; };
 		BCA5591C263F10B9007F19B3 /* PredefinedColorSpace.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PredefinedColorSpace.idl; sourceTree = "<group>"; };
@@ -33663,6 +33670,9 @@
 				BC2CFBAD2BEFC6D6008CA222 /* CSSColorMixResolver.h */,
 				BC2CFBAE2BEFC6D6008CA222 /* CSSColorMixSerialization.cpp */,
 				492461E12AA51D420081471E /* CSSColorMixSerialization.h */,
+				BCA407B82C9B30CD006B037F /* CSSContrastColorResolver.cpp */,
+				BCA407B62C9B2FC0006B037F /* CSSContrastColorResolver.h */,
+				BCA407B72C9B2FC0006B037F /* CSSContrastColorSerialization.h */,
 				BC2CFBAF2BEFC6F6008CA222 /* CSSRelativeColorResolver.h */,
 				BC2CFBB02BEFC6F6008CA222 /* CSSRelativeColorSerialization.cpp */,
 				BC2CFBB12BEFC6F6008CA222 /* CSSRelativeColorSerialization.h */,
@@ -33681,6 +33691,8 @@
 				BC04A7C9296E57810003F9DB /* CSSUnresolvedColorMix.h */,
 				BC1BCBDC2BEFF2F100E43AE7 /* CSSUnresolvedColorResolutionState.cpp */,
 				BC2CFBB82BEFC6F6008CA222 /* CSSUnresolvedColorResolutionState.h */,
+				BCA407B32C9B2DFB006B037F /* CSSUnresolvedContrastColor.cpp */,
+				BCA407B22C9B2DFA006B037F /* CSSUnresolvedContrastColor.h */,
 				E521F82B2B39F192004BD905 /* CSSUnresolvedLightDark.cpp */,
 				E521F8292B39F09C004BD905 /* CSSUnresolvedLightDark.h */,
 				BC2CFBB92BEFC6F6008CA222 /* CSSUnresolvedRelativeColor.cpp */,
@@ -33694,6 +33706,8 @@
 				49EBC2642C64599900D213E0 /* StyleColorLayers.h */,
 				BCF0BCE12BEE8A6500F42CCD /* StyleColorMix.cpp */,
 				BCF0BCE22BEE8A6500F42CCD /* StyleColorMix.h */,
+				BCA407B52C9B2EC8006B037F /* StyleContrastColor.cpp */,
+				BCA407B42C9B2EC8006B037F /* StyleContrastColor.h */,
 				BCF0BCE32BEE8A6500F42CCD /* StyleCurrentColor.cpp */,
 				BCF0BCE42BEE8A6500F42CCD /* StyleCurrentColor.h */,
 				BC2CFBBC2BEFC6F6008CA222 /* StyleRelativeColor.h */,

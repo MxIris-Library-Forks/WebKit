@@ -305,7 +305,7 @@ private:
         return dummy.get();
     }
 
-    Ref<WebProcessProxy> protectedProcess() { return m_process.get(); }
+    Ref<WebProcessProxy> protectedProcess() const { return m_process.get(); }
 
     WeakRef<WebProcessProxy> m_process;
 };
@@ -1192,35 +1192,36 @@ bool WebProcessProxy::shouldAllowNonValidInjectedCode() const
 }
 #endif
 
-void WebProcessProxy::didReceiveMessage(IPC::Connection& connection, IPC::Decoder& decoder)
+bool WebProcessProxy::dispatchMessage(IPC::Connection& connection, IPC::Decoder& decoder)
 {
-    if (dispatchMessage(connection, decoder))
-        return;
-
+    // If AuxiliaryProcessProxy gets .messages.in, use WantsDispatchMessages and remove this.
+    if (AuxiliaryProcessProxy::dispatchMessage(connection, decoder))
+        return true;
     if (protectedProcessPool()->dispatchMessage(connection, decoder))
-        return;
-
-    if (decoder.messageReceiverName() == Messages::WebProcessProxy::messageReceiverName()) {
-        didReceiveWebProcessProxyMessage(connection, decoder);
-        return;
-    }
+        return true;
 
     // FIXME: Add unhandled message logging.
+    // WebProcessProxy will receive messages to instances that were removed from
+    // the message receiver map. Filter these out.
+    return true;
 }
 
-bool WebProcessProxy::didReceiveSyncMessage(IPC::Connection& connection, IPC::Decoder& decoder, UniqueRef<IPC::Encoder>& replyEncoder)
+bool WebProcessProxy::dispatchSyncMessage(IPC::Connection& connection, IPC::Decoder& decoder, UniqueRef<IPC::Encoder>& replyEncoder)
 {
-    if (dispatchSyncMessage(connection, decoder, replyEncoder))
+    // If AuxiliaryProcessProxy gets .messages.in, use WantsDispatchMessages and remove this.
+    if (AuxiliaryProcessProxy::dispatchSyncMessage(connection, decoder, replyEncoder))
         return true;
-
     if (protectedProcessPool()->dispatchSyncMessage(connection, decoder, replyEncoder))
         return true;
+    // WebProcessProxy will receive messages to instances that were removed from
+    // the message receiver map. Filter these out by sending the cancel reply.
+#if ENABLE(IPC_TESTING_API)
+    if (!decoder.isValid())
+        replyEncoder->setSyncMessageDeserializationFailure();
+#endif
+    connection.sendSyncReply(WTFMove(replyEncoder));
 
-    if (decoder.messageReceiverName() == Messages::WebProcessProxy::messageReceiverName())
-        return didReceiveSyncWebProcessProxyMessage(connection, decoder, replyEncoder);
-
-    // FIXME: Add unhandled message logging.
-    return false;
+    return true;
 }
 
 void WebProcessProxy::didClose(IPC::Connection& connection)

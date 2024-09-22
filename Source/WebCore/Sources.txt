@@ -1011,7 +1011,6 @@ css/color/StyleColorMix.cpp
 css/color/StyleContrastColor.cpp
 css/color/StyleCurrentColor.cpp
 css/parser/CSSAtRuleID.cpp
-css/parser/CSSCalcParser.cpp
 css/parser/CSSCustomPropertySyntax.cpp
 css/parser/CSSParser.cpp
 css/parser/CSSParserContext.cpp
@@ -4047,6 +4046,7 @@ JSMediaSession.cpp
 JSMediaSettingsRange.cpp
 JSMediaSource.cpp
 JSMediaSourceHandle.cpp
+JSMediaSourceInit.cpp
 JSMediaStream.cpp
 JSMediaStreamAudioDestinationNode.cpp
 JSMediaStreamAudioSourceNode.cpp

@@ -736,6 +736,16 @@ RefPtr<WebPageProxy> WebProcessProxy::webPage(WebPageProxyIdentifier pageID)
     return globalPageMap().get(pageID);
 }
 
+RefPtr<WebPageProxy> WebProcessProxy::webPage(PageIdentifier pageID)
+{
+    for (Ref page : globalPages()) {
+        if (page->webPageIDInMainFrameProcess() == pageID)
+            return page;
+    }
+
+    return nullptr;
+}
+
 RefPtr<WebPageProxy> WebProcessProxy::audioCapturingWebPage()
 {
     for (Ref page : globalPages()) {
@@ -830,7 +840,7 @@ void WebProcessProxy::addExistingWebPage(WebPageProxy& webPage, BeginsUsingDataS
 
     updateRegistrationWithDataStore();
     updateBackgroundResponsivenessTimer();
-    protectedWebsiteDataStore()->updateBlobRegistryPartitioningState();
+    protectedWebsiteDataStore()->propagateSettingUpdatesToNetworkProcess();
 
     // If this was previously a standalone worker process with no pages we need to call didChangeThrottleState()
     // to update our process assertions on the network process since standalone worker processes do not hold
@@ -871,7 +881,7 @@ void WebProcessProxy::removeWebPage(WebPageProxy& webPage, EndsUsingDataStore en
     updateAudibleMediaAssertions();
     updateMediaStreamingActivity();
     updateBackgroundResponsivenessTimer();
-    protectedWebsiteDataStore()->updateBlobRegistryPartitioningState();
+    protectedWebsiteDataStore()->propagateSettingUpdatesToNetworkProcess();
 
     maybeShutDown();
 }
@@ -1121,7 +1131,7 @@ void WebProcessProxy::createGPUProcessConnection(GPUProcessConnectionIdentifier 
     parameters.ignoreInvalidMessageForTesting = ignoreInvalidMessageForTesting();
 #endif
     parameters.isLockdownModeEnabled = lockdownMode() == WebProcessProxy::LockdownMode::Enabled;
-    ASSERT(!m_gpuProcessConnectionIdentifier.isValid());
+    ASSERT(!m_gpuProcessConnectionIdentifier);
     m_gpuProcessConnectionIdentifier = identifier;
     protectedProcessPool()->createGPUProcessConnection(*this, WTFMove(connectionHandle), WTFMove(parameters));
 }
@@ -1144,7 +1154,7 @@ void WebProcessProxy::gpuProcessDidFinishLaunching()
 void WebProcessProxy::gpuProcessExited(ProcessTerminationReason reason)
 {
     WEBPROCESSPROXY_RELEASE_LOG_ERROR(Process, "gpuProcessExited: reason=%" PUBLIC_LOG_STRING, processTerminationReasonToString(reason).characters());
-    m_gpuProcessConnectionIdentifier = { };
+    m_gpuProcessConnectionIdentifier = std::nullopt;
     for (Ref page : pages())
         page->gpuProcessExited(reason);
 }

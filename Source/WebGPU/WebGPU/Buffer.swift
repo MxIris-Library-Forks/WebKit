@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Purism SPC
+ * Copyright (c) 2021-2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,34 +23,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-
-#include "GtkSettingsState.h"
-#include "MessageReceiver.h"
-#include <gtk/gtk.h>
-#include <wtf/NeverDestroyed.h>
-
-namespace WebKit {
-
-class GtkSettingsManagerProxy : private IPC::MessageReceiver {
-    WTF_MAKE_NONCOPYABLE(GtkSettingsManagerProxy);
-    friend NeverDestroyed<GtkSettingsManagerProxy>;
-public:
-    static GtkSettingsManagerProxy& singleton();
-
-    void applySettings(GtkSettingsState&&);
-private:
-    GtkSettingsManagerProxy();
-
-    // IPC::MessageReceiver.
-    void didReceiveMessage(IPC::Connection&, IPC::Decoder&) override;
-
-    void settingsDidChange(GtkSettingsState&&);
-
-    void applyHintingSettings();
-    void applyAntialiasSettings();
-
-    GtkSettings* m_settings;
-};
-
-} // namespace WebKit
+public func copySpan(destination: SpanUInt8, source: SpanConstUInt8) {
+    precondition(source.size_bytes() <= destination.size_bytes(), "Destination buffer not big enough.")
+    memcpy(destination.__dataUnsafe(), source.__dataUnsafe(), source.size_bytes())
+}

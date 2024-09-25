@@ -599,9 +599,7 @@ public:
     static Ref<WebPageProxy> create(PageClient&, WebProcessProxy&, Ref<API::PageConfiguration>&&);
     virtual ~WebPageProxy();
 
-    using IPC::MessageReceiver::weakPtrFactory;
-    using IPC::MessageReceiver::WeakValueType;
-    using IPC::MessageReceiver::WeakPtrImplType;
+    USING_CAN_MAKE_WEAKPTR(IPC::MessageReceiver);
 
     static void forMostVisibleWebPageIfAny(PAL::SessionID, const WebCore::SecurityOriginData&, CompletionHandler<void(WebPageProxy*)>&&);
 
@@ -619,8 +617,6 @@ public:
 
     WebFrameProxy* mainFrame() const { return m_mainFrame.get(); }
     RefPtr<WebFrameProxy> protectedMainFrame() const;
-    WebFrameProxy* openerFrame() const { return m_openerFrame.get(); }
-    WebPageProxy* openerPage() const;
     WebFrameProxy* focusedFrame() const { return m_focusedFrame.get(); }
     WebFrameProxy* focusedOrMainFrame() const { return m_focusedFrame ? m_focusedFrame.get() : m_mainFrame.get(); }
 
@@ -2234,7 +2230,7 @@ public:
 
     void syncIfMockDevicesEnabledChanged();
 
-    void copyLinkToHighlight();
+    void copyLinkWithHighlight();
 
 #if ENABLE(APP_HIGHLIGHTS)
     void createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighlight, WebCore::HighlightRequestOriginatedInApp);
@@ -3229,9 +3225,6 @@ private:
 #endif
 
     RefPtr<WebFrameProxy> m_mainFrame;
-
-    RefPtr<WebFrameProxy> m_openerFrame;
-
     RefPtr<WebFrameProxy> m_focusedFrame;
 
     String m_userAgent;

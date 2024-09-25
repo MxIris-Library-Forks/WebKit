@@ -561,7 +561,7 @@ void FrameLoader::submitForm(Ref<FormSubmission>&& submission)
 
 void FrameLoader::stopLoading(UnloadEventPolicy unloadEventPolicy)
 {
-    RefAllowingPartiallyDestroyed<LocalFrame> protectedFrame { m_frame.get() };
+    Ref<LocalFrame> protectedFrame { m_frame.get() };
 
     if (RefPtr parser = m_frame->document() ? m_frame->document()->parser() : nullptr)
         parser->stopParsing();
@@ -679,7 +679,7 @@ void FrameLoader::clear(RefPtr<Document>&& newDocument, bool clearWindowProperti
     bool neededClear = m_needsClear;
     m_needsClear = false;
 
-    RefAllowingPartiallyDestroyed<LocalFrame> frame = m_frame.get();
+    Ref<LocalFrame> frame = m_frame.get();
 
     if (neededClear)
         frame->document()->transferViewTransitionParams(*newDocument);
@@ -859,7 +859,7 @@ void FrameLoader::finishedParsing()
 {
     LOG(Loading, "WebCoreLoading frame %" PRIu64 ": Finished parsing", m_frame->frameID().object().toUInt64());
 
-    RefAllowingPartiallyDestroyed<LocalFrame> frame = m_frame.get();
+    Ref<LocalFrame> frame = m_frame.get();
 
     frame->injectUserScripts(UserScriptInjectionTime::DocumentEnd);
 
@@ -927,8 +927,8 @@ void FrameLoader::checkCompleted()
     if (m_isComplete)
         return;
 
-    RefAllowingPartiallyDestroyed<LocalFrame> frame = m_frame.get();
-    RefAllowingPartiallyDestroyed<Document> document = *frame->document();
+    Ref<LocalFrame> frame = m_frame.get();
+    Ref<Document> document = *frame->document();
 
     // FIXME: It would be better if resource loads were kicked off after render tree update (or didn't complete synchronously).
     //        https://bugs.webkit.org/show_bug.cgi?id=171729
@@ -1216,8 +1216,8 @@ void FrameLoader::updateURLAndHistory(const URL& newURL, RefPtr<SerializedScript
 
     // https://html.spec.whatwg.org/multipage/browsing-the-web.html#restore-the-history-object-state
     // FIXME: Implement "restore the history object state" deserializing (step 2).
-    if (!stateObject)
-        stateObject = history->currentItem()->stateObject();
+    // Note: Implement "otherwise activeEntry's classic history API state" (step 3) if a caller needs that (so far
+    // callers always set stateObject explicitly).
 
     m_frame->protectedDocument()->updateURLForPushOrReplaceState(newURL);
 

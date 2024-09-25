@@ -702,7 +702,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         makeUniqueRef<WebProgressTrackerClient>(*this),
         mainFrameCreationParameters(m_mainFrame.copyRef(), frameType, parameters.initialSandboxFlags),
         m_mainFrame->frameID(),
-        frameFromIdentifier(parameters.openerFrameIdentifier),
+        frameFromIdentifier(parameters.mainFrameOpenerIdentifier),
         makeUniqueRef<WebSpeechRecognitionProvider>(pageID),
         makeUniqueRef<MediaRecorderProvider>(*this),
         WebProcess::singleton().broadcastChannelRegistry(),
@@ -4464,7 +4464,7 @@ void WebPage::getSelectionAsWebArchiveData(CompletionHandler<void(const std::opt
     callback(dataBuffer);
 }
 
-void WebPage::copyLinkToHighlight()
+void WebPage::copyLinkWithHighlight()
 {
     auto url = m_page->fragmentDirectiveURLForSelectedText();
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
@@ -8915,7 +8915,7 @@ void WebPage::textAutosizingUsesIdempotentModeChanged()
 PlatformXRSystemProxy& WebPage::xrSystemProxy()
 {
     if (!m_xrSystemProxy)
-        m_xrSystemProxy = std::unique_ptr<PlatformXRSystemProxy>(new PlatformXRSystemProxy(*this));
+        m_xrSystemProxy = makeUniqueWithoutRefCountedCheck<PlatformXRSystemProxy>(*this);
     return *m_xrSystemProxy;
 }
 #endif

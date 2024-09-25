@@ -41,17 +41,17 @@
 
 namespace JSC::Wasm {
 
-WTF_MAKE_TZONE_ALLOCATED_IMPL(Callee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(JITCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(JSEntrypointCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(WasmToJSCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(JSToWasmICCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(OptimizingJITCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(OMGCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(OSREntryCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(BBQCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(IPIntCallee);
-WTF_MAKE_TZONE_ALLOCATED_IMPL(LLIntCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(Callee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(JITCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(JSEntrypointCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(WasmToJSCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(JSToWasmICCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(OptimizingJITCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(OMGCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(OSREntryCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(BBQCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(IPIntCallee);
+WTF_MAKE_COMPACT_TZONE_ALLOCATED_IMPL(LLIntCallee);
 
 Callee::Callee(Wasm::CompilationMode compilationMode)
     : NativeCallee(NativeCallee::Category::Wasm, ImplementationVisibility::Private)
@@ -221,6 +221,7 @@ IPIntCallee::IPIntCallee(FunctionIPIntMetadataGenerator& generator, size_t index
     , m_argumINTBytecodePointer(m_argumINTBytecode.data())
     , m_uINTBytecode(WTFMove(generator.m_uINTBytecode))
     , m_uINTBytecodePointer(m_uINTBytecode.data())
+    , m_highestReturnStackOffset(generator.m_highestReturnStackOffset)
     , m_localSizeToAlloc(roundUpToMultipleOf<2>(generator.m_numLocals))
     , m_numRethrowSlotsToAlloc(generator.m_numAlignedRethrowSlots)
     , m_numLocals(generator.m_numLocals)

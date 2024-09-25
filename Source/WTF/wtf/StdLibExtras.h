@@ -27,6 +27,7 @@
 #pragma once
 
 #include <algorithm>
+#include <concepts>
 #include <cstring>
 #include <functional>
 #include <memory>
@@ -40,6 +41,8 @@
 #include <wtf/GetPtr.h>
 #include <wtf/IterationStatus.h>
 #include <wtf/TypeCasts.h>
+
+#define SINGLE_ARG(...) __VA_ARGS__ // useful when a macro argument includes a comma
 
 // Use this macro to declare and define a debug-only global variable that may have a
 // non-trivial constructor and destructor. When building with clang, this will suppress

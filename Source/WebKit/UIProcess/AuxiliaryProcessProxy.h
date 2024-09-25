@@ -74,9 +74,13 @@ protected:
     AuxiliaryProcessProxy(ShouldTakeUIBackgroundAssertion, AlwaysRunsAtBackgroundPriority = AlwaysRunsAtBackgroundPriority::No, Seconds responsivenessTimeout = ResponsivenessTimer::defaultResponsivenessTimeout);
 
 public:
-    using ResponsivenessTimer::Client::weakPtrFactory;
-    using ResponsivenessTimer::Client::WeakValueType;
-    using ResponsivenessTimer::Client::WeakPtrImplType;
+    USING_CAN_MAKE_WEAKPTR(ResponsivenessTimer::Client);
+
+    // ProcessLauncher::Client
+    uint32_t ptrCount() const final { return IPC::Connection::Client::ptrCount(); }
+    uint32_t ptrCountWithoutThreadCheck() const final { return IPC::Connection::Client::ptrCountWithoutThreadCheck(); }
+    void incrementPtrCount() const final { IPC::Connection::Client::incrementPtrCount(); }
+    void decrementPtrCount() const final { IPC::Connection::Client::decrementPtrCount(); }
 
     virtual ~AuxiliaryProcessProxy();
 

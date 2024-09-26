@@ -658,6 +658,13 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif
 
 #if PLATFORM(COCOA)
+    auto shouldBlockOpenDirectory = parameters.store.getBoolValueForKey(WebPreferencesKey::blockOpenDirectoryInWebContentSandboxKey());
+    if (shouldBlockOpenDirectory) {
+#if HAVE(SANDBOX_STATE_FLAGS)
+        auto auditToken = WebProcess::singleton().auditTokenForSelf();
+        sandbox_enable_state_flag("BlockOpenDirectoryInWebContentSandbox", *auditToken);
+#endif
+    }
     auto shouldBlockIOKit = parameters.store.getBoolValueForKey(WebPreferencesKey::blockIOKitInWebContentSandboxKey())
 #if ENABLE(WEBGL)
         && m_shouldRenderWebGLInGPUProcess
@@ -4639,7 +4646,7 @@ void WebPage::adjustSettingsForLockdownMode(Settings& settings, const WebPrefere
     if (settings.downloadableBinaryFontTrustedTypes() != DownloadableBinaryFontTrustedTypes::None) {
         settings.setDownloadableBinaryFontTrustedTypes(
             (settings.lockdownFontParserEnabled() && PAL::canLoad_CoreText_CTFontManagerCreateMemorySafeFontDescriptorFromData())
-                ? DownloadableBinaryFontTrustedTypes::FallbackParser
+                ? DownloadableBinaryFontTrustedTypes::SafeFontParser
                 : DownloadableBinaryFontTrustedTypes::Restricted);
     }
 #endif
@@ -6878,21 +6885,13 @@ LocalFrameView* WebPage::localMainFrameView() const
     return dynamicDowncast<LocalFrameView>(mainFrameView());
 }
 
-bool WebPage::canPluginHandleResponse(const ResourceResponse& response)
-{
-    UNUSED_PARAM(response);
-    return false;
-}
-
 bool WebPage::shouldUseCustomContentProviderForResponse(const ResourceResponse& response)
 {
     auto& mimeType = response.mimeType();
     if (mimeType.isNull())
         return false;
 
-    // If a plug-in exists that claims to support this response, it should take precedence over the custom content provider.
-    // canPluginHandleResponse() is called last because it performs synchronous IPC.
-    return m_mimeTypesWithCustomContentProviders.contains(mimeType) && !canPluginHandleResponse(response);
+    return m_mimeTypesWithCustomContentProviders.contains(mimeType);
 }
 
 #if PLATFORM(COCOA)

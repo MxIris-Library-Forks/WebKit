@@ -27,6 +27,7 @@
 
 #include "FormattingConstraints.h"
 #include "InlineFormattingConstraints.h"
+#include "LayoutBoxGeometry.h"
 #include "LayoutIntegrationBoxTree.h"
 #include "LayoutState.h"
 
@@ -46,20 +47,29 @@ class BoxGeometryUpdater {
 public:
     BoxGeometryUpdater(Layout::LayoutState&, const Layout::ElementBox& rootLayoutBox);
 
-    void setGeometriesForLayout(LayoutUnit availableLogicalWidth);
-    void setGeometriesForIntrinsicWidth(Layout::IntrinsicWidthMode);
-    void updateGeometryAfterLayout(const Layout::ElementBox&, LayoutUnit availableWidth);
+    void setFormattingContextRootGeometry(LayoutUnit availableLogicalWidth);
+    void setFormattingContextContentGeometry(std::optional<LayoutUnit> availableLogicalWidth, std::optional<Layout::IntrinsicWidthMode>);
+    void updateBoxGeometryAfterIntegrationLayout(const Layout::ElementBox&, LayoutUnit availableWidth);
 
-    Layout::ConstraintsForInlineContent updateInlineContentConstraints(LayoutUnit availableWidth);
+    Layout::ConstraintsForInlineContent formattingContextConstraints(LayoutUnit availableWidth);
+
     HashMap<const Layout::ElementBox*, LayoutUnit> takeNestedListMarkerOffsets() { return WTFMove(m_nestedListMarkerOffsets); }
 
 private:
-    void updateBoxGeometry(const RenderElement&, LayoutUnit availableWidth);
+    void updateBoxGeometry(const RenderElement&, std::optional<LayoutUnit> availableWidth, std::optional<Layout::IntrinsicWidthMode>);
 
     void updateLayoutBoxDimensions(const RenderBox&, std::optional<LayoutUnit> availableWidth, std::optional<Layout::IntrinsicWidthMode> = std::nullopt);
     void updateLineBreakBoxDimensions(const RenderLineBreak&);
     void updateInlineBoxDimensions(const RenderInline&, std::optional<LayoutUnit> availableWidth, std::optional<Layout::IntrinsicWidthMode> = std::nullopt);
     void setListMarkerOffsetForMarkerOutside(const RenderListMarker&);
+
+    Layout::BoxGeometry::HorizontalEdges horizontalLogicalMargin(const RenderBoxModelObject&, std::optional<LayoutUnit> availableWidth, bool isLeftToRightInlineDirection, bool retainMarginStart = true, bool retainMarginEnd = true);
+    Layout::BoxGeometry::VerticalEdges verticalLogicalMargin(const RenderBoxModelObject&, std::optional<LayoutUnit> availableWidth);
+    Layout::BoxGeometry::Edges logicalBorder(const RenderBoxModelObject&, bool isLeftToRightInlineDirection, bool isIntrinsicWidthMode = false, bool retainBorderStart = true, bool retainBorderEnd = true);
+    Layout::BoxGeometry::Edges logicalPadding(const RenderBoxModelObject&, std::optional<LayoutUnit> availableWidth, bool isLeftToRightInlineDirection, bool retainPaddingStart = true, bool retainPaddingEnd = true);
+
+    FlowDirection blockFlowDirection() const;
+    bool isHorizontalWritingMode() const;
 
     Layout::LayoutState& layoutState() { return *m_layoutState; }
     const Layout::LayoutState& layoutState() const { return *m_layoutState; }

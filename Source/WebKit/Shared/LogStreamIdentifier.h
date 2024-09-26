@@ -23,24 +23,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "CSSInternalBaseAppearanceRule.h"
+#pragma once
 
-#include "StyleRule.h"
+#include <wtf/ObjectIdentifier.h>
 
-namespace WebCore {
+namespace WebKit {
 
-CSSInternalBaseAppearanceRule::CSSInternalBaseAppearanceRule(StyleRuleInternalBaseAppearance& rule, CSSStyleSheet* parent)
-    : CSSGroupingRule(rule, parent)
-{
-}
+enum class LogStreamIdentifierType { };
+using LogStreamIdentifier = AtomicObjectIdentifier<LogStreamIdentifierType>;
 
-String CSSInternalBaseAppearanceRule::cssText() const
-{
-    StringBuilder builder;
-    builder.append("@-internal-base-appearance"_s);
-    appendCSSTextForItems(builder);
-    return builder.toString();
-}
-
-}
+} // namespace WebKit

@@ -1790,7 +1790,6 @@
 		493E5E0912D6420500020081 /* PlatformCALayerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 493E5E0812D6420500020081 /* PlatformCALayerClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		494265312B61F7EA000446D5 /* PseudoElementRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 494265302B61F7E9000446D5 /* PseudoElementRequest.h */; };
 		4945BFD413CF809000CC3B38 /* TransformState.h in Headers */ = {isa = PBXBuildFile; fileRef = 4945BFD213CF809000CC3B38 /* TransformState.h */; };
-		49483A182C6C2BAD0001660D /* CSSInternalBaseAppearanceRule.h in Headers */ = {isa = PBXBuildFile; fileRef = 49483A162C6C2B8F0001660D /* CSSInternalBaseAppearanceRule.h */; };
 		49484FC2102CF23C00187DD3 /* CanvasGradient.h in Headers */ = {isa = PBXBuildFile; fileRef = 49484FB4102CF23C00187DD3 /* CanvasGradient.h */; };
 		49484FC5102CF23C00187DD3 /* CanvasPattern.h in Headers */ = {isa = PBXBuildFile; fileRef = 49484FB7102CF23C00187DD3 /* CanvasPattern.h */; };
 		49484FCB102CF23C00187DD3 /* CanvasRenderingContext2D.h in Headers */ = {isa = PBXBuildFile; fileRef = 49484FBD102CF23C00187DD3 /* CanvasRenderingContext2D.h */; };
@@ -10943,8 +10942,6 @@
 		494265302B61F7E9000446D5 /* PseudoElementRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PseudoElementRequest.h; sourceTree = "<group>"; };
 		4945BFD113CF809000CC3B38 /* TransformState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformState.cpp; sourceTree = "<group>"; };
 		4945BFD213CF809000CC3B38 /* TransformState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransformState.h; sourceTree = "<group>"; };
-		49483A162C6C2B8F0001660D /* CSSInternalBaseAppearanceRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSInternalBaseAppearanceRule.h; sourceTree = "<group>"; };
-		49483A172C6C2B8F0001660D /* CSSInternalBaseAppearanceRule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSInternalBaseAppearanceRule.cpp; sourceTree = "<group>"; };
 		49484FB3102CF23C00187DD3 /* CanvasGradient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasGradient.cpp; sourceTree = "<group>"; };
 		49484FB4102CF23C00187DD3 /* CanvasGradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CanvasGradient.h; sourceTree = "<group>"; };
 		49484FB5102CF23C00187DD3 /* CanvasGradient.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CanvasGradient.idl; sourceTree = "<group>"; };
@@ -36433,8 +36430,6 @@
 				A80E6CC10A1989CA007FB8C5 /* CSSImportRule.cpp */,
 				A80E6CCC0A1989CA007FB8C5 /* CSSImportRule.h */,
 				85C56CA90AA89E6600D95755 /* CSSImportRule.idl */,
-				49483A172C6C2B8F0001660D /* CSSInternalBaseAppearanceRule.cpp */,
-				49483A162C6C2B8F0001660D /* CSSInternalBaseAppearanceRule.h */,
 				31288E6E0E3005D6003619AE /* CSSKeyframeRule.cpp */,
 				31288E6F0E3005D6003619AE /* CSSKeyframeRule.h */,
 				316FE0910E6CCD7F00BF6088 /* CSSKeyframeRule.idl */,
@@ -39175,7 +39170,6 @@
 				9393E600151A99F200066F06 /* CSSImageSetValue.h in Headers */,
 				A80E6CFA0A1989CA007FB8C5 /* CSSImageValue.h in Headers */,
 				A80E6CF60A1989CA007FB8C5 /* CSSImportRule.h in Headers */,
-				49483A182C6C2BAD0001660D /* CSSInternalBaseAppearanceRule.h in Headers */,
 				31288E730E3005D6003619AE /* CSSKeyframeRule.h in Headers */,
 				31288E750E3005D6003619AE /* CSSKeyframesRule.h in Headers */,
 				2A4107A426CB66F8003BF797 /* CSSKeywordValue.h in Headers */,

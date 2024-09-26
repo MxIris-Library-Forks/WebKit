@@ -5283,7 +5283,7 @@ void WebPageProxy::setIntrinsicDeviceScaleFactor(float scaleFactor)
     m_intrinsicDeviceScaleFactor = scaleFactor;
 
     if (m_drawingArea)
-        m_drawingArea->deviceScaleFactorDidChange();
+        m_drawingArea->deviceScaleFactorDidChange([]() { });
 }
 
 void WebPageProxy::windowScreenDidChange(PlatformDisplayID displayID)
@@ -5318,10 +5318,12 @@ float WebPageProxy::deviceScaleFactor() const
     return m_customDeviceScaleFactor.value_or(m_intrinsicDeviceScaleFactor);
 }
 
-void WebPageProxy::setCustomDeviceScaleFactor(float customScaleFactor)
+void WebPageProxy::setCustomDeviceScaleFactor(float customScaleFactor, CompletionHandler<void()>&& completionHandler)
 {
-    if (m_customDeviceScaleFactor && m_customDeviceScaleFactor.value() == customScaleFactor)
+    if (m_customDeviceScaleFactor && m_customDeviceScaleFactor.value() == customScaleFactor) {
+        completionHandler();
         return;
+    }
 
     float oldScaleFactor = deviceScaleFactor();
 
@@ -5331,11 +5333,15 @@ void WebPageProxy::setCustomDeviceScaleFactor(float customScaleFactor)
     else
         m_customDeviceScaleFactor = std::nullopt;
 
-    if (!hasRunningProcess())
+    if (!hasRunningProcess()) {
+        completionHandler();
         return;
+    }
 
     if (deviceScaleFactor() != oldScaleFactor)
-        m_drawingArea->deviceScaleFactorDidChange();
+        m_drawingArea->deviceScaleFactorDidChange(WTFMove(completionHandler));
+    else
+        completionHandler();
 }
 
 void WebPageProxy::accessibilitySettingsDidChange()
@@ -6080,6 +6086,14 @@ void WebPageProxy::preferencesDidChange()
                 gpuProcess->sharedPreferencesForWebProcessDidChange(webProcess, WTFMove(*sharedPreferences), [weakWebProcess = WeakPtr { webProcess }, syncedVersion = sharedPreferences->version]() {
                     if (RefPtr webProcess = weakWebProcess.get())
                         webProcess->didSyncSharedPreferencesForWebProcessWithGPUProcess(syncedVersion);
+                });
+            }
+#endif
+#if ENABLE(MODEL_PROCESS)
+            if (RefPtr modelProcess = webProcess.processPool().modelProcess()) {
+                modelProcess->sharedPreferencesForWebProcessDidChange(webProcess, WTFMove(*sharedPreferences), [weakWebProcess = WeakPtr { webProcess }, syncedVersion = sharedPreferences->version]() {
+                    if (RefPtr webProcess = weakWebProcess.get())
+                        webProcess->didSyncSharedPreferencesForWebProcessWithModelProcess(syncedVersion);
                 });
             }
 #endif

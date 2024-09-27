@@ -25,15 +25,18 @@
 #include "config.h"
 #include "CSSCalcTree+Evaluation.h"
 
+#include "AnchorPositionEvaluator.h"
 #include "CSSCalcSymbolTable.h"
 #include "CSSCalcTree+Simplification.h"
 #include "CSSCalcTree.h"
 #include "CalculationExecutor.h"
+#include "RenderStyle.h"
+#include "RenderStyleInlines.h"
 
 namespace WebCore {
 namespace CSSCalc {
 
-static auto evaluate(const NoneRaw&, const EvaluationOptions&) -> std::optional<Calculation::None>;
+static auto evaluate(const CSS::NoneRaw&, const EvaluationOptions&) -> std::optional<Calculation::None>;
 static auto evaluate(const ChildOrNone&, const EvaluationOptions&) -> std::optional<std::variant<double, Calculation::None>>;
 static auto evaluate(const std::optional<Child>&, const EvaluationOptions&) -> std::optional<std::optional<double>>;
 static auto evaluate(const Child&, const EvaluationOptions&) -> std::optional<double>;
@@ -77,7 +80,7 @@ template<typename Op> static std::optional<double> executeVariadicMathOperationA
     return result;
 }
 
-std::optional<Calculation::None> evaluate(const NoneRaw&, const EvaluationOptions&)
+std::optional<Calculation::None> evaluate(const CSS::NoneRaw&, const EvaluationOptions&)
 {
     return Calculation::None { };
 }
@@ -168,15 +171,18 @@ std::optional<double> evaluate(const IndirectNode<Hypot>& root, const Evaluation
 
 std::optional<double> evaluate(const IndirectNode<Anchor>& anchor, const EvaluationOptions& options)
 {
-    if (!options.conversionData || !options.conversionData->style())
+    if (!options.conversionData || !options.conversionData->styleBuilderState())
         return { };
 
-    // FIXME: Evaluate the anchor.
-    bool isValid = !anchor->elementName.isNull() || !options.conversionData->style()->positionAnchor().isNull();
-    if (!isValid && anchor->fallback)
+    auto result = Style::AnchorPositionEvaluator::evaluate(*options.conversionData->styleBuilderState(), *anchor);
+    if (!result) {
+        // FIXME: Invalid anchor without a valid fallback should make the declaration invalid at computed-value time.
+        if (!anchor->fallback)
+            return { };
         return evaluate(*anchor->fallback, options);
+    }
 
-    return { };
+    return *result;
 }
 
 template<typename Op> std::optional<double> evaluate(const IndirectNode<Op>& root, const EvaluationOptions& options)

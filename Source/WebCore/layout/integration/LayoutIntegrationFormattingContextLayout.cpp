@@ -28,7 +28,7 @@
 
 #include "LayoutIntegrationBoxGeometryUpdater.h"
 #include "RenderBlock.h"
-#include "RenderBox.h"
+#include "RenderBoxInlines.h"
 
 namespace WebCore {
 namespace LayoutIntegration {
@@ -50,7 +50,7 @@ void layoutWithFormattingContextForBox(const Layout::ElementBox& box, std::optio
     auto rootLayoutBox = [&]() -> const Layout::ElementBox& {
         auto* ancestor = &box.parent();
         while (!ancestor->isInitialContainingBlock()) {
-            if (ancestor->establishesInlineFormattingContext())
+            if (ancestor->establishesFormattingContext())
                 break;
             ancestor = &ancestor->parent();
         }

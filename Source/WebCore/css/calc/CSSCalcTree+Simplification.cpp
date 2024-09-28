@@ -35,6 +35,7 @@
 #include "CalculationExecutor.h"
 #include "RenderStyle.h"
 #include "RenderStyleInlines.h"
+#include "StyleBuilderState.h"
 #include <wtf/StdLibExtras.h>
 
 namespace WebCore {
@@ -251,7 +252,6 @@ std::optional<CanonicalDimension> canonicalize(NonCanonicalDimension root, const
     case CSSUnitType::CSS_INTEGER:
     case CSSUnitType::CSS_PERCENTAGE:
     // Non-numeric types should never be stored in a NonCanonicalDimension.
-    case CSSUnitType::CSS_ANCHOR:
     case CSSUnitType::CSS_ATTR:
     case CSSUnitType::CSS_CALC:
     case CSSUnitType::CSS_CALC_PERCENTAGE_WITH_ANGLE:
@@ -1283,14 +1283,42 @@ std::optional<Child> simplify(Sign& root, const SimplificationOptions& options)
     );
 }
 
+std::optional<Child> simplify(Progress& root, const SimplificationOptions& options)
+{
+    if (root.progress.index() != root.from.index() || root.from.index() != root.to.index())
+        return std::nullopt;
+
+    return WTF::switchOn(root.progress,
+        [&]<Numeric T>(T& numericProgress) -> std::optional<Child> {
+            auto& numericFrom = std::get<T>(root.from);
+            auto& numericTo = std::get<T>(root.to);
+
+            if (!unitsMatch(numericProgress, numericFrom, options) || !unitsMatch(numericFrom, numericTo, options) || !fullyResolved(numericProgress, options))
+                return std::nullopt;
+
+            return makeChild(Number { .value = executeMathOperation<Progress>(numericProgress.value, numericFrom.value, numericTo.value) });
+        },
+        [](auto&) -> std::optional<Child> {
+            return std::nullopt;
+        }
+    );
+}
+
 std::optional<Child> simplify(Anchor& anchor, const SimplificationOptions& options)
 {
     if (!options.conversionData || !options.conversionData->styleBuilderState())
         return { };
 
-    auto result = Style::AnchorPositionEvaluator::evaluate(*options.conversionData->styleBuilderState(), anchor);
+    auto& builderState = *options.conversionData->styleBuilderState();
+
+    auto result = Style::AnchorPositionEvaluator::evaluate(builderState, anchor);
     if (!result) {
-        // FIXME: Invalid anchor without valid fallback should make the declaration invalid at computed-value time.
+        // https://drafts.csswg.org/css-anchor-position-1/#anchor-valid
+        // "If any of these conditions are false, the anchor() function resolves to its specified fallback value.
+        // If no fallback value is specified, it makes the declaration referencing it invalid at computed-value time."
+        if (!anchor.fallback)
+            builderState.setCurrentPropertyInvalidAtComputedValueTime();
+
         // Replace the anchor node with the fallback node.
         return std::exchange(anchor.fallback, { });
     }

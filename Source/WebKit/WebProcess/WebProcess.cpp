@@ -285,7 +285,7 @@ WebProcess& WebProcess::singleton()
 }
 
 WebProcess::WebProcess()
-    : m_webLoaderStrategy(*new WebLoaderStrategy)
+    : m_webLoaderStrategy(makeUniqueRef<WebLoaderStrategy>())
 #if PLATFORM(COCOA) && USE(LIBWEBRTC) && ENABLE(WEB_CODECS)
     , m_remoteVideoCodecFactory(*this)
 #endif
@@ -982,6 +982,14 @@ bool WebProcess::dispatchMessage(IPC::Connection& connection, IPC::Decoder& deco
     return false;
 }
 
+bool WebProcess::filterUnhandledMessage(IPC::Connection&, IPC::Decoder& decoder)
+{
+    // Note: due to receiving messages to non-existing IDs, we have to filter the messages.
+    // This should be removed once these messages are fixed.
+    LOG_ERROR("Unhandled web process message '%s' (destination: %" PRIu64 " pid: %d)", description(decoder.messageName()).characters(), decoder.destinationID(), static_cast<int>(getCurrentProcessID()));
+    return true;
+}
+
 void WebProcess::didClose(IPC::Connection& connection)
 {
 #if ENABLE(VIDEO)
@@ -1297,7 +1305,7 @@ void WebProcess::networkProcessConnectionClosed(NetworkProcessConnection* connec
 
     logDiagnosticMessageForNetworkProcessCrash();
 
-    m_webLoaderStrategy.networkProcessCrashed();
+    m_webLoaderStrategy->networkProcessCrashed();
     m_webSocketChannelManager.networkProcessCrashed();
     m_broadcastChannelRegistry->networkProcessCrashed();
 

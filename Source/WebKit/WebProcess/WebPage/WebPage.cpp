@@ -658,13 +658,20 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif
 
 #if PLATFORM(COCOA)
-    auto shouldBlockOpenDirectory = parameters.store.getBoolValueForKey(WebPreferencesKey::blockOpenDirectoryInWebContentSandboxKey());
-    if (shouldBlockOpenDirectory) {
 #if HAVE(SANDBOX_STATE_FLAGS)
-        auto auditToken = WebProcess::singleton().auditTokenForSelf();
-        sandbox_enable_state_flag("BlockOpenDirectoryInWebContentSandbox", *auditToken);
+    auto auditToken = WebProcess::singleton().auditTokenForSelf();
+#if PLATFORM(IOS)
+    auto shouldBlockMobileGestalt = parameters.store.getBoolValueForKey(WebPreferencesKey::blockMobileGestaltInWebContentSandboxKey());
+    if (shouldBlockMobileGestalt)
+        sandbox_enable_state_flag("BlockMobileGestaltInWebContentSandbox", *auditToken);
 #endif
-    }
+    auto shouldBlockMobileAsset = parameters.store.getBoolValueForKey(WebPreferencesKey::blockMobileAssetInWebContentSandboxKey());
+    if (shouldBlockMobileAsset)
+        sandbox_enable_state_flag("BlockMobileAssetInWebContentSandbox", *auditToken);
+    auto shouldBlockOpenDirectory = parameters.store.getBoolValueForKey(WebPreferencesKey::blockOpenDirectoryInWebContentSandboxKey());
+    if (shouldBlockOpenDirectory)
+        sandbox_enable_state_flag("BlockOpenDirectoryInWebContentSandbox", *auditToken);
+#endif // HAVE(SANDBOX_STATE_FLAGS)
     auto shouldBlockIOKit = parameters.store.getBoolValueForKey(WebPreferencesKey::blockIOKitInWebContentSandboxKey())
 #if ENABLE(WEBGL)
         && m_shouldRenderWebGLInGPUProcess
@@ -676,7 +683,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
     if (shouldBlockIOKit) {
 #if HAVE(SANDBOX_STATE_FLAGS) && !ENABLE(WEBCONTENT_GPU_SANDBOX_EXTENSIONS_BLOCKING)
-        auto auditToken = WebProcess::singleton().auditTokenForSelf();
         sandbox_enable_state_flag("BlockIOKitInWebContentSandbox", *auditToken);
 #endif
         ProcessCapabilities::setHardwareAcceleratedDecodingDisabled(true);
@@ -1068,8 +1074,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     m_page->setCanUseCredentialStorage(parameters.canUseCredentialStorage);
 
 #if HAVE(SANDBOX_STATE_FLAGS)
-    auto auditToken = WebProcess::singleton().auditTokenForSelf();
-
     auto experimentalSandbox = parameters.store.getBoolValueForKey(WebPreferencesKey::experimentalSandboxEnabledKey());
     if (experimentalSandbox)
         sandbox_enable_state_flag("EnableExperimentalSandbox", *auditToken);
@@ -3757,34 +3761,34 @@ void WebPage::setNeedsFontAttributes(bool needsFontAttributes)
         scheduleFullEditorStateUpdate();
 }
 
-void WebPage::restoreSessionInternal(const Vector<BackForwardListItemState>& itemStates, WasRestoredByAPIRequest restoredByAPIRequest, WebBackForwardListProxy::OverwriteExistingItem overwrite)
+void WebPage::restoreSessionInternal(const Vector<FrameState>& frameStates, WasRestoredByAPIRequest restoredByAPIRequest, WebBackForwardListProxy::OverwriteExistingItem overwrite)
 {
     // Since we're merely restoring HistoryItems from the UIProcess, there is no need to send HistoryItem update notifications back to the UIProcess.
     // Also, with process-swap on navigation, these updates may actually overwrite important state in the UIProcess such as the scroll position.
     auto bypassHistoryItemUpdateNotifications = m_historyItemClient->ignoreChangesForScope();
-    for (const auto& itemState : itemStates) {
-        auto historyItem = toHistoryItem(m_historyItemClient, itemState);
+    for (const auto& frameState : frameStates) {
+        auto historyItem = toHistoryItem(m_historyItemClient, frameState);
         historyItem->setWasRestoredFromSession(restoredByAPIRequest == WasRestoredByAPIRequest::Yes);
-        static_cast<WebBackForwardListProxy&>(corePage()->backForward().client()).addItemFromUIProcess(itemState.identifier, WTFMove(historyItem), m_identifier, overwrite);
+        static_cast<WebBackForwardListProxy&>(corePage()->backForward().client()).addItemFromUIProcess(frameState.identifier, WTFMove(historyItem), m_identifier, overwrite);
     }
 }
 
-void WebPage::restoreSession(const Vector<BackForwardListItemState>& itemStates)
+void WebPage::restoreSession(const Vector<FrameState>& frameStates)
 {
-    restoreSessionInternal(itemStates, WasRestoredByAPIRequest::Yes, WebBackForwardListProxy::OverwriteExistingItem::No);
+    restoreSessionInternal(frameStates, WasRestoredByAPIRequest::Yes, WebBackForwardListProxy::OverwriteExistingItem::No);
 }
 
-void WebPage::updateBackForwardListForReattach(const Vector<WebKit::BackForwardListItemState>& itemStates)
+void WebPage::updateBackForwardListForReattach(const Vector<FrameState>& frameStates)
 {
-    restoreSessionInternal(itemStates, WasRestoredByAPIRequest::No, WebBackForwardListProxy::OverwriteExistingItem::Yes);
+    restoreSessionInternal(frameStates, WasRestoredByAPIRequest::No, WebBackForwardListProxy::OverwriteExistingItem::Yes);
 }
 
-void WebPage::setCurrentHistoryItemForReattach(WebKit::BackForwardListItemState&& itemState)
+void WebPage::setCurrentHistoryItemForReattach(FrameState&& mainFrameState)
 {
-    auto historyItem = toHistoryItem(m_historyItemClient, itemState);
+    Ref historyItem = toHistoryItem(m_historyItemClient, mainFrameState);
     auto& historyItemRef = historyItem.get();
-    static_cast<WebBackForwardListProxy&>(corePage()->backForward().client()).addItemFromUIProcess(itemState.identifier, WTFMove(historyItem), m_identifier, WebBackForwardListProxy::OverwriteExistingItem::Yes);
-    if (auto* localMainFrame = dynamicDowncast<WebCore::LocalFrame>(corePage()->mainFrame()))
+    static_cast<WebBackForwardListProxy&>(corePage()->backForward().client()).addItemFromUIProcess(mainFrameState.identifier, WTFMove(historyItem), m_identifier, WebBackForwardListProxy::OverwriteExistingItem::Yes);
+    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(corePage()->mainFrame()))
         localMainFrame->checkedHistory()->setCurrentItem(historyItemRef);
 }
 
@@ -4799,6 +4803,11 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 
 #if ENABLE(VP9)
     PlatformMediaSessionManager::setSWVPDecodersAlwaysEnabled(store.getBoolValueForKey(WebPreferencesKey::sWVPDecodersAlwaysEnabledKey()));
+#endif
+
+#if USE(AUDIO_SESSION)
+    if (store.getBoolValueForKey(WebPreferencesKey::mediaPlaybackEnabledKey()))
+        AudioSession::sharedSession().setEnabled(true);
 #endif
 
     // FIXME: This should be automated by adding a new field in WebPreferences*.yaml
@@ -5831,6 +5840,11 @@ void WebPage::extendSandboxForFilesFromOpenPanel(Vector<SandboxExtension::Handle
 void WebPage::didReceiveGeolocationPermissionDecision(GeolocationIdentifier geolocationID, const String& authorizationToken)
 {
     geolocationPermissionRequestManager().didReceiveGeolocationPermissionDecision(geolocationID, authorizationToken);
+}
+
+Ref<GeolocationPermissionRequestManager> WebPage::protectedGeolocationPermissionRequestManager()
+{
+    return m_geolocationPermissionRequestManager.get();
 }
 #endif
 
@@ -9549,9 +9563,9 @@ const Logger& WebPage::logger() const
     return *m_logger;
 }
 
-const void* WebPage::logIdentifier() const
+uint64_t WebPage::logIdentifier() const
 {
-    return reinterpret_cast<const void*>(intHash(m_identifier.toUInt64()));
+    return intHash(m_identifier.toUInt64());
 }
 
 void WebPage::useRedirectionForCurrentNavigation(WebCore::ResourceResponse&& response)

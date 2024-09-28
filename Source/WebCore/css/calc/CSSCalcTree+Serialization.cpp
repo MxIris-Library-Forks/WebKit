@@ -85,6 +85,7 @@ template<typename Op> static void serializeMathFunctionPrefix(StringBuilder&, co
 
 static void serializeMathFunctionArguments(StringBuilder&, const IndirectNode<Sum>&, SerializationState&);
 static void serializeMathFunctionArguments(StringBuilder&, const IndirectNode<Product>&, SerializationState&);
+static void serializeMathFunctionArguments(StringBuilder&, const IndirectNode<Progress>&, SerializationState&);
 static void serializeMathFunctionArguments(StringBuilder&, const IndirectNode<Anchor>&, SerializationState&);
 template<typename Op> static void serializeMathFunctionArguments(StringBuilder&, const IndirectNode<Op>&, SerializationState&);
 
@@ -178,7 +179,6 @@ static unsigned sortPriority(CSSUnitType unit)
     case CSSUnitType::CSS_X:            return 63;
 
     // Non-numeric types are not supported.
-    case CSSUnitType::CSS_ANCHOR:
     case CSSUnitType::CSS_ATTR:
     case CSSUnitType::CSS_CALC:
     case CSSUnitType::CSS_CALC_PERCENTAGE_WITH_ANGLE:
@@ -366,7 +366,16 @@ void serializeMathFunctionArguments(StringBuilder& builder, const IndirectNode<P
     serializeCalculationTree(builder, fn, state);
 }
 
-void serializeMathFunctionArguments(StringBuilder& builder, const IndirectNode<Anchor>& anchor, SerializationState&)
+void serializeMathFunctionArguments(StringBuilder& builder, const IndirectNode<Progress>& fn, SerializationState& state)
+{
+    serializeCalculationTree(builder, fn->progress, state);
+    builder.append(" from "_s);
+    serializeCalculationTree(builder, fn->from, state);
+    builder.append(" to "_s);
+    serializeCalculationTree(builder, fn->to, state);
+}
+
+void serializeMathFunctionArguments(StringBuilder& builder, const IndirectNode<Anchor>& anchor, SerializationState& state)
 {
     if (!anchor->elementName.isNull()) {
         serializeIdentifier(anchor->elementName, builder);
@@ -384,11 +393,13 @@ void serializeMathFunctionArguments(StringBuilder& builder, const IndirectNode<A
     if (anchor->fallback) {
         builder.append(", "_s);
 
-        if (std::holds_alternative<IndirectNode<Sum>>(*anchor->fallback))
-            builder.append("calc"_s);
-
-        SerializationState state { };
-        serializeCalculationTree(builder, *anchor->fallback, state);
+        WTF::switchOn(*anchor->fallback,
+            [&](Leaf auto& op) {
+                serializeCalculationTree(builder, op, state);
+            }, [&](auto& op) {
+                serializeMathFunction(builder, op, state);
+            }
+        );
     }
 }
 

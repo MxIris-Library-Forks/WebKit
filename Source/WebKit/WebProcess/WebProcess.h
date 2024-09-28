@@ -570,6 +570,8 @@ private:
     void stopRunLoop() override;
 #endif
 
+    bool filterUnhandledMessage(IPC::Connection&, IPC::Decoder&) override;
+
 #if ENABLE(MEDIA_STREAM)
     void addMockMediaDevice(const WebCore::MockMediaDevice&);
     void clearMockMediaDevices();
@@ -712,7 +714,7 @@ private:
     RefPtr<NetworkProcessConnection> m_networkProcessConnection;
     Lock m_lockNetworkProcessConnectionID;
     IPC::Connection::UniqueID m_networkProcessConnectionID WTF_GUARDED_BY_LOCK(m_lockNetworkProcessConnectionID);
-    WebLoaderStrategy& m_webLoaderStrategy;
+    UniqueRef<WebLoaderStrategy> m_webLoaderStrategy;
     RefPtr<WebFileSystemStorageConnection> m_fileSystemStorageConnection;
 
 #if ENABLE(GPU_PROCESS)

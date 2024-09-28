@@ -175,6 +175,7 @@ public:
     using SoundStageSize = AudioSessionSoundStageSize;
     virtual void setSoundStageSize(SoundStageSize) { }
     virtual SoundStageSize soundStageSize() const { return SoundStageSize::Automatic; }
+    virtual void setEnabled(bool);
 
 protected:
     friend class NeverDestroyed<AudioSession>;
@@ -186,7 +187,7 @@ protected:
     Logger& logger();
     ASCIILiteral logClassName() const { return "AudioSession"_s; }
     WTFLogChannel& logChannel() const;
-    const void* logIdentifier() const { return nullptr; }
+    uint64_t logIdentifier() const { return 0; }
 
     mutable RefPtr<Logger> m_logger;
 
@@ -225,7 +226,7 @@ public:
     virtual void beginRoutingArbitrationWithCategory(AudioSession::CategoryType, ArbitrationCallback&&) = 0;
     virtual void leaveRoutingAbritration() = 0;
 
-    virtual const void* logIdentifier() const = 0;
+    virtual uint64_t logIdentifier() const = 0;
     virtual bool canLog() const = 0;
 };
 

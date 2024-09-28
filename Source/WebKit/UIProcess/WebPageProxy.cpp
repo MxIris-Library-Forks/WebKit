@@ -1096,7 +1096,7 @@ void WebPageProxy::setIconLoadingClient(std::unique_ptr<API::IconLoadingClient>&
     send(Messages::WebPage::SetUseIconLoadingClient(hasClient));
 }
 
-void WebPageProxy::setPageLoadStateObserver(std::unique_ptr<PageLoadState::Observer>&& observer)
+void WebPageProxy::setPageLoadStateObserver(RefPtr<PageLoadState::Observer>&& observer)
 {
     if (m_pageLoadStateObserver)
         pageLoadState().removeObserver(*m_pageLoadStateObserver);
@@ -1297,6 +1297,8 @@ bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, Ref
 
     WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Suspending current page for process pid %i", m_legacyMainFrameProcess->processID());
     mainFrame->frameLoadState().didSuspend();
+    mainFrame->frameLoadState().removeObserver(internals().pageLoadTimingFrameLoadStateObserver);
+
     auto suspendedPage = makeUnique<SuspendedPageProxy>(*this, protectedLegacyMainFrameProcess(), mainFrame.releaseNonNull(), std::exchange(m_browsingContextGroup, BrowsingContextGroup::create()), shouldDelayClosingUntilFirstLayerFlush);
 
     LOG(ProcessSwapping, "WebPageProxy %" PRIu64 " created suspended page %s for process pid %i, back/forward item %s" PRIu64, identifier().toUInt64(), suspendedPage->loggingString().utf8().data(), m_legacyMainFrameProcess->processID(), fromItem ? fromItem->itemID().toString().utf8().data() : "0"_s);
@@ -1371,6 +1373,10 @@ void WebPageProxy::swapToProvisionalPage(std::unique_ptr<ProvisionalPageProxy> p
     setDrawingArea(provisionalPage->takeDrawingArea());
     ASSERT(!m_mainFrame);
     m_mainFrame = provisionalPage->mainFrame();
+
+    if (!m_preferences->siteIsolationEnabled())
+        m_mainFrame->frameLoadState().addObserver(internals().pageLoadTimingFrameLoadStateObserver);
+
     // FIXME: Think about what to do if the provisional page didn't get its browsing context group from the SuspendedPageProxy.
     // We do need to clear it at some point for navigations that aren't from back/forward navigations. Probably in the same place as PSON?
     setBrowsingContextGroup(provisionalPage->browsingContextGroup());
@@ -2412,7 +2418,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListItem
         ASSERT(m_preferences->siteIsolationEnabled());
         if (RefPtr processForIdentifier = WebProcessProxy::processForIdentifier(item.lastProcessIdentifier()))
             process = *processForIdentifier;
-        else if (auto* targetFrameState = item.frameID() ? item.pageState().mainFrameState.stateForFrameID(*item.frameID()) : nullptr) {
+        else if (auto* targetFrameState = item.frameID() ? item.mainFrameState().stateForFrameID(*item.frameID()) : nullptr) {
             if (&item != m_backForwardList->currentItem())
                 protectedBackForwardList()->goToItem(item);
             if (RefPtr frame = WebFrameProxy::webFrame(item.frameID())) {
@@ -4918,7 +4924,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         if (m_backForwardList->currentItem() && (navigation->lockBackForwardList() == LockBackForwardList::Yes || navigation->lockHistory() == LockHistory::Yes)) {
             // If WebCore is supposed to lock the history for this load, then the new process needs to know about the current history item so it can update
             // it instead of creating a new one.
-            m_provisionalPage->send(Messages::WebPage::SetCurrentHistoryItemForReattach(m_backForwardList->currentItem()->itemState()));
+            m_provisionalPage->send(Messages::WebPage::SetCurrentHistoryItemForReattach(m_backForwardList->currentItem()->mainFrameState()));
         }
 
         std::optional<WebsitePoliciesData> websitePoliciesData;
@@ -9048,15 +9054,15 @@ void WebPageProxy::requestDOMPasteAccess(DOMPasteAccessCategory pasteAccessCateg
 
 // BackForwardList
 
-void WebPageProxy::backForwardAddItem(FrameIdentifier targetFrameID, BackForwardListItemState&& itemState)
+void WebPageProxy::backForwardAddItem(FrameIdentifier targetFrameID, FrameState&& mainFrameState)
 {
-    backForwardAddItemShared(protectedLegacyMainFrameProcess(), targetFrameID, WTFMove(itemState), didLoadWebArchive() ? LoadedWebArchive::Yes : LoadedWebArchive::No);
+    backForwardAddItemShared(protectedLegacyMainFrameProcess(), targetFrameID, WTFMove(mainFrameState), didLoadWebArchive() ? LoadedWebArchive::Yes : LoadedWebArchive::No);
 }
 
-void WebPageProxy::backForwardAddItemShared(Ref<WebProcessProxy>&& process, FrameIdentifier targetFrameID, BackForwardListItemState&& itemState, LoadedWebArchive loadedWebArchive)
+void WebPageProxy::backForwardAddItemShared(Ref<WebProcessProxy>&& process, FrameIdentifier targetFrameID, FrameState&& mainFrameState, LoadedWebArchive loadedWebArchive)
 {
-    URL itemURL { itemState.pageState.mainFrameState.urlString };
-    URL itemOriginalURL { itemState.pageState.mainFrameState.originalURLString };
+    URL itemURL { mainFrameState.urlString };
+    URL itemOriginalURL { mainFrameState.originalURLString };
 #if PLATFORM(COCOA)
     if (linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::PushStateFilePathRestriction)
 #if PLATFORM(MAC)
@@ -9071,7 +9077,7 @@ void WebPageProxy::backForwardAddItemShared(Ref<WebProcessProxy>&& process, Fram
     }
 #endif
 
-    Ref item = WebBackForwardListItem::create(WTFMove(itemState), identifier());
+    Ref item = WebBackForwardListItem::create(WTFMove(mainFrameState), identifier());
     item->setResourceDirectoryURL(currentResourceDirectoryURL());
     item->setFrameID(targetFrameID);
     if (loadedWebArchive == LoadedWebArchive::Yes)
@@ -11495,7 +11501,7 @@ void WebPageProxy::microphoneMuteStatusChanged(bool isMuting)
     else
         mutedState.remove(WebCore::MediaProducerMutedState::AudioCaptureIsMuted);
 
-    setMuted(mutedState);
+    setMuted(mutedState, FromApplication::Yes);
 }
 
 void WebPageProxy::requestUserMediaPermissionForFrame(IPC::Connection& connection, UserMediaRequestIdentifier userMediaID, FrameIdentifier frameID, const SecurityOriginData& userMediaDocumentOriginData, const SecurityOriginData& topLevelDocumentOriginData, MediaStreamRequest&& request)
@@ -12458,11 +12464,14 @@ void WebPageProxy::getWebCryptoMasterKey(CompletionHandler<void(std::optional<Ve
 void WebPageProxy::wrapCryptoKey(Vector<uint8_t>&& key, CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&& completionHandler)
 {
     getWebCryptoMasterKey([key = WTFMove(key), completionHandler = WTFMove(completionHandler)](std::optional<Vector<uint8_t>> && masterKey) mutable {
-        if (masterKey) {
-            Vector<uint8_t> wrappedKey;
-            if (wrapSerializedCryptoKey(*masterKey, key, wrappedKey))
-                return completionHandler(WTFMove(wrappedKey));
-        }
+#if PLATFORM(COCOA)
+        if (!masterKey)
+            return completionHandler(std::nullopt);
+#endif
+        Vector<uint8_t> wrappedKey;
+        const Vector<uint8_t> blankMasterKey;
+        if (wrapSerializedCryptoKey(masterKey.value_or(blankMasterKey), key, wrappedKey))
+            return completionHandler(WTFMove(wrappedKey));
         completionHandler(std::nullopt);
     });
 }
@@ -12470,10 +12479,13 @@ void WebPageProxy::wrapCryptoKey(Vector<uint8_t>&& key, CompletionHandler<void(s
 void WebPageProxy::unwrapCryptoKey(WrappedCryptoKey&& wrappedKey, CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&& completionHandler)
 {
     getWebCryptoMasterKey([wrappedKey = WTFMove(wrappedKey), completionHandler = WTFMove(completionHandler)](std::optional<Vector<uint8_t>> && masterKey) mutable {
-        if (masterKey) {
-            if (auto key = WebCore::unwrapCryptoKey(*masterKey, wrappedKey))
-                return completionHandler(WTFMove(key));
-        }
+#if PLATFORM(COCOA)
+        if (!masterKey)
+            return completionHandler(std::nullopt);
+#endif
+        const Vector<uint8_t> blankMasterKey;
+        if (auto key = WebCore::unwrapCryptoKey(masterKey.value_or(blankMasterKey), wrappedKey))
+            return completionHandler(WTFMove(key));
         completionHandler(std::nullopt);
     });
 
@@ -14010,9 +14022,9 @@ Logger& WebPageProxy::logger()
     return *m_logger;
 }
 
-const void* WebPageProxy::logIdentifier() const
+uint64_t WebPageProxy::logIdentifier() const
 {
-    return reinterpret_cast<const void*>(intHash(identifier().toUInt64()));
+    return intHash(identifier().toUInt64());
 }
 
 void WebPageProxy::configureLoggingChannel(const String& channelName, WTFLogChannelState state, WTFLogLevel level)

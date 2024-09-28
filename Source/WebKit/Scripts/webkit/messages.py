@@ -1104,7 +1104,6 @@ def headers_for_type(type):
         'WebKit::AllowOverwrite': ['"DownloadID.h"'],
         'WebKit::AppPrivacyReportTestingData': ['"AppPrivacyReport.h"'],
         'WebKit::AuthenticationChallengeIdentifier': ['"IdentifierTypes.h"'],
-        'WebKit::BackForwardListItemState': ['"SessionState.h"'],
         'WebKit::BufferInSetType': ['"BufferIdentifierSet.h"'],
         'WebKit::CallDownloadDidStart': ['"DownloadManager.h"'],
         'WebKit::ConsumerSharedCARingBufferHandle': ['"SharedCARingBuffer.h"'],
@@ -1113,6 +1112,7 @@ def headers_for_type(type):
         'WebKit::DrawingAreaIdentifier': ['"DrawingAreaInfo.h"'],
         'WebKit::FindDecorationStyle': ['"WebFindOptions.h"'],
         'WebKit::FindOptions': ['"WebFindOptions.h"'],
+        'WebKit::FrameState': ['"SessionState.h"'],
         'WebKit::GestureRecognizerState': ['"GestureTypes.h"'],
         'WebKit::GestureType': ['"GestureTypes.h"'],
         'WebKit::SnapshotOption': ['"ImageOptions.h"'],
@@ -1121,7 +1121,6 @@ def headers_for_type(type):
         'WebKit::LayerHostingMode': ['"LayerTreeContext.h"'],
         'WebKit::MediaTimeUpdateData': ['"MediaPlayerPrivateRemote.h"'],
         'WebKit::PageGroupIdentifier': ['"IdentifierTypes.h"'],
-        'WebKit::PageState': ['"SessionState.h"'],
         'WebKit::PaymentSetupConfiguration': ['"PaymentSetupConfigurationWebKit.h"'],
         'WebKit::PaymentSetupFeatures': ['"ApplePayPaymentSetupFeaturesWebKit.h"'],
         'WebKit::ImageBufferSetPrepareBufferForDisplayInputData': ['"PrepareBackingStoreBuffersData.h"'],
@@ -1316,7 +1315,7 @@ def generate_enabled_by_for_receiver(receiver, messages, ignore_invalid_message_
     enabled_by = receiver.receiver_enabled_by
     enabled_by_conjunction = receiver.receiver_enabled_by_conjunction
     shared_preferences_retrieval = [
-        '    auto& sharedPreferences = sharedPreferencesForWebProcess(%s);\n' % ('connection' if receiver.shared_preferences_needs_connection else ''),
+        '    auto sharedPreferences = sharedPreferencesForWebProcess(%s);\n' % ('connection' if receiver.shared_preferences_needs_connection else ''),
         '    UNUSED_VARIABLE(sharedPreferences);\n'
     ]
     if not enabled_by:

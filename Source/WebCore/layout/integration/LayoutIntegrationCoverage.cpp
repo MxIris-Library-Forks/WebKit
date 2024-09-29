@@ -64,7 +64,7 @@ enum class AvoidanceReason : uint32_t {
     FlexBoxHasUnsupportedRowGap         = 1U << 10,
     FlexBoxHasUnsupportedColumnGap      = 1U << 11,
     FlexBoxHasUnsupportedTypeOfRenderer = 1U << 12,
-    FlexBoxHasFloatChild                = 1U << 13,
+    FlexBoxHasMarginTrim                = 1U << 13,
     FlexBoxHasOutOfFlowChild            = 1U << 14,
     FlexBoxHasSVGChild                  = 1U << 15,
     FlexBoxHasNestedFlex                = 1U << 16,
@@ -126,7 +126,7 @@ static OptionSet<AvoidanceReason> canUseForFlexLayoutWithReason(const RenderFlex
     if (flexBoxStyle.logicalHeight().isPercent())
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHeightIsPercent, reasons, includeReasons);
 
-    if (flexBoxStyle.overflowY() == Overflow::Scroll || flexBoxStyle.overflowY() == Overflow::Auto)
+    if (flexBoxStyle.overflowX() == Overflow::Scroll || flexBoxStyle.overflowY() == Overflow::Scroll || flexBoxStyle.overflowX() == Overflow::Auto || flexBoxStyle.overflowY() == Overflow::Auto)
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasUnsupportedOverflow, reasons, includeReasons);
 
     auto alignItemValue = flexBoxStyle.alignItems().position();
@@ -142,12 +142,12 @@ static OptionSet<AvoidanceReason> canUseForFlexLayoutWithReason(const RenderFlex
     if (!flexBoxStyle.columnGap().isNormal())
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasUnsupportedColumnGap, reasons, includeReasons);
 
+    if (flexBoxStyle.marginTrim() != RenderStyle::initialMarginTrim())
+        ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasMarginTrim, reasons, includeReasons);
+
     for (auto& flexItem : childrenOfType<RenderElement>(flexBox)) {
         if (!is<RenderBlock>(flexItem) || flexItem.isFieldset() || flexItem.isRenderTextControl() || flexItem.isRenderTable())
             ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasUnsupportedTypeOfRenderer, reasons, includeReasons);
-
-        if (flexItem.isFloating())
-            ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasFloatChild, reasons, includeReasons);
 
         if (flexItem.isOutOfFlowPositioned())
             ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasOutOfFlowChild, reasons, includeReasons);
@@ -180,7 +180,7 @@ static OptionSet<AvoidanceReason> canUseForFlexLayoutWithReason(const RenderFlex
         if (flexItemStyle.containsSize())
             ADD_REASON_AND_RETURN_IF_NEEDED(FlexItemHasContainsSize, reasons, includeReasons);
 
-        if (flexItemStyle.overflowX() == Overflow::Scroll || flexItemStyle.overflowY() == Overflow::Scroll)
+        if (flexItemStyle.overflowX() == Overflow::Scroll || flexItemStyle.overflowY() == Overflow::Scroll || flexItemStyle.overflowX() == Overflow::Auto || flexItemStyle.overflowY() == Overflow::Auto)
             ADD_REASON_AND_RETURN_IF_NEEDED(FlexItemHasUnsupportedOverflow, reasons, includeReasons);
 
         if (flexItem.hasIntrinsicAspectRatio() || flexItemStyle.hasAspectRatio())
@@ -265,8 +265,8 @@ static void printReason(AvoidanceReason reason, TextStream& stream)
     case AvoidanceReason::FlexBoxHasUnsupportedTypeOfRenderer:
         stream << "flex box has unsupported flex item renderer e.g. fieldset";
         break;
-    case AvoidanceReason::FlexBoxHasFloatChild:
-        stream << "flex box has floating child";
+    case AvoidanceReason::FlexBoxHasMarginTrim:
+        stream << "flex box has non-initial margin-trim";
         break;
     case AvoidanceReason::FlexBoxHasOutOfFlowChild:
         stream << "flex box has out-of-flow child";

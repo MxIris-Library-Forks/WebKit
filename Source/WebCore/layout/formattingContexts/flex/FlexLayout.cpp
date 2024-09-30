@@ -356,7 +356,7 @@ FlexLayout::SizeList FlexLayout::computeMainSizeForFlexItems(const LogicalFlexIt
                 usedTotalFactor += shouldUseFlexGrowFactor ? flexItems[nonFrozenIndex].growFactor() : flexItems[nonFrozenIndex].shrinkFactor() * flexBaseAndHypotheticalMainSizeList[nonFrozenIndex].flexBase;
 
             for (auto nonFrozenIndex : nonFrozenSet) {
-                if (!usedTotalFactor) {
+                if (!usedTotalFactor || std::isinf(usedTotalFactor)) {
                     mainSizeList[nonFrozenIndex] = flexBaseAndHypotheticalMainSizeList[nonFrozenIndex].flexBase;
                     continue;
                 }
@@ -757,6 +757,13 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleCrossAxisAlignmentForFlexIt
 
                 auto& flexItemAlignSelf = flexItem.style().alignSelf();
                 auto alignValue = flexItemAlignSelf.position() != ItemPosition::Auto ? flexItemAlignSelf : flexContainerStyle().alignItems();
+                auto setFallbackValuesIfApplicable = [&] {
+                    if (flexItemOuterCrossSize <= flexLinesCrossSizeList[lineIndex] || flexItemAlignSelf.overflow() != OverflowAlignment::Safe)
+                        return;
+                    alignValue.setPosition(ItemPosition::FlexStart);
+                };
+                setFallbackValuesIfApplicable();
+
                 switch (alignValue.position()) {
                 case ItemPosition::Stretch:
                 case ItemPosition::Normal:

@@ -4718,6 +4718,7 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 
 #if PLATFORM(IOS_FAMILY)
     setForceAlwaysUserScalable(m_forceAlwaysUserScalable || store.getBoolValueForKey(WebPreferencesKey::forceAlwaysUserScalableKey()));
+    m_selectionHonorsOverflowScrolling = store.getBoolValueForKey(WebPreferencesKey::selectionHonorsOverflowScrollingKey());
 #endif
 
     if (store.getBoolValueForKey(WebPreferencesKey::serviceWorkerEntitlementDisabledForTestingKey()))
@@ -4797,11 +4798,6 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 
 #if ENABLE(VP9)
     PlatformMediaSessionManager::setSWVPDecodersAlwaysEnabled(store.getBoolValueForKey(WebPreferencesKey::sWVPDecodersAlwaysEnabledKey()));
-#endif
-
-#if USE(AUDIO_SESSION)
-    if (store.getBoolValueForKey(WebPreferencesKey::mediaPlaybackEnabledKey()))
-        AudioSession::sharedSession().setEnabled(true);
 #endif
 
     // FIXME: This should be automated by adding a new field in WebPreferences*.yaml

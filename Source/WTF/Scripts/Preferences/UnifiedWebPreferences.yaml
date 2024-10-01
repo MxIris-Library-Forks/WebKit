@@ -3400,17 +3400,17 @@ ImageAnimationControlEnabled:
 
 ImageCaptureEnabled:
   type: bool
-  status: testable
+  status: stable
   category: media
   humanReadableName: "Image Capture API"
   humanReadableDescription: "Enable Image Capture API"
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
-    WebKitLegacy:
-      default: false
     WebKit:
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
+      "PLATFORM(COCOA)": true
       default: false
 
 ImageControlsEnabled:
@@ -4671,8 +4671,6 @@ MediaDevicesEnabled:
 MediaEnabled:
   type: bool
   status: embedder
-  humanReadableName: "HTML Media Elements"
-  humanReadableDescription: "Enable HTML media elements <audio>, <video> and <track>"
   condition: ENABLE(VIDEO)
   defaultValue:
     WebKitLegacy:
@@ -4681,20 +4679,6 @@ MediaEnabled:
       default: true
     WebCore:
       default: true
-
-MediaPlaybackEnabled:
-  type: bool
-  status: embedder
-  humanReadableName: "Media Playback Functionalities"
-  humanReadableDescription: "Enable media playback functionalities"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-  sharedPreferenceForWebProcess: true
 
 MediaPreferredFullscreenWidth:
   type: double
@@ -5491,6 +5475,7 @@ PeerConnectionEnabled:
     WebCore:
       default: true
   disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 PeerConnectionVideoScalingAdaptationDisabled:
   type: bool
@@ -6368,6 +6353,18 @@ SelectionFlippingEnabled:
     WebKit:
       "PLATFORM(VISION)" : false
       default: true
+
+SelectionHonorsOverflowScrolling:
+  type: bool
+  status: internal
+  humanReadableName: "Selection Honors Overflow Scrolling"
+  humanReadableDescription: "Selection honors overflow scrolling"
+  webcoreBinding: none
+  condition: PLATFORM(IOS_FAMILY)
+  exposed: [ WebKit ]
+  defaultValue:
+    WebKit:
+      default: false
 
 SendMouseEventsToDisabledFormControlsEnabled:
   type: bool
@@ -8131,6 +8128,7 @@ WebCodecsVideoEnabled:
       "USE(GSTREAMER)": true
       default: false
   disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 WebCryptoSafeCurvesEnabled:
   type: bool
@@ -8398,6 +8396,21 @@ WebRTCH265CodecEnabled:
       default: false
     WebCore:
       "PLATFORM(COCOA)": true
+      default: false
+
+WebRTCL4SEnabled:
+  type: bool
+  status: testable
+  category: media
+  condition: ENABLE(WEB_RTC)
+  humanReadableName: "WebRTC L4S support"
+  humanReadableDescription: "Enable WebRTC L4S support"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
       default: false
 
 WebRTCMediaPipelineAdditionalLoggingEnabled:

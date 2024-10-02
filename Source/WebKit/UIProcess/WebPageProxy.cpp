@@ -3124,7 +3124,7 @@ void WebPageProxy::waitForDidUpdateActivityState(ActivityStateChangeID activityS
 
     m_waitingForDidUpdateActivityState = true;
 
-    m_drawingArea->waitForDidUpdateActivityState(activityStateChangeID, protectedLegacyMainFrameProcess());
+    m_drawingArea->waitForDidUpdateActivityState(activityStateChangeID);
 }
 
 IntSize WebPageProxy::viewSize() const
@@ -4907,6 +4907,10 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
 
     Ref browsingContextGroup = newProcess->websiteDataStore() == &websiteDataStore() ? m_browsingContextGroup : BrowsingContextGroup::create();
     Ref frameProcess = browsingContextGroup->ensureProcessForSite(navigationSite, newProcess, preferences());
+    // Make sure we destroy any existing ProvisionalPageProxy object *before* we construct a new one.
+    // It is important from the previous provisional page to unregister itself before we register a
+    // new one to avoid confusion.
+    m_provisionalPage = nullptr;
     m_provisionalPage = makeUnique<ProvisionalPageProxy>(*this, WTFMove(frameProcess), WTFMove(browsingContextGroup), WTFMove(suspendedPage), navigation, isServerSideRedirect, navigation.currentRequest(), processSwapRequestedByClient, isProcessSwappingOnNavigationResponse, websitePolicies.get(), replacedDataStoreForWebArchiveLoad);
 
     // FIXME: This should be a CompletionHandler, but http/tests/inspector/target/provisional-load-cancels-previous-load.html doesn't call it.
@@ -5233,8 +5237,10 @@ void WebPageProxy::scalePage(double scale, const IntPoint& origin, CompletionHan
 
     m_pageScaleFactor = scale;
 
-    if (!hasRunningProcess())
+    if (!hasRunningProcess()) {
+        completionHandler();
         return;
+    }
 
     send(Messages::WebPage::DidScalePage(scale, origin));
     forEachWebContentProcess([&] (auto& process, auto pageID) {
@@ -6729,7 +6735,7 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
         m_hasUpdatedRenderingAfterDidCommitLoad = false;
 #if PLATFORM(COCOA)
         if (auto* drawingAreaProxy = dynamicDowncast<RemoteLayerTreeDrawingAreaProxy>(*m_drawingArea))
-            internals().firstLayerTreeTransactionIdAfterDidCommitLoad = drawingAreaProxy->nextLayerTreeTransactionID();
+            internals().firstLayerTreeTransactionIdAfterDidCommitLoad = drawingAreaProxy->nextMainFrameLayerTreeTransactionID();
 #endif
         internals().pageAllowedToRunInTheBackgroundActivityDueToTitleChanges = nullptr;
         internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = nullptr;
@@ -11526,13 +11532,17 @@ void WebPageProxy::willStartCapture(UserMediaPermissionRequestProxy& request, Co
 
 void WebPageProxy::microphoneMuteStatusChanged(bool isMuting)
 {
+    // We are updating both the internal and web app muting states so that only microphone changes, and not camera or screenshare.
     auto mutedState = internals().mutedState;
-    if (isMuting)
+    if (isMuting) {
         mutedState.add(WebCore::MediaProducerMutedState::AudioCaptureIsMuted);
-    else
+        m_mutedCaptureKindsDesiredByWebApp.add(WebCore::MediaProducerMediaCaptureKind::Microphone);
+    } else {
         mutedState.remove(WebCore::MediaProducerMutedState::AudioCaptureIsMuted);
+        m_mutedCaptureKindsDesiredByWebApp.remove(WebCore::MediaProducerMediaCaptureKind::Microphone);
+    }
 
-    setMuted(mutedState, FromApplication::Yes);
+    setMuted(mutedState, FromApplication::No);
 }
 
 void WebPageProxy::requestUserMediaPermissionForFrame(IPC::Connection& connection, UserMediaRequestIdentifier userMediaID, FrameIdentifier frameID, const SecurityOriginData& userMediaDocumentOriginData, const SecurityOriginData& topLevelDocumentOriginData, MediaStreamRequest&& request)

@@ -83,6 +83,7 @@
 #import "WKTimePickerViewController.h"
 #import "WKTouchEventsGestureRecognizer.h"
 #import "WKUIDelegatePrivate.h"
+#import "WKVelocityTrackingScrollView.h"
 #import "WKWebViewConfiguration.h"
 #import "WKWebViewConfigurationPrivate.h"
 #import "WKWebViewIOS.h"
@@ -3246,7 +3247,16 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         if (outBoundingRect)
             outBoundingRect->unite(rect);
     }
-    return pointIsInSelectionRect;
+
+    if (!pointIsInSelectionRect)
+        return NO;
+
+    RetainPtr hitView = [self hitTest:point withEvent:nil];
+    if (!hitView)
+        return NO;
+
+    RetainPtr selectionContainer = [self _selectionContainerScrollView];
+    return hitView == selectionContainer || [selectionContainer _wk_isAncestorOf:hitView.get()];
 }
 
 - (BOOL)_shouldToggleSelectionCommandsAfterTapAt:(CGPoint)point
@@ -3311,9 +3321,13 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         return shouldAcknowledgeTap(_singleTapGestureRecognizer.get());
 
     if (gestureRecognizer == _keyboardDismissalGestureRecognizer) {
+        auto tapIsInEditableRoot = [&] {
+            auto& state = _page->editorState();
+            return state.hasVisualData() && state.visualData->editableRootBounds.contains(WebCore::roundedIntPoint(point));
+        };
         return self._hasFocusedElement
             && !self.hasHiddenContentEditable
-            && !CGRectContainsPoint(self.selectionClipRect, point)
+            && !tapIsInEditableRoot()
             && shouldAcknowledgeTap(_keyboardDismissalGestureRecognizer.get());
     }
 
@@ -8866,7 +8880,7 @@ static bool canUseQuickboardControllerFor(UITextContentType type)
             editableRootIsTransparentOrFullyClipped = YES;
 
         if (self._hasFocusedElement) {
-            auto elementArea = visualData.selectionClipRect.area<RecordOverflow>();
+            auto elementArea = visualData.editableRootBounds.area<RecordOverflow>();
             if (!elementArea.hasOverflowed() && elementArea < minimumFocusedElementAreaForSuppressingSelectionAssistant)
                 focusedElementIsTooSmall = YES;
         }
@@ -13615,27 +13629,29 @@ static inline WKTextAnimationType toWKTextAnimationType(WebCore::TextAnimationTy
     return self._selectionContainerViewInternal;
 }
 
-- (UIView *)_selectionContainerViewInternal
+- (WKBaseScrollView *)_selectionContainerScrollView
 {
     if (!self.selectionHonorsOverflowScrolling)
-        return self;
+        return [_webView _scrollViewInternal];
 
     if (!_page->editorState().hasVisualData())
-        return self;
+        return [_webView _scrollViewInternal];
 
     auto scrollingNodeID = _page->editorState().visualData->enclosingScrollingNodeID;
     if (!scrollingNodeID)
-        return self;
+        return [_webView _scrollViewInternal];
 
     WeakPtr coordinator = _page->scrollingCoordinatorProxy();
     if (UNLIKELY(!coordinator))
-        return self;
+        return [_webView _scrollViewInternal];
 
     RetainPtr scrollView = downcast<WebKit::RemoteScrollingCoordinatorProxyIOS>(*coordinator).scrollViewForScrollingNodeID(*scrollingNodeID);
-    if (scrollView == self._scroller)
-        return self;
+    return dynamic_objc_cast<WKBaseScrollView>(scrollView.get());
+}
 
-    return dynamic_objc_cast<WKBaseScrollView>(scrollView.get()).scrolledContentView ?: self;
+- (UIView *)_selectionContainerViewInternal
+{
+    return self._selectionContainerScrollView.scrolledContentView ?: self;
 }
 
 @end

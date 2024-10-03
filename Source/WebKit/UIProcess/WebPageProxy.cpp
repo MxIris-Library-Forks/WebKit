@@ -9091,15 +9091,15 @@ void WebPageProxy::requestDOMPasteAccess(DOMPasteAccessCategory pasteAccessCateg
 
 // BackForwardList
 
-void WebPageProxy::backForwardAddItem(FrameIdentifier targetFrameID, FrameState&& mainFrameState)
+void WebPageProxy::backForwardAddItem(FrameIdentifier targetFrameID, Ref<FrameState>&& mainFrameState)
 {
     backForwardAddItemShared(protectedLegacyMainFrameProcess(), targetFrameID, WTFMove(mainFrameState), didLoadWebArchive() ? LoadedWebArchive::Yes : LoadedWebArchive::No);
 }
 
-void WebPageProxy::backForwardAddItemShared(Ref<WebProcessProxy>&& process, FrameIdentifier targetFrameID, FrameState&& mainFrameState, LoadedWebArchive loadedWebArchive)
+void WebPageProxy::backForwardAddItemShared(Ref<WebProcessProxy>&& process, FrameIdentifier targetFrameID, Ref<FrameState>&& mainFrameState, LoadedWebArchive loadedWebArchive)
 {
-    URL itemURL { mainFrameState.urlString };
-    URL itemOriginalURL { mainFrameState.originalURLString };
+    URL itemURL { mainFrameState->urlString };
+    URL itemOriginalURL { mainFrameState->originalURLString };
 #if PLATFORM(COCOA)
     if (linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::PushStateFilePathRestriction)
 #if PLATFORM(MAC)
@@ -14793,6 +14793,11 @@ void WebPageProxy::isLoadingChanged()
 GeolocationPermissionRequestManagerProxy& WebPageProxy::geolocationPermissionRequestManager()
 {
     return internals().geolocationPermissionRequestManager;
+}
+
+Ref<GeolocationPermissionRequestManagerProxy> WebPageProxy::protectedGeolocationPermissionRequestManager()
+{
+    return geolocationPermissionRequestManager();
 }
 
 ScrollPinningBehavior WebPageProxy::scrollPinningBehavior() const

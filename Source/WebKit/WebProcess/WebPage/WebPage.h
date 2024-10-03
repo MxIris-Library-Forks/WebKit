@@ -1519,7 +1519,7 @@ public:
     void getTextFragmentMatch(CompletionHandler<void(const String&)>&&);
 
 #if USE(WPE_RENDERER)
-    int hostFileDescriptor() const { return m_hostFileDescriptor.value(); }
+    UnixFileDescriptor hostFileDescriptor() const { return m_hostFileDescriptor.duplicate(); }
 #endif
 
     void updateCurrentModifierState(OptionSet<WebCore::PlatformEvent::Modifier> modifiers);
@@ -1870,7 +1870,7 @@ private:
     void clearSelectionAfterTapIfNeeded();
     void scheduleLayoutViewportHeightExpansionUpdate();
     void scheduleEditorStateUpdateAfterAnimationIfNeeded(const WebCore::Element&);
-    void computeSelectionClipRect(EditorState&, const WebCore::VisibleSelection&, const WebCore::Element* editableRootOrFormControl) const;
+    void computeSelectionClipRectAndEnclosingScroller(EditorState&, const WebCore::VisibleSelection&, const WebCore::IntRect& editableRootBounds) const;
 #endif // PLATFORM(IOS_FAMILY)
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
@@ -2005,11 +2005,11 @@ private:
     void loadDataInFrame(std::span<const uint8_t>, String&& MIMEType, String&& encodingName, URL&& baseURL, WebCore::FrameIdentifier);
 
     enum class WasRestoredByAPIRequest : bool { No, Yes };
-    void restoreSessionInternal(const Vector<FrameState>&, WasRestoredByAPIRequest, WebBackForwardListProxy::OverwriteExistingItem);
-    void restoreSession(const Vector<FrameState>&);
+    void restoreSessionInternal(const Vector<Ref<FrameState>>&, WasRestoredByAPIRequest, WebBackForwardListProxy::OverwriteExistingItem);
+    void restoreSession(const Vector<Ref<FrameState>>&);
     void didRemoveBackForwardItem(const WebCore::BackForwardItemIdentifier&);
-    void updateBackForwardListForReattach(const Vector<FrameState>&);
-    void setCurrentHistoryItemForReattach(FrameState&&);
+    void updateBackForwardListForReattach(const Vector<Ref<FrameState>>&);
+    void setCurrentHistoryItemForReattach(Ref<FrameState>&&);
 
     void requestFontAttributesAtSelectionStart(CompletionHandler<void(const WebCore::FontAttributes&)>&&);
 

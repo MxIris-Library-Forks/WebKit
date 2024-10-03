@@ -198,7 +198,7 @@ messages -> WebPageProxy {
 #endif
 
     # BackForward messages
-    BackForwardAddItem(WebCore::FrameIdentifier targetFrameID, WebKit::FrameState mainFrameState)
+    BackForwardAddItem(WebCore::FrameIdentifier targetFrameID, Ref<WebKit::FrameState> mainFrameState)
     BackForwardGoToItem(WebCore::BackForwardItemIdentifier itemID) -> (struct WebKit::WebBackForwardListCounts counts) Synchronous
     BackForwardItemAtIndex(int32_t itemIndex) -> (std::optional<WebCore::BackForwardItemIdentifier> itemID) Synchronous
     BackForwardListContainsItem(WebCore::BackForwardItemIdentifier itemID) -> (bool contains) Synchronous
@@ -613,7 +613,7 @@ messages -> WebPageProxy {
 #endif
 
 #if USE(SYSTEM_PREVIEW)
-    BeginSystemPreview(URL url, WebCore::SecurityOriginData topOrigin, struct WebCore::SystemPreviewInfo systemPreviewInfo) -> ()
+    [EnabledBy=SystemPreviewEnabled] BeginSystemPreview(URL url, WebCore::SecurityOriginData topOrigin, struct WebCore::SystemPreviewInfo systemPreviewInfo) -> ()
 #endif
 
     DidCreateSleepDisabler(WebCore::SleepDisablerIdentifier identifier, String reason, bool display)

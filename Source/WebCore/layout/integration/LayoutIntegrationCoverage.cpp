@@ -57,7 +57,7 @@ enum class AvoidanceReason : uint32_t {
     FlexBoxIsVertical                   = 1U << 3,
     FlexBoxIsRTL                        = 1U << 4,
     FlexBoxHasColumnDirection           = 1U << 5,
-    FlexBoxHeightIsPercent              = 1U << 6,
+    // Unused                           = 1U << 6,
     FlexBoxHasUnsupportedOverflow       = 1U << 7,
     FlexBoxHasUnsupportedAlignItems     = 1U << 8,
     FlexBoxHasUnsupportedAlignContent   = 1U << 9,
@@ -72,8 +72,8 @@ enum class AvoidanceReason : uint32_t {
     FlexItemIsRTL                       = 1U << 18,
     FlexItemHasNonFixedHeight           = 1U << 19,
     FlexItemHasUnsupportedFlexBasis     = 1U << 20,
-    FlexItemHasUnsupportedFlexShrink    = 1U << 21,
-    FlexItemHasUnsupportedFlexGrow      = 1U << 22,
+    // Unused                           = 1U << 21,
+    // Unused                           = 1U << 22,
     FlexItemHasContainsSize             = 1U << 23,
     FlexItemHasUnsupportedOverflow      = 1U << 24,
     FlexItemHasAspectRatio              = 1U << 25,
@@ -128,9 +128,6 @@ static OptionSet<AvoidanceReason> canUseForFlexLayoutWithReason(const RenderFlex
     if (flexBoxStyle.flexDirection() == FlexDirection::Column || flexBoxStyle.flexDirection() == FlexDirection::ColumnReverse)
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasColumnDirection, reasons, includeReasons);
 
-    if (flexBoxStyle.logicalHeight().isPercent())
-        ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHeightIsPercent, reasons, includeReasons);
-
     if (mayHaveScrollbarOrScrollableOverflow(flexBoxStyle))
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasUnsupportedOverflow, reasons, includeReasons);
 
@@ -138,7 +135,7 @@ static OptionSet<AvoidanceReason> canUseForFlexLayoutWithReason(const RenderFlex
     if (alignItemValue == ItemPosition::Baseline || alignItemValue == ItemPosition::LastBaseline || alignItemValue == ItemPosition::SelfStart || alignItemValue == ItemPosition::SelfEnd)
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasUnsupportedAlignItems, reasons, includeReasons);
 
-    if (flexBoxStyle.alignContent().position() != ContentPosition::Normal || flexBoxStyle.alignContent().distribution() != ContentDistribution::Default || flexBoxStyle.alignContent().overflow() != OverflowAlignment::Default)
+    if (flexBoxStyle.alignContent().distribution() != ContentDistribution::Default || flexBoxStyle.alignContent().overflow() != OverflowAlignment::Default)
         ADD_REASON_AND_RETURN_IF_NEEDED(FlexBoxHasUnsupportedAlignContent, reasons, includeReasons);
 
     if (!flexBoxStyle.rowGap().isNormal())
@@ -175,12 +172,6 @@ static OptionSet<AvoidanceReason> canUseForFlexLayoutWithReason(const RenderFlex
 
         if (!flexItemStyle.flexBasis().isAuto() && !flexItemStyle.flexBasis().isFixed())
             ADD_REASON_AND_RETURN_IF_NEEDED(FlexItemHasUnsupportedFlexBasis, reasons, includeReasons);
-
-        if (flexItemStyle.flexShrink() > 0 && flexItemStyle.flexShrink() < 1)
-            ADD_REASON_AND_RETURN_IF_NEEDED(FlexItemHasUnsupportedFlexShrink, reasons, includeReasons);
-
-        if (flexItemStyle.flexGrow() > 0 && flexItemStyle.flexGrow() < 1)
-            ADD_REASON_AND_RETURN_IF_NEEDED(FlexItemHasUnsupportedFlexGrow, reasons, includeReasons);
 
         if (flexItemStyle.containsSize())
             ADD_REASON_AND_RETURN_IF_NEEDED(FlexItemHasContainsSize, reasons, includeReasons);
@@ -249,9 +240,6 @@ static void printReason(AvoidanceReason reason, TextStream& stream)
     case AvoidanceReason::FlexBoxHasColumnDirection:
         stream << "flex box has column direction";
         break;
-    case AvoidanceReason::FlexBoxHeightIsPercent:
-        stream << "flex box's height is percent";
-        break;
     case AvoidanceReason::FlexBoxHasUnsupportedOverflow:
         stream << "flex box has non-hidden overflow";
         break;
@@ -293,12 +281,6 @@ static void printReason(AvoidanceReason reason, TextStream& stream)
         break;
     case AvoidanceReason::FlexItemHasUnsupportedFlexBasis:
         stream << "flex item has unsupported flex-basis value";
-        break;
-    case AvoidanceReason::FlexItemHasUnsupportedFlexShrink:
-        stream << "flex item has unsupported flex-shrink value";
-        break;
-    case AvoidanceReason::FlexItemHasUnsupportedFlexGrow:
-        stream << "flex item has unsupported flex-grow value";
         break;
     case AvoidanceReason::FlexItemHasContainsSize:
         stream << "flex item has contains: size";

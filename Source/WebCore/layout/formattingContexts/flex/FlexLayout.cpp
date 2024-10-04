@@ -596,35 +596,38 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleMainAxisAlignment(LayoutUni
         };
         resolveMarginAuto();
 
-        auto justifyContentValue = flexContainerStyle().justifyContent().distribution();
-        auto positionalAlignmentValue = flexContainerStyle().justifyContent().position();
+        auto& justifyContentValue = flexContainerStyle().justifyContent();
+        auto justifyContentDistribution = justifyContentValue.distribution();
+        auto justifyContentPosition = justifyContentValue.position();
 
         auto setFallbackValuesIfApplicable = [&] {
             auto itemCount = lineRange.distance();
             auto hasOverflow = lineContentOuterMainSize > availableMainSpace;
             if (!hasOverflow && itemCount > 1)
                 return;
-            switch (justifyContentValue) {
+
+            switch (justifyContentDistribution) {
             case ContentDistribution::SpaceBetween:
-                positionalAlignmentValue = hasOverflow ? ContentPosition::Start : ContentPosition::FlexStart;
+                justifyContentPosition = hasOverflow ? ContentPosition::Start : ContentPosition::FlexStart;
                 break;
             case ContentDistribution::SpaceEvenly:
             case ContentDistribution::SpaceAround:
-                positionalAlignmentValue = hasOverflow ? ContentPosition::Start : ContentPosition::Center;
+                justifyContentPosition = hasOverflow ? ContentPosition::Start : ContentPosition::Center;
                 break;
             default:
                 break;
             }
-            justifyContentValue = ContentDistribution::Default;
+            justifyContentPosition = justifyContentValue.overflow() == OverflowAlignment::Safe && hasOverflow ? ContentPosition::Start : justifyContentPosition;
+            justifyContentDistribution = ContentDistribution::Default;
         };
         setFallbackValuesIfApplicable();
 
         auto justifyContent = [&] {
             // 2. Align the items along the main-axis per justify-content.
             auto initialOffset = [&] {
-                // ContentDistribution::Default handles fallback to justifyContentValue.position()
-                if (justifyContentValue != ContentDistribution::Default) {
-                    switch (justifyContentValue) {
+                // ContentDistribution::Default handles fallback to justifyContentPosition
+                if (justifyContentDistribution != ContentDistribution::Default) {
+                    switch (justifyContentDistribution) {
                     case ContentDistribution::SpaceBetween:
                         return LayoutUnit { };
                     case ContentDistribution::SpaceAround:
@@ -637,7 +640,7 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleMainAxisAlignment(LayoutUni
                     }
                 }
 
-                switch (positionalAlignmentValue) {
+                switch (justifyContentPosition) {
                 // logical alignments
                 case ContentPosition::Normal:
                 case ContentPosition::FlexStart:
@@ -666,7 +669,7 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleMainAxisAlignment(LayoutUni
             };
 
             auto gapBetweenItems = [&] {
-                switch (justifyContentValue) {
+                switch (justifyContentDistribution) {
                 case ContentDistribution::Default:
                     return LayoutUnit { };
                 case ContentDistribution::SpaceBetween:
@@ -734,12 +737,12 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleCrossAxisAlignmentForFlexIt
                         else
                             marginEnd = extraCrossSpace;
                     } else {
-                        auto marginCrossSpace = flexLinesCrossSizeList[lineIndex] - flexItemsCrossSizeList[flexItemIndex];
+                        auto marginCrossSpace = flexLinesCrossSizeList[lineIndex] - flexItemOuterCrossSize;
                         auto setMargins = [&](auto startValue, auto endValue) {
                             marginStart = startValue;
                             marginEnd = endValue;
                         };
-                        marginStart ? setMargins(marginCrossSpace, 0_lu) : setMargins(0_lu, marginCrossSpace);
+                        !marginStart ? setMargins(0_lu, marginCrossSpace) : setMargins(marginCrossSpace, 0_lu);
                     }
                 }
                 crossPositionAndMargins[flexItemIndex].marginStart = *marginStart;
@@ -755,16 +758,15 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleCrossAxisAlignmentForFlexIt
                 auto flexItemOuterCrossSize = outerCrossSize(flexItem, flexItemsCrossSizeList[flexItemIndex], crossPositionAndMargins[flexItemIndex].margin());
                 auto flexItemOuterCrossPosition = LayoutUnit { };
 
-                auto& flexItemAlignSelf = flexItem.style().alignSelf();
-                auto alignValue = flexItemAlignSelf.position() != ItemPosition::Auto ? flexItemAlignSelf : flexContainerStyle().alignItems();
+                auto& flexItemAlign = flexItem.style().alignSelf().position() != ItemPosition::Auto ? flexItem.style().alignSelf() : flexContainerStyle().alignItems();
+                auto alignSelfPosition = flexItemAlign.position();
                 auto setFallbackValuesIfApplicable = [&] {
-                    if (flexItemOuterCrossSize <= flexLinesCrossSizeList[lineIndex] || flexItemAlignSelf.overflow() != OverflowAlignment::Safe)
-                        return;
-                    alignValue.setPosition(ItemPosition::FlexStart);
+                    if (flexItemOuterCrossSize > flexLinesCrossSizeList[lineIndex] && flexItemAlign.overflow() == OverflowAlignment::Safe)
+                        alignSelfPosition = ItemPosition::FlexStart;
                 };
                 setFallbackValuesIfApplicable();
 
-                switch (alignValue.position()) {
+                switch (alignSelfPosition) {
                 case ItemPosition::Stretch:
                 case ItemPosition::Normal:
                     // This is taken care of at 9.4.11 see computeCrossSizeForFlexItems.
@@ -774,10 +776,12 @@ FlexLayout::PositionAndMarginsList FlexLayout::handleCrossAxisAlignmentForFlexIt
                     flexItemOuterCrossPosition = flexLinesCrossSizeList[lineIndex] / 2 - flexItemOuterCrossSize  / 2;
                     break;
                 case ItemPosition::Start:
+                case ItemPosition::SelfStart:
                 case ItemPosition::FlexStart:
                     flexItemOuterCrossPosition = { };
                     break;
                 case ItemPosition::End:
+                case ItemPosition::SelfEnd:
                 case ItemPosition::FlexEnd:
                     flexItemOuterCrossPosition = flexLinesCrossSizeList[lineIndex] - flexItemOuterCrossSize;
                     break;
@@ -797,29 +801,54 @@ FlexLayout::LinesCrossPositionList FlexLayout::handleCrossAxisAlignmentForFlexLi
 {
     // If the cross size property is a definite size, use that, clamped by the used min and max cross sizes of the flex container.
     // Otherwise, use the sum of the flex lines' cross sizes, clamped by the used min and max cross sizes of the flex container.
-    if (isSingleLineFlexContainer())
-        return { { } };
-
     auto flexLinesCrossSize = [&] {
         auto linesCrossSize = LayoutUnit { };
         for (auto crossSize : flexLinesCrossSizeList)
             linesCrossSize += crossSize;
         return linesCrossSize;
     }();
+    auto isSingleLineFlexContainer = this->isSingleLineFlexContainer() || lineRanges.size() == 1;
     auto flexContainerUsedCrossSize = crossAxis.definiteSize.value_or(flexLinesCrossSize);
     // Align all flex lines per align-content.
+    auto distributableCrossSpace = flexContainerUsedCrossSize - flexLinesCrossSize;
     auto initialOffset = [&]() -> LayoutUnit {
-        auto alignContentValue = [&] {
-            auto value = flexContainerStyle().alignContent().position();
-            auto isWrapReversed = FlexFormattingUtils::areFlexLinesReversedInCrossAxis(flexContainer());
-            if (value == ContentPosition::Start)
-                return isWrapReversed ? ContentPosition::FlexEnd : ContentPosition::FlexStart;
-            if (value == ContentPosition::End)
-                return isWrapReversed ? ContentPosition::FlexStart : ContentPosition::FlexEnd;
-            return value;
+        auto& alignContentValue = flexContainerStyle().alignContent();
+        auto alignContentPosition = alignContentValue.position();
+        auto alignContentDistribution = alignContentValue.distribution();
+
+        auto setFallbackValuesIfApplicable = [&] {
+            auto hasOverflow = distributableCrossSpace < 0;
+            if (!hasOverflow && !isSingleLineFlexContainer)
+                return;
+            switch (alignContentDistribution) {
+            case ContentDistribution::SpaceBetween:
+                alignContentPosition = hasOverflow ? ContentPosition::Start : ContentPosition::FlexStart;
+                break;
+            case ContentDistribution::SpaceEvenly:
+            case ContentDistribution::SpaceAround:
+                alignContentPosition = hasOverflow ? ContentPosition::Start : ContentPosition::Center;
+                break;
+            case ContentDistribution::Stretch:
+                alignContentPosition = ContentPosition::FlexStart;
+                break;
+            default:
+                break;
+            }
+            alignContentPosition = alignContentValue.overflow() == OverflowAlignment::Safe && hasOverflow ? ContentPosition::Start : alignContentPosition;
+            alignContentDistribution = ContentDistribution::Default;
         };
-        switch (alignContentValue()) {
-        case ContentPosition::Normal:
+        setFallbackValuesIfApplicable();
+
+        auto flipStartEndContentPositionIfApplicable = [&] {
+            auto isWrapReversed = FlexFormattingUtils::areFlexLinesReversedInCrossAxis(flexContainer());
+            if (alignContentPosition == ContentPosition::Start)
+                alignContentPosition = isWrapReversed ? ContentPosition::FlexEnd : ContentPosition::FlexStart;
+            else if (alignContentPosition == ContentPosition::End)
+                alignContentPosition = isWrapReversed ? ContentPosition::FlexStart : ContentPosition::FlexEnd;
+        };
+        flipStartEndContentPositionIfApplicable();
+
+        switch (alignContentPosition) {
         case ContentPosition::FlexStart:
             return { };
         case ContentPosition::Center:
@@ -827,16 +856,16 @@ FlexLayout::LinesCrossPositionList FlexLayout::handleCrossAxisAlignmentForFlexLi
         case ContentPosition::FlexEnd:
             return flexContainerUsedCrossSize - flexLinesCrossSize;
         default:
-            switch (flexContainerStyle().alignContent().distribution()) {
+            switch (alignContentDistribution) {
+            case ContentDistribution::Default:
+                return { };
             case ContentDistribution::SpaceBetween:
             case ContentDistribution::Stretch:
                 return { };
-            case ContentDistribution::SpaceAround: {
-                auto extraCrossSpace = flexContainerUsedCrossSize - flexLinesCrossSize;
-                if (extraCrossSpace <= 0)
-                    return { };
-                return extraCrossSpace / lineRanges.size() / 2;
-            }
+            case ContentDistribution::SpaceAround:
+                return distributableCrossSpace / lineRanges.size() / 2;
+            case ContentDistribution::SpaceEvenly:
+                return distributableCrossSpace / (lineRanges.size() + 1) / 2;
             default:
                 ASSERT_NOT_REACHED();
                 return { };
@@ -844,31 +873,34 @@ FlexLayout::LinesCrossPositionList FlexLayout::handleCrossAxisAlignmentForFlexLi
         }
     };
 
+    LinesCrossPositionList linesCrossPositionList(lineRanges.size());
+    linesCrossPositionList[0] = initialOffset();
+    if (isSingleLineFlexContainer)
+        return linesCrossPositionList;
+
     auto gap = [&]() -> LayoutUnit {
-        auto extraCrossSpace = flexContainerUsedCrossSize - flexLinesCrossSize;
-        if (extraCrossSpace <= 0)
+        if (distributableCrossSpace <= 0)
             return { };
         switch (flexContainerStyle().alignContent().distribution()) {
         case ContentDistribution::SpaceBetween:
-            return extraCrossSpace / (lineRanges.size() - 1);
+            return distributableCrossSpace / (lineRanges.size() - 1);
         case ContentDistribution::SpaceAround:
-            return extraCrossSpace / lineRanges.size();
+            return distributableCrossSpace / lineRanges.size();
         case ContentDistribution::Stretch: {
             // Lines stretch to take up the remaining space. If the leftover free-space is negative,
             // this value is identical to flex-start. Otherwise, the free-space is split equally between all of the lines,
             // increasing their cross size.
-            auto extraCrossSpaceForEachLine = extraCrossSpace / flexLinesCrossSizeList.size();
+            auto extraCrossSpaceForEachLine = distributableCrossSpace / flexLinesCrossSizeList.size();
             for (size_t lineIndex = 0; lineIndex < flexLinesCrossSizeList.size(); ++lineIndex)
                 flexLinesCrossSizeList[lineIndex] += extraCrossSpaceForEachLine;
             return { };
         }
+        case ContentDistribution::SpaceEvenly:
+            return distributableCrossSpace / (lineRanges.size() + 1);
         default:
             return { };
         }
     }();
-
-    LinesCrossPositionList linesCrossPositionList(lineRanges.size());
-    linesCrossPositionList[0] = initialOffset();
     for (size_t lineIndex = 1; lineIndex < lineRanges.size(); ++lineIndex)
         linesCrossPositionList[lineIndex] = (linesCrossPositionList[lineIndex - 1] + flexLinesCrossSizeList[lineIndex - 1]) + gap;
     return linesCrossPositionList;

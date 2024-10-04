@@ -1026,7 +1026,6 @@ op_group :SwitchValue,
     ],
     args: {
         tableIndex: unsigned,
-        defaultOffset: BoundLabel,
         scrutinee: VirtualRegister,
     }
 
@@ -1237,6 +1236,13 @@ op :new_promise,
 op :new_generator,
     args: {
         dst: VirtualRegister,
+    }
+
+op :new_iterator_helper,
+    args: {
+        dst: VirtualRegister,
+        generator: VirtualRegister,
+        underlyingIterator: VirtualRegister,
     }
 
 op :argument_count,

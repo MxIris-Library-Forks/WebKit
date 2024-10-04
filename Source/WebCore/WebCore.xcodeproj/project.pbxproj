@@ -2806,6 +2806,8 @@
 		7256078E279D34B6007D2DD3 /* FEImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 72F7E74F279CEDE800D82D2D /* FEImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7261481C2A97C66F00B75E32 /* DisplayListItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 7261481B2A97BD9B00B75E32 /* DisplayListItem.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7263D505292C472D00CA9D10 /* GraphicsStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = 7263D503292C472B00CA9D10 /* GraphicsStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		726516E62C9CB75600647895 /* ContentsFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = 726516E42C9BB70E00647895 /* ContentsFormat.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		726516F72CA4B4A300647895 /* ContentsFormatCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 726516F52CA4AEDC00647895 /* ContentsFormatCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		726CDE202759735000A445B2 /* FilterEffectGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 729661A2275960A500E7DF9B /* FilterEffectGeometry.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		726D56E2253AE28D0002EF90 /* PlatformImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 726D56E1253AE0430002EF90 /* PlatformImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		726D56E3253AE3660002EF90 /* NativeImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 55A336F61D8209F40022C4C7 /* NativeImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4437,6 +4439,20 @@
 		ADDF1AD71257CC1A1133B644 /* RenderSVGPath.h in Headers */ = {isa = PBXBuildFile; fileRef = ADDF1AD51257CC1A1133B644 /* RenderSVGPath.h */; };
 		ADDF1AD71257CD9A0003A759 /* LegacyRenderSVGPath.h in Headers */ = {isa = PBXBuildFile; fileRef = ADDF1AD51257CD9A0003A759 /* LegacyRenderSVGPath.h */; };
 		ADEC78F818EE5308001315C2 /* JSElementCustom.h in Headers */ = {isa = PBXBuildFile; fileRef = ADEC78F718EE5308001315C2 /* JSElementCustom.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AE5BDBDD2CA481C600550C8C /* CredentialPropertiesOutput.h in Headers */ = {isa = PBXBuildFile; fileRef = AE5BDBDC2CA481C600550C8C /* CredentialPropertiesOutput.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243472C8BC27700E8649D /* PublicKeyCredentialCreationOptionsJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243462C8BC26000E8649D /* PublicKeyCredentialCreationOptionsJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED2434A2C8BCCD600E8649D /* AuthenticatorSelectionCriteria.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243492C8BC80100E8649D /* AuthenticatorSelectionCriteria.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED2434D2C8F905700E8649D /* PublicKeyCredentialEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = AED2434C2C8F905700E8649D /* PublicKeyCredentialEntity.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243512C8F931700E8649D /* PublicKeyCredentialUserEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243502C8F931700E8649D /* PublicKeyCredentialUserEntity.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243532C8F931A00E8649D /* PublicKeyCredentialRpEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243522C8F931A00E8649D /* PublicKeyCredentialRpEntity.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243552C8FA2C000E8649D /* PublicKeyCredentialParameters.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243542C8FA2C000E8649D /* PublicKeyCredentialParameters.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243592C90355600E8649D /* AuthenticationExtensionsClientInputsJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243582C90355600E8649D /* AuthenticationExtensionsClientInputsJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED2435B2C90367C00E8649D /* AuthenticationExtensionsClientOutputsJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED2435A2C90367C00E8649D /* AuthenticationExtensionsClientOutputsJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED2435F2C90DE3E00E8649D /* PublicKeyCredentialRequestOptionsJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED2435E2C90DE3E00E8649D /* PublicKeyCredentialRequestOptionsJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243622C90DE9100E8649D /* PublicKeyCredentialDescriptorJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243612C90DE9100E8649D /* PublicKeyCredentialDescriptorJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243642C90F54A00E8649D /* PublicKeyCredentialUserEntityJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243632C90F54A00E8649D /* PublicKeyCredentialUserEntityJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243672C939A5900E8649D /* RegistrationResponseJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243662C939A5900E8649D /* RegistrationResponseJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		AED243692C939A6800E8649D /* AuthenticationResponseJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = AED243682C939A6800E8649D /* AuthenticationResponseJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B10B6980140C174000BC1C26 /* WebVTTToken.h in Headers */ = {isa = PBXBuildFile; fileRef = B10B697D140C174000BC1C26 /* WebVTTToken.h */; };
 		B10B6982140C174000BC1C26 /* WebVTTTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = B10B697F140C174000BC1C26 /* WebVTTTokenizer.h */; };
 		B1AD4E7413A12A4600846B27 /* TextTrackLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = B1AD4E7213A12A4600846B27 /* TextTrackLoader.h */; };
@@ -13021,6 +13037,7 @@
 		71B28426203CEC0D0036AA5D /* JSCSSAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCSSAnimation.h; sourceTree = "<group>"; };
 		71B5AB2421F1D9E200376E5C /* PointerCaptureController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointerCaptureController.h; sourceTree = "<group>"; };
 		71B5AB2521F1D9E300376E5C /* PointerCaptureController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PointerCaptureController.cpp; sourceTree = "<group>"; };
+		71BDCDEC2C98061200D7F253 /* EffectTiming.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTiming.cpp; sourceTree = "<group>"; };
 		71BF4C2E29B098A7008344FC /* AcceleratedEffectStack.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AcceleratedEffectStack.mm; sourceTree = "<group>"; };
 		71BF4C3129B098A7008344FC /* AcceleratedEffectStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AcceleratedEffectStack.h; sourceTree = "<group>"; };
 		71C25AF52392BF3C00D5C098 /* WebAnimationUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebAnimationUtilities.cpp; sourceTree = "<group>"; };
@@ -13158,6 +13175,9 @@
 		7262D757272A174100C56A09 /* FilterFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FilterFunction.cpp; sourceTree = "<group>"; };
 		7263D503292C472B00CA9D10 /* GraphicsStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsStyle.h; sourceTree = "<group>"; };
 		7263D504292C472C00CA9D10 /* GraphicsStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsStyle.cpp; sourceTree = "<group>"; };
+		726516E42C9BB70E00647895 /* ContentsFormat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContentsFormat.h; sourceTree = "<group>"; };
+		726516E52C9CB59900647895 /* ContentsFormat.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ContentsFormat.cpp; sourceTree = "<group>"; };
+		726516F52CA4AEDC00647895 /* ContentsFormatCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContentsFormatCocoa.h; sourceTree = "<group>"; };
 		7266F0132241BCE200833975 /* SVGPropertyAnimatorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGPropertyAnimatorFactory.h; sourceTree = "<group>"; };
 		7266F0142241BFB200833975 /* SVGPrimitivePropertyAnimatorImpl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGPrimitivePropertyAnimatorImpl.h; sourceTree = "<group>"; };
 		7266F0152241C09800833975 /* SVGPrimitivePropertyAnimator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGPrimitivePropertyAnimator.h; sourceTree = "<group>"; };
@@ -16751,6 +16771,34 @@
 		ADE16736181050C300463A2E /* RenderPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderPtr.h; sourceTree = "<group>"; };
 		ADEC78F718EE5308001315C2 /* JSElementCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSElementCustom.h; sourceTree = "<group>"; };
 		ADFE2B541BD5F41200DAB457 /* ResourceUsageOverlayCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ResourceUsageOverlayCocoa.mm; sourceTree = "<group>"; };
+		AE5BDBDB2CA4817400550C8C /* CredentialPropertiesOutput.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CredentialPropertiesOutput.idl; sourceTree = "<group>"; };
+		AE5BDBDC2CA481C600550C8C /* CredentialPropertiesOutput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CredentialPropertiesOutput.h; sourceTree = "<group>"; };
+		AED243452C8BBA5E00E8649D /* PublicKeyCredentialCreationOptionsJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialCreationOptionsJSON.idl; sourceTree = "<group>"; };
+		AED243462C8BC26000E8649D /* PublicKeyCredentialCreationOptionsJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialCreationOptionsJSON.h; sourceTree = "<group>"; };
+		AED243482C8BC7FC00E8649D /* AuthenticatorSelectionCriteria.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = AuthenticatorSelectionCriteria.idl; sourceTree = "<group>"; };
+		AED243492C8BC80100E8649D /* AuthenticatorSelectionCriteria.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticatorSelectionCriteria.h; sourceTree = "<group>"; };
+		AED2434B2C8F900A00E8649D /* PublicKeyCredentialEntity.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialEntity.idl; sourceTree = "<group>"; };
+		AED2434C2C8F905700E8649D /* PublicKeyCredentialEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialEntity.h; sourceTree = "<group>"; };
+		AED2434E2C8F92DC00E8649D /* PublicKeyCredentialRpEntity.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialRpEntity.idl; sourceTree = "<group>"; };
+		AED2434F2C8F92E600E8649D /* PublicKeyCredentialUserEntity.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialUserEntity.idl; sourceTree = "<group>"; };
+		AED243502C8F931700E8649D /* PublicKeyCredentialUserEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialUserEntity.h; sourceTree = "<group>"; };
+		AED243522C8F931A00E8649D /* PublicKeyCredentialRpEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialRpEntity.h; sourceTree = "<group>"; };
+		AED243542C8FA2C000E8649D /* PublicKeyCredentialParameters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialParameters.h; sourceTree = "<group>"; };
+		AED243562C8FA2D000E8649D /* PublicKeyCredentialParameters.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialParameters.idl; sourceTree = "<group>"; };
+		AED243572C90353100E8649D /* AuthenticationExtensionsClientInputsJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = AuthenticationExtensionsClientInputsJSON.idl; sourceTree = "<group>"; };
+		AED243582C90355600E8649D /* AuthenticationExtensionsClientInputsJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationExtensionsClientInputsJSON.h; sourceTree = "<group>"; };
+		AED2435A2C90367C00E8649D /* AuthenticationExtensionsClientOutputsJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationExtensionsClientOutputsJSON.h; sourceTree = "<group>"; };
+		AED2435C2C90369100E8649D /* AuthenticationExtensionsClientOutputsJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = AuthenticationExtensionsClientOutputsJSON.idl; sourceTree = "<group>"; };
+		AED2435D2C90DE2000E8649D /* PublicKeyCredentialRequestOptionsJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialRequestOptionsJSON.idl; sourceTree = "<group>"; };
+		AED2435E2C90DE3E00E8649D /* PublicKeyCredentialRequestOptionsJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialRequestOptionsJSON.h; sourceTree = "<group>"; };
+		AED243602C90DE8A00E8649D /* PublicKeyCredentialDescriptorJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialDescriptorJSON.idl; sourceTree = "<group>"; };
+		AED243612C90DE9100E8649D /* PublicKeyCredentialDescriptorJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialDescriptorJSON.h; sourceTree = "<group>"; };
+		AED243632C90F54A00E8649D /* PublicKeyCredentialUserEntityJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicKeyCredentialUserEntityJSON.h; sourceTree = "<group>"; };
+		AED243652C90F55400E8649D /* PublicKeyCredentialUserEntityJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PublicKeyCredentialUserEntityJSON.idl; sourceTree = "<group>"; };
+		AED243662C939A5900E8649D /* RegistrationResponseJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RegistrationResponseJSON.h; sourceTree = "<group>"; };
+		AED243682C939A6800E8649D /* AuthenticationResponseJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationResponseJSON.h; sourceTree = "<group>"; };
+		AED2436A2C939AB600E8649D /* RegistrationResponseJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = RegistrationResponseJSON.idl; sourceTree = "<group>"; };
+		AED2436B2C939AB800E8649D /* AuthenticationResponseJSON.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = AuthenticationResponseJSON.idl; sourceTree = "<group>"; };
 		B10B697D140C174000BC1C26 /* WebVTTToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebVTTToken.h; sourceTree = "<group>"; };
 		B10B697E140C174000BC1C26 /* WebVTTTokenizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebVTTTokenizer.cpp; sourceTree = "<group>"; };
 		B10B697F140C174000BC1C26 /* WebVTTTokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebVTTTokenizer.h; sourceTree = "<group>"; };
@@ -25424,6 +25472,7 @@
 		4958781E12A57DBC007238AC /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				726516F52CA4AEDC00647895 /* ContentsFormatCocoa.h */,
 				A7FF1A86291C4AD100A7DE24 /* GraphicsLayerAsyncContentsDisplayDelegateCocoa.h */,
 				A7FF1A87291C4AD200A7DE24 /* GraphicsLayerAsyncContentsDisplayDelegateCocoa.mm */,
 				0F5E200518E771FC003EC3E5 /* PlatformCAAnimationCocoa.h */,
@@ -26824,9 +26873,15 @@
 				52B07440284680C900511B65 /* AuthenticationExtensionsClientInputs.cpp */,
 				57DA47A522401E0F002A4612 /* AuthenticationExtensionsClientInputs.h */,
 				57DA47A722401E0F002A4612 /* AuthenticationExtensionsClientInputs.idl */,
+				AED243582C90355600E8649D /* AuthenticationExtensionsClientInputsJSON.h */,
+				AED243572C90353100E8649D /* AuthenticationExtensionsClientInputsJSON.idl */,
 				52B074422846810A00511B65 /* AuthenticationExtensionsClientOutputs.cpp */,
 				57585965239F14CC00C74572 /* AuthenticationExtensionsClientOutputs.h */,
 				57585967239F14CD00C74572 /* AuthenticationExtensionsClientOutputs.idl */,
+				AED2435A2C90367C00E8649D /* AuthenticationExtensionsClientOutputsJSON.h */,
+				AED2435C2C90369100E8649D /* AuthenticationExtensionsClientOutputsJSON.idl */,
+				AED243682C939A6800E8649D /* AuthenticationResponseJSON.h */,
+				AED2436B2C939AB800E8649D /* AuthenticationResponseJSON.idl */,
 				5758596E239F397900C74572 /* AuthenticatorAssertionResponse.cpp */,
 				57303C272009B2FC00355965 /* AuthenticatorAssertionResponse.h */,
 				57303C292009B2FC00355965 /* AuthenticatorAssertionResponse.idl */,
@@ -26842,19 +26897,41 @@
 				57303BCF20087A8300355965 /* AuthenticatorResponse.h */,
 				57303BD120087A8300355965 /* AuthenticatorResponse.idl */,
 				57DCED72214305F00016B847 /* AuthenticatorResponseData.h */,
+				AED243492C8BC80100E8649D /* AuthenticatorSelectionCriteria.h */,
+				AED243482C8BC7FC00E8649D /* AuthenticatorSelectionCriteria.idl */,
 				57DCED8C21487EDB0016B847 /* AuthenticatorTransport.h */,
 				57DCED8E21487EDB0016B847 /* AuthenticatorTransport.idl */,
+				AE5BDBDC2CA481C600550C8C /* CredentialPropertiesOutput.h */,
+				AE5BDBDB2CA4817400550C8C /* CredentialPropertiesOutput.idl */,
 				57D8462C1FEAF68F00CA3682 /* PublicKeyCredential.cpp */,
 				57D8462B1FEAF68F00CA3682 /* PublicKeyCredential.h */,
 				57D8462D1FEAF68F00CA3682 /* PublicKeyCredential.idl */,
 				57303BE62009747A00355965 /* PublicKeyCredentialCreationOptions.h */,
 				57303BE82009747A00355965 /* PublicKeyCredentialCreationOptions.idl */,
+				AED243462C8BC26000E8649D /* PublicKeyCredentialCreationOptionsJSON.h */,
+				AED243452C8BBA5E00E8649D /* PublicKeyCredentialCreationOptionsJSON.idl */,
 				57303BEC200980BF00355965 /* PublicKeyCredentialDescriptor.h */,
 				57303BEE200980BF00355965 /* PublicKeyCredentialDescriptor.idl */,
+				AED243612C90DE9100E8649D /* PublicKeyCredentialDescriptorJSON.h */,
+				AED243602C90DE8A00E8649D /* PublicKeyCredentialDescriptorJSON.idl */,
+				AED2434C2C8F905700E8649D /* PublicKeyCredentialEntity.h */,
+				AED2434B2C8F900A00E8649D /* PublicKeyCredentialEntity.idl */,
+				AED243542C8FA2C000E8649D /* PublicKeyCredentialParameters.h */,
+				AED243562C8FA2D000E8649D /* PublicKeyCredentialParameters.idl */,
 				57303C06200998F800355965 /* PublicKeyCredentialRequestOptions.h */,
 				57303C08200998F800355965 /* PublicKeyCredentialRequestOptions.idl */,
+				AED2435E2C90DE3E00E8649D /* PublicKeyCredentialRequestOptionsJSON.h */,
+				AED2435D2C90DE2000E8649D /* PublicKeyCredentialRequestOptionsJSON.idl */,
+				AED243522C8F931A00E8649D /* PublicKeyCredentialRpEntity.h */,
+				AED2434E2C8F92DC00E8649D /* PublicKeyCredentialRpEntity.idl */,
 				57303BEA20097F4000355965 /* PublicKeyCredentialType.h */,
 				57303BF02009846100355965 /* PublicKeyCredentialType.idl */,
+				AED243502C8F931700E8649D /* PublicKeyCredentialUserEntity.h */,
+				AED2434F2C8F92E600E8649D /* PublicKeyCredentialUserEntity.idl */,
+				AED243632C90F54A00E8649D /* PublicKeyCredentialUserEntityJSON.h */,
+				AED243652C90F55400E8649D /* PublicKeyCredentialUserEntityJSON.idl */,
+				AED243662C939A5900E8649D /* RegistrationResponseJSON.h */,
+				AED2436A2C939AB600E8649D /* RegistrationResponseJSON.idl */,
 				52688AA327D6A7DA003577A2 /* ResidentKeyRequirement.h */,
 				52688AA527D6A7DA003577A2 /* ResidentKeyRequirement.idl */,
 				572B402321768D85000AD43E /* UserVerificationRequirement.h */,
@@ -28367,6 +28444,7 @@
 				71025ECA1F99F096004A250C /* DocumentTimeline.idl */,
 				71729F7A20F3BA3A00801CE6 /* DocumentTimelineOptions.h */,
 				71729F7920F3BA3900801CE6 /* DocumentTimelineOptions.idl */,
+				71BDCDEC2C98061200D7F253 /* EffectTiming.cpp */,
 				712BE47C1FE86448002031CC /* EffectTiming.h */,
 				712BE47A1FE86447002031CC /* EffectTiming.idl */,
 				7119465524181E8400466C11 /* ElementAnimationRareData.cpp */,
@@ -33024,6 +33102,8 @@
 				C2F4E7881E45AEDF006D7105 /* ComplexTextController.cpp */,
 				C2F4E7891E45AEDF006D7105 /* ComplexTextController.h */,
 				1C84BE4126D3939F002D61FC /* ComposedCharacterClusterTextIterator.h */,
+				726516E52C9CB59900647895 /* ContentsFormat.cpp */,
+				726516E42C9BB70E00647895 /* ContentsFormat.h */,
 				CDAD1A5827AFBF3900699285 /* ContentTypeUtilities.cpp */,
 				CDAD1A5727AFBF3900699285 /* ContentTypeUtilities.h */,
 				72E5768A281B292600A75432 /* CopyImageOptions.h */,
@@ -38678,8 +38758,11 @@
 				934F713A0D5A6F1000018D69 /* AuthenticationChallengeBase.h in Headers */,
 				E124748410AA161D00B79493 /* AuthenticationClient.h in Headers */,
 				57DA47B0224034E4002A4612 /* AuthenticationExtensionsClientInputs.h in Headers */,
+				AED243592C90355600E8649D /* AuthenticationExtensionsClientInputsJSON.h in Headers */,
 				5758596C239F321C00C74572 /* AuthenticationExtensionsClientOutputs.h in Headers */,
+				AED2435B2C90367C00E8649D /* AuthenticationExtensionsClientOutputsJSON.h in Headers */,
 				514C764C0CE9234E007EF3CD /* AuthenticationMac.h in Headers */,
+				AED243692C939A6800E8649D /* AuthenticationResponseJSON.h in Headers */,
 				57303C2C2009B4A800355965 /* AuthenticatorAssertionResponse.h in Headers */,
 				57FE687126052E3100BF45E4 /* AuthenticatorAttachment.h in Headers */,
 				57303C1F2009AB4200355965 /* AuthenticatorAttestationResponse.h in Headers */,
@@ -38688,6 +38771,7 @@
 				572B40422178114A000AD43E /* AuthenticatorGetInfoResponse.h in Headers */,
 				57303BD220087A8300355965 /* AuthenticatorResponse.h in Headers */,
 				57DCED74214305F00016B847 /* AuthenticatorResponseData.h in Headers */,
+				AED2434A2C8BCCD600E8649D /* AuthenticatorSelectionCriteria.h in Headers */,
 				572B404021780171000AD43E /* AuthenticatorSupportedOptions.h in Headers */,
 				57DCED9021487FF70016B847 /* AuthenticatorTransport.h in Headers */,
 				A501920E132EBF2E008BFE55 /* Autocapitalize.h in Headers */,
@@ -39047,6 +39131,8 @@
 				CE799FA01C6A4C160097B518 /* ContentSecurityPolicySource.h in Headers */,
 				CE799F981C6A46BC0097B518 /* ContentSecurityPolicySourceList.h in Headers */,
 				CE799FAC1C6A50660097B518 /* ContentSecurityPolicySourceListDirective.h in Headers */,
+				726516E62C9CB75600647895 /* ContentsFormat.h in Headers */,
+				726516F72CA4B4A300647895 /* ContentsFormatCocoa.h in Headers */,
 				41D015CA0F4B5C71004A662F /* ContentType.h in Headers */,
 				CDAD1A5A27AFC27C00699285 /* ContentTypeUtilities.h in Headers */,
 				4480E06B2A67D86A0081EAE8 /* ContentVisibilityAutoStateChangeEvent.h in Headers */,
@@ -39105,6 +39191,7 @@
 				3792917A1985EF3900F4B661 /* CredentialBase.h in Headers */,
 				3792917E1987678F00F4B661 /* CredentialCocoa.h in Headers */,
 				77D5100D1ED5E29500DA4C87 /* CredentialCreationOptions.h in Headers */,
+				AE5BDBDD2CA481C600550C8C /* CredentialPropertiesOutput.h in Headers */,
 				0D649B392B9EA4E500D7F335 /* CredentialRequestCoordinator.h in Headers */,
 				0D649B482B9EC50300D7F335 /* CredentialRequestCoordinatorClient.h in Headers */,
 				77D5100B1ED5E28800DA4C87 /* CredentialRequestOptions.h in Headers */,
@@ -42130,9 +42217,17 @@
 				494265312B61F7EA000446D5 /* PseudoElementRequest.h in Headers */,
 				57D8462E1FEAF69900CA3682 /* PublicKeyCredential.h in Headers */,
 				57303BE92009748D00355965 /* PublicKeyCredentialCreationOptions.h in Headers */,
+				AED243472C8BC27700E8649D /* PublicKeyCredentialCreationOptionsJSON.h in Headers */,
 				57303BEF200980C600355965 /* PublicKeyCredentialDescriptor.h in Headers */,
+				AED243622C90DE9100E8649D /* PublicKeyCredentialDescriptorJSON.h in Headers */,
+				AED2434D2C8F905700E8649D /* PublicKeyCredentialEntity.h in Headers */,
+				AED243552C8FA2C000E8649D /* PublicKeyCredentialParameters.h in Headers */,
 				57303C0A20099BAD00355965 /* PublicKeyCredentialRequestOptions.h in Headers */,
+				AED2435F2C90DE3E00E8649D /* PublicKeyCredentialRequestOptionsJSON.h in Headers */,
+				AED243532C8F931A00E8649D /* PublicKeyCredentialRpEntity.h in Headers */,
 				57303BEB20097F4000355965 /* PublicKeyCredentialType.h in Headers */,
+				AED243512C8F931700E8649D /* PublicKeyCredentialUserEntity.h in Headers */,
+				AED243642C90F54A00E8649D /* PublicKeyCredentialUserEntityJSON.h in Headers */,
 				3A64EA542BFD3EB300D656A6 /* PublicSuffix.h in Headers */,
 				3A4C6A872BABF1C500597157 /* PublicSuffixStore.h in Headers */,
 				10FB084B14E15C7E00A3DB98 /* PublicURLManager.h in Headers */,
@@ -42211,6 +42306,7 @@
 				26B9998F1803AE7200D01121 /* RegisterAllocator.h in Headers */,
 				85031B4C0A44EFC700F992E0 /* RegisteredEventListener.h in Headers */,
 				6B4E8613221B713F0022F389 /* RegistrableDomain.h in Headers */,
+				AED243672C939A5900E8649D /* RegistrationResponseJSON.h in Headers */,
 				A578F43F1DE0B630003DFC6A /* RejectedPromiseTracker.h in Headers */,
 				CDFC360618CA61C20026E56F /* RemoteCommandListener.h in Headers */,
 				5117F30E25E61020002A9F1E /* RemoteCommandListenerCocoa.h in Headers */,

@@ -615,7 +615,7 @@ struct WebCore::IDBIterateCursorData {
 }
 
 class WebCore::IDBResourceIdentifier {
-    WebCore::IDBConnectionIdentifier m_idbConnectionIdentifier
+    Markable<WebCore::IDBConnectionIdentifier> m_idbConnectionIdentifier
     uint64_t m_resourceNumber
 }
 
@@ -2030,7 +2030,7 @@ class WebCore::HTTPHeaderMap {
 struct WebCore::ElementContext {
     WebCore::FloatRect boundingRect;
     Markable<WebCore::PageIdentifier> webPageIdentifier;
-    WebCore::ScriptExecutionContextIdentifier documentIdentifier;
+    Markable<WebCore::ScriptExecutionContextIdentifier> documentIdentifier;
     Markable<WebCore::ElementIdentifier> elementIdentifier;
 };
 
@@ -6303,6 +6303,11 @@ struct WebCore::AcceleratedEffectValues {
     WebCore::FilterOperations backdropFilter;
 }
 
+class WebCore::CSSNumberishTime {
+    std::optional<Seconds> time();
+    std::optional<double> percentage();
+};
+
 struct WebCore::AnimationEffectTiming {
     RefPtr<WebCore::TimingFunction> timingFunction;
     WebCore::FillMode fill;
@@ -6311,9 +6316,9 @@ struct WebCore::AnimationEffectTiming {
     double iterations;
     Seconds delay;
     Seconds endDelay;
-    Seconds iterationDuration;
-    Seconds activeDuration;
-    Seconds endTime;
+    WebCore::CSSNumberishTime iterationDuration;
+    WebCore::CSSNumberishTime activeDuration;
+    WebCore::CSSNumberishTime endTime;
 };
 
 header: <WebCore/AcceleratedEffect.h>
@@ -6469,6 +6474,25 @@ header: <WebCore/RenderTreeAsText.h>
     PrintingMode,
     DontUpdateLayout,
     ShowLayoutState
+};
+
+header: <WebCore/LayerTreeAsTextOptions.h>
+[OptionSet] enum class WebCore::LayerTreeAsTextOptions : uint16_t {
+    Debug,
+    IncludeVisibleRects
+    IncludeTileCaches,
+    IncludeRepaintRects,
+    IncludePaintingPhases,
+    IncludeContentLayers,
+    IncludePageOverlayLayers,
+    IncludeAcceleratesDrawing,
+    IncludeClipping,
+    IncludeBackingStoreAttached,
+    IncludeRootLayerProperties,
+    IncludeEventRegion,
+    IncludeExtendedColor,
+    IncludeDeviceScale,
+    IncludeRootLayers,
 };
 
 header: <WebCore/TextExtractionTypes.h>

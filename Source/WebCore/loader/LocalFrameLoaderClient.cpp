@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,27 +24,26 @@
  */
 
 #include "config.h"
-#include "RemoteAutomationTarget.h"
+#include "LocalFrameLoaderClient.h"
 
-#if ENABLE(REMOTE_INSPECTOR)
+#include "FrameLoader.h"
 
-#include "RemoteInspector.h"
+namespace WebCore {
 
-namespace Inspector {
+LocalFrameLoaderClient::LocalFrameLoaderClient(FrameLoader& loader)
+    : m_loader(loader)
+{ }
 
-RemoteAutomationTarget::RemoteAutomationTarget() = default;
-RemoteAutomationTarget::~RemoteAutomationTarget() = default;
+LocalFrameLoaderClient::~LocalFrameLoaderClient() = default;
 
-void RemoteAutomationTarget::setIsPaired(bool paired)
+void LocalFrameLoaderClient::ref() const
 {
-    if (m_paired == paired)
-        return;
-
-    m_paired = paired;
-
-    update();
+    m_loader->ref();
 }
 
-} // namespace Inspector
+void LocalFrameLoaderClient::deref() const
+{
+    m_loader->deref();
+}
 
-#endif // ENABLE(REMOTE_INSPECTOR)
+} // namespace WebCore

@@ -1502,7 +1502,7 @@ webkit.org/b/206604 animations/animation-welcome-safari.html [ Pass Failure ]
 
 webkit.org/b/207062 imported/w3c/web-platform-tests/media-source/mediasource-replay.html [ Pass Failure ]
 
-webkit.org/b/206484 imported/w3c/web-platform-tests/websockets/cookies/007.html [ Pass Failure ]
+webkit.org/b/206484 imported/w3c/web-platform-tests/websockets/cookies/007.html?default [ Pass Failure ]
 
 webkit.org/b/206285 inspector/worker/debugger-pause.html [ Pass Failure ]
 
@@ -2371,7 +2371,7 @@ imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/key-id-l
 
 webkit.org/b/275713 fast/text/international/system-language/declarative-language.html [ Failure ]
 
-webkit.org/b/275962 imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/no-referrer-dynamic-url-censored.html [ Failure ]
+webkit.org/b/275962 imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/no-referrer-dynamic-url-censored.html [ Timeout ]
 
 # rdar://124307254 ([ Sequoia+ ]: Bad rendering of EmojiImage)
 [ Sequoia+ ] fast/css/font-fallback-private-use-area-apple-logo-exception.html [ ImageOnlyFailure ]
@@ -2433,3 +2433,6 @@ webkit.org/b/257011 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphena
 [ Debug ] media/video-webkit-playsinline.html [ Skip ]
 
 webkit.org/b/280792 inspector/worker/debugger-pause-subworker.html [ Skip ]
+
+# webkit.org/b/280985 [macOS Debug]: media/track/track-text-track-destructor-crash.html is a flaky crash (failure in EWS)
+[ Debug ] media/track/track-text-track-destructor-crash.html [ Pass Crash ]

@@ -320,7 +320,7 @@ void RenderLayerBacking::setBackingSharingLayers(SingleThreadWeakListHashSet<Ren
         if (!sharingLayers.contains(oldSharingLayer)) {
             sharingLayersChanged = true;
             if (!oldSharingLayer.isComposited())
-                oldSharingLayer.computeRepaintRectsIncludingDescendants();
+                oldSharingLayer.compositingStatusChanged(LayoutUpToDate::Yes);
         }
     }
 
@@ -341,7 +341,7 @@ void RenderLayerBacking::setBackingSharingLayers(SingleThreadWeakListHashSet<Ren
         // For layers that are newly sharing, recompute repaint rects.
         for (auto& currentSharingLayer : m_backingSharingLayers) {
             if (!oldSharingLayers.contains(currentSharingLayer))
-                currentSharingLayer.computeRepaintRectsIncludingDescendants();
+                currentSharingLayer.compositingStatusChanged(LayoutUpToDate::Yes);
         }
     }
 }
@@ -3389,6 +3389,10 @@ bool RenderLayerBacking::paintsIntoWindow() const
             return false;
 #endif
 
+        // Site-isolated root frames don't have a window to paint into.
+        if (m_isRootFrameRenderViewLayer && !m_isMainFrameRenderViewLayer)
+            return false;
+
         return compositor().rootLayerAttachment() != RenderLayerCompositor::RootLayerAttachedViaEnclosingFrame;
     }
     
@@ -3403,9 +3407,8 @@ void RenderLayerBacking::setRequiresOwnBackingStore(bool requiresOwnBacking)
     m_requiresOwnBackingStore = requiresOwnBacking;
 
     // This affects the answer to paintsIntoCompositedAncestor(), which in turn affects
-    // cached clip rects, so when it changes we have to clear clip rects on descendants.
-    m_owningLayer.clearClipRectsIncludingDescendants(PaintingClipRects);
-    m_owningLayer.computeRepaintRectsIncludingDescendants();
+    // cached clip rects, so we have to notify the layer.
+    m_owningLayer.compositingStatusChanged(LayoutUpToDate::Yes);
 
     compositor().repaintInCompositedAncestor(m_owningLayer, compositedBounds());
 

@@ -34,6 +34,7 @@
 #import "TestURLSchemeHandler.h"
 #import "TestWKWebView.h"
 #import "Utilities.h"
+#import "WKWebViewConfigurationExtras.h"
 #import "WKWebViewFindStringFindDelegate.h"
 #import <WebKit/WKFrameInfoPrivate.h>
 #import <WebKit/WKNavigationDelegatePrivate.h>
@@ -3425,6 +3426,57 @@ TEST(SiteIsolation, RedirectToCSP)
     }, HTTPServer::Protocol::HttpsProxy);
     auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+}
+
+TEST(SiteIsolation, MultipleWebViewsWithSameOpenedConfiguration)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='/iframe'></iframe>"_s } },
+        { "/iframe"_s, {
+            "<script>onload = () => { document.getElementById('mylink').click() }</script>"
+            "<a href='/popup' target='_blank' id='mylink'>link</a>"_s
+        } },
+        { "/popup"_s, { "hi"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [opener, opened] = openerAndOpenedViews(server, @"https://example.com/example", false);
+    auto webView2 = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:opened.webView.get().configuration]);
+    [opened.navigationDelegate waitForDidFinishNavigation];
+    // FIXME: load something with webView2 without asserting, like https://example.com/popup
+}
+
+TEST(SiteIsolation, RecoverFromCrash)
+{
+    HTTPServer server({
+        { "/crash"_s, { "<script>window.internals.terminateWebContentProcess()</script>"_s } },
+        { "/dontcrash"_s, { "hi"_s } },
+        { "/iframecrash"_s, { "<iframe src='https://webkit.org/crash'></iframe>"_s } },
+        { "/iframedontcrash"_s, { "<iframe src='https://webkit.org/dontcrash'></iframe>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    WKWebViewConfiguration *configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    auto storeConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initNonPersistentConfiguration]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+    enableSiteIsolation(configuration);
+
+    auto webView = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+    auto navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    [webView setNavigationDelegate:navigationDelegate.get()];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/crash"]]];
+    [navigationDelegate waitForWebContentProcessDidTerminate];
+    [webView reload];
+    [navigationDelegate waitForWebContentProcessDidTerminate];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/dontcrash"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/iframecrash"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/iframedontcrash"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/dontcrash"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/dontcrash"]]];
     [navigationDelegate waitForDidFinishNavigation];
 }
 

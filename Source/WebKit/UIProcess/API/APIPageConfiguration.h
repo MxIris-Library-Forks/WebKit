@@ -111,12 +111,14 @@ public:
 
     struct OpenerInfo {
         Ref<WebKit::WebProcessProxy> process;
-        WebCore::Site site;
         WebCore::FrameIdentifier frameID;
         bool operator==(const OpenerInfo&) const;
     };
     const std::optional<OpenerInfo>& openerInfo() const;
     void setOpenerInfo(std::optional<OpenerInfo>&&);
+
+    const WebCore::Site& openedSite() const;
+    void setOpenedSite(const WebCore::Site&);
 
     WebCore::SandboxFlags initialSandboxFlags() const;
     void setInitialSandboxFlags(WebCore::SandboxFlags);
@@ -450,6 +452,10 @@ public:
     bool overlayRegionsEnabled() const { return m_data.overlayRegionsEnabled; }
     void setOverlayRegionsEnabled(bool value) { m_data.overlayRegionsEnabled = value; }
 #endif // ENABLE(OVERLAY_REGIONS_IN_EVENT_REGION)
+#if ENABLE(CSS_TRANSFORM_STYLE_SEPARATED)
+    bool cssTransformStyleSeparatedEnabled() const { return m_data.cssTransformStyleSeparatedEnabled; }
+    void setCSSTransformStyleSeparatedEnabled(bool value) { m_data.cssTransformStyleSeparatedEnabled = value; }
+#endif
 
 #endif // PLATFORM(VISION)
 
@@ -462,6 +468,8 @@ public:
 
 private:
     struct Data {
+        Data();
+
         template<typename T, Ref<T>(*initializer)()> class LazyInitializedRef {
         public:
             LazyInitializedRef() = default;
@@ -507,6 +515,7 @@ private:
         RefPtr<WebKit::WebPageGroup> pageGroup;
         WeakPtr<WebKit::WebPageProxy> relatedPage;
         std::optional<OpenerInfo> openerInfo;
+        WebCore::Site openedSite;
         std::optional<WebCore::WindowFeatures> windowFeatures;
         WebCore::SandboxFlags initialSandboxFlags;
         WeakPtr<WebKit::WebPageProxy> pageToCloneSessionStorageFrom;
@@ -631,6 +640,9 @@ private:
 
 #if ENABLE(OVERLAY_REGIONS_IN_EVENT_REGION)
         bool overlayRegionsEnabled { false };
+#endif
+#if ENABLE(CSS_TRANSFORM_STYLE_SEPARATED)
+        bool cssTransformStyleSeparatedEnabled { false };
 #endif
 
 #endif // PLATFORM(VISION)

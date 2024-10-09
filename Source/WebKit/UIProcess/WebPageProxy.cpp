@@ -234,7 +234,6 @@
 #include <WebCore/RenderEmbeddedObject.h>
 #include <WebCore/ResourceLoadStatistics.h>
 #include <WebCore/RunJavaScriptParameters.h>
-#include <WebCore/RuntimeApplicationChecks.h>
 #include <WebCore/SerializedCryptoKeyWrap.h>
 #include <WebCore/ShareData.h>
 #include <WebCore/SharedBuffer.h>
@@ -5899,7 +5898,7 @@ void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& p
     if (!hasRunningProcess())
         return callbackFunction({ nullptr });
 
-    ProcessThrottler::ActivityVariant activity;
+    RefPtr<ProcessThrottler::Activity> activity;
 #if USE(RUNNINGBOARD)
     if (RefPtr pageClient = this->pageClient(); pageClient && pageClient->canTakeForegroundAssertions())
         activity = m_legacyMainFrameProcess->throttler().foregroundActivity("WebPageProxy::runJavaScriptInFrameInScriptWorld"_s);
@@ -7224,7 +7223,7 @@ void WebPageProxy::didReceiveTitleForFrame(IPC::Connection& connection, FrameIde
 #endif
             if (!isTitleChangeLikelyDueToUserAction && !internals().pageAllowedToRunInTheBackgroundActivityDueToTitleChanges && !frame->title().isNull() && frame->title() != title) {
                 WEBPAGEPROXY_RELEASE_LOG(ViewState, "didReceiveTitleForFrame: This page updates its title without user interaction and is allowed to run in the background");
-                internals().pageAllowedToRunInTheBackgroundActivityDueToTitleChanges = legacyMainFrameProcess().throttler().backgroundActivity("Page updates its title"_s).moveToUniquePtr();
+                internals().pageAllowedToRunInTheBackgroundActivityDueToTitleChanges = legacyMainFrameProcess().throttler().backgroundActivity("Page updates its title"_s);
             }
         }
     }
@@ -8078,12 +8077,13 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     if (RefPtr openerFrame = WebFrameProxy::webFrame(originatingFrameInfoData.frameID); navigationActionData.hasOpener && openerFrame) {
         configuration->setOpenerInfo({ {
             openerFrame->frameProcess().process(),
-            openerFrame->frameProcess().site(),
             *originatingFrameInfoData.frameID
         } });
+        configuration->setOpenedSite(openerFrame->frameProcess().site());
     } else {
         configuration->setOpenerInfo(std::nullopt);
         configuration->setBrowsingContextGroup(BrowsingContextGroup::create());
+        configuration->setOpenedSite(WebCore::Site(request.url()));
     }
 
     trySOAuthorization(configuration.copyRef(), WTFMove(navigationAction), *this, WTFMove(completionHandler), [this, protectedThis = Ref { *this }, configuration] (Ref<API::NavigationAction>&& navigationAction, CompletionHandler<void(RefPtr<WebPageProxy>&&)>&& completionHandler) mutable {
@@ -9112,7 +9112,7 @@ void WebPageProxy::backForwardAddItemShared(IPC::Connection& connection, FrameId
 #if PLATFORM(COCOA)
     if (linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::PushStateFilePathRestriction)
 #if PLATFORM(MAC)
-        && !MacApplication::isMimeoPhotoProject() // rdar://112445672.
+        && !WTF::MacApplication::isMimeoPhotoProject() // rdar://112445672.
 #endif // PLATFORM(MAC)
     ) {
 #endif // PLATFORM(COCOA)
@@ -10489,9 +10489,12 @@ static bool shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
     return false;
 }
 
-void WebPageProxy::dispatchProcessDidTerminate(ProcessTerminationReason reason)
+void WebPageProxy::dispatchProcessDidTerminate(WebProcessProxy& process, ProcessTerminationReason reason)
 {
     WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: reason=%" PUBLIC_LOG_STRING, processTerminationReasonToString(reason).characters());
+
+    if (m_preferences->siteIsolationEnabled())
+        m_browsingContextGroup->processDidTerminate(*this, process);
 
     bool handledByClient = false;
     if (m_loaderClient)
@@ -11894,7 +11897,7 @@ void WebPageProxy::pageWillLikelyUseNotifications()
 {
     WEBPAGEPROXY_RELEASE_LOG(ViewState, "pageWillLikelyUseNotifications: This page is likely to use notifications and is allowed to run in the background");
     if (!internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications)
-        internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = legacyMainFrameProcess().throttler().backgroundActivity("Page is likely to show notifications"_s).moveToUniquePtr();
+        internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = legacyMainFrameProcess().throttler().backgroundActivity("Page is likely to show notifications"_s);
 }
 
 void WebPageProxy::showNotification(IPC::Connection& connection, const WebCore::NotificationData& notificationData, RefPtr<WebCore::NotificationResources>&& notificationResources)
@@ -11902,7 +11905,7 @@ void WebPageProxy::showNotification(IPC::Connection& connection, const WebCore::
     m_legacyMainFrameProcess->processPool().supplement<WebNotificationManagerProxy>()->show(this, connection, notificationData, WTFMove(notificationResources));
     WEBPAGEPROXY_RELEASE_LOG(ViewState, "showNotification: This page shows notifications and is allowed to run in the background");
     if (!internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications)
-        internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = legacyMainFrameProcess().throttler().backgroundActivity("Page has shown notification"_s).moveToUniquePtr();
+        internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = legacyMainFrameProcess().throttler().backgroundActivity("Page has shown notification"_s);
 }
 
 void WebPageProxy::cancelNotification(const WTF::UUID& notificationID)

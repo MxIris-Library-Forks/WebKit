@@ -1283,12 +1283,23 @@ class CheckChangeRelevance(AnalyzeChange):
         re.compile(rb'Source/', re.IGNORECASE),
         re.compile(rb'Tools/', re.IGNORECASE),
     ]
+
     webkitpy_path_regexes = [
         re.compile(rb'Tools/Scripts/webkitpy', re.IGNORECASE),
         re.compile(rb'Tools/Scripts/libraries', re.IGNORECASE),
         re.compile(rb'Tools/Scripts/commit-log-editor', re.IGNORECASE),
         re.compile(rb'Source/WebKit/Scripts', re.IGNORECASE),
         re.compile(rb'metadata/contributors.json', re.IGNORECASE),
+    ]
+
+    safer_cpp_path_regexes = [
+        re.compile(rb'Source/WebKit', re.IGNORECASE),
+        re.compile(rb'Source/WebCore', re.IGNORECASE),
+        re.compile(rb'Tools/Scripts/build-and-analyze', re.IGNORECASE),
+        re.compile(rb'Tools/Scripts/generate-dirty-files', re.IGNORECASE),
+        re.compile(rb'Tools/Scripts/compare-static-analysis-results', re.IGNORECASE),
+        re.compile(rb'Tools/Scripts/generate-dirty-files', re.IGNORECASE),
+        re.compile(rb'Tools/CISupport/Shared/download-and-install-build-tools', re.IGNORECASE),
     ]
 
     group_to_paths_mapping = {
@@ -1298,6 +1309,7 @@ class CheckChangeRelevance(AnalyzeChange):
         'jsc': jsc_path_regexes,
         'webkitpy': webkitpy_path_regexes,
         'wk1-tests': wk1_path_regexes,
+        'safer-cpp': safer_cpp_path_regexes,
     }
 
     def _patch_is_relevant(self, patch, builderName, timeout=30):
@@ -7318,6 +7330,9 @@ class DisplaySaferCPPResults(buildstep.BuildStep, AddToLogMixin):
     name = 'display-safer-cpp-results'
     resultDirectory = ''
     NUM_TO_DISPLAY = 10
+    UPDATE_COMMAND = 'Tools/Scripts/update-safer-cpp-expectations -p {project} '
+    CHECKER_ARGS = '--{checker} {files} '
+    commands = set()
 
     def __init___(self, **kwargs):
         super().__init__(logEnviron=False, **kwargs)
@@ -7348,15 +7363,19 @@ class DisplaySaferCPPResults(buildstep.BuildStep, AddToLogMixin):
         total_file_list = set()
         is_log = 0
         for project, data in unexpected_results_data[type].items():
+            command = self.UPDATE_COMMAND.format(project=project)
             log_content = ''
             for checker, files in data.items():
                 if files:
                     total_file_list.update(files)
                     file_str = '\n'.join(files)
                     log_content += f'=> {checker}\n\n{file_str}\n\n'
+                    command += self.CHECKER_ARGS.format(checker=checker, files=' '.join(files))
             if log_content:
                 yield self._addToLog(f'{project}-unexpected-{type}', log_content)
                 is_log += 1
+                if type == 'passes':
+                    self.commands.add(command)
         self.setProperty(f'{type}', list(total_file_list))
         return defer.returnValue(is_log)
 
@@ -7383,7 +7402,7 @@ class DisplaySaferCPPResults(buildstep.BuildStep, AddToLogMixin):
 
         if num_failures:
             pluralSuffix = 's' if num_issues > 1 else ''
-            comment = f"Safer CPP Build {formatted_build_link}: Found [{num_issues} new failure{pluralSuffix}]({results_link}).\n"
+            comment = f"Safer C++ Build {formatted_build_link}: Found [{num_issues} new failure{pluralSuffix}]({results_link}).\n"
             comment += 'Please address these issues before landing. See [WebKit Guidelines for Safer C++ Programming](https://github.com/WebKit/WebKit/wiki/Safer-CPP-Guidelines).\n(cc @rniwa)'
             self.setProperty('comment_text', comment)
             # FIXME: Add merging blocked after initial deployment period
@@ -7400,8 +7419,10 @@ class DisplaySaferCPPResults(buildstep.BuildStep, AddToLogMixin):
         elif num_passes:
             # FIXME: Add link to unexpected passes file
             pluralSuffix = 's' if num_passes > 1 else ''
-            comment = f'Safer CPP Build {formatted_build_link}: Found {num_passes} fixed file{pluralSuffix}!\n'
-            comment += 'Please update expectations manually or by using `update-safer-cpp-expectations --remove-expected-failures` before landing.'
+            comment = f'Safer C++ Build {formatted_build_link}: Found {num_passes} fixed file{pluralSuffix}!\n'
+            pluralCommand = 's' if len(self.commands) > 1 else ''
+            comment += f'Please update expectations in Source/[WebKit/WebCore]/SaferCPPExpectations manually or by running the following command{pluralCommand}:\n'
+            comment += '\n'.join(self.commands)
             self.setProperty('comment_text', comment)
             results_summary = f'Found {num_passes} fixed file{pluralSuffix}: {passing_files}'
             if num_passes > self.NUM_TO_DISPLAY:

@@ -906,7 +906,6 @@
 		27E818132BFB2A2400B872DA /* FragmentDirective.h in Headers */ = {isa = PBXBuildFile; fileRef = 27E818062BF5C67400B872DA /* FragmentDirective.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2914E3081CAB5A440049966F /* AccessibilityAttachment.h in Headers */ = {isa = PBXBuildFile; fileRef = 2914E3061CAB5A440049966F /* AccessibilityAttachment.h */; };
 		2936BF5C21D69E4B004A8FC9 /* AXCoreObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 2936BF5A21D6999E004A8FC9 /* AXCoreObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		293EAE1F1356B2FE0067ACF9 /* RuntimeApplicationChecks.h in Headers */ = {isa = PBXBuildFile; fileRef = 293EAE1E1356B2FE0067ACF9 /* RuntimeApplicationChecks.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		29489FC712C00F0300D83F0F /* AccessibilityScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = 29489FC512C00F0300D83F0F /* AccessibilityScrollView.h */; };
 		297BE3D516C03C08003316BD /* PlatformSpeechSynthesisUtterance.h in Headers */ = {isa = PBXBuildFile; fileRef = 2527CC9116BF8BA1009DDAC0 /* PlatformSpeechSynthesisUtterance.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		297BE3D616C03C0B003316BD /* PlatformSpeechSynthesisVoice.h in Headers */ = {isa = PBXBuildFile; fileRef = 2527CC9216BF90B4009DDAC0 /* PlatformSpeechSynthesisVoice.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9070,7 +9069,6 @@
 		2914E3051CAB5A440049966F /* AccessibilityAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityAttachment.cpp; sourceTree = "<group>"; };
 		2914E3061CAB5A440049966F /* AccessibilityAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityAttachment.h; sourceTree = "<group>"; };
 		2936BF5A21D6999E004A8FC9 /* AXCoreObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXCoreObject.h; sourceTree = "<group>"; };
-		293EAE1E1356B2FE0067ACF9 /* RuntimeApplicationChecks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeApplicationChecks.h; sourceTree = "<group>"; };
 		29489FC512C00F0300D83F0F /* AccessibilityScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityScrollView.h; sourceTree = "<group>"; };
 		29498681195341940072D2BD /* TextUndoInsertionMarkupMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TextUndoInsertionMarkupMac.mm; sourceTree = "<group>"; };
 		294BDAE621FF582A0051077B /* AccessibilityObjectCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AccessibilityObjectCocoa.mm; sourceTree = "<group>"; };
@@ -10745,7 +10743,6 @@
 		4650851728E4AA3C00DB9BDF /* RFC7230.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RFC7230.cpp; sourceTree = "<group>"; };
 		4650AD1726FCCA5A0047F7AD /* WorkerThreadMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WorkerThreadMode.h; sourceTree = "<group>"; };
 		465305F72B7EB2BF00BCC812 /* SVGLength.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SVGLength.cpp; sourceTree = "<group>"; };
-		465A8E781C8A24CE00E7D3E4 /* RuntimeApplicationChecksCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RuntimeApplicationChecksCocoa.mm; sourceTree = "<group>"; };
 		465EDD9F222F4EC300B46E16 /* DeviceOrientationOrMotionPermissionState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceOrientationOrMotionPermissionState.h; sourceTree = "<group>"; };
 		465EDDA0222F4EC400B46E16 /* DeviceOrientationOrMotionPermissionState.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DeviceOrientationOrMotionPermissionState.idl; sourceTree = "<group>"; };
 		4664D1A12964FCD4006FE0C5 /* GamepadHapticActuator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GamepadHapticActuator.h; sourceTree = "<group>"; };
@@ -15835,7 +15832,6 @@
 		A1885D942C0FEF100086246A /* tvos-media-controls.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "tvos-media-controls.css"; sourceTree = "<group>"; };
 		A18890AC1AA13F250026C301 /* ParentalControlsContentFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ParentalControlsContentFilter.mm; sourceTree = "<group>"; };
 		A18890AD1AA13F250026C301 /* ParentalControlsContentFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParentalControlsContentFilter.h; sourceTree = "<group>"; };
-		A18F7A351ECA73640059E1E1 /* RuntimeApplicationChecks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RuntimeApplicationChecks.cpp; sourceTree = "<group>"; };
 		A1956F182331A4680057E9D2 /* ApplePayCancelEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ApplePayCancelEvent.idl; sourceTree = "<group>"; };
 		A1956F1A2331A6460057E9D2 /* JSApplePayCancelEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSApplePayCancelEvent.cpp; sourceTree = "<group>"; };
 		A1956F1B2331A6460057E9D2 /* JSApplePayCancelEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSApplePayCancelEvent.h; sourceTree = "<group>"; };
@@ -31189,7 +31185,6 @@
 				3A4C6A882BABF3CF00597157 /* PublicSuffixStoreCocoa.mm */,
 				5117F30C25E6101F002A9F1E /* RemoteCommandListenerCocoa.h */,
 				5117F30A25E6101E002A9F1E /* RemoteCommandListenerCocoa.mm */,
-				465A8E781C8A24CE00E7D3E4 /* RuntimeApplicationChecksCocoa.mm */,
 				0E7058F31BC5CCD70045A507 /* SearchPopupMenuCocoa.h */,
 				0E7058ED1BC5BC190045A507 /* SearchPopupMenuCocoa.mm */,
 				5CFC9C822B71ABF200F8D289 /* SerializedPlatformDataCueValue.mm */,
@@ -34656,8 +34651,6 @@
 				CDFC360418CA61C20026E56F /* RemoteCommandListener.h */,
 				F43160C92A297A150021441D /* RunLoopObserver.cpp */,
 				F43160C72A2974D90021441D /* RunLoopObserver.h */,
-				A18F7A351ECA73640059E1E1 /* RuntimeApplicationChecks.cpp */,
-				293EAE1E1356B2FE0067ACF9 /* RuntimeApplicationChecks.h */,
 				4644219928F5181900FE48C6 /* ScreenOrientationManager.cpp */,
 				46DC53BE28EB3D64005376B0 /* ScreenOrientationManager.h */,
 				C1E1D235203DF15400584665 /* ScreenProperties.h */,
@@ -42663,7 +42656,6 @@
 				1A569D210D7E2B82007C3983 /* runtime_method.h in Headers */,
 				1A569D230D7E2B82007C3983 /* runtime_object.h in Headers */,
 				1A569D250D7E2B82007C3983 /* runtime_root.h in Headers */,
-				293EAE1F1356B2FE0067ACF9 /* RuntimeApplicationChecks.h in Headers */,
 				CE7A6C28208537E200FA2B46 /* SameSiteInfo.h in Headers */,
 				41FCD6B923CE015500C62567 /* SampleBufferDisplayLayer.h in Headers */,
 				CDD7089718359F6F002B3DC6 /* SampleMap.h in Headers */,

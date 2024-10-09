@@ -94,7 +94,7 @@
 #endif
 
 #if PLATFORM(IOS_FAMILY)
-#include "RuntimeApplicationChecks.h"
+#include <wtf/RuntimeApplicationChecks.h>
 #endif
 
 #if PLATFORM(MAC)
@@ -583,7 +583,7 @@ bool RenderLayerBacking::shouldSetContentsDisplayDelegate() const
 #if PLATFORM(IOS_FAMILY)
 bool RenderLayerBacking::needsIOSDumpRenderTreeMainFrameRenderViewLayerIsAlwaysOpaqueHack(const GraphicsLayer& layer) const
 {
-    if (m_isMainFrameRenderViewLayer && IOSApplication::isDumpRenderTree()) {
+    if (m_isMainFrameRenderViewLayer && WTF::IOSApplication::isDumpRenderTree()) {
         // In iOS WebKit1 the main frame's RenderView layer is always transparent. We lie that it is opaque so that
         // internals.layerTreeAsText() tests succeed.
         ASSERT_UNUSED(layer, !layer.contentsOpaque());
@@ -1487,9 +1487,9 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
     m_graphicsLayer->setPosition(primaryLayerPosition);
     m_graphicsLayer->setSize(primaryGraphicsLayerRect.size());
 
-#if ENABLE(CSS_TRANSFORM_STYLE_OPTIMIZED_3D)
+#if ENABLE(CSS_TRANSFORM_STYLE_SEPARATED)
     // FIXME: Take ancestry into account and remove unnecessary structural layers.
-    m_graphicsLayer->setIsSeparated(style.usedTransformStyle3D() == TransformStyle3D::Optimized3D);
+    m_graphicsLayer->setIsSeparated(style.usedTransformStyle3D() == TransformStyle3D::Separated);
 #endif
 
     // Compute renderer offset from primary graphics layer. Note that primaryGraphicsLayerRect is in parentGraphicsLayer's coordinate system which is not necessarily
@@ -3202,7 +3202,7 @@ bool RenderLayerBacking::isUnscaledBitmapOnly() const
 void RenderLayerBacking::contentChanged(ContentChangeType changeType)
 {
     PaintedContentsInfo contentsInfo(*this);
-    if (changeType == ImageChanged || changeType == CanvasChanged) {
+    if (changeType == ContentChangeType::Image || changeType == ContentChangeType::Canvas) {
         if (contentsInfo.isDirectlyCompositedImage()) {
             updateImageContents(contentsInfo);
             return;
@@ -3213,27 +3213,27 @@ void RenderLayerBacking::contentChanged(ContentChangeType changeType)
         }
     }
 
-    if (changeType == VideoChanged) {
+    if (changeType == ContentChangeType::Video) {
         compositor().scheduleCompositingLayerUpdate();
         return;
     }
 
 #if ENABLE(MODEL_ELEMENT)
-    if (changeType == ModelChanged) {
+    if (changeType == ContentChangeType::Model) {
         compositor().scheduleCompositingLayerUpdate();
         return;
     }
 #endif
 
-    if ((changeType == BackgroundImageChanged) && canDirectlyCompositeBackgroundBackgroundImage(renderer()))
+    if ((changeType == ContentChangeType::BackgroundIImage) && canDirectlyCompositeBackgroundBackgroundImage(renderer()))
         m_owningLayer.setNeedsCompositingConfigurationUpdate();
 
-    if ((changeType == MaskImageChanged) && m_maskLayer)
+    if ((changeType == ContentChangeType::MaskImage) && m_maskLayer)
         m_owningLayer.setNeedsCompositingConfigurationUpdate();
 
 #if ENABLE(WEBGL) || ENABLE(OFFSCREEN_CANVAS)
-    if ((changeType == CanvasChanged || changeType == CanvasPixelsChanged) && renderer().isRenderHTMLCanvas() && canvasCompositingStrategy(renderer()) == CanvasAsLayerContents) {
-        if (changeType == CanvasChanged)
+    if ((changeType == ContentChangeType::Canvas || changeType == ContentChangeType::CanvasPixels) && renderer().isRenderHTMLCanvas() && canvasCompositingStrategy(renderer()) == CanvasAsLayerContents) {
+        if (changeType == ContentChangeType::Canvas)
             compositor().scheduleCompositingLayerUpdate();
 
         m_graphicsLayer->setContentsNeedsDisplay();

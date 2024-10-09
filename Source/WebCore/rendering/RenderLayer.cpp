@@ -954,7 +954,7 @@ RenderLayerCompositor& RenderLayer::compositor() const
 
 void RenderLayer::contentChanged(ContentChangeType changeType)
 {
-    if (changeType == CanvasChanged || changeType == VideoChanged || changeType == FullScreenChanged || changeType == ModelChanged || (isComposited() && changeType == ImageChanged)) {
+    if (changeType == ContentChangeType::Canvas || changeType == ContentChangeType::Video || changeType == ContentChangeType::FullScreen || changeType == ContentChangeType::Model || (isComposited() && changeType == ContentChangeType::Image)) {
         setNeedsPostLayoutCompositingUpdate();
         setNeedsCompositingConfigurationUpdate();
     }
@@ -1202,7 +1202,7 @@ void RenderLayer::recursiveUpdateLayerPositions(RenderElement::LayoutIdentifier 
     }
 
     auto repaintIfNecessary = [&](bool checkForRepaint) {
-        if (!m_hasVisibleContent || !isSelfPaintingLayer()) {
+        if (isVisibilityHiddenOrOpacityZero() || !isSelfPaintingLayer()) {
             LAYER_POSITIONS_ASSERT_IMPLIES(mode == Verify, !repaintRects());
             clearRepaintRects();
             return;
@@ -1394,7 +1394,7 @@ void RenderLayer::computeRepaintRects(const RenderLayerModelObject* repaintConta
 {
     ASSERT(!m_visibleContentStatusDirty);
 
-    if (!m_hasVisibleContent || !isSelfPaintingLayer())
+    if (isVisibilityHiddenOrOpacityZero() || !isSelfPaintingLayer())
         clearRepaintRects();
     else
         setRepaintRects(renderer().rectsForRepaintingAfterLayout(repaintContainer, RepaintOutlineBounds::Yes));
@@ -5759,6 +5759,11 @@ bool RenderLayer::hasVisibleBoxDecorations() const
     return hasVisibleBoxDecorationsOrBackground() || (m_scrollableArea && m_scrollableArea->hasOverflowControls());
 }
 
+bool RenderLayer::isVisibilityHiddenOrOpacityZero() const
+{
+    return !hasVisibleContent() || !renderer().style().opacity();
+}
+
 bool RenderLayer::isVisuallyNonEmpty(PaintedContentRequest* request) const
 {
     ASSERT(!m_visibleContentStatusDirty);
@@ -6511,8 +6516,10 @@ void outputLayerPositionTreeRecursive(TextStream& stream, const WebCore::RenderL
     stream << &layer << " "_s << layerRect;
 
     stream << " "_s << layer.name();
+#if ASSERT_ENABLED || ENABLE(CONJECTURE_ASSERT)
     if (layer.m_repaintContainer)
         stream << " (repaint container: " << layer.m_repaintContainer.get() << ")";
+#endif
     if (layer.repaintRects())
         stream << " (repaint rects " << *layer.repaintRects() << ")";
     stream.nextLine();

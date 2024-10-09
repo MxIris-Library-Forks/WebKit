@@ -153,7 +153,6 @@
 #import <WebCore/Permissions.h>
 #import <WebCore/PlatformScreen.h>
 #import <WebCore/RunJavaScriptParameters.h>
-#import <WebCore/RuntimeApplicationChecks.h>
 #import <WebCore/Settings.h>
 #import <WebCore/SharedBuffer.h>
 #import <WebCore/StringUtilities.h>
@@ -170,6 +169,7 @@
 #import <wtf/MathExtras.h>
 #import <wtf/NeverDestroyed.h>
 #import <wtf/RetainPtr.h>
+#import <wtf/RuntimeApplicationChecks.h>
 #import <wtf/SystemTracing.h>
 #import <wtf/TZoneMallocInlines.h>
 #import <wtf/UUID.h>
@@ -285,7 +285,7 @@ static bool shouldAllowPictureInPictureMediaPlayback()
 
 static bool shouldAllowSettingAnyXHRHeaderFromFileURLs()
 {
-    static bool shouldAllowSettingAnyXHRHeaderFromFileURLs = (WebCore::IOSApplication::isCardiogram() || WebCore::IOSApplication::isNike()) && !linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::DisallowsSettingAnyXHRHeaderFromFileURLs);
+    static bool shouldAllowSettingAnyXHRHeaderFromFileURLs = (WTF::IOSApplication::isCardiogram() || WTF::IOSApplication::isNike()) && !linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::DisallowsSettingAnyXHRHeaderFromFileURLs);
     return shouldAllowSettingAnyXHRHeaderFromFileURLs;
 }
 
@@ -548,6 +548,10 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
 
 #if ENABLE(APPLE_PAY)
     pageConfiguration->preferences().setApplePayEnabled(!![_configuration _applePayEnabled]);
+#endif
+
+#if ENABLE(CSS_TRANSFORM_STYLE_SEPARATED)
+    pageConfiguration->preferences().setCSSTransformStyleSeparatedEnabled(!![_configuration _cssTransformStyleSeparatedEnabled]);
 #endif
 
     pageConfiguration->preferences().setNeedsStorageAccessFromFileURLsQuirk(!![_configuration _needsStorageAccessFromFileURLsQuirk]);

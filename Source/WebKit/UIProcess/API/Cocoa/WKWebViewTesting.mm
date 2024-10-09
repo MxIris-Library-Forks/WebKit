@@ -48,10 +48,11 @@
 #import "_WKFrameHandleInternal.h"
 #import "_WKInspectorInternal.h"
 #import <WebCore/NowPlayingInfo.h>
-#import <WebCore/RuntimeApplicationChecks.h>
 #import <WebCore/ScrollingNodeID.h>
 #import <WebCore/ValidationBubble.h>
+#import <pal/spi/cocoa/QuartzCoreSPI.h>
 #import <wtf/RetainPtr.h>
+#import <wtf/RuntimeApplicationChecks.h>
 #import <wtf/TZoneMallocInlines.h>
 #import <wtf/text/MakeString.h>
 
@@ -135,6 +136,11 @@ static void dumpCALayer(TextStream& ts, CALayer *layer, bool traverse)
 
     if (layer.anchorPointZ)
         ts.dumpProperty("layer anchorPointZ", makeString(layer.anchorPointZ));
+
+#if HAVE(CORE_ANIMATION_SEPARATED_LAYERS)
+    if (layer.separated)
+        ts.dumpProperty("separated", true);
+#endif
 
     if (layer.opacity != 1.0)
         ts.dumpProperty("layer opacity", makeString(layer.opacity));
@@ -444,12 +450,12 @@ static void dumpCALayer(TextStream& ts, CALayer *layer, bool traverse)
 
 + (void)_setApplicationBundleIdentifier:(NSString *)bundleIdentifier
 {
-    WebCore::setApplicationBundleIdentifierOverride(String(bundleIdentifier));
+    setApplicationBundleIdentifierOverride(String(bundleIdentifier));
 }
 
 + (void)_clearApplicationBundleIdentifierTestingOverride
 {
-    WebCore::clearApplicationBundleIdentifierTestingOverride();
+    clearApplicationBundleIdentifierTestingOverride();
 }
 
 - (BOOL)_hasSleepDisabler

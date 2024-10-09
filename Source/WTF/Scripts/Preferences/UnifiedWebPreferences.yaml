@@ -188,6 +188,8 @@ AccessibilityThreadTextApisEnabled:
   status: embedder
   humanReadableName: "Off Main-Thread Accessibility Text APIs"
   humanReadableDescription: "Serve accessibility text APIs off the main-thread"
+  webcoreBinding: DeprecatedGlobalSettings
+  condition: ENABLE(AX_THREAD_TEXT_APIS)
   defaultValue:
     WebKitLegacy:
       default: false
@@ -1554,12 +1556,12 @@ CSSTextJustifyEnabled:
     WebCore:
       default: false
 
-CSSTextSpacingEnabled:
+CSSTextSpacingTrimEnabled:
   type: bool
   status: testable
   category: css
-  humanReadableName: "CSS text-spacing property"
-  humanReadableDescription: "Enable the property text-spacing, defined in CSS Text 4"
+  humanReadableName: "CSS text-spacing-trim property"
+  humanReadableDescription: "Enable the property text-spacing-trim, defined in CSS Text 4"
   defaultValue:
     WebKitLegacy:
       default: false
@@ -1610,13 +1612,13 @@ CSSTextWrapStyleEnabled:
     WebCore:
       default: true
 
-CSSTransformStyleOptimized3DEnabled:
+CSSTransformStyleSeparatedEnabled:
   type: bool
   status: unstable
   category: css
-  humanReadableName: "CSS transform-style: optimized-3d"
-  humanReadableDescription: "Enable transform-style: optimized-3d property to access the separated graphics layer"
-  condition: ENABLE(CSS_TRANSFORM_STYLE_OPTIMIZED_3D)
+  humanReadableName: "CSS transform-style: separated"
+  humanReadableDescription: "Enable transform-style: separated property to access the separated graphics layer"
+  condition: ENABLE(CSS_TRANSFORM_STYLE_SEPARATED)
   defaultValue:
     WebKitLegacy:
       default: false
@@ -6126,7 +6128,6 @@ ScreenOrientationAPIEnabled:
       default: WebKit::defaultShouldEnableScreenOrientationAPI()
     WebCore:
       default: false
-  sharedPreferenceForWebProcess: true
 
 ScreenOrientationLockingAPIEnabled:
   type: bool

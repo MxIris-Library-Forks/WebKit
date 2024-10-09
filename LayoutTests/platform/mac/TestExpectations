@@ -2407,25 +2407,21 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/
 [ Sequoia ] fast/ruby/ruby-expansion-cjk-4.html [ ImageOnlyFailure ]
 
 # webkit.org/b/280378 [ Sequoia arm64 ] 14x http/tests/media/fairplay/* are constant failures
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-hls-key-rotation.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-hls-update-reject.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-hls.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-init-data-cenc.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-init-data-sinf.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-init-data-skd.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-mse-play-while-not-in-dom.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-mse-unmuxed-audio-only.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-mse-unmuxed-key-renewal.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-mse-unmuxed-multiple-keys.html [ Failure ]
-[ Sequoia arm64 Release ] http/tests/media/fairplay/fps-mse-unmuxed-same-key.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-hls-key-rotation.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-hls-update-reject.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-hls.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-init-data-cenc.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-init-data-sinf.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-init-data-skd.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-mse-play-while-not-in-dom.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-mse-unmuxed-audio-only.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-mse-unmuxed-key-renewal.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-mse-unmuxed-multiple-keys.html [ Failure ]
+[ Sequoia arm64 ] http/tests/media/fairplay/fps-mse-unmuxed-same-key.html [ Failure ]
 http/tests/media/fairplay/fps-mse-multi-key-renewal.html [ Pass Failure ] 
 
 # webkit.org/b/280424 [ Sequoia ] fast/table/col-and-colgroup-offsets.html is a constant failure.
 [ Sequoia+ ] fast/table/col-and-colgroup-offsets.html [ Failure ]
-
-# webkit.org/b/280490 REGRESSION (284225@main) : [ macOS iOS ] 2x imported/w3c/web-platform-t ests/mathml/presentation-markup/operators/* are constant failures 
-imported/w3c/web-platform-tests/mathml/presentation-markup/operators/size-and-position-of-stretchy-fences-with-default-font-001.html [ Failure ]
-imported/w3c/web-platform-tests/mathml/presentation-markup/operators/stretchy-largeop-with-default-font-2.html [ Failure ]
 
 webkit.org/b/257011 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphenate-character-002.html [ ImageOnlyFailure ]
 
@@ -2436,3 +2432,6 @@ webkit.org/b/280792 inspector/worker/debugger-pause-subworker.html [ Skip ]
 
 # webkit.org/b/280985 [macOS Debug]: media/track/track-text-track-destructor-crash.html is a flaky crash (failure in EWS)
 [ Debug ] media/track/track-text-track-destructor-crash.html [ Pass Crash ]
+
+# webkit.org/b/281097 [ Sequoia ] imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/mime-types/canPlayType.html is a constant failure. 
+[ Sequoia+ ] imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/mime-types/canPlayType.html [ Failure ]

@@ -6285,6 +6285,11 @@ void WebPageProxy::updateRemoteFrameSize(WebCore::FrameIdentifier frameID, WebCo
     sendToProcessContainingFrame(frameID, Messages::WebPage::UpdateFrameSize(frameID, size));
 }
 
+void WebPageProxy::frameCompositedBoundsChanged(WebCore::FrameIdentifier frameID, WebCore::IntPoint contentsOffset)
+{
+    sendToProcessContainingFrame(frameID, Messages::WebPage::FrameCompositedBoundsChanged(frameID, contentsOffset));
+}
+
 void WebPageProxy::updateSandboxFlags(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::SandboxFlags sandboxFlags)
 {
     if (RefPtr frame = WebFrameProxy::webFrame(frameID)) {
@@ -11686,9 +11691,23 @@ void WebPageProxy::validateCaptureStateUpdate(WebCore::UserMediaRequestIdentifie
         }
         break;
     case WebCore::MediaProducerMediaCaptureKind::Display:
-        // FIXME: Add support for unmuting screen capture.
         if (mutedState.containsAny({ WebCore::MediaProducerMutedState::ScreenCaptureIsMuted, WebCore::MediaProducerMutedState::WindowCaptureIsMuted })) {
-            completionHandler(Exception { ExceptionCode::NotAllowedError, "Screen capture access is denied"_s });
+            Ref userMediaOrigin = API::SecurityOrigin::create(clientOrigin.clientOrigin.securityOrigin().get());
+            Ref topLevelOrigin = API::SecurityOrigin::create(clientOrigin.topOrigin.securityOrigin().get());
+
+            uiClient().decidePolicyForScreenCaptureUnmuting(*this, *webFrame, WTFMove(userMediaOrigin), WTFMove(topLevelOrigin), [weakThis = WeakPtr { *this }, completionHandler = WTFMove(completionHandler)] (bool isAllowed) mutable {
+                if (!isAllowed) {
+                    completionHandler(Exception { ExceptionCode::NotAllowedError, "Screen capture access is denied"_s });
+                    return;
+                }
+
+                completionHandler({ });
+                RefPtr page = weakThis.get();
+                if (!page)
+                    return;
+                page->m_mutedCaptureKindsDesiredByWebApp.remove(WebCore::MediaProducerMediaCaptureKind::Display);
+                page->setMediaStreamCaptureMuted(false);
+            });
             return;
         }
         break;
@@ -13248,6 +13267,13 @@ void WebPageProxy::setShouldScaleViewToFitDocument(bool shouldScaleViewToFitDocu
 
     send(Messages::WebPage::SetShouldScaleViewToFitDocument(shouldScaleViewToFitDocument));
 }
+
+#if ENABLE(PDF_PLUGIN)
+void WebPageProxy::setPluginScaleFactor(double scaleFactor, WebCore::IntPoint origin)
+{
+    send(Messages::WebPage::SetPluginScaleFactor(scaleFactor, origin));
+}
+#endif
 
 void WebPageProxy::didRestoreScrollPosition()
 {

@@ -440,19 +440,6 @@ static UGPRPair entryOSR(CodeBlock* codeBlock, const char*, EntryKind)
 }
 #endif // ENABLE(JIT)
 
-#if LLINT_TRACING
-extern "C" void SYSV_ABI logWasmPrologue(uint64_t i, uint64_t* fp, uint64_t* sp)
-{
-    if (!Options::traceLLIntExecution())
-        return;
-    dataLogLn("logWasmPrologue ", i, " ", RawPointer(fp), " ", RawPointer(sp));
-    dataLogLn("FP[+Callee] ", RawHex(fp[static_cast<int>(CallFrameSlot::callee)]));
-    dataLogLn("FP[+CodeBlock] ", RawHex(fp[static_cast<int>(CallFrameSlot::codeBlock)]));
-    dataLogLn("FP[+returnpc] ", RawHex(fp[static_cast<int>(OBJECT_OFFSETOF(CallerFrameAndPC, returnPC) / 8)]));
-    dataLogLn("FP[+callerFrame] ", RawHex(fp[static_cast<int>(OBJECT_OFFSETOF(CallerFrameAndPC, callerFrame) / 8)]));
-}
-#endif
-
 LLINT_SLOW_PATH_DECL(entry_osr)
 {
     UNUSED_PARAM(pc);
@@ -2371,7 +2358,8 @@ LLINT_SLOW_PATH_DECL(slow_path_get_from_scope)
     // ModuleVar is always converted to ClosureVar for get_from_scope.
     ASSERT(metadata.m_getPutInfo.resolveType() != ModuleVar);
 
-    LLINT_RETURN(scope->getPropertySlot(globalObject, ident, [&] (bool found, PropertySlot& slot) -> JSValue {
+    PropertySlot slot(wrapGlobalObject(scope), PropertySlot::InternalMethodType::Get);
+    LLINT_RETURN(scope->getPropertySlot(globalObject, ident, slot, [&] (bool found, PropertySlot& slot) -> JSValue {
         if (!found) {
             if (metadata.m_getPutInfo.resolveMode() == ThrowIfNotFound)
                 return throwException(globalObject, throwScope, createUndefinedVariableError(globalObject, ident));
@@ -2430,7 +2418,7 @@ LLINT_SLOW_PATH_DECL(slow_path_put_to_scope)
     if (metadata.m_getPutInfo.resolveMode() == ThrowIfNotFound && !hasProperty)
         LLINT_THROW(createUndefinedVariableError(globalObject, ident));
 
-    PutPropertySlot slot(scope, metadata.m_getPutInfo.ecmaMode().isStrict(), PutPropertySlot::UnknownContext, isInitialization(metadata.m_getPutInfo.initializationMode()));
+    PutPropertySlot slot(wrapGlobalObject(scope), metadata.m_getPutInfo.ecmaMode().isStrict(), PutPropertySlot::UnknownContext, isInitialization(metadata.m_getPutInfo.initializationMode()));
     scope->methodTable()->put(scope, globalObject, ident, value, slot);
     
     CommonSlowPaths::tryCachePutToScopeGlobal(globalObject, codeBlock, bytecode, scope, slot, ident);

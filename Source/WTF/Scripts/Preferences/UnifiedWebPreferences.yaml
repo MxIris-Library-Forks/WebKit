@@ -899,6 +899,19 @@ BlockIOKitInWebContentSandbox:
     WebKit:
       default: true
 
+BlockIconServicesInWebContentSandbox:
+  type: bool
+  status: internal
+  category: networking
+  humanReadableName: "Block Icon services in the WebContent sandbox"
+  humanReadableDescription: "Block Icon services in the WebContent sandbox"
+  webcoreBinding: none
+  condition: HAVE(SANDBOX_STATE_FLAGS) && PLATFORM(MAC)
+  exposed: [ WebKit ]
+  defaultValue:
+    WebKit:
+      default: false
+
 BlockMediaLayerRehostingInWebContentProcess:
   type: bool
   status: internal
@@ -4678,6 +4691,8 @@ MediaDevicesEnabled:
 MediaEnabled:
   type: bool
   status: embedder
+  humanReadableName: "HTML Media Elements"
+  humanReadableDescription: "Enable HTML media elements <audio>, <video> and <track>"
   condition: ENABLE(VIDEO)
   defaultValue:
     WebKitLegacy:
@@ -4686,6 +4701,20 @@ MediaEnabled:
       default: true
     WebCore:
       default: true
+
+MediaPlaybackEnabled:
+  type: bool
+  status: embedder
+  humanReadableName: "Media Playback Functionalities"
+  humanReadableDescription: "Enable media playback functionalities"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+  sharedPreferenceForWebProcess: true
 
 MediaPreferredFullscreenWidth:
   type: double
@@ -4730,7 +4759,7 @@ MediaRecorderEnabled:
 
 MediaSessionCaptureToggleAPIEnabled:
   type: bool
-  status: testable
+  status: stable
   category: media
   humanReadableName: "MediaSession capture related API"
   humanReadableDescription: "Enable MediaSession capture related API"
@@ -4738,6 +4767,7 @@ MediaSessionCaptureToggleAPIEnabled:
     WebKitLegacy:
       default: false
     WebKit:
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false
@@ -7584,13 +7614,14 @@ UseImageDocumentForSubframePDF:
 
 UseMicrophoneMuteStatusAPI:
   type: bool
-  status: preview
+  status: stable
   category: media
   humanReadableName: "Use Microphone Mute Status API"
   humanReadableDescription: "Use Microphone Mute Status API"
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
     WebKit:
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false
@@ -7910,6 +7941,20 @@ VisualViewportEnabled:
       default: true
     WebCore:
       default: true
+
+VisuallyContiguousBidiTextSelectionEnabled:
+  type: bool
+  status: internal
+  humanReadableName: "Visually Contiguous Bidi Selection"
+  humanReadableDescription: "Visually contiguous bidi selection"
+  conditional: PLATFORM(IOS_FAMILY)
+  defaultValue:
+    WebKit:
+      default: false
+    WebKitLegacy:
+      default: false
+    WebCore:
+      default: false
 
 VorbisDecoderEnabled:
   type: bool
@@ -8269,7 +8314,7 @@ WebGPUEnabled:
 
 WebGPUHDREnabled:
   type: bool
-  status: unstable
+  status: testable
   category: dom
   humanReadableName: "WebGPU support for HDR"
   humanReadableDescription: "WebGPU High Dynamic Range through canvas configuration tone mapping mode"

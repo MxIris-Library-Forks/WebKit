@@ -381,6 +381,8 @@ bool Options::isAvailable(Options::ID id, Options::Availability availability)
         return !!LLINT_TRACING;
     if (id == traceLLIntSlowPathID)
         return !!LLINT_TRACING;
+    if (id == traceWasmLLIntExecutionID)
+        return !!LLINT_TRACING;
     return false;
 }
 
@@ -568,10 +570,10 @@ static void overrideDefaults()
             Options::gcIncrementScale() = 0;
     }
 
-#if PLATFORM(MAC) && CPU(ARM64)
-    Options::numberOfGCMarkers() = 3;
-    Options::numberOfDFGCompilerThreads() = 3;
-    Options::numberOfFTLCompilerThreads() = 3;
+#if OS(DARWIN) && CPU(ARM64)
+    Options::numberOfGCMarkers() = std::min<unsigned>(3, kernTCSMAwareNumberOfProcessorCores());
+    Options::numberOfDFGCompilerThreads() = std::min<unsigned>(3, kernTCSMAwareNumberOfProcessorCores());
+    Options::numberOfFTLCompilerThreads() = std::min<unsigned>(3, kernTCSMAwareNumberOfProcessorCores());
 #endif
 
 #if OS(LINUX) && CPU(ARM)

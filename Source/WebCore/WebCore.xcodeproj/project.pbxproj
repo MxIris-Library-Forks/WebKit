@@ -69,6 +69,7 @@
 		0223E06D2AAECC2200AF30FB /* HandleUserInputEventResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 0223E06C2AAEBBCF00AF30FB /* HandleUserInputEventResult.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0223E0742AAED62200AF30FB /* RemoteUserInputEventData.h in Headers */ = {isa = PBXBuildFile; fileRef = 0223E0732AAED62200AF30FB /* RemoteUserInputEventData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0245150C297CAFA300DFD845 /* LinkDecorationFilteringData.h in Headers */ = {isa = PBXBuildFile; fileRef = 0245150B297CAF7700DFD845 /* LinkDecorationFilteringData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		029D57AA2C506F5900AD086B /* UserGestureTokenIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 029D57A92C506F5900AD086B /* UserGestureTokenIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		02E536BD2984EA6800417C02 /* ScrollerPairMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 024E5F7429844DBD009CC5FC /* ScrollerPairMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		02E536C12984ECE200417C02 /* ScrollerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 024E5F7129844DBC009CC5FC /* ScrollerMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0562F9611573F88F0031CA16 /* PlatformLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0562F9601573F88F0031CA16 /* PlatformLayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6698,6 +6699,7 @@
 		024E5F7229844DBD009CC5FC /* ScrollerMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollerMac.mm; sourceTree = "<group>"; };
 		024E5F7329844DBD009CC5FC /* ScrollerPairMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollerPairMac.mm; sourceTree = "<group>"; };
 		024E5F7429844DBD009CC5FC /* ScrollerPairMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScrollerPairMac.h; sourceTree = "<group>"; };
+		029D57A92C506F5900AD086B /* UserGestureTokenIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserGestureTokenIdentifier.h; sourceTree = "<group>"; };
 		054E3A33256C3BD90072C5B9 /* ShadowRootInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShadowRootInit.h; sourceTree = "<group>"; };
 		054E3A33256C3BD90072C5BF /* GetHTMLOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GetHTMLOptions.h; sourceTree = "<group>"; };
 		054E3A35256C3BD90072C5B9 /* ShadowRootInit.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ShadowRootInit.idl; sourceTree = "<group>"; };
@@ -28178,6 +28180,7 @@
 				003F1FE911E6AB43008258D9 /* UserContentTypes.h */,
 				BCACF3BA1072921A00C0C8A3 /* UserContentURLPattern.cpp */,
 				BCACF3BB1072921A00C0C8A3 /* UserContentURLPattern.h */,
+				029D57A92C506F5900AD086B /* UserGestureTokenIdentifier.h */,
 				BC4A5326256055D30028C592 /* UserInterfaceDirectionPolicy.h */,
 				0F768C2B26D03841008DBE0B /* UserMediaRequestIdentifier.h */,
 				7C3B796F1908757B00B47A2D /* UserMessageHandler.cpp */,
@@ -43521,6 +43524,7 @@
 				BCACF3BD1072921A00C0C8A3 /* UserContentURLPattern.h in Headers */,
 				F32BDCD92363AACA0073B6AE /* UserGestureEmulationScope.h in Headers */,
 				2542F4DB1166C25A00E89A86 /* UserGestureIndicator.h in Headers */,
+				029D57AA2C506F5900AD086B /* UserGestureTokenIdentifier.h in Headers */,
 				BC4A5327256055D30028C592 /* UserInterfaceDirectionPolicy.h in Headers */,
 				71C916081D1483A300ACA47D /* UserInterfaceLayoutDirection.h in Headers */,
 				078E092E17D14D1C00420AA1 /* UserMediaClient.h in Headers */,

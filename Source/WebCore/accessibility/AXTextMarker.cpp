@@ -496,7 +496,7 @@ int AXTextMarker::lineIndex() const
     AXTextMarker startMarker;
     RefPtr object = isolatedObject();
     if (object->isTextControl())
-        startMarker = { object->treeID(), object->objectID(), 0 };
+        startMarker = { *object, 0 };
     else if (auto* editableAncestor = object->editableAncestor())
         startMarker = { editableAncestor->treeID(), editableAncestor->objectID(), 0 };
     else if (RefPtr tree = std::get<RefPtr<AXIsolatedTree>>(axTreeForID(treeID())))
@@ -739,6 +739,18 @@ const AXTextRuns* AXTextMarker::runs() const
     return object ? object->textRuns() : nullptr;
 }
 
+// Custom text unit iterator wrappers
+
+static int previousSentenceStartFromPosition(StringView text, unsigned position)
+{
+    return ubrk_preceding(sentenceBreakIterator(text), position);
+}
+
+static int nextSentenceEndFromPosition(StringView text, unsigned position)
+{
+    return ubrk_following(sentenceBreakIterator(text), position);
+}
+
 AXTextMarker AXTextMarker::findMarker(AXDirection direction, CoalesceObjectBreaks coalesceObjectBreaks, IgnoreBRs ignoreBRs, std::optional<AXID> stopAtID) const
 {
     // This method has two boolean options:
@@ -770,7 +782,7 @@ AXTextMarker AXTextMarker::findMarker(AXDirection direction, CoalesceObjectBreak
         if ((coalesceObjectBreaks == CoalesceObjectBreaks::Yes || shouldSkipBR) && !isolatedObject()->shouldEmitNewlinesBeforeAndAfterNode())
             startingOffset = 1;
 
-        return AXTextMarker { object->treeID(), object->objectID(), direction == AXDirection::Next ? startingOffset : object->textRuns()->lastRunLength() - startingOffset };
+        return AXTextMarker { *object, direction == AXDirection::Next ? startingOffset : object->textRuns()->lastRunLength() - startingOffset };
     }
 
     return { };
@@ -814,7 +826,7 @@ AXTextMarker AXTextMarker::findMarker(AXDirection direction, AXTextUnit textUnit
                 cumulativeOffset += currentRuns->runLength(i);
                 if (currentRuns->lineID(i) != startLineID)
                     return linePosition;
-                linePosition = AXTextMarker(currentObject->treeID(), currentObject->objectID(), computeOffset(cumulativeOffset, currentRuns->runLength(i)));
+                linePosition = AXTextMarker(*currentObject, computeOffset(cumulativeOffset, currentRuns->runLength(i)));
             }
             currentObject = findObjectWithRuns(*currentObject, direction, stopAtID);
             if (currentObject)
@@ -823,7 +835,7 @@ AXTextMarker AXTextMarker::findMarker(AXDirection direction, AXTextUnit textUnit
         return linePosition;
     }
 
-    if (textUnit == AXTextUnit::Word) {
+    if (textUnit == AXTextUnit::Word || textUnit == AXTextUnit::Sentence) {
         unsigned offset = this->offset();
         AXTextMarker resultMarker = *this;
 
@@ -831,7 +843,9 @@ AXTextMarker AXTextMarker::findMarker(AXDirection direction, AXTextUnit textUnit
 
         // objectBorder maintains the position in flattenedRuns between the current object's text and the previously scanned object(s)
         int objectBorder = direction == AXDirection::Next ? 0 : flattenedRuns.length();
-        while (currentObject) {
+
+        // Functions to update resultMarker for word and sentence text units.
+        auto updateWordResultMarker = [&] () {
             int start, end;
             findWordBoundary(flattenedRuns, offset, &start, &end);
             if (direction == AXDirection::Previous) {
@@ -843,16 +857,39 @@ AXTextMarker AXTextMarker::findMarker(AXDirection direction, AXTextUnit textUnit
                 // When looking backward, the end of a word can be at the offset.
                 if (start != (int)offset || end == (int)offset) {
                     if (boundary == AXTextUnitBoundary::Start && previousWordStart < objectBorder && previousWordStart != -1)
-                        resultMarker = AXTextMarker(currentObject->treeID(), currentObject->objectID(), previousWordStart);
+                        resultMarker = AXTextMarker(*currentObject, previousWordStart);
                     else if (boundary == AXTextUnitBoundary::End && end <= objectBorder && end != -1)
-                        resultMarker = AXTextMarker(currentObject->treeID(), currentObject->objectID(), end);
+                        resultMarker = AXTextMarker(*currentObject, end);
                 }
             } else if ((int)offset < end) {
                 if (boundary == AXTextUnitBoundary::Start && start <= end && start != -1 && start >= objectBorder)
-                    resultMarker = AXTextMarker(currentObject->treeID(), currentObject->objectID(), start - objectBorder);
+                    resultMarker = AXTextMarker(*currentObject, start - objectBorder);
                 else if (boundary == AXTextUnitBoundary::End && start <= end && end != -1 && end >= objectBorder)
-                    resultMarker = AXTextMarker(currentObject->treeID(), currentObject->objectID(), end - objectBorder);
+                    resultMarker = AXTextMarker(*currentObject, end - objectBorder);
             }
+        };
+
+        auto updateSentenceResultMarker = [&] () {
+            if (boundary == AXTextUnitBoundary::Start) {
+                int start = previousSentenceStartFromPosition(flattenedRuns, offset);
+                if (direction == AXDirection::Previous && start < objectBorder && start != -1)
+                    resultMarker = AXTextMarker(*currentObject, start);
+                else if (direction == AXDirection::Next && start != -1 && start >= objectBorder)
+                    resultMarker = AXTextMarker(*currentObject, start - objectBorder);
+            } else {
+                int end = nextSentenceEndFromPosition(flattenedRuns, offset);
+                if (direction == AXDirection::Previous && end <= objectBorder && end != -1)
+                    resultMarker = AXTextMarker(*currentObject, end);
+                else if (direction == AXDirection::Next && end != -1 && end >= objectBorder)
+                    resultMarker = AXTextMarker(*currentObject, end - objectBorder);
+            }
+        };
+
+        while (currentObject) {
+            if (textUnit == AXTextUnit::Word)
+                updateWordResultMarker();
+            else if (textUnit == AXTextUnit::Sentence)
+                updateSentenceResultMarker();
 
             bool lastObjectIsEditable = !!currentObject->editableAncestor();
             currentObject = findObjectWithRuns(*currentObject, direction, stopAtID);
@@ -869,7 +906,7 @@ AXTextMarker AXTextMarker::findMarker(AXDirection direction, AXTextUnit textUnit
                     objectBorder = newRunsFlattenedString.length();
                 } else {
                     // We don't need to update the offset when moving fowards, since text is being appended to the end of flattenedRuns
-                    objectBorder += flattenedRuns.length();
+                    objectBorder = flattenedRuns.length();
                     flattenedRuns = makeString(flattenedRuns, newRunsFlattenedString);
                 }
             }
@@ -979,6 +1016,25 @@ AXTextMarkerRange AXTextMarker::wordRange(WordRangeType type) const
 
         if ((isWhitespaceAndEndsOnLeftWordBoundary || !equivalentTextPosition(endMarker)) && nextMarker == nextWordStart)
             return { *this, *this };
+    }
+
+    return { WTFMove(startMarker), WTFMove(endMarker) };
+}
+
+AXTextMarkerRange AXTextMarker::sentenceRange(SentenceRangeType type) const
+{
+    if (!isValid())
+        return { { }, { } };
+
+    AXTextMarker startMarker, endMarker;
+
+    if (type == SentenceRangeType::Current) {
+        startMarker = previousSentenceStart();
+        endMarker = nextSentenceEnd();
+        auto rangeString = AXTextMarkerRange { startMarker, endMarker }.toString();
+        // If the sentence iterator gave us an end that includes the newline, remove it.
+        if (rangeString.length() && rangeString.endsWith('\n'))
+            endMarker = endMarker.findMarker(AXDirection::Previous);
     }
 
     return { WTFMove(startMarker), WTFMove(endMarker) };

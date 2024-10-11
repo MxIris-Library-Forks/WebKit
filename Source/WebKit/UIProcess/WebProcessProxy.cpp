@@ -2238,12 +2238,6 @@ WebProcessPool* WebProcessProxy::processPoolIfExists() const
     return m_processPool.get();
 }
 
-WebProcessPool& WebProcessProxy::processPool() const
-{
-    ASSERT(m_processPool);
-    return *m_processPool.get();
-}
-
 Ref<WebProcessPool> WebProcessProxy::protectedProcessPool() const
 {
     return processPool();
@@ -2251,9 +2245,12 @@ Ref<WebProcessPool> WebProcessProxy::protectedProcessPool() const
 
 void WebProcessProxy::enableMediaPlaybackIfNecessary()
 {
+    if (!m_sharedPreferencesForWebProcess.mediaPlaybackEnabled)
+        return;
+
 #if USE(AUDIO_SESSION)
-    if (m_sharedPreferencesForWebProcess.mediaPlaybackEnabled)
-        WebCore::AudioSession::enableMediaPlayback();
+    if (!WebCore::AudioSession::enableMediaPlayback())
+        return;
 #endif
 
 #if ENABLE(ROUTING_ARBITRATION)

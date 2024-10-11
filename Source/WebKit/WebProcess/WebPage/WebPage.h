@@ -727,6 +727,11 @@ public:
 
 #if ENABLE(PDF_PLUGIN)
     void setPluginScaleFactor(double scaleFactor, WebCore::IntPoint origin);
+
+#if PLATFORM(IOS_FAMILY)
+    void didInitializePlugin();
+#endif
+
 #endif
 
     void didScalePage(double scale, const WebCore::IntPoint& origin);
@@ -1812,6 +1817,10 @@ public:
     void createTextIndicatorForTextAnimationID(const WTF::UUID&, CompletionHandler<void(std::optional<WebCore::TextIndicatorData>&&)>&&);
 
     void didEndPartialIntelligenceTextAnimation();
+#endif
+
+#if PLATFORM(COCOA)
+    void createTextIndicatorForElementWithID(const String& elementID, CompletionHandler<void(std::optional<WebCore::TextIndicatorData>&&)>&&);
 #endif
 
     void startObservingNowPlayingMetadata();

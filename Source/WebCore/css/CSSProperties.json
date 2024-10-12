@@ -1349,8 +1349,8 @@
                 "inter-character"
             ],
             "codegen-properties": {
-                "top-priority": true,
-                "comment": "This is a top priority property to ensure that its value can be checked when determining a smart default font size', (<https://trac.webkit.org/browser/trunk/Source/WebCore/ChangeLog?rev=172861>).",
+                "cascade-alias": "ruby-position",
+                "skip-builder": true,
                 "name-for-methods": "RubyPosition",
                 "parser-function": "consumeWebKitRubyPosition",
                 "parser-grammar-unused": "before | after | inter-character",
@@ -9339,9 +9339,7 @@
         "view-transition-name": {
             "codegen-properties": {
                 "converter": "ViewTransitionName",
-                "parser-function": "consumeViewTransitionName",
-                "parser-grammar-unused": "none | <custom-ident>",
-                "parser-grammar-unused-reason": "Needs support for applying restrictions to <custom-ident>. The <custom-ident> production used here excludes the keyword auto.",
+                "parser-grammar": "none | auto | <custom-ident>",
                 "settings-flag": "viewTransitionsEnabled"
             },
             "specification": {

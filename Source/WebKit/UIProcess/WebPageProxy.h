@@ -1690,9 +1690,13 @@ public:
     void saveDataToFileInDownloadsFolder(String&& suggestedFilename, String&& mimeType, URL&& originatingURL, API::Data&);
     void savePDFToFileInDownloadsFolder(String&& suggestedFilename, URL&& originatingURL, std::span<const uint8_t>);
 
-#if ENABLE(PDF_PLUGIN) && PLATFORM(MAC)
+#if ENABLE(PDF_PLUGIN)
+#if PLATFORM(MAC)
     void savePDFToTemporaryFolderAndOpenWithNativeApplication(const String& suggestedFilename, FrameInfoData&&, std::span<const uint8_t>, const String& pdfUUID);
     void showPDFContextMenu(const PDFContextMenu&, PDFPluginIdentifier, CompletionHandler<void(std::optional<int32_t>&&)>&&);
+#else
+    void pluginDidInstallPDFDocument(double initialScale);
+#endif
 #endif
 
     WebCore::IntRect visibleScrollerThumbRect() const;
@@ -2620,8 +2624,8 @@ private:
 #endif
 
     void updateRemoteFrameSize(WebCore::FrameIdentifier, WebCore::IntSize);
-    void frameCompositedBoundsChanged(WebCore::FrameIdentifier, WebCore::IntPoint);
     void updateSandboxFlags(IPC::Connection&, WebCore::FrameIdentifier, WebCore::SandboxFlags);
+    void updateOpener(IPC::Connection&, WebCore::FrameIdentifier, WebCore::FrameIdentifier);
 
     void didDestroyNavigation(WebCore::NavigationIdentifier);
 
@@ -3570,7 +3574,7 @@ private:
 
     const std::unique_ptr<WebPageInspectorController> m_inspectorController;
 #if ENABLE(REMOTE_INSPECTOR)
-    std::unique_ptr<WebPageDebuggable> m_inspectorDebuggable;
+    RefPtr<WebPageDebuggable> m_inspectorDebuggable;
 #endif
 
     std::optional<SpellDocumentTag> m_spellDocumentTag;

@@ -51,6 +51,7 @@
 #include <algorithm>
 #include <wtf/FileSystem.h>
 #include <wtf/HashMap.h>
+#include <wtf/MainThread.h>
 #include <wtf/URL.h>
 #include <wtf/UUID.h>
 #include <wtf/text/MakeString.h>
@@ -63,6 +64,8 @@
 #include "VirtualAuthenticatorManager.h"
 #include <WebCore/AuthenticatorTransport.h>
 #endif
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 namespace WebKit {
 
@@ -83,6 +86,57 @@ static const Seconds defaultPageLoadTimeout = 300_s;
 // https://www.w3.org/TR/webdriver/#dfn-page-loading-strategy
 static const Inspector::Protocol::Automation::PageLoadStrategy defaultPageLoadStrategy = Inspector::Protocol::Automation::PageLoadStrategy::Normal;
 
+#if ENABLE(REMOTE_INSPECTOR)
+auto WebAutomationSession::Debuggable::create(WebAutomationSession& session) -> Ref<Debuggable>
+{
+    return adoptRef(*new Debuggable(session));
+}
+
+WebAutomationSession::Debuggable::Debuggable(WebAutomationSession& session)
+    : m_session(&session)
+{
+}
+
+void WebAutomationSession::Debuggable::sessionDestroyed()
+{
+    m_session = nullptr;
+}
+
+String WebAutomationSession::Debuggable::name() const
+{
+    String name;
+    callOnMainRunLoopAndWait([this, protectedThis = Ref { *this }, &name] {
+        if (m_session)
+            name = m_session->name().isolatedCopy();
+    });
+    return name;
+}
+
+void WebAutomationSession::Debuggable::dispatchMessageFromRemote(String&& message)
+{
+    callOnMainRunLoopAndWait([this, protectedThis = Ref { *this }, message = WTFMove(message).isolatedCopy()]() mutable {
+        if (m_session)
+            m_session->dispatchMessageFromRemote(WTFMove(message));
+    });
+}
+
+void WebAutomationSession::Debuggable::connect(Inspector::FrontendChannel& channel, bool isAutomaticConnection, bool immediatelyPause)
+{
+    callOnMainRunLoopAndWait([this, protectedThis = Ref { *this }, &channel, isAutomaticConnection, immediatelyPause] {
+        if (m_session)
+            m_session->connect(channel, isAutomaticConnection, immediatelyPause);
+    });
+}
+
+void WebAutomationSession::Debuggable::disconnect(Inspector::FrontendChannel& channel)
+{
+    callOnMainRunLoopAndWait([this, protectedThis = Ref { *this }, &channel] {
+        if (m_session)
+            m_session->disconnect(channel);
+    });
+}
+#endif // ENABLE(REMOTE_INSPECTOR)
+
 WebAutomationSession::WebAutomationSession()
     : m_client(makeUnique<API::AutomationSessionClient>())
     , m_frontendRouter(FrontendRouter::create())
@@ -90,6 +144,9 @@ WebAutomationSession::WebAutomationSession()
     , m_domainDispatcher(AutomationBackendDispatcher::create(m_backendDispatcher, this))
     , m_domainNotifier(makeUnique<AutomationFrontendDispatcher>(m_frontendRouter))
     , m_loadTimer(RunLoop::main(), this, &WebAutomationSession::loadTimerFired)
+#if ENABLE(REMOTE_INSPECTOR)
+    , m_debuggable(Debuggable::create(*this))
+#endif
 {
 #if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
     m_mouseButtonsCurrentlyDown.reserveInitialCapacity(3);
@@ -100,6 +157,9 @@ WebAutomationSession::~WebAutomationSession()
 {
     ASSERT(!m_client);
     ASSERT(!m_processPool);
+#if ENABLE(REMOTE_INSPECTOR)
+    m_debuggable->sessionDestroyed();
+#endif
 }
 
 void WebAutomationSession::setClient(std::unique_ptr<API::AutomationSessionClient>&& client)
@@ -128,8 +188,6 @@ RefPtr<WebProcessPool> WebAutomationSession::protectedProcessPool() const
 
 #if ENABLE(REMOTE_INSPECTOR)
 
-// Inspector::RemoteAutomationTarget API
-
 void WebAutomationSession::dispatchMessageFromRemote(String&& message)
 {
     protectedBackendDispatcher()->dispatch(WTFMove(message));
@@ -143,13 +201,28 @@ void WebAutomationSession::connect(Inspector::FrontendChannel& channel, bool isA
     m_remoteChannel = &channel;
     protectedFrontendRouter()->connectFrontend(channel);
 
-    setIsPaired(true);
+    m_debuggable->setIsPaired(true);
 }
 
 void WebAutomationSession::disconnect(Inspector::FrontendChannel& channel)
 {
     ASSERT(&channel == m_remoteChannel);
     terminate();
+}
+
+void WebAutomationSession::init()
+{
+    m_debuggable->init();
+}
+
+bool WebAutomationSession::isPaired() const
+{
+    return m_debuggable->isPaired();
+}
+
+bool WebAutomationSession::isPendingTermination() const
+{
+    return m_debuggable->isPendingTermination();
 }
 
 #endif // ENABLE(REMOTE_INSPECTOR)
@@ -183,7 +256,7 @@ void WebAutomationSession::terminate()
         protectedFrontendRouter()->disconnectFrontend(*channel);
     }
 
-    setIsPaired(false);
+    m_debuggable->setIsPaired(false);
 #endif
 
     if (m_client)
@@ -2504,3 +2577,5 @@ std::optional<String> WebAutomationSession::platformGenerateLocalFilePathForRemo
 #endif // !PLATFORM(COCOA)
 
 } // namespace WebKit
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END

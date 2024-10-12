@@ -422,6 +422,8 @@
 #include <wtf/glib/RunLoopSourcePriority.h>
 #endif
 
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+
 #define MESSAGE_CHECK(process, assertion) MESSAGE_CHECK_BASE(assertion, process->connection())
 #define MESSAGE_CHECK_URL(process, url) MESSAGE_CHECK_BASE(checkURLReceivedFromCurrentOrPreviousWebProcess(process, url), process->connection())
 #define MESSAGE_CHECK_URL_COROUTINE(process, url) MESSAGE_CHECK_BASE_COROUTINE(checkURLReceivedFromCurrentOrPreviousWebProcess(process, url), process->connection())
@@ -764,7 +766,7 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
 #endif
     , m_inspectorController(makeUnique<WebPageInspectorController>(*this))
 #if ENABLE(REMOTE_INSPECTOR)
-    , m_inspectorDebuggable(makeUnique<WebPageDebuggable>(*this))
+    , m_inspectorDebuggable(WebPageDebuggable::create(*this))
 #endif
     , m_corsDisablingPatterns(configuration->corsDisablingPatterns())
 #if ENABLE(APP_BOUND_DOMAINS)
@@ -881,6 +883,10 @@ WebPageProxy::~WebPageProxy()
 
 #if PLATFORM(MACCATALYST)
     EndowmentStateTracker::singleton().removeClient(internals());
+#endif
+
+#if ENABLE(REMOTE_INSPECTOR)
+    ASSERT(!m_inspectorDebuggable);
 #endif
     
     for (auto& callback : m_nextActivityStateChangeCallbacks)
@@ -1695,7 +1701,8 @@ void WebPageProxy::close()
     protectedBackForwardList()->pageClosed();
     m_inspectorController->pageClosed();
 #if ENABLE(REMOTE_INSPECTOR)
-    m_inspectorDebuggable = nullptr;
+    if (RefPtr inspectorDebuggable = std::exchange(m_inspectorDebuggable, nullptr))
+        inspectorDebuggable->detachFromPage();
 #endif
 
     if (RefPtr pageClient = this->pageClient())
@@ -6322,11 +6329,6 @@ void WebPageProxy::updateRemoteFrameSize(WebCore::FrameIdentifier frameID, WebCo
     sendToProcessContainingFrame(frameID, Messages::WebPage::UpdateFrameSize(frameID, size));
 }
 
-void WebPageProxy::frameCompositedBoundsChanged(WebCore::FrameIdentifier frameID, WebCore::IntPoint contentsOffset)
-{
-    sendToProcessContainingFrame(frameID, Messages::WebPage::FrameCompositedBoundsChanged(frameID, contentsOffset));
-}
-
 void WebPageProxy::updateSandboxFlags(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::SandboxFlags sandboxFlags)
 {
     if (RefPtr frame = WebFrameProxy::webFrame(frameID)) {
@@ -6335,6 +6337,17 @@ void WebPageProxy::updateSandboxFlags(IPC::Connection& connection, WebCore::Fram
         MESSAGE_CHECK(process, parentFrame && &parentFrame->process() == process.get());
         frame->updateSandboxFlags(sandboxFlags);
     }
+}
+
+void WebPageProxy::updateOpener(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::FrameIdentifier newOpener)
+{
+    if (RefPtr frame = WebFrameProxy::webFrame(frameID))
+        frame->updateOpener(newOpener);
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        if (webProcess.hasConnection(connection))
+            return;
+        webProcess.send(Messages::WebPage::UpdateOpener(frameID, newOpener), pageID);
+    });
 }
 
 void WebPageProxy::preconnectTo(ResourceRequest&& request)
@@ -15406,3 +15419,5 @@ Ref<BrowsingContextGroup> WebPageProxy::protectedBrowsingContextGroup() const
 #undef MESSAGE_CHECK_COMPLETION
 #undef MESSAGE_CHECK_URL
 #undef MESSAGE_CHECK
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END

@@ -27,7 +27,6 @@
 #pragma once
 
 #if USE(COORDINATED_GRAPHICS)
-#include "AcceleratedSurface.h"
 #include "CallbackID.h"
 #include "LayerTreeContext.h"
 #include "SimpleViewportController.h"
@@ -41,6 +40,7 @@
 #include <WebCore/NicosiaScene.h>
 #include <WebCore/NicosiaSceneIntegration.h>
 #include <WebCore/PlatformScreen.h>
+#include <wtf/CheckedRef.h>
 #include <wtf/Forward.h>
 #include <wtf/OptionSet.h>
 #include <wtf/RunLoop.h>
@@ -71,12 +71,13 @@ namespace WebKit {
 
 class WebPage;
 
-class LayerTreeHost final : public WebCore::GraphicsLayerClient, public WebCore::CoordinatedGraphicsLayerClient, public WebCore::GraphicsLayerFactory, public AcceleratedSurface::Client, public ThreadedCompositor::Client, public Nicosia::SceneIntegration::Client
+class LayerTreeHost final : public CanMakeCheckedPtr<LayerTreeHost>, public WebCore::GraphicsLayerClient, public WebCore::CoordinatedGraphicsLayerClient, public WebCore::GraphicsLayerFactory, public Nicosia::SceneIntegration::Client
 #if !HAVE(DISPLAY_LINK)
     , public ThreadedDisplayRefreshMonitor::Client
 #endif
 {
     WTF_MAKE_TZONE_ALLOCATED(LayerTreeHost);
+    WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(LayerTreeHost);
 public:
 #if HAVE(DISPLAY_LINK)
     explicit LayerTreeHost(WebPage&);
@@ -84,6 +85,8 @@ public:
     LayerTreeHost(WebPage&, WebCore::PlatformDisplayID);
 #endif
     ~LayerTreeHost();
+
+    WebPage& webPage() const { return m_webPage; }
 
     const LayerTreeContext& layerTreeContext() const { return m_layerTreeContext; }
     void setLayerFlushSchedulingEnabled(bool);
@@ -109,6 +112,12 @@ public:
     void deviceOrPageScaleFactorChanged();
     void backgroundColorDidChange();
 
+    void willRenderFrame();
+    void didRenderFrame();
+#if HAVE(DISPLAY_LINK)
+    void didComposite(uint32_t);
+#endif
+
 #if !HAVE(DISPLAY_LINK)
     RefPtr<WebCore::DisplayRefreshMonitor> createDisplayRefreshMonitor(WebCore::PlatformDisplayID);
     WebCore::PlatformDisplayID displayID() const { return m_displayID; }
@@ -127,9 +136,6 @@ private:
     void flushLayers();
     void commitSceneState(const RefPtr<Nicosia::Scene>&);
     void didChangeViewport();
-#if HAVE(DISPLAY_LINK)
-    void didRenderFrameTimerFired();
-#endif
     void renderNextFrame(bool);
 
     // CoordinatedGraphicsLayerClient
@@ -147,20 +153,6 @@ private:
 
     // GraphicsLayerFactory
     Ref<WebCore::GraphicsLayer> createGraphicsLayer(WebCore::GraphicsLayer::Type, WebCore::GraphicsLayerClient&) override;
-
-    // AcceleratedSurface::Client
-    void frameComplete() override;
-
-    // ThreadedCompositor::Client
-    uint64_t nativeSurfaceHandleForCompositing() override;
-    void didCreateGLContext() override;
-    void willDestroyGLContext() override;
-    void didDestroyGLContext() override;
-    void resize(const WebCore::IntSize&) override;
-    void willRenderFrame() override;
-    void clearIfNeeded() override;
-    void didRenderFrame(uint32_t, const WebCore::Damage&) override;
-    void displayDidRefresh(WebCore::PlatformDisplayID) override;
 
     // Nicosia::SceneIntegration::Client
     void requestUpdate() override;
@@ -195,7 +187,6 @@ private:
     WebCore::IntPoint m_lastScrollPosition;
     bool m_scrolledSinceLastFrame { false };
     double m_lastAnimationServiceTime { 0 };
-    std::unique_ptr<AcceleratedSurface> m_surface;
     RefPtr<ThreadedCompositor> m_compositor;
     SimpleViewportController m_viewportController;
     WebCore::FloatRect m_visibleContentsRect;
@@ -204,9 +195,7 @@ private:
         bool needsFreshFlush { false };
     } m_forceRepaintAsync;
     RunLoop::Timer m_layerFlushTimer;
-#if HAVE(DISPLAY_LINK)
-    RunLoop::Timer m_didRenderFrameTimer;
-#else
+#if !HAVE(DISPLAY_LINK)
     WebCore::PlatformDisplayID m_displayID;
 #endif
 #if USE(CAIRO)
@@ -229,7 +218,6 @@ private:
 #endif
 
     uint32_t m_compositionRequestID { 0 };
-    uint32_t m_compositionResponseID { 0 };
 };
 
 } // namespace WebKit

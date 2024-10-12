@@ -730,6 +730,7 @@ public:
 
 #if PLATFORM(IOS_FAMILY)
     void didInitializePlugin();
+    void pluginDidInstallPDFDocument(double initialScale);
 #endif
 
 #endif
@@ -1045,7 +1046,6 @@ public:
     void unfreezeLayerTree(LayerTreeFreezeReason);
 
     void updateFrameSize(WebCore::FrameIdentifier, WebCore::IntSize);
-    void frameCompositedBoundsChanged(WebCore::FrameIdentifier, WebCore::IntPoint);
 
     void markLayersVolatile(CompletionHandler<void(bool)>&& completionHandler = { });
     void cancelMarkLayersVolatile();
@@ -1837,8 +1837,11 @@ public:
 #if ENABLE(CONTEXT_MENUS)
     void showContextMenuFromFrame(const WebCore::FrameIdentifier&, const ContextMenuContextData&, const UserData&);
 #endif
+    void loadRequest(LoadParameters&&);
 
     void setTopContentInset(float);
+
+    void updateOpener(WebCore::FrameIdentifier, WebCore::FrameIdentifier);
 
 private:
     WebPage(WebCore::PageIdentifier, WebPageCreationParameters&&);
@@ -1959,7 +1962,6 @@ private:
     void createProvisionalFrame(ProvisionalFrameCreationParameters&&, WebCore::FrameIdentifier);
     void destroyProvisionalFrame(WebCore::FrameIdentifier);
     void loadDidCommitInAnotherProcess(WebCore::FrameIdentifier, std::optional<WebCore::LayerHostingContextIdentifier>);
-    void loadRequest(LoadParameters&&);
     [[noreturn]] void loadRequestWaitingForProcessLaunch(LoadParameters&&, URL&&, WebPageProxyIdentifier, bool);
     void loadData(LoadParameters&&);
     void loadAlternateHTML(LoadParameters&&);

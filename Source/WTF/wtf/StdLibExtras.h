@@ -43,6 +43,8 @@
 #include <wtf/IterationStatus.h>
 #include <wtf/TypeCasts.h>
 
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+
 #define SINGLE_ARG(...) __VA_ARGS__ // useful when a macro argument includes a comma
 
 // Use this macro to declare and define a debug-only global variable that may have a
@@ -846,11 +848,31 @@ template<ByteType T, typename U> constexpr auto byteCast(const U& value)
 }
 
 // This is like std::invocable but it takes the expected signature rather than just the arguments.
-template<typename Functor, typename Signature>
-concept Invocable = requires(std::decay_t<Functor>&& f, std::function<Signature> expected)
-{
+template<typename Functor, typename Signature> concept Invocable = requires(std::decay_t<Functor>&& f, std::function<Signature> expected) {
     { expected = std::move(f) };
 };
+
+// Concept for constraining to user-defined "Tuple-like" types.
+//
+// Based on exposition-only text in https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2165r3.pdf
+// and https://stackoverflow.com/questions/68443804/c20-concept-to-check-tuple-like-types.
+
+template<class T, std::size_t N> concept HasTupleElement = requires(T t) {
+    typename std::tuple_element_t<N, std::remove_const_t<T>>;
+    { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
+};
+
+template<class T> concept TupleLike = !std::is_reference_v<T>
+    && requires(T t) {
+        typename std::tuple_size<T>::type;
+        requires std::derived_from<
+          std::tuple_size<T>,
+          std::integral_constant<std::size_t, std::tuple_size_v<T>>
+        >;
+      }
+    && []<std::size_t... N>(std::index_sequence<N...>) {
+        return (HasTupleElement<T, N> && ...);
+    }(std::make_index_sequence<std::tuple_size_v<T>>());
 
 // This is like std::apply, but works with user-defined "Tuple-like" types as well as the
 // standard ones. The only real difference between its implementation and the standard one
@@ -1012,3 +1034,5 @@ using WTF::valueOrCompute;
 using WTF::valueOrDefault;
 using WTF::toTwosComplement;
 using WTF::Invocable;
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END

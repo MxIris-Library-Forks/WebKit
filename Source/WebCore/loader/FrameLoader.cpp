@@ -1270,7 +1270,14 @@ void FrameLoader::loadInSameDocument(URL url, RefPtr<SerializedScriptValue> stat
         // we have already saved away the scroll and doc state for the long slow load,
         // but it's not an obvious case.
 
+        std::optional<WTF::UUID> uuid;
+        if (historyHandling == NavigationHistoryBehavior::Replace) {
+            if (RefPtr currentItem = m_frame->checkedHistory()->currentItem())
+                uuid = currentItem->uuidIdentifier();
+        }
         m_frame->checkedHistory()->updateBackForwardListForFragmentScroll();
+        if (uuid)
+            m_frame->checkedHistory()->currentItem()->setUUIDIdentifier(*uuid);
 
         if (!document->hasRecentUserInteractionForNavigationFromJS() && !documentLoader()->triggeringAction().isRequestFromClientOrUserInput()) {
             if (RefPtr currentItem = m_frame->history().currentItem())
@@ -4649,7 +4656,7 @@ bool LocalFrameLoaderClient::hasHTMLView() const
     return true;
 }
 
-std::pair<RefPtr<Frame>, CreatedNewPage> createWindow(LocalFrame& openerFrame, FrameLoadRequest&& request, WindowFeatures& features)
+std::pair<RefPtr<Frame>, CreatedNewPage> createWindow(LocalFrame& openerFrame, FrameLoadRequest&& request, WindowFeatures&& features)
 {
     ASSERT(!features.dialog || request.frameName().isEmpty());
     ASSERT(request.resourceRequest().httpMethod() == "GET"_s);
@@ -4667,17 +4674,6 @@ std::pair<RefPtr<Frame>, CreatedNewPage> createWindow(LocalFrame& openerFrame, F
             frame->updateOpener(openerFrame);
             return { frame, CreatedNewPage::No };
         }
-    }
-
-    // https://html.spec.whatwg.org/#the-rules-for-choosing-a-browsing-context-given-a-browsing-context-name (Step 8.2)
-    if (openerFrame.document()->shouldForceNoOpenerBasedOnCOOP()) {
-        request.setFrameName(blankTargetFrameName());
-        features.noopener = true;
-    }
-
-    if (openerFrame.document()->settingsValues().blobRegistryTopOriginPartitioningEnabled && request.resourceRequest().url().protocolIsBlob() && !openerFrame.document()->protectedSecurityOrigin()->isSameOriginAs(openerFrame.document()->protectedTopOrigin())) {
-        request.setFrameName(blankTargetFrameName());
-        features.noopener = true;
     }
 
     // Sandboxed frames cannot open new auxiliary browsing contexts.
@@ -4701,21 +4697,18 @@ std::pair<RefPtr<Frame>, CreatedNewPage> createWindow(LocalFrame& openerFrame, F
     features.oldWindowRect = oldPage->chrome().windowRect();
 #endif
 
+    String openedMainFrameName = isBlankTargetFrameName(request.frameName()) ? String() : request.frameName();
     ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy = shouldOpenExternalURLsPolicyToApply(openerFrame, request);
     NavigationAction action { request.requester(), request.resourceRequest(), request.initiatedByMainFrame(), request.isRequestFromClientOrUserInput(), NavigationType::Other, shouldOpenExternalURLsPolicy };
     action.setNewFrameOpenerPolicy(features.wantsNoOpener() ? NewFrameOpenerPolicy::Suppress : NewFrameOpenerPolicy::Allow);
-    RefPtr page = oldPage->chrome().createWindow(openerFrame, features, action);
+    RefPtr page = oldPage->chrome().createWindow(openerFrame, openedMainFrameName, features, action);
     if (!page)
         return { nullptr, CreatedNewPage::No };
 
     Ref frame = page->mainFrame();
 
-    if (!isBlankTargetFrameName(request.frameName()))
-        frame->tree().setSpecifiedName(request.frameName());
-
     if (!frame->page())
         return { nullptr, CreatedNewPage::No };
-    page->chrome().show();
 
     return { WTFMove(frame), CreatedNewPage::Yes };
 }

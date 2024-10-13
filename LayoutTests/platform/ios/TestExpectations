@@ -931,6 +931,8 @@ http/tests/security/listener/xss-window-onclick-shortcut.html [ Skip ]
 ietestcenter/css3/bordersbackgrounds/background-attachment-local-scrolling.htm
 imported/blink/fast/css/border-current-color.html [ Skip ]
 imported/blink/fast/css/crash-corner-present.html [ Skip ]
+imported/blink/fast/events/click-focus-anchor-no-ring.html [ Skip ]
+imported/blink/fast/events/click-focus-svganchor-no-ring.html [ Skip ]
 imported/blink/fast/events/popup-forwarded-gesture.html [ Skip ]
 imported/blink/fast/images/image-hover-display-alt.html [ Skip ]
 imported/blink/fast/replaced/viewport-percentage-height-with-dynamic-container-height.html [ Skip ]
@@ -2334,6 +2336,8 @@ accessibility/table-display-flex.html [ Pass ]
 accessibility/table-display-grid.html [ Pass ]
 accessibility/table-display-inline-block.html [ Pass ]
 accessibility/tree-update-with-dirty-layout.html [ Pass ]
+accessibility/tree-update-with-dynamically-ignored-inline-child-div.html [ Pass ]
+accessibility/tree-update-with-dynamically-ignored-tabindex-div.html [ Pass ]
 accessibility/url-test.html [ Pass ]
 accessibility/video-element-url-attribute.html [ Pass ]
 accessibility/visible-character-range-basic.html [ Pass ]
@@ -7217,10 +7221,6 @@ webkit.org/b/273905 svg/filters/filter-on-root-tile-boundary.html [ Pass ImageOn
 http/wpt/webauthn/idl.https.html [ Failure ]
 
 webkit.org/b/274340 fast/events/ios/key-command-transpose.html [ Pass Timeout ]
-
-# webkit.org/b/274475 REGRESSION (278960@main?): [ MacOS iOS ] 8X imported/w3c/web-platform-t ests/navigation-api are consistently failing and 1 is crashing
-imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/entries-after-navigations-in-multiple-windows.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/key-id-location-replace-cross-origin.html [ Failure ]
 
 webkit.org/b/271916 media/track/track-in-band-layout.html [ Failure ]
 

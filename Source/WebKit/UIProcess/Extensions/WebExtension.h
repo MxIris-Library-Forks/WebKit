@@ -47,18 +47,12 @@ OBJC_CLASS NSData;
 OBJC_CLASS NSDictionary;
 OBJC_CLASS NSError;
 OBJC_CLASS NSLocale;
-OBJC_CLASS NSMutableArray;
 OBJC_CLASS NSMutableDictionary;
 OBJC_CLASS NSString;
 OBJC_CLASS NSURL;
 OBJC_CLASS UTType;
 OBJC_CLASS WKWebExtension;
-OBJC_CLASS WKWebExtensionMatchPattern;
 OBJC_CLASS _WKWebExtensionLocalization;
-
-#ifdef __OBJC__
-#include "WKWebExtensionPermission.h"
-#endif
 
 namespace API {
 class Data;
@@ -260,9 +254,9 @@ public:
     bool hasSidebarAction();
     bool hasSidePanel();
     bool hasAnySidebar();
-    CocoaImage *sidebarIcon(CGSize idealSize);
-    NSString *sidebarDocumentPath();
-    NSString *sidebarTitle();
+    RefPtr<WebCore::Icon> sidebarIcon(WebCore::FloatSize idealSize);
+    const Sring& sidebarDocumentPath();
+    const String& sidebarTitle();
 #endif
 
     CocoaImage *imageForPath(NSString *, RefPtr<API::Error>&, CGSize sizeForResizing = CGSizeZero);
@@ -408,9 +402,9 @@ private:
     RetainPtr<NSString> m_actionPopupPath;
 
 #if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
-    RetainPtr<NSMutableDictionary> m_sidebarIconsCache;
-    RetainPtr<NSString> m_sidebarDocumentPath;
-    RetainPtr<NSString> m_sidebarTitle;
+    HashMap<String, Ref<WebCore::Icon>> m_sidebarIconsCache;
+    String m_sidebarDocumentPath;
+    String m_sidebarTitle;
 #endif
 
     String m_contentSecurityPolicy;

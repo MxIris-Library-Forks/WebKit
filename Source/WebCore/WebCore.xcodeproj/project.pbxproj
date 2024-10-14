@@ -1954,6 +1954,7 @@
 		513F14540AB634C400094DDF /* IconLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 513F14520AB634C400094DDF /* IconLoader.h */; };
 		51405C89190B014400754F94 /* SelectionGeometryGatherer.h in Headers */ = {isa = PBXBuildFile; fileRef = 51405C87190B014400754F94 /* SelectionGeometryGatherer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		514129991C6976900059E714 /* IDBRequestCompletionEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 514129971C6976150059E714 /* IDBRequestCompletionEvent.h */; };
+		514188712CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 5141886F2CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5143B2631DDD15200014FAC6 /* LinkIcon.h in Headers */ = {isa = PBXBuildFile; fileRef = 5143B2621DDD14900014FAC6 /* LinkIcon.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5145B10A1BC48E2E00E86219 /* IDBResourceIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 5145B1081BC4890B00E86219 /* IDBResourceIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5148453F1BB9D07E006A72ED /* IDBError.h in Headers */ = {isa = PBXBuildFile; fileRef = 5148453D1BB9D076006A72ED /* IDBError.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11363,6 +11364,8 @@
 		51405C87190B014400754F94 /* SelectionGeometryGatherer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectionGeometryGatherer.h; sourceTree = "<group>"; };
 		514129961C6976150059E714 /* IDBRequestCompletionEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBRequestCompletionEvent.cpp; sourceTree = "<group>"; };
 		514129971C6976150059E714 /* IDBRequestCompletionEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBRequestCompletionEvent.h; sourceTree = "<group>"; };
+		5141886F2CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaRecorderPrivateWriter.h; sourceTree = "<group>"; };
+		514188702CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaRecorderPrivateWriter.cpp; sourceTree = "<group>"; };
 		5143B2621DDD14900014FAC6 /* LinkIcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkIcon.h; sourceTree = "<group>"; };
 		5145B1071BC4890B00E86219 /* IDBResourceIdentifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBResourceIdentifier.cpp; sourceTree = "<group>"; };
 		5145B1081BC4890B00E86219 /* IDBResourceIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBResourceIdentifier.h; sourceTree = "<group>"; };
@@ -11394,6 +11397,8 @@
 		514C76680CE923A1007EF3CD /* ResourceRequestBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceRequestBase.h; sourceTree = "<group>"; };
 		514C76690CE923A1007EF3CD /* ResourceResponseBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceResponseBase.cpp; sourceTree = "<group>"; };
 		514C766A0CE923A1007EF3CD /* ResourceResponseBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceResponseBase.h; sourceTree = "<group>"; };
+		514C7EFC2CACA59800808ADE /* MediaRecorderPrivateWriterWebM.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MediaRecorderPrivateWriterWebM.mm; sourceTree = "<group>"; };
+		514C7EFD2CACA5BB00808ADE /* MediaRecorderPrivateWriterWebM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaRecorderPrivateWriterWebM.h; sourceTree = "<group>"; };
 		5150B5DC27CDF2E0004FC81E /* CMUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CMUtilities.h; sourceTree = "<group>"; };
 		5150B5DE27CDF499004FC81E /* CMUtilities.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CMUtilities.mm; sourceTree = "<group>"; };
 		515138A22AB21AF800EA5817 /* NotificationJSONParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NotificationJSONParser.cpp; sourceTree = "<group>"; };
@@ -25698,6 +25703,8 @@
 				4D9F6B652182532B0092A9C5 /* MediaRecorderPrivateMock.cpp */,
 				4D9F6B642182532B0092A9C5 /* MediaRecorderPrivateMock.h */,
 				414B7FAB24D81C8F0033D442 /* MediaRecorderPrivateOptions.h */,
+				514188702CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.cpp */,
+				5141886F2CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.h */,
 			);
 			path = mediarecorder;
 			sourceTree = "<group>";
@@ -25709,6 +25716,8 @@
 				41E1F33D248A62B60022D5DE /* AudioSampleBufferCompressor.mm */,
 				4D73F94C218C4A87003A3ED6 /* MediaRecorderPrivateWriterCocoa.h */,
 				4D73F94D218C4A87003A3ED6 /* MediaRecorderPrivateWriterCocoa.mm */,
+				514C7EFD2CACA5BB00808ADE /* MediaRecorderPrivateWriterWebM.h */,
+				514C7EFC2CACA59800808ADE /* MediaRecorderPrivateWriterWebM.mm */,
 				41CD6F8923D6E81C00B16421 /* VideoSampleBufferCompressor.h */,
 				41CD6F8B23D6E81D00B16421 /* VideoSampleBufferCompressor.mm */,
 			);
@@ -41705,6 +41714,7 @@
 				4D3B5016217E58B700665DB1 /* MediaRecorderPrivate.h in Headers */,
 				4D73F946218BC5FA003A3ED6 /* MediaRecorderPrivateAVFImpl.h in Headers */,
 				414B7FAD24D81CC10033D442 /* MediaRecorderPrivateOptions.h in Headers */,
+				514188712CB9FF6C00FA5D59 /* MediaRecorderPrivateWriter.h in Headers */,
 				4D73F94E218C4A87003A3ED6 /* MediaRecorderPrivateWriterCocoa.h in Headers */,
 				4176E89623C3537B003E83FE /* MediaRecorderProvider.h in Headers */,
 				CD8ACA8F1D23971900ECC59E /* MediaRemoteSoftLink.h in Headers */,

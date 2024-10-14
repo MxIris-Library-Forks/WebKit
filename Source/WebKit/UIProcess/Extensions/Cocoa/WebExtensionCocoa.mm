@@ -38,8 +38,8 @@
 #import "Logging.h"
 #import "WKNSError.h"
 #import "WKWebExtensionInternal.h"
-#import "WKWebExtensionPermissionPrivate.h"
 #import "WebExtensionConstants.h"
+#import "WebExtensionPermission.h"
 #import "WebExtensionUtilities.h"
 #import "_WKWebExtensionLocalization.h"
 #import <CoreFoundation/CFBundle.h>
@@ -94,11 +94,6 @@ static NSString * const browserURLOverridesManifestKey = @"browser_url_overrides
 static NSString * const generatedBackgroundPageFilename = @"_generated_background_page.html";
 static NSString * const generatedBackgroundServiceWorkerFilename = @"_generated_service_worker.js";
 
-static NSString * const permissionsManifestKey = @"permissions";
-static NSString * const optionalPermissionsManifestKey = @"optional_permissions";
-static NSString * const hostPermissionsManifestKey = @"host_permissions";
-static NSString * const optionalHostPermissionsManifestKey = @"optional_host_permissions";
-
 static NSString * const commandsManifestKey = @"commands";
 static NSString * const commandsSuggestedKeyManifestKey = @"suggested_key";
 static NSString * const commandsDescriptionKeyManifestKey = @"description";
@@ -108,18 +103,6 @@ static NSString * const declarativeNetRequestRulesManifestKey = @"rule_resources
 static NSString * const declarativeNetRequestRulesetIDManifestKey = @"id";
 static NSString * const declarativeNetRequestRuleEnabledManifestKey = @"enabled";
 static NSString * const declarativeNetRequestRulePathManifestKey = @"path";
-
-static NSString * const externallyConnectableManifestKey = @"externally_connectable";
-static NSString * const externallyConnectableMatchesManifestKey = @"matches";
-static NSString * const externallyConnectableIDsManifestKey = @"ids";
-
-#if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
-static NSString * const sidebarActionManifestKey = @"sidebar_action";
-static NSString * const sidePanelManifestKey = @"side_panel";
-static NSString * const sidebarActionTitleManifestKey = @"default_title";
-static NSString * const sidebarActionPathManifestKey = @"default_panel";
-static NSString * const sidePanelPathManifestKey = @"default_path";
-#endif // ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
 
 static const size_t maximumNumberOfShortcutCommands = 4;
 
@@ -427,63 +410,6 @@ NSLocale *WebExtension::defaultLocale()
     return m_defaultLocale.get();
 }
 
-void WebExtension::populateExternallyConnectableIfNeeded()
-{
-    if (!manifestParsedSuccessfully())
-        return;
-
-    if (m_parsedExternallyConnectable)
-        return;
-
-    m_parsedExternallyConnectable = true;
-
-    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
-
-    auto *externallyConnectableDictionary = objectForKey<NSDictionary>(m_manifest, externallyConnectableManifestKey, false);
-
-    if (!externallyConnectableDictionary)
-        return;
-
-    if (!externallyConnectableDictionary.count) {
-        recordError(createError(Error::InvalidExternallyConnectable));
-        return;
-    }
-
-    bool shouldReportError = false;
-    MatchPatternSet matchPatterns;
-
-    auto *matchPatternStrings = objectForKey<NSArray>(externallyConnectableDictionary, externallyConnectableMatchesManifestKey, true, NSString.class);
-    for (NSString *matchPatternString in matchPatternStrings) {
-        if (!matchPatternString.length)
-            continue;
-
-        if (auto matchPattern = WebExtensionMatchPattern::getOrCreate(matchPatternString)) {
-            if (matchPattern->matchesAllURLs() || !matchPattern->isSupported()) {
-                shouldReportError = true;
-                continue;
-            }
-
-            // URL patterns must contain at least a second-level domain. Top level domains and wildcards are not standalone patterns.
-            if (matchPattern->hostIsPublicSuffix()) {
-                shouldReportError = true;
-                continue;
-            }
-
-            matchPatterns.add(matchPattern.releaseNonNull());
-        }
-    }
-
-    m_externallyConnectableMatchPatterns = matchPatterns;
-
-    auto *extensionIDs = objectForKey<NSArray>(externallyConnectableDictionary, externallyConnectableIDsManifestKey, true, NSString.class);
-    extensionIDs = filterObjects(extensionIDs, ^bool(id key, NSString *extensionID) {
-        return !!extensionID.length;
-    });
-
-    if (shouldReportError || (matchPatterns.isEmpty() && !extensionIDs.count))
-        recordError(createError(Error::InvalidExternallyConnectable));
-}
-
 CocoaImage *WebExtension::icon(CGSize size)
 {
     if (!manifestParsedSuccessfully())
@@ -603,80 +529,6 @@ void WebExtension::populateActionPropertiesIfNeeded()
     m_displayActionLabel = objectForKey<NSString>(m_actionDictionary, defaultTitleManifestKey);
     m_actionPopupPath = objectForKey<NSString>(m_actionDictionary, defaultPopupManifestKey);
 }
-
-#if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
-bool WebExtension::hasSidebarAction()
-{
-    return objectForKey<NSDictionary>(m_manifest, sidebarActionManifestKey);
-}
-
-bool WebExtension::hasSidePanel()
-{
-    return hasRequestedPermission(WKWebExtensionPermissionSidePanel);
-}
-
-bool WebExtension::hasAnySidebar()
-{
-    return hasSidebarAction() || hasSidePanel();
-}
-
-CocoaImage *WebExtension::sidebarIcon(CGSize idealSize)
-{
-    // FIXME: <https://webkit.org/b/276833> implement this
-    return nil;
-}
-
-NSString *WebExtension::sidebarDocumentPath()
-{
-    populateSidebarPropertiesIfNeeded();
-    return m_sidebarDocumentPath.get();
-}
-
-NSString *WebExtension::sidebarTitle()
-{
-    populateSidebarPropertiesIfNeeded();
-    return m_sidebarTitle.get();
-}
-
-void WebExtension::populateSidebarPropertiesIfNeeded()
-{
-    if (!manifestParsedSuccessfully())
-        return;
-
-    if (m_parsedManifestSidebarProperties)
-        return;
-
-    // sidePanel documentation: https://developer.chrome.com/docs/extensions/reference/manifest#side-panel
-    // see "Examples" header -> "Side Panel" tab (doesn't mention `default_path` key elsewhere)
-    // sidebarAction documentation: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/sidebar_action
-
-    auto sidebarActionDictionary = objectForKey<NSDictionary>(m_manifest, sidebarActionManifestKey);
-    if (sidebarActionDictionary) {
-        populateSidebarActionProperties(sidebarActionDictionary);
-        return;
-    }
-
-    auto sidePanelDictionary = objectForKey<NSDictionary>(m_manifest, sidePanelManifestKey);
-    if (sidePanelDictionary)
-        populateSidePanelProperties(sidePanelDictionary);
-}
-
-void WebExtension::populateSidebarActionProperties(RetainPtr<NSDictionary> sidebarActionDictionary)
-{
-    // FIXME: <https://webkit.org/b/276833> implement sidebar icon parsing
-    m_sidebarIconsCache = nil;
-    m_sidebarTitle = objectForKey<NSString>(sidebarActionDictionary, sidebarActionTitleManifestKey);
-    m_sidebarDocumentPath = objectForKey<NSString>(sidebarActionDictionary, sidebarActionPathManifestKey);
-}
-
-void WebExtension::populateSidePanelProperties(RetainPtr<NSDictionary> sidePanelDictionary)
-{
-    // Since sidePanel cannot set a default title or icon from the manifest, setting these nil here is intentional.
-    m_sidebarIconsCache = nil;
-    m_sidebarTitle = nil;
-    m_sidebarDocumentPath = objectForKey<NSString>(sidePanelDictionary, sidePanelPathManifestKey);
-}
-#endif // ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
 
 CocoaImage *WebExtension::imageForPath(NSString *imagePath, RefPtr<API::Error>& outError, CGSize sizeForResizing)
 {
@@ -1339,7 +1191,7 @@ void WebExtension::populateDeclarativeNetRequestPropertiesIfNeeded()
 
     // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/declarative_net_request
 
-    if (!supportedPermissions().contains(WKWebExtensionPermissionDeclarativeNetRequest) && !supportedPermissions().contains(WKWebExtensionPermissionDeclarativeNetRequestWithHostAccess)) {
+    if (!supportedPermissions().contains(WebExtensionPermission::declarativeNetRequest()) && !supportedPermissions().contains(WebExtensionPermission::declarativeNetRequestWithHostAccess())) {
         recordError(createError(Error::InvalidDeclarativeNetRequest, WEB_UI_STRING("Manifest has no `declarativeNetRequest` permission.", "WKWebExtensionErrorInvalidDeclarativeNetRequestEntry description for missing declarativeNetRequest permission")));
         return;
     }
@@ -1410,142 +1262,6 @@ std::optional<WebExtension::DeclarativeNetRequestRulesetData> WebExtension::decl
     }
 
     return std::nullopt;
-}
-
-const WebExtension::PermissionsSet& WebExtension::supportedPermissions()
-{
-    static MainThreadNeverDestroyed<PermissionsSet> permissions = std::initializer_list<String> { WKWebExtensionPermissionActiveTab, WKWebExtensionPermissionAlarms, WKWebExtensionPermissionClipboardWrite,
-        WKWebExtensionPermissionContextMenus, WKWebExtensionPermissionCookies, WKWebExtensionPermissionDeclarativeNetRequest, WKWebExtensionPermissionDeclarativeNetRequestFeedback,
-        WKWebExtensionPermissionDeclarativeNetRequestWithHostAccess, WKWebExtensionPermissionMenus, WKWebExtensionPermissionNativeMessaging, WKWebExtensionPermissionNotifications, WKWebExtensionPermissionScripting,
-        WKWebExtensionPermissionStorage, WKWebExtensionPermissionTabs, WKWebExtensionPermissionUnlimitedStorage, WKWebExtensionPermissionWebNavigation, WKWebExtensionPermissionWebRequest,
-#if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
-        WKWebExtensionPermissionSidePanel,
-#endif
-    };
-    return permissions;
-}
-
-const WebExtension::PermissionsSet& WebExtension::requestedPermissions()
-{
-    populatePermissionsPropertiesIfNeeded();
-    return m_permissions;
-}
-
-const WebExtension::PermissionsSet& WebExtension::optionalPermissions()
-{
-    populatePermissionsPropertiesIfNeeded();
-    return m_optionalPermissions;
-}
-
-const WebExtension::MatchPatternSet& WebExtension::requestedPermissionMatchPatterns()
-{
-    populatePermissionsPropertiesIfNeeded();
-    return m_permissionMatchPatterns;
-}
-
-const WebExtension::MatchPatternSet& WebExtension::optionalPermissionMatchPatterns()
-{
-    populatePermissionsPropertiesIfNeeded();
-    return m_optionalPermissionMatchPatterns;
-}
-
-const WebExtension::MatchPatternSet& WebExtension::externallyConnectableMatchPatterns()
-{
-    populateExternallyConnectableIfNeeded();
-    return m_externallyConnectableMatchPatterns;
-}
-
-WebExtension::MatchPatternSet WebExtension::allRequestedMatchPatterns()
-{
-    populatePermissionsPropertiesIfNeeded();
-    populateContentScriptPropertiesIfNeeded();
-    populateExternallyConnectableIfNeeded();
-
-    WebExtension::MatchPatternSet result;
-
-    for (auto& matchPattern : m_permissionMatchPatterns)
-        result.add(matchPattern);
-
-    for (auto& matchPattern : m_externallyConnectableMatchPatterns)
-        result.add(matchPattern);
-
-    for (auto& injectedContent : m_staticInjectedContents) {
-        for (auto& matchPattern : injectedContent.includeMatchPatterns)
-            result.add(matchPattern);
-    }
-
-    return result;
-}
-
-void WebExtension::populatePermissionsPropertiesIfNeeded()
-{
-    if (!manifestParsedSuccessfully())
-        return;
-
-    if (m_parsedManifestPermissionProperties)
-        return;
-
-    m_parsedManifestPermissionProperties = YES;
-
-    bool findMatchPatternsInPermissions = !supportsManifestVersion(3);
-
-    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/permissions
-
-    NSArray<NSString *> *permissions = objectForKey<NSArray>(m_manifest, permissionsManifestKey, true, NSString.class);
-    for (NSString *permission in permissions) {
-        if (findMatchPatternsInPermissions) {
-            if (auto matchPattern = WebExtensionMatchPattern::getOrCreate(permission)) {
-                if (matchPattern->isSupported())
-                    m_permissionMatchPatterns.add(matchPattern.releaseNonNull());
-                continue;
-            }
-        }
-
-        if (supportedPermissions().contains(permission))
-            m_permissions.add(permission);
-    }
-
-    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/host_permissions
-
-    if (!findMatchPatternsInPermissions) {
-        NSArray<NSString *> *hostPermissions = objectForKey<NSArray>(m_manifest, hostPermissionsManifestKey, true, NSString.class);
-
-        for (NSString *hostPattern in hostPermissions) {
-            if (auto matchPattern = WebExtensionMatchPattern::getOrCreate(hostPattern)) {
-                if (matchPattern->isSupported())
-                    m_permissionMatchPatterns.add(matchPattern.releaseNonNull());
-            }
-        }
-    }
-
-    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/optional_permissions
-
-    NSArray<NSString *> *optionalPermissions = objectForKey<NSArray>(m_manifest, optionalPermissionsManifestKey, true, NSString.class);
-    for (NSString *optionalPermission in optionalPermissions) {
-        if (findMatchPatternsInPermissions) {
-            if (auto matchPattern = WebExtensionMatchPattern::getOrCreate(optionalPermission)) {
-                if (matchPattern->isSupported() && !m_permissionMatchPatterns.contains(*matchPattern))
-                    m_optionalPermissionMatchPatterns.add(matchPattern.releaseNonNull());
-                continue;
-            }
-        }
-
-        if (!m_permissions.contains(optionalPermission) && supportedPermissions().contains(optionalPermission))
-            m_optionalPermissions.add(optionalPermission);
-    }
-
-    // Documentation: https://github.com/w3c/webextensions/issues/119
-
-    if (!findMatchPatternsInPermissions) {
-        NSArray<NSString *> *hostPermissions = objectForKey<NSArray>(m_manifest, optionalHostPermissionsManifestKey, true, NSString.class);
-
-        for (NSString *hostPattern in hostPermissions) {
-            if (auto matchPattern = WebExtensionMatchPattern::getOrCreate(hostPattern)) {
-                if (matchPattern->isSupported() && !m_permissionMatchPatterns.contains(*matchPattern))
-                    m_optionalPermissionMatchPatterns.add(matchPattern.releaseNonNull());
-            }
-        }
-    }
 }
 
 } // namespace WebKit

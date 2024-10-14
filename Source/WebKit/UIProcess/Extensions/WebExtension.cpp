@@ -28,6 +28,7 @@
 
 #if ENABLE(WK_WEB_EXTENSIONS)
 
+#include "WebExtensionPermission.h"
 #include "WebExtensionUtilities.h"
 #include <WebCore/TextResourceDecoder.h>
 
@@ -92,11 +93,28 @@ static constexpr auto backgroundDocumentManifestKey = "document"_s;
 static constexpr auto generatedBackgroundPageFilename = "_generated_background_page.html"_s;
 static constexpr auto generatedBackgroundServiceWorkerFilename = "_generated_service_worker.js"_s;
 
+static constexpr auto permissionsManifestKey = "permissions"_s;
+static constexpr auto optionalPermissionsManifestKey = "optional_permissions"_s;
+static constexpr auto hostPermissionsManifestKey = "host_permissions"_s;
+static constexpr auto optionalHostPermissionsManifestKey = "optional_host_permissions"_s;
+
+static constexpr auto externallyConnectableManifestKey = "externally_connectable"_s;
+static constexpr auto externallyConnectableMatchesManifestKey = "matches"_s;
+static constexpr auto externallyConnectableIDsManifestKey = "ids"_s;
+
 static constexpr auto devtoolsPageManifestKey = "devtools_page"_s;
 
 static constexpr auto webAccessibleResourcesManifestKey = "web_accessible_resources"_s;
 static constexpr auto webAccessibleResourcesResourcesManifestKey = "resources"_s;
 static constexpr auto webAccessibleResourcesMatchesManifestKey = "matches"_s;
+
+#if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
+static constexpr auto sidebarActionManifestKey = "sidebar_action"_s;
+static constexpr auto sidePanelManifestKey = "side_panel"_s;
+static constexpr auto sidebarActionTitleManifestKey = "default_title"_s;
+static constexpr auto sidebarActionPathManifestKey = "default_panel"_s;
+static constexpr auto sidePanelPathManifestKey = "default_path"_s;
+#endif // ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
 
 bool WebExtension::manifestParsedSuccessfully()
 {
@@ -1134,6 +1152,299 @@ void WebExtension::populateContentScriptPropertiesIfNeeded()
     for (Ref injectedContentValue : *contentScriptsManifestArray) {
         if (RefPtr injectedContentObject = injectedContentValue->asObject())
             addInjectedContentData(injectedContentObject);
+    }
+}
+
+#if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
+bool WebExtension::hasSidebarAction()
+{
+    if (RefPtr manifestObject = this->manifestObject())
+        return manifestObject->getValue(sidebarActionManifestKey);
+
+    return false;
+}
+
+bool WebExtension::hasSidePanel()
+{
+    return hasRequestedPermission(WebExtensionPermission::sidePanel());
+}
+
+bool WebExtension::hasAnySidebar()
+{
+    return hasSidebarAction() || hasSidePanel();
+}
+
+RefPtr<WebCore::Icon> WebExtension::sidebarIcon(WebCore::FloatSize idealSize)
+{
+    // FIXME: <https://webkit.org/b/276833> implement this
+    return nullptr;
+}
+
+const String& WebExtension::sidebarDocumentPath()
+{
+    populateSidebarPropertiesIfNeeded();
+    return m_sidebarDocumentPath;
+}
+
+const String& WebExtension::sidebarTitle()
+{
+    populateSidebarPropertiesIfNeeded();
+    return m_sidebarTitle;
+}
+
+void WebExtension::populateSidebarPropertiesIfNeeded()
+{
+    if (m_parsedManifestSidebarProperties)
+        return;
+
+    m_parsedManifestSidebarProperties = true;
+
+    RefPtr manifestObject = this->manifestObject();
+    if (!manifestObject)
+        return;
+
+    // sidePanel documentation: https://developer.chrome.com/docs/extensions/reference/manifest#side-panel
+    // see "Examples" header -> "Side Panel" tab (doesn't mention `default_path` key elsewhere)
+    // sidebarAction documentation: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/sidebar_action
+
+    if (RefPtr sidebarActionObject = manifestObject->getObject(sidebarActionManifestKey)) {
+        populateSidebarActionProperties(sidebarActionObject);
+        return;
+    }
+
+    if (RefPtr sidePanelObject = manifestObject->getObject(sidePanelManifestKey))
+        populateSidePanelProperties(sidePanelObject);
+}
+
+void WebExtension::populateSidebarActionProperties(const JSON::Object& sidebarActionObject)
+{
+    // FIXME: <https://webkit.org/b/276833> implement sidebar icon parsing
+    m_sidebarIconsCache = nullptr;
+    m_sidebarTitle = sidebarActionObject.getString(sidebarActionTitleManifestKey);
+    m_sidebarDocumentPath = sidebarActionObject.getString(sidebarActionPathManifestKey);
+}
+
+void WebExtension::populateSidePanelProperties(const JSON::Object& sidePanelObject)
+{
+    // Since sidePanel cannot set a default title or icon from the manifest, setting these to null here is intentional.
+    m_sidebarIconsCache = nullptr;
+    m_sidebarTitle = nullString();
+    m_sidebarDocumentPath = sidePanelObject.getString(sidePanelPathManifestKey);
+}
+#endif // ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
+
+const WebExtension::PermissionsSet& WebExtension::supportedPermissions()
+{
+    static MainThreadNeverDestroyed<PermissionsSet> permissions = std::initializer_list<String> { WebExtensionPermission::activeTab(), WebExtensionPermission::alarms(), WebExtensionPermission::clipboardWrite(),
+        WebExtensionPermission::contextMenus(), WebExtensionPermission::cookies(), WebExtensionPermission::declarativeNetRequest(), WebExtensionPermission::declarativeNetRequestFeedback(),
+        WebExtensionPermission::declarativeNetRequestWithHostAccess(), WebExtensionPermission::menus(), WebExtensionPermission::nativeMessaging(), WebExtensionPermission::notifications(), WebExtensionPermission::scripting(),
+        WebExtensionPermission::storage(), WebExtensionPermission::tabs(), WebExtensionPermission::unlimitedStorage(), WebExtensionPermission::webNavigation(), WebExtensionPermission::webRequest(),
+#if ENABLE(WK_WEB_EXTENSIONS_SIDEBAR)
+        WebExtensionPermission::sidePanel(),
+#endif
+    };
+    return permissions;
+}
+
+const WebExtension::PermissionsSet& WebExtension::requestedPermissions()
+{
+    populatePermissionsPropertiesIfNeeded();
+    return m_permissions;
+}
+
+const WebExtension::PermissionsSet& WebExtension::optionalPermissions()
+{
+    populatePermissionsPropertiesIfNeeded();
+    return m_optionalPermissions;
+}
+
+const WebExtension::MatchPatternSet& WebExtension::requestedPermissionMatchPatterns()
+{
+    populatePermissionsPropertiesIfNeeded();
+    return m_permissionMatchPatterns;
+}
+
+const WebExtension::MatchPatternSet& WebExtension::optionalPermissionMatchPatterns()
+{
+    populatePermissionsPropertiesIfNeeded();
+    return m_optionalPermissionMatchPatterns;
+}
+
+const WebExtension::MatchPatternSet& WebExtension::externallyConnectableMatchPatterns()
+{
+    populateExternallyConnectableIfNeeded();
+    return m_externallyConnectableMatchPatterns;
+}
+
+WebExtension::MatchPatternSet WebExtension::allRequestedMatchPatterns()
+{
+    populatePermissionsPropertiesIfNeeded();
+    populateContentScriptPropertiesIfNeeded();
+    populateExternallyConnectableIfNeeded();
+
+    WebExtension::MatchPatternSet result;
+
+    for (Ref matchPattern : m_permissionMatchPatterns)
+        result.add(matchPattern);
+
+    for (Ref matchPattern : m_externallyConnectableMatchPatterns)
+        result.add(matchPattern);
+
+    for (auto& injectedContent : m_staticInjectedContents) {
+        for (Ref matchPattern : injectedContent.includeMatchPatterns)
+            result.add(matchPattern);
+    }
+
+    return result;
+}
+
+void WebExtension::populateExternallyConnectableIfNeeded()
+{
+    if (m_parsedExternallyConnectable)
+        return;
+
+    m_parsedExternallyConnectable = true;
+
+    RefPtr manifestObject = this->manifestObject();
+    if (!manifestObject)
+        return;
+
+    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable
+
+    RefPtr externallyConnectableObject = manifestObject->getObject(externallyConnectableManifestKey);
+    if (!externallyConnectableObject)
+        return;
+
+    if (!externallyConnectableObject->size()) {
+        recordError(createError(Error::InvalidExternallyConnectable));
+        return;
+    }
+
+    bool shouldReportError = false;
+    MatchPatternSet matchPatterns;
+
+    if (RefPtr matchPatternStrings = externallyConnectableObject->getArray(externallyConnectableMatchesManifestKey)) {
+        for (auto matchPatternStringValue : *matchPatternStrings) {
+            auto matchPatternString = matchPatternStringValue->asString();
+            if (matchPatternString.isEmpty())
+                continue;
+
+            if (RefPtr matchPattern = WebExtensionMatchPattern::getOrCreate(matchPatternString)) {
+                if (matchPattern->matchesAllURLs() || !matchPattern->isSupported()) {
+                    shouldReportError = true;
+                    continue;
+                }
+
+                // URL patterns must contain at least a second-level domain. Top level domains and wildcards are not standalone patterns.
+                if (matchPattern->hostIsPublicSuffix()) {
+                    shouldReportError = true;
+                    continue;
+                }
+
+                matchPatterns.add(matchPattern.releaseNonNull());
+            }
+        }
+    }
+
+    m_externallyConnectableMatchPatterns = WTFMove(matchPatterns);
+
+    RefPtr extensionIDs = externallyConnectableObject->getArray(externallyConnectableIDsManifestKey);
+    if (extensionIDs) {
+        extensionIDs = filterObjects(*extensionIDs, [](auto& value) {
+            return !value.asString().isEmpty();
+        });
+    }
+
+    if (shouldReportError || (m_externallyConnectableMatchPatterns.isEmpty() && (!extensionIDs || (extensionIDs && !extensionIDs->length()))))
+        recordError(createError(Error::InvalidExternallyConnectable));
+}
+
+void WebExtension::populatePermissionsPropertiesIfNeeded()
+{
+    if (m_parsedManifestPermissionProperties)
+        return;
+
+    m_parsedManifestPermissionProperties = true;
+
+    RefPtr manifestObject = this->manifestObject();
+    if (!manifestObject)
+        return;
+
+    bool findMatchPatternsInPermissions = !supportsManifestVersion(3);
+
+    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/permissions
+    if (RefPtr permissionsManifestArray = manifestObject->getArray(permissionsManifestKey)) {
+        for (Ref permissionObject : *permissionsManifestArray) {
+            auto permission = permissionObject->asString();
+            if (permission.isEmpty())
+                continue;
+
+            if (findMatchPatternsInPermissions) {
+                if (RefPtr matchPattern = WebExtensionMatchPattern::getOrCreate(permission)) {
+                    if (matchPattern->isSupported())
+                        m_permissionMatchPatterns.add(matchPattern.releaseNonNull());
+                    continue;
+                }
+            }
+
+            if (supportedPermissions().contains(permission))
+                m_permissions.add(permission);
+        }
+    }
+
+    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/host_permissions
+
+    if (!findMatchPatternsInPermissions) {
+        if (RefPtr hostPermissionsManifestArray = manifestObject->getArray(hostPermissionsManifestKey)) {
+            for (Ref permissionObject : *hostPermissionsManifestArray) {
+                auto permission = permissionObject->asString();
+                if (permission.isEmpty())
+                    continue;
+
+                if (RefPtr matchPattern = WebExtensionMatchPattern::getOrCreate(permission)) {
+                    if (matchPattern->isSupported())
+                        m_permissionMatchPatterns.add(matchPattern.releaseNonNull());
+                }
+            }
+        }
+    }
+
+    // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/manifest.json/optional_permissions
+
+    if (RefPtr optionalPermissionsManifestArray = manifestObject->getArray(optionalPermissionsManifestKey)) {
+        for (Ref permissionObject : *optionalPermissionsManifestArray) {
+            auto permission = permissionObject->asString();
+            if (permission.isEmpty())
+                continue;
+
+            if (findMatchPatternsInPermissions) {
+                if (RefPtr matchPattern = WebExtensionMatchPattern::getOrCreate(permission)) {
+                    if (matchPattern->isSupported() && !m_permissionMatchPatterns.contains(*matchPattern))
+                        m_optionalPermissionMatchPatterns.add(matchPattern.releaseNonNull());
+                    continue;
+                }
+            }
+
+            if (!m_permissions.contains(permission) && supportedPermissions().contains(permission))
+                m_optionalPermissions.add(permission);
+        }
+    }
+
+    // Documentation: https://github.com/w3c/webextensions/issues/119
+
+    if (!findMatchPatternsInPermissions) {
+        if (RefPtr hostPermissionsManifestArray = manifestObject->getArray(optionalHostPermissionsManifestKey)) {
+            for (Ref permissionObject : *hostPermissionsManifestArray) {
+                auto permission = permissionObject->asString();
+                if (permission.isEmpty())
+                    continue;
+
+                if (RefPtr matchPattern = WebExtensionMatchPattern::getOrCreate(permission)) {
+                    if (matchPattern->isSupported() && !m_permissionMatchPatterns.contains(*matchPattern))
+                        m_optionalPermissionMatchPatterns.add(matchPattern.releaseNonNull());
+                }
+            }
+        }
     }
 }
 

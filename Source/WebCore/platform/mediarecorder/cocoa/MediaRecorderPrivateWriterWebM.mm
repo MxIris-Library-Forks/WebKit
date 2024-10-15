@@ -326,9 +326,9 @@ Seconds MediaRecorderPrivateWriterWebM::nextVideoFrameTime() const
     auto frameTime = now - m_resumedVideoTime;
     LOG(MediaStream, "nextVideoFrameTime: frameTime:%f nextVideoFrameTime:%f", frameTime.value(), (frameTime + *m_firstVideoFrameAudioTime).value());
     frameTime = frameTime + *m_firstVideoFrameAudioTime;
-    // Take the max value from m_lastAudioSampleTime to handle the occasional wall clock time drift and ensure muxed frames times
-    // are always monotonically increasing.
-    return std::max(frameTime, Seconds { m_lastAudioSampleTime.toDouble() });
+    // Take the max value from m_lastMuxedSampleTime to handle the occasional wall clock time drift and ensure
+    // muxed frames times are always monotonically increasing.
+    return std::max(frameTime, m_lastMuxedSampleTime);
 }
 
 Seconds MediaRecorderPrivateWriterWebM::resumeVideoTime() const
@@ -375,7 +375,6 @@ void MediaRecorderPrivateWriterWebM::appendAudioSampleBuffer(const PlatformAudio
     if (m_isStopping)
         return;
 
-    m_lastAudioSampleTime = m_currentAudioSampleTime;
     if (auto sampleBuffer = createAudioSampleBuffer(data, description, PAL::toCMTime(m_currentAudioSampleTime), sampleCount))
         RefPtr { m_audioCompressor }->addSampleBuffer(sampleBuffer.get());
     m_audioSamplesCount += sampleCount;
@@ -516,15 +515,16 @@ void MediaRecorderPrivateWriterWebM::completeFetchData()
 
 Ref<GenericPromise> MediaRecorderPrivateWriterWebM::flushPendingData()
 {
-    if (m_audioCompressor)
-        RefPtr { m_audioCompressor }->flush();
     encodePendingVideoFrames();
 
-    // We need to hop to the main thread since flushing the audio compressor might output the last remaining samples.
-    return invokeAsync(MainThreadDispatcher::singleton(), [weakThis = ThreadSafeWeakPtr { *this }] {
-        RefPtr protectedThis = weakThis.get();
-        return protectedThis && protectedThis->m_videoEncoder ? protectedThis->m_videoEncoder->flush() : GenericPromise::createAndResolve();
-    })->whenSettled(MainThreadDispatcher::singleton(), [weakThis = ThreadSafeWeakPtr { *this }] {
+    Vector<Ref<GenericPromise>> promises;
+    promises.reserveInitialCapacity(size_t(!!m_videoEncoder) + size_t(!!m_audioCompressor));
+    if (m_videoEncoder)
+        promises.append(m_videoEncoder->flush());
+    if (m_audioCompressor)
+        promises.append(RefPtr { m_audioCompressor }->flush());
+
+    return GenericPromise::all(WTFMove(promises))->whenSettled(MainThreadDispatcher::singleton(), [weakThis = ThreadSafeWeakPtr { *this }] {
         if (RefPtr protectedThis = weakThis.get())
             protectedThis->partiallyFlushEncodedQueues();
         return GenericPromise::createAndResolve();
@@ -534,8 +534,25 @@ Ref<GenericPromise> MediaRecorderPrivateWriterWebM::flushPendingData()
 void MediaRecorderPrivateWriterWebM::appendData(std::span<const uint8_t> data)
 {
     m_lastTimestamp = MonotonicTime::now();
+
     Locker locker { m_dataLock };
-    m_data.append(data);
+    if (!m_dataBuffer.capacity())
+        m_dataBuffer.reserveInitialCapacity(s_dataBufferSize);
+
+    if (data.size() > (m_dataBuffer.capacity() - m_dataBuffer.size()))
+        flushDataBuffer();
+    if (data.size() < m_dataBuffer.capacity())
+        m_dataBuffer.append(data);
+    else
+        m_data.append(data);
+}
+
+void MediaRecorderPrivateWriterWebM::flushDataBuffer()
+{
+    assertIsHeld(m_dataLock);
+    if (m_dataBuffer.isEmpty())
+        return;
+    m_data.append(std::exchange(m_dataBuffer, { }));
 }
 
 RefPtr<FragmentedSharedBuffer> MediaRecorderPrivateWriterWebM::takeData()
@@ -543,6 +560,7 @@ RefPtr<FragmentedSharedBuffer> MediaRecorderPrivateWriterWebM::takeData()
     Locker locker { m_dataLock };
     if (!m_delegate->hasAddedFrame())
         return FragmentedSharedBuffer::create();
+    flushDataBuffer();
     return m_data.take();
 }
 
@@ -557,7 +575,7 @@ void MediaRecorderPrivateWriterWebM::resume()
 {
     m_firstVideoFrameAudioTime.reset();
     m_resumedVideoTime = MonotonicTime::now();
-    m_resumedAudioTime = m_lastAudioSampleTime;
+    m_resumedAudioTime = m_currentAudioSampleTime;
     LOG(MediaStream, "MediaRecorderPrivateWriterWebM:resume");
 }
 

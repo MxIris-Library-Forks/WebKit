@@ -31,13 +31,14 @@
 #include "LocalDOMWindowProperty.h"
 #include "LocalFrame.h"
 #include "Page.h"
-#include "Supplementable.h"
-#include <wtf/TZoneMallocInlines.h>
-#include <wtf/text/ASCIILiteral.h>
 #include "TrustedTypePolicyFactory.h"
 #include "WorkerGlobalScope.h"
+#include <wtf/TZoneMallocInlines.h>
+#include <wtf/text/ASCIILiteral.h>
 
 namespace WebCore {
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(WorkerGlobalScopeTrustedTypes);
 
 class DOMWindowTrustedTypes : public Supplement<LocalDOMWindow>, public LocalDOMWindowProperty {
     WTF_MAKE_TZONE_ALLOCATED_INLINE(DOMWindowTrustedTypes);

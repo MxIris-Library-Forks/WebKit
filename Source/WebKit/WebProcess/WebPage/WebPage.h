@@ -1045,6 +1045,7 @@ public:
     void freezeLayerTree(LayerTreeFreezeReason);
     void unfreezeLayerTree(LayerTreeFreezeReason);
 
+    void updateFrameScrollingMode(WebCore::FrameIdentifier, WebCore::ScrollbarMode);
     void updateFrameSize(WebCore::FrameIdentifier, WebCore::IntSize);
 
     void markLayersVolatile(CompletionHandler<void(bool)>&& completionHandler = { });
@@ -2354,6 +2355,7 @@ private:
     void updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint);
 
     void requestTargetedElement(WebCore::TargetedElementRequest&&, CompletionHandler<void(Vector<WebCore::TargetedElementInfo>&&)>&&);
+    void requestAllTargetableElements(float, CompletionHandler<void(Vector<Vector<WebCore::TargetedElementInfo>>&&)>&&);
 
     void requestTextExtraction(std::optional<WebCore::FloatRect>&& collectionRectInRootView, CompletionHandler<void(WebCore::TextExtraction::Item&&)>&&);
 

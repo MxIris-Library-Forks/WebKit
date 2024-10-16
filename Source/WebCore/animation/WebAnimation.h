@@ -60,7 +60,8 @@ struct ResolutionContext;
 class WebAnimation : public RefCounted<WebAnimation>, public EventTarget, public ActiveDOMObject {
     WTF_MAKE_TZONE_OR_ISO_ALLOCATED(WebAnimation);
 public:
-    DEFINE_VIRTUAL_REFCOUNTED;
+    void ref() const final { RefCounted::ref(); }
+    void deref() const final { RefCounted::deref(); }
 
     static Ref<WebAnimation> create(Document&, AnimationEffect*);
     static Ref<WebAnimation> create(Document&, AnimationEffect*, AnimationTimeline*);
@@ -209,6 +210,7 @@ private:
     void applyPendingPlaybackRate();
     void setEffectiveFrameRate(std::optional<FramesPerSecond>);
     CSSNumberishTime timeEpsilon() const;
+    void autoAlignStartTime();
 
     // ActiveDOMObject.
     void suspend(ReasonForSuspension) final;

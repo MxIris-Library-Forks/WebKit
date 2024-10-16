@@ -10211,6 +10211,7 @@
 		4191981729950763007576C8 /* FetchHeadersGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FetchHeadersGuard.h; sourceTree = "<group>"; };
 		419242472127B7CC00634FCF /* RealtimeOutgoingVideoSourceCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RealtimeOutgoingVideoSourceCocoa.mm; sourceTree = "<group>"; };
 		4192BB1227CF638300F29A46 /* PageIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageIdentifier.h; sourceTree = "<group>"; };
+		419321592CBD1DBE0049AA57 /* AudioDecoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioDecoder.cpp; sourceTree = "<group>"; };
 		41945694203502A5004BA277 /* ApplicationCacheResourceLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ApplicationCacheResourceLoader.cpp; sourceTree = "<group>"; };
 		41945696203502A6004BA277 /* ApplicationCacheResourceLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ApplicationCacheResourceLoader.h; sourceTree = "<group>"; };
 		4194EBC02B7266DD005D076C /* MediaConstraintType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaConstraintType.h; sourceTree = "<group>"; };
@@ -34505,6 +34506,7 @@
 				41763D0B2ACAFA3600283035 /* video-codecs */,
 				E1EE8B6B2412B2A700E794D6 /* xr */,
 				DFDB912CF8E88A6DA1AD264F /* AbortableTaskQueue.h */,
+				419321592CBD1DBE0049AA57 /* AudioDecoder.cpp */,
 				9A87D9E32A8293E100EE7A8A /* AudioDecoder.h */,
 				9ACB2F172AA5ECFF006E9556 /* AudioEncoder.cpp */,
 				9ACB2F152AA5ECFF006E9556 /* AudioEncoder.h */,

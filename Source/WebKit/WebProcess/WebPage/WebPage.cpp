@@ -3376,6 +3376,23 @@ void WebPage::updateDrawingAreaLayerTreeFreezeState()
     drawingArea->setLayerTreeStateIsFrozen(!!m_layerTreeFreezeReasons);
 }
 
+void WebPage::updateFrameScrollingMode(FrameIdentifier frameID, ScrollbarMode scrollingMode)
+{
+    if (!m_page)
+        return;
+
+    ASSERT(m_page->settings().siteIsolationEnabled());
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    if (!webFrame)
+        return;
+
+    RefPtr frame = webFrame->coreLocalFrame();
+    if (!frame)
+        return;
+
+    frame->setScrollingMode(scrollingMode);
+}
+
 void WebPage::updateFrameSize(WebCore::FrameIdentifier frameID, WebCore::IntSize newSize)
 {
     if (!m_page)
@@ -9746,6 +9763,15 @@ void WebPage::requestTargetedElement(TargetedElementRequest&& request, Completio
         return completion({ });
 
     completion(page->checkedElementTargetingController()->findTargets(WTFMove(request)));
+}
+
+void WebPage::requestAllTargetableElements(float hitTestInterval, CompletionHandler<void(Vector<Vector<WebCore::TargetedElementInfo>>&&)>&& completion)
+{
+    RefPtr page = corePage();
+    if (!page)
+        return completion({ });
+
+    completion(page->checkedElementTargetingController()->findAllTargets(hitTestInterval));
 }
 
 void WebPage::requestTextExtraction(std::optional<FloatRect>&& collectionRectInRootView, CompletionHandler<void(TextExtraction::Item&&)>&& completion)

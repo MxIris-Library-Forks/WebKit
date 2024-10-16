@@ -732,8 +732,8 @@ void WebProcessProxy::shutDown()
         m_webLockRegistry->processDidExit();
 
 #if ENABLE(ROUTING_ARBITRATION)
-    if (m_routingArbitrator)
-        m_routingArbitrator->processDidTerminate();
+    if (RefPtr routingArbitrator = m_routingArbitrator.get())
+        routingArbitrator->processDidTerminate();
 #endif
 
     Ref<WebProcessPool> { processPool() }->disconnectProcess(*this);
@@ -1291,8 +1291,8 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
     }
 
 #if ENABLE(ROUTING_ARBITRATION)
-    if (m_routingArbitrator)
-        m_routingArbitrator->processDidTerminate();
+    if (RefPtr routingArbitrator = m_routingArbitrator.get())
+        routingArbitrator->processDidTerminate();
 #endif
 
     // There is a nested transaction in WebPageProxy::resetStateAfterProcessExited() that we don't want to commit before the client call below (dispatchProcessDidTerminate).
@@ -2247,11 +2247,6 @@ WebProcessPool* WebProcessProxy::processPoolIfExists() const
     return m_processPool.get();
 }
 
-Ref<WebProcessPool> WebProcessProxy::protectedProcessPool() const
-{
-    return processPool();
-}
-
 void WebProcessProxy::enableMediaPlaybackIfNecessary()
 {
     if (!m_sharedPreferencesForWebProcess.mediaPlaybackEnabled)
@@ -2264,7 +2259,7 @@ void WebProcessProxy::enableMediaPlaybackIfNecessary()
 
 #if ENABLE(ROUTING_ARBITRATION)
     ASSERT(!m_routingArbitrator);
-    m_routingArbitrator = makeUnique<AudioSessionRoutingArbitratorProxy>(*this);
+    m_routingArbitrator = makeUniqueWithoutRefCountedCheck<AudioSessionRoutingArbitratorProxy>(*this);
 #endif
 }
 
@@ -2408,7 +2403,7 @@ void WebProcessProxy::destroySpeechRecognitionServer(SpeechRecognitionServerIden
 SpeechRecognitionRemoteRealtimeMediaSourceManager& WebProcessProxy::ensureSpeechRecognitionRemoteRealtimeMediaSourceManager()
 {
     if (!m_speechRecognitionRemoteRealtimeMediaSourceManager) {
-        m_speechRecognitionRemoteRealtimeMediaSourceManager = makeUnique<SpeechRecognitionRemoteRealtimeMediaSourceManager>(*this);
+        m_speechRecognitionRemoteRealtimeMediaSourceManager = makeUniqueWithoutRefCountedCheck<SpeechRecognitionRemoteRealtimeMediaSourceManager>(*this);
         addMessageReceiver(Messages::SpeechRecognitionRemoteRealtimeMediaSourceManager::messageReceiverName(), *m_speechRecognitionRemoteRealtimeMediaSourceManager);
     }
 

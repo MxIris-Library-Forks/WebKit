@@ -340,17 +340,17 @@ using DictationContext = ObjectIdentifier<DictationContextType>;
 using FloatBoxExtent = RectEdges<float>;
 using FramesPerSecond = unsigned;
 using IntDegrees = int32_t;
-using HTMLMediaElementIdentifier = LegacyNullableObjectIdentifier<MediaPlayerClientIdentifierType>;
+using HTMLMediaElementIdentifier = ObjectIdentifier<MediaPlayerClientIdentifierType>;
 using MediaControlsContextMenuItemID = uint64_t;
-using MediaKeySystemRequestIdentifier = LegacyNullableObjectIdentifier<MediaKeySystemRequestIdentifierType>;
-using MediaPlayerIdentifier = LegacyNullableObjectIdentifier<MediaPlayerIdentifierType>;
+using MediaKeySystemRequestIdentifier = ObjectIdentifier<MediaKeySystemRequestIdentifierType>;
+using MediaPlayerIdentifier = ObjectIdentifier<MediaPlayerIdentifierType>;
 using MediaProducerMediaStateFlags = OptionSet<MediaProducerMediaState>;
 using MediaProducerMutedStateFlags = OptionSet<MediaProducerMutedState>;
-using MediaSessionIdentifier = LegacyNullableObjectIdentifier<MediaSessionIdentifierType>;
+using MediaSessionIdentifier = ObjectIdentifier<MediaSessionIdentifierType>;
 using PageIdentifier = ObjectIdentifier<PageIdentifierType>;
 using PlatformDisplayID = uint32_t;
 using PlatformLayerIdentifier = ProcessQualified<ObjectIdentifier<PlatformLayerIdentifierType>>;
-using PlaybackTargetClientContextIdentifier = LegacyNullableObjectIdentifier<PlaybackTargetClientContextIdentifierType>;
+using PlaybackTargetClientContextIdentifier = ObjectIdentifier<PlaybackTargetClientContextIdentifierType>;
 using PointerID = uint32_t;
 using ResourceLoaderIdentifier = AtomicObjectIdentifier<ResourceLoader>;
 using SandboxFlags = OptionSet<SandboxFlag>;
@@ -627,6 +627,7 @@ public:
     DrawingAreaProxy* provisionalDrawingArea() const;
 
     WebNavigationState& navigationState() { return *m_navigationState; }
+    Ref<WebNavigationState> protectedNavigationState();
 
     WebsiteDataStore& websiteDataStore() { return m_websiteDataStore; }
     Ref<WebsiteDataStore> protectedWebsiteDataStore() const;
@@ -1169,7 +1170,7 @@ public:
     void getSelectedRangeAsync(CompletionHandler<void(const EditingRange&)>&&);
     void characterIndexForPointAsync(const WebCore::IntPoint&, CompletionHandler<void(uint64_t)>&&);
     void firstRectForCharacterRangeAsync(const EditingRange&, CompletionHandler<void(const WebCore::IntRect&, const EditingRange&)>&&);
-    void setCompositionAsync(const String& text, const Vector<WebCore::CompositionUnderline>&, const Vector<WebCore::CompositionHighlight>&, const HashMap<String, Vector<WebCore::CharacterRange>>&, const EditingRange& selectionRange, const EditingRange& replacementRange);
+    void setCompositionAsync(const String& text, const Vector<WebCore::CompositionUnderline>&, const Vector<WebCore::CompositionHighlight>&, const UncheckedKeyHashMap<String, Vector<WebCore::CharacterRange>>&, const EditingRange& selectionRange, const EditingRange& replacementRange);
     void setWritingSuggestion(const String& text, const EditingRange& selectionRange);
     void confirmCompositionAsync();
 
@@ -3219,7 +3220,7 @@ private:
     std::unique_ptr<WebPageInjectedBundleClient> m_injectedBundleClient;
     RefPtr<PageLoadStateObserverBase> m_pageLoadStateObserver;
 
-    std::unique_ptr<WebNavigationState> m_navigationState;
+    UniqueRef<WebNavigationState> m_navigationState;
     String m_failingProvisionalLoadURL;
     bool m_isLoadingAlternateHTMLStringForFailingProvisionalLoad { false };
 
@@ -3293,7 +3294,7 @@ private:
 #endif
 
 #if USE(SYSTEM_PREVIEW)
-    std::unique_ptr<SystemPreviewController> m_systemPreviewController;
+    RefPtr<SystemPreviewController> m_systemPreviewController;
 #endif
 
 #if ENABLE(ARKIT_INLINE_PREVIEW)
@@ -3505,7 +3506,7 @@ private:
     bool m_madeViewBlankDueToLackOfRenderingUpdate { false };
 
 #if PLATFORM(COCOA)
-    using TemporaryPDFFileMap = HashMap<String, String>;
+    using TemporaryPDFFileMap = UncheckedKeyHashMap<String, String>;
     TemporaryPDFFileMap m_temporaryPDFFiles;
     std::unique_ptr<WebCore::RunLoopObserver> m_activityStateChangeDispatcher;
 
@@ -3569,10 +3570,10 @@ private:
     bool m_preferFasterClickOverDoubleTap { false };
     bool m_alwaysUseRelatedPageProcess { false };
 
-    HashMap<String, Ref<WebURLSchemeHandler>> m_urlSchemeHandlersByScheme;
+    UncheckedKeyHashMap<String, Ref<WebURLSchemeHandler>> m_urlSchemeHandlersByScheme;
 
 #if ENABLE(ATTACHMENT_ELEMENT)
-    using IdentifierToAttachmentMap = HashMap<String, Ref<API::Attachment>>;
+    using IdentifierToAttachmentMap = UncheckedKeyHashMap<String, Ref<API::Attachment>>;
     IdentifierToAttachmentMap m_attachmentIdentifierToAttachmentMap;
 #endif
 
@@ -3611,7 +3612,7 @@ private:
 
     mutable RefPtr<Logger> m_logger;
 
-    std::unique_ptr<SpeechRecognitionPermissionManager> m_speechRecognitionPermissionManager;
+    RefPtr<SpeechRecognitionPermissionManager> m_speechRecognitionPermissionManager;
 
 #if ENABLE(MEDIA_SESSION_COORDINATOR)
     RefPtr<RemoteMediaSessionCoordinatorProxy> m_mediaSessionCoordinatorProxy;

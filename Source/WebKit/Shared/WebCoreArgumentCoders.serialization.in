@@ -392,8 +392,9 @@ enum class WebCore::StorageBlockingPolicy : uint8_t {
 
 enum class WebCore::HTTPSByDefaultMode : uint8_t {
     Disabled,
-    UpgradeWithHTTPFallback,
-    UpgradeAndFailClosed
+    UpgradeWithAutomaticFallback,
+    UpgradeWithUserMediatedFallback
+    UpgradeAndNoFallback
 };
 
 #if HAVE(TRANSLATION_UI_SERVICES) && ENABLE(CONTEXT_MENUS)
@@ -8439,6 +8440,7 @@ enum class WebCore::ShouldRequireExplicitConsentForGamepadAccess : bool;
 enum class WebCore::WillInternallyHandleFailure : bool
 enum class WebCore::ApplyTrackingPrevention : bool
 enum class WebCore::ShouldSample : bool
+enum class WebCore::FromDownloadAttribute : bool
 
 [Nested] struct WebCore::Allowlist::AllowAllOrigins {
 };

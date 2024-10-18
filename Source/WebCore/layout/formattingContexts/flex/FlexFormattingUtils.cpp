@@ -59,22 +59,22 @@ bool FlexFormattingUtils::areFlexLinesReversedInCrossAxis(const ElementBox& flex
     return flexContainer.style().flexWrap() == FlexWrap::Reverse;
 }
 
-LayoutUnit FlexFormattingUtils::rowGapValue(const ElementBox& flexContainer, LayoutUnit flexContainerContentBoxHeight)
+LayoutUnit FlexFormattingUtils::mainAxisGapValue(const ElementBox& flexContainer, LayoutUnit flexContainerContentBoxWidth)
 {
     ASSERT(flexContainer.isFlexBox());
-    auto& rowGap = flexContainer.style().rowGap();
-    if (rowGap.isNormal())
+    auto& gapValue = isMainAxisParallelWithInlineAxis(flexContainer) ? flexContainer.style().columnGap() : flexContainer.style().rowGap();
+    if (gapValue.isNormal())
         return { };
-    return valueForLength(rowGap.length(), flexContainerContentBoxHeight);
+    return valueForLength(gapValue.length(), flexContainerContentBoxWidth);
 }
 
-LayoutUnit FlexFormattingUtils::columnGapValue(const ElementBox& flexContainer, LayoutUnit flexContainerContentBoxWidth)
+LayoutUnit FlexFormattingUtils::crossAxisGapValue(const ElementBox& flexContainer, LayoutUnit flexContainerContentBoxHeight)
 {
     ASSERT(flexContainer.isFlexBox());
-    auto& columnGap = flexContainer.style().columnGap();
-    if (columnGap.isNormal())
+    auto& gapValue = isMainAxisParallelWithInlineAxis(flexContainer) ? flexContainer.style().rowGap() : flexContainer.style().columnGap();
+    if (gapValue.isNormal())
         return { };
-    return valueForLength(columnGap.length(), flexContainerContentBoxWidth);
+    return valueForLength(gapValue.length(), flexContainerContentBoxHeight);
 }
 
 LayoutUnit FlexFormattingUtils::usedMinimumSizeInMainAxis(const LogicalFlexItem& flexItem) const
@@ -82,10 +82,13 @@ LayoutUnit FlexFormattingUtils::usedMinimumSizeInMainAxis(const LogicalFlexItem&
     if (auto mainAxisMinimumWidth = flexItem.mainAxis().minimumSize)
         return *mainAxisMinimumWidth;
 
-    auto minimumContentSize = formattingContext().integrationUtils().minContentSize(downcast<ElementBox>(flexItem.layoutBox()));
-    if (auto mainAxisWidth = flexItem.mainAxis().size)
-        return std::min(*mainAxisWidth, minimumContentSize);
+    auto isMainAxisParallelWithInlineAxis = this->isMainAxisParallelWithInlineAxis(formattingContext().root());
+    auto& flexItemBox = downcast<ElementBox>(flexItem.layoutBox());
 
+    auto minimumContentSize = LayoutUnit { };
+    minimumContentSize = isMainAxisParallelWithInlineAxis ? formattingContext().integrationUtils().minContentWidth(flexItemBox) : formattingContext().integrationUtils().minContentHeight(flexItemBox);
+    if (auto mainAxisWidth = flexItem.mainAxis().size)
+        minimumContentSize = std::min(*mainAxisWidth, minimumContentSize);
     return minimumContentSize;
 }
 
@@ -102,7 +105,7 @@ LayoutUnit FlexFormattingUtils::usedMaxContentSizeInMainAxis(const LogicalFlexIt
 
     auto contentSize = LayoutUnit { };
     if (isMainAxisParallelWithInlineAxis)
-        contentSize = formattingContext().integrationUtils().maxContentSize(flexItemBox);
+        contentSize = formattingContext().integrationUtils().maxContentWidth(flexItemBox);
     else {
         formattingContext().integrationUtils().layoutWithFormattingContextForBox(flexItemBox);
         contentSize = formattingContext().geometryForFlexItem(flexItemBox).contentBoxHeight();

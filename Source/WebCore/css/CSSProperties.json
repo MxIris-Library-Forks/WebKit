@@ -8697,7 +8697,7 @@
                     "value": "separated",
                     "status": "non-standard",
                     "settings-flag": "cssTransformStyleSeparatedEnabled",
-                    "enable-if": "ENABLE_CSS_TRANSFORM_STYLE_SEPARATED"
+                    "enable-if": "HAVE_CORE_ANIMATION_SEPARATED_LAYERS"
                 }
             ],
             "codegen-properties": {
@@ -9243,6 +9243,7 @@
         },
         "scrollbar-width": {
             "codegen-properties": {
+                "converter": "ScrollbarWidth",
                 "parser-grammar": "auto | thin | none",
                 "settings-flag": "cssScrollbarWidthEnabled"
             },

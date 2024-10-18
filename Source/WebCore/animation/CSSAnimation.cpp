@@ -27,6 +27,7 @@
 #include "CSSAnimation.h"
 
 #include "AnimationEffect.h"
+#include "AnimationTimelinesController.h"
 #include "CSSAnimationEvent.h"
 #include "InspectorInstrumentation.h"
 #include "KeyframeEffect.h"
@@ -114,6 +115,24 @@ void CSSAnimation::syncPropertiesWithBackingAnimation()
         if (auto* keyframeEffect = dynamicDowncast<KeyframeEffect>(animationEffect))
             keyframeEffect->setComposite(animation.compositeOperation());
     }
+
+    // FIXME: deal with overridden "timeline" property as well.
+    ASSERT(owningElement());
+    Ref document = owningElement()->element.document();
+    WTF::switchOn(animation.timeline(),
+        [&] (Animation::TimelineKeyword keyword) {
+            setTimeline(keyword == Animation::TimelineKeyword::None ? nullptr : RefPtr { document->existingTimeline() });
+        }, [&] (const AtomString& name) {
+            // FIXME: we should account for timeline-scope here.
+            CheckedRef timelinesController = document->ensureTimelinesController();
+            if (RefPtr scrollTimeline = timelinesController->scrollTimelineForName(name))
+                setTimeline(WTFMove(scrollTimeline));
+            else if (RefPtr viewTimeline = timelinesController->viewTimelineForName(name))
+                setTimeline(WTFMove(viewTimeline));
+        }, [&] (Ref<ScrollTimeline> anonymousTimeline) {
+            setTimeline(RefPtr { anonymousTimeline.ptr() });
+        }
+    );
 
     animationEffect->updateStaticTimingProperties();
     effectTimingDidChange();

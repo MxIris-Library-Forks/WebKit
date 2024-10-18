@@ -34,7 +34,9 @@
 #include "LocalDOMWindow.h"
 #include "Logging.h"
 #include "Page.h"
+#include "ScrollTimeline.h"
 #include "Settings.h"
+#include "ViewTimeline.h"
 #include "WebAnimation.h"
 #include "WebAnimationTypes.h"
 #include <JavaScriptCore/VM.h>
@@ -306,6 +308,55 @@ void AnimationTimelinesController::maybeClearCachedCurrentTime()
     // JS frame or throughout updating animations in WebCore.
     if (!m_isSuspended && !m_waitingOnVMIdle && !m_currentTimeClearingTaskCancellationGroup.hasPendingTask())
         m_cachedCurrentTime = std::nullopt;
+}
+
+void AnimationTimelinesController::registerNamedScrollTimeline(const AtomString& name, Element& source, ScrollAxis axis)
+{
+    auto it = m_nameToScrollTimelineMap.find(name);
+    if (it != m_nameToScrollTimelineMap.end()) {
+        auto& existingScrollTimeline = it->value;
+        existingScrollTimeline->setSource(&source);
+        existingScrollTimeline->setAxis(axis);
+    } else {
+        auto newScrollTimeline = ScrollTimeline::create(name, axis);
+        newScrollTimeline->setSource(&source);
+        m_nameToScrollTimelineMap.set(name, WTFMove(newScrollTimeline));
+    }
+}
+
+void AnimationTimelinesController::unregisterNamedScrollTimeline(const AtomString& name)
+{
+    m_nameToScrollTimelineMap.remove(name);
+}
+
+ScrollTimeline* AnimationTimelinesController::scrollTimelineForName(const AtomString& name) const
+{
+    return m_nameToScrollTimelineMap.get(name);
+}
+
+void AnimationTimelinesController::registerNamedViewTimeline(const AtomString& name, Element& subject, ScrollAxis axis, ViewTimelineInsets&& insets)
+{
+    auto it = m_nameToViewTimelineMap.find(name);
+    if (it != m_nameToViewTimelineMap.end()) {
+        auto& existingViewTimeline = it->value;
+        existingViewTimeline->setSubject(&subject);
+        existingViewTimeline->setAxis(axis);
+        existingViewTimeline->setInsets(WTFMove(insets));
+    } else {
+        auto newViewTimeline = ViewTimeline::create(name, axis, WTFMove(insets));
+        newViewTimeline->setSubject(&subject);
+        m_nameToViewTimelineMap.set(name, WTFMove(newViewTimeline));
+    }
+}
+
+void AnimationTimelinesController::unregisterNamedViewTimeline(const AtomString& name)
+{
+    m_nameToViewTimelineMap.remove(name);
+}
+
+ViewTimeline* AnimationTimelinesController::viewTimelineForName(const AtomString& name) const
+{
+    return m_nameToViewTimelineMap.get(name);
 }
 
 } // namespace WebCore

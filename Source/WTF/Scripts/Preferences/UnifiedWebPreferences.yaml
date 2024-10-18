@@ -1628,11 +1628,11 @@ CSSTextWrapStyleEnabled:
 
 CSSTransformStyleSeparatedEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: css
   humanReadableName: "CSS transform-style: separated"
   humanReadableDescription: "Enable transform-style: separated property to access the separated graphics layer"
-  condition: ENABLE(CSS_TRANSFORM_STYLE_SEPARATED)
+  condition: HAVE(CORE_ANIMATION_SEPARATED_LAYERS)
   defaultValue:
     WebKitLegacy:
       default: false
@@ -3581,6 +3581,21 @@ InputTypeColorEnabled:
     WebCore:
       default: false
   sharedPreferenceForWebProcess: true
+
+InputTypeColorEnhancementsEnabled:
+  type: bool
+  status: unstable
+  category: html
+  condition: ENABLE(INPUT_TYPE_COLOR)
+  humanReadableName: "HTML alpha and colorspace attribute support for color inputs"
+  humanReadableDescription: "Enable HTML alpha and colorspace attribute support for input elements of type color"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
 
 InputTypeDateEnabled:
   type: bool
@@ -6432,11 +6447,14 @@ SelectionHonorsOverflowScrolling:
   status: internal
   humanReadableName: "Selection Honors Overflow Scrolling"
   humanReadableDescription: "Selection honors overflow scrolling"
-  webcoreBinding: none
   condition: PLATFORM(IOS_FAMILY)
   exposed: [ WebKit ]
   defaultValue:
     WebKit:
+      default: false
+    WebKitLegacy:
+      default: false
+    WebCore:
       default: false
 
 SendMouseEventsToDisabledFormControlsEnabled:

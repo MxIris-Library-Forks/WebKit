@@ -200,7 +200,7 @@ bool Styleable::computeAnimationExtent(LayoutRect& bounds) const
     KeyframeEffect* matchingEffect = nullptr;
     for (const auto& animation : *animations) {
         if (auto* keyframeEffect = dynamicDowncast<KeyframeEffect>(animation->effect())) {
-            if (keyframeEffect->animatedProperties().contains(CSSPropertyTransform))
+            if (keyframeEffect->blendingKeyframes().containsProperty(CSSPropertyTransform))
                 matchingEffect = keyframeEffect;
         }
     }
@@ -943,7 +943,7 @@ void Styleable::updateCSSViewTimelines(const RenderStyle* currentStyle, const Re
 
         for (auto& previousTimelineName : currentStyle->viewTimelineNames()) {
             if (!currentTimelineNames.contains(previousTimelineName))
-                timelinesController->unregisterNamedViewTimeline(previousTimelineName);
+                timelinesController->unregisterNamedViewTimelineForSubject(previousTimelineName, element);
         }
     };
 

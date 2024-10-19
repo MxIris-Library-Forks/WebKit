@@ -392,6 +392,7 @@ class ShareableBitmapHandle;
 class ShareableResourceHandle;
 class Site;
 struct TextAnimationData;
+enum class ImageDecodingError : uint8_t;
 enum class ExceptionCode : uint8_t;
 }
 
@@ -543,6 +544,7 @@ struct WebsitePoliciesData;
 struct DMABufRendererBufferFormat;
 #endif
 
+enum class ColorControlSupportsAlpha : bool;
 enum class ContentAsStringIncludesChildFrames : bool;
 enum class DragControllerAction : uint8_t;
 enum class FindDecorationStyle : uint8_t;
@@ -850,6 +852,9 @@ public:
     void navigateToPDFLinkWithSimulatedClick(const String& url, WebCore::IntPoint documentPoint, WebCore::IntPoint screenPoint);
 
     void loadAndDecodeImage(WebCore::ResourceRequest&&, std::optional<WebCore::FloatSize>, size_t, CompletionHandler<void(std::variant<WebCore::ResourceError, Ref<WebCore::ShareableBitmap>>&&)>&&);
+#if PLATFORM(COCOA)
+    void getInformationFromImageData(Vector<uint8_t>&& data, CompletionHandler<void(Expected<std::pair<String, Vector<WebCore::IntSize>>, WebCore::ImageDecodingError>&&)>&&);
+#endif
 
     void simulateDeviceOrientationChange(double alpha, double beta, double gamma);
 
@@ -2055,6 +2060,7 @@ public:
     void updateCurrentModifierState();
 
     ProvisionalPageProxy* provisionalPageProxy() const { return m_provisionalPage.get(); }
+    RefPtr<ProvisionalPageProxy> protectedProvisionalPageProxy() const;
     void commitProvisionalPage(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, const String& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, const WebCore::CertificateInfo&, bool usedLegacyTLS, bool privateRelayed, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, const UserData&);
     void destroyProvisionalPage();
 
@@ -2554,6 +2560,10 @@ public:
 
     WebProcessActivityState& processActivityState();
 
+#if ENABLE(WEB_PROCESS_SUSPENSION_DELAY)
+    void updateWebProcessSuspensionDelay();
+#endif
+
 private:
     void getWebCryptoMasterKey(CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&&);
     WebPageProxy(PageClient&, WebProcessProxy&, Ref<API::PageConfiguration>&&);
@@ -2740,7 +2750,7 @@ private:
     };
 
     void launchProcess(const WebCore::Site&, ProcessLaunchReason);
-    void swapToProvisionalPage(std::unique_ptr<ProvisionalPageProxy>);
+    void swapToProvisionalPage(Ref<ProvisionalPageProxy>&&);
     void didFailToSuspendAfterProcessSwap();
     void didSuspendAfterProcessSwap();
     void finishAttachingToWebProcess(const WebCore::Site&, ProcessLaunchReason);
@@ -2753,7 +2763,7 @@ private:
     void didChangeIntrinsicContentSize(const WebCore::IntSize&);
 
 #if ENABLE(INPUT_TYPE_COLOR)
-    void showColorPicker(const WebCore::Color& initialColor, const WebCore::IntRect&, Vector<WebCore::Color>&&);
+    void showColorPicker(const WebCore::Color& initialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&);
 #endif
 
 #if ENABLE(DATALIST_ELEMENT)
@@ -2788,6 +2798,8 @@ private:
     void backForwardItemAtIndex(int32_t index, WebCore::FrameIdentifier, CompletionHandler<void(std::optional<WebCore::BackForwardItemIdentifier>&&)>&&);
     void backForwardListCounts(CompletionHandler<void(WebBackForwardListCounts&&)>&&);
     void backForwardClear();
+    void backForwardGoToProvisionalItem(IPC::Connection&, WebCore::BackForwardItemIdentifier, CompletionHandler<void(const WebBackForwardListCounts&)>&&);
+    void backForwardClearProvisionalItem(IPC::Connection&, WebCore::BackForwardItemIdentifier);
 
     // Undo management
     void registerEditCommandForUndo(IPC::Connection&, WebUndoStepID commandID, const String& label);
@@ -3311,7 +3323,7 @@ private:
 
 #if ENABLE(WEB_AUTHN)
     std::unique_ptr<DigitalCredentialsCoordinatorProxy> m_digitalCredentialsMessenger;
-    std::unique_ptr<WebAuthenticatorCoordinatorProxy> m_webAuthnCredentialsMessenger;
+    RefPtr<WebAuthenticatorCoordinatorProxy> m_webAuthnCredentialsMessenger;
 #endif
 
 #if ENABLE(DATA_DETECTION)
@@ -3596,7 +3608,7 @@ private:
     bool m_mayHaveUniversalFileReadSandboxExtension { false };
     bool m_isServiceWorkerPage { false };
 
-    std::unique_ptr<ProvisionalPageProxy> m_provisionalPage;
+    RefPtr<ProvisionalPageProxy> m_provisionalPage;
     std::unique_ptr<SuspendedPageProxy> m_suspendedPageKeptToPreventFlashing;
     WeakPtr<SuspendedPageProxy> m_lastSuspendedPage;
 

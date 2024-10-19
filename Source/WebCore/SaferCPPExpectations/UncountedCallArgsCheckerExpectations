@@ -33,9 +33,11 @@ JSBaseAudioContext.cpp
 JSBiquadFilterNode.cpp
 JSBlobEvent.cpp
 JSBroadcastChannel.cpp
+JSCSSFontFaceRule.cpp
 JSCSSGroupingRule.cpp
 JSCSSHWB.cpp
 JSCSSImportRule.cpp
+JSCSSKeyframeRule.cpp
 JSCSSKeyframesRule.cpp
 JSCSSMathClamp.cpp
 JSCSSMathInvert.cpp
@@ -45,12 +47,15 @@ JSCSSMathNegate.cpp
 JSCSSMathProduct.cpp
 JSCSSMathSum.cpp
 JSCSSMatrixComponent.cpp
+JSCSSNestedDeclarations.cpp
 JSCSSNumericArray.cpp
+JSCSSPageRule.cpp
 JSCSSRotate.cpp
 JSCSSRuleList.cpp
 JSCSSSkew.cpp
 JSCSSSkewX.cpp
 JSCSSSkewY.cpp
+JSCSSStyleDeclaration.cpp
 JSCSSStyleRule.cpp
 JSCSSTransformValue.cpp
 JSCSSTranslate.cpp
@@ -383,7 +388,6 @@ JSValidityState.cpp
 JSVideoConfiguration.cpp
 JSVideoTrack.cpp
 JSVideoTrackList.cpp
-JSViewTimeline.cpp
 JSViewTransition.cpp
 JSVisualViewport.cpp
 JSWakeLockSentinel.cpp
@@ -757,6 +761,7 @@ bindings/js/JSAudioWorkletGlobalScopeCustom.cpp
 bindings/js/JSCSSRuleCustom.cpp
 bindings/js/JSCSSRuleCustom.h
 bindings/js/JSCSSRuleListCustom.cpp
+bindings/js/JSCSSStyleDeclarationCustom.cpp
 bindings/js/JSCanvasRenderingContext2DCustom.cpp
 bindings/js/JSCustomElementInterface.cpp
 bindings/js/JSCustomElementRegistryCustom.cpp
@@ -771,7 +776,6 @@ bindings/js/JSDOMConvertCallbacks.h
 bindings/js/JSDOMConvertDate.cpp
 bindings/js/JSDOMConvertEnumeration.h
 bindings/js/JSDOMConvertEventListener.h
-bindings/js/JSDOMConvertIndexedDB.h
 bindings/js/JSDOMConvertInterface.h
 bindings/js/JSDOMConvertScheduledAction.h
 bindings/js/JSDOMConvertStrings.h
@@ -791,6 +795,7 @@ bindings/js/JSDOMWindowCustom.cpp
 bindings/js/JSDOMWindowProperties.cpp
 bindings/js/JSDOMWindowProperties.h
 bindings/js/JSDOMWrapperCache.h
+bindings/js/JSDeprecatedCSSOMValueCustom.cpp
 bindings/js/JSDocumentCustom.cpp
 bindings/js/JSElementCustom.cpp
 bindings/js/JSElementInternalsCustom.cpp
@@ -1641,7 +1646,6 @@ platform/graphics/ca/cocoa/PlatformCALayerContentsDelayedReleaser.mm
 platform/graphics/cg/GraphicsContextCG.cpp
 platform/graphics/cg/GraphicsContextGLCG.cpp
 platform/graphics/cg/ImageBufferIOSurfaceBackend.cpp
-platform/graphics/cg/ImageBufferUtilitiesCG.cpp
 platform/graphics/cg/PDFDocumentImage.cpp
 platform/graphics/cg/ShareableBitmapCG.mm
 platform/graphics/cocoa/CMUtilities.mm

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,29 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "config.h"
+#import "SpanCocoa.h"
 
-#include <Foundation/Foundation.h>
-#include <objc/runtime.h>
-#include <wtf/Forward.h>
+#import <wtf/BlockPtr.h>
+#import <wtf/Function.h>
+#import <wtf/StdLibExtras.h>
 
-@interface NSUserDefaults (TestSupport)
-- (NSURL *)swizzled_objectForKey:(NSString *)key;
-@end
+namespace WTF {
 
-namespace TestWebKitAPI {
+bool dispatch_data_apply_span(dispatch_data_t data, const Function<bool(std::span<const uint8_t>)>& applier)
+{
+    return dispatch_data_apply(data, makeBlockPtr([&applier](dispatch_data_t, size_t, const void* data, size_t size) {
+        return applier(unsafeForgeSpan(static_cast<const uint8_t*>(data), size));
+    }).get());
+}
 
-class EnableUISideCompositingScope {
-    WTF_MAKE_FAST_ALLOCATED;
-public:
-    EnableUISideCompositingScope();
-    ~EnableUISideCompositingScope();
-
-private:
-    Method m_originalMethod;
-    Method m_swizzledMethod;
-    IMP m_originalImplementation;
-    IMP m_swizzledImplementation;
-};
-
-} // namespace TestWebKitAPI
+} // namespace WTF

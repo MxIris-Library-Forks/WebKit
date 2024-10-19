@@ -348,7 +348,9 @@
 #include "VideoPresentationManager.h"
 #include "WKStringCF.h"
 #include "WebRemoteObjectRegistry.h"
+#include <WebCore/ImageUtilities.h>
 #include <WebCore/LegacyWebArchive.h>
+#include <WebCore/SVGImage.h>
 #include <WebCore/TextPlaceholderElement.h>
 #include <pal/spi/cg/ImageIOSPI.h>
 #include <wtf/MachSendRight.h>
@@ -462,8 +464,6 @@
 #if PLATFORM(COCOA)
 #include <pal/cf/CoreTextSoftLink.h>
 #endif
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 namespace WebKit {
 using namespace JSC;
@@ -679,6 +679,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     if (shouldBlockMobileAsset)
         sandbox_enable_state_flag("BlockMobileAssetInWebContentSandbox", *auditToken);
 #if PLATFORM(MAC)
+    auto shouldBlockFontService = parameters.store.getBoolValueForKey(WebPreferencesKey::blockFontServiceInWebContentSandboxKey());
+    if (shouldBlockFontService)
+        sandbox_enable_state_flag("BlockFontServiceInWebContentSandbox", *auditToken);
     auto shouldBlockIconServices = parameters.store.getBoolValueForKey(WebPreferencesKey::blockIconServicesInWebContentSandboxKey());
     if (shouldBlockIconServices)
         sandbox_enable_state_flag("BlockIconServicesInWebContentSandbox", *auditToken);
@@ -2540,9 +2543,6 @@ static void dumpHistoryItem(HistoryItem& item, size_t indent, bool isCurrentItem
     auto& target = item.target();
     if (target.length())
         stringBuilder.append(" (in frame \""_s, target, "\")"_s);
-
-    if (item.isTargetItem())
-        stringBuilder.append("  **nav target**"_s);
 
     stringBuilder.append('\n');
 
@@ -5899,21 +5899,26 @@ Ref<GeolocationPermissionRequestManager> WebPage::protectedGeolocationPermission
 
 #if ENABLE(MEDIA_STREAM)
 
+Ref<UserMediaPermissionRequestManager> WebPage::protectedUserMediaPermissionRequestManager()
+{
+    return m_userMediaPermissionRequestManager.get();
+}
+
 void WebPage::userMediaAccessWasGranted(UserMediaRequestIdentifier userMediaID, WebCore::CaptureDevice&& audioDevice, WebCore::CaptureDevice&& videoDevice, WebCore::MediaDeviceHashSalts&& mediaDeviceIdentifierHashSalts, Vector<SandboxExtension::Handle>&& handles, CompletionHandler<void()>&& completionHandler)
 {
     SandboxExtension::consumePermanently(handles);
 
-    m_userMediaPermissionRequestManager->userMediaAccessWasGranted(userMediaID, WTFMove(audioDevice), WTFMove(videoDevice), WTFMove(mediaDeviceIdentifierHashSalts), WTFMove(completionHandler));
+    protectedUserMediaPermissionRequestManager()->userMediaAccessWasGranted(userMediaID, WTFMove(audioDevice), WTFMove(videoDevice), WTFMove(mediaDeviceIdentifierHashSalts), WTFMove(completionHandler));
 }
 
 void WebPage::userMediaAccessWasDenied(UserMediaRequestIdentifier userMediaID, uint64_t reason, String&& message, WebCore::MediaConstraintType invalidConstraint)
 {
-    m_userMediaPermissionRequestManager->userMediaAccessWasDenied(userMediaID, static_cast<MediaAccessDenialReason>(reason), WTFMove(message), invalidConstraint);
+    protectedUserMediaPermissionRequestManager()->userMediaAccessWasDenied(userMediaID, static_cast<MediaAccessDenialReason>(reason), WTFMove(message), invalidConstraint);
 }
 
 void WebPage::captureDevicesChanged()
 {
-    m_userMediaPermissionRequestManager->captureDevicesChanged();
+    protectedUserMediaPermissionRequestManager()->captureDevicesChanged();
 }
 
 void WebPage::voiceActivityDetected()
@@ -7977,6 +7982,19 @@ void WebPage::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::option
     });
 }
 
+#if PLATFORM(COCOA)
+void WebPage::getInformationFromImageData(const Vector<uint8_t>& data, CompletionHandler<void(Expected<std::pair<String, Vector<IntSize>>, WebCore::ImageDecodingError>&&)>&& completionHandler)
+{
+    if (m_isClosed)
+        return completionHandler(makeUnexpected(ImageDecodingError::Internal));
+
+    if (SVGImage::isDataDecodable(m_page->settings(), data.span()))
+        return completionHandler(std::make_pair(String { "public.svg-image"_s }, Vector<IntSize> { }));
+
+    completionHandler(utiAndAvailableSizesFromImageData(data.span()));
+}
+#endif
+
 #if PLATFORM(MAC)
 void WebPage::flushPendingThemeColorChange()
 {
@@ -9818,8 +9836,8 @@ void WebPage::remoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier frame
     popupInfo.textIndicator.textBoundingRectInRootViewCoordinates = remoteViewToRootView<FloatRect>(frameID, popupInfo.textIndicator.textBoundingRectInRootViewCoordinates);
     popupInfo.textIndicator.contentImageWithoutSelectionRectInRootViewCoordinates = remoteViewToRootView<FloatRect>(frameID, popupInfo.textIndicator.contentImageWithoutSelectionRectInRootViewCoordinates);
 
-    for (auto it = popupInfo.textIndicator.textRectsInBoundingRectCoordinates.begin(); it != popupInfo.textIndicator.textRectsInBoundingRectCoordinates.end(); ++it)
-        *it = remoteViewToRootView<FloatRect>(frameID, *it);
+    for (auto& textRect : popupInfo.textIndicator.textRectsInBoundingRectCoordinates)
+        textRect = remoteViewToRootView<FloatRect>(frameID, textRect);
 #endif
     completionHandler(popupInfo);
 }
@@ -10165,5 +10183,3 @@ void WebPage::updateOpener(WebCore::FrameIdentifier frameID, WebCore::FrameIdent
 
 #undef WEBPAGE_RELEASE_LOG
 #undef WEBPAGE_RELEASE_LOG_ERROR
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END

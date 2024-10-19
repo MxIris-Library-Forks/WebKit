@@ -102,6 +102,9 @@ RenderPassEncoder::RenderPassEncoder(id<MTLRenderCommandEncoder> renderCommandEn
             continue;
 
         auto& texture = fromAPI(attachment.view);
+        if (texture.isDestroyed())
+            m_parentEncoder->makeSubmitInvalid();
+
         texture.setPreviouslyCleared();
         addResourceToActiveResources(texture, BindGroupEntryUsage::Attachment);
         m_rasterSampleCount = texture.sampleCount();
@@ -365,6 +368,11 @@ void RenderPassEncoder::runVertexBufferValidation(uint32_t vertexCount, uint32_t
 {
     if (!m_pipeline) {
         makeInvalid(@"Missing pipeline before draw command");
+        return;
+    }
+
+    if (checkedSum<uint32_t>(firstVertex, vertexCount).hasOverflowed()) {
+        makeInvalid(@"Overflow in vertex count + firstVertex");
         return;
     }
 

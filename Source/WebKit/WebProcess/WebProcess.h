@@ -40,6 +40,7 @@
 #include <WebCore/FrameIdentifier.h>
 #include <WebCore/NetworkStorageSession.h>
 #include <WebCore/PageIdentifier.h>
+#include <WebCore/ProcessIdentity.h>
 #include <WebCore/RegistrableDomain.h>
 #include <WebCore/ServiceWorkerTypes.h>
 #include <WebCore/Timer.h>
@@ -194,8 +195,19 @@ public:
     template <typename T>
     void addSupplement()
     {
-        m_supplements.add(T::supplementName(), makeUnique<T>(*this));
+        m_supplements.add(T::supplementName(), makeUniqueWithoutRefCountedCheck<T>(*this));
     }
+
+    template <typename T>
+    void addSupplementWithoutRefCountedCheck()
+    {
+        m_supplements.add(T::supplementName(), makeUniqueWithoutRefCountedCheck<T>(*this));
+    }
+
+    // ref() & deref() do nothing since WebProcess is a singleton object.
+    // This is for objects owned by the WebProcess to forward their refcounting to their owner.
+    void ref() const { }
+    void deref() const { }
 
     WebPage* webPage(WebCore::PageIdentifier) const;
     void createWebPage(WebCore::PageIdentifier, WebPageCreationParameters&&);
@@ -273,6 +285,7 @@ public:
 #endif
 #if ENABLE(ENCRYPTED_MEDIA)
     RemoteCDMFactory& cdmFactory();
+    Ref<RemoteCDMFactory> protectedCDMFactory();
 #endif
     RemoteMediaEngineConfigurationFactory& mediaEngineConfigurationFactory();
 #endif // ENABLE(GPU_PROCESS)

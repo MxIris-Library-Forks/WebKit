@@ -110,10 +110,7 @@ std::optional<double> CSSNumberishTime::percentage() const
 
 bool CSSNumberishTime::isValid() const
 {
-    // FIXME: We should consider a number valid as long as it's not "Unknown"
-    // but currently only mark time values as valid until we can do per-timeline
-    // validation when processing a value through the JS APIs that consume them.
-    return m_type == Type::Time;
+    return m_type != Type::Unknown;
 }
 
 bool CSSNumberishTime::isInfinity() const
@@ -129,6 +126,13 @@ bool CSSNumberishTime::isZero() const
 CSSNumberishTime CSSNumberishTime::matchingZero() const
 {
     return { m_type, 0 };
+}
+
+CSSNumberishTime CSSNumberishTime::matchingEpsilon() const
+{
+    if (m_type == Type::Percentage)
+        return CSSNumberishTime::fromPercentage(0.000001);
+    return { WebCore::timeEpsilon };
 }
 
 bool CSSNumberishTime::approximatelyEqualTo(const CSSNumberishTime& other) const

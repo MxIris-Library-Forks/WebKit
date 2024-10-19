@@ -887,6 +887,19 @@ BlobRegistryTopOriginPartitioningEnabled:
     WebCore:
       default: true
 
+BlockFontServiceInWebContentSandbox:
+  type: bool
+  status: internal
+  category: networking
+  humanReadableName: "Block Font service in the WebContent sandbox"
+  humanReadableDescription: "Block Font service in the WebContent sandbox"
+  webcoreBinding: none
+  condition: HAVE(SANDBOX_STATE_FLAGS) && PLATFORM(MAC)
+  exposed: [ WebKit ]
+  defaultValue:
+    WebKit:
+      default: false
+
 BlockIOKitInWebContentSandbox:
   type: bool
   status: internal
@@ -952,7 +965,7 @@ BlockMobileGestaltInWebContentSandbox:
   exposed: [ WebKit ]
   defaultValue:
     WebKit:
-      default: false
+      default: true
 
 BlockOpenDirectoryInWebContentSandbox:
   type: bool
@@ -3584,7 +3597,7 @@ InputTypeColorEnabled:
 
 InputTypeColorEnhancementsEnabled:
   type: bool
-  status: unstable
+  status: stable
   category: html
   condition: ENABLE(INPUT_TYPE_COLOR)
   humanReadableName: "HTML alpha and colorspace attribute support for color inputs"
@@ -3593,9 +3606,12 @@ InputTypeColorEnhancementsEnabled:
     WebKitLegacy:
       default: false
     WebKit:
+      "PLATFORM(COCOA) && !PLATFORM(WATCHOS)": true
       default: false
     WebCore:
+      "PLATFORM(COCOA) && !PLATFORM(WATCHOS)": true
       default: false
+  sharedPreferenceForWebProcess: true
 
 InputTypeDateEnabled:
   type: bool

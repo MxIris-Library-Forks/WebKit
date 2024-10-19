@@ -328,7 +328,7 @@ WebProcess::WebProcess()
 #endif
 
 #if ENABLE(GPU_PROCESS) && ENABLE(ENCRYPTED_MEDIA)
-    addSupplement<RemoteCDMFactory>();
+    addSupplementWithoutRefCountedCheck<RemoteCDMFactory>();
 #endif
 
 #if ENABLE(GPU_PROCESS) && ENABLE(LEGACY_ENCRYPTED_MEDIA)
@@ -487,7 +487,7 @@ void WebProcess::initializeWebProcess(WebProcessCreationParameters&& parameters,
 #endif
         memoryPressureHandler.setMemoryPressureStatusChangedCallback([this]() {
             if (parentProcessConnection())
-                parentProcessConnection()->send(Messages::WebProcessProxy::MemoryPressureStatusChanged(MemoryPressureHandler::singleton().isUnderMemoryPressure()), 0);
+                parentProcessConnection()->send(Messages::WebProcessProxy::MemoryPressureStatusChanged(MemoryPressureHandler::singleton().memoryPressureStatus()), 0);
         });
         memoryPressureHandler.setDidExceedProcessMemoryLimitCallback([this](WTF::ProcessMemoryLimit limit) {
             if (limit == WTF::ProcessMemoryLimit::Warning && !m_loggedProcessLimitWarningMemoryStatistics) {
@@ -2245,7 +2245,7 @@ void WebProcess::setUseGPUProcessForMedia(bool useGPUProcessForMedia)
     auto& cdmFactories = CDMFactory::registeredFactories();
     cdmFactories.clear();
     if (useGPUProcessForMedia)
-        cdmFactory().registerFactory(cdmFactories);
+        protectedCDMFactory()->registerFactory(cdmFactories);
     else
         CDMFactory::platformRegisterFactories(cdmFactories);
 #endif
@@ -2272,7 +2272,7 @@ void WebProcess::setUseGPUProcessForMedia(bool useGPUProcessForMedia)
 #endif
 
     if (useGPUProcessForMedia)
-        mediaEngineConfigurationFactory().registerFactory();
+        Ref { mediaEngineConfigurationFactory() }->registerFactory();
     else
         MediaEngineConfigurationFactory::resetFactories();
 
@@ -2364,6 +2364,11 @@ RemoteLegacyCDMFactory& WebProcess::legacyCDMFactory()
 RemoteCDMFactory& WebProcess::cdmFactory()
 {
     return *supplement<RemoteCDMFactory>();
+}
+
+Ref<RemoteCDMFactory> WebProcess::protectedCDMFactory()
+{
+    return cdmFactory();
 }
 #endif
 

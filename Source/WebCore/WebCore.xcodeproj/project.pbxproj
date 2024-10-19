@@ -2760,6 +2760,8 @@
 		7177B03E2C944B8100FC201F /* CSSNumberishTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 7177B03B2C944B8100FC201F /* CSSNumberishTime.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		717CE23A29335E9C001463BC /* StyleOriginatedAnimationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 717CE23829335E8D001463BC /* StyleOriginatedAnimationEvent.h */; };
 		7181A16C244F0F40007D8A24 /* AnimationTimelinesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7181A169244F0F2C007D8A24 /* AnimationTimelinesController.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		719A4FD02CC1881B0050BFCF /* JSScrollTimeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 719A4FCC2CC187E90050BFCF /* JSScrollTimeline.h */; };
+		719A4FD12CC188220050BFCF /* JSViewTimeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 719A4FCE2CC187E90050BFCF /* JSViewTimeline.h */; };
 		71A1B6081DEE5AD70073BCFB /* modern-media-controls-localized-strings.js in Resources */ = {isa = PBXBuildFile; fileRef = 71A1B6061DEE5A820073BCFB /* modern-media-controls-localized-strings.js */; };
 		71A3D1812562B85B0064E2A6 /* HTMLModelElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 71A3D17D2562B8240064E2A6 /* HTMLModelElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		71A3D1842562BE0B0064E2A6 /* JSHTMLModelElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 71A3D1832562BDDB0064E2A6 /* JSHTMLModelElement.h */; };
@@ -13028,6 +13030,10 @@
 		7199B94F2552103E00494A57 /* StyleSelfAlignmentData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSelfAlignmentData.cpp; sourceTree = "<group>"; };
 		7199F81E26FE15C000C627C2 /* close-button.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "close-button.js"; sourceTree = "<group>"; };
 		7199F82226FE161F00C627C2 /* close-support.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "close-support.js"; sourceTree = "<group>"; };
+		719A4FCC2CC187E90050BFCF /* JSScrollTimeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSScrollTimeline.h; sourceTree = "<group>"; };
+		719A4FCD2CC187E90050BFCF /* JSScrollTimeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSScrollTimeline.cpp; sourceTree = "<group>"; };
+		719A4FCE2CC187E90050BFCF /* JSViewTimeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSViewTimeline.h; sourceTree = "<group>"; };
+		719A4FCF2CC187E90050BFCF /* JSViewTimeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSViewTimeline.cpp; sourceTree = "<group>"; };
 		71A0B25C29412DE500D69A79 /* IdentityTransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IdentityTransformOperation.cpp; sourceTree = "<group>"; };
 		71A1B6071DEE5A820073BCFB /* en */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = en; path = "en.lproj/modern-media-controls-localized-strings.js"; sourceTree = SOURCE_ROOT; };
 		71A3D17D2562B8240064E2A6 /* HTMLModelElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLModelElement.h; sourceTree = "<group>"; };
@@ -20711,6 +20717,12 @@
 		F916C48C0DB510F80076CD83 /* JSXMLHttpRequestProgressEvent.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSXMLHttpRequestProgressEvent.h; sourceTree = "<group>"; };
 		F9F0ED770DB50CA200D16DB9 /* XMLHttpRequestProgressEvent.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = XMLHttpRequestProgressEvent.h; sourceTree = "<group>"; };
 		F9F0ED780DB50CA200D16DB9 /* XMLHttpRequestProgressEvent.idl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = XMLHttpRequestProgressEvent.idl; sourceTree = "<group>"; };
+		FA4F548D2CC0520E00534AAE /* CompressionStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CompressionStream.h; sourceTree = "<group>"; };
+		FA4F54902CC055CE00534AAE /* ZStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZStream.h; sourceTree = "<group>"; };
+		FA4F54912CC055CE00534AAE /* ZStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ZStream.cpp; sourceTree = "<group>"; };
+		FA4F54922CC0646100534AAE /* CompressionStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CompressionStream.cpp; sourceTree = "<group>"; };
+		FA4F54942CC0647600534AAE /* CompressionStreamEncoderCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CompressionStreamEncoderCocoa.mm; sourceTree = "<group>"; };
+		FA4F54952CC0647600534AAE /* DecompressionStreamDecoderCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DecompressionStreamDecoderCocoa.mm; sourceTree = "<group>"; };
 		FA654A631108ABB7002615E0 /* mathml.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = mathml.css; sourceTree = "<group>"; };
 		FA654A671108ABE2002615E0 /* mathattrs.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mathattrs.in; sourceTree = "<group>"; };
 		FA654A691108ABED002615E0 /* MathMLTokenElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLTokenElement.cpp; sourceTree = "<group>"; };
@@ -22322,6 +22334,10 @@
 				71207341216DFB3100C78329 /* JSOptionalEffectTiming.h */,
 				712BE4871FE8685A002031CC /* JSPlaybackDirection.cpp */,
 				712BE4861FE86859002031CC /* JSPlaybackDirection.h */,
+				719A4FCD2CC187E90050BFCF /* JSScrollTimeline.cpp */,
+				719A4FCC2CC187E90050BFCF /* JSScrollTimeline.h */,
+				719A4FCF2CC187E90050BFCF /* JSViewTimeline.cpp */,
+				719A4FCE2CC187E90050BFCF /* JSViewTimeline.h */,
 				71025ED71F99F1A6004A250C /* JSWebAnimation.cpp */,
 				71025ED81F99F1A6004A250C /* JSWebAnimation.h */,
 			);
@@ -24049,6 +24065,9 @@
 		2B6C54C3286592EB00D66A51 /* compression */ = {
 			isa = PBXGroup;
 			children = (
+				FA4F548B2CC0519D00534AAE /* cocoa */,
+				FA4F54922CC0646100534AAE /* CompressionStream.cpp */,
+				FA4F548D2CC0520E00534AAE /* CompressionStream.h */,
 				2B6C54C82865945300D66A51 /* CompressionStream.idl */,
 				2BF645602878D7600072285F /* CompressionStream.js */,
 				2BF6455F2878D7600072285F /* CompressionStreamEncoder.cpp */,
@@ -24060,6 +24079,8 @@
 				2B59E5C9287B81B2004CC9FF /* DecompressionStreamDecoder.h */,
 				2B59E5CA287B81B2004CC9FF /* DecompressionStreamDecoder.idl */,
 				2B598F98286F6BF4005AF06F /* Formats.h */,
+				FA4F54912CC055CE00534AAE /* ZStream.cpp */,
+				FA4F54902CC055CE00534AAE /* ZStream.h */,
 			);
 			path = compression;
 			sourceTree = "<group>";
@@ -37945,6 +37966,15 @@
 			tabWidth = 4;
 			usesTabs = 0;
 		};
+		FA4F548B2CC0519D00534AAE /* cocoa */ = {
+			isa = PBXGroup;
+			children = (
+				FA4F54942CC0647600534AAE /* CompressionStreamEncoderCocoa.mm */,
+				FA4F54952CC0647600534AAE /* DecompressionStreamDecoderCocoa.mm */,
+			);
+			path = cocoa;
+			sourceTree = "<group>";
+		};
 		FABE72EC1059C1EB00D999DD /* mathml */ = {
 			isa = PBXGroup;
 			children = (
@@ -41184,6 +41214,7 @@
 				834476EF1DA5BC5E002B5EC1 /* JSScrollIntoViewOptions.h in Headers */,
 				834476EF1DA5BC5E002B5EB0 /* JSScrollLogicalPosition.h in Headers */,
 				834476EF1DA5BC5E002B6EC1 /* JSScrollOptions.h in Headers */,
+				719A4FD02CC1881B0050BFCF /* JSScrollTimeline.h in Headers */,
 				834476EF1DA5BC5E002B6ED2 /* JSScrollToOptions.h in Headers */,
 				CED06AD11C77754800FDFAF1 /* JSSecurityPolicyViolationEvent.h in Headers */,
 				5182C2561F3143CD0059BA7C /* JSServiceWorker.h in Headers */,
@@ -41361,6 +41392,7 @@
 				BE8EF04B171C9014009B48C3 /* JSVideoTrack.h in Headers */,
 				07277E5317D018CC0015535D /* JSVideoTrackGenerator.h in Headers */,
 				BE8EF04D171C9014009B48C3 /* JSVideoTrackList.h in Headers */,
+				719A4FD12CC188220050BFCF /* JSViewTimeline.h in Headers */,
 				46E791491F97E01A00199739 /* JSVisibilityState.h in Headers */,
 				7779BD961F32246A00C21417 /* JSVisualViewport.h in Headers */,
 				BE20508218A460C30080647E /* JSVTTCue.h in Headers */,

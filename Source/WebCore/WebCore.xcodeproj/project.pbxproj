@@ -4737,6 +4737,8 @@
 		B71FE6DF11091CB300DAEF77 /* PrintContext.h in Headers */ = {isa = PBXBuildFile; fileRef = B776D43A1104525D00BEB0EC /* PrintContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B8DBDB4C130B0F8A00F5CDB1 /* SetSelectionCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = B8DBDB48130B0F8A00F5CDB1 /* SetSelectionCommand.h */; };
 		B8DBDB4E130B0F8A00F5CDB1 /* SpellingCorrectionCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = B8DBDB4A130B0F8A00F5CDB1 /* SpellingCorrectionCommand.h */; };
+		B9CA3B402CAB1D3E00B2607C /* SpatialImageControls.h in Headers */ = {isa = PBXBuildFile; fileRef = B9CA3B3E2CAB1D3E00B2607C /* SpatialImageControls.h */; };
+		B9CA3B412CAB1D3E00B2607C /* SpatialImageControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9CA3B3F2CAB1D3E00B2607C /* SpatialImageControls.cpp */; };
 		BC000BE72C6011020033AA75 /* CSSCalcTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BC000BDB2C5A9D4F0033AA75 /* CSSCalcTree.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC000BE82C60110B0033AA75 /* CSSCalcType.h in Headers */ = {isa = PBXBuildFile; fileRef = BC000BD82C5A96850033AA75 /* CSSCalcType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC000BF42C62CDF90033AA75 /* CalculationTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BC000BF02C613ED00033AA75 /* CalculationTree.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -17497,6 +17499,9 @@
 		B8DBDB4A130B0F8A00F5CDB1 /* SpellingCorrectionCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpellingCorrectionCommand.h; sourceTree = "<group>"; };
 		B933F55A2C5873C10046BA88 /* PhotosFormatSoftLink.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PhotosFormatSoftLink.mm; sourceTree = "<group>"; };
 		B974ED7A2C584D5500F3CCEB /* PhotosFormatSoftLink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhotosFormatSoftLink.h; sourceTree = "<group>"; };
+		B9CA3B3E2CAB1D3E00B2607C /* SpatialImageControls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialImageControls.h; sourceTree = "<group>"; };
+		B9CA3B3F2CAB1D3E00B2607C /* SpatialImageControls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SpatialImageControls.cpp; sourceTree = "<group>"; };
+		B9CA3B422CAB533800B2607C /* spatialImageControls.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = spatialImageControls.css; sourceTree = "<group>"; };
 		BC000BD82C5A96850033AA75 /* CSSCalcType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcType.h; sourceTree = "<group>"; };
 		BC000BD92C5A9A820033AA75 /* CSSCalcType.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcType.cpp; sourceTree = "<group>"; };
 		BC000BDB2C5A9D4F0033AA75 /* CSSCalcTree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcTree.h; sourceTree = "<group>"; };
@@ -24364,6 +24369,9 @@
 				A715E651134BBBEC00D8E713 /* ProgressShadowElement.h */,
 				4150F9F012B6E0E70008C860 /* SliderThumbElement.cpp */,
 				4150F9EF12B6E0E70008C860 /* SliderThumbElement.h */,
+				B9CA3B3F2CAB1D3E00B2607C /* SpatialImageControls.cpp */,
+				B9CA3B422CAB533800B2607C /* spatialImageControls.css */,
+				B9CA3B3E2CAB1D3E00B2607C /* SpatialImageControls.h */,
 				4512502015DCE37D002F84E2 /* SpinButtonElement.cpp */,
 				4512502115DCE37D002F84E2 /* SpinButtonElement.h */,
 				142B97C713138943008BEF4B /* TextControlInnerElements.cpp */,
@@ -42991,6 +42999,7 @@
 				84A81F420FC7E02700955300 /* SourceGraphic.h in Headers */,
 				72F7E746279B8F7500D82D2D /* SourceImage.h in Headers */,
 				D01A27AE10C9BFD800026A42 /* SpaceSplitString.h in Headers */,
+				B9CA3B402CAB1D3E00B2607C /* SpatialImageControls.h in Headers */,
 				626CDE0F1140424C001E5A68 /* SpatialNavigation.h in Headers */,
 				517C11D52C6DD6A100489490 /* SpatialVideoMetadata.h in Headers */,
 				934950CD253943610099F171 /* SpeechRecognition.h in Headers */,
@@ -44765,6 +44774,7 @@
 				41DF2D5E27A9452A00F25A21 /* SharedVideoFrameInfo.mm in Sources */,
 				A100D94F2AB251C400E00D67 /* SourceBufferParserAVFObjC.mm in Sources */,
 				CDC8B5AA18047FF10016E685 /* SourceBufferPrivateAVFObjC.mm in Sources */,
+				B9CA3B412CAB1D3E00B2607C /* SpatialImageControls.cpp in Sources */,
 				A833C7CA0A2CF06B00D57664 /* SVGNames.cpp in Sources */,
 				C1692DD223D23ABD006E88F7 /* SystemBattery.mm in Sources */,
 				329C0C2328BD96D600F187D2 /* TagName.cpp in Sources */,

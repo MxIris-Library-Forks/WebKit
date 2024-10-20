@@ -282,6 +282,7 @@ public:
 #endif
 #if ENABLE(LEGACY_ENCRYPTED_MEDIA)
     RemoteLegacyCDMFactory& legacyCDMFactory();
+    Ref<RemoteLegacyCDMFactory> protectedLegacyCDMFactory();
 #endif
 #if ENABLE(ENCRYPTED_MEDIA)
     RemoteCDMFactory& cdmFactory();
@@ -366,6 +367,7 @@ public:
 #endif
     WebBroadcastChannelRegistry& broadcastChannelRegistry() { return m_broadcastChannelRegistry.get(); }
     WebCookieJar& cookieJar() { return m_cookieJar.get(); }
+    Ref<WebCookieJar> protectedCookieJar();
     WebSocketChannelManager& webSocketChannelManager() { return m_webSocketChannelManager; }
 
 #if PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)

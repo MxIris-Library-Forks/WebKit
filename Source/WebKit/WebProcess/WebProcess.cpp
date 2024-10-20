@@ -332,7 +332,7 @@ WebProcess::WebProcess()
 #endif
 
 #if ENABLE(GPU_PROCESS) && ENABLE(LEGACY_ENCRYPTED_MEDIA)
-    addSupplement<RemoteLegacyCDMFactory>();
+    addSupplementWithoutRefCountedCheck<RemoteLegacyCDMFactory>();
 #endif
 
 #if ENABLE(GPU_PROCESS)
@@ -2266,7 +2266,7 @@ void WebProcess::setUseGPUProcessForMedia(bool useGPUProcessForMedia)
 
 #if ENABLE(LEGACY_ENCRYPTED_MEDIA)
     if (useGPUProcessForMedia)
-        legacyCDMFactory().registerFactory();
+        protectedLegacyCDMFactory()->registerFactory();
     else
         LegacyCDM::resetFactories();
 #endif
@@ -2358,6 +2358,11 @@ RemoteLegacyCDMFactory& WebProcess::legacyCDMFactory()
 {
     return *supplement<RemoteLegacyCDMFactory>();
 }
+
+Ref<RemoteLegacyCDMFactory> WebProcess::protectedLegacyCDMFactory()
+{
+    return legacyCDMFactory();
+}
 #endif
 
 #if ENABLE(GPU_PROCESS) && ENABLE(ENCRYPTED_MEDIA)
@@ -2425,6 +2430,11 @@ Ref<RemoteMediaPlayerManager> WebProcess::protectedRemoteMediaPlayerManager()
     return m_remoteMediaPlayerManager;
 }
 #endif
+
+Ref<WebCookieJar> WebProcess::protectedCookieJar()
+{
+    return m_cookieJar;
+}
 
 } // namespace WebKit
 

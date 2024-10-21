@@ -2757,7 +2757,7 @@
 		7173694B275E0B6A003ADA9B /* CustomEffectCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 71A74B0A27592B3500DE80BA /* CustomEffectCallback.h */; };
 		7173694C275E0BAB003ADA9B /* CustomAnimationOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 71736947275E0B4B003ADA9B /* CustomAnimationOptions.h */; };
 		7177AD57274295D1002F103B /* HTMLModelElementCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 7177AD5627429590002F103B /* HTMLModelElementCamera.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		7177B03E2C944B8100FC201F /* CSSNumberishTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 7177B03B2C944B8100FC201F /* CSSNumberishTime.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7177B03E2C944B8100FC201F /* WebAnimationTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 7177B03B2C944B8100FC201F /* WebAnimationTime.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		717CE23A29335E9C001463BC /* StyleOriginatedAnimationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 717CE23829335E8D001463BC /* StyleOriginatedAnimationEvent.h */; };
 		7181A16C244F0F40007D8A24 /* AnimationTimelinesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7181A169244F0F2C007D8A24 /* AnimationTimelinesController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		719A4FD02CC1881B0050BFCF /* JSScrollTimeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 719A4FCC2CC187E90050BFCF /* JSScrollTimeline.h */; };
@@ -13006,8 +13006,8 @@
 		7177AD5627429590002F103B /* HTMLModelElementCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLModelElementCamera.h; sourceTree = "<group>"; };
 		7177AD5827429CCA002F103B /* JSHTMLModelElementCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLModelElementCamera.cpp; sourceTree = "<group>"; };
 		7177AD5927429CCB002F103B /* JSHTMLModelElementCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSHTMLModelElementCamera.h; sourceTree = "<group>"; };
-		7177B03B2C944B8100FC201F /* CSSNumberishTime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSNumberishTime.h; sourceTree = "<group>"; };
-		7177B03C2C944B8100FC201F /* CSSNumberishTime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSNumberishTime.cpp; sourceTree = "<group>"; };
+		7177B03B2C944B8100FC201F /* WebAnimationTime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebAnimationTime.h; sourceTree = "<group>"; };
+		7177B03C2C944B8100FC201F /* WebAnimationTime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebAnimationTime.cpp; sourceTree = "<group>"; };
 		7177E2461DB80D2F00919A0B /* media-controller-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "media-controller-support.js"; sourceTree = "<group>"; };
 		7177E2471DB80D2F00919A0B /* mute-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "mute-support.js"; sourceTree = "<group>"; };
 		7177E2481DB80D2F00919A0B /* start-support.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "start-support.js"; sourceTree = "<group>"; };
@@ -28483,8 +28483,6 @@
 				319847FE1A1D816700A13318 /* CSSAnimationEvent.cpp */,
 				319847FF1A1D816700A13318 /* CSSAnimationEvent.h */,
 				319848001A1D816700A13318 /* CSSAnimationEvent.idl */,
-				7177B03C2C944B8100FC201F /* CSSNumberishTime.cpp */,
-				7177B03B2C944B8100FC201F /* CSSNumberishTime.h */,
 				71F05F7F2512440D0071E693 /* CSSPropertyAnimation.cpp */,
 				71F05F7E2512440C0071E693 /* CSSPropertyAnimation.h */,
 				713171321FBE78C500F758DE /* CSSPropertyBlendingClient.h */,
@@ -28563,6 +28561,8 @@
 				71025EC31F99F096004A250C /* WebAnimation.cpp */,
 				71025EC21F99F096004A250C /* WebAnimation.h */,
 				71025EC81F99F096004A250C /* WebAnimation.idl */,
+				7177B03C2C944B8100FC201F /* WebAnimationTime.cpp */,
+				7177B03B2C944B8100FC201F /* WebAnimationTime.h */,
 				7108EEE42418ED53005C3DA7 /* WebAnimationTypes.h */,
 				71C25AF52392BF3C00D5C098 /* WebAnimationUtilities.cpp */,
 				7132444F20109D9B00AE7FB2 /* WebAnimationUtilities.h */,
@@ -39438,7 +39438,6 @@
 				314BE3A11B30F6B700141982 /* CSSNamedImageValue.h in Headers */,
 				94E839511DFB2A0E007BC6A7 /* CSSNamespaceRule.h in Headers */,
 				BEAA24022C34A9E600C37BBE /* CSSNestedDeclarations.h in Headers */,
-				7177B03E2C944B8100FC201F /* CSSNumberishTime.h in Headers */,
 				2AEF6FDB26E7ECC700326D02 /* CSSNumericArray.h in Headers */,
 				2AEF6FDC26E7ECCC00326D02 /* CSSNumericBaseType.h in Headers */,
 				2ACB4D2B26DC4ACE00BEB753 /* CSSNumericFactory.h in Headers */,
@@ -43709,6 +43708,7 @@
 				AA478A7F16CD70C3007D1BB4 /* WebAccessibilityObjectWrapperMac.h in Headers */,
 				2D3EF4481917915C00034184 /* WebActionDisablingCALayerDelegate.h in Headers */,
 				71025ED31F99F0CE004A250C /* WebAnimation.h in Headers */,
+				7177B03E2C944B8100FC201F /* WebAnimationTime.h in Headers */,
 				7108EEE62418ED5A005C3DA7 /* WebAnimationTypes.h in Headers */,
 				7132445120109DA500AE7FB2 /* WebAnimationUtilities.h in Headers */,
 				E18536841F4E481400FE091B /* WebArchiveResourceFromNSAttributedString.h in Headers */,

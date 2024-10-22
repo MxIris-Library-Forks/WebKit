@@ -16448,6 +16448,8 @@
 		A8239DFE09B3CF8A00B60641 /* Logging.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Logging.cpp; sourceTree = "<group>"; };
 		A8239DFF09B3CF8A00B60641 /* Logging.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Logging.h; sourceTree = "<group>"; };
 		A824B4640E2EF2EA0081A7B7 /* TextRun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextRun.h; sourceTree = "<group>"; };
+		A82B6DF82CBF6C6F00EE6BD9 /* InternalObserverLast.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalObserverLast.h; sourceTree = "<group>"; };
+		A82B6DF92CBF6C6F00EE6BD9 /* InternalObserverLast.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalObserverLast.cpp; sourceTree = "<group>"; };
 		A833C7F60A2CF1D800D57664 /* xmlattrs.in */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = xmlattrs.in; sourceTree = "<group>"; };
 		A833C80A0A2CF25600D57664 /* XMLNames.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = XMLNames.cpp; sourceTree = "<group>"; };
 		A833C80B0A2CF25600D57664 /* XMLNames.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = XMLNames.h; sourceTree = "<group>"; };
@@ -37618,6 +37620,8 @@
 				FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */,
 				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
 				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
+				A82B6DF92CBF6C6F00EE6BD9 /* InternalObserverLast.cpp */,
+				A82B6DF82CBF6C6F00EE6BD9 /* InternalObserverLast.h */,
 				FFEFAB2D183BCC6F00514567 /* InternalObserverMap.cpp */,
 				FFEFAB2D183BCC6F00514566 /* InternalObserverMap.h */,
 				33839EF92C5CB39E00F1E4FA /* InternalObserverTake.cpp */,

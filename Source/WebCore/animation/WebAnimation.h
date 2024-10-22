@@ -82,6 +82,9 @@ public:
     virtual void setBindingsEffect(RefPtr<AnimationEffect>&&);
     AnimationEffect* effect() const { return m_effect.get(); }
     void setEffect(RefPtr<AnimationEffect>&&);
+
+    virtual AnimationTimeline* bindingsTimeline() const { return timeline(); }
+    virtual void setBindingsTimeline(RefPtr<AnimationTimeline>&&);
     AnimationTimeline* timeline() const { return m_timeline.get(); }
     virtual void setTimeline(RefPtr<AnimationTimeline>&&);
 
@@ -137,10 +140,10 @@ public:
     virtual void setBindingsFrameRate(std::variant<FramesPerSecond, AnimationFrameRatePreset>&&);
     std::optional<FramesPerSecond> frameRate() const { return m_effectiveFrameRate; }
 
-    TimelineRangeValue rangeStart() const { return m_rangeStart; }
-    TimelineRangeValue rangeEnd() const { return m_rangeEnd; }
-    void setRangeStart(TimelineRangeValue&& rangeStart) { m_rangeStart = WTFMove(rangeStart); }
-    void setRangeEnd(TimelineRangeValue&& rangeEnd) { m_rangeEnd = WTFMove(rangeEnd); }
+    TimelineRangeValue rangeStart() const { return m_timelineRange.start.serialize(); }
+    TimelineRangeValue rangeEnd() const { return m_timelineRange.end.serialize();; }
+    void setRangeStart(TimelineRangeValue&&);
+    void setRangeEnd(TimelineRangeValue&&);
 
     bool needsTick() const;
     virtual void tick();
@@ -248,8 +251,7 @@ private:
     TimeToRunPendingTask m_timeToRunPendingPauseTask { TimeToRunPendingTask::NotScheduled };
     ReplaceState m_replaceState { ReplaceState::Active };
     uint64_t m_globalPosition { 0 };
-    TimelineRangeValue m_rangeStart { "normal"_s };
-    TimelineRangeValue m_rangeEnd { "normal"_s };
+    TimelineRange m_timelineRange;
 };
 
 } // namespace WebCore

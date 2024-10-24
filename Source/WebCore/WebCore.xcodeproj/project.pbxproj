@@ -174,6 +174,7 @@
 		077BA57A260FAEF80072F19F /* MediaSessionReadyState.h in Headers */ = {isa = PBXBuildFile; fileRef = 074471FD25E180050054B231 /* MediaSessionReadyState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		077BA57B260FB1020072F19F /* MediaSessionActionDetails.h in Headers */ = {isa = PBXBuildFile; fileRef = CDDDEA362538CE7000A1300C /* MediaSessionActionDetails.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		077BA57E260FEF360072F19F /* MediaSessionCoordinatorPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 077BA57C260FE7380072F19F /* MediaSessionCoordinatorPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		077FD1B32CC82C5D00C5D9E0 /* IntelligenceTextEffectsSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 077FD1B12CC82C2100C5D9E0 /* IntelligenceTextEffectsSupport.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0782894825C23FE500A7BA03 /* MediaMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = CDDDEA2D2538CE0400A1300C /* MediaMetadata.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0782894B25C36FED00A7BA03 /* MediaImage.h in Headers */ = {isa = PBXBuildFile; fileRef = CDDDEA322538CE3500A1300C /* MediaImage.h */; };
 		0782894C25C3700B00A7BA03 /* MediaMetadataInit.h in Headers */ = {isa = PBXBuildFile; fileRef = CDDDEA302538CE1E00A1300C /* MediaMetadataInit.h */; };
@@ -6947,6 +6948,8 @@
 		077BA57D260FE7390072F19F /* MediaSessionCoordinatorPrivate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaSessionCoordinatorPrivate.cpp; sourceTree = "<group>"; };
 		077BA58826126D660072F19F /* MediaSessionCoordinatorState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSessionCoordinatorState.h; sourceTree = "<group>"; };
 		077BA58A26126D6B0072F19F /* MediaSessionCoordinatorState.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSessionCoordinatorState.idl; sourceTree = "<group>"; };
+		077FD1B12CC82C2100C5D9E0 /* IntelligenceTextEffectsSupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IntelligenceTextEffectsSupport.h; sourceTree = "<group>"; };
+		077FD1B22CC82C2100C5D9E0 /* IntelligenceTextEffectsSupport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IntelligenceTextEffectsSupport.cpp; sourceTree = "<group>"; };
 		0783228218013ED700999E0C /* MediaStreamAudioSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaStreamAudioSource.cpp; sourceTree = "<group>"; };
 		0783228318013ED800999E0C /* MediaStreamAudioSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaStreamAudioSource.h; sourceTree = "<group>"; };
 		07846340145B151A00A58DF1 /* JSTrackEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSTrackEvent.cpp; sourceTree = "<group>"; };
@@ -27962,6 +27965,8 @@
 				F482434A260C32F10022497C /* ImageOverlayController.cpp */,
 				F4824348260C32F10022497C /* ImageOverlayController.h */,
 				33E5A6A92C6E023400F2CD04 /* ImmediateActionStage.h */,
+				077FD1B22CC82C2100C5D9E0 /* IntelligenceTextEffectsSupport.cpp */,
+				077FD1B12CC82C2100C5D9E0 /* IntelligenceTextEffectsSupport.h */,
 				2DC05CA727D80217004ED403 /* InteractionRegion.cpp */,
 				2DC05CA327D7F6B5004ED403 /* InteractionRegion.h */,
 				0F4710D51DB6FE22002DCEC3 /* IntersectionObserver.cpp */,
@@ -40593,6 +40598,7 @@
 				A5B81CB41FAA44620037D1E6 /* InspectorWorkerAgent.h in Headers */,
 				F3ABFE0C130E9DA000E7F7D1 /* InstrumentingAgents.h in Headers */,
 				2D550A1429C30F3F00BD0C1F /* IntDegrees.h in Headers */,
+				077FD1B32CC82C5D00C5D9E0 /* IntelligenceTextEffectsSupport.h in Headers */,
 				2DC05CA827D80956004ED403 /* InteractionRegion.h in Headers */,
 				0F4710DC1DB6FE22002DCEC3 /* IntersectionObserver.h in Headers */,
 				0F8B45721DC3FBA300443C3F /* IntersectionObserverCallback.h in Headers */,

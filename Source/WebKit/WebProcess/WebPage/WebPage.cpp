@@ -959,7 +959,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     setPageLength(parameters.pageLength);
     setGapBetweenPages(parameters.gapBetweenPages);
 
-    effectiveAppearanceDidChange(parameters.useDarkAppearance, parameters.useElevatedUserInterfaceLevel);
+    setUseColorAppearance(parameters.useDarkAppearance, parameters.useElevatedUserInterfaceLevel);
 
     if (parameters.isEditable)
         setEditable(true);
@@ -1328,7 +1328,7 @@ void WebPage::reinitializeWebPage(WebPageCreationParameters&& parameters)
 #endif
 #endif
 
-    effectiveAppearanceDidChange(parameters.useDarkAppearance, parameters.useElevatedUserInterfaceLevel);
+    setUseColorAppearance(parameters.useDarkAppearance, parameters.useElevatedUserInterfaceLevel);
 
     platformReinitialize();
 }
@@ -6416,9 +6416,9 @@ RetainPtr<PDFDocument> WebPage::pdfDocumentForPrintingFrame(LocalFrame* coreFram
 }
 #endif
 
-void WebPage::effectiveAppearanceDidChange(bool useDarkAppearance, bool useElevatedUserInterfaceLevel)
+void WebPage::setUseColorAppearance(bool useDarkAppearance, bool useElevatedUserInterfaceLevel)
 {
-    corePage()->effectiveAppearanceDidChange(useDarkAppearance, useElevatedUserInterfaceLevel);
+    corePage()->setUseColorAppearance(useDarkAppearance, useElevatedUserInterfaceLevel);
 
     if (m_inspectorUI)
         m_inspectorUI->effectiveAppearanceDidChange(useDarkAppearance ? WebCore::InspectorFrontendClient::Appearance::Dark : WebCore::InspectorFrontendClient::Appearance::Light);
@@ -6821,7 +6821,7 @@ void WebPage::handleAlternativeTextUIResult(const String& result)
 }
 #endif
 
-void WebPage::setCompositionForTesting(const String& compositionString, uint64_t from, uint64_t length, bool suppressUnderline, const Vector<CompositionHighlight>& highlights, const UncheckedKeyHashMap<String, Vector<WebCore::CharacterRange>>& annotations)
+void WebPage::setCompositionForTesting(const String& compositionString, uint64_t from, uint64_t length, bool suppressUnderline, const Vector<CompositionHighlight>& highlights, const HashMap<String, Vector<WebCore::CharacterRange>>& annotations)
 {
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
     if (!frame)
@@ -7100,7 +7100,7 @@ void WebPage::firstRectForCharacterRangeAsync(const EditingRange& editingRange, 
     completionHandler(rect, rangeForFirstLine);
 }
 
-void WebPage::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const UncheckedKeyHashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selection, const EditingRange& replacementEditingRange)
+void WebPage::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const HashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selection, const EditingRange& replacementEditingRange)
 {
     platformWillPerformEditingCommand();
 

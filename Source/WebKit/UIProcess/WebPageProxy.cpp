@@ -3343,7 +3343,7 @@ void WebPageProxy::selectAll()
 
 static std::optional<DOMPasteAccessCategory> pasteAccessCategoryForCommand(const String& commandName)
 {
-    static NeverDestroyed<UncheckedKeyHashMap<String, DOMPasteAccessCategory, ASCIICaseInsensitiveHash>> pasteCommandNames = UncheckedKeyHashMap<String, DOMPasteAccessCategory, ASCIICaseInsensitiveHash> {
+    static NeverDestroyed<HashMap<String, DOMPasteAccessCategory, ASCIICaseInsensitiveHash>> pasteCommandNames = HashMap<String, DOMPasteAccessCategory, ASCIICaseInsensitiveHash> {
         { "Paste"_s, DOMPasteAccessCategory::General },
         { "PasteAndMatchStyle"_s, DOMPasteAccessCategory::General },
         { "PasteAsQuotation"_s, DOMPasteAccessCategory::General },
@@ -12806,7 +12806,7 @@ void WebPageProxy::firstRectForCharacterRangeAsync(const EditingRange& range, Co
     sendWithAsyncReply(Messages::WebPage::FirstRectForCharacterRangeAsync(range), WTFMove(callbackFunction));
 }
 
-void WebPageProxy::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const UncheckedKeyHashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selectionRange, const EditingRange& replacementRange)
+void WebPageProxy::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const HashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selectionRange, const EditingRange& replacementRange)
 {
     if (!hasRunningProcess()) {
         // If this fails, we should call -discardMarkedText on input context to notify the input method.
@@ -13640,12 +13640,24 @@ bool WebPageProxy::useElevatedUserInterfaceLevel() const
     return pageClient && pageClient->effectiveUserInterfaceLevelIsElevated();
 }
 
-void WebPageProxy::effectiveAppearanceDidChange()
+void WebPageProxy::setUseColorAppearance(bool useDarkAppearance, bool useElevatedUserInterfaceLevel)
 {
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::EffectiveAppearanceDidChange(useDarkAppearance(), useElevatedUserInterfaceLevel()));
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.send(Messages::WebPage::SetUseColorAppearance(useDarkAppearance, useElevatedUserInterfaceLevel), pageID);
+    });
+}
+
+void WebPageProxy::setUseDarkAppearanceForTesting(bool useDarkAppearance)
+{
+    setUseColorAppearance(useDarkAppearance, useElevatedUserInterfaceLevel());
+}
+
+void WebPageProxy::effectiveAppearanceDidChange()
+{
+    setUseColorAppearance(useDarkAppearance(), useElevatedUserInterfaceLevel());
 }
 
 DataOwnerType WebPageProxy::dataOwnerForPasteboard(PasteboardAccessIntent intent) const

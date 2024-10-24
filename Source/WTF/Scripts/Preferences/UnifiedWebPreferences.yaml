@@ -4187,8 +4187,6 @@ LinearMediaPlayerEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      # FIXME: this line can be removed when WebKitSwift is available in Simulators (see rdar://125735304)
-      "PLATFORM(IOS_FAMILY_SIMULATOR)": false
       default: WebKit::defaultLinearMediaPlayerEnabled()
     WebCore:
       default: false
@@ -6960,6 +6958,21 @@ SpatialImageControlsEnabled:
 SpatialNavigationEnabled:
   type: bool
   status: embedder
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
+SpatialVideoEnabled:
+  type: bool
+  status: preview
+  category: media
+  humanReadableName: "Spatial video playback enabled"
+  humanReadableDescription: "Spatial video playback enabled"
+  condition: ENABLE(LINEAR_MEDIA_PLAYER)
   defaultValue:
     WebKitLegacy:
       default: false

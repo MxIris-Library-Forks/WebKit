@@ -524,7 +524,7 @@ GenerateSyntheticEditingCommand(enum:uint8_t WebKit::SyntheticEditingCommandType
     GetSelectedRangeAsync() -> (struct WebKit::EditingRange range)
     CharacterIndexForPointAsync(WebCore::IntPoint point) -> (uint64_t location)
     FirstRectForCharacterRangeAsync(struct WebKit::EditingRange range) -> (WebCore::IntRect rect, struct WebKit::EditingRange actualRange)
-    SetCompositionAsync(String text, Vector<WebCore::CompositionUnderline> underlines, Vector<WebCore::CompositionHighlight> highlights, UncheckedKeyHashMap<String, Vector<WebCore::CharacterRange>> annotations, struct WebKit::EditingRange selectionRange, struct WebKit::EditingRange replacementRange)
+    SetCompositionAsync(String text, Vector<WebCore::CompositionUnderline> underlines, Vector<WebCore::CompositionHighlight> highlights, HashMap<String, Vector<WebCore::CharacterRange>> annotations, struct WebKit::EditingRange selectionRange, struct WebKit::EditingRange replacementRange)
     SetWritingSuggestion(String text, struct WebKit::EditingRange selectionRange)
     ConfirmCompositionAsync()
 #endif
@@ -593,7 +593,7 @@ GenerateSyntheticEditingCommand(enum:uint8_t WebKit::SyntheticEditingCommandType
 
     PerformHitTestForMouseEvent(WebKit::WebMouseEvent event) -> (struct WebKit::WebHitTestResultData hitTestResult, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::UserData messageBody)
 
-    EffectiveAppearanceDidChange(bool useDarkAppearance, bool useElevatedUserInterfaceLevel)
+    SetUseColorAppearance(bool useDarkAppearance, bool useElevatedUserInterfaceLevel)
 
 #if HAVE(APP_ACCENT_COLORS)
     SetAccentColor(WebCore::Color color)

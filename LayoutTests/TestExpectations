@@ -4713,9 +4713,13 @@ webgl/2.0.y/conformance2/textures/canvas/ [ Pass ]
 webgl/2.0.y/conformance2/textures/webgl_canvas [ Pass ]
 webgl/2.0.y/conformance2/wasm [ Pass ]
 
-webkit.org/b/263969 webgl/2.0.y/conformance2/wasm/readpixels-16gb-wasm-memory.html [ Failure ]
-webkit.org/b/263969 webgl/2.0.y/conformance2/wasm/teximage2d-16gb-wasm-memory.html [ Failure ]
-webkit.org/b/263969 webgl/2.0.y/conformance2/wasm/texsubimage2d-16gb-wasm-memory.html [ Failure ]
+webkit.org/b/282031 webgl/1.0.x/conformance/context/context-lost-restored.html [ Failure ]
+webkit.org/b/282031 webgl/1.0.x/conformance/context/context-lost.html [ Failure ]
+webkit.org/b/282031 webgl/1.0.x/conformance/offscreencanvas/context-lost-restored.html [ Failure ]
+webkit.org/b/282031 webgl/1.0.x/conformance/offscreencanvas/context-lost.html [ Failure ]
+webkit.org/b/282031 webgl/2.0.y/conformance/context/context-lost.html [ Failure ]
+webkit.org/b/282031 webgl/2.0.y/conformance/offscreencanvas/context-lost-restored.html [ Failure ]
+webkit.org/b/282031 webgl/2.0.y/conformance/offscreencanvas/context-lost.html [ Failure ]
 
 # WebGL 1.0.3 and 2.0.0 tests where behavior is obsolete and WebKit contains implementation
 # and tests for the new behavior. Should be removed once 1.0.3 and 2.0.0 are retired.
@@ -5227,7 +5231,6 @@ webkit.org/b/214299 imported/w3c/web-platform-tests/css/css-ui/text-overflow-rub
 webkit.org/b/214299 imported/w3c/web-platform-tests/css/css-ui/text-overflow-021.html [ ImageOnlyFailure ]
 webkit.org/b/214299 imported/w3c/web-platform-tests/css/css-ui/webkit-appearance-menulist-button-002.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/214299 imported/w3c/web-platform-tests/css/css-ui/resize-child-will-change-transform.html [ ImageOnlyFailure ]
-webkit.org/b/214299 imported/w3c/web-platform-tests/css/css-ui/resize-generated-content.html [ ImageOnlyFailure ]
 
 webkit.org/b/279302 imported/w3c/web-platform-tests/css/css-ui/negative-outline-offset.html [ ImageOnlyFailure ]
 webkit.org/b/279302 imported/w3c/web-platform-tests/css/css-ui/outline-auto-width-001.html [ ImageOnlyFailure ]
@@ -8066,6 +8069,8 @@ imported/w3c/web-platform-tests/svg/painting/reftests/paint-context-002.svg [ Im
 
 # re-import css/css-align WPT failure
 webkit.org/b/271692 imported/w3c/web-platform-tests/css/css-align/blocks/align-content-block-break-overflow-020.html [ ImageOnlyFailure ]
+
+webkit.org/b/282024 fast/text/text-box-edge-with-margin-padding-border-simple.html [ ImageOnlyFailure ]
 
 # -- Anchor Positioning -- #
 

@@ -1093,10 +1093,8 @@ void CoordinatedGraphicsLayer::updateContentBuffers()
 
     // Address the content scale adjustment.
     if (m_pendingContentsScaleAdjustment) {
-        if (layerState.mainBackingStore && layerState.mainBackingStore->contentsScale() != effectiveContentsScale()) {
-            // Discard the CoodinatedBackingStoreProxy object to reconstruct it with new content scale.
-            layerState.mainBackingStore = nullptr;
-        }
+        if (layerState.mainBackingStore && layerState.mainBackingStore->setContentsScale(effectiveContentsScale()))
+            m_pendingVisibleRectAdjustment = true;
         m_pendingContentsScaleAdjustment = false;
     }
 
@@ -1112,18 +1110,20 @@ void CoordinatedGraphicsLayer::updateContentBuffers()
         return;
     }
 
+    IntRect contentsRect(IntPoint::zero(), IntSize(m_size));
+    Vector<IntRect, 1> dirtyRegion;
     if (!m_needsDisplay.completeLayer) {
-        for (auto& rect : m_needsDisplay.rects)
-            layerState.mainBackingStore->invalidate(enclosingIntRect(rect));
+        dirtyRegion = m_needsDisplay.rects.map<Vector<IntRect, 1>>([](const FloatRect& rect) {
+            return enclosingIntRect(rect);
+        });
     } else
-        layerState.mainBackingStore->invalidate({ { }, IntSize { m_size } });
-
+        dirtyRegion = { contentsRect };
     m_needsDisplay.completeLayer = false;
     m_needsDisplay.rects.clear();
 
     ASSERT(m_coordinator && m_coordinator->isFlushingLayerChanges());
 
-    auto updateResult = layerState.mainBackingStore->updateIfNeeded(transformedVisibleRectIncludingFuture(), IntRect({ }, IntSize(m_size)), m_pendingVisibleRectAdjustment, *this);
+    auto updateResult = layerState.mainBackingStore->updateIfNeeded(transformedVisibleRectIncludingFuture(), contentsRect, m_pendingVisibleRectAdjustment, dirtyRegion, *this);
     m_pendingVisibleRectAdjustment = false;
 
     if (m_animatedBackingStoreClient)

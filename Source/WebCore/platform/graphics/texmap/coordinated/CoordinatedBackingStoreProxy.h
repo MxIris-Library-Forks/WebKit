@@ -20,9 +20,9 @@
 #pragma once
 
 #if USE(COORDINATED_GRAPHICS)
-#include "CoordinatedBackingStoreProxyTile.h"
 #include "FloatPoint.h"
 #include "IntPoint.h"
+#include "IntPointHash.h"
 #include "IntRect.h"
 #include <wtf/Assertions.h>
 #include <wtf/HashMap.h>
@@ -41,9 +41,8 @@ public:
 
     CoordinatedBackingStoreProxyClient& client() { return m_client; }
 
+    bool setContentsScale(float);
     float contentsScale() const { return m_contentsScale; }
-
-    void invalidate(const IntRect& dirtyRect);
 
     const IntRect& coverRect() const { return m_coverRect; }
 
@@ -51,18 +50,56 @@ public:
         BuffersChanged = 1 << 0,
         TilesPending =  1 << 1
     };
-    OptionSet<UpdateResult> updateIfNeeded(const IntRect& unscaledVisibleRect, const IntRect& unscaledContentsRect, bool shouldCreateAndDestroyTiles, CoordinatedGraphicsLayer&);
+    OptionSet<UpdateResult> updateIfNeeded(const IntRect& unscaledVisibleRect, const IntRect& unscaledContentsRect, bool shouldCreateAndDestroyTiles, const Vector<IntRect, 1>&, CoordinatedGraphicsLayer&);
 
 private:
-    void createTiles(const IntRect& visibleRect, const IntRect& scaledContentsRect, float coverAreaMultiplier);
-    void computeCoverAndKeepRect(const IntRect& visibleRect, IntRect& coverRect, IntRect& keepRect) const;
+    struct Tile {
+        Tile() = default;
+        Tile(uint32_t id, const IntPoint& position, IntRect&& tileRect)
+            : id(id)
+            , position(position)
+            , rect(WTFMove(tileRect))
+            , dirtyRect(rect)
+        {
+        }
+        Tile(const Tile&) = delete;
+        Tile& operator=(const Tile&) = delete;
+        Tile(Tile&&) = default;
+        Tile& operator=(Tile&&) = default;
 
-    void resizeEdgeTiles();
-    void setCoverRect(const IntRect& rect) { m_coverRect = rect; }
-    void setKeepRect(const IntRect&);
+        void resize(const IntSize& size)
+        {
+            rect.setSize(size);
+            dirtyRect = rect;
+        }
+
+        void addDirtyRect(const IntRect& dirty)
+        {
+            auto tileDirtyRect = intersection(dirty, rect);
+            dirtyRect.unite(tileDirtyRect);
+        }
+
+        bool isDirty() const
+        {
+            return !dirtyRect.isEmpty();
+        }
+
+        void markClean()
+        {
+            dirtyRect = { };
+        }
+
+        uint32_t id { 0 };
+        IntPoint position;
+        IntRect rect;
+        IntRect dirtyRect;
+    };
+
+    void invalidateRegion(const Vector<IntRect, 1>&);
+    void createOrDestroyTiles(const IntRect& visibleRect, const IntRect& scaledContentsRect, float coverAreaMultiplier);
+    std::pair<IntRect, IntRect> computeCoverAndKeepRect() const;
 
     void adjustForContentsRect(IntRect&) const;
-    double tileDistance(const IntRect& viewport, const IntPoint&) const;
 
     IntRect mapToContents(const IntRect&) const;
     IntRect mapFromContents(const IntRect&) const;
@@ -70,8 +107,6 @@ private:
     IntPoint tilePositionForPoint(const IntPoint&) const;
 
     CoordinatedBackingStoreProxyClient& m_client;
-
-    UncheckedKeyHashMap<IntPoint, std::unique_ptr<CoordinatedBackingStoreProxyTile>> m_tiles;
 
     float m_contentsScale { 1 };
     IntSize m_tileSize;
@@ -81,9 +116,7 @@ private:
     IntRect m_visibleRect;
     IntRect m_coverRect;
     IntRect m_keepRect;
-    IntRect m_previousContentsRect;
-
-    friend class CoordinatedBackingStoreProxyTile;
+    UncheckedKeyHashMap<IntPoint, Tile> m_tiles;
 };
 
 } // namespace WebCore

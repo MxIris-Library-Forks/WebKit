@@ -3429,6 +3429,7 @@
 		900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C207F2CAF8225002C79C5 /* URLPatternOptions.h */; };
 		900C20872CAF8243002C79C5 /* URLPatternResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C20812CAF8225002C79C5 /* URLPatternResult.h */; };
 		9016EA4D2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 9016EA4C2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		90E1B6D22CB9A7E300CADF80 /* URLPatternCanonical.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */; };
 		90E351C2247E46E400FBF24F /* IDBDatabaseNameAndVersionRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E351BD247E3D4800FBF24F /* IDBDatabaseNameAndVersionRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9109E9C8222CABCA00BB6264 /* InspectorAuditResourcesObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 9109E9C5222CABC800BB6264 /* InspectorAuditResourcesObject.h */; };
 		9109E9C8222CABCA00BB6265 /* JSInspectorAuditResourcesObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 9109E9C5222CABC800BB6265 /* JSInspectorAuditResourcesObject.h */; };
@@ -14699,6 +14700,8 @@
 		900C20812CAF8225002C79C5 /* URLPatternResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternResult.h; sourceTree = "<group>"; };
 		900C20822CAF8225002C79C5 /* URLPatternResult.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = URLPatternResult.idl; sourceTree = "<group>"; };
 		9016EA4C2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDBDatabaseNameAndVersion.h; sourceTree = "<group>"; };
+		90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; path = URLPatternCanonical.h; sourceTree = "<group>"; };
+		90E1B6D02CB9A7E300CADF80 /* URLPatternCanonical.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLPatternCanonical.cpp; sourceTree = "<group>"; };
 		90E351BC247E3D4800FBF24F /* IDBDatabaseNameAndVersionRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBDatabaseNameAndVersionRequest.cpp; sourceTree = "<group>"; };
 		90E351BD247E3D4800FBF24F /* IDBDatabaseNameAndVersionRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBDatabaseNameAndVersionRequest.h; sourceTree = "<group>"; };
 		9109E9C5222CABC800BB6264 /* InspectorAuditResourcesObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorAuditResourcesObject.h; sourceTree = "<group>"; };
@@ -16541,6 +16544,8 @@
 		A883DF260F3D045D00F19BF6 /* VisibleSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VisibleSelection.h; sourceTree = "<group>"; };
 		A88DD4860B4629A300C02990 /* PathTraversalState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathTraversalState.h; sourceTree = "<group>"; };
 		A88DD4880B4629B000C02990 /* PathTraversalState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PathTraversalState.cpp; sourceTree = "<group>"; };
+		A88E10FB2CC73ABF005C0AC6 /* InternalObserverFirst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalObserverFirst.h; sourceTree = "<group>"; };
+		A88E10FC2CC73ABF005C0AC6 /* InternalObserverFirst.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalObserverFirst.cpp; sourceTree = "<group>"; };
 		A89943260B42338700D7C802 /* BitmapImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BitmapImage.h; sourceTree = "<group>"; };
 		A89943270B42338700D7C802 /* BitmapImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BitmapImage.cpp; sourceTree = "<group>"; };
 		A89CCC500F44E98100B5DA10 /* ReplaceNodeWithSpanCommand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReplaceNodeWithSpanCommand.cpp; sourceTree = "<group>"; };
@@ -29405,6 +29410,8 @@
 				900C207B2CAF8225002C79C5 /* URLPattern.cpp */,
 				900C207A2CAF8225002C79C5 /* URLPattern.h */,
 				900C207C2CAF8225002C79C5 /* URLPattern.idl */,
+				90E1B6D02CB9A7E300CADF80 /* URLPatternCanonical.cpp */,
+				90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */,
 				900C207D2CAF8225002C79C5 /* URLPatternInit.h */,
 				900C207E2CAF8225002C79C5 /* URLPatternInit.idl */,
 				900C207F2CAF8225002C79C5 /* URLPatternOptions.h */,
@@ -37623,6 +37630,8 @@
 				33839EFC2C5CB3B600F1E4FA /* InternalObserverDrop.h */,
 				FFEFAB2D183BCC6F00514563 /* InternalObserverFilter.cpp */,
 				FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */,
+				A88E10FC2CC73ABF005C0AC6 /* InternalObserverFirst.cpp */,
+				A88E10FB2CC73ABF005C0AC6 /* InternalObserverFirst.h */,
 				FFEFAB2D183BCC6F00514557 /* InternalObserverFromScript.cpp */,
 				FFEFAB2D183BCC6F00514556 /* InternalObserverFromScript.h */,
 				A82B6DF92CBF6C6F00EE6BD9 /* InternalObserverLast.cpp */,
@@ -43590,6 +43599,7 @@
 				F55B3DDE1251F12D003EF269 /* URLInputType.h in Headers */,
 				4674BE5128C9A5B800A6C831 /* URLKeepingBlobAlive.h in Headers */,
 				900C20842CAF8232002C79C5 /* URLPattern.h in Headers */,
+				90E1B6D22CB9A7E300CADF80 /* URLPatternCanonical.h in Headers */,
 				900C20852CAF8237002C79C5 /* URLPatternInit.h in Headers */,
 				900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */,
 				900C20872CAF8243002C79C5 /* URLPatternResult.h in Headers */,

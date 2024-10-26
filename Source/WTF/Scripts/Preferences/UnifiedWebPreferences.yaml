@@ -1879,6 +1879,20 @@ ChildProcessDebuggabilityEnabled:
     WebCore:
       default: false
 
+ClearSiteDataExecutionContextsSupportEnabled:
+  type: bool
+  status: testable
+  category: networking
+  humanReadableName: "Clear-Site-Data: 'executionContexts' support"
+  humanReadableDescription: "Enable Clear-Site-Data: 'executionContexts' support"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 ClearSiteDataHTTPHeaderEnabled:
   type: bool
   status: stable
@@ -2440,20 +2454,6 @@ DeprecateAESCFBWebCryptoEnabled:
   category: dom
   humanReadableName: "Deprecate AES-CFB Web Crypto"
   humanReadableDescription: "Enable Deprecation of AES-CFB from Web Crypto"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
-DeprecateRSAESPKCSWebCryptoEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Deprecate RSAES-PKCS1-v1_5 Web Crypto"
-  humanReadableDescription: "Enable Deprecation of RSAES-PKCS1-v1_5 Web Crypto"
   defaultValue:
     WebKitLegacy:
       default: true

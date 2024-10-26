@@ -57,6 +57,7 @@
 #include "APISerializedScriptValue.h"
 #include "APITargetedElementInfo.h"
 #include "APITargetedElementRequest.h"
+#include "APITextRun.h"
 #include "APIUIClient.h"
 #include "APIURL.h"
 #include "APIURLRequest.h"
@@ -789,7 +790,7 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
 #if ENABLE(GAMEPAD)
     , m_recentGamepadAccessHysteresis([this](PAL::HysteresisState state) { recentGamepadAccessStateChanged(state); }, gamepadsRecentlyAccessedThreshold)
 #endif
-    , m_pageForTesting(makeUnique<WebPageProxyTesting>(*this))
+    , m_pageForTesting(WebPageProxyTesting::create(*this))
 {
     WEBPAGEPROXY_RELEASE_LOG(Loading, "constructor:");
 
@@ -10982,6 +10983,16 @@ void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason termina
     protectedLegacyMainFrameProcess()->processTerminated();
 }
 
+WebPageProxyTesting* WebPageProxy::pageForTesting() const
+{
+    return m_pageForTesting.get();
+}
+
+RefPtr<WebPageProxyTesting> WebPageProxy::protectedPageForTesting() const
+{
+    return m_pageForTesting;
+}
+
 #if PLATFORM(COCOA) && !ENABLE(WEBCONTENT_GPU_SANDBOX_EXTENSIONS_BLOCKING)
 
 static std::span<const ASCIILiteral> gpuIOKitClasses()
@@ -15310,6 +15321,22 @@ void WebPageProxy::frameTextForTesting(WebCore::FrameIdentifier frameID, Complet
 
     auto [result] = sendResult.takeReply();
     completionHandler(WTFMove(result));
+}
+
+void WebPageProxy::requestAllTextAndRects(CompletionHandler<void(Vector<Ref<API::TextRun>>&&)>&& completion)
+{
+    if (!hasRunningProcess())
+        return completion({ });
+
+    sendWithAsyncReply(Messages::WebPage::RequestAllTextAndRects(), [completion = WTFMove(completion), weakThis = WeakPtr { *this }](auto&& textAndRects) mutable {
+        RefPtr protectedThis = weakThis.get();
+        if (!protectedThis)
+            return completion({ });
+
+        completion(WTF::map(WTFMove(textAndRects), [protectedThis](auto&& textAndRect) {
+            return API::TextRun::create(*protectedThis, WTFMove(textAndRect.first), WTFMove(textAndRect.second));
+        }));
+    });
 }
 
 void WebPageProxy::requestTargetedElement(const API::TargetedElementRequest& request, CompletionHandler<void(const Vector<Ref<API::TargetedElementInfo>>&)>&& completion)

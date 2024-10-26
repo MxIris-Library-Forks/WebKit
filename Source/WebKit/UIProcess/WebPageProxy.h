@@ -75,6 +75,7 @@ class ResourceLoadClient;
 class SerializedScriptValue;
 class TargetedElementInfo;
 class TargetedElementRequest;
+class TextRun;
 class UIClient;
 class URL;
 class URLRequest;
@@ -2452,6 +2453,8 @@ public:
     void updateMediaCapability();
 #endif
 
+    void requestAllTextAndRects(CompletionHandler<void(Vector<Ref<API::TextRun>>&&)>&&);
+
     void requestTargetedElement(const API::TargetedElementRequest&, CompletionHandler<void(const Vector<Ref<API::TargetedElementInfo>>&)>&&);
     void requestAllTargetableElements(float, CompletionHandler<void(Vector<Vector<Ref<API::TargetedElementInfo>>>&&)>&&);
     void takeSnapshotForTargetedElement(const API::TargetedElementInfo&, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
@@ -2551,7 +2554,8 @@ public:
     void didAdjustVisibilityWithSelectors(Vector<String>&&);
     BrowsingContextGroup& browsingContextGroup() const { return m_browsingContextGroup; }
 
-    WebPageProxyTesting* pageForTesting() const { return m_pageForTesting.get(); }
+    WebPageProxyTesting* pageForTesting() const;
+    RefPtr<WebPageProxyTesting> protectedPageForTesting() const;
 
     void hasActiveNowPlayingSessionChanged(bool);
 
@@ -3734,7 +3738,7 @@ private:
 #endif
 #endif
 
-    std::unique_ptr<WebPageProxyTesting> m_pageForTesting;
+    RefPtr<WebPageProxyTesting> m_pageForTesting;
 };
 
 } // namespace WebKit

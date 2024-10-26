@@ -674,7 +674,6 @@ contentextensions/ContentExtensionsBackend.cpp
 crypto/SubtleCrypto.cpp
 crypto/algorithms/CryptoAlgorithmECDH.cpp
 crypto/algorithms/CryptoAlgorithmX25519.cpp
-css/BasicShapeConversion.cpp
 css/CSSComputedStyleDeclaration.cpp
 css/CSSCounterStyleDescriptors.cpp
 css/CSSFontFace.cpp
@@ -718,7 +717,6 @@ css/StyleRuleImport.cpp
 css/StyleSheetContents.cpp
 css/parser/CSSParserImpl.cpp
 css/query/ContainerQueryFeatures.cpp
-css/query/GenericMediaQueryEvaluator.cpp
 css/query/MediaQueryFeatures.cpp
 css/typedom/CSSNumericValue.cpp
 css/typedom/CSSStyleValueFactory.cpp
@@ -865,7 +863,6 @@ html/HTMLOptionElement.cpp
 html/HTMLPictureElement.cpp
 html/HTMLSelectElement.cpp
 html/HTMLSlotElement.cpp
-html/HTMLSourceElement.cpp
 html/HTMLStyleElement.cpp
 html/HTMLSummaryElement.cpp
 html/HTMLTableElement.cpp
@@ -977,7 +974,6 @@ layout/formattingContexts/inline/text/TextUtil.cpp
 layout/integration/inline/LayoutIntegrationLineLayout.cpp
 layout/layouttree/LayoutTreeBuilder.cpp
 loader/ApplicationManifestLoader.cpp
-loader/CookieJar.cpp
 loader/DocumentLoader.cpp
 loader/FrameLoader.cpp
 loader/HistoryController.cpp
@@ -1071,7 +1067,6 @@ page/mac/ServicesOverlayController.mm
 page/scrolling/AsyncScrollingCoordinator.cpp
 page/scrolling/ScrollAnchoringController.cpp
 page/scrolling/ScrollingCoordinator.cpp
-page/scrolling/ScrollingStateStickyNode.cpp
 page/scrolling/ScrollingTree.cpp
 page/scrolling/ScrollingTreeFixedNode.cpp
 page/scrolling/ScrollingTreeOverflowScrollProxyNode.cpp

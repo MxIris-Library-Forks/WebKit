@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2008-2024 Apple Inc. All Rights Reserved.
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
  * Copyright (C) 2013 Patrick Gansterer <paroga@paroga.com>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -797,6 +796,12 @@ std::span<uint8_t, Extent == std::dynamic_extent ? std::dynamic_extent: Extent *
     return std::span<uint8_t, Extent == std::dynamic_extent ? std::dynamic_extent: Extent * sizeof(T)> { reinterpret_cast<uint8_t*>(span.data()), span.size_bytes() };
 }
 
+template<typename T>
+std::span<const uint8_t> asByteSpan(const T& input)
+{
+    return { reinterpret_cast<const uint8_t*>(&input), sizeof(input) };
+}
+
 template<typename T, std::size_t TExtent, typename U, std::size_t UExtent>
 bool equalSpans(std::span<T, TExtent> a, std::span<U, UExtent> b)
 {
@@ -911,57 +916,6 @@ constexpr decltype(auto) apply(F&& functor, T&& tupleLike)
     return apply_impl(std::forward<F>(functor), std::forward<T>(tupleLike), std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<T>>> { });
 }
 
-// Utility for "zippering" tuples and tuple-like objects. Implementation based off
-// https://stackoverflow.com/questions/11322095/how-to-make-a-function-that-zips-two-tuples-in-c11-stl
-// and extended to support tuple-like.
-//
-// Example usage:
-//
-//   std::tuple<int, string, double> foo = { 1,   "hello",   1.5  };
-//   std::tuple<double, char, float> bar = { 0.5, 'i',       0.1f };
-//   std::tuple<int, string, double> baz = { 2,   "goodbye", 3.0  };
-//
-//   auto result = WTF::tuple_zip(foo, bar, baz);
-//
-//   This leaves result transposed and equal to:
-//
-//      std::tuple {
-//          std::tuple<int, double, int>        { 1,       0.5,     2         },
-//          std::tuple<string, char, string>    { "hello", 'i',     "goodbye" },
-//          std::tuple<double, float, double>   { 1.5,     0.1f,    3.0       },
-//      }
-
-namespace detail {
-
-template<std::size_t I, typename... TupleLikes> using zip_tuple_at_index_t = std::tuple<std::tuple_element_t<I, std::decay_t<TupleLikes>>...>;
-
-template<std::size_t I, typename... TupleLikes> auto zip_tuple_at_index(TupleLikes&&... tupleLikes)
-{
-    return zip_tuple_at_index_t<I, TupleLikes...> { get<I>(std::forward<TupleLikes>(tupleLikes))... };
-}
-
-template<typename... TupleLikes, std::size_t... I> auto tuple_zip_impl(TupleLikes&& ... tupleLikes, std::index_sequence<I...>)
-{
-    return std::tuple<zip_tuple_at_index_t<I, TupleLikes...>...> {
-        zip_tuple_at_index<I>(std::forward<TupleLikes>(tupleLikes)...)...
-    };
-}
-
-} // namespace detail
-
-template<typename Head, typename... Tail> auto tuple_zip(Head&& head, Tail&& ...tail)
-{
-    constexpr std::size_t size = std::tuple_size_v<std::decay_t<Head>>;
-
-    static_assert(((std::tuple_size_v<std::decay_t<Tail>> == size) && ...), "Tuple size mismatch, can not zip.");
-
-    return detail::tuple_zip_impl<Head, Tail...>(
-        std::forward<Head>(head),
-        std::forward<Tail>(tail)...,
-        std::make_index_sequence<size>()
-    );
-}
-
 template<typename WordType, typename Func>
 ALWAYS_INLINE constexpr void forEachSetBit(std::span<const WordType> bits, const Func& func)
 {
@@ -973,7 +927,7 @@ ALWAYS_INLINE constexpr void forEachSetBit(std::span<const WordType> bits, const
         size_t base = i * wordSize;
 
 #if CPU(X86_64) || CPU(ARM64)
-        // We should only use ctz() when we know that ctz() is implemented using
+        // We should only use ctz() when we know that ctz() is implementated using
         // a fast hardware instruction. Otherwise, this will actually result in
         // worse performance.
         while (word) {
@@ -1072,6 +1026,7 @@ using WTF::KB;
 using WTF::MB;
 using WTF::approximateBinarySearch;
 using WTF::asBytes;
+using WTF::asByteSpan;
 using WTF::asWritableBytes;
 using WTF::binarySearch;
 using WTF::bitwise_cast;

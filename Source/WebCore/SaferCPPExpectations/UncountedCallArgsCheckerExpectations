@@ -716,7 +716,7 @@ accessibility/AccessibilityNodeObject.cpp
 accessibility/AccessibilityObject.cpp
 accessibility/AccessibilityObject.h
 accessibility/AccessibilityRenderObject.cpp
-accessibility/AccessibilitySVGElement.cpp
+accessibility/AccessibilitySVGObject.cpp
 accessibility/AccessibilityScrollView.cpp
 accessibility/AccessibilityScrollbar.cpp
 accessibility/AccessibilitySlider.cpp
@@ -883,6 +883,9 @@ contentextensions/ContentExtensionStyleSheet.cpp
 contentextensions/ContentExtensionsBackend.cpp
 crypto/SubtleCrypto.cpp
 crypto/parameters/CryptoAlgorithmRsaKeyGenParams.h
+css/BasicShapeConversion.cpp
+css/CSSBasicShapes.cpp
+css/CSSBasicShapes.h
 css/CSSComputedStyleDeclaration.cpp
 css/CSSCounterStyle.cpp
 css/CSSCounterStyleDescriptors.cpp
@@ -928,6 +931,8 @@ css/CSSPrimitiveValue.cpp
 css/CSSPrimitiveValueMappings.h
 css/CSSProperty.h
 css/CSSPropertyRule.cpp
+css/CSSRayValue.cpp
+css/CSSRayValue.h
 css/CSSReflectValue.cpp
 css/CSSReflectValue.h
 css/CSSRuleList.h
@@ -937,6 +942,7 @@ css/CSSSegmentedFontFace.cpp
 css/CSSSelector.cpp
 css/CSSShadowValue.cpp
 css/CSSShadowValue.h
+css/CSSShapeSegmentValue.cpp
 css/CSSStyleRule.cpp
 css/CSSStyleSheet.cpp
 css/CSSStyleSheetObservableArray.cpp
@@ -1102,7 +1108,6 @@ dom/StaticNodeList.cpp
 dom/StaticRange.cpp
 dom/StyledElement.cpp
 dom/Subscriber.cpp
-dom/Subscriber.h
 dom/TextDecoderStreamDecoder.h
 dom/Traversal.cpp
 dom/TreeScope.cpp
@@ -1703,7 +1708,6 @@ platform/mediarecorder/MediaRecorderPrivate.h
 platform/mediarecorder/MediaRecorderPrivateAVFImpl.cpp
 platform/mediarecorder/MediaRecorderPrivateMock.cpp
 platform/mediarecorder/cocoa/AudioSampleBufferCompressor.mm
-platform/mediarecorder/cocoa/MediaRecorderPrivateWriterCocoa.mm
 platform/mediarecorder/cocoa/VideoSampleBufferCompressor.mm
 platform/mediastream/AudioTrackPrivateMediaStream.cpp
 platform/mediastream/MediaStreamTrackDataHolder.cpp
@@ -1767,6 +1771,7 @@ rendering/LegacyInlineFlowBox.cpp
 rendering/LegacyLineLayout.cpp
 rendering/MarkedText.cpp
 rendering/MotionPath.cpp
+rendering/PathOperation.h
 rendering/RenderAttachment.cpp
 rendering/RenderBlock.cpp
 rendering/RenderBlock.h
@@ -1852,6 +1857,7 @@ rendering/style/RenderStyleInlines.h
 rendering/style/RenderStyleSetters.h
 rendering/style/SVGRenderStyle.cpp
 rendering/style/SVGRenderStyle.h
+rendering/style/ShapeValue.cpp
 rendering/style/StyleCachedImage.cpp
 rendering/style/StyleCanvasImage.cpp
 rendering/style/StyleCrossfadeImage.cpp
@@ -1951,6 +1957,7 @@ style/Styleable.cpp
 style/Styleable.h
 style/TransformOperationsBuilder.cpp
 style/UserAgentStyle.cpp
+style/values/StylePrimitiveNumericTypes.h
 svg/SVGAElement.cpp
 svg/SVGAElement.h
 svg/SVGAltGlyphElement.cpp

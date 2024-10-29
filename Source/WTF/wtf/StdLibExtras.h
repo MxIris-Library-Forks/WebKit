@@ -765,7 +765,6 @@ template<typename T, typename U, std::size_t Extent>
 constexpr std::span<T, Extent == std::dynamic_extent ? std::dynamic_extent : (sizeof(U) * Extent) / sizeof(T)> spanReinterpretCast(std::span<U, Extent> span)
 {
     static_assert(std::is_const_v<T> || (!std::is_const_v<T> && !std::is_const_v<U>), "spanReinterpretCast will not remove constness from source");
-    static_assert(!std::is_same_v<std::remove_const_t<T>, std::remove_const_t<U>>, "Unnecessary call to spanReinterpretCast");
 
     if constexpr (Extent == std::dynamic_extent) {
         if constexpr (sizeof(U) < sizeof(T) || sizeof(U) % sizeof(T))
@@ -800,6 +799,12 @@ template<typename T>
 std::span<const uint8_t> asByteSpan(const T& input)
 {
     return { reinterpret_cast<const uint8_t*>(&input), sizeof(input) };
+}
+
+template<typename T>
+std::span<uint8_t> asMutableByteSpan(T& input)
+{
+    return { reinterpret_cast<uint8_t*>(&input), sizeof(input) };
 }
 
 template<typename T, std::size_t TExtent, typename U, std::size_t UExtent>
@@ -1027,6 +1032,7 @@ using WTF::MB;
 using WTF::approximateBinarySearch;
 using WTF::asBytes;
 using WTF::asByteSpan;
+using WTF::asMutableByteSpan;
 using WTF::asWritableBytes;
 using WTF::binarySearch;
 using WTF::bitwise_cast;

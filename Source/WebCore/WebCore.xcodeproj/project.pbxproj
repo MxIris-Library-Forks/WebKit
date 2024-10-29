@@ -10331,8 +10331,6 @@
 		41C7E1061E6A54360027B4DE /* CanvasCaptureMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CanvasCaptureMediaStreamTrack.h; sourceTree = "<group>"; };
 		41C7E1081E6AA37C0027B4DE /* CanvasCaptureMediaStreamTrack.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CanvasCaptureMediaStreamTrack.idl; sourceTree = "<group>"; };
 		41CB840025CAB7B00010E2B1 /* RealtimeIncomingVideoSourceCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RealtimeIncomingVideoSourceCocoa.h; sourceTree = "<group>"; };
-		41CD6F8923D6E81C00B16421 /* VideoSampleBufferCompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoSampleBufferCompressor.h; sourceTree = "<group>"; };
-		41CD6F8B23D6E81D00B16421 /* VideoSampleBufferCompressor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoSampleBufferCompressor.mm; sourceTree = "<group>"; };
 		41CDC66E28F739B000603E59 /* WebCodecsAlphaOption.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebCodecsAlphaOption.idl; sourceTree = "<group>"; };
 		41CDC66F28F739D300603E59 /* WebCodecsAlphaOption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCodecsAlphaOption.h; sourceTree = "<group>"; };
 		41CF8BE41D46222000707DC9 /* FetchBodyConsumer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FetchBodyConsumer.cpp; sourceTree = "<group>"; };
@@ -16668,6 +16666,8 @@
 		A8EA80040A19516E00A8EF5F /* StyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = StyleSheet.h; sourceTree = "<group>"; };
 		A8EA80050A19516E00A8EF5F /* StyleSheet.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSheet.cpp; sourceTree = "<group>"; };
 		A8EA80060A19516E00A8EF5F /* MediaList.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MediaList.h; sourceTree = "<group>"; };
+		A8F6A0FD2CCF696A000EAC7C /* InternalObserverFind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalObserverFind.h; sourceTree = "<group>"; };
+		A8F6A0FE2CCF696A000EAC7C /* InternalObserverFind.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalObserverFind.cpp; sourceTree = "<group>"; };
 		A8FA6E5B0E4CFDED00D5CF49 /* Pattern.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Pattern.h; sourceTree = "<group>"; };
 		A8FA6E5C0E4CFDED00D5CF49 /* Pattern.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Pattern.cpp; sourceTree = "<group>"; };
 		A91C9FBC1B6586DE00AFFD54 /* AccessibilityTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityTree.cpp; sourceTree = "<group>"; };
@@ -25765,8 +25765,6 @@
 				4D73F94D218C4A87003A3ED6 /* MediaRecorderPrivateWriterAVFObjC.mm */,
 				514C7EFC2CACA59800808ADE /* MediaRecorderPrivateWriterWebM.cpp */,
 				514C7EFD2CACA5BB00808ADE /* MediaRecorderPrivateWriterWebM.h */,
-				41CD6F8923D6E81C00B16421 /* VideoSampleBufferCompressor.h */,
-				41CD6F8B23D6E81D00B16421 /* VideoSampleBufferCompressor.mm */,
 			);
 			path = cocoa;
 			sourceTree = "<group>";
@@ -37633,6 +37631,8 @@
 				33839EFC2C5CB3B600F1E4FA /* InternalObserverDrop.h */,
 				FFEFAB2D183BCC6F00514563 /* InternalObserverFilter.cpp */,
 				FFEFAB2D183BCC6F00514562 /* InternalObserverFilter.h */,
+				A8F6A0FE2CCF696A000EAC7C /* InternalObserverFind.cpp */,
+				A8F6A0FD2CCF696A000EAC7C /* InternalObserverFind.h */,
 				A88E10FC2CC73ABF005C0AC6 /* InternalObserverFirst.cpp */,
 				A88E10FB2CC73ABF005C0AC6 /* InternalObserverFirst.h */,
 				A80B313E2C61D77900D60EFB /* InternalObserverForEach.cpp */,

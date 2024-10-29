@@ -2803,9 +2803,9 @@ http/tests/resourceLoadStatistics/enforce-samesite-strict-based-on-top-frame-uni
 http/tests/storageAccess/deny-storage-access-under-opener.html [ Pass ]
 http/tests/storageAccess/deny-storage-access-under-opener-if-auto-dismiss.html [ Pass ]
 http/tests/resourceLoadStatistics/cap-cache-max-age-for-prevalent-resource.html [ Pass ]
-http/tests/storageAccess/has-storage-access-false-by-default.html [ Pass ]
-http/tests/storageAccess/has-storage-access-false-by-default-ephemeral.html [ Pass ]
-http/tests/storageAccess/has-storage-access-true-if-third-party-has-cookies.html [ Pass Timeout ]
+http/tests/storageAccess/has-storage-access-false-by-default.https.html [ Pass ]
+http/tests/storageAccess/has-storage-access-false-by-default-ephemeral.https.html [ Pass ]
+http/tests/storageAccess/has-storage-access-true-if-third-party-has-cookies.https.html [ Pass Timeout ]
 
 # Enable again when fixing https://bugs.webkit.org/show_bug.cgi?id=208400.
 http/tests/storageAccess/has-storage-access-true-if-third-party-has-cookies-ephemeral.https.html [ Skip ]
@@ -7164,13 +7164,6 @@ webkit.org/b/217414 [ Release ] imported/w3c/web-platform-tests/user-timing/meas
 webkit.org/b/217461 imported/w3c/web-platform-tests/css/css-masking/clip-path/svg-clipPath.svg [ Skip ]
 
 webkit.org/b/217357 http/wpt/cache-storage/cache-quota-after-restart.any.html [ Pass Failure ]
-
-webkit.org/b/217669 http/wpt/service-workers/service-worker-spinning-activate.https.html [ Pass Timeout Failure ]
-webkit.org/b/217669 http/wpt/service-workers/service-worker-spinning-fetch.https.html [ Pass Timeout Failure ]
-webkit.org/b/217669 http/wpt/service-workers/service-worker-spinning-install.https.html [ Pass Timeout Failure ]
-webkit.org/b/217669 http/wpt/service-workers/service-worker-spinning-message.https.html [ Pass Timeout Failure ]
-webkit.org/b/217669 http/wpt/service-workers/service-worker-spinning-push.https.html [ Pass Timeout Failure ]
-webkit.org/b/217669 http/wpt/service-workers/service-worker-spinning-pushsubscriptionchange.https.html [ Pass Timeout Failure ]
 
 webkit.org/b/217759 media/now-playing-status-without-media.html [ Pass Failure ]
 

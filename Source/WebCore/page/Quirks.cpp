@@ -326,16 +326,14 @@ bool Quirks::needsYouTubeMouseOutQuirk() const
 #endif
 }
 
-// mail.google.com rdar://128360054
 // safe.menlosecurity.com rdar://135114489
-// FIXME (rdar://130624461): Remove this quirk for mail.google.com once Gmail adopts the `writingsuggestions` attribute.
 // FIXME (rdar://138585709): Remove this quirk for safe.menlosecurity.com once investigation into text corruption on the site is completed and the issue is resolved.
 bool Quirks::shouldDisableWritingSuggestionsByDefault() const
 {
     if (!needsQuirks())
         return false;
     auto& url = m_document->topDocument().url();
-    return url.host() == "mail.google.com"_s || url.host() == "safe.menlosecurity.com"_s;
+    return url.host() == "safe.menlosecurity.com"_s;
 }
 
 void Quirks::updateStorageAccessUserAgentStringQuirks(HashMap<RegistrableDomain, String>&& userAgentStringQuirks)
@@ -1285,7 +1283,7 @@ bool Quirks::requiresUserGestureToPauseInPictureInPicture() const
 
     if (!m_requiresUserGestureToPauseInPictureInPicture) {
         auto domain = RegistrableDomain(m_document->topDocument().url()).string();
-        m_requiresUserGestureToPauseInPictureInPicture = isDomain("facebook.com"_s) || isDomain("twitter.com"_s) || isDomain("reddit.com"_s);
+        m_requiresUserGestureToPauseInPictureInPicture = isDomain("facebook.com"_s) || isDomain("twitter.com"_s) || isDomain("reddit.com"_s) || isDomain("forbes.com"_s);
     }
 
     return *m_requiresUserGestureToPauseInPictureInPicture;
@@ -1878,6 +1876,24 @@ bool Quirks::shouldHideCoarsePointerCharacteristics() const
 #endif
 
     return false;
+}
+
+// hulu.com rdar://126096361
+bool Quirks::implicitMuteWhenVolumeSetToZero() const
+{
+#if HAVE(MEDIA_VOLUME_PER_ELEMENT)
+    if (!needsQuirks())
+        return false;
+
+    if (!m_implicitMuteWhenVolumeSetToZero) {
+        auto domain = RegistrableDomain(m_document->topDocument().url()).string();
+        m_implicitMuteWhenVolumeSetToZero = domain == "hulu.com"_s || domain.endsWith(".hulu.com"_s);
+    }
+
+    return *m_implicitMuteWhenVolumeSetToZero;
+#else
+    return false;
+#endif
 }
 
 #if ENABLE(TOUCH_EVENTS)

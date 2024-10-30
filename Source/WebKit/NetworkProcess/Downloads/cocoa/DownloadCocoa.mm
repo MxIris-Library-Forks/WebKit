@@ -146,9 +146,20 @@ void Download::publishProgress(const URL& url, std::span<const uint8_t> bookmark
         RELEASE_LOG(Network, "Unable to create bookmark URL, error = %@", error);
 
     if (enableModernDownloadProgress()) {
+        if (!m_downloadTask.get().currentRequest.URL) {
+            RELEASE_LOG_ERROR(Network, "Download::publishProgress: Invalid request URL");
+            return;
+        }
+
+        RetainPtr<NSURL> publishURL = (NSURL *)url;
+        if (!publishURL) {
+            RELEASE_LOG_ERROR(Network, "Download::publishProgress: Invalid publish URL");
+            return;
+        }
+
         bool isUsingPlaceholder = useDownloadPlaceholder == WebKit::UseDownloadPlaceholder::Yes;
 
-        m_progress = adoptNS([[WKModernDownloadProgress alloc] initWithDownloadTask:m_downloadTask.get() download:*this URL:(NSURL *)url useDownloadPlaceholder:isUsingPlaceholder resumePlaceholderURL:nil liveActivityAccessToken:accessToken.get()]);
+        m_progress = adoptNS([[WKModernDownloadProgress alloc] initWithDownloadTask:m_downloadTask.get() download:*this URL:publishURL.get() useDownloadPlaceholder:isUsingPlaceholder resumePlaceholderURL:nil liveActivityAccessToken:accessToken.get()]);
 
         // If we are using a placeholder, we will delay updating progress until the client has received the placeholder URL.
         // This is to make sure the placeholder has not been moved to the final download URL before the client received the placeholder URL.
@@ -218,13 +229,20 @@ void Download::startUpdatingProgress() const
 
 Vector<uint8_t> Download::updateResumeDataWithPlaceholderURL(NSURL *placeholderURL, std::span<const uint8_t> resumeData)
 {
-    if (!placeholderURL)
-        return { };
+    if (!placeholderURL) {
+        RELEASE_LOG_ERROR(Network, "Download::updateResumeDataWithPlaceholderURL: placeholderURL equals nil.");
+        return resumeData;
+    }
 
     BOOL usingSecurityScopedURL = [placeholderURL startAccessingSecurityScopedResource];
 
     NSError *bookmarkError = nil;
     RetainPtr bookmarkData = [placeholderURL bookmarkDataWithOptions:0 includingResourceValuesForKeys:nil relativeToURL:nil error:&bookmarkError];
+
+    if (!bookmarkData) {
+        RELEASE_LOG_ERROR(Network, "Download::updateResumeDataWithPlaceholderURL: could not create bookmark data from placeholderURL.");
+        return resumeData;
+    }
 
     RetainPtr data = toNSData(resumeData);
     RetainPtr dictionary = [NSPropertyListSerialization propertyListWithData:data.get() options:NSPropertyListMutableContainersAndLeaves format:0 error:nullptr];

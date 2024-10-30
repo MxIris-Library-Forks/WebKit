@@ -849,6 +849,7 @@ crypto/keys/CryptoKeyRaw.cpp
 css/BasicShapeConversion.cpp
 css/BasicShapesShapeSegmentConversion.cpp
 css/CSSAspectRatioValue.cpp
+css/CSSAttrValue.cpp
 css/CSSBackgroundRepeatValue.cpp
 css/CSSShapeSegmentValue.cpp
 css/CSSBasicShapes.cpp
@@ -1226,6 +1227,7 @@ dom/InlineStyleSheetOwner.cpp
 dom/InputEvent.cpp
 dom/InternalObserver.cpp
 dom/InternalObserverDrop.cpp
+dom/InternalObserverEvery.cpp
 dom/InternalObserverFilter.cpp
 dom/InternalObserverFind.cpp
 dom/InternalObserverFirst.cpp
@@ -1233,6 +1235,7 @@ dom/InternalObserverForEach.cpp
 dom/InternalObserverFromScript.cpp
 dom/InternalObserverLast.cpp
 dom/InternalObserverMap.cpp
+dom/InternalObserverSome.cpp
 dom/InternalObserverTake.cpp
 dom/KeyboardEvent.cpp
 dom/LiveNodeList.cpp
@@ -2856,11 +2859,11 @@ rendering/mathml/RenderMathMLScripts.cpp
 rendering/mathml/RenderMathMLSpace.cpp
 rendering/mathml/RenderMathMLToken.cpp
 rendering/mathml/RenderMathMLUnderOver.cpp
-rendering/shapes/BoxShape.cpp
-rendering/shapes/PolygonShape.cpp
-rendering/shapes/RasterShape.cpp
-rendering/shapes/RectangleShape.cpp
-rendering/shapes/Shape.cpp
+rendering/shapes/BoxLayoutShape.cpp
+rendering/shapes/PolygonLayoutShape.cpp
+rendering/shapes/RasterLayoutShape.cpp
+rendering/shapes/RectangleLayoutShape.cpp
+rendering/shapes/LayoutShape.cpp
 rendering/shapes/ShapeOutsideInfo.cpp
 rendering/style/BasicShapes.cpp
 rendering/style/BasicShapesShape.cpp

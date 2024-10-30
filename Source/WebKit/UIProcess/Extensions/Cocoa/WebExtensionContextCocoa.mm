@@ -70,6 +70,7 @@
 #import "WebExtensionDataType.h"
 #import "WebExtensionDynamicScripts.h"
 #import "WebExtensionMenuItemContextParameters.h"
+#import "WebExtensionPermission.h"
 #import "WebExtensionTab.h"
 #import "WebExtensionURLSchemeHandler.h"
 #import "WebExtensionWindow.h"
@@ -85,6 +86,7 @@
 #import "_WKWebExtensionStorageSQLiteStore.h"
 #import <UniformTypeIdentifiers/UTType.h>
 #import <WebCore/LocalizedStrings.h>
+#import <WebCore/TextResourceDecoder.h>
 #import <WebCore/UserScript.h>
 #import <pal/spi/cocoa/NSKeyedUnarchiverSPI.h>
 #import <wtf/BlockPtr.h>
@@ -621,6 +623,33 @@ _WKWebExtensionLocalization *WebExtensionContext::localization()
     if (!m_localization)
         m_localization = [[_WKWebExtensionLocalization alloc] initWithLocalizedDictionary:protectedExtension()->localization().localizationDictionary uniqueIdentifier:baseURL().host().toString()];
     return m_localization.get();
+}
+
+RefPtr<API::Data> WebExtensionContext::localizedResourceData(const RefPtr<API::Data>& resourceData, const String& mimeType)
+{
+    if (!equalLettersIgnoringASCIICase(mimeType, "text/css"_s) || !resourceData)
+        return resourceData;
+
+    RefPtr decoder = WebCore::TextResourceDecoder::create(mimeType, { }, true);
+    auto stylesheetContents = decoder->decode(resourceData->span());
+
+    auto localizedString = localizedResourceString(stylesheetContents, mimeType);
+    if (localizedString == stylesheetContents)
+        return resourceData;
+
+    return API::Data::create(localizedString.utf8().span());
+}
+
+String WebExtensionContext::localizedResourceString(const String& resourceContents, const String& mimeType)
+{
+    if (!equalLettersIgnoringASCIICase(mimeType, "text/css"_s) || resourceContents.isEmpty() || !resourceContents.contains("__MSG_"_s))
+        return resourceContents;
+
+    auto* localization = this->localization();
+    if (!localization)
+        return resourceContents;
+
+    return [localization localizedStringForString:resourceContents];
 }
 
 void WebExtensionContext::setInspectable(bool inspectable)
@@ -1655,6 +1684,9 @@ WebExtensionContext::PermissionState WebExtensionContext::permissionState(const 
     }
 
     if (hasPermission(WKWebExtensionPermissionWebNavigation, tab, options))
+        return cacheResultAndReturn(PermissionState::RequestedImplicitly);
+
+    if (hasPermission(WebExtensionPermission::declarativeNetRequestFeedback(), tab, options))
         return cacheResultAndReturn(PermissionState::RequestedImplicitly);
 
     if (options.contains(PermissionStateOptions::RequestedWithTabsPermission) && hasPermission(WKWebExtensionPermissionTabs, tab, options))
@@ -4383,6 +4415,8 @@ void WebExtensionContext::addInjectedContent(const InjectedContentVector& inject
                 recordError(::WebKit::wrapper(error));
                 continue;
             }
+
+            styleSheetString = localizedResourceString(styleSheetString, "text/css"_s);
 
             Ref userStyleSheet = API::UserStyleSheet::create(WebCore::UserStyleSheet { WTFMove(styleSheetString), URL { m_baseURL, styleSheetPath }, makeVector<String>(includeMatchPatterns), makeVector<String>(excludeMatchPatterns), injectedFrames, styleLevel, std::nullopt }, executionWorld);
             originInjectedStyleSheets.append(userStyleSheet);

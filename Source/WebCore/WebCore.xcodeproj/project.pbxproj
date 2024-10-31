@@ -2970,7 +2970,6 @@
 		7BE37F7A27BB86AB007A6CD3 /* GraphicsContextGLCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BDDA31C274F9DA40038659E /* GraphicsContextGLCocoa.mm */; };
 		7BE37F7C27BB86B8007A6CD3 /* ANGLEUtilitiesCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BCD42DA2705C94900EB2127 /* ANGLEUtilitiesCocoa.mm */; };
 		7BE37F7D27BB86CD007A6CD3 /* ANGLEUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BCD42D8270599EF00EB2127 /* ANGLEUtilities.cpp */; };
-		7BE37F7E27BB86DB007A6CD3 /* GraphicsContextGLCVCocoa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B10339A2549720000C8C1AC /* GraphicsContextGLCVCocoa.cpp */; };
 		7BE37F8727BBB708007A6CD3 /* VideoFrameCV.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BE37F8627BBB6FF007A6CD3 /* VideoFrameCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7BE7427381FA906FBB4F0F2C /* JSSVGGraphicsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 950C4C02BED8936F818E2F99 /* JSSVGGraphicsElement.h */; };
 		7BED80D62C7993BA005950A4 /* IDBObjectStoreIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BED80D52C79937D005950A4 /* IDBObjectStoreIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -13577,7 +13576,6 @@
 		7B0C389D2ACED2F000F1FDDC /* ImagePaintingOptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImagePaintingOptions.cpp; sourceTree = "<group>"; };
 		7B0E6DC82AB463E4005189E8 /* NullImageBufferBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NullImageBufferBackend.h; sourceTree = "<group>"; };
 		7B0E6DC92AB463E4005189E8 /* NullImageBufferBackend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NullImageBufferBackend.cpp; sourceTree = "<group>"; };
-		7B10339A2549720000C8C1AC /* GraphicsContextGLCVCocoa.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsContextGLCVCocoa.cpp; sourceTree = "<group>"; };
 		7B10339C2549720100C8C1AC /* GraphicsContextGLCVCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsContextGLCVCocoa.h; sourceTree = "<group>"; };
 		7B10339D2549720100C8C1AC /* GraphicsContextGLCV.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsContextGLCV.h; sourceTree = "<group>"; };
 		7B187BC92AC6FB34009E7993 /* CGUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGUtilities.h; sourceTree = "<group>"; };
@@ -35193,7 +35191,6 @@
 				7B8ED5ED26F0C123008AC023 /* CVUtilities.h */,
 				7B8ED5EF26F0C123008AC023 /* CVUtilities.mm */,
 				7B10339D2549720100C8C1AC /* GraphicsContextGLCV.h */,
-				7B10339A2549720000C8C1AC /* GraphicsContextGLCVCocoa.cpp */,
 				7B10339C2549720100C8C1AC /* GraphicsContextGLCVCocoa.h */,
 				4195B985296442A90071566E /* GraphicsContextGLCVCocoa.mm */,
 				CD27AE4E22A9868700947FF9 /* ImageRotationSessionVT.h */,
@@ -39407,8 +39404,8 @@
 				71C29E32203CE781008F36D2 /* CSSAnimation.h in Headers */,
 				319848011A1D817B00A13318 /* CSSAnimationEvent.h in Headers */,
 				CAE9F910146441F000C245B0 /* CSSAspectRatioValue.h in Headers */,
-				FBD6AF8815EF25C9008B7110 /* CSSBasicShapes.h in Headers */,
 				497CDAA62CAC59E100BC429D /* CSSAttrValue.h in Headers */,
+				FBD6AF8815EF25C9008B7110 /* CSSBasicShapes.h in Headers */,
 				E16A84FA14C85CCC002977DF /* CSSBorderImage.h in Headers */,
 				BC274B2F140EBEB200EADFA6 /* CSSBorderImageSliceValue.h in Headers */,
 				357B581D27F7909A00B93E4E /* CSSBorderImageWidthValue.h in Headers */,
@@ -44746,7 +44743,6 @@
 				E3D3C00B2881D90B00ECD5F6 /* GPUAvailabilityMetal.mm in Sources */,
 				6E72F54E229DCD1000B3E151 /* GraphicsContextGLANGLE.cpp in Sources */,
 				7BE37F7A27BB86AB007A6CD3 /* GraphicsContextGLCocoa.mm in Sources */,
-				7BE37F7E27BB86DB007A6CD3 /* GraphicsContextGLCVCocoa.cpp in Sources */,
 				4195B986296442AA0071566E /* GraphicsContextGLCVCocoa.mm in Sources */,
 				7C3E510B18DF8F3500C112F7 /* HTMLConverter.mm in Sources */,
 				A8D06B3A0A265DCD005E7203 /* HTMLNames.cpp in Sources */,

@@ -163,6 +163,7 @@ set(WTF_PUBLIC_HEADERS
     MainThreadData.h
     MainThreadDispatcher.h
     MallocPtr.h
+    MallocSpan.h
     Markable.h
     MathExtras.h
     MediaTime.h
@@ -741,6 +742,13 @@ set(WTF_INTERFACE_DEPENDENCIES WTF_CopyHeaders)
 
 WEBKIT_FRAMEWORK_DECLARE(WTF)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
+
+if (PORT STREQUAL GTK OR PORT STREQUAL WPE)
+    WEBKIT_ADD_TARGET_CXX_FLAGS(WTF
+        -Wunsafe-buffer-usage
+        -fsafe-buffer-usage-suggestions
+    )
+endif ()
 
 WEBKIT_COPY_FILES(WTF_CopyHeaders
     DESTINATION ${WTF_FRAMEWORK_HEADERS_DIR}/wtf

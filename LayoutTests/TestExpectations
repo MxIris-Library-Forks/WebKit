@@ -1955,7 +1955,6 @@ imported/w3c/web-platform-tests/mathml/relations/css-styling/padding-border-marg
 imported/w3c/web-platform-tests/mathml/relations/css-styling/table-width-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/table-width-3.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/width-height-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/mathml/relations/css-styling/width-height-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-form-dynamic-002.html [ ImageOnlyFailure ]
 
 # This MathML test should be rewritten.
@@ -2456,13 +2455,6 @@ webkit.org/b/173506  ietestcenter/Javascript/15.4.4.15-3-8.html [ Skip ]
 
 # This takes too long since it's searching through an array with ~4 billion elements.
 ietestcenter/Javascript/15.4.4.15-3-29.html [ Skip ]
-
-# IDBVersionChangeEvent tests need to be rewritten to use event constructors instead of createEvent,
-# after we implement the IDBVersionChangeEvent constructor.
-webkit.org/b/145390 storage/indexeddb/events.html [ Failure ]
-webkit.org/b/145390 storage/indexeddb/events-private.html [ Failure ]
-webkit.org/b/145390 storage/indexeddb/removed.html [ Failure ]
-webkit.org/b/145390 storage/indexeddb/removed-private.html [ Failure ]
 
 webkit.org/b/145390 storage/indexeddb/deleteIndex-bug110792-private.html [ Pass Failure ]
 webkit.org/b/145390 storage/indexeddb/deleteIndex-bug110792.html [ Pass Failure ]
@@ -7502,9 +7494,6 @@ imported/w3c/web-platform-tests/navigation-api/ [ Timeout Pass ]
 imported/w3c/web-platform-tests/navigation-api/commit-behavior/ [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/scroll-behavior/manual-scroll-before-after-transition-commit.html [ Skip ]
 
-# Not yet implemented so just full of timeouts and flakes.
-imported/w3c/web-platform-tests/navigation-api/focus-reset/ [ Skip ]
-
 # Tests for sourceElement is not yet part of the HTML spec.
 imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-form-requestSubmit.html [ Skip ]
 
@@ -7529,6 +7518,11 @@ imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/n
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/reload-beforeunload.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/reload-rejection-order-beforeunload-unserializablestate.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/traverseTo-beforeunload.html [ Skip ]
+
+# These are likely fixed with https://bugs.webkit.org/show_bug.cgi?id=282137
+imported/w3c/web-platform-tests/navigation-api/focus-reset/multiple-intercept.html [ Pass Failure ]
+# Single flakey test case ("Resets the focus when no focusReset option is provided (nontrivial fulfilled promise)")
+imported/w3c/web-platform-tests/navigation-api/focus-reset/basic.html [ Pass Failure ]
 
 # -- View Transitions -- #
 # Reftest failures:
@@ -8127,6 +8121,7 @@ imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-remo
 
 # timeouts
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-js-expose.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-anchor-position/anchor-size-animation.html [ Skip ]
 
 # -- End: Anchor Positioning -- #
 

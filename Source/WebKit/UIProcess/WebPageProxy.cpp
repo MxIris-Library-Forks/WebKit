@@ -1417,7 +1417,7 @@ void WebPageProxy::swapToProvisionalPage(Ref<ProvisionalPageProxy>&& provisional
 
     // FIXME: Do we really need to disable this logging in ephemeral sessions?
     if (RefPtr logger = m_logger)
-        logger->setEnabled(this, !sessionID().isEphemeral());
+        logger->setEnabled(this, isAlwaysOnLoggingAllowed());
 
     m_hasRunningProcess = true;
 
@@ -4674,7 +4674,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
     if (preferences().loadWebArchiveWithEphemeralStorageEnabled() && navigation && policyAction == PolicyAction::Use && navigationAction->navigationType() != NavigationType::Reload && !isPolicyDataStore) {
         bool isSubstituteWebArchive = navigation->substituteData() && MIMETypeRegistry::isWebArchiveMIMEType(navigation->substituteData()->MIMEType);
         auto webarchiveURL = isSubstituteWebArchive ? URL { navigation->substituteData()->baseURL } : navigation->currentRequest().url();
-        if (isSubstituteWebArchive || (webarchiveURL.protocolIsFile() && webarchiveURL.string().endsWith(".webarchive"_s))) {
+        if (isSubstituteWebArchive || (webarchiveURL.protocolIsFile() && webarchiveURL.fileSystemPath().endsWith(".webarchive"_s))) {
             WEBPAGEPROXY_RELEASE_LOG(Loading, "receivedNavigationActionPolicyDecision: Swapping in non-persistent websiteDataStore for web archive.");
             if (navigation->targetItem() && navigation->targetItem()->dataStoreForWebArchive())
                 websiteDataStore = *navigation->targetItem()->dataStoreForWebArchive();
@@ -7239,13 +7239,22 @@ void WebPageProxy::didSameDocumentNavigationForFrameViaJS(IPC::Connection& conne
         navigationState().didDestroyNavigation(navigation->processID(), navigation->navigationID());
 }
 
-void WebPageProxy::didChangeMainDocument(FrameIdentifier frameID)
+void WebPageProxy::didChangeMainDocument(FrameIdentifier frameID, std::optional<NavigationIdentifier> navigationID)
 {
     RefPtr frame = WebFrameProxy::webFrame(frameID);
 
 #if ENABLE(MEDIA_STREAM)
     if (m_userMediaPermissionRequestManager) {
-        m_userMediaPermissionRequestManager->resetAccess(frameID);
+        auto shouldClearAllGrantedRequests = [&] {
+            if (!frame)
+                return true;
+            if (!frame->isMainFrame())
+                return false;
+            if (!navigationID || !navigationState().hasNavigation(*navigationID))
+                return true;
+            return navigationState().navigation(*navigationID)->isRequestFromClientOrUserInput();
+        };
+        m_userMediaPermissionRequestManager->resetAccess(shouldClearAllGrantedRequests() ? nullptr : frame.get());
 
 #if ENABLE(GPU_PROCESS)
         if (RefPtr gpuProcess = m_legacyMainFrameProcess->processPool().gpuProcess()) {
@@ -7734,7 +7743,7 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
 #endif
 
     auto wasPotentiallyInitiatedByUser = navigation->isLoadedWithNavigationShared() || navigation->wasUserInitiated();
-    if (!sessionID().isEphemeral())
+    if (isAlwaysOnLoggingAllowed())
         logFrameNavigation(frame, URL { internals().pageLoadState.url() }, request, navigationAction->data().redirectResponse.url(), wasPotentiallyInitiatedByUser);
 
     if (m_policyClient)
@@ -10389,7 +10398,7 @@ void WebPageProxy::dispatchDidUpdateEditorState()
 inline API::DiagnosticLoggingClient* WebPageProxy::effectiveDiagnosticLoggingClient(ShouldSample shouldSample)
 {
     // Diagnostic logging is disabled for ephemeral sessions for privacy reasons.
-    if (sessionID().isEphemeral())
+    if (!isAlwaysOnLoggingAllowed())
         return nullptr;
 
     return DiagnosticLoggingClient::shouldLogAfterSampling(shouldSample) ? diagnosticLoggingClient() : nullptr;
@@ -14280,7 +14289,7 @@ Logger& WebPageProxy::logger()
         Ref logger = Logger::create(this);
         m_logger = logger.copyRef();
         // FIXME: Does this really need to be disabled in ephemeral sessions?
-        logger->setEnabled(this, !sessionID().isEphemeral());
+        logger->setEnabled(this, isAlwaysOnLoggingAllowed());
     }
 
     return *m_logger;
@@ -15575,6 +15584,11 @@ WebProcessActivityState& WebPageProxy::processActivityState()
 Ref<BrowsingContextGroup> WebPageProxy::protectedBrowsingContextGroup() const
 {
     return m_browsingContextGroup;
+}
+
+bool WebPageProxy::isAlwaysOnLoggingAllowed() const
+{
+    return sessionID().isAlwaysOnLoggingAllowed() || protectedPreferences()->allowPrivacySensitiveOperationsInNonPersistentDataStores();
 }
 
 } // namespace WebKit

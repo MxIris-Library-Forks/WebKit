@@ -449,8 +449,8 @@ imported/w3c/web-platform-tests/service-workers/service-worker/claim-worker-fetc
 imported/w3c/web-platform-tests/service-workers/service-worker/client-navigate.https.html [ Skip ]
 imported/w3c/web-platform-tests/service-workers/service-worker/update-bytecheck-cors-import.https.html [ Skip ]
 
-# This crash test is a timeout.
-imported/w3c/web-platform-tests/service-workers/cache-storage/crashtests/cache-response-clone.https.html [ Timeout ]
+# This crash test is a consistent timeout.
+imported/w3c/web-platform-tests/service-workers/cache-storage/crashtests/cache-response-clone.https.html [ Skip ]
 
 # This test is a flaky timeout.
 imported/w3c/web-platform-tests/service-workers/service-worker/fetch-canvas-tainting-video-cache.https.html [ Skip ]
@@ -1777,6 +1777,7 @@ webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentati
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-004-fr.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-004-mix1.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-004-mix2.html [ ImageOnlyFailure ]
+webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-005.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/item-placement/masonry-columns-item-placement-auto-flow-next-001.html [ Skip ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/item-placement/masonry-item-placement-004.html [ ImageOnlyFailure ]
@@ -3103,9 +3104,7 @@ imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-block-ancestor.ht
 imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-integer-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-spacing-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-spacing-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-dynamic-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-no-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-ligature-001.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-text/text-group-align/text-group-align-center-vlr.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-group-align/text-group-align-center.html [ ImageOnlyFailure ]
@@ -7441,6 +7440,8 @@ imported/w3c/web-platform-tests/scroll-animations/view-timelines/change-animatio
 imported/w3c/web-platform-tests/scroll-animations/view-timelines/view-timeline-root-source.html [ Pass Failure ]
 imported/w3c/web-platform-tests/web-animations/interfaces/Animation/scroll-timeline-progress.tentative.html [ Pass Failure ]
 
+webkit.org/b/282373 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-dynamic.tentative.html [ Pass Failure ]
+
 # webkit.org/b/263872 [scroll-animations] some WPT tests are ImageOnlyFailure
 imported/w3c/web-platform-tests/scroll-animations/css/animation-fill-outside-range-test.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/css/animation-range-visual-test.html [ ImageOnlyFailure ]
@@ -7519,11 +7520,6 @@ imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/r
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/reload-rejection-order-beforeunload-unserializablestate.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/traverseTo-beforeunload.html [ Skip ]
 
-# These are likely fixed with https://bugs.webkit.org/show_bug.cgi?id=282137
-imported/w3c/web-platform-tests/navigation-api/focus-reset/multiple-intercept.html [ Pass Failure ]
-# Single flakey test case ("Resets the focus when no focusReset option is provided (nontrivial fulfilled promise)")
-imported/w3c/web-platform-tests/navigation-api/focus-reset/basic.html [ Pass Failure ]
-
 # -- View Transitions -- #
 # Reftest failures:
 imported/w3c/web-platform-tests/css/css-view-transitions/content-with-clip-root.html [ ImageOnlyFailure ]
@@ -7555,7 +7551,6 @@ imported/w3c/web-platform-tests/css/css-view-transitions/root-element-display-no
 
 # Flakes
 imported/w3c/web-platform-tests/css/css-view-transitions/synchronous-callback-skipped-before-run.html [ Failure Pass ]
-imported/w3c/web-platform-tests/css/css-view-transitions/old-content-intrinsic-aspect-ratio.html [ ImageOnlyFailure Pass ]
 # webkit.org/b/278352
 [ Debug ] imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ Pass ImageOnlyFailure ]
 

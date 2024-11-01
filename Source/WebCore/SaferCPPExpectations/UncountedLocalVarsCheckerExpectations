@@ -622,7 +622,6 @@ contentextensions/ContentExtensionsBackend.cpp
 crypto/SubtleCrypto.cpp
 crypto/algorithms/CryptoAlgorithmECDH.cpp
 crypto/algorithms/CryptoAlgorithmX25519.cpp
-css/BasicShapeConversion.cpp
 css/CSSComputedStyleDeclaration.cpp
 css/CSSCounterStyleDescriptors.cpp
 css/CSSFontFace.cpp
@@ -691,7 +690,6 @@ dom/CommandEvent.cpp
 dom/ComposedTreeAncestorIterator.h
 dom/ComposedTreeIterator.cpp
 dom/ComposedTreeIterator.h
-dom/ContainerNode.h
 dom/ContainerNodeAlgorithms.cpp
 dom/Document.cpp
 dom/DocumentFragment.cpp

@@ -68,6 +68,8 @@
 #include <wtf/SegmentedVector.h>
 #include <wtf/TZoneMallocInlines.h>
 
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+
 namespace WebCore::WebGPU {
 
 static auto invalidEntryPointName()
@@ -776,11 +778,37 @@ void DeviceImpl::resolveDeviceLostPromise(CompletionHandler<void(WebCore::WebGPU
     }).get());
 }
 
+void DeviceImpl::pauseAllErrorReporting(bool pause)
+{
+    wgpuDevicePauseErrorReporting(m_backing.get(), pause);
+}
+
 void DeviceImpl::setLabelInternal(const String& label)
 {
     wgpuDeviceSetLabel(m_backing.get(), label.utf8().data());
 }
 
+Ref<CommandEncoder> DeviceImpl::invalidCommandEncoder()
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+
+Ref<CommandBuffer> DeviceImpl::invalidCommandBuffer()
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+
+Ref<RenderPassEncoder> DeviceImpl::invalidRenderPassEncoder()
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+Ref<ComputePassEncoder> DeviceImpl::invalidComputePassEncoder()
+{
+    RELEASE_ASSERT_NOT_REACHED();
+}
+
 } // namespace WebCore::WebGPU
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
 #endif // HAVE(WEBGPU_IMPLEMENTATION)

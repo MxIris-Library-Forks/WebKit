@@ -415,7 +415,9 @@ static void setCommandEncoder(const BindGroupEntryUsageData::Resource& resource,
         }, [&](const RefPtr<const TextureView>& textureView) {
             if (textureView)
                 textureView->setCommandEncoder(parentEncoder);
-        }, [](const RefPtr<const ExternalTexture>&) {
+        }, [&](const RefPtr<const ExternalTexture>& externalTexture) {
+            if (externalTexture)
+                externalTexture->setCommandEncoder(parentEncoder);
     });
 }
 
@@ -543,7 +545,7 @@ void wgpuComputePassEncoderPushDebugGroup(WGPUComputePassEncoder computePassEnco
 
 void wgpuComputePassEncoderSetBindGroup(WGPUComputePassEncoder computePassEncoder, uint32_t groupIndex, WGPUBindGroup group, size_t dynamicOffsetCount, const uint32_t* dynamicOffsets)
 {
-    WebGPU::protectedFromAPI(computePassEncoder)->setBindGroup(groupIndex, WebGPU::protectedFromAPI(group), unsafeForgeSpan(dynamicOffsets, dynamicOffsetCount));
+    WebGPU::protectedFromAPI(computePassEncoder)->setBindGroup(groupIndex, WebGPU::protectedFromAPI(group), unsafeMakeSpan(dynamicOffsets, dynamicOffsetCount));
 }
 
 void wgpuComputePassEncoderSetPipeline(WGPUComputePassEncoder computePassEncoder, WGPUComputePipeline pipeline)

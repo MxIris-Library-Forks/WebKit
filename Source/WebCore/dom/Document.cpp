@@ -401,6 +401,8 @@
 #include "AcceleratedTimeline.h"
 #endif
 
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+
 #define DOCUMENT_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->object().toUInt64() : 0, this == &topDocument(), ##__VA_ARGS__)
 #define DOCUMENT_RELEASE_LOG_ERROR(channel, fmt, ...) RELEASE_LOG_ERROR(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->object().toUInt64() : 0, this == &topDocument(), ##__VA_ARGS__)
 
@@ -611,7 +613,7 @@ Document::Document(LocalFrame* frame, const Settings& settings, const URL& url, 
     , m_creationURL(url)
     , m_domTreeVersion(++s_globalTreeVersion)
     , m_styleScope(makeUniqueRef<Style::Scope>(*this))
-    , m_styleRecalcTimer([this] { updateStyleIfNeeded(); })
+    , m_styleRecalcTimer([this] { Ref { *this }->updateStyleIfNeeded(); })
 #if !LOG_DISABLED
     , m_documentCreationTime(MonotonicTime::now())
 #endif
@@ -5444,7 +5446,7 @@ void Document::setShouldListenToVoiceActivity(bool shouldListen)
 
 void Document::voiceActivityDetected()
 {
-    if (!isFullyActive() || topDocument().hidden() || !hasMutedAudioCaptureDevice())
+    if (!isFullyActive() || hidden() || !hasMutedAudioCaptureDevice())
         return;
 
     RefPtr window = domWindow();
@@ -7978,7 +7980,6 @@ void Document::postTask(Task&& task)
 
 void Document::pendingTasksTimerFired()
 {
-    Ref protectedThis { *this };
     auto pendingTasks = std::exchange(m_pendingTasks, Vector<Task> { });
     for (auto& task : pendingTasks)
         task.performTask(*this);
@@ -8350,7 +8351,6 @@ void Document::loadEventDelayTimerFired()
     // FIXME: Should this also call DocumentLoader::checkLoadComplete?
     // FIXME: Not obvious why checkCompleted needs to go first. The order these are called is
     // visible to WebKit clients, but it's more like a race than a well-defined relationship.
-    Ref protectedThis { *this };
     checkCompleted();
     if (RefPtr frame = this->frame())
         frame->protectedLoader()->checkLoadComplete();
@@ -10507,7 +10507,7 @@ void Document::setPaintWorkletGlobalScopeForName(const String& name, Ref<PaintWo
 ContentChangeObserver& Document::contentChangeObserver()
 {
     if (!m_contentChangeObserver)
-        m_contentChangeObserver = makeUnique<ContentChangeObserver>(*this);
+        m_contentChangeObserver = makeUniqueWithoutRefCountedCheck<ContentChangeObserver>(*this);
     return *m_contentChangeObserver;
 }
 
@@ -11059,3 +11059,5 @@ void Document::securityOriginDidChange()
 
 #undef DOCUMENT_RELEASE_LOG
 #undef DOCUMENT_RELEASE_LOG_ERROR
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END

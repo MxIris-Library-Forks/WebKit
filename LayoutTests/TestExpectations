@@ -1766,9 +1766,6 @@ imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/fragmentation/mas
 
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/grid-placement/masonry-grid-placement-named-lines-002.html [ ImageOnlyFailure ]
 
-webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-cols-004-mix1.html [ ImageOnlyFailure ]
-webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-cols-004-mix2.html [ ImageOnlyFailure ]
-webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-002-mix2.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-auto.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-fr.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-mix1.html [ ImageOnlyFailure ]
@@ -2873,9 +2870,6 @@ webkit.org/b/163706 imported/w3c/web-platform-tests/css/css-shapes/shape-outside
 webkit.org/b/163706 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-024.html [ Skip ]
 imported/blink/http/tests/security/shape-image-cors-port.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-005.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-008.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-009.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-011.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-content-box-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-padding-box-003.html [ ImageOnlyFailure ]
@@ -2909,6 +2903,11 @@ imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/po
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/circle/shape-outside-circle-056.html [ ImageOnlyFailure Pass ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/ellipse/shape-outside-ellipse-052.html [ ImageOnlyFailure Pass ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/polygon/shape-outside-polygon-032.html [ ImageOnlyFailure Pass ]
+
+webkit.org/b/282438 fast/shapes/shape-outside-floats/shape-outside-floats-border-radius-border-box-002.html [ ImageOnlyFailure ]
+webkit.org/b/282438 fast/shapes/shape-outside-floats/shape-outside-floats-border-radius-content-box-003.html [ ImageOnlyFailure ]
+webkit.org/b/282438 fast/shapes/shape-outside-floats/shape-outside-floats-border-radius-margin-box-004.html [ ImageOnlyFailure ]
+webkit.org/b/282438 fast/shapes/shape-outside-floats/shape-outside-floats-border-radius-padding-box-003.html [ ImageOnlyFailure ]
 
 webkit.org/b/261955 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-margin-box-border-radius-007.html [ Skip ]
 webkit.org/b/261955 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-margin-box-border-radius-008.html [ Skip ]

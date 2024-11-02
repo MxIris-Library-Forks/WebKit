@@ -812,19 +812,19 @@ LineBuilder::RectAndFloatConstraints LineBuilder::floatAvoidingRect(const Inline
             return { logicalRect, { } };
 
         auto constraints = formattingContext().formattingUtils().floatConstraintsForLine(logicalRect.top(), logicalRect.height(), floatingContext());
-        if (!constraints.left && !constraints.right)
+        if (!constraints.start && !constraints.end)
             return { logicalRect, { } };
 
         auto constrainedSideSet = OptionSet<UsedFloat> { };
         // text-indent acts as (start)margin on the line. When looking for intrusive floats we need to check against the line's _margin_ box.
         auto marginBoxRect = InlineRect { logicalRect.top(), logicalRect.left() - lineMarginStart, logicalRect.width() + lineMarginStart, logicalRect.height() };
 
-        if (constraints.left && constraints.left->x > marginBoxRect.left()) {
-            marginBoxRect.shiftLeftTo(constraints.left->x);
+        if (constraints.start && constraints.start->x > marginBoxRect.left()) {
+            marginBoxRect.shiftLeftTo(constraints.start->x);
             constrainedSideSet.add(UsedFloat::Left);
         }
-        if (constraints.right && constraints.right->x < marginBoxRect.right()) {
-            marginBoxRect.setRight(std::max<InlineLayoutUnit>(marginBoxRect.left(), constraints.right->x));
+        if (constraints.end && constraints.end->x < marginBoxRect.right()) {
+            marginBoxRect.setRight(std::max<InlineLayoutUnit>(marginBoxRect.left(), constraints.end->x));
             constrainedSideSet.add(UsedFloat::Right);
         }
 
@@ -997,7 +997,7 @@ bool LineBuilder::tryPlacingFloatBox(const Box& floatBox, MayOverConstrainLine m
         // When floats with clear are placed under existing floats, we may find ourselves in an over-constrained state and
         // can't place this float here.
         auto contentLogicalWidth = m_line.contentLogicalWidth() - m_line.trimmableTrailingWidth();
-        return haveEnoughSpaceForFloatWithClear(BoxGeometry::marginBoxRect(boxGeometry), floatingContext.isLogicalLeftPositioned(floatBox), m_lineLogicalRect, contentLogicalWidth);
+        return haveEnoughSpaceForFloatWithClear(BoxGeometry::marginBoxRect(boxGeometry), floatingContext.isStartPositioned(floatBox), m_lineLogicalRect, contentLogicalWidth);
     };
     if (floatBox.hasFloatClear() && !willFloatBoxWithClearFit())
         return false;

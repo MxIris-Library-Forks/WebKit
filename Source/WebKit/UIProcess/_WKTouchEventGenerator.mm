@@ -32,11 +32,11 @@
 #import <mach/mach_time.h>
 #import <pal/spi/cocoa/IOKitSPI.h>
 #import <wtf/Assertions.h>
+#import <wtf/IndexedRange.h>
 #import <wtf/RetainPtr.h>
 #import <wtf/RunLoop.h>
 #import <wtf/SoftLinking.h>
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+#import <wtf/StdLibExtras.h>
 
 SOFT_LINK_PRIVATE_FRAMEWORK(BackBoardServices)
 SOFT_LINK(BackBoardServices, BKSHIDEventSetDigitizerInfo, void, (IOHIDEventRef digitizerEvent, uint32_t contextID, uint8_t systemGestureisPossible, uint8_t isSystemGestureStateChangeEvent, CFStringRef displayUUID, CFTimeInterval initialTouchTimestamp, float maxForce), (digitizerEvent, contextID, systemGestureisPossible, isSystemGestureStateChangeEvent, displayUUID, initialTouchTimestamp, maxForce));
@@ -46,9 +46,8 @@ static const IOHIDFloat defaultMajorRadius = 5;
 static const IOHIDFloat defaultPathPressure = 0;
 static const long nanosecondsPerSecond = 1e9;
 
-NSUInteger const HIDMaxTouchCount = 5;
-
-static int fingerIdentifiers[HIDMaxTouchCount] = { 2, 3, 4, 5, 1 };
+constexpr NSUInteger HIDMaxTouchCount = 5;
+constexpr std::array<int, HIDMaxTouchCount> fingerIdentifiers { 2, 3, 4, 5, 1 };
 
 typedef enum {
     HandEventNull,
@@ -101,7 +100,7 @@ static void delayBetweenMove(int eventIndex, double elapsed)
 
 @implementation _WKTouchEventGenerator {
     RetainPtr<IOHIDEventSystemClientRef> _ioSystemClient;
-    SyntheticEventDigitizerInfo _activePoints[HIDMaxTouchCount];
+    std::array<SyntheticEventDigitizerInfo, HIDMaxTouchCount> _activePoints;
     NSUInteger _activePointCount;
 }
 
@@ -123,8 +122,8 @@ static void delayBetweenMove(int eventIndex, double elapsed)
     if (!self)
         return nil;
 
-    for (NSUInteger i = 0; i < HIDMaxTouchCount; ++i)
-        _activePoints[i].identifier = fingerIdentifiers[i];
+    for (auto [i, fingerIdentifier] : IndexedRange(fingerIdentifiers))
+        _activePoints[i].identifier = fingerIdentifier;
 
     _eventCallbacks = [[NSMutableDictionary alloc] init];
 
@@ -249,39 +248,40 @@ static void delayBetweenMove(int eventIndex, double elapsed)
     return YES;
 }
 
-- (void)_updateTouchPoints:(CGPoint*)points count:(NSUInteger)count window:(UIWindow *)window
+- (void)_updateTouchPoints:(std::span<CGPoint>)points window:(UIWindow *)window
 {
     HandEventType handEventType;
     
     // The hand event type is based on previous state.
     if (!_activePointCount)
         handEventType = HandEventTouched;
-    else if (!count)
+    else if (points.empty())
         handEventType = HandEventLifted;
-    else if (count == _activePointCount)
+    else if (points.size() == _activePointCount)
         handEventType = HandEventMoved;
     else
         handEventType = HandEventChordChanged;
     
     // Update previous count for next event.
-    _activePointCount = count;
+    _activePointCount = points.size();
 
     // Update point locations.
-    for (NSUInteger i = 0; i < count; ++i)
-        _activePoints[i].point = points[i];
+    for (auto [i, point] : IndexedRange(points))
+        _activePoints[i].point = point;
     
     RetainPtr<IOHIDEventRef> eventRef = adoptCF([self _createIOHIDEventType:handEventType]);
     [self _sendHIDEvent:eventRef.get() window:window];
 }
 
-- (void)touchDownAtPoints:(CGPoint*)locations touchCount:(NSUInteger)touchCount window:(UIWindow *)window
+- (void)touchDownAtPoints:(CGPoint*)rawLocations touchCount:(NSUInteger)touchCount window:(UIWindow *)window
 {
     touchCount = std::min(touchCount, HIDMaxTouchCount);
+    auto locations = unsafeMakeSpan(rawLocations, touchCount);
 
     _activePointCount = touchCount;
 
-    for (NSUInteger index = 0; index < touchCount; ++index)
-        _activePoints[index].point = locations[index];
+    for (auto [i, location] : IndexedRange(locations))
+        _activePoints[i].point = location;
 
     RetainPtr<IOHIDEventRef> eventRef = adoptCF([self _createIOHIDEventType:HandEventTouched]);
     [self _sendHIDEvent:eventRef.get() window:window];
@@ -289,25 +289,20 @@ static void delayBetweenMove(int eventIndex, double elapsed)
 
 - (void)touchDown:(CGPoint)location touchCount:(NSUInteger)touchCount window:(UIWindow *)window
 {
-    touchCount = std::min(touchCount, HIDMaxTouchCount);
-
-    Vector<CGPoint> locations(touchCount);
-
-    for (NSUInteger index = 0; index < touchCount; ++index)
-        locations[index] = location;
-    
-    [self touchDownAtPoints:locations.data() touchCount:touchCount window:window];
+    Vector<CGPoint, HIDMaxTouchCount> locations(std::min(touchCount, HIDMaxTouchCount), location);
+    [self touchDownAtPoints:locations.data() touchCount:locations.size() window:window];
 }
 
-- (void)liftUpAtPoints:(CGPoint*)locations touchCount:(NSUInteger)touchCount window:(UIWindow *)window
+- (void)liftUpAtPoints:(CGPoint*)rawLocations touchCount:(NSUInteger)touchCount window:(UIWindow *)window
 {
     touchCount = std::min(touchCount, HIDMaxTouchCount);
     touchCount = std::min(touchCount, _activePointCount);
+    auto locations = unsafeMakeSpan(rawLocations, touchCount);
 
     NSUInteger newPointCount = _activePointCount - touchCount;
 
-    for (NSUInteger index = 0; index < touchCount; ++index)
-        _activePoints[newPointCount + index].point = locations[index];
+    for (auto [i, location] : IndexedRange(locations))
+        _activePoints[newPointCount + i].point = location;
     
     RetainPtr<IOHIDEventRef> eventRef = adoptCF([self _createIOHIDEventType:HandEventLifted]);
     [self _sendHIDEvent:eventRef.get() window:window];
@@ -317,22 +312,17 @@ static void delayBetweenMove(int eventIndex, double elapsed)
 
 - (void)liftUp:(CGPoint)location touchCount:(NSUInteger)touchCount window:(UIWindow *)window
 {
-    touchCount = std::min(touchCount, HIDMaxTouchCount);
-
-    Vector<CGPoint> locations(touchCount);
-
-    for (NSUInteger index = 0; index < touchCount; ++index)
-        locations[index] = location;
-    
-    [self liftUpAtPoints:locations.data() touchCount:touchCount window:window];
+    Vector<CGPoint, HIDMaxTouchCount> locations(std::min(touchCount, HIDMaxTouchCount), location);
+    [self liftUpAtPoints:locations.data() touchCount:locations.size() window:window];
 }
 
-- (void)moveToPoints:(CGPoint*)newLocations touchCount:(NSUInteger)touchCount duration:(NSTimeInterval)seconds window:(UIWindow *)window
+- (void)moveToPoints:(CGPoint*)rawNewLocations touchCount:(NSUInteger)touchCount duration:(NSTimeInterval)seconds window:(UIWindow *)window
 {
     touchCount = std::min(touchCount, HIDMaxTouchCount);
+    auto newLocations = unsafeMakeSpan(rawNewLocations, touchCount);
 
-    Vector<CGPoint> startLocations(touchCount);
-    Vector<CGPoint> nextLocations(touchCount);
+    Vector<CGPoint, HIDMaxTouchCount> startLocations(touchCount);
+    Vector<CGPoint, HIDMaxTouchCount> nextLocations(touchCount);
 
     CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
     CFTimeInterval elapsed = 0;
@@ -348,12 +338,12 @@ static void delayBetweenMove(int eventIndex, double elapsed)
 
             nextLocations[i] = calculateNextCurveLocation(startLocations[i], newLocations[i], interval);
         }
-        [self _updateTouchPoints:nextLocations.data() count:touchCount window:window];
+        [self _updateTouchPoints:nextLocations window:window];
 
         delayBetweenMove(eventIndex++, elapsed);
     }
 
-    [self _updateTouchPoints:newLocations count:touchCount window:window];
+    [self _updateTouchPoints:newLocations window:window];
 }
 
 - (void)touchDown:(CGPoint)location window:(UIWindow *)window completionBlock:(void (^)(void))completionBlock
@@ -392,7 +382,5 @@ static void delayBetweenMove(int eventIndex, double elapsed)
 }
 
 @end
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
 #endif // PLATFORM(IOS_FAMILY)

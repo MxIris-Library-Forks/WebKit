@@ -107,10 +107,10 @@ public:
 
 private:
     // CheckedPtr interface
-    uint32_t ptrCount() const final { return CanMakeCheckedPtr::ptrCount(); }
-    uint32_t ptrCountWithoutThreadCheck() const final { return CanMakeCheckedPtr::ptrCountWithoutThreadCheck(); }
-    void incrementPtrCount() const final { CanMakeCheckedPtr::incrementPtrCount(); }
-    void decrementPtrCount() const final { CanMakeCheckedPtr::decrementPtrCount(); }
+    uint32_t checkedPtrCount() const final { return CanMakeCheckedPtr::checkedPtrCount(); }
+    uint32_t checkedPtrCountWithoutThreadCheck() const final { return CanMakeCheckedPtr::checkedPtrCountWithoutThreadCheck(); }
+    void incrementCheckedPtrCount() const final { CanMakeCheckedPtr::incrementCheckedPtrCount(); }
+    void decrementCheckedPtrCount() const final { CanMakeCheckedPtr::decrementCheckedPtrCount(); }
 
     WeakObjCPtr<WKFullScreenViewController> m_parent;
     RefPtr<WebCore::PlaybackSessionInterfaceIOS> m_interface;
@@ -731,9 +731,10 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         descriptor = [descriptor fontDescriptorByAddingAttributes:@{
             UIFontWeightTrait : [NSNumber numberWithDouble:UIFontWeightMedium]
         }];
-        fullscreenButtonConfiguration.attributedTitle = [[NSMutableAttributedString alloc] initWithString:WebCore::fullscreenControllerViewSpatial() attributes:@{
+        RetainPtr buttonTitle = adoptNS([[NSMutableAttributedString alloc] initWithString:WebCore::fullscreenControllerViewSpatial() attributes:@{
             NSFontAttributeName : [UIFont fontWithDescriptor:descriptor.get() size:0]
-        }];
+        }]);
+        fullscreenButtonConfiguration.attributedTitle = buttonTitle.get();
 
         [_enterVideoFullscreenButton setConfiguration:fullscreenButtonConfiguration];
         [_enterVideoFullscreenButton setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];

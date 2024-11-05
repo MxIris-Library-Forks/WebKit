@@ -135,9 +135,22 @@ void Navigation::initializeForNewWindow(std::optional<NavigationNavigationType> 
         if (shouldProcessPreviousNavigationEntries) {
             for (auto& entry : previousNavigation->m_entries)
                 m_entries.append(NavigationHistoryEntry::create(protectedScriptExecutionContext().get(), entry.get()));
-            m_currentEntryIndex = previousNavigation->m_currentEntryIndex;
-            if (navigationType == NavigationNavigationType::Reload) {
-                updateForActivation(currentItem.get(), navigationType);
+
+            RELEASE_ASSERT(m_entries.size() > previousNavigation->m_currentEntryIndex);
+
+            // FIXME: This should handle Push, however somewhere before here the currentEntry of previousNavigation was updated
+            // to the new navigation so we get duplicate entries.
+            if (navigationType != NavigationNavigationType::Push) {
+                Ref previousEntry = m_entries[*previousNavigation->m_currentEntryIndex];
+
+                if (navigationType == NavigationNavigationType::Replace)
+                    m_entries[*previousNavigation->m_currentEntryIndex] = NavigationHistoryEntry::create(protectedScriptExecutionContext().get(), *currentItem);
+
+                m_currentEntryIndex = getEntryIndexOfHistoryItem(m_entries, *currentItem);
+
+                if (navigationType) // Unset in the case of forms/POST requests.
+                    m_activation = NavigationActivation::create(*navigationType, *currentEntry(), WTFMove(previousEntry));
+
                 return;
             }
         }
@@ -450,7 +463,7 @@ Navigation::Result Navigation::performTraversal(const String& key, Navigation::O
     RefPtr apiMethodTracker = addUpcomingTrarveseAPIMethodTracker(WTFMove(committed), WTFMove(finished), key, options.info);
 
     // FIXME: 11. Let sourceSnapshotParams be the result of snapshotting source snapshot params given document.
-    frame()->checkedNavigationScheduler()->scheduleHistoryNavigationByKey(key, [apiMethodTracker] (ScheduleHistoryNavigationResult result) {
+    frame()->protectedNavigationScheduler()->scheduleHistoryNavigationByKey(key, [apiMethodTracker] (ScheduleHistoryNavigationResult result) {
         if (result == ScheduleHistoryNavigationResult::Aborted)
             createErrorResult(WTFMove(apiMethodTracker->committedPromise), WTFMove(apiMethodTracker->finishedPromise), ExceptionCode::AbortError, "Navigation aborted"_s);
     });
@@ -718,6 +731,9 @@ void Navigation::abortOngoingNavigation(NavigateEvent& event)
     if (auto* errorInstance = jsDynamicCast<JSC::ErrorInstance*>(error)) {
         if (auto result = extractErrorInformationFromErrorInstance(globalObject, *errorInstance))
             errorInformation = WTFMove(*result);
+        // Default to document url if extractErrorInformationFromErrorInstance was not able to determine sourceURL.
+        if (errorInformation.sourceURL.isEmpty())
+            errorInformation.sourceURL = scriptExecutionContext()->url().string();
     }
 
     if (event.signal())
@@ -788,13 +804,13 @@ static void waitForAllPromises(const Vector<RefPtr<DOMPromise>>& promises, Funct
 }
 
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#inner-navigate-event-firing-algorithm
-bool Navigation::innerDispatchNavigateEvent(NavigationNavigationType navigationType, Ref<NavigationDestination>&& destination, const String& downloadRequestFilename, FormState* formState, SerializedScriptValue* classicHistoryAPIState)
+Navigation::DispatchResult Navigation::innerDispatchNavigateEvent(NavigationNavigationType navigationType, Ref<NavigationDestination>&& destination, const String& downloadRequestFilename, FormState* formState, SerializedScriptValue* classicHistoryAPIState)
 {
     if (hasEntriesAndEventsDisabled()) {
         ASSERT(!m_ongoingAPIMethodTracker);
         ASSERT(!m_upcomingNonTraverseMethodTracker);
         ASSERT(m_upcomingTraverseMethodTrackers.isEmpty());
-        return true;
+        return DispatchResult::Completed;
     }
 
     bool wasBeingDispatched = m_ongoingNavigateEvent ? m_ongoingNavigateEvent->isBeingDispatched() : false;
@@ -804,7 +820,7 @@ bool Navigation::innerDispatchNavigateEvent(NavigationNavigationType navigationT
     // Prevent recursion on synchronous history navigation steps issued
     // from the navigate event handler.
     if (wasBeingDispatched && classicHistoryAPIState)
-        return true;
+        return DispatchResult::Completed;
 
     promoteUpcomingAPIMethodTracker(destination->key());
 
@@ -858,14 +874,14 @@ bool Navigation::innerDispatchNavigateEvent(NavigationNavigationType navigationT
     // If the frame was detached in our event.
     if (!frame()) {
         abortOngoingNavigation(event);
-        return false;
+        return DispatchResult::Aborted;
     }
 
     if (event->defaultPrevented()) {
         // FIXME: If navigationType is "traverse", then consume history-action user activation.
         if (!event->signal()->aborted())
             abortOngoingNavigation(event);
-        return false;
+        return DispatchResult::Aborted;
     }
 
     bool endResultIsSameDocument = event->wasIntercepted() || destination->sameDocument();
@@ -976,7 +992,7 @@ bool Navigation::innerDispatchNavigateEvent(NavigationNavigationType navigationT
 
         // If a new event has been dispatched in our event handler then we were aborted above.
         if (m_ongoingNavigateEvent != event.ptr())
-            return false;
+            return DispatchResult::Aborted;
     } else if (apiMethodTracker)
         cleanupAPIMethodTracker(apiMethodTracker.get());
     else {
@@ -988,11 +1004,11 @@ bool Navigation::innerDispatchNavigateEvent(NavigationNavigationType navigationT
 
     // FIXME: Step 35 Clean up after running script
 
-    return !event->wasIntercepted();
+    return event->wasIntercepted() ? DispatchResult::Intercepted : DispatchResult::Completed;
 }
 
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#fire-a-traverse-navigate-event
-bool Navigation::dispatchTraversalNavigateEvent(HistoryItem& historyItem)
+Navigation::DispatchResult Navigation::dispatchTraversalNavigateEvent(HistoryItem& historyItem)
 {
     auto* currentItem = frame() ? frame()->history().currentItem() : nullptr;
     bool isSameDocument = currentItem && currentItem->documentSequenceNumber() == historyItem.documentSequenceNumber();
@@ -1016,14 +1032,14 @@ bool Navigation::dispatchPushReplaceReloadNavigateEvent(const URL& url, Navigati
     Ref destination = NavigationDestination::create(url, nullptr, isSameDocument);
     if (classicHistoryAPIState)
         destination->setStateObject(classicHistoryAPIState);
-    return innerDispatchNavigateEvent(navigationType, WTFMove(destination), { }, formState, classicHistoryAPIState);
+    return innerDispatchNavigateEvent(navigationType, WTFMove(destination), { }, formState, classicHistoryAPIState) == DispatchResult::Completed;
 }
 
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#fire-a-download-request-navigate-event
 bool Navigation::dispatchDownloadNavigateEvent(const URL& url, const String& downloadFilename)
 {
     Ref destination = NavigationDestination::create(url, nullptr, false);
-    return innerDispatchNavigateEvent(NavigationNavigationType::Push, WTFMove(destination), downloadFilename);
+    return innerDispatchNavigateEvent(NavigationNavigationType::Push, WTFMove(destination), downloadFilename) == DispatchResult::Completed;
 }
 
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#inform-the-navigation-api-about-aborting-navigation

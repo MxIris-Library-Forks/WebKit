@@ -50,21 +50,21 @@ static Ref<LayoutShape> createInsetShape(const FloatRoundedRect& bounds)
     return adoptRef(*new BoxLayoutShape(bounds));
 }
 
-static Ref<LayoutShape> createCircleShape(const FloatPoint& center, float radius)
+static Ref<LayoutShape> createCircleShape(const FloatPoint& center, float radius, float boxLogicalWidth)
 {
     ASSERT(radius >= 0);
-    return adoptRef(*new RectangleLayoutShape(FloatRect(center.x() - radius, center.y() - radius, radius*2, radius*2), FloatSize(radius, radius)));
+    return adoptRef(*new RectangleLayoutShape(FloatRect(center.x() - radius, center.y() - radius, radius*2, radius*2), FloatSize(radius, radius), boxLogicalWidth));
 }
 
-static Ref<LayoutShape> createEllipseShape(const FloatPoint& center, const FloatSize& radii)
+static Ref<LayoutShape> createEllipseShape(const FloatPoint& center, const FloatSize& radii, float boxLogicalWidth)
 {
     ASSERT(radii.width() >= 0 && radii.height() >= 0);
-    return adoptRef(*new RectangleLayoutShape(FloatRect(center.x() - radii.width(), center.y() - radii.height(), radii.width()*2, radii.height()*2), radii));
+    return adoptRef(*new RectangleLayoutShape(FloatRect(center.x() - radii.width(), center.y() - radii.height(), radii.width()*2, radii.height()*2), radii, boxLogicalWidth));
 }
 
-static Ref<LayoutShape> createPolygonShape(Vector<FloatPoint>&& vertices, WindRule fillRule)
+static Ref<LayoutShape> createPolygonShape(Vector<FloatPoint>&& vertices, WindRule fillRule, float boxLogicalWidth)
 {
-    return adoptRef(*new PolygonLayoutShape(WTFMove(vertices), fillRule));
+    return adoptRef(*new PolygonLayoutShape(WTFMove(vertices), fillRule, boxLogicalWidth));
 }
 
 static inline FloatRect physicalRectToLogical(const FloatRect& rect, float logicalBoxHeight, WritingMode writingMode)
@@ -107,7 +107,7 @@ Ref<const LayoutShape> LayoutShape::createShape(const Style::BasicShape& basicSh
             auto logicalCenter = physicalPointToLogical(center, logicalBoxSize.height(), writingMode);
             logicalCenter.moveBy(borderBoxOffset);
 
-            return createCircleShape(logicalCenter, radius);
+            return createCircleShape(logicalCenter, radius, logicalBoxSize.width());
         },
         [&](const Style::EllipseFunction& ellipse) -> Ref<LayoutShape> {
             auto boxSize = FloatSize { boxWidth, boxHeight };
@@ -116,8 +116,10 @@ Ref<const LayoutShape> LayoutShape::createShape(const Style::BasicShape& basicSh
 
             auto logicalCenter = physicalPointToLogical(center, logicalBoxSize.height(), writingMode);
             logicalCenter.moveBy(borderBoxOffset);
+            if (!horizontalWritingMode)
+                radii = radii.transposedSize();
 
-            return createEllipseShape(logicalCenter, radii);
+            return createEllipseShape(logicalCenter, radii, logicalBoxSize.width());
         },
         [&](const Style::InsetFunction& inset) -> Ref<LayoutShape> {
             float left = Style::evaluate(inset->insets.left(), boxWidth);
@@ -153,7 +155,7 @@ Ref<const LayoutShape> LayoutShape::createShape(const Style::BasicShape& basicSh
                 return physicalPointToLogical(Style::evaluate(vertex, boxSize) + borderBoxOffset, logicalBoxSize.height(), writingMode);
             });
 
-            return createPolygonShape(WTFMove(vertices), Style::windRule(*polygon));
+            return createPolygonShape(WTFMove(vertices), Style::windRule(*polygon), logicalBoxSize.width());
         },
         [&](const Style::PathFunction&) -> Ref<LayoutShape> {
             RELEASE_ASSERT_NOT_REACHED();

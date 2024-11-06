@@ -9,7 +9,10 @@ import WebKit
 import WebKitSwift
 @_spi(Private) import WebKit
 @_spiOnly import WritingTools
+
+#if os(macOS)
 @_weakLinked internal import WritingToolsUI_Private._WTTextEffectView
+#endif
 
 // MARK: Implementation
 

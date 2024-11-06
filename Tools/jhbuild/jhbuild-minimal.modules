@@ -53,11 +53,11 @@
       href="https://chromium.googlesource.com"/>
   <repository type="git" name="git.freedesktop.org"
       href="https://gitlab.freedesktop.org"/>
+  <repository type="git" name="gitlab.gnome.org"
+      href="https://gitlab.gnome.org"/>
   <repository type="git" name="github.com"
       href="https://github.com"/>
   <!-- Tarball repositories. -->
-  <repository type="tarball" name="download.gnome.org"
-      href="https://download.gnome.org"/>
   <repository type="tarball" name="github-tarball"
       href="https://github.com"/>
   <repository type="tarball" name="ftp.gnome.org"
@@ -156,6 +156,37 @@
             checkoutdir="libxml2-${version}"/>
   </autotools>
 
+  <!-- Allows USE_AVIF support -->
+  <cmake id="libavif" cmakeargs="-DCMAKE_BUILD_TYPE=Release -DAVIF_ENABLE_WERROR=OFF">
+    <pkg-config>libavif.pc</pkg-config>
+    <dependencies>
+      <dep package="aom"/>
+      <dep package="libyuv"/>
+    </dependencies>
+    <branch module="AOMediaCodec/libavif"
+            repo="github.com"
+            version="0.9.3"
+            tag="v0.9.3"/>
+  </cmake>
+
+  <cmake id="libyuv">
+    <branch module="libyuv/libyuv"
+            repo="chromium.googlesource.com"
+            tag="stable"
+            checkoutdir="libyuv"/>
+  </cmake>
+
+  <cmake id="aom" cmakeargs="-DBUILD_SHARED_LIBS=1 -DENABLE_DOCS=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TOOLS=OFF -DENABLE_TESTS=OFF">
+    <pkg-config>aom.pc</pkg-config>
+    <branch module="aom"
+            repo="aomedia.googlesource.com"
+            version="3.3.0"
+            tag="v3.3.0"
+            checkoutdir="libaom-${version}">
+       <patch file="fix-aom-build-arm32.patch" strip="1"/>
+    </branch>
+  </cmake>
+
   <!-- libdrm required for function 'drmGetFormatName' (defined since 'libdrm-2.4.113') -->
   <meson id="libdrm" mesonargs="-Dtegra=enabled -Dcairo-tests=disabled -Dman-pages=disabled -Dvalgrind=disabled -Dudev=false -Dtests=false">
     <pkg-config>libdrm.pc</pkg-config>
@@ -173,10 +204,11 @@
       <dep package="glib-networking"/>
       <dep package="libpsl"/>
     </dependencies>
-    <branch module="/sources/libsoup/3.6/libsoup-${version}.tar.xz"
-            repo="download.gnome.org"
+    <branch module="GNOME/libsoup.git"
+            repo="github.com"
+            tag="3.6.0"
             version="3.6.0"
-            hash="sha256:62959f791e8e8442f8c13cedac8c4919d78f9120d5bb5301be67a5e53318b4a3"/>
+            checkoutdir="libsoup-${version}"/>
   </meson>
 
   <autotools id="libpsl" autogenargs="--enable-runtime=libicu --enable-builtin=libicu">
@@ -223,32 +255,32 @@
 
   <meson id="glib" mesonargs="-Dlibmount=disabled -Dselinux=disabled -Dgtk_doc=false -Dtests=false">
     <pkg-config>glib-2.0.pc</pkg-config>
-    <branch module="/sources/glib/2.72/glib-${version}.tar.xz"
-            repo="download.gnome.org"
+    <branch module="GNOME/glib"
+            repo="github.com"
+            tag="2.72.4"
             version="2.72.4"
-            checkoutdir="glib-${version}"
-            hash="sha256:8848aba518ba2f4217d144307a1d6cb9afcc92b54e5c13ac1f8c4d4608e96f0e">
-    </branch>
+            checkoutdir="glib-${version}"/>
   </meson>
 
   <meson id="glib-networking">
     <dependencies>
       <dep package="glib"/>
     </dependencies>
-    <branch module="/sources/glib-networking/2.70/glib-networking-${version}.tar.xz"
-            repo="download.gnome.org"
+    <branch module="GNOME/glib-networking"
+            repo="github.com"
+            tag="2.70.0"
             version="2.70.0"
-            checkoutdir="glib-networking-${version}"
-            hash="sha256:66b408e7afa86c582fe38963db56133869ab4b57d34e48ec56aba621940d6f35"/>
+            checkoutdir="glib-networking-${version}"/>
   </meson>
 
   <!-- atk needed to build with A11y support -->
   <meson id="atk" mesonargs="-Dintrospection=false">
     <pkg-config>atk.pc</pkg-config>
-    <branch module="/sources/atk/2.38/atk-${version}.tar.xz"
-            repo="download.gnome.org"
+    <branch module="Archive/atk.git"
+            repo="gitlab.gnome.org"
+            tag="2.38.0"
             version="2.38.0"
-            hash="sha256:ac4de2a4ef4bd5665052952fe169657e65e895c5057dffb3c2a810f6191a0c36"/>
+            checkoutdir="atk-${version}"/>
     <dependencies>
       <dep package="glib"/>
     </dependencies>
@@ -257,11 +289,11 @@
   <!-- at-spi2-core needed to build with A11y support -->
   <meson id="at-spi2-core" mesonargs="-Dintrospection=no -Dx11=no">
     <pkg-config>atspi-2.pc</pkg-config>
-    <branch module="/sources/at-spi2-core/2.44/at-spi2-core-${version}.tar.xz"
-            repo="download.gnome.org"
+    <branch module="GNOME/at-spi2-core"
+            repo="github.com"
+            tag="AT_SPI2_CORE_2_44_1"
             version="2.44.1"
-            hash="sha256:4beb23270ba6cf7caf20b597354d75194d89afb69d2efcf15f4271688ba6f746">
-    </branch>
+            checkoutdir="at-spi2-core-${version}"/>
     <dependencies>
       <dep package="glib"/>
     </dependencies>
@@ -270,11 +302,11 @@
   <!-- at-spi2-atk needed to build with A11y support -->
   <meson id="at-spi2-atk" mesonargs="">
     <pkg-config>atk-bridge-2.0.pc</pkg-config>
-    <branch module="/sources/at-spi2-atk/2.38/at-spi2-atk-${version}.tar.xz"
-            repo="download.gnome.org"
+    <branch module="Archive/at-spi2-atk.git"
+            repo="gitlab.gnome.org"
+            tag="AT_SPI2_ATK_2_38_0"
             version="2.38.0"
-            hash="sha256:cfa008a5af822b36ae6287f18182c40c91dd699c55faa38605881ed175ca464f">
-    </branch>
+            checkoutdir="at-spi2-atk-${version}"/>
     <dependencies>
       <dep package="glib"/>
       <dep package="atk"/>

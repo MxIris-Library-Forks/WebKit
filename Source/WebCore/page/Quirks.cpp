@@ -1294,6 +1294,14 @@ bool Quirks::requiresUserGestureToPauseInPictureInPicture() const
 #endif
 }
 
+bool Quirks::returnNullPictureInPictureElementDuringFullscreenChange() const
+{
+    if (!needsQuirks())
+        return false;
+
+    return isDomain("bbc.co.uk"_s);
+}
+
 bool Quirks::requiresUserGestureToLoadInPictureInPicture() const
 {
 #if ENABLE(VIDEO_PRESENTATION_MODE)
@@ -1411,13 +1419,14 @@ bool Quirks::allowLayeredFullscreenVideos() const
 #endif
 
 #if PLATFORM(VISION)
-// twitter.com: rdar://124180748
+// x.com: rdar://132850672
+// FIXME (rdar://124579556): Remove once 'x.com' adjusts video handling for visionOS.
 bool Quirks::shouldDisableFullscreenVideoAspectRatioAdaptiveSizing() const
 {
     if (!needsQuirks())
         return false;
 
-    return isDomain("twitter.com"_s);
+    return isDomain("x.com"_s);
 }
 #endif
 

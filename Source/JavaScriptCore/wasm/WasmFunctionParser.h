@@ -212,7 +212,7 @@ private:
 #define WASM_TRY_POP_EXPRESSION_STACK_INTO(result, what) do { \
         WASM_PARSER_FAIL_IF(m_expressionStack.isEmpty(), "can't pop empty stack in "_s, what); \
         result = m_expressionStack.takeLast(); \
-        m_context.didPopValueFromStack(result, "WasmFunctionParser.h " STRINGIZE(__LINE__) ""_s); \
+        m_context.didPopValueFromStack(result, "WasmFunctionParser.h " STRINGIZE_VALUE_OF(__LINE__) ""_s); \
     } while (0)
 
     using UnaryOperationHandler = PartialResult (Context::*)(ExpressionType, ExpressionType&);
@@ -1352,7 +1352,8 @@ auto FunctionParser<Context>::simd(SIMDLaneOperation op, SIMDLane lane, SIMDSign
         } else
             return pushUnreachable(Types::V128);
     }
-    case SIMDLaneOperation::BitwiseSelect: {
+    case SIMDLaneOperation::BitwiseSelect:
+    case SIMDLaneOperation::RelaxedLaneSelect: {
         if constexpr (!isReachable)
             return { };
 

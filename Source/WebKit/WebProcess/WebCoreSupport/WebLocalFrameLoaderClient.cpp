@@ -588,10 +588,10 @@ void WebLocalFrameLoaderClient::dispatchDidStartProvisionalLoad()
         UserData(WebProcess::singleton().transformObjectsToHandles(userData.get()).get()), WallTime::now()));
 }
 
-static constexpr unsigned maxTitleLength = 1000; // Closest power of 10 above the W3C recommendation for Title length.
-
 void WebLocalFrameLoaderClient::dispatchDidReceiveTitle(const StringWithDirection& title)
 {
+    static constexpr unsigned maxTitleLength = 1000; // Closest power of 10 above the W3C recommendation for Title length.
+
     RefPtr webPage = m_frame->page();
     if (!webPage)
         return;
@@ -1947,16 +1947,6 @@ void WebLocalFrameLoaderClient::getLoadDecisionForIcons(const Vector<std::pair<W
 
     for (auto& icon : icons)
         webPage->send(Messages::WebPageProxy::GetLoadDecisionForIcon(icon.first, CallbackID::fromInteger(icon.second)));
-}
-
-void WebLocalFrameLoaderClient::broadcastMainFrameURLChangeToOtherProcesses(const URL& url)
-{
-    if (!siteIsolationEnabled())
-        return;
-    RefPtr webPage = m_frame->page();
-    if (!webPage)
-        return;
-    webPage->send(Messages::WebPageProxy::BroadcastMainFrameURLChangeToOtherProcesses(url));
 }
 
 void WebLocalFrameLoaderClient::didFinishServiceWorkerPageRegistration(bool success)

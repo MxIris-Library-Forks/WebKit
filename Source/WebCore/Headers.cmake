@@ -418,6 +418,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/indexeddb/IDBDatabaseNameAndVersionRequest.h
     Modules/indexeddb/IDBGetAllResult.h
     Modules/indexeddb/IDBGetResult.h
+    Modules/indexeddb/IDBIndexIdentifier.h
     Modules/indexeddb/IDBKey.h
     Modules/indexeddb/IDBKeyData.h
     Modules/indexeddb/IDBKeyPath.h
@@ -1633,6 +1634,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/PointerLockController.h
     page/PrewarmInformation.h
     page/PrintContext.h
+    page/ProcessSyncClient.h
     page/ProcessWarming.h
     page/Quirks.h
     page/ReducedResolutionSeconds.h

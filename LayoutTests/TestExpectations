@@ -3067,7 +3067,6 @@ imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-integer-004.html 
 imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-spacing-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/tab-size/tab-size-spacing-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-dynamic-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-ligature-001.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-text/text-group-align/text-group-align-center-vlr.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-group-align/text-group-align-center.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/text-group-align/text-group-align-end-vlr.html [ ImageOnlyFailure ]
@@ -7408,8 +7407,6 @@ imported/w3c/web-platform-tests/scroll-animations/css/animation-range-visual-tes
 imported/w3c/web-platform-tests/scroll-animations/css/printing/animation-timeline-none-with-progress-print.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/css/printing/scroll-timeline-default-iframe-print.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/css/printing/scroll-timeline-default-print.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/scroll-animations/css/scroll-animation-initial-offset.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-default-iframe.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-default-quirks-mode.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-default-writing-mode-rl.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-default.html [ ImageOnlyFailure ]
@@ -8097,6 +8094,27 @@ imported/w3c/web-platform-tests/css/css-viewport/zoom/text-indent.html [ ImageOn
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-shadow.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-stroke-width.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/word-spacing.html [ ImageOnlyFailure ]
+
+# has-slotted is not implemeneted - https://bugs.webkit.org/show_bug.cgi?id=280608
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-003.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-flattened-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-flattened-003.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-004.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-006.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-007.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-flattened-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-flattened-004.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-flattened-006.tentative.html [ ImageOnlyFailure ]
+
+# :not(:defined) - https://bugs.webkit.org/show_bug.cgi?id=282688
+imported/w3c/web-platform-tests/css/css-scoping/host-defined.html [ ImageOnlyFailure ]
+
+# :host:has - https://bugs.webkit.org/show_bug.cgi?id=282687
+imported/w3c/web-platform-tests/css/css-scoping/host-has-internal-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/host-has-internal-002.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scoping/host-has-internal-003.tentative.html [ ImageOnlyFailure ]
 
 # WebRTC Encoded Transform - Test Expectation - Crashes on 'mac-wk2' debug and gtk-wk2 / wpe-wk2
 webkit.org/b/275663 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-transform-generateKeyFrame-simulcast.https.html [ Skip ]

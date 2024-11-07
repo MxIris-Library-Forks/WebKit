@@ -1949,6 +1949,7 @@
 		512DD8F80D91E6AF000F89EE /* ArchiveResourceCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = 512DD8EE0D91E6AF000F89EE /* ArchiveResourceCollection.h */; };
 		512DD8FC0D91E6AF000F89EE /* ArchiveResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 512DD8F20D91E6AF000F89EE /* ArchiveResource.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		512DD8FD0D91E6AF000F89EE /* ArchiveFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 512DD8F30D91E6AF000F89EE /* ArchiveFactory.h */; };
+		512F03802CDA993C009F7ABC /* ProcessSyncClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 512F037F2CDA993C009F7ABC /* ProcessSyncClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		512F29262BA2BD7000F1C326 /* MediaResourceSniffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 512F29242BA2BD6500F1C326 /* MediaResourceSniffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5130F2F624AEA60A00E1D0A0 /* GameControllerSoftLink.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5130F2F424AEA60300E1D0A0 /* GameControllerSoftLink.mm */; };
 		51327D6011A33A2B004F9D65 /* SinkDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = 51327D5E11A33A2B004F9D65 /* SinkDocument.h */; };
@@ -2941,6 +2942,7 @@
 		7AFD16C42C63EB6A00B51D1A /* WebNSAttributedStringExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A2701F22C62D5D80047263F /* WebNSAttributedStringExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AFD16D32C63F70200B51D1A /* WebLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AFD16D22C63F70200B51D1A /* WebLayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B0C389F2ACEDEF400F1FDDC /* ImagePaintingOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C18A3F230B04B7006847C7 /* ImagePaintingOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7B0C76C02CC8490F0068DAF2 /* IDBIndexIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B0C76BE2CC8482D0068DAF2 /* IDBIndexIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B0E6DCA2AB463E4005189E8 /* NullImageBufferBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B0E6DC82AB463E4005189E8 /* NullImageBufferBackend.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B10339E2549721700C8C1AC /* GraphicsContextGLCV.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B10339D2549720100C8C1AC /* GraphicsContextGLCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B10339F2549721E00C8C1AC /* GraphicsContextGLCVCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B10339C2549720100C8C1AC /* GraphicsContextGLCVCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11386,6 +11388,7 @@
 		512DD8F10D91E6AF000F89EE /* ArchiveResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArchiveResource.cpp; sourceTree = "<group>"; };
 		512DD8F20D91E6AF000F89EE /* ArchiveResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArchiveResource.h; sourceTree = "<group>"; };
 		512DD8F30D91E6AF000F89EE /* ArchiveFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArchiveFactory.h; sourceTree = "<group>"; };
+		512F037F2CDA993C009F7ABC /* ProcessSyncClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSyncClient.h; sourceTree = "<group>"; };
 		512F1A771C07EA0D00908239 /* IDBGetResult.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBGetResult.cpp; sourceTree = "<group>"; };
 		512F29242BA2BD6500F1C326 /* MediaResourceSniffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaResourceSniffer.h; sourceTree = "<group>"; };
 		512F29252BA2BD6500F1C326 /* MediaResourceSniffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaResourceSniffer.cpp; sourceTree = "<group>"; };
@@ -13601,6 +13604,7 @@
 		7AFD16D12C63F6CB00B51D1A /* WebLayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebLayer.mm; sourceTree = "<group>"; };
 		7AFD16D22C63F70200B51D1A /* WebLayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebLayer.h; sourceTree = "<group>"; };
 		7B0C389D2ACED2F000F1FDDC /* ImagePaintingOptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImagePaintingOptions.cpp; sourceTree = "<group>"; };
+		7B0C76BE2CC8482D0068DAF2 /* IDBIndexIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDBIndexIdentifier.h; sourceTree = "<group>"; };
 		7B0E6DC82AB463E4005189E8 /* NullImageBufferBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NullImageBufferBackend.h; sourceTree = "<group>"; };
 		7B0E6DC92AB463E4005189E8 /* NullImageBufferBackend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NullImageBufferBackend.cpp; sourceTree = "<group>"; };
 		7B10339C2549720100C8C1AC /* GraphicsContextGLCVCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsContextGLCVCocoa.h; sourceTree = "<group>"; };
@@ -28238,6 +28242,7 @@
 				E4605FEA2166480800E53046 /* PrewarmInformation.h */,
 				B776D43C1104527500BEB0EC /* PrintContext.cpp */,
 				B776D43A1104525D00BEB0EC /* PrintContext.h */,
+				512F037F2CDA993C009F7ABC /* ProcessSyncClient.h */,
 				E42050162141901B0066EF3B /* ProcessWarming.cpp */,
 				E42050142141901A0066EF3B /* ProcessWarming.h */,
 				CD9A87F9215D6CF3006F17B5 /* Quirks.cpp */,
@@ -30645,6 +30650,7 @@
 				51645B481B9F889B00F789CE /* IDBIndex.cpp */,
 				51645B491B9F889B00F789CE /* IDBIndex.h */,
 				51D71990181106E00016DC51 /* IDBIndex.idl */,
+				7B0C76BE2CC8482D0068DAF2 /* IDBIndexIdentifier.h */,
 				51D71991181106E00016DC51 /* IDBKey.cpp */,
 				51D71992181106E00016DC51 /* IDBKey.h */,
 				511EC1A7188DAE7B00BA3EB6 /* IDBKeyData.cpp */,
@@ -40641,6 +40647,7 @@
 				5105F0691D4BA9D900FB80BC /* IDBGetRecordData.h in Headers */,
 				5185FC8F1BB4C4E80012898F /* IDBGetResult.h in Headers */,
 				5185FC911BB4C4E80012898F /* IDBIndex.h in Headers */,
+				7B0C76C02CC8490F0068DAF2 /* IDBIndexIdentifier.h in Headers */,
 				51F798F01BE880E7008AE491 /* IDBIndexInfo.h in Headers */,
 				51E269371DD3BD9B006B6A58 /* IDBIterateCursorData.h in Headers */,
 				5185FC951BB4C4E80012898F /* IDBKey.h in Headers */,
@@ -42571,6 +42578,7 @@
 				7BDDA34C275A01310038659E /* ProcessIdentity.h in Headers */,
 				A8EA7EBC0A1945D000A8EF5F /* ProcessingInstruction.h in Headers */,
 				1CC54AFE270F96AE005BF8BE /* ProcessQualified.h in Headers */,
+				512F03802CDA993C009F7ABC /* ProcessSyncClient.h in Headers */,
 				E42050172141901B0066EF3B /* ProcessWarming.h in Headers */,
 				72BA2ACF2952445D00678507 /* ProgressBarPart.h in Headers */,
 				E44613EC0CD681B500FADA75 /* ProgressEvent.h in Headers */,

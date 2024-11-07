@@ -852,6 +852,7 @@ WebProcess/WebCoreSupport/WebPerformanceLoggingClient.cpp
 WebProcess/WebCoreSupport/WebPermissionController.cpp
 WebProcess/WebCoreSupport/WebPlatformStrategies.cpp
 WebProcess/WebCoreSupport/WebPopupMenu.cpp
+WebProcess/WebCoreSupport/WebProcessSyncClient.cpp
 WebProcess/WebCoreSupport/WebProgressTrackerClient.cpp
 WebProcess/WebCoreSupport/WebRemoteFrameClient.cpp
 WebProcess/WebCoreSupport/WebResourceLoadObserver.cpp
@@ -879,7 +880,7 @@ WebProcess/WebPage/WebFoundTextRangeController.cpp
 WebProcess/WebPage/WebFrame.cpp
 WebProcess/WebPage/WebHistoryItemClient.cpp
 WebProcess/WebPage/WebOpenPanelResultListener.cpp
-WebProcess/WebPage/WebPage.cpp @no-unify
+WebProcess/WebPage/WebPage.cpp
 WebProcess/WebPage/WebPageGroupProxy.cpp
 WebProcess/WebPage/WebPageOverlay.cpp
 WebProcess/WebPage/WebPageTesting.cpp

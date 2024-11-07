@@ -58,6 +58,7 @@
 #include "HTMLFormElement.h"
 #include "HistoryItem.h"
 #include "IDBConnectionToServer.h"
+#include "IDBIndexIdentifier.h"
 #include "IDBObjectStoreIdentifier.h"
 #include "InspectorClient.h"
 #include "LocalFrame.h"
@@ -68,6 +69,7 @@
 #include "PageConfiguration.h"
 #include "PaymentCoordinatorClient.h"
 #include "PluginInfoProvider.h"
+#include "ProcessSyncClient.h"
 #include "ProgressTrackerClient.h"
 #include "RemoteFrameClient.h"
 #include "SecurityOriginData.h"
@@ -204,7 +206,7 @@ class EmptyDatabaseProvider final : public DatabaseProvider {
         void clearObjectStore(const IDBRequestData&, IDBObjectStoreIdentifier) final { }
         void createIndex(const IDBRequestData&, const IDBIndexInfo&) final { }
         void deleteIndex(const IDBRequestData&, IDBObjectStoreIdentifier, const String&) final { }
-        void renameIndex(const IDBRequestData&, IDBObjectStoreIdentifier, uint64_t, const String&) final { }
+        void renameIndex(const IDBRequestData&, IDBObjectStoreIdentifier, IDBIndexIdentifier, const String&) final { }
         void putOrAdd(const IDBRequestData&, const IDBKeyData&, const IDBValue&, const IndexedDB::ObjectStoreOverwriteMode) final { }
         void getRecord(const IDBRequestData&, const IDBGetRecordData&) final { }
         void getAllRecords(const IDBRequestData&, const IDBGetAllRecordsData&) final { }
@@ -605,10 +607,6 @@ void EmptyFrameLoaderClient::updateSandboxFlags(SandboxFlags)
 }
 
 void EmptyFrameLoaderClient::updateOpener(const Frame&)
-{
-}
-
-void EmptyFrameLoaderClient::broadcastMainFrameURLChangeToOtherProcesses(const URL&)
 {
 }
 
@@ -1232,7 +1230,8 @@ PageConfiguration pageConfigurationWithEmptyClients(std::optional<PageIdentifier
         makeUniqueRef<EmptyPaymentCoordinatorClient>(),
 #endif
         makeUniqueRef<EmptyChromeClient>(),
-        makeUniqueRef<EmptyCryptoClient>()
+        makeUniqueRef<EmptyCryptoClient>(),
+        makeUniqueRef<ProcessSyncClient>()
     };
 
 #if ENABLE(DRAG_SUPPORT)

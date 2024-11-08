@@ -269,10 +269,6 @@ class ContentChangeObserver;
 class DOMTimerHoldingTank;
 #endif
 
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
-class AcceleratedTimeline;
-#endif
-
 struct ApplicationManifest;
 struct BoundaryPoint;
 struct CSSParserContext;
@@ -502,9 +498,6 @@ public:
     WEBCORE_EXPORT ViewportArguments viewportArguments() const;
 
     OptionSet<DisabledAdaptations> disabledAdaptations() const { return m_disabledAdaptations; }
-#if ASSERT_ENABLED
-    bool didDispatchViewportPropertiesChanged() const { return m_didDispatchViewportPropertiesChanged; }
-#endif
 
     WEBCORE_EXPORT DocumentType* doctype() const;
 
@@ -1806,11 +1799,6 @@ public:
     WEBCORE_EXPORT AnimationTimelinesController& ensureTimelinesController();
     void keyframesRuleDidChange(const String& name);
 
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
-    AcceleratedTimeline* existingAcceleratedTimeline() const { return m_acceleratedTimeline.get(); }
-    AcceleratedTimeline& acceleratedTimeline();
-#endif
-
     void addTopLayerElement(Element&);
     void removeTopLayerElement(Element&);
     const ListHashSet<Ref<Element>>& topLayerElements() const { return m_topLayerElements; }
@@ -2637,10 +2625,6 @@ private:
 
     bool m_updateTitleTaskScheduled { false };
 
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
-    std::unique_ptr<AcceleratedTimeline> m_acceleratedTimeline;
-#endif
-
     bool m_isRunningUserScripts { false };
     bool m_shouldPreventEnteringBackForwardCacheForTesting { false };
     bool m_hasLoadedThirdPartyScript { false };
@@ -2673,7 +2657,6 @@ private:
 
 #if ASSERT_ENABLED
     bool m_inHitTesting { false };
-    bool m_didDispatchViewportPropertiesChanged { false };
 #endif
     bool m_isDirAttributeDirty { false };
 

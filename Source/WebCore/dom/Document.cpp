@@ -398,10 +398,6 @@
 #include "HTMLVideoElement.h"
 #endif
 
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
-#include "AcceleratedTimeline.h"
-#endif
-
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 
 #define DOCUMENT_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->object().toUInt64() : 0, this == &topDocument(), ##__VA_ARGS__)
@@ -2355,7 +2351,7 @@ void Document::visibilityStateChanged()
     });
 
 #if ENABLE(MEDIA_STREAM) && PLATFORM(IOS_FAMILY)
-    if (auto mediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists()) {
+    if (auto mediaSessionManager = PlatformMediaSessionManager::singletonIfExists()) {
         if (!mediaSessionManager->isInterrupted())
             updateCaptureAccordingToMutedState();
     }
@@ -4753,9 +4749,6 @@ void Document::updateViewportArguments()
     if (!isViewportDocument())
         return;
 
-#if ASSERT_ENABLED
-    m_didDispatchViewportPropertiesChanged = true;
-#endif
     page->chrome().dispatchViewportPropertiesDidChange(viewportArguments());
     page->chrome().didReceiveDocType(protectedFrame().releaseNonNull());
 }
@@ -6939,12 +6932,6 @@ void Document::suspend(ReasonForSuspension reason)
 
     for (Ref element : m_documentSuspensionCallbackElements)
         element->prepareForDocumentSuspension();
-
-#if ASSERT_ENABLED
-    // Clear the update flag to be able to check if the viewport arguments update
-    // is dispatched, after the document is restored from the back/forward cache.
-    m_didDispatchViewportPropertiesChanged = false;
-#endif
 
     if (auto viewTransition = m_activeViewTransition)
         viewTransition->skipTransition();
@@ -9998,15 +9985,6 @@ DocumentTimeline& Document::timeline()
 
     return *m_timeline;
 }
-
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
-AcceleratedTimeline& Document::acceleratedTimeline()
-{
-    if (!m_acceleratedTimeline)
-        m_acceleratedTimeline = makeUnique<AcceleratedTimeline>(*this);
-    return *m_acceleratedTimeline;
-}
-#endif
 
 Vector<RefPtr<WebAnimation>> Document::getAnimations()
 {

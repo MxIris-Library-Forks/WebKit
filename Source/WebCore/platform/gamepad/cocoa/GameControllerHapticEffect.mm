@@ -135,7 +135,7 @@ void GameControllerHapticEffect::start(CompletionHandler<void(bool)>&& completio
 
     m_completionHandler = WTFMove(completionHandler);
 
-    auto callbackAggregator = MainRunLoopCallbackAggregator::create([weakThis = WeakPtr { *this }]() mutable {
+    Ref callbackAggregator = MainRunLoopCallbackAggregator::create([weakThis = WeakPtr { *this }]() mutable {
         if (RefPtr protectedThis = weakThis.get(); protectedThis && protectedThis->m_completionHandler)
             protectedThis->m_completionHandler(protectedThis->m_playerFinished == 2);
     });
@@ -176,7 +176,7 @@ void GameControllerHapticEffect::start(CompletionHandler<void(bool)>&& completio
 
 void GameControllerHapticEffect::ensureStarted(Function<void(bool)>&& completionHandler)
 {
-    auto callbackAggregator = MainRunLoopCallbackAggregator::create([weakThis = WeakPtr { *this }, completionHandler = WTFMove(completionHandler)]() mutable {
+    Ref callbackAggregator = MainRunLoopCallbackAggregator::create([weakThis = WeakPtr { *this }, completionHandler = WTFMove(completionHandler)]() mutable {
         bool success = weakThis && weakThis->m_engineStarted == 2;
         completionHandler(success);
     });

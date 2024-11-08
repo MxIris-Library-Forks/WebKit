@@ -687,13 +687,6 @@ void WebChromeClient::invalidateContentsForSlowScroll(const IntRect& rect)
     }
 
     page->pageDidScroll();
-#if USE(COORDINATED_GRAPHICS)
-    RefPtr frameView = page->localMainFrameView();
-    if (frameView && frameView->delegatesScrolling()) {
-        page->drawingArea()->scroll(rect, IntSize());
-        return;
-    }
-#endif
     page->drawingArea()->setNeedsDisplayInRect(rect);
 }
 
@@ -1942,6 +1935,11 @@ void WebChromeClient::getImageBufferResourceLimitsForTesting(CompletionHandler<v
 bool WebChromeClient::requiresScriptTelemetryForURL(const URL& url, const SecurityOrigin& topOrigin) const
 {
     return WebProcess::singleton().requiresScriptTelemetryForURL(url, topOrigin);
+}
+
+void WebChromeClient::callAfterPendingSyntheticClick(CompletionHandler<void(SyntheticClickResult)>&& completion)
+{
+    protectedPage()->callAfterPendingSyntheticClick(WTFMove(completion));
 }
 
 } // namespace WebKit

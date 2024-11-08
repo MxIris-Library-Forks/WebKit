@@ -698,7 +698,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     accessibility/isolatedtree/AXIsolatedObject.h
     accessibility/isolatedtree/AXIsolatedTree.h
 
-    animation/AcceleratedTimeline.h
+    animation/AcceleratedEffectStackUpdater.h
+    animation/AnimationMalloc.h
     animation/AnimationFrameRatePreset.h
     animation/AnimationTimeline.h
     animation/AnimationTimelinesController.h
@@ -1874,6 +1875,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/StyleAppearance.h
     platform/SuddenTermination.h
     platform/Supplementable.h
+    platform/SyntheticClickResult.h
     platform/SystemSoundDelegate.h
     platform/TextRecognitionOptions.h
     platform/ThemeTypes.h
@@ -2418,6 +2420,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/text/UnicodeBidi.h
     platform/text/WritingMode.h
 
+    platform/video-codecs/BitReader.h
     platform/video-codecs/VideoCodecType.h
 
     platform/xr/PlatformXR.h

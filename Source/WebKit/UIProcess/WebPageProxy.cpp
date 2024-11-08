@@ -7743,7 +7743,7 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
 #endif
 
     auto wasPotentiallyInitiatedByUser = navigation->isLoadedWithNavigationShared() || navigation->wasUserInitiated();
-    if (isAlwaysOnLoggingAllowed())
+    if (!sessionID().isEphemeral())
         logFrameNavigation(frame, URL { internals().pageLoadState.url() }, request, navigationAction->data().redirectResponse.url(), wasPotentiallyInitiatedByUser);
 
     if (m_policyClient)
@@ -8575,12 +8575,6 @@ void WebPageProxy::runBeforeUnloadConfirmPanel(IPC::Connection& connection, Fram
                 internals().tryCloseTimeoutTimer.startOneShot(tryCloseTimeoutDelay);
             completionHandler(shouldClose);
     });
-}
-
-void WebPageProxy::didChangeViewportProperties(const ViewportAttributes& attr)
-{
-    if (RefPtr pageClient = this->pageClient())
-        pageClient->didChangeViewportProperties(attr);
 }
 
 void WebPageProxy::pageDidScroll(const WebCore::IntPoint& scrollPosition)

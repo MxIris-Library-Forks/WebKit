@@ -880,21 +880,6 @@ enum class WebCore::ViewportFit : uint8_t {
     Cover,
 };
 
-header: <WebCore/ViewportArguments.h>
-[CustomHeader] struct WebCore::ViewportAttributes {
-    WebCore::FloatSize layoutSize;
-
-    float initialScale;
-    float minimumScale;
-    float maximumScale;
-
-    float userScalable;
-    float orientation;
-    float shrinkToFit;
-
-    WebCore::ViewportFit viewportFit;
-};
-
 header: <WebCore/ShareData.h>
 [CustomHeader] struct WebCore::ShareDataWithParsedURL {
     WebCore::ShareData shareData;
@@ -6599,8 +6584,8 @@ header: <WebCore/AcceleratedEffect.h>
     OptionSet<WebCore::AcceleratedEffectProperty> animatedProperties();
     bool paused();
     double playbackRate();
-    std::optional<Seconds> startTime();
-    std::optional<Seconds> holdTime();
+    std::optional<WebCore::WebAnimationTime> startTime();
+    std::optional<WebCore::WebAnimationTime> holdTime();
 };
 #endif // ENABLE(THREADED_ANIMATION_RESOLUTION)
 

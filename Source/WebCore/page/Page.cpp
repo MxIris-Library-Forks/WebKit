@@ -1477,10 +1477,6 @@ void Page::setPageScaleFactor(float scale, const IntPoint& origin, bool inStable
     if (mainFrameView && mainFrameView->scrollPosition() != origin) {
         if (mainFrameView->delegatedScrollingMode() != DelegatedScrollingMode::DelegatedToNativeScrollView)
             mainFrameView->setScrollPosition(origin);
-#if USE(COORDINATED_GRAPHICS)
-        else
-            mainFrameView->requestScrollToPosition(origin);
-#endif
     }
 
 #if ENABLE(VIDEO)
@@ -2859,7 +2855,7 @@ void Page::stopMediaCapture(MediaProducerMediaCaptureKind kind)
 bool Page::mediaPlaybackExists()
 {
 #if ENABLE(VIDEO)
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         return !platformMediaSessionManager->hasNoSession();
 #endif
     return false;
@@ -2868,7 +2864,7 @@ bool Page::mediaPlaybackExists()
 bool Page::mediaPlaybackIsPaused()
 {
 #if ENABLE(VIDEO)
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         return platformMediaSessionManager->mediaPlaybackIsPaused(mediaSessionGroupIdentifier());
 #endif
     return false;
@@ -2877,7 +2873,7 @@ bool Page::mediaPlaybackIsPaused()
 void Page::pauseAllMediaPlayback()
 {
 #if ENABLE(VIDEO)
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         platformMediaSessionManager->pauseAllMediaPlaybackForGroup(mediaSessionGroupIdentifier());
 #endif
 }
@@ -2889,7 +2885,7 @@ void Page::suspendAllMediaPlayback()
     if (m_mediaPlaybackIsSuspended)
         return;
 
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         platformMediaSessionManager->suspendAllMediaPlaybackForGroup(mediaSessionGroupIdentifier());
 
     // FIXME: We cannot set m_mediaPlaybackIsSuspended before, see https://bugs.webkit.org/show_bug.cgi?id=192829#c7.
@@ -2914,7 +2910,7 @@ void Page::resumeAllMediaPlayback()
         return;
     m_mediaPlaybackIsSuspended = false;
 
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         platformMediaSessionManager->resumeAllMediaPlaybackForGroup(mediaSessionGroupIdentifier());
 #endif
 }
@@ -2927,7 +2923,7 @@ void Page::suspendAllMediaBuffering()
         return;
     m_mediaBufferingIsSuspended = true;
 
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         platformMediaSessionManager->suspendAllMediaBufferingForGroup(mediaSessionGroupIdentifier());
 #endif
 }
@@ -2939,7 +2935,7 @@ void Page::resumeAllMediaBuffering()
         return;
     m_mediaBufferingIsSuspended = false;
 
-    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::sharedManagerIfExists())
+    if (auto* platformMediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         platformMediaSessionManager->resumeAllMediaBufferingForGroup(mediaSessionGroupIdentifier());
 #endif
 }
@@ -5181,7 +5177,7 @@ void Page::hasActiveNowPlayingSessionChanged()
 
 void Page::activeNowPlayingSessionUpdateTimerFired()
 {
-    bool hasActiveNowPlayingSession = PlatformMediaSessionManager::sharedManager().hasActiveNowPlayingSessionInGroup(mediaSessionGroupIdentifier());
+    bool hasActiveNowPlayingSession = PlatformMediaSessionManager::singleton().hasActiveNowPlayingSessionInGroup(mediaSessionGroupIdentifier());
     if (hasActiveNowPlayingSession == m_hasActiveNowPlayingSession)
         return;
 

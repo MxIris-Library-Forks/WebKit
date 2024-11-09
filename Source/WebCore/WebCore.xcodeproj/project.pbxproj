@@ -3433,6 +3433,7 @@
 		900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C207F2CAF8225002C79C5 /* URLPatternOptions.h */; };
 		900C20872CAF8243002C79C5 /* URLPatternResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C20812CAF8225002C79C5 /* URLPatternResult.h */; };
 		9016EA4D2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 9016EA4C2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		9017C9FE2CD007F2002E1DBC /* URLPatternParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 9017C9FD2CD007F2002E1DBC /* URLPatternParser.h */; };
 		903C7E222CC246DA00245C29 /* URLPatternTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 903C7E212CC246D400245C29 /* URLPatternTokenizer.h */; };
 		90E1B6D22CB9A7E300CADF80 /* URLPatternCanonical.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */; };
 		90E351C2247E46E400FBF24F /* IDBDatabaseNameAndVersionRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E351BD247E3D4800FBF24F /* IDBDatabaseNameAndVersionRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -14733,6 +14734,8 @@
 		900C20812CAF8225002C79C5 /* URLPatternResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternResult.h; sourceTree = "<group>"; };
 		900C20822CAF8225002C79C5 /* URLPatternResult.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = URLPatternResult.idl; sourceTree = "<group>"; };
 		9016EA4C2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDBDatabaseNameAndVersion.h; sourceTree = "<group>"; };
+		9017C9FC2CD007E3002E1DBC /* URLPatternParser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLPatternParser.cpp; sourceTree = "<group>"; };
+		9017C9FD2CD007F2002E1DBC /* URLPatternParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternParser.h; sourceTree = "<group>"; };
 		903C7E202CC246C300245C29 /* URLPatternTokenizer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLPatternTokenizer.cpp; sourceTree = "<group>"; };
 		903C7E212CC246D400245C29 /* URLPatternTokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternTokenizer.h; sourceTree = "<group>"; };
 		90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; path = URLPatternCanonical.h; sourceTree = "<group>"; };
@@ -29519,6 +29522,8 @@
 				900C207E2CAF8225002C79C5 /* URLPatternInit.idl */,
 				900C207F2CAF8225002C79C5 /* URLPatternOptions.h */,
 				900C20802CAF8225002C79C5 /* URLPatternOptions.idl */,
+				9017C9FC2CD007E3002E1DBC /* URLPatternParser.cpp */,
+				9017C9FD2CD007F2002E1DBC /* URLPatternParser.h */,
 				900C20812CAF8225002C79C5 /* URLPatternResult.h */,
 				900C20822CAF8225002C79C5 /* URLPatternResult.idl */,
 				903C7E202CC246C300245C29 /* URLPatternTokenizer.cpp */,
@@ -43889,6 +43894,7 @@
 				90E1B6D22CB9A7E300CADF80 /* URLPatternCanonical.h in Headers */,
 				900C20852CAF8237002C79C5 /* URLPatternInit.h in Headers */,
 				900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */,
+				9017C9FE2CD007F2002E1DBC /* URLPatternParser.h in Headers */,
 				900C20872CAF8243002C79C5 /* URLPatternResult.h in Headers */,
 				903C7E222CC246DA00245C29 /* URLPatternTokenizer.h in Headers */,
 				7CC289DF1AA0FE5D009A9CE3 /* URLRegistry.h in Headers */,

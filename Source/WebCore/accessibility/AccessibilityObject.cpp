@@ -110,6 +110,11 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
+AccessibilityObject::AccessibilityObject(AXID axID)
+    : AXCoreObject(axID)
+{
+}
+
 AccessibilityObject::~AccessibilityObject()
 {
     ASSERT(isDetached());
@@ -136,7 +141,7 @@ String AccessibilityObject::dbg() const
 
     return makeString(
         "{role: "_s, accessibilityRoleToString(roleValue()),
-        ", ID "_s, objectID() ? objectID()->loggingString() : ""_str,
+        ", ID "_s, objectID().loggingString(),
         isIgnored() ? ", ignored"_s : emptyString(),
         backingEntityDescription,
         '}'
@@ -1930,7 +1935,6 @@ bool AccessibilityObject::dependsOnTextUnderElement() const
     // MacOS does not expect native <li> elements to expose label information, it only expects leaf node elements to do that.
     case AccessibilityRole::ListItem:
 #endif
-    case AccessibilityRole::MenuButton:
     case AccessibilityRole::MenuItem:
     case AccessibilityRole::MenuItemCheckbox:
     case AccessibilityRole::MenuItemRadio:
@@ -4094,7 +4098,7 @@ bool AccessibilityObject::isIgnored() const
         attributeCache = axObjectCache->computedObjectAttributeCache();
     
     if (attributeCache) {
-        AccessibilityObjectInclusion ignored = attributeCache->getIgnored(*objectID());
+        AccessibilityObjectInclusion ignored = attributeCache->getIgnored(objectID());
         switch (ignored) {
         case AccessibilityObjectInclusion::IgnoreObject:
             return true;
@@ -4109,7 +4113,7 @@ bool AccessibilityObject::isIgnored() const
 
     // Refetch the attribute cache in case it was enabled as part of computing isIgnored.
     if (axObjectCache && (attributeCache = axObjectCache->computedObjectAttributeCache()))
-        attributeCache->setIgnored(*objectID(), ignored ? AccessibilityObjectInclusion::IgnoreObject : AccessibilityObjectInclusion::IncludeObject);
+        attributeCache->setIgnored(objectID(), ignored ? AccessibilityObjectInclusion::IgnoreObject : AccessibilityObjectInclusion::IncludeObject);
 
     return ignored;
 }
@@ -4132,7 +4136,7 @@ bool AccessibilityObject::isIgnoredWithoutCache(AXObjectCache* cache) const
 
 #if !ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE) && ENABLE(ACCESSIBILITY_ISOLATED_TREE)
         if (becameIgnored)
-            cache->objectBecameIgnored(*objectID());
+            cache->objectBecameIgnored(objectID());
 #endif // !ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE) && ENABLE(ACCESSIBILITY_ISOLATED_TREE)
         if (becameUnignored || becameIgnored)
             cache->childrenChanged(parentObject());

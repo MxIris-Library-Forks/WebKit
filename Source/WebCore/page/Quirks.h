@@ -116,6 +116,7 @@ public:
     bool needsPrimeVideoUserSelectNoneQuirk() const;
 
     bool needsScrollbarWidthThinDisabledQuirk() const;
+    bool needsBodyScrollbarWidthNoneDisabledQuirk() const;
 
     bool shouldOpenAsAboutBlank(const String&) const;
 
@@ -222,6 +223,7 @@ public:
 
 #if PLATFORM(IOS_FAMILY)
     WEBCORE_EXPORT bool shouldIgnoreContentObservationForClick(const Node&) const;
+    WEBCORE_EXPORT bool shouldSynthesizeTouchEventsAfterNonSyntheticClick(const Node&) const;
 #endif
 
     bool needsMozillaFileTypeForDataTransfer() const;
@@ -303,6 +305,7 @@ private:
     mutable std::optional<bool> m_shouldIgnorePlaysInlineRequirementQuirk;
     mutable std::optional<bool> m_needsRelaxedCorsMixedContentCheckQuirk;
     mutable std::optional<bool> m_needsScrollbarWidthThinDisabledQuirk;
+    mutable std::optional<bool> m_needsBodyScrollbarWidthNoneDisabledQuirk;
     mutable std::optional<bool> m_needsPrimeVideoUserSelectNoneQuirk;
     mutable std::optional<bool> m_implicitMuteWhenVolumeSetToZero;
 #if ENABLE(DESKTOP_CONTENT_MODE_QUIRKS)

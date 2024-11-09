@@ -676,6 +676,18 @@ bool Quirks::needsScrollbarWidthThinDisabledQuirk() const
     return *m_needsScrollbarWidthThinDisabledQuirk;
 }
 
+// spotify.com rdar://138918575
+bool Quirks::needsBodyScrollbarWidthNoneDisabledQuirk() const
+{
+    if (!needsQuirks())
+        return false;
+
+    if (!m_needsBodyScrollbarWidthNoneDisabledQuirk)
+        m_needsBodyScrollbarWidthNoneDisabledQuirk = m_document->url().host() == "open.spotify.com"_s;
+
+    return *m_needsBodyScrollbarWidthNoneDisabledQuirk;
+}
+
 // gizmodo.com rdar://102227302
 bool Quirks::needsFullscreenDisplayNoneQuirk() const
 {
@@ -1961,6 +1973,19 @@ bool Quirks::needsChromeMediaControlsPseudoElement() const
 }
 
 #if PLATFORM(IOS_FAMILY)
+
+bool Quirks::shouldSynthesizeTouchEventsAfterNonSyntheticClick(const Node& target) const
+{
+    if (!needsQuirks())
+        return false;
+
+    if (target.nodeName() == "AVIA-BUTTON"_s && isDomain("cbssports.com"_s)) {
+        // Remove this once rdar://139478801 is resolved.
+        return true;
+    }
+
+    return false;
+}
 
 bool Quirks::shouldIgnoreContentObservationForClick(const Node& targetNode) const
 {

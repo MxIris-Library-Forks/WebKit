@@ -70,8 +70,7 @@ class TestExpectedBuildSteps(unittest.TestCase):
             'jhbuild',
             'validate-change',
             'clean-derived-sources',
-            'compile-webkit',
-            'install-built-product'
+            'compile-webkit'
         ],
         'GTK-WK2-Tests-EWS': [
             'configure-build',
@@ -95,7 +94,7 @@ class TestExpectedBuildSteps(unittest.TestCase):
             'layout-tests',
             'set-build-summary'
         ],
-        'iOS-18-Build-EWS': [
+        'iOS-17-Build-EWS': [
             'configure-build',
             'validate-change',
             'configuration',
@@ -110,7 +109,7 @@ class TestExpectedBuildSteps(unittest.TestCase):
             'validate-change',
             'compile-webkit'
         ],
-        'iOS-18-Simulator-Build-EWS': [
+        'iOS-17-Simulator-Build-EWS': [
             'configure-build',
             'validate-change',
             'configuration',
@@ -125,7 +124,7 @@ class TestExpectedBuildSteps(unittest.TestCase):
             'validate-change',
             'compile-webkit'
         ],
-        'iOS-18-Simulator-WK2-Tests-EWS': [
+        'iOS-17-Simulator-WK2-Tests-EWS': [
             'configure-build',
             'validate-change',
             'configuration',
@@ -148,7 +147,7 @@ class TestExpectedBuildSteps(unittest.TestCase):
             'trigger-crash-log-submission',
             'set-build-summary'
         ],
-        'iOS-18-Simulator-WPT-WK2-Tests-EWS': [
+        'iOS-17-Simulator-WPT-WK2-Tests-EWS': [
             'configure-build',
             'validate-change',
             'configuration',

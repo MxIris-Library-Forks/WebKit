@@ -127,8 +127,8 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-AccessibilityRenderObject::AccessibilityRenderObject(RenderObject& renderer)
-    : AccessibilityNodeObject(renderer.node())
+AccessibilityRenderObject::AccessibilityRenderObject(AXID axID, RenderObject& renderer)
+    : AccessibilityNodeObject(axID, renderer.node())
     , m_renderer(renderer)
 {
 #if ASSERT_ENABLED
@@ -136,8 +136,8 @@ AccessibilityRenderObject::AccessibilityRenderObject(RenderObject& renderer)
 #endif
 }
 
-AccessibilityRenderObject::AccessibilityRenderObject(Node& node)
-    : AccessibilityNodeObject(&node)
+AccessibilityRenderObject::AccessibilityRenderObject(AXID axID, Node& node)
+    : AccessibilityNodeObject(axID, &node)
 {
     // We should only ever create an instance of this class with a node if that node has no renderer (i.e. because of display:contents).
     ASSERT(!node.renderer());
@@ -148,9 +148,9 @@ AccessibilityRenderObject::~AccessibilityRenderObject()
     ASSERT(isDetached());
 }
 
-Ref<AccessibilityRenderObject> AccessibilityRenderObject::create(RenderObject& renderer)
+Ref<AccessibilityRenderObject> AccessibilityRenderObject::create(AXID axID, RenderObject& renderer)
 {
-    return adoptRef(*new AccessibilityRenderObject(renderer));
+    return adoptRef(*new AccessibilityRenderObject(axID, renderer));
 }
 
 void AccessibilityRenderObject::detachRemoteParts(AccessibilityDetachmentType detachmentType)
@@ -512,13 +512,6 @@ AccessibilityObject* AccessibilityRenderObject::parentObject() const
     WeakPtr cache = axObjectCache();
     if (!cache)
         return nullptr;
-
-    if (ariaRoleAttribute() == AccessibilityRole::Menu) {
-        // menuButton and its corresponding menu are DOM siblings, but accessibility expects them to be parent/child.
-        if (auto* parent = menuButtonForMenu())
-            return parent;
-    }
-
 
 #if !USE(ATSPI)
     // FIXME: This compiler directive can be removed after https://bugs.webkit.org/show_bug.cgi?id=282117 is fixed.
@@ -1183,8 +1176,8 @@ bool AccessibilityRenderObject::computeIsIgnored() const
 
             if (checkForIgnored && !ancestor->isIgnored()) {
                 checkForIgnored = false;
-                // Static text beneath MenuItems and MenuButtons are just reported along with the menu item, so it's ignored on an individual level.
-                if (ancestor->isMenuItem() || ancestor->isMenuButton())
+                // Static text beneath MenuItems are just reported along with the menu item, so it's ignored on an individual level.
+                if (ancestor->isMenuItem())
                     return true;
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,13 +25,29 @@
 
 #pragma once
 
-#include "DownloadID.h"
-#include <wtf/HashMap.h>
+#if HAVE(MMAP)
 
-namespace WebKit {
+#include <sys/mman.h>
+#include <wtf/StdLibExtras.h>
 
-class Download;
+namespace WTF {
 
-using DownloadMap = HashMap<DownloadID, Ref<Download>>;
+struct Mmap {
+    static void* mmap(size_t size, int pageProtection, int options, int fileDescriptor)
+    {
+        auto* data = ::mmap(0, size, pageProtection, options, fileDescriptor, 0);
+        return data == MAP_FAILED ? nullptr : data;
+    }
 
-} // namespace WebKit
+    static void free(void* data, size_t size)
+    {
+        if (data)
+            munmap(data, size);
+    }
+};
+
+} // namespace WTF
+
+using WTF::Mmap;
+
+#endif // HAVE(MMAP)

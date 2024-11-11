@@ -1051,7 +1051,7 @@ inline static NSString *textRelativeToSelectionStart(WKRelativeTextRange *range,
 
 static WKDragSessionContext *existingLocalDragSessionContext(id <UIDragSession> session)
 {
-    return [session.localContext isKindOfClass:[WKDragSessionContext class]] ? (WKDragSessionContext *)session.localContext : nil;
+    return dynamic_objc_cast<WKDragSessionContext>(session.localContext);
 }
 
 static WKDragSessionContext *ensureLocalDragSessionContext(id <UIDragSession> session)
@@ -1065,7 +1065,7 @@ static WKDragSessionContext *ensureLocalDragSessionContext(id <UIDragSession> se
     }
 
     session.localContext = adoptNS([[WKDragSessionContext alloc] init]).get();
-    return (WKDragSessionContext *)session.localContext;
+    return existingLocalDragSessionContext(session);
 }
 
 #endif // ENABLE(DRAG_SUPPORT)
@@ -2127,7 +2127,7 @@ typedef NS_ENUM(NSInteger, EndEditingReason) {
         return;
 
     auto& lastTouchEvent = gestureRecognizer.lastTouchEvent;
-    _lastInteractionLocation = lastTouchEvent.locationInDocumentCoordinates;
+    _lastInteractionLocation = lastTouchEvent.locationInRootViewCoordinates;
 
     if (lastTouchEvent.type == WebKit::WKTouchEventType::Begin) {
         if (!_failedTouchStartDeferringGestures)

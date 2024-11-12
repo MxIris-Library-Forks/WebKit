@@ -2945,17 +2945,20 @@ FileSystemAccessEnabled:
 
 FilterLinkDecorationByDefaultEnabled:
   type: bool
-  status: stable
+  status: testable
   category: networking
   humanReadableName: "Filter Link Decoration"
   humanReadableDescription: "Enable Filtering Link Decoration"
   defaultValue:
     WebKitLegacy:
-      default: true
+      "ENABLE(LINK_DECORATION_FILTERING_BY_DEFAULT)": true
+      default: false
     WebKit:
-      default: true
+      "ENABLE(LINK_DECORATION_FILTERING_BY_DEFAULT)": true
+      default: false
     WebCore:
-      default: true
+      "ENABLE(LINK_DECORATION_FILTERING_BY_DEFAULT)": true
+      default: false
 
 FixedFontFamily:
   type: String
@@ -6336,7 +6339,7 @@ ScrollToTextFragmentEnabled:
 
 ScrollToTextFragmentFeatureDetectionEnabled:
   type: bool
-  status: preview
+  status: stable
   category: dom
   humanReadableName: "Scroll To Text Fragment Feature Detection"
   humanReadableDescription: "Enable Scroll To Text Fragment Feature Detection"
@@ -6344,9 +6347,9 @@ ScrollToTextFragmentFeatureDetectionEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 ScrollToTextFragmentGenerationEnabled:
   type: bool

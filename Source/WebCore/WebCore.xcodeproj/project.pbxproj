@@ -1781,6 +1781,7 @@
 		47C4D57D26508BCB00C7AB1F /* InlineFormattingUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 47C4D57C26508BCA00C7AB1F /* InlineFormattingUtils.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		47F947DB26502F2F0087968C /* BlockFormattingQuirks.h in Headers */ = {isa = PBXBuildFile; fileRef = 47F947DA26502F2F0087968C /* BlockFormattingQuirks.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		47FA97002650982B00841416 /* TableFormattingGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 47FA96FF2650982A00841416 /* TableFormattingGeometry.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		480A2F532CDFC1F800407331 /* AccessibilitySpinButtonPart.h in Headers */ = {isa = PBXBuildFile; fileRef = 480A2F512CDFC1F800407331 /* AccessibilitySpinButtonPart.h */; };
 		4822970E29C8EBC00033A126 /* RegionContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 4822970C29C8EBC00033A126 /* RegionContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		486B8DC72A043C0600E00E73 /* AXGeometryManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 486B8DC62A043C0600E00E73 /* AXGeometryManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		48B0242A2B2A65AA0083D122 /* AXTextRun.h in Headers */ = {isa = PBXBuildFile; fileRef = 48B024282B2A65AA0083D122 /* AXTextRun.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10990,6 +10991,8 @@
 		47C4D57C26508BCA00C7AB1F /* InlineFormattingUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InlineFormattingUtils.h; sourceTree = "<group>"; };
 		47F947DA26502F2F0087968C /* BlockFormattingQuirks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockFormattingQuirks.h; sourceTree = "<group>"; };
 		47FA96FF2650982A00841416 /* TableFormattingGeometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TableFormattingGeometry.h; sourceTree = "<group>"; };
+		480A2F512CDFC1F800407331 /* AccessibilitySpinButtonPart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AccessibilitySpinButtonPart.h; sourceTree = "<group>"; };
+		480A2F522CDFC1F800407331 /* AccessibilitySpinButtonPart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilitySpinButtonPart.cpp; sourceTree = "<group>"; };
 		4822970B29C8EBC00033A126 /* RegionContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RegionContext.cpp; sourceTree = "<group>"; };
 		4822970C29C8EBC00033A126 /* RegionContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RegionContext.h; sourceTree = "<group>"; };
 		486B8DC62A043C0600E00E73 /* AXGeometryManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXGeometryManager.h; sourceTree = "<group>"; };
@@ -24035,6 +24038,8 @@
 				0709FC4D1025DEE30059CDBA /* AccessibilitySlider.h */,
 				29D7BCF51444AF580070619C /* AccessibilitySpinButton.cpp */,
 				29D7BCF91444AF7D0070619C /* AccessibilitySpinButton.h */,
+				480A2F522CDFC1F800407331 /* AccessibilitySpinButtonPart.cpp */,
+				480A2F512CDFC1F800407331 /* AccessibilitySpinButtonPart.h */,
 				697101071C6BE1550018C7F1 /* AccessibilitySVGObject.cpp */,
 				697101081C6BE1550018C7F1 /* AccessibilitySVGObject.h */,
 				AAC08CF015F941FC00F1E188 /* AccessibilitySVGRoot.cpp */,
@@ -38908,6 +38913,7 @@
 				29489FC712C00F0300D83F0F /* AccessibilityScrollView.h in Headers */,
 				0709FC4E1025DEE30059CDBA /* AccessibilitySlider.h in Headers */,
 				29D7BCFA1444AF7D0070619C /* AccessibilitySpinButton.h in Headers */,
+				480A2F532CDFC1F800407331 /* AccessibilitySpinButtonPart.h in Headers */,
 				69A6CBAD1C6BE42C00B836E9 /* AccessibilitySVGObject.h in Headers */,
 				AAC08CF315F941FD00F1E188 /* AccessibilitySVGRoot.h in Headers */,
 				29A8122B0FBB9C1D00510293 /* AccessibilityTable.h in Headers */,

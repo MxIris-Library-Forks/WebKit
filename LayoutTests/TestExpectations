@@ -1763,11 +1763,9 @@ imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/fragmentation/mas
 
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/grid-placement/masonry-grid-placement-named-lines-002.html [ ImageOnlyFailure ]
 
-webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-auto.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-fr.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-mix1.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-003-mix2.html [ ImageOnlyFailure ]
-webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-004-auto.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-004-fr.html [ ImageOnlyFailure ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/intrinsic-sizing/masonry-intrinsic-sizing-rows-004-mix1.html [ ImageOnlyFailure ]
 
@@ -8137,6 +8135,9 @@ imported/w3c/web-platform-tests/WebIDL/idlharness.any.worker.html [ Skip ]
 # Platform-specific tests enabled on macOS and iOS separately.
 webanimations/scroll-timeline-clamped-current-time-while-rubber-banding-mac.html [ Skip ]
 webanimations/scroll-timeline-clamped-current-time-while-rubber-banding-ios.html [ Skip ]
+
+# macOS-only test.
+media/webkit-media-controls-not-visible-after-exiting-fullscreen.html [ Skip ]
 
 # webkit.org/b/280685 imported/w3c/web-platform-tests/css/selectors/featureless-004/5.html are failures.
 imported/w3c/web-platform-tests/css/selectors/featureless-004.html [ ImageOnlyFailure ]

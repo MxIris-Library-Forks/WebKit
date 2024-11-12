@@ -1624,6 +1624,7 @@ http/tests/webgpu/webgpu/api/validation/buffer/mapping.html [ Pass ]
 [ Release Sequoia+ ] http/tests/webgpu/webgpu/api/validation/compute_pipeline.html [ Pass Slow ]
 [ Release Sequoia+ ] http/tests/webgpu/webgpu/api/validation/render_pipeline/resource_compatibility.html [ Pass Slow ]
 
+http/tests/webgpu/webgpu/api/validation/queue/buffer_mapped.html [ Pass ]
 http/tests/webgpu/webgpu/api/validation/queue/submit.html [ Pass ]
 http/tests/webgpu/webgpu/api/validation/queue/destroyed [ Pass ]
 
@@ -1914,7 +1915,10 @@ webkit.org/b/282565 [ Sequoia+ Debug ] imported/w3c/web-platform-tests/css/css-w
 
 webkit.org/b/282726 http/tests/media/fairplay/legacy-fairplay-hls.html [ Failure ]
 
-# webkit.org/b/281923  [ Sequoia wk2 Debug arm64 ] 3 tests in http/tests/cookies/same-site are constant failure (failure in EWS)
+# webkit.org/b/281923  [ Sequoia+ ] 3 tests in http/tests/cookies/same-site are constant failure (failure in EWS)
 [ Sequoia+ ] http/tests/cookies/same-site/fetch-after-navigating-iframe-in-cross-origin-page.html [ Failure ]
 [ Sequoia+ ] http/tests/cookies/same-site/fetch-in-cross-origin-service-worker.html [ Failure ]
 [ Sequoia+ ] http/tests/cookies/same-site/popup-cross-site-post.html [ Failure ]
+
+# webkit.org/b/282665 [Ventura wk2] imported/w3c/web-platform-tests/scroll-animations/scroll-timelines/setting-timeline.tentative.html is a flaky failure
+[ Ventura ] imported/w3c/web-platform-tests/scroll-animations/scroll-timelines/setting-timeline.tentative.html [ Pass Failure ]

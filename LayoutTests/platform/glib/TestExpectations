@@ -590,6 +590,9 @@ imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/key-id-b
 # AXObjectCache::announce not implemented.
 accessibility/announcement-notification.html [ Skip ]
 
+# AccessibilityUIElement::isInTable is not implemented.
+accessibility/table-ancestry.html [ Skip ]
+
 accessibility/search-misspellings.html [ Skip ]
 accessibility/shadow-dom-hit-test.html [ Skip ]
 
@@ -1174,6 +1177,7 @@ webkit.org/b/270622 media/media-source/media-managedmse-noresumeafterpause.html 
 webkit.org/b/271631 media/media-source/media-managedmse-stall-endofstream.html [ Failure ]
 webkit.org/b/282791 media/media-source/media-source-vp8-hiddenframes.html [ ImageOnlyFailure ]
 webkit.org/b/282791 media/media-vp8-hiddenframes.html [ ImageOnlyFailure ]
+webkit.org/b/282827 media/media-video-videorange.html [ Failure ]
 
 # GStreamer (< 1.24) doesn't set the track's id to the container's value.
 webkit.org/b/265919 media/track/media-audio-track.html [ Failure ]
@@ -2458,6 +2462,9 @@ webkit.org/b/151344 fast/mediastream/MediaStream-add-ended-tracks.html [ Skip ]
 http/tests/webrtc/muted-video-mediastream-invisible-autoplay.html [ Failure Timeout Pass ]
 
 webkit.org/b/280117 webrtc/audio-muted-stats.html [ Failure ]
+
+# Crashing since introduced
+fast/mediastream/mediastreamtrack-clone-muted.html [ Skip ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of WebRTC-related bugs

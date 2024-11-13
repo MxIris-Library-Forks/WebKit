@@ -912,6 +912,9 @@ accessibility/dynamic-table-descendants.html [ Skip ]
 accessibility/indeterminate-progressbar-custom-element.html [ Skip ]
 accessibility/progress-indeterminate-value.html [ Skip ]
 
+# Missing AccessibilityUIElement::isInTable() implementation.
+accessibility/table-ancestry.html [ Skip ]
+
 # Missing AccessibilityUIElement::brailleLabel and AccessibilityUIElement::brailleRoleDescription implementations.
 accessibility/aria-braillelabel.html [ Skip ]
 accessibility/aria-brailleroledescription.html [ Skip ]
@@ -1149,6 +1152,7 @@ media/track/audio-track-configuration-webm.html [ Skip ]
 media/track/media-audio-track.html [ Failure ]
 media/media-sources-selection.html [ ImageOnlyFailure ]
 media/media-video-fullrange.html [ Skip ]
+media/media-video-videorange.html [ Skip ]
 
 # VP9/VP8 are not supported on WK1 and turned off by default
 media/media-source/media-source-vp8-hiddenframes.html [ Skip ]
@@ -2993,3 +2997,8 @@ webkit.org/b/281594 imported/w3c/web-platform-tests/html/semantics/document-meta
 # webkit.org/b/281923  [ Sequoia+ ] 3 tests in http/tests/cookies/same-site are constant failure (failure in EWS)
 [ Sequoia+ ] http/tests/cookies/same-site/fetch-after-navigating-iframe-in-cross-origin-page.html [ Failure ]
 [ Sequoia+ ] http/tests/cookies/same-site/popup-cross-site-post.html [ Failure ]
+
+webkit.org/b/283013 [ Sequoia+ ] imported/w3c/web-platform-tests/css/css-color/predefined-011.html [ ImageOnlyFailure ]
+webkit.org/b/283013 [ Sequoia+ ] imported/w3c/web-platform-tests/css/css-color/predefined-012.html [ ImageOnlyFailure ]
+webkit.org/b/283013 [ Sequoia+ ] imported/w3c/web-platform-tests/css/css-color/rec2020-001.html [ ImageOnlyFailure ]
+webkit.org/b/283013 [ Sequoia+ ] imported/w3c/web-platform-tests/css/css-color/relative-currentcolor-rec2020-01.html [ ImageOnlyFailure ]

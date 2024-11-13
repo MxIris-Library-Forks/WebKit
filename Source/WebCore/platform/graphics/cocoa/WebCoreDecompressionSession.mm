@@ -26,6 +26,7 @@
 #import "config.h"
 #import "WebCoreDecompressionSession.h"
 
+#import "FormatDescriptionUtilities.h"
 #import "IOSurface.h"
 #import "Logging.h"
 #import "PixelBufferConformerCV.h"
@@ -43,6 +44,7 @@
 #import <wtf/Vector.h>
 #import <wtf/WTFSemaphore.h>
 #import <wtf/cf/TypeCastsCF.h>
+#import <wtf/cf/VectorCF.h>
 
 #import "CoreVideoSoftLink.h"
 #import "VideoToolboxSoftLink.h"
@@ -179,7 +181,7 @@ void WebCoreDecompressionSession::enqueueSample(CMSampleBufferRef sampleBuffer, 
 
     LOG(Media, "WebCoreDecompressionSession::enqueueSample(%p) - framesBeingDecoded(%d)", this, int(m_framesBeingDecoded));
 
-    m_decompressionQueue->dispatch([protectedThis = Ref { *this }, strongBuffer = retainPtr(sampleBuffer), displaying, flushId = m_flushId] {
+    m_decompressionQueue->dispatch([protectedThis = Ref { *this }, strongBuffer = retainPtr(sampleBuffer), displaying, flushId = m_flushId.load()] {
         protectedThis->enqueueCompressedSample(strongBuffer.get(), displaying, flushId);
     });
 }
@@ -279,9 +281,15 @@ void WebCoreDecompressionSession::maybeDecodeNextSample()
     if (m_pendingSamples.isEmpty() || m_isDecodingSample)
         return;
 
-    m_isDecodingSample = true;
     auto tuple = m_pendingSamples.takeFirst();
-    decodeSampleInternal(std::get<RetainPtr<CMSampleBufferRef>>(tuple).get(), std::get<bool>(tuple))->whenSettled(m_decompressionQueue, [weakThis = ThreadSafeWeakPtr { *this }, this, flushId = std::get<uint32_t>(tuple)](auto&& result) {
+    auto flushId = std::get<uint32_t>(tuple);
+    if (flushId != m_flushId) {
+        maybeDecodeNextSample();
+        return;
+    }
+
+    m_isDecodingSample = true;
+    decodeSampleInternal(std::get<RetainPtr<CMSampleBufferRef>>(tuple).get(), std::get<bool>(tuple))->whenSettled(m_decompressionQueue, [weakThis = ThreadSafeWeakPtr { *this }, this, flushId](auto&& result) {
         RefPtr protectedThis = weakThis.get();
         if (!protectedThis || isInvalidated())
             return;
@@ -331,8 +339,9 @@ auto WebCoreDecompressionSession::decodeSample(CMSampleBufferRef sample, bool di
 {
     DecodingPromise::Producer producer;
     auto promise = producer.promise();
-    m_decompressionQueue->dispatch([protectedThis = RefPtr { this }, producer = WTFMove(producer), sample = RetainPtr { sample }, displaying] () mutable {
-        protectedThis->decodeSampleInternal(sample.get(), displaying)->chainTo(WTFMove(producer));
+    m_decompressionQueue->dispatch([protectedThis = RefPtr { this }, producer = WTFMove(producer), sample = RetainPtr { sample }, displaying, flushId = m_flushId.load()]() mutable {
+        if (flushId == protectedThis->m_flushId)
+            protectedThis->decodeSampleInternal(sample.get(), displaying)->chainTo(WTFMove(producer));
     });
     return promise;
 }
@@ -376,7 +385,9 @@ Ref<WebCoreDecompressionSession::DecodingPromise> WebCoreDecompressionSession::d
                 if (!configurationRecord)
                     return DecodingPromise::createAndReject(0);
 
-                initPromise = initializeVideoDecoder(fourCC, unsafeMakeSpan(CFDataGetBytePtr(configurationRecord.get()), CFDataGetLength(configurationRecord.get())));
+                auto colorSpace = colorSpaceFromFormatDescription(videoFormatDescription.get());
+
+                initPromise = initializeVideoDecoder(fourCC, span(configurationRecord.get()), colorSpace);
             }
         }
         auto decode = [protectedThis = Ref { *this }, this, cmSamples = RetainPtr { sample }, displaying] {
@@ -617,7 +628,7 @@ void WebCoreDecompressionSession::enqueueDecodedSample(CMSampleBufferRef sample)
         auto currentTime = PAL::toMediaTime(PAL::CMTimebaseGetTime(timebase.get()));
         auto presentationStartTime = PAL::toMediaTime(PAL::CMSampleBufferGetPresentationTimeStamp(sample));
         auto presentationEndTime = presentationStartTime + PAL::toMediaTime(PAL::CMSampleBufferGetDuration(sample));
-        if (currentTime < presentationStartTime || currentTime >= presentationEndTime)
+        if (currentTime < presentationStartTime || (currentTime >= presentationEndTime && currentTime != presentationStartTime))
             shouldNotify = false;
 
         if (currentRate > 0 && presentationEndTime < currentTime) {
@@ -876,9 +887,15 @@ void WebCoreDecompressionSession::updateQosWithDecodeTimeStatistics(double ratio
     m_framesSinceLastQosCheck = 0;
 }
 
-Ref<MediaPromise> WebCoreDecompressionSession::initializeVideoDecoder(FourCharCode codec, std::span<const uint8_t> description)
+Ref<MediaPromise> WebCoreDecompressionSession::initializeVideoDecoder(FourCharCode codec, std::span<const uint8_t> description, const std::optional<PlatformVideoColorSpace>& colorSpace)
 {
-    VideoDecoder::Config config { description, 0, 0, VideoDecoder::HardwareAcceleration::Yes, VideoDecoder::HardwareBuffer::Yes, VideoDecoder::TreatNoOutputAsError::No };
+    VideoDecoder::Config config {
+        .description = description,
+        .colorSpace = colorSpace,
+        .decoding = VideoDecoder::HardwareAcceleration::Yes,
+        .pixelBuffer = VideoDecoder::HardwareBuffer::Yes,
+        .noOutputAsError = VideoDecoder::TreatNoOutputAsError::No
+    };
     MediaPromise::Producer producer;
     auto promise = producer.promise();
 

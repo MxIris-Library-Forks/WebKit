@@ -143,6 +143,9 @@ media/media-source/media-managedmse-video-with-poster.html [ Pass ]
 
 webkit.org/b/269897 media/media-source/media-managedmse-poster.html [ Skip ]
 
+webkit.org/b/282969 media/media-video-fullrange.html [ Timeout Pass ]
+webkit.org/b/282969 media/media-video-videorange.html [ Timeout Pass ]
+
 fast/images/text-recognition [ Pass ]
 fast/images/text-recognition/ios [ Pass ]
 fast/images/text-recognition/mac [ Skip ]
@@ -2336,6 +2339,7 @@ accessibility/slot-default-contents-accname.html [ Pass ]
 accessibility/spinbutton-increment-decrement.html [ Pass ]
 accessibility/display-contents/text-under-element.html [ Pass ]
 accessibility/text-updates-after-dynamic-change.html [ Pass ]
+accessibility/table-ancestry.html [ Pass ]
 accessibility/table-display-block.html [ Pass ]
 accessibility/table-display-flex.html [ Pass ]
 accessibility/table-display-grid.html [ Pass ]

@@ -1630,10 +1630,12 @@ public:
     WEBCORE_EXPORT void setNeedsDOMWindowResizeEvent();
     void setNeedsVisualViewportResize();
     void runResizeSteps();
+    void flushDeferredResizeEvents();
 
     void addPendingScrollEventTarget(ContainerNode&);
     void setNeedsVisualViewportScrollEvent();
     void runScrollSteps();
+    void flushDeferredScrollEvents();
 
     void invalidateScrollbars();
 
@@ -1829,7 +1831,7 @@ public:
     bool allowsAddingRenderBlockedElements() const;
     bool isRenderBlocked() const;
 
-    enum class ImplicitRenderBlocking : bool { Yes, No };
+    enum class ImplicitRenderBlocking : bool { No, Yes };
     void blockRenderingOn(Element&, ImplicitRenderBlocking = ImplicitRenderBlocking::No);
     void unblockRenderingOn(Element&);
     void processInternalResourceLinks(HTMLAnchorElement* = nullptr);
@@ -2078,7 +2080,7 @@ private:
     static constexpr OptionSet<VisualUpdatesPreventedReason> visualUpdatePreventReasonsClearedByTimer() { return { VisualUpdatesPreventedReason::ReadyState, VisualUpdatesPreventedReason::RenderBlocking }; }
     static constexpr OptionSet<VisualUpdatesPreventedReason> visualUpdatePreventRequiresLayoutMilestones() { return { VisualUpdatesPreventedReason::Client, VisualUpdatesPreventedReason::ReadyState }; }
 
-    enum class CompletePageTransition : bool { Yes, No };
+    enum class CompletePageTransition : bool { No, Yes };
     void addVisualUpdatePreventedReason(VisualUpdatesPreventedReason, CompletePageTransition = CompletePageTransition::Yes);
     void removeVisualUpdatePreventedReasons(OptionSet<VisualUpdatesPreventedReason>);
 
@@ -2606,7 +2608,9 @@ private:
 
     bool m_hasStyleWithViewportUnits { false };
     bool m_needsDOMWindowResizeEvent { false };
+    bool m_hasDeferredDOMWindowResizeEvent { false };
     bool m_needsVisualViewportResizeEvent { false };
+    bool m_hasDeferredVisualViewportResizeEvent { false };
     bool m_needsVisualViewportScrollEvent { false };
     bool m_isTimerThrottlingEnabled { false };
     bool m_isSuspended { false };

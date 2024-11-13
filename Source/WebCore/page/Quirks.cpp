@@ -159,6 +159,7 @@ bool Quirks::isEmbedDomain(const String& domainString) const
 }
 
 // ceac.state.gov https://bugs.webkit.org/show_bug.cgi?id=193478
+// weather.com rdar://139689157
 bool Quirks::needsFormControlToBeMouseFocusable() const
 {
 #if PLATFORM(MAC)
@@ -166,10 +167,14 @@ bool Quirks::needsFormControlToBeMouseFocusable() const
         return false;
 
     auto host = topDocumentURL().host();
-    return host == "ceac.state.gov"_s || host.endsWith(".ceac.state.gov"_s);
-#else
+    if (host == "ceac.state.gov"_s || host.endsWith(".ceac.state.gov"_s))
+        return true;
+
+    if (host == "weather.com"_s)
+        return true;
+#endif // PLATFORM(MAC)
+
     return false;
-#endif
 }
 
 bool Quirks::needsAutoplayPlayPauseEvents() const
@@ -1894,16 +1899,24 @@ std::optional<TargetedElementSelectors> Quirks::defaultVisibilityAdjustmentSelec
 
 String Quirks::scriptToEvaluateBeforeRunningScriptFromURL(const URL& scriptURL)
 {
-#if ENABLE(DESKTOP_CONTENT_MODE_QUIRKS)
     if (!needsQuirks())
         return { };
 
+#if PLATFORM(IOS_FAMILY)
     auto topDomain = RegistrableDomain(topDocumentURL()).string();
+
+    // player.anyclip.com rdar://138789765
+    if (UNLIKELY(topDomain == "thesaurus.com"_s && scriptURL.lastPathComponent().endsWith("lre.js"_s)) && scriptURL.host() == "player.anyclip.com"_s)
+        return "(function() { let userAgent = navigator.userAgent; Object.defineProperty(navigator, 'userAgent', { get: () => { return userAgent + ' Chrome/130.0.0.0 Android/15.0'; }, configurable: true }); })();"_s;
+
+#if ENABLE(DESKTOP_CONTENT_MODE_QUIRKS)
     if (UNLIKELY(topDomain == "webex.com"_s && scriptURL.lastPathComponent().startsWith("pushdownload."_s)))
         return "Object.defineProperty(window, 'Touch', { get: () => undefined });"_s;
+#endif
 #else
     UNUSED_PARAM(scriptURL);
 #endif
+
     return { };
 }
 

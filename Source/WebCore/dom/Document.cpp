@@ -38,6 +38,7 @@
 #include "CSSFontSelector.h"
 #include "CSSParser.h"
 #include "CSSPropertyNames.h"
+#include "CSSPropertyParserConsumer+ColorAdjust.h"
 #include "CSSStyleDeclaration.h"
 #include "CSSStyleSheet.h"
 #include "CSSViewTransitionRule.h"
@@ -267,6 +268,7 @@
 #include "StringCallback.h"
 #include "StyleAdjuster.h"
 #include "StyleColor.h"
+#include "StyleColorScheme.h"
 #include "StyleProperties.h"
 #include "StyleResolveForDocument.h"
 #include "StyleResolver.h"
@@ -921,8 +923,7 @@ void Document::commonTeardown()
 Quirks& Document::ensureQuirks()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_quirks);
-    m_quirks = makeUnique<Quirks>(*this);
+    lazyInitialize(m_quirks, makeUnique<Quirks>(*this));
     return *m_quirks;
 }
 
@@ -944,24 +945,21 @@ CachedResourceLoader& Document::ensureCachedResourceLoader()
 ExtensionStyleSheets& Document::ensureExtensionStyleSheets()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_extensionStyleSheets);
-    m_extensionStyleSheets = makeUnique<ExtensionStyleSheets>(*this);
+    lazyInitialize(m_extensionStyleSheets, makeUnique<ExtensionStyleSheets>(*this));
     return *m_extensionStyleSheets;
 }
 
 DocumentMarkerController& Document::ensureMarkers()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_markers);
-    m_markers = makeUnique<DocumentMarkerController>(*this);
+    lazyInitialize(m_markers, makeUnique<DocumentMarkerController>(*this));
     return *m_markers;
 }
 
 VisitedLinkState& Document::ensureVisitedLinkState()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_visitedLinkState);
-    m_visitedLinkState = makeUnique<VisitedLinkState>(*this);
+    lazyInitialize(m_visitedLinkState, makeUnique<VisitedLinkState>(*this));
     return *m_visitedLinkState;
 }
 
@@ -969,8 +967,7 @@ VisitedLinkState& Document::ensureVisitedLinkState()
 FullscreenManager& Document::ensureFullscreenManager()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_fullscreenManager);
-    m_fullscreenManager = makeUnique<FullscreenManager>(*this);
+    lazyInitialize(m_fullscreenManager, makeUnique<FullscreenManager>(*this));
     return *m_fullscreenManager;
 }
 #endif
@@ -1011,7 +1008,7 @@ inline DocumentFontLoader& Document::fontLoader()
 {
     ASSERT(m_constructionDidFinish);
     if (!m_fontLoader)
-        return ensureFontLoader();
+        lazyInitialize(m_fontLoader, makeUniqueWithoutRefCountedCheck<DocumentFontLoader>(*this));
     return *m_fontLoader;
 }
 
@@ -1023,8 +1020,7 @@ Ref<DocumentFontLoader> Document::protectedFontLoader()
 DocumentFontLoader& Document::ensureFontLoader()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_fontLoader);
-    m_fontLoader = makeUniqueWithoutRefCountedCheck<DocumentFontLoader>(*this);
+    lazyInitialize(m_fontLoader, makeUniqueWithoutRefCountedCheck<DocumentFontLoader>(*this));
     return *m_fontLoader;
 }
 
@@ -1036,8 +1032,7 @@ CSSFontSelector* Document::cssFontSelector()
 CSSFontSelector& Document::ensureFontSelector()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_fontSelector);
-    m_fontSelector = CSSFontSelector::create(*this);
+    lazyInitialize(m_fontSelector, CSSFontSelector::create(*this));
     m_fontSelector->registerForInvalidationCallbacks(*this);
     return *m_fontSelector;
 }
@@ -1045,8 +1040,7 @@ CSSFontSelector& Document::ensureFontSelector()
 UndoManager& Document::ensureUndoManager()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_undoManager);
-    m_undoManager = UndoManager::create(*this);
+    lazyInitialize(m_undoManager, UndoManager::create(*this));
     return *m_undoManager;
 }
 
@@ -1077,16 +1071,14 @@ CheckedRef<const Editor> Document::checkedEditor() const
 Editor& Document::ensureEditor()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_editor);
-    m_editor = makeUnique<Editor>(*this);
+    lazyInitialize(m_editor, makeUnique<Editor>(*this));
     return *m_editor;
 }
 
 ReportingScope& Document::ensureReportingScope()
 {
     ASSERT(m_constructionDidFinish);
-    ASSERT(!m_reportingScope);
-    m_reportingScope = ReportingScope::create(*this);
+    lazyInitialize(m_reportingScope, ReportingScope::create(*this));
     return *m_reportingScope;
 }
 
@@ -4857,13 +4849,19 @@ void Document::processColorScheme(const String& colorSchemeString)
 
 void Document::metaElementColorSchemeChanged()
 {
-    RefPtr<CSSValue> colorScheme;
-    auto colorSchemeString = emptyString();
-    auto cssParserContext = CSSParserContext(document());
-    for (auto& metaElement : descendantsOfType<HTMLMetaElement>(rootNode())) {
+    const auto& context = this->cssParserContext();
+
+    auto parseColorScheme = [&](const auto& metaElement) -> std::optional<CSS::ColorScheme> {
         const AtomString& nameValue = metaElement.attributeWithoutSynchronization(nameAttr);
-        if ((equalLettersIgnoringASCIICase(nameValue, "color-scheme"_s) || equalLettersIgnoringASCIICase(nameValue, "supported-color-schemes"_s)) && (colorScheme = CSSParser::parseSingleValue(CSSPropertyColorScheme, metaElement.attributeWithoutSynchronization(contentAttr), cssParserContext))) {
-            colorSchemeString = colorScheme->cssText();
+        if (!equalLettersIgnoringASCIICase(nameValue, "color-scheme"_s) && !equalLettersIgnoringASCIICase(nameValue, "supported-color-schemes"_s))
+            return { };
+        return CSSPropertyParserHelpers::parseUnresolvedColorScheme(metaElement.attributeWithoutSynchronization(contentAttr), context);
+    };
+
+    auto colorSchemeString = emptyString();
+    for (auto& metaElement : descendantsOfType<HTMLMetaElement>(rootNode())) {
+        if (auto colorScheme = parseColorScheme(metaElement)) {
+            colorSchemeString = CSS::serializationForCSS(*colorScheme);
             break;
         }
     }
@@ -7321,8 +7319,7 @@ bool Document::isTopDocument() const
 
 ScriptRunner& Document::ensureScriptRunner()
 {
-    ASSERT(!m_scriptRunner);
-    m_scriptRunner = makeUniqueWithoutRefCountedCheck<ScriptRunner>(*this);
+    lazyInitialize(m_scriptRunner, makeUniqueWithoutRefCountedCheck<ScriptRunner>(*this));
     return *m_scriptRunner;
 }
 
@@ -9065,7 +9062,7 @@ Document& Document::ensureTemplateDocument()
             return HTMLDocument::create(nullptr, m_settings, aboutBlankURL(), { });
         return create(m_settings, aboutBlankURL());
     }();
-    m_templateDocument = templateDocument.copyRef();
+    lazyInitialize(m_templateDocument, templateDocument.copyRef());
     templateDocument->setContextDocument(contextDocument());
     templateDocument->setTemplateDocumentHost(this); // balanced in dtor.
 
@@ -9114,15 +9111,8 @@ bool Document::useSystemAppearance() const
 bool Document::useDarkAppearance(const RenderStyle* style) const
 {
 #if ENABLE(DARK_MODE_CSS)
-    OptionSet<ColorScheme> colorScheme;
-
-    // Use the style's supported color schemes, if supplied.
-    if (style)
-        colorScheme = style->colorScheme().colorScheme();
-
-    // Fallback to the document's supported color schemes if style was empty (auto).
-    if (colorScheme.isEmpty())
-        colorScheme = m_colorScheme;
+    bool isNormal = !style || style->colorScheme().isNormal();
+    auto colorScheme = isNormal ? m_colorScheme : style->colorScheme().colorScheme();
 
     if (colorScheme.contains(ColorScheme::Dark) && !colorScheme.contains(ColorScheme::Light))
         return true;
@@ -9543,7 +9533,7 @@ void Document::scheduleInitialIntersectionObservationUpdate()
 IntersectionObserverData& Document::ensureIntersectionObserverData()
 {
     if (!m_intersectionObserverData)
-        m_intersectionObserverData = makeUnique<IntersectionObserverData>();
+        lazyInitialize(m_intersectionObserverData, makeUnique<IntersectionObserverData>());
     return *m_intersectionObserverData;
 }
 
@@ -9965,7 +9955,7 @@ void Document::setConsoleMessageListener(RefPtr<StringCallback>&& listener)
 AnimationTimelinesController& Document::ensureTimelinesController()
 {
     if (!m_timelinesController)
-        m_timelinesController = makeUnique<AnimationTimelinesController>(*this);
+        lazyInitialize(m_timelinesController, makeUnique<AnimationTimelinesController>(*this));
     return *m_timelinesController.get();
 }
 
@@ -10477,7 +10467,7 @@ DeviceOrientationAndMotionAccessController& Document::deviceOrientationAndMotion
 PaintWorklet& Document::ensurePaintWorklet()
 {
     if (!m_paintWorklet)
-        m_paintWorklet = PaintWorklet::create(*this);
+        lazyInitialize(m_paintWorklet, PaintWorklet::create(*this));
     return *m_paintWorklet;
 }
 
@@ -10801,7 +10791,7 @@ void Document::removeElementWithLangAttrMatchingDocumentElement(Element& element
 RefPtr<ResizeObserver> Document::ensureResizeObserverForContainIntrinsicSize()
 {
     if (!m_resizeObserverForContainIntrinsicSize)
-        m_resizeObserverForContainIntrinsicSize = ResizeObserver::createNativeObserver(*this, CallbackForContainIntrinsicSize);
+        lazyInitialize(m_resizeObserverForContainIntrinsicSize, ResizeObserver::createNativeObserver(*this, CallbackForContainIntrinsicSize));
     return m_resizeObserverForContainIntrinsicSize;
 }
 

@@ -613,9 +613,6 @@ void AXIsolatedTree::updateNodeProperties(AXCoreObject& axObject, const AXProper
         case AXPropertyName::BrailleRoleDescription:
             propertyMap.set(AXPropertyName::BrailleRoleDescription, axObject.brailleRoleDescription().isolatedCopy());
             break;
-        case AXPropertyName::ColumnHeaders:
-            propertyMap.set(AXPropertyName::ColumnHeaders, axIDs(axObject.columnHeaders()));
-            break;
         case AXPropertyName::AXColumnIndex:
             propertyMap.set(AXPropertyName::AXColumnIndex, axObject.axColumnIndex());
             break;
@@ -648,6 +645,9 @@ void AXIsolatedTree::updateNodeProperties(AXCoreObject& axObject, const AXProper
             break;
         case AXPropertyName::ExtendedDescription:
             propertyMap.set(AXPropertyName::ExtendedDescription, axObject.extendedDescription().isolatedCopy());
+            break;
+        case AXPropertyName::HasClickHandler:
+            propertyMap.set(AXPropertyName::HasClickHandler, axObject.hasClickHandler());
             break;
         case AXPropertyName::IdentifierAttribute:
             propertyMap.set(AXPropertyName::IdentifierAttribute, axObject.identifierAttribute().isolatedCopy());

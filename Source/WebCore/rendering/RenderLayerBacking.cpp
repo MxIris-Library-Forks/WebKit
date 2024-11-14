@@ -969,9 +969,15 @@ bool RenderLayerBacking::updateCompositedBounds()
     return setCompositedBounds(layerBounds);
 }
 
-void RenderLayerBacking::updateAllowsBackingStoreDetaching(const LayoutRect& absoluteBounds)
+void RenderLayerBacking::updateAllowsBackingStoreDetaching(bool allowDetachingForFixed)
 {
     auto setAllowsBackingStoreDetaching = [&](bool allowDetaching) {
+        if (m_graphicsLayer->allowsBackingStoreDetaching() == allowDetaching)
+            return;
+
+        // isDirectlyCompositedImage depends on this value
+        m_owningLayer.setNeedsCompositingConfigurationUpdate();
+
         m_graphicsLayer->setAllowsBackingStoreDetaching(allowDetaching);
         if (m_foregroundLayer)
             m_foregroundLayer->setAllowsBackingStoreDetaching(allowDetaching);
@@ -986,18 +992,7 @@ void RenderLayerBacking::updateAllowsBackingStoreDetaching(const LayoutRect& abs
         return;
     }
 
-    // We'll allow detaching if the layer is outside the layout viewport. Fixed layers inside
-    // the layout viewport can be revealed by async scrolling, so we want to pin their backing store.
-    LocalFrameView& frameView = renderer().view().frameView();
-    LayoutRect fixedLayoutRect;
-    if (frameView.useFixedLayout())
-        fixedLayoutRect = renderer().view().unscaledDocumentRect();
-    else
-        fixedLayoutRect = frameView.rectForFixedPositionLayout();
-
-    bool allowDetaching = !fixedLayoutRect.intersects(absoluteBounds);
-    LOG_WITH_STREAM(Compositing, stream << "RenderLayerBacking (layer " << &m_owningLayer << ") updateAllowsBackingStoreDetaching - absoluteBounds " << absoluteBounds << " layoutViewportRect " << fixedLayoutRect << ", allowDetaching " << allowDetaching);
-    setAllowsBackingStoreDetaching(allowDetaching);
+    setAllowsBackingStoreDetaching(allowDetachingForFixed);
 }
 
 void RenderLayerBacking::updateAfterWidgetResize()
@@ -3145,6 +3140,11 @@ bool RenderLayerBacking::containsPaintedContent(PaintedContentsInfo& contentsInf
 bool RenderLayerBacking::isDirectlyCompositedImage() const
 {
     if (m_owningLayer.hasVisibleBoxDecorationsOrBackground() || m_owningLayer.paintsWithFilters() || renderer().hasClip())
+        return false;
+
+    // Fixed layers that allow detaching won't have a backing store,
+    // so using a directly composited image doesn't help (and has non-zero cost)
+    if (m_owningLayer.behavesAsFixed() && m_graphicsLayer->allowsBackingStoreDetaching())
         return false;
 
 #if (PLATFORM(GTK) || PLATFORM(WPE))

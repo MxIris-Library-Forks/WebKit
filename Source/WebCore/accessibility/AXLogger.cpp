@@ -711,9 +711,6 @@ TextStream& operator<<(WTF::TextStream& stream, AXPropertyName property)
     case AXPropertyName::ColumnHeader:
         stream << "ColumnHeader";
         break;
-    case AXPropertyName::ColumnHeaders:
-        stream << "ColumnHeaders";
-        break;
     case AXPropertyName::ColumnIndex:
         stream << "ColumnIndex";
         break;
@@ -765,8 +762,14 @@ TextStream& operator<<(WTF::TextStream& stream, AXPropertyName property)
     case AXPropertyName::HasApplePDFAnnotationAttribute:
         stream << "HasApplePDFAnnotationAttribute";
         break;
+    case AXPropertyName::HasBodyTag:
+        stream << "HasBodyTag";
+        break;
     case AXPropertyName::HasBoldFont:
         stream << "HasBoldFont";
+        break;
+    case AXPropertyName::HasClickHandler:
+        stream << "HasClickHandler";
         break;
     case AXPropertyName::HasHighlighting:
         stream << "HasHighlighting";
@@ -873,12 +876,6 @@ TextStream& operator<<(WTF::TextStream& stream, AXPropertyName property)
     case AXPropertyName::IsKeyboardFocusable:
         stream << "IsKeyboardFocusable";
         break;
-    case AXPropertyName::IsLink:
-        stream << "IsLink";
-        break;
-    case AXPropertyName::IsList:
-        stream << "IsList";
-        break;
     case AXPropertyName::IsListBox:
         stream << "IsListBox";
         break;
@@ -920,9 +917,6 @@ TextStream& operator<<(WTF::TextStream& stream, AXPropertyName property)
         break;
     case AXPropertyName::IsMathToken:
         stream << "IsMathToken";
-        break;
-    case AXPropertyName::IsMeter:
-        stream << "IsMeter";
         break;
     case AXPropertyName::IsMultiSelectable:
         stream << "IsMultiSelectable";
@@ -1164,17 +1158,11 @@ TextStream& operator<<(WTF::TextStream& stream, AXPropertyName property)
     case AXPropertyName::SupportsPosInSet:
         stream << "SupportsPosInSet";
         break;
-    case AXPropertyName::SupportsPressAction:
-        stream << "SupportsPressAction";
-        break;
     case AXPropertyName::SupportsRangeValue:
         stream << "SupportsRangeValue";
         break;
     case AXPropertyName::SupportsRequiredAttribute:
         stream << "SupportsRequiredAttribute";
-        break;
-    case AXPropertyName::SupportsSelectedRows:
-        stream << "SupportsSelectedRows";
         break;
     case AXPropertyName::SupportsSetSize:
         stream << "SupportsSetSize";

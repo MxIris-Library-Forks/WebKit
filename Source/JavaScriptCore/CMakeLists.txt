@@ -983,6 +983,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/DateInstanceCache.h
     runtime/DeferTermination.h
     runtime/DeferredWorkTimer.h
+    runtime/DeferredWorkTimerInlines.h
     runtime/DefinePropertyAttributes.h
     runtime/DeletePropertySlot.h
     runtime/DirectArguments.h
@@ -1273,6 +1274,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     wasm/WasmCallee.h
     wasm/WasmCalleeGroup.h
     wasm/WasmCallingConvention.h
+    wasm/WasmCallsiteCollection.h
     wasm/WasmCapabilities.h
     wasm/WasmCompilationContext.h
     wasm/WasmCompilationMode.h

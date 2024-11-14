@@ -667,7 +667,6 @@
 		1C022F0022CFED68006DF01B /* libcompression.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C8D26D022C09CDE00D125F3 /* libcompression.tbd */; };
 		1C0939EB1A13E12900B788E5 /* CachedSVGFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C0939E91A13E12900B788E5 /* CachedSVGFont.h */; };
 		1C09D0591E31C6A900725F18 /* libPAL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C09D0501E31C32900725F18 /* libPAL.a */; };
-		1C0AA16D21940DC800896829 /* StyleColorScheme.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C0AA16A21940DC700896829 /* StyleColorScheme.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C12AC2B1EE778AE0079E0A0 /* FontFamilySpecificationCoreText.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C12AC291EE778AE0079E0A0 /* FontFamilySpecificationCoreText.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C18DA59181AF6A500C4EF22 /* TextPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C18DA57181AF6A500C4EF22 /* TextPainter.h */; };
 		1C21E57D183ED1FF001C289D /* IOSurfacePool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C21E57B183ED1FF001C289D /* IOSurfacePool.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4755,6 +4754,10 @@
 		BC00F0150E0A189500FD04E3 /* JSFile.h in Headers */ = {isa = PBXBuildFile; fileRef = BC00F0110E0A189500FD04E3 /* JSFile.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC00F0170E0A189500FD04E3 /* JSFileList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC00F0130E0A189500FD04E3 /* JSFileList.h */; };
 		BC02A63C0E09A9CF004B6D2B /* CSSFunctionValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02A63B0E09A9CF004B6D2B /* CSSFunctionValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC02CF5D2CE26D9B007DA764 /* CSSNone.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF5C2CE26D9B007DA764 /* CSSNone.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC02CF5F2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF5E2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC02CF622CE27426007DA764 /* StyleNone.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF612CE27426007DA764 /* StyleNone.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC02CF742CE2E10A007DA764 /* JSDOMConvertUndefined.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF732CE2E10A007DA764 /* JSDOMConvertUndefined.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC06ED070BFD5BAE00856E9D /* JSHTMLTableSectionElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC06ED050BFD5BAE00856E9D /* JSHTMLTableSectionElement.h */; };
 		BC06ED9E0BFD660600856E9D /* JSHTMLTableColElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC06ED9A0BFD660600856E9D /* JSHTMLTableColElement.h */; };
 		BC06EDA00BFD660600856E9D /* JSHTMLTableRowElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC06ED9C0BFD660600856E9D /* JSHTMLTableRowElement.h */; };
@@ -4990,6 +4993,8 @@
 		BCEA07342CC6D45D000AC148 /* CSSRayFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA072E2CC59881000AC148 /* CSSRayFunction.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA07452CC97000000AC148 /* StyleWindRuleComputation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA07432CC96365000AC148 /* StyleWindRuleComputation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA07462CC97009000AC148 /* StylePathComputation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA07422CC96365000AC148 /* StylePathComputation.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCEA078D2CCC719D000AC148 /* StyleColorScheme.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA07812CCC0B3C000AC148 /* StyleColorScheme.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCEA078E2CCC71B4000AC148 /* CSSColorScheme.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA07862CCC0B6E000AC148 /* CSSColorScheme.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA4790097CAAC80094C9E4 /* CSSComputedStyleDeclaration.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA477D097CAAC80094C9E4 /* CSSComputedStyleDeclaration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA485A097D93020094C9E4 /* LegacyInlineTextBox.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA481B097D93020094C9E4 /* LegacyInlineTextBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA4860097D93020094C9E4 /* RenderBlock.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA4821097D93020094C9E4 /* RenderBlock.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -8080,7 +8085,6 @@
 		1C0939E81A13E12900B788E5 /* CachedSVGFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CachedSVGFont.cpp; sourceTree = "<group>"; };
 		1C0939E91A13E12900B788E5 /* CachedSVGFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedSVGFont.h; sourceTree = "<group>"; };
 		1C09D04B1E31C32800725F18 /* PAL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = PAL.xcodeproj; path = PAL/PAL.xcodeproj; sourceTree = "<group>"; };
-		1C0AA16A21940DC700896829 /* StyleColorScheme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleColorScheme.h; sourceTree = "<group>"; };
 		1C0BE943276C60BC005FB6C1 /* RenderTextInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderTextInlines.h; sourceTree = "<group>"; };
 		1C0BE947276C6603005FB6C1 /* WordTrailingSpace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WordTrailingSpace.h; sourceTree = "<group>"; };
 		1C12AC281EE778AE0079E0A0 /* FontFamilySpecificationCoreText.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FontFamilySpecificationCoreText.cpp; sourceTree = "<group>"; };
@@ -17594,6 +17598,11 @@
 		BC024A9C270A789D00FD4C3F /* WebXRSession+AR.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "WebXRSession+AR.idl"; sourceTree = "<group>"; };
 		BC02A63B0E09A9CF004B6D2B /* CSSFunctionValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSFunctionValue.h; sourceTree = "<group>"; };
 		BC02A6450E09AAE9004B6D2B /* CSSFunctionValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSFunctionValue.cpp; sourceTree = "<group>"; };
+		BC02CF5C2CE26D9B007DA764 /* CSSNone.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSNone.h; sourceTree = "<group>"; };
+		BC02CF5E2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPrimitiveNumericRange.h; sourceTree = "<group>"; };
+		BC02CF602CE26F82007DA764 /* CSSNone.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSNone.cpp; sourceTree = "<group>"; };
+		BC02CF612CE27426007DA764 /* StyleNone.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleNone.h; sourceTree = "<group>"; };
+		BC02CF732CE2E10A007DA764 /* JSDOMConvertUndefined.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSDOMConvertUndefined.h; sourceTree = "<group>"; };
 		BC04A7C8296E57810003F9DB /* CSSUnresolvedColorMix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSUnresolvedColorMix.cpp; sourceTree = "<group>"; };
 		BC04A7C9296E57810003F9DB /* CSSUnresolvedColorMix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSUnresolvedColorMix.h; sourceTree = "<group>"; };
 		BC06ED040BFD5BAE00856E9D /* JSHTMLTableSectionElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLTableSectionElement.cpp; sourceTree = "<group>"; };
@@ -17849,6 +17858,7 @@
 		BC64B4D20CB4298A005F2B62 /* CSSFontFaceSrcValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSFontFaceSrcValue.h; sourceTree = "<group>"; };
 		BC64B4D30CB4298A005F2B62 /* CSSFontSelector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSFontSelector.cpp; sourceTree = "<group>"; };
 		BC64B4D40CB4298A005F2B62 /* CSSFontSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSFontSelector.h; sourceTree = "<group>"; };
+		BC6768342CE5116A0087ED47 /* CSSValueTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSValueTypes.cpp; sourceTree = "<group>"; };
 		BC6932710D7E293900AE44D1 /* JSDOMWindowBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMWindowBase.cpp; sourceTree = "<group>"; };
 		BC6932720D7E293900AE44D1 /* JSDOMWindowBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDOMWindowBase.h; sourceTree = "<group>"; };
 		BC6D44EA0C07F2ED0072D2C9 /* JSHTMLEmbedElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLEmbedElement.cpp; sourceTree = "<group>"; };
@@ -18266,6 +18276,14 @@
 		BCEA07412CC95989000AC148 /* CSSPrimitiveNumericTypes+CSSValueCreation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPrimitiveNumericTypes+CSSValueCreation.h"; sourceTree = "<group>"; };
 		BCEA07422CC96365000AC148 /* StylePathComputation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StylePathComputation.h; sourceTree = "<group>"; };
 		BCEA07432CC96365000AC148 /* StyleWindRuleComputation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWindRuleComputation.h; sourceTree = "<group>"; };
+		BCEA07812CCC0B3C000AC148 /* StyleColorScheme.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleColorScheme.h; sourceTree = "<group>"; };
+		BCEA07822CCC0B3C000AC148 /* StyleColorScheme.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleColorScheme.cpp; sourceTree = "<group>"; };
+		BCEA07842CCC0B58000AC148 /* CSSPropertyParserConsumer+ColorAdjust.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+ColorAdjust.h"; sourceTree = "<group>"; };
+		BCEA07852CCC0B58000AC148 /* CSSPropertyParserConsumer+ColorAdjust.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+ColorAdjust.cpp"; sourceTree = "<group>"; };
+		BCEA07862CCC0B6E000AC148 /* CSSColorScheme.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSColorScheme.h; sourceTree = "<group>"; };
+		BCEA07872CCC0B6E000AC148 /* CSSColorScheme.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSColorScheme.cpp; sourceTree = "<group>"; };
+		BCEA07892CCC0C97000AC148 /* CSSColorSchemeValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSColorSchemeValue.h; sourceTree = "<group>"; };
+		BCEA078A2CCC0C97000AC148 /* CSSColorSchemeValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSColorSchemeValue.cpp; sourceTree = "<group>"; };
 		BCEA477C097CAAC80094C9E4 /* CSSComputedStyleDeclaration.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = CSSComputedStyleDeclaration.cpp; sourceTree = "<group>"; };
 		BCEA477D097CAAC80094C9E4 /* CSSComputedStyleDeclaration.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CSSComputedStyleDeclaration.h; sourceTree = "<group>"; };
 		BCEA478C097CAAC80094C9E4 /* CSSValueKeywords.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CSSValueKeywords.in; sourceTree = "<group>"; };
@@ -29356,6 +29374,7 @@
 				7C8E34A61E4A338E0054CE23 /* JSDOMConvertSerializedScriptValue.h */,
 				7C8E34A71E4A338E0054CE23 /* JSDOMConvertStrings.cpp */,
 				7C8E34A81E4A338E0054CE23 /* JSDOMConvertStrings.h */,
+				BC02CF732CE2E10A007DA764 /* JSDOMConvertUndefined.h */,
 				7C8E34A91E4A338E0054CE23 /* JSDOMConvertUnion.h */,
 				7C8E34AA1E4A338E0054CE23 /* JSDOMConvertVariadic.h */,
 				7CBA5BA61F0B4BDE0034D745 /* JSDOMConvertWebGL.cpp */,
@@ -30425,6 +30444,8 @@
 				BCEA073F2CC724F9000AC148 /* CSSPropertyParserConsumer+Background.h */,
 				BC7C5E642BE2A8FB00AE645C /* CSSPropertyParserConsumer+Color.cpp */,
 				BC7C5E652BE2A8FB00AE645C /* CSSPropertyParserConsumer+Color.h */,
+				BCEA07852CCC0B58000AC148 /* CSSPropertyParserConsumer+ColorAdjust.cpp */,
+				BCEA07842CCC0B58000AC148 /* CSSPropertyParserConsumer+ColorAdjust.h */,
 				BC83CE922BEFF66700DC644F /* CSSPropertyParserConsumer+ColorInterpolationMethod.cpp */,
 				BC83CE912BEFF65D00DC644F /* CSSPropertyParserConsumer+ColorInterpolationMethod.h */,
 				BC6DA1212C8E142E000ECE0F /* CSSPropertyParserConsumer+CounterStyles.cpp */,
@@ -34152,7 +34173,6 @@
 				BCEF444C0E674628001C1287 /* StyleCachedImage.h */,
 				BCB1E30C28F362B400FCAF0F /* StyleCanvasImage.cpp */,
 				BCB1E30E28F362B400FCAF0F /* StyleCanvasImage.h */,
-				1C0AA16A21940DC700896829 /* StyleColorScheme.h */,
 				7199B94A2551F0E100494A57 /* StyleContentAlignmentData.cpp */,
 				9DAC7C561AF2CB6400437C44 /* StyleContentAlignmentData.h */,
 				BCB1E31328F362B600FCAF0F /* StyleCrossfadeImage.cpp */,
@@ -34341,10 +34361,12 @@
 			isa = PBXGroup;
 			children = (
 				BCB271E82CC0145B00265123 /* backgrounds */,
+				BCEA07882CCC0B6E000AC148 /* color-adjust */,
 				BCB271A12CBD7D4C00265123 /* images */,
 				BCEA072B2CC59853000AC148 /* motion */,
 				BCB271D72CC013E900265123 /* primitives */,
 				BCB271B22CBD7D4C00265123 /* shapes */,
+				BC6768342CE5116A0087ED47 /* CSSValueTypes.cpp */,
 				BCA407F12C9F26C6006B037F /* CSSValueTypes.h */,
 			);
 			path = values;
@@ -34354,6 +34376,7 @@
 			isa = PBXGroup;
 			children = (
 				BCB271EA2CC014F200265123 /* backgrounds */,
+				BCEA07832CCC0B3C000AC148 /* color-adjust */,
 				BCB271B52CBD7D6B00265123 /* images */,
 				BCEA07322CC5EBBA000AC148 /* motion */,
 				BCB271F22CC0156E00265123 /* primitives */,
@@ -34615,8 +34638,11 @@
 		BCB271D72CC013E900265123 /* primitives */ = {
 			isa = PBXGroup;
 			children = (
+				BC02CF602CE26F82007DA764 /* CSSNone.cpp */,
+				BC02CF5C2CE26D9B007DA764 /* CSSNone.h */,
 				BCB271D92CC0142C00265123 /* CSSPosition.cpp */,
 				BCB271D82CC0142C00265123 /* CSSPosition.h */,
+				BC02CF5E2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h */,
 				BCB271DD2CC0142C00265123 /* CSSPrimitiveNumericTypes+ComputedStyleDependencies.cpp */,
 				BCB271DC2CC0142C00265123 /* CSSPrimitiveNumericTypes+ComputedStyleDependencies.h */,
 				BCEA07412CC95989000AC148 /* CSSPrimitiveNumericTypes+CSSValueCreation.h */,
@@ -34657,6 +34683,7 @@
 		BCB271F22CC0156E00265123 /* primitives */ = {
 			isa = PBXGroup;
 			children = (
+				BC02CF612CE27426007DA764 /* StyleNone.h */,
 				BCB271ED2CC0156E00265123 /* StylePosition.cpp */,
 				BCB271EC2CC0156E00265123 /* StylePosition.h */,
 				BCB271EF2CC0156E00265123 /* StylePrimitiveNumericTypes+Blending.h */,
@@ -34720,6 +34747,24 @@
 				BCEA07302CC5EBBA000AC148 /* StyleRayFunction.h */,
 			);
 			path = motion;
+			sourceTree = "<group>";
+		};
+		BCEA07832CCC0B3C000AC148 /* color-adjust */ = {
+			isa = PBXGroup;
+			children = (
+				BCEA07822CCC0B3C000AC148 /* StyleColorScheme.cpp */,
+				BCEA07812CCC0B3C000AC148 /* StyleColorScheme.h */,
+			);
+			path = "color-adjust";
+			sourceTree = "<group>";
+		};
+		BCEA07882CCC0B6E000AC148 /* color-adjust */ = {
+			isa = PBXGroup;
+			children = (
+				BCEA07872CCC0B6E000AC148 /* CSSColorScheme.cpp */,
+				BCEA07862CCC0B6E000AC148 /* CSSColorScheme.h */,
+			);
+			path = "color-adjust";
 			sourceTree = "<group>";
 		};
 		BCF1644D26629F9A0002F7EF /* calc */ = {
@@ -36834,6 +36879,8 @@
 				357B581C27F7909A00B93E4E /* CSSBorderImageWidthValue.h */,
 				BC604A420DB5634E00204739 /* CSSCanvasValue.cpp */,
 				BC6049CB0DB560C200204739 /* CSSCanvasValue.h */,
+				BCEA078A2CCC0C97000AC148 /* CSSColorSchemeValue.cpp */,
+				BCEA07892CCC0C97000AC148 /* CSSColorSchemeValue.h */,
 				BCEA477C097CAAC80094C9E4 /* CSSComputedStyleDeclaration.cpp */,
 				BCEA477D097CAAC80094C9E4 /* CSSComputedStyleDeclaration.h */,
 				930AAC96250EB8170013DA9F /* CSSConditionRule.cpp */,
@@ -39662,6 +39709,7 @@
 				BC6049CC0DB560C200204739 /* CSSCanvasValue.h in Headers */,
 				BCB272152CC1F21B00265123 /* CSSCircleFunction.h in Headers */,
 				BCE0E37A2BE86F92002F29E4 /* CSSColorDescriptors.h in Headers */,
+				BCEA078E2CCC71B4000AC148 /* CSSColorScheme.h in Headers */,
 				BCEA4790097CAAC80094C9E4 /* CSSComputedStyleDeclaration.h in Headers */,
 				930AAC9A250EB8490013DA9F /* CSSConditionRule.h in Headers */,
 				E476EF4A27E07A410056AC6E /* CSSContainerRule.h in Headers */,
@@ -39725,6 +39773,7 @@
 				314BE3A11B30F6B700141982 /* CSSNamedImageValue.h in Headers */,
 				94E839511DFB2A0E007BC6A7 /* CSSNamespaceRule.h in Headers */,
 				BEAA24022C34A9E600C37BBE /* CSSNestedDeclarations.h in Headers */,
+				BC02CF5D2CE26D9B007DA764 /* CSSNone.h in Headers */,
 				2AEF6FDB26E7ECC700326D02 /* CSSNumericArray.h in Headers */,
 				2AEF6FDC26E7ECCC00326D02 /* CSSNumericBaseType.h in Headers */,
 				2ACB4D2B26DC4ACE00BEB753 /* CSSNumericFactory.h in Headers */,
@@ -39749,6 +39798,7 @@
 				BCB2721A2CC1F21B00265123 /* CSSPolygonFunction.h in Headers */,
 				BCB272202CC20AA000265123 /* CSSPosition.h in Headers */,
 				977B3863122883E900B81FF8 /* CSSPreloadScanner.h in Headers */,
+				BC02CF5F2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h in Headers */,
 				BCB271FF2CC1E6CD00265123 /* CSSPrimitiveNumericTypes.h in Headers */,
 				A80E6CE60A1989CA007FB8C5 /* CSSPrimitiveValue.h in Headers */,
 				E1ED8AC30CC49BE000BFC557 /* CSSPrimitiveValueMappings.h in Headers */,
@@ -41116,6 +41166,7 @@
 				7C8E34C01E4A33B00054CE23 /* JSDOMConvertSequences.h in Headers */,
 				7C8E34C11E4A33B00054CE23 /* JSDOMConvertSerializedScriptValue.h in Headers */,
 				7C8E34C31E4A33B00054CE23 /* JSDOMConvertStrings.h in Headers */,
+				BC02CF742CE2E10A007DA764 /* JSDOMConvertUndefined.h in Headers */,
 				7C8E34C41E4A33B00054CE23 /* JSDOMConvertUnion.h in Headers */,
 				7C8E34C51E4A33B00054CE23 /* JSDOMConvertVariadic.h in Headers */,
 				7C8E34C61E4A33B00054CE23 /* JSDOMConvertWebGL.h in Headers */,
@@ -43410,7 +43461,7 @@
 				E401E0A41C3C0B8300F34D10 /* StyleChange.h in Headers */,
 				BCB272052CC1F1DB00265123 /* StyleCircleFunction.h in Headers */,
 				BCB660952BEEF46200528480 /* StyleColor.h in Headers */,
-				1C0AA16D21940DC800896829 /* StyleColorScheme.h in Headers */,
+				BCEA078D2CCC719D000AC148 /* StyleColorScheme.h in Headers */,
 				9DAC7C571AF2CB6400437C44 /* StyleContentAlignmentData.h in Headers */,
 				BCF0BCEC2BEE8ED000F42CCD /* StyleCurrentColor.h in Headers */,
 				BC779E171BB227CA00CAA8BF /* StyleCustomPropertyData.h in Headers */,
@@ -43436,6 +43487,7 @@
 				BCB272102CC1F1F100265123 /* StyleMinimallySerializingRectEdges.h in Headers */,
 				32488D27299458D400934627 /* StyleMiscNonInheritedData.h in Headers */,
 				BC5EB74E0E81E06700B25965 /* StyleMultiColData.h in Headers */,
+				BC02CF622CE27426007DA764 /* StyleNone.h in Headers */,
 				324EBEDB2993544F006F8973 /* StyleNonInheritedData.h in Headers */,
 				715AD7202050513200D592DC /* StyleOriginatedAnimation.h in Headers */,
 				717CE23A29335E9C001463BC /* StyleOriginatedAnimationEvent.h in Headers */,

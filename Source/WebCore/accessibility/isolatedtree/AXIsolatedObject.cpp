@@ -89,6 +89,9 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     AXTRACE("AXIsolatedObject::initializeProperties"_s);
     auto& object = axObject.get();
 
+    // These properties are cached for all objects, ignored and unignored.
+    setProperty(AXPropertyName::HasBodyTag, object.hasBodyTag());
+    setProperty(AXPropertyName::HasClickHandler, object.hasClickHandler());
 
 #if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
     if (object.includeIgnoredInCoreTree()) {
@@ -125,9 +128,6 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     setProperty(AXPropertyName::IsIndeterminate, object.isIndeterminate());
     setProperty(AXPropertyName::IsInlineText, object.isInlineText());
     setProperty(AXPropertyName::IsInputImage, object.isInputImage());
-    setProperty(AXPropertyName::IsLink, object.isLink());
-    setProperty(AXPropertyName::IsList, object.isList());
-    setProperty(AXPropertyName::IsMeter, object.isMeter());
     setProperty(AXPropertyName::IsMultiSelectable, object.isMultiSelectable());
     setProperty(AXPropertyName::IsRequired, object.isRequired());
     setProperty(AXPropertyName::IsSecureField, object.isSecureField());
@@ -173,7 +173,6 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     setProperty(AXPropertyName::PosInSet, object.posInSet());
     setProperty(AXPropertyName::SupportsDropping, object.supportsDropping());
     setProperty(AXPropertyName::SupportsDragging, object.supportsDragging());
-    setProperty(AXPropertyName::SupportsPressAction, object.supportsPressAction());
     setProperty(AXPropertyName::IsGrabbed, object.isGrabbed());
     setProperty(AXPropertyName::PlaceholderValue, object.placeholderValue().isolatedCopy());
     setProperty(AXPropertyName::ExpandedTextValue, object.expandedTextValue().isolatedCopy());
@@ -226,7 +225,6 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     if (object.isTable()) {
         setProperty(AXPropertyName::IsTable, true);
         setProperty(AXPropertyName::IsExposable, object.isExposable());
-        setProperty(AXPropertyName::SupportsSelectedRows, object.supportsSelectedRows());
         setObjectVectorProperty(AXPropertyName::Columns, object.columns());
         setObjectVectorProperty(AXPropertyName::Rows, object.rows());
         setObjectVectorProperty(AXPropertyName::Cells, object.cells());
@@ -243,6 +241,7 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
         setProperty(AXPropertyName::RowIndexRange, object.rowIndexRange());
         setProperty(AXPropertyName::AXColumnIndex, object.axColumnIndex());
         setProperty(AXPropertyName::AXRowIndex, object.axRowIndex());
+        // FIXME: This doesn't get updated when the scope attribute dynamically changes.
         setProperty(AXPropertyName::IsColumnHeader, object.isColumnHeader());
         setProperty(AXPropertyName::IsRowHeader, object.isRowHeader());
         setProperty(AXPropertyName::CellScope, object.cellScope().isolatedCopy());
@@ -508,12 +507,6 @@ void AXIsolatedObject::setProperty(AXPropertyName propertyName, AXPropertyValueV
         case AXPropertyName::IsKeyboardFocusable:
             setPropertyFlag(AXPropertyFlag::IsKeyboardFocusable, std::get<bool>(value));
             return;
-        case AXPropertyName::IsLink:
-            setPropertyFlag(AXPropertyFlag::IsLink, std::get<bool>(value));
-            return;
-        case AXPropertyName::IsList:
-            setPropertyFlag(AXPropertyFlag::IsList, std::get<bool>(value));
-            return;
         case AXPropertyName::IsNonLayerSVGObject:
             setPropertyFlag(AXPropertyFlag::IsNonLayerSVGObject, std::get<bool>(value));
             return;
@@ -537,9 +530,6 @@ void AXIsolatedObject::setProperty(AXPropertyName propertyName, AXPropertyValueV
             return;
         case AXPropertyName::SupportsPosInSet:
             setPropertyFlag(AXPropertyFlag::SupportsPosInSet, std::get<bool>(value));
-            return;
-        case AXPropertyName::SupportsPressAction:
-            setPropertyFlag(AXPropertyFlag::SupportsPressAction, std::get<bool>(value));
             return;
         case AXPropertyName::SupportsRequiredAttribute:
             setPropertyFlag(AXPropertyFlag::SupportsRequiredAttribute, std::get<bool>(value));
@@ -1119,10 +1109,6 @@ bool AXIsolatedObject::boolAttributeValue(AXPropertyName propertyName) const
         return hasPropertyFlag(AXPropertyFlag::IsInlineText);
     case AXPropertyName::IsKeyboardFocusable:
         return hasPropertyFlag(AXPropertyFlag::IsKeyboardFocusable);
-    case AXPropertyName::IsLink:
-        return hasPropertyFlag(AXPropertyFlag::IsLink);
-    case AXPropertyName::IsList:
-        return hasPropertyFlag(AXPropertyFlag::IsList);
     case AXPropertyName::IsNonLayerSVGObject:
         return hasPropertyFlag(AXPropertyFlag::IsNonLayerSVGObject);
     case AXPropertyName::IsTableColumn:
@@ -1139,8 +1125,6 @@ bool AXIsolatedObject::boolAttributeValue(AXPropertyName propertyName) const
         return hasPropertyFlag(AXPropertyFlag::SupportsPath);
     case AXPropertyName::SupportsPosInSet:
         return hasPropertyFlag(AXPropertyFlag::SupportsPosInSet);
-    case AXPropertyName::SupportsPressAction:
-        return hasPropertyFlag(AXPropertyFlag::SupportsPressAction);
     case AXPropertyName::SupportsRequiredAttribute:
         return hasPropertyFlag(AXPropertyFlag::SupportsRequiredAttribute);
     case AXPropertyName::SupportsSetSize:

@@ -71,19 +71,16 @@ enum class AXPropertyFlag : uint32_t {
     IsIgnored                                     = 1 << 10,
     IsInlineText                                  = 1 << 11,
     IsKeyboardFocusable                           = 1 << 12,
-    IsLink                                        = 1 << 13,
-    IsList                                        = 1 << 14,
-    IsNonLayerSVGObject                           = 1 << 15,
-    IsTableColumn                                 = 1 << 16,
-    IsTableRow                                    = 1 << 17,
-    SupportsCheckedState                          = 1 << 18,
-    SupportsDragging                              = 1 << 19,
-    SupportsExpanded                              = 1 << 20,
-    SupportsPath                                  = 1 << 21,
-    SupportsPosInSet                              = 1 << 22,
-    SupportsPressAction                           = 1 << 23,
-    SupportsRequiredAttribute                     = 1 << 24,
-    SupportsSetSize                               = 1 << 25
+    IsNonLayerSVGObject                           = 1 << 13,
+    IsTableColumn                                 = 1 << 14,
+    IsTableRow                                    = 1 << 15,
+    SupportsCheckedState                          = 1 << 16,
+    SupportsDragging                              = 1 << 17,
+    SupportsExpanded                              = 1 << 18,
+    SupportsPath                                  = 1 << 19,
+    SupportsPosInSet                              = 1 << 20,
+    SupportsRequiredAttribute                     = 1 << 21,
+    SupportsSetSize                               = 1 << 22
 };
 
 enum class AXPropertyName : uint16_t {
@@ -116,7 +113,6 @@ enum class AXPropertyName : uint16_t {
     ColorValue,
     Columns,
     ColumnHeader,
-    ColumnHeaders,
     ColumnIndex,
     ColumnIndexRange,
     CurrentState,
@@ -135,6 +131,8 @@ enum class AXPropertyName : uint16_t {
     ExtendedDescription,
     HasApplePDFAnnotationAttribute,
     HasBoldFont,
+    HasBodyTag,
+    HasClickHandler,
     HasHighlighting,
     HasItalicFont,
     HasPlainText,
@@ -170,8 +168,6 @@ enum class AXPropertyName : uint16_t {
     IsRadioInput,
     IsInputImage,
     IsKeyboardFocusable,
-    IsLink,
-    IsList,
     IsListBox,
     IsMathElement,
     IsMathFraction,
@@ -186,7 +182,6 @@ enum class AXPropertyName : uint16_t {
     IsMathTableCell,
     IsMathMultiscript,
     IsMathToken,
-    IsMeter,
     IsMultiSelectable,
     IsNonLayerSVGObject,
     IsPlugin,
@@ -267,10 +262,8 @@ enum class AXPropertyName : uint16_t {
     SupportsKeyShortcuts,
     SupportsPath,
     SupportsPosInSet,
-    SupportsPressAction,
     SupportsRangeValue,
     SupportsRequiredAttribute,
-    SupportsSelectedRows,
     SupportsSetSize,
     TextContent,
     TextInputMarkedTextMarkerRange,
@@ -376,6 +369,11 @@ public:
     void updateChildrenForObjects(const ListHashSet<Ref<AccessibilityObject>>&);
     void updateNodeProperty(AXCoreObject& object, AXPropertyName property) { updateNodeProperties(object, { property }); }
     void updateNodeProperties(AXCoreObject&, const AXPropertyNameSet&);
+    void updateNodeProperties(AccessibilityObject* axObject, const AXPropertyNameSet& properties)
+    {
+        if (axObject)
+            updateNodeProperties(*axObject, properties);
+    }
     void updateDependentProperties(AccessibilityObject&);
     void updatePropertiesForSelfAndDescendants(AccessibilityObject&, const AXPropertyNameSet&);
     void updateFrame(AXID, IntRect&&);

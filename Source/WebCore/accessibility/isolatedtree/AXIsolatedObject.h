@@ -64,6 +64,8 @@ public:
     bool isDetached() const final;
     bool isTable() const final { return boolAttributeValue(AXPropertyName::IsTable); }
     bool isExposable() const final { return boolAttributeValue(AXPropertyName::IsExposable); }
+    bool hasBodyTag() const final { return boolAttributeValue(AXPropertyName::HasBodyTag); }
+    bool hasClickHandler() const final { return boolAttributeValue(AXPropertyName::HasClickHandler); }
 
     const AccessibilityChildrenVector& children(bool updateChildrenIfNeeded = true) final;
 #if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
@@ -73,6 +75,7 @@ public:
     AXIsolatedObject* parentObject() const final { return parentObjectUnignored(); }
     AXIsolatedObject* parentObjectUnignored() const final { return tree()->objectForID(parent()).get(); }
 #endif // ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
+    AXIsolatedObject* clickableSelfOrAncestor(ClickHandlerFilter filter = ClickHandlerFilter::ExcludeBody) const final { return Accessibility::clickableSelfOrAncestor(*this, filter); };
     AXIsolatedObject* editableAncestor() final { return Accessibility::editableAncestor(*this); };
     bool canSetFocusAttribute() const final { return boolAttributeValue(AXPropertyName::CanSetFocusAttribute); }
 
@@ -159,19 +162,16 @@ private:
     }
 
     // Attribute retrieval overrides.
-    bool isLink() const final { return boolAttributeValue(AXPropertyName::IsLink); }
     bool isSecureField() const final { return boolAttributeValue(AXPropertyName::IsSecureField); }
     bool isAttachment() const final { return boolAttributeValue(AXPropertyName::IsAttachment); }
     bool isInputImage() const final { return boolAttributeValue(AXPropertyName::IsInputImage); }
     bool isControl() const final { return boolAttributeValue(AXPropertyName::IsControl); }
     bool isRadioInput() const final { return boolAttributeValue(AXPropertyName::IsRadioInput); }
 
-    bool isList() const final { return boolAttributeValue(AXPropertyName::IsList); }
     bool isKeyboardFocusable() const final { return boolAttributeValue(AXPropertyName::IsKeyboardFocusable); }
     
     // Table support.
     AXIsolatedObject* exposedTableAncestor(bool includeSelf = false) const final { return Accessibility::exposedTableAncestor(*this, includeSelf); }
-    bool supportsSelectedRows() const final { return boolAttributeValue(AXPropertyName::SupportsSelectedRows); }
     AccessibilityChildrenVector columns() final { return tree()->objectsForIDs(vectorAttributeValue<AXID>(AXPropertyName::Columns)); }
     AccessibilityChildrenVector rows() final { return tree()->objectsForIDs(vectorAttributeValue<AXID>(AXPropertyName::Rows)); }
     unsigned columnCount() final { return static_cast<unsigned>(columns().size()); }
@@ -225,7 +225,6 @@ private:
     bool supportsRequiredAttribute() const final { return boolAttributeValue(AXPropertyName::SupportsRequiredAttribute); }
     bool isExpanded() const final { return boolAttributeValue(AXPropertyName::IsExpanded); }
     bool isFileUploadButton() const final { return boolAttributeValue(AXPropertyName::IsFileUploadButton); }
-    bool isMeter() const final { return boolAttributeValue(AXPropertyName::IsMeter); };
     FloatPoint screenRelativePosition() const final;
     IntPoint remoteFrameOffset() const final;
     FloatRect relativeFrame() const final;
@@ -492,7 +491,6 @@ private:
     AccessibilityChildrenVector relatedObjects(AXRelationType) const final;
 
     bool supportsHasPopup() const final;
-    bool supportsPressAction() const final { return boolAttributeValue(AXPropertyName::SupportsPressAction); }
     bool supportsChecked() const final;
     bool isModalNode() const final;
     bool isDescendantOfRole(AccessibilityRole) const final;

@@ -392,7 +392,7 @@ Page::Page(PageConfiguration&& pageConfiguration)
     , m_playbackControlsManagerUpdateTimer(*this, &Page::playbackControlsManagerUpdateTimerFired)
 #endif
     , m_isUtilityPage(isUtilityPageChromeClient(chrome().client()))
-    , m_performanceMonitor(isUtilityPage() ? nullptr : makeUnique<PerformanceMonitor>(*this))
+    , m_performanceMonitor(isUtilityPage() ? nullptr : makeUniqueWithoutRefCountedCheck<PerformanceMonitor>(*this))
     , m_lowPowerModeNotifier(makeUnique<LowPowerModeNotifier>([this](bool isLowPowerModeEnabled) { handleLowPowerModeChange(isLowPowerModeEnabled); }))
     , m_thermalMitigationNotifier(makeUnique<ThermalMitigationNotifier>([this](bool thermalMitigationEnabled) { handleThermalMitigationChange(thermalMitigationEnabled); }))
     , m_performanceLogging(makeUnique<PerformanceLogging>(*this))
@@ -995,7 +995,7 @@ std::optional<FrameIdentifier> Page::findString(const String& target, FindOption
     if (canWrap == CanWrap::Yes && focusedLocalFrame && !focusedLocalFrame->selection().isNone()) {
         if (didWrap)
             *didWrap = DidWrap::Yes;
-        bool found = focusedLocalFrame->checkedEditor()->findString(target, options | FindOption::WrapAround | FindOption::StartInSelection);
+        bool found = focusedLocalFrame->protectedEditor()->findString(target, options | FindOption::WrapAround | FindOption::StartInSelection);
         if (!options.contains(FindOption::DoNotSetSelection))
             focusController->setFocusedFrame(frame.get());
         return found ? std::make_optional(focusedLocalFrame->frameID()) : std::nullopt;
@@ -1008,10 +1008,11 @@ std::optional<FrameIdentifier> Page::findString(const String& target, FindOption
 void Page::analyzeImagesForFindInPage(Function<void()>&& callback)
 {
     if (settings().imageAnalysisDuringFindInPageEnabled()) {
-        imageAnalysisQueue().setDidBecomeEmptyCallback(WTFMove(callback));
+        Ref imageAnalysisQueue = this->imageAnalysisQueue();
+        imageAnalysisQueue->setDidBecomeEmptyCallback(WTFMove(callback));
         auto* localMainFrame = dynamicDowncast<LocalFrame>(m_mainFrame.get());
         if (RefPtr mainDocument = localMainFrame ? localMainFrame->document() : nullptr)
-            imageAnalysisQueue().enqueueAllImagesIfNeeded(*mainDocument, { }, { });
+            imageAnalysisQueue->enqueueAllImagesIfNeeded(*mainDocument, { }, { });
     }
 }
 #endif
@@ -1028,7 +1029,7 @@ auto Page::findTextMatches(const String& target, FindOptions options, unsigned l
             frame = incrementFrame(frame.get(), true, CanWrap::No);
             continue;
         }
-        localFrame->checkedEditor()->countMatchesForText(target, { }, options, limit ? (limit - result.ranges.size()) : 0, markMatches, &result.ranges);
+        localFrame->protectedEditor()->countMatchesForText(target, { }, options, limit ? (limit - result.ranges.size()) : 0, markMatches, &result.ranges);
         if (localFrame->selection().isRange())
             frameWithSelection = localFrame;
         frame = incrementFrame(frame.get(), true, CanWrap::No);
@@ -1084,7 +1085,7 @@ std::optional<SimpleRange> Page::rangeOfString(const String& target, const std::
             frame = incrementFrame(frame.get(), !options.contains(FindOption::Backwards), canWrap);
             continue;
         }
-        if (auto resultRange = localFrame->checkedEditor()->rangeOfString(target, localFrame.get() == startFrame.get() ? referenceRange : std::nullopt, options - FindOption::WrapAround))
+        if (auto resultRange = localFrame->protectedEditor()->rangeOfString(target, localFrame.get() == startFrame.get() ? referenceRange : std::nullopt, options - FindOption::WrapAround))
             return resultRange;
         frame = incrementFrame(localFrame.get(), !options.contains(FindOption::Backwards), canWrap);
     } while (frame && frame != startFrame);
@@ -1092,7 +1093,7 @@ std::optional<SimpleRange> Page::rangeOfString(const String& target, const std::
     // Search contents of startFrame, on the other side of the reference range that we did earlier.
     // We cheat a bit and just search again with wrap on.
     if (canWrap == CanWrap::Yes && referenceRange) {
-        if (auto resultRange = startFrame->checkedEditor()->rangeOfString(target, *referenceRange, options | FindOption::WrapAround | FindOption::StartInSelection))
+        if (auto resultRange = startFrame->protectedEditor()->rangeOfString(target, *referenceRange, options | FindOption::WrapAround | FindOption::StartInSelection))
             return resultRange;
     }
 
@@ -1114,8 +1115,8 @@ unsigned Page::findMatchesForText(const String& target, FindOptions options, uns
             continue;
         }
         if (shouldMarkMatches == MarkMatches)
-            localFrame->checkedEditor()->setMarkedTextMatchesAreHighlighted(shouldHighlightMatches == HighlightMatches);
-        matchCount += localFrame->checkedEditor()->countMatchesForText(target, std::nullopt, options, maxMatchCount ? (maxMatchCount - matchCount) : 0, shouldMarkMatches == MarkMatches, nullptr);
+            localFrame->protectedEditor()->setMarkedTextMatchesAreHighlighted(shouldHighlightMatches == HighlightMatches);
+        matchCount += localFrame->protectedEditor()->countMatchesForText(target, std::nullopt, options, maxMatchCount ? (maxMatchCount - matchCount) : 0, shouldMarkMatches == MarkMatches, nullptr);
         frame = incrementFrame(frame.get(), true, CanWrap::No);
     } while (frame);
 
@@ -1200,7 +1201,7 @@ static void replaceRanges(Page& page, const Vector<FindReplacementRange>& ranges
                 continue;
 
             frame->checkedSelection()->setSelectedRange(range, Affinity::Downstream, FrameSelection::ShouldCloseTyping::Yes);
-            frame->checkedEditor()->replaceSelectionWithText(replacementText, Editor::SelectReplacement::Yes, Editor::SmartReplace::No, EditAction::InsertReplacement);
+            frame->protectedEditor()->replaceSelectionWithText(replacementText, Editor::SelectReplacement::Yes, Editor::SmartReplace::No, EditAction::InsertReplacement);
         }
     }
 }
@@ -1232,7 +1233,7 @@ uint32_t Page::replaceSelectionWithText(const String& replacementText)
         return 0;
 
     auto editAction = selection.isRange() ? EditAction::InsertReplacement : EditAction::Insert;
-    frame->checkedEditor()->replaceSelectionWithText(replacementText, Editor::SelectReplacement::Yes, Editor::SmartReplace::No, editAction);
+    frame->protectedEditor()->replaceSelectionWithText(replacementText, Editor::SelectReplacement::Yes, Editor::SmartReplace::No, editAction);
     return 1;
 }
 
@@ -1595,8 +1596,8 @@ void Page::updateMediaElementRateChangeRestrictions()
 
 void Page::didStartProvisionalLoad()
 {
-    if (m_performanceMonitor)
-        m_performanceMonitor->didStartProvisionalLoad();
+    if (RefPtr performanceMonitor = m_performanceMonitor.get())
+        performanceMonitor->didStartProvisionalLoad();
 
     if (m_settings->resourceLoadSchedulingEnabled())
         setLoadSchedulingMode(LoadSchedulingMode::Prioritized);
@@ -1640,8 +1641,8 @@ void Page::didFinishLoad()
 {
     resetRelevantPaintedObjectCounter();
 
-    if (m_performanceMonitor)
-        m_performanceMonitor->didFinishLoad();
+    if (RefPtr performanceMonitor = m_performanceMonitor.get())
+        performanceMonitor->didFinishLoad();
 
     setLoadSchedulingMode(LoadSchedulingMode::Direct);
 
@@ -2996,8 +2997,8 @@ void Page::setActivityState(OptionSet<ActivityState> activityState)
             cache->onPageActivityStateChange(m_activityState);
     }
 
-    if (m_performanceMonitor)
-        m_performanceMonitor->activityStateChanged(oldActivityState, activityState);
+    if (RefPtr performanceMonitor = m_performanceMonitor.get())
+        performanceMonitor->activityStateChanged(oldActivityState, activityState);
 }
 
 void Page::stopKeyboardScrollAnimation()
@@ -4396,14 +4397,14 @@ void Page::didFinishLoadingImageForElement(HTMLImageElement& element)
         if (!frame)
             return;
 
-        frame->checkedEditor()->revealSelectionIfNeededAfterLoadingImageForElement(element);
+        frame->protectedEditor()->revealSelectionIfNeededAfterLoadingImageForElement(element);
 
         if (element->document().frame() != frame)
             return;
 
         if (RefPtr page = frame->page()) {
 #if ENABLE(IMAGE_ANALYSIS)
-            if (auto* queue = page->imageAnalysisQueueIfExists())
+            if (RefPtr queue = page->imageAnalysisQueueIfExists())
                 queue->enqueueIfNeeded(element);
 #endif
             page->chrome().client().didFinishLoadingImageForElement(element);
@@ -4601,13 +4602,18 @@ Page* Page::serviceWorkerPage(ScriptExecutionContextIdentifier serviceWorkerPage
 ImageAnalysisQueue& Page::imageAnalysisQueue()
 {
     if (!m_imageAnalysisQueue)
-        m_imageAnalysisQueue = makeUnique<ImageAnalysisQueue>(*this);
+        m_imageAnalysisQueue = ImageAnalysisQueue::create(*this);
     return *m_imageAnalysisQueue;
+}
+
+Ref<ImageAnalysisQueue> Page::protectedImageAnalysisQueue()
+{
+    return imageAnalysisQueue();
 }
 
 void Page::resetImageAnalysisQueue()
 {
-    if (auto previousQueue = std::exchange(m_imageAnalysisQueue, { }))
+    if (RefPtr previousQueue = std::exchange(m_imageAnalysisQueue, { }))
         previousQueue->clear();
 }
 

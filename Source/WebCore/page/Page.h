@@ -210,6 +210,7 @@ struct AXTreeData;
 struct ApplePayAMSUIRequest;
 struct AttributedString;
 struct CharacterRange;
+struct ProcessSyncData;
 struct SimpleRange;
 struct TextRecognitionResult;
 struct WindowFeatures;
@@ -376,6 +377,7 @@ public:
     const URL& mainFrameURL() const { return m_mainFrameURL; }
     SecurityOrigin& mainFrameOrigin() const;
     WEBCORE_EXPORT void setMainFrameURL(const URL&);
+    WEBCORE_EXPORT void updateProcessSyncData(const ProcessSyncData&);
     WEBCORE_EXPORT void setMainFrameURLFragment(String&&);
     String mainFrameURLFragment() const { return m_mainFrameURLFragment; }
 
@@ -662,7 +664,8 @@ public:
     PageOverlayController& pageOverlayController() { return *m_pageOverlayController; }
 
 #if PLATFORM(MAC) && (ENABLE(SERVICE_CONTROLS) || ENABLE(TELEPHONE_NUMBER_DETECTION))
-    ServicesOverlayController& servicesOverlayController() { return *m_servicesOverlayController; }
+    ServicesOverlayController& servicesOverlayController() { return m_servicesOverlayController.get(); }
+    Ref<ServicesOverlayController> protectedServicesOverlayController();
 #endif
     ImageOverlayController& imageOverlayController();
     ImageOverlayController* imageOverlayControllerIfExists() { return m_imageOverlayController.get(); }
@@ -1547,7 +1550,7 @@ private:
     std::unique_ptr<ScrollLatchingController> m_scrollLatchingController;
 #endif
 #if PLATFORM(MAC) && (ENABLE(SERVICE_CONTROLS) || ENABLE(TELEPHONE_NUMBER_DETECTION))
-    std::unique_ptr<ServicesOverlayController> m_servicesOverlayController;
+    UniqueRef<ServicesOverlayController> m_servicesOverlayController;
 #endif
     std::unique_ptr<ImageOverlayController> m_imageOverlayController;
 

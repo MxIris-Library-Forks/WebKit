@@ -1001,7 +1001,10 @@ static Ref<CSSValue> computedTranslate(RenderObject* renderer, const RenderStyle
         return CSSValueList::createSpaceSeparated(value(translate->x()), value(translate->y()), value(translate->z()));
     if (includeLength(translate->y()))
         return CSSValueList::createSpaceSeparated(value(translate->x()), value(translate->y()));
-    return CSSValueList::createSpaceSeparated(value(translate->x()));
+    if (!translate->x().isUndefined() && !translate->x().isEmptyValue())
+        return CSSValueList::createSpaceSeparated(value(translate->x()));
+
+    return CSSPrimitiveValue::create(CSSValueNone);
 }
 
 static Ref<CSSValue> computedScale(RenderObject* renderer, const RenderStyle& style)
@@ -4884,6 +4887,22 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         if (style.positionAnchor().isNull())
             return CSSPrimitiveValue::create(CSSValueAuto);
         return CSSPrimitiveValue::createCustomIdent(style.positionAnchor());
+    case CSSPropertyPositionTryOrder: {
+        switch (style.positionTryOrder()) {
+        case Style::PositionTryOrder::Normal:
+            return CSSPrimitiveValue::create(CSSValueNormal);
+        case Style::PositionTryOrder::MostWidth:
+            return CSSPrimitiveValue::create(CSSValueMostWidth);
+        case Style::PositionTryOrder::MostHeight:
+            return CSSPrimitiveValue::create(CSSValueMostHeight);
+        case Style::PositionTryOrder::MostBlockSize:
+            return CSSPrimitiveValue::create(CSSValueMostBlockSize);
+        case Style::PositionTryOrder::MostInlineSize:
+            return CSSPrimitiveValue::create(CSSValueMostInlineSize);
+        }
+        ASSERT_NOT_REACHED();
+        return CSSPrimitiveValue::create(CSSValueNormal);
+    }
     case CSSPropertyTimelineScope:
         switch (style.timelineScope().type) {
         case TimelineScope::Type::None:

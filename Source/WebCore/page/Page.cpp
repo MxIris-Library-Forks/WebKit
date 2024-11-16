@@ -130,6 +130,7 @@
 #include "PointerCaptureController.h"
 #include "PointerLockController.h"
 #include "ProcessSyncClient.h"
+#include "ProcessSyncData.h"
 #include "ProgressTracker.h"
 #include "Range.h"
 #include "RemoteFrame.h"
@@ -397,7 +398,7 @@ Page::Page(PageConfiguration&& pageConfiguration)
     , m_thermalMitigationNotifier(makeUnique<ThermalMitigationNotifier>([this](bool thermalMitigationEnabled) { handleThermalMitigationChange(thermalMitigationEnabled); }))
     , m_performanceLogging(makeUnique<PerformanceLogging>(*this))
 #if PLATFORM(MAC) && (ENABLE(SERVICE_CONTROLS) || ENABLE(TELEPHONE_NUMBER_DETECTION))
-    , m_servicesOverlayController(makeUnique<ServicesOverlayController>(*this))
+    , m_servicesOverlayController(makeUniqueRefWithoutRefCountedCheck<ServicesOverlayController>(*this))
 #endif
     , m_recentWheelEventDeltaFilter(WheelEventDeltaFilter::create())
     , m_pageOverlayController(makeUnique<PageOverlayController>(*this))
@@ -778,6 +779,15 @@ void Page::setMainFrameURL(const URL& url)
 {
     m_mainFrameURL = url;
     m_mainFrameOrigin = SecurityOrigin::create(url);
+}
+
+void Page::updateProcessSyncData(const ProcessSyncData& data)
+{
+    switch (data.type) {
+    case ProcessSyncDataType::MainFrameURLChange:
+        setMainFrameURL(std::get<URL>(data.value));
+        break;
+    }
 }
 
 void Page::setMainFrameURLFragment(String&& fragment)
@@ -4251,7 +4261,7 @@ void Page::applicationDidBecomeActive()
 ScrollLatchingController& Page::scrollLatchingController()
 {
     if (!m_scrollLatchingController)
-        m_scrollLatchingController = makeUnique<ScrollLatchingController>();
+        m_scrollLatchingController = makeUniqueWithoutRefCountedCheck<ScrollLatchingController>(*this);
         
     return *m_scrollLatchingController;
 }
@@ -5320,5 +5330,12 @@ bool Page::isAlwaysOnLoggingAllowed() const
 {
     return m_sessionID.isAlwaysOnLoggingAllowed() || protectedSettings()->allowPrivacySensitiveOperationsInNonPersistentDataStores();
 }
+
+#if PLATFORM(MAC) && (ENABLE(SERVICE_CONTROLS) || ENABLE(TELEPHONE_NUMBER_DETECTION))
+Ref<ServicesOverlayController> Page::protectedServicesOverlayController()
+{
+    return m_servicesOverlayController.get();
+}
+#endif
 
 } // namespace WebCore

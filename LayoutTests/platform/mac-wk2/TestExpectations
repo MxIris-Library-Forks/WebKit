@@ -1583,9 +1583,10 @@ http/tests/contentextensions/block-everything-unless-domain-redirect.py [ Pass F
 
 webkit.org/b/262411 [ Sonoma+ ] fast/scrolling/scroll-to-anchor-zoomed-header.html [ Pass Crash ]
 
-# webkit.org/b/280991 NEW TEST(280648@main ):[ macOS wk2 ] media/media-vp8-webm-seek-to-start.html is a flaky ImageOnly failure. 
-media/media-vp8-webm.html [ Pass ImageOnlyFailure ] # Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
-media/media-vp8-webm-seek-to-start.html [ Pass ImageOnlyFailure ] # Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
+# webkit.org/b/280991 (NEW TEST (280648@main): [ wk2 ] 2 media/media-vp8-webm*.html tests are flaky ImageOnlyFailures.)
+# Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
+media/media-vp8-webm.html [ Pass ImageOnlyFailure ]
+media/media-vp8-webm-seek-to-start.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/261356 [ Debug ] fast/mediastream/device-change-event-2.html [ Pass Timeout ] # CHANGE TO [ Pass Timeout ] WITHOUT DEBUG AFTER FIX ACCORDING TO webkit.org/b/188924
 
@@ -1924,13 +1925,6 @@ webkit.org/b/282726 http/tests/media/fairplay/legacy-fairplay-hls.html [ Failure
 
 # webkit.org/b/282126 NEW TEST [ Sequoia+ x86_64 ] 5 swipe layout tests are timing due to "Timed out waiting for notifyDone to be called"
 swipe/main-frame-pinning-requirement.html [ Failure Timeout ]
-
-# webkit.org/b/283074 [macOS Debug wk2 ] ASSERTION FAILED: !workerInformation in imported/w3c/web-platform-tests/content-security-policy/script-src/script-src-strict_dynamic_worker.https.html result of flaky crash (failure in EWS)
-imported/w3c/web-platform-tests/content-security-policy/script-src/script-src-strict_dynamic_worker.https.html [ Pass Crash ]
-imported/w3c/web-platform-tests/fetch/stale-while-revalidate/fetch.any.serviceworker.html [ Pass Crash ]
-imported/w3c/web-platform-tests/fetch/private-network-access/service-worker-background-fetch.https.window.html [ Pass Crash ]
-imported/w3c/web-platform-tests/urlpattern/urlpattern-compare.tentative.any.serviceworker.html [ Pass Crash ]
-imported/w3c/web-platform-tests/urlpattern/urlpattern-hasregexpgroups.any.serviceworker.html [ Pass Crash ]
 
 webkit.org/b/283144 [ Sequoia ] http/tests/storageAccess/grant-storage-access-under-opener-at-popup-user-gesture-ephemeral.https.html [ Failure ]
 webkit.org/b/283144 [ Sequoia ] http/tests/storageAccess/grant-storage-access-under-opener-at-popup-user-gesture.https.html [ Failure ]

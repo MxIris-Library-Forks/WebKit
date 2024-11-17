@@ -140,6 +140,8 @@ media/media-source/media-managedmse-airplay.html [ Pass ]
 media/media-source/media-managedmse-airplay-withsrc.html [ Pass ]
 media/media-source/media-managedmse-idl.html [ Pass ]
 media/media-source/media-managedmse-video-with-poster.html [ Pass ]
+media/media-source/media-source-vp8-webm-error.html [ Pass ]
+media/media-source/media-source-vp8-webm-error-offscreen.html [ Pass ]
 
 webkit.org/b/269897 media/media-source/media-managedmse-poster.html [ Skip ]
 
@@ -7183,8 +7185,6 @@ webkit.org/b/236926 webrtc/vp9-profile2.html [ Timeout Pass ]
 # This passes only on the arm64 host
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/adopt-from-image-document.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/242748 [ Release arm64 ] css3/color-filters/svg/color-filter-inline-svg.html [ ImageOnlyFailure ]
-
 webkit.org/b/254872 webrtc/video-rotation.html [ Pass Timeout ]
 
 fast/overflow/infiniteRecursion.html [ Failure Pass ]
@@ -7539,3 +7539,13 @@ fast/events/ios/key-events-comprehensive/key-events-shift.html [ Pass Timeout ]
 [ x86_64 ] webgl/1.0.x/conformance/ogles/GL/swizzlers/swizzlers_041_to_048.html [ Pass Failure ]
 [ x86_64 ] webgl/1.0.x/conformance/ogles/GL/swizzlers/swizzlers_113_to_120.html [ Pass Failure ]
 [ x86_64 ] webgl/2.0.y/conformance/ogles/GL/swizzlers/swizzlers_097_to_104.html [ Pass Failure ]
+
+# webkit.org/b/280991 (NEW TEST (280648@main): [ wk2 ] 2 media/media-vp8-webm*.html tests are flaky ImageOnlyFailures.)
+# Missing AVSampleBufferDisplayLayer's ReadyForDisplayDidChangeNotification
+media/media-vp8-webm.html [ Pass ImageOnlyFailure ]
+media/media-vp8-webm-seek-to-start.html [ Pass ImageOnlyFailure ]
+
+# webkit.org/b/283218 ([ iOS ] 3 CSS filters tests are flaky ImageOnlyFailures.)
+css3/color-filters/color-filter-animation.html [ Pass ImageOnlyFailure ]
+css3/color-filters/svg/color-filter-inline-svg.html [ Pass ImageOnlyFailure ]
+css3/filters/hidpi-backdrop-filter-rasterization-scale.html [ Pass ImageOnlyFailure ]

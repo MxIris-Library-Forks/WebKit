@@ -1192,10 +1192,10 @@ void WebPage::frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier frameID)
     frame->removeFromTree();
 }
 
-void WebPage::processSyncDataChangedInAnotherProcess(const WebCore::ProcessSyncData& data)
+void WebPage::mainFrameURLChangedInAnotherProcess(const URL& newURL)
 {
     if (auto* page = corePage())
-        page->updateProcessSyncData(data);
+        page->setMainFrameURL(newURL);
 }
 
 #if ENABLE(GPU_PROCESS)
@@ -4150,14 +4150,14 @@ void WebPage::didStartPageTransition()
     freezeLayerTree(LayerTreeFreezeReason::PageTransition);
 
 #if HAVE(TOUCH_BAR)
-    bool hasPreviouslyFocusedDueToUserInteraction = m_hasEverFocusedElementDueToUserInteractionSincePageTransition;
-    m_hasEverFocusedElementDueToUserInteractionSincePageTransition = false;
+    bool hasPreviouslyFocusedDueToUserInteraction = m_userInteractionsSincePageTransition.contains(UserInteractionFlag::FocusedElement);
+    m_userInteractionsSincePageTransition = { };
 #endif
     m_lastEditorStateWasContentEditable = EditorStateIsContentEditable::Unset;
 
 #if PLATFORM(MAC)
     if (hasPreviouslyFocusedDueToUserInteraction)
-        send(Messages::WebPageProxy::SetHasHadSelectionChangesFromUserInteraction(m_hasEverFocusedElementDueToUserInteractionSincePageTransition));
+        send(Messages::WebPageProxy::SetHasFocusedElementWithUserInteraction(false));
 #endif
 
 #if HAVE(TOUCH_BAR)
@@ -7160,11 +7160,16 @@ void WebPage::didChangeSelection(LocalFrame& frame)
 {
     didChangeSelectionOrOverflowScrollPosition();
 
+    if (m_userIsInteracting && frame.selection().isRange())
+        m_userInteractionsSincePageTransition.add(UserInteractionFlag::SelectedRange);
+
 #if ENABLE(WRITING_TOOLS)
     corePage()->updateStateForSelectedSuggestionIfNeeded();
 #endif
 
 #if PLATFORM(IOS_FAMILY)
+    resetLastSelectedReplacementRangeIfNeeded();
+
     if (!std::exchange(m_sendAutocorrectionContextAfterFocusingElement, false))
         return;
 
@@ -7197,11 +7202,11 @@ void WebPage::didChangeSelectionOrOverflowScrollPosition()
         return;
 
 #if HAVE(TOUCH_BAR)
-    bool hasPreviouslyFocusedDueToUserInteraction = m_hasEverFocusedElementDueToUserInteractionSincePageTransition;
+    bool hasPreviouslyFocusedDueToUserInteraction = m_userInteractionsSincePageTransition.contains(UserInteractionFlag::FocusedElement);
     if (m_userIsInteracting && m_focusedElement)
-        m_hasEverFocusedElementDueToUserInteractionSincePageTransition = true;
+        m_userInteractionsSincePageTransition.add(UserInteractionFlag::FocusedElement);
 
-    if (!hasPreviouslyFocusedDueToUserInteraction && m_hasEverFocusedElementDueToUserInteractionSincePageTransition) {
+    if (!hasPreviouslyFocusedDueToUserInteraction && m_userInteractionsSincePageTransition.contains(UserInteractionFlag::FocusedElement)) {
         if (frame->document()->quirks().isTouchBarUpdateSuppressedForHiddenContentEditable()) {
             m_isTouchBarUpdateSuppressedForHiddenContentEditable = true;
             send(Messages::WebPageProxy::SetIsTouchBarUpdateSuppressedForHiddenContentEditable(m_isTouchBarUpdateSuppressedForHiddenContentEditable));
@@ -7212,7 +7217,7 @@ void WebPage::didChangeSelectionOrOverflowScrollPosition()
             send(Messages::WebPageProxy::SetIsNeverRichlyEditableForTouchBar(m_isNeverRichlyEditableForTouchBar));
         }
 
-        send(Messages::WebPageProxy::SetHasHadSelectionChangesFromUserInteraction(m_hasEverFocusedElementDueToUserInteractionSincePageTransition));
+        send(Messages::WebPageProxy::SetHasFocusedElementWithUserInteraction(true));
     }
 
     // Abandon the current inline input session if selection changed for any other reason but an input method direct action.
@@ -7694,6 +7699,7 @@ void WebPage::didCommitLoad(WebFrame* frame)
     m_estimatedLatency = Seconds(1.0 / 60);
     m_shouldRevealCurrentSelectionAfterInsertion = true;
     m_lastLayerTreeTransactionIdAndPageScaleBeforeScalingPage = std::nullopt;
+    m_lastSelectedReplacementRange = { };
 
     invokePendingSyntheticClickCallback(SyntheticClickResult::PageInvalid);
 

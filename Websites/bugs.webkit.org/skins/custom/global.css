@@ -2256,7 +2256,7 @@ table.attachment_entry {
 }
 
 .bz_comment_text {
-   font-family: initial;
+   font-family: unset;
    white-space: pre-wrap;
 }
 
@@ -2348,6 +2348,11 @@ form table td {
 form[name=login] table,
 form[name=login] table tr {
    border: 0;
+}
+
+.yui-skin-sam .yui-ac-content {
+    background-color: var(--input-background-color);
+    border-color: var(--input-border-color);
 }
 
 @media only screen and (max-width: 800px) {

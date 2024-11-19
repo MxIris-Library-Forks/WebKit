@@ -678,8 +678,7 @@ public:
     void getFrameTree(CompletionHandler<void(FrameTreeNodeData&&)>&&);
     void didFinishLoadInAnotherProcess(WebCore::FrameIdentifier);
     void frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier);
-
-    void processSyncDataChangedInAnotherProcess(const WebCore::ProcessSyncData&);
+    void mainFrameURLChangedInAnotherProcess(const URL&);
 
     std::optional<WebCore::SimpleRange> currentSelectionAsRange();
 
@@ -1902,6 +1901,7 @@ private:
     void setSelectedRangeDispatchingSyntheticMouseEventsIfNeeded(const WebCore::SimpleRange&, WebCore::Affinity);
     void dispatchSyntheticMouseEventsForSelectionGesture(SelectionTouch, const WebCore::IntPoint&);
     void invokePendingSyntheticClickCallback(WebCore::SyntheticClickResult);
+    void resetLastSelectedReplacementRangeIfNeeded();
 
     void sendPositionInformation(InteractionInformationAtPosition&&);
     RefPtr<WebCore::ShareableBitmap> shareableBitmapSnapshotForNode(WebCore::Element&);
@@ -2668,8 +2668,12 @@ private:
     bool m_userIsInteracting { false };
     bool m_hasEverDisplayedContextMenu { false };
 
+    enum class UserInteractionFlag : uint8_t {
+        FocusedElement      = 1 << 0,
+        SelectedRange       = 1 << 1,
+    };
+    OptionSet<UserInteractionFlag> m_userInteractionsSincePageTransition;
 #if HAVE(TOUCH_BAR)
-    bool m_hasEverFocusedElementDueToUserInteractionSincePageTransition { false };
     bool m_requiresUserActionForEditingControlsManager { false };
     bool m_isTouchBarUpdateSuppressedForHiddenContentEditable { false };
     bool m_isNeverRichlyEditableForTouchBar { false };
@@ -2736,6 +2740,7 @@ private:
     WebCore::FloatSize m_overrideAvailableScreenSize;
 
     std::optional<WebCore::SimpleRange> m_initialSelection;
+    std::optional<WebCore::WeakSimpleRange> m_lastSelectedReplacementRange;
     WebCore::VisibleSelection m_storedSelectionForAccessibility { WebCore::VisibleSelection() };
     WebCore::IntDegrees m_deviceOrientation { 0 };
     bool m_keyboardIsAttached { false };

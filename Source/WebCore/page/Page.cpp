@@ -130,7 +130,6 @@
 #include "PointerCaptureController.h"
 #include "PointerLockController.h"
 #include "ProcessSyncClient.h"
-#include "ProcessSyncData.h"
 #include "ProgressTracker.h"
 #include "Range.h"
 #include "RemoteFrame.h"
@@ -779,15 +778,6 @@ void Page::setMainFrameURL(const URL& url)
 {
     m_mainFrameURL = url;
     m_mainFrameOrigin = SecurityOrigin::create(url);
-}
-
-void Page::updateProcessSyncData(const ProcessSyncData& data)
-{
-    switch (data.type) {
-    case ProcessSyncDataType::MainFrameURLChange:
-        setMainFrameURL(std::get<URL>(data.value));
-        break;
-    }
 }
 
 void Page::setMainFrameURLFragment(String&& fragment)
@@ -2090,23 +2080,10 @@ void Page::doAfterUpdateRendering()
     forEachRenderableDocument([] (Document& document) {
         document.updateHighlightPositions();
     });
-#if ENABLE(APP_HIGHLIGHTS)
-    forEachRenderableDocument([] (Document& document) {
-        auto appHighlightStorage = document.appHighlightStorageIfExists();
-        if (!appHighlightStorage)
-            return;
-        
-        if (appHighlightStorage->hasUnrestoredHighlights() && MonotonicTime::now() - appHighlightStorage->lastRangeSearchTime() > 1_s) {
-            appHighlightStorage->resetLastRangeSearchTime();
-            document.eventLoop().queueTask(TaskSource::InternalAsyncTask, [weakDocument = WeakPtr<Document, WeakPtrImplWithEventTargetData> { document }] {
-                RefPtr document { weakDocument.get() };
-                if (!document)
-                    return;
 
-                if (auto* appHighlightStorage = document->appHighlightStorageIfExists())
-                    appHighlightStorage->restoreUnrestoredAppHighlights();
-            });
-        }
+#if ENABLE(APP_HIGHLIGHTS)
+    forEachRenderableDocument([timestamp = m_lastRenderingUpdateTimestamp] (Document& document) {
+        document.restoreUnrestoredAppHighlights(timestamp);
     });
 #endif
 
@@ -2168,11 +2145,7 @@ void Page::doAfterUpdateRendering()
             view->notifyAllFramesThatContentAreaWillPaint();
     }
 
-    if (!m_sampledPageTopColor) {
-        m_sampledPageTopColor = PageColorSampler::sampleTop(*this);
-        if (m_sampledPageTopColor)
-            chrome().client().sampledPageTopColorChanged();
-    }
+    computeSampledPageTopColorIfNecessary();
 }
 
 void Page::finalizeRenderingUpdate(OptionSet<FinalizeRenderingUpdateFlags> flags)
@@ -3272,6 +3245,22 @@ Color Page::sampledPageTopColor() const
     return valueOrDefault(m_sampledPageTopColor);
 }
 
+void Page::computeSampledPageTopColorIfNecessary()
+{
+    if (m_sampledPageTopColor)
+        return;
+
+    m_sampledPageTopColor = PageColorSampler::sampleTop(*this);
+    if (m_sampledPageTopColor)
+        chrome().client().sampledPageTopColorChanged();
+}
+
+void Page::clearSampledPageTopColor()
+{
+    if (std::exchange(m_sampledPageTopColor, std::nullopt))
+        chrome().client().sampledPageTopColorChanged();
+}
+
 #if HAVE(APP_ACCENT_COLORS) && PLATFORM(MAC)
 void Page::setAppUsesCustomAccentColor(bool appUsesCustomAccentColor)
 {
@@ -4077,10 +4066,7 @@ void Page::didChangeMainDocument(Document* newDocument)
 #endif
     m_pointerCaptureController->reset();
 
-    if (m_sampledPageTopColor) {
-        m_sampledPageTopColor = std::nullopt;
-        chrome().client().sampledPageTopColorChanged();
-    }
+    clearSampledPageTopColor();
 
     checkedElementTargetingController()->didChangeMainDocument(newDocument);
 }

@@ -405,6 +405,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/BackgroundFetchState.serialization.in
     Shared/CacheModel.serialization.in
     Shared/CallbackID.serialization.in
+    Shared/ContentWorldData.serialization.in
     Shared/ContextMenuContextData.serialization.in
     Shared/CoordinateSystem.serialization.in
     Shared/DebuggableInfoData.serialization.in
@@ -634,6 +635,7 @@ set(WebCore_SERIALIZATION_IN_FILES
     PlatformMediaSession.serialization.in
     PlatformScreen.serialization.in
     PlatformWheelEvent.serialization.in
+    ProcessSyncData.serialization.in
     ProtectionSpaceBase.serialization.in
     ScrollTypes.serialization.in
     WebGPU.serialization.in

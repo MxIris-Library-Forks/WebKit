@@ -97,6 +97,11 @@
 #define IS_GST_FULL_1_18 0
 #endif
 
+#if USE(GBM)
+#include "DRMDeviceManager.h"
+#include <drm_fourcc.h>
+#endif
+
 GST_DEBUG_CATEGORY(webkit_gst_common_debug);
 #define GST_CAT_DEFAULT webkit_gst_common_debug
 
@@ -357,17 +362,21 @@ bool ensureGStreamerInitialized()
         // is to register the playbin3 element under the playbin namespace. We
         // can't allow this, when we create playbin, we want playbin2, not
         // playbin3.
-        if (g_getenv("USE_PLAYBIN3"))
+        // The USE_PLAYBIN3 environment variable is no longer supported.
+        // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/6255
+        if (!webkitGstCheckVersion(1, 24, 0) && g_getenv("USE_PLAYBIN3"))
             WTFLogAlways("The USE_PLAYBIN3 variable was detected in the environment. Expect playback issues or please unset it.");
 
 #if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
         Vector<String> parameters = s_UIProcessCommandLineOptions.value_or(extractGStreamerOptionsFromCommandLine());
         s_UIProcessCommandLineOptions.reset();
+        WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN // GLib port
         char** argv = g_new0(char*, parameters.size() + 2);
         int argc = parameters.size() + 1;
         argv[0] = g_strdup(FileSystem::currentExecutableName().data());
         for (unsigned i = 0; i < parameters.size(); i++)
             argv[i + 1] = g_strdup(parameters[i].utf8().data());
+        WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
         GUniqueOutPtr<GError> error;
         isGStreamerInitialized = gst_init_check(&argc, &argv, &error.outPtr());
@@ -454,7 +463,9 @@ void registerWebKitGStreamerElements()
 
         // Downrank the libav AAC decoders, due to their broken LC support, as reported in:
         // https://ffmpeg.org/pipermail/ffmpeg-devel/2019-July/247063.html
+        WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN // GLib port
         const char* const elementNames[] = { "avdec_aac", "avdec_aac_fixed", "avdec_aac_latm" };
+        WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
         for (unsigned i = 0; i < G_N_ELEMENTS(elementNames); i++) {
             GRefPtr<GstElementFactory> avAACDecoderFactory = adoptGRef(gst_element_factory_find(elementNames[i]));
             if (avAACDecoderFactory)
@@ -481,7 +492,9 @@ void registerWebKitGStreamerElements()
         // base class does not abstract away network access. They can't work in a sandboxed
         // media process, so demote their rank in order to prevent decodebin3 from auto-plugging them.
         if (webkitGstCheckVersion(1, 22, 0)) {
+            WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN // GLib port
             const char* const elementNames[] = { "dashdemux2", "hlsdemux2", "mssdemux2" };
+            WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
             for (unsigned i = 0; i < G_N_ELEMENTS(elementNames); i++) {
                 if (auto factory = adoptGRef(gst_element_factory_find(elementNames[i])))
                     gst_plugin_feature_set_rank(GST_PLUGIN_FEATURE_CAST(factory.get()), GST_RANK_NONE);
@@ -722,6 +735,8 @@ GstVideoFrame* GstMappedFrame::get()
     return &m_frame;
 }
 
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN // GLib port
+
 uint8_t* GstMappedFrame::componentData(int comp) const
 {
     RELEASE_ASSERT(isValid());
@@ -769,6 +784,8 @@ int GstMappedFrame::planeStride(uint32_t planeIndex) const
     RELEASE_ASSERT(isValid());
     return GST_VIDEO_FRAME_PLANE_STRIDE(&m_frame, planeIndex);
 }
+
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
 GstMappedAudioBuffer::GstMappedAudioBuffer(GstBuffer* buffer, GstAudioInfo info, GstMapFlags flags)
 {
@@ -1714,6 +1731,104 @@ void gstStructureFilterAndMapInPlace(GstStructure* structure, Function<bool(GstI
     }, &callback);
 #endif
 }
+
+#if !GST_CHECK_VERSION(1, 24, 0)
+static GstVideoFormat drmFourccToGstVideoFormat(uint32_t fourcc)
+{
+    switch (fourcc) {
+    case DRM_FORMAT_XRGB8888:
+        return GST_VIDEO_FORMAT_BGRx;
+    case DRM_FORMAT_XBGR8888:
+        return GST_VIDEO_FORMAT_RGBx;
+    case DRM_FORMAT_ARGB8888:
+        return GST_VIDEO_FORMAT_BGRA;
+    case DRM_FORMAT_ABGR8888:
+        return GST_VIDEO_FORMAT_RGBA;
+    case DRM_FORMAT_YUV420:
+        return GST_VIDEO_FORMAT_I420;
+    case DRM_FORMAT_YVU420:
+        return GST_VIDEO_FORMAT_YV12;
+    case DRM_FORMAT_NV12:
+        return GST_VIDEO_FORMAT_NV12;
+    case DRM_FORMAT_NV21:
+        return GST_VIDEO_FORMAT_NV21;
+    case DRM_FORMAT_YUV444:
+        return GST_VIDEO_FORMAT_Y444;
+    case DRM_FORMAT_YUV411:
+        return GST_VIDEO_FORMAT_Y41B;
+    case DRM_FORMAT_YUV422:
+        return GST_VIDEO_FORMAT_Y42B;
+    case DRM_FORMAT_P010:
+        return GST_VIDEO_FORMAT_P010_10LE;
+    default:
+        break;
+    }
+
+    RELEASE_ASSERT_NOT_REACHED();
+    return GST_VIDEO_FORMAT_UNKNOWN;
+}
+#endif // !GST_CHECK_VERSION(1, 24, 0)
+
+#if USE(GBM)
+GRefPtr<GstCaps> buildDMABufCaps()
+{
+    GRefPtr<GstCaps> caps = adoptGRef(gst_caps_from_string("video/x-raw(memory:DMABuf), width = " GST_VIDEO_SIZE_RANGE ", height = " GST_VIDEO_SIZE_RANGE ", framerate = " GST_VIDEO_FPS_RANGE));
+#if GST_CHECK_VERSION(1, 24, 0)
+    gst_caps_set_simple(caps.get(), "format", G_TYPE_STRING, "DMA_DRM", nullptr);
+
+    static const char* formats = g_getenv("WEBKIT_GST_DMABUF_FORMATS");
+    if (formats && *formats) {
+        auto formatsString = StringView::fromLatin1(formats);
+        GValue drmSupportedFormats = G_VALUE_INIT;
+        g_value_init(&drmSupportedFormats, GST_TYPE_LIST);
+        for (auto token : formatsString.split(',')) {
+            GValue value = G_VALUE_INIT;
+            g_value_init(&value, G_TYPE_STRING);
+            g_value_set_string(&value, token.toStringWithoutCopying().ascii().data());
+            gst_value_list_append_and_take_value(&drmSupportedFormats, &value);
+        }
+        gst_caps_set_value(caps.get(), "drm-format", &drmSupportedFormats);
+        g_value_unset(&drmSupportedFormats);
+        return caps;
+    }
+#endif
+
+    GValue supportedFormats = G_VALUE_INIT;
+    g_value_init(&supportedFormats, GST_TYPE_LIST);
+    const auto& dmabufFormats = PlatformDisplay::sharedDisplay().dmabufFormatsForVideo();
+    for (const auto& format : dmabufFormats) {
+#if GST_CHECK_VERSION(1, 24, 0)
+        if (format.modifiers.isEmpty() || format.modifiers[0] == DRM_FORMAT_MOD_INVALID) {
+            GValue value = G_VALUE_INIT;
+            g_value_init(&value, G_TYPE_STRING);
+            g_value_take_string(&value, gst_video_dma_drm_fourcc_to_string(format.fourcc, DRM_FORMAT_MOD_LINEAR));
+            gst_value_list_append_and_take_value(&supportedFormats, &value);
+        } else {
+            for (auto modifier : format.modifiers) {
+                GValue value = G_VALUE_INIT;
+                g_value_init(&value, G_TYPE_STRING);
+                g_value_take_string(&value, gst_video_dma_drm_fourcc_to_string(format.fourcc, modifier));
+                gst_value_list_append_and_take_value(&supportedFormats, &value);
+            }
+        }
+#else
+        GValue value = G_VALUE_INIT;
+        g_value_init(&value, G_TYPE_STRING);
+        g_value_set_string(&value, gst_video_format_to_string(drmFourccToGstVideoFormat(format.fourcc)));
+        gst_value_list_append_and_take_value(&supportedFormats, &value);
+#endif
+    }
+
+#if GST_CHECK_VERSION(1, 24, 0)
+    gst_caps_set_value(caps.get(), "drm-format", &supportedFormats);
+#else
+    gst_caps_set_value(caps.get(), "format", &supportedFormats);
+#endif
+    g_value_unset(&supportedFormats);
+
+    return caps;
+}
+#endif // USE(GBM)
 
 #undef GST_CAT_DEFAULT
 

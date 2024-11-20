@@ -2353,6 +2353,7 @@ accessibility/url-test.html [ Pass ]
 accessibility/video-element-url-attribute.html [ Pass ]
 accessibility/visible-character-range-basic.html [ Pass ]
 accessibility/visible-character-range-height-changes.html [ Pass ]
+accessibility/visible-character-range-vertical-rl.html [ Pass ]
 accessibility/visible-character-range-width-changes.html [ Pass ]
 accessibility/ancestor-computation.html [ Pass ]
 
@@ -7191,6 +7192,13 @@ fast/overflow/infiniteRecursion.html [ Failure Pass ]
 tables/mozilla/bugs/bug2479-2.html [ Failure Pass ]
 
 webkit.org/b/263872 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-default-iframe.html [ ImageOnlyFailure ]
+
+webkit.org/b/283366 imported/w3c/web-platform-tests/scroll-animations/view-timelines/svg-graphics-element-001.html [ Pass Failure ]
+webkit.org/b/283366 imported/w3c/web-platform-tests/scroll-animations/view-timelines/svg-graphics-element-002.html [ Pass Failure ]
+webkit.org/b/283366 imported/w3c/web-platform-tests/scroll-animations/view-timelines/svg-graphics-element-003.html [ Pass Failure ]
+
+webkit.org/b/283367 imported/w3c/web-platform-tests/scroll-animations/scroll-timelines/animation-with-display-none.html [ ImageOnlyFailure ]
+webkit.org/b/283367 imported/w3c/web-platform-tests/scroll-animations/scroll-timelines/animation-with-animatable-interface.html [ ImageOnlyFailure ]
 
 webkit.org/b/269506 fast/forms/ios/autocapitalize-words.html [ Pass Failure ]
 

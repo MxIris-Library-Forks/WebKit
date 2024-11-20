@@ -2948,20 +2948,17 @@ FileSystemAccessEnabled:
 
 FilterLinkDecorationByDefaultEnabled:
   type: bool
-  status: internal
+  status: stable
   category: networking
   humanReadableName: "Filter Link Decoration"
   humanReadableDescription: "Enable Filtering Link Decoration"
   defaultValue:
     WebKitLegacy:
-      "ENABLE(LINK_DECORATION_FILTERING_BY_DEFAULT)": true
-      default: false
+      default: true
     WebKit:
-      "ENABLE(LINK_DECORATION_FILTERING_BY_DEFAULT)": true
-      default: false
+      default: true
     WebCore:
-      "ENABLE(LINK_DECORATION_FILTERING_BY_DEFAULT)": true
-      default: false
+      default: true
 
 FixedFontFamily:
   type: String
@@ -6194,17 +6191,17 @@ SansSerifFontFamily:
 
 ScopedCustomElementRegistryEnabled:
   type: bool
-  status: preview
+  status: stable
   category: dom
   humanReadableName: "Scoped custom element registry"
   humanReadableDescription: "Enable scoped custom element registry"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 # FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
 # FIXME: This should have it's own ENABLE.

@@ -1949,7 +1949,6 @@
 		512DD8F80D91E6AF000F89EE /* ArchiveResourceCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = 512DD8EE0D91E6AF000F89EE /* ArchiveResourceCollection.h */; };
 		512DD8FC0D91E6AF000F89EE /* ArchiveResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 512DD8F20D91E6AF000F89EE /* ArchiveResource.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		512DD8FD0D91E6AF000F89EE /* ArchiveFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 512DD8F30D91E6AF000F89EE /* ArchiveFactory.h */; };
-		512F03802CDA993C009F7ABC /* ProcessSyncClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 512F037F2CDA993C009F7ABC /* ProcessSyncClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		512F29262BA2BD7000F1C326 /* MediaResourceSniffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 512F29242BA2BD6500F1C326 /* MediaResourceSniffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5130F2F624AEA60A00E1D0A0 /* GameControllerSoftLink.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5130F2F424AEA60300E1D0A0 /* GameControllerSoftLink.mm */; };
 		51327D6011A33A2B004F9D65 /* SinkDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = 51327D5E11A33A2B004F9D65 /* SinkDocument.h */; };
@@ -2094,6 +2093,9 @@
 		51C81B8A0C4422F70019ECE3 /* FTPDirectoryParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 51C81B880C4422F70019ECE3 /* FTPDirectoryParser.h */; };
 		51CA7EE91F883390003D3131 /* ServiceWorkerContextData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CA7EE71F8832E0003D3131 /* ServiceWorkerContextData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51CBFC990D10E483002DBF51 /* CachedFramePlatformData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51D596CF2CECF71000AA8531 /* ProcessSyncData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D596CD2CECF71000AA8531 /* ProcessSyncData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51D596D02CECF71000AA8531 /* ProcessSyncClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D596CB2CECF71000AA8531 /* ProcessSyncClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51D596D22CECF71000AA8531 /* ProcessSyncData.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = 51D596CE2CECF71000AA8531 /* ProcessSyncData.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D7236D1BB6174900478CA3 /* IDBResultData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D7236B1BB60BFE00478CA3 /* IDBResultData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D7EFEA1BDE8F8C00E93E10 /* ThreadSafeDataBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 511FAEA91BDC989A00B4AFE4 /* ThreadSafeDataBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51DB8C402B7B23AA000AD1BA /* MediaSourceInterfaceProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DB8C3C2B7B1A34000AD1BA /* MediaSourceInterfaceProxy.h */; };
@@ -2929,6 +2931,7 @@
 		7ABA251028B40FE7005D4F6D /* ReportingScope.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ABA250C28ADA68D005D4F6D /* ReportingScope.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7ABA251128B41C64005D4F6D /* Report.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ABA24E528A5C8D1005D4F6D /* Report.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7ABA251228B4457C005D4F6D /* ReportBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ABA24E728A5C90A005D4F6D /* ReportBody.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7ABB0F602CE7C170009A837D /* QuirksData.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ABB0F5F2CE7C170009A837D /* QuirksData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AC09F4728C0122C004568FC /* TestReportBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AC09F4528C00E5D004568FC /* TestReportBody.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AD41E7E2C7607AF00ED9467 /* ScrollingPlatformLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AD41E7D2C7607AA00ED9467 /* ScrollingPlatformLayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7ADE722610CBBB9B006B3B3A /* ContextMenuProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 7ADE722510CBBB9B006B3B3A /* ContextMenuProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11399,7 +11402,6 @@
 		512DD8F10D91E6AF000F89EE /* ArchiveResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArchiveResource.cpp; sourceTree = "<group>"; };
 		512DD8F20D91E6AF000F89EE /* ArchiveResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArchiveResource.h; sourceTree = "<group>"; };
 		512DD8F30D91E6AF000F89EE /* ArchiveFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArchiveFactory.h; sourceTree = "<group>"; };
-		512F037F2CDA993C009F7ABC /* ProcessSyncClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSyncClient.h; sourceTree = "<group>"; };
 		512F1A771C07EA0D00908239 /* IDBGetResult.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBGetResult.cpp; sourceTree = "<group>"; };
 		512F29242BA2BD6500F1C326 /* MediaResourceSniffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaResourceSniffer.h; sourceTree = "<group>"; };
 		512F29252BA2BD6500F1C326 /* MediaResourceSniffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaResourceSniffer.cpp; sourceTree = "<group>"; };
@@ -11667,6 +11669,10 @@
 		51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedFramePlatformData.h; sourceTree = "<group>"; };
 		51D1248A1E73625C002B2820 /* NetworkStorageSessionCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NetworkStorageSessionCocoa.mm; sourceTree = "<group>"; };
 		51D1248C1E736456002B2820 /* CookieCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CookieCocoa.mm; sourceTree = "<group>"; };
+		51D596CB2CECF71000AA8531 /* ProcessSyncClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSyncClient.h; sourceTree = "<group>"; };
+		51D596CC2CECF71000AA8531 /* ProcessSyncClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ProcessSyncClient.cpp; sourceTree = "<group>"; };
+		51D596CD2CECF71000AA8531 /* ProcessSyncData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSyncData.h; sourceTree = "<group>"; };
+		51D596CE2CECF71000AA8531 /* ProcessSyncData.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = ProcessSyncData.serialization.in; sourceTree = "<group>"; };
 		51D71977181106DF0016DC51 /* IDBCursor.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IDBCursor.idl; sourceTree = "<group>"; };
 		51D7197B181106DF0016DC51 /* IDBCursorWithValue.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IDBCursorWithValue.idl; sourceTree = "<group>"; };
 		51D7197E181106DF0016DC51 /* IDBDatabase.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IDBDatabase.idl; sourceTree = "<group>"; };
@@ -13577,6 +13583,7 @@
 		7ABA250C28ADA68D005D4F6D /* ReportingScope.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReportingScope.h; sourceTree = "<group>"; };
 		7ABA250D28AEF4FC005D4F6D /* ReportBody.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ReportBody.cpp; sourceTree = "<group>"; };
 		7ABA250E28B40370005D4F6D /* ReportingClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReportingClient.h; sourceTree = "<group>"; };
+		7ABB0F5F2CE7C170009A837D /* QuirksData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuirksData.h; sourceTree = "<group>"; };
 		7AC09F3628BFD45B004568FC /* JSReportBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSReportBody.h; sourceTree = "<group>"; };
 		7AC09F3728BFD45B004568FC /* JSReportBody.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSReportBody.cpp; sourceTree = "<group>"; };
 		7AC09F3828BFD45B004568FC /* JSReportingObserverCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSReportingObserverCallback.h; sourceTree = "<group>"; };
@@ -27702,6 +27709,10 @@
 				3227A92A28BD744B00BC2697 /* NodeName.h */,
 				71E2183817359FB8006E6E4D /* PlugInsResources.h */,
 				71E2183917359FB8006E6E4D /* PlugInsResourcesData.cpp */,
+				51D596CC2CECF71000AA8531 /* ProcessSyncClient.cpp */,
+				51D596CB2CECF71000AA8531 /* ProcessSyncClient.h */,
+				51D596CD2CECF71000AA8531 /* ProcessSyncData.h */,
+				51D596CE2CECF71000AA8531 /* ProcessSyncData.serialization.in */,
 				9908B0FD1BCAD07D00ED3F64 /* ReadableByteStreamInternalsBuiltins.cpp */,
 				9B03D8061BB3110D00B73F64 /* ReadableByteStreamInternalsBuiltins.h */,
 				9908B0FE1BCAD07D00ED3572 /* ReadableStreamBYOBReaderBuiltins.cpp */,
@@ -28272,11 +28283,11 @@
 				E4605FEA2166480800E53046 /* PrewarmInformation.h */,
 				B776D43C1104527500BEB0EC /* PrintContext.cpp */,
 				B776D43A1104525D00BEB0EC /* PrintContext.h */,
-				512F037F2CDA993C009F7ABC /* ProcessSyncClient.h */,
 				E42050162141901B0066EF3B /* ProcessWarming.cpp */,
 				E42050142141901A0066EF3B /* ProcessWarming.h */,
 				CD9A87F9215D6CF3006F17B5 /* Quirks.cpp */,
 				CD9A87FB215D6CF3006F17B5 /* Quirks.h */,
+				7ABB0F5F2CE7C170009A837D /* QuirksData.h */,
 				558476582453ABC2009F550C /* ReducedResolutionSeconds.h */,
 				46B9518D207D632A00A7D2DD /* RemoteDOMWindow.cpp */,
 				46B9518E207D632A00A7D2DD /* RemoteDOMWindow.h */,
@@ -42646,7 +42657,9 @@
 				7BDDA34C275A01310038659E /* ProcessIdentity.h in Headers */,
 				A8EA7EBC0A1945D000A8EF5F /* ProcessingInstruction.h in Headers */,
 				1CC54AFE270F96AE005BF8BE /* ProcessQualified.h in Headers */,
-				512F03802CDA993C009F7ABC /* ProcessSyncClient.h in Headers */,
+				51D596D02CECF71000AA8531 /* ProcessSyncClient.h in Headers */,
+				51D596CF2CECF71000AA8531 /* ProcessSyncData.h in Headers */,
+				51D596D22CECF71000AA8531 /* ProcessSyncData.serialization.in in Headers */,
 				E42050172141901B0066EF3B /* ProcessWarming.h in Headers */,
 				72BA2ACF2952445D00678507 /* ProgressBarPart.h in Headers */,
 				E44613EC0CD681B500FADA75 /* ProgressEvent.h in Headers */,
@@ -42711,6 +42724,7 @@
 				CD20ED3C27878FFB0038BE44 /* QueuedVideoOutput.h in Headers */,
 				A15E31F41E0CB0B5004B371C /* QuickLook.h in Headers */,
 				9BAEE92C22388A7D004157A9 /* Quirks.h in Headers */,
+				7ABB0F602CE7C170009A837D /* QuirksData.h in Headers */,
 				379E371713736A6600B9E919 /* QuotedPrintable.h in Headers */,
 				5A574F29131DB96D00471B88 /* QuotesData.h in Headers */,
 				B22279720D00BF220071B782 /* RadialGradientAttributes.h in Headers */,

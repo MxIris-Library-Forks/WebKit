@@ -2528,6 +2528,17 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E cat ${MODERN_MEDIA_CONTROLS_SCRIPTS} > ${WebCore_DERIVED_SOURCES_DIR}/ModernMediaControls.js
     VERBATIM)
 
+# Generate process sync data files
+add_custom_command(
+    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.cpp ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.h ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.h ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.serialization.in
+    MAIN_DEPENDENCY ${WEBCORE_DIR}/page/ProcessSyncData.in
+    DEPENDS ${WEBCORE_DIR}/Scripts/generate-process-sync-data.py
+    COMMAND ${PYTHON_EXECUTABLE} ${WEBCORE_DIR}/Scripts/generate-process-sync-data.py ${WEBCORE_DIR}/page/ProcessSyncData.in ${WebCore_DERIVED_SOURCES_DIR}
+    VERBATIM)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.cpp)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.h)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.h)
+
 # Modules that the bindings generator scripts may use
 set(SCRIPTS_RESOLVE_SUPPLEMENTAL
     ${WEBCORE_DIR}/bindings/scripts/IDLParser.pm
@@ -2569,6 +2580,13 @@ set(WebCoreTestSupport_INTERFACE_INCLUDE_DIRECTORIES
 WEBKIT_FRAMEWORK_DECLARE(WebCore)
 WEBKIT_LIBRARY_DECLARE(WebCoreTestSupport)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
+
+if (PORT STREQUAL GTK OR PORT STREQUAL WPE)
+    WEBKIT_ADD_TARGET_CXX_FLAGS(WebCore
+        -Wunsafe-buffer-usage
+        -fsafe-buffer-usage-suggestions
+    )
+endif ()
 
 list(APPEND WebCoreTestSupport_LIBRARIES ${WebCore_LIBRARIES})
 list(APPEND WebCoreTestSupport_PRIVATE_LIBRARIES ${WebCore_PRIVATE_LIBRARIES})
@@ -2896,8 +2914,9 @@ WEBKIT_COMPUTE_SOURCES(WebCore)
 target_precompile_headers(WebCore PRIVATE WebCorePrefix.h)
 
 list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
-    Modules/WebGPU/InternalAPI/WebGPU.serialization.in
+    ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.serialization.in
 
+    Modules/WebGPU/InternalAPI/WebGPU.serialization.in
     Modules/indexeddb/IndexedDB.serialization.in
 
     page/ActivityState.serialization.in
@@ -2911,11 +2930,8 @@ list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/ScrollTypes.serialization.in
 
     platform/audio/PlatformMediaSession.serialization.in
-
     platform/graphics/InbandTextTrackPrivate.serialization.in
-
     platform/mediastream/MDNSRegisterError.serialization.in
-
     platform/network/ProtectionSpaceBase.serialization.in
 )
 

@@ -2258,13 +2258,13 @@ public:
     bool scrollAnchoringSuppressionStyleDidChange(const RenderStyle*) const;
     bool outOfFlowPositionStyleDidChange(const RenderStyle*) const;
 
-    static Vector<AtomString> initialAnchorNames();
-    inline const Vector<AtomString>& anchorNames() const;
-    inline void setAnchorNames(const Vector<AtomString>&);
+    static Vector<Style::ScopedName> initialAnchorNames();
+    inline const Vector<Style::ScopedName>& anchorNames() const;
+    inline void setAnchorNames(const Vector<Style::ScopedName>&);
 
-    static inline const AtomString& initialPositionAnchor();
-    inline const AtomString& positionAnchor() const;
-    inline void setPositionAnchor(const AtomString&);
+    static inline std::optional<Style::ScopedName> initialPositionAnchor();
+    inline const std::optional<Style::ScopedName>& positionAnchor() const;
+    inline void setPositionAnchor(const std::optional<Style::ScopedName>&);
 
     static constexpr Style::PositionTryOrder initialPositionTryOrder();
     inline Style::PositionTryOrder positionTryOrder() const;
@@ -2413,8 +2413,7 @@ inline bool pseudoElementRendererIsNeeded(const RenderStyle*);
 inline bool generatesBox(const RenderStyle&);
 inline bool isNonVisibleOverflow(Overflow);
 
-inline bool isSkippedContentRoot(const RenderStyle&, const Element*);
-
 inline bool isVisibleToHitTesting(const RenderStyle&, const HitTestRequest&);
+inline bool doesSizeContainmentApplyByDisplayType(const RenderStyle&);
 
 } // namespace WebCore

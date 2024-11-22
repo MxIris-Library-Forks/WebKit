@@ -17613,6 +17613,7 @@
 		BC02CF732CE2E10A007DA764 /* JSDOMConvertUndefined.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSDOMConvertUndefined.h; sourceTree = "<group>"; };
 		BC04A7C8296E57810003F9DB /* CSSUnresolvedColorMix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSUnresolvedColorMix.cpp; sourceTree = "<group>"; };
 		BC04A7C9296E57810003F9DB /* CSSUnresolvedColorMix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSUnresolvedColorMix.h; sourceTree = "<group>"; };
+		BC05ACC12CEE531400750CB1 /* ComputedStyleDependencies.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ComputedStyleDependencies.cpp; sourceTree = "<group>"; };
 		BC06ED040BFD5BAE00856E9D /* JSHTMLTableSectionElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLTableSectionElement.cpp; sourceTree = "<group>"; };
 		BC06ED050BFD5BAE00856E9D /* JSHTMLTableSectionElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLTableSectionElement.h; sourceTree = "<group>"; };
 		BC06ED990BFD660600856E9D /* JSHTMLTableColElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLTableColElement.cpp; sourceTree = "<group>"; };
@@ -36867,6 +36868,7 @@
 				E4DA5E3E28A2867300849BCF /* query */,
 				4BAFD0DA21921EAD00C0AB64 /* typedom */,
 				BCA407D82C9DF4CF006B037F /* values */,
+				BC05ACC12CEE531400750CB1 /* ComputedStyleDependencies.cpp */,
 				BC812C2C2CB58D430048BBC5 /* ComputedStyleDependencies.h */,
 				713785EE28D9F4C50092D9F2 /* ComputedStyleExtractor.cpp */,
 				713785EF28D9F4C50092D9F2 /* ComputedStyleExtractor.h */,

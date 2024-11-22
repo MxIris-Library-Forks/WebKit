@@ -1792,6 +1792,22 @@ CanvasLayersEnabled:
     WebCore:
       default: false
 
+CanvasPixelFormatEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  humanReadableName: "CanvasRenderingContext2DSettings.pixelFormat"
+  humanReadableDescription: "Allow different pixel formats in 2D canvas"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
+
 CanvasUsesAcceleratedDrawing:
   type: bool
   status: embedder
@@ -2809,7 +2825,6 @@ ExperimentalSandboxEnabled:
     WebKit:
       default: false
 
-# FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
 ExposeSpeakersEnabled:
   type: bool
   status: testable
@@ -2818,13 +2833,25 @@ ExposeSpeakersEnabled:
   humanReadableDescription: "Allow speaker device selection"
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
-    WebKitLegacy:
-      default: false
     WebKit:
       default: false
     WebCore:
       default: false
 
+ExposeSpeakersWithoutMicrophoneEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "Allow selection of speaker device without related microphone"
+  humanReadableDescription: "Allow selection of speaker device without related microphone"
+  condition: ENABLE(MEDIA_STREAM)
+  defaultValue:
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
+# FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
 ExtendedAudioDescriptionsEnabled:
   type: bool
   status: preview
@@ -5603,8 +5630,6 @@ PerElementSpeakerSelectionEnabled:
   humanReadableDescription: "Allow per media element speaker device selection"
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
-    WebKitLegacy:
-      default: false
     WebKit:
       default: false
     WebCore:

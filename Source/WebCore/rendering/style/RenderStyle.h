@@ -1189,11 +1189,6 @@ public:
     inline void resetBorderBottomRightRadius();
 
     inline void setBackgroundColor(const StyleColor&);
-
-    inline void setBackgroundXPosition(Length&&);
-    inline void setBackgroundYPosition(Length&&);
-    inline void setBackgroundSize(FillSizeType);
-    inline void setBackgroundSizeLength(LengthSize&&);
     inline void setBackgroundAttachment(FillAttachment);
     inline void setBackgroundClip(FillBox);
     inline void setBackgroundOrigin(FillBox);
@@ -2414,5 +2409,12 @@ inline bool generatesBox(const RenderStyle&);
 inline bool isNonVisibleOverflow(Overflow);
 
 inline bool isVisibleToHitTesting(const RenderStyle&, const HitTestRequest&);
+
+inline bool shouldApplyLayoutContainment(const RenderStyle&, const Element&);
+inline bool shouldApplySizeContainment(const RenderStyle&, const Element&);
+inline bool shouldApplyInlineSizeContainment(const RenderStyle&, const Element&);
+inline bool shouldApplyStyleContainment(const RenderStyle&, const Element&);
+inline bool shouldApplyPaintContainment(const RenderStyle&, const Element&);
+inline bool isSkippedContentRoot(const RenderStyle&, const Element&);
 
 } // namespace WebCore

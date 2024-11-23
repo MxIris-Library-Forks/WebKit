@@ -3438,6 +3438,7 @@
 		9016EA4D2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 9016EA4C2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9017C9FE2CD007F2002E1DBC /* URLPatternParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 9017C9FD2CD007F2002E1DBC /* URLPatternParser.h */; };
 		903C7E222CC246DA00245C29 /* URLPatternTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 903C7E212CC246D400245C29 /* URLPatternTokenizer.h */; };
+		90E0A16F2CDEE2CF0074377B /* URLPatternComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E0A16E2CDEE2CF0074377B /* URLPatternComponent.h */; };
 		90E1B6D22CB9A7E300CADF80 /* URLPatternCanonical.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */; };
 		90E351C2247E46E400FBF24F /* IDBDatabaseNameAndVersionRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 90E351BD247E3D4800FBF24F /* IDBDatabaseNameAndVersionRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9109E9C8222CABCA00BB6264 /* InspectorAuditResourcesObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 9109E9C5222CABC800BB6264 /* InspectorAuditResourcesObject.h */; };
@@ -4760,6 +4761,7 @@
 		BC02CF5F2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF5E2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC02CF622CE27426007DA764 /* StyleNone.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF612CE27426007DA764 /* StyleNone.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC02CF742CE2E10A007DA764 /* JSDOMConvertUndefined.h in Headers */ = {isa = PBXBuildFile; fileRef = BC02CF732CE2E10A007DA764 /* JSDOMConvertUndefined.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC05ACCE2CEE610300750CB1 /* CSSSymbol.h in Headers */ = {isa = PBXBuildFile; fileRef = BC05ACCC2CEE600D00750CB1 /* CSSSymbol.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC06ED070BFD5BAE00856E9D /* JSHTMLTableSectionElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC06ED050BFD5BAE00856E9D /* JSHTMLTableSectionElement.h */; };
 		BC06ED9E0BFD660600856E9D /* JSHTMLTableColElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC06ED9A0BFD660600856E9D /* JSHTMLTableColElement.h */; };
 		BC06EDA00BFD660600856E9D /* JSHTMLTableRowElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC06ED9C0BFD660600856E9D /* JSHTMLTableRowElement.h */; };
@@ -4982,6 +4984,7 @@
 		BCE1C41B0D982980003B02F2 /* Location.h in Headers */ = {isa = PBXBuildFile; fileRef = BCE1C4190D982980003B02F2 /* Location.h */; };
 		BCE1C43C0D9830D3003B02F2 /* JSLocation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCE1C43A0D9830D3003B02F2 /* JSLocation.h */; };
 		BCE32B9C1517C0B200F542EC /* RenderMultiColumnSet.h in Headers */ = {isa = PBXBuildFile; fileRef = BCE32B9B1517C0B100F542EC /* RenderMultiColumnSet.h */; };
+		BCE411832CEFD9DB00731E47 /* CSSPrimitiveNumericTypes+EvaluateCalc.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB271DF2CC0142C00265123 /* CSSPrimitiveNumericTypes+EvaluateCalc.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCE4413412F748E2009B84B8 /* RenderCombineText.h in Headers */ = {isa = PBXBuildFile; fileRef = BCE4413212F748E2009B84B8 /* RenderCombineText.h */; };
 		BCE658FF0EA9248A007E4533 /* Theme.h in Headers */ = {isa = PBXBuildFile; fileRef = BCE658FE0EA9248A007E4533 /* Theme.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCE659A90EA927B9007E4533 /* ThemeTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = BCE659A80EA927B9007E4533 /* ThemeTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -14755,6 +14758,8 @@
 		9017C9FD2CD007F2002E1DBC /* URLPatternParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternParser.h; sourceTree = "<group>"; };
 		903C7E202CC246C300245C29 /* URLPatternTokenizer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLPatternTokenizer.cpp; sourceTree = "<group>"; };
 		903C7E212CC246D400245C29 /* URLPatternTokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternTokenizer.h; sourceTree = "<group>"; };
+		90E0A16D2CDEE2BD0074377B /* URLPatternComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLPatternComponent.cpp; sourceTree = "<group>"; };
+		90E0A16E2CDEE2CF0074377B /* URLPatternComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLPatternComponent.h; sourceTree = "<group>"; };
 		90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; path = URLPatternCanonical.h; sourceTree = "<group>"; };
 		90E1B6D02CB9A7E300CADF80 /* URLPatternCanonical.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLPatternCanonical.cpp; sourceTree = "<group>"; };
 		90E351BC247E3D4800FBF24F /* IDBDatabaseNameAndVersionRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBDatabaseNameAndVersionRequest.cpp; sourceTree = "<group>"; };
@@ -17614,6 +17619,8 @@
 		BC04A7C8296E57810003F9DB /* CSSUnresolvedColorMix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSUnresolvedColorMix.cpp; sourceTree = "<group>"; };
 		BC04A7C9296E57810003F9DB /* CSSUnresolvedColorMix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSUnresolvedColorMix.h; sourceTree = "<group>"; };
 		BC05ACC12CEE531400750CB1 /* ComputedStyleDependencies.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ComputedStyleDependencies.cpp; sourceTree = "<group>"; };
+		BC05ACCC2CEE600D00750CB1 /* CSSSymbol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSSymbol.h; sourceTree = "<group>"; };
+		BC05ACCD2CEE600D00750CB1 /* CSSSymbol.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSymbol.cpp; sourceTree = "<group>"; };
 		BC06ED040BFD5BAE00856E9D /* JSHTMLTableSectionElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLTableSectionElement.cpp; sourceTree = "<group>"; };
 		BC06ED050BFD5BAE00856E9D /* JSHTMLTableSectionElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLTableSectionElement.h; sourceTree = "<group>"; };
 		BC06ED990BFD660600856E9D /* JSHTMLTableColElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLTableColElement.cpp; sourceTree = "<group>"; };
@@ -29552,6 +29559,8 @@
 				900C207C2CAF8225002C79C5 /* URLPattern.idl */,
 				90E1B6D02CB9A7E300CADF80 /* URLPatternCanonical.cpp */,
 				90E1B6CF2CB9A7E300CADF80 /* URLPatternCanonical.h */,
+				90E0A16D2CDEE2BD0074377B /* URLPatternComponent.cpp */,
+				90E0A16E2CDEE2CF0074377B /* URLPatternComponent.h */,
 				900C207D2CAF8225002C79C5 /* URLPatternInit.h */,
 				900C207E2CAF8225002C79C5 /* URLPatternInit.idl */,
 				900C207F2CAF8225002C79C5 /* URLPatternOptions.h */,
@@ -34664,6 +34673,8 @@
 				BCB271E22CC0142C00265123 /* CSSPrimitiveNumericTypes+SymbolReplacement.h */,
 				BCB271DB2CC0142C00265123 /* CSSPrimitiveNumericTypes.cpp */,
 				BCB271DA2CC0142C00265123 /* CSSPrimitiveNumericTypes.h */,
+				BC05ACCD2CEE600D00750CB1 /* CSSSymbol.cpp */,
+				BC05ACCC2CEE600D00750CB1 /* CSSSymbol.h */,
 				BCB271E52CC0142C00265123 /* CSSUnevaluatedCalc.cpp */,
 				BCB271E42CC0142C00265123 /* CSSUnevaluatedCalc.h */,
 			);
@@ -39811,6 +39822,7 @@
 				BCB272202CC20AA000265123 /* CSSPosition.h in Headers */,
 				977B3863122883E900B81FF8 /* CSSPreloadScanner.h in Headers */,
 				BC02CF5F2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h in Headers */,
+				BCE411832CEFD9DB00731E47 /* CSSPrimitiveNumericTypes+EvaluateCalc.h in Headers */,
 				BCB271FF2CC1E6CD00265123 /* CSSPrimitiveNumericTypes.h in Headers */,
 				A80E6CE60A1989CA007FB8C5 /* CSSPrimitiveValue.h in Headers */,
 				E1ED8AC30CC49BE000BFC557 /* CSSPrimitiveValueMappings.h in Headers */,
@@ -39853,6 +39865,7 @@
 				4BAFD0D62192146B00C0AB64 /* CSSStyleValue.h in Headers */,
 				D026DB0A27AB719E0081B143 /* CSSSubgridValue.h in Headers */,
 				FC54D05716A7673100575E4D /* CSSSupportsRule.h in Headers */,
+				BC05ACCE2CEE610300750CB1 /* CSSSymbol.h in Headers */,
 				BC80C9880CD294EE00A0B7B3 /* CSSTimingFunctionValue.h in Headers */,
 				318210D92C59B17E00C334B4 /* CSSTokenizer.h in Headers */,
 				3169B7DA2C63091700024DBA /* CSSTokenizerInputStream.h in Headers */,
@@ -43963,6 +43976,7 @@
 				4674BE5128C9A5B800A6C831 /* URLKeepingBlobAlive.h in Headers */,
 				900C20842CAF8232002C79C5 /* URLPattern.h in Headers */,
 				90E1B6D22CB9A7E300CADF80 /* URLPatternCanonical.h in Headers */,
+				90E0A16F2CDEE2CF0074377B /* URLPatternComponent.h in Headers */,
 				900C20852CAF8237002C79C5 /* URLPatternInit.h in Headers */,
 				900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */,
 				9017C9FE2CD007F2002E1DBC /* URLPatternParser.h in Headers */,

@@ -958,7 +958,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/primitives/CSSNone.h
     css/values/primitives/CSSPosition.h
     css/values/primitives/CSSPrimitiveNumericRange.h
+    css/values/primitives/CSSPrimitiveNumericTypes+EvaluateCalc.h
     css/values/primitives/CSSPrimitiveNumericTypes.h
+    css/values/primitives/CSSSymbol.h
     css/values/primitives/CSSUnevaluatedCalc.h
 
     css/values/shapes/CSSBasicShape.h

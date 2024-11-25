@@ -888,6 +888,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/CSSValueList.h
     css/CSSVariableData.h
     css/CSSVariableReferenceValue.h
+    css/ComputedStyleDependencies.h
     css/Counter.h
     css/DeprecatedCSSOMCounter.h
     css/DeprecatedCSSOMPrimitiveValue.h
@@ -991,6 +992,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/BroadcastChannelRegistry.h
     dom/CDATASection.h
     dom/CallbackResult.h
+    dom/CaretPosition.h
     dom/CharacterData.h
     dom/CheckVisibilityOptions.h
     dom/CollectionIndexCache.h

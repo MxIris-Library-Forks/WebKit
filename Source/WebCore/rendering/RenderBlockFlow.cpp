@@ -904,7 +904,7 @@ void RenderBlockFlow::layoutInlineChildren(bool relayoutChildren, LayoutUnit& re
         m_lineLayout = makeUnique<LegacyLineLayout>(*this);
 
     svgTextLayout()->layoutLineBoxes();
-    m_previousInlineLayoutContentBoxLogicalHeight = { };
+    m_previousInlineLayoutContentTopAndBottomIncludingInkOverflow = { };
 }
 
 static LayoutUnit computeExtraSpaceForBlockStepSizing(LayoutUnit stepSize, LayoutUnit boxOuterSize)
@@ -3700,13 +3700,10 @@ void RenderBlockFlow::paintInlineChildren(PaintInfo& paintInfo, const LayoutPoin
 {
     ASSERT(childrenInline());
 
-    if (inlineLayout()) {
-        inlineLayout()->paint(paintInfo, paintOffset);
+    if (!inlineLayout())
         return;
-    }
 
-    if (svgTextLayout())
-        svgTextLayout()->lineBoxes().paint(this, paintInfo, paintOffset);
+    inlineLayout()->paint(paintInfo, paintOffset);
 }
 
 bool RenderBlockFlow::relayoutForPagination()
@@ -3769,7 +3766,8 @@ void RenderBlockFlow::invalidateLineLayoutPath(InvalidationReason invalidationRe
     case InlinePath: {
         // FIXME: Implement partial invalidation.
         if (inlineLayout()) {
-            m_previousInlineLayoutContentBoxLogicalHeight = inlineLayout()->contentBoxLogicalHeight();
+            ASSERT(!m_previousInlineLayoutContentTopAndBottomIncludingInkOverflow);
+            m_previousInlineLayoutContentTopAndBottomIncludingInkOverflow = inlineContentTopAndBottomIncludingInkOverflow();
             if (invalidationReason != InvalidationReason::InsertionOrRemoval) {
                 auto repaintAndSetNeedsLayoutIncludingOutOfFlowBoxes = [&] {
                     // Since we eagerly remove the display content here, repaints issued between this invalidation (triggered by style change/content mutation) and the subsequent layout would produce empty rects.
@@ -3827,6 +3825,29 @@ static void setFullRepaintOnParentInlineBoxLayerIfNeeded(const RenderText& rende
     if (!parent->isInline() || !parent->hasLayer())
         return;
     downcast<RenderLayerModelObject>(*parent).checkedLayer()->setRepaintStatus(RepaintStatus::NeedsFullRepaint);
+}
+
+std::pair<float, float> RenderBlockFlow::inlineContentTopAndBottomIncludingInkOverflow() const
+{
+    if (m_previousInlineLayoutContentTopAndBottomIncludingInkOverflow)
+        return *m_previousInlineLayoutContentTopAndBottomIncludingInkOverflow;
+
+    auto firstLineBox = InlineIterator::firstLineBoxFor(*this);
+    auto lastLineBox = InlineIterator::lastLineBoxFor(*this);
+    if (!firstLineBox)
+        return { };
+
+    auto logicalTop = std::min(firstLineBox->logicalTop(), firstLineBox->contentLogicalTop());
+    auto logicalBottom = std::max(lastLineBox->logicalBottom(), lastLineBox->contentLogicalBottom());
+
+    if (!inlineLayout()->hasVisualOverflow())
+        return { logicalTop, logicalBottom };
+
+    for (auto lineBox = firstLineBox; lineBox; lineBox.traverseNext()) {
+        logicalTop = std::min(logicalTop, lineBox->inkOverflowLogicalTop());
+        logicalBottom = std::max(logicalBottom, lineBox->inkOverflowLogicalBottom());
+    }
+    return { logicalTop, logicalBottom };
 }
 
 void RenderBlockFlow::layoutInlineContent(bool relayoutChildren, LayoutUnit& repaintLogicalTop, LayoutUnit& repaintLogicalBottom)
@@ -3901,6 +3922,9 @@ void RenderBlockFlow::layoutInlineContent(bool relayoutChildren, LayoutUnit& rep
         return;
     }
 
+    auto oldContentTopAndBottomIncludingInkOverflow = inlineContentTopAndBottomIncludingInkOverflow();
+    m_previousInlineLayoutContentTopAndBottomIncludingInkOverflow = { };
+
     if (!inlineLayout())
         m_lineLayout = makeUnique<LayoutIntegration::LineLayout>(*this);
 
@@ -3909,29 +3933,13 @@ void RenderBlockFlow::layoutInlineContent(bool relayoutChildren, LayoutUnit& rep
     ASSERT(containingBlock() || is<RenderView>(*this));
     layoutFormattingContextLineLayout.updateFormattingContexGeometries(containingBlock() ? containingBlock()->availableLogicalWidth() : LayoutUnit());
 
-    auto contentBoxTop = borderAndPaddingBefore();
-
-    auto computeContentHeight = [&] {
-        if (!hasLines() && hasLineIfEmpty()) {
-            if (m_previousInlineLayoutContentBoxLogicalHeight)
-                return *m_previousInlineLayoutContentBoxLogicalHeight;
-            return lineHeight(true, isHorizontalWritingMode() ? HorizontalLine : VerticalLine, PositionOfInteriorLineBoxes);
-        }
-
-        return layoutFormattingContextLineLayout.contentBoxLogicalHeight();
-    };
-
-    auto computeBorderBoxBottom = [&] {
-        auto contentBoxBottom = contentBoxTop + computeContentHeight();
-        return contentBoxBottom + borderAndPaddingAfter() + scrollbarLogicalHeight();
-    };
-
-    auto oldBorderBoxBottom = computeBorderBoxBottom();
-    m_previousInlineLayoutContentBoxLogicalHeight = { };
-
     auto partialRepaintRect = layoutFormattingContextLineLayout.layout();
 
-    auto newBorderBoxBottom = computeBorderBoxBottom();
+    auto borderBoxBottom = [&] {
+        auto contentHeight = !hasLines() && hasLineIfEmpty() ? lineHeight(true, isHorizontalWritingMode() ? HorizontalLine : VerticalLine, PositionOfInteriorLineBoxes) : layoutFormattingContextLineLayout.contentLogicalHeight();
+        return borderAndPaddingBefore() + contentHeight + borderAndPaddingAfter() + scrollbarLogicalHeight();
+    };
+    auto newBorderBoxBottom = borderBoxBottom();
 
     auto updateRepaintTopAndBottomIfNeeded = [&] {
         auto isFullLayout = selfNeedsLayout() || relayoutChildren;
@@ -3957,23 +3965,17 @@ void RenderBlockFlow::layoutInlineContent(bool relayoutChildren, LayoutUnit& rep
             return;
         }
 
-        auto firstLineBox = InlineIterator::firstLineBoxFor(*this);
-        auto lastLineBox = InlineIterator::lastLineBoxFor(*this);
-        if (!firstLineBox)
-            return;
+        auto contentTopAndBottomIncludingInkOverflow = inlineContentTopAndBottomIncludingInkOverflow();
+        auto damageTopIncludingInkOverflow = std::min(oldContentTopAndBottomIncludingInkOverflow.first, contentTopAndBottomIncludingInkOverflow.first);
+        auto damageBottomIncludingInkOverflow = std::max(oldContentTopAndBottomIncludingInkOverflow.second, contentTopAndBottomIncludingInkOverflow.second);
 
-        repaintLogicalTop = std::min(contentBoxTop, LayoutUnit { firstLineBox->contentLogicalTop() });
-        repaintLogicalBottom = std::max(std::max(oldBorderBoxBottom, newBorderBoxBottom), LayoutUnit { lastLineBox->contentLogicalBottom() });
-        if (layoutFormattingContextLineLayout.hasVisualOverflow()) {
-            for (auto lineBox = firstLineBox; lineBox; lineBox.traverseNext()) {
-                repaintLogicalTop = std::min(repaintLogicalTop, LayoutUnit { lineBox->inkOverflowLogicalTop() });
-                repaintLogicalBottom = std::max(repaintLogicalBottom, LayoutUnit { lineBox->inkOverflowLogicalBottom() });
-            }
-        }
+        repaintLogicalTop = std::min(LayoutUnit::fromFloatFloor(damageTopIncludingInkOverflow), borderAndPaddingBefore());
+        repaintLogicalBottom = std::max(LayoutUnit::fromFloatCeil(damageBottomIncludingInkOverflow), newBorderBoxBottom);
     };
     updateRepaintTopAndBottomIfNeeded();
 
     setLogicalHeight(newBorderBoxBottom);
+
     auto updateLineClampStateAndLogicalHeightIfApplicable = [&] {
         auto legacyLineClamp = layoutState.legacyLineClamp();
         if (!legacyLineClamp || isFloatingOrOutOfFlowPositioned())
@@ -3989,7 +3991,7 @@ void RenderBlockFlow::layoutInlineContent(bool relayoutChildren, LayoutUnit& rep
                 return clampedHeight;
             if (legacyLineClamp->currentLineCount == legacyLineClamp->maximumLineCount) {
                 // Even if we did not truncate the content, this might be our clamping position.
-                return computeContentHeight();
+                return LayoutUnit { layoutFormattingContextLineLayout.contentLogicalHeight() };
             }
             return { };
         };
@@ -4555,7 +4557,12 @@ void RenderBlockFlow::computeInlinePreferredLogicalWidths(LayoutUnit& minLogical
     bool canHangPunctuationAtStart = styleToUse.hangingPunctuation().contains(HangingPunctuation::First);
     bool canHangPunctuationAtEnd = styleToUse.hangingPunctuation().contains(HangingPunctuation::Last);
     RenderText* lastText = nullptr;
-    Vector<std::pair<LayoutUnit, LayoutUnit>> rubyBaseMinimumMaximumWidthStack;
+    struct RubyBaseContent {
+        float minimumWidth { 0.f };
+        float maxiumumWidth { 0.f };
+        bool hasBreakingPositionAfter { false };
+    };
+    Vector<RubyBaseContent> rubyBaseContentStack;
 
     bool addedStartPunctuationHang = false;
     
@@ -4570,11 +4577,17 @@ void RenderBlockFlow::computeInlinePreferredLogicalWidths(LayoutUnit& minLogical
             auto annotationMaximumIntrinsicWidth = LayoutUnit { };
             computeChildPreferredLogicalWidths(*child, annotationMinimumIntrinsicWidth, annotationMaximumIntrinsicWidth);
 
-            if (!rubyBaseMinimumMaximumWidthStack.isEmpty()) {
+            if (!rubyBaseContentStack.isEmpty()) {
                 // Annotation box is always preceded by the associated ruby base.
-                auto baseMinimumMaximumWidth = rubyBaseMinimumMaximumWidthStack.takeLast();
-                inlineMin += std::max(0.f, annotationMinimumIntrinsicWidth.ceilToFloat() - baseMinimumMaximumWidth.first);
-                inlineMax += std::max(0.f, annotationMaximumIntrinsicWidth.ceilToFloat() - baseMinimumMaximumWidth.second);
+                // inlineMin/max only gets expanded if the annotation is wider than the base content is.
+                auto baseContent = rubyBaseContentStack.takeLast();
+                inlineMax += std::max(0.f, annotationMaximumIntrinsicWidth.ceilToFloat() - baseContent.maxiumumWidth);
+                if (baseContent.hasBreakingPositionAfter) {
+                    // When base end has breaking position, the inlineMin value is already reset as we are not tracking the inline content for this "line" anymore.
+                    // However the annotation still belows to the current "line" so we have to update the minLogicalWidth in case annotation is wider than the base content.
+                    minLogicalWidth += std::max(0.f, annotationMinimumIntrinsicWidth.ceilToFloat() - baseContent.minimumWidth);
+                } else
+                    inlineMin += std::max(0.f, annotationMinimumIntrinsicWidth.ceilToFloat() - baseContent.minimumWidth);
             } else
                 ASSERT_NOT_REACHED();
             continue;
@@ -4632,16 +4645,18 @@ void RenderBlockFlow::computeInlinePreferredLogicalWidths(LayoutUnit& minLogical
                     childMax += bpm;
 
                     if (childStyle.display() == DisplayType::RubyBase && !childIterator.endOfInline)
-                        rubyBaseMinimumMaximumWidthStack.append(std::pair { inlineMin, inlineMax });
+                        rubyBaseContentStack.append({ inlineMin, inlineMax, false });
 
                     inlineMin += childMin;
                     inlineMax += childMax;
 
                     if (childStyle.display() == DisplayType::RubyBase && childIterator.endOfInline) {
-                        if (!rubyBaseMinimumMaximumWidthStack.isEmpty()) {
-                            auto rubyBaseStart = rubyBaseMinimumMaximumWidthStack.last();
-                            rubyBaseMinimumMaximumWidthStack.last() = std::pair { inlineMin - rubyBaseStart.first, inlineMax - rubyBaseStart.second };
-                            if (hasTrailingSoftWrapOpportunity(*renderInline, *this)) {
+                        if (!rubyBaseContentStack.isEmpty()) {
+                            auto rubyBaseStart = rubyBaseContentStack.last();
+                            auto baseHasBreakingPositionAfter = hasTrailingSoftWrapOpportunity(*renderInline, *this);
+                            rubyBaseContentStack.last() = RubyBaseContent { inlineMin - rubyBaseStart.minimumWidth, inlineMax - rubyBaseStart.maxiumumWidth, baseHasBreakingPositionAfter };
+                            if (baseHasBreakingPositionAfter) {
+                                // Let's mark based end as a breaking opportunity. Note that annotation may chage the final value of minLogicalWidth.
                                 minLogicalWidth = preferredWidth(minLogicalWidth, inlineMin);
                                 inlineMin = 0;
                             }

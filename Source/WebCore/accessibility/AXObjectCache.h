@@ -257,7 +257,7 @@ protected:
 #endif
 
 enum class AXNotification {
-#define WEBCORE_DEFINE_AXNOTIFICATION_ENUM(name) AX##name,
+#define WEBCORE_DEFINE_AXNOTIFICATION_ENUM(name) name,
 WEBCORE_AXNOTIFICATION_KEYS(WEBCORE_DEFINE_AXNOTIFICATION_ENUM)
 #undef WEBCORE_DEFINE_AXNOTIFICATION_ENUM
 };
@@ -945,7 +945,8 @@ bool hasAccNameAttribute(Element&);
 
 bool isNodeFocused(Node&);
 
-bool isDOMHidden(const RenderStyle*);
+bool isRenderHidden(const RenderStyle*);
+bool isRenderHidden(const RenderStyle&);
 
 WTF::TextStream& operator<<(WTF::TextStream&, AXNotification);
 

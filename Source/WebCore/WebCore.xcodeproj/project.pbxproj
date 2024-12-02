@@ -6411,7 +6411,7 @@
 		F4FC07D62BB3A6220090B808 /* VisibilityAdjustment.h in Headers */ = {isa = PBXBuildFile; fileRef = F4FC07D52BB3A6090090B808 /* VisibilityAdjustment.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F50664F8157F52DC00AC226F /* FormController.h in Headers */ = {isa = PBXBuildFile; fileRef = F50664F6157F52DC00AC226F /* FormController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F513A3EA15FF4841001526DB /* ValidationMessageClient.h in Headers */ = {isa = PBXBuildFile; fileRef = F513A3E915FF4841001526DB /* ValidationMessageClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		F544F78915CFB2A800AF33A8 /* PlatformLocale.h in Headers */ = {isa = PBXBuildFile; fileRef = F544F78715CFB2A800AF33A8 /* PlatformLocale.h */; };
+		F544F78915CFB2A800AF33A8 /* PlatformLocale.h in Headers */ = {isa = PBXBuildFile; fileRef = F544F78715CFB2A800AF33A8 /* PlatformLocale.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F55B3DAE1251F12D003EF269 /* BaseTextInputType.h in Headers */ = {isa = PBXBuildFile; fileRef = F55B3D7A1251F12D003EF269 /* BaseTextInputType.h */; };
 		F55B3DB01251F12D003EF269 /* ButtonInputType.h in Headers */ = {isa = PBXBuildFile; fileRef = F55B3D7C1251F12D003EF269 /* ButtonInputType.h */; };
 		F55B3DB21251F12D003EF269 /* CheckboxInputType.h in Headers */ = {isa = PBXBuildFile; fileRef = F55B3D7E1251F12D003EF269 /* CheckboxInputType.h */; };

@@ -573,7 +573,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_shouldRenderWebGLInGPUProcess { parameters.shouldRenderWebGLInGPUProcess}
 #endif
 #if ENABLE(PLATFORM_DRIVEN_TEXT_CHECKING)
-    , m_textCheckingControllerProxy(makeUniqueRef<TextCheckingControllerProxy>(*this))
+    , m_textCheckingControllerProxy(makeUniqueRefWithoutRefCountedCheck<TextCheckingControllerProxy>(*this))
 #endif
 #if PLATFORM(COCOA) || PLATFORM(GTK)
     , m_viewGestureGeometryCollector(ViewGestureGeometryCollector::create(*this))
@@ -2350,6 +2350,11 @@ WebPage* WebPage::fromCorePage(Page& page)
 {
     auto& client = page.chrome().client();
     return client.isEmptyChromeClient() ? nullptr : &static_cast<WebChromeClient&>(client).page();
+}
+
+RefPtr<WebCore::Page> WebPage::protectedCorePage() const
+{
+    return corePage();
 }
 
 void WebPage::setSize(const WebCore::IntSize& viewSize)

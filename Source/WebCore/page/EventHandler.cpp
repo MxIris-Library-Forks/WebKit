@@ -796,6 +796,9 @@ bool EventHandler::canMouseDownStartSelect(const MouseEventWithHitTestResults& e
     if (!node || !node->renderer())
         return true;
 
+    if (node->protectedDocument()->quirks().shouldAvoidStartingSelectionOnMouseDown(*node))
+        return false;
+
     if (ImageOverlay::isOverlayText(*node))
         return node->renderer()->style().usedUserSelect() != UserSelect::None;
 
@@ -3223,8 +3226,9 @@ HandleUserInputEventResult EventHandler::handleWheelEventInternal(const Platform
     determineWheelEventTarget(event, element, scrollableArea, isOverWidget);
 
 #if PLATFORM(COCOA) || PLATFORM(WIN)
+    std::unique_ptr<WheelEventTestMonitorCompletionDeferrer> deferrer;
     if (scrollableArea)
-        auto deferrer = WheelEventTestMonitorCompletionDeferrer { monitor.get(), scrollableArea->scrollingNodeIDForTesting(), WheelEventTestMonitor::DeferReason::HandlingWheelEventOnMainThread };
+        deferrer = makeUnique<WheelEventTestMonitorCompletionDeferrer>(monitor.get(), scrollableArea->scrollingNodeIDForTesting(), WheelEventTestMonitor::DeferReason::HandlingWheelEventOnMainThread);
 #endif
 
     if (element) {

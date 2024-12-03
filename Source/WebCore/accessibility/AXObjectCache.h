@@ -270,7 +270,7 @@ enum class AXLoadingEvent : uint8_t {
 };
 
 #if !PLATFORM(COCOA)
-enum AXTextChange { AXTextInserted, AXTextDeleted, AXTextAttributesChanged };
+enum class AXTextChange : uint8_t { Inserted, Deleted, AttributesChanged };
 #endif
 
 enum class PostTarget { Element, ObservableParent };
@@ -364,7 +364,8 @@ public:
     void onPopoverToggle(const HTMLElement&);
     void onScrollbarFrameRectChange(const Scrollbar&);
     void onSelectedChanged(Element&);
-    void onStyleChange(Element&, Style::Change, const RenderStyle* newStyle, const RenderStyle* oldStyle);
+    void onStyleChange(Element&, Style::Change, const RenderStyle* oldStyle, const RenderStyle* newStyle);
+    void onStyleChange(RenderText&, StyleDifference, const RenderStyle* oldStyle, const RenderStyle& newStyle);
     void onTextSecurityChanged(HTMLInputElement&);
     void onTitleChange(Document&);
     void onValidityChange(Element&);

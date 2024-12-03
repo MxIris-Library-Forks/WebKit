@@ -458,6 +458,9 @@ public:
 
     virtual ~WebPage();
 
+    void ref() const final { API::ObjectImpl<API::Object::Type::BundlePage>::ref(); }
+    void deref() const final { API::ObjectImpl<API::Object::Type::BundlePage>::deref(); }
+
     void reinitializeWebPage(WebPageCreationParameters&&);
 
     void close();
@@ -1686,6 +1689,7 @@ public:
     void gpuProcessConnectionDidBecomeAvailable(GPUProcessConnection&);
     void gpuProcessConnectionWasDestroyed();
     RemoteRenderingBackendProxy& ensureRemoteRenderingBackendProxy();
+    Ref<RemoteRenderingBackendProxy> ensureProtectedRemoteRenderingBackendProxy();
 #endif
 
 #if ENABLE(MODEL_PROCESS)
@@ -1814,9 +1818,6 @@ public:
     void proofreadingSessionShowDetailsForSuggestionWithIDRelativeToRect(const WebCore::WritingTools::TextSuggestionID&, WebCore::IntRect);
 
     void proofreadingSessionUpdateStateForSuggestionWithID(WebCore::WritingTools::TextSuggestionState, const WebCore::WritingTools::TextSuggestionID&);
-
-    void enableSourceTextAnimationAfterElementWithID(const String&);
-    void enableTextAnimationTypeForElementWithID(const String&);
 
     void addTextAnimationForAnimationID(const WTF::UUID&, const WebCore::TextAnimationData&, const WebCore::TextIndicatorData&, CompletionHandler<void(WebCore::TextAnimationRunMode)>&& = { });
 

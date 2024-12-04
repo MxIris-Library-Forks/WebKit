@@ -675,6 +675,27 @@ static Ref<CSSValue> valueForTextEdge(CSSPropertyID property, const TextEdge& te
         createConvertingToCSSValueID(textEdge.under));
 }
 
+static RefPtr<CSSValue> blockStepShorthandValue(const RenderStyle& style)
+{
+    CSSValueListBuilder list;
+    if (style.blockStepSize())
+        list.append(ComputedStyleExtractor::zoomAdjustedPixelValueForLength(*style.blockStepSize(), style));
+
+    if (style.blockStepInsert() != RenderStyle::initialBlockStepInsert())
+        list.append(createConvertingToCSSValueID(style.blockStepInsert()));
+
+    if (style.blockStepAlign() != RenderStyle::initialBlockStepAlign())
+        list.append(createConvertingToCSSValueID(style.blockStepAlign()));
+
+    if (style.blockStepRound() != RenderStyle::initialBlockStepRound())
+        list.append(createConvertingToCSSValueID(style.blockStepRound()));
+
+    if (!list.isEmpty())
+        return CSSValueList::createSpaceSeparated(list);
+
+    return CSSPrimitiveValue::create(CSSValueNone);
+}
+
 RefPtr<CSSValue> ComputedStyleExtractor::textBoxShorthandValue(const RenderStyle& style) const
 {
     auto textBoxTrim = style.textBoxTrim();
@@ -3582,18 +3603,14 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
             ASSERT_NOT_REACHED();
         }
         return CSSPrimitiveValue::create(CSSValueNone);
+    case CSSPropertyBlockStep:
+        return blockStepShorthandValue(style);
+    case CSSPropertyBlockStepAlign:
+        return createConvertingToCSSValueID(style.blockStepAlign());
     case CSSPropertyBlockStepInsert:
-        switch (style.blockStepInsert()) {
-        case BlockStepInsert::MarginBox:
-            return CSSPrimitiveValue::create(CSSValueMarginBox);
-        case BlockStepInsert::PaddingBox:
-            return CSSPrimitiveValue::create(CSSValuePaddingBox);
-        case BlockStepInsert::ContentBox:
-            return CSSPrimitiveValue::create(CSSValueContentBox);
-        default:
-            ASSERT_NOT_REACHED();
-            return CSSPrimitiveValue::create(CSSValueNone);
-        }
+        return createConvertingToCSSValueID(style.blockStepInsert());
+    case CSSPropertyBlockStepRound:
+        return createConvertingToCSSValueID(style.blockStepRound());
     case CSSPropertyBlockStepSize: {
         auto blockStepSize = style.blockStepSize();
         if (!blockStepSize)

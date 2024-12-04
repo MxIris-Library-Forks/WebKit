@@ -1132,6 +1132,7 @@ css/typedom/transform/CSSSkewY.cpp
 css/typedom/transform/CSSTransformComponent.cpp
 css/typedom/transform/CSSTransformValue.cpp
 css/typedom/transform/CSSTranslate.cpp
+css/values/CSSValueAggregates.cpp
 css/values/CSSValueTypes.cpp
 css/values/backgrounds/CSSBorderRadius.cpp
 css/values/color-adjust/CSSColorScheme.cpp
@@ -1602,6 +1603,7 @@ html/HTMLWBRElement.cpp
 html/HiddenInputType.cpp
 html/ImageBitmap.cpp
 html/ImageData.cpp
+html/ImageDataArray.cpp
 html/ImageDocument.cpp
 html/ImageInputType.cpp
 html/InputMode.cpp

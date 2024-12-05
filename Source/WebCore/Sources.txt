@@ -618,6 +618,7 @@ animation/ViewTimeline.cpp
 animation/WebAnimation.cpp
 animation/WebAnimationTime.cpp
 animation/WebAnimationUtilities.cpp
+bindings/js/BindingsJSTZoneImpls.cpp
 bindings/js/CachedModuleScriptLoader.cpp
 bindings/js/CachedScriptFetcher.cpp
 bindings/js/CommonVM.cpp
@@ -820,6 +821,7 @@ contentextensions/SerializedNFA.cpp
 contentextensions/URLFilterParser.cpp
 crypto/CryptoAlgorithm.cpp
 crypto/CryptoAlgorithmRegistry.cpp
+crypto/CryptoAlgorithmTZoneImpls.cpp
 crypto/CryptoKey.cpp
 crypto/SubtleCrypto.cpp
 crypto/algorithms/CryptoAlgorithmAESCBC.cpp
@@ -2751,6 +2753,7 @@ rendering/AutoTableLayout.cpp
 rendering/BackgroundPainter.cpp
 rendering/BaselineAlignment.cpp
 rendering/BidiRun.cpp
+rendering/BlockStepSizing.cpp
 rendering/BorderEdge.cpp
 rendering/BorderPainter.cpp
 rendering/BorderShape.cpp
@@ -2874,7 +2877,6 @@ rendering/RenderVTTCue.cpp
 rendering/RenderVideo.cpp
 rendering/RenderView.cpp
 rendering/RenderViewTransitionCapture.cpp
-rendering/RenderViewTransitionRoot.cpp
 rendering/RenderWidget.cpp
 rendering/StyledMarkedText.cpp
 rendering/TableLayout.cpp

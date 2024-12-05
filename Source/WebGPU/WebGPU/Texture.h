@@ -25,11 +25,13 @@
 
 #pragma once
 
+#import <Metal/Metal.h>
 #import <wtf/FastMalloc.h>
 #import <wtf/HashMap.h>
 #import <wtf/HashSet.h>
 #import <wtf/Ref.h>
 #import <wtf/RefCountedAndCanMakeWeakPtr.h>
+#import <wtf/RetainReleaseSwift.h>
 #import <wtf/TZoneMalloc.h>
 #import <wtf/Vector.h>
 #import <wtf/WeakHashSet.h>
@@ -162,6 +164,16 @@ private:
     mutable WeakHashSet<CommandEncoder> m_commandEncoders;
     id<MTLSharedEvent> m_sharedEvent { nil };
     uint64_t m_sharedEventSignalValue { 0 };
-};
+} SWIFT_SHARED_REFERENCE(refTexture, derefTexture);
 
 } // namespace WebGPU
+
+inline void refTexture(WebGPU::Texture* obj)
+{
+    WTF::ref(obj);
+}
+
+inline void derefTexture(WebGPU::Texture* obj)
+{
+    WTF::deref(obj);
+}

@@ -246,6 +246,7 @@ void NetworkProcess::didClose(IPC::Connection&)
     forEachNetworkSession([&](auto& session) {
         platformFlushCookies(session.sessionID(), [callbackAggregator] { });
         session.protectedStorageManager()->syncLocalStorage([callbackAggregator] { });
+        session.notifyAdAttributionKitOfSessionTermination();
     });
 
 #if PLATFORM(COCOA)
@@ -3100,6 +3101,17 @@ void NetworkProcess::setPersistedDomains(PAL::SessionID sessionID, HashSet<Regis
 {
     if (auto* session = networkSession(sessionID))
         session->setPersistedDomains(WTFMove(domains));
+}
+
+void NetworkProcess::fetchLocalStorage(PAL::SessionID sessionID, CompletionHandler<void(HashMap<WebCore::ClientOrigin, HashMap<String, String>>&&)>&& completionHandler)
+{
+    CheckedPtr session = networkSession(sessionID);
+    if (!session) {
+        completionHandler({ });
+        return;
+    }
+
+    session->protectedStorageManager()->fetchLocalStorage(WTFMove(completionHandler));
 }
 
 } // namespace WebKit

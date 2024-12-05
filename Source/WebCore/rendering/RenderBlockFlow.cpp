@@ -25,6 +25,7 @@
 #include "config.h"
 #include "RenderBlockFlow.h"
 
+#include "BlockStepSizing.h"
 #include "Editor.h"
 #include "ElementInlines.h"
 #include "FloatingObjects.h"
@@ -90,37 +91,6 @@ struct SameSizeAsMarginInfo {
 
 static_assert(sizeof(MarginValues) == sizeof(LayoutUnit[4]), "MarginValues should stay small");
 static_assert(sizeof(RenderBlockFlow::MarginInfo) == sizeof(SameSizeAsMarginInfo), "MarginInfo should stay small");
-
-namespace BlockStepSizing {
-
-static LayoutUnit computeExtraSpace(LayoutUnit stepSize, LayoutUnit boxOuterSize)
-{
-    if (!stepSize)
-        return { };
-
-    if (auto remainder = intMod(boxOuterSize, stepSize))
-        return stepSize - remainder;
-    return { };
-}
-
-static void distributeExtraSpaceToChildMargins(RenderBox& child, LayoutUnit extraSpace, WritingMode containingBlockWritingMode)
-{
-    auto halfExtraSpace = extraSpace / 2;
-    child.setMarginBefore(child.marginBefore(containingBlockWritingMode) + halfExtraSpace);
-    child.setMarginAfter(child.marginAfter(containingBlockWritingMode) + halfExtraSpace);
-}
-
-NO_RETURN_DUE_TO_ASSERT static void distributeExtraSpaceToChildPadding(RenderBox& /* child */, LayoutUnit /* extraSpace */, WritingMode /* containingBlockWritingMode */)
-{
-    ASSERT_NOT_IMPLEMENTED_YET();
-}
-
-NO_RETURN_DUE_TO_ASSERT static void distributeExtraSpaceToChildContentArea(RenderBox& /* child */, LayoutUnit /* extraSpace */, WritingMode /* containingBlockWritingMode */)
-{
-    ASSERT_NOT_IMPLEMENTED_YET();
-}
-
-};
 
 RenderBlockFlowRareData::RenderBlockFlowRareData(const RenderBlockFlow& block)
     : m_margins(positiveMarginBeforeDefault(block), negativeMarginBeforeDefault(block), positiveMarginAfterDefault(block), negativeMarginAfterDefault(block))
@@ -941,12 +911,7 @@ void RenderBlockFlow::layoutInlineChildren(bool relayoutChildren, LayoutUnit& re
 
 void RenderBlockFlow::performBlockStepSizing(RenderBox& child, LayoutUnit blockStepSizeForChild) const
 {
-    auto& childStyle = child.style();
-
-    if (childStyle.blockStepAlign() != BlockStepAlign::Auto || childStyle.blockStepRound() != BlockStepRound::Up) {
-        ASSERT_NOT_IMPLEMENTED_YET();
-        return;
-    }
+    ASSERT(BlockStepSizing::childHasSupportedStyle(child.style()));
 
     auto extraSpace = BlockStepSizing::computeExtraSpace(blockStepSizeForChild, logicalMarginBoxHeightForChild(child));
     if (!extraSpace)
@@ -1022,7 +987,8 @@ void RenderBlockFlow::layoutBlockChild(RenderBox& child, MarginInfo& marginInfo,
     if (childNeededLayout)
         child.layout();
 
-    if (auto blockStepSizeForChild = child.style().blockStepSize())
+    auto& childStyle = child.style();
+    if (auto blockStepSizeForChild = childStyle.blockStepSize(); blockStepSizeForChild && BlockStepSizing::childHasSupportedStyle(childStyle))
         performBlockStepSizing(child, LayoutUnit(blockStepSizeForChild->value()));
 
     // Cache if we are at the top of the block right now.

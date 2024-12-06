@@ -236,6 +236,7 @@
     macro(parse) \
     macro(parseInt) \
     macro(parseFloat) \
+    macro(pluralCategories) \
     macro(profiledBytecodes) \
     macro(propertyIsEnumerable) \
     macro(prototype) \
@@ -321,6 +322,7 @@
     macro(continue) \
     macro(debugger) \
     macro(default) \
+    macro(defer) \
     macro(delete) \
     macro(do) \
     macro(else) \

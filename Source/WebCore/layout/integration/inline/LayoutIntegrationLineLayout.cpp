@@ -58,6 +58,7 @@
 #include "RenderLayoutState.h"
 #include "RenderLineBreak.h"
 #include "RenderView.h"
+#include "SVGTextFragment.h"
 #include "Settings.h"
 #include "ShapeOutsideInfo.h"
 #include "TextBreakingPositionCache.h"
@@ -811,7 +812,11 @@ size_t LineLayout::lineCount() const
     if (!m_inlineContent->hasContent())
         return 0;
 
-    return m_inlineContent->displayContent().lines.size();
+    auto& lines = m_inlineContent->displayContent().lines;
+    if (lines.isEmpty())
+        return 0;
+    // In some cases (trailing out-of-flow, non-contentful content after <br>) we produce last line with no content but root inline box only.
+    return lines.last().boxCount() > 1 ? lines.size() : lines.size() - 1;
 }
 
 bool LineLayout::hasVisualOverflow() const

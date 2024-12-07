@@ -1791,7 +1791,12 @@ struct WebCore::NavigationPreloadState {
     String headerValue;
 };
 
-enum class WebCore::RenderingMode : bool
+enum class WebCore::RenderingMode : uint8_t {
+    Unaccelerated,
+    Accelerated,
+    PDFDocument,
+    DisplayList,
+};
 
 enum class WebCore::RenderingPurpose : uint8_t {
     Unspecified,
@@ -2436,7 +2441,7 @@ header: <WebCore/ScreenProperties.h>
     WebCore::DestinationColorSpace colorSpace;
     int screenDepth;
     int screenDepthPerComponent;
-    WebCore::ContentsFormat screenContentsFormat;
+    bool screenSupportsExtendedColor;
     bool screenHasInvertedColors;
     bool screenSupportsHighDynamicRange;
 #if PLATFORM(MAC)

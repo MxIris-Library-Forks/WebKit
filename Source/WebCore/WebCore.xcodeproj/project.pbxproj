@@ -2108,6 +2108,7 @@
 		51D7EFEA1BDE8F8C00E93E10 /* ThreadSafeDataBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 511FAEA91BDC989A00B4AFE4 /* ThreadSafeDataBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51DB8C402B7B23AA000AD1BA /* MediaSourceInterfaceProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DB8C3C2B7B1A34000AD1BA /* MediaSourceInterfaceProxy.h */; };
 		51DB8C412B7B23B9000AD1BA /* MediaSourceInterfaceMainThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DB8C3E2B7B2217000AD1BA /* MediaSourceInterfaceMainThread.h */; };
+		51DCE1AB2CF5800D00BE7E84 /* AudioDecoderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DCE1A92CF5800D00BE7E84 /* AudioDecoderCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51DF24C02993227F003A2FB9 /* ManagedSourceBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DF24BF29931971003A2FB9 /* ManagedSourceBuffer.h */; };
 		51DF24C129932284003A2FB9 /* ManagedMediaSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DF24BA299310E7003A2FB9 /* ManagedMediaSource.h */; };
 		51DF6D7E0B92A16D00C2DC85 /* ThreadCheck.h in Headers */ = {isa = PBXBuildFile; fileRef = 51DF6D7D0B92A16D00C2DC85 /* ThreadCheck.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5264,6 +5265,7 @@
 		CD641EB31818F5ED00EE4C41 /* MediaSourcePrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD641EB41818F5ED00EE4C41 /* SourceBufferPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD641EB21818F5ED00EE4C41 /* SourceBufferPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD6A1F0D297A1A8F00F7B9FA /* CanvasObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6A1F0C297A1A8F00F7B9FA /* CanvasObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD7122632CDD80220045FB4D /* VideoPresentationLayerProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD720B4F2268B51300047FDE /* ISOFairPlayStreamingPsshBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD720B4922682C7F00047FDE /* ISOFairPlayStreamingPsshBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7D33441C7A123F00041293 /* PixelBufferConformerCV.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7D33421C7A123F00041293 /* PixelBufferConformerCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7D33481C7A16BF00041293 /* CoreVideoSoftLink.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7D33461C7A16BF00041293 /* CoreVideoSoftLink.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11743,6 +11745,8 @@
 		51DB8C3C2B7B1A34000AD1BA /* MediaSourceInterfaceProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSourceInterfaceProxy.h; sourceTree = "<group>"; };
 		51DB8C3E2B7B2217000AD1BA /* MediaSourceInterfaceMainThread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSourceInterfaceMainThread.h; sourceTree = "<group>"; };
 		51DB8C3F2B7B2217000AD1BA /* MediaSourceInterfaceMainThread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaSourceInterfaceMainThread.cpp; sourceTree = "<group>"; };
+		51DCE1A92CF5800D00BE7E84 /* AudioDecoderCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioDecoderCocoa.h; sourceTree = "<group>"; };
+		51DCE1AA2CF5800D00BE7E84 /* AudioDecoderCocoa.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioDecoderCocoa.cpp; sourceTree = "<group>"; };
 		51DF24902990E96C003A2FB9 /* ManagedMediaSource.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ManagedMediaSource.idl; sourceTree = "<group>"; };
 		51DF24912990E96C003A2FB9 /* ManagedSourceBuffer.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ManagedSourceBuffer.idl; sourceTree = "<group>"; };
 		51DF24A12991D918003A2FB9 /* JSManagedSourceBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSManagedSourceBuffer.h; sourceTree = "<group>"; };
@@ -18881,6 +18885,8 @@
 		CD6FE5B824BCE645009FCDA4 /* VP9UtilitiesCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VP9UtilitiesCocoa.mm; sourceTree = "<group>"; };
 		CD6FE5BA24BCE7B6009FCDA4 /* VP9Utilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VP9Utilities.h; sourceTree = "<group>"; };
 		CD6FE5BB24BCE7B6009FCDA4 /* VP9Utilities.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VP9Utilities.cpp; sourceTree = "<group>"; };
+		CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoPresentationLayerProvider.h; sourceTree = "<group>"; };
+		CD7122622CDD6B530045FB4D /* VideoPresentationLayerProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoPresentationLayerProvider.mm; sourceTree = "<group>"; };
 		CD720B4722682C7E00047FDE /* ISOFairPlayStreamingPsshBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ISOFairPlayStreamingPsshBox.cpp; sourceTree = "<group>"; };
 		CD720B4922682C7F00047FDE /* ISOFairPlayStreamingPsshBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISOFairPlayStreamingPsshBox.h; sourceTree = "<group>"; };
 		CD78A2EC1F75648600DE371B /* CDMInstanceFairPlayStreamingAVFObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CDMInstanceFairPlayStreamingAVFObjC.mm; sourceTree = "<group>"; };
@@ -31596,6 +31602,8 @@
 				A3AF9D81203252EE006CAD06 /* UserAgentCocoa.mm */,
 				E300511429DB848100E1C3A4 /* VideoFullscreenCaptions.h */,
 				E300511529DB92D300E1C3A4 /* VideoFullscreenCaptions.mm */,
+				CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */,
+				CD7122622CDD6B530045FB4D /* VideoPresentationLayerProvider.mm */,
 				52D5A1A41C57488900DE34A3 /* VideoPresentationModel.h */,
 				52D5A1A51C57488900DE34A3 /* VideoPresentationModelVideoElement.h */,
 				52D5A1A61C57488900DE34A3 /* VideoPresentationModelVideoElement.mm */,
@@ -35574,6 +35582,8 @@
 		CD669D651D232DF4004D1866 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				51DCE1AA2CF5800D00BE7E84 /* AudioDecoderCocoa.cpp */,
+				51DCE1A92CF5800D00BE7E84 /* AudioDecoderCocoa.h */,
 				413151842357745E00115E6E /* AudioDestinationCocoa.cpp */,
 				413151862357745E00115E6E /* AudioDestinationCocoa.h */,
 				46AAAA3C25D3631400BAF42F /* AudioFileReaderCocoa.cpp */,
@@ -39337,6 +39347,7 @@
 				E785D96124B7F7350014DB21 /* AudioContextOptions.h in Headers */,
 				83BD3CEE24998E0100BA3E67 /* AudioContextState.h in Headers */,
 				9A87D9E42A8293E100EE7A8A /* AudioDecoder.h in Headers */,
+				51DCE1AB2CF5800D00BE7E84 /* AudioDecoderCocoa.h in Headers */,
 				FD31607F12B026F700C1A359 /* AudioDestination.h in Headers */,
 				9B1229C423FE4BD2008CA751 /* AudioDestinationCocoa.h in Headers */,
 				FD31600812B0267600C1A359 /* AudioDestinationNode.h in Headers */,
@@ -44264,6 +44275,7 @@
 				3FBC4AF4189881560046EE38 /* VideoPresentationInterfaceIOS.h in Headers */,
 				52B0D4C21C57FF910077CE53 /* VideoPresentationInterfaceMac.h in Headers */,
 				A113D6E42C7E486D0072D770 /* VideoPresentationInterfaceTVOS.h in Headers */,
+				CD7122632CDD80220045FB4D /* VideoPresentationLayerProvider.h in Headers */,
 				52D5A1A71C57489D00DE34A3 /* VideoPresentationModel.h in Headers */,
 				52D5A1A81C5748A300DE34A3 /* VideoPresentationModelVideoElement.h in Headers */,
 				0757B13E214AE79900794B0D /* VideoPreset.h in Headers */,

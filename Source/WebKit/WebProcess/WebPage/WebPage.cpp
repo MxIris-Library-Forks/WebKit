@@ -95,7 +95,6 @@
 #include "WebContextMenu.h"
 #include "WebContextMenuClient.h"
 #include "WebCookieJar.h"
-#include "WebCoreArgumentCoders.h"
 #include "WebCryptoClient.h"
 #include "WebDataListSuggestionPicker.h"
 #include "WebDatabaseProvider.h"
@@ -1189,6 +1188,7 @@ void WebPage::frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier frameID)
         return;
     }
     ASSERT(frame->page() == this);
+    frame->markAsRemovedInAnotherProcess();
     frame->removeFromTree();
 }
 
@@ -1630,6 +1630,11 @@ void WebPage::platformDidSelectAll()
 #endif // !PLATFORM(IOS_FAMILY)
 
 #if !PLATFORM(COCOA)
+std::pair<URL, WebCore::DidFilterLinkDecoration> WebPage::applyLinkDecorationFilteringWithResult(const URL& url, WebCore::LinkDecorationFilteringTrigger)
+{
+    return { url, WebCore::DidFilterLinkDecoration::No };
+}
+
 void WebPage::bindRemoteAccessibilityFrames(int, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&&)
 {
 }
@@ -10148,7 +10153,14 @@ bool WebPage::isAlwaysOnLoggingAllowed() const
     return page && page->isAlwaysOnLoggingAllowed();
 }
 
-#if !PLATFORM(IOS_FAMILY)
+#if PLATFORM(IOS_FAMILY)
+
+bool WebPage::canShowWhileLocked() const
+{
+    return m_page && m_page->canShowWhileLocked();
+}
+
+#else
 
 void WebPage::callAfterPendingSyntheticClick(CompletionHandler<void(SyntheticClickResult)>&& completion)
 {

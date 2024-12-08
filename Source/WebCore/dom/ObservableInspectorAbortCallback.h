@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Marais Rossouw <me@marais.co>. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,17 +23,23 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "WebCoreArgumentCoders.h"
+#pragma once
 
-#include <WebCore/Font.h>
-#include <WebCore/FontCustomPlatformData.h>
-#include <WebCore/SharedMemory.h>
+#include "ActiveDOMCallback.h"
+#include "CallbackResult.h"
+#include <wtf/RefCounted.h>
 
-// FIXME: Seems like we could use std::tuple to cut down the code below a lot!
+namespace WebCore {
 
-namespace IPC {
-using namespace WebCore;
-using namespace WebKit;
+class ObservableInspectorAbortCallback : public RefCounted<ObservableInspectorAbortCallback>, public ActiveDOMCallback {
+public:
+    using ActiveDOMCallback::ActiveDOMCallback;
 
-} // namespace IPC
+    virtual CallbackResult<void> handleEvent(JSC::JSValue) = 0;
+    virtual CallbackResult<void> handleEventRethrowingException(JSC::JSValue) = 0;
+
+private:
+    virtual bool hasCallback() const = 0;
+};
+
+} // namespace WebCore

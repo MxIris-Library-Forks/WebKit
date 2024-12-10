@@ -152,6 +152,7 @@ namespace WebCore {
     macro(CSSOKLab) \
     macro(CSSPaintSize) \
     macro(CSSPerspective) \
+    macro(CSSPositionTryRule) \
     macro(CSSRGB) \
     macro(CSSRotate) \
     macro(CSSScale) \
@@ -366,6 +367,7 @@ namespace WebCore {
     macro(PushEvent) \
     macro(PushManager) \
     macro(PushMessageData) \
+    macro(PushNotificationEvent) \
     macro(PushSubscription) \
     macro(PushSubscriptionChangeEvent) \
     macro(PushSubscriptionOptions) \

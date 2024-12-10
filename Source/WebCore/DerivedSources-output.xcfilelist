@@ -465,6 +465,8 @@ $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPaintSize.cpp
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPaintSize.h
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPerspective.cpp
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPerspective.h
+$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPositionTryRule.cpp
+$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPositionTryRule.h
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPropertyRule.cpp
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSPropertyRule.h
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSCSSRGB.cpp
@@ -2327,6 +2329,10 @@ $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushManager.cpp
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushManager.h
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushMessageData.cpp
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushMessageData.h
+$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushNotificationEvent.cpp
+$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushNotificationEvent.h
+$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushNotificationEventInit.cpp
+$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushNotificationEventInit.h
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushPermissionState.cpp
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushPermissionState.h
 $(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/JSPushSubscription.cpp

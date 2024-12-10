@@ -591,6 +591,8 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/push-api/PushEventInit.idl \
     $(WebCore)/Modules/push-api/PushManager.idl \
     $(WebCore)/Modules/push-api/PushMessageData.idl \
+    $(WebCore)/Modules/push-api/PushNotificationEvent.idl \
+    $(WebCore)/Modules/push-api/PushNotificationEventInit.idl \
     $(WebCore)/Modules/push-api/PushPermissionState.idl \
     $(WebCore)/Modules/push-api/PushSubscription.idl \
     $(WebCore)/Modules/push-api/PushSubscriptionChangeEvent.idl \
@@ -992,6 +994,7 @@ JS_BINDING_IDLS := \
     $(WebCore)/css/CSSPageRule.idl \
     $(WebCore)/css/CSSPaintCallback.idl \
     $(WebCore)/css/CSSPaintSize.idl \
+    $(WebCore)/css/CSSPositionTryRule.idl \
     $(WebCore)/css/CSSPropertyRule.idl \
     $(WebCore)/css/CSSRule.idl \
     $(WebCore)/css/CSSRuleList.idl \

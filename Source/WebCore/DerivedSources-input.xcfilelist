@@ -828,6 +828,8 @@ $(PROJECT_DIR)/Modules/push-api/PushEvent.idl
 $(PROJECT_DIR)/Modules/push-api/PushEventInit.idl
 $(PROJECT_DIR)/Modules/push-api/PushManager.idl
 $(PROJECT_DIR)/Modules/push-api/PushMessageData.idl
+$(PROJECT_DIR)/Modules/push-api/PushNotificationEvent.idl
+$(PROJECT_DIR)/Modules/push-api/PushNotificationEventInit.idl
 $(PROJECT_DIR)/Modules/push-api/PushPermissionState.idl
 $(PROJECT_DIR)/Modules/push-api/PushSubscription.idl
 $(PROJECT_DIR)/Modules/push-api/PushSubscriptionChangeEvent.idl
@@ -1271,6 +1273,7 @@ $(PROJECT_DIR)/css/CSSNestedDeclarations.idl
 $(PROJECT_DIR)/css/CSSPageRule.idl
 $(PROJECT_DIR)/css/CSSPaintCallback.idl
 $(PROJECT_DIR)/css/CSSPaintSize.idl
+$(PROJECT_DIR)/css/CSSPositionTryRule.idl
 $(PROJECT_DIR)/css/CSSProperties.json
 $(PROJECT_DIR)/css/CSSPropertyRule.idl
 $(PROJECT_DIR)/css/CSSPseudoSelectors.json

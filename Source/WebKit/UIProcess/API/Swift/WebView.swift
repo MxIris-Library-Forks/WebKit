@@ -24,7 +24,7 @@
 #if ENABLE_SWIFTUI && compiler(>=6.0)
 
 internal import WebKit_Internal
-public import SwiftUI
+public import SwiftUI // FIXME: (283455) Do not import SwiftUI in WebKit proper.
 
 #if canImport(UIKit)
 fileprivate typealias PlatformView = UIView
@@ -114,6 +114,7 @@ fileprivate struct WebViewRepresentable {
 
         webView.configuration.preferences.isTextInteractionEnabled = environment.webViewAllowsTextInteraction
         webView.configuration.preferences.tabFocusesLinks = environment.webViewAllowsTabFocusingLinks
+        webView.configuration.preferences.isElementFullscreenEnabled = environment.webViewAllowsElementFullscreen
     }
 }
 

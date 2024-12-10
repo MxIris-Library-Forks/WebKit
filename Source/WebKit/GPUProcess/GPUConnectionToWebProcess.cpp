@@ -269,6 +269,14 @@ private:
         m_process.get()->stopMonitoringCaptureDeviceRotation(pageIdentifier, persistentId);
     }
 
+    std::optional<SharedPreferencesForWebProcess> sharedPreferencesForWebProcess() const
+    {
+        if (RefPtr connectionToWebProcess = m_process.get())
+            return connectionToWebProcess->sharedPreferencesForWebProcess();
+
+        return std::nullopt;
+    }
+
     ThreadSafeWeakPtr<GPUConnectionToWebProcess> m_process;
 };
 
@@ -296,7 +304,7 @@ GPUConnectionToWebProcess::GPUConnectionToWebProcess(GPUProcess& gpuProcess, Web
 #endif
     , m_sessionID(sessionID)
 #if PLATFORM(COCOA) && ENABLE(MEDIA_STREAM)
-    , m_sampleBufferDisplayLayerManager(RemoteSampleBufferDisplayLayerManager::create(*this))
+    , m_sampleBufferDisplayLayerManager(RemoteSampleBufferDisplayLayerManager::create(*this, parameters.sharedPreferencesForWebProcess))
 #endif
 #if ENABLE(MEDIA_STREAM)
     , m_captureOrigin(SecurityOrigin::createOpaque())
@@ -309,6 +317,9 @@ GPUConnectionToWebProcess::GPUConnectionToWebProcess(GPUProcess& gpuProcess, Web
 #endif
 #if HAVE(AUDIT_TOKEN)
     , m_presentingApplicationAuditToken(parameters.presentingApplicationAuditToken ? std::optional(parameters.presentingApplicationAuditToken->auditToken()) : std::nullopt)
+#endif
+#if PLATFORM(COCOA)
+    , m_applicationBundleIdentifier(parameters.applicationBundleIdentifier)
 #endif
     , m_isLockdownModeEnabled(parameters.isLockdownModeEnabled)
 #if ENABLE(IPC_TESTING_API)
@@ -1247,6 +1258,10 @@ void GPUConnectionToWebProcess::updateSharedPreferencesForWebProcess(SharedPrefe
 #if PLATFORM(COCOA) && USE(LIBWEBRTC)
     protectedLibWebRTCCodecsProxy()->updateSharedPreferencesForWebProcess(m_sharedPreferencesForWebProcess);
 #endif
+#if PLATFORM(COCOA) && ENABLE(MEDIA_STREAM)
+    protectedSampleBufferDisplayLayerManager()->updateSharedPreferencesForWebProcess(m_sharedPreferencesForWebProcess);
+#endif
+
     enableMediaPlaybackIfNecessary();
 }
 

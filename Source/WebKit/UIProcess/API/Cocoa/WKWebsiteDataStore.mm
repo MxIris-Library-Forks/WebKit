@@ -70,7 +70,6 @@
 #import <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
 #import <wtf/cocoa/SpanCocoa.h>
 #import <wtf/cocoa/VectorCocoa.h>
-#import <wtf/persistence/PersistentEncoder.h>
 
 #if HAVE(NW_PROXY_CONFIG)
 #import <Network/Network.h>
@@ -1155,10 +1154,10 @@ static Vector<WebKit::WebsiteDataRecord> toWebsiteDataRecords(NSArray *dataRecor
     WebCore::NotificationData notificationData = constNotificationData;
 
 #if ENABLE(DECLARATIVE_WEB_PUSH)
-    if (!notificationData.navigateURL.isEmpty() && _websiteDataStore->configuration().isDeclarativeWebPushEnabled()) {
+    if (!notificationData.defaultActionURL.isEmpty() && _websiteDataStore->configuration().isDeclarativeWebPushEnabled()) {
         RELEASE_LOG(Push, "Sending persistent notification clicked with default action URL. Requesting navigation to it now.");
 
-        _websiteDataStore->client().navigationToNotificationActionURL(notificationData.navigateURL);
+        _websiteDataStore->client().navigationToNotificationActionURL(notificationData.defaultActionURL);
         completionHandler(true);
         return;
     }

@@ -1988,6 +1988,8 @@
 		51547FE52C9296BD00CD402D /* MediaSourceInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 51547FE02C9296BD00CD402D /* MediaSourceInit.h */; };
 		5154F6EC2B01FC7000B857D9 /* PlatformMediaError.h in Headers */ = {isa = PBXBuildFile; fileRef = 5154F6EB2B01FC7000B857D9 /* PlatformMediaError.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5154F6EF2B02340900B857D9 /* MediaPromiseTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 5154F6EE2B02340900B857D9 /* MediaPromiseTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		515B9D3E2ABA41F400FB2081 /* PushNotificationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 515B9D3B2ABA40EC00FB2081 /* PushNotificationEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		515B9D3F2ABA41F800FB2081 /* PushNotificationEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 515B9D3C2ABA41EA00FB2081 /* PushNotificationEventInit.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		515BE1901D54F5FB00DD7C68 /* EmptyGamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE1891D54F5F600DD7C68 /* EmptyGamepadProvider.h */; };
 		515BE1921D54F5FB00DD7C68 /* GamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE18B1D54F5F600DD7C68 /* GamepadProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		515BE1931D54F5FB00DD7C68 /* GamepadProviderClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE18C1D54F5F600DD7C68 /* GamepadProviderClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5265,7 +5267,6 @@
 		CD641EB31818F5ED00EE4C41 /* MediaSourcePrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD641EB41818F5ED00EE4C41 /* SourceBufferPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD641EB21818F5ED00EE4C41 /* SourceBufferPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD6A1F0D297A1A8F00F7B9FA /* CanvasObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6A1F0C297A1A8F00F7B9FA /* CanvasObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		CD7122632CDD80220045FB4D /* VideoPresentationLayerProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD720B4F2268B51300047FDE /* ISOFairPlayStreamingPsshBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD720B4922682C7F00047FDE /* ISOFairPlayStreamingPsshBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7D33441C7A123F00041293 /* PixelBufferConformerCV.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7D33421C7A123F00041293 /* PixelBufferConformerCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7D33481C7A16BF00041293 /* CoreVideoSoftLink.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7D33461C7A16BF00041293 /* CoreVideoSoftLink.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6325,6 +6326,7 @@
 		EDB04F3A278E5539008D3678 /* libwebrtc.dylib in Product Dependencies */ = {isa = PBXBuildFile; fileRef = EDB04F39278E5531008D3678 /* libwebrtc.dylib */; platformFilters = (ios, macos, tvos, ); };
 		EDE3A5000C7A430600956A37 /* ColorMac.h in Headers */ = {isa = PBXBuildFile; fileRef = EDE3A4FF0C7A430600956A37 /* ColorMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EDEC98030AED7E170059137F /* WebCorePrefix.h in Headers */ = {isa = PBXBuildFile; fileRef = EDEC98020AED7E170059137F /* WebCorePrefix.h */; };
+		EE0C7E042CE845CB0043DAF8 /* CSSPositionTryRule.h in Headers */ = {isa = PBXBuildFile; fileRef = EE0C7E002CE845CB0043DAF8 /* CSSPositionTryRule.h */; };
 		EFCC6C8F20FE914400A2321B /* CanvasActivityRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = EFCC6C8D20FE914000A2321B /* CanvasActivityRecord.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F12171F616A8CF0B000053CA /* WebVTTElement.h in Headers */ = {isa = PBXBuildFile; fileRef = F12171F416A8BC63000053CA /* WebVTTElement.h */; };
 		F32BDCD92363AACA0073B6AE /* UserGestureEmulationScope.h in Headers */ = {isa = PBXBuildFile; fileRef = F32BDCD72363AACA0073B6AE /* UserGestureEmulationScope.h */; };
@@ -11509,6 +11511,11 @@
 		51547FE72C929FF100CD402D /* JSMediaSourceInit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSMediaSourceInit.cpp; sourceTree = "<group>"; };
 		5154F6EB2B01FC7000B857D9 /* PlatformMediaError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformMediaError.h; sourceTree = "<group>"; };
 		5154F6EE2B02340900B857D9 /* MediaPromiseTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaPromiseTypes.h; sourceTree = "<group>"; };
+		515B9D392ABA40EC00FB2081 /* PushNotificationEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationEvent.idl; sourceTree = "<group>"; };
+		515B9D3A2ABA40EC00FB2081 /* PushNotificationEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PushNotificationEvent.cpp; sourceTree = "<group>"; };
+		515B9D3B2ABA40EC00FB2081 /* PushNotificationEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushNotificationEvent.h; sourceTree = "<group>"; };
+		515B9D3C2ABA41EA00FB2081 /* PushNotificationEventInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushNotificationEventInit.h; sourceTree = "<group>"; };
+		515B9D3D2ABA41EA00FB2081 /* PushNotificationEventInit.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationEventInit.idl; sourceTree = "<group>"; };
 		515BE1881D54F5F600DD7C68 /* EmptyGamepadProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EmptyGamepadProvider.cpp; sourceTree = "<group>"; };
 		515BE1891D54F5F600DD7C68 /* EmptyGamepadProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmptyGamepadProvider.h; sourceTree = "<group>"; };
 		515BE18A1D54F5F600DD7C68 /* GamepadProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GamepadProvider.cpp; sourceTree = "<group>"; };
@@ -18947,8 +18954,6 @@
 		CD6FE5B824BCE645009FCDA4 /* VP9UtilitiesCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VP9UtilitiesCocoa.mm; sourceTree = "<group>"; };
 		CD6FE5BA24BCE7B6009FCDA4 /* VP9Utilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VP9Utilities.h; sourceTree = "<group>"; };
 		CD6FE5BB24BCE7B6009FCDA4 /* VP9Utilities.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VP9Utilities.cpp; sourceTree = "<group>"; };
-		CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoPresentationLayerProvider.h; sourceTree = "<group>"; };
-		CD7122622CDD6B530045FB4D /* VideoPresentationLayerProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoPresentationLayerProvider.mm; sourceTree = "<group>"; };
 		CD720B4722682C7E00047FDE /* ISOFairPlayStreamingPsshBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ISOFairPlayStreamingPsshBox.cpp; sourceTree = "<group>"; };
 		CD720B4922682C7F00047FDE /* ISOFairPlayStreamingPsshBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISOFairPlayStreamingPsshBox.h; sourceTree = "<group>"; };
 		CD78A2EC1F75648600DE371B /* CDMInstanceFairPlayStreamingAVFObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CDMInstanceFairPlayStreamingAVFObjC.mm; sourceTree = "<group>"; };
@@ -20797,6 +20802,9 @@
 		EDB04F39278E5531008D3678 /* libwebrtc.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDE3A4FF0C7A430600956A37 /* ColorMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMac.h; sourceTree = "<group>"; };
 		EDEC98020AED7E170059137F /* WebCorePrefix.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebCorePrefix.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
+		EE0C7E002CE845CB0043DAF8 /* CSSPositionTryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSPositionTryRule.h; sourceTree = "<group>"; };
+		EE0C7E012CE845CB0043DAF8 /* CSSPositionTryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSPositionTryRule.cpp; sourceTree = "<group>"; };
+		EE0C7E022CE845CB0043DAF8 /* CSSPositionTryRule.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CSSPositionTryRule.idl; sourceTree = "<group>"; };
 		EE7A16962C5B192F0057B563 /* ViewTransition+Types.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "ViewTransition+Types.idl"; sourceTree = "<group>"; };
 		EE7A16982C5B1BDA0057B563 /* ViewTransitionTypeSet.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ViewTransitionTypeSet.idl; sourceTree = "<group>"; };
 		EE7A16992C5B6D0A0057B563 /* ViewTransitionTypeSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewTransitionTypeSet.h; sourceTree = "<group>"; };
@@ -24994,6 +25002,11 @@
 				418FCBBE2706E4F700F96ECA /* PushMessageData.cpp */,
 				418FCBBC2706E4F600F96ECA /* PushMessageData.h */,
 				418FCBBA2706E4F500F96ECA /* PushMessageData.idl */,
+				515B9D3A2ABA40EC00FB2081 /* PushNotificationEvent.cpp */,
+				515B9D3B2ABA40EC00FB2081 /* PushNotificationEvent.h */,
+				515B9D392ABA40EC00FB2081 /* PushNotificationEvent.idl */,
+				515B9D3C2ABA41EA00FB2081 /* PushNotificationEventInit.h */,
+				515B9D3D2ABA41EA00FB2081 /* PushNotificationEventInit.idl */,
 				EBB9737827100651007732EF /* PushPermissionState.h */,
 				EBB9737F27100653007732EF /* PushPermissionState.idl */,
 				51F8FA462AB906BC00C8413B /* PushStrategy.h */,
@@ -31659,8 +31672,6 @@
 				A3AF9D81203252EE006CAD06 /* UserAgentCocoa.mm */,
 				E300511429DB848100E1C3A4 /* VideoFullscreenCaptions.h */,
 				E300511529DB92D300E1C3A4 /* VideoFullscreenCaptions.mm */,
-				CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */,
-				CD7122622CDD6B530045FB4D /* VideoPresentationLayerProvider.mm */,
 				52D5A1A41C57488900DE34A3 /* VideoPresentationModel.h */,
 				52D5A1A51C57488900DE34A3 /* VideoPresentationModelVideoElement.h */,
 				52D5A1A61C57488900DE34A3 /* VideoPresentationModelVideoElement.mm */,
@@ -37383,6 +37394,9 @@
 				BCB271F82CC16DD500265123 /* CSSPathValue.h */,
 				E4FA70FF2AF8EEB700D32FEA /* CSSPendingSubstitutionValue.cpp */,
 				9418278D1D8CAE9500492764 /* CSSPendingSubstitutionValue.h */,
+				EE0C7E012CE845CB0043DAF8 /* CSSPositionTryRule.cpp */,
+				EE0C7E002CE845CB0043DAF8 /* CSSPositionTryRule.h */,
+				EE0C7E022CE845CB0043DAF8 /* CSSPositionTryRule.idl */,
 				A80E6CDB0A1989CA007FB8C5 /* CSSPrimitiveValue.cpp */,
 				A80E6CBC0A1989CA007FB8C5 /* CSSPrimitiveValue.h */,
 				E1ED8AC20CC49BE000BFC557 /* CSSPrimitiveValueMappings.h */,
@@ -40194,6 +40208,7 @@
 				2A538A2726F0103900965FC8 /* CSSPerspective.h in Headers */,
 				BCB2721A2CC1F21B00265123 /* CSSPolygonFunction.h in Headers */,
 				BCB272202CC20AA000265123 /* CSSPosition.h in Headers */,
+				EE0C7E042CE845CB0043DAF8 /* CSSPositionTryRule.h in Headers */,
 				977B3863122883E900B81FF8 /* CSSPreloadScanner.h in Headers */,
 				BC02CF5F2CE26E8B007DA764 /* CSSPrimitiveNumericRange.h in Headers */,
 				BCE411832CEFD9DB00731E47 /* CSSPrimitiveNumericTypes+EvaluateCalc.h in Headers */,
@@ -43099,6 +43114,8 @@
 				418FCBC22706E50100F96ECA /* PushEventInit.h in Headers */,
 				EBB9738127100671007732EF /* PushManager.h in Headers */,
 				EBA75C47275EC62100D6D31C /* PushMessageCrypto.h in Headers */,
+				515B9D3E2ABA41F400FB2081 /* PushNotificationEvent.h in Headers */,
+				515B9D3F2ABA41F800FB2081 /* PushNotificationEventInit.h in Headers */,
 				EBB9738227100676007732EF /* PushPermissionState.h in Headers */,
 				83D511F6250C1CBF002EDC51 /* PushPullFIFO.h in Headers */,
 				51F8FA472AB906BC00C8413B /* PushStrategy.h in Headers */,
@@ -44431,7 +44448,6 @@
 				3FBC4AF4189881560046EE38 /* VideoPresentationInterfaceIOS.h in Headers */,
 				52B0D4C21C57FF910077CE53 /* VideoPresentationInterfaceMac.h in Headers */,
 				A113D6E42C7E486D0072D770 /* VideoPresentationInterfaceTVOS.h in Headers */,
-				CD7122632CDD80220045FB4D /* VideoPresentationLayerProvider.h in Headers */,
 				52D5A1A71C57489D00DE34A3 /* VideoPresentationModel.h in Headers */,
 				52D5A1A81C5748A300DE34A3 /* VideoPresentationModelVideoElement.h in Headers */,
 				0757B13E214AE79900794B0D /* VideoPreset.h in Headers */,

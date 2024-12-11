@@ -1928,6 +1928,10 @@ void WebPageProxy::prepareToLoadWebPage(WebProcessProxy& process, LoadParameters
     if (NetworkIssueReporter::isEnabled())
         m_networkIssueReporter = makeUnique<NetworkIssueReporter>();
 #endif
+
+#if ENABLE(SCREEN_TIME)
+    m_pageClient->installScreenTimeWebpageController();
+#endif
 }
 
 #if !PLATFORM(COCOA)
@@ -2490,21 +2494,9 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListItem
 
     if (item.isRemoteFrameNavigation() || frameItem.identifier().processIdentifier() != item.rootFrameItem().identifier().processIdentifier()) {
         ASSERT(m_preferences->siteIsolationEnabled());
-        if (RefPtr processForIdentifier = WebProcessProxy::processForIdentifier(frameItem.identifier().processIdentifier()))
-            process = processForIdentifier.releaseNonNull();
-        else {
-            if (&item != m_backForwardList->currentItem())
-                protectedBackForwardList()->goToItem(item);
-            if (RefPtr frame = WebFrameProxy::webFrame(frameItem.frameID())) {
-                LoadParameters loadParameters;
-                loadParameters.request = ResourceRequest { frameItem.frameState().urlString };
-                loadParameters.frameIdentifier = frameItem.frameID();
-                loadParameters.lockBackForwardList = LockBackForwardList::Yes;
-                frame->setPendingChildBackForwardItem(frameItem.parent());
-                Ref frameProcess = frame->process();
-                frameProcess->send(Messages::WebPage::LoadRequest(WTFMove(loadParameters)), webPageIDInProcess(frameProcess));
-                return RefPtr<API::Navigation> { WTFMove(navigation) };
-            }
+        if (RefPtr frame = WebFrameProxy::webFrame(frameItem.frameID())) {
+            frame->setPendingChildBackForwardItem(frameItem.parent());
+            process = frame->process();
         }
     }
 
@@ -4399,12 +4391,12 @@ void WebPageProxy::handlePreventableTouchEvent(NativeWebTouchEvent& event)
     sendPreventableTouchEvent(m_mainFrame->frameID(), event);
 }
 
-void WebPageProxy::didBeginTouchPoint()
+void WebPageProxy::didBeginTouchPoint(FloatPoint locationInRootView)
 {
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::DidBeginTouchPoint());
+    send(Messages::WebPage::DidBeginTouchPoint(locationInRootView));
 }
 
 void WebPageProxy::sendUnpreventableTouchEvent(WebCore::FrameIdentifier frameID, const NativeWebTouchEvent& event)
@@ -11111,7 +11103,8 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
         userContentController = userContentControllerFromWebsitePolicies.releaseNonNull();
     process.addWebUserContentControllerProxy(userContentController);
 
-    protectedBackForwardList()->setItemsAsRestoredFromSession();
+    if (m_sessionStateWasRestoredByAPIRequest)
+        protectedBackForwardList()->setItemsAsRestoredFromSession();
 
     RefPtr pageClient = this->pageClient();
 
@@ -14438,6 +14431,18 @@ bool WebPageProxy::shouldForceForegroundPriorityForClientNavigation() const
 void WebPageProxy::getProcessDisplayName(CompletionHandler<void(String&&)>&& completionHandler)
 {
     sendWithAsyncReply(Messages::WebPage::GetProcessDisplayName(), WTFMove(completionHandler));
+}
+
+void WebPageProxy::setMediaCaptureRotationForTesting(WebCore::IntDegrees rotation, const String& persistentId)
+{
+#if ENABLE(MEDIA_STREAM) && HAVE(AVCAPTUREDEVICEROTATIONCOORDINATOR)
+    if (preferences().useAVCaptureDeviceRotationCoordinatorAPI() && userMediaPermissionRequestManager().isMonitoringCaptureDeviceRotation(persistentId)) {
+        rotationAngleForCaptureDeviceChanged(persistentId, static_cast<VideoFrameRotation>(rotation));
+        return;
+    }
+#endif
+
+    setOrientationForMediaCapture(rotation);
 }
 
 void WebPageProxy::setOrientationForMediaCapture(WebCore::IntDegrees orientation)

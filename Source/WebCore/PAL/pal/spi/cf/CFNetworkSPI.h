@@ -60,10 +60,6 @@
 #endif
 #endif
 
-#if HAVE(ALLOW_ONLY_PARTITIONED_COOKIES) && !defined(CFN_HAS_ALLOW_ONLY_PARTITIONED_COOKIES)
-#undef HAVE_ALLOW_ONLY_PARTITIONED_COOKIES
-#endif
-
 #else // !USE(APPLE_INTERNAL_SDK)
 
 #include <Network/Network.h>
@@ -610,6 +606,7 @@ WTF_EXTERN_C_END
 
 @interface NSMutableURLRequest (Staging_103362732)
 @property (setter=_setWebSearchContent:) BOOL _isWebSearchContent;
+@property (setter=_setAllowOnlyPartitionedCookies:) BOOL _allowOnlyPartitionedCookies;
 @end
 
 #if HAVE(ALTERNATIVE_SERVICE)

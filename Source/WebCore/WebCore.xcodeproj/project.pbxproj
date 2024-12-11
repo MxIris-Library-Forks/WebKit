@@ -1988,8 +1988,6 @@
 		51547FE52C9296BD00CD402D /* MediaSourceInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 51547FE02C9296BD00CD402D /* MediaSourceInit.h */; };
 		5154F6EC2B01FC7000B857D9 /* PlatformMediaError.h in Headers */ = {isa = PBXBuildFile; fileRef = 5154F6EB2B01FC7000B857D9 /* PlatformMediaError.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5154F6EF2B02340900B857D9 /* MediaPromiseTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 5154F6EE2B02340900B857D9 /* MediaPromiseTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		515B9D3E2ABA41F400FB2081 /* PushNotificationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 515B9D3B2ABA40EC00FB2081 /* PushNotificationEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		515B9D3F2ABA41F800FB2081 /* PushNotificationEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 515B9D3C2ABA41EA00FB2081 /* PushNotificationEventInit.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		515BE1901D54F5FB00DD7C68 /* EmptyGamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE1891D54F5F600DD7C68 /* EmptyGamepadProvider.h */; };
 		515BE1921D54F5FB00DD7C68 /* GamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE18B1D54F5F600DD7C68 /* GamepadProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		515BE1931D54F5FB00DD7C68 /* GamepadProviderClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE18C1D54F5F600DD7C68 /* GamepadProviderClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11511,11 +11509,6 @@
 		51547FE72C929FF100CD402D /* JSMediaSourceInit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSMediaSourceInit.cpp; sourceTree = "<group>"; };
 		5154F6EB2B01FC7000B857D9 /* PlatformMediaError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformMediaError.h; sourceTree = "<group>"; };
 		5154F6EE2B02340900B857D9 /* MediaPromiseTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaPromiseTypes.h; sourceTree = "<group>"; };
-		515B9D392ABA40EC00FB2081 /* PushNotificationEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationEvent.idl; sourceTree = "<group>"; };
-		515B9D3A2ABA40EC00FB2081 /* PushNotificationEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PushNotificationEvent.cpp; sourceTree = "<group>"; };
-		515B9D3B2ABA40EC00FB2081 /* PushNotificationEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushNotificationEvent.h; sourceTree = "<group>"; };
-		515B9D3C2ABA41EA00FB2081 /* PushNotificationEventInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushNotificationEventInit.h; sourceTree = "<group>"; };
-		515B9D3D2ABA41EA00FB2081 /* PushNotificationEventInit.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationEventInit.idl; sourceTree = "<group>"; };
 		515BE1881D54F5F600DD7C68 /* EmptyGamepadProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EmptyGamepadProvider.cpp; sourceTree = "<group>"; };
 		515BE1891D54F5F600DD7C68 /* EmptyGamepadProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmptyGamepadProvider.h; sourceTree = "<group>"; };
 		515BE18A1D54F5F600DD7C68 /* GamepadProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GamepadProvider.cpp; sourceTree = "<group>"; };
@@ -16570,6 +16563,10 @@
 		A83E1C720E49042B00140B9C /* ScriptControllerMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ScriptControllerMac.mm; sourceTree = "<group>"; };
 		A84377B72CD9C91100CD134E /* ObservableInspector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObservableInspector.h; sourceTree = "<group>"; };
 		A84377B82CD9C91100CD134E /* ObservableInspector.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ObservableInspector.idl; sourceTree = "<group>"; };
+		A849CD8A2D06D34700D92D2E /* ReducerCallback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReducerCallback.h; sourceTree = "<group>"; };
+		A849CD8B2D06D34700D92D2E /* ReducerCallback.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ReducerCallback.idl; sourceTree = "<group>"; };
+		A849CD8C2D06D35A00D92D2E /* InternalObserverReduce.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalObserverReduce.h; sourceTree = "<group>"; };
+		A849CD8D2D06D35A00D92D2E /* InternalObserverReduce.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalObserverReduce.cpp; sourceTree = "<group>"; };
 		A84D827B11D333ED00972990 /* RawDataDocumentParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RawDataDocumentParser.h; sourceTree = "<group>"; };
 		A84D82BF11D3474800972990 /* ScriptableDocumentParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptableDocumentParser.h; sourceTree = "<group>"; };
 		A84D82C011D3474800972990 /* ScriptableDocumentParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScriptableDocumentParser.cpp; sourceTree = "<group>"; };
@@ -25002,11 +24999,6 @@
 				418FCBBE2706E4F700F96ECA /* PushMessageData.cpp */,
 				418FCBBC2706E4F600F96ECA /* PushMessageData.h */,
 				418FCBBA2706E4F500F96ECA /* PushMessageData.idl */,
-				515B9D3A2ABA40EC00FB2081 /* PushNotificationEvent.cpp */,
-				515B9D3B2ABA40EC00FB2081 /* PushNotificationEvent.h */,
-				515B9D392ABA40EC00FB2081 /* PushNotificationEvent.idl */,
-				515B9D3C2ABA41EA00FB2081 /* PushNotificationEventInit.h */,
-				515B9D3D2ABA41EA00FB2081 /* PushNotificationEventInit.idl */,
 				EBB9737827100651007732EF /* PushPermissionState.h */,
 				EBB9737F27100653007732EF /* PushPermissionState.idl */,
 				51F8FA462AB906BC00C8413B /* PushStrategy.h */,
@@ -38335,6 +38327,8 @@
 				A82B6DF82CBF6C6F00EE6BD9 /* InternalObserverLast.h */,
 				FFEFAB2D183BCC6F00514567 /* InternalObserverMap.cpp */,
 				FFEFAB2D183BCC6F00514566 /* InternalObserverMap.h */,
+				A849CD8D2D06D35A00D92D2E /* InternalObserverReduce.cpp */,
+				A849CD8C2D06D35A00D92D2E /* InternalObserverReduce.h */,
 				A88FE6812CCF6FF30070D898 /* InternalObserverSome.cpp */,
 				A88FE6802CCF6FF30070D898 /* InternalObserverSome.h */,
 				33839EF92C5CB39E00F1E4FA /* InternalObserverTake.cpp */,
@@ -38489,6 +38483,8 @@
 				936DD03A09CEAC270056AE8C /* Range.idl */,
 				93D9D53B0DA27E180077216C /* RangeBoundaryPoint.h */,
 				A84D827B11D333ED00972990 /* RawDataDocumentParser.h */,
+				A849CD8A2D06D34700D92D2E /* ReducerCallback.h */,
+				A849CD8B2D06D34700D92D2E /* ReducerCallback.idl */,
 				85031B360A44EFC700F992E0 /* RegisteredEventListener.h */,
 				A578F43D1DE0B62B003DFC6A /* RejectedPromiseTracker.cpp */,
 				A578F43E1DE0B62B003DFC6A /* RejectedPromiseTracker.h */,
@@ -43114,8 +43110,6 @@
 				418FCBC22706E50100F96ECA /* PushEventInit.h in Headers */,
 				EBB9738127100671007732EF /* PushManager.h in Headers */,
 				EBA75C47275EC62100D6D31C /* PushMessageCrypto.h in Headers */,
-				515B9D3E2ABA41F400FB2081 /* PushNotificationEvent.h in Headers */,
-				515B9D3F2ABA41F800FB2081 /* PushNotificationEventInit.h in Headers */,
 				EBB9738227100676007732EF /* PushPermissionState.h in Headers */,
 				83D511F6250C1CBF002EDC51 /* PushPullFIFO.h in Headers */,
 				51F8FA472AB906BC00C8413B /* PushStrategy.h in Headers */,

@@ -2241,7 +2241,8 @@ fast/webgpu/regression [ Pass ]
 fast/webgpu/regression/repro_275108.html [ Pass Failure Timeout ]
 
 [ Debug ] fast/webgpu/nocrash [ Skip ]
-[ Release ] fast/webgpu/nocrash [ Pass Failure Timeout ]
+[ Release ] fast/webgpu/nocrash [ Pass Failure ]
+fast/webgpu/nocrash/fuzz-282052.html [ Pass Failure Slow ]
 [ Debug ] fast/webgpu/regression/repro_275624.html [ Skip ]
 [ Debug ] fast/webgpu/texture-supports-blending.html [ Pass Crash ]
 
@@ -2344,6 +2345,7 @@ imported/w3c/web-platform-tests/svg/text/reftests/text-complex-001.svg [ ImageOn
 imported/w3c/web-platform-tests/svg/text/reftests/text-complex-002.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-001.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-002.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-003.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-005.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-006.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-inline-size-007.svg [ ImageOnlyFailure ]

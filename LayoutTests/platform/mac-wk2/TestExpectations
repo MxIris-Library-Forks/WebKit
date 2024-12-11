@@ -1600,6 +1600,21 @@ webkit.org/b/263396 css3/color/text.html [ Skip ]
 # skipped outside of macOS Sequoia due to crash in failed allocation
 [ Ventura Sonoma ] fast/webgpu/nocrash/fuzz-279086.html [ Skip ]
 
+# skipped on non-AS due to requiring features unavailable on Intel
+[ x86_64 ] fast/webgpu/nocrash/fuzz-273021.html [ Skip ]
+[ x86_64 ] fast/webgpu/nocrash/fuzz-274171.html [ Skip ]
+[ x86_64 ] fast/webgpu/nocrash/fuzz-276279.html [ Skip ]
+[ x86_64 ] fast/webgpu/nocrash/fuzz-278474.html [ Skip ]
+[ x86_64 ] fast/webgpu/nocrash/fuzz-281271.html [ Skip ]
+[ x86_64 ] fast/webgpu/nocrash/fuzz-281555.html [ Skip ]
+[ x86_64 ] fast/webgpu/nocrash/fuzz-282499.html [ Skip ]
+
+# skipped on Intel due to intermittently timing out due to the workload
+[ x86_64 ] fast/webgpu/nocrash/fuzz-282052.html [ Skip ]
+
+# skipped due to failing when run in stress test mode
+[ Ventura Sonoma ] fast/webgpu/nocrash/RenderBundle_WRITE.html [ Skip ]
+
 [ Release arm64 ] http/tests/webgpu/webgpu/api [ Pass Failure Timeout ]
 [ Release arm64 ] http/tests/webgpu/webgpu/shader [ Pass Failure Timeout ]
 [ Release arm64 ] http/tests/webgpu/webgpu/web_platform [ Pass Failure Timeout ]
@@ -1949,3 +1964,6 @@ webkit.org/b/284190 [ Sequoia+ ] http/tests/privateClickMeasurement/send-attribu
 
 # webkit.org/b/284186 [macOS Debug] media/media-vp8-hiddenframes.html is timing out (flaky in EWS)
 [ Debug ] media/media-vp8-hiddenframes.html [ Pass Timeout ]
+
+# webkit.org/b/284391 [macOS Debug]: ASSERTION FAILED: Unsafe to ref/deref from different threads m_isOwnedByMainThread == isMainThread() result of crash in (flaky in EWS)
+[ Sonoma+ Debug ] imported/w3c/web-platform-tests/dom/observable/tentative/observable-map.any.worker.html [ Pass Crash ]

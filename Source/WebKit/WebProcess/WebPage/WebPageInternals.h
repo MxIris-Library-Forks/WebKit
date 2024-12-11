@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,17 +25,24 @@
 
 #pragma once
 
-#if ENABLE(DECLARATIVE_WEB_PUSH)
+#include "WebPage.h"
+#include <WebCore/VisibleSelection.h>
 
-#include "ExtendableEventInit.h"
+#if ENABLE(APP_HIGHLIGHTS)
+#include <WebCore/AppHighlight.h>
+#endif
 
-namespace WebCore {
+namespace WebKit {
 
-struct PushNotificationEventInit : ExtendableEventInit {
-    RefPtr<Notification> proposedNotification;
-    std::optional<unsigned long long> proposedAppBadge;
+struct WebPage::Internals {
+    WTF_MAKE_STRUCT_FAST_ALLOCATED;
+#if PLATFORM(IOS_FAMILY)
+    WebCore::VisibleSelection storedSelectionForAccessibility { WebCore::VisibleSelection() };
+#endif
+#if ENABLE(APP_HIGHLIGHTS)
+    WebCore::CreateNewGroupForHighlight highlightIsNewGroup { WebCore::CreateNewGroupForHighlight::No };
+    WebCore::HighlightRequestOriginatedInApp highlightRequestOriginatedInApp { WebCore::HighlightRequestOriginatedInApp::No };
+#endif
 };
 
-} // namespace WebCore
-
-#endif // ENABLE(DECLARATIVE_WEB_PUSH)
+} // namespace WebKit

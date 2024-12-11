@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Igalia S.L.
+ * Copyright (C) 2024 Red Hat Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,32 +23,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "GraphicsContextGLTextureMapperANGLE.h"
+#pragma once
 
-#if ENABLE(WEBGL) && USE(TEXTURE_MAPPER) && USE(NICOSIA)
-#include <epoxy/gl.h>
+#include <wtf/StdLibExtras.h>
+
+#if USE(SKIA)
 
 namespace WebCore {
 
-GCGLuint GraphicsContextGLTextureMapperANGLE::setupCurrentTexture()
+inline std::span<const uint8_t> span(SkData* data)
 {
-    // Current texture was bound by ANGLE, we query using epoxy to get the actual texture ID.
-    GLint texture;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture);
+    return unsafeMakeSpan<const uint8_t>(data->bytes(), data->size());
+}
 
-    // The texture has been configured by ANGLE too, but the values are cached and only applied
-    // when another call causes a texture state sync, which doesn't happen. So, we set the same
-    // parmeters here using epoxy to make sure the texture is configured as expected by the
-    // texture mapper.
-    GLenum textureTarget = drawingBufferTextureTarget();
-    glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    return texture;
+inline std::span<const uint8_t> span(const sk_sp<SkData>& data)
+{
+    return span(data.get());
 }
 
 } // namespace WebCore
 
-#endif // ENABLE(WEBGL) && USE(TEXTURE_MAPPER) && USE(NICOSIA)
+using WebCore::span;
+
+#endif // USE(SKIA)

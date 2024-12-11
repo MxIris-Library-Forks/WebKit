@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Marais Rossouw <me@marais.co>. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,34 +23,23 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "PushNotificationEvent.h"
+#pragma once
 
-#if ENABLE(DECLARATIVE_WEB_PUSH)
-
-#include <wtf/TZoneMallocInlines.h>
+#include "ActiveDOMCallback.h"
+#include "CallbackResult.h"
+#include <wtf/RefCounted.h>
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(PushNotificationEvent);
+class ReducerCallback : public RefCounted<ReducerCallback>, public ActiveDOMCallback {
+public:
+    using ActiveDOMCallback::ActiveDOMCallback;
 
-PushNotificationEvent::PushNotificationEvent(const AtomString& type, ExtendableEventInit&& eventInit, Notification* proposedNotification, std::optional<uint64_t> proposedAppBadge, IsTrusted isTrusted)
-    : ExtendableEvent(EventInterfaceType::PushNotificationEvent, type, WTFMove(eventInit), isTrusted)
-    , m_proposedNotification(proposedNotification)
-    , m_proposedAppBadge(proposedAppBadge)
-{
-}
+    virtual CallbackResult<JSC::JSValue> handleEvent(JSC::JSValue, JSC::JSValue, uint64_t) = 0;
+    virtual CallbackResult<JSC::JSValue> handleEventRethrowingException(JSC::JSValue, JSC::JSValue, uint64_t) = 0;
 
-Ref<PushNotificationEvent> PushNotificationEvent::create(const AtomString& type, PushNotificationEventInit&& eventInit, IsTrusted isTrusted)
-{
-    return adoptRef(*new PushNotificationEvent(type, WTFMove(eventInit), nullptr, std::nullopt, isTrusted));
-}
-
-Ref<PushNotificationEvent> PushNotificationEvent::create(const AtomString& type, ExtendableEventInit&& eventInit, Notification& notification, std::optional<uint64_t> proposedAppBadge, IsTrusted isTrusted)
-{
-    return adoptRef(*new PushNotificationEvent(type, WTFMove(eventInit), &notification, proposedAppBadge, isTrusted));
-}
+private:
+    virtual bool hasCallback() const = 0;
+};
 
 } // namespace WebCore
-
-#endif // ENABLE(DECLARATIVE_WEB_PUSH)

@@ -135,6 +135,7 @@
 #include "WebPageGroupProxy.h"
 #include "WebPageInlines.h"
 #include "WebPageInspectorTargetController.h"
+#include "WebPageInternals.h"
 #include "WebPageMessages.h"
 #include "WebPageOverlay.h"
 #include "WebPageProxyMessages.h"
@@ -556,7 +557,8 @@ static RefPtr<Frame> frameFromIdentifier(std::optional<FrameIdentifier> identifi
 }
 
 WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
-    : m_identifier(pageID)
+    : m_internals(makeUniqueRef<Internals>())
+    , m_identifier(pageID)
     , m_viewSize(parameters.viewSize)
     , m_layerHostingMode(parameters.layerHostingMode)
     , m_drawingArea(DrawingArea::create(*this, parameters))
@@ -3828,10 +3830,11 @@ HandleUserInputEventResult WebPage::dispatchTouchEvent(FrameIdentifier frameID, 
     return handleTouchEventResult;
 }
 
-void WebPage::didBeginTouchPoint()
+void WebPage::didBeginTouchPoint(FloatPoint locationInRootView)
 {
     m_hasAnyActiveTouchPoints = true;
     m_potentialTapSecurityOrigin = nullptr;
+    m_lastTouchLocationBeforeTap = locationInRootView;
 }
 
 void WebPage::updatePotentialTapSecurityOrigin(const WebTouchEvent& touchEvent, bool wasHandled)
@@ -7732,6 +7735,7 @@ void WebPage::didCommitLoad(WebFrame* frame)
     WebProcess::singleton().eventDispatcher().takeQueuedTouchEventsForPage(*this, queuedEvents);
     cancelAsynchronousTouchEvents(WTFMove(queuedEvents));
 #endif
+    m_lastTouchLocationBeforeTap = { };
     m_hasAnyActiveTouchPoints = false;
     m_activeTextInteractionSources = { };
 #endif // PLATFORM(IOS_FAMILY)
@@ -9272,10 +9276,20 @@ void WebPage::revokeSandboxExtensions(Vector<Ref<SandboxExtension>>& sandboxExte
 }
 
 #if ENABLE(APP_HIGHLIGHTS)
+WebCore::CreateNewGroupForHighlight WebPage::highlightIsNewGroup() const
+{
+    return m_internals->highlightIsNewGroup;
+}
+
+WebCore::HighlightRequestOriginatedInApp WebPage::highlightRequestOriginatedInApp() const
+{
+    return m_internals->highlightRequestOriginatedInApp;
+}
+
 bool WebPage::createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighlight createNewGroup, WebCore::HighlightRequestOriginatedInApp requestOriginatedInApp, CompletionHandler<void(WebCore::AppHighlight&&)>&& completionHandler)
 {
-    SetForScope highlightIsNewGroupScope { m_highlightIsNewGroup, createNewGroup };
-    SetForScope highlightRequestOriginScope { m_highlightRequestOriginatedInApp, requestOriginatedInApp };
+    SetForScope highlightIsNewGroupScope { m_internals->highlightIsNewGroup, createNewGroup };
+    SetForScope highlightRequestOriginScope { m_internals->highlightRequestOriginatedInApp, requestOriginatedInApp };
 
     RefPtr focusedOrMainFrame = m_page->checkedFocusController()->focusedOrMainFrame();
     if (!focusedOrMainFrame)
@@ -9292,8 +9306,8 @@ bool WebPage::createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighli
 
     document->appHighlightRegistry().addAnnotationHighlightWithRange(StaticRange::create(selectionRange.value()));
     document->appHighlightStorage().storeAppHighlight(StaticRange::create(selectionRange.value()), [completionHandler = WTFMove(completionHandler), protectedThis = Ref { *this }, this] (WebCore::AppHighlight&& highlight) mutable {
-        highlight.isNewGroup = m_highlightIsNewGroup;
-        highlight.requestOriginatedInApp = m_highlightRequestOriginatedInApp;
+        highlight.isNewGroup = m_internals->highlightIsNewGroup;
+        highlight.requestOriginatedInApp = m_internals->highlightRequestOriginatedInApp;
         completionHandler(WTFMove(highlight));
     });
 

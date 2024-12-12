@@ -1437,7 +1437,7 @@ ExceptionOr<void> HTMLInputElement::showPicker()
     }
 
     auto* window = frame->window();
-    if (!window || !window->hasTransientActivation())
+    if (!window || !window->consumeTransientActivation())
         return Exception { ExceptionCode::NotAllowedError, "Input showPicker() requires a user gesture."_s };
 
     m_inputType->showPicker();
@@ -2101,6 +2101,24 @@ void HTMLInputElement::updatePlaceholderText()
 bool HTMLInputElement::isEmptyValue() const
 {
     return m_inputType->isEmptyValue();
+}
+
+bool HTMLInputElement::isDevolvableWidget() const
+{
+    return m_inputType->isColorControl()
+        || m_inputType->isDateField()
+        || m_inputType->isDateTimeLocalField()
+        || m_inputType->isEmailField()
+        || m_inputType->isMonthField()
+        || m_inputType->isNumberField()
+        || m_inputType->isPasswordField()
+        || m_inputType->isSearchField()
+        || m_inputType->isTelephoneField()
+        || m_inputType->isTextButton()
+        || m_inputType->isTextType()
+        || m_inputType->isTimeField()
+        || m_inputType->isURLField()
+        || m_inputType->isWeekField();
 }
 
 void HTMLInputElement::maxLengthAttributeChanged(const AtomString& newValue)

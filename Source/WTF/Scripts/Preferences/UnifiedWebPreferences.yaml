@@ -2601,6 +2601,20 @@ DeviceWidth:
       default: 0
     WebCore:
       default: 0
+      
+DevolvableWidgetsEnabled:
+  type: bool
+  status: stable
+  category: css
+  humanReadableName: "CSS Devolvable Widgets"
+  humanReadableDescription: "Enable support for devolvable widgets"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
 
 DiagnosticLoggingEnabled:
   type: bool
@@ -3442,6 +3456,22 @@ ICECandidateFilteringEnabled:
       default: true
     WebCore:
       default: true
+
+IFrameResourceMonitoringEnabled:
+  type: bool
+  status: unstable
+  category: networking
+  condition: ENABLE(CONTENT_EXTENSIONS)
+  defaultsOverridable: true
+  humanReadableName: "Frame Resource Monitoring Support"
+  humanReadableDescription: "Enable Usage Monitoring of Frame Resource Support"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
 
 IPAddressAndLocalhostMixedContentUpgradeTestingEnabled:
   type: bool

@@ -84,6 +84,8 @@ class WebFrame;
 class WebKeyboardEvent;
 class WebMouseEvent;
 class WebWheelEvent;
+enum class SelectionEndpoint : bool;
+enum class SelectionWasFlipped : bool;
 struct EditorState;
 struct WebHitTestResultData;
 
@@ -174,6 +176,7 @@ public:
     virtual bool handleEditingCommand(const String& commandName, const String& argument) = 0;
     virtual bool isEditingCommandEnabled(const String& commandName) = 0;
 
+    virtual String fullDocumentString() const { return { }; }
     virtual String selectionString() const = 0;
     virtual bool existingSelectionContainsPoint(const WebCore::FloatPoint&) const = 0;
     virtual WebCore::FloatRect rectForSelectionInRootView(PDFSelection *) const = 0;
@@ -313,6 +316,9 @@ public:
 
 #if PLATFORM(IOS_FAMILY)
     virtual void setSelectionRange(WebCore::FloatPoint /* pointInRootView */, WebCore::TextGranularity) { }
+    virtual void clearSelection() { }
+    virtual SelectionWasFlipped moveSelectionEndpoint(WebCore::FloatPoint /* pointInRootView */, SelectionEndpoint);
+    virtual SelectionEndpoint extendInitialSelection(WebCore::FloatPoint /* pointInRootView */, WebCore::TextGranularity);
 #endif
 
     bool populateEditorStateIfNeeded(EditorState&) const;

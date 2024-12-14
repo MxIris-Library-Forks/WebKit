@@ -58,6 +58,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/OptionSet.h>
+#include <wtf/ProcessID.h>
 #include <wtf/Ref.h>
 #include <wtf/RefCountedAndCanMakeWeakPtr.h>
 #include <wtf/RobinHoodHashSet.h>
@@ -385,6 +386,10 @@ public:
     void setAudioSessionType(DOMAudioSessionType);
     DOMAudioSessionType audioSessionType() const;
 #endif
+    void setUserDidInteractWithPage(bool);
+    bool userDidInteractWithPage() const;
+    void setAutofocusProcessed();
+    bool autofocusProcessed() const;
 
     WEBCORE_EXPORT void updateProcessSyncData(const ProcessSyncData&);
     WEBCORE_EXPORT void setMainFrameURLFragment(String&&);
@@ -1257,6 +1262,13 @@ public:
 
     WEBCORE_EXPORT bool isAlwaysOnLoggingAllowed() const;
 
+    ProcessID presentingApplicationPID() const;
+
+#if HAVE(AUDIT_TOKEN)
+    const std::optional<audit_token_t>& presentingApplicationAuditToken() const;
+    WEBCORE_EXPORT void setPresentingApplicationAuditToken(std::optional<audit_token_t>);
+#endif
+
 private:
     explicit Page(PageConfiguration&&);
 
@@ -1689,7 +1701,11 @@ private:
     bool m_shouldDeferResizeEvents { false };
     bool m_shouldDeferScrollEvents { false };
 
-    UniqueRef<DocumentSyncData> m_documentSyncData;
+    UniqueRef<DocumentSyncData> m_topDocumentSyncData;
+
+#if HAVE(AUDIT_TOKEN)
+    std::optional<audit_token_t> m_presentingApplicationAuditToken;
+#endif
 }; // class Page
 
 inline Page* Frame::page() const

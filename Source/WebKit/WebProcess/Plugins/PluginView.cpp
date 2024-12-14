@@ -671,6 +671,14 @@ void PluginView::scrollToRevealTextMatch(const WebFoundTextRange::PDFData& match
     return protectedPlugin()->scrollToRevealTextMatch(match);
 }
 
+String PluginView::fullDocumentString() const
+{
+    if (!m_isInitialized)
+        return { };
+
+    return protectedPlugin()->fullDocumentString();
+}
+
 String PluginView::selectionString() const
 {
     if (!m_isInitialized)
@@ -1119,6 +1127,21 @@ void PluginView::pluginDidInstallPDFDocument(double initialScale)
 void PluginView::setSelectionRange(FloatPoint pointInRootView, TextGranularity granularity)
 {
     protectedPlugin()->setSelectionRange(pointInRootView, granularity);
+}
+
+SelectionWasFlipped PluginView::moveSelectionEndpoint(FloatPoint pointInRootView, SelectionEndpoint endpoint)
+{
+    return protectedPlugin()->moveSelectionEndpoint(pointInRootView, endpoint);
+}
+
+SelectionEndpoint PluginView::extendInitialSelection(FloatPoint pointInRootView, TextGranularity granularity)
+{
+    return protectedPlugin()->extendInitialSelection(pointInRootView, granularity);
+}
+
+void PluginView::clearSelection()
+{
+    protectedPlugin()->clearSelection();
 }
 
 #endif // PLATFORM(IOS_FAMILY)

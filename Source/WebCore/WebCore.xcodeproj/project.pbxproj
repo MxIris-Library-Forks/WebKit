@@ -1260,6 +1260,7 @@
 		37E3524D12450C6600BAF5D9 /* InputType.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E3524C12450C6600BAF5D9 /* InputType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		37F567CE165358F400DDE92B /* PopupOpeningObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = 3772B09516535856000A49CA /* PopupOpeningObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		37F818FD0D657606005E1F05 /* WebCoreURLResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 37F818FB0D657606005E1F05 /* WebCoreURLResponse.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3A0BAA3E2D0B6B2B00DE30E4 /* FileSystemWriteCloseReason.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A0BAA3D2D0B6B2B00DE30E4 /* FileSystemWriteCloseReason.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A18A2ED2AFEAA7C00DB976C /* MarkupExclusionRule.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A18A2EC2AFEAA7C00DB976C /* MarkupExclusionRule.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A25C5142CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A25C5122CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A25C51A2CF99B4700DB9C39 /* FileSystemWriteCommandType.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A25C5192CF99B4700DB9C39 /* FileSystemWriteCommandType.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1932,6 +1933,7 @@
 		510A91FE24D3C16700BFD89C /* GamepadConstantsMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 510A91FB24D3C0FD00BFD89C /* GamepadConstantsMac.h */; };
 		510A920824D4F49900BFD89C /* LogitechGamepad.h in Headers */ = {isa = PBXBuildFile; fileRef = 510A920524D4F07A00BFD89C /* LogitechGamepad.h */; };
 		510A921224D5E60E00BFD89C /* StadiaHIDGamepad.h in Headers */ = {isa = PBXBuildFile; fileRef = 510A921124D5E21700BFD89C /* StadiaHIDGamepad.h */; };
+		510CF7572CFDB1B3005E1950 /* AudioEncoderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 510CF7552CFDB1B3005E1950 /* AudioEncoderCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		510D4A34103165EE0049EA54 /* SocketStreamError.h in Headers */ = {isa = PBXBuildFile; fileRef = 510D4A2E103165EE0049EA54 /* SocketStreamError.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		510E2F25276BB4EC00809333 /* NotificationEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 510E2F24276BB4EC00809333 /* NotificationEvent.h */; };
 		510E2F27276BC19F00809333 /* NotificationOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 510E2F26276BC19F00809333 /* NotificationOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -2100,6 +2102,7 @@
 		51C81B8A0C4422F70019ECE3 /* FTPDirectoryParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 51C81B880C4422F70019ECE3 /* FTPDirectoryParser.h */; };
 		51CA7EE91F883390003D3131 /* ServiceWorkerContextData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CA7EE71F8832E0003D3131 /* ServiceWorkerContextData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51CBFC990D10E483002DBF51 /* CachedFramePlatformData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51D444702D09B20A00F26553 /* WebCodecsBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D4446F2D09B1F800F26553 /* WebCodecsBase.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D596CF2CECF71000AA8531 /* ProcessSyncData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D596CD2CECF71000AA8531 /* ProcessSyncData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D596D02CECF71000AA8531 /* ProcessSyncClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D596CB2CECF71000AA8531 /* ProcessSyncClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D596D22CECF71000AA8531 /* ProcessSyncData.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = 51D596CE2CECF71000AA8531 /* ProcessSyncData.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9835,6 +9838,7 @@
 		37F818FB0D657606005E1F05 /* WebCoreURLResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCoreURLResponse.h; sourceTree = "<group>"; };
 		37F818FC0D657606005E1F05 /* WebCoreURLResponse.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebCoreURLResponse.mm; sourceTree = "<group>"; };
 		3A0171CF2BEDAC5F00AFEAED /* WebXROpaqueFramebufferCocoa.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebXROpaqueFramebufferCocoa.cpp; sourceTree = "<group>"; };
+		3A0BAA3D2D0B6B2B00DE30E4 /* FileSystemWriteCloseReason.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileSystemWriteCloseReason.h; sourceTree = "<group>"; };
 		3A18A2EC2AFEAA7C00DB976C /* MarkupExclusionRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MarkupExclusionRule.h; sourceTree = "<group>"; };
 		3A25C5122CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileSystemWritableFileStreamSink.h; sourceTree = "<group>"; };
 		3A25C5132CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FileSystemWritableFileStreamSink.cpp; sourceTree = "<group>"; };
@@ -11389,6 +11393,8 @@
 		510A920724D4F07A00BFD89C /* LogitechGamepad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LogitechGamepad.cpp; sourceTree = "<group>"; };
 		510A920F24D5E21700BFD89C /* StadiaHIDGamepad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StadiaHIDGamepad.cpp; sourceTree = "<group>"; };
 		510A921124D5E21700BFD89C /* StadiaHIDGamepad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StadiaHIDGamepad.h; sourceTree = "<group>"; };
+		510CF7552CFDB1B3005E1950 /* AudioEncoderCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioEncoderCocoa.h; sourceTree = "<group>"; };
+		510CF7562CFDB1B3005E1950 /* AudioEncoderCocoa.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioEncoderCocoa.cpp; sourceTree = "<group>"; };
 		510D4A2E103165EE0049EA54 /* SocketStreamError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketStreamError.h; sourceTree = "<group>"; };
 		510E2F22276BA9E800809333 /* NotificationEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = NotificationEvent.idl; sourceTree = "<group>"; };
 		510E2F24276BB4EC00809333 /* NotificationEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotificationEvent.h; sourceTree = "<group>"; };
@@ -11720,6 +11726,8 @@
 		51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedFramePlatformData.h; sourceTree = "<group>"; };
 		51D1248A1E73625C002B2820 /* NetworkStorageSessionCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NetworkStorageSessionCocoa.mm; sourceTree = "<group>"; };
 		51D1248C1E736456002B2820 /* CookieCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CookieCocoa.mm; sourceTree = "<group>"; };
+		51D4446F2D09B1F800F26553 /* WebCodecsBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCodecsBase.h; sourceTree = "<group>"; };
+		51D444712D09B9EA00F26553 /* WebCodecsBase.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebCodecsBase.cpp; sourceTree = "<group>"; };
 		51D596CB2CECF71000AA8531 /* ProcessSyncClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSyncClient.h; sourceTree = "<group>"; };
 		51D596CC2CECF71000AA8531 /* ProcessSyncClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ProcessSyncClient.cpp; sourceTree = "<group>"; };
 		51D596CD2CECF71000AA8531 /* ProcessSyncData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSyncData.h; sourceTree = "<group>"; };
@@ -29818,6 +29826,7 @@
 				3A5110EA2CF79BAC00CBFF42 /* FileSystemWritableFileStream.idl */,
 				3A25C5132CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.cpp */,
 				3A25C5122CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h */,
+				3A0BAA3D2D0B6B2B00DE30E4 /* FileSystemWriteCloseReason.h */,
 				3A25C5192CF99B4700DB9C39 /* FileSystemWriteCommandType.h */,
 				93443E7B26E8A6BC0058538F /* StorageManager+FileSystemAccess.idl */,
 				93443E7D26E8A6BC0058538F /* StorageManagerFileSystemAccess.h */,
@@ -35646,6 +35655,8 @@
 				9ACB2F0F2AA5E982006E9556 /* WebCodecsAudioEncoderSupport.h */,
 				9ACB2F0D2AA5E981006E9556 /* WebCodecsAudioEncoderSupport.idl */,
 				9A87D9EB2A8295F100EE7A8A /* WebCodecsAudioInternalData.h */,
+				51D444712D09B9EA00F26553 /* WebCodecsBase.cpp */,
+				51D4446F2D09B1F800F26553 /* WebCodecsBase.h */,
 				4110A21128E3440C00321D09 /* WebCodecsCodecState.h */,
 				4110A20F28E3440C00321D09 /* WebCodecsCodecState.idl */,
 				459CBAAA2C7647410003743B /* WebCodecsControlMessage.h */,
@@ -35769,6 +35780,8 @@
 				51DCE1A92CF5800D00BE7E84 /* AudioDecoderCocoa.h */,
 				413151842357745E00115E6E /* AudioDestinationCocoa.cpp */,
 				413151862357745E00115E6E /* AudioDestinationCocoa.h */,
+				510CF7562CFDB1B3005E1950 /* AudioEncoderCocoa.cpp */,
+				510CF7552CFDB1B3005E1950 /* AudioEncoderCocoa.h */,
 				46AAAA3C25D3631400BAF42F /* AudioFileReaderCocoa.cpp */,
 				46AAAA3A25D3631400BAF42F /* AudioFileReaderCocoa.h */,
 				1DB66D38253678EA00B671B9 /* AudioOutputUnitAdaptor.cpp */,
@@ -39555,6 +39568,7 @@
 				7BC9642C291E76BE00377DF1 /* AudioDestinationResampler.h in Headers */,
 				FD31608012B026F700C1A359 /* AudioDSPKernel.h in Headers */,
 				FD31608212B026F700C1A359 /* AudioDSPKernelProcessor.h in Headers */,
+				510CF7572CFDB1B3005E1950 /* AudioEncoderCocoa.h in Headers */,
 				FD31608312B026F700C1A359 /* AudioFileReader.h in Headers */,
 				46AAAA3D25D3632000BAF42F /* AudioFileReaderCocoa.h in Headers */,
 				CD2F4A2418D89F700063746D /* AudioHardwareListener.h in Headers */,
@@ -40746,6 +40760,7 @@
 				930E4486270C372200DE7AB7 /* FileSystemSyncAccessHandleIdentifier.h in Headers */,
 				3A5110F12CF79E9800CBFF42 /* FileSystemWritableFileStream.h in Headers */,
 				3A25C5142CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h in Headers */,
+				3A0BAA3E2D0B6B2B00DE30E4 /* FileSystemWriteCloseReason.h in Headers */,
 				3A25C51A2CF99B4700DB9C39 /* FileSystemWriteCommandType.h in Headers */,
 				BC5EB69F0E81DAEB00B25965 /* FillLayer.h in Headers */,
 				073930D82AC6445D00C1D1B1 /* FillLightMode.h in Headers */,
@@ -44567,6 +44582,7 @@
 				9A87D9F42A8298AF00EE7A8A /* WebCodecsAudioDecoderConfig.h in Headers */,
 				9A87D9E62A8294BE00EE7A8A /* WebCodecsAudioDecoderSupport.h in Headers */,
 				9A87D9EC2A8295F100EE7A8A /* WebCodecsAudioInternalData.h in Headers */,
+				51D444702D09B20A00F26553 /* WebCodecsBase.h in Headers */,
 				4110A21A28E3441600321D09 /* WebCodecsCodecState.h in Headers */,
 				9A87D9EE2A82967A00EE7A8A /* WebCodecsEncodedAudioChunk.h in Headers */,
 				9A87D9F82A829ED500EE7A8A /* WebCodecsEncodedAudioChunkData.h in Headers */,

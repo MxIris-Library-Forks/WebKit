@@ -67,12 +67,12 @@ public:
     const String& search() const { return m_searchComponent.patternString(); }
     const String& hash() const { return m_hashComponent.patternString(); }
 
-    bool hasRegExpGroups() const { return m_hasRegExpGroups; }
+    bool hasRegExpGroups() const;
 
 private:
     URLPattern();
     ExceptionOr<void> compileAllComponents(ScriptExecutionContext&, URLPatternInit&&, const URLPatternOptions&);
-    ExceptionOr<std::optional<URLPatternResult>> match(ScriptExecutionContext&, std::variant<URL, URLPatternInput>&&, std::optional<String>&& baseURLString) const;
+    ExceptionOr<std::optional<URLPatternResult>> match(ScriptExecutionContext&, std::variant<URL, URLPatternInput>&&, String&& baseURLString) const;
 
     URLPatternUtilities::URLPatternComponent m_protocolComponent;
     URLPatternUtilities::URLPatternComponent m_usernameComponent;
@@ -82,8 +82,6 @@ private:
     URLPatternUtilities::URLPatternComponent m_portComponent;
     URLPatternUtilities::URLPatternComponent m_searchComponent;
     URLPatternUtilities::URLPatternComponent m_hashComponent;
-
-    bool m_hasRegExpGroups { false };
 };
 
 }

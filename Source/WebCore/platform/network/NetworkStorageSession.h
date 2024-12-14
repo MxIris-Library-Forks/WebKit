@@ -33,6 +33,7 @@
 #include "ShouldRelaxThirdPartyCookieBlocking.h"
 #include <optional>
 #include <pal/SessionID.h>
+#include <wtf/AbstractRefCountedAndCanMakeWeakPtr.h>
 #include <wtf/CheckedPtr.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/Function.h>
@@ -78,12 +79,6 @@ class CookiesEnabledStateObserver;
 class NetworkStorageSession;
 }
 
-namespace WTF {
-template<typename T> struct IsDeprecatedWeakRefSmartPointerException;
-template<> struct IsDeprecatedWeakRefSmartPointerException<WebCore::CookieChangeObserver> : std::true_type { };
-template<> struct IsDeprecatedWeakRefSmartPointerException<WebCore::CookiesEnabledStateObserver> : std::true_type { };
-}
-
 namespace WebCore {
 
 class CurlProxySettings;
@@ -113,7 +108,7 @@ enum class ApplyTrackingPrevention : bool { No, Yes };
 enum class ScriptWrittenCookiesOnly : bool { No, Yes };
 
 #if HAVE(COOKIE_CHANGE_LISTENER_API)
-class CookieChangeObserver : public CanMakeWeakPtr<CookieChangeObserver> {
+class CookieChangeObserver : public AbstractRefCountedAndCanMakeWeakPtr<CookieChangeObserver> {
 public:
     virtual ~CookieChangeObserver() { }
     virtual void cookiesAdded(const String& host, const Vector<Cookie>&) = 0;
@@ -122,7 +117,7 @@ public:
 };
 #endif
 
-class CookiesEnabledStateObserver : public CanMakeWeakPtr<CookiesEnabledStateObserver> {
+class CookiesEnabledStateObserver : public AbstractRefCountedAndCanMakeWeakPtr<CookiesEnabledStateObserver> {
 public:
     virtual ~CookiesEnabledStateObserver() { }
     virtual void cookieEnabledStateMayHaveChanged() = 0;

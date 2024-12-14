@@ -400,6 +400,7 @@ private:
     void repaintOnSelectionChange(ActiveStateChangeReason, PDFSelection *previousSelection = nil);
     void showOrHideSelectionLayerAsNecessary();
 
+    String fullDocumentString() const override;
     String selectionString() const override;
     bool existingSelectionContainsPoint(const WebCore::FloatPoint&) const override;
     WebCore::FloatRect rectForSelectionInRootView(PDFSelection *) const override;
@@ -574,10 +575,25 @@ private:
 
     WebCore::FloatRect pageBoundsInContentsSpace(PDFDocumentLayout::PageIndex) const;
 
+    using PageAndPoint = std::pair<RetainPtr<PDFPage>, WebCore::FloatPoint>;
+    PageAndPoint rootViewToPage(WebCore::FloatPoint) const;
+
 #if PLATFORM(IOS_FAMILY)
     void setSelectionRange(WebCore::FloatPoint pointInRootView, WebCore::TextGranularity) final;
+    void clearSelection() final;
+    SelectionWasFlipped moveSelectionEndpoint(WebCore::FloatPoint pointInRootView, SelectionEndpoint) final;
+    SelectionEndpoint extendInitialSelection(WebCore::FloatPoint pointInRootView, WebCore::TextGranularity) final;
     bool platformPopulateEditorStateIfNeeded(EditorState&) const final;
+
+#if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
+    PDFSelection *selectionAtPoint(WebCore::FloatPoint pointInPage, PDFPage *, WebCore::TextGranularity) const;
+    PDFSelection *selectionBetweenPoints(WebCore::FloatPoint fromPoint, PDFPage *fromPage, WebCore::FloatPoint toPoint, PDFPage *toPage) const;
 #endif
+
+    static PageAndPoint selectionCaretPointInPage(PDFSelection *, SelectionEndpoint);
+    PageAndPoint selectionCaretPointInPage(SelectionEndpoint) const;
+    void resetInitialSelection();
+#endif // PLATFORM(IOS_FAMILY)
 
     RefPtr<PDFPresentationController> m_presentationController;
 
@@ -636,6 +652,11 @@ private:
 
 #if ENABLE(UNIFIED_PDF_DATA_DETECTION)
     std::unique_ptr<PDFDataDetectorOverlayController> m_dataDetectorOverlayController;
+#endif
+
+#if PLATFORM(IOS_FAMILY)
+    RetainPtr<PDFSelection> m_initialSelection;
+    PageAndPoint m_initialSelectionStart;
 #endif
 
     RefPtr<WebCore::ShadowRoot> m_shadowRoot;

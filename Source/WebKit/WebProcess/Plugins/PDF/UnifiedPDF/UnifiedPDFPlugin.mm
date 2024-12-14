@@ -32,6 +32,7 @@
 #include "DataDetectionResult.h"
 #include "EditorState.h"
 #include "FindController.h"
+#include "GestureTypes.h"
 #include "MessageSenderInlines.h"
 #include "PDFAnnotationTypeHelpers.h"
 #include "PDFContextMenu.h"
@@ -2902,6 +2903,9 @@ RetainPtr<PDFSelection> UnifiedPDFPlugin::protectedCurrentSelection() const
 
 void UnifiedPDFPlugin::setCurrentSelection(RetainPtr<PDFSelection>&& selection)
 {
+    if (!selection && !m_currentSelection)
+        return;
+
     RetainPtr previousSelection = std::exchange(m_currentSelection, WTFMove(selection));
 
 #if ENABLE(TEXT_SELECTION)
@@ -2910,6 +2914,11 @@ void UnifiedPDFPlugin::setCurrentSelection(RetainPtr<PDFSelection>&& selection)
     repaintOnSelectionChange(ActiveStateChangeReason::SetCurrentSelection, previousSelection.get());
 #endif
     notifySelectionChanged();
+}
+
+String UnifiedPDFPlugin::fullDocumentString() const
+{
+    return [pdfDocument() string];
 }
 
 String UnifiedPDFPlugin::selectionString() const
@@ -3879,6 +3888,18 @@ void UnifiedPDFPlugin::setDisplayModeAndUpdateLayout(PDFDocumentLayout::DisplayM
 
 #if PLATFORM(IOS_FAMILY)
 
+void UnifiedPDFPlugin::clearSelection()
+{
+    resetInitialSelection();
+    setCurrentSelection({ });
+}
+
+static bool areVisuallyDistinct(FloatPoint a, FloatPoint b)
+{
+    static constexpr auto maxDistanceSquared = 0.1 * 0.1;
+    return (a - b).diagonalLengthSquared() > maxDistanceSquared;
+}
+
 void UnifiedPDFPlugin::setSelectionRange(FloatPoint pointInRootView, TextGranularity granularity)
 {
 #if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
@@ -3886,7 +3907,89 @@ void UnifiedPDFPlugin::setSelectionRange(FloatPoint pointInRootView, TextGranula
     if (!pdfDocument)
         return;
 
-    auto pdfGranularity = [granularity] {
+    auto [page, pointInPage] = rootViewToPage(pointInRootView);
+    if (!page)
+        return;
+
+    m_initialSelection = selectionAtPoint(pointInPage, page.get(), granularity);
+    m_initialSelectionStart = selectionCaretPointInPage(m_initialSelection.get(), SelectionEndpoint::Start);
+    setCurrentSelection(m_initialSelection.get());
+#else
+    UNUSED_PARAM(pointInRootView);
+    UNUSED_PARAM(granularity);
+#endif
+}
+
+static bool isEmpty(PDFSelection *selection)
+{
+    return !selection.pages.count;
+}
+
+SelectionWasFlipped UnifiedPDFPlugin::moveSelectionEndpoint(WebCore::FloatPoint pointInRootView, SelectionEndpoint extentEndpoint)
+{
+    auto flipped = SelectionWasFlipped::No;
+#if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
+    RetainPtr pdfDocument = m_pdfDocument;
+    if (!pdfDocument)
+        return flipped;
+
+    bool baseIsStart = extentEndpoint == SelectionEndpoint::End;
+    auto baseEndpoint = baseIsStart ? SelectionEndpoint::Start : SelectionEndpoint::End;
+    auto [basePage, basePointInPage] = selectionCaretPointInPage(baseEndpoint);
+    if (!basePage)
+        return flipped;
+
+    auto [extentPage, extentPointInPage] = rootViewToPage(pointInRootView);
+    if (!extentPage)
+        return flipped;
+
+    RetainPtr newSelection = selectionBetweenPoints(
+        baseIsStart ? basePointInPage : extentPointInPage,
+        baseIsStart ? basePage.get() : extentPage.get(),
+        baseIsStart ? extentPointInPage : basePointInPage,
+        baseIsStart ? extentPage.get() : basePage.get()
+    );
+
+    if (isEmpty(newSelection.get())) {
+        // The selection became collapsed; maintain the existing selection.
+        return flipped;
+    }
+
+    auto [newExtentPage, newExtentPointInPage] = selectionCaretPointInPage(newSelection.get(), extentEndpoint);
+    auto [newBasePage, newBasePointInPage] = selectionCaretPointInPage(newSelection.get(), baseEndpoint);
+    if (newExtentPage && newBasePage) {
+        if (basePage != newBasePage || areVisuallyDistinct(basePointInPage, newBasePointInPage)) {
+            // Canonicalize the selection (i.e. swap the start and end points) if needed.
+            [newSelection addSelection:newSelection.get()];
+            flipped = SelectionWasFlipped::Yes;
+        }
+    }
+
+    resetInitialSelection();
+    setCurrentSelection(WTFMove(newSelection));
+#else
+    UNUSED_PARAM(pointInRootView);
+    UNUSED_PARAM(extentEndpoint);
+#endif
+    return flipped;
+}
+
+void UnifiedPDFPlugin::resetInitialSelection()
+{
+    m_initialSelection = nil;
+    m_initialSelectionStart = { nil, { } };
+}
+
+#if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
+
+PDFSelection *UnifiedPDFPlugin::selectionBetweenPoints(FloatPoint fromPoint, PDFPage *fromPage, FloatPoint toPoint, PDFPage *toPage) const
+{
+    return [pdfDocument() selectionFromPage:fromPage atPoint:fromPoint toPage:toPage atPoint:toPoint withGranularity:PDFSelectionGranularityCharacter];
+}
+
+PDFSelection *UnifiedPDFPlugin::selectionAtPoint(FloatPoint pointInPage, PDFPage *page, TextGranularity granularity) const
+{
+    return [pdfDocument() selectionFromPage:page atPoint:pointInPage toPage:page atPoint:pointInPage withGranularity:[&] {
         switch (granularity) {
         case TextGranularity::CharacterGranularity:
             return PDFSelectionGranularityCharacter;
@@ -3898,26 +4001,85 @@ void UnifiedPDFPlugin::setSelectionRange(FloatPoint pointInRootView, TextGranula
             ASSERT_NOT_REACHED();
             return PDFSelectionGranularityCharacter;
         }
-    }();
+    }()];
+}
 
-    auto pointInPlugin = convertFromRootViewToPlugin(pointInRootView);
-    auto pointInDocument = convertDown<FloatPoint>(CoordinateSpace::Plugin, CoordinateSpace::PDFDocumentLayout, pointInPlugin);
-    auto pageIndex = m_presentationController->nearestPageIndexForDocumentPoint(pointInDocument);
-    auto pointInPage = convertDown(CoordinateSpace::PDFDocumentLayout, CoordinateSpace::PDFPage, pointInDocument, pageIndex);
+#endif // HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
 
-    RetainPtr page = m_documentLayout.pageAtIndex(pageIndex);
-    setCurrentSelection([pdfDocument selectionFromPage:page.get() atPoint:pointInPage toPage:page.get() atPoint:pointInPage withGranularity:pdfGranularity]);
+SelectionEndpoint UnifiedPDFPlugin::extendInitialSelection(WebCore::FloatPoint pointInRootView, TextGranularity granularity)
+{
+#if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
+    auto [page, pointInPage] = rootViewToPage(pointInRootView);
+    if (!page)
+        return SelectionEndpoint::Start;
+
+    auto [startPage, startPointInPage] = m_initialSelectionStart;
+    if (!startPage)
+        return SelectionEndpoint::Start;
+
+    RetainPtr newSelection = selectionAtPoint(pointInPage, page.get(), granularity);
+    if (isEmpty(newSelection.get()))
+        return SelectionEndpoint::Start;
+
+    [newSelection addSelection:m_initialSelection.get()];
+    // The selection at this point only includes the initial selection, and the new hit-tested selection, and may be discontiguous.
+
+    auto [newStartPage, newStartPointInPage] = selectionCaretPointInPage(newSelection.get(), SelectionEndpoint::Start);
+    if (!newStartPage)
+        return SelectionEndpoint::Start;
+
+    auto [newEndPage, newEndPointInPage] = selectionCaretPointInPage(newSelection.get(), SelectionEndpoint::End);
+    if (!newEndPage)
+        return SelectionEndpoint::Start;
+
+    newSelection = selectionBetweenPoints(newStartPointInPage, newStartPage.get(), newEndPointInPage, newEndPage.get());
+    if (!newSelection)
+        return SelectionEndpoint::Start;
+
+    setCurrentSelection(WTFMove(newSelection));
+
+    if (startPage == newStartPage && !areVisuallyDistinct(startPointInPage, newStartPointInPage))
+        return SelectionEndpoint::End;
 #else
-    UNUSED_PARAM(pointInRootView);
     UNUSED_PARAM(granularity);
+    UNUSED_PARAM(pointInRootView);
 #endif
+    return SelectionEndpoint::Start;
+}
+
+auto UnifiedPDFPlugin::selectionCaretPointInPage(PDFSelection *selection, SelectionEndpoint endpoint) -> PageAndPoint
+{
+    bool isStart = endpoint == SelectionEndpoint::Start;
+    RetainPtr pages = [selection pages];
+    RetainPtr page = isStart ? [pages firstObject] : [pages lastObject];
+    if (!page)
+        return { nil, { } };
+
+    RetainPtr selectionsByLine = [selection selectionsByLine];
+    RetainPtr selectedLine = isStart ? [selectionsByLine firstObject] : [selectionsByLine lastObject];
+    FloatRect lineBounds = [selectedLine boundsForPage:page.get()];
+    if (lineBounds.isEmpty())
+        return { nil, { } };
+
+    // FIXME: Account for RTL and vertical text.
+    auto offsetX = isStart ? lineBounds.x() : lineBounds.maxX();
+    return { WTFMove(page), { offsetX, lineBounds.y() + (lineBounds.height() / 2) } };
+}
+
+auto UnifiedPDFPlugin::selectionCaretPointInPage(SelectionEndpoint endpoint) const -> PageAndPoint
+{
+    return selectionCaretPointInPage(RetainPtr { m_currentSelection }.get(), endpoint);
 }
 
 bool UnifiedPDFPlugin::platformPopulateEditorStateIfNeeded(EditorState& state) const
 {
     RetainPtr selection = m_currentSelection;
-    if (!selection)
+    if (!selection) {
+        state.visualData = EditorState::VisualData { };
+        state.postLayoutData = EditorState::PostLayoutData { };
+        state.postLayoutData->isStableStateUpdate = true;
         return true;
+    }
 
     Vector<FloatRect> selectionRects;
 #if HAVE(PDFSELECTION_ENUMERATE_RECTS_AND_TRANSFORMS)
@@ -3970,10 +4132,27 @@ bool UnifiedPDFPlugin::platformPopulateEditorStateIfNeeded(EditorState& state) c
     state.visualData = EditorState::VisualData { };
     state.visualData->selectionGeometries = WTFMove(selectionGeometries);
 
+    if (m_presentationController)
+        state.visualData->enclosingLayerID = m_presentationController->contentsLayerIdentifier();
+
+    if (m_scrollingNodeID) {
+        state.visualData->enclosingScrollingNodeID = *m_scrollingNodeID;
+        state.visualData->enclosingScrollPosition = scrollPosition();
+    }
+
     return true;
 }
 
 #endif // PLATFORM(IOS_FAMILY)
+
+auto UnifiedPDFPlugin::rootViewToPage(WebCore::FloatPoint pointInRootView) const -> PageAndPoint
+{
+    auto pointInPlugin = convertFromRootViewToPlugin(pointInRootView);
+    auto pointInDocument = convertDown<FloatPoint>(CoordinateSpace::Plugin, CoordinateSpace::PDFDocumentLayout, pointInPlugin);
+    auto pageIndex = m_presentationController->nearestPageIndexForDocumentPoint(pointInDocument);
+    auto pointInPage = convertDown(CoordinateSpace::PDFDocumentLayout, CoordinateSpace::PDFPage, pointInDocument, pageIndex);
+    return { m_documentLayout.pageAtIndex(pageIndex), pointInPage };
+}
 
 TextStream& operator<<(TextStream& ts, RepaintRequirement requirement)
 {

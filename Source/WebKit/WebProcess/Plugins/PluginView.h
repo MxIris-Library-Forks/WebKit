@@ -57,6 +57,8 @@ namespace WebKit {
 class PDFPluginBase;
 class WebFrame;
 class WebPage;
+enum class SelectionEndpoint : bool;
+enum class SelectionWasFlipped : bool;
 struct EditorState;
 struct FrameInfoData;
 struct WebHitTestResultData;
@@ -95,6 +97,9 @@ public:
 #if PLATFORM(IOS_FAMILY)
     void pluginDidInstallPDFDocument(double initialScaleFactor);
     void setSelectionRange(WebCore::FloatPoint pointInRootView, WebCore::TextGranularity);
+    void clearSelection();
+    SelectionWasFlipped moveSelectionEndpoint(WebCore::FloatPoint pointInRootView, SelectionEndpoint);
+    SelectionEndpoint extendInitialSelection(WebCore::FloatPoint pointInRootView, WebCore::TextGranularity);
 #endif
 
     bool populateEditorStateIfNeeded(EditorState&) const;
@@ -117,6 +122,7 @@ public:
     RefPtr<WebCore::TextIndicator> textIndicatorForTextMatch(const WebFoundTextRange::PDFData&, WebCore::TextIndicatorPresentationTransition);
     void scrollToRevealTextMatch(const WebFoundTextRange::PDFData&);
 
+    String fullDocumentString() const;
     String selectionString() const;
 
     RefPtr<WebCore::FragmentedSharedBuffer> liveResourceData() const;

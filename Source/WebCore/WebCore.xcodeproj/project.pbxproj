@@ -1721,6 +1721,7 @@
 		469D77B82701625100142FA6 /* NavigationRequester.h in Headers */ = {isa = PBXBuildFile; fileRef = 469D77B62701625000142FA6 /* NavigationRequester.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46A49C9328EE67ED00208B6E /* DocumentOrShadowRootFullscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = 46A49C9128EE67E300208B6E /* DocumentOrShadowRootFullscreen.h */; };
 		46A78B342799BD71001154FE /* WorkerOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C1B1D2626F18A4B00882DA2 /* WorkerOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		46A877482D0D426800DE225E /* SpanCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 46A877472D0D426800DE225E /* SpanCoreAudio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46AAAA3D25D3632000BAF42F /* AudioFileReaderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 46AAAA3A25D3631400BAF42F /* AudioFileReaderCocoa.h */; };
 		46AD2CD028E4FD5100040F10 /* ScreenOrientation.h in Headers */ = {isa = PBXBuildFile; fileRef = 46AD2CCF28E4FD3B00040F10 /* ScreenOrientation.h */; };
 		46ADA8792B6D5B6500D9D746 /* ShareableResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 46ADA8782B6D5B2B00D9D746 /* ShareableResource.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10932,6 +10933,7 @@
 		46A49C9028EE67E300208B6E /* DocumentOrShadowRoot+Fullscreen.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "DocumentOrShadowRoot+Fullscreen.idl"; sourceTree = "<group>"; };
 		46A49C9128EE67E300208B6E /* DocumentOrShadowRootFullscreen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentOrShadowRootFullscreen.h; sourceTree = "<group>"; };
 		46A49C9228EE67E300208B6E /* DocumentOrShadowRootFullscreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DocumentOrShadowRootFullscreen.cpp; sourceTree = "<group>"; };
+		46A877472D0D426800DE225E /* SpanCoreAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpanCoreAudio.h; sourceTree = "<group>"; };
 		46AAAA3A25D3631400BAF42F /* AudioFileReaderCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileReaderCocoa.h; sourceTree = "<group>"; };
 		46AAAA3C25D3631400BAF42F /* AudioFileReaderCocoa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioFileReaderCocoa.cpp; sourceTree = "<group>"; };
 		46ACD8112701656A00EF8CED /* NavigationRequester.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NavigationRequester.cpp; sourceTree = "<group>"; };
@@ -35806,6 +35808,7 @@
 				417F7AEA2139BF6400FBA7EC /* MediaSessionManagerCocoa.mm */,
 				5183EBD52CF73A86005FAC1F /* PlatformRawAudioDataCocoa.cpp */,
 				5183EBD42CF73A86005FAC1F /* PlatformRawAudioDataCocoa.h */,
+				46A877472D0D426800DE225E /* SpanCoreAudio.h */,
 				417F7AEB2139BF6400FBA7EC /* WebAudioBufferList.cpp */,
 				417F7AEC2139BF6500FBA7EC /* WebAudioBufferList.h */,
 			);
@@ -43821,6 +43824,7 @@
 				84A81F420FC7E02700955300 /* SourceGraphic.h in Headers */,
 				72F7E746279B8F7500D82D2D /* SourceImage.h in Headers */,
 				D01A27AE10C9BFD800026A42 /* SpaceSplitString.h in Headers */,
+				46A877482D0D426800DE225E /* SpanCoreAudio.h in Headers */,
 				B9CA3B402CAB1D3E00B2607C /* SpatialImageControls.h in Headers */,
 				626CDE0F1140424C001E5A68 /* SpatialNavigation.h in Headers */,
 				517C11D52C6DD6A100489490 /* SpatialVideoMetadata.h in Headers */,

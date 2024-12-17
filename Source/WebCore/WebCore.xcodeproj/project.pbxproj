@@ -856,11 +856,11 @@
 		1DF7E81F251A9E0600DB8F61 /* TextTrackRepresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = CDD1E525167BA56400CE820B /* TextTrackRepresentation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1F36EA9C1E21BA1700621E25 /* WebBackgroundTaskController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F36EA9A1E21BA1700621E25 /* WebBackgroundTaskController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1F72BF0B187FD45C0009BCB3 /* TileControllerMemoryHandlerIOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F72BF09187FD4270009BCB3 /* TileControllerMemoryHandlerIOS.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1F7DDE722B6C66C6001816A1 /* VideoPresentationInterfaceAVKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F7DDE712B6C66B9001816A1 /* VideoPresentationInterfaceAVKit.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1F7DDE742B6C66EF001816A1 /* VideoPresentationInterfaceAVKit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F7DDE732B6C66E4001816A1 /* VideoPresentationInterfaceAVKit.mm */; };
+		1F7DDE722B6C66C6001816A1 /* VideoPresentationInterfaceAVKitLegacy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F7DDE712B6C66B9001816A1 /* VideoPresentationInterfaceAVKitLegacy.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		1F7DDE742B6C66EF001816A1 /* VideoPresentationInterfaceAVKitLegacy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F7DDE732B6C66E4001816A1 /* VideoPresentationInterfaceAVKitLegacy.mm */; };
 		1F8756B21E22C3350042C40D /* WebSQLiteDatabaseTrackerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F8756B11E22BEEF0042C40D /* WebSQLiteDatabaseTrackerClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1F95C34D2B644B08006F7B93 /* PlaybackSessionInterfaceAVKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F95C34C2B644AF6006F7B93 /* PlaybackSessionInterfaceAVKit.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1F95C34F2B644B28006F7B93 /* PlaybackSessionInterfaceAVKit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F95C34E2B644B1E006F7B93 /* PlaybackSessionInterfaceAVKit.mm */; };
+		1F95C34D2B644B08006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F95C34C2B644AF6006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		1F95C34F2B644B28006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F95C34E2B644B1E006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.mm */; };
 		1FAFBF1915A5FA7400083A20 /* UTIUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1FAFBF1615A5FA5200083A20 /* UTIUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1FC40FBA1655CCB90040F29E /* CGSubimageCacheWithTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1FC40FB71655C5910040F29E /* CGSubimageCacheWithTimer.h */; };
 		1FD992F826AA24F90088E596 /* KeyboardScrollingAnimator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1FD992F626AA24F80088E596 /* KeyboardScrollingAnimator.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9067,12 +9067,12 @@
 		1F36EA9B1E21BA1700621E25 /* WebBackgroundTaskController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebBackgroundTaskController.mm; sourceTree = "<group>"; };
 		1F72BF08187FD4270009BCB3 /* TileControllerMemoryHandlerIOS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TileControllerMemoryHandlerIOS.cpp; sourceTree = "<group>"; };
 		1F72BF09187FD4270009BCB3 /* TileControllerMemoryHandlerIOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TileControllerMemoryHandlerIOS.h; sourceTree = "<group>"; };
-		1F7DDE712B6C66B9001816A1 /* VideoPresentationInterfaceAVKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoPresentationInterfaceAVKit.h; sourceTree = "<group>"; };
-		1F7DDE732B6C66E4001816A1 /* VideoPresentationInterfaceAVKit.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoPresentationInterfaceAVKit.mm; sourceTree = "<group>"; };
+		1F7DDE712B6C66B9001816A1 /* VideoPresentationInterfaceAVKitLegacy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoPresentationInterfaceAVKitLegacy.h; sourceTree = "<group>"; };
+		1F7DDE732B6C66E4001816A1 /* VideoPresentationInterfaceAVKitLegacy.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoPresentationInterfaceAVKitLegacy.mm; sourceTree = "<group>"; };
 		1F8756B01E22BEEF0042C40D /* WebSQLiteDatabaseTrackerClient.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebSQLiteDatabaseTrackerClient.mm; sourceTree = "<group>"; };
 		1F8756B11E22BEEF0042C40D /* WebSQLiteDatabaseTrackerClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebSQLiteDatabaseTrackerClient.h; sourceTree = "<group>"; };
-		1F95C34C2B644AF6006F7B93 /* PlaybackSessionInterfaceAVKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlaybackSessionInterfaceAVKit.h; sourceTree = "<group>"; };
-		1F95C34E2B644B1E006F7B93 /* PlaybackSessionInterfaceAVKit.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PlaybackSessionInterfaceAVKit.mm; sourceTree = "<group>"; };
+		1F95C34C2B644AF6006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlaybackSessionInterfaceAVKitLegacy.h; sourceTree = "<group>"; };
+		1F95C34E2B644B1E006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PlaybackSessionInterfaceAVKitLegacy.mm; sourceTree = "<group>"; };
 		1FAFBF1615A5FA5200083A20 /* UTIUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UTIUtilities.h; sourceTree = "<group>"; };
 		1FAFBF1715A5FA5200083A20 /* UTIUtilities.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = UTIUtilities.mm; sourceTree = "<group>"; };
 		1FC40FB71655C5910040F29E /* CGSubimageCacheWithTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGSubimageCacheWithTimer.h; sourceTree = "<group>"; };
@@ -17955,6 +17955,10 @@
 		BC53DA471143134D000D817E /* DOMWrapperWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DOMWrapperWorld.cpp; sourceTree = "<group>"; };
 		BC5823F40C0A98DF0053F1B5 /* JSHTMLElementCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLElementCustom.cpp; sourceTree = "<group>"; };
 		BC5825F20C0B89380053F1B5 /* JSCSSStyleDeclarationCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSStyleDeclarationCustom.cpp; sourceTree = "<group>"; };
+		BC58E4452D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+MediaProgressEvaluator.h"; sourceTree = "<group>"; };
+		BC58E4462D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSCalcTree+MediaProgressEvaluator.cpp"; sourceTree = "<group>"; };
+		BC58E4492D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+ContainerProgressEvaluator.h"; sourceTree = "<group>"; };
+		BC58E44A2D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSCalcTree+ContainerProgressEvaluator.cpp"; sourceTree = "<group>"; };
 		BC5A12DD0DC0414800C9AFAD /* CSSReflectValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSReflectValue.cpp; sourceTree = "<group>"; };
 		BC5A12DE0DC0414800C9AFAD /* CSSReflectValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSReflectValue.h; sourceTree = "<group>"; };
 		BC5A86810C33676000EEA649 /* DOMSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = DOMSelection.cpp; sourceTree = "<group>"; };
@@ -31484,8 +31488,8 @@
 				26601EBE14B3B9AD0012C0FE /* PlatformEventFactoryIOS.mm */,
 				C5278B0B17F212EA003A2998 /* PlatformPasteboardIOS.mm */,
 				E45390320EAFD637003695C8 /* PlatformScreenIOS.mm */,
-				1F95C34C2B644AF6006F7B93 /* PlaybackSessionInterfaceAVKit.h */,
-				1F95C34E2B644B1E006F7B93 /* PlaybackSessionInterfaceAVKit.mm */,
+				1F95C34C2B644AF6006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.h */,
+				1F95C34E2B644B1E006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.mm */,
 				CDA29A2E1CBF73FC00901CCF /* PlaybackSessionInterfaceIOS.h */,
 				CDA29A2F1CBF73FC00901CCF /* PlaybackSessionInterfaceIOS.mm */,
 				A113D6E62C7E491E0072D770 /* PlaybackSessionInterfaceTVOS.cpp */,
@@ -31512,8 +31516,8 @@
 				F4C80CC52ABA43EB00DEB820 /* UIViewControllerUtilities.mm */,
 				A3AF9D8320325691006CAD06 /* UserAgentIOS.mm */,
 				837B7D1F1DC3F54C00D051FC /* ValidationBubbleIOS.mm */,
-				1F7DDE712B6C66B9001816A1 /* VideoPresentationInterfaceAVKit.h */,
-				1F7DDE732B6C66E4001816A1 /* VideoPresentationInterfaceAVKit.mm */,
+				1F7DDE712B6C66B9001816A1 /* VideoPresentationInterfaceAVKitLegacy.h */,
+				1F7DDE732B6C66E4001816A1 /* VideoPresentationInterfaceAVKitLegacy.mm */,
 				3FBC4AF2189881560046EE38 /* VideoPresentationInterfaceIOS.h */,
 				3FBC4AF1189881560046EE38 /* VideoPresentationInterfaceIOS.mm */,
 				A113D6E22C7E442C0072D770 /* VideoPresentationInterfaceTVOS.h */,
@@ -35186,10 +35190,14 @@
 				BC000BE22C5EA2C40033AA75 /* CSSCalcTree+CalculationValue.h */,
 				BC000BF82C651CF40033AA75 /* CSSCalcTree+ComputedStyleDependencies.cpp */,
 				BC000BF92C651CF40033AA75 /* CSSCalcTree+ComputedStyleDependencies.h */,
+				BC58E44A2D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.cpp */,
+				BC58E4492D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.h */,
 				BC394A422C779379001A629A /* CSSCalcTree+Copy.cpp */,
 				BC394A432C779379001A629A /* CSSCalcTree+Copy.h */,
 				BC000BEE2C613D5D0033AA75 /* CSSCalcTree+Evaluation.cpp */,
 				BC000BEF2C613D810033AA75 /* CSSCalcTree+Evaluation.h */,
+				BC58E4462D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.cpp */,
+				BC58E4452D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.h */,
 				BCEEF6752C6A865C00468D58 /* CSSCalcTree+NumericIdentity.h */,
 				BC000BDD2C5AB2310033AA75 /* CSSCalcTree+Parser.cpp */,
 				BC000BDC2C5AA55E0033AA75 /* CSSCalcTree+Parser.h */,
@@ -43064,7 +43072,7 @@
 				E1C1A39E2480080800E0AF66 /* PlatformXROpenXR.h in Headers */,
 				3A3A05812B04973800017309 /* PlatformXRPose.h in Headers */,
 				712BE4801FE864A7002031CC /* PlaybackDirection.h in Headers */,
-				1F95C34D2B644B08006F7B93 /* PlaybackSessionInterfaceAVKit.h in Headers */,
+				1F95C34D2B644B08006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.h in Headers */,
 				CDA29A321CC01A9500901CCF /* PlaybackSessionInterfaceIOS.h in Headers */,
 				CDA29A171CBDA56C00901CCF /* PlaybackSessionInterfaceMac.h in Headers */,
 				A113D6E72C7E4B450072D770 /* PlaybackSessionInterfaceTVOS.h in Headers */,
@@ -44498,7 +44506,7 @@
 				4158707E28EC79A900C163C5 /* VideoPixelFormat.h in Headers */,
 				CDE83DB2183C44060031EAA3 /* VideoPlaybackQuality.h in Headers */,
 				075033A8252BD36800F70CE3 /* VideoPlaybackQualityMetrics.h in Headers */,
-				1F7DDE722B6C66C6001816A1 /* VideoPresentationInterfaceAVKit.h in Headers */,
+				1F7DDE722B6C66C6001816A1 /* VideoPresentationInterfaceAVKitLegacy.h in Headers */,
 				3FBC4AF4189881560046EE38 /* VideoPresentationInterfaceIOS.h in Headers */,
 				52B0D4C21C57FF910077CE53 /* VideoPresentationInterfaceMac.h in Headers */,
 				A113D6E42C7E486D0072D770 /* VideoPresentationInterfaceTVOS.h in Headers */,
@@ -45611,7 +45619,7 @@
 				07E4BDC32A3A6191000D5509 /* OpacityCaretAnimator.cpp in Sources */,
 				CEA284662141E84900E407E8 /* PlatformEventFactoryIOS.mm in Sources */,
 				AA12DF491743DF83004DAFDF /* PlatformSpeechSynthesizerCocoa.mm in Sources */,
-				1F95C34F2B644B28006F7B93 /* PlaybackSessionInterfaceAVKit.mm in Sources */,
+				1F95C34F2B644B28006F7B93 /* PlaybackSessionInterfaceAVKitLegacy.mm in Sources */,
 				CDA29A301CBF74D400901CCF /* PlaybackSessionInterfaceIOS.mm in Sources */,
 				CDA29A161CBDA56C00901CCF /* PlaybackSessionInterfaceMac.mm in Sources */,
 				CD20ED3D27878FFB0038BE44 /* QueuedVideoOutput.mm in Sources */,
@@ -46237,7 +46245,7 @@
 				7C73FB07191EF417007DE061 /* UserMessageHandlersNamespace.cpp in Sources */,
 				E300511629DB92D300E1C3A4 /* VideoFullscreenCaptions.mm in Sources */,
 				41FFD2C42756570F00501BBF /* VideoLayerManagerObjC.mm in Sources */,
-				1F7DDE742B6C66EF001816A1 /* VideoPresentationInterfaceAVKit.mm in Sources */,
+				1F7DDE742B6C66EF001816A1 /* VideoPresentationInterfaceAVKitLegacy.mm in Sources */,
 				3FBC4AF3189881560046EE38 /* VideoPresentationInterfaceIOS.mm in Sources */,
 				CDAD8DF12BEC7EDF00107D24 /* VideoTargetFactory.mm in Sources */,
 				26F9A83818A046AC00AEB88A /* ViewportConfiguration.cpp in Sources */,

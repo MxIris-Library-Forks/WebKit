@@ -27,6 +27,7 @@
 
 #if ENABLE(PDF_PLUGIN)
 
+#include "CursorContext.h"
 #include "FrameInfoData.h"
 #include "PDFPluginIdentifier.h"
 #include "WebFoundTextRange.h"
@@ -34,6 +35,7 @@
 #include <WebCore/AffineTransform.h>
 #include <WebCore/FindOptions.h>
 #include <WebCore/FloatRect.h>
+#include <WebCore/PlatformMouseEvent.h>
 #include <WebCore/PluginData.h>
 #include <WebCore/PluginViewBase.h>
 #include <WebCore/ScrollTypes.h>
@@ -286,7 +288,7 @@ public:
     virtual void setPDFDisplayModeForTesting(const String&) { }
     void registerPDFTest(RefPtr<WebCore::VoidCallback>&&);
 
-    void navigateToURL(const URL&);
+    void navigateToURL(const URL&, std::optional<WebCore::PlatformMouseEvent>&& = std::nullopt);
 
     virtual void attemptToUnlockPDF(const String& password) = 0;
 
@@ -317,8 +319,12 @@ public:
 #if PLATFORM(IOS_FAMILY)
     virtual void setSelectionRange(WebCore::FloatPoint /* pointInRootView */, WebCore::TextGranularity) { }
     virtual void clearSelection() { }
+    virtual std::pair<URL, WebCore::FloatRect> linkURLAndBoundsAtPoint(WebCore::FloatPoint /* pointInRootView */) const { return { }; }
+    virtual std::optional<WebCore::FloatRect> highlightRectForTapAtPoint(WebCore::FloatPoint /* pointInRootView */) const { return std::nullopt; }
+    virtual void handleSyntheticClick(WebCore::PlatformMouseEvent&&) { }
     virtual SelectionWasFlipped moveSelectionEndpoint(WebCore::FloatPoint /* pointInRootView */, SelectionEndpoint);
     virtual SelectionEndpoint extendInitialSelection(WebCore::FloatPoint /* pointInRootView */, WebCore::TextGranularity);
+    virtual CursorContext cursorContext(WebCore::FloatPoint /* pointInRootView */) const { return { }; }
 #endif
 
     bool populateEditorStateIfNeeded(EditorState&) const;

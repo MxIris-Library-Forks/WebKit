@@ -359,7 +359,7 @@ enum class NodeListInvalidationType : uint8_t {
     InvalidateOnHRefAttrChange,
     InvalidateOnAnyAttrChange,
 };
-const auto numNodeListInvalidationTypes = enumToUnderlyingType(NodeListInvalidationType::InvalidateOnAnyAttrChange) + 1;
+constexpr auto numNodeListInvalidationTypes = enumToUnderlyingType(NodeListInvalidationType::InvalidateOnAnyAttrChange) + 1;
 
 enum class EventHandlerRemoval : bool { One, All };
 using EventTargetSet = WeakHashCountedSet<Node, WeakPtrImplWithEventTargetData>;
@@ -1976,9 +1976,10 @@ public:
     unsigned unloadCounter() const { return m_unloadCounter; }
 
 #if ENABLE(CONTENT_EXTENSIONS)
-    ResourceMonitor* resourceMonitor();
-    void setResourceMonitor(RefPtr<ResourceMonitor>&&);
-    ResourceMonitor* parentResourceMonitor();
+    ResourceMonitor* resourceMonitorIfExists();
+    ResourceMonitor& resourceMonitor();
+    Ref<ResourceMonitor> protectedResourceMonitor();
+    ResourceMonitor* parentResourceMonitorIfExists();
 #endif
 
 protected:
@@ -2263,7 +2264,7 @@ private:
 
     HashSet<LiveNodeList*> m_listsInvalidatedAtDocument;
     HashSet<HTMLCollection*> m_collectionsInvalidatedAtDocument;
-    unsigned m_nodeListAndCollectionCounts[numNodeListInvalidationTypes] { 0 };
+    std::array<unsigned, numNodeListInvalidationTypes> m_nodeListAndCollectionCounts = { };
 
     RefPtr<XPathEvaluator> m_xpathEvaluator;
 

@@ -81,6 +81,21 @@ AVFoundationEnabled:
       "PLATFORM(WATCHOS)": false
       default: true
 
+AVKitContentSourceEnabled:
+  type: bool
+  status: unstable
+  getter: isAVKitContentSourceEnabled
+  humanReadableName: "AVKit Content Source"
+  humanReadableDescription: "Enable AVKit Content Source"
+  condition: HAVE(AVKIT_CONTENT_SOURCE)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 AbortSignalAnyOperationEnabled:
   type: bool
   category: dom
@@ -611,6 +626,18 @@ ApplePayEnabled:
       default: false
   sharedPreferenceForWebProcess: true
   richJavaScript: true
+
+AppleSystemVisualEffectsEnabled:
+  type: bool
+  status: embedder
+  condition: HAVE(CORE_MATERIAL)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
 
 # FIXME: This is on by default in WebKit2 PLATFORM(COCOA). Perhaps we should consider turning it on for WebKitLegacy as well.
 AsyncClipboardAPIEnabled:
@@ -8516,14 +8543,11 @@ WebCryptoSafeCurvesEnabled:
   humanReadableDescription: "Enable Web Crypto Safe Curves"
   defaultValue:
     WebKitLegacy:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
-      default: false
+      default: true
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
-      default: false
+      default: true
     WebCore:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
-      default: false
+      default: true
 
 WebCryptoX25519Enabled:
   type: bool
@@ -8533,14 +8557,11 @@ WebCryptoX25519Enabled:
   humanReadableDescription: "Enable Web Crypto X25519 algorithm"
   defaultValue:
     WebKitLegacy:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
-      default: false
+      default: true
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
-      default: false
+      default: true
     WebCore:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
-      default: false
+      default: true
 
 WebExtensionSidebarEnabled:
   type: bool

@@ -31,6 +31,7 @@
 #include "ContainerNode.h"
 #include "ContextDestructionObserverInlines.h"
 #include "DocumentEventTiming.h"
+#include "DocumentSyncData.h"
 #include "FontSelectorClient.h"
 #include "FragmentDirective.h"
 #include "FrameDestructionObserver.h"
@@ -1621,6 +1622,7 @@ public:
     void setVisualUpdatesAllowedByClient(bool);
 
     std::optional<Vector<uint8_t>> wrapCryptoKey(const Vector<uint8_t>&) final;
+    std::optional<Vector<uint8_t>> serializeAndWrapCryptoKey(CryptoKeyData&&) final;
     std::optional<Vector<uint8_t>> unwrapCryptoKey(const Vector<uint8_t>&) final;
 
     void setHasStyleWithViewportUnits() { m_hasStyleWithViewportUnits = true; }
@@ -1995,10 +1997,11 @@ protected:
 
 private:
     friend class DocumentParserYieldToken;
+    friend class IgnoreDestructiveWriteCountIncrementer;
     friend class Node;
+    friend class Page;
     friend class ThrowOnDynamicMarkupInsertionCountIncrementer;
     friend class UnloadCountIncrementer;
-    friend class IgnoreDestructiveWriteCountIncrementer;
 
     void updateTitleElement(Element& changingTitleElement);
     RefPtr<Element> protectedTitleElement() const;
@@ -2145,6 +2148,8 @@ private:
 #endif
     bool isTopDocumentLegacy() const { return &topDocument() == this; }
     void securityOriginDidChange() final;
+
+    Ref<DocumentSyncData> syncData() { return m_syncData.get(); }
 
     const Ref<const Settings> m_settings;
 
@@ -2688,7 +2693,9 @@ private:
 #if ENABLE(CONTENT_EXTENSIONS)
     RefPtr<ResourceMonitor> m_resourceMonitor;
 #endif
-};
+
+    Ref<DocumentSyncData> m_syncData;
+}; // class Document
 
 Element* eventTargetElementForDocument(Document*);
 

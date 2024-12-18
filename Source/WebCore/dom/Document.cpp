@@ -649,6 +649,7 @@ Document::Document(LocalFrame* frame, const Settings& settings, const URL& url, 
     , m_isSynthesized(constructionFlags.contains(ConstructionFlag::Synthesized))
     , m_isNonRenderedPlaceholder(constructionFlags.contains(ConstructionFlag::NonRenderedPlaceholder))
     , m_frameIdentifier(frame ? std::optional(frame->frameID()) : std::nullopt)
+    , m_syncData(DocumentSyncData::create())
 {
     setEventTargetFlag(EventTargetFlag::IsConnected);
     addToDocumentsMap();
@@ -5833,7 +5834,7 @@ bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions&
     if (backForwardCacheState() != NotInBackForwardCache)
         return false;
 
-    RefPtr oldFocusedElement = WTFMove(m_focusedElement);
+    RefPtr oldFocusedElement = std::exchange(m_focusedElement, nullptr);
 
     // Remove focus from the existing focus node (if any)
     if (oldFocusedElement) {
@@ -9328,6 +9329,15 @@ std::optional<Vector<uint8_t>> Document::wrapCryptoKey(const Vector<uint8_t>& ke
     if (!page)
         return std::nullopt;
     return page->cryptoClient().wrapCryptoKey(key);
+}
+
+std::optional<Vector<uint8_t>> Document::serializeAndWrapCryptoKey(CryptoKeyData&& keyData)
+{
+    RefPtr page = this->page();
+    if (!page)
+        return std::nullopt;
+
+    return page->cryptoClient().serializeAndWrapCryptoKey(WTFMove(keyData));
 }
 
 std::optional<Vector<uint8_t>>Document::unwrapCryptoKey(const Vector<uint8_t>& wrappedKey)

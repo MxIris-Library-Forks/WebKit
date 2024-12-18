@@ -239,6 +239,7 @@
 #include <WebCore/ResourceLoadStatistics.h>
 #include <WebCore/RunJavaScriptParameters.h>
 #include <WebCore/SerializedCryptoKeyWrap.h>
+#include <WebCore/SerializedScriptValue.h>
 #include <WebCore/ShareData.h>
 #include <WebCore/SharedBuffer.h>
 #include <WebCore/ShouldTreatAsContinuingLoad.h>
@@ -6037,6 +6038,16 @@ void WebPageProxy::getAllFrames(CompletionHandler<void(FrameTreeNodeData&&)>&& c
     mainFrame->getFrameInfo(WTFMove(completionHandler));
 }
 
+void WebPageProxy::getFrameInfo(WebCore::FrameIdentifier frameID, CompletionHandler<void(API::FrameInfo*)>&& completionHandler)
+{
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::GetFrameInfo(frameID), [weakThis = WeakPtr { *this }, completionHandler = WTFMove(completionHandler)] (std::optional<FrameInfoData>&& data) mutable {
+        RefPtr protectedThis = weakThis.get();
+        if (!data || !protectedThis)
+            return completionHandler(nullptr);
+        completionHandler(API::FrameInfo::create(WTFMove(*data), WTFMove(protectedThis)).ptr());
+    });
+}
+
 void WebPageProxy::getAllFrameTrees(CompletionHandler<void(Vector<FrameTreeNodeData>&&)>&& completionHandler)
 {
     class FrameTreeCallbackAggregator : public RefCounted<FrameTreeCallbackAggregator> {
@@ -7048,6 +7059,15 @@ void WebPageProxy::broadcastProcessSyncData(IPC::Connection& connection, const W
         if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
             return;
         webProcess.send(Messages::WebPage::ProcessSyncDataChangedInAnotherProcess(data), pageID);
+    });
+}
+
+void WebPageProxy::broadcastTopDocumentSyncData(IPC::Connection& connection, Ref<WebCore::DocumentSyncData>&& data)
+{
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
+            return;
+        webProcess.send(Messages::WebPage::TopDocumentSyncDataChangedInAnotherProcess(data), pageID);
     });
 }
 
@@ -12802,6 +12822,15 @@ void WebPageProxy::wrapCryptoKey(Vector<uint8_t>&& key, CompletionHandler<void(s
             return completionHandler(WTFMove(wrappedKey));
         completionHandler(std::nullopt);
     });
+}
+
+void WebPageProxy::serializeAndWrapCryptoKey(IPC::Connection& connection, WebCore::CryptoKeyData&& keyData, CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&& completionHandler)
+{
+    auto key = WebCore::CryptoKey::create(WTFMove(keyData));
+    MESSAGE_CHECK_COMPLETION_BASE(key->isValid(), connection, completionHandler(std::nullopt));
+
+    auto serializedKey = API::SerializedScriptValue::serializeCryptoKey(*key);
+    wrapCryptoKey(WTFMove(serializedKey), WTFMove(completionHandler));
 }
 
 void WebPageProxy::unwrapCryptoKey(WrappedCryptoKey&& wrappedKey, CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&& completionHandler)

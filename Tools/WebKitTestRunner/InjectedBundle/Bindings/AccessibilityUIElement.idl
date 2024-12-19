@@ -63,6 +63,7 @@ interface AccessibilityUIElement {
     readonly attribute DOMString orientation;
     readonly attribute unsigned long numberOfCharacters;
     readonly attribute long insertionPointLineNumber;
+    readonly attribute DOMString selectedText;
     readonly attribute DOMString selectedTextRange;
     readonly attribute DOMString intersectionWithSelectionRange;
     readonly attribute DOMString textInputMarkedRange;
@@ -244,6 +245,7 @@ interface AccessibilityUIElement {
     AccessibilityTextMarker previousLineStartTextMarkerForTextMarker(AccessibilityTextMarker textMarker);
     AccessibilityTextMarker nextLineEndTextMarkerForTextMarker(AccessibilityTextMarker textMarker);
     long lineIndexForTextMarker(AccessibilityTextMarker textMarker);
+    AccessibilityTextMarkerRange styleTextMarkerRangeForTextMarker(AccessibilityTextMarker textMarker);
     AccessibilityTextMarkerRange textMarkerRangeForSearchPredicate(AccessibilityTextMarkerRange startRange, boolean forward, object searchKey, DOMString searchText, boolean visibleOnly, boolean immediateDescendantsOnly);
     AccessibilityTextMarkerRange misspellingTextMarkerRange(AccessibilityTextMarkerRange start, boolean forward);
     AccessibilityTextMarkerRange textMarkerRangeForElement(AccessibilityUIElement element);

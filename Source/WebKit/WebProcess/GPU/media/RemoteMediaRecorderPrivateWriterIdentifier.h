@@ -23,18 +23,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "VideoPresentationLayerProvider.h"
+#pragma once
 
-#if ENABLE(VIDEO)
+#if ENABLE(GPU_PROCESS) && ENABLE(MEDIA_RECORDER)
 
-#include "WebAVPlayerLayerView.h"
+#include <wtf/ObjectIdentifier.h>
 
-namespace WebCore {
+namespace WebKit {
 
-VideoPresentationLayerProvider::VideoPresentationLayerProvider() = default;
-VideoPresentationLayerProvider::~VideoPresentationLayerProvider() = default;
+enum class RemoteMediaRecorderPrivateWriterIdentifierType { };
+using RemoteMediaRecorderPrivateWriterIdentifier = ObjectIdentifier<RemoteMediaRecorderPrivateWriterIdentifierType>;
 
-}
+} // namespace WebKit
 
 #endif

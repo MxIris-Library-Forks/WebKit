@@ -907,8 +907,9 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     }
 #endif
 
-    m_powerSourceNotifier = WTF::makeUnique<WebCore::PowerSourceNotifier>([this] (bool hasAC) {
-        sendToAllProcesses(Messages::WebProcess::PowerSourceDidChange(hasAC));
+    m_powerSourceNotifier = WTF::makeUnique<WebCore::PowerSourceNotifier>([weakThis = WeakPtr { this }] (bool hasAC) {
+        if (RefPtr webProcessPool = weakThis.get())
+            webProcessPool->sendToAllProcesses(Messages::WebProcess::PowerSourceDidChange(hasAC));
     });
 
 #if PLATFORM(COCOA)
@@ -1330,6 +1331,13 @@ void WebProcessPool::setCachedHardwareKeyboardState(HardwareKeyboardState hardwa
 {
     RELEASE_ASSERT(isMainRunLoop());
     m_hardwareKeyboardState = hardwareKeyboardState;
+}
+#endif
+
+#if ENABLE(CONTENT_EXTENSIONS)
+void WebProcessPool::platformLoadResourceMonitorRuleList(CompletionHandler<void()>&& completionHandler)
+{
+    completionHandler();
 }
 #endif
 

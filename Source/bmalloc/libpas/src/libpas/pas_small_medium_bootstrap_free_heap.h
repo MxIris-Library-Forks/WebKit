@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (c) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,35 +16,31 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "CSSPropertyParserConsumer+CSSPrimitiveValueResolver.h"
+#ifndef PAS_SMALL_MEDIUM_BOOTSTRAP_FREE_HEAP_H
+#define PAS_SMALL_MEDIUM_BOOTSTRAP_FREE_HEAP_H
 
-#include "CSSCalcSymbolTable.h"
-#include "CSSParserTokenRange.h"
+#include "pas_allocation_config.h"
+#include "pas_allocation_kind.h"
+#include "pas_lock.h"
+#include "pas_simple_large_free_heap.h"
 
-namespace WebCore {
-namespace CSSPropertyParserHelpers {
+PAS_BEGIN_EXTERN_C;
 
-RefPtr<CSSPrimitiveValue> CSSPrimitiveValueResolverBase::resolve(CSS::NoneRaw, const CSSCalcSymbolTable&, CSSPropertyParserOptions)
-{
-    return CSSPrimitiveValue::create(std::numeric_limits<double>::quiet_NaN(), CSSUnitType::CSS_NUMBER);
-}
+#define PAS_BOOTSTRAP_FOR_SMALL_FREE_LIST_MINIMUM_SIZE 4u
 
-RefPtr<CSSPrimitiveValue> CSSPrimitiveValueResolverBase::resolve(CSS::SymbolRaw value, const CSSCalcSymbolTable& symbolTable, CSSPropertyParserOptions)
-{
-    if (auto variable = symbolTable.get(value.value))
-        return CSSPrimitiveValue::create(variable->value, variable->unit);
+#define PAS_SIMPLE_FREE_HEAP_NAME pas_small_medium_bootstrap_free_heap
+#define PAS_SIMPLE_FREE_HEAP_ID(suffix) pas_small_medium_bootstrap_free_heap ## suffix
+#include "pas_simple_free_heap_declarations.def"
+#undef PAS_SIMPLE_FREE_HEAP_NAME
+#undef PAS_SIMPLE_FREE_HEAP_ID
 
-    // We should only get here if the symbol was previously looked up in the symbol table.
-    ASSERT_NOT_REACHED();
-    return nullptr;
-}
+PAS_END_EXTERN_C;
 
-} // namespace CSSPropertyParserHelpers
-} // namespace WebCore
+#endif /* PAS_SMALL_MEDIUM_BOOTSTRAP_FREE_HEAP_H */

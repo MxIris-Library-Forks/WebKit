@@ -1749,6 +1749,18 @@ void AccessibilityUIElement::scrollToMakeVisibleWithSubFocus(int x, int y, int w
     END_AX_OBJC_EXCEPTIONS
 }
 
+JSRetainPtr<JSStringRef> AccessibilityUIElement::selectedText()
+{
+    BEGIN_AX_OBJC_EXCEPTIONS
+    auto string = attributeValue(@"AXSelectedText");
+    if (![string isKindOfClass:[NSString class]])
+        return nullptr;
+    return [string createJSStringRef];
+    END_AX_OBJC_EXCEPTIONS
+
+    return nullptr;
+}
+
 JSRetainPtr<JSStringRef> AccessibilityUIElement::selectedTextRange()
 {
     NSRange range = NSMakeRange(NSNotFound, 0);
@@ -2172,6 +2184,19 @@ int AccessibilityUIElement::lineIndexForTextMarker(AccessibilityTextMarker* mark
     END_AX_OBJC_EXCEPTIONS
 
     return -1;
+}
+
+RefPtr<AccessibilityTextMarkerRange> AccessibilityUIElement::styleTextMarkerRangeForTextMarker(AccessibilityTextMarker* marker)
+{
+    if (!marker)
+        return nullptr;
+
+    BEGIN_AX_OBJC_EXCEPTIONS
+    auto textMarkerRange = attributeValueForParameter(@"AXStyleTextMarkerRangeForTextMarker", marker->platformTextMarker());
+    return AccessibilityTextMarkerRange::create(textMarkerRange.get());
+    END_AX_OBJC_EXCEPTIONS
+
+    return nullptr;
 }
 
 RefPtr<AccessibilityTextMarkerRange> AccessibilityUIElement::textMarkerRangeForSearchPredicate(JSContextRef context, AccessibilityTextMarkerRange *startRange, bool forward, JSValueRef searchKey, JSStringRef searchText, bool visibleOnly, bool immediateDescendantsOnly)

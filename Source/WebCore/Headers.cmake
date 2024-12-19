@@ -965,6 +965,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/typedom/numeric/CSSNumericBaseType.h
     css/typedom/numeric/CSSNumericType.h
 
+    css/values/CSSNoConversionDataRequiredToken.h
     css/values/CSSValueAggregates.h
     css/values/CSSValueTypes.h
 
@@ -1545,6 +1546,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/ResourceLoaderIdentifier.h
     loader/ResourceLoaderOptions.h
     loader/ResourceLoaderTypes.h
+    loader/ResourceMonitor.h
+    loader/ResourceMonitorChecker.h
     loader/ResourceTimingInformation.h
     loader/ShouldTreatAsContinuingLoad.h
     loader/SubframeLoader.h

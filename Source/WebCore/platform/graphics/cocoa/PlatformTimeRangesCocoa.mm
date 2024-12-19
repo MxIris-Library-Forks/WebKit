@@ -23,48 +23,37 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "config.h"
+#import "PlatformTimeRanges.h"
 
-#if ENABLE(VIDEO)
+#if PLATFORM(COCOA)
 
-#include "PlatformView.h"
+#import <AVFoundation/AVFoundation.h>
+#import <pal/avfoundation/MediaTimeAVFoundation.h>
 
-OBJC_CLASS WebAVPlayerLayer;
-OBJC_CLASS WebAVPlayerLayerView;
+#import <pal/cf/CoreMediaSoftLink.h>
 
 namespace WebCore {
 
-class VideoPresentationLayerProvider {
-public:
-    WEBCORE_EXPORT virtual ~VideoPresentationLayerProvider();
+RetainPtr<NSArray> makeNSArray(const PlatformTimeRanges& timeRanges)
+{
+    RetainPtr ranges = adoptNS([[NSMutableArray alloc] initWithCapacity:timeRanges.length()]);
 
-    PlatformView *layerHostView() const { return m_layerHostView.get(); }
-    void setLayerHostView(RetainPtr<PlatformView>&& layerHostView) { m_layerHostView = WTFMove(layerHostView); }
+    for (unsigned i = 0; i < timeRanges.length(); ++i) {
+        bool startValid;
+        MediaTime start = timeRanges.start(i, startValid);
+        RELEASE_ASSERT(startValid);
 
-    WebAVPlayerLayer *playerLayer() const { return m_playerLayer.get(); }
-    virtual void setPlayerLayer(RetainPtr<WebAVPlayerLayer>&& layer) { m_playerLayer = WTFMove(layer); }
+        bool endValid;
+        MediaTime end = timeRanges.end(i, endValid);
+        RELEASE_ASSERT(endValid);
 
-#if PLATFORM(IOS_FAMILY)
-    WebAVPlayerLayerView *playerLayerView() const { return m_playerLayerView.get(); }
-    void setPlayerLayerView(RetainPtr<WebAVPlayerLayerView>&& playerLayerView) { m_playerLayerView = WTFMove(playerLayerView); }
+        [ranges addObject:[NSValue valueWithCMTimeRange:PAL::CMTimeRangeMake(PAL::toCMTime(start), PAL::toCMTime(end - start))]];
+    }
 
-    PlatformView *videoView() const { return m_videoView.get(); }
-    void setVideoView(RetainPtr<PlatformView>&& videoView) { m_videoView = WTFMove(videoView); }
-#endif
-
-protected:
-    WEBCORE_EXPORT VideoPresentationLayerProvider();
-
-private:
-    RetainPtr<PlatformView> m_layerHostView;
-    RetainPtr<WebAVPlayerLayer> m_playerLayer;
-
-#if PLATFORM(IOS_FAMILY)
-    RetainPtr<WebAVPlayerLayerView> m_playerLayerView;
-    RetainPtr<PlatformView> m_videoView;
-#endif
-};
-
+    return adoptNS([ranges copy]);
 }
 
-#endif
+} // namespace WebCore
+
+#endif // PLATFORM(COCOA)

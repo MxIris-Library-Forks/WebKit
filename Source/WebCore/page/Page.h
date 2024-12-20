@@ -226,6 +226,7 @@ enum class AdvancedPrivacyProtections : uint16_t;
 enum class CanWrap : bool;
 enum class DidWrap : bool;
 enum class DisabledAdaptations : uint8_t;
+enum class DocumentClass : uint16_t;
 enum class EventTrackingRegionsEventType : uint8_t;
 enum class FilterRenderingMode : uint8_t;
 enum class RouteSharingPolicy : uint8_t;
@@ -390,6 +391,7 @@ public:
     bool userDidInteractWithPage() const;
     void setAutofocusProcessed();
     bool autofocusProcessed() const;
+    bool topDocumentHasDocumentClass(DocumentClass) const;
 
     WEBCORE_EXPORT void updateProcessSyncData(const ProcessSyncData&);
     WEBCORE_EXPORT void updateTopDocumentSyncData(Ref<DocumentSyncData>&&);
@@ -404,6 +406,7 @@ public:
     void setOpenedByDOMWithOpener(bool value) { m_openedByDOMWithOpener = value; }
 
     WEBCORE_EXPORT void goToItem(LocalFrame& rootFrame, HistoryItem&, FrameLoadType, ShouldTreatAsContinuingLoad);
+    void goToItemForNavigationAPI(LocalFrame& rootFrame, HistoryItem&, FrameLoadType, const String& targetNavigationEntryKey);
 
     WEBCORE_EXPORT void setGroupName(const String&);
     WEBCORE_EXPORT const String& groupName() const;
@@ -1520,7 +1523,7 @@ private:
     WeakPtr<ServiceWorkerGlobalScope, WeakPtrImplWithEventTargetData> m_serviceWorkerGlobalScope;
 
 #if ENABLE(RESOURCE_USAGE)
-    std::unique_ptr<ResourceUsageOverlay> m_resourceUsageOverlay;
+    RefPtr<ResourceUsageOverlay> m_resourceUsageOverlay;
 #endif
 
     PAL::SessionID m_sessionID;

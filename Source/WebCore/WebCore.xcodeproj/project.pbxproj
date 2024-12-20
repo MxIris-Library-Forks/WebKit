@@ -2068,6 +2068,7 @@
 		5185FCBB1BB4CBF80012898F /* IDBServer.h in Headers */ = {isa = PBXBuildFile; fileRef = 510A58F01BAB720F00C19282 /* IDBServer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5187E8452B79F9690053BFF5 /* MediaSourceHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = 5187E8422B79F8100053BFF5 /* MediaSourceHandle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		518864E11BBAF57400E540C9 /* UniqueIDBDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = 518864DF1BBAF30F00E540C9 /* UniqueIDBDatabase.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51895F8A2D123D0900E8D471 /* DocumentClasses.h in Headers */ = {isa = PBXBuildFile; fileRef = 51895F892D123D0900E8D471 /* DocumentClasses.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5189F01E10B37BD900F3C739 /* JSPopStateEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 5189F01C10B37BD900F3C739 /* JSPopStateEvent.h */; };
 		518F4FF6194CA4E60081BAAE /* GamepadButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 518F4FED194CA4E60081BAAE /* GamepadButton.cpp */; };
 		518F5002194CAC3A0081BAAE /* JSGamepad.h in Headers */ = {isa = PBXBuildFile; fileRef = 518F4FFE194CAC3A0081BAAE /* JSGamepad.h */; };
@@ -5472,6 +5473,7 @@
 		D0FF2A5E11F8C45A007E74E0 /* PingLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FF2A5C11F8C45A007E74E0 /* PingLoader.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D20E878D2AF44B5E004579F3 /* SwitchMacUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = D20E878C2AF44B5E004579F3 /* SwitchMacUtilities.h */; };
 		D245B6DD2B679280009AA00E /* HTTPStatusCodes.h in Headers */ = {isa = PBXBuildFile; fileRef = D245B6D02B6791BA009AA00E /* HTTPStatusCodes.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D2820C472CB615D20013B346 /* ShouldPartitionCookie.h in Headers */ = {isa = PBXBuildFile; fileRef = D2820C462CB60EEE0013B346 /* ShouldPartitionCookie.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D2858AF22C58149300EEEEF1 /* HTTPSByDefaultMode.h in Headers */ = {isa = PBXBuildFile; fileRef = D2858AF12C58149300EEEEF1 /* HTTPSByDefaultMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D28D8FEA2B460CF4006F16F5 /* UserAgentParts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E51194BE270E7E4A0064FCBA /* UserAgentParts.cpp */; };
 		D2BB5C65290985E40065457D /* AdvancedPrivacyProtections.h in Headers */ = {isa = PBXBuildFile; fileRef = D2BB5C64290985E40065457D /* AdvancedPrivacyProtections.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11668,6 +11670,7 @@
 		5187E8442B79F8100053BFF5 /* MediaSourceHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSourceHandle.idl; sourceTree = "<group>"; };
 		518864DE1BBAF30F00E540C9 /* UniqueIDBDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UniqueIDBDatabase.cpp; sourceTree = "<group>"; };
 		518864DF1BBAF30F00E540C9 /* UniqueIDBDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UniqueIDBDatabase.h; sourceTree = "<group>"; };
+		51895F892D123D0900E8D471 /* DocumentClasses.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentClasses.h; sourceTree = "<group>"; };
 		5189F01B10B37BD900F3C739 /* JSPopStateEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSPopStateEvent.cpp; sourceTree = "<group>"; };
 		5189F01C10B37BD900F3C739 /* JSPopStateEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSPopStateEvent.h; sourceTree = "<group>"; };
 		5189F0DD10B46B0E00F3C739 /* PopStateEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PopStateEvent.cpp; sourceTree = "<group>"; };
@@ -19453,6 +19456,7 @@
 		D20E878C2AF44B5E004579F3 /* SwitchMacUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwitchMacUtilities.h; sourceTree = "<group>"; };
 		D20E878E2AF44BD8004579F3 /* SwitchMacUtilities.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = SwitchMacUtilities.mm; sourceTree = "<group>"; };
 		D245B6D02B6791BA009AA00E /* HTTPStatusCodes.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = HTTPStatusCodes.h; sourceTree = "<group>"; };
+		D2820C462CB60EEE0013B346 /* ShouldPartitionCookie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShouldPartitionCookie.h; sourceTree = "<group>"; };
 		D2858AF12C58149300EEEEF1 /* HTTPSByDefaultMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HTTPSByDefaultMode.h; sourceTree = "<group>"; };
 		D2BB5C64290985E40065457D /* AdvancedPrivacyProtections.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AdvancedPrivacyProtections.h; sourceTree = "<group>"; };
 		D2C4612B2A0C744E00A5F791 /* CanvasNoiseInjection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasNoiseInjection.cpp; sourceTree = "<group>"; };
@@ -28101,6 +28105,7 @@
 				468D4A4C28E4A6C100DEF2B2 /* RFC8941.h */,
 				CE7A6C27208537E200FA2B46 /* SameSiteInfo.cpp */,
 				CE7A6C26208537E200FA2B46 /* SameSiteInfo.h */,
+				D2820C462CB60EEE0013B346 /* ShouldPartitionCookie.h */,
 				DF19E2AA247729A6007BDACB /* ShouldRelaxThirdPartyCookieBlocking.h */,
 				510D4A2E103165EE0049EA54 /* SocketStreamError.h */,
 				5C9EF2F221F06171003BDC56 /* StorageSessionProvider.h */,
@@ -38246,6 +38251,7 @@
 				A8185F3809765765005826D9 /* Document.h */,
 				6548E24809E1E04D00AF8020 /* Document.idl */,
 				8329A4171EC25B2B008ED4BE /* DocumentAndElementEventHandlers.idl */,
+				51895F892D123D0900E8D471 /* DocumentClasses.h */,
 				86D982F6125C154000AD9E3D /* DocumentEventTiming.h */,
 				A8185F3459765765005826D9 /* DocumentFontLoader.cpp */,
 				A8185F3559765765005826D9 /* DocumentFontLoader.h */,
@@ -40570,6 +40576,7 @@
 				B2F34FE60E82F81400F627CD /* DNS.h in Headers */,
 				7EE6846F12D26E3800E73215 /* DNSResolveQueueCFNet.h in Headers */,
 				A8185F4009765766005826D9 /* Document.h in Headers */,
+				51895F8A2D123D0900E8D471 /* DocumentClasses.h in Headers */,
 				86D982F7125C154000AD9E3D /* DocumentEventTiming.h in Headers */,
 				A8185F4509765766005826D9 /* DocumentFontLoader.h in Headers */,
 				A8185F3D09765766005826D9 /* DocumentFragment.h in Headers */,
@@ -43870,6 +43877,7 @@
 				930A76C3297FA0610055B743 /* ShorthandSerializer.h in Headers */,
 				1C4DB02627339FE0007B0AD1 /* ShouldLocalizeAxisNames.h in Headers */,
 				27A0042F2AD3161800407880 /* ShouldNotFireMutationEventsScope.h in Headers */,
+				D2820C472CB615D20013B346 /* ShouldPartitionCookie.h in Headers */,
 				DF19E2AC24772BC1007BDACB /* ShouldRelaxThirdPartyCookieBlocking.h in Headers */,
 				522373E52C4FE95900F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h in Headers */,
 				8362E8C120CEF9CB00245886 /* ShouldTreatAsContinuingLoad.h in Headers */,

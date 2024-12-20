@@ -871,11 +871,17 @@ bool Page::autofocusProcessed() const
     return m_topDocumentSyncData->isAutofocusProcessed;
 }
 
+bool Page::topDocumentHasDocumentClass(DocumentClass documentClass) const
+{
+    return m_topDocumentSyncData->documentClasses.contains(documentClass);
+}
+
 void Page::updateProcessSyncData(const ProcessSyncData& data)
 {
     switch (data.type) {
     case ProcessSyncDataType::IsAutofocusProcessed:
     case ProcessSyncDataType::UserDidInteractWithPage:
+    case ProcessSyncDataType::DocumentClasses:
     case ProcessSyncDataType::DocumentURL:
     case ProcessSyncDataType::DocumentSecurityOrigin:
 #if ENABLE(DOM_AUDIO_SESSION)
@@ -936,6 +942,14 @@ void Page::goToItem(LocalFrame& frame, HistoryItem& item, FrameLoadType type, Sh
     if (frame.checkedHistory()->shouldStopLoadingForHistoryItem(item))
         frame.protectedLoader()->stopAllLoadersAndCheckCompleteness();
     frame.checkedHistory()->goToItem(item, type, shouldTreatAsContinuingLoad);
+}
+
+void Page::goToItemForNavigationAPI(LocalFrame& frame, HistoryItem& item, FrameLoadType type, const String& targetNavigationEntryKey)
+{
+    ASSERT(frame.isRootFrame());
+    if (frame.checkedHistory()->shouldStopLoadingForHistoryItem(item))
+        frame.protectedLoader()->stopAllLoadersAndCheckCompleteness();
+    frame.checkedHistory()->goToItemForNavigationAPI(item, type, targetNavigationEntryKey);
 }
 
 void Page::setGroupName(const String& name)
@@ -4001,7 +4015,7 @@ void Page::setResourceUsageOverlayVisible(bool visible)
     }
 
     if (!m_resourceUsageOverlay && m_settings->acceleratedCompositingEnabled())
-        m_resourceUsageOverlay = makeUnique<ResourceUsageOverlay>(*this);
+        m_resourceUsageOverlay = ResourceUsageOverlay::create(*this);
 }
 #endif
 

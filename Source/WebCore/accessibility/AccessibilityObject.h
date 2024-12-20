@@ -210,7 +210,7 @@ public:
     bool isVisible() const override { return !isHidden(); }
     virtual bool isCollapsed() const { return false; }
     void setIsExpanded(bool) override { }
-    FloatRect unobscuredContentRect() const final;
+    FloatRect unobscuredContentRect() const;
     FloatRect relativeFrame() const final;
 #if PLATFORM(MAC)
     FloatRect primaryScreenRect() const final;
@@ -226,9 +226,9 @@ public:
     Vector<AXTextMarkerRange> misspellingRanges() const final;
     std::optional<SimpleRange> misspellingRange(const SimpleRange& start, AccessibilitySearchDirection) const final;
     bool hasPlainText() const override { return false; }
-    bool hasSameFont(const AXCoreObject&) const override { return false; }
-    bool hasSameFontColor(const AXCoreObject&) const override { return false; }
-    bool hasSameStyle(const AXCoreObject&) const override { return false; }
+    bool hasSameFont(AXCoreObject&) override { return false; }
+    bool hasSameFontColor(AXCoreObject&) override { return false; }
+    bool hasSameStyle(AXCoreObject&) override { return false; }
     bool hasUnderline() const override { return false; }
     bool hasHighlighting() const final;
     AXTextMarkerRange textInputMarkedTextMarkerRange() const final;
@@ -409,7 +409,7 @@ public:
     // The following functions are PLATFORM(COCOA) because these are currently only used to power a
     // Cocoa API (attributed strings).
     AttributedStringStyle stylesForAttributedString() const final;
-    RetainPtr<CTFontRef> font() const;
+    RetainPtr<CTFontRef> font() const final;
     Color textColor() const;
     Color backgroundColor() const;
     bool isSubscript() const;
@@ -1012,6 +1012,9 @@ using PlatformRoleMap = UncheckedKeyHashMap<AccessibilityRole, String, DefaultHa
 PlatformRoleMap createPlatformRoleMap();
 String roleToPlatformString(AccessibilityRole);
 
+#if PLATFORM(IOS_FAMILY)
+WEBCORE_EXPORT NSData* newAccessibilityRemoteToken(NSString *);
+#endif
 } // namespace Accessibility
 
 class AXChildIterator {

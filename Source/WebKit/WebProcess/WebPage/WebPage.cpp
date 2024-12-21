@@ -1555,7 +1555,7 @@ EditorState WebPage::editorState(ShouldPerformLayout shouldPerformLayout) const
     });
 
 #if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = pluginViewForFrame(frame.get()); pluginView && pluginView->populateEditorStateIfNeeded(result))
+    if (RefPtr pluginView = focusedPluginViewForFrame(*frame); pluginView && pluginView->populateEditorStateIfNeeded(result))
         return result;
 #endif
 
@@ -2024,7 +2024,7 @@ void WebPage::suspendForProcessSwap()
     };
 
     // FIXME: Make this work if the main frame is not a LocalFrame.
-    RefPtr currentHistoryItem = m_mainFrame->coreLocalFrame()->history().currentItem();
+    RefPtr currentHistoryItem = m_mainFrame->coreLocalFrame()->loader().history().currentItem();
     if (!currentHistoryItem) {
         failedToSuspend();
         return;
@@ -2382,7 +2382,7 @@ void WebPage::goToBackForwardItemWaitingForProcessLaunch(GoToBackForwardItemPara
 void WebPage::tryRestoreScrollPosition()
 {
     if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
-        localMainFrame->checkedHistory()->restoreScrollPositionAndViewState();
+        localMainFrame->loader().checkedHistory()->restoreScrollPositionAndViewState();
 }
 
 WebPage* WebPage::fromCorePage(Page& page)
@@ -3270,7 +3270,7 @@ void WebPage::pageStoppedScrolling()
 {
     // Maintain the current history item's scroll position up-to-date.
     if (RefPtr frame = m_mainFrame->coreLocalFrame())
-        frame->checkedHistory()->saveScrollPositionAndViewStateToItem(frame->history().currentItem());
+        frame->loader().checkedHistory()->saveScrollPositionAndViewStateToItem(frame->loader().history().currentItem());
 }
 
 void WebPage::setHasActiveAnimatedScrolls(bool hasActiveAnimatedScrolls)
@@ -3822,7 +3822,7 @@ void WebPage::setNeedsFontAttributes(bool needsFontAttributes)
 void WebPage::setCurrentHistoryItemForReattach(Ref<FrameState>&& mainFrameState)
 {
     if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(corePage()->mainFrame()))
-        localMainFrame->checkedHistory()->setCurrentItem(toHistoryItem(m_historyItemClient, mainFrameState));
+        localMainFrame->loader().checkedHistory()->setCurrentItem(toHistoryItem(m_historyItemClient, mainFrameState));
 }
 
 void WebPage::requestFontAttributesAtSelectionStart(CompletionHandler<void(const WebCore::FontAttributes&)>&& completionHandler)
@@ -4161,7 +4161,7 @@ void WebPage::visibilityDidChange()
         // We save the document / scroll state when backgrounding a tab so that we are able to restore it
         // if it gets terminated while in the background.
         if (RefPtr frame = m_mainFrame->coreLocalFrame())
-            frame->checkedHistory()->saveDocumentAndScrollState();
+            frame->loader().checkedHistory()->saveDocumentAndScrollState();
     }
 }
 
@@ -6553,24 +6553,9 @@ void WebPage::computePagesForPrintingImpl(FrameIdentifier frameID, const PrintIn
 }
 
 #if PLATFORM(COCOA)
-void WebPage::drawToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground,  CompletionHandler<void(RefPtr<WebCore::SharedBuffer>&&)>&& completionHandler)
+void WebPage::drawMainFrameToPDF(LocalFrame& localMainFrame, GraphicsContext& context, IntRect& snapshotRect, bool allowTransparentBackground)
 {
-    RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
-    if (!localMainFrame)
-        return;
-
-    Ref frameView = *localMainFrame->view();
-    IntSize snapshotSize;
-    if (rect)
-        snapshotSize = IntSize(rect->size());
-    else
-        snapshotSize = { frameView->contentsSize() };
-
-    IntRect snapshotRect;
-    if (rect)
-        snapshotRect = { {(int)rect->x(), (int)rect->y()}, snapshotSize };
-    else
-        snapshotRect = { {0, 0}, snapshotSize };
+    Ref frameView = *localMainFrame.view();
 
     auto originalLayoutViewportOverrideRect = frameView->layoutViewportOverrideRect();
     frameView->setLayoutViewportOverrideRect(LayoutRect(snapshotRect));
@@ -6584,7 +6569,7 @@ void WebPage::drawToPDF(FrameIdentifier frameID, const std::optional<FloatRect>&
         frameView->setBaseBackgroundColor(Color::transparentBlack);
     }
 
-    auto buffer = pdfSnapshotAtSize(snapshotRect, snapshotSize, { });
+    pdfSnapshotAtSize(localMainFrame, context, snapshotRect, { });
 
     if (allowTransparentBackground) {
         frameView->setTransparent(false);
@@ -6593,8 +6578,42 @@ void WebPage::drawToPDF(FrameIdentifier frameID, const std::optional<FloatRect>&
 
     frameView->setLayoutViewportOverrideRect(originalLayoutViewportOverrideRect);
     frameView->setPaintBehavior(originalPaintBehavior);
+}
 
-    completionHandler(WTFMove(buffer));
+void WebPage::drawToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, CompletionHandler<void(RefPtr<WebCore::SharedBuffer>&&)>&& completionHandler)
+{
+    RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
+    if (!localMainFrame)
+        return;
+
+    Ref frameView = *localMainFrame->view();
+    auto snapshotRect = IntRect { rect.value_or(FloatRect { { }, frameView->contentsSize() }) };
+
+    RefPtr buffer = ImageBuffer::create(snapshotRect.size(), RenderingMode::PDFDocument, RenderingPurpose::Snapshot, 1, DestinationColorSpace::SRGB(), ImageBufferPixelFormat::BGRA8);
+    if (!buffer)
+        return;
+
+    drawMainFrameToPDF(*localMainFrame, buffer->context(), snapshotRect, allowTransparentBackground);
+    completionHandler(buffer->sinkIntoPDFDocument());
+}
+
+void WebPage::drawCompositedToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, SnapshotIdentifier snapshotIdentifier)
+{
+    ASSERT(m_page->settings().siteIsolationEnabled());
+
+    RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
+    if (!localMainFrame)
+        return;
+
+    Ref frameView = *localMainFrame->view();
+    auto snapshotRect = IntRect { rect.value_or(FloatRect { { }, frameView->contentsSize() }) };
+
+    RefPtr buffer = ImageBuffer::create(snapshotRect.size(), RenderingMode::PDFDocument, RenderingPurpose::Snapshot, 1, DestinationColorSpace::SRGB(), ImageBufferPixelFormat::BGRA8, &m_page->chrome());
+    if (!buffer)
+        return;
+
+    drawMainFrameToPDF(*localMainFrame, buffer->context(), snapshotRect, allowTransparentBackground);
+    ensureProtectedRemoteRenderingBackendProxy()->didDrawCompositedToPDF(m_identifier, buffer->renderingResourceIdentifier(), snapshotIdentifier);
 }
 
 void WebPage::drawRectToImage(FrameIdentifier frameID, const PrintInfo& printInfo, const IntRect& rect, const WebCore::IntSize& imageSize, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& completionHandler)

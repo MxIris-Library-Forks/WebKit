@@ -3330,6 +3330,8 @@ class CompileWebKit(shell.Compile, AddToLogMixin, ShellMixin):
         return shell.Compile.start(self)
 
     def errorReceived(self, error):
+        # Temporary workaround for catching silent failures: https://bugs.webkit.org/show_bug.cgi?id=276081
+        self.setProperty('build_failed', True)
         self._addToLog('errors', error + '\n')
 
     def handleExcessiveLogging(self):
@@ -3345,6 +3347,7 @@ class CompileWebKit(shell.Compile, AddToLogMixin, ShellMixin):
                 GenerateS3URL(
                     f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                     extension='txt',
+                    additions=f'{self.build.number}',
                     content_type='text/plain',
                 ), UploadFileToS3(
                     'build-log.txt',
@@ -3394,6 +3397,8 @@ class CompileWebKit(shell.Compile, AddToLogMixin, ShellMixin):
         return super().evaluateCommand(cmd)
 
     def getResultSummary(self):
+        if self.getProperty('build_failed'):
+            self.results = FAILURE
         if self.results == FAILURE:
             return {'step': 'Failed to compile WebKit'}
         if self.results == SKIPPED:
@@ -3709,6 +3714,7 @@ class RunJavaScriptCoreTests(shell.Test, AddToLogMixin, ShellMixin):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4199,6 +4205,7 @@ class RunWebKitTests(shell.Test, AddToLogMixin, ShellMixin):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4294,6 +4301,7 @@ class RunWebKitTestsInStressMode(RunWebKitTests):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4347,6 +4355,7 @@ class ReRunWebKitTests(RunWebKitTests):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4466,6 +4475,7 @@ class RunWebKitTestsWithoutChange(RunWebKitTests):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4828,6 +4838,7 @@ class RunWebKitTestsRedTree(RunWebKitTests):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4897,6 +4908,7 @@ class RunWebKitTestsRepeatFailuresRedTree(RunWebKitTestsRedTree):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -4978,6 +4990,7 @@ class RunWebKitTestsRepeatFailuresWithoutChangeRedTree(RunWebKitTestsRedTree):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -5019,6 +5032,7 @@ class RunWebKitTestsWithoutChangeRedTree(RunWebKitTestsWithoutChange):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',
@@ -5296,9 +5310,10 @@ class GenerateS3URL(master.MasterShellCommandNewStyle):
     haltOnFailure = False
     flunkOnFailure = False
 
-    def __init__(self, identifier, extension='zip', content_type=None, **kwargs):
+    def __init__(self, identifier, extension='zip', additions=None, content_type=None, **kwargs):
         self.identifier = identifier
         self.extension = extension
+        self.additions = additions
         kwargs['command'] = [
             'python3', '../Shared/generate-s3-url',
             '--change-id', WithProperties('%(change_id)s'),
@@ -5306,6 +5321,8 @@ class GenerateS3URL(master.MasterShellCommandNewStyle):
         ]
         if extension:
             kwargs['command'] += ['--extension', extension]
+        if additions:
+            kwargs['command'] += ['--additions', additions]
         if content_type:
             kwargs['command'] += ['--content-type', content_type]
         super().__init__(logEnviron=False, **kwargs)
@@ -5328,7 +5345,7 @@ class GenerateS3URL(master.MasterShellCommandNewStyle):
         build_url = f'{self.master.config.buildbotURL}#/builders/{self.build._builderid}/builds/{self.build.number}'
         if match:
             self.build.s3url = match.group('url')
-            self.build.s3_archives.append(S3URL + f"{S3_BUCKET}/{self.identifier}/{self.getProperty('change_id')}.{self.extension}")
+            self.build.s3_archives.append(S3URL + f"{S3_BUCKET}/{self.identifier}/{self.getProperty('change_id')}{f'-{self.additions}' if self.additions else ''}.{self.extension}")
             defer.returnValue(rc)
         else:
             print(f'build: {build_url}, logs for GenerateS3URL:\n{log_text}')
@@ -5512,6 +5529,7 @@ class RunAPITests(shell.TestNewStyle, AddToLogMixin, ShellMixin):
             GenerateS3URL(
                 f"{self.getProperty('fullPlatform')}-{self.getProperty('architecture')}-{self.getProperty('configuration')}-{self.name}",
                 extension='txt',
+                additions=f'{self.build.number}',
                 content_type='text/plain',
             ), UploadFileToS3(
                 'logs.txt',

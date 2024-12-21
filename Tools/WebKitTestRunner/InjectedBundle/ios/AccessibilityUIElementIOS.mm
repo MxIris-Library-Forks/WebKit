@@ -57,6 +57,7 @@ typedef void (*AXPostedNotificationCallback)(id element, NSString* notification,
 - (id)accessibilityElementForRow:(NSInteger)row andColumn:(NSInteger)column;
 - (NSURL *)accessibilityURL;
 - (NSArray *)accessibilityHeaderElements;
+- (NSString *)accessibilityDatetimeValue;
 - (NSArray *)accessibilityDetailsElements;
 - (NSArray *)accessibilityErrorMessageElements;
 - (NSString *)accessibilityPlaceholderValue;
@@ -67,6 +68,7 @@ typedef void (*AXPostedNotificationCallback)(id element, NSString* notification,
 - (NSArray *)lineRectsAndText;
 - (CGPoint)accessibilityClickPoint;
 - (void)accessibilityModifySelection:(WebCore::TextGranularity)granularity increase:(BOOL)increase;
+- (NSDictionary<NSString *, id> *)_accessibilityResolvedEditingStyles;
 - (NSRange)_accessibilitySelectedTextRange;
 - (void)_accessibilitySetSelectedTextRange:(NSRange)range;
 - (BOOL)accessibilityReplaceRange:(NSRange)range withText:(NSString *)string;
@@ -382,6 +384,9 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::stringDescriptionOfAttributeVal
 {
     if (JSStringIsEqualToUTF8CString(attribute, "AXVisibleCharacterRange"))
         return [NSStringFromRange([m_element accessibilityVisibleCharacterRange]) createJSStringRef];
+
+    if (JSStringIsEqualToUTF8CString(attribute, "AXResolvedEditingStyles"))
+        return [[[m_element _accessibilityResolvedEditingStyles] description] createJSStringRef];
 
     return createJSString();
 }
@@ -1056,6 +1061,11 @@ void AccessibilityUIElement::clearSelectedChildren() const
 JSRetainPtr<JSStringRef> AccessibilityUIElement::accessibilityValue() const
 {
     return createJSString();
+}
+
+JSRetainPtr<JSStringRef> AccessibilityUIElement::dateTimeValue() const
+{
+    return [[m_element accessibilityDatetimeValue] createJSStringRef];
 }
 
 void AccessibilityUIElement::assistiveTechnologySimulatedFocus()

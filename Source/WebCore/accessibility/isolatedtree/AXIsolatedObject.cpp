@@ -292,7 +292,6 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
         setProperty(AXPropertyName::RowIndexRange, object.rowIndexRange());
         setProperty(AXPropertyName::AXColumnIndex, object.axColumnIndex());
         setProperty(AXPropertyName::AXRowIndex, object.axRowIndex());
-        // FIXME: This doesn't get updated when the scope attribute dynamically changes.
         setProperty(AXPropertyName::IsColumnHeader, object.isColumnHeader());
         setProperty(AXPropertyName::IsRowHeader, object.isRowHeader());
         setProperty(AXPropertyName::CellScope, object.cellScope().isolatedCopy());
@@ -1776,15 +1775,6 @@ bool AXIsolatedObject::isNonNativeTextControl() const
 {
     ASSERT_NOT_REACHED();
     return false;
-}
-
-UncheckedKeyHashMap<String, AXEditingStyleValueVariant> AXIsolatedObject::resolvedEditingStyles() const
-{
-    return Accessibility::retrieveValueFromMainThread<UncheckedKeyHashMap<String, AXEditingStyleValueVariant>>([this] () -> UncheckedKeyHashMap<String, AXEditingStyleValueVariant> {
-        if (auto* object = associatedAXObject())
-            return object->resolvedEditingStyles();
-        return { };
-    });
 }
 
 bool AXIsolatedObject::isOnScreen() const

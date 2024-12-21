@@ -403,6 +403,8 @@
 		1C049841289AFF9B0010308B /* WKWebExtensionWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C04983D289AFF9B0010308B /* WKWebExtensionWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1C0A19471C8FF1A800FE0EBB /* WebAutomationSessionProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C0A19451C8FF1A800FE0EBB /* WebAutomationSessionProxy.h */; };
 		1C0A19541C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessages.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C0A19521C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessages.h */; };
+		1C0A19571C90068F00FE0EBB /* WebAutomationSessionMessageReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C0A19551C90068F00FE0EBB /* WebAutomationSessionMessageReceiver.cpp */; };
+		1C0A19581C90068F00FE0EBB /* WebAutomationSessionMessages.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C0A19561C90068F00FE0EBB /* WebAutomationSessionMessages.h */; };
 		1C0A195C1C916E1B00FE0EBB /* WebAutomationSessionProxyScriptSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C0A195B1C916E1B00FE0EBB /* WebAutomationSessionProxyScriptSource.h */; };
 		1C0F05BE2CFA5D2E007D1F62 /* JSWebExtensionAPIUnified.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1C0F05BD2CFA5D2E007D1F62 /* JSWebExtensionAPIUnified.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		1C15497A2926BF03001B9E5B /* WebExtensionAPITestCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1C1549792926BF02001B9E5B /* WebExtensionAPITestCocoa.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -3690,6 +3692,9 @@
 		1C0A19481C8FF30E00FE0EBB /* WebAutomationSessionProxy.messages.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebAutomationSessionProxy.messages.in; sourceTree = "<group>"; };
 		1C0A19511C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessageReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebAutomationSessionProxyMessageReceiver.cpp; sourceTree = "<group>"; };
 		1C0A19521C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebAutomationSessionProxyMessages.h; sourceTree = "<group>"; };
+		1C0A19551C90068F00FE0EBB /* WebAutomationSessionMessageReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebAutomationSessionMessageReceiver.cpp; sourceTree = "<group>"; };
+		1C0A19561C90068F00FE0EBB /* WebAutomationSessionMessages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebAutomationSessionMessages.h; sourceTree = "<group>"; };
+		1C0A19591C9006EA00FE0EBB /* WebAutomationSession.messages.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebAutomationSession.messages.in; sourceTree = "<group>"; };
 		1C0A195A1C91669500FE0EBB /* WebAutomationSessionProxy.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = WebAutomationSessionProxy.js; sourceTree = "<group>"; };
 		1C0A195B1C916E1B00FE0EBB /* WebAutomationSessionProxyScriptSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebAutomationSessionProxyScriptSource.h; sourceTree = "<group>"; };
 		1C0F05BA2CFA5786007D1F62 /* GenerateImports.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = GenerateImports.pl; sourceTree = "<group>"; };
@@ -5800,6 +5805,10 @@
 		52B060F82B745E00009B1666 /* CoreIPCCVPixelBufferRef.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreIPCCVPixelBufferRef.mm; sourceTree = "<group>"; };
 		52C05BA72874996C00D80C59 /* MockCcidService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockCcidService.h; sourceTree = "<group>"; };
 		52C05BA82874996C00D80C59 /* MockCcidService.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = MockCcidService.mm; sourceTree = "<group>"; };
+		52C25B422D0C12F700A26AB8 /* ModelPresentationManagerProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPresentationManagerProxy.h; sourceTree = "<group>"; };
+		52C25B432D0C12F700A26AB8 /* ModelPresentationManagerProxy.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ModelPresentationManagerProxy.mm; sourceTree = "<group>"; };
+		52C25B442D0C1B9100A26AB8 /* WKPageHostedModelView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WKPageHostedModelView.h; path = ios/WKPageHostedModelView.h; sourceTree = "<group>"; };
+		52C25B452D0C1B9100A26AB8 /* WKPageHostedModelView.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = WKPageHostedModelView.mm; path = ios/WKPageHostedModelView.mm; sourceTree = "<group>"; };
 		52C3C26428651F860005BE6E /* WKBrowsingContextHandlePrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKBrowsingContextHandlePrivate.h; sourceTree = "<group>"; };
 		52CDC5BD2731DA0C00A3E3EB /* VirtualAuthenticatorConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualAuthenticatorConfiguration.h; sourceTree = "<group>"; };
 		52CDC5BE2731DA0C00A3E3EB /* VirtualService.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VirtualService.mm; sourceTree = "<group>"; };
@@ -6370,6 +6379,8 @@
 		71FB810A2260627A00323677 /* WebsiteSimulatedMouseEventsDispatchPolicy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebsiteSimulatedMouseEventsDispatchPolicy.h; sourceTree = "<group>"; };
 		7203449A26A6C44C000A5F54 /* MonotonicObjectIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MonotonicObjectIdentifier.h; sourceTree = "<group>"; };
 		7203449B26A6C476000A5F54 /* RenderingUpdateID.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderingUpdateID.h; sourceTree = "<group>"; };
+		722074302D07D671009FA90F /* ImageBufferRemotePDFDocumentBackend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageBufferRemotePDFDocumentBackend.h; sourceTree = "<group>"; };
+		722074312D07D671009FA90F /* ImageBufferRemotePDFDocumentBackend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ImageBufferRemotePDFDocumentBackend.cpp; sourceTree = "<group>"; };
 		723C90A22A377AB400038126 /* PathSegment.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = PathSegment.serialization.in; sourceTree = "<group>"; };
 		72440D33287CCC0500FADBC4 /* RemoteImageBuffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteImageBuffer.cpp; sourceTree = "<group>"; };
 		72440D3A287CF58900FADBC4 /* RemoteImageBufferProxy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteImageBufferProxy.cpp; sourceTree = "<group>"; };
@@ -11117,6 +11128,8 @@
 		2DA8153428A4939700CF811C /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				52C25B422D0C12F700A26AB8 /* ModelPresentationManagerProxy.h */,
+				52C25B432D0C12F700A26AB8 /* ModelPresentationManagerProxy.mm */,
 				2DA8153628A4939700CF811C /* ModelProcessProxy.cpp */,
 				2DA8153528A4939700CF811C /* ModelProcessProxy.h */,
 				2DA8153728A4939700CF811C /* ModelProcessProxy.messages.in */,
@@ -11241,6 +11254,8 @@
 				950F287F252414EA00B74F1C /* WKMouseDeviceObserver.mm */,
 				F4C627E62A7AC17400F546BF /* WKMouseInteraction.h */,
 				F4C627E52A7AC17300F546BF /* WKMouseInteraction.mm */,
+				52C25B442D0C1B9100A26AB8 /* WKPageHostedModelView.h */,
+				52C25B452D0C1B9100A26AB8 /* WKPageHostedModelView.mm */,
 				A15EEDE41E301CEE000069B0 /* WKPasswordView.h */,
 				A15EEDE31E301CEE000069B0 /* WKPasswordView.mm */,
 				A1046E9F2079263100F0C5D8 /* WKPDFView.h */,
@@ -12713,6 +12728,8 @@
 				7B64C0B6254C5C250006B4AF /* GraphicsContextGLIdentifier.h */,
 				727A7F39240788F1004D2931 /* ImageBufferBackendHandle.h */,
 				0FA7467E27BB611800B5FF5A /* ImageBufferBackendHandleSharing.h */,
+				722074312D07D671009FA90F /* ImageBufferRemotePDFDocumentBackend.cpp */,
+				722074302D07D671009FA90F /* ImageBufferRemotePDFDocumentBackend.h */,
 				727A7F37240788F0004D2931 /* ImageBufferShareableBitmapBackend.cpp */,
 				727A7F36240788F0004D2931 /* ImageBufferShareableBitmapBackend.h */,
 				0FC5FB6529C4ECEE001EDFE5 /* PrepareBackingStoreBuffersData.cpp */,
@@ -13586,6 +13603,7 @@
 				995226D4207D184500F78420 /* SimulatedInputDispatcher.h */,
 				9955A6EA1C7980BB00EB6A93 /* WebAutomationSession.cpp */,
 				9955A6EB1C7980BB00EB6A93 /* WebAutomationSession.h */,
+				1C0A19591C9006EA00FE0EBB /* WebAutomationSession.messages.in */,
 				99C3AE2C1DADA6A700AF5C16 /* WebAutomationSessionMacros.h */,
 			);
 			path = Automation;
@@ -15495,6 +15513,8 @@
 				1A8E7D3B18C15149005A702A /* VisitedLinkTableControllerMessages.h */,
 				57DCED6C2142EAF90016B847 /* WebAuthenticatorCoordinatorProxyMessageReceiver.cpp */,
 				57DCED6D2142EAFA0016B847 /* WebAuthenticatorCoordinatorProxyMessages.h */,
+				1C0A19551C90068F00FE0EBB /* WebAutomationSessionMessageReceiver.cpp */,
+				1C0A19561C90068F00FE0EBB /* WebAutomationSessionMessages.h */,
 				1C0A19511C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessageReceiver.cpp */,
 				1C0A19521C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessages.h */,
 				1C0A195B1C916E1B00FE0EBB /* WebAutomationSessionProxyScriptSource.h */,
@@ -17032,6 +17052,7 @@
 				990D39F5243BE64800199388 /* WebAutomationDOMWindowObserver.h in Headers */,
 				9955A6EC1C7980C200EB6A93 /* WebAutomationSession.h in Headers */,
 				99C3AE2D1DADA6AD00AF5C16 /* WebAutomationSessionMacros.h in Headers */,
+				1C0A19581C90068F00FE0EBB /* WebAutomationSessionMessages.h in Headers */,
 				1C0A19471C8FF1A800FE0EBB /* WebAutomationSessionProxy.h in Headers */,
 				1C0A19541C8FFDFB00FE0EBB /* WebAutomationSessionProxyMessages.h in Headers */,
 				1C0A195C1C916E1B00FE0EBB /* WebAutomationSessionProxyScriptSource.h in Headers */,
@@ -19945,6 +19966,7 @@
 				52EDB40428C2B8FD002DCF33 /* WebAuthenticatorCoordinatorProxy.mm in Sources */,
 				866623F929C2248E0029405A /* WebAutocorrectionData.mm in Sources */,
 				575B1BBA23CE9C130020639A /* WebAutomationSession.cpp in Sources */,
+				1C0A19571C90068F00FE0EBB /* WebAutomationSessionMessageReceiver.cpp in Sources */,
 				575B1BB823CE9BFC0020639A /* WebAutomationSessionProxy.cpp in Sources */,
 				0712654928EE06F800AE69D7 /* WebChromeClientCocoa.mm in Sources */,
 				EB44A69B2C8A4F6E006595BF /* WebClipCache.mm in Sources */,

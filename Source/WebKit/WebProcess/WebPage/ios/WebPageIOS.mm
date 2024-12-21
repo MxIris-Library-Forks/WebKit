@@ -105,6 +105,7 @@
 #import <WebCore/HTMLLabelElement.h>
 #import <WebCore/HTMLOptGroupElement.h>
 #import <WebCore/HTMLOptionElement.h>
+#import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/HTMLSelectElement.h>
 #import <WebCore/HTMLSummaryElement.h>
 #import <WebCore/HTMLTextAreaElement.h>
@@ -133,6 +134,7 @@
 #import <WebCore/PlatformMediaSessionManager.h>
 #import <WebCore/PlatformMouseEvent.h>
 #import <WebCore/PluginDocument.h>
+#import <WebCore/PluginViewBase.h>
 #import <WebCore/PointerCaptureController.h>
 #import <WebCore/PointerCharacteristics.h>
 #import <WebCore/PrintContext.h>
@@ -990,8 +992,10 @@ void WebPage::completeSyntheticClick(Node& nodeRespondingToClick, const WebCore:
         return;
 
 #if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = pluginViewForFrame(newFocusedFrame.get()))
-        pluginView->handleSyntheticClick(WTFMove(releaseEvent));
+    if (RefPtr pluginElement = dynamicDowncast<HTMLPlugInElement>(nodeRespondingToClick)) {
+        if (RefPtr pluginWidget = static_cast<PluginView*>(pluginElement->pluginWidget()))
+            pluginWidget->handleSyntheticClick(WTFMove(releaseEvent));
+    }
 #endif
 
     invokePendingSyntheticClickCallback(SyntheticClickResult::Click);
@@ -1586,7 +1590,7 @@ static std::optional<SimpleRange> expandForImageOverlay(const SimpleRange& range
 void WebPage::selectWithGesture(const IntPoint& point, GestureType gestureType, GestureRecognizerState gestureState, bool isInteractingWithFocusedElement, CompletionHandler<void(const WebCore::IntPoint&, GestureType, GestureRecognizerState, OptionSet<SelectionFlags>)>&& completionHandler)
 {
     if (static_cast<GestureRecognizerState>(gestureState) == GestureRecognizerState::Began)
-        setFocusedFrameBeforeSelectingTextAtLocation(point);
+        updateFocusBeforeSelectingTextAtLocation(point);
 
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
     if (!frame)
@@ -2057,7 +2061,7 @@ void WebPage::updateSelectionWithTouches(const IntPoint& point, SelectionTouch s
         return;
 
 #if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = pluginViewForFrame(frame.get())) {
+    if (RefPtr pluginView = focusedPluginViewForFrame(*frame)) {
         OptionSet<SelectionFlags> resultFlags;
         auto startOrEnd = baseIsStart ? SelectionEndpoint::End : SelectionEndpoint::Start;
         if (pluginView->moveSelectionEndpoint(point, startOrEnd) == SelectionWasFlipped::Yes)
@@ -2542,7 +2546,7 @@ void WebPage::selectPositionAtPoint(const WebCore::IntPoint& point, bool isInter
 {
     SetForScope userIsInteractingChange { m_userIsInteracting, true };
 
-    setFocusedFrameBeforeSelectingTextAtLocation(point);
+    updateFocusBeforeSelectingTextAtLocation(point);
 
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
     if (!frame)
@@ -2628,7 +2632,7 @@ static inline bool rectIsTooBigForSelection(const IntRect& blockRect, const Loca
     return blockRect.height() > frame.view()->unobscuredContentRect().height() * factor;
 }
 
-void WebPage::setFocusedFrameBeforeSelectingTextAtLocation(const IntPoint& point)
+void WebPage::updateFocusBeforeSelectingTextAtLocation(const IntPoint& point)
 {
     static constexpr OptionSet hitType { HitTestRequest::Type::ReadOnly, HitTestRequest::Type::Active, HitTestRequest::Type::AllowVisibleChildFrameContentOnly };
     RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
@@ -2637,15 +2641,24 @@ void WebPage::setFocusedFrameBeforeSelectingTextAtLocation(const IntPoint& point
 
     auto result = localMainFrame->eventHandler().hitTestResultAtPoint(point, hitType);
     RefPtr hitNode = result.innerNode();
-    if (hitNode && hitNode->renderer()) {
-        RefPtr frame = result.innerNodeFrame();
-        m_page->checkedFocusController()->setFocusedFrame(frame.get());
-    }
+    if (!hitNode || !hitNode->renderer())
+        return;
+
+    RefPtr frame = result.innerNodeFrame();
+    m_page->checkedFocusController()->setFocusedFrame(frame.get());
+
+    if (!result.isOverWidget())
+        return;
+
+#if ENABLE(PDF_PLUGIN)
+    if (RefPtr pluginView = pluginViewForFrame(frame.get()))
+        pluginView->focusPluginElement();
+#endif
 }
 
 void WebPage::setSelectionRange(const WebCore::IntPoint& point, WebCore::TextGranularity granularity, bool isInteractingWithFocusedElement)
 {
-    setFocusedFrameBeforeSelectingTextAtLocation(point);
+    updateFocusBeforeSelectingTextAtLocation(point);
 
     RefPtr frame = m_page->checkedFocusController()->focusedOrMainFrame();
     if (!frame)
@@ -2653,7 +2666,7 @@ void WebPage::setSelectionRange(const WebCore::IntPoint& point, WebCore::TextGra
 
 #if ENABLE(PDF_PLUGIN)
     // FIXME: Support text selection in embedded PDFs.
-    if (RefPtr pluginView = pluginViewForFrame(frame.get())) {
+    if (RefPtr pluginView = focusedPluginViewForFrame(*frame)) {
         pluginView->setSelectionRange(point, granularity);
         return;
     }
@@ -2702,7 +2715,7 @@ void WebPage::updateSelectionWithExtentPointAndBoundary(const WebCore::IntPoint&
         return callback(false);
 
 #if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = pluginViewForFrame(frame.get())) {
+    if (RefPtr pluginView = focusedPluginViewForFrame(*frame)) {
         auto movedEndpoint = pluginView->extendInitialSelection(point, granularity);
         return callback(movedEndpoint == SelectionEndpoint::End);
     }
@@ -3737,7 +3750,7 @@ InteractionInformationAtPosition WebPage::positionInformation(const InteractionI
     auto hitTestResult = eventHandler.hitTestResultAtPoint(request.point, hitTestRequestTypes);
 
 #if ENABLE(PDF_PLUGIN)
-    RefPtr pluginView = pluginViewForFrame(hitTestResult.innerNodeFrame());
+    RefPtr pluginView = hitTestResult.isOverWidget() ? pluginViewForFrame(hitTestResult.innerNodeFrame()) : nullptr;
 #endif
 
     info.cursorContext = [&] {
@@ -5203,22 +5216,27 @@ void WebPage::drawToImage(WebCore::FrameIdentifier frameID, const PrintInfo& pri
     endPrinting();
 }
 
-void WebPage::drawToPDFiOS(WebCore::FrameIdentifier frameID, const PrintInfo& printInfo, size_t pageCount, CompletionHandler<void(RefPtr<SharedBuffer>&&)>&& reply)
+void WebPage::drawToPDFiOS(FrameIdentifier frameID, const PrintInfo& printInfo, size_t pageCount, CompletionHandler<void(RefPtr<SharedBuffer>&&)>&& reply)
 {
     if (printInfo.snapshotFirstPage) {
-        IntSize snapshotSize { FloatSize { printInfo.availablePaperWidth, printInfo.availablePaperHeight } };
-        IntRect snapshotRect { {0, 0}, snapshotSize };
-        auto* localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
+        RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame());
         if (!localMainFrame)
             return;
-        auto& frameView = *localMainFrame->view();
-        auto originalLayoutViewportOverrideRect = frameView.layoutViewportOverrideRect();
-        frameView.setLayoutViewportOverrideRect(LayoutRect(snapshotRect));
 
-        auto buffer = pdfSnapshotAtSize(snapshotRect, snapshotSize, { });
+        auto snapshotRect = IntRect { FloatRect { { }, FloatSize { printInfo.availablePaperWidth, printInfo.availablePaperHeight } } };
 
-        frameView.setLayoutViewportOverrideRect(originalLayoutViewportOverrideRect);
-        reply(WTFMove(buffer));
+        RefPtr buffer = ImageBuffer::create(snapshotRect.size(), RenderingMode::PDFDocument, RenderingPurpose::Snapshot, 1, DestinationColorSpace::SRGB(), ImageBufferPixelFormat::BGRA8);
+        if (!buffer)
+            return;
+
+        Ref frameView = *localMainFrame->view();
+        auto originalLayoutViewportOverrideRect = frameView->layoutViewportOverrideRect();
+        frameView->setLayoutViewportOverrideRect(LayoutRect(snapshotRect));
+
+        pdfSnapshotAtSize(*localMainFrame, buffer->context(), snapshotRect, { });
+
+        frameView->setLayoutViewportOverrideRect(originalLayoutViewportOverrideRect);
+        reply(buffer->sinkIntoPDFDocument());
         return;
     }
 

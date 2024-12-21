@@ -1234,6 +1234,25 @@ class TestCompileWebKit(BuildStepMixinAdditions, unittest.TestCase):
         self.expectOutcome(result=FAILURE, state_string='Failed to compile WebKit')
         return self.runStep()
 
+    def test_silent_failure(self):
+        self.setupStep(CompileWebKit())
+        self.setProperty('platform', 'mac')
+        self.setProperty('fullPlatform', 'mac-monterey')
+        self.setProperty('configuration', 'debug')
+        self.setProperty('build_failed', True)
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=3600,
+                        logEnviron=False,
+                        command=['/bin/sh', '-c', 'perl Tools/Scripts/build-webkit --debug -hideShellScriptEnvironment WK_VALIDATE_DEPENDENCIES=YES 2>&1 | perl Tools/Scripts/filter-build-webkit -logfile build-log.txt'],
+                        )
+            + ExpectShell.log('stdio', stdout='1 error generated.')
+            + 0,
+        )
+        self.expectOutcome(result=FAILURE, state_string='Failed to compile WebKit')
+        rc = self.runStep()
+        return rc
+
     def test_skip_for_revert_patches_on_commit_queue(self):
         self.setupStep(CompileWebKit())
         self.setProperty('buildername', 'Commit-Queue')
@@ -4861,8 +4880,8 @@ class TestGenerateS3URL(BuildStepMixinAdditions, unittest.TestCase):
     def tearDown(self):
         return self.tearDownBuildStep()
 
-    def configureStep(self, identifier='mac-highsierra-x86_64-release', extension='zip', content_type=None):
-        self.setupStep(GenerateS3URL(identifier, extension=extension, content_type=content_type))
+    def configureStep(self, identifier='mac-highsierra-x86_64-release', extension='zip', additions=None, content_type=None):
+        self.setupStep(GenerateS3URL(identifier, extension=extension, additions=additions, content_type=content_type))
         self.setProperty('change_id', '1234')
 
     def disabled_test_success(self):
@@ -4882,13 +4901,14 @@ class TestGenerateS3URL(BuildStepMixinAdditions, unittest.TestCase):
             return self.runStep()
 
     def test_failure(self):
-        self.configureStep('ios-simulator-16-x86_64-debug')
+        self.configureStep('ios-simulator-16-x86_64-debug', additions='123')
         self.expectLocalCommands(
             ExpectMasterShellCommand(command=['python3',
                                               '../Shared/generate-s3-url',
                                               '--change-id', '1234',
                                               '--identifier', 'ios-simulator-16-x86_64-debug',
                                               '--extension', 'zip',
+                                              '--additions', '123'
                                               ])
             + 2,
         )

@@ -427,6 +427,10 @@
 #include <wtf/glib/RunLoopSourcePriority.h>
 #endif
 
+#if PLATFORM(IOS_FAMILY) && ENABLE(MODEL_PROCESS)
+#include "ModelPresentationManagerProxy.h"
+#endif
+
 #define MESSAGE_CHECK(process, assertion) MESSAGE_CHECK_BASE(assertion, process->connection())
 #define MESSAGE_CHECK_URL(process, url) MESSAGE_CHECK_BASE(checkURLReceivedFromCurrentOrPreviousWebProcess(process, url), process->connection())
 #define MESSAGE_CHECK_URL_COROUTINE(process, url) MESSAGE_CHECK_BASE_COROUTINE(checkURLReceivedFromCurrentOrPreviousWebProcess(process, url), process->connection())
@@ -1566,6 +1570,10 @@ void WebPageProxy::didAttachToRunningProcess()
 #if ENABLE(WEBXR) && !USE(OPENXR)
     ASSERT(!internals().xrSystem);
     internals().xrSystem = PlatformXRSystem::create(*this);
+#endif
+
+#if PLATFORM(IOS_FAMILY) && ENABLE(MODEL_PROCESS)
+    internals().modelPresentationManagerProxy = ModelPresentationManagerProxy::create(*this);
 #endif
 }
 
@@ -11015,6 +11023,11 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
 
     if (RefPtr pageClient = this->pageClient())
         pageClient->hasActiveNowPlayingSessionChanged(false);
+
+#if PLATFORM(IOS_FAMILY) && ENABLE(MODEL_PROCESS)
+    if (auto modelPresentationManager = modelPresentationManagerProxy())
+        modelPresentationManager->invalidateAllModels();
+#endif
 }
 
 void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason terminationReason)
@@ -12538,6 +12551,26 @@ void WebPageProxy::drawToPDF(FrameIdentifier frameID, const std::optional<FloatR
         return;
     }
     sendWithAsyncReply(Messages::WebPage::DrawToPDF(frameID, rect, allowTransparentBackground), WTFMove(callback));
+}
+
+void WebPageProxy::drawCompositedToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, CompletionHandler<void(RefPtr<SharedBuffer>&&)>&& callback)
+{
+    if (!hasRunningProcess()) {
+        callback({ });
+        return;
+    }
+
+    auto snapshotIdentifier = SnapshotIdentifier::generate();
+    m_pdfSnapshots.add(snapshotIdentifier, WTFMove(callback));
+    send(Messages::WebPage::DrawCompositedToPDF(frameID, rect, allowTransparentBackground, snapshotIdentifier));
+}
+
+void WebPageProxy::didDrawCompositedToPDF(RefPtr<SharedBuffer>&& data, SnapshotIdentifier snapshotIdentifier)
+{
+    auto callback = m_pdfSnapshots.take(snapshotIdentifier);
+    if (!callback)
+        return;
+    callback(WTFMove(data));
 }
 #endif // PLATFORM(COCOA)
 

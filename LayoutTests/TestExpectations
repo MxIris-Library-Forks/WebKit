@@ -435,6 +435,9 @@ webkit.org/b/266465 imported/w3c/web-platform-tests/editing/run/delete.html?6001
 # This test's output is not stable from run to run.
 imported/w3c/web-platform-tests/editing/run/undo-redo.html [ Skip ]
 
+# Failing as we disable setting kAUVoiceIOProperty_MuteOutput
+http/wpt/mediasession/voiceActivityDetection.html [ Failure ]
+
 http/wpt/selection-live-range/collapse-00.html [ Slow ]
 http/wpt/selection-live-range/collapse-15.html [ Slow ]
 http/wpt/selection-live-range/collapse-30.html [ Slow ]
@@ -6190,6 +6193,9 @@ imported/w3c/web-platform-tests/import-maps/nonimport-integrity.html [ DumpJSCon
 
 # These tests have been timing out since their import.
 imported/w3c/web-platform-tests/import-maps/data-driven [ Skip ]
+
+# Imported tests that are timing out because the feature is not yet implemented.
+imported/w3c/web-platform-tests/content-security-policy/report-hash [ Skip ]
 
 # WebKit2 Only
 fullscreen/fullscreen-enter-bottom-padding-animation.html [ Skip ]

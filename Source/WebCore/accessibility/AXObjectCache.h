@@ -175,6 +175,7 @@ protected:
     macro(DatetimeChanged) \
     macro(DescribedByChanged) \
     macro(DisabledStateChanged) \
+    macro(DraggableStateChanged) \
     macro(DropEffectChanged) \
     macro(ExtendedDescriptionChanged) \
     macro(FlowToChanged) \
@@ -626,8 +627,8 @@ private:
     void updateIsolatedTree(AccessibilityObject&, AXNotification);
     void updateIsolatedTree(AccessibilityObject*, AXNotification);
     void updateIsolatedTree(const Vector<std::pair<Ref<AccessibilityObject>, AXNotification>>&);
-    void updateIsolatedTree(AccessibilityObject*, AXPropertyName) const;
-    void updateIsolatedTree(AccessibilityObject&, AXPropertyName) const;
+    void updateIsolatedTree(AccessibilityObject*, AXProperty) const;
+    void updateIsolatedTree(AccessibilityObject&, AXProperty) const;
     void startUpdateTreeSnapshotTimer();
 #endif
 

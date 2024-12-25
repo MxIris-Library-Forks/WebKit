@@ -309,10 +309,10 @@ public:
     bool isEmpty() const { return !m_length; }
 
     bool is8Bit() const { return m_hashAndFlags & s_hashFlag8BitBuffer; }
-    ALWAYS_INLINE std::span<const LChar> span8() const { ASSERT(is8Bit()); return { m_data8, length() }; }
-    ALWAYS_INLINE std::span<const UChar> span16() const { ASSERT(!is8Bit() || isEmpty()); return { m_data16, length() }; }
+    ALWAYS_INLINE std::span<const LChar> span8() const LIFETIME_BOUND { ASSERT(is8Bit()); return { m_data8, length() }; }
+    ALWAYS_INLINE std::span<const UChar> span16() const LIFETIME_BOUND { ASSERT(!is8Bit() || isEmpty()); return { m_data16, length() }; }
 
-    template<typename CharacterType> std::span<const CharacterType> span() const;
+    template<typename CharacterType> std::span<const CharacterType> span() const LIFETIME_BOUND;
 
     size_t cost() const;
     size_t costDuringGC();
@@ -1411,7 +1411,7 @@ inline Expected<std::invoke_result_t<Func, std::span<const char8_t>>, UTF8Conver
         size_t prefixLength = firstNonASCII - characters.data();
         size_t remainingLength = characters.size() - prefixLength;
         Vector<char8_t, 1024> buffer(prefixLength + remainingLength * 2);
-        memcpy(buffer.data(), characters.data(), prefixLength);
+        memcpySpan(buffer.mutableSpan(), characters.first(prefixLength));
         auto result = Unicode::convert(characters.subspan(prefixLength), buffer.mutableSpan().subspan(prefixLength));
         ASSERT(result.code == Unicode::ConversionResultCode::Success); // 2x is sufficient for any conversion from Latin1
         return function(buffer.span().first(prefixLength + result.buffer.size()));

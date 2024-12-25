@@ -9407,6 +9407,7 @@ void WebPageProxy::backForwardAddItemShared(IPC::Connection& connection, FrameId
     item->setIsRemoteFrameNavigation(isRemoteFrameNavigation);
     if (loadedWebArchive == LoadedWebArchive::Yes)
         item->setDataStoreForWebArchive(process->websiteDataStore());
+    item->setParentFromItem(m_backForwardList->protectedCurrentItem().get());
     protectedBackForwardList()->addItem(WTFMove(item));
 }
 
@@ -11310,7 +11311,6 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.useElevatedUserInterfaceLevel = useElevatedUserInterfaceLevel();
 #if PLATFORM(MAC)
     parameters.colorSpace = pageClient ? std::optional { pageClient->colorSpace() } : std::nullopt;
-    parameters.useSystemAppearance = m_useSystemAppearance;
     parameters.useFormSemanticContext = useFormSemanticContext();
     parameters.headerBannerHeight = headerBannerHeight();
     parameters.footerBannerHeight = footerBannerHeight();
@@ -13432,19 +13432,6 @@ void WebPageProxy::didHandleAcceptedCandidate()
 {
     if (RefPtr pageClient = this->pageClient())
         pageClient->didHandleAcceptedCandidate();
-}
-
-void WebPageProxy::setUseSystemAppearance(bool useSystemAppearance)
-{    
-    if (useSystemAppearance == m_useSystemAppearance)
-        return;
-    
-    m_useSystemAppearance = useSystemAppearance;
-
-    if (!hasRunningProcess())
-        return;
-
-    send(Messages::WebPage::SetUseSystemAppearance(useSystemAppearance));
 }
 
 void WebPageProxy::setHeaderBannerHeight(int height)

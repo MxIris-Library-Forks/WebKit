@@ -5010,6 +5010,7 @@
 		BCD0E0FB0E972C3500265DEA /* SecurityOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD0E0F80E972C3500265DEA /* SecurityOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD0E0FC0E972C3500265DEA /* SecurityOriginHash.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD0E0F90E972C3500265DEA /* SecurityOriginHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD533640ED6848900887468 /* CachedScriptSourceProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD533630ED6848900887468 /* CachedScriptSourceProvider.h */; };
+		BCD67C362D23113B0079EB9C /* StyleUnevaluatedCalculation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD67C352D23113B0079EB9C /* StyleUnevaluatedCalculation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9C2C10C17B69E005C90A2 /* JSNamedNodeMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9C2BD0C17B69E005C90A2 /* JSNamedNodeMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9C2C30C17B69E005C90A2 /* JSNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9C2BF0C17B69E005C90A2 /* JSNodeList.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCDF317C11F8D683003C5BF8 /* UserTypingGestureIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDF317A11F8D683003C5BF8 /* UserTypingGestureIndicator.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18426,6 +18427,7 @@
 		BCD3736F26864203003644E4 /* watchos-layout-traits.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "watchos-layout-traits.js"; sourceTree = "<group>"; };
 		BCD373702686423C003644E4 /* ios-layout-traits.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "ios-layout-traits.js"; sourceTree = "<group>"; };
 		BCD533630ED6848900887468 /* CachedScriptSourceProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedScriptSourceProvider.h; sourceTree = "<group>"; };
+		BCD67C352D23113B0079EB9C /* StyleUnevaluatedCalculation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleUnevaluatedCalculation.h; sourceTree = "<group>"; };
 		BCD9C25E0C17AA67005C90A2 /* JSDOMWindowCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMWindowCustom.cpp; sourceTree = "<group>"; };
 		BCD9C2600C17AA67005C90A2 /* JSNodeCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNodeCustom.cpp; sourceTree = "<group>"; };
 		BCD9C2610C17AA67005C90A2 /* JSNodeListCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNodeListCustom.cpp; sourceTree = "<group>"; };
@@ -35118,6 +35120,7 @@
 				BC9BE3F22CFE2ACB00D8C2CA /* StylePrimitiveNumericTypes+Logging.cpp */,
 				BC9BE3EF2CFE297D00D8C2CA /* StylePrimitiveNumericTypes+Logging.h */,
 				BCB271EE2CC0156E00265123 /* StylePrimitiveNumericTypes.h */,
+				BCD67C352D23113B0079EB9C /* StyleUnevaluatedCalculation.h */,
 			);
 			path = primitives;
 			sourceTree = "<group>";
@@ -44121,6 +44124,7 @@
 				DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */,
 				BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */,
 				E4DEAA1817A93DC3000E0430 /* StyleTreeResolver.h in Headers */,
+				BCD67C362D23113B0079EB9C /* StyleUnevaluatedCalculation.h in Headers */,
 				E42E76DC1C7AF77600E3614D /* StyleUpdate.h in Headers */,
 				E48137B91DB3B526005C59BF /* StyleValidity.h in Headers */,
 				BCA408182CA394CE006B037F /* StyleValueTypes.h in Headers */,

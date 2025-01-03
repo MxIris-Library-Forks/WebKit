@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,43 +23,46 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "WebTransportReceiveStreamSource.h"
+#import "config.h"
+#import "WKSeparatedImageView.h"
 
-#include "WebTransportSession.h"
-#include <wtf/RunLoop.h>
-#include <wtf/StdLibExtras.h>
+#if HAVE(CORE_ANIMATION_SEPARATED_LAYERS)
 
-namespace WebKit {
+#import "RemoteLayerTreeViews.h"
 
-WebTransportReceiveStreamSource::WebTransportReceiveStreamSource(WebTransportSession& session, WebTransportStreamIdentifier identifier)
-    : m_session(session)
-    , m_identifier(identifier)
+@interface WKSeparatedImageView (WKContentControlled) <WKContentControlled>
+@end
+@implementation WKSeparatedImageView (WKContentControlled)
+@end
+
+#if USE(APPLE_INTERNAL_SDK)
+// Swift implementation.
+#else
+@implementation WKSeparatedImageView
+
+- (instancetype)init
 {
-    ASSERT(RunLoop::isMain());
+    self = [super initWithFrame:CGRectZero];
+    return self;
 }
 
-WebTransportReceiveStreamSource::~WebTransportReceiveStreamSource()
+- (instancetype)initWithFrame:(CGRect)frame {
+    return [self init];
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder
 {
-    ASSERT(RunLoop::isMain());
+    ASSERT_NOT_REACHED();
+    return [self initWithCoder:coder];
 }
 
-void WebTransportReceiveStreamSource::receiveBytes(std::span<const uint8_t> bytes, bool)
+- (void)setSurface:(nullable IOSurfaceRef)surface
 {
-    ASSERT(RunLoop::isMain());
-    if (m_isCancelled)
-        return;
-    auto arrayBuffer = ArrayBuffer::tryCreateUninitialized(bytes.size(), 1);
-    if (arrayBuffer)
-        memcpySpan(arrayBuffer->mutableSpan(), bytes);
-    if (!controller().enqueue(WTFMove(arrayBuffer)))
-        doCancel();
 }
 
-void WebTransportReceiveStreamSource::doCancel()
-{
-    ASSERT(RunLoop::isMain());
-    m_isCancelled = true;
-}
+@end
+#endif // USE(APPLE_INTERNAL_SDK)
 
-}
+#endif
+
+

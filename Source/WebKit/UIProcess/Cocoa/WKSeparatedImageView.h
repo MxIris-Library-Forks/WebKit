@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,37 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#if defined(TARGET_OS_VISION) && TARGET_OS_VISION
 
-#include <WebCore/ReadableStreamSource.h>
+#import <UIKit/UIKit.h>
 
-namespace WebKit {
+NS_ASSUME_NONNULL_BEGIN
 
-class WebTransportSession;
+@interface WKSeparatedImageView : UIView
 
-struct WebTransportStreamIdentifierType;
-using WebTransportStreamIdentifier = ObjectIdentifier<WebTransportStreamIdentifierType>;
+- (instancetype)init NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
 
-class WebTransportReceiveStreamSource : public WebCore::RefCountedReadableStreamSource {
-public:
-    static Ref<WebTransportReceiveStreamSource> create(WebTransportSession& session, WebTransportStreamIdentifier identifier) { return adoptRef(*new WebTransportReceiveStreamSource(session, identifier)); }
+- (void)setSurface:(nullable IOSurfaceRef)surface;
 
-    ~WebTransportReceiveStreamSource();
+@end
 
-    void receiveBytes(std::span<const uint8_t>, bool withFin);
-private:
-    WebTransportReceiveStreamSource(WebTransportSession&, WebTransportStreamIdentifier);
+NS_ASSUME_NONNULL_END
 
-    void setActive() final { }
-    void setInactive() final { }
-    void doStart() final { }
-    void doPull() final { }
-    void doCancel();
-
-    bool m_isCancelled { false };
-
-    WeakPtr<WebTransportSession> m_session;
-    const WebTransportStreamIdentifier m_identifier;
-};
-
-}
+#endif

@@ -12554,6 +12554,8 @@
 		5CB37FFD1C62D27800F20188 /* ScrollbarsControllerMock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollbarsControllerMock.h; sourceTree = "<group>"; };
 		5CBC8DAA1AAA302200E1C803 /* MediaAccessibilitySoftLink.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaAccessibilitySoftLink.cpp; sourceTree = "<group>"; };
 		5CBC8DAB1AAA302200E1C803 /* MediaAccessibilitySoftLink.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaAccessibilitySoftLink.h; sourceTree = "<group>"; };
+		5CC66DB82D122C8F00479139 /* WorkerWebTransportSession.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WorkerWebTransportSession.h; sourceTree = "<group>"; };
+		5CC66DB92D122C8F00479139 /* WorkerWebTransportSession.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerWebTransportSession.cpp; sourceTree = "<group>"; };
 		5CC7900B266AFA88006924FE /* TimingAllowOrigin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimingAllowOrigin.h; sourceTree = "<group>"; };
 		5CC7900D266AFA89006924FE /* TimingAllowOrigin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimingAllowOrigin.cpp; sourceTree = "<group>"; };
 		5CCC270622D53B6800964FA0 /* AutofillElements.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AutofillElements.h; sourceTree = "<group>"; };
@@ -14310,7 +14312,7 @@
 		834B86A91C56E93E00F3F0E3 /* JSHTMLDataElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLDataElement.cpp; sourceTree = "<group>"; };
 		834CBFBF24DC785500C2A3D8 /* MediaStreamAudioSourceOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaStreamAudioSourceOptions.h; sourceTree = "<group>"; };
 		834CBFC124DC785600C2A3D8 /* MediaStreamAudioSourceOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaStreamAudioSourceOptions.idl; sourceTree = "<group>"; };
-		834DD4F31BE08989002C9C3E /* PageMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PageMac.mm; sourceTree = "<group>"; };
+		834DD4F31BE08989002C9C3E /* PageCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PageCocoa.mm; sourceTree = "<group>"; };
 		834DFACC1F7DAE5600C2725B /* SharedStringHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedStringHash.h; sourceTree = "<group>"; };
 		834DFACE1F7DAE5700C2725B /* SharedStringHash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SharedStringHash.cpp; sourceTree = "<group>"; };
 		8350519E24F573AD009911D7 /* IIRFilterNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IIRFilterNode.cpp; sourceTree = "<group>"; };
@@ -27542,6 +27544,7 @@
 				443BFDC627BB372C0001245F /* EventHandlerCocoa.mm */,
 				F446EDE0265DB1E50031DA8F /* ImageOverlayDataDetectionResultIdentifier.h */,
 				413E007B1DB0E707002341D2 /* MemoryReleaseCocoa.mm */,
+				834DD4F31BE08989002C9C3E /* PageCocoa.mm */,
 				AD5A0C221DECA37E00707054 /* PerformanceLoggingCocoa.mm */,
 				ADFE2B541BD5F41200DAB457 /* ResourceUsageOverlayCocoa.mm */,
 				A5071E881C56D4FA009951BE /* ResourceUsageThreadCocoa.mm */,
@@ -30159,7 +30162,6 @@
 				A718788F0B2D04AC00A16ECE /* DragControllerMac.mm */,
 				93C09A7E0B064EEF005ABD4D /* EventHandlerMac.mm */,
 				F4B2A90C265087E4009E7286 /* ImageOverlayControllerMac.mm */,
-				834DD4F31BE08989002C9C3E /* PageMac.mm */,
 				2D93AEE119DF5641002A86C3 /* ServicesOverlayController.h */,
 				2D93AEE219DF5641002A86C3 /* ServicesOverlayController.mm */,
 				2D4F96F31A1ECC240098BF88 /* TextIndicatorWindow.h */,
@@ -38959,6 +38961,8 @@
 				FAC8497E2A9E6CEF00D407EF /* WebTransportSessionClient.h */,
 				FAC3C3F42A996702001E2EB8 /* WebTransportStats.h */,
 				FAC3C3DD2A9960DF001E2EB8 /* WebTransportStats.idl */,
+				5CC66DB92D122C8F00479139 /* WorkerWebTransportSession.cpp */,
+				5CC66DB82D122C8F00479139 /* WorkerWebTransportSession.h */,
 			);
 			path = webtransport;
 			sourceTree = "<group>";

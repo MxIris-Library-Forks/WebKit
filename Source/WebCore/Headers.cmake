@@ -824,7 +824,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     bindings/js/WindowProxy.h
     bindings/js/WorkerScriptFetcher.h
 
-    bridge/Bridge.h
     bridge/IdentifierRep.h
     bridge/runtime_method.h
     bridge/runtime_object.h
@@ -1262,6 +1261,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     history/BackForwardCache.h
     history/BackForwardClient.h
     history/BackForwardController.h
+    history/BackForwardFrameItemIdentifier.h
     history/BackForwardItemIdentifier.h
     history/CachedFrame.h
     history/CachedFramePlatformData.h
@@ -1556,6 +1556,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/ResourceLoaderTypes.h
     loader/ResourceMonitor.h
     loader/ResourceMonitorChecker.h
+    loader/ResourceMonitorThrottler.h
     loader/ResourceTimingInformation.h
     loader/ShouldTreatAsContinuingLoad.h
     loader/SubframeLoader.h

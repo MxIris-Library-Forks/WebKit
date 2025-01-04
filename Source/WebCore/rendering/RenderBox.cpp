@@ -3378,32 +3378,7 @@ bool RenderBox::skipContainingBlockForPercentHeightCalculation(const RenderBox& 
     return document().inQuirksMode() && !containingBlock.isRenderTableCell() && !containingBlock.isOutOfFlowPositioned() && !containingBlock.isRenderGrid() && !containingBlock.isFlexibleBoxIncludingDeprecated() && containingBlock.style().logicalHeight().isAuto();
 }
 
-bool RenderBox::shouldTreatChildAsReplaced() const
-{
-    if (isReplacedOrAtomicInline())
-        return true;
-    // We need to detect all types of objects that should be treated as replaced.
-    // Callers of this method will use the result for various things, such as
-    // determining how to size the object, or whether it needs to avoid adjacent
-    // floats, just like objects that establish a new formatting context.
-    // isReplacedOrAtomicInline() will not catch all the cases. Objects may be
-    // block-level and still replaced, and we cannot deduce this from the
-    // RenderObject type. Checkboxes and radio buttons are such examples. We need
-    // to check the Element type. This also applies to images, since we may have
-    // created a block-flow RenderObject for the ALT text (which still counts as
-    // replaced).
-    if (!element())
-        return false;
-    if (element()->isFormControlElement()) {
-        // Form control elements are generally replaced objects. Fieldsets are not,
-        // though. A fieldset is (almost) a regular block container, and should be
-        // treated as such.
-        return !is<HTMLFieldSetElement>(element());
-    }
-    return is<HTMLImageElement>(element());
-}
-
-static bool tableCellShouldHaveZeroInitialSize(const RenderBlock& block, const RenderBox& child, bool scrollsOverflowY)
+static bool tableCellShouldHaveZeroInitialSize(const RenderTableCell& tableCell, const RenderBox& child, bool scrollsOverflowY)
 {
     // Normally we would let the cell size intrinsically, but scrolling overflow has to be
     // treated differently, since WinIE lets scrolled overflow fragments shrink as needed.
@@ -3412,58 +3387,65 @@ static bool tableCellShouldHaveZeroInitialSize(const RenderBlock& block, const R
     // no size and allow the flexing of the table or the cell to its specified height to cause us
     // to grow to fill the space. This could end up being wrong in some cases, but it is
     // preferable to the alternative (sizing intrinsically and making the row end up too big).
-    const RenderTableCell& cell = downcast<RenderTableCell>(block);
-    return scrollsOverflowY && !child.shouldTreatChildAsReplaced() && (!cell.style().logicalHeight().isAuto() || !cell.table()->style().logicalHeight().isAuto());
+    if (!scrollsOverflowY)
+        return false;
+    if (tableCell.style().logicalHeight().isAuto() && tableCell.table()->style().logicalHeight().isAuto())
+        return false;
+    if (child.isReplacedOrAtomicInline())
+        return false;
+    if (is<HTMLFormControlElement>(child.element()) && !is<HTMLFieldSetElement>(child.element()))
+        return false;
+    return true;
 }
 
 std::optional<LayoutUnit> RenderBox::computePercentageLogicalHeight(const Length& height, UpdatePercentageHeightDescendants updateDescendants) const
 {
     bool skippedAutoHeightContainingBlock = false;
-    RenderBlock* cb = containingBlock();
+    auto* containingBlock = this->containingBlock();
     const RenderBox* containingBlockChild = this;
     LayoutUnit rootMarginBorderPaddingHeight;
     bool isHorizontal = isHorizontalWritingMode();
-    while (cb && !is<RenderView>(*cb) && skipContainingBlockForPercentHeightCalculation(*cb, isHorizontal != cb->isHorizontalWritingMode())) {
-        if (cb->isBody() || cb->isDocumentElementRenderer())
-            rootMarginBorderPaddingHeight += cb->marginBefore() + cb->marginAfter() + cb->borderAndPaddingLogicalHeight();
+    while (containingBlock && !is<RenderView>(*containingBlock) && skipContainingBlockForPercentHeightCalculation(*containingBlock, isHorizontal != containingBlock->isHorizontalWritingMode())) {
+        if (containingBlock->isBody() || containingBlock->isDocumentElementRenderer())
+            rootMarginBorderPaddingHeight += containingBlock->marginBefore() + containingBlock->marginAfter() + containingBlock->borderAndPaddingLogicalHeight();
         skippedAutoHeightContainingBlock = true;
-        containingBlockChild = cb;
-        cb = cb->containingBlock();
+        containingBlockChild = containingBlock;
+        containingBlock = containingBlock->containingBlock();
     }
     if (updateDescendants == UpdatePercentageHeightDescendants::Yes)
-        cb->addPercentHeightDescendant(const_cast<RenderBox&>(*this));
+        containingBlock->addPercentHeightDescendant(const_cast<RenderBox&>(*this));
 
-    if (isFlexItem() && view().frameView().layoutContext().isPercentHeightResolveDisabledFor(*this)) {
-        ASSERT(is<RenderBlock>(*this));
+    if (isFlexItem() && view().frameView().layoutContext().isPercentHeightResolveDisabledFor(*this))
         return { };
+
+    auto isOrthogonal = isHorizontal != containingBlock->isHorizontalWritingMode();
+    auto overridingAvailableSize = std::optional<LayoutUnit> { };
+    if (isGridItem()) {
+        if (auto gridAreaSize = isOrthogonal ? gridAreaContentLogicalWidth() : gridAreaContentLogicalHeight()) {
+            if (!*gridAreaSize)
+                return { };
+            overridingAvailableSize = *gridAreaSize;
+        }
+    }
+    if (CheckedPtr tableCell = dynamicDowncast<RenderTableCell>(*containingBlock); tableCell && !isOrthogonal) {
+        if (skippedAutoHeightContainingBlock)
+            return { };
+        // Table cells violate what the CSS spec says to do with heights. Basically we
+        // don't care if the cell specified a height or not. We just always make ourselves
+        // be a percentage of the cell's current content height.
+        auto tableCellLogicalHeight = tableCell->overridingBorderBoxLogicalHeight();
+        if (!tableCellLogicalHeight)
+            return tableCellShouldHaveZeroInitialSize(*tableCell, *this, scrollsOverflowY()) ? std::make_optional(0_lu) : std::nullopt;
+        // Note: can't use contentBoxLogicalHeight here on table cells due to intrinsic padding.
+        overridingAvailableSize = *tableCellLogicalHeight - tableCell->computedCSSPaddingBefore() - tableCell->computedCSSPaddingAfter() - tableCell->borderLogicalHeight() - tableCell->scrollbarLogicalHeight();
     }
 
-    auto availableHeight = std::optional<LayoutUnit> { };
-    auto isOrthogonal = isHorizontal != cb->isHorizontalWritingMode();
-    if (auto availableHeightForGridItem = isOrthogonal ? gridAreaContentLogicalWidth() : gridAreaContentLogicalHeight()) {
-        ASSERT(isGridItem());
-        availableHeight = *availableHeightForGridItem;
-    } else {
-        if (isOrthogonal)
-            availableHeight = containingBlockChild->containingBlockLogicalWidthForContent();
-        else if (is<RenderTableCell>(*cb)) {
-            if (!skippedAutoHeightContainingBlock) {
-                // Table cells violate what the CSS spec says to do with heights. Basically we
-                // don't care if the cell specified a height or not. We just always make ourselves
-                // be a percentage of the cell's current content height.
-                auto overridingLogicalHeight = cb->overridingBorderBoxLogicalHeight();
-                if (!overridingLogicalHeight)
-                    return tableCellShouldHaveZeroInitialSize(*cb, *this, scrollsOverflowY()) ? std::optional<LayoutUnit>(0) : std::nullopt;
-                availableHeight = *overridingLogicalHeight - cb->computedCSSPaddingBefore() - cb->computedCSSPaddingAfter() - cb->borderBefore() - cb->borderAfter() - cb->scrollbarLogicalHeight();
-            }
-        } else
-            availableHeight = cb->availableLogicalHeightForPercentageComputation();
-    }
+    auto availableHeight = !overridingAvailableSize ? (!isOrthogonal ? containingBlock->availableLogicalHeightForPercentageComputation() : containingBlockChild->containingBlockLogicalWidthForContent()) : overridingAvailableSize;
 
     if (!availableHeight)
         return { };
 
-    LayoutUnit result = valueForLength(height, availableHeight.value() - rootMarginBorderPaddingHeight + (isRenderTable() && isOutOfFlowPositioned() ? cb->paddingBefore() + cb->paddingAfter() : 0_lu));
+    auto result = valueForLength(height, *availableHeight - rootMarginBorderPaddingHeight + (isRenderTable() && isOutOfFlowPositioned() ? containingBlock->paddingBefore() + containingBlock->paddingAfter() : 0_lu));
     
     // |overridingLogicalHeight| is the maximum height made available by the
     // cell to its percent height children when we decide they can determine the
@@ -3471,7 +3453,7 @@ std::optional<LayoutUnit> RenderBox::computePercentageLogicalHeight(const Length
     // then we must subtract the border and padding from the cell's
     // |availableHeight| (given by |overridingLogicalHeight|) to arrive
     // at the child's computed height.
-    bool subtractBorderAndPadding = isRenderTable() || (is<RenderTableCell>(*cb) && !skippedAutoHeightContainingBlock && cb->overridingBorderBoxLogicalHeight() && style().boxSizing() == BoxSizing::ContentBox);
+    bool subtractBorderAndPadding = isRenderTable() || (is<RenderTableCell>(*containingBlock) && !skippedAutoHeightContainingBlock && containingBlock->overridingBorderBoxLogicalHeight() && style().boxSizing() == BoxSizing::ContentBox);
     if (subtractBorderAndPadding) {
         result -= borderAndPaddingLogicalHeight();
         return std::max(0_lu, result);
@@ -3491,7 +3473,7 @@ LayoutUnit RenderBox::computeReplacedLogicalWidthRespectingMinMaxWidth(LayoutUni
 
     auto& logicalMinWidth = style().logicalMinWidth();
     auto& logicalMaxWidth = style().logicalMaxWidth();
-    bool useLogicalWidthForMinWidth = (shouldComputePreferred == ShouldComputePreferred::ComputePreferred && logicalMinWidth.isPercentOrCalculated()) || logicalMinWidth.isUndefined();
+    bool useLogicalWidthForMinWidth = (shouldComputePreferred == ShouldComputePreferred::ComputePreferred && logicalMinWidth.isPercentOrCalculated());
     bool useLogicalWidthForMaxWidth = (shouldComputePreferred == ShouldComputePreferred::ComputePreferred && logicalMaxWidth.isPercentOrCalculated()) || logicalMaxWidth.isUndefined();
     auto minLogicalWidth =  useLogicalWidthForMinWidth ? logicalWidth : computeReplacedLogicalWidthUsing(SizeType::MinSize, logicalMinWidth);
     auto maxLogicalWidth =  useLogicalWidthForMaxWidth ? logicalWidth : computeReplacedLogicalWidthUsing(SizeType::MaxSize, logicalMaxWidth);
@@ -5377,7 +5359,8 @@ bool RenderBox::hasUnsplittableScrollingOverflow() const
 
 bool RenderBox::isUnsplittableForPagination() const
 {
-    return shouldTreatChildAsReplaced()
+    return isReplacedOrAtomicInline()
+        || (is<HTMLFormControlElement>(element()) && !is<HTMLFieldSetElement>(element()))
         || hasUnsplittableScrollingOverflow()
         || (parent() && isWritingModeRoot())
         || (isFloating() && style().pseudoElementType() == PseudoId::FirstLetter && style().initialLetterDrop() > 0)

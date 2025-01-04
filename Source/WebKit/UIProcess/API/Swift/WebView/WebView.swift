@@ -21,24 +21,21 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
 
-import SwiftUI
+#if ENABLE_SWIFTUI && compiler(>=6.0)
 
-struct BrowserView: View {
-    @Binding var url: URL?
+public import SwiftUI // FIXME: (283455) Do not import SwiftUI in WebKit proper.
 
-    @State private var viewModel = BrowserViewModel()
+@_spi(Private)
+public struct WebView_v0: View {
+    public init(_ page: WebPage_v0) {
+        self.page = page
+    }
 
-    var body: some View {
-        ContentView(url: $url)
-            .environment(viewModel)
+    let page: WebPage_v0
+
+    public var body: some View {
+        WebViewRepresentable(owner: self)
     }
 }
 
-#Preview {
-    @Previewable @State var viewModel = BrowserViewModel()
-
-    @Previewable @State var url: URL? = nil
-
-    BrowserView(url: $url)
-        .environment(viewModel)
-}
+#endif

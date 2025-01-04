@@ -207,10 +207,12 @@ private struct DialogMessageView: View {
 struct ContentView: View {
     @Binding var url: URL?
 
+    let initialRequest: URLRequest
+
     @State private var findNavigatorIsPresented = false
+    @State private var downloadsSheetPresented = false
 
-    @AppStorage(AppStorageKeys.homepage) private var homepage = "https://www.webkit.org"
-
+    @Environment(\.openWindow) private var openWindow
     @Environment(BrowserViewModel.self) private var viewModel
 
     #if os(iOS)
@@ -233,12 +235,25 @@ struct ContentView: View {
                         viewModel.didReceiveNavigationEvent(event)
                     }
                 }
+                .task {
+                    for await event in viewModel.page.downloads {
+                        viewModel.downloadCoordinator.didReceiveDownloadEvent(event)
+                    }
+                }
                 .onAppear {
-                    viewModel.displayedURL = homepage
+                    viewModel.displayedURL = initialRequest.url!.absoluteString
                     viewModel.navigateToSubmittedURL()
                 }
                 .onChange(of: viewModel.page.url) { _, newValue in
                     url = newValue
+                }
+                .onChange(of: viewModel.currentOpenRequest) { _, newValue in
+                    guard let newValue else {
+                        return
+                    }
+
+                    openWindow(value: CodableURLRequest(newValue.request))
+                    viewModel.currentOpenRequest = nil
                 }
                 .navigationTitle(viewModel.page.title)
                 #if os(iOS)
@@ -253,6 +268,10 @@ struct ContentView: View {
                 } message: { dialog in
                     DialogMessageView(dialog: dialog)
                 }
+                .sheet(isPresented: $downloadsSheetPresented) {
+                    DownloadsList(downloads: viewModel.downloadCoordinator.downloads)
+                        .presentationDetents([.medium, .large])
+                }
                 .toolbar {
                     ToolbarItemGroup(placement: Self.navigationToolbarItemPlacement) {
                         ToolbarBackForwardMenuView(
@@ -262,12 +281,29 @@ struct ContentView: View {
                             viewModel.page.load(backForwardItem: $0)
                         }
 
+                        #if os(iOS)
+                        Spacer()
+                        #endif
+
                         ToolbarBackForwardMenuView(
                             list: viewModel.page.backForwardList.forwardList,
                             label: .init(text: "Forward", systemImage: "chevron.forward", key: "]")
                         ) {
                             viewModel.page.load(backForwardItem: $0)
                         }
+
+                        #if os(iOS)
+
+                        Spacer()
+
+                        Button {
+                            downloadsSheetPresented.toggle()
+                        } label: {
+                            Label("Downloads", systemImage: "square.and.arrow.down")
+                                .labelStyle(.iconOnly)
+                        }
+
+                        #endif
 
                         Spacer()
 
@@ -293,6 +329,11 @@ struct ContentView: View {
 
     @Previewable @State var url: URL? = nil
 
-    ContentView(url: $url)
+    let request = {
+        let url = URL(string: "https://www.apple.com")!
+        return URLRequest(url: url)
+    }()
+
+    ContentView(url: $url, initialRequest: request)
         .environment(viewModel)
 }

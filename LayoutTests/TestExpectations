@@ -4211,8 +4211,6 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-position-under-
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-position-under-right-002.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-color-001.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-punctuation-1.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-punctuation-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-punctuation-3.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-007.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-style-008.html [ ImageOnlyFailure ]
@@ -6038,7 +6036,6 @@ imported/w3c/web-platform-tests/css/css-scroll-anchoring/nested-overflow-subtree
 # Disagreeing with the expected result (content should not wrap).
 webkit.org/b/245080 fast/text/whitespace/nowrap-clear-float.html [ Failure ]
 
-webkit.org/b/255255 fast/text/text-underline-vertical-first-line-decoration.html [ ImageOnlyFailure ]
 webkit.org/b/255287 fast/block/lineboxcontain/inline-box-vertical.html [ Failure ]
 
 # This should fail, but it flakey-passes, so skipping now.

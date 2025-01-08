@@ -4941,7 +4941,7 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
     if (mainFrameInPreviousProcess && preferences->siteIsolationEnabled())
         mainFrameInPreviousProcess->removeChildFrames();
 
-    ASSERT(m_legacyMainFrameProcess.ptr() != &provisionalPage->process());
+    ASSERT(m_legacyMainFrameProcess.ptr() != &provisionalPage->process() || preferences->siteIsolationEnabled());
 
     auto shouldDelayClosingUntilFirstLayerFlush = ShouldDelayClosingUntilFirstLayerFlush::No;
 #if PLATFORM(MAC)
@@ -9504,6 +9504,12 @@ void WebPageProxy::backForwardClearProvisionalItem(IPC::Connection& connection, 
         protectedBackForwardList()->clearProvisionalItem(*frameItem);
 }
 
+void WebPageProxy::backForwardCommitProvisionalItem(IPC::Connection& connection, BackForwardItemIdentifier itemID, BackForwardFrameItemIdentifier frameItemID)
+{
+    if (RefPtr frameItem = WebBackForwardListFrameItem::itemForID(itemID, frameItemID))
+        protectedBackForwardList()->commitProvisionalItem(*frameItem);
+}
+
 void WebPageProxy::backForwardItemAtIndex(int32_t index, FrameIdentifier frameID, CompletionHandler<void(RefPtr<FrameState>&&)>&& completionHandler)
 {
     // FIXME: This should verify that the web process requesting the item hosts the specified frame.
@@ -12615,7 +12621,7 @@ void WebPageProxy::drawToPDF(FrameIdentifier frameID, const std::optional<FloatR
     sendWithAsyncReply(Messages::WebPage::DrawToPDF(frameID, rect, allowTransparentBackground), WTFMove(callback));
 }
 
-void WebPageProxy::drawCompositedToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, CompletionHandler<void(RefPtr<SharedBuffer>&&)>&& callback)
+void WebPageProxy::drawRemoteToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, CompletionHandler<void(RefPtr<SharedBuffer>&&)>&& callback)
 {
     if (!hasRunningProcess()) {
         callback({ });
@@ -12624,10 +12630,10 @@ void WebPageProxy::drawCompositedToPDF(FrameIdentifier frameID, const std::optio
 
     auto snapshotIdentifier = SnapshotIdentifier::generate();
     m_pdfSnapshots.add(snapshotIdentifier, WTFMove(callback));
-    send(Messages::WebPage::DrawCompositedToPDF(frameID, rect, allowTransparentBackground, snapshotIdentifier));
+    send(Messages::WebPage::DrawRemoteToPDF(frameID, rect, allowTransparentBackground, snapshotIdentifier));
 }
 
-void WebPageProxy::didDrawCompositedToPDF(RefPtr<SharedBuffer>&& data, SnapshotIdentifier snapshotIdentifier)
+void WebPageProxy::didDrawRemoteToPDF(RefPtr<SharedBuffer>&& data, SnapshotIdentifier snapshotIdentifier)
 {
     auto callback = m_pdfSnapshots.take(snapshotIdentifier);
     if (!callback)

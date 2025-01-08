@@ -161,8 +161,10 @@ static CachedResourceHandle<CachedResource> createResource(CachedResource::Type 
 #endif
     case CachedResource::Type::LinkPrefetch:
         return new CachedResource(WTFMove(request), CachedResource::Type::LinkPrefetch, sessionID, cookieJar);
+#if ENABLE(VIDEO)
     case CachedResource::Type::TextTrackResource:
         return new CachedTextTrack(WTFMove(request), sessionID, cookieJar);
+#endif
 #if ENABLE(APPLICATION_MANIFEST)
     case CachedResource::Type::ApplicationManifest:
         return new CachedApplicationManifest(WTFMove(request), sessionID, cookieJar);
@@ -204,8 +206,10 @@ static CachedResourceHandle<CachedResource> createResource(CachedResourceRequest
 #endif
     case CachedResource::Type::LinkPrefetch:
         return new CachedResource(WTFMove(request), CachedResource::Type::LinkPrefetch, resource.sessionID(), resource.cookieJar());
+#if ENABLE(VIDEO)
     case CachedResource::Type::TextTrackResource:
         return new CachedTextTrack(WTFMove(request), resource.sessionID(), resource.cookieJar());
+#endif
 #if ENABLE(APPLICATION_MANIFEST)
     case CachedResource::Type::ApplicationManifest:
         return new CachedApplicationManifest(WTFMove(request), resource.sessionID(), resource.cookieJar());
@@ -1240,8 +1244,11 @@ ResourceErrorOr<CachedResourceHandle<CachedResource>> CachedResourceLoader::requ
 
     // See if we can use an existing resource from the cache.
     CachedResourceHandle<CachedResource> resource;
-    if (RefPtr document = this->document())
+    CheckedPtr<ContentSecurityPolicy> contentSecurityPolicy;
+    if (RefPtr document = this->document()) {
         request.setDomainForCachePartition(*document);
+        contentSecurityPolicy = document->contentSecurityPolicy();
+    }
 
     if (request.allowsCaching())
         resource = memoryCache->resourceForRequest(request.resourceRequest(), page->sessionID());
@@ -1326,6 +1333,12 @@ ResourceErrorOr<CachedResourceHandle<CachedResource>> CachedResourceLoader::requ
     }
     ASSERT(resource);
     resource->setOriginalRequest(WTFMove(originalRequest));
+
+    if (type == CachedResource::Type::Script && contentSecurityPolicy) {
+        auto hashes = contentSecurityPolicy->hashesToReport();
+        if (!hashes.isEmpty())
+            resource->setIsHashReportingNeeded();
+    }
 
     if (RefPtr subresourceLoader = resource->loader(); forPreload == ForPreload::No && subresourceLoader && resource->ignoreForRequestCount()) {
         subresourceLoader->clearRequestCountTracker();

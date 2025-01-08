@@ -5142,6 +5142,8 @@ void WebPage::releaseMemory(Critical)
     if (m_remoteRenderingBackendProxy)
         m_remoteRenderingBackendProxy->remoteResourceCacheProxy().releaseMemory();
 #endif
+
+    m_foundTextRangeController->clearCachedRanges();
 }
 
 void WebPage::willDestroyDecodedDataForAllImages()
@@ -6586,9 +6588,9 @@ void WebPage::drawToPDF(FrameIdentifier frameID, const std::optional<FloatRect>&
     completionHandler(buffer->sinkIntoPDFDocument());
 }
 
-void WebPage::drawCompositedToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, SnapshotIdentifier snapshotIdentifier)
+void WebPage::drawRemoteToPDF(FrameIdentifier frameID, const std::optional<FloatRect>& rect, bool allowTransparentBackground, SnapshotIdentifier snapshotIdentifier)
 {
-    ASSERT(m_page->settings().siteIsolationEnabled());
+    ASSERT(m_page->settings().remoteSnapshottingEnabled());
 
     RefPtr localMainFrame = this->localMainFrame();
     if (!localMainFrame)
@@ -6602,7 +6604,7 @@ void WebPage::drawCompositedToPDF(FrameIdentifier frameID, const std::optional<F
         return;
 
     drawMainFrameToPDF(*localMainFrame, buffer->context(), snapshotRect, allowTransparentBackground);
-    ensureProtectedRemoteRenderingBackendProxy()->didDrawCompositedToPDF(m_identifier, buffer->renderingResourceIdentifier(), snapshotIdentifier);
+    ensureProtectedRemoteRenderingBackendProxy()->didDrawRemoteToPDF(m_identifier, buffer->renderingResourceIdentifier(), snapshotIdentifier);
 }
 
 void WebPage::drawRectToImage(FrameIdentifier frameID, const PrintInfo& printInfo, const IntRect& rect, const WebCore::IntSize& imageSize, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& completionHandler)

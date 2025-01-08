@@ -44,6 +44,7 @@
 #include "EditorClient.h"
 #include "ElementAncestorIteratorInlines.h"
 #include "FloatRect.h"
+#include "FocusOptions.h"
 #include "FrameLoader.h"
 #include "FrameSelection.h"
 #include "HTMLAreaElement.h"
@@ -1523,6 +1524,8 @@ void AccessibilityRenderObject::setSelectedTextRange(CharacterRange&& range)
 
     if (isNativeTextControl()) {
         auto& textControl = uncheckedDowncast<RenderTextControl>(*m_renderer).textFormControlElement();
+        FocusOptions focusOptions { .preventScroll = true };
+        textControl.focus(focusOptions);
         textControl.setSelectionRange(range.location, range.location + range.length);
     } else if (m_renderer) {
         ASSERT(node());
@@ -1779,6 +1782,7 @@ void AccessibilityRenderObject::setSelectedVisiblePositionRange(const VisiblePos
         }
 
         setTextSelectionIntent(axObjectCache(), start == end ? AXTextStateChangeTypeSelectionMove : AXTextStateChangeTypeSelectionExtend);
+        textControl->focus();
         textControl->setSelectionRange(start, end);
     } else if (m_renderer) {
         // Make selection and tell the document to use it. If it's zero length, then move to that position.
@@ -1877,16 +1881,16 @@ CharacterRange AccessibilityRenderObject::doAXRangeForLine(unsigned lineNumber) 
     // Get the end of the line based on the starting position.
     auto lineEnd = endOfLine(lineStart);
 
-    int index1 = indexForVisiblePosition(lineStart);
-    int index2 = indexForVisiblePosition(lineEnd);
+    int lineStartIndex = indexForVisiblePosition(lineStart);
+    int lineEndIndex = indexForVisiblePosition(lineEnd);
 
     if (isHardLineBreak(lineEnd))
-        ++index2;
+        ++lineEndIndex;
 
-    if (index1 < 0 || index2 < 0 || index2 <= index1)
+    if (lineStartIndex < 0 || lineEndIndex < 0 || lineEndIndex <= lineStartIndex)
         return { };
 
-    return { static_cast<unsigned>(index1), static_cast<unsigned>(index2 - index1) };
+    return { static_cast<unsigned>(lineStartIndex), static_cast<unsigned>(lineEndIndex - lineStartIndex) };
 }
 
 // The composed character range in the text associated with this accessibility object that

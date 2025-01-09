@@ -677,6 +677,9 @@ void HTMLMediaElement::initializeMediaSession()
     }
 #endif
 
+    if (document->settings().requiresPageVisibilityForVideoToBeNowPlaying())
+        m_mediaSession->addBehaviorRestriction(MediaElementSession::RequirePageVisibilityForVideoToBeNowPlaying);
+
     registerWithDocument(document);
 
 #if USE(AUDIO_SESSION) && PLATFORM(MAC)
@@ -3762,10 +3765,6 @@ void HTMLMediaElement::seekWithTolerance(const SeekTarget& target, bool fromDOM)
     refreshCachedTime();
     MediaTime now = currentMediaTime();
 
-    // Needed to detect a special case in updatePlayState().
-    if (now >= durationMediaTime())
-        m_seekAfterPlaybackEnded = true;
-
     // 3 - If the element's seeking IDL attribute is true, then another instance of this algorithm is
     // already running. Abort that other instance of the algorithm without waiting for the step that
     // it is running to complete.
@@ -3953,8 +3952,6 @@ void HTMLMediaElement::finishSeek()
 #endif
     if (wasPlayingBeforeSeeking)
         playInternal();
-
-    m_seekAfterPlaybackEnded = false;
 }
 
 HTMLMediaElement::ReadyState HTMLMediaElement::readyState() const
@@ -4400,10 +4397,8 @@ void HTMLMediaElement::playInternal()
     if (!m_player || m_networkState == NETWORK_EMPTY)
         selectMediaResource();
 
-    if (endedPlayback()) {
-        m_seekAfterPlaybackEnded = true;
+    if (endedPlayback())
         seekInternal(MediaTime::zeroTime());
-    }
 
     if (RefPtr mediaController = m_mediaController)
         mediaController->bringElementUpToSpeed(*this);
@@ -6428,17 +6423,7 @@ void HTMLMediaElement::updatePlayState()
     if (shouldBePlaying) {
         invalidateCachedTime();
 
-        // Play is always allowed, except when seeking (to avoid unpausing the video by mistake until the
-        // target time is reached). However, there are some exceptional situations when we allow playback
-        // during seek. This is because GStreamer-based implementation have a design limitation that doesn't
-        // allow initial seeks (seeking before going to playing state), and these exceptions make things
-        // work for those platforms.
-        bool isLooping = loop() && m_lastSeekTime == MediaTime::zeroTime();
-        bool playExceptionsWhenSeeking = m_seeking && (m_firstTimePlaying
-            || isLooping || m_isResumingPlayback || m_seekAfterPlaybackEnded);
-        bool allowPlay = !m_seeking || playExceptionsWhenSeeking;
-
-        if (playerPaused && allowPlay) {
+        if (playerPaused) {
             mediaSession().clientWillBeginPlayback();
 
             // Set rate, muted and volume before calling play in case they were set before the media engine was set up.
@@ -9001,11 +8986,8 @@ void HTMLMediaElement::resumeAutoplaying()
 void HTMLMediaElement::mayResumePlayback(bool shouldResume)
 {
     ALWAYS_LOG(LOGIDENTIFIER, "paused = ", paused());
-    if (!ended() && paused() && shouldResume) {
-        m_isResumingPlayback = true;
+    if (!ended() && paused() && shouldResume)
         play();
-        m_isResumingPlayback = false;
-    }
 }
 
 String HTMLMediaElement::mediaSessionTitle() const
@@ -9918,7 +9900,7 @@ void HTMLMediaElement::logTextTrackDiagnostics(Ref<TextTrack> track, double numb
     textTrackDictionary.set(DiagnosticLoggingKeys::textTrackModeKey(), static_cast<uint64_t>(track->mode()));
     textTrackDictionary.set(DiagnosticLoggingKeys::secondsKey(), numberOfSeconds);
 
-    document().protectedPage()->diagnosticLoggingClient().logDiagnosticMessageWithValueDictionary(DiagnosticLoggingKeys::mediaVideoCodecWatchTimeKey(), "Media Watchtime Interval By Enabled Text Track"_s, textTrackDictionary, ShouldSample::Yes);
+    document().protectedPage()->diagnosticLoggingClient().logDiagnosticMessageWithValueDictionary(DiagnosticLoggingKeys::mediaTextTrackWatchTimeKey(), "Media Watchtime Interval By Enabled Text Track"_s, textTrackDictionary, ShouldSample::Yes);
 }
 
 void HTMLMediaElement::watchtimeTimerFired()

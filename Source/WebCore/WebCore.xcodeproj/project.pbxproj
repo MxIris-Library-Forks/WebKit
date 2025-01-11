@@ -320,7 +320,7 @@
 		0C45342810CDBBFA00869157 /* JSWebGLUniformLocation.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C45342610CDBBFA00869157 /* JSWebGLUniformLocation.h */; };
 		0D431A7D2B5A397C00864655 /* DigitalCredential.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D431A7C2B5A397C00864655 /* DigitalCredential.h */; };
 		0D431F002B9053DC001E222F /* DigitalCredentialRequestOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		0D431F012B905BC4001E222F /* IdentityRequestProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DED2B5DF55000B61C51 /* IdentityRequestProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0D431F012B905BC4001E222F /* DigitalCredentialRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DED2B5DF55000B61C51 /* DigitalCredentialRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D44C33E2ABA1B9F0017FB5D /* ThermalMitigationNotifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D8EF8122A9D511F000118F8 /* ThermalMitigationNotifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D649B392B9EA4E500D7F335 /* CredentialRequestCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D649B382B9EA4E500D7F335 /* CredentialRequestCoordinator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D649B482B9EC50300D7F335 /* CredentialRequestCoordinatorClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D649B472B9EC4E200D7F335 /* CredentialRequestCoordinatorClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7259,12 +7259,12 @@
 		0D2F291C2BC84EA100872B23 /* GPUQueueDescriptor.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUQueueDescriptor.idl; sourceTree = "<group>"; };
 		0D431A7C2B5A397C00864655 /* DigitalCredential.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredential.h; sourceTree = "<group>"; };
 		0D431A7E2B5A3A9700864655 /* DigitalCredential.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredential.idl; sourceTree = "<group>"; };
-		0D431A7F2B5A3A9700864655 /* IdentityRequestProvider.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IdentityRequestProvider.idl; sourceTree = "<group>"; };
+		0D431A7F2B5A3A9700864655 /* DigitalCredentialRequest.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredentialRequest.idl; sourceTree = "<group>"; };
 		0D431A802B5A3A9800864655 /* DigitalCredentialRequestOptions.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredentialRequestOptions.idl; sourceTree = "<group>"; };
 		0D431A842B5A42AB00864655 /* IdentityCredentialProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IdentityCredentialProtocol.h; sourceTree = "<group>"; };
 		0D431A862B5A42AB00864655 /* IdentityCredentialProtocol.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = IdentityCredentialProtocol.idl; sourceTree = "<group>"; };
 		0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredentialRequestOptions.h; sourceTree = "<group>"; };
-		0D494DED2B5DF55000B61C51 /* IdentityRequestProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IdentityRequestProvider.h; sourceTree = "<group>"; };
+		0D494DED2B5DF55000B61C51 /* DigitalCredentialRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredentialRequest.h; sourceTree = "<group>"; };
 		0D494DEE2B5E0B5200B61C51 /* DigitalCredential.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DigitalCredential.cpp; sourceTree = "<group>"; };
 		0D5C81052B8B0F560099BF96 /* WGSLLanguageFeatures.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WGSLLanguageFeatures.h; sourceTree = "<group>"; };
 		0D5C81062B8B0F580099BF96 /* WGSLLanguageFeatures.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WGSLLanguageFeatures.idl; sourceTree = "<group>"; };
@@ -22532,14 +22532,14 @@
 				0D494DEE2B5E0B5200B61C51 /* DigitalCredential.cpp */,
 				0D431A7C2B5A397C00864655 /* DigitalCredential.h */,
 				0D431A7E2B5A3A9700864655 /* DigitalCredential.idl */,
+				0D494DED2B5DF55000B61C51 /* DigitalCredentialRequest.h */,
+				0D431A7F2B5A3A9700864655 /* DigitalCredentialRequest.idl */,
 				0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */,
 				0D431A802B5A3A9800864655 /* DigitalCredentialRequestOptions.idl */,
 				0D431A842B5A42AB00864655 /* IdentityCredentialProtocol.h */,
 				0D431A862B5A42AB00864655 /* IdentityCredentialProtocol.idl */,
 				0DA1AE412B9183F900379D42 /* IdentityCredentialsContainer.cpp */,
 				0DA1AE3F2B91808500379D42 /* IdentityCredentialsContainer.h */,
-				0D494DED2B5DF55000B61C51 /* IdentityRequestProvider.h */,
-				0D431A7F2B5A3A9700864655 /* IdentityRequestProvider.idl */,
 				0DC0AED92B706E5700AF1E41 /* Navigator+Identity.idl */,
 				0DC0AEDA2B706E5700AF1E41 /* NavigatorIdentity.cpp */,
 				0DC0AEDB2B706E5700AF1E41 /* NavigatorIdentity.h */,
@@ -40593,6 +40593,7 @@
 				937FF3D51A1012D6008EBA31 /* DictionaryLookup.h in Headers */,
 				2D5646B01B8F8493003C4994 /* DictionaryPopupInfo.h in Headers */,
 				0D431A7D2B5A397C00864655 /* DigitalCredential.h in Headers */,
+				0D431F012B905BC4001E222F /* DigitalCredentialRequest.h in Headers */,
 				0D431F002B9053DC001E222F /* DigitalCredentialRequestOptions.h in Headers */,
 				FDAF19991513D131008DB0C3 /* DirectConvolver.h in Headers */,
 				835D54C51F4DE53800E60671 /* DirectoryFileListCreator.h in Headers */,
@@ -41346,7 +41347,6 @@
 				E4A814E01C7338EB00BF85AC /* IdChangeInvalidation.h in Headers */,
 				1A71D57C0F33819000F9CE4E /* IdentifierRep.h in Headers */,
 				0D77A8522B9063A700BBD327 /* IdentityCredentialProtocol.h in Headers */,
-				0D431F012B905BC4001E222F /* IdentityRequestProvider.h in Headers */,
 				49E911C50EF86D47009D0CAF /* IdentityTransformOperation.h in Headers */,
 				7CE9A12B1EA2F1DB00651AD1 /* IDLAttributes.json in Headers */,
 				9B864F06234C0893006D10EB /* IdleCallbackController.h in Headers */,

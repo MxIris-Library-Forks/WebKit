@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,38 +23,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
+#pragma once
 
-#import "PlatformUtilities.h"
-#import <WebKit/WKWebProcessPlugIn.h>
-#import <WebKit/WKWebProcessPlugInBrowserContextControllerPrivate.h>
-#import <WebKit/WKWebProcessPlugInFrame.h>
-#import <WebKit/WKWebProcessPlugInLoadDelegate.h>
-#import <wtf/RetainPtr.h>
+#include "IdentityCredentialProtocol.h"
+#include "OpenID4VPRequest.h"
 
-@interface DoubleDefersLoadingPlugIn : NSObject <WKWebProcessPlugIn, WKWebProcessPlugInLoadDelegate>
-@end
+namespace WebCore {
 
-@implementation DoubleDefersLoadingPlugIn {
-    int _sameDocCount;
-}
+struct DigitalCredentialRequest {
+    IdentityCredentialProtocol protocol;
+    OpenID4VPRequest data;
+};
 
-- (void)webProcessPlugIn:(WKWebProcessPlugInController *)plugInController didCreateBrowserContextController:(WKWebProcessPlugInBrowserContextController *)browserContextController
-{
-    browserContextController.loadDelegate = self;
-}
-
-- (void)webProcessPlugInBrowserContextController:(WKWebProcessPlugInBrowserContextController*)controller didSameDocumentNavigation:(_WKSameDocumentNavigationType)navigationType forFrame:(WKWebProcessPlugInFrame *)frame
-{
-    if (_sameDocCount == 2)
-        [controller _setDefersLoading:NO];
-
-    ++_sameDocCount;
-}
-
-- (void)dealloc
-{
-    [super dealloc];
-}
-
-@end
+} // namespace WebCore

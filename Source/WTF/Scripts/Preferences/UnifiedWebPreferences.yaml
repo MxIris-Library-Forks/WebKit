@@ -96,20 +96,6 @@ AVKitContentSourceEnabled:
     WebCore:
       default: false
 
-AbortSignalAnyOperationEnabled:
-  type: bool
-  category: dom
-  status: stable
-  humanReadableName: "AbortSignal.any() API"
-  humanReadableDescription: "Enable AbortSignal.any() API"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 AcceleratedCompositingEnabled:
   type: bool
   status: embedder
@@ -6074,20 +6060,6 @@ ReplayCGDisplayListsIntoBackingStore:
     WebKit:
       default: false
 
-ReportingEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Reporting API"
-  humanReadableDescription: "Enable Reporting API"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 RequestIdleCallbackEnabled:
   type: bool
   status: testable
@@ -6267,20 +6239,6 @@ RespondToThermalPressureAggressively:
     WebCore:
       "PLATFORM(IOS_FAMILY)": true
       default: false
-
-# FIXME: This is not relevent for WebKitLegacy, so should be excluded from WebKitLegacy entirely.
-RestrictedHTTPResponseAccess:
-  type: bool
-  status: internal
-  category: networking
-  humanReadableName: "Filter HTTP Response for Web Processes"
-  humanReadableDescription: "Enable HTTP Response filtering for Web Processes"
-  webcoreBinding: DeprecatedGlobalSettings
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
 
 RubberBandingForSubScrollableRegionsEnabled:
   type: bool

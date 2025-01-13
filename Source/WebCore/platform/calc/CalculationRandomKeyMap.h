@@ -24,40 +24,35 @@
 
 #pragma once
 
-#include "CSSColor.h"
-#include "CSSPrimitiveNumericTypes.h"
+#include "CalculationRandomKey.h"
+#include <wtf/CryptographicallyRandomNumber.h>
+#include <wtf/HashMap.h>
+#include <wtf/Ref.h>
+#include <wtf/RefCounted.h>
 
 namespace WebCore {
-namespace CSS {
+namespace Calculation {
 
-// <box-shadow> = <color>? && [<length>{2} <length [0,∞]>? <length>?] && inset?
-// https://drafts.csswg.org/css-backgrounds-3/#typedef-shadow
-struct BoxShadow {
-    Markable<Color> color;
-    SpaceSeparatedPoint<Length<>> location;
-    Markable<Length<Nonnegative>> blur;
-    Markable<Length<>> spread;
-    std::optional<Keyword::Inset> inset;
-    bool isWebkitBoxShadow;
+class RandomKeyMap final : public RefCounted<RandomKeyMap> {
+public:
+    static Ref<RandomKeyMap> create()
+    {
+        return adoptRef(*new RandomKeyMap);
+    }
 
-    bool operator==(const BoxShadow&) const = default;
+    double lookupUnitInterval(AtomString identifier, double min, double max, std::optional<double> step)
+    {
+        return m_map.ensure(RandomKey { identifier, min, max, step }, [] -> double {
+            // FIXME: Probably doesn't need to be cryptographically strong, but starting with this.
+            return cryptographicallyRandomUnitInterval();
+        }).iterator->value;
+    }
+
+private:
+    RandomKeyMap() = default;
+
+    HashMap<RandomKey, double> m_map;
 };
 
-template<size_t I> const auto& get(const BoxShadow& value)
-{
-    if constexpr (!I)
-        return value.color;
-    else if constexpr (I == 1)
-        return value.location;
-    else if constexpr (I == 2)
-        return value.blur;
-    else if constexpr (I == 3)
-        return value.spread;
-    else if constexpr (I == 4)
-        return value.inset;
-}
-
-} // namespace CSS
+} // namespace Calculation
 } // namespace WebCore
-
-DEFINE_SPACE_SEPARATED_TUPLE_LIKE_CONFORMANCE(WebCore::CSS::BoxShadow, 5)

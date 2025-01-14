@@ -4941,7 +4941,7 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
     if (mainFrameInPreviousProcess && preferences->siteIsolationEnabled())
         mainFrameInPreviousProcess->removeChildFrames();
 
-    ASSERT(m_legacyMainFrameProcess.ptr() != &provisionalPage->process() || preferences->siteIsolationEnabled());
+    ASSERT(m_legacyMainFrameProcess.ptr() != &provisionalPage->process());
 
     auto shouldDelayClosingUntilFirstLayerFlush = ShouldDelayClosingUntilFirstLayerFlush::No;
 #if PLATFORM(MAC)
@@ -9500,11 +9500,12 @@ void WebPageProxy::backForwardGoToProvisionalItem(IPC::Connection& connection, B
     completionHandler(backForwardList->counts());
 }
 
-void WebPageProxy::backForwardClearProvisionalItem(IPC::Connection& connection, BackForwardItemIdentifier itemID, BackForwardFrameItemIdentifier frameItemID)
+void WebPageProxy::backForwardClearProvisionalItem(IPC::Connection& connection, BackForwardItemIdentifier itemID, BackForwardFrameItemIdentifier frameItemID, CompletionHandler<void(const WebBackForwardListCounts&)>&& completionHandler)
 {
     MESSAGE_CHECK_BASE(!WebKit::isInspectorPage(*this), connection);
     if (RefPtr frameItem = WebBackForwardListFrameItem::itemForID(itemID, frameItemID))
         protectedBackForwardList()->clearProvisionalItem(*frameItem);
+    completionHandler(m_backForwardList->counts());
 }
 
 void WebPageProxy::backForwardCommitProvisionalItem(IPC::Connection& connection, BackForwardItemIdentifier itemID, BackForwardFrameItemIdentifier frameItemID)
@@ -10947,7 +10948,7 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
 
 #if ENABLE(FULLSCREEN_API)
     if (m_fullScreenManager) {
-        m_fullScreenManager->close();
+        m_fullScreenManager->detachFromClient();
         m_fullScreenManager = nullptr;
     }
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,7 +16,6 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
@@ -25,12 +24,33 @@
 
 #pragma once
 
+#include "CSSPrimitiveNumericTypes.h"
+#include "CSSPrimitiveValue.h"
+
 namespace WebCore {
+namespace CSS {
 
-#if USE(TZONE_MALLOC)
-WEBCORE_EXPORT void initializeHeapRefs();
-#else
-static inline void initializeHeapRefs() { }
-#endif
+// MARK: - Conversion from `WebCore::CSSValue` types to strongly typed `CSS::` value types.
 
+template<typename CSSType> struct CSSValueConversions;
+
+template<typename CSSType> CSSType convertFromCSSValue(const CSSValue& value)
+{
+    return CSSValueConversions<CSSType>{}(value);
+}
+
+template<Numeric CSSType> struct CSSValueConversions<CSSType> {
+    CSSType operator()(const CSSValue& value)
+    {
+        auto& primitiveValue = downcast<CSSPrimitiveValue>(value);
+        if (RefPtr calc = const_cast<CSSCalcValue*>(primitiveValue.cssCalcValue()))
+            return { typename CSSType::Calc { calc.releaseNonNull() } };
+
+        auto unit = CSSType::UnitTraits::validate(primitiveValue.primitiveType());
+        RELEASE_ASSERT(unit);
+        return CSSType { typename CSSType::Raw { *unit, primitiveValue.valueNoConversionDataRequired() } };
+    }
+};
+
+} // namespace CSS
 } // namespace WebCore

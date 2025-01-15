@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,7 +16,6 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
@@ -24,22 +23,37 @@
  */
 
 #include "config.h"
-#include "WebCoreHeapSupport.h"
+#include "CSSScrollPaddingEdgeValue.h"
 
-#if USE(TZONE_MALLOC)
+#include "CSSPrimitiveNumericTypes+CSSValueVisitation.h"
+#include "CSSPrimitiveNumericTypes+Serialization.h"
 
 namespace WebCore {
 
-DECLARE_TZONE_HEAPREF_SPECIFICATION_BOUNDS(WebCore);
-
-void initializeHeapRefs()
+Ref<CSSScrollPaddingEdgeValue> CSSScrollPaddingEdgeValue::create(CSS::ScrollPaddingEdge edge)
 {
-    static std::once_flag onceFlag;
-    std::call_once(onceFlag, [] {
-        PREINITIALIZE_TZONE_HEAPREFS(WebCore);
-    });
+    return adoptRef(*new CSSScrollPaddingEdgeValue(WTFMove(edge)));
+}
+
+CSSScrollPaddingEdgeValue::CSSScrollPaddingEdgeValue(CSS::ScrollPaddingEdge&& edge)
+    : CSSValue(ClassType::ScrollPaddingEdge)
+    , m_edge(WTFMove(edge))
+{
+}
+
+String CSSScrollPaddingEdgeValue::customCSSText() const
+{
+    return CSS::serializationForCSS(m_edge);
+}
+
+bool CSSScrollPaddingEdgeValue::equals(const CSSScrollPaddingEdgeValue& other) const
+{
+    return m_edge == other.m_edge;
+}
+
+IterationStatus CSSScrollPaddingEdgeValue::customVisitChildren(const Function<IterationStatus(CSSValue&)>& func) const
+{
+    return CSS::visitCSSValueChildren(func, m_edge);
 }
 
 } // namespace WebCore
-
-#endif // USE(TZONE_MALLOC)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,20 +25,35 @@
 
 #pragma once
 
-#if USE(APPLE_INTERNAL_SDK)
+#if ENABLE(FULLSCREEN_API)
 
-#import <AppAttestInternal/AppAttest.h>
+#include "MessageReceiver.h"
+#include <WebCore/PageIdentifier.h>
 
-#else
+namespace WebKit {
 
-WTF_EXTERN_C_BEGIN
+class WebFullScreenManagerProxy;
+class WebProcessProxy;
 
-BOOL AppAttest_WebAuthentication_IsSupported(void);
+class RemotePageFullscreenManagerProxy : public IPC::MessageReceiver, public RefCounted<RemotePageFullscreenManagerProxy> {
+public:
+    static Ref<RemotePageFullscreenManagerProxy> create(WebCore::PageIdentifier, WebFullScreenManagerProxy*, WebProcessProxy&);
 
-typedef void (^AppAttest_WebAuthentication_AttestKeyCompletionBlock) (NSArray * _Nullable certificates, NSError * _Nullable error);
+    ~RemotePageFullscreenManagerProxy();
 
-void AppAttest_WebAuthentication_AttestKey(SecKeyRef _Nonnull referenceKey, NSData * _Nonnull authenticatorData, NSData * _Nonnull clientDataHash, AppAttest_WebAuthentication_AttestKeyCompletionBlock _Nonnull completion);
+    void ref() const final { RefCounted::ref(); }
+    void deref() const final { RefCounted::deref(); }
 
-WTF_EXTERN_C_END
+private:
+    RemotePageFullscreenManagerProxy(WebCore::PageIdentifier, WebFullScreenManagerProxy*, WebProcessProxy&);
 
-#endif // USE(APPLE_INTERNAL_SDK)
+    void didReceiveMessage(IPC::Connection&, IPC::Decoder&) final;
+    bool didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&) final;
+
+    const WebCore::PageIdentifier m_identifier;
+    const WeakPtr<WebFullScreenManagerProxy> m_manager;
+    const Ref<WebProcessProxy> m_process;
+};
+
+}
+#endif

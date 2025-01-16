@@ -785,9 +785,11 @@ bool PageClientImpl::isFullScreen()
     return [webView fullScreenWindowController].isFullScreen;
 }
 
-void PageClientImpl::enterFullScreen(FloatSize mediaDimensions)
+void PageClientImpl::enterFullScreen(FloatSize mediaDimensions, CompletionHandler<void(bool)>&& completionHandler)
 {
-    [[webView() fullScreenWindowController] enterFullScreen:mediaDimensions];
+    if (![webView() fullScreenWindowController])
+        return completionHandler(false);
+    [[webView() fullScreenWindowController] enterFullScreen:mediaDimensions completionHandler:WTFMove(completionHandler)];
 }
 
 #if ENABLE(QUICKLOOK_FULLSCREEN)
@@ -976,12 +978,10 @@ Ref<ValidationBubble> PageClientImpl::createValidationBubble(const String& messa
     return ValidationBubble::create(m_contentView.getAutoreleased(), message, settings);
 }
 
-#if ENABLE(INPUT_TYPE_COLOR)
 RefPtr<WebColorPicker> PageClientImpl::createColorPicker(WebPageProxy*, const WebCore::Color& initialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&)
 {
     return nullptr;
 }
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
 RefPtr<WebDataListSuggestionsDropdown> PageClientImpl::createDataListSuggestionsDropdown(WebPageProxy& page)

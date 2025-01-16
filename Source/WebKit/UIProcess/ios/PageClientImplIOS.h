@@ -146,9 +146,7 @@ private:
     RefPtr<WebPopupMenuProxy> createPopupMenuProxy(WebPageProxy&) override;
     Ref<WebCore::ValidationBubble> createValidationBubble(const String& message, const WebCore::ValidationBubble::Settings&) final;
 
-#if ENABLE(INPUT_TYPE_COLOR)
     RefPtr<WebColorPicker> createColorPicker(WebPageProxy*, const WebCore::Color& initialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&) final;
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
     RefPtr<WebDataListSuggestionsDropdown> createDataListSuggestionsDropdown(WebPageProxy&) final;
@@ -248,7 +246,7 @@ private:
     // WebFullScreenManagerProxyClient
     void closeFullScreenManager() override;
     bool isFullScreen() override;
-    void enterFullScreen(WebCore::FloatSize mediaDimensions) override;
+    void enterFullScreen(WebCore::FloatSize mediaDimensions, CompletionHandler<void(bool)>&&) override;
 #if ENABLE(QUICKLOOK_FULLSCREEN)
     void updateImageSource() override;
 #endif

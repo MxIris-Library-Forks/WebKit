@@ -55,8 +55,10 @@
 #include "Chrome.h"
 #include "ChromeClient.h"
 #include "ClientOrigin.h"
+#include "ColorChooser.h"
 #include "ColorSerialization.h"
 #include "ComposedTreeIterator.h"
+#include "ContextMenuController.h"
 #include "CookieJar.h"
 #include "CrossOriginPreflightResultCache.h"
 #include "Cursor.h"
@@ -273,10 +275,6 @@
 
 #if USE(CG)
 #include "PDFDocumentImage.h"
-#endif
-
-#if ENABLE(INPUT_TYPE_COLOR)
-#include "ColorChooser.h"
 #endif
 
 #if ENABLE(MOUSE_CURSOR_SCALE)
@@ -603,6 +601,9 @@ void Internals::resetToConsistentState(Page& page)
     localMainFrame->loader().clearTestingOverrides();
     if (auto* applicationCacheStorage = page.applicationCacheStorage())
         applicationCacheStorage->setDefaultOriginQuota(ApplicationCacheStorage::noQuota());
+#if ENABLE(CONTEXT_MENUS)
+    page.contextMenuController().didDismissContextMenu();
+#endif
 #if ENABLE(VIDEO)
     page.group().ensureCaptionPreferences().setCaptionDisplayMode(CaptionUserPreferences::CaptionDisplayMode::ForcedOnly);
     page.group().ensureCaptionPreferences().setCaptionsStyleSheetOverride(emptyString());
@@ -3109,6 +3110,15 @@ unsigned Internals::numberOfLiveDocuments() const
 unsigned Internals::referencingNodeCount(const Document& document) const
 {
     return document.referencingNodeCount();
+}
+
+ExceptionOr<void> Internals::executeOpportunisticallyScheduledTasks() const
+{
+    Document* document = contextDocument();
+    if (!document || !document->page())
+        return Exception { ExceptionCode::InvalidAccessError };
+    document->page()->performOpportunisticallyScheduledTasks(MonotonicTime::now());
+    return { };
 }
 
 #if ENABLE(WEB_AUDIO)

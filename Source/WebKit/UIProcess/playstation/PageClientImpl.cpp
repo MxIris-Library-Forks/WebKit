@@ -221,6 +221,11 @@ bool PageClientImpl::usesOffscreenRendering() const
 }
 #endif
 
+RefPtr<WebColorPicker> PageClientImpl::createColorPicker(WebPageProxy*, const WebCore::Color&, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&)
+{
+    return nullptr;
+}
+
 void PageClientImpl::enterAcceleratedCompositingMode(const LayerTreeContext& context)
 {
     notImplemented();
@@ -252,9 +257,9 @@ bool PageClientImpl::isFullScreen()
     return m_view.isFullScreen();
 }
 
-void PageClientImpl::enterFullScreen()
+void PageClientImpl::enterFullScreen(CompletionHandler<void(bool)>&& completionHandler)
 {
-    m_view.enterFullScreen();
+    m_view.enterFullScreen(WTFMove(completionHandler));
 }
 
 void PageClientImpl::exitFullScreen()

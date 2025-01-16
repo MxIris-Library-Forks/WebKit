@@ -6408,16 +6408,6 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-createImageBitmap.https.any
 imported/w3c/web-platform-tests/webcodecs/video-encoder.https.any.worker.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/webcodecs/video-encoder.https.any.html [ DumpJSConsoleLogInStdErr ]
 
-# These tests don't actually have render blocking (due to adding the blocking too late, or non-matching
-# media queries etc). They expect the test to render midway through parsing, but our existing layer tree
-# freezing prevents that. These tests fail intentionally, unless we decide to change our existing heuristics.
-imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-007.html [ Failure ]
-imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-014.html [ Failure ]
-imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-017.html [ Failure ]
-imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-018.html [ Failure ]
-imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-022.html [ Failure ]
-imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-036.html [ Failure ]
-
 webkit.org/b/278192 imported/w3c/web-platform-tests/html/dom/render-blocking/element-render-blocking-033.html [ Failure ]
 
 webkit.org/b/258192 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.worker.html?h264_avc [ Pass Failure ]
@@ -6607,7 +6597,7 @@ imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-6.htm
 imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-7.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scrollbars/scrollbar-color-dynamic-8.html [ Skip ]
 
-# Imported WPT css-tables which are crashing or fails.
+# Imported WPT /css/css-tables which are crashing or fails.
 imported/w3c/web-platform-tests/css/css-tables/calc-percent-plus-0px-auto.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/calc-percent-plus-0px-fixed.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/col-definite-max-size-001.html [ ImageOnlyFailure ]
@@ -6638,11 +6628,21 @@ imported/w3c/web-platform-tests/css/css-tables/tentative/paint/collapsed-border-
 imported/w3c/web-platform-tests/css/css-tables/tentative/paint/overflow-hidden-table.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/tentative/section-no-tbody-fixed-distribution.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/tentative/section-no-tbody-percent-distribution.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-tables/visibility-collapse-border-spacing.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/visibility-collapse-colspan-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/visibility-collapse-rowspan-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/whitespace-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/html5-table-formatting-fixed-layout-1.html [ Pass Failure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/collapsed-border-remove-row-group.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-as-item-cell-percentage-001.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-as-item-cell-percentage-003.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-as-item-cell-percentage-004.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-intrinsic-size-003.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/table-intrinsic-size-004.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/tentative/padding-percentage.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/visibility-collapse-border-spacing-001.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/visibility-collapse-border-spacing-002.html [ ImageOnlyFailure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/inheritance.html [ Failure ]
+webkit.org/b/285971 imported/w3c/web-platform-tests/css/css-tables/parsing/border-spacing-computed.html [ Failure ]
 
 # New failures after re-importing css-overflow
 imported/w3c/web-platform-tests/css/css-overflow/margin-block-end-scroll-area-001.html [ Skip ]
@@ -7524,7 +7524,6 @@ webkit.org/b/282024 fast/text/text-box-edge-with-margin-padding-border-simple.ht
 # -- Anchor Positioning -- #
 
 # general failures
-imported/w3c/web-platform-tests/css/css-anchor-position/position-area-scrolling-003.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-scroll.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-003.html [ ImageOnlyFailure ]

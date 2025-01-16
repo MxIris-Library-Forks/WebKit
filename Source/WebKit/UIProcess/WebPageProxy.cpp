@@ -5044,7 +5044,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         return;
     }
 
-    Ref browsingContextGroup = newProcess->websiteDataStore() == &websiteDataStore() && !navigation.isRequestFromClientOrUserInput() ? m_browsingContextGroup : BrowsingContextGroup::create();
+    Ref browsingContextGroup = newProcess->websiteDataStore() == &websiteDataStore() ? m_browsingContextGroup : BrowsingContextGroup::create();
     Ref frameProcess = browsingContextGroup->ensureProcessForSite(navigationSite, newProcess, preferences);
     // Make sure we destroy any existing ProvisionalPageProxy object *before* we construct a new one.
     // It is important from the previous provisional page to unregister itself before we register a
@@ -8354,7 +8354,6 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
             *originatingFrameInfoData.frameID
         } });
         configuration->setOpenedSite(openerFrame->frameProcess().site());
-        configuration->setBrowsingContextGroup(m_browsingContextGroup.copyRef());
     } else {
         configuration->setOpenerInfo(std::nullopt);
         configuration->setBrowsingContextGroup(BrowsingContextGroup::create());
@@ -9054,8 +9053,6 @@ void WebPageProxy::restartXRSessionActivityOnProcessResumeIfNeeded()
 }
 #endif
 
-#if ENABLE(INPUT_TYPE_COLOR)
-
 void WebPageProxy::showColorPicker(IPC::Connection& connection, const WebCore::Color& initialColor, const IntRect& elementRect, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&& suggestions)
 {
     MESSAGE_CHECK_BASE(supportsAlpha == ColorControlSupportsAlpha::No || m_preferences->inputTypeColorEnhancementsEnabled(), connection);
@@ -9065,6 +9062,9 @@ void WebPageProxy::showColorPicker(IPC::Connection& connection, const WebCore::C
         return;
 
     internals().colorPicker = pageClient->createColorPicker(this, initialColor, elementRect, supportsAlpha, WTFMove(suggestions));
+    // FIXME: Remove this conditional once all ports have a functional PageClientImpl::createColorPicker.
+    if (!internals().colorPicker)
+        return;
     internals().colorPicker->showColorPicker(initialColor);
 }
 
@@ -9105,8 +9105,6 @@ void WebPageProxy::Internals::didEndColorPicker()
 
     protectedPage->send(Messages::WebPage::DidEndColorPicker());
 }
-
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
 
@@ -9878,8 +9876,10 @@ void WebPageProxy::didShowContextMenu()
 
 void WebPageProxy::didDismissContextMenu()
 {
-    send(Messages::WebPage::DidDismissContextMenu());
-
+    RunLoop::main().dispatch([weakPage = WeakPtr { *this }] {
+        if (RefPtr page = weakPage.get())
+            page->send(Messages::WebPage::DidDismissContextMenu());
+    });
     if (RefPtr pageClient = this->pageClient())
         pageClient->didDismissContextMenu();
 }
@@ -13725,9 +13725,7 @@ void WebPageProxy::closeOverlayedViews()
     endDataListSuggestions();
 #endif
 
-#if ENABLE(INPUT_TYPE_COLOR)
     endColorPicker();
-#endif
 
 #if ENABLE(DATE_AND_TIME_INPUT_TYPES)
     endDateTimePicker();

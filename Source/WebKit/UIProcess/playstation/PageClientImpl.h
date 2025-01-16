@@ -36,6 +36,8 @@ namespace WebKit {
 class DrawingAreaProxy;
 class PlayStationWebView;
 
+enum class ColorControlSupportsAlpha : bool;
+
 class PageClientImpl final : public PageClient
 #if ENABLE(FULLSCREEN_API)
     , public WebFullScreenManagerProxyClient
@@ -115,6 +117,8 @@ private:
 
     RefPtr<WebPopupMenuProxy> createPopupMenuProxy(WebPageProxy&) override;
 
+    RefPtr<WebColorPicker> createColorPicker(WebPageProxy*, const WebCore::Color& intialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&) override;
+
     void enterAcceleratedCompositingMode(const LayerTreeContext&) override;
     void exitAcceleratedCompositingMode() override;
     void updateAcceleratedCompositingMode(const LayerTreeContext&) override;
@@ -129,7 +133,7 @@ private:
 
     void closeFullScreenManager() override;
     bool isFullScreen() override;
-    void enterFullScreen() override;
+    void enterFullScreen(CompletionHandler<void(bool)>&&) override;
     void exitFullScreen() override;
     void beganEnterFullScreen(const WebCore::IntRect& initialFrame, const WebCore::IntRect& finalFrame) override;
     void beganExitFullScreen(const WebCore::IntRect& initialFrame, const WebCore::IntRect& finalFrame) override;

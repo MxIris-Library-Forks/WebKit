@@ -1914,12 +1914,10 @@ void WebPage::close()
         m_activeOpenPanelResultListener = nullptr;
     }
 
-#if ENABLE(INPUT_TYPE_COLOR)
     if (RefPtr activeColorChooser = m_activeColorChooser.get()) {
         activeColorChooser->disconnectFromPage();
         m_activeColorChooser = nullptr;
     }
-#endif
 
 #if PLATFORM(GTK)
     m_printOperation = nullptr;
@@ -2578,9 +2576,11 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
     if (auto* pluginView = mainFramePlugIn()) {
         // Since the main-frame PDF plug-in handles the page scale factor, make sure to reset WebCore's page scale.
         // Otherwise, we can end up with an immutable but non-1 page scale applied by WebCore on top of whatever the plugin does.
-        if (m_page->pageScaleFactor() != 1)
-            m_page->setPageScaleFactor(1, origin);
-        pluginView->setPageScaleFactor(totalScale, { origin });
+        if (pluginView->shouldRespectPageScaleAdjustments()) {
+            if (m_page->pageScaleFactor() != 1)
+                m_page->setPageScaleFactor(1, origin);
+            pluginView->setPageScaleFactor(totalScale, { origin });
+        }
         return;
     }
 #endif
@@ -2592,8 +2592,10 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
         return;
 
 #if ENABLE(PDF_PLUGIN)
-    for (auto& pluginView : m_pluginViews)
-        pluginView.setPageScaleFactor(totalScale, { origin });
+    for (auto& pluginView : m_pluginViews) {
+        if (pluginView.shouldRespectPageScaleAdjustments())
+            pluginView.setPageScaleFactor(totalScale, { origin });
+    }
 #endif
 
 #if USE(COORDINATED_GRAPHICS) || USE(TEXTURE_MAPPER)
@@ -5215,8 +5217,7 @@ Ref<VideoPresentationManager> WebPage::protectedVideoPresentationManager()
 void WebPage::videoControlsManagerDidChange()
 {
 #if ENABLE(FULLSCREEN_API)
-    if (auto* manager = fullScreenManager())
-        manager->videoControlsManagerDidChange();
+    fullScreenManager().videoControlsManagerDidChange();
 #endif
 }
 
@@ -5308,11 +5309,16 @@ void WebPage::setAllowsMediaDocumentInlinePlayback(bool allows)
 #endif
 
 #if ENABLE(FULLSCREEN_API)
-WebFullScreenManager* WebPage::fullScreenManager()
+WebFullScreenManager& WebPage::fullScreenManager()
 {
     if (!m_fullScreenManager)
         m_fullScreenManager = WebFullScreenManager::create(*this);
-    return m_fullScreenManager.get();
+    return *m_fullScreenManager;
+}
+
+Ref<WebFullScreenManager> WebPage::protectedFullscreenManager()
+{
+    return fullScreenManager();
 }
 
 void WebPage::isInFullscreenChanged(IsInFullscreenMode isInFullscreenMode)
@@ -5609,8 +5615,6 @@ void WebPage::setActivePopupMenu(WebPopupMenu* menu)
     m_activePopupMenu = menu;
 }
 
-#if ENABLE(INPUT_TYPE_COLOR)
-
 WebColorChooser* WebPage::activeColorChooser() const
 {
     return m_activeColorChooser.get();
@@ -5632,8 +5636,6 @@ void WebPage::didChooseColor(const WebCore::Color& color)
     if (RefPtr activeColorChooser = m_activeColorChooser.get())
         activeColorChooser->didChooseColor(color);
 }
-
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
 
@@ -6222,7 +6224,7 @@ bool WebPage::dispatchMessage(IPC::Connection& connection, IPC::Decoder& decoder
 
 #if ENABLE(FULLSCREEN_API)
     if (decoder.messageReceiverName() == Messages::WebFullScreenManager::messageReceiverName()) {
-        fullScreenManager()->didReceiveMessage(connection, decoder);
+        fullScreenManager().didReceiveMessage(connection, decoder);
         return true;
     }
 #endif
@@ -7044,6 +7046,31 @@ void WebPage::insertTextAsync(const String& text, const EditingRange& replacemen
         }
     } else
         frame->editor().confirmComposition(text);
+
+    auto baseWritingDirectionFromInputMode = [&] -> std::optional<WritingDirection> {
+        auto direction = options.directionFromCurrentInputMode;
+        if (!direction)
+            return { };
+
+        if (text != "\n"_s)
+            return { };
+
+        auto selection = frame->selection().selection();
+        if (!selection.isCaret() || !selection.isContentEditable())
+            return { };
+
+        auto start = selection.visibleStart();
+        if (!isStartOfLine(start) || !isEndOfLine(start))
+            return { };
+
+        if (direction == directionOfEnclosingBlock(start.deepEquivalent()))
+            return { };
+
+        return { direction == TextDirection::LTR ? WritingDirection::LeftToRight : WritingDirection::RightToLeft };
+    }();
+
+    if (baseWritingDirectionFromInputMode)
+        frame->editor().setBaseWritingDirection(*baseWritingDirectionFromInputMode);
 
     if (focusedElement && options.shouldSimulateKeyboardInput) {
         focusedElement->dispatchEvent(Event::create(eventNames().keyupEvent, Event::CanBubble::Yes, Event::IsCancelable::Yes));
@@ -9457,19 +9484,15 @@ void WebPage::scrollToRect(const WebCore::FloatRect& targetRect, const WebCore::
 #if ENABLE(IMAGE_ANALYSIS) && ENABLE(VIDEO)
 void WebPage::beginTextRecognitionForVideoInElementFullScreen(const HTMLVideoElement& element)
 {
-    RefPtr view = element.document().view();
-    if (!view)
-        return;
-
     auto mediaPlayerIdentifier = element.playerIdentifier();
     if (!mediaPlayerIdentifier)
         return;
 
-    auto* renderer = element.renderer();
+    CheckedPtr renderer = element.renderer();
     if (!renderer)
         return;
 
-    auto rectInRootView = view->contentsToRootView(renderer->videoBox());
+    auto rectInRootView = renderer->videoBoxInRootView();
     if (rectInRootView.isEmpty())
         return;
 

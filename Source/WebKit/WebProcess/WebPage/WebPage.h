@@ -621,7 +621,8 @@ public:
 #endif
 
 #if ENABLE(FULLSCREEN_API)
-    WebFullScreenManager* fullScreenManager();
+    WebFullScreenManager& fullScreenManager();
+    Ref<WebFullScreenManager> protectedFullscreenManager();
 
     enum class IsInFullscreenMode : bool { No, Yes };
     void isInFullscreenChanged(IsInFullscreenMode);
@@ -680,12 +681,10 @@ public:
 
     inline void setHiddenPageDOMTimerThrottlingIncreaseLimit(Seconds);
 
-#if ENABLE(INPUT_TYPE_COLOR)
     WebColorChooser* activeColorChooser() const;
     void setActiveColorChooser(WebColorChooser*);
     void didChooseColor(const WebCore::Color&);
     void didEndColorPicker();
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
     void setActiveDataListSuggestionPicker(WebDataListSuggestionPicker&);
@@ -2636,9 +2635,7 @@ private:
     RefPtr<WebContextMenu> m_contextMenu;
 #endif
 
-#if ENABLE(INPUT_TYPE_COLOR)
     WeakPtr<WebColorChooser> m_activeColorChooser;
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
     WeakPtr<WebDataListSuggestionPicker> m_activeDataListSuggestionPicker;

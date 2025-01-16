@@ -34,6 +34,7 @@
 #include "TouchGestureController.h"
 #include "WPEWebViewLegacy.h"
 #include "WPEWebViewPlatform.h"
+#include "WebColorPicker.h"
 #include "WebContextMenuProxy.h"
 #include "WebContextMenuProxyWPE.h"
 #include "WebKitPopupMenu.h"
@@ -291,6 +292,11 @@ Ref<WebContextMenuProxy> PageClientImpl::createContextMenuProxy(WebPageProxy& pa
 }
 #endif
 
+RefPtr<WebColorPicker> PageClientImpl::createColorPicker(WebPageProxy*, const WebCore::Color& intialColor, const WebCore::IntRect&, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&&)
+{
+    return nullptr;
+}
+
 void PageClientImpl::enterAcceleratedCompositingMode(const LayerTreeContext& context)
 {
 #if ENABLE(WPE_PLATFORM)
@@ -403,12 +409,12 @@ bool PageClientImpl::isFullScreen()
     return m_view.isFullScreen();
 }
 
-void PageClientImpl::enterFullScreen()
+void PageClientImpl::enterFullScreen(CompletionHandler<void(bool)>&& completionHandler)
 {
     if (isFullScreen())
-        return;
+        return completionHandler(false);
 
-    m_view.willEnterFullScreen();
+    m_view.willEnterFullScreen(WTFMove(completionHandler));
 #if ENABLE(WPE_PLATFORM)
     if (m_view.wpeView()) {
         static_cast<WKWPE::ViewPlatform&>(m_view).enterFullScreen();

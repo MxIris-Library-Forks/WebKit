@@ -152,9 +152,7 @@ private:
     void didDismissContextMenu() override;
 #endif
 
-#if ENABLE(INPUT_TYPE_COLOR)
     RefPtr<WebColorPicker> createColorPicker(WebPageProxy*, const WebCore::Color& initialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&) override;
-#endif
 
 #if ENABLE(DATALIST_ELEMENT)
     RefPtr<WebDataListSuggestionsDropdown> createDataListSuggestionsDropdown(WebPageProxy&) override;
@@ -224,7 +222,7 @@ private:
     // WebFullScreenManagerProxyClient
     void closeFullScreenManager() override;
     bool isFullScreen() override;
-    void enterFullScreen() override;
+    void enterFullScreen(CompletionHandler<void(bool)>&&) override;
     void exitFullScreen() override;
     void beganEnterFullScreen(const WebCore::IntRect& initialFrame, const WebCore::IntRect& finalFrame) override;
     void beganExitFullScreen(const WebCore::IntRect& initialFrame, const WebCore::IntRect& finalFrame) override;

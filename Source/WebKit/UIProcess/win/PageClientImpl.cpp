@@ -196,12 +196,10 @@ Ref<WebContextMenuProxy> PageClientImpl::createContextMenuProxy(WebPageProxy& pa
 }
 #endif
 
-#if ENABLE(INPUT_TYPE_COLOR)
 RefPtr<WebColorPicker> PageClientImpl::createColorPicker(WebPageProxy*, const WebCore::Color& intialColor, const WebCore::IntRect&, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&&)
 {
     return nullptr;
 }
-#endif
 
 void PageClientImpl::enterAcceleratedCompositingMode(const LayerTreeContext& layerTreeContext)
 {
@@ -316,9 +314,10 @@ bool PageClientImpl::isFullScreen()
     return false;
 }
 
-void PageClientImpl::enterFullScreen()
+void PageClientImpl::enterFullScreen(CompletionHandler<void(bool)>&& completionHandler)
 {
     notImplemented();
+    completionHandler(false);
 }
 
 void PageClientImpl::exitFullScreen()

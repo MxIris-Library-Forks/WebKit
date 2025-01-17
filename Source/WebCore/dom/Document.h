@@ -160,6 +160,7 @@ class HTMLCanvasElement;
 class HTMLCollection;
 class HTMLDialogElement;
 class HTMLDocument;
+class HTMLDocumentParser;
 class HTMLElement;
 class HTMLFrameOwnerElement;
 class HTMLHeadElement;
@@ -876,7 +877,8 @@ public:
     DocumentParser* parser() const { return m_parser.get(); }
     inline RefPtr<DocumentParser> protectedParser() const; // Defined in DocumentInlines.h.
     ScriptableDocumentParser* scriptableDocumentParser() const;
-    
+    HTMLDocumentParser* htmlDocumentParser() const;
+
     bool printing() const { return m_printing; }
     void setPrinting(bool p) { m_printing = p; }
 
@@ -1227,8 +1229,9 @@ public:
 
     WEBCORE_EXPORT Document* parentDocument() const;
     RefPtr<Document> protectedParentDocument() const { return parentDocument(); }
-    WEBCORE_EXPORT Document& topDocument() const;
-    Ref<Document> protectedTopDocument() const { return topDocument(); }
+
+    WEBCORE_EXPORT Document* mainFrameDocument() const;
+    RefPtr<Document> protectedMainFrameDocument() const { return mainFrameDocument(); }
     WEBCORE_EXPORT bool isTopDocument() const;
 
     WEBCORE_EXPORT RefPtr<Document> localTopDocument() const;
@@ -1829,7 +1832,7 @@ public:
     enum class ImplicitRenderBlocking : bool { No, Yes };
     void blockRenderingOn(Element&, ImplicitRenderBlocking = ImplicitRenderBlocking::No);
     void unblockRenderingOn(Element&);
-    void processInternalResourceLinks(HTMLAnchorElement* = nullptr);
+    void processInternalResourceLinks(Element* = nullptr);
 
 #if ENABLE(VIDEO)
     WEBCORE_EXPORT void forEachMediaElement(const Function<void(HTMLMediaElement&)>&);
@@ -2142,11 +2145,13 @@ private:
     void updateCaptureAccordingToMutedState();
     MediaProducerMediaStateFlags computeCaptureState() const;
 #endif
-    bool isTopDocumentLegacy() const { return &topDocument() == this; }
+    bool isTopDocumentLegacy() const { return mainFrameDocument() == this; }
     void securityOriginDidChange() final;
 
     Ref<DocumentSyncData> syncData() { return m_syncData.get(); }
     void populateDocumentSyncDataForNewlyConstructedDocument(ProcessSyncDataType);
+
+    bool mainFrameDocumentHasHadUserInteraction() const;
 
     const Ref<const Settings> m_settings;
 

@@ -534,7 +534,7 @@ void UnifiedPDFPlugin::ensureLayers()
     if (!m_rootLayer) {
         m_rootLayer = createGraphicsLayer("UnifiedPDFPlugin root"_s, GraphicsLayer::Type::Normal);
         m_rootLayer->setAnchorPoint({ });
-        m_rootLayer->setBackgroundColor(WebCore::roundAndClampToSRGBALossy([WebCore::CocoaColor grayColor].CGColor));
+        m_rootLayer->setBackgroundColor(pluginBackgroundColor());
         m_rootLayer->setAppliesPageScale();
     }
 
@@ -754,7 +754,7 @@ void UnifiedPDFPlugin::paint(GraphicsContext& context, const IntRect&)
     FloatRect clipRect { FloatPoint(m_scrollOffset), size() };
 
     context.clip(clipRect);
-    context.fillRect(clipRect, WebCore::roundAndClampToSRGBALossy([WebCore::CocoaColor grayColor].CGColor));
+    context.fillRect(clipRect, pluginBackgroundColor());
     context.scale(m_scaleFactor);
 
     auto paddingForCentering = centeringOffset();
@@ -3075,8 +3075,6 @@ void UnifiedPDFPlugin::continueAutoscroll()
         return;
 
     auto lastKnownMousePositionInPluginSpace = lastKnownMousePositionInView();
-
-    // FIXME: If the window is on a screen boundary, the user can't drag-scroll with this delta. Implement something like autoscrollAdjustmentFactorForScreenBoundaries.
     auto scrollDelta = [&lastKnownMousePositionInPluginSpace, pluginBounds = FloatRect { { }, size() }]() -> IntSize {
         auto scrollDeltaLength = [](auto position, auto limit) -> int {
             if (position > limit)
@@ -3089,6 +3087,15 @@ void UnifiedPDFPlugin::continueAutoscroll()
 
         return { scrollDeltaWidth, scrollDeltaHeight };
     }();
+
+#if PLATFORM(MAC)
+    if (RefPtr page = this->page()) {
+        auto frame = toUserSpaceForPrimaryScreen(screenRectForDisplay(page->chrome().displayID()));
+        auto screenPoint = toUserSpaceForPrimaryScreen(page->chrome().rootViewToScreen(convertFromPluginToRootView(lastKnownMousePositionInPluginSpace)));
+        auto scrollAdjustmentBasedOnScreenBoundaries = EventHandler::autoscrollAdjustmentFactorForScreenBoundaries(screenPoint, frame);
+        scrollDelta += scrollAdjustmentBasedOnScreenBoundaries;
+    }
+#endif // PLATFORM(MAC)
 
     if (scrollDelta.isZero())
         return;

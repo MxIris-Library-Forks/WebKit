@@ -2598,10 +2598,6 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
     }
 #endif
 
-#if USE(COORDINATED_GRAPHICS) || USE(TEXTURE_MAPPER)
-    protectedDrawingArea()->deviceOrPageScaleFactorChanged();
-#endif
-
     platformDidScalePage();
 }
 
@@ -2727,10 +2723,6 @@ void WebPage::setDeviceScaleFactor(float scaleFactor)
         layoutIfNeeded();
         findController().deviceScaleFactorDidChange();
     }
-
-#if USE(COORDINATED_GRAPHICS) || USE(TEXTURE_MAPPER)
-    protectedDrawingArea()->deviceOrPageScaleFactorChanged();
-#endif
 }
 
 float WebPage::deviceScaleFactor() const
@@ -2741,6 +2733,17 @@ float WebPage::deviceScaleFactor() const
 void WebPage::accessibilitySettingsDidChange()
 {
     m_page->accessibilitySettingsDidChange();
+}
+
+void WebPage::enableAccessibilityForAllProcesses()
+{
+    send(Messages::WebPageProxy::EnableAccessibilityForAllProcesses());
+}
+
+void WebPage::enableAccessibility()
+{
+    if (!WebCore::AXObjectCache::accessibilityEnabled())
+        WebCore::AXObjectCache::enableAccessibility();
 }
 
 void WebPage::screenPropertiesDidChange()
@@ -4339,10 +4342,17 @@ IntPoint WebPage::screenToRootView(const IntPoint& point)
     auto [windowPoint] = sendResult.takeReplyOr(IntPoint { });
     return windowPoint;
 }
-    
+
+IntPoint WebPage::rootViewToScreen(const IntPoint& point)
+{
+    auto sendResult = sendSync(Messages::WebPageProxy::RootViewPointToScreen(point));
+    auto [screenPoint] = sendResult.takeReplyOr(IntPoint { });
+    return screenPoint;
+}
+
 IntRect WebPage::rootViewToScreen(const IntRect& rect)
 {
-    auto sendResult = sendSync(Messages::WebPageProxy::RootViewToScreen(rect.toRectWithExtentsClippedToNumericLimits()));
+    auto sendResult = sendSync(Messages::WebPageProxy::RootViewRectToScreen(rect.toRectWithExtentsClippedToNumericLimits()));
     auto [screenRect] = sendResult.takeReplyOr(IntRect { });
     return screenRect;
 }

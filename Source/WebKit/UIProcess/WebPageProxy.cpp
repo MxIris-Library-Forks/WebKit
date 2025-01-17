@@ -4048,7 +4048,7 @@ void WebPageProxy::sendWheelEvent(WebCore::FrameIdentifier frameID, const WebWhe
                 return;
             }
 
-            if (RefPtr frame = WebFrameProxy::webFrame(frameID))
+            if (RefPtr frame = WebFrameProxy::webFrame(frameID); frame && frame->process().hasConnection())
                 MESSAGE_CHECK(frame->protectedProcess(), protectedThis->wheelEventCoalescer().hasEventsBeingProcessed());
 
             protectedThis->handleWheelEventReply(wheelEvent, nodeID, gestureState, wasHandledForScrolling, handled);
@@ -5528,6 +5528,13 @@ void WebPageProxy::accessibilitySettingsDidChange()
     send(Messages::WebPage::AccessibilitySettingsDidChange());
 }
 
+void WebPageProxy::enableAccessibilityForAllProcesses()
+{
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.send(Messages::WebPage::EnableAccessibility(), pageID);
+    });
+}
+
 void WebPageProxy::setUseFixedLayout(bool fixed)
 {
     // This check is fine as the value is initialized in the web
@@ -6067,6 +6074,8 @@ void WebPageProxy::getRenderTreeExternalRepresentation(CompletionHandler<void(co
 
 void WebPageProxy::getSourceForFrame(WebFrameProxy* frame, CompletionHandler<void(const String&)>&& callback)
 {
+    if (!frame)
+        return callback({ });
     sendWithAsyncReply(Messages::WebPage::GetSourceForFrame(frame->frameID()), WTFMove(callback));
 }
 
@@ -8654,7 +8663,13 @@ void WebPageProxy::screenToRootView(const IntPoint& screenPoint, CompletionHandl
     reply(pageClient ? pageClient->screenToRootView(screenPoint) : IntPoint { });
 }
 
-void WebPageProxy::rootViewToScreen(const IntRect& viewRect, CompletionHandler<void(const IntRect&)>&& reply)
+void WebPageProxy::rootViewPointToScreen(const IntPoint& viewPoint, CompletionHandler<void(const IntPoint&)>&& reply)
+{
+    RefPtr pageClient = this->pageClient();
+    reply(pageClient ? pageClient->rootViewToScreen(viewPoint) : IntPoint { });
+}
+
+void WebPageProxy::rootViewRectToScreen(const IntRect& viewRect, CompletionHandler<void(const IntRect&)>&& reply)
 {
     RefPtr pageClient = this->pageClient();
     reply(pageClient ? pageClient->rootViewToScreen(viewRect) : IntRect { });

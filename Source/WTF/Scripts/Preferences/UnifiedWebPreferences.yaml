@@ -5262,6 +5262,18 @@ MouseEventsSimulationEnabled:
     WebCore:
       default: false
 
+MutationEventsEnabled:
+  type: bool
+  status: mature
+  humanReadableName: "DOM mutation events"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+
 MuteCameraOnMicrophoneInterruptionEnabled:
   type: bool
   status: internal
@@ -8416,7 +8428,7 @@ WebCodecsAV1Enabled:
 
 WebCodecsAudioEnabled:
   type: bool
-  status: stable
+  status: preview
   category: media
   humanReadableName: "WebCodecs Audio API"
   humanReadableDescription: "Enable WebCodecs Audio API"
@@ -8426,11 +8438,9 @@ WebCodecsAudioEnabled:
       default: false
     WebKit:
       "USE(GSTREAMER)": true
-      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       "USE(GSTREAMER)": true
-      "PLATFORM(COCOA)": true
       default: false
 
 WebCodecsHEVCEnabled:

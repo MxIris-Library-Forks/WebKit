@@ -74,7 +74,7 @@ OBJC_CLASS NSMutableDictionary;
 #endif
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
-#include "DMABufRendererBufferMode.h"
+#include "RendererBufferTransportMode.h"
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -471,7 +471,7 @@ public:
 #endif
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
-    const OptionSet<DMABufRendererBufferMode>& dmaBufRendererBufferMode() const { return m_dmaBufRendererBufferMode; }
+    const OptionSet<RendererBufferTransportMode>& rendererBufferTransportMode() const { return m_rendererBufferTransportMode; }
     void initializePlatformDisplayIfNeeded() const;
 #endif
 
@@ -489,6 +489,10 @@ public:
 
 #if PLATFORM(COCOA)
     void registerAdditionalFonts(AdditionalFonts&&);
+#endif
+
+#if HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
+    bool isOptInCookiePartitioningEnabled() { return m_isOptInCookiePartitioningEnabled; }
 #endif
 
 private:
@@ -833,7 +837,7 @@ private:
     WeakHashMap<WebCore::UserGestureToken, WebCore::UserGestureTokenIdentifier> m_userGestureTokens;
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
-    OptionSet<DMABufRendererBufferMode> m_dmaBufRendererBufferMode;
+    OptionSet<RendererBufferTransportMode> m_rendererBufferTransportMode;
 #endif
 
     bool m_hasSuspendedPageProxy { false };
@@ -893,6 +897,9 @@ private:
     bool m_isWebTransportEnabled { false };
 #if ENABLE(ACCESSIBILITY_NON_BLINKING_CURSOR)
     bool m_prefersNonBlinkingCursor { false };
+#endif
+#if HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
+    bool m_isOptInCookiePartitioningEnabled { false };
 #endif
 
     String m_mediaKeysStorageDirectory;

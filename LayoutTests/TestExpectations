@@ -3688,6 +3688,7 @@ webkit.org/b/187183 http/tests/security/pasteboard-file-url.html [ Skip ]
 [ Debug ] fast/inline/line-clamp-discard-assert.html [ Skip ]
 
 webkit.org/b/202805 [ Debug ] fast/multicol/fragflow-gains-new-in-flow-descendant-crash.html [ Skip ]
+[ Debug ] fast/multicol/out-of-flow-child-crash-with-fragments.html [ Skip ]
 
 webkit.org/b/252597 fast/multicol/split-in-top-margin.html [ ImageOnlyFailure ]
 
@@ -6037,6 +6038,9 @@ imported/w3c/web-platform-tests/css/css-scroll-anchoring/vertical-rl-viewport-si
 imported/w3c/web-platform-tests/css/css-scroll-anchoring/vertical-rl-viewport-size-change-001.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scroll-anchoring/nested-overflow-subtree-layout-vertical.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scroll-anchoring/nested-overflow-subtree-layout.html [ Skip ]
+
+# uncategorized dialog element failures
+webkit.org/b/286022 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/dialog-close-via-attribute.tentative.html [ Skip ]
 
 # Disagreeing with the expected result (content should not wrap).
 webkit.org/b/245080 fast/text/whitespace/nowrap-clear-float.html [ Failure ]

@@ -86,6 +86,9 @@ LayerTreeHost::LayerTreeHost(WebPage& webPage, WebCore::PlatformDisplayID displa
 {
     {
         auto& rootLayer = m_sceneState->rootLayer();
+#if ENABLE(DAMAGE_TRACKING)
+        rootLayer.setDamagePropagation(webPage.corePage()->settings().propagateDamagingInformation());
+#endif
         Locker locker { rootLayer.lock() };
         rootLayer.setAnchorPoint(FloatPoint3D(0, 0, 0));
         rootLayer.setSize(m_webPage.size());
@@ -98,9 +101,9 @@ LayerTreeHost::LayerTreeHost(WebPage& webPage, WebCore::PlatformDisplayID displa
     scheduleLayerFlush();
 
 #if HAVE(DISPLAY_LINK)
-    m_compositor = ThreadedCompositor::create(*this, m_webPage.deviceScaleFactor());
+    m_compositor = ThreadedCompositor::create(*this);
 #else
-    m_compositor = ThreadedCompositor::create(*this, *this, m_webPage.deviceScaleFactor(), displayID);
+    m_compositor = ThreadedCompositor::create(*this, *this, displayID);
 #endif
 #if ENABLE(DAMAGE_TRACKING)
     auto damagePropagation = ([](const Settings& settings) {
@@ -193,6 +196,12 @@ void LayerTreeHost::flushLayers()
 #endif
     page->finalizeRenderingUpdate(flags);
 
+    if (m_pendingResize) {
+        auto& rootLayer = m_sceneState->rootLayer();
+        Locker locker { rootLayer.lock() };
+        rootLayer.setSize(page->size());
+    }
+
 #if PLATFORM(GTK)
     // If we have an active transient zoom, we want the zoom to win over any changes
     // that WebCore makes to the relevant layers, so re-apply our changes after flushing.
@@ -206,10 +215,11 @@ void LayerTreeHost::flushLayers()
 #endif
 
     bool didChangeSceneState = m_sceneState->flush();
-    if (m_compositionRequired || m_forceFrameSync || didChangeSceneState)
+    if (m_compositionRequired || m_pendingResize || m_forceFrameSync || didChangeSceneState)
         commitSceneState();
 
     m_compositionRequired = false;
+    m_pendingResize = false;
     m_forceFrameSync = false;
 
     page->didUpdateRendering();
@@ -326,13 +336,7 @@ void LayerTreeHost::ensureDrawing()
 
 void LayerTreeHost::sizeDidChange(const IntSize& size)
 {
-    {
-        auto& rootLayer = m_sceneState->rootLayer();
-        Locker locker { rootLayer.lock() };
-        rootLayer.setSize(size);
-    }
-
-    m_compositor->setViewportSize(size, m_webPage.deviceScaleFactor());
+    m_pendingResize = true;
     if (m_isWaitingForRenderer)
         scheduleLayerFlush();
     else
@@ -364,12 +368,6 @@ FloatRect LayerTreeHost::visibleContentsRect() const
     return m_webPage.bounds();
 }
 
-void LayerTreeHost::deviceOrPageScaleFactorChanged()
-{
-    m_webPage.corePage()->pageOverlayController().didChangeDeviceScaleFactor();
-    m_compositor->setViewportSize(m_webPage.size(), m_webPage.deviceScaleFactor());
-}
-
 void LayerTreeHost::backgroundColorDidChange()
 {
     m_compositor->backgroundColorDidChange();
@@ -377,6 +375,9 @@ void LayerTreeHost::backgroundColorDidChange()
 
 void LayerTreeHost::attachLayer(CoordinatedPlatformLayer& layer)
 {
+#if ENABLE(DAMAGE_TRACKING)
+    layer.setDamagePropagation(webPage().corePage()->settings().propagateDamagingInformation());
+#endif
     m_sceneState->addLayer(layer);
 }
 

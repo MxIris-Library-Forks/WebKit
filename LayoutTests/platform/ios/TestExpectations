@@ -7493,8 +7493,6 @@ imported/w3c/web-platform-tests/css/css-box/margin-trim/computed-margin-values/b
 imported/w3c/web-platform-tests/mediacapture-insertable-streams/VideoTrackGenerator-with-window-tracks.https.html [ Pass Failure ]
 
 # webkit.org/b/277432 (REGRESSION (281139@main): [ Ventura iOS18 ] 2 WebCrypto layout tests failing after CryptoKit enablement.)
-imported/w3c/web-platform-tests/WebCryptoAPI/import_export/ec_importKey.https.any.html [ Failure ]
-imported/w3c/web-platform-tests/WebCryptoAPI/import_export/ec_importKey.https.any.worker.html [ Failure ]
 imported/w3c/web-platform-tests/WebCryptoAPI/derive_bits_keys/cfrg_curves_bits_curve25519.https.any.html [ Failure ]
 imported/w3c/web-platform-tests/WebCryptoAPI/derive_bits_keys/cfrg_curves_bits_curve25519.https.any.worker.html [ Failure ]
 imported/w3c/web-platform-tests/WebCryptoAPI/sign_verify/eddsa_small_order_points.https.any.html [ Failure ]
@@ -7669,3 +7667,8 @@ fast/forms/switch/pointer-tracking.html [ Timeout ]
 imported/w3c/web-platform-tests/navigation-api/navigation-activation/activation-traverse-not-in-entries.html [ Failure ]
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/disambigaute-forward.html [ Failure ]
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/disambigaute-traverseTo-forward-multiple.html [ Failure ]
+
+# webkit.org./b/286168 [ iOS Debug ] 3 imported/w3c/web-platform-tests/css/css-contain/contain-size-replaced-003*.html tests are constantly crashing
+[ Debug ] imported/w3c/web-platform-tests/css/css-contain/contain-size-replaced-003a.html [ Crash ]
+[ Debug ] imported/w3c/web-platform-tests/css/css-contain/contain-size-replaced-003b.html [ Crash ]
+[ Debug ] imported/w3c/web-platform-tests/css/css-contain/contain-size-replaced-003c.html [ Crash ]

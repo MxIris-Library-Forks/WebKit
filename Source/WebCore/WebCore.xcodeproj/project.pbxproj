@@ -1648,6 +1648,7 @@
 		45830D4E1679B4F800ACF8C3 /* AutoscrollController.h in Headers */ = {isa = PBXBuildFile; fileRef = 45830D4C1679B4F800ACF8C3 /* AutoscrollController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		458FE40A1589DF0B005609E6 /* RenderSearchField.h in Headers */ = {isa = PBXBuildFile; fileRef = 458FE4081589DF0B005609E6 /* RenderSearchField.h */; };
 		45B5D8612A968620004C85A0 /* LoaderMalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 45B5D85F2A968620004C85A0 /* LoaderMalloc.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		45EA87922D35D30400DD0194 /* CSSParserFastPaths.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E522BE2A8FB00AE645C /* CSSParserFastPaths.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		45FEA5D0156DDE8C00654101 /* Decimal.h in Headers */ = {isa = PBXBuildFile; fileRef = 45FEA5CE156DDE8C00654101 /* Decimal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46014ACC28333F65004C0B84 /* FrameDestructionObserverInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 46014ACB28333F52004C0B84 /* FrameDestructionObserverInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		460357FD2B9A3E8D00010695 /* IDBDatabaseConnectionIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 460357FC2B9A3E8C00010695 /* IDBDatabaseConnectionIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -2977,6 +2978,7 @@
 		7B3ED30E2A4CDDE60042B08A /* CookieSameSite.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B3ED3092A4CDCD50042B08A /* CookieSameSite.h */; };
 		7B3ED30F2A4CDDEB0042B08A /* CookieStoreDeleteOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B3ED30B2A4CDD010042B08A /* CookieStoreDeleteOptions.h */; };
 		7B6094DD270C44BD0064835C /* ANGLEUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB34A1625345CB200029D08 /* ANGLEUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7B66CFD52D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B720B0C2743DBA70008ABED /* GraphicsLayerContentsDisplayDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B720B0A2743DBA60008ABED /* GraphicsLayerContentsDisplayDelegate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B8ED5F026F0C13D008AC023 /* CVUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B8ED5ED26F0C123008AC023 /* CVUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B95CFEB2754FF6E000060CE /* GraphicsContextGLState.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B95CFE92754FF6E000060CE /* GraphicsContextGLState.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -13748,6 +13750,8 @@
 		7B434D1329DB0FD00062E8D1 /* PlatformCALayerDelegatedContents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformCALayerDelegatedContents.h; sourceTree = "<group>"; };
 		7B5A3DAB27ABF8C4006C6F97 /* VideoFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoFrame.cpp; sourceTree = "<group>"; };
 		7B5A3DAD27ABF8C4006C6F97 /* VideoFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoFrame.h; sourceTree = "<group>"; };
+		7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOSurfaceDrawingBuffer.h; sourceTree = "<group>"; };
+		7B66CFD32D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IOSurfaceDrawingBuffer.cpp; sourceTree = "<group>"; };
 		7B720B0A2743DBA60008ABED /* GraphicsLayerContentsDisplayDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsLayerContentsDisplayDelegate.h; sourceTree = "<group>"; };
 		7B8ED5ED26F0C123008AC023 /* CVUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVUtilities.h; sourceTree = "<group>"; };
 		7B8ED5EF26F0C123008AC023 /* CVUtilities.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CVUtilities.mm; sourceTree = "<group>"; };
@@ -34210,6 +34214,8 @@
 				B27535500B053814002CE64F /* IntRectCocoa.mm */,
 				2D0B4AA918DA1CCD00434DE1 /* IOSurface.h */,
 				2D0B4AAA18DA1CCD00434DE1 /* IOSurface.mm */,
+				7B66CFD32D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.cpp */,
+				7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */,
 				AD9FF6E01908391D003B61E0 /* IOSurfacePoolCocoa.mm */,
 				CDC48AC82149CF2A0024FD59 /* MediaEngineConfigurationFactoryCocoa.cpp */,
 				CDC48AC72149CF2A0024FD59 /* MediaEngineConfigurationFactoryCocoa.h */,
@@ -40443,6 +40449,7 @@
 				BCFE79AD2BE3082000114272 /* CSSParser.h in Headers */,
 				BCFE79AA2BE307C900114272 /* CSSParserContext.h in Headers */,
 				BCFE79B32BE308D000114272 /* CSSParserEnum.h in Headers */,
+				45EA87922D35D30400DD0194 /* CSSParserFastPaths.h in Headers */,
 				BCFE79B02BE308AD00114272 /* CSSParserIdioms.h in Headers */,
 				BCFE79AC2BE3081700114272 /* CSSParserMode.h in Headers */,
 				BCFE79AF2BE308A200114272 /* CSSParserToken.h in Headers */,
@@ -41625,6 +41632,7 @@
 				B27535750B053814002CE64F /* IntSize.h in Headers */,
 				B27535760B053814002CE64F /* IntSizeHash.h in Headers */,
 				2D0B4AAB18DA1CCD00434DE1 /* IOSurface.h in Headers */,
+				7B66CFD52D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h in Headers */,
 				1C21E57D183ED1FF001C289D /* IOSurfacePool.h in Headers */,
 				6DD53F3D2C49D37F0049F1C5 /* IsLoggedIn.h in Headers */,
 				CD5FF4992162E2BE004BD86F /* ISOBox.h in Headers */,

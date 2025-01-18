@@ -1453,8 +1453,7 @@ void WebPageProxy::swapToProvisionalPage(Ref<ProvisionalPageProxy>&& provisional
     setDrawingArea(provisionalPage->takeDrawingArea());
     ASSERT(!m_mainFrame);
     m_mainFrame = provisionalPage->mainFrame();
-
-    if (!protectedPreferences()->siteIsolationEnabled())
+    if (provisionalPage->needsMainFrameObserver())
         m_mainFrame->frameLoadState().addObserver(internals().protectedPageLoadTimingFrameLoadStateObserver());
 
     // FIXME: Think about what to do if the provisional page didn't get its browsing context group from the SuspendedPageProxy.
@@ -4941,7 +4940,7 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
     if (mainFrameInPreviousProcess && preferences->siteIsolationEnabled())
         mainFrameInPreviousProcess->removeChildFrames();
 
-    ASSERT(m_legacyMainFrameProcess.ptr() != &provisionalPage->process());
+    ASSERT(m_legacyMainFrameProcess.ptr() != &provisionalPage->process() || preferences->siteIsolationEnabled());
 
     auto shouldDelayClosingUntilFirstLayerFlush = ShouldDelayClosingUntilFirstLayerFlush::No;
 #if PLATFORM(MAC)
@@ -5044,7 +5043,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         return;
     }
 
-    Ref browsingContextGroup = newProcess->websiteDataStore() == &websiteDataStore() ? m_browsingContextGroup : BrowsingContextGroup::create();
+    Ref browsingContextGroup = newProcess->websiteDataStore() == &websiteDataStore() && !navigation.isRequestFromClientOrUserInput() ? m_browsingContextGroup : BrowsingContextGroup::create();
     Ref frameProcess = browsingContextGroup->ensureProcessForSite(navigationSite, newProcess, preferences);
     // Make sure we destroy any existing ProvisionalPageProxy object *before* we construct a new one.
     // It is important from the previous provisional page to unregister itself before we register a
@@ -6286,31 +6285,8 @@ void WebPageProxy::preferencesDidChange()
     // Preferences need to be updated during synchronous printing to make "print backgrounds" preference work when toggled from a print dialog checkbox.
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         std::optional<uint64_t> sharedPreferencesVersion;
-        if (auto sharedPreferences = webProcess.updateSharedPreferencesForWebProcess(preferences().store())) {
+        if (auto sharedPreferences = webProcess.updateSharedPreferences(preferences().store()))
             sharedPreferencesVersion = sharedPreferences->version;
-            if (RefPtr networkProcess = websiteDataStore().networkProcessIfExists()) {
-                networkProcess->sharedPreferencesForWebProcessDidChange(webProcess, WTFMove(*sharedPreferences), [weakWebProcess = WeakPtr { webProcess }, syncedVersion = sharedPreferences->version]() {
-                    if (RefPtr webProcess = weakWebProcess.get())
-                        webProcess->didSyncSharedPreferencesForWebProcessWithNetworkProcess(syncedVersion);
-                });
-            }
-#if ENABLE(GPU_PROCESS)
-            if (RefPtr gpuProcess = webProcess.processPool().gpuProcess()) {
-                gpuProcess->sharedPreferencesForWebProcessDidChange(webProcess, WTFMove(*sharedPreferences), [weakWebProcess = WeakPtr { webProcess }, syncedVersion = sharedPreferences->version]() {
-                    if (RefPtr webProcess = weakWebProcess.get())
-                        webProcess->didSyncSharedPreferencesForWebProcessWithGPUProcess(syncedVersion);
-                });
-            }
-#endif
-#if ENABLE(MODEL_PROCESS)
-            if (RefPtr modelProcess = webProcess.processPool().modelProcess()) {
-                modelProcess->sharedPreferencesForWebProcessDidChange(webProcess, WTFMove(*sharedPreferences), [weakWebProcess = WeakPtr { webProcess }, syncedVersion = sharedPreferences->version]() {
-                    if (RefPtr webProcess = weakWebProcess.get())
-                        webProcess->didSyncSharedPreferencesForWebProcessWithModelProcess(syncedVersion);
-                });
-            }
-#endif
-        }
 
         if (m_isPerformingDOMPrintOperation) {
             ASSERT(!sharedPreferencesVersion);
@@ -8363,6 +8339,7 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
             *originatingFrameInfoData.frameID
         } });
         configuration->setOpenedSite(openerFrame->frameProcess().site());
+        configuration->setBrowsingContextGroup(m_browsingContextGroup.copyRef());
     } else {
         configuration->setOpenerInfo(std::nullopt);
         configuration->setBrowsingContextGroup(BrowsingContextGroup::create());

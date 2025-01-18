@@ -54,7 +54,7 @@ public:
     bool requiresLayer() const override;
 
     bool requiresLayerWithScrollableArea() const;
-    bool backgroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect) const final;
+    bool backgroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect) const override;
 
     LayoutUnit x() const { return m_frameRect.x(); }
     LayoutUnit y() const { return m_frameRect.y(); }
@@ -619,7 +619,7 @@ public:
     inline std::optional<LayoutUnit> explicitIntrinsicInnerLogicalWidth() const;
     inline std::optional<LayoutUnit> explicitIntrinsicInnerLogicalHeight() const;
 
-    bool establishesIndependentFormattingContext() const override;
+    bool establishesIndependentFormattingContext(const RenderStyle* overridingStyle = nullptr) const override;
 
     void updateFloatPainterAfterSelfPaintingLayerChange();
 

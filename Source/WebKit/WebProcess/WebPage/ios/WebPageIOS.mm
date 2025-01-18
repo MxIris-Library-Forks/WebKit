@@ -686,10 +686,11 @@ void WebPage::updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebC
     [accessibilityRemoteObject() setRemoteFrameOffset:offset];
 }
 
-void WebPage::registerRemoteFrameAccessibilityTokens(pid_t pid, std::span<const uint8_t> elementToken)
+void WebPage::registerRemoteFrameAccessibilityTokens(pid_t pid, std::span<const uint8_t> elementToken, WebCore::FrameIdentifier frameID)
 {
     createMockAccessibilityElement(pid);
     [m_mockAccessibilityElement setRemoteTokenData:toNSData(elementToken).get()];
+    [m_mockAccessibilityElement setFrameIdentifier:frameID];
 }
 
 void WebPage::createMockAccessibilityElement(pid_t pid)
@@ -5505,10 +5506,14 @@ void WebPage::requestDocumentEditingContext(DocumentEditingContextRequest&& requ
             if (RefPtr rootEditableElement = selection.rootEditableElement()) {
                 VisiblePosition startOfEditableRoot { firstPositionInOrBeforeNode(rootEditableElement.get()) };
                 VisiblePosition endOfEditableRoot { lastPositionInOrAfterNode(rootEditableElement.get()) };
-                if (rangeOfInterest.start < startOfEditableRoot)
-                    rangeOfInterest.start = WTFMove(startOfEditableRoot);
-                if (rangeOfInterest.end > endOfEditableRoot)
-                    rangeOfInterest.end = WTFMove(endOfEditableRoot);
+                auto clampToEditableRoot = [&](VisiblePosition& position) {
+                    if (position < startOfEditableRoot)
+                        position = startOfEditableRoot;
+                    else if (position > endOfEditableRoot)
+                        position = endOfEditableRoot;
+                };
+                clampToEditableRoot(rangeOfInterest.start);
+                clampToEditableRoot(rangeOfInterest.end);
             }
         }
     } else if (!selection.isNone())

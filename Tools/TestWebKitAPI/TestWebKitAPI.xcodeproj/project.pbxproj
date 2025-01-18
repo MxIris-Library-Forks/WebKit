@@ -188,6 +188,7 @@
 		44D5008E26FE9ED6000EB12F /* RetainPtrARC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 44D5008D26FE9ED6000EB12F /* RetainPtrARC.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		44FBAEFF2C7A7FDB00AF51BC /* RetainPtrHashingCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 44FBAEFD2C7A7FDB00AF51BC /* RetainPtrHashingCocoa.mm */; };
 		44FBAF002C7A7FDB00AF51BC /* RetainPtrHashingCocoaARC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 44FBAEFE2C7A7FDB00AF51BC /* RetainPtrHashingCocoaARC.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		45D3F7F52D374A020004DD56 /* CSSParserFastPaths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45D3F7F42D374A020004DD56 /* CSSParserFastPaths.cpp */; };
 		4628C8E92367ABD100B073F0 /* WKSecurityOrigin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4628C8E82367ABBC00B073F0 /* WKSecurityOrigin.cpp */; };
 		46397B951DC2C850009A78AE /* DOMNode.mm in Sources */ = {isa = PBXBuildFile; fileRef = 46397B941DC2C850009A78AE /* DOMNode.mm */; };
 		4647B1261EBA3B850041D7EF /* ProcessDidTerminate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4647B1251EBA3B730041D7EF /* ProcessDidTerminate.cpp */; };
@@ -377,6 +378,7 @@
 		7B397C0828BE394B00239202 /* UtilitiesCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7C83E0391D0A602700FEBCF3 /* UtilitiesCocoa.mm */; };
 		7B52E86C2A2A1A2200A3251F /* ThreadSafeObjectHeapTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B52E8642A2A1A2200A3251F /* ThreadSafeObjectHeapTests.cpp */; };
 		7B636FC229700F0700F3670F /* StreamConnectionWorkQueueTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B636FC129700F0700F3670F /* StreamConnectionWorkQueueTests.cpp */; };
+		7B66CFD82D3194B900BD6CB5 /* GraphicsTestUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B66CFD72D3194B900BD6CB5 /* GraphicsTestUtilities.cpp */; };
 		7B6FF89728C22D9400CA76B0 /* WebKit.framework in Product Dependencies */ = {isa = PBXBuildFile; fileRef = 2B648DBA28C1C1F700791F2B /* WebKit.framework */; };
 		7B7392E928F849EC007297FC /* MessageSenderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B7392E128F849EC007297FC /* MessageSenderTests.cpp */; };
 		7B7392EC28F84BD3007297FC /* IPCTestUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B7392EB28F84BD2007297FC /* IPCTestUtilities.cpp */; };
@@ -2554,6 +2556,7 @@
 		44DBE9512BD2272900307F65 /* TextPlaceholderTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TextPlaceholderTests.mm; sourceTree = "<group>"; };
 		44FBAEFD2C7A7FDB00AF51BC /* RetainPtrHashingCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RetainPtrHashingCocoa.mm; sourceTree = "<group>"; };
 		44FBAEFE2C7A7FDB00AF51BC /* RetainPtrHashingCocoaARC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RetainPtrHashingCocoaARC.mm; sourceTree = "<group>"; };
+		45D3F7F42D374A020004DD56 /* CSSParserFastPaths.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserFastPaths.cpp; sourceTree = "<group>"; };
 		46061545275824B400AB613D /* WebLocks.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebLocks.mm; sourceTree = "<group>"; };
 		460C2FC827039D7D0047EF11 /* ServiceWorkerPageProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ServiceWorkerPageProtocol.h; sourceTree = "<group>"; };
 		4612C2B8210A6ABF00B788A6 /* LoadFileThenReload.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LoadFileThenReload.mm; sourceTree = "<group>"; };
@@ -3030,6 +3033,8 @@
 		7B41A8302D08CD9400CE56F9 /* RestoreSessionStorage.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RestoreSessionStorage.mm; sourceTree = "<group>"; };
 		7B52E8642A2A1A2200A3251F /* ThreadSafeObjectHeapTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThreadSafeObjectHeapTests.cpp; sourceTree = "<group>"; };
 		7B636FC129700F0700F3670F /* StreamConnectionWorkQueueTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StreamConnectionWorkQueueTests.cpp; sourceTree = "<group>"; };
+		7B66CFD62D3194B900BD6CB5 /* GraphicsTestUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsTestUtilities.h; sourceTree = "<group>"; };
+		7B66CFD72D3194B900BD6CB5 /* GraphicsTestUtilities.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsTestUtilities.cpp; sourceTree = "<group>"; };
 		7B7392E128F849EC007297FC /* MessageSenderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MessageSenderTests.cpp; sourceTree = "<group>"; };
 		7B7392EA28F849F3007297FC /* IPCTestUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPCTestUtilities.h; sourceTree = "<group>"; };
 		7B7392EB28F84BD2007297FC /* IPCTestUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IPCTestUtilities.cpp; sourceTree = "<group>"; };
@@ -3648,6 +3653,7 @@
 		E490296714E2E3A4002BEDD1 /* TypingStyleCrash.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TypingStyleCrash.mm; sourceTree = "<group>"; };
 		E4A757D3178AEA5B00B5D7A4 /* Deque.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Deque.cpp; sourceTree = "<group>"; };
 		E4C9ABC71B3DB1710040A987 /* RunLoop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RunLoop.cpp; sourceTree = "<group>"; };
+		E502E42E2D39B79500C3D56D /* ElementTextPreview.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ElementTextPreview.mm; sourceTree = "<group>"; };
 		E5036F77211BC22800BFDBE2 /* color-drop.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "color-drop.html"; sourceTree = "<group>"; };
 		E5194E512D1882CF0006B52F /* UseSystemAppearance.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = UseSystemAppearance.mm; sourceTree = "<group>"; };
 		E5194E5F2D1C67AA0006B52F /* SwitchInputTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SwitchInputTests.mm; sourceTree = "<group>"; };
@@ -4077,6 +4083,8 @@
 				5CABDBEC2735CB4D00B88BCB /* DeprecatedGlobalValues.cpp */,
 				5CABDBED2735CB4D00B88BCB /* DeprecatedGlobalValues.h */,
 				5CABDBF02735DDA100B88BCB /* DeprecatedGlobalValues.mm */,
+				7B66CFD72D3194B900BD6CB5 /* GraphicsTestUtilities.cpp */,
+				7B66CFD62D3194B900BD6CB5 /* GraphicsTestUtilities.h */,
 				C0ADBE7A12FCA4D000D2C129 /* JavaScriptTest.cpp */,
 				C0ADBE7B12FCA4D000D2C129 /* JavaScriptTest.h */,
 				BC575BBF126F5752006F0F12 /* PlatformUtilities.cpp */,
@@ -4331,6 +4339,7 @@
 				A15502281E05020B00A24C57 /* DuplicateCompletionHandlerCalls.mm */,
 				F44D06461F395C4D001A0E29 /* EditorStateTests.mm */,
 				F4DADCF62BABA65B008B398F /* ElementTargetingTests.mm */,
+				E502E42E2D39B79500C3D56D /* ElementTextPreview.mm */,
 				6B25A75125DC8D4E0070744F /* EventAttribution.mm */,
 				CDA29B2820FD2A9900F15CED /* ExitFullscreenOnEnterPiP.mm */,
 				1D12BEBF245BEF85004C0B7A /* ExitPiPOnSuspendVideoElement.mm */,
@@ -4698,6 +4707,7 @@
 				7CB184C41AA3F2100066EDFD /* ContentExtensions.cpp */,
 				44CF31FB24993F66009CB6CB /* ContextMenuAction.cpp */,
 				CD5451E919E41F9D0016936F /* CSSParser.cpp */,
+				45D3F7F42D374A020004DD56 /* CSSParserFastPaths.cpp */,
 				318210CD2C59AEFF00C334B4 /* CSSTokenizerTests.cpp */,
 				5758597E23A2527A00C74572 /* CtapPinTest.cpp */,
 				572B403321769A88000AD43E /* CtapRequestTest.cpp */,
@@ -6969,6 +6979,7 @@
 				7CCE7EAC1A411A3400447C4C /* Counters.cpp in Sources */,
 				7AEAD47F1E20116C00416EFE /* CrossPartitionFileSchemeAccess.mm in Sources */,
 				7CCE7EDB1A411A9200447C4C /* CSSParser.cpp in Sources */,
+				45D3F7F52D374A020004DD56 /* CSSParserFastPaths.cpp in Sources */,
 				318210CE2C59AEFF00C334B4 /* CSSTokenizerTests.cpp in Sources */,
 				5758597F23A2527A00C74572 /* CtapPinTest.cpp in Sources */,
 				572B403421769A88000AD43E /* CtapRequestTest.cpp in Sources */,
@@ -7068,6 +7079,7 @@
 				510A921424D615B400BFD89C /* GoogleStadia.mm in Sources */,
 				E394AE6F23F2303E005B4936 /* GrantAccessToMobileAssets.mm in Sources */,
 				2D09CF0026A68297009C43C0 /* GraphicsContextCGTests.mm in Sources */,
+				7B66CFD82D3194B900BD6CB5 /* GraphicsTestUtilities.cpp in Sources */,
 				8E4A85371E1D1AB200F53B0F /* GridPosition.cpp in Sources */,
 				51EB125924C68592000CB030 /* HIDGamepads.mm in Sources */,
 				7CCE7EFA1A411AE600447C4C /* HitTestResultNodeHandle.cpp in Sources */,

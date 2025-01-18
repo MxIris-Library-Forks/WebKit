@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,44 +25,21 @@
 
 #pragma once
 
-#import <wtf/OSObjectPtr.h>
-#import <wtf/Seconds.h>
-#import <wtf/spi/darwin/XPCSPI.h>
+#include "Test.h"
+#include <WebCore/Color.h>
+#include <WebCore/FloatPoint.h>
 
-#if USE(EXTENSIONKIT_PROCESS_TERMINATION)
-#import "ExtensionProcess.h"
-#endif
+namespace WebCore {
+class Image;
+class ImageBuffer;
+class NativeImage;
 
-#if PLATFORM(IOS_FAMILY)
-#import <wtf/Ref.h>
-#endif
+}
 
-namespace WebKit {
+namespace TestWebKitAPI {
 
-class AuxiliaryProcessProxy;
-class ProcessAndUIAssertion;
-
-// ConnectionTerminationWatchdog does two things:
-// 1) It sets a watchdog timer to kill the peered process.
-// 2) On iOS, make the process runnable for the duration of the watchdog
-//    to ensure it has a chance to terminate cleanly.
-class XPCConnectionTerminationWatchdog {
-    WTF_MAKE_FAST_ALLOCATED;
-public:
-    static void startConnectionTerminationWatchdog(AuxiliaryProcessProxy&, Seconds interval);
-
-private:
-    friend UniqueRef<XPCConnectionTerminationWatchdog> WTF::makeUniqueRefWithoutFastMallocCheck<XPCConnectionTerminationWatchdog>(AuxiliaryProcessProxy&);
-
-    explicit XPCConnectionTerminationWatchdog(AuxiliaryProcessProxy&);
-    void terminateProcess();
-
-    Ref<ProcessAndUIAssertion> m_assertion;
-#if USE(EXTENSIONKIT_PROCESS_TERMINATION)
-    std::optional<ExtensionProcess> m_process;
-#else
-    OSObjectPtr<xpc_connection_t> m_xpcConnection;
-#endif
-};
+::testing::AssertionResult imageBufferPixelIs(WebCore::Color expected, const WebCore::ImageBuffer&, WebCore::FloatPoint);
+::testing::AssertionResult imagePixelIs(WebCore::Color expected, WebCore::Image&, WebCore::FloatPoint);
+::testing::AssertionResult imagePixelIs(WebCore::Color expected, WebCore::NativeImage&, WebCore::FloatPoint);
 
 }

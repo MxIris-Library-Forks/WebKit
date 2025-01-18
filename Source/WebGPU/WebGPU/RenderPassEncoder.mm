@@ -610,7 +610,6 @@ bool RenderPassEncoder::executePreDrawCommands(uint32_t firstInstance, uint32_t 
     ASSERT(m_fragmentDynamicOffsets.size());
     [commandEncoder setFragmentBytes:&m_fragmentDynamicOffsets[0] length:m_fragmentDynamicOffsets.size() * sizeof(m_fragmentDynamicOffsets[0]) atIndex:m_device->maxBuffersForFragmentStage()];
 
-    m_bindGroupDynamicOffsets.clear();
     incrementDrawCount();
 
     return true;

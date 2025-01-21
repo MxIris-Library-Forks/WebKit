@@ -70,7 +70,6 @@ public:
     void styleDidChange(StyleDifference, const RenderStyle* oldStyle) override;
     void layoutBlock(bool relayoutChildren, LayoutUnit pageLogicalHeight = 0_lu) override;
 
-    bool avoidsFloats() const override { return true; }
     bool canDropAnonymousBlockChild() const override { return false; }
 
     void dirtyGrid(SubgridDidChange descendantSubgridsNeedItemPlacement = SubgridDidChange::No);
@@ -268,7 +267,6 @@ private:
     LayoutUnit translateRTLCoordinate(LayoutUnit) const;
 
     bool shouldResetLogicalHeightBeforeLayout() const override { return true; }
-    bool establishesIndependentFormattingContext(const RenderStyle* overridingStyle = nullptr) const override;
 
     bool aspectRatioPrefersInline(const RenderBox& gridItem, bool blockFlowIsColumnAxis);
 

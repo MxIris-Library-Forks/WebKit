@@ -1311,7 +1311,7 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
             // in the same layer. 
             if (!inlineEnclosedInSelfPaintingLayer && !hasLayer())
                 containingBlock->addContinuationWithOutline(inlineRenderer);
-            else if (!InlineIterator::firstInlineBoxFor(*inlineRenderer) || (!inlineEnclosedInSelfPaintingLayer && hasLayer()))
+            else if (!InlineIterator::lineLeftmostInlineBoxFor(*inlineRenderer) || (!inlineEnclosedInSelfPaintingLayer && hasLayer()))
                 inlineRenderer->paintOutline(paintInfo, paintOffset - locationOffset() + inlineRenderer->containingBlock()->location());
         }
         paintContinuationOutlines(paintInfo, paintOffset);
@@ -1343,6 +1343,76 @@ void RenderBlock::addContinuationWithOutline(RenderInline* flow)
     }
     
     continuations->add(*flow);
+}
+
+bool RenderBlock::establishesIndependentFormattingContextIgnoringDisplayType(const RenderStyle& style) const
+{
+    if (!element()) {
+        ASSERT(isAnonymous());
+        return false;
+    }
+
+    auto isBlockBoxWithPotentiallyScrollableOverflow = [&] {
+        return style.isDisplayBlockLevel()
+            && style.doesDisplayGenerateBlockContainer()
+            && hasNonVisibleOverflow()
+            && style.overflowX() != Overflow::Clip
+            && style.overflowX() != Overflow::Visible;
+    };
+
+    return style.isFloating()
+        || style.hasOutOfFlowPosition()
+        || isBlockBoxWithPotentiallyScrollableOverflow()
+        || style.containsLayout()
+        || style.containerType() != ContainerType::Normal
+        || WebCore::shouldApplyPaintContainment(style, *element())
+        || (style.isDisplayBlockLevel() && style.blockStepSize());
+}
+
+bool RenderBlock::establishesIndependentFormattingContext() const
+{
+    auto& style = this->style();
+    if (establishesIndependentFormattingContextIgnoringDisplayType(style))
+        return true;
+
+    if (isGridItem()) {
+        // Grid items establish a new independent formatting context, unless they're a subgrid
+        // https://drafts.csswg.org/css-grid-2/#grid-item-display
+        if (!style.gridSubgridColumns() && !style.gridSubgridRows())
+            return true;
+        // Masonry makes grid items not subgrids.
+        if (CheckedPtr parentGridBox = dynamicDowncast<RenderGrid>(parent()))
+            return parentGridBox->isMasonry();
+    }
+
+    return false;
+}
+
+
+bool RenderBlock::createsNewFormattingContext() const
+{
+    // Writing-mode changes establish an independent block formatting context
+    // if the box is a block-container.
+    // https://drafts.csswg.org/css-writing-modes/#block-flow
+    if (isWritingModeRoot() && isBlockContainer())
+        return true;
+    auto& style = this->style();
+    if (isBlockContainer() && !style.alignContent().isNormal())
+        return true;
+    return isNonReplacedAtomicInline()
+        || style.isDisplayFlexibleBoxIncludingDeprecatedOrGridBox()
+        || isFlexItemIncludingDeprecated()
+        || isRenderTable()
+        || isRenderTableCell()
+        || isRenderTableCaption()
+        || isFieldset()
+        || isDocumentElementRenderer()
+        || isRenderFragmentedFlow()
+        || isRenderSVGForeignObject()
+        || style.specifiesColumns()
+        || style.columnSpan() == ColumnSpan::All
+        || style.display() == DisplayType::FlowRoot
+        || establishesIndependentFormattingContext();
 }
 
 bool RenderBlock::paintsContinuationOutline(RenderInline* flow)

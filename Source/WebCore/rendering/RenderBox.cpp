@@ -78,6 +78,7 @@
 #include "RenderLayerInlines.h"
 #include "RenderLayerScrollableArea.h"
 #include "RenderLayoutState.h"
+#include "RenderMathMLBlock.h"
 #include "RenderMultiColumnFlow.h"
 #include "RenderObjectInlines.h"
 #include "RenderSVGResourceClipper.h"
@@ -4172,13 +4173,13 @@ static std::optional<float> positionWithRTLInlineBoxContainingBlock(const Render
     if (!renderInline || containingBlock.writingMode().isLogicalLeftInlineStart())
         return { };
 
-    auto firstInlineBox = InlineIterator::firstInlineBoxFor(*renderInline);
+    auto firstInlineBox = InlineIterator::lineLeftmostInlineBoxFor(*renderInline);
     if (!firstInlineBox)
         return { };
 
     auto lastInlineBox = [&] {
         auto inlineBox = firstInlineBox;
-        for (; inlineBox->nextInlineBox(); inlineBox.traverseNextInlineBox()) { }
+        for (; inlineBox->nextInlineBoxLineRightward(); inlineBox.traverseInlineBoxLineRightward()) { }
         return inlineBox;
     }();
     if (firstInlineBox == lastInlineBox)
@@ -5163,14 +5164,15 @@ bool RenderBox::shrinkToAvoidFloats() const
     return style().width().isAuto();
 }
 
-bool RenderBox::establishesIndependentFormattingContext(const RenderStyle*) const
-{
-    return isGridItem() || RenderElement::establishesIndependentFormattingContext();
-}
-
 bool RenderBox::avoidsFloats() const
 {
-    return isReplacedOrAtomicInline() || isLegend() || isFieldset() || createsNewFormattingContext() || (element() && element()->isFormControlElement());
+    if (isReplacedOrAtomicInline() || isLegend() || (element() && element()->isFormControlElement()) || is<RenderMathMLBlock>(*this))
+        return true;
+
+    if (CheckedPtr renderBlock = dynamicDowncast<RenderBlock>(*this))
+        return renderBlock->createsNewFormattingContext();
+
+    return false;
 }
 
 void RenderBox::addVisualEffectOverflow()

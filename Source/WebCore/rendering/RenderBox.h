@@ -507,7 +507,7 @@ public:
     LayoutUnit synthesizeBaseline(FontBaseline baselineType, BaselineSynthesisEdge) const;
 
     bool shrinkToAvoidFloats() const;
-    virtual bool avoidsFloats() const;
+    bool avoidsFloats() const;
 
     virtual void markForPaginationRelayoutIfNeeded() { }
     
@@ -618,8 +618,6 @@ public:
     std::optional<LayoutUnit> explicitIntrinsicInnerHeight() const;
     inline std::optional<LayoutUnit> explicitIntrinsicInnerLogicalWidth() const;
     inline std::optional<LayoutUnit> explicitIntrinsicInnerLogicalHeight() const;
-
-    bool establishesIndependentFormattingContext(const RenderStyle* overridingStyle = nullptr) const override;
 
     void updateFloatPainterAfterSelfPaintingLayerChange();
 

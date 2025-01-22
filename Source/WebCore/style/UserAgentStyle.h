@@ -46,7 +46,6 @@ public:
     static StyleSheetContents* mediaQueryStyleSheet;
     static StyleSheetContents* horizontalFormControlsStyleSheet;
     static StyleSheetContents* htmlSwitchControlStyleSheet;
-    static StyleSheetContents* plugInsStyleSheet;
     static StyleSheetContents* popoverStyleSheet;
     static StyleSheetContents* counterStylesStyleSheet;
     static StyleSheetContents* viewTransitionsStyleSheet;
@@ -59,9 +58,7 @@ public:
 #if ENABLE(ATTACHMENT_ELEMENT)
     static StyleSheetContents* attachmentStyleSheet;
 #endif
-#if ENABLE(DATALIST_ELEMENT)
     static StyleSheetContents* dataListStyleSheet;
-#endif
     static StyleSheetContents* colorInputStyleSheet;
 
     static void initDefaultStyleSheet();

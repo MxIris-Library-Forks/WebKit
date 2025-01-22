@@ -848,8 +848,6 @@ RefPtr<ColorChooser> WebChromeClient::createColorChooser(ColorChooserClient& cli
     return WebColorChooser::create(protectedPage().ptr(), &client, initialColor);
 }
 
-#if ENABLE(DATALIST_ELEMENT)
-
 RefPtr<DataListSuggestionPicker> WebChromeClient::createDataListSuggestionPicker(DataListSuggestionsClient& client)
 {
     return WebDataListSuggestionPicker::create(protectedPage(), client);
@@ -863,8 +861,6 @@ bool WebChromeClient::canShowDataListSuggestionLabels() const
     return false;
 #endif
 }
-
-#endif
 
 #if ENABLE(DATE_AND_TIME_INPUT_TYPES)
 
@@ -1443,26 +1439,6 @@ WebCore::HighlightVisibility WebChromeClient::appHighlightsVisiblility() const
 void WebChromeClient::wheelEventHandlersChanged(bool hasHandlers)
 {
     protectedPage()->wheelEventHandlersChanged(hasHandlers);
-}
-
-String WebChromeClient::plugInStartLabelTitle(const String& mimeType) const
-{
-    return protectedPage()->injectedBundleUIClient().plugInStartLabelTitle(mimeType);
-}
-
-String WebChromeClient::plugInStartLabelSubtitle(const String& mimeType) const
-{
-    return protectedPage()->injectedBundleUIClient().plugInStartLabelSubtitle(mimeType);
-}
-
-String WebChromeClient::plugInExtraStyleSheet() const
-{
-    return protectedPage()->injectedBundleUIClient().plugInExtraStyleSheet();
-}
-
-String WebChromeClient::plugInExtraScript() const
-{
-    return protectedPage()->injectedBundleUIClient().plugInExtraScript();
 }
 
 void WebChromeClient::enableSuddenTermination()

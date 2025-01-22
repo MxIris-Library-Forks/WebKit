@@ -95,11 +95,9 @@ messages -> WebPageProxy {
     [EnabledBy=InputTypeColorEnabled] SetColorPickerColor(WebCore::Color color);
     [EnabledBy=InputTypeColorEnabled] EndColorPicker();
 
-#if ENABLE(DATALIST_ELEMENT)
     [EnabledBy=DataListElementEnabled] ShowDataListSuggestions(struct WebCore::DataListSuggestionInformation suggestionInformation);
     [EnabledBy=DataListElementEnabled] HandleKeydownInDataList(String key);
     [EnabledBy=DataListElementEnabled] EndDataListSuggestions();
-#endif
 
 #if ENABLE(DATE_AND_TIME_INPUT_TYPES)
     ShowDateTimePicker(struct WebCore::DateTimeChooserParameters params);
@@ -491,7 +489,7 @@ messages -> WebPageProxy {
 #endif
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
-    SetMockVideoPresentationModeEnabled(bool enabled)
+    [EnabledBy=VideoPresentationManagerEnabled || VideoPresentationModeAPIEnabled] SetMockVideoPresentationModeEnabled(bool enabled)
 #endif
 
 #if ENABLE(POINTER_LOCK)

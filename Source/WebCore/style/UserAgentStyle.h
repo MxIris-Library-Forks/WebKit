@@ -42,7 +42,6 @@ public:
     static StyleSheetContents* quirksStyleSheet;
     static StyleSheetContents* svgStyleSheet;
     static StyleSheetContents* mathMLStyleSheet;
-    static StyleSheetContents* mediaControlsStyleSheet;
     static StyleSheetContents* mediaQueryStyleSheet;
     static StyleSheetContents* horizontalFormControlsStyleSheet;
     static StyleSheetContents* htmlSwitchControlStyleSheet;
@@ -58,7 +57,6 @@ public:
 #if ENABLE(ATTACHMENT_ELEMENT)
     static StyleSheetContents* attachmentStyleSheet;
 #endif
-    static StyleSheetContents* dataListStyleSheet;
     static StyleSheetContents* colorInputStyleSheet;
 
     static void initDefaultStyleSheet();

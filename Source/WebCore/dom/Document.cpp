@@ -215,6 +215,7 @@
 #include "PseudoClassChangeInvalidation.h"
 #include "PublicSuffixStore.h"
 #include "Quirks.h"
+#include "RTCController.h"
 #include "RTCNetworkManager.h"
 #include "Range.h"
 #include "RealtimeMediaSourceCenter.h"
@@ -3074,6 +3075,7 @@ void Document::createRenderTree()
 {
     ASSERT(!renderView());
     ASSERT(m_backForwardCacheState != InBackForwardCache);
+    ASSERT(!m_axObjectCache || isTopDocument());
 
     if (m_isNonRenderedPlaceholder)
         return;
@@ -3422,16 +3424,14 @@ void Document::clearAXObjectCache()
     ASSERT(isTopDocument());
     // Clear the cache member variable before calling delete because attempts
     // are made to access it during destruction.
-    if (RefPtr page = this->page())
-        page->clearAXObjectCache();
+    m_axObjectCache = nullptr;
 }
 
 AXObjectCache* Document::existingAXObjectCacheSlow() const
 {
     ASSERT(hasEverCreatedAnAXObjectCache);
-    if (RefPtr page = this->page())
-        return page->existingAXObjectCache();
-    return nullptr;
+    auto* mainFrameDocument = this->mainFrameDocument();
+    return mainFrameDocument ? mainFrameDocument->m_axObjectCache.get() : nullptr;
 }
 
 AXObjectCache* Document::axObjectCache() const
@@ -3439,10 +3439,27 @@ AXObjectCache* Document::axObjectCache() const
     if (!AXObjectCache::accessibilityEnabled())
         return nullptr;
 
-    RefPtr page = this->page();
-    if (!page)
+    // The only document that actually has a AXObjectCache is the top-level
+    // document.  This is because we need to be able to get from any WebCoreAXObject
+    // to any other WebCoreAXObject on the same page.  Using a single cache allows
+    // lookups across nested webareas (i.e. multiple documents).
+    RefPtr mainFrameDocument = this->mainFrameDocument();
+
+    if (!mainFrameDocument) {
+        LOG_ONCE(SiteIsolation, "Unable to reach the main frame documents AXObjectCache ");
         return nullptr;
-    return page->axObjectCache();
+    }
+
+    // If the document has already been detached, do not make a new axObjectCache.
+    if (!mainFrameDocument->hasLivingRenderTree())
+        return nullptr;
+
+    ASSERT(mainFrameDocument.get() == this || !m_axObjectCache);
+    if (!mainFrameDocument->m_axObjectCache) {
+        mainFrameDocument->m_axObjectCache = makeUnique<AXObjectCache>(*mainFrameDocument);
+        hasEverCreatedAnAXObjectCache = true;
+    }
+    return mainFrameDocument->m_axObjectCache.get();
 }
 
 void Document::setVisuallyOrdered()
@@ -4798,7 +4815,7 @@ ViewportArguments Document::viewportArguments() const
     RefPtr page = this->page();
     if (!page)
         return m_viewportArguments;
-    return page->overrideViewportArguments().value_or(m_viewportArguments);
+    return page->overrideViewportArguments() ? *page->overrideViewportArguments() : m_viewportArguments;
 }
 
 bool Document::isViewportDocument() const
@@ -7405,12 +7422,6 @@ Document* Document::parentDocument() const
 
 Document* Document::mainFrameDocument() const
 {
-    if (settings().siteIsolationEnabled()) {
-        if (RefPtr localMainFrame = this->localMainFrame())
-            return localMainFrame->document();
-        return nullptr;
-    }
-
     // FIXME: This special-casing avoids incorrectly determined top documents during the process
     // of AXObjectCache teardown or notification posting for cached or being-destroyed documents.
     if (backForwardCacheState() == NotInBackForwardCache && !m_renderTreeBeingDestroyed) {
@@ -7424,6 +7435,17 @@ Document* Document::mainFrameDocument() const
     while (HTMLFrameOwnerElement* element = document->ownerElement())
         document = &element->document();
     return document;
+}
+
+bool Document::isTopDocument() const
+{
+    if (!settings().siteIsolationEnabled())
+        return isTopDocumentLegacy();
+
+    if (RefPtr localMainFrame = this->localMainFrame())
+        return localMainFrame->document() == this;
+
+    return false;
 }
 
 RefPtr<LocalFrame> Document::localMainFrame() const

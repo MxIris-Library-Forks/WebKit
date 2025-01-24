@@ -3993,14 +3993,6 @@ imported/w3c/web-platform-tests/css/css-images/object-fit-contain-svg-005e.html 
 imported/w3c/web-platform-tests/css/css-images/object-fit-contain-svg-005o.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-contain-svg-006e.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-contain-svg-006o.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containcontainintrinsicsize-png-001c.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containcontainintrinsicsize-png-001e.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containcontainintrinsicsize-png-001i.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containcontainintrinsicsize-png-001p.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containsize-png-001c.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containsize-png-001e.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containsize-png-001i.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/object-fit-containsize-png-001p.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-cover-svg-001e.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-cover-svg-001o.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-cover-svg-002e.html [ ImageOnlyFailure ]
@@ -7655,5 +7647,6 @@ webkit.org/b/279297 fast/block/float/float-avoider-with-negative-margin.html [ I
 imported/w3c/web-platform-tests/css/selectors/featureless-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/selectors/featureless-005.html [ ImageOnlyFailure ]
 
-# webkit.org/b/285913 imported/w3c/web-platform-tests/web-animations/timing-model/timelines/timelines.html is extremely flakey
-imported/w3c/web-platform-tests/web-animations/timing-model/timelines/timelines.html [ Pass Failure ]
+# Skip large regular expression tests on Debug to avoid timeout.
+[ Debug ] fast/regex/slow.html [ Skip ]
+[ Debug ] imported/w3c/web-platform-tests/html/semantics/forms/constraints/infinite_backtracking.html [ Skip ]

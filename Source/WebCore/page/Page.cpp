@@ -104,6 +104,7 @@
 #include "LocalFrameView.h"
 #include "LogInitialization.h"
 #include "Logging.h"
+#include "LoginStatus.h"
 #include "LowPowerModeNotifier.h"
 #include "MediaCanStartListener.h"
 #include "MemoryCache.h"
@@ -133,6 +134,7 @@
 #include "ProcessSyncClient.h"
 #include "ProcessSyncData.h"
 #include "ProgressTracker.h"
+#include "RTCController.h"
 #include "Range.h"
 #include "RemoteFrame.h"
 #include "RenderDescendantIterator.h"
@@ -334,8 +336,17 @@ Ref<Page> Page::create(PageConfiguration&& pageConfiguration)
     return adoptRef(*new Page(WTFMove(pageConfiguration)));
 }
 
+struct Page::Internals {
+    WTF_MAKE_STRUCT_FAST_ALLOCATED;
+
+    Region topRelevantPaintedRegion;
+    Region bottomRelevantPaintedRegion;
+    Region relevantUnpaintedRegion;
+};
+
 Page::Page(PageConfiguration&& pageConfiguration)
-    : m_identifier(pageConfiguration.identifier)
+    : m_internals(makeUniqueRef<Internals>())
+    , m_identifier(pageConfiguration.identifier)
     , m_chrome(makeUniqueRef<Chrome>(*this, WTFMove(pageConfiguration.chromeClient)))
     , m_dragCaretController(makeUniqueRef<DragCaretController>())
 #if ENABLE(DRAG_SUPPORT)
@@ -629,10 +640,10 @@ ViewportArguments Page::viewportArguments() const
 
 void Page::setOverrideViewportArguments(const std::optional<ViewportArguments>& viewportArguments)
 {
-    if (viewportArguments == m_overrideViewportArguments)
+    std::optional<ViewportArguments> oldArguments = m_overrideViewportArguments ? std::optional(*m_overrideViewportArguments) : std::nullopt;
+    if (oldArguments == viewportArguments)
         return;
-
-    m_overrideViewportArguments = viewportArguments;
+    m_overrideViewportArguments = viewportArguments ? makeUnique<ViewportArguments>(*viewportArguments) : nullptr;
     if (RefPtr localTopDocument = this->localTopDocument())
         localTopDocument->updateViewportArguments();
 }
@@ -3487,9 +3498,9 @@ void Page::resetRelevantPaintedObjectCounter()
 {
     m_isCountingRelevantRepaintedObjects = false;
     m_relevantUnpaintedRenderObjects.clear();
-    m_topRelevantPaintedRegion = Region();
-    m_bottomRelevantPaintedRegion = Region();
-    m_relevantUnpaintedRegion = Region();
+    m_internals->topRelevantPaintedRegion = Region();
+    m_internals->bottomRelevantPaintedRegion = Region();
+    m_internals->relevantUnpaintedRegion = Region();
 }
 
 static LayoutRect relevantViewRect(RenderView* view)
@@ -3535,7 +3546,7 @@ void Page::addRelevantRepaintedObject(const RenderObject& object, const LayoutRe
     // If this object was previously counted as an unpainted object, remove it from that HashSet
     // and corresponding Region. FIXME: This doesn't do the right thing if the objects overlap.
     if (m_relevantUnpaintedRenderObjects.remove(object))
-        m_relevantUnpaintedRegion.subtract(snappedPaintRect);
+        m_internals->relevantUnpaintedRegion.subtract(snappedPaintRect);
 
     // Split the relevantRect into a top half and a bottom half. Making sure we have coverage in
     // both halves helps to prevent cases where we have a fully loaded menu bar or masthead with
@@ -3549,23 +3560,23 @@ void Page::addRelevantRepaintedObject(const RenderObject& object, const LayoutRe
     if (topRelevantRect.intersects(snappedPaintRect) && bottomRelevantRect.intersects(snappedPaintRect)) {
         IntRect topIntersection = snappedPaintRect;
         topIntersection.intersect(snappedIntRect(topRelevantRect));
-        m_topRelevantPaintedRegion.unite(topIntersection);
+        m_internals->topRelevantPaintedRegion.unite(topIntersection);
 
         IntRect bottomIntersection = snappedPaintRect;
         bottomIntersection.intersect(snappedIntRect(bottomRelevantRect));
-        m_bottomRelevantPaintedRegion.unite(bottomIntersection);
+        m_internals->bottomRelevantPaintedRegion.unite(bottomIntersection);
     } else if (topRelevantRect.intersects(snappedPaintRect))
-        m_topRelevantPaintedRegion.unite(snappedPaintRect);
+        m_internals->topRelevantPaintedRegion.unite(snappedPaintRect);
     else
-        m_bottomRelevantPaintedRegion.unite(snappedPaintRect);
+        m_internals->bottomRelevantPaintedRegion.unite(snappedPaintRect);
 
-    float topPaintedArea = m_topRelevantPaintedRegion.totalArea();
-    float bottomPaintedArea = m_bottomRelevantPaintedRegion.totalArea();
+    float topPaintedArea = m_internals->topRelevantPaintedRegion.totalArea();
+    float bottomPaintedArea = m_internals->bottomRelevantPaintedRegion.totalArea();
     float viewArea = relevantRect.width() * relevantRect.height();
 
     float ratioThatIsPaintedOnTop = topPaintedArea / viewArea;
     float ratioThatIsPaintedOnBottom = bottomPaintedArea / viewArea;
-    float ratioOfViewThatIsUnpainted = m_relevantUnpaintedRegion.totalArea() / viewArea;
+    float ratioOfViewThatIsUnpainted = m_internals->relevantUnpaintedRegion.totalArea() / viewArea;
 
     if (ratioThatIsPaintedOnTop > (gMinimumPaintedAreaRatio / 2) && ratioThatIsPaintedOnBottom > (gMinimumPaintedAreaRatio / 2)
         && ratioOfViewThatIsUnpainted < gMaximumUnpaintedAreaRatio) {
@@ -3586,7 +3597,7 @@ void Page::addRelevantUnpaintedObject(const RenderObject& object, const LayoutRe
         return;
 
     m_relevantUnpaintedRenderObjects.add(object);
-    m_relevantUnpaintedRegion.unite(snappedIntRect(objectPaintRect));
+    m_internals->relevantUnpaintedRegion.unite(snappedIntRect(objectPaintRect));
 }
 
 void Page::suspendActiveDOMObjectsAndAnimations()
@@ -4066,24 +4077,6 @@ void Page::appearanceDidChange()
         document.scheduleRenderingUpdate(RenderingUpdateStep::MediaQueryEvaluation);
         document.invalidateScrollbars();
     });
-}
-
-void Page::clearAXObjectCache()
-{
-    m_axObjectCache = nullptr;
-}
-
-AXObjectCache* Page::axObjectCache()
-{
-    if (!m_axObjectCache) {
-        RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_mainFrame.get());
-        RefPtr mainFrameDocument = localMainFrame ? localMainFrame->document() : nullptr;
-        if (mainFrameDocument && !mainFrameDocument->hasLivingRenderTree())
-            return nullptr;
-        m_axObjectCache = makeUnique<AXObjectCache>(*this, mainFrameDocument.get());
-        Document::hasEverCreatedAnAXObjectCache = true;
-    }
-    return m_axObjectCache.get();
 }
 
 void Page::setUnobscuredSafeAreaInsets(const FloatBoxExtent& insets)
@@ -5420,7 +5413,7 @@ void Page::setLastAuthentication(LoginStatus::AuthenticationType authType)
     auto loginStatus = LoginStatus::create(RegistrableDomain(mainFrameURL()), emptyString(), LoginStatus::CredentialTokenType::HTTPStateToken, authType, LoginStatus::TimeToLiveAuthentication);
     if (loginStatus.hasException())
         return;
-    m_lastAuthentication = loginStatus.releaseReturnValue();
+    m_lastAuthentication = loginStatus.releaseReturnValue().moveToUniquePtr();
 }
 
 #if ENABLE(FULLSCREEN_API)

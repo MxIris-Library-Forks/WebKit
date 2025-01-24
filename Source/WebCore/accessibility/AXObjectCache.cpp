@@ -255,9 +255,9 @@ bool AXObjectCache::shouldServeInitialCachedFrame()
 static const Seconds updateTreeSnapshotTimerInterval { 100_ms };
 #endif
 
-AXObjectCache::AXObjectCache(Page& page, Document* document)
+AXObjectCache::AXObjectCache(Document& document)
     : m_document(document)
-    , m_pageID(page.identifier())
+    , m_pageID(document.pageID())
     , m_notificationPostTimer(*this, &AXObjectCache::notificationPostTimerFired)
     , m_passwordNotificationPostTimer(*this, &AXObjectCache::passwordNotificationPostTimerFired)
     , m_liveRegionChangedPostTimer(*this, &AXObjectCache::liveRegionChangedNotificationPostTimerFired)
@@ -280,18 +280,18 @@ AXObjectCache::AXObjectCache(Page& page, Document* document)
     ASSERT(isMainThread());
 
 #if ENABLE(AX_THREAD_TEXT_APIS)
-    if (auto* frame = document ? document->frame(); frame && frame->isMainFrame())
+    if (auto* frame = document.frame(); frame && frame->isMainFrame())
         gAccessibilityThreadTextApisEnabled = DeprecatedGlobalSettings::accessibilityThreadTextApisEnabled();
 #endif
 
     // If loading completed before the cache was created, loading progress will have been reset to zero.
     // Consider loading progress to be 100% in this case.
-    m_loadingProgress = page.progress().estimatedProgress();
+    m_loadingProgress = document.page() ? document.page()->progress().estimatedProgress() : 1;
     if (m_loadingProgress <= 0)
         m_loadingProgress = 1;
 
-    if (m_pageID)
-        m_pageActivityState = page.activityState();
+    if (m_pageID && m_document)
+        m_pageActivityState = m_document->page()->activityState();
     AXTreeStore::add(m_id, WeakPtr { this });
 }
 
@@ -584,7 +584,7 @@ AccessibilityObject* AXObjectCache::get(Node& node) const
     if (renderID)
         return m_objects.get(*renderID);
 
-    auto nodeID = m_nodeObjectMapping.getOptional(node);
+    auto nodeID = m_nodeObjectMapping.get(node);
     return nodeID ? m_objects.get(*nodeID) : nullptr;
 }
 
@@ -1014,6 +1014,21 @@ AccessibilityObject* AXObjectCache::getOrCreate(RenderObject& renderer)
     return object.ptr();
 }
 
+AXCoreObject* AXObjectCache::rootObject()
+{
+    if (!gAccessibilityEnabled)
+        return nullptr;
+
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+    if (isIsolatedTreeEnabled())
+        return isolatedTreeRootObject();
+#endif
+    if (!m_document)
+        return nullptr;
+
+    return getOrCreate(m_document->protectedView().get());
+}
+
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
 RefPtr<AXIsolatedTree> AXObjectCache::getOrCreateIsolatedTree()
 {
@@ -1080,18 +1095,15 @@ void AXObjectCache::setIsolatedTreeRoot(AXCoreObject* root)
 }
 #endif
 
-AXCoreObject* AXObjectCache::rootObjectForFrame(LocalFrame& frame)
+AccessibilityObject* AXObjectCache::rootObjectForFrame(LocalFrame* frame)
 {
     if (!gAccessibilityEnabled)
         return nullptr;
 
-#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
-    if (isIsolatedTreeEnabled())
-        return isolatedTreeRootObject();
-#endif
-
-    return getOrCreate(frame.view());
-}
+    if (!frame)
+        return nullptr;
+    return getOrCreate(frame->view());
+}    
 
 AccessibilityObject* AXObjectCache::create(AccessibilityRole role)
 {
@@ -1169,7 +1181,7 @@ void AXObjectCache::remove(Node& node)
 {
     AXTRACE(makeString("AXObjectCache::remove Node& 0x"_s, hex(reinterpret_cast<uintptr_t>(this))));
 
-    remove(m_nodeObjectMapping.takeOptional(node));
+    remove(m_nodeObjectMapping.take(node));
     remove(node.renderer());
 
     // If we're in the middle of a cache update, don't modify any of these vectors because we are currently
@@ -1261,7 +1273,7 @@ void AXObjectCache::onRendererCreated(Element& element)
 
     // If there is already an AXObject that was created for this element,
     // remove it since there will be a new AXRenderObject created using the renderer.
-    if (auto axID = m_nodeObjectMapping.getOptional(element)) {
+    if (auto axID = m_nodeObjectMapping.get(element)) {
         // The removal needs to be async because this is called during a RenderTree
         // update and remove(AXID) updates the isolated tree, that in turn calls
         // parentObjectUnignored() on the object being removed, that may result

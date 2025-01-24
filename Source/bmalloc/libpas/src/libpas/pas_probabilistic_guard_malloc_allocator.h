@@ -60,13 +60,6 @@
 #include "pas_ptr_hash_map.h"
 #include "pas_utils.h"
 
-/* PlayStation does not current support the backtrace API. */
-#if !PAS_PLATFORM(PLAYSTATION)
-#include <execinfo.h>
-#else
-size_t backtrace(void**, size_t) { return 0; }
-#endif
-
 PAS_BEGIN_EXTERN_C;
 
 #define PGM_BACKTRACE_MAX_FRAMES 31

@@ -84,18 +84,27 @@ static void pas_probabilistic_guard_malloc_debug_info(const void* key, const pas
 pas_allocation_result pas_probabilistic_guard_malloc_allocate(pas_large_heap* large_heap, size_t size, pas_allocation_mode allocation_mode,
                                                               const pas_heap_config* heap_config, pas_physical_memory_transaction* transaction)
 {
-    pas_heap_lock_assert_held();
+    size_t alignment;
+    const pas_heap_type* type;
     static const bool verbose = false;
+
+    pas_heap_lock_assert_held();
 
     pas_allocation_result result = pas_allocation_result_create_failure();
 
     if (verbose)
-        printf("Memory requested to allocate %zu\n", size);
+        pas_log("Memory requested to allocate %zu\n", size);
 
     if (!large_heap || !size || !heap_config || !transaction)
         return result;
 
     const size_t page_size = pas_page_malloc_alignment();
+
+    type = pas_heap_for_large_heap(large_heap)->type;
+    alignment = heap_config->get_type_alignment(type);
+    alignment = PAS_MAX(alignment, heap_config->large_alignment);
+
+    size = pas_round_up_to_power_of_2(size, alignment);
 
     size_t mem_to_waste = (page_size - (size % page_size)) % page_size;
     if (mem_to_waste > free_wasted_mem)
@@ -187,7 +196,7 @@ void pas_probabilistic_guard_malloc_deallocate(void* mem)
     static const bool verbose = false;
 
     if (verbose)
-        printf("Memory Address Requested to Deallocate %p\n", mem);
+        pas_log("Memory Address Requested to Deallocate %p\n", mem);
 
     uintptr_t key = (uintptr_t) mem;
     PAS_PROFILE(PGM_DEALLOCATE, key);
@@ -239,7 +248,7 @@ bool pas_probabilistic_guard_malloc_check_exists(uintptr_t mem)
     static const bool verbose = false;
 
     if (verbose)
-        printf("Checking if is PGM entry\n");
+        pas_log("Checking if is PGM entry\n");
 
     pas_ptr_hash_map_entry* entry = pas_ptr_hash_map_find(&pas_pgm_hash_map, (void*) mem);
     return (entry && entry->value);
@@ -253,7 +262,7 @@ pas_large_map_entry pas_probabilistic_guard_malloc_return_as_large_map_entry(uin
     pas_large_map_entry ret = { };
 
     if (verbose)
-        printf("Grabbing PGM allocated size\n");
+        pas_log("Grabbing PGM allocated size\n");
 
     pas_ptr_hash_map_entry * entry = pas_ptr_hash_map_find(&pas_pgm_hash_map, (void *) mem);
     if (entry && entry->value) {
@@ -336,7 +345,7 @@ void pas_probabilistic_guard_malloc_initialize_pgm_as_enabled(void)
 
 void pas_probabilistic_guard_malloc_debug_info(const void* key, const pas_pgm_storage* value, const char* operation)
 {
-    printf("******************************************************\n"
+    pas_log("******************************************************\n"
         " %s\n\n"
         " Overall System Stats"
         " free_wasted_mem  : %zu\n"

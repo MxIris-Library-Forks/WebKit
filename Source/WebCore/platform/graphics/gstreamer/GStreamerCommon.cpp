@@ -1165,7 +1165,8 @@ StringView gstStructureGetString(const GstStructure* structure, StringView key)
         return { };
     }
 
-    return StringView::fromLatin1(gst_structure_get_string(structure, static_cast<const char*>(key.rawCharacters())));
+    auto utf8String = key.utf8();
+    return StringView::fromLatin1(gst_structure_get_string(structure, utf8String.data()));
 }
 
 StringView gstStructureGetName(const GstStructure* structure)
@@ -1593,6 +1594,10 @@ void configureAudioDecoderForHarnessing(const GRefPtr<GstElement>& element)
 {
     if (gstObjectHasProperty(element.get(), "max-errors"))
         g_object_set(element.get(), "max-errors", 0, nullptr);
+
+    // rawaudioparse-specific:
+    if (gstObjectHasProperty(element.get(), "use-sink-caps"))
+        g_object_set(element.get(), "use-sink-caps", TRUE, nullptr);
 }
 
 void configureVideoDecoderForHarnessing(const GRefPtr<GstElement>& element)

@@ -126,7 +126,8 @@ void RealtimeOutgoingMediaSourceGStreamer::start()
     }
 
     GST_DEBUG_OBJECT(m_bin.get(), "Starting outgoing source");
-    m_track->addObserver(*this);
+    if (m_track)
+        m_track->addObserver(*this);
     m_isStopped = false;
 
     if (m_transceiver) {
@@ -152,11 +153,9 @@ void RealtimeOutgoingMediaSourceGStreamer::stop()
 
 void RealtimeOutgoingMediaSourceGStreamer::stopOutgoingSource()
 {
-    if (!m_track)
-        return;
-
     GST_DEBUG_OBJECT(m_bin.get(), "Stopping outgoing source %" GST_PTR_FORMAT, m_outgoingSource.get());
-    m_track->removeObserver(*this);
+    if (m_track)
+        m_track->removeObserver(*this);
 
     if (!m_outgoingSource)
         return;
@@ -352,12 +351,14 @@ void RealtimeOutgoingMediaSourceGStreamer::setInitialParameters(GUniquePtr<GstSt
 
 void RealtimeOutgoingMediaSourceGStreamer::configure(GRefPtr<GstCaps>&& allowedCaps)
 {
-    const auto encodingsValue = gst_structure_get_value(m_parameters.get(), "encodings");
-    RELEASE_ASSERT(GST_VALUE_HOLDS_LIST(encodingsValue));
-    unsigned encodingsSize = gst_value_list_get_size(encodingsValue);
-    if (UNLIKELY(!encodingsSize)) {
-        GST_WARNING_OBJECT(m_bin.get(), "Encodings list is empty, cancelling configuration");
-        return;
+    if (m_parameters) {
+        const auto encodingsValue = gst_structure_get_value(m_parameters.get(), "encodings");
+        RELEASE_ASSERT(GST_VALUE_HOLDS_LIST(encodingsValue));
+        unsigned encodingsSize = gst_value_list_get_size(encodingsValue);
+        if (UNLIKELY(!encodingsSize)) {
+            GST_WARNING_OBJECT(m_bin.get(), "Encodings list is empty, cancelling configuration");
+            return;
+        }
     }
 
     configurePacketizers(WTFMove(allowedCaps));
@@ -606,17 +607,15 @@ GUniquePtr<GstStructure> RealtimeOutgoingMediaSourceGStreamer::stats()
 void RealtimeOutgoingMediaSourceGStreamer::startUpdatingStats()
 {
     GST_DEBUG_OBJECT(m_bin.get(), "Starting buffer monitoring for stats gathering");
-    forEach(m_packetizers, [](auto& packetizer) {
+    for (auto& packetizer : m_packetizers)
         packetizer->startUpdatingStats();
-    });
 }
 
 void RealtimeOutgoingMediaSourceGStreamer::stopUpdatingStats()
 {
     GST_DEBUG_OBJECT(m_bin.get(), "Stopping buffer monitoring for stats gathering");
-    forEach(m_packetizers, [](auto& packetizer) {
+    for (auto& packetizer : m_packetizers)
         packetizer->stopUpdatingStats();
-    });
 }
 
 void RealtimeOutgoingMediaSourceGStreamer::teardown()
@@ -653,6 +652,14 @@ void RealtimeOutgoingMediaSourceGStreamer::teardown()
     m_sender.clear();
     m_webrtcSinkPad.clear();
     m_parameters.reset();
+}
+
+RealtimeMediaSource::Type RealtimeOutgoingMediaSourceGStreamer::type() const
+{
+    if (m_type == Type::Video)
+        return RealtimeMediaSource::Type::Video;
+
+    return RealtimeMediaSource::Type::Audio;
 }
 
 #undef GST_CAT_DEFAULT

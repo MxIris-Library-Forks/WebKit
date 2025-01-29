@@ -101,15 +101,6 @@ private:
     std::span<const char> m_charactersWithNullTerminator;
 };
 
-inline bool operator==(ASCIILiteral a, const char* b)
-{
-    if (!a || !b)
-        return a.characters() == b;
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-    return !strcmp(a.characters(), b);
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
-}
-
 inline bool operator==(ASCIILiteral a, ASCIILiteral b)
 {
     if (!a || !b)
@@ -172,6 +163,9 @@ constexpr std::span<const LChar> operator""_span8(const char* characters, size_t
 }
 
 } // inline StringLiterals
+
+// ASCIILiteral is null terminated
+inline const char* safePrintfType(const ASCIILiteral& asciiLiteral) { return asciiLiteral.characters(); }
 
 } // namespace WTF
 

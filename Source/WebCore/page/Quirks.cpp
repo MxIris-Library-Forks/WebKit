@@ -1398,12 +1398,6 @@ bool Quirks::shouldFlipScreenDimensions() const
 #endif
 }
 
-// FIXME: Remove this when rdar://137625935 is resolved.
-bool Quirks::shouldAllowDownloadsInSpiteOfCSP() const
-{
-    return needsQuirks() && m_quirksData.shouldAllowDownloadsInSpiteOfCSPQuirk;
-}
-
 // This section is dedicated to UA override for iPad. iPads (but iPad Mini) are sending a desktop user agent
 // to websites. In some cases, the website breaks in some ways, not expecting a touch interface for the website.
 // Controls not active or too small, form factor, etc. In this case it is better to send the iPad Mini UA.
@@ -1733,6 +1727,15 @@ bool Quirks::shouldAvoidStartingSelectionOnMouseDown(const Node& target) const
     UNUSED_PARAM(target);
 #endif
     return false;
+}
+
+bool Quirks::shouldReuseLiveRangeForSelectionUpdate() const
+{
+    if (!needsQuirks())
+        return false;
+    if (!m_quirksData.needsReuseLiveRangeForSelectionUpdateQuirk)
+        m_quirksData.needsReuseLiveRangeForSelectionUpdateQuirk = isDomain("scribd.com"_s);
+    return *m_quirksData.needsReuseLiveRangeForSelectionUpdateQuirk;
 }
 
 #if PLATFORM(IOS_FAMILY)
@@ -2201,17 +2204,6 @@ static void handleAmazonQuirks(QuirksData& quirksData, const URL& quirksURL, con
     // amazon.com rdar://128962002
     quirksData.needsPrimeVideoUserSelectNoneQuirk = true;
 #endif
-}
-
-static void handleAppleQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
-{
-    if (quirksDomainString != "apple.com"_s)
-        return;
-
-    UNUSED_PARAM(quirksURL);
-    UNUSED_PARAM(documentURL);
-    // FIXME: Remove this when rdar://137625935 is resolved.
-    quirksData.shouldAllowDownloadsInSpiteOfCSPQuirk = true;
 }
 
 static void handleBBCQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
@@ -2728,7 +2720,6 @@ void Quirks::determineRelevantQuirks()
         { "365scores"_s, &handle365ScoresQuirks },
 #endif
         { "amazon"_s, &handleAmazonQuirks },
-        { "apple"_s, &handleAppleQuirks },
 #if PLATFORM(IOS_FAMILY)
         { "as"_s, &handleASQuirks },
         { "att"_s, &handleATTQuirks },

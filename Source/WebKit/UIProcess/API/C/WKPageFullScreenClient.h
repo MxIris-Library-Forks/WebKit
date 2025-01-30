@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,36 +25,34 @@
 
 #pragma once
 
-#if ENABLE(WEB_AUTHN)
+#include <WebKit/WKBase.h>
 
-#include "CredentialsContainer.h"
-#include "IdentityCredentialsContainer.h"
-#include "Supplementable.h"
-#include <wtf/TZoneMalloc.h>
-#include <wtf/WeakPtr.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace WebCore {
+typedef struct WKRect WKRect;
 
-class WeakPtrImplWithEventTargetData;
-class Navigator;
+typedef bool (*WKPageWillEnterFullScreenCallback)(WKPageRef page, const void* clientInfo);
+typedef void (*WKPageFullScreenCallbackWithRects)(WKPageRef page, WKRect initialFrame, WKRect finalFrame, const void* clientInfo);
+typedef void (*WKPageFullScreenCallback)(WKPageRef page, const void* clientInfo);
 
-class NavigatorIdentity final : public Supplement<Navigator> {
-    WTF_MAKE_TZONE_ALLOCATED(NavigatorIdentity);
-public:
-    NavigatorIdentity();
-    virtual ~NavigatorIdentity();
+typedef struct WKPageFullScreenClientBase {
+    int version;
+    const void *clientInfo;
+} WKPageFullScreenClientBase;
 
-    static CredentialsContainer* identity(Navigator&);
+typedef struct WKPageFullScreenClientV0 {
+    WKPageFullScreenClientBase base;
 
-private:
-    CredentialsContainer* identity(WeakPtr<Document, WeakPtrImplWithEventTargetData>&&);
+    // Version 0.
+    WKPageWillEnterFullScreenCallback willEnterFullScreen;
+    WKPageFullScreenCallbackWithRects beganEnterFullScreen;
+    WKPageFullScreenCallback exitFullScreen;
+    WKPageFullScreenCallbackWithRects beganExitFullScreen;
 
-    static NavigatorIdentity* from(Navigator*);
-    static ASCIILiteral supplementName();
+} WKPageFullScreenClientV0;
 
-    RefPtr<IdentityCredentialsContainer> m_credentialsContainer;
-};
-
-} // namespace WebCore
-
-#endif // ENABLE(WEB_AUTHN)
+#ifdef __cplusplus
+}
+#endif

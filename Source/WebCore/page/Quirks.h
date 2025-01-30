@@ -83,7 +83,6 @@ public:
 
     bool shouldPreventOrientationMediaQueryFromEvaluatingToLandscape() const;
     bool shouldFlipScreenDimensions() const;
-    bool shouldAllowDownloadsInSpiteOfCSP() const;
 
     WEBCORE_EXPORT bool shouldDispatchSyntheticMouseEventsWhenModifyingSelection() const;
     WEBCORE_EXPORT bool shouldSuppressAutocorrectionAndAutocapitalizationInHiddenEditableAreas() const;
@@ -240,6 +239,8 @@ public:
     bool needsBingGestureEventQuirk(EventTarget*) const;
 
     bool shouldAvoidStartingSelectionOnMouseDown(const Node&) const;
+
+    bool shouldReuseLiveRangeForSelectionUpdate() const;
 
     bool needsFacebookStoriesCreationFormQuirk(const Element&, const RenderStyle&) const;
 

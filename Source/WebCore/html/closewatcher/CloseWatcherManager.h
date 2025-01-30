@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,11 +22,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-//https://wicg.github.io/digital-identities/#extensions-to-the-navigator-interface
-[
-    Conditional=WEB_AUTHN,
-    EnabledBySetting=DigitalCredentialsEnabled,
-    ImplementedBy=NavigatorIdentity
-] partial interface Navigator {
-    [SecureContext, SameObject] readonly attribute CredentialsContainer identity;
+
+#pragma once
+
+#include "CloseWatcher.h"
+
+namespace WebCore {
+
+class CloseWatcherManager final : public RefCounted<CloseWatcherManager> {
+public:
+    CloseWatcherManager();
+
+    void add(Ref<CloseWatcher>);
+    void remove(CloseWatcher&);
+
+    void notifyAboutUserActivation();
+    bool canPreventClose();
+
+    void escapeKeyHandler(KeyboardEvent&);
+private:
+    Vector<Vector<Ref<CloseWatcher>>> m_groups;
+    uint32_t m_allowedNumberOfGroups { 1 };
+    bool m_nextUserInteractionAllowsNewGroup { true };
 };
+
+} // namespace WebCore

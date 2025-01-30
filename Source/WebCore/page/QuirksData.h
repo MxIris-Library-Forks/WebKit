@@ -60,7 +60,6 @@ struct WEBCORE_EXPORT QuirksData {
     bool needsVP9FullRangeFlagQuirk { false };
     bool needsVideoShouldMaintainAspectRatioQuirk { false };
     bool returnNullPictureInPictureElementDuringFullscreenChangeQuirk { false };
-    bool shouldAllowDownloadsInSpiteOfCSPQuirk { false };
     bool shouldAutoplayWebAudioForArbitraryUserGestureQuirk { false };
     bool shouldAvoidResizingWhenInputViewBoundsChangeQuirk { false };
     bool shouldAvoidScrollingWhenFocusedContentIsVisibleQuirk { false };
@@ -82,6 +81,8 @@ struct WEBCORE_EXPORT QuirksData {
 
     // Requires check at moment of use
     std::optional<bool> needsDisableDOMPasteAccessQuirk;
+
+    std::optional<bool> needsReuseLiveRangeForSelectionUpdateQuirk;
 
 #if PLATFORM(IOS_FAMILY)
     bool mayNeedToIgnoreContentObservation { false };

@@ -642,14 +642,6 @@ public:
     void setHeaderHeight(float);
     void setFooterHeight(float);
 
-#if ENABLE(FULLSCREEN_API)
-    void webkitWillEnterFullScreenForElement(Element&);
-    void webkitDidEnterFullScreenForElement(Element&);
-    void webkitWillExitFullScreenForElement(Element&);
-    void webkitDidExitFullScreenForElement(Element&);
-    bool isAnimatingFullScreen() const;
-#endif
-
     struct FullscreenInsets {
         float top { 0 };
         float left { 0 };
@@ -827,10 +819,6 @@ public:
     ExceptionOr<RefPtr<StaticRange>> selectedRange();
     void setSelectionWithoutValidation(Ref<Node> baseNode, unsigned baseOffset, RefPtr<Node> extentNode, unsigned extentOffset);
     void setSelectionFromNone();
-
-    ExceptionOr<bool> isPluginUnavailabilityIndicatorObscured(Element&);
-    ExceptionOr<String> unavailablePluginReplacementText(Element&);
-    bool isPluginSnapshotted(Element&);
 
 #if ENABLE(MEDIA_SOURCE)
     WEBCORE_TESTSUPPORT_EXPORT void initializeMockMediaSource();

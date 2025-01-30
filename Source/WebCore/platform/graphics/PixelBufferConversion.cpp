@@ -281,15 +281,32 @@ static void convertSinglePixelUnpremultipliedToUnpremultiplied(std::span<const u
 template<void (*convertFunctor)(std::span<const uint8_t, 4>, std::span<uint8_t, 4>)>
 static void convertImagePixelsUnaccelerated(const ConstPixelBufferConversionView& source, const PixelBufferConversionView& destination, const IntSize& destinationSize)
 {
-    auto sourceRows = source.rows;
-    auto destinationRows = destination.rows;
-
     size_t bytesPerRow = destinationSize.width() * 4;
-    for (int y = 0; y < destinationSize.height(); ++y, skip(sourceRows, source.bytesPerRow), skip(destinationRows, destination.bytesPerRow)) {
+    for (int y = 0; y < destinationSize.height(); ++y) {
+        auto sourceRow = source.rows.subspan(source.bytesPerRow * y);
+        auto destinationRow = destination.rows.subspan(destination.bytesPerRow * y);
         for (size_t x = 0; x < bytesPerRow; x += 4)
-            convertFunctor(sourceRows.subspan(x).subspan<0, 4>(), destinationRows.subspan(x).subspan<0, 4>());
+            convertFunctor(sourceRow.subspan(x).subspan<0, 4>(), destinationRow.subspan(x).subspan<0, 4>());
     }
 }
+
+#if !(USE(ACCELERATE) && USE(CG))
+static void copyImagePixels(const ConstPixelBufferConversionView& source, const PixelBufferConversionView& destination, const IntSize& destinationSize)
+{
+    size_t bytesPerRow = destinationSize.width() * 4;
+
+    if (bytesPerRow == source.bytesPerRow && bytesPerRow == destination.bytesPerRow) {
+        memcpySpan(destination.rows, source.rows.first(bytesPerRow * destinationSize.height()));
+        return;
+    }
+
+    for (int y = 0; y < destinationSize.height(); ++y) {
+        auto sourceRow = source.rows.subspan(source.bytesPerRow * y);
+        auto destinationRow = destination.rows.subspan(destination.bytesPerRow * y);
+        memcpySpan(destinationRow, sourceRow.first(bytesPerRow));
+    }
+}
+#endif
 
 void convertImagePixels(const ConstPixelBufferConversionView& source, const PixelBufferConversionView& destination, const IntSize& destinationSize)
 {
@@ -308,7 +325,7 @@ void convertImagePixels(const ConstPixelBufferConversionView& source, const Pixe
         convertImagePixelsAccelerated(source, destination, destinationSize);
 #elif USE(SKIA)
     if (source.format.alphaFormat == destination.format.alphaFormat && source.format.pixelFormat == destination.format.pixelFormat && source.format.colorSpace == destination.format.colorSpace)
-        memcpySpan(destination.rows, source.rows.first(source.bytesPerRow * destinationSize.height()));
+        copyImagePixels(source, destination, destinationSize);
     else
         convertImagePixelsSkia(source, destination, destinationSize);
 #else
@@ -317,7 +334,7 @@ void convertImagePixels(const ConstPixelBufferConversionView& source, const Pixe
     ASSERT(source.format.colorSpace == destination.format.colorSpace);
 
     if (source.format.alphaFormat == destination.format.alphaFormat && source.format.pixelFormat == destination.format.pixelFormat) {
-        memcpySpan(destination.rows, source.rows.first(source.bytesPerRow * destinationSize.height()));
+        copyImagePixels(source, destination, destinationSize);
         return;
     }
 

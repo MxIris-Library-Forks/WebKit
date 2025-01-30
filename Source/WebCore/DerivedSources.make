@@ -384,7 +384,6 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/identity/DigitalCredentialRequestOptions.idl \
     $(WebCore)/Modules/identity/OpenID4VPRequest.idl \
     $(WebCore)/Modules/identity/IdentityCredentialProtocol.idl \
-    $(WebCore)/Modules/identity/Navigator+Identity.idl \
     $(WebCore)/Modules/indexeddb/IDBCursor.idl \
     $(WebCore)/Modules/indexeddb/IDBCursorDirection.idl \
     $(WebCore)/Modules/indexeddb/IDBCursorWithValue.idl \
@@ -1474,6 +1473,7 @@ JS_BINDING_IDLS := \
     $(WebCore)/html/canvas/WebGLUniformLocation.idl \
     $(WebCore)/html/canvas/WebGLVertexArrayObject.idl \
     $(WebCore)/html/canvas/WebGLVertexArrayObjectOES.idl \
+    $(WebCore)/html/closewatcher/CloseWatcher.idl \
     $(WebCore)/html/track/AudioTrack.idl \
     $(WebCore)/html/track/AudioTrackConfiguration.idl \
     $(WebCore)/html/track/AudioTrackList.idl \

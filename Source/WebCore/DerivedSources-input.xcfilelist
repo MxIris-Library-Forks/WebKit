@@ -513,7 +513,6 @@ $(PROJECT_DIR)/Modules/identity/DigitalCredential.idl
 $(PROJECT_DIR)/Modules/identity/DigitalCredentialRequest.idl
 $(PROJECT_DIR)/Modules/identity/DigitalCredentialRequestOptions.idl
 $(PROJECT_DIR)/Modules/identity/IdentityCredentialProtocol.idl
-$(PROJECT_DIR)/Modules/identity/Navigator+Identity.idl
 $(PROJECT_DIR)/Modules/identity/OpenID4VPRequest.idl
 $(PROJECT_DIR)/Modules/indexeddb/IDBCursor.idl
 $(PROJECT_DIR)/Modules/indexeddb/IDBCursorDirection.idl
@@ -1682,6 +1681,7 @@ $(PROJECT_DIR)/html/VideoFrameMetadata.idl
 $(PROJECT_DIR)/html/VideoFrameRequestCallback.idl
 $(PROJECT_DIR)/html/VoidCallback.idl
 $(PROJECT_DIR)/html/WebKitMediaKeyError.idl
+$(PROJECT_DIR)/html/closewatcher/CloseWatcher.idl
 $(PROJECT_DIR)/html/canvas/ANGLEInstancedArrays.idl
 $(PROJECT_DIR)/html/canvas/CanvasCompositing.idl
 $(PROJECT_DIR)/html/canvas/CanvasDirection.idl

@@ -412,7 +412,12 @@ void LayerTreeHost::requestComposition()
     }
 #endif
 
-    m_compositor->updateScene();
+    m_compositor->scheduleUpdate();
+}
+
+RunLoop* LayerTreeHost::compositingRunLoop() const
+{
+    return m_compositor->runLoop();
 }
 
 #if USE(CAIRO)

@@ -593,7 +593,7 @@ template<class V, class... F> requires (!HasSwitchOn<V>) ALWAYS_INLINE auto swit
 
 #endif
 
-template<class V, class... F> requires (HasSwitchOn<V>) ALWAYS_INLINE auto switchOn(const V& v, F&&... f) -> decltype(v.switchOn(std::forward<F>(f)...))
+template<class V, class... F> requires (HasSwitchOn<V>) ALWAYS_INLINE auto switchOn(V&& v, F&&... f) -> decltype(v.switchOn(std::forward<F>(f)...))
 {
     return v.switchOn(std::forward<F>(f)...);
 }
@@ -662,6 +662,50 @@ template<size_t I, typename V> bool holdsAlternative(const V& v)
 {
     return HoldsAlternative<V>::template holdsAlternative<I>(v);
 }
+
+// MARK: - Utility macro for wrapping a variant in a struct
+
+#define FORWARD_VARIANT_FUNCTIONS(Self, name)                                        \
+    size_t index() const                                                             \
+    {                                                                                \
+        return name.index();                                                         \
+    }                                                                                \
+    template<typename... F> decltype(auto) switchOn(F&&... f) const                  \
+    {                                                                                \
+        return WTF::switchOn(name, std::forward<F>(f)...);                           \
+    }                                                                                \
+    template<typename... F> decltype(auto) switchOn(F&&... f)                        \
+    {                                                                                \
+        return WTF::switchOn(name, std::forward<F>(f)...);                           \
+    }                                                                                \
+    template<typename T> bool holdsAlternative() const                               \
+    {                                                                                \
+        return WTF::holdsAlternative<T>(value);                                      \
+    }                                                                                \
+    template<typename T> friend T& get(Self& self)                                   \
+    {                                                                                \
+        return std::get<T>(self.name);                                               \
+    }                                                                                \
+    template<typename T> friend T&& get(Self&& self)                                 \
+    {                                                                                \
+        return std::get<T>(WTFMove(self.name));                                      \
+    }                                                                                \
+    template<typename T> friend const T& get(const Self& self)                       \
+    {                                                                                \
+        return std::get<T>(self.name);                                               \
+    }                                                                                \
+    template<typename T> friend const T&& get(const Self&& self)                     \
+    {                                                                                \
+        return std::get<T>(WTFMove(self.name));                                      \
+    }                                                                                \
+    template<typename T> friend std::add_pointer_t<T> get_if(Self* self)             \
+    {                                                                                \
+        return std::get_if<T>(&self->name);                                          \
+    }                                                                                \
+    template<typename T> friend std::add_pointer_t<const T> get_if(const Self* self) \
+    {                                                                                \
+        return std::get_if<T>(&self->name);                                          \
+    }
 
 // MARK: - Utility types for working with std::variants in generic contexts
 
@@ -1087,7 +1131,7 @@ void secureMemsetSpan(std::span<T, Extent> destination, uint8_t byte)
 #define WTF_EXPAND3(...) WTF_EXPAND2(WTF_EXPAND2(WTF_EXPAND2(WTF_EXPAND2(__VA_ARGS__))))
 #define WTF_EXPAND2(...) WTF_EXPAND1(WTF_EXPAND1(WTF_EXPAND1(WTF_EXPAND1(__VA_ARGS__))))
 #define WTF_EXPAND1(...) __VA_ARGS__
-#define WTF_FOR_EACH_HELPER(macro, a1, ...) macro(a1) __VA_OPT__(WTF_FOR_EACH_AGAIN PARENS (macro, __VA_ARGS__))
+#define WTF_FOR_EACH_HELPER(macro, a1, ...) macro(a1) __VA_OPT__(, WTF_FOR_EACH_AGAIN WTF_PARENS (macro, __VA_ARGS__))
 #define WTF_FOR_EACH_AGAIN() WTF_FOR_EACH_HELPER
 #define WTF_FOR_EACH(macro, ...) __VA_OPT__(WTF_EXPAND(WTF_FOR_EACH_HELPER(macro, __VA_ARGS__)))
 
@@ -1101,7 +1145,7 @@ template <class T> inline typename std::enable_if<std::is_pointer<T>::value, T>:
     return arg;
 }
 
-// This version of printf rejects char* but accepts known null terminated
+// These versions of printf reject char* but accept known null terminated
 // string types, like ASCIILiteral and CString. A type can specialize
 // 'safePrintfType' to advertise conversion to null terminated string.
 
@@ -1111,6 +1155,8 @@ template <class T> inline typename std::enable_if<std::is_pointer<T>::value, T>:
 #define SAFE_PRINTF_TYPE(...) WTF_FOR_EACH(WTF::safePrintfType, __VA_ARGS__)
 
 #define SAFE_PRINTF(format, ...) printf(format, SAFE_PRINTF_TYPE(__VA_ARGS__))
+#define SAFE_FPRINTF(file, format, ...) fprintf(file, format, SAFE_PRINTF_TYPE(__VA_ARGS__))
+#define SAFE_SPRINTF(destinationSpan, format, ...) snprintf(destinationSpan.data(), destinationSpan.size_bytes(), format, SAFE_PRINTF_TYPE(__VA_ARGS__))
 
 template<typename T> concept ByteType = sizeof(T) == 1 && ((std::is_integral_v<T> && !std::same_as<T, bool>) || std::same_as<T, std::byte>) && !std::is_const_v<T>;
 

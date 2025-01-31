@@ -500,7 +500,7 @@ public:
     void showNode(ASCIILiteral prefix = ""_s) const;
     WEBCORE_EXPORT void showTreeForThis() const;
     void showNodePathForThis() const;
-    void showTreeAndMark(const Node* markedNode1, const char* markedLabel1, const Node* markedNode2 = nullptr, const char* markedLabel2 = nullptr) const;
+    void showTreeAndMark(const Node* markedNode1, ASCIILiteral markedLabel1, const Node* markedNode2 = nullptr, ASCIILiteral markedLabel2 = { }) const;
     void showTreeForThisAcrossFrame() const;
 #endif // ENABLE(TREE_DEBUGGING)
 
@@ -855,12 +855,13 @@ ALWAYS_INLINE void Node::deref() const
     ASSERT(isMainThread());
     ASSERT(!m_adoptionIsRequired);
 
-    ASSERT(refCount());
+    ASSERT_WITH_SECURITY_IMPLICATION(refCount());
     auto updatedRefCount = m_refCountAndParentBit - s_refCountIncrement;
     if (!updatedRefCount) {
+        // FIXME: Remove this redundant check.
         if (deletionHasBegun())
             return;
-        // Don't update m_refCountAndParentBit to avoid double destruction through use of Ref<T>/RefPtr<T>.
+
 #if ASSERT_ENABLED
         m_inRemovedLastRefFunction = true;
 #endif

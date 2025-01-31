@@ -2187,6 +2187,15 @@ imported/w3c/web-platform-tests/svg/animations/repeat-event.svg [ Skip ]
 imported/w3c/web-platform-tests/svg/animations/seeking-events-2.html [ Failure Pass ]
 imported/w3c/web-platform-tests/svg/animations/dependent-begin-on-syncbase.html [ Failure Pass ]
 imported/w3c/web-platform-tests/svg/animations/dependent-end-on-syncbase.html [ Failure Pass ]
+imported/w3c/web-platform-tests/svg/path/bearing/absolute.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/bearing/relative.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/bearing/zero.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/closepath/segment-completing.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/distance/pathlength-circle-mutating.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/distance/pathlength-path-negative.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/distance/pathlength-path-zero.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/distance/pathLength-zero.svg [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/path/distance/pathLength-zero-percentage.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/path/distance/pathlength-rect-mutating.svg [ Failure Pass ]
 imported/w3c/web-platform-tests/svg/animations/seeking-events-1.html [ Failure Pass ]
 imported/w3c/web-platform-tests/svg/animations/pruning-first-interval.html [ Failure Pass ]
@@ -2938,11 +2947,14 @@ http/tests/security/contentSecurityPolicy/block-all-mixed-content/insecure-css-i
 # text-spacing: These tests generate a bunch of render tree dumps
 imported/w3c/web-platform-tests/css/css-text/text-spacing-trim [ Skip ]
 
-# invokers v2: These tests cover additions to the invokers API which aren't specced yet
-imported/w3c/web-platform-tests/html/semantics/invokers/invoketarget-fullscreen-behavior.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/invokers/invoketarget-on-audio-behavior.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/invokers/invoketarget-on-video-behavior.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/invokers/invoketarget-on-details-behavior.tentative.html [ Skip ]
+# command/commandfor future: These tests cover additions to the command invokers API which aren't specced yet
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/fullscreen-behavior.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-audio-behavior.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-audio-invalid-behavior.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-details-behavior.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-details-invalid-behavior.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-input-number.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-video-behavior.tentative.html [ Skip ]
 
 # text-transform: full-width
 # no full width mapping for characters ( and )

@@ -382,12 +382,15 @@ void GraphicsLayerCoordinated::setContentsToImage(Image* image)
         if (!nativeImage)
             return;
 
-        if (m_pendingContentsImage && CoordinatedImageBackingStore::uniqueIDForNativeImage(*m_pendingContentsImage) == CoordinatedImageBackingStore::uniqueIDForNativeImage(*nativeImage))
+        if (m_contentsImage && m_contentsImage->uniqueID() == nativeImage->uniqueID())
             return;
 
-        m_pendingContentsImage = WTFMove(nativeImage);
-    } else
-        m_pendingContentsImage = nullptr;
+        m_contentsImage = WTFMove(nativeImage);
+    } else {
+        if (!m_contentsImage)
+            return;
+        m_contentsImage = nullptr;
+    }
     noteLayerPropertyChanged(Change::ContentsImage, ScheduleFlush::Yes);
 }
 
@@ -403,7 +406,7 @@ void GraphicsLayerCoordinated::setContentsToSolidColor(const Color& color)
 bool GraphicsLayerCoordinated::usesContentsLayer() const
 {
     // FIXME: convert CoordinatedImageBackingStore into a contents layer?
-    return m_contentsBufferProxy || m_contentsDisplayDelegate || m_pendingContentsImage || m_platformLayer->hasImageBackingStore();
+    return m_contentsBufferProxy || m_contentsDisplayDelegate || m_contentsImage;
 }
 
 bool GraphicsLayerCoordinated::setChildren(Vector<Ref<GraphicsLayer>>&& children)
@@ -465,6 +468,39 @@ void GraphicsLayerCoordinated::setEventRegion(EventRegion&& eventRegion)
 void GraphicsLayerCoordinated::deviceOrPageScaleFactorChanged()
 {
     noteLayerPropertyChanged(Change::ContentsScale, ScheduleFlush::Yes);
+}
+
+void GraphicsLayerCoordinated::updateRootRelativeScale()
+{
+    // For CSS animations we could figure out the max scale level during the animation and only figure out the max content scale once.
+    // For JS driven animation, we need to be more clever to keep the peformance as before. Ideas:
+    // - only update scale factor when the change is 'significant' (to be defined, (orig - new)/orig > delta?)
+    // - never update the scale factor when it gets smaller (unless we're under memory pressure) (or only periodically)
+    // - ...
+    // --> For now we disable this logic altogether, but allow to turn it on selectively (for LBSE)
+    if (!m_shouldUpdateRootRelativeScaleFactor)
+        return;
+
+    auto computeMaxScaleFromTransform = [](const TransformationMatrix& transform) -> float {
+        if (transform.isIdentityOrTranslation())
+            return 1;
+        TransformationMatrix::Decomposed2Type decomposeData;
+        if (!transform.decompose2(decomposeData))
+            return 1;
+        return std::max(std::abs(decomposeData.scaleX), std::abs(decomposeData.scaleY));
+    };
+
+    float rootRelativeScaleFactor = hasNonIdentityTransform() ? computeMaxScaleFromTransform(transform()) : 1;
+    if (m_parent) {
+        if (m_parent->hasNonIdentityChildrenTransform())
+            rootRelativeScaleFactor *= computeMaxScaleFromTransform(m_parent->childrenTransform());
+        rootRelativeScaleFactor *= downcast<GraphicsLayerCoordinated>(*m_parent).rootRelativeScaleFactor();
+    }
+
+    if (rootRelativeScaleFactor != m_rootRelativeScaleFactor) {
+        m_rootRelativeScaleFactor = rootRelativeScaleFactor;
+        noteLayerPropertyChanged(Change::ContentsScale, ScheduleFlush::Yes);
+    }
 }
 
 bool GraphicsLayerCoordinated::setFilters(const FilterOperations& filters)
@@ -1041,11 +1077,13 @@ void GraphicsLayerCoordinated::commitLayerChanges(CommitState& commitState, floa
     if (m_pendingChanges.contains(Change::ContentsClippingRect))
         m_platformLayer->setContentsClippingRect(m_contentsClippingRect);
 
+    updateRootRelativeScale(); // Needs to happen before Change::ContentsScale.
+
     if (m_pendingChanges.contains(Change::ContentsScale))
-        m_platformLayer->setContentsScale(pageScaleFactor * deviceScaleFactor());
+        m_platformLayer->setContentsScale(pageScaleFactor * deviceScaleFactor() * m_rootRelativeScaleFactor);
 
     if (m_pendingChanges.contains(Change::ContentsImage))
-        m_platformLayer->setContentsImage(WTFMove(m_pendingContentsImage));
+        m_platformLayer->setContentsImage(m_contentsImage.get());
 
     if (m_pendingChanges.contains(Change::ContentsColor))
         m_platformLayer->setContentsColor(m_contentsColor);

@@ -1023,7 +1023,8 @@ void Quirks::triggerOptionalStorageAccessIframeQuirk(const URL& frameURL, Comple
                 return;
             }
         }
-        if (subFrameDomainsForStorageAccessQuirk().contains(RegistrableDomain { frameURL })) {
+        bool isMSOLoginButNotMSTeams = document->url().hasQuery() && document->url().host() == "login.microsoftonline.com"_s && !document->url().query().contains("redirect_uri=https%3A%2F%2Fteams.microsoft.com"_s);
+        if (!isMSOLoginButNotMSTeams && subFrameDomainsForStorageAccessQuirk().contains(RegistrableDomain { frameURL })) {
             return DocumentStorageAccess::requestStorageAccessForNonDocumentQuirk(*document, RegistrableDomain { frameURL }, [completionHandler = WTFMove(completionHandler)](StorageAccessWasGranted) mutable {
                 completionHandler();
             });
@@ -1513,13 +1514,6 @@ bool Quirks::needsGetElementsByNameQuirk() const
 #else
     return false;
 #endif
-}
-
-// tripadvisor.com: rdar://112851939
-// FIXME: Remove this quirk when <rdar://127247321> is complete
-bool Quirks::needsRelaxedCorsMixedContentCheckQuirk() const
-{
-    return needsQuirks() && m_quirksData.needsRelaxedCorsMixedContentCheckQuirk;
 }
 
 // rdar://127398734
@@ -2499,17 +2493,6 @@ static void handleSpotifyQuirks(QuirksData& quirksData, const URL& quirksURL, co
 #endif
 }
 
-static void handleTripAdvisorQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
-{
-    if (quirksDomainString != "tripadvisor.com"_s)
-        return;
-
-    UNUSED_PARAM(quirksURL);
-    UNUSED_PARAM(documentURL);
-    // tripadvisor.com: rdar://112851939
-    quirksData.needsRelaxedCorsMixedContentCheckQuirk = true;
-}
-
 static void handleVictoriasSecretQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
 {
     if (quirksDomainString != "victoriassecret.com"_s)
@@ -2797,7 +2780,6 @@ void Quirks::determineRelevantQuirks()
 #if PLATFORM(IOS_FAMILY)
         { "thesaurus"_s, &handleScriptToEvaluateBeforeRunningScriptFromURLQuirk },
 #endif
-        { "tripadvisor"_s, &handleTripAdvisorQuirks },
 #if PLATFORM(MAC)
         { "trix-editor"_s, &handleTrixEditorQuirks },
 #endif

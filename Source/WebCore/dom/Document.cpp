@@ -889,22 +889,21 @@ void Document::removedLastRef()
 
     commonTeardown();
 
-    if (m_referencingNodeCount || m_refCountAndParentBit != s_refCountIncrement) {
-        // Document can be resurrected if any of the code above escapes a RefPtr,
-        // or if m_referencingNodeCount is not 0. When that happens,
-        // release the final overlooking ref that deref() maintains, so that
-        // refCounting can resume from 0.
+    RELEASE_ASSERT_WITH_MESSAGE(m_refCountAndParentBit == s_refCountIncrement,
+        "Please do not escape new references to the Document from inside removedLastRef(). "
+        "Consider using WeakPtr, or enitrely avoiding new work during teardown.");
 
-        // FIXME: We could be stricter, and forbid escaping RefPtrs in the code
-        // above just like we forbid escaping RefPtrs in destructors. We still
-        // need to support resurrection for m_referencingNodeCount, but we can
-        // establish a simpler model that's less likely to cause leaks or
-        // wasted work.
+    if (m_referencingNodeCount) {
+        // Document can be resurrected if m_referencingNodeCount is not 0. When
+        // that happens, release the final overlooking ref that deref()
+        // maintains, so that refCounting can resume from 0.
         m_refCountAndParentBit -= s_refCountIncrement;
         return;
     }
 
-    setStateFlag(StateFlag::HasStartedDeletion);
+#if ASSERT_ENABLED
+    setStateFlag(StateFlag::DeletionHasBegun);
+#endif
     delete this;
 }
 
@@ -9300,11 +9299,18 @@ float Document::deviceScaleFactor() const
     return deviceScaleFactor;
 }
 
+#if ENABLE(DARK_MODE_CSS)
+OptionSet<ColorScheme> Document::resolvedColorScheme(const RenderStyle* style) const
+{
+    bool isNormal = !style || style->colorScheme().isNormal();
+    return isNormal ? m_colorScheme : style->colorScheme().colorScheme();
+}
+#endif
+
 bool Document::useDarkAppearance(const RenderStyle* style) const
 {
 #if ENABLE(DARK_MODE_CSS)
-    bool isNormal = !style || style->colorScheme().isNormal();
-    auto colorScheme = isNormal ? m_colorScheme : style->colorScheme().colorScheme();
+    auto colorScheme = resolvedColorScheme(style);
 
     if (colorScheme.contains(ColorScheme::Dark) && !colorScheme.contains(ColorScheme::Light))
         return true;

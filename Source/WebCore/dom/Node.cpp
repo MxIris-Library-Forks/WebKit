@@ -463,7 +463,7 @@ Node::~Node()
     }
 #endif
 
-#if CHECK_REF_COUNTED_LIFECYCLE
+#if ASSERT_ENABLED
     if (m_refCountAndParentBit != s_refCountIncrement)
         WTF::RefCountedBase::printRefDuringDestructionLogAndCrash(this);
 #endif
@@ -2896,7 +2896,9 @@ void Node::removedLastRef()
     if (auto* svgElement = dynamicDowncast<SVGElement>(*this))
         svgElement->detachAllProperties();
 
-    setStateFlag(StateFlag::HasStartedDeletion);
+#if ASSERT_ENABLED
+    setStateFlag(StateFlag::DeletionHasBegun);
+#endif
     delete this;
 }
 

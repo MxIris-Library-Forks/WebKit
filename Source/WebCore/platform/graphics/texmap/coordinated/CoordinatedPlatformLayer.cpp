@@ -132,7 +132,7 @@ void CoordinatedPlatformLayer::invalidateTarget()
     {
         Locker locker { m_lock };
         m_backingStore = nullptr;
-        m_committedImageBackingStore = nullptr;
+        m_imageBackingStore.committed = nullptr;
         if (shouldReleaseBuffer(m_contentsBuffer.committed.get()))
             m_contentsBuffer.committed = nullptr;
     }
@@ -497,17 +497,20 @@ void CoordinatedPlatformLayer::replaceCurrentContentsBufferWithCopy()
 }
 #endif
 
-void CoordinatedPlatformLayer::setContentsImage(RefPtr<NativeImage>&& image)
+void CoordinatedPlatformLayer::setContentsImage(NativeImage* image)
 {
     ASSERT(m_lock.isHeld());
     if (image) {
-        if (m_imageBackingStore && m_imageBackingStore->isSameNativeImage(*image))
+        if (m_imageBackingStore.current && m_imageBackingStore.current->isSameNativeImage(*image))
             return;
 
         ASSERT(m_client);
-        m_imageBackingStore = m_client->imageBackingStore(image.releaseNonNull());
-    } else
-        m_imageBackingStore = nullptr;
+        m_imageBackingStore.current = m_client->imageBackingStore(Ref { *image });
+    } else {
+        if (!m_imageBackingStore.current)
+            return;
+        m_imageBackingStore.current = nullptr;
+    }
     m_pendingChanges.add(Change::ContentsImage);
     notifyCompositionRequired();
 }
@@ -737,28 +740,29 @@ void CoordinatedPlatformLayer::updateContents(bool affectedByTransformAnimation)
         if (!m_backingStoreProxy) {
             m_backingStoreProxy = CoordinatedBackingStoreProxy::create(m_contentsScale);
             m_needsTilesUpdate = true;
+            m_pendingChanges.add(Change::BackingStore);
         }
 
         if (affectedByTransformAnimation) {
-            if (!m_animatedBackingStoreClient)
+            if (!m_animatedBackingStoreClient) {
                 m_animatedBackingStoreClient = CoordinatedAnimatedBackingStoreClient::create(*m_owner);
+                m_pendingChanges.add(Change::BackingStore);
+            }
         } else if (m_animatedBackingStoreClient) {
             m_animatedBackingStoreClient->invalidate();
             m_animatedBackingStoreClient = nullptr;
+            m_pendingChanges.add(Change::BackingStore);
         }
     } else {
-        m_backingStoreProxy = nullptr;
+        if (m_backingStoreProxy) {
+            m_backingStoreProxy = nullptr;
+            m_pendingChanges.add(Change::BackingStore);
+        }
         if (m_animatedBackingStoreClient) {
             m_animatedBackingStoreClient->invalidate();
             m_animatedBackingStoreClient = nullptr;
+            m_pendingChanges.add(Change::BackingStore);
         }
-    }
-
-    if (m_imageBackingStore) {
-        bool wasVisible = m_imageBackingStoreVisible;
-        m_imageBackingStoreVisible = m_transformedVisibleRect.intersects(IntRect(m_contentsRect));
-        if (wasVisible != m_imageBackingStoreVisible)
-            m_pendingChanges.add(Change::ContentsImage);
     }
 
     if (m_backdrop) {
@@ -775,7 +779,7 @@ void CoordinatedPlatformLayer::purgeBackingStores()
         m_animatedBackingStoreClient->invalidate();
         m_animatedBackingStoreClient = nullptr;
     }
-    m_imageBackingStore = nullptr;
+    m_imageBackingStore.current = nullptr;
     if (shouldReleaseBuffer(m_contentsBuffer.pending.get()))
         m_contentsBuffer.pending = nullptr;
 }
@@ -858,6 +862,21 @@ void CoordinatedPlatformLayer::flushCompositingState(TextureMapper& textureMappe
     if (m_pendingChanges.contains(Change::Opacity))
         layer.setOpacity(m_opacity);
 
+    if (m_pendingChanges.contains(Change::BackingStore)) {
+        if (m_backingStoreProxy) {
+            if (!m_backingStore)
+                m_backingStore = CoordinatedBackingStore::create();
+            layer.setBackingStore(m_backingStore.get());
+
+            if (m_animatedBackingStoreClient)
+                layer.setAnimatedBackingStoreClient(m_animatedBackingStoreClient.get());
+        } else {
+            layer.setBackingStore(nullptr);
+            layer.setAnimatedBackingStoreClient(nullptr);
+            m_backingStore = nullptr;
+        }
+    }
+
     if (m_pendingChanges.contains(Change::ContentsVisible))
         layer.setContentsVisible(m_contentsVisible);
 
@@ -882,7 +901,7 @@ void CoordinatedPlatformLayer::flushCompositingState(TextureMapper& textureMappe
         m_contentsBuffer.committed = WTFMove(m_contentsBuffer.pending);
 
     if (m_pendingChanges.contains(Change::ContentsImage))
-        m_committedImageBackingStore = m_imageBackingStore;
+        m_imageBackingStore.committed = m_imageBackingStore.current;
 
     if (m_pendingChanges.contains(Change::ContentsColor))
         layer.setSolidColor(m_contentsColor);
@@ -926,13 +945,6 @@ void CoordinatedPlatformLayer::flushCompositingState(TextureMapper& textureMappe
     }
 
     if (m_backingStoreProxy) {
-        if (!m_backingStore)
-            m_backingStore = CoordinatedBackingStore::create();
-        layer.setBackingStore(m_backingStore.get());
-
-        if (m_animatedBackingStoreClient)
-            layer.setAnimatedBackingStoreClient(m_animatedBackingStoreClient.get());
-
         auto update = m_backingStoreProxy->takePendingUpdate();
         m_backingStore->resize(layer.size(), update.scale());
 
@@ -944,16 +956,12 @@ void CoordinatedPlatformLayer::flushCompositingState(TextureMapper& textureMappe
             m_backingStore->updateTile(tileUpdate.tileID, tileUpdate.dirtyRect, tileUpdate.tileRect, tileUpdate.buffer.copyRef(), { });
 
         m_backingStore->processPendingUpdates(textureMapper);
-    } else {
-        layer.setBackingStore(nullptr);
-        layer.setAnimatedBackingStoreClient(nullptr);
-        m_backingStore = nullptr;
     }
 
     if (m_contentsBuffer.committed)
         layer.setContentsLayer(m_contentsBuffer.committed.get());
-    else if (m_committedImageBackingStore && m_imageBackingStoreVisible)
-        layer.setContentsLayer(m_committedImageBackingStore->buffer());
+    else if (m_imageBackingStore.committed)
+        layer.setContentsLayer(m_imageBackingStore.committed->buffer());
     else
         layer.setContentsLayer(nullptr);
 

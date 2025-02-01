@@ -2557,8 +2557,10 @@ enum class WebCore::PixelFormat : uint8_t {
     RGBA8,
     BGRX8,
     BGRA8,
+#if HAVE(IOSURFACE_RGB10)
     RGB10,
     RGB10A8,
+#endif
 #if HAVE(HDR_SUPPORT)
     RGBA16F,
 #endif
@@ -2567,8 +2569,10 @@ enum class WebCore::PixelFormat : uint8_t {
 enum class WebCore::ImageBufferPixelFormat : uint8_t {
     BGRX8,
     BGRA8,
+#if HAVE(IOSURFACE_RGB10)
     RGB10,
     RGB10A8,
+#endif
 #if HAVE(HDR_SUPPORT)
     RGBA16F,
 #endif
@@ -3579,6 +3583,7 @@ enum class WebCore::WasPrivateRelayed : bool;
     bool isRedirected;
     WebCore::UsedLegacyTLS usedLegacyTLS;
     WebCore::WasPrivateRelayed wasPrivateRelayed;
+    String proxyName;
     bool isRangeRequested;
     std::optional<WebCore::CertificateInfo> certificateInfo;
 };
@@ -5702,7 +5707,12 @@ struct WebCore::CaptureDeviceWithCapabilities {
     WebCore::RealtimeMediaSourceCapabilities capabilities;
 };
 
-[Nested] enum class WebCore::RealtimeMediaSourceCapabilities::EchoCancellation : bool
+[Nested] enum class WebCore::RealtimeMediaSourceCapabilities::EchoCancellation : uint8_t {
+    Off,
+    On,
+    OnOrOff
+}
+
 [Nested] enum class WebCore::RealtimeMediaSourceCapabilities::BackgroundBlur : uint8_t {
     Off,
     On,
@@ -6396,6 +6406,7 @@ enum class WebCore::IdentityCredentialProtocol : uint8_t {
 header: <WebCore/MockMediaDevice.h>
 [CustomHeader] struct WebCore::MockMicrophoneProperties {
     int defaultSampleRate;
+    std::optional<bool> echoCancellation;
 };
 
 header: <WebCore/MockMediaDevice.h>

@@ -1133,6 +1133,8 @@ void testMulNegSignExtend32();
 void testMulNegZeroExtend32();
 void testMulArgDouble(double);
 void testMulArgsDouble(double, double);
+void testMulNegArgsDouble();
+void testMulNegArgsFloat();
 void testCallSimpleDouble(double, double);
 void testCallSimpleFloat(float, float);
 void testCallFunctionWithHellaDoubleArguments();
@@ -1377,5 +1379,8 @@ void testConstFloatMove();
 
 void testSShrCompare32(int32_t);
 void testSShrCompare64(int64_t);
+
+void testInt52RoundTripUnary(int32_t);
+void testInt52RoundTripBinary();
 
 #endif // ENABLE(B3_JIT)

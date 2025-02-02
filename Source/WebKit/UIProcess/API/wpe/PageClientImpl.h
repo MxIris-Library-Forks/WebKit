@@ -131,6 +131,8 @@ private:
 
     RefPtr<WebDataListSuggestionsDropdown> createDataListSuggestionsDropdown(WebPageProxy&) override;
 
+    RefPtr<WebDateTimePicker> createDateTimePicker(WebPageProxy&) override;
+
     void enterAcceleratedCompositingMode(const LayerTreeContext&) override;
     void exitAcceleratedCompositingMode() override;
     void updateAcceleratedCompositingMode(const LayerTreeContext&) override;
@@ -183,6 +185,9 @@ private:
     WebKitWebResourceLoadManager* webResourceLoadManager() override;
 
     WKWPE::View& m_view;
+#if ENABLE(FULLSCREEN_API)
+    std::unique_ptr<WebFullScreenManagerProxyClient> m_fullscreenClientForTesting;
+#endif
 };
 
 } // namespace WebKit

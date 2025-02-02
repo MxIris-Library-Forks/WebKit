@@ -38,6 +38,7 @@
 #include "WebContextMenuProxy.h"
 #include "WebContextMenuProxyWPE.h"
 #include "WebDataListSuggestionsDropdown.h"
+#include "WebDateTimePicker.h"
 #include "WebKitPopupMenu.h"
 #include <WebCore/ActivityState.h>
 #include <WebCore/Cursor.h>
@@ -308,6 +309,11 @@ RefPtr<WebDataListSuggestionsDropdown> PageClientImpl::createDataListSuggestions
     return nullptr;
 }
 
+RefPtr<WebDateTimePicker> PageClientImpl::createDateTimePicker(WebPageProxy& page)
+{
+    return nullptr;
+}
+
 void PageClientImpl::enterAcceleratedCompositingMode(const LayerTreeContext& context)
 {
 #if ENABLE(WPE_PLATFORM)
@@ -407,12 +413,15 @@ WebCore::UserInterfaceLayoutDirection PageClientImpl::userInterfaceLayoutDirecti
 #if ENABLE(FULLSCREEN_API)
 WebFullScreenManagerProxyClient& PageClientImpl::fullScreenManagerProxyClient()
 {
+    if (m_fullscreenClientForTesting)
+        return *m_fullscreenClientForTesting;
+
     return *this;
 }
 
-void PageClientImpl::setFullScreenClientForTesting(std::unique_ptr<WebFullScreenManagerProxyClient>&&)
+void PageClientImpl::setFullScreenClientForTesting(std::unique_ptr<WebFullScreenManagerProxyClient>&& client)
 {
-    notImplemented();
+    m_fullscreenClientForTesting = WTFMove(client);
 }
 
 void PageClientImpl::closeFullScreenManager()

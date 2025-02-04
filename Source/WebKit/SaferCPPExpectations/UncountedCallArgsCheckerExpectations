@@ -38,7 +38,6 @@ NetworkProcess/storage/BackgroundFetchStoreManager.cpp
 NetworkProcess/storage/CacheStorageDiskStore.cpp
 NetworkProcess/storage/IDBStorageRegistry.cpp
 NetworkProcess/storage/OriginStorageManager.cpp
-NetworkProcess/storage/SQLiteStorageArea.cpp
 NetworkProcess/webrtc/NetworkRTCUDPSocketCocoa.mm
 Platform/IPC/ArgumentCoders.h
 Platform/IPC/SharedBufferReference.cpp
@@ -96,7 +95,6 @@ Shared/WebMemorySampler.cpp
 Shared/graphics/ImageBufferSet.cpp
 UIProcess/API/APIAttachment.cpp
 UIProcess/API/APIContentRuleListStore.cpp
-UIProcess/API/APIDataTask.cpp
 UIProcess/API/APIDownloadClient.h
 UIProcess/API/APIHTTPCookieStore.cpp
 UIProcess/API/APIInspectorExtension.cpp
@@ -204,7 +202,6 @@ UIProcess/API/Cocoa/_WKWebsiteDataStoreConfiguration.mm
 UIProcess/API/mac/WKWebViewMac.mm
 UIProcess/API/mac/WKWebViewTestingMac.mm
 UIProcess/BackgroundProcessResponsivenessTimer.cpp
-UIProcess/BrowsingContextGroup.cpp
 UIProcess/Cocoa/AutomationClient.mm
 UIProcess/Cocoa/GroupActivities/GroupActivitiesCoordinator.mm
 UIProcess/Cocoa/LegacyDownloadClient.mm

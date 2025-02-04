@@ -3418,6 +3418,18 @@ Color Page::themeColor() const
     return { };
 }
 
+#if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
+std::optional<SpatialBackdropSource> Page::spatialBackdropSource() const
+{
+    RefPtr localMainFrame = this->localMainFrame();
+    RefPtr document = localMainFrame ? localMainFrame->document() : nullptr;
+    if (!document)
+        return std::nullopt;
+
+    return document->spatialBackdropSource();
+}
+#endif
+
 Color Page::pageExtendedBackgroundColor() const
 {
     RefPtr localMainFrame = this->localMainFrame();
@@ -4085,6 +4097,24 @@ void Page::appearanceDidChange()
         document.scheduleRenderingUpdate(RenderingUpdateStep::MediaQueryEvaluation);
         document.invalidateScrollbars();
     });
+}
+
+void Page::clearAXObjectCache()
+{
+    m_axObjectCache = nullptr;
+}
+
+AXObjectCache* Page::axObjectCache()
+{
+    if (!m_axObjectCache) {
+        RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_mainFrame.get());
+        RefPtr mainFrameDocument = localMainFrame ? localMainFrame->document() : nullptr;
+        if (mainFrameDocument && !mainFrameDocument->hasLivingRenderTree())
+            return nullptr;
+        m_axObjectCache = makeUnique<AXObjectCache>(*this, mainFrameDocument.get());
+        Document::hasEverCreatedAnAXObjectCache = true;
+    }
+    return m_axObjectCache.get();
 }
 
 void Page::setUnobscuredSafeAreaInsets(const FloatBoxExtent& insets)

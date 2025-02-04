@@ -6452,7 +6452,7 @@ void WebPageProxy::updateRemoteFrameSize(WebCore::FrameIdentifier frameID, WebCo
 
 void WebPageProxy::resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier frameID, WebCore::IntPoint point, CompletionHandler<void(String)>&& callback)
 {
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::ResolveAccessibilityHitTestForTesting(point), WTFMove(callback));
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::ResolveAccessibilityHitTestForTesting(frameID, point), WTFMove(callback));
 }
 
 void WebPageProxy::updateSandboxFlags(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::SandboxFlags sandboxFlags)
@@ -12526,6 +12526,27 @@ void WebPageProxy::sampledPageTopColorChanged(const Color& sampledPageTopColor)
     if (pageClient)
         pageClient->sampledPageTopColorDidChange();
 }
+
+#if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
+std::optional<WebCore::SpatialBackdropSource> WebPageProxy::spatialBackdropSource() const
+{
+    return internals().spatialBackdropSource;
+}
+
+void WebPageProxy::spatialBackdropSourceChanged(std::optional<WebCore::SpatialBackdropSource>&& spatialBackdropSource)
+{
+    if (internals().spatialBackdropSource == spatialBackdropSource)
+        return;
+
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->spatialBackdropSourceWillChange();
+
+    internals().spatialBackdropSource = WTFMove(spatialBackdropSource);
+
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->spatialBackdropSourceDidChange();
+}
+#endif
 
 void WebPageProxy::copyLinkWithHighlight()
 {

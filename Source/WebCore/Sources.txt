@@ -1358,6 +1358,7 @@ dom/SimpleRange.cpp
 dom/SimulatedClick.cpp
 dom/SlotAssignment.cpp
 dom/SpaceSplitString.cpp
+dom/SpatialBackdropSource.cpp
 dom/StaticNodeList.cpp
 dom/StaticRange.cpp
 dom/StringCallback.cpp
@@ -2464,6 +2465,7 @@ platform/graphics/FloatPolygon.cpp
 platform/graphics/FloatQuad.cpp
 platform/graphics/FloatRect.cpp
 platform/graphics/FloatRoundedRect.cpp
+platform/graphics/FloatSegment.cpp
 platform/graphics/FloatSize.cpp
 platform/graphics/Font.cpp
 platform/graphics/FontCache.cpp

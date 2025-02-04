@@ -1653,12 +1653,14 @@ std::pair<URL, WebCore::DidFilterLinkDecoration> WebPage::applyLinkDecorationFil
     return { url, WebCore::DidFilterLinkDecoration::No };
 }
 
-void WebPage::bindRemoteAccessibilityFrames(int, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&&)
+void WebPage::bindRemoteAccessibilityFrames(int, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&& completionHandler)
 {
+    completionHandler({ }, { });
 }
 
-void WebPage::resolveAccessibilityHitTestForTesting(const WebCore::IntPoint&, CompletionHandler<void(String)>&&)
+void WebPage::resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier, const WebCore::IntPoint&, CompletionHandler<void(String)>&& completionHandler)
 {
+    completionHandler({ });
 }
 
 void WebPage::updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint)
@@ -7922,6 +7924,10 @@ void WebPage::didFinishLoad(WebFrame& frame)
 #if ENABLE(VIEWPORT_RESIZING)
     shrinkToFitContent(ZoomToInitialScale::Yes);
 #endif
+
+#if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
+    spatialBackdropSourceChanged();
+#endif
 }
 
 void WebPage::didSameDocumentNavigationForFrame(WebFrame& frame)
@@ -8092,6 +8098,14 @@ void WebPage::flushPendingSampledPageTopColorChange()
 
     send(Messages::WebPageProxy::SampledPageTopColorChanged(m_page->sampledPageTopColor()));
 }
+
+#if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
+void WebPage::spatialBackdropSourceChanged()
+{
+    if (m_page->settings().webPageSpatialBackdropEnabled())
+        send(Messages::WebPageProxy::SpatialBackdropSourceChanged(m_page->spatialBackdropSource()));
+}
+#endif
 
 void WebPage::flushPendingEditorStateUpdate()
 {

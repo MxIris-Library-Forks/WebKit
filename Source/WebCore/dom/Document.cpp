@@ -1340,6 +1340,47 @@ const Color& Document::themeColor()
     return m_cachedThemeColor;
 }
 
+#if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
+void Document::spatialBackdropLinkElementChanged()
+{
+    spatialBackdropSourceChanged();
+}
+
+void Document::spatialBackdropSourceChanged()
+{
+    if (!settings().webPageSpatialBackdropEnabled())
+        return;
+
+    auto newSpatialBackdropSource = determineActiveSpatialBackdropSource();
+    if (m_cachedSpatialBackdropSource == newSpatialBackdropSource)
+        return;
+    m_cachedSpatialBackdropSource = WTFMove(newSpatialBackdropSource);
+
+    if (RefPtr page = this->page())
+        page->chrome().client().spatialBackdropSourceChanged();
+}
+
+std::optional<SpatialBackdropSource> Document::determineActiveSpatialBackdropSource() const
+{
+    auto sourceURL = m_url.url();
+    if (!sourceURL.isValid())
+        return std::nullopt;
+
+    for (auto& linkElement : descendantsOfType<HTMLLinkElement>(*this)) {
+        if (!linkElement.isSpatialBackdrop())
+            continue;
+
+        auto modelURL = linkElement.href();
+        if (!modelURL.isValid())
+            return std::nullopt;
+
+        return SpatialBackdropSource { WTFMove(sourceURL), WTFMove(modelURL), linkElement.environmentMap() };
+    }
+
+    return std::nullopt;
+}
+#endif
+
 Color Document::linkColor(const RenderStyle& style) const
 {
     if (m_linkColor.isValid())
@@ -3086,7 +3127,6 @@ void Document::createRenderTree()
 {
     ASSERT(!renderView());
     ASSERT(m_backForwardCacheState != InBackForwardCache);
-    ASSERT(!m_axObjectCache || isTopDocument());
 
     if (m_isNonRenderedPlaceholder)
         return;
@@ -3435,14 +3475,16 @@ void Document::clearAXObjectCache()
     ASSERT(isTopDocument());
     // Clear the cache member variable before calling delete because attempts
     // are made to access it during destruction.
-    m_axObjectCache = nullptr;
+    if (RefPtr page = this->page())
+        page->clearAXObjectCache();
 }
 
 AXObjectCache* Document::existingAXObjectCacheSlow() const
 {
     ASSERT(hasEverCreatedAnAXObjectCache);
-    auto* mainFrameDocument = this->mainFrameDocument();
-    return mainFrameDocument ? mainFrameDocument->m_axObjectCache.get() : nullptr;
+    if (RefPtr page = this->page())
+        return page->existingAXObjectCache();
+    return nullptr;
 }
 
 AXObjectCache* Document::axObjectCache() const
@@ -3450,27 +3492,10 @@ AXObjectCache* Document::axObjectCache() const
     if (!AXObjectCache::accessibilityEnabled())
         return nullptr;
 
-    // The only document that actually has a AXObjectCache is the top-level
-    // document.  This is because we need to be able to get from any WebCoreAXObject
-    // to any other WebCoreAXObject on the same page.  Using a single cache allows
-    // lookups across nested webareas (i.e. multiple documents).
-    RefPtr mainFrameDocument = this->mainFrameDocument();
-
-    if (!mainFrameDocument) {
-        LOG_ONCE(SiteIsolation, "Unable to reach the main frame documents AXObjectCache ");
+    RefPtr page = this->page();
+    if (!page)
         return nullptr;
-    }
-
-    // If the document has already been detached, do not make a new axObjectCache.
-    if (!mainFrameDocument->hasLivingRenderTree())
-        return nullptr;
-
-    ASSERT(mainFrameDocument.get() == this || !m_axObjectCache);
-    if (!mainFrameDocument->m_axObjectCache) {
-        mainFrameDocument->m_axObjectCache = makeUnique<AXObjectCache>(*mainFrameDocument);
-        hasEverCreatedAnAXObjectCache = true;
-    }
-    return mainFrameDocument->m_axObjectCache.get();
+    return page->axObjectCache();
 }
 
 void Document::setVisuallyOrdered()
@@ -4213,6 +4238,10 @@ void Document::setURL(const URL& url)
     m_documentURI = m_url.url();
     m_adjustedURL = adjustedURL();
     updateBaseURL();
+
+#if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
+    spatialBackdropSourceChanged();
+#endif
 }
 
 const URL& Document::urlForBindings()

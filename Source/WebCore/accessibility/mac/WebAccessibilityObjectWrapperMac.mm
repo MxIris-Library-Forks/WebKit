@@ -97,35 +97,6 @@ static id parameterizedAttributeValueForTesting(const RefPtr<AXCoreObject>&, NSS
 #define NSAccessibilityActiveElementAttribute @"AXActiveElement"
 #endif
 
-// Cell Tables
-#ifndef NSAccessibilitySelectedCellsAttribute
-#define NSAccessibilitySelectedCellsAttribute @"AXSelectedCells"
-#endif
-
-#ifndef NSAccessibilityVisibleCellsAttribute
-#define NSAccessibilityVisibleCellsAttribute @"AXVisibleCells"
-#endif
-
-#ifndef NSAccessibilityRowIndexRangeAttribute
-#define NSAccessibilityRowIndexRangeAttribute @"AXRowIndexRange"
-#endif
-
-#ifndef NSAccessibilityColumnIndexRangeAttribute
-#define NSAccessibilityColumnIndexRangeAttribute @"AXColumnIndexRange"
-#endif
-
-#ifndef NSAccessibilityCellForColumnAndRowParameterizedAttribute
-#define NSAccessibilityCellForColumnAndRowParameterizedAttribute @"AXCellForColumnAndRow"
-#endif
-
-#ifndef NSAccessibilityCellRole
-#define NSAccessibilityCellRole @"AXCell"
-#endif
-
-#ifndef NSAccessibilityDefinitionListSubrole
-#define NSAccessibilityDefinitionListSubrole @"AXDefinitionList"
-#endif
-
 // Miscellaneous
 #ifndef NSAccessibilityAccessKeyAttribute
 #define NSAccessibilityAccessKeyAttribute @"AXAccessKey"
@@ -141,10 +112,6 @@ static id parameterizedAttributeValueForTesting(const RefPtr<AXCoreObject>&, NSS
 
 #ifndef NSAccessibilityLanguageAttribute
 #define NSAccessibilityLanguageAttribute @"AXLanguage"
-#endif
-
-#ifndef NSAccessibilityRequiredAttribute
-#define NSAccessibilityRequiredAttribute @"AXRequired"
 #endif
 
 #ifndef NSAccessibilityInvalidAttribute
@@ -205,10 +172,6 @@ static id parameterizedAttributeValueForTesting(const RefPtr<AXCoreObject>&, NSS
 
 #ifndef NSAccessibilityPopupValueAttribute
 #define NSAccessibilityPopupValueAttribute @"AXPopupValue"
-#endif
-
-#ifndef NSAccessibilityPlaceholderValueAttribute
-#define NSAccessibilityPlaceholderValueAttribute @"AXPlaceholderValue"
 #endif
 
 #ifndef NSAccessibilityScrollToVisibleAction
@@ -2516,7 +2479,7 @@ id parameterizedAttributeValueForTesting(const RefPtr<AXCoreObject>& backingObje
     if ([hitTestResult isKindOfClass:[NSAccessibilityRemoteUIElement class]]) {
         RefPtr<AXCoreObject> backingObject = self.updateObjectBackingStore;
         if (!backingObject)
-            return;
+            return callback(@"no backing object");
 
         auto* axObject = backingObject->accessibilityHitTest(IntPoint(point));
         if (axObject && axObject->isRemoteFrame()) {
@@ -3127,8 +3090,8 @@ enum class TextUnit {
         case TextUnit::Paragraph:
             return inputMarker.paragraphRange().platformData().autorelease();
         default:
-            // TODO: Not implemented!
-            break;
+            ASSERT_NOT_REACHED();
+            return nil;
         }
     }
 #endif // ENABLE(AX_THREAD_TEXT_APIS)
@@ -3227,6 +3190,10 @@ enum class TextUnit {
             return inputMarker.nextParagraphEnd().platformData().autorelease();
         case TextUnit::PreviousParagraphStart:
             return inputMarker.previousParagraphStart().platformData().autorelease();
+        case TextUnit::NextWordEnd:
+            return inputMarker.nextWordEnd().platformData().autorelease();
+        case TextUnit::PreviousWordStart:
+            return inputMarker.previousWordStart().platformData().autorelease();
         default:
             // TODO: Not implemented!
             break;

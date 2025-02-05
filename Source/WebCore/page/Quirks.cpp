@@ -1516,6 +1516,13 @@ bool Quirks::needsGetElementsByNameQuirk() const
 #endif
 }
 
+// tripadvisor.com: rdar://112851939
+// FIXME: Remove this quirk when <rdar://127247321> is complete
+bool Quirks::needsRelaxedCorsMixedContentCheckQuirk() const
+{
+    return needsQuirks() && m_quirksData.needsRelaxedCorsMixedContentCheckQuirk;
+}
+
 // rdar://127398734
 bool Quirks::needsLaxSameSiteCookieQuirk(const URL& requestURL) const
 {
@@ -1580,11 +1587,7 @@ bool Quirks::shouldHideCoarsePointerCharacteristics() const
 // hulu.com rdar://126096361
 bool Quirks::implicitMuteWhenVolumeSetToZero() const
 {
-#if HAVE(MEDIA_VOLUME_PER_ELEMENT)
     return needsQuirks() && m_quirksData.implicitMuteWhenVolumeSetToZero;
-#else
-    return false;
-#endif
 }
 
 #if ENABLE(TOUCH_EVENTS)
@@ -1813,6 +1816,19 @@ bool Quirks::needsFacebookStoriesCreationFormQuirk(const Element& element, const
     UNUSED_PARAM(computedStyle);
     return false;
 #endif
+}
+
+// hotels.com rdar://126631968
+bool Quirks::needsHotelsAnimationQuirk(Element& element, const RenderStyle& style) const
+{
+    if (!needsQuirks() || !m_quirksData.needsHotelsAnimationQuirk)
+        return false;
+
+    if (!style.hasAnimations())
+        return false;
+
+    auto matches = Ref { element }->matches(".uitk-menu-mounted .uitk-menu-container.uitk-menu-container-autoposition.uitk-menu-container-has-intersection-root-el"_s);
+    return !matches.hasException() && matches.returnValue();
 }
 
 URL Quirks::topDocumentURL() const
@@ -2327,6 +2343,12 @@ static void handleHBOMaxQuirks(QuirksData& quirksData, const URL& quirksURL, con
     quirksData.shouldEnableFontLoadingAPIQuirk = true;
 }
 
+static void handleHotelsQuirks(QuirksData& quirksData, const URL&, const String& quirksDomainString, const URL&)
+{
+    // hotels.com rdar://126631968
+    quirksData.needsHotelsAnimationQuirk = quirksDomainString == "hotels.com"_s;
+}
+
 static void handleHuluQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
 {
     if (quirksDomainString != "hulu.com"_s)
@@ -2491,6 +2513,17 @@ static void handleSpotifyQuirks(QuirksData& quirksData, const URL& quirksURL, co
 #if PLATFORM(MAC)
     quirksData.shouldAvoidStartingSelectionOnMouseDown = true;
 #endif
+}
+
+static void handleTripAdvisorQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
+{
+    if (quirksDomainString != "tripadvisor.com"_s)
+        return;
+
+    UNUSED_PARAM(quirksURL);
+    UNUSED_PARAM(documentURL);
+    // tripadvisor.com: rdar://112851939
+    quirksData.needsRelaxedCorsMixedContentCheckQuirk = true;
 }
 
 static void handleVictoriasSecretQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
@@ -2734,6 +2767,7 @@ void Quirks::determineRelevantQuirks()
 #endif
         { "google"_s, &handleGoogleQuirks },
         { "hbomax"_s, &handleHBOMaxQuirks },
+        { "hotels"_s, &handleHotelsQuirks },
         { "hulu"_s, &handleHuluQuirks },
 #if PLATFORM(MAC)
         { "icloud"_s, &handleICloudQuirks },
@@ -2780,6 +2814,7 @@ void Quirks::determineRelevantQuirks()
 #if PLATFORM(IOS_FAMILY)
         { "thesaurus"_s, &handleScriptToEvaluateBeforeRunningScriptFromURLQuirk },
 #endif
+        { "tripadvisor"_s, &handleTripAdvisorQuirks },
 #if PLATFORM(MAC)
         { "trix-editor"_s, &handleTrixEditorQuirks },
 #endif

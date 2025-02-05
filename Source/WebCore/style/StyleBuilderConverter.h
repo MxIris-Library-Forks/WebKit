@@ -83,6 +83,8 @@
 #include "StyleRayFunction.h"
 #include "StyleReflection.h"
 #include "StyleResolveForFont.h"
+#include "StyleScrollMargin.h"
+#include "StyleScrollPadding.h"
 #include "StyleScrollSnapPoints.h"
 #include "StyleTextEdge.h"
 #include "TabSize.h"
@@ -252,6 +254,9 @@ public:
 
     static SingleTimelineRange convertAnimationRangeStart(BuilderState&, const CSSValue&);
     static SingleTimelineRange convertAnimationRangeEnd(BuilderState&, const CSSValue&);
+
+    static Style::ScrollPaddingEdge convertScrollPaddingEdge(BuilderState&, const CSSValue&);
+    static Style::ScrollMarginEdge convertScrollMarginEdge(BuilderState&, const CSSValue&);
 
     static Vector<PositionTryFallback> convertPositionTryFallbacks(BuilderState&, const CSSValue&);
 
@@ -1712,32 +1717,32 @@ inline FilterOperations BuilderConverter::convertAppleColorFilterOperations(Buil
 // The input value needs to parsed and valid, this function returns std::nullopt if the input was "normal".
 inline std::optional<FontSelectionValue> BuilderConverter::convertFontStyleFromValue(BuilderState& builderState, const CSSValue& value)
 {
-    return Style::fontStyleFromCSSValue(value, builderState.cssToLengthConversionData());
+    return Style::fontStyleFromCSSValue(builderState, value);
 }
 
 inline FontSelectionValue BuilderConverter::convertFontWeight(BuilderState& builderState, const CSSValue& value)
 {
-    return Style::fontWeightFromCSSValue(value, builderState.cssToLengthConversionData());
+    return Style::fontWeightFromCSSValue(builderState, value);
 }
 
 inline FontSelectionValue BuilderConverter::convertFontWidth(BuilderState& builderState, const CSSValue& value)
 {
-    return Style::fontStretchFromCSSValue(value, builderState.cssToLengthConversionData());
+    return Style::fontStretchFromCSSValue(builderState, value);
 }
 
 inline FontFeatureSettings BuilderConverter::convertFontFeatureSettings(BuilderState& builderState, const CSSValue& value)
 {
-    return Style::fontFeatureSettingsFromCSSValue(value, builderState.cssToLengthConversionData());
+    return Style::fontFeatureSettingsFromCSSValue(builderState, value);
 }
 
 inline FontVariationSettings BuilderConverter::convertFontVariationSettings(BuilderState& builderState, const CSSValue& value)
 {
-    return Style::fontVariationSettingsFromCSSValue(value, builderState.cssToLengthConversionData());
+    return Style::fontVariationSettingsFromCSSValue(builderState, value);
 }
 
 inline FontSizeAdjust BuilderConverter::convertFontSizeAdjust(BuilderState& builderState, const CSSValue& value)
 {
-    return Style::fontSizeAdjustFromCSSValue(value, builderState.cssToLengthConversionData());
+    return Style::fontSizeAdjustFromCSSValue(builderState, value);
 }
 
 #if PLATFORM(IOS_FAMILY)
@@ -2451,6 +2456,16 @@ inline Vector<PositionTryFallback> BuilderConverter::convertPositionTryFallbacks
         auto fallback = fallbackForValueList(*itemList);
         return fallback ? *fallback : PositionTryFallback { };
     });
+}
+
+inline Style::ScrollPaddingEdge BuilderConverter::convertScrollPaddingEdge(BuilderState& builderState, const CSSValue& value)
+{
+    return Style::scrollPaddingEdgeFromCSSValue(value, builderState);
+}
+
+inline Style::ScrollMarginEdge BuilderConverter::convertScrollMarginEdge(BuilderState& builderState, const CSSValue& value)
+{
+    return Style::scrollMarginEdgeFromCSSValue(value, builderState);
 }
 
 } // namespace Style

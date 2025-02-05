@@ -39,6 +39,7 @@
 #include "RenderSVGModelObject.h"
 #include "ScrollAnchoringController.h"
 #include "StyleBuilderConverter.h"
+#include "StyleScrollPadding.h"
 #include "WebAnimation.h"
 
 namespace WebCore {
@@ -155,31 +156,43 @@ ExceptionOr<ViewTimeline::SpecifiedViewTimelineInsets> ViewTimeline::validateSpe
     return { { startInset, endInset } };
 }
 
-void ViewTimeline::setSubject(const Element* subject)
+const Element* ViewTimeline::subject() const
 {
-    if (subject == m_subject)
-        return;
+    if (auto subject = m_subject.styleable())
+        return &subject->element;
+    return nullptr;
+}
 
-    RefPtr previousSubject = m_subject.get();
-    m_subject = subject;
-    RefPtr newSubject = m_subject.get();
-
-    if (previousSubject && newSubject && &previousSubject->document() == &newSubject->document())
-        return;
-
-    if (previousSubject) {
-        if (CheckedPtr timelinesController = previousSubject->protectedDocument()->timelinesController())
-            timelinesController->removeTimeline(*this);
+void ViewTimeline::setSubject(Element* subject)
+{
+    if (subject)
+        setSubject(Styleable::fromElement(*subject));
+    else {
+        removeTimelineFromDocument(m_subject.element().get());
+        m_subject = WeakStyleable();
     }
+}
 
-    if (newSubject)
-        newSubject->protectedDocument()->ensureTimelinesController().addTimeline(*this);
+void ViewTimeline::setSubject(const Styleable& styleable)
+{
+    if (m_subject == styleable)
+        return;
+
+    auto previousSubject = m_subject.element();
+    m_subject = styleable;
+
+    if (previousSubject && &previousSubject->document() == &styleable.element.document())
+        return;
+
+    removeTimelineFromDocument(previousSubject.get());
+
+    styleable.element.protectedDocument()->ensureTimelinesController().addTimeline(*this);
 }
 
 AnimationTimelinesController* ViewTimeline::controller() const
 {
-    if (m_subject)
-        return &m_subject->document().ensureTimelinesController();
+    if (auto subject = m_subject.styleable())
+        return &subject->element.document().ensureTimelinesController();
     return nullptr;
 }
 
@@ -196,15 +209,16 @@ void ViewTimeline::cacheCurrentTime()
     };
 
     m_cachedCurrentTimeData = [&] -> CurrentTimeData {
-        if (!m_subject)
+        auto subject = m_subject.styleable();
+        if (!subject)
             return { };
 
-        CheckedPtr subjectRenderer = m_subject->renderer();
+        CheckedPtr subjectRenderer = subject->renderer();
         if (!subjectRenderer)
             return { };
 
         CheckedPtr sourceRenderer = sourceScrollerRenderer();
-        auto* sourceScrollableArea = scrollableAreaForSourceRenderer(sourceRenderer.get(), m_subject->document());
+        auto* sourceScrollableArea = scrollableAreaForSourceRenderer(sourceRenderer.get(), subject->element.document());
         if (!sourceScrollableArea)
             return { };
 
@@ -240,10 +254,10 @@ void ViewTimeline::cacheCurrentTime()
         auto subjectSize = scrollDirection->isVertical ? subjectBounds.height() : subjectBounds.width();
 
         if (m_specifiedInsets) {
-            RefPtr subject { m_subject.get() };
+            RefPtr subjectElement { &subject->element };
             auto computedInset = [&](const RefPtr<CSSPrimitiveValue>& specifiedInset) -> std::optional<Length> {
                 if (specifiedInset)
-                    return SingleTimelineRange::lengthForCSSValue(specifiedInset, subject);
+                    return SingleTimelineRange::lengthForCSSValue(specifiedInset, subjectElement);
                 return { };
             };
             m_insets = { computedInset(m_specifiedInsets->start), computedInset(m_specifiedInsets->end) };
@@ -257,11 +271,40 @@ void ViewTimeline::cacheCurrentTime()
             return scrollDirection->isVertical ? style.scrollPaddingBottom() : style.scrollPaddingRight();
         };
 
-        auto hasAutoStartInset = !m_insets.start;
-        auto insetStartLength = hasAutoStartInset ? scrollPadding(PaddingEdge::Start) : *m_insets.start;
-        auto insetEndLength = m_insets.end.value_or(hasAutoStartInset ? scrollPadding(PaddingEdge::End) : insetStartLength);
-        auto insetStart = floatValueForOffset(insetStartLength, scrollContainerSize);
-        auto insetEnd = floatValueForOffset(insetEndLength, scrollContainerSize);
+        bool hasInsetsStart = m_insets.start.has_value();
+        bool hasInsetsEnd = m_insets.end.has_value();
+
+        float insetStart = 0;
+        float insetEnd = 0;
+        if (hasInsetsStart && hasInsetsEnd) {
+            if (m_insets.start->isAuto())
+                insetStart = Style::evaluate(scrollPadding(PaddingEdge::Start), scrollContainerSize);
+            else
+                insetStart = floatValueForOffset(*m_insets.start, scrollContainerSize);
+
+            if (m_insets.end->isAuto())
+                insetEnd = Style::evaluate(scrollPadding(PaddingEdge::End), scrollContainerSize);
+            else
+                insetEnd = floatValueForOffset(*m_insets.end, scrollContainerSize);
+        } else if (hasInsetsStart) {
+            if (m_insets.start->isAuto()) {
+                insetStart = Style::evaluate(scrollPadding(PaddingEdge::Start), scrollContainerSize);
+                insetEnd = Style::evaluate(scrollPadding(PaddingEdge::End), scrollContainerSize);
+            } else {
+                insetStart = floatValueForOffset(*m_insets.start, scrollContainerSize);
+                insetEnd = insetStart; 
+            }
+        } else if (hasInsetsEnd) {
+            insetStart = Style::evaluate(scrollPadding(PaddingEdge::Start), scrollContainerSize);\
+
+            if (m_insets.end->isAuto())
+                insetEnd = Style::evaluate(scrollPadding(PaddingEdge::End), scrollContainerSize);
+            else
+                insetEnd = floatValueForOffset(*m_insets.end, scrollContainerSize);
+        } else {
+            insetStart = Style::evaluate(scrollPadding(PaddingEdge::Start), scrollContainerSize);
+            insetEnd = Style::evaluate(scrollPadding(PaddingEdge::End), scrollContainerSize);
+        }
 
         return {
             scrollOffset,
@@ -288,7 +331,7 @@ void ViewTimeline::cacheCurrentTime()
 AnimationTimeline::ShouldUpdateAnimationsAndSendEvents ViewTimeline::documentWillUpdateAnimationsAndSendEvents()
 {
     cacheCurrentTime();
-    if (m_subject && m_subject->isConnected())
+    if (m_subject.element() && m_subject.element()->isConnected())
         return AnimationTimeline::ShouldUpdateAnimationsAndSendEvents::Yes;
     return AnimationTimeline::ShouldUpdateAnimationsAndSendEvents::No;
 }
@@ -307,10 +350,11 @@ Element* ViewTimeline::source() const
 
 const RenderBox* ViewTimeline::sourceScrollerRenderer() const
 {
-    if (!m_subject)
+    auto subject = m_subject.styleable();
+    if (!subject)
         return nullptr;
 
-    CheckedPtr subjectRenderer = m_subject->renderer();
+    CheckedPtr subjectRenderer = subject->renderer();
     if (!subjectRenderer)
         return { };
 

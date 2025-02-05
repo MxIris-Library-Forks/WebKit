@@ -52,7 +52,9 @@ struct WEBCORE_EXPORT QuirksData {
     bool needsBodyScrollbarWidthNoneDisabledQuirk { false };
     bool needsCanPlayAfterSeekedQuirk { false };
     bool needsChromeMediaControlsPseudoElementQuirk { false };
+    bool needsHotelsAnimationQuirk { false };
     bool needsMozillaFileTypeForDataTransferQuirk { false };
+    bool needsRelaxedCorsMixedContentCheckQuirk { false };
     bool needsResettingTransitionCancelsRunningTransitionQuirk { false };
     bool needsScrollbarWidthThinDisabledQuirk { false };
     bool needsSeekingSupportDisabledQuirk { false };

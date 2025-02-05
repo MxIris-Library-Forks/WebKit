@@ -1938,7 +1938,7 @@ public:
     bool isClosed() const { return m_isClosed; }
 
 #if HAVE(AUDIT_TOKEN)
-    void setPresentingApplicationAuditToken(CoreIPCAuditToken&&);
+    void setPresentingApplicationAuditTokenAndBundleIdentifier(CoreIPCAuditToken&&, String&& bundleIdentifier);
 #endif
 
     void didProgrammaticallyClearTextFormControl(const WebCore::HTMLTextFormControlElement&);
@@ -2064,7 +2064,7 @@ private:
     // Actions
     void tryClose(CompletionHandler<void(bool)>&&);
     void platformDidReceiveLoadParameters(const LoadParameters&);
-    void createProvisionalFrame(ProvisionalFrameCreationParameters&&, WebCore::FrameIdentifier);
+    void createProvisionalFrame(ProvisionalFrameCreationParameters&&);
     void destroyProvisionalFrame(WebCore::FrameIdentifier);
     void loadDidCommitInAnotherProcess(WebCore::FrameIdentifier, std::optional<WebCore::LayerHostingContextIdentifier>);
     [[noreturn]] void loadRequestWaitingForProcessLaunch(LoadParameters&&, URL&&, WebPageProxyIdentifier, bool);
@@ -2460,7 +2460,7 @@ private:
     void frameTextForTesting(WebCore::FrameIdentifier, CompletionHandler<void(String&&)>&&);
     void bindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&&);
     void updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint);
-    void resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier, const WebCore::IntPoint&, CompletionHandler<void(String)>&&);
+    void resolveAccessibilityHitTestForTesting(const WebCore::IntPoint&, CompletionHandler<void(String)>&&);
 
     void requestAllTextAndRects(CompletionHandler<void(Vector<std::pair<String, WebCore::FloatRect>>&&)>&&);
 

@@ -186,7 +186,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     LoadURLInFrame(URL url, String referrer, WebCore::FrameIdentifier frameID)
     LoadDataInFrame(std::span<const uint8_t> data, String MIMEType, String encodingName, URL baseURL, WebCore::FrameIdentifier frameID)
     LoadRequest(struct WebKit::LoadParameters loadParameters)
-    CreateProvisionalFrame(struct WebKit::ProvisionalFrameCreationParameters creationParameters, WebCore::FrameIdentifier frameID)
+    CreateProvisionalFrame(struct WebKit::ProvisionalFrameCreationParameters creationParameters)
     DestroyProvisionalFrame(WebCore::FrameIdentifier frameID);
     LoadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier)
     LoadRequestWaitingForProcessLaunch(struct WebKit::LoadParameters loadParameters, URL resourceDirectoryURL, WebKit::WebPageProxyIdentifier pageID, bool checkAssumedReadAccessToResourceURL)
@@ -496,7 +496,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
     BindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier frameID, Vector<uint8_t> dataToken) -> (Vector<uint8_t> token, int processIdentifier) Synchronous
     UpdateRemotePageAccessibilityOffset(WebCore::FrameIdentifier frameID, WebCore::IntPoint offset);
-    ResolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier frameID, WebCore::IntPoint point) -> (String result)
+    ResolveAccessibilityHitTestForTesting(WebCore::IntPoint point) -> (String result)
     EnableAccessibility()
 
 #if PLATFORM(COCOA)
@@ -864,6 +864,6 @@ messages -> WebPage WantsAsyncDispatchMessage {
     UpdateOpener(WebCore::FrameIdentifier frameID, WebCore::FrameIdentifier newOpener)
 
 #if HAVE(AUDIT_TOKEN)
-    SetPresentingApplicationAuditToken(struct WebKit::CoreIPCAuditToken auditToken)
+    SetPresentingApplicationAuditTokenAndBundleIdentifier(struct WebKit::CoreIPCAuditToken auditToken, String bundleIdentifier)
 #endif
 }

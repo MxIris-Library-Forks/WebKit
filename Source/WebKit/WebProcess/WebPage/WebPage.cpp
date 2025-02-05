@@ -873,6 +873,10 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     pageConfiguration.presentingApplicationAuditToken = parameters.presentingApplicationAuditToken ? std::optional(parameters.presentingApplicationAuditToken->auditToken()) : std::nullopt;
 #endif
 
+#if PLATFORM(COCOA)
+    pageConfiguration.presentingApplicationBundleIdentifier = WTFMove(parameters.presentingApplicationBundleIdentifier);
+#endif
+
     m_page = Page::create(WTFMove(pageConfiguration));
 
     updateAfterDrawingAreaCreation(parameters);
@@ -933,6 +937,10 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
             if (auto* remoteMainFrameClient = m_mainFrame->remoteFrameClient())
                 remoteMainFrameClient->applyWebsitePolicies(WTFMove(*remotePageParameters->websitePoliciesData));
         }
+    }
+    if (auto&& provisionalFrameCreationParameters = parameters.provisionalFrameCreationParameters) {
+        ASSERT(m_page->settings().siteIsolationEnabled());
+        createProvisionalFrame(WTFMove(*provisionalFrameCreationParameters));
     }
 
     drawingArea->updatePreferences(parameters.store);
@@ -1364,6 +1372,11 @@ void WebPage::reinitializeWebPage(WebPageCreationParameters&& parameters)
 
     setUseColorAppearance(parameters.useDarkAppearance, parameters.useElevatedUserInterfaceLevel);
 
+    if (auto&& provisionalFrameCreationParameters = parameters.provisionalFrameCreationParameters) {
+        ASSERT(m_page->settings().siteIsolationEnabled());
+        createProvisionalFrame(WTFMove(*provisionalFrameCreationParameters));
+    }
+
     platformReinitialize();
 }
 
@@ -1653,14 +1666,12 @@ std::pair<URL, WebCore::DidFilterLinkDecoration> WebPage::applyLinkDecorationFil
     return { url, WebCore::DidFilterLinkDecoration::No };
 }
 
-void WebPage::bindRemoteAccessibilityFrames(int, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&& completionHandler)
+void WebPage::bindRemoteAccessibilityFrames(int, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&&)
 {
-    completionHandler({ }, { });
 }
 
-void WebPage::resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier, const WebCore::IntPoint&, CompletionHandler<void(String)>&& completionHandler)
+void WebPage::resolveAccessibilityHitTestForTesting(const WebCore::IntPoint&, CompletionHandler<void(String)>&&)
 {
-    completionHandler({ });
 }
 
 void WebPage::updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint)
@@ -2062,9 +2073,9 @@ void WebPage::platformDidReceiveLoadParameters(const LoadParameters& loadParamet
 }
 #endif
 
-void WebPage::createProvisionalFrame(ProvisionalFrameCreationParameters&& parameters, WebCore::FrameIdentifier frameID)
+void WebPage::createProvisionalFrame(ProvisionalFrameCreationParameters&& parameters)
 {
-    RefPtr frame = WebProcess::singleton().webFrame(frameID);
+    RefPtr frame = WebProcess::singleton().webFrame(parameters.frameID);
     if (!frame)
         return;
     ASSERT(frame->page() == this);
@@ -10300,10 +10311,14 @@ void WebPage::callAfterPendingSyntheticClick(CompletionHandler<void(SyntheticCli
 #endif
 
 #if HAVE(AUDIT_TOKEN)
-void WebPage::setPresentingApplicationAuditToken(CoreIPCAuditToken&& presentingApplicationAuditToken)
+void WebPage::setPresentingApplicationAuditTokenAndBundleIdentifier(CoreIPCAuditToken&& auditToken, String&& bundleIdentifier)
 {
-    if (RefPtr page = protectedCorePage())
-        page->setPresentingApplicationAuditToken(presentingApplicationAuditToken.auditToken());
+    RefPtr page = protectedCorePage();
+    if (!page)
+        return;
+
+    page->setPresentingApplicationAuditToken(auditToken.auditToken());
+    page->setPresentingApplicationBundleIdentifier(WTFMove(bundleIdentifier));
 }
 #endif
 

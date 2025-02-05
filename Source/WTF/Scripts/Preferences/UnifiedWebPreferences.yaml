@@ -3399,7 +3399,7 @@ HDRForImagesEnabled:
   webcoreOnChange: setNeedsRelayoutAllFrames
   humanReadableName: "HDR for Images Support"
   humanReadableDescription: "HDR for Images Support"
-  condition: HAVE(HDR_SUPPORT)
+  condition: ENABLE(HDR_FOR_IMAGES)
   defaultValue:
     WebKitLegacy:
       default: false
@@ -6086,7 +6086,7 @@ ReplayCGDisplayListsIntoBackingStore:
 
 RequestIdleCallbackEnabled:
   type: bool
-  status: testable
+  status: stable
   category: dom
   humanReadableName: "requestIdleCallback"
   humanReadableDescription: "Enable requestIdleCallback support"
@@ -6094,6 +6094,7 @@ RequestIdleCallbackEnabled:
     WebKitLegacy:
       default: false
     WebKit:
+      "USE(CF)": true
       default: false
     WebCore:
       default: false

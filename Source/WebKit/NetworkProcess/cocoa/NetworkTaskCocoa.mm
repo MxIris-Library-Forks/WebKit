@@ -29,7 +29,6 @@
 #import "Logging.h"
 #import "NetworkProcess.h"
 #import "NetworkSession.h"
-#import "WebPrivacyHelpers.h"
 #import <WebCore/DNS.h>
 #import <WebCore/NetworkStorageSession.h>
 #import <WebCore/Quirks.h>
@@ -45,7 +44,7 @@ using namespace WebCore;
 
 static inline bool computeIsAlwaysOnLoggingAllowed(NetworkSession& session)
 {
-    if (session.networkProcess().sessionIsControlledByAutomation(session.sessionID()))
+    if (session.protectedNetworkProcess()->sessionIsControlledByAutomation(session.sessionID()))
         return true;
 
     return session.sessionID().isAlwaysOnLoggingAllowed();
@@ -317,11 +316,6 @@ WebCore::ThirdPartyCookieBlockingDecision NetworkTaskCocoa::requestThirdPartyCoo
         if (!shouldBlockCookies(thirdPartyCookieBlockingDecision))
             thirdPartyCookieBlockingDecision = networkStorageSession->thirdPartyCookieBlockingDecisionForRequest(request, frameID(), pageID(), shouldRelaxThirdPartyCookieBlocking());
     }
-
-#if ENABLE(ADVANCED_PRIVACY_PROTECTIONS) && HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
-    if (thirdPartyCookieBlockingDecision == WebCore::ThirdPartyCookieBlockingDecision::AllExceptPartitioned && request.isThirdParty() && isKnownTrackerAddressOrDomain(request.url().host()))
-        return WebCore::ThirdPartyCookieBlockingDecision::All;
-#endif
     return thirdPartyCookieBlockingDecision;
 }
 
@@ -403,7 +397,7 @@ void NetworkTaskCocoa::willPerformHTTPRedirection(WebCore::ResourceResponse&& re
 
 ShouldRelaxThirdPartyCookieBlocking NetworkTaskCocoa::shouldRelaxThirdPartyCookieBlocking() const
 {
-    return m_networkSession->networkProcess().shouldRelaxThirdPartyCookieBlockingForPage(webPageProxyID());
+    return m_networkSession->protectedNetworkProcess()->shouldRelaxThirdPartyCookieBlockingForPage(webPageProxyID());
 }
 
 } // namespace WebKit

@@ -68,6 +68,7 @@ public:
     bool needsAutoplayPlayPauseEvents() const;
     bool needsSeekingSupportDisabled() const;
     bool needsPerDocumentAutoplayBehavior() const;
+    bool needsHotelsAnimationQuirk(Element&, const RenderStyle&) const;
     bool shouldAutoplayWebAudioForArbitraryUserGesture() const;
     bool hasBrokenEncryptedMediaAPISupportQuirk() const;
 #if ENABLE(TOUCH_EVENTS)
@@ -215,6 +216,7 @@ public:
     WEBCORE_EXPORT bool shouldUseEphemeralPartitionedStorageForDOMCookies(const URL&) const;
 
     bool needsGetElementsByNameQuirk() const;
+    bool needsRelaxedCorsMixedContentCheckQuirk() const;
     bool needsLaxSameSiteCookieQuirk(const URL&) const;
 
     String scriptToEvaluateBeforeRunningScriptFromURL(const URL&);

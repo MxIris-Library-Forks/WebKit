@@ -3127,7 +3127,6 @@ void Document::createRenderTree()
 {
     ASSERT(!renderView());
     ASSERT(m_backForwardCacheState != InBackForwardCache);
-    ASSERT(!m_axObjectCache || isTopDocument());
 
     if (m_isNonRenderedPlaceholder)
         return;
@@ -3476,14 +3475,16 @@ void Document::clearAXObjectCache()
     ASSERT(isTopDocument());
     // Clear the cache member variable before calling delete because attempts
     // are made to access it during destruction.
-    m_axObjectCache = nullptr;
+    if (RefPtr page = this->page())
+        page->clearAXObjectCache();
 }
 
 AXObjectCache* Document::existingAXObjectCacheSlow() const
 {
     ASSERT(hasEverCreatedAnAXObjectCache);
-    auto* mainFrameDocument = this->mainFrameDocument();
-    return mainFrameDocument ? mainFrameDocument->m_axObjectCache.get() : nullptr;
+    if (RefPtr page = this->page())
+        return page->existingAXObjectCache();
+    return nullptr;
 }
 
 AXObjectCache* Document::axObjectCache() const
@@ -3491,27 +3492,10 @@ AXObjectCache* Document::axObjectCache() const
     if (!AXObjectCache::accessibilityEnabled())
         return nullptr;
 
-    // The only document that actually has a AXObjectCache is the top-level
-    // document.  This is because we need to be able to get from any WebCoreAXObject
-    // to any other WebCoreAXObject on the same page.  Using a single cache allows
-    // lookups across nested webareas (i.e. multiple documents).
-    RefPtr mainFrameDocument = this->mainFrameDocument();
-
-    if (!mainFrameDocument) {
-        LOG_ONCE(SiteIsolation, "Unable to reach the main frame documents AXObjectCache ");
+    RefPtr page = this->page();
+    if (!page)
         return nullptr;
-    }
-
-    // If the document has already been detached, do not make a new axObjectCache.
-    if (!mainFrameDocument->hasLivingRenderTree())
-        return nullptr;
-
-    ASSERT(mainFrameDocument.get() == this || !m_axObjectCache);
-    if (!mainFrameDocument->m_axObjectCache) {
-        mainFrameDocument->m_axObjectCache = makeUnique<AXObjectCache>(*mainFrameDocument);
-        hasEverCreatedAnAXObjectCache = true;
-    }
-    return mainFrameDocument->m_axObjectCache.get();
+    return page->axObjectCache();
 }
 
 void Document::setVisuallyOrdered()
@@ -4536,27 +4520,27 @@ void Document::stopGatheringRTCLogs()
 }
 #endif
 
-bool Document::canNavigate(Frame* targetFrame, const URL& destinationURL)
+CanNavigateState Document::canNavigate(Frame* targetFrame, const URL& destinationURL)
 {
     if (!m_frame)
-        return false;
+        return CanNavigateState::Unable;
 
     // FIXME: We shouldn't call this function without a target frame, but
     // fast/forms/submit-to-blank-multiple-times.html depends on this function
     // returning true when supplied with a 0 targetFrame.
     if (!targetFrame)
-        return true;
+        return CanNavigateState::Able;
 
     if (!canNavigateInternal(*targetFrame))
-        return false;
+        return CanNavigateState::Unable;
 
     if (isNavigationBlockedByThirdPartyIFrameRedirectBlocking(*targetFrame, destinationURL)) {
         printNavigationErrorMessage(*this, *targetFrame, url(), "The frame attempting navigation of the top-level window is cross-origin or untrusted and the user has never interacted with the frame."_s);
         DOCUMENT_RELEASE_LOG_ERROR(Loading, "Navigation was prevented because it was triggered by a cross-origin or untrusted iframe");
-        return false;
+        return CanNavigateState::Unable;
     }
 
-    return true;
+    return CanNavigateState::Able;
 }
 
 bool Document::canNavigateInternal(Frame& targetFrame)
@@ -7494,6 +7478,12 @@ Document* Document::parentDocument() const
 
 Document* Document::mainFrameDocument() const
 {
+    if (settings().siteIsolationEnabled()) {
+        if (RefPtr localMainFrame = this->localMainFrame())
+            return localMainFrame->document();
+        return nullptr;
+    }
+
     // FIXME: This special-casing avoids incorrectly determined top documents during the process
     // of AXObjectCache teardown or notification posting for cached or being-destroyed documents.
     if (backForwardCacheState() == NotInBackForwardCache && !m_renderTreeBeingDestroyed) {
@@ -7507,17 +7497,6 @@ Document* Document::mainFrameDocument() const
     while (HTMLFrameOwnerElement* element = document->ownerElement())
         document = &element->document();
     return document;
-}
-
-bool Document::isTopDocument() const
-{
-    if (!settings().siteIsolationEnabled())
-        return isTopDocumentLegacy();
-
-    if (RefPtr localMainFrame = this->localMainFrame())
-        return localMainFrame->document() == this;
-
-    return false;
 }
 
 RefPtr<LocalFrame> Document::localMainFrame() const

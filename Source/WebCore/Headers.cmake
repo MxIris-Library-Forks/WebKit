@@ -1060,6 +1060,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/DeviceOrientationOrMotionPermissionState.h
     dom/Document.h
     dom/DocumentClasses.h
+    dom/DocumentEnums.h
     dom/DocumentEventTiming.h
     dom/DocumentFontLoader.h
     dom/DocumentFragment.h
@@ -1118,6 +1119,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/MessagePortIdentifier.h
     dom/MouseEvent.h
     dom/MouseEventInit.h
+    dom/MouseEventTypes.h
     dom/MouseRelatedEvent.h
     dom/MutationEvent.h
     dom/MutationObserver.h
@@ -2638,10 +2640,13 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/WillChangeData.h
 
     rendering/svg/legacy/LegacyRenderSVGModelObject.h
+    rendering/svg/RenderSVGInlineText.h
     rendering/svg/RenderSVGModelObject.h
     rendering/svg/SVGBoundingBoxComputation.h
     rendering/svg/SVGInlineTextBox.h
     rendering/svg/SVGRenderSupport.h
+    rendering/svg/SVGTextLayoutAttributes.h
+    rendering/svg/SVGTextMetrics.h
 
     storage/Storage.h
     storage/StorageArea.h

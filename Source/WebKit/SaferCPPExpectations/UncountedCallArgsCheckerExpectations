@@ -9,11 +9,9 @@ NetworkProcess/Downloads/DownloadManager.cpp
 NetworkProcess/Downloads/PendingDownload.cpp
 NetworkProcess/Downloads/cocoa/DownloadCocoa.mm
 NetworkProcess/Downloads/cocoa/WKDownloadProgress.mm
-NetworkProcess/NetworkCORSPreflightChecker.cpp
 NetworkProcess/NetworkDataTask.cpp
 NetworkProcess/NetworkDataTaskBlob.cpp
 NetworkProcess/NetworkLoad.cpp
-NetworkProcess/NetworkLoadChecker.cpp
 NetworkProcess/NetworkSession.cpp
 NetworkProcess/PingLoad.cpp
 NetworkProcess/PreconnectTask.cpp
@@ -24,7 +22,6 @@ NetworkProcess/PrivateClickMeasurement/cocoa/PrivateClickMeasurementConnectionCo
 NetworkProcess/ServiceWorker/ServiceWorkerNavigationPreloader.cpp
 NetworkProcess/ServiceWorker/ServiceWorkerSoftUpdateLoader.cpp
 NetworkProcess/SharedWorker/WebSharedWorkerServer.cpp
-NetworkProcess/cache/NetworkCache.cpp
 NetworkProcess/cache/NetworkCacheEntry.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoad.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoadManager.cpp
@@ -233,9 +230,7 @@ UIProcess/Launcher/cocoa/ProcessLauncherCocoa.mm
 UIProcess/MediaKeySystemPermissionRequestManagerProxy.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
 UIProcess/PDF/WKPDFHUDView.mm
-UIProcess/ProcessThrottler.cpp
 UIProcess/ProvisionalFrameProxy.cpp
-UIProcess/ProvisionalPageProxy.cpp
 UIProcess/RemoteLayerTree/RemoteLayerTreeNode.mm
 UIProcess/RemoteLayerTree/RemoteScrollingCoordinatorProxy.cpp
 UIProcess/RemoteLayerTree/mac/RemoteLayerTreeEventDispatcher.cpp

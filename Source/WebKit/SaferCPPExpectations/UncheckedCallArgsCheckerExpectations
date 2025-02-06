@@ -2,13 +2,11 @@ NetworkProcess/Classifier/ResourceLoadStatisticsStore.cpp
 NetworkProcess/Downloads/Download.cpp
 NetworkProcess/Downloads/DownloadManager.cpp
 NetworkProcess/Downloads/cocoa/DownloadCocoa.mm
-NetworkProcess/NetworkCORSPreflightChecker.cpp
 NetworkProcess/NetworkLoad.cpp
 NetworkProcess/NetworkSession.cpp
 NetworkProcess/PingLoad.cpp
 NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementClientImpl.cpp
 NetworkProcess/PrivateClickMeasurement/cocoa/PrivateClickMeasurementConnectionCocoa.mm
-NetworkProcess/cache/NetworkCache.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoad.cpp
 NetworkProcess/cocoa/NetworkSessionCocoa.mm
 UIProcess/API/C/WKPage.cpp
@@ -22,7 +20,6 @@ UIProcess/Launcher/ProcessLauncher.cpp
 UIProcess/MediaKeySystemPermissionRequestManagerProxy.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
 UIProcess/ProvisionalFrameProxy.cpp
-UIProcess/ProvisionalPageProxy.cpp
 UIProcess/RemoteLayerTree/RemoteScrollingCoordinatorProxy.cpp
 UIProcess/SuspendedPageProxy.cpp
 UIProcess/UserMediaPermissionRequestManagerProxy.cpp

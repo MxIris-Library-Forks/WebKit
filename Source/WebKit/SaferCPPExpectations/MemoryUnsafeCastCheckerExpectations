@@ -3,7 +3,6 @@ NetworkProcess/Downloads/cocoa/DownloadCocoa.mm
 NetworkProcess/cocoa/NetworkSessionCocoa.mm
 NetworkProcess/cocoa/WebSocketTaskCocoa.mm
 NetworkProcess/webrtc/NetworkRTCMonitor.cpp
-NetworkProcess/webrtc/NetworkRTCProvider.cpp
 NetworkProcess/webrtc/NetworkRTCUDPSocketCocoa.mm
 Platform/cocoa/CocoaHelpers.mm
 Platform/cocoa/WebPrivacyHelpers.mm
@@ -28,8 +27,6 @@ UIProcess/API/Cocoa/_WKInspectorConfiguration.mm
 UIProcess/RemoteLayerTree/mac/RemoteScrollingTreeMac.mm
 UIProcess/WebAuthentication/Virtual/VirtualService.mm
 UIProcess/mac/WebViewImpl.mm
-WebProcess/GPU/graphics/WebGPU/RemoteCompositorIntegrationProxy.cpp
-WebProcess/GPU/graphics/WebGPU/RemoteXRBindingProxy.cpp
 WebProcess/GPU/graphics/WebGPU/WebGPUDowncastConvertToBackingContext.cpp
 WebProcess/GPU/media/MediaPlayerPrivateRemote.cpp
 WebProcess/InjectedBundle/API/c/WKBundlePageOverlay.cpp

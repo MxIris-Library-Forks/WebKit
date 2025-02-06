@@ -3,7 +3,6 @@ NetworkProcess/NetworkLoad.cpp
 NetworkProcess/NetworkLoadScheduler.cpp
 NetworkProcess/PingLoad.h
 NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementDatabase.cpp
-NetworkProcess/cache/NetworkCache.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoadManager.cpp
 NetworkProcess/cocoa/NetworkSessionCocoa.mm
 NetworkProcess/storage/OriginStorageManager.cpp
@@ -44,8 +43,6 @@ UIProcess/Cocoa/UIDelegate.mm
 UIProcess/Gamepad/UIGamepadProvider.cpp
 UIProcess/Notifications/ServiceWorkerNotificationHandler.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
-UIProcess/ProcessThrottler.cpp
-UIProcess/ProvisionalPageProxy.cpp
 UIProcess/RemoteLayerTree/RemoteScrollingCoordinatorProxy.cpp
 UIProcess/RemoteLayerTree/mac/RemoteScrollingCoordinatorProxyMac.mm
 UIProcess/RemoteLayerTree/mac/RemoteScrollingTreeMac.mm

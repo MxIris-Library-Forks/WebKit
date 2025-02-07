@@ -2951,6 +2951,7 @@ http/tests/security/contentSecurityPolicy/block-all-mixed-content/insecure-css-i
 imported/w3c/web-platform-tests/css/css-text/text-spacing-trim [ Skip ]
 
 # command/commandfor future: These tests cover additions to the command invokers API which aren't specced yet
+imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-dialog-behavior-request-close.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/fullscreen-behavior.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-audio-behavior.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/on-audio-invalid-behavior.tentative.html [ Skip ]
@@ -5335,7 +5336,6 @@ imported/w3c/web-platform-tests/css/css-lists/content-property/marker-text-match
 
 # -- CSS multicol -- #
 webkit.org/b/214458 imported/w3c/web-platform-tests/css/css-multicol/multicol-fill-balance-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-multicol/multicol-fill-balance-021.html [ Failure ]
 webkit.org/b/214458 imported/w3c/web-platform-tests/css/css-multicol/multicol-list-item-002.html [ ImageOnlyFailure ]
 webkit.org/b/214458 imported/w3c/web-platform-tests/css/css-multicol/nested-with-too-tall-line.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-multicol/abspos-after-spanner-static-pos.html [ ImageOnlyFailure ]
@@ -5453,6 +5453,7 @@ imported/w3c/web-platform-tests/css/css-multicol/spanner-in-child-after-parallel
 imported/w3c/web-platform-tests/css/css-multicol/spanner-in-opacity.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-multicol/subpixel-column-rule-width.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-multicol/table/table-cell-multicol-nested-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-pseudo-background-color.html [ ImageOnlyFailure ]
 
 # Crashes
 webkit.org/b/279421 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/inline-float-parallel-flow.html [ Skip ]
@@ -7493,8 +7494,6 @@ imported/w3c/web-platform-tests/css/css-color/deprecated-sameas-002.html [ Image
 
 http/tests/site-isolation/touch-events [ Skip ]
 http/tests/site-isolation/iframe-dark-mode-print.html [ ImageOnlyFailure ]
-
-fast/events/ios/single-tap-verify-user-gesture.html [ Skip ]
 
 # CSS syntax
 imported/w3c/web-platform-tests/css/css-scoping/scoped-reference-animation-002.html [ ImageOnlyFailure ]

@@ -387,11 +387,11 @@ bool RenderFlexibleBox::hitTestChildren(const HitTestRequest& request, HitTestRe
     return false;
 }
 
-void RenderFlexibleBox::layoutBlock(bool relayoutChildren, LayoutUnit)
+void RenderFlexibleBox::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit)
 {
     ASSERT(needsLayout());
 
-    if (!relayoutChildren) {
+    if (relayoutChildren == RelayoutChildren::No) {
         auto simplifiedLayoutScope = SetForScope(m_inSimplifiedLayout, true);
         if (simplifiedLayout())
             return;
@@ -409,7 +409,7 @@ void RenderFlexibleBox::layoutBlock(bool relayoutChildren, LayoutUnit)
         initializeMarginTrimState();
 
     if (recomputeLogicalWidth())
-        relayoutChildren = true;
+        relayoutChildren = RelayoutChildren::Yes;
 
     LayoutUnit previousHeight = logicalHeight();
     setLogicalHeight(borderAndPaddingLogicalHeight() + scrollbarLogicalHeight());
@@ -442,9 +442,12 @@ void RenderFlexibleBox::layoutBlock(bool relayoutChildren, LayoutUnit)
         }
 
         if (logicalHeight() != previousHeight)
-            relayoutChildren = true;
+            relayoutChildren = RelayoutChildren::Yes;
 
-        layoutPositionedObjects(relayoutChildren || isDocumentElementRenderer());
+        if (isDocumentElementRenderer())
+            layoutPositionedObjects(RelayoutChildren::Yes);
+        else
+            layoutPositionedObjects(relayoutChildren);
 
         repaintFlexItemsDuringLayoutIfMoved(oldFlexItemRects);
         // FIXME: css3/flexbox/repaint-rtl-column.html seems to repaint more overflow than it needs to.
@@ -1069,31 +1072,31 @@ LayoutUnit RenderFlexibleBox::computeMainSizeFromAspectRatioUsing(const RenderBo
         crossSize = flexItemSize.value();
     }
 
-    double ratio;
+    auto flexItemIntrinsicSize = flexItem.intrinsicSize();
+    auto preferredAspectRatio = [&] {
+        if (flexItem.isRenderOrLegacyRenderSVGRoot())
+            return downcast<RenderReplaced>(flexItem).computeIntrinsicAspectRatio();
+        if (flexItem.style().aspectRatioType() == AspectRatioType::Ratio || (flexItem.style().aspectRatioType() == AspectRatioType::AutoAndRatio && flexItemIntrinsicSize.isEmpty()))
+            return flexItem.style().aspectRatioWidth() / flexItem.style().aspectRatioHeight();
+        if (auto* replacedElement = dynamicDowncast<RenderReplaced>(flexItem))
+            return replacedElement->computeIntrinsicAspectRatio();
+
+        ASSERT(flexItemIntrinsicSize.height());
+        return flexItemIntrinsicSize.width().toDouble() / flexItemIntrinsicSize.height().toDouble();
+    };
+
     LayoutUnit borderAndPadding;
-    if (flexItem.isRenderOrLegacyRenderSVGRoot())
-        ratio = downcast<RenderReplaced>(flexItem).computeIntrinsicAspectRatio();
-    else {
-        auto flexItemIntrinsicSize = flexItem.intrinsicSize();
-        if (flexItem.style().aspectRatioType() == AspectRatioType::Ratio || (flexItem.style().aspectRatioType() == AspectRatioType::AutoAndRatio && flexItemIntrinsicSize.isEmpty())) {
-            ratio = flexItem.style().aspectRatioWidth() / flexItem.style().aspectRatioHeight();
-            if (flexItem.style().boxSizingForAspectRatio() == BoxSizing::ContentBox)
-                crossSize -= isHorizontalFlow() ? flexItem.verticalBorderAndPaddingExtent() : flexItem.horizontalBorderAndPaddingExtent();
-            else
-                borderAndPadding = isHorizontalFlow() ? flexItem.horizontalBorderAndPaddingExtent() : flexItem.verticalBorderAndPaddingExtent();
-        } else {
-            if (auto* replacedElement = dynamicDowncast<RenderReplaced>(flexItem))
-                ratio = replacedElement->computeIntrinsicAspectRatio();
-            else {
-                ASSERT(flexItemIntrinsicSize.height());
-                ratio = flexItemIntrinsicSize.width().toFloat() / flexItemIntrinsicSize.height().toFloat();
-            }
-            crossSize = adjustForBoxSizing(flexItem, crossSize);
-        }
-    }
+    if (flexItem.style().aspectRatioType() == AspectRatioType::Ratio || (flexItem.style().aspectRatioType() == AspectRatioType::AutoAndRatio && flexItemIntrinsicSize.isEmpty())) {
+        if (flexItem.style().boxSizingForAspectRatio() == BoxSizing::ContentBox)
+            crossSize -= isHorizontalFlow() ? flexItem.verticalBorderAndPaddingExtent() : flexItem.horizontalBorderAndPaddingExtent();
+        else
+            borderAndPadding = isHorizontalFlow() ? flexItem.horizontalBorderAndPaddingExtent() : flexItem.verticalBorderAndPaddingExtent();
+    } else
+        crossSize = adjustForBoxSizing(flexItem, crossSize);
+
     if (isHorizontalFlow())
-        return std::max(0_lu, LayoutUnit(crossSize * ratio) - borderAndPadding);
-    return std::max(0_lu, LayoutUnit(crossSize / ratio) - borderAndPadding);
+        return std::max(0_lu, LayoutUnit(crossSize * preferredAspectRatio()) - borderAndPadding);
+    return std::max(0_lu, LayoutUnit(crossSize / preferredAspectRatio()) - borderAndPadding);
 }
 
 void RenderFlexibleBox::setFlowAwareLocationForFlexItem(RenderBox& flexItem, const LayoutPoint& location)
@@ -1147,11 +1150,6 @@ bool RenderFlexibleBox::flexItemHasComputableAspectRatioAndCrossSizeIsConsidered
         && (flexItemCrossSizeIsDefinite(flexItem, crossSizeLengthForFlexItem(RenderBox::SizeType::MainOrPreferredSize, flexItem)) || flexItemCrossSizeShouldUseContainerCrossSize(flexItem));
 }
 
-bool RenderFlexibleBox::crossAxisIsPhysicalWidth() const
-{
-    return (isHorizontalWritingMode() && isColumnFlow()) || (!isHorizontalWritingMode() && !isColumnFlow());
-}
-
 bool RenderFlexibleBox::flexItemCrossSizeShouldUseContainerCrossSize(const RenderBox& flexItem) const
 {
     // 9.8 https://drafts.csswg.org/css-flexbox/#definite-sizes
@@ -1159,7 +1157,7 @@ bool RenderFlexibleBox::flexItemCrossSizeShouldUseContainerCrossSize(const Rende
     // stretched flex items is the flex container's inner cross size (clamped to the flex item's min and max cross size)
     // and is considered definite.
     if (!isMultiline() && alignmentForFlexItem(flexItem) == ItemPosition::Stretch && !hasAutoMarginsInCrossAxis(flexItem) && crossSizeLengthForFlexItem(RenderBox::SizeType::MainOrPreferredSize, flexItem).isAuto()) {
-        if (crossAxisIsPhysicalWidth())
+        if (isColumnFlow())
             return true;
         // This must be kept in sync with computeMainSizeFromAspectRatioUsing().
         auto& crossSize = isHorizontalFlow() ? style().height() : style().width();
@@ -1243,7 +1241,7 @@ private:
 };
 
 // https://drafts.csswg.org/css-flexbox/#algo-main-item
-LayoutUnit RenderFlexibleBox::computeFlexBaseSizeForFlexItem(RenderBox& flexItem, LayoutUnit mainAxisBorderAndPadding, bool relayoutChildren)
+LayoutUnit RenderFlexibleBox::computeFlexBaseSizeForFlexItem(RenderBox& flexItem, LayoutUnit mainAxisBorderAndPadding, RelayoutChildren relayoutChildren)
 {
     Length flexBasis = flexBasisForFlexItem(flexItem);
     ScopedFlexBasisAsFlexItemMainSize scoped(flexItem, flexBasis.isContent() ? Length(LengthType::MaxContent) : flexBasis, mainAxisIsFlexItemInlineAxis(flexItem));
@@ -1279,7 +1277,7 @@ LayoutUnit RenderFlexibleBox::computeFlexBaseSizeForFlexItem(RenderBox& flexItem
     return mainAxisExtent - mainAxisBorderAndPadding;
 }
 
-void RenderFlexibleBox::performFlexLayout(bool relayoutChildren)
+void RenderFlexibleBox::performFlexLayout(RelayoutChildren relayoutChildren)
 {
     if (layoutUsingFlexFormattingContext())
         return;
@@ -1692,7 +1690,7 @@ LayoutUnit RenderFlexibleBox::adjustFlexItemSizeForAspectRatioCrossAxisMinAndMax
     return flexItemSize;
 }
 
-void RenderFlexibleBox::maybeCacheFlexItemMainIntrinsicSize(RenderBox& flexItem, bool relayoutChildren)
+void RenderFlexibleBox::maybeCacheFlexItemMainIntrinsicSize(RenderBox& flexItem, RelayoutChildren relayoutChildren)
 {
     if (!flexItemHasIntrinsicMainAxisSize(flexItem))
         return;
@@ -1713,7 +1711,7 @@ void RenderFlexibleBox::maybeCacheFlexItemMainIntrinsicSize(RenderBox& flexItem,
     }
 }
 
-FlexLayoutItem RenderFlexibleBox::constructFlexLayoutItem(RenderBox& flexItem, bool relayoutChildren)
+FlexLayoutItem RenderFlexibleBox::constructFlexLayoutItem(RenderBox& flexItem, RelayoutChildren relayoutChildren)
 {
     auto everHadLayout = flexItem.everHadLayout();
     flexItem.clearOverridingSize();
@@ -1988,8 +1986,8 @@ bool RenderFlexibleBox::setStaticPositionForPositionedLayout(const RenderBox& fl
 // This refers to https://drafts.csswg.org/css-flexbox-1/#definite-sizes, section 1).
 LayoutUnit RenderFlexibleBox::computeCrossSizeForFlexItemUsingContainerCrossSize(const RenderBox& flexItem) const
 {
-    if (crossAxisIsPhysicalWidth())
-        return contentBoxWidth();
+    if (isColumnFlow())
+        return contentBoxLogicalWidth();
 
     // Keep this sync'ed with flexItemCrossSizeShouldUseContainerCrossSize().
     auto definiteSizeValue = [&] {
@@ -2218,7 +2216,7 @@ static LayoutUnit contentAlignmentStartOverflow(LayoutUnit availableFreeSpace, C
     }
 }
 
-void RenderFlexibleBox::layoutAndPlaceFlexItems(LayoutUnit& crossAxisOffset, FlexLayoutItems& flexLayoutItems, LayoutUnit availableFreeSpace, bool relayoutChildren, FlexLineStates& lineStates, LayoutUnit gapBetweenItems)
+void RenderFlexibleBox::layoutAndPlaceFlexItems(LayoutUnit& crossAxisOffset, FlexLayoutItems& flexLayoutItems, LayoutUnit availableFreeSpace, RelayoutChildren relayoutChildren, FlexLineStates& lineStates, LayoutUnit gapBetweenItems)
 {
     LayoutUnit autoMarginOffset = autoMarginOffsetInMainAxis(flexLayoutItems, availableFreeSpace);
     LayoutUnit mainAxisOffset = flowAwareBorderStart() + flowAwarePaddingStart();
@@ -2265,7 +2263,7 @@ void RenderFlexibleBox::layoutAndPlaceFlexItems(LayoutUnit& crossAxisOffset, Fle
         }
         // We may have already forced relayout for orthogonal flowing children in
         // computeInnerFlexBaseSizeForFlexItem.
-        bool forceFlexItemRelayout = relayoutChildren && !m_relaidOutFlexItems.contains(flexItem);
+        bool forceFlexItemRelayout = relayoutChildren == RelayoutChildren::Yes && !m_relaidOutFlexItems.contains(flexItem);
         if (!forceFlexItemRelayout && flexItemHasPercentHeightDescendants(flexItem)) {
             // Have to force another relayout even though the child is sized
             // correctly, because its descendants are not sized correctly yet. Our

@@ -437,7 +437,6 @@ css/CSSCounterValue.cpp
 css/CSSCounterValue.h
 css/CSSCrossfadeValue.cpp
 css/CSSCursorImageValue.cpp
-css/CSSFilterImageValue.cpp
 css/CSSFontFace.cpp
 css/CSSFontFaceRule.cpp
 css/CSSFontFaceSet.cpp
@@ -920,7 +919,6 @@ layout/formattingContexts/inline/InlineItemsBuilder.cpp
 layout/integration/inline/LayoutIntegrationInlineContentBuilder.cpp
 layout/integration/inline/LayoutIntegrationLineLayout.cpp
 loader/ApplicationManifestLoader.cpp
-loader/ContentFilter.cpp
 loader/CrossOriginAccessControl.cpp
 loader/CrossOriginOpenerPolicy.cpp
 loader/CrossOriginPreflightChecker.cpp
@@ -1040,7 +1038,6 @@ page/cocoa/ResourceUsageOverlayCocoa.mm
 page/cocoa/ResourceUsageThreadCocoa.mm
 page/cocoa/WebTextIndicatorLayer.mm
 page/csp/ContentSecurityPolicy.cpp
-page/csp/ContentSecurityPolicyDirectiveList.cpp
 page/mac/DragControllerMac.mm
 page/mac/EventHandlerMac.mm
 page/mac/ImageOverlayControllerMac.mm
@@ -1157,7 +1154,6 @@ platform/graphics/cocoa/CMUtilities.mm
 platform/graphics/cocoa/FontCacheCoreText.cpp
 platform/graphics/cocoa/ImageAdapterCocoa.mm
 platform/graphics/cocoa/SourceBufferParser.cpp
-platform/graphics/cocoa/SourceBufferParserWebM.cpp
 platform/graphics/cocoa/VideoMediaSampleRenderer.mm
 platform/graphics/cocoa/WebCoreDecompressionSession.mm
 platform/graphics/cocoa/WebMAudioUtilitiesCocoa.mm
@@ -1182,14 +1178,12 @@ platform/graphics/controls/TextAreaPart.h
 platform/graphics/controls/TextFieldPart.h
 platform/graphics/controls/ToggleButtonPart.h
 platform/graphics/coreimage/FEComponentTransferCoreImageApplier.mm
-platform/graphics/coreimage/FilterImageCoreImage.mm
 platform/graphics/coretext/ComplexTextControllerCoreText.mm
 platform/graphics/coretext/FontCascadeCoreText.cpp
 platform/graphics/coretext/FontPlatformDataCoreText.cpp
 platform/graphics/cv/GraphicsContextGLCVCocoa.mm
 platform/graphics/displaylists/DisplayListItem.cpp
 platform/graphics/filters/FEDisplacementMap.cpp
-platform/graphics/filters/FilterImage.cpp
 platform/graphics/filters/software/FEComponentTransferSoftwareApplier.cpp
 platform/graphics/filters/software/FEConvolveMatrixSoftwareApplier.cpp
 platform/graphics/filters/software/FELightingSoftwareApplier.cpp
@@ -1256,7 +1250,6 @@ rendering/AccessibilityRegionContext.cpp
 rendering/AttachmentLayout.mm
 rendering/BackgroundPainter.cpp
 rendering/BorderPainter.cpp
-rendering/CSSFilter.cpp
 rendering/CaretRectComputation.cpp
 rendering/EllipsisBoxPainter.cpp
 rendering/GlyphDisplayListCache.h
@@ -1357,7 +1350,6 @@ rendering/style/StyleCanvasImage.cpp
 rendering/style/StyleCrossfadeImage.cpp
 rendering/style/StyleCursorImage.cpp
 rendering/style/StyleCustomPropertyData.cpp
-rendering/style/StyleFilterImage.cpp
 rendering/style/StyleGeneratedImage.cpp
 rendering/style/StyleMiscNonInheritedData.cpp
 rendering/style/StyleMultiImage.cpp
@@ -1560,8 +1552,6 @@ svg/properties/SVGValuePropertyListAnimatorImpl.h
 testing/InternalSettings.cpp
 testing/Internals.cpp
 testing/LegacyMockCDM.cpp
-testing/MockContentFilter.cpp
-testing/MockContentFilterManager.cpp
 testing/MockMediaSessionCoordinator.cpp
 testing/MockPageOverlay.cpp
 testing/MockPageOverlayClient.cpp

@@ -382,6 +382,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/filesystemaccess/FileSystemSyncAccessHandle.h
     Modules/filesystemaccess/FileSystemSyncAccessHandleIdentifier.h
     Modules/filesystemaccess/FileSystemWritableFileStream.h
+    Modules/filesystemaccess/FileSystemWritableFileStreamIdentifier.h
     Modules/filesystemaccess/FileSystemWritableFileStreamSink.h
     Modules/filesystemaccess/FileSystemWriteCloseReason.h
     Modules/filesystemaccess/FileSystemWriteCommandType.h
@@ -2757,7 +2758,13 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     workers/service/ExtendableEvent.h
     workers/service/ExtendableEventInit.h
     workers/service/FetchEvent.h
+    workers/service/InstallEvent.h
     workers/service/NavigationPreloadState.h
+    workers/service/RouterCondition.h
+    workers/service/RouterRule.h
+    workers/service/RouterSourceDict.h
+    workers/service/RouterSourceEnum.h
+    workers/service/RunningStatus.h
     workers/service/SWClientConnection.h
     workers/service/ServiceWorkerClientData.h
     workers/service/ServiceWorkerClientPendingMessage.h

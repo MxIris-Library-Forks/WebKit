@@ -686,10 +686,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 {
     WEBPAGE_RELEASE_LOG(Loading, "constructor:");
 
-#if PLATFORM(IOS) || PLATFORM(VISION)
-    setAllowsDeprecatedSynchronousXMLHttpRequestDuringUnload(parameters.allowsDeprecatedSynchronousXMLHttpRequestDuringUnload);
-#endif
-
 #if PLATFORM(COCOA)
 #if HAVE(SANDBOX_STATE_FLAGS)
     auto auditToken = WebProcess::singleton().auditTokenForSelf();
@@ -704,6 +700,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     auto shouldBlockMobileAsset = parameters.store.getBoolValueForKey(WebPreferencesKey::blockMobileAssetInWebContentSandboxKey());
     if (shouldBlockMobileAsset)
         sandbox_enable_state_flag("BlockMobileAssetInWebContentSandbox", *auditToken);
+    auto unifiedPDFEnabled = parameters.store.getBoolValueForKey(WebPreferencesKey::unifiedPDFEnabledKey());
+    if (unifiedPDFEnabled)
+        sandbox_enable_state_flag("UnifiedPDFEnabled", *auditToken);
 #if PLATFORM(MAC)
     auto shouldBlockFontService = parameters.store.getBoolValueForKey(WebPreferencesKey::blockFontServiceInWebContentSandboxKey());
     if (shouldBlockFontService)

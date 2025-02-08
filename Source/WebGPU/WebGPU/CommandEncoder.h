@@ -31,6 +31,7 @@
 #import "WebGPU.h"
 #import "WebGPUExt.h"
 #import <wtf/FastMalloc.h>
+#import <wtf/Function.h>
 #import <wtf/Ref.h>
 #import <wtf/RefCountedAndCanMakeWeakPtr.h>
 #import <wtf/RetainReleaseSwift.h>
@@ -127,26 +128,25 @@ public:
     static void trackEncoder(CommandEncoder&, WeakHashSet<CommandEncoder>&);
     uint64_t uniqueId() const { return m_uniqueId; }
     NSMutableSet<id<MTLCounterSampleBuffer>> *timestampBuffers() const { return m_retainedTimestampBuffers; };
+    void addOnCommitHandler(Function<void(CommandBuffer&)>&&);
 
 private:
     CommandEncoder(id<MTLCommandBuffer>, Device&, uint64_t uniqueId);
     CommandEncoder(Device&);
 
-private PUBLIC_IN_WEBGPU_SWIFT:
-    NSString* errorValidatingCopyBufferToBuffer(const Buffer& source, uint64_t sourceOffset, const Buffer& destination, uint64_t destinationOffset, uint64_t size);
-private:
     NSString* validateFinishError() const;
     bool validatePopDebugGroup() const;
-private PUBLIC_IN_WEBGPU_SWIFT:
+#if !ENABLE(WEBGPU_SWIFT)
+    NSString* errorValidatingCopyBufferToBuffer(const Buffer& source, uint64_t sourceOffset, const Buffer& destination, uint64_t destinationOffset, uint64_t size);
     NSString* errorValidatingComputePassDescriptor(const WGPUComputePassDescriptor&) const;
     NSString* errorValidatingRenderPassDescriptor(const WGPURenderPassDescriptor&) const;
-    void clearTextureIfNeeded(const WGPUImageCopyTexture&, NSUInteger);
-private:
     NSString* errorValidatingImageCopyBuffer(const WGPUImageCopyBuffer&) const;
-private PUBLIC_IN_WEBGPU_SWIFT:
     NSString* errorValidatingCopyBufferToTexture(const WGPUImageCopyBuffer&, const WGPUImageCopyTexture&, const WGPUExtent3D&) const;
     NSString* errorValidatingCopyTextureToBuffer(const WGPUImageCopyTexture&, const WGPUImageCopyBuffer&, const WGPUExtent3D&) const;
     NSString* errorValidatingCopyTextureToTexture(const WGPUImageCopyTexture& source, const WGPUImageCopyTexture& destination, const WGPUExtent3D& copySize) const;
+#endif
+private PUBLIC_IN_WEBGPU_SWIFT:
+    void clearTextureIfNeeded(const WGPUImageCopyTexture&, NSUInteger);
 private:
     void discardCommandBuffer();
 
@@ -175,6 +175,7 @@ private:
     NSMutableSet<id<MTLBuffer>> *m_retainedBuffers { nil };
     HashSet<RefPtr<const Sampler>> m_retainedSamplers;
     NSMutableSet<id<MTLCounterSampleBuffer>> *m_retainedTimestampBuffers { nil };
+    Vector<Function<void(CommandBuffer&)>> m_onCommitHandlers;
     id<MTLSharedEvent> m_sharedEvent { nil };
     uint64_t m_sharedEventSignalValue { 0 };
 private PUBLIC_IN_WEBGPU_SWIFT:

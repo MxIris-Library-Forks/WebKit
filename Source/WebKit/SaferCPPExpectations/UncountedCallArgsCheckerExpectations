@@ -2,8 +2,6 @@ AutomationBackendDispatchers.cpp
 AutomationFrontendDispatchers.cpp
 AutomationProtocolObjects.h
 NetworkProcess/BackgroundFetchLoad.cpp
-NetworkProcess/Classifier/ResourceLoadStatisticsStore.cpp
-NetworkProcess/Classifier/WebResourceLoadStatisticsStore.cpp
 NetworkProcess/Downloads/Download.cpp
 NetworkProcess/Downloads/DownloadManager.cpp
 NetworkProcess/Downloads/PendingDownload.cpp
@@ -33,7 +31,6 @@ NetworkProcess/storage/BackgroundFetchStoreImpl.cpp
 NetworkProcess/storage/BackgroundFetchStoreManager.cpp
 NetworkProcess/storage/CacheStorageDiskStore.cpp
 NetworkProcess/storage/IDBStorageRegistry.cpp
-NetworkProcess/storage/OriginStorageManager.cpp
 NetworkProcess/webrtc/NetworkRTCUDPSocketCocoa.mm
 Platform/IPC/ArgumentCoders.h
 Platform/IPC/SharedBufferReference.cpp
@@ -79,8 +76,6 @@ Shared/Cocoa/WKNSURL.mm
 Shared/Cocoa/WebKit2InitializeCocoa.mm
 Shared/ContextMenuContextData.cpp
 Shared/EntryPointUtilities/Cocoa/XPCService/XPCServiceMain.mm
-Shared/RemoteLayerTree/RemoteLayerBackingStore.mm
-Shared/RemoteLayerTree/RemoteLayerBackingStoreCollection.mm
 Shared/RemoteLayerTree/RemoteLayerWithInProcessRenderingBackingStore.mm
 Shared/RemoteLayerTree/RemoteLayerWithRemoteRenderingBackingStore.mm
 Shared/SharedStringHashStore.cpp
@@ -231,9 +226,7 @@ UIProcess/Notifications/WebNotificationManagerProxy.cpp
 UIProcess/PDF/WKPDFHUDView.mm
 UIProcess/ProvisionalFrameProxy.cpp
 UIProcess/RemoteLayerTree/RemoteLayerTreeNode.mm
-UIProcess/RemoteLayerTree/RemoteScrollingCoordinatorProxy.cpp
 UIProcess/RemoteLayerTree/mac/RemoteLayerTreeEventDispatcher.cpp
-UIProcess/RemoteLayerTree/mac/RemoteScrollingCoordinatorProxyMac.mm
 UIProcess/RemoteLayerTree/mac/RemoteScrollingTreeMac.mm
 UIProcess/RemotePageProxy.cpp
 UIProcess/SpeechRecognitionPermissionManager.cpp
@@ -312,11 +305,9 @@ WebProcess/Extensions/API/Cocoa/WebExtensionAPIWindowsEventCocoa.mm
 WebProcess/Extensions/Bindings/Cocoa/JSWebExtensionWrapperCocoa.mm
 WebProcess/FileAPI/BlobRegistryProxy.cpp
 WebProcess/FullScreen/WebFullScreenManager.cpp
-WebProcess/GPU/graphics/ImageBufferShareableBitmapBackend.cpp
 WebProcess/GPU/graphics/RemoteNativeImageBackendProxy.cpp
 WebProcess/GPU/graphics/RemoteResourceCacheProxy.cpp
 WebProcess/GPU/media/AudioTrackPrivateRemote.cpp
-WebProcess/GPU/media/MediaPlayerPrivateRemote.cpp
 WebProcess/GPU/media/MediaSourcePrivateRemote.cpp
 WebProcess/GPU/media/RemoteAudioDestinationProxy.cpp
 WebProcess/GPU/media/RemoteAudioHardwareListener.cpp

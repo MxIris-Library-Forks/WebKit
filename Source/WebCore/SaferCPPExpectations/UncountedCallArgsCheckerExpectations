@@ -1062,7 +1062,6 @@ platform/Cursor.h
 platform/DragImage.cpp
 platform/Length.cpp
 platform/MIMETypeRegistry.cpp
-platform/NowPlayingManager.cpp
 platform/ScrollAnimationSmooth.cpp
 platform/ScrollAnimator.cpp
 platform/ScrollView.cpp
@@ -1085,7 +1084,6 @@ platform/audio/cocoa/AudioSampleDataSource.mm
 platform/audio/cocoa/AudioSessionCocoa.mm
 platform/audio/cocoa/MediaSessionManagerCocoa.mm
 platform/cocoa/DragImageCocoa.mm
-platform/cocoa/PlatformSpeechSynthesizerCocoa.mm
 platform/cocoa/PlaybackSessionModelMediaElement.mm
 platform/cocoa/PowerSourceNotifier.mm
 platform/cocoa/SharedBufferCocoa.mm
@@ -1123,14 +1121,12 @@ platform/graphics/SourceBufferPrivate.cpp
 platform/graphics/TrackBuffer.cpp
 platform/graphics/TransparencyLayerContextSwitcher.cpp
 platform/graphics/WidthIterator.cpp
-platform/graphics/avfoundation/AVTrackPrivateAVFObjCImpl.mm
 platform/graphics/avfoundation/AudioSourceProviderAVFObjC.mm
 platform/graphics/avfoundation/InbandMetadataTextTrackPrivateAVF.cpp
 platform/graphics/avfoundation/MediaSelectionGroupAVFObjC.mm
 platform/graphics/avfoundation/objc/CDMInstanceFairPlayStreamingAVFObjC.h
 platform/graphics/avfoundation/objc/CDMInstanceFairPlayStreamingAVFObjC.mm
 platform/graphics/avfoundation/objc/CDMSessionAVContentKeySession.mm
-platform/graphics/avfoundation/objc/ImageDecoderAVFObjC.mm
 platform/graphics/avfoundation/objc/LocalSampleBufferDisplayLayer.mm
 platform/graphics/avfoundation/objc/MediaPlayerPrivateMediaStreamAVFObjC.mm
 platform/graphics/avfoundation/objc/MediaSourcePrivateAVFObjC.mm
@@ -1148,7 +1144,6 @@ platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/ca/cocoa/PlatformCALayerContentsDelayedReleaser.mm
 platform/graphics/cg/GraphicsContextCG.cpp
 platform/graphics/cg/GraphicsContextGLCG.cpp
-platform/graphics/cg/ImageBufferIOSurfaceBackend.cpp
 platform/graphics/cg/PDFDocumentImage.cpp
 platform/graphics/cocoa/CMUtilities.mm
 platform/graphics/cocoa/FontCacheCoreText.cpp
@@ -1229,7 +1224,6 @@ platform/mock/MockAudioDestinationCocoa.cpp
 platform/mock/MockRealtimeAudioSource.cpp
 platform/mock/MockRealtimeMediaSourceCenter.cpp
 platform/mock/MockRealtimeVideoSource.cpp
-platform/mock/PlatformSpeechSynthesizerMock.cpp
 platform/mock/RTCNotifiersMock.cpp
 platform/mock/TimerEventBasedMock.h
 platform/mock/mediasource/MockMediaPlayerMediaSource.cpp
@@ -1531,7 +1525,6 @@ svg/SVGViewSpec.cpp
 svg/animation/SVGSMILElement.cpp
 svg/graphics/SVGImage.cpp
 svg/graphics/SVGImageForContainer.h
-svg/graphics/filters/SVGFilterGraph.h
 svg/properties/SVGAnimatedDecoratedProperty.h
 svg/properties/SVGAnimatedPrimitiveProperty.h
 svg/properties/SVGAnimatedPropertyAnimator.h

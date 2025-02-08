@@ -201,6 +201,7 @@ static auto timestampWriteIndex(auto writeIndex)
 {
     return writeIndex == WGPU_QUERY_SET_INDEX_UNDEFINED ? 0 : writeIndex;
 }
+#if !ENABLE(WEBGPU_SWIFT)
 static NSUInteger timestampWriteIndex(NSUInteger writeIndex, NSUInteger defaultValue)
 {
     return writeIndex == WGPU_QUERY_SET_INDEX_UNDEFINED ? defaultValue : writeIndex;
@@ -234,7 +235,6 @@ NSString* CommandEncoder::errorValidatingComputePassDescriptor(const WGPUCompute
 {
     return errorValidatingTimestampWrites(descriptor.timestampWrites, *this);
 }
-#if !ENABLE(WEBGPU_SWIFT)
 Ref<ComputePassEncoder> CommandEncoder::beginComputePass(const WGPUComputePassDescriptor& descriptor)
 {
     if (descriptor.nextInChain)
@@ -322,6 +322,7 @@ void CommandEncoder::endEncoding(id<MTLCommandEncoder> encoder)
         discardCommandBuffer();
 }
 
+#if !ENABLE(WEBGPU_SWIFT)
 NSString* CommandEncoder::errorValidatingRenderPassDescriptor(const WGPURenderPassDescriptor& descriptor) const
 {
     if (auto* wgpuOcclusionQuery = descriptor.occlusionQuerySet) {
@@ -334,6 +335,7 @@ NSString* CommandEncoder::errorValidatingRenderPassDescriptor(const WGPURenderPa
 
     return errorValidatingTimestampWrites(descriptor.timestampWrites, *this);
 }
+#endif
 
 bool Device::isStencilOnlyFormat(MTLPixelFormat format)
 {
@@ -770,6 +772,7 @@ id<MTLCommandBuffer> CommandEncoder::commandBuffer() const
     return m_commandBuffer;
 }
 
+#if !ENABLE(WEBGPU_SWIFT)
 NSString* CommandEncoder::errorValidatingCopyBufferToBuffer(const Buffer& source, uint64_t sourceOffset, const Buffer& destination, uint64_t destinationOffset, uint64_t size)
 {
 #define ERROR_STRING(x) (@"GPUCommandEncoder.copyBufferToBuffer: " x)
@@ -817,6 +820,7 @@ NSString* CommandEncoder::errorValidatingCopyBufferToBuffer(const Buffer& source
 #undef ERROR_STRING
     return nil;
 }
+#endif
 
 void CommandEncoder::incrementBufferMapCount()
 {
@@ -848,7 +852,7 @@ void CommandEncoder::copyBufferToBuffer(const Buffer& source, uint64_t sourceOff
 
     source.setCommandEncoder(*this);
     destination.setCommandEncoder(*this);
-    destination.indirectBufferInvalidated();
+    destination.indirectBufferInvalidated(*this);
     if (!size || source.isDestroyed() || destination.isDestroyed())
         return;
 
@@ -864,6 +868,7 @@ void CommandEncoder::copyBufferToBuffer(const Buffer& source, uint64_t sourceOff
 }
 #endif
 
+#if !ENABLE(WEBGPU_SWIFT)
 NSString* CommandEncoder::errorValidatingImageCopyBuffer(const WGPUImageCopyBuffer& imageCopyBuffer) const
 {
     // https://gpuweb.github.io/gpuweb/#abstract-opdef-validating-gpuimagecopybuffer
@@ -953,7 +958,6 @@ NSString* CommandEncoder::errorValidatingCopyBufferToTexture(const WGPUImageCopy
     return nil;
 }
 
-#if !ENABLE(WEBGPU_SWIFT)
 void CommandEncoder::copyBufferToTexture(const WGPUImageCopyBuffer& source, const WGPUImageCopyTexture& destination, const WGPUExtent3D& copySize)
 {
     if (source.nextInChain || source.layout.nextInChain || destination.nextInChain)
@@ -1208,7 +1212,6 @@ void CommandEncoder::copyBufferToTexture(const WGPUImageCopyBuffer& source, cons
         return;
     }
 }
-#endif
 
 NSString* CommandEncoder::errorValidatingCopyTextureToBuffer(const WGPUImageCopyTexture& source, const WGPUImageCopyBuffer& destination, const WGPUExtent3D& copySize) const
 {
@@ -1265,6 +1268,7 @@ NSString* CommandEncoder::errorValidatingCopyTextureToBuffer(const WGPUImageCopy
     return nil;
 }
 
+#endif
 void CommandEncoder::clearTextureIfNeeded(const WGPUImageCopyTexture& destination, NSUInteger slice)
 {
     clearTextureIfNeeded(destination, slice, m_device, m_blitCommandEncoder);
@@ -1494,7 +1498,7 @@ void CommandEncoder::copyTextureToBuffer(const WGPUImageCopyTexture& source, con
     Ref apiDestinationBuffer = fromAPI(destination.buffer);
     sourceTexture->setCommandEncoder(*this);
     apiDestinationBuffer->setCommandEncoder(*this);
-    apiDestinationBuffer->indirectBufferInvalidated();
+    apiDestinationBuffer->indirectBufferInvalidated(*this);
     if (sourceTexture->isDestroyed() || apiDestinationBuffer->isDestroyed())
         return;
 
@@ -1706,7 +1710,6 @@ void CommandEncoder::copyTextureToBuffer(const WGPUImageCopyTexture& source, con
         return;
     }
 }
-#endif
 
 static bool areCopyCompatible(WGPUTextureFormat format1, WGPUTextureFormat format2)
 {
@@ -1796,7 +1799,6 @@ NSString* CommandEncoder::errorValidatingCopyTextureToTexture(const WGPUImageCop
     return nil;
 }
 
-#if !ENABLE(WEBGPU_SWIFT)
 void CommandEncoder::copyTextureToTexture(const WGPUImageCopyTexture& source, const WGPUImageCopyTexture& destination, const WGPUExtent3D& copySize)
 {
     if (source.nextInChain || destination.nextInChain)
@@ -1999,7 +2001,7 @@ void CommandEncoder::clearBuffer(Buffer& buffer, uint64_t offset, uint64_t size)
     }
 
     buffer.setCommandEncoder(*this);
-    buffer.indirectBufferInvalidated();
+    buffer.indirectBufferInvalidated(*this);
     auto range = NSMakeRange(static_cast<NSUInteger>(offset), static_cast<NSUInteger>(size));
     if (buffer.isDestroyed() || !size || NSMaxRange(range) > buffer.buffer().length)
         return;
@@ -2074,7 +2076,7 @@ Ref<CommandBuffer> CommandEncoder::finish(const WGPUCommandBufferDescriptor& des
     }
 #endif
 
-    auto result = CommandBuffer::create(commandBuffer, m_device, m_sharedEvent, m_sharedEventSignalValue, *this);
+    auto result = CommandBuffer::create(commandBuffer, m_device, m_sharedEvent, m_sharedEventSignalValue, WTFMove(m_onCommitHandlers), *this);
     m_sharedEvent = nil;
     m_cachedCommandBuffer = result.ptr();
     result->setBufferMapCount(m_bufferMapCount);
@@ -2189,7 +2191,7 @@ void CommandEncoder::resolveQuerySet(const QuerySet& querySet, uint32_t firstQue
 
     querySet.setCommandEncoder(*this);
     destination.setCommandEncoder(*this);
-    destination.indirectBufferInvalidated();
+    destination.indirectBufferInvalidated(*this);
     if (querySet.isDestroyed() || destination.isDestroyed() || !queryCount)
         return;
 
@@ -2256,6 +2258,12 @@ void CommandEncoder::lock(bool shouldLock)
 void CommandEncoder::trackEncoder(CommandEncoder& commandEncoder, WeakHashSet<CommandEncoder>& encoderHashSet)
 {
     encoderHashSet.add(commandEncoder);
+}
+
+void CommandEncoder::addOnCommitHandler(Function<void(CommandBuffer&)>&& onCommitHandler)
+{
+    ASSERT(m_commandBuffer);
+    m_onCommitHandlers.append(WTFMove(onCommitHandler));
 }
 
 #undef GENERATE_INVALID_ENCODER_STATE_ERROR

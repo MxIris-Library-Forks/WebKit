@@ -464,7 +464,6 @@ void AnimationTimelinesController::registerNamedScrollTimeline(const AtomString&
         updateTimelineForTimelineScope(newScrollTimeline, name);
         timelines.append(WTFMove(newScrollTimeline));
     }
-    attachPendingOperations();
 
     if (!hasExistingTimeline)
         updateCSSAnimationsAssociatedWithNamedTimeline(name);
@@ -493,10 +492,10 @@ void AnimationTimelinesController::updateCSSAnimationsAssociatedWithNamedTimelin
         cssAnimation->syncStyleOriginatedTimeline();
 }
 
-void AnimationTimelinesController::attachPendingOperations()
+void AnimationTimelinesController::documentDidResolveStyle()
 {
-    auto queries = std::exchange(m_pendingAttachOperations, { });
-    for (auto& operation : queries) {
+    auto operations = std::exchange(m_pendingAttachOperations, { });
+    for (auto& operation : operations) {
         if (WeakPtr animation = operation.animation) {
             if (auto styleable = operation.element.styleable())
                 setTimelineForName(operation.name, *styleable, *animation);
@@ -528,7 +527,6 @@ void AnimationTimelinesController::registerNamedViewTimeline(const AtomString& n
         updateTimelineForTimelineScope(newViewTimeline, name);
         timelines.append(WTFMove(newViewTimeline));
     }
-    attachPendingOperations();
 
     if (!hasExistingTimeline)
         updateCSSAnimationsAssociatedWithNamedTimeline(name);
@@ -554,19 +552,18 @@ void AnimationTimelinesController::unregisterNamedTimeline(const AtomString& nam
     auto& timeline = timelines.at(i);
 
     for (Ref animation : timeline->relevantAnimations()) {
-        if (RefPtr effect = dynamicDowncast<KeyframeEffect>(animation->effect())) {
-            if (auto targetStyleable = effect->targetStyleable())
-                m_pendingAttachOperations.append(TimelineMapAttachOperation { *targetStyleable, name, animation });
+        if (RefPtr cssAnimation = dynamicDowncast<CSSAnimation>(animation)) {
+            if (auto styleable = cssAnimation->owningElement())
+                m_pendingAttachOperations.append(TimelineMapAttachOperation { *styleable, name, *cssAnimation });
         }
     }
     timelines.remove(i);
 
     if (timelines.isEmpty())
         m_nameToTimelineMap.remove(it);
-    attachPendingOperations();
 }
 
-void AnimationTimelinesController::setTimelineForName(const AtomString& name, const Styleable& styleable, WebAnimation& animation)
+void AnimationTimelinesController::setTimelineForName(const AtomString& name, const Styleable& styleable, CSSAnimation& animation)
 {
     LOG_WITH_STREAM(Animations, stream << "AnimationTimelinesController::setTimelineForName: " << name << " styleable: " << styleable);
 
@@ -631,14 +628,16 @@ void AnimationTimelinesController::updateNamedTimelineMapForTimelineScope(const 
         m_timelineScopeEntries.append(std::make_pair(scope, styleable));
         break;
     }
-    attachPendingOperations();
 }
 
 bool AnimationTimelinesController::isPendingTimelineAttachment(const WebAnimation& animation) const
 {
-    return m_pendingAttachOperations.containsIf([&] (auto& entry) {
-        return entry.animation.ptr() == &animation;
-    });
+    if (RefPtr cssAnimation = dynamicDowncast<CSSAnimation>(animation)) {
+        return m_pendingAttachOperations.containsIf([&](auto& operation) {
+            return operation.animation.ptr() == cssAnimation.get();
+        });
+    }
+    return false;
 }
 
 void AnimationTimelinesController::unregisterNamedTimelinesAssociatedWithElement(const Styleable& styleable)

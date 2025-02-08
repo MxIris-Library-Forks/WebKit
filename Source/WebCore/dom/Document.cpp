@@ -2748,6 +2748,9 @@ void Document::resolveStyle(ResolveStyleType type)
 #if ENABLE(DARK_MODE_CSS)
     frameView->updateBaseBackgroundColorIfNecessary();
 #endif
+
+    if (CheckedPtr timelinesController = this->timelinesController())
+        timelinesController->documentDidResolveStyle();
 }
 
 void Document::updateTextRenderer(Text& text, unsigned offsetOfReplacedText, unsigned lengthOfReplacedText)
@@ -9013,8 +9016,8 @@ Element* eventTargetElementForDocument(Document* document)
     if (!document)
         return nullptr;
 #if ENABLE(FULLSCREEN_API) && ENABLE(VIDEO)
-    if (CheckedPtr fullscreenManager = document->fullscreenManagerIfExists(); fullscreenManager && fullscreenManager->isFullscreen() && is<HTMLVideoElement>(fullscreenManager->currentFullscreenElement()))
-        return fullscreenManager->currentFullscreenElement();
+    if (CheckedPtr fullscreenManager = document->fullscreenManagerIfExists(); fullscreenManager && fullscreenManager->isFullscreen() && is<HTMLVideoElement>(fullscreenManager->fullscreenElement()))
+        return fullscreenManager->fullscreenElement();
 #endif
     Element* element = document->focusedElement();
     if (!element) {

@@ -558,15 +558,15 @@ bool MediaPlayerPrivateGStreamer::doSeek(const SeekTarget& target, float rate)
         m_seekFlags = static_cast<GstSeekFlags>((m_seekFlags | GST_SEEK_FLAG_FLUSH) & ~GST_SEEK_FLAG_SEGMENT);
     }
 
-    if (rate && player && player->isLooping() && startTime >= duration()) {
+    if (rate >= 0.0 && startTime >= duration()) {
         didEnd();
-        return true;
+        return false;
     }
 
     // Stream mode. Seek will automatically deplete buffer level, so we always want to pause the pipeline and wait until the
     // buffer is replenished. But we don't want this behaviour on immediate seeks that only change the playback rate.
     // We restrict this behaviour to protocols that use NetworkProcess.
-    if (!m_downloadBuffer && !m_isChangingRate && m_url.protocolIsInHTTPFamily() && currentTime() != startTime) {
+    if (!isSeamlessSeekingEnabled() && !m_downloadBuffer && !m_isChangingRate && m_url.protocolIsInHTTPFamily() && currentTime() != startTime) {
         GST_DEBUG_OBJECT(pipeline(), "[Buffering] Pausing pipeline, resetting buffering level to 0 and forcing m_isBuffering true before seeking on stream mode");
 
         auto& quirksManager = GStreamerQuirksManager::singleton();
@@ -610,7 +610,7 @@ void MediaPlayerPrivateGStreamer::seekToTarget(const SeekTarget& inTarget)
     }
 
     auto target = inTarget;
-    target.time = std::min(inTarget.time, duration());
+    target.time = std::min(inTarget.time, maxTimeSeekable());
     GST_INFO_OBJECT(pipeline(), "[Seek] seeking to %s", toString(target.time).utf8().data());
 
     if (m_isSeeking) {
@@ -628,13 +628,15 @@ void MediaPlayerPrivateGStreamer::seekToTarget(const SeekTarget& inTarget)
         return;
     }
 
-    if (player->isLooping() && isSeamlessSeekingEnabled() && state > GST_STATE_PAUSED) {
-        // Segment seeking is synchronous, the pipeline state has not changed, no flush is done.
-        GST_DEBUG_OBJECT(pipeline(), "Performing segment seek");
-        m_isSeeking = true;
-        if (!doSeek(target, player->rate())) {
-            GST_DEBUG_OBJECT(pipeline(), "[Seek] seeking to %s failed", toString(target.time).utf8().data());
-            return;
+    if (player->isLooping()) {
+        if (isSeamlessSeekingEnabled() && state > GST_STATE_PAUSED) {
+            // Segment seeking is synchronous, the pipeline state has not changed, no flush is done.
+            GST_DEBUG_OBJECT(pipeline(), "Performing segment seek");
+            m_isSeeking = true;
+            if (!doSeek(target, player->rate())) {
+                GST_DEBUG_OBJECT(pipeline(), "[Seek] seeking to %s failed", toString(target.time).utf8().data());
+                return;
+            }
         }
         m_isEndReached = false;
         m_isSeeking = false;
@@ -701,8 +703,8 @@ MediaTime MediaPlayerPrivateGStreamer::duration() const
         return m_cachedDuration;
 
     MediaTime duration = platformDuration();
-    if (!duration || duration.isInvalid())
-        return MediaTime::zeroTime();
+    if (duration.isInvalid())
+        return m_isLiveStream.value_or(true) ? MediaTime::positiveInfiniteTime() : MediaTime::zeroTime();
 
     m_cachedDuration = duration;
 
@@ -861,13 +863,14 @@ MediaTime MediaPlayerPrivateGStreamer::maxTimeSeekable() const
         return MediaTime::zeroTime();
 
     bool isLiveStream = m_isLiveStream.value_or(false);
-    GST_TRACE_OBJECT(pipeline(), "isLiveStream: %s", boolForPrinting(isLiveStream));
+    GST_TRACE_OBJECT(pipeline(), "isLiveStream: %s (has value %s)", boolForPrinting(isLiveStream), boolForPrinting(m_isLiveStream.has_value()));
     if (isLiveStream)
         return MediaTime::positiveInfiniteTime();
 
     if (isMediaStreamPlayer())
         return MediaTime::zeroTime();
 
+    recalculateDurationIfNeeded();
     MediaTime duration = this->duration();
     GST_DEBUG_OBJECT(pipeline(), "maxTimeSeekable, duration: %s", toString(duration).utf8().data());
     // Infinite duration means live stream.
@@ -1014,6 +1017,7 @@ void MediaPlayerPrivateGStreamer::sourceSetup(GstElement* sourceElement)
         auto* source = WEBKIT_WEB_SRC_CAST(m_source.get());
         webKitWebSrcSetReferrer(source, m_referrer);
         webKitWebSrcSetResourceLoader(source, m_loader);
+        webKitWebSrcSetPlayer(source, ThreadSafeWeakPtr { *this });
 #if ENABLE(MEDIA_STREAM)
     } else if (WEBKIT_IS_MEDIA_STREAM_SRC(sourceElement)) {
         RefPtr player = m_player.get();
@@ -1033,9 +1037,9 @@ MediaPlayerPrivateGStreamer::ChangePipelineStateResult MediaPlayerPrivateGStream
 {
     ASSERT(m_pipeline);
 
-    if (m_isPausedByViewport && newState > GST_STATE_PAUSED) {
+    if (isPausedByViewport() && newState > GST_STATE_PAUSED) {
         GST_DEBUG_OBJECT(pipeline(), "Saving state for when player becomes visible: %s", gst_element_state_get_name(newState));
-        m_invisiblePlayerState = newState;
+        m_stateToRestoreWhenVisible = newState;
         return ChangePipelineStateResult::Ok;
     }
 
@@ -1299,7 +1303,7 @@ MediaTime MediaPlayerPrivateGStreamer::platformDuration() const
         // In order to be strict with the spec, consider that not "enough of the media data has been fetched to determine
         // the duration of the media resource" and therefore return invalidTime only when we know for sure that the
         // stream isn't live (treating empty value as unsure).
-        return m_isLiveStream.value_or(true) ? MediaTime::positiveInfiniteTime() : MediaTime::invalidTime();
+        return MediaTime::invalidTime();
     }
 
     GST_LOG_OBJECT(pipeline(), "Duration: %" GST_TIME_FORMAT, GST_TIME_ARGS(duration));
@@ -1520,6 +1524,7 @@ MediaTime MediaPlayerPrivateGStreamer::playbackPosition() const
 
     if (m_isSeeking)
         return m_seekTarget.time;
+
     if (m_isEndReached)
         return m_playbackRate > 0 ? duration() : MediaTime::zeroTime();
 
@@ -2174,6 +2179,8 @@ void MediaPlayerPrivateGStreamer::handleMessage(GstMessage* message)
                     contentLength = *contentLengthFromResponse;
                 if (!isRangeRequest) {
                     m_isLiveStream = !contentLength;
+                    if (*m_isLiveStream && WEBKIT_IS_WEB_SRC(m_source.get()) && webKitSrcIsSeekable(WEBKIT_WEB_SRC_CAST(m_source.get())))
+                        m_isLiveStream = false;
                     GST_INFO_OBJECT(pipeline(), "%s stream detected", m_isLiveStream.value_or(false) ? "Live" : "Non-live");
                     updateDownloadBufferingFlag();
                 }
@@ -2920,24 +2927,46 @@ bool MediaPlayerPrivateGStreamer::ended() const
     return m_isEndReached;
 }
 
+void MediaPlayerPrivateGStreamer::recalculateDurationIfNeeded() const
+{
+    // From the HTMLMediaElement spec.
+    // If an "infinite" stream ends for some reason, then the duration would change from positive Infinity to the time
+    // of the last frame or sample in the stream, and the durationchange event would be fired.
+
+    MediaTime now = currentTime();
+    MediaTime currentDuration = duration();
+
+    auto cacheNewDuration = [this](const MediaTime& now) {
+        GST_DEBUG_OBJECT(pipeline(), "HTMLMediaElement duration previously infinite or unknown (e.g. live stream or unknown duration), setting it to current position.");
+        m_cachedDuration = now;
+        if (RefPtr player = m_player.get())
+            player->durationChanged();
+    };
+    if (!currentDuration.isFinite() || (currentDuration.isValid() && currentDuration < now)) {
+        cacheNewDuration(now);
+        return;
+    }
+
+    auto isPipelineWaitingPreroll = this->isPipelineWaitingPreroll();
+    if (m_isEndReached && m_playbackRate > 0 && !isPipelineWaitingPreroll) {
+        GstClockTime gstreamerPosition = gstreamerPositionFromSinks();
+        if (GST_CLOCK_TIME_IS_VALID(gstreamerPosition)) {
+            now = MediaTime(gstreamerPosition, GST_SECOND);
+            if (now > currentDuration) {
+                cacheNewDuration(now);
+                return;
+            }
+        }
+    }
+
+}
+
 void MediaPlayerPrivateGStreamer::didEnd()
 {
     invalidateCachedPosition();
-    MediaTime now = currentTime();
-    GST_INFO_OBJECT(pipeline(), "Playback ended, currentMediaTime = %s, duration = %s", now.toString().utf8().data(), duration().toString().utf8().data());
+    GST_INFO_OBJECT(pipeline(), "Playback ended");
     m_isEndReached = true;
-    RefPtr player = m_player.get();
-
-    if (!duration().isFinite()) {
-        // From the HTMLMediaElement spec.
-        // If an "infinite" stream ends for some reason, then the duration would change from positive Infinity to the
-        // time of the last frame or sample in the stream, and the durationchange event would be fired.
-        GST_DEBUG_OBJECT(pipeline(), "HTMLMediaElement duration previously infinite or unknown (e.g. live stream), setting it to current position.");
-        m_cachedDuration = now;
-        if (player)
-            player->durationChanged();
-    }
-
+    recalculateDurationIfNeeded();
     if (!isMediaStreamPlayer()) {
         // Synchronize position and duration values to not confuse the
         // HTMLMediaElement. In some cases like reverse playback the
@@ -2953,6 +2982,7 @@ void MediaPlayerPrivateGStreamer::didEnd()
     // until we get the initial STREAMS_SELECTED message one more time.
     m_waitingForStreamsSelectedEvent = true;
 
+    RefPtr player = m_player.get();
     if (player && !player->isLooping() && !isMediaSource()) {
         m_isPaused = true;
         changePipelineState(GST_STATE_PAUSED);
@@ -3297,12 +3327,11 @@ void MediaPlayerPrivateGStreamer::configureVideoDecoder(GstElement* decoder)
         m_videoDecoderPlatform = GstVideoDecoderPlatform::ImxVPU;
     else if (nameView.startsWith("omx"_s))
         m_videoDecoderPlatform = GstVideoDecoderPlatform::OpenMAX;
-    else if (nameView.startsWith("avdec"_s)) {
+    else if (gstElementMatchesFactoryAndHasProperty(decoder, "avdec*"_s, "max-threads"_s)) {
         // Set the decoder maximum number of threads to a low, fixed value, not depending on the
         // platform. This also helps with processing metrics gathering. When using the default value
         // the decoder introduces artificial processing latency reflecting the maximum number of threads.
-        if (gstObjectHasProperty(decoder, "max-threads"))
-            g_object_set(decoder, "max-threads", 2, nullptr);
+        g_object_set(decoder, "max-threads", 2, nullptr);
     }
 
     if (gstObjectHasProperty(decoder, "max-errors"))
@@ -3778,26 +3807,26 @@ void MediaPlayerPrivateGStreamer::setVisibleInViewport(bool isVisible)
     if ((player && !player->isVideoPlayer()) || !m_isMuted)
         return;
 
-    if (!isVisible) {
+    if (!isVisible && !isPausedByViewport()) {
         GstState currentState, pendingState;
         gst_element_get_state(m_pipeline.get(), &currentState, &pendingState, 0);
         GstState targetState = (pendingState != GST_STATE_VOID_PENDING ? pendingState : currentState);
-        if (targetState > GST_STATE_NULL)
-            m_invisiblePlayerState = targetState;
-        m_isPausedByViewport = true;
+        if (targetState == GST_STATE_NULL) {
+            GST_DEBUG_OBJECT(pipeline(), "Pipeline is already in NULL state, no point in suspending the player.");
+            return;
+        }
+        m_stateToRestoreWhenVisible = targetState;
         GST_DEBUG_OBJECT(pipeline(), "Media element is muted and not visible in viewport, pausing it to save resources. Will resume afterwards to %s state.",
-            gst_element_state_get_name(m_invisiblePlayerState));
+            gst_element_state_get_name(m_stateToRestoreWhenVisible));
         gst_element_set_state(m_pipeline.get(), GST_STATE_PAUSED);
         gst_element_get_state(m_pipeline.get(), &currentState, &pendingState, 0);
         GST_DEBUG_OBJECT(pipeline(), "Now pipeline is in %s state with %s pending", gst_element_state_get_name(currentState), gst_element_state_get_name(pendingState));
         m_isPipelinePlaying = false;
-    } else {
-        m_isPausedByViewport = false;
-        if (m_invisiblePlayerState != GST_STATE_VOID_PENDING) {
-            GST_DEBUG_OBJECT(pipeline(), "Element in viewport again, resuming playback via state change to %s.",
-                gst_element_state_get_name(m_invisiblePlayerState));
-            changePipelineState(m_invisiblePlayerState);
-        }
+    } else if (isVisible && isPausedByViewport()) {
+        GST_DEBUG_OBJECT(pipeline(), "Element in viewport again, resuming playback via state change to %s.",
+            gst_element_state_get_name(m_stateToRestoreWhenVisible));
+        changePipelineState(m_stateToRestoreWhenVisible);
+        m_stateToRestoreWhenVisible = GST_STATE_VOID_PENDING;
     }
 }
 
@@ -3811,7 +3840,7 @@ void MediaPlayerPrivateGStreamer::paint(GraphicsContext& context, const FloatRec
     if (context.paintingDisabled())
         return;
 
-    if (!m_pageIsVisible || m_isPausedByViewport)
+    if (!m_pageIsVisible || isPausedByViewport())
         return;
 
     // Keep a reference to the sample to avoid keeping the sampleMutex locked, which would be prone
@@ -4366,9 +4395,9 @@ static void applyAudioSinkDevice(GstElement* audioSinkBin, const String& deviceI
 {
     for (auto* element : GstIteratorAdaptor<GstElement>(GUniquePtr<GstIterator>(gst_bin_iterate_sinks(GST_BIN_CAST(audioSinkBin))))) {
         // pulsesink and alsasink have a "device" property, whilst pipewiresink has "target-object"
-        if (GST_IS_AUDIO_BASE_SINK(element) && gstObjectHasProperty(element, "device"))
+        if (gstElementMatchesFactoryAndHasProperty(element, "pulsesink"_s, "device"_s) || gstElementMatchesFactoryAndHasProperty(element, "alsasink"_s, "device"_s))
             g_object_set(element, "device", deviceId.utf8().data(), nullptr);
-        else if (GST_IS_BASE_SINK(element) && gstObjectHasProperty(element, "target-object"))
+        else if (gstElementMatchesFactoryAndHasProperty(element, "pipewiresink"_s, "target-object"_s))
             g_object_set(element, "target-object", deviceId.utf8().data(), nullptr);
         else if (GST_IS_BIN(element))
             applyAudioSinkDevice(element, deviceId);

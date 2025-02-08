@@ -41,11 +41,9 @@
 namespace WebCore {
 
 class AnimationTimeline;
-class CSSTransition;
+class CSSAnimation;
 class Document;
-class Element;
 class ScrollTimeline;
-class ViewTimeline;
 class WeakPtrImplWithEventTargetData;
 class WebAnimation;
 
@@ -57,7 +55,7 @@ struct ViewTimelineInsets;
 struct TimelineMapAttachOperation {
     WeakStyleable element;
     AtomString name;
-    Ref<WebAnimation> animation;
+    Ref<CSSAnimation> animation;
 };
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(AnimationTimelinesController);
@@ -84,10 +82,11 @@ public:
     void registerNamedScrollTimeline(const AtomString&, const Styleable&, ScrollAxis);
     void registerNamedViewTimeline(const AtomString&, const Styleable&, ScrollAxis, ViewTimelineInsets&&);
     void unregisterNamedTimeline(const AtomString&, const Styleable&);
-    void setTimelineForName(const AtomString&, const Styleable&, WebAnimation&);
+    void setTimelineForName(const AtomString&, const Styleable&, CSSAnimation&);
     void updateNamedTimelineMapForTimelineScope(const TimelineScope&, const Styleable&);
     void updateTimelineForTimelineScope(const Ref<ScrollTimeline>&, const AtomString&);
     void unregisterNamedTimelinesAssociatedWithElement(const Styleable&);
+    void documentDidResolveStyle();
 
 #if ENABLE(THREADED_ANIMATION_RESOLUTION)
     AcceleratedEffectStackUpdater* existingAcceleratedEffectStackUpdater() const { return m_acceleratedEffectStackUpdater.get(); }
@@ -102,7 +101,6 @@ private:
 
     Vector<Ref<ScrollTimeline>>& timelinesForName(const AtomString&);
     Vector<WeakStyleable> relatedTimelineScopeElements(const AtomString&);
-    void attachPendingOperations();
     bool isPendingTimelineAttachment(const WebAnimation&) const;
     void updateCSSAnimationsAssociatedWithNamedTimeline(const AtomString&);
 

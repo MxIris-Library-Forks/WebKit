@@ -238,6 +238,8 @@ public:
         return m_quirkStates.get(owner);
     }
 
+    void setLiveStream(bool isLiveStream) { m_isLiveStream = isLiveStream; }
+
 protected:
     enum MainThreadNotification {
         VideoChanged = 1 << 0,
@@ -372,7 +374,7 @@ protected:
     bool m_areVolumeAndMuteInitialized { false };
 
     // Reflects whether the pipeline was paused due to the HTMLMediaElement being both muted and invisible in the viewport.
-    bool m_isPausedByViewport { false };
+    bool isPausedByViewport() const { return m_stateToRestoreWhenVisible != GST_STATE_VOID_PENDING; };
 
 #if USE(TEXTURE_MAPPER)
     OptionSet<TextureMapperFlags> m_textureMapperFlags;
@@ -459,6 +461,7 @@ private:
     void fillTimerFired();
     void didEnd();
     void setPlaybackFlags(bool isMediaStream);
+    void recalculateDurationIfNeeded() const; // It's called from other const methods.
 
     GstElement* createVideoSink();
     GstElement* createAudioSink();
@@ -627,7 +630,7 @@ private:
     bool m_didTryToRecoverPlayingState { false };
 
     // The state the pipeline should be set back to after the player becomes visible in the viewport again.
-    GstState m_invisiblePlayerState { GST_STATE_VOID_PENDING };
+    GstState m_stateToRestoreWhenVisible { GST_STATE_VOID_PENDING };
 
     // Specific to MediaStream playback.
     MediaTime m_startTime;
@@ -637,7 +640,7 @@ private:
     Lock m_codecsLock;
     TrackIDHashMap<String> m_codecs WTF_GUARDED_BY_LOCK(m_codecsLock);
 
-    bool isSeamlessSeekingEnabled() const { return m_seekFlags & (1 << GST_SEEK_FLAG_SEGMENT); }
+    bool isSeamlessSeekingEnabled() const { return m_seekFlags & GST_SEEK_FLAG_SEGMENT; }
 
     Ref<PlatformMediaResourceLoader> m_loader;
 

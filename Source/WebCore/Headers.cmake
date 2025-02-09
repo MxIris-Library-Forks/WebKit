@@ -1110,6 +1110,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/GCReachableRef.h
     dom/GetHTMLOptions.h
     dom/ImageOverlay.h
+    dom/ImportNodeOptions.h
     dom/InlineStyleSheetOwner.h
     dom/KeyboardEvent.h
     dom/LiveNodeList.h
@@ -1800,6 +1801,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     platform/AbortableTaskQueue.h
     platform/AudioSampleFormat.h
+    platform/BoxExtents.h
     platform/BoxSides.h
     platform/CaretAnimator.h
     platform/CPUMonitor.h

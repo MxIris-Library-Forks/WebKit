@@ -413,10 +413,15 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     Modules/identity/CredentialRequestCoordinator.h
     Modules/identity/CredentialRequestCoordinatorClient.h
+    Modules/identity/DigitalCredential.h
     Modules/identity/DigitalCredentialRequest.h
     Modules/identity/DigitalCredentialRequestOptions.h
-    Modules/identity/IdentityCredentialsContainer.h
+    Modules/identity/DigitalCredentialsRequestData.h
+    Modules/identity/DigitalCredentialsResponseData.h
+    Modules/identity/IdentityCredentialProtocol.h
     Modules/identity/OpenID4VPRequest.h
+
+    Modules/identity/dummy/DummyCredentialRequestCoordinatorClient.h
 
     Modules/indexeddb/IDBActiveDOMObject.h
     Modules/indexeddb/IDBDatabaseIdentifier.h
@@ -2600,6 +2605,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/NinePieceImage.h
     rendering/style/OffsetRotation.h
     rendering/style/OutlineValue.h
+    rendering/style/PositionArea.h
     rendering/style/PositionTryFallback.h
     rendering/style/RenderStyle.h
     rendering/style/RenderStyleConstants.h
@@ -2675,6 +2681,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/color/StyleColor.h
     style/values/color/StyleColorOptions.h
     style/values/color/StyleCurrentColor.h
+    style/values/color/StyleDynamicRangeLimit.h
+    style/values/color/StyleDynamicRangeLimitMix.h
     style/values/color/StyleResolvedColor.h
 
     style/values/color-adjust/StyleColorScheme.h

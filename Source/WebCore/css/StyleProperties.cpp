@@ -339,7 +339,7 @@ bool StyleProperties::hasCSSOMWrapper() const
     return mutableProperties && mutableProperties->m_cssomWrapper;
 }
 
-bool StyleProperties::traverseSubresources(const Function<bool(const CachedResource&)>& handler) const
+bool StyleProperties::traverseSubresources(NOESCAPE const Function<bool(const CachedResource&)>& handler) const
 {
     for (auto property : *this) {
         if (property.value()->traverseSubresources(handler))
@@ -395,7 +395,7 @@ Ref<MutableStyleProperties> StyleProperties::copyProperties(std::span<const CSSP
 {
     auto vector = WTF::compactMap(properties, [&](auto& property) -> std::optional<CSSProperty> {
         if (auto value = getPropertyCSSValue(property))
-            return CSSProperty(property, WTFMove(value));
+            return CSSProperty(property, value.releaseNonNull());
         return std::nullopt;
     });
     return MutableStyleProperties::create(WTFMove(vector));

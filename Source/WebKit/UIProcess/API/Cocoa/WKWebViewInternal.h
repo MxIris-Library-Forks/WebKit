@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2014-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,6 +106,7 @@ class Attachment;
 namespace WebCore {
 struct AppHighlight;
 struct ExceptionDetails;
+struct DigitalCredentialsRequestData;
 enum class WheelScrollGestureState : uint8_t;
 }
 
@@ -136,6 +137,10 @@ class ViewGestureController;
 @class WKWebViewContentProviderRegistry;
 @class _WKFrameHandle;
 @class _WKWarningView;
+
+#if HAVE(DIGITAL_CREDENTIALS_UI)
+@class WKDigitalCredentialsPicker;
+#endif
 
 #if ENABLE(WRITING_TOOLS)
 @class WTTextSuggestion;
@@ -178,7 +183,6 @@ struct PerWebProcessState {
     CGFloat viewportMetaTagWidth { WebCore::ViewportArguments::ValueAuto };
     CGFloat initialScaleFactor { 1 };
     BOOL hasCommittedLoadForMainFrame { NO };
-    BOOL needsResetViewStateAfterCommitLoadForMainFrame { NO };
 
     WebKit::DynamicViewportUpdateMode dynamicViewportUpdateMode { WebKit::DynamicViewportUpdateMode::NotResizing };
 
@@ -220,8 +224,8 @@ struct PerWebProcessState {
     std::optional<CGRect> frozenVisibleContentRect;
     std::optional<CGRect> frozenUnobscuredContentRect;
 
-    WebKit::TransactionID firstPaintAfterCommitLoadTransactionID;
-    WebKit::TransactionID lastTransactionID;
+    std::optional<WebKit::TransactionID> resetViewStateAfterTransactionID;
+    std::optional<WebKit::TransactionID> lastTransactionID;
 
     std::optional<WebKit::TransactionID> firstTransactionIDAfterPageRestore;
 
@@ -486,6 +490,12 @@ struct PerWebProcessState {
 - (std::optional<BOOL>)_resolutionForShareSheetImmediateCompletionForTesting;
 
 - (void)_didAccessBackForwardList NS_DIRECT;
+
+#if HAVE(DIGITAL_CREDENTIALS_UI)
+- (void)_showDigitalCredentialsPicker:(const WebCore::DigitalCredentialsRequestData&)requestData completionHandler:(WTF::CompletionHandler<void(Expected<WebCore::DigitalCredentialsResponseData, WebCore::ExceptionData>&&)>&&)completionHandler;
+- (void)_dismissDigitalCredentialsPicker:(WTF::CompletionHandler<void(bool)>&&)completionHandler;
+#endif
+
 
 #if ENABLE(GAMEPAD)
 - (void)_setGamepadsRecentlyAccessed:(BOOL)gamepadsRecentlyAccessed;

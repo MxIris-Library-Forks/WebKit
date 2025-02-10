@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,38 +25,14 @@
 
 #pragma once
 
-#if ENABLE(WEB_AUTHN)
-
-#include "CredentialRequestCoordinator.h"
-#include "CredentialsContainer.h"
-#include "DigitalCredential.h"
-#include <wtf/RefCounted.h>
-#include <wtf/WeakPtr.h>
+#include "IdentityCredentialProtocol.h"
+#include <wtf/text/WTFString.h>
 
 namespace WebCore {
 
-class DigitalCredential;
-class Document;
-class WeakPtrImplWithEventTargetData;
-struct CredentialCreationOptions;
-struct CredentialRequestOptions;
-struct DigitalCredentialRequestOptions;
-
-class IdentityCredentialsContainer final : public CredentialsContainer {
-public:
-    static Ref<IdentityCredentialsContainer> create(WeakPtr<Document, WeakPtrImplWithEventTargetData>&& document)
-    {
-        return adoptRef(*new IdentityCredentialsContainer(WTFMove(document)));
-    }
-
-    void get(CredentialRequestOptions&&, CredentialPromise&&) override;
-
-    void isCreate(CredentialCreationOptions&&, CredentialPromise&&) override;
-
-private:
-    explicit IdentityCredentialsContainer(WeakPtr<Document, WeakPtrImplWithEventTargetData>&&);
+struct DigitalCredentialsResponseData {
+    IdentityCredentialProtocol protocol;
+    String responseData;
 };
 
 } // namespace WebCore
-
-#endif // ENABLE(WEB_AUTHN)

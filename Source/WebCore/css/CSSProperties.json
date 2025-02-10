@@ -3593,6 +3593,25 @@
                 "url": "https://www.w3.org/TR/SVG11/text.html#DominantBaselineProperty"
             }
         },
+        "dynamic-range-limit": {
+            "inherited": true,
+            "values": [
+                "standard",
+                "constrained-high",
+                "high"
+            ],
+            "codegen-properties": {
+                "settings-flag": "cssDynamicRangeLimitPropertyEnabled",
+                "converter": "DynamicRangeLimit",
+                "parser-function": "consumeDynamicRangeLimit",
+                "parser-grammar-unused": "<<values>> | <dynamic-range-limit-mix()>",
+                "parser-grammar-unused-reason": "Needs support for functional notation."
+           },
+           "specification": {
+               "category": "css-color",
+               "url": "https://drafts.csswg.org/css-color-hdr/#the-dynamic-range-limit-property"
+           }
+        },
         "empty-cells": {
             "inherited": true,
             "values": [
@@ -5176,7 +5195,11 @@
                 }
             ],
             "codegen-properties": {
-                "parser-grammar": "<<values>>"
+                "parser-grammar": "<<values>>",
+                "logical-property-group": {
+                    "name": "overflow",
+                    "resolver": "horizontal"
+                }
             },
             "specification": {
                 "category": "css-overflow",
@@ -5204,11 +5227,57 @@
                 }
             ],
             "codegen-properties": {
-                "parser-grammar": "<<values>>"
+                "parser-grammar": "<<values>>",
+                "logical-property-group": {
+                    "name": "overflow",
+                    "resolver": "vertical"
+                }
             },
             "specification": {
                 "category": "css-overflow",
                 "url": "https://www.w3.org/TR/css-overflow-3/#propdef-overflow-y"
+            }
+        },
+        "overflow-inline": {
+            "values": [
+                "visible",
+                "hidden",
+                "clip",
+                "scroll",
+                "auto"
+            ],
+            "codegen-properties": {
+                "skip-builder": true,
+                "logical-property-group": {
+                    "name": "overflow",
+                    "resolver": "inline"
+                },
+                "parser-grammar": "<<values>>"
+            },
+            "specification": {
+                "category": "css-overflow",
+                "url": "https://www.w3.org/TR/css-overflow-3/#propdef-overflow-inline"
+            }
+        },
+        "overflow-block": {
+            "values": [
+                "visible",
+                "hidden",
+                "clip",
+                "scroll",
+                "auto"
+            ],
+            "codegen-properties": {
+                "skip-builder": true,
+                "logical-property-group": {
+                    "name": "overflow",
+                    "resolver": "block"
+                },
+                "parser-grammar": "<<values>>"
+            },
+            "specification": {
+                "category": "css-overflow",
+                "url": "https://www.w3.org/TR/css-overflow-3/#propdef-overflow-block"
             }
         },
         "overscroll-behavior": {
@@ -9507,6 +9576,19 @@
             "specification": {
                 "category": "css-anchor-position",
                 "url": "https://drafts.csswg.org/css-anchor-position-1/#position-anchor"
+            }
+        },
+        "position-area": {
+            "codegen-properties": {
+                "converter": "PositionArea",
+                "parser-function": "consumePositionArea",
+                "parser-grammar-unused": "none | <position-area>",
+                "parser-grammar-unused-reason": "Needs support for '||' groups.",
+                "settings-flag": "cssAnchorPositioningEnabled"
+            },
+            "specification": {
+                "category": "css-anchor-position",
+                "url": "https://drafts.csswg.org/css-anchor-position-1/#position-area"
             }
         },
         "position-try-order": {

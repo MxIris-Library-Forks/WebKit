@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2006-2025 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * This library is free software; you can redistribute it and/or
@@ -432,7 +432,7 @@ public:
     WEBCORE_EXPORT Ref<BroadcastChannelRegistry> protectedBroadcastChannelRegistry() const;
     WEBCORE_EXPORT void setBroadcastChannelRegistry(Ref<BroadcastChannelRegistry>&&); // Only used by WebKitLegacy.
 
-    WEBCORE_EXPORT static void forEachPage(const Function<void(Page&)>&);
+    WEBCORE_EXPORT static void forEachPage(NOESCAPE const Function<void(Page&)>&);
     WEBCORE_EXPORT static unsigned nonUtilityPageCount();
 
     unsigned subframeCount() const;
@@ -737,7 +737,9 @@ public:
 
 #if ENABLE(WEB_AUTHN)
     AuthenticatorCoordinator& authenticatorCoordinator() { return m_authenticatorCoordinator.get(); }
-    CredentialRequestCoordinator& credentialRequestCoordinator() { return m_credentialRequestCoordinator.get(); }
+#if HAVE(DIGITAL_CREDENTIALS_UI)
+    CredentialRequestCoordinator& credentialRequestCoordinator() { return *m_credentialRequestCoordinator; }
+#endif
 #endif
 
 #if ENABLE(APPLICATION_MANIFEST)
@@ -1117,12 +1119,12 @@ public:
 #endif
 
     WEBCORE_EXPORT void forEachDocument(NOESCAPE const Function<void(Document&)>&) const;
-    bool findMatchingLocalDocument(const Function<bool(Document&)>&) const;
-    void forEachRenderableDocument(const Function<void(Document&)>&) const;
+    bool findMatchingLocalDocument(NOESCAPE const Function<bool(Document&)>&) const;
+    void forEachRenderableDocument(NOESCAPE const Function<void(Document&)>&) const;
     void forEachMediaElement(NOESCAPE const Function<void(HTMLMediaElement&)>&);
     static void forEachDocumentFromMainFrame(const Frame&, NOESCAPE const Function<void(Document&)>&);
-    void forEachLocalFrame(const Function<void(LocalFrame&)>&);
-    void forEachWindowEventLoop(const Function<void(WindowEventLoop&)>&);
+    void forEachLocalFrame(NOESCAPE const Function<void(LocalFrame&)>&);
+    void forEachWindowEventLoop(NOESCAPE const Function<void(WindowEventLoop&)>&);
 
     bool shouldDisableCorsForRequestTo(const URL&) const;
     bool shouldAssumeSameSiteForRequestTo(const URL& url) const { return shouldDisableCorsForRequestTo(url); }
@@ -1635,8 +1637,12 @@ private:
 
 #if ENABLE(WEB_AUTHN)
     const UniqueRef<AuthenticatorCoordinator> m_authenticatorCoordinator;
-    const UniqueRef<CredentialRequestCoordinator> m_credentialRequestCoordinator;
+
+#if HAVE(DIGITAL_CREDENTIALS_UI)
+    const RefPtr<CredentialRequestCoordinator> m_credentialRequestCoordinator;
 #endif
+
+#endif // ENABLE(WEB_AUTHN)
 
 #if ENABLE(APPLICATION_MANIFEST)
     std::optional<ApplicationManifest> m_applicationManifest;

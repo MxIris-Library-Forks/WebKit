@@ -59,7 +59,7 @@ struct StylePropertyMetadata {
 
 class CSSProperty {
 public:
-    CSSProperty(CSSPropertyID propertyID, RefPtr<CSSValue>&& value, IsImportant important = IsImportant::No, bool isSetFromShorthand = false, int indexInShorthandsVector = 0, bool implicit = false)
+    CSSProperty(CSSPropertyID propertyID, Ref<CSSValue>&& value, IsImportant important = IsImportant::No, bool isSetFromShorthand = false, int indexInShorthandsVector = 0, bool implicit = false)
         : m_metadata(propertyID, isSetFromShorthand, indexInShorthandsVector, important, implicit)
         , m_value(WTFMove(value))
     {
@@ -70,8 +70,8 @@ public:
     CSSPropertyID shorthandID() const { return m_metadata.shorthandID(); };
     bool isImportant() const { return m_metadata.m_important; }
 
-    CSSValue* value() const { return m_value.get(); }
-    RefPtr<CSSValue> protectedValue() const { return m_value; }
+    CSSValue* value() const { return m_value.ptr(); }
+    Ref<CSSValue> protectedValue() const { return m_value; }
 
     static CSSPropertyID resolveDirectionAwareProperty(CSSPropertyID, WritingMode);
     static CSSPropertyID unresolvePhysicalProperty(CSSPropertyID, WritingMode);
@@ -98,6 +98,7 @@ public:
     static bool isMarginProperty(CSSPropertyID);
     static bool isMaxSizeProperty(CSSPropertyID);
     static bool isMinSizeProperty(CSSPropertyID);
+    static bool isOverflowProperty(CSSPropertyID);
     static bool isOverscrollBehaviorProperty(CSSPropertyID);
     static bool isPaddingProperty(CSSPropertyID);
     static bool isScrollMarginProperty(CSSPropertyID);
@@ -123,19 +124,12 @@ public:
     {
         if (!(m_metadata == other.m_metadata))
             return false;
-
-        if (!m_value && !other.m_value)
-            return true;
-
-        if (!m_value || !other.m_value)
-            return false;
-        
-        return m_value->equals(*other.m_value);
+        return m_value->equals(other.m_value);
     }
 
 private:
     StylePropertyMetadata m_metadata;
-    RefPtr<CSSValue> m_value;
+    Ref<CSSValue> m_value;
 };
 
 typedef Vector<CSSProperty, 256> ParsedPropertyVector;

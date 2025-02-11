@@ -103,7 +103,7 @@ void FullscreenManager::requestFullscreenForElement(Ref<Element>&& element, RefP
     enum class EmitErrorEvent : bool { No, Yes };
     auto handleError = [this, identifier, weakThis = WeakPtr { *this }](ASCIILiteral message, EmitErrorEvent emitErrorEvent, Ref<Element>&& element, RefPtr<DeferredPromise>&& promise, CompletionHandler<void(bool)>&& completionHandler) mutable {
         if (!weakThis)
-            return;
+            return completionHandler(false);
         ERROR_LOG(identifier, message);
         if (promise)
             promise->reject(Exception { ExceptionCode::TypeError, message });
@@ -362,6 +362,8 @@ static void clearFullscreenFlags(Element& element)
     element.setFullscreenFlag(false);
     if (auto* iframe = dynamicDowncast<HTMLIFrameElement>(element))
         iframe->setIFrameFullscreenFlag(false);
+
+    element.document().fullscreenManager().updatePageFullscreenStatusIfTopDocument();
 }
 
 void FullscreenManager::exitFullscreen(RefPtr<DeferredPromise>&& promise)
@@ -388,7 +390,6 @@ void FullscreenManager::exitFullscreen(RefPtr<DeferredPromise>&& promise)
         queueFullscreenChangeEventForDocument(exitingDocument);
         clearFullscreenFlags(*element);
         element->removeFromTopLayer();
-        updatePageFullscreenStatusIfTopDocument();
     }
 
     m_pendingExitFullscreen = true;
@@ -485,8 +486,6 @@ void FullscreenManager::finishExitFullscreen(Document& currentDocument, ExitMode
         queueFullscreenChangeEventForDocument(descendantDocument);
         unfullscreenDocument(descendantDocument);
     }
-
-    updatePageFullscreenStatusIfTopDocument();
 }
 
 bool FullscreenManager::isFullscreenEnabled() const
@@ -571,12 +570,12 @@ bool FullscreenManager::willEnterFullscreen(Element& element, HTMLMediaElementEn
             ancestor->removeFromTopLayer();
         ancestor->addToTopLayer();
 
+        ancestor->document().fullscreenManager().updatePageFullscreenStatusIfTopDocument();
+
         queueFullscreenChangeEventForDocument(ancestor->document());
 
         RenderElement::markRendererDirtyAfterTopLayerChange(ancestor->checkedRenderer().get(), containingBlockBeforeStyleResolution.get());
     }
-
-    updatePageFullscreenStatusIfTopDocument();
 
     if (auto* iframe = dynamicDowncast<HTMLIFrameElement>(element))
         iframe->setIFrameFullscreenFlag(true);

@@ -57,7 +57,7 @@ constexpr bool containsCurrentColor(const ResolvedColor&)
     return false;
 }
 
-template<> struct Serialize<ResolvedColor> { void operator()(StringBuilder&, const ResolvedColor&); };
+template<> struct Serialize<ResolvedColor> { void operator()(StringBuilder&, const SerializationContext&, const ResolvedColor&); };
 template<> struct ComputedStyleDependenciesCollector<ResolvedColor> { constexpr void operator()(ComputedStyleDependencies&, const ResolvedColor&) { } };
 template<> struct CSSValueChildrenVisitor<ResolvedColor> { constexpr IterationStatus operator()(NOESCAPE const Function<IterationStatus(CSSValue&)>&, const ResolvedColor&) { return IterationStatus::Continue; } };
 

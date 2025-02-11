@@ -4065,11 +4065,6 @@ void WebPage::setObscuredContentInsetsFenced(const FloatBoxExtent& obscuredConte
 }
 #endif
 
-FloatBoxExtent WebPage::obscuredContentInsets() const
-{
-    return m_page->obscuredContentInsets();
-}
-
 void WebPage::setObscuredContentInsets(const FloatBoxExtent& obscuredContentInsets)
 {
     if (obscuredContentInsets == m_page->obscuredContentInsets())
@@ -10250,7 +10245,7 @@ void WebPage::simulateClickOverFirstMatchingTextInViewportWithUserInteraction(co
 
     auto locationInWindow = view->contentsToWindow(location);
     auto makeSyntheticEvent = [&](PlatformEvent::Type type) -> PlatformMouseEvent {
-        return { locationInWindow, locationInWindow, MouseButton::Left, type, 1, { }, WallTime::now(), ForceAtClick, SyntheticClickType::OneFingerTap, mousePointerEventType(), mousePointerID };
+        return { locationInWindow, locationInWindow, MouseButton::Left, type, 1, { }, WallTime::now(), ForceAtClick, SyntheticClickType::OneFingerTap, mousePointerID };
     };
 
     WEBPAGE_RELEASE_LOG(MouseHandling, "Simulating click - dispatching events");

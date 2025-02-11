@@ -812,9 +812,9 @@ void WebPageProxy::potentialTapAtPosition(const WebCore::FloatPoint& position, b
     legacyMainFrameProcess().send(Messages::WebPage::PotentialTapAtPosition(requestID, position, shouldRequestMagnificationInformation), webPageIDInMainFrameProcess());
 }
 
-void WebPageProxy::commitPotentialTap(OptionSet<WebEventModifier> modifiers, TransactionID layerTreeTransactionIdAtLastTouchStart, WebCore::PointerID pointerId, const String& pointerType)
+void WebPageProxy::commitPotentialTap(OptionSet<WebEventModifier> modifiers, TransactionID layerTreeTransactionIdAtLastTouchStart, WebCore::PointerID pointerId)
 {
-    legacyMainFrameProcess().send(Messages::WebPage::CommitPotentialTap(modifiers, layerTreeTransactionIdAtLastTouchStart, pointerId, pointerType), webPageIDInMainFrameProcess());
+    legacyMainFrameProcess().send(Messages::WebPage::CommitPotentialTap(modifiers, layerTreeTransactionIdAtLastTouchStart, pointerId), webPageIDInMainFrameProcess());
 }
 
 void WebPageProxy::cancelPotentialTap()
@@ -1555,6 +1555,8 @@ WebContentMode WebPageProxy::effectiveContentModeAfterAdjustingPolicies(API::Web
         policies.setOverrideTouchEventDOMAttributesEnabled(false);
 #endif
 
+    policies.setInlineMediaPlaybackPolicy(WebsiteInlineMediaPlaybackPolicy::DoesNotRequirePlaysInlineAttribute);
+
     return WebContentMode::Desktop;
 }
 
@@ -1702,7 +1704,6 @@ void WebPageProxy::statusBarWasTapped()
 
 double WebPageProxy::displayedContentScale() const
 {
-    ASSERT(internals().lastVisibleContentRectUpdate);
     if (internals().lastVisibleContentRectUpdate)
         return internals().lastVisibleContentRectUpdate->scale();
     return 1;
@@ -1710,7 +1711,6 @@ double WebPageProxy::displayedContentScale() const
 
 FloatRect WebPageProxy::exposedContentRect() const
 {
-    ASSERT(internals().lastVisibleContentRectUpdate);
     if (internals().lastVisibleContentRectUpdate)
         return internals().lastVisibleContentRectUpdate->exposedContentRect();
     return { };
@@ -1718,7 +1718,6 @@ FloatRect WebPageProxy::exposedContentRect() const
 
 FloatRect WebPageProxy::unobscuredContentRect() const
 {
-    ASSERT(internals().lastVisibleContentRectUpdate);
     if (internals().lastVisibleContentRectUpdate)
         return internals().lastVisibleContentRectUpdate->unobscuredContentRect();
     return { };
@@ -1726,7 +1725,6 @@ FloatRect WebPageProxy::unobscuredContentRect() const
 
 bool WebPageProxy::inStableState() const
 {
-    ASSERT(internals().lastVisibleContentRectUpdate);
     if (internals().lastVisibleContentRectUpdate)
         return internals().lastVisibleContentRectUpdate->inStableState();
     return false;
@@ -1734,7 +1732,6 @@ bool WebPageProxy::inStableState() const
 
 FloatRect WebPageProxy::unobscuredContentRectRespectingInputViewBounds() const
 {
-    ASSERT(internals().lastVisibleContentRectUpdate);
     if (internals().lastVisibleContentRectUpdate)
         return internals().lastVisibleContentRectUpdate->unobscuredContentRectRespectingInputViewBounds();
     return { };
@@ -1742,7 +1739,6 @@ FloatRect WebPageProxy::unobscuredContentRectRespectingInputViewBounds() const
 
 FloatRect WebPageProxy::layoutViewportRect() const
 {
-    ASSERT(internals().lastVisibleContentRectUpdate);
     if (internals().lastVisibleContentRectUpdate)
         return internals().lastVisibleContentRectUpdate->layoutViewportRect();
     return { };

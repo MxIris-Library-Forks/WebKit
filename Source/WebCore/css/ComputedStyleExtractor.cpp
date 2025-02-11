@@ -56,6 +56,7 @@
 #include "CSSReflectValue.h"
 #include "CSSRegisteredCustomProperty.h"
 #include "CSSScrollValue.h"
+#include "CSSSerializationContext.h"
 #include "CSSTextShadowPropertyValue.h"
 #include "CSSTransformListValue.h"
 #include "CSSValueList.h"
@@ -1893,9 +1894,14 @@ static Ref<CSSValue> animationShorthandValue(const RenderStyle& style, const Ani
         return CSSPrimitiveValue::create(CSSValueNone);
 
     CSSValueListBuilder list;
-    for (auto& animation : *animations)
+    for (auto& animation : *animations) {
+        // If any of the reset-only longhands are set, we cannot serialize this value.
+        if (animation->isTimelineSet() || animation->isRangeStartSet() || animation->isRangeEndSet()) {
+            list.clear();
+            break;
+        }
         list.append(singleAnimationValue(style, animation));
-    ASSERT(!list.isEmpty());
+    }
     return CSSValueList::createCommaSeparated(WTFMove(list));
 }
 
@@ -3415,7 +3421,7 @@ RefPtr<CSSValue> ComputedStyleExtractor::customPropertyValue(const AtomString& p
 String ComputedStyleExtractor::customPropertyText(const AtomString& propertyName) const
 {
     RefPtr<CSSValue> propertyValue = customPropertyValue(propertyName);
-    return propertyValue ? propertyValue->cssText() : emptyString();
+    return propertyValue ? propertyValue->cssText(CSS::defaultSerializationContext()) : emptyString();
 }
 
 static Ref<CSSFontValue> fontShorthandValue(const RenderStyle& style, ComputedStyleExtractor::PropertyValueType valueType)

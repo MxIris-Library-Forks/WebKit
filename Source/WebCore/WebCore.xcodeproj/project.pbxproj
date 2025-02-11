@@ -4905,6 +4905,7 @@
 		BC5A86850C33676000EEA649 /* DOMSelection.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5A86820C33676000EEA649 /* DOMSelection.h */; };
 		BC5A86B60C3367E800EEA649 /* JSDOMSelection.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5A86B40C3367E800EEA649 /* JSDOMSelection.h */; };
 		BC5C762B1497FE1400BC4775 /* PlatformEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5C76291497FE1400BC4775 /* PlatformEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC5C89A12D553193000F45B7 /* CSSSerializationContext.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5C89A02D553193000F45B7 /* CSSSerializationContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5C89BB2D567D06000F45B7 /* CSSDynamicRangeLimitValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5C89BA2D567D06000F45B7 /* CSSDynamicRangeLimitValue.h */; };
 		BC5C89BE2D567E23000F45B7 /* StyleDynamicRangeLimit.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5C89BD2D567E23000F45B7 /* StyleDynamicRangeLimit.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5C89C02D567E31000F45B7 /* StyleDynamicRangeLimitMix.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5C89BF2D567E31000F45B7 /* StyleDynamicRangeLimitMix.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18080,6 +18081,8 @@
 		BC5A86B40C3367E800EEA649 /* JSDOMSelection.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSDOMSelection.h; sourceTree = "<group>"; };
 		BC5BFB16291AA2C5000A5E60 /* process-css-values.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-values.py"; sourceTree = "<group>"; };
 		BC5C76291497FE1400BC4775 /* PlatformEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformEvent.h; sourceTree = "<group>"; };
+		BC5C89A02D553193000F45B7 /* CSSSerializationContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSSerializationContext.h; sourceTree = "<group>"; };
+		BC5C89AC2D556F29000F45B7 /* CSSSerializationContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSerializationContext.cpp; sourceTree = "<group>"; };
 		BC5C89B52D567ABF000F45B7 /* CSSDynamicRangeLimit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSDynamicRangeLimit.h; sourceTree = "<group>"; };
 		BC5C89B72D567B25000F45B7 /* CSSDynamicRangeLimitMix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSDynamicRangeLimitMix.h; sourceTree = "<group>"; };
 		BC5C89B82D567B2D000F45B7 /* CSSDynamicRangeLimit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSDynamicRangeLimit.cpp; sourceTree = "<group>"; };
@@ -34954,6 +34957,8 @@
 				BCB271B22CBD7D4C00265123 /* shapes */,
 				BC3078DE2D0286E900630D75 /* text-decoration */,
 				BC89E31B2D11ECD10016DF06 /* CSSNoConversionDataRequiredToken.h */,
+				BC5C89AC2D556F29000F45B7 /* CSSSerializationContext.cpp */,
+				BC5C89A02D553193000F45B7 /* CSSSerializationContext.h */,
 				BC4AF44D2CFB9E700037C65C /* CSSValueAggregates.cpp */,
 				BC4AF4492CFB85E50037C65C /* CSSValueAggregates.h */,
 				BC2C0BEB2D284F7B00FCFBA0 /* CSSValueConcepts.h */,
@@ -40634,6 +40639,7 @@
 				E4C1789B0EE6903800824D69 /* CSSSelectorList.h in Headers */,
 				BCFE79B22BE308C400114272 /* CSSSelectorParser.h in Headers */,
 				BCFE79AB2BE307F800114272 /* CSSSelectorParserContext.h in Headers */,
+				BC5C89A12D553193000F45B7 /* CSSSerializationContext.h in Headers */,
 				BCB272142CC1F21B00265123 /* CSSShapeFunction.h in Headers */,
 				2A538A2A26F0104200965FC8 /* CSSSkew.h in Headers */,
 				2A538A2B26F0104500965FC8 /* CSSSkewX.h in Headers */,

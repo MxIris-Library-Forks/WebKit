@@ -133,10 +133,14 @@ void CSSAnimation::syncPropertiesWithBackingAnimation()
 
     // Synchronize the play state
     if (!m_overriddenProperties.contains(Property::PlayState)) {
-        if (animation.playState() == AnimationPlayState::Playing && playState() == WebAnimation::PlayState::Paused)
-            play();
-        else if (animation.playState() == AnimationPlayState::Paused && playState() == WebAnimation::PlayState::Running)
-            pause();
+        auto styleOriginatedPlayState = animation.playState();
+        if (m_lastStyleOriginatedPlayState != styleOriginatedPlayState) {
+            if (styleOriginatedPlayState == AnimationPlayState::Playing && playState() == WebAnimation::PlayState::Paused)
+                play();
+            else if (styleOriginatedPlayState == AnimationPlayState::Paused && playState() == WebAnimation::PlayState::Running)
+                pause();
+        }
+        m_lastStyleOriginatedPlayState = styleOriginatedPlayState;
     }
 
     unsuspendEffectInvalidation();
@@ -152,7 +156,8 @@ void CSSAnimation::syncStyleOriginatedTimeline()
     ASSERT(owningElement());
     Ref target = owningElement()->element;
     Ref document = owningElement()->element.document();
-    WTF::switchOn(backingAnimation().timeline(),
+    auto& timeline = backingAnimation().timeline();
+    WTF::switchOn(timeline,
         [&] (Animation::TimelineKeyword keyword) {
             setTimeline(keyword == Animation::TimelineKeyword::None ? nullptr : RefPtr { document->existingTimeline() });
         }, [&] (const AtomString& name) {
@@ -169,6 +174,13 @@ void CSSAnimation::syncStyleOriginatedTimeline()
             setTimeline(WTFMove(viewTimeline));
         }
     );
+
+    // If we're not dealing with a named timeline, we should make sure we have no
+    // pending attachment operation for this timeline name.
+    if (!std::holds_alternative<AtomString>(timeline)) {
+        CheckedRef timelinesController = document->ensureTimelinesController();
+        timelinesController->removePendingOperationsForCSSAnimation(*this);
+    }
 
     unsuspendEffectInvalidation();
 }

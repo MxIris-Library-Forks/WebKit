@@ -184,7 +184,7 @@ private:
     void logDiagnosticMessageWithEnhancedPrivacyFromWebProcess(const String& message, const String& description, WebCore::ShouldSample);
     void logDiagnosticMessageWithValueDictionaryFromWebProcess(const String& message, const String& description, const WebCore::DiagnosticLoggingClient::ValueDictionary&, WebCore::ShouldSample);
     void startURLSchemeTask(IPC::Connection&, URLSchemeTaskParameters&&);
-    void backForwardGoToItem(IPC::Connection&, WebCore::BackForwardItemIdentifier, CompletionHandler<void(const WebBackForwardListCounts&)>&&);
+    void backForwardGoToItem(WebCore::BackForwardItemIdentifier, CompletionHandler<void(const WebBackForwardListCounts&)>&&);
     void decidePolicyForNavigationActionSync(NavigationActionData&&, CompletionHandler<void(PolicyDecision&&)>&&);
     void backForwardAddItem(IPC::Connection&, Ref<FrameState>&&);
     void didDestroyNavigation(WebCore::NavigationIdentifier);
@@ -211,6 +211,7 @@ private:
     WebCore::PageIdentifier m_webPageID;
     Ref<FrameProcess> m_frameProcess;
     Ref<BrowsingContextGroup> m_browsingContextGroup;
+    RefPtr<RemotePageProxy> m_takenRemotePage;
 
     // Keep WebsiteDataStore alive for provisional page load.
     RefPtr<WebsiteDataStore> m_websiteDataStore;
@@ -224,6 +225,7 @@ private:
     ProcessSwapRequestedByClient m_processSwapRequestedByClient;
     bool m_wasCommitted { false };
     bool m_isProcessSwappingOnNavigationResponse { false };
+    const bool m_isProcessSwappingForNewWindow;
     bool m_needsCookieAccessAddedInNetworkProcess { false };
     bool m_needsDidStartProvisionalLoad { true };
     bool m_shouldClosePage { true };

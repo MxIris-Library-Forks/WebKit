@@ -326,6 +326,8 @@ public:
     virtual void showBrowsingWarning(const BrowsingWarning&, CompletionHandler<void(std::variant<ContinueUnsafeLoad, URL>&&)>&& completionHandler) { completionHandler(ContinueUnsafeLoad::Yes); }
     virtual void clearBrowsingWarning() { }
     virtual void clearBrowsingWarningIfForMainFrameNavigation() { }
+
+    virtual bool canStartNavigationSwipeAtLastInteractionLocation() const { return true; }
     
 #if ENABLE(DRAG_SUPPORT)
 #if PLATFORM(GTK)
@@ -809,6 +811,8 @@ public:
 #if ENABLE(SCREEN_TIME)
     virtual void installScreenTimeWebpageController() { }
     virtual void didChangeScreenTimeWebpageControllerURL() { };
+    virtual void setURLIsPictureInPictureForScreenTime(bool) { };
+    virtual void setURLIsPlayingVideoForScreenTime(bool) { };
 #endif
 };
 

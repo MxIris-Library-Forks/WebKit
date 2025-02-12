@@ -2448,6 +2448,25 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
         [self accessibilityScrollToVisible];
     else if ([action isEqualToString:@"AXDismissAction"])
         backingObject->performDismissActionIgnoringResult();
+    else if (AXObjectCache::clientIsInTestMode() && [action isEqualToString:@"AXLogTrees"])
+        [self _accessibilityPrintTrees];
+}
+
+// Internal method to print the accessibility trees to standard error.
+- (void)_accessibilityPrintTrees
+{
+    Accessibility::performFunctionOnMainThread([protectedSelf = retainPtr(self)] {
+        auto* backingObject = protectedSelf.get().axBackingObject;
+        if (!backingObject)
+            return;
+
+        auto* cache = backingObject->axObjectCache();
+        if (!cache)
+            return;
+
+        AXTreeData data = cache->treeData(); // Can specify AXStreamOptions here if needed (e.g., TextRuns)
+        SAFE_FPRINTF(stderr, "==AX Trees==\n%s\n%s\n", data.liveTree.utf8(), data.isolatedTree.utf8());
+    });
 }
 
 - (BOOL)accessibilityReplaceRange:(NSRange)range withText:(NSString *)string
@@ -3044,7 +3063,7 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
             IntRect webCoreRect = screenToContents(*backingObject, enclosingIntRect(rect));
             CharacterOffset characterOffset = cache->characterOffsetForBounds(webCoreRect, false);
 
-            return (id)textMarkerForCharacterOffset(cache.get(), characterOffset);
+            return (id)textMarkerForCharacterOffset(cache.get(), characterOffset, TextMarkerOrigin::EndTextMarkerForBounds);
         });
     }
 
@@ -3061,7 +3080,7 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
             IntRect webCoreRect = screenToContents(*backingObject, enclosingIntRect(rect));
             CharacterOffset characterOffset = cache->characterOffsetForBounds(webCoreRect, true);
 
-            return (id)textMarkerForCharacterOffset(cache.get(), characterOffset);
+            return (id)textMarkerForCharacterOffset(cache.get(), characterOffset, TextMarkerOrigin::StartTextMarkerForBounds);
         });
     }
 
@@ -3221,11 +3240,21 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
             if (!backingObject)
                 return nil;
 
-            return AXTextMarker(backingObject->visiblePositionForPoint(webCorePoint)).platformData().bridgingAutorelease();
+            return AXTextMarker(backingObject->visiblePositionForPoint(webCorePoint), TextMarkerOrigin::Position).platformData().bridgingAutorelease();
         });
     }
 
     if ([attribute isEqualToString:NSAccessibilityBoundsForTextMarkerRangeAttribute]) {
+#if ENABLE(AX_THREAD_TEXT_APIS)
+        if (AXObjectCache::useAXThreadTextApis()) {
+            AXTextMarkerRange markerRange { textMarkerRange };
+            if (!markerRange)
+                return [NSValue valueWithRect:CGRectZero];
+
+            return [NSValue valueWithRect:[self convertRectToSpace:markerRange.viewportRelativeFrame() space:AccessibilityConversionSpace::Screen]];
+        }
+#endif // ENABLE(AX_THREAD_TEXT_APIS)
+
         NSRect rect = Accessibility::retrieveValueFromMainThread<NSRect>([textMarkerRange = retainPtr(textMarkerRange), protectedSelf = retainPtr(self)] () -> NSRect {
             auto* backingObject = protectedSelf.get().axBackingObject;
             if (!backingObject)
@@ -3243,6 +3272,18 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
     }
 
     if ([attribute isEqualToString:NSAccessibilityBoundsForRangeParameterizedAttribute]) {
+#if ENABLE(AX_THREAD_TEXT_APIS)
+        if (AXObjectCache::useAXThreadTextApis()) {
+            auto markerToLocation = AXTextMarker { *backingObject, 0 }.nextMarkerFromOffset(range.location);
+            auto markerToRangeEnd = markerToLocation.nextMarkerFromOffset(range.location + range.length);
+            if (!markerToRangeEnd.isValid())
+                return [NSValue valueWithRect:CGRectZero];
+
+            auto bounds = AXTextMarkerRange { WTFMove(markerToLocation), WTFMove(markerToRangeEnd) }.viewportRelativeFrame();
+            return [NSValue valueWithRect:[self convertRectToSpace:bounds space:AccessibilityConversionSpace::Screen]];
+        }
+#endif // ENABLE(AX_THREAD_TEXT_APIS)
+
         NSRect rect = Accessibility::retrieveValueFromMainThread<NSRect>([&range, protectedSelf = retainPtr(self)] () -> NSRect {
             auto* backingObject = protectedSelf.get().axBackingObject;
             if (!backingObject)

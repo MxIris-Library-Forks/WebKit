@@ -220,7 +220,7 @@ private:
 #endif
 
     void disableDoubleTapGesturesDuringTapIfNecessary(WebKit::TapIdentifier) override;
-    void handleSmartMagnificationInformationForPotentialTap(WebKit::TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel) override;
+    void handleSmartMagnificationInformationForPotentialTap(WebKit::TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel, bool nodeIsPluginElement) override;
 
     double minimumZoomScale() const override;
     WebCore::FloatRect documentRect() const override;
@@ -362,10 +362,6 @@ private:
 
 #if HAVE(SPATIAL_TRACKING_LABEL)
     const String& spatialTrackingLabel() const final;
-#endif
-
-#if ENABLE(PDF_PLUGIN)
-    void pluginDidInstallPDFDocument(double initialScale) final;
 #endif
 
     void scheduleVisibleContentRectUpdate() final;

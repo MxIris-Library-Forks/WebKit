@@ -686,7 +686,6 @@ public:
 #endif
 
     WebBackForwardList& backForwardList() { return m_backForwardList; }
-    Ref<WebBackForwardList> protectedBackForwardList() const;
 
     bool addsVisitedLinks() const { return m_addsVisitedLinks; }
     void setAddsVisitedLinks(bool addsVisitedLinks) { m_addsVisitedLinks = addsVisitedLinks; }
@@ -1132,7 +1131,7 @@ public:
     void didHandleTapAsHover();
     void didCompleteSyntheticClick();
     void disableDoubleTapGesturesDuringTapIfNecessary(TapIdentifier);
-    void handleSmartMagnificationInformationForPotentialTap(TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel);
+    void handleSmartMagnificationInformationForPotentialTap(TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel, bool nodeIsPluginElement);
     void contentSizeCategoryDidChange(const String& contentSizeCategory);
     void getSelectionContext(CompletionHandler<void(const String&, const String&, const String&)>&&);
     void handleTwoFingerTapAtPoint(const WebCore::IntPoint&, OptionSet<WebEventModifier>, TapIdentifier requestID);
@@ -1389,9 +1388,6 @@ public:
     double viewScaleFactor() const { return m_viewScaleFactor; }
     void scaleView(double scale);
     void setShouldScaleViewToFitDocument(bool);
-#if ENABLE(PDF_PLUGIN)
-    void setPluginScaleFactor(double scaleFactor, WebCore::IntPoint origin);
-#endif
     
     float deviceScaleFactor() const;
 #if USE(GRAPHICS_LAYER_WC) || USE(GRAPHICS_LAYER_TEXTURE_MAPPER)
@@ -1765,13 +1761,9 @@ public:
     void saveDataToFileInDownloadsFolder(String&& suggestedFilename, String&& mimeType, URL&& originatingURL, API::Data&);
     void savePDFToFileInDownloadsFolder(String&& suggestedFilename, URL&& originatingURL, std::span<const uint8_t>);
 
-#if ENABLE(PDF_PLUGIN)
-#if PLATFORM(MAC)
+#if ENABLE(PDF_PLUGIN) && PLATFORM(MAC)
     void savePDFToTemporaryFolderAndOpenWithNativeApplication(const String& suggestedFilename, FrameInfoData&&, std::span<const uint8_t>, const String& pdfUUID);
     void showPDFContextMenu(const PDFContextMenu&, PDFPluginIdentifier, CompletionHandler<void(std::optional<int32_t>&&)>&&);
-#else
-    void pluginDidInstallPDFDocument(double initialScale);
-#endif
 #endif
 
     WebCore::IntRect visibleScrollerThumbRect() const;
@@ -2663,6 +2655,11 @@ public:
 
     bool canStartNavigationSwipeAtLastInteractionLocation() const;
 
+#if ENABLE(WEB_PROCESS_SUSPENSION_DELAY)
+    void takeAccessibilityActivityWhenInWindow();
+    bool hasAccessibilityActivityForTesting();
+#endif
+
 private:
     void getWebCryptoMasterKey(CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&&);
     WebPageProxy(PageClient&, WebProcessProxy&, Ref<API::PageConfiguration>&&);
@@ -3479,7 +3476,7 @@ RefPtr<SpeechRecognitionPermissionManager> protectedSpeechRecognitionPermissionM
 
     bool m_initialCapitalizationEnabled { false };
     std::optional<double> m_cpuLimit;
-    Ref<WebBackForwardList> m_backForwardList;
+    const Ref<WebBackForwardList> m_backForwardList;
         
     bool m_maintainsInactiveSelection { false };
 
@@ -3496,8 +3493,8 @@ RefPtr<SpeechRecognitionPermissionManager> protectedSpeechRecognitionPermissionM
 
     double m_pluginZoomFactor { 1 };
 
-    double m_pluginMinZoomFactor { 1 };
-    double m_pluginMaxZoomFactor { 1 };
+    std::optional<double> m_pluginMinZoomFactor;
+    std::optional<double> m_pluginMaxZoomFactor;
 
     double m_pluginScaleFactor { 1 };
 

@@ -445,6 +445,14 @@ struct ImageAnalysisContextMenuActionData {
     RetainPtr<WKSTextAnimationManager> _textAnimationManager;
 #endif
 
+    BOOL _isInSelectionInteraction;
+    struct LastSelectionTouch {
+        CGPoint point;
+        BOOL baseIsStart;
+        WKBESelectionFlags flags;
+    };
+    LastSelectionTouch _lastSelectionTouch;
+
     RefPtr<WebKit::SmartMagnificationController> _smartMagnificationController;
 
     WeakObjCPtr<id <UITextInputDelegate>> _inputDelegate;
@@ -713,6 +721,8 @@ struct ImageAnalysisContextMenuActionData {
 - (void)cancelPointersForGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer;
 - (std::optional<unsigned>)activeTouchIdentifierForGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer;
 
+- (void)updateSelection;
+
 #define DECLARE_WKCONTENTVIEW_ACTION_FOR_WEB_VIEW(_action) \
     - (void)_action ## ForWebView:(id)sender;
 FOR_EACH_WKCONTENTVIEW_ACTION(DECLARE_WKCONTENTVIEW_ACTION_FOR_WEB_VIEW)
@@ -741,7 +751,7 @@ FOR_EACH_PRIVATE_WKCONTENTVIEW_ACTION(DECLARE_WKCONTENTVIEW_ACTION_FOR_WEB_VIEW)
 
 - (BOOL)_mayDisableDoubleTapGesturesDuringSingleTap;
 - (void)_disableDoubleTapGesturesDuringTapIfNecessary:(WebKit::TapIdentifier)requestID;
-- (void)_handleSmartMagnificationInformationForPotentialTap:(WebKit::TapIdentifier)requestID renderRect:(const WebCore::FloatRect&)renderRect fitEntireRect:(BOOL)fitEntireRect viewportMinimumScale:(double)viewportMinimumScale viewportMaximumScale:(double)viewportMaximumScale nodeIsRootLevel:(BOOL)nodeIsRootLevel;
+- (void)_handleSmartMagnificationInformationForPotentialTap:(WebKit::TapIdentifier)requestID renderRect:(const WebCore::FloatRect&)renderRect fitEntireRect:(BOOL)fitEntireRect viewportMinimumScale:(double)viewportMinimumScale viewportMaximumScale:(double)viewportMaximumScale nodeIsRootLevel:(BOOL)nodeIsRootLevel nodeIsPluginElement:(BOOL)nodeIsPluginElement;
 - (void)_elementDidFocus:(const WebKit::FocusedElementInformation&)information userIsInteracting:(BOOL)userIsInteracting blurPreviousNode:(BOOL)blurPreviousNode activityStateChanges:(OptionSet<WebCore::ActivityState>)activityStateChanges userObject:(NSObject <NSSecureCoding> *)userObject;
 - (void)_updateInputContextAfterBlurringAndRefocusingElement;
 - (void)_didProgrammaticallyClearFocusedElement:(WebCore::ElementContext&&)context;

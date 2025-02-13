@@ -1320,7 +1320,8 @@ void WebPage::potentialTapAtPosition(WebKit::TapIdentifier requestID, const WebC
         viewGestureGeometryCollector->computeZoomInformationForNode(*m_potentialTapNode, origin, absoluteBoundingRect, fitEntireRect, viewportMinimumScale, viewportMaximumScale);
 
         bool nodeIsRootLevel = is<WebCore::Document>(*m_potentialTapNode) || is<WebCore::HTMLBodyElement>(*m_potentialTapNode);
-        send(Messages::WebPageProxy::HandleSmartMagnificationInformationForPotentialTap(requestID, absoluteBoundingRect, fitEntireRect, viewportMinimumScale, viewportMaximumScale, nodeIsRootLevel));
+        bool nodeIsPluginElement = is<WebCore::HTMLPlugInElement>(*m_potentialTapNode);
+        send(Messages::WebPageProxy::HandleSmartMagnificationInformationForPotentialTap(requestID, absoluteBoundingRect, fitEntireRect, viewportMinimumScale, viewportMaximumScale, nodeIsRootLevel, nodeIsPluginElement));
     }
 
     sendTapHighlightForNodeIfNecessary(requestID, m_potentialTapNode.get(), position);
@@ -4942,13 +4943,6 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
         return transactionIdBeforeScalingPage.greaterThanOrEqualSameProcess( visibleContentRectUpdateInfo.lastLayerTreeTransactionID());
     })();
 
-    bool pluginHandlesScaleFactor = [&]() -> bool {
-#if ENABLE(PDF_PLUGIN)
-        return mainFramePlugIn();
-#endif
-        return false;
-    }();
-
     if (!pageHasBeenScaledSinceLastLayerTreeCommitThatChangedPageScale) {
         bool hasSetPageScale = false;
         if (scaleFromUIProcess) {
@@ -4957,7 +4951,17 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
 
             m_dynamicSizeUpdateHistory.clear();
 
-            if (!pluginHandlesScaleFactor)
+            // FIXME: <webkit.org/b/287511> Also call Page::setPageScaleFactor() for main frame plugins that do not handle page scale factor.
+            bool pluginHandlesPageScaleFactor = [this] {
+#if ENABLE(PDF_PLUGIN)
+                return this->mainFramePlugIn();
+#else
+                UNUSED_PARAM(this);
+                return false;
+#endif
+            }();
+
+            if (!pluginHandlesPageScaleFactor)
                 m_page->setPageScaleFactor(scaleFromUIProcess.value(), scrollPosition, m_isInStableState);
 
             hasSetPageScale = true;
@@ -5128,10 +5132,8 @@ void WebPage::updateLayoutViewportHeightExpansionTimerFired()
 void WebPage::willStartUserTriggeredZooming()
 {
 #if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = mainFramePlugIn()) {
+    if (RefPtr pluginView = mainFramePlugIn())
         pluginView->didBeginMagnificationGesture();
-        return;
-    }
 #endif
 
     m_page->diagnosticLoggingClient().logDiagnosticMessage(DiagnosticLoggingKeys::webViewKey(), DiagnosticLoggingKeys::userZoomActionKey(), ShouldSample::No);

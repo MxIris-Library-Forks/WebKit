@@ -2629,7 +2629,7 @@ static inline WebCore::FloatSize tapHighlightBorderRadius(WebCore::FloatSize bor
     [self _setDoubleTapGesturesEnabled:NO];
 }
 
-- (void)_handleSmartMagnificationInformationForPotentialTap:(WebKit::TapIdentifier)requestID renderRect:(const WebCore::FloatRect&)renderRect fitEntireRect:(BOOL)fitEntireRect viewportMinimumScale:(double)viewportMinimumScale viewportMaximumScale:(double)viewportMaximumScale nodeIsRootLevel:(BOOL)nodeIsRootLevel
+- (void)_handleSmartMagnificationInformationForPotentialTap:(WebKit::TapIdentifier)requestID renderRect:(const WebCore::FloatRect&)renderRect fitEntireRect:(BOOL)fitEntireRect viewportMinimumScale:(double)viewportMinimumScale viewportMaximumScale:(double)viewportMaximumScale nodeIsRootLevel:(BOOL)nodeIsRootLevel nodeIsPluginElement:(BOOL)nodeIsPluginElement
 {
     const auto& preferences = _page->preferences();
 
@@ -2648,6 +2648,11 @@ static inline WebCore::FloatSize tapHighlightBorderRadius(WebCore::FloatSize bor
 
         if (preferences.alwaysZoomOnDoubleTap()) {
             RELEASE_LOG(ViewGestures, "DTTZ is forced on, so don't disable double-tap. (%p, pageProxyID=%llu)", self, _page->identifier().toUInt64());
+            return;
+        }
+
+        if (nodeIsPluginElement) {
+            RELEASE_LOG(ViewGestures, "The click handler was on a plugin element, so don't disable double-tap. (%p, pageProxyID=%llu)", self, _page->identifier().toUInt64());
             return;
         }
 
@@ -5269,13 +5274,51 @@ static void selectionChangedWithTouch(WKTextInteractionWrapper *interaction, con
     });
 }
 
+- (void)updateSelection
+{
+    if (_isInSelectionInteraction)
+        [self updateSelectionWithTouchAt:[self convertPoint:_lastSelectionTouch.point fromView:self.webView] withSelectionTouch:WKBESelectionTouchPhaseMoved baseIsStart:_lastSelectionTouch.baseIsStart withFlags:_lastSelectionTouch.flags];
+}
+
 - (void)changeSelectionWithTouchAt:(CGPoint)point withSelectionTouch:(WKBESelectionTouchPhase)touch baseIsStart:(BOOL)baseIsStart withFlags:(WKBESelectionFlags)flags
 {
     logTextInteraction(__PRETTY_FUNCTION__, self.textInteractionLoupeGestureRecognizer, point, std::nullopt, std::nullopt, touch, flags);
 
     _autocorrectionContextNeedsUpdate = YES;
     _usingGestureForSelection = YES;
+
+    auto touchType = toSelectionTouch(touch);
+    switch (touchType) {
+    case WebKit::SelectionTouch::Started:
+        _isInSelectionInteraction = YES;
+        _lastSelectionTouch.point = [self convertPoint:point toView:self.webView];
+        _lastSelectionTouch.baseIsStart = baseIsStart;
+        _lastSelectionTouch.flags = flags;
+        break;
+    case WebKit::SelectionTouch::Moved:
+        if (_isInSelectionInteraction) {
+            _lastSelectionTouch.point = [self convertPoint:point toView:self.webView];
+            _lastSelectionTouch.baseIsStart = baseIsStart;
+            _lastSelectionTouch.flags = flags;
+        }
+        break;
+    case WebKit::SelectionTouch::Ended:
+    case WebKit::SelectionTouch::EndedMovingForward:
+    case WebKit::SelectionTouch::EndedMovingBackward:
+    case WebKit::SelectionTouch::EndedNotMoving:
+        _isInSelectionInteraction = NO;
+        break;
+    }
+
+    [self updateSelectionWithTouchAt:point withSelectionTouch:touch baseIsStart:baseIsStart withFlags:flags];
+
+}
+
+- (void)updateSelectionWithTouchAt:(CGPoint)point withSelectionTouch:(WKBESelectionTouchPhase)touch baseIsStart:(BOOL)baseIsStart withFlags:(WKBESelectionFlags)flags
+{
     _page->updateSelectionWithTouches(WebCore::IntPoint(point), toSelectionTouch(touch), baseIsStart, [self, strongSelf = retainPtr(self), flags](const WebCore::IntPoint& point, WebKit::SelectionTouch touch, OptionSet<WebKit::SelectionFlags> innerFlags) {
+        if (_isInSelectionInteraction && innerFlags.contains(WebKit::SelectionFlags::SelectionFlipped))
+            _lastSelectionTouch.baseIsStart = !_lastSelectionTouch.baseIsStart;
         selectionChangedWithTouch(_textInteractionWrapper.get(), point, touch, toSelectionFlags(flags) | innerFlags);
         if (toWKBESelectionTouchPhase(touch) != WKBESelectionTouchPhaseStarted && toWKBESelectionTouchPhase(touch) != WKBESelectionTouchPhaseMoved)
             _usingGestureForSelection = NO;

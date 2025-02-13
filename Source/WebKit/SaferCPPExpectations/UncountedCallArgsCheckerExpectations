@@ -232,11 +232,11 @@ UIProcess/WebAuthentication/fido/CtapCcidDriver.cpp
 UIProcess/WebAuthentication/fido/CtapNfcDriver.cpp
 UIProcess/WebAuthentication/fido/FidoService.cpp
 UIProcess/WebAuthentication/fido/U2fAuthenticator.cpp
-UIProcess/WebBackForwardList.cpp
 UIProcess/WebContextMenuProxy.cpp
 UIProcess/WebEditCommandProxy.cpp
 UIProcess/WebFrameProxy.cpp
 UIProcess/WebOpenPanelResultListenerProxy.cpp
+UIProcess/WebPageProxy.cpp
 UIProcess/WebPreferences.h
 UIProcess/WebProcessActivityState.cpp
 UIProcess/WebURLSchemeHandler.cpp
@@ -419,7 +419,6 @@ WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeDrawingArea.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.mm
 WebProcess/WebPage/ViewGestureGeometryCollector.cpp
 WebProcess/WebPage/VisitedLinkTableController.cpp
-WebProcess/WebPage/WebBackForwardListProxy.cpp
 WebProcess/WebPage/WebContextMenu.cpp
 WebProcess/WebPage/WebDisplayRefreshMonitor.cpp
 WebProcess/WebPage/WebFoundTextRangeController.cpp

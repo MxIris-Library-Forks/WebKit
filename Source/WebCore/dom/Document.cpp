@@ -713,7 +713,6 @@ void Document::populateDocumentSyncDataForNewlyConstructedDocument(ProcessSyncDa
     // or are populated other ways even on newly constructed documents.
     case ProcessSyncDataType::DocumentSecurityOrigin:
     case ProcessSyncDataType::DocumentURL:
-    case ProcessSyncDataType::HasFullscreenElement:
     case ProcessSyncDataType::HasInjectedUserScript:
     case ProcessSyncDataType::IsAutofocusProcessed:
     case ProcessSyncDataType::UserDidInteractWithPage:
@@ -2751,10 +2750,6 @@ void Document::resolveStyle(ResolveStyleType type)
             if (RefPtr documentElement = this->documentElement())
                 documentElement->invalidateStyleForSubtree();
         }
-
-        // FIXME: Be smarter about invalidation for anchor positioning.
-        // This simply repeats the entire anchor-positioning process.
-        styleScope().clearAnchorPositioningState();
 
         Style::TreeResolver resolver(*this, WTFMove(m_pendingRenderTreeUpdate));
         auto styleUpdate = resolver.resolve();

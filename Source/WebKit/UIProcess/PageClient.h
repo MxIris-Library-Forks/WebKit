@@ -305,10 +305,6 @@ public:
     virtual void removeAllPDFHUDs() = 0;
 #endif
 
-#if ENABLE(PDF_PLUGIN) && PLATFORM(IOS_FAMILY)
-    virtual void pluginDidInstallPDFDocument(double initialScale) { };
-#endif
-
     virtual bool handleRunOpenPanel(WebPageProxy*, WebFrameProxy*, const FrameInfoData&, API::OpenPanelParameters*, WebOpenPanelResultListenerProxy*) { return false; }
     virtual bool showShareSheet(const WebCore::ShareDataWithParsedURL&, WTF::CompletionHandler<void (bool)>&&) { return false; }
     virtual void showContactPicker(const WebCore::ContactsRequestData&, WTF::CompletionHandler<void(std::optional<Vector<WebCore::ContactInfo>>&&)>&& completionHandler) { completionHandler(std::nullopt); }
@@ -558,7 +554,7 @@ public:
     virtual void showPlaybackTargetPicker(bool hasVideo, const WebCore::IntRect& elementRect, WebCore::RouteSharingPolicy, const String&) = 0;
     virtual void showDataDetectorsUIForPositionInformation(const InteractionInformationAtPosition&) = 0;
     virtual void disableDoubleTapGesturesDuringTapIfNecessary(WebKit::TapIdentifier) = 0;
-    virtual void handleSmartMagnificationInformationForPotentialTap(WebKit::TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel) = 0;
+    virtual void handleSmartMagnificationInformationForPotentialTap(WebKit::TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel, bool nodeIsPluginElement) = 0;
     virtual double minimumZoomScale() const = 0;
     virtual WebCore::FloatRect documentRect() const = 0;
     virtual void scrollingNodeScrollViewWillStartPanGesture(WebCore::ScrollingNodeID) = 0;

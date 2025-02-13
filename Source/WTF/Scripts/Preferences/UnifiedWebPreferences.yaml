@@ -4225,6 +4225,20 @@ LayoutViewportHeightExpansionFactor:
     WebCore:
       default: 0
 
+LazyIframeLoadingEnabled:
+  type: bool
+  status: mature
+  category: html
+  humanReadableName: "Lazy iframe loading"
+  humanReadableDescription: "Enable lazy iframe loading support"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: true
+    WebCore:
+      default: false
+
 LazyImageLoadingEnabled:
   type: bool
   status: stable
@@ -7935,14 +7949,13 @@ UseImageDocumentForSubframePDF:
 
 UseMicrophoneMuteStatusAPI:
   type: bool
-  status: stable
+  status: testable
   category: media
   humanReadableName: "Use Microphone Mute Status API"
   humanReadableDescription: "Use Microphone Mute Status API"
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
     WebKit:
-      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false

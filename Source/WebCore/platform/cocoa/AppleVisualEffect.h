@@ -27,6 +27,8 @@
 
 #if HAVE(CORE_MATERIAL)
 
+#include "FloatRoundedRect.h"
+
 namespace WTF {
 class TextStream;
 }
@@ -55,12 +57,17 @@ enum class AppleVisualEffect : uint8_t {
 
 WEBCORE_EXPORT bool appleVisualEffectNeedsBackdrop(AppleVisualEffect);
 WEBCORE_EXPORT bool appleVisualEffectAppliesFilter(AppleVisualEffect);
+#if HAVE(MATERIAL_HOSTING)
+WEBCORE_EXPORT bool appleVisualEffectIsHostedMaterial(AppleVisualEffect);
+#endif
 
 WEBCORE_EXPORT WTF::TextStream& operator<<(WTF::TextStream&, AppleVisualEffect);
 
 struct AppleVisualEffectData {
     AppleVisualEffect effect { AppleVisualEffect::None };
     AppleVisualEffect contextEffect { AppleVisualEffect::None };
+
+    std::optional<FloatRoundedRect> borderRect;
 
     bool operator==(const AppleVisualEffectData&) const = default;
 };

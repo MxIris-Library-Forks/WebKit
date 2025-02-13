@@ -215,8 +215,6 @@ public:
     double minScaleFactor() const final;
     double maxScaleFactor() const final;
 
-    bool shouldRespectPageScaleAdjustments() const final;
-
     bool shouldSizeToFitContent() const final;
 
 private:
@@ -435,6 +433,8 @@ private:
     RefPtr<WebCore::TextIndicator> textIndicatorForSelection(PDFSelection *, OptionSet<WebCore::TextIndicatorOption>, WebCore::TextIndicatorPresentationTransition);
 
     bool performDictionaryLookupAtLocation(const WebCore::FloatPoint&) override;
+
+    WebCore::FloatRect absoluteBoundingRectForSmartMagnificationAtPoint(WebCore::FloatPoint) const final;
 
     enum class FirstPageOnly : bool { No, Yes };
     PDFPageCoverage pageCoverageForSelection(PDFSelection *, FirstPageOnly = FirstPageOnly::No) const;

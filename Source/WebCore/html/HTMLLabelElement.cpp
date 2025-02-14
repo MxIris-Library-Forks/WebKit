@@ -44,9 +44,9 @@ WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(HTMLLabelElement);
 
 using namespace HTMLNames;
 
-static HTMLElement* firstElementWithIdIfLabelable(TreeScope& treeScope, const AtomString& id)
+static HTMLElement* elementForAttributeIfLabelable(const HTMLLabelElement& context, const QualifiedName& attributeName)
 {
-    if (RefPtr element = treeScope.getElementById(id)) {
+    if (RefPtr element = context.elementForAttributeInternal(attributeName)) {
         if (auto* labelableElement = dynamicDowncast<HTMLElement>(*element)) {
             if (labelableElement->isLabelable())
                 return labelableElement;
@@ -84,7 +84,12 @@ RefPtr<HTMLElement> HTMLLabelElement::control() const
         }
         return nullptr;
     }
-    return isConnected() ? firstElementWithIdIfLabelable(treeScope(), controlId) : nullptr;
+    return isConnected() ? elementForAttributeIfLabelable(*this, forAttr) : nullptr;
+}
+
+RefPtr<HTMLElement> HTMLLabelElement::controlForBindings() const
+{
+    return control();
 }
 
 HTMLFormElement* HTMLLabelElement::form() const
@@ -94,6 +99,11 @@ HTMLFormElement* HTMLLabelElement::form() const
             return listedElement->form();
     }
     return nullptr;
+}
+
+HTMLFormElement* HTMLLabelElement::formForBindings() const
+{
+    return form();
 }
 
 void HTMLLabelElement::setActive(bool down, Style::InvalidationScope invalidationScope)

@@ -163,4 +163,12 @@ bool defaultRequiresPageVisibilityForVideoToBeNowPlaying();
 
 bool defaultCookieStoreAPIEnabled();
 
+#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
+bool defaultContentInsetBackgroundFillEnabled();
+#endif
+
+#if ENABLE(CONTENT_EXTENSIONS)
+bool defaultIFrameResourceMonitoringEnabled();
+#endif
+
 } // namespace WebKit

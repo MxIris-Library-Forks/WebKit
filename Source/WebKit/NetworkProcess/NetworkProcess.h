@@ -190,6 +190,7 @@ public:
     AuthenticationManager& authenticationManager();
     Ref<AuthenticationManager> protectedAuthenticationManager();
     DownloadManager& downloadManager();
+    CheckedRef<DownloadManager> checkedDownloadManager();
 
     void setSession(PAL::SessionID, std::unique_ptr<NetworkSession>&&);
     NetworkSession* networkSession(PAL::SessionID) const final;
@@ -572,6 +573,10 @@ private:
     void stopRunLoopIfNecessary();
 
     void setShouldRelaxThirdPartyCookieBlockingForPage(WebPageProxyIdentifier);
+
+#if ENABLE(CONTENT_EXTENSIONS)
+    void resetResourceMonitorThrottlerForTesting(PAL::SessionID, CompletionHandler<void()>&&);
+#endif
 
     // Connections to WebProcesses.
     HashMap<WebCore::ProcessIdentifier, Ref<NetworkConnectionToWebProcess>> m_webProcessConnections;

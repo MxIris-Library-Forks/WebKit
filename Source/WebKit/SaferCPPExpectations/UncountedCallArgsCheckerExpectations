@@ -23,7 +23,6 @@ NetworkProcess/cache/NetworkCacheSpeculativeLoad.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoadManager.cpp
 NetworkProcess/cache/NetworkCacheStorage.cpp
 NetworkProcess/cocoa/NetworkDataTaskCocoa.mm
-NetworkProcess/cocoa/NetworkSessionCocoa.mm
 NetworkProcess/mac/SecItemShim.cpp
 NetworkProcess/storage/BackgroundFetchStoreImpl.cpp
 NetworkProcess/storage/BackgroundFetchStoreManager.cpp
@@ -70,7 +69,6 @@ Shared/Cocoa/WKNSString.mm
 Shared/Cocoa/WKNSURL.mm
 Shared/Cocoa/WebKit2InitializeCocoa.mm
 Shared/ContextMenuContextData.cpp
-Shared/EntryPointUtilities/Cocoa/XPCService/XPCServiceMain.mm
 Shared/RemoteLayerTree/RemoteLayerWithInProcessRenderingBackingStore.mm
 Shared/RemoteLayerTree/RemoteLayerWithRemoteRenderingBackingStore.mm
 Shared/SharedStringHashStore.cpp
@@ -80,7 +78,6 @@ Shared/WebImage.cpp
 Shared/WebMemorySampler.cpp
 Shared/graphics/ImageBufferSet.cpp
 UIProcess/API/APIAttachment.cpp
-UIProcess/API/APIContentRuleListStore.cpp
 UIProcess/API/APIDownloadClient.h
 UIProcess/API/APIHTTPCookieStore.cpp
 UIProcess/API/APIInspectorExtension.cpp
@@ -214,7 +211,6 @@ UIProcess/MediaKeySystemPermissionRequestManagerProxy.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
 UIProcess/PDF/WKPDFHUDView.mm
 UIProcess/ProvisionalFrameProxy.cpp
-UIProcess/RemoteLayerTree/RemoteLayerTreeNode.mm
 UIProcess/RemoteLayerTree/mac/RemoteLayerTreeEventDispatcher.cpp
 UIProcess/RemotePageProxy.cpp
 UIProcess/SpeechRecognitionPermissionManager.cpp

@@ -6043,7 +6043,6 @@
 		E18C35441F71970C00FF632D /* WebArchiveResourceWebResourceHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = E18C35411F7196CD00FF632D /* WebArchiveResourceWebResourceHandler.h */; };
 		E18DF33518AAF12C00773E59 /* SerializedCryptoKeyWrap.h in Headers */ = {isa = PBXBuildFile; fileRef = E18DF33418AAF12C00773E59 /* SerializedCryptoKeyWrap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E19727161820549E00592D51 /* CryptoKeyType.h in Headers */ = {isa = PBXBuildFile; fileRef = E19727151820549E00592D51 /* CryptoKeyType.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		E19AC3EF1824DC7900349426 /* CryptoAlgorithmSHA224.h in Headers */ = {isa = PBXBuildFile; fileRef = E19AC3E71824DC7900349426 /* CryptoAlgorithmSHA224.h */; };
 		E19AC3F11824DC7900349426 /* CryptoAlgorithmSHA256.h in Headers */ = {isa = PBXBuildFile; fileRef = E19AC3E91824DC7900349426 /* CryptoAlgorithmSHA256.h */; };
 		E19AC3F31824DC7900349426 /* CryptoAlgorithmSHA384.h in Headers */ = {isa = PBXBuildFile; fileRef = E19AC3EB1824DC7900349426 /* CryptoAlgorithmSHA384.h */; };
 		E19AC3F51824DC7900349426 /* CryptoAlgorithmSHA512.h in Headers */ = {isa = PBXBuildFile; fileRef = E19AC3ED1824DC7900349426 /* CryptoAlgorithmSHA512.h */; };
@@ -20298,8 +20297,6 @@
 		E19490A42434F16900416A99 /* WebXRRenderState.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebXRRenderState.idl; sourceTree = "<group>"; };
 		E19490A62434F16B00416A99 /* WebXRReferenceSpace.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebXRReferenceSpace.idl; sourceTree = "<group>"; };
 		E19727151820549E00592D51 /* CryptoKeyType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoKeyType.h; sourceTree = "<group>"; };
-		E19AC3E61824DC7900349426 /* CryptoAlgorithmSHA224.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoAlgorithmSHA224.cpp; sourceTree = "<group>"; };
-		E19AC3E71824DC7900349426 /* CryptoAlgorithmSHA224.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoAlgorithmSHA224.h; sourceTree = "<group>"; };
 		E19AC3E81824DC7900349426 /* CryptoAlgorithmSHA256.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoAlgorithmSHA256.cpp; sourceTree = "<group>"; };
 		E19AC3E91824DC7900349426 /* CryptoAlgorithmSHA256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoAlgorithmSHA256.h; sourceTree = "<group>"; };
 		E19AC3EA1824DC7900349426 /* CryptoAlgorithmSHA384.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoAlgorithmSHA384.cpp; sourceTree = "<group>"; };
@@ -36732,8 +36729,6 @@
 				E1BD3318182D8DDD00C05D9F /* CryptoAlgorithmRSASSA_PKCS1_v1_5.h */,
 				E125F8291822CFEC00D84CD9 /* CryptoAlgorithmSHA1.cpp */,
 				E125F82A1822CFEC00D84CD9 /* CryptoAlgorithmSHA1.h */,
-				E19AC3E61824DC7900349426 /* CryptoAlgorithmSHA224.cpp */,
-				E19AC3E71824DC7900349426 /* CryptoAlgorithmSHA224.h */,
 				E19AC3E81824DC7900349426 /* CryptoAlgorithmSHA256.cpp */,
 				E19AC3E91824DC7900349426 /* CryptoAlgorithmSHA256.h */,
 				E19AC3EA1824DC7900349426 /* CryptoAlgorithmSHA384.cpp */,
@@ -40462,7 +40457,6 @@
 				5721A98B1ECE57040081295A /* CryptoAlgorithmRsaPssParams.h in Headers */,
 				E1BD331A182D8DDD00C05D9F /* CryptoAlgorithmRSASSA_PKCS1_v1_5.h in Headers */,
 				E125F82C1822CFEC00D84CD9 /* CryptoAlgorithmSHA1.h in Headers */,
-				E19AC3EF1824DC7900349426 /* CryptoAlgorithmSHA224.h in Headers */,
 				E19AC3F11824DC7900349426 /* CryptoAlgorithmSHA256.h in Headers */,
 				E19AC3F31824DC7900349426 /* CryptoAlgorithmSHA384.h in Headers */,
 				E19AC3F51824DC7900349426 /* CryptoAlgorithmSHA512.h in Headers */,

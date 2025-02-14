@@ -1341,7 +1341,6 @@ css3/color-filters/color-filter-ignore-semantic.html [ Skip ]
 
 # WebCryptoAPI features that enabled only for iOS 11/High Sierra+
 crypto/subtle/rsa-pss-generate-export-key-jwk-sha1.html [ Pass ]
-crypto/subtle/rsa-pss-generate-export-key-jwk-sha224.html [ Pass ]
 crypto/subtle/rsa-pss-generate-export-key-jwk-sha256.html [ Pass ]
 crypto/subtle/rsa-pss-generate-export-key-jwk-sha384.html [ Pass ]
 crypto/subtle/rsa-pss-generate-export-key-jwk-sha512.html [ Pass ]
@@ -1351,7 +1350,6 @@ crypto/subtle/rsa-pss-generate-key.html [ Pass ]
 crypto/subtle/rsa-pss-import-jwk-private-key.html [ Pass ]
 crypto/subtle/rsa-pss-import-jwk-public-key-empty-usages.html [ Pass ]
 crypto/subtle/rsa-pss-import-jwk-public-key-sha1.html [ Pass ]
-crypto/subtle/rsa-pss-import-jwk-public-key-sha224.html [ Pass ]
 crypto/subtle/rsa-pss-import-jwk-public-key-sha256.html [ Pass ]
 crypto/subtle/rsa-pss-import-jwk-public-key-sha384.html [ Pass ]
 crypto/subtle/rsa-pss-import-jwk-public-key-sha512.html [ Pass ]
@@ -4501,7 +4499,6 @@ fast/images/pagewide-play-pause-offscreen-animations.html [ Pass ]
 
 # Re-enabling tests fixed by DocumentManager in iOS16+ rdar://102159271
 fast/forms/ios/file-upload-panel-capture.html [ Pass Crash ] # remove crash after this is resolved: webkit.org/b/268568
-fast/forms/ios/file-upload-panel.html [ Pass ]
 fast/forms/ios/show-file-upload-context-menu-above-keyboard.html [ Pass ]
 fast/forms/ios/file-upload-panel-accept.html [ Pass ]
 
@@ -5189,6 +5186,7 @@ editing/selection/click-in-margins-inside-editable-div.html [ Failure ]
 editing/selection/click-in-padding-with-multiple-line-boxes.html [ Failure ]
 editing/selection/double-click-selection-with-dom-mutation.html [ Failure ]
 editing/selection/extend-by-character-006.html [ Failure ]
+editing/selection/extend-by-character-007.html [ Failure ]
 editing/selection/extend-by-sentence-001.html [ Failure ]
 editing/selection/extend-by-word-001.html [ Failure ]
 editing/selection/extend-inside-transforms-backward.html [ Failure ]
@@ -7693,3 +7691,9 @@ fast/forms/switch/pointer-tracking-there-and-back-again.html [ Timeout ]
 webkit.org/b/287204 [ Release ] fast/forms/date/date-input-rendering-basic.html [ Pass Failure ]
 
 webkit.org/b/287291 http/tests/site-isolation/selection-focus.html [ ImageOnlyFailure ]
+
+webkit.org/b/287650 [ Debug ] compositing/repaint/scroller-repaints-once.html [ Crash ]
+
+webkit.org/b/287660 fast/forms/ios/file-upload-panel.html [ Pass Crash ]
+
+webkit.org/b/287672 imported/w3c/web-platform-tests/css/css-cascade/all-prop-initial-xml.html [ Failure ]

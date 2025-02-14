@@ -2365,7 +2365,6 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
     WebCore::PublicSuffixStore::singleton().addPublicSuffix(parameters.publicSuffix);
 #endif
 
-    ASSERT(!m_pendingNavigationID);
     m_pendingNavigationID = parameters.navigationID;
     m_internals->pendingWebsitePolicies = WTFMove(parameters.websitePolicies);
 
@@ -10234,7 +10233,7 @@ void WebPage::updateCaptureState(const WebCore::Document& document, bool isActiv
     RefPtr webFrame = WebFrame::fromCoreFrame(*frame);
     ASSERT(webFrame);
 
-    sendWithAsyncReply(Messages::WebPageProxy::ValidateCaptureStateUpdate(UserMediaRequestIdentifier::generate(), document.clientOrigin(), webFrame->frameID(), isActive, kind), [weakThis = WeakPtr { *this }, isActive, kind, completionHandler = WTFMove(completionHandler)] (auto&& error) mutable {
+    sendWithAsyncReply(Messages::WebPageProxy::ValidateCaptureStateUpdate(UserMediaRequestIdentifier::generate(), document.clientOrigin(), webFrame->info(), isActive, kind), [weakThis = WeakPtr { *this }, isActive, kind, completionHandler = WTFMove(completionHandler)] (auto&& error) mutable {
         completionHandler(WTFMove(error));
         if (error)
             return;

@@ -2142,6 +2142,20 @@ ContentDispositionAttachmentSandboxEnabled:
     WebCore:
       default: false
 
+ContentInsetBackgroundFillEnabled:
+  type: bool
+  status: internal
+  humanReadableName: "Content Inset Background Fill"
+  humanReadableDescription: "Fill content insets with background colors"
+  condition: ENABLE(CONTENT_INSET_BACKGROUND_FILL)
+  defaultValue:
+    WebKit:
+      default: WebKit::defaultContentInsetBackgroundFillEnabled()
+    WebKitLegacy:
+      default: false
+    WebCore:
+      default: false
+
 ContextMenuImagesForInternalClientsEnabled:
   type: bool
   status: internal
@@ -2326,18 +2340,6 @@ CustomPasteboardDataEnabled:
       default: false
     WebKit:
       "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WIN)": true
-      default: false
-
-DNSPrefetchingEnabled:
-  type: bool
-  status: embedder
-  webcoreOnChange: dnsPrefetchingEnabledChanged
-  defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: false
-    WebCore:
       default: false
 
 DOMAudioSessionEnabled:
@@ -3506,10 +3508,8 @@ IFrameResourceMonitoringEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(COCOA)": true
       default: false
     WebCore:
-      "PLATFORM(COCOA)": true
       default: false
 
 IPAddressAndLocalhostMixedContentUpgradeTestingEnabled:
@@ -4357,6 +4357,20 @@ LinearMediaPlayerEnabled:
       default: WebKit::defaultLinearMediaPlayerEnabled()
     WebCore:
       default: false
+
+LinkDNSPrefetchEnabled:
+  type: bool
+  status: stable
+  category: networking
+  humanReadableName: "<link rel=dns-prefetch>"
+  humanReadableDescription: "Enable <link rel=dns-prefetch>"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
 
 LinkPreconnect:
   type: bool

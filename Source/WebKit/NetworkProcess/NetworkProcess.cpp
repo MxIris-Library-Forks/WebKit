@@ -203,6 +203,11 @@ DownloadManager& NetworkProcess::downloadManager()
     return m_downloadManager;
 }
 
+CheckedRef<DownloadManager> NetworkProcess::checkedDownloadManager()
+{
+    return downloadManager();
+}
+
 void NetworkProcess::removeNetworkConnectionToWebProcess(NetworkConnectionToWebProcess& connection)
 {
     ASSERT(m_webProcessConnections.contains(connection.webProcessIdentifier()));
@@ -3170,5 +3175,14 @@ ShouldRelaxThirdPartyCookieBlocking NetworkProcess::shouldRelaxThirdPartyCookieB
 {
     return pageID && m_pagesWithRelaxedThirdPartyCookieBlocking.contains(*pageID) ? ShouldRelaxThirdPartyCookieBlocking::Yes : ShouldRelaxThirdPartyCookieBlocking::No;
 }
+
+#if ENABLE(CONTENT_EXTENSIONS)
+void NetworkProcess::resetResourceMonitorThrottlerForTesting(PAL::SessionID sessionID, CompletionHandler<void()>&& completionHandler)
+{
+    if (CheckedPtr session = networkSession(sessionID))
+        session->resetResourceMonitorThrottlerForTesting();
+    completionHandler();
+}
+#endif
 
 } // namespace WebKit

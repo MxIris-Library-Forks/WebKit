@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2014-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,27 +23,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "CryptoAlgorithmSHA224.h"
+#import "config.h"
+#import <wtf/SoftLinking.h>
 
-#include "ScriptExecutionContext.h"
-#include <pal/crypto/CryptoDigest.h>
+#if PLATFORM(MACCATALYST)
+SOFT_LINK_FRAMEWORK_FOR_SOURCE(WebKit, AppKit)
+SOFT_LINK_CLASS_FOR_SOURCE(WebKit, AppKit, NSAccessibilityRemoteUIElement)
+#endif
 
-namespace WebCore {
-
-Ref<CryptoAlgorithm> CryptoAlgorithmSHA224::create()
-{
-    return adoptRef(*new CryptoAlgorithmSHA224);
-}
-
-CryptoAlgorithmIdentifier CryptoAlgorithmSHA224::identifier() const
-{
-    return s_identifier;
-}
-
-void CryptoAlgorithmSHA224::digest(Vector<uint8_t>&& message, VectorCallback&& callback, ExceptionCallback&& exceptionCallback, ScriptExecutionContext& context, WorkQueue& workQueue)
-{
-    CryptoAlgorithm::dispatchDigest(workQueue, context, WTFMove(callback), WTFMove(exceptionCallback), WTFMove(message), PAL::CryptoDigest::Algorithm::SHA_224);
-}
-
-} // namespace WebCore
+#if USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/AppKitSoftLinkAdditions.mm>)
+#import <WebKitAdditions/AppKitSoftLinkAdditions.mm>
+#endif

@@ -411,7 +411,6 @@ bindings/js/ScriptControllerMac.mm
 bindings/js/ScriptModuleLoader.cpp
 bindings/js/ScriptSourceCode.h
 bindings/js/SerializedScriptValue.cpp
-bindings/js/WebAssemblyCachedScriptSourceProvider.h
 bindings/js/WebAssemblyScriptBufferSourceProvider.h
 bindings/js/WebCoreJSClientData.cpp
 bindings/js/WebCoreTypedArrayController.cpp
@@ -556,7 +555,6 @@ dom/CustomElementRegistry.cpp
 dom/DOMImplementation.cpp
 dom/DataTransfer.cpp
 dom/DataTransferItemList.cpp
-dom/DecodedDataDocumentParser.cpp
 dom/Document.cpp
 dom/DocumentFontLoader.cpp
 dom/DocumentFragment.cpp
@@ -951,7 +949,6 @@ loader/cache/CachedResourceRequest.cpp
 loader/cache/CachedResourceRequestInitiatorTypes.h
 loader/cache/CachedSVGDocumentReference.cpp
 loader/cache/CachedSVGFont.cpp
-loader/cache/CachedScript.cpp
 loader/cache/MemoryCache.cpp
 loader/cocoa/BundleResourceLoader.mm
 loader/icon/IconLoader.cpp
@@ -1153,11 +1150,7 @@ platform/graphics/controls/ToggleButtonPart.h
 platform/graphics/cv/GraphicsContextGLCVCocoa.mm
 platform/graphics/displaylists/DisplayListItem.cpp
 platform/graphics/filters/FEDisplacementMap.cpp
-platform/graphics/filters/software/FEConvolveMatrixSoftwareApplier.cpp
 platform/graphics/filters/software/FELightingSoftwareApplier.cpp
-platform/graphics/filters/software/FELightingSoftwareApplierInlines.h
-platform/graphics/filters/software/FELightingSoftwareParallelApplier.cpp
-platform/graphics/filters/software/FETurbulenceSoftwareApplier.cpp
 platform/graphics/mac/PDFDocumentImageMac.mm
 platform/graphics/mac/controls/ControlMac.mm
 platform/graphics/opentype/OpenTypeMathData.cpp
@@ -1228,8 +1221,6 @@ rendering/MotionPath.cpp
 rendering/RenderAttachment.cpp
 rendering/RenderBlock.cpp
 rendering/RenderBlock.h
-rendering/RenderBlockFlow.cpp
-rendering/RenderBlockFlowInlines.h
 rendering/RenderBox.cpp
 rendering/RenderBoxModelObject.cpp
 rendering/RenderButton.cpp

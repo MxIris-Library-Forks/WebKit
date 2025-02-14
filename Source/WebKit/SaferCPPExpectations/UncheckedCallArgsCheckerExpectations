@@ -5,7 +5,6 @@ NetworkProcess/NetworkLoad.cpp
 NetworkProcess/PingLoad.cpp
 NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementClientImpl.cpp
 NetworkProcess/PrivateClickMeasurement/cocoa/PrivateClickMeasurementConnectionCocoa.mm
-NetworkProcess/cocoa/NetworkSessionCocoa.mm
 UIProcess/API/C/WKPage.cpp
 UIProcess/API/C/mac/WKPagePrivateMac.mm
 UIProcess/API/Cocoa/WKBrowsingContextController.mm
@@ -13,7 +12,6 @@ UIProcess/API/Cocoa/WKWebView.mm
 UIProcess/API/Cocoa/WKWebViewTesting.mm
 UIProcess/API/Cocoa/WKWebsiteDataStore.mm
 UIProcess/Inspector/InspectorTargetProxy.cpp
-UIProcess/Launcher/ProcessLauncher.cpp
 UIProcess/MediaKeySystemPermissionRequestManagerProxy.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
 UIProcess/ProvisionalFrameProxy.cpp

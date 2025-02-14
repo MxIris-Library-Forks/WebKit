@@ -1888,12 +1888,17 @@ RefPtr<HTMLElement> HTMLInputElement::list() const
     return dataList();
 }
 
+bool HTMLInputElement::hasDataList() const
+{
+    return dataList();
+}
+
 RefPtr<HTMLDataListElement> HTMLInputElement::dataList() const
 {
     if (!m_hasNonEmptyList || !m_inputType->shouldRespectListAttribute())
         return nullptr;
 
-    return dynamicDowncast<HTMLDataListElement>(treeScope().getElementById(attributeWithoutSynchronization(listAttr)));
+    return dynamicDowncast<HTMLDataListElement>(elementForAttributeInternal(listAttr));
 }
 
 void HTMLInputElement::resetListAttributeTargetObserver()

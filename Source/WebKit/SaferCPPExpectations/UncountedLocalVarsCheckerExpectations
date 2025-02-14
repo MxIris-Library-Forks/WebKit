@@ -2,7 +2,6 @@ NetworkProcess/NetworkLoad.cpp
 NetworkProcess/PingLoad.h
 NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementDatabase.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoadManager.cpp
-Platform/IPC/MessageSenderInlines.h
 Platform/cocoa/WKPaymentAuthorizationDelegate.mm
 Shared/API/APIArray.cpp
 Shared/API/APIObject.h
@@ -38,7 +37,6 @@ UIProcess/Cocoa/SOAuthorization/SubFrameSOAuthorizationSession.mm
 UIProcess/Gamepad/UIGamepadProvider.cpp
 UIProcess/Notifications/ServiceWorkerNotificationHandler.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
-UIProcess/RemoteLayerTree/mac/RemoteScrollingTreeMac.mm
 UIProcess/UserMediaPermissionRequestManagerProxy.cpp
 UIProcess/WebAuthentication/AuthenticatorManager.cpp
 UIProcess/WebAuthentication/Cocoa/NfcService.mm

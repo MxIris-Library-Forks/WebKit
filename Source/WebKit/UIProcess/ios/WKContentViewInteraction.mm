@@ -34,6 +34,7 @@
 #import "DocumentEditingContext.h"
 #import "ImageAnalysisUtilities.h"
 #import "InsertTextOptions.h"
+#import "KeyEventInterpretationContext.h"
 #import "Logging.h"
 #import "NativeWebKeyboardEvent.h"
 #import "NativeWebTouchEvent.h"
@@ -5436,7 +5437,7 @@ static void selectionChangedWithTouch(WKTextInteractionWrapper *interaction, con
 
         // Give the page some time to present custom editing UI before attempting to detect and evade it.
         auto delayBeforeShowingEditMenu = std::max(0_s, 0.25_s - (ApproximateTime::now() - startTime));
-        WorkQueue::main().dispatchAfter(delayBeforeShowingEditMenu, [completion = WTFMove(completion), weakSelf]() mutable {
+        WorkQueue::protectedMain()->dispatchAfter(delayBeforeShowingEditMenu, [completion = WTFMove(completion), weakSelf]() mutable {
             auto strongSelf = weakSelf.get();
             if (!strongSelf) {
                 completion(UIEditMenuArrowDirectionAutomatic);
@@ -7580,9 +7581,13 @@ static UITextAutocapitalizationType toUITextAutocapitalize(WebCore::Autocapitali
     });
 }
 
-- (BOOL)_interpretKeyEvent:(::WebEvent *)event isCharEvent:(BOOL)isCharEvent
+- (BOOL)_interpretKeyEvent:(::WebEvent *)event withContext:(WebKit::KeyEventInterpretationContext&&)context
 {
     SetForScope interpretKeyEventScope { _isInterpretingKeyEvent, YES };
+
+    BOOL isCharEvent = context.isCharEvent;
+
+    // FIXME: (287721) Use `context.scrollingNode` to facilitate keyboard sub-scrolling.
 
     if ([_keyboardScrollingAnimator beginWithEvent:event] || [_keyboardScrollingAnimator scrollTriggeringKeyIsPressed])
         return YES;

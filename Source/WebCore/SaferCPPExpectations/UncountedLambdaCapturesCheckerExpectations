@@ -88,11 +88,9 @@ dom/Document.cpp
 dom/EventTarget.cpp
 dom/MessagePort.cpp
 dom/Node.cpp
-dom/ScriptElement.cpp
 dom/Subscriber.cpp
 dom/ViewTransition.cpp
 dom/ViewportArguments.cpp
-dom/WindowEventLoop.cpp
 editing/Editor.cpp
 fileapi/Blob.cpp
 fileapi/FileReader.cpp

@@ -295,8 +295,6 @@ dom/ElementIteratorInlines.h
 dom/ElementTextDirection.cpp
 dom/ElementTraversal.h
 dom/Event.cpp
-dom/EventLoop.cpp
-dom/EventLoop.h
 dom/EventPath.cpp
 dom/EventTarget.cpp
 dom/FragmentDirectiveGenerator.cpp
@@ -315,7 +313,6 @@ dom/QualifiedNameCache.cpp
 dom/RadioButtonGroups.cpp
 dom/Range.cpp
 dom/RejectedPromiseTracker.cpp
-dom/ScriptElement.cpp
 dom/ScriptExecutionContext.cpp
 dom/ScriptedAnimationController.cpp
 dom/SelectorQuery.cpp
@@ -600,7 +597,6 @@ platform/CaretAnimator.cpp
 platform/DictationCaretAnimator.cpp
 platform/KeyboardScrollingAnimator.cpp
 platform/ScrollView.cpp
-platform/ScrollableArea.cpp
 platform/ThreadGlobalData.cpp
 platform/ThreadGlobalData.h
 platform/animation/AcceleratedEffect.cpp
@@ -609,7 +605,6 @@ platform/audio/AudioBus.cpp
 platform/cocoa/PlaybackSessionModelMediaElement.mm
 platform/cocoa/VideoPresentationModelVideoElement.mm
 platform/graphics/BitmapImageDescriptor.cpp
-platform/graphics/Color.cpp
 platform/graphics/ComplexTextController.cpp
 platform/graphics/DisplayRefreshMonitorManager.cpp
 platform/graphics/FontCache.cpp
@@ -681,7 +676,6 @@ rendering/RenderLayerBacking.cpp
 rendering/RenderLayerCompositor.cpp
 rendering/RenderLayerFilters.cpp
 rendering/RenderLayerModelObject.cpp
-rendering/RenderLayerScrollableArea.cpp
 rendering/RenderListBox.cpp
 rendering/RenderListItem.cpp
 rendering/RenderMarquee.cpp
@@ -816,7 +810,6 @@ testing/js/WebCoreTestSupport.cpp
 workers/AbstractWorker.cpp
 workers/Worker.cpp
 workers/WorkerConsoleClient.cpp
-workers/WorkerEventLoop.cpp
 workers/WorkerGlobalScope.cpp
 workers/WorkerMessagingProxy.cpp
 workers/WorkerOrWorkletGlobalScope.cpp

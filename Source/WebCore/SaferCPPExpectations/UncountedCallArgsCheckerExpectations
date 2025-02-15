@@ -569,8 +569,6 @@ dom/ElementInternals.cpp
 dom/ElementIteratorInlines.h
 dom/EmptyScriptExecutionContext.h
 dom/EventListenerMap.cpp
-dom/EventLoop.cpp
-dom/EventLoop.h
 dom/EventPath.cpp
 dom/EventTarget.cpp
 dom/ExtensionStyleSheets.cpp
@@ -606,7 +604,6 @@ dom/QualifiedName.cpp
 dom/Range.cpp
 dom/RangeBoundaryPoint.h
 dom/RejectedPromiseTracker.cpp
-dom/ScriptElement.cpp
 dom/ScriptExecutionContext.cpp
 dom/ScriptExecutionContext.h
 dom/ScriptRunner.cpp
@@ -630,7 +627,6 @@ dom/TreeWalker.cpp
 dom/ViewTransition.cpp
 dom/ViewTransitionTypeSet.cpp
 dom/VisitedLinkState.cpp
-dom/WindowEventLoop.cpp
 dom/WindowOrWorkerGlobalScopeTrustedTypes.cpp
 dom/mac/ImageControlsMac.cpp
 editing/AlternativeTextController.cpp
@@ -739,7 +735,6 @@ html/HTMLIFrameElement.cpp
 html/HTMLImageElement.cpp
 html/HTMLImageLoader.cpp
 html/HTMLInputElement.cpp
-html/HTMLLabelElement.cpp
 html/HTMLLinkElement.cpp
 html/HTMLMapElement.cpp
 html/HTMLMaybeFormAssociatedCustomElement.cpp
@@ -755,7 +750,6 @@ html/HTMLOptionsCollectionInlines.h
 html/HTMLPlugInElement.cpp
 html/HTMLPlugInImageElement.cpp
 html/HTMLProgressElement.cpp
-html/HTMLScriptElement.cpp
 html/HTMLSelectElement.cpp
 html/HTMLStyleElement.cpp
 html/HTMLSummaryElement.cpp
@@ -1081,8 +1075,6 @@ platform/graphics/BitmapImage.cpp
 platform/graphics/BitmapImage.h
 platform/graphics/BitmapImageDescriptor.cpp
 platform/graphics/BitmapImageSource.cpp
-platform/graphics/Color.cpp
-platform/graphics/Color.h
 platform/graphics/ComplexTextController.cpp
 platform/graphics/DisplayRefreshMonitorManager.h
 platform/graphics/FontCache.cpp
@@ -1240,7 +1232,6 @@ rendering/RenderLayerBacking.cpp
 rendering/RenderLayerCompositor.cpp
 rendering/RenderLayerFilters.cpp
 rendering/RenderLayerModelObject.cpp
-rendering/RenderLayerScrollableArea.cpp
 rendering/RenderListBox.cpp
 rendering/RenderListItem.cpp
 rendering/RenderListMarker.cpp
@@ -1467,7 +1458,6 @@ svg/SVGRadialGradientElement.h
 svg/SVGRectElement.h
 svg/SVGSVGElement.cpp
 svg/SVGSVGElement.h
-svg/SVGScriptElement.cpp
 svg/SVGStopElement.h
 svg/SVGTRefElement.cpp
 svg/SVGTSpanElement.cpp
@@ -1515,7 +1505,6 @@ workers/DedicatedWorkerGlobalScope.cpp
 workers/Worker.cpp
 workers/WorkerAnimationController.cpp
 workers/WorkerConsoleClient.cpp
-workers/WorkerEventLoop.cpp
 workers/WorkerFontLoadRequest.cpp
 workers/WorkerGlobalScope.cpp
 workers/WorkerInspectorProxy.cpp

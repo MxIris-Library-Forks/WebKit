@@ -46,6 +46,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/OptionSet.h>
 #include <wtf/RefCounted.h>
+#include <wtf/RefCounter.h>
 #include <wtf/RefPtr.h>
 #include <wtf/UniqueRef.h>
 #include <wtf/WeakHashSet.h>
@@ -117,6 +118,9 @@ struct NetworkProcessConnectionInfo;
 struct WebPushMessage;
 struct WebsiteDataRecord;
 struct WebsiteDataStoreParameters;
+
+enum RemoveDataTaskCounterType { };
+using RemoveDataTaskCounter = RefCounter<RemoveDataTaskCounterType>;
 
 class WebsiteDataStore : public API::ObjectImpl<API::Object::Type::WebsiteDataStore>, public CanMakeWeakPtr<WebsiteDataStore> {
 public:
@@ -279,6 +283,10 @@ public:
     void resetCacheMaxAgeCapForPrevalentResources(CompletionHandler<void()>&&);
     const WebsiteDataStoreConfiguration::Directories& resolvedDirectories() const;
     FileSystem::Salt mediaKeysStorageSalt() const;
+#if ENABLE(SCREEN_TIME)
+    void removeScreenTimeData(const HashSet<URL>& websitesToRemove);
+    void removeScreenTimeDataWithInterval(WallTime);
+#endif
 
     static void setCachedProcessSuspensionDelayForTesting(Seconds);
 
@@ -494,6 +502,8 @@ public:
     void resetResourceMonitorThrottlerForTesting(CompletionHandler<void()>&&);
 #endif
 
+    bool isRemovingData() const { return!!m_removeDataTaskCounter.value(); }
+
 private:
     enum class ForceReinitialization : bool { No, Yes };
 #if ENABLE(APP_BOUND_DOMAINS)
@@ -552,6 +562,10 @@ private:
 #endif
 
     void handleResolvedDirectoriesAsynchronously(const WebsiteDataStoreConfiguration::Directories&, bool);
+
+    enum class ServiceWorkerProcessCanBeActive : bool { No, Yes };
+    HashSet<WebCore::ProcessIdentifier> activeWebProcesses(ServiceWorkerProcessCanBeActive) const;
+    void removeDataInNetworkProcess(WebsiteDataStore::ProcessAccessType, OptionSet<WebsiteDataType>, WallTime, CompletionHandler<void()>&&);
 
     const PAL::SessionID m_sessionID;
 
@@ -634,6 +648,8 @@ private:
 #endif
     bool m_storageSiteValidationEnabled { false };
     HashSet<URL> m_persistedSiteURLs;
+
+    RemoveDataTaskCounter m_removeDataTaskCounter;
 };
 
 }

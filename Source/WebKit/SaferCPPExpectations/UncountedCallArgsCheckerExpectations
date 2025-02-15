@@ -30,7 +30,6 @@ NetworkProcess/storage/CacheStorageDiskStore.cpp
 NetworkProcess/storage/IDBStorageRegistry.cpp
 NetworkProcess/webrtc/NetworkRTCUDPSocketCocoa.mm
 Platform/IPC/ArgumentCoders.h
-Platform/IPC/SharedBufferReference.cpp
 Shared/API/APIArray.h
 Shared/API/APISerializedScriptValue.h
 Shared/API/Cocoa/WKRemoteObjectCoder.mm
@@ -67,7 +66,6 @@ Shared/Cocoa/WKNSData.mm
 Shared/Cocoa/WKNSDictionary.mm
 Shared/Cocoa/WKNSString.mm
 Shared/Cocoa/WKNSURL.mm
-Shared/Cocoa/WebKit2InitializeCocoa.mm
 Shared/ContextMenuContextData.cpp
 Shared/RemoteLayerTree/RemoteLayerWithInProcessRenderingBackingStore.mm
 Shared/RemoteLayerTree/RemoteLayerWithRemoteRenderingBackingStore.mm
@@ -209,7 +207,6 @@ UIProcess/Inspector/WebPageInspectorController.cpp
 UIProcess/Inspector/mac/WKInspectorViewController.mm
 UIProcess/MediaKeySystemPermissionRequestManagerProxy.cpp
 UIProcess/Notifications/WebNotificationManagerProxy.cpp
-UIProcess/PDF/WKPDFHUDView.mm
 UIProcess/ProvisionalFrameProxy.cpp
 UIProcess/RemoteLayerTree/mac/RemoteLayerTreeEventDispatcher.cpp
 UIProcess/RemotePageProxy.cpp
@@ -243,7 +240,6 @@ UIProcess/WebsiteData/WebsiteDataStore.cpp
 UIProcess/WebsiteData/WebsiteDataStoreClient.h
 UIProcess/mac/CorrectionPanel.mm
 UIProcess/mac/DisplayCaptureSessionManager.mm
-UIProcess/mac/ServicesController.mm
 UIProcess/mac/UserMediaPermissionRequestProxyMac.mm
 UIProcess/mac/WKFullScreenWindowController.mm
 UIProcess/mac/WKImmediateActionController.mm
@@ -308,7 +304,6 @@ WebProcess/GPU/media/WebMediaStrategy.cpp
 WebProcess/GPU/webrtc/AudioMediaStreamTrackRendererInternalUnitManager.cpp
 WebProcess/GPU/webrtc/LibWebRTCCodecs.cpp
 WebProcess/GPU/webrtc/SampleBufferDisplayLayer.cpp
-WebProcess/GPU/webrtc/SharedVideoFrame.cpp
 WebProcess/Geolocation/WebGeolocationManager.cpp
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInCSSStyleDeclarationHandle.mm
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInFrame.mm
@@ -450,6 +445,4 @@ WebProcess/cocoa/VideoPresentationManager.mm
 WebProcess/cocoa/WebProcessCocoa.mm
 webpushd/ApplePushServiceConnection.mm
 webpushd/PushService.h
-webpushd/PushService.mm
-webpushd/PushServiceConnection.mm
 webpushd/WebPushDaemon.mm

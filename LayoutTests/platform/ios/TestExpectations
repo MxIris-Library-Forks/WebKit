@@ -26,6 +26,7 @@ system-preview [ Pass ]
 remote-layer-tree [ Pass ]
 swipe [ Pass ]
 http/tests/swipe [ Pass ]
+fast/page-color-sampling [ Pass ]
 
 webkit.org/b/271780 fast/dom/Orientation/no-orientation-change-event-when-unparenting-view.html [ Pass Timeout ] # change back to pass when bug resolved
 fast/events/ios [ Pass ]
@@ -2373,6 +2374,7 @@ accessibility/visible-character-range-basic.html [ Pass ]
 accessibility/visible-character-range-height-changes.html [ Pass ]
 accessibility/visible-character-range-vertical-rl.html [ Pass ]
 accessibility/visible-character-range-width-changes.html [ Pass ]
+accessibility/visibility-visible-inside-hidden.html [ Pass ]
 accessibility/ancestor-computation.html [ Pass ]
 
 # Enable "aria-current" tests for iOS.
@@ -7697,3 +7699,5 @@ webkit.org/b/287660 fast/forms/ios/file-upload-panel.html [ Pass Crash ]
 webkit.org/b/287672 imported/w3c/web-platform-tests/css/css-cascade/all-prop-initial-xml.html [ Failure ]
 
 webkit.org/b/287741 fast/viewport/ios/non-responsive-viewport-after-changing-view-scale.html [ Pass Failure ]
+
+webkit.org/b/287753 [ Debug ] http/tests/cache/network-error-during-revalidation.html [ Skip ]

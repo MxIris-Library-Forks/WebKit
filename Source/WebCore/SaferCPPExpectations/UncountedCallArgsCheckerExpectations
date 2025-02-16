@@ -937,8 +937,6 @@ loader/archive/cf/LegacyWebArchive.cpp
 loader/cache/CachedCSSStyleSheet.cpp
 loader/cache/CachedImage.cpp
 loader/cache/CachedRawResource.cpp
-loader/cache/CachedResource.cpp
-loader/cache/CachedResourceLoader.cpp
 loader/cache/CachedResourceRequest.cpp
 loader/cache/CachedResourceRequestInitiatorTypes.h
 loader/cache/CachedSVGDocumentReference.cpp
@@ -1048,8 +1046,6 @@ platform/ScrollAnimationSmooth.cpp
 platform/ScrollAnimator.cpp
 platform/ScrollView.cpp
 platform/ShareableResource.cpp
-platform/SharedBuffer.cpp
-platform/SharedBuffer.h
 platform/animation/AcceleratedEffectValues.cpp
 platform/animation/Animation.cpp
 platform/animation/AnimationList.cpp
@@ -1065,7 +1061,6 @@ platform/audio/cocoa/AudioFileReaderCocoa.cpp
 platform/audio/cocoa/AudioSampleDataSource.mm
 platform/cocoa/DragImageCocoa.mm
 platform/cocoa/PlaybackSessionModelMediaElement.mm
-platform/cocoa/SharedBufferCocoa.mm
 platform/cocoa/VideoPresentationModelVideoElement.mm
 platform/cocoa/WebAVPlayerLayer.mm
 platform/encryptedmedia/CDMProxy.cpp
@@ -1089,8 +1084,6 @@ platform/graphics/ImageBufferContextSwitcher.cpp
 platform/graphics/ImageFrame.cpp
 platform/graphics/ImageFrameWorkQueue.cpp
 platform/graphics/Path.cpp
-platform/graphics/SourceBufferPrivate.cpp
-platform/graphics/TrackBuffer.cpp
 platform/graphics/TransparencyLayerContextSwitcher.cpp
 platform/graphics/WidthIterator.cpp
 platform/graphics/avfoundation/AudioSourceProviderAVFObjC.mm
@@ -1101,7 +1094,6 @@ platform/graphics/avfoundation/objc/CDMInstanceFairPlayStreamingAVFObjC.mm
 platform/graphics/avfoundation/objc/CDMSessionAVContentKeySession.mm
 platform/graphics/avfoundation/objc/LocalSampleBufferDisplayLayer.mm
 platform/graphics/avfoundation/objc/MediaSourcePrivateAVFObjC.mm
-platform/graphics/avfoundation/objc/SourceBufferPrivateAVFObjC.mm
 platform/graphics/avfoundation/objc/WebAVContentKeyGroup.mm
 platform/graphics/avfoundation/objc/WebCoreAVFResourceLoader.mm
 platform/graphics/ca/GraphicsLayerCA.cpp
@@ -1160,7 +1152,6 @@ platform/mediastream/MediaStreamTrackPrivate.cpp
 platform/mediastream/RealtimeMediaSourceCenter.cpp
 platform/mediastream/RealtimeOutgoingAudioSource.cpp
 platform/mediastream/RealtimeOutgoingVideoSource.cpp
-platform/mediastream/RealtimeVideoCaptureSource.cpp
 platform/mediastream/cocoa/AudioMediaStreamTrackRendererCocoa.cpp
 platform/mediastream/cocoa/AudioMediaStreamTrackRendererUnit.cpp
 platform/mediastream/cocoa/DisplayCaptureSourceCocoa.cpp
@@ -1169,7 +1160,6 @@ platform/mediastream/cocoa/IncomingAudioMediaStreamTrackRendererUnit.cpp
 platform/mediastream/libwebrtc/LibWebRTCAudioModule.cpp
 platform/mediastream/mac/AVCaptureDeviceManager.mm
 platform/mediastream/mac/AVVideoCaptureSource.mm
-platform/mediastream/mac/CoreAudioSharedUnit.cpp
 platform/mediastream/mac/MediaStreamTrackAudioSourceProviderCocoa.cpp
 platform/mediastream/mac/MockAudioSharedUnit.mm
 platform/mediastream/mac/RealtimeOutgoingAudioSourceCocoa.cpp

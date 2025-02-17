@@ -422,6 +422,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/identity/DigitalCredentialsRequestData.h
     Modules/identity/DigitalCredentialsResponseData.h
     Modules/identity/IdentityCredentialProtocol.h
+    Modules/identity/MobileDocumentRequest.h
     Modules/identity/OpenID4VPRequest.h
 
     Modules/identity/dummy/DummyCredentialRequestCoordinatorClient.h
@@ -741,6 +742,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     animation/ScrollAxis.h
     animation/ScrollTimeline.h
     animation/ScrollTimelineOptions.h
+    animation/StyleOriginatedTimelinesController.h
     animation/TimelineRange.h
     animation/TimelineRangeOffset.h
     animation/TimelineScope.h

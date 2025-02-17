@@ -616,6 +616,7 @@ animation/ScrollAxis.cpp
 animation/ScrollTimeline.cpp
 animation/StyleOriginatedAnimation.cpp
 animation/StyleOriginatedAnimationEvent.cpp
+animation/StyleOriginatedTimelinesController.cpp
 animation/TimelineRange.cpp
 animation/ViewTimeline.cpp
 animation/WebAnimation.cpp
@@ -4224,6 +4225,7 @@ JSMessageChannel.cpp
 JSMessageEvent.cpp
 JSMessagePort.cpp
 JSMeteringMode.cpp
+JSMobileDocumentRequest.cpp
 JSMouseEvent.cpp
 JSMouseEventInit.cpp
 JSMultiCacheQueryOptions.cpp

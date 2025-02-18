@@ -452,6 +452,9 @@ struct PerWebProcessState {
 #if ENABLE(SCREEN_TIME)
 - (void)_installScreenTimeWebpageController;
 - (void)_uninstallScreenTimeWebpageController;
+
+- (void)_updateScreenTimeViewGeometry;
+- (void)_updateScreenTimeShieldVisibilityForWindow;
 #endif
 
 #if ENABLE(WRITING_TOOLS)
@@ -518,6 +521,11 @@ struct PerWebProcessState {
 - (RefPtr<WebKit::WebPageProxy>)_protectedPage;
 #if ENABLE(SCREEN_TIME)
 - (STWebpageController *)_screenTimeWebpageController;
+#if PLATFORM(MAC)
+- (NSVisualEffectView *)_screenTimeBlurredSnapshot;
+#else
+- (UIVisualEffectView *)_screenTimeBlurredSnapshot;
+#endif
 #endif
 
 @property (nonatomic, setter=_setHasActiveNowPlayingSession:) BOOL _hasActiveNowPlayingSession;
@@ -549,5 +557,10 @@ RetainPtr<NSError> nsErrorFromExceptionDetails(const WebCore::ExceptionDetails&)
 #endif // __cplusplus
 
 @interface WKWebView (NonCpp)
+
+#if PLATFORM(MAC)
+@property (nonatomic, setter=_setAlwaysBounceVertical:) BOOL _alwaysBounceVertical;
+@property (nonatomic, setter=_setAlwaysBounceHorizontal:) BOOL _alwaysBounceHorizontal;
+#endif
 
 @end

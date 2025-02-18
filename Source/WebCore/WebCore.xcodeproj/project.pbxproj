@@ -1698,6 +1698,8 @@
 		4650851828E4AA4700DB9BDF /* RFC7230.h in Headers */ = {isa = PBXBuildFile; fileRef = 4650851628E4AA3C00DB9BDF /* RFC7230.h */; };
 		4650AD1926FCCA650047F7AD /* WorkerThreadMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 4650AD1726FCCA5A0047F7AD /* WorkerThreadMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		465307D01DB6EE4800E4137C /* JSUIEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 83E045EF1DAA104F00B0D8B9 /* JSUIEventInit.h */; };
+		46531BB42D616BCE008D8EFC /* CSSPropertyParser.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E602BE2A8FB00AE645C /* CSSPropertyParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		46531BB52D616D7A008D8EFC /* CSSCustomPropertySyntax.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E4B2BE2A8FB00AE645C /* CSSCustomPropertySyntax.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4664D1A62964FCE8006FE0C5 /* GamepadHapticActuator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4664D1A22964FCD4006FE0C5 /* GamepadHapticActuator.cpp */; };
 		4664D1A72964FCF0006FE0C5 /* GamepadEffectParameters.h in Headers */ = {isa = PBXBuildFile; fileRef = 4664D1A42964FCD5006FE0C5 /* GamepadEffectParameters.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4664D1A82964FCF7006FE0C5 /* GamepadHapticActuator.h in Headers */ = {isa = PBXBuildFile; fileRef = 4664D1A12964FCD4006FE0C5 /* GamepadHapticActuator.h */; };
@@ -3506,8 +3508,8 @@
 		930908910AF7EDE40081DF01 /* HitTestRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 930908900AF7EDE40081DF01 /* HitTestRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		930A76C3297FA0610055B743 /* ShorthandSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A76C2297FA04A0055B743 /* ShorthandSerializer.h */; };
 		930A76C8297FA1C70055B743 /* MutableStyleProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A76C6297FA1C30055B743 /* MutableStyleProperties.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		930A76C9297FA1CE0055B743 /* ImmutableStyleProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A76C5297FA1B80055B743 /* ImmutableStyleProperties.h */; };
-		930A76CB297FA2B30055B743 /* StylePropertiesInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A76CA297FA2B00055B743 /* StylePropertiesInlines.h */; };
+		930A76C9297FA1CE0055B743 /* ImmutableStyleProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A76C5297FA1B80055B743 /* ImmutableStyleProperties.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		930A76CB297FA2B30055B743 /* StylePropertiesInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A76CA297FA2B00055B743 /* StylePropertiesInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		930A9D8529DA1FC1006CBF0E /* RenderStyleInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A9D8429DA1FC0006CBF0E /* RenderStyleInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		930A9D8729DA3EFF006CBF0E /* ResolvedStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A9D8629DA3EFF006CBF0E /* ResolvedStyle.h */; };
 		930A9D8C29DA8209006CBF0E /* RenderStyleSetters.h in Headers */ = {isa = PBXBuildFile; fileRef = 930A9D8B29DA8207006CBF0E /* RenderStyleSetters.h */; };
@@ -40541,6 +40543,7 @@
 				93B248932990CAFE00B769E4 /* CSSCounterValue.h in Headers */,
 				2D8FEBDD143E3EF70072502B /* CSSCrossfadeValue.h in Headers */,
 				AA21ECCD0ABF0FC6002B834C /* CSSCursorImageValue.h in Headers */,
+				46531BB52D616D7A008D8EFC /* CSSCustomPropertySyntax.h in Headers */,
 				BC779E141BB215BB00CAA8BF /* CSSCustomPropertyValue.h in Headers */,
 				BC5C89BB2D567D06000F45B7 /* CSSDynamicRangeLimitValue.h in Headers */,
 				BCB2721B2CC1F21B00265123 /* CSSEllipseFunction.h in Headers */,
@@ -40639,6 +40642,7 @@
 				71F05F802512442E0071E693 /* CSSPropertyAnimation.h in Headers */,
 				713171341FBE78DB00F758DE /* CSSPropertyBlendingClient.h in Headers */,
 				656580F409D12B20000E61D7 /* CSSPropertyNames.h in Headers */,
+				46531BB42D616BCE008D8EFC /* CSSPropertyParser.h in Headers */,
 				E462E5A52D1164690058FD21 /* CSSPropertyParserConsumer+PositionTry.h in Headers */,
 				E4E387FE294E147800C6EC1B /* CSSPropertyRule.h in Headers */,
 				82E3D8DF122EA0D1003AE5BC /* CSSPropertySourceData.h in Headers */,

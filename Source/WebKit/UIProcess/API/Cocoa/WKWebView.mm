@@ -409,6 +409,7 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
 #endif // PLATFORM(MAC)
 
 #if ENABLE(SCREEN_TIME)
+
 - (void)_installScreenTimeWebpageController
 {
     if (!PAL::isScreenTimeFrameworkAvailable())
@@ -432,14 +433,8 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
         RetainPtr screenTimeView = [_screenTimeWebpageController view];
 
         if ([_configuration _showsSystemScreenTimeBlockingView]) {
-            [screenTimeView setTranslatesAutoresizingMaskIntoConstraints:NO];
+            [screenTimeView setFrame:self.bounds];
             [self addSubview:screenTimeView.get()];
-            [NSLayoutConstraint activateConstraints:@[
-                [[screenTimeView widthAnchor] constraintEqualToAnchor:self.widthAnchor],
-                [[screenTimeView heightAnchor] constraintEqualToAnchor:self.heightAnchor],
-                [[screenTimeView leadingAnchor] constraintEqualToAnchor:self.leadingAnchor],
-                [[screenTimeView topAnchor] constraintEqualToAnchor:self.topAnchor]
-            ]];
         }
     }
 }
@@ -452,10 +447,45 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
     if (!_screenTimeWebpageController)
         return;
 
+    [std::exchange(_screenTimeBlurredSnapshot, nil) removeFromSuperview];
+
     [[_screenTimeWebpageController view] removeFromSuperview];
     [_screenTimeWebpageController removeObserver:self forKeyPath:@"URLIsBlocked" context:&screenTimeWebpageControllerBlockedKVOContext];
     _screenTimeWebpageController = nil;
 }
+
+- (void)_updateScreenTimeViewGeometry
+{
+    auto bounds = self.bounds;
+    [_screenTimeBlurredSnapshot setFrame:bounds];
+    [[_screenTimeWebpageController view] setFrame:bounds];
+}
+
+- (void)_updateScreenTimeShieldVisibilityForWindow
+{
+    BOOL viewIsInWindow = !!self.window;
+
+    BOOL showsSystemScreenTimeBlockingView = [_configuration _showsSystemScreenTimeBlockingView];
+
+    if (viewIsInWindow) {
+        if (!showsSystemScreenTimeBlockingView && _screenTimeBlurredSnapshot)
+            [_screenTimeBlurredSnapshot setHidden:NO];
+        else if (showsSystemScreenTimeBlockingView)
+            [[_screenTimeWebpageController view] setHidden:NO];
+    } else {
+        if (_screenTimeBlurredSnapshot)
+            [_screenTimeBlurredSnapshot setHidden:YES];
+        else if (showsSystemScreenTimeBlockingView)
+            [[_screenTimeWebpageController view] setHidden:YES];
+    }
+
+    BOOL viewIsVisible = viewIsInWindow;
+#if PLATFORM(MAC)
+    viewIsVisible &= ((self.window.occlusionState & NSWindowOcclusionStateVisible) == NSWindowOcclusionStateVisible);
+#endif
+    [_screenTimeWebpageController setSuppressUsageRecording:(![_configuration websiteDataStore].isPersistent || !viewIsVisible)];
+}
+
 #endif // ENABLE(SCREEN_TIME)
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey, id> *)change context:(void *)context
@@ -482,14 +512,8 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
                 RetainPtr blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
                 _screenTimeBlurredSnapshot = adoptNS([[UIVisualEffectView alloc] initWithEffect:blurEffect.get()]);
 #endif
-                [_screenTimeBlurredSnapshot setTranslatesAutoresizingMaskIntoConstraints:NO];
+                [_screenTimeBlurredSnapshot setFrame:self.bounds];
                 [self addSubview:_screenTimeBlurredSnapshot.get()];
-                [NSLayoutConstraint activateConstraints:@[
-                    [[_screenTimeBlurredSnapshot widthAnchor] constraintEqualToAnchor:self.widthAnchor],
-                    [[_screenTimeBlurredSnapshot heightAnchor] constraintEqualToAnchor:self.heightAnchor],
-                    [[_screenTimeBlurredSnapshot leadingAnchor] constraintEqualToAnchor:self.leadingAnchor],
-                    [[_screenTimeBlurredSnapshot topAnchor] constraintEqualToAnchor:self.topAnchor]
-                ]];
             } else if (_screenTimeBlurredSnapshot) {
                 [_screenTimeBlurredSnapshot removeFromSuperview];
                 _screenTimeBlurredSnapshot = nil;
@@ -2041,6 +2065,15 @@ inline OptionSet<WebKit::FindOptions> toFindOptions(WKFindConfiguration *configu
 - (STWebpageController *)_screenTimeWebpageController
 {
     return _screenTimeWebpageController.get();
+}
+
+#if PLATFORM(MAC)
+- (NSVisualEffectView *) _screenTimeBlurredSnapshot
+#else
+- (UIVisualEffectView *) _screenTimeBlurredSnapshot
+#endif
+{
+    return _screenTimeBlurredSnapshot.get();
 }
 #endif
 

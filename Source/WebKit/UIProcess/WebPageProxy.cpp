@@ -737,6 +737,7 @@ WebPageProxy::Internals::Internals(WebPageProxy& page)
     : page(page)
     , audibleActivityTimer(RunLoop::main(), &page, &WebPageProxy::clearAudibleActivity)
     , geolocationPermissionRequestManager(page)
+    , updatePlayingMediaDidChangeTimer(RunLoop::main(), &page, &WebPageProxy::updatePlayingMediaDidChangeTimerFired)
     , notificationManagerMessageHandler(page)
     , pageLoadState(page)
     , resetRecentCrashCountTimer(RunLoop::main(), &page, &WebPageProxy::resetRecentCrashCount)
@@ -963,6 +964,8 @@ WebPageProxy::~WebPageProxy()
     if (RefPtr gpuProcess = GPUProcessProxy::singletonIfCreated())
         gpuProcess->setPresentingApplicationAuditToken(m_legacyMainFrameProcess->coreProcessIdentifier(), m_webPageID, std::nullopt);
 #endif
+
+    internals().updatePlayingMediaDidChangeTimer.stop();
 }
 
 Ref<WebPageProxy> WebPageProxy::Internals::protectedPage() const
@@ -1525,7 +1528,8 @@ void WebPageProxy::finishAttachingToWebProcess(const Site& site, ProcessLaunchRe
     if (reason != ProcessLaunchReason::ProcessSwap)
         initializeWebPage(site, m_mainFrame ? m_mainFrame->effectiveSandboxFlags() : configuration().initialSandboxFlags());
 
-    protectedInspector()->updateForNewPageProcess(*this);
+    if (RefPtr inspector = this->inspector())
+        inspector->updateForNewPageProcess(*this);
 
 #if ENABLE(REMOTE_INSPECTOR)
     remoteInspectorInformationDidChange();
@@ -1816,7 +1820,6 @@ void WebPageProxy::close()
     internals().audibleActivityTimer.stop();
 
     stopAllURLSchemeTasks();
-    updatePlayingMediaDidChange(MediaProducer::IsNotPlaying);
 
 #if ENABLE(GAMEPAD)
     m_recentGamepadAccessHysteresis.cancel();
@@ -4037,6 +4040,31 @@ void WebPageProxy::handleNativeWheelEvent(const NativeWebWheelEvent& nativeWheel
     handleWheelEvent(eventToDispatch);
 }
 
+static RectEdges<WebCore::RubberBandingBehavior> resolvedRubberBandingBehaviorEdges(RectEdges<bool> rubberBandableEdges, bool alwaysBounceVertical, bool alwaysBounceHorizontal)
+{
+    auto rubberBandingBehaviorValue = [&](WebCore::BoxSide side) {
+        if (!rubberBandableEdges[side])
+            return WebCore::RubberBandingBehavior::Never;
+
+        auto isVertical = side == WebCore::BoxSide::Top || side == WebCore::BoxSide::Bottom;
+        auto isHorizontal = !isVertical;
+
+        if (isVertical && alwaysBounceVertical)
+            return WebCore::RubberBandingBehavior::Always;
+
+        if (isHorizontal && alwaysBounceHorizontal)
+            return WebCore::RubberBandingBehavior::Always;
+
+        return WebCore::RubberBandingBehavior::BasedOnSize;
+    };
+
+    RectEdges<WebCore::RubberBandingBehavior> result;
+    for (const auto side : WebCore::allBoxSides)
+        result[side] = rubberBandingBehaviorValue(side);
+
+    return result;
+}
+
 void WebPageProxy::handleWheelEvent(const WebWheelEvent& wheelEvent)
 {
     if (!hasRunningProcess())
@@ -4050,7 +4078,9 @@ void WebPageProxy::handleWheelEvent(const WebWheelEvent& wheelEvent)
 #if ENABLE(ASYNC_SCROLLING) && PLATFORM(MAC)
     if (m_scrollingCoordinatorProxy) {
         auto rubberBandableEdges = rubberBandableEdgesRespectingHistorySwipe();
-        m_scrollingCoordinatorProxy->handleWheelEvent(wheelEvent, rubberBandableEdges);
+        auto rubberBandingBehavior = resolvedRubberBandingBehaviorEdges(rubberBandableEdges, alwaysBounceVertical(), alwaysBounceHorizontal());
+
+        m_scrollingCoordinatorProxy->handleWheelEvent(wheelEvent, rubberBandingBehavior);
         // continueWheelEventHandling() will get called after the event has been handled by the scrolling thread.
     }
 #endif
@@ -4074,10 +4104,12 @@ void WebPageProxy::continueWheelEventHandling(const WebWheelEvent& wheelEvent, c
         return;
 
     auto rubberBandableEdges = rubberBandableEdgesRespectingHistorySwipe();
-    sendWheelEvent(m_mainFrame->frameID(), wheelEvent, result.steps, rubberBandableEdges, willStartSwipe, result.wasHandled);
+    auto rubberBandingBehavior = resolvedRubberBandingBehaviorEdges(rubberBandableEdges, alwaysBounceVertical(), alwaysBounceHorizontal());
+
+    sendWheelEvent(m_mainFrame->frameID(), wheelEvent, result.steps, rubberBandingBehavior, willStartSwipe, result.wasHandled);
 }
 
-void WebPageProxy::sendWheelEvent(WebCore::FrameIdentifier frameID, const WebWheelEvent& event, OptionSet<WheelEventProcessingSteps> processingSteps, RectEdges<bool> rubberBandableEdges, std::optional<bool> willStartSwipe, bool wasHandledForScrolling)
+void WebPageProxy::sendWheelEvent(WebCore::FrameIdentifier frameID, const WebWheelEvent& event, OptionSet<WheelEventProcessingSteps> processingSteps, RectEdges<WebCore::RubberBandingBehavior> rubberBandableEdges, std::optional<bool> willStartSwipe, bool wasHandledForScrolling)
 {
 #if HAVE(DISPLAY_LINK)
     internals().wheelEventActivityHysteresis.impulse();
@@ -5764,6 +5796,26 @@ RectEdges<bool> WebPageProxy::rubberBandableEdges() const
 void WebPageProxy::setRubberBandableEdges(RectEdges<bool> edges)
 {
     internals().rubberBandableEdges = edges;
+}
+
+bool WebPageProxy::alwaysBounceVertical() const
+{
+    return internals().alwaysBounceVertical;
+}
+
+void WebPageProxy::setAlwaysBounceVertical(bool value)
+{
+    internals().alwaysBounceVertical = value;
+}
+
+bool WebPageProxy::alwaysBounceHorizontal() const
+{
+    return internals().alwaysBounceHorizontal;
+}
+
+void WebPageProxy::setAlwaysBounceHorizontal(bool value)
+{
+    internals().alwaysBounceHorizontal = value;
 }
 
 RectEdges<bool> WebPageProxy::rubberBandableEdgesRespectingHistorySwipe() const
@@ -7465,11 +7517,19 @@ void WebPageProxy::viewIsBecomingInvisible()
     protectedLegacyMainFrameProcess()->pageIsBecomingInvisible(m_webPageID);
     if (auto* drawingAreaProxy = drawingArea())
         drawingAreaProxy->viewIsBecomingInvisible();
+
+    RefPtr protectedPageClient { pageClient() };
+    protectedPageClient->viewIsBecomingInvisible();
 }
 
 void WebPageProxy::processIsNoLongerAssociatedWithPage(WebProcessProxy& process)
 {
     protectedNavigationState()->clearNavigationsFromProcess(process.coreProcessIdentifier());
+}
+
+void WebPageProxy::isNoLongerAssociatedWithRemotePage(RemotePageProxy&)
+{
+    internals().updatePlayingMediaDidChangeTimer.startOneShot(0_s);
 }
 
 bool WebPageProxy::hasAllowedToRunInTheBackgroundActivity() const
@@ -9117,6 +9177,11 @@ void WebPageProxy::dataTaskWithRequest(WebCore::ResourceRequest&& request, const
 
 void WebPageProxy::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::optional<WebCore::FloatSize> sizeConstraint, size_t maximumBytesFromNetwork, CompletionHandler<void(std::variant<WebCore::ResourceError, Ref<WebCore::ShareableBitmap>>&&)>&& completionHandler)
 {
+    if (isClosed()) {
+        completionHandler(decodeError(request.url()));
+        return;
+    }
+
     if (!hasRunningProcess())
         launchProcess(Site(aboutBlankURL()), ProcessLaunchReason::InitialProcess);
     sendWithAsyncReply(Messages::WebPage::LoadAndDecodeImage(request, sizeConstraint, maximumBytesFromNetwork), [preventProcessShutdownScope = protectedLegacyMainFrameProcess()->shutdownPreventingScope(), completionHandler = WTFMove(completionHandler)] (std::variant<WebCore::ResourceError, Ref<WebCore::ShareableBitmap>>&& result) mutable {
@@ -11167,7 +11232,8 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
 
     m_activePopupMenu = nullptr;
 
-    updatePlayingMediaDidChange(MediaProducer::IsNotPlaying);
+    internals().mainFrameMediaState = MediaProducer::IsNotPlaying;
+    updatePlayingMediaDidChange();
 #if ENABLE(MEDIA_STREAM)
     if (RefPtr userMediaPermissionRequestManager = std::exchange(m_userMediaPermissionRequestManager, nullptr))
         userMediaPermissionRequestManager->disconnectFromPage();
@@ -11305,8 +11371,6 @@ void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason termina
         auto transaction = protectedPageLoadState->transaction();
         protectedPageLoadState->reset(transaction);
     }
-
-    updatePlayingMediaDidChange(MediaProducer::IsNotPlaying);
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
     internals().fullscreenVideoTextRecognitionTimer.stop();
@@ -13367,8 +13431,12 @@ void WebPageProxy::isPlayingMediaDidChange(MediaProducerMediaStateFlags newState
         return;
 #endif
 
+    if (internals().mainFrameMediaState == newState)
+        return;
+    internals().mainFrameMediaState = newState;
+
     if (!m_isClosed)
-        updatePlayingMediaDidChange(newState, CanDelayNotification::Yes);
+        updatePlayingMediaDidChange(CanDelayNotification::Yes);
 }
 
 bool WebPageProxy::isPlayingAudio() const
@@ -13406,8 +13474,13 @@ MediaProducerMediaStateFlags WebPageProxy::reportedMediaState() const
     return internals().reportedMediaCaptureState | (internals().mediaState - MediaProducer::MediaCaptureMask);
 }
 
-void WebPageProxy::updatePlayingMediaDidChange(MediaProducerMediaStateFlags newState, CanDelayNotification canDelayNotification)
+void WebPageProxy::updatePlayingMediaDidChange(CanDelayNotification canDelayNotification)
 {
+    MediaProducerMediaStateFlags newState = internals().mainFrameMediaState;
+    protectedBrowsingContextGroup()->forEachRemotePage(*this, [&newState](auto& remotePage) {
+        newState.add(remotePage.mediaState());
+    });
+
 #if ENABLE(MEDIA_STREAM)
     auto updateMediaCaptureStateImmediatelyIfNeeded = [&] {
         if (canDelayNotification == CanDelayNotification::No && internals().updateReportedMediaCaptureStateTimer.isActive()) {
@@ -13478,11 +13551,16 @@ void WebPageProxy::updatePlayingMediaDidChange(MediaProducerMediaStateFlags newS
     if ((oldState.containsAny(MediaProducerMediaState::HasAudioOrVideo)) != (internals().mediaState.containsAny(MediaProducerMediaState::HasAudioOrVideo)))
         videoControlsManagerDidChange();
 
-    Ref process = m_legacyMainFrameProcess;
-    process->updateAudibleMediaAssertions();
+    forEachWebContentProcess([&] (auto& process, auto) {
+        process.updateAudibleMediaAssertions();
+    });
+
     bool mediaStreamingChanges = oldState.contains(MediaProducerMediaState::HasStreamingActivity) != newState.contains(MediaProducerMediaState::HasStreamingActivity);
-    if (mediaStreamingChanges)
-        process->updateMediaStreamingActivity();
+    if (mediaStreamingChanges) {
+        forEachWebContentProcess([&] (auto& process, auto) {
+            process.updateMediaStreamingActivity();
+        });
+    }
 
 #if ENABLE(EXTENSION_CAPABILITIES)
     updateMediaCapability();
@@ -13492,6 +13570,11 @@ void WebPageProxy::updatePlayingMediaDidChange(MediaProducerMediaStateFlags newS
     if (oldState.contains(MediaProducerMediaState::IsPlayingVideo) != newState.contains(MediaProducerMediaState::IsPlayingVideo))
         m_pageClient->setURLIsPlayingVideoForScreenTime(newState.contains(MediaProducerMediaState::IsPlayingVideo));
 #endif
+}
+
+void WebPageProxy::updatePlayingMediaDidChangeTimerFired()
+{
+    updatePlayingMediaDidChange(CanDelayNotification::Yes);
 }
 
 void WebPageProxy::updateReportedMediaCaptureState()

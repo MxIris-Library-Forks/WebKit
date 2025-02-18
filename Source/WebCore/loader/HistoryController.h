@@ -77,7 +77,7 @@ public:
     void updateForFrameLoadCompleted();
 
     HistoryItem* currentItem() const { return m_currentItem.get(); }
-    RefPtr<HistoryItem> protectedCurrentItem() const;
+    WEBCORE_EXPORT RefPtr<HistoryItem> protectedCurrentItem() const;
     WEBCORE_EXPORT void setCurrentItem(Ref<HistoryItem>&&);
     void setCurrentItemTitle(const StringWithDirection&);
     bool currentItemShouldBeReplaced() const;
@@ -141,8 +141,8 @@ private:
     bool m_frameLoadComplete;
 
     bool m_defersLoading;
-    RefPtr<HistoryItem> m_deferredItem;
     FrameLoadType m_deferredFrameLoadType;
+    RefPtr<HistoryItem> m_deferredItem;
 };
 
 } // namespace WebCore

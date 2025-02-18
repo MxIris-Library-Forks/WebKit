@@ -1518,6 +1518,9 @@ webkit.org/b/260113 [ arm64 ] http/wpt/webauthn/ctap-hid-failure.https.html [ Pa
 [ Sonoma+ ] fast/images/mac/animation-context-menu-items-presence.html [ Pass ]
 # This test was added in https://bugs.webkit.org/show_bug.cgi?id=250475 — re-enable it here for Sonoma.
 
+# Only applicable on platforms with HDR support
+[ Sequoia+ ] compositing/hdr/hdr-basic-canvas.html [ Pass ]
+
 # The direct image codepath is not used with the remote layer tree.
 [ Sonoma+ ] compositing/images/direct-image-object-fit.html [ Skip ]
 [ Sonoma+ ] compositing/reflections/direct-image-object-fit-reflected.html [ Skip ]
@@ -1967,3 +1970,7 @@ webkit.org/b/287122 [ Ventura+ ] imported/w3c/web-platform-tests/html/capability
 [ arm64 ] fast/webgpu/nocrash/fuzz-287444.html [ Skip ]
 
 webkit.org/b/287679 [ Debug ] imported/w3c/web-platform-tests/css/selectors/invalidation/modal-pseudo-class-in-has.html [ Pass Failure ]
+
+# webkit.org/b/ 2x [ wk2 x86_64 ] imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/ellipse/shape-outside-ellipse-0*.html are constantly failing
+[ x86_64 ] imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/ellipse/shape-outside-ellipse-046.html [ ImageOnlyFailure ]
+[ x86_64 ] imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/ellipse/shape-outside-ellipse-048.html [ ImageOnlyFailure ]

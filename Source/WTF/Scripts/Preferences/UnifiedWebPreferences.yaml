@@ -1048,7 +1048,6 @@ BuiltInNotificationsEnabled:
     WebKit:
       default: defaultBuiltInNotificationsEnabled()
   sharedPreferenceForWebProcess: true
-  richJavaScript: true
 
 CFNetworkNetworkLoaderEnabled:
   type: bool
@@ -6810,6 +6809,21 @@ ServiceWorkersUserGestureEnabled:
     WebCore:
       default: true
 
+ShadowRootReferenceTargetEnabled:
+  type: bool
+  status: testable
+  category: dom
+  humanReadableName: "referenceTarget"
+  humanReadableDescription: "Enable setting a referenceTarget on shadow roots"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  sharedPreferenceForWebProcess: true
+
 # When enabling this, don't enable on watchOS or the macOS base system (which don't have Vision.framework).
 # You can detect these by running isVisionFrameworkAvailable().
 ShapeDetection:
@@ -8125,6 +8139,20 @@ VP9DecoderEnabled:
       default: false
     WebKit:
       default: true
+
+VectorBasedControlsOnMacEnabled:
+  type: bool
+  status: internal
+  humanReadableName: "Vector based controls on macOS"
+  humanReadableDescription: "Enable vector based controls on macOS"
+  condition: ENABLE(VECTOR_BASED_CONTROLS_ON_MAC)
+  defaultValue:
+    WebKit:
+      default: false
+    WebKitLegacy:
+      default: false
+    WebCore:
+      default: false
 
 VerifyWindowOpenUserGestureFromUIProcess:
   type: bool

@@ -2015,25 +2015,17 @@ void WebPage::sendClose()
     send(Messages::WebPageProxy::ClosePage());
 }
 
-void WebPage::suspendForProcessSwap()
+void WebPage::suspendForProcessSwap(CompletionHandler<void(std::optional<bool>)>&& completionHandler)
 {
     flushDeferredDidReceiveMouseEvent();
 
-    auto failedToSuspend = [this, protectedThis = Ref { *this }] {
-        send(Messages::WebPageProxy::DidFailToSuspendAfterProcessSwap());
-    };
-
     // FIXME: Make this work if the main frame is not a LocalFrame.
     RefPtr currentHistoryItem = m_mainFrame->coreLocalFrame()->loader().history().currentItem();
-    if (!currentHistoryItem) {
-        failedToSuspend();
-        return;
-    }
+    if (!currentHistoryItem)
+        return completionHandler(false);
 
-    if (!BackForwardCache::singleton().addIfCacheable(*currentHistoryItem, protectedCorePage().get())) {
-        failedToSuspend();
-        return;
-    }
+    if (!BackForwardCache::singleton().addIfCacheable(*currentHistoryItem, protectedCorePage().get()))
+        return completionHandler(false);
 
     // Back/forward cache does not break the opener link for the main frame (only does so for the subframes) because the
     // main frame is normally re-used for the navigation. However, in the case of process-swapping, the main frame
@@ -2041,7 +2033,7 @@ void WebPage::suspendForProcessSwap()
     if (RefPtr frame = m_mainFrame->coreLocalFrame())
         frame->detachFromAllOpenedFrames();
 
-    send(Messages::WebPageProxy::DidSuspendAfterProcessSwap());
+    completionHandler(true);
 }
 
 void WebPage::loadURLInFrame(URL&& url, const String& referrer, FrameIdentifier frameID)
@@ -2361,10 +2353,8 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
     m_internals->pendingWebsitePolicies = WTFMove(parameters.websitePolicies);
 
     Ref targetFrame = m_mainFrame;
-    if (!item->wasRestoredFromSession()) {
-        if (RefPtr historyItemFrame = WebProcess::singleton().webFrame(item->frameID()))
-            targetFrame = historyItemFrame.releaseNonNull();
-    }
+    if (RefPtr historyItemFrame = WebProcess::singleton().webFrame(item->frameID()); historyItemFrame && historyItemFrame->page() == this)
+        targetFrame = historyItemFrame.releaseNonNull();
 
     if (RefPtr targetLocalFrame = targetFrame->provisionalFrame() ? targetFrame->provisionalFrame() : targetFrame->coreLocalFrame())
         protectedCorePage()->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad);
@@ -2399,7 +2389,7 @@ void WebPage::setSize(const WebCore::IntSize& viewSize)
         return;
 
     m_viewSize = viewSize;
-    RefPtr view = m_page->protectedMainFrame()->virtualView();
+    RefPtr view = protectedCorePage()->protectedMainFrame()->virtualView();
     if (!view) {
         ASSERT_NOT_REACHED();
         return;
@@ -2564,6 +2554,10 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
 {
     double totalScale = scale * viewScaleFactor();
     bool willChangeScaleFactor = totalScale != totalScaleFactor();
+    auto platformDidScalePageIfNeeded = makeScopeExit([willChangeScaleFactor, this, protectedThis = Ref { *this }] {
+        if (willChangeScaleFactor)
+            platformDidScalePage();
+    });
 
 #if PLATFORM(IOS_FAMILY)
     if (willChangeScaleFactor) {
@@ -2576,7 +2570,7 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
     RefPtr page = m_page;
 #if ENABLE(PDF_PLUGIN)
     if (RefPtr pluginView = mainFramePlugIn(); pluginView && pluginView->pluginHandlesPageScaleFactor()) {
-        // Since the main-frame PDF plug-in handles the page scale factor, make sure to reset WebCore's page scale.
+        // Whenever the PDF plug-in handles the page scale factor, make sure to reset WebCore's page scale.
         // Otherwise, we can end up with an immutable but non-1 page scale applied by WebCore on top of whatever the plugin does.
         if (page->pageScaleFactor() != 1)
             page->setPageScaleFactor(1, origin);
@@ -2597,8 +2591,6 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
             pluginView->setPageScaleFactor(totalScale, { origin });
     }
 #endif
-
-    platformDidScalePage();
 }
 
 void WebPage::didScalePageInViewCoordinates(double scale, const IntPoint& origin)
@@ -3167,7 +3159,7 @@ static DestinationColorSpace snapshotColorSpace(SnapshotOptions options, WebPage
 {
 #if USE(CG)
     if (options.contains(SnapshotOption::UseScreenColorSpace))
-        return screenColorSpace(page.corePage()->protectedMainFrame()->virtualView());
+        return screenColorSpace(page.protectedCorePage()->protectedMainFrame()->virtualView());
 #endif
     return DestinationColorSpace::SRGB();
 }
@@ -3261,7 +3253,7 @@ void WebPage::pageStoppedScrolling()
 {
     // Maintain the current history item's scroll position up-to-date.
     if (RefPtr frame = m_mainFrame->coreLocalFrame())
-        frame->loader().protectedHistory()->saveScrollPositionAndViewStateToItem(frame->loader().history().protectedCurrentItem().get());
+        frame->loader().protectedHistory()->saveScrollPositionAndViewStateToItem(frame->loader().protectedHistory()->protectedCurrentItem().get());
 }
 
 void WebPage::setHasActiveAnimatedScrolls(bool hasActiveAnimatedScrolls)
@@ -7544,7 +7536,7 @@ void WebPage::setAlwaysShowsHorizontalScroller(bool alwaysShowsHorizontalScrolle
 
     m_alwaysShowsHorizontalScroller = alwaysShowsHorizontalScroller;
 
-    RefPtr view = corePage()->protectedMainFrame()->virtualView();
+    RefPtr view = protectedCorePage()->protectedMainFrame()->virtualView();
     if (!alwaysShowsHorizontalScroller)
         view->setHorizontalScrollbarLock(false);
     view->setHorizontalScrollbarMode(alwaysShowsHorizontalScroller ? ScrollbarMode::AlwaysOn : m_mainFrameIsScrollable ? ScrollbarMode::Auto : ScrollbarMode::AlwaysOff, alwaysShowsHorizontalScroller || !m_mainFrameIsScrollable);
@@ -7557,7 +7549,7 @@ void WebPage::setAlwaysShowsVerticalScroller(bool alwaysShowsVerticalScroller)
 
     m_alwaysShowsVerticalScroller = alwaysShowsVerticalScroller;
 
-    RefPtr view = corePage()->protectedMainFrame()->virtualView();
+    RefPtr view = protectedCorePage()->protectedMainFrame()->virtualView();
     if (!alwaysShowsVerticalScroller)
         view->setVerticalScrollbarLock(false);
     view->setVerticalScrollbarMode(alwaysShowsVerticalScroller ? ScrollbarMode::AlwaysOn : m_mainFrameIsScrollable ? ScrollbarMode::Auto : ScrollbarMode::AlwaysOff, alwaysShowsVerticalScroller || !m_mainFrameIsScrollable);
@@ -8513,15 +8505,15 @@ void WebPage::urlSchemeTaskDidComplete(WebURLSchemeHandlerIdentifier handlerIden
     handler->taskDidComplete(taskIdentifier, error);
 }
 
-void WebPage::setIsSuspended(bool suspended)
+void WebPage::setIsSuspended(bool suspended, CompletionHandler<void(std::optional<bool>)>&& completionHandler)
 {
     if (m_isSuspended == suspended)
-        return;
+        return completionHandler({ });
 
     m_isSuspended = suspended;
 
     if (!suspended)
-        return;
+        return completionHandler({ });
 
     // Unfrozen on drawing area reset.
     freezeLayerTree(LayerTreeFreezeReason::PageSuspended);
@@ -8532,7 +8524,7 @@ void WebPage::setIsSuspended(bool suspended)
 
     WebProcess::singleton().sendPrewarmInformation(m_mainFrame->url());
 
-    suspendForProcessSwap();
+    suspendForProcessSwap(WTFMove(completionHandler));
 }
 
 void WebPage::hasStorageAccess(RegistrableDomain&& subFrameDomain, RegistrableDomain&& topFrameDomain, WebFrame& frame, CompletionHandler<void(bool)>&& completionHandler)

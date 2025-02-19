@@ -336,12 +336,15 @@ void WebFullScreenManager::exitFullScreenForElement(WebCore::Element* element)
         ALWAYS_LOG(LOGIDENTIFIER, "null");
 
     m_page->prepareToExitElementFullScreen();
-    m_page->send(Messages::WebFullScreenManagerProxy::ExitFullScreen());
 
     if (m_inWindowFullScreenMode) {
         willExitFullScreen();
         didExitFullScreen();
         m_inWindowFullScreenMode = false;
+    } else {
+        m_page->sendWithAsyncReply(Messages::WebFullScreenManagerProxy::ExitFullScreen(), [this, protectedThis = Ref { *this }] {
+            willExitFullScreen();
+        });
     }
 #if ENABLE(VIDEO)
     setMainVideoElement(nullptr);
@@ -462,7 +465,9 @@ void WebFullScreenManager::willExitFullScreen()
 #endif
     // FIXME: The order of these frames is switched, but that is kept for historical reasons.
     // It should probably be fixed to be consistent at some point.
-    m_page->send(Messages::WebFullScreenManagerProxy::BeganExitFullScreen(m_finalFrame, m_initialFrame));
+    m_page->sendWithAsyncReply(Messages::WebFullScreenManagerProxy::BeganExitFullScreen(m_finalFrame, m_initialFrame), [this, protectedThis = Ref { *this }] {
+        didExitFullScreen();
+    });
 }
 
 static Vector<Ref<Element>> collectFullscreenElementsFromElement(Element* element)

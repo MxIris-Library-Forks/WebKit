@@ -2578,15 +2578,15 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
     auto transaction = pageLoadState->transaction();
     pageLoadState->setPendingAPIRequest(transaction, { navigation->navigationID(), item->url() });
 
-    if (item->isRemoteFrameNavigation() || frameItem.identifier().processIdentifier() != item->protectedNavigatedFrameItem()->identifier().processIdentifier()) {
-        ASSERT(m_preferences->siteIsolationEnabled());
-        if (RefPtr frame = WebFrameProxy::webFrame(frameItem.frameID()))
-            process = frame->process();
-    }
-
     process->markProcessAsRecentlyUsed();
 
-    Ref frameState = WebFrameProxy::webFrame(frameItem.frameID()) ? frameItem.copyFrameStateWithChildren() : item->mainFrameState();
+    Ref frameState = item->mainFrameState();
+    if (m_preferences->siteIsolationEnabled()) {
+        if (RefPtr frame = WebFrameProxy::webFrame(frameItem.frameID())) {
+            process = frame->process();
+            frameState = frameItem.copyFrameStateWithChildren();
+        }
+    }
     auto publicSuffix = WebCore::PublicSuffixStore::singleton().publicSuffix(URL(item->url()));
     process->send(Messages::WebPage::GoToBackForwardItem({ navigation->navigationID(), WTFMove(frameState), frameLoadType, ShouldTreatAsContinuingLoad::No, std::nullopt, m_lastNavigationWasAppInitiated, std::nullopt, WTFMove(publicSuffix), { } }), webPageIDInProcess(process));
     process->startResponsivenessTimer();
@@ -5208,20 +5208,6 @@ bool WebPageProxy::isPageOpenedByDOMShowingInitialEmptyDocument() const
     return openedByDOM() && !hasCommittedAnyProvisionalLoads();
 }
 
-// MSVC gives a redeclaration error if noreturn is used on the definition and not the declaration, while
-// Cocoa tests segfault if it is moved to the declaration site (even if we move the definition with it!).
-NO_RETURN_DUE_TO_ASSERT void WebPageProxy::didFailToSuspendAfterProcessSwap()
-{
-    // Only the SuspendedPageProxy should be getting this call.
-    ASSERT_NOT_REACHED();
-}
-
-NO_RETURN_DUE_TO_ASSERT void WebPageProxy::didSuspendAfterProcessSwap()
-{
-    // Only the SuspendedPageProxy should be getting this call.
-    ASSERT_NOT_REACHED();
-}
-
 void WebPageProxy::setUserAgent(String&& userAgent, IsCustomUserAgent isCustomUserAgent)
 {
     if (m_userAgent == userAgent)
@@ -7676,6 +7662,13 @@ void WebPageProxy::mainFramePluginHandlesPageScaleGestureDidChange(bool mainFram
     m_mainFramePluginHandlesPageScaleGesture = mainFramePluginHandlesPageScaleGesture;
     m_pluginMinZoomFactor = minScale;
     m_pluginMaxZoomFactor = maxScale;
+}
+
+bool WebPageProxy::mainFramePluginOverridesViewScale() const
+{
+    if (m_mainFramePluginHandlesPageScaleGesture)
+        return false;
+    return m_pluginMaxZoomFactor.has_value() || m_pluginMinZoomFactor.has_value();
 }
 
 #if !PLATFORM(COCOA)

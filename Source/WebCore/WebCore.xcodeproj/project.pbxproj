@@ -6376,6 +6376,7 @@
 		EB0FB70A270D0B1B00F7810D /* PushSubscriptionJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = EB0FB703270D0AEB00F7810D /* PushSubscriptionJSON.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EB0FB70C270D0B2900F7810D /* PushSubscriptionOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = EB0FB706270D0AEC00F7810D /* PushSubscriptionOptions.h */; };
 		EB0FB70D270D0B2E00F7810D /* PushSubscriptionOptionsInit.h in Headers */ = {isa = PBXBuildFile; fileRef = EB0FB701270D0AEA00F7810D /* PushSubscriptionOptionsInit.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		EB1392592D507002002DC418 /* ResourceMonitorPersistence.h in Headers */ = {isa = PBXBuildFile; fileRef = EB1392572D506FE2002DC418 /* ResourceMonitorPersistence.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EB1F62932D19D57A000B3A04 /* ResourceMonitorThrottler.h in Headers */ = {isa = PBXBuildFile; fileRef = EB1F62912D19D554000B3A04 /* ResourceMonitorThrottler.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EB28ED442717AC11005F0393 /* PushSubscriptionData.h in Headers */ = {isa = PBXBuildFile; fileRef = EB28ED412717ABA9005F0393 /* PushSubscriptionData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EB3C29B62729C38800FB65B4 /* PushSubscriptionChangeEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = EB3C29B42729C36E00FB65B4 /* PushSubscriptionChangeEvent.h */; };
@@ -6388,6 +6389,7 @@
 		EBB9738227100676007732EF /* PushPermissionState.h in Headers */ = {isa = PBXBuildFile; fileRef = EBB9737827100651007732EF /* PushPermissionState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EBB9738327100684007732EF /* ServiceWorkerRegistrationPushAPI.h in Headers */ = {isa = PBXBuildFile; fileRef = EBB9737A27100652007732EF /* ServiceWorkerRegistrationPushAPI.h */; };
 		EBC470792D076CCF0026A5C3 /* ResourceMonitorChecker.h in Headers */ = {isa = PBXBuildFile; fileRef = EBC470752D076C9D0026A5C3 /* ResourceMonitorChecker.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		EBDEDDFF2D6456AB00F27038 /* ResourceMonitorThrottlerHolder.h in Headers */ = {isa = PBXBuildFile; fileRef = EBDEDDFD2D64569A00F27038 /* ResourceMonitorThrottlerHolder.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EBE095E5277D14DA00804D61 /* PushSubscriptionIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = EBE095E3277D14C700804D61 /* PushSubscriptionIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EBE5B226245A26EF003A5A88 /* SQLiteStatementAutoResetScope.h in Headers */ = {isa = PBXBuildFile; fileRef = EBE5B224245A26EE003A5A88 /* SQLiteStatementAutoResetScope.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EBF5121C1696496C0056BD25 /* JSTypeConversions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EBF5121A1696496C0056BD25 /* JSTypeConversions.cpp */; };
@@ -20967,6 +20969,8 @@
 		EB0FB705270D0AEB00F7810D /* PushSubscription.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushSubscription.idl; sourceTree = "<group>"; };
 		EB0FB706270D0AEC00F7810D /* PushSubscriptionOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushSubscriptionOptions.h; sourceTree = "<group>"; };
 		EB0FB707270D0AEC00F7810D /* PushSubscription.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushSubscription.h; sourceTree = "<group>"; };
+		EB1392572D506FE2002DC418 /* ResourceMonitorPersistence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceMonitorPersistence.h; sourceTree = "<group>"; };
+		EB1392582D506FE9002DC418 /* ResourceMonitorPersistence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceMonitorPersistence.cpp; sourceTree = "<group>"; };
 		EB1F62912D19D554000B3A04 /* ResourceMonitorThrottler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceMonitorThrottler.h; sourceTree = "<group>"; };
 		EB1F62922D19D554000B3A04 /* ResourceMonitorThrottler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceMonitorThrottler.cpp; sourceTree = "<group>"; };
 		EB28ED412717ABA9005F0393 /* PushSubscriptionData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushSubscriptionData.h; sourceTree = "<group>"; };
@@ -20996,6 +21000,8 @@
 		EBB9738027100654007732EF /* PushManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushManager.h; sourceTree = "<group>"; };
 		EBC470752D076C9D0026A5C3 /* ResourceMonitorChecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceMonitorChecker.h; sourceTree = "<group>"; };
 		EBC470762D076C9D0026A5C3 /* ResourceMonitorChecker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceMonitorChecker.cpp; sourceTree = "<group>"; };
+		EBDEDDFD2D64569A00F27038 /* ResourceMonitorThrottlerHolder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceMonitorThrottlerHolder.h; sourceTree = "<group>"; };
+		EBDEDDFE2D64569A00F27038 /* ResourceMonitorThrottlerHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceMonitorThrottlerHolder.cpp; sourceTree = "<group>"; };
 		EBE095E3277D14C700804D61 /* PushSubscriptionIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushSubscriptionIdentifier.h; sourceTree = "<group>"; };
 		EBE5B224245A26EE003A5A88 /* SQLiteStatementAutoResetScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SQLiteStatementAutoResetScope.h; sourceTree = "<group>"; };
 		EBE5B227245A29CF003A5A88 /* SQLiteStatementAutoResetScope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SQLiteStatementAutoResetScope.cpp; sourceTree = "<group>"; };
@@ -35160,8 +35166,12 @@
 				EB7CE1262CFBCFA300BECB13 /* ResourceMonitor.h */,
 				EBC470762D076C9D0026A5C3 /* ResourceMonitorChecker.cpp */,
 				EBC470752D076C9D0026A5C3 /* ResourceMonitorChecker.h */,
+				EB1392582D506FE9002DC418 /* ResourceMonitorPersistence.cpp */,
+				EB1392572D506FE2002DC418 /* ResourceMonitorPersistence.h */,
 				EB1F62922D19D554000B3A04 /* ResourceMonitorThrottler.cpp */,
 				EB1F62912D19D554000B3A04 /* ResourceMonitorThrottler.h */,
+				EBDEDDFE2D64569A00F27038 /* ResourceMonitorThrottlerHolder.cpp */,
+				EBDEDDFD2D64569A00F27038 /* ResourceMonitorThrottlerHolder.h */,
 				A5CE9F3E1E4C416B001BBE7C /* ResourceTiming.cpp */,
 				A5CE9F3C1E4BC586001BBE7C /* ResourceTiming.h */,
 				CBC2D22D1CE5B77400D1880B /* ResourceTimingInformation.cpp */,
@@ -43855,7 +43865,9 @@
 				5C6D0301265C211B002B64FE /* ResourceLoadTiming.h in Headers */,
 				EB7CE1272CFBCFBE00BECB13 /* ResourceMonitor.h in Headers */,
 				EBC470792D076CCF0026A5C3 /* ResourceMonitorChecker.h in Headers */,
+				EB1392592D507002002DC418 /* ResourceMonitorPersistence.h in Headers */,
 				EB1F62932D19D57A000B3A04 /* ResourceMonitorThrottler.h in Headers */,
+				EBDEDDFF2D6456AB00F27038 /* ResourceMonitorThrottlerHolder.h in Headers */,
 				7EE6846D12D26E3800E79415 /* ResourceRequest.h in Headers */,
 				514C767D0CE923A1007EF3CD /* ResourceRequestBase.h in Headers */,
 				7EE6846F12D26E3800E79415 /* ResourceRequestCFNet.h in Headers */,

@@ -827,9 +827,11 @@ void PageClientImpl::updateImageSource()
 }
 #endif
 
-void PageClientImpl::exitFullScreen()
+void PageClientImpl::exitFullScreen(CompletionHandler<void()>&& completionHandler)
 {
-    [[webView() fullScreenWindowController] exitFullScreen];
+    if (![webView() fullScreenWindowController])
+        return completionHandler();
+    [[webView() fullScreenWindowController] exitFullScreen:WTFMove(completionHandler)];
 }
 
 static UIInterfaceOrientationMask toUIInterfaceOrientationMask(WebCore::ScreenOrientationType orientation)
@@ -864,9 +866,11 @@ void PageClientImpl::beganEnterFullScreen(const IntRect& initialFrame, const Int
     [[webView() fullScreenWindowController] beganEnterFullScreenWithInitialFrame:initialFrame finalFrame:finalFrame];
 }
 
-void PageClientImpl::beganExitFullScreen(const IntRect& initialFrame, const IntRect& finalFrame)
+void PageClientImpl::beganExitFullScreen(const IntRect& initialFrame, const IntRect& finalFrame, CompletionHandler<void()>&& completionHandler)
 {
-    [[webView() fullScreenWindowController] beganExitFullScreenWithInitialFrame:initialFrame finalFrame:finalFrame];
+    if (![webView() fullScreenWindowController])
+        return completionHandler();
+    [[webView() fullScreenWindowController] beganExitFullScreenWithInitialFrame:initialFrame finalFrame:finalFrame completionHandler:WTFMove(completionHandler)];
 }
 
 #endif // ENABLE(FULLSCREEN_API)

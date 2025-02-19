@@ -2671,6 +2671,8 @@ public:
     bool hasAccessibilityActivityForTesting();
 #endif
 
+    bool mainFramePluginOverridesViewScale() const;
+
 private:
     void getWebCryptoMasterKey(CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&&);
     WebPageProxy(PageClient&, WebProcessProxy&, Ref<API::PageConfiguration>&&);
@@ -2866,8 +2868,6 @@ private:
 
     void launchProcess(const WebCore::Site&, ProcessLaunchReason);
     void swapToProvisionalPage(Ref<ProvisionalPageProxy>&&);
-    void didFailToSuspendAfterProcessSwap();
-    void didSuspendAfterProcessSwap();
     void finishAttachingToWebProcess(const WebCore::Site&, ProcessLaunchReason);
 
     RefPtr<API::Navigation> launchProcessForReload();

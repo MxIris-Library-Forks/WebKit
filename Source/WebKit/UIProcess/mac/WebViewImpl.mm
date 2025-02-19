@@ -357,6 +357,7 @@ static void* keyValueObservingContext = &keyValueObservingContext;
     [defaultNotificationCenter addObserver:self selector:@selector(_windowDidChangeScreen:) name:NSWindowDidChangeScreenNotification object:window];
     [defaultNotificationCenter addObserver:self selector:@selector(_windowDidChangeLayerHosting:) name:_NSWindowDidChangeContentsHostedInLayerSurfaceNotification object:window];
     [defaultNotificationCenter addObserver:self selector:@selector(_windowDidChangeOcclusionState:) name:NSWindowDidChangeOcclusionStateNotification object:window];
+    [defaultNotificationCenter addObserver:self selector:@selector(_windowWillClose:) name:NSWindowWillCloseNotification object:window];
 
     [defaultNotificationCenter addObserver:self selector:@selector(_screenDidChangeColorSpace:) name:NSScreenColorSpaceDidChangeNotification object:nil];
 
@@ -403,6 +404,7 @@ static void* keyValueObservingContext = &keyValueObservingContext;
     [defaultNotificationCenter removeObserver:self name:NSWindowDidChangeScreenNotification object:window];
     [defaultNotificationCenter removeObserver:self name:_NSWindowDidChangeContentsHostedInLayerSurfaceNotification object:window];
     [defaultNotificationCenter removeObserver:self name:NSWindowDidChangeOcclusionStateNotification object:window];
+    [defaultNotificationCenter removeObserver:self name:NSWindowWillCloseNotification object:window];
 
     [defaultNotificationCenter removeObserver:self name:NSScreenColorSpaceDidChangeNotification object:nil];
 
@@ -521,6 +523,12 @@ static void* keyValueObservingContext = &keyValueObservingContext;
 {
     if (_impl)
         _impl->windowDidChangeOcclusionState();
+}
+
+- (void)_windowWillClose:(NSNotification *)notification
+{
+    if (_impl)
+        _impl->windowWillClose();
 }
 
 - (void)_screenDidChangeColorSpace:(NSNotification *)notification
@@ -2120,6 +2128,11 @@ void WebViewImpl::windowDidChangeOcclusionState()
 {
     LOG(ActivityState, "WebViewImpl %p (page %llu) windowDidChangeOcclusionState", this, m_page->identifier().toUInt64());
     m_page->activityStateDidChange(WebCore::ActivityState::IsVisible);
+}
+
+void WebViewImpl::windowWillClose()
+{
+    resetSecureInputState();
 }
 
 void WebViewImpl::screenDidChangeColorSpace()

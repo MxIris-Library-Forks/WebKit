@@ -26,7 +26,6 @@ WebProcess/InjectedBundle/API/c/WKBundlePageOverlay.cpp
 WebProcess/InjectedBundle/API/mac/WKDOMInternals.mm
 WebProcess/Network/NetworkProcessConnection.cpp
 WebProcess/Network/webrtc/LibWebRTCNetworkManager.cpp
-WebProcess/Plugins/PDF/PDFPlugin.mm
 WebProcess/Plugins/PDF/UnifiedPDF/UnifiedPDFPlugin.mm
 WebProcess/Plugins/PluginView.cpp
 WebProcess/WebCoreSupport/WebLocalFrameLoaderClient.cpp
@@ -37,7 +36,6 @@ WebProcess/WebPage/ViewGestureGeometryCollector.cpp
 WebProcess/WebPage/WebFrame.cpp
 WebProcess/WebPage/WebPageTesting.cpp
 WebProcess/WebPage/mac/TiledCoreAnimationDrawingArea.mm
-WebProcess/WebPage/mac/WebPageMac.mm
 WebProcess/WebProcess.cpp
 WebProcess/WebStorage/StorageAreaMap.cpp
 WebProcess/cocoa/WebProcessCocoa.mm

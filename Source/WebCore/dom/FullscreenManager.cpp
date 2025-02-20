@@ -85,16 +85,6 @@ Element* FullscreenManager::fullscreenElement() const
     return nullptr;
 }
 
-Document* FullscreenManager::mainFrameDocument()
-{
-    return m_topDocument ? m_topDocument.get() : document().mainFrameDocument();
-}
-
-RefPtr<Document> FullscreenManager::protectedMainFrameDocument()
-{
-    return mainFrameDocument();
-}
-
 // https://fullscreen.spec.whatwg.org/#dom-element-requestfullscreen
 void FullscreenManager::requestFullscreenForElement(Ref<Element>&& element, FullscreenCheckType checkType, CompletionHandler<void(ExceptionOr<void>)>&& completionHandler, HTMLMediaElementEnums::VideoFullscreenMode mode)
 {
@@ -176,9 +166,6 @@ void FullscreenManager::requestFullscreenForElement(Ref<Element>&& element, Full
 
     m_pendingFullscreenElement = RefPtr { element.ptr() };
 
-    // We cache the top document here, so we still have the correct one when we exit fullscreen after navigation.
-    m_topDocument = document().mainFrameDocument();
-
     protectedDocument()->eventLoop().queueTask(TaskSource::MediaElement, [this, weakThis = WeakPtr { *this }, element = WTFMove(element), completionHandler = WTFMove(completionHandler), hasKeyboardAccess, fullscreenElementReadyCheck, handleError, identifier, mode] () mutable {
         if (!weakThis)
             return completionHandler(Exception { ExceptionCode::TypeError });
@@ -230,19 +217,9 @@ void FullscreenManager::requestFullscreenForElement(Ref<Element>&& element, Full
             if (!page || (this->document().hidden() && mode != HTMLMediaElementEnums::VideoFullscreenModeInWindow) || m_pendingFullscreenElement != element.ptr() || !element->isConnected())
                 return handleError("Invalid state when requesting fullscreen."_s, EmitErrorEvent::Yes, WTFMove(completionHandler));
 
-            // Reject previous promise, but continue with current operation.
-            if (m_pendingPromise) {
-                ERROR_LOG(identifier, "Pending operation cancelled by requestFullscreen() call.");
-                m_pendingPromise.reject(Exception { ExceptionCode::TypeError, "Pending operation cancelled by requestFullscreen() call."_s });
-            }
-            m_pendingPromise = WTFMove(completionHandler);
-
             INFO_LOG(identifier, "task - success");
 
-            page->chrome().client().enterFullScreenForElement(element, mode, [weakThis = WeakPtr { *this }] (ExceptionOr<void> result) {
-                if (weakThis)
-                    weakThis->m_pendingPromise.rejectOrResolve(WTFMove(result));
-            });
+            page->chrome().client().enterFullScreenForElement(element, mode, WTFMove(completionHandler));
         });
 
         // 7. Optionally, display a message indicating how the user can exit displaying the context object fullscreen.
@@ -264,7 +241,6 @@ void FullscreenManager::cancelFullscreen()
         // there is a pending task in enterFullscreen(). Cause it to cancel and fire an error
         // by clearing the pending fullscreen element.
         m_pendingFullscreenElement = nullptr;
-        m_pendingPromise.reject(Exception { ExceptionCode::TypeError, "Pending operation cancelled by webkitCancelFullScreen() call."_s });
         INFO_LOG(LOGIDENTIFIER, "Cancelling pending fullscreen request.");
         return;
     }
@@ -286,9 +262,12 @@ void FullscreenManager::cancelFullscreen()
         }
 
         // This triggers finishExitFullscreen with ExitMode::Resize, which fully exits the document.
-        if (RefPtr fullscreenElement = mainFrameDocument->fullscreenManager().fullscreenElement())
-            mainFrameDocument->page()->chrome().client().exitFullScreenForElement(fullscreenElement.get());
-        else
+        if (RefPtr fullscreenElement = mainFrameDocument->fullscreenManager().fullscreenElement()) {
+            mainFrameDocument->page()->chrome().client().exitFullScreenForElement(fullscreenElement.get(), [weakThis = WeakPtr { *this }] {
+                if (weakThis)
+                    weakThis->didExitFullscreen([] (auto) { });
+            });
+        } else
             INFO_LOG(identifier, "Top document has no fullscreen element");
     });
 }
@@ -372,23 +351,22 @@ void FullscreenManager::exitFullscreen(CompletionHandler<void(ExceptionOr<void>)
             return completionHandler({ });
         }
 
-        m_pendingPromise.reject(Exception { ExceptionCode::TypeError, "Pending operation cancelled by exitFullscreen() call."_s });
-        m_pendingPromise = WTFMove(completionHandler);
-
         // Notify the chrome of the new full screen element.
-        if (mode == ExitMode::Resize)
-            page->chrome().client().exitFullScreenForElement(m_fullscreenElement.get());
-        else {
+        if (mode == ExitMode::Resize) {
+            page->chrome().client().exitFullScreenForElement(m_fullscreenElement.get(), [weakThis = WeakPtr { *this }, completionHandler = WTFMove(completionHandler)] mutable {
+                if (weakThis)
+                    weakThis->didExitFullscreen(WTFMove(completionHandler));
+                else
+                    completionHandler({ });
+            });
+        } else {
             finishExitFullscreen(protectedDocument(), ExitMode::NoResize);
 
             m_pendingFullscreenElement = fullscreenElement();
-            if (m_pendingFullscreenElement) {
-                page->chrome().client().enterFullScreenForElement(*m_pendingFullscreenElement, HTMLMediaElementEnums::VideoFullscreenModeStandard, [weakThis = WeakPtr { *this }] (auto result) {
-                    if (weakThis)
-                        weakThis->m_pendingPromise.rejectOrResolve(WTFMove(result));
-                });
-            } else
-                m_pendingPromise.resolve();
+            if (m_pendingFullscreenElement)
+                page->chrome().client().enterFullScreenForElement(*m_pendingFullscreenElement, HTMLMediaElementEnums::VideoFullscreenModeStandard, WTFMove(completionHandler));
+            else
+                completionHandler({ });
         }
     });
 }
@@ -475,7 +453,10 @@ void FullscreenManager::willEnterFullscreen(Element& element, HTMLMediaElementEn
     // issue a cancel fullscreen request to the client
     if (m_pendingFullscreenElement != &element) {
         INFO_LOG(LOGIDENTIFIER, "Pending element mismatch; issuing exit fullscreen request");
-        page()->chrome().client().exitFullScreenForElement(&element);
+        page()->chrome().client().exitFullScreenForElement(&element, [weakThis = WeakPtr { *this }] {
+            if (weakThis)
+                weakThis->didExitFullscreen([] (auto) { });
+        });
         return completionHandler(Exception { ExceptionCode::TypeError, "Element requested for fullscreen has changed."_s });
     }
 
@@ -563,21 +544,12 @@ bool FullscreenManager::willExitFullscreen()
     return true;
 }
 
-bool FullscreenManager::didExitFullscreen()
+void FullscreenManager::didExitFullscreen(CompletionHandler<void(ExceptionOr<void>)>&& completionHandler)
 {
-    auto fullscreenElement = fullscreenOrPendingElement();
-    if (!fullscreenElement) {
-        ERROR_LOG(LOGIDENTIFIER, "No fullscreenOrPendingElement(); bailing");
-        m_pendingExitFullscreen = false;
-        m_pendingPromise.reject(Exception { ExceptionCode::TypeError, "No fullscreen element to exit."_s });
-        return false;
-    }
-
     if (backForwardCacheState() != Document::NotInBackForwardCache) {
         ERROR_LOG(LOGIDENTIFIER, "Document in the BackForwardCache; bailing");
         m_pendingExitFullscreen = false;
-        m_pendingPromise.reject(Exception { ExceptionCode::TypeError });
-        return false;
+        return completionHandler(Exception { ExceptionCode::TypeError });
     }
     INFO_LOG(LOGIDENTIFIER);
 
@@ -586,7 +558,7 @@ bool FullscreenManager::didExitFullscreen()
     else
         LOG_ONCE(SiteIsolation, "Unable to fully perform FullscreenManager::didExitFullscreen() without access to the main frame document ");
 
-    if (fullscreenElement)
+    if (auto fullscreenElement = fullscreenOrPendingElement())
         fullscreenElement->didStopBeingFullscreenElement();
 
     m_areKeysEnabledInFullscreen = false;
@@ -595,8 +567,7 @@ bool FullscreenManager::didExitFullscreen()
     m_pendingFullscreenElement = nullptr;
     m_pendingExitFullscreen = false;
 
-    m_pendingPromise.resolve();
-    return true;
+    completionHandler({ });
 }
 
 // https://fullscreen.spec.whatwg.org/#run-the-fullscreen-steps
@@ -692,7 +663,6 @@ void FullscreenManager::clear()
 {
     m_fullscreenElement = nullptr;
     m_pendingFullscreenElement = nullptr;
-    m_pendingPromise.clear();
 }
 
 void FullscreenManager::emptyEventQueue()
@@ -732,46 +702,6 @@ WTFLogChannel& FullscreenManager::logChannel() const
 
 }
 #endif
-
-FullscreenManager::FullscreenPromise::~FullscreenPromise()
-{
-    clear();
-}
-
-auto FullscreenManager::FullscreenPromise::operator=(CompletionHandler<void(ExceptionOr<void>)>&& promise) -> FullscreenPromise&
-{
-    m_promise = WTFMove(promise);
-    return *this;
-}
-
-void FullscreenManager::FullscreenPromise::clear()
-{
-    if (m_promise)
-        m_promise(Exception { ExceptionCode::InvalidStateError });
-}
-
-void FullscreenManager::FullscreenPromise::resolve()
-{
-    if (m_promise)
-        m_promise({ });
-}
-
-void FullscreenManager::FullscreenPromise::rejectOrResolve(ExceptionOr<void> result)
-{
-    if (m_promise)
-        m_promise(WTFMove(result));
-}
-
-void FullscreenManager::FullscreenPromise::reject(Exception exception)
-{
-    if (m_promise)
-        m_promise(WTFMove(exception));
-}
-
-FullscreenManager::FullscreenPromise::operator bool() const
-{
-    return !!m_promise;
-}
 
 }
 

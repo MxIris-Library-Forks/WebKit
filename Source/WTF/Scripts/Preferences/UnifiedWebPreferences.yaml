@@ -3396,7 +3396,7 @@ GraphicsContextFiltersEnabled:
 
 HDRForImagesEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: media
   webcoreOnChange: setNeedsRelayoutAllFrames
   humanReadableName: "HDR for Images Support"
@@ -6470,7 +6470,8 @@ ScreenOrientationLockingAPIEnabled:
 
 ScreenTimeEnabled:
   type: bool
-  status: unstable
+  status: internal
+  defaultsOverridable: true
   condition: ENABLE(SCREEN_TIME)
   humanReadableName: "Screen Time"
   humanReadableDescription: "Enable Screen Time"

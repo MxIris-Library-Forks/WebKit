@@ -11,7 +11,6 @@ Shared/Cocoa/APIObject.mm
 Shared/ContextMenuContextData.cpp
 Shared/WebContextMenuItem.cpp
 Shared/WebHitTestResultData.cpp
-UIProcess/API/APIHTTPCookieStore.cpp
 UIProcess/API/C/WKContext.cpp
 UIProcess/API/C/WKContextMenuListener.cpp
 UIProcess/API/C/WKFrame.cpp
@@ -25,9 +24,7 @@ UIProcess/API/Cocoa/WKBrowsingContextController.mm
 UIProcess/API/Cocoa/WKDownload.mm
 UIProcess/API/Cocoa/WKFrameInfo.mm
 UIProcess/API/Cocoa/WKNSURLAuthenticationChallenge.mm
-UIProcess/API/Cocoa/WKNavigationAction.mm
 UIProcess/API/Cocoa/WKProcessPool.mm
-UIProcess/API/Cocoa/WKWebView.mm
 UIProcess/API/Cocoa/WKWebViewTesting.mm
 UIProcess/API/Cocoa/_WKDataTask.mm
 UIProcess/API/Cocoa/_WKDownload.mm
@@ -106,7 +103,6 @@ WebProcess/WebPage/EventDispatcher.cpp
 WebProcess/WebPage/FindController.cpp
 WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemote.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeContext.mm
-WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeDrawingArea.mm
 WebProcess/WebPage/ViewGestureGeometryCollector.cpp
 WebProcess/WebPage/ViewUpdateDispatcher.cpp
 WebProcess/WebPage/WebFrame.cpp

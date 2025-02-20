@@ -1,6 +1,5 @@
 AutomationProtocolObjects.h
 NetworkProcess/Downloads/cocoa/DownloadCocoa.mm
-NetworkProcess/cocoa/WebSocketTaskCocoa.mm
 Platform/cocoa/CocoaHelpers.mm
 Shared/API/APIArray.h
 Shared/API/APIDictionary.h
@@ -14,7 +13,6 @@ Shared/UserData.cpp
 UIProcess/API/C/WKPage.cpp
 UIProcess/API/Cocoa/WKDownload.mm
 UIProcess/API/Cocoa/WKNSURLAuthenticationChallenge.mm
-UIProcess/API/Cocoa/WKWebView.mm
 UIProcess/API/Cocoa/WKWebViewConfiguration.mm
 UIProcess/API/Cocoa/WKWebsiteDataStore.mm
 UIProcess/API/Cocoa/_WKDataTask.mm
@@ -31,7 +29,6 @@ WebProcess/Plugins/PluginView.cpp
 WebProcess/WebCoreSupport/WebLocalFrameLoaderClient.cpp
 WebProcess/WebCoreSupport/WebLocalFrameLoaderClient.h
 WebProcess/WebPage/RemoteLayerTree/GraphicsLayerCARemote.mm
-WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeDrawingArea.mm
 WebProcess/WebPage/ViewGestureGeometryCollector.cpp
 WebProcess/WebPage/WebFrame.cpp
 WebProcess/WebPage/WebPageTesting.cpp

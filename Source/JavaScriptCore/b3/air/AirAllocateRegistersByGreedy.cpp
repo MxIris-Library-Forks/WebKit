@@ -581,6 +581,7 @@ public:
 
     void run()
     {
+        // FIXME: reconsider use of padIntereference, https://bugs.webkit.org/show_bug.cgi?id=288122
         padInterference(m_code);
         buildRegisterSets();
         buildIndices();
@@ -745,8 +746,16 @@ private:
     {
         if (!Options::airValidateGreedRegAlloc())
             return;
-
         bool anyFailures = false;
+
+        auto fail = [&](BasicBlock* block, Tmp a, Tmp b) {
+            dataLogLn("AIR GREEDY REGISTER ALLOCATION VALIDATION FAILURE");
+            dataLogLn("   In BB", *block);
+            dataLogLn("     tmp = ", a, " : ", m_map[a]);
+            dataLogLn("     tmp = ", b, " : ", m_map[b]);
+            anyFailures = true;
+        };
+
         auto checkConflicts = [&](BasicBlock* block, const typename TmpLiveness<bank>::LocalCalc& localCalc) {
             for (Tmp a : localCalc.live()) {
                 Tmp aGrp = groupForTmp(a);
@@ -755,17 +764,17 @@ private:
                     continue;
                 for (Tmp b : localCalc.live()) {
                     Tmp bGrp = groupForTmp(b);
-                    if (aGrp == bGrp || bGrp)
-                        continue;
                     Reg bReg = assignedReg(b);
-                    if (!bReg)
-                        continue;
-                    if (aReg == bReg) {
-                        dataLogLn("AIR GREEDY REGISTER ALLOCATION VALIDATION FAILURE");
-                        dataLogLn("   In BB", *block);
-                        dataLogLn("     tmp = ", a, " : ", m_map[a]);
-                        dataLogLn("     tmp = ", b, " : ", m_map[b]);
-                        anyFailures = true;
+                    if (aGrp == bGrp) {
+                        // Coalesced a & b so they better have the same register.
+                        if (aReg != bReg)
+                            fail(block, a, b);
+                    } else {
+                        // a & b interfere so b must either have been spilled or assigned a different register.
+                        if (!bReg)
+                            continue;
+                        if (aReg == bReg)
+                            fail(block, a, b);
                     }
                 }
             }
@@ -832,9 +841,19 @@ private:
             return mayBeCoalescable(inst) ? inst.args[0].tmp() : Tmp();
         };
 
+        auto isLiveAt = [&](Tmp tmp, Point point) {
+            if (activeIntervals[tmp])
+                return true;
+            // Tmp may have had a dead def at point (e.g. clobber).
+            auto& intervals = m_map[tmp].liveRange.intervals();
+            if (intervals.isEmpty())
+                return false;
+            return intervals.first().contains(point);
+        };
+
         // Remove def from any coalescable pair of a live tmp. We now know from liveness analysis
         // that these pairs are not coalescable.
-        auto pruneCoalescable = [&](Inst& inst, Tmp def) {
+        auto pruneCoalescable = [&](Inst& inst, Tmp def, Point point) {
             TmpData& defData = m_map[def];
             if (!defData.coalescables.size())
                 return;
@@ -842,7 +861,7 @@ private:
             dataLogLnIf(verbose(), "Checking affinity ", inst, " def=", def, " movSrc=", movSrc);
             defData.coalescables.removeAllMatching([&](TmpData::CoalescableWith& with) {
                 ASSERT(with.tmp != def);
-                if (with.tmp != movSrc && activeIntervals[with.tmp]) {
+                if (with.tmp != movSrc && isLiveAt(with.tmp, point)) {
                     dataLogLnIf(verbose(), "Pruning affinity ", def, " ", with.tmp);
                     m_map[with.tmp].coalescables.removeAllMatching([def](TmpData::CoalescableWith& with) {
                         return with.tmp == def;
@@ -886,6 +905,7 @@ private:
         // Second pass: Run liveness analysis and build the LiveRange for each Tmp. Also,
         // prune conflicts from the coalescables.
         BasicBlock* blockAfter = nullptr;
+        Vector<Tmp, 8> earlyUses, earlyDefs, lateUses, lateDefs;
         for (size_t blockIndex = m_code.size(); blockIndex--;) {
             BasicBlock* block = m_code[blockIndex];
             if (!block)
@@ -919,23 +939,34 @@ private:
                 Inst& inst = block->at(instIndex);
                 Point positionOfEarly = positionOfHead + instIndex * pointsPerInst;
 
+                lateUses.shrink(0);
+                lateDefs.shrink(0);
+                earlyUses.shrink(0);
+                earlyDefs.shrink(0);
                 inst.forEachTmp([&](Tmp& tmp, Arg::Role role, Bank, Width) {
-                    auto& interval = activeIntervals[tmp];
                     if (Arg::isLateUse(role))
-                        interval |= lateInterval(positionOfEarly);
-                    if (Arg::isLateDef(role)) {
-                        interval |= lateInterval(positionOfEarly);
-                        closeInterval(tmp);
-                        pruneCoalescable(inst, tmp);
-                    }
+                        lateUses.append(tmp);
+                    if (Arg::isLateDef(role))
+                        lateDefs.append(tmp);
                     if (Arg::isEarlyUse(role))
-                        interval |= earlyInterval(positionOfEarly);
-                    if (Arg::isEarlyDef(role)) {
-                        interval |= earlyInterval(positionOfEarly);
-                        closeInterval(tmp);
-                        pruneCoalescable(inst, tmp);
-                    }
+                        earlyUses.append(tmp);
+                    if (Arg::isEarlyDef(role))
+                        earlyDefs.append(tmp);
                 });
+                for (Tmp tmp : lateUses)
+                    activeIntervals[tmp] |= lateInterval(positionOfEarly);
+                for (Tmp tmp : lateDefs) {
+                    activeIntervals[tmp] |= lateInterval(positionOfEarly);
+                    closeInterval(tmp);
+                    pruneCoalescable(inst, tmp, positionOfEarly + 1);
+                }
+                for (Tmp tmp : earlyUses)
+                    activeIntervals[tmp] |= earlyInterval(positionOfEarly);
+                for (Tmp tmp : earlyDefs) {
+                    activeIntervals[tmp] |= earlyInterval(positionOfEarly);
+                    closeInterval(tmp);
+                    pruneCoalescable(inst, tmp, positionOfEarly);
+                }
                 if (inst.kind.opcode == Patch) {
                     auto clobberReg = [&](Reg reg, Interval interval) {
                         Tmp tmp = Tmp(reg);
@@ -1135,7 +1166,7 @@ private:
         for (Reg reg : m_allowedRegistersInPriorityOrder[bank])
             m_map[Tmp(reg)].spillCost = unspillableCost;
 
-        // XXX: FIXME: tmps alive only in one gap should be unspillable.
+        // FIXME: tmps alive only in one gap should be unspillable.
         m_code.forEachTmp<bank>([&](Tmp tmp) {
             ASSERT(tmp.bank() == bank);
             ASSERT(!tmp.isReg());
@@ -1254,7 +1285,7 @@ private:
                         setStageAndEnqueue(tmp, tmpData, Stage::Spill);
                     continue;
                 case Stage::Spill:
-                    ASSERT(queueContainsOnlySpills()); // XXX: remove
+                    ASSERT(queueContainsOnlySpills()); // FIXME: remove
                     spill(tmp, tmpData);
                     continue;
                 case Stage::Unspillable:
@@ -1528,7 +1559,9 @@ private:
         for (Interval hole : holeRange.intervals()) {
             BasicBlock* block = findBlockContainingPoint(hole.begin());
             float freq = 2 * adjustedBlockFrequency(block);
-            ASSERT(hole.begin() > positionOfHead(block)); // padInterference() ensures this
+            // padInterference() ensures this.
+            // FIXME: reconsider that, see https://bugs.webkit.org/show_bug.cgi?id=288122
+            ASSERT(hole.begin() > positionOfHead(block));
             // Model gapTmp interference with any other tmp split at this location by starting
             // the gapTmp's range one position before the hole. Otherwise, the same register
             // may be chosen for the gapTmp and another splitTmp, which wouldn't be valid
@@ -1721,6 +1754,14 @@ private:
                     Tmp tmp = addSpillTmpWithInterval(scratchForTmp, intervalForSpill(indexOfEarly, Arg::Scratch));
                     inst.args.append(tmp);
                     RELEASE_ASSERT(inst.args.size() == 3);
+                    // WTF::Liveness and Air::LivenessAdapter do not handle a late-def/use followed by early-def
+                    // correctly. While this register allocator does handle it correctly (since it models distinct
+                    // late and early points between instructions (i.e. intervalForSpill() won't overlap for different
+                    // scratch Tmps)), insert a Nop so that subsequent liveness analysis correctly compute lifetime interference
+                    // when there are back-to-back Move spill-spill-scratch instructions (scratch is early-def, late-use).
+                    // See https://bugs.webkit.org/show_bug.cgi?id=163548#c2 for more info.
+                    // FIXME: reconsider this, https://bugs.webkit.org/show_bug.cgi?id=288122
+                    m_insertionSets[block].insert(instIndex, spillLoad, Nop, inst.origin);
                     continue;
                 }
 
@@ -1739,7 +1780,6 @@ private:
                         return;
 
                     Arg arg = Arg::stack(spilled);
-                    // FIXME: try rematerialize
                     if (Arg::isAnyUse(role)) {
                         auto tryRematerialize = [&]() {
                             if constexpr (bank == GP) {

@@ -226,6 +226,7 @@
 #include <WebCore/HTMLFormElement.h>
 #include <WebCore/HTMLImageElement.h>
 #include <WebCore/HTMLInputElement.h>
+#include <WebCore/HTMLModelElement.h>
 #include <WebCore/HTMLPlugInElement.h>
 #include <WebCore/HTMLSelectElement.h>
 #include <WebCore/HTMLTextFormControlElement.h>
@@ -3509,10 +3510,10 @@ void WebPage::didDismissContextMenu()
     corePage()->contextMenuController().didDismissContextMenu();
 }
 
-void WebPage::showContextMenuFromFrame(const WebCore::FrameIdentifier& frameID, const ContextMenuContextData& contextMenuContextData, const UserData& userData)
+void WebPage::showContextMenuFromFrame(const FrameInfoData& frameInfo, const ContextMenuContextData& contextMenuContextData, const UserData& userData)
 {
     flushPendingEditorStateUpdate();
-    send(Messages::WebPageProxy::ShowContextMenuFromFrame(frameID, contextMenuContextData, userData));
+    send(Messages::WebPageProxy::ShowContextMenuFromFrame(frameInfo, contextMenuContextData, userData));
     m_hasEverDisplayedContextMenu = true;
     scheduleFullEditorStateUpdate();
 }
@@ -5580,6 +5581,29 @@ void WebPage::dragCancelled()
 
 #endif // ENABLE(DRAG_SUPPORT)
 
+#if ENABLE(MODEL_PROCESS)
+void WebPage::requestInteractiveModelElementAtPoint(IntPoint clientPosition)
+{
+    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame())) {
+        auto elementID = localMainFrame->eventHandler().requestInteractiveModelElementAtPoint(clientPosition);
+        send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(elementID));
+    } else
+        send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(std::nullopt));
+}
+
+void WebPage::stageModeSessionDidUpdate(std::optional<ElementIdentifier> elementID, const TransformationMatrix& transform)
+{
+    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
+        localMainFrame->eventHandler().stageModeSessionDidUpdate(elementID, transform);
+}
+
+void WebPage::stageModeSessionDidEnd(std::optional<ElementIdentifier> elementID)
+{
+    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
+        localMainFrame->eventHandler().stageModeSessionDidEnd(elementID);
+}
+#endif
+
 WebUndoStep* WebPage::webUndoStep(WebUndoStepID stepID)
 {
     return m_undoStepMap.get(stepID);
@@ -5938,9 +5962,9 @@ Ref<MediaKeySystemPermissionRequestManager> WebPage::protectedMediaKeySystemPerm
     return m_mediaKeySystemPermissionRequestManager.get();
 }
 
-void WebPage::mediaKeySystemWasGranted(MediaKeySystemRequestIdentifier mediaKeySystemID)
+void WebPage::mediaKeySystemWasGranted(MediaKeySystemRequestIdentifier mediaKeySystemID, String&& mediaKeysHashSalt)
 {
-    protectedMediaKeySystemPermissionRequestManager()->mediaKeySystemWasGranted(mediaKeySystemID);
+    protectedMediaKeySystemPermissionRequestManager()->mediaKeySystemWasGranted(mediaKeySystemID, WTFMove(mediaKeysHashSalt));
 }
 
 void WebPage::mediaKeySystemWasDenied(MediaKeySystemRequestIdentifier mediaKeySystemID, String&& message)
@@ -7882,6 +7906,10 @@ void WebPage::didCommitLoad(WebFrame* frame)
 
 #if ENABLE(IMAGE_ANALYSIS_ENHANCEMENTS)
     m_elementsToExcludeFromRemoveBackground.clear();
+#endif
+
+#if USE(UICONTEXTMENU)
+    m_hasActiveContextMenuInteraction = false;
 #endif
 
     flushDeferredDidReceiveMouseEvent();

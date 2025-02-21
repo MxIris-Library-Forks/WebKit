@@ -123,6 +123,7 @@
 		072A70401D6E8F6200DF0AFC /* OverconstrainedErrorEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 072A703E1D6E8F6200DF0AFC /* OverconstrainedErrorEvent.h */; };
 		072AE1E5183C0741000A5988 /* PluginReplacement.h in Headers */ = {isa = PBXBuildFile; fileRef = 072AE1DF183C0741000A5988 /* PluginReplacement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		072D3D6B2AAD4FA600ED82C5 /* JSMeteringMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 072D3D692AAD4FA600ED82C5 /* JSMeteringMode.h */; };
+		07354A282CD11FD100D229CB /* MediaSourceConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 07354A272CD11FAC00D229CB /* MediaSourceConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		073794DE19EE2C5200E5A045 /* RTCOfferAnswerOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 073794DC19EE2C5200E5A045 /* RTCOfferAnswerOptions.h */; };
 		073794E619EE2FF200E5A045 /* JSRTCConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 073794E419EE2FF200E5A045 /* JSRTCConfiguration.h */; };
 		073794EC19EE341E00E5A045 /* JSRTCIceServer.h in Headers */ = {isa = PBXBuildFile; fileRef = 073794EA19EE341E00E5A045 /* JSRTCIceServer.h */; };
@@ -7009,6 +7010,7 @@
 		072DBC0525DC6BD300A1350E /* MediaSessionCoordinator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaSessionCoordinator.cpp; sourceTree = "<group>"; };
 		072DBC0625DC6EDA00A1350E /* JSMediaSessionCoordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSMediaSessionCoordinator.h; sourceTree = "<group>"; };
 		072DBC0725DC6EDA00A1350E /* JSMediaSessionCoordinator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSMediaSessionCoordinator.cpp; sourceTree = "<group>"; };
+		07354A272CD11FAC00D229CB /* MediaSourceConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSourceConfiguration.h; sourceTree = "<group>"; };
 		0736B73026094A3700E06994 /* MediaSessionCoordinatorMixin.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSessionCoordinatorMixin.idl; sourceTree = "<group>"; };
 		0736B7322609555400E06994 /* MediaSessionPlaylistMixin.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSessionPlaylistMixin.idl; sourceTree = "<group>"; };
 		0736B733260A7B6400E06994 /* MediaMetadataPlaylistMixin.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaMetadataPlaylistMixin.idl; sourceTree = "<group>"; };
@@ -7067,6 +7069,8 @@
 		074471FF25E180050054B231 /* MediaSessionReadyState.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSessionReadyState.idl; sourceTree = "<group>"; };
 		0744ECEB1E0C4AE5000D0944 /* MockAudioSharedUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MockAudioSharedUnit.h; sourceTree = "<group>"; };
 		0744ECEC1E0C4AE5000D0944 /* MockAudioSharedUnit.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MockAudioSharedUnit.mm; sourceTree = "<group>"; };
+		07466E732CADA7D000F024FA /* TextTrackPrivateMediaSourceAVFObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextTrackPrivateMediaSourceAVFObjC.h; sourceTree = "<group>"; };
+		07466E742CADA7D000F024FA /* TextTrackPrivateMediaSourceAVFObjC.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextTrackPrivateMediaSourceAVFObjC.cpp; sourceTree = "<group>"; };
 		0746D30A2146EA37003DDF84 /* ImageTransferSessionVT.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ImageTransferSessionVT.mm; sourceTree = "<group>"; };
 		0746D30C2146EA38003DDF84 /* ImageTransferSessionVT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageTransferSessionVT.h; sourceTree = "<group>"; };
 		074E82B818A69F0E007EF54C /* PlatformTimeRanges.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlatformTimeRanges.cpp; sourceTree = "<group>"; };
@@ -34100,6 +34104,7 @@
 				079F5E4B0F3BEBEA005E0782 /* MediaPlayerPrivate.h */,
 				512F29252BA2BD6500F1C326 /* MediaResourceSniffer.cpp */,
 				512F29242BA2BD6500F1C326 /* MediaResourceSniffer.h */,
+				07354A272CD11FAC00D229CB /* MediaSourceConfiguration.h */,
 				5199AB3E29CD7D950076BDDE /* MediaSourcePrivate.cpp */,
 				CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */,
 				CDDC1E7918A952F30027A9D4 /* MediaSourcePrivateClient.h */,
@@ -36696,6 +36701,8 @@
 				CDF994FB24C12A6A002EA062 /* SourceBufferParserAVFObjC.mm */,
 				CDC8B5A918047FF10016E685 /* SourceBufferPrivateAVFObjC.h */,
 				CDC8B5A818047FF10016E685 /* SourceBufferPrivateAVFObjC.mm */,
+				07466E742CADA7D000F024FA /* TextTrackPrivateMediaSourceAVFObjC.cpp */,
+				07466E732CADA7D000F024FA /* TextTrackPrivateMediaSourceAVFObjC.h */,
 				52D5A18E1C54590300DE34A3 /* VideoLayerManagerObjC.h */,
 				52D5A18D1C54590300DE34A3 /* VideoLayerManagerObjC.mm */,
 				CD336F6517FA0AC600DDDCD0 /* VideoTrackPrivateAVFObjC.cpp */,
@@ -43025,6 +43032,7 @@
 				077BA57A260FAEF80072F19F /* MediaSessionReadyState.h in Headers */,
 				073930DE2AC6478C00C1D1B1 /* MediaSettingsRange.h in Headers */,
 				CD3A495F17A9D01B00274E42 /* MediaSource.h in Headers */,
+				07354A282CD11FD100D229CB /* MediaSourceConfiguration.h in Headers */,
 				5187E8452B79F9690053BFF5 /* MediaSourceHandle.h in Headers */,
 				51547FE52C9296BD00CD402D /* MediaSourceInit.h in Headers */,
 				51DB8C412B7B23B9000AD1BA /* MediaSourceInterfaceMainThread.h in Headers */,

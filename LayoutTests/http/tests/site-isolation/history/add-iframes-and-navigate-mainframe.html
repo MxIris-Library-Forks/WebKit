@@ -5,18 +5,20 @@ description("Verifies that navigating the main frame while adding an iframe only
 jsTestIsAsync = true;
 
 onmessage = () => {
+    onmessage = null;
     setTimeout(() => {
         sessionStorage.didNavigate = true;
         location.href = 'data:text/html,<script> history.back(); <\/script>';
     }, 10);
 }
 
-onload = () => {
+onload = async () => {
     if (sessionStorage.didNavigate) {
         delete sessionStorage.didNavigate;
-        shouldBe("history.length", "3");
+        shouldBe("history.length", "2");
         finishJSTest();
-    } else { 
+    } else {
+        await testRunner?.clearBackForwardList();
         setInterval(() => {
             const iframe = document.createElement('iframe');
             iframe.src = 'http://localhost:8000/site-isolation/resources/green-background.html';

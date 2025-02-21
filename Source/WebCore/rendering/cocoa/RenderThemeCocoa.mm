@@ -35,9 +35,11 @@
 #import "GraphicsContextCG.h"
 #import "HTMLDataListElement.h"
 #import "HTMLInputElement.h"
+#import "HTMLMeterElement.h"
 #import "HTMLOptionElement.h"
 #import "ImageBuffer.h"
 #import "Page.h"
+#import "RenderMeter.h"
 #import "RenderProgress.h"
 #import "RenderSlider.h"
 #import "RenderText.h"
@@ -48,6 +50,7 @@
 #import <algorithm>
 #import <pal/spi/cf/CoreTextSPI.h>
 #import <pal/spi/cocoa/FeatureFlagsSPI.h>
+#import <pal/system/ios/UserInterfaceIdiom.h>
 #import <wtf/Language.h>
 
 #if ENABLE(APPLE_PAY)

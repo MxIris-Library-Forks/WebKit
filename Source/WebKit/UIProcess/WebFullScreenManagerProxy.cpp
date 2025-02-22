@@ -88,16 +88,6 @@ std::optional<SharedPreferencesForWebProcess> WebFullScreenManagerProxy::sharedP
     return dynamicDowncast<WebProcessProxy>(AuxiliaryProcessProxy::fromConnection(connection))->sharedPreferencesForWebProcess();
 }
 
-void WebFullScreenManagerProxy::willEnterFullScreen(CompletionHandler<void(bool)>&& completionHandler)
-{
-    ALWAYS_LOG(LOGIDENTIFIER);
-    m_fullscreenState = FullscreenState::EnteringFullscreen;
-
-    if (RefPtr page = m_page.get())
-        page->fullscreenClient().willEnterFullscreen(page.get());
-    completionHandler(true);
-}
-
 template<typename M> void WebFullScreenManagerProxy::sendToWebProcess(M&& message)
 {
     RefPtr page = m_page.get();
@@ -109,16 +99,16 @@ template<typename M> void WebFullScreenManagerProxy::sendToWebProcess(M&& messag
     fullScreenProcess->send(std::forward<M>(message), page->webPageIDInProcess(*fullScreenProcess));
 }
 
-void WebFullScreenManagerProxy::didEnterFullScreen()
+void WebFullScreenManagerProxy::didEnterFullScreen(CompletionHandler<void(bool)>&& completionHandler)
 {
     ALWAYS_LOG(LOGIDENTIFIER);
     RefPtr page = m_page.get();
     if (!page)
-        return;
+        return completionHandler(false);
 
     m_fullscreenState = FullscreenState::InFullscreen;
     page->fullscreenClient().didEnterFullscreen(page.get());
-    sendToWebProcess(Messages::WebFullScreenManager::DidEnterFullScreen());
+    completionHandler(true);
 
     if (page->isControlledByAutomation()) {
         if (RefPtr automationSession = page->configuration().processPool().automationSession())
@@ -204,7 +194,6 @@ void WebFullScreenManagerProxy::enterFullScreen(IPC::Connection& connection, boo
     m_fullScreenProcess = dynamicDowncast<WebProcessProxy>(AuxiliaryProcessProxy::fromConnection(connection));
     m_blocksReturnToFullscreenFromPictureInPicture = blocksReturnToFullscreenFromPictureInPicture;
 #if PLATFORM(IOS_FAMILY)
-
 #if ENABLE(VIDEO_USES_ELEMENT_FULLSCREEN)
     m_isVideoElement = mediaDetails.type == FullScreenMediaDetails::Type::Video;
 #endif
@@ -215,20 +204,22 @@ void WebFullScreenManagerProxy::enterFullScreen(IPC::Connection& connection, boo
             m_imageBuffer = sharedMemoryBuffer->createSharedBuffer(sharedMemoryBuffer->size());
     }
     m_imageMIMEType = mediaDetails.mimeType;
-#endif // QUICKLOOK_FULLSCREEN
+#endif // ENABLE(QUICKLOOK_FULLSCREEN)
+#endif // PLATFORM(IOS_FAMILY)
 
-    auto mediaDimensions = mediaDetails.mediaDimensions;
-    if (CheckedPtr client = m_client)
-        client->enterFullScreen(mediaDimensions, WTFMove(completionHandler));
-    else
-        completionHandler(false);
-#else
-    UNUSED_PARAM(mediaDetails);
-    if (CheckedPtr client = m_client)
-        client->enterFullScreen(WTFMove(completionHandler));
-    else
-        completionHandler(false);
-#endif
+    CheckedPtr client = m_client;
+    if (!client)
+        return completionHandler(false);
+
+    client->enterFullScreen(mediaDetails.mediaDimensions, [this, protectedThis = Ref { *this }, completionHandler = WTFMove(completionHandler), logIdentifier = LOGIDENTIFIER] (bool success) mutable {
+        ALWAYS_LOG(logIdentifier);
+        if (success) {
+            m_fullscreenState = FullscreenState::EnteringFullscreen;
+            if (RefPtr page = m_page.get())
+                page->fullscreenClient().willEnterFullscreen(page.get());
+        }
+        completionHandler(success);
+    });
 }
 
 #if ENABLE(QUICKLOOK_FULLSCREEN)
@@ -283,15 +274,22 @@ void WebFullScreenManagerProxy::prepareQuickLookImageURL(CompletionHandler<void(
 }
 #endif
 
-void WebFullScreenManagerProxy::beganEnterFullScreen(const IntRect& initialFrame, const IntRect& finalFrame)
+void WebFullScreenManagerProxy::beganEnterFullScreen(const IntRect& initialFrame, const IntRect& finalFrame, CompletionHandler<void(bool)>&& completionHandler)
 {
     RefPtr page = m_page.get();
     if (!page)
-        return;
+        return completionHandler(false);
 
-    page->callAfterNextPresentationUpdate([weakThis = WeakPtr { *this }, initialFrame = initialFrame, finalFrame = finalFrame] {
+    page->callAfterNextPresentationUpdate([weakThis = WeakPtr { *this }, initialFrame, finalFrame, completionHandler = WTFMove(completionHandler)] mutable {
         if (CheckedPtr client = weakThis ? weakThis->m_client : nullptr)
-            client->beganEnterFullScreen(initialFrame, finalFrame);
+            client->beganEnterFullScreen(initialFrame, finalFrame, [weakThis = WTFMove(weakThis), completionHandler = WTFMove(completionHandler)] (bool success) mutable {
+                if (weakThis && success)
+                    weakThis->didEnterFullScreen(WTFMove(completionHandler));
+                else
+                    completionHandler(false);
+            });
+        else
+            completionHandler(false);
     });
 }
 

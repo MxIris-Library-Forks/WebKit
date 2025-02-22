@@ -2582,7 +2582,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
 
     Ref frameState = item->mainFrameState();
     if (protectedPreferences()->siteIsolationEnabled()) {
-        if (RefPtr frame = WebFrameProxy::webFrame(frameItem.frameID())) {
+        if (RefPtr frame = WebFrameProxy::webFrame(frameItem.frameID()); frame && frame->page() == this) {
             process = frame->process();
             frameState = frameItem.copyFrameStateWithChildren();
         }
@@ -8560,6 +8560,23 @@ void WebPageProxy::enterFullscreen()
         return;
 
     playbackSessionModel->enterFullscreen();
+}
+
+void WebPageProxy::setPlayerIdentifierForVideoElement()
+{
+    RefPtr playbackSessionManager = m_playbackSessionManager;
+    if (!playbackSessionManager)
+        return;
+
+    RefPtr controlsManagerInterface = playbackSessionManager->controlsManagerInterface();
+    if (!controlsManagerInterface)
+        return;
+
+    CheckedPtr playbackSessionModel = controlsManagerInterface->playbackSessionModel();
+    if (!playbackSessionModel)
+        return;
+
+    playbackSessionModel->setPlayerIdentifierForVideoElement();
 }
 
 void WebPageProxy::didEnterFullscreen(PlaybackSessionContextIdentifier identifier)
@@ -16203,6 +16220,23 @@ bool WebPageProxy::canStartNavigationSwipeAtLastInteractionLocation() const
     RefPtr client = pageClient();
     return !client || client->canStartNavigationSwipeAtLastInteractionLocation();
 }
+
+#if ENABLE(PDF_PLUGIN)
+void WebPageProxy::pluginDidInstallPDFDocument()
+{
+    resetViewportConfigurationForPDFPluginIfNeeded();
+}
+
+void WebPageProxy::resetViewportConfigurationForPDFPluginIfNeeded()
+{
+#if PLATFORM(IOS_FAMILY)
+    if (mainFramePluginOverridesViewScale()) {
+        if (layoutSizeScaleFactorFromClient() != 1)
+            setViewportConfigurationViewLayoutSize(viewLayoutSize(), 1, minimumEffectiveDeviceWidth());
+    }
+#endif
+}
+#endif
 
 } // namespace WebKit
 

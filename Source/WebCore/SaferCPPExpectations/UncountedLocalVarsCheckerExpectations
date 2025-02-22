@@ -90,7 +90,6 @@ Modules/webdatabase/DatabaseManager.cpp
 Modules/webdatabase/SQLCallbackWrapper.h
 Modules/webdatabase/SQLStatement.cpp
 Modules/websockets/WebSocket.cpp
-Modules/websockets/WorkerThreadableWebSocketChannel.cpp
 Modules/webtransport/WebTransport.cpp
 StyleBuilderGenerated.cpp
 accessibility/AXCoreObject.cpp
@@ -608,7 +607,6 @@ platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/cocoa/controls/ApplePayButtonCocoa.mm
 platform/graphics/coretext/ComplexTextControllerCoreText.mm
 platform/graphics/coretext/GlyphPageCoreText.cpp
-platform/graphics/cv/VideoFrameCV.mm
 platform/graphics/displaylists/DisplayListItem.cpp
 platform/graphics/displaylists/DisplayListItems.cpp
 platform/graphics/displaylists/DisplayListRecorder.cpp

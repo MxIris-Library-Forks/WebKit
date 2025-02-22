@@ -406,7 +406,7 @@ RenderLayer::~RenderLayer()
 RenderLayer::PaintedContentRequest::PaintedContentRequest(const RenderLayer& owningLayer)
 {
 #if HAVE(SUPPORT_HDR_DISPLAY)
-    if (owningLayer.page().canDrawHDRContents())
+    if (owningLayer.page().canDrawHDRContent())
         makePaintedHDRContentUnknown();
 #else
     UNUSED_PARAM(owningLayer);
@@ -4476,7 +4476,7 @@ static RefPtr<Element> flattenedParent(Element* element)
         return nullptr;
     RefPtr parent = element->parentElementInComposedTree();
     while (parent) {
-        if (parent->computedStyle()->display() != DisplayType::Contents)
+        if (!parent->isConnected() || parent->computedStyle()->display() != DisplayType::Contents)
             break;
         parent = parent->parentElementInComposedTree();
     }

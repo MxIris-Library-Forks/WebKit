@@ -138,6 +138,8 @@ static void makeResponderFirstResponderIfDescendantOfView(NSWindow *window, NSRe
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
+    if (_enterFullScreenCompletionHandler)
+        _enterFullScreenCompletionHandler(false);
     if (_beganExitFullScreenCompletionHandler)
         _beganExitFullScreenCompletionHandler();
     if (_exitFullScreenCompletionHandler)
@@ -225,14 +227,13 @@ static RetainPtr<CGImageRef> createImageWithCopiedData(CGImageRef sourceImage)
     return adoptCF(CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, bitmapInfo, provider.get(), 0, shouldInterpolate, intent));
 }
 
-- (void)enterFullScreen:(NSScreen *)screen completionHandler:(CompletionHandler<void(bool)>&&)completionHandler
+- (void)enterFullScreen:(CompletionHandler<void(bool)>&&)completionHandler
 {
     if ([self isFullScreen])
         return completionHandler(false);
     _fullScreenState = WaitingToEnterFullScreen;
 
-    if (!screen)
-        screen = [NSScreen mainScreen];
+    NSScreen *screen = [NSScreen mainScreen];
 
     NSRect screenFrame = WebCore::safeScreenFrame(screen);
     NSRect webViewFrame = convertRectToScreen([_webView window], [_webView convertRect:[_webView frame] toView:nil]);
@@ -281,13 +282,14 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     _savedScale = _page->pageScaleFactor();
     _page->scalePageRelativeToScrollPosition(1, { });
     [self _manager]->setAnimatingFullScreen(true);
-    [self _manager]->willEnterFullScreen(WTFMove(completionHandler));
+    completionHandler(true);
 }
 
-- (void)beganEnterFullScreenWithInitialFrame:(NSRect)initialFrame finalFrame:(NSRect)finalFrame
+- (void)beganEnterFullScreenWithInitialFrame:(NSRect)initialFrame finalFrame:(NSRect)finalFrame completionHandler:(CompletionHandler<void(bool)>&&)completionHandler
 {
     if (_fullScreenState != WaitingToEnterFullScreen)
-        return;
+        return completionHandler(false);
+    _enterFullScreenCompletionHandler = WTFMove(completionHandler);
     _fullScreenState = EnteringFullScreen;
 
     _initialFrame = initialFrame;
@@ -335,7 +337,8 @@ static const float minVideoWidth = 468; // Keep in sync with `--controls-bar-wid
     if (completed) {
         _fullScreenState = InFullScreen;
 
-        [self _manager]->didEnterFullScreen();
+        if (_enterFullScreenCompletionHandler)
+            _enterFullScreenCompletionHandler(true);
         [self _manager]->setAnimatingFullScreen(false);
         _page->setSuppressVisibilityUpdates(false);
 

@@ -59,6 +59,7 @@ typedef enum FullScreenState : NSInteger FullScreenState;
     RetainPtr<NSArray> _savedConstraints;
 
     FullScreenState _fullScreenState;
+    CompletionHandler<void(bool)> _enterFullScreenCompletionHandler;
     CompletionHandler<void()> _beganExitFullScreenCompletionHandler;
     CompletionHandler<void()> _exitFullScreenCompletionHandler;
 
@@ -76,12 +77,12 @@ typedef enum FullScreenState : NSInteger FullScreenState;
 
 - (BOOL)isFullScreen;
 
-- (void)enterFullScreen:(NSScreen *)screen completionHandler:(CompletionHandler<void(bool)>&&)completionHandler;
+- (void)enterFullScreen:(CompletionHandler<void(bool)>&&)completionHandler;
 - (void)exitFullScreen:(CompletionHandler<void()>&&)completionHandler;
 - (void)exitFullScreenImmediately;
 - (void)requestExitFullScreen;
 - (void)close;
-- (void)beganEnterFullScreenWithInitialFrame:(NSRect)initialFrame finalFrame:(NSRect)finalFrame;
+- (void)beganEnterFullScreenWithInitialFrame:(NSRect)initialFrame finalFrame:(NSRect)finalFrame completionHandler:(CompletionHandler<void(bool)>&&)completionHandler;
 - (void)beganExitFullScreenWithInitialFrame:(NSRect)initialFrame finalFrame:(NSRect)finalFrame completionHandler:(CompletionHandler<void()>&&)completionHandler;
 
 - (void)videoControlsManagerDidChange;

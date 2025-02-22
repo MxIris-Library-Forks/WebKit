@@ -9222,7 +9222,7 @@ IGNORE_CLANG_WARNINGS_END
 
             LValue fastImmutableButterflyValue = allocateVariableSizedCell<JSImmutableButterfly>(
                 m_out.constIntPtr(JSImmutableButterfly::allocationSize(immutableButterfly->length())),
-                m_graph.m_vm.immutableButterflyStructures[arrayIndexFromIndexingType(CopyOnWriteArrayWithContiguous) - NumberOfIndexingShapes].get(), slowAllocation);
+                m_graph.m_vm.immutableButterflyStructure(CopyOnWriteArrayWithContiguous), slowAllocation);
             LValue fastImmutableButterflyStorage = toButterfly(fastImmutableButterflyValue);
             m_out.store32(m_out.constInt32(immutableButterfly->length()), fastImmutableButterflyStorage, m_heaps.Butterfly_publicLength);
             m_out.store32(m_out.constInt32(immutableButterfly->length()), fastImmutableButterflyStorage, m_heaps.Butterfly_vectorLength);
@@ -9275,7 +9275,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.branch(m_out.above(length, m_out.constInt32(MAX_STORAGE_VECTOR_LENGTH)), rarely(slowAllocation), usually(fastAllocation));
 
             LBasicBlock lastNext = m_out.appendTo(fastAllocation, slowAllocation);
-            LValue fastArrayValue = allocateVariableSizedCell<JSImmutableButterfly>(size, m_graph.m_vm.immutableButterflyStructures[arrayIndexFromIndexingType(CopyOnWriteArrayWithContiguous) - NumberOfIndexingShapes].get(), slowAllocation);
+            LValue fastArrayValue = allocateVariableSizedCell<JSImmutableButterfly>(size, m_graph.m_vm.immutableButterflyStructure(CopyOnWriteArrayWithContiguous), slowAllocation);
             LValue fastArrayStorage = toButterfly(fastArrayValue);
             m_out.store32(length, fastArrayStorage, m_heaps.Butterfly_vectorLength);
             m_out.store32(length, fastArrayStorage, m_heaps.Butterfly_publicLength);
@@ -9349,7 +9349,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.branch(m_out.above(length, m_out.constInt32(MAX_STORAGE_VECTOR_LENGTH)), rarely(slowPath), usually(fastPath));
 
             m_out.appendTo(fastPath, loopSelection);
-            LValue fastAllocation = allocateVariableSizedCell<JSImmutableButterfly>(size, m_graph.m_vm.immutableButterflyStructures[arrayIndexFromIndexingType(CopyOnWriteArrayWithContiguous) - NumberOfIndexingShapes].get(), slowPath);
+            LValue fastAllocation = allocateVariableSizedCell<JSImmutableButterfly>(size, m_graph.m_vm.immutableButterflyStructure(CopyOnWriteArrayWithContiguous), slowPath);
             LValue fastStorage = toButterfly(fastAllocation);
             m_out.store32(length, fastStorage, m_heaps.Butterfly_vectorLength);
             m_out.store32(length, fastStorage, m_heaps.Butterfly_publicLength);
@@ -13774,13 +13774,13 @@ IGNORE_CLANG_WARNINGS_END
                 m_out.branch(isInt32(argument, provenType(m_node->child1())), unsure(continuation), unsure(notInt32NumberCase));
 
                 LBasicBlock lastNext = m_out.appendTo(notInt32NumberCase, continuation);
-                ValueFromBlock slowResult = m_out.anchor(m_out.castToInt32(vmCall(Int64, operationIsNaN, weakPointer(globalObject), argument)));
+                ValueFromBlock slowResult = m_out.anchor(vmCall(Int32, operationIsNaN, weakPointer(globalObject), argument));
                 m_out.jump(continuation);
 
                 m_out.appendTo(continuation, lastNext);
                 setBoolean(m_out.phi(Int32, fastResult, slowResult));
             } else
-                setBoolean(m_out.castToInt32(vmCall(Int64, operationIsNaN, weakPointer(globalObject), argument)));
+                setBoolean(vmCall(Int32, operationIsNaN, weakPointer(globalObject), argument));
             break;
         }
         default:
@@ -13808,13 +13808,13 @@ IGNORE_CLANG_WARNINGS_END
                 m_out.branch(isInt32(argument, provenType(m_node->child1())), unsure(continuation), unsure(notInt32NumberCase));
 
                 LBasicBlock lastNext = m_out.appendTo(notInt32NumberCase, continuation);
-                ValueFromBlock slowResult = m_out.anchor(m_out.castToInt32(vmCall(Int64, operationNumberIsNaN, argument)));
+                ValueFromBlock slowResult = m_out.anchor(vmCall(Int32, operationNumberIsNaN, argument));
                 m_out.jump(continuation);
 
                 m_out.appendTo(continuation, lastNext);
                 setBoolean(m_out.phi(Int32, fastResult, slowResult));
             } else
-                setBoolean(m_out.castToInt32(vmCall(Int64, operationNumberIsNaN, argument)));
+                setBoolean(vmCall(Int32, operationNumberIsNaN, argument));
             break;
         }
         default:

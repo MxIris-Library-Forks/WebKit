@@ -333,6 +333,11 @@ void UnifiedPDFPlugin::installPDFDocument()
     }
 
     sizeToFitContentsIfNeeded();
+
+    RefPtr frame = m_frame.get();
+    if (!frame || !frame->page())
+        return;
+    frame->protectedPage()->send(Messages::WebPageProxy::PluginDidInstallPDFDocument());
 }
 
 bool UnifiedPDFPlugin::shouldSizeToFitContent() const
@@ -354,7 +359,6 @@ void UnifiedPDFPlugin::sizeToFitContentsIfNeeded()
 
     auto size = contentsSize();
     Ref pluginElement = m_view->pluginElement();
-    pluginElement->setInlineStyleProperty(CSSPropertyWidth, size.width(), CSSUnitType::CSS_PX);
     pluginElement->setInlineStyleProperty(CSSPropertyHeight, size.height(), CSSUnitType::CSS_PX);
 }
 
@@ -1989,7 +1993,7 @@ bool UnifiedPDFPlugin::handleMouseEvent(const WebMouseEvent& event)
                     if (!frame || !frame->coreLocalFrame())
                         return true;
 #if USE(UICONTEXTMENU)
-                    if (RefPtr webPage = frame->page(); webPage->hasActiveContextMenuInteraction())
+                    if (RefPtr webPage = frame->page(); webPage && webPage->hasActiveContextMenuInteraction())
                         return false;
 #endif
                     auto immediateActionStage = frame->protectedCoreLocalFrame()->checkedEventHandler()->immediateActionStage();
@@ -4488,6 +4492,22 @@ bool UnifiedPDFPlugin::shouldUseInProcessBackingStore() const
 bool UnifiedPDFPlugin::layerNeedsPlatformContext(const GraphicsLayer* layer) const
 {
     return !shouldUseInProcessBackingStore() && (layer == layerForHorizontalScrollbar() || layer == layerForVerticalScrollbar() || layer == layerForScrollCorner());
+}
+
+ViewportConfiguration::Parameters UnifiedPDFPlugin::viewportParameters()
+{
+    ViewportConfiguration::Parameters parameters;
+    parameters.width = ViewportArguments::ValueDeviceWidth;
+    parameters.widthIsSet = true;
+    parameters.allowsUserScaling = true;
+    parameters.allowsShrinkToFit = false;
+    parameters.minimumScale = minimumZoomScale;
+    parameters.maximumScale = maximumZoomScale;
+    parameters.initialScale = 1;
+    parameters.initialScaleIgnoringLayoutScaleFactor = 1;
+    parameters.initialScaleIsSet = true;
+    parameters.shouldHonorMinimumEffectiveDeviceWidthFromClient = false;
+    return parameters;
 }
 
 TextStream& operator<<(TextStream& ts, RepaintRequirement requirement)

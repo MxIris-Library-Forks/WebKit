@@ -1212,22 +1212,19 @@ void WKPageSetFullScreenClientForTesting(WKPageRef pageRef, const WKPageFullScre
         void closeFullScreenManager() override { }
         bool isFullScreen() override { return false; }
 
-        void enterFullScreen(
-#if PLATFORM(IOS_FAMILY)
-            WebCore::FloatSize,
-#endif
-            CompletionHandler<void(bool)>&& completionHandler) override
+        void enterFullScreen(WebCore::FloatSize, CompletionHandler<void(bool)>&& completionHandler) override
         {
             if (!m_client.willEnterFullScreen)
                 return completionHandler(false);
             completionHandler(m_client.willEnterFullScreen(toAPI(m_page.get()), m_client.base.clientInfo));
         }
 
-        void beganEnterFullScreen(const WebCore::IntRect& initialFrame, const WebCore::IntRect& finalFrame) override
+        void beganEnterFullScreen(const WebCore::IntRect& initialFrame, const WebCore::IntRect& finalFrame, CompletionHandler<void(bool)>&& completionHandler) override
         {
             if (!m_client.beganEnterFullScreen)
-                return;
+                return completionHandler(false);
             m_client.beganEnterFullScreen(toAPI(m_page.get()), toAPI(initialFrame), toAPI(finalFrame), m_client.base.clientInfo);
+            completionHandler(true);
         }
 
         void exitFullScreen(CompletionHandler<void()>&& completionHandler) override
@@ -1257,15 +1254,6 @@ void WKPageSetFullScreenClientForTesting(WKPageRef pageRef, const WKPageFullScre
     toImpl(pageRef)->setFullScreenClientForTesting(WTFMove(fullscreenClient));
 #else
     UNUSED_PARAM(client);
-#endif
-}
-
-void WKPageDidEnterFullScreen(WKPageRef pageRef)
-{
-    CRASH_IF_SUSPENDED;
-#if ENABLE(FULLSCREEN_API)
-    if (RefPtr manager = toImpl(pageRef)->fullScreenManager())
-        manager->didEnterFullScreen();
 #endif
 }
 

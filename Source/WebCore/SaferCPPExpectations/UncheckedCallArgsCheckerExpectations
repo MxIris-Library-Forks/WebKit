@@ -41,7 +41,6 @@ page/EventHandler.cpp
 page/FrameSnapshotting.cpp
 page/IntersectionObserver.cpp
 page/LocalFrameView.cpp
-page/LocalFrameViewLayoutContext.cpp
 page/NavigateEvent.cpp
 page/PageColorSampler.cpp
 page/PageConsoleClient.cpp
@@ -75,7 +74,6 @@ rendering/RenderElement.cpp
 rendering/RenderEmbeddedObject.cpp
 rendering/RenderLayer.cpp
 rendering/RenderLayerBacking.cpp
-rendering/RenderLayerCompositor.cpp
 rendering/RenderLayerModelObject.cpp
 rendering/RenderListBox.cpp
 rendering/RenderMenuList.cpp

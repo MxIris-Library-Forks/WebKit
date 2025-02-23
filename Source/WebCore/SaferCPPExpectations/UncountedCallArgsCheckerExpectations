@@ -306,7 +306,6 @@ bindings/js/CachedModuleScriptLoader.cpp
 bindings/js/CommonVM.cpp
 bindings/js/DOMPromiseProxy.h
 bindings/js/DOMWrapperWorld.cpp
-bindings/js/IDBBindingUtilities.cpp
 bindings/js/JSAudioBufferCustom.cpp
 bindings/js/JSAudioBufferSourceNodeCustom.cpp
 bindings/js/JSAudioWorkletGlobalScopeCustom.cpp
@@ -333,7 +332,6 @@ bindings/js/JSDOMIterator.h
 bindings/js/JSDOMMapLike.h
 bindings/js/JSDOMPromiseDeferred.cpp
 bindings/js/JSDOMPromiseDeferred.h
-bindings/js/JSDOMQuadCustom.cpp
 bindings/js/JSDOMSetLike.h
 bindings/js/JSDOMWindowBase.cpp
 bindings/js/JSDOMWindowCustom.cpp
@@ -403,7 +401,6 @@ bindings/js/ScriptBufferSourceProvider.h
 bindings/js/ScriptCachedFrameData.cpp
 bindings/js/ScriptModuleLoader.cpp
 bindings/js/ScriptSourceCode.h
-bindings/js/SerializedScriptValue.cpp
 bindings/js/WebAssemblyScriptBufferSourceProvider.h
 bindings/js/WebCoreJSClientData.cpp
 bindings/js/WebCoreTypedArrayController.cpp
@@ -595,7 +592,6 @@ dom/RejectedPromiseTracker.cpp
 dom/ScriptExecutionContext.cpp
 dom/ScriptExecutionContext.h
 dom/ScriptRunner.cpp
-dom/ScriptedAnimationController.cpp
 dom/SecurityContext.cpp
 dom/SelectorQuery.cpp
 dom/ShadowRoot.cpp
@@ -808,8 +804,6 @@ html/canvas/WebGLVertexArrayObjectBase.cpp
 html/canvas/WebGLVertexArrayObjectOES.cpp
 html/parser/HTMLConstructionSite.cpp
 html/parser/HTMLConstructionSite.h
-html/parser/HTMLDocumentParser.cpp
-html/parser/HTMLDocumentParserFastPath.cpp
 html/parser/HTMLParserScheduler.cpp
 html/parser/HTMLScriptRunner.cpp
 html/parser/HTMLTreeBuilder.cpp
@@ -885,7 +879,6 @@ loader/ApplicationManifestLoader.cpp
 loader/CrossOriginAccessControl.cpp
 loader/CrossOriginOpenerPolicy.cpp
 loader/CrossOriginPreflightChecker.cpp
-loader/DocumentLoader.cpp
 loader/DocumentThreadableLoader.cpp
 loader/DocumentWriter.cpp
 loader/FormSubmission.cpp
@@ -947,7 +940,6 @@ page/IntersectionObserver.cpp
 page/LocalDOMWindow.cpp
 page/LocalFrame.cpp
 page/LocalFrameView.cpp
-page/LocalFrameViewLayoutContext.cpp
 page/Location.cpp
 page/Navigation.cpp
 page/NavigationDestination.cpp
@@ -1081,7 +1073,6 @@ platform/graphics/cocoa/FontCacheCoreText.cpp
 platform/graphics/cocoa/ImageAdapterCocoa.mm
 platform/graphics/cocoa/SourceBufferParser.cpp
 platform/graphics/cocoa/VideoMediaSampleRenderer.mm
-platform/graphics/cocoa/WebMAudioUtilitiesCocoa.mm
 platform/graphics/cocoa/WebProcessGraphicsContextGLCocoa.mm
 platform/graphics/controls/ApplePayButtonPart.cpp
 platform/graphics/controls/ButtonPart.h
@@ -1188,7 +1179,6 @@ rendering/RenderImageResourceStyleImage.cpp
 rendering/RenderImageResourceStyleImage.h
 rendering/RenderLayer.cpp
 rendering/RenderLayerBacking.cpp
-rendering/RenderLayerCompositor.cpp
 rendering/RenderLayerFilters.cpp
 rendering/RenderLayerModelObject.cpp
 rendering/RenderListBox.cpp

@@ -413,7 +413,7 @@
 #include "HTMLVideoElement.h"
 #endif
 
-#define DOCUMENT_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->object().toUInt64() : 0, this == &topDocument(), ##__VA_ARGS__)
+#define DOCUMENT_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->object().toUInt64() : 0, this->isTopDocument(), ##__VA_ARGS__)
 #define DOCUMENT_RELEASE_LOG_ERROR(channel, fmt, ...) RELEASE_LOG_ERROR(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->object().toUInt64() : 0, this->isTopDocument(), ##__VA_ARGS__)
 
 namespace WebCore {
@@ -862,10 +862,6 @@ void Document::removedLastRef()
         m_focusNavigationStartingNode = nullptr;
         m_userActionElements.clear();
         m_asyncNodeDeletionQueue.deleteNodesNow();
-#if ENABLE(FULLSCREEN_API)
-        if (CheckedPtr fullscreenManager = m_fullscreenManager.get())
-            m_fullscreenManager->clear();
-#endif
         m_associatedFormControls.clear();
         m_pendingRenderTreeUpdate = { };
 
@@ -917,7 +913,7 @@ void Document::commonTeardown()
 
 #if ENABLE(FULLSCREEN_API)
     if (CheckedPtr fullscreenManager = m_fullscreenManager.get())
-        fullscreenManager->emptyEventQueue();
+        fullscreenManager->clearPendingEvents();
 #endif
 
     if (CheckedPtr svgExtensions = svgExtensionsIfExists())
@@ -1595,19 +1591,16 @@ Ref<CSSStyleDeclaration> Document::createCSSStyleDeclaration()
     return propertySet->ensureCSSStyleDeclaration();
 }
 
-ExceptionOr<Ref<Node>> Document::importNode(Node& nodeToImport, std::optional<std::variant<bool, ImportNodeOptions>>&& argument)
+ExceptionOr<Ref<Node>> Document::importNode(Node& nodeToImport, std::variant<bool, ImportNodeOptions>&& argument)
 {
-    bool deep = false;
+    bool subtree = false;
     RefPtr<CustomElementRegistry> registry;
-    if (argument) {
-        auto argumentValue = argument.value();
-        if (std::holds_alternative<ImportNodeOptions>(argumentValue)) {
-            auto options = std::get<ImportNodeOptions>(argumentValue);
-            deep = options.deep;
-            registry = WTFMove(options.customElements);
-        } else if (std::get<bool>(argumentValue))
-            deep = true;
-    }
+    if (std::holds_alternative<ImportNodeOptions>(argument)) {
+        auto options = std::get<ImportNodeOptions>(argument);
+        subtree = !options.selfOnly;
+        registry = WTFMove(options.customElements);
+    } else if (std::get<bool>(argument))
+        subtree = true;
     if (!registry)
         registry = customElementRegistry();
     switch (nodeToImport.nodeType()) {
@@ -1620,7 +1613,7 @@ ExceptionOr<Ref<Node>> Document::importNode(Node& nodeToImport, std::optional<st
     case Node::CDATA_SECTION_NODE:
     case Node::PROCESSING_INSTRUCTION_NODE:
     case Node::COMMENT_NODE:
-        return nodeToImport.cloneNodeInternal(*this, deep ? Node::CloningOperation::Everything : Node::CloningOperation::OnlySelf, registry.get());
+        return nodeToImport.cloneNodeInternal(*this, subtree ? Node::CloningOperation::Everything : Node::CloningOperation::OnlySelf, registry.get());
 
     case Node::ATTRIBUTE_NODE: {
         auto& attribute = uncheckedDowncast<Attr>(nodeToImport);
@@ -2763,7 +2756,7 @@ void Document::resolveStyle(ResolveStyleType type)
                 updateRenderTree(WTFMove(styleUpdate));
 
                 if (frameView->layoutContext().needsLayout())
-                    frameView->layoutContext().layout();
+                    frameView->layoutContext().interleavedLayout();
             }
 
             styleUpdate = resolver.resolve();
@@ -11331,8 +11324,10 @@ ResourceMonitor& Document::resourceMonitor()
 {
     ASSERT(!frame()->isMainFrame());
 
-    if (!m_resourceMonitor)
+    if (!m_resourceMonitor) {
         m_resourceMonitor = ResourceMonitor::create(*frame());
+        DOCUMENT_RELEASE_LOG(ResourceMonitoring, "ResourceMonitor is created for the document.");
+    }
     return *m_resourceMonitor.get();
 }
 

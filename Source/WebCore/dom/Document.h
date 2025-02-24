@@ -366,8 +366,11 @@ enum class EventHandlerRemoval : bool { One, All };
 using EventTargetSet = WeakHashCountedSet<Node, WeakPtrImplWithEventTargetData>;
 
 enum class DimensionsCheck : uint8_t {
-    Width = 1 << 0,
-    Height = 1 << 1
+    Left = 1 << 0,
+    Top = 1 << 1,
+    Width = 1 << 2,
+    Height = 1 << 3,
+    IgnoreOverflow = 1 << 4,
 };
 
 enum class HttpEquivPolicy : uint8_t {
@@ -766,7 +769,7 @@ public:
     bool hasLivingRenderTree() const { return renderView() && !renderTreeBeingDestroyed(); }
     void updateRenderTree(std::unique_ptr<Style::Update> styleUpdate);
 
-    bool updateLayoutIfDimensionsOutOfDate(Element&, OptionSet<DimensionsCheck> = { DimensionsCheck::Width, DimensionsCheck::Height });
+    bool updateLayoutIfDimensionsOutOfDate(Element&, OptionSet<DimensionsCheck> = { DimensionsCheck::Width, DimensionsCheck::Height }, OptionSet<LayoutOptions> = { });
 
     inline AXObjectCache* existingAXObjectCache() const;
     WEBCORE_EXPORT AXObjectCache* axObjectCache() const;

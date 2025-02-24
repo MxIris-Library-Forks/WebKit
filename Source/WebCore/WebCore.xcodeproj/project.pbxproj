@@ -8015,7 +8015,7 @@
 		1AAADDE114DC8C8F00AF64B3 /* ScrollingTreeNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollingTreeNode.cpp; sourceTree = "<group>"; };
 		1AAADDE214DC8C8F00AF64B3 /* ScrollingTreeNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingTreeNode.h; sourceTree = "<group>"; };
 		1AB33DA412551E320024457A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
-		1AB39CC62C98CEA100B8AD82 /* NameScope.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NameScope.h; sourceTree = "<group>"; };
+		1AB39CC62C98CEA100B8AD82 /* NameScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NameScope.h; sourceTree = "<group>"; };
 		1AB40EDF1BF4271E00BA81BE /* ContextMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextMenu.cpp; sourceTree = "<group>"; };
 		1AB40EE01BF4271E00BA81BE /* ContextMenuItem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextMenuItem.cpp; sourceTree = "<group>"; };
 		1AB5EBCF194A1D170059AC70 /* ShapeValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ShapeValue.cpp; sourceTree = "<group>"; };
@@ -10470,6 +10470,7 @@
 		41AF37921F8DA48A00111C31 /* ExtendableEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExtendableEvent.cpp; sourceTree = "<group>"; };
 		41AF37941F8DA49500111C31 /* FetchEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FetchEvent.cpp; sourceTree = "<group>"; };
 		41AF379C1F8DB1B100111C31 /* JSDOMPromise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMPromise.cpp; sourceTree = "<group>"; };
+		41B109772D554D99008A11E8 /* FileSystemStorageConnection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FileSystemStorageConnection.cpp; sourceTree = "<group>"; };
 		41B28B121F8501A300FB52AC /* MediaEndpointConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaEndpointConfiguration.h; sourceTree = "<group>"; };
 		41B28B131F8501A400FB52AC /* MediaEndpointConfiguration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaEndpointConfiguration.cpp; sourceTree = "<group>"; };
 		41B28B361F860BD000FB52AC /* LibWebRTCProviderCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LibWebRTCProviderCocoa.h; path = libwebrtc/LibWebRTCProviderCocoa.h; sourceTree = "<group>"; };
@@ -30043,6 +30044,7 @@
 				932C9BD926DD62600053B3DB /* FileSystemHandle.idl */,
 				93445082276A6356001F712B /* FileSystemHandleCloseScope.h */,
 				935424272703BC88005CA72C /* FileSystemHandleIdentifier.h */,
+				41B109772D554D99008A11E8 /* FileSystemStorageConnection.cpp */,
 				935424292703BCAD005CA72C /* FileSystemStorageConnection.h */,
 				93E269A0270A5D5C002C4FF0 /* FileSystemSyncAccessHandle.cpp */,
 				93E2699F270A5D5C002C4FF0 /* FileSystemSyncAccessHandle.h */,
@@ -34778,6 +34780,7 @@
 				AB31C91D10AE1B8E000C7B92 /* LineClampValue.h */,
 				4CF2530E29C09454005CDDAA /* ListStyleType.cpp */,
 				4C96385729BF4A51003E5741 /* ListStyleType.h */,
+				1AB39CC62C98CEA100B8AD82 /* NameScope.h */,
 				BCEF43DF0E674110001C1287 /* NinePieceImage.cpp */,
 				BCEF43DC0E674012001C1287 /* NinePieceImage.h */,
 				668A1B032723A41500765E0F /* OffsetRotation.cpp */,
@@ -37988,7 +37991,6 @@
 				4471710C205AF945000A116E /* MediaQueryParserContext.h */,
 				930A76C7297FA1C40055B743 /* MutableStyleProperties.cpp */,
 				930A76C6297FA1C30055B743 /* MutableStyleProperties.h */,
-				1AB39CC62C98CEA100B8AD82 /* NameScope.h */,
 				49CCE6F72997441F006C91EB /* popover.css */,
 				BC8A133629177FB700096A9F /* process-css-properties.py */,
 				491342972B425C0200FEEF18 /* process-css-pseudo-selectors.py */,

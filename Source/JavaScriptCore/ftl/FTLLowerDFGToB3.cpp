@@ -287,7 +287,6 @@ public:
         // Stack Overflow Check.
         unsigned exitFrameSize = m_graph.requiredRegisterCountForExit() * sizeof(Register);
         PatchpointValue* stackOverflowHandler = m_out.patchpoint(Void);
-        CallSiteIndex callSiteIndex = callSiteIndexForCodeOrigin(m_ftlState, CodeOrigin(BytecodeIndex(0)));
         stackOverflowHandler->appendSomeRegister(m_callFrame);
         stackOverflowHandler->appendSomeRegister(m_vmValue);
         stackOverflowHandler->clobber(RegisterSetBuilder::macroClobberedGPRs());
@@ -318,26 +317,7 @@ public:
                     // get clobbered.
                     // https://bugs.webkit.org/show_bug.cgi?id=172456
                     jit.emitRestore(params.proc().calleeSaveRegisterAtOffsetList());
-
-                    jit.store32(
-                        MacroAssembler::TrustedImm32(callSiteIndex.bits()),
-                        CCallHelpers::tagFor(CallFrameSlot::argumentCountIncludingThis));
-                    jit.copyCalleeSavesToEntryFrameCalleeSavesBuffer(vm->topEntryFrame, GPRInfo::argumentGPR0);
-
-                    jit.move(CCallHelpers::TrustedImmPtr(jit.codeBlock()), GPRInfo::argumentGPR0);
-                    jit.prepareCallOperation(*vm);
-                    CCallHelpers::Call throwCall = jit.call(OperationPtrTag);
-
-                    jit.move(CCallHelpers::TrustedImmPtr(vm), GPRInfo::argumentGPR0);
-                    jit.prepareCallOperation(*vm);
-                    CCallHelpers::Call lookupExceptionHandlerCall = jit.call(OperationPtrTag);
-                    jit.jumpToExceptionHandler(*vm);
-
-                    jit.addLinkTask(
-                        [=] (LinkBuffer& linkBuffer) {
-                            linkBuffer.link<OperationPtrTag>(throwCall, operationThrowStackOverflowError);
-                            linkBuffer.link<OperationPtrTag>(lookupExceptionHandlerCall, operationLookupExceptionHandlerFromCallerFrame);
-                    });
+                    jit.jumpThunk(CodeLocationLabel(vm->getCTIStub(CommonJITThunkID::ThrowStackOverflowAtPrologue).retaggedCode<NoPtrTag>()));
                 });
             });
 
@@ -1160,8 +1140,9 @@ private:
         case ArraySplice:
             compileArraySplice();
             break;
+        case ArrayIncludes:
         case ArrayIndexOf:
-            compileArrayIndexOf();
+            compileArrayIndexOfOrArrayIncludes();
             break;
         case CreateActivation:
             compileCreateActivation();
@@ -7592,8 +7573,10 @@ IGNORE_CLANG_WARNINGS_END
         setJSValue(vmCall(Int64, refCount ? operationArraySplice : operationArraySpliceIgnoreResult, weakPointer(globalObject), base, index, deleteCount, m_out.constIntPtr(buffer), m_out.constInt32(insertionCount)));
     }
 
-    void compileArrayIndexOf()
+    void compileArrayIndexOfOrArrayIncludes()
     {
+        ASSERT(m_node->op() == ArrayIncludes || m_node->op() == ArrayIndexOf);
+
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
         LValue base = lowCell(m_graph.varArgChild(m_node, 0));
         LValue storage = lowStorage(m_node->numChildren() == 3 ? m_graph.varArgChild(m_node, 2) : m_graph.varArgChild(m_node, 3));
@@ -7607,6 +7590,8 @@ IGNORE_CLANG_WARNINGS_END
                 m_out.select(m_out.lessThan(m_out.add(length, startIndex), m_out.int32Zero), m_out.int32Zero, m_out.add(length, startIndex)));
         } else
             startIndex = m_out.int32Zero;
+
+        bool isArrayIncludes = m_node->op() == ArrayIncludes;
 
         Edge& searchElementEdge = m_graph.varArgChild(m_node, 1);
         switch (searchElementEdge.useKind()) {
@@ -7645,7 +7630,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.branch(m_out.notEqual(index, length), unsure(loopBody), unsure(notFound));
 
             m_out.appendTo(loopBody, loopNext);
-            ValueFromBlock foundResult = m_out.anchor(index);
+            ValueFromBlock foundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(true)) : m_out.anchor(index);
             switch (searchElementEdge.useKind()) {
             case Int32Use: {
                 // Empty value is ignored because of JSValue::NumberTag.
@@ -7670,13 +7655,16 @@ IGNORE_CLANG_WARNINGS_END
             m_out.jump(loopHeader);
 
             m_out.appendTo(notFound, continuation);
-            ValueFromBlock notFoundResult = m_out.anchor(m_out.constIntPtr(-1));
+            ValueFromBlock notFoundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(false)) : m_out.anchor(m_out.constIntPtr(-1));
             m_out.jump(continuation);
 
             m_out.appendTo(continuation, lastNext);
             // We have to keep base alive since that keeps content of storage alive.
             ensureStillAliveHere(base);
-            setInt32(m_out.castToInt32(m_out.phi(pointerType(), notFoundResult, foundResult)));
+            if (isArrayIncludes)
+                setBoolean(m_out.phi(Int32, notFoundResult, foundResult));
+            else
+                setInt32(m_out.castToInt32(m_out.phi(pointerType(), notFoundResult, foundResult)));
             return;
         }
 
@@ -7726,7 +7714,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.branch(isString(element), unsure(fastPath), unsure(loopNext));
 
             m_out.appendTo(fastPath, slowCheckElementRope);
-            ValueFromBlock foundResult = m_out.anchor(index);
+            ValueFromBlock foundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(true)) : m_out.anchor(index);
             m_out.branch(m_out.equal(element, searchElement), unsure(continuation), unsure(slowCheckElementRope));
 
             m_out.appendTo(slowCheckElementRope, slowCheckElement8Bit);
@@ -7775,17 +7763,20 @@ IGNORE_CLANG_WARNINGS_END
             m_out.jump(loopHeader);
 
             m_out.appendTo(notFound, continuation);
-            ValueFromBlock notFoundResult = m_out.anchor(m_out.constIntPtr(-1));
+            ValueFromBlock notFoundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(false)) : m_out.anchor(m_out.constIntPtr(-1));
             m_out.jump(continuation);
 
             m_out.appendTo(slowCase, continuation);
-            ValueFromBlock slowCaseResult = m_out.anchor(vmCall(Int64, operationArrayIndexOfString, weakPointer(globalObject), storage, searchElement, startIndex));
+            ValueFromBlock slowCaseResult = isArrayIncludes ? m_out.anchor(vmCall(Int32, operationArrayIncludesString, weakPointer(globalObject), storage, searchElement, startIndex)) : m_out.anchor(vmCall(Int64, operationArrayIndexOfString, weakPointer(globalObject), storage, searchElement, startIndex));
             m_out.jump(continuation);
 
             m_out.appendTo(continuation, lastNext);
             // We have to keep base alive since that keeps content of storage alive.
             ensureStillAliveHere(base);
-            setInt32(m_out.castToInt32(m_out.phi(Int64, notFoundResult, foundResult, slowCaseResult)));
+            if (isArrayIncludes)
+                setBoolean(m_out.phi(Int32, notFoundResult, foundResult, slowCaseResult));
+            else
+                setInt32(m_out.castToInt32(m_out.phi(Int64, notFoundResult, foundResult, slowCaseResult)));
             return;
         }
 
@@ -7809,21 +7800,30 @@ IGNORE_CLANG_WARNINGS_END
                 RELEASE_ASSERT_NOT_REACHED();
                 break;
             }
-            setInt32(m_out.castToInt32(vmCall(Int64, operationArrayIndexOfNonStringIdentityValueContiguous, storage, searchElement, startIndex)));
+            if (isArrayIncludes)
+                setBoolean(vmCall(Int32, operationArrayIncludesNonStringIdentityValueContiguous, storage, searchElement, startIndex));
+            else
+                setInt32(m_out.castToInt32(vmCall(Int64, operationArrayIndexOfNonStringIdentityValueContiguous, storage, searchElement, startIndex)));
             return;
         }
 
         case UntypedUse:
             switch (m_node->arrayMode().type()) {
             case Array::Double:
-                setInt32(m_out.castToInt32(vmCall(Int64, operationArrayIndexOfValueDouble, storage, lowJSValue(searchElementEdge), startIndex)));
+                if (isArrayIncludes)
+                    setBoolean(vmCall(Int32, operationArrayIncludesValueDouble, storage, lowJSValue(searchElementEdge), startIndex));
+                else
+                    setInt32(m_out.castToInt32(vmCall(Int64, operationArrayIndexOfValueDouble, storage, lowJSValue(searchElementEdge), startIndex)));
                 return;
             case Array::Contiguous:
                 // We have to keep base alive since that keeps content of storage alive.
                 ensureStillAliveHere(base);
                 FALLTHROUGH;
             case Array::Int32:
-                setInt32(m_out.castToInt32(vmCall(Int64, operationArrayIndexOfValueInt32OrContiguous, weakPointer(globalObject), storage, lowJSValue(searchElementEdge), startIndex)));
+                if (isArrayIncludes)
+                    setBoolean(vmCall(Int32, operationArrayIncludesValueInt32OrContiguous, weakPointer(globalObject), storage, lowJSValue(searchElementEdge), startIndex));
+                else
+                    setInt32(m_out.castToInt32(vmCall(Int64, operationArrayIndexOfValueInt32OrContiguous, weakPointer(globalObject), storage, lowJSValue(searchElementEdge), startIndex)));
                 return;
             default:
                 RELEASE_ASSERT_NOT_REACHED();

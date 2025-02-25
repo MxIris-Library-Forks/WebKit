@@ -3767,9 +3767,9 @@ JSC_DEFINE_JIT_OPERATION(operationArrayIncludesValueInt32OrContiguous, UCPUStric
     if (searchElement.isInt32()) {
         for (; index < length; ++index) {
             JSValue value = data[index].get();
-            if (!value || !value.isInt32())
+            if (!value || !value.isNumber())
                 continue;
-            if (searchElement.asInt32() == value.asInt32())
+            if (searchElement.asInt32() == value.asNumber())
                 OPERATION_RETURN(scope, toUCPUStrictInt32(1));
         }
         OPERATION_RETURN(scope, toUCPUStrictInt32(0));
@@ -3886,6 +3886,17 @@ JSC_DEFINE_JIT_OPERATION(operationArrayIndexOfValueInt32OrContiguous, UCPUStrict
         auto* result = std::bit_cast<const WriteBarrier<Unknown>*>(WTF::find64(std::bit_cast<const uint64_t*>(data + index), encodedValue, length - index));
         if (result)
             OPERATION_RETURN(scope, toUCPUStrictInt32(result - data));
+        OPERATION_RETURN(scope, toUCPUStrictInt32(-1));
+    }
+
+    if (searchElement.isInt32()) {
+        for (; index < length; ++index) {
+            JSValue value = data[index].get();
+            if (!value || !value.isNumber())
+                continue;
+            if (searchElement.asInt32() == value.asNumber())
+                OPERATION_RETURN(scope, toUCPUStrictInt32(index));
+        }
         OPERATION_RETURN(scope, toUCPUStrictInt32(-1));
     }
 

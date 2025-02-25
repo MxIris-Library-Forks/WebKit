@@ -1,7 +1,6 @@
 Modules/cookie-store/CookieStore.cpp
 Modules/mediarecorder/MediaRecorder.cpp
 Modules/websockets/WorkerThreadableWebSocketChannel.cpp
-accessibility/AXObjectCache.cpp
 accessibility/AccessibilityListBox.cpp
 accessibility/AccessibilityObject.cpp
 accessibility/AccessibilityRenderObject.cpp
@@ -67,7 +66,6 @@ platform/mac/ScrollbarsControllerMac.mm
 platform/mac/VideoPresentationInterfaceMac.mm
 rendering/BackgroundPainter.cpp
 rendering/InlineBoxPainter.cpp
-rendering/RenderBlock.cpp
 rendering/RenderBox.cpp
 rendering/RenderBoxModelObject.cpp
 rendering/RenderElement.cpp

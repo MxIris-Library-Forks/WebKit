@@ -7,7 +7,6 @@ NetworkProcess/Downloads/DownloadManager.cpp
 NetworkProcess/Downloads/PendingDownload.cpp
 NetworkProcess/Downloads/cocoa/DownloadCocoa.mm
 NetworkProcess/Downloads/cocoa/WKDownloadProgress.mm
-NetworkProcess/NetworkDataTask.cpp
 NetworkProcess/PingLoad.cpp
 NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementClientImpl.cpp
 NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementManager.cpp
@@ -19,7 +18,6 @@ NetworkProcess/cache/NetworkCacheEntry.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoad.cpp
 NetworkProcess/cache/NetworkCacheSpeculativeLoadManager.cpp
 NetworkProcess/cache/NetworkCacheStorage.cpp
-NetworkProcess/cocoa/NetworkDataTaskCocoa.mm
 NetworkProcess/mac/SecItemShim.cpp
 NetworkProcess/storage/BackgroundFetchStoreImpl.cpp
 NetworkProcess/storage/BackgroundFetchStoreManager.cpp
@@ -366,7 +364,6 @@ WebProcess/WebCoreSupport/mac/WebContextMenuClientMac.mm
 WebProcess/WebCoreSupport/mac/WebDragClientMac.mm
 WebProcess/WebCoreSupport/mac/WebEditorClientMac.mm
 WebProcess/WebPage/DrawingArea.cpp
-WebProcess/WebPage/EventDispatcher.cpp
 WebProcess/WebPage/FindController.cpp
 WebProcess/WebPage/RemoteLayerTree/GraphicsLayerCARemote.mm
 WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemote.mm
@@ -389,7 +386,6 @@ WebProcess/WebPage/mac/TiledCoreAnimationDrawingArea.mm
 WebProcess/WebPage/mac/TiledCoreAnimationScrollingCoordinator.mm
 WebProcess/WebPage/mac/WKAccessibilityWebPageObjectBase.mm
 WebProcess/WebPage/mac/WKAccessibilityWebPageObjectMac.mm
-WebProcess/WebProcess.cpp
 WebProcess/WebStorage/StorageAreaMap.cpp
 WebProcess/WebSystemSoundDelegate.cpp
 WebProcess/cocoa/AudioSessionRoutingArbitrator.cpp

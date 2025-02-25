@@ -1174,6 +1174,20 @@ CSSContrastColorEnabled:
     WebCore:
       default: true
 
+CSSCornerShapeEnabled:
+  type: bool
+  category: css
+  status: testable
+  humanReadableName: "CSS corner-shape property"
+  humanReadableDescription: "Enable support for CSS corner-shape property"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 CSSCounterStyleAtRuleImageSymbolsEnabled:
   type: bool
   status: testable
@@ -2888,7 +2902,7 @@ ExposeSpeakersEnabled:
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
     WebKit:
-      "PLATFORM(MAC)": true
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false
@@ -2902,7 +2916,7 @@ ExposeSpeakersWithoutMicrophoneEnabled:
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
     WebKit:
-      "PLATFORM(MAC)": true
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false
@@ -5763,7 +5777,7 @@ PerElementSpeakerSelectionEnabled:
   condition: ENABLE(MEDIA_STREAM)
   defaultValue:
     WebKit:
-      "PLATFORM(MAC)": true
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false

@@ -1985,10 +1985,6 @@ http/wpt/webauthn/ [ Skip ]
 imported/w3c/web-platform-tests/credential-management/ [ Skip ]
 imported/w3c/web-platform-tests/webauthn [ Skip ]
 
-# Skip Digital Credentials API
-http/wpt/identity/ [ Skip ]
-imported/w3c/web-platform-tests/digital-credentials/ [ Skip ]
-
 webkit.org/b/182554 transitions/transition-display-property.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/184456 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-embed-element/embed-in-object-fallback.html [ Pass Failure ]
@@ -2216,6 +2212,8 @@ accessibility/deep-tree.html [ Skip ]
 accessibility/mac/table-wrapped-by-role-grid.html [ Skip ]
 accessibility/aria-labeled-with-hidden-node.html [ Skip ]
 accessibility/text-alternative-calculation-from-unrendered-table.html [ Skip ]
+# Mac-WK1 does not support activeElement
+accessibility/textbox-active-element.html
 
 # <rdar://problem/61066929> [ Stress GC ] flaky JSC::ExceptionScope::assertNoException crash under WebCore::ReadableStreamDefaultController
 webkit.org/b/211923 imported/w3c/web-platform-tests/fetch/api/basic/stream-safe-creation.any.html [ Pass Crash ]
@@ -3006,7 +3004,7 @@ webkit.org/b/286602 media/media-source/media-detachablemse-append.html [ Pass Fa
 
 webkit.org/b/255555 imported/w3c/web-platform-tests/xhr/request-content-length.any.worker.html [ Pass Failure ]
 
-webkit.org/b/287713 printing/background-clip-text.html [ Failure ]
+webkit.org/b/287713 printing/background-clip-text.html [ Skip ]
 
 webkit.org/b/287810 http/tests/webarchive/cross-origin-stylesheet-crash.html [ Failure ]
 

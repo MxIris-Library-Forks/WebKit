@@ -3812,7 +3812,7 @@ void WebPage::setNeedsFontAttributes(bool needsFontAttributes)
 
 void WebPage::setCurrentHistoryItemForReattach(Ref<FrameState>&& mainFrameState)
 {
-    if (RefPtr localMainFrame = this->localMainFrame())
+    if (RefPtr localMainFrame = m_mainFrame->provisionalFrame() ? m_mainFrame->provisionalFrame() : m_mainFrame->coreLocalFrame())
         localMainFrame->loader().protectedHistory()->setCurrentItem(toHistoryItem(m_historyItemClient, mainFrameState));
 }
 
@@ -9519,6 +9519,18 @@ void WebPage::scrollToRect(const WebCore::FloatRect& targetRect, const WebCore::
     if (!frameView)
         return;
     frameView->setScrollPosition(IntPoint(targetRect.minXMinYCorner()));
+}
+
+void WebPage::setContentOffset(WebCore::ScrollOffset offset, WebCore::ScrollIsAnimated animated)
+{
+    RefPtr frameView = localMainFrameView();
+    if (!frameView)
+        return;
+
+    auto options = WebCore::ScrollPositionChangeOptions::createProgrammatic();
+    options.animated = animated;
+
+    frameView->setScrollOffsetWithOptions(offset, options);
 }
 
 #if ENABLE(IMAGE_ANALYSIS) && ENABLE(VIDEO)

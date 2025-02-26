@@ -2036,7 +2036,6 @@ http/wpt/cross-origin-resource-policy [ Skip ]
 http/wpt/crypto [ Skip ]
 http/wpt/entries-api [ Skip ]
 http/wpt/geometry [ Skip ]
-http/wpt/identity [ Skip ]
 
 http/wpt/loading/redirect-headers.html [ Skip ] # Failure
 
@@ -2073,7 +2072,6 @@ imported/w3c/web-platform-tests/console [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy [ Skip ]
 imported/w3c/web-platform-tests/cors [ Skip ]
 imported/w3c/web-platform-tests/credential-management [ Skip ]
-imported/w3c/web-platform-tests/digital-credentials [ Skip ]
 imported/w3c/web-platform-tests/webauthn [ Skip ]
 
 imported/w3c/web-platform-tests/css/compositing [ Skip ]
@@ -4478,5 +4476,3 @@ fast/box-shadow/shadow-repaint.html [ Skip ] # Failure
 fast/css/highlight-text-repaint.html [ Skip ] # Failure
 fast/css/text-underline-offset-repaint.html [ Skip ] # Failure
 fast/flexbox/missing-repaint-when-flext-item-never-had-layout.html [ Skip ] # Failure
-
-webkit.org/b/285033 http/tests/download/sandboxed-iframe-download-not-allowed.html [ Failure ]

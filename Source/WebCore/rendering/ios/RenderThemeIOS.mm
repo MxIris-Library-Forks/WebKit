@@ -1827,8 +1827,10 @@ void RenderThemeIOS::paintSliderTicks(const RenderObject& box, const PaintInfo& 
 void RenderThemeIOS::paintColorWellDecorations(const RenderObject& renderer, const PaintInfo& paintInfo, const FloatRect& rect)
 {
 #if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (paintColorWellDecorationsForCatalyst(renderer, paintInfo, rect))
+    if (renderer.settings().macStyleControlsOnCatalyst()) {
+        RenderThemeCocoa::paintColorWellDecorations(renderer, paintInfo, rect);
         return;
+    }
 #else
     UNUSED_PARAM(renderer);
 #endif
@@ -1866,8 +1868,10 @@ void RenderThemeIOS::paintColorWellDecorations(const RenderObject& renderer, con
 void RenderThemeIOS::adjustSearchFieldDecorationPartStyle(RenderStyle& style, const Element* element) const
 {
 #if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (adjustSearchFieldDecorationPartStyleForCatalyst(style, element))
+    if (element && element->document().settings().macStyleControlsOnCatalyst()) {
+        RenderThemeCocoa::adjustSearchFieldDecorationPartStyle(style, element);
         return;
+    }
 #endif
 
     if (!element)
@@ -1889,8 +1893,8 @@ void RenderThemeIOS::adjustSearchFieldDecorationPartStyle(RenderStyle& style, co
 bool RenderThemeIOS::paintSearchFieldDecorationPart(const RenderObject& box, const PaintInfo& paintInfo, const IntRect& rect)
 {
 #if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (paintSearchFieldDecorationPartForCatalyst(box, paintInfo, rect))
-        return false;
+    if (box.settings().macStyleControlsOnCatalyst())
+        return RenderThemeCocoa::paintSearchFieldDecorationPart(box, paintInfo, rect);
 #endif
 
     auto& context = paintInfo.context();
@@ -1932,41 +1936,21 @@ bool RenderThemeIOS::paintSearchFieldDecorationPart(const RenderObject& box, con
 
 void RenderThemeIOS::adjustSearchFieldResultsDecorationPartStyle(RenderStyle& style, const Element* element) const
 {
-#if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (adjustSearchFieldResultsDecorationPartStyleForCatalyst(style, element))
-        return;
-#endif
-
     adjustSearchFieldDecorationPartStyle(style, element);
 }
 
 bool RenderThemeIOS::paintSearchFieldResultsDecorationPart(const RenderBox& box, const PaintInfo& paintInfo, const IntRect& rect)
 {
-#if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (paintSearchFieldResultsDecorationPartForCatalyst(box, paintInfo, rect))
-        return false;
-#endif
-
     return paintSearchFieldDecorationPart(box, paintInfo, rect);
 }
 
 void RenderThemeIOS::adjustSearchFieldResultsButtonStyle(RenderStyle& style, const Element* element) const
 {
-#if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (adjustSearchFieldResultsButtonStyleForCatalyst(style, element))
-        return;
-#endif
-
     adjustSearchFieldDecorationPartStyle(style, element);
 }
 
 bool RenderThemeIOS::paintSearchFieldResultsButton(const RenderBox& box, const PaintInfo& paintInfo, const IntRect& rect)
 {
-#if ENABLE(MAC_STYLE_CONTROLS_ON_CATALYST)
-    if (paintSearchFieldResultsButtonForCatalyst(box, paintInfo, rect))
-        return false;
-#endif
-
     return paintSearchFieldDecorationPart(box, paintInfo, rect);
 }
 

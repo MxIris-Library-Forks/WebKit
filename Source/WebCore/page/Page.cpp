@@ -58,6 +58,7 @@
 #include "DiagnosticLoggingClient.h"
 #include "DiagnosticLoggingKeys.h"
 #include "DisplayRefreshMonitorManager.h"
+#include "DocumentFullscreen.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
 #include "DocumentMarkerController.h"
@@ -80,7 +81,6 @@
 #include "FrameLoader.h"
 #include "FrameSelection.h"
 #include "FrameTree.h"
-#include "FullscreenManager.h"
 #include "GeolocationController.h"
 #include "HTMLElement.h"
 #include "HTMLImageElement.h"
@@ -499,9 +499,6 @@ Page::Page(PageConfiguration&& pageConfiguration)
 #endif
 
     settingsDidChange();
-
-    if (!pageConfiguration.userScriptsShouldWaitUntilNotification)
-        m_hasBeenNotifiedToInjectUserScripts = true;
 
     if (m_lowPowerModeNotifier->isLowPowerModeEnabled())
         m_throttlingReasons.add(ThrottlingReason::LowPowerMode);
@@ -2159,7 +2156,7 @@ void Page::updateRendering()
 
 #if ENABLE(FULLSCREEN_API)
     runProcessingStep(RenderingUpdateStep::Fullscreen, [] (Document& document) {
-        document.fullscreenManager().dispatchPendingEvents();
+        document.fullscreen().dispatchPendingEvents();
     });
 #else
     m_renderingUpdateRemainingSteps.last().remove(RenderingUpdateStep::Fullscreen);
@@ -3819,15 +3816,6 @@ Ref<UserContentProvider> Page::protectedUserContentProvider()
     return m_userContentProvider;
 }
 
-void Page::notifyToInjectUserScripts()
-{
-    m_hasBeenNotifiedToInjectUserScripts = true;
-
-    forEachLocalFrame([] (LocalFrame& frame) {
-        frame.injectUserScriptsAwaitingNotification();
-    });
-}
-
 void Page::setUserContentProvider(Ref<UserContentProvider>&& userContentProvider)
 {
     protectedUserContentProvider()->removePage(*this);
@@ -4235,16 +4223,6 @@ void Page::setFullscreenAutoHideDuration(Seconds duration)
     });
 }
 
-#if HAVE(SUPPORT_HDR_DISPLAY)
-bool Page::canDrawHDRContent() const
-{
-    if (!(m_settings->supportHDRDisplayEnabled() || m_settings->canvasPixelFormatEnabled()))
-        return false;
-
-    return screenSupportsHighDynamicRange();
-}
-#endif
-
 Document* Page::outermostFullscreenDocument() const
 {
 #if ENABLE(FULLSCREEN_API)
@@ -4255,7 +4233,7 @@ Document* Page::outermostFullscreenDocument() const
     RefPtr<Document> outermostFullscreenDocument;
     RefPtr currentDocument = localMainFrame->document();
     while (currentDocument) {
-        RefPtr fullscreenElement = currentDocument->fullscreenManager().fullscreenElement();
+        RefPtr fullscreenElement = currentDocument->fullscreen().fullscreenElement();
         if (!fullscreenElement)
             break;
 
@@ -5479,7 +5457,7 @@ void Page::setLastAuthentication(LoginStatus::AuthenticationType authType)
 }
 
 #if ENABLE(FULLSCREEN_API)
-bool Page::isFullscreenManagerEnabled() const
+bool Page::isDocumentFullscreenEnabled() const
 {
     Ref settings = protectedSettings();
     return settings->fullScreenEnabled() || settings->videoFullscreenRequiresElementFullscreen();

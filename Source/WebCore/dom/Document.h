@@ -130,6 +130,7 @@ class DeviceOrientationClient;
 class DeviceOrientationController;
 class DocumentFontLoader;
 class DocumentFragment;
+class DocumentFullscreen;
 class DocumentLoader;
 class DocumentMarkerController;
 class DocumentParser;
@@ -148,7 +149,6 @@ class FontFaceSet;
 class FontLoadRequest;
 class FormController;
 class FrameSelection;
-class FullscreenManager;
 class Frame;
 class GPUCanvasContext;
 class GraphicsClient;
@@ -509,7 +509,7 @@ public:
     void whenVisible(Function<void()>&&);
 
     WEBCORE_EXPORT ExceptionOr<Ref<Element>> createElementForBindings(const AtomString& tagName);
-    ExceptionOr<Ref<Element>> createElementForBindings(const AtomString& tagName, const ElementCreationOptions&);
+    ExceptionOr<Ref<Element>> createElementForBindings(const AtomString& tagName, std::optional<std::variant<String, ElementCreationOptions>>&&);
     WEBCORE_EXPORT Ref<DocumentFragment> createDocumentFragment();
     WEBCORE_EXPORT Ref<Text> createTextNode(String&& data);
     WEBCORE_EXPORT Ref<Comment> createComment(String&& data);
@@ -519,6 +519,7 @@ public:
     WEBCORE_EXPORT ExceptionOr<Ref<Attr>> createAttributeNS(const AtomString& namespaceURI, const AtomString& qualifiedName, bool shouldIgnoreNamespaceChecks = false);
     WEBCORE_EXPORT ExceptionOr<Ref<Node>> importNode(Node& nodeToImport, std::variant<bool, ImportNodeOptions>&&);
     WEBCORE_EXPORT ExceptionOr<Ref<Element>> createElementNS(const AtomString& namespaceURI, const AtomString& qualifiedName);
+    ExceptionOr<Ref<Element>> createElementNS(const AtomString& namespaceURI, const AtomString& qualifiedName, std::optional<std::variant<String, ElementCreationOptions>>&&);
 
     WEBCORE_EXPORT Ref<Element> createElement(const QualifiedName&, bool createdByParser, CustomElementRegistry* = nullptr);
 
@@ -627,6 +628,12 @@ public:
 
     bool hasSVGRootNode() const;
     virtual bool isFrameSet() const { return false; }
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    void setHasPaintedHDRContent() { m_hasPaintedHDRContent = true; }
+    bool hasPaintedHDRContent() const { return m_hasPaintedHDRContent; }
+    bool canDrawHDRContent() const;
+#endif
 
     static constexpr ptrdiff_t documentClassesMemoryOffset() { return OBJECT_OFFSETOF(Document, m_documentClasses); }
     static auto isHTMLDocumentClassFlag() { return enumToUnderlyingType(DocumentClass::HTML); }
@@ -1406,12 +1413,12 @@ public:
 #endif
 
 #if ENABLE(FULLSCREEN_API)
-    FullscreenManager* fullscreenManagerIfExists() { return m_fullscreenManager.get(); }
-    const FullscreenManager* fullscreenManagerIfExists() const { return m_fullscreenManager.get(); }
-    WEBCORE_EXPORT FullscreenManager& fullscreenManager();
-    WEBCORE_EXPORT const FullscreenManager& fullscreenManager() const;
-    CheckedRef<FullscreenManager> checkedFullscreenManager(); // Defined in DocumentInlines.h.
-    CheckedRef<const FullscreenManager> checkedFullscreenManager() const; // Defined in DocumentInlines.h.
+    DocumentFullscreen* fullscreenIfExists() { return m_fullscreen.get(); }
+    const DocumentFullscreen* fullscreenIfExists() const { return m_fullscreen.get(); }
+    WEBCORE_EXPORT DocumentFullscreen& fullscreen();
+    WEBCORE_EXPORT const DocumentFullscreen& fullscreen() const;
+    CheckedRef<DocumentFullscreen> checkedFullscreen(); // Defined in DocumentInlines.h.
+    CheckedRef<const DocumentFullscreen> checkedFullscreen() const; // Defined in DocumentInlines.h.
 #endif
 
 #if ENABLE(POINTER_LOCK)
@@ -2018,7 +2025,7 @@ private:
     VisitedLinkState& ensureVisitedLinkState();
     ScriptRunner& ensureScriptRunner();
     ScriptModuleLoader& ensureModuleLoader();
-    WEBCORE_EXPORT FullscreenManager& ensureFullscreenManager();
+    WEBCORE_EXPORT DocumentFullscreen& ensureFullscreen();
     inline DocumentFontLoader& fontLoader();
     Ref<DocumentFontLoader> protectedFontLoader();
     DocumentFontLoader& ensureFontLoader();
@@ -2324,7 +2331,7 @@ private:
 #endif
 
 #if ENABLE(FULLSCREEN_API)
-    const std::unique_ptr<FullscreenManager> m_fullscreenManager;
+    const std::unique_ptr<DocumentFullscreen> m_fullscreen;
 #endif
 
     WeakHashSet<HTMLImageElement, WeakPtrImplWithEventTargetData> m_dynamicMediaQueryDependentImages;
@@ -2658,6 +2665,10 @@ private:
 
 #if ENABLE(MEDIA_STREAM)
     bool m_hasHadCaptureMediaStreamTrack { false };
+#endif
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    bool m_hasPaintedHDRContent { false };
 #endif
 
     bool m_hasViewTransitionPseudoElementTree { false };

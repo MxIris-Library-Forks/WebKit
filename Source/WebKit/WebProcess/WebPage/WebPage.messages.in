@@ -215,7 +215,6 @@ messages -> WebPage WantsAsyncDispatchMessage {
     DidRemoveBackForwardItem(WebCore::BackForwardItemIdentifier backForwardItemID)
 
     UpdateWebsitePolicies(struct WebKit::WebsitePoliciesData websitePolicies)
-    NotifyUserScripts()
 
     ClearSelection()
     RestoreSelectionInFocusedEditableElement()
@@ -436,6 +435,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 #if USE(GSTREAMER)
     SetOrientationForMediaCapture(uint64_t rotation)
     SetMockCaptureDevicesInterrupted(bool isCameraInterrupted, bool isMicrophoneInterrupted)
+    TriggerMockCaptureConfigurationChange(bool forCamera, bool forMicrophone, bool forDisplay)
 #endif
 #endif
 

@@ -196,6 +196,7 @@
 #include <WebCore/DeprecatedGlobalSettings.h>
 #include <WebCore/Document.h>
 #include <WebCore/DocumentFragment.h>
+#include <WebCore/DocumentFullscreen.h>
 #include <WebCore/DocumentInlines.h>
 #include <WebCore/DocumentLoader.h>
 #include <WebCore/DocumentMarkerController.h>
@@ -219,7 +220,6 @@
 #include <WebCore/FragmentDirectiveUtilities.h>
 #include <WebCore/FrameLoadRequest.h>
 #include <WebCore/FrameLoaderTypes.h>
-#include <WebCore/FullscreenManager.h>
 #include <WebCore/GeometryUtilities.h>
 #include <WebCore/HTMLAttachmentElement.h>
 #include <WebCore/HTMLBodyElement.h>
@@ -769,7 +769,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         makeUniqueRef<WebSpeechRecognitionProvider>(pageID),
         WebProcess::singleton().broadcastChannelRegistry(),
         makeUniqueRef<WebStorageProvider>(WebProcess::singleton().mediaKeysStorageDirectory(), WebProcess::singleton().mediaKeysStorageSalt()),
-        makeUniqueRef<WebModelPlayerProvider>(*this),
+        WebModelPlayerProvider::create(*this),
         WebProcess::singleton().badgeClient(),
         m_historyItemClient.copyRef(),
 #if ENABLE(CONTEXT_MENUS)
@@ -834,7 +834,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     pageConfiguration.corsDisablingPatterns = parseAndAllowAccessToCORSDisablingPatterns(m_corsDisablingPatterns);
 
     pageConfiguration.maskedURLSchemes = parameters.maskedURLSchemes;
-    pageConfiguration.userScriptsShouldWaitUntilNotification = parameters.userScriptsShouldWaitUntilNotification;
     pageConfiguration.loadsSubresources = parameters.loadsSubresources;
     pageConfiguration.allowedNetworkHosts = parameters.allowedNetworkHosts;
     pageConfiguration.shouldRelaxThirdPartyCookieBlocking = parameters.shouldRelaxThirdPartyCookieBlocking;
@@ -5953,6 +5952,11 @@ void WebPage::setMockCaptureDevicesInterrupted(bool isCameraInterrupted, bool is
 {
     MockRealtimeMediaSourceCenter::setMockCaptureDevicesInterrupted(isCameraInterrupted, isMicrophoneInterrupted);
 }
+
+void WebPage::triggerMockCaptureConfigurationChange(bool forCamera, bool forMicrophone, bool forDisplay)
+{
+    MockRealtimeMediaSourceCenter::singleton().triggerMockCaptureConfigurationChange(forCamera, forMicrophone, forDisplay);
+}
 #endif // USE(GSTREAMER)
 
 #endif // ENABLE(MEDIA_STREAM)
@@ -7430,8 +7434,8 @@ void WebPage::elementDidFocus(Element& element, const FocusOptions& options)
 #if PLATFORM(IOS_FAMILY)
 
 #if ENABLE(FULLSCREEN_API)
-        if (element.document().fullscreenManager().isFullscreen())
-            element.document().fullscreenManager().fullyExitFullscreen();
+        if (element.document().fullscreen().isFullscreen())
+            element.document().fullscreen().fullyExitFullscreen();
 #endif
         if (isChangingFocusedElement && (m_userIsInteracting || m_keyboardIsAttached))
             m_sendAutocorrectionContextAfterFocusingElement = true;
@@ -8163,12 +8167,6 @@ void WebPage::updateWebsitePolicies(WebsitePoliciesData&& websitePolicies)
 #endif
 }
 
-void WebPage::notifyUserScripts()
-{
-    if (RefPtr page = m_page)
-        page->notifyToInjectUserScripts();
-}
-
 unsigned WebPage::extendIncrementalRenderingSuppression()
 {
     unsigned token = m_maximumRenderingSuppressionToken + 1;
@@ -8327,7 +8325,7 @@ void WebPage::imageOrMediaDocumentSizeChanged(const IntSize& newSize)
 
 void WebPage::addUserScript(String&& source, InjectedBundleScriptWorld& world, WebCore::UserContentInjectedFrames injectedFrames, WebCore::UserScriptInjectionTime injectionTime)
 {
-    WebCore::UserScript userScript { WTFMove(source), URL(aboutBlankURL()), Vector<String>(), Vector<String>(), injectionTime, injectedFrames, WebCore::WaitForNotificationBeforeInjecting::No };
+    WebCore::UserScript userScript { WTFMove(source), URL(aboutBlankURL()), Vector<String>(), Vector<String>(), injectionTime, injectedFrames };
 
     Ref { m_userContentController }->addUserScript(world, WTFMove(userScript));
 }

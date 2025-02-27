@@ -4341,12 +4341,29 @@ void WebPageProxy::updateTouchEventTracking(const WebTouchEvent& touchStartEvent
             auto trackingTypeForLocation = m_scrollingCoordinatorProxy->eventTrackingTypeForPoint(eventType, location);
             trackingType = mergeTrackingTypes(trackingType, trackingTypeForLocation);
         };
+
         auto& tracking = internals().touchEventTracking;
         using Type = EventTrackingRegions::EventType;
+#if ENABLE(TOUCH_EVENT_REGIONS)
+        auto updateTouchEvents = [this, location](TrackingType& trackingType, EventListenerRegionType eventType) {
+            if (trackingType == TrackingType::Synchronous)
+                return;
+            if (RefPtr drawingAreaProxy = dynamicDowncast<RemoteLayerTreeDrawingAreaProxy>(*m_drawingArea)) {
+                auto trackingTypeForLocation = drawingAreaProxy->eventTrackingTypeForPoint(eventType, WebCore::IntPoint(location));
+                trackingType = mergeTrackingTypes(trackingType, trackingTypeForLocation);
+            }
+        };
+
+        updateTouchEvents(tracking.touchForceChangedTracking, EventListenerRegionType::TouchCancel);
+        updateTouchEvents(tracking.touchStartTracking, EventListenerRegionType::TouchStart);
+        updateTouchEvents(tracking.touchMoveTracking, EventListenerRegionType::TouchMove);
+        updateTouchEvents(tracking.touchEndTracking, EventListenerRegionType::TouchEnd);
+#else
         update(tracking.touchForceChangedTracking, Type::Touchforcechange);
         update(tracking.touchStartTracking, Type::Touchstart);
         update(tracking.touchMoveTracking, Type::Touchmove);
         update(tracking.touchEndTracking, Type::Touchend);
+#endif
         update(tracking.touchStartTracking, Type::Pointerover);
         update(tracking.touchStartTracking, Type::Pointerenter);
         update(tracking.touchStartTracking, Type::Pointerdown);
@@ -7673,13 +7690,6 @@ void WebPageProxy::mainFramePluginHandlesPageScaleGestureDidChange(bool mainFram
     m_mainFramePluginHandlesPageScaleGesture = mainFramePluginHandlesPageScaleGesture;
     m_pluginMinZoomFactor = minScale;
     m_pluginMaxZoomFactor = maxScale;
-}
-
-bool WebPageProxy::mainFramePluginOverridesViewScale() const
-{
-    if (m_mainFramePluginHandlesPageScaleGesture)
-        return false;
-    return m_pluginMaxZoomFactor.has_value() || m_pluginMinZoomFactor.has_value();
 }
 
 #if !PLATFORM(COCOA)
@@ -11681,7 +11691,6 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.overriddenMediaType = m_overriddenMediaType;
     parameters.corsDisablingPatterns = corsDisablingPatterns();
     parameters.maskedURLSchemes = m_configuration->maskedURLSchemes();
-    parameters.userScriptsShouldWaitUntilNotification = m_configuration->userScriptsShouldWaitUntilNotification();
     parameters.allowedNetworkHosts = m_configuration->allowedNetworkHosts();
     parameters.loadsSubresources = m_configuration->loadsSubresources();
     parameters.crossOriginAccessControlCheckEnabled = m_configuration->crossOriginAccessControlCheckEnabled();
@@ -12812,19 +12821,6 @@ void WebPageProxy::convertRectToMainFrameCoordinates(WebCore::FloatRect rect, st
             return completionHandler(std::nullopt);
         protectedThis->convertRectToMainFrameCoordinates(convertedRect, nextFrameID, WTFMove(completionHandler));
     });
-}
-
-void WebPageProxy::notifyUserScripts()
-{
-    m_userScriptsNotified = true;
-    send(Messages::WebPage::NotifyUserScripts());
-}
-
-bool WebPageProxy::userScriptsNeedNotification() const
-{
-    if (!m_configuration->userScriptsShouldWaitUntilNotification())
-        return false;
-    return !m_userScriptsNotified;
 }
 
 void WebPageProxy::didFinishLoadingDataForCustomContentProvider(const String& suggestedFilename, std::span<const uint8_t> dataReference)
@@ -14992,6 +14988,11 @@ void WebPageProxy::setMockCaptureDevicesInterrupted(bool isCameraInterrupted, bo
 {
     send(Messages::WebPage::SetMockCaptureDevicesInterrupted(isCameraInterrupted, isMicrophoneInterrupted));
 }
+
+void WebPageProxy::triggerMockCaptureConfigurationChange(bool forCamera, bool forMicrophone, bool forDisplay)
+{
+    send(Messages::WebPage::TriggerMockCaptureConfigurationChange(forCamera, forMicrophone, forDisplay));
+}
 #endif
 
 void WebPageProxy::getLoadedSubresourceDomains(CompletionHandler<void(Vector<RegistrableDomain>&&)>&& completionHandler)
@@ -16227,23 +16228,6 @@ bool WebPageProxy::canStartNavigationSwipeAtLastInteractionLocation() const
     RefPtr client = pageClient();
     return !client || client->canStartNavigationSwipeAtLastInteractionLocation();
 }
-
-#if ENABLE(PDF_PLUGIN)
-void WebPageProxy::pluginDidInstallPDFDocument()
-{
-    resetViewportConfigurationForPDFPluginIfNeeded();
-}
-
-void WebPageProxy::resetViewportConfigurationForPDFPluginIfNeeded()
-{
-#if PLATFORM(IOS_FAMILY)
-    if (mainFramePluginOverridesViewScale()) {
-        if (layoutSizeScaleFactorFromClient() != 1)
-            setViewportConfigurationViewLayoutSize(viewLayoutSize(), 1, minimumEffectiveDeviceWidth());
-    }
-#endif
-}
-#endif
 
 } // namespace WebKit
 

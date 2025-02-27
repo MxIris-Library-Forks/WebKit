@@ -1679,20 +1679,20 @@ CSSTextUnderlinePositionLeftRightEnabled:
       default: true
     WebCore:
       default: true
-
+      
 CSSTextWrapPrettyEnabled:
-  type: bool
-  status: testable
-  category: css
-  humanReadableName: "CSS text-wrap: pretty"
-  humanReadableDescription: "Enable the pretty value for text-wrap-style"
-  defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: false
-    WebCore:
-      default: false
+   type: bool
+   status: stable
+   category: css
+   humanReadableName: "CSS text-wrap: pretty"
+   humanReadableDescription: "Enable the pretty value for text-wrap-style"
+   defaultValue:
+     WebKitLegacy:
+       default: true
+     WebKit:
+       default: true
+     WebCore:
+       default: true
 
 CSSTextWrapStyleEnabled:
   type: bool

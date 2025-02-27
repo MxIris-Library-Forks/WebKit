@@ -1887,8 +1887,6 @@ imported/w3c/web-platform-tests/navigation-api/navigation-methods/disambigaute-t
 [ arm64 ] fast/selectors/selection-window-inactive-stroke-color.html [ Pass ImageOnlyFailure ]
 [ arm64 ] fast/selectors/text-field-selection-stroke-color.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/286371 [ Sequoia Release x86_64 ] webrtc/captureCanvas-webrtc-software-h264-high.html [ Failure ]
-
 webkit.org/b/286318 http/tests/iframe-monitor [ Pass ]
 
 webkit.org/b/286693 [ Sequoia Debug arm64 ] media/video-canvas-createPattern.html [ Pass Failure ]
@@ -1976,3 +1974,32 @@ webkit.org/b/288535 [ Sequoia+ X86_64 ] swipe/pushstate-with-manual-scrollrestor
 
 webkit.org/b/288545 [ Sequoia x86_64 ] imported/w3c/web-platform-tests/requestidlecallback/deadline-max-rAF-dynamic.html [ Failure ]
 webkit.org/b/288545 [ Sonoma Release ] imported/w3c/web-platform-tests/requestidlecallback/deadline-max-rAF-dynamic.html [ Pass Failure ]
+
+webkit.org/b/288598 imported/w3c/web-platform-tests/screen-orientation/unlock.html [ Pass Failure ]
+
+webkit.org/b/288603 imported/w3c/web-platform-tests/screen-orientation/hidden_document.html [ Pass Failure ]
+
+webkit.org/b/288613 [ Sonoma+ ] pdf/pdf-in-embed-with-root-page-zoom.html [ Pass Timeout Failure ]
+
+webkit.org/b/288620 [ Debug ] ipc/large-vector-allocate-failure-crash.html [ Skip ]
+
+# webkit.org/b/288642 [Sonoma H Release x86_64 EWS ] webgl/1.0.x/conformance/glsl/bugs/sampler-array-using-loop-index.html and webgl/2.0.y/conformance/glsl/bugs/sampler-array-using-loop-index.html failure
+[ Sonoma Release x86_64 ] webgl/1.0.x/conformance/glsl/bugs/sampler-array-using-loop-index.html [ Skip ]
+[ Sonoma Release x86_64 ] webgl/2.0.y/conformance/glsl/bugs/sampler-array-using-loop-index.html [ Skip ]
+
+# webkit.org/b/288651 [ macOS-Ventura-Release-WK2-Intel-Tests-EWS] mediacapabilities/vp9 are failing on Intel machine.
+[ Sonoma Release x86_64 ] media/mediacapabilities/vp9.html [ Skip ]
+[ Sonoma Release x86_64 ] platform/mac/media/mediacapabilities/vp9-decodingInfo-sw.html [ Skip ]
+
+webkit.org/b/288655 [ Sequoia x86_64 ] webrtc/captureCanvas-webrtc-software-h264-high.html [ Failure ]
+
+webkit.org/b/288660 [ Sonoma Release x86_64 ] media/media-hevc-video-as-img.html [ Skip ]
+
+# webkit.org/b/280189 [EWS] imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.any.html is a constant failure on Ventura+ Intel EWS
+[ Sonoma Release x86_64 ] imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.any.html [ Skip ]
+
+# webkit.org/b/280186 [EWS] imported/w3c/web-platform-tests/html/canvas/element/manual/drawing-images-to-the-canvas/drawimage_canvas.html is failing on Ventura+ Intel EWS
+[ Sonoma Release x86_64 ] imported/w3c/web-platform-tests/html/canvas/element/manual/drawing-images-to-the-canvas/drawimage_canvas.html [ Skip ]
+
+# webkit.org/b/280219 [EWS] imported/w3c/web-platform-t ests/css/css-view-transitio ns/massive-element-below-vi ewport-offscreen-old.html is a constant failure on Ventura+ Intel 
+[ Sonoma Release x86_64 ] imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-below-viewport-offscreen-old.html [ Skip ]

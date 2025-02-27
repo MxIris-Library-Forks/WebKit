@@ -76,6 +76,7 @@
 #include "DebugPageOverlays.h"
 #include "DeprecatedGlobalSettings.h"
 #include "DocumentFontLoader.h"
+#include "DocumentFullscreen.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
 #include "DocumentMarkerController.h"
@@ -100,7 +101,6 @@
 #include "FontFaceSet.h"
 #include "FormController.h"
 #include "FrameLoader.h"
-#include "FullscreenManager.h"
 #include "GCReachableRef.h"
 #include "GPUCanvasContext.h"
 #include "GenericCachedHTMLCollection.h"
@@ -680,7 +680,7 @@ Document::Document(LocalFrame* frame, const Settings& settings, const URL& url, 
     ASSERT(!m_scriptRunner);
     ASSERT(!m_moduleLoader);
 #if ENABLE(FULLSCREEN_API)
-    ASSERT(!m_fullscreenManager);
+    ASSERT(!m_fullscreen);
 #endif
     ASSERT(!m_fontSelector);
     ASSERT(!m_fontLoader);
@@ -912,8 +912,8 @@ void Document::commonTeardown()
     stopActiveDOMObjects();
 
 #if ENABLE(FULLSCREEN_API)
-    if (CheckedPtr fullscreenManager = m_fullscreenManager.get())
-        fullscreenManager->clearPendingEvents();
+    if (CheckedPtr fullscreen = m_fullscreen.get())
+        fullscreen->clearPendingEvents();
 #endif
 
     if (CheckedPtr svgExtensions = svgExtensionsIfExists())
@@ -1010,11 +1010,11 @@ VisitedLinkState& Document::ensureVisitedLinkState()
 }
 
 #if ENABLE(FULLSCREEN_API)
-FullscreenManager& Document::ensureFullscreenManager()
+DocumentFullscreen& Document::ensureFullscreen()
 {
     ASSERT(m_constructionDidFinish);
-    lazyInitialize(m_fullscreenManager, makeUnique<FullscreenManager>(*this));
-    return *m_fullscreenManager;
+    lazyInitialize(m_fullscreen, makeUnique<DocumentFullscreen>(*this));
+    return *m_fullscreen;
 }
 #endif
 
@@ -1489,53 +1489,56 @@ static inline bool isValidHTMLElementName(const QualifiedName& name)
 }
 
 template<typename NameType>
-static ExceptionOr<Ref<Element>> createHTMLElementWithNameValidation(TreeScope& treeScope, Document& document, const NameType& name, CustomElementRegistry* registry)
+static ExceptionOr<Ref<Element>> createHTMLElementWithNameValidation(Document& document, const NameType& name, CustomElementRegistry* registry)
 {
+    RefPtr element = HTMLElementFactory::createKnownElement(name, document);
+    if (LIKELY(element))
+        return Ref<Element> { element.releaseNonNull() };
+
+    if (!registry)
+        registry = document.customElementRegistry();
+
+    if (registry) {
+        if (RefPtr elementInterface = registry->findInterface(name))
+            return elementInterface->constructElementWithFallback(document, *registry, name);
+    }
+
+    if (UNLIKELY(!isValidHTMLElementName(name)))
+        return Exception { ExceptionCode::InvalidCharacterError };
+
+    return Ref<Element> { createUpgradeCandidateElement(document, registry, name) };
+}
+
+ExceptionOr<Ref<Element>> Document::createElementForBindings(const AtomString& name, std::optional<std::variant<String, ElementCreationOptions>>&& argument)
+{
+    Ref document = *this;
+    RefPtr<CustomElementRegistry> registry;
+    if (UNLIKELY(argument)) {
+        if (auto* options = std::get_if<ElementCreationOptions>(&*argument))
+            registry = options->customElements;
+    }
+
     auto result = [&]() -> ExceptionOr<Ref<Element>> {
-        RefPtr element = HTMLElementFactory::createKnownElement(name, document);
-        if (LIKELY(element))
-            return Ref<Element> { element.releaseNonNull() };
+        if (document->isHTMLDocument())
+            return createHTMLElementWithNameValidation(document, name.convertToASCIILowercase(), registry.get());
 
-        if (!registry)
-            registry = treeScope.customElementRegistry();
+        if (document->isXHTMLDocument())
+            return createHTMLElementWithNameValidation(document, name, registry.get());
 
-        if (UNLIKELY(registry)) {
-            if (RefPtr elementInterface = registry->findInterface(name))
-                return elementInterface->constructElementWithFallback(document, *registry, name);
-        }
+        if (!document->isValidName(name))
+            return Exception { ExceptionCode::InvalidCharacterError, makeString("Invalid qualified name: '"_s, name, '\'') };
 
-        if (UNLIKELY(!isValidHTMLElementName(name)))
-            return Exception { ExceptionCode::InvalidCharacterError };
-
-        return Ref<Element> { createUpgradeCandidateElement(document, registry, name) };
+        return createElement(QualifiedName(nullAtom(), name, nullAtom()), false);
     }();
 
+    if (result.hasException())
+        return result;
     if (UNLIKELY(registry && registry->isScoped())) {
-        if (result.hasException())
-            return result;
         Ref element = result.releaseReturnValue();
         CustomElementRegistry::addToScopedCustomElementRegistryMap(element, *registry);
         return element;
     }
-
     return result;
-
-}
-
-ExceptionOr<Ref<Element>> Document::createElementForBindings(const AtomString& name, const ElementCreationOptions& options)
-{
-    auto& document = documentScope();
-    RefPtr registry = options.customElements;
-    if (document.isHTMLDocument())
-        return createHTMLElementWithNameValidation(*this, document, name.convertToASCIILowercase(), registry.get());
-
-    if (document.isXHTMLDocument())
-        return createHTMLElementWithNameValidation(*this, document, name, registry.get());
-
-    if (!document.isValidName(name))
-        return Exception { ExceptionCode::InvalidCharacterError, makeString("Invalid qualified name: '"_s, name, '\'') };
-
-    return createElement(QualifiedName(nullAtom(), name, nullAtom()), false);
 }
 
 ExceptionOr<Ref<Element>> Document::createElementForBindings(const AtomString& name)
@@ -1909,9 +1912,15 @@ void Document::setActiveCustomElementRegistry(CustomElementRegistry* registry)
     m_activeCustomElementRegistry = registry;
 }
 
-ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceURI, const AtomString& qualifiedName)
+ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceURI, const AtomString& qualifiedName, std::optional<std::variant<String, ElementCreationOptions>>&& argument)
 {
-    Ref document = documentScope();
+    Ref document = *this;
+    RefPtr<CustomElementRegistry> registry;
+    if (UNLIKELY(argument)) {
+        if (auto* options = std::get_if<ElementCreationOptions>(&*argument))
+            registry = options->customElements;
+    }
+
     auto opportunisticallyMatchedBuiltinElement = ([&]() -> RefPtr<Element> {
         if (namespaceURI == xhtmlNamespaceURI)
             return HTMLElementFactory::createKnownElement(qualifiedName, document, nullptr, /* createdByParser */ false);
@@ -1924,20 +1933,36 @@ ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceU
         return nullptr;
     })();
 
-    if (LIKELY(opportunisticallyMatchedBuiltinElement))
-        return opportunisticallyMatchedBuiltinElement.releaseNonNull();
+    auto result = [&]() -> ExceptionOr<Ref<Element>> {
+        if (LIKELY(opportunisticallyMatchedBuiltinElement))
+            return opportunisticallyMatchedBuiltinElement.releaseNonNull();
 
-    auto parseResult = Document::parseQualifiedName(namespaceURI, qualifiedName);
-    if (parseResult.hasException())
-        return parseResult.releaseException();
-    QualifiedName parsedName { parseResult.releaseReturnValue() };
-    if (!Document::hasValidNamespaceForElements(parsedName))
-        return Exception { ExceptionCode::NamespaceError };
+        auto parseResult = Document::parseQualifiedName(namespaceURI, qualifiedName);
+        if (parseResult.hasException())
+            return parseResult.releaseException();
+        QualifiedName parsedName { parseResult.releaseReturnValue() };
+        if (!Document::hasValidNamespaceForElements(parsedName))
+            return Exception { ExceptionCode::NamespaceError };
 
-    if (parsedName.namespaceURI() == xhtmlNamespaceURI)
-        return createHTMLElementWithNameValidation(*this, documentScope(), parsedName, nullptr);
+        if (parsedName.namespaceURI() == xhtmlNamespaceURI)
+            return createHTMLElementWithNameValidation(document, parsedName, registry.get());
 
-    return createElement(parsedName, false, nullptr);
+        return createElement(parsedName, false);
+    }();
+
+    if (result.hasException())
+        return result;
+    if (UNLIKELY(registry && registry->isScoped())) {
+        Ref element = result.releaseReturnValue();
+        CustomElementRegistry::addToScopedCustomElementRegistryMap(element, *registry);
+        return element;
+    }
+    return result;
+}
+
+ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceURI, const AtomString& qualifiedName)
+{
+    return createElementNS(namespaceURI, qualifiedName, { });
 }
 
 DocumentEventTiming* Document::documentEventTimingFromNavigationTiming()
@@ -7659,6 +7684,22 @@ bool Document::hasSVGRootNode() const
     return documentElement() && documentElement()->hasTagName(SVGNames::svgTag);
 }
 
+#if HAVE(SUPPORT_HDR_DISPLAY)
+bool Document::canDrawHDRContent() const
+{
+    if (!(settings().supportHDRDisplayEnabled() || settings().canvasPixelFormatEnabled()))
+        return false;
+
+    if (!hasPaintedHDRContent())
+        return false;
+
+    if (RefPtr frameView = view())
+        return screenSupportsHighDynamicRange(frameView.get());
+
+    return false;
+}
+#endif
+
 template <CollectionType collectionType>
 Ref<HTMLCollection> Document::ensureCachedCollection()
 {
@@ -8552,28 +8593,28 @@ void Document::addDefaultSpatialTrackingLabelChangedObserver(const DefaultSpatia
 #endif
 
 #if ENABLE(FULLSCREEN_API)
-FullscreenManager& Document::fullscreenManager()
+DocumentFullscreen& Document::fullscreen()
 {
-    if (!m_fullscreenManager)
-        return ensureFullscreenManager();
-    return *m_fullscreenManager;
+    if (!m_fullscreen)
+        return ensureFullscreen();
+    return *m_fullscreen;
 }
 
-const FullscreenManager& Document::fullscreenManager() const
+const DocumentFullscreen& Document::fullscreen() const
 {
-    if (!m_fullscreenManager)
-        return const_cast<Document&>(*this).ensureFullscreenManager();
-    return *m_fullscreenManager;
+    if (!m_fullscreen)
+        return const_cast<Document&>(*this).ensureFullscreen();
+    return *m_fullscreen;
 }
 
-CheckedRef<FullscreenManager> Document::checkedFullscreenManager()
+CheckedRef<DocumentFullscreen> Document::checkedFullscreen()
 {
-    return fullscreenManager();
+    return fullscreen();
 }
 
-CheckedRef<const FullscreenManager> Document::checkedFullscreenManager() const
+CheckedRef<const DocumentFullscreen> Document::checkedFullscreen() const
 {
-    return fullscreenManager();
+    return fullscreen();
 }
 #endif
 
@@ -9077,8 +9118,8 @@ Element* eventTargetElementForDocument(Document* document)
     if (!document)
         return nullptr;
 #if ENABLE(FULLSCREEN_API) && ENABLE(VIDEO)
-    if (CheckedPtr fullscreenManager = document->fullscreenManagerIfExists(); fullscreenManager && fullscreenManager->isFullscreen() && is<HTMLVideoElement>(fullscreenManager->fullscreenElement()))
-        return fullscreenManager->fullscreenElement();
+    if (CheckedPtr documentFullscreen = document->fullscreenIfExists(); documentFullscreen && documentFullscreen->isFullscreen() && is<HTMLVideoElement>(documentFullscreen->fullscreenElement()))
+        return documentFullscreen->fullscreenElement();
 #endif
     Element* element = document->focusedElement();
     if (!element) {

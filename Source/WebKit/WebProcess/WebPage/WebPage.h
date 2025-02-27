@@ -1497,6 +1497,7 @@ public:
 #if ENABLE(MEDIA_STREAM) && USE(GSTREAMER)
     void setOrientationForMediaCapture(uint64_t rotation);
     void setMockCaptureDevicesInterrupted(bool isCameraInterrupted, bool isMicrophoneInterrupted);
+    void triggerMockCaptureConfigurationChange(bool forCamera, bool forMicrophone, bool forDisplay);
 #endif
 
     void addUserScript(String&& source, InjectedBundleScriptWorld&, WebCore::UserContentInjectedFrames, WebCore::UserScriptInjectionTime);
@@ -2324,7 +2325,6 @@ private:
     void reportUsedFeatures();
 
     void updateWebsitePolicies(WebsitePoliciesData&&);
-    void notifyUserScripts();
 
     void changeFont(WebCore::FontChanges&&);
     void changeFontAttributes(WebCore::FontAttributeChanges&&);
@@ -3054,3 +3054,7 @@ bool scalesAreEssentiallyEqual(float, float);
 #endif
 
 } // namespace WebKit
+
+SPECIALIZE_TYPE_TRAITS_BEGIN(WebKit::WebPage) \
+    static bool isType(const API::Object& object) { return object.type() == API::Object::Type::BundlePage; } \
+SPECIALIZE_TYPE_TRAITS_END()

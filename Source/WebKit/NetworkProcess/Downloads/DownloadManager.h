@@ -86,6 +86,7 @@ public:
         virtual IPC::Connection* downloadProxyConnection() = 0;
         virtual IPC::Connection* parentProcessConnectionForDownloads() = 0;
         virtual AuthenticationManager& downloadsAuthenticationManager() = 0;
+        Ref<AuthenticationManager> protectedDownloadsAuthenticationManager();
         virtual NetworkSession* networkSession(PAL::SessionID) const = 0;
     };
 
@@ -123,6 +124,7 @@ public:
     AuthenticationManager& downloadsAuthenticationManager();
     
     Client& client() { return m_client; }
+    Ref<Client> protectedClient() { return m_client.get(); }
 
 private:
     CheckedRef<Client> m_client;

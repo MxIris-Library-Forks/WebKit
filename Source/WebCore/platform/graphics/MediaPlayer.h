@@ -36,6 +36,7 @@
 #include "MediaPlayerEnums.h"
 #include "MediaPlayerIdentifier.h"
 #include "MediaPromiseTypes.h"
+#include "PlatformDynamicRangeLimit.h"
 #include "PlatformLayer.h"
 #include "PlatformTextTrack.h"
 #include "ProcessIdentity.h"
@@ -346,6 +347,8 @@ public:
     virtual PlatformVideoTarget mediaPlayerVideoTarget() const { return nullptr; }
 
     virtual MediaPlayerClientIdentifier mediaPlayerClientIdentifier() const = 0;
+
+    virtual MediaPlayerSoundStageSize mediaPlayerSoundStageSize() const { return MediaPlayerSoundStageSize::Auto; }
 
 #if !RELEASE_LOG_DISABLED
     virtual uint64_t mediaPlayerLogIdentifier() { return 0; }
@@ -746,6 +749,8 @@ public:
 
     DynamicRangeMode preferredDynamicRangeMode() const { return m_preferredDynamicRangeMode; }
     void setPreferredDynamicRangeMode(DynamicRangeMode);
+    PlatformDynamicRangeLimit platformDynamicRangeLimit() const { return m_platformDynamicRangeLimit; }
+    void setPlatformDynamicRangeLimit(PlatformDynamicRangeLimit);
 
     String audioOutputDeviceId() const;
     String audioOutputDeviceIdOverride() const;
@@ -785,6 +790,9 @@ public:
     void setPrefersSpatialAudioExperience(bool);
     bool prefersSpatialAudioExperience() const { return m_prefersSpatialAudioExperience; }
 #endif
+
+    SoundStageSize soundStageSize() const;
+    void soundStageSizeDidChange();
 
     void setInFullscreenOrPictureInPicture(bool);
     bool isInFullscreenOrPictureInPicture() const;
@@ -837,6 +845,7 @@ private:
     bool m_shouldPrepareToRender { false };
     bool m_initializingMediaEngine { false };
     DynamicRangeMode m_preferredDynamicRangeMode;
+    PlatformDynamicRangeLimit m_platformDynamicRangeLimit;
     PitchCorrectionAlgorithm m_pitchCorrectionAlgorithm { PitchCorrectionAlgorithm::BestAllAround };
     RefPtr<PlatformMediaResourceLoader> m_mediaResourceLoader;
 

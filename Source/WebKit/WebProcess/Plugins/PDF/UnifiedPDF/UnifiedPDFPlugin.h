@@ -51,6 +51,7 @@ class TextStream;
 
 namespace WebCore {
 class FrameView;
+class LocalFrameView;
 class PageOverlay;
 class PlatformWheelEvent;
 class ShadowRoot;
@@ -103,6 +104,11 @@ private:
     bool m_isBeingHovered { false };
 };
 
+struct VisiblePDFPosition {
+    PDFDocumentLayout::PageIndex pageIndex { 0 };
+    WebCore::FloatPoint pagePoint;
+};
+
 enum class AnnotationSearchDirection : bool {
     Forward,
     Backward
@@ -133,6 +139,7 @@ public:
     };
     using PDFElementTypes = OptionSet<PDFElementType>;
 
+    WebCore::LocalFrameView* frameView() const;
     WebCore::FrameView* mainFrameView() const;
 
     CGRect pluginBoundsForAnnotation(RetainPtr<PDFAnnotation>&) const final;
@@ -223,6 +230,8 @@ public:
 
     static WebCore::ViewportConfiguration::Parameters viewportParameters();
 
+    void finalizeRenderingUpdate() final;
+
 private:
     explicit UnifiedPDFPlugin(WebCore::HTMLPlugInElement&);
     bool isUnifiedPDFPlugin() const override { return true; }
@@ -310,6 +319,7 @@ private:
     void didAttachScrollingNode() final;
 
     bool geometryDidChange(const WebCore::IntSize&, const WebCore::AffineTransform&) override;
+    void visibilityDidChange(bool) override;
 
     RefPtr<WebCore::FragmentedSharedBuffer> liveResourceData() const override;
 
@@ -529,6 +539,18 @@ private:
     void resetZoom();
 #endif
 
+#if ENABLE(PDF_PAGE_NUMBER_INDICATOR)
+    WebCore::IntRect frameForPageNumberIndicatorInRootViewCoordinates() const;
+    bool pageNumberIndicatorEnabled() const;
+    bool shouldShowPageNumberIndicator() const;
+    void updatePageNumberIndicatorVisibility();
+    void updatePageNumberIndicatorLocation();
+    void updatePageNumberIndicatorCurrentPage(const std::optional<WebCore::IntRect>& unobscuredContentRectInRootView);
+    void updatePageNumberIndicator(const std::optional<WebCore::IntRect>& unobscuredContentRectInRootView = { });
+#endif
+
+    void frameViewLayoutOrVisualViewportChanged(const WebCore::IntRect&) final;
+
     bool supportsPasswordForm() const;
     void installAnnotationContainer();
 
@@ -684,6 +706,9 @@ private:
 #endif
 
     RefPtr<WebCore::ShadowRoot> m_shadowRoot;
+
+    std::optional<VisiblePDFPosition> m_pendingAnchoringInfo;
+    bool m_willSetPendingAnchoringInfo { false };
 
     // FIXME: We should rationalize these with the values in ViewGestureController.
     // For now, we'll leave them differing as they do in PDFPlugin.

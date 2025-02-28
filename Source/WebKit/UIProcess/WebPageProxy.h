@@ -434,6 +434,7 @@ class DrawingAreaProxy;
 class FrameState;
 class GamepadData;
 class GeolocationPermissionRequestManagerProxy;
+class JavaScriptEvaluationResult;
 class LayerTreeContext;
 class ListDataObserver;
 class MediaCapability;
@@ -1573,8 +1574,8 @@ public:
     void getSelectionAsWebArchiveData(CompletionHandler<void(API::Data*)>&&);
     void getSourceForFrame(WebFrameProxy*, CompletionHandler<void(const String&)>&&);
     void getWebArchiveOfFrame(WebFrameProxy*, CompletionHandler<void(API::Data*)>&&);
-    void runJavaScriptInMainFrame(WebCore::RunJavaScriptParameters&&, CompletionHandler<void(Expected<RefPtr<API::SerializedScriptValue>, WebCore::ExceptionDetails>&&)>&&);
-    void runJavaScriptInFrameInScriptWorld(WebCore::RunJavaScriptParameters&&, std::optional<WebCore::FrameIdentifier>, API::ContentWorld&, CompletionHandler<void(Expected<RefPtr<API::SerializedScriptValue>, WebCore::ExceptionDetails>&&)>&&);
+    void runJavaScriptInMainFrame(WebCore::RunJavaScriptParameters&&, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&&);
+    void runJavaScriptInFrameInScriptWorld(WebCore::RunJavaScriptParameters&&, std::optional<WebCore::FrameIdentifier>, API::ContentWorld&, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&&);
     void getAccessibilityTreeData(CompletionHandler<void(API::Data*)>&&);
     void updateRenderingWithForcedRepaint(CompletionHandler<void()>&&);
 
@@ -2332,6 +2333,13 @@ public:
     void removePDFHUD(PDFPluginIdentifier);
 #endif
 
+#if ENABLE(PDF_PAGE_NUMBER_INDICATOR)
+    void createPDFPageNumberIndicator(PDFPluginIdentifier, const WebCore::IntRect&, size_t pageCount);
+    void updatePDFPageNumberIndicatorLocation(PDFPluginIdentifier, const WebCore::IntRect&);
+    void updatePDFPageNumberIndicatorCurrentPage(PDFPluginIdentifier, size_t pageIndex);
+    void removePDFPageNumberIndicator(PDFPluginIdentifier);
+#endif
+
     Seconds mediaCaptureReportingDelay() const { return m_mediaCaptureReportingDelay; }
     void setMediaCaptureReportingDelay(Seconds captureReportingDelay) { m_mediaCaptureReportingDelay = captureReportingDelay; }
     size_t suspendMediaPlaybackCounter() { return m_suspendMediaPlaybackCounter; }
@@ -2936,7 +2944,6 @@ private:
     void backForwardListCounts(CompletionHandler<void(WebBackForwardListCounts&&)>&&);
     void backForwardGoToProvisionalItem(IPC::Connection&, WebCore::BackForwardItemIdentifier, CompletionHandler<void(const WebBackForwardListCounts&)>&&);
     void backForwardClearProvisionalItem(IPC::Connection&, WebCore::BackForwardItemIdentifier, WebCore::BackForwardFrameItemIdentifier, CompletionHandler<void(const WebBackForwardListCounts&)>&&);
-    void backForwardCommitProvisionalItem(IPC::Connection&, WebCore::BackForwardItemIdentifier, WebCore::BackForwardFrameItemIdentifier);
     void backForwardUpdateItem(IPC::Connection&, Ref<FrameState>&&);
 
     // Undo management

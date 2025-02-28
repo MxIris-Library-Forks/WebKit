@@ -1905,6 +1905,14 @@ void MediaPlayer::setPreferredDynamicRangeMode(DynamicRangeMode mode)
     m_private->setPreferredDynamicRangeMode(mode);
 }
 
+void MediaPlayer::setPlatformDynamicRangeLimit(PlatformDynamicRangeLimit platformDynamicRangeLimit)
+{
+    if (m_platformDynamicRangeLimit == platformDynamicRangeLimit)
+        return;
+    m_platformDynamicRangeLimit = platformDynamicRangeLimit;
+    m_private->setPlatformDynamicRangeLimit(platformDynamicRangeLimit);
+}
+
 void MediaPlayer::audioOutputDeviceChanged()
 {
     m_private->audioOutputDeviceChanged();
@@ -2027,6 +2035,16 @@ void MediaPlayer::setPrefersSpatialAudioExperience(bool value)
     m_private->prefersSpatialAudioExperienceChanged();
 }
 #endif
+
+auto MediaPlayer::soundStageSize() const -> SoundStageSize
+{
+    return client().mediaPlayerSoundStageSize();
+}
+
+void MediaPlayer::soundStageSizeDidChange()
+{
+    m_private->soundStageSizeDidChange();
+}
 
 void MediaPlayer::setInFullscreenOrPictureInPicture(bool isInFullscreenOrPictureInPicture)
 {

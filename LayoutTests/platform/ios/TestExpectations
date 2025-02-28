@@ -2773,8 +2773,6 @@ css3/viewport-percentage-lengths/vh-auto-size.html [ ImageOnlyFailure ]
 # This test relies on the ::selection pseudoclass which isn't honored on iOS.
 webkit.org/b/169517 fast/text/complex-text-selection.html [ ImageOnlyFailure ]
 
-webkit.org/b/124933 svg/animations/getCurrentTime-pause-unpause.html [ Pass Failure ]
-
 webkit.org/b/172610 media/ios/autoplay-only-in-main-document.html [ Skip ]
 webkit.org/b/172672 fast/events/before-unload-returnValue.html [ Skip ]
 
@@ -7702,3 +7700,7 @@ webkit.org/b/287741 fast/viewport/ios/non-responsive-viewport-after-changing-vie
 [ Debug ] http/wpt/mediarecorder/MediaRecorder-webm-AV-audio-video-dataavailable.html [ Skip ]
 
 webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html [ Pass Failure ]
+
+webkit.org/b/288677 [ Debug arm64 ] fast/scrolling/ios/body-overflow-hidden-keyboard.html [ Pass Crash ]
+
+webkit.org/b/288694 [ Debug arm64 ] fast/multicol/body-stuck-with-dirty-bit-with-columns.html [ Crash ]

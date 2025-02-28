@@ -1,11 +1,6 @@
 AutomationBackendDispatchers.cpp
 AutomationFrontendDispatchers.cpp
 AutomationProtocolObjects.h
-NetworkProcess/Downloads/DownloadManager.cpp
-NetworkProcess/Downloads/cocoa/DownloadCocoa.mm
-NetworkProcess/Downloads/cocoa/WKDownloadProgress.mm
-NetworkProcess/SharedWorker/WebSharedWorkerServer.cpp
-NetworkProcess/cache/NetworkCacheSpeculativeLoad.cpp
 Platform/IPC/ArgumentCoders.h
 Shared/API/APIArray.h
 Shared/API/c/WKArray.cpp
@@ -258,8 +253,6 @@ WebProcess/GPU/media/SourceBufferPrivateRemote.h
 WebProcess/GPU/media/TextTrackPrivateRemote.cpp
 WebProcess/GPU/media/VideoTrackPrivateRemote.cpp
 WebProcess/GPU/media/WebMediaStrategy.cpp
-WebProcess/GPU/webrtc/AudioMediaStreamTrackRendererInternalUnitManager.cpp
-WebProcess/GPU/webrtc/LibWebRTCCodecs.cpp
 WebProcess/GPU/webrtc/SampleBufferDisplayLayer.cpp
 WebProcess/Geolocation/WebGeolocationManager.cpp
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInCSSStyleDeclarationHandle.mm
@@ -324,7 +317,6 @@ WebProcess/Speech/SpeechRecognitionRealtimeMediaSourceManager.cpp
 WebProcess/Storage/WebSWClientConnection.cpp
 WebProcess/Storage/WebSWContextManagerConnection.cpp
 WebProcess/Storage/WebServiceWorkerProvider.cpp
-WebProcess/Storage/WebSharedWorkerContextManagerConnection.cpp
 WebProcess/UserContent/WebUserContentController.cpp
 WebProcess/WebCoreSupport/ShareableBitmapUtilities.cpp
 WebProcess/WebCoreSupport/WebBroadcastChannelRegistry.cpp

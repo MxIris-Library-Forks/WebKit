@@ -356,6 +356,7 @@ class ContextMenuContextData;
 class DrawingArea;
 class FindController;
 class FrameState;
+class JavaScriptEvaluationResult;
 class GPUProcessConnection;
 class GamepadData;
 class GeolocationPermissionRequestManager;
@@ -566,12 +567,21 @@ public:
     void removePDFHUD(PDFPluginBase&);
 #endif
 
+#if ENABLE(PDF_PAGE_NUMBER_INDICATOR)
+    void createPDFPageNumberIndicator(PDFPluginBase&, const WebCore::IntRect&, size_t pageCount);
+    void updatePDFPageNumberIndicatorLocation(PDFPluginBase&, const WebCore::IntRect&);
+    void updatePDFPageNumberIndicatorCurrentPage(PDFPluginBase&, size_t pageIndex);
+    void removePDFPageNumberIndicator(PDFPluginBase&);
+#endif
+
 #if ENABLE(PDF_PLUGIN) && PLATFORM(MAC)
     void zoomPDFIn(PDFPluginIdentifier);
     void zoomPDFOut(PDFPluginIdentifier);
     void savePDF(PDFPluginIdentifier, CompletionHandler<void(const String&, const URL&, std::span<const uint8_t>)>&&);
     void openPDFWithPreview(PDFPluginIdentifier, CompletionHandler<void(const String&, FrameInfoData&&, std::span<const uint8_t>, const String&)>&&);
 #endif
+
+    void frameViewLayoutOrVisualViewportChanged(const WebCore::LocalFrameView&);
 
 #if PLATFORM(COCOA)
     void willCommitLayerTree(RemoteLayerTreeTransaction&, WebCore::FrameIdentifier);
@@ -2173,8 +2183,8 @@ private:
     void getSourceForFrame(WebCore::FrameIdentifier, CompletionHandler<void(const String&)>&&);
     void getWebArchiveOfFrame(std::optional<WebCore::FrameIdentifier>, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
     void getWebArchiveOfFrameWithFileName(WebCore::FrameIdentifier, const Vector<WebCore::MarkupExclusionRule>&, const String& fileName, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
-    void runJavaScript(WebFrame*, WebCore::RunJavaScriptParameters&&, ContentWorldIdentifier, CompletionHandler<void(std::span<const uint8_t>, const std::optional<WebCore::ExceptionDetails>&)>&&);
-    void runJavaScriptInFrameInScriptWorld(WebCore::RunJavaScriptParameters&&, std::optional<WebCore::FrameIdentifier>, const ContentWorldData&, CompletionHandler<void(std::span<const uint8_t>, const std::optional<WebCore::ExceptionDetails>&)>&&);
+    void runJavaScript(WebFrame*, WebCore::RunJavaScriptParameters&&, ContentWorldIdentifier, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&&);
+    void runJavaScriptInFrameInScriptWorld(WebCore::RunJavaScriptParameters&&, std::optional<WebCore::FrameIdentifier>, const ContentWorldData&, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&&);
     void getAccessibilityTreeData(CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
     void updateRenderingWithForcedRepaint(CompletionHandler<void()>&&);
     void takeSnapshot(WebCore::IntRect snapshotRect, WebCore::IntSize bitmapSize, SnapshotOptions, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&&);
@@ -2537,6 +2547,9 @@ private:
 #endif
 #if ENABLE(PDF_HUD)
     HashMap<PDFPluginIdentifier, WeakPtr<PDFPluginBase>> m_pdfPlugInsWithHUD;
+#endif
+#if ENABLE(PDF_PAGE_NUMBER_INDICATOR)
+    HashMap<PDFPluginIdentifier, WeakPtr<PDFPluginBase>> m_pdfPlugInsWithPageNumberIndicator;
 #endif
 
     WTF::Function<void()> m_selectionChangedHandler;

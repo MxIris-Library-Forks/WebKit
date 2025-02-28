@@ -88,6 +88,7 @@
 #include "FrameTreeNodeData.h"
 #include "GoToBackForwardItemParameters.h"
 #include "ImageOptions.h"
+#include "JavaScriptEvaluationResult.h"
 #include "LegacyGlobalSettings.h"
 #include "LoadParameters.h"
 #include "LoadedWebArchive.h"
@@ -6157,18 +6158,18 @@ void WebPageProxy::launchInitialProcessIfNecessary()
         launchProcess(Site(aboutBlankURL()), ProcessLaunchReason::InitialProcess);
 }
 
-void WebPageProxy::runJavaScriptInMainFrame(RunJavaScriptParameters&& parameters, CompletionHandler<void(Expected<RefPtr<API::SerializedScriptValue>, WebCore::ExceptionDetails>&&)>&& callbackFunction)
+void WebPageProxy::runJavaScriptInMainFrame(RunJavaScriptParameters&& parameters, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&& callbackFunction)
 {
     runJavaScriptInFrameInScriptWorld(WTFMove(parameters), std::nullopt, API::ContentWorld::pageContentWorldSingleton(), WTFMove(callbackFunction));
 }
 
-void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parameters, std::optional<WebCore::FrameIdentifier> frameID, API::ContentWorld& world, CompletionHandler<void(Expected<RefPtr<API::SerializedScriptValue>, WebCore::ExceptionDetails>&&)>&& callbackFunction)
+void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parameters, std::optional<WebCore::FrameIdentifier> frameID, API::ContentWorld& world, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&& callbackFunction)
 {
     // For backward-compatibility support running script in a WebView which has not done any loads yets.
     launchInitialProcessIfNecessary();
 
     if (!hasRunningProcess())
-        return callbackFunction({ nullptr });
+        return callbackFunction(makeUnexpected(std::nullopt));
 
     RefPtr<ProcessThrottler::Activity> activity;
 #if USE(RUNNINGBOARD)
@@ -6176,15 +6177,9 @@ void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& p
         activity = m_legacyMainFrameProcess->throttler().foregroundActivity("WebPageProxy::runJavaScriptInFrameInScriptWorld"_s);
 #endif
 
-    auto completionHandler = [activity = WTFMove(activity), callbackFunction = WTFMove(callbackFunction)] (std::span<const uint8_t> dataReference, std::optional<ExceptionDetails>&& details) mutable {
-        if (details)
-            return callbackFunction(makeUnexpected(WTFMove(*details)));
-        if (dataReference.empty())
-            return callbackFunction({ nullptr });
-        callbackFunction({ API::SerializedScriptValue::createFromWireBytes(Vector(dataReference)).ptr() });
-    };
-
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::RunJavaScriptInFrameInScriptWorld(parameters, frameID, world.worldData()), WTFMove(completionHandler));
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::RunJavaScriptInFrameInScriptWorld(parameters, frameID, world.worldData()), [activity = WTFMove(activity), callbackFunction = WTFMove(callbackFunction)] (auto&& result) mutable {
+        callbackFunction(WTFMove(result));
+    });
 }
 
 void WebPageProxy::getRenderTreeExternalRepresentation(CompletionHandler<void(const String&)>&& callback)
@@ -7126,6 +7121,9 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
 #if ENABLE(PDF_HUD)
         protectedPageClient->removeAllPDFHUDs();
 #endif
+#if ENABLE(PDF_PAGE_NUMBER_INDICATOR)
+        protectedPageClient->removeAnyPDFPageNumberIndicator();
+#endif
 #if ENABLE(GAMEPAD)
         resetRecentGamepadAccessState();
 #endif
@@ -7179,6 +7177,11 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
     if (frame->isMainFrame() && preferences->textExtractionEnabled())
         prepareTextExtractionSupportIfNeeded();
 #endif
+
+    if (isBackForwardLoadType(frameLoadType)) {
+        if (RefPtr provisionalItem = m_backForwardList->provisionalItem(); provisionalItem && provisionalItem->navigatedFrameID() == frameID)
+            m_backForwardList->commitProvisionalItem();
+    }
 }
 
 void WebPageProxy::didFinishDocumentLoadForFrame(IPC::Connection& connection, FrameIdentifier frameID, std::optional<WebCore::NavigationIdentifier> navigationID, const UserData& userData, WallTime timestamp)
@@ -9737,12 +9740,6 @@ void WebPageProxy::backForwardClearProvisionalItem(IPC::Connection& connection, 
     completionHandler(m_backForwardList->counts());
 }
 
-void WebPageProxy::backForwardCommitProvisionalItem(IPC::Connection& connection, BackForwardItemIdentifier itemID, BackForwardFrameItemIdentifier frameItemID)
-{
-    if (RefPtr frameItem = WebBackForwardListFrameItem::itemForID(itemID, frameItemID))
-        m_backForwardList->commitProvisionalItem(*frameItem);
-}
-
 void WebPageProxy::backForwardItemAtIndex(int32_t index, FrameIdentifier frameID, CompletionHandler<void(RefPtr<FrameState>&&)>&& completionHandler)
 {
     // FIXME: This should verify that the web process requesting the item hosts the specified frame.
@@ -11030,6 +11027,10 @@ void WebPageProxy::resetStateAfterProcessTermination(ProcessTerminationReason re
 #if ENABLE(PDF_HUD)
     if (RefPtr pageClient = this->pageClient())
         pageClient->removeAllPDFHUDs();
+#endif
+#if ENABLE(PDF_PAGE_NUMBER_INDICATOR)
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->removeAnyPDFPageNumberIndicator();
 #endif
 
     if (reason != ProcessTerminationReason::NavigationSwap) {

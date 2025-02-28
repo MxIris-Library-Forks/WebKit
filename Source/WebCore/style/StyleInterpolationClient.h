@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2016-2023 Apple Inc. All rights reserved.
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2017 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -17,6 +16,7 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
@@ -25,38 +25,25 @@
 
 #pragma once
 
-#include "CSSValueKeywords.h"
-#include <wtf/Forward.h>
+#include <optional>
 
 namespace WebCore {
 
-class CSSParserTokenRange;
-class CSSPrimitiveValue;
-class CSSValue;
-struct CSSParserContext;
+class Document;
+class RenderElement;
+class RenderStyle;
 
-namespace CSSPropertyParserHelpers {
+namespace Style::Interpolation {
 
-// MARK: <single-container-name> consuming
-// https://drafts.csswg.org/css-conditional-5/#propdef-container-name
-RefPtr<CSSPrimitiveValue> consumeSingleContainerName(CSSParserTokenRange&, const CSSParserContext&);
+class Client {
+public:
+    virtual Document* document() const = 0;
+    virtual RenderElement* renderer() const = 0;
+    virtual const RenderStyle& currentStyle() const = 0;
+    virtual std::optional<unsigned> transformFunctionListPrefix() const = 0;
 
-// MARK: <'container-name'> consuming
-// https://drafts.csswg.org/css-conditional-5/#propdef-container-name
-RefPtr<CSSValue> consumeContainerName(CSSParserTokenRange&, const CSSParserContext&);
+    virtual ~Client() = default;
+};
 
-inline bool isValidContainerNameIdentifier(CSSValueID valueID)
-{
-    switch (valueID) {
-    case CSSValueNone:
-    case CSSValueAnd:
-    case CSSValueOr:
-    case CSSValueNot:
-        return false;
-    default:
-        return true;
-    }
-}
-
-} // namespace CSSPropertyParserHelpers
+} // namespace Style::Interpolation
 } // namespace WebCore

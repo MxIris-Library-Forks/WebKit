@@ -253,6 +253,7 @@ public:
     virtual void willAttachScrollingNode() { }
     virtual void didAttachScrollingNode() { }
     virtual void didChangeSettings() { }
+    virtual void finalizeRenderingUpdate() { }
 
     // HUD Actions.
 #if ENABLE(PDF_HUD)
@@ -334,6 +335,8 @@ public:
     virtual bool shouldSizeToFitContent() const { return false; }
 
     virtual WebCore::FloatRect absoluteBoundingRectForSmartMagnificationAtPoint(WebCore::FloatPoint) const { return { }; }
+
+    virtual void frameViewLayoutOrVisualViewportChanged(const WebCore::IntRect&) { }
 
 protected:
     virtual double contentScaleFactor() const = 0;

@@ -46,7 +46,7 @@
 
 namespace WTF {
 
-constexpr size_t minArenaGranuleSize { 16 * KB };
+constexpr size_t minArenaGranuleSize { 16 * 16 * KB };
 
 class alignas(128) SequesteredArenaAllocator {
 private:
@@ -370,7 +370,7 @@ public:
         ASSERT(!m_alive);
         m_alive = true;
         m_liveAllocations = 0;
-        dataLogLnIf(verbose, "Allocator ", id(), " in thread ", Thread::current(),
+        dataLogLnIf(verbose, "Allocator ", id(), " in thread ", Thread::currentSingleton(),
             ": starting lifetime: granule is (",
             RawPointer(reinterpret_cast<void*>(m_genericSmallArena.m_granules.head())),
             "), allocHead (",
@@ -393,7 +393,7 @@ public:
         m_alive = false;
 
         dataLogLnIf(verbose, "Allocator ", id(), " in thread ",
-            Thread::current(), ": ending lifetime: granule is (",
+            Thread::currentSingleton(), ": ending lifetime: granule is (",
             RawPointer(reinterpret_cast<void*>(m_genericSmallArena.m_granules.head())),
             "), allocHead (",
             RawPointer(reinterpret_cast<void*>(m_genericSmallArena.m_allocHead)),
@@ -415,8 +415,6 @@ public:
             m_totalAllocatedBytes = 0;
         m_genericSmallArena.setBoundsFromGranule(head);
         m_decommitQueue.concatenate(WTFMove(tail));
-
-        m_decommitQueue.decommit();
     }
 
     bool inArenaLifetime()
@@ -434,6 +432,8 @@ public:
         using SelfT = SequesteredArenaAllocator;
         auto ptr = reinterpret_cast<SelfT*>(SequesteredImmortalHeap::instance().getSlot());
         if (UNLIKELY(!ptr)) {
+            static_assert(sizeof(SequesteredArenaAllocator) <= SequesteredImmortalHeap::slotSize);
+            static_assert(!offsetof(SequesteredArenaAllocator, m_decommitQueue));
             ptr = reinterpret_cast<SelfT*>(
                 SequesteredImmortalHeap::instance().allocateAndInstall<SelfT>());
         }
@@ -528,7 +528,6 @@ private:
     StdMap<uintptr_t, AllocationDebugInfo> m_allocationInfos;
     size_t m_totalAllocatedBytes { 0 };
 };
-static_assert(sizeof(SequesteredArenaAllocator) <= SequesteredImmortalHeap::slotSize);
 
 class ArenaLifetime {
 public:

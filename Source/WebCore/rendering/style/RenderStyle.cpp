@@ -921,7 +921,8 @@ static bool rareDataChangeRequiresLayout(const StyleRareNonInheritedData& first,
     if (first.overflowContinue != second.overflowContinue)
         return true;
 
-    if (first.positionArea != second.positionArea)
+    // CSS Anchor Positioning.
+    if (first.anchorScope != second.anchorScope || first.positionArea != second.positionArea)
         return true;
 
     return false;
@@ -3360,6 +3361,64 @@ void RenderStyle::setMarginAfter(Length&& margin)
         return setMarginRight(WTFMove(margin));
     case FlowDirection::RightToLeft:
         return setMarginLeft(WTFMove(margin));
+    }
+}
+
+void RenderStyle::setPaddingStart(Length&& margin)
+{
+    if (writingMode().isHorizontal()) {
+        if (writingMode().isInlineLeftToRight())
+            setPaddingLeft(WTFMove(margin));
+        else
+            setPaddingRight(WTFMove(margin));
+    } else {
+        if (writingMode().isInlineTopToBottom())
+            setPaddingTop(WTFMove(margin));
+        else
+            setPaddingBottom(WTFMove(margin));
+    }
+}
+
+void RenderStyle::setPaddingEnd(Length&& margin)
+{
+    if (writingMode().isHorizontal()) {
+        if (writingMode().isInlineLeftToRight())
+            setPaddingRight(WTFMove(margin));
+        else
+            setPaddingLeft(WTFMove(margin));
+    } else {
+        if (writingMode().isInlineTopToBottom())
+            setPaddingBottom(WTFMove(margin));
+        else
+            setPaddingTop(WTFMove(margin));
+    }
+}
+
+void RenderStyle::setPaddingBefore(Length&& margin)
+{
+    switch (writingMode().blockDirection()) {
+    case FlowDirection::TopToBottom:
+        return setPaddingTop(WTFMove(margin));
+    case FlowDirection::BottomToTop:
+        return setPaddingBottom(WTFMove(margin));
+    case FlowDirection::LeftToRight:
+        return setPaddingLeft(WTFMove(margin));
+    case FlowDirection::RightToLeft:
+        return setPaddingRight(WTFMove(margin));
+    }
+}
+
+void RenderStyle::setPaddingAfter(Length&& margin)
+{
+    switch (writingMode().blockDirection()) {
+    case FlowDirection::TopToBottom:
+        return setPaddingBottom(WTFMove(margin));
+    case FlowDirection::BottomToTop:
+        return setPaddingTop(WTFMove(margin));
+    case FlowDirection::LeftToRight:
+        return setPaddingRight(WTFMove(margin));
+    case FlowDirection::RightToLeft:
+        return setPaddingLeft(WTFMove(margin));
     }
 }
 

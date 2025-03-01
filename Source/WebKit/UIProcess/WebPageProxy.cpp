@@ -1560,7 +1560,7 @@ void WebPageProxy::didAttachToRunningProcess()
         videoPresentationManager->setMockVideoPresentationModeEnabled(m_mockVideoPresentationModeEnabled);
 #endif
 
-#if ENABLE(APPLE_PAY)
+#if ENABLE(APPLE_PAY) && !ENABLE(APPLE_PAY_REMOTE_UI)
     ASSERT(!internals().paymentCoordinator);
     internals().paymentCoordinator = WebPaymentCoordinatorProxy::create(internals());
 #endif
@@ -2771,6 +2771,12 @@ void WebPageProxy::setObscuredContentInsets(const WebCore::FloatBoxExtent& obscu
 Color WebPageProxy::underlayColor() const
 {
     return internals().underlayColor;
+}
+
+void WebPageProxy::setShouldSuppressHDR(bool shouldSuppressHDR)
+{
+    if (hasRunningProcess())
+        send(Messages::WebPage::SetShouldSuppressHDR(shouldSuppressHDR));
 }
 
 void WebPageProxy::setUnderlayColor(const Color& color)
@@ -4339,32 +4345,24 @@ void WebPageProxy::updateTouchEventTracking(const WebTouchEvent& touchStartEvent
         auto update = [this, location](TrackingType& trackingType, EventTrackingRegions::EventType eventType) {
             if (trackingType == TrackingType::Synchronous)
                 return;
-            auto trackingTypeForLocation = m_scrollingCoordinatorProxy->eventTrackingTypeForPoint(eventType, location);
-            trackingType = mergeTrackingTypes(trackingType, trackingTypeForLocation);
-        };
-
-        auto& tracking = internals().touchEventTracking;
-        using Type = EventTrackingRegions::EventType;
 #if ENABLE(TOUCH_EVENT_REGIONS)
-        auto updateTouchEvents = [this, location](TrackingType& trackingType, EventListenerRegionType eventType) {
-            if (trackingType == TrackingType::Synchronous)
-                return;
             if (RefPtr drawingAreaProxy = dynamicDowncast<RemoteLayerTreeDrawingAreaProxy>(*m_drawingArea)) {
                 auto trackingTypeForLocation = drawingAreaProxy->eventTrackingTypeForPoint(eventType, WebCore::IntPoint(location));
                 trackingType = mergeTrackingTypes(trackingType, trackingTypeForLocation);
             }
+#else
+            auto trackingTypeForLocation = m_scrollingCoordinatorProxy->eventTrackingTypeForPoint(eventType, location);
+            trackingType = mergeTrackingTypes(trackingType, trackingTypeForLocation);
+#endif
         };
 
-        updateTouchEvents(tracking.touchForceChangedTracking, EventListenerRegionType::TouchCancel);
-        updateTouchEvents(tracking.touchStartTracking, EventListenerRegionType::TouchStart);
-        updateTouchEvents(tracking.touchMoveTracking, EventListenerRegionType::TouchMove);
-        updateTouchEvents(tracking.touchEndTracking, EventListenerRegionType::TouchEnd);
-#else
+        auto& tracking = internals().touchEventTracking;
+        using Type = EventTrackingRegions::EventType;
+
         update(tracking.touchForceChangedTracking, Type::Touchforcechange);
         update(tracking.touchStartTracking, Type::Touchstart);
         update(tracking.touchMoveTracking, Type::Touchmove);
         update(tracking.touchEndTracking, Type::Touchend);
-#endif
         update(tracking.touchStartTracking, Type::Pointerover);
         update(tracking.touchStartTracking, Type::Pointerenter);
         update(tracking.touchStartTracking, Type::Pointerdown);
@@ -8950,6 +8948,7 @@ void WebPageProxy::showContactPicker(IPC::Connection& connection, const Contacts
         pageClient->showContactPicker(requestData, WTFMove(completionHandler));
 }
 
+#if ENABLE(WEB_AUTHN)
 void WebPageProxy::showDigitalCredentialsPicker(IPC::Connection& connection, const WebCore::DigitalCredentialsRequestData& requestData, WTF::CompletionHandler<void(Expected<WebCore::DigitalCredentialsResponseData, WebCore::ExceptionData>&&)>&& completionHandler)
 {
     MESSAGE_CHECK_COMPLETION_BASE(
@@ -8984,6 +8983,7 @@ void WebPageProxy::dismissDigitalCredentialsPicker(IPC::Connection& connection, 
     completionHandler(false);
 #endif
 }
+#endif // ENABLE(WEB_AUTHN)
 
 void WebPageProxy::printFrame(IPC::Connection& connection, FrameIdentifier frameID, const String& title, const FloatSize& pdfFirstPageSize, CompletionHandler<void()>&& completionHandler)
 {
@@ -12179,20 +12179,12 @@ void WebPageProxy::microphoneMuteStatusChanged(bool isMuting)
     // We are updating both the internal and web app muting states so that only microphone changes, and not camera or screenshare.
     auto mutedState = internals().mutedState;
     if (isMuting) {
-#if PLATFORM(MAC)
-        mutedState.add(WebCore::MediaProducer::MediaStreamCaptureIsMuted);
-#else
         mutedState.add(WebCore::MediaProducerMutedState::AudioCaptureIsMuted);
-#endif
         m_mutedCaptureKindsDesiredByWebApp.add(WebCore::MediaProducerMediaCaptureKind::Microphone);
     } else {
         WebProcessProxy::muteCaptureInPagesExcept(m_webPageID);
 
-#if PLATFORM(MAC)
-        mutedState.remove(WebCore::MediaProducer::MediaStreamCaptureIsMuted);
-#else
         mutedState.remove(WebCore::MediaProducerMutedState::AudioCaptureIsMuted);
-#endif
         m_mutedCaptureKindsDesiredByWebApp.remove(WebCore::MediaProducerMediaCaptureKind::Microphone);
     }
 
@@ -15331,6 +15323,11 @@ void WebPageProxy::scrollToRect(const FloatRect& targetRect, const FloatPoint& o
 void WebPageProxy::setContentOffset(WebCore::ScrollOffset offset, WebCore::ScrollIsAnimated animated)
 {
     send(Messages::WebPage::SetContentOffset(offset, animated));
+}
+
+void WebPageProxy::scrollToEdge(WebCore::RectEdges<bool> edges, WebCore::ScrollIsAnimated animated)
+{
+    send(Messages::WebPage::ScrollToEdge(edges, animated));
 }
 
 bool WebPageProxy::shouldEnableLockdownMode() const

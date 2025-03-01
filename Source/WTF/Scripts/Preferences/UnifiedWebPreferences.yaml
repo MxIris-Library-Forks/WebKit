@@ -1782,6 +1782,7 @@ CacheAPIEnabled:
     WebCore:
       default: false
   disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 CanvasColorSpaceEnabled:
   type: bool
@@ -2681,15 +2682,16 @@ DiagnosticLoggingEnabled:
 
 DigitalCredentialsEnabled:
   type: bool
-  status: testable
+  status: stable
   category: dom
   humanReadableName: "Digital Credentials API"
-  humanReadableDescription: "Enable the experimental Digital Credentials API"
+  humanReadableDescription: "Enable the Digital Credentials API"
+  condition: ENABLE(WEB_AUTHN)
   defaultValue:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: WebKit::defaultDigitalCredentialsEnabled()
     WebCore:
       default: false
   sharedPreferenceForWebProcess: true
@@ -3030,10 +3032,11 @@ FileSystemAccessEnabled:
       "PLATFORM(COCOA)" : true
       default: false
   disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 FileSystemWritableStreamEnabled:
   type: bool
-  status: testable
+  status: stable
   category: dom
   humanReadableName: "File System WritableStream"
   humanReadableDescription: "Enable File System WritableStream API"
@@ -3041,8 +3044,10 @@ FileSystemWritableStreamEnabled:
     WebKitLegacy:
       default: false
     WebKit:
+      "PLATFORM(COCOA)" : true
       default: false
     WebCore:
+      "PLATFORM(COCOA)" : true
       default: false
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
@@ -3446,6 +3451,20 @@ HiddenPageDOMTimerThrottlingEnabled:
       default: false
     WebKit:
       "PLATFORM(COCOA) || PLATFORM(GTK)": true
+      default: false
+    WebCore:
+      default: false
+
+HostedBlurMaterialInMediaControlsEnabled:
+  type: bool
+  status: internal
+  humanReadableName: "Hosted blur material in media controls"
+  humanReadableDescription: "Enable hosted blur material in media controls"
+  condition: HAVE(MATERIAL_HOSTING)
+  defaultValue:
+    WebKit:
+      default: defaultHostedBlurMaterialInMediaControlsEnabled()
+    WebKitLegacy:
       default: false
     WebCore:
       default: false
@@ -5812,6 +5831,7 @@ PermissionsAPIEnabled:
       default: false
     WebCore:
       default: false
+  sharedPreferenceForWebProcess: true
 
 PhotoPickerPrefersOriginalImageFormat:
   type: bool
@@ -5961,6 +5981,7 @@ PreferSpatialAudioExperience:
     WebCore:
       default: false
   defaultsOverridable: true
+  sharedPreferenceForWebProcess: true
 
 PrivateClickMeasurementDebugModeEnabled:
   type: bool
@@ -7386,7 +7407,7 @@ StorageBlockingPolicy:
 
 SupportHDRDisplayEnabled:
   type: bool
-  status: testable
+  status: stable
   category: media
   webcoreOnChange: setNeedsRelayoutAllFrames
   humanReadableName: "Support HDR Display"
@@ -7395,8 +7416,10 @@ SupportHDRDisplayEnabled:
     WebKitLegacy:
       default: false
     WebKit:
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
+      "PLATFORM(COCOA)": true
       default: false
 
 SuppressesIncrementalRendering:
@@ -7742,7 +7765,7 @@ TreatsAnyTextCSSLinkAsStylesheet:
 
 TrustedTypesEnabled:
   type: bool
-  status: testable
+  status: stable
   category: dom
   humanReadableName: "Trusted Types"
   humanReadableDescription: "Enable Trusted Types"
@@ -7750,9 +7773,9 @@ TrustedTypesEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 UAVisualTransitionDetectionEnabled:
   type: bool

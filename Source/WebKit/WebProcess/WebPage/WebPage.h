@@ -28,6 +28,7 @@
 #include "APIObject.h"
 #include "MessageReceiver.h"
 #include "MessageSender.h"
+#include "SandboxExtension.h"
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <WebCore/BoxExtents.h>
 #include <WebCore/DictionaryPopupInfo.h>
@@ -62,6 +63,7 @@
 #include <WebCore/TextManipulationItem.h>
 #include <WebCore/Timer.h>
 #include <WebCore/UserActivity.h>
+#include <WebCore/UserContentTypes.h>
 #include <WebCore/UserMediaRequestIdentifier.h>
 #include <WebCore/UserScriptTypes.h>
 #include <WebCore/VisibilityState.h>
@@ -259,7 +261,6 @@ enum class TextAnimationRunMode : uint8_t;
 enum class TextAnimationType : uint8_t;
 enum class TextIndicatorPresentationTransition : uint8_t;
 enum class TextGranularity : uint8_t;
-enum class UserContentInjectedFrames : bool;
 enum class UserInterfaceLayoutDirection : bool;
 enum class ViolationReportType : uint8_t;
 enum class WheelEventProcessingSteps : uint8_t;
@@ -793,6 +794,10 @@ public:
     void enableAccessibilityForAllProcesses();
     void enableAccessibility();
 
+#if ENABLE(INITIALIZE_ACCESSIBILITY_ON_DEMAND)
+    void initializeAccessibility(Vector<SandboxExtension::Handle>&&);
+#endif
+
     void screenPropertiesDidChange();
 
     // FIXME(site-isolation): Calls to these should be removed in favour of setting via WebPageProxy.
@@ -836,6 +841,8 @@ public:
     void postInjectedBundleMessage(const String& messageName, const UserData&);
 
     void setUnderPageBackgroundColorOverride(WebCore::Color&&);
+
+    void setShouldSuppressHDR(bool);
 
     void setUnderlayColor(const WebCore::Color& color) { m_underlayColor = color; }
     WebCore::Color underlayColor() const { return m_underlayColor; }
@@ -1438,6 +1445,7 @@ public:
 
     void scrollToRect(const WebCore::FloatRect& targetRect, const WebCore::FloatPoint& origin);
     void setContentOffset(WebCore::ScrollOffset, WebCore::ScrollIsAnimated);
+    void scrollToEdge(WebCore::RectEdges<bool>, WebCore::ScrollIsAnimated);
 
     void setMinimumSizeForAutoLayout(const WebCore::IntSize&);
     WebCore::IntSize minimumSizeForAutoLayout() const { return m_minimumSizeForAutoLayout; }
@@ -1510,7 +1518,7 @@ public:
     void triggerMockCaptureConfigurationChange(bool forCamera, bool forMicrophone, bool forDisplay);
 #endif
 
-    void addUserScript(String&& source, InjectedBundleScriptWorld&, WebCore::UserContentInjectedFrames, WebCore::UserScriptInjectionTime);
+    void addUserScript(String&& source, InjectedBundleScriptWorld&, WebCore::UserContentInjectedFrames = WebCore::UserContentInjectedFrames::InjectInAllFrames, WebCore::UserScriptInjectionTime = WebCore::UserScriptInjectionTime::DocumentStart, WebCore::UserContentMatchParentFrame = WebCore::UserContentMatchParentFrame::Never);
     void addUserStyleSheet(const String& source, WebCore::UserContentInjectedFrames);
     void removeAllUserContent();
 
@@ -2015,6 +2023,7 @@ private:
     void scheduleLayoutViewportHeightExpansionUpdate();
     void scheduleEditorStateUpdateAfterAnimationIfNeeded(const WebCore::Element&);
     void computeEnclosingLayerID(EditorState&, const WebCore::VisibleSelection&) const;
+    bool mainFramePlugInDefersScalingToViewport() const;
 
     void addTextInteractionSources(OptionSet<TextInteractionSource>);
     void removeTextInteractionSources(OptionSet<TextInteractionSource>);

@@ -25,10 +25,22 @@
 #include "config.h"
 #include <wtf/SequesteredImmortalHeap.h>
 #include <wtf/Compiler.h>
+#include <wtf/NeverDestroyed.h>
 
 #if USE(PROTECTED_JIT)
 
 namespace WTF {
+
+SequesteredImmortalHeap& SequesteredImmortalHeap::instance()
+{
+    // FIXME: this storage is not contained within the sequestered region
+    static LazyNeverDestroyed<SequesteredImmortalHeap> instance;
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, [] {
+        instance.construct();
+    });
+    return instance.get();
+}
 
 void ConcurrentDecommitQueue::decommit()
 {
@@ -51,8 +63,8 @@ void ConcurrentDecommitQueue::decommit()
         auto pages = sih.decommitGranule(curr);
 
         dataLogLnIf(verbose,
-            "ConcurrentDecommitQueue: decommitted granule at ",
-            RawPointer(curr), " (", pages, " pages)");
+            "ConcurrentDecommitQueue: decommitted granule at (",
+            RawPointer(curr), ") (", pages, " pages)");
 
         decommitPageCount += pages;
         decommitGranuleCount++;
@@ -64,7 +76,54 @@ void ConcurrentDecommitQueue::decommit()
         decommitGranuleCount, " granules (", decommitPageCount, " pages)");
 }
 
-SequesteredImmortalHeap::Instance SequesteredImmortalHeap::s_instance;
+void SequesteredImmortalHeap::installScavenger()
+{
+    RELEASE_ASSERT(pas_scavenger_try_install_foreign_work_callback(scavenge, 11, nullptr));
+}
+
+bool SequesteredImmortalHeap::scavengeImpl(void* /*userdata*/)
+{
+    dataLogLnIf(verbose, "SequesteredImmortalHeap: scavenging");
+    {
+        Locker listLocker { m_scavengerLock };
+        auto bound = m_nextFreeIndex;
+        ASSERT(bound <= m_allocatorSlots.size());
+        for (size_t i = 0; i < bound; i++) {
+            // FIXME: Refactor the SeqImmortalHeap <-> SeqArenaAllocator
+            // relationship so that we don't have to assume data layouts
+            // here
+            auto& queue = *reinterpret_cast<ConcurrentDecommitQueue*>(&m_allocatorSlots[i]);
+            queue.decommit();
+        }
+    }
+    return false;
+}
+
+GranuleHeader* SequesteredImmortalAllocator::addGranule(size_t minSize)
+{
+    size_t granuleSize = std::max(minSize, minGranuleSize);
+
+    using AllocationFailureMode = SequesteredImmortalHeap::AllocationFailureMode;
+    GranuleHeader* granule = SequesteredImmortalHeap::instance().mapGranule<AllocationFailureMode::Assert>(granuleSize);
+
+    static_assert(sizeof(GranuleHeader) >= minHeadAlignment);
+    m_allocHead = reinterpret_cast<uintptr_t>(granule) + sizeof(GranuleHeader);
+    m_allocBound = reinterpret_cast<uintptr_t>(granule) + granuleSize;
+    m_granules.push(granule);
+
+    static_assert(sizeof(GranuleHeader) >= minHeadAlignment);
+    dataLogLnIf(verbose,
+        "SequesteredImmortalAllocator at ", RawPointer(this),
+        ": expanded: granule was (", RawPointer(m_granules.head()->next()),
+        "), now (", RawPointer(m_granules.head()),
+        "); allocHead (",
+        RawPointer(reinterpret_cast<void*>(m_allocHead)),
+        "), allocBound (",
+        RawPointer(reinterpret_cast<void*>(m_allocBound)),
+        ")");
+
+    return granule;
+}
 
 }
 

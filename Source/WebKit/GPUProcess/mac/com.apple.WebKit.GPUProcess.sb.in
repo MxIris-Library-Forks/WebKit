@@ -86,7 +86,18 @@
 
 ;; FIXME: Add check `(with-filter (system-attribute virtual-device)` when this is supported. See rdar://118274636.
 (allow iokit-open-service (iokit-registry-entry-class "AppleVideoToolboxParavirtualizationDriver"))
-(allow iokit-open-user-client (iokit-user-client-class "AppleVideoToolboxParavirtualizationUserClient"))
+
+(if (equal? (param "ENABLE_SANDBOX_MESSAGE_FILTER") "YES")
+    (allow iokit-open-user-client
+        (iokit-user-client-class "AppleVideoToolboxParavirtualizationUserClient")
+        (apply-message-filter
+            (allow (with report) (with telemetry)
+                iokit-async-external-method
+                iokit-external-method
+                iokit-external-trap)))
+    ;; else
+    (allow iokit-open-user-client
+        (iokit-user-client-class "AppleVideoToolboxParavirtualizationUserClient")))
 
 (deny darwin-notification-post (with no-report))
 (deny nvram-get (with no-report))
@@ -780,9 +791,18 @@
     (allow IOKIT_OPEN_USER_CLIENT
         (iokit-user-client-class "IOAudioEngineUserClient")))
 
-(allow IOKIT_OPEN_USER_CLIENT
-    ;; Following is needed due to <rdar://problem/10427451> && <rdar://problem/10808817>
-    (iokit-user-client-class "AudioAUUC"))
+;; Following is needed due to <rdar://problem/10427451> && <rdar://problem/10808817>
+(if (equal? (param "ENABLE_SANDBOX_MESSAGE_FILTER") "YES")
+    (allow IOKIT_OPEN_USER_CLIENT (with report) (with telemetry)
+        (iokit-user-client-class "AudioAUUC")
+        (apply-message-filter
+            (allow (with report) (with telemetry)
+                iokit-async-external-method
+                iokit-external-method
+                iokit-external-trap)))
+    ;; else
+    (allow IOKIT_OPEN_USER_CLIENT
+        (iokit-user-client-class "AudioAUUC")))
 
 #if HAVE(APPLE_CAMERA_USER_CLIENT)
 ;; Following is needed due to <rdar://problem/108282689>
@@ -1137,8 +1157,19 @@
         (iokit-user-client-class "AppleAVDUserClient")))
 
 (when (equal? (param "CPU") "arm64")
+    (if (equal? (param "ENABLE_SANDBOX_MESSAGE_FILTER") "YES")
+        (allow IOKIT_OPEN_USER_CLIENT (with report) (with telemetry)
+            (iokit-user-client-class "IOMobileFramebufferUserClient")
+            (apply-message-filter
+                (allow (with report) (with telemetry)
+                    iokit-async-external-method
+                    iokit-external-method
+                    iokit-external-trap)))
+        ;; else
+        (allow IOKIT_OPEN_USER_CLIENT
+            (iokit-user-client-class "IOMobileFramebufferUserClient")))
+
     (allow IOKIT_OPEN_USER_CLIENT
-        (iokit-user-client-class "IOMobileFramebufferUserClient")
         ;; VideoToolbox VTImageRotationSession
         (iokit-user-client-class "IOSurfaceAcceleratorClient")))
 

@@ -25,9 +25,11 @@
 #pragma once
 
 #include <wtf/Platform.h>
+#include <wtf/StdLibExtras.h>
 
 #if USE(PROTECTED_JIT)
 
+#include <bmalloc/pas_scavenger.h>
 #include <cstddef>
 #include <cstdint>
 #include <mach/mach_vm.h>
@@ -94,7 +96,114 @@ private:
     Lock m_decommitLock { };
 };
 
-class SequesteredImmortalHeap {
+// FIXME: a lot of this, but not all, can be de-duped with SequesteredArenaAllocator::Arena
+class SequesteredImmortalAllocator {
+    constexpr static bool verbose { false };
+    constexpr static size_t minGranuleSize { 16 * KB };
+    constexpr static size_t minHeadAlignment { alignof(std::max_align_t) };
+public:
+    SequesteredImmortalAllocator() = default;
+
+    SequesteredImmortalAllocator(SequesteredImmortalAllocator&& other) = delete;
+    SequesteredImmortalAllocator& operator=(SequesteredImmortalAllocator&& other) = delete;
+    SequesteredImmortalAllocator(const SequesteredImmortalAllocator&) = delete;
+    SequesteredImmortalAllocator& operator=(const SequesteredImmortalAllocator&) = delete;
+
+    void* allocate(size_t bytes)
+    {
+        void* retval { };
+        void* newAllocHead { };
+        {
+            Locker lock(m_lock);
+            retval = allocateImpl(bytes);
+            newAllocHead = reinterpret_cast<void*>(m_allocHead);
+        }
+        dataLogLnIf(verbose,
+            "SequesteredImmortalAllocator at ", RawPointer(this),
+            ": allocated ", bytes, "B: alloc (", RawPointer(retval),
+            "), allocHead (", RawPointer(newAllocHead),
+            ")");
+        return retval;
+    }
+
+    void* alignedAllocate(size_t alignment, size_t bytes)
+    {
+        void* retval { };
+        void* newAllocHead { };
+        {
+            Locker lock(m_lock);
+            retval = alignedAllocateImpl(alignment, bytes);
+            newAllocHead = reinterpret_cast<void*>(m_allocHead);
+        }
+        dataLogLnIf(verbose,
+            "SequesteredImmortalAllocator at ", RawPointer(this),
+            ": align-allocated ", bytes, "B: alloc (", RawPointer(retval),
+            "), allocHead (", RawPointer(newAllocHead),
+            ")");
+        return retval;
+    }
+private:
+    uintptr_t headIncrementedBy(size_t bytes) const
+    {
+        constexpr size_t alignmentMask = minHeadAlignment - 1;
+        return (m_allocHead + bytes + alignmentMask) & ~alignmentMask;
+    }
+
+    void* allocateImpl(size_t bytes)
+    {
+        uintptr_t allocation = m_allocHead;
+        uintptr_t newHead = headIncrementedBy(bytes);
+        if (LIKELY(newHead < m_allocBound)) {
+            m_allocHead = newHead;
+            return reinterpret_cast<void*>(allocation);
+        }
+        return allocateImplSlowPath(bytes);
+    }
+
+    void* alignedAllocateImpl(size_t alignment, size_t bytes)
+    {
+        uintptr_t allocation = WTF::roundUpToMultipleOf<minHeadAlignment>(m_allocHead);
+        uintptr_t newHead = headIncrementedBy((allocation - m_allocHead) + bytes);
+        if (LIKELY(newHead < m_allocBound)) {
+            m_allocHead = newHead;
+            return reinterpret_cast<void*>(allocation);
+        }
+        return alignedAllocateImplSlowPath(alignment, bytes);
+    }
+
+    NEVER_INLINE void* allocateImplSlowPath(size_t bytes)
+    {
+        addGranule(bytes);
+
+        uintptr_t allocation = m_allocHead;
+        m_allocHead = headIncrementedBy(bytes);
+        ASSERT(m_allocHead <= m_allocBound);
+
+        return reinterpret_cast<void*>(allocation);
+    }
+
+    NEVER_INLINE void* alignedAllocateImplSlowPath(size_t alignment, size_t bytes)
+    {
+        addGranule(bytes);
+
+        alignment = std::max(alignment, minHeadAlignment);
+        uintptr_t allocation = WTF::roundUpToMultipleOf(alignment, m_allocHead);
+        m_allocHead = headIncrementedBy((allocation - m_allocHead) + bytes);
+        ASSERT(m_allocHead <= m_allocBound);
+
+        return reinterpret_cast<void*>(allocation);
+    }
+
+    GranuleHeader* addGranule(size_t minSize);
+
+    GranuleList m_granules { };
+    uintptr_t m_allocHead { 0 };
+    uintptr_t m_allocBound { 0 };
+    Lock m_lock { };
+};
+
+class alignas(16 * KB) SequesteredImmortalHeap {
+    friend class WTF::LazyNeverDestroyed<SequesteredImmortalHeap>;
     static constexpr bool verbose { false };
     static constexpr pthread_key_t key = __PTK_FRAMEWORK_JAVASCRIPTCORE_KEY0;
     static constexpr size_t sequesteredImmortalHeapSlotSize { 16 * KB };
@@ -107,17 +216,7 @@ public:
         ReturnNull
     };
 
-    static SequesteredImmortalHeap& instance()
-    {
-        // FIXME: this storage is not contained within the sequestered region
-        static std::once_flag onceFlag;
-        auto ptr = reinterpret_cast<SequesteredImmortalHeap*>(&s_instance);
-        std::call_once(onceFlag, [] {
-            storeStoreFence();
-            new (&s_instance) SequesteredImmortalHeap();
-        });
-        return *ptr;
-    }
+    static SequesteredImmortalHeap& instance();
 
     template <typename T> requires (sizeof(T) <= slotSize)
     T* allocateAndInstall()
@@ -130,15 +229,25 @@ public:
             RELEASE_ASSERT(m_nextFreeIndex < numSlots);
 
             WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-            void* buff = &(m_slots[m_nextFreeIndex++]);
+            void* buff = &(m_allocatorSlots[m_nextFreeIndex++]);
             slot = new (buff) T();
             WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
         }
         _pthread_setspecific_direct(key, reinterpret_cast<void*>(slot));
         pthread_key_init_np(key, nullptr);
 
-        dataLogIf(verbose, "SequesteredImmortalHeap: thread (", Thread::current(), ") allocated slot ", instance().m_nextFreeIndex - 1, " (", slot, ")");
+        dataLogIf(verbose, "SequesteredImmortalHeap: thread (", Thread::currentSingleton(), ") allocated slot ", instance().m_nextFreeIndex - 1, " (", slot, ")");
         return slot;
+    }
+
+    void* immortalMalloc(size_t bytes)
+    {
+        return m_immortalAllocator.allocate(bytes);
+    }
+
+    void* immortalAlignedMalloc(size_t alignment, size_t bytes)
+    {
+        return m_immortalAllocator.alignedAllocate(alignment, bytes);
     }
 
     void* getSlot()
@@ -149,15 +258,16 @@ public:
     int computeSlotIndex(void* slotPtr)
     {
         auto slot = reinterpret_cast<uintptr_t>(slotPtr);
-        auto arrayBase = reinterpret_cast<uintptr_t>(m_slots.begin());
-        auto arrayBound = reinterpret_cast<uintptr_t>(m_slots.begin()) + sizeof(m_slots);
+        auto arrayBase = reinterpret_cast<uintptr_t>(m_allocatorSlots.begin());
+        auto arrayBound = reinterpret_cast<uintptr_t>(m_allocatorSlots.begin()) + sizeof(m_allocatorSlots);
         ASSERT_UNUSED(arrayBound, slot >= arrayBase && slot < arrayBound);
         return static_cast<int>((slot - arrayBase) / slotSize);
     }
 
-    static void scavenge()
+    static bool scavenge(void* userdata)
     {
-        // FIXME: provide hook for libpas scavenger
+        auto& sih = instance();
+        return sih.scavengeImpl(userdata);
     }
 
     template<AllocationFailureMode mode>
@@ -198,10 +308,15 @@ private:
         auto* self = reinterpret_cast<mach_vm_address_t*>(this);
         mach_vm_map(mach_task_self(), self, sequesteredImmortalHeapSlotSize, sequesteredImmortalHeapSlotSize - 1, flags, MEMORY_OBJECT_NULL, 0, false, prots, prots, VM_INHERIT_DEFAULT);
 
+        installScavenger();
+
         // Cannot use dataLog here as it takes a lock
         if constexpr (verbose)
-            fprintf(stderr, "SequesteredImmortalHeap: initialized by thread (%u)\n", Thread::current().uid());
+            SAFE_FPRINTF(stderr, "SequesteredImmortalHeap: initialized by thread (%u)\n", Thread::currentSingleton().uid());
     }
+
+    void installScavenger();
+    bool scavengeImpl(void* userdata);
 
     static void* getUnchecked()
     {
@@ -212,15 +327,10 @@ private:
         std::array<std::byte, slotSize> data;
     };
 
-    struct alignas(sequesteredImmortalHeapSlotSize) Instance {
-        std::byte data[sequesteredImmortalHeapSlotSize];
-    };
-
     Lock m_scavengerLock { };
     size_t m_nextFreeIndex { };
-    std::array<Slot, numSlots> m_slots { };
-
-    static Instance s_instance;
+    SequesteredImmortalAllocator m_immortalAllocator { };
+    std::array<Slot, numSlots> m_allocatorSlots { };
 };
 
 }

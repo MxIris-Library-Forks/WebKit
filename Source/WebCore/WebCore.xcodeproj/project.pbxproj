@@ -4838,6 +4838,7 @@
 		BC2273040E82F1E600E7F975 /* StyleInheritedData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2273020E82F1E600E7F975 /* StyleInheritedData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2274790E8366E200E7F975 /* SVGRenderStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2274750E8366E200E7F975 /* SVGRenderStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22747B0E8366E200E7F975 /* SVGRenderStyleDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2274770E8366E200E7F975 /* SVGRenderStyleDefs.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC23BAB12D6E38870069A80B /* StyleCornerShapeValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23BAB52D6E47AC0069A80B /* RectCorners.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23BAB42D6E47AC0069A80B /* RectCorners.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23F0DB0DAFF4A4009FDC91 /* GeneratedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23F0DA0DAFF4A4009FDC91 /* GeneratedImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC274B2F140EBEB200EADFA6 /* CSSBorderImageSliceValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC274B2E140EBEB200EADFA6 /* CSSBorderImageSliceValue.h */; };
@@ -5334,6 +5335,7 @@
 		CD6A1F0D297A1A8F00F7B9FA /* CanvasObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6A1F0C297A1A8F00F7B9FA /* CanvasObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7122632CDD80220045FB4D /* VideoPresentationLayerProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7122612CDD6B530045FB4D /* VideoPresentationLayerProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD720B4F2268B51300047FDE /* ISOFairPlayStreamingPsshBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD720B4922682C7F00047FDE /* ISOFairPlayStreamingPsshBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD722A132D693CFF00F2E1E7 /* SpatialAudioExperienceHelper.h in Headers */ = {isa = PBXBuildFile; fileRef = CD722A0D2D6917B400F2E1E7 /* SpatialAudioExperienceHelper.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7D33441C7A123F00041293 /* PixelBufferConformerCV.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7D33421C7A123F00041293 /* PixelBufferConformerCV.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7D33481C7A16BF00041293 /* CoreVideoSoftLink.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7D33461C7A16BF00041293 /* CoreVideoSoftLink.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD7DBB2918CA19C600C11066 /* CSSGridLineNamesValue.h in Headers */ = {isa = PBXBuildFile; fileRef = CD7DBB2718CA11FF00C11066 /* CSSGridLineNamesValue.h */; };
@@ -17873,6 +17875,8 @@
 		BC2274750E8366E200E7F975 /* SVGRenderStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGRenderStyle.h; sourceTree = "<group>"; };
 		BC2274760E8366E200E7F975 /* SVGRenderStyleDefs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SVGRenderStyleDefs.cpp; sourceTree = "<group>"; };
 		BC2274770E8366E200E7F975 /* SVGRenderStyleDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGRenderStyleDefs.h; sourceTree = "<group>"; };
+		BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleCornerShapeValue.h; sourceTree = "<group>"; };
+		BC23BAB32D6E3AAB0069A80B /* StyleCornerShapeValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleCornerShapeValue.cpp; sourceTree = "<group>"; };
 		BC23BAB42D6E47AC0069A80B /* RectCorners.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RectCorners.h; sourceTree = "<group>"; };
 		BC23E4E00DAACE0F009FDC91 /* CSSGradientValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSGradientValue.cpp; sourceTree = "<group>"; };
 		BC23F0DA0DAFF4A4009FDC91 /* GeneratedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneratedImage.h; sourceTree = "<group>"; };
@@ -34596,6 +34600,8 @@
 				BCB271C72CBD7D7A00265123 /* StyleBorderRadius.h */,
 				BC9BE3EA2CFE1CFF00D8C2CA /* StyleBoxShadow.cpp */,
 				BC9BE3E92CFE1CFF00D8C2CA /* StyleBoxShadow.h */,
+				BC23BAB32D6E3AAB0069A80B /* StyleCornerShapeValue.cpp */,
+				BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */,
 			);
 			path = borders;
 			sourceTree = "<group>";
@@ -44290,6 +44296,7 @@
 				72F7E746279B8F7500D82D2D /* SourceImage.h in Headers */,
 				D01A27AE10C9BFD800026A42 /* SpaceSplitString.h in Headers */,
 				46A877482D0D426800DE225E /* SpanCoreAudio.h in Headers */,
+				CD722A132D693CFF00F2E1E7 /* SpatialAudioExperienceHelper.h in Headers */,
 				CA3344082D16174C007473A1 /* SpatialBackdropSource.h in Headers */,
 				B9CA3B402CAB1D3E00B2607C /* SpatialImageControls.h in Headers */,
 				626CDE0F1140424C001E5A68 /* SpatialNavigation.h in Headers */,
@@ -44407,6 +44414,7 @@
 				BC4AF4192CF96B930037C65C /* StyleColorOptions.h in Headers */,
 				BCEA078D2CCC719D000AC148 /* StyleColorScheme.h in Headers */,
 				9DAC7C571AF2CB6400437C44 /* StyleContentAlignmentData.h in Headers */,
+				BC23BAB12D6E38870069A80B /* StyleCornerShapeValue.h in Headers */,
 				BCF0BCEC2BEE8ED000F42CCD /* StyleCurrentColor.h in Headers */,
 				BC779E171BB227CA00CAA8BF /* StyleCustomPropertyData.h in Headers */,
 				A8C4A7FD09D563270003AC8D /* StyledElement.h in Headers */,

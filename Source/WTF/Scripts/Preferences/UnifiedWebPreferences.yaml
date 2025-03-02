@@ -3718,6 +3718,7 @@ IndexedDBAPIEnabled:
     WebCore:
       default: true
   disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 InlineMediaPlaybackRequiresPlaysInlineAttribute:
   type: bool
@@ -5351,7 +5352,7 @@ MutationEventsEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: WebKit::defaultMutationEventsEnabled()
     WebCore:
       default: false
 
@@ -6879,6 +6880,7 @@ SharedWorkerEnabled:
       default: false
     WebKit:
       default: true
+  sharedPreferenceForWebProcess: true
 
 ShouldAllowUserInstalledFonts:
   type: bool
@@ -8193,10 +8195,13 @@ UsesWebContentRestrictionsForFilter:
   webcoreBinding: DeprecatedGlobalSettings
   defaultValue:
     WebKitLegacy:
+      "PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)": true
       default: false
     WebKit:
+      "PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)": true
       default: false
     WebCore:
+      "PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)": true
       default: false
   sharedPreferenceForWebProcess: true
 
@@ -9132,6 +9137,9 @@ WebShareEnabled:
       default: false
     WebCore:
       default: false
+  sharedPreferenceForWebProcess: true
+  richJavaScript: true
+  disableInLockdownMode: true
 
 WebShareFileAPIEnabled:
   type: bool

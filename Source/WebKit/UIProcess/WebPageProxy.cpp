@@ -6130,11 +6130,6 @@ void WebPageProxy::hideFindUI()
     send(Messages::WebPage::HideFindUI());
 }
 
-void WebPageProxy::hideFindIndicator()
-{
-    send(Messages::WebPage::HideFindIndicator());
-}
-
 void WebPageProxy::countStringMatches(const String& string, OptionSet<FindOptions> options, unsigned maxMatchCount)
 {
     if (!hasRunningProcess())
@@ -13698,6 +13693,12 @@ void WebPageProxy::videoControlsManagerDidChange()
 {
     if (RefPtr pageClient = this->pageClient())
         pageClient->videoControlsManagerDidChange();
+}
+
+void WebPageProxy::videosInElementFullscreenChanged()
+{
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->videosInElementFullscreenChanged();
 }
 
 bool WebPageProxy::hasActiveVideoForControlsManager() const

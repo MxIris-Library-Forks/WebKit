@@ -2958,6 +2958,7 @@ rendering/style/NinePieceImage.cpp
 rendering/style/OffsetRotation.cpp
 rendering/style/QuotesData.cpp
 rendering/style/PositionArea.cpp
+rendering/style/PositionTryFallback.cpp
 rendering/style/RenderStyle.cpp
 rendering/style/RenderStyleConstants.cpp
 rendering/style/SVGRenderStyle.cpp
@@ -3379,6 +3380,7 @@ workers/service/ServiceWorkerRegistration.cpp
 workers/service/ServiceWorkerRegistrationData.cpp
 workers/service/ServiceWorkerRegistrationKey.cpp
 workers/service/ServiceWorkerRegistrationOptions.cpp
+workers/service/ServiceWorkerRoute.cpp
 workers/service/ServiceWorkerWindowClient.cpp
 workers/service/WorkerSWClientConnection.cpp
 workers/service/background-fetch/BackgroundFetch.cpp

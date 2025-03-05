@@ -54,11 +54,6 @@ public:
         return m_map.get(key);
     }
 
-    AddResult add(const KeyType& key, ValueType value)
-    {
-        return m_map.add(key, WTFMove(value));
-    }
-
     AddResult set(const KeyType& key, ValueType value)
     {
         return m_map.set(key, WTFMove(value));
@@ -70,7 +65,7 @@ public:
         // If functor invokes GC, GC can prune WeakGCMap, and manipulate UncheckedKeyHashMap while we are touching it in ensure function.
         // The functor must not invoke GC.
         AssertNoGC assertNoGC;
-        AddResult result = m_map.ensure(key, std::forward<Functor>(functor));
+        AddResult result = m_map.ensure(key, functor);
         ValueArg* value = result.iterator->value.get();
         if (!result.isNewEntry && !value) {
             value = functor();

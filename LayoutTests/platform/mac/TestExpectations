@@ -671,7 +671,6 @@ media/accessibility-describes-video.html [ Timeout ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-metadata-transform.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-transform.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-write-twice-transform.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/webrtc-encoded-transform/sframe-transform-in-worker.https.html [ Pass Failure ]
 
 #rdar://92293472 ([ Ventura ] fast/css/stylesheet-candidate-nodes-crash.xhtml is a constant text failure)
 fast/css/stylesheet-candidate-nodes-crash.xhtml [ Pass Failure ]
@@ -1529,8 +1528,6 @@ webkit.org/b/209257 svg/as-object/object-box-sizing-no-width-height.html [ Pass 
 
 webkit.org/b/209072 [ Debug ] http/tests/css/shared-stylesheet-mutation-preconstruct.html [ Pass Crash Failure ]
 
-webkit.org/b/207150 platform/mac/webrtc/captureCanvas-webrtc-software-encoder.html [ Pass Failure Timeout ]
-
 webkit.org/b/207858 fast/canvas/webgl/simulated-vertexAttrib0-invalid-indicies.html [ Skip ]
 
 webkit.org/b/209619 compositing/clipping/border-radius-async-overflow-stacking.html [ Pass ImageOnlyFailure ]
@@ -1745,7 +1742,6 @@ webkit.org/b/222692 inspector/page/empty-or-missing-resources.html [ Pass Timeou
 [ Debug arm64 ] svg/W3C-SVG-1.1/paths-data-03-f.svg [ Failure ]
 
 # webkit.org/b/223043 the following tests have issues only on Apple Silicon
-[ arm64 ] webrtc/captureCanvas-webrtc-software-h264-high.html [ Pass Failure ]
 webrtc/h264-baseline.html  [ Failure Timeout ]
 
 webkit.org/b/223259 [ arm64 ] webgl/2.0.0/conformance2/textures/misc/tex-mipmap-levels.html [ Failure ]
@@ -2416,3 +2412,4 @@ webkit.org/b/288670 [ Debug x86_64 ] media/media-source/media-source-vp8-hiddenf
 
 webkit.org/b/260320 imported/w3c/web-platform-tests/css/selectors/invalidation/nth-child-in-shadow-root.html [ ImageOnlyFailure ]
 
+webkit.org/b/289204 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/focus-after-close.html [ Pass Failure ]

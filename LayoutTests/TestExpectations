@@ -5696,12 +5696,8 @@ imported/w3c/web-platform-tests/css/css-counter-styles/upper-roman/css3-counter-
 webkit.org/b/224928 imported/w3c/web-platform-tests/css/css-will-change/will-change-abspos-cb-dynamic-001.html [ ImageOnlyFailure ]
 webkit.org/b/225035 imported/w3c/web-platform-tests/css/css-will-change/will-change-fixedpos-cb-002.html [ ImageOnlyFailure ]
 webkit.org/b/225034 imported/w3c/web-platform-tests/css/css-will-change/will-change-fixedpos-cb-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-will-change/will-change-fixpos-cb-webkit-perspective-1.html [ ImageOnlyFailure ]
 webkit.org/b/224902 [ Debug ] imported/w3c/web-platform-tests/css/css-will-change/parsing/will-change-invalid.html [ Skip ]
-
-# Implement offset-* properties
-webkit.org/b/139128 imported/w3c/web-platform-tests/css/css-will-change/will-change-fixpos-cb-offset-path-1.html [ ImageOnlyFailure ]
-webkit.org/b/139128 imported/w3c/web-platform-tests/css/css-will-change/will-change-stacking-context-offset-path-1.html [ ImageOnlyFailure ]
-
 webkit.org/b/224899 imported/w3c/web-platform-tests/css/css-will-change/will-change-fixedpos-cb-005.html [ ImageOnlyFailure ]
 
 # Needs display box support.
@@ -7608,7 +7604,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anch
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-chained-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-chained-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-chained-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-change-css-visibility.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-css-visibility.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-position-fixed.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-stacked-child.html [ ImageOnlyFailure ]

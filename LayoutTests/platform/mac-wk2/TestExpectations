@@ -977,7 +977,6 @@ webkit.org/b/206708 fast/animation/request-animation-frame-iframe.html [ Pass Fa
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-metadata-transform.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-transform.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-write-twice-transform.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/webrtc-encoded-transform/sframe-transform-in-worker.https.html [ Pass Failure ]
 
 webkit.org/b/206903 inspector/heap/getRemoteObject.html [ Pass Crash Failure ]
 
@@ -1391,7 +1390,6 @@ webkit.org/b/245010 imported/w3c/web-platform-tests/html/browsers/browsing-the-w
 #webkit.org/b/248537 Batch mark expectations for Ventura test failures
 webrtc/canvas-to-peer-connection-2d.html [ Pass Failure ]
 webrtc/canvas-to-peer-connection.html [ Pass Failure ]
-[ Sequoia x86_64 ] webrtc/captureCanvas-webrtc-software-h264-baseline.html [ Pass Failure ]
 webaudio/decode-audio-data-webm-vorbis.html [ Failure ]
 [ x86_64 ] scrollbars/scrolling-by-page-accounting-oversized-fixed-elements-on-keyboard-spacebar.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-feature-policy-attribute.https.sub.html [ Pass Failure ]
@@ -1963,10 +1961,6 @@ webkit.org/b/287012 [ Sonoma+ Debug ] http/tests/pdf/linearized-pdf-in-iframe.ht
 
 webkit.org/b/288411 [ Sequoia x86_64 ] imported/w3c/web-platform-tests/webrtc/simulcast/getStats.https.html [ Failure ]
 
-webkit.org/b/288493 [ Sequoia+ Debug ] http/tests/media/fairplay/legacy-fairplay-mse-muxed-nowait.html [ Crash ]
-webkit.org/b/288493 [ Sequoia+ Debug ] http/tests/media/fairplay/legacy-fairplay-mse-v2.html [ Crash ]
-webkit.org/b/288493 [ Sequoia+ Debug ] http/tests/media/fairplay/legacy-fairplay-mse-v3.html [ Crash ]
-
 webkit.org/b/288521 [ Sequoia+ X86_64 ] swipe/swipe-disables-view-transition.html [ Timeout ]
 
 webkit.org/b/288535 [ Sequoia+ X86_64 ] swipe/pushstate-with-manual-scrollrestoration.html [ Timeout ]
@@ -1985,8 +1979,6 @@ webkit.org/b/288613 [ Sonoma+ ] pdf/pdf-in-embed-with-root-page-zoom.html [ Pass
 # webkit.org/b/288651 [ macOS-Ventura-Release-WK2-Intel-Tests-EWS] mediacapabilities/vp9 are failing on Intel machine.
 [ Sonoma Release x86_64 ] media/mediacapabilities/vp9.html [ Skip ]
 [ Sonoma Release x86_64 ] platform/mac/media/mediacapabilities/vp9-decodingInfo-sw.html [ Skip ]
-
-webkit.org/b/288655 [ Sequoia x86_64 ] webrtc/captureCanvas-webrtc-software-h264-high.html [ Failure ]
 
 webkit.org/b/288660 [ Sonoma Release x86_64 ] media/media-hevc-video-as-img.html [ Skip ]
 
@@ -2048,13 +2040,6 @@ webkit.org/b/288742 [ Debug ] ipc/media-player-invalid-test.html [ Crash ]
 
 webkit.org/b/288878 media/modern-media-controls/tracks-support/audio-multiple-tracks.html [ Pass Timeout ]
 
-# webkit.org/b/287889 [macOS Debug] imported/w3c/web-platform-tests/file-system-access/getDirectory.https.any.sharedworker.html is flaky crash(flaky in EWS)
-[ Debug ] imported/w3c/web-platform-tests/file-system-access/getDirectory.https.any.sharedworker.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/css/css-view-transitions/writing-mode-container-resize.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/file-system-access/getDirectory.https.any.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/file-system-access/getDirectory.https.any.serviceworker.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/file-system-access/getDirectory.https.any.worker.html [ Skip ]
-
 webkit.org/b/289090 [ Debug arm64 ] imported/w3c/web-platform-tests/dom/nodes/remove-from-shadow-host-and-adopt-into-iframe.html [ Pass Timeout ]
 
 webkit.org/b/289092 http/wpt/background-fetch/background-fetch-abort.window.html [ Pass Failure ]
@@ -2069,4 +2054,12 @@ webkit.org/b/289098 [ Debug ] ipc/serialized-type-info.html [ Failure ]
 
 webkit.org/b/289121 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-mandatory-getStats.https.html [ Pass Failure ]
 
-webkit.org/b/289127 [ Debug arm64 ] http/tests/eventsource/eventsource-reconnect.html [ Pass Failure ]
+webkit.org/b/289176 [ Debug ] http/tests/site-isolation/history/add-iframes-and-go-back.html [ Timeout ]
+
+webkit.org/b/289183 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-disabled-tracks.https.html [ Pass Failure ]
+
+webkit.org/b/289199 [ Debug ] imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html [ Pass Crash Failure ]
+
+webkit.org/b/289200 imported/w3c/web-platform-tests/fullscreen/rendering/backdrop-object.html [ Pass ImageOnlyFailure ]
+
+webkit.org/b/289207 storage/filesystemaccess/writable-file-stream-abort.html [ Pass Crash ]

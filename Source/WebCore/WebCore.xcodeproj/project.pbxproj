@@ -11176,7 +11176,6 @@
 		48D0E12829F7322900263857 /* ElementAnimationContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElementAnimationContext.h; sourceTree = "<group>"; };
 		490D51002B698A8300C6B266 /* PseudoElementIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PseudoElementIdentifier.h; sourceTree = "<group>"; };
 		491342962B425C0100FEEF18 /* CSSPseudoSelectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CSSPseudoSelectors.json; sourceTree = "<group>"; };
-		491342972B425C0200FEEF18 /* process-css-pseudo-selectors.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-pseudo-selectors.py"; sourceTree = "<group>"; };
 		491342D92B43FAA700FEEF18 /* CSSSelectorEnums.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = CSSSelectorEnums.h; sourceTree = "<group>"; };
 		491342DA2B43FAA800FEEF18 /* CSSSelectorInlines.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = CSSSelectorInlines.h; sourceTree = "<group>"; };
 		492461E12AA51D420081471E /* CSSColorMixSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSColorMixSerialization.h; sourceTree = "<group>"; };
@@ -14884,8 +14883,6 @@
 		8AA642052A672CAB00A84D49 /* EXTClipControl.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EXTClipControl.idl; sourceTree = "<group>"; };
 		8AA642062A672CAB00A84D49 /* EXTClipControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EXTClipControl.cpp; sourceTree = "<group>"; };
 		8AA642072A672CAC00A84D49 /* EXTClipControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTClipControl.h; sourceTree = "<group>"; };
-		8AA9407E279EEE8100EC0C48 /* JSDOMMicrotask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSDOMMicrotask.h; sourceTree = "<group>"; };
-		8AA94080279EEE8100EC0C48 /* JSDOMMicrotask.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMMicrotask.cpp; sourceTree = "<group>"; };
 		8AA9BACC2A73DA06001F6766 /* EXTTextureMirrorClampToEdge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EXTTextureMirrorClampToEdge.cpp; sourceTree = "<group>"; };
 		8AA9BACD2A73DA07001F6766 /* EXTTextureMirrorClampToEdge.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EXTTextureMirrorClampToEdge.idl; sourceTree = "<group>"; };
 		8AA9BACE2A73DA07001F6766 /* EXTTextureMirrorClampToEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTTextureMirrorClampToEdge.h; sourceTree = "<group>"; };
@@ -15327,7 +15324,6 @@
 		93C4F6E91108F9A50099D0DB /* AccessibilityScrollbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityScrollbar.h; sourceTree = "<group>"; };
 		93CA4C9909DF93FA00DF8677 /* html.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = html.css; sourceTree = "<group>"; };
 		93CA4C9909DF93FA00DF8678 /* htmlSwitchControl.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = htmlSwitchControl.css; sourceTree = "<group>"; };
-		93CA4C9A09DF93FA00DF8677 /* make-css-file-arrays.pl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.perl; path = "make-css-file-arrays.pl"; sourceTree = "<group>"; };
 		93CA4C9F09DF93FA00DF8677 /* quirks.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = quirks.css; sourceTree = "<group>"; };
 		93CA4CA209DF93FA00DF8677 /* svg.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = svg.css; sourceTree = "<group>"; };
 		93CCF0260AF6C52900018E89 /* NavigationAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NavigationAction.h; sourceTree = "<group>"; };
@@ -18134,7 +18130,6 @@
 		BC5A86830C33676000EEA649 /* DOMSelection.idl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = DOMSelection.idl; sourceTree = "<group>"; };
 		BC5A86B30C3367E800EEA649 /* JSDOMSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMSelection.cpp; sourceTree = "<group>"; };
 		BC5A86B40C3367E800EEA649 /* JSDOMSelection.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSDOMSelection.h; sourceTree = "<group>"; };
-		BC5BFB16291AA2C5000A5E60 /* process-css-values.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-values.py"; sourceTree = "<group>"; };
 		BC5C76291497FE1400BC4775 /* PlatformEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformEvent.h; sourceTree = "<group>"; };
 		BC5C89A02D553193000F45B7 /* CSSSerializationContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSSerializationContext.h; sourceTree = "<group>"; };
 		BC5C89AC2D556F29000F45B7 /* CSSSerializationContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSerializationContext.cpp; sourceTree = "<group>"; };
@@ -18336,7 +18331,6 @@
 		BC84F4392641AB1400F57C1C /* CustomPaintImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CustomPaintImage.cpp; sourceTree = "<group>"; };
 		BC84F43A2641AB1400F57C1C /* CustomPaintImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomPaintImage.h; sourceTree = "<group>"; };
 		BC89E31B2D11ECD10016DF06 /* CSSNoConversionDataRequiredToken.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSNoConversionDataRequiredToken.h; sourceTree = "<group>"; };
-		BC8A133629177FB700096A9F /* process-css-properties.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-properties.py"; sourceTree = "<group>"; };
 		BC8AE34C12EA096A00EB3AE6 /* ScrollableArea.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollableArea.cpp; sourceTree = "<group>"; };
 		BC8AE34D12EA096A00EB3AE6 /* ScrollableArea.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollableArea.h; sourceTree = "<group>"; };
 		BC8B853C0E7C7F1100AB6984 /* ScrollbarThemeMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollbarThemeMac.h; sourceTree = "<group>"; };
@@ -18614,6 +18608,10 @@
 		BCE013990C0BEF180043860A /* JSStyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSStyleSheet.h; sourceTree = "<group>"; };
 		BCE0490C263A2F1C009DCBB8 /* CanvasRenderingContext2DSettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasRenderingContext2DSettings.h; sourceTree = "<group>"; };
 		BCE0490E263A2F1C009DCBB8 /* CanvasRenderingContext2DSettings.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CanvasRenderingContext2DSettings.idl; sourceTree = "<group>"; };
+		BCE06AD62D77750300396CC9 /* process-css-properties.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-properties.py"; sourceTree = "<group>"; };
+		BCE06AD72D77750300396CC9 /* process-css-pseudo-selectors.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-pseudo-selectors.py"; sourceTree = "<group>"; };
+		BCE06AD82D77750300396CC9 /* process-css-values.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "process-css-values.py"; sourceTree = "<group>"; };
+		BCE06AE92D77C29F00396CC9 /* make-css-file-arrays.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = "make-css-file-arrays.pl"; sourceTree = "<group>"; };
 		BCE1C4190D982980003B02F2 /* Location.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Location.h; sourceTree = "<group>"; };
 		BCE1C41A0D982980003B02F2 /* Location.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Location.cpp; sourceTree = "<group>"; };
 		BCE1C4220D9829F2003B02F2 /* Location.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Location.idl; sourceTree = "<group>"; };
@@ -35433,8 +35431,6 @@
 			children = (
 				1449E286107D4DB400B5793F /* JSCallbackData.cpp */,
 				1449E24A107D4A8400B5793F /* JSCallbackData.h */,
-				8AA94080279EEE8100EC0C48 /* JSDOMMicrotask.cpp */,
-				8AA9407E279EEE8100EC0C48 /* JSDOMMicrotask.h */,
 				F3D461461161D53200CA0D09 /* JSErrorHandler.cpp */,
 				F3D461471161D53200CA0D09 /* JSErrorHandler.h */,
 				93B70D4D09EB0C7C009D8468 /* JSEventListener.cpp */,
@@ -35492,6 +35488,16 @@
 				BCD2C6F32D0F4CE400F77591 /* StyleStepsEasingFunction.h */,
 			);
 			path = easing;
+			sourceTree = "<group>";
+		};
+		BCE06AD92D77750300396CC9 /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				BCE06AD62D77750300396CC9 /* process-css-properties.py */,
+				BCE06AD72D77750300396CC9 /* process-css-pseudo-selectors.py */,
+				BCE06AD82D77750300396CC9 /* process-css-values.py */,
+			);
+			path = scripts;
 			sourceTree = "<group>";
 		};
 		BCE4120A2CF399C400731E47 /* color */ = {
@@ -37708,6 +37714,7 @@
 				BCF1644D26629F9A0002F7EF /* calc */,
 				946D37271D6CB2250077084F /* parser */,
 				E4DA5E3E28A2867300849BCF /* query */,
+				BCE06AD92D77750300396CC9 /* scripts */,
 				4BAFD0DA21921EAD00C0AB64 /* typedom */,
 				BCA407D82C9DF4CF006B037F /* values */,
 				BC05ACC12CEE531400750CB1 /* ComputedStyleDependencies.cpp */,
@@ -38029,7 +38036,7 @@
 				930A76C4297FA1B40055B743 /* ImmutableStyleProperties.cpp */,
 				930A76C5297FA1B80055B743 /* ImmutableStyleProperties.h */,
 				9BE5468E2880D72200F635A4 /* LinkStyle.idl */,
-				93CA4C9A09DF93FA00DF8677 /* make-css-file-arrays.pl */,
+				BCE06AE92D77C29F00396CC9 /* make-css-file-arrays.pl */,
 				FA654A631108ABB7002615E0 /* mathml.css */,
 				A8EA80010A19516E00A8EF5F /* MediaList.cpp */,
 				A8EA80060A19516E00A8EF5F /* MediaList.h */,
@@ -38047,9 +38054,6 @@
 				930A76C7297FA1C40055B743 /* MutableStyleProperties.cpp */,
 				930A76C6297FA1C30055B743 /* MutableStyleProperties.h */,
 				49CCE6F72997441F006C91EB /* popover.css */,
-				BC8A133629177FB700096A9F /* process-css-properties.py */,
-				491342972B425C0200FEEF18 /* process-css-pseudo-selectors.py */,
-				BC5BFB16291AA2C5000A5E60 /* process-css-values.py */,
 				E4BBED0C14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.cpp */,
 				E4BBED0D14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.h */,
 				93B248982990CD5F00B769E4 /* Quad.h */,

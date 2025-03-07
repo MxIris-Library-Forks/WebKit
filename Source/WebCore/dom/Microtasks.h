@@ -37,8 +37,9 @@ namespace WebCore {
 class WebCoreMicrotaskDispatcher : public JSC::MicrotaskDispatcher {
     WTF_MAKE_TZONE_ALLOCATED(WebCoreMicrotaskDispatcher);
 public:
-    WebCoreMicrotaskDispatcher(EventLoopTaskGroup& group)
-        : m_group(group)
+    WebCoreMicrotaskDispatcher(Type type, EventLoopTaskGroup& group)
+        : JSC::MicrotaskDispatcher(type)
+        , m_group(group)
     {
     }
 
@@ -47,7 +48,6 @@ public:
         return currentRunnability() == JSC::QueuedTask::Result::Executed;
     }
 
-protected:
     JSC::QueuedTask::Result currentRunnability() const;
 
 private:
@@ -81,3 +81,7 @@ private:
 };
 
 } // namespace WebCore
+
+SPECIALIZE_TYPE_TRAITS_BEGIN(WebCore::WebCoreMicrotaskDispatcher)
+    static bool isType(const JSC::MicrotaskDispatcher& dispatcher) { return dispatcher.isWebCoreMicrotaskDispatcher(); }
+SPECIALIZE_TYPE_TRAITS_END()

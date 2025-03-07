@@ -5577,6 +5577,7 @@
 		DD308A2D2A82F684000A2687 /* AbstractLineBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD4B9CF72C80E8E8001A6830 /* LineClampUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = DD4B9CF62C80E8E8001A6830 /* LineClampUpdater.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD5ACFD82B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		DD6FCF232D77694F00505083 /* PositionedLayoutConstraints.h in Headers */ = {isa = PBXBuildFile; fileRef = DD6FCF222D77694F00505083 /* PositionedLayoutConstraints.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD763BB20992C2C900740B8E /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DD763BB10992C2C900740B8E /* libxml2.dylib */; };
 		DD76D1522C7B63BE00DFDD70 /* LayoutIntegrationUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD8A30B4291DFC8F00AD537C /* BlockLayoutState.h in Headers */ = {isa = PBXBuildFile; fileRef = DD8A30B3291DFC8F00AD537C /* BlockLayoutState.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -19706,6 +19707,7 @@
 		DD4B9CF62C80E8E8001A6830 /* LineClampUpdater.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LineClampUpdater.h; sourceTree = "<group>"; };
 		DD5ACFD62B14DAD600B36C57 /* LayoutIntegrationBoxGeometryUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationBoxGeometryUpdater.cpp; sourceTree = "<group>"; };
 		DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationBoxGeometryUpdater.h; sourceTree = "<group>"; };
+		DD6FCF222D77694F00505083 /* PositionedLayoutConstraints.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PositionedLayoutConstraints.h; sourceTree = "<group>"; };
 		DD763BB10992C2C900740B8E /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
 		DD76D1502C7B63B600DFDD70 /* LayoutIntegrationUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationUtils.cpp; sourceTree = "<group>"; };
 		DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationUtils.h; sourceTree = "<group>"; };
@@ -19733,6 +19735,7 @@
 		DDDFE83A2846ECD3006F1EE5 /* adwaita */ = {isa = PBXFileReference; lastKnownFileType = folder; path = adwaita; sourceTree = "<group>"; };
 		DDDFE83B2846ECD3006F1EE5 /* cocoa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = cocoa; sourceTree = "<group>"; };
 		DDDFE83C2846ECD4006F1EE5 /* content-script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "content-script.js"; sourceTree = "<group>"; };
+		DDE1E1742D777D9B0019B0EA /* PositionedLayoutConstraints.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PositionedLayoutConstraints.cpp; sourceTree = "<group>"; };
 		DDE99308278D080B00F60D26 /* libWebKitAdditions.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libWebKitAdditions.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDEA91B929946E43007E9FDA /* InlineLineTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InlineLineTypes.h; sourceTree = "<group>"; };
 		DDECCC1D2BABA83E0041CD3C /* RangeBasedLineBuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RangeBasedLineBuilder.cpp; sourceTree = "<group>"; };
@@ -38228,6 +38231,8 @@
 				FB92DF4915FED08700994433 /* PathOperation.h */,
 				B2B1F7140D00CAA8004AEA64 /* PointerEventsHitRules.cpp */,
 				B2B1F7150D00CAA8004AEA64 /* PointerEventsHitRules.h */,
+				DDE1E1742D777D9B0019B0EA /* PositionedLayoutConstraints.cpp */,
+				DD6FCF222D77694F00505083 /* PositionedLayoutConstraints.h */,
 				0FC276BA26DAF9E90093E8ED /* ReferencedSVGResources.cpp */,
 				0FC276B826DAF9B70093E8ED /* ReferencedSVGResources.h */,
 				4822970B29C8EBC00033A126 /* RegionContext.cpp */,
@@ -43603,6 +43608,7 @@
 				A3DCA4EA2A2930DA004E18C3 /* PositionArea.h in Headers */,
 				9746AF2C14F4DDE6003E7A70 /* PositionCallback.h in Headers */,
 				32A70D582836138E0080060C /* PositionedGlyphs.h in Headers */,
+				DD6FCF232D77694F00505083 /* PositionedLayoutConstraints.h in Headers */,
 				9746AF3014F4DDE6003E7A70 /* PositionErrorCallback.h in Headers */,
 				27E7CA952D75731700554A77 /* PositionInlines.h in Headers */,
 				37919C240B7D188600A56998 /* PositionIterator.h in Headers */,

@@ -229,7 +229,6 @@ css/CSSValue.cpp
 css/CSSValueList.cpp
 css/CSSValueList.h
 css/CSSVariableReferenceValue.cpp
-css/CSSViewTransitionRule.cpp
 css/ComputedStyleExtractor.cpp
 css/DeprecatedCSSOMPrimitiveValue.cpp
 css/FontFaceSet.cpp
@@ -275,7 +274,6 @@ dom/ComposedTreeIterator.h
 dom/ContainerNodeAlgorithms.cpp
 dom/Document.cpp
 dom/DocumentFragment.cpp
-dom/DocumentFullscreen.cpp
 dom/DocumentStorageAccess.cpp
 dom/Element.cpp
 dom/ElementAndTextDescendantIterator.h
@@ -357,19 +355,14 @@ html/FileInputType.cpp
 html/FormAssociatedCustomElement.cpp
 html/FormListedElement.cpp
 html/HTMLAnchorElement.cpp
-html/HTMLArticleElement.cpp
 html/HTMLAttachmentElement.cpp
 html/HTMLCanvasElement.cpp
 html/HTMLCollection.cpp
-html/HTMLDetailsElement.cpp
-html/HTMLDialogElement.cpp
 html/HTMLDocument.cpp
 html/HTMLElement.cpp
 html/HTMLFieldSetElement.cpp
 html/HTMLFormControlsCollection.cpp
 html/HTMLFormElement.cpp
-html/HTMLFrameElementBase.cpp
-html/HTMLFrameOwnerElement.cpp
 html/HTMLImageElement.cpp
 html/HTMLInputElement.cpp
 html/HTMLLabelElement.cpp
@@ -381,7 +374,6 @@ html/HTMLPictureElement.cpp
 html/HTMLSelectElement.cpp
 html/HTMLSlotElement.cpp
 html/HTMLStyleElement.cpp
-html/HTMLSummaryElement.cpp
 html/HTMLTableElement.cpp
 html/HTMLTableRowElement.cpp
 html/HTMLTextFormControlElement.cpp
@@ -782,11 +774,8 @@ workers/service/ServiceWorkerGlobalScope.cpp
 workers/service/ServiceWorkerRegistration.cpp
 workers/service/WorkerSWClientConnection.cpp
 workers/service/background-fetch/BackgroundFetchEngine.cpp
-workers/service/context/SWContextManager.cpp
-workers/service/context/ServiceWorkerThread.cpp
 workers/shared/SharedWorkerObjectConnection.cpp
 workers/shared/SharedWorkerScriptLoader.cpp
-workers/shared/context/SharedWorkerContextManager.cpp
 worklets/Worklet.cpp
 xml/XMLHttpRequest.cpp
 xml/XPathFunctions.cpp

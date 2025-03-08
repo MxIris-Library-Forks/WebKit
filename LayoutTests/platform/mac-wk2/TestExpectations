@@ -1318,7 +1318,7 @@ webkit.org/b/230070 media/track/track-cue-css.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/230518 [ Release ]  accessibility/mac/button-shouldnot-have-axvalue.html [ Pass Crash ]
 
-webkit.org/b/231083 [ Debug ] imported/w3c/web-platform-tests/content-security-policy/generic/policy-inherited-correctly-by-plznavigate.html [ Pass Failure ]
+webkit.org/b/231083 imported/w3c/web-platform-tests/content-security-policy/generic/policy-inherited-correctly-by-plznavigate.html [ Pass Failure ]
 
 webkit.org/b/235605 [ arm64 ] fast/scrolling/mac/j-shaped-scroll-rubberband.html [ Failure ]
 
@@ -2033,9 +2033,15 @@ webkit.org/b/289284 fast/canvas/image-buffer-resource-limits.html [ Pass Timeout
 
 webkit.org/b/289287 [ Release ] accessibility/accessibility-node-memory-management.html [ Timeout ]
 
+webkit.org/b/289347 [ arm64 ] http/tests/site-isolation/fullscreen.html [ Pass Failure ]
+
 # webkit.org/b/289298 [ macOS wk2 Release ] 3x imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-00*.html are flaky failures.
 [ Release ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-001.html [ Pass Failure ]
 [ Release ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-004.html [ Pass Failure ]
 [ Release ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-003.html [ Pass Failure ]
 
 webkit.org/b/289299 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-rendering-invalidation.html [ Pass Failure ]
+
+webkit.org/b/289356 [ Sequoia Debug arm64 ] webrtc/datachannel/bufferedAmount-afterClose.html [ Pass Failure ]
+
+webkit.org/b/289370 [ Debug arm64 ] media/video-webm-seek-singlekeyframe.html [ Pass Failure ]

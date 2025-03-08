@@ -184,6 +184,7 @@ imported/w3c/web-platform-tests/payment-request/payment-request-show-method.http
 imported/w3c/web-platform-tests/payment-request/rejects_if_not_active.https.html [ WontFix ]
 
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/form-controls/text-transform.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/phrasing-content-0/br-wbr-content/content-property.tentative.html [ ImageOnlyFailure ]
 
 webkit.org/b/259089 imported/w3c/web-platform-tests/css/css-ui/text-overflow-028.html [ ImageOnlyFailure ]
 
@@ -4608,16 +4609,13 @@ media/media-can-play-h265-video.html [ Failure ]
 media/media-can-play-mpeg4-video.html [ Failure ]
 media/media-can-play-wav-audio.html [ Failure ]
 platform/ipad/fast/viewport/viewport-unchanged-by-minimum-effective-width-if-not-ignore-meta-viewport.html [ Failure ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-hover-hide-hide.tentative.html [ Crash ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-hover-hide-show.tentative.html [ Crash ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-hover-hide-toggle.tentative.html [ Crash ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-close-request.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-focus-2.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-focus-harness.html [ Failure ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-light-dismiss-hint.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/popovers/popover-light-dismiss-hint.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-light-dismiss-with-anchor.tentative.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting-anchor.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting-hints.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting-hints.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-open-in-beforetoggle.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-change-type.html [ Failure ]
@@ -7409,6 +7407,9 @@ imported/w3c/web-platform-tests/intersection-observer/root-margin.html [ Pass Fa
 imported/w3c/web-platform-tests/intersection-observer/same-document-no-root.html [ Pass Failure ]
 imported/w3c/web-platform-tests/intersection-observer/same-document-zero-size-target.html [ Pass Failure ]
 imported/w3c/web-platform-tests/intersection-observer/text-target.html [ Pass Failure ]
+imported/w3c/web-platform-tests/intersection-observer/svg-rect-target.html [ Skip ]
+imported/w3c/web-platform-tests/intersection-observer/svg-clipped-rect-target.html [ Skip ]
+imported/w3c/web-platform-tests/intersection-observer/svg-intersection-with-fractional-bounds.html [ Skip ]
 
 # webkit.org/b/276562 ([ iOS18 ] 3 wpt/webcodecs/* layout tests are constantly failing.)
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.html?h264_annexb [ Failure DumpJSConsoleLogInStdErr ]
@@ -7705,8 +7706,6 @@ webkit.org/b/288677 [ Debug arm64 ] fast/scrolling/ios/body-overflow-hidden-keyb
 webkit.org/b/288694 [ Debug arm64 ] fast/multicol/body-stuck-with-dirty-bit-with-columns.html [ Crash ]
 
 webkit.org/b/288888 [ arm64 ] compositing/contents-format/deep-color-backing-store.html [ Failure ]
-
-webkit.org/b/288896 editing/caret/caret-position-vertical-rl.html [ Failure ]
 
 webkit.org/b/287569 http/tests/site-isolation/page-visibility-onvisibilitychange-in-iframe.html [ Timeout ]
 

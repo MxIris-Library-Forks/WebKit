@@ -245,7 +245,6 @@ css/StyleProperties.cpp
 css/StyleRule.cpp
 css/StyleRuleImport.cpp
 css/StyleSheetContents.cpp
-css/parser/CSSParserImpl.cpp
 css/query/ContainerQueryFeatures.cpp
 css/query/MediaQueryFeatures.cpp
 css/typedom/CSSNumericValue.cpp
@@ -359,7 +358,6 @@ html/HTMLAttachmentElement.cpp
 html/HTMLCanvasElement.cpp
 html/HTMLCollection.cpp
 html/HTMLDocument.cpp
-html/HTMLElement.cpp
 html/HTMLFieldSetElement.cpp
 html/HTMLFormControlsCollection.cpp
 html/HTMLFormElement.cpp
@@ -373,7 +371,6 @@ html/HTMLOptionElement.cpp
 html/HTMLPictureElement.cpp
 html/HTMLSelectElement.cpp
 html/HTMLSlotElement.cpp
-html/HTMLStyleElement.cpp
 html/HTMLTableElement.cpp
 html/HTMLTableRowElement.cpp
 html/HTMLTextFormControlElement.cpp

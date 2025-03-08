@@ -418,7 +418,6 @@ css/CSSFontFaceRule.cpp
 css/CSSFontFaceSet.cpp
 css/CSSFontFaceSource.cpp
 css/CSSFontFeatureValue.cpp
-css/CSSFontPaletteValuesOverrideColorsValue.cpp
 css/CSSFontSelector.cpp
 css/CSSFontStyleRangeValue.cpp
 css/CSSFontStyleRangeValue.h
@@ -488,7 +487,6 @@ css/StyleRuleImport.cpp
 css/StyleRuleImport.h
 css/StyleSheetContents.cpp
 css/StyleSheetList.cpp
-css/parser/CSSParserImpl.cpp
 css/parser/CSSPropertyParser.cpp
 css/parser/CSSPropertyParserConsumer+Grid.cpp
 css/parser/SizesCalcParser.cpp
@@ -680,7 +678,6 @@ html/HTMLButtonElement.cpp
 html/HTMLCanvasElement.cpp
 html/HTMLCollection.cpp
 html/HTMLCollectionInlines.h
-html/HTMLElement.cpp
 html/HTMLFormControlElement.cpp
 html/HTMLFormControlsCollection.cpp
 html/HTMLFormElement.cpp
@@ -704,7 +701,6 @@ html/HTMLPlugInElement.cpp
 html/HTMLPlugInImageElement.cpp
 html/HTMLProgressElement.cpp
 html/HTMLSelectElement.cpp
-html/HTMLStyleElement.cpp
 html/HTMLTableCellElement.cpp
 html/HTMLTableElement.cpp
 html/HTMLTablePartElement.cpp
@@ -1088,7 +1084,6 @@ platform/mediastream/cocoa/DisplayCaptureSourceCocoa.h
 platform/mediastream/cocoa/IncomingAudioMediaStreamTrackRendererUnit.cpp
 platform/mediastream/libwebrtc/LibWebRTCAudioModule.cpp
 platform/mediastream/mac/AVCaptureDeviceManager.mm
-platform/mediastream/mac/AVVideoCaptureSource.mm
 platform/mediastream/mac/MediaStreamTrackAudioSourceProviderCocoa.cpp
 platform/mediastream/mac/MockAudioSharedUnit.mm
 platform/mediastream/mac/RealtimeOutgoingAudioSourceCocoa.cpp

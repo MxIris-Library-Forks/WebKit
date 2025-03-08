@@ -805,7 +805,7 @@ webkit.org/b/250171 imported/w3c/web-platform-tests/html/semantics/popovers/popo
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-interactions.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting-anchor.tentative.html [ Pass Failure ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting-hints.tentative.html [ Pass Failure ]
+imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-nesting-hints.html [ Pass Failure ]
 imported/w3c/web-platform-tests/inert/inert-with-fullscreen-element.html [ Pass Failure ]
 imported/w3c/web-platform-tests/screen-orientation/active-lock.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/css-module/charset-2.html [ Skip ]
@@ -4778,9 +4778,10 @@ webkit.org/b/206168 [ Debug ] fast/dom/insert-span-into-long-text-bug-28245.html
 webkit.org/b/230593 fast/inline/kerning-across-inline-boxes.html [ Skip ]
 webkit.org/b/230593 fast/block/positioning/056.html [ Failure ]
 
-# wpt intersection-observer failures
+# wpt intersection-observer v2 failures - webkit.org/b/251586
 webkit.org/b/208052 imported/w3c/web-platform-tests/intersection-observer/v2/cross-origin-effects.sub.html [ Skip ]
 webkit.org/b/208052 imported/w3c/web-platform-tests/intersection-observer/v2/cross-origin-occlusion.sub.html [ Skip ]
+webkit.org/b/208052 imported/w3c/web-platform-tests/intersection-observer/v2/nested-cross-origin.sub.html [ Skip ]
 
 # wpt css-backgrounds failures
 webkit.org/b/206753 imported/w3c/web-platform-tests/css/css-backgrounds/background-attachment-local/attachment-local-clipping-color-4.html [ ImageOnlyFailure ]
@@ -7737,3 +7738,9 @@ webkit.org/b/286883 imported/w3c/web-platform-tests/css/CSS2/floats/remove-block
 webkit.org/b/286884 imported/w3c/web-platform-tests/css/CSS2/floats/zero-width-floats-positioning.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/floats/float-nowrap-hyphen-rewind-1.html [ ImageOnlyFailure ]
 [ Debug ] imported/w3c/web-platform-tests/css/CSS2/floats/line-pushed-by-floats-crash.html [ Skip ]
+
+# This test is flaky. Resizing the window exposures the failure
+webkit.org/b/288689 svg/text/bidi-text-query.svg [ Skip ]
+
+imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/phrasing-content-0/b-strong-styles.html [ ImageOnlyFailure ]
+

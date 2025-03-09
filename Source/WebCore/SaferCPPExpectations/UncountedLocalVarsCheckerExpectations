@@ -35,7 +35,6 @@ Modules/mediastream/MediaDevices.cpp
 Modules/mediastream/MediaStream.cpp
 Modules/mediastream/PeerConnectionBackend.cpp
 Modules/mediastream/RTCController.cpp
-Modules/mediastream/RTCDataChannel.cpp
 Modules/mediastream/RTCPeerConnection.cpp
 Modules/mediastream/RTCRtpScriptTransformer.cpp
 Modules/mediastream/UserMediaController.cpp
@@ -560,7 +559,6 @@ platform/ThreadGlobalData.cpp
 platform/ThreadGlobalData.h
 platform/animation/AcceleratedEffect.cpp
 platform/animation/AcceleratedEffectValues.cpp
-platform/audio/AudioBus.cpp
 platform/cocoa/PlaybackSessionModelMediaElement.mm
 platform/cocoa/VideoPresentationModelVideoElement.mm
 platform/graphics/ComplexTextController.cpp
@@ -598,8 +596,6 @@ platform/mac/WidgetMac.mm
 platform/mediastream/mac/RealtimeIncomingVideoSourceCocoa.mm
 platform/mock/MockRealtimeMediaSourceCenter.cpp
 platform/mock/MockRealtimeVideoSource.cpp
-platform/network/BlobRegistryImpl.cpp
-platform/network/FormData.cpp
 platform/text/BidiContext.cpp
 platform/text/BidiResolver.h
 plugins/DOMPluginArray.cpp

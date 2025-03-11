@@ -1240,6 +1240,9 @@ private:
         case NewTypedArray:
             compileNewTypedArray();
             break;
+        case NewTypedArrayBuffer:
+            compileNewTypedArrayBuffer();
+            break;
         case GetTypedArrayByteOffset:
             compileGetTypedArrayByteOffset();
             break;
@@ -9590,6 +9593,34 @@ IGNORE_CLANG_WARNINGS_END
         }
     }
 
+    void compileNewTypedArrayBuffer()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        switch (m_node->child1().useKind()) {
+        case Int32Use: {
+            LValue size = m_out.signExt32To64(lowInt32(m_node->child1()));
+            setJSValue(vmCall(pointerType(), operationNewTypedArrayBufferWithSize, weakPointer(globalObject), weakStructure(m_node->structure()), size));
+            return;
+        }
+
+        case Int52RepUse: {
+            LValue size = lowStrictInt52(m_node->child1());
+            setJSValue(vmCall(pointerType(), operationNewTypedArrayBufferWithSize, weakPointer(globalObject), weakStructure(m_node->structure()), size));
+            return;
+        }
+
+        case UntypedUse: {
+            LValue argument = lowJSValue(m_node->child1());
+            setJSValue(vmCall(pointerType(), operationNewTypedArrayBuffer, weakPointer(globalObject), weakStructure(m_node->structure()), argument));
+            return;
+        }
+
+        default:
+            DFG_CRASH(m_graph, m_node, "Bad use kind");
+            return;
+        }
+    }
+
     void emitNewTypedArrayWithSize(TypedArrayType typedArrayType, JSGlobalObject* globalObject, RegisteredStructure structure, LValue size64Bits)
     {
         LBasicBlock smallEnoughCase = m_out.newBlock();
@@ -17017,6 +17048,7 @@ IGNORE_CLANG_WARNINGS_END
                 jit.store32(returnGPR, CCallHelpers::Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfResult() + OBJECT_OFFSETOF(MatchResult, start)));
                 jit.store32(return2GPR, CCallHelpers::Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfResult() + OBJECT_OFFSETOF(MatchResult, end)));
                 jit.store8(CCallHelpers::TrustedImm32(0), CCallHelpers::Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfReified()));
+                jit.store8(CCallHelpers::TrustedImm32(0), CCallHelpers::Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfOneCharacterMatch()));
 
                 jit.move(CCallHelpers::TrustedImm32(1), returnGPR);
                 done.append(jit.jump());
@@ -17299,6 +17331,9 @@ IGNORE_CLANG_WARNINGS_END
         m_out.store32As8(
             m_out.constInt32(0),
             m_out.address(globalObject, m_heaps.JSGlobalObject_regExpGlobalData_cachedResult_reified));
+        m_out.store32As8(
+            m_out.constInt32(0),
+            m_out.address(globalObject, m_heaps.JSGlobalObject_regExpGlobalData_cachedResult_oneCharacterMatch));
     }
 
     struct ArgumentsLength {

@@ -33,6 +33,7 @@
 #include "StyleSharingResolver.h"
 #include "StyleUpdate.h"
 #include "Styleable.h"
+#include "TreeResolutionState.h"
 #include <wtf/Function.h>
 #include <wtf/Ref.h>
 
@@ -84,9 +85,9 @@ private:
     std::pair<ElementUpdate, DescendantsToResolve> resolveElement(Element&, const RenderStyle* existingStyle, ResolutionType);
 
     ElementUpdate createAnimatedElementUpdate(ResolvedStyle&&, const Styleable&, Change, const ResolutionContext&, IsInDisplayNoneTree = IsInDisplayNoneTree::No);
-    std::unique_ptr<RenderStyle> resolveStartingStyle(const ResolvedStyle&, const Styleable&, const ResolutionContext&) const;
-    std::unique_ptr<RenderStyle> resolveAfterChangeStyleForNonAnimated(const ResolvedStyle&, const Styleable&, const ResolutionContext&) const;
-    std::unique_ptr<RenderStyle> resolveAgainInDifferentContext(const ResolvedStyle&, const Styleable&, const RenderStyle& parentStyle,  OptionSet<PropertyCascade::PropertyType>, std::optional<BuilderPositionTryFallback>&&, const ResolutionContext&) const;
+    std::unique_ptr<RenderStyle> resolveStartingStyle(const ResolvedStyle&, const Styleable&, const ResolutionContext&);
+    std::unique_ptr<RenderStyle> resolveAfterChangeStyleForNonAnimated(const ResolvedStyle&, const Styleable&, const ResolutionContext&);
+    std::unique_ptr<RenderStyle> resolveAgainInDifferentContext(const ResolvedStyle&, const Styleable&, const RenderStyle& parentStyle,  OptionSet<PropertyCascade::PropertyType>, std::optional<BuilderPositionTryFallback>&&, const ResolutionContext&);
     const RenderStyle& parentAfterChangeStyle(const Styleable&, const ResolutionContext&) const;
 
     UncheckedKeyHashSet<AnimatableCSSProperty> applyCascadeAfterAnimation(RenderStyle&, const UncheckedKeyHashSet<AnimatableCSSProperty>&, bool isTransition, const MatchResult&, const Element&, const ResolutionContext&);
@@ -154,6 +155,13 @@ private:
     std::unique_ptr<RenderStyle> generatePositionOption(const PositionTryFallback&, const ResolvedStyle&, const Styleable&, const ResolutionContext&);
     std::optional<ResolvedStyle> tryChoosePositionOption(const Styleable&, const RenderStyle* existingStyle);
 
+    // This returns the style that was in effect (applied to the render tree) before we started the style resolution.
+    // Layout interleaving may cause different styles to be applied during the style resolution.
+    const RenderStyle* beforeResolutionStyle(const Element&, std::optional<PseudoElementIdentifier>);
+    void saveBeforeResolutionStyleForInterleaving(const Element&);
+
+    bool hasUnresolvedAnchorPosition(const Element&) const;
+
     struct QueryContainerState {
         Change change { Change::None };
         DescendantsToResolve descendantsToResolve { DescendantsToResolve::None };
@@ -169,6 +177,10 @@ private:
     UncheckedKeyHashMap<Ref<Element>, std::optional<QueryContainerState>> m_queryContainerStates;
     bool m_hasUnresolvedQueryContainers { false };
     bool m_hasUnresolvedAnchorPositionedElements { false };
+
+    // This state gets passes to the style builder and holds state for a single tree resolution, including over any interleaving.
+    TreeResolutionState m_treeResolutionState;
+    HashMap<Ref<const Element>, std::unique_ptr<RenderStyle>> m_savedBeforeResolutionStylesForInterleaving;
 
     struct PositionOptions {
         std::unique_ptr<RenderStyle> originalStyle;

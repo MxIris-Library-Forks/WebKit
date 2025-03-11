@@ -1987,8 +1987,6 @@ webkit.org/b/289092 http/wpt/background-fetch/background-fetch-abort.window.html
 
 webkit.org/b/289094 [ Sequoia Debug ] imported/w3c/web-platform-tests/webcodecs/audio-data.crossOriginIsolated.https.any.html [ Pass Timeout ]
 
-webkit.org/b/289098 [ Debug ] ipc/serialized-type-info.html [ Failure ]
-
 webkit.org/b/289121 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-mandatory-getStats.https.html [ Pass Failure ]
 
 webkit.org/b/289176 [ Debug ] http/tests/site-isolation/history/add-iframes-and-go-back.html [ Timeout ]
@@ -2027,3 +2025,5 @@ webkit.org/b/289299 imported/w3c/web-platform-tests/css/css-view-transitions/pse
 webkit.org/b/289356 [ Sequoia Debug arm64 ] webrtc/datachannel/bufferedAmount-afterClose.html [ Pass Failure ]
 
 webkit.org/b/289370 [ Debug arm64 ] media/video-webm-seek-singlekeyframe.html [ Pass Failure ]
+
+webkit.org/b/289487 [ Sequoia Release x86_64 ] fast/webgpu/nocrash/RenderBundle_WRITE.html [ Pass Timeout ]

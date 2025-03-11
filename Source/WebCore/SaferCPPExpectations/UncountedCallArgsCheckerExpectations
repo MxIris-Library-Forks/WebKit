@@ -1014,7 +1014,6 @@ platform/graphics/avfoundation/objc/CDMSessionAVContentKeySession.mm
 platform/graphics/avfoundation/objc/MediaSourcePrivateAVFObjC.mm
 platform/graphics/avfoundation/objc/WebAVContentKeyGroup.mm
 platform/graphics/avfoundation/objc/WebCoreAVFResourceLoader.mm
-platform/graphics/ca/GraphicsLayerCA.cpp
 platform/graphics/ca/TileController.cpp
 platform/graphics/ca/TileCoverageMap.cpp
 platform/graphics/ca/TileGrid.cpp
@@ -1156,7 +1155,6 @@ rendering/RenderTextControlSingleLine.h
 rendering/RenderTextFragment.cpp
 rendering/RenderTheme.cpp
 rendering/RenderTreeAsText.cpp
-rendering/RenderVTTCue.cpp
 rendering/RenderVideo.cpp
 rendering/RenderWidget.cpp
 rendering/TextBoxPainter.cpp

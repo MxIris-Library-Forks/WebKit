@@ -20859,6 +20859,7 @@
 		E4E8B4ED216B79F400B8834D /* SystemFontDatabaseCoreText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SystemFontDatabaseCoreText.cpp; sourceTree = "<group>"; };
 		E4E8B4F0216B8B5F00B8834D /* FontCascadeDescription.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontCascadeDescription.cpp; sourceTree = "<group>"; };
 		E4E8B4F2216B8B6000B8834D /* FontCascadeDescription.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontCascadeDescription.h; sourceTree = "<group>"; };
+		E4E8CBB52D7AF11600721796 /* TreeResolutionState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TreeResolutionState.h; sourceTree = "<group>"; };
 		E4ED3ECA2768A51C00F17AC8 /* HasSelectorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HasSelectorFilter.h; sourceTree = "<group>"; };
 		E4ED3ECD2768A68800F17AC8 /* HasSelectorFilter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HasSelectorFilter.cpp; sourceTree = "<group>"; };
 		E4F0BE2E25710A75009E7431 /* CaretRectComputation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaretRectComputation.h; sourceTree = "<group>"; };
@@ -37465,6 +37466,7 @@
 				E48137B81DB3B526005C59BF /* StyleValidity.h */,
 				BCDBD3372C84D4F000E6D96B /* TransformOperationsBuilder.cpp */,
 				BCDBD3362C84D4F000E6D96B /* TransformOperationsBuilder.h */,
+				E4E8CBB52D7AF11600721796 /* TreeResolutionState.h */,
 				4A9CC81516BB9AC600EC645A /* UserAgentStyle.cpp */,
 				4A9CC81616BB9AC600EC645A /* UserAgentStyle.h */,
 			);
@@ -45625,7 +45627,7 @@
 				5DF50887116F3077005202AB /* Check For Inappropriate Files In Framework */,
 				71D6AA381DA4E69400B23969 /* Copy modern media controls code and assets */,
 				5379C7AA21E5287100E4A8F6 /* Check .xcfilelists */,
-				6577FFC7276AC9AD0011AEC8 /* Create Symlink to Alt Root Path */,
+				6577FFC7276AC9AD0011AEC8 /* Create Symlink to Cryptex Path */,
 			);
 			buildRules = (
 			);
@@ -45863,7 +45865,7 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ \"${ACTION}\" = \"installhdrs\" -o \"${ACTION}\" = \"installapi\" ]; then\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-inappropriate-files-in-framework ]; then\n    ../../Tools/Scripts/check-for-inappropriate-files-in-framework || exit $?\nfi\n";
 		};
-		6577FFC7276AC9AD0011AEC8 /* Create Symlink to Alt Root Path */ = {
+		6577FFC7276AC9AD0011AEC8 /* Create Symlink to Cryptex Path */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
 			files = (
@@ -45872,14 +45874,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Create Symlink to Alt Root Path";
+			name = "Create Symlink to Cryptex Path";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/zsh;
-			shellScript = "\"${SRCROOT}/Scripts/create-symlink-to-altroot.sh\"\n";
+			shellScript = "\"${SRCROOT}/Scripts/create-symlink-to-cryptex.sh\"\n";
 		};
 		71D6AA381DA4E69400B23969 /* Copy modern media controls code and assets */ = {
 			isa = PBXShellScriptBuildPhase;

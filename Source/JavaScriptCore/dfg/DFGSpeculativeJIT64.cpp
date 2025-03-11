@@ -3074,6 +3074,7 @@ void SpeculativeJIT::compileRegExpTestInline(Node* node)
         store32(yarrRegisters.returnRegister, Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfResult() + OBJECT_OFFSETOF(MatchResult, start)));
         store32(yarrRegisters.returnRegister2, Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfResult() + OBJECT_OFFSETOF(MatchResult, end)));
         store8(TrustedImm32(0), Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfReified()));
+        store8(TrustedImm32(0), Address(globalObjectGPR, offset + RegExpCachedResult::offsetOfOneCharacterMatch()));
 
         JumpList doneCases;
 
@@ -4493,7 +4494,12 @@ void SpeculativeJIT::compile(Node* node)
         compileNewTypedArray(node);
         break;
     }
-        
+
+    case NewTypedArrayBuffer: {
+        compileNewTypedArrayBuffer(node);
+        break;
+    }
+
     case NewRegexp: {
         compileNewRegexp(node);
         break;

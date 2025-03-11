@@ -52,7 +52,7 @@
 #include "CompilerTimingScope.h"
 #include "FunctionAllowlist.h"
 #include "JSCJSValueInlines.h"
-#include "JSWebAssemblyArray.h"
+#include "JSWebAssemblyArrayInlines.h"
 #include "JSWebAssemblyInstance.h"
 #include "JSWebAssemblyStruct.h"
 #include "ProbeContext.h"
@@ -5803,7 +5803,7 @@ Expected<std::unique_ptr<InternalFunction>, String> parseAndCompileOMG(Compilati
     auto result = makeUnique<InternalFunction>();
 
     compilationContext.wasmEntrypointJIT = makeUnique<CCallHelpers>();
-    compilationContext.procedure = makeUnique<Procedure>(info.usesSIMD(functionIndex));
+    compilationContext.procedure = makeUniqueWithoutFastMallocCheck<Procedure>(info.usesSIMD(functionIndex));
 
     Procedure& procedure = *compilationContext.procedure;
     if (shouldDumpIRFor(functionIndex + info.importFunctionCount()))
@@ -5847,7 +5847,7 @@ Expected<std::unique_ptr<InternalFunction>, String> parseAndCompileOMG(Compilati
 
     {
         if (shouldDumpDisassemblyFor(compilationMode))
-            procedure.code().setDisassembler(makeUnique<B3::Air::Disassembler>());
+            procedure.code().setDisassembler(makeUniqueWithoutFastMallocCheck<B3::Air::Disassembler>());
         B3::prepareForGeneration(procedure);
         B3::generate(procedure, *compilationContext.wasmEntrypointJIT);
         compilationContext.wasmEntrypointByproducts = procedure.releaseByproducts();

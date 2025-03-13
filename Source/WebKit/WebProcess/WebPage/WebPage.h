@@ -579,7 +579,7 @@ public:
     void zoomPDFIn(PDFPluginIdentifier);
     void zoomPDFOut(PDFPluginIdentifier);
     void savePDF(PDFPluginIdentifier, CompletionHandler<void(const String&, const URL&, std::span<const uint8_t>)>&&);
-    void openPDFWithPreview(PDFPluginIdentifier, CompletionHandler<void(const String&, FrameInfoData&&, std::span<const uint8_t>, const String&)>&&);
+    void openPDFWithPreview(PDFPluginIdentifier, CompletionHandler<void(const String&, std::optional<FrameInfoData>&&, std::span<const uint8_t>, const String&)>&&);
 #endif
 
     void frameViewLayoutOrVisualViewportChanged(const WebCore::LocalFrameView&);
@@ -751,7 +751,7 @@ public:
     void createRemoteSubframe(WebCore::FrameIdentifier parentID, WebCore::FrameIdentifier newChildID, const String& newChildFrameName);
 
     void getFrameInfo(WebCore::FrameIdentifier, CompletionHandler<void(std::optional<FrameInfoData>&&)>&&);
-    void getFrameTree(CompletionHandler<void(FrameTreeNodeData&&)>&&);
+    Awaitable<std::optional<FrameTreeNodeData>> getFrameTree();
     void didFinishLoadInAnotherProcess(WebCore::FrameIdentifier);
     void frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier);
 

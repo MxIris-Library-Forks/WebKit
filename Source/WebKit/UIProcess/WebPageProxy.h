@@ -741,7 +741,7 @@ public:
     void destroyInspectorTarget(IPC::Connection&, const String& targetId);
     void sendMessageToInspectorFrontend(const String& targetId, const String& message);
 
-    void getAllFrames(CompletionHandler<void(FrameTreeNodeData&&)>&&);
+    void getAllFrames(CompletionHandler<void(std::optional<FrameTreeNodeData>&&)>&&);
     void getAllFrameTrees(CompletionHandler<void(Vector<FrameTreeNodeData>&&)>&&);
     void getFrameInfo(WebCore::FrameIdentifier, CompletionHandler<void(API::FrameInfo*)>&&);
 
@@ -766,6 +766,7 @@ public:
 
 #if ENABLE(FULLSCREEN_API)
     WebFullScreenManagerProxy* fullScreenManager();
+    RefPtr<WebFullScreenManagerProxy> protectedFullScreenManager();
     void setFullScreenClientForTesting(std::unique_ptr<WebKit::WebFullScreenManagerProxyClient>&&);
 
     API::FullscreenClient& fullscreenClient() const { return *m_fullscreenClient; }
@@ -2100,6 +2101,7 @@ public:
 
 #if ENABLE(DEVICE_ORIENTATION)
     void shouldAllowDeviceOrientationAndMotionAccess(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, bool mayPrompt, CompletionHandler<void(WebCore::DeviceOrientationOrMotionPermissionState)>&&);
+    bool originHasDeviceOrientationAndMotionAccess(const WebCore::SecurityOriginData&);
 #endif
 
 #if ENABLE(IMAGE_ANALYSIS)

@@ -114,8 +114,6 @@ Modules/mediastream/ImageCapture.cpp
 Modules/mediastream/MediaDevices.cpp
 Modules/mediastream/MediaStream.cpp
 Modules/mediastream/MediaStream.h
-Modules/mediastream/MediaStreamTrack.cpp
-Modules/mediastream/MediaStreamTrack.h
 Modules/mediastream/MediaStreamTrackProcessor.cpp
 Modules/mediastream/NavigatorMediaDevices.cpp
 Modules/mediastream/PeerConnectionBackend.cpp
@@ -415,7 +413,6 @@ css/CSSCursorImageValue.cpp
 css/CSSFontFace.cpp
 css/CSSFontFaceRule.cpp
 css/CSSFontFaceSet.cpp
-css/CSSFontFaceSource.cpp
 css/CSSFontFeatureValue.cpp
 css/CSSFontSelector.cpp
 css/CSSFontStyleRangeValue.cpp
@@ -791,7 +788,6 @@ html/track/TextTrack.cpp
 html/track/TextTrackCue.cpp
 html/track/TrackBase.cpp
 html/track/VTTCue.cpp
-html/track/VTTRegion.cpp
 html/track/VideoTrack.cpp
 html/track/WebVTTParser.cpp
 inspector/CommandLineAPIModule.cpp
@@ -1049,7 +1045,6 @@ platform/graphics/displaylists/DisplayListItem.cpp
 platform/graphics/filters/FEDisplacementMap.cpp
 platform/graphics/filters/software/FELightingSoftwareApplier.cpp
 platform/graphics/mac/PDFDocumentImageMac.mm
-platform/graphics/mac/controls/ControlMac.mm
 platform/graphics/opentype/OpenTypeMathData.cpp
 platform/graphics/transforms/TransformOperations.cpp
 platform/libwebrtc/LibWebRTCVPXVideoEncoder.cpp

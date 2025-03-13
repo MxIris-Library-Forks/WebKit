@@ -4830,6 +4830,11 @@ DOMTokenList& Element::classList()
     return *data.classList();
 }
 
+Ref<DOMTokenList> Element::protectedClassList()
+{
+    return classList();
+}
+
 SpaceSplitString Element::partNames() const
 {
     return hasRareData() ? elementRareData()->partNames() : SpaceSplitString();
@@ -6162,10 +6167,10 @@ bool Element::isInVisibilityAdjustmentSubtree() const
 TextStream& operator<<(TextStream& ts, ContentRelevancy relevancy)
 {
     switch (relevancy) {
-    case ContentRelevancy::OnScreen: ts << "OnScreen"; break;
-    case ContentRelevancy::Focused: ts << "Focused"; break;
-    case ContentRelevancy::IsInTopLayer: ts << "IsInTopLayer"; break;
-    case ContentRelevancy::Selected: ts << "Selected"; break;
+    case ContentRelevancy::OnScreen: ts << "OnScreen"_s; break;
+    case ContentRelevancy::Focused: ts << "Focused"_s; break;
+    case ContentRelevancy::IsInTopLayer: ts << "IsInTopLayer"_s; break;
+    case ContentRelevancy::Selected: ts << "Selected"_s; break;
     }
     return ts;
 }

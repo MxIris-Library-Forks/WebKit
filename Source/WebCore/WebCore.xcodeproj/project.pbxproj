@@ -2910,7 +2910,7 @@
 		72F9A6CD2D30DE880019DE4B /* ImageBufferDisplayListBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 72F9A6C92D30BE6E0019DE4B /* ImageBufferDisplayListBackend.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72FD30AC27E3217B0023CDAC /* SourceBrush.h in Headers */ = {isa = PBXBuildFile; fileRef = 72FD30AA27E3217B0023CDAC /* SourceBrush.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72FD88D1295E3C40006FACDC /* MenuListPart.h in Headers */ = {isa = PBXBuildFile; fileRef = 72FD88D0295D56E2006FACDC /* MenuListPart.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		7410760E2D6BDCA9000EC9C0 /* PlatformDynamicRangeLimitCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 7410760D2D6BDB77000EC9C0 /* PlatformDynamicRangeLimitCocoa.h */; };
+		7410760E2D6BDCA9000EC9C0 /* PlatformDynamicRangeLimitCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 7410760D2D6BDB77000EC9C0 /* PlatformDynamicRangeLimitCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		74C2F53E29AC9B0B006C5F97 /* ApplePayDeferredPaymentRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 74C2F53D29AC9B0A006C5F97 /* ApplePayDeferredPaymentRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7553CFE8108F473F00EA281E /* TimelineRecordFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 7553CFE6108F473F00EA281E /* TimelineRecordFactory.h */; };
 		75793E840D0CE0B3007FC0AC /* MessageEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 75793E810D0CE0B3007FC0AC /* MessageEvent.h */; };
@@ -13619,6 +13619,7 @@
 		72FE4046292F3D3A001D3855 /* ImageBufferContextSwitcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageBufferContextSwitcher.h; sourceTree = "<group>"; };
 		72FE4047292F3D3B001D3855 /* ImageBufferContextSwitcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImageBufferContextSwitcher.cpp; sourceTree = "<group>"; };
 		7410760D2D6BDB77000EC9C0 /* PlatformDynamicRangeLimitCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformDynamicRangeLimitCocoa.h; sourceTree = "<group>"; };
+		746357992D7F91B200AFA625 /* PlatformDynamicRangeLimitCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PlatformDynamicRangeLimitCocoa.mm; sourceTree = "<group>"; };
 		74C2F53D29AC9B0A006C5F97 /* ApplePayDeferredPaymentRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ApplePayDeferredPaymentRequest.h; sourceTree = "<group>"; };
 		74C2F53F29AC9B1C006C5F97 /* ApplePayDeferredPaymentRequest.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ApplePayDeferredPaymentRequest.idl; sourceTree = "<group>"; };
 		74CE9900299503A200096552 /* attachmentElementShadow.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = attachmentElementShadow.css; sourceTree = "<group>"; };
@@ -26134,6 +26135,7 @@
 				0FA2B233276817540020C7C1 /* PlatformCALayerContentsDelayedReleaser.h */,
 				0FA2B235276817550020C7C1 /* PlatformCALayerContentsDelayedReleaser.mm */,
 				7410760D2D6BDB77000EC9C0 /* PlatformDynamicRangeLimitCocoa.h */,
+				746357992D7F91B200AFA625 /* PlatformDynamicRangeLimitCocoa.mm */,
 				31DEA4541B39F4D900F77178 /* WebSystemBackdropLayer.h */,
 				31DEA4531B39F4D900F77178 /* WebSystemBackdropLayer.mm */,
 				0F580FA11496939100FB5BD8 /* WebTiledBackingLayer.h */,

@@ -6240,7 +6240,7 @@ void WebPageProxy::getContentsAsAttributedString(CompletionHandler<void(const We
 }
 #endif
 
-void WebPageProxy::getAllFrames(CompletionHandler<void(FrameTreeNodeData&&)>&& completionHandler)
+void WebPageProxy::getAllFrames(CompletionHandler<void(std::optional<FrameTreeNodeData>&&)>&& completionHandler)
 {
     RefPtr mainFrame = m_mainFrame;
     if (!mainFrame)
@@ -6280,8 +6280,9 @@ void WebPageProxy::getAllFrameTrees(CompletionHandler<void(Vector<FrameTreeNodeD
 
     Ref aggregator = FrameTreeCallbackAggregator::create(WTFMove(completionHandler));
     forEachWebContentProcess([&] (auto& process, auto pageID) {
-        process.sendWithAsyncReply(Messages::WebPage::GetFrameTree(), [aggregator] (FrameTreeNodeData&& data) {
-            aggregator->addFrameTree(WTFMove(data));
+        process.sendWithAsyncReply(Messages::WebPage::GetFrameTree(), [aggregator] (std::optional<FrameTreeNodeData>&& data) {
+            if (data)
+                aggregator->addFrameTree(WTFMove(*data));
         }, pageID);
     });
 }
@@ -9505,6 +9506,11 @@ WebFullScreenManagerProxy* WebPageProxy::fullScreenManager()
     return m_fullScreenManager.get();
 }
 
+RefPtr<WebFullScreenManagerProxy> WebPageProxy::protectedFullScreenManager()
+{
+    return fullScreenManager();
+}
+
 void WebPageProxy::setFullscreenClient(std::unique_ptr<API::FullscreenClient>&& client)
 {
     if (!client) {
@@ -12443,6 +12449,7 @@ void WebPageProxy::requestMediaKeySystemPermissionForFrame(IPC::Connection& conn
 }
 
 #if ENABLE(DEVICE_ORIENTATION)
+
 void WebPageProxy::shouldAllowDeviceOrientationAndMotionAccess(IPC::Connection& connection, FrameIdentifier frameID, FrameInfoData&& frameInfo, bool mayPrompt, CompletionHandler<void(DeviceOrientationOrMotionPermissionState)>&& completionHandler)
 {
     RefPtr frame = WebFrameProxy::webFrame(frameID);
@@ -12451,6 +12458,13 @@ void WebPageProxy::shouldAllowDeviceOrientationAndMotionAccess(IPC::Connection& 
 
     protectedWebsiteDataStore()->protectedDeviceOrientationAndMotionAccessController()->shouldAllowAccess(*this, *frame, WTFMove(frameInfo), mayPrompt, WTFMove(completionHandler));
 }
+
+bool WebPageProxy::originHasDeviceOrientationAndMotionAccess(const WebCore::SecurityOriginData& origin)
+{
+    // FIXME: implement this.
+    return true;
+}
+
 #endif
 
 

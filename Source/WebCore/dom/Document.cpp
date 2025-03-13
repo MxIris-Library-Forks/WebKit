@@ -3538,10 +3538,11 @@ void Document::resumeDeviceMotionAndOrientationUpdates()
         return;
     m_areDeviceMotionAndOrientationUpdatesSuspended = false;
 #if ENABLE(DEVICE_ORIENTATION) && PLATFORM(IOS_FAMILY)
+    auto origin = securityOrigin().data();
     if (m_deviceMotionController)
-        m_deviceMotionController->resumeUpdates();
+        m_deviceMotionController->resumeUpdates(origin);
     if (m_deviceOrientationController)
-        m_deviceOrientationController->resumeUpdates();
+        m_deviceOrientationController->resumeUpdates(origin);
 #endif
 }
 
@@ -11048,10 +11049,10 @@ TextStream& operator<<(TextStream& ts, const Document& document)
 TextStream& operator<<(TextStream& ts, const Document::VisualUpdatesPreventedReason& reason)
 {
     switch (reason) {
-    case Document::VisualUpdatesPreventedReason::Client: ts << "Client"; break;
-    case Document::VisualUpdatesPreventedReason::ReadyState: ts << "ReadyState"; break;
-    case Document::VisualUpdatesPreventedReason::Suspension: ts << "Suspension"; break;
-    case Document::VisualUpdatesPreventedReason::RenderBlocking: ts << "RenderBlocking"; break;
+    case Document::VisualUpdatesPreventedReason::Client: ts << "Client"_s; break;
+    case Document::VisualUpdatesPreventedReason::ReadyState: ts << "ReadyState"_s; break;
+    case Document::VisualUpdatesPreventedReason::Suspension: ts << "Suspension"_s; break;
+    case Document::VisualUpdatesPreventedReason::RenderBlocking: ts << "RenderBlocking"_s; break;
     }
     return ts;
 }

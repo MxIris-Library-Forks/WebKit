@@ -1798,7 +1798,7 @@ public:
     void savePDFToFileInDownloadsFolder(String&& suggestedFilename, URL&& originatingURL, std::span<const uint8_t>);
 
 #if ENABLE(PDF_PLUGIN) && PLATFORM(MAC)
-    void savePDFToTemporaryFolderAndOpenWithNativeApplication(const String& suggestedFilename, FrameInfoData&&, std::span<const uint8_t>, const String& pdfUUID);
+    void savePDFToTemporaryFolderAndOpenWithNativeApplication(const String& suggestedFilename, FrameInfoData&&, std::span<const uint8_t>);
     void showPDFContextMenu(const PDFContextMenu&, PDFPluginIdentifier, CompletionHandler<void(std::optional<int32_t>&&)>&&);
 
     void pdfZoomIn(PDFPluginIdentifier);
@@ -2306,8 +2306,8 @@ public:
 #endif
 
 #if PLATFORM(VISION)
-    void enterExternalPlaybackForNowPlayingMediaSession(CompletionHandler<void(bool, UIViewController *)>&&);
-    void exitExternalPlayback(CompletionHandler<void(bool)>&&);
+    void enterExternalPlaybackForNowPlayingMediaSession(CompletionHandler<void(bool, UIViewController *)>&&, CompletionHandler<void(bool)>&&);
+    void exitExternalPlayback();
 #endif
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
@@ -3685,8 +3685,6 @@ RefPtr<SpeechRecognitionPermissionManager> protectedSpeechRecognitionPermissionM
     bool m_madeViewBlankDueToLackOfRenderingUpdate { false };
 
 #if PLATFORM(COCOA)
-    using TemporaryPDFFileMap = HashMap<String, String>;
-    TemporaryPDFFileMap m_temporaryPDFFiles;
     std::unique_ptr<WebCore::RunLoopObserver> m_activityStateChangeDispatcher;
 
     std::unique_ptr<RemoteLayerTreeScrollingPerformanceData> m_scrollingPerformanceData;

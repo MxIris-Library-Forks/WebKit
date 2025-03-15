@@ -1604,9 +1604,8 @@
                 "cascade-alias": "ruby-position",
                 "skip-style-builder": true,
                 "render-style-name-for-methods": "RubyPosition",
-                "parser-function": "consumeWebKitRubyPosition",
-                "parser-grammar-unused": "before | after | inter-character",
-                "parser-grammar-unused-reason": "Needs support for transforming a parsed keyword into a different keyword."
+                "parser-grammar": "before | after | inter-character@(aliased-to=legacy-inter-character)",
+                "parser-grammar-comment": "Current spec grammar is '[ alternate || [ over | under ] ] | inter-character'."
             },
             "specification": {
                 "category": "css-ruby",
@@ -2856,7 +2855,7 @@
                 "parser-function-allows-number-or-integer-input": true,
                 "parser-function-requires-current-property": true,
                 "parser-grammar-unused": "[ <number [0,inf]> | <percentage [0,inf]> ]{1,4} && fill?",
-                "parser-grammar-unused-reason": "Needs support for quad/complete4Side style defaulting and for different parsing based on the current shorthand."
+                "parser-grammar-unused-reason": "Needs support for different parsing based on the current shorthand."
             },
             "specification": {
                 "category": "css-backgrounds",
@@ -2896,7 +2895,7 @@
                 "parser-function-allows-number-or-integer-input": true,
                 "parser-function-requires-current-property": true,
                 "parser-grammar-unused": "[ <length-percentage [0,inf]> | <number [0,inf]> | auto ]{1,4}",
-                "parser-grammar-unused-reason": "Needs support for quad/complete4Side style defaulting and for different parsing based on the current shorthand."
+                "parser-grammar-unused-reason": "Needs support for different parsing based on the current shorthand."
             },
             "specification": {
                 "category": "css-backgrounds",
@@ -4188,7 +4187,7 @@
                 "style-builder-custom": "All",
                 "parser-function": "consumeCursor",
                 "parser-grammar-unused": "[ [ <url> [ <x> <y> ]? ]#{0,} [ <<values>> ] ]",
-                "parser-grammar-unused-reason": "Needs support for using custom types for order groups, for transforming a parsed keyword into a different keyword, and for different parsing based on the current mode."
+                "parser-grammar-unused-reason": "Needs support for using custom types for order groups and for different parsing based on the current mode."
             },
             "specification": {
                 "category": "css-ui",
@@ -5051,9 +5050,8 @@
             ],
             "codegen-properties": {
                 "style-builder-converter": "ListStyleType",
-                "parser-function": "consumeListStyleType",
-                "parser-grammar-unused": "<<values>> | <string> | <custom-ident>",
-                "parser-grammar-unused-reason": "Needs support for settings conditional alternatives in a '|' group."
+                "parser-grammar": "<counter-style> | <string> | none",
+                "parser-exported": true
             },
             "specification": {
                 "category": "css-lists",
@@ -5470,7 +5468,7 @@
                 "parser-function": "consumeBorderImageSlice",
                 "parser-function-requires-current-property": true,
                 "parser-grammar-unused": "[ <number [0,inf]> | <percentage [0,inf]> ]{1,4} && fill?",
-                "parser-grammar-unused-reason": "Needs support for quad/complete4Side style defaulting and for different parsing based on the current shorthand."
+                "parser-grammar-unused-reason": "Needs support for different parsing based on the current shorthand."
             },
             "specification": {
                 "category": "css-masking",
@@ -5513,7 +5511,7 @@
                 "parser-function": "consumeBorderImageWidth",
                 "parser-function-requires-current-property": true,
                 "parser-grammar-unused": "[ <length-percentage [0,inf]> | <number [0,inf]> | auto ]{1,4}",
-                "parser-grammar-unused-reason": "Needs support for quad/complete4Side style defaulting and for different parsing based on the current shorthand."
+                "parser-grammar-unused-reason": "Needs support for different parsing based on the current shorthand."
             },
             "specification": {
                 "category": "css-masking",
@@ -9127,7 +9125,7 @@
                 "animation-wrapper-requires-additional-parameters": ["&RenderStyle::hasAutoColumnWidth", "&RenderStyle::setHasAutoColumnWidth", "0.0f"],
                 "style-builder-converter": "ComputedLength<float>",
                 "auto-functions": true,
-                "parser-grammar": "auto | <length [0,inf] mode=strict>",
+                "parser-grammar": "auto | <length [0,inf]>",
                 "parser-exported": true
             },
             "specification":  {
@@ -12167,7 +12165,7 @@
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-function": "consumeCounterStyleAdditiveSymbols",
                     "parser-grammar-unused": "[ <integer [0,inf]> && <symbol> ]#",
-                    "parser-grammar-unused-reason": "Needs support for primitive <symbol> and using custom types for '&&' groups."
+                    "parser-grammar-unused-reason": "Needs support for custom validation of lists."
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12189,9 +12187,7 @@
             "negative": {
                 "codegen-properties": {
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
-                    "parser-function": "consumeCounterStyleNegative",
-                    "parser-grammar-unused": "<symbol> <symbol>?",
-                    "parser-grammar-unused-reason": "Needs support for primitive <symbol>."
+                    "parser-grammar": "<symbol> <symbol>?"
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12201,9 +12197,7 @@
             "pad": {
                 "codegen-properties": {
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
-                    "parser-function": "consumeCounterStylePad",
-                    "parser-grammar-unused": "<integer [0,inf]> && <symbol>",
-                    "parser-grammar-unused-reason": "Needs support for primitive <symbol>."
+                    "parser-grammar": "<integer [0,inf]> && <symbol>"
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12213,9 +12207,7 @@
             "prefix": {
                 "codegen-properties": {
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
-                    "parser-function": "consumeCounterStyleSymbol",
-                    "parser-grammar-unused": "<symbol>",
-                    "parser-grammar-unused-reason": "Needs support for primitive <symbol>."
+                    "parser-grammar": "<symbol>"
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12237,9 +12229,7 @@
             "suffix": {
                 "codegen-properties": {
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
-                    "parser-function": "consumeCounterStyleSymbol",
-                    "parser-grammar-unused": "<symbol>",
-                    "parser-grammar-unused-reason": "Needs support for primitive <symbol>."
+                    "parser-grammar": "<symbol>"
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12261,9 +12251,7 @@
             "speak-as": {
                 "codegen-properties": {
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
-                    "parser-function": "consumeCounterStyleSpeakAs",
-                    "parser-grammar-unused": "auto | bullets | numbers | words | spell-out | <counter-style-name>",
-                    "parser-grammar-unused-reason": "Needs support for excluding a class of names from a <custom-ident>."
+                    "parser-grammar": "auto | bullets | numbers | words | spell-out | <counter-style-name>"
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12273,9 +12261,7 @@
             "symbols": {
                 "codegen-properties": {
                     "settings-flag": "cssCounterStyleAtRulesEnabled",
-                    "parser-function": "consumeCounterStyleSymbols",
-                    "parser-grammar-unused": "<symbol>",
-                    "parser-grammar-unused-reason": "Needs support for primitive <symbol>."
+                    "parser-grammar": "<symbol>+@(no-single-item-opt)"
                 },
                 "specification": {
                     "category": "css-counter-styles",
@@ -12980,8 +12966,7 @@
             }
         },
         "<-webkit-absolute-size>": {
-            "grammar": "-webkit-xxx-large",
-            "aliased-to": "xxx-large",
+            "grammar": "-webkit-xxx-large@(aliased-to=xxx-large)",
             "status": "non-standard"
         },
         "<relative-size>": {
@@ -13874,10 +13859,45 @@
             }
         },
         "<symbol>": {
-            "grammar": "<string> | <image> | <custom-ident>",
+            "grammar": "<string> | <image allowed-types=url,generated>@(settings-flag=counterStyleAtRuleImageSymbolsEnabled) | <custom-ident>",
+            "grammar-comment": "There are inherent difficulties in supporting <image> symbols in @counter-styles, so gate them behind a flag for now - https://bugs.webkit.org/show_bug.cgi?id=167645.",
+            "exported": true,
             "specification": {
                 "category": "css-counter-styles",
                 "url": "https://www.w3.org/TR/css-counter-styles-3/#counter-style-symbols"
+            }
+        },
+        "<counter-style-name>": {
+            "grammar-unused": "<custom-ident excluding=none>",
+            "grammar-unused-reason": "Needs support for excluding a class of names from a <custom-ident>.",
+            "grammar-function": "consumeCounterStyleName",
+            "specification": {
+                "category": "css-counter-styles",
+                "url": "https://drafts.csswg.org/css-counter-styles/#typedef-counter-style-name"
+            }
+        },
+        "<counter-style>": {
+            "grammar-unused": "<counter-style-name> | <symbols()>",
+            "grammar-unused-reason": "Needs support for excluding a class of names from a <custom-ident>.",
+            "grammar-comment": "Current implementation does not support '<symbols()>'.",
+            "grammar-function": "consumeCounterStyle",
+            "specification": {
+                "category": "css-counter-styles",
+                "url": "https://drafts.csswg.org/css-counter-styles/#typedef-counter-style"
+            }
+        },
+        "<symbols()>": {
+            "grammar": "symbols( <symbols-type>? [ <string> | <image> ]+ )",
+            "specification": {
+                "category": "css-counter-styles",
+                "url": "https://drafts.csswg.org/css-counter-styles/#funcdef-symbols"
+            }
+        },
+        "<symbols-type>": {
+            "grammar": "cyclic | numeric | alphabetic | symbolic | fixed",
+            "specification": {
+                "category": "css-counter-styles",
+                "url": "https://drafts.csswg.org/css-counter-styles/#typedef-symbols-type"
             }
         },
         "<display-outside>": {

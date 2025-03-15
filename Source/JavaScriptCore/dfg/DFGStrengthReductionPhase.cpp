@@ -1029,6 +1029,7 @@ private:
         }
 
         case StringReplace:
+        case StringReplaceAll:
         case StringReplaceRegExp: {
             Node* stringNode = m_node->child1().node();
             String string = stringNode->tryGetString(m_graph);
@@ -1284,6 +1285,22 @@ private:
                 }
                 break;
             }
+
+            case Array::Uint8Array:
+            case Array::Uint16Array:
+            case Array::Uint32Array: {
+                if (m_node->op() == PutByVal || m_node->op() == PutByValDirect || m_node->op() == PutByValAlias) {
+                    Edge& valueEdge = m_graph.child(m_node, 2);
+                    if (valueEdge.useKind() == Int32Use) {
+                        if (valueEdge->op() == UInt32ToNumber && valueEdge->child1().useKind() == Int32Use) {
+                            valueEdge = valueEdge->child1();
+                            m_changed = true;
+                        }
+                    }
+                }
+                break;
+            }
+
             default:
                 break;
             }

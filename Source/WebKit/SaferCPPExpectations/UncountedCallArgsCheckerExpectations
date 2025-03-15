@@ -19,6 +19,7 @@ Platform/IPC/Connection.cpp
 Platform/IPC/Connection.h
 Platform/IPC/StreamClientConnection.cpp
 Shared/Cocoa/WKObject.mm
+Shared/JavaScriptEvaluationResult.mm
 Shared/RemoteLayerTree/RemoteLayerBackingStore.mm
 UIProcess/API/APIDataTask.cpp
 UIProcess/API/C/WKAuthenticationChallenge.cpp
@@ -59,10 +60,6 @@ UIProcess/API/C/WKWebsiteDataStoreConfigurationRef.cpp
 UIProcess/API/C/WKWebsiteDataStoreRef.cpp
 UIProcess/API/C/WKWebsitePolicies.cpp
 UIProcess/API/C/mac/WKPagePrivateMac.mm
-UIProcess/API/Cocoa/NSAttributedString.mm
-UIProcess/API/Cocoa/WKBackForwardList.mm
-UIProcess/API/Cocoa/WKBackForwardListItem.mm
-UIProcess/API/Cocoa/WKBrowsingContextController.mm
 UIProcess/API/Cocoa/WKContentRuleList.mm
 UIProcess/API/Cocoa/WKContentRuleListStore.mm
 UIProcess/API/Cocoa/WKContentWorld.mm
@@ -273,4 +270,3 @@ WebProcess/cocoa/TextTrackRepresentationCocoa.mm
 WebProcess/cocoa/UserMediaCaptureManager.cpp
 WebProcess/cocoa/VideoPresentationManager.mm
 WebProcess/cocoa/WebProcessCocoa.mm
-mac/WebCoreSupport/WebNotificationClient.mm

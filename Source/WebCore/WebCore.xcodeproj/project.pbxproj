@@ -18651,8 +18651,6 @@
 		BCE411E42CF2B86300731E47 /* CSSPropertyParserConsumer+Overflow.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Overflow.cpp"; sourceTree = "<group>"; };
 		BCE411E72CF2B86300731E47 /* CSSPropertyParserConsumer+UI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+UI.h"; sourceTree = "<group>"; };
 		BCE411E82CF2B86300731E47 /* CSSPropertyParserConsumer+UI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+UI.cpp"; sourceTree = "<group>"; };
-		BCE411ED2CF2BCB900731E47 /* CSSPropertyParserConsumer+Ruby.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Ruby.h"; sourceTree = "<group>"; };
-		BCE411EE2CF2BCB900731E47 /* CSSPropertyParserConsumer+Ruby.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Ruby.cpp"; sourceTree = "<group>"; };
 		BCE411EF2CF2BCDF00731E47 /* CSSPropertyParserConsumer+Syntax.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Syntax.h"; sourceTree = "<group>"; };
 		BCE411F02CF2BCDF00731E47 /* CSSPropertyParserConsumer+Syntax.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Syntax.cpp"; sourceTree = "<group>"; };
 		BCE412082CF399C400731E47 /* CSSColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSColor.h; sourceTree = "<group>"; };
@@ -31020,8 +31018,6 @@
 				BC7C5E7C2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Resolution.cpp */,
 				BC7C5E7D2BE2A8FB00AE645C /* CSSPropertyParserConsumer+Resolution.h */,
 				BC7C5E7E2BE2A8FB00AE645C /* CSSPropertyParserConsumer+ResolutionDefinitions.h */,
-				BCE411EE2CF2BCB900731E47 /* CSSPropertyParserConsumer+Ruby.cpp */,
-				BCE411ED2CF2BCB900731E47 /* CSSPropertyParserConsumer+Ruby.h */,
 				BCE411E02CF2B6F000731E47 /* CSSPropertyParserConsumer+Scrollbars.cpp */,
 				BCE411DF2CF2B6F000731E47 /* CSSPropertyParserConsumer+Scrollbars.h */,
 				BCE411BC2CF1845300731E47 /* CSSPropertyParserConsumer+ScrollSnap.cpp */,

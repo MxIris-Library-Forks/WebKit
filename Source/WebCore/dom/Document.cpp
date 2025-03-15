@@ -8476,7 +8476,7 @@ std::variant<Document::SkipTransition, Vector<AtomString>> Document::resolveView
     if (hidden())
         return SkipTransition { };
 
-    auto rule = styleScope().resolver().viewTransitionRule();
+    RefPtr rule = styleScope().protectedResolver()->viewTransitionRule();
     if (rule && rule->computedNavigation() == ViewTransitionNavigation::Auto)
         return rule->types();
     return SkipTransition { };
@@ -9567,14 +9567,6 @@ void Document::didLoadResourceSynchronously(const URL& url)
         page->cookieJar().clearCacheForHost(url.host().toString());
 }
 
-std::optional<Vector<uint8_t>> Document::wrapCryptoKey(const Vector<uint8_t>& key)
-{
-    RefPtr page = this->page();
-    if (!page)
-        return std::nullopt;
-    return page->cryptoClient().wrapCryptoKey(key);
-}
-
 std::optional<Vector<uint8_t>> Document::serializeAndWrapCryptoKey(CryptoKeyData&& keyData)
 {
     RefPtr page = this->page();
@@ -9910,7 +9902,7 @@ bool Document::hasResizeObservers()
 
 size_t Document::gatherResizeObservations(size_t deeperThan)
 {
-    LOG_WITH_STREAM(ResizeObserver, stream << "Document " << *this << " gatherResizeObservations");
+    LOG_WITH_STREAM(ResizeObserver, stream << *this << " gatherResizeObservations");
     size_t minDepth = ResizeObserver::maxElementDepth();
     for (auto& weakObserver : m_resizeObservers) {
         RefPtr observer = weakObserver.get();
@@ -9927,13 +9919,13 @@ size_t Document::gatherResizeObservationsForContainIntrinsicSize()
     if (!m_resizeObserverForContainIntrinsicSize)
         return ResizeObserver::maxElementDepth();
 
-    LOG_WITH_STREAM(ResizeObserver, stream << "Document " << *this << " gatherResizeObservationsForContainIntrinsicSize");
+    LOG_WITH_STREAM(ResizeObserver, stream << *this << " gatherResizeObservationsForContainIntrinsicSize");
     return m_resizeObserverForContainIntrinsicSize->gatherObservations(0);
 }
 
 void Document::deliverResizeObservations()
 {
-    LOG_WITH_STREAM(ResizeObserver, stream << "Document " << *this << " deliverResizeObservations");
+    LOG_WITH_STREAM(ResizeObserver, stream << *this << " deliverResizeObservations");
     if (m_resizeObserverForContainIntrinsicSize)
         m_resizeObserverForContainIntrinsicSize->deliverObservations();
 
@@ -11252,8 +11244,8 @@ ViewTransition* Document::activeViewTransition() const
 
 bool Document::activeViewTransitionCapturedDocumentElement() const
 {
-    if (m_activeViewTransition)
-        return m_activeViewTransition->documentElementIsCaptured();
+    if (RefPtr activeViewTransition = m_activeViewTransition)
+        return activeViewTransition->documentElementIsCaptured();
     return false;
 }
 
@@ -11261,9 +11253,9 @@ void Document::setActiveViewTransition(RefPtr<ViewTransition>&& viewTransition)
 {
     std::optional<Style::PseudoClassChangeInvalidation> activeViewTransitionInvalidation;
     std::optional<Style::PseudoClassChangeInvalidation> activeViewTransitionTypeInvalidation;
-    if (documentElement()) {
-        activeViewTransitionInvalidation.emplace(*documentElement(), CSSSelector::PseudoClass::ActiveViewTransition, !!viewTransition);
-        activeViewTransitionTypeInvalidation.emplace(*documentElement(), CSSSelector::PseudoClass::ActiveViewTransitionType, Style::PseudoClassChangeInvalidation::AnyValue);
+    if (RefPtr documentElement = this->documentElement()) {
+        activeViewTransitionInvalidation.emplace(*documentElement, CSSSelector::PseudoClass::ActiveViewTransition, !!viewTransition);
+        activeViewTransitionTypeInvalidation.emplace(*documentElement, CSSSelector::PseudoClass::ActiveViewTransitionType, Style::PseudoClassChangeInvalidation::AnyValue);
     }
 
     clearRenderingIsSuppressedForViewTransition();

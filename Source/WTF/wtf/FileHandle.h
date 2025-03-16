@@ -71,9 +71,9 @@ class FileHandle {
 public:
     WTF_EXPORT_PRIVATE FileHandle();
 
-    static FileHandle adopt(PlatformFileHandle handle)
+    static FileHandle adopt(PlatformFileHandle handle, OptionSet<FileLockMode> lockMode = { })
     {
-        return FileHandle { handle };
+        return FileHandle { handle, lockMode };
     }
 
     WTF_EXPORT_PRIVATE FileHandle(FileHandle&&);
@@ -85,14 +85,9 @@ public:
     bool isValid() const { return !!m_handle; }
     explicit operator bool() const { return isValid(); }
 
-    // Returns number of bytes actually written if successful, -1 otherwise.
-    WTF_EXPORT_PRIVATE int64_t write(std::span<const uint8_t>);
-    // Returns number of bytes actually read if successful, -1 otherwise.
-    WTF_EXPORT_PRIVATE int64_t read(std::span<uint8_t>);
-
+    WTF_EXPORT_PRIVATE std::optional<uint64_t> write(std::span<const uint8_t>);
+    WTF_EXPORT_PRIVATE std::optional<uint64_t> read(std::span<uint8_t>);
     WTF_EXPORT_PRIVATE std::optional<Vector<uint8_t>> readAll();
-    WTF_EXPORT_PRIVATE bool lock(OptionSet<FileLockMode>);
-    WTF_EXPORT_PRIVATE bool unlock();
     WTF_EXPORT_PRIVATE bool truncate(int64_t offset);
     WTF_EXPORT_PRIVATE std::optional<uint64_t> size();
 
@@ -103,17 +98,14 @@ public:
     WTF_EXPORT_PRIVATE std::optional<PlatformFileID> id();
 
 private:
-    explicit FileHandle(PlatformFileHandle handle)
-        : m_handle(handle)
-    {
-    }
+    WTF_EXPORT_PRIVATE FileHandle(PlatformFileHandle, OptionSet<FileLockMode>);
 
+#if USE(FILE_LOCK)
+    bool lock(OptionSet<FileLockMode>);
+#endif
     void close();
 
     Markable<PlatformFileHandle, PlatformHandleTraits> m_handle;
-#if USE(FILE_LOCK)
-    bool m_isLocked { false };
-#endif
 };
 
 } // namespace FileSystemImpl

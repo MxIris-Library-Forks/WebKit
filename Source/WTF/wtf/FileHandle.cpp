@@ -32,11 +32,19 @@ namespace WTF::FileSystemImpl {
 
 FileHandle::FileHandle() = default;
 
+FileHandle::FileHandle(PlatformFileHandle handle, OptionSet<FileLockMode> lockMode)
+    : m_handle(handle)
+{
+#if USE(FILE_LOCK)
+    if (lockMode)
+        lock(lockMode);
+#else
+    UNUSED_PARAM(lockMode);
+#endif
+}
+
 FileHandle::FileHandle(FileHandle&& other)
     : m_handle(std::exchange(other.m_handle, std::nullopt))
-#if USE(FILE_LOCK)
-    , m_isLocked(std::exchange(other.m_isLocked, false))
-#endif
 { }
 
 FileHandle::~FileHandle()
@@ -49,9 +57,6 @@ FileHandle& FileHandle::operator=(FileHandle&& other)
     close();
 
     m_handle = std::exchange(other.m_handle, std::nullopt);
-#if USE(FILE_LOCK)
-    m_isLocked = std::exchange(other.m_isLocked, false);
-#endif
     return *this;
 }
 
@@ -70,9 +75,9 @@ std::optional<Vector<uint8_t>> FileHandle::readAll()
 
     Vector<uint8_t> buffer(bytesToRead);
     size_t totalBytesRead = 0;
-    int bytesRead;
+    uint64_t bytesRead;
 
-    while ((bytesRead = read(buffer.mutableSpan().subspan(totalBytesRead))) > 0)
+    while ((bytesRead = read(buffer.mutableSpan().subspan(totalBytesRead)).value_or(0)))
         totalBytesRead += bytesRead;
 
     if (totalBytesRead != bytesToRead)

@@ -50,30 +50,30 @@ static std::optional<uint64_t> getFileSizeFromByHandleFileInformationStructure(c
     return fileSize.QuadPart;
 }
 
-int64_t FileHandle::read(std::span<uint8_t> data)
+std::optional<uint64_t> FileHandle::read(std::span<uint8_t> data)
 {
     if (!m_handle)
-        return -1;
+        return { };
 
     DWORD bytesRead;
     bool success = ::ReadFile(*m_handle, data.data(), data.size(), &bytesRead, nullptr);
 
     if (!success)
-        return -1;
-    return static_cast<int64_t>(bytesRead);
+        return { };
+    return static_cast<uint64_t>(bytesRead);
 }
 
-int64_t FileHandle::write(std::span<const uint8_t> data)
+std::optional<uint64_t> FileHandle::write(std::span<const uint8_t> data)
 {
     if (!m_handle)
-        return -1;
+        return { };
 
     DWORD bytesWritten;
     bool success = WriteFile(*m_handle, data.data(), data.size(), &bytesWritten, nullptr);
 
     if (!success)
-        return -1;
-    return static_cast<int64_t>(bytesWritten);
+        return { };
+    return static_cast<uint64_t>(bytesWritten);
 }
 
 bool FileHandle::flush()
@@ -124,11 +124,8 @@ std::optional<PlatformFileID> FileHandle::id()
 
 void FileHandle::close()
 {
-    if (!m_handle)
-        return;
-
-    unlock();
-    ::CloseHandle(*std::exchange(m_handle, std::nullopt));
+    if (auto handle = std::exchange(m_handle, std::nullopt))
+        ::CloseHandle(*handle);
 }
 
 std::optional<uint64_t> FileHandle::size()
@@ -141,18 +138,6 @@ std::optional<uint64_t> FileHandle::size()
         return std::nullopt;
 
     return getFileSizeFromByHandleFileInformationStructure(fileInformation);
-}
-
-bool FileHandle::lock(OptionSet<FileLockMode>)
-{
-    // Not implemented.
-    return false;
-}
-
-bool FileHandle::unlock()
-{
-    // Not implemented.
-    return false;
 }
 
 } // WTF::FileSystemImpl

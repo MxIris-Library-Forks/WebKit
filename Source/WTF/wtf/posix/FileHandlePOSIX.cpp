@@ -37,30 +37,30 @@
 
 namespace WTF::FileSystemImpl {
 
-int64_t FileHandle::read(std::span<uint8_t> data)
+std::optional<uint64_t> FileHandle::read(std::span<uint8_t> data)
 {
     if (!m_handle)
-        return -1;
+        return { };
 
     do {
         auto bytesRead = ::read(*m_handle, data.data(), data.size());
         if (bytesRead >= 0)
             return bytesRead;
     } while (errno == EINTR);
-    return -1;
+    return { };
 }
 
-int64_t FileHandle::write(std::span<const uint8_t> data)
+std::optional<uint64_t> FileHandle::write(std::span<const uint8_t> data)
 {
     if (!m_handle)
-        return -1;
+        return { };
 
     do {
         auto bytesWritten = ::write(*m_handle, data.data(), data.size());
         if (bytesWritten >= 0)
             return bytesWritten;
     } while (errno == EINTR);
-    return -1;
+    return { };
 }
 
 bool FileHandle::truncate(int64_t offset)
@@ -111,11 +111,8 @@ std::optional<PlatformFileID> FileHandle::id()
 
 void FileHandle::close()
 {
-    if (!m_handle)
-        return;
-
-    unlock();
-    ::close(*std::exchange(m_handle, std::nullopt));
+    if (auto handle = std::exchange(m_handle, std::nullopt))
+        ::close(*handle);
 }
 
 std::optional<uint64_t> FileHandle::size()
@@ -130,9 +127,9 @@ std::optional<uint64_t> FileHandle::size()
     return fileInfo.st_size;
 }
 
+#if USE(FILE_LOCK)
 bool FileHandle::lock(OptionSet<FileLockMode> lockMode)
 {
-#if USE(FILE_LOCK)
     if (!m_handle)
         return false;
 
@@ -140,27 +137,9 @@ bool FileHandle::lock(OptionSet<FileLockMode> lockMode)
     static_assert(LOCK_EX == WTF::enumToUnderlyingType(FileLockMode::Exclusive), "LockExclusiveEncoding is as expected");
     static_assert(LOCK_NB == WTF::enumToUnderlyingType(FileLockMode::Nonblocking), "LockNonblockingEncoding is as expected");
 
-    RELEASE_ASSERT(!m_isLocked);
-    m_isLocked = flock(*m_handle, lockMode.toRaw()) != -1;
-    return m_isLocked;
-#else
-    UNUSED_PARAM(lockMode);
-    return false;
-#endif
+    return flock(*m_handle, lockMode.toRaw()) != -1;
 }
 
-bool FileHandle::unlock()
-{
-#if USE(FILE_LOCK)
-    if (!m_handle)
-        return false;
-
-    if (std::exchange(m_isLocked, false))
-        return flock(*m_handle, LOCK_UN) != -1;
-    return false;
-#else
-    return false;
-#endif
-}
+#endif // USE(FILE_LOCK)
 
 } // WTF::FileSystemImpl

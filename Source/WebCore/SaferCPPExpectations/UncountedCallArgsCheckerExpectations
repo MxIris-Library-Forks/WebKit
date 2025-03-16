@@ -657,7 +657,6 @@ html/AttachmentAssociatedElement.cpp
 html/BaseButtonInputType.cpp
 html/BaseCheckableInputType.cpp
 html/BaseClickableWithKeyInputType.cpp
-html/BaseDateAndTimeInputType.cpp
 html/BaseTextInputType.cpp
 html/CachedHTMLCollection.h
 html/CachedHTMLCollectionInlines.h
@@ -672,7 +671,6 @@ html/DOMURL.cpp
 html/DirectoryFileListCreator.cpp
 html/EmailInputType.cpp
 html/FTPDirectoryDocument.cpp
-html/FileInputType.cpp
 html/FormAssociatedCustomElement.cpp
 html/FormAssociatedElement.cpp
 html/FormListedElement.cpp
@@ -699,11 +697,8 @@ html/HTMLMapElement.cpp
 html/HTMLMaybeFormAssociatedCustomElement.cpp
 html/HTMLMediaElement.cpp
 html/HTMLMetaElement.cpp
-html/HTMLMeterElement.cpp
 html/HTMLNameCollectionInlines.h
 html/HTMLObjectElement.cpp
-html/HTMLOptGroupElement.cpp
-html/HTMLOptionElement.cpp
 html/HTMLOptionsCollection.cpp
 html/HTMLPlugInElement.cpp
 html/HTMLPlugInImageElement.cpp
@@ -738,14 +733,12 @@ html/OffscreenCanvas.cpp
 html/PermissionsPolicy.cpp
 html/PluginDocument.cpp
 html/PublicURLManager.cpp
-html/RadioInputType.cpp
 html/RadioNodeList.cpp
 html/RangeInputType.cpp
 html/ResetInputType.cpp
 html/SearchInputType.cpp
 html/SubmitInputType.cpp
 html/TextFieldInputType.cpp
-html/URLInputType.cpp
 html/ValidatedFormListedElement.cpp
 html/ValidatedFormListedElement.h
 html/ValidationMessage.cpp

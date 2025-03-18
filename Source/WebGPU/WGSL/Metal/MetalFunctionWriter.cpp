@@ -1276,8 +1276,9 @@ static void emitTextureDimensions(FunctionDefinitionWriter* writer, AST::CallExp
         if (call.arguments().size() > 1) {
             writer->stringBuilder().append("min("_s);
             writer->visit(call.arguments()[0]);
-            writer->stringBuilder().append(".get_num_mip_levels(), "_s);
+            writer->stringBuilder().append(".get_num_mip_levels(), uint("_s);
             writer->visit(call.arguments()[1]);
+            writer->stringBuilder().append(')');
             writer->stringBuilder().append(')');
         }
         writer->stringBuilder().append(')');

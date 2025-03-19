@@ -308,14 +308,14 @@ StringView capsMediaType(const GstCaps* caps)
     return gstStructureGetName(structure);
 }
 
-bool doCapsHaveType(const GstCaps* caps, const char* type)
+bool doCapsHaveType(const GstCaps* caps, ASCIILiteral type)
 {
     auto mediaType = capsMediaType(caps);
     if (!mediaType) {
         GST_WARNING("Failed to get MediaType");
         return false;
     }
-    return mediaType.startsWith(unsafeSpan(type));
+    return mediaType.startsWith(type);
 }
 
 bool areEncryptedCaps(const GstCaps* caps)
@@ -973,11 +973,11 @@ Vector<uint8_t> GstMappedBuffer::createVector() const
     return span<uint8_t>();
 }
 
-bool isGStreamerPluginAvailable(const char* name)
+bool isGStreamerPluginAvailable(ASCIILiteral name)
 {
-    GRefPtr<GstPlugin> plugin = adoptGRef(gst_registry_find_plugin(gst_registry_get(), name));
+    GRefPtr<GstPlugin> plugin = adoptGRef(gst_registry_find_plugin(gst_registry_get(), name.characters()));
     if (!plugin)
-        GST_WARNING("Plugin %s not found. Please check your GStreamer installation", name);
+        GST_WARNING("Plugin %s not found. Please check your GStreamer installation", name.characters());
     return plugin;
 }
 

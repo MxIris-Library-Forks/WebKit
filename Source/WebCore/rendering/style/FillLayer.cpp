@@ -22,6 +22,7 @@
 #include "config.h"
 #include "FillLayer.h"
 
+#include "CachedImage.h"
 #include <wtf/PointerComparison.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/TextStream.h>
@@ -392,6 +393,18 @@ bool FillLayer::hasImageWithAttachment(FillAttachment attachment) const
     for (auto* layer = this; layer; layer = layer->m_next.get()) {
         if (layer->m_image && layer->attachment() == attachment)
             return true;
+    }
+    return false;
+}
+
+bool FillLayer::hasHDRContent() const
+{
+    for (auto* layer = this; layer; layer = layer->m_next.get()) {
+        auto image = layer->image();
+        if (auto* cachedImage = image ? image->cachedImage() : nullptr) {
+            if (cachedImage->hasHDRContent())
+                return true;
+        }
     }
     return false;
 }

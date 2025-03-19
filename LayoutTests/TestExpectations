@@ -2507,10 +2507,14 @@ fast/images/animated-jpegxl-loop-count.html [ Skip ]
 # Only applicable on platforms with HDR support
 compositing/hdr/hdr-basic-canvas.html [ Skip ]
 compositing/hdr/hdr-basic-image.html [ Skip ]
-compositing/hdr/hdr-css-image.html [ Skip ]
+compositing/hdr/hdr-background-image.html [ Skip ]
+compositing/hdr/hdr-border-image.html [ Skip ]
+compositing/hdr/hdr-pseudo-before-image.html [ Skip ]
 compositing/hdr/hdr-svg-inline-image.html [ Skip ]
 fast/images/hdr-basic-image.html [ Skip ]
-fast/images/hdr-css-image.html [ Skip ]
+fast/images/hdr-background-image.html [ Skip ]
+fast/images/hdr-border-image.html [ Skip ]
+fast/images/hdr-pseudo-before-image.html [ Skip ]
 fast/images/hdr-svg-inline-image.html [ Skip ]
 
 # Experimental H265 support.
@@ -6448,6 +6452,7 @@ imported/w3c/web-platform-tests/workers/modules/dedicated-worker-import-data-url
 imported/w3c/web-platform-tests/workers/modules/shared-worker-import-data-url-cross-origin.html [ Skip ]
 imported/w3c/web-platform-tests/workers/modules/shared-worker-import-data-url.window.html [ Skip ]
 imported/w3c/web-platform-tests/workers/modules/shared-worker-options-credentials.html [ Skip ]
+imported/w3c/web-platform-tests/xhr/abort-with-error.any.html [ Skip ]
 imported/w3c/web-platform-tests/xhr/send-after-setting-document-domain.htm [ Skip ]
 
 imported/w3c/web-platform-tests/service-workers/service-worker/static-router-race-network-and-fetch-handler.https.html [ Failure ]
@@ -7592,10 +7597,13 @@ webkit.org/b/282024 fast/text/text-box-edge-with-margin-padding-border-simple.ht
 # -- Anchor Positioning -- #
 
 # general failures
+webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-007.html [ ImageOnlyFailure ]
+webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-008.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-006.html [ ImageOnlyFailure ]
+webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scope-scroll.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-003.html [ ImageOnlyFailure ]
@@ -7610,6 +7618,7 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-007.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-inline-container.html [ ImageOnlyFailure ]
+webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-scrolling-004.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-scroll-adjust.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-anchor-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-switch-to-fixed-anchor.html [ ImageOnlyFailure ]

@@ -1982,10 +1982,6 @@ webkit.org/b/288613 [ Sonoma+ ] pdf/pdf-in-embed-with-root-page-zoom.html [ Pass
 [ Sonoma Release x86_64 ] webgl/1.0.x/conformance/glsl/bugs/sampler-array-using-loop-index.html [ Skip ]
 [ Sonoma Release x86_64 ] webgl/2.0.y/conformance/glsl/bugs/sampler-array-using-loop-index.html [ Skip ]
 
-# webkit.org/b/288651 [ macOS-Ventura-Release-WK2-Intel-Tests-EWS] mediacapabilities/vp9 are failing on Intel machine.
-[ Sonoma Release x86_64 ] media/mediacapabilities/vp9.html [ Skip ]
-[ Sonoma Release x86_64 ] platform/mac/media/mediacapabilities/vp9-decodingInfo-sw.html [ Skip ]
-
 webkit.org/b/288660 [ Sonoma Release x86_64 ] media/media-hevc-video-as-img.html [ Skip ]
 
 # webkit.org/b/280189 [EWS] imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.any.html is a constant failure on Ventura+ Intel EWS
@@ -2005,9 +2001,8 @@ webkit.org/b/289090 [ Debug arm64 ] imported/w3c/web-platform-tests/dom/nodes/re
 
 webkit.org/b/289092 http/wpt/background-fetch/background-fetch-abort.window.html [ Pass Failure ]
 
-# webkit.org/b/289095 REGRESSION(291032@main): [macOS iOS Debug] ipc/large-vector-allocate-failure-crash.html is constantly crashing ( failure in EWS)
+# webkit.org/b/289620 ipc/large-vector-allocate-failure-crash.html should be a macOS only test
 [ Debug ] ipc/large-vector-allocate-failure-crash.html [ Skip ]
-[ Debug ] ipc/invalid-path-segments-crash.html [ Skip ]
 
 webkit.org/b/289094 [ Sequoia Debug ] imported/w3c/web-platform-tests/webcodecs/audio-data.crossOriginIsolated.https.any.html [ Pass Timeout ]
 
@@ -2044,8 +2039,6 @@ webkit.org/b/289284 fast/canvas/image-buffer-resource-limits.html [ Pass Timeout
 
 webkit.org/b/289299 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-rendering-invalidation.html [ Pass Failure ]
 
-webkit.org/b/289356 [ Sequoia Debug arm64 ] webrtc/datachannel/bufferedAmount-afterClose.html [ Pass Failure ]
-
 webkit.org/b/289370 [ Debug arm64 ] media/video-webm-seek-singlekeyframe.html [ Pass Failure ]
 
 webkit.org/b/289487 [ Sequoia Release x86_64 ] fast/webgpu/nocrash/RenderBundle_WRITE.html [ Pass Timeout ]
@@ -2055,3 +2048,5 @@ webkit.org/b/289556 [ Sequoia Release x86_64 ] fast/events/page-visibility-trans
 webkit.org/b/289975 fast/css/mac/focus-ring-color-should-not-expose-accent-color.html [ Failure ]
 
 webkit.org/b/290012 [ Debug ] html5lib/generated/run-entities01-data.html [ Skip ]
+
+webkit.org/b/290020 [ Sonoma+ Release ] fast/webgpu/nocrash/fuzz-275228.html [ Skip ]

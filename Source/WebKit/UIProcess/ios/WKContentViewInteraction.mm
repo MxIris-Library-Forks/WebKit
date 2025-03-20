@@ -85,7 +85,6 @@
 #import "WKTimePickerViewController.h"
 #import "WKTouchEventsGestureRecognizer.h"
 #import "WKUIDelegatePrivate.h"
-#import "WKVelocityTrackingScrollView.h"
 #import "WKWebViewConfiguration.h"
 #import "WKWebViewConfigurationPrivate.h"
 #import "WKWebViewIOS.h"
@@ -1215,12 +1214,13 @@ static WKDragSessionContext *ensureLocalDragSessionContext(id <UIDragSession> se
 {
     Vector<RetainPtr<UIView>> viewsToRestore;
     for (UIView *view in [_textInteractionWrapper managedTextSelectionViews]) {
-        if (!view.userInteractionEnabled)
-            continue;
-
-        viewsToRestore.append(view);
-        view.userInteractionEnabled = NO;
+        [view _wk_collectDescendantsIncludingSelf:viewsToRestore matching:^(UIView *view) {
+            return view.userInteractionEnabled;
+        }];
     }
+
+    for (RetainPtr view : viewsToRestore)
+        [view setUserInteractionEnabled:NO];
 
     return makeScopeExit(Function<void()> { [viewsToRestore = WTFMove(viewsToRestore)] {
         for (RetainPtr view : viewsToRestore)
@@ -1301,7 +1301,7 @@ static WKDragSessionContext *ensureLocalDragSessionContext(id <UIDragSession> se
         [self.superview addSubview:_interactionViewsContainerView.get()];
     }
 
-    _keyboardScrollingAnimator = adoptNS([[WKKeyboardScrollViewAnimator alloc] initWithScrollView:self.webView._scrollViewInternal]);
+    _keyboardScrollingAnimator = adoptNS([[WKKeyboardScrollViewAnimator alloc] init]);
     [_keyboardScrollingAnimator setDelegate:self];
 
     [self.layer addObserver:self forKeyPath:@"transform" options:NSKeyValueObservingOptionInitial context:WKContentViewKVOTransformContext];
@@ -7695,9 +7695,9 @@ static UITextAutocapitalizationType toUITextAutocapitalize(WebCore::Autocapitali
 
     BOOL isCharEvent = context.isCharEvent;
 
-    // FIXME: (287721) Use `context.scrollingNode` to facilitate keyboard sub-scrolling.
+    RetainPtr scrollView = [self _scrollViewForScrollingNodeID:context.scrollingNode];
 
-    if ([_keyboardScrollingAnimator beginWithEvent:event] || [_keyboardScrollingAnimator scrollTriggeringKeyIsPressed])
+    if ([_keyboardScrollingAnimator beginWithEvent:event scrollView:(WKBaseScrollView *)scrollView.get() ?: self.webView._scrollViewInternal] || [_keyboardScrollingAnimator scrollTriggeringKeyIsPressed])
         return YES;
 
 #if USE(BROWSERENGINEKIT)
@@ -7826,7 +7826,7 @@ static UITextAutocapitalizationType toUITextAutocapitalize(WebCore::Autocapitali
 
 - (void)keyboardScrollViewAnimatorDidFinishScrolling:(WKKeyboardScrollViewAnimator *)animator
 {
-    [_webView _didFinishScrolling:self.webView.scrollView];
+    [_webView _didFinishScrolling:animator.scrollView];
     _isKeyboardScrollingAnimationRunning = NO;
 }
 

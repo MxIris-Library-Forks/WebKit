@@ -336,9 +336,6 @@ http/tests/security/strip-referrer-to-origin-for-third-party-redirects-in-privat
 http/tests/security/strip-referrer-to-origin-for-third-party-requests-in-private-mode.html [ Skip ]
 media/deactivate-audio-session.html [ Skip ]
 
-# To be removed after AccessibilityThreadTextApisEnabled is enabled by default.
-accessibility/ax-thread-text-apis [ Skip ]
-
 # Skip isolated-tree specific tests.
 accessibility/isolated-tree [ Skip ]
 
@@ -1348,6 +1345,11 @@ imported/w3c/web-platform-tests/navigation-timing/nav2_test_attributes_values.ht
 imported/w3c/web-platform-tests/resource-timing/TAO-match.html [ Pass Failure ]
 imported/w3c/web-platform-tests/resource-timing/iframe-failed-commit.html [ Pass Failure ]
 imported/w3c/web-platform-tests/resource-timing/fetch-cross-origin-redirect.https.html [ Pass Failure ]
+
+# event timing tests which time out.
+imported/w3c/web-platform-tests/event-timing/interactionid-keyboard-event-simulated-click-checkbox-space.html [ Skip ]
+imported/w3c/web-platform-tests/event-timing/interactionid-keyboard-event-simulated-click-link-enter.html [ Skip ]
+imported/w3c/web-platform-tests/event-timing/interactionid-keyboard-event-simulated-click-button-space.html [ Skip ]
 
 imported/w3c/web-platform-tests/mediacapture-streams/MediaStream-default-feature-policy.https.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/mediacapture-streams/MediaStreamTrack-MediaElement-disabled-video-is-black.https.html [ Pass Failure ]
@@ -6050,17 +6052,16 @@ webkit.org/b/261849 imported/w3c/web-platform-tests/css/css-scroll-anchoring/zer
 webkit.org/b/261849 imported/w3c/web-platform-tests/css/css-scroll-anchoring/start-edge-in-block-layout-direction.html [ Skip ]
 
 # Some Trusted Types tests are flaky due to subtest ordering
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/WorkerGlobalScope-importScripts.html [ Pass Failure ]
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/WorkerGlobalScope-worker-constructor.html [ Pass Failure ]
 webkit.org/b/274089 imported/w3c/web-platform-tests/trusted-types/trusted-types-from-literal.tentative.html [ Pass Failure ]
 webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/trusted-types-navigation.html [ Pass Failure ]
 webkit.org/b/274088 imported/w3c/web-platform-tests/trusted-types/Element-setAttribute-respects-Elements-node-documents-globals-CSP-after-adoption-from-non-TT-realm.html [ Pass Failure ]
 webkit.org/b/274088 imported/w3c/web-platform-tests/trusted-types/Element-setAttribute-respects-Elements-node-documents-globals-CSP-after-adoption-from-TT-realm.html [ Pass Failure ]
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/WorkerGlobalScope-eval.html [ Pass Failure ]
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/DOMWindowTimers-setTimeout-setInterval.html [ Pass Failure ]
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/block-eval-function-constructor.html [ Pass Failure ]
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/block-string-assignment-to-DOMWindowTimers-setTimeout-setInterval.html [ Pass Failure ]
-webkit.org/b/266630 imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-Worker.https.html [ Pass Failure ]
+
+webkit.org/b/289904 imported/w3c/web-platform-tests/trusted-types/should-sink-type-mismatch-violation-be-blocked-by-csp-001.html [ Skip ]
+
+# WebKit doesn't support CSP violation reporting inside Workers
+imported/w3c/web-platform-tests/trusted-types/trusted-types-reporting-for-DedicatedWorker-setTimeout-setInterval.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/trusted-types-reporting-for-SharedWorker-setTimeout-setInterval.html [ Skip ]
 
 # Close watchers aren't implemented yet
 webkit.org/b/263305 imported/w3c/web-platform-tests/close-watcher/user-activation/n-activate-preventDefault.html?dialog [ Skip ]
@@ -7772,3 +7773,10 @@ imported/w3c/web-platform-tests/css/CSS2/floats/float-nowrap-hyphen-rewind-1.htm
 webkit.org/b/288689 svg/text/bidi-text-query.svg [ Skip ]
 
 webkit.org/b/289782 http/tests/security/contentSecurityPolicy/script-src-strict-dynamic-and-script-src-elem.html [ Pass Failure ]
+
+imported/w3c/web-platform-tests/css/css-align/abspos/align-items-static-position.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-align/blocks/align-content-block-break-content-010.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-align/blocks/align-content-block-break-content-020.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-align/blocks/align-content-block-overflow-000.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-align/blocks/justify-self-text-align.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-align/self-alignment/block-justify-self.html [ ImageOnlyFailure ]

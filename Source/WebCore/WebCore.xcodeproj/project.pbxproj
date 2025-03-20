@@ -4847,6 +4847,8 @@
 		BC22747B0E8366E200E7F975 /* SVGRenderStyleDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2274770E8366E200E7F975 /* SVGRenderStyleDefs.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23875B2D84982100698102 /* CSSRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875A2D84982100698102 /* CSSRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2387602D84A59400698102 /* StyleRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875F2D84A59400698102 /* StyleRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC2387EB2D88D3BA00698102 /* CSSStyleProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2387E92D88D3BA00698102 /* CSSStyleProperties.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC2388132D89D94800698102 /* CSSFontFaceDescriptors.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23880B2D88EFDA00698102 /* CSSFontFaceDescriptors.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23BAB12D6E38870069A80B /* StyleCornerShapeValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23BAB52D6E47AC0069A80B /* RectCorners.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23BAB42D6E47AC0069A80B /* RectCorners.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23F0DB0DAFF4A4009FDC91 /* GeneratedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23F0DA0DAFF4A4009FDC91 /* GeneratedImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6298,7 +6300,6 @@
 		E4B65A58132FA8E70070E7BE /* LegacyTileGrid.h in Headers */ = {isa = PBXBuildFile; fileRef = E4B65A57132FA8E70070E7BE /* LegacyTileGrid.h */; };
 		E4B65A5C132FACB00070E7BE /* LegacyTileLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = E4B65A5B132FACB00070E7BE /* LegacyTileLayer.h */; };
 		E4BA50901BCFBD9500E34EF7 /* ComposedTreeAncestorIterator.h in Headers */ = {isa = PBXBuildFile; fileRef = E4BA508F1BCFBD9500E34EF7 /* ComposedTreeAncestorIterator.h */; };
-		E4BBED0F14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.h in Headers */ = {isa = PBXBuildFile; fileRef = E4BBED0D14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.h */; };
 		E4BBED4D14FCDBA1003F0B98 /* StyleRule.h in Headers */ = {isa = PBXBuildFile; fileRef = E4BBED4B14FCDBA1003F0B98 /* StyleRule.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4C1789B0EE6903800824D69 /* CSSSelectorList.h in Headers */ = {isa = PBXBuildFile; fileRef = E4C178960EE6903800824D69 /* CSSSelectorList.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4C279590CF9741900E97B98 /* RenderMedia.h in Headers */ = {isa = PBXBuildFile; fileRef = E4C279570CF9741900E97B98 /* RenderMedia.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -17898,6 +17899,18 @@
 		BC23875D2D849E6E00698102 /* CSSPropertyParserConsumer+Ratio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Ratio.h"; sourceTree = "<group>"; };
 		BC23875E2D849E7400698102 /* CSSPropertyParserConsumer+Ratio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Ratio.cpp"; sourceTree = "<group>"; };
 		BC23875F2D84A59400698102 /* StyleRatio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleRatio.h; sourceTree = "<group>"; };
+		BC2387E82D88D3BA00698102 /* CSSStyleProperties.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSStyleProperties.cpp; sourceTree = "<group>"; };
+		BC2387E92D88D3BA00698102 /* CSSStyleProperties.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSStyleProperties.h; sourceTree = "<group>"; };
+		BC2387EA2D88D3BA00698102 /* CSSStyleProperties.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CSSStyleProperties.idl; sourceTree = "<group>"; };
+		BC2387EC2D88E14900698102 /* JSCSSStyleProperties.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSCSSStyleProperties.h; sourceTree = "<group>"; };
+		BC2387ED2D88E14900698102 /* JSCSSStyleProperties.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSStyleProperties.cpp; sourceTree = "<group>"; };
+		BC2387F82D88E37E00698102 /* JSDOMWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSDOMWindow.h; sourceTree = "<group>"; };
+		BC2387F92D88E37E00698102 /* JSDOMWindow.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMWindow.cpp; sourceTree = "<group>"; };
+		BC23880A2D88EFDA00698102 /* CSSFontFaceDescriptors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSFontFaceDescriptors.cpp; sourceTree = "<group>"; };
+		BC23880B2D88EFDA00698102 /* CSSFontFaceDescriptors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSFontFaceDescriptors.h; sourceTree = "<group>"; };
+		BC23880C2D88EFDA00698102 /* CSSFontFaceDescriptors.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CSSFontFaceDescriptors.idl; sourceTree = "<group>"; };
+		BC2388142D89DE7200698102 /* JSCSSFontFaceDescriptors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSCSSFontFaceDescriptors.h; sourceTree = "<group>"; };
+		BC2388152D89DE7200698102 /* JSCSSFontFaceDescriptors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSFontFaceDescriptors.cpp; sourceTree = "<group>"; };
 		BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleCornerShapeValue.h; sourceTree = "<group>"; };
 		BC23BAB32D6E3AAB0069A80B /* StyleCornerShapeValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleCornerShapeValue.cpp; sourceTree = "<group>"; };
 		BC23BAB42D6E47AC0069A80B /* RectCorners.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RectCorners.h; sourceTree = "<group>"; };
@@ -18738,7 +18751,7 @@
 		BCEB179B143379F50052EAE9 /* RenderBoxFragmentInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderBoxFragmentInfo.h; sourceTree = "<group>"; };
 		BCEB8A90294B7DB4006F760C /* CSSPropertyParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSPropertyParsing.h; sourceTree = "<group>"; };
 		BCEB8A91294B7DB5006F760C /* CSSPropertyParsing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSPropertyParsing.cpp; sourceTree = "<group>"; };
-		BCEB8A94294B7DF8006F760C /* CSSStyleDeclaration+PropertyNames.idl */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CSSStyleDeclaration+PropertyNames.idl"; sourceTree = "<group>"; };
+		BCEB8A94294B7DF8006F760C /* CSSStyleProperties+PropertyNames.idl */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CSSStyleProperties+PropertyNames.idl"; sourceTree = "<group>"; };
 		BCEB8A98294B7F73006F760C /* DecompressionStreamBuiltins.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DecompressionStreamBuiltins.cpp; sourceTree = "<group>"; };
 		BCEB8A99294B7F73006F760C /* DedicatedWorkerGlobalScopeConstructors.idl */ = {isa = PBXFileReference; lastKnownFileType = file; path = DedicatedWorkerGlobalScopeConstructors.idl; sourceTree = "<group>"; };
 		BCEB8A9A294B7F74006F760C /* DOMConstructors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DOMConstructors.h; sourceTree = "<group>"; };
@@ -20803,8 +20816,6 @@
 		E4B65A5B132FACB00070E7BE /* LegacyTileLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LegacyTileLayer.h; sourceTree = "<group>"; };
 		E4B65A5D132FADB60070E7BE /* LegacyTileLayer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LegacyTileLayer.mm; sourceTree = "<group>"; };
 		E4BA508F1BCFBD9500E34EF7 /* ComposedTreeAncestorIterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ComposedTreeAncestorIterator.h; sourceTree = "<group>"; };
-		E4BBED0C14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PropertySetCSSStyleDeclaration.cpp; sourceTree = "<group>"; };
-		E4BBED0D14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PropertySetCSSStyleDeclaration.h; sourceTree = "<group>"; };
 		E4BBED4A14FCDBA1003F0B98 /* StyleRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleRule.cpp; sourceTree = "<group>"; };
 		E4BBED4B14FCDBA1003F0B98 /* StyleRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleRule.h; sourceTree = "<group>"; };
 		E4C178950EE6903800824D69 /* CSSSelectorList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSelectorList.cpp; sourceTree = "<group>"; };
@@ -27831,7 +27842,7 @@
 				BCEB8A90294B7DB4006F760C /* CSSPropertyParsing.h */,
 				491342D92B43FAA700FEEF18 /* CSSSelectorEnums.h */,
 				491342DA2B43FAA800FEEF18 /* CSSSelectorInlines.h */,
-				BCEB8A94294B7DF8006F760C /* CSSStyleDeclaration+PropertyNames.idl */,
+				BCEB8A94294B7DF8006F760C /* CSSStyleProperties+PropertyNames.idl */,
 				E41EA0391198374900710BC5 /* CSSValueKeywords.cpp */,
 				6565814709D13043000E61D7 /* CSSValueKeywords.gperf */,
 				6565814809D13043000E61D7 /* CSSValueKeywords.h */,
@@ -32702,6 +32713,8 @@
 			children = (
 				930AAC9C250ED4080013DA9F /* JSCSSConditionRule.cpp */,
 				930AAC9D250ED4090013DA9F /* JSCSSConditionRule.h */,
+				BC2388152D89DE7200698102 /* JSCSSFontFaceDescriptors.cpp */,
+				BC2388142D89DE7200698102 /* JSCSSFontFaceDescriptors.h */,
 				BC46C1F20C0DDC8F0020CFC3 /* JSCSSFontFaceRule.cpp */,
 				BC46C1F30C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h */,
 				930AACA1250ED4110013DA9F /* JSCSSGroupingRule.cpp */,
@@ -32726,6 +32739,8 @@
 				A8D05FA60A23B301005E7203 /* JSCSSRuleList.h */,
 				142011B40A003133008303F9 /* JSCSSStyleDeclaration.cpp */,
 				142011B50A003133008303F9 /* JSCSSStyleDeclaration.h */,
+				BC2387ED2D88E14900698102 /* JSCSSStyleProperties.cpp */,
+				BC2387EC2D88E14900698102 /* JSCSSStyleProperties.h */,
 				BC46C2040C0DDCA10020CFC3 /* JSCSSStyleRule.cpp */,
 				BC46C2050C0DDCA10020CFC3 /* JSCSSStyleRule.h */,
 				BCC5BDFE0C0E93110011C2DB /* JSCSSStyleSheet.cpp */,
@@ -34951,6 +34966,8 @@
 				975CA2A01303679D00E99AD9 /* JSCrypto.h */,
 				BC5A86B30C3367E800EEA649 /* JSDOMSelection.cpp */,
 				BC5A86B40C3367E800EEA649 /* JSDOMSelection.h */,
+				BC2387F92D88E37E00698102 /* JSDOMWindow.cpp */,
+				BC2387F82D88E37E00698102 /* JSDOMWindow.h */,
 				E0FEF371B47C53EAC1C1FBEE /* JSEventSource.cpp */,
 				E0FEF371B37C53EAC1C1FBEE /* JSEventSource.h */,
 				BC94D14C0C275C68006BC617 /* JSHistory.cpp */,
@@ -37777,6 +37794,9 @@
 				BC3078B62D00D33400630D75 /* CSSFilterPropertyValue.h */,
 				BC64B4CD0CB4298A005F2B62 /* CSSFontFace.cpp */,
 				BC64B4CE0CB4298A005F2B62 /* CSSFontFace.h */,
+				BC23880A2D88EFDA00698102 /* CSSFontFaceDescriptors.cpp */,
+				BC23880B2D88EFDA00698102 /* CSSFontFaceDescriptors.h */,
+				BC23880C2D88EFDA00698102 /* CSSFontFaceDescriptors.idl */,
 				A80E6CBD0A1989CA007FB8C5 /* CSSFontFaceRule.cpp */,
 				A80E6CD30A1989CA007FB8C5 /* CSSFontFaceRule.h */,
 				85C56CA30AA89CA400D95755 /* CSSFontFaceRule.idl */,
@@ -37922,6 +37942,9 @@
 				7CDE8EBC1F193BC500168FE7 /* CSSStyleDeclaration.cpp */,
 				A80E6E0D0A19911C007FB8C5 /* CSSStyleDeclaration.h */,
 				142011AE0A003117008303F9 /* CSSStyleDeclaration.idl */,
+				BC2387E82D88D3BA00698102 /* CSSStyleProperties.cpp */,
+				BC2387E92D88D3BA00698102 /* CSSStyleProperties.h */,
+				BC2387EA2D88D3BA00698102 /* CSSStyleProperties.idl */,
 				A80E6CC50A1989CA007FB8C5 /* CSSStyleRule.cpp */,
 				A80E6CE20A1989CA007FB8C5 /* CSSStyleRule.h */,
 				85C56CA10AA89AB400D95755 /* CSSStyleRule.idl */,
@@ -38045,8 +38068,6 @@
 				930A76C7297FA1C40055B743 /* MutableStyleProperties.cpp */,
 				930A76C6297FA1C30055B743 /* MutableStyleProperties.h */,
 				49CCE6F72997441F006C91EB /* popover.css */,
-				E4BBED0C14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.cpp */,
-				E4BBED0D14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.h */,
 				93B248982990CD5F00B769E4 /* Quad.h */,
 				93CA4C9F09DF93FA00DF8677 /* quirks.css */,
 				BC4368E70C226E32005EFB5F /* Rect.h */,
@@ -40645,6 +40666,7 @@
 				7246963B275C5FA600A9156A /* CSSFilter.h in Headers */,
 				FBB0C5B817BBD629003D3677 /* CSSFilterImageValue.h in Headers */,
 				BC64B4D60CB4298A005F2B62 /* CSSFontFace.h in Headers */,
+				BC2388132D89D94800698102 /* CSSFontFaceDescriptors.h in Headers */,
 				A80E6CFD0A1989CA007FB8C5 /* CSSFontFaceRule.h in Headers */,
 				C26017A41C72DC9900F74A16 /* CSSFontFaceSet.h in Headers */,
 				BC64B4D80CB4298A005F2B62 /* CSSFontFaceSource.h in Headers */,
@@ -40766,6 +40788,7 @@
 				E4E364742B67DF0000734648 /* CSSStartingStyleRule.h in Headers */,
 				A80E6E0F0A19911C007FB8C5 /* CSSStyleDeclaration.h in Headers */,
 				4B438650219CD56100F8D3C5 /* CSSStyleImageValue.h in Headers */,
+				BC2387EB2D88D3BA00698102 /* CSSStyleProperties.h in Headers */,
 				A80E6D0C0A1989CA007FB8C5 /* CSSStyleRule.h in Headers */,
 				A8EA80070A19516E00A8EF5F /* CSSStyleSheet.h in Headers */,
 				460C710128E6634D005F4D74 /* CSSStyleSheetObservableArray.h in Headers */,
@@ -43631,7 +43654,6 @@
 				A578F4351DE00EEB003DFC6A /* PromiseRejectionEvent.h in Headers */,
 				7128CB3F271EE58A00A13DA6 /* PropertyAllowlist.h in Headers */,
 				E4ABABE42361A32900FA4345 /* PropertyCascade.h in Headers */,
-				E4BBED0F14F4025D003F0B98 /* PropertySetCSSStyleDeclaration.h in Headers */,
 				37BAAE581980D1DD005DFE71 /* ProtectionSpace.h in Headers */,
 				514C76750CE923A1007EF3CD /* ProtectionSpaceBase.h in Headers */,
 				F491A6702AA1230700F96146 /* ProtectionSpaceBase.serialization.in in Headers */,

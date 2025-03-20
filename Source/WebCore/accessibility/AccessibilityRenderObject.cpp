@@ -337,27 +337,24 @@ AccessibilityObject* AccessibilityRenderObject::previousSibling() const
     // last child is our previous sibling (or further back in the continuation chain)
     RenderInline* startOfConts;
     WeakPtr renderBlock = dynamicDowncast<RenderBlock>(*m_renderer);
-    if (renderBlock && (startOfConts = startOfContinuations(*m_renderer)))
-        previousSibling = childBeforeConsideringContinuations(startOfConts, renderer());
-
-    // Case 2: Anonymous block parent of the end of a continuation - skip all the way to before
-    // the parent of the start, since everything in between will be linked up via the continuation.
-    else if (renderBlock && m_renderer->isAnonymousBlock() && firstChildIsInlineContinuation(*renderBlock)) {
+    if (renderBlock && (startOfConts = startOfContinuations(*renderBlock)))
+        previousSibling = childBeforeConsideringContinuations(startOfConts, renderBlock.get());
+    else if (renderBlock && renderBlock->isAnonymousBlock() && firstChildIsInlineContinuation(*renderBlock)) {
+        // Case 2: Anonymous block parent of the end of a continuation - skip all the way to before
+        // the parent of the start, since everything in between will be linked up via the continuation.
         auto* firstParent = startOfContinuations(*renderBlock->firstChild())->parent();
         ASSERT(firstParent);
         while (firstChildIsInlineContinuation(*firstParent))
             firstParent = startOfContinuations(*firstParent->firstChild())->parent();
         previousSibling = firstParent->previousSibling();
-    }
-
-    // Case 3: The node has an actual previous sibling
-    else if (RenderObject* ps = m_renderer->previousSibling())
+    } else if (RenderObject* ps = m_renderer->previousSibling()) {
+        // Case 3: The node has an actual previous sibling
         previousSibling = ps;
-
-    // Case 4: This node has no previous siblings, but its parent is an inline,
-    // and is another node's inline continutation. Follow the continuation chain.
-    else if (is<RenderInline>(m_renderer->parent()) && (startOfConts = startOfContinuations(*m_renderer->parent())))
+    } else if (is<RenderInline>(m_renderer->parent()) && (startOfConts = startOfContinuations(*m_renderer->parent()))) {
+        // Case 4: This node has no previous siblings, but its parent is an inline,
+        // and is another node's inline continutation. Follow the continuation chain.
         previousSibling = childBeforeConsideringContinuations(startOfConts, m_renderer->parent()->firstChild());
+    }
 
     if (!previousSibling)
         return nullptr;
@@ -891,15 +888,15 @@ Path AccessibilityRenderObject::elementPath() const
     if (!m_renderer)
         return AccessibilityNodeObject::elementPath();
 
-    if (auto* renderText = dynamicDowncast<RenderText>(*m_renderer)) {
+    if (CheckedPtr renderText = dynamicDowncast<RenderText>(*m_renderer)) {
         Vector<LayoutRect> rects;
-        renderText->boundingRects(rects, flooredLayoutPoint(m_renderer->localToAbsolute()));
+        renderText->boundingRects(rects, flooredLayoutPoint(renderText->localToAbsolute()));
         // If only 1 rect, don't compute path since the bounding rect will be good enough.
         if (rects.size() < 2)
             return { };
 
         // Compute the path only if this is the last part of a line followed by the beginning of the next line.
-        const auto& style = m_renderer->style();
+        auto& style = renderText->style();
         bool rightToLeftText = style.writingMode().isBidiRTL();
         static const auto xTolerance = 5_lu;
         static const auto yTolerance = 5_lu;
@@ -919,7 +916,7 @@ Path AccessibilityRenderObject::elementPath() const
             return { };
 
         float outlineOffset = style.outlineOffset();
-        float deviceScaleFactor = m_renderer->document().deviceScaleFactor();
+        float deviceScaleFactor = renderText->document().deviceScaleFactor();
         Vector<FloatRect> pixelSnappedRects;
         for (auto rect : rects) {
             rect.inflate(outlineOffset);

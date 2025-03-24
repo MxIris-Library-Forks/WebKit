@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2016-2023 Apple Inc. All rights reserved.
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2025 Sosuke Suzuki <aosukeke@gmail.com>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -17,27 +16,31 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "StringReplaceCache.h"
 
-#include <wtf/Forward.h>
+#include "AbstractSlotVisitor.h"
+#include "JSImmutableButterfly.h"
+#include "RegExp.h"
 
-namespace WebCore {
+namespace JSC {
 
-class CSSParserTokenRange;
-class CSSValue;
-struct CSSParserContext;
+DEFINE_VISIT_AGGREGATE(StringReplaceCache);
 
-namespace CSSPropertyParserHelpers {
+template<typename Visitor>
+void StringReplaceCache::visitAggregateImpl(Visitor& visitor)
+{
+    for (auto& entry : m_entries) {
+        visitor.appendUnbarriered(entry.m_regExp);
+        visitor.appendUnbarriered(entry.m_result);
+    }
+}
 
-// MARK: <'scrollbar-gutter'> consuming
-// https://drafts.csswg.org/css-overflow/#propdef-scrollbar-gutter
-RefPtr<CSSValue> consumeScrollbarGutter(CSSParserTokenRange&, const CSSParserContext&);
-
-} // namespace CSSPropertyParserHelpers
-} // namespace WebCore
+}

@@ -58,8 +58,6 @@ Modules/entriesapi/FileSystemEntry.cpp
 Modules/entriesapi/FileSystemFileEntry.cpp
 Modules/fetch/FetchBody.cpp
 Modules/fetch/FetchBodyConsumer.cpp
-Modules/fetch/FetchBodyOwner.cpp
-Modules/fetch/FetchBodyOwner.h
 Modules/fetch/FetchBodySource.cpp
 Modules/fetch/FetchLoader.cpp
 Modules/fetch/FetchRequest.cpp
@@ -414,7 +412,6 @@ css/CSSCounterValue.h
 css/CSSCrossfadeValue.cpp
 css/CSSCursorImageValue.cpp
 css/CSSFontFace.cpp
-css/CSSFontFaceDescriptors.cpp
 css/CSSFontFaceRule.cpp
 css/CSSFontFaceSet.cpp
 css/CSSFontFeatureValue.cpp

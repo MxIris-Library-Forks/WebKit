@@ -520,7 +520,7 @@ public:
     void performDismissActionIgnoringResult() final { performDismissAction(); }
     bool press() override;
 
-    AccessibilityOrientation orientation() const override;
+    std::optional<AccessibilityOrientation> explicitOrientation() const override { return std::nullopt; }
     void increment() override { }
     void decrement() override { }
     virtual bool toggleDetailsAncestor() { return false; }
@@ -602,7 +602,6 @@ public:
     AXTextMarkerRange selectedTextMarkerRange() const final;
 #endif
     static String stringForVisiblePositionRange(const VisiblePositionRange&);
-    String stringForRange(const SimpleRange&) const final;
     virtual IntRect boundsForVisiblePositionRange(const VisiblePositionRange&) const { return IntRect(); }
     IntRect boundsForRange(const SimpleRange&) const final;
     void setSelectedVisiblePositionRange(const VisiblePositionRange&) const override { }

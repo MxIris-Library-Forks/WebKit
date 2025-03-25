@@ -1592,9 +1592,6 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
     if ([attributeName isEqualToString:NSAccessibilityDisclosingAttribute])
         return [NSNumber numberWithBool:backingObject->isExpanded()];
 
-    if (backingObject->isList() && [attributeName isEqualToString:NSAccessibilityOrientationAttribute])
-        return NSAccessibilityVerticalOrientationValue;
-
     if ([attributeName isEqualToString:NSAccessibilitySelectedTextMarkerRangeAttribute])
         return (id)[self selectedTextMarkerRange];
 
@@ -1686,7 +1683,7 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
     }
 
     if ([attributeName isEqualToString:NSAccessibilityLanguageAttribute])
-        return backingObject->language();
+        return backingObject->languageIncludingAncestors();
 
     if ([attributeName isEqualToString:NSAccessibilityExpandedAttribute])
         return [NSNumber numberWithBool:backingObject->isExpanded()];
@@ -3223,23 +3220,8 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
         });
     }
 
-    if ([attribute isEqualToString:NSAccessibilityStringForTextMarkerRangeAttribute]) {
-#if ENABLE(AX_THREAD_TEXT_APIS)
-        if (AXObjectCache::useAXThreadTextApis()) {
-            AXTextMarkerRange range = { textMarkerRange };
-            return range.toString();
-        }
-#endif
-        return Accessibility::retrieveValueFromMainThread<String>([textMarkerRange = retainPtr(textMarkerRange), protectedSelf = retainPtr(self)] () -> String {
-            auto* backingObject = protectedSelf.get().axBackingObject;
-            if (!backingObject)
-                return String();
-
-            AXTextMarkerRange markerRange { textMarkerRange.get() };
-            auto range = markerRange.simpleRange();
-            return range ? backingObject->stringForRange(*range) : String();
-        });
-    }
+    if ([attribute isEqualToString:NSAccessibilityStringForTextMarkerRangeAttribute])
+        return AXTextMarkerRange { textMarkerRange }.toString();
 
     if ([attribute isEqualToString:NSAccessibilityTextMarkerForPositionAttribute]) {
         if (!pointSet)
@@ -3327,9 +3309,7 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
             auto start = cache->characterOffsetForIndex(range.location, backingObject);
             auto end = cache->characterOffsetForIndex(range.location + range.length, backingObject);
             auto range = cache->rangeForUnorderedCharacterOffsets(start, end);
-            if (!range)
-                return { };
-            return backingObject->stringForRange(*range);
+            return AXTextMarkerRange { range }.toString();
         });
     }
 

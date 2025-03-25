@@ -123,10 +123,14 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
             setProperty(AXProperty::ListMarkerLineID, object.listMarkerLineID());
         }
 #endif // ENABLE(AX_THREAD_TEXT_APIS)
+
+        String language = object.language();
+        if (!language.isEmpty())
+            setProperty(AXProperty::Language, WTFMove(language).isolatedCopy());
     };
 
     // Allocate a capacity based on the minimum properties an object has (based on measurements from a real webpage).
-    constexpr unsigned unignoredSizeToReserve = 11;
+    constexpr unsigned unignoredSizeToReserve = 10;
 #if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
     if (object.includeIgnoredInCoreTree()) {
         bool isIgnored = object.isIgnored();
@@ -200,9 +204,8 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     setProperty(AXProperty::AccessKey, object.accessKey().isolatedCopy());
     setProperty(AXProperty::AutoCompleteValue, object.autoCompleteValue().isolatedCopy());
     setProperty(AXProperty::ColorValue, object.colorValue());
-    setProperty(AXProperty::Orientation, static_cast<int>(object.orientation()));
+    setProperty(AXProperty::ExplicitOrientation, object.explicitOrientation());
     setProperty(AXProperty::HierarchicalLevel, object.hierarchicalLevel());
-    setProperty(AXProperty::Language, object.language().isolatedCopy());
     setProperty(AXProperty::LiveRegionStatus, object.liveRegionStatus().isolatedCopy());
     setProperty(AXProperty::LiveRegionRelevant, object.liveRegionRelevant().isolatedCopy());
     setProperty(AXProperty::LiveRegionAtomic, object.liveRegionAtomic());
@@ -637,6 +640,7 @@ void AXIsolatedObject::setProperty(AXProperty propertyName, AXPropertyValueVaria
         [] (WallTime& time) { return !time; },
         [] (TagName& tag) { return tag == TagName::Unknown; },
         [] (DateComponentsType& typedValue) { return typedValue == DateComponentsType::Invalid; },
+        [] (std::optional<AccessibilityOrientation>& typedValue) { return !typedValue; },
         [](auto&) {
             ASSERT_NOT_REACHED();
             return false;
@@ -1277,13 +1281,6 @@ AXTextMarkerRange AXIsolatedObject::selectedTextMarkerRange() const
     return tree()->selectedTextMarkerRange();
 }
 #endif // PLATFORM(MAC)
-
-String AXIsolatedObject::stringForRange(const SimpleRange& range) const
-{
-    ASSERT(isMainThread());
-    auto* axObject = associatedAXObject();
-    return axObject ? axObject->stringForRange(range).isolatedCopy() : String();
-}
 
 IntRect AXIsolatedObject::boundsForRange(const SimpleRange& range) const
 {

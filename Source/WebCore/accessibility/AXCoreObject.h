@@ -648,10 +648,10 @@ struct AccessibilityTextOperation {
     AccessibilityTextOperationSmartReplace smartReplace { AccessibilityTextOperationSmartReplace::Yes };
 };
 
-enum class AccessibilityOrientation {
-    Vertical,
-    Horizontal,
+enum class AccessibilityOrientation : uint8_t {
     Undefined,
+    Horizontal,
+    Vertical
 };
 
 enum class TrimWhitespace : bool { No, Yes };
@@ -1232,6 +1232,7 @@ public:
     AXCoreObject* axScrollView() const;
 
     virtual String language() const = 0;
+    String languageIncludingAncestors() const;
     // 1-based, to match the aria-level spec.
     virtual unsigned hierarchicalLevel() const = 0;
     virtual bool isInlineText() const = 0;
@@ -1254,7 +1255,14 @@ public:
     virtual bool performDismissAction() { return false; }
     virtual void performDismissActionIgnoringResult() = 0;
 
-    virtual AccessibilityOrientation orientation() const = 0;
+    // An object has an "explicit orientation" when its backing entity explicitly provides one,
+    // vs. an "implicit" orientation which is determined inherently by its size or role.
+    //
+    // An example of an explicit orientation is one provided by aria-orientation. Another is scrollbars,
+    // which inherently are horizontal or vertical.
+    virtual std::optional<AccessibilityOrientation> explicitOrientation() const = 0;
+    AccessibilityOrientation orientation() const;
+
     virtual void increment() = 0;
     virtual void decrement() = 0;
 
@@ -1330,7 +1338,6 @@ public:
     virtual AXTextMarkerRange selectedTextMarkerRange() const = 0;
 #endif
 
-    virtual String stringForRange(const SimpleRange&) const = 0;
     virtual IntRect boundsForRange(const SimpleRange&) const = 0;
     virtual void setSelectedVisiblePositionRange(const VisiblePositionRange&) const = 0;
 

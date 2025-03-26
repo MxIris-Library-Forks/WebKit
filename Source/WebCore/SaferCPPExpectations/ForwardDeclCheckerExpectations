@@ -107,8 +107,6 @@ layout/integration/inline/LayoutIntegrationLineLayout.h
 layout/layouttree/LayoutElementBox.h
 loader/DocumentLoader.cpp
 loader/DocumentThreadableLoader.h
-loader/FrameLoader.cpp
-loader/ImageLoader.cpp
 loader/cache/CachedImageClient.h
 loader/cache/CachedResourceHandle.h
 page/DOMWindow.cpp
@@ -144,13 +142,12 @@ platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/cg/GraphicsContextCG.cpp
 platform/graphics/cocoa/FontCacheCoreText.cpp
 platform/graphics/cocoa/GraphicsContextCocoa.mm
-platform/graphics/coretext/DrawGlyphsRecorderCoreText.cpp
+platform/graphics/coretext/DrawGlyphsRecorder.cpp
 platform/graphics/coretext/FontCoreText.cpp
 platform/graphics/coretext/FontCustomPlatformDataCoreText.cpp
 platform/graphics/cv/GraphicsContextGLCVCocoa.h
 platform/graphics/mac/LegacyDisplayRefreshMonitorMac.h
 platform/graphics/mac/controls/ControlMac.mm
-platform/mac/DataDetectorHighlight.mm
 platform/mediarecorder/MediaRecorderPrivateEncoder.h
 platform/mediastream/libwebrtc/LibWebRTCDav1dDecoder.cpp
 platform/mediastream/mac/CoreAudioSharedUnit.h

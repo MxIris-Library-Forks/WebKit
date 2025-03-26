@@ -10,8 +10,6 @@ GPUProcess/media/RemoteTextTrackProxy.h
 GPUProcess/media/RemoteVideoTrackProxy.cpp
 GPUProcess/media/RemoteVideoTrackProxy.h
 GeneratedSerializers.mm
-NetworkProcess/NetworkConnectionToWebProcess.cpp
-NetworkProcess/NetworkLoad.cpp
 NetworkProcess/ServiceWorker/ServiceWorkerFetchTask.cpp
 Platform/IPC/ArgumentCoders.h
 Platform/IPC/Connection.cpp
@@ -239,7 +237,6 @@ WebProcess/WebPage/WebContextMenu.cpp
 WebProcess/WebPage/WebDisplayRefreshMonitor.cpp
 WebProcess/WebPage/WebFrame.cpp
 WebProcess/WebPage/WebOpenPanelResultListener.cpp
-WebProcess/WebPage/WebPage.cpp
 WebProcess/WebPage/WebPageOverlay.cpp
 WebProcess/WebPage/mac/PageBannerMac.mm
 WebProcess/WebPage/mac/TiledCoreAnimationDrawingArea.mm

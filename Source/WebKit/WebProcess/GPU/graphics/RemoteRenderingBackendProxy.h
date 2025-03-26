@@ -112,7 +112,6 @@ public:
     RefPtr<WebCore::ImageBuffer> createImageBuffer(const WebCore::FloatSize&, WebCore::RenderingMode, WebCore::RenderingPurpose, float resolutionScale, const WebCore::DestinationColorSpace&, WebCore::ImageBufferPixelFormat);
     void releaseImageBuffer(WebCore::RenderingResourceIdentifier);
     bool getPixelBufferForImageBuffer(WebCore::RenderingResourceIdentifier, const WebCore::PixelBufferFormat& destinationFormat, const WebCore::IntRect& srcRect, std::span<uint8_t> result);
-    void putPixelBufferForImageBuffer(WebCore::RenderingResourceIdentifier, const WebCore::PixelBuffer&, const WebCore::IntRect& srcRect, const WebCore::IntPoint& destPoint, WebCore::AlphaPremultiplication destFormat);
     RefPtr<WebCore::ShareableBitmap> getShareableBitmap(WebCore::RenderingResourceIdentifier, WebCore::PreserveResolution);
     void cacheNativeImage(WebCore::ShareableBitmap::Handle&&, WebCore::RenderingResourceIdentifier);
     void releaseNativeImage(WebCore::RenderingResourceIdentifier);
@@ -120,7 +119,7 @@ public:
     void releaseFont(WebCore::RenderingResourceIdentifier);
     void cacheFontCustomPlatformData(Ref<const WebCore::FontCustomPlatformData>&&);
     void releaseFontCustomPlatformData(WebCore::RenderingResourceIdentifier);
-    void cacheDecomposedGlyphs(Ref<WebCore::DecomposedGlyphs>&&);
+    void cacheDecomposedGlyphs(const WebCore::DecomposedGlyphs&);
     void releaseDecomposedGlyphs(WebCore::RenderingResourceIdentifier);
     void cacheGradient(Ref<WebCore::Gradient>&&);
     void releaseGradient(WebCore::RenderingResourceIdentifier);

@@ -3040,6 +3040,7 @@
 		63A33C552A339ED500EF94B8 /* WKWebViewInspection.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKWebViewInspection.mm; sourceTree = "<group>"; };
 		63A61B8A1FAD204D00F06885 /* display-mode.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "display-mode.html"; sourceTree = "<group>"; };
 		63CAD04F2C478A55009CE119 /* GetMatchedCSSRules.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GetMatchedCSSRules.mm; sourceTree = "<group>"; };
+		63D138CF2D90B08E0072E181 /* HistoryDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HistoryDelegate.mm; sourceTree = "<group>"; };
 		63F668201F97C3AA0032EE51 /* ApplicationManifest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ApplicationManifest.mm; sourceTree = "<group>"; };
 		6B0A07F621FA9C2B00D57391 /* PrivateClickMeasurement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PrivateClickMeasurement.cpp; sourceTree = "<group>"; };
 		6B25A75125DC8D4E0070744F /* EventAttribution.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EventAttribution.mm; sourceTree = "<group>"; };
@@ -4015,6 +4016,8 @@
 		FA65EFFC2C87F43C00A0A123 /* CoroutineUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoroutineUtilities.h; sourceTree = "<group>"; };
 		FA65F0042C87F4CF00A0A123 /* NetworkConnection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkConnection.h; sourceTree = "<group>"; };
 		FA65F0052C87F4CF00A0A123 /* NetworkConnection.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NetworkConnection.mm; sourceTree = "<group>"; };
+		FA6F19CC2D921C4C0077CE6D /* TestScriptMessageHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TestScriptMessageHandler.h; path = cocoa/TestScriptMessageHandler.h; sourceTree = "<group>"; };
+		FA6F19CD2D921C4C0077CE6D /* TestScriptMessageHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TestScriptMessageHandler.mm; sourceTree = "<group>"; };
 		FA8650312C7D01CA00117287 /* WebTransportServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebTransportServer.h; sourceTree = "<group>"; };
 		FA8650322C7D01CA00117287 /* WebTransportServer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebTransportServer.mm; sourceTree = "<group>"; };
 		FA8650332C7D047B00117287 /* WebTransport.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebTransport.mm; sourceTree = "<group>"; };
@@ -4265,6 +4268,8 @@
 				A14FC58E1B8AE36500D107EB /* TestProtocol.mm */,
 				F4C192CD2B027C93001F75CE /* TestResourceLoadDelegate.h */,
 				F4C192CE2B027C93001F75CE /* TestResourceLoadDelegate.mm */,
+				FA6F19CC2D921C4C0077CE6D /* TestScriptMessageHandler.h */,
+				FA6F19CD2D921C4C0077CE6D /* TestScriptMessageHandler.mm */,
 				5CBAA7F324327F6B00564A8B /* TestUIDelegate.h */,
 				5CBAA7F424327F6B00564A8B /* TestUIDelegate.mm */,
 				B63EF53E2995797F00A190A3 /* TestWebExtensionsDelegate.h */,
@@ -4471,6 +4476,7 @@
 				0738012E275EADAB000FA77C /* GetDisplayMediaWindowAndScreen.mm */,
 				2DADF26221CB8F32003D3E3A /* GetResourceData.mm */,
 				465E2806255B2A690063A787 /* GPUProcess.mm */,
+				63D138CF2D90B08E0072E181 /* HistoryDelegate.mm */,
 				5CB5990A269E74EC002A7CFF /* HSTS.mm */,
 				51AF23DE1EF1A3720072F281 /* IconLoadingDelegate.mm */,
 				EB230D3E245E726300C66AD1 /* IDBCheckpointWAL.mm */,

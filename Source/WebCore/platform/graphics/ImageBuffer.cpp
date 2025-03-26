@@ -431,6 +431,13 @@ IOSurface* ImageBuffer::surface()
 }
 #endif
 
+#if USE(SKIA)
+SkSurface* ImageBuffer::surface() const
+{
+    return m_backend ? m_backend->surface() : nullptr;
+}
+#endif
+
 #if USE(CAIRO)
 RefPtr<cairo_surface_t> ImageBuffer::createCairoSurface()
 {
@@ -553,7 +560,7 @@ RefPtr<PixelBuffer> ImageBuffer::getPixelBuffer(const PixelBufferFormat& destina
     return destination;
 }
 
-void ImageBuffer::putPixelBuffer(const PixelBuffer& pixelBuffer, const IntRect& sourceRect, const IntPoint& destinationPoint, AlphaPremultiplication destinationFormat)
+void ImageBuffer::putPixelBuffer(const PixelBufferSourceView& pixelBuffer, const IntRect& sourceRect, const IntPoint& destinationPoint, AlphaPremultiplication destinationFormat)
 {
     ASSERT(resolutionScale() == 1);
     auto* backend = ensureBackend();

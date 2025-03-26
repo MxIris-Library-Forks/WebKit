@@ -456,7 +456,6 @@ layout/integration/inline/LayoutIntegrationLineLayout.cpp
 layout/layouttree/LayoutTreeBuilder.cpp
 loader/ApplicationManifestLoader.cpp
 loader/DocumentLoader.cpp
-loader/FrameLoader.cpp
 loader/NavigationAction.cpp
 loader/NavigationScheduler.cpp
 loader/ThreadableLoader.cpp
@@ -575,7 +574,6 @@ platform/graphics/ca/TileGrid.cpp
 platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/cocoa/controls/ApplePayButtonCocoa.mm
 platform/graphics/coretext/ComplexTextControllerCoreText.mm
-platform/graphics/displaylists/DisplayListItem.cpp
 platform/graphics/displaylists/DisplayListItems.cpp
 platform/graphics/displaylists/DisplayListRecorder.cpp
 platform/graphics/displaylists/DisplayListRecorderImpl.cpp

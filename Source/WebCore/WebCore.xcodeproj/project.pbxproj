@@ -1227,7 +1227,6 @@
 		329C0C2428BD96DE00F187D2 /* Namespace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3227A92928BD744B00BC2697 /* Namespace.cpp */; };
 		329C0C2528BD96EB00F187D2 /* NodeName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3227A92728BD744A00BC2697 /* NodeName.cpp */; };
 		32A70D532836134B0080060C /* DecomposedGlyphs.h in Headers */ = {isa = PBXBuildFile; fileRef = 32A70D522836134A0080060C /* DecomposedGlyphs.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		32A70D582836138E0080060C /* PositionedGlyphs.h in Headers */ = {isa = PBXBuildFile; fileRef = 32A70D562836138D0080060C /* PositionedGlyphs.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		32DAE2382994A51500F0E767 /* StyleVisitedLinkColorData.h in Headers */ = {isa = PBXBuildFile; fileRef = 32DAE2372994A50C00F0E767 /* StyleVisitedLinkColorData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		32EAFB8D274C5EA600650557 /* FontCascadeCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 32EAFB8B274C5EA500650557 /* FontCascadeCache.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		334408C433F8CA4C10044234 /* SVGLayerTransformUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = 3344077412D9BC4A00044234 /* SVGLayerTransformUpdater.h */; };
@@ -5573,6 +5572,7 @@
 		D98DB1B328CFEE6F00369DDE /* MainThreadPermissionObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = D98DB1AF28CFEE3C00369DDE /* MainThreadPermissionObserver.h */; };
 		DAED203116F244480070EC0F /* PageConsoleClient.h in Headers */ = {isa = PBXBuildFile; fileRef = DAACB3DA16F2416400666135 /* PageConsoleClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DB23C2CC0A508D29002489EB /* IndentOutdentCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = DB23C2CA0A508D29002489EB /* IndentOutdentCommand.h */; };
+		DC4EBF7F2D8E0561003DF001 /* LayoutRange.h in Headers */ = {isa = PBXBuildFile; fileRef = DC4EBF7E2D8E0561003DF001 /* LayoutRange.h */; };
 		DCA7EDF52C655235000F16C7 /* BoxSides.h in Headers */ = {isa = PBXBuildFile; fileRef = DCA7EDF42C655235000F16C7 /* BoxSides.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD05637D29B6B88100A98258 /* InlineDisplayContent.h in Headers */ = {isa = PBXBuildFile; fileRef = DD05637C29B6B88100A98258 /* InlineDisplayContent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD05FE0D0B8BA3C6009ACDFE /* WebCoreObjCExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = DD05FE0B0B8BA3C6009ACDFE /* WebCoreObjCExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -8869,7 +8869,7 @@
 		1CAF347F0A6C405200ABE06E /* WebScriptObject.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebScriptObject.mm; sourceTree = "<group>"; };
 		1CAF34800A6C405200ABE06E /* WebScriptObjectPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebScriptObjectPrivate.h; sourceTree = "<group>"; };
 		1CAF56D8253014570017B472 /* DrawGlyphsRecorder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DrawGlyphsRecorder.h; sourceTree = "<group>"; };
-		1CAF56DE2530245A0017B472 /* DrawGlyphsRecorderCoreText.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGlyphsRecorderCoreText.cpp; sourceTree = "<group>"; };
+		1CAF56DE2530245A0017B472 /* DrawGlyphsRecorder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGlyphsRecorder.cpp; sourceTree = "<group>"; };
 		1CB6B4F8217B83930093B9CD /* TextDecorationThickness.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextDecorationThickness.h; sourceTree = "<group>"; };
 		1CB6B4FB217B83940093B9CD /* TextUnderlineOffset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextUnderlineOffset.h; sourceTree = "<group>"; };
 		1CBF900D270FF8F6000C457D /* DisplayListResourceHeap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayListResourceHeap.h; sourceTree = "<group>"; };
@@ -9850,8 +9850,6 @@
 		3294ECF9274EFA57006BE8C8 /* FontFamilySpecificationCoreTextCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontFamilySpecificationCoreTextCache.h; sourceTree = "<group>"; };
 		32A70D522836134A0080060C /* DecomposedGlyphs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecomposedGlyphs.h; sourceTree = "<group>"; };
 		32A70D542836135A0080060C /* DecomposedGlyphs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DecomposedGlyphs.cpp; sourceTree = "<group>"; };
-		32A70D552836138D0080060C /* PositionedGlyphs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PositionedGlyphs.cpp; sourceTree = "<group>"; };
-		32A70D562836138D0080060C /* PositionedGlyphs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PositionedGlyphs.h; sourceTree = "<group>"; };
 		32B0B0CF283C7483006217C6 /* GlyphDisplayListCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GlyphDisplayListCache.cpp; sourceTree = "<group>"; };
 		32B17614285FDDA100ED6DB8 /* GradientColorStop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GradientColorStop.cpp; sourceTree = "<group>"; };
 		32B17615285FDDA100ED6DB8 /* GradientColorStops.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GradientColorStops.cpp; sourceTree = "<group>"; };
@@ -19695,6 +19693,7 @@
 		DB23C2CA0A508D29002489EB /* IndentOutdentCommand.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = IndentOutdentCommand.h; sourceTree = "<group>"; };
 		DBFCB0EBFF5CD77EBEB35395 /* RenderMathMLSpace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMathMLSpace.cpp; sourceTree = "<group>"; };
 		DBFCB0EBFF5CD77EBEB3595F /* RenderMathMLPadded.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMathMLPadded.cpp; sourceTree = "<group>"; };
+		DC4EBF7E2D8E0561003DF001 /* LayoutRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LayoutRange.h; path = platform/graphics/LayoutRange.h; sourceTree = "<group>"; };
 		DCA7EDF42C655235000F16C7 /* BoxSides.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BoxSides.h; sourceTree = "<group>"; };
 		DD05637C29B6B88100A98258 /* InlineDisplayContent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InlineDisplayContent.h; sourceTree = "<group>"; };
 		DD05FE0B0B8BA3C6009ACDFE /* WebCoreObjCExtras.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WebCoreObjCExtras.h; sourceTree = "<group>"; };
@@ -22514,6 +22513,7 @@
 				0867D69AFE84028FC02AAC07 /* Frameworks */,
 				034768DFFF38A50411DB9C8B /* Products */,
 				1CDD44660BA9C80000F90147 /* Configurations */,
+				DC4EBF7E2D8E0561003DF001 /* LayoutRange.h */,
 			);
 			name = WebCore;
 			sourceTree = "<group>";
@@ -23973,7 +23973,8 @@
 			isa = PBXGroup;
 			children = (
 				7AFD16CE2C63F49B00B51D1A /* ComplexTextControllerCoreText.mm */,
-				1CAF56DE2530245A0017B472 /* DrawGlyphsRecorderCoreText.cpp */,
+				1CAF56DE2530245A0017B472 /* DrawGlyphsRecorder.cpp */,
+				1CAF56D8253014570017B472 /* DrawGlyphsRecorder.h */,
 				1C6FD8AE250A311500D6E920 /* FontCascadeCoreText.cpp */,
 				1C6FD8AF250A33CF00D6E920 /* FontCoreText.cpp */,
 				1CDA9F6E2A04874C00DB5AB3 /* FontCustomPlatformDataCoreText.cpp */,
@@ -33949,7 +33950,6 @@
 				2D29ECC4192ECC8300984B78 /* DisplayRefreshMonitorManager.h */,
 				0FBB5FC9260E9B430054572C /* DisplayUpdate.cpp */,
 				0FBB5FCB260E9B440054572C /* DisplayUpdate.h */,
-				1CAF56D8253014570017B472 /* DrawGlyphsRecorder.h */,
 				72C11DAB28492A9300E826DD /* Float16ArrayPixelBuffer.cpp */,
 				72C11DAC28492A9300E826DD /* Float16ArrayPixelBuffer.h */,
 				2E888CA925F6A4110057914A /* FloatLine.cpp */,
@@ -34207,8 +34207,6 @@
 				A19759462A4F9AC700FEC5EA /* PlatformVideoPresentationInterface.h */,
 				CDD08AC1277E554E00EA3755 /* PlatformVideoTrackConfiguration.h */,
 				CD1F9AFC26FD38CA00617EB6 /* PlatformVideoTransferCharacteristics.h */,
-				32A70D552836138D0080060C /* PositionedGlyphs.cpp */,
-				32A70D562836138D0080060C /* PositionedGlyphs.h */,
 				BCAB417F13E356E800D8AAF3 /* Region.cpp */,
 				BCAB418013E356E800D8AAF3 /* Region.h */,
 				0FC5FB6429C4D7EC001EDFE5 /* RenderingMode.cpp */,
@@ -42839,6 +42837,7 @@
 				931D72F615FE695300C4C07E /* LayoutMilestone.h in Headers */,
 				F45EAC872A8C1A65009B986E /* LayoutMilestones.serialization.in in Headers */,
 				141DC051164834B900371E5A /* LayoutPoint.h in Headers */,
+				DC4EBF7F2D8E0561003DF001 /* LayoutRange.h in Headers */,
 				141DC053164834B900371E5A /* LayoutRect.h in Headers */,
 				A12538D413F9B60A00024754 /* LayoutRepainter.h in Headers */,
 				FD45A94F175D3F3E00C21EC8 /* LayoutShape.h in Headers */,
@@ -43618,7 +43617,6 @@
 				93F199DE08245E59001E9ABC /* Position.h in Headers */,
 				A3DCA4EA2A2930DA004E18C3 /* PositionArea.h in Headers */,
 				9746AF2C14F4DDE6003E7A70 /* PositionCallback.h in Headers */,
-				32A70D582836138E0080060C /* PositionedGlyphs.h in Headers */,
 				DD6FCF232D77694F00505083 /* PositionedLayoutConstraints.h in Headers */,
 				9746AF3014F4DDE6003E7A70 /* PositionErrorCallback.h in Headers */,
 				27E7CA952D75731700554A77 /* PositionInlines.h in Headers */,

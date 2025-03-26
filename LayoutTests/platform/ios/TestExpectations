@@ -3440,7 +3440,7 @@ http/tests/workers/service/service-worker-download-async-delegates.https.html [ 
 # rdar://80396393 ([ iOS15 ] http/wpt/mediarecorder/mute-tracks.html is a flaky failure)
 http/wpt/mediarecorder/mute-tracks.html [ Pass Failure ]
 # This test is highly time dependent on when a MediaStream will start. Failure is expected some time, but should pass most of the time.
-http/wpt/mediarecorder/MediaRecorder-first-frame.html [ Pass Failure ]
+[ Release ] http/wpt/mediarecorder/MediaRecorder-first-frame.html [ Pass Failure ] # TODO: remove [ Release ] after is webkit.org/b/290410 is resolved.
 
 # rdar://80396502 ([ iOS15 ] http/wpt/mediarecorder/pause-recording.html is a flaky crash)
 http/wpt/mediarecorder/pause-recording.html [ Pass Crash ]
@@ -7748,3 +7748,17 @@ imported/w3c/web-platform-tests/css/css-position/position-absolute-semi-replaced
 imported/w3c/web-platform-tests/css/css-position/sticky/position-sticky-escape-scroller-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-position/multicol/static-position/vlr-ltr-ltr-in-multicol.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-position/multicol/static-position/vrl-ltr-ltr-in-multicol.html [ ImageOnlyFailure ]
+
+webkit.org/b/290407 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-auto-relevancy-updates.html [ Pass Failure ]
+
+# webkit.org/b/290410 ([iOS Debug] 2 MediaRecorder tests are constantly crashing due to assertion failure.)
+[ Debug ] http/wpt/mediarecorder/MediaRecorder-audio-samplingrate-change.html [ Crash ]
+[ Debug ] http/wpt/mediarecorder/MediaRecorder-first-frame.html [ Crash ]
+
+webkit.org/b/290412 imported/w3c/web-platform-tests/scroll-animations/scroll-timelines/current-time-root-scroller.html [ Pass Failure ]
+
+webkit.org/b/290413 [ Debug ] imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-return-value-handling-dynamic.html [ Failure ]
+
+webkit.org/b/290416 [ Debug ] imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe-loading-lazy-multiple-times.html [ Pass Failure ]
+
+webkit.org/b/290420 [ Debug ] ipc/invalid-message-to-web-process.html [ Timeout ]

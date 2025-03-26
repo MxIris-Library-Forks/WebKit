@@ -51,6 +51,7 @@
 
 #if USE(SKIA)
 class GrDirectContext;
+class SkSurface;
 #endif
 
 namespace WTF {
@@ -64,7 +65,6 @@ class DynamicContentScalingDisplayList;
 class Filter;
 class GraphicsClient;
 class ScriptExecutionContext;
-
 class SerializedImageBuffer;
 
 struct ImageBufferCreationContext {
@@ -194,18 +194,12 @@ public:
 #endif
 
 #if USE(SKIA)
-    // During DisplayList recording a fence is created, so that we can wait until the SkSurface finished rendering
-    // before we attempt to access the GPU resource from a secondary thread during replay (in threaded GPU painting mode).
+    SkSurface* surface() const;
+
+    // FIXME: Remove the obsolete Skia specific methods below.
     bool finishAcceleratedRenderingAndCreateFence();
     void waitForAcceleratedRenderingFenceCompletion();
-
     const GrDirectContext* skiaGrContext() const;
-
-    // Use to copy an accelerated ImageBuffer, cloning the ImageBufferSkiaAcceleratedBackend, creating
-    // a new SkSurface tied to the current thread (and thus the thread-local GrDirectContext), but re-using
-    // the existing backend render target, of this ImageBuffer. This avoids any GPU->GPU copies and has the
-    // sole purpose to abe able to access an accelerated ImageBuffer from another thread, that is not
-    // the creation thread.
     RefPtr<ImageBuffer> copyAcceleratedImageBufferBorrowingBackendRenderTarget() const;
 #endif
 
@@ -241,7 +235,7 @@ public:
     WEBCORE_EXPORT static Vector<uint8_t> toData(Ref<ImageBuffer> source, const String& mimeType, std::optional<double> quality = std::nullopt, PreserveResolution = PreserveResolution::No);
 
     WEBCORE_EXPORT virtual RefPtr<PixelBuffer> getPixelBuffer(const PixelBufferFormat& outputFormat, const IntRect& srcRect, const ImageBufferAllocator& = ImageBufferAllocator()) const;
-    WEBCORE_EXPORT virtual void putPixelBuffer(const PixelBuffer&, const IntRect& srcRect, const IntPoint& destPoint = { }, AlphaPremultiplication destFormat = AlphaPremultiplication::Premultiplied);
+    WEBCORE_EXPORT virtual void putPixelBuffer(const PixelBufferSourceView&, const IntRect& srcRect, const IntPoint& destPoint = { }, AlphaPremultiplication destFormat = AlphaPremultiplication::Premultiplied);
 
     WEBCORE_EXPORT virtual RefPtr<SharedBuffer> sinkIntoPDFDocument();
 

@@ -332,11 +332,6 @@ bool RemoteRenderingBackendProxy::getPixelBufferForImageBuffer(RenderingResource
     return true;
 }
 
-void RemoteRenderingBackendProxy::putPixelBufferForImageBuffer(RenderingResourceIdentifier imageBuffer, const PixelBuffer& pixelBuffer, const IntRect& srcRect, const IntPoint& destPoint, AlphaPremultiplication destFormat)
-{
-    send(Messages::RemoteImageBuffer::PutPixelBuffer(Ref { const_cast<PixelBuffer&>(pixelBuffer) }, srcRect.location(), srcRect.size(), destPoint, destFormat), imageBuffer);
-}
-
 std::optional<SharedMemory::Handle> RemoteRenderingBackendProxy::updateSharedMemoryForGetPixelBuffer(size_t dataSize)
 {
     if (m_destroyGetPixelBufferSharedMemoryTimer.isActive())
@@ -411,9 +406,9 @@ void RemoteRenderingBackendProxy::releaseFontCustomPlatformData(RenderingResourc
     send(Messages::RemoteRenderingBackend::ReleaseFontCustomPlatformData(identifier));
 }
 
-void RemoteRenderingBackendProxy::cacheDecomposedGlyphs(Ref<DecomposedGlyphs>&& decomposedGlyphs)
+void RemoteRenderingBackendProxy::cacheDecomposedGlyphs(const DecomposedGlyphs& glyphs)
 {
-    send(Messages::RemoteRenderingBackend::CacheDecomposedGlyphs(WTFMove(decomposedGlyphs)));
+    send(Messages::RemoteRenderingBackend::CacheDecomposedGlyphs({ glyphs.glyphs().data(), glyphs.advances().data(), glyphs.glyphs().size() }, glyphs.localAnchor(), glyphs.fontSmoothingMode(), glyphs.renderingResourceIdentifier()));
 }
 
 void RemoteRenderingBackendProxy::releaseDecomposedGlyphs(RenderingResourceIdentifier identifier)

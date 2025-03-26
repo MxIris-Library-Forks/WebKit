@@ -765,6 +765,8 @@
     (allow IOKIT_OPEN_USER_CLIENT
         (iokit-user-client-class "RootDomainUserClient")
         (apply-message-filter
+            (allow iokit-external-method
+                (iokit-method-number 3))
             (allow (with report) (with telemetry)
                 iokit-async-external-method
                 iokit-external-method
@@ -1171,7 +1173,7 @@
         (iokit-user-client-class "AppleAVDUserClient")
         (apply-message-filter
             (allow iokit-external-method
-                (iokit-method-number 0 1 2 3 4))
+                (iokit-method-number 0 1 2 3 4 6))
             (allow iokit-async-external-method
                 (iokit-method-number 8))
             (allow (with report) (with telemetry)

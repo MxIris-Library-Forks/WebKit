@@ -225,16 +225,28 @@ String AXTextMarker::debugDescription() const
 {
     auto separator = ", "_s;
     RefPtr object = this->object();
-    return makeString(
-        "treeID "_s, treeID() ? treeID()->loggingString() : ""_s
-        , separator, "objectID "_s, objectID() ? objectID()->loggingString() : ""_s
-        , separator, "role "_s, object ? accessibilityRoleToString(object->roleValue()) : "no object"_str
+
+    String ids;
+#if PLATFORM(MAC)
+    // Since treeID and objectID change from run to run and this is used in a Mac LayoutTest, don't include them in the debugDescription when running tests.
+    if (!AXObjectCache::clientIsInTestMode()) {
+#endif
+        ids = makeString(
+            "treeID "_s, treeID() ? treeID()->loggingString() : "null"_s
+            , separator, "objectID "_s, objectID() ? objectID()->loggingString() : "null"_s
+            , separator);
+#if PLATFORM(MAC)
+    }
+#endif
+
+    return makeString(ids
+        , "role "_s, object ? accessibilityRoleToString(object->roleValue()) : "no object"_s
         , isIgnored() ? makeString(separator, "ignored"_s) : ""_s
         , separator, "anchor "_s, m_data.anchorType
         , separator, "affinity "_s, m_data.affinity
         , separator, "offset "_s, m_data.offset
-        , separator, "characterStart "_s, m_data.characterStart
-        , separator, "characterOffset "_s, m_data.characterOffset
+        , separator, "charStart "_s, m_data.characterStart
+        , separator, "charOffset "_s, m_data.characterOffset
         , separator, "origin "_s, originToString(m_data.origin)
     );
 }
@@ -448,7 +460,9 @@ std::optional<AXTextMarkerRange> AXTextMarkerRange::intersectionWith(const AXTex
 
 String AXTextMarkerRange::debugDescription() const
 {
-    return makeString("start: {"_s, m_start.debugDescription(), "}\nend:   {"_s, m_end.debugDescription(), '}');
+    return makeString("text: '"_s, toString(), "'"_s,
+        ", start: {"_s, m_start.debugDescription(), '}',
+        ", end: {"_s, m_end.debugDescription(), '}');
 }
 
 std::partial_ordering partialOrder(const AXTextMarker& marker1, const AXTextMarker& marker2)
@@ -486,6 +500,30 @@ bool AXTextMarkerRange::isConfinedTo(std::optional<AXID> objectID) const
         && LIKELY(m_start.treeID() == m_end.treeID());
 }
 
+#if ENABLE(AX_THREAD_TEXT_APIS)
+String listMarkerTextOnSameLine(const AXTextMarker& marker)
+{
+    RefPtr textMarkerObject = marker.object();
+    if (!textMarkerObject)
+        return { };
+
+    RefPtr listItemAncestor = Accessibility::findAncestor(*textMarkerObject, /* includeSelf */ true, [] (const auto& selfOrAncestor) {
+        return selfOrAncestor.isListItem();
+    });
+
+    if (listItemAncestor) {
+        if (RefPtr listMarker = findUnignoredDescendant(*listItemAncestor, /* includeSelf */ false, [] (const auto& descendant) {
+            return descendant.roleValue() == AccessibilityRole::ListMarker;
+        })) {
+            auto lineID = listMarker->listMarkerLineID();
+            if (lineID && lineID == marker.lineID())
+                return listMarker->listMarkerText();
+        }
+    }
+    return { };
+}
+#endif // ENABLE(AX_THREAD_TEXT_APIS)
+
 String AXTextMarkerRange::toString() const
 {
 #if ENABLE(AX_THREAD_TEXT_APIS)
@@ -499,21 +537,9 @@ String AXTextMarkerRange::toString() const
             return emptyString();
 
         StringBuilder result;
-        RefPtr startObject = start.isolatedObject();
-        RefPtr listItemAncestor = Accessibility::findAncestor(*startObject, /* includeSelf */ true, [] (const auto& object) {
-            return object.isListItem();
-        });
-        if (listItemAncestor) {
-            if (RefPtr listMarker = findUnignoredDescendant(*listItemAncestor, /* includeSelf */ false, [] (const auto& object) {
-                return object.roleValue() == AccessibilityRole::ListMarker;
-            })) {
-                auto lineID = listMarker->listMarkerLineID();
-                if (lineID && lineID == start.lineID())
-                    result.append(listMarker->listMarkerText());
-            }
-        }
+        result.append(listMarkerTextOnSameLine(start));
 
-        if (startObject.get() == end.isolatedObject()) {
+        if (start.isolatedObject() == end.isolatedObject()) {
             size_t minOffset = std::min(start.offset(), end.offset());
             size_t maxOffset = std::max(start.offset(), end.offset());
             result.append(start.runs()->substring(minOffset, maxOffset - minOffset));

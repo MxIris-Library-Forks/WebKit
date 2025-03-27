@@ -580,6 +580,11 @@ void PageClientImpl::setTextIndicator(Ref<TextIndicator> textIndicator, WebCore:
     m_impl->setTextIndicator(textIndicator.get(), lifetime);
 }
 
+void PageClientImpl::updateTextIndicator(Ref<TextIndicator> textIndicator)
+{
+    m_impl->updateTextIndicator(textIndicator.get());
+}
+
 void PageClientImpl::clearTextIndicator(WebCore::TextIndicatorDismissalAnimation dismissalAnimation)
 {
     m_impl->clearTextIndicatorWithAnimation(dismissalAnimation);
@@ -784,6 +789,7 @@ void PageClientImpl::setEditableElementIsFocused(bool editableElementIsFocused)
 
 void PageClientImpl::layerTreeCommitComplete()
 {
+    m_impl->layerTreeCommitComplete();
 }
 
 void PageClientImpl::scrollingNodeScrollViewDidScroll(WebCore::ScrollingNodeID)

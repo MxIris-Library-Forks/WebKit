@@ -91,6 +91,8 @@
     (allow iokit-open-user-client
         (iokit-user-client-class "AppleVideoToolboxParavirtualizationUserClient")
         (apply-message-filter
+            (allow iokit-external-method
+                (iokit-method-number 0 1 2 3 4))
             (allow (with report) (with telemetry)
                 iokit-async-external-method
                 iokit-external-method
@@ -1186,9 +1188,11 @@
 
 (when (equal? (param "CPU") "arm64")
     (if (equal? (param "ENABLE_SANDBOX_MESSAGE_FILTER") "YES")
-        (allow IOKIT_OPEN_USER_CLIENT (with report) (with telemetry)
+        (allow IOKIT_OPEN_USER_CLIENT
             (iokit-user-client-class "IOMobileFramebufferUserClient")
             (apply-message-filter
+                (allow iokit-external-method
+                    (iokit-method-number 82 88))
                 (allow (with report) (with telemetry)
                     iokit-async-external-method
                     iokit-external-method

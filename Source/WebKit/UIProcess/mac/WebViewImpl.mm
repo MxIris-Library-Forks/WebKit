@@ -2420,6 +2420,13 @@ void WebViewImpl::pageDidScroll(const IntPoint& scrollPosition)
 #endif // HAVE(NSSCROLLVIEW_SEPARATOR_TRACKING_ADAPTER)
 }
 
+void WebViewImpl::layerTreeCommitComplete()
+{
+#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
+    updateContentInsetFillBackdropLayerParentIfNeeded();
+#endif
+}
+
 #if HAVE(NSSCROLLVIEW_SEPARATOR_TRACKING_ADAPTER)
 
 NSRect WebViewImpl::scrollViewFrame()
@@ -3501,7 +3508,18 @@ void WebViewImpl::setTextIndicator(WebCore::TextIndicator& textIndicator, WebCor
         m_textIndicatorWindow = makeUnique<WebCore::TextIndicatorWindow>(m_view.getAutoreleased());
 
     NSRect textBoundingRectInScreenCoordinates = [[m_view window] convertRectToScreen:[m_view convertRect:textIndicator.textBoundingRectInRootViewCoordinates() toView:nil]];
+
     m_textIndicatorWindow->setTextIndicator(textIndicator, NSRectToCGRect(textBoundingRectInScreenCoordinates), lifetime);
+}
+
+void WebViewImpl::updateTextIndicator(WebCore::TextIndicator& textIndicator)
+{
+    if (!m_textIndicatorWindow)
+        m_textIndicatorWindow = makeUnique<WebCore::TextIndicatorWindow>(m_view.getAutoreleased());
+
+    NSRect textBoundingRectInScreenCoordinates = [[m_view window] convertRectToScreen:[m_view convertRect:textIndicator.textBoundingRectInRootViewCoordinates() toView:nil]];
+
+    m_textIndicatorWindow->updateTextIndicator(textIndicator, NSRectToCGRect(textBoundingRectInScreenCoordinates));
 }
 
 void WebViewImpl::clearTextIndicatorWithAnimation(WebCore::TextIndicatorDismissalAnimation animation)

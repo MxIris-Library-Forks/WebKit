@@ -50,7 +50,6 @@
 #endif
 
 #if USE(SKIA)
-class GrDirectContext;
 class SkSurface;
 #endif
 
@@ -63,6 +62,7 @@ namespace WebCore {
 class BifurcatedGraphicsContext;
 class DynamicContentScalingDisplayList;
 class Filter;
+class GLFence;
 class GraphicsClient;
 class ScriptExecutionContext;
 class SerializedImageBuffer;
@@ -195,12 +195,6 @@ public:
 
 #if USE(SKIA)
     SkSurface* surface() const;
-
-    // FIXME: Remove the obsolete Skia specific methods below.
-    bool finishAcceleratedRenderingAndCreateFence();
-    void waitForAcceleratedRenderingFenceCompletion();
-    const GrDirectContext* skiaGrContext() const;
-    RefPtr<ImageBuffer> copyAcceleratedImageBufferBorrowingBackendRenderTarget() const;
 #endif
 
 #if ENABLE(RE_DYNAMIC_CONTENT_SCALING)
@@ -220,7 +214,7 @@ public:
     WEBCORE_EXPORT static RefPtr<ImageBuffer> sinkIntoBufferForDifferentThread(RefPtr<ImageBuffer>);
 #if USE(SKIA)
     static RefPtr<ImageBuffer> sinkIntoImageBufferForCrossThreadTransfer(RefPtr<ImageBuffer>);
-    static RefPtr<ImageBuffer> sinkIntoImageBufferAfterCrossThreadTransfer(RefPtr<ImageBuffer>);
+    static RefPtr<ImageBuffer> sinkIntoImageBufferAfterCrossThreadTransfer(RefPtr<ImageBuffer>, std::unique_ptr<GLFence>&&);
 #endif
     static std::unique_ptr<SerializedImageBuffer> sinkIntoSerializedImageBuffer(RefPtr<ImageBuffer>&&);
     WEBCORE_EXPORT static RefPtr<SharedBuffer> sinkIntoPDFDocument(RefPtr<ImageBuffer>);

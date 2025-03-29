@@ -1549,12 +1549,6 @@ void AXObjectCache::deferAddUnconnectedNode(AccessibilityObject& axObject)
 }
 #endif
 
-void AXObjectCache::childrenChanged(Node* node, Element* changedChild)
-{
-    childrenChanged(get(node));
-    deferElementAddedOrRemoved(changedChild);
-}
-
 AccessibilityObject* AXObjectCache::getIncludingAncestors(RenderObject* renderer) const
 {
     for (auto* current = renderer; current; current = current->parent()) {
@@ -2709,6 +2703,11 @@ void AXObjectCache::deferAttributeChangeIfNeeded(Element& element, const Qualifi
         relationsNeedUpdate(true);
 }
 
+void AXObjectCache::handleReferenceTargetChanged()
+{
+    relationsNeedUpdate(true);
+}
+
 bool AXObjectCache::shouldProcessAttributeChange(Element* element, const QualifiedName& attrName)
 {
     if (!element)
@@ -2781,7 +2780,8 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
         postNotification(element, AXNotification::RequiredStatusChanged);
     else if (attrName == tabindexAttr) {
         if (oldValue.isEmpty() || newValue.isEmpty()) {
-            childrenChanged(element->parentNode(), element);
+            if (RefPtr parent = element->parentNode())
+                childrenChanged(parent->renderer());
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
             postNotification(element, AXNotification::FocusableStateChanged);
 #endif
@@ -2948,7 +2948,6 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
         if (RefPtr parent = get(element->parentNode()))
             childrenChanged(parent.get());
 #endif // ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
-
 
         if (m_currentModalElement && m_currentModalElement->isDescendantOf(element))
             deferModalChange(*m_currentModalElement);
@@ -4817,7 +4816,7 @@ void AXObjectCache::updateIsolatedTree(const Vector<std::pair<Ref<AccessibilityO
             tree->queueNodeUpdate(notification.first->objectID(), { { AXProperty::SetSize, AXProperty::SupportsSetSize } });
             break;
         case AXNotification::SpeakAsChanged:
-            tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::SpeechHint });
+            tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::SpeakAs });
             break;
         case AXNotification::TextCompositionChanged:
             tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::TextInputMarkedTextMarkerRange });

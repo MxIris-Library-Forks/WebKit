@@ -1431,16 +1431,6 @@ bool AccessibilityNodeObject::elementAttributeValue(const QualifiedName& attribu
     return equalLettersIgnoringASCIICase(getAttribute(attributeName), "true"_s);
 }
 
-const String AccessibilityNodeObject::liveRegionRelevant() const
-{
-    const auto& relevant = getAttribute(aria_relevantAttr);
-    // Default aria-relevant = "additions text".
-    if (relevant.isEmpty())
-        return "additions text"_s;
-
-    return relevant;
-}
-
 bool AccessibilityNodeObject::liveRegionAtomic() const
 {
     const auto& atomic = getAttribute(aria_atomicAttr);
@@ -2228,7 +2218,7 @@ String AccessibilityNodeObject::textUnderElement(TextUnderElementMode mode) cons
 {
     RefPtr node = this->node();
     if (auto* text = dynamicDowncast<Text>(node.get()))
-        return !mode.isHidden() ? text->wholeText() : emptyString();
+        return !mode.isHidden() ? text->data() : emptyString();
 
     const auto* style = this->style();
     mode.inHiddenSubtree = WebCore::isRenderHidden(style);

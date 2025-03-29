@@ -818,6 +818,8 @@ http/tests/resourceLoadStatistics/user-interaction-in-cross-origin-sub-frame.htm
 http/tests/resourceLoadStatistics/user-interaction-reported-after-website-data-removal.html [ Pass ]
 
 http/tests/storageAccess/ [ Pass ]
+imported/w3c/web-platform-tests/storage-access-api/ [ Pass ]
+imported/w3c/web-platform-tests/storage-access-api/hasStorageAccess.sub.https.window.html [ Skip ]
 #http/tests/storageAccess/request-and-grant-access-then-navigate-cross-site-should-not-have-access.html [ Pass Timeout ]
 http/tests/storageAccess/deny-with-prompt-does-not-preserve-gesture.html [ Skip ]
 
@@ -1913,9 +1915,6 @@ editing/input/scroll-viewport-page-up-down.html [ Pass Failure ]
 # webkit.org/b/280553 [ Sequoia+ iOS wk2 release ] 2x http/tests/resourceLoadStatistics/* are flaky failures.
 [ Sequoia+ arm64 Release ] http/tests/resourceLoadStatistics/prune-statistics.html [ Pass Failure ]
 [ Sequoia+ arm64 Release ] http/tests/resourceLoadStatistics/remove-website-data-for-origin-deletes-link-decoration.html [ Pass Failure ]
-
-# webkit.org/b/280832 [ Sequoia wk2 ] http/wpt/prefetch/link-prefetch-cross-origin-vary-cookie.html is a constant failure.
-[ Sequoia+ ] http/wpt/prefetch/link-prefetch-cross-origin-vary-cookie.html [ Failure ]
 
 # webkit.org/b/280922 REGRESSION(284532@main): [ macOS wk2 ] 2x tiled-drawing/* test are flaky failing. (280922)
 tiled-drawing/scrolling/fixed-background/fixed-body-background-zoomed.html [ Pass Failure ]

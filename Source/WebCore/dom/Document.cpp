@@ -2255,7 +2255,7 @@ std::optional<BoundaryPoint> Document::caretPositionFromPoint(const LayoutPoint&
     if (!renderer)
         return std::nullopt;
 
-    if (auto* renderElement = dynamicDowncast<RenderElement>(*renderer); renderElement && isSkippedContentRoot(*renderElement))
+    if (auto* renderBox = dynamicDowncast<RenderBox>(*renderer); renderBox && isSkippedContentRoot(*renderBox))
         return { { *node, 0 } };
 
     auto rangeCompliantPosition = renderer->positionForPoint(localPoint, source).parentAnchoredEquivalent();
@@ -2286,7 +2286,7 @@ RefPtr<CaretPosition> Document::caretPositionFromPoint(double x, double y, Caret
     if (!renderer)
         return nullptr;
 
-    if (auto* renderElement = dynamicDowncast<RenderElement>(*renderer); renderElement && isSkippedContentRoot(*renderElement))
+    if (auto* renderBox = dynamicDowncast<RenderBox>(*renderer); renderBox && isSkippedContentRoot(*renderBox))
         return CaretPosition::create(WTFMove(node), 0);
 
     auto position = renderer->positionForPoint(localPoint, HitTestSource::Script);
@@ -2972,24 +2972,49 @@ auto Document::updateLayout(OptionSet<LayoutOptions> layoutOptions, const Elemen
         StackStats::LayoutCheckPoint layoutCheckPoint;
 
         if (frameView && renderView()) {
-            if (context && layoutOptions.contains(LayoutOptions::ContentVisibilityForceLayout)) {
-                if (context->renderer() && context->renderer()->style().hasSkippedContent()) {
-                    if (auto wasSkippedDuringLastLayout = context->renderer()->wasSkippedDuringLastLayoutDueToContentVisibility()) {
-                        if (*wasSkippedDuringLastLayout)
-                            context->renderer()->setNeedsLayout();
-                        else
-                            context = nullptr;
-                    }
-                } else
-                    context = nullptr;
-            }
-            if (frameView->layoutContext().needsLayout(layoutOptions)) {
-                auto contentVisibilityScope = ContentVisibilityForceLayoutScope { frameView->layoutContext(), context };
-                frameView->layoutContext().layout(layoutOptions.contains(LayoutOptions::CanDeferUpdateLayerPositions));
-                result = UpdateLayoutResult::ChangesDone;
+
+            auto& layoutContext = frameView->layoutContext();
+            auto runForcedLayoutOnSkippedContentIfNeeded = [&] {
+                if (!layoutOptions.containsAll({ LayoutOptions::TreatContentVisibilityHiddenAsVisible, LayoutOptions::TreatContentVisibilityAutoAsVisible }))
+                    return false;
+
+                ASSERT(context);
+                if (!context || !context->renderer())
+                    return false;
+
+                auto& skippedSubtreeeRootRenderer = *context->renderer();
+                if (!skippedSubtreeeRootRenderer.style().hasSkippedContent())
+                    return false;
+
+                auto everhadLayoutAndWasSkippedDuringLast = skippedSubtreeeRootRenderer.wasSkippedDuringLastLayoutDueToContentVisibility();
+                if (everhadLayoutAndWasSkippedDuringLast && !*everhadLayoutAndWasSkippedDuringLast)
+                    return false;
+
+                skippedSubtreeeRootRenderer.setNeedsLayout();
+
+                auto overrideTypes = [&] {
+                    auto types = OptionSet<ContentVisibilityOverrideScope::OverrideType> { };
+
+                    if (layoutOptions.contains(LayoutOptions::TreatContentVisibilityHiddenAsVisible))
+                        types.add(ContentVisibilityOverrideScope::OverrideType::Hidden);
+                    if (layoutOptions.contains(LayoutOptions::TreatContentVisibilityAutoAsVisible))
+                        types.add(ContentVisibilityOverrideScope::OverrideType::Auto);
+                    return types;
+                };
+                auto contentVisibilityOverrideScope = ContentVisibilityOverrideScope { layoutContext, overrideTypes() };
+                layoutContext.layout(layoutOptions.contains(LayoutOptions::CanDeferUpdateLayerPositions));
+                return true;
+            };
+
+            auto didRunLayout = runForcedLayoutOnSkippedContentIfNeeded();
+            if (!didRunLayout && layoutContext.needsLayout(layoutOptions)) {
+                layoutContext.layout(layoutOptions.contains(LayoutOptions::CanDeferUpdateLayerPositions));
+                didRunLayout = true;
             }
 
-            if (layoutOptions.contains(LayoutOptions::UpdateCompositingLayers) && frameView->layoutContext().updateCompositingLayersAfterLayoutIfNeeded())
+            result = didRunLayout ? UpdateLayoutResult::ChangesDone : result;
+
+            if (layoutOptions.contains(LayoutOptions::UpdateCompositingLayers) && layoutContext.updateCompositingLayersAfterLayoutIfNeeded())
                 result = UpdateLayoutResult::ChangesDone;
         }
     }
@@ -3045,7 +3070,7 @@ bool Document::updateLayoutIfDimensionsOutOfDate(Element& element, OptionSet<Dim
 
     // If the stylesheets haven't loaded, just give up and do a full layout ignoring pending stylesheets.
     if (!haveStylesheetsLoaded()) {
-        updateLayoutIgnorePendingStylesheets(layoutOptions);
+        updateLayoutIgnorePendingStylesheets(layoutOptions, &element);
         return true;
     }
 
@@ -3071,7 +3096,7 @@ bool Document::updateLayoutIfDimensionsOutOfDate(Element& element, OptionSet<Dim
 
     updateStyleIfNeeded();
 
-    if (layoutOptions.contains(LayoutOptions::ContentVisibilityForceLayout)) {
+    if (layoutOptions.containsAll({ LayoutOptions::TreatContentVisibilityHiddenAsVisible, LayoutOptions::TreatContentVisibilityAutoAsVisible })) {
         if (CheckedPtr renderer = element.renderer(); renderer &&  renderer->style().hasSkippedContent()) {
             if (auto wasSkippedDuringLastLayout = renderer->wasSkippedDuringLastLayoutDueToContentVisibility()) {
                 if (*wasSkippedDuringLastLayout)
@@ -4791,7 +4816,7 @@ bool Document::isNavigationBlockedByThirdPartyIFrameRedirectBlocking(Frame& targ
         return false;
 
     // Only prevent navigations by subframes that the user has not interacted with.
-    if (hasHadUserInteraction())
+    if (m_frame->hasHadUserInteraction())
         return false;
 
     // Only prevent navigations by unsandboxed iframes. Such navigations by sandboxed iframes would have already been blocked unless

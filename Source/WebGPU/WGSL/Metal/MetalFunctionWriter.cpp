@@ -66,6 +66,18 @@ namespace Metal {
 #define DEFINE_BOUND_HELPER(__name, __capitalizedName, __lowerBound, __upperBound, ...) \
     DEFINE_BOUND_HELPER_RENAMED(__name, __capitalizedName, __name, __lowerBound, __upperBound, __VA_ARGS__)
 
+#define DEFINE_VOLATILE_HELPER_RENAMED(__name, __capitalizedName) \
+    DEFINE_HELPER(__capitalizedName, \
+    template <typename T>\n \
+    auto __wgsl##__capitalizedName(T value)\n \
+    {\n \
+        volatile auto result = __name(value);\n \
+        return result;\n \
+    }\n)
+
+#define DEFINE_VOLATILE_HELPER(__name, __capitalizedName) \
+    DEFINE_VOLATILE_HELPER_RENAMED(__name, __capitalizedName)
+
 struct HelperGenerator {
     StringBuilder& m_output;
 
@@ -82,6 +94,10 @@ DEFINE_BOUND_HELPER_RENAMED(inverseSqrt, InverseSqrt, rsqrt, 0, numeric_limits<T
 DEFINE_BOUND_HELPER(log, Log, 0, numeric_limits<T>::infinity())
 DEFINE_BOUND_HELPER(log2, Log2, 0, numeric_limits<T>::infinity())
 DEFINE_BOUND_HELPER(sqrt, Sqrt, 0, numeric_limits<T>::infinity())
+DEFINE_VOLATILE_HELPER(pack_float_to_snorm2x16, PackFloatToSnorm2x16)
+DEFINE_VOLATILE_HELPER(pack_float_to_unorm2x16, PackFloatToUnorm2x16)
+DEFINE_VOLATILE_HELPER(pack_float_to_snorm4x8, PackFloatToSnorm4x8)
+DEFINE_VOLATILE_HELPER(pack_float_to_unorm4x8, PackFloatToUnorm4x8)
 
 };
 
@@ -244,9 +260,9 @@ void FunctionDefinitionWriter::emitNecessaryHelpers()
         {
             IndentationScope scope(m_indent);
             m_body.append(
-                m_indent, "T x;\n"_s,
-                m_indent, "T y;\n"_s,
-                m_indent, "T z;\n"_s,
+                m_indent, "union { T x; T r; };\n"_s,
+                m_indent, "union { T y; T g; };\n"_s,
+                m_indent, "union { T z; T b; };\n"_s,
                 m_indent, "uint8_t __padding[sizeof(T)];\n"_s,
                 m_indent, "\n"_s,
                 m_indent, "PackedVec3() { }\n"_s,
@@ -2146,10 +2162,10 @@ void FunctionDefinitionWriter::visit(const Type* type, AST::CallExpression& call
             { "log"_s, EMIT_HELPER(Log) },
             { "log2"_s, EMIT_HELPER(Log2) },
             { "modf"_s, NOOP_HELPER(__wgslModf) },
-            { "pack2x16snorm"_s, NOOP_HELPER(pack_float_to_snorm2x16) },
-            { "pack2x16unorm"_s, NOOP_HELPER(pack_float_to_unorm2x16) },
-            { "pack4x8snorm"_s, NOOP_HELPER(pack_float_to_snorm4x8) },
-            { "pack4x8unorm"_s, NOOP_HELPER(pack_float_to_unorm4x8) },
+            { "pack2x16snorm"_s, EMIT_HELPER(PackFloatToSnorm2x16) },
+            { "pack2x16unorm"_s, EMIT_HELPER(PackFloatToUnorm2x16) },
+            { "pack4x8snorm"_s, EMIT_HELPER(PackFloatToSnorm4x8) },
+            { "pack4x8unorm"_s, EMIT_HELPER(PackFloatToUnorm4x8) },
             { "reverseBits"_s, NOOP_HELPER(reverse_bits) },
             { "round"_s, NOOP_HELPER(rint) },
             { "sign"_s, NOOP_HELPER(__wgslSign) },

@@ -1288,6 +1288,7 @@
 		3AC4C04429D345D800402716 /* SWRegistrationStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AC4C04229D345D800402716 /* SWRegistrationStore.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3AC648B2129E146500C3EB25 /* EditingBoundary.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AC648B1129E146500C3EB25 /* EditingBoundary.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3ACCFD112B8958AA00B9CC69 /* IDBOpenRequestData.h in Headers */ = {isa = PBXBuildFile; fileRef = 3ACCFD0F2B8958A900B9CC69 /* IDBOpenRequestData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3ACF57B32D8892CD0067DE45 /* ParentalControlsURLFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 3ACF57B12D8892CD0067DE45 /* ParentalControlsURLFilter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3AD4AB8A2C3CABCD00A3E7F3 /* OwnerPermissionsPolicyData.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AD4AB892C3CABCD00A3E7F3 /* OwnerPermissionsPolicyData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3AD4AB8C2C3CADF700A3E7F3 /* Allowlist.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AD4AB8B2C3CADF700A3E7F3 /* Allowlist.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3ADA87B52AC4ECDB00A75301 /* ArchiveError.h in Headers */ = {isa = PBXBuildFile; fileRef = 3ADA87B42AC4ECDA00A75301 /* ArchiveError.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9962,6 +9963,8 @@
 		3AC648B1129E146500C3EB25 /* EditingBoundary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditingBoundary.h; sourceTree = "<group>"; };
 		3ACCFD0F2B8958A900B9CC69 /* IDBOpenRequestData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBOpenRequestData.h; sourceTree = "<group>"; };
 		3ACCFD102B8958A900B9CC69 /* IDBOpenRequestData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBOpenRequestData.cpp; sourceTree = "<group>"; };
+		3ACF57B12D8892CD0067DE45 /* ParentalControlsURLFilter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParentalControlsURLFilter.h; sourceTree = "<group>"; };
+		3ACF57B22D8892CD0067DE45 /* ParentalControlsURLFilter.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ParentalControlsURLFilter.mm; sourceTree = "<group>"; };
 		3AD4AB892C3CABCD00A3E7F3 /* OwnerPermissionsPolicyData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OwnerPermissionsPolicyData.h; sourceTree = "<group>"; };
 		3AD4AB8B2C3CADF700A3E7F3 /* Allowlist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Allowlist.h; sourceTree = "<group>"; };
 		3ADA87B42AC4ECDA00A75301 /* ArchiveError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArchiveError.h; sourceTree = "<group>"; };
@@ -31948,6 +31951,8 @@
 				F410F1722ACA384C00A79859 /* NSURLUtilities.mm */,
 				A18890AD1AA13F250026C301 /* ParentalControlsContentFilter.h */,
 				A18890AC1AA13F250026C301 /* ParentalControlsContentFilter.mm */,
+				3ACF57B12D8892CD0067DE45 /* ParentalControlsURLFilter.h */,
+				3ACF57B22D8892CD0067DE45 /* ParentalControlsURLFilter.mm */,
 				9BED2CAF1F7CC06200666018 /* PasteboardCocoa.mm */,
 				F4FB35002350C96200F0094A /* PasteboardCustomDataCocoa.mm */,
 				B974ED7A2C584D5500F3CCEB /* PhotosFormatSoftLink.h */,
@@ -43405,6 +43410,7 @@
 				E71467B624ABAF1D00FB2F50 /* PannerOptions.h in Headers */,
 				83040282249A7A5F00A90D8D /* PanningModelType.h in Headers */,
 				A18890AF1AA13F250026C301 /* ParentalControlsContentFilter.h in Headers */,
+				3ACF57B32D8892CD0067DE45 /* ParentalControlsURLFilter.h in Headers */,
 				CDCD41E81C3DDB0A00965D99 /* ParsedContentRange.h in Headers */,
 				447958041643B49A001E0A7F /* ParsedContentType.h in Headers */,
 				5C4A0FDA25C3449A00D9EE97 /* ParsedRequestRange.h in Headers */,

@@ -3,7 +3,7 @@
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
  *           (C) 2006 Alexey Proskuryakov (ap@webkit.org)
- * Copyright (C) 2004-2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2004-2025 Apple Inc. All rights reserved.
  * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  * Copyright (C) 2008-2014 Google Inc. All rights reserved.
  * Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)
@@ -226,6 +226,7 @@
 #include "RealtimeMediaSourceCenter.h"
 #include "RenderBoxInlines.h"
 #include "RenderChildIterator.h"
+#include "RenderDescendantIterator.h"
 #include "RenderElementInlines.h"
 #include "RenderInline.h"
 #include "RenderLayerCompositor.h"
@@ -835,6 +836,9 @@ Document::~Document()
     // as well as Node. See a comment on TreeScope.h for the reason.
     if (hasRareData())
         clearRareData();
+
+    if (m_whenWindowLoadEventOrDestroyed)
+        m_whenWindowLoadEventOrDestroyed();
 
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(m_listsInvalidatedAtDocument.isEmpty());
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(m_collectionsInvalidatedAtDocument.isEmpty());
@@ -2975,22 +2979,36 @@ auto Document::updateLayout(OptionSet<LayoutOptions> layoutOptions, const Elemen
 
             auto& layoutContext = frameView->layoutContext();
             auto runForcedLayoutOnSkippedContentIfNeeded = [&] {
-                if (!layoutOptions.containsAll({ LayoutOptions::TreatContentVisibilityHiddenAsVisible, LayoutOptions::TreatContentVisibilityAutoAsVisible }))
+                if (!layoutOptions.containsAny({ LayoutOptions::TreatContentVisibilityHiddenAsVisible, LayoutOptions::TreatContentVisibilityAutoAsVisible }))
                     return false;
 
-                ASSERT(context);
-                if (!context || !context->renderer())
+                if (context && !context->renderer())
                     return false;
 
-                auto& skippedSubtreeeRootRenderer = *context->renderer();
-                if (!skippedSubtreeeRootRenderer.style().hasSkippedContent())
-                    return false;
+                if (context) {
+                    if (!context->renderer()->style().isSkippedRootOrSkippedContent())
+                        return false;
 
-                auto everhadLayoutAndWasSkippedDuringLast = skippedSubtreeeRootRenderer.wasSkippedDuringLastLayoutDueToContentVisibility();
-                if (everhadLayoutAndWasSkippedDuringLast && !*everhadLayoutAndWasSkippedDuringLast)
-                    return false;
+                    auto& skippedRootRenderer = *context->renderer();
+                    auto everhadLayoutAndWasSkippedDuringLast = skippedRootRenderer.wasSkippedDuringLastLayoutDueToContentVisibility();
+                    if (everhadLayoutAndWasSkippedDuringLast && !*everhadLayoutAndWasSkippedDuringLast)
+                        return false;
 
-                skippedSubtreeeRootRenderer.setNeedsLayout();
+                    skippedRootRenderer.setNeedsLayout();
+                } else {
+                    ASSERT(!layoutOptions.contains(LayoutOptions::TreatContentVisibilityHiddenAsVisible));
+
+                    auto isSkippedContentStale = false;
+                    for (auto& descendant : descendantsOfType<RenderBlock>(*renderView())) {
+                        auto everhadLayoutAndWasSkippedDuringLast = descendant.wasSkippedDuringLastLayoutDueToContentVisibility();
+                        if (everhadLayoutAndWasSkippedDuringLast && *everhadLayoutAndWasSkippedDuringLast) {
+                            descendant.setNeedsLayout();
+                            isSkippedContentStale = true;
+                        }
+                    }
+                    if (!isSkippedContentStale)
+                        return false;
+                }
 
                 auto overrideTypes = [&] {
                     auto types = OptionSet<ContentVisibilityOverrideScope::OverrideType> { };
@@ -3097,7 +3115,7 @@ bool Document::updateLayoutIfDimensionsOutOfDate(Element& element, OptionSet<Dim
     updateStyleIfNeeded();
 
     if (layoutOptions.containsAll({ LayoutOptions::TreatContentVisibilityHiddenAsVisible, LayoutOptions::TreatContentVisibilityAutoAsVisible })) {
-        if (CheckedPtr renderer = element.renderer(); renderer &&  renderer->style().hasSkippedContent()) {
+        if (CheckedPtr renderer = element.renderer(); renderer &&  renderer->style().isSkippedRootOrSkippedContent()) {
             if (auto wasSkippedDuringLastLayout = renderer->wasSkippedDuringLastLayoutDueToContentVisibility()) {
                 if (*wasSkippedDuringLastLayout)
                     renderer->setNeedsLayout();
@@ -4099,6 +4117,8 @@ void Document::implicitClose()
 
     dispatchWindowLoadEvent();
     dispatchPageshowEvent(PageshowEventPersistence::NotPersisted);
+    if (m_whenWindowLoadEventOrDestroyed)
+        m_whenWindowLoadEventOrDestroyed();
 
     if (frame)
         frame->protectedLoader()->dispatchOnloadEvents();
@@ -6613,6 +6633,15 @@ void Document::dispatchWindowLoadEvent()
     protectedWindow()->dispatchLoadEvent();
     m_loadEventFinished = true;
     protectedCachedResourceLoader()->documentDidFinishLoadEvent();
+}
+
+void Document::whenWindowLoadEventOrDestroyed(CompletionHandler<void()>&& completionHandler)
+{
+    if (loadEventFinished()) {
+        completionHandler();
+        return;
+    }
+    m_whenWindowLoadEventOrDestroyed = WTFMove(completionHandler);
 }
 
 void Document::queueTaskToDispatchEvent(TaskSource source, Ref<Event>&& event)

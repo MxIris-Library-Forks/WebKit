@@ -30,7 +30,6 @@ Modules/mediacontrols/MediaControlsHost.cpp
 Modules/mediarecorder/MediaRecorder.cpp
 Modules/mediasession/MediaSession.cpp
 Modules/mediasource/SourceBuffer.cpp
-Modules/mediastream/CanvasCaptureMediaStreamTrack.cpp
 Modules/mediastream/MediaStream.cpp
 Modules/mediastream/PeerConnectionBackend.cpp
 Modules/mediastream/RTCController.cpp
@@ -214,7 +213,6 @@ css/CSSImageSetValue.cpp
 css/CSSImageValue.cpp
 css/CSSKeyframeRule.cpp
 css/CSSLayerBlockRule.cpp
-css/CSSPageRule.cpp
 css/CSSPrimitiveValue.cpp
 css/CSSRule.cpp
 css/CSSStyleProperties.cpp

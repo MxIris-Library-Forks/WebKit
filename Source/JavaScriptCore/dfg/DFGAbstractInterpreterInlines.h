@@ -2014,15 +2014,14 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     }
 
     case GlobalIsNaN: {
+        ASSERT(node->child1().useKind() == UntypedUse);
         AbstractValue& child = forNode(node->child1());
         if (JSValue value = child.value(); value && value.isNumber()) {
-            if (node->child1().useKind() != DoubleRepUse)
-                didFoldClobberWorld();
+            didFoldClobberWorld();
             setConstant(node, jsBoolean(std::isnan(value.asNumber())));
             break;
         }
-        if (node->child1().useKind() != DoubleRepUse)
-            clobberWorld();
+        clobberWorld();
         setNonCellTypeForNode(node, SpecBoolean);
         break;
     }
@@ -2031,6 +2030,16 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
         AbstractValue& child = forNode(node->child1());
         if (JSValue value = child.value()) {
             setConstant(node, jsBoolean(value.isNumber() && std::isnan(value.asNumber())));
+            break;
+        }
+        setNonCellTypeForNode(node, SpecBoolean);
+        break;
+    }
+
+    case NumberIsFinite: {
+        AbstractValue& child = forNode(node->child1());
+        if (JSValue value = child.value()) {
+            setConstant(node, jsBoolean(value.isNumber() && std::isfinite(value.asNumber())));
             break;
         }
         setNonCellTypeForNode(node, SpecBoolean);

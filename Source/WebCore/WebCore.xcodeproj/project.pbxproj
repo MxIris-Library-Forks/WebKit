@@ -4857,6 +4857,8 @@
 		BC23BAB12D6E38870069A80B /* StyleCornerShapeValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23BAB52D6E47AC0069A80B /* RectCorners.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23BAB42D6E47AC0069A80B /* RectCorners.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23F0DB0DAFF4A4009FDC91 /* GeneratedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23F0DA0DAFF4A4009FDC91 /* GeneratedImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC26505E2D9315E10027337D /* CSSPropertyParserConsumer+Color.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E652BE2A8FB00AE645C /* CSSPropertyParserConsumer+Color.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC26505F2D93174E0027337D /* CSSPropertyParserState.h in Headers */ = {isa = PBXBuildFile; fileRef = BC27C2E12D8F0EEB00E4600B /* CSSPropertyParserState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC274B2F140EBEB200EADFA6 /* CSSBorderImageSliceValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC274B2E140EBEB200EADFA6 /* CSSBorderImageSliceValue.h */; };
 		BC2B41172732F41E00A2D191 /* ModelPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2B41132732F06200A2D191 /* ModelPlayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2B41182732F42300A2D191 /* ModelPlayerProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2B41152732F0C700A2D191 /* ModelPlayerProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6336,6 +6338,7 @@
 		E4E8CBCA2D83113700721796 /* PositionTryOrder.h in Headers */ = {isa = PBXBuildFile; fileRef = E4E8CBC82D830CB200721796 /* PositionTryOrder.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4E94D6122FF158A00DD191F /* LegacyLineLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = E4A1AC7822FAFD500017B75B /* LegacyLineLayout.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4ED3ECC2768A51D00F17AC8 /* HasSelectorFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = E4ED3ECA2768A51C00F17AC8 /* HasSelectorFilter.h */; };
+		E4EF45442D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h in Headers */ = {isa = PBXBuildFile; fileRef = E4EF45432D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h */; };
 		E4F0BE3125712F6E009E7431 /* CaretRectComputation.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F0BE2E25710A75009E7431 /* CaretRectComputation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4F1573927B9261500B330D8 /* ContainerQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F1573227B6991F00B330D8 /* ContainerQuery.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4F1574127B93B7700B330D8 /* ContainerQueryParser.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F1573D27B93B4C00B330D8 /* ContainerQueryParser.h */; };
@@ -17935,9 +17938,12 @@
 		BC23E4E00DAACE0F009FDC91 /* CSSGradientValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSGradientValue.cpp; sourceTree = "<group>"; };
 		BC23F0DA0DAFF4A4009FDC91 /* GeneratedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneratedImage.h; sourceTree = "<group>"; };
 		BC2441C30E8B65D00055320F /* ScrollView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollView.cpp; sourceTree = "<group>"; };
+		BC26505D2D9310FF0027337D /* CSSPropertyParserConsumer+ColorInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+ColorInlines.h"; sourceTree = "<group>"; };
+		BC2650602D931D8B0027337D /* CSSParserTokenRangeGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserTokenRangeGuard.h; sourceTree = "<group>"; };
 		BC274B2E140EBEB200EADFA6 /* CSSBorderImageSliceValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSBorderImageSliceValue.h; sourceTree = "<group>"; };
 		BC274B30140EBED800EADFA6 /* CSSBorderImageSliceValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSBorderImageSliceValue.cpp; sourceTree = "<group>"; };
 		BC2795AF2BDD58AE00595448 /* CSSColorDescriptors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSColorDescriptors.h; sourceTree = "<group>"; };
+		BC27C2E12D8F0EEB00E4600B /* CSSPropertyParserState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPropertyParserState.h; sourceTree = "<group>"; };
 		BC29935C17A1DD5800BCE880 /* ColorInputType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorInputType.cpp; sourceTree = "<group>"; };
 		BC2B410E2732EFE400A2D191 /* ModelPlayerClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayerClient.h; sourceTree = "<group>"; };
 		BC2B41122732F03C00A2D191 /* ModelPlayerClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPlayerClient.cpp; sourceTree = "<group>"; };
@@ -18276,7 +18282,6 @@
 		BC7C5E502BE2A8FB00AE645C /* CSSParserEnum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserEnum.h; sourceTree = "<group>"; };
 		BC7C5E512BE2A8FB00AE645C /* CSSParserFastPaths.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserFastPaths.cpp; sourceTree = "<group>"; };
 		BC7C5E522BE2A8FB00AE645C /* CSSParserFastPaths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserFastPaths.h; sourceTree = "<group>"; };
-		BC7C5E532BE2A8FB00AE645C /* CSSParserIdioms.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserIdioms.cpp; sourceTree = "<group>"; };
 		BC7C5E542BE2A8FB00AE645C /* CSSParserIdioms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserIdioms.h; sourceTree = "<group>"; };
 		BC7C5E552BE2A8FB00AE645C /* CSSParserImpl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserImpl.cpp; sourceTree = "<group>"; };
 		BC7C5E562BE2A8FB00AE645C /* CSSParserImpl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserImpl.h; sourceTree = "<group>"; };
@@ -18412,8 +18417,6 @@
 		BCA407B72C9B2FC0006B037F /* CSSContrastColorSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSContrastColorSerialization.h; sourceTree = "<group>"; };
 		BCA407B82C9B30CD006B037F /* CSSContrastColorResolver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSContrastColorResolver.cpp; sourceTree = "<group>"; };
 		BCA407D52C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentageDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+AnglePercentageDefinitions.h"; sourceTree = "<group>"; };
-		BCA407D62C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+AnglePercentage.cpp"; sourceTree = "<group>"; };
-		BCA407D72C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+AnglePercentage.h"; sourceTree = "<group>"; };
 		BCA407F02C9F2140006B037F /* StyleValueTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleValueTypes.h; sourceTree = "<group>"; };
 		BCA407F12C9F26C6006B037F /* CSSValueTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSValueTypes.h; sourceTree = "<group>"; };
 		BCA55912263DBD79007F19B3 /* PixelFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelFormat.h; sourceTree = "<group>"; };
@@ -18662,8 +18665,6 @@
 		BCE411D42CF2590500731E47 /* CSSPropertyParserConsumer+WillChange.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+WillChange.cpp"; sourceTree = "<group>"; };
 		BCE411D72CF25B9800731E47 /* CSSPropertyParserConsumer+Box.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Box.h"; sourceTree = "<group>"; };
 		BCE411D82CF25B9800731E47 /* CSSPropertyParserConsumer+Box.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Box.cpp"; sourceTree = "<group>"; };
-		BCE411D92CF25E9500731E47 /* CSSPropertyParserConsumer+Inset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Inset.h"; sourceTree = "<group>"; };
-		BCE411DA2CF25E9500731E47 /* CSSPropertyParserConsumer+Inset.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Inset.cpp"; sourceTree = "<group>"; };
 		BCE411DF2CF2B6F000731E47 /* CSSPropertyParserConsumer+Scrollbars.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Scrollbars.h"; sourceTree = "<group>"; };
 		BCE411E02CF2B6F000731E47 /* CSSPropertyParserConsumer+Scrollbars.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Scrollbars.cpp"; sourceTree = "<group>"; };
 		BCE411E12CF2B70300731E47 /* CSSPropertyParserConsumer+Display.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Display.h"; sourceTree = "<group>"; };
@@ -20873,6 +20874,8 @@
 		E4E8CBC82D830CB200721796 /* PositionTryOrder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PositionTryOrder.h; sourceTree = "<group>"; };
 		E4ED3ECA2768A51C00F17AC8 /* HasSelectorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HasSelectorFilter.h; sourceTree = "<group>"; };
 		E4ED3ECD2768A68800F17AC8 /* HasSelectorFilter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HasSelectorFilter.cpp; sourceTree = "<group>"; };
+		E4EF45432D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DropShadowFilterOperationWithStyleColor.h; sourceTree = "<group>"; };
+		E4EF45452D9AB59500120306 /* DropShadowFilterOperationWithStyleColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DropShadowFilterOperationWithStyleColor.cpp; sourceTree = "<group>"; };
 		E4F0BE2E25710A75009E7431 /* CaretRectComputation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaretRectComputation.h; sourceTree = "<group>"; };
 		E4F0BE3025710A76009E7431 /* CaretRectComputation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CaretRectComputation.cpp; sourceTree = "<group>"; };
 		E4F1573227B6991F00B330D8 /* ContainerQuery.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContainerQuery.h; sourceTree = "<group>"; };
@@ -30935,7 +30938,6 @@
 				BC7C5E502BE2A8FB00AE645C /* CSSParserEnum.h */,
 				BC7C5E512BE2A8FB00AE645C /* CSSParserFastPaths.cpp */,
 				BC7C5E522BE2A8FB00AE645C /* CSSParserFastPaths.h */,
-				BC7C5E532BE2A8FB00AE645C /* CSSParserIdioms.cpp */,
 				BC7C5E542BE2A8FB00AE645C /* CSSParserIdioms.h */,
 				BC7C5E552BE2A8FB00AE645C /* CSSParserImpl.cpp */,
 				BC7C5E562BE2A8FB00AE645C /* CSSParserImpl.h */,
@@ -30947,6 +30949,7 @@
 				BC7C5E5C2BE2A8FB00AE645C /* CSSParserToken.h */,
 				BC7C5E5D2BE2A8FB00AE645C /* CSSParserTokenRange.cpp */,
 				BC7C5E5E2BE2A8FB00AE645C /* CSSParserTokenRange.h */,
+				BC2650602D931D8B0027337D /* CSSParserTokenRangeGuard.h */,
 				BC7C5E5F2BE2A8FB00AE645C /* CSSPropertyParser.cpp */,
 				BC7C5E602BE2A8FB00AE645C /* CSSPropertyParser.h */,
 				BC6DA0F52C8CA935000ECE0F /* CSSPropertyParserConsumer+Align.cpp */,
@@ -30954,8 +30957,6 @@
 				EE7775222D07B1130054B960 /* CSSPropertyParserConsumer+Anchor.cpp */,
 				EE7775212D07B0EF0054B960 /* CSSPropertyParserConsumer+Anchor.h */,
 				BC7C5E632BE2A8FB00AE645C /* CSSPropertyParserConsumer+AngleDefinitions.h */,
-				BCA407D62C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentage.cpp */,
-				BCA407D72C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentage.h */,
 				BCA407D52C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentageDefinitions.h */,
 				BCE411D02CF258D700731E47 /* CSSPropertyParserConsumer+Animations.cpp */,
 				BCE411CF2CF258D700731E47 /* CSSPropertyParserConsumer+Animations.h */,
@@ -30971,6 +30972,7 @@
 				BC7C5E652BE2A8FB00AE645C /* CSSPropertyParserConsumer+Color.h */,
 				BCEA07852CCC0B58000AC148 /* CSSPropertyParserConsumer+ColorAdjust.cpp */,
 				BCEA07842CCC0B58000AC148 /* CSSPropertyParserConsumer+ColorAdjust.h */,
+				BC26505D2D9310FF0027337D /* CSSPropertyParserConsumer+ColorInlines.h */,
 				BC83CE922BEFF66700DC644F /* CSSPropertyParserConsumer+ColorInterpolationMethod.cpp */,
 				BC83CE912BEFF65D00DC644F /* CSSPropertyParserConsumer+ColorInterpolationMethod.h */,
 				BCE411CA2CF2534D00731E47 /* CSSPropertyParserConsumer+Content.cpp */,
@@ -30996,8 +30998,6 @@
 				BCC38E8F2C25E0270013821F /* CSSPropertyParserConsumer+Image.h */,
 				BCE411BE2CF1857100731E47 /* CSSPropertyParserConsumer+Inline.cpp */,
 				BCE411BD2CF1857100731E47 /* CSSPropertyParserConsumer+Inline.h */,
-				BCE411DA2CF25E9500731E47 /* CSSPropertyParserConsumer+Inset.cpp */,
-				BCE411D92CF25E9500731E47 /* CSSPropertyParserConsumer+Inset.h */,
 				BC7C5E9D2BE2BAD500AE645C /* CSSPropertyParserConsumer+IntegerDefinitions.h */,
 				BC7C5E722BE2A8FB00AE645C /* CSSPropertyParserConsumer+KeywordDefinitions.h */,
 				BC7C5E6C2BE2A8FB00AE645C /* CSSPropertyParserConsumer+LengthDefinitions.h */,
@@ -31059,6 +31059,7 @@
 				BCE411D42CF2590500731E47 /* CSSPropertyParserConsumer+WillChange.cpp */,
 				BCE411D32CF2590500731E47 /* CSSPropertyParserConsumer+WillChange.h */,
 				BC812BC02CA46BCB0048BBC5 /* CSSPropertyParserOptions.h */,
+				BC27C2E12D8F0EEB00E4600B /* CSSPropertyParserState.h */,
 				BC7C5E862BE2A8FB00AE645C /* CSSSelectorParser.cpp */,
 				BC7C5E872BE2A8FB00AE645C /* CSSSelectorParser.h */,
 				BC7C5E882BE2A8FB00AE645C /* CSSSelectorParserContext.cpp */,
@@ -34816,6 +34817,8 @@
 				BC5EB94F0E82056B00B25965 /* CounterDirectives.h */,
 				BC2272A10E82E87C00E7F975 /* CursorData.h */,
 				BC2272AC0E82E8F300E7F975 /* CursorList.h */,
+				E4EF45452D9AB59500120306 /* DropShadowFilterOperationWithStyleColor.cpp */,
+				E4EF45432D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h */,
 				BC5EB69C0E81DAEB00B25965 /* FillLayer.cpp */,
 				BC5EB69D0E81DAEB00B25965 /* FillLayer.h */,
 				8E33CD93201A29C100E39093 /* GapLength.cpp */,
@@ -40758,7 +40761,9 @@
 				A80E6CFF0A1989CA007FB8C5 /* CSSProperty.h in Headers */,
 				656580F409D12B20000E61D7 /* CSSPropertyNames.h in Headers */,
 				46531BB42D616BCE008D8EFC /* CSSPropertyParser.h in Headers */,
+				BC26505E2D9315E10027337D /* CSSPropertyParserConsumer+Color.h in Headers */,
 				E462E5A52D1164690058FD21 /* CSSPropertyParserConsumer+PositionTry.h in Headers */,
+				BC26505F2D93174E0027337D /* CSSPropertyParserState.h in Headers */,
 				E4E387FE294E147800C6EC1B /* CSSPropertyRule.h in Headers */,
 				82E3D8DF122EA0D1003AE5BC /* CSSPropertySourceData.h in Headers */,
 				93B248942990CB0400B769E4 /* CSSQuadValue.h in Headers */,
@@ -41074,6 +41079,7 @@
 				1AF5E4D91E5677A9004A1F01 /* DragItem.h in Headers */,
 				81F65FF613788FAA00FF6F2D /* DragState.h in Headers */,
 				1CAF56DB25301AC80017B472 /* DrawGlyphsRecorder.h in Headers */,
+				E4EF45442D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h in Headers */,
 				510A91F624D32DDC00BFD89C /* Dualshock3HIDGamepad.h in Headers */,
 				E8BF3AE42D56005800E7ED0B /* DummyCredentialRequestCoordinatorClient.h in Headers */,
 				BC2B41252733600500A2D191 /* DummyModelPlayer.h in Headers */,

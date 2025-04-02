@@ -3175,7 +3175,21 @@ private:
             }
             if (node->child1()->shouldSpeculateNumber()) {
                 fixEdge<DoubleRepUse>(node->child1());
+                node->setOp(NumberIsNaN);
                 node->clearFlags(NodeMustGenerate);
+                break;
+            }
+            break;
+        }
+
+        case NumberIsFinite: {
+            if (node->child1()->shouldSpeculateInt32()) {
+                insertCheck<Int32Use>(node->child1().node());
+                m_graph.convertToConstant(node, jsBoolean(true));
+                break;
+            }
+            if (node->child1()->shouldSpeculateNumber()) {
+                fixEdge<DoubleRepUse>(node->child1());
                 break;
             }
             break;

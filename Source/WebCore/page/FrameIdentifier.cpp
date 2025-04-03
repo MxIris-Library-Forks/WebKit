@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,24 +23,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "FrameIdentifier.h"
 
-DECLARE_SYSTEM_HEADER
+#include "ProcessIdentifier.h"
+#include <wtf/MainThread.h>
 
-#import <AppKit/NSStepperCell.h>
+namespace WebCore {
 
-#if HAVE(NSSTEPPERCELL_INCREMENTING)
+FrameIdentifier generateFrameIdentifier()
+{
+    ASSERT(isMainThread());
+    static uint64_t nextIdentifier { 1 };
+    return FrameIdentifier((Process::identifier().toUInt64() << 32) | nextIdentifier++);
+}
 
-#if USE(APPLE_INTERNAL_SDK)
-
-#if __has_include(<AppKit/NSStepperCell_Private.h>)
-#import <AppKit/NSStepperCell_Private.h>
-#endif
-
-#endif
-
-@interface NSStepperCell (Staging_140298961)
-@property (getter=isIncrementing) BOOL incrementing;
-@end
-
-#endif
+}

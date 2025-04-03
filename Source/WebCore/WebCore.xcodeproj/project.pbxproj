@@ -2943,6 +2943,7 @@
 		7A22732120C9FAFE00DB1DEF /* WebKitNSImageExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A22731F20C9F9DA00DB1DEF /* WebKitNSImageExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7A293F5229945A430033D744 /* FontCustomPlatformData.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A293F5129945A100033D744 /* FontCustomPlatformData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7A29F57218C69514004D0F81 /* OutOfBandTextTrackPrivateAVF.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A29F57118C69514004D0F81 /* OutOfBandTextTrackPrivateAVF.h */; };
+		7A4279002D8CC19000A60073 /* FontCascadeCocoaInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A4278FF2D8CC06500A60073 /* FontCascadeCocoaInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7A45033018DB717200377B34 /* BufferedLineReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A45032E18DB717200377B34 /* BufferedLineReader.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7A54858014E02D51006AE05A /* InspectorHistory.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A54857E14E02D51006AE05A /* InspectorHistory.h */; };
 		7A54881714E432A1006AE05A /* DOMPatchSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A54881514E432A1006AE05A /* DOMPatchSupport.h */; };
@@ -6339,6 +6340,7 @@
 		E4E94D6122FF158A00DD191F /* LegacyLineLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = E4A1AC7822FAFD500017B75B /* LegacyLineLayout.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4ED3ECC2768A51D00F17AC8 /* HasSelectorFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = E4ED3ECA2768A51C00F17AC8 /* HasSelectorFilter.h */; };
 		E4EF45442D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h in Headers */ = {isa = PBXBuildFile; fileRef = E4EF45432D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h */; };
+		E4EF455E2D9D3E0500120306 /* MatchResultCache.h in Headers */ = {isa = PBXBuildFile; fileRef = E4EF455D2D9D3E0500120306 /* MatchResultCache.h */; };
 		E4F0BE3125712F6E009E7431 /* CaretRectComputation.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F0BE2E25710A75009E7431 /* CaretRectComputation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4F1573927B9261500B330D8 /* ContainerQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F1573227B6991F00B330D8 /* ContainerQuery.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4F1574127B93B7700B330D8 /* ContainerQueryParser.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F1573D27B93B4C00B330D8 /* ContainerQueryParser.h */; };
@@ -13709,6 +13711,7 @@
 		7A293F5129945A100033D744 /* FontCustomPlatformData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontCustomPlatformData.h; sourceTree = "<group>"; };
 		7A29F57118C69514004D0F81 /* OutOfBandTextTrackPrivateAVF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutOfBandTextTrackPrivateAVF.h; sourceTree = "<group>"; };
 		7A3EBEAA21BF054C000D043D /* JSSVGViewSpecCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSSVGViewSpecCustom.cpp; sourceTree = "<group>"; };
+		7A4278FF2D8CC06500A60073 /* FontCascadeCocoaInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontCascadeCocoaInlines.h; sourceTree = "<group>"; };
 		7A45032D18DB717200377B34 /* BufferedLineReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferedLineReader.cpp; sourceTree = "<group>"; };
 		7A45032E18DB717200377B34 /* BufferedLineReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferedLineReader.h; sourceTree = "<group>"; };
 		7A54857D14E02D51006AE05A /* InspectorHistory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InspectorHistory.cpp; sourceTree = "<group>"; };
@@ -17519,7 +17522,6 @@
 		B2A1F2A50CEF0ABF00442F6A /* SVGGlyphElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SVGGlyphElement.h; sourceTree = "<group>"; };
 		B2A1F2A70CEF0ABF00442F6A /* SVGMissingGlyphElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = SVGMissingGlyphElement.cpp; sourceTree = "<group>"; };
 		B2A1F2A80CEF0ABF00442F6A /* SVGMissingGlyphElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SVGMissingGlyphElement.h; sourceTree = "<group>"; };
-		B2AFFC780D00A5C10030074D /* FontCascadeCocoa.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = FontCascadeCocoa.cpp; sourceTree = "<group>"; };
 		B2AFFC8C0D00A5DF0030074D /* TextBoundaries.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = TextBoundaries.mm; sourceTree = "<group>"; };
 		B2B1F7140D00CAA8004AEA64 /* PointerEventsHitRules.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = PointerEventsHitRules.cpp; sourceTree = "<group>"; };
 		B2B1F7150D00CAA8004AEA64 /* PointerEventsHitRules.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PointerEventsHitRules.h; sourceTree = "<group>"; };
@@ -20876,6 +20878,8 @@
 		E4ED3ECD2768A68800F17AC8 /* HasSelectorFilter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HasSelectorFilter.cpp; sourceTree = "<group>"; };
 		E4EF45432D9AB58700120306 /* DropShadowFilterOperationWithStyleColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DropShadowFilterOperationWithStyleColor.h; sourceTree = "<group>"; };
 		E4EF45452D9AB59500120306 /* DropShadowFilterOperationWithStyleColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DropShadowFilterOperationWithStyleColor.cpp; sourceTree = "<group>"; };
+		E4EF455D2D9D3E0500120306 /* MatchResultCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MatchResultCache.h; sourceTree = "<group>"; };
+		E4EF455F2D9D3E1B00120306 /* MatchResultCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MatchResultCache.cpp; sourceTree = "<group>"; };
 		E4F0BE2E25710A75009E7431 /* CaretRectComputation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaretRectComputation.h; sourceTree = "<group>"; };
 		E4F0BE3025710A76009E7431 /* CaretRectComputation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CaretRectComputation.cpp; sourceTree = "<group>"; };
 		E4F1573227B6991F00B330D8 /* ContainerQuery.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContainerQuery.h; sourceTree = "<group>"; };
@@ -21336,6 +21340,7 @@
 		FA4F54922CC0646100534AAE /* CompressionStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CompressionStream.cpp; sourceTree = "<group>"; };
 		FA4F54942CC0647600534AAE /* CompressionStreamEncoderCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CompressionStreamEncoderCocoa.mm; sourceTree = "<group>"; };
 		FA4F54952CC0647600534AAE /* DecompressionStreamDecoderCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DecompressionStreamDecoderCocoa.mm; sourceTree = "<group>"; };
+		FA63420E2D9CB95B00A6BECE /* FrameIdentifier.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameIdentifier.cpp; sourceTree = "<group>"; };
 		FA654A631108ABB7002615E0 /* mathml.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = mathml.css; sourceTree = "<group>"; };
 		FA654A671108ABE2002615E0 /* mathattrs.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mathattrs.in; sourceTree = "<group>"; };
 		FA654A691108ABED002615E0 /* MathMLTokenElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MathMLTokenElement.cpp; sourceTree = "<group>"; };
@@ -28581,6 +28586,7 @@
 				974A862014B7ADBB003FDC76 /* FrameDestructionObserver.cpp */,
 				974A862114B7ADBB003FDC76 /* FrameDestructionObserver.h */,
 				46014ACB28333F52004C0B84 /* FrameDestructionObserverInlines.h */,
+				FA63420E2D9CB95B00A6BECE /* FrameIdentifier.cpp */,
 				0F11781622E3C47E008BD570 /* FrameIdentifier.h */,
 				C4CD629818383766007EBAF1 /* FrameSnapshotting.cpp */,
 				C4CD629918383766007EBAF1 /* FrameSnapshotting.h */,
@@ -34390,7 +34396,7 @@
 				1C16B86C284D73EF00318FEC /* FontCacheCocoa.mm */,
 				1C3969CF1B74211E002BCFA7 /* FontCacheCoreText.cpp */,
 				C2458E611FE8979E00594759 /* FontCacheCoreText.h */,
-				B2AFFC780D00A5C10030074D /* FontCascadeCocoa.cpp */,
+				7A4278FF2D8CC06500A60073 /* FontCascadeCocoaInlines.h */,
 				1C6FD8B0250A35F100D6E920 /* FontCocoa.cpp */,
 				F4A064C6277E48C600B06A17 /* FontCocoa.h */,
 				325905DD274DE1E3007B7B65 /* FontDatabase.cpp */,
@@ -37410,6 +37416,8 @@
 				E45BA6AB2374927B004DFC07 /* MatchedDeclarationsCache.cpp */,
 				E45BA6A82374926B004DFC07 /* MatchedDeclarationsCache.h */,
 				E44A0254273AE0BF00993A56 /* MatchResult.h */,
+				E4EF455F2D9D3E1B00120306 /* MatchResultCache.cpp */,
+				E4EF455D2D9D3E0500120306 /* MatchResultCache.h */,
 				FBDB619C16D6034600BB3394 /* PageRuleCollector.cpp */,
 				FBDB61A016D6037E00BB3394 /* PageRuleCollector.h */,
 				7128CB3E271EE58900A13DA6 /* PropertyAllowlist.cpp */,
@@ -41329,6 +41337,7 @@
 				C2458E631FE897B000594759 /* FontCacheCoreText.h in Headers */,
 				B2C3DA610D006CD600EF6F26 /* FontCascade.h in Headers */,
 				32EAFB8D274C5EA600650557 /* FontCascadeCache.h in Headers */,
+				7A4279002D8CC19000A60073 /* FontCascadeCocoaInlines.h in Headers */,
 				E4E8B4F5216B956500B8834D /* FontCascadeDescription.h in Headers */,
 				B2C3DA680D006CD600EF6F26 /* FontCascadeFonts.h in Headers */,
 				F4A064C8277E48C900B06A17 /* FontCocoa.h in Headers */,
@@ -43000,6 +43009,7 @@
 				00C60E3F13D76D7E0092A275 /* MarkupTokenizerInlines.h in Headers */,
 				E45BA6AA2374926C004DFC07 /* MatchedDeclarationsCache.h in Headers */,
 				E44A0256273AE0C000993A56 /* MatchResult.h in Headers */,
+				E4EF455E2D9D3E0500120306 /* MatchResultCache.h in Headers */,
 				FABE72F51059C1EB00D888CC /* MathMLAnnotationElement.h in Headers */,
 				FABE72F51059C1EB00D999DD /* MathMLElement.h in Headers */,
 				44A28AAC12DFB8AC00AE923B /* MathMLElementFactory.h in Headers */,

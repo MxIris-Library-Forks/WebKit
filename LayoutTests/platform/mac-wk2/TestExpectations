@@ -13,6 +13,7 @@ editing/undo-manager [ Pass ]
 editing/pasteboard/dom-paste [ Pass ]
 fast/attachment/cocoa [ Pass ]
 fast/attachment/mac [ Pass ]
+fast/css/cocoa [ Pass ]
 fast/css/mac [ Pass ]
 fast/element-targeting [ Pass ]
 fast/events/cursors [ Pass ]
@@ -1298,8 +1299,6 @@ webkit.org/b/229166 webrtc/utf8-sdp.html [ Pass Failure ]
 imported/w3c/web-platform-tests/xhr/xhr-timeout-longtask.any.html [ Pass Failure ]
 
 webkit.org/b/229561 http/tests/navigation/page-cache-video.html [ Pass Failure ]
-
-webkit.org/b/239099 [ Debug ] accessibility/ancestor-computation.html [ Pass Timeout ]
 
 webkit.org/b/231088 [ Release ] http/tests/loading/preload-slow-loading.py [ Pass Failure ]
 

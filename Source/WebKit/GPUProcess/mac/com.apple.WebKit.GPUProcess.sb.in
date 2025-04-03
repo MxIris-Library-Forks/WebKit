@@ -93,7 +93,7 @@
         (apply-message-filter
             (allow iokit-external-method
                 (iokit-method-number 0 1 2 3 4))
-            (allow (with report) (with telemetry)
+            (GPU_PROCESS_IOKIT_DEFAULT_FILTER_OPERATION (with telemetry)
                 iokit-async-external-method
                 iokit-external-method
                 iokit-external-trap)))
@@ -813,6 +813,7 @@
         (iokit-user-client-class "IOAudioEngineUserClient")))
 #endif
 
+#if !ENABLE(GPU_PROCESS_IOKIT_RESTRICTIONS)
 ;; Following is needed due to <rdar://problem/10427451> && <rdar://problem/10808817>
 (if (equal? (param "ENABLE_SANDBOX_MESSAGE_FILTER") "YES")
     (allow IOKIT_OPEN_USER_CLIENT (with report) (with telemetry)
@@ -825,6 +826,7 @@
     ;; else
     (allow IOKIT_OPEN_USER_CLIENT
         (iokit-user-client-class "AudioAUUC")))
+#endif
 
 #if HAVE(APPLE_CAMERA_USER_CLIENT)
 ;; Following is needed due to <rdar://problem/108282689>
@@ -834,7 +836,7 @@
             (extension "com.apple.webkit.extension.iokit")
             (iokit-user-client-class "H11ANEInDirectPathClient"))
         (apply-message-filter
-            (allow (with report) (with telemetry)
+            (GPU_PROCESS_IOKIT_DEFAULT_FILTER_OPERATION (with telemetry)
                 iokit-async-external-method
                 iokit-external-method
                 iokit-external-trap)))
@@ -854,7 +856,7 @@
                 (iokit-method-number 2))
             (allow iokit-external-method
                 (iokit-method-number 0 1))
-            (allow (with report) (with telemetry)
+            (GPU_PROCESS_IOKIT_DEFAULT_FILTER_OPERATION (with telemetry)
                 iokit-async-external-method
                 iokit-external-method
                 iokit-external-trap)))
@@ -1190,7 +1192,7 @@
                 (iokit-method-number 0 1 2 3 4 5 6))
             (allow iokit-async-external-method
                 (iokit-method-number 7 8))
-            (allow (with report) (with telemetry)
+            (GPU_PROCESS_IOKIT_DEFAULT_FILTER_OPERATION (with telemetry)
                 iokit-async-external-method
                 iokit-external-method
                 iokit-external-trap)))
@@ -1205,7 +1207,7 @@
             (apply-message-filter
                 (allow iokit-external-method
                     (iokit-method-number 82 88))
-                (allow (with report) (with telemetry)
+                (GPU_PROCESS_IOKIT_DEFAULT_FILTER_OPERATION (with telemetry)
                     iokit-async-external-method
                     iokit-external-method
                     iokit-external-trap)))
@@ -1221,7 +1223,7 @@
             (apply-message-filter
                 (allow iokit-external-method
                     (iokit-method-number 1 4 10))
-                (allow (with report) (with telemetry)
+                (GPU_PROCESS_IOKIT_DEFAULT_FILTER_OPERATION (with telemetry)
                     iokit-async-external-method
                     iokit-external-method
                     iokit-external-trap)))

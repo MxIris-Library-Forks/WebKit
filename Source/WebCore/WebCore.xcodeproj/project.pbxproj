@@ -1004,8 +1004,6 @@
 		2D4F96F61A1ECC240098BF88 /* TextIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D4F96F21A1ECC240098BF88 /* TextIndicator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D4F96F71A1ECC240098BF88 /* TextIndicatorWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D4F96F31A1ECC240098BF88 /* TextIndicatorWindow.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D5002FC1B56D7990020AAF7 /* PathUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D5002FA1B56D7990020AAF7 /* PathUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		2D50A4B71CE10E0000198049 /* AttachmentPlaceholder.png in Resources */ = {isa = PBXBuildFile; fileRef = 2D50A4B51CE10E0000198049 /* AttachmentPlaceholder.png */; };
-		2D50A4B81CE10E0000198049 /* AttachmentPlaceholder@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2D50A4B61CE10E0000198049 /* AttachmentPlaceholder@2x.png */; };
 		2D550A1429C30F3F00BD0C1F /* IntDegrees.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D550A1329C30F3F00BD0C1F /* IntDegrees.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D5646B01B8F8493003C4994 /* DictionaryPopupInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D5646AF1B8F8493003C4994 /* DictionaryPopupInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D5A5931152525D00036EE51 /* ImageOrientation.h in Headers */ = {isa = PBXBuildFile; fileRef = A8748D6612CC3763001FBA41 /* ImageOrientation.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1434,7 +1432,7 @@
 		41815C1E138319830057AAA4 /* WebCoreTestSupport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41815C1C138319830057AAA4 /* WebCoreTestSupport.cpp */; };
 		41815C1F138319830057AAA4 /* WebCoreTestSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 41815C1D138319830057AAA4 /* WebCoreTestSupport.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4181C5C9255573DF00AEB0FF /* RTCRtpTransformBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C5C8255573DF00AEB0FF /* RTCRtpTransformBackend.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		4181C5CB255582E400AEB0FF /* RTCRtpTransformableFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C5CA255582E300AEB0FF /* RTCRtpTransformableFrame.h */; };
+		4181C5CB255582E400AEB0FF /* RTCRtpTransformableFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C5CA255582E300AEB0FF /* RTCRtpTransformableFrame.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4181C5CD2555836900AEB0FF /* LibWebRTCRtpTransformableFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C5CC2555836800AEB0FF /* LibWebRTCRtpTransformableFrame.h */; };
 		4181C5D12555895600AEB0FF /* LibWebRTCRtpTransformBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C5CF2555895600AEB0FF /* LibWebRTCRtpTransformBackend.h */; };
 		4181C648255B4C2800AEB0FF /* RTCRtpSFrameTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C642255B4C2600AEB0FF /* RTCRtpSFrameTransformer.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9483,8 +9481,6 @@
 		2D5002F91B56D7990020AAF7 /* PathUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PathUtilities.cpp; sourceTree = "<group>"; };
 		2D5002FA1B56D7990020AAF7 /* PathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathUtilities.h; sourceTree = "<group>"; };
 		2D5036671BCDDDC400E20BB3 /* GestureEvents.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GestureEvents.cpp; sourceTree = "<group>"; };
-		2D50A4B51CE10E0000198049 /* AttachmentPlaceholder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AttachmentPlaceholder.png; sourceTree = "<group>"; };
-		2D50A4B61CE10E0000198049 /* AttachmentPlaceholder@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AttachmentPlaceholder@2x.png"; sourceTree = "<group>"; };
 		2D550A1329C30F3F00BD0C1F /* IntDegrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IntDegrees.h; sourceTree = "<group>"; };
 		2D5646AF1B8F8493003C4994 /* DictionaryPopupInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DictionaryPopupInfo.h; sourceTree = "<group>"; };
 		2D56800123888603007ECB8A /* auto-hide-controller.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "auto-hide-controller.js"; sourceTree = "<group>"; };
@@ -28470,8 +28466,6 @@
 		65998A650E5F5FD3004E097A /* images */ = {
 			isa = PBXGroup;
 			children = (
-				2D50A4B51CE10E0000198049 /* AttachmentPlaceholder.png */,
-				2D50A4B61CE10E0000198049 /* AttachmentPlaceholder@2x.png */,
 				E59DD4B721098285003C8B47 /* ListButtonArrow.png */,
 				E516698F20FF9916009D2C27 /* ListButtonArrow@2x.png */,
 			);
@@ -45758,8 +45752,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2D50A4B71CE10E0000198049 /* AttachmentPlaceholder.png in Resources */,
-				2D50A4B81CE10E0000198049 /* AttachmentPlaceholder@2x.png in Resources */,
 				A1AA9AB91D23911500FEADB3 /* ContentFilterBlockedPage.html in Resources */,
 				A11E8C051B1E28F40003A7C7 /* copyCursor.png in Resources */,
 				2D9F0E1314FF1CBF00BA0FF7 /* linearSRGB.icc in Resources */,

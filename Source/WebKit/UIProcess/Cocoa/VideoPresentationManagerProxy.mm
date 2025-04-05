@@ -451,6 +451,22 @@ void VideoPresentationModelContext::fullscreenMayReturnToInline()
         manager->fullscreenMayReturnToInline(m_contextId);
 }
 
+#if ENABLE(LINEAR_MEDIA_PLAYER)
+void VideoPresentationModelContext::didEnterExternalPlayback()
+{
+    ALWAYS_LOG_IF_POSSIBLE(LOGIDENTIFIER);
+    if (RefPtr manager = m_manager.get())
+        manager->didEnterExternalPlayback(m_contextId);
+}
+
+void VideoPresentationModelContext::didExitExternalPlayback()
+{
+    ALWAYS_LOG_IF_POSSIBLE(LOGIDENTIFIER);
+    if (RefPtr manager = m_manager.get())
+        manager->didExitExternalPlayback(m_contextId);
+}
+#endif
+
 void VideoPresentationModelContext::requestRouteSharingPolicyAndContextUID(CompletionHandler<void(WebCore::RouteSharingPolicy, String)>&& completionHandler)
 {
     ALWAYS_LOG_IF_POSSIBLE(LOGIDENTIFIER);
@@ -967,12 +983,9 @@ void VideoPresentationManagerProxy::willRemoveLayerForID(PlaybackSessionContextI
     removeClientForContext(contextId);
 }
 
-std::optional<SharedPreferencesForWebProcess> VideoPresentationManagerProxy::sharedPreferencesForWebProcess() const
+std::optional<SharedPreferencesForWebProcess> VideoPresentationManagerProxy::sharedPreferencesForWebProcess(IPC::Connection& connection) const
 {
-    if (!m_page)
-        return std::nullopt;
-
-    return m_page->legacyMainFrameProcess().sharedPreferencesForWebProcess();
+    return WebProcessProxy::fromConnection(connection)->sharedPreferencesForWebProcess();
 }
 
 void VideoPresentationManagerProxy::swapFullscreenModes(PlaybackSessionContextIdentifier firstContextId, PlaybackSessionContextIdentifier secondContextId)
@@ -1529,6 +1542,20 @@ void VideoPresentationManagerProxy::fullscreenMayReturnToInline(PlaybackSessionC
     if (RefPtr page = m_page.get())
         page->protectedLegacyMainFrameProcess()->send(Messages::VideoPresentationManager::FullscreenMayReturnToInline(contextId, page->isViewVisible()), page->webPageIDInMainFrameProcess());
 }
+
+#if ENABLE(LINEAR_MEDIA_PLAYER)
+void VideoPresentationManagerProxy::didEnterExternalPlayback(PlaybackSessionContextIdentifier contextId)
+{
+    if (RefPtr page = m_page.get())
+        page->protectedLegacyMainFrameProcess()->send(Messages::VideoPresentationManager::DidEnterExternalPlayback(contextId), page->webPageIDInMainFrameProcess());
+}
+
+void VideoPresentationManagerProxy::didExitExternalPlayback(PlaybackSessionContextIdentifier contextId)
+{
+    if (RefPtr page = m_page.get())
+        page->protectedLegacyMainFrameProcess()->send(Messages::VideoPresentationManager::DidExitExternalPlayback(contextId), page->webPageIDInMainFrameProcess());
+}
+#endif
 
 #endif
 

@@ -2176,10 +2176,6 @@ imported/w3c/web-platform-tests/svg/animations/stop-animation-01.html [ ImageOnl
 imported/w3c/web-platform-tests/svg/animations/switch-animation-01.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/animations/switch-animation-02.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/embedded/image-crossorigin.sub.html [ Skip ]
-imported/w3c/web-platform-tests/svg/embedded/image-embedding-nested-data-url-png.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/embedded/image-embedding-nested-data-url.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/embedded/image-embedding-nested-external-data-url-png.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/embedded/image-embedding-nesteder-data-url.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/embedded/image-embedding-svg-with-near-integral-width.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/embedded/image-fractional-width-vertical-fidelity.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/import/color-prop-04-t-manual.svg [ Skip ]
@@ -5711,6 +5707,7 @@ imported/w3c/web-platform-tests/css/css-contain/contain-style-counters-004.html 
 imported/w3c/web-platform-tests/css/css-contain/contain-style-counters-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-vs-scrollIntoView-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-vs-scrollIntoView-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-hidden-scrollTop-left-width-height.html [ Failure ]
 
 # Style containment
 imported/w3c/web-platform-tests/css/css-contain/counter-scoping-001.html [ ImageOnlyFailure ]

@@ -2985,23 +2985,33 @@ auto Document::updateLayout(OptionSet<LayoutOptions> layoutOptions, const Elemen
                 if (context && !context->renderer())
                     return false;
 
+                auto shouldForceLayoutOnRenderer = [&](auto& renderer) {
+                    auto everhadLayoutAndWasSkippedDuringLast = renderer.wasSkippedDuringLastLayoutDueToContentVisibility();
+                    if (!everhadLayoutAndWasSkippedDuringLast) {
+                        // Never had layout.
+                        return true;
+                    }
+                    if (*everhadLayoutAndWasSkippedDuringLast) {
+                        // Was skipped at the last layout.
+                        return true;
+                    }
+                    return renderer.needsLayout();
+                };
+
                 if (context) {
                     if (!context->renderer()->style().isSkippedRootOrSkippedContent())
                         return false;
 
                     auto& skippedRootRenderer = *context->renderer();
-                    auto everhadLayoutAndWasSkippedDuringLast = skippedRootRenderer.wasSkippedDuringLastLayoutDueToContentVisibility();
-                    if (everhadLayoutAndWasSkippedDuringLast && !*everhadLayoutAndWasSkippedDuringLast)
+                    if (!shouldForceLayoutOnRenderer(skippedRootRenderer))
                         return false;
-
                     skippedRootRenderer.setNeedsLayout();
                 } else {
                     ASSERT(!layoutOptions.contains(LayoutOptions::TreatContentVisibilityHiddenAsVisible));
 
                     auto isSkippedContentStale = false;
                     for (auto& descendant : descendantsOfType<RenderBlock>(*renderView())) {
-                        auto everhadLayoutAndWasSkippedDuringLast = descendant.wasSkippedDuringLastLayoutDueToContentVisibility();
-                        if (everhadLayoutAndWasSkippedDuringLast && *everhadLayoutAndWasSkippedDuringLast) {
+                        if (shouldForceLayoutOnRenderer(descendant)) {
                             descendant.setNeedsLayout();
                             isSkippedContentStale = true;
                         }
@@ -6630,7 +6640,14 @@ void Document::whenWindowLoadEventOrDestroyed(CompletionHandler<void()>&& comple
         completionHandler();
         return;
     }
-    m_whenWindowLoadEventOrDestroyed = WTFMove(completionHandler);
+    if (!m_whenWindowLoadEventOrDestroyed) {
+        m_whenWindowLoadEventOrDestroyed = WTFMove(completionHandler);
+        return;
+    }
+    m_whenWindowLoadEventOrDestroyed = [oldCompletionHandler = std::exchange(m_whenWindowLoadEventOrDestroyed, { }), newCompletionHandler = WTFMove(completionHandler)]() mutable {
+        oldCompletionHandler();
+        newCompletionHandler();
+    };
 }
 
 void Document::queueTaskToDispatchEvent(TaskSource source, Ref<Event>&& event)
@@ -6797,9 +6814,7 @@ void Document::addListenerTypeIfNeeded(const AtomString& eventType)
         addListenerType(ListenerType::FocusOut);
         break;
     default:
-        if (typeInfo.isInCategory(EventCategory::CSSTransition))
-            addListenerType(ListenerType::CSSTransition);
-        else if (typeInfo.isInCategory(EventCategory::CSSAnimation))
+        if (typeInfo.isInCategory(EventCategory::CSSAnimation))
             addListenerType(ListenerType::CSSAnimation);
     }
 }
@@ -7694,6 +7709,26 @@ Document* Document::mainFrameDocument() const
     while (HTMLFrameOwnerElement* element = document->ownerElement())
         document = &element->document();
     return document;
+}
+
+RefPtr<Document> Document::sameOriginTopLevelTraversable() const
+{
+    if (!m_frame)
+        return nullptr;
+
+    RefPtr<Frame> topLevelAncestorFrame = m_frame.get();
+    for (Frame* parent = topLevelAncestorFrame->tree().parent(); parent; parent = parent->tree().parent())
+        topLevelAncestorFrame = parent;
+
+    RefPtr localTopAncestor = dynamicDowncast<LocalFrame>(topLevelAncestorFrame);
+    if (!localTopAncestor)
+        return nullptr;
+
+    RefPtr document = localTopAncestor->document();
+    if (!document)
+        return nullptr;
+
+    return document->protectedSecurityOrigin()->isSameOriginDomain(protectedSecurityOrigin()) ? document : nullptr;
 }
 
 RefPtr<LocalFrame> Document::localMainFrame() const
@@ -8875,6 +8910,21 @@ HttpEquivPolicy Document::httpEquivPolicy() const
     return HttpEquivPolicy::Enabled;
 }
 
+void Document::wheelOrTouchEventHandlersChanged(Node* node)
+{
+#if ENABLE(WHEEL_EVENT_REGIONS) || ENABLE(TOUCH_EVENT_REGIONS)
+    if (RefPtr element = dynamicDowncast<Element>(node)) {
+        // Style is affected via eventListenerRegionTypes().
+        element->invalidateStyle();
+    }
+
+    if (RefPtr frame = protectedFrame())
+        frame->invalidateContentEventRegionsIfNeeded(LocalFrame::InvalidateContentEventRegionsReason::EventHandlerChange);
+#else
+    UNUSED_PARAM(node);
+#endif
+}
+
 void Document::wheelEventHandlersChanged(Node* node)
 {
     RefPtr page = this->page();
@@ -8887,12 +8937,7 @@ void Document::wheelEventHandlersChanged(Node* node)
     }
 
 #if ENABLE(WHEEL_EVENT_REGIONS)
-    if (RefPtr<Element> element = dynamicDowncast<Element>(node)) {
-        // Style is affected via eventListenerRegionTypes().
-        element->invalidateStyle();
-    }
-
-    protectedFrame()->invalidateContentEventRegionsIfNeeded(LocalFrame::InvalidateContentEventRegionsReason::EventHandlerChange);
+    wheelOrTouchEventHandlersChanged(node);
 #else
     UNUSED_PARAM(node);
 #endif
@@ -8964,10 +9009,8 @@ void Document::didAddTouchEventHandler(Node& handler)
     }
 
 #if ENABLE(TOUCH_EVENT_REGIONS)
-    if (RefPtr element = dynamicDowncast<Element>(handler)) {
-        // Style is affected via eventListenerRegionTypes().
-        element->invalidateStyle();
-    }
+    wheelOrTouchEventHandlersChanged(&handler);
+    invalidateEventListenerRegions();
 #endif
 
 #else
@@ -8985,6 +9028,11 @@ void Document::didRemoveTouchEventHandler(Node& handler, EventHandlerRemoval rem
 
     if (RefPtr parent = parentDocument())
         parent->didRemoveTouchEventHandler(*this);
+
+#if ENABLE(TOUCH_EVENT_REGIONS)
+    wheelOrTouchEventHandlersChanged(&handler);
+#endif
+
 #else
     UNUSED_PARAM(handler);
     UNUSED_PARAM(removal);

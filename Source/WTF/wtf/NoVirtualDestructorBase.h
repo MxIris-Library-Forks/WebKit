@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,19 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "WKBrowsingContextControllerPrivate.h"
+#pragma once
 
-#import "WebPageProxy.h"
-#import <wtf/WeakObjCPtr.h>
+namespace WTF {
 
-@interface WKBrowsingContextController () {
-@package
-    WeakObjCPtr<id <WKBrowsingContextHistoryDelegate>> _historyDelegate;
+// Make your class inherit from this class when the class knows how to dispose each subtype
+// without using a virtual destructor. It supresses webkit.RefCntblBaseVirtualDtor warnings.
+class NoVirtualDestructorBase {
+protected:
+    NoVirtualDestructorBase() = default;
+    NoVirtualDestructorBase(const NoVirtualDestructorBase&) = default;
+    NoVirtualDestructorBase(NoVirtualDestructorBase&&) = default;
+    ~NoVirtualDestructorBase() = default;
+};
+
 }
 
-+ (NSMutableSet *)customSchemes;
-+ (WKBrowsingContextController *)_browsingContextControllerForPageRef:(WKPageRef)pageRef;
-
-- (instancetype)_initWithPageRef:(WKPageRef)pageRef;
-
-@end
+using WTF::NoVirtualDestructorBase;

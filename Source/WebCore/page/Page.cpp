@@ -537,8 +537,10 @@ Page::~Page()
     if (RefPtr scrollingCoordinator = m_scrollingCoordinator)
         scrollingCoordinator->pageDestroyed();
 
+#if ENABLE(RESOURCE_USAGE)
     if (RefPtr resourceUsageOverlay = m_resourceUsageOverlay)
         resourceUsageOverlay->detachFromPage();
+#endif
 
     checkedBackForward()->close();
     if (!isUtilityPage())
@@ -5638,6 +5640,11 @@ const std::optional<audit_token_t>& Page::presentingApplicationAuditToken() cons
 void Page::setPresentingApplicationAuditToken(std::optional<audit_token_t> presentingApplicationAuditToken)
 {
     m_presentingApplicationAuditToken = WTFMove(presentingApplicationAuditToken);
+
+#if ENABLE(EXTENSION_CAPABILITIES)
+    if (settings().mediaCapabilityGrantsEnabled())
+        return;
+#endif
 
     if (RefPtr mediaSessionManager = PlatformMediaSessionManager::singletonIfExists())
         mediaSessionManager->updatePresentingApplicationPIDIfNecessary(presentingApplicationPID());

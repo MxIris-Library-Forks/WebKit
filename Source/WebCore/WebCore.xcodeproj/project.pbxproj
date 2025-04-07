@@ -11573,7 +11573,6 @@
 		512B6793294B91B9000C0760 /* EmptyBadgeClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmptyBadgeClient.h; sourceTree = "<group>"; };
 		512BDB481C456FAB006494DF /* SQLiteIDBBackingStore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SQLiteIDBBackingStore.cpp; sourceTree = "<group>"; };
 		512BDB491C456FAB006494DF /* SQLiteIDBBackingStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SQLiteIDBBackingStore.h; sourceTree = "<group>"; };
-		512D34D2294A8CDD0000B9B9 /* Navigator+Badge.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Navigator+Badge.idl"; sourceTree = "<group>"; };
 		512D34D3294A8CDD0000B9B9 /* NavigatorBadge.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = NavigatorBadge.idl; sourceTree = "<group>"; };
 		512DD8E20D91E2B4000F89EE /* SharedBufferCF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SharedBufferCF.cpp; sourceTree = "<group>"; };
 		512DD8EA0D91E6AF000F89EE /* LegacyWebArchive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyWebArchive.cpp; sourceTree = "<group>"; };
@@ -26491,7 +26490,6 @@
 			children = (
 				512B678D294B88C8000C0760 /* BadgeClient.h */,
 				512B6793294B91B9000C0760 /* EmptyBadgeClient.h */,
-				512D34D2294A8CDD0000B9B9 /* Navigator+Badge.idl */,
 				512D34D3294A8CDD0000B9B9 /* NavigatorBadge.idl */,
 				51A24D18294CD2BD00E43A29 /* WorkerBadgeProxy.h */,
 			);

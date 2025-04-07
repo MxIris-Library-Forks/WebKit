@@ -616,7 +616,7 @@ static NSStringCompareOptions stringCompareOptions(_WKFindOptions findOptions)
 
 - (NSURL *)_URLWithPageIndex:(NSInteger)pageIndex
 {
-    return [NSURL URLWithString:[NSString stringWithFormat:@"#page%ld", (long)pageIndex + 1] relativeToURL:[_webView URL]];
+    return [NSURL URLWithString:adoptNS([[NSString alloc] initWithFormat:@"#page%ld", (long)pageIndex + 1]).get() relativeToURL:[_webView URL]];
 }
 
 - (void)_goToURL:(NSURL *)url atLocation:(CGPoint)location
@@ -710,7 +710,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 - (void)actionSheetAssistant:(WKActionSheetAssistant *)assistant openElementAtLocation:(CGPoint)location
 {
-    [self _goToURL:_positionInformation.url atLocation:location];
+    [self _goToURL:_positionInformation.url.createNSURL().get() atLocation:location];
 }
 
 - (void)actionSheetAssistant:(WKActionSheetAssistant *)assistant shareElementWithURL:(NSURL *)url rect:(CGRect)boundingRect

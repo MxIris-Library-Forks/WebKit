@@ -6267,7 +6267,6 @@
 		E47127CB163438AE00ED6F5A /* StyleInvalidator.h in Headers */ = {isa = PBXBuildFile; fileRef = E47A97CF163059FC005DCD99 /* StyleInvalidator.h */; };
 		E476EF4A27E07A410056AC6E /* CSSContainerRule.h in Headers */ = {isa = PBXBuildFile; fileRef = E476EF4827E07A1A0056AC6E /* CSSContainerRule.h */; };
 		E4778B80115A581A00B5D372 /* JSCustomEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = E4778B7E115A581A00B5D372 /* JSCustomEvent.h */; };
-		E47A3AC61C5EAC9D00CCBFA7 /* StyleSharingResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = E47A3AC41C5EAC7900CCBFA7 /* StyleSharingResolver.h */; };
 		E47B4BE80E71241600038854 /* CachedResourceHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = E47B4BE60E71241600038854 /* CachedResourceHandle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E47C392D1FE6E0F300BBBC6B /* RenderTreeBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = E47C392A1FE6E0DE00BBBC6B /* RenderTreeBuilder.h */; };
 		E47C392E1FE6E0F700BBBC6B /* RenderTreePosition.h in Headers */ = {isa = PBXBuildFile; fileRef = E47C39241FE6E0DB00BBBC6B /* RenderTreePosition.h */; };
@@ -20731,8 +20730,6 @@
 		E476EF4927E07A280056AC6E /* CSSContainerRule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSContainerRule.cpp; sourceTree = "<group>"; };
 		E4778B7D115A581A00B5D372 /* JSCustomEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCustomEvent.cpp; sourceTree = "<group>"; };
 		E4778B7E115A581A00B5D372 /* JSCustomEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCustomEvent.h; sourceTree = "<group>"; };
-		E47A3AC21C5EABBE00CCBFA7 /* StyleSharingResolver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSharingResolver.cpp; sourceTree = "<group>"; };
-		E47A3AC41C5EAC7900CCBFA7 /* StyleSharingResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleSharingResolver.h; sourceTree = "<group>"; };
 		E47A97CE163059FC005DCD99 /* StyleInvalidator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleInvalidator.cpp; sourceTree = "<group>"; };
 		E47A97CF163059FC005DCD99 /* StyleInvalidator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleInvalidator.h; sourceTree = "<group>"; };
 		E47B4BE60E71241600038854 /* CachedResourceHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedResourceHandle.h; sourceTree = "<group>"; };
@@ -37494,8 +37491,6 @@
 				4A4F48A716B0DFC000EDBB29 /* StyleScopeRuleSets.cpp */,
 				4A4F48A816B0DFC000EDBB29 /* StyleScopeRuleSets.h */,
 				4989734A2B663C6600720679 /* StyleScrollbarState.h */,
-				E47A3AC21C5EABBE00CCBFA7 /* StyleSharingResolver.cpp */,
-				E47A3AC41C5EAC7900CCBFA7 /* StyleSharingResolver.h */,
 				E46B724E2B61141D00A1F9B5 /* StyleSheetContentsCache.cpp */,
 				E46B724F2B61141D00A1F9B5 /* StyleSheetContentsCache.h */,
 				E4DEAA1517A93DC3000E0430 /* StyleTreeResolver.cpp */,
@@ -44587,7 +44582,6 @@
 				F47A5E3E195B8C8A00483100 /* StyleScrollSnapPoints.h in Headers */,
 				9D6380101AF173220031A15C /* StyleSelfAlignmentData.h in Headers */,
 				BCB272082CC1F1DB00265123 /* StyleShapeFunction.h in Headers */,
-				E47A3AC61C5EAC9D00CCBFA7 /* StyleSharingResolver.h in Headers */,
 				A8EA800C0A19516E00A8EF5F /* StyleSheet.h in Headers */,
 				E4F9EEF3156DA00700D23E7E /* StyleSheetContents.h in Headers */,
 				E46B72512B61141D00A1F9B5 /* StyleSheetContentsCache.h in Headers */,

@@ -167,7 +167,7 @@ class ValidationBubble;
 enum class LayoutMilestone : uint16_t;
 enum class PaginationMode : uint8_t;
 enum class ScrollDirection : uint8_t;
-enum ScrollbarOverlayStyle : uint8_t;
+enum class ScrollbarOverlayStyle : uint8_t;
 
 enum class ActivityState : uint16_t;
 enum class AdvancedPrivacyProtections : uint16_t;
@@ -1214,7 +1214,7 @@ public:
         
     void requestScrollToRect(const WebCore::FloatRect& targetRect, const WebCore::FloatPoint& origin);
     void scrollToRect(const WebCore::FloatRect& targetRect, const WebCore::FloatPoint& origin);
-    void setContentOffset(WebCore::ScrollPosition, WebCore::ScrollIsAnimated);
+    void setContentOffset(std::optional<int> x, std::optional<int> y, WebCore::ScrollIsAnimated);
     void scrollToEdge(WebCore::RectEdges<bool>, WebCore::ScrollIsAnimated);
 
 #if PLATFORM(COCOA)
@@ -1277,7 +1277,7 @@ public:
     NSWindow *platformWindow();
     void rootViewToWindow(const WebCore::IntRect& viewRect, WebCore::IntRect& windowRect);
 
-    NSView *inspectorAttachmentView();
+    RetainPtr<NSView> inspectorAttachmentView();
     _WKRemoteObjectRegistry *remoteObjectRegistry();
 
     CGRect boundsOfLayerInLayerBackedWindowCoordinates(CALayer *) const;

@@ -378,12 +378,12 @@ void LocalFrameView::recalculateScrollbarOverlayStyle()
         auto background = documentBackgroundColor();
         if (background.isVisible()) {
             if (background.lightness() <= .5f)
-                return ScrollbarOverlayStyleLight;
+                return ScrollbarOverlayStyle::Light;
         } else {
             if (useDarkAppearance())
-                return ScrollbarOverlayStyleLight;
+                return ScrollbarOverlayStyle::Light;
         }
-        return ScrollbarOverlayStyleDefault;
+        return ScrollbarOverlayStyle::Default;
     }();
     if (scrollbarOverlayStyle() != style)
         setScrollbarOverlayStyle(style);
@@ -2628,6 +2628,24 @@ void LocalFrameView::scrollElementToRect(const Element& element, const IntRect& 
     int centeringOffsetX = (rect.width() - bounds.width()) / 2;
     int centeringOffsetY = (rect.height() - bounds.height()) / 2;
     setScrollPosition(IntPoint(bounds.x() - centeringOffsetX - rect.x(), bounds.y() - centeringOffsetY - rect.y()));
+}
+
+void LocalFrameView::setScrollOffsetWithOptions(std::optional<int> x, std::optional<int> y, const ScrollPositionChangeOptions& options)
+{
+    if (x && y) {
+        setScrollOffsetWithOptions({ *x, *y }, options);
+        return;
+    }
+
+    auto offset = scrollOffsetFromPosition(scrollPosition());
+
+    if (x)
+        offset.setX(*x);
+
+    if (y)
+        offset.setY(*y);
+
+    setScrollOffsetWithOptions(offset, options);
 }
 
 void LocalFrameView::setScrollOffsetWithOptions(const ScrollOffset& scrollOffset, const ScrollPositionChangeOptions& options)

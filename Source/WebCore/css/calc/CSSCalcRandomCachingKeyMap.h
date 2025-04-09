@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2024-2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,35 +24,33 @@
 
 #pragma once
 
-#include "CalculationRandomKey.h"
+#include "CSSCalcRandomCachingKey.h"
 #include <wtf/CryptographicallyRandomNumber.h>
 #include <wtf/HashMap.h>
 #include <wtf/Ref.h>
 #include <wtf/RefCounted.h>
 
 namespace WebCore {
-namespace Calculation {
+namespace CSSCalc {
 
-class RandomKeyMap final : public RefCounted<RandomKeyMap> {
+class RandomCachingKeyMap final : public RefCounted<RandomCachingKeyMap> {
 public:
-    static Ref<RandomKeyMap> create()
+    static Ref<RandomCachingKeyMap> create()
     {
-        return adoptRef(*new RandomKeyMap);
+        return adoptRef(*new RandomCachingKeyMap);
     }
 
-    double lookupUnitInterval(AtomString identifier, double min, double max, std::optional<double> step)
+    double lookupCSSRandomBaseValue(const RandomCachingKey& key)
     {
-        return m_map.ensure(RandomKey { identifier, min, max, step }, [] -> double {
-            // FIXME: Probably doesn't need to be cryptographically strong, but starting with this.
-            return cryptographicallyRandomUnitInterval();
-        }).iterator->value;
+        // FIXME: Probably doesn't need to be cryptographically strong, but starting with this.
+        return m_map.ensure(key, [] { return cryptographicallyRandomUnitInterval(); }).iterator->value;
     }
 
 private:
-    RandomKeyMap() = default;
+    RandomCachingKeyMap() = default;
 
-    HashMap<RandomKey, double> m_map;
+    HashMap<RandomCachingKey, double> m_map;
 };
 
-} // namespace Calculation
+} // namespace CSSCalc
 } // namespace WebCore

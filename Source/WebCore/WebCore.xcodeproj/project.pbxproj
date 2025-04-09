@@ -4877,8 +4877,8 @@
 		BC305C7A0C076BB300CD20F0 /* JSHTMLObjectElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC305C780C076BB300CD20F0 /* JSHTMLObjectElement.h */; };
 		BC3078F12D03667800630D75 /* CSSBoxShadowPropertyValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3078F02D03667800630D75 /* CSSBoxShadowPropertyValue.h */; };
 		BC3078F72D0369C000630D75 /* CSSBoxShadowProperty.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3078F62D0369C000630D75 /* CSSBoxShadowProperty.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BC3079462D0783C900630D75 /* CalculationRandomKeyMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3079432D07610100630D75 /* CalculationRandomKeyMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BC3079472D0783D500630D75 /* CalculationRandomKey.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3079442D0761AC00630D75 /* CalculationRandomKey.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3079462D0783C900630D75 /* CSSCalcRandomCachingKeyMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3079432D07610100630D75 /* CSSCalcRandomCachingKeyMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3079472D0783D500630D75 /* CSSCalcRandomCachingKey.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3079442D0761AC00630D75 /* CSSCalcRandomCachingKey.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3301312BEC1AA700A2A878 /* CSSCalcSymbolsAllowed.h in Headers */ = {isa = PBXBuildFile; fileRef = BC33012C2BEBE8FB00A2A878 /* CSSCalcSymbolsAllowed.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC348BD40DB7F804004ABAB9 /* JSXMLHttpRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = BC348BD20DB7F804004ABAB9 /* JSXMLHttpRequest.h */; };
 		BC348BD40DB7F804004ABABA /* WebCoreJSBuiltins.h in Headers */ = {isa = PBXBuildFile; fileRef = BC348BD20DB7F804004ABABA /* WebCoreJSBuiltins.h */; };
@@ -18050,8 +18050,8 @@
 		BC3078F62D0369C000630D75 /* CSSBoxShadowProperty.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSBoxShadowProperty.h; sourceTree = "<group>"; };
 		BC3078F82D036ABA00630D75 /* CSSTextShadowProperty.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSTextShadowProperty.h; sourceTree = "<group>"; };
 		BC3078FC2D03831C00630D75 /* CSSFilterReference.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSFilterReference.h; sourceTree = "<group>"; };
-		BC3079432D07610100630D75 /* CalculationRandomKeyMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CalculationRandomKeyMap.h; sourceTree = "<group>"; };
-		BC3079442D0761AC00630D75 /* CalculationRandomKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CalculationRandomKey.h; sourceTree = "<group>"; };
+		BC3079432D07610100630D75 /* CSSCalcRandomCachingKeyMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcRandomCachingKeyMap.h; sourceTree = "<group>"; };
+		BC3079442D0761AC00630D75 /* CSSCalcRandomCachingKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcRandomCachingKey.h; sourceTree = "<group>"; };
 		BC33012B2BEBE8FB00A2A878 /* CSSCalcSymbolsAllowed.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcSymbolsAllowed.cpp; sourceTree = "<group>"; };
 		BC33012C2BEBE8FB00A2A878 /* CSSCalcSymbolsAllowed.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcSymbolsAllowed.h; sourceTree = "<group>"; };
 		BC33FB1A0F30EE85002CDD7C /* RenderLineBoxList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLineBoxList.cpp; sourceTree = "<group>"; };
@@ -35611,6 +35611,8 @@
 		BCF1644D26629F9A0002F7EF /* calc */ = {
 			isa = PBXGroup;
 			children = (
+				BC3079442D0761AC00630D75 /* CSSCalcRandomCachingKey.h */,
+				BC3079432D07610100630D75 /* CSSCalcRandomCachingKeyMap.h */,
 				BC33012B2BEBE8FB00A2A878 /* CSSCalcSymbolsAllowed.cpp */,
 				BC33012C2BEBE8FB00A2A878 /* CSSCalcSymbolsAllowed.h */,
 				BC709DDF266323CE00B9A21C /* CSSCalcSymbolTable.cpp */,
@@ -35654,8 +35656,6 @@
 				BC000BF22C6283EE0033AA75 /* CalculationExecutor.h */,
 				BCF1648D2662ADD80002F7EF /* CalculationOperator.cpp */,
 				BCF1648C2662ADD80002F7EF /* CalculationOperator.h */,
-				BC3079442D0761AC00630D75 /* CalculationRandomKey.h */,
-				BC3079432D07610100630D75 /* CalculationRandomKeyMap.h */,
 				BCC090E72D4477F500B672AA /* CalculationRange.h */,
 				BC1A3ADC2C72575B0035D822 /* CalculationTree+Copy.cpp */,
 				BC1A3ADE2C72575B0035D822 /* CalculationTree+Copy.h */,
@@ -40307,8 +40307,6 @@
 				E43AF8E71AC5B7EC00CA717E /* CacheValidation.h in Headers */,
 				BCA408072CA1B617006B037F /* CalculationCategory.h in Headers */,
 				BCF1648E2662ADD80002F7EF /* CalculationOperator.h in Headers */,
-				BC3079472D0783D500630D75 /* CalculationRandomKey.h in Headers */,
-				BC3079462D0783C900630D75 /* CalculationRandomKeyMap.h in Headers */,
 				BCC090E82D4477FA00B672AA /* CalculationRange.h in Headers */,
 				BC000BF42C62CDF90033AA75 /* CalculationTree.h in Headers */,
 				49AE2D97134EE5F90072920A /* CalculationValue.h in Headers */,
@@ -40656,6 +40654,8 @@
 				BCB272112CC1F21B00265123 /* CSSBorderRadius.h in Headers */,
 				BC3078F72D0369C000630D75 /* CSSBoxShadowProperty.h in Headers */,
 				BC3078F12D03667800630D75 /* CSSBoxShadowPropertyValue.h in Headers */,
+				BC3079472D0783D500630D75 /* CSSCalcRandomCachingKey.h in Headers */,
+				BC3079462D0783C900630D75 /* CSSCalcRandomCachingKeyMap.h in Headers */,
 				BC3301312BEC1AA700A2A878 /* CSSCalcSymbolsAllowed.h in Headers */,
 				BC709DE0266323CF00B9A21C /* CSSCalcSymbolTable.h in Headers */,
 				BC000BE72C6011020033AA75 /* CSSCalcTree.h in Headers */,

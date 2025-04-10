@@ -28,6 +28,7 @@
 #include "CSSToLengthConversionData.h"
 #include "CSSToStyleMap.h"
 #include "CascadeLevel.h"
+#include "Document.h"
 #include "PositionArea.h"
 #include "PositionTryFallback.h"
 #include "PropertyCascade.h"
@@ -91,6 +92,7 @@ public:
     const RenderStyle* rootElementStyle() const { return m_context.rootElementStyle; }
 
     const Document& document() const { return m_context.document.get(); }
+    Ref<const Document> protectedDocument() const { return m_context.document; }
     const Element* element() const { return m_context.element.get(); }
 
     inline void setFontDescription(FontCascadeDescription&&);
@@ -141,7 +143,11 @@ public:
     void setUsesViewportUnits();
     void setUsesContainerUnits();
 
-    double lookupCSSRandomBaseValue(const CSSCalc::RandomCachingKey&, bool matchElement) const;
+    double lookupCSSRandomBaseValue(const CSSCalc::RandomCachingKey&, std::optional<CSS::Keyword::ElementShared>) const;
+
+    // Accessors for sibling information used by the sibling-count() and sibling-index() CSS functions.
+    unsigned siblingCount() const;
+    unsigned siblingIndex() const;
 
     AnchorPositionedStates* anchorPositionedStates() { return m_context.treeResolutionState ? &m_context.treeResolutionState->anchorPositionedStates : nullptr; }
     const std::optional<BuilderPositionTryFallback>& positionTryFallback() const { return m_context.positionTryFallback; }

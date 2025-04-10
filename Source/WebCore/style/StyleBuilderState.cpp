@@ -48,6 +48,7 @@
 #include "Document.h"
 #include "DocumentInlines.h"
 #include "ElementInlines.h"
+#include "ElementTraversal.h"
 #include "FontCache.h"
 #include "HTMLElement.h"
 #include "RenderStyleSetters.h"
@@ -318,9 +319,9 @@ void BuilderState::setUsesContainerUnits()
     m_style.setUsesContainerUnits();
 }
 
-double BuilderState::lookupCSSRandomBaseValue(const CSSCalc::RandomCachingKey& key, bool matchElement) const
+double BuilderState::lookupCSSRandomBaseValue(const CSSCalc::RandomCachingKey& key, std::optional<CSS::Keyword::ElementShared> elementShared) const
 {
-    if (!matchElement) {
+    if (!elementShared) {
         ASSERT(element());
 
         std::optional<Style::PseudoElementIdentifier> pseudoElementIdentifier;
@@ -330,6 +331,32 @@ double BuilderState::lookupCSSRandomBaseValue(const CSSCalc::RandomCachingKey& k
         return element()->lookupCSSRandomBaseValue(pseudoElementIdentifier, key);
     }
     return document().lookupCSSRandomBaseValue(key);
+}
+
+unsigned BuilderState::siblingCount() const
+{
+    // https://drafts.csswg.org/css-values-5/#funcdef-sibling-count
+
+    ASSERT(element());
+
+    unsigned count = 1;
+    for (const auto* sibling = ElementTraversal::previousSibling(*element()); sibling; sibling = ElementTraversal::previousSibling(*sibling))
+        ++count;
+    for (const auto* sibling = ElementTraversal::nextSibling(*element()); sibling; sibling = ElementTraversal::nextSibling(*sibling))
+        ++count;
+    return count;
+}
+
+unsigned BuilderState::siblingIndex() const
+{
+    // https://drafts.csswg.org/css-values-5/#funcdef-sibling-index
+
+    ASSERT(element());
+
+    unsigned count = 1;
+    for (const auto* sibling = ElementTraversal::previousSibling(*element()); sibling; sibling = ElementTraversal::previousSibling(*sibling))
+        ++count;
+    return count;
 }
 
 } // namespace Style

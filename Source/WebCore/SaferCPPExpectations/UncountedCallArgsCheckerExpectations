@@ -851,7 +851,6 @@ loader/cache/CachedImage.cpp
 loader/cache/CachedImage.h
 loader/cache/CachedResourceRequest.cpp
 loader/cache/CachedResourceRequestInitiatorTypes.h
-loader/cache/CachedSVGDocumentReference.cpp
 loader/cache/CachedSVGFont.cpp
 loader/cache/MemoryCache.cpp
 loader/cocoa/BundleResourceLoader.mm
@@ -886,7 +885,6 @@ page/LocalFrameView.cpp
 page/Location.cpp
 page/NavigationDestination.cpp
 page/NavigationDestination.h
-page/NavigationHistoryEntry.cpp
 page/NavigationTransition.cpp
 page/Navigator.cpp
 page/NavigatorLoginStatus.cpp

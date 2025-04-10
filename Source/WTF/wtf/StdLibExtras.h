@@ -1560,6 +1560,14 @@ ALWAYS_INLINE std::optional<double> stringToDouble(std::span<const char> buffer,
     return result;
 }
 
+ALWAYS_INLINE std::weak_ordering weakOrderingCast(std::partial_ordering ordering)
+{
+    RELEASE_ASSERT(ordering != std::partial_ordering::unordered);
+    if (is_eq(ordering))
+        return std::weak_ordering::equivalent;
+    return is_lt(ordering) ? std::weak_ordering::less : std::weak_ordering::greater;
+}
+
 } // namespace WTF
 
 #define WTFMove(value) std::move<WTF::CheckMoveParameter>(value)
@@ -1629,6 +1637,7 @@ using WTF::tryBinarySearch;
 using WTF::unsafeMakeSpan;
 using WTF::valueOrCompute;
 using WTF::valueOrDefault;
+using WTF::weakOrderingCast;
 using WTF::zeroBytes;
 using WTF::zeroSpan;
 using WTF::Invocable;

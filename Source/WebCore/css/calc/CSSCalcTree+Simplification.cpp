@@ -26,6 +26,7 @@
 #include "CSSCalcTree+Simplification.h"
 
 #include "AnchorPositionEvaluator.h"
+#include "CSSCalcRandomCachingKey.h"
 #include "CSSCalcSymbolTable.h"
 #include "CSSCalcTree+ContainerProgressEvaluator.h"
 #include "CSSCalcTree+Copy.h"
@@ -536,6 +537,26 @@ std::optional<Child> simplify(Symbol& root, const SimplificationOptions& options
         return copyAndSimplify(makeNumeric(value->value, root.unit), options);
 
     return { };
+}
+
+std::optional<Child> simplify(SiblingCount&, const SimplificationOptions& options)
+{
+    if (!options.conversionData || !options.conversionData->styleBuilderState())
+        return { };
+    if (!options.conversionData->styleBuilderState()->element())
+        return { };
+
+    return makeChild(Number { .value = static_cast<double>(options.conversionData->styleBuilderState()->siblingCount()) });
+}
+
+std::optional<Child> simplify(SiblingIndex&, const SimplificationOptions& options)
+{
+    if (!options.conversionData || !options.conversionData->styleBuilderState())
+        return { };
+    if (!options.conversionData->styleBuilderState()->element())
+        return { };
+
+    return makeChild(Number { .value = static_cast<double>(options.conversionData->styleBuilderState()->siblingIndex()) });
 }
 
 std::optional<Child> simplify(Sum& root, const SimplificationOptions& options)
@@ -1323,11 +1344,11 @@ std::optional<Child> simplify(Random& root, const SimplificationOptions& options
 
             auto randomBaseValue = WTF::switchOn(root.sharing,
                 [&](const Random::SharingOptions& sharingOptions) -> std::optional<double> {
-                    if (sharingOptions.matchElement.has_value() && !options.conversionData->styleBuilderState()->element())
+                    if (sharingOptions.elementShared.has_value() && !options.conversionData->styleBuilderState()->element())
                         return { };
                     return options.conversionData->styleBuilderState()->lookupCSSRandomBaseValue(
                         sharingOptions.identifier,
-                        sharingOptions.matchElement.has_value()
+                        sharingOptions.elementShared
                     );
                 },
                 [&](const Random::SharingFixed& sharingFixed) -> std::optional<double> {

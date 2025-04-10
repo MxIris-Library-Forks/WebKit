@@ -67,6 +67,7 @@
 #import <Foundation/NSURLRequest.h>
 #import <WebCore/AppHighlight.h>
 #import <WebCore/ApplePayAMSUIRequest.h>
+#import <WebCore/DictationAlternative.h>
 #import <WebCore/DragItem.h>
 #import <WebCore/GeometryUtilities.h>
 #import <WebCore/HighlightVisibility.h>
@@ -295,16 +296,18 @@ void WebPageProxy::createSandboxExtensionsIfNeeded(const Vector<String>& files, 
 
         if (token) {
             if (auto handle = SandboxExtension::createHandleForReadByAuditToken(path, *token))
-                return WTFMove(*handle);
-        } else if (auto handle = SandboxExtension::createHandle(path, SandboxExtension::Type::ReadOnly))
-            return WTFMove(*handle);
-        return SandboxExtension::Handle();
+                return handle;
+        }
+        return SandboxExtension::createHandle(path, SandboxExtension::Type::ReadOnly);
     };
 
     if (files.size() == 1) {
         BOOL isDirectory;
         if ([[NSFileManager defaultManager] fileExistsAtPath:files[0] isDirectory:&isDirectory] && !isDirectory) {
-            fileReadHandle = createSandboxExtension("/"_s);
+            if (auto handle = createSandboxExtension("/"_s))
+                fileReadHandle = WTFMove(*handle);
+            else if (auto handle = createSandboxExtension(files[0]))
+                fileReadHandle = WTFMove(*handle);
             willAcquireUniversalFileReadSandboxExtension(m_legacyMainFrameProcess);
         }
     }
@@ -312,7 +315,8 @@ void WebPageProxy::createSandboxExtensionsIfNeeded(const Vector<String>& files, 
     for (auto& file : files) {
         if (![[NSFileManager defaultManager] fileExistsAtPath:file])
             continue;
-        fileUploadHandles.append(createSandboxExtension(file));
+        if (auto handle = createSandboxExtension(file))
+            fileUploadHandles.append(WTFMove(*handle));
     }
 }
 

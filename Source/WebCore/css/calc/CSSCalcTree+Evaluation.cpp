@@ -51,6 +51,8 @@ static auto evaluate(const Percentage&, const EvaluationOptions&) -> std::option
 static auto evaluate(const CanonicalDimension&, const EvaluationOptions&) -> std::optional<double>;
 static auto evaluate(const NonCanonicalDimension&, const EvaluationOptions&) -> std::optional<double>;
 static auto evaluate(const Symbol&, const EvaluationOptions&) -> std::optional<double>;
+static auto evaluate(const SiblingCount&, const EvaluationOptions&) -> std::optional<double>;
+static auto evaluate(const SiblingIndex&, const EvaluationOptions&) -> std::optional<double>;
 static auto evaluate(const IndirectNode<Sum>&, const EvaluationOptions&) -> std::optional<double>;
 static auto evaluate(const IndirectNode<Product>&, const EvaluationOptions&) -> std::optional<double>;
 static auto evaluate(const IndirectNode<Min>&, const EvaluationOptions&) -> std::optional<double>;
@@ -150,6 +152,26 @@ std::optional<double> evaluate(const Symbol& root, const EvaluationOptions& opti
     return std::nullopt;
 }
 
+std::optional<double> evaluate(const SiblingCount&, const EvaluationOptions& options)
+{
+    if (!options.conversionData || !options.conversionData->styleBuilderState())
+        return { };
+    if (!options.conversionData->styleBuilderState()->element())
+        return { };
+
+    return options.conversionData->styleBuilderState()->siblingCount();
+}
+
+std::optional<double> evaluate(const SiblingIndex&, const EvaluationOptions& options)
+{
+    if (!options.conversionData || !options.conversionData->styleBuilderState())
+        return { };
+    if (!options.conversionData->styleBuilderState()->element())
+        return { };
+
+    return options.conversionData->styleBuilderState()->siblingIndex();
+}
+
 std::optional<double> evaluate(const IndirectNode<Sum>& root, const EvaluationOptions& options)
 {
     return executeVariadicMathOperationAfterUnwrapping(root, options);
@@ -194,12 +216,12 @@ std::optional<double> evaluate(const IndirectNode<Random>& root, const Evaluatio
 
     auto randomBaseValue = WTF::switchOn(root->sharing,
         [&](const Random::SharingOptions& sharingOptions) -> std::optional<double> {
-            if (!sharingOptions.matchElement.has_value() && !options.conversionData->styleBuilderState()->element())
+            if (!sharingOptions.elementShared.has_value() && !options.conversionData->styleBuilderState()->element())
                 return { };
 
             return options.conversionData->styleBuilderState()->lookupCSSRandomBaseValue(
                 sharingOptions.identifier,
-                sharingOptions.matchElement.has_value()
+                sharingOptions.elementShared
             );
         },
         [&](const Random::SharingFixed& sharingFixed) -> std::optional<double> {

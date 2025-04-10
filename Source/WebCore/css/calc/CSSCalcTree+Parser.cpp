@@ -192,6 +192,8 @@ bool isCalcFunction(CSSValueID functionId)
     case CSSValueMediaProgress:
     case CSSValueContainerProgress:
     case CSSValueRandom:
+    case CSSValueSiblingCount:
+    case CSSValueSiblingIndex:
     case CSSValueAnchor:
     case CSSValueAnchorSize:
         return true;
@@ -201,6 +203,18 @@ bool isCalcFunction(CSSValueID functionId)
     return false;
 }
 
+template<typename Op> static std::optional<TypedChild> consumeZeroArguments(CSSParserTokenRange& tokens, int, ParserState&)
+{
+    if (!tokens.atEnd()) {
+        LOG_WITH_STREAM(Calc, stream << "Failed '" << nameLiteralForSerialization(Op::id) << "' function - extraneous tokens found");
+        return std::nullopt;
+    }
+
+    auto child = Op { };
+    auto type = getType(child);
+
+    return TypedChild { makeChild(WTFMove(child)), type };
+}
 
 template<typename Op> static std::optional<TypedChild> consumeExactlyOneArgument(CSSParserTokenRange& tokens, int depth, ParserState& state)
 {
@@ -661,10 +675,10 @@ static Random::SharingOptions::Auto makeRandomSharingAuto(ParserState& state)
 
 static std::optional<Random::SharingOptions> consumeOptionalRandomSharingOptions(CSSParserTokenRange& tokens, ParserState& state)
 {
-    // <random-value-sharing-options> = [ [ auto | <dashed-ident> ] || match-element ]
+    // <random-value-sharing-options> = [ [ auto | <dashed-ident> ] || element-shared ]
 
     std::optional<std::variant<Random::SharingOptions::Auto, AtomString>> identifier;
-    std::optional<CSS::Keyword::MatchElement> matchElement;
+    std::optional<CSS::Keyword::ElementShared> elementShared;
 
     CSSParserTokenRangeGuard guard { tokens };
 
@@ -682,37 +696,37 @@ static std::optional<Random::SharingOptions> consumeOptionalRandomSharingOptions
         }
         return false;
     };
-    auto consumeMatchElement = [&] -> bool {
-        if (matchElement)
+    auto consumeElementShared = [&] -> bool {
+        if (elementShared)
             return false;
-        if (tokens.peek().id() == CSSValueMatchElement) {
+        if (tokens.peek().id() == CSSValueElementShared) {
             tokens.consumeIncludingWhitespace();
-            matchElement = CSS::Keyword::MatchElement { };
+            elementShared = CSS::Keyword::ElementShared { };
             return true;
         }
         return false;
     };
 
     for (unsigned i = 0; i < 2; ++i) {
-        if (consumeIdentifier() || consumeMatchElement())
+        if (consumeIdentifier() || consumeElementShared())
             continue;
         break;
     }
 
-    if (!identifier && !matchElement)
+    if (!identifier && !elementShared)
         return { };
 
     guard.commit();
 
     return Random::SharingOptions {
         .identifier = identifier.value_or(makeRandomSharingAuto(state)),
-        .matchElement = matchElement
+        .elementShared = elementShared
     };
 }
 
 static std::optional<Random::Sharing> consumeOptionalRandomSharing(CSSParserTokenRange& tokens, ParserState& state)
 {
-    // <random-value-sharing> = [ [ auto | <dashed-ident> ] || match-element ] | fixed <number [0,1]>
+    // <random-value-sharing> = [ [ auto | <dashed-ident> ] || element-shared ] | fixed <number [0,1]>
 
     if (tokens.peek().id() == CSSValueFixed) {
         if (auto fixed = consumeOptionalRandomSharingFixed(tokens, state))
@@ -754,7 +768,7 @@ static std::optional<TypedChild> consumeRandom(CSSParserTokenRange& tokens, int 
     } else {
         sharing = Random::SharingOptions {
             .identifier = makeRandomSharingAuto(state),
-            .matchElement = { },
+            .elementShared = { },
         };
     }
 
@@ -1513,6 +1527,26 @@ std::optional<TypedChild> parseCalcFunction(CSSParserTokenRange& tokens, CSSValu
         //     - INPUT: dependent on type of <mf-name> feature.
         //     - OUTPUT: <number>
         return consumeContainerProgress(tokens, depth, state);
+
+    case CSSValueSiblingCount:
+        // <sibling-count()> = sibling-count()
+        //     - INPUT: none
+        //     - OUTPUT: <integer>
+        if (!state.propertyParserState.context.cssTreeCountingFunctionsEnabled)
+            return { };
+        if (state.propertyParserState.currentRule != StyleRuleType::Style || state.propertyParserState.currentProperty == CSSPropertyInvalid)
+            return { };
+        return consumeZeroArguments<SiblingCount>(tokens, depth, state);
+
+    case CSSValueSiblingIndex:
+        // <sibling-index()> = sibling-index()
+        //     - INPUT: none
+        //     - OUTPUT: <integer>
+        if (!state.propertyParserState.context.cssTreeCountingFunctionsEnabled)
+            return { };
+        if (state.propertyParserState.currentRule != StyleRuleType::Style || state.propertyParserState.currentProperty == CSSPropertyInvalid)
+            return { };
+        return consumeZeroArguments<SiblingIndex>(tokens, depth, state);
 
     case CSSValueAnchor:
         return consumeAnchor(tokens, depth, state);

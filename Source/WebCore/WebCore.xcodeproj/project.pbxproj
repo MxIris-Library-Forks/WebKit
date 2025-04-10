@@ -123,6 +123,7 @@
 		072A70401D6E8F6200DF0AFC /* OverconstrainedErrorEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 072A703E1D6E8F6200DF0AFC /* OverconstrainedErrorEvent.h */; };
 		072AE1E5183C0741000A5988 /* PluginReplacement.h in Headers */ = {isa = PBXBuildFile; fileRef = 072AE1DF183C0741000A5988 /* PluginReplacement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		072D3D6B2AAD4FA600ED82C5 /* JSMeteringMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 072D3D692AAD4FA600ED82C5 /* JSMeteringMode.h */; };
+		07307B7A2DA07F8D00A5EF65 /* MediaSessionManagerInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 07307B792DA06AEC00A5EF65 /* MediaSessionManagerInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07354A282CD11FD100D229CB /* MediaSourceConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 07354A272CD11FAC00D229CB /* MediaSourceConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		073794DE19EE2C5200E5A045 /* RTCOfferAnswerOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 073794DC19EE2C5200E5A045 /* RTCOfferAnswerOptions.h */; };
 		073794E619EE2FF200E5A045 /* JSRTCConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 073794E419EE2FF200E5A045 /* JSRTCConfiguration.h */; };
@@ -4884,6 +4885,8 @@
 		BC348BD40DB7F804004ABABA /* WebCoreJSBuiltins.h in Headers */ = {isa = PBXBuildFile; fileRef = BC348BD20DB7F804004ABABA /* WebCoreJSBuiltins.h */; };
 		BC348BD40DB7F804004ABABB /* WebCoreJSBuiltinInternals.h in Headers */ = {isa = PBXBuildFile; fileRef = BC348BD20DB7F804004ABABB /* WebCoreJSBuiltinInternals.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3A00C82754496D0047C0E5 /* ColorInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDC642527517B040038FB39 /* ColorInterpolation.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3AA25C2DA2DD2F00BC27C6 /* CSSURLModifiers.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3AA25A2DA2DD2300BC27C6 /* CSSURLModifiers.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3AA25E2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3AA25D2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3BC29C0E91AB0F00835588 /* HostWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3BC29B0E91AB0F00835588 /* HostWindow.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3BE12B0E98092F00835588 /* PopupMenuStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3BE12A0E98092F00835588 /* PopupMenuStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3BE9940E9C1C7C00835588 /* RenderScrollbar.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3BE9910E9C1C7C00835588 /* RenderScrollbar.h */; };
@@ -7037,6 +7040,7 @@
 		072DBC0525DC6BD300A1350E /* MediaSessionCoordinator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaSessionCoordinator.cpp; sourceTree = "<group>"; };
 		072DBC0625DC6EDA00A1350E /* JSMediaSessionCoordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSMediaSessionCoordinator.h; sourceTree = "<group>"; };
 		072DBC0725DC6EDA00A1350E /* JSMediaSessionCoordinator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSMediaSessionCoordinator.cpp; sourceTree = "<group>"; };
+		07307B792DA06AEC00A5EF65 /* MediaSessionManagerInterface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSessionManagerInterface.h; sourceTree = "<group>"; };
 		07354A272CD11FAC00D229CB /* MediaSourceConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSourceConfiguration.h; sourceTree = "<group>"; };
 		0736B73026094A3700E06994 /* MediaSessionCoordinatorMixin.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSessionCoordinatorMixin.idl; sourceTree = "<group>"; };
 		0736B7322609555400E06994 /* MediaSessionPlaylistMixin.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaSessionPlaylistMixin.idl; sourceTree = "<group>"; };
@@ -18070,6 +18074,9 @@
 		BC394A392C766D4C001A629A /* CSSAbsoluteColorSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSAbsoluteColorSerialization.h; sourceTree = "<group>"; };
 		BC394A422C779379001A629A /* CSSCalcTree+Copy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSCalcTree+Copy.cpp"; sourceTree = "<group>"; };
 		BC394A432C779379001A629A /* CSSCalcTree+Copy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+Copy.h"; sourceTree = "<group>"; };
+		BC3AA25A2DA2DD2300BC27C6 /* CSSURLModifiers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSURLModifiers.h; sourceTree = "<group>"; };
+		BC3AA25B2DA2DD2300BC27C6 /* CSSURLModifiers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSURLModifiers.cpp; sourceTree = "<group>"; };
+		BC3AA25D2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadedFromOpaqueSource.h; sourceTree = "<group>"; };
 		BC3BC29B0E91AB0F00835588 /* HostWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HostWindow.h; sourceTree = "<group>"; };
 		BC3BE12A0E98092F00835588 /* PopupMenuStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PopupMenuStyle.h; sourceTree = "<group>"; };
 		BC3BE9900E9C1C7C00835588 /* RenderScrollbar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderScrollbar.cpp; sourceTree = "<group>"; };
@@ -35209,6 +35216,7 @@
 				984264EF12D5280A000D88A4 /* LinkLoaderClient.h */,
 				CBB6B2D11CB7ADC6009EDE1A /* LinkPreloadResourceClients.cpp */,
 				CBB6B2D21CB7ADD0009EDE1A /* LinkPreloadResourceClients.h */,
+				BC3AA25D2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h */,
 				45B5D85E2A968620004C85A0 /* LoaderMalloc.cpp */,
 				45B5D85F2A968620004C85A0 /* LoaderMalloc.h */,
 				51ABF64C16392E2800132A7A /* LoaderStrategy.cpp */,
@@ -35408,6 +35416,8 @@
 				BCB271E42CC0142C00265123 /* CSSUnevaluatedCalc.h */,
 				BCC0F3D32D99A9DC0065B859 /* CSSURL.cpp */,
 				BCC0F3D12D99A2270065B859 /* CSSURL.h */,
+				BC3AA25B2DA2DD2300BC27C6 /* CSSURLModifiers.cpp */,
+				BC3AA25A2DA2DD2300BC27C6 /* CSSURLModifiers.h */,
 			);
 			path = primitives;
 			sourceTree = "<group>";
@@ -39676,6 +39686,7 @@
 				FD31606B12B026F700C1A359 /* HRTFPanner.h */,
 				839BE6D424F58755004DF50F /* IIRFilter.cpp */,
 				839BE6D224F58755004DF50F /* IIRFilter.h */,
+				07307B792DA06AEC00A5EF65 /* MediaSessionManagerInterface.h */,
 				FDB1700314A2BAB200A2B5D9 /* MultiChannelResampler.cpp */,
 				FDB1700414A2BAB200A2B5D9 /* MultiChannelResampler.h */,
 				416FD25D240EE1AE006661D8 /* NowPlayingInfo.h */,
@@ -40836,6 +40847,7 @@
 				4BAFD0E1219242A000C0AB64 /* CSSUnitValue.h in Headers */,
 				4BAFD0D921921EA000C0AB64 /* CSSUnparsedValue.h in Headers */,
 				BCC0F3D22D99A2270065B859 /* CSSURL.h in Headers */,
+				BC3AA25C2DA2DD2F00BC27C6 /* CSSURLModifiers.h in Headers */,
 				BCC0F3D62D99BDD90065B859 /* CSSURLValue.h in Headers */,
 				A80E6CEE0A1989CA007FB8C5 /* CSSValue.h in Headers */,
 				BC4AF44A2CFB85EE0037C65C /* CSSValueAggregates.h in Headers */,
@@ -42975,6 +42987,7 @@
 				E3B2F0EE1D7F4CA900B0C9D1 /* LoadableScriptClient.h in Headers */,
 				46C0D8E628F1E70300BDE218 /* LoadableScriptError.h in Headers */,
 				9759E94914EF1D490026A2DD /* LoadableTextTrack.h in Headers */,
+				BC3AA25E2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h in Headers */,
 				45B5D8612A968620004C85A0 /* LoaderMalloc.h in Headers */,
 				656D37320ADBA5DE00A4554D /* LoaderNSURLExtras.h in Headers */,
 				51E6821016387302003BBF3C /* LoaderStrategy.h in Headers */,
@@ -43143,6 +43156,7 @@
 				CDA9593F2412BAE000910EEF /* MediaSessionHelperIOS.h in Headers */,
 				414460A22412994500814BE7 /* MediaSessionIdentifier.h in Headers */,
 				417F7AEF2139BF6F00FBA7EC /* MediaSessionManagerCocoa.h in Headers */,
+				07307B7A2DA07F8D00A5EF65 /* MediaSessionManagerInterface.h in Headers */,
 				07638A991884487200E15A1B /* MediaSessionManagerIOS.h in Headers */,
 				077BA579260FAEE80072F19F /* MediaSessionPlaybackState.h in Headers */,
 				077BA57A260FAEF80072F19F /* MediaSessionReadyState.h in Headers */,

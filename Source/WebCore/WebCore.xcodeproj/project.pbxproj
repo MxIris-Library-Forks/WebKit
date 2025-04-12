@@ -5200,8 +5200,6 @@
 		C18CC0A42580EFB1003D75FB /* UniversalAccessZoom.h in Headers */ = {isa = PBXBuildFile; fileRef = C18CC0A32580EFB1003D75FB /* UniversalAccessZoom.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		C18CC0A72580F0FA003D75FB /* UniversalAccessZoom.mm in Sources */ = {isa = PBXBuildFile; fileRef = C18CC0A62580F0FA003D75FB /* UniversalAccessZoom.mm */; };
 		C1E1D236203DF15400584665 /* ScreenProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = C1E1D235203DF15400584665 /* ScreenProperties.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		C1F7B7312448F2AC00124557 /* AGXCompilerService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C1F7B72F2448F2AC00124557 /* AGXCompilerService.cpp */; };
-		C1F7B7322448F2AC00124557 /* AGXCompilerService.h in Headers */ = {isa = PBXBuildFile; fileRef = C1F7B7302448F2AC00124557 /* AGXCompilerService.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		C2015C0A1BE6FEB200822389 /* FontVariantBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = C2015C091BE6FE2C00822389 /* FontVariantBuilder.h */; };
 		C21DF2EA1D9E4E9900F5B24C /* CSSFontVariationValue.h in Headers */ = {isa = PBXBuildFile; fileRef = C21DF2E81D9E4E9900F5B24C /* CSSFontVariationValue.h */; };
 		C2458E631FE897B000594759 /* FontCacheCoreText.h in Headers */ = {isa = PBXBuildFile; fileRef = C2458E611FE8979E00594759 /* FontCacheCoreText.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18913,8 +18911,6 @@
 		C18CC0A62580F0FA003D75FB /* UniversalAccessZoom.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = UniversalAccessZoom.mm; sourceTree = "<group>"; };
 		C18FB518242F9382007E9875 /* SleepDisablerClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SleepDisablerClient.cpp; sourceTree = "<group>"; };
 		C1E1D235203DF15400584665 /* ScreenProperties.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScreenProperties.h; sourceTree = "<group>"; };
-		C1F7B72F2448F2AC00124557 /* AGXCompilerService.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AGXCompilerService.cpp; sourceTree = "<group>"; };
-		C1F7B7302448F2AC00124557 /* AGXCompilerService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AGXCompilerService.h; sourceTree = "<group>"; };
 		C2015C091BE6FE2C00822389 /* FontVariantBuilder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontVariantBuilder.h; sourceTree = "<group>"; };
 		C21DF2E71D9E4E9900F5B24C /* CSSFontVariationValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSFontVariationValue.cpp; sourceTree = "<group>"; };
 		C21DF2E81D9E4E9900F5B24C /* CSSFontVariationValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSFontVariationValue.h; sourceTree = "<group>"; };
@@ -31940,8 +31936,6 @@
 		A5C974CE11485FDA0066F2AB /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
-				C1F7B72F2448F2AC00124557 /* AGXCompilerService.cpp */,
-				C1F7B7302448F2AC00124557 /* AGXCompilerService.h */,
 				E55450742D11C97500183457 /* AppleVisualEffect.cpp */,
 				E55450522D10D78700183457 /* AppleVisualEffect.h */,
 				F402822E2D88C9A700F3680B /* CocoaView.h */,
@@ -39930,7 +39924,6 @@
 				BCF7E491137CD7C7001DDAE7 /* AdjustViewSizeOrNot.h in Headers */,
 				D2BB5C65290985E40065457D /* AdvancedPrivacyProtections.h in Headers */,
 				84D0C4061115F1EA0018AA34 /* AffineTransform.h in Headers */,
-				C1F7B7322448F2AC00124557 /* AGXCompilerService.h in Headers */,
 				AEBAFFB02D65D478008311A5 /* AllAcceptedCredentialsOptions.h in Headers */,
 				83BB5C881D5D6F45005A71F4 /* AllDescendantsCollection.h in Headers */,
 				3AD4AB8C2C3CADF700A3E7F3 /* Allowlist.h in Headers */,
@@ -46122,7 +46115,6 @@
 			files = (
 				71BF4C3229B098A8008344FC /* AcceleratedEffectStack.mm in Sources */,
 				A9787CB41F5F5C6600C551C6 /* AccessibilityMediaObject.cpp in Sources */,
-				C1F7B7312448F2AC00124557 /* AGXCompilerService.cpp in Sources */,
 				7BE37F7D27BB86CD007A6CD3 /* ANGLEUtilities.cpp in Sources */,
 				7BE37F7C27BB86B8007A6CD3 /* ANGLEUtilitiesCocoa.mm in Sources */,
 				CD0EEE0E14743F39003EAFA2 /* AudioOutputUnitAdaptorIOS.cpp in Sources */,

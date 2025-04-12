@@ -8470,6 +8470,9 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
 
         newPage->m_shouldSuppressAppLinksInNextNavigationPolicyDecision = mainFrameURL.host() == request.url().host();
 
+        if (privateClickMeasurement)
+            newPage->internals().privateClickMeasurement = { { WTFMove(*privateClickMeasurement), { }, { } } };
+
         if (navigationDataForNewProcess && !openedBlobURL) {
             reply(std::nullopt, std::nullopt);
             newPage->loadRequest(WTFMove(request), shouldOpenExternalURLsPolicy, IsPerformingHTTPFallback::No, WTFMove(navigationDataForNewProcess));
@@ -8479,8 +8482,6 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
         ASSERT(newPage->m_mainFrame);
         reply(newPage->webPageIDInMainFrameProcess(), newPage->creationParameters(protectedLegacyMainFrameProcess(), *newPage->drawingArea(), newPage->m_mainFrame->frameID(), std::nullopt));
 
-        if (privateClickMeasurement)
-            newPage->internals().privateClickMeasurement = { { WTFMove(*privateClickMeasurement), { }, { } } };
 #if HAVE(APP_SSO)
         newPage->m_shouldSuppressSOAuthorizationInNextNavigationPolicyDecision = true;
 #endif
@@ -16261,12 +16262,12 @@ FloatPoint WebPageProxy::mainFrameScrollPosition() const
 
 #endif // PLATFORM(COCOA) && ENABLE(ASYNC_SCROLLING)
 
-void WebPageProxy::fetchSessionStorage(CompletionHandler<void(HashMap<WebCore::ClientOrigin, HashMap<String, String>>&&)>&& completionHandler)
+void WebPageProxy::fetchSessionStorage(CompletionHandler<void(std::optional<HashMap<WebCore::ClientOrigin, HashMap<String, String>>>&&)>&& completionHandler)
 {
     if (RefPtr networkProcess = websiteDataStore().networkProcessIfExists())
         networkProcess->sendWithAsyncReply(Messages::NetworkProcess::FetchSessionStorage(sessionID(), identifier()), WTFMove(completionHandler));
     else
-        completionHandler({ });
+        completionHandler(HashMap<WebCore::ClientOrigin, HashMap<String, String>> { });
 }
 
 void WebPageProxy::restoreSessionStorage(HashMap<WebCore::ClientOrigin, HashMap<String, String>>&& sessionStorage, CompletionHandler<void(bool)>&& completionHandler)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,29 +23,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
+#pragma once
 
-#if WK_HAVE_C_SPI && (PLATFORM(IOS) || PLATFORM(VISION))
-
-#import "PlatformUtilities.h"
-#import "TestWKWebView.h"
-#import <WebKit/WKWebViewPrivateForTesting.h>
-
-TEST(WebKit, IOKitOpenSandboxAccessForDeviceWithAGXCompilerService)
-{
-    auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
-    auto context = adoptWK(TestWebKitAPI::Util::createContextForInjectedBundleTest("InternalsInjectedBundleTest"));
-    configuration.get().processPool = (WKProcessPool *)context.get();
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 300, 300) configuration:configuration.get() addToWindow:YES]);
-
-    [webView _setDeviceHasAGXCompilerServiceForTesting];
-
-    auto sandboxAccess = [&] {
-        return [webView stringByEvaluatingJavaScript:@"window.internals.internals.hasSandboxIOKitOpenAccessToClass('com.apple.WebKit.WebContent', 'AGXCommandQueue')"].boolValue;
-    };
-
-    ASSERT_TRUE(sandboxAccess());
-
-}
-
-#endif // WK_HAVE_C_SPI && PLATFORM(IOS) || PLATFORM(VISION)
+#include <variant>

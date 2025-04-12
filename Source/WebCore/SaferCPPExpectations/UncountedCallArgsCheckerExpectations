@@ -17,7 +17,6 @@ Modules/WebGPU/GPUExternalTexture.cpp
 Modules/WebGPU/GPUPipelineLayout.cpp
 Modules/WebGPU/GPUPresentationContext.cpp
 Modules/WebGPU/GPUQuerySet.cpp
-Modules/WebGPU/GPUQueue.cpp
 Modules/WebGPU/GPURenderBundle.cpp
 Modules/WebGPU/GPURenderBundleEncoder.cpp
 Modules/WebGPU/GPURenderPassEncoder.cpp
@@ -26,7 +25,6 @@ Modules/WebGPU/GPUSampler.cpp
 Modules/WebGPU/GPUShaderModule.cpp
 Modules/WebGPU/GPUTexture.cpp
 Modules/WebGPU/GPUTextureView.cpp
-Modules/WebGPU/Implementation/WebGPUDeviceImpl.cpp
 Modules/WebGPU/Implementation/WebGPUImpl.cpp
 Modules/airplay/WebMediaSessionManager.cpp
 Modules/applepay-ams-ui/ApplePayAMSUIPaymentHandler.cpp
@@ -61,8 +59,6 @@ Modules/fetch/FetchBodyConsumer.cpp
 Modules/fetch/FetchBodySource.cpp
 Modules/fetch/FetchLoader.cpp
 Modules/fetch/FetchRequest.cpp
-Modules/fetch/FetchResponse.cpp
-Modules/fetch/FormDataConsumer.cpp
 Modules/filesystemaccess/FileSystemDirectoryHandle.cpp
 Modules/filesystemaccess/FileSystemFileHandle.cpp
 Modules/filesystemaccess/FileSystemHandle.cpp
@@ -404,7 +400,6 @@ css/CSSCrossfadeValue.cpp
 css/CSSCursorImageValue.cpp
 css/CSSFontFace.cpp
 css/CSSFontFaceRule.cpp
-css/CSSFontFaceSet.cpp
 css/CSSFontFeatureValue.cpp
 css/CSSFontSelector.cpp
 css/CSSFontStyleRangeValue.cpp
@@ -628,9 +623,6 @@ editing/cocoa/WebContentReaderCocoa.mm
 editing/mac/EditorMac.mm
 editing/mac/FrameSelectionMac.mm
 editing/markup.cpp
-fileapi/Blob.cpp
-fileapi/FileReader.cpp
-fileapi/FileReaderLoader.cpp
 history/BackForwardCache.cpp
 history/CachedFrame.cpp
 history/CachedPage.cpp

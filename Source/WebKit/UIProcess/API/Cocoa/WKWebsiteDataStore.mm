@@ -578,14 +578,15 @@ static Vector<WebKit::WebsiteDataRecord> toWebsiteDataRecords(NSArray *dataRecor
         return;
     }
 
-    Vector<std::pair<Vector<uint8_t>, WTF::UUID>> configDataVector;
+    Vector<std::pair<Vector<uint8_t>, std::optional<WTF::UUID>>> configDataVector;
     for (nw_proxy_config_t proxyConfig in proxyConfigurations) {
         RetainPtr<NSData> agentData = adoptNS((NSData *)nw_proxy_config_copy_agent_data(proxyConfig));
 
         uuid_t proxyIdentifier;
         nw_proxy_config_get_identifier(proxyConfig, proxyIdentifier);
 
-        configDataVector.append({ makeVector(agentData.get()), WTF::UUID(std::span<const uint8_t, 16> { proxyIdentifier }) });
+        WTF::UUID uuid { std::span<const uint8_t, 16> { proxyIdentifier } };
+        configDataVector.append({ makeVector(agentData.get()), uuid.isValid() ? std::optional { uuid } : std::nullopt });
     }
 
     _websiteDataStore->setProxyConfigData(WTFMove(configDataVector));
@@ -1591,23 +1592,17 @@ struct WKWebsiteData {
 
 - (void)_fetchDataOfTypes:(NSSet<NSString *> *)dataTypes completionHandler:(void(^)(NSData *))completionHandler
 {
-    auto completionHandlerWithError = [completionHandler = WTFMove(completionHandler)](NSData *data, NSError *error) {
+    [self fetchDataOfTypes:dataTypes completionHandler:makeBlockPtr([completionHandler = makeBlockPtr(completionHandler)](NSData *data, NSError *error) {
+        UNUSED_PARAM(error);
         completionHandler(data);
-    };
-
-    [self fetchDataOfTypes:dataTypes completionHandler:completionHandlerWithError];
+    }).get()];
 }
 
 - (void)_restoreData:(NSData *)data completionHandler:(void(^)(BOOL))completionHandler
 {
-    auto completionHandlerWithError = [completionHandler = WTFMove(completionHandler)](NSError *error) {
-        if (!error)
-            completionHandler(YES);
-        else
-            completionHandler(NO);
-    };
-
-    [self restoreData:data completionHandler:completionHandlerWithError];
+    [self restoreData:data completionHandler:makeBlockPtr([completionHandler = makeBlockPtr(completionHandler)](NSError *error) {
+        completionHandler(!error);
+    }).get()];
 }
 
 @end

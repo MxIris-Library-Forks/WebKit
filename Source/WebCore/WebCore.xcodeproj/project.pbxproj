@@ -6445,6 +6445,7 @@
 		F4034FAC275EAD6E003A81F8 /* RequestCookieConsentOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = F4034F8F275C1686003A81F8 /* RequestCookieConsentOptions.h */; };
 		F4034FAE275EAD76003A81F8 /* NavigatorCookieConsent.h in Headers */ = {isa = PBXBuildFile; fileRef = F4034F8D275C087B003A81F8 /* NavigatorCookieConsent.h */; };
 		F403E7872363B58C00044550 /* EnterKeyHint.h in Headers */ = {isa = PBXBuildFile; fileRef = F403E7852363B58C00044550 /* EnterKeyHint.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		F4063DDC2D7141D700F3FE6E /* LLVMProfiling.h in Headers */ = {isa = PBXBuildFile; fileRef = F4063DDB2D7141D700F3FE6E /* LLVMProfiling.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F40B8D5A281072B800346417 /* TextRecognitionOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = F40B8D59281072B800346417 /* TextRecognitionOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F40DAAEC25D9F25E0011B4FA /* PasteboardContext.h in Headers */ = {isa = PBXBuildFile; fileRef = F40DAAEB25D9F25E0011B4FA /* PasteboardContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F40DAAEF25D9F3BF0011B4FA /* PagePasteboardContext.h in Headers */ = {isa = PBXBuildFile; fileRef = F40DAAEE25D9F3BF0011B4FA /* PagePasteboardContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -21117,6 +21118,8 @@
 		F4034F9C275C4783003A81F8 /* CookieConsentDecisionResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CookieConsentDecisionResult.h; path = "cookie-consent/CookieConsentDecisionResult.h"; sourceTree = "<group>"; };
 		F403E7852363B58C00044550 /* EnterKeyHint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnterKeyHint.h; sourceTree = "<group>"; };
 		F403E7862363B58C00044550 /* EnterKeyHint.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EnterKeyHint.cpp; sourceTree = "<group>"; };
+		F4063DDB2D7141D700F3FE6E /* LLVMProfiling.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLVMProfiling.h; sourceTree = "<group>"; };
+		F4063DDD2D71423B00F3FE6E /* LLVMProfiling.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LLVMProfiling.cpp; sourceTree = "<group>"; };
 		F40B8D59281072B800346417 /* TextRecognitionOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextRecognitionOptions.h; sourceTree = "<group>"; };
 		F40DAAEB25D9F25E0011B4FA /* PasteboardContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PasteboardContext.h; sourceTree = "<group>"; };
 		F40DAAEE25D9F3BF0011B4FA /* PagePasteboardContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PagePasteboardContext.h; sourceTree = "<group>"; };
@@ -35785,6 +35788,8 @@
 				0FEF20CD1BD4A24100128E5D /* LengthSize.cpp */,
 				BCFF64900EAD15C200C1D6F7 /* LengthSize.h */,
 				5143B2621DDD14900014FAC6 /* LinkIcon.h */,
+				F4063DDD2D71423B00F3FE6E /* LLVMProfiling.cpp */,
+				F4063DDB2D7141D700F3FE6E /* LLVMProfiling.h */,
 				C046E1AB1208A9FE00BA2CF7 /* LocalizedStrings.cpp */,
 				935207BD09BD410A00F2038D /* LocalizedStrings.h */,
 				E3C788ED2D035C9500D6C13D /* LogClient.h */,
@@ -42977,6 +42982,7 @@
 				4C96385829BF4A51003E5741 /* ListStyleType.h in Headers */,
 				BC7FA6210D1F0CBD00DB22A9 /* LiveNodeList.h in Headers */,
 				CD814C3E2996FAE8005A780A /* LiveNodeListInlines.h in Headers */,
+				F4063DDC2D7141D700F3FE6E /* LLVMProfiling.h in Headers */,
 				E3B2F0F01D7F4CB500B0C9D1 /* LoadableClassicScript.h in Headers */,
 				E307DED51D81E4F200141CAF /* LoadableModuleScript.h in Headers */,
 				E3B2F0ED1D7F4CA300B0C9D1 /* LoadableScript.h in Headers */,

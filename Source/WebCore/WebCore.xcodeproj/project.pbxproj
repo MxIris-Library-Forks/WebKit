@@ -45702,6 +45702,7 @@
 				5D0D540D0E9862F60029E223 /* Check For Weak VTables and Externals */,
 				37A1EAA3142699BC0087F425 /* Check For Inappropriate Objective-C Class Names */,
 				5DF50887116F3077005202AB /* Check For Inappropriate Files In Framework */,
+				DDFD2AD22C93BD2700ACE884 /* Audit SPI use */,
 				71D6AA381DA4E69400B23969 /* Copy modern media controls code and assets */,
 				5379C7AA21E5287100E4A8F6 /* Check .xcfilelists */,
 				6577FFC7276AC9AD0011AEC8 /* Create Symlink to Cryptex Path */,
@@ -46028,6 +46029,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "Scripts/generate-derived-sources.sh\n";
+		};
+		DDFD2AD22C93BD2700ACE884 /* Audit SPI use */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			dependencyFile = "$(DERIVED_FILES_DIR)/audit-spi.d";
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(WTF_BUILD_SCRIPTS_DIR)/audit-spi-if-needed.sh",
+			);
+			name = "Audit SPI use";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/audit-spi.timestamp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${SCRIPT_INPUT_FILE_0}\" ]\nthen \"${SCRIPT_INPUT_FILE_0}\" \"${BUILT_PRODUCTS_DIR}/JavaScriptCore.framework/JavaScriptCore\" \"${BUILT_PRODUCTS_DIR}/libwebrtc.dylib\" \"${BUILT_PRODUCTS_DIR}/libANGLE-shared.dylib\" \"${BUILT_PRODUCTS_DIR}/WebGPU.framework/WebGPU\"\nfi && touch \"${DERIVED_FILES_DIR}/audit-spi.d\"\n";
 		};
 		F4CDF3CA27E9187200191928 /* Copy Profiling Data */ = {
 			isa = PBXShellScriptBuildPhase;

@@ -62,6 +62,7 @@
 #import "RunJavaScriptParameters.h"
 #import "SessionStateCoding.h"
 #import "UIDelegate.h"
+#import "UIKitUtilities.h"
 #import "VideoPresentationManagerProxy.h"
 #import "ViewGestureController.h"
 #import "WKBackForwardListInternal.h"
@@ -1388,20 +1389,20 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
     NSString *errorMessage = nil;
 
     for (id key in arguments) {
-        NSString *keyString = dynamic_objc_cast<NSString>(key);
+        RetainPtr keyString = dynamic_objc_cast<NSString>(key);
         if (!keyString) {
             errorMessage = @"Key value must be NSString";
             break;
         }
 
-        id value = [arguments objectForKey:keyString];
+        id value = [arguments objectForKey:keyString.get()];
         auto serializedValue = WebKit::JavaScriptEvaluationResult::extract(value);
         if (!serializedValue) {
             errorMessage = @"Function argument values must be one of the following types, or contain only the following types: NSNumber, NSNull, NSDate, NSString, NSArray, and NSDictionary";
             break;
         }
 
-        argumentsMap->append({ keyString, WTFMove(*serializedValue) });
+        argumentsMap->append({ keyString.get(), WTFMove(*serializedValue) });
     }
 
     if (errorMessage && handler) {
@@ -1940,10 +1941,7 @@ inline OptionSet<WebKit::FindOptions> toFindOptions(WKFindConfiguration *configu
 
 #if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
     [self _updateFixedColorExtensionViews];
-#if PLATFORM(MAC)
-    _impl->updateContentInsetFillViews();
 #endif
-#endif // ENABLE(CONTENT_INSET_BACKGROUND_FILL)
 
     auto maximumViewportInsetSize = WebCore::FloatSize(maximumViewportInset.left + additionalInsets.left() + maximumViewportInset.right, maximumViewportInset.top + additionalInsets.top() + maximumViewportInset.bottom);
     auto minimumUnobscuredSize = frame - maximumViewportInsetSize;
@@ -2194,10 +2192,10 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
 {
     auto newSelectionAttributes = selectionAttributes(_page->editorState(), _selectionAttributes);
     if (_selectionAttributes != newSelectionAttributes) {
-        NSString *selectionAttributesKey = NSStringFromSelector(@selector(_selectionAttributes));
-        [self willChangeValueForKey:selectionAttributesKey];
+        RetainPtr selectionAttributesKey = NSStringFromSelector(@selector(_selectionAttributes));
+        [self willChangeValueForKey:selectionAttributesKey.get()];
         _selectionAttributes = newSelectionAttributes;
-        [self didChangeValueForKey:selectionAttributesKey];
+        [self didChangeValueForKey:selectionAttributesKey.get()];
     }
 
     // FIXME: We should either rename -_webView:editorStateDidChange: to clarify that it's only intended for use when testing,
@@ -3067,14 +3065,16 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
     if (!_page || !_page->protectedPreferences()->contentInsetBackgroundFillEnabled())
         return;
 
+    enum class HasFixedEdge : bool { No, Yes };
+
     RetainPtr parentView = [self _containerForFixedColorExtension];
     auto insets = [self _obscuredInsetsForFixedColorExtension];
-    auto updateExtensionView = [&](WebCore::BoxSide side) {
+    auto updateExtensionView = [&](WebCore::BoxSide side) -> HasFixedEdge {
         BOOL needsView = insets.at(side) > 0 && _fixedContainerEdges.hasFixedEdge(side);
         RetainPtr extensionView = _fixedColorExtensionViews.at(side);
         if (!needsView) {
             [extensionView setHidden:YES];
-            return;
+            return HasFixedEdge::No;
         }
 
         if (!extensionView) {
@@ -3104,17 +3104,28 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
         RetainPtr predominantColor = cocoaColorOrNil(_fixedContainerEdges.predominantColor(side));
         [extensionView setBackgroundColor:predominantColor.get() ?: [self underPageBackgroundColor]];
         [extensionView setHidden:NO];
+        return HasFixedEdge::Yes;
     };
 
-    static constexpr std::array allBoxSides {
-        WebCore::BoxSide::Top,
-        WebCore::BoxSide::Left,
-        WebCore::BoxSide::Right,
-        WebCore::BoxSide::Bottom
-    };
+#if PLATFORM(IOS_FAMILY)
+    UIRectEdge fixedEdges = UIRectEdgeNone;
+#endif
 
-    for (auto side : allBoxSides)
-        updateExtensionView(side);
+    for (auto side : WebCore::allBoxSides) {
+        auto hasFixedEdge = updateExtensionView(side);
+#if PLATFORM(IOS_FAMILY)
+        if (hasFixedEdge == HasFixedEdge::Yes)
+            fixedEdges |= WebKit::uiRectEdgeForSide(side);
+#else
+        UNUSED_PARAM(hasFixedEdge);
+#endif
+    }
+
+#if PLATFORM(IOS_FAMILY)
+    [_scrollView _setFixedColorExtensionEdges:fixedEdges];
+#else
+    _impl->updateContentInsetFillViews();
+#endif
 
     [self _updateFixedColorExtensionViewFrames];
 }

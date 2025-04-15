@@ -75,10 +75,12 @@ static std::optional<ShaderModuleParameters> findShaderModuleParameters(const WG
 
 static NSString* appleGPUFamilyToString(id<MTLDevice> device)
 {
+#if ENABLE(WEBGPU_BY_DEFAULT)
     if ([device supportsFamily:MTLGPUFamilyApple9])
         return @"9";
     if ([device supportsFamily:MTLGPUFamilyApple8])
         return @"8";
+#endif
     if ([device supportsFamily:MTLGPUFamilyApple7])
         return @"7";
     if ([device supportsFamily:MTLGPUFamilyApple6])

@@ -2029,7 +2029,9 @@ webkit.org/b/288120 [ Sonoma+ Release ] fast/animation/request-animation-frame-t
 
 webkit.org/b/288404 [ Sonoma+ Release ] fast/text/canvas-color-fonts/stroke-gradient-COLR.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/287012 [ Sonoma+ Debug ] http/tests/pdf/linearized-pdf-in-iframe.html [ Pass Crash ]
+# webkit.org/b/287012 PDF tests crashing at WTF::Lock::assertIsOwner() under PDFPluginBase::streamedBytesForDebugLogging()
+[ Debug ] http/tests/pdf/linearized-pdf-in-iframe.html [ Pass Crash ]
+[ Debug ] http/tests/pdf/linearized-pdf-in-display-none-iframe.html [ Pass Crash ]
 
 webkit.org/b/288411 [ Sequoia x86_64 ] imported/w3c/web-platform-tests/webrtc/simulcast/getStats.https.html [ Failure ]
 
@@ -2133,5 +2135,3 @@ webkit.org/b/291119 [ Debug ] imported/w3c/web-platform-tests/html/semantics/emb
 webkit.org/b/291236 [ Debug ] http/tests/pdf/page-in-window-update-with-linearized-pdf-in-display-none-iframe.html [ Skip ]
 
 webkit.org/b/291394 [ Debug ] imported/w3c/web-platform-tests/wasm/webapi/esm-integration/script-src-blocks-wasm.tentative.sub.html [ Pass Failure ]
-
-webkit.org/b/291436 http/tests/security/contentSecurityPolicy/extensions/manifest-v3/default-src/manifest-v3-default-src-block-wildcard.html [ Failure ]

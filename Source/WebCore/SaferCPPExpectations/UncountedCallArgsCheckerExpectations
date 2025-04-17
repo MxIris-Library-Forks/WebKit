@@ -510,7 +510,6 @@ dom/DOMImplementation.cpp
 dom/DataTransfer.cpp
 dom/DataTransferItemList.cpp
 dom/Document.cpp
-dom/DocumentFontLoader.cpp
 dom/DocumentFragment.cpp
 dom/DocumentStorageAccess.cpp
 dom/Element.cpp
@@ -814,7 +813,6 @@ loader/ApplicationManifestLoader.cpp
 loader/CrossOriginAccessControl.cpp
 loader/CrossOriginOpenerPolicy.cpp
 loader/CrossOriginPreflightChecker.cpp
-loader/DocumentLoader.cpp
 loader/DocumentThreadableLoader.cpp
 loader/DocumentWriter.cpp
 loader/FormSubmission.cpp

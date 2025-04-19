@@ -4994,6 +4994,7 @@
 		BC8BF15A1058141800A40A07 /* UserStyleSheetTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = BC8BF1591058141800A40A07 /* UserStyleSheetTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC8C8FAE0DDCD31B00B592F4 /* RenderStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = BC8C8FAC0DDCD31B00B592F4 /* RenderStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC926F810C0552470082776B /* JSHTMLFrameSetElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC926F7F0C0552470082776B /* JSHTMLFrameSetElement.h */; };
+		BC929E902DAEC25B00311094 /* CSSParser.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E562BE2A8FB00AE645C /* CSSParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC9439C3116CF4940048C750 /* JSNodeCustom.h in Headers */ = {isa = PBXBuildFile; fileRef = BC9439C2116CF4940048C750 /* JSNodeCustom.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC94D14F0C275C68006BC617 /* JSHistory.h in Headers */ = {isa = PBXBuildFile; fileRef = BC94D14D0C275C68006BC617 /* JSHistory.h */; };
 		BC94D1540C275C8B006BC617 /* History.h in Headers */ = {isa = PBXBuildFile; fileRef = BC94D1510C275C8B006BC617 /* History.h */; };
@@ -5149,7 +5150,6 @@
 		BCFE79AA2BE307C900114272 /* CSSParserContext.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E4F2BE2A8FB00AE645C /* CSSParserContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCFE79AB2BE307F800114272 /* CSSSelectorParserContext.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E892BE2A8FB00AE645C /* CSSSelectorParserContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCFE79AC2BE3081700114272 /* CSSParserMode.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E572BE2A8FB00AE645C /* CSSParserMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BCFE79AD2BE3082000114272 /* CSSParser.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E4D2BE2A8FB00AE645C /* CSSParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCFE79AE2BE3082F00114272 /* MutableCSSSelector.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E952BE2A8FB00AE645C /* MutableCSSSelector.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCFE79AF2BE308A200114272 /* CSSParserToken.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E5C2BE2A8FB00AE645C /* CSSParserToken.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCFE79B02BE308AD00114272 /* CSSParserIdioms.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E542BE2A8FB00AE645C /* CSSParserIdioms.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18282,16 +18282,14 @@
 		BC7C5E472BE2A8FB00AE645C /* CSSAtRuleID.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSAtRuleID.h; sourceTree = "<group>"; };
 		BC7C5E4A2BE2A8FB00AE645C /* CSSCustomPropertySyntax.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCustomPropertySyntax.cpp; sourceTree = "<group>"; };
 		BC7C5E4B2BE2A8FB00AE645C /* CSSCustomPropertySyntax.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCustomPropertySyntax.h; sourceTree = "<group>"; };
-		BC7C5E4C2BE2A8FB00AE645C /* CSSParser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParser.cpp; sourceTree = "<group>"; };
-		BC7C5E4D2BE2A8FB00AE645C /* CSSParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParser.h; sourceTree = "<group>"; };
 		BC7C5E4E2BE2A8FB00AE645C /* CSSParserContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserContext.cpp; sourceTree = "<group>"; };
 		BC7C5E4F2BE2A8FB00AE645C /* CSSParserContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserContext.h; sourceTree = "<group>"; };
 		BC7C5E502BE2A8FB00AE645C /* CSSParserEnum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserEnum.h; sourceTree = "<group>"; };
 		BC7C5E512BE2A8FB00AE645C /* CSSParserFastPaths.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserFastPaths.cpp; sourceTree = "<group>"; };
 		BC7C5E522BE2A8FB00AE645C /* CSSParserFastPaths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserFastPaths.h; sourceTree = "<group>"; };
 		BC7C5E542BE2A8FB00AE645C /* CSSParserIdioms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserIdioms.h; sourceTree = "<group>"; };
-		BC7C5E552BE2A8FB00AE645C /* CSSParserImpl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserImpl.cpp; sourceTree = "<group>"; };
-		BC7C5E562BE2A8FB00AE645C /* CSSParserImpl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserImpl.h; sourceTree = "<group>"; };
+		BC7C5E552BE2A8FB00AE645C /* CSSParser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParser.cpp; sourceTree = "<group>"; };
+		BC7C5E562BE2A8FB00AE645C /* CSSParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParser.h; sourceTree = "<group>"; };
 		BC7C5E572BE2A8FB00AE645C /* CSSParserMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserMode.h; sourceTree = "<group>"; };
 		BC7C5E582BE2A8FB00AE645C /* CSSParserObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSParserObserver.h; sourceTree = "<group>"; };
 		BC7C5E592BE2A8FB00AE645C /* CSSParserObserverWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSParserObserverWrapper.cpp; sourceTree = "<group>"; };
@@ -30947,16 +30945,14 @@
 				BC7C5E4B2BE2A8FB00AE645C /* CSSCustomPropertySyntax.h */,
 				BC7C5E9B2BE2B54E00AE645C /* CSSFontVariantLigaturesParser.h */,
 				BC7C5E9C2BE2B54E00AE645C /* CSSFontVariantNumericParser.h */,
-				BC7C5E4C2BE2A8FB00AE645C /* CSSParser.cpp */,
-				BC7C5E4D2BE2A8FB00AE645C /* CSSParser.h */,
+				BC7C5E552BE2A8FB00AE645C /* CSSParser.cpp */,
+				BC7C5E562BE2A8FB00AE645C /* CSSParser.h */,
 				BC7C5E4E2BE2A8FB00AE645C /* CSSParserContext.cpp */,
 				BC7C5E4F2BE2A8FB00AE645C /* CSSParserContext.h */,
 				BC7C5E502BE2A8FB00AE645C /* CSSParserEnum.h */,
 				BC7C5E512BE2A8FB00AE645C /* CSSParserFastPaths.cpp */,
 				BC7C5E522BE2A8FB00AE645C /* CSSParserFastPaths.h */,
 				BC7C5E542BE2A8FB00AE645C /* CSSParserIdioms.h */,
-				BC7C5E552BE2A8FB00AE645C /* CSSParserImpl.cpp */,
-				BC7C5E562BE2A8FB00AE645C /* CSSParserImpl.h */,
 				BC7C5E572BE2A8FB00AE645C /* CSSParserMode.h */,
 				BC7C5E582BE2A8FB00AE645C /* CSSParserObserver.h */,
 				BC7C5E592BE2A8FB00AE645C /* CSSParserObserverWrapper.cpp */,
@@ -40757,7 +40753,7 @@
 				4B5BDD9B21658A1500DD4262 /* CSSPaintCallback.h in Headers */,
 				4B6E87692176D69200420E5E /* CSSPaintImageValue.h in Headers */,
 				4BAFD0CB2190EBD600C0AB64 /* CSSPaintSize.h in Headers */,
-				BCFE79AD2BE3082000114272 /* CSSParser.h in Headers */,
+				BC929E902DAEC25B00311094 /* CSSParser.h in Headers */,
 				BCFE79AA2BE307C900114272 /* CSSParserContext.h in Headers */,
 				BCFE79B32BE308D000114272 /* CSSParserEnum.h in Headers */,
 				45EA87922D35D30400DD0194 /* CSSParserFastPaths.h in Headers */,

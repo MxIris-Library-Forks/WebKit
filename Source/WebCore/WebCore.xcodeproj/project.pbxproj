@@ -156,6 +156,7 @@
 		0753860314489E9800B78452 /* CachedTextTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = 0753860114489E9800B78452 /* CachedTextTrack.h */; };
 		0754A5EA215EA3B8002D3A99 /* RealtimeMediaSourceFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 0754A5E8215EA3B7002D3A99 /* RealtimeMediaSourceFactory.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0757B13E214AE79900794B0D /* VideoPreset.h in Headers */ = {isa = PBXBuildFile; fileRef = 0757B13C214AE79700794B0D /* VideoPreset.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0759DC792DB44B4A000E276E /* CocoaWritingToolsTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 0759DC782DB4490F000E276E /* CocoaWritingToolsTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07611DC12440E59B00D80704 /* MediaUsageInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 07611DB8243FB75C00D80704 /* MediaUsageInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07637267290330610055DDA2 /* MediaDeviceHashSalts.h in Headers */ = {isa = PBXBuildFile; fileRef = 0763726629030BB50055DDA2 /* MediaDeviceHashSalts.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07638A991884487200E15A1B /* MediaSessionManagerIOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 07638A971884487200E15A1B /* MediaSessionManagerIOS.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7112,6 +7113,7 @@
 		0753860114489E9800B78452 /* CachedTextTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedTextTrack.h; sourceTree = "<group>"; };
 		0754A5E8215EA3B7002D3A99 /* RealtimeMediaSourceFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RealtimeMediaSourceFactory.h; sourceTree = "<group>"; };
 		0757B13C214AE79700794B0D /* VideoPreset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoPreset.h; sourceTree = "<group>"; };
+		0759DC782DB4490F000E276E /* CocoaWritingToolsTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CocoaWritingToolsTypes.h; sourceTree = "<group>"; };
 		075CC6C228EE99E100EAAF61 /* IconCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IconCocoa.mm; sourceTree = "<group>"; };
 		075DE29B28FE00DC00D51AD2 /* ScrollAnimationKeyboard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollAnimationKeyboard.cpp; sourceTree = "<group>"; };
 		075DE29C28FE00DC00D51AD2 /* ScrollAnimationKeyboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScrollAnimationKeyboard.h; sourceTree = "<group>"; };
@@ -31938,6 +31940,7 @@
 				E55450742D11C97500183457 /* AppleVisualEffect.cpp */,
 				E55450522D10D78700183457 /* AppleVisualEffect.h */,
 				F402822E2D88C9A700F3680B /* CocoaView.h */,
+				0759DC782DB4490F000E276E /* CocoaWritingToolsTypes.h */,
 				A14090FA1AA51E1D0091191A /* ContentFilterUnblockHandlerCocoa.mm */,
 				4688E97F27B6B44400567CD2 /* CoreLocationGeolocationProvider.h */,
 				4688E97D27B6B44300567CD2 /* CoreLocationGeolocationProvider.mm */,
@@ -40412,6 +40415,7 @@
 				5150B5DD27CDF2E0004FC81E /* CMUtilities.h in Headers */,
 				803798AB2D48AFFC00F5F581 /* CocoaAccessibilityConstants.h in Headers */,
 				F402822F2D88C9A700F3680B /* CocoaView.h in Headers */,
+				0759DC792DB44B4A000E276E /* CocoaWritingToolsTypes.h in Headers */,
 				C0C054CB1118C8E400CE2636 /* CodeGenerator.pm in Headers */,
 				46C3C1FD28CBCB9400C3DA78 /* COEPInheritenceViolationReportBody.h in Headers */,
 				BC5EB5DF0E81B9AB00B25965 /* CollapsedBorderValue.h in Headers */,

@@ -1542,6 +1542,7 @@
 		41E9DCE92319CA7600F35949 /* NetworkSendQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 41E9DCE82319CA7500F35949 /* NetworkSendQueue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41E9EE1F28B51067006A2298 /* MediaCaptureStatusBarManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 41E9EE1728B3E3C0006A2298 /* MediaCaptureStatusBarManager.mm */; };
 		41EB797E27C3E45E001C3E3E /* VideoFrameLibWebRTC.h in Headers */ = {isa = PBXBuildFile; fileRef = 41EB797C27C3E45D001C3E3E /* VideoFrameLibWebRTC.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		41EDD0EE2DB12B970038E76F /* RTCRtpScriptTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 414189F52562E32D00363417 /* RTCRtpScriptTransformer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41F1D21F0EF35C2A00DA8753 /* ScriptCachedFrameData.h in Headers */ = {isa = PBXBuildFile; fileRef = 41F1D21D0EF35C2A00DA8753 /* ScriptCachedFrameData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41F898B428EAEAA30070549C /* VideoEncoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 41F898B228EAEAA20070549C /* VideoEncoder.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41F898F628ED702A0070549C /* AvcEncoderConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 41F898F428ED6F970070549C /* AvcEncoderConfig.h */; };
@@ -19042,6 +19043,7 @@
 		CD11B3E0227CAAA90023AFC7 /* AVStreamDataParserMIMETypeCache.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AVStreamDataParserMIMETypeCache.mm; sourceTree = "<group>"; };
 		CD127DEA14F3097900E84779 /* WebCoreFullScreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCoreFullScreenWindow.h; sourceTree = "<group>"; };
 		CD127DEB14F3097900E84779 /* WebCoreFullScreenWindow.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebCoreFullScreenWindow.mm; sourceTree = "<group>"; };
+		CD1437042DAEB988004C473F /* PlatformMediaSessionInterface.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PlatformMediaSessionInterface.cpp; sourceTree = "<group>"; };
 		CD1795E62B0DA16C00D8BC6B /* VideoTrackConfiguration.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoTrackConfiguration.cpp; sourceTree = "<group>"; };
 		CD1795E72B0DA26D00D8BC6B /* VideoColorSpace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoColorSpace.cpp; sourceTree = "<group>"; };
 		CD1795E92B0DA84500D8BC6B /* AudioTrackConfiguration.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioTrackConfiguration.cpp; sourceTree = "<group>"; };
@@ -39697,6 +39699,7 @@
 				070E091A1875EF71003A1D3C /* PlatformMediaSession.cpp */,
 				070E09181875ED93003A1D3C /* PlatformMediaSession.h */,
 				F4CCD0582A993EA600536C6B /* PlatformMediaSession.serialization.in */,
+				CD1437042DAEB988004C473F /* PlatformMediaSessionInterface.cpp */,
 				07307B912DA4B5C500A5EF65 /* PlatformMediaSessionInterface.h */,
 				CDAE8C071746B95700532D78 /* PlatformMediaSessionManager.cpp */,
 				CDAE8C081746B95700532D78 /* PlatformMediaSessionManager.h */,
@@ -44108,6 +44111,7 @@
 				418FCBE72715A28F00F96ECA /* RTCRtpCodecCapability.h in Headers */,
 				5E2C43631BCEE32B0001E2BC /* RTCRtpReceiver.h in Headers */,
 				413C8B352552F27D00E65055 /* RTCRtpReceiverWithTransform.h in Headers */,
+				41EDD0EE2DB12B970038E76F /* RTCRtpScriptTransformer.h in Headers */,
 				5E2C43611BCEE3230001E2BC /* RTCRtpSender.h in Headers */,
 				413C8B332552F27D00E65055 /* RTCRtpSenderWithTransform.h in Headers */,
 				4181C64A255B4C2800AEB0FF /* RTCRtpSFrameTransform.h in Headers */,

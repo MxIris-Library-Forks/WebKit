@@ -844,7 +844,7 @@ instructionLabel(_table_get)
 
     operationCallMayThrow(macro() cCall3(_ipint_extern_table_get) end)
 
-    pushQuad(t1)
+    pushQuad(r1)
 
     loadb IPInt::Const32Metadata::instructionLength[MC], t0
 
@@ -2900,7 +2900,7 @@ instructionLabel(_ref_func)
     move wasmInstance, a0
     loadi IPInt::Const32Metadata::value[MC], a1
     operationCall(macro() cCall2(_ipint_extern_ref_func) end)
-    pushQuad(t1)
+    pushQuad(r1)
     loadb IPInt::Const32Metadata::instructionLength[MC], t0
     advancePC(t0)
     advanceMC(constexpr (sizeof(IPInt::Const32Metadata)))

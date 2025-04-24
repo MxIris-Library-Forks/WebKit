@@ -708,7 +708,6 @@
 		1CAF34820A6C405200ABE06E /* WebScriptObject.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CAF347F0A6C405200ABE06E /* WebScriptObject.mm */; };
 		1CAF34830A6C405200ABE06E /* WebScriptObjectPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CAF34800A6C405200ABE06E /* WebScriptObjectPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CAF56DB25301AC80017B472 /* DrawGlyphsRecorder.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CAF56D8253014570017B472 /* DrawGlyphsRecorder.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1CBF900F270FF8F6000C457D /* DisplayListResourceHeap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CBF900D270FF8F6000C457D /* DisplayListResourceHeap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CC54AFE270F96AE005BF8BE /* ProcessQualified.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CC54AFB270F92DA005BF8BE /* ProcessQualified.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1CCD81502231F83E0065FC2B /* WebCoreResourceHandleAsOperationQueueDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E152551416FD234F003D7ADB /* WebCoreResourceHandleAsOperationQueueDelegate.mm */; };
 		1CCDF5BE1990332400BCEBAD /* SVGToOTFFontConversion.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CCDF5BC1990332400BCEBAD /* SVGToOTFFontConversion.h */; };
@@ -2208,7 +2207,6 @@
 		52A0BE6627C227E10046611E /* JSFakeXRJointStateInit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52A0BE6527C227E00046611E /* JSFakeXRJointStateInit.cpp */; };
 		52B07441284680CA00511B65 /* AuthenticationExtensionsClientInputs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52B07440284680C900511B65 /* AuthenticationExtensionsClientInputs.cpp */; settings = {COMPILER_FLAGS = "-DRELEASE_WITHOUT_OPTIMIZATIONS -O0"; }; };
 		52B074432846810A00511B65 /* AuthenticationExtensionsClientOutputs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52B074422846810A00511B65 /* AuthenticationExtensionsClientOutputs.cpp */; };
-		52B0D4BE1C57FD1E0077CE53 /* PlatformView.h in Headers */ = {isa = PBXBuildFile; fileRef = 52B0D4BD1C57FD1E0077CE53 /* PlatformView.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		52B0D4C21C57FF910077CE53 /* VideoPresentationInterfaceMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 52B0D4C11C57FF910077CE53 /* VideoPresentationInterfaceMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		52D5A1A71C57489D00DE34A3 /* VideoPresentationModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 52D5A1A41C57488900DE34A3 /* VideoPresentationModel.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		52D5A1A81C5748A300DE34A3 /* VideoPresentationModelVideoElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 52D5A1A51C57488900DE34A3 /* VideoPresentationModelVideoElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -8887,7 +8885,6 @@
 		1CAF56DE2530245A0017B472 /* DrawGlyphsRecorder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGlyphsRecorder.cpp; sourceTree = "<group>"; };
 		1CB6B4F8217B83930093B9CD /* TextDecorationThickness.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextDecorationThickness.h; sourceTree = "<group>"; };
 		1CB6B4FB217B83940093B9CD /* TextUnderlineOffset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextUnderlineOffset.h; sourceTree = "<group>"; };
-		1CBF900D270FF8F6000C457D /* DisplayListResourceHeap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayListResourceHeap.h; sourceTree = "<group>"; };
 		1CC54AFB270F92DA005BF8BE /* ProcessQualified.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessQualified.h; sourceTree = "<group>"; };
 		1CCDF5BB1990332400BCEBAD /* SVGToOTFFontConversion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SVGToOTFFontConversion.cpp; sourceTree = "<group>"; };
 		1CCDF5BC1990332400BCEBAD /* SVGToOTFFontConversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGToOTFFontConversion.h; sourceTree = "<group>"; };
@@ -12026,7 +12023,6 @@
 		52A0BE6527C227E00046611E /* JSFakeXRJointStateInit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSFakeXRJointStateInit.cpp; sourceTree = "<group>"; };
 		52B07440284680C900511B65 /* AuthenticationExtensionsClientInputs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthenticationExtensionsClientInputs.cpp; sourceTree = "<group>"; };
 		52B074422846810A00511B65 /* AuthenticationExtensionsClientOutputs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthenticationExtensionsClientOutputs.cpp; sourceTree = "<group>"; };
-		52B0D4BD1C57FD1E0077CE53 /* PlatformView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformView.h; sourceTree = "<group>"; };
 		52B0D4C11C57FF910077CE53 /* VideoPresentationInterfaceMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoPresentationInterfaceMac.h; sourceTree = "<group>"; };
 		52D5A18D1C54590300DE34A3 /* VideoLayerManagerObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoLayerManagerObjC.mm; sourceTree = "<group>"; };
 		52D5A18E1C54590300DE34A3 /* VideoLayerManagerObjC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoLayerManagerObjC.h; sourceTree = "<group>"; };
@@ -22772,7 +22768,6 @@
 				0FE5FBCF1C3DD51E0007A2CA /* DisplayListRecorderImpl.h */,
 				0FE5FBD01C3DD51E0007A2CA /* DisplayListReplayer.cpp */,
 				0FE5FBD11C3DD51E0007A2CA /* DisplayListReplayer.h */,
-				1CBF900D270FF8F6000C457D /* DisplayListResourceHeap.h */,
 			);
 			path = displaylists;
 			sourceTree = "<group>";
@@ -31977,7 +31972,6 @@
 				F4628A9E234D3BBF00BC884C /* PlatformPasteboardCocoa.mm */,
 				AAE3755D17429BCC006200C2 /* PlatformSpeechSynthesizerCocoa.mm */,
 				F4E90A3B2B52038E002DA469 /* PlatformTextAlternatives.h */,
-				52B0D4BD1C57FD1E0077CE53 /* PlatformView.h */,
 				95BA4FAB26D981AA002A0E62 /* PlatformViewController.h */,
 				CDA29A0A1CBD9A7400901CCF /* PlaybackSessionModel.h */,
 				F491A66D2AA0FC7300F96146 /* PlaybackSessionModel.serialization.in */,
@@ -41013,7 +41007,6 @@
 				F429950F270E75000032298B /* DisplayListRecorder.h in Headers */,
 				0FE5FBD71C3DD51E0007A2CA /* DisplayListRecorderImpl.h in Headers */,
 				0FE5FBD91C3DD51E0007A2CA /* DisplayListReplayer.h in Headers */,
-				1CBF900F270FF8F6000C457D /* DisplayListResourceHeap.h in Headers */,
 				49AF2D6914435D050016A784 /* DisplayRefreshMonitor.h in Headers */,
 				2D29ECC6192ECC8300984B78 /* DisplayRefreshMonitorClient.h in Headers */,
 				0FBB5FBE260991D20054572C /* DisplayRefreshMonitorFactory.h in Headers */,
@@ -43623,7 +43616,6 @@
 				A19759472A4F9AC700FEC5EA /* PlatformVideoPresentationInterface.h in Headers */,
 				CDD08AC2277E554E00EA3755 /* PlatformVideoTrackConfiguration.h in Headers */,
 				CD1F9B042700323D00617EB6 /* PlatformVideoTransferCharacteristics.h in Headers */,
-				52B0D4BE1C57FD1E0077CE53 /* PlatformView.h in Headers */,
 				95BA4FAD26D981AA002A0E62 /* PlatformViewController.h in Headers */,
 				935C476B09AC4D4F00A6AAB4 /* PlatformWheelEvent.h in Headers */,
 				F491A66B2A9FEFA300F96146 /* PlatformWheelEvent.serialization.in in Headers */,

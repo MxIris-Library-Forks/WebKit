@@ -60,6 +60,13 @@ public:
         m_initLevel = AllFields;
     }
 
+    // FIXME(rdar://149970210): Remove this constructor once the internal build is up-to-date
+    ResourceResponse(const URL& url, String&& mimeType, long long expectedLength, String&& textEncodingName)
+        : ResourceResponseBase(URL { url }, WTFMove(mimeType), expectedLength, WTFMove(textEncodingName))
+    {
+        m_initLevel = AllFields;
+    }
+
     WEBCORE_EXPORT void disableLazyInitialization();
 
     unsigned memoryUsage() const

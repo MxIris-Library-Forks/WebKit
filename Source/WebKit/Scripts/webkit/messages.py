@@ -653,7 +653,7 @@ def conditions_for_header(header):
         '<WebCore/ModelPlayerIdentifier.h>': ["ENABLE(MODEL_PROCESS)"],
         '<WebCore/PlaybackTargetClientContextIdentifier.h>': ["ENABLE(WIRELESS_PLAYBACK_TARGET)"],
         '<WebCore/SoupNetworkProxySettings.h>': ["USE(SOUP)"],
-        '<WebCore/SelectionData.h>': ["PLATFORM(GTK)"],
+        '<WebCore/SelectionData.h>': ["PLATFORM(GTK)", "PLATFORM(WPE)"],
         '<WebCore/VideoFrameCV.h>': ["PLATFORM(COCOA)", ],
     }
     if not header in conditions:
@@ -1018,6 +1018,7 @@ def headers_for_type(type, for_implementation_file=False):
         'WebCore::DragHandlingMethod': ['<WebCore/DragActions.h>'],
         'WebCore::DragOperation': ['<WebCore/DragActions.h>'],
         'WebCore::DragSourceAction': ['<WebCore/DragActions.h>'],
+        'WebCore::DragStartRequestResult': ['<WebCore/DragActions.h>'],
         'WebCore::DynamicRangeMode': ['<WebCore/PlatformScreen.h>'],
         'WebCore::ElementAnimationContext': ['<WebCore/ElementAnimationContext.h>'],
         'WebCore::ElementContext': ['<WebCore/ElementContext.h>'],

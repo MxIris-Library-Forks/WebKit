@@ -611,7 +611,7 @@ AsyncClipboardAPIEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK)" : true
+      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)" : true
       default: false
     WebCore:
       default: false
@@ -2352,7 +2352,7 @@ CustomPasteboardDataEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WIN)": true
+      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(WIN)": true
       default: false
 
 DOMAudioSessionEnabled:
@@ -2395,7 +2395,7 @@ DOMPasteAccessRequestsEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(IOS) || PLATFORM(MAC) || PLATFORM(GTK) || PLATFORM(VISION)": true
+      "PLATFORM(IOS) || PLATFORM(MAC) || PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(VISION)": true
       default: false
     WebCore:
       default: false
@@ -3179,6 +3179,22 @@ ForceFTPDirectoryListings:
       default: false
     WebCore:
       default: false
+
+ForceLockdownFontParserEnabled:
+  type: bool
+  status: internal
+  humanReadableName: "Force Lockdown Mode Safe Font Parser"
+  humanReadableDescription: "Forcing the Lockdown Mode Safe Font Parser independently from Lockdown Mode state"
+  exposed: [ WebKit ]
+  category: security
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  sharedPreferenceForWebProcess: true
 
 ForceWebGLUsesLowPower:
   type: bool

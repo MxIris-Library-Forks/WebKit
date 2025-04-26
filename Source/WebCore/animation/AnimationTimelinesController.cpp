@@ -123,6 +123,7 @@ void AnimationTimelinesController::updateAnimationsAndSendEvents(ReducedResoluti
     m_frameRateAligner.beginUpdate(timestamp, previousTimelineFrameRate);
 
     // 1. Update the current time of all timelines associated with document passing now as the timestamp.
+    ASSERT(m_updatedScrollTimelines.isEmpty());
     Vector<Ref<AnimationTimeline>> timelinesToUpdate;
     Vector<Ref<WebAnimation>> animationsToRemove;
     Vector<Ref<CSSTransition>> completedTransitions;
@@ -132,6 +133,10 @@ void AnimationTimelinesController::updateAnimationsAndSendEvents(ReducedResoluti
             continue;
 
         timelinesToUpdate.append(timeline.copyRef());
+
+        // https://drafts.csswg.org/scroll-animations-1/#event-loop
+        if (RefPtr scrollTimeline = dynamicDowncast<ScrollTimeline>(timeline))
+            m_updatedScrollTimelines.append(*scrollTimeline);
 
         for (auto& animation : copyToVector(timeline->relevantAnimations())) {
             if (animation->isSkippedContentAnimation())
@@ -244,6 +249,14 @@ void AnimationTimelinesController::updateAnimationsAndSendEvents(ReducedResoluti
     }
 }
 
+void AnimationTimelinesController::updateStaleScrollTimelines()
+{
+    // https://drafts.csswg.org/scroll-animations-1/#event-loop
+    auto scrollTimelines = std::exchange(m_updatedScrollTimelines, { });
+    for (auto scrollTimeline : scrollTimelines)
+        scrollTimeline->updateCurrentTimeIfStale();
+}
+
 std::optional<Seconds> AnimationTimelinesController::timeUntilNextTickForAnimationsWithFrameRate(FramesPerSecond frameRate) const
 {
     if (!m_cachedCurrentTime)
@@ -302,7 +315,7 @@ void AnimationTimelinesController::cacheCurrentTime(ReducedResolutionSeconds new
     // We can get in a situation where the event loop will not run a task that had been enqueued.
     // If that is the case, we must clear the task group and run the callback prior to adding a
     // new task.
-    if (m_pendingAnimationsProcessingTaskCancellationGroup.hasPendingTask()) {
+    if (m_pendingAnimationsProcessingTaskCancellationGroup.hasPendingTask() && m_cachedCurrentTime) {
         m_pendingAnimationsProcessingTaskCancellationGroup.cancel();
         processPendingAnimations();
     }

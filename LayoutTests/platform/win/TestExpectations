@@ -1057,8 +1057,6 @@ animations/font-variations/font-style.html [ Skip ]
 
 webkit.org/b/229584 animations/fill-mode-forwards.html [ Failure Pass Timeout ]
 
-webkit.org/b/292032 animations/resume-after-page-cache.html [ Skip ] # Crash Pass
-
 # TODO Uses showModalDialog
 webkit.org/b/53675 fast/animation/request-animation-frame-during-modal.html [ Skip ]
 
@@ -1736,7 +1734,7 @@ webgl/2.0.0/conformance2/textures/image_bitmap_from_image_bitmap [ Skip ]
 [ Debug ] fast/canvas/webgl/webgl2-large-getbuffersubdata.html [ Skip ] # Slow
 
 # Needs JIT
-webkit.org/b/274059 webgl/2.0.0/conformance/uniforms/uniform-default-values.html [ Skip ] # Timeout
+webkit.org/b/274059 webgl/2.0.y/conformance/uniforms/uniform-default-values.html [ Skip ] # Timeout
 webkit.org/b/274059 webgl/2.0.y/conformance/glsl/bugs/complex-glsl-does-not-crash.html [ Skip ] # Timeout
 webkit.org/b/274059 webgl/2.0.y/conformance/glsl/misc/shader-uniform-packing-restrictions.html [ Skip ] # Timeout
 webkit.org/b/274059 webgl/2.0.y/conformance/misc/uninitialized-test.html [ Skip ] # Timeout
@@ -1759,14 +1757,14 @@ fast/canvas/webgl/webgl-compressed-texture-size-limit.html [ Failure ]
 fast/canvas/webgl/webgl-depth-texture.html [ Failure ]
 fast/canvas/webgl/webgl2-texture-upload-enums.html [ Failure ]
 
-webgl/2.0.0/conformance/canvas/drawingbuffer-static-canvas-test.html [ Failure Pass ]
+webgl/2.0.y/conformance/canvas/drawingbuffer-static-canvas-test.html [ Failure Pass ]
 webgl/2.0.y/conformance/glsl/bugs/loop-if-loop-gradient.html [ Skip ] # Flaky timeout if it runs with other tests
 webgl/2.0.y/conformance/glsl/bugs/qualcomm-crash.html [ Skip ] # Flaky timeout if it runs with other tests
 webgl/2.0.y/conformance/glsl/bugs/qualcomm-loop-with-continue-crash.html [ Skip ] # Flaky timeout if it runs with other tests
 webgl/2.0.y/conformance/glsl/bugs/sketchfab-lighting-shader-crash.html [ Skip ] # Flaky timeout if it runs with other tests
 webgl/2.0.0/conformance/textures/misc/texture-mips.html [ Failure Pass ]
 webgl/2.0.0/conformance/textures/misc/texture-upload-size.html [ Skip ] # Timeout
-webgl/2.0.0/conformance/uniforms/out-of-bounds-uniform-array-access.html [ Skip ] # Timeout
+webgl/2.0.y/conformance/uniforms/out-of-bounds-uniform-array-access.html [ Skip ] # Timeout
 webgl/2.0.0/conformance2/attribs/gl-vertexattribipointer.html [ Skip ] # Timeout
 webgl/2.0.0/conformance2/glsl3/tricky-loop-conditions.html [ Failure ]
 webgl/2.0.0/conformance2/rendering/blitframebuffer-filter-srgb.html [ Pass Failure ]
@@ -1783,7 +1781,7 @@ webgl/lose-context-after-context-lost.html [ Failure ]
 webgl/max-active-contexts-gc.html [ Failure Pass ]
 webgl/multiple-context-losses.html [ Failure ]
 
-webgl/2.0.0/conformance/canvas/rapid-resizing.html [ Skip ] # Timeout
+webgl/2.0.y/conformance/canvas/rapid-resizing.html [ Skip ] # Timeout
 webgl/1.0.x/conformance/extensions/webgl-multi-draw.html [ Skip ] # Timeout
 webgl/2.0.y/conformance/extensions/webgl-multi-draw.html [ Skip ] # Timeout
 
@@ -4402,7 +4400,6 @@ fast/css/text-underline-offset-repaint.html [ Skip ] # Failure
 fast/flexbox/missing-repaint-when-flext-item-never-had-layout.html [ Skip ] # Failure
 
 webkit.org/b/286284 fast/canvas/canvas-image-shadow.html [ Failure ]
-webkit.org/b/286284 webgl/2.0.0/conformance/canvas/to-data-url-test.html [ Failure ]
 webkit.org/b/286284 webgl/2.0.y/conformance/canvas/to-data-url-test.html [ Failure ]
 
 webkit.org/b/273766 fast/canvas/canvas-scale-shadowBlur.html [ Failure ]

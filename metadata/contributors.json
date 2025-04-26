@@ -387,7 +387,8 @@
          "titan.vl@gmail.com"
       ],
       "github" : "amarchenko",
-      "name" : "Aleksei Marchenko"
+      "name" : "Aleksei Marchenko",
+      "status" : "committer"
    },
    {
       "emails" : [
@@ -6677,7 +6678,8 @@
          "phipsonleecy@gmail.com"
       ],
       "github" : "Phipson",
-      "name" : "Phipson Lee"
+      "name" : "Phipson Lee",
+      "status" : "committer"
    },
    {
       "emails" : [

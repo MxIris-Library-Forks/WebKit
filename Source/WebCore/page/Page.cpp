@@ -2185,6 +2185,11 @@ void Page::updateRendering()
         document.updateResizeObservations(*this);
     });
 
+    // https://drafts.csswg.org/scroll-animations-1/#event-loop
+    forEachDocument([] (Document& document) {
+        document.updateStaleScrollTimelines();
+    });
+
     runProcessingStep(RenderingUpdateStep::FocusFixup, [&] (Document& document) {
         if (RefPtr focusedElement = document.focusedElement()) {
             if (!focusedElement->isFocusable())
@@ -4341,7 +4346,7 @@ RenderingUpdateScheduler* Page::existingRenderingUpdateScheduler()
 
 void Page::forEachDocumentFromMainFrame(const Frame& mainFrame, NOESCAPE const Function<void(Document&)>& functor)
 {
-    Vector<Ref<Document>> documents;
+    Vector<Ref<Document>, 8> documents;
     for (RefPtr frame = &mainFrame; frame; frame = frame->tree().traverseNext()) {
         RefPtr localFrame = dynamicDowncast<LocalFrame>(*frame);
         if (!localFrame)
@@ -4349,6 +4354,7 @@ void Page::forEachDocumentFromMainFrame(const Frame& mainFrame, NOESCAPE const F
         if (RefPtr document = localFrame->document())
             documents.append(document.releaseNonNull());
     }
+
     for (auto& document : documents)
         functor(document);
 }
@@ -4375,7 +4381,7 @@ bool Page::findMatchingLocalDocument(NOESCAPE const Function<bool(Document&)>& f
 
 void Page::forEachRenderableDocument(NOESCAPE const Function<void(Document&)>& functor) const
 {
-    Vector<Ref<Document>> documents;
+    Vector<Ref<Document>, 8> documents;
     for (RefPtr frame = &mainFrame(); frame; frame = frame->tree().traverseNext()) {
         RefPtr localFrame = dynamicDowncast<LocalFrame>(*frame);
         if (!localFrame)

@@ -416,7 +416,7 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
     if (!PAL::isScreenTimeFrameworkAvailable())
         return;
 
-    if (_page && !_page->preferences().screenTimeEnabled())
+    if (!_page->preferences().screenTimeEnabled() || !_page->mainFrame()->url().protocolIsInHTTPFamily())
         return;
 
     _screenTimeWebpageController = adoptNS([PAL::allocSTWebpageControllerInstance() init]);
@@ -436,6 +436,7 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
         [screenTimeView setFrame:self.bounds];
         [self addSubview:screenTimeView.get()];
     }
+
     RELEASE_LOG(ScreenTime, "Screen Time controller was installed.");
 }
 
@@ -477,6 +478,7 @@ static uint32_t convertSystemLayoutDirection(NSUserInterfaceLayoutDirection dire
         [self _installScreenTimeWebpageControllerIfNeeded];
         if (!previouslyInstalledScreenTimeWebpageController && _screenTimeWebpageController)
             [_screenTimeWebpageController setURL:[self _mainFrameURL]];
+
         if (!showsSystemScreenTimeBlockingView && _screenTimeBlurredSnapshot) {
             [_screenTimeBlurredSnapshot setHidden:NO];
             RELEASE_LOG(ScreenTime, "Screen Time has updated to use the blurred view for any blocked URL.");
@@ -2875,10 +2877,20 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
 
 - (void)_setGamepadsRecentlyAccessed:(BOOL)gamepadsRecentlyAccessed
 {
+    if (_gamepadsRecentlyAccessed == gamepadsRecentlyAccessed)
+        return;
+
+    _gamepadsRecentlyAccessed = gamepadsRecentlyAccessed;
+
 #if PLATFORM(VISION)
-    id<WKUIDelegatePrivate> uiDelegate = (id<WKUIDelegatePrivate>)self.UIDelegate;
-    if ([uiDelegate respondsToSelector:@selector(_webView:setRecentlyAccessedGamepads:)])
-        [uiDelegate _webView:self setRecentlyAccessedGamepads:gamepadsRecentlyAccessed];
+    if (self._gamepadAccessRequiresExplicitConsent) {
+        id<WKUIDelegatePrivate> uiDelegate = (id<WKUIDelegatePrivate>)self.UIDelegate;
+        if ([uiDelegate respondsToSelector:@selector(_webView:setRecentlyAccessedGamepads:)])
+            [uiDelegate _webView:self setRecentlyAccessedGamepads:gamepadsRecentlyAccessed];
+        return;
+    }
+
+    [self _tryUpdatingGamepadsAccessStateForImplicitConsentCase];
 #endif
 }
 
@@ -2890,14 +2902,42 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
 
 - (void)_gamepadsConnectedStateChanged
 {
-    id<WKUIDelegatePrivate> uiDelegate = (id<WKUIDelegatePrivate>)self.UIDelegate;
-    if ([uiDelegate respondsToSelector:@selector(_webView:gamepadsConnectedStateDidChange:)])
-        [uiDelegate _webView:self gamepadsConnectedStateDidChange:_page->gamepadsConnected()];
+    if (self._gamepadAccessRequiresExplicitConsent) {
+        id<WKUIDelegatePrivate> uiDelegate = (id<WKUIDelegatePrivate>)self.UIDelegate;
+        if ([uiDelegate respondsToSelector:@selector(_webView:gamepadsConnectedStateDidChange:)])
+            [uiDelegate _webView:self gamepadsConnectedStateDidChange:_page->gamepadsConnected()];
+        return;
+    }
+
+    [self _tryUpdatingGamepadsAccessStateForImplicitConsentCase];
 }
 
 - (void)_setAllowGamepadsAccess
 {
     _page->allowGamepadAccess();
+}
+
+- (BOOL)_gamepadAccessRequiresExplicitConsent
+{
+    return [_configuration _gamepadAccessRequiresExplicitConsent];
+}
+
+- (BOOL)_supportsGameControllerEventInteractionAPI
+{
+    static bool supportsGameControllerEventInteractionAPI = linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::SupportGameControllerEventInteractionAPI);
+    return supportsGameControllerEventInteractionAPI;
+}
+
+- (void)_tryUpdatingGamepadsAccessStateForImplicitConsentCase
+{
+    // We only automatically switch to receiving game controller events over
+    // the Game Controller framework on user interactions on game controller
+    // if the app is linked before visionOS 2.0. On visionOS 2.0 and later,
+    // apps are responsible for adding the GCEventInteraction themselves.
+    if (self._supportsGameControllerEventInteractionAPI)
+        return;
+
+    [self _setAllowGamepadsInput:_gamepadsRecentlyAccessed && self._gamepadsConnected];
 }
 
 - (void)_setAllowGamepadsInput:(BOOL)allowGamepadsInput

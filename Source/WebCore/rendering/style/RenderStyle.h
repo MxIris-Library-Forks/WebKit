@@ -333,7 +333,7 @@ public:
     explicit RenderStyle(CreateDefaultStyleTag);
     RenderStyle(const RenderStyle&, CloneTag);
 
-    static RenderStyle& defaultStyle();
+    static RenderStyle& defaultStyleSingleton();
 
     WEBCORE_EXPORT static RenderStyle create();
     static std::unique_ptr<RenderStyle> createPtr();
@@ -808,6 +808,8 @@ public:
     inline ContainIntrinsicSizeType containIntrinsicLogicalHeightType() const;
     inline bool containIntrinsicWidthHasAuto() const;
     inline bool containIntrinsicHeightHasAuto() const;
+    inline bool containIntrinsicWidthHasLength() const;
+    inline bool containIntrinsicHeightHasLength() const;
     inline bool containIntrinsicLogicalWidthHasAuto() const;
     inline bool containIntrinsicLogicalHeightHasAuto() const;
     inline void containIntrinsicWidthAddAuto();

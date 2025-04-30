@@ -1122,6 +1122,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/EventOptions.h
     dom/EventTarget.h
     dom/EventTargetConcrete.h
+    dom/EventTargetInlines.h
     dom/Exception.h
     dom/ExceptionCode.h
     dom/ExceptionData.h
@@ -1823,6 +1824,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/scrolling/ScrollingTreeScrollingNode.h
     page/scrolling/ScrollingTreeScrollingNodeDelegate.h
     page/scrolling/ScrollingTreeStickyNode.h
+    page/scrolling/ScrollingTreeViewportConstrainedNode.h
     page/scrolling/ThreadedScrollingTree.h
 
     page/text-extraction/TextExtraction.h

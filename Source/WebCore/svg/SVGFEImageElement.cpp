@@ -30,6 +30,7 @@
 #include "FEImage.h"
 #include "Image.h"
 #include "LegacyRenderSVGResource.h"
+#include "NodeInlines.h"
 #include "RenderObject.h"
 #include "SVGElementInlines.h"
 #include "SVGNames.h"
@@ -188,7 +189,7 @@ std::tuple<RefPtr<ImageBuffer>, FloatRect> SVGFEImageElement::imageBufferForEffe
     if (!is<SVGElement>(target.element))
         return { };
 
-    if (isDescendantOrShadowDescendantOf(target.element.get()))
+    if (isShadowIncludingDescendantOf(target.element.get()))
         return { };
 
     RefPtr contextNode = static_pointer_cast<SVGElement>(target.element);

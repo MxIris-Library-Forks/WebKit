@@ -3147,8 +3147,6 @@ webkit.org/b/197473 imported/w3c/web-platform-tests/resource-timing/resource-tim
 # These tests depend on the implementation of "modern compatibility mode" in WebKitAdditions.
 platform/ipad/fast/css/webkit-overflow-scrolling-parsing-modern-compatibility-mode.html [ Skip ]
 
-webkit.org/b/197778 [ Debug ] webgl/2.0.0/conformance2/attribs/gl-vertexattribipointer.html [ Slow ]
-
 # FIXME: Unskip the following test once we have the fix for <rdar://problem/48322899>.
 editing/selection/ios/select-non-editable-text-using-keyboard.html [ Skip ]
 
@@ -6612,7 +6610,7 @@ webkit.org/b/237674 imported/w3c/web-platform-tests/html/semantics/links/links-c
 webkit.org/b/237674 imported/w3c/web-platform-tests/html/semantics/links/links-created-by-a-and-area-elements/target_blank_implicit_noopener_base.html [ Timeout Crash Pass ]
 
 # Timeout
-webkit.org/b/238691 webgl/1.0.3/conformance/state/gl-object-get-calls.html [ Timeout Pass ]
+webkit.org/b/238691 webgl/1.0.x/conformance/state/gl-object-get-calls.html [ Timeout Pass ]
 
 ############ end of test failures related to GPU Process on by default
 
@@ -6945,25 +6943,17 @@ webkit.org/b/263044 [ Debug ] imported/w3c/web-platform-tests/webrtc-stats/suppo
 
 webkit.org/b/268422 fast/events/ios/keyboard-should-not-trigger-resize.html [ Pass Failure ]
 
-# webkit.org/b/268581 (18 webgl/1.0.3/conformance/textures/* tests are consistently/flakily timing out.)
-webgl/1.0.3/conformance/textures/copy-tex-image-and-sub-image-2d.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/gl-teximage.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-data-rgb565.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-data-rgba4444.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-data-rgba5551.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-data.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-rgb565.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-rgba4444.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image-rgba5551.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-image.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-svg-image.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-video-rgb565.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-video-rgba4444.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-video-rgba5551.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-video.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/tex-image-with-format-and-type.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/texture-size-cube-maps.html [ Pass Timeout ]
-webgl/1.0.3/conformance/textures/texture-transparent-pixels-initialized.html [ Pass Timeout ]
+webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-rgb-rgb-unsigned_byte.html
+webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-rgb-rgb-unsigned_short_5_6_5.html
+webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-rgba-rgba-unsigned_byte.html
+webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-rgba-rgba-unsigned_short_4_4_4_4.html
+webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-rgba-rgba-unsigned_short_5_5_5_1.html
+webgl/1.0.x/conformance/textures/misc/texture-srgb-upload.html
+webgl/2.0.y/conformance/textures/image_bitmap_from_video/tex-2d-rgb-rgb-unsigned_byte.html
+webgl/2.0.y/conformance/textures/image_bitmap_from_video/tex-2d-rgb-rgb-unsigned_short_5_6_5.html
+webgl/2.0.y/conformance/textures/image_bitmap_from_video/tex-2d-rgba-rgba-unsigned_byte.html
+webgl/2.0.y/conformance/textures/image_bitmap_from_video/tex-2d-rgba-rgba-unsigned_short_4_4_4_4.html
+webgl/2.0.y/conformance/textures/image_bitmap_from_video/tex-2d-rgba-rgba-unsigned_short_5_5_5_1.html
 
 webkit.org/b/269086 [ Release ] imported/w3c/web-platform-tests/feature-policy/feature-policy-frame-policy-allowed-for-all.https.sub.html [ Pass Failure ]
 
@@ -7112,9 +7102,10 @@ webkit.org/b/170293 fast/css-grid-layout/grid-align-baseline-vertical.html [ Fai
 webkit.org/b/170293 fast/css-grid-layout/grid-self-baseline-two-dimensional.html [ Failure ]
 
 # A sub-test in this test is extremely flaky and fails most of the time, messing up partial-failure expectations
-webkit.org/b/189686 webgl/2.0.0/conformance2/renderbuffers/multisampled-renderbuffer-initialization.html [ Skip ]
+webkit.org/b/189686 webgl/2.0.y/conformance2/renderbuffers/multisampled-renderbuffer-initialization.html [ Skip ]
+
 # Crashes
-webkit.org/b/189686 webgl/2.0.0/conformance2/buffers/one-large-uniform-buffer.html [ Skip ]
+webkit.org/b/189686 webgl/2.0.y/conformance2/buffers/one-large-uniform-buffer.html [ Skip ]
 
 # This test takes a long time to execute in the simulator, since it creates a huge (empty) buffer
 # to draw lots of nothing.
@@ -7134,8 +7125,8 @@ imported/w3c/web-platform-tests/wasm [ Skip ]
 webkit.org/b/201509 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video_timeupdate_on_seek.html [ Failure ]
 
 # ANGLE Metal backend failing tests with shared texture memory on the simulator
-webkit.org/b/222685 webgl/1.0.3/conformance/textures/tex-image-and-sub-image-2d-with-array-buffer-view.html [ Pass Failure ]
-webkit.org/b/222685 webgl/1.0.3/conformance/textures/texture-mips.html [ Pass Failure ]
+webkit.org/b/222685 webgl/1.0.x/conformance/textures/misc/tex-image-and-sub-image-2d-with-array-buffer-view.html [ Pass Failure ]
+webkit.org/b/222685 webgl/1.0.x/conformance/textures/misc/texture-mips.html [ Pass Failure ]
 
 # webkit.org/b/238220 These 5 tests are constant failures on gpup arm64
 [ arm64 ] webaudio/Analyser/realtimeanalyser-fftsize-reset.html [ Failure ]
@@ -7149,7 +7140,6 @@ webkit.org/b/242800 fast/css/counters/element-removal-crash.xhtml [ Pass Failure
 webkit.org/b/254805 webgl/1.0.x/conformance/rendering/blending.html [ Failure ]
 webkit.org/b/237415 webgl/1.0.x/conformance/rendering/clipping-wide-points.html [ Pass Failure ]
 webkit.org/b/254805 webgl/2.0.y/conformance/rendering/blending.html [ Failure ]
-webkit.org/b/261270 webgl/2.0.y/conformance2/extensions/webgl-stencil-texturing.html [ Failure Pass ]
 
 # Sometimes out of memory
 webgl/2.0.y/conformance2/wasm/readpixels-4gb-wasm-memory.html [ Pass Failure ]
@@ -7636,7 +7626,6 @@ webkit.org/b/284595 imported/w3c/web-platform-tests/css/css-grid/masonry/tentati
 
 # webkit.org/b/284096 (REGRESSION (286687@main): [ iOS ] 2 imported scroll-animations tests are consistently failing.)
 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-responsiveness-from-endpoint.html [ Pass Failure ]
-imported/w3c/web-platform-tests/scroll-animations/view-timelines/fieldset-source.html [ Failure ]
 
 webkit.org/b/284419 imported/w3c/web-platform-tests/html/rendering/the-details-element/details-pseudo-elements-006.html [ Failure ]
 
@@ -7791,8 +7780,6 @@ webkit.org/b/290856 imported/w3c/web-platform-tests/css/css-viewport/zoom/backgr
 
 webkit.org/b/290871 imported/w3c/web-platform-tests/navigation-api/scroll-behavior/after-transition-reject.html [ Pass Failure ]
 
-webkit.org/b/290876 imported/w3c/web-platform-tests/trusted-types/DedicatedWorker-constructor-from-SharedWorker.html [ Pass Failure ]
-
 webkit.org/b/290888 fast/loader/redirect-to-invalid-url-using-meta-refresh-calls-policy-delegate.html [ Pass Failure ]
 
 webkit.org/b/290942 [ Debug ] fast/viewport/ios/width-is-device-width-overflowing-body-overflow-hidden.html [ Pass Crash ]
@@ -7820,14 +7807,15 @@ webkit.org/b/290568 fast/multicol/simple-line-layout-line-index-after-strut.html
 
 webkit.org/b/291278 http/tests/IndexedDB/storage-limit-1.https.html [ Pass Failure ]
 
-# webkit.org/b/291345 [ iOS ] 7x imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-*.https.html are flaky failures. 
-imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/trusted-types/ServiceWorker-block-eval-function-constructor.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/trusted-types/ServiceWorker-eval.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/trusted-types/ServiceWorker-importScripts.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-DedicatedWorker.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-ServiceWorker.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-SharedWorker.https.html [ Pass Failure ]
+# webkit.org/b/292268 [ iOS ] Due to harness issues various trusted types tests are flaky timeouts on iOS.
+imported/w3c/web-platform-tests/trusted-types/ServiceWorker-block-eval-function-constructor.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/ServiceWorker-eval.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/ServiceWorker-importScripts.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-DedicatedWorker.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-ServiceWorker.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/ServiceWorkerContainer-register-from-SharedWorker.https.html [ Skip ]
+imported/w3c/web-platform-tests/trusted-types/DedicatedWorker-constructor-from-SharedWorker.html [ Skip ]
 
 webkit.org/b/291436 http/tests/security/contentSecurityPolicy/extensions/manifest-v3/default-src/manifest-v3-default-src-block-wildcard.html [ Failure ]
 
@@ -7855,3 +7843,7 @@ fast/forms/ios/file-upload-panel-dismiss-when-view-removed-from-window.html [ Pa
 [ Debug ] imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?h264_avc [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?vp8 [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?vp9_p0 [ Skip ]
+
+webkit.org/b/292288 resize-observer/contain-instrinsic-size-should-not-leak-nodes.html [ Pass Failure ]
+
+webkit.org/b/292294 webgl/2.0.y/conformance2/extensions/webgl-stencil-texturing.html [ Failure ]

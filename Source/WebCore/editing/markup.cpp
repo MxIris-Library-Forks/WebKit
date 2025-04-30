@@ -446,7 +446,7 @@ private:
     bool isDescendantOf(Node& node, Node& possibleAncestor)
     {
         if (UNLIKELY(m_useComposedTree))
-            return node.isDescendantOrShadowDescendantOf(&possibleAncestor);
+            return node.isShadowIncludingDescendantOf(&possibleAncestor);
         return node.isDescendantOf(&possibleAncestor);
     }
 
@@ -876,7 +876,7 @@ RefPtr<Node> StyledMarkupAccumulator::traverseNodesForSerialization(Node& startN
         else
             advanceToAncestorSibling();
 
-        ASSERT(next || !pastEnd || n->containsIncludingShadowDOM(pastEnd));
+        ASSERT(next || !pastEnd || n->isShadowIncludingInclusiveAncestorOf(pastEnd));
 
         if (isBlock(*n) && canHaveChildrenForEditing(*n) && next == pastEnd) {
             // Don't write out empty block containers that aren't fully selected.
@@ -1314,7 +1314,7 @@ static void fillContainerFromString(ContainerNode& paragraph, const String& stri
         // append the non-tab textual part
         if (!s.isEmpty()) {
             if (!tabText.isEmpty()) {
-                paragraph.appendChild(createTabSpanElement(document, tabText.toString()));
+                paragraph.appendChild(createTabSpanElement(document, String { tabText.toString() }));
                 tabText.clear();
             }
             Ref textNode = document->createTextNode(stringWithRebalancedWhitespace(s, first, i + 1 == numEntries));
@@ -1326,7 +1326,7 @@ static void fillContainerFromString(ContainerNode& paragraph, const String& stri
         if (i + 1 != numEntries)
             tabText.append('\t');
         else if (!tabText.isEmpty())
-            paragraph.appendChild(createTabSpanElement(document, tabText.toString()));
+            paragraph.appendChild(createTabSpanElement(document, String { tabText.toString() }));
 
         first = false;
     }

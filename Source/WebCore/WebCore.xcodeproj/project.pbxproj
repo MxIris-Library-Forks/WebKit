@@ -3969,6 +3969,7 @@
 		9BD4E9171C462872005065BC /* JSCustomElementInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BD4E9151C462872005065BC /* JSCustomElementInterface.h */; };
 		9BD4E91B1C462CFC005065BC /* CustomElementRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BD4E9191C462CFC005065BC /* CustomElementRegistry.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9BDA64D81B975CF2009C4387 /* JSShadowRoot.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B6BC9611B975966005AE1F0 /* JSShadowRoot.h */; };
+		9BDF285C2DC0AC8B0096B893 /* EventTargetInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BDF285B2DC0AC2F0096B893 /* EventTargetInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9BE6710C1D5AEB2500345514 /* JSCustomElementRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BE6710A1D5AEB0400345514 /* JSCustomElementRegistry.h */; };
 		9BF9A8811648DD2F001C6B23 /* JSHTMLFormControlsCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF9A87F1648DD2F001C6B23 /* JSHTMLFormControlsCollection.h */; };
 		9D6380101AF173220031A15C /* StyleSelfAlignmentData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9D63800F1AF16E160031A15C /* StyleSelfAlignmentData.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6533,6 +6534,7 @@
 		F4E57EE1213F434A004EA98E /* WebCoreNSFontManagerExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E57EDF213F434A004EA98E /* WebCoreNSFontManagerExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F4E90A3C2B52038E002DA469 /* PlatformTextAlternatives.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E90A3B2B52038E002DA469 /* PlatformTextAlternatives.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F4E9E2472A23C77B00A5B134 /* OpportunisticTaskScheduler.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E9E2452A23C5D000A5B134 /* OpportunisticTaskScheduler.h */; };
+		F4F0E2772DBC6CE400E2F385 /* ScrollingTreeViewportConstrainedNode.h in Headers */ = {isa = PBXBuildFile; fileRef = F4F0E2752DBC69A200E2F385 /* ScrollingTreeViewportConstrainedNode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F4FB34FC2350C85D00F0094A /* PasteboardCustomData.h in Headers */ = {isa = PBXBuildFile; fileRef = F4FB34FA2350C85D00F0094A /* PasteboardCustomData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F4FC07D62BB3A6220090B808 /* VisibilityAdjustment.h in Headers */ = {isa = PBXBuildFile; fileRef = F4FC07D52BB3A6090090B808 /* VisibilityAdjustment.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F50664F8157F52DC00AC226F /* FormController.h in Headers */ = {isa = PBXBuildFile; fileRef = F50664F6157F52DC00AC226F /* FormController.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -15943,6 +15945,7 @@
 		9BD8A95918BEFC7600987E9A /* CollectionIndexCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CollectionIndexCache.cpp; sourceTree = "<group>"; };
 		9BDD18251F7E059900E8E577 /* WebCorePasteboardFileReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCorePasteboardFileReader.h; sourceTree = "<group>"; };
 		9BDD18261F7E05F400E8E577 /* WebCorePasteboardFileReader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebCorePasteboardFileReader.cpp; sourceTree = "<group>"; };
+		9BDF285B2DC0AC2F0096B893 /* EventTargetInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EventTargetInlines.h; sourceTree = "<group>"; };
 		9BE5468E2880D72200F635A4 /* LinkStyle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = LinkStyle.idl; sourceTree = "<group>"; };
 		9BE671091D5AEB0400345514 /* JSCustomElementRegistry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCustomElementRegistry.cpp; sourceTree = "<group>"; };
 		9BE6710A1D5AEB0400345514 /* JSCustomElementRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCustomElementRegistry.h; sourceTree = "<group>"; };
@@ -21257,6 +21260,8 @@
 		F4E90A3B2B52038E002DA469 /* PlatformTextAlternatives.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformTextAlternatives.h; sourceTree = "<group>"; };
 		F4E9E2452A23C5D000A5B134 /* OpportunisticTaskScheduler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpportunisticTaskScheduler.h; sourceTree = "<group>"; };
 		F4E9E2462A23C5D000A5B134 /* OpportunisticTaskScheduler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OpportunisticTaskScheduler.cpp; sourceTree = "<group>"; };
+		F4F0E2752DBC69A200E2F385 /* ScrollingTreeViewportConstrainedNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScrollingTreeViewportConstrainedNode.h; sourceTree = "<group>"; };
+		F4F0E2762DBC69A200E2F385 /* ScrollingTreeViewportConstrainedNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollingTreeViewportConstrainedNode.cpp; sourceTree = "<group>"; };
 		F4F80A4B2C82265400910DA4 /* ScriptTelemetryCategory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScriptTelemetryCategory.cpp; sourceTree = "<group>"; };
 		F4FB34FA2350C85D00F0094A /* PasteboardCustomData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PasteboardCustomData.h; sourceTree = "<group>"; };
 		F4FB34FB2350C85D00F0094A /* PasteboardCustomData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PasteboardCustomData.cpp; sourceTree = "<group>"; };
@@ -23529,6 +23534,8 @@
 				A6D5A99B1629D70000297330 /* ScrollingTreeScrollingNodeDelegate.h */,
 				5B92C4292716E23300A37CC0 /* ScrollingTreeStickyNode.cpp */,
 				5B92C42B2716E23300A37CC0 /* ScrollingTreeStickyNode.h */,
+				F4F0E2762DBC69A200E2F385 /* ScrollingTreeViewportConstrainedNode.cpp */,
+				F4F0E2752DBC69A200E2F385 /* ScrollingTreeViewportConstrainedNode.h */,
 				0F9510F224F4769C001F52DC /* ScrollLatchingController.cpp */,
 				0F9510F024F4769C001F52DC /* ScrollLatchingController.h */,
 				5B7AB9F62567DB7E006592D0 /* ScrollSnapOffsetsInfo.cpp */,
@@ -38786,6 +38793,7 @@
 				84B349A322F86E8200D47BCF /* EventTargetConcrete.cpp */,
 				84B349A022F86E7400D47BCF /* EventTargetConcrete.h */,
 				CDCE5CD014633BC900D47CCA /* EventTargetFactory.in */,
+				9BDF285B2DC0AC2F0096B893 /* EventTargetInlines.h */,
 				93D196321D6CAB8200FC7E47 /* Exception.h */,
 				935FBCF109BA143B00E230B1 /* ExceptionCode.h */,
 				51F645601F45398B00B54DED /* ExceptionData.h */,
@@ -41194,6 +41202,7 @@
 				E12EDB7B0B308A78002704B6 /* EventTarget.h in Headers */,
 				84B349A222F86E7500D47BCF /* EventTargetConcrete.h in Headers */,
 				97AA3CA5145237CC003E1DA6 /* EventTargetHeaders.h in Headers */,
+				9BDF285C2DC0AC8B0096B893 /* EventTargetInlines.h in Headers */,
 				97AA3CA6145237CC003E1DA6 /* EventTargetInterfaces.h in Headers */,
 				262EC41A1D078FB900BA78FC /* EventTrackingRegions.h in Headers */,
 				93D196331D6CAB8200FC7E47 /* Exception.h in Headers */,
@@ -44246,6 +44255,7 @@
 				0F37F0852202BF9800A89C0B /* ScrollingTreeScrollingNodeDelegateMac.h in Headers */,
 				5B92C42D2716E28A00A37CC0 /* ScrollingTreeStickyNode.h in Headers */,
 				0F94B6492208FE3B00157014 /* ScrollingTreeStickyNodeCocoa.h in Headers */,
+				F4F0E2772DBC6CE400E2F385 /* ScrollingTreeViewportConstrainedNode.h in Headers */,
 				83C5795D1DA5C301006F9C97 /* ScrollIntoViewOptions.h in Headers */,
 				83C5795D1DA5C301006F9C86 /* ScrollLogicalPosition.h in Headers */,
 				83C5795D1DA5C301006FAC97 /* ScrollOptions.h in Headers */,

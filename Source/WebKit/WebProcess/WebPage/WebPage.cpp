@@ -231,6 +231,7 @@
 #include <WebCore/HTMLModelElement.h>
 #include <WebCore/HTMLPlugInElement.h>
 #include <WebCore/HTMLSelectElement.h>
+#include <WebCore/HTMLTextAreaElement.h>
 #include <WebCore/HTMLTextFormControlElement.h>
 #include <WebCore/HTTPParsers.h>
 #include <WebCore/HTTPStatusCodes.h>
@@ -2076,15 +2077,6 @@ void WebPage::createProvisionalFrame(ProvisionalFrameCreationParameters&& parame
     frame->createProvisionalFrame(WTFMove(parameters));
 }
 
-void WebPage::destroyProvisionalFrame(WebCore::FrameIdentifier frameID)
-{
-    RefPtr frame = WebProcess::singleton().webFrame(frameID);
-    if (!frame)
-        return;
-    ASSERT(frame->page() == this);
-    frame->destroyProvisionalFrame();
-}
-
 void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
@@ -2378,7 +2370,7 @@ void WebPage::tryRestoreScrollPosition()
 WebPage* WebPage::fromCorePage(Page& page)
 {
     auto& client = page.chrome().client();
-    return client.isEmptyChromeClient() ? nullptr : &downcast<WebChromeClient>(client).page();
+    return client.isEmptyChromeClient() ? nullptr : downcast<WebChromeClient>(client).page();
 }
 
 RefPtr<WebCore::Page> WebPage::protectedCorePage() const
@@ -7398,6 +7390,19 @@ static bool isTextFormControlOrEditableContent(const WebCore::Element& element)
     return is<HTMLTextFormControlElement>(element) || element.hasEditableStyle();
 }
 
+#if PLATFORM(IOS_FAMILY) && ENABLE(FULLSCREEN_API)
+static bool shouldExitFullscreenAfterFocusingElement(const WebCore::Element& element)
+{
+    if (!element.document().fullscreen().isFullscreen())
+        return false;
+
+    if (RefPtr input = dynamicDowncast<const HTMLInputElement>(element))
+        return input->isTextField();
+
+    return is<HTMLTextAreaElement>(element) || element.hasEditableStyle();
+}
+#endif
+
 void WebPage::elementDidFocus(Element& element, const FocusOptions& options)
 {
 #if PLATFORM(IOS_FAMILY)
@@ -7421,8 +7426,8 @@ void WebPage::elementDidFocus(Element& element, const FocusOptions& options)
 #if PLATFORM(IOS_FAMILY)
 
 #if ENABLE(FULLSCREEN_API)
-        if (element.document().fullscreen().isFullscreen())
-            element.document().fullscreen().fullyExitFullscreen();
+    if (shouldExitFullscreenAfterFocusingElement(element))
+        element.document().fullscreen().fullyExitFullscreen();
 #endif
         if (isChangingFocusedElement && (m_userIsInteracting || m_keyboardIsAttached))
             m_sendAutocorrectionContextAfterFocusingElement = true;
@@ -10140,7 +10145,7 @@ void WebPage::simulateClickOverFirstMatchingTextInViewportWithUserInteraction(co
                 HitTestRequest::Type::Active,
             });
             RefPtr innerNode = result.innerNonSharedNode();
-            return !innerNode || !target->containsIncludingShadowDOM(innerNode.get());
+            return !innerNode || !target->isShadowIncludingInclusiveAncestorOf(innerNode.get());
         });
     };
 

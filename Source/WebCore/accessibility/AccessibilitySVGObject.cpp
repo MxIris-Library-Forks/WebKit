@@ -30,6 +30,7 @@
 
 #include "AXObjectCache.h"
 #include "ElementChildIteratorInlines.h"
+#include "EventTargetInlines.h"
 #include "HTMLNames.h"
 #include "RenderIterator.h"
 #include "RenderText.h"
@@ -112,11 +113,11 @@ void AccessibilitySVGObject::accessibilityText(Vector<AccessibilityText>& textOr
 {
     String description = this->description();
     if (!description.isEmpty())
-        textOrder.append(AccessibilityText(description, AccessibilityTextSource::Alternative));
+        textOrder.append(AccessibilityText(WTFMove(description), AccessibilityTextSource::Alternative));
 
     String helptext = helpText();
     if (!helptext.isEmpty())
-        textOrder.append(AccessibilityText(helptext, AccessibilityTextSource::Help));
+        textOrder.append(AccessibilityText(WTFMove(helptext), AccessibilityTextSource::Help));
 }
 
 String AccessibilitySVGObject::description() const

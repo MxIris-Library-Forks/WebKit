@@ -1273,6 +1273,7 @@ webkit.org/b/213699 http/wpt/mediarecorder/set-srcObject-MediaStream-Blob.html [
 webkit.org/b/213699 http/wpt/mediarecorder/MediaRecorder-audio-bitrate.html [ Pass Failure ]
 webkit.org/b/213699 http/wpt/mediarecorder/MediaRecorder-AV-audio-video-dataavailable.html [ Crash Timeout Failure ]
 webkit.org/b/213699 http/wpt/mediarecorder/MediaRecorder-first-frame.html [ Failure Pass ]
+webkit.org/b/292271 fast/mediastream/mediaStream-with-rotation.html [ Skip ]
 
 # No support for Matroska container in GStreamer port.
 http/wpt/mediarecorder/MediaRecorder-matroska-AV-audio-video-dataavailable.html
@@ -2148,7 +2149,7 @@ webkit.org/b/264729 imported/w3c/web-platform-tests/fetch/metadata/generated/aud
 #////////////////////////////////////////////////////////////////////////////////////////
 
 webkit.org/b/211887 [ Debug ] fast/canvas/webgl/tex-sub-image-2d-bad-args.html [ Crash ]
-webkit.org/b/211887 [ Debug ] webgl/1.0.3/conformance/textures/tex-sub-image-2d-bad-args.html [ Crash ]
+webkit.org/b/211887 [ Debug ] webgl/1.0.x/conformance/textures/misc/tex-sub-image-2d-bad-args.html [ Crash ]
 
 webkit.org/b/216071 fast/canvas/webgl/move-canvas-in-document-while-clean.html [ ImageOnlyFailure ]
 

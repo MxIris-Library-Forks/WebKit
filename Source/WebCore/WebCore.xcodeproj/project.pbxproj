@@ -1366,7 +1366,6 @@
 		414516EC26CE526600AAABE0 /* RTCSctpTransportBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 414516EB26CE526600AAABE0 /* RTCSctpTransportBackend.h */; };
 		414B7FAD24D81CC10033D442 /* MediaRecorderPrivateOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 414B7FAB24D81C8F0033D442 /* MediaRecorderPrivateOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		414B82051D6DF0E50077EBE3 /* StructuredClone.h in Headers */ = {isa = PBXBuildFile; fileRef = 414B82031D6DF0D90077EBE3 /* StructuredClone.h */; };
-		414D2F4229A4C73300E2C0E7 /* ServiceWorkerThread.cpp in Product Dependencies */ = {isa = PBXBuildFile; fileRef = 517C87111F8EE72F00EB8076 /* ServiceWorkerThread.cpp */; };
 		414DEDE71F9FE91E0047C40D /* EmptyFrameLoaderClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 414DEDE51F9FE9150047C40D /* EmptyFrameLoaderClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41503793274FDC9B00354ABC /* NavigationPreloadState.h in Headers */ = {isa = PBXBuildFile; fileRef = 41E2F19B274FB0A600A089EE /* NavigationPreloadState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		415071581685067300C3C7B3 /* SelectorFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 415071561685067300C3C7B3 /* SelectorFilter.h */; };
@@ -1413,7 +1412,6 @@
 		4177B3D7296C86AC009711F0 /* CryptoKeyOKP.h in Headers */ = {isa = PBXBuildFile; fileRef = 4177B3D5296C86A4009711F0 /* CryptoKeyOKP.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4177B3DD296CC0F2009711F0 /* CryptoAlgorithmEd25519.h in Headers */ = {isa = PBXBuildFile; fileRef = 4177B3DC296CC0E9009711F0 /* CryptoAlgorithmEd25519.h */; };
 		4178EF172412608400193C74 /* NowPlayingManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 4178EF1424125B6C00193C74 /* NowPlayingManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		417BA32929955753007AEAB4 /* SWServer.h in Product Dependencies */ = {isa = PBXBuildFile; fileRef = 517A52EE1F47535900DCDC0A /* SWServer.h */; };
 		417BA32A29955BDF007AEAB4 /* BackgroundFetchInformation.h in Headers */ = {isa = PBXBuildFile; fileRef = 419197F52994FD4E007576C8 /* BackgroundFetchInformation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		417BA32B29955C7D007AEAB4 /* BackgroundFetchRecordIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 419198072994FD58007576C8 /* BackgroundFetchRecordIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		417BA32F299560D8007AEAB4 /* BackgroundFetchFailureReason.h in Headers */ = {isa = PBXBuildFile; fileRef = 419198082994FD59007576C8 /* BackgroundFetchFailureReason.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6863,8 +6861,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				DDE9931E278D0E4B00F60D26 /* libWebKitAdditions.a in Product Dependencies */,
-				414D2F4229A4C73300E2C0E7 /* ServiceWorkerThread.cpp in Product Dependencies */,
-				417BA32929955753007AEAB4 /* SWServer.h in Product Dependencies */,
 			);
 			name = "Product Dependencies";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -19726,6 +19722,7 @@
 		DD1C778F29354C75003BD79B /* StyleTextEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleTextEdge.h; sourceTree = "<group>"; };
 		DD308A2C2A82F684000A2687 /* AbstractLineBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractLineBuilder.h; sourceTree = "<group>"; };
 		DD4B9CF62C80E8E8001A6830 /* LineClampUpdater.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LineClampUpdater.h; sourceTree = "<group>"; };
+		DD5697F72DC1302B00050321 /* rdar150228472.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rdar150228472.swift; sourceTree = "<group>"; };
 		DD5ACFD62B14DAD600B36C57 /* LayoutIntegrationBoxGeometryUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationBoxGeometryUpdater.cpp; sourceTree = "<group>"; };
 		DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationBoxGeometryUpdater.h; sourceTree = "<group>"; };
 		DD6FCF222D77694F00505083 /* PositionedLayoutConstraints.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PositionedLayoutConstraints.h; sourceTree = "<group>"; };
@@ -28216,6 +28213,7 @@
 				51D596CB2CECF71000AA8531 /* ProcessSyncClient.h */,
 				51D596CD2CECF71000AA8531 /* ProcessSyncData.h */,
 				51D596CE2CECF71000AA8531 /* ProcessSyncData.serialization.in */,
+				DD5697F72DC1302B00050321 /* rdar150228472.swift */,
 				9908B0FD1BCAD07D00ED3F64 /* ReadableByteStreamInternalsBuiltins.cpp */,
 				9B03D8061BB3110D00B73F64 /* ReadableByteStreamInternalsBuiltins.h */,
 				9908B0FE1BCAD07D00ED3572 /* ReadableStreamBYOBReaderBuiltins.cpp */,

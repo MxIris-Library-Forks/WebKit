@@ -64,6 +64,7 @@
 #include "ContentfulPaintChecker.h"
 #include "CookieJar.h"
 #include "CryptoClient.h"
+#include "ContainerNodeInlines.h"
 #include "CustomEffect.h"
 #include "CustomElementReactionQueue.h"
 #include "CustomElementRegistry.h"
@@ -298,6 +299,7 @@
 #include "TextResourceDecoder.h"
 #include "TouchAction.h"
 #include "TransformSource.h"
+#include "TreeScopeInlines.h"
 #include "TreeWalker.h"
 #include "TrustedType.h"
 #include "TypedElementDescendantIteratorInlines.h"
@@ -334,6 +336,7 @@
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/VM.h>
 #include <ctime>
+#include <ranges>
 #include <wtf/CryptographicallyRandomNumber.h>
 #include <wtf/HexNumber.h>
 #include <wtf/Language.h>
@@ -10514,7 +10517,7 @@ Vector<RefPtr<WebAnimation>> Document::matchingAnimations(NOESCAPE const Functio
             animations.append(animation);
     }
 
-    std::stable_sort(animations.begin(), animations.end(), [](auto& lhs, auto& rhs) {
+    std::ranges::stable_sort(animations, [](auto& lhs, auto& rhs) {
         return compareAnimationsByCompositeOrder(*lhs, *rhs);
     });
 

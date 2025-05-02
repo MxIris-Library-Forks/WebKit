@@ -64,6 +64,7 @@
 #include "CSSValuePool.h"
 #include "CSSViewValue.h"
 #include "ComposedTreeAncestorIterator.h"
+#include "ContainerNodeInlines.h"
 #include "ContentData.h"
 #include "CursorList.h"
 #include "CustomPropertyRegistry.h"
@@ -4344,7 +4345,7 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
     case CSSPropertyTextDecorationThickness:
         return textDecorationThicknessToCSSValue(style, style.textDecorationThickness());
     case CSSPropertyWebkitTextDecorationsInEffect:
-        return renderTextDecorationLineFlagsToCSSValue(style.textDecorationsInEffect());
+        return renderTextDecorationLineFlagsToCSSValue(style.textDecorationLineInEffect());
     case CSSPropertyWebkitTextFillColor:
         return currentColorOrValidColor(style, style.textFillColor());
     case CSSPropertyTextEmphasisColor:

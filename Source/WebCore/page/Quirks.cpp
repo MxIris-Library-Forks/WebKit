@@ -28,6 +28,7 @@
 
 #include "AccessibilityObject.h"
 #include "Attr.h"
+#include "ContainerNodeInlines.h"
 #include "DOMTokenList.h"
 #include "DeprecatedGlobalSettings.h"
 #include "Document.h"
@@ -182,6 +183,9 @@ bool Quirks::needsAutoplayPlayPauseEvents() const
 {
     if (!needsQuirks())
         return false;
+
+    if (m_quirksData.shouldDispatchPlayPauseEventsOnResume)
+        return true;
 
     Ref document = *m_document;
     if (allowedAutoplayQuirks(document).contains(AutoplayQuirk::SynthesizedPauseEvents))
@@ -2514,6 +2518,9 @@ static void handlePremierLeagueQuirks(QuirksData& quirksData, const URL& quirksU
     UNUSED_PARAM(documentURL);
     // premierleague.com: rdar://123721211
     quirksData.shouldIgnorePlaysInlineRequirementQuirk = true;
+
+    // premierleague.com: rdar://68938833
+    quirksData.shouldDispatchPlayPauseEventsOnResume = true;
 }
 
 static void handleSFUSDQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)

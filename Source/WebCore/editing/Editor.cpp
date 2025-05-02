@@ -46,6 +46,7 @@
 #include "CommonAtomStrings.h"
 #include "CompositionEvent.h"
 #include "CompositionHighlight.h"
+#include "ContainerNodeInlines.h"
 #include "CreateLinkCommand.h"
 #include "CustomUndoStep.h"
 #include "DataTransfer.h"
@@ -4644,7 +4645,7 @@ FontAttributes Editor::fontAttributesAtSelectionStart()
                 attributes.hasUnderline = true;
         }
     } else {
-        auto decoration = style->textDecorationsInEffect();
+        auto decoration = style->textDecorationLineInEffect();
         if (decoration & TextDecorationLine::LineThrough)
             attributes.hasStrikeThrough = true;
         if (decoration & TextDecorationLine::Underline)

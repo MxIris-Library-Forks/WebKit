@@ -31,6 +31,7 @@
 
 #include "ArchiveResource.h"
 #include "AttachmentAssociatedElement.h"
+#include "BoundaryPointInlines.h"
 #include "CSSPrimitiveValue.h"
 #include "CSSPropertyNames.h"
 #include "CSSSerializationContext.h"
@@ -41,6 +42,7 @@
 #include "Comment.h"
 #include "CommonAtomStrings.h"
 #include "ComposedTreeIterator.h"
+#include "ContainerNodeInlines.h"
 #include "CustomElementRegistry.h"
 #include "DeprecatedGlobalSettings.h"
 #include "Document.h"

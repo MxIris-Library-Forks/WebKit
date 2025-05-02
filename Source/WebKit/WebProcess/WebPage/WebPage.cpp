@@ -322,6 +322,7 @@
 #include <WebCore/WritingDirection.h>
 #include <WebCore/markup.h>
 #include <pal/SessionID.h>
+#include <ranges>
 #include <wtf/CoroutineUtilities.h>
 #include <wtf/ProcessID.h>
 #include <wtf/RunLoop.h>
@@ -2508,7 +2509,7 @@ static void dumpHistoryItem(HistoryItem& item, size_t indent, bool isCurrentItem
     stringBuilder.append('\n');
 
     auto children = item.children();
-    std::stable_sort(children.begin(), children.end(), [] (auto& a, auto& b) {
+    std::ranges::stable_sort(children, [](auto& a, auto& b) {
         return codePointCompare(a->target(), b->target()) < 0;
     });
     for (auto& child : children)
@@ -7271,7 +7272,7 @@ void WebPage::didChangeSelection(LocalFrame& frame)
         m_userInteractionsSincePageTransition.add(UserInteractionFlag::SelectedRange);
 
 #if ENABLE(WRITING_TOOLS)
-    corePage()->updateStateForSelectedSuggestionIfNeeded();
+    protectedCorePage()->updateStateForSelectedSuggestionIfNeeded();
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -7286,8 +7287,6 @@ void WebPage::didChangeSelection(LocalFrame& frame)
 
         protectedThis->preemptivelySendAutocorrectionContext();
     });
-#else
-    UNUSED_PARAM(frame);
 #endif // PLATFORM(IOS_FAMILY)
 }
 

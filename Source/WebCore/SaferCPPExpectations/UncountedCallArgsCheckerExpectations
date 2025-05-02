@@ -942,6 +942,7 @@ page/scrolling/ThreadedScrollingCoordinator.cpp
 page/scrolling/mac/ScrollingCoordinatorMac.mm
 page/scrolling/mac/ScrollingTreeScrollingNodeDelegateMac.mm
 page/text-extraction/TextExtraction.cpp
+page/writing-tools/WritingToolsController.mm
 platform/Cursor.h
 platform/DragImage.cpp
 platform/Length.cpp
@@ -1122,12 +1123,9 @@ rendering/RenderScrollbarPart.cpp
 rendering/RenderSearchField.cpp
 rendering/RenderSlider.cpp
 rendering/RenderTable.cpp
-rendering/RenderTable.h
 rendering/RenderTableCell.cpp
-rendering/RenderTableCell.h
 rendering/RenderTableRow.cpp
 rendering/RenderTableSection.cpp
-rendering/RenderTableSection.h
 rendering/RenderText.cpp
 rendering/RenderTextControl.cpp
 rendering/RenderTextControlMultiLine.cpp

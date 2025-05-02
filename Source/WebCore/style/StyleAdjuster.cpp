@@ -31,6 +31,7 @@
 #include "StyleAdjuster.h"
 
 #include "CSSFontSelector.h"
+#include "ContainerNodeInlines.h"
 #include "DOMTokenList.h"
 #include "Document.h"
 #include "DocumentInlines.h"
@@ -647,9 +648,9 @@ void Adjuster::adjust(RenderStyle& style, const RenderStyle* userAgentAppearance
     }
 
     if (shouldInheritTextDecorationsInEffect(style, m_element.get()))
-        style.addToTextDecorationsInEffect(style.textDecorationLine());
+        style.addToTextDecorationLineInEffect(style.textDecorationLine());
     else
-        style.setTextDecorationsInEffect(style.textDecorationLine());
+        style.setTextDecorationLineInEffect(style.textDecorationLine());
 
     bool overflowIsClipOrVisible = isOverflowClipOrVisible(style.overflowY()) && isOverflowClipOrVisible(style.overflowX());
 

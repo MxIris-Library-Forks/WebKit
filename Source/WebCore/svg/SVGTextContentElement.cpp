@@ -25,11 +25,12 @@
 
 #include "CSSPropertyNames.h"
 #include "CSSValueKeywords.h"
+#include "ContainerNodeInlines.h"
 #include "DOMPoint.h"
 #include "FrameSelection.h"
 #include "LegacyRenderSVGResource.h"
 #include "LocalFrame.h"
-#include "RenderObject.h"
+#include "RenderObjectInlines.h"
 #include "RenderSVGText.h"
 #include "SVGElementTypeHelpers.h"
 #include "SVGNames.h"

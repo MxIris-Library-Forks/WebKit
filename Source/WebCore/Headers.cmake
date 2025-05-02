@@ -945,6 +945,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/DeprecatedCSSOMValueList.h
     css/FontLoadTimingOverride.h
     css/ImmutableStyleProperties.h
+    css/IsImportant.h
     css/MediaList.h
     css/MediaQueryParserContext.h
     css/MutableStyleProperties.h
@@ -1066,6 +1067,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/CommandEvent.h
     dom/Comment.h
     dom/ContainerNode.h
+    dom/ContainerNodeInlines.h
     dom/ContextDestructionObserver.h
     dom/ContextDestructionObserverInlines.h
     dom/CrossOriginMode.h

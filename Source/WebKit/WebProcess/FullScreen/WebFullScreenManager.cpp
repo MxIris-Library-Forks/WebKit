@@ -37,6 +37,7 @@
 #include "WebPage.h"
 #include <WebCore/AddEventListenerOptions.h>
 #include <WebCore/Color.h>
+#include <WebCore/ContainerNodeInlines.h>
 #include <WebCore/DocumentFullscreen.h>
 #include <WebCore/EventNames.h>
 #include <WebCore/HTMLVideoElement.h>
@@ -47,6 +48,7 @@
 #include <WebCore/Quirks.h>
 #include <WebCore/RenderImage.h>
 #include <WebCore/RenderLayerBacking.h>
+#include <WebCore/RenderObjectInlines.h>
 #include <WebCore/RenderView.h>
 #include <WebCore/Settings.h>
 #include <WebCore/TypedElementDescendantIteratorInlines.h>

@@ -183,6 +183,11 @@ WebProcessProxy& WebFrameProxy::process() const
     return m_frameProcess->process();
 }
 
+Ref<WebProcessProxy> WebFrameProxy::protectedProcess() const
+{
+    return process();
+}
+
 ProcessID WebFrameProxy::processID() const
 {
     return process().processID();
@@ -402,6 +407,11 @@ bool WebFrameProxy::didHandleContentFilterUnblockNavigation(const ResourceReques
 
     RefPtr page = m_page.get();
     ASSERT(page);
+
+#if HAVE(WEBCONTENTRESTRICTIONS_PATH_SPI)
+    m_contentFilterUnblockHandler.setConfigurationPath(page->protectedWebsiteDataStore()->configuration().webContentRestrictionsConfigurationFile());
+#endif
+
     m_contentFilterUnblockHandler.requestUnblockAsync([page](bool unblocked) {
         if (unblocked)
             page->reload({ });

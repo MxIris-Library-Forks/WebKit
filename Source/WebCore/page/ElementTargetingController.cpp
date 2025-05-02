@@ -31,6 +31,7 @@
 #include "BitmapImage.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
+#include "ContainerNodeInlines.h"
 #include "DOMTokenList.h"
 #include "Document.h"
 #include "DocumentLoader.h"
@@ -69,6 +70,7 @@
 #include "TextIterator.h"
 #include "TypedElementDescendantIteratorInlines.h"
 #include "VisibilityAdjustment.h"
+#include <ranges>
 #include <wtf/HashMap.h>
 #include <wtf/Scope.h>
 #include <wtf/TZoneMallocInlines.h>
@@ -541,7 +543,7 @@ static Vector<Vector<String>> selectorsForTarget(Element& element, ElementSelect
             selectors.append(WTFMove(selector));
     }
 
-    std::sort(selectors.begin(), selectors.end(), [](auto& first, auto& second) {
+    std::ranges::sort(selectors, [](auto& first, auto& second) {
         return first.length() < second.length();
     });
 
@@ -1960,7 +1962,7 @@ uint64_t ElementTargetingController::numberOfVisibilityAdjustmentRects()
     }
 
     // Sort by area in descending order so that we don't double-count fully overlapped elements.
-    std::sort(clientRects.begin(), clientRects.end(), [](auto first, auto second) {
+    std::ranges::sort(clientRects, [](auto first, auto second) {
         return first.area() > second.area();
     });
 

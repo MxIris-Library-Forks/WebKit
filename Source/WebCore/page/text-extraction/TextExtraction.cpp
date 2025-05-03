@@ -224,7 +224,7 @@ static inline void merge(Item& destinationItem, Item&& sourceItem)
 static inline FloatRect rootViewBounds(Node& node)
 {
     auto view = node.document().protectedView();
-    if (UNLIKELY(!view))
+    if (!view) [[unlikely]]
         return { };
 
     CheckedPtr renderer = node.renderer();
@@ -613,9 +613,9 @@ RenderedText extractRenderedText(Element& element)
     }();
 
     if (ascendingOrder)
-        std::ranges::sort(allTokensAndOffsets, [&](auto& a, auto& b) { return a.offset < b.offset; });
+        std::ranges::sort(allTokensAndOffsets, std::ranges::less { }, &TokenAndBlockOffset::offset);
     else
-        std::ranges::sort(allTokensAndOffsets, [&](auto& a, auto& b) { return a.offset > b.offset; });
+        std::ranges::sort(allTokensAndOffsets, std::ranges::greater { }, &TokenAndBlockOffset::offset);
 
     bool hasLargeReplacedDescendant = false;
     StringBuilder textWithReplacedContent;

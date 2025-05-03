@@ -679,6 +679,8 @@ imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/key-id-b
 accessibility/opacity-0-bounding-box.html [ Skip ]
 accessibility/clip-path-bounding-box.html [ Skip ]
 
+accessibility/dynamic-content-visibility.html [ Skip ]
+
 # AXObjectCache::announce not implemented.
 accessibility/announcement-notification.html [ Skip ]
 
@@ -2035,6 +2037,8 @@ webkit.org/b/240934 imported/w3c/web-platform-tests/css/filter-effects/effect-re
 
 webkit.org/b/264583 imported/w3c/web-platform-tests/css/filter-effects/css-filters-animation-saturate.html [ Pass ImageOnlyFailure ]
 webkit.org/b/264584 imported/w3c/web-platform-tests/fetch/metadata/generated/css-font-face.sub.tentative.html [ Failure ]
+
+imported/w3c/web-platform-tests/svg/text/reftests/dominant-baseline-hanging-small-font-size.svg [ ImageOnlyFailure ]
 
 # SVG Animations Failures on WPT Import
 imported/w3c/web-platform-tests/svg/animations/reinserting-svg-into-document.html [ Pass Failure ]

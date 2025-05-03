@@ -354,7 +354,7 @@ void RewriteGlobalVariables::visit(AST::Function& function)
 
     // https://www.w3.org/TR/WGSL/#limits
     constexpr unsigned maximumCombinedFunctionVariablesSize = 8192;
-    if (UNLIKELY(m_combinedFunctionVariablesSize.hasOverflowed() || m_combinedFunctionVariablesSize.value() > maximumCombinedFunctionVariablesSize))
+    if (m_combinedFunctionVariablesSize.hasOverflowed() || m_combinedFunctionVariablesSize.value() > maximumCombinedFunctionVariablesSize) [[unlikely]]
         setError(Error(makeString("The combined byte size of all variables in this function exceeds "_s, String::number(maximumCombinedFunctionVariablesSize), " bytes"_s), function.span()));
 }
 
@@ -762,7 +762,7 @@ std::optional<Error> RewriteGlobalVariables::collectGlobals()
     }
 
     for (auto& [_, vector] : m_groupBindingMap)
-        std::ranges::sort(vector, [](auto& a, auto& b) { return a.first < b.first; });
+        std::ranges::sort(vector, { }, &std::pair<unsigned, String>::first);
 
     if (!bufferLengths.isEmpty()) {
         for (const auto& [variable, group] : bufferLengths) {
@@ -1337,7 +1337,7 @@ auto RewriteGlobalVariables::determineUsedGlobals(const AST::Function& function)
         CheckedUint32 combinedWorkgroupVariablesSize = 0;
         for (const Type* type : variables)
             combinedWorkgroupVariablesSize += type->size();
-        if (UNLIKELY(combinedWorkgroupVariablesSize.hasOverflowed() || combinedWorkgroupVariablesSize.value() > maximumCombinedWorkgroupVariablesSize))
+        if (combinedWorkgroupVariablesSize.hasOverflowed() || combinedWorkgroupVariablesSize.value() > maximumCombinedWorkgroupVariablesSize) [[unlikely]]
             return { Error(makeString("The combined byte size of all variables in the workgroup address space exceeds "_s, String::number(maximumCombinedWorkgroupVariablesSize), " bytes"_s), span) };
         return std::nullopt;
     });
@@ -1345,7 +1345,7 @@ auto RewriteGlobalVariables::determineUsedGlobals(const AST::Function& function)
         CheckedUint32 combinedPrivateVariablesSize = 0;
         for (const Type* type : variables)
             combinedPrivateVariablesSize += type->size();
-        if (UNLIKELY(combinedPrivateVariablesSize.hasOverflowed() || combinedPrivateVariablesSize.value() > maximumCombinedPrivateVariablesSize))
+        if (combinedPrivateVariablesSize.hasOverflowed() || combinedPrivateVariablesSize.value() > maximumCombinedPrivateVariablesSize) [[unlikely]]
             return { Error(makeString("The combined byte size of all variables in the private address space exceeds "_s, String::number(maximumCombinedPrivateVariablesSize), " bytes"_s), span) };
         return std::nullopt;
     });
@@ -1613,9 +1613,7 @@ AST::StructureMember& RewriteGlobalVariables::createArgumentBufferEntry(unsigned
 
 void RewriteGlobalVariables::finalizeArgumentBufferStruct(unsigned group, Vector<std::pair<unsigned, AST::StructureMember*>>& entries)
 {
-    std::ranges::sort(entries, [](auto& a, auto& b) {
-        return a.first < b.first;
-    });
+    std::ranges::sort(entries, { }, &std::pair<unsigned, AST::StructureMember*>::first);
 
     AST::StructureMember::List structMembers;
     for (auto& [_, member] : entries)

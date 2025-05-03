@@ -100,6 +100,7 @@
 #include "FocusOptions.h"
 #include "FontFaceSet.h"
 #include "FormController.h"
+#include "FragmentDirective.h"
 #include "FrameLoader.h"
 #include "GCReachableRef.h"
 #include "GPUCanvasContext.h"
@@ -153,6 +154,7 @@
 #include "ImageOverlayController.h"
 #include "ImportNodeOptions.h"
 #include "InspectorInstrumentation.h"
+#include "IntDegrees.h"
 #include "IntersectionObserver.h"
 #include "JSCustomElementInterface.h"
 #include "JSDOMWindowBase.h"
@@ -233,9 +235,10 @@
 #include "RenderLayerCompositor.h"
 #include "RenderLayoutState.h"
 #include "RenderLineBreak.h"
+#include "RenderObjectInlines.h"
 #include "RenderTreeUpdater.h"
 #include "RenderView.h"
-#include "RenderWidget.h"
+#include "RenderWidgetInlines.h"
 #include "ReportingScope.h"
 #include "RequestAnimationFrameCallback.h"
 #include "ResizeObserver.h"
@@ -11108,6 +11111,11 @@ const CrossOriginOpenerPolicy& Document::crossOriginOpenerPolicy() const
 
     LOG_ONCE(SiteIsolation, "Unable to properly calculate Document::crossOriginOpenerPolicy() without access to the main frame document ");
     return SecurityContext::crossOriginOpenerPolicy();
+}
+
+Ref<FragmentDirective> Document::fragmentDirectiveForBindings()
+{
+    return m_fragmentDirectiveForBindings;
 }
 
 void Document::prepareCanvasesForDisplayOrFlushIfNeeded()

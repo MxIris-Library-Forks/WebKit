@@ -98,6 +98,7 @@
 #include "RenderListMarker.h"
 #include "RenderMathMLBlock.h"
 #include "RenderMenuList.h"
+#include "RenderObjectInlines.h"
 #include "RenderSVGInlineText.h"
 #include "RenderSVGRoot.h"
 #include "RenderSVGShape.h"
@@ -620,7 +621,7 @@ String AccessibilityRenderObject::helpText() const
         return AccessibilityNodeObject::helpText();
 
     const auto& ariaHelp = getAttribute(aria_helpAttr);
-    if (UNLIKELY(!ariaHelp.isEmpty()))
+    if (!ariaHelp.isEmpty()) [[unlikely]]
         return ariaHelp;
 
     String describedBy = ariaDescribedByAttribute();
@@ -2617,7 +2618,7 @@ void AccessibilityRenderObject::updateRoleAfterChildrenCreation()
     
 void AccessibilityRenderObject::addChildren()
 {
-    if (UNLIKELY(!renderer())) {
+    if (!renderer()) [[unlikely]] {
         AccessibilityNodeObject::addChildren();
         return;
     }

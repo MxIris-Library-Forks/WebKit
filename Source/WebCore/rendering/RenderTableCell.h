@@ -142,7 +142,7 @@ private:
 
     static RenderPtr<RenderTableCell> createTableCellWithStyle(Document&, const RenderStyle&);
 
-    ASCIILiteral renderName() const override { return (isAnonymous() || isPseudoElement()) ? "RenderTableCell (anonymous)"_s : "RenderTableCell"_s; }
+    ASCIILiteral renderName() const override;
 
     void willBeRemovedFromTree() override;
 
@@ -237,7 +237,7 @@ inline unsigned RenderTableCell::rowSpan() const
 
 inline void RenderTableCell::setCol(unsigned column)
 {
-    if (UNLIKELY(column > maxColumnIndex))
+    if (column > maxColumnIndex) [[unlikely]]
         column = maxColumnIndex;
     m_column = column;
 }

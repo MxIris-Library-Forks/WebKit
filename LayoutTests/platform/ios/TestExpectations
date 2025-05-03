@@ -873,6 +873,7 @@ fast/loader/document-with-fragment-url-4.html [ Skip ]
 fast/loader/policy-delegate-action-hit-test-zoomed.html [ Skip ]
 fast/loader/repeat-same-document-navigation.html [ Skip ]
 fast/masking/clip-path-selection.html [ Skip ]
+fast/misc/selection-gap-between-flex-items.html [ ImageOnlyFailure ]
 fast/multicol/pagination/LeftToRight-tb-hittest.html [ Skip ]
 fast/multicol/pagination/RightToLeft-rl-hittest.html [ Skip ]
 fast/overflow/scrollbar-click-retains-focus.html [ Skip ]
@@ -3552,6 +3553,8 @@ webkit.org/b/229584 animations/fill-mode-forwards.html [ Pass Failure ]
 [ Debug ] editing/caret/ios/caret-in-overflow-area.html [ Pass Timeout Failure ]
 
 webkit.org/b/237220 imported/w3c/web-platform-tests/svg/coordinate-systems/abspos.html [ Pass Failure ]
+
+imported/w3c/web-platform-tests/svg/text/reftests/dominant-baseline-hanging-small-font-size.svg [ ImageOnlyFailure ]
 
 webkit.org/b/237218 fast/layers/parent-clipping-overflow-is-overwritten-by-child-clipping.html [ Pass Failure ]
 

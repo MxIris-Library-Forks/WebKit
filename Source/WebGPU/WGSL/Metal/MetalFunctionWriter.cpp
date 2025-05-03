@@ -2381,7 +2381,7 @@ void FunctionDefinitionWriter::visit(AST::IndexAccessExpression& access)
 void FunctionDefinitionWriter::visit(AST::IdentifierExpression& identifier)
 {
     auto it = m_constantValues.find(identifier.identifier());
-    if (UNLIKELY(it != m_constantValues.end())) {
+    if (it != m_constantValues.end()) [[unlikely]] {
         m_body.append('(');
         serializeConstant(identifier.inferredType(), it->value);
         m_body.append(')');
@@ -2700,14 +2700,14 @@ void FunctionDefinitionWriter::visit(AST::SwitchStatement& statement)
         }
         if (isDefault)
             m_body.append('\n', m_indent, "default:"_s);
-        m_body.append(' ');
+        m_body.append("\n#if __wgslMetalAppleGPUFamily >= 9\n{ " DECLARE_FORWARD_PROGRESS "\n#endif\n"_s);
         visit(clause.body);
 
         IndentationScope scope(m_indent);
-        m_body.append('\n', m_indent, "break;"_s);
+        m_body.append('\n', m_indent, "#if __wgslMetalAppleGPUFamily >= 9\n}\n#endif\nbreak;"_s);
     };
 
-    m_body.append("\n#if __wgslMetalAppleGPUFamily >= 9\n{ " DECLARE_FORWARD_PROGRESS "\n#endif\nswitch ("_s);
+    m_body.append("switch ("_s);
     visit(statement.value());
     m_body.append(") {"_s);
     for (auto& clause : statement.clauses())
@@ -2729,7 +2729,6 @@ void FunctionDefinitionWriter::visit(AST::SwitchStatement& statement)
         }
         m_body.append('\n', m_indent, '}');
     }
-    m_body.append('\n', m_indent, "\n#if __wgslMetalAppleGPUFamily >= 9\n}\n#endif\n"_s);
 }
 
 void FunctionDefinitionWriter::visit(AST::BreakStatement&)

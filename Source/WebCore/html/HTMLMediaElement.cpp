@@ -96,6 +96,7 @@
 #include "MediaResourceSniffer.h"
 #include "NavigatorMediaDevices.h"
 #include "NetworkingContext.h"
+#include "NodeInlines.h"
 #include "NodeName.h"
 #include "NowPlayingInfo.h"
 #include "OriginAccessPatterns.h"
@@ -9870,7 +9871,7 @@ bool HTMLMediaElement::isActiveNowPlayingSession() const
 
 void HTMLMediaElement::isActiveNowPlayingSessionChanged()
 {
-    if (RefPtr page = protectedDocument()->protectedPage())
+    if (RefPtr page = protectedDocument()->page())
         page->hasActiveNowPlayingSessionChanged();
 }
 

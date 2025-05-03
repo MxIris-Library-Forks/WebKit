@@ -275,7 +275,7 @@ SOFT_LINK_OPTIONAL(libAccessibility, _AXSReduceMotionAutoplayAnimatedImagesEnabl
 #import <WebCore/GameControllerSoftLink.h>
 #endif
 
-#define THROW_IF_SUSPENDED if (UNLIKELY(_page && _page->isSuspended())) \
+#define THROW_IF_SUSPENDED if (_page && _page->isSuspended()) [[unlikely]] \
     [NSException raise:NSInternalInconsistencyException format:@"The WKWebView is suspended"]
 
 RetainPtr<NSError> nsErrorFromExceptionDetails(const std::optional<WebCore::ExceptionDetails>& details)
@@ -3743,8 +3743,8 @@ static WebCore::TextManipulationTokenIdentifier coreTextManipulationTokenIdentif
         tokens.append(WebCore::TextManipulationToken { coreTextManipulationTokenIdentifierFromString(wkToken.identifier), wkToken.content, std::nullopt });
 
     Vector<WebCore::TextManipulationItem> coreItems({ WebCore::TextManipulationItem { identifiers->frameID, false, false, identifiers->itemID, WTFMove(tokens) } });
-    _page->completeTextManipulation(coreItems, [capturedCompletionBlock = makeBlockPtr(completionHandler)] (bool allFailed, auto& failures) {
-        capturedCompletionBlock(!allFailed && failures.isEmpty());
+    _page->completeTextManipulation(coreItems, [capturedCompletionBlock = makeBlockPtr(completionHandler)] (auto failures) {
+        capturedCompletionBlock(failures.isEmpty());
     });
 }
 
@@ -3817,11 +3817,7 @@ static RetainPtr<NSArray> wkTextManipulationErrors(NSArray<_WKTextManipulationIt
     }
 
     RetainPtr<NSArray<_WKTextManipulationItem *>> retainedItems = items;
-    _page->completeTextManipulation(coreItems, [capturedItems = retainedItems, capturedCompletionBlock = makeBlockPtr(completionHandler)](bool allFailed, auto& failures) {
-        if (allFailed) {
-            capturedCompletionBlock(makeFailureSetForAllTextManipulationItems(capturedItems.get()).get());
-            return;
-        }
+    _page->completeTextManipulation(coreItems, [capturedItems = retainedItems, capturedCompletionBlock = makeBlockPtr(completionHandler)](auto failures) {
         capturedCompletionBlock(wkTextManipulationErrors(capturedItems.get(), failures).get());
     });
 }

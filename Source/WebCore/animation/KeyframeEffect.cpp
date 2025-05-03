@@ -377,7 +377,7 @@ static inline ExceptionOr<KeyframeEffect::KeyframeLikeObject> processKeyframeLik
     KeyframeEffect::BasePropertyIndexedKeyframe baseProperties;
     if (allowLists) {
         auto basePropertiesConversionResult = convert<IDLDictionary<KeyframeEffect::BasePropertyIndexedKeyframe>>(lexicalGlobalObject, keyframesInput.get());
-        if (UNLIKELY(basePropertiesConversionResult.hasException(scope)))
+        if (basePropertiesConversionResult.hasException(scope)) [[unlikely]]
             return Exception { ExceptionCode::TypeError };
         baseProperties = basePropertiesConversionResult.releaseReturnValue();
 
@@ -398,7 +398,7 @@ static inline ExceptionOr<KeyframeEffect::KeyframeLikeObject> processKeyframeLik
         }
     } else {
         auto baseKeyframeConversionResult = convert<IDLDictionary<KeyframeEffect::BaseKeyframe>>(lexicalGlobalObject, keyframesInput.get());
-        if (UNLIKELY(baseKeyframeConversionResult.hasException(scope)))
+        if (baseKeyframeConversionResult.hasException(scope)) [[unlikely]]
             return Exception { ExceptionCode::TypeError };
 
         auto baseKeyframe = baseKeyframeConversionResult.releaseReturnValue();
@@ -474,9 +474,7 @@ static inline ExceptionOr<KeyframeEffect::KeyframeLikeObject> processKeyframeLik
 
     // 5. Sort animation properties in ascending order by the Unicode codepoints that define each property name.
     auto sortPropertiesInAscendingOrder = [](auto& properties) {
-        std::ranges::sort(properties, [](auto& lhs, auto& rhs) {
-            return codePointCompareLessThan(lhs.string().string(), rhs.string().string());
-        });
+        std::ranges::sort(properties, codePointCompareLessThan, &JSC::Identifier::string);
     };
     sortPropertiesInAscendingOrder(logicalShorthands);
     sortPropertiesInAscendingOrder(physicalShorthands);
@@ -508,7 +506,7 @@ static inline ExceptionOr<KeyframeEffect::KeyframeLikeObject> processKeyframeLik
             // If property values is a single DOMString, replace property values with a sequence of DOMStrings with the original value of property
             // Values as the only element.
             auto propertyValuesConversionResult = convert<IDLUnion<IDLDOMString, IDLSequence<IDLDOMString>>>(lexicalGlobalObject, rawValue);
-            if (UNLIKELY(propertyValuesConversionResult.hasException(scope)))
+            if (propertyValuesConversionResult.hasException(scope)) [[unlikely]]
                 return Exception { ExceptionCode::TypeError };
 
             propertyValues = WTF::switchOn(propertyValuesConversionResult.releaseReturnValue(),
@@ -523,7 +521,7 @@ static inline ExceptionOr<KeyframeEffect::KeyframeLikeObject> processKeyframeLik
             // Otherwise,
             // Let property values be the result of converting raw value to a DOMString using the procedure for converting an ECMAScript value to a DOMString.
             auto propertyValuesConversionResult = convert<IDLDOMString>(lexicalGlobalObject, rawValue);
-            if (UNLIKELY(propertyValuesConversionResult.hasException(scope)))
+            if (propertyValuesConversionResult.hasException(scope)) [[unlikely]]
                 return Exception { ExceptionCode::TypeError };
 
             propertyValues = { propertyValuesConversionResult.releaseReturnValue() };

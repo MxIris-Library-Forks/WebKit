@@ -140,6 +140,7 @@
 #include "Range.h"
 #include "RemoteFrame.h"
 #include "RenderDescendantIterator.h"
+#include "RenderElementInlines.h"
 #include "RenderImage.h"
 #include "RenderLayerCompositor.h"
 #include "RenderObjectInlines.h"
@@ -455,7 +456,7 @@ Page::Page(PageConfiguration&& pageConfiguration)
 #if ENABLE(WRITING_TOOLS)
     , m_writingToolsController(makeUniqueRef<WritingToolsController>(*this))
 #endif
-    , m_activeNowPlayingSessionUpdateTimer(*this, &Page::activeNowPlayingSessionUpdateTimerFired)
+    , m_activeNowPlayingSessionUpdateTimer(*this, &Page::updateActiveNowPlayingSessionNow)
     , m_topDocumentSyncData(DocumentSyncData::create())
 #if HAVE(AUDIT_TOKEN)
     , m_presentingApplicationAuditToken(WTFMove(pageConfiguration.presentingApplicationAuditToken))
@@ -2235,7 +2236,7 @@ void Page::updateRendering()
 
     m_renderingUpdateRemainingSteps.last().remove(RenderingUpdateStep::WheelEventMonitorCallbacks);
 
-    if (UNLIKELY(isMonitoringWheelEvents()))
+    if (isMonitoringWheelEvents()) [[unlikely]]
         wheelEventTestMonitor()->checkShouldFireCallbacks();
 
     if (m_isTrackingRenderingUpdates)
@@ -4334,6 +4335,8 @@ void Page::didChangeMainDocument(Document* newDocument)
     clearSampledPageTopColor();
 
     checkedElementTargetingController()->didChangeMainDocument(newDocument);
+
+    updateActiveNowPlayingSessionNow();
 }
 
 RenderingUpdateScheduler& Page::renderingUpdateScheduler()
@@ -5477,9 +5480,16 @@ void Page::hasActiveNowPlayingSessionChanged()
         m_activeNowPlayingSessionUpdateTimer.startOneShot(0_s);
 }
 
-void Page::activeNowPlayingSessionUpdateTimerFired()
+void Page::updateActiveNowPlayingSessionNow()
 {
-    bool hasActiveNowPlayingSession = PlatformMediaSessionManager::singleton().hasActiveNowPlayingSessionInGroup(mediaSessionGroupIdentifier());
+    if (m_activeNowPlayingSessionUpdateTimer.isActive())
+        m_activeNowPlayingSessionUpdateTimer.stop();
+
+    RefPtr mediaSessionManager = PlatformMediaSessionManager::singletonIfExists();
+    if (!mediaSessionManager)
+        return;
+
+    bool hasActiveNowPlayingSession = mediaSessionManager->hasActiveNowPlayingSessionInGroup(mediaSessionGroupIdentifier());
     if (hasActiveNowPlayingSession == m_hasActiveNowPlayingSession)
         return;
 

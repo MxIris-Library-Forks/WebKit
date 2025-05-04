@@ -113,7 +113,7 @@ public:
     {
         ASSERT(m_graph.m_form == ThreadedCPS);
 
-        if (UNLIKELY(!functionAllowlist().contains(m_graph.m_codeBlock)))
+        if (!functionAllowlist().contains(m_graph.m_codeBlock)) [[unlikely]]
             return false;
 
         dataLogIf(Options::verboseLoopUnrolling(), "Graph before Loop Unrolling Phase:\n", m_graph);
@@ -178,7 +178,7 @@ public:
 
     bool tryUnroll(const NaturalLoop* loop)
     {
-        if (UNLIKELY(Options::verboseLoopUnrolling())) {
+        if (Options::verboseLoopUnrolling()) [[unlikely]] {
             const NaturalLoop* outerLoop = m_graph.m_cpsNaturalLoops->innerMostOuterLoop(*loop);
             dataLogLnIf(Options::verboseLoopUnrolling(), "\nTry unroll innerMostLoop=", *loop, " with innerMostOuterLoop=", outerLoop ? *outerLoop : NaturalLoop());
         }
@@ -484,15 +484,10 @@ public:
             // If the block is unreachable or invalid in the CFG, we can directly
             // ignore the loop, avoiding unnecessary cloneability checks for nodes in invalid blocks.
 
-            HashSet<Node*> cloneableCache;
+            UncheckedKeyHashSet<Node*> cloneableCache;
             for (Node* node : *body) {
                 if (data.materialNodeCount > maxLoopUnrollingBodyNodeSize) {
                     dataLogLnIf(Options::verboseLoopUnrolling(), "Skipping loop with header ", *data.header(), " and loop node count=", data.materialNodeCount, " since maxLoopUnrollingBodyNodeSize=", maxLoopUnrollingBodyNodeSize);
-                    return false;
-                }
-
-                if (!CloneHelper::isNodeCloneable(m_graph, cloneableCache, node)) {
-                    dataLogLnIf(Options::verboseLoopUnrolling(), "Skipping loop with header ", *data.header(), " since ", node, "<", node->op(), "> is not cloneable");
                     return false;
                 }
 
@@ -502,11 +497,20 @@ public:
                     return false;
                 }
 
+                bool isCloneable = CloneHelper::isNodeCloneable(m_graph, cloneableCache, node);
+#if ASSERT_ENABLED
+                ASSERT(CloneHelper::debugVisitingSet().isEmpty());
+#endif
+                if (!isCloneable) {
+                    dataLogLnIf(Options::verboseLoopUnrolling(), "Skipping loop with header ", *data.header(), " since D@", node->index(), " with op ", node->op(), " is not cloneable");
+                    return false;
+                }
+
                 data.analyzeLoopNode(m_graph, node);
             }
         }
 
-        if (UNLIKELY(Options::verboseLoopUnrolling()))
+        if (Options::verboseLoopUnrolling()) [[unlikely]]
             dumpLoopNodeTypeStats(data);
 
         return data.isProfitableToUnroll();

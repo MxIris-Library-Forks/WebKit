@@ -136,7 +136,7 @@ public:
     {
         size_t size = DisjunctionContext::allocationSize(disjunction->m_frameSize);
         auto* newAllocatorPool = allocatorPool->ensureCapacity(size);
-        if (UNLIKELY(!newAllocatorPool))
+        if (!newAllocatorPool) [[unlikely]]
             return nullptr;
         allocatorPool = newAllocatorPool;
         return new (allocatorPool->alloc(size)) DisjunctionContext();
@@ -254,7 +254,7 @@ public:
 
         size_t size = Checked<size_t>(ParenthesesDisjunctionContext::allocationSize(numNestedSubpatterns, numDuplicateNamedGroups)) + DisjunctionContext::allocationSize(disjunction->m_frameSize);
         auto* newAllocatorPool = allocatorPool->ensureCapacity(size);
-        if (UNLIKELY(!newAllocatorPool))
+        if (!newAllocatorPool) [[unlikely]]
             return nullptr;
         allocatorPool = newAllocatorPool;
         return new (allocatorPool->alloc(size)) ParenthesesDisjunctionContext(pattern, output, term, numDuplicateNamedGroups, duplicateNamedCaptureGroups);
@@ -993,7 +993,7 @@ public:
         switch (term.atom.quantityType) {
         case QuantifierType::NonGreedy:
             backTrack->matchAmount = 0;
-            FALLTHROUGH;
+            [[fallthrough]];
 
         case QuantifierType::FixedCount:
             backTrack->begin = input.getPos();
@@ -1235,7 +1235,7 @@ public:
             return true;
         case QuantifierType::NonGreedy:
             ASSERT(backTrack->begin != notFound);
-            FALLTHROUGH;
+            [[fallthrough]];
         case QuantifierType::FixedCount:
             break;
         }
@@ -1256,7 +1256,7 @@ public:
                 context->term -= term.atom.parenthesesWidth;
                 return false;
             }
-            FALLTHROUGH;
+            [[fallthrough]];
         case QuantifierType::NonGreedy:
             if (backTrack->begin == notFound) {
                 backTrack->begin = input.getPos();
@@ -1273,7 +1273,7 @@ public:
                 context->term -= term.atom.parenthesesWidth;
                 return true;
             }
-            FALLTHROUGH;
+            [[fallthrough]];
         case QuantifierType::FixedCount:
             break;
         }
@@ -1874,7 +1874,7 @@ public:
         case ByteTerm::Type::PatternCasedCharacterNonGreedy:
             // Case insensitive matching of unicode characters is handled as Type::CharacterClass.
             ASSERT(!isEitherUnicodeCompilation() || U_IS_BMP(currentTerm().atom.patternCharacter));
-            FALLTHROUGH;
+            [[fallthrough]];
         case ByteTerm::Type::PatternCharacterNonGreedy: {
             DUMP_CURR_CHAR();
             BackTrackInfoPatternCharacter* backTrack = reinterpret_cast<BackTrackInfoPatternCharacter*>(context->frame + currentTerm().frameLocation);

@@ -2500,7 +2500,7 @@ ErrorCode YarrPattern::compile(StringView patternString)
 
     constructor.extractSpecificPattern();
 
-    if (UNLIKELY(Options::dumpCompiledRegExpPatterns()))
+    if (Options::dumpCompiledRegExpPatterns()) [[unlikely]]
         dumpPattern(patternString);
 
     return ErrorCode::NoError;
@@ -2738,7 +2738,7 @@ void PatternTerm::dump(PrintStream& out, YarrPattern* thisPattern, unsigned nest
         else
             out.print("non-captured ");
 
-        FALLTHROUGH;
+        [[fallthrough]];
     case Type::ParentheticalAssertion:
         if (m_matchDirection) {
             if (type == Type::ParenthesesSubpattern)

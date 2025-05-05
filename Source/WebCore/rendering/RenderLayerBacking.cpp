@@ -917,7 +917,7 @@ void RenderLayerBacking::updateVideoGravity(const RenderStyle& style)
     case ObjectFit::None:
     case ObjectFit::ScaleDown:
         // FIXME: Add support for "None" and "ScaleDown" with video gravity modes
-        FALLTHROUGH;
+        [[fallthrough]];
     case ObjectFit::Fill:
         videoGravity = MediaPlayerVideoGravity::Resize;
         break;
@@ -1171,7 +1171,7 @@ bool RenderLayerBacking::updateConfiguration(const RenderLayer* compositingAnces
     if (updateTransformFlatteningLayer(compositingAncestor))
         layerConfigChanged = true;
 
-    if (updateViewportConstrainedSublayers(compositor.viewportConstrainedSublayers(m_owningLayer)))
+    if (updateViewportConstrainedSublayers(compositor.viewportConstrainedSublayers(m_owningLayer, compositingAncestor)))
         layerConfigChanged = true;
 
     setBackgroundLayerPaintsFixedRootBackground(compositor.needsFixedRootBackgroundLayer(m_owningLayer));
@@ -1572,7 +1572,14 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
 
     if (m_viewportAnchorLayer) {
         if (m_viewportClippingLayer) {
+            ASSERT(compositedAncestor == renderer().view().layer());
             auto fixedPositionRect = renderer().view().frameView().rectForFixedPositionLayout();
+            if (m_ancestorClippingStack) {
+                for (auto& entry : m_ancestorClippingStack->stack()) {
+                    if (entry.clippingLayer)
+                        fixedPositionRect.moveBy(-LayoutPoint { entry.clippingLayer->position() });
+                }
+            }
             m_viewportClippingLayer->setPosition(fixedPositionRect.location());
             m_viewportClippingLayer->setSize(fixedPositionRect.size());
             primaryLayerPosition.moveBy(-fixedPositionRect.location());
@@ -2625,7 +2632,7 @@ bool RenderLayerBacking::updateViewportConstrainedSublayers(ViewportConstrainedS
         break;
     case ClippingAndAnchor:
         needsClippingLayer = true;
-        FALLTHROUGH;
+        [[fallthrough]];
     case Anchor:
         needsAnchorLayer = true;
         break;

@@ -1026,7 +1026,7 @@ void HTMLMediaElement::attributeChanged(const QualifiedName& name, const AtomStr
 #if ENABLE(WIRELESS_PLAYBACK_TARGET)
     case AttributeNames::webkitwirelessvideoplaybackdisabledAttr:
         mediaSession().setWirelessVideoPlaybackDisabled(newValue != nullAtom());
-        FALLTHROUGH;
+        [[fallthrough]];
     case AttributeNames::disableremoteplaybackAttr:
     case AttributeNames::webkitairplayAttr:
         isWirelessPlaybackTargetDisabledChanged();
@@ -1122,7 +1122,9 @@ void HTMLMediaElement::pauseAfterDetachedTask()
             RETURN_IF_EXCEPTION(scope, false);
 
             auto functionValue = controllerObject->get(&lexicalGlobalObject, JSC::Identifier::fromString(vm, "deinitialize"_s));
-            if (UNLIKELY(scope.exception()) || functionValue.isUndefinedOrNull())
+            if (scope.exception()) [[unlikely]]
+                return false;
+            if (functionValue.isUndefinedOrNull())
                 return false;
 
             auto* function = functionValue.toObject(&lexicalGlobalObject);
@@ -8821,7 +8823,9 @@ bool HTMLMediaElement::ensureMediaControls()
             RETURN_IF_EXCEPTION(scope, false);
 
             auto functionValue = controllerObject->get(&lexicalGlobalObject, JSC::Identifier::fromString(vm, "reinitialize"_s));
-            if (UNLIKELY(scope.exception()) || functionValue.isUndefinedOrNull())
+            if (scope.exception()) [[unlikely]]
+                return false;
+            if (functionValue.isUndefinedOrNull())
                 return false;
 
             if (!m_mediaControlsHost)
@@ -8897,7 +8901,9 @@ String HTMLMediaElement::getCurrentMediaControlsStatus()
         RETURN_IF_EXCEPTION(scope, false);
 
         auto functionValue = controllerObject->get(&lexicalGlobalObject, JSC::Identifier::fromString(vm, "getCurrentControlsStatus"_s));
-        if (UNLIKELY(scope.exception()) || functionValue.isUndefinedOrNull())
+        if (scope.exception()) [[unlikely]]
+            return false;
+        if (functionValue.isUndefinedOrNull())
             return false;
 
         auto* function = functionValue.toObject(&lexicalGlobalObject);
@@ -9786,7 +9792,9 @@ void HTMLMediaElement::setShowingStats(bool shouldShowStats)
         RETURN_IF_EXCEPTION(scope, false);
 
         auto functionValue = controllerObject->get(&lexicalGlobalObject, JSC::Identifier::fromString(vm, "setShowingStats"_s));
-        if (UNLIKELY(scope.exception()) || functionValue.isUndefinedOrNull())
+        if (scope.exception()) [[unlikely]]
+            return false;
+        if (functionValue.isUndefinedOrNull())
             return false;
 
         auto* function = functionValue.toObject(&lexicalGlobalObject);

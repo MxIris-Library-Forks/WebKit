@@ -161,15 +161,14 @@
 		073A63CE2DC33DE30057A3F5 /* WKIntelligenceTextEffectCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 074F34802CC5F7D500CA5301 /* WKIntelligenceTextEffectCoordinator.h */; };
 		073A63CF2DC33DEC0057A3F5 /* WKIntelligenceSmartReplyTextEffectCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 0735F3232D38C7790003D029 /* WKIntelligenceSmartReplyTextEffectCoordinator.h */; };
 		073A63D02DC33DF80057A3F5 /* WKIntelligenceReplacementTextEffectCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 0735F31F2D3761A10003D029 /* WKIntelligenceReplacementTextEffectCoordinator.h */; };
-		073A63D12DC341FD0057A3F5 /* WKTextExtractionItem.h in Headers */ = {isa = PBXBuildFile; fileRef = F49DC6FD2B76A88F00816E73 /* WKTextExtractionItem.h */; };
-		073A63D52DC3448C0057A3F5 /* WKTextExtractionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073A63D42DC344870057A3F5 /* WKTextExtractionItem.swift */; };
-		073A63D82DC344FC0057A3F5 /* WKWebView+TextExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073A63D72DC344F40057A3F5 /* WKWebView+TextExtraction.swift */; };
 		07438C722D4C645600BD1E68 /* _WebKit_SwiftUI.framework in Product Dependencies */ = {isa = PBXBuildFile; fileRef = 07275C4F2D00C934002315A5 /* _WebKit_SwiftUI.framework */; };
 		0744DA552CE05FE400AACC81 /* WebKitInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 0744DA542CE05FE400AACC81 /* WebKitInternal.h */; };
 		074A6FC72D5F1FAF0027F958 /* KeyEventInterpretationContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 074A6FC52D5F1DEA0027F958 /* KeyEventInterpretationContext.h */; };
 		074E75FE1DF2211900D318EC /* UserMediaProcessManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 074E75FB1DF1FD1300D318EC /* UserMediaProcessManager.h */; };
 		074E87E12CF8EA3D0059E469 /* WebPage+NavigationDeciding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074E87E02CF8EA3D0059E469 /* WebPage+NavigationDeciding.swift */; };
 		074F34812CC5F7D500CA5301 /* WKIntelligenceTextEffectCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 074F34802CC5F7D500CA5301 /* WKIntelligenceTextEffectCoordinator.h */; };
+		075369482DC589DB006446F8 /* WKTextExtractionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073A63D42DC344870057A3F5 /* WKTextExtractionItem.swift */; };
+		075369492DC589E1006446F8 /* WKWebView+TextExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073A63D72DC344F40057A3F5 /* WKWebView+TextExtraction.swift */; };
 		075A9CF326169BAB006DFA3A /* MediaSessionCoordinatorProxyPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 077BA570260E8F630072F19F /* MediaSessionCoordinatorProxyPrivate.h */; };
 		075C079A2D92125D00B3E900 /* WKContextMenuElementInfoAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 075C07992D9211F700B3E900 /* WKContextMenuElementInfoAdapter.swift */; };
 		076867FF2D4C283E004DA801 /* WebViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 076867F72D4C26A8004DA801 /* WebViewRepresentable.swift */; };
@@ -1365,6 +1364,7 @@
 		523ADC8D2AFC2D2A00B352C3 /* AuthenticationServicesSoftLink.mm in Sources */ = {isa = PBXBuildFile; fileRef = 523ADC8C2AFC2D0400B352C3 /* AuthenticationServicesSoftLink.mm */; };
 		5252A51927E048740094BEB9 /* VirtualHidConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = 5252A51727E048740094BEB9 /* VirtualHidConnection.h */; };
 		5252A51A27E048740094BEB9 /* VirtualHidConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5252A51827E048740094BEB9 /* VirtualHidConnection.cpp */; };
+		52597BBC2DC41A3200CAAF01 /* ModelProcessModelPlayerTransformState.h in Headers */ = {isa = PBXBuildFile; fileRef = 52597BBA2DC4138600CAAF01 /* ModelProcessModelPlayerTransformState.h */; };
 		52688AB427D7CE40003577A2 /* _WKResidentKeyRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 52688AB327D7CE40003577A2 /* _WKResidentKeyRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		526C5722284ADCBC00E08955 /* CtapCcidDriver.h in Headers */ = {isa = PBXBuildFile; fileRef = 526C5720284ADCBC00E08955 /* CtapCcidDriver.h */; };
 		526C5723284ADCBC00E08955 /* CtapCcidDriver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526C5721284ADCBC00E08955 /* CtapCcidDriver.cpp */; };
@@ -5985,6 +5985,8 @@
 		523ADC8C2AFC2D0400B352C3 /* AuthenticationServicesSoftLink.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AuthenticationServicesSoftLink.mm; sourceTree = "<group>"; };
 		5252A51727E048740094BEB9 /* VirtualHidConnection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VirtualHidConnection.h; sourceTree = "<group>"; };
 		5252A51827E048740094BEB9 /* VirtualHidConnection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VirtualHidConnection.cpp; sourceTree = "<group>"; };
+		52597BBA2DC4138600CAAF01 /* ModelProcessModelPlayerTransformState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelProcessModelPlayerTransformState.h; sourceTree = "<group>"; };
+		52597BBB2DC4138600CAAF01 /* ModelProcessModelPlayerTransformState.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelProcessModelPlayerTransformState.cpp; sourceTree = "<group>"; };
 		52688AB327D7CE40003577A2 /* _WKResidentKeyRequirement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = _WKResidentKeyRequirement.h; sourceTree = "<group>"; };
 		526C5718284AD09500E08955 /* CcidConnection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CcidConnection.h; sourceTree = "<group>"; };
 		526C5719284AD09500E08955 /* CcidConnection.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = CcidConnection.mm; sourceTree = "<group>"; };
@@ -8583,6 +8585,8 @@
 		FA580B382DA64B5F005E4965 /* UnifiedSource178.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UnifiedSource178.cpp; sourceTree = "<group>"; };
 		FA580B392DA64B5F005E4965 /* UnifiedSource179.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UnifiedSource179.cpp; sourceTree = "<group>"; };
 		FA580B3A2DA64B5F005E4965 /* UnifiedSource180.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UnifiedSource180.cpp; sourceTree = "<group>"; };
+		FA5C22422DC5710500B13EF3 /* RemoteWebTouchEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteWebTouchEvent.h; sourceTree = "<group>"; };
+		FA5C22432DC5719D00B13EF3 /* RemoteWebTouchEvent.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = RemoteWebTouchEvent.serialization.in; sourceTree = "<group>"; };
 		FA6342192D9D98D300A6BECE /* WebFrame.messages.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebFrame.messages.in; sourceTree = "<group>"; };
 		FA63421A2D9D990400A6BECE /* WebFrameProxy.messages.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebFrameProxy.messages.in; sourceTree = "<group>"; };
 		FA651BAE2AA3E5FB00747576 /* WebTransportSendStreamSink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WebTransportSendStreamSink.h; path = Network/WebTransportSendStreamSink.h; sourceTree = "<group>"; };
@@ -8870,16 +8874,6 @@
 			path = MediaSession;
 			sourceTree = "<group>";
 		};
-		073A63D62DC344BC0057A3F5 /* TextExtraction */ = {
-			isa = PBXGroup;
-			children = (
-				F49DC6FD2B76A88F00816E73 /* WKTextExtractionItem.h */,
-				073A63D42DC344870057A3F5 /* WKTextExtractionItem.swift */,
-				073A63D72DC344F40057A3F5 /* WKWebView+TextExtraction.swift */,
-			);
-			path = TextExtraction;
-			sourceTree = "<group>";
-		};
 		0744DA522CE05F5300AACC81 /* Internal */ = {
 			isa = PBXGroup;
 			children = (
@@ -8887,6 +8881,18 @@
 				0744DA542CE05FE400AACC81 /* WebKitInternal.h */,
 			);
 			path = Internal;
+			sourceTree = "<group>";
+		};
+		0753694A2DC589F4006446F8 /* TextExtraction */ = {
+			isa = PBXGroup;
+			children = (
+				F49DC6FD2B76A88F00816E73 /* WKTextExtractionItem.h */,
+				073A63D42DC344870057A3F5 /* WKTextExtractionItem.swift */,
+				F48EC3562B7585A300D1B886 /* WKTextExtractionUtilities.h */,
+				F48EC3542B7585A300D1B886 /* WKTextExtractionUtilities.mm */,
+				073A63D72DC344F40057A3F5 /* WKWebView+TextExtraction.swift */,
+			);
+			path = TextExtraction;
 			sourceTree = "<group>";
 		};
 		0785E7FE2CBCDFDD00F68126 /* WritingTools */ = {
@@ -9662,6 +9668,8 @@
 				514899722AB4BCFC00943741 /* PushMessageForTesting.serialization.in */,
 				9B1229D023FF2A5E008CA751 /* RemoteAudioDestinationIdentifier.h */,
 				A78A5FE32B0EB39E005036D3 /* RemoteImageBufferSetIdentifier.h */,
+				FA5C22422DC5710500B13EF3 /* RemoteWebTouchEvent.h */,
+				FA5C22432DC5719D00B13EF3 /* RemoteWebTouchEvent.serialization.in */,
 				5C80B3DB23690D8D0086E6DE /* RemoteWorkerInitializationData.h */,
 				F488B90F2ACFC67A00792C16 /* RemoteWorkerInitializationData.serialization.in */,
 				4691CB9A27B2DD1800B29AAF /* RemoteWorkerType.h */,
@@ -9983,6 +9991,7 @@
 			children = (
 				CDF1B90C266F395E0007EC10 /* GroupActivities */,
 				57FD316B22B3367E008D0E8B /* SOAuthorization */,
+				0753694A2DC589F4006446F8 /* TextExtraction */,
 				5CA26D80217ABBB600F97A35 /* _WKWarningView.h */,
 				5CA26D7F217ABBB600F97A35 /* _WKWarningView.mm */,
 				EB517B7A2D7BC03B0019E451 /* AboutSchemeHandlerCocoa.mm */,
@@ -10089,8 +10098,6 @@
 				7A78FF2E224191750096483E /* WKStorageAccessAlert.h */,
 				7A78FF2F224191760096483E /* WKStorageAccessAlert.mm */,
 				4447F01F2BC833F0006988E9 /* WKTextAnimationType.h */,
-				F48EC3562B7585A300D1B886 /* WKTextExtractionUtilities.h */,
-				F48EC3542B7585A300D1B886 /* WKTextExtractionUtilities.mm */,
 				CE21215D240EE571006ED443 /* WKTextPlaceholder.h */,
 				CE21215E240EE571006ED443 /* WKTextPlaceholder.mm */,
 				CE45945A240F85B90078019F /* WKTextSelectionRect.h */,
@@ -14169,7 +14176,6 @@
 				5260053F2C707686005D813A /* RealityKit */,
 				EE0D3CDE2D3709BE00072978 /* StageMode */,
 				449A79EE2BAE299C0033BF53 /* TextAnimation */,
-				073A63D62DC344BC0057A3F5 /* TextExtraction */,
 				0785E7FE2CBCDFDD00F68126 /* WritingTools */,
 				AE9552872D756E920039B9F9 /* CredentialUpdaterShim.swift */,
 				A14F9B652B686E0200AD9C56 /* module.modulemap */,
@@ -15331,6 +15337,8 @@
 				54BBB6092B80177C00BF1A8A /* ModelProcessModelPlayer.messages.in */,
 				54BBB5F72B7C3FE200BF1A8A /* ModelProcessModelPlayerManager.cpp */,
 				54BBB5F82B7C3FE200BF1A8A /* ModelProcessModelPlayerManager.h */,
+				52597BBB2DC4138600CAAF01 /* ModelProcessModelPlayerTransformState.cpp */,
+				52597BBA2DC4138600CAAF01 /* ModelProcessModelPlayerTransformState.h */,
 				BC2B411B2732F66E00A2D191 /* WebModelPlayerProvider.cpp */,
 				BC2B411A2732F66E00A2D191 /* WebModelPlayerProvider.h */,
 			);
@@ -17267,6 +17275,7 @@
 				57B8264C230603C100B72EB0 /* MockNfcService.h in Headers */,
 				EBA8D3B327A5E33F00CB7900 /* MockPushServiceConnection.h in Headers */,
 				7137BA8025F1542000914EE3 /* ModelElementController.h in Headers */,
+				52597BBC2DC41A3200CAAF01 /* ModelProcessModelPlayerTransformState.h in Headers */,
 				C0E3AA7C1209E83C00A49D01 /* Module.h in Headers */,
 				E539DFEB2A44A6A600769F09 /* MRUIKitSPI.h in Headers */,
 				2D50366B1BCDE17900E20BB3 /* NativeWebGestureEvent.h in Headers */,
@@ -18479,7 +18488,6 @@
 				B66F88C22B6D202600FB1734 /* WKSPreviewWindowController.h in Headers */,
 				EEA52F482D70545300D578B5 /* WKStageMode.h in Headers */,
 				44DBDA4E2BAE451F004E3712 /* WKSTextAnimationSourceDelegate.h in Headers */,
-				073A63D12DC341FD0057A3F5 /* WKTextExtractionItem.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -19878,8 +19886,10 @@
 			outputPaths = (
 				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.arm64.resp",
 				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.arm64_32.resp",
-				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.x86_64.resp",
 				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.arm64e.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.armv7k.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.i386.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/platform-enabled-swift-args.x86_64.resp",
 				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/rdar150228472.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -20913,6 +20923,7 @@
 				B66047412CED45F600ADE38E /* WKSeparatedImageView.swift in Sources */,
 				1DB01944211CF005009FB3E8 /* WKShareSheet.mm in Sources */,
 				7A78FF332241919B0096483E /* WKStorageAccessAlert.mm in Sources */,
+				075369482DC589DB006446F8 /* WKTextExtractionItem.swift in Sources */,
 				076897F02D07B330006F9FA7 /* WKUIDelegateAdapter.swift in Sources */,
 				079A4DB02D73EA4A00CA387F /* WKURLSchemeHandlerAdapter.swift in Sources */,
 				1C627479288B2F7400CED3A2 /* WKWebExtension.mm in Sources */,
@@ -20929,6 +20940,7 @@
 				1C5ACF902A955CB000C041C0 /* WKWebExtensionTabConfiguration.mm in Sources */,
 				1C5ACF8D2A955CA700C041C0 /* WKWebExtensionWindowConfiguration.mm in Sources */,
 				079A4DA52D72CE3F00CA387F /* WKWebpagePreferences+Extras.swift in Sources */,
+				075369492DC589E1006446F8 /* WKWebView+TextExtraction.swift in Sources */,
 				079A4DA32D72CDB400CA387F /* WKWebViewConfiguration+Extras.swift in Sources */,
 				C14D306924B79BE000480387 /* XPCEndpoint.mm in Sources */,
 				C14D306A24B79BE400480387 /* XPCEndpointClient.mm in Sources */,
@@ -20975,8 +20987,6 @@
 				077FD1A02CC7569200C5D9E0 /* WKIntelligenceReplacementTextEffectCoordinator.swift in Sources */,
 				0735F3222D38B09E0003D029 /* WKIntelligenceSmartReplyTextEffectCoordinator.swift in Sources */,
 				EEA52F492D7055A700D578B5 /* WKStageMode.swift in Sources */,
-				073A63D52DC3448C0057A3F5 /* WKTextExtractionItem.swift in Sources */,
-				073A63D82DC344FC0057A3F5 /* WKWebView+TextExtraction.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

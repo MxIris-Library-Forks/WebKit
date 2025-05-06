@@ -2185,6 +2185,8 @@
 		51FB5504113E3E9100821176 /* JSCloseEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 51FB5502113E3E9100821176 /* JSCloseEvent.h */; };
 		51FB67DC1AE6B82F00D06C5A /* ContentExtensionStyleSheet.h in Headers */ = {isa = PBXBuildFile; fileRef = 51FB67DA1AE6B5E400D06C5A /* ContentExtensionStyleSheet.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		522373E52C4FE95900F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h in Headers */ = {isa = PBXBuildFile; fileRef = 522373E42C4FE8E300F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		52597BB52DC3FAF900CAAF01 /* ModelPlayerAnimationState.h in Headers */ = {isa = PBXBuildFile; fileRef = 52597BB32DC3F89300CAAF01 /* ModelPlayerAnimationState.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		52597BB92DC412F500CAAF01 /* ModelPlayerTransformState.h in Headers */ = {isa = PBXBuildFile; fileRef = 52597BB82DC412F500CAAF01 /* ModelPlayerTransformState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		525B0CB12A9F8FD100E8A94B /* MediationRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 525B0CB02A9F8FD100E8A94B /* MediationRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5266C7E82D115B7C000C4997 /* ModelContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 5266C7E62D115B5F000C4997 /* ModelContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		52688AA627D6A7DA003577A2 /* ResidentKeyRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 52688AA327D6A7DA003577A2 /* ResidentKeyRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6592,6 +6594,7 @@
 		FAC3C3E12A996534001E2EB8 /* WebTransport.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3E02A996530001E2EB8 /* WebTransport.h */; };
 		FAC8498F2A9EA1CE00D407EF /* WebTransportSession.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC8497A2A9E68E900D407EF /* WebTransportSession.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAC849902A9EA1D900D407EF /* WebTransportSessionClient.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC8497E2A9E6CEF00D407EF /* WebTransportSessionClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FADCF77E2DC5E3F000591E33 /* RemoteFrameGeometryTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = FADCF77C2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAEF5F6129D62710000AD8EC /* WindowPostMessageOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FAEF5F5F29D6241C000AD8EC /* WindowPostMessageOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FB273E822086E6C700A54E87 /* SVGGeometryElement.h in Headers */ = {isa = PBXBuildFile; fileRef = FB273E7F2086E6A300A54E87 /* SVGGeometryElement.h */; };
 		FB273E852086E74D00A54E87 /* JSSVGGeometryElement.h in Headers */ = {isa = PBXBuildFile; fileRef = FB273E842086E73E00A54E87 /* JSSVGGeometryElement.h */; };
@@ -11997,6 +12000,9 @@
 		51FB67DA1AE6B5E400D06C5A /* ContentExtensionStyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContentExtensionStyleSheet.h; sourceTree = "<group>"; };
 		52131E5A1C4F15610033F802 /* VideoPresentationInterfaceMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoPresentationInterfaceMac.mm; sourceTree = "<group>"; };
 		522373E42C4FE8E300F1FA0C /* ShouldRequireExplicitConsentForGamepadAccess.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShouldRequireExplicitConsentForGamepadAccess.h; sourceTree = "<group>"; };
+		52597BB32DC3F89300CAAF01 /* ModelPlayerAnimationState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayerAnimationState.h; sourceTree = "<group>"; };
+		52597BB42DC3F89300CAAF01 /* ModelPlayerAnimationState.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPlayerAnimationState.cpp; sourceTree = "<group>"; };
+		52597BB82DC412F500CAAF01 /* ModelPlayerTransformState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayerTransformState.h; sourceTree = "<group>"; };
 		525B0CB02A9F8FD100E8A94B /* MediationRequirement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediationRequirement.h; sourceTree = "<group>"; };
 		525B0CB22A9F905900E8A94B /* CredentialMediationRequirement.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CredentialMediationRequirement.idl; sourceTree = "<group>"; };
 		5263BF2027C1B5380085250C /* FakeXRJointStateInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakeXRJointStateInit.h; sourceTree = "<group>"; };
@@ -21445,6 +21451,8 @@
 		FAC849972A9FD8A800D407EF /* DatagramSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DatagramSource.cpp; sourceTree = "<group>"; };
 		FAC849982A9FD8A800D407EF /* DatagramSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DatagramSource.h; sourceTree = "<group>"; };
 		FAC849992A9FD8A800D407EF /* DatagramSink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DatagramSink.cpp; sourceTree = "<group>"; };
+		FADCF77C2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteFrameGeometryTransformer.h; sourceTree = "<group>"; };
+		FADCF77D2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteFrameGeometryTransformer.cpp; sourceTree = "<group>"; };
 		FAEF5F5F29D6241C000AD8EC /* WindowPostMessageOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WindowPostMessageOptions.h; sourceTree = "<group>"; };
 		FAEF5F6029D626D1000AD8EC /* WindowPostMessageOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WindowPostMessageOptions.idl; sourceTree = "<group>"; };
 		FAEF5F6229D62D15000AD8EC /* DOMWindow.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = DOMWindow.idl; sourceTree = "<group>"; };
@@ -28807,6 +28815,8 @@
 				46B9518C207D632900A7D2DD /* RemoteFrame.cpp */,
 				46B95192207D632E00A7D2DD /* RemoteFrame.h */,
 				5C2397D22949213600BB4E10 /* RemoteFrameClient.h */,
+				FADCF77D2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.cpp */,
+				FADCF77C2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.h */,
 				5C6F7689296CBC5400799B41 /* RemoteFrameView.cpp */,
 				5C907EB929528A4300B3402D /* RemoteFrameView.h */,
 				0223E0732AAED62200AF30FB /* RemoteUserInputEventData.h */,
@@ -29432,10 +29442,13 @@
 				7177AD542742952F002F103B /* HTMLModelElementCamera.idl */,
 				BC2B41142732F06200A2D191 /* ModelPlayer.cpp */,
 				BC2B41132732F06200A2D191 /* ModelPlayer.h */,
+				52597BB42DC3F89300CAAF01 /* ModelPlayerAnimationState.cpp */,
+				52597BB32DC3F89300CAAF01 /* ModelPlayerAnimationState.h */,
 				BC2B41122732F03C00A2D191 /* ModelPlayerClient.cpp */,
 				BC2B410E2732EFE400A2D191 /* ModelPlayerClient.h */,
 				BC2B41162732F0C700A2D191 /* ModelPlayerProvider.cpp */,
 				BC2B41152732F0C700A2D191 /* ModelPlayerProvider.h */,
+				52597BB82DC412F500CAAF01 /* ModelPlayerTransformState.h */,
 			);
 			path = "model-element";
 			sourceTree = "<group>";
@@ -43267,9 +43280,11 @@
 				5266C7E82D115B7C000C4997 /* ModelContext.h in Headers */,
 				313E79EA273C86B80097F905 /* ModelDocument.h in Headers */,
 				BC2B41172732F41E00A2D191 /* ModelPlayer.h in Headers */,
+				52597BB52DC3FAF900CAAF01 /* ModelPlayerAnimationState.h in Headers */,
 				BC2B41192732F42900A2D191 /* ModelPlayerClient.h in Headers */,
 				54BBB5FA2B7C41B100BF1A8A /* ModelPlayerIdentifier.h in Headers */,
 				BC2B41182732F42300A2D191 /* ModelPlayerProvider.h in Headers */,
+				52597BB92DC412F500CAAF01 /* ModelPlayerTransformState.h in Headers */,
 				C6D74AD509AA282E000B0A52 /* ModifySelectionListLevel.h in Headers */,
 				709A01FE1E3D0BDD006B0D4C /* ModuleFetchFailureKind.h in Headers */,
 				E3201C1A1F8E82130076A032 /* ModuleFetchParameters.h in Headers */,
@@ -43827,6 +43842,7 @@
 				46B95199207D634D00A7D2DD /* RemoteDOMWindow.h in Headers */,
 				46B9519A207D635400A7D2DD /* RemoteFrame.h in Headers */,
 				5C2397D72949288700BB4E10 /* RemoteFrameClient.h in Headers */,
+				FADCF77E2DC5E3F000591E33 /* RemoteFrameGeometryTransformer.h in Headers */,
 				5C6F768D296CC7DD00799B41 /* RemoteFrameView.h in Headers */,
 				CDC312E922FCD7C0001204EC /* RemotePlayback.h in Headers */,
 				CDC312EB22FCD7C9001204EC /* RemotePlaybackAvailabilityCallback.h in Headers */,

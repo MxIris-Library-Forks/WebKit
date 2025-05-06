@@ -2222,7 +2222,7 @@ typedef NS_ENUM(NSInteger, EndEditingReason) {
     [self _handleTouchActionsForTouchEvent:nativeWebTouchEvent];
 
     if (_touchEventsCanPreventNativeGestures)
-        _page->handlePreventableTouchEvent(nullptr, nativeWebTouchEvent);
+        _page->handlePreventableTouchEvent(nativeWebTouchEvent);
     else
         _page->handleUnpreventableTouchEvent(nativeWebTouchEvent);
 
@@ -2429,7 +2429,7 @@ static WebCore::FloatQuad inflateQuad(const WebCore::FloatQuad& quad, float infl
 }
 
 #if ENABLE(TOUCH_EVENTS)
-- (void)_touchEvent:(const WebKit::NativeWebTouchEvent&)touchEvent preventsNativeGestures:(BOOL)preventsNativeGesture
+- (void)_touchEvent:(const WebKit::WebTouchEvent&)touchEvent preventsNativeGestures:(BOOL)preventsNativeGesture
 {
     if (!preventsNativeGesture || ![_touchEventGestureRecognizer isDispatchingTouchEvents])
         return;
@@ -3852,7 +3852,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     if (shouldRequestMagnificationInformation)
         RELEASE_LOG(ViewGestures, "Single tap identified. Request details on potential zoom. (%p, pageProxyID=%llu)", self, _page->identifier().toUInt64());
 
-    _page->potentialTapAtPosition(position, shouldRequestMagnificationInformation, [self nextTapIdentifier]);
+    _page->potentialTapAtPosition(std::nullopt, position, shouldRequestMagnificationInformation, [self nextTapIdentifier]);
     _potentialTapInProgress = YES;
     _isTapHighlightIDValid = YES;
     _isExpectingFastSingleTapCommit = !_doubleTapGestureRecognizer.get().enabled;
@@ -4001,7 +4001,7 @@ static void cancelPotentialTapIfNecessary(WKContentView* contentView)
         _commitPotentialTapPointerId = pointerId;
     }
     RELEASE_ASSERT(_layerTreeTransactionIdAtLastInteractionStart);
-    _page->commitPotentialTap(WebKit::webEventModifierFlags(gestureRecognizer.modifierFlags), *_layerTreeTransactionIdAtLastInteractionStart, pointerId);
+    _page->commitPotentialTap(std::nullopt, WebKit::webEventModifierFlags(gestureRecognizer.modifierFlags), *_layerTreeTransactionIdAtLastInteractionStart, pointerId);
 
     if (!_isExpectingFastSingleTapCommit)
         [self _finishInteraction];
@@ -13881,6 +13881,16 @@ inline static NSString *extendSelectionCommand(UITextLayoutDirection direction)
     return CGRectNull;
 }
 
+- (UIView *)selectionContainerViewBelowText
+{
+    return self._selectionContainerViewInternal;
+}
+
+- (UIView *)selectionContainerViewAboveText
+{
+    return self._selectionContainerViewInternal;
+}
+
 - (void)transposeCharactersAroundSelection
 {
     [self _executeEditCommand:@"transpose"];
@@ -14119,13 +14129,15 @@ static inline WKTextAnimationType toWKTextAnimationType(WebCore::TextAnimationTy
 
 - (UIView *)_selectionContainerViewAboveText
 {
-    // FIXME (280624): Once -selectionContainerView (or an equivalent) is available as API, we
-    // should adopt that and make this invoke RELEASE_ASSERT_ASYNC_TEXT_INTERACTIONS_DISABLED().
+    // FIXME: Consider adding RELEASE_ASSERT_ASYNC_TEXT_INTERACTIONS_DISABLED()
+    // once the changes in rdar://150645383 are in all relevant builds.
     return self._selectionContainerViewInternal;
 }
 
 - (UIView *)selectionContainerView
 {
+    // FIXME: Consider adding RELEASE_ASSERT_ASYNC_TEXT_INTERACTIONS_DISABLED()
+    // once the changes in rdar://150645383 are in all relevant builds.
     return self._selectionContainerViewInternal;
 }
 

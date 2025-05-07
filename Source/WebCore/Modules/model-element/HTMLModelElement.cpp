@@ -529,6 +529,14 @@ void HTMLModelElement::renderingAbruptlyStopped()
     if (!document().hidden())
         createModelPlayer();
 }
+
+void HTMLModelElement::tryAnimateModelToFitPortal(bool handledDrag, CompletionHandler<void(bool)>&& completionHandler)
+{
+    if (hasPortal() && m_modelPlayer)
+        return m_modelPlayer->animateModelToFitPortal(WTFMove(completionHandler));
+
+    completionHandler(handledDrag);
+}
 #endif // ENABLE(MODEL_PROCESS)
 
 // MARK: - Fullscreen support.

@@ -392,6 +392,11 @@ void ModelProcessModelPlayer::renderingAbruptlyStopped()
         m_client->renderingAbruptlyStopped();
 }
 
+void ModelProcessModelPlayer::animateModelToFitPortal(CompletionHandler<void(bool)>&& completionHandler)
+{
+    sendWithAsyncReply(Messages::ModelProcessModelPlayerProxy::AnimateModelToFitPortal(), WTFMove(completionHandler));
+}
+
 }
 
 #endif // ENABLE(MODEL_PROCESS)

@@ -163,6 +163,10 @@ void ModelPlayer::renderingAbruptlyStopped()
 {
 }
 
+void ModelPlayer::animateModelToFitPortal(CompletionHandler<void(bool)>&& completionHandler)
+{
+    completionHandler(false);
+}
 #endif // ENABLE(MODEL_PROCESS)
 
 }

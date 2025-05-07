@@ -134,6 +134,7 @@ public:
     void updateStageModeTransform(const WebCore::TransformationMatrix&) final;
     void endStageModeInteraction() final;
     void stageModeInteractionDidUpdateModel();
+    void animateModelToFitPortal(CompletionHandler<void(bool)>&&) final;
 
     USING_CAN_MAKE_WEAKPTR(WebCore::REModelLoaderClient);
 

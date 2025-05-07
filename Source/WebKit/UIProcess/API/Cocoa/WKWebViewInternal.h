@@ -107,6 +107,7 @@ struct AppHighlight;
 struct ExceptionDetails;
 struct DigitalCredentialsRequestData;
 struct TextAnimationData;
+enum class BoxSide : uint8_t;
 enum class WheelScrollGestureState : uint8_t;
 namespace WritingTools {
 enum class TextSuggestionState : uint8_t;
@@ -132,12 +133,12 @@ class ViewGestureController;
 #endif
 }
 
+@class WKColorExtensionView;
 @class WKContentView;
 @class WKPasswordView;
 @class WKScrollGeometry;
 @class WKScrollView;
 @class WKTextExtractionItem;
-@class WKTextExtractionRequest;
 @class WKWebViewContentProviderRegistry;
 @class _WKFrameHandle;
 @class _WKWarningView;
@@ -448,7 +449,7 @@ struct PerWebProcessState {
 #endif
 
 #if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
-    WebCore::RectEdges<RetainPtr<CocoaView>> _fixedColorExtensionViews;
+    WebCore::RectEdges<RetainPtr<WKColorExtensionView>> _fixedColorExtensionViews;
 #endif
 }
 
@@ -520,6 +521,7 @@ struct PerWebProcessState {
 
 #if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
 - (void)_updateFixedColorExtensionViewFrames;
+- (BOOL)_hasVisibleColorExtensionView:(WebCore::BoxSide)side;
 #endif
 
 #if ENABLE(GAMEPAD)
@@ -580,11 +582,6 @@ RetainPtr<NSError> nsErrorFromExceptionDetails(const std::optional<WebCore::Exce
 @end
 #endif
 
-@interface WKWebView (WKTextExtraction)
-- (void)_requestTextExtractionForSwift:(WKTextExtractionRequest *)context;
-- (void)_requestTextExtraction:(CGRect)rect completionHandler:(void(^)(WKTextExtractionItem *))completionHandler;
-@end
-
 #endif // __cplusplus
 
 @interface WKWebView (NonCpp)
@@ -601,5 +598,7 @@ RetainPtr<NSError> nsErrorFromExceptionDetails(const std::optional<WebCore::Exce
 #endif
 
 - (void)_scrollToEdge:(_WKRectEdge)edge animated:(BOOL)animated;
+
+- (void)_requestTextExtraction:(CGRect)rect completionHandler:(void(^)(WKTextExtractionItem *))completionHandler;
 
 @end

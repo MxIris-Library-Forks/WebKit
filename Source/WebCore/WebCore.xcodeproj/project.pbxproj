@@ -1455,7 +1455,6 @@
 		418FCBE72715A28F00F96ECA /* RTCRtpCodecCapability.h in Headers */ = {isa = PBXBuildFile; fileRef = 41E0A7DC23BB63DB00561060 /* RTCRtpCodecCapability.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4190F3A524A0B4EE00531C57 /* FrameRateMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4190F3A3249D152800531C57 /* FrameRateMonitor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4191981829950767007576C8 /* FetchHeadersGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4191981729950763007576C8 /* FetchHeadersGuard.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		419242492127B93E00634FCF /* RealtimeOutgoingVideoSourceCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 419242472127B7CC00634FCF /* RealtimeOutgoingVideoSourceCocoa.mm */; };
 		4192BB1327CF638600F29A46 /* PageIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 4192BB1227CF638300F29A46 /* PageIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4194EBC22B726719005D076C /* MediaConstraintType.h in Headers */ = {isa = PBXBuildFile; fileRef = 4194EBC02B7266DD005D076C /* MediaConstraintType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4195B986296442AA0071566E /* GraphicsContextGLCVCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4195B985296442A90071566E /* GraphicsContextGLCVCocoa.mm */; };
@@ -10427,7 +10426,6 @@
 		4191980C2994FD5B007576C8 /* ImageResource.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ImageResource.idl; sourceTree = "<group>"; };
 		4191980D2994FD5C007576C8 /* ServiceWorkerRegistrationBackgroundFetchAPI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ServiceWorkerRegistrationBackgroundFetchAPI.cpp; sourceTree = "<group>"; };
 		4191981729950763007576C8 /* FetchHeadersGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FetchHeadersGuard.h; sourceTree = "<group>"; };
-		419242472127B7CC00634FCF /* RealtimeOutgoingVideoSourceCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RealtimeOutgoingVideoSourceCocoa.mm; sourceTree = "<group>"; };
 		4192BB1227CF638300F29A46 /* PageIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageIdentifier.h; sourceTree = "<group>"; };
 		419321592CBD1DBE0049AA57 /* AudioDecoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioDecoder.cpp; sourceTree = "<group>"; };
 		41945694203502A5004BA277 /* ApplicationCacheResourceLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ApplicationCacheResourceLoader.cpp; sourceTree = "<group>"; };
@@ -22266,7 +22264,6 @@
 				41103AA81E39790A00769F14 /* RealtimeOutgoingAudioSourceCocoa.h */,
 				5CDD833B1E4324BB00621B83 /* RealtimeOutgoingVideoSourceCocoa.cpp */,
 				5CDD833C1E4324BB00621B83 /* RealtimeOutgoingVideoSourceCocoa.h */,
-				419242472127B7CC00634FCF /* RealtimeOutgoingVideoSourceCocoa.mm */,
 				41D1938F2152C561006F14CA /* RealtimeVideoUtilities.h */,
 				070BED97273F415600583926 /* ScreenCaptureKitCaptureSource.h */,
 				070BED96273F415600583926 /* ScreenCaptureKitCaptureSource.mm */,
@@ -46272,7 +46269,6 @@
 				CDA29A301CBF74D400901CCF /* PlaybackSessionInterfaceIOS.mm in Sources */,
 				CDA29A161CBDA56C00901CCF /* PlaybackSessionInterfaceMac.mm in Sources */,
 				CD20ED3D27878FFB0038BE44 /* QueuedVideoOutput.mm in Sources */,
-				419242492127B93E00634FCF /* RealtimeOutgoingVideoSourceCocoa.mm in Sources */,
 				071C004B270B864900D027C7 /* ReplayKitCaptureSource.mm in Sources */,
 				5C2B1AEC22397EBC00B91CF7 /* ResourceResponseCocoa.mm in Sources */,
 				BC51156E12B1749C00C96754 /* ScrollAnimatorMac.mm in Sources */,

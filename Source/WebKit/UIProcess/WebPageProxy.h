@@ -1177,10 +1177,8 @@ public:
     void shouldDismissKeyboardAfterTapAtPoint(WebCore::FloatPoint, CompletionHandler<void(bool)>&&);
 
 #if ENABLE(DRAG_SUPPORT)
-    void didHandleDragStartRequest(bool started);
-    void didHandleAdditionalDragItemsRequest(bool added);
-    void requestDragStart(const WebCore::IntPoint& clientPosition, const WebCore::IntPoint& globalPosition, OptionSet<WebCore::DragSourceAction> allowedActionsMask);
-    void requestAdditionalItemsForDragSession(const WebCore::IntPoint& clientPosition, const WebCore::IntPoint& globalPosition, OptionSet<WebCore::DragSourceAction> allowedActionsMask);
+    void requestDragStart(const WebCore::IntPoint& clientPosition, const WebCore::IntPoint& globalPosition, OptionSet<WebCore::DragSourceAction> allowedActionsMask, CompletionHandler<void(bool)>&&);
+    void requestAdditionalItemsForDragSession(const WebCore::IntPoint& clientPosition, const WebCore::IntPoint& globalPosition, OptionSet<WebCore::DragSourceAction> allowedActionsMask, CompletionHandler<void(bool)>&&);
     void insertDroppedImagePlaceholders(const Vector<WebCore::IntSize>&, CompletionHandler<void(const Vector<WebCore::IntRect>&, std::optional<WebCore::TextIndicatorData>)>&& reply);
     void willReceiveEditDragSnapshot();
     void didReceiveEditDragSnapshot(std::optional<WebCore::TextIndicatorData>);
@@ -2416,6 +2414,7 @@ public:
 #endif
 #if ENABLE(CONTEXT_MENUS)
     bool canHandleContextMenuWritingTools() const;
+    void handleContextMenuWritingTools(const WebContextMenuItemData&);
     void handleContextMenuWritingTools(WebCore::WritingTools::RequestedTool);
 #endif
 #endif

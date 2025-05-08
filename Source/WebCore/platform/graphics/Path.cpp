@@ -75,9 +75,6 @@ bool Path::definitelyEqual(const Path& other) const
             return otherSegment && segment == otherSegment.value();
         },
         [&](const DataRef<PathImpl>& impl) {
-            if (impl->isEmpty())
-                return other.isEmpty();
-
             if (auto singleSegment = impl->singleSegment()) {
                 auto otherSegment = other.singleSegment();
                 return otherSegment && singleSegment == otherSegment.value();
@@ -96,15 +93,15 @@ PathImpl& Path::setImpl(Ref<PathImpl>&& impl)
 
 PlatformPathImpl& Path::ensurePlatformPathImpl()
 {
-    if (auto segment = asSingle())
-        return downcast<PlatformPathImpl>(setImpl(PlatformPathImpl::create(WTFMove(*segment))));
+    if (auto* segment = asSingle())
+        return downcast<PlatformPathImpl>(setImpl(PlatformPathImpl::create(singleElementSpan(*segment))));
 
-    if (auto impl = asImpl()) {
-        if (auto* stream = dynamicDowncast<PathStream>(*impl))
-            return downcast<PlatformPathImpl>(setImpl(PlatformPathImpl::create(*stream)));
+    if (RefPtr impl = asImpl()) {
+        if (const auto* stream = dynamicDowncast<PathStream>(*impl))
+            return downcast<PlatformPathImpl>(setImpl(PlatformPathImpl::create(stream->segments())));
         return downcast<PlatformPathImpl>(*impl);
     }
-
+    // Generally platform path is never empty. This should only be called during Path::add() on an empty path.
     return downcast<PlatformPathImpl>(setImpl(PlatformPathImpl::create()));
 }
 
@@ -115,12 +112,14 @@ PathImpl& Path::ensureImpl()
 
     if (auto impl = asImpl())
         return *impl;
-
+    ASSERT_NOT_REACHED(); // Impl is never empty.
     return setImpl(PathStream::create());
 }
 
 void Path::ensureImplForTesting()
 {
+    if (isEmpty())
+        return;
     ensureImpl();
 }
 
@@ -390,117 +389,11 @@ std::optional<PathSegment> Path::singleSegment() const
 
 std::optional<PathDataLine> Path::singleDataLine() const
 {
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathDataLine>(&segment->data()))
-            return *data;
+    if (auto segment = singleSegment()) {
+        if (auto* line = std::get_if<PathDataLine>(&segment->data()))
+            return *line;
     }
-
-    if (auto impl = asImpl())
-        return impl->singleDataLine();
-
     return std::nullopt;
-}
-
-std::optional<PathRect> Path::singleRect() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathRect>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleRect();
-
-    return std::nullopt;
-}
-
-std::optional<PathRoundedRect> Path::singleRoundedRect() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathRoundedRect>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleRoundedRect();
-
-    return std::nullopt;
-}
-
-std::optional<PathContinuousRoundedRect> Path::singleContinuousRoundedRect() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathContinuousRoundedRect>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleContinuousRoundedRect();
-
-    return std::nullopt;
-}
-
-std::optional<PathArc> Path::singleArc() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathArc>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleArc();
-
-    return std::nullopt;
-}
-
-std::optional<PathClosedArc> Path::singleClosedArc() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathClosedArc>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleClosedArc();
-
-    return std::nullopt;
-}
-
-std::optional<PathDataQuadCurve> Path::singleQuadCurve() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathDataQuadCurve>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleQuadCurve();
-
-    return std::nullopt;
-}
-
-std::optional<PathDataBezierCurve> Path::singleBezierCurve() const
-{
-    if (auto segment = asSingle()) {
-        if (auto data = std::get_if<PathDataBezierCurve>(&segment->data()))
-            return *data;
-    }
-
-    if (auto impl = asImpl())
-        return impl->singleBezierCurve();
-
-    return std::nullopt;
-}
-
-bool Path::isEmpty() const
-{
-    if (std::holds_alternative<std::monostate>(m_data))
-        return true;
-
-    if (auto impl = asImpl())
-        return impl->isEmpty();
-
-    return false;
 }
 
 bool Path::definitelySingleLine() const
@@ -510,6 +403,9 @@ bool Path::definitelySingleLine() const
 
 PlatformPathPtr Path::platformPath() const
 {
+    if (isEmpty())
+        return PlatformPathImpl::emptyPlatformPath();
+
     return const_cast<Path&>(*this).ensurePlatformPathImpl().platformPath();
 }
 

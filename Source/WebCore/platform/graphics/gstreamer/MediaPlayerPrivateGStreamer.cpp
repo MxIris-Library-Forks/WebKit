@@ -95,7 +95,6 @@
 #include <wtf/URL.h>
 #include <wtf/UniStdExtras.h>
 #include <wtf/WallTime.h>
-#include <wtf/glib/GUniquePtr.h>
 #include <wtf/glib/RunLoopSourcePriority.h>
 #include <wtf/text/AtomString.h>
 #include <wtf/text/CString.h>
@@ -3610,29 +3609,30 @@ void MediaPlayerPrivateGStreamer::repaint()
     m_drawCondition.notifyOne();
 }
 
-static ImageOrientation getVideoOrientation(const GstTagList* tagList)
+ImageOrientation MediaPlayerPrivateGStreamer::getVideoOrientation(const GstTagList* tagList)
 {
     ASSERT(tagList);
-    GUniqueOutPtr<gchar> tag;
-    if (!gst_tag_list_get_string(tagList, GST_TAG_IMAGE_ORIENTATION, &tag.outPtr())) {
-        GST_DEBUG("No image_orientation tag, applying no rotation.");
+    GUniqueOutPtr<gchar> imageOrientationTag;
+    if (!gst_tag_list_get_string(tagList, GST_TAG_IMAGE_ORIENTATION, &imageOrientationTag.outPtr())) {
+        GST_DEBUG_OBJECT(pipeline(), "No image_orientation tag, applying no rotation.");
         return ImageOrientation::Orientation::None;
     }
 
-    GST_DEBUG("Found image_orientation tag: %s", tag.get());
-    if (!g_strcmp0(tag.get(), "flip-rotate-0"))
+    GST_DEBUG_OBJECT(pipeline(), "Found image_orientation tag: %s", imageOrientationTag.get());
+    auto tag = StringView::fromLatin1(imageOrientationTag.get());
+    if (tag == "flip-rotate-0"_s)
         return ImageOrientation::Orientation::OriginTopRight;
-    if (!g_strcmp0(tag.get(), "rotate-180"))
+    if (tag == "rotate-180"_s)
         return ImageOrientation::Orientation::OriginBottomRight;
-    if (!g_strcmp0(tag.get(), "flip-rotate-180"))
+    if (tag == "flip-rotate-180"_s)
         return ImageOrientation::Orientation::OriginBottomLeft;
-    if (!g_strcmp0(tag.get(), "flip-rotate-270"))
+    if (tag == "flip-rotate-270"_s)
         return ImageOrientation::Orientation::OriginLeftTop;
-    if (!g_strcmp0(tag.get(), "rotate-90"))
+    if (tag == "rotate-90"_s)
         return ImageOrientation::Orientation::OriginRightTop;
-    if (!g_strcmp0(tag.get(), "flip-rotate-90"))
+    if (tag == "flip-rotate-90"_s)
         return ImageOrientation::Orientation::OriginRightBottom;
-    if (!g_strcmp0(tag.get(), "rotate-270"))
+    if (tag == "rotate-270"_s)
         return ImageOrientation::Orientation::OriginLeftBottom;
 
     // Default rotation.
@@ -3647,11 +3647,17 @@ void MediaPlayerPrivateGStreamer::updateVideoOrientation(const GstTagList* tagLi
     if (!sizeActuallyChanged)
         return;
 
+    if (m_videoSizeFromCaps.isEmpty())
+        return;
+
+    m_videoSize = m_videoSizeFromCaps;
+    GST_DEBUG_OBJECT(pipeline(), "Size from caps: %dx%d", m_videoSizeFromCaps.width(), m_videoSizeFromCaps.height());
+
     // If the video is tagged as rotated 90 or 270 degrees, swap width and height.
     if (m_videoSourceOrientation.usesWidthAsHeight())
         m_videoSize = m_videoSize.transposedSize();
 
-    GST_DEBUG_OBJECT(pipeline(), "Enqueuing and waiting for main-thread task to call sizeChanged()...");
+    GST_DEBUG_OBJECT(pipeline(), "Enqueuing and waiting for main-thread task to call sizeChanged() for new size %fx%f ...", m_videoSize.width(), m_videoSize.height());
     [[maybe_unused]] bool sizeChangedProcessed = m_sinkTaskQueue.enqueueTaskAndWait<AbortableTaskQueue::Void>([weakThis = ThreadSafeWeakPtr { *this }, this] {
         RefPtr self = weakThis.get();
         if (!self)
@@ -3677,10 +3683,9 @@ void MediaPlayerPrivateGStreamer::updateVideoSizeAndOrientationFromCaps(const Gs
     // video-sink has likely not yet negotiated its caps.
     int pixelAspectRatioNumerator, pixelAspectRatioDenominator, stride;
     double frameRate;
-    IntSize originalSize;
     GstVideoFormat format;
     PlatformVideoColorSpace colorSpace;
-    if (!getVideoSizeAndFormatFromCaps(caps, originalSize, format, pixelAspectRatioNumerator, pixelAspectRatioDenominator, stride, frameRate, colorSpace)) {
+    if (!getVideoSizeAndFormatFromCaps(caps, m_videoSizeFromCaps, format, pixelAspectRatioNumerator, pixelAspectRatioDenominator, stride, frameRate, colorSpace)) {
         GST_WARNING("Failed to get size and format from caps: %" GST_PTR_FORMAT, caps);
         return;
     }
@@ -3695,6 +3700,8 @@ void MediaPlayerPrivateGStreamer::updateVideoSizeAndOrientationFromCaps(const Gs
         orientation = getVideoOrientation(tagList).orientation();
     }
 
+    auto originalSize = m_videoSizeFromCaps;
+
     setVideoSourceOrientation(orientation);
     // If the video is tagged as rotated 90 or 270 degrees, swap width and height.
     if (m_videoSourceOrientation.usesWidthAsHeight())
@@ -3707,13 +3714,7 @@ void MediaPlayerPrivateGStreamer::updateVideoSizeAndOrientationFromCaps(const Gs
         }
     });
 
-    GST_DEBUG_OBJECT(pipeline(), "Original video size: %dx%d", originalSize.width(), originalSize.height());
-    if (isMediaStreamPlayer()) {
-        GST_DEBUG_OBJECT(pipeline(), "Using original MediaStream track video intrinsic size");
-        m_videoSize = originalSize;
-        return;
-    }
-
+    GST_DEBUG_OBJECT(pipeline(), "Original video size: %dx%d, orientation: %u", originalSize.width(), originalSize.height(), static_cast<unsigned>(orientation));
     GST_DEBUG_OBJECT(pipeline(), "Applying pixel aspect ratio: %d/%d", pixelAspectRatioNumerator, pixelAspectRatioDenominator);
 
     // Calculate DAR based on PAR and video size.
@@ -4484,7 +4485,7 @@ std::optional<VideoFrameMetadata> MediaPlayerPrivateGStreamer::videoFrameMetadat
 
 static bool areAllSinksPlayingForBin(GstBin* bin)
 {
-    for (auto* element : GstIteratorAdaptor<GstElement>(GUniquePtr<GstIterator>(gst_bin_iterate_sinks(bin)))) {
+    for (auto* element : GstIteratorAdaptor<GstElement>(gst_bin_iterate_sinks(bin))) {
         if (GST_IS_BIN(element) && !areAllSinksPlayingForBin(GST_BIN_CAST(element)))
             return false;
 
@@ -4519,7 +4520,7 @@ void MediaPlayerPrivateGStreamer::checkPlayingConsistency()
 
 static void applyAudioSinkDevice(GstElement* audioSinkBin, const String& deviceId)
 {
-    for (auto* element : GstIteratorAdaptor<GstElement>(GUniquePtr<GstIterator>(gst_bin_iterate_sinks(GST_BIN_CAST(audioSinkBin))))) {
+    for (auto* element : GstIteratorAdaptor<GstElement>(gst_bin_iterate_sinks(GST_BIN_CAST(audioSinkBin)))) {
         // pulsesink and alsasink have a "device" property, whilst pipewiresink has "target-object"
         if (gstElementMatchesFactoryAndHasProperty(element, "pulsesink"_s, "device"_s) || gstElementMatchesFactoryAndHasProperty(element, "alsasink"_s, "device"_s))
             g_object_set(element, "device", deviceId.utf8().data(), nullptr);

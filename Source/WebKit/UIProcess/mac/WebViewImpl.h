@@ -276,8 +276,6 @@ public:
     void updateLayer();
     static bool wantsUpdateLayer() { return true; }
 
-    void layerTreeCommitComplete();
-
     void drawRect(CGRect);
     bool canChangeFrameLayout(WebFrameProxy&);
     RetainPtr<NSPrintOperation> printOperationWithPrintInfo(NSPrintInfo *, WebFrameProxy&);
@@ -533,7 +531,7 @@ public:
     void setInspectorAttachmentView(NSView *);
     RetainPtr<NSView> inspectorAttachmentView();
     
-    void showShareSheet(const WebCore::ShareDataWithParsedURL&, WTF::CompletionHandler<void(bool)>&&, WKWebView *);
+    void showShareSheet(WebCore::ShareDataWithParsedURL&&, WTF::CompletionHandler<void(bool)>&&, WKWebView *);
     void shareSheetDidDismiss(WKShareSheet *);
 
 #if HAVE(DIGITAL_CREDENTIALS_UI)
@@ -815,10 +813,6 @@ private:
 
     void suppressContentRelativeChildViews();
     void restoreContentRelativeChildViews();
-
-#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
-    void updateContentInsetFillBackdropLayerParentIfNeeded();
-#endif
 
     bool m_clientWantsMediaPlaybackControlsView { false };
     bool m_canCreateTouchBars { false };

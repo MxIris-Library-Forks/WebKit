@@ -1012,9 +1012,6 @@ RefPtr<StyleRulePage> CSSParser::consumePageRule(CSSParserTokenRange prelude, CS
 
 RefPtr<StyleRuleCounterStyle> CSSParser::consumeCounterStyleRule(CSSParserTokenRange prelude, CSSParserTokenRange block)
 {
-    if (!m_context.propertySettings.cssCounterStyleAtRulesEnabled)
-        return nullptr;
-
     auto rangeCopy = prelude; // For inspector callbacks
     auto name = CSSPropertyParserHelpers::consumeCounterStyleNameInPrelude(rangeCopy, m_context.mode);
     if (name.isNull())
@@ -1080,9 +1077,6 @@ RefPtr<StyleRulePositionTry> CSSParser::consumePositionTryRule(CSSParserTokenRan
 
 RefPtr<StyleRuleScope> CSSParser::consumeScopeRule(CSSParserTokenRange prelude, CSSParserTokenRange block)
 {
-    if (!m_context.cssScopeAtRuleEnabled)
-        return nullptr;
-
     auto preludeRangeCopy = prelude;
     CSSSelectorList scopeStart;
     CSSSelectorList scopeEnd;
@@ -1151,9 +1145,6 @@ RefPtr<StyleRuleScope> CSSParser::consumeScopeRule(CSSParserTokenRange prelude, 
 
 RefPtr<StyleRuleStartingStyle> CSSParser::consumeStartingStyleRule(CSSParserTokenRange prelude, CSSParserTokenRange block)
 {
-    if (!m_context.cssStartingStyleAtRuleEnabled)
-        return nullptr;
-
     if (!prelude.atEnd())
         return nullptr;
 

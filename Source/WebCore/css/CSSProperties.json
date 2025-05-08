@@ -7818,7 +7818,6 @@
                 }
             ],
             "codegen-properties": {
-                "settings-flag": "cssTextWrapStyleEnabled",
                 "parser-grammar": "<<values>>",
                 "parser-exported": true
             },
@@ -12110,7 +12109,6 @@
         "@counter-style": {
             "additive-symbols": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-function": "consumeCounterStyleAdditiveSymbols",
                     "parser-grammar-unused": "[ <integer [0,inf]> && <symbol> ]#",
                     "parser-grammar-unused-reason": "Needs support for custom validation of lists."
@@ -12122,7 +12120,6 @@
             },
             "fallback": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-function": "consumeCounterStyleName",
                     "parser-grammar-unused": "<counter-style-name>",
                     "parser-grammar-unused-reason": "Needs support for excluding a class of names from a <custom-ident>."
@@ -12134,7 +12131,6 @@
             },
             "negative": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-grammar": "<symbol> <symbol>?"
                 },
                 "specification": {
@@ -12144,7 +12140,6 @@
             },
             "pad": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-grammar": "<integer [0,inf]> && <symbol>"
                 },
                 "specification": {
@@ -12154,7 +12149,6 @@
             },
             "prefix": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-grammar": "<symbol>"
                 },
                 "specification": {
@@ -12164,7 +12158,6 @@
             },
             "range": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-function": "consumeCounterStyleRange",
                     "parser-grammar-unused": "[ [ <integer> | infinite ]{2} ]# | auto",
                     "parser-grammar-unused-reason": "Needs support for non-coalescing CSSValuePair and custom validation of lists."
@@ -12176,7 +12169,6 @@
             },
             "suffix": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-grammar": "<symbol>"
                 },
                 "specification": {
@@ -12186,7 +12178,6 @@
             },
             "system": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-function": "consumeCounterStyleSystem",
                     "parser-grammar-unused": "cyclic | numeric | alphabetic | symbolic | additive | [ fixed <integer>? ] | [ extends <counter-style-name> ]",
                     "parser-grammar-unused-reason": "Needs support for different parsing based on the current mode, ordered groups with a keyword/literal first term differentiator and excluding a class of names from a <custom-ident>."
@@ -12198,7 +12189,6 @@
             },
             "speak-as": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-grammar": "auto | bullets | numbers | words | spell-out | <counter-style-name>"
                 },
                 "specification": {
@@ -12208,7 +12198,6 @@
             },
             "symbols": {
                 "codegen-properties": {
-                    "settings-flag": "cssCounterStyleAtRulesEnabled",
                     "parser-grammar": "<symbol>+@(no-single-item-opt)"
                 },
                 "specification": {
@@ -12364,7 +12353,6 @@
             },
             "size-adjust": {
                 "codegen-properties": {
-                    "settings-flag": "cssFontFaceSizeAdjustEnabled",
                     "parser-grammar": "<percentage [0,inf]>",
                     "parser-exported": true
                 },

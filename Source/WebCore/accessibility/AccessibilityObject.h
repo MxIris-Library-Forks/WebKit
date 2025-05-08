@@ -202,7 +202,7 @@ public:
     bool isMultiSelectable() const override { return false; }
     bool isOffScreen() const override { return false; }
     bool isPressed() const override { return false; }
-    InsideLink insideLink() const final;
+    bool isVisited() const final;
     bool isRequired() const override { return false; }
     bool isExpanded() const final;
     bool isVisible() const override { return !isHidden(); }
@@ -403,7 +403,7 @@ public:
     // Cocoa API (attributed strings).
     AttributedStringStyle stylesForAttributedString() const final;
     RetainPtr<CTFontRef> font() const final;
-    Color textColor() const;
+    Color textColor() const final;
     Color backgroundColor() const;
     bool isSubscript() const;
     bool isSuperscript() const;

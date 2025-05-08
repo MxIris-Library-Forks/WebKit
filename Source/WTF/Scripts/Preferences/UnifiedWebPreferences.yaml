@@ -1216,20 +1216,6 @@ CSSCounterStyleAtRuleImageSymbolsEnabled:
     WebCore:
       default: false
 
-CSSCounterStyleAtRulesEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS @counter-style"
-  humanReadableDescription: "Enable support for CSS @counter-style rules"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 CSSDPropertyEnabled:
   type: bool
   status: preview
@@ -1257,20 +1243,6 @@ CSSFieldSizingEnabled:
       default: false
     WebCore:
       default: false
-
-CSSFontFaceSizeAdjustEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS @font-face size-adjust"
-  humanReadableDescription: "Enable size-adjust descriptor in @font-face"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
 
 CSSFontVariantEmojiEnabled:
   type: bool
@@ -1484,20 +1456,6 @@ CSSRubyOverhangEnabled:
     WebCore:
       default: true
 
-CSSScopeAtRuleEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS Scoping (@scope)"
-  humanReadableDescription: "Enable the CSS Scoping feature with @scope rule"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 CSSScrollAnchoringEnabled:
   type: bool
   status: testable
@@ -1560,20 +1518,6 @@ CSSShapeFunctionEnabled:
   category: css
   humanReadableName: "CSS shape() function"
   humanReadableDescription: "Enable the CSS shape() function"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
-CSSStartingStyleAtRuleEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS @starting-style rule"
-  humanReadableDescription: "Enable CSS @starting-style rule"
   defaultValue:
     WebKitLegacy:
       default: true
@@ -1693,20 +1637,6 @@ CSSTextWrapPrettyEnabled:
        default: true
      WebCore:
        default: true
-
-CSSTextWrapStyleEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS text-wrap-style property"
-  humanReadableDescription: "Enable the property text-wrap-style, defined in CSS Text 4"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
 
 CSSTransformStyleSeparatedEnabled:
   type: bool
@@ -2509,20 +2439,6 @@ DateTimeInputsEditableComponentsEnabled:
     WebCore:
       default: false
 
-DeclarativeShadowRootsSerializerAPIsEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Declarative Shadow Roots Serializer APIs"
-  humanReadableDescription: "Declarative Shadow Roots Serializer APIs (Element/ShadowRoot's getHTML() and ShadowRoot's serializable)"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 DeclarativeWebPush:
   type: bool
   status: stable
@@ -2804,20 +2720,6 @@ EditableLinkBehavior:
       default: WebCore::EditableLinkBehavior::NeverLive
     WebCore:
       default: EditableLinkBehavior::Default
-
-ElementCheckVisibilityEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "element.checkVisibility() API"
-  humanReadableDescription: "Enable element.checkVisibility() API"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
 
 EmbedElementEnabled:
   type: bool
@@ -3424,22 +3326,6 @@ GoogleAntiFlickerOptimizationQuirkEnabled:
       default: true
     WebCore:
       default: true
-
-GraphicsContextFiltersEnabled:
-   type: bool
-   status: stable
-   category: media
-   webcoreOnChange: setNeedsRelayoutAllFrames
-   humanReadableName: "GraphicsContext Filter Rendering"
-   humanReadableDescription: "GraphicsContext Filter Rendering"
-   condition: USE(GRAPHICS_CONTEXT_FILTERS)
-   defaultValue:
-     WebKitLegacy:
-       default: true
-     WebKit:
-       default: true
-     WebCore:
-       default: true
 
 HTTPEquivEnabled:
   type: bool
@@ -4852,7 +4738,6 @@ MediaCapabilitiesEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(GTK) || PLATFORM(WPE)": false
       default: true
     WebCore:
       default: false

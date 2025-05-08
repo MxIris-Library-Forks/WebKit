@@ -4719,15 +4719,14 @@ OptionSet<FilterRenderingMode> Page::preferredFilterRenderingModes() const
         modes.add(FilterRenderingMode::Accelerated);
 #endif
 #if USE(GRAPHICS_CONTEXT_FILTERS)
-    if (settings().graphicsContextFiltersEnabled())
-        modes.add(FilterRenderingMode::GraphicsContext);
+    modes.add(FilterRenderingMode::GraphicsContext);
 #endif
     return modes;
 }
 
 bool Page::shouldDisableCorsForRequestTo(const URL& url) const
 {
-    return WTF::anyOf(m_corsDisablingPatterns, [&] (const auto& pattern) {
+    return std::ranges::any_of(m_corsDisablingPatterns, [&](auto& pattern) {
         return pattern.matches(url);
     });
 }

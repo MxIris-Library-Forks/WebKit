@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,31 +25,37 @@
 
 #pragma once
 
-#include <cstring>
-#include <type_traits>
-#include <wtf/Assertions.h>
-#include <wtf/Compiler.h>
+#include "Frame.h"
+#include "HTMLFrameOwnerElement.h"
+#include "Page.h"
 
-namespace WTF {
+namespace WebCore {
 
-template<typename ContainerType, typename AnyOfFunction>
-bool anyOf(ContainerType&& container, NOESCAPE AnyOfFunction&& anyOfFunction)
+inline HTMLFrameOwnerElement* Frame::ownerElement() const
 {
-    for (auto& value : container) {
-        if (anyOfFunction(value))
-            return true;
-    }
-    return false;
+    return m_ownerElement.get();
 }
 
-template<typename ContainerType, typename AllOfFunction>
-bool allOf(ContainerType&& container, NOESCAPE AllOfFunction&& allOfFunction)
+inline RefPtr<HTMLFrameOwnerElement> Frame::protectedOwnerElement() const
 {
-    for (auto& value : container) {
-        if (!allOfFunction(value))
-            return false;
-    }
-    return true;
+    return m_ownerElement.get();
 }
 
-} // namespace WTF
+inline Page* Frame::page() const
+{
+    return m_page.get();
+}
+
+inline RefPtr<Page> Frame::protectedPage() const
+{
+    return m_page.get();
+}
+
+inline std::optional<PageIdentifier> Frame::pageID() const
+{
+    if (auto* page = this->page())
+        return page->identifier();
+    return std::nullopt;
+}
+
+} // namespace WebCore

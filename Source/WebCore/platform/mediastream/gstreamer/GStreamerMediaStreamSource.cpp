@@ -513,6 +513,9 @@ public:
             m_configuredSize.setHeight(captureSize.height());
 
         auto videoRotation = videoFrame.rotation();
+        if (videoRotation == VideoFrameRotation::Left || videoRotation == VideoFrameRotation::Right)
+            m_configuredSize = m_configuredSize.transposedSize();
+
         bool videoMirrored = videoFrame.isMirrored();
         if (m_videoRotation != videoRotation || m_videoMirrored != videoMirrored) {
             m_videoRotation = videoRotation;
@@ -573,7 +576,7 @@ public:
         return m_eosPending;
     }
 
-    GUniquePtr<GstStructure> queryAdditionalStats()
+    GstStructure* queryAdditionalStats()
     {
         GUniquePtr<GstStructure> stats;
         auto query = adoptGRef(gst_query_new_custom(GST_QUERY_CUSTOM, gst_structure_new_empty("webkit-video-decoder-stats")));
@@ -585,7 +588,7 @@ public:
             stats.reset(gst_structure_new_empty("webkit-video-decoder-stats"));
 
         gst_structure_set(stats.get(), "track-identifier", G_TYPE_STRING, m_track->id().utf8().data(), nullptr);
-        return stats;
+        return stats.release();
     }
 
     bool isEnded() const { return m_isEnded; }
@@ -635,8 +638,8 @@ private:
 
         VideoFrameTimeMetadata metadata;
         metadata.captureTime = MonotonicTime::now().secondsSinceEpoch();
-        auto emptyBuffer = adoptGRef(gst_buffer_new_allocate(nullptr, GST_VIDEO_INFO_SIZE(&info), nullptr));
-        auto buffer = webkitGstBufferSetVideoFrameTimeMetadata(WTFMove(emptyBuffer), metadata);
+        auto buffer = adoptGRef(gst_buffer_new_allocate(nullptr, GST_VIDEO_INFO_SIZE(&info), nullptr));
+        webkitGstBufferAddVideoFrameMetadata(buffer.get(), WTFMove(metadata), m_videoRotation, m_videoMirrored);
         {
             GstMappedBuffer data(buffer, GST_MAP_WRITE);
             WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN; // GLib port

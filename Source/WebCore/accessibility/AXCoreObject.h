@@ -966,9 +966,9 @@ public:
     virtual bool isOnScreen() const = 0;
     virtual bool isOffScreen() const = 0;
     virtual bool isPressed() const = 0;
-    virtual InsideLink insideLink() const = 0;
-    bool isUnvisited() const { return insideLink() == InsideLink::InsideUnvisited; }
-    bool isVisited() const { return insideLink() == InsideLink::InsideVisited; }
+    bool isUnvisitedLink() const { return isLink() && !isVisited(); }
+    bool isVisitedLink() const { return isLink() && isVisited(); }
+    virtual bool isVisited() const = 0;
     virtual bool isRequired() const = 0;
     bool supportsRequiredAttribute() const;
     virtual bool isExpanded() const = 0;
@@ -1155,6 +1155,7 @@ public:
     enum class SpellCheck : bool { No, Yes };
     virtual RetainPtr<NSAttributedString> attributedStringForTextMarkerRange(AXTextMarkerRange&&, SpellCheck) const = 0;
     virtual AttributedStringStyle stylesForAttributedString() const = 0;
+    virtual Color textColor() const = 0;
     virtual RetainPtr<CTFontRef> font() const = 0;
 #endif
 

@@ -74,6 +74,7 @@
 #include <WebCore/SecurityOriginData.h>
 #include <WebCore/StorageUtilities.h>
 #include <WebCore/WebLockRegistry.h>
+#include <algorithm>
 #include <wtf/CallbackAggregator.h>
 #include <wtf/CheckedPtr.h>
 #include <wtf/CompletionHandler.h>
@@ -1112,7 +1113,7 @@ void WebsiteDataStore::resetServiceWorkerTimeoutForTesting()
 
 bool WebsiteDataStore::hasServiceWorkerBackgroundActivityForTesting() const
 {
-    return WTF::anyOf(WebProcessPool::allProcessPools(), [](auto& pool) { return pool->hasServiceWorkerBackgroundActivityForTesting(); });
+    return std::ranges::any_of(WebProcessPool::allProcessPools(), [](auto& pool) { return pool->hasServiceWorkerBackgroundActivityForTesting(); });
 }
 
 void WebsiteDataStore::runningOrTerminatingServiceWorkerCountForTesting(CompletionHandler<void(unsigned)>&& completionHandler)
@@ -2014,8 +2015,8 @@ void WebsiteDataStore::setPrivateTokenIPCForTesting(bool enabled)
 
 bool WebsiteDataStore::isBlobRegistryPartitioningEnabled() const
 {
-    return WTF::anyOf(m_processes, [] (const WebProcessProxy& process) {
-        return WTF::anyOf(process.pages(), [](auto& page) {
+    return std::ranges::any_of(m_processes, [](auto& process) {
+        return std::ranges::any_of(process.pages(), [](auto& page) {
             return page->preferences().blobRegistryTopOriginPartitioningEnabled();
         });
     });
@@ -2024,8 +2025,8 @@ bool WebsiteDataStore::isBlobRegistryPartitioningEnabled() const
 #if HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
 bool WebsiteDataStore::isOptInCookiePartitioningEnabled() const
 {
-    return WTF::anyOf(m_processes, [] (const WebProcessProxy& process) {
-        return WTF::anyOf(process.pages(), [](auto& page) {
+    return std::ranges::any_of(m_processes, [](auto& process) {
+        return std::ranges::any_of(process.pages(), [](auto& page) {
             return page->preferences().optInPartitionedCookiesEnabled();
         });
     });
@@ -2231,6 +2232,9 @@ WebsiteDataStoreParameters WebsiteDataStore::parameters()
     parameters.networkSessionParameters = WTFMove(networkSessionParameters);
     parameters.networkSessionParameters.resourceLoadStatisticsParameters.enabled = trackingPreventionEnabled();
     platformSetNetworkParameters(parameters);
+#if USE(SOUP) || USE(CURL)
+    parameters.networkSessionParameters.ignoreTLSErrors = m_ignoreTLSErrors;
+#endif
 #if PLATFORM(COCOA)
     parameters.networkSessionParameters.useNetworkLoader = useNetworkLoader();
 #endif
@@ -2258,6 +2262,17 @@ WebsiteDataStoreParameters WebsiteDataStore::parameters()
     
     return parameters;
 }
+
+#if USE(SOUP) || USE(CURL)
+void WebsiteDataStore::setIgnoreTLSErrors(bool ignoreTLSErrors)
+{
+    if (m_ignoreTLSErrors == ignoreTLSErrors)
+        return;
+
+    m_ignoreTLSErrors = ignoreTLSErrors;
+    networkProcess().send(Messages::NetworkProcess::SetIgnoreTLSErrors(m_sessionID, m_ignoreTLSErrors), 0);
+}
+#endif
 
 #if HAVE(SEC_KEY_PROXY)
 void WebsiteDataStore::addSecKeyProxyStore(Ref<SecKeyProxyStore>&& store)
@@ -2752,7 +2767,8 @@ void WebsiteDataStore::resumeDownload(const DownloadProxy& downloadProxy, const 
 
 bool WebsiteDataStore::hasActivePages()
 {
-    return WTF::anyOf(WebProcessPool::allProcessPools(), [&](auto& pool) {
+    // FIXME: Drop SUPPRESS_UNCOUNTED_LAMBDA_CAPTURE once <rdar://150855062> is fixed.
+    SUPPRESS_UNCOUNTED_LAMBDA_CAPTURE return std::ranges::any_of(WebProcessPool::allProcessPools(), [&](auto& pool) {
         return pool->hasPagesUsingWebsiteDataStore(*this);
     });
 }

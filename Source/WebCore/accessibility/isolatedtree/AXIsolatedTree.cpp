@@ -33,6 +33,7 @@
 #include "AccessibilityTable.h"
 #include "AccessibilityTableCell.h"
 #include "AccessibilityTableRow.h"
+#include "DocumentInlines.h"
 #include "FrameSelection.h"
 #include "LocalFrameView.h"
 #include "Page.h"
@@ -673,9 +674,6 @@ void AXIsolatedTree::updateNodeProperties(AccessibilityObject& axObject, const A
         case AXProperty::IdentifierAttribute:
             properties.append({ AXProperty::IdentifierAttribute, axObject.identifierAttribute().isolatedCopy() });
             break;
-        case AXProperty::InsideLink:
-            properties.append({ AXProperty::InsideLink, axObject.insideLink() });
-            break;
         case AXProperty::InternalLinkElement: {
             auto* linkElement = axObject.internalLinkElement();
             properties.append({ AXProperty::InternalLinkElement, linkElement ? std::optional { linkElement->objectID() } : std::nullopt });
@@ -709,6 +707,9 @@ void AXIsolatedTree::updateNodeProperties(AccessibilityObject& axObject, const A
             break;
         case AXProperty::IsVisible:
             properties.append({ AXProperty::IsVisible, axObject.isVisible() });
+            break;
+        case AXProperty::IsVisited:
+            properties.append({ AXProperty::IsVisited, axObject.isVisited() });
             break;
         case AXProperty::MaxValueForRange:
             properties.append({ AXProperty::MaxValueForRange, axObject.maxValueForRange() });
@@ -958,7 +959,7 @@ void AXIsolatedTree::updateChildren(AccessibilityObject& axObject, ResolveNodeCh
             // Don't immediately resolve node changes in these recursive calls to updateChildren. This avoids duplicate node change creation in this scenario:
             //   1. Some subtree is updated in the below call to updateChildren.
             //   2. Later in this function, when updating axAncestor, we update some higher subtree that includes the updated subtree from step 1.
-            updateChildren(liveChild, ResolveNodeChanges::No);
+            queueNodeUpdate(liveChild->objectID(), NodeUpdateOptions::childrenUpdate());
         }
     }
 #endif // !ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
@@ -979,7 +980,7 @@ void AXIsolatedTree::updateChildren(AccessibilityObject& axObject, ResolveNodeCh
 
             // Propagate any subtree updates downwards for this already-existing child.
             if (auto* liveChild = dynamicDowncast<AccessibilityObject>(newChildren[i].get()); liveChild && liveChild->hasDirtySubtree())
-                updateChildren(*liveChild, ResolveNodeChanges::No);
+                queueNodeUpdate(liveChild->objectID(), NodeUpdateOptions::childrenUpdate());
         } else {
             // This is a new child, add it to the tree.
             childrenChanged = true;
@@ -1023,7 +1024,7 @@ void AXIsolatedTree::updateChildren(AccessibilityObject& axObject, ResolveNodeCh
 
     // Also queue updates to the target node itself and any properties that depend on children().
     if (childrenChanged || unconditionallyUpdate(axAncestor->roleValue())) {
-        updateNode(*axAncestor);
+        queueNodeUpdate(axAncestor->objectID(), NodeUpdateOptions::nodeUpdate());
         updateDependentProperties(*axAncestor);
     }
 
@@ -1041,7 +1042,7 @@ void AXIsolatedTree::updateChildrenForObjects(const ListHashSet<Ref<Accessibilit
 
     AXAttributeCacheEnabler enableCache(axObjectCache());
     for (auto& axObject : axObjects)
-        updateChildren(axObject.get(), ResolveNodeChanges::No);
+        queueNodeUpdate(axObject->objectID(), NodeUpdateOptions::childrenUpdate());
 
     queueRemovalsAndUnresolvedChanges();
 }
@@ -1199,7 +1200,7 @@ void AXIsolatedTree::updateRootScreenRelativePosition()
 
     CheckedPtr cache = m_axObjectCache.get();
     if (auto* axRoot = cache && cache->document() ? cache->getOrCreate(cache->document()->view()) : nullptr)
-        updateNodeProperties(*axRoot, { AXProperty::ScreenRelativePosition });
+        queueNodeUpdate(axRoot->objectID(), { AXProperty::ScreenRelativePosition });
 }
 
 void AXIsolatedTree::removeNode(AXID axID, std::optional<AXID> parentID)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2014-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -190,9 +190,9 @@ void WebPageProxy::layerTreeCommitComplete()
 
 #if ENABLE(DATA_DETECTION)
 
-void WebPageProxy::setDataDetectionResult(const DataDetectionResult& dataDetectionResult)
+void WebPageProxy::setDataDetectionResult(DataDetectionResult&& dataDetectionResult)
 {
-    m_dataDetectionResults = dataDetectionResult.results;
+    m_dataDetectionResults = WTFMove(dataDetectionResult.results);
 }
 
 void WebPageProxy::handleClickForDataDetectionResult(const DataDetectorElementInfo& info, const IntPoint& clickLocation)
@@ -260,6 +260,15 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL& url, bool forMainFrameNavig
 #if ENABLE(CONTENT_FILTERING)
 void WebPageProxy::contentFilterDidBlockLoadForFrame(IPC::Connection& connection, const WebCore::ContentFilterUnblockHandler& unblockHandler, FrameIdentifier frameID)
 {
+#if HAVE(PARENTAL_CONTROLS_WITH_UNBLOCK_HANDLER)
+    bool usesWebContentRestrictions = false;
+#if HAVE(WEBCONTENTRESTRICTIONS)
+    usesWebContentRestrictions = protectedPreferences()->usesWebContentRestrictionsForFilter();
+#endif
+    if (usesWebContentRestrictions)
+        MESSAGE_CHECK(unblockHandler.webFilterEvaluatorData().isEmpty(), connection);
+#endif
+
     RefPtr process = dynamicDowncast<WebProcessProxy>(AuxiliaryProcessProxy::fromConnection(connection));
     contentFilterDidBlockLoadForFrameShared(*process, unblockHandler, frameID);
 }
@@ -327,10 +336,10 @@ bool WebPageProxy::scrollingUpdatesDisabledForTesting()
 
 #if ENABLE(DRAG_SUPPORT)
 
-void WebPageProxy::startDrag(const DragItem& dragItem, ShareableBitmap::Handle&& dragImageHandle)
+void WebPageProxy::startDrag(const DragItem& dragItem, ShareableBitmap::Handle&& dragImageHandle, const std::optional<ElementIdentifier>& elementID)
 {
     if (RefPtr pageClient = this->pageClient())
-        pageClient->startDrag(dragItem, WTFMove(dragImageHandle));
+        pageClient->startDrag(dragItem, WTFMove(dragImageHandle), elementID);
 }
 
 #endif

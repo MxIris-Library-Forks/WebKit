@@ -3946,6 +3946,8 @@
 		9B32CDA913DF7FA900F34D13 /* RenderedPosition.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B32CDA713DF7FA900F34D13 /* RenderedPosition.h */; };
 		9B417064125662B3006B28FC /* ApplyBlockElementCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B417062125662B3006B28FC /* ApplyBlockElementCommand.h */; };
 		9B46C03C2DC34A51002E22C4 /* ContainerNodeInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B46C03B2DC34A47002E22C4 /* ContainerNodeInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		9B46C04B2DC4A867002E22C4 /* FrameInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B46C04A2DC4A867002E22C4 /* FrameInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		9B46C0502DC4AB14002E22C4 /* LocalFrameInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B46C04F2DC4AAC7002E22C4 /* LocalFrameInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9B4F0636289F3882007831DB /* SlotAssignmentMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B4F0630289F2F08007831DB /* SlotAssignmentMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9B50B1DE17CD4C0F0087F63C /* FormAssociatedElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B50B1DC17CD4C0F0087F63C /* FormAssociatedElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9B532EA41BA928570038A827 /* SlotAssignment.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B532EA21BA928570038A827 /* SlotAssignment.h */; };
@@ -15889,6 +15891,9 @@
 		9B417063125662B3006B28FC /* ApplyBlockElementCommand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ApplyBlockElementCommand.cpp; sourceTree = "<group>"; };
 		9B4376EF2117E872009D03A0 /* ThrowOnDynamicMarkupInsertionCountIncrementer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ThrowOnDynamicMarkupInsertionCountIncrementer.h; sourceTree = "<group>"; };
 		9B46C03B2DC34A47002E22C4 /* ContainerNodeInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContainerNodeInlines.h; sourceTree = "<group>"; };
+		9B46C04A2DC4A867002E22C4 /* FrameInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameInlines.h; sourceTree = "<group>"; };
+		9B46C04F2DC4AAC7002E22C4 /* LocalFrameInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalFrameInlines.h; sourceTree = "<group>"; };
+		9B46C0542DC4B821002E22C4 /* LocalFrameViewInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalFrameViewInlines.h; sourceTree = "<group>"; };
 		9B4F0630289F2F08007831DB /* SlotAssignmentMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SlotAssignmentMode.h; sourceTree = "<group>"; };
 		9B4F0632289F2F08007831DB /* SlotAssignmentMode.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SlotAssignmentMode.idl; sourceTree = "<group>"; };
 		9B50B1DC17CD4C0F0087F63C /* FormAssociatedElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FormAssociatedElement.h; sourceTree = "<group>"; };
@@ -28608,6 +28613,7 @@
 				46014ACB28333F52004C0B84 /* FrameDestructionObserverInlines.h */,
 				FA63420E2D9CB95B00A6BECE /* FrameIdentifier.cpp */,
 				0F11781622E3C47E008BD570 /* FrameIdentifier.h */,
+				9B46C04A2DC4A867002E22C4 /* FrameInlines.h */,
 				C4CD629818383766007EBAF1 /* FrameSnapshotting.cpp */,
 				C4CD629918383766007EBAF1 /* FrameSnapshotting.h */,
 				65A21482097A3F5300B9050A /* FrameTree.cpp */,
@@ -28650,8 +28656,10 @@
 				97D2AD0214B823A60093DF32 /* LocalDOMWindowProperty.h */,
 				65BF02290974816300C43196 /* LocalFrame.cpp */,
 				65BF022A0974816300C43196 /* LocalFrame.h */,
+				9B46C04F2DC4AAC7002E22C4 /* LocalFrameInlines.h */,
 				65CBFEF70974F607001DAC25 /* LocalFrameView.cpp */,
 				65CBFEF80974F607001DAC25 /* LocalFrameView.h */,
+				9B46C0542DC4B821002E22C4 /* LocalFrameViewInlines.h */,
 				113D0B4F1F9FDD2B00F611BB /* LocalFrameViewLayoutContext.cpp */,
 				113D0B501F9FDD2B00F611BB /* LocalFrameViewLayoutContext.h */,
 				BCE1C41A0D982980003B02F2 /* Location.cpp */,
@@ -41444,6 +41452,7 @@
 				974A862314B7ADBB003FDC76 /* FrameDestructionObserver.h in Headers */,
 				46014ACC28333F65004C0B84 /* FrameDestructionObserverInlines.h in Headers */,
 				0F11781822E3C47F008BD570 /* FrameIdentifier.h in Headers */,
+				9B46C04B2DC4A867002E22C4 /* FrameInlines.h in Headers */,
 				656D373C0ADBA5DE00A4554D /* FrameLoader.h in Headers */,
 				FAA4E2FD2A156D57003F5E50 /* FrameLoaderClient.h in Headers */,
 				D000EBA311BDAFD400C47726 /* FrameLoaderStateMachine.h in Headers */,
@@ -43030,6 +43039,7 @@
 				F5973DE015CFB2030027F804 /* LocaleCocoa.h in Headers */,
 				7633A72613D8B33A008501B6 /* LocaleToScriptMapping.h in Headers */,
 				65BF022F0974816300C43196 /* LocalFrame.h in Headers */,
+				9B46C0502DC4AB14002E22C4 /* LocalFrameInlines.h in Headers */,
 				656D373E0ADBA5DE00A4554D /* LocalFrameLoaderClient.h in Headers */,
 				65CBFEFA0974F607001DAC25 /* LocalFrameView.h in Headers */,
 				113D0B521F9FDD2B00F611BB /* LocalFrameViewLayoutContext.h in Headers */,

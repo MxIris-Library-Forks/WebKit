@@ -134,6 +134,7 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
         if (!language.isEmpty())
             setProperty(AXProperty::Language, WTFMove(language).isolatedCopy());
         setProperty(AXProperty::IsEnabled, object.isEnabled());
+        initializeBasePlatformProperties(axObject);
     };
 
     // Allocate a capacity based on the minimum properties an object has (based on measurements from a real webpage).
@@ -175,7 +176,7 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     setProperty(AXProperty::IsMultiSelectable, object.isMultiSelectable());
     setProperty(AXProperty::IsRequired, object.isRequired());
     setProperty(AXProperty::IsSelected, object.isSelected());
-    setProperty(AXProperty::InsideLink, object.insideLink());
+    setProperty(AXProperty::IsVisited, object.isVisited());
     setProperty(AXProperty::IsValueAutofillAvailable, object.isValueAutofillAvailable());
     setProperty(AXProperty::RoleDescription, object.roleDescription().isolatedCopy());
     setProperty(AXProperty::SubrolePlatformString, object.subrolePlatformString().isolatedCopy());
@@ -570,6 +571,9 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         case AXProperty::IsTableRow:
             setPropertyFlag(AXPropertyFlag::IsTableRow, std::get<bool>(value));
             return;
+        case AXProperty::IsVisited:
+            setPropertyFlag(AXPropertyFlag::IsVisited, std::get<bool>(value));
+            return;
         case AXProperty::SupportsCheckedState:
             setPropertyFlag(AXPropertyFlag::SupportsCheckedState, std::get<bool>(value));
             return;
@@ -612,6 +616,11 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         [](uint64_t typedValue) { return !typedValue; },
         [](AccessibilityButtonState& typedValue) { return typedValue == AccessibilityButtonState::Off; },
         [&](Color& typedValue) {
+            if (property == AXProperty::TextColor) {
+                auto* parent = parentObject();
+                return parent && typedValue == parent->textColor();
+            }
+
             if (property == AXProperty::ColorValue)
                 return typedValue == Color::black;
             return typedValue.toColorTypeLossy<SRGBA<uint8_t>>() == Color().toColorTypeLossy<SRGBA<uint8_t>>();
@@ -636,7 +645,6 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         [](RetainPtr<NSAttributedString>& typedValue) { return !typedValue; },
         [](RetainPtr<id>& typedValue) { return !typedValue; },
 #endif
-        [](InsideLink& typedValue) { return typedValue == InsideLink(); },
         [](Vector<Vector<Markable<AXID>>>& typedValue) { return typedValue.isEmpty(); },
         [](CharacterRange& typedValue) { return !typedValue.location && !typedValue.length; },
         [](std::shared_ptr<AXIDAndCharacterRange>& typedValue) {
@@ -644,7 +652,10 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         },
 #if ENABLE(AX_THREAD_TEXT_APIS)
         [](std::shared_ptr<AXTextRuns> typedValue) { return !typedValue || !typedValue->size(); },
-        [](RetainPtr<CTFontRef>& typedValue) { return !typedValue; },
+        [&](RetainPtr<CTFontRef>& typedValue) {
+            auto* parent = parentObject();
+            return parent && typedValue == parent->font();
+        },
         [](FontOrientation typedValue) { return typedValue == FontOrientation::Horizontal; },
         [](TextEmissionBehavior typedValue) { return typedValue == TextEmissionBehavior::None; },
         [](AXTextRunLineID typedValue) { return !typedValue; },
@@ -1129,12 +1140,27 @@ Path AXIsolatedObject::pathAttributeValue(AXProperty property) const
 Color AXIsolatedObject::colorAttributeValue(AXProperty property) const
 {
     size_t index = indexOfProperty(property);
-    if (index == notFound)
+    if (index == notFound) {
+        if (property == AXProperty::TextColor && parentObject())
+            return parentObject()->textColor();
         return Color();
+    }
 
     return WTF::switchOn(m_properties[index].second,
         [] (const Color& typedValue) -> Color { return typedValue; },
         [] (auto&) { return Color(); }
+    );
+}
+
+RetainPtr<CTFontRef> AXIsolatedObject::fontAttributeValue(AXProperty property) const
+{
+    size_t index = indexOfProperty(property);
+    if (index == notFound)
+        return parentObject() ? parentObject()->font() : nullptr;
+
+    return WTF::switchOn(m_properties[index].second,
+        [] (const RetainPtr<CTFontRef>& typedValue) -> RetainPtr<CTFontRef> { return typedValue; },
+        [] (auto&) { return RetainPtr<CTFontRef>(); }
     );
 }
 
@@ -1207,6 +1233,8 @@ bool AXIsolatedObject::boolAttributeValue(AXProperty property) const
         return hasPropertyFlag(AXPropertyFlag::IsNonLayerSVGObject);
     case AXProperty::IsTableRow:
         return hasPropertyFlag(AXPropertyFlag::IsTableRow);
+    case AXProperty::IsVisited:
+        return hasPropertyFlag(AXPropertyFlag::IsVisited);
     case AXProperty::SupportsCheckedState:
         return hasPropertyFlag(AXPropertyFlag::SupportsCheckedState);
     case AXProperty::SupportsDragging:

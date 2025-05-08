@@ -72,9 +72,9 @@ public:
     DOMWindow* window() const { return virtualWindow(); }
     FrameTree& tree() const { return m_treeNode; }
     FrameIdentifier frameID() const { return m_frameID; }
-    inline Page* page() const; // Defined in Page.h.
-    inline RefPtr<Page> protectedPage() const; // Defined in Page.h.
-    inline std::optional<PageIdentifier> pageID() const; // Defined in Page.h.
+    inline Page* page() const; // Defined in FrameInlines.h.
+    inline RefPtr<Page> protectedPage() const; // Defined in FrameInlines.h.
+    inline std::optional<PageIdentifier> pageID() const; // Defined in FrameInlines.h.
     Settings& settings() const { return m_settings.get(); }
     Frame& mainFrame() { return *m_mainFrame; }
     const Frame& mainFrame() const { return *m_mainFrame; }
@@ -96,8 +96,8 @@ public:
     WEBCORE_EXPORT void detachFromPage();
 
     WEBCORE_EXPORT void setOwnerElement(HTMLFrameOwnerElement*);
-    inline HTMLFrameOwnerElement* ownerElement() const; // Defined in HTMLFrameOwnerElement.h.
-    inline RefPtr<HTMLFrameOwnerElement> protectedOwnerElement() const; // Defined in HTMLFrameOwnerElement.h.
+    inline HTMLFrameOwnerElement* ownerElement() const; // Defined in FrameInlines.h.
+    inline RefPtr<HTMLFrameOwnerElement> protectedOwnerElement() const; // Defined in FrameInlines.h.
 
     WEBCORE_EXPORT void disconnectOwnerElement();
     NavigationScheduler& navigationScheduler() const { return m_navigationScheduler.get(); }

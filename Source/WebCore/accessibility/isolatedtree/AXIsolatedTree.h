@@ -74,12 +74,13 @@ enum class AXPropertyFlag : uint32_t {
     IsKeyboardFocusable                           = 1 << 12,
     IsNonLayerSVGObject                           = 1 << 13,
     IsTableRow                                    = 1 << 14,
-    SupportsCheckedState                          = 1 << 15,
-    SupportsDragging                              = 1 << 16,
-    SupportsExpanded                              = 1 << 17,
-    SupportsPath                                  = 1 << 18,
-    SupportsPosInSet                              = 1 << 19,
-    SupportsSetSize                               = 1 << 20
+    IsVisited                                     = 1 << 15,
+    SupportsCheckedState                          = 1 << 16,
+    SupportsDragging                              = 1 << 17,
+    SupportsExpanded                              = 1 << 18,
+    SupportsPath                                  = 1 << 19,
+    SupportsPosInSet                              = 1 << 20,
+    SupportsSetSize                               = 1 << 21
 };
 
 enum class AXProperty : uint16_t {
@@ -157,7 +158,6 @@ enum class AXProperty : uint16_t {
     InitialFrameRect,
     InnerHTML,
     InternalLinkElement,
-    InsideLink,
     IsGrabbed,
     IsARIATreeGridRow,
     IsAnonymousMathOperator,
@@ -205,6 +205,7 @@ enum class AXProperty : uint16_t {
     IsTreeItem,
     IsValueAutofillAvailable,
     IsVisible,
+    IsVisited,
     IsWidget,
     KeyShortcuts,
     Language,
@@ -297,7 +298,7 @@ using AXPropertySet = HashSet<AXProperty, IntHash<AXProperty>, WTF::StrongEnumHa
 using AXIDAndCharacterRange = std::pair<Markable<AXID>, CharacterRange>;
 
 // If this type is modified, the switchOn statment in AXIsolatedObject::setProperty must be updated as well.
-using AXPropertyValueVariant = Variant<std::nullptr_t, Markable<AXID>, String, bool, int, unsigned, double, float, uint64_t, WallTime, DateComponentsType, AccessibilityButtonState, Color, std::shared_ptr<URL>, LayoutRect, FloatPoint, FloatRect, IntPoint, IntRect, std::pair<unsigned, unsigned>, std::optional<unsigned>, Vector<AccessibilityText>, Vector<AXID>, Vector<std::pair<Markable<AXID>, Markable<AXID>>>, Vector<String>, std::shared_ptr<Path>, OptionSet<AXAncestorFlag>, InsideLink, Vector<Vector<Markable<AXID>>>, CharacterRange, std::shared_ptr<AXIDAndCharacterRange>, TagName, std::optional<AccessibilityOrientation>
+using AXPropertyValueVariant = Variant<std::nullptr_t, Markable<AXID>, String, bool, int, unsigned, double, float, uint64_t, WallTime, DateComponentsType, AccessibilityButtonState, Color, std::shared_ptr<URL>, LayoutRect, FloatPoint, FloatRect, IntPoint, IntRect, std::pair<unsigned, unsigned>, std::optional<unsigned>, Vector<AccessibilityText>, Vector<AXID>, Vector<std::pair<Markable<AXID>, Markable<AXID>>>, Vector<String>, std::shared_ptr<Path>, OptionSet<AXAncestorFlag>, Vector<Vector<Markable<AXID>>>, CharacterRange, std::shared_ptr<AXIDAndCharacterRange>, TagName, std::optional<AccessibilityOrientation>
 #if PLATFORM(COCOA)
     , RetainPtr<NSAttributedString>
     , RetainPtr<id>
@@ -386,17 +387,8 @@ public:
 
     void generateSubtree(AccessibilityObject&);
     bool shouldCreateNodeChange(AccessibilityObject&);
-    void updateNode(AccessibilityObject&);
     enum class ResolveNodeChanges : bool { No, Yes };
-    void updateChildren(AccessibilityObject&, ResolveNodeChanges = ResolveNodeChanges::Yes);
     void updateChildrenForObjects(const ListHashSet<Ref<AccessibilityObject>>&);
-    void updateNodeProperty(AccessibilityObject& object, AXProperty property) { updateNodeProperties(object, { property }); }
-    void updateNodeProperties(AccessibilityObject&, const AXPropertySet&);
-    void updateNodeProperties(AccessibilityObject* axObject, const AXPropertySet& properties)
-    {
-        if (axObject)
-            updateNodeProperties(*axObject, properties);
-    }
     void updateDependentProperties(AccessibilityObject&);
     void updatePropertiesForSelfAndDescendants(AccessibilityObject&, const AXPropertySet&);
     void updateFrame(AXID, IntRect&&);
@@ -529,6 +521,10 @@ private:
 #endif
         AttachWrapper attachWrapper { AttachWrapper::OnMainThread };
     };
+
+    void updateChildren(AccessibilityObject&, ResolveNodeChanges = ResolveNodeChanges::Yes);
+    void updateNode(AccessibilityObject&);
+    void updateNodeProperties(AccessibilityObject&, const AXPropertySet&);
 
     std::optional<NodeChange> nodeChangeForObject(Ref<AccessibilityObject>, AttachWrapper = AttachWrapper::OnMainThread);
     void collectNodeChangesForSubtree(AccessibilityObject&);

@@ -5577,6 +5577,21 @@ void WebPage::dragCancelled()
         localMainFrame->eventHandler().dragCancelled();
 }
 
+#if ENABLE(MODEL_PROCESS)
+void WebPage::modelDragEnded(ElementIdentifier elementIdentifier)
+{
+    RefPtr element = Element::fromIdentifier(elementIdentifier);
+    if (!element)
+        return;
+
+    RefPtr modelElement = dynamicDowncast<HTMLModelElement>(element);
+    if (!modelElement)
+        return;
+
+    modelElement->resetModelTransformAfterDrag();
+}
+#endif
+
 #endif // ENABLE(DRAG_SUPPORT)
 
 #if ENABLE(MODEL_PROCESS)
@@ -9822,7 +9837,7 @@ void WebPage::remotePostMessage(WebCore::FrameIdentifier source, const String& s
     if (!targetWindow)
         return;
 
-    RefPtr targetCoreFrame = targetWindow->frame();
+    RefPtr targetCoreFrame = targetWindow->localFrame();
     if (!targetCoreFrame)
         return;
 

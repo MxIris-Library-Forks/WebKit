@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2011 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,15 +25,8 @@
 
 #pragma once
 
-#include "ExceptionOr.h"
-
 namespace WebCore {
 
-// FIXME: We should merge these into WindowOrWorkerGlobalScope.
-class Base64Utilities {
-public:
-    static ExceptionOr<String> btoa(const String&);
-    static ExceptionOr<String> atob(const String&);
-};
+enum class AdjustViewSize : bool { No, Yes };
 
-}
+} // namespace WebCore

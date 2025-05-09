@@ -216,27 +216,17 @@
 
 /* FALLTHROUGH */
 
-#if !defined(FALLTHROUGH) && defined(__cplusplus) && defined(__has_cpp_attribute)
-
-#if __has_cpp_attribute(fallthrough)
-#define FALLTHROUGH [[fallthrough]]
-#elif __has_cpp_attribute(clang::fallthrough)
-#define FALLTHROUGH [[clang::fallthrough]]
-#elif __has_cpp_attribute(gnu::fallthrough)
-#define FALLTHROUGH [[gnu::fallthrough]]
-#endif
-
-#elif !defined(FALLTHROUGH) && !defined(__cplusplus)
+#if !defined(FALLTHROUGH) && !defined(__cplusplus)
 
 #if COMPILER_HAS_ATTRIBUTE(fallthrough)
 #define FALLTHROUGH __attribute__ ((fallthrough))
 #endif
 
-#endif // !defined(FALLTHROUGH) && defined(__cplusplus) && defined(__has_cpp_attribute)
-
 #if !defined(FALLTHROUGH)
 #define FALLTHROUGH
 #endif
+
+#endif // !defined(FALLTHROUGH) && !defined(__cplusplus)
 
 /* LIFETIME_BOUND */
 
@@ -258,12 +248,6 @@
 
 #if !defined(NEVER_INLINE)
 #define NEVER_INLINE __attribute__((__noinline__))
-#endif
-
-/* NO_RETURN */
-
-#if !defined(NO_RETURN)
-#define NO_RETURN __attribute((__noreturn__))
 #endif
 
 /* NOT_TAIL_CALLED */
@@ -303,12 +287,6 @@
 /* RETURNS_NONNULL */
 #if !defined(RETURNS_NONNULL)
 #define RETURNS_NONNULL __attribute__((returns_nonnull))
-#endif
-
-/* NO_RETURN_WITH_VALUE */
-
-#if !defined(NO_RETURN_WITH_VALUE)
-#define NO_RETURN_WITH_VALUE NO_RETURN
 #endif
 
 /* OBJC_CLASS */

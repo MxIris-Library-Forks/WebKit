@@ -2088,7 +2088,6 @@ mathml/MathMLUnknownElement.cpp
 page/ActivityState.cpp
 page/AutoscrollController.cpp
 page/BarProp.cpp
-page/Base64Utilities.cpp
 page/CaptionUserPreferences.cpp
 page/Chrome.cpp
 page/ChromeClient.cpp
@@ -2787,7 +2786,7 @@ rendering/CounterNode.cpp
 rendering/EllipsisBoxPainter.cpp
 rendering/EventRegion.cpp
 rendering/FixedTableLayout.cpp
-rendering/FlexibleBoxAlgorithm.cpp
+rendering/FlexLineBuilder.cpp
 rendering/FloatingObjects.cpp
 rendering/Grid.cpp
 rendering/GridBaselineAlignment.cpp

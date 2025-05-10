@@ -5949,6 +5949,22 @@ struct WebCore::SpatialVideoMetadata {
     float disparityAdjustment;
 };
 
+enum class WebCore::VideoProjectionMetadataKind : uint8_t {
+    Unknown,
+    Equirectangular,
+    HalfEquirectangular,
+    EquiAngularCubemap,
+    Parametric,
+    Pyramid,
+    AppleImmersiveVideo,
+};
+
+header: <WebCore/VideoProjectionMetadata.h>
+struct WebCore::VideoProjectionMetadata {
+    WebCore::VideoProjectionMetadataKind kind;
+    RefPtr<WTF::JSONImpl::Value> parameters;
+};
+
 struct WebCore::PlatformTrackConfiguration {
     String codec;
 };
@@ -5966,7 +5982,7 @@ struct WebCore::PlatformVideoTrackConfiguration : WebCore::PlatformTrackConfigur
     double framerate;
     uint64_t bitrate;
     std::optional<WebCore::SpatialVideoMetadata> spatialVideoMetadata;
-    bool isImmersiveVideo;
+    std::optional<WebCore::VideoProjectionMetadata> videoProjectionMetadata;
 };
 
 #endif
@@ -7153,6 +7169,16 @@ struct WebCore::CookieChangeSubscription {
     Ref<WebCore::SharedBuffer> data()
     String mimeType()
     URL url()
+}
+
+class WebCore::ModelPlayerAnimationState {
+    bool autoplay()
+    bool loop()
+    bool paused()
+    Seconds duration()
+    std::optional<double> effectivePlaybackRate()
+    std::optional<Seconds> lastCachedCurrentTime()
+    std::optional<MonotonicTime> lastCachedClockTimestamp()
 }
 
 #if ENABLE(MODEL_PROCESS)

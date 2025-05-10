@@ -1054,6 +1054,9 @@ void LocalFrameView::obscuredContentInsetsDidChange(const FloatBoxExtent& newObs
 
     if (platformWidget())
         platformSetContentInsets(newObscuredContentInsets);
+
+    if (RefPtr document = m_frame->document())
+        document->updateViewportUnitsOnResize();
     
     renderView->setNeedsLayout();
     layoutContext().layout();
@@ -3056,7 +3059,7 @@ void LocalFrameView::scrollRectToVisibleInTopLevelView(const LayoutRect& absolut
     // This is the outermost view of a web page, so after scrolling this view we
     // scroll its container by calling Page::scrollMainFrameToRevealRect.
     // This only has an effect on the Mac platform in applications
-    // that put web views into scrolling containers, such as Mac OS X Mail.
+    // that put web views into scrolling containers, such as macOS Mail.
     // The canAutoscroll function in EventHandler also knows about this.
     page->chrome().scrollContainingScrollViewsToRevealRect(snappedIntRect(absoluteRect));
 }

@@ -28,6 +28,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include <wtf/Forward.h>
 #include <wtf/GetPtr.h>
 #include <wtf/HashTable.h>
+#include <wtf/RobinHoodHashTable.h>
 
 namespace WTF {
 
@@ -74,8 +75,8 @@ public:
 
     void reserveInitialCapacity(unsigned keyCount) { m_impl.reserveInitialCapacity(keyCount); }
 
-    iterator begin() const;
-    iterator end() const;
+    iterator begin() const LIFETIME_BOUND;
+    iterator end() const LIFETIME_BOUND;
 
     iterator random() const { return m_impl.random(); }
 

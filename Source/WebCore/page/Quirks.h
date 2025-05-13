@@ -52,6 +52,7 @@ class WeakPtrImplWithEventTargetData;
 
 enum class IsSyntheticClick : bool;
 enum class StorageAccessWasGranted : uint8_t;
+enum class UserAgentType;
 
 class Quirks {
     WTF_MAKE_TZONE_ALLOCATED(Quirks);
@@ -220,6 +221,7 @@ public:
     WEBCORE_EXPORT bool shouldUseEphemeralPartitionedStorageForDOMCookies(const URL&) const;
 
     bool needsLaxSameSiteCookieQuirk(const URL&) const;
+    static String standardUserAgentWithApplicationNameIncludingCompatOverrides(const String&, const String&, UserAgentType);
 
     String scriptToEvaluateBeforeRunningScriptFromURL(const URL&);
 
@@ -254,6 +256,8 @@ public:
     bool needsWebKitMediaTextTrackDisplayQuirk() const;
 
     bool shouldSupportHoverMediaQueries() const;
+
+    bool shouldRewriteMediaRangeRequestForURL(const URL&) const;
 
 private:
     bool needsQuirks() const;

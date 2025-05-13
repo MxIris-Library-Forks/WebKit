@@ -126,6 +126,7 @@ static HashMap<RegistrableDomain, String>& updatableStorageAccessUserAgentString
 #else
 static inline bool needsDesktopUserAgentInternal(const URL&) { return false; }
 static inline bool shouldPreventOrientationMediaQueryFromEvaluatingToLandscapeInternal(const URL&) { return false; }
+static inline String standardUserAgentWithApplicationNameIncludingCompatOverridesInternal(const String&, const String&, UserAgentType) { return { }; }
 #endif
 
 Quirks::Quirks(Document& document)
@@ -1528,6 +1529,12 @@ bool Quirks::needsLaxSameSiteCookieQuirk(const URL& requestURL) const
     auto url = m_document->url();
     return url.protocolIs("https"_s) && url.host() == "login.microsoftonline.com"_s && requestURL.protocolIs("https"_s) && requestURL.host() == "www.bing.com"_s;
 }
+
+String Quirks::standardUserAgentWithApplicationNameIncludingCompatOverrides(const String& applicationName, const String& userAgentOSVersion, UserAgentType type)
+{
+    return standardUserAgentWithApplicationNameIncludingCompatOverridesInternal(applicationName, userAgentOSVersion, type);
+}
+
 #if ENABLE(TEXT_AUTOSIZING)
 // news.ycombinator.com: rdar://127246368
 bool Quirks::shouldIgnoreTextAutoSizing() const
@@ -1856,6 +1863,11 @@ bool Quirks::shouldSupportHoverMediaQueries() const
 #else
     return false;
 #endif
+}
+
+bool Quirks::shouldRewriteMediaRangeRequestForURL(const URL& url) const
+{
+    return needsQuirks() && m_quirksData.needsMediaRewriteRangeRequestQuirk && RegistrableDomain(url).string() == "bing.com"_s;
 }
 
 URL Quirks::topDocumentURL() const
@@ -2302,6 +2314,7 @@ static void handleBingQuirks(QuirksData& quirksData, const URL& quirksURL, const
     // bing.com rdar://126573838
     auto topDocumentHost = quirksURL.host();
     quirksData.needsBingGestureEventQuirk = topDocumentHost == "www.bing.com"_s && startsWithLettersIgnoringASCIICase(quirksURL.path(), "/maps"_s);
+    quirksData.needsMediaRewriteRangeRequestQuirk = true;
 }
 
 static void handleBungalowQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)

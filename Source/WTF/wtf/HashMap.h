@@ -23,8 +23,11 @@
 #include <initializer_list>
 #include <wtf/Compiler.h>
 #include <wtf/Forward.h>
+#include <wtf/HashIterators.h>
 #include <wtf/HashTable.h>
+#include <wtf/HashTraits.h>
 #include <wtf/IteratorRange.h>
+#include <wtf/KeyValuePair.h>
 
 namespace WTF {
 
@@ -115,10 +118,10 @@ public:
     void reserveInitialCapacity(unsigned keyCount) { m_impl.reserveInitialCapacity(keyCount); }
 
     // iterators iterate over pairs of keys and values
-    iterator begin();
-    iterator end();
-    const_iterator begin() const;
-    const_iterator end() const;
+    iterator begin() LIFETIME_BOUND;
+    iterator end() LIFETIME_BOUND;
+    const_iterator begin() const LIFETIME_BOUND;
+    const_iterator end() const LIFETIME_BOUND;
     
     iterator random() { return m_impl.random(); }
     const_iterator random() const { return m_impl.random(); }

@@ -264,6 +264,8 @@
 #include <WebCore/TextCheckerClient.h>
 #include <WebCore/TextExtractionTypes.h>
 #include <WebCore/TextIndicator.h>
+#include <WebCore/TextManipulationController.h>
+#include <WebCore/TextManipulationItem.h>
 #include <WebCore/ValidationBubble.h>
 #include <WebCore/WindowFeatures.h>
 #include <WebCore/WrappedCryptoKey.h>
@@ -911,6 +913,13 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
     inspectorDebuggable->init();
 #endif
     m_inspectorController->init();
+
+#if ENABLE(WEBDRIVER_BIDI)
+    if (m_controlledByAutomation) {
+        if (RefPtr automationSession = m_configuration->processPool().automationSession())
+            automationSession->didCreatePage(*this);
+    }
+#endif
 
 #if ENABLE(IPC_TESTING_API)
     if (m_preferences->ipcTestingAPIEnabled() && m_preferences->ignoreInvalidMessageWhenIPCTestingAPIEnabled())
@@ -1824,9 +1833,25 @@ void WebPageProxy::close()
     Ref processPool = m_configuration->processPool();
     processPool->protectedBackForwardCache()->removeEntriesForPage(*this);
 
-    RunLoop::currentSingleton().dispatch([destinationID = webPageIDInMainFrameProcess(), process, preventProcessShutdownScope = process->shutdownPreventingScope()] {
-        process->send(Messages::WebPage::Close(), destinationID);
+    struct ProcessToClose {
+        Ref<WebProcessProxy> process;
+        WebCore::PageIdentifier pageID;
+        WebProcessProxy::ShutdownPreventingScopeCounter::Token shutdownPreventingScope;
+    };
+    Vector<ProcessToClose> processesToClose;
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        processesToClose.append({
+            process,
+            pageID,
+            process.shutdownPreventingScope()
+        });
     });
+    // Delay sending close message to next runloop cycle to avoid white flash.
+    RunLoop::currentSingleton().dispatch([processesToClose = WTFMove(processesToClose)] {
+        for (auto [process, pageID, scope] : processesToClose)
+            process->send(Messages::WebPage::Close(), pageID);
+    });
+
     process->removeWebPage(*this, WebProcessProxy::EndsUsingDataStore::Yes);
     removeAllMessageReceivers();
     processPool->protectedSupplement<WebNotificationManagerProxy>()->clearNotifications(this);
@@ -2264,10 +2289,11 @@ void WebPageProxy::loadDataWithNavigationShared(Ref<WebProcessProxy>&& process, 
 
     process->markProcessAsRecentlyUsed();
     process->assumeReadAccessToBaseURL(*this, baseURL, [weakProcess = WeakPtr { process }, webPageID, loadParameters = WTFMove(loadParameters)] () mutable {
-        if (!weakProcess)
+        RefPtr protectedProcess = weakProcess.get();
+        if (!protectedProcess)
             return;
-        weakProcess->send(Messages::WebPage::LoadData(WTFMove(loadParameters)), webPageID);
-        weakProcess->startResponsivenessTimer();
+        protectedProcess->send(Messages::WebPage::LoadData(WTFMove(loadParameters)), webPageID);
+        protectedProcess->startResponsivenessTimer();
     }, true);
 }
 
@@ -5263,19 +5289,20 @@ void WebPageProxy::setApplicationNameForUserAgent(const String& applicationName)
     setUserAgent(standardUserAgent(m_applicationNameForUserAgent));
 }
 
-void WebPageProxy::setCustomUserAgent(const String& customUserAgent)
+void WebPageProxy::setCustomUserAgent(String&& customUserAgent)
 {
     if (m_customUserAgent == customUserAgent)
         return;
 
-    m_customUserAgent = customUserAgent;
+    m_customUserAgent = WTFMove(customUserAgent);
 
     if (m_customUserAgent.isEmpty()) {
         setUserAgent(standardUserAgent(m_applicationNameForUserAgent));
         return;
     }
 
-    setUserAgent(String { m_customUserAgent }, IsCustomUserAgent::Yes);
+    if (m_userAgent != m_customUserAgent)
+        setUserAgent(String { m_customUserAgent }, IsCustomUserAgent::Yes);
 }
 
 void WebPageProxy::resumeActiveDOMObjectsAndAnimations()
@@ -8471,7 +8498,8 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     MESSAGE_CHECK_BASE(originatingPageID, connection);
     MESSAGE_CHECK_BASE(WebFrameProxy::webFrame(originatingFrameInfoData.frameID), connection);
 
-    auto originatingPage = protectedLegacyMainFrameProcess()->webPage(*originatingPageID);
+    Ref process = WebProcessProxy::fromConnection(connection);
+    auto originatingPage = process->webPage(*originatingPageID);
     auto originatingFrameInfo = API::FrameInfo::create(WTFMove(originatingFrameInfoData), WTFMove(originatingPage));
     auto mainFrameURL = m_mainFrame ? m_mainFrame->url() : URL();
     auto openedMainFrameName = navigationActionData.openedMainFrameName;
@@ -8489,6 +8517,7 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     auto completionHandler = [
         this,
         protectedThis = Ref { *this },
+        process,
         mainFrameURL,
         request,
         reply = WTFMove(reply),
@@ -8539,7 +8568,7 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
         }
 
         ASSERT(newPage->m_mainFrame);
-        reply(newPage->webPageIDInMainFrameProcess(), newPage->creationParameters(protectedLegacyMainFrameProcess(), *newPage->drawingArea(), newPage->m_mainFrame->frameID(), std::nullopt));
+        reply(newPage->webPageIDInProcess(process), newPage->creationParameters(process, *newPage->drawingArea(), newPage->m_mainFrame->frameID(), std::nullopt));
 
 #if HAVE(APP_SSO)
         newPage->m_shouldSuppressSOAuthorizationInNextNavigationPolicyDecision = true;
@@ -8550,11 +8579,10 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
 #endif
     };
 
-    Ref process = m_legacyMainFrameProcess;
     RefPtr userInitiatedActivity = process->userInitiatedActivity(navigationActionData.userGestureTokenIdentifier);
 
     if (userInitiatedActivity && protectedPreferences()->verifyWindowOpenUserGestureFromUIProcess())
-        process->consumeIfNotVerifiablyFromUIProcess(webPageIDInMainFrameProcess(), *userInitiatedActivity, navigationActionData.userGestureAuthorizationToken);
+        process->consumeIfNotVerifiablyFromUIProcess(webPageIDInProcess(process), *userInitiatedActivity, navigationActionData.userGestureAuthorizationToken);
 
     bool shouldOpenAppLinks = originatingFrameInfo->request().url().host() != request.url().host();
     Ref navigationAction = API::NavigationAction::create(WTFMove(navigationActionData), originatingFrameInfo.ptr(), nullptr, String(), WTFMove(request), URL(), shouldOpenAppLinks, WTFMove(userInitiatedActivity));

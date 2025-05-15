@@ -334,6 +334,7 @@ enum class WebCore::EnterKeyHint : uint8_t {
     Send
 };
 
+header: <WebCore/TrustedFonts.h>
 enum class WebCore::DownloadableBinaryFontTrustedTypes : uint8_t {
     Any,
     Restricted,
@@ -2413,11 +2414,11 @@ struct WebCore::MediaStreamRequest {
 };
 #endif
 struct WebCore::MediaCapabilitiesDecodingInfo : WebCore::MediaCapabilitiesInfo {
-    WebCore::MediaDecodingConfiguration supportedConfiguration;
+    WebCore::MediaDecodingConfiguration configuration;
 }
 
 struct WebCore::MediaCapabilitiesEncodingInfo : WebCore::MediaCapabilitiesInfo {
-    WebCore::MediaEncodingConfiguration supportedConfiguration;
+    WebCore::MediaEncodingConfiguration configuration;
 }
 
 header: <WebCore/VideoCodecType.h>

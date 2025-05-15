@@ -221,6 +221,7 @@ class ReportingScope;
 class RequestAnimationFrameCallback;
 class ResizeObserver;
 class ResourceMonitor;
+class FrameMemoryMonitor;
 class SVGDocumentExtensions;
 class SVGElement;
 class SVGSVGElement;
@@ -763,7 +764,7 @@ public:
     void stopActiveDOMObjects() final;
     GraphicsClient* graphicsClient() final;
 
-    const Settings::Values& settingsValues() const final { return settings().values(); }
+    inline const SettingsValues& settingsValues() const final;
 
     void suspendDeviceMotionAndOrientationUpdates();
     void resumeDeviceMotionAndOrientationUpdates();
@@ -823,7 +824,7 @@ public:
     bool wellFormed() const { return m_wellFormed; }
 
     const URL& url() const final { return m_url; }
-    WEBCORE_EXPORT void setURL(const URL&);
+    WEBCORE_EXPORT void setURL(URL&&);
     WEBCORE_EXPORT const URL& urlForBindings();
 
     URL adjustedURL() const;
@@ -1981,6 +1982,9 @@ public:
 
     unsigned unloadCounter() const { return m_unloadCounter; }
 
+    WEBCORE_EXPORT FrameMemoryMonitor& frameMemoryMonitor();
+    Ref<FrameMemoryMonitor> protectedFrameMemoryMonitor();
+
 #if ENABLE(CONTENT_EXTENSIONS)
     ResourceMonitor* resourceMonitorIfExists();
     ResourceMonitor& resourceMonitor();
@@ -2723,6 +2727,8 @@ private:
 
     mutable std::unique_ptr<CSSParserContext> m_cachedCSSParserContext;
     mutable std::unique_ptr<PermissionsPolicy> m_permissionsPolicy;
+
+    RefPtr<FrameMemoryMonitor> m_frameMemoryMonitor;
 
 #if ENABLE(CONTENT_EXTENSIONS)
     RefPtr<ResourceMonitor> m_resourceMonitor;

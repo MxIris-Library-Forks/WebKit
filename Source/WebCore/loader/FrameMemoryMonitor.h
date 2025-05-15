@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,7 +25,34 @@
 
 #pragma once
 
-#include <JavaScriptCore/JSExportMacros.h>
-#include <WebCore/PlatformExportMacros.h>
-#include <pal/ExportMacros.h>
-#include <wtf/Platform.h>
+#include <wtf/CheckedArithmetic.h>
+#include <wtf/WeakPtr.h>
+namespace WebCore {
+
+class LocalFrame;
+
+class FrameMemoryMonitor final : public RefCounted<FrameMemoryMonitor> {
+public:
+    static Ref<FrameMemoryMonitor> create(const LocalFrame&);
+    WEBCORE_EXPORT ~FrameMemoryMonitor() = default;
+
+    WEBCORE_EXPORT void setUsage(size_t);
+    WEBCORE_EXPORT void lowerAllMemoryLimitsForTesting();
+
+private:
+    explicit FrameMemoryMonitor(const LocalFrame&);
+
+    void checkMemoryPressureAndUnloadFrameIfNeeded();
+    void unloadFrameAndShowMemoryMonitorError();
+
+    WeakPtr<LocalFrame> m_frame;
+    CheckedSize m_currentMemoryUsage;
+    bool m_usageHasExceeded { false };
+
+    // FIXME: Add platform specific memory limits
+    size_t m_maxMemoryAllowedPerFrame = { 1 * GB };
+    unsigned m_exceedCount = { 0 };
+    unsigned m_memoryPressureConsecutiveLimit = { 3 };
+};
+
+} // namespace WebCore

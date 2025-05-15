@@ -1369,7 +1369,7 @@ public:
     const String& applicationNameForUserAgent() const { return m_applicationNameForUserAgent; }
     void setApplicationNameForDesktopUserAgent(const String& applicationName) { m_applicationNameForDesktopUserAgent = applicationName; }
     const String& applicationNameForDesktopUserAgent() const { return m_applicationNameForDesktopUserAgent; }
-    void setCustomUserAgent(const String&);
+    void setCustomUserAgent(String&&);
     const String& customUserAgent() const { return m_customUserAgent; }
     static String standardUserAgent(const String& applicationName = String());
 #if PLATFORM(IOS_FAMILY)
@@ -2368,6 +2368,7 @@ public:
     void copyLinkWithHighlight();
 
     void createTextFragmentDirectiveFromSelection(CompletionHandler<void(URL&&)>&&);
+    void getTextFragmentRanges(CompletionHandler<void(const Vector<EditingRange>&&)>&&);
 
 #if ENABLE(APP_HIGHLIGHTS)
     void createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighlight, WebCore::HighlightRequestOriginatedInApp);
@@ -3371,6 +3372,8 @@ private:
 #if PLATFORM(COCOA)
     String presentingApplicationBundleIdentifier() const;
 #endif
+
+    void setCustomUserAgentInternal();
 
     const UniqueRef<Internals> m_internals;
     Identifier m_identifier;

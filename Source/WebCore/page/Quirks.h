@@ -145,6 +145,7 @@ public:
     bool shouldEnableSpeakerSelectionPermissionsPolicyQuirk() const;
     bool shouldEnableEnumerateDeviceQuirk() const;
 #endif
+    bool shouldUnloadHeavyFrame() const;
 
     bool needsCanPlayAfterSeekedQuirk() const;
 
@@ -243,7 +244,7 @@ public:
 
     bool needsBingGestureEventQuirk(EventTarget*) const;
 
-    bool shouldAvoidStartingSelectionOnMouseDown(const Node&) const;
+    WEBCORE_EXPORT bool shouldAvoidStartingSelectionOnMouseDownOverPointerCursor(const Node&) const;
 
     bool shouldReuseLiveRangeForSelectionUpdate() const;
 

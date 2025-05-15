@@ -217,7 +217,7 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
     setProperty(AXProperty::AccessKey, object.accessKey().isolatedCopy());
     setProperty(AXProperty::ExplicitAutoCompleteValue, object.explicitAutoCompleteValue().isolatedCopy());
     setProperty(AXProperty::ColorValue, object.colorValue());
-    setProperty(AXProperty::ExplicitOrientation, object.explicitOrientation());
+    setOptionalProperty(AXProperty::ExplicitOrientation, object.explicitOrientation());
     setProperty(AXProperty::ExplicitLiveRegionStatus, object.explicitLiveRegionStatus().isolatedCopy());
     setProperty(AXProperty::ExplicitLiveRegionRelevant, object.explicitLiveRegionRelevant().isolatedCopy());
     setProperty(AXProperty::LiveRegionAtomic, object.liveRegionAtomic());
@@ -322,8 +322,8 @@ void AXIsolatedObject::initializeProperties(const Ref<AccessibilityObject>& axOb
         setProperty(AXProperty::IsExposedTableCell, true);
         setProperty(AXProperty::ColumnIndexRange, object.columnIndexRange());
         setProperty(AXProperty::RowIndexRange, object.rowIndexRange());
-        setProperty(AXProperty::AXColumnIndex, object.axColumnIndex());
-        setProperty(AXProperty::AXRowIndex, object.axRowIndex());
+        setOptionalProperty(AXProperty::AXColumnIndex, object.axColumnIndex());
+        setOptionalProperty(AXProperty::AXRowIndex, object.axRowIndex());
         setProperty(AXProperty::IsColumnHeader, object.isColumnHeader());
         setProperty(AXProperty::IsRowHeader, object.isRowHeader());
         setProperty(AXProperty::CellScope, object.cellScope().isolatedCopy());
@@ -538,6 +538,13 @@ void AXIsolatedObject::setObjectVectorProperty(AXProperty property, const Access
     setProperty(property, axIDs(objects));
 }
 
+template<typename T>
+void AXIsolatedObject::setOptionalProperty(AXProperty property, const std::optional<T>& value)
+{
+    if (value)
+        setProperty(property, *value);
+}
+
 void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&& value)
 {
     if (std::holds_alternative<bool>(value)) {
@@ -632,13 +639,10 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         [](uint64_t typedValue) { return !typedValue; },
         [](AccessibilityButtonState& typedValue) { return typedValue == AccessibilityButtonState::Off; },
         [&](Color& typedValue) {
-            if (property == AXProperty::TextColor) {
-                auto* parent = parentObject();
-                return parent && typedValue == parent->textColor();
-            }
-
             if (property == AXProperty::ColorValue)
                 return typedValue == Color::black;
+            if (property == AXProperty::TextColor)
+                return false;
             return typedValue.toColorTypeLossy<SRGBA<uint8_t>>() == Color().toColorTypeLossy<SRGBA<uint8_t>>();
         },
         [](std::shared_ptr<URL>& typedValue) { return !typedValue || *typedValue == URL(); },
@@ -670,10 +674,7 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         },
 #if ENABLE(AX_THREAD_TEXT_APIS)
         [](std::shared_ptr<AXTextRuns> typedValue) { return !typedValue || !typedValue->size(); },
-        [&](RetainPtr<CTFontRef>& typedValue) {
-            auto* parent = parentObject();
-            return parent && typedValue == parent->font();
-        },
+        [](RetainPtr<CTFontRef>& typedValue) { return !typedValue; },
         [](FontOrientation typedValue) { return typedValue == FontOrientation::Horizontal; },
         [](TextEmissionBehavior typedValue) { return typedValue == TextEmissionBehavior::None; },
         [](AXTextRunLineID typedValue) { return !typedValue; },
@@ -681,8 +682,7 @@ void AXIsolatedObject::setProperty(AXProperty property, AXPropertyValueVariant&&
         [] (WallTime& time) { return !time; },
         [] (TagName& tag) { return tag == TagName::Unknown; },
         [] (DateComponentsType& typedValue) { return typedValue == DateComponentsType::Invalid; },
-        [] (std::optional<AccessibilityOrientation>& typedValue) { return !typedValue; },
-        [] (std::optional<unsigned>& typedValue) { return !typedValue; },
+        [] (AccessibilityOrientation) { return false; },
         [] (OptionSet<SpeakAs>& typedValue) { return typedValue.isEmpty(); },
         [](auto&) {
             ASSERT_NOT_REACHED();
@@ -1163,31 +1163,73 @@ Path AXIsolatedObject::pathAttributeValue(AXProperty property) const
     );
 }
 
-Color AXIsolatedObject::colorAttributeValue(AXProperty property) const
+static Color getColor(const AXPropertyValueVariant& value)
 {
-    size_t index = indexOfProperty(property);
-    if (index == notFound) {
-        if (property == AXProperty::TextColor && parentObject())
-            return parentObject()->textColor();
-        return Color();
-    }
-
-    return WTF::switchOn(m_properties[index].second,
+    return WTF::switchOn(value,
         [] (const Color& typedValue) -> Color { return typedValue; },
         [] (auto&) { return Color(); }
     );
 }
 
-RetainPtr<CTFontRef> AXIsolatedObject::fontAttributeValue(AXProperty property) const
+#ifndef NDEBUG
+Color AXIsolatedObject::cachedTextColor() const
 {
-    size_t index = indexOfProperty(property);
-    if (index == notFound)
-        return parentObject() ? parentObject()->font() : nullptr;
+    size_t index = indexOfProperty(AXProperty::TextColor);
+    return index == notFound ? Color() : getColor(m_properties[index].second);
+}
+#endif
 
-    return WTF::switchOn(m_properties[index].second,
+static RetainPtr<CTFontRef> getFont(const AXPropertyValueVariant& value)
+{
+    return WTF::switchOn(value,
         [] (const RetainPtr<CTFontRef>& typedValue) -> RetainPtr<CTFontRef> { return typedValue; },
         [] (auto&) { return RetainPtr<CTFontRef>(); }
     );
+}
+
+#ifndef NDEBUG
+#if PLATFORM(COCOA)
+RetainPtr<CTFontRef> AXIsolatedObject::cachedFont() const
+{
+    size_t index = indexOfProperty(AXProperty::Font);
+    return index == notFound ? RetainPtr<CTFontRef>() : getFont(m_properties[index].second);
+}
+#endif // PLATFORM(COCOA)
+#endif // NDEBUG
+
+Color AXIsolatedObject::colorAttributeValue(AXProperty property) const
+{
+    size_t index = indexOfProperty(property);
+    if (index == notFound) {
+        if (property == AXProperty::TextColor) {
+            if (RefPtr parent = parentObject())
+                return parent->textColor();
+        }
+        return Color();
+    }
+
+#ifndef NDEBUG
+    if (RefPtr parent = parentObject(); parent && property == AXProperty::TextColor)
+        ASSERT(parent->cachedTextColor() != getColor(m_properties[index].second));
+#endif
+
+    return getColor(m_properties[index].second);
+}
+
+RetainPtr<CTFontRef> AXIsolatedObject::fontAttributeValue(AXProperty property) const
+{
+    size_t index = indexOfProperty(property);
+    if (index == notFound) {
+        RefPtr parent = parentObject();
+        return parent ? parent->font() : nullptr;
+    }
+
+#ifndef NDEBUG
+    if (RefPtr parent = parentObject(); parent && property == AXProperty::Font)
+        ASSERT(parent->cachedFont() != getFont(m_properties[index].second));
+#endif
+
+    return getFont(m_properties[index].second);
 }
 
 float AXIsolatedObject::floatAttributeValue(AXProperty property) const

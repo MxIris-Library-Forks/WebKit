@@ -874,6 +874,8 @@ imported/w3c/web-platform-tests/workers/interfaces/WorkerGlobalScope/onerror/mes
 [ Debug ] imported/w3c/web-platform-tests/css/css-position/position-absolute-crash-chrome-013.html [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-properties-values-api/registered-property-revert.html [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-scoping/slotted-matches.html [ Skip ]
+imported/w3c/web-platform-tests/html/rendering/replaced-elements/the-option-element/option-label-whitespace.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/rendering/replaced-elements/the-option-element/option-label-whitespace-2.html [ ImageOnlyFailure ]
 
 # Cookie tests that are flaky since their import because they fail and and out some kind of unique id.
 imported/w3c/web-platform-tests/cookies/prefix/__host.document-cookie.html [ Pass Failure ]
@@ -1517,8 +1519,6 @@ http/wpt/service-workers/push-console-messages-showNotification-late.https.html 
 http/wpt/service-workers/push-console-messages-showNotification-sync.https.html [ Skip ]
 
 http/tests/media/fairplay [ Skip ]
-
-animations/sda-crash.html [ Skip ]
 
 #//////////////////////////////////////////////////////////////////////////////////////////
 # End platform-specific tests.
@@ -7672,7 +7672,6 @@ webkit.org/b/282024 fast/text/text-box-edge-with-margin-padding-border-simple.ht
 # -- Anchor Positioning -- #
 
 # general failures
-webkit.org/b/291260 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-center-visibility-change.html [ ImageOnlyFailure ]
 webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-007.html [ ImageOnlyFailure ]
 webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-008.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-top-layer-001.html [ ImageOnlyFailure ]
@@ -7920,3 +7919,5 @@ imported/w3c/web-platform-tests/css/cssom/adoptedstylesheets-adopt-style.tentati
 
 imported/w3c/web-platform-tests/wasm/jsapi/jspi/js-promise-integration.any.html [ Pass Failure ]
 imported/w3c/web-platform-tests/wasm/webapi/esm-integration/script-src-blocks-wasm.tentative.sub.html [ Pass Failure ]
+
+http/tests/iframe-memory-monitor/video-iframe.html [ Skip ]

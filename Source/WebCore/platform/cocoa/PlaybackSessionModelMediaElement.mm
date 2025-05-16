@@ -43,6 +43,7 @@
 #import "PageGroup.h"
 #import "TextTrackList.h"
 #import "TimeRanges.h"
+#import "UserGestureIndicator.h"
 #import "VideoTrack.h"
 #import "VideoTrackConfiguration.h"
 #import "VideoTrackList.h"
@@ -208,12 +209,11 @@ void PlaybackSessionModelMediaElement::updateForEventName(const WTF::AtomString&
     if (all
         || eventName == eventNames().progressEvent) {
         auto bufferedTime = this->bufferedTime();
-        auto seekableRanges = this->seekableRanges();
         auto seekableTimeRangesLastModifiedTime = this->seekableTimeRangesLastModifiedTime();
         auto liveUpdateInterval = this->liveUpdateInterval();
         for (auto& client : m_clients) {
             client->bufferedTimeChanged(bufferedTime);
-            client->seekableRangesChanged(seekableRanges, seekableTimeRangesLastModifiedTime, liveUpdateInterval);
+            client->seekableRangesChanged(seekableRanges(), seekableTimeRangesLastModifiedTime, liveUpdateInterval);
         }
     }
 
@@ -663,11 +663,11 @@ double PlaybackSessionModelMediaElement::playbackRate() const
     return 0;
 }
 
-Ref<TimeRanges> PlaybackSessionModelMediaElement::seekableRanges() const
+PlatformTimeRanges PlaybackSessionModelMediaElement::seekableRanges() const
 {
     if (RefPtr mediaElement = m_mediaElement; mediaElement && mediaElement->supportsSeeking())
-        return mediaElement->seekable();
-    return TimeRanges::create();
+        return mediaElement->platformSeekable();
+    return { };
 }
 
 double PlaybackSessionModelMediaElement::seekableTimeRangesLastModifiedTime() const

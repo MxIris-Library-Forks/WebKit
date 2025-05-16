@@ -54,6 +54,7 @@
 #include "URLKeepingBlobAlive.h"
 #include "UserActionElementSet.h"
 #include "ViewportArguments.h"
+#include <wtf/CompletionHandler.h>
 #include <wtf/Deque.h>
 #include <wtf/FixedVector.h>
 #include <wtf/Forward.h>
@@ -1293,7 +1294,7 @@ public:
     WEBCORE_EXPORT void postTask(Task&&) final; // Executes the task on context's thread asynchronously.
 
     WEBCORE_EXPORT EventLoopTaskGroup& eventLoop() final;
-    CheckedRef<EventLoopTaskGroup> checkedEventLoop() { return eventLoop(); }
+    inline CheckedRef<EventLoopTaskGroup> checkedEventLoop();
     WindowEventLoop& windowEventLoop();
     Ref<WindowEventLoop> protectedWindowEventLoop();
 
@@ -1962,7 +1963,7 @@ public:
     bool hasSleepDisabler() const { return !!m_sleepDisabler; }
 
     void notifyReportObservers(Ref<Report>&&) final;
-    void sendReportToEndpoints(const URL& baseURL, const Vector<String>& endpointURIs, const Vector<String>& endpointTokens, Ref<FormData>&& report, ViolationReportType) final;
+    void sendReportToEndpoints(const URL& baseURL, std::span<const String> endpointURIs, std::span<const String> endpointTokens, Ref<FormData>&& report, ViolationReportType) final;
     String httpUserAgent() const final;
 
     virtual void didChangeViewSize() { }

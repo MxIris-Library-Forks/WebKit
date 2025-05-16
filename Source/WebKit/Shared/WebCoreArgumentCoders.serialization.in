@@ -385,6 +385,7 @@ enum class WebCore::ScreenOrientationType : uint8_t {
     LandscapeSecondary
 };
 
+header: <WebCore/StorageBlockingPolicy.h>
 enum class WebCore::StorageBlockingPolicy : uint8_t {
     AllowAll,
     BlockThirdParty,
@@ -2084,8 +2085,7 @@ struct WebCore::ElementAnimationContext {
     bool isAnimating;
 };
 
-header: <WebCore/FrameLoaderTypes.h>
-[CustomHeader] struct WebCore::SystemPreviewInfo {
+struct WebCore::SystemPreviewInfo {
     WebCore::ElementContext element;
     WebCore::IntRect previewRect;
     bool isPreview;

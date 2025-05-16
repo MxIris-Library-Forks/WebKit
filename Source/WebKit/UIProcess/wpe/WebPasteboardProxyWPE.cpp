@@ -111,11 +111,13 @@ void WebPasteboardProxy::readBuffer(IPC::Connection&, const String&, const Strin
     completionHandler({ });
 }
 
+#if ENABLE(WPE_PLATFORM)
 static void setClipboardContentFromSpan(WPEClipboardContent* content, const char* type, const std::span<const char>& text)
 {
     GRefPtr<GBytes> bytes = adoptGRef(g_bytes_new(text.data(), text.size()));
     wpe_clipboard_content_set_bytes(content, type, bytes.get());
 }
+#endif
 
 void WebPasteboardProxy::writeToClipboard(const String&, SelectionData&& selectionData)
 {
@@ -292,6 +294,22 @@ void WebPasteboardProxy::getPasteboardItemsCount(IPC::Connection&, const String&
 
 void WebPasteboardProxy::readURLFromPasteboard(IPC::Connection& connection, size_t index, const String&, std::optional<WebPageProxyIdentifier>, CompletionHandler<void(String&& url, String&& title)>&& completionHandler)
 {
+#if ENABLE(WPE_PLATFORM)
+    if (usingWPEPlatformAPI()) {
+        if (index) {
+            // We don't support more than one item in the clipboard.
+            completionHandler({ }, { });
+            return;
+        }
+
+        auto* clipboard = wpe_display_get_clipboard(wpe_display_get_primary());
+        if (GRefPtr<GBytes> bytes = adoptGRef(wpe_clipboard_read_bytes(clipboard, "text/uri-list"))) {
+            auto buffer = FragmentedSharedBuffer::create(bytes.get())->makeContiguous();
+            completionHandler(String(buffer->span()), { });
+            return;
+        }
+    }
+#endif
     completionHandler({ }, { });
 }
 
@@ -300,6 +318,7 @@ void WebPasteboardProxy::readBufferFromPasteboard(IPC::Connection& connection, s
 #if ENABLE(WPE_PLATFORM)
     if (usingWPEPlatformAPI()) {
         if (index && index.value()) {
+            // We don't support more than one item in the clipboard.
             completionHandler({ });
             return;
         }

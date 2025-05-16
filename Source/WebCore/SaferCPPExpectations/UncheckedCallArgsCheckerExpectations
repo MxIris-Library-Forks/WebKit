@@ -497,6 +497,7 @@ layout/layouttree/LayoutBox.cpp
 layout/layouttree/LayoutContainingBlockChainIterator.h
 layout/layouttree/LayoutTreeBuilder.cpp
 loader/ApplicationManifestLoader.cpp
+loader/ContentFilter.cpp
 loader/CrossOriginPreflightChecker.cpp
 loader/DocumentLoader.cpp
 loader/DocumentThreadableLoader.cpp
@@ -615,7 +616,6 @@ platform/cocoa/LowPowerModeNotifier.mm
 platform/cocoa/VideoPresentationModelVideoElement.mm
 platform/cocoa/WebAVPlayerLayer.mm
 platform/graphics/ComplexTextController.cpp
-platform/graphics/FontCascade.h
 platform/graphics/WidthIterator.cpp
 platform/graphics/ca/GraphicsLayerCA.cpp
 platform/graphics/ca/PlatformCALayer.mm

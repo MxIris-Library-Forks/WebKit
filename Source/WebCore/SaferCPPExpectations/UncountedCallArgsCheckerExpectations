@@ -557,7 +557,7 @@ dom/Range.cpp
 dom/RangeBoundaryPoint.h
 dom/RejectedPromiseTracker.cpp
 dom/ScriptExecutionContext.cpp
-dom/ScriptExecutionContext.h
+dom/ScriptExecutionContextInlines.h
 dom/ScriptRunner.cpp
 dom/SecurityContext.cpp
 dom/SelectorQuery.cpp

@@ -1252,7 +1252,7 @@ void Editor::appliedEditing(CompositeEditCommand& command)
 
     bool wasUserEdit = [&command] {
         RefPtr typingCommand = dynamicDowncast<TypingCommand>(command);
-        return !typingCommand || !typingCommand->triggeringEventWasCreatedFromBindings();
+        return !typingCommand || !typingCommand->triggeringEventIsUntrusted();
     }();
     notifyTextFromControls(composition->startingRootEditableElement(), composition->endingRootEditableElement(), wasUserEdit);
 
@@ -1471,7 +1471,7 @@ bool Editor::insertTextWithoutSendingTextEvent(const String& text, bool selectIn
             // should be moved from Editor to a page-level like object. If it must remain a frame-specific concept
             // then this code should conditionalize revealing selection on whether the ignoreSelectionChanges() bit
             // is set for the newly focused frame.
-            if (client() && client()->shouldRevealCurrentSelectionAfterInsertion()) {
+            if ((!triggeringEvent || triggeringEvent->isTrusted()) && client() && client()->shouldRevealCurrentSelectionAfterInsertion()) {
                 if (RefPtr page = document->page())
                     page->revealCurrentSelection();
             }

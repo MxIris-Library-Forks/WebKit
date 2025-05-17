@@ -71,6 +71,7 @@
 		0223E06D2AAECC2200AF30FB /* HandleUserInputEventResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 0223E06C2AAEBBCF00AF30FB /* HandleUserInputEventResult.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0223E0742AAED62200AF30FB /* RemoteUserInputEventData.h in Headers */ = {isa = PBXBuildFile; fileRef = 0223E0732AAED62200AF30FB /* RemoteUserInputEventData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0245150C297CAFA300DFD845 /* LinkDecorationFilteringData.h in Headers */ = {isa = PBXBuildFile; fileRef = 0245150B297CAF7700DFD845 /* LinkDecorationFilteringData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		025F62AA2DD69A9800573F15 /* AutoplayPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 025F62A92DD69A8700573F15 /* AutoplayPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		029D57AA2C506F5900AD086B /* UserGestureTokenIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 029D57A92C506F5900AD086B /* UserGestureTokenIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		02E536BD2984EA6800417C02 /* ScrollerPairMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 024E5F7429844DBD009CC5FC /* ScrollerPairMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		02E536C12984ECE200417C02 /* ScrollerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 024E5F7129844DBC009CC5FC /* ScrollerMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6908,6 +6909,7 @@
 		024E5F7229844DBD009CC5FC /* ScrollerMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollerMac.mm; sourceTree = "<group>"; };
 		024E5F7329844DBD009CC5FC /* ScrollerPairMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollerPairMac.mm; sourceTree = "<group>"; };
 		024E5F7429844DBD009CC5FC /* ScrollerPairMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScrollerPairMac.h; sourceTree = "<group>"; };
+		025F62A92DD69A8700573F15 /* AutoplayPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoplayPolicy.h; sourceTree = "<group>"; };
 		029D57A92C506F5900AD086B /* UserGestureTokenIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserGestureTokenIdentifier.h; sourceTree = "<group>"; };
 		054E3A33256C3BD90072C5B9 /* ShadowRootInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShadowRootInit.h; sourceTree = "<group>"; };
 		054E3A33256C3BD90072C5BF /* GetHTMLOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GetHTMLOptions.h; sourceTree = "<group>"; };
@@ -28541,6 +28543,7 @@
 				CEDA12D6152CA1CB00D9E08D /* AlternativeTextClient.h */,
 				E36D701B27B70B23006531B7 /* AttachmentElementClient.h */,
 				C9D467041E60C3EB008195FB /* AutoplayEvent.h */,
+				025F62A92DD69A8700573F15 /* AutoplayPolicy.h */,
 				45830D4B1679B4F800ACF8C3 /* AutoscrollController.cpp */,
 				45830D4C1679B4F800ACF8C3 /* AutoscrollController.h */,
 				BC124EE40C2641CD009E2349 /* BarProp.cpp */,
@@ -40254,6 +40257,7 @@
 				99A5144D2D5AA7B200937177 /* AutomationInstrumentation.h in Headers */,
 				8375699F252CF36400E1B956 /* AutomationRate.h in Headers */,
 				C9D467051E60C465008195FB /* AutoplayEvent.h in Headers */,
+				025F62AA2DD69A9800573F15 /* AutoplayPolicy.h in Headers */,
 				45830D4E1679B4F800ACF8C3 /* AutoscrollController.h in Headers */,
 				A8CFF04E0A154F09000A4234 /* AutoTableLayout.h in Headers */,
 				41D126092B6D111D003EB7AA /* AV1Utilities.h in Headers */,

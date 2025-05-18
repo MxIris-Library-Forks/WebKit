@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,31 +25,31 @@
 
 #pragma once
 
-DECLARE_SYSTEM_HEADER
+#include "config.h"
+#include "FixedContainerEdges.h"
 
-#if USE(APPLE_INTERNAL_SDK)
+#include <wtf/TZoneMallocInlines.h>
 
-#include <sys/reason.h>
+namespace WebCore {
 
-// FIXME: Remove this ifndef once rdar://75717715 is available on bots.
-#ifndef OS_REASON_WEBKIT
-#define OS_REASON_WEBKIT 31
-#endif
+WTF_MAKE_TZONE_ALLOCATED_IMPL(FixedContainerEdges);
 
-#else
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int terminate_with_reason(int pid, uint32_t reasonNamespace, uint64_t reasonCode, const char *reasonString, uint64_t reasonFlags);
-
-#ifdef __cplusplus
+bool FixedContainerEdges::hasFixedEdge(BoxSide side) const
+{
+    return WTF::visit(WTF::makeVisitor([&](PredominantColorType type) {
+        return type != PredominantColorType::None;
+    }, [&](const Color&) {
+        return true;
+    }), colors.at(side));
 }
-#endif
 
-#define OS_REASON_FLAG_NO_CRASH_REPORT 0x1
+Color FixedContainerEdges::predominantColor(BoxSide side) const
+{
+    return WTF::visit(WTF::makeVisitor([&](PredominantColorType) -> Color {
+        return { };
+    }, [&](const Color& color) {
+        return color;
+    }), colors.at(side));
+}
 
-#define OS_REASON_WEBKIT 31
-
-#endif
+} // namespace WebCore

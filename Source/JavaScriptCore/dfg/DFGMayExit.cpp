@@ -337,15 +337,34 @@ ExitMode mayExitImpl(Graph& graph, Node* node, StateType& state)
         case DoubleRepUse:
         case NotCellUse:
         case StringObjectUse:
-        case StringOrStringObjectUse:
             result = ExitsForExceptions;
             break;
         case StringOrOtherUse:
+        case StringOrStringObjectUse:
             break;
         default:
             return Exits;
         }
         break;
+
+    case MakeRope: {
+        result = ExitsForExceptions;
+        break;
+    }
+
+    case GetArrayLength: {
+        switch (node->arrayMode().type()) {
+        case Array::Undecided:
+        case Array::Int32:
+        case Array::Double:
+        case Array::Contiguous:
+        case Array::String:
+            break;
+        default:
+            return Exits;
+        }
+        break;
+    }
 
     case StringReplaceString: {
         if (node->child3().useKind() == StringUse) {

@@ -3327,19 +3327,6 @@ HostedBlurMaterialInMediaControlsEnabled:
     WebCore:
       default: false
 
-HyperlinkAuditingEnabled:
-  type: bool
-  status: embedder
-  humanReadableName: "Hyperlink Auditing"
-  humanReadableDescription: "Enable Hyperlink Auditing"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: false
-
 ICECandidateFilteringEnabled:
   type: bool
   status: internal
@@ -5445,18 +5432,18 @@ OpportunisticSweepingAndGarbageCollectionEnabled:
 
 OptInPartitionedCookiesEnabled:
   type: bool
-  status: stable
+  status: testable
   category: dom
   humanReadableName: "Opt-in partitioned cookies (CHIPS)"
   humanReadableDescription: "Enable opt-in partitioned cookies"
-  condition: HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
+  condition: HAVE(ALLOW_ONLY_PARTITIONED_COOKIES) && 0
   defaultValue:
     WebKitLegacy:
-      default: true
+      default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 OverlappingBackingStoreProvidersEnabled:
   type: bool
@@ -5835,21 +5822,6 @@ PreferPageRenderingUpdatesNear60FPSEnabled:
       default: true
     WebCore:
       "PLATFORM(VISION)": false
-      default: true
-
-PreferSandboxedMediaParsing:
-  type: bool
-  status: internal
-  category: media
-  humanReadableName: "Prefer Sandboxed Parsing of Media"
-  humanReadableDescription: "Prefer parsing media out-of-process in a sandboxed service"
-  condition: ENABLE(VIDEO)
-  defaultValue:
-    WebCore:
-      default: true
-    WebKitLegacy:
-      default: true
-    WebKit:
       default: true
 
 PreferSpatialAudioExperience:
@@ -6602,20 +6574,6 @@ SelectTrailingWhitespaceEnabled:
       default: false
     WebCore:
       default: false
-
-SelectionAPIForShadowDOMEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Selection API for shadow DOM"
-  humanReadableDescription: "Enable selection API for shadow DOM"
-  defaultValue:
-    WebKit:
-      default: true
-    WebKitLegacy:
-      default: true
-    WebCore:
-      default: true
 
 SelectionFlippingEnabled:
   type: bool

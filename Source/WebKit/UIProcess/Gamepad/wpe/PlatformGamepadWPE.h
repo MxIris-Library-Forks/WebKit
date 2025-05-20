@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,23 +25,31 @@
 
 #pragma once
 
-DECLARE_SYSTEM_HEADER
+#if ENABLE(WPE_PLATFORM)
+#include <WebCore/PlatformGamepad.h>
+#include <wtf/glib/GRefPtr.h>
 
-#import <Foundation/NSObject.h>
+typedef struct _WPEGamepad WPEGamepad;
 
-#if USE(APPLE_INTERNAL_SDK)
+namespace WebKit {
 
-#import <CFNetwork/CFNSURLConnection.h>
+class PlatformGamepadWPE final : public WebCore::PlatformGamepad {
+public:
+    PlatformGamepadWPE(WPEGamepad*, unsigned index);
+    virtual ~PlatformGamepadWPE();
 
-#else
+private:
+    const Vector<WebCore::SharedGamepadValue>& buttonValues() const final { return m_buttonValues; }
+    const Vector<WebCore::SharedGamepadValue>& axisValues() const final { return m_axisValues; }
 
-@interface NSURLAuthenticationChallenge ()
-#if PLATFORM(IOS_FAMILY)
-+(NSURLAuthenticationChallenge *)_createAuthenticationChallengeForCFAuthChallenge:(CFURLAuthChallengeRef)cfChallenge sender:(id <NSURLAuthenticationChallengeSender>)sender;
-#else
-+(NSURLAuthenticationChallenge *)_authenticationChallengeForCFAuthChallenge:(CFURLAuthChallengeRef)cfChallenge sender:(id <NSURLAuthenticationChallengeSender>)sender;
-#endif
--(CFURLAuthChallengeRef)_createCFAuthChallenge;
-@end
+    void buttonEvent(size_t button, bool isPressed);
+    void axisEvent(size_t axis, double value);
 
-#endif
+    GRefPtr<WPEGamepad> m_gamepad;
+    Vector<WebCore::SharedGamepadValue> m_buttonValues;
+    Vector<WebCore::SharedGamepadValue> m_axisValues;
+};
+
+} // namespace WebKit
+
+#endif // ENABLE(WPE_PLATFORM)

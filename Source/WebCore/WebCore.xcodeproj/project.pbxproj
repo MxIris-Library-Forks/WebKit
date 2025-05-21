@@ -3972,6 +3972,7 @@
 		9BD4E91B1C462CFC005065BC /* CustomElementRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BD4E9191C462CFC005065BC /* CustomElementRegistry.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9BD90BB12DD574CC00937E3D /* SystemPreviewInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BD90BB02DD5743000937E3D /* SystemPreviewInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9BD90BBD2DD5F79600937E3D /* ProcessSwapDisposition.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BD90BBC2DD5F79600937E3D /* ProcessSwapDisposition.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		9BD90BC92DDC515800937E3D /* AsyncNodeDeletionQueueInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BD90BC82DDC515800937E3D /* AsyncNodeDeletionQueueInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9BDA64D81B975CF2009C4387 /* JSShadowRoot.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B6BC9611B975966005AE1F0 /* JSShadowRoot.h */; };
 		9BDF285C2DC0AC8B0096B893 /* EventTargetInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BDF285B2DC0AC2F0096B893 /* EventTargetInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9BE6710C1D5AEB2500345514 /* JSCustomElementRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BE6710A1D5AEB0400345514 /* JSCustomElementRegistry.h */; };
@@ -11197,6 +11198,7 @@
 		484F5FBD2CEFA23700E7B1B1 /* AXCoreObjectCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AXCoreObjectCocoa.mm; sourceTree = "<group>"; };
 		486B8DC62A043C0600E00E73 /* AXGeometryManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXGeometryManager.h; sourceTree = "<group>"; };
 		486B8DC82A04500F00E00E73 /* AXGeometryManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AXGeometryManager.cpp; sourceTree = "<group>"; };
+		48AA91ED2DD7BDFD0038F076 /* AXTreeStore.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXTreeStore.cpp; sourceTree = "<group>"; };
 		48B024282B2A65AA0083D122 /* AXTextRun.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXTextRun.h; sourceTree = "<group>"; };
 		48B5BF3529CA691700FEBE3B /* AccessibilityRegionContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityRegionContext.h; sourceTree = "<group>"; };
 		48B5BF3629CA691700FEBE3B /* AccessibilityRegionContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityRegionContext.cpp; sourceTree = "<group>"; };
@@ -15965,6 +15967,7 @@
 		9BD8A95918BEFC7600987E9A /* CollectionIndexCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CollectionIndexCache.cpp; sourceTree = "<group>"; };
 		9BD90BB02DD5743000937E3D /* SystemPreviewInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemPreviewInfo.h; sourceTree = "<group>"; };
 		9BD90BBC2DD5F79600937E3D /* ProcessSwapDisposition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProcessSwapDisposition.h; sourceTree = "<group>"; };
+		9BD90BC82DDC515800937E3D /* AsyncNodeDeletionQueueInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncNodeDeletionQueueInlines.h; sourceTree = "<group>"; };
 		9BDD18251F7E059900E8E577 /* WebCorePasteboardFileReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCorePasteboardFileReader.h; sourceTree = "<group>"; };
 		9BDD18261F7E05F400E8E577 /* WebCorePasteboardFileReader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebCorePasteboardFileReader.cpp; sourceTree = "<group>"; };
 		9BDF285B2DC0AC2F0096B893 /* EventTargetInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EventTargetInlines.h; sourceTree = "<group>"; };
@@ -24623,6 +24626,7 @@
 				48C4E83C2B34D8380083460A /* AXTextRun.cpp */,
 				48B024282B2A65AA0083D122 /* AXTextRun.h */,
 				91C9F2F81AE3BE240095B61C /* AXTextStateChangeIntent.h */,
+				48AA91ED2DD7BDFD0038F076 /* AXTreeStore.cpp */,
 				C0E8ADC4294B5A620076CBDC /* AXTreeStore.h */,
 				BC4A5330256059030028C592 /* ForcedAccessibilityValue.h */,
 			);
@@ -38605,6 +38609,7 @@
 				E3AE6CD12252F27000C70B50 /* AllDescendantsCollection.cpp */,
 				83BB5C871D5D6F3A005A71F4 /* AllDescendantsCollection.h */,
 				01D22A1C2CFD73C7002DC857 /* AsyncNodeDeletionQueue.h */,
+				9BD90BC82DDC515800937E3D /* AsyncNodeDeletionQueueInlines.h */,
 				A8C4A7FC09D563270003AC8D /* Attr.cpp */,
 				A8C4A7FB09D563270003AC8D /* Attr.h */,
 				93EEC1E509C2877700C515D1 /* Attr.idl */,
@@ -40142,6 +40147,7 @@
 				FD5686CA13AC180200B69C68 /* AsyncAudioDecoder.h in Headers */,
 				E1CDE9221501916900862CC5 /* AsyncFileStream.h in Headers */,
 				01D22A1F2CFD826C002DC857 /* AsyncNodeDeletionQueue.h in Headers */,
+				9BD90BC92DDC515800937E3D /* AsyncNodeDeletionQueueInlines.h in Headers */,
 				0FFD4D6118651FA300512F6E /* AsyncScrollingCoordinator.h in Headers */,
 				E5F67D962B65CDBE00CC30DE /* AttachmentAssociatedElement.h in Headers */,
 				E36D701F27B7200C006531B7 /* AttachmentElementClient.h in Headers */,

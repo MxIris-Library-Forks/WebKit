@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2003-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -644,7 +644,7 @@ public:
     void updateRelations(Element&, const QualifiedName&);
 
 #if PLATFORM(IOS_FAMILY)
-    void relayNotification(const String&, RetainPtr<NSData>);
+    void relayNotification(String&&, RetainPtr<NSData>&&);
 #endif
 
 #if PLATFORM(MAC)
@@ -664,9 +664,8 @@ public:
     WEBCORE_EXPORT static void initializeAXThreadIfNeeded();
 private:
     static bool clientSupportsIsolatedTree();
-    AXCoreObject* isolatedTreeRootObject();
     // Propagates the root of the isolated tree back into the Core and WebKit.
-    void setIsolatedTreeRoot(AXCoreObject*);
+    void setIsolatedTree(Ref<AXIsolatedTree>);
     void setIsolatedTreeFocusedObject(AccessibilityObject*);
     RefPtr<AXIsolatedTree> getOrCreateIsolatedTree();
     void buildIsolatedTree();
@@ -939,7 +938,7 @@ private:
     UncheckedKeyHashMap<AXID, AXRelations> m_recentlyRemovedRelations;
 
 #if USE(ATSPI)
-    ListHashSet<RefPtr<AXCoreObject>> m_deferredParentChangedList;
+    ListHashSet<RefPtr<AccessibilityObject>> m_deferredParentChangedList;
 #endif
 
 #if PLATFORM(MAC)

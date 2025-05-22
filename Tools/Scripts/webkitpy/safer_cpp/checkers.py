@@ -48,6 +48,20 @@ class Checker(object):
         return os.path.abspath(path)
 
     @classmethod
+    def find_checker_by_name(cls, name):
+        for checker in cls.enumerate():
+            if checker.name() == name:
+                return checker
+        return None
+
+    @classmethod
+    def find_checker_by_description(cls, description):
+        for checker in cls.enumerate():
+            if checker.description() == description:
+                return checker
+        return None
+
+    @classmethod
     def enumerate(cls):
         return sorted(CHECKERS, key=lambda checker: checker.name())
 

@@ -405,7 +405,7 @@ static LayoutRect captureOverflowRect(RenderLayerModelObject& renderer)
         return { { }, LayoutSize { frameView->frameRect().width(), frameView->frameRect().height() } };
     }
 
-    return renderer.layer()->calculateLayerBounds(renderer.layer(), LayoutSize(), { RenderLayer::IncludeFilterOutsets, RenderLayer::ExcludeHiddenDescendants, RenderLayer::IncludeCompositedDescendants, RenderLayer::PreserveAncestorFlags });
+    return renderer.layer()->calculateLayerBounds(renderer.layer(), LayoutSize(), { RenderLayer::IncludeFilterOutsets, RenderLayer::ExcludeHiddenDescendants, RenderLayer::IncludeCompositedDescendants, RenderLayer::PreserveAncestorFlags, RenderLayer::ExcludeViewTransitionCapturedDescendants });
 }
 
 // The computed local-to-absolute transform, and layer bounds don't include the position
@@ -439,7 +439,9 @@ static RefPtr<ImageBuffer> snapshotElementVisualOverflowClippedToViewport(LocalF
 
     ASSERT(frame.document());
     RefPtr frameView = frame.document()->view();
-    auto hostWindow = (frameView && frameView->root()) ? RefPtr { frameView->root() }->hostWindow() : nullptr;
+    if (!frameView)
+        return nullptr;
+    auto hostWindow = frameView->root() ? RefPtr { frameView->root() }->hostWindow() : nullptr;
 
     auto buffer = ImageBuffer::create(paintRect.size(), RenderingMode::Accelerated, RenderingPurpose::Snapshot, scaleFactor, DestinationColorSpace::SRGB(), ImageBufferPixelFormat::BGRA8, hostWindow);
     if (!buffer)
@@ -447,11 +449,16 @@ static RefPtr<ImageBuffer> snapshotElementVisualOverflowClippedToViewport(LocalF
 
     buffer->context().translate(-paintRect.location());
 
+    auto oldPaintBehavior = frameView->paintBehavior();
+    frameView->setPaintBehavior(oldPaintBehavior | PaintBehavior::FlattenCompositingLayers | PaintBehavior::Snapshotting);
+
     auto paintFlags = RenderLayer::paintLayerPaintingCompositingAllPhasesFlags();
     paintFlags.add(RenderLayer::PaintLayerFlag::TemporaryClipRects);
     paintFlags.add(RenderLayer::PaintLayerFlag::AppliedTransform);
     paintFlags.add(RenderLayer::PaintLayerFlag::PaintingSkipDescendantViewTransition);
-    layerRenderer->layer()->paint(buffer->context(), paintRect, LayoutSize(), { PaintBehavior::FlattenCompositingLayers, PaintBehavior::Snapshotting }, nullptr, paintFlags);
+    layerRenderer->layer()->paint(buffer->context(), paintRect, LayoutSize(), frameView->paintBehavior(), nullptr, paintFlags);
+
+    frameView->setPaintBehavior(oldPaintBehavior);
 
     return buffer;
 }

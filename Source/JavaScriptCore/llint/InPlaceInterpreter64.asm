@@ -188,7 +188,8 @@ const argumINTEnd = csr3
 const argumINTDsp = csr4
 
 macro ipintEntry()
-    checkStackOverflow(ws0, argumINTEnd)
+    const argumINTEndAsScratch = argumINTEnd
+    checkStackOverflow(ws0, argumINTEndAsScratch)
 
     # Allocate space for locals and rethrow values
     if ARM64 or ARM64E
@@ -197,8 +198,9 @@ macro ipintEntry()
         loadi Wasm::IPIntCallee::m_localSizeToAlloc[ws0], argumINTTmp
         loadi Wasm::IPIntCallee::m_numRethrowSlotsToAlloc[ws0], argumINTEnd
     end
-    addq argumINTEnd, argumINTTmp
+    mulq LocalSize, argumINTEnd
     mulq LocalSize, argumINTTmp
+    subq argumINTEnd, sp
     move sp, argumINTEnd
     subq argumINTTmp, sp
     move sp, argumINTDsp
@@ -3615,11 +3617,10 @@ end)
 
 ipintOp(_ref_i31, macro()
     popInt32(t0, t1)
-    andq 0x7fffffff, t0
     lshifti 0x1, t0
     rshifti 0x1, t0
     orq TagNumber, t0
-    pushInt32(t0)
+    pushQuad(t0)
 
     advancePC(2)
     nextIPIntInstruction()

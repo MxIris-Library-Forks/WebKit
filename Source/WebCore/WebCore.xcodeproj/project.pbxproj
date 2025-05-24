@@ -5359,6 +5359,9 @@
 		CD5896E21CD2B15100B3BCC8 /* WebPlaybackControlsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5896E01CD2B15100B3BCC8 /* WebPlaybackControlsManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5D27781E8318E000D80A3D /* WebCoreDecompressionSession.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5D27761E8318E000D80A3D /* WebCoreDecompressionSession.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5E5B5F1A15CE54000C609E /* PageConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5E5B5E1A15CE54000C609E /* PageConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD5F16442DBB0AD200CE85D9 /* MessageClientForTesting.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5F16432DBB0AD200CE85D9 /* MessageClientForTesting.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD5F16592DBBD72300CE85D9 /* MessageTargetForTesting.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5F16582DBBD72300CE85D9 /* MessageTargetForTesting.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD5F165F2DBC088400CE85D9 /* MessageForTesting.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5F165E2DBC088400CE85D9 /* MessageForTesting.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5FF4972162E2B7004BD86F /* ISOTrackEncryptionBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD871C661FB52B6800F0B965 /* ISOTrackEncryptionBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5FF4992162E2BE004BD86F /* ISOBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD871C621FB52B6500F0B965 /* ISOBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5FF49A2162E4A6004BD86F /* ISOSchemeInformationBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD871C641FB52B6700F0B965 /* ISOSchemeInformationBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5517,6 +5520,7 @@
 		CDF7483F18FEBCEC0006ECC0 /* GridPositionsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF7483D18FEBCEC0006ECC0 /* GridPositionsResolver.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF756A3215C29E900EFCB50 /* JSMediaKeyEncryptionScheme.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF756A1215C29E900EFCB50 /* JSMediaKeyEncryptionScheme.h */; };
 		CDFC360618CA61C20026E56F /* RemoteCommandListener.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFC360418CA61C20026E56F /* RemoteCommandListener.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDFD83462DC04BC600CE19C4 /* EventTargetForTesting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDFD83452DC04BB700CE19C4 /* EventTargetForTesting.cpp */; };
 		CE057FA61220731100A476D5 /* DocumentMarkerController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE057FA41220731100A476D5 /* DocumentMarkerController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CE08C3D2152B599A0021B8C2 /* AlternativeTextController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE08C3D0152B599A0021B8C2 /* AlternativeTextController.h */; settings = {ATTRIBUTES = (); }; };
 		CE1866451F72E5B400A0CAB6 /* MarkedText.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1866431F72E5B400A0CAB6 /* MarkedText.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -19239,6 +19243,9 @@
 		CD5D27761E8318E000D80A3D /* WebCoreDecompressionSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCoreDecompressionSession.h; sourceTree = "<group>"; };
 		CD5E5B5E1A15CE54000C609E /* PageConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageConfiguration.h; sourceTree = "<group>"; };
 		CD5E5B601A15F156000C609E /* PageConfiguration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageConfiguration.cpp; sourceTree = "<group>"; };
+		CD5F16432DBB0AD200CE85D9 /* MessageClientForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageClientForTesting.h; sourceTree = "<group>"; };
+		CD5F16582DBBD72300CE85D9 /* MessageTargetForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageTargetForTesting.h; sourceTree = "<group>"; };
+		CD5F165E2DBC088400CE85D9 /* MessageForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageForTesting.h; sourceTree = "<group>"; };
 		CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaSourcePrivate.h; sourceTree = "<group>"; };
 		CD641EB21818F5ED00EE4C41 /* SourceBufferPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SourceBufferPrivate.h; sourceTree = "<group>"; };
 		CD641EC7181ED60100EE4C41 /* MediaSample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSample.h; sourceTree = "<group>"; };
@@ -19608,6 +19615,8 @@
 		CDFD78BA2242C4FE00D7208A /* JSTextTrackCueGeneric.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSTextTrackCueGeneric.h; sourceTree = "<group>"; };
 		CDFD78BB2242C4FF00D7208A /* JSTextTrackCueGeneric.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSTextTrackCueGeneric.cpp; sourceTree = "<group>"; };
 		CDFD78C22242FC4900D7208A /* TextTrackCueGeneric.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TextTrackCueGeneric.idl; sourceTree = "<group>"; };
+		CDFD83442DC04BB700CE19C4 /* EventTargetForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EventTargetForTesting.h; sourceTree = "<group>"; };
+		CDFD83452DC04BB700CE19C4 /* EventTargetForTesting.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EventTargetForTesting.cpp; sourceTree = "<group>"; };
 		CE057FA31220731100A476D5 /* DocumentMarkerController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DocumentMarkerController.cpp; sourceTree = "<group>"; };
 		CE057FA41220731100A476D5 /* DocumentMarkerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentMarkerController.h; sourceTree = "<group>"; };
 		CE08C3CF152B599A0021B8C2 /* AlternativeTextController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AlternativeTextController.cpp; sourceTree = "<group>"; };
@@ -25169,6 +25178,8 @@
 			children = (
 				A1763F3B1E2051AB001D58DE /* cocoa */,
 				41815C1B138319630057AAA4 /* js */,
+				CDFD83452DC04BB700CE19C4 /* EventTargetForTesting.cpp */,
+				CDFD83442DC04BB700CE19C4 /* EventTargetForTesting.h */,
 				E18D83E4243F71D0009247D6 /* FakeXRBoundsPoint.h */,
 				E18D83EF243F71D7009247D6 /* FakeXRBoundsPoint.idl */,
 				E18D83DE243F71CD009247D6 /* FakeXRButtonStateInit.h */,
@@ -35884,6 +35895,9 @@
 				A31AC70A24340984007F00A2 /* MediaStrategy.cpp */,
 				9B1229C623FE4D5F008CA751 /* MediaStrategy.h */,
 				5151F07B2615363F00FDB2B4 /* MediaUniqueIdentifier.h */,
+				CD5F16432DBB0AD200CE85D9 /* MessageClientForTesting.h */,
+				CD5F165E2DBC088400CE85D9 /* MessageForTesting.h */,
+				CD5F16582DBBD72300CE85D9 /* MessageTargetForTesting.h */,
 				BC772C4C0C4EB3040083285F /* MIMETypeRegistry.cpp */,
 				BC772C4D0C4EB3040083285F /* MIMETypeRegistry.h */,
 				F498C6BE299EE7A400CBA427 /* NoiseInjectionPolicy.h */,
@@ -43338,13 +43352,16 @@
 				A11AE0CC1FFD60530047348B /* MerchantValidationEvent.h in Headers */,
 				93309DFA099E64920056E581 /* MergeIdenticalElementsCommand.h in Headers */,
 				E1ADECCE0E76AD8B004A1A5E /* MessageChannel.h in Headers */,
+				CD5F16442DBB0AD200CE85D9 /* MessageClientForTesting.h in Headers */,
 				75793E840D0CE0B3007FC0AC /* MessageEvent.h in Headers */,
+				CD5F165F2DBC088400CE85D9 /* MessageForTesting.h in Headers */,
 				E1ADECBF0E76ACF1004A1A5E /* MessagePort.h in Headers */,
 				51ECC3F6200587BF00483EAE /* MessagePortChannel.h in Headers */,
 				51ECC3FD2005930D00483EAE /* MessagePortChannelProvider.h in Headers */,
 				51A748E62006004F0075BA68 /* MessagePortChannelProviderImpl.h in Headers */,
 				51ECC3F8200587BF00483EAE /* MessagePortChannelRegistry.h in Headers */,
 				51F645E01FF4594E00B54DED /* MessagePortIdentifier.h in Headers */,
+				CD5F16592DBBD72300CE85D9 /* MessageTargetForTesting.h in Headers */,
 				51A748E32005D0E80075BA68 /* MessageWithMessagePorts.h in Headers */,
 				073930DC2AC6452800C1D1B1 /* MeteringMode.h in Headers */,
 				72A64523294908A200C14BA3 /* MeterPart.h in Headers */,
@@ -46228,6 +46245,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F44423D929FACF3B00124DB5 /* CocoaColorSerialization.mm in Sources */,
+				CDFD83462DC04BC600CE19C4 /* EventTargetForTesting.cpp in Sources */,
 				51714EAC1CF65951004723C4 /* GCObservation.cpp in Sources */,
 				417DA6D913734E6E007C57FB /* Internals.cpp in Sources */,
 				E179F0DA1B9774FE00ED0A27 /* Internals.mm in Sources */,

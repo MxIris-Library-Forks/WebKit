@@ -315,7 +315,7 @@ StyleDifference RenderElement::adjustStyleDifference(StyleDifference diff, Optio
     
     if ((contextSensitiveProperties & StyleDifferenceContextSensitiveProperty::Filter) && hasLayer()) {
         auto& layer = *downcast<RenderLayerModelObject>(*this).layer();
-        if (!layer.isComposited() || layer.paintsWithFilters())
+        if (!layer.isComposited() || layer.shouldPaintWithFilters())
             diff = std::max(diff, StyleDifference::RepaintLayer);
         else
             diff = std::max(diff, StyleDifference::RecompositeLayer);
@@ -1688,10 +1688,10 @@ const Element* RenderElement::defaultAnchor() const
     return nullptr;
 }
 
-const RenderElement* RenderElement::defaultAnchorRenderer() const
+const RenderBoxModelObject* RenderElement::defaultAnchorRenderer() const
 {
     if (auto* defaultAnchor = this->defaultAnchor())
-        return defaultAnchor->renderer();
+        return dynamicDowncast<RenderBoxModelObject>(defaultAnchor->renderer());
     return nullptr;
 }
 

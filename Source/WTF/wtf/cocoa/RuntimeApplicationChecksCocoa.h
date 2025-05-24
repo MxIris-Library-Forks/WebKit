@@ -73,12 +73,12 @@ enum class SDKAlignedBehavior {
     MinimizesLanguages,
     ModernCompabilityModeByDefault,
     MutationEventsDisabledByDefault,
+    NavigationActionSourceFrameNonNull,
     NoClientCertificateLookup,
     NoExpandoIndexedPropertiesOnWindow,
     NoMoviStarPlusCORSPreflightQuirk,
     NoPokerBrosBuiltInTagQuirk,
     NoShowModalDialog,
-    NoTheSecretSocietyHiddenMysteryWindowOpenQuirk,
     NoTypedArrayAPIQuirk,
     NoUnconditionalUniversalSandboxExtension,
     NoWeChatScrollingQuirk,
@@ -86,7 +86,6 @@ enum class SDKAlignedBehavior {
     NullOriginForNonSpecialSchemedURLs,
     ObservesClassProperty,
     PictureInPictureMediaPlayback,
-    ProcessSwapOnCrossSiteNavigation,
     PushStateFilePathRestriction,
     RequiresUserGestureToLoadVideo,
     RestrictsBaseURLSchemes,
@@ -100,7 +99,6 @@ enum class SDKAlignedBehavior {
     SupportsDeviceOrientationAndMotionPermissionAPI,
     SupportsInitConstructors,
     SupportsiOSAppsOnMacOS,
-    SupportsOverflowHiddenOnMainFrame,
     TimerThreadSafetyChecks,
     UIScrollViewDoesNotApplyKeyboardInsetsUnconditionally,
     UnprefixedPlaysInlineAttribute,
@@ -197,11 +195,9 @@ WTF_EXPORT_PRIVATE bool isDoubleDown();
 WTF_EXPORT_PRIVATE bool isDumpRenderTree();
 WTF_EXPORT_PRIVATE bool isESPNFantasySports();
 WTF_EXPORT_PRIVATE bool isEssentialSkeleton();
-WTF_EXPORT_PRIVATE bool isEventbrite();
 WTF_EXPORT_PRIVATE bool isEvernote();
 WTF_EXPORT_PRIVATE bool isFIFACompanion();
 WTF_EXPORT_PRIVATE bool isFeedly();
-WTF_EXPORT_PRIVATE bool isFirefox();
 WTF_EXPORT_PRIVATE bool isHimalaya();
 WTF_EXPORT_PRIVATE bool isHoYoLAB();
 WTF_EXPORT_PRIVATE bool isJWLibrary();
@@ -218,7 +214,6 @@ WTF_EXPORT_PRIVATE bool isPaperIO();
 WTF_EXPORT_PRIVATE bool isPocketCity();
 WTF_EXPORT_PRIVATE bool isSafariViewService();
 WTF_EXPORT_PRIVATE bool isStocks();
-WTF_EXPORT_PRIVATE bool isTheSecretSocietyHiddenMystery();
 WTF_EXPORT_PRIVATE bool isWebBookmarksD();
 WTF_EXPORT_PRIVATE bool isWebProcess();
 WTF_EXPORT_PRIVATE bool isBackboneApp();

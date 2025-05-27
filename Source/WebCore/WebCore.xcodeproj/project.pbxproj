@@ -1483,6 +1483,7 @@
 		41B28B151F8501D300FB52AC /* MediaEndpointConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B28B121F8501A300FB52AC /* MediaEndpointConfiguration.h */; };
 		41B28B3D1F860EF300FB52AC /* LibWebRTCProviderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B28B361F860BD000FB52AC /* LibWebRTCProviderCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41B2A6261EF1BF6D002B9D7A /* WebAudioSourceProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B2A6251EF1BF60002B9D7A /* WebAudioSourceProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		41B71FFC2DE076DD00467A31 /* PixelBufferConformerCV.mm in Sources */ = {isa = PBXBuildFile; fileRef = 41B71FFB2DE076DD00467A31 /* PixelBufferConformerCV.mm */; };
 		41B82E0C28FD51D3001D89CC /* WebCodecsEncodedVideoChunk.h in Headers */ = {isa = PBXBuildFile; fileRef = 4110A1CE28DE5B3200321D09 /* WebCodecsEncodedVideoChunk.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41B82E0D28FD51DF001D89CC /* WebCodecsEncodedVideoChunkType.h in Headers */ = {isa = PBXBuildFile; fileRef = 4110A1CC28DE5B3100321D09 /* WebCodecsEncodedVideoChunkType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41B82E0F28FD52F8001D89CC /* WebCodecsEncodedVideoChunkData.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B82E0E28FD52F5001D89CC /* WebCodecsEncodedVideoChunkData.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10539,6 +10540,7 @@
 		41B6AA4F26B995F800AADFA7 /* RTCRtpSFrameTransformErrorEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RTCRtpSFrameTransformErrorEvent.h; sourceTree = "<group>"; };
 		41B6AA5126B995F800AADFA7 /* RTCRtpSFrameTransformErrorEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RTCRtpSFrameTransformErrorEvent.idl; sourceTree = "<group>"; };
 		41B6AA5226B995F900AADFA7 /* RTCRtpSFrameTransformErrorEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RTCRtpSFrameTransformErrorEvent.cpp; sourceTree = "<group>"; };
+		41B71FFB2DE076DD00467A31 /* PixelBufferConformerCV.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PixelBufferConformerCV.mm; sourceTree = "<group>"; };
 		41B7C04526E690BC00D36C07 /* RTCErrorEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RTCErrorEvent.cpp; sourceTree = "<group>"; };
 		41B7C04726E690BD00D36C07 /* RTCErrorEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RTCErrorEvent.h; sourceTree = "<group>"; };
 		41B7C04826E690BE00D36C07 /* RTCErrorEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = RTCErrorEvent.idl; sourceTree = "<group>"; };
@@ -36457,6 +36459,7 @@
 				0746D30A2146EA37003DDF84 /* ImageTransferSessionVT.mm */,
 				CD7D33411C7A123F00041293 /* PixelBufferConformerCV.cpp */,
 				CD7D33421C7A123F00041293 /* PixelBufferConformerCV.h */,
+				41B71FFB2DE076DD00467A31 /* PixelBufferConformerCV.mm */,
 				7BE37F8627BBB6FF007A6CD3 /* VideoFrameCV.h */,
 				7BE37F8527BBB6FE007A6CD3 /* VideoFrameCV.mm */,
 			);
@@ -46403,6 +46406,7 @@
 				1A569D1A0D7E2B82007C3983 /* objc_utility.mm in Sources */,
 				E16982601134636A00894115 /* ObjCRuntimeObject.mm in Sources */,
 				07E4BDC32A3A6191000D5509 /* OpacityCaretAnimator.cpp in Sources */,
+				41B71FFC2DE076DD00467A31 /* PixelBufferConformerCV.mm in Sources */,
 				CEA284662141E84900E407E8 /* PlatformEventFactoryIOS.mm in Sources */,
 				AA12DF491743DF83004DAFDF /* PlatformSpeechSynthesizerCocoa.mm in Sources */,
 				A19311042D113B7C003C8410 /* PlatformTimeRangesCocoa.mm in Sources */,

@@ -893,8 +893,11 @@ public:
     bool isTransparentOrFullyClipped(const WebCore::Node&) const;
 #endif
 
-    void didUpdateRendering();
-    void didPaintLayers();
+    enum class DidUpdateRenderingFlags {
+        PaintedLayers = 1 << 0,
+        NotifyUIProcess = 1 << 1,
+    };
+    void didUpdateRendering(OptionSet<DidUpdateRenderingFlags> = { DidUpdateRenderingFlags::PaintedLayers, DidUpdateRenderingFlags::NotifyUIProcess });
 
     // A "platform rendering update" here describes the work done by the system graphics framework before work is submitted to the system compositor.
     // On macOS, this is a CoreAnimation commit.
@@ -3063,7 +3066,7 @@ private:
 #endif
 
 #if ENABLE(WEBXR) && !USE(OPENXR)
-    std::unique_ptr<PlatformXRSystemProxy> m_xrSystemProxy;
+    const std::unique_ptr<PlatformXRSystemProxy> m_xrSystemProxy;
 #endif
 
 #if ENABLE(APP_HIGHLIGHTS)

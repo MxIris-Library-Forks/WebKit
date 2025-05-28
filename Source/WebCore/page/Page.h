@@ -816,11 +816,14 @@ public:
     WEBCORE_EXPORT void finalizeRenderingUpdateForRootFrame(LocalFrame&, OptionSet<FinalizeRenderingUpdateFlags>);
 
     // Called before and after the "display" steps of the rendering update: painting, and when we push
-    // layers to the platform compositor.
+    // layers to the platform compositor (including async painting).
     WEBCORE_EXPORT void willStartRenderingUpdateDisplay();
     WEBCORE_EXPORT void didCompleteRenderingUpdateDisplay();
     // Called after didCompleteRenderingUpdateDisplay, but in the same run loop iteration (i.e. before zero-delay timers triggered from the rendering update).
     WEBCORE_EXPORT void didCompleteRenderingFrame();
+    // Called after the "display" steps of the rendering update, but before any async delays
+    // waiting for async painting.
+    WEBCORE_EXPORT void didUpdateRendering();
 
     // Schedule a rendering update that coordinates with display refresh.
     WEBCORE_EXPORT void scheduleRenderingUpdate(OptionSet<RenderingUpdateStep> requestedSteps);
@@ -1637,7 +1640,7 @@ private:
     std::optional<EventThrottlingBehavior> m_eventThrottlingBehaviorOverride;
     std::optional<CompositingPolicy> m_compositingPolicyOverride;
 
-    std::unique_ptr<PerformanceMonitor> m_performanceMonitor;
+    const std::unique_ptr<PerformanceMonitor> m_performanceMonitor;
     std::unique_ptr<LowPowerModeNotifier> m_lowPowerModeNotifier;
     std::unique_ptr<ThermalMitigationNotifier> m_thermalMitigationNotifier;
     OptionSet<ThrottlingReason> m_throttlingReasons;
@@ -1647,7 +1650,7 @@ private:
 
     std::unique_ptr<PerformanceLogging> m_performanceLogging;
 #if ENABLE(WHEEL_EVENT_LATCHING)
-    std::unique_ptr<ScrollLatchingController> m_scrollLatchingController;
+    const std::unique_ptr<ScrollLatchingController> m_scrollLatchingController;
 #endif
 #if PLATFORM(MAC) && (ENABLE(SERVICE_CONTROLS) || ENABLE(TELEPHONE_NUMBER_DETECTION))
     const UniqueRef<ServicesOverlayController> m_servicesOverlayController;

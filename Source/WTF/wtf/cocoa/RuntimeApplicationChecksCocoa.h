@@ -75,7 +75,6 @@ enum class SDKAlignedBehavior {
     NavigationActionSourceFrameNonNull,
     NoClientCertificateLookup,
     NoExpandoIndexedPropertiesOnWindow,
-    NoMoviStarPlusCORSPreflightQuirk,
     NoPokerBrosBuiltInTagQuirk,
     NoShowModalDialog,
     NoTypedArrayAPIQuirk,
@@ -103,11 +102,9 @@ enum class SDKAlignedBehavior {
     UnprefixedPlaysInlineAttribute,
     WebIconDatabaseWarning,
     WebSQLDisabledByDefaultInLegacyWebKit,
-    WKContentViewDoesNotOverrideKeyCommands,
     WKWebsiteDataStoreInitReturningNil,
     UIBackForwardSkipsHistoryItemsWithoutUserGesture,
     ProgrammaticFocusDuringUserScriptShowsInputViews,
-    UsesGameControllerPhysicalInputProfile,
     ScreenOrientationAPIEnabled,
     PopoverAttributeEnabled,
     DoesNotOverrideUAFromNSUserDefault,
@@ -193,7 +190,6 @@ WTF_EXPORT_PRIVATE bool isDoubleDown();
 WTF_EXPORT_PRIVATE bool isDumpRenderTree();
 WTF_EXPORT_PRIVATE bool isESPNFantasySports();
 WTF_EXPORT_PRIVATE bool isEssentialSkeleton();
-WTF_EXPORT_PRIVATE bool isEvernote();
 WTF_EXPORT_PRIVATE bool isFIFACompanion();
 WTF_EXPORT_PRIVATE bool isFeedly();
 WTF_EXPORT_PRIVATE bool isHimalaya();
@@ -213,10 +209,8 @@ WTF_EXPORT_PRIVATE bool isSafariViewService();
 WTF_EXPORT_PRIVATE bool isStocks();
 WTF_EXPORT_PRIVATE bool isWebBookmarksD();
 WTF_EXPORT_PRIVATE bool isWebProcess();
-WTF_EXPORT_PRIVATE bool isBackboneApp();
 WTF_EXPORT_PRIVATE bool isIBooksStorytime();
 WTF_EXPORT_PRIVATE bool isMobileStore();
-WTF_EXPORT_PRIVATE bool isMoviStarPlus();
 WTF_EXPORT_PRIVATE bool isUNIQLOApp();
 WTF_EXPORT_PRIVATE bool isWechat();
 WTF_EXPORT_PRIVATE bool isDOFUSTouch();

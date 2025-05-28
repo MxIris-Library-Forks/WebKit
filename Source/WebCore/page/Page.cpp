@@ -2459,7 +2459,11 @@ void Page::didCompleteRenderingFrame()
     // FIXME: This is where we'd call requestPostAnimationFrame callbacks: webkit.org/b/249798.
     // FIXME: Run WindowEventLoop tasks from here: webkit.org/b/249684.
     InspectorInstrumentation::didCompleteRenderingFrame(m_mainFrame);
+}
 
+void Page::didUpdateRendering()
+{
+    LOG_WITH_STREAM(EventLoop, stream << "Page " << this << " didUpdateRendering()");
     forEachDocument([&] (Document& document) {
         document.flushDeferredRenderingIsSuppressedForViewTransitionChanges();
     });
@@ -4530,7 +4534,7 @@ void Page::applicationDidBecomeActive()
 ScrollLatchingController& Page::scrollLatchingController()
 {
     if (!m_scrollLatchingController)
-        m_scrollLatchingController = makeUniqueWithoutRefCountedCheck<ScrollLatchingController>(*this);
+        lazyInitialize(m_scrollLatchingController, makeUniqueWithoutRefCountedCheck<ScrollLatchingController>(*this));
         
     return *m_scrollLatchingController;
 }

@@ -120,7 +120,6 @@ static SDKAlignedBehaviors computeSDKAlignedBehaviors()
         disableBehavior(SDKAlignedBehavior::ScrollViewContentInsetsAreNotObscuringInsets);
         disableBehavior(SDKAlignedBehavior::UIScrollViewDoesNotApplyKeyboardInsetsUnconditionally);
         disableBehavior(SDKAlignedBehavior::MainThreadReleaseAssertionInWebPageProxy);
-        disableBehavior(SDKAlignedBehavior::NoMoviStarPlusCORSPreflightQuirk);
         disableBehavior(SDKAlignedBehavior::TimerThreadSafetyChecks);
     }
 
@@ -136,7 +135,6 @@ static SDKAlignedBehaviors computeSDKAlignedBehaviors()
         disableBehavior(SDKAlignedBehavior::ExceptionsForRelatedWebViewsUsingDifferentDataStores);
         disableBehavior(SDKAlignedBehavior::ModernCompabilityModeByDefault);
         disableBehavior(SDKAlignedBehavior::HasUIContextMenuInteraction);
-        disableBehavior(SDKAlignedBehavior::WKContentViewDoesNotOverrideKeyCommands);
         disableBehavior(SDKAlignedBehavior::DownloadDelegatesCalledOnTheMainThread);
     }
 
@@ -198,7 +196,6 @@ static SDKAlignedBehaviors computeSDKAlignedBehaviors()
         disableBehavior(SDKAlignedBehavior::InspectableDefaultsToDisabled);
         disableBehavior(SDKAlignedBehavior::PushStateFilePathRestriction);
         disableBehavior(SDKAlignedBehavior::NoUNIQLOLazyIframeLoadingQuirk);
-        disableBehavior(SDKAlignedBehavior::UsesGameControllerPhysicalInputProfile);
         disableBehavior(SDKAlignedBehavior::ScreenOrientationAPIEnabled);
     }
 
@@ -502,22 +499,10 @@ bool IOSApplication::isWebProcess()
     return isInWebProcess();
 }
 
-bool IOSApplication::isBackboneApp()
-{
-    static bool isBackboneApp = applicationBundleIsEqualTo("com.backbonelabs.backboneapp"_s);
-    return isBackboneApp;
-}
-
 bool IOSApplication::isIBooksStorytime()
 {
     static bool isIBooksStorytime = applicationBundleIsEqualTo("com.apple.TVBooks"_s);
     return isIBooksStorytime;
-}
-
-bool IOSApplication::isMoviStarPlus()
-{
-    static bool isMoviStarPlus = applicationBundleIsEqualTo("com.prisatv.yomvi"_s);
-    return isMoviStarPlus;
 }
 
 bool IOSApplication::isHoYoLAB()
@@ -530,12 +515,6 @@ bool IOSApplication::isAmazon()
 {
     static bool isAmazon = applicationBundleIsEqualTo("com.amazon.Amazon"_s);
     return isAmazon;
-}
-
-bool IOSApplication::isEvernote()
-{
-    static bool isEvernote = applicationBundleIsEqualTo("com.evernote.iPhone.Evernote"_s);
-    return isEvernote;
 }
 
 bool IOSApplication::isDataActivation()

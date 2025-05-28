@@ -933,6 +933,8 @@ imported/w3c/web-platform-tests/html/rendering/widgets/button-layout/display-non
 imported/w3c/web-platform-tests/html/rendering/widgets/button-layout/input-type-button-clip.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-password-background-suppresses-appearance.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-checked-styling.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-zero-size.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/rendering/widgets/input-number-text-size.tentative.html [ ImageOnlyFailure ]
 
 #[ iOS MacOS ] imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-add-label-quirks.html(layout-tests) is a constant IMAGE failure
 imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-add-label-quirks.html [ Failure ImageOnlyFailure ]
@@ -7067,22 +7069,13 @@ imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-
 # -- View Transitions -- #
 # Reftest failures:
 imported/w3c/web-platform-tests/css/css-view-transitions/content-with-clip-root.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/inline-with-offset-from-containing-block.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/span-with-overflowing-text.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/new-content-captures-different-size.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/paint-holding-in-iframe.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/auto-name-get-animations.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/fractional-translation-from-transform.html [ ImageOnlyFailure ]
 
 # Timeouts
-imported/w3c/web-platform-tests/css/css-view-transitions/iframe-transition.sub.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/fragmented-during-transition-skips.html [ Skip ]
-imported/w3c/web-platform-tests/css/css-view-transitions/root-element-display-none-during-transition-crash.html [ Skip ]
 
-# Flakes
-imported/w3c/web-platform-tests/css/css-view-transitions/synchronous-callback-skipped-before-run.html [ Failure Pass ]
-# webkit.org/b/278352
-[ Debug ] imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ Pass ImageOnlyFailure ]
+# {{domains[www]}} substitued incorrectly by WKTR
+imported/w3c/web-platform-tests/css/css-view-transitions/iframe-transition.sub.html [ Skip ]
 
 # Reftests with variants are not supported
 imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-parse-pseudo-argument.html?first-pseudo=::view-transition-group(%20%20%20%20%20%20first%20) [ Skip ]
@@ -7091,6 +7084,9 @@ imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-pars
 imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-parse-pseudo-argument.html?first-pseudo=::view-transition-group(first [ Skip ]
 imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-parse-pseudo-argument.html?first-pseudo=::view-transition-group(first%20) [ Skip ]
 imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api-parse-pseudo-argument.html?first-pseudo=::view-transition-group(first) [ Skip ]
+
+# Spec still in flux.
+imported/w3c/web-platform-tests/css/css-view-transitions/auto-name-get-animations.html [ Failure ]
 
 # View transitions Level 2 - types.
 # Test doesn't seem to pass on Chrome Canary.
@@ -7637,7 +7633,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-003
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-update-007.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-inline-container.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-scroll-adjust.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/position-anchor-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-switch-to-fixed-anchor.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-add-no-overflow.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-with-position.html [ ImageOnlyFailure ]

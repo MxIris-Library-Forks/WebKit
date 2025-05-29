@@ -1003,7 +1003,6 @@
 		2D4A63182A8CB5A30078CE8A /* CryptoAlgorithmX25519Params.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D4A63172A8CB5990078CE8A /* CryptoAlgorithmX25519Params.h */; };
 		2D4A63352A8CC18D0078CE8A /* JSX25519Params.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D4A63342A8CC18D0078CE8A /* JSX25519Params.h */; };
 		2D4F96F61A1ECC240098BF88 /* TextIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D4F96F21A1ECC240098BF88 /* TextIndicator.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		2D4F96F71A1ECC240098BF88 /* TextIndicatorWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D4F96F31A1ECC240098BF88 /* TextIndicatorWindow.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D5002FC1B56D7990020AAF7 /* PathUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D5002FA1B56D7990020AAF7 /* PathUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D550A1429C30F3F00BD0C1F /* IntDegrees.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D550A1329C30F3F00BD0C1F /* IntDegrees.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2D5646B01B8F8493003C4994 /* DictionaryPopupInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D5646AF1B8F8493003C4994 /* DictionaryPopupInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9514,8 +9513,6 @@
 		2D4A63362A8CC1F80078CE8A /* JSX25519Params.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSX25519Params.cpp; sourceTree = "<group>"; };
 		2D4F96F11A1ECC240098BF88 /* TextIndicator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextIndicator.cpp; sourceTree = "<group>"; };
 		2D4F96F21A1ECC240098BF88 /* TextIndicator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextIndicator.h; sourceTree = "<group>"; };
-		2D4F96F31A1ECC240098BF88 /* TextIndicatorWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextIndicatorWindow.h; sourceTree = "<group>"; };
-		2D4F96F41A1ECC240098BF88 /* TextIndicatorWindow.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TextIndicatorWindow.mm; sourceTree = "<group>"; };
 		2D5002F91B56D7990020AAF7 /* PathUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PathUtilities.cpp; sourceTree = "<group>"; };
 		2D5002FA1B56D7990020AAF7 /* PathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathUtilities.h; sourceTree = "<group>"; };
 		2D5036671BCDDDC400E20BB3 /* GestureEvents.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GestureEvents.cpp; sourceTree = "<group>"; };
@@ -30502,8 +30499,6 @@
 				F4B2A90C265087E4009E7286 /* ImageOverlayControllerMac.mm */,
 				2D93AEE119DF5641002A86C3 /* ServicesOverlayController.h */,
 				2D93AEE219DF5641002A86C3 /* ServicesOverlayController.mm */,
-				2D4F96F31A1ECC240098BF88 /* TextIndicatorWindow.h */,
-				2D4F96F41A1ECC240098BF88 /* TextIndicatorWindow.mm */,
 				F587854C02DE375901EA4122 /* WebCoreFrameView.h */,
 				2E9B5D8E1B66A94E008C6A24 /* WheelEventDeltaFilterMac.h */,
 				2EEEE55B1B66A047008E2CBC /* WheelEventDeltaFilterMac.mm */,
@@ -45084,7 +45079,6 @@
 				B2C3DA450D006C1D00EF6F26 /* TextFlags.h in Headers */,
 				93309E18099E64920056E581 /* TextGranularity.h in Headers */,
 				2D4F96F61A1ECC240098BF88 /* TextIndicator.h in Headers */,
-				2D4F96F71A1ECC240098BF88 /* TextIndicatorWindow.h in Headers */,
 				F55B3DDA1251F12D003EF269 /* TextInputType.h in Headers */,
 				CECADFCE1537791D00E37068 /* TextInsertionBaseCommand.h in Headers */,
 				93309E1C099E64920056E581 /* TextIterator.h in Headers */,

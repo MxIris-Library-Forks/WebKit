@@ -1031,11 +1031,6 @@ const String& Page::groupName() const
     return m_group ? m_group->name() : nullAtom().string();
 }
 
-Ref<Settings> Page::protectedSettings() const
-{
-    return *m_settings;
-}
-
 Ref<BroadcastChannelRegistry> Page::protectedBroadcastChannelRegistry() const
 {
     return m_broadcastChannelRegistry;
@@ -5478,7 +5473,12 @@ std::optional<TextIndicatorData> Page::textPreviewDataForActiveWritingToolsSessi
         return std::nullopt;
     }
 
-    return IntelligenceTextEffectsSupport::textPreviewDataForRange(*localTopDocument, *scope, rangeRelativeToSessionRange);
+    RefPtr textIndicator = IntelligenceTextEffectsSupport::textPreviewDataForRange(*localTopDocument, *scope, rangeRelativeToSessionRange);
+
+    if (textIndicator)
+        return textIndicator->data();
+
+    return std::nullopt;
 }
 
 void Page::decorateTextReplacementsForActiveWritingToolsSession(const CharacterRange& rangeRelativeToSessionRange)
@@ -5568,8 +5568,7 @@ void Page::setLastAuthentication(LoginStatus::AuthenticationType authType)
 #if ENABLE(FULLSCREEN_API)
 bool Page::isDocumentFullscreenEnabled() const
 {
-    Ref settings = protectedSettings();
-    return settings->fullScreenEnabled() || settings->videoFullscreenRequiresElementFullscreen();
+    return m_settings->fullScreenEnabled() || m_settings->videoFullscreenRequiresElementFullscreen();
 }
 #endif
 
@@ -5684,7 +5683,7 @@ void Page::applyWindowFeatures(const WindowFeatures& features)
 
 bool Page::isAlwaysOnLoggingAllowed() const
 {
-    return m_sessionID.isAlwaysOnLoggingAllowed() || protectedSettings()->allowPrivacySensitiveOperationsInNonPersistentDataStores();
+    return m_sessionID.isAlwaysOnLoggingAllowed() || settings().allowPrivacySensitiveOperationsInNonPersistentDataStores();
 }
 
 Ref<InspectorController> Page::protectedInspectorController()

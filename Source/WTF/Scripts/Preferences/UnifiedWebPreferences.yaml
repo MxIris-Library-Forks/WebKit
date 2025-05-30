@@ -433,21 +433,6 @@ AlternateFullScreenControlDesignEnabled:
     WebCore:
       default: false
 
-AlternateWebMPlayerEnabled:
-  type: bool
-  status: mature
-  category: media
-  humanReadableName: "Alternate WebM Player"
-  humanReadableDescription: "Enable Alternate WebM Player"
-  condition: ENABLE(ALTERNATE_WEBM_PLAYER) && ENABLE(MEDIA_SOURCE)
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 AltitudeAngleEnabled:
   type: bool
   status: stable
@@ -4969,7 +4954,7 @@ MediaSourceInWorkerEnabled:
 
 MediaSourcePrefersDecompressionSession:
   type: bool
-  status: stable
+  status: preview
   category: media
   humanReadableName: "MediaSource prefers DecompressionSession"
   humanReadableDescription: "MediaSource prefers DecompressionSession"
@@ -4978,9 +4963,9 @@ MediaSourcePrefersDecompressionSession:
     WebKitLegacy:
       default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
   sharedPreferenceForWebProcess: true
 
 MediaStreamTrackProcessingEnabled:

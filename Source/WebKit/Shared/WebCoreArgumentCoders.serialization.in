@@ -1005,7 +1005,7 @@ header: <WebCore/RenderStyleConstants.h>
 
 struct WebCore::DictionaryPopupInfo {
     WebCore::FloatPoint origin;
-    WebCore::TextIndicatorData textIndicator;
+    RefPtr<WebCore::TextIndicator> textIndicator;
 #if ENABLE(LEGACY_PDFKIT_PLUGIN)
     WebCore::DictionaryPopupInfoCocoa platformData;
 #else
@@ -7680,7 +7680,7 @@ class WebCore::ContentSecurityPolicyResponseHeaders {
 };
 
 class WebCore::DragImage {
-    std::optional<WebCore::TextIndicatorData> indicatorData();
+    RefPtr<WebCore::TextIndicator> textIndicator();
     std::optional<WebCore::Path> visiblePath();
 };
 

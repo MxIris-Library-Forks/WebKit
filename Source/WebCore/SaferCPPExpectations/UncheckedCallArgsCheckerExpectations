@@ -12,7 +12,6 @@ Modules/fetch/FetchBodyOwner.cpp
 Modules/fetch/FetchLoader.cpp
 Modules/fetch/FetchResponse.cpp
 Modules/gamepad/GamepadManager.cpp
-Modules/gamepad/NavigatorGamepad.cpp
 Modules/geolocation/Geolocation.cpp
 Modules/geolocation/GeolocationController.cpp
 Modules/highlight/AppHighlightStorage.cpp
@@ -36,15 +35,12 @@ Modules/mediastream/RTCPeerConnection.cpp
 Modules/mediastream/RTCRtpScriptTransformer.cpp
 Modules/model-element/HTMLModelElement.cpp
 Modules/notifications/Notification.cpp
-Modules/permissions/NavigatorPermissions.cpp
-Modules/permissions/WorkerNavigatorPermissions.cpp
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
 Modules/plugins/YouTubePluginReplacement.cpp
 Modules/push-api/PushDatabase.cpp
 Modules/push-api/PushManager.cpp
 Modules/push-api/PushSubscription.cpp
 Modules/remoteplayback/RemotePlayback.cpp
-Modules/screen-wake-lock/NavigatorScreenWakeLock.cpp
 Modules/screen-wake-lock/WakeLock.cpp
 Modules/screen-wake-lock/WakeLockManager.cpp
 Modules/speech/SpeechRecognitionCaptureSource.cpp
@@ -284,7 +280,6 @@ html/FTPDirectoryDocument.cpp
 html/FileInputType.cpp
 html/FormAssociatedCustomElement.cpp
 html/FormAssociatedElement.cpp
-html/HTMLAllCollection.cpp
 html/HTMLAnchorElement.cpp
 html/HTMLAttachmentElement.cpp
 html/HTMLBRElement.cpp
@@ -341,7 +336,6 @@ html/LazyLoadImageObserver.cpp
 html/MediaDocument.cpp
 html/MediaElementSession.cpp
 html/ModelDocument.cpp
-html/PermissionsPolicy.cpp
 html/PluginDocument.cpp
 html/RadioNodeList.cpp
 html/RangeInputType.cpp
@@ -544,7 +538,6 @@ page/Location.cpp
 page/MemoryRelease.cpp
 page/NavigateEvent.cpp
 page/Navigator.cpp
-page/NavigatorLoginStatus.cpp
 page/Page.cpp
 page/PageColorSampler.cpp
 page/PageConsoleClient.cpp

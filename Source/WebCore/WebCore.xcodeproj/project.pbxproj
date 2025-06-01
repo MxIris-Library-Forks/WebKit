@@ -1756,6 +1756,7 @@
 		46B9519A207D635400A7D2DD /* RemoteFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B95192207D632E00A7D2DD /* RemoteFrame.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46B95BF52231CFD60053A504 /* DeviceOrientationAndMotionAccessController.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B95BF42231CFB80053A504 /* DeviceOrientationAndMotionAccessController.h */; };
 		46BA49B827BB44330077F63F /* AVAssetTrackUtilities.mm in Sources */ = {isa = PBXBuildFile; fileRef = CDECA8981EDF447D00DCB08B /* AVAssetTrackUtilities.mm */; };
+		46BBE9BF2DE8AF78002B87D5 /* SQLiteExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = 46BBE9BE2DE8AF78002B87D5 /* SQLiteExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46BD05C525BB6E5900225F30 /* AddEventListenerOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 46BD05C225BB6E4E00225F30 /* AddEventListenerOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46BD05C625BB6E6C00225F30 /* EventListenerOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 46BD05C325BB6E4E00225F30 /* EventListenerOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46BD15F8283E8C69000989F3 /* HTMLArticleElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 46BD15F7283E8C4E000989F3 /* HTMLArticleElement.h */; };
@@ -4906,6 +4907,11 @@
 		BC3BEDCE2DD8EDC4004E87D7 /* StyleExtractorSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3BEDCD2DD8EDC4004E87D7 /* StyleExtractorSerializer.h */; };
 		BC3BEDD02DD8EF0C004E87D7 /* StyleOrderedNamedLinesCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3BEDCF2DD8EF0B004E87D7 /* StyleOrderedNamedLinesCollector.h */; };
 		BC3C39B70C0D3D8D005F4D7A /* JSMediaList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3C39B50C0D3D8D005F4D7A /* JSMediaList.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3CC2272DE79F4F0032971C /* StyleBoxShadow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC9BE3E92CFE1CFF00D8C2CA /* StyleBoxShadow.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3CC2282DE79F6D0032971C /* CSSTextShadow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3078DC2D0286E900630D75 /* CSSTextShadow.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3CC2292DE79F760032971C /* CSSBoxShadow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC9BE3EB2CFE1D1300D8C2CA /* CSSBoxShadow.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3CC22E2DE8D2D50032971C /* StyleTextShadow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3078E22D02884200630D75 /* StyleTextShadow.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC3CC2302DE8D4310032971C /* StyleShadow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3CC22F2DE8D4310032971C /* StyleShadow.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3D85BC1C0E2E7A00D3B610 /* JSHTMLPictureElement.h in Headers */ = {isa = PBXBuildFile; fileRef = BC808B131C0E2B350066FD6B /* JSHTMLPictureElement.h */; };
 		BC3E62432659791800548ACD /* PlatformColorSpace.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3E62422659791700548ACD /* PlatformColorSpace.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4368E80C226E32005EFB5F /* Rect.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4368E70C226E32005EFB5F /* Rect.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4966,7 +4972,6 @@
 		BC5EB74E0E81E06700B25965 /* StyleMultiColData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB74C0E81E06700B25965 /* StyleMultiColData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB80E0E81F2CE00B25965 /* StyleTransformData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5EB8B90E8201BD00B25965 /* StyleDeprecatedFlexibleBoxData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB8B70E8201BD00B25965 /* StyleDeprecatedFlexibleBoxData.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BC5EB8C40E82031B00B25965 /* ShadowData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB8C20E82031B00B25965 /* ShadowData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5EB9510E82056B00B25965 /* CounterDirectives.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB94F0E82056B00B25965 /* CounterDirectives.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5EB9790E82069200B25965 /* CounterContent.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB9780E82069200B25965 /* CounterContent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC5EB9810E82072500B25965 /* ContentData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC5EB97F0E82072500B25965 /* ContentData.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11112,6 +11117,7 @@
 		46B95194207D633000A7D2DD /* Frame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Frame.cpp; sourceTree = "<group>"; };
 		46B95BF22231CFB80053A504 /* DeviceOrientationAndMotionAccessController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceOrientationAndMotionAccessController.cpp; sourceTree = "<group>"; };
 		46B95BF42231CFB80053A504 /* DeviceOrientationAndMotionAccessController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceOrientationAndMotionAccessController.h; sourceTree = "<group>"; };
+		46BBE9BE2DE8AF78002B87D5 /* SQLiteExtras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SQLiteExtras.h; sourceTree = "<group>"; };
 		46BD05C025BB6E4D00225F30 /* EventListenerOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = EventListenerOptions.idl; sourceTree = "<group>"; };
 		46BD05C225BB6E4E00225F30 /* AddEventListenerOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AddEventListenerOptions.h; sourceTree = "<group>"; };
 		46BD05C325BB6E4E00225F30 /* EventListenerOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EventListenerOptions.h; sourceTree = "<group>"; };
@@ -18140,6 +18146,7 @@
 		BC3BEDCF2DD8EF0B004E87D7 /* StyleOrderedNamedLinesCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOrderedNamedLinesCollector.h; sourceTree = "<group>"; };
 		BC3C39B40C0D3D8D005F4D7A /* JSMediaList.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSMediaList.cpp; sourceTree = "<group>"; };
 		BC3C39B50C0D3D8D005F4D7A /* JSMediaList.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSMediaList.h; sourceTree = "<group>"; };
+		BC3CC22F2DE8D4310032971C /* StyleShadow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleShadow.h; sourceTree = "<group>"; };
 		BC3E62422659791700548ACD /* PlatformColorSpace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformColorSpace.h; sourceTree = "<group>"; };
 		BC4368E70C226E32005EFB5F /* Rect.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Rect.h; sourceTree = "<group>"; };
 		BC46C1ED0C0DDBDF0020CFC3 /* JSCSSRuleCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSRuleCustom.cpp; sourceTree = "<group>"; };
@@ -18265,8 +18272,6 @@
 		BC5EB80E0E81F2CE00B25965 /* StyleTransformData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleTransformData.h; sourceTree = "<group>"; };
 		BC5EB8B60E8201BD00B25965 /* StyleDeprecatedFlexibleBoxData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleDeprecatedFlexibleBoxData.cpp; sourceTree = "<group>"; };
 		BC5EB8B70E8201BD00B25965 /* StyleDeprecatedFlexibleBoxData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleDeprecatedFlexibleBoxData.h; sourceTree = "<group>"; };
-		BC5EB8C10E82031B00B25965 /* ShadowData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ShadowData.cpp; sourceTree = "<group>"; };
-		BC5EB8C20E82031B00B25965 /* ShadowData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShadowData.h; sourceTree = "<group>"; };
 		BC5EB94F0E82056B00B25965 /* CounterDirectives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CounterDirectives.h; sourceTree = "<group>"; };
 		BC5EB9780E82069200B25965 /* CounterContent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CounterContent.h; sourceTree = "<group>"; };
 		BC5EB97E0E82072500B25965 /* ContentData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContentData.cpp; sourceTree = "<group>"; };
@@ -23132,6 +23137,7 @@
 				7E474E1D12494DC900235364 /* SQLiteDatabaseTracker.cpp */,
 				7E474E1C12494DC900235364 /* SQLiteDatabaseTracker.h */,
 				7E474E1B12494DC900235364 /* SQLiteDatabaseTrackerClient.h */,
+				46BBE9BE2DE8AF78002B87D5 /* SQLiteExtras.h */,
 				B5A684230FFABEAA00D24689 /* SQLiteFileSystem.cpp */,
 				B5A684210FFABE9800D24689 /* SQLiteFileSystem.h */,
 				1A2246450CC98DDB00C05240 /* SQLiteStatement.cpp */,
@@ -34735,6 +34741,7 @@
 				BC9BE3E92CFE1CFF00D8C2CA /* StyleBoxShadow.h */,
 				BC23BAB32D6E3AAB0069A80B /* StyleCornerShapeValue.cpp */,
 				BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */,
+				BC3CC22F2DE8D4310032971C /* StyleShadow.h */,
 			);
 			path = borders;
 			sourceTree = "<group>";
@@ -34970,8 +34977,6 @@
 				A363392B2A280D8000C6EA55 /* ScrollbarColor.h */,
 				A39F8E222A1ECC1E00967C09 /* ScrollbarGutter.cpp */,
 				A39F8E212A1ECBFC00967C09 /* ScrollbarGutter.h */,
-				BC5EB8C10E82031B00B25965 /* ShadowData.cpp */,
-				BC5EB8C20E82031B00B25965 /* ShadowData.h */,
 				1AB5EBCF194A1D170059AC70 /* ShapeValue.cpp */,
 				FD1AF14E1656F12100C6D4F7 /* ShapeValue.h */,
 				BC5EB6A00E81DC4F00B25965 /* StyleBackgroundData.cpp */,
@@ -40819,6 +40824,7 @@
 				BC274B2F140EBEB200EADFA6 /* CSSBorderImageSliceValue.h in Headers */,
 				357B581D27F7909A00B93E4E /* CSSBorderImageWidthValue.h in Headers */,
 				BCB272112CC1F21B00265123 /* CSSBorderRadius.h in Headers */,
+				BC3CC2292DE79F760032971C /* CSSBoxShadow.h in Headers */,
 				BC3078F72D0369C000630D75 /* CSSBoxShadowProperty.h in Headers */,
 				BC3078F12D03667800630D75 /* CSSBoxShadowPropertyValue.h in Headers */,
 				BC3079472D0783D500630D75 /* CSSCalcRandomCachingKey.h in Headers */,
@@ -40990,6 +40996,7 @@
 				D026DB0A27AB719E0081B143 /* CSSSubgridValue.h in Headers */,
 				FC54D05716A7673100575E4D /* CSSSupportsRule.h in Headers */,
 				BC05ACCE2CEE610300750CB1 /* CSSSymbol.h in Headers */,
+				BC3CC2282DE79F6D0032971C /* CSSTextShadow.h in Headers */,
 				318210D92C59B17E00C334B4 /* CSSTokenizer.h in Headers */,
 				3169B7DA2C63091700024DBA /* CSSTokenizerInputStream.h in Headers */,
 				9AB1F38018E2489A00534743 /* CSSToLengthConversionData.h in Headers */,
@@ -44511,7 +44518,6 @@
 				7CC9722E1F93E3360004D4CF /* SettingsBase.h in Headers */,
 				41BBA866257E373B00AC7F6D /* SFrameUtils.h in Headers */,
 				0F3DD45012F5EA1B000D9190 /* ShadowBlur.h in Headers */,
-				BC5EB8C40E82031B00B25965 /* ShadowData.h in Headers */,
 				4683DF412767E91A007D00C8 /* ShadowRealmGlobalScope.h in Headers */,
 				A6D169641346B4C1000EB770 /* ShadowRoot.h in Headers */,
 				056A7AC8256C4F48002F9DDC /* ShadowRootInit.h in Headers */,
@@ -44629,6 +44635,7 @@
 				1A22464A0CC98DDB00C05240 /* SQLiteDatabase.h in Headers */,
 				7E474E1F12494DC900235364 /* SQLiteDatabaseTracker.h in Headers */,
 				7E474E1E12494DC900235364 /* SQLiteDatabaseTrackerClient.h in Headers */,
+				46BBE9BF2DE8AF78002B87D5 /* SQLiteExtras.h in Headers */,
 				B5A684220FFABE9800D24689 /* SQLiteFileSystem.h in Headers */,
 				512BDB4B1C456FFA006494DF /* SQLiteIDBBackingStore.h in Headers */,
 				511EC1301C50ABF50032F983 /* SQLiteIDBCursor.h in Headers */,
@@ -44691,6 +44698,7 @@
 				BCB2720A2CC1F1DB00265123 /* StyleBasicShape.h in Headers */,
 				BCB2720F2CC1F1F100265123 /* StyleBorderRadius.h in Headers */,
 				BC5EB67B0E81D3BE00B25965 /* StyleBoxData.h in Headers */,
+				BC3CC2272DE79F4F0032971C /* StyleBoxShadow.h in Headers */,
 				E4ABAC06236B016D00FA4345 /* StyleBuilder.h in Headers */,
 				83B9687B19F8AB83004EF7AF /* StyleBuilderConverter.h in Headers */,
 				835D363719FF6193004C93AB /* StyleBuilderCustom.h in Headers */,
@@ -44784,6 +44792,7 @@
 				BC2C0C2B2D2C6A4700FCFBA0 /* StyleScrollPadding.h in Headers */,
 				F47A5E3E195B8C8A00483100 /* StyleScrollSnapPoints.h in Headers */,
 				9D6380101AF173220031A15C /* StyleSelfAlignmentData.h in Headers */,
+				BC3CC2302DE8D4310032971C /* StyleShadow.h in Headers */,
 				BCB272082CC1F1DB00265123 /* StyleShapeFunction.h in Headers */,
 				A8EA800C0A19516E00A8EF5F /* StyleSheet.h in Headers */,
 				E4F9EEF3156DA00700D23E7E /* StyleSheetContents.h in Headers */,
@@ -44791,6 +44800,7 @@
 				A8EA800A0A19516E00A8EF5F /* StyleSheetList.h in Headers */,
 				BC5EB5E50E81BF6D00B25965 /* StyleSurroundData.h in Headers */,
 				DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */,
+				BC3CC22E2DE8D2D50032971C /* StyleTextShadow.h in Headers */,
 				BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */,
 				E4DEAA1817A93DC3000E0430 /* StyleTreeResolver.h in Headers */,
 				BCD67C362D23113B0079EB9C /* StyleUnevaluatedCalculation.h in Headers */,

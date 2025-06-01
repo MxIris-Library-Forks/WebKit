@@ -21,43 +21,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
 
-#if ENABLE_SWIFTUI && compiler(>=6.0)
+extension CommandLine {
+    static func value(for flag: String) -> String? {
+        guard let flagIndex = arguments.firstIndex(of: flag) else {
+            return nil
+        }
 
-public import Foundation
-internal import WebKit_Internal
+        let valueIndex = arguments.index(after: flagIndex)
+        guard valueIndex < arguments.endIndex else {
+            return nil
+        }
 
-// SPI for the cross-import overlay.
-// swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-@_spi(CrossImportOverlay)
-public struct WKScrollGeometryAdapter {
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let containerSize: CGSize
-
-    #if canImport(UIKit)
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentInsets: UIEdgeInsets
-    #else
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentInsets: NSEdgeInsets
-    #endif
-
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentOffset: CGPoint
-
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentSize: CGSize
-
-    init(_ geometry: WKScrollGeometry) {
-        self.containerSize = geometry.containerSize
-        self.contentInsets = geometry.contentInsets
-        self.contentOffset = geometry.contentOffset
-        self.contentSize = geometry.contentSize
+        return arguments[valueIndex]
     }
 }
-
-#endif

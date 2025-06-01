@@ -132,9 +132,7 @@ Modules/paymentrequest/PaymentRequest.cpp
 Modules/paymentrequest/PaymentRequestUpdateEvent.cpp
 Modules/paymentrequest/PaymentResponse.cpp
 Modules/permissions/MainThreadPermissionObserver.cpp
-Modules/permissions/NavigatorPermissions.cpp
 Modules/permissions/Permissions.cpp
-Modules/permissions/WorkerNavigatorPermissions.cpp
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
 Modules/push-api/PushDatabase.cpp
 Modules/push-api/PushManager.cpp
@@ -143,7 +141,6 @@ Modules/push-api/ServiceWorkerRegistrationPushAPI.cpp
 Modules/remoteplayback/RemotePlayback.cpp
 Modules/reporting/ReportingObserver.cpp
 Modules/reporting/ReportingScope.cpp
-Modules/screen-wake-lock/NavigatorScreenWakeLock.cpp
 Modules/screen-wake-lock/WakeLock.cpp
 Modules/screen-wake-lock/WakeLockManager.cpp
 Modules/speech/LocalDOMWindowSpeechSynthesis.cpp
@@ -634,7 +631,6 @@ html/FTPDirectoryDocument.cpp
 html/FormAssociatedCustomElement.cpp
 html/FormAssociatedElement.cpp
 html/FormListedElement.cpp
-html/HTMLAllCollection.cpp
 html/HTMLAnchorElement.cpp
 html/HTMLAttachmentElement.cpp
 html/HTMLBaseElement.cpp
@@ -684,7 +680,6 @@ html/MediaDocument.cpp
 html/MediaElementSession.cpp
 html/ModelDocument.cpp
 html/OffscreenCanvas.cpp
-html/PermissionsPolicy.cpp
 html/PluginDocument.cpp
 html/PublicURLManager.cpp
 html/RadioNodeList.cpp
@@ -956,7 +951,6 @@ platform/graphics/MediaPlayer.cpp
 platform/graphics/Path.cpp
 platform/graphics/SourceBufferPrivate.cpp
 platform/graphics/TransparencyLayerContextSwitcher.cpp
-platform/graphics/WidthIterator.cpp
 platform/graphics/avfoundation/AudioSourceProviderAVFObjC.mm
 platform/graphics/avfoundation/InbandMetadataTextTrackPrivateAVF.cpp
 platform/graphics/avfoundation/objc/CDMInstanceFairPlayStreamingAVFObjC.h

@@ -21,43 +21,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
 
-#if ENABLE_SWIFTUI && compiler(>=6.0)
+import Network
 
-public import Foundation
-internal import WebKit_Internal
-
-// SPI for the cross-import overlay.
-// swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-@_spi(CrossImportOverlay)
-public struct WKScrollGeometryAdapter {
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let containerSize: CGSize
-
-    #if canImport(UIKit)
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentInsets: UIEdgeInsets
-    #else
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentInsets: NSEdgeInsets
-    #endif
-
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentOffset: CGPoint
-
-    // SPI for the cross-import overlay.
-    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    public let contentSize: CGSize
-
-    init(_ geometry: WKScrollGeometry) {
-        self.containerSize = geometry.containerSize
-        self.contentInsets = geometry.contentInsets
-        self.contentOffset = geometry.contentOffset
-        self.contentSize = geometry.contentSize
+extension WKWebsiteDataStore {
+    /// Gets or sets the proxy configurations to be used to override networking in all WKWebViews that use this WKWebsiteDataStore.
+    ///
+    /// Changing the proxy configurations might interrupt current networking operations in any WKWebView that use this WKWebsiteDataStore,
+    /// so it is encouraged to finish setting the proxy configurations before starting any page loads.
+    @available(iOS 17.0, macOS 14.0, visionOS 1.0, *)
+    @available(watchOS, unavailable)
+    @available(tvOS, unavailable)
+    public var proxyConfigurations: [ProxyConfiguration] {
+        get { __proxyConfigurations?.map(ProxyConfiguration.init(_nw:)) ?? [] }
+        set { __proxyConfigurations = newValue.map(\._nw) }
     }
 }
-
-#endif

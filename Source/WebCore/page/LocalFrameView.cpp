@@ -3,7 +3,7 @@
  *                     1999 Lars Knoll <knoll@kde.org>
  *                     1999 Antti Koivisto <koivisto@kde.org>
  *                     2000 Dirk Mueller <mueller@kde.org>
- * Copyright (C) 2004-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2004-2025 Apple Inc. All rights reserved.
  *           (C) 2006 Graham Dennis (graham.dennis@gmail.com)
  *           (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  * Copyright (C) 2009 Google Inc. All rights reserved.
@@ -448,7 +448,7 @@ void LocalFrameView::setFrameRect(const IntRect& newRect)
     if (m_frame->isMainFrame() && m_frame->page())
         m_frame->page()->pageOverlayController().didChangeViewSize();
 
-    if (auto* document = m_frame->document())
+    if (RefPtr document = m_frame->document())
         document->didChangeViewSize();
 
     viewportContentsChanged();
@@ -475,7 +475,7 @@ void LocalFrameView::updateCanHaveScrollbars()
 RefPtr<Element> LocalFrameView::rootElementForCustomScrollbarPartStyle() const
 {
     // FIXME: We need to update the scrollbar dynamically as documents change (or as doc elements and bodies get discovered that have custom styles).
-    auto* document = m_frame->document();
+    RefPtr document = m_frame->document();
     if (!document)
         return nullptr;
 
@@ -1981,6 +1981,21 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
     fixedRect.contract({ sampleRectMargin });
     unclampedFixedRect.contract({ sampleRectMargin });
 
+    auto adjacentSideInClockwiseOrder = [](BoxSide side) {
+        switch (side) {
+        case BoxSide::Left:
+            return BoxSide::Top;
+        case BoxSide::Top:
+            return BoxSide::Right;
+        case BoxSide::Right:
+            return BoxSide::Bottom;
+        case BoxSide::Bottom:
+            return BoxSide::Left;
+        }
+        ASSERT_NOT_REACHED();
+        return side;
+    };
+
     auto lengthOnSide = [](BoxSide side, const LayoutRect& rect) -> LayoutUnit {
         switch (side) {
         case BoxSide::Top:
@@ -2084,6 +2099,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         IsHiddenOrTransparent,
         IsScrollable,
         TooSmall,
+        TooLarge,
         IsCandidate,
     };
     using enum ContainerEdgeCandidateResult;
@@ -2107,6 +2123,9 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
             if (!isNearlyViewportSized(side, renderer))
                 return TooSmall;
         }
+
+        if (isNearlyViewportSized(adjacentSideInClockwiseOrder(side), renderer))
+            return TooLarge;
 
         return IsCandidate;
     };
@@ -2167,6 +2186,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
             case IsScrollable:
             case TooSmall:
                 break;
+            case TooLarge:
             case IsHiddenOrTransparent: {
                 hitInvisiblePointerEventsNoneContainer = ancestor->usedPointerEvents() == PointerEvents::None;
                 break;
@@ -4450,9 +4470,9 @@ void LocalFrameView::performSizeToContentAutoSize()
     LOG(Layout, "LocalFrameView %p performSizeToContentAutoSize", this);
     ASSERT(m_frame->document() && m_frame->document()->renderView());
 
-    auto document = m_frame->protectedDocument();
+    RefPtr document = m_frame->document();
     auto& renderView = *document->renderView();
-    auto* documentRenderer = downcast<RenderElement>(renderView.firstChild());
+    CheckedPtr documentRenderer = dynamicDowncast<RenderBox>(renderView.firstChild());
     if (!documentRenderer) {
         ASSERT_NOT_REACHED();
         return;
@@ -4562,7 +4582,7 @@ RenderElement* LocalFrameView::viewportRenderer() const
     if (m_viewportRendererType == ViewportRendererType::None)
         return nullptr;
 
-    auto* document = m_frame->document();
+    RefPtr document = m_frame->document();
     if (!document)
         return nullptr;
 
@@ -5131,7 +5151,7 @@ void LocalFrameView::setLastUserScrollType(std::optional<UserScrollType> userScr
 
 void LocalFrameView::willPaintContents(GraphicsContext& context, const IntRect&, PaintingState& paintingState, RegionContext* regionContext)
 {
-    Document* document = m_frame->document();
+    RefPtr document = m_frame->document();
 
     if (!context.paintingDisabled())
         InspectorInstrumentation::willPaint(*renderView());

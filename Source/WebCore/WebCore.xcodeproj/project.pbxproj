@@ -5470,6 +5470,7 @@
 		CDCC9BCF22387E9A00FFB51C /* MediaCapabilitiesDecodingInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCC9BCE22387E9A00FFB51C /* MediaCapabilitiesDecodingInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDCC9BD122387EAA00FFB51C /* MediaCapabilitiesEncodingInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCC9BD022387EAA00FFB51C /* MediaCapabilitiesEncodingInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDCD41E81C3DDB0A00965D99 /* ParsedContentRange.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCD41E61C3DDB0900965D99 /* ParsedContentRange.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDCF01BE2DDF82BA00762602 /* RealtimeAudioThread.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCF01BC2DDF7A1D00762602 /* RealtimeAudioThread.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDCFABBD18C0AF78006F8450 /* RenderHighlight.h in Headers */ = {isa = PBXBuildFile; fileRef = CDCFABBB18C0AE31006F8450 /* RenderHighlight.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDD08ABD277E542600EA3755 /* PlatformTrackConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = CDD08ABC277E542600EA3755 /* PlatformTrackConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDD08AC0277E54F000EA3755 /* PlatformAudioTrackConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = CDD08ABF277E54F000EA3755 /* PlatformAudioTrackConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -19487,6 +19488,8 @@
 		CDCD41E51C3DDB0900965D99 /* ParsedContentRange.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParsedContentRange.cpp; sourceTree = "<group>"; };
 		CDCD41E61C3DDB0900965D99 /* ParsedContentRange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParsedContentRange.h; sourceTree = "<group>"; };
 		CDCE5CD014633BC900D47CCA /* EventTargetFactory.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EventTargetFactory.in; sourceTree = "<group>"; };
+		CDCF01BC2DDF7A1D00762602 /* RealtimeAudioThread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RealtimeAudioThread.h; sourceTree = "<group>"; };
+		CDCF01BD2DDF7A1D00762602 /* RealtimeAudioThread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RealtimeAudioThread.cpp; sourceTree = "<group>"; };
 		CDCFABBB18C0AE31006F8450 /* RenderHighlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderHighlight.h; sourceTree = "<group>"; };
 		CDCFABBC18C0AF19006F8450 /* RenderHighlight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderHighlight.cpp; sourceTree = "<group>"; };
 		CDD08ABC277E542600EA3755 /* PlatformTrackConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformTrackConfiguration.h; sourceTree = "<group>"; };
@@ -39867,6 +39870,8 @@
 				9A87D9E12A82933500EE7A8A /* PlatformRawAudioData.h */,
 				83D511F3250C1CA8002EDC51 /* PushPullFIFO.cpp */,
 				83D511F5250C1CA8002EDC51 /* PushPullFIFO.h */,
+				CDCF01BD2DDF7A1D00762602 /* RealtimeAudioThread.cpp */,
+				CDCF01BC2DDF7A1D00762602 /* RealtimeAudioThread.h */,
 				FD31606E12B026F700C1A359 /* Reverb.cpp */,
 				FD31606F12B026F700C1A359 /* Reverb.h */,
 				FD31607012B026F700C1A359 /* ReverbAccumulationBuffer.cpp */,
@@ -43957,6 +43962,7 @@
 				4129C9AF1F59CF5B009D7403 /* ReadableStreamSink.h in Headers */,
 				4129C9AB1F59C573009D7403 /* ReadableStreamSource.h in Headers */,
 				FD31603C12B0267600C1A359 /* RealtimeAnalyser.h in Headers */,
+				CDCF01BE2DDF82BA00762602 /* RealtimeAudioThread.h in Headers */,
 				41103AAD1E39791000769F03 /* RealtimeIncomingAudioSource.h in Headers */,
 				41103AAD1E39791000769F14 /* RealtimeIncomingAudioSourceCocoa.h in Headers */,
 				41CB840225CAB81E0010E2B1 /* RealtimeIncomingVideoSource.h in Headers */,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2005-2025 Apple Inc. All rights reserved.
  *           (C) 2006, 2007 Graham Dennis (graham.dennis@gmail.com)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1357,7 +1357,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 {
     // Put HTML on the pasteboard.
     if ([types containsObject:WebArchivePboardType]) {
-        if (auto coreArchive = WebCore::LegacyWebArchive::createFromSelection(core([self _frame]), false)) {
+        if (auto coreArchive = WebCore::LegacyWebArchive::createFromSelection(core([self _frame]), { WebCore::LegacyWebArchive::ShouldSaveScriptsFromMemoryCache::No })) {
             if (RetainPtr<CFDataRef> data = coreArchive ? coreArchive->rawDataRepresentation() : 0)
                 [pasteboard setData:(__bridge NSData *)data.get() forType:WebArchivePboardType];
         }
@@ -2156,11 +2156,9 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     if (![self _hasSelection])
         return nil;
 
-    auto* coreFrame = core([self _frame]);
+    RefPtr coreFrame = core([self _frame]);
     if (!coreFrame)
         return nil;
-
-    Ref protectedCoreFrame(*coreFrame);
 
     WebCore::TextIndicatorData textIndicator;
     auto dragImage = createDragImageForSelection(*coreFrame, textIndicator);
@@ -6967,14 +6965,12 @@ static CGImageRef selectionImage(WebCore::LocalFrame* frame, bool forceBlackText
     if (![self _hasSelection])
         return nil;
 
-    auto* coreFrame = core([self _frame]);
+    RefPtr coreFrame = core([self _frame]);
     if (!coreFrame)
         return nil;
 
-    Ref<WebCore::LocalFrame> protectedCoreFrame(*coreFrame);
-
 #if PLATFORM(IOS_FAMILY)
-    return selectionImage(coreFrame, forceBlackText);
+    return selectionImage(coreFrame.get(), forceBlackText);
 #else
     WebCore::TextIndicatorData textIndicator;
     return createDragImageForSelection(*coreFrame, textIndicator, forceBlackText).autorelease();

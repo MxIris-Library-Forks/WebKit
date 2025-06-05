@@ -921,7 +921,7 @@ void WebPage::handleSyntheticClick(std::optional<WebCore::FrameIdentifier> frame
         const Seconds observationDuration = 32_ms;
         contentChangeObserver.startContentObservationForDuration(observationDuration);
         LOG(ContentObservation, "handleSyntheticClick: Can't decide it yet -> wait.");
-        m_pendingSyntheticClickNode = &nodeRespondingToClick;
+        m_pendingSyntheticClickNode = nodeRespondingToClick;
         m_pendingSyntheticClickLocation = location;
         m_pendingSyntheticClickModifiers = modifiers;
         m_pendingSyntheticClickPointerId = pointerId;
@@ -1281,10 +1281,7 @@ void WebPage::sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier requestID
 
     if (RefPtr element = dynamicDowncast<Element>(*node)) {
         ASSERT(m_page);
-        auto linkURL = element->absoluteLinkURL();
-        if (!linkURL.protocolIsInHTTPFamily())
-            return;
-        localMainFrame->loader().client().prefetchDNS(linkURL.host().toString());
+        localMainFrame->loader().prefetchDNSIfNeeded(element->absoluteLinkURL());
     }
 
     if (RefPtr area = dynamicDowncast<HTMLAreaElement>(*node)) {

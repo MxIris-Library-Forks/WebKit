@@ -151,9 +151,6 @@ Modules/speech/SpeechSynthesisUtterance.cpp
 Modules/speech/SpeechSynthesisUtterance.h
 Modules/storage/StorageManager.cpp
 Modules/storage/WorkerStorageConnection.cpp
-Modules/streams/ReadableStream.cpp
-Modules/streams/ReadableStream.h
-Modules/streams/WritableStream.cpp
 Modules/web-locks/WebLockManager.cpp
 Modules/webaudio/AnalyserNode.cpp
 Modules/webaudio/AudioBasicInspectorNode.cpp
@@ -428,7 +425,6 @@ css/CSSViewValue.cpp
 css/CSSViewValue.h
 css/DeprecatedCSSOMPrimitiveValue.h
 css/DeprecatedCSSOMRGBColor.h
-css/DeprecatedCSSOMRect.h
 css/FontFace.cpp
 css/FontFaceSet.cpp
 css/ImmutableStyleProperties.cpp
@@ -436,8 +432,6 @@ css/MediaList.cpp
 css/MediaQueryList.cpp
 css/MediaQueryMatcher.cpp
 css/MutableStyleProperties.cpp
-css/Quad.h
-css/Rect.h
 css/SelectorChecker.cpp
 css/SelectorCheckerTestFunctions.h
 css/SelectorFilter.cpp
@@ -544,7 +538,6 @@ dom/VisitedLinkState.cpp
 dom/WindowOrWorkerGlobalScopeTrustedTypes.cpp
 dom/mac/ImageControlsMac.cpp
 editing/AlternativeTextController.cpp
-editing/AppendNodeCommand.cpp
 editing/ApplyBlockElementCommand.cpp
 editing/ApplyStyleCommand.cpp
 editing/BreakBlockquoteCommand.cpp
@@ -1034,7 +1027,6 @@ rendering/RenderListBox.cpp
 rendering/RenderListItem.cpp
 rendering/RenderListMarker.cpp
 rendering/RenderMenuList.cpp
-rendering/RenderMeter.cpp
 rendering/RenderMultiColumnFlow.cpp
 rendering/RenderMultiColumnSet.cpp
 rendering/RenderObject.cpp
@@ -1044,7 +1036,6 @@ rendering/RenderReplaced.cpp
 rendering/RenderScrollbar.cpp
 rendering/RenderScrollbarPart.cpp
 rendering/RenderSearchField.cpp
-rendering/RenderSlider.cpp
 rendering/RenderTable.cpp
 rendering/RenderTableCell.cpp
 rendering/RenderTableSection.cpp

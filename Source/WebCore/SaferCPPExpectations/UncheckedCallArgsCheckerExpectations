@@ -212,7 +212,6 @@ dom/ViewTransition.cpp
 dom/WindowEventLoop.cpp
 dom/mac/ImageControlsMac.cpp
 editing/AlternativeTextController.cpp
-editing/AppendNodeCommand.cpp
 editing/ApplyBlockElementCommand.cpp
 editing/ApplyStyleCommand.cpp
 editing/BreakBlockquoteCommand.cpp
@@ -611,7 +610,6 @@ rendering/CounterNode.cpp
 rendering/EllipsisBoxPainter.cpp
 rendering/FixedTableLayout.cpp
 rendering/FloatingObjects.cpp
-rendering/GridMasonryLayout.cpp
 rendering/GridTrackSizingAlgorithm.cpp
 rendering/HitTestResult.cpp
 rendering/ImageQualityController.cpp
@@ -684,7 +682,6 @@ rendering/RenderListItem.cpp
 rendering/RenderListMarker.cpp
 rendering/RenderMarquee.cpp
 rendering/RenderMenuList.cpp
-rendering/RenderMeter.cpp
 rendering/RenderMultiColumnFlow.cpp
 rendering/RenderMultiColumnSet.cpp
 rendering/RenderMultiColumnSpannerPlaceholder.cpp
@@ -698,7 +695,6 @@ rendering/RenderScrollbarPart.cpp
 rendering/RenderSearchField.cpp
 rendering/RenderSelection.cpp
 rendering/RenderSelectionGeometry.cpp
-rendering/RenderSlider.cpp
 rendering/RenderTable.cpp
 rendering/RenderTable.h
 rendering/RenderTableCaption.cpp

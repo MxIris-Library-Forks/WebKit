@@ -517,7 +517,7 @@ void FrameLoader::changeLocation(FrameLoadRequest&& frameRequest, Event* trigger
     if (frameRequest.frameName().isEmpty())
         frameRequest.setFrameName(frame->document()->baseTarget());
 
-    if (RefPtr document = frame->protectedDocument())
+    if (RefPtr document = frame->document())
         document->checkedContentSecurityPolicy()->upgradeInsecureRequestIfNeeded(frameRequest.resourceRequest(), ContentSecurityPolicy::InsecureRequestType::Navigation);
 
     loadFrameRequest(WTFMove(frameRequest), triggeringEvent, { }, WTFMove(privateClickMeasurement));
@@ -3067,7 +3067,7 @@ static bool scrollingSuppressedByNavigationAPI(Document* document)
     if (!document || !document->settings().navigationAPIEnabled())
         return false;
 
-    RefPtr window = document->protectedWindow();
+    RefPtr window = document->domWindow();
     return window && window->navigation().suppressNormalScrollRestoration();
 }
 
@@ -3883,7 +3883,7 @@ static bool shouldAskForNavigationConfirmation(Document& document, const BeforeU
     if (document.isSandboxed(SandboxFlag::Modals))
         return false;
 
-    RefPtr page = document.protectedPage();
+    RefPtr page = document.page();
     bool userDidInteractWithPage = page ? page->userDidInteractWithPage() : false;
 
     // Web pages can request we ask for confirmation before navigating by:
@@ -4321,7 +4321,7 @@ bool FrameLoader::dispatchNavigateEvent(const URL& newURL, FrameLoadType loadTyp
     RefPtr document = m_frame->document();
     if (!document || !document->settings().navigationAPIEnabled())
         return true;
-    RefPtr window = document->protectedWindow();
+    RefPtr window = document->domWindow();
     if (!window)
         return true;
     // Download events are handled later in PolicyChecker::checkNavigationPolicy().
@@ -4497,7 +4497,7 @@ void FrameLoader::loadItem(HistoryItem& item, HistoryItem* fromItem, FrameLoadTy
 
     if (frame().document() && frame().document()->settings().navigationAPIEnabled() && fromItem && SecurityOrigin::create(item.url())->isSameOriginAs(SecurityOrigin::create(fromItem->url()))) {
         if (RefPtr domWindow = frame().document()->domWindow()) {
-            if (RefPtr navigation = domWindow->protectedNavigation(); navigation->frame()) {
+            if (RefPtr navigation = domWindow->navigation(); navigation->frame()) {
                 if (navigation->dispatchTraversalNavigateEvent(item) == Navigation::DispatchResult::Aborted)
                     return;
                 // In case the event detached the frame.
@@ -4839,6 +4839,26 @@ RefPtr<DocumentLoader> FrameLoader::loaderForWebsitePolicies(CanIncludeCurrentDo
     if (!loader && canIncludeCurrentDocumentLoader == CanIncludeCurrentDocumentLoader::Yes)
         loader = documentLoader();
     return loader;
+}
+
+void FrameLoader::prefetchDNSIfNeeded(const URL& url)
+{
+#if ENABLE(CONTENT_EXTENSIONS)
+    RefPtr page = m_frame->page();
+    if (!page)
+        return;
+
+    RefPtr documentLoader = m_documentLoader;
+    if (!documentLoader)
+        return;
+
+    auto results = page->protectedUserContentProvider()->processContentRuleListsForLoad(*page, url, ContentExtensions::ResourceType::Ping, *documentLoader);
+    if (results.summary.blockedLoad)
+        return;
+#endif
+
+    if (url.isValid() && !url.isEmpty() && url.protocolIsInHTTPFamily())
+        client().prefetchDNS(url.host().toString());
 }
 
 } // namespace WebCore

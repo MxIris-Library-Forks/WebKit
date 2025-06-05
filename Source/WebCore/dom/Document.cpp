@@ -1073,7 +1073,7 @@ SecurityOrigin& Document::topOrigin() const
     if (isTopDocument())
         return securityOrigin();
 
-    if (RefPtr page = this->protectedPage())
+    if (RefPtr page = this->page())
         return page->mainFrameOrigin();
 
     return SecurityOrigin::opaqueOrigin();
@@ -3305,10 +3305,10 @@ void Document::pageSizeAndMarginsInPixels(int pageIndex, IntSize& pageSize, int&
 
     // The percentage is calculated with respect to the width even for margin top and bottom.
     // http://www.w3.org/TR/CSS2/box.html#margin-properties
-    marginTop = style->marginTop().isAuto() ? marginTop : intValueForLength(style->marginTop(), width);
-    marginRight = style->marginRight().isAuto() ? marginRight : intValueForLength(style->marginRight(), width);
-    marginBottom = style->marginBottom().isAuto() ? marginBottom : intValueForLength(style->marginBottom(), width);
-    marginLeft = style->marginLeft().isAuto() ? marginLeft : intValueForLength(style->marginLeft(), width);
+    marginTop = style->marginTop().isAuto() ? marginTop : Style::evaluate(style->marginTop(), width);
+    marginRight = style->marginRight().isAuto() ? marginRight : Style::evaluate(style->marginRight(), width);
+    marginBottom = style->marginBottom().isAuto() ? marginBottom : Style::evaluate(style->marginBottom(), width);
+    marginLeft = style->marginLeft().isAuto() ? marginLeft : Style::evaluate(style->marginLeft(), width);
 }
 
 void Document::fontsNeedUpdate(FontSelector&)
@@ -4455,7 +4455,7 @@ void Document::setURL(URL&& url)
     if (newURL == m_url)
         return;
 
-    if (RefPtr page = protectedPage())
+    if (RefPtr page = this->page())
         m_fragmentDirective = page->mainFrameURLFragment();
 
     if (m_fragmentDirective.isEmpty())
@@ -7775,7 +7775,7 @@ RefPtr<Document> Document::sameOriginTopLevelTraversable() const
 
 RefPtr<LocalFrame> Document::localMainFrame() const
 {
-    if (RefPtr page = protectedPage())
+    if (RefPtr page = this->page())
         return page->localMainFrame();
     return nullptr;
 }
@@ -8721,7 +8721,7 @@ void Document::addDisplayChangedObserver(const DisplayChangedObserver& observer)
 #if HAVE(SPATIAL_TRACKING_LABEL)
 const String& Document::defaultSpatialTrackingLabel() const
 {
-    if (RefPtr page = protectedPage())
+    if (RefPtr page = this->page())
         return page->defaultSpatialTrackingLabel();
     return emptyString();
 }
@@ -8960,7 +8960,7 @@ void Document::wheelOrTouchEventHandlersChanged(Node* node)
         element->invalidateStyle();
     }
 
-    if (RefPtr frame = protectedFrame())
+    if (RefPtr frame = this->frame())
         frame->invalidateContentEventRegionsIfNeeded(LocalFrame::InvalidateContentEventRegionsReason::EventHandlerChange);
 #else
     UNUSED_PARAM(node);

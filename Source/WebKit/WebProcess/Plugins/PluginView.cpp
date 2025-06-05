@@ -990,7 +990,7 @@ void PluginView::redeliverManualStream()
         manualLoadDidFinishLoading();
 }
 
-CheckedPtr<RenderEmbeddedObject> PluginView::checkedRenderer() const
+RenderEmbeddedObject* PluginView::renderer() const
 {
     return dynamicDowncast<RenderEmbeddedObject>(m_pluginElement->renderer());
 }
@@ -1005,7 +1005,7 @@ void PluginView::invalidateRect(const IntRect& dirtyRect)
         return;
 #endif
 
-    CheckedPtr renderer = checkedRenderer();
+    CheckedPtr renderer = this->renderer();
     if (!renderer)
         return;
 
@@ -1216,7 +1216,7 @@ void PluginView::updateDocumentForPluginSizingBehavior()
     if (!m_plugin->shouldSizeToFitContent())
         return;
     // The styles in PluginDocumentParser are constructed to respond to this class.
-    if (RefPtr documentElement = m_pluginElement->protectedDocument()->protectedDocumentElement())
+    if (RefPtr documentElement = m_pluginElement->protectedDocument()->documentElement())
         documentElement->setAttributeWithoutSynchronization(HTMLNames::classAttr, "plugin-fits-content"_s);
 }
 

@@ -7819,8 +7819,6 @@ webkit.org/b/291115 imported/w3c/web-platform-tests/websockets/back-forward-cach
 
 webkit.org/b/290568 fast/multicol/simple-line-layout-line-index-after-strut.html [ Crash ImageOnlyFailure ]
 
-webkit.org/b/291278 http/tests/IndexedDB/storage-limit-1.https.html [ Pass Failure ]
-
 # webkit.org/b/292268 [ iOS ] Due to harness issues various trusted types tests are flaky timeouts on iOS.
 imported/w3c/web-platform-tests/trusted-types/ServiceWorker-block-eval-function-constructor.https.html [ Skip ]
 imported/w3c/web-platform-tests/trusted-types/ServiceWorker-eval.https.html [ Skip ]
@@ -7882,9 +7880,6 @@ webkit.org/b/292650 http/tests/iframe-monitor/throttler.html [ Timeout ]
 
 webkit.org/b/288957 imported/w3c/web-platform-tests/css/CSS2/tables/border-collapse-dynamic-column-001.xht [ ImageOnlyFailure ]
 
-# rdar://146986685 (REGRESSION(Sequoia 15.4): fast/canvas/webgl/gl-teximage.html is a constant text failure)
-fast/canvas/webgl/gl-teximage.html [ Pass ]
-
 #rdar://145604998 (REGRESSION(iOS 18.4, macOS Sequoia 15.4 ): fast/text/international/hindi-spacing.html is a constant text failure)
 fast/text/international/hindi-spacing.html [ Failure ]
 
@@ -7896,3 +7891,7 @@ media/sources-fallback-codecs.html [ Failure ]
 # webkit.org/b/293838 ([macOS] 2x tests in imported/w3c/web-platform-tests/url/ are constant failures (flaky in EWS)
 imported/w3c/web-platform-tests/url/IdnaTestV2.window.html [ Failure ]
 imported/w3c/web-platform-tests/url/toascii.window.html [ Failure ]
+
+webkit.org/b/294142 fast/canvas/webgl/gl-teximage.html [ Failure ]
+
+webkit.org/b/294152 http/tests/misc/timer-vs-loading.html [ Timeout ]

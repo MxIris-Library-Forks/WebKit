@@ -175,7 +175,6 @@ bindings/js/JSMediaListCustom.h
 bindings/js/JSMessagePortCustom.cpp
 bindings/js/JSNavigateEventCustom.cpp
 bindings/js/JSNodeCustom.cpp
-bindings/js/JSNodeIteratorCustom.cpp
 bindings/js/JSObservableArray.cpp
 bindings/js/JSPluginElementFunctions.cpp
 bindings/js/JSPopStateEventCustom.cpp
@@ -184,7 +183,6 @@ bindings/js/JSStylePropertyMapReadOnlyCustom.cpp
 bindings/js/JSStyleSheetCustom.h
 bindings/js/JSSubscriberCustom.cpp
 bindings/js/JSTextTrackCueCustom.cpp
-bindings/js/JSTreeWalkerCustom.cpp
 bindings/js/JSUndoItemCustom.cpp
 bindings/js/JSWebAnimationCustom.cpp
 bindings/js/JSWindowProxy.cpp
@@ -267,8 +265,6 @@ dom/ElementIteratorInlines.h
 dom/ElementTextDirection.cpp
 dom/ElementTraversal.h
 dom/EventPath.cpp
-dom/FragmentDirectiveGenerator.cpp
-dom/FragmentDirectiveRangeFinder.cpp
 dom/InlineStyleSheetOwner.cpp
 dom/KeyboardEvent.cpp
 dom/MessagePort.cpp
@@ -280,7 +276,6 @@ dom/Position.cpp
 dom/QualifiedNameCache.cpp
 dom/RadioButtonGroups.cpp
 dom/Range.cpp
-dom/RejectedPromiseTracker.cpp
 dom/ScriptExecutionContext.cpp
 dom/SelectorQuery.cpp
 dom/ShadowRoot.cpp
@@ -331,16 +326,13 @@ html/Autofill.cpp
 html/CachedHTMLCollectionInlines.h
 html/CanvasBase.cpp
 html/CollectionTraversalInlines.h
-html/CustomPaintImage.cpp
 html/FormAssociatedCustomElement.cpp
 html/FormListedElement.cpp
-html/HTMLAnchorElement.cpp
 html/HTMLAttachmentElement.cpp
 html/HTMLDocument.cpp
 html/HTMLEmbedElement.cpp
 html/HTMLFieldSetElement.cpp
 html/HTMLFormElement.cpp
-html/HTMLFrameElementBase.cpp
 html/HTMLImageElement.cpp
 html/HTMLInputElement.cpp
 html/HTMLLabelElement.cpp
@@ -363,9 +355,7 @@ html/ValidatedFormListedElement.cpp
 html/ValidationMessage.cpp
 html/canvas/CanvasRenderingContext2D.cpp
 html/canvas/CanvasRenderingContext2DBase.cpp
-html/canvas/GPUCanvasContextCocoa.mm
 html/canvas/OffscreenCanvasRenderingContext2D.cpp
-html/canvas/WebGL2RenderingContext.cpp
 html/parser/HTMLConstructionSite.cpp
 html/shadow/DateTimeEditElement.cpp
 html/shadow/MediaControlTextTrackContainerElement.cpp
@@ -433,13 +423,11 @@ page/BarProp.cpp
 page/CaptionUserPreferences.cpp
 page/CaptionUserPreferencesMediaAF.cpp
 page/ContextMenuController.cpp
-page/DOMWindow.cpp
 page/DebugPageOverlays.cpp
 page/DeviceController.cpp
 page/DragController.cpp
 page/ElementTargetingController.cpp
 page/EventHandler.cpp
-page/EventSource.cpp
 page/FocusController.cpp
 page/Frame.cpp
 page/FrameSnapshotting.cpp
@@ -544,7 +532,6 @@ platform/mock/MockRealtimeMediaSourceCenter.cpp
 platform/mock/MockRealtimeVideoSource.cpp
 platform/text/BidiContext.cpp
 platform/text/BidiResolver.h
-plugins/DOMPluginArray.cpp
 plugins/PluginData.cpp
 plugins/PluginInfoProvider.cpp
 rendering/AccessibilityRegionContext.cpp

@@ -867,6 +867,7 @@ webkit.org/b/246719 imported/w3c/web-platform-tests/reporting/cross-origin-repor
 
 # Reports are not being sent, potentially due to issues with WebKitLegacy and https-based WPT
 webkit.org/b/285098 imported/w3c/web-platform-tests/content-security-policy/report-hash/ [ Failure ]
+webkit.org/b/285098 imported/w3c/web-platform-tests/subresource-integrity/integrity-policy/script.https.html [ Failure ]
 
 # WebKitLegacy is flaky on reporting API
 webkit.org/b/246350 imported/w3c/web-platform-tests/content-security-policy/reporting-api/reporting-api-sends-reports-on-violation.https.sub.html [ Pass Failure ]
@@ -3123,8 +3124,6 @@ imported/w3c/web-platform-tests/svg/painting/marker-005.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/painting/marker-006.svg [ ImageOnlyFailure ]
 
 webkit.org/b/292218 [ Sonoma Release ] media/media-source/media-source-video-renders.html [ Pass ImageOnlyFailure Timeout ]
-
-webkit.org/b/292395 [ Debug ] fast/picture/viewport-resize.html [ Pass Crash ]
 
 http/tests/iframe-memory-monitor/media-video-autoplay-in-frames.html [ Skip ]
 

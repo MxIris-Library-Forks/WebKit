@@ -17868,6 +17868,11 @@
 		B9CA3B3E2CAB1D3E00B2607C /* SpatialImageControls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialImageControls.h; sourceTree = "<group>"; };
 		B9CA3B3F2CAB1D3E00B2607C /* SpatialImageControls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SpatialImageControls.cpp; sourceTree = "<group>"; };
 		B9CA3B422CAB533800B2607C /* spatialImageControls.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = spatialImageControls.css; sourceTree = "<group>"; };
+		BA5AA8182DDF59100038722C /* IntegrityPolicyViolationReportBody.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IntegrityPolicyViolationReportBody.h; sourceTree = "<group>"; };
+		BA5AA8192DDF59100038722C /* IntegrityPolicyViolationReportBody.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IntegrityPolicyViolationReportBody.cpp; sourceTree = "<group>"; };
+		BA5AA81A2DDF59100038722C /* IntegrityPolicyViolationReportBody.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = IntegrityPolicyViolationReportBody.idl; sourceTree = "<group>"; };
+		BA79DEEF2DDDF89D000DB04C /* IntegrityPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IntegrityPolicy.h; sourceTree = "<group>"; };
+		BA79DEF02DDDF89D000DB04C /* IntegrityPolicy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IntegrityPolicy.cpp; sourceTree = "<group>"; };
 		BC000BD82C5A96850033AA75 /* CSSCalcType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcType.h; sourceTree = "<group>"; };
 		BC000BD92C5A9A820033AA75 /* CSSCalcType.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcType.cpp; sourceTree = "<group>"; };
 		BC000BDB2C5A9D4F0033AA75 /* CSSCalcTree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcTree.h; sourceTree = "<group>"; };
@@ -29709,6 +29714,9 @@
 				7A5E238328D3A3D000448042 /* DeprecationReportBody.cpp */,
 				7A5E238428D3A3D100448042 /* DeprecationReportBody.h */,
 				7A5E238228D3A29400448042 /* DeprecationReportBody.idl */,
+				BA5AA8192DDF59100038722C /* IntegrityPolicyViolationReportBody.cpp */,
+				BA5AA8182DDF59100038722C /* IntegrityPolicyViolationReportBody.h */,
+				BA5AA81A2DDF59100038722C /* IntegrityPolicyViolationReportBody.idl */,
 				7ABA24EF28A7078C005D4F6D /* Report.cpp */,
 				7ABA24E528A5C8D1005D4F6D /* Report.h */,
 				7ABA24E328A5BFEB005D4F6D /* Report.idl */,
@@ -35345,6 +35353,8 @@
 				5CA1DEC41F71E68700E71BD3 /* HTTPHeaderField.h */,
 				089582530E857A7E00F82C83 /* ImageLoader.cpp */,
 				089582540E857A7E00F82C83 /* ImageLoader.h */,
+				BA79DEF02DDDF89D000DB04C /* IntegrityPolicy.cpp */,
+				BA79DEEF2DDDF89D000DB04C /* IntegrityPolicy.h */,
 				CBA9DC081DF44DC40005675C /* LinkHeader.cpp */,
 				CBA9DC091DF44DC40005675C /* LinkHeader.h */,
 				98CE4325129E00BD005821DC /* LinkLoader.cpp */,
@@ -42159,6 +42169,8 @@
 				411945A92D3E3D4F00C40F6B /* InstallEvent.h in Headers */,
 				F3ABFE0C130E9DA000E7F7D1 /* InstrumentingAgents.h in Headers */,
 				2D550A1429C30F3F00BD0C1F /* IntDegrees.h in Headers */,
+				BA79DEF12DDDF89D000DB04C /* IntegrityPolicy.h in Headers */,
+				BA5AA81B2DDF59210038722C /* IntegrityPolicyViolationReportBody.h in Headers */,
 				077FD1B32CC82C5D00C5D9E0 /* IntelligenceTextEffectsSupport.h in Headers */,
 				2DC05CA827D80956004ED403 /* InteractionRegion.h in Headers */,
 				0F4710DC1DB6FE22002DCEC3 /* IntersectionObserver.h in Headers */,

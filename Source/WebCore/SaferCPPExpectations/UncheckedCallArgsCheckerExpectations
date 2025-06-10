@@ -44,7 +44,6 @@ Modules/screen-wake-lock/WakeLock.cpp
 Modules/screen-wake-lock/WakeLockManager.cpp
 Modules/speech/SpeechRecognitionCaptureSource.cpp
 Modules/storage/StorageManager.cpp
-Modules/webaudio/AudioWorkletMessagingProxy.cpp
 Modules/webaudio/BiquadFilterNode.cpp
 Modules/webaudio/DefaultAudioDestinationNode.cpp
 Modules/webaudio/IIRFilterNode.cpp
@@ -327,7 +326,6 @@ html/canvas/CanvasRenderingContext2DBase.cpp
 html/canvas/CanvasRenderingContext2DBase.h
 html/canvas/EXTDisjointTimerQuery.cpp
 html/canvas/OffscreenCanvasRenderingContext2D.cpp
-html/canvas/WebGLRenderingContextBase.cpp
 html/parser/HTMLConstructionSite.cpp
 html/parser/HTMLConstructionSite.h
 html/parser/HTMLDocumentParser.cpp
@@ -571,7 +569,6 @@ platform/graphics/ca/GraphicsLayerCA.cpp
 platform/graphics/ca/PlatformCALayer.mm
 platform/graphics/ca/TileController.cpp
 platform/graphics/ca/TileCoverageMap.cpp
-platform/graphics/ca/TileGrid.cpp
 platform/graphics/ca/cocoa/WebTiledBackingLayer.mm
 platform/graphics/cg/CGSubimageCacheWithTimer.cpp
 platform/ios/PlaybackSessionInterfaceIOS.mm
@@ -580,14 +577,12 @@ platform/mac/PlaybackSessionInterfaceMac.mm
 platform/mac/ScrollAnimatorMac.mm
 platform/mac/ScrollbarThemeMac.mm
 platform/mac/ScrollbarsControllerMac.mm
-platform/mac/VideoPresentationInterfaceMac.h
 platform/mac/VideoPresentationInterfaceMac.mm
 platform/mac/WebPlaybackControlsManager.mm
 platform/mock/DeviceOrientationClientMock.cpp
 platform/mock/MockRealtimeVideoSource.cpp
 platform/sql/SQLiteDatabase.cpp
 platform/sql/SQLiteStatementAutoResetScope.cpp
-platform/sql/SQLiteTransaction.cpp
 platform/text/cocoa/LocalizedDateCache.mm
 rendering/AccessibilityRegionContext.cpp
 rendering/AncestorSubgridIterator.cpp
@@ -669,7 +664,6 @@ rendering/RenderLineBreak.cpp
 rendering/RenderListBox.cpp
 rendering/RenderListItem.cpp
 rendering/RenderListMarker.cpp
-rendering/RenderMarquee.cpp
 rendering/RenderMenuList.cpp
 rendering/RenderMultiColumnFlow.cpp
 rendering/RenderMultiColumnSet.cpp
@@ -701,7 +695,6 @@ rendering/RenderTextLineBoxes.cpp
 rendering/RenderTheme.cpp
 rendering/RenderTreeAsText.cpp
 rendering/RenderVTTCue.cpp
-rendering/RenderVideo.cpp
 rendering/RenderView.cpp
 rendering/RenderViewTransitionCapture.cpp
 rendering/RenderWidget.cpp
@@ -711,7 +704,6 @@ rendering/TextAutoSizing.h
 rendering/TextBoxPainter.cpp
 rendering/TextBoxTrimmer.cpp
 rendering/TextDecorationPainter.cpp
-rendering/TextPaintStyle.cpp
 rendering/TextPainter.cpp
 rendering/TextPainter.h
 rendering/cocoa/RenderThemeCocoa.mm
@@ -789,16 +781,10 @@ rendering/svg/legacy/LegacyRenderSVGModelObject.cpp
 rendering/svg/legacy/LegacyRenderSVGPath.cpp
 rendering/svg/legacy/LegacyRenderSVGResource.cpp
 rendering/svg/legacy/LegacyRenderSVGResourceClipper.cpp
-rendering/svg/legacy/LegacyRenderSVGResourceClipperInlines.h
 rendering/svg/legacy/LegacyRenderSVGResourceContainer.cpp
 rendering/svg/legacy/LegacyRenderSVGResourceFilter.cpp
-rendering/svg/legacy/LegacyRenderSVGResourceFilterInlines.h
 rendering/svg/legacy/LegacyRenderSVGResourceFilterPrimitive.cpp
 rendering/svg/legacy/LegacyRenderSVGResourceGradient.cpp
-rendering/svg/legacy/LegacyRenderSVGResourceMarker.cpp
-rendering/svg/legacy/LegacyRenderSVGResourceMarkerInlines.h
-rendering/svg/legacy/LegacyRenderSVGResourceMasker.cpp
-rendering/svg/legacy/LegacyRenderSVGResourceMaskerInlines.h
 rendering/svg/legacy/LegacyRenderSVGResourcePattern.cpp
 rendering/svg/legacy/LegacyRenderSVGResourceSolidColor.cpp
 rendering/svg/legacy/LegacyRenderSVGRoot.cpp

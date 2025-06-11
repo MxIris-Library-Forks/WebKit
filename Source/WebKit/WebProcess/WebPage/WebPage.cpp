@@ -702,7 +702,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 {
     WEBPAGE_RELEASE_LOG(Loading, "constructor:");
 
-#if ENABLE(CONTENT_INSET_BACKGROUND_FILL) && __has_include(<WebKitAdditions/WebPreferencesDefaultValuesAdditions.h>)
+#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
     cachedValueDefaultContentInsetBackgroundFillEnabled() = parameters.defaultContentInsetBackgroundFillEnabled;
 #endif
 
@@ -1907,7 +1907,7 @@ void WebPage::close()
 
     flushDeferredDidReceiveMouseEvent();
 
-    WEBPAGE_RELEASE_LOG(Loading, "close:");
+    WEBPAGE_RELEASE_LOG_FORWARDABLE(Loading, WEBPAGE_CLOSE);
 
     WebProcess::singleton().ensureNetworkProcessConnection().connection().send(Messages::NetworkConnectionToWebProcess::ClearPageSpecificData(m_identifier), 0);
 
@@ -8125,7 +8125,7 @@ void WebPage::getInformationFromImageData(const Vector<uint8_t>& data, Completio
 }
 #endif
 
-#if PLATFORM(MAC)
+#if PLATFORM(MAC) || PLATFORM(WPE)
 void WebPage::flushPendingThemeColorChange()
 {
     if (!m_pendingThemeColorChange)

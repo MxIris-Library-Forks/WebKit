@@ -934,6 +934,10 @@ private:
 #endif
 #endif
 
+#if ENABLE(WPE_PLATFORM)
+    unsigned long m_availableInputDevicesSignalID { 0 };
+#endif
+
     WebProcessWithAudibleMediaCounter m_webProcessWithAudibleMediaCounter;
 
     struct AudibleMediaActivity {
@@ -1002,7 +1006,8 @@ private:
 
 #if PLATFORM(COCOA)
     std::optional<Vector<URL>> m_assetFontURLs;
-    std::optional<Vector<URL>> m_userInstalledFontURLs;
+    std::optional<HashMap<String, URL>> m_userInstalledFontURLs;
+    std::optional<Vector<URL>> m_sandboxExtensionURLs;
 #endif
 
 #if ENABLE(IPC_TESTING_API)

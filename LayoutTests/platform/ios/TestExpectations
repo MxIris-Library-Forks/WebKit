@@ -7908,11 +7908,7 @@ webkit.org/b/294215 imported/blink/accessibility/link-inside-label.html [ Failur
 
 webkit.org/b/294222 [ Debug ] compositing/cocoa/clip-sticky-element-with-overflow-clip-on-root.html [ Crash ]
 
-webkit.org/b/294225 [ Debug ] fast/page-color-sampling/basic-fixed-container-edge-sampling.html [ Crash ]
-
 webkit.org/b/294229 http/tests/site-isolation/page-scale.html [ Pass ImageOnlyFailure ]
-
-webkit.org/b/294274 [ Debug ] fast/speechrecognition/ios/audio-capture.html [ Crash ]
 
 webkit.org/b/294276 [ Debug ] http/wpt/mediarecorder/MediaRecorder-first-frame.html [ Failure ]
 
@@ -7931,4 +7927,5 @@ webkit.org/b/294274 [ Debug ] platform/ios/mediastream/audio-muted-in-background
  webgl/1.0.x/conformance/textures/misc/gl-teximage.html [ Failure ]
  webgl/2.0.y/conformance/textures/misc/gl-teximage.html [ Failure ]
 
-webkit.org/b/294346 fast/events/ios/select-all-with-existing-selection.html [ Pass Crash ]
+fast/snapshot/nested-stacking-context.html [ Skip ]
+fast/snapshot/positioned-abs-relative-body.html [ Skip ]

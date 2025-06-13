@@ -2580,8 +2580,24 @@ void Document::unregisterForVisibilityStateChangedCallbacks(VisibilityChangeClie
 
 void Document::visibilityStateChanged()
 {
+    bool pageIsVisible = page() && page()->isVisible();
+
     // https://w3c.github.io/page-visibility/#reacting-to-visibilitychange-changes
-    queueTaskToDispatchEvent(TaskSource::UserInteraction, Event::create(eventNames().visibilitychangeEvent, Event::CanBubble::Yes, Event::IsCancelable::No));
+    if (!pageIsVisible)
+        m_deferResizeEventForVisibilityChange = true;
+
+    eventLoop().queueTask(TaskSource::UserInteraction, [this, protectedDocument = Ref { *this }] {
+        dispatchEvent(Event::create(eventNames().visibilitychangeEvent, Event::CanBubble::Yes, Event::IsCancelable::No));
+
+        bool pageIsVisible = page() && page()->isVisible();
+        if (!pageIsVisible)
+            return;
+
+        m_deferResizeEventForVisibilityChange = false;
+        if (m_needsDOMWindowResizeEvent || m_needsVisualViewportResizeEvent)
+            scheduleRenderingUpdate(RenderingUpdateStep::Resize);
+    });
+
     m_visibilityStateCallbackClients.forEach([](auto& client) {
         Ref { client }->visibilityStateChanged();
     });
@@ -3187,7 +3203,6 @@ bool Document::updateLayoutIfDimensionsOutOfDate(Element& element, OptionSet<Dim
 
         CheckedPtr renderer = element.renderer();
 
-        bool hasSpecifiedLogicalHeight = renderer->style().logicalMinHeight() == Length(0, LengthType::Fixed) && renderer->style().logicalHeight().isFixed() && renderer->style().logicalMaxHeight().isAuto();
         bool isVertical = !renderer->isHorizontalWritingMode();
         bool checkingLogicalWidth = (dimensionsCheck.contains(DimensionsCheck::Width) && !isVertical) || (dimensionsCheck.contains(DimensionsCheck::Height) && isVertical);
         bool checkingLogicalHeight = (dimensionsCheck.contains(DimensionsCheck::Height) && !isVertical) || (dimensionsCheck.contains(DimensionsCheck::Width) && isVertical);
@@ -3228,14 +3243,14 @@ bool Document::updateLayoutIfDimensionsOutOfDate(Element& element, OptionSet<Dim
 
                 // If a box has changed children and sizes its width to
                 // its content, then require a full layout.
-                if (checkingLogicalWidth && currentBox->needsLayout() && currentBox->sizesLogicalWidthToFitContent(RenderBox::SizeType::MainOrPreferredSize)) {
+                if (checkingLogicalWidth && currentBox->needsLayout() && currentBox->sizesPreferredLogicalWidthToFitContent()) {
                     requireFullLayout = true;
                     break;
                 }
 
                 // If a block contains floats and the child's height isn't specified, then
                 // give up also, since our height could end up being influenced by the floats.
-                if (checkingLogicalHeight && !hasSpecifiedLogicalHeight) {
+                if (checkingLogicalHeight) {
                     if (CheckedPtr currentBlockFlow = dynamicDowncast<RenderBlockFlow>(*currentBox)) {
                         if (currentBlockFlow->containsFloats() && previousBox && !previousBox->isFloatingOrOutOfFlowPositioned()) {
                             requireFullLayout = true;
@@ -5511,6 +5526,9 @@ void Document::setNeedsVisualViewportResize()
 void Document::runResizeSteps()
 {
     if (auto page = this->page(); page && page->shouldDeferResizeEvents())
+        return;
+
+    if (m_deferResizeEventForVisibilityChange)
         return;
 
     // FIXME: The order of dispatching is not specified: https://github.com/WICG/visual-viewport/issues/65.

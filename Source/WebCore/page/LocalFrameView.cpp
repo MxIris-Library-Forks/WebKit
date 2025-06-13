@@ -2122,10 +2122,8 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
             isProbablyDimmingContainer = box->hasBackground() && !box->firstChild() && box->isTransparent();
         }
 
-        if (side == BoxSide::Left || side == BoxSide::Right) {
-            if (!isNearlyViewportSized(side, renderer))
-                return TooSmall;
-        }
+        if (!isNearlyViewportSized(side, renderer))
+            return TooSmall;
 
         if (!isProbablyDimmingContainer && isNearlyViewportSized(adjacentSideInClockwiseOrder(side), renderer))
             return TooLarge;
@@ -4449,7 +4447,7 @@ void LocalFrameView::performFixedWidthAutoSize()
 
     ASSERT(is<RenderElement>(*firstChild));
     auto& documentRenderer = downcast<RenderElement>(*firstChild);
-    documentRenderer.mutableStyle().setMaxWidth(Length(m_autoSizeConstraint.width(), LengthType::Fixed));
+    documentRenderer.mutableStyle().setMaxWidth(Style::MaximumSize::Fixed { static_cast<float>(m_autoSizeConstraint.width()) });
     resize(m_autoSizeConstraint.width(), m_autoSizeConstraint.height());
 
     Ref<LocalFrameView> protectedThis(*this);
@@ -4487,7 +4485,7 @@ void LocalFrameView::performSizeToContentAutoSize()
         if (style.logicalHeight().isPercent()) {
             // Percent height values on the document renderer when we don't really have a proper viewport size can
             // result incorrect rendering in certain layout contexts (e.g flex).
-            style.setLogicalHeight({ });
+            style.setLogicalHeight(CSS::Keyword::Auto { });
         }
         document->updateLayout();
     };

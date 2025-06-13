@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016-2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,6 +56,8 @@ protected:
 #endif
 
     void inflateRectForControlRenderer(const RenderObject&, FloatRect&) override;
+
+    LengthBox controlBorder(StyleAppearance, const FontCascade&, const LengthBox& zoomedBox, float zoomFactor, const Element*) const override;
 
     Color platformSpellingMarkerColor(OptionSet<StyleColorOptions>) const override;
     Color platformDictationAlternativesMarkerColor(OptionSet<StyleColorOptions>) const override;

@@ -3597,7 +3597,7 @@
 		933A14300B7D188600A53FFD /* TextEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 933A142D0B7D188600A53FFD /* TextEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		933A14B90B7D1D5200A53FFD /* JSTextEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 933A14B70B7D1D5200A53FFD /* JSTextEvent.h */; };
 		93442C9E0D2B335C00338FF9 /* HTMLTableRowsCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = 93442C9D0D2B335C00338FF9 /* HTMLTableRowsCollection.h */; };
-		93443E8526E995BB0058538F /* StorageManagerFileSystemAccess.h in Headers */ = {isa = PBXBuildFile; fileRef = 93443E7D26E8A6BC0058538F /* StorageManagerFileSystemAccess.h */; };
+		93443E8526E995BB0058538F /* StorageManagerFileSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 93443E7D26E8A6BC0058538F /* StorageManagerFileSystem.h */; };
 		93443E8626E995BD0058538F /* FileSystemDirectoryHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = 932C9BD426DD625A0053B3DB /* FileSystemDirectoryHandle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		93443E8726E995C00058538F /* FileSystemFileHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = 932C9BD626DD625C0053B3DB /* FileSystemFileHandle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		93443E8826E995C40058538F /* FileSystemHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = 932C9BDA26DD62610053B3DB /* FileSystemHandle.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -15099,15 +15099,15 @@
 		93233C8327054C7800BBF41E /* WorkerFileSystemStorageConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WorkerFileSystemStorageConnection.h; sourceTree = "<group>"; };
 		93233C8527054C7800BBF41E /* WorkerFileSystemStorageConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerFileSystemStorageConnection.cpp; sourceTree = "<group>"; };
 		9327A94109968D1A0068A546 /* HTMLOptionsCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLOptionsCollection.cpp; sourceTree = "<group>"; };
-		932C9BCE26DD62520053B3DB /* FileSystemFileHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; name = FileSystemFileHandle.idl; path = Modules/filesystemaccess/FileSystemFileHandle.idl; sourceTree = SOURCE_ROOT; };
-		932C9BD026DD62550053B3DB /* FileSystemHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileSystemHandle.cpp; path = Modules/filesystemaccess/FileSystemHandle.cpp; sourceTree = SOURCE_ROOT; };
-		932C9BD226DD62570053B3DB /* FileSystemDirectoryHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; name = FileSystemDirectoryHandle.idl; path = Modules/filesystemaccess/FileSystemDirectoryHandle.idl; sourceTree = SOURCE_ROOT; };
-		932C9BD326DD62590053B3DB /* FileSystemFileHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileSystemFileHandle.cpp; path = Modules/filesystemaccess/FileSystemFileHandle.cpp; sourceTree = SOURCE_ROOT; };
-		932C9BD426DD625A0053B3DB /* FileSystemDirectoryHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemDirectoryHandle.h; path = Modules/filesystemaccess/FileSystemDirectoryHandle.h; sourceTree = SOURCE_ROOT; };
-		932C9BD526DD625B0053B3DB /* FileSystemDirectoryHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileSystemDirectoryHandle.cpp; path = Modules/filesystemaccess/FileSystemDirectoryHandle.cpp; sourceTree = SOURCE_ROOT; };
-		932C9BD626DD625C0053B3DB /* FileSystemFileHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemFileHandle.h; path = Modules/filesystemaccess/FileSystemFileHandle.h; sourceTree = SOURCE_ROOT; };
-		932C9BD926DD62600053B3DB /* FileSystemHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; name = FileSystemHandle.idl; path = Modules/filesystemaccess/FileSystemHandle.idl; sourceTree = SOURCE_ROOT; };
-		932C9BDA26DD62610053B3DB /* FileSystemHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemHandle.h; path = Modules/filesystemaccess/FileSystemHandle.h; sourceTree = SOURCE_ROOT; };
+		932C9BCE26DD62520053B3DB /* FileSystemFileHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; name = FileSystemFileHandle.idl; path = Modules/filesystem/FileSystemFileHandle.idl; sourceTree = SOURCE_ROOT; };
+		932C9BD026DD62550053B3DB /* FileSystemHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileSystemHandle.cpp; path = Modules/filesystem/FileSystemHandle.cpp; sourceTree = SOURCE_ROOT; };
+		932C9BD226DD62570053B3DB /* FileSystemDirectoryHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; name = FileSystemDirectoryHandle.idl; path = Modules/filesystem/FileSystemDirectoryHandle.idl; sourceTree = SOURCE_ROOT; };
+		932C9BD326DD62590053B3DB /* FileSystemFileHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileSystemFileHandle.cpp; path = Modules/filesystem/FileSystemFileHandle.cpp; sourceTree = SOURCE_ROOT; };
+		932C9BD426DD625A0053B3DB /* FileSystemDirectoryHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemDirectoryHandle.h; path = Modules/filesystem/FileSystemDirectoryHandle.h; sourceTree = SOURCE_ROOT; };
+		932C9BD526DD625B0053B3DB /* FileSystemDirectoryHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileSystemDirectoryHandle.cpp; path = Modules/filesystem/FileSystemDirectoryHandle.cpp; sourceTree = SOURCE_ROOT; };
+		932C9BD626DD625C0053B3DB /* FileSystemFileHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemFileHandle.h; path = Modules/filesystem/FileSystemFileHandle.h; sourceTree = SOURCE_ROOT; };
+		932C9BD926DD62600053B3DB /* FileSystemHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; name = FileSystemHandle.idl; path = Modules/filesystem/FileSystemHandle.idl; sourceTree = SOURCE_ROOT; };
+		932C9BDA26DD62610053B3DB /* FileSystemHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemHandle.h; path = Modules/filesystem/FileSystemHandle.h; sourceTree = SOURCE_ROOT; };
 		932CC0B61DFFD158004C0F9F /* MediaTrackConstraints.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaTrackConstraints.h; sourceTree = "<group>"; };
 		932CC0D01DFFD667004C0F9F /* JSMediaTrackConstraints.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSMediaTrackConstraints.cpp; sourceTree = "<group>"; };
 		932CC0D11DFFD667004C0F9F /* JSMediaTrackConstraints.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSMediaTrackConstraints.h; sourceTree = "<group>"; };
@@ -15217,8 +15217,8 @@
 		934305961DB9FA0E00E712A7 /* SVGGraphicsElement.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SVGGraphicsElement.idl; sourceTree = "<group>"; };
 		93442C9D0D2B335C00338FF9 /* HTMLTableRowsCollection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLTableRowsCollection.h; sourceTree = "<group>"; };
 		93442C9F0D2B336000338FF9 /* HTMLTableRowsCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLTableRowsCollection.cpp; sourceTree = "<group>"; };
-		93443E7B26E8A6BC0058538F /* StorageManager+FileSystemAccess.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "StorageManager+FileSystemAccess.idl"; sourceTree = "<group>"; };
-		93443E7D26E8A6BC0058538F /* StorageManagerFileSystemAccess.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StorageManagerFileSystemAccess.h; sourceTree = "<group>"; };
+		93443E7B26E8A6BC0058538F /* StorageManager+FileSystem.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "StorageManager+FileSystem.idl"; sourceTree = "<group>"; };
+		93443E7D26E8A6BC0058538F /* StorageManagerFileSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StorageManagerFileSystem.h; sourceTree = "<group>"; };
 		93445082276A6356001F712B /* FileSystemHandleCloseScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileSystemHandleCloseScope.h; sourceTree = "<group>"; };
 		934907E3125BBBC8007F23A0 /* GraphicsContextCG.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsContextCG.h; sourceTree = "<group>"; };
 		934950AD253943460099F171 /* SpeechRecognition.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SpeechRecognition.idl; sourceTree = "<group>"; };
@@ -30231,7 +30231,7 @@
 			path = storage;
 			sourceTree = "<group>";
 		};
-		932C9BCD26DD62290053B3DB /* filesystemaccess */ = {
+		932C9BCD26DD62290053B3DB /* filesystem */ = {
 			isa = PBXGroup;
 			children = (
 				932C9BD526DD625B0053B3DB /* FileSystemDirectoryHandle.cpp */,
@@ -30259,13 +30259,13 @@
 				3A25C5122CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h */,
 				3A0BAA3D2D0B6B2B00DE30E4 /* FileSystemWriteCloseReason.h */,
 				3A25C5192CF99B4700DB9C39 /* FileSystemWriteCommandType.h */,
-				93443E7B26E8A6BC0058538F /* StorageManager+FileSystemAccess.idl */,
-				93443E7D26E8A6BC0058538F /* StorageManagerFileSystemAccess.h */,
+				93443E7B26E8A6BC0058538F /* StorageManager+FileSystem.idl */,
+				93443E7D26E8A6BC0058538F /* StorageManagerFileSystem.h */,
 				93233C8527054C7800BBF41E /* WorkerFileSystemStorageConnection.cpp */,
 				93233C8327054C7800BBF41E /* WorkerFileSystemStorageConnection.h */,
 				93217ABB270632D2002E60F0 /* WorkerFileSystemStorageConnectionCallbackIdentifier.h */,
 			);
-			path = filesystemaccess;
+			path = filesystem;
 			sourceTree = "<group>";
 		};
 		93309D86099E64910056E581 /* editing */ = {
@@ -31259,7 +31259,7 @@
 				CDA98DBD16014E0800FEA3B1 /* encryptedmedia */,
 				83FB33651F508A1700986E54 /* entriesapi */,
 				41F54F7C1C50C4F600338488 /* fetch */,
-				932C9BCD26DD62290053B3DB /* filesystemaccess */,
+				932C9BCD26DD62290053B3DB /* filesystem */,
 				518F4FE9194CA4B60081BAAE /* gamepad */,
 				971145FF14EF007900674FD9 /* geolocation */,
 				44E88E472368DF0F009B4847 /* highlight */,
@@ -44760,7 +44760,7 @@
 				51E0BABB0DA5547100A9E417 /* StorageEvent.h in Headers */,
 				C5EBDD84105EDDEC0056816F /* StorageEventDispatcher.h in Headers */,
 				93085DB726E02AFE000EC6A7 /* StorageManager.h in Headers */,
-				93443E8526E995BB0058538F /* StorageManagerFileSystemAccess.h in Headers */,
+				93443E8526E995BB0058538F /* StorageManagerFileSystem.h in Headers */,
 				51E0BB380DA5ACB600A9E417 /* StorageMap.h in Headers */,
 				C50D0E830FF4272900AC2644 /* StorageNamespace.h in Headers */,
 				1A37636C1A2E68BB009A7EE2 /* StorageNamespaceProvider.h in Headers */,

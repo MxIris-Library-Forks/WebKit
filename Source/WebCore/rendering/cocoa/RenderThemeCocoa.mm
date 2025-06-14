@@ -2011,7 +2011,7 @@ static void adjustInputElementButtonStyleForVectorBasedControls(RenderStyle& sty
     applyCommonButtonPaddingToStyleForVectorBasedControls(style, inputElement);
 
     // Don't adjust the style if the width is specified.
-    if (style.logicalWidth().isFixed() && style.logicalWidth().value() > 0)
+    if (auto fixedLogicalWidth = style.logicalWidth().tryFixed(); fixedLogicalWidth && fixedLogicalWidth->value > 0)
         return;
 
     // Don't adjust for unsupported date input types.
@@ -2170,8 +2170,8 @@ bool RenderThemeCocoa::adjustButtonStyleForVectorBasedControls(RenderStyle& styl
 
     if (style.logicalWidth().isIntrinsicOrLegacyIntrinsicOrAuto() || style.logicalHeight().isAuto()) {
         auto minimumHeight = controlBaseHeight / controlBaseFontSize * style.fontDescription().computedSize();
-        if (style.logicalMinHeight().isFixed())
-            minimumHeight = std::max(minimumHeight, style.logicalMinHeight().value());
+        if (auto fixedValue = style.logicalMinHeight().tryFixed())
+            minimumHeight = std::max(minimumHeight, fixedValue->value);
         // FIXME: This may need to be a layout time adjustment to support various
         // values like fit-content etc.
         style.setLogicalMinHeight(Style::MinimumSize::Fixed { minimumHeight });

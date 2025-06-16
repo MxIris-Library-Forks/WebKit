@@ -2637,7 +2637,6 @@
 		65DF323A09D1DE65000BE325 /* JSCanvasGradient.h in Headers */ = {isa = PBXBuildFile; fileRef = 65DF323409D1DE65000BE325 /* JSCanvasGradient.h */; };
 		65DF323C09D1DE65000BE325 /* JSCanvasPattern.h in Headers */ = {isa = PBXBuildFile; fileRef = 65DF323609D1DE65000BE325 /* JSCanvasPattern.h */; };
 		65E0E9441133C89F00B4CB10 /* JSDOMWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E0E9431133C89F00B4CB10 /* JSDOMWrapper.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		668A1B042723A72B00765E0F /* OffsetRotation.h in Headers */ = {isa = PBXBuildFile; fileRef = 668A1B022723A41400765E0F /* OffsetRotation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		69A6CBAD1C6BE42C00B836E9 /* AccessibilitySVGObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 697101081C6BE1550018C7F1 /* AccessibilitySVGObject.h */; };
 		6A22E8701F10418600F546C3 /* InspectorCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 6A22E86F1F10418600F546C3 /* InspectorCanvas.h */; };
 		6A72798B1F16C29C003F39B8 /* InspectorShaderProgram.h in Headers */ = {isa = PBXBuildFile; fileRef = 6A7279881F16C29B003F39B8 /* InspectorShaderProgram.h */; };
@@ -5098,6 +5097,10 @@
 		BCC0F4202D9D9C160065B859 /* ReferenceFilterOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCC0F41F2D9D9C160065B859 /* ReferenceFilterOperation.h */; };
 		BCC5BE010C0E93110011C2DB /* JSCSSStyleSheet.h in Headers */ = {isa = PBXBuildFile; fileRef = BCC5BDFF0C0E93110011C2DB /* JSCSSStyleSheet.h */; };
 		BCCBAD410C18C14200CE890F /* JSHTMLCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCBAD3F0C18C14200CE890F /* JSHTMLCollection.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCCE4F412DF73F64005554EA /* StyleOffsetDistance.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F3F2DF73F64005554EA /* StyleOffsetDistance.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCCE4F462DF74F1D005554EA /* StyleOffsetAnchor.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F452DF74F1D005554EA /* StyleOffsetAnchor.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCCE4F4A2DF75A22005554EA /* StyleOffsetPosition.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F492DF75A22005554EA /* StyleOffsetPosition.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCCE4F4E2DF79EDD005554EA /* StyleOffsetRotate.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F422DF74790005554EA /* StyleOffsetRotate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCCFBAE80B5152ED0001F1D7 /* DocumentParser.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCFBAE70B5152ED0001F1D7 /* DocumentParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD0E0FB0E972C3500265DEA /* SecurityOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD0E0F80E972C3500265DEA /* SecurityOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD0E0FC0E972C3500265DEA /* SecurityOriginHash.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD0E0F90E972C3500265DEA /* SecurityOriginHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -12893,8 +12896,6 @@
 		662DEC8E271FEDCC00D935CA /* SVGPathAbsoluteConverter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGPathAbsoluteConverter.h; sourceTree = "<group>"; };
 		668500B8273EEB7800FCCAD6 /* CSSOffsetRotateValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSOffsetRotateValue.cpp; sourceTree = "<group>"; };
 		668500B9273EEB7800FCCAD6 /* CSSOffsetRotateValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSOffsetRotateValue.h; sourceTree = "<group>"; };
-		668A1B022723A41400765E0F /* OffsetRotation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OffsetRotation.h; sourceTree = "<group>"; };
-		668A1B032723A41500765E0F /* OffsetRotation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OffsetRotation.cpp; sourceTree = "<group>"; };
 		697101071C6BE1550018C7F1 /* AccessibilitySVGObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilitySVGObject.cpp; sourceTree = "<group>"; };
 		697101081C6BE1550018C7F1 /* AccessibilitySVGObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilitySVGObject.h; sourceTree = "<group>"; };
 		6A22E86F1F10418600F546C3 /* InspectorCanvas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InspectorCanvas.h; sourceTree = "<group>"; };
@@ -18675,6 +18676,15 @@
 		BCCBAD3A0C18BFF800CE890F /* JSHTMLCollectionCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLCollectionCustom.cpp; sourceTree = "<group>"; };
 		BCCBAD3E0C18C14200CE890F /* JSHTMLCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLCollection.cpp; sourceTree = "<group>"; };
 		BCCBAD3F0C18C14200CE890F /* JSHTMLCollection.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLCollection.h; sourceTree = "<group>"; };
+		BCCE4F3E2DF73F64005554EA /* StyleOffsetDistance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleOffsetDistance.cpp; sourceTree = "<group>"; };
+		BCCE4F3F2DF73F64005554EA /* StyleOffsetDistance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOffsetDistance.h; sourceTree = "<group>"; };
+		BCCE4F422DF74790005554EA /* StyleOffsetRotate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOffsetRotate.h; sourceTree = "<group>"; };
+		BCCE4F432DF74790005554EA /* StyleOffsetRotate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleOffsetRotate.cpp; sourceTree = "<group>"; };
+		BCCE4F442DF74F1D005554EA /* StyleOffsetAnchor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleOffsetAnchor.cpp; sourceTree = "<group>"; };
+		BCCE4F452DF74F1D005554EA /* StyleOffsetAnchor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOffsetAnchor.h; sourceTree = "<group>"; };
+		BCCE4F482DF75A22005554EA /* StyleOffsetPosition.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleOffsetPosition.cpp; sourceTree = "<group>"; };
+		BCCE4F492DF75A22005554EA /* StyleOffsetPosition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOffsetPosition.h; sourceTree = "<group>"; };
+		BCCE4F672DF8A483005554EA /* StylePrimitiveNumericTypes+Platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StylePrimitiveNumericTypes+Platform.h"; sourceTree = "<group>"; };
 		BCCFBAE70B5152ED0001F1D7 /* DocumentParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DocumentParser.h; sourceTree = "<group>"; };
 		BCD0E0F70E972C3500265DEA /* SecurityOrigin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SecurityOrigin.cpp; sourceTree = "<group>"; };
 		BCD0E0F80E972C3500265DEA /* SecurityOrigin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SecurityOrigin.h; sourceTree = "<group>"; };
@@ -21053,8 +21063,6 @@
 		E596DD5C251BB08200C275A7 /* ContactInfo.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ContactInfo.idl; sourceTree = "<group>"; };
 		E59A1DCE2B7FEAE8007D9F0D /* MultiRepresentationHEICMetrics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MultiRepresentationHEICMetrics.h; sourceTree = "<group>"; };
 		E59DD4B721098285003C8B47 /* ListButtonArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ListButtonArrow.png; sourceTree = "<group>"; };
-		E5A7DF1E2D5688D500B52D7B /* CSSPropertyParserConsumer+AppleVisualEffect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+AppleVisualEffect.h"; sourceTree = "<group>"; };
-		E5A7DF1F2D5688D500B52D7B /* CSSPropertyParserConsumer+AppleVisualEffect.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+AppleVisualEffect.cpp"; sourceTree = "<group>"; };
 		E5BA7D62151437CA00FE1E3F /* LengthFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LengthFunctions.h; sourceTree = "<group>"; };
 		E5C59A9924D0E1AA003B86E1 /* DateTimeChooserParameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DateTimeChooserParameters.h; sourceTree = "<group>"; };
 		E5C5B2082C3795EE00838733 /* PlatformNSAdaptiveImageGlyph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformNSAdaptiveImageGlyph.h; sourceTree = "<group>"; };
@@ -31101,8 +31109,6 @@
 				BCA407D52C9DF4A2006B037F /* CSSPropertyParserConsumer+AnglePercentageDefinitions.h */,
 				BCE411D02CF258D700731E47 /* CSSPropertyParserConsumer+Animations.cpp */,
 				BCE411CF2CF258D700731E47 /* CSSPropertyParserConsumer+Animations.h */,
-				E5A7DF1F2D5688D500B52D7B /* CSSPropertyParserConsumer+AppleVisualEffect.cpp */,
-				E5A7DF1E2D5688D500B52D7B /* CSSPropertyParserConsumer+AppleVisualEffect.h */,
 				BCE411CC2CF2560400731E47 /* CSSPropertyParserConsumer+Attr.cpp */,
 				BCE411CB2CF2560400731E47 /* CSSPropertyParserConsumer+Attr.h */,
 				BCEA07402CC724F9000AC148 /* CSSPropertyParserConsumer+Background.cpp */,
@@ -35009,8 +35015,6 @@
 				1AB39CC62C98CEA100B8AD82 /* NameScope.h */,
 				BCEF43DF0E674110001C1287 /* NinePieceImage.cpp */,
 				BCEF43DC0E674012001C1287 /* NinePieceImage.h */,
-				668A1B032723A41500765E0F /* OffsetRotation.cpp */,
-				668A1B022723A41400765E0F /* OffsetRotation.h */,
 				BC5EB5DC0E81B8DD00B25965 /* OutlineValue.h */,
 				A363392C2A280D9C00C6EA56 /* PositionArea.cpp */,
 				A363392B2A280D8000C6EA56 /* PositionArea.h */,
@@ -35633,6 +35637,7 @@
 				BC3CC1B62DE1368D0032971C /* StylePrimitiveNumericTypes+CSSValueCreation.h */,
 				BCB271F42CC018F100265123 /* StylePrimitiveNumericTypes+Evaluation.h */,
 				BC9BE3EF2CFE297D00D8C2CA /* StylePrimitiveNumericTypes+Logging.h */,
+				BCCE4F672DF8A483005554EA /* StylePrimitiveNumericTypes+Platform.h */,
 				BC3CC1B52DE136830032971C /* StylePrimitiveNumericTypes+Serialization.h */,
 				BCB271EE2CC0156E00265123 /* StylePrimitiveNumericTypes.h */,
 				BC23875F2D84A59400698102 /* StyleRatio.h */,
@@ -35779,6 +35784,14 @@
 		BCEA07322CC5EBBA000AC148 /* motion */ = {
 			isa = PBXGroup;
 			children = (
+				BCCE4F442DF74F1D005554EA /* StyleOffsetAnchor.cpp */,
+				BCCE4F452DF74F1D005554EA /* StyleOffsetAnchor.h */,
+				BCCE4F3E2DF73F64005554EA /* StyleOffsetDistance.cpp */,
+				BCCE4F3F2DF73F64005554EA /* StyleOffsetDistance.h */,
+				BCCE4F482DF75A22005554EA /* StyleOffsetPosition.cpp */,
+				BCCE4F492DF75A22005554EA /* StyleOffsetPosition.h */,
+				BCCE4F432DF74790005554EA /* StyleOffsetRotate.cpp */,
+				BCCE4F422DF74790005554EA /* StyleOffsetRotate.h */,
 				BCEA07302CC5EBBA000AC148 /* StyleRayFunction.h */,
 			);
 			path = motion;
@@ -43652,7 +43665,6 @@
 				FDA3E95C134A49EF008D4B5A /* OfflineAudioDestinationNode.h in Headers */,
 				314877E31FAA8FE900C05759 /* OffscreenCanvas.h in Headers */,
 				3140C5201FDF151A00D2A873 /* OffscreenCanvasRenderingContext2D.h in Headers */,
-				668A1B042723A72B00765E0F /* OffsetRotation.h in Headers */,
 				07E4BDC42A3A6191000D5509 /* OpacityCaretAnimator.h in Headers */,
 				0D66A3B72C61CC290027973F /* OpenID4VPRequest.h in Headers */,
 				B2D3DA650D006CD600EF6F3A /* OpenTypeCG.h in Headers */,
@@ -44841,6 +44853,10 @@
 				32488D27299458D400934627 /* StyleMiscNonInheritedData.h in Headers */,
 				BC5EB74E0E81E06700B25965 /* StyleMultiColData.h in Headers */,
 				324EBEDB2993544F006F8973 /* StyleNonInheritedData.h in Headers */,
+				BCCE4F462DF74F1D005554EA /* StyleOffsetAnchor.h in Headers */,
+				BCCE4F412DF73F64005554EA /* StyleOffsetDistance.h in Headers */,
+				BCCE4F4A2DF75A22005554EA /* StyleOffsetPosition.h in Headers */,
+				BCCE4F4E2DF79EDD005554EA /* StyleOffsetRotate.h in Headers */,
 				BC3BEDD02DD8EF0C004E87D7 /* StyleOrderedNamedLinesCollector.h in Headers */,
 				715AD7202050513200D592DC /* StyleOriginatedAnimation.h in Headers */,
 				717CE23A29335E9C001463BC /* StyleOriginatedAnimationEvent.h in Headers */,

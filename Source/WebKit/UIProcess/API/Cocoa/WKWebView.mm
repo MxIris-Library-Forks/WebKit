@@ -3061,6 +3061,7 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
 
 #if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
     [self _updateFixedColorExtensionViews];
+    [self _updateHiddenScrollPocketEdges];
 #endif
 
 #if PLATFORM(MAC) && ENABLE(CONTENT_INSET_BACKGROUND_FILL)
@@ -3170,7 +3171,10 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
 
     auto insets = [self _obscuredInsetsForFixedColorExtension];
     auto updateExtensionView = [&](WebCore::BoxSide side) {
-        BOOL needsView = insets.at(side) > 0 && _fixedContainerEdges.hasFixedEdge(side);
+        BOOL needsView = insets.at(side) > 0
+            && _fixedContainerEdges.hasFixedEdge(side)
+            && (side != WebCore::BoxSide::Top || !_shouldSuppressTopColorExtensionView);
+
         RetainPtr extensionView = _fixedColorExtensionViews.at(side);
         if (!needsView) {
             [extensionView fadeOut];
@@ -4823,7 +4827,7 @@ static void convertAndAddHighlight(Vector<Ref<WebCore::SharedMemory>>& buffers, 
 - (void)_clearBackForwardCache
 {
     THROW_IF_SUSPENDED;
-    _page->configuration().protectedProcessPool()->protectedBackForwardCache()->removeEntriesForPage(*_page);
+    _page->configuration().protectedProcessPool()->backForwardCache().removeEntriesForPage(*_page);
 }
 
 + (BOOL)_handlesSafeBrowsing
@@ -6136,6 +6140,24 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 - (void)_scrollToEdge:(_WKRectEdge)edge animated:(BOOL)animated
 {
     self._protectedPage->scrollToEdge(toRectEdges(edge), animated ? WebCore::ScrollIsAnimated::Yes : WebCore::ScrollIsAnimated::No);
+}
+
+- (BOOL)_shouldSuppressTopColorExtensionView
+{
+    return _shouldSuppressTopColorExtensionView;
+}
+
+- (void)_setShouldSuppressTopColorExtensionView:(BOOL)value
+{
+    if (_shouldSuppressTopColorExtensionView == value)
+        return;
+
+    _shouldSuppressTopColorExtensionView = value;
+
+#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
+    [self _updateFixedColorExtensionViews];
+    [self _updateTopScrollPocketCaptureColor];
+#endif
 }
 
 @end

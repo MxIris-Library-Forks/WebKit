@@ -83,13 +83,8 @@ Modules/websockets/WebSocket.cpp
 Modules/webtransport/WebTransport.cpp
 StyleBuilderGenerated.cpp
 accessibility/AXCoreObject.cpp
-accessibility/AXCoreObject.h
 accessibility/AXLogger.cpp
 accessibility/AXObjectCache.cpp
-accessibility/AXObjectCache.h
-accessibility/AXRemoteFrame.cpp
-accessibility/AXSearchManager.cpp
-accessibility/AXTextMarker.cpp
 accessibility/AccessibilityARIAGridRow.cpp
 accessibility/AccessibilityList.cpp
 accessibility/AccessibilityListBox.cpp
@@ -114,7 +109,6 @@ accessibility/AccessibilityTreeItem.cpp
 accessibility/cocoa/AccessibilityObjectCocoa.mm
 accessibility/isolatedtree/AXIsolatedObject.cpp
 accessibility/isolatedtree/AXIsolatedTree.cpp
-accessibility/isolatedtree/mac/AXIsolatedObjectMac.mm
 accessibility/mac/AXObjectCacheMac.mm
 accessibility/mac/AccessibilityObjectMac.mm
 accessibility/mac/WebAccessibilityObjectWrapperBase.mm
@@ -612,7 +606,6 @@ rendering/updating/RenderTreeUpdaterGeneratedContent.cpp
 storage/Storage.cpp
 style/AttributeChangeInvalidation.cpp
 style/ClassChangeInvalidation.cpp
-style/CustomPropertyRegistry.cpp
 style/ElementRuleCollector.cpp
 style/HasSelectorFilter.cpp
 style/IdChangeInvalidation.cpp
@@ -628,6 +621,7 @@ style/StyleBuilder.cpp
 style/StyleBuilderConverter.h
 style/StyleBuilderCustom.h
 style/StyleBuilderState.cpp
+style/StyleCustomPropertyRegistry.cpp
 style/StyleExtractor.cpp
 style/StyleExtractorCustom.h
 style/StyleInterpolationFunctions.h

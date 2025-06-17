@@ -604,16 +604,15 @@ int RenderBox::scrollTop() const
     return (hasNonVisibleOverflow() && scrollableArea) ? scrollableArea->scrollPosition().y() : 0;
 }
 
+bool RenderBox::shouldResetLogicalHeightBeforeLayout() const
+{
+    auto* flexBoxParent = dynamicDowncast<RenderFlexibleBox>(parent());
+    return flexBoxParent && flexBoxParent->shouldResetFlexItemLogicalHeightBeforeLayout();
+}
+
 void RenderBox::resetLogicalHeightBeforeLayoutIfNeeded()
 {
-    bool shouldSetLogicalHeight = [&] {
-        if (shouldResetLogicalHeightBeforeLayout())
-            return true;
-        auto* parentBlock = dynamicDowncast<RenderBlock>(parent());
-        return parentBlock && parentBlock->shouldResetChildLogicalHeightBeforeLayout(*this);
-    }();
-
-    if (shouldSetLogicalHeight)
+    if (shouldResetLogicalHeightBeforeLayout())
         setLogicalHeight(0_lu);
 }
 
@@ -2455,7 +2454,7 @@ void RenderBox::mapAbsoluteToLocalPoint(OptionSet<MapCoordinatesMode> mode, Tran
     RenderBoxModelObject::mapAbsoluteToLocalPoint(mode, transformState);
 }
 
-LayoutSize RenderBox::offsetFromContainer(RenderElement& container, const LayoutPoint&, bool* offsetDependsOnPoint) const
+LayoutSize RenderBox::offsetFromContainer(const RenderElement& container, const LayoutPoint&, bool* offsetDependsOnPoint) const
 {
     // A fragment "has" boxes inside it without being their container. 
     ASSERT(&container == this->container() || is<RenderFragmentContainer>(container));

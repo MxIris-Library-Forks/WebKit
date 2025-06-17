@@ -59,7 +59,6 @@ Modules/indexeddb/IDBOpenDBRequest.cpp
 Modules/indexeddb/IDBRequest.cpp
 Modules/indexeddb/IDBTransaction.cpp
 Modules/indexeddb/client/IDBConnectionProxy.cpp
-Modules/indexeddb/client/IDBConnectionToServer.cpp
 Modules/indexeddb/server/MemoryObjectStore.cpp
 Modules/indexeddb/server/UniqueIDBDatabase.cpp
 Modules/indexeddb/server/UniqueIDBDatabaseTransaction.cpp
@@ -986,7 +985,6 @@ rendering/style/StyleCachedImage.cpp
 rendering/style/StyleCanvasImage.cpp
 rendering/style/StyleCrossfadeImage.cpp
 rendering/style/StyleCursorImage.cpp
-rendering/style/StyleCustomPropertyData.cpp
 rendering/style/StyleGeneratedImage.cpp
 rendering/style/StyleMiscNonInheritedData.cpp
 rendering/style/StyleMultiImage.cpp

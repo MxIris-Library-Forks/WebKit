@@ -2562,13 +2562,7 @@ fast/images/jpegxl-with-color-profile.html [ Skip ]
 fast/images/animated-jpegxl-loop-count.html [ Skip ]
 
 # Only applicable on platforms with HDR support
-compositing/hdr/hdr-basic-canvas.html [ Skip ]
-compositing/hdr/hdr-basic-image.html [ Skip ]
-compositing/hdr/hdr-basic-image-dynamic-range-limit.html [ Skip ]
-compositing/hdr/hdr-background-image.html [ Skip ]
-compositing/hdr/hdr-border-image.html [ Skip ]
-compositing/hdr/hdr-pseudo-before-image.html [ Skip ]
-compositing/hdr/hdr-svg-inline-image.html [ Skip ]
+compositing/hdr [ Skip ]
 fast/images/hdr-basic-image.html [ Skip ]
 fast/images/hdr-basic-image-dynamic-range-limit.html [ Skip ]
 fast/images/hdr-background-image.html [ Skip ]
@@ -5144,7 +5138,6 @@ imported/w3c/web-platform-tests/css/css-writing-modes/table-cell-valign-002.html
 imported/w3c/web-platform-tests/css/css-writing-modes/table-cell-valign-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-writing-modes/table-cell-valign-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-writing-modes/text-combine-upright-rtl-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-writing-modes/text-orientation-020.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-writing-modes/test-plan/req-tcu-font.html [ Skip ]
 
 # Untriaged CSSOM-View timeout failures.
@@ -6391,6 +6384,7 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/standards-decor-n
 # New failures after import of css/css-variables
 imported/w3c/web-platform-tests/css/css-variables/variable-reference-visited.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-variables/wide-keyword-fallback-002.html [ ImageOnlyFailure ]
+webkit.org/b/294587 [ Debug ] imported/w3c/web-platform-tests/css/css-variables/variable-css-wide-keywords.html [ Skip ]
 
 # WPT tests that are timing out.
 imported/w3c/web-platform-tests/FileAPI/url/unicode-origin.sub.html [ Skip ]

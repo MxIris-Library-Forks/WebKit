@@ -675,6 +675,7 @@ fast/events/input-image-scrolled-x-y.html [ Skip ]
 fast/events/keydown-1.html [ Skip ]
 fast/events/monotonic-event-time.html [ Skip ]
 fast/events/mosuedrag-on-canvas-should-not-start-selection.html [ Skip ]
+fast/events/mousemove-events-within-no-element.html [ Skip ]
 fast/events/mouse-click-events.html [ Skip ]
 fast/events/mouse-cursor-change.html [ Skip ]
 fast/events/mouse-cursor-image-set.html [ Skip ]
@@ -4503,13 +4504,7 @@ fast/images/pagewide-play-pause-animateTransform-svg-animation.html [ Pass ]
 fast/images/pagewide-play-pause-offscreen-animations.html [ Pass ]
 
 # Only applicable on platforms with HDR support
-compositing/hdr/hdr-basic-canvas.html [ Pass ]
-compositing/hdr/hdr-basic-image.html [ Pass ]
-compositing/hdr/hdr-basic-image-dynamic-range-limit.html [ Pass ]
-compositing/hdr/hdr-background-image.html [ Pass ]
-compositing/hdr/hdr-border-image.html [ Pass ]
-compositing/hdr/hdr-pseudo-before-image.html [ Pass ]
-compositing/hdr/hdr-svg-inline-image.html [ Pass ]
+compositing/hdr [ Pass ]
 fast/images/hdr-basic-image.html [ Pass ]
 fast/images/hdr-basic-image-dynamic-range-limit.html [ Pass ]
 fast/images/hdr-background-image.html [ Pass ]
@@ -7700,8 +7695,6 @@ webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find
 webkit.org/b/288677 [ Debug arm64 ] fast/scrolling/ios/body-overflow-hidden-keyboard.html [ Pass Crash ]
 
 webkit.org/b/288694 [ Debug arm64 ] fast/multicol/body-stuck-with-dirty-bit-with-columns.html [ Crash ]
-
-webkit.org/b/288888 [ arm64 ] compositing/contents-format/deep-color-backing-store.html [ Failure ]
 
 webkit.org/b/287569 http/tests/site-isolation/page-visibility-onvisibilitychange-in-iframe.html [ Timeout ]
 

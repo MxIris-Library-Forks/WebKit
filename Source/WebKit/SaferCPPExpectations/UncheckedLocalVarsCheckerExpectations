@@ -20,7 +20,6 @@ UIProcess/RemoteLayerTree/mac/RemoteScrollingTreeMac.mm
 UIProcess/ViewGestureController.cpp
 UIProcess/WebPageProxy.cpp
 UIProcess/mac/WKTextAnimationManager.mm
-UIProcess/mac/WebViewImpl.mm
 WebProcess/FullScreen/WebFullScreenManager.cpp
 WebProcess/GPU/media/RemoteMediaPlayerManager.cpp
 WebProcess/InjectedBundle/API/c/WKBundlePage.cpp
@@ -33,13 +32,9 @@ WebProcess/Plugins/PDF/UnifiedPDF/UnifiedPDFPlugin.mm
 WebProcess/Plugins/PDF/WKAccessibilityPDFDocumentObject.mm
 WebProcess/Plugins/PluginView.cpp
 WebProcess/Speech/SpeechRecognitionRealtimeMediaSourceManager.cpp
-WebProcess/Storage/WebServiceWorkerProvider.cpp
-WebProcess/WebCoreSupport/WebChromeClient.cpp
 WebProcess/WebCoreSupport/mac/WebDragClientMac.mm
 WebProcess/WebPage/Cocoa/WebPageCocoa.mm
 WebProcess/WebPage/DrawingArea.cpp
 WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.mm
-WebProcess/WebPage/WebFrame.cpp
 WebProcess/WebPage/WebPage.cpp
 WebProcess/WebPage/mac/TiledCoreAnimationDrawingArea.mm
-WebProcess/WebProcess.cpp

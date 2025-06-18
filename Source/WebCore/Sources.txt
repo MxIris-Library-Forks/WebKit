@@ -1148,7 +1148,6 @@ css/values/color/CSSColorLayers.cpp
 css/values/color/CSSColorLayersResolver.cpp
 css/values/color/CSSColorMix.cpp
 css/values/color/CSSColorMixResolver.cpp
-css/values/color/CSSColorMixSerialization.cpp
 css/values/color/CSSContrastColor.cpp
 css/values/color/CSSContrastColorResolver.cpp
 css/values/color/CSSDynamicRangeLimit.cpp
@@ -3208,6 +3207,10 @@ style/values/sizing/StyleMaximumSize.cpp
 style/values/sizing/StyleMinimumSize.cpp
 style/values/sizing/StylePreferredSize.cpp
 style/values/text-decoration/StyleTextShadow.cpp
+style/values/transforms/StyleRotate.cpp
+style/values/transforms/StylePerspective.cpp
+style/values/transforms/StyleScale.cpp
+style/values/transforms/StyleTranslate.cpp
 svg/DocumentSVG.cpp
 svg/SVGAElement.cpp
 svg/SVGAltGlyphDefElement.cpp

@@ -786,6 +786,7 @@ public:
     PlaybackSessionManagerProxy* playbackSessionManager();
     RefPtr<PlaybackSessionManagerProxy> protectedPlaybackSessionManager();
     VideoPresentationManagerProxy* videoPresentationManager();
+    RefPtr<VideoPresentationManagerProxy> protectedVideoPresentationManager();
     void setMockVideoPresentationModeEnabled(bool);
 #endif
 
@@ -3386,6 +3387,7 @@ private:
 #endif
 
     void setCustomUserAgentInternal();
+    HashSet<Ref<WebProcessProxy>> webContentProcessesWithFrame();
 
     const UniqueRef<Internals> m_internals;
     Identifier m_identifier;

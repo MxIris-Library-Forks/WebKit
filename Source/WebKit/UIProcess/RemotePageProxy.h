@@ -59,9 +59,11 @@ using MediaProducerMediaStateFlags = OptionSet<MediaProducerMediaState>;
 
 namespace WebKit {
 
+class DrawingAreaProxy;
 class NativeWebMouseEvent;
 class RemotePageDrawingAreaProxy;
 class RemotePageFullscreenManagerProxy;
+class RemotePageVideoPresentationManagerProxy;
 class RemotePageVisitedLinkStoreRegistration;
 class UserData;
 class WebFrameProxy;
@@ -101,6 +103,7 @@ public:
     WebProcessActivityState& processActivityState();
 
     WebCore::MediaProducerMediaStateFlags mediaState() const { return m_mediaState; }
+    void setDrawingArea(DrawingAreaProxy*);
 
 private:
     RemotePageProxy(WebPageProxy&, WebProcessProxy&, const WebCore::Site&, WebPageProxyMessageReceiverRegistration*, std::optional<WebCore::PageIdentifier>);
@@ -116,6 +119,9 @@ private:
     RefPtr<RemotePageDrawingAreaProxy> m_drawingArea;
 #if ENABLE(FULLSCREEN_API)
     RefPtr<RemotePageFullscreenManagerProxy> m_fullscreenManager;
+#endif
+#if ENABLE(VIDEO_PRESENTATION_MODE)
+    RefPtr<RemotePageVideoPresentationManagerProxy> m_videoPresentationManager;
 #endif
     std::unique_ptr<RemotePageVisitedLinkStoreRegistration> m_visitedLinkStoreRegistration;
     WebPageProxyMessageReceiverRegistration m_messageReceiverRegistration;

@@ -636,7 +636,7 @@ using GeolocationIdentifier = ObjectIdentifier<GeolocationIdentifierType>;
 using LayerHostingContextID = uint32_t;
 using NetworkResourceLoadIdentifier = ObjectIdentifier<NetworkResourceLoadIdentifierType>;
 using PDFPluginIdentifier = ObjectIdentifier<PDFPluginIdentifierType>;
-using PlaybackSessionContextIdentifier = WebCore::HTMLMediaElementIdentifier;
+using PlaybackSessionContextIdentifier = WebCore::ProcessQualified<WebCore::HTMLMediaElementIdentifier>;
 using SnapshotOptions = OptionSet<SnapshotOption>;
 using SpeechRecognitionPermissionRequestCallback = CompletionHandler<void(std::optional<WebCore::SpeechRecognitionError>&&)>;
 using SpellDocumentTag = int64_t;
@@ -2333,6 +2333,10 @@ public:
     void didCleanupFullscreen(PlaybackSessionContextIdentifier);
     void didChangePlaybackRate(PlaybackSessionContextIdentifier);
     void didChangeCurrentTime(PlaybackSessionContextIdentifier);
+#if PLATFORM(IOS_FAMILY)
+    void didEnterStandby(PlaybackSessionContextIdentifier);
+    void didExitStandby(PlaybackSessionContextIdentifier);
+#endif
 #else
     void didEnterFullscreen();
     void didExitFullscreen();
@@ -2713,6 +2717,8 @@ public:
 
 #if PLATFORM(IOS_FAMILY)
     void isPotentialTapInProgress(CompletionHandler<void(bool)>&&);
+
+    void didRefreshDisplay();
 #endif
 
 #if PLATFORM(COCOA) && ENABLE(ASYNC_SCROLLING)

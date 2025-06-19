@@ -2396,7 +2396,6 @@ accessibility/video-element-url-attribute.html [ Pass ]
 accessibility/visible-character-range-basic.html [ Pass ]
 accessibility/visible-character-range-height-changes.html [ Pass ]
 accessibility/visible-character-range-vertical-rl.html [ Pass ]
-accessibility/visible-character-range-width-changes.html [ Pass ]
 accessibility/visibility-visible-inside-hidden.html [ Pass ]
 
 # Enable "aria-current" tests for iOS.
@@ -7917,5 +7916,4 @@ webkit.org/b/294274 [ Debug ] platform/ios/mediastream/audio-muted-in-background
  webgl/1.0.x/conformance/textures/misc/gl-teximage.html [ Failure ]
  webgl/2.0.y/conformance/textures/misc/gl-teximage.html [ Failure ]
 
-fast/snapshot/nested-stacking-context.html [ Skip ]
-fast/snapshot/positioned-abs-relative-body.html [ Skip ]
+fast/snapshot [ Skip ]

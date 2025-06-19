@@ -57,6 +57,11 @@
 # TESTS PASSING
 #////////////////////////////////////////////////////////////////////////////////////////
 
+# Platform-specific directories.
+scrollingcoordinator/ [ Pass ]
+scrollingcoordinator/mac/ [ Skip ]
+scrollingcoordinator/ios/ [ Skip ]
+
 # RSA-PSS tests are for now skipped on all ports, so we for now explicitly enable the passing ones here.
 crypto/subtle/ecdh-import-pkcs8-key-p256-validate-ecprivatekey-parameters-publickey.html [ Pass ]
 crypto/subtle/ecdh-import-pkcs8-key-p384-validate-ecprivatekey-parameters-publickey.html [ Pass ]
@@ -791,7 +796,6 @@ accessibility/visible-character-range-basic.html [ Skip ]
 accessibility/visible-character-range-height-changes.html [ Skip ]
 accessibility/visible-character-range-scrolling.html [ Skip ]
 accessibility/visible-character-range-vertical-rl.html [ Skip ]
-accessibility/visible-character-range-width-changes.html [ Skip ]
 
 accessibility/display-contents/tree-and-treeitems.html [ Skip ]
 

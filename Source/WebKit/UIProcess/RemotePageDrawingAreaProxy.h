@@ -52,7 +52,6 @@ private:
     RemotePageDrawingAreaProxy(DrawingAreaProxy&, WebProcessProxy&);
 
     void didReceiveMessage(IPC::Connection&, IPC::Decoder&) final;
-    bool didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&) final;
 
     WeakPtr<DrawingAreaProxy> m_drawingArea;
     DrawingAreaIdentifier m_identifier;

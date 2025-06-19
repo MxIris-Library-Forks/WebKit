@@ -507,6 +507,10 @@ Page::Page(PageConfiguration&& pageConfiguration)
     initializeGamepadAccessForPageLoad();
 #endif
 
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    updateDisplayEDRHeadroom();
+#endif
+
     settingsDidChange();
 
     if (m_lowPowerModeNotifier->isLowPowerModeEnabled())
@@ -1720,6 +1724,9 @@ void Page::screenPropertiesDidChange()
         element.setPreferredDynamicRangeMode(mode);
     });
 #endif
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    updateDisplayEDRHeadroom();
+#endif
 
     setNeedsRecalcStyleInAllFrames();
 }
@@ -2332,9 +2339,16 @@ void Page::doAfterUpdateRendering()
     m_renderingUpdateRemainingSteps.last().remove(RenderingUpdateStep::AccessibilityRegionUpdate);
     if (shouldUpdateAccessibilityRegions()) {
         m_lastAccessibilityObjectRegionsUpdate = m_lastRenderingUpdateTimestamp;
+
+        if (m_axObjectCache)
+            m_axObjectCache->onAccessibilityPaintStarted();
+
         forEachRenderableDocument([] (Document& document) {
             document.updateAccessibilityObjectRegions();
         });
+
+        if (m_axObjectCache)
+            m_axObjectCache->onAccessibilityPaintFinished();
     }
 #endif
 
@@ -5306,6 +5320,11 @@ void Page::updateFixedContainerEdges(BoxSideSet sides)
     m_fixedContainerEdgesAndElements = std::make_pair(makeUniqueRef<FixedContainerEdges>(WTFMove(edges)), WTFMove(elements));
 }
 
+Element* Page::lastFixedContainer(BoxSide side) const
+{
+    return m_fixedContainerEdgesAndElements.second.at(side).get();
+}
+
 void Page::setPortsForUpgradingInsecureSchemeForTesting(uint16_t upgradeFromInsecurePort, uint16_t upgradeToSecurePort)
 {
     m_portsForUpgradingInsecureSchemeForTesting = { upgradeFromInsecurePort, upgradeToSecurePort };
@@ -5766,5 +5785,25 @@ bool Page::requiresUserGestureForVideoPlayback() const
         return autoplayPolicy == AutoplayPolicy::Deny;
     return m_settings->requiresUserGestureForVideoPlayback();
 }
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+void Page::updateDisplayEDRHeadroom()
+{
+    float headroom = currentEDRHeadroomForDisplay(m_displayID);
+    if (headroom == m_displayEDRHeadroom.headroom)
+        return;
+
+    LOG_WITH_STREAM(HDR, stream << "Page " << this << " updateDisplayEDRHeadroom " << m_displayEDRHeadroom.headroom << " to " << headroom);
+    m_displayEDRHeadroom = headroom;
+
+    forEachDocument([&] (Document& document) {
+        if (!document.drawsHDRContent())
+            return;
+
+        if (RefPtr view = document.view())
+            view->setDescendantsNeedUpdateBackingAndHierarchyTraversal();
+    });
+}
+#endif
 
 } // namespace WebCore

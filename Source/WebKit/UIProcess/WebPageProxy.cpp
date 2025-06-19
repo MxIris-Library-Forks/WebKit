@@ -4202,7 +4202,7 @@ void WebPageProxy::handleWheelEventReply(IPC::Connection* connection, const WebW
     MESSAGE_CHECK_BASE(wheelEventCoalescer().hasEventsBeingProcessed(), connection);
 
 #if ENABLE(ASYNC_SCROLLING) && PLATFORM(MAC)
-    if (auto* scrollingCoordinatorProxy = this->scrollingCoordinatorProxy()) {
+    if (CheckedPtr scrollingCoordinatorProxy = this->scrollingCoordinatorProxy()) {
         scrollingCoordinatorProxy->wheelEventHandlingCompleted(platform(event), nodeID, gestureState, wasHandledForScrolling || wasHandledByWebProcess);
         return;
     }
@@ -8805,6 +8805,18 @@ void WebPageProxy::didCleanupFullscreen(PlaybackSessionContextIdentifier)
 void WebPageProxy::failedToEnterFullscreen(PlaybackSessionContextIdentifier identifier)
 {
 }
+
+#if PLATFORM(IOS_FAMILY)
+void WebPageProxy::didEnterStandby(PlaybackSessionContextIdentifier)
+{
+    m_uiClient->didEnterStandby(*this);
+}
+
+void WebPageProxy::didExitStandby(PlaybackSessionContextIdentifier)
+{
+    m_uiClient->didExitStandby(*this);
+}
+#endif
 
 #else
 

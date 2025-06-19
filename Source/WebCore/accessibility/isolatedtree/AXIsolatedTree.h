@@ -401,7 +401,6 @@ public:
     static Ref<AXIsolatedTree> createEmpty(AXObjectCache&);
     constexpr bool isEmptyContentTree() const { return m_isEmptyContentTree; }
     virtual ~AXIsolatedTree();
-    bool willBeDestroyed();
 
     static void removeTreeForPageID(PageIdentifier);
 
@@ -498,14 +497,18 @@ public:
 
     // Relationships between objects.
     std::optional<ListHashSet<AXID>> relatedObjectIDsFor(const AXIsolatedObject&, AXRelation);
-    void relationsNeedUpdate(bool needUpdate) { m_relationsNeedUpdate = needUpdate; }
-    void updateRelations(const HashMap<AXID, AXRelations>&);
+    void markRelationsDirty() { m_relationsNeedUpdate = true; }
+    void updateRelations(HashMap<AXID, AXRelations>&&);
 
     AXCoreObject::AccessibilityChildrenVector sortedLiveRegions();
     AXCoreObject::AccessibilityChildrenVector sortedNonRootWebAreas();
 
+    void markMostRecentlyPaintedTextDirty() { m_mostRecentlyPaintedTextIsDirty = true; }
+    const HashMap<AXID, LineRange>& mostRecentlyPaintedText() const { return m_mostRecentlyPaintedText; }
+
     // Called on AX thread from WebAccessibilityObjectWrapper methods.
     WEBCORE_EXPORT void applyPendingChanges();
+    void applyPendingChangesUnlessQueuedForDestruction();
 
     constexpr AXID treeID() const { return m_id; }
     constexpr ProcessID processID() const { return m_processID; }
@@ -514,7 +517,7 @@ public:
     // Use only if the s_storeLock is already held like in findAXTree.
     WEBCORE_EXPORT OptionSet<ActivityState> lockedPageActivityState() const;
 
-    AXTextMarkerRange selectedTextMarkerRange();
+    AXTextMarkerRange selectedTextMarkerRange() { return m_selectedTextMarkerRange; }
     void setSelectedTextMarkerRange(AXTextMarkerRange&&);
 
     void sortedLiveRegionsDidChange(Vector<AXID>);
@@ -541,6 +544,8 @@ private:
     // We can't destroy the tree on the main-thread (by removing all `Ref`s to it)
     // because it could be being used by the secondary thread to service an AX request.
     void queueForDestruction();
+
+    void applyPendingChangesLocked() WTF_REQUIRES_LOCK(m_changeLogLock);
 
     static HashMap<PageIdentifier, Ref<AXIsolatedTree>>& treePageCache() WTF_REQUIRES_LOCK(s_storeLock);
 
@@ -637,6 +642,9 @@ private:
     bool m_queuedForDestruction WTF_GUARDED_BY_LOCK(m_changeLogLock) { false };
     std::optional<Vector<AXID>> m_pendingSortedLiveRegionIDs WTF_GUARDED_BY_LOCK(m_changeLogLock);
     std::optional<Vector<AXID>> m_pendingSortedNonRootWebAreaIDs WTF_GUARDED_BY_LOCK(m_changeLogLock);
+    std::optional<HashMap<AXID, LineRange>> m_pendingMostRecentlyPaintedText WTF_GUARDED_BY_LOCK(m_changeLogLock);
+    std::optional<HashMap<AXID, AXRelations>> m_pendingRelations WTF_GUARDED_BY_LOCK(m_changeLogLock);
+    std::optional<AXTextMarkerRange> m_pendingSelectedTextMarkerRange WTF_GUARDED_BY_LOCK(m_changeLogLock);
     Markable<AXID> m_focusedNodeID;
     std::atomic<double> m_loadingProgress { 0 };
     std::atomic<double> m_processingProgress { 1 };
@@ -644,14 +652,16 @@ private:
     // Only accessed on the accessibility thread.
     Vector<AXID> m_sortedLiveRegionIDs;
     Vector<AXID> m_sortedNonRootWebAreaIDs;
+    HashMap<AXID, LineRange> m_mostRecentlyPaintedText;
+    HashMap<AXID, AXRelations> m_relations;
 
-    // Relationships between objects.
-    HashMap<AXID, AXRelations> m_relations WTF_GUARDED_BY_LOCK(m_changeLogLock);
     // Set to true by the AXObjectCache and false by AXIsolatedTree.
+    // Both are only to be used on the main-thread.
     bool m_relationsNeedUpdate { true };
+    bool m_mostRecentlyPaintedTextIsDirty { true };
 
     Lock m_changeLogLock;
-    AXTextMarkerRange m_selectedTextMarkerRange WTF_GUARDED_BY_LOCK(m_changeLogLock);
+    AXTextMarkerRange m_selectedTextMarkerRange;
 
     // Queued node updates used for building a new tree snapshot.
     ListHashSet<AXID> m_needsUpdateChildren;

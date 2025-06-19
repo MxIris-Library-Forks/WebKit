@@ -472,8 +472,6 @@
 		115CFA86208B9066001E6991 /* FloatingContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 115CFA84208B9066001E6991 /* FloatingContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		115CFA97208B952B001E6991 /* LayoutBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 115CFA95208B952B001E6991 /* LayoutBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1163F82424E5D5AE000AB960 /* RenderTreeMutationDisallowedScope.h in Headers */ = {isa = PBXBuildFile; fileRef = 1163F82124E5D59B000AB960 /* RenderTreeMutationDisallowedScope.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		118B068C25E41E530070BE4B /* OpenXRExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 118B068825E41E520070BE4B /* OpenXRExtensions.h */; };
-		118B068E25E41E530070BE4B /* OpenXRUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 118B068A25E41E530070BE4B /* OpenXRUtils.h */; };
 		119340791FE8B92300935F1E /* RenderTreeBuilderTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 119340771FE8B92300935F1E /* RenderTreeBuilderTable.h */; };
 		1193408A1FEB355D00935F1E /* RenderTreeBuilderRuby.h in Headers */ = {isa = PBXBuildFile; fileRef = 119340881FEB355D00935F1E /* RenderTreeBuilderRuby.h */; };
 		119340971FED715500935F1E /* RenderTreeBuilderFormControls.h in Headers */ = {isa = PBXBuildFile; fileRef = 119340951FED715500935F1E /* RenderTreeBuilderFormControls.h */; };
@@ -6134,7 +6132,6 @@
 		E1B533491717DEE300F205F9 /* CachedRawResourceClient.h in Headers */ = {isa = PBXBuildFile; fileRef = E1B533481717DEE300F205F9 /* CachedRawResourceClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E1BD331A182D8DDD00C05D9F /* CryptoAlgorithmRSASSA_PKCS1_v1_5.h in Headers */ = {isa = PBXBuildFile; fileRef = E1BD3318182D8DDD00C05D9F /* CryptoAlgorithmRSASSA_PKCS1_v1_5.h */; };
 		E1BE512E0CF6C512002EA959 /* XSLTUnicodeSort.h in Headers */ = {isa = PBXBuildFile; fileRef = E1BE512C0CF6C512002EA959 /* XSLTUnicodeSort.h */; };
-		E1C1A39E2480080800E0AF66 /* PlatformXROpenXR.h in Headers */ = {isa = PBXBuildFile; fileRef = E1C1A39C2480080700E0AF66 /* PlatformXROpenXR.h */; };
 		E1C266DF18319F31003F8B33 /* CryptoKeyRSAComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = E1C266DD18319F31003F8B33 /* CryptoKeyRSAComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E1C362EF0EAF2AA9007410BC /* JSWorkerLocation.h in Headers */ = {isa = PBXBuildFile; fileRef = E1C362ED0EAF2AA9007410BC /* JSWorkerLocation.h */; };
 		E1C36C030EB076D6007410BC /* JSDOMGlobalObject.h in Headers */ = {isa = PBXBuildFile; fileRef = E1C36C020EB076D6007410BC /* JSDOMGlobalObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7810,15 +7807,6 @@
 		1163F82324E5D59B000AB960 /* RenderTreeMutationDisallowedScope.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTreeMutationDisallowedScope.cpp; sourceTree = "<group>"; };
 		11648B41260A3F6C004AF1F2 /* JSWebXRRigidTransformCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebXRRigidTransformCustom.cpp; sourceTree = "<group>"; };
 		11648B43260A3F6C004AF1F2 /* JSWebXRViewCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebXRViewCustom.cpp; sourceTree = "<group>"; };
-		1180F7FE2631CD920000E624 /* OpenXRInputSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OpenXRInputSource.cpp; sourceTree = "<group>"; };
-		1180F8002631CD920000E624 /* OpenXRInputMappings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenXRInputMappings.h; sourceTree = "<group>"; };
-		1180F8012631CD930000E624 /* OpenXRInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenXRInput.h; sourceTree = "<group>"; };
-		1180F8022631CD930000E624 /* OpenXRInput.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OpenXRInput.cpp; sourceTree = "<group>"; };
-		1180F8032631CD940000E624 /* OpenXRInputSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenXRInputSource.h; sourceTree = "<group>"; };
-		118B068625E41E510070BE4B /* OpenXRExtensions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenXRExtensions.cpp; sourceTree = "<group>"; };
-		118B068825E41E520070BE4B /* OpenXRExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenXRExtensions.h; sourceTree = "<group>"; };
-		118B068925E41E520070BE4B /* OpenXRInstance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenXRInstance.cpp; sourceTree = "<group>"; };
-		118B068A25E41E530070BE4B /* OpenXRUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenXRUtils.h; sourceTree = "<group>"; };
 		119340761FE8B92300935F1E /* RenderTreeBuilderTable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTreeBuilderTable.cpp; sourceTree = "<group>"; };
 		119340771FE8B92300935F1E /* RenderTreeBuilderTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderTreeBuilderTable.h; sourceTree = "<group>"; };
 		119340871FEB355D00935F1E /* RenderTreeBuilderRuby.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTreeBuilderRuby.cpp; sourceTree = "<group>"; };
@@ -20533,8 +20521,6 @@
 		E1BD3318182D8DDD00C05D9F /* CryptoAlgorithmRSASSA_PKCS1_v1_5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoAlgorithmRSASSA_PKCS1_v1_5.h; sourceTree = "<group>"; };
 		E1BE512B0CF6C512002EA959 /* XSLTUnicodeSort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XSLTUnicodeSort.cpp; sourceTree = "<group>"; };
 		E1BE512C0CF6C512002EA959 /* XSLTUnicodeSort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XSLTUnicodeSort.h; sourceTree = "<group>"; };
-		E1C1A39B2480080600E0AF66 /* PlatformXROpenXR.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlatformXROpenXR.cpp; sourceTree = "<group>"; };
-		E1C1A39C2480080700E0AF66 /* PlatformXROpenXR.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformXROpenXR.h; sourceTree = "<group>"; };
 		E1C266D618317AB4003F8B33 /* CryptoAlgorithmRSASSA_PKCS1_v1_5Mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoAlgorithmRSASSA_PKCS1_v1_5Mac.cpp; sourceTree = "<group>"; };
 		E1C266DC18319F31003F8B33 /* CryptoKeyRSAComponents.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CryptoKeyRSAComponents.cpp; sourceTree = "<group>"; };
 		E1C266DD18319F31003F8B33 /* CryptoKeyRSAComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoKeyRSAComponents.h; sourceTree = "<group>"; };
@@ -37385,28 +37371,9 @@
 			isa = PBXGroup;
 			children = (
 				5273CC722561039B00850007 /* cocoa */,
-				E1EE8B6D2412B2A700E794D6 /* openxr */,
 				E1EE8B6F2412B2A700E794D6 /* PlatformXR.h */,
 			);
 			path = xr;
-			sourceTree = "<group>";
-		};
-		E1EE8B6D2412B2A700E794D6 /* openxr */ = {
-			isa = PBXGroup;
-			children = (
-				118B068625E41E510070BE4B /* OpenXRExtensions.cpp */,
-				118B068825E41E520070BE4B /* OpenXRExtensions.h */,
-				1180F8022631CD930000E624 /* OpenXRInput.cpp */,
-				1180F8012631CD930000E624 /* OpenXRInput.h */,
-				1180F8002631CD920000E624 /* OpenXRInputMappings.h */,
-				1180F7FE2631CD920000E624 /* OpenXRInputSource.cpp */,
-				1180F8032631CD940000E624 /* OpenXRInputSource.h */,
-				118B068925E41E520070BE4B /* OpenXRInstance.cpp */,
-				118B068A25E41E530070BE4B /* OpenXRUtils.h */,
-				E1C1A39B2480080600E0AF66 /* PlatformXROpenXR.cpp */,
-				E1C1A39C2480080700E0AF66 /* PlatformXROpenXR.h */,
-			);
-			path = openxr;
 			sourceTree = "<group>";
 		};
 		E1F0424309839389006694EA /* xml */ = {
@@ -43697,8 +43664,6 @@
 				B2D3DA650D006CD600EF6F3A /* OpenTypeCG.h in Headers */,
 				B2D3DA650D006CD600EF6F27 /* OpenTypeMathData.h in Headers */,
 				B2D3EA650D006CD600EF6F28 /* OpenTypeTypes.h in Headers */,
-				118B068C25E41E530070BE4B /* OpenXRExtensions.h in Headers */,
-				118B068E25E41E530070BE4B /* OpenXRUtils.h in Headers */,
 				F4E9E2472A23C77B00A5B134 /* OpportunisticTaskScheduler.h in Headers */,
 				71207340216DFB0000C78329 /* OptionalEffectTiming.h in Headers */,
 				CDE7FC45181904B1002BBB77 /* OrderIterator.h in Headers */,
@@ -43928,7 +43893,6 @@
 				F491A66B2A9FEFA300F96146 /* PlatformWheelEvent.serialization.in in Headers */,
 				E1EE8B722412B2A800E794D6 /* PlatformXR.h in Headers */,
 				5273CC77256103CF00850007 /* PlatformXRCocoa.h in Headers */,
-				E1C1A39E2480080800E0AF66 /* PlatformXROpenXR.h in Headers */,
 				3A3A05812B04973800017309 /* PlatformXRPose.h in Headers */,
 				712BE4801FE864A7002031CC /* PlaybackDirection.h in Headers */,
 				A19310D22D100972003C8410 /* PlaybackSessionInterfaceAVKit.h in Headers */,

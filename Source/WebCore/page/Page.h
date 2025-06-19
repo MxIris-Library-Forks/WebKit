@@ -29,6 +29,7 @@
 #include "FindOptions.h"
 #include "FrameLoaderTypes.h"
 #include "HistoryItem.h"
+#include "ImageTypes.h"
 #include "IntRectHash.h"
 #include "LoadSchedulingMode.h"
 #include "MediaSessionGroupIdentifier.h"
@@ -914,6 +915,7 @@ public:
 
     WEBCORE_EXPORT void updateFixedContainerEdges(OptionSet<BoxSideFlag>);
     const FixedContainerEdges& fixedContainerEdges() const { return m_fixedContainerEdgesAndElements.first; }
+    Element* lastFixedContainer(BoxSide) const;
 
 #if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
     WEBCORE_EXPORT std::optional<SpatialBackdropSource> spatialBackdropSource() const;
@@ -1342,6 +1344,11 @@ public:
     bool requiresUserGestureForAudioPlayback() const;
     bool requiresUserGestureForVideoPlayback() const;
 
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    Headroom displayEDRHeadroom() const { return m_displayEDRHeadroom; }
+    void updateDisplayEDRHeadroom();
+#endif
+
 private:
     explicit Page(PageConfiguration&&);
 
@@ -1769,6 +1776,10 @@ private:
 
 #if ENABLE(WRITING_TOOLS)
     const UniqueRef<WritingToolsController> m_writingToolsController;
+#endif
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    Headroom m_displayEDRHeadroom { Headroom::None };
 #endif
 
     UncheckedKeyHashSet<std::pair<URL, ScriptTelemetryCategory>> m_reportedScriptsWithTelemetry;

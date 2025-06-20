@@ -15439,6 +15439,7 @@
 		93F9B6DF0BA0FB7200854064 /* JSComment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSComment.h; sourceTree = "<group>"; };
 		93F9B79E0BA6032600854064 /* JSCDATASection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCDATASection.cpp; sourceTree = "<group>"; };
 		93F9B79F0BA6032600854064 /* JSCDATASection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCDATASection.h; sourceTree = "<group>"; };
+		93FAEB772DB45DA000ABF811 /* PopoverInvokerElement.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PopoverInvokerElement.idl; sourceTree = "<group>"; };
 		93FCDB4B26470DD10046DD7D /* SVGPropertyTraits.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SVGPropertyTraits.cpp; sourceTree = "<group>"; };
 		93FDAFC90B11307400E2746F /* EditorInsertAction.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = EditorInsertAction.h; sourceTree = "<group>"; };
 		94077C6F2B92B0570012E357 /* CryptoClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoClient.h; sourceTree = "<group>"; };
@@ -18240,10 +18241,6 @@
 		BC53DA471143134D000D817E /* DOMWrapperWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DOMWrapperWorld.cpp; sourceTree = "<group>"; };
 		BC5823F40C0A98DF0053F1B5 /* JSHTMLElementCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLElementCustom.cpp; sourceTree = "<group>"; };
 		BC5825F20C0B89380053F1B5 /* JSCSSStyleDeclarationCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSStyleDeclarationCustom.cpp; sourceTree = "<group>"; };
-		BC58E4452D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+MediaProgressEvaluator.h"; sourceTree = "<group>"; };
-		BC58E4462D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSCalcTree+MediaProgressEvaluator.cpp"; sourceTree = "<group>"; };
-		BC58E4492D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+ContainerProgressEvaluator.h"; sourceTree = "<group>"; };
-		BC58E44A2D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSCalcTree+ContainerProgressEvaluator.cpp"; sourceTree = "<group>"; };
 		BC5A12DD0DC0414800C9AFAD /* CSSReflectValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSReflectValue.cpp; sourceTree = "<group>"; };
 		BC5A12DE0DC0414800C9AFAD /* CSSReflectValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSReflectValue.h; sourceTree = "<group>"; };
 		BC5A86810C33676000EEA649 /* DOMSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = DOMSelection.cpp; sourceTree = "<group>"; };
@@ -30984,6 +30981,7 @@
 				41A0829922932EF4008426E0 /* PermissionsPolicy.h */,
 				97205AB91239292700B17380 /* PluginDocument.cpp */,
 				97205ABA1239292700B17380 /* PluginDocument.h */,
+				93FAEB772DB45DA000ABF811 /* PopoverInvokerElement.idl */,
 				CDEE393617974259001D7580 /* PublicURLManager.cpp */,
 				10FB084A14E15C7E00A3DB98 /* PublicURLManager.h */,
 				F55B3D971251F12D003EF269 /* RadioInputType.cpp */,
@@ -35838,15 +35836,11 @@
 				BC000BE22C5EA2C40033AA75 /* CSSCalcTree+CalculationValue.h */,
 				BC000BF82C651CF40033AA75 /* CSSCalcTree+ComputedStyleDependencies.cpp */,
 				BC000BF92C651CF40033AA75 /* CSSCalcTree+ComputedStyleDependencies.h */,
-				BC58E44A2D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.cpp */,
-				BC58E4492D0B6EEE00CDBD94 /* CSSCalcTree+ContainerProgressEvaluator.h */,
 				BC394A422C779379001A629A /* CSSCalcTree+Copy.cpp */,
 				BC394A432C779379001A629A /* CSSCalcTree+Copy.h */,
 				BC000BEE2C613D5D0033AA75 /* CSSCalcTree+Evaluation.cpp */,
 				BC000BEF2C613D810033AA75 /* CSSCalcTree+Evaluation.h */,
 				BCF13C432D441F0A007A694E /* CSSCalcTree+Mappings.h */,
-				BC58E4462D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.cpp */,
-				BC58E4452D0A13C700CDBD94 /* CSSCalcTree+MediaProgressEvaluator.h */,
 				BCEEF6752C6A865C00468D58 /* CSSCalcTree+NumericIdentity.h */,
 				BC000BDD2C5AB2310033AA75 /* CSSCalcTree+Parser.cpp */,
 				BC000BDC2C5AA55E0033AA75 /* CSSCalcTree+Parser.h */,

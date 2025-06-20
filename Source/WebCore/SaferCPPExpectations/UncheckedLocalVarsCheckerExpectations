@@ -99,7 +99,6 @@ css/SelectorFilter.cpp
 css/StyleAttributeMutationScope.h
 css/StyleRuleImport.cpp
 css/StyleSheetContents.cpp
-css/calc/CSSCalcTree+ContainerProgressEvaluator.cpp
 css/parser/SizesAttributeParser.cpp
 css/query/ContainerQueryFeatures.cpp
 css/typedom/ComputedStylePropertyMapReadOnly.cpp
@@ -625,8 +624,6 @@ testing/Internals.mm
 testing/ServiceWorkerInternals.cpp
 testing/js/WebCoreTestSupport.cpp
 workers/WorkerGlobalScope.cpp
-workers/WorkerMessagingProxy.cpp
 workers/WorkerOrWorkletThread.cpp
 workers/WorkerRunLoop.cpp
 workers/service/server/SWServer.cpp
-worklets/Worklet.cpp

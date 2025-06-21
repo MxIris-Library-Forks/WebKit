@@ -252,9 +252,9 @@ namespace WebCore {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(Page);
 
-static UncheckedKeyHashSet<WeakRef<Page>>& allPages()
+static HashSet<WeakRef<Page>>& allPages()
 {
-    static NeverDestroyed<UncheckedKeyHashSet<WeakRef<Page>>> set;
+    static NeverDestroyed<HashSet<WeakRef<Page>>> set;
     return set;
 }
 
@@ -1726,9 +1726,14 @@ void Page::screenPropertiesDidChange()
 #endif
 #if HAVE(SUPPORT_HDR_DISPLAY)
     updateDisplayEDRHeadroom();
+    updateDisplayEDRSuppression();
 #endif
 
     setNeedsRecalcStyleInAllFrames();
+
+    forEachRenderableDocument([this] (Document& document) {
+        document.screenPropertiesDidChange(m_displayID);
+    });
 }
 
 void Page::windowScreenDidChange(PlatformDisplayID displayID, std::optional<FramesPerSecond> nominalFramesPerSecond)
@@ -2250,7 +2255,7 @@ void Page::updateRendering()
     });
 
     for (auto& document : initialDocuments) {
-        if (document && document->domWindow())
+        if (document && document->window())
             document->protectedWindow()->unfreezeNowTimestamp();
     }
 
@@ -2765,7 +2770,7 @@ const String& Page::userStyleSheet() const
 void Page::userAgentChanged()
 {
     forEachDocument([] (Document& document) {
-        if (RefPtr window = document.domWindow()) {
+        if (RefPtr window = document.window()) {
             if (RefPtr navigator = window->optionalNavigator())
                 navigator->userAgentChanged();
         }
@@ -4473,7 +4478,7 @@ void Page::forEachLocalFrame(NOESCAPE const Function<void(LocalFrame&)>& functor
 
 void Page::forEachWindowEventLoop(NOESCAPE const Function<void(WindowEventLoop&)>& functor)
 {
-    UncheckedKeyHashSet<Ref<WindowEventLoop>> windowEventLoops;
+    HashSet<Ref<WindowEventLoop>> windowEventLoops;
     RefPtr<WindowEventLoop> lastEventLoop;
     for (RefPtr frame = mainFrame(); frame; frame = frame->tree().traverseNext()) {
         RefPtr localFrame = dynamicDowncast<LocalFrame>(*frame);
@@ -5807,6 +5812,18 @@ void Page::updateDisplayEDRHeadroom()
         if (RefPtr view = document.view())
             view->setDescendantsNeedUpdateBackingAndHierarchyTraversal();
     });
+}
+
+void Page::updateDisplayEDRSuppression()
+{
+    bool suppressEDR = suppressEDRForDisplay(m_displayID);
+    if (suppressEDR == m_suppressEDR)
+        return;
+
+    LOG_WITH_STREAM(HDR, stream << "Page " << this << " updateDisplayEDRSuppression " << m_suppressEDR << " to " << suppressEDR);
+    m_suppressEDR = suppressEDR;
+
+    forceRepaintAllFrames();
 }
 #endif
 

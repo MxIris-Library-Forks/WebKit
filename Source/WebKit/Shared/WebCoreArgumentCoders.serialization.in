@@ -2493,6 +2493,7 @@ header: <WebCore/ScreenProperties.h>
     bool screenHasInvertedColors;
     bool screenSupportsHighDynamicRange;
 #if HAVE(SUPPORT_HDR_DISPLAY)
+    bool suppressEDR;
     float currentEDRHeadroom;
     float maxEDRHeadroom;
 #endif
@@ -5331,6 +5332,11 @@ header: <WebCore/DisplayListItems.h>
     WebCore::ImageOrientation::Orientation orientation()
 };
 
+[AdditionalEncoder=StreamConnectionEncoder] enum class WebCore::DrawsHDRContent : uint8_t {
+    No,
+    Yes
+};
+
 header: <WebCore/ImageTypes.h>
 [CustomHeader, AdditionalEncoder=StreamConnectionEncoder] struct WebCore::Headroom {
     float headroom;
@@ -5342,6 +5348,7 @@ header: <WebCore/ImageTypes.h>
     WebCore::DecodingMode decodingMode();
     WebCore::ImageOrientation::Orientation orientation().orientation();
     WebCore::InterpolationQuality interpolationQuality();
+    WebCore::DrawsHDRContent drawsHDRContent();
     WebCore::Headroom headroom();
     WebCore::PlatformDynamicRangeLimit dynamicRangeLimit();
 };

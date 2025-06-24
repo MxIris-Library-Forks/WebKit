@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,44 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "config.h"
 
-#include <wtf/HashTraits.h>
-#include <wtf/OptionSet.h>
-#include <wtf/text/ASCIILiteral.h>
+#import "ArgumentCoders.h"
+#import "Logging.h"
 
-namespace WebCore {
+#import <wtf/MachSendRightAnnotated.h>
 
-enum class AdvancedPrivacyProtections : uint16_t;
+namespace IPC {
 
-enum class ScriptTelemetryCategory : uint8_t {
-    Unspecified = 0,
-    Audio,
-    Canvas,
-    Cookies,
-    HardwareConcurrency,
-    LocalStorage,
-    Payments,
-    QueryParameters,
-    Referrer,
-    ScreenOrViewport,
-    Speech,
-    FormControls,
-};
+void ArgumentCoder<WTF::MachSendRightAnnotated>::encode(Encoder& encoder, const WTF::MachSendRightAnnotated& instance)
+{
+    MachSendRight sendRight = MachSendRight::create(instance.sendRight.sendRight());
+    encoder << WTFMove(sendRight);
+    encoder << instance.data;
+}
 
-String makeLogMessage(const URL&, ScriptTelemetryCategory);
-ASCIILiteral description(ScriptTelemetryCategory);
-
-bool shouldEnableScriptTelemetry(ScriptTelemetryCategory, OptionSet<AdvancedPrivacyProtections>);
-
-} // namespace WebCore
-
-namespace WTF {
-
-template<typename T> struct DefaultHash;
-template<> struct DefaultHash<WebCore::ScriptTelemetryCategory> : public IntHash<WebCore::ScriptTelemetryCategory> { };
-
-template<typename T> struct HashTraits;
-template<> struct HashTraits<WebCore::ScriptTelemetryCategory> : public StrongEnumHashTraits<WebCore::ScriptTelemetryCategory> { };
-
-} // namespace WTF
+}

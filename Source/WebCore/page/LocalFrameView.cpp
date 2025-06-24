@@ -1192,7 +1192,7 @@ void LocalFrameView::forceLayoutParentViewIfNeeded()
     // correct size, which LegacyRenderSVGRoot::computeReplacedLogicalWidth/Height rely on, when laying
     // out for the first time, or when the LegacyRenderSVGRoot size has changed dynamically (eg. via <script>).
 
-    ownerRenderer->setNeedsLayoutAndPrefWidthsRecalc();
+    ownerRenderer->setNeedsLayoutAndPreferredWidthsUpdate();
     ownerRenderer->view().frameView().layoutContext().scheduleLayout();
 }
 
@@ -1283,6 +1283,8 @@ void LocalFrameView::didLayout(SingleThreadWeakPtr<RenderElement> layoutRoot, bo
 
     updateCanBlitOnScrollRecursively();
 
+    updateScrollGeometryContentSize();
+
     handleDeferredScrollUpdateAfterContentSizeChange();
 
     handleDeferredScrollbarsUpdate();
@@ -1293,6 +1295,18 @@ void LocalFrameView::didLayout(SingleThreadWeakPtr<RenderElement> layoutRoot, bo
 
     if (CheckedPtr markers = document->markersIfExists())
         markers->invalidateRectsForAllMarkers();
+}
+
+void LocalFrameView::updateScrollGeometryContentSize()
+{
+    if (!m_frame->isMainFrame())
+        return;
+
+    RefPtr page = m_frame->page();
+    if (!page || !page->chrome().client().needsScrollGeometryUpdates())
+        return;
+
+    m_scrollGeometryContentSize = contentsSize();
 }
 
 bool LocalFrameView::shouldDeferScrollUpdateAfterContentSizeChange()
@@ -5609,7 +5623,7 @@ void LocalFrameView::forceLayoutForPagination(const FloatSize& pageSize, const F
     float pageLogicalHeight = isHorizontalWritingMode ? pageSize.height() : pageSize.width();
 
     renderView.setPageLogicalSize({ floor(pageLogicalWidth), floor(pageLogicalHeight) });
-    renderView.setNeedsLayoutAndPrefWidthsRecalc();
+    renderView.setNeedsLayoutAndPreferredWidthsUpdate();
     forceLayout();
     if (hasOneRef())
         return;
@@ -5628,7 +5642,7 @@ void LocalFrameView::forceLayoutForPagination(const FloatSize& pageSize, const F
         pageLogicalHeight = isHorizontalWritingMode ? maxPageSize.height() : maxPageSize.width();
 
         renderView.setPageLogicalSize({ floor(pageLogicalWidth), floor(pageLogicalHeight) });
-        renderView.setNeedsLayoutAndPrefWidthsRecalc();
+        renderView.setNeedsLayoutAndPreferredWidthsUpdate();
         forceLayout();
         if (hasOneRef())
             return;

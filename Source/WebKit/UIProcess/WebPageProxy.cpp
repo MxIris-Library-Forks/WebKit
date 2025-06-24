@@ -232,7 +232,6 @@
 #include <WebCore/FrameLoaderClient.h>
 #include <WebCore/GlobalFrameIdentifier.h>
 #include <WebCore/GlobalWindowIdentifier.h>
-#include <WebCore/HistoryItem.h>
 #include <WebCore/ImageBuffer.h>
 #include <WebCore/LegacySchemeRegistry.h>
 #include <WebCore/LengthBox.h>
@@ -943,8 +942,8 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
             protectedThis->sendCachedLinkDecorationFilteringData();
     });
 
-    if (protectedPreferences()->scriptTelemetryEnabled())
-        process.protectedProcessPool()->observeScriptTelemetryUpdatesIfNeeded();
+    if (protectedPreferences()->scriptTrackingPrivacyProtectionsEnabled())
+        process.protectedProcessPool()->observeScriptTrackingPrivacyUpdatesIfNeeded();
 #endif // ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
 
 #if HAVE(AUDIT_TOKEN)
@@ -2932,6 +2931,15 @@ WebCore::FloatPoint WebPageProxy::viewScrollPosition() const
 {
     RefPtr pageClient = this->pageClient();
     return pageClient ? pageClient->viewScrollPosition() : WebCore::FloatPoint { };
+}
+
+void WebPageProxy::setNeedsScrollGeometryUpdates(bool needsScrollGeometryUpdates)
+{
+    if (m_needsScrollGeometryUpdates == needsScrollGeometryUpdates)
+        return;
+
+    m_needsScrollGeometryUpdates = needsScrollGeometryUpdates;
+    send(Messages::WebPage::SetNeedsScrollGeometryUpdates(m_needsScrollGeometryUpdates));
 }
 
 void WebPageProxy::setSuppressVisibilityUpdates(bool flag)
@@ -8135,10 +8143,10 @@ void WebPageProxy::adjustAdvancedPrivacyProtectionsIfNeeded(API::WebsitePolicies
     if (!protectedWebsiteDataStore()->trackingPreventionEnabled())
         return;
 
-    if (!protectedPreferences()->scriptTelemetryEnabled())
+    if (!protectedPreferences()->scriptTrackingPrivacyProtectionsEnabled())
         return;
 
-    policies.setAdvancedPrivacyProtections(policies.advancedPrivacyProtections() | AdvancedPrivacyProtections::ScriptTelemetry);
+    policies.setAdvancedPrivacyProtections(policies.advancedPrivacyProtections() | AdvancedPrivacyProtections::ScriptTrackingPrivacy);
 }
 
 RefPtr<WebPageProxy> WebPageProxy::nonEphemeralWebPageProxy()
@@ -11906,6 +11914,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
 #endif
 
     parameters.needsFontAttributes = m_needsFontAttributes;
+    parameters.needsScrollGeometryUpdates = m_needsScrollGeometryUpdates;
     parameters.backgroundColor = internals().backgroundColor;
 
     parameters.overriddenMediaType = m_overriddenMediaType;

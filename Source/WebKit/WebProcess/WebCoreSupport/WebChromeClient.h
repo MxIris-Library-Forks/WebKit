@@ -480,6 +480,8 @@ private:
 #endif
     }
 
+    bool needsScrollGeometryUpdates() const final;
+
 #if ENABLE(TEXT_AUTOSIZING)
     void textAutosizingUsesIdempotentModeChanged() final;
 #endif
@@ -545,7 +547,7 @@ private:
     void clearAnimationsForActiveWritingToolsSession() final;
 #endif
 
-    bool requiresScriptTelemetryForURL(const URL&, const WebCore::SecurityOrigin& topOrigin) const final;
+    bool requiresScriptTrackingPrivacyProtections(const URL&, const WebCore::SecurityOrigin& topOrigin) const final;
 
     void setIsInRedo(bool) final;
 

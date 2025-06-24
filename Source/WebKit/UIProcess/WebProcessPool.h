@@ -607,7 +607,7 @@ public:
     void setWebProcessStateUpdatesForPageClientEnabled(bool enabled) { m_webProcessStateUpdatesForPageClientEnabled = enabled; }
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    void observeScriptTelemetryUpdatesIfNeeded();
+    void observeScriptTrackingPrivacyUpdatesIfNeeded();
 #endif
 
 #if ENABLE(WEB_PROCESS_SUSPENSION_DELAY)
@@ -848,6 +848,10 @@ private:
     RetainPtr<NSObject> m_scrollerStyleNotificationObserver;
     RetainPtr<NSObject> m_deactivationObserver;
     RetainPtr<NSObject> m_didChangeScreenParametersNotificationObserver;
+#if HAVE(SUPPORT_HDR_DISPLAY_APIS)
+    RetainPtr<NSObject> m_didBeginSuppressingHighDynamicRange;
+    RetainPtr<NSObject> m_didEndSuppressingHighDynamicRange;
+#endif
     RetainPtr<WKWebInspectorPreferenceObserver> m_webInspectorPreferenceObserver;
 
     const UniqueRef<PerActivityStateCPUUsageSampler> m_perActivityStateCPUUsageSampler;
@@ -1002,7 +1006,7 @@ private:
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
     RefPtr<ListDataObserver> m_storageAccessUserAgentStringQuirksDataUpdateObserver;
     RefPtr<ListDataObserver> m_storageAccessPromptQuirksDataUpdateObserver;
-    RefPtr<ListDataObserver> m_scriptTelemetryDataUpdateObserver;
+    RefPtr<ListDataObserver> m_scriptTrackingPrivacyDataUpdateObserver;
 #endif
 
     bool m_webProcessStateUpdatesForPageClientEnabled { false };

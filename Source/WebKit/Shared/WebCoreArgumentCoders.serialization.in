@@ -6168,7 +6168,7 @@ enum class WebCore::AllowsContentJavaScript : bool
     FingerprintingProtections,
     EnhancedNetworkPrivacy,
     LinkDecorationFiltering,
-    ScriptTelemetry,
+    ScriptTrackingPrivacy,
     FailClosedForAllHosts,
 };
 
@@ -8916,7 +8916,7 @@ enum class WebCore::WillInternallyHandleFailure : bool
 enum class WebCore::ApplyTrackingPrevention : bool
 enum class WebCore::ShouldSample : bool
 enum class WebCore::FromDownloadAttribute : bool
-enum class WebCore::RequiresScriptTelemetry : bool
+enum class WebCore::RequiresScriptTrackingPrivacy : bool
 
 [Nested] struct WebCore::Allowlist::AllowAllOrigins {
 };
@@ -9188,3 +9188,10 @@ struct WebCore::MessageForTesting {
     AtomString type;
     String data;
 };
+
+struct WebCore::HostingContext {
+    uint32_t contextID;
+#if ENABLE(MACH_PORT_LAYER_HOSTING)
+    WTF::MachSendRightAnnotated sendRightAnnotated;
+#endif
+}

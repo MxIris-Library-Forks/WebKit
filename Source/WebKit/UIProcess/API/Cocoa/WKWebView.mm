@@ -2367,6 +2367,11 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
     _maximumViewportInset = maximumViewportInset;
 }
 
+- (void)_setNeedsScrollGeometryUpdates:(BOOL)needsScrollGeometryUpdates
+{
+    _page->setNeedsScrollGeometryUpdates(needsScrollGeometryUpdates);
+}
+
 #if ENABLE(WRITING_TOOLS)
 
 #pragma mark - Writing Tools API
@@ -3302,6 +3307,11 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
 
 - (void)colorExtensionViewWillDisappear:(WKColorExtensionView *)view
 {
+#if PLATFORM(MAC)
+    if (view == _fixedColorExtensionViews.at(WebCore::BoxSide::Top))
+        _impl->updatePrefersSolidColorHardPocket();
+#endif
+
 #if PLATFORM(IOS_FAMILY)
     [self _updateHiddenScrollPocketEdges];
 #endif
@@ -3309,6 +3319,11 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
 
 - (void)colorExtensionViewDidAppear:(WKColorExtensionView *)view
 {
+#if PLATFORM(MAC)
+    if (view == _fixedColorExtensionViews.at(WebCore::BoxSide::Top))
+        _impl->updatePrefersSolidColorHardPocket();
+#endif
+
 #if PLATFORM(IOS_FAMILY)
     [self _updateHiddenScrollPocketEdges];
 #endif

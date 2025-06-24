@@ -132,6 +132,7 @@ header: "RemoteLayerBackingStore.h"
     Vector<IPC::AsyncReplyID> m_callbackIDs;
 
     WebCore::IntSize m_contentsSize;
+    WebCore::IntSize m_scrollGeometryContentSize;
     WebCore::IntPoint m_scrollOrigin;
     WebCore::LayoutSize m_baseLayoutViewportSize;
     WebCore::LayoutPoint m_minStableLayoutViewportOrigin;
@@ -191,6 +192,9 @@ headers: "LayerProperties.h" "PlatformCALayerRemote.h"
 
 [Nested] struct WebKit::RemoteLayerTreeTransaction::LayerCreationProperties::CustomData {
     uint32_t hostingContextID;
+#if ENABLE(MACH_PORT_LAYER_HOSTING)
+    std::optional<WTF::MachSendRightAnnotated> sendRightAnnotated;
+#endif
     float hostingDeviceScaleFactor;
     bool preservesFlip;
 };

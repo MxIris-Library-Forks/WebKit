@@ -208,8 +208,11 @@ float NumberInputType::decorationWidth() const
         // Since the width of spinRenderer is not calculated yet, spinRenderer->logicalWidth() returns 0.
         // So computedStyle()->logicalWidth() is used instead.
 
-        // FIXME: Document what invariant holds to allow not checking if the logicalWidth() is fixed.
-        width += spinButton->computedStyle()->logicalWidth().tryFixed()->value;
+        // FIXME <https://webkit.org/b/294858>: This is incorrect for anything other than fixed widths.
+        if (auto fixedLogicalWidth = spinButton->computedStyle()->logicalWidth().tryFixed())
+            width += fixedLogicalWidth->value;
+        else if (auto percentageLogicalWidth = spinButton->computedStyle()->logicalWidth().tryPercentage())
+            width += percentageLogicalWidth->value;
     }
     return width;
 }
@@ -302,14 +305,14 @@ void NumberInputType::attributeChanged(const QualifiedName& name)
         if (RefPtr element = this->element()) {
             element->invalidateStyleForSubtree();
             if (CheckedPtr renderer = element->renderer())
-                renderer->setNeedsLayoutAndPrefWidthsRecalc();
+                renderer->setNeedsLayoutAndPreferredWidthsUpdate();
         }
         break;
     case AttributeNames::classAttr:
     case AttributeNames::stepAttr:
         if (RefPtr element = this->element()) {
             if (CheckedPtr renderer = element->renderer())
-                renderer->setNeedsLayoutAndPrefWidthsRecalc();
+                renderer->setNeedsLayoutAndPreferredWidthsUpdate();
         }
         break;
     default:

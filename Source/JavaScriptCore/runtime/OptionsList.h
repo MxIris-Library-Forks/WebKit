@@ -116,6 +116,7 @@ bool hasCapacityToUseLargeGigacage();
     v(Bool, forceDebuggerBytecodeGeneration, false, Normal, nullptr) \
     v(Bool, debuggerTriggersBreakpointException, false, Normal, "Using the debugger statement will trigger an breakpoint exception (Useful when lldbing)"_s) \
     v(Bool, dumpBytecodesBeforeGeneratorification, false, Normal, nullptr) \
+    v(Unsigned, switchJumpTableAmountThreshold, 15, Normal, nullptr) \
     \
     v(Bool, useFunctionDotArguments, true, Normal, nullptr) \
     v(Bool, useTailCalls, true, Normal, nullptr) \
@@ -307,7 +308,7 @@ bool hasCapacityToUseLargeGigacage();
     v(Unsigned, maximumFunctionForClosureCallInlineCandidateBytecodeCostForFTL, 100, Normal, nullptr) \
     v(Unsigned, maximumFunctionForConstructInlineCandidateBytecodeCostForFTL, 100, Normal, nullptr) \
     \
-    v(Unsigned, maximumFTLCandidateBytecodeCost, 20000, Normal, nullptr) \
+    v(Unsigned, maximumFTLCandidateBytecodeCost, 60000, Normal, nullptr) \
     \
     v(Double, ratioFTLNodesToBytecodeCost, 1.9, Normal, "Ratio converting FTL # of DFG nodes to approx bytecode cost") \
     \

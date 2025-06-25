@@ -23,19 +23,43 @@
  */
 
 #include "config.h"
-#include "StylePadding.h"
+#include "StyleClipPath.h"
 
-#include "StyleBuilderConverter.h"
-#include "StyleBuilderState.h"
+#include "StylePrimitiveNumericTypes+Blending.h"
 
 namespace WebCore {
 namespace Style {
 
 // MARK: - Conversion
 
-auto CSSValueConversion<PaddingEdge>::operator()(BuilderState& state, const CSSValue& value) -> PaddingEdge
+auto CSSValueConversion<ClipPath>::operator()(BuilderState& state, const CSSValue& value) -> ClipPath
 {
-    return PaddingEdge { BuilderConverter::convertLength(state, value) };
+    return ClipPath { toStyleFromCSSValue<RefPtr<PathOperation>>(state, value, SupportRayPathOperation::No) };
+}
+
+// MARK: - Blending
+
+auto Blending<ClipPath>::canBlend(const ClipPath& a, const ClipPath& b) -> bool
+{
+    if (a.isNone() || b.isNone())
+        return false;
+
+    Ref aOperation = *a.operation;
+    Ref bOperation = *b.operation;
+    return aOperation->canBlend(bOperation);
+}
+
+auto Blending<ClipPath>::blend(const ClipPath& a, const ClipPath& b, const BlendingContext& context) -> ClipPath
+{
+    if (context.isDiscrete) {
+        ASSERT(!context.progress || context.progress == 1.0);
+        return context.progress ? b : a;
+    }
+
+    ASSERT(canBlend(a, b));
+    Ref aOperation = *a.operation;
+    Ref bOperation = *b.operation;
+    return ClipPath { aOperation->blend(bOperation.ptr(), context) };
 }
 
 } // namespace Style

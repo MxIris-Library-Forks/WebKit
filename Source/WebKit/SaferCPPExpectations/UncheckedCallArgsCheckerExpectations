@@ -18,7 +18,6 @@ NetworkProcess/SharedWorker/WebSharedWorkerServerConnection.cpp
 NetworkProcess/cache/AsyncRevalidation.cpp
 NetworkProcess/cocoa/NetworkDataTaskCocoa.mm
 NetworkProcess/cocoa/NetworkSessionCocoa.mm
-NetworkProcess/cocoa/NetworkTaskCocoa.mm
 NetworkProcess/cocoa/WKURLSessionTaskDelegate.mm
 NetworkProcess/cocoa/WebSocketTaskCocoa.mm
 NetworkProcess/storage/LocalStorageManager.cpp
@@ -43,12 +42,9 @@ UIProcess/Cocoa/VideoPresentationManagerProxy.mm
 UIProcess/DisplayLink.cpp
 UIProcess/Inspector/WebPageInspectorController.cpp
 UIProcess/Inspector/mac/RemoteWebInspectorUIProxyMac.mm
-UIProcess/ProvisionalPageProxy.cpp
 UIProcess/RemoteLayerTree/RemoteLayerTreeDrawingAreaProxy.mm
-UIProcess/RemoteLayerTree/RemoteLayerTreeHost.mm
 UIProcess/RemoteLayerTree/mac/RemoteLayerTreeDrawingAreaProxyMac.mm
 UIProcess/RemoteLayerTree/mac/RemoteLayerTreeEventDispatcher.mm
-UIProcess/RemoteLayerTree/mac/RemoteScrollingCoordinatorProxyMac.mm
 UIProcess/WebFullScreenManagerProxy.cpp
 UIProcess/WebPageProxy.cpp
 UIProcess/mac/PageClientImplMac.mm
@@ -96,9 +92,7 @@ WebProcess/Plugins/PDF/UnifiedPDF/UnifiedPDFPlugin.mm
 WebProcess/Plugins/PDF/WKAccessibilityPDFDocumentObject.mm
 WebProcess/Speech/SpeechRecognitionRealtimeMediaSourceManager.cpp
 WebProcess/Storage/WebServiceWorkerFetchTaskClient.cpp
-WebProcess/Storage/WebServiceWorkerProvider.cpp
 WebProcess/WebCoreSupport/WebChromeClient.cpp
-WebProcess/WebCoreSupport/WebValidationMessageClient.cpp
 WebProcess/WebCoreSupport/mac/WebPopupMenuMac.mm
 WebProcess/WebPage/Cocoa/TextAnimationController.mm
 WebProcess/WebPage/Cocoa/WebPageCocoa.mm

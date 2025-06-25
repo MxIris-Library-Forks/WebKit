@@ -1,8 +1,6 @@
-Modules/applepay/ApplePaySession.cpp
 Modules/encryptedmedia/MediaKeySystemRequest.cpp
 Modules/gamepad/GamepadHapticActuator.cpp
 Modules/geolocation/GeolocationController.cpp
-Modules/highlight/AppHighlightStorage.cpp
 Modules/highlight/Highlight.cpp
 Modules/indexeddb/IDBCursor.cpp
 Modules/indexeddb/IDBTransaction.cpp
@@ -46,7 +44,6 @@ accessibility/cocoa/AccessibilityObjectCocoa.mm
 accessibility/isolatedtree/AXIsolatedObject.cpp
 accessibility/isolatedtree/AXIsolatedTree.cpp
 accessibility/mac/AccessibilityObjectMac.mm
-accessibility/mac/WebAccessibilityObjectWrapperBase.mm
 accessibility/mac/WebAccessibilityObjectWrapperMac.mm
 animation/AcceleratedEffectStackUpdater.cpp
 animation/BlendingKeyframes.cpp
@@ -123,7 +120,6 @@ dom/Position.cpp
 dom/PositionIterator.cpp
 dom/RadioButtonGroups.cpp
 dom/Range.cpp
-dom/ScriptExecutionContext.cpp
 dom/SelectorQuery.cpp
 dom/ShadowRoot.cpp
 dom/SimpleRange.cpp
@@ -342,7 +338,6 @@ page/ScreenOrientation.cpp
 page/ScrollBehavior.cpp
 page/SpatialNavigation.cpp
 page/TextIndicator.cpp
-page/VisualViewport.cpp
 page/WorkerNavigator.cpp
 page/mac/EventHandlerMac.mm
 page/mac/ImageOverlayControllerMac.mm
@@ -358,7 +353,6 @@ platform/DictationCaretAnimator.cpp
 platform/DragImage.cpp
 platform/ScrollView.cpp
 platform/animation/AcceleratedEffect.cpp
-platform/cocoa/VideoPresentationModelVideoElement.mm
 platform/graphics/GraphicsLayer.cpp
 platform/graphics/ca/GraphicsLayerCA.cpp
 platform/graphics/ca/PlatformCALayer.mm

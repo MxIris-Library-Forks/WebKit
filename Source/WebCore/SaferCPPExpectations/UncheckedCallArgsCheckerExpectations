@@ -1,5 +1,4 @@
 Modules/airplay/WebMediaSessionManager.cpp
-Modules/applepay-ams-ui/ApplePayAMSUIPaymentHandler.cpp
 Modules/applicationmanifest/ApplicationManifestParser.cpp
 Modules/async-clipboard/ClipboardItemBindingsDataSource.cpp
 Modules/cookie-store/CookieStore.cpp
@@ -125,7 +124,6 @@ bindings/js/JSWorkletGlobalScopeBase.cpp
 bindings/js/JSXMLHttpRequestCustom.cpp
 bindings/js/ScheduledAction.cpp
 bindings/js/ScriptModuleLoader.cpp
-bindings/js/WindowProxy.cpp
 bridge/objc/WebScriptObject.mm
 bridge/runtime_method.cpp
 contentextensions/ContentExtensionsBackend.cpp
@@ -186,7 +184,6 @@ dom/PositionIterator.cpp
 dom/Range.cpp
 dom/RangeBoundaryPoint.h
 dom/ScriptElement.cpp
-dom/ScriptExecutionContext.cpp
 dom/ScriptRunner.cpp
 dom/SecurityContext.cpp
 dom/SelectorQuery.cpp

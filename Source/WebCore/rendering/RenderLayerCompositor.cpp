@@ -2128,7 +2128,7 @@ static bool clippingChanged(const RenderStyle& oldStyle, const RenderStyle& newS
 
 static bool styleAffectsLayerGeometry(const RenderStyle& style)
 {
-    return style.hasClip() || style.clipPath() || style.hasBorderRadius();
+    return style.hasClip() || style.hasClipPath() || style.hasBorderRadius();
 }
 
 static bool recompositeChangeRequiresGeometryUpdate(const RenderStyle& oldStyle, const RenderStyle& newStyle)
@@ -2146,12 +2146,12 @@ static bool recompositeChangeRequiresGeometryUpdate(const RenderStyle& oldStyle,
         || oldStyle.perspectiveOriginX() != newStyle.perspectiveOriginX()
         || oldStyle.perspectiveOriginY() != newStyle.perspectiveOriginY()
         || oldStyle.backfaceVisibility() != newStyle.backfaceVisibility()
-        || !arePointingToEqualData(oldStyle.offsetPath(), newStyle.offsetPath())
+        || oldStyle.offsetPath() != newStyle.offsetPath()
         || oldStyle.offsetAnchor() != newStyle.offsetAnchor()
         || oldStyle.offsetPosition() != newStyle.offsetPosition()
         || oldStyle.offsetDistance() != newStyle.offsetDistance()
         || oldStyle.offsetRotate() != newStyle.offsetRotate()
-        || !arePointingToEqualData(oldStyle.clipPath(), newStyle.clipPath())
+        || oldStyle.clipPath() != newStyle.clipPath()
         || oldStyle.overscrollBehaviorX() != newStyle.overscrollBehaviorX()
         || oldStyle.overscrollBehaviorY() != newStyle.overscrollBehaviorY();
 }
@@ -5965,6 +5965,8 @@ void RenderLayerCompositor::updateSynchronousScrollingNodes()
     };
     
     auto setHasSlowRepaintObjectsSynchronousScrollingReasonOnRootNode = [&](bool hasSlowRepaintObjects) {
+        if (!rootScrollingNodeID)
+            return;
         // ScrollingCoordinator manages all bits other than HasSlowRepaintObjects, so maintain their current value.
         auto reasons = scrollingCoordinator->synchronousScrollingReasons(*rootScrollingNodeID);
         reasons.set({ SynchronousScrollingReason::HasSlowRepaintObjects }, hasSlowRepaintObjects);

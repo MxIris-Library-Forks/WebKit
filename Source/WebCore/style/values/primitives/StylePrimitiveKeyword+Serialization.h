@@ -22,21 +22,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "StyleMargin.h"
+#pragma once
 
-#include "StyleBuilderConverter.h"
-#include "StyleBuilderState.h"
+#include "CSSPrimitiveValueMappings.h"
+#include "StyleValueTypes.h"
 
 namespace WebCore {
 namespace Style {
 
-// MARK: - Conversion
-
-auto CSSValueConversion<MarginEdge>::operator()(BuilderState& state, const CSSValue& value) -> MarginEdge
-{
-    return MarginEdge { BuilderConverter::convertLengthOrAuto(state, value) };
-}
+template<typename T> requires std::is_enum_v<T> struct Serialize<T> {
+    void operator()(StringBuilder& builder, const CSS::SerializationContext&, const RenderStyle&, T value)
+    {
+        builder.append(nameLiteralForSerialization(toCSSValueID(value)));
+    }
+};
 
 } // namespace Style
 } // namespace WebCore

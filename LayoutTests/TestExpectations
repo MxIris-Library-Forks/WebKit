@@ -973,6 +973,9 @@ imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-e
 imported/w3c/web-platform-tests/html/rendering/the-details-element/details-pseudo-elements-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/the-details-element/details-pseudo-elements-005.html [ ImageOnlyFailure ]
 
+# https://bugs.webkit.org/show_bug.cgi?id=228843
+imported/w3c/web-platform-tests/html/rendering/the-details-element/auto-expand-details-text-fragment.html [ Skip ]
+
 # Cross-Origin-Embedder-Policy: credentialless is not supported.
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/credentialless
 
@@ -7945,6 +7948,8 @@ imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/hidden-until-f
 imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/hidden-until-found-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/hidden-until-found-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/hidden-until-found-007.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/beforematch-scroll-to-text-fragment.html [ Skip ]
+imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/hidden-until-found-text-fragment.html [ Skip ]
 
 # This test hits an assert in debug
 webkit.org/b/290133 [ Debug ] svg/dom/SVGGeometry-isPointInFill-with-null-path.html [ Skip ]

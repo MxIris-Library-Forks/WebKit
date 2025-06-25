@@ -11,10 +11,7 @@ Modules/WebGPU/GPUPresentationContext.cpp
 Modules/WebGPU/GPUQuerySet.cpp
 Modules/WebGPU/GPURenderPassEncoder.cpp
 Modules/airplay/WebMediaSessionManager.cpp
-Modules/applepay-ams-ui/ApplePayAMSUIPaymentHandler.cpp
 Modules/applepay/ApplePaySession.cpp
-Modules/applepay/ApplePaySetup.cpp
-Modules/applepay/PaymentCoordinator.cpp
 Modules/applepay/paymentrequest/ApplePayPaymentHandler.cpp
 Modules/applicationmanifest/ApplicationManifestParser.cpp
 Modules/async-clipboard/Clipboard.cpp
@@ -95,10 +92,6 @@ Modules/model-element/HTMLModelElement.cpp
 Modules/model-element/scenekit/SceneKitModelPlayer.mm
 Modules/notifications/Notification.cpp
 Modules/notifications/NotificationResourcesLoader.cpp
-Modules/paymentrequest/MerchantValidationEvent.cpp
-Modules/paymentrequest/PaymentRequest.cpp
-Modules/paymentrequest/PaymentRequestUpdateEvent.cpp
-Modules/paymentrequest/PaymentResponse.cpp
 Modules/permissions/MainThreadPermissionObserver.cpp
 Modules/permissions/Permissions.cpp
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
@@ -458,7 +451,6 @@ dom/QualifiedName.cpp
 dom/Range.cpp
 dom/RangeBoundaryPoint.h
 dom/RejectedPromiseTracker.cpp
-dom/ScriptExecutionContext.cpp
 dom/ScriptExecutionContextInlines.h
 dom/ScriptRunner.cpp
 dom/SelectorQuery.cpp
@@ -838,7 +830,6 @@ platform/graphics/ca/cocoa/PlatformCAAnimationCocoa.mm
 platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/cocoa/ImageAdapterCocoa.mm
 platform/graphics/cocoa/MediaPlayerCocoa.mm
-platform/graphics/cocoa/SourceBufferParser.cpp
 platform/graphics/controls/ApplePayButtonPart.cpp
 platform/graphics/controls/ButtonPart.h
 platform/graphics/controls/ColorWellPart.h
@@ -1169,7 +1160,6 @@ testing/LegacyMockCDM.cpp
 testing/MockMediaSessionCoordinator.cpp
 testing/MockPageOverlay.cpp
 testing/MockPageOverlayClient.cpp
-testing/MockPaymentCoordinator.cpp
 testing/ServiceWorkerInternals.cpp
 testing/js/WebCoreTestSupport.cpp
 workers/DedicatedWorkerGlobalScope.cpp

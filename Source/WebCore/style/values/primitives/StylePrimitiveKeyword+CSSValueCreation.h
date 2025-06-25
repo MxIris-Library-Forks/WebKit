@@ -22,23 +22,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "StyleMaximumSize.h"
+#pragma once
 
-#include "StyleBuilderConverter.h"
-#include "StyleBuilderState.h"
+#include "CSSValuePool.h"
+#include "StyleValueTypes.h"
 
 namespace WebCore {
 namespace Style {
 
-// MARK: - Conversion
-
-auto CSSValueConversion<MaximumSize>::operator()(BuilderState& state, const CSSValue& value) -> MaximumSize
-{
-    if (value.valueID() == CSSValueNone)
-        return MaximumSize { CSS::Keyword::None { } };
-    return MaximumSize { BuilderConverter::convertLengthSizing(state, value) };
-}
+template<typename T> requires std::is_enum_v<T> struct CSSValueCreation<T> {
+    Ref<CSSValue> operator()(CSSValuePool&, const RenderStyle&, T value)
+    {
+        return CSSPrimitiveValue::create(toCSSValueID(value));
+    }
+};
 
 } // namespace Style
 } // namespace WebCore

@@ -3797,7 +3797,7 @@
 		95EAD593266EF5CD004B9CF1 /* JSApplePayRecurringPaymentDateUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 95EAD591266EF5CC004B9CF1 /* JSApplePayRecurringPaymentDateUnit.h */; };
 		95EAD594266EF5D4004B9CF1 /* JSApplePayPaymentRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C6579EC1E00856600E3A27A /* JSApplePayPaymentRequest.h */; };
 		95EAD597266EF60B004B9CF1 /* JSApplePayShippingContactEditingMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 95EAD595266EF609004B9CF1 /* JSApplePayShippingContactEditingMode.h */; };
-		95F45D27264DFBF100D0B8B8 /* PageColorSampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 95F45D26264DFBEB00D0B8B8 /* PageColorSampler.h */; };
+		95F45D27264DFBF100D0B8B8 /* PageColorSampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 95F45D26264DFBEB00D0B8B8 /* PageColorSampler.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95FB662526D7033C0068AC67 /* ApplePayAMSUIPaymentHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 95FB662126D7033B0068AC67 /* ApplePayAMSUIPaymentHandler.h */; };
 		95FB662626D7033C0068AC67 /* ApplePayAMSUIRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 95FB662226D7033B0068AC67 /* ApplePayAMSUIRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9705997A107D975200A50A7C /* PolicyChecker.h in Headers */ = {isa = PBXBuildFile; fileRef = 97059976107D975200A50A7C /* PolicyChecker.h */; settings = {ATTRIBUTES = (Private, ); }; };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia, S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,18 +23,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "LinearMediaKitSPI.h"
+#if ENABLE(WEBXR) && USE(OPENXR)
 
-#if TARGET_OS_VISION
+#include "config.h"
+#include "PlatformXRSystem.h"
 
-NS_ASSUME_NONNULL_BEGIN
+#include "PlatformXROpenXR.h"
+#include <wtf/NeverDestroyed.h>
 
-@interface LMPlayableViewController (WKSExtras)
-@property (nonatomic) BOOL wks_automaticallyDockOnFullScreenPresentation;
-@property (nonatomic) BOOL wks_dismissFullScreenOnExitingDocking;
-@property (nonatomic, readonly, strong, nullable) UIViewController *wks_environmentPickerButtonViewController;
-@end
+namespace WebKit {
 
-NS_ASSUME_NONNULL_END
+PlatformXRCoordinator* PlatformXRSystem::xrCoordinator()
+{
+    static LazyNeverDestroyed<OpenXRCoordinator> xrCoordinator;
+    static std::once_flag once;
+    std::call_once(once, [] {
+        xrCoordinator.construct();
+    });
+    return &xrCoordinator.get();
+}
 
-#endif // TARGET_OS_VISION
+} // namespace WebKit
+
+#endif // ENABLE(WEBXR) && USE(OPENXR)

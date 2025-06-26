@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia, S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,28 +25,6 @@
 
 #pragma once
 
-#import <TargetConditionals.h>
-#import <wtf/Compiler.h>
-
-DECLARE_SYSTEM_HEADER
-
-#if TARGET_OS_VISION
-
-#import <UIKit/UIKit.h>
-
-#if __has_include(<AVKit/LMPlayableViewController.h>)
-
-#import <AVKit/LMPlayableViewController.h>
-
-#elif __has_include(<LinearMediaKit/LMPlayableViewController.h>)
-
-#import <LinearMediaKit/LMPlayableViewController.h>
-
-#else
-
-@interface LMPlayableViewController : UIViewController
-@end
-
+#if ENABLE(WEBXR) && USE(EMPTYXR)
+#include "PlatformXR.h"
 #endif
-
-#endif // TARGET_OS_VISION

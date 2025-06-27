@@ -941,8 +941,6 @@ rendering/RenderTreeAsText.cpp
 rendering/RenderView.cpp
 rendering/RenderWidget.cpp
 rendering/TextBoxPainter.cpp
-rendering/cocoa/RenderThemeCocoa.mm
-rendering/mac/RenderThemeMac.mm
 rendering/mathml/MathOperator.cpp
 rendering/mathml/RenderMathMLFraction.cpp
 rendering/mathml/RenderMathMLMenclose.h
@@ -1046,6 +1044,7 @@ style/Styleable.cpp
 style/Styleable.h
 style/TransformOperationsBuilder.cpp
 style/UserAgentStyle.cpp
+style/values/svg/StyleSVGPaint.cpp
 style/values/transforms/StyleRotate.cpp
 style/values/transforms/StyleScale.cpp
 style/values/transforms/StyleTranslate.cpp

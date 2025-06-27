@@ -87,6 +87,9 @@ fast/images/heic-as-background-image.html [ Pass ]
 [ Sonoma+ ] fast/images/jpegxl-as-image.html [ Pass ]
 [ Sonoma+ ] fast/images/jpegxl-with-color-profile.html [ Pass ]
 
+# Video as an image source is only supported on macOS and iOS.
+fast/images/video-as-image.html [ Pass ]
+
 # Enabled in rdar://102830993
 fast/images/mac/play-all-pause-all-animations-context-menu-items.html [ Skip ]
 
@@ -2417,8 +2420,6 @@ fast/forms/color/input-color-swatch-overlay-appearance.html [ Pass ]
 webkit.org/b/291459 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-018.html [ Pass Failure ]
 
 webkit.org/b/291785 [ Release ] security/decode-buffer-size.html [ Timeout ]
-
-webkit.org/b/292846 [ Debug ] inspector/model/source-map-spec.html [ Failure ]
 
 webkit.org/b/292957 imported/w3c/web-platform-tests/css/css-position/multicol/vlr-ltr-ltr-in-multicols.html [ Pass Failure ]
 

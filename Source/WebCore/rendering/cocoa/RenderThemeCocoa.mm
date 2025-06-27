@@ -261,7 +261,7 @@ void RenderThemeCocoa::paintFileUploadIconDecorations(const RenderObject&, const
         thumbnailRect.contract(kMultipleThumbnailShrinkSize, kMultipleThumbnailShrinkSize);
 
         // Background picture frame and simple background icon with a gradient matching the button.
-        auto backgroundImageColor = buttonRenderer.style().visitedDependentColor(CSSPropertyBackgroundColor);
+        auto backgroundImageColor = buttonRenderer.checkedStyle()->visitedDependentColor(CSSPropertyBackgroundColor);
         paintInfo.context().fillRoundedRect(FloatRoundedRect(thumbnailPictureFrameRect, cornerSize, cornerSize, cornerSize, cornerSize), pictureFrameColor);
         paintInfo.context().fillRect(thumbnailRect, backgroundImageColor);
 
@@ -278,7 +278,7 @@ void RenderThemeCocoa::paintFileUploadIconDecorations(const RenderObject&, const
 
 Seconds RenderThemeCocoa::animationRepeatIntervalForProgressBar(const RenderProgress& renderer) const
 {
-    return renderer.page().preferredRenderingUpdateInterval();
+    return renderer.protectedPage()->preferredRenderingUpdateInterval();
 }
 
 #if ENABLE(APPLE_PAY)
@@ -809,11 +809,6 @@ Color RenderThemeCocoa::checkboxRadioBackgroundColorForVectorBasedControls(const
     return backgroundColor;
 }
 
-bool RenderThemeCocoa::adjustCheckboxStyleForVectorBasedControls(RenderStyle&, const Element*) const
-{
-    return false;
-}
-
 bool RenderThemeCocoa::paintCheckboxForVectorBasedControls(const RenderObject& box, const PaintInfo& paintInfo, const FloatRect& rect)
 {
     // FIXME: A pre-existing flicker issue caused by a delay between the pressed state ending
@@ -924,11 +919,6 @@ bool RenderThemeCocoa::paintCheckboxForVectorBasedControls(const RenderObject& b
     context.fillPath(glyphPath);
 
     return true;
-}
-
-bool RenderThemeCocoa::adjustRadioStyleForVectorBasedControls(RenderStyle&, const Element*) const
-{
-    return false;
 }
 
 bool RenderThemeCocoa::paintRadioForVectorBasedControls(const RenderObject& box, const PaintInfo& paintInfo, const FloatRect& rect)
@@ -3595,8 +3585,8 @@ bool RenderThemeCocoa::adjustTextControlInnerTextStyleForVectorBasedControls(Ren
 void RenderThemeCocoa::adjustCheckboxStyle(RenderStyle& style, const Element* element) const
 {
 #if ENABLE(FORM_CONTROL_REFRESH)
-    if (adjustCheckboxStyleForVectorBasedControls(style, element))
-        return;
+    if (formControlRefreshEnabled(box))
+        style.resetBorder();
 #endif
 
     RenderTheme::adjustCheckboxStyle(style, element);
@@ -3615,8 +3605,8 @@ bool RenderThemeCocoa::paintCheckbox(const RenderObject& box, const PaintInfo& p
 void RenderThemeCocoa::adjustRadioStyle(RenderStyle& style, const Element* element) const
 {
 #if ENABLE(FORM_CONTROL_REFRESH)
-    if (adjustRadioStyleForVectorBasedControls(style, element))
-        return;
+    if (formControlRefreshEnabled(box))
+        style.resetBorder();
 #endif
 
     RenderTheme::adjustRadioStyle(style, element);

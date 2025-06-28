@@ -2799,7 +2799,6 @@ void RenderLayerCompositor::frameViewDidChangeSize()
 
 #if HAVE(RUBBER_BANDING)
         updateSizeAndPositionForOverhangAreaLayer();
-        updateSizeAndPositionForTopOverhangColorExtensionLayer();
 #endif
     }
 }
@@ -3217,6 +3216,7 @@ void RenderLayerCompositor::updateRootLayerPosition()
     }
 
     updateLayerForTopOverhangColorExtension(m_layerForTopOverhangColorExtension);
+    updateSizeAndPositionForTopOverhangColorExtensionLayer();
     updateLayerForTopOverhangImage(m_layerForTopOverhangImage);
     updateLayerForBottomOverhangArea(m_layerForBottomOverhangArea);
     updateLayerForHeader(m_layerForHeader);
@@ -3645,7 +3645,7 @@ Vector<CompositedClipData> RenderLayerCompositor::computeAncestorClippingStack(c
         auto offset = layer.convertToLayerCoords(&clippingRoot, { }, RenderLayer::AdjustForColumns);
         clipRect.moveBy(-offset);
 
-        CompositedClipData clipData { const_cast<RenderLayer*>(&clippedLayer), RoundedRect { clipRect }, false };
+        CompositedClipData clipData { const_cast<RenderLayer*>(&clippedLayer), LayoutRoundedRect { clipRect }, false };
         newStack.insert(0, WTFMove(clipData));
     };
 
@@ -4969,9 +4969,11 @@ void RenderLayerCompositor::updateSizeAndPositionForTopOverhangColorExtensionLay
         return;
 
     Ref frameView = m_renderView.frameView();
-    auto insets = m_renderView.protectedFrameView()->obscuredContentInsets();
-    layer->setSize(frameView->frameRect().size());
-    layer->setPosition({ 0, insets.top() - layer->size().height() });
+    IntSize layerSize { frameView->contentsSize().width(), frameView->visibleSize().height() };
+    layer->setSize(layerSize);
+
+    auto rootLayerPosition = frameView->positionForRootContentLayer();
+    layer->setPosition({ rootLayerPosition.x(), rootLayerPosition.y() - layerSize.height() });
 }
 #endif // HAVE(RUBBER_BANDING)
 
@@ -5725,22 +5727,22 @@ std::optional<ScrollingNodeID> RenderLayerCompositor::updateScrollingNodeForView
     return newNodeID;
 }
 
-RoundedRect RenderLayerCompositor::parentRelativeScrollableRect(const RenderLayer& layer, const RenderLayer* ancestorLayer) const
+LayoutRoundedRect RenderLayerCompositor::parentRelativeScrollableRect(const RenderLayer& layer, const RenderLayer* ancestorLayer) const
 {
     // FIXME: ancestorLayer needs to be always non-null, so should become a reference.
     if (!ancestorLayer) {
         if (!layer.scrollableArea())
-            return RoundedRect { LayoutRect { } };
-        return RoundedRect { LayoutRect({ }, LayoutSize(CheckedPtr { layer.scrollableArea() }->visibleSize())) };
+            return LayoutRoundedRect { LayoutRect { } };
+        return LayoutRoundedRect { LayoutRect({ }, LayoutSize(CheckedPtr { layer.scrollableArea() }->visibleSize())) };
     }
 
-    RoundedRect scrollableRect(LayoutRect { });
+    LayoutRoundedRect scrollableRect(LayoutRect { });
     {
         CheckedPtr box = dynamicDowncast<RenderBox>(layer.renderer());
         if (!box)
-            return RoundedRect { LayoutRect { } };
+            return LayoutRoundedRect { LayoutRect { } };
 
-        scrollableRect = RoundedRect { box->paddingBoxRect() };
+        scrollableRect = LayoutRoundedRect { box->paddingBoxRect() };
         if (box->style().hasBorderRadius()) {
             auto borderShape = BorderShape::shapeForBorderRect(box->style(), box->borderBoxRect());
             scrollableRect = borderShape.deprecatedInnerRoundedRect();

@@ -3945,17 +3945,18 @@ std::optional<TextMarkerData> AXObjectCache::textMarkerDataForVisiblePosition(co
         if (isRendererReplacedElement(node->renderer()) || is<RenderLineBreak>(node->renderer()))
             return createFromRendererAndOffset(*node->renderer(), domOffset);
 
-        CheckedPtr<const RenderText> renderText = dynamicDowncast<RenderText>(node ? node->renderer() : nullptr);
+        CheckedPtr<const RenderText> renderText = nullptr;
+
+        auto boxAndOffset = visiblePosition.inlineBoxAndOffset();
+        if (boxAndOffset.box) {
+            renderText = dynamicDowncast<RenderText>(boxAndOffset.box->renderer());
+            domOffset = boxAndOffset.offset;
+        }
 
         if (!renderText) {
-            auto boxAndOffset = visiblePosition.inlineBoxAndOffset();
-            if (!boxAndOffset.box)
-                return std::nullopt;
-
-            renderText = dynamicDowncast<RenderText>(boxAndOffset.box->renderer());
+            renderText = dynamicDowncast<RenderText>(node ? node->renderer() : nullptr);
             if (!renderText)
                 return std::nullopt;
-            domOffset = boxAndOffset.offset;
         }
 
         auto [textBox, orderCache] = InlineIterator::firstTextBoxInLogicalOrderFor(*renderText);
@@ -3977,7 +3978,7 @@ std::optional<TextMarkerData> AXObjectCache::textMarkerDataForVisiblePosition(co
             previousEndDomOffset = textBox->maximumCaretOffset();
             previousLineIndex = newLineIndex;
         }
-        RELEASE_ASSERT(domOffset >= differenceBetweenDomAndRenderedOffsets);
+        ASSERT(domOffset >= differenceBetweenDomAndRenderedOffsets);
         unsigned renderedOffset = domOffset - differenceBetweenDomAndRenderedOffsets;
         return createFromRendererAndOffset(const_cast<RenderText&>(*renderText), renderedOffset);
     }
@@ -5339,6 +5340,14 @@ AccessibilityObject* AXObjectCache::rootWebArea()
     if (!root || !root->isScrollView())
         return nullptr;
     return root->webAreaObject();
+}
+
+void dumpAccessibilityTreeToStderr(Document& document)
+{
+    if (CheckedPtr cache = document.existingAXObjectCache()) {
+        AXTreeData data = cache->treeData();
+        SAFE_FPRINTF(stderr, "==AX Trees==\n%s\n%s\n", data.liveTree.utf8(), data.isolatedTree.utf8());
+    }
 }
 
 AXTreeData AXObjectCache::treeData(std::optional<OptionSet<AXStreamOptions>> additionalOptions)

@@ -79,7 +79,7 @@ inline Color forwardInheritedValue(const Color& value) { auto copy = value; retu
 inline WebCore::Length forwardInheritedValue(const WebCore::Length& value) { auto copy = value; return copy; }
 inline LengthSize forwardInheritedValue(const LengthSize& value) { auto copy = value; return copy; }
 inline LengthBox forwardInheritedValue(const LengthBox& value) { auto copy = value; return copy; }
-inline GapLength forwardInheritedValue(const GapLength& value) { auto copy = value; return copy; }
+inline GapGutter forwardInheritedValue(const GapGutter& value) { auto copy = value; return copy; }
 inline FilterOperations forwardInheritedValue(const FilterOperations& value) { auto copy = value; return copy; }
 inline TransformOperations forwardInheritedValue(const TransformOperations& value) { auto copy = value; return copy; }
 inline ScrollMarginEdge forwardInheritedValue(const ScrollMarginEdge& value) { auto copy = value; return copy; }
@@ -104,6 +104,7 @@ inline OffsetPath forwardInheritedValue(const OffsetPath& value) { auto copy = v
 inline OffsetPosition forwardInheritedValue(const OffsetPosition& value) { auto copy = value; return copy; }
 inline OffsetRotate forwardInheritedValue(const OffsetRotate& value) { auto copy = value; return copy; }
 inline SVGPaint forwardInheritedValue(const SVGPaint& value) { auto copy = value; return copy; }
+inline TextUnderlineOffset forwardInheritedValue(const TextUnderlineOffset& value) { auto copy = value; return copy; }
 inline URL forwardInheritedValue(const URL& value) { auto copy = value; return copy; }
 inline ViewTransitionName forwardInheritedValue(const ViewTransitionName& value) { auto copy = value; return copy; }
 inline FixedVector<WebCore::Length> forwardInheritedValue(const FixedVector<WebCore::Length>& value) { auto copy = value; return copy; }
@@ -293,7 +294,7 @@ inline void BuilderCustom::applyValueTextIndent(BuilderState& builderState, CSSV
 
     if (auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value)) {
         // Values coming from CSSTypedOM didn't go through the parser and may not have been converted to a CSSValueList.
-        lengthPercentageValue = primitiveValue->convertToLength<FixedIntegerConversion | PercentConversion | CalculatedConversion>(builderState.cssToLengthConversionData());
+        lengthPercentageValue = BuilderConverter::convertLength(builderState, *primitiveValue);
     } else {
         auto list = requiredListDowncast<CSSValueList, CSSPrimitiveValue>(builderState, value);
         if (!list)
@@ -301,7 +302,7 @@ inline void BuilderCustom::applyValueTextIndent(BuilderState& builderState, CSSV
 
         for (auto& primitiveValue : *list) {
             if (!primitiveValue.valueID())
-                lengthPercentageValue = primitiveValue.convertToLength<FixedIntegerConversion | PercentConversion | CalculatedConversion>(builderState.cssToLengthConversionData());
+                lengthPercentageValue = BuilderConverter::convertLength(builderState, primitiveValue);
             else if (primitiveValue.valueID() == CSSValueEachLine)
                 textIndentLineValue = TextIndentLine::EachLine;
             else if (primitiveValue.valueID() == CSSValueHanging)
@@ -643,7 +644,6 @@ inline void BuilderCustom::applyInheritClip(BuilderState& builderState)
 inline void BuilderCustom::applyValueClip(BuilderState& builderState, CSSValue& value)
 {
     if (value.isRect()) {
-        auto& conversionData = builderState.cssToLengthConversionData();
         auto primitiveValueTop = requiredDowncast<CSSPrimitiveValue>(builderState, value.rect().top());
         if (!primitiveValueTop)
             return;
@@ -657,10 +657,10 @@ inline void BuilderCustom::applyValueClip(BuilderState& builderState, CSSValue& 
         if (!primitiveValueLeft)
             return;
 
-        auto top = primitiveValueTop->convertToLength<FixedIntegerConversion | PercentConversion | AutoConversion>(conversionData);
-        auto right = primitiveValueRight->convertToLength<FixedIntegerConversion | PercentConversion | AutoConversion>(conversionData);
-        auto bottom = primitiveValueBottom->convertToLength<FixedIntegerConversion | PercentConversion | AutoConversion>(conversionData);
-        auto left = primitiveValueLeft->convertToLength<FixedIntegerConversion | PercentConversion | AutoConversion>(conversionData);
+        auto top = BuilderConverter::convertLengthOrAuto(builderState, *primitiveValueTop);
+        auto right = BuilderConverter::convertLengthOrAuto(builderState, *primitiveValueRight);
+        auto bottom = BuilderConverter::convertLengthOrAuto(builderState, *primitiveValueBottom);
+        auto left = BuilderConverter::convertLengthOrAuto(builderState, *primitiveValueLeft);
 
         builderState.style().setClip(WTFMove(top), WTFMove(right), WTFMove(bottom), WTFMove(left));
         builderState.style().setHasClip(true);

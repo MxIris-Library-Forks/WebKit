@@ -1799,6 +1799,10 @@ http/tests/download/convert-cached-load-to-download.html [ Skip ]
 # Can't load application/octet-stream in WK1
 http/tests/mime/html-with-nosniff-html.html [ Skip ]
 
+# testRunner.findString function is WK2-only, not implemented for WK1.
+editing/text-iterator/find-in-page-in-closed-details.html [ Skip ]
+editing/text-iterator/find-in-page-in-summary-of-closed-details.html [ Skip ]
+
 # dumpPolicyDelegateCallbacks is not supported in DumpRenderTree
 fast/loader/iframe-src-invalid-url.html [ Skip ]
 
@@ -3139,3 +3143,7 @@ http/tests/lockdown-mode [ Skip ]
 
 imported/w3c/web-platform-tests/css/css-transforms/individual-transform/individual-transform-3.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/gradient/conic-gradient-001.html [ ImageOnlyFailure ]
+
+webkit.org/b/295119  imported/w3c/web-platform-tests/css/css-fonts/font-size-adjust-text-orientation.html [ Pass ImageOnlyFailure ]
+
+webkit.org/b/295129 [ Sequoia+ ] fast/lists/drag-into-marker.html [ Failure ]

@@ -59,6 +59,7 @@
 #include "FrameTree.h"
 #include "GraphicsContext.h"
 #include "HTMLBodyElement.h"
+#include "HTMLDetailsElement.h"
 #include "HTMLEmbedElement.h"
 #include "HTMLFrameElement.h"
 #include "HTMLFrameSetElement.h"
@@ -552,6 +553,10 @@ void LocalFrameView::setContentsSize(const IntSize& size)
 
     if (m_frame->isMainFrame()) {
         page->pageOverlayController().didChangeDocumentSize();
+#if HAVE(RUBBER_BANDING)
+        if (CheckedPtr renderView = this->renderView())
+            renderView->compositor().updateSizeAndPositionForTopOverhangColorExtensionLayer();
+#endif
         BackForwardCache::singleton().markPagesForContentsSizeChanged(*page);
     }
     layoutContext().enableSetNeedsLayout();
@@ -669,12 +674,12 @@ void LocalFrameView::applyPaginationToViewport()
     Overflow overflowY = documentOrBodyRenderer->effectiveOverflowY();
     if (overflowY == Overflow::PagedX || overflowY == Overflow::PagedY) {
         pagination.mode = WebCore::paginationModeForRenderStyle(documentOrBodyRenderer->style());
-        GapLength columnGapLength = documentOrBodyRenderer->style().columnGap();
+        auto columnGap = documentOrBodyRenderer->style().columnGap();
         pagination.gap = 0;
-        if (!columnGapLength.isNormal()) {
+        if (!columnGap.isNormal()) {
             auto* renderBox = dynamicDowncast<RenderBox>(documentOrBodyRenderer);
             if (auto* containerForPaginationGap = renderBox ? renderBox : documentOrBodyRenderer->containingBlock())
-                pagination.gap = valueForLength(columnGapLength.length(), containerForPaginationGap->contentBoxLogicalWidth()).toUnsigned();
+                pagination.gap = Style::evaluate(columnGap, containerForPaginationGap->contentBoxLogicalWidth()).toUnsigned();
         }
     }
     setPagination(pagination);
@@ -2743,8 +2748,9 @@ bool LocalFrameView::scrollToFragmentInternal(StringView fragmentIdentifier)
         scrollPositionAnchor = m_frame->document();
     maintainScrollPositionAtAnchor(scrollPositionAnchor.get());
     
-    // If the anchor accepts keyboard focus, move focus there to aid users relying on keyboard navigation.
     if (anchorElement) {
+        revealClosedDetailsAncestors(*anchorElement);
+        // If the anchor accepts keyboard focus, move focus there to aid users relying on keyboard navigation.
         if (anchorElement->isFocusable())
             document.setFocusedElement(anchorElement.get(), { { }, { }, { }, { }, FocusVisibility::Visible });
         else {

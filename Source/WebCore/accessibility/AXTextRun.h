@@ -102,7 +102,7 @@ struct AXTextRun {
     {
         // Runs should have a non-zero length (i.e. endIndex should strictly be greater than startIndex).
         // This is important because several parts of AXTextMarker rely on this assumption.
-        RELEASE_ASSERT(endIndex > startIndex);
+        ASSERT(endIndex > startIndex);
     }
 
     const FixedVector<std::array<uint16_t, 2>>& domOffsets() const { return textRunDomOffsets; }
@@ -179,7 +179,7 @@ struct AXTextRuns {
 
     // Convenience methods for TextUnit movement.
     bool runStartsWithLineBreak(size_t runIndex) const { return text[runs[runIndex].startIndex] == '\n'; }
-    bool runEndsWithLineBreak(size_t runIndex) const { return text[runs[runIndex].endIndex] == '\n'; }
+    bool runEndsWithLineBreak(size_t runIndex) const { return text[runs[runIndex].endIndex - 1] == '\n'; }
 };
 
 } // namespace WebCore

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2025-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,41 +16,44 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#pragma once
+#include "VMAllocate.h"
 
-#include "CSSPrimitiveNumericTypes.h"
-#include "CSSPrimitiveValue.h"
+namespace bmalloc {
 
-namespace WebCore {
-namespace CSS {
+#if BMALLOC_USE_MADV_ZERO
+static pthread_once_t madvZeroOnceControl = PTHREAD_ONCE_INIT;
+static bool madvZeroSupported = false;
 
-// MARK: - Conversion from `WebCore::CSSValue` types to strongly typed `CSS::` value types.
-
-template<typename CSSType> struct CSSValueConversions;
-
-template<typename CSSType> CSSType convertFromCSSValue(const CSSValue& value)
+static void zeroFillLatchIfMadvZeroIsSupported()
 {
-    return CSSValueConversions<CSSType>{}(value);
+    // See libpas/pas_page_malloc.c for details on this approach
+    // The logic is copied in both places, so if we change one we
+    // should change the other as well.
+
+    size_t pageSize = vmPageSize();
+    void* base = mmap(NULL, pageSize, PROT_NONE, MAP_PRIVATE | MAP_ANON | BMALLOC_NORESERVE, static_cast<int>(VMTag::Malloc), 0);
+    BASSERT(base);
+
+    int rc = madvise(base, pageSize, MADV_ZERO);
+    if (rc)
+        madvZeroSupported = true;
+    else
+        madvZeroSupported = false;
+    munmap(base, pageSize);
 }
 
-template<Numeric CSSType> struct CSSValueConversions<CSSType> {
-    CSSType operator()(const CSSValue& value)
-    {
-        auto& primitiveValue = downcast<CSSPrimitiveValue>(value);
-        if (RefPtr calc = const_cast<CSSCalcValue*>(primitiveValue.cssCalcValue()))
-            return { typename CSSType::Calc { calc.releaseNonNull() } };
+bool isMadvZeroSupported()
+{
+    pthread_once(&madvZeroOnceControl, zeroFillLatchIfMadvZeroIsSupported);
+    return madvZeroSupported;
+}
+#endif
 
-        auto unit = CSSType::UnitTraits::validate(primitiveValue.primitiveType());
-        RELEASE_ASSERT(unit);
-        return CSSType { typename CSSType::Raw { *unit, primitiveValue.valueNoConversionDataRequired() } };
-    }
-};
-
-} // namespace CSS
-} // namespace WebCore
+} // namespace bmalloc

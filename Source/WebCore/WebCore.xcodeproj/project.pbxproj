@@ -4871,6 +4871,7 @@
 		BC2A0D902E088492003CBA0E /* StyleTextUnderlineOffset.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D702E086B9A003CBA0E /* StyleTextUnderlineOffset.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D912E089160003CBA0E /* StyleGapGutter.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D6D2E08687E003CBA0E /* StyleGapGutter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0DAF2E08DFFD003CBA0E /* StyleBuilderChecking.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0DAE2E08DFFD003CBA0E /* StyleBuilderChecking.h */; };
+		BC2A0E332E0B6642003CBA0E /* StylePrimitiveNumeric+Forward.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0E322E0B6642003CBA0E /* StylePrimitiveNumeric+Forward.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2B41172732F41E00A2D191 /* ModelPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2B41132732F06200A2D191 /* ModelPlayer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2B41182732F42300A2D191 /* ModelPlayerProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2B41152732F0C700A2D191 /* ModelPlayerProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2B41192732F42900A2D191 /* ModelPlayerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2B410E2732EFE400A2D191 /* ModelPlayerClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18021,6 +18022,8 @@
 		BC2A0DAE2E08DFFD003CBA0E /* StyleBuilderChecking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleBuilderChecking.h; sourceTree = "<group>"; };
 		BC2A0DBA2E09AEEA003CBA0E /* StyleRayFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleRayFunction.cpp; sourceTree = "<group>"; };
 		BC2A0DF02E0A2BCE003CBA0E /* StyleLengthWrapper+CSSValueConversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StyleLengthWrapper+CSSValueConversion.h"; sourceTree = "<group>"; };
+		BC2A0E322E0B6642003CBA0E /* StylePrimitiveNumeric+Forward.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StylePrimitiveNumeric+Forward.h"; sourceTree = "<group>"; };
+		BC2A0E782E0DAF88003CBA0E /* StylePrimitiveNumericTypes+CSSValueConversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StylePrimitiveNumericTypes+CSSValueConversion.h"; sourceTree = "<group>"; };
 		BC2B410E2732EFE400A2D191 /* ModelPlayerClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayerClient.h; sourceTree = "<group>"; };
 		BC2B41122732F03C00A2D191 /* ModelPlayerClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPlayerClient.cpp; sourceTree = "<group>"; };
 		BC2B41132732F06200A2D191 /* ModelPlayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayer.h; sourceTree = "<group>"; };
@@ -18036,7 +18039,6 @@
 		BC2C0C232D2C5D2B00FCFBA0 /* StyleScrollMargin.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleScrollMargin.cpp; sourceTree = "<group>"; };
 		BC2C0C242D2C5D2B00FCFBA0 /* StyleScrollPadding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleScrollPadding.h; sourceTree = "<group>"; };
 		BC2C0C252D2C5D2B00FCFBA0 /* StyleScrollPadding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleScrollPadding.cpp; sourceTree = "<group>"; };
-		BC2C0C2A2D2C5FB100FCFBA0 /* CSSPrimitiveNumericTypes+CSSValueConversions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPrimitiveNumericTypes+CSSValueConversions.h"; sourceTree = "<group>"; };
 		BC2C0C8D2D32EBBD00FCFBA0 /* CSSPrimitiveKeywordList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPrimitiveKeywordList.h; sourceTree = "<group>"; };
 		BC2C0C8E2D32EBCB00FCFBA0 /* CSSPrimitiveData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPrimitiveData.h; sourceTree = "<group>"; };
 		BC2C0C8F2D32F35000FCFBA0 /* CSSPrimitiveNumeric.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPrimitiveNumeric.h; sourceTree = "<group>"; };
@@ -35630,7 +35632,6 @@
 				BC05ACC22CEE533300750CB1 /* CSSPrimitiveNumericTypes+Canonicalization.h */,
 				BCB271DD2CC0142C00265123 /* CSSPrimitiveNumericTypes+ComputedStyleDependencies.cpp */,
 				BCB271DC2CC0142C00265123 /* CSSPrimitiveNumericTypes+ComputedStyleDependencies.h */,
-				BC2C0C2A2D2C5FB100FCFBA0 /* CSSPrimitiveNumericTypes+CSSValueConversions.h */,
 				BCEA07412CC95989000AC148 /* CSSPrimitiveNumericTypes+CSSValueCreation.h */,
 				BCB271DE2CC0142C00265123 /* CSSPrimitiveNumericTypes+CSSValueVisitation.h */,
 				BCB271DF2CC0142C00265123 /* CSSPrimitiveNumericTypes+EvaluateCalc.h */,
@@ -35677,6 +35678,7 @@
 				BCB271EC2CC0156E00265123 /* StylePosition.h */,
 				BC2A0D332E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h */,
 				BC2A0D312E05D409003CBA0E /* StylePrimitiveKeyword+Serialization.h */,
+				BC2A0E322E0B6642003CBA0E /* StylePrimitiveNumeric+Forward.h */,
 				BC2C0C912D32F46F00FCFBA0 /* StylePrimitiveNumeric.h */,
 				BC6AFC732DFE6FA10065FA1D /* StylePrimitiveNumericAdaptors.h */,
 				BCD67C1B2D1F35840079EB9C /* StylePrimitiveNumericConcepts.h */,
@@ -35686,6 +35688,7 @@
 				BC05ACC82CEE5C9600750CB1 /* StylePrimitiveNumericTypes+Calculation.h */,
 				BCB271F12CC0156E00265123 /* StylePrimitiveNumericTypes+Conversions.cpp */,
 				BCB271F02CC0156E00265123 /* StylePrimitiveNumericTypes+Conversions.h */,
+				BC2A0E782E0DAF88003CBA0E /* StylePrimitiveNumericTypes+CSSValueConversion.h */,
 				BC3CC1B62DE1368D0032971C /* StylePrimitiveNumericTypes+CSSValueCreation.h */,
 				BCB271F42CC018F100265123 /* StylePrimitiveNumericTypes+Evaluation.h */,
 				BC9BE3EF2CFE297D00D8C2CA /* StylePrimitiveNumericTypes+Logging.h */,
@@ -44914,6 +44917,7 @@
 				BC675B6E2DEE8BB700AD4D79 /* StylePreferredSize.h in Headers */,
 				BC2A0D342E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h in Headers */,
 				BC2A0D322E05D409003CBA0E /* StylePrimitiveKeyword+Serialization.h in Headers */,
+				BC2A0E332E0B6642003CBA0E /* StylePrimitiveNumeric+Forward.h in Headers */,
 				BCE434662D4320400030D140 /* StylePrimitiveNumeric.h in Headers */,
 				BC6AFC742DFE70590065FA1D /* StylePrimitiveNumericAdaptors.h in Headers */,
 				BCD67C1C2D1F35840079EB9C /* StylePrimitiveNumericConcepts.h in Headers */,

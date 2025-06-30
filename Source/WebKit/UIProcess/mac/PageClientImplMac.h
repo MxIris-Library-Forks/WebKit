@@ -119,6 +119,8 @@ private:
     void clearBrowsingWarningIfForMainFrameNavigation() override;
     bool hasBrowsingWarning() const override;
 
+    void didChangeLocalInspectorAttachment() final;
+
     bool showShareSheet(WebCore::ShareDataWithParsedURL&&, WTF::CompletionHandler<void(bool)>&&) override;
 
 #if HAVE(DIGITAL_CREDENTIALS_UI)
@@ -322,6 +324,8 @@ private:
     void didExitFullscreen() final { }
     void didCleanupFullscreen() final { }
 #endif
+
+    CheckedPtr<WebViewImpl> checkedImpl() const { return m_impl.get(); }
 
     WeakObjCPtr<NSView> m_view;
     WeakPtr<WebViewImpl> m_impl;

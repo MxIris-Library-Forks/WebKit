@@ -954,6 +954,7 @@
 		2A538A2F26F0105200965FC8 /* CSSTranslate.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A538A0C26E3693000965FC8 /* CSSTranslate.h */; };
 		2ABFFFF326C535C00048875B /* CSSOMVariableReferenceValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 2ABFFFF126C535BD0048875B /* CSSOMVariableReferenceValue.h */; };
 		2ACB4D2B26DC4ACE00BEB753 /* CSSNumericFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 2ACB4D2726DC4AB200BEB753 /* CSSNumericFactory.h */; };
+		2AEB4FE42E0D393D00CC7134 /* LocaleToScriptMapping.h in Headers */ = {isa = PBXBuildFile; fileRef = 7633A72413D8B33A008501B6 /* LocaleToScriptMapping.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2AEF6FD326E7ECA500326D02 /* CSSMathInvert.h in Headers */ = {isa = PBXBuildFile; fileRef = 2AEF6FC626E716EE00326D02 /* CSSMathInvert.h */; };
 		2AEF6FD426E7ECAA00326D02 /* CSSMathMax.h in Headers */ = {isa = PBXBuildFile; fileRef = 2AEF6FBD26E716EE00326D02 /* CSSMathMax.h */; };
 		2AEF6FD526E7ECAE00326D02 /* CSSMathMin.h in Headers */ = {isa = PBXBuildFile; fileRef = 2AEF6FCA26E716EE00326D02 /* CSSMathMin.h */; };
@@ -2906,7 +2907,6 @@
 		7553CFE8108F473F00EA281E /* TimelineRecordFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 7553CFE6108F473F00EA281E /* TimelineRecordFactory.h */; };
 		75793E840D0CE0B3007FC0AC /* MessageEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 75793E810D0CE0B3007FC0AC /* MessageEvent.h */; };
 		75793EC90D0CE72D007FC0AC /* JSMessageEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 75793EC70D0CE72D007FC0AC /* JSMessageEvent.h */; };
-		7633A72613D8B33A008501B6 /* LocaleToScriptMapping.h in Headers */ = {isa = PBXBuildFile; fileRef = 7633A72413D8B33A008501B6 /* LocaleToScriptMapping.h */; };
 		7694563D1214D97C0007CBAE /* JSDOMTokenList.h in Headers */ = {isa = PBXBuildFile; fileRef = 7694563B1214D97C0007CBAE /* JSDOMTokenList.h */; };
 		76CDD2F31103DA6600680521 /* AccessibilityMenuList.h in Headers */ = {isa = PBXBuildFile; fileRef = 76CDD2ED1103DA6600680521 /* AccessibilityMenuList.h */; };
 		76CDD2F51103DA6600680521 /* AccessibilityMenuListPopup.h in Headers */ = {isa = PBXBuildFile; fileRef = 76CDD2EF1103DA6600680521 /* AccessibilityMenuListPopup.h */; };
@@ -43315,7 +43315,7 @@
 				AA2A5AD616A4861600975A25 /* LocalDOMWindowSpeechSynthesis.h in Headers */,
 				A8CCBB49151F831600AB7CE9 /* LocalDOMWindowWebDatabase.h in Headers */,
 				F5973DE015CFB2030027F804 /* LocaleCocoa.h in Headers */,
-				7633A72613D8B33A008501B6 /* LocaleToScriptMapping.h in Headers */,
+				2AEB4FE42E0D393D00CC7134 /* LocaleToScriptMapping.h in Headers */,
 				65BF022F0974816300C43196 /* LocalFrame.h in Headers */,
 				9B46C0502DC4AB14002E22C4 /* LocalFrameInlines.h in Headers */,
 				656D373E0ADBA5DE00A4554D /* LocalFrameLoaderClient.h in Headers */,

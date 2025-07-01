@@ -1,7 +1,6 @@
 Modules/encryptedmedia/MediaKeySystemRequest.cpp
 Modules/gamepad/GamepadHapticActuator.cpp
 Modules/geolocation/GeolocationController.cpp
-Modules/highlight/Highlight.cpp
 Modules/indexeddb/IDBCursor.cpp
 Modules/indexeddb/IDBTransaction.cpp
 Modules/indexeddb/server/MemoryBackingStoreTransaction.cpp
@@ -164,7 +163,6 @@ editing/markup.cpp
 history/CachedFrame.cpp
 html/Autofill.cpp
 html/CachedHTMLCollectionInlines.h
-html/CanvasBase.cpp
 html/CollectionTraversalInlines.h
 html/FormAssociatedCustomElement.cpp
 html/FormListedElement.cpp
@@ -196,8 +194,6 @@ html/ModelDocument.cpp
 html/PluginDocument.cpp
 html/ValidatedFormListedElement.cpp
 html/ValidationMessage.cpp
-html/canvas/CanvasRenderingContext2D.cpp
-html/canvas/CanvasRenderingContext2DBase.cpp
 html/parser/HTMLConstructionSite.cpp
 inspector/DOMPatchSupport.cpp
 inspector/InspectorAuditAccessibilityObject.cpp
@@ -349,7 +345,6 @@ platform/graphics/cg/CGSubimageCacheWithTimer.cpp
 platform/graphics/mac/controls/ImageControlsButtonMac.mm
 platform/ios/PlaybackSessionInterfaceIOS.mm
 platform/ios/WebAVPlayerController.mm
-platform/mac/PlatformScreenMac.mm
 platform/mac/PlaybackSessionInterfaceMac.mm
 platform/mac/VideoPresentationInterfaceMac.mm
 platform/mac/WebPlaybackControlsManager.mm
@@ -447,10 +442,8 @@ rendering/TextAutoSizing.cpp
 rendering/TextBoxPainter.cpp
 rendering/TextBoxTrimmer.cpp
 rendering/TextDecorationPainter.cpp
-rendering/TextPainter.cpp
 rendering/line/BreakingContext.h
 rendering/line/LineInlineHeaders.h
-rendering/line/LineWidth.cpp
 rendering/line/WordTrailingSpace.h
 rendering/mathml/MathMLStyle.cpp
 rendering/mathml/RenderMathMLBlock.cpp

@@ -41,9 +41,6 @@ Modules/filesystem/WorkerFileSystemStorageConnection.cpp
 Modules/gamepad/GamepadManager.cpp
 Modules/gamepad/NavigatorGamepad.cpp
 Modules/geolocation/Geolocation.cpp
-Modules/highlight/AppHighlightStorage.cpp
-Modules/highlight/Highlight.cpp
-Modules/highlight/HighlightRegistry.cpp
 Modules/identity/CredentialRequestCoordinator.cpp
 Modules/indexeddb/IDBActiveDOMObject.h
 Modules/indexeddb/IDBCursor.cpp
@@ -521,7 +518,6 @@ html/AttachmentAssociatedElement.cpp
 html/CachedHTMLCollection.h
 html/CachedHTMLCollectionInlines.h
 html/CollectionTraversalInlines.h
-html/CustomPaintCanvas.cpp
 html/DOMTokenList.cpp
 html/DirectoryFileListCreator.cpp
 html/FTPDirectoryDocument.cpp
@@ -579,12 +575,8 @@ html/RadioNodeList.cpp
 html/ValidatedFormListedElement.cpp
 html/ValidationMessage.cpp
 html/canvas/CanvasFilterContextSwitcher.cpp
-html/canvas/CanvasRenderingContext.cpp
 html/canvas/CanvasRenderingContext2D.cpp
 html/canvas/CanvasRenderingContext2DBase.cpp
-html/canvas/CanvasStyle.cpp
-html/canvas/EXTDisjointTimerQuery.cpp
-html/canvas/GPUCanvasContextCocoa.mm
 html/canvas/ImageBitmapRenderingContext.cpp
 html/canvas/OffscreenCanvasRenderingContext2D.cpp
 html/canvas/PlaceholderRenderingContext.cpp
@@ -852,7 +844,6 @@ platform/graphics/mac/PDFDocumentImageMac.mm
 platform/graphics/opentype/OpenTypeMathData.cpp
 platform/graphics/transforms/TransformOperations.cpp
 platform/libwebrtc/LibWebRTCVPXVideoEncoder.cpp
-platform/mac/PasteboardMac.mm
 platform/mac/PasteboardWriter.mm
 platform/mac/ScrollbarsControllerMac.mm
 platform/mac/VideoPresentationInterfaceMac.mm

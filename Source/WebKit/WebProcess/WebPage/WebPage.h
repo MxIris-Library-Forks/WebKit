@@ -623,6 +623,7 @@ public:
     enum class LazyCreationPolicy { UseExistingOnly, CreateIfNeeded };
 
     WebInspector* inspector(LazyCreationPolicy = LazyCreationPolicy::CreateIfNeeded);
+    RefPtr<WebInspector> protectedInspector();
     WebInspectorUI* inspectorUI();
     RemoteWebInspectorUI* remoteInspectorUI();
     bool isInspectorPage() { return !!m_inspectorUI || !!m_remoteInspectorUI; }
@@ -2690,7 +2691,7 @@ private:
     RefPtr<WebInspector> m_inspector;
     RefPtr<WebInspectorUI> m_inspectorUI;
     RefPtr<RemoteWebInspectorUI> m_remoteInspectorUI;
-    std::unique_ptr<WebPageInspectorTargetController> m_inspectorTargetController;
+    const UniqueRef<WebPageInspectorTargetController> m_inspectorTargetController;
 
 #if ENABLE(VIDEO_PRESENTATION_MODE)
     RefPtr<PlaybackSessionManager> m_playbackSessionManager;

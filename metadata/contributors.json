@@ -7256,7 +7256,8 @@
       "name" : "Ryan Fuller",
       "nicks" : [
          "ryanfuller"
-      ]
+      ],
+      "status" : "committer"
    },
    {
       "emails" : [
@@ -8297,6 +8298,13 @@
          "dvh@apple.com"
       ],
       "name" : "Viet Hoa Dinh"
+   },
+   {
+      "emails" : [
+         "v_rao@apple.com"
+      ],
+      "github" : "vigneshrao-apple",
+      "name" : "Vignesh Rao"
    },
    {
       "emails" : [

@@ -629,7 +629,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_uiClient(makeUnique<API::InjectedBundle::PageUIClient>())
     , m_findController(makeUniqueRef<FindController>(this))
     , m_foundTextRangeController(makeUniqueRef<WebFoundTextRangeController>(*this))
-    , m_inspectorTargetController(makeUnique<WebPageInspectorTargetController>(*this))
+    , m_inspectorTargetController(makeUniqueRef<WebPageInspectorTargetController>(*this))
     , m_userContentController(WebUserContentController::getOrCreate(parameters.userContentControllerParameters.identifier))
     , m_screenOrientationManager(makeUniqueRefWithoutRefCountedCheck<WebScreenOrientationManager>(*this))
 #if ENABLE(GEOLOCATION)
@@ -5195,6 +5195,11 @@ WebInspector* WebPage::inspector(LazyCreationPolicy behavior)
     if (!m_inspector && behavior == LazyCreationPolicy::CreateIfNeeded)
         m_inspector = WebInspector::create(*this);
     return m_inspector.get();
+}
+
+RefPtr<WebInspector> WebPage::protectedInspector()
+{
+    return inspector();
 }
 
 WebInspectorUI* WebPage::inspectorUI()

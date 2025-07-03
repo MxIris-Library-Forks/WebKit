@@ -6095,9 +6095,7 @@ imported/w3c/web-platform-tests/css/filter-effects/svg-external-filter-resource.
 imported/w3c/web-platform-tests/css/filter-effects/svg-mutation-filter-used-by-mask.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/will-change-blur-filter-under-clip.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/svg-feimage-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-backdrop-root-filter.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-backdrop-root-opacity.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-edge-pixels-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-reference-filter-mutated.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-svg-blur.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/empty-element-with-filter-002.html [ ImageOnlyFailure ]
@@ -6105,7 +6103,6 @@ imported/w3c/web-platform-tests/css/filter-effects/empty-element-with-filter-003
 imported/w3c/web-platform-tests/css/filter-effects/empty-element-with-filter-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/filter-region-html-content-viewport.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/svg-feimage-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-transform.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/content-security-policy/script-src/ [ DumpJSConsoleLogInStdErr ]
 
@@ -6379,8 +6376,6 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/standards-decor-n
 
 # New failures after import of css/css-variables
 imported/w3c/web-platform-tests/css/css-variables/variable-reference-visited.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-variables/wide-keyword-fallback-002.html [ ImageOnlyFailure ]
-webkit.org/b/294587 [ Debug ] imported/w3c/web-platform-tests/css/css-variables/variable-css-wide-keywords.html [ Skip ]
 
 # WPT tests that are timing out.
 imported/w3c/web-platform-tests/FileAPI/url/unicode-origin.sub.html [ Skip ]

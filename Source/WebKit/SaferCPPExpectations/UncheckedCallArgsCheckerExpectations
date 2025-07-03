@@ -57,8 +57,6 @@ WebProcess/InjectedBundle/API/mac/WKWebProcessPlugInBrowserContextController.mm
 WebProcess/InjectedBundle/DOM/InjectedBundleNodeHandle.cpp
 WebProcess/InjectedBundle/DOM/InjectedBundleRangeHandle.cpp
 WebProcess/InjectedBundle/InjectedBundleHitTestResult.cpp
-WebProcess/Inspector/WebInspectorClient.cpp
-WebProcess/Inspector/WebInspectorInternal.cpp
 WebProcess/Inspector/WebInspectorUI.cpp
 WebProcess/Network/WebLoaderStrategy.cpp
 WebProcess/Network/WebResourceLoader.cpp
@@ -79,7 +77,6 @@ WebProcess/WebPage/Cocoa/TextAnimationController.mm
 WebProcess/WebPage/Cocoa/WebPageCocoa.mm
 WebProcess/WebPage/MomentumEventDispatcher.cpp
 WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemote.mm
-WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemoteTiledBacking.cpp
 WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeContext.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeDrawingArea.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteScrollbarsController.mm

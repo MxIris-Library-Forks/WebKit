@@ -2190,22 +2190,12 @@ webkit.org/b/293804 [ Debug ] pdf/annotations/checkbox-set-active.html [ Pass Ti
 # It fails only on debug build with '0.01%' difference
 [ Debug ] imported/w3c/web-platform-tests/css/css-fill-stroke/paint-order-001.html [ ImageOnlyFailure ]
 
-webkit.org/b/295054 http/tests/webrtc/filtering-ice-candidate-cross-origin-frame.html [ Pass Failure ]
-
 webkit.org/b/295076 imported/w3c/web-platform-tests/css/css-pseudo/highlight-custom-properties-dynamic-001.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/295217 [ Sequoia x86_64 ] svg/gradients/spreadMethodAlpha.svg [ ImageOnlyFailure ]
 
 webkit.org/b/295226 http/wpt/mediarecorder/MediaRecorder-audio-samplingrate-change.html [ Pass Failure ]
 
-# webkit.org/b/295253 REGRESSION ( 296795@main): [ Sequoia Release WK2 arm64 ] 8X http/tests/webgpu/webgpu/shader are consistent failures 
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/execution/expression/binary/bitwise_shift.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/access/array.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/access/matrix.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/access/vector.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/value_constructor.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/parse/identifiers.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/shader_io/workgroup_size.html [ Failure ]
-[ Sequoia Release arm64 ] http/tests/webgpu/webgpu/shader/validation/types/matrix.html [ Failure ]
+webkit.org/b/295304 [ Sonoma Debug x86_64 ] webgl/1.0.x/conformance/rendering/many-draw-calls.html [ Slow ]
 
-webkit.org/b/295304 [ Sonoma Debug x86_64 ] webgl/1.0.x/conformance/rendering/many-draw-calls.html [ Timeout ]
+webkit.org/b/295366 [ Sonoma Debug x86_64 ] webgl/2.0.y/conformance/offscreencanvas/offscreencanvas-transfer-image-bitmap.html [ Slow ]

@@ -842,7 +842,7 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
 #if PLATFORM(COCOA)
     , m_isSmartInsertDeleteEnabled(TextChecker::isSmartInsertDeleteEnabled())
 #endif
-    , m_inspectorController(makeUnique<WebPageInspectorController>(*this))
+    , m_inspectorController(makeUniqueRef<WebPageInspectorController>(*this))
 #if ENABLE(REMOTE_INSPECTOR)
     , m_inspectorDebuggable(WebPageDebuggable::create(*this))
 #endif
@@ -15913,6 +15913,14 @@ void WebPageProxy::playAllAnimations(CompletionHandler<void()>&& completionHandl
     sendWithAsyncReply(Messages::WebPage::PlayAllAnimations(), WTFMove(completionHandler));
 }
 #endif // ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
+
+void WebPageProxy::stickyScrollingTreeNodeBeganSticking()
+{
+    if (!protectedPreferences()->contentInsetBackgroundFillEnabled())
+        return;
+
+    send(Messages::WebPage::SetNeedsFixedContainerEdgesUpdate());
+}
 
 void WebPageProxy::adjustLayersForLayoutViewport(const FloatPoint& scrollPosition, const WebCore::FloatRect& layoutViewport, double scale)
 {

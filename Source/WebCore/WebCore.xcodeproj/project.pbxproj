@@ -1826,6 +1826,7 @@
 		49484FCE102CF23C00187DD3 /* CanvasStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = 49484FC0102CF23C00187DD3 /* CanvasStyle.h */; };
 		494BD7950F55C8EE00747828 /* WebKitPoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 494BD7930F55C8EE00747828 /* WebKitPoint.h */; };
 		494BD79E0F55C94C00747828 /* JSWebKitPoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 494BD79C0F55C94C00747828 /* JSWebKitPoint.h */; };
+		494BDBDF2E16156A0079E324 /* FindRevealAlgorithms.h in Headers */ = {isa = PBXBuildFile; fileRef = 494BDBDC2E16156A0079E324 /* FindRevealAlgorithms.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		494E0BBD296CB7CC005F9FDC /* StyleAppearance.h in Headers */ = {isa = PBXBuildFile; fileRef = 722728112947A18A0048DD2E /* StyleAppearance.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4969B0F313D0B33F00DF3521 /* HitTestingTransformState.h in Headers */ = {isa = PBXBuildFile; fileRef = 4969B0F113D0B33F00DF3521 /* HitTestingTransformState.h */; };
 		4970AD822AE59BCE00AD3909 /* TransformOperationData.h in Headers */ = {isa = PBXBuildFile; fileRef = 4970AD802AE59BCE00AD3909 /* TransformOperationData.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -2027,6 +2028,7 @@
 		516A7AF229BBFA1500C95501 /* ServiceWorkerClientPendingMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = 516A7AF129BBFA1400C95501 /* ServiceWorkerClientPendingMessage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		516C62201950D48700337E75 /* GamepadEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 516C621D1950D48700337E75 /* GamepadEvent.cpp */; };
 		516C62211950D48700337E75 /* GamepadEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 516C621E1950D48700337E75 /* GamepadEvent.h */; };
+		516D3DD72E1629C300E4CC09 /* FocusEventData.h in Headers */ = {isa = PBXBuildFile; fileRef = 516D3DD62E1629C300E4CC09 /* FocusEventData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		516D7D701BB5F0BD00AF7C77 /* IDBConnectionToServerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 5185FCBD1BB5CB770012898F /* IDBConnectionToServerDelegate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		516D7D721BB5F0BD00AF7C77 /* IDBConnectionToClientDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 516D7D6E1BB5F06500AF7C77 /* IDBConnectionToClientDelegate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		516F7F6D1C31E39A00F111DC /* ServerOpenDBRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 516F7F6C1C31C79D00F111DC /* ServerOpenDBRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5611,7 +5613,7 @@
 		D2C4612E2A0C744E00A5F791 /* CanvasNoiseInjection.h in Headers */ = {isa = PBXBuildFile; fileRef = D2C4612C2A0C744E00A5F791 /* CanvasNoiseInjection.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D2DA641F2B0E98BD0003F9B2 /* OrganizationStorageAccessPromptQuirk.h in Headers */ = {isa = PBXBuildFile; fileRef = D2DA641E2B0E98350003F9B2 /* OrganizationStorageAccessPromptQuirk.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D2E7338A2C8F9DA000C7E549 /* Site.h in Headers */ = {isa = PBXBuildFile; fileRef = D2E733872C8F9D9F00C7E549 /* Site.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		D359D78A129CA2710006E5D2 /* HTMLDetailsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D359D787129CA2710006E5D2 /* HTMLDetailsElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D359D78A129CA2710006E5D2 /* HTMLDetailsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D359D787129CA2710006E5D2 /* HTMLDetailsElement.h */; };
 		D359D8BF129CA55C0006E5D2 /* JSHTMLDetailsElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D359D8BD129CA55C0006E5D2 /* JSHTMLDetailsElement.h */; };
 		D3A94A39122DABAC00A37BBC /* MediaQueryList.h in Headers */ = {isa = PBXBuildFile; fileRef = D3A94A32122DABAC00A37BBC /* MediaQueryList.h */; };
 		D3A94A47122DC40F00A37BBC /* JSMediaQueryList.h in Headers */ = {isa = PBXBuildFile; fileRef = D3A94A43122DC40F00A37BBC /* JSMediaQueryList.h */; };
@@ -11259,6 +11261,8 @@
 		494BD7940F55C8EE00747828 /* WebKitPoint.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebKitPoint.idl; sourceTree = "<group>"; };
 		494BD79B0F55C94C00747828 /* JSWebKitPoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebKitPoint.cpp; sourceTree = "<group>"; };
 		494BD79C0F55C94C00747828 /* JSWebKitPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWebKitPoint.h; sourceTree = "<group>"; };
+		494BDBDC2E16156A0079E324 /* FindRevealAlgorithms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FindRevealAlgorithms.h; sourceTree = "<group>"; };
+		494BDBDD2E16156A0079E324 /* FindRevealAlgorithms.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FindRevealAlgorithms.cpp; sourceTree = "<group>"; };
 		494EBD0627AA9C5300F4844F /* PDFDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PDFDocument.h; sourceTree = "<group>"; };
 		494EBD0827AA9C5300F4844F /* PDFDocument.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PDFDocument.cpp; sourceTree = "<group>"; };
 		49560D0C2C4F937200224361 /* StyleTextEdge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextEdge.cpp; sourceTree = "<group>"; };
@@ -11745,6 +11749,7 @@
 		516C62231950E2B900337E75 /* JSGamepadEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSGamepadEvent.cpp; sourceTree = "<group>"; };
 		516C62241950E2B900337E75 /* JSGamepadEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSGamepadEvent.h; sourceTree = "<group>"; };
 		516C792C2A1705B70002B73E /* BufferedChangeEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = BufferedChangeEvent.idl; sourceTree = "<group>"; };
+		516D3DD62E1629C300E4CC09 /* FocusEventData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FocusEventData.h; sourceTree = "<group>"; };
 		516D7D6D1BB5F06500AF7C77 /* IDBConnectionToClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBConnectionToClient.cpp; sourceTree = "<group>"; };
 		516D7D6E1BB5F06500AF7C77 /* IDBConnectionToClientDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBConnectionToClientDelegate.h; sourceTree = "<group>"; };
 		516F7F6B1C31C79D00F111DC /* ServerOpenDBRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ServerOpenDBRequest.cpp; sourceTree = "<group>"; };
@@ -28723,6 +28728,7 @@
 				14993BE30B2F2B1C0050497F /* FocusController.cpp */,
 				14993BE40B2F2B1C0050497F /* FocusController.h */,
 				062287830B4DB322000C34DF /* FocusDirection.h */,
+				516D3DD62E1629C300E4CC09 /* FocusEventData.h */,
 				27E818062BF5C67400B872DA /* FragmentDirective.h */,
 				27E818052BF5C67300B872DA /* FragmentDirective.idl */,
 				46B95194207D633000A7D2DD /* Frame.cpp */,
@@ -39089,6 +39095,8 @@
 				93D196301D6CAB7600FC7E47 /* ExceptionOr.h */,
 				E47E276716036EDC00EE2AFB /* ExtensionStyleSheets.cpp */,
 				E47E276416036ED200EE2AFB /* ExtensionStyleSheets.h */,
+				494BDBDD2E16156A0079E324 /* FindRevealAlgorithms.cpp */,
+				494BDBDC2E16156A0079E324 /* FindRevealAlgorithms.h */,
 				B6D9D23414EABD260090D75E /* FocusEvent.cpp */,
 				B6D9D23314EABD260090D75E /* FocusEvent.h */,
 				B6D9D27214EABF030090D75E /* FocusEvent.idl */,
@@ -41628,6 +41636,7 @@
 				72D73644278461A000398663 /* FilterResults.h in Headers */,
 				7272D337292F818E00F74D99 /* FilterStyle.h in Headers */,
 				372C00D9129619F8005C9575 /* FindOptions.h in Headers */,
+				494BDBDF2E16156A0079E324 /* FindRevealAlgorithms.h in Headers */,
 				F44CD9F52D29DBB600276C79 /* FixedContainerEdges.h in Headers */,
 				A8CFF04F0A154F09000A4234 /* FixedTableLayout.h in Headers */,
 				6FB17476283A8FF40067D8CA /* FlexFormattingConstraints.h in Headers */,
@@ -41654,6 +41663,7 @@
 				14993BE60B2F2B1C0050497F /* FocusController.h in Headers */,
 				062287840B4DB322000C34DF /* FocusDirection.h in Headers */,
 				B6D9D23514EABD260090D75E /* FocusEvent.h in Headers */,
+				516D3DD72E1629C300E4CC09 /* FocusEventData.h in Headers */,
 				AADEFE4525AF4FD60040DD67 /* FocusOptions.h in Headers */,
 				B2C3DA650D006CD600EF6F26 /* Font.h in Headers */,
 				1AC2D89D1B1E291F00D52E87 /* FontAntialiasingStateSaver.h in Headers */,

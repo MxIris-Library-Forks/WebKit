@@ -34,12 +34,12 @@
 #include <WebCore/DocumentInlines.h>
 #include <WebCore/DocumentMarkerController.h>
 #include <WebCore/Editor.h>
+#include <WebCore/FindRevealAlgorithms.h>
 #include <WebCore/FocusController.h>
 #include <WebCore/FrameSelection.h>
 #include <WebCore/GeometryUtilities.h>
 #include <WebCore/GraphicsContext.h>
 #include <WebCore/GraphicsLayer.h>
-#include <WebCore/HTMLDetailsElement.h>
 #include <WebCore/ImageOverlay.h>
 #include <WebCore/LocalFrame.h>
 #include <WebCore/LocalFrameView.h>
@@ -400,7 +400,7 @@ RefPtr<WebCore::TextIndicator> WebFoundTextRangeController::createTextIndicatorF
         options.add({ WebCore::TextIndicatorOption::PaintAllContent, WebCore::TextIndicatorOption::PaintBackgrounds });
 
 #if PLATFORM(IOS_FAMILY)
-    if (RefPtr frame = m_webPage->protectedCorePage()->checkedFocusController()->focusedOrMainFrame()) {
+    if (RefPtr frame = m_webPage->corePage()->focusController().focusedOrMainFrame()) {
         frame->selection().setUpdateAppearanceEnabled(true);
         frame->selection().updateAppearance();
         frame->selection().setUpdateAppearanceEnabled(false);

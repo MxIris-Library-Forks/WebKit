@@ -440,7 +440,7 @@ void Element::setTabIndexForBindings(int value)
     setIntegralAttribute(tabindexAttr, value);
 }
 
-bool Element::isKeyboardFocusable(KeyboardEvent*) const
+bool Element::isKeyboardFocusable(const FocusEventData&) const
 {
     if (!isFocusable() || shouldBeIgnoredInSequentialFocusNavigation() || tabIndexSetExplicitly().value_or(0) < 0)
         return false;
@@ -4032,7 +4032,7 @@ RefPtr<Element> Element::findFocusDelegateForTarget(ContainerNode& target, Focus
     if (RefPtr element = autoFocusDelegate(target, trigger))
         return element;
     for (Ref element : descendantsOfType<Element>(target)) {
-        if (is<HTMLDialogElement>(&target) && element->isKeyboardFocusable(nullptr))
+        if (is<HTMLDialogElement>(&target) && element->isKeyboardFocusable({ }))
             return element;
 
         switch (trigger) {
@@ -4118,7 +4118,7 @@ void Element::focus(const FocusOptions& options)
         // Focus and change event handlers can cause us to lose our last ref.
         // If a focus event handler changes the focus to a different node it
         // does not make sense to continue and update appearence.
-        if (!page->checkedFocusController()->setFocusedElement(newTarget.get(), frame, optionsWithVisibility))
+        if (!page->focusController().setFocusedElement(newTarget.get(), frame, optionsWithVisibility))
             return;
     }
 
@@ -4186,7 +4186,7 @@ void Element::blur()
 {
     if (treeScope().focusedElementInScope() == this) {
         if (RefPtr frame = document().frame())
-            frame->page()->checkedFocusController()->setFocusedElement(nullptr, *frame);
+            frame->protectedPage()->focusController().setFocusedElement(nullptr, *frame);
         else
             protectedDocument()->setFocusedElement(nullptr);
     }

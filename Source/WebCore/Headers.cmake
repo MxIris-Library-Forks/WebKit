@@ -1146,6 +1146,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/ExceptionData.h
     dom/ExceptionOr.h
     dom/ExtensionStyleSheets.h
+    dom/FindRevealAlgorithms.h
     dom/FocusOptions.h
     dom/FragmentDirectiveParser.h
     dom/FragmentDirectiveRangeFinder.h
@@ -1369,7 +1370,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/HTMLCollectionInlines.h
     html/HTMLDListElement.h
     html/HTMLDataListElement.h
-    html/HTMLDetailsElement.h
     html/HTMLDirectoryElement.h
     html/HTMLDivElement.h
     html/HTMLDocument.h
@@ -1706,6 +1706,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/EventHandler.h
     page/FocusController.h
     page/FocusDirection.h
+    page/FocusEventData.h
     page/FragmentDirective.h
     page/Frame.h
     page/FrameInlines.h

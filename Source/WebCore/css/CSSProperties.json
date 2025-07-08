@@ -6664,8 +6664,6 @@
                 "double"
             ],
             "codegen-properties": {
-                "style-builder-custom": "All",
-                "auto-functions": true,
                 "parser-grammar": "auto | <outline-line-style>"
             },
             "specification": {
@@ -7889,10 +7887,8 @@
             ],
             "codegen-properties": {
                 "accepts-quirky-length": true,
-                "animation-wrapper": "TextIndentWrapper",
-                "animation-wrapper-requires-override-parameters": [],
-                "style-builder-custom": "All",
-                "style-extractor-custom": true,
+                "animation-wrapper": "StyleTypeWrapper",
+                "style-converter": "StyleType<TextIndent>",
                 "parser-grammar": "<length-percentage> && hanging? && each-line?"
             },
             "specification": {

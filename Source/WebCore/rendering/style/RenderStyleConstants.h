@@ -243,6 +243,19 @@ enum class BorderPrecedence : uint8_t {
     Cell
 };
 
+enum class OutlineStyle : uint8_t {
+    Auto,
+    None,
+    Inset,
+    Groove,
+    Outset,
+    Ridge,
+    Dotted,
+    Dashed,
+    Solid,
+    Double
+};
+
 enum class PositionType : uint8_t {
     Static = 0,
     Relative = 1,
@@ -1065,16 +1078,6 @@ constexpr float maximumAllowedFontSize = std::numeric_limits<short>::max();
 constexpr float maximumAllowedFontSize = 1000000.0f;
 #endif
 
-enum class TextIndentLine : bool {
-    FirstLine,
-    EachLine
-};
-
-enum class TextIndentType : bool {
-    Normal,
-    Hanging
-};
-
 enum class Isolation : bool {
     Auto,
     Isolate
@@ -1311,6 +1314,7 @@ WTF::TextStream& operator<<(WTF::TextStream&, MaskMode);
 WTF::TextStream& operator<<(WTF::TextStream&, NBSPMode);
 WTF::TextStream& operator<<(WTF::TextStream&, ObjectFit);
 WTF::TextStream& operator<<(WTF::TextStream&, Order);
+WTF::TextStream& operator<<(WTF::TextStream&, OutlineStyle);
 WTF::TextStream& operator<<(WTF::TextStream&, WebCore::Overflow);
 WTF::TextStream& operator<<(WTF::TextStream&, OverflowAlignment);
 WTF::TextStream& operator<<(WTF::TextStream&, OverflowWrap);

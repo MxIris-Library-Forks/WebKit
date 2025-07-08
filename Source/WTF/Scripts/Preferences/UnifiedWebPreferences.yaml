@@ -2368,7 +2368,7 @@ DetachableMediaSourceEnabled:
 
 DetailsAutoExpandEnabled:
   type: bool
-  status: testable
+  status: preview
   category: html
   humanReadableName: "HTML auto-expanding <details>"
   humanReadableDescription: "Enable HTML auto-expanding <details>"
@@ -3005,9 +3005,9 @@ FormControlRefreshEnabled:
   condition: ENABLE(FORM_CONTROL_REFRESH)
   defaultValue:
     WebKit:
-      default: defaultFormControlRefreshEnabled()
+      default: true
     WebKitLegacy:
-      default: WebKit::defaultFormControlRefreshEnabled()
+      default: true
     WebCore:
       default: false
 
@@ -3331,7 +3331,7 @@ HiddenPageDOMTimerThrottlingEnabled:
 
 HiddenUntilFoundEnabled:
    type: bool
-   status: testable
+   status: preview
    category: html
    humanReadableName: "hidden=until-found"
    humanReadableDescription: "Enable support for hidden=until-found"

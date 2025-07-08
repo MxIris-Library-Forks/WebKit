@@ -14,12 +14,6 @@ Modules/cache/DOMCacheStorage.cpp
 Modules/cache/RetrieveRecordsOptions.h
 Modules/cache/WindowOrWorkerGlobalScopeCaches.cpp
 Modules/credentialmanagement/CredentialsContainer.cpp
-Modules/encryptedmedia/CDM.cpp
-Modules/encryptedmedia/MediaKeyStatusMap.cpp
-Modules/encryptedmedia/MediaKeySystemRequest.cpp
-Modules/encryptedmedia/legacy/LegacyCDMSessionClearKey.cpp
-Modules/encryptedmedia/legacy/WebKitMediaKeySession.cpp
-Modules/encryptedmedia/legacy/WebKitMediaKeys.cpp
 Modules/entriesapi/FileSystemDirectoryEntry.cpp
 Modules/entriesapi/FileSystemEntry.cpp
 Modules/entriesapi/FileSystemFileEntry.cpp
@@ -73,8 +67,6 @@ Modules/mediastream/libwebrtc/LibWebRTCObservers.h
 Modules/mediastream/libwebrtc/LibWebRTCSctpTransportBackend.cpp
 Modules/model-element/HTMLModelElement.cpp
 Modules/model-element/scenekit/SceneKitModelPlayer.mm
-Modules/notifications/Notification.cpp
-Modules/notifications/NotificationResourcesLoader.cpp
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
 Modules/push-api/PushManager.cpp
 Modules/push-api/PushSubscription.cpp
@@ -1155,13 +1147,8 @@ worklets/PaintWorkletGlobalScope.cpp
 worklets/WorkletGlobalScope.cpp
 worklets/WorkletPendingTasks.cpp
 xml/XMLHttpRequest.cpp
-xml/XMLHttpRequestProgressEventThrottle.cpp
-xml/XMLHttpRequestUpload.cpp
 xml/XPathEvaluator.cpp
-xml/XPathExpression.cpp
 xml/XPathFunctions.cpp
-xml/XPathParser.cpp
-xml/XPathValue.cpp
 xml/XSLImportRule.cpp
 xml/XSLStyleSheetLibxslt.cpp
 xml/XSLTProcessorLibxslt.cpp

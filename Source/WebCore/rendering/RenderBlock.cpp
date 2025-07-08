@@ -1273,8 +1273,7 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
     if ((paintPhase == PaintPhase::Outline || paintPhase == PaintPhase::SelfOutline) && hasOutline() && style().usedVisibility() == Visibility::Visible) {
         // Don't paint focus ring for anonymous block continuation because the
         // inline element having outline-style:auto paints the whole focus ring.
-        bool hasOutlineStyleAuto = style().hasAutoOutlineStyle();
-        if (!hasOutlineStyleAuto || !isContinuation())
+        if (style().outlineStyle() != OutlineStyle::Auto || !isContinuation())
             paintOutline(paintInfo, LayoutRect(paintOffset, size()));
     }
 
@@ -1913,9 +1912,9 @@ bool RenderBlock::isContainingBlockAncestorFor(RenderObject& renderer) const
 LayoutUnit RenderBlock::textIndentOffset() const
 {
     LayoutUnit cw;
-    if (style().textIndent().isPercentOrCalculated())
+    if (style().textIndent().length.isPercentOrCalculated())
         cw = contentBoxLogicalWidth();
-    return minimumValueForLength(style().textIndent(), cw);
+    return Style::evaluate(style().textIndent().length, cw);
 }
 
 LayoutUnit RenderBlock::logicalLeftOffsetForContent() const

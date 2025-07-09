@@ -2418,6 +2418,7 @@ platform/calc/CalculationTree+Copy.cpp
 platform/calc/CalculationTree+Evaluation.cpp
 platform/calc/CalculationTree.cpp
 platform/calc/CalculationValue.cpp
+platform/calc/CalculationValueMap.cpp
 platform/encryptedmedia/CDMFactory.cpp
 platform/encryptedmedia/CDMLogging.cpp
 platform/encryptedmedia/CDMPrivate.cpp
@@ -3199,6 +3200,7 @@ style/values/shapes/StylePolygonFunction.cpp
 style/values/shapes/StyleRectFunction.cpp
 style/values/shapes/StyleShapeFunction.cpp
 style/values/shapes/StyleXywhFunction.cpp
+style/values/sizing/StyleContainIntrinsicSize.cpp
 style/values/sizing/StylePreferredSize.cpp
 style/values/svg/StyleSVGPaint.cpp
 style/values/text/StyleTextIndent.cpp
@@ -4427,7 +4429,6 @@ JSRTCDTMFToneChangeEvent.cpp
 JSRTCDataChannel.cpp
 JSRTCDataChannelEvent.cpp
 JSRTCDegradationPreference.cpp
-JSRTCDtxStatus.cpp
 JSRTCDtlsTransport.cpp
 JSRTCDtlsTransportState.cpp
 JSRTCEncodedAudioFrame.cpp
@@ -4462,11 +4463,9 @@ JSRTCRtpCodecCapability.cpp
 JSRTCRtpCodecParameters.cpp
 JSRTCRtpContributingSource.cpp
 JSRTCRtpEncodingParameters.cpp
-JSRTCRtpFecParameters.cpp
 JSRTCRtpHeaderExtensionParameters.cpp
 JSRTCRtpParameters.cpp
 JSRTCRtpReceiver.cpp
-JSRTCRtpRtxParameters.cpp
 JSRTCRtpSFrameTransform.cpp
 JSRTCRtpSFrameTransformErrorEvent.cpp
 JSRTCRtpScriptTransform.cpp

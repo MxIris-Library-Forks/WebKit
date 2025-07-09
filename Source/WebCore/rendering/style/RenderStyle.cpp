@@ -1222,6 +1222,11 @@ bool RenderStyle::changeRequiresLayerRepaint(const RenderStyle& other, OptionSet
             return true;
     }
 
+    if (m_rareInheritedData.ptr() != other.m_rareInheritedData.ptr()
+        && m_rareInheritedData->dynamicRangeLimit != other.m_rareInheritedData->dynamicRangeLimit) {
+        return true;
+    }
+
 #if HAVE(CORE_MATERIAL)
     if (m_rareInheritedData.ptr() != other.m_rareInheritedData.ptr()
         && m_rareInheritedData->usedAppleVisualEffectForSubtree != other.m_rareInheritedData->usedAppleVisualEffectForSubtree) {
@@ -1872,9 +1877,9 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyBlockStepRound);
         if (first.blockStepSize != second.blockStepSize)
             changingProperties.m_properties.set(CSSPropertyBlockStepSize);
-        if (first.containIntrinsicWidth != second.containIntrinsicWidth || first.containIntrinsicWidthType != second.containIntrinsicWidthType)
+        if (first.containIntrinsicWidth != second.containIntrinsicWidth)
             changingProperties.m_properties.set(CSSPropertyContainIntrinsicWidth);
-        if (first.containIntrinsicHeight != second.containIntrinsicHeight || first.containIntrinsicHeightType != second.containIntrinsicHeightType)
+        if (first.containIntrinsicHeight != second.containIntrinsicHeight)
             changingProperties.m_properties.set(CSSPropertyContainIntrinsicHeight);
         if (first.perspectiveOriginX != second.perspectiveOriginX)
             changingProperties.m_properties.set(CSSPropertyPerspectiveOriginX);

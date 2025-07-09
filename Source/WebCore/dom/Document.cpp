@@ -473,12 +473,12 @@ static void CallbackForContainIntrinsicSize(const Vector<Ref<ResizeObserverEntry
             ASSERT(box->style().hasAutoLengthContainIntrinsicSize());
 
             auto contentBoxSize = entry->contentBoxSize().at(0);
-            if (box->style().containIntrinsicLogicalWidthHasAuto()) {
+            if (box->style().containIntrinsicLogicalWidth().hasAuto()) {
                 auto adjustedWidth = LayoutUnit { applyZoom(contentBoxSize->inlineSize(), box->style()) };
                 target->setLastRememberedLogicalWidth(adjustedWidth);
             }
 
-            if (box->style().containIntrinsicLogicalHeightHasAuto()) {
+            if (box->style().containIntrinsicLogicalHeight().hasAuto()) {
                 auto adjustedHeight = LayoutUnit { applyZoom(contentBoxSize->blockSize(), box->style()) };
                 target->setLastRememberedLogicalHeight(adjustedHeight);
             }
@@ -6114,7 +6114,7 @@ void Document::updateAccessibilityObjectRegions()
         cache->willUpdateObjectRegions();
 
     if (CheckedPtr view = renderView())
-        view->protectedFrameView()->updateAccessibilityObjectRegions();
+        view->frameView().updateAccessibilityObjectRegions();
 #endif
 }
 

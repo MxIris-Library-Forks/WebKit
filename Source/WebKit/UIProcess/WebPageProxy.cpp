@@ -11496,6 +11496,8 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
 
     internals().visibleScrollerThumbRect = IntRect();
 
+    internals().needsFixedContainerEdgesUpdateAfterNextCommit = false;
+
 #if ENABLE(VIDEO_PRESENTATION_MODE)
     if (RefPtr playbackSessionManager = std::exchange(m_playbackSessionManager, nullptr))
         playbackSessionManager->invalidate();
@@ -13711,9 +13713,17 @@ void WebPageProxy::setScrollPerformanceDataCollectionEnabled(bool enabled)
 }
 #endif
 
-void WebPageProxy::takeSnapshot(IntRect rect, IntSize bitmapSize, SnapshotOptions options, CompletionHandler<void(std::optional<ShareableBitmap::Handle>&&)>&& callback)
+void WebPageProxy::takeSnapshotLegacy(IntRect rect, IntSize bitmapSize, SnapshotOptions options, CompletionHandler<void(std::optional<ShareableBitmap::Handle>&&)>&& callback)
 {
-    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options), WTFMove(callback));
+    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options, true), [callback = WTFMove(callback)] (std::optional<ImageBufferBackendHandle>&& imageHandle) mutable {
+        RELEASE_ASSERT(!imageHandle || std::holds_alternative<ShareableBitmap::Handle>(*imageHandle));
+        callback(imageHandle ? std::make_optional(std::get<ShareableBitmap::Handle>(*imageHandle)) : std::nullopt);
+    });
+}
+
+void WebPageProxy::takeSnapshot(IntRect rect, IntSize bitmapSize, SnapshotOptions options, CompletionHandler<void(std::optional<ImageBufferBackendHandle>&&)>&& callback)
+{
+    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options, false), WTFMove(callback));
 }
 
 void WebPageProxy::navigationGestureDidBegin()
@@ -15927,7 +15937,7 @@ void WebPageProxy::stickyScrollingTreeNodeBeganSticking()
     if (!protectedPreferences()->contentInsetBackgroundFillEnabled())
         return;
 
-    send(Messages::WebPage::SetNeedsFixedContainerEdgesUpdate());
+    internals().needsFixedContainerEdgesUpdateAfterNextCommit = true;
 }
 
 void WebPageProxy::adjustLayersForLayoutViewport(const FloatPoint& scrollPosition, const WebCore::FloatRect& layoutViewport, double scale)

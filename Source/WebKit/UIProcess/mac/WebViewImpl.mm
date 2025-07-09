@@ -242,7 +242,7 @@ WTF_DECLARE_CF_TYPE_TRAIT(CGImage);
 @end
 
 @interface WKAccessibilitySettingsObserver : NSObject {
-    WebKit::WebViewImpl *_impl;
+    WeakPtr<WebKit::WebViewImpl> _impl;
 }
 
 - (instancetype)initWithImpl:(WebKit::WebViewImpl&)impl;
@@ -778,7 +778,7 @@ static void* keyValueObservingContext = &keyValueObservingContext;
 
 @interface WKTextListTouchBarViewController : NSViewController {
 @private
-    WebKit::WebViewImpl* _webViewImpl;
+    WeakPtr<WebKit::WebViewImpl> _webViewImpl;
     WebKit::ListType _currentListType;
 }
 
@@ -1267,7 +1267,7 @@ WTF_MAKE_TZONE_ALLOCATED_IMPL(WebViewImpl);
 WebViewImpl::WebViewImpl(WKWebView *view, WebProcessPool& processPool, Ref<API::PageConfiguration>&& configuration)
     : m_view(view)
     , m_pageClient(makeUniqueRefWithoutRefCountedCheck<PageClientImpl>(view, view))
-    , m_page(processPool.createWebPage(*m_pageClient, WTFMove(configuration)))
+    , m_page(processPool.createWebPage(m_pageClient, WTFMove(configuration)))
     , m_needsViewFrameInWindowCoordinates(false)
     , m_intrinsicContentSize(CGSizeMake(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric))
     , m_layoutStrategy([WKViewLayoutStrategy layoutStrategyWithPage:m_page.get() view:view viewImpl:*this mode:kWKLayoutModeViewSize])
@@ -1279,7 +1279,7 @@ WebViewImpl::WebViewImpl(WKWebView *view, WebProcessPool& processPool, Ref<API::
     , m_primaryTrackingArea(adoptNS([[NSTrackingArea alloc] initWithRect:view.frame options:trackingAreaOptions() owner:m_mouseTrackingObserver.get() userInfo:nil]))
     , m_flagsChangedEventMonitorTrackingArea(adoptNS([[NSTrackingArea alloc] initWithRect:view.frame options:flagsChangedEventMonitorTrackingAreaOptions() owner:m_mouseTrackingObserver.get() userInfo:nil]))
 {
-    static_cast<PageClientImpl&>(*m_pageClient).setImpl(*this);
+    static_cast<PageClientImpl&>(m_pageClient.get()).setImpl(*this);
 
     ASSERT(hasProcessPrivilege(ProcessPrivilege::CanCommunicateWithWindowServer));
     [NSApp registerServicesMenuSendTypes:PasteboardTypes::forSelection() returnTypes:PasteboardTypes::forEditing()];
@@ -2793,7 +2793,10 @@ void WebViewImpl::clearAllEditCommands()
 bool WebViewImpl::writeSelectionToPasteboard(NSPasteboard *pasteboard, NSArray *types)
 {
     size_t numTypes = types.count;
-    [pasteboard declareTypes:types owner:nil];
+    [pasteboard clearContents];
+    if (m_page->sessionID().isEphemeral())
+        [pasteboard _setExpirationDate:[NSDate dateWithTimeIntervalSinceNow:pasteboardExpirationDelay.seconds()]];
+    [pasteboard addTypes:types owner:nil];
     for (size_t i = 0; i < numTypes; ++i) {
         BOOL wantsPlainText = [[types objectAtIndex:i] isEqualTo:WebCore::legacyStringPasteboardType()];
         RELEASE_LOG(Pasteboard, "Synchronously requesting %{public}s for selected range", wantsPlainText ? "plain text" : "data");
@@ -4483,7 +4486,11 @@ void WebViewImpl::setPromisedDataForImage(WebCore::Image& image, NSString *filen
     }
 
     [types addObjectsFromArray:archiveBuffer ? PasteboardTypes::forImagesWithArchive() : PasteboardTypes::forImages()];
-    [pasteboard declareTypes:types.get() owner:m_view.getAutoreleased()];
+
+    [pasteboard clearContents];
+    if (m_page->sessionID().isEphemeral())
+        [pasteboard _setExpirationDate:[NSDate dateWithTimeIntervalSinceNow:pasteboardExpirationDelay.seconds()]];
+    [pasteboard addTypes:types.get() owner:m_view.getAutoreleased()];
     setFileAndURLTypes(filename, extension, uti.createNSString().get(), title, url, visibleURL, pasteboard.get());
 
     if (archiveBuffer) {

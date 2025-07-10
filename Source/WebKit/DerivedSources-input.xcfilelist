@@ -284,6 +284,7 @@ $(PROJECT_DIR)/Shared/EditingRange.serialization.in
 $(PROJECT_DIR)/Shared/EditorState.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionActionClickBehavior.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionAlarmParameters.serialization.in
+$(PROJECT_DIR)/Shared/Extensions/WebExtensionBookmarksParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionCommandParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionContentWorldType.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionContext.serialization.in
@@ -489,6 +490,7 @@ $(PROJECT_DIR)/Shared/cf/CoreIPCSecAccessControl.serialization.in
 $(PROJECT_DIR)/Shared/cf/CoreIPCSecCertificate.serialization.in
 $(PROJECT_DIR)/Shared/cf/CoreIPCSecKeychainItem.serialization.in
 $(PROJECT_DIR)/Shared/cf/CoreIPCSecTrust.serialization.in
+$(PROJECT_DIR)/Shared/graphics/DoubleGeometry.serialization.in
 $(PROJECT_DIR)/Shared/graphics/HostingContext.serialization.in
 $(PROJECT_DIR)/Shared/graphics/RemoteImageBufferSetConfiguration.serialization.in
 $(PROJECT_DIR)/Shared/ios/CursorContext.serialization.in

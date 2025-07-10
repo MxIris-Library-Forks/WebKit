@@ -5138,6 +5138,7 @@
 		BCD9C2C10C17B69E005C90A2 /* JSNamedNodeMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9C2BD0C17B69E005C90A2 /* JSNamedNodeMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9C2C30C17B69E005C90A2 /* JSNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9C2BF0C17B69E005C90A2 /* JSNodeList.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9EFE92E18E58000D1C3DF /* StyleContainIntrinsicSize.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE82E18E57900D1C3DF /* StyleContainIntrinsicSize.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9EFEA2E18E58000D1C3DF /* StyleAspectRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE72E18E57900D1C3DF /* StyleAspectRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F0092E1AF8BC00D1C3DF /* StyleGridTrackBreadth.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F0062E1AEC5700D1C3DF /* StyleGridTrackBreadth.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCDF317C11F8D683003C5BF8 /* UserTypingGestureIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDF317A11F8D683003C5BF8 /* UserTypingGestureIndicator.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18770,10 +18771,14 @@
 		BCD9C2BF0C17B69E005C90A2 /* JSNodeList.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSNodeList.h; sourceTree = "<group>"; };
 		BCD9EFCF2E174EF600D1C3DF /* StyleProgressTimelineName.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleProgressTimelineName.cpp; sourceTree = "<group>"; };
 		BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextIndent.h; sourceTree = "<group>"; };
+		BCD9EFE72E18E57900D1C3DF /* StyleAspectRatio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleAspectRatio.h; sourceTree = "<group>"; };
 		BCD9EFE82E18E57900D1C3DF /* StyleContainIntrinsicSize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleContainIntrinsicSize.h; sourceTree = "<group>"; };
 		BCD9EFEF2E198A6100D1C3DF /* StyleTextIndent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextIndent.cpp; sourceTree = "<group>"; };
+		BCD9EFF02E198C0500D1C3DF /* StyleAspectRatio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleAspectRatio.cpp; sourceTree = "<group>"; };
 		BCD9EFF12E198C0500D1C3DF /* StyleContainIntrinsicSize.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleContainIntrinsicSize.cpp; sourceTree = "<group>"; };
 		BCD9F0062E1AEC5700D1C3DF /* StyleGridTrackBreadth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridTrackBreadth.h; sourceTree = "<group>"; };
+		BCD9F05B2E1C297600D1C3DF /* StyleRatio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleRatio.cpp; sourceTree = "<group>"; };
+		BCD9F05C2E1C2A9600D1C3DF /* CSSRatio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSRatio.cpp; sourceTree = "<group>"; };
 		BCD9F0992E1C4E5100D1C3DF /* CalculationValueMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CalculationValueMap.h; sourceTree = "<group>"; };
 		BCD9F09A2E1C4EB900D1C3DF /* CalculationValueMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CalculationValueMap.cpp; sourceTree = "<group>"; };
 		BCDBD32A2C84C27500E6D96B /* CSSPropertyParserConsumer+Transform.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Transform.cpp"; sourceTree = "<group>"; };
@@ -35073,6 +35078,8 @@
 		BC675B662DEE883300AD4D79 /* sizing */ = {
 			isa = PBXGroup;
 			children = (
+				BCD9EFF02E198C0500D1C3DF /* StyleAspectRatio.cpp */,
+				BCD9EFE72E18E57900D1C3DF /* StyleAspectRatio.h */,
 				BCD9EFF12E198C0500D1C3DF /* StyleContainIntrinsicSize.cpp */,
 				BCD9EFE82E18E57900D1C3DF /* StyleContainIntrinsicSize.h */,
 				BC675B672DEE8B7100AD4D79 /* StyleMaximumSize.h */,
@@ -35716,6 +35723,7 @@
 				BCB271DA2CC0142C00265123 /* CSSPrimitiveNumericTypes.h */,
 				BCD67C632D2465550079EB9C /* CSSPrimitiveNumericUnits.cpp */,
 				BCD67C072D1C66420079EB9C /* CSSPrimitiveNumericUnits.h */,
+				BCD9F05C2E1C2A9600D1C3DF /* CSSRatio.cpp */,
 				BC23875A2D84982100698102 /* CSSRatio.h */,
 				BC05ACCD2CEE600D00750CB1 /* CSSSymbol.cpp */,
 				BC05ACCC2CEE600D00750CB1 /* CSSSymbol.h */,
@@ -35769,6 +35777,7 @@
 				BCCE4F672DF8A483005554EA /* StylePrimitiveNumericTypes+Platform.h */,
 				BC3CC1B52DE136830032971C /* StylePrimitiveNumericTypes+Serialization.h */,
 				BCB271EE2CC0156E00265123 /* StylePrimitiveNumericTypes.h */,
+				BCD9F05B2E1C297600D1C3DF /* StyleRatio.cpp */,
 				BC23875F2D84A59400698102 /* StyleRatio.h */,
 				BC38D4F22D480063004BE2FF /* StyleUnevaluatedCalculation.cpp */,
 				BCD67C352D23113B0079EB9C /* StyleUnevaluatedCalculation.h */,
@@ -44929,6 +44938,7 @@
 				E45BA6B6237622A3004DFC07 /* StyleAdjuster.h in Headers */,
 				BC2A0EF92E12165D003CBA0E /* StyleAnchorName.h in Headers */,
 				494E0BBD296CB7CC005F9FDC /* StyleAppearance.h in Headers */,
+				BCD9EFEA2E18E58000D1C3DF /* StyleAspectRatio.h in Headers */,
 				BC5EB6A30E81DC4F00B25965 /* StyleBackgroundData.h in Headers */,
 				BCB2720A2CC1F1DB00265123 /* StyleBasicShape.h in Headers */,
 				BCB2720F2CC1F1F100265123 /* StyleBorderRadius.h in Headers */,
@@ -46520,7 +46530,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ -f \"${SCRIPT_INPUT_FILE_0}\" ]\nthen \"${SCRIPT_INPUT_FILE_0}\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -framework JavaScriptCore -framework WebGPU -lwebrtc -lANGLE-shared\nfi && touch \"${DERIVED_FILES_DIR}/audit-spi.d\"\n";
+			shellScript = "if [ -f \"${SCRIPT_INPUT_FILE_0}\" ]\nthen \"${SCRIPT_INPUT_FILE_0}\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -framework JavaScriptCore -framework WebGPU -lwebrtc -lANGLE-shared --allowlist \"${SRCROOT}/Configurations/AllowedSPI-legacy.toml\" \"${SRCROOT}/Configurations/AllowedSPI.toml\"\nfi && touch \"${DERIVED_FILES_DIR}/audit-spi.d\"\n";
 		};
 		F4CDF3CA27E9187200191928 /* Copy Profiling Data */ = {
 			isa = PBXShellScriptBuildPhase;

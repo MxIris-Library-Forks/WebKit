@@ -1647,6 +1647,14 @@ bool Quirks::needsChromeMediaControlsPseudoElement() const
 
 #if PLATFORM(IOS_FAMILY)
 
+bool Quirks::shouldHideSoftTopScrollEdgeEffectDuringFocus(const Element& focusedElement) const
+{
+    if (!needsQuirks() || !m_quirksData.shouldHideSoftTopScrollEdgeEffectDuringFocusQuirk)
+        return false;
+
+    return focusedElement.getIdAttribute().contains("crossword"_s);
+}
+
 // store.steampowered.com: rdar://142573562
 bool Quirks::shouldTreatAddingMouseOutEventListenerAsContentChange() const
 {
@@ -2207,6 +2215,14 @@ static void handleDisneyPlusQuirks(QuirksData& quirksData, const URL& quirksURL,
     quirksData.needsZeroMaxTouchPointsQuirk = true;
 #endif
 }
+
+static void handleGuardianQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
+{
+    UNUSED_PARAM(quirksURL);
+    UNUSED_PARAM(quirksDomainString);
+    UNUSED_PARAM(documentURL);
+    quirksData.shouldHideSoftTopScrollEdgeEffectDuringFocusQuirk = true;
+}
 #endif // PLATFORM(IOS_FAMILY)
 
 #if ENABLE(DESKTOP_CONTENT_MODE_QUIRKS)
@@ -2256,6 +2272,17 @@ static void handleWarbyParkerQuirks(QuirksData& quirksData, const URL& quirksURL
     UNUSED_PARAM(quirksURL);
     UNUSED_PARAM(documentURL);
     // warbyparker.com rdar://72839707
+    quirksData.shouldEnableLegacyGetUserMediaQuirk = true;
+}
+
+static void handleACTestingQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
+{
+    if (quirksDomainString != "actesting.org"_s)
+        return;
+
+    UNUSED_PARAM(quirksURL);
+    UNUSED_PARAM(documentURL);
+    // actesting.org rdar://124017544
     quirksData.shouldEnableLegacyGetUserMediaQuirk = true;
 }
 #endif
@@ -2917,6 +2944,9 @@ void Quirks::determineRelevantQuirks()
 #if PLATFORM(IOS) || PLATFORM(VISION)
         { "365scores"_s, &handle365ScoresQuirks },
 #endif
+#if ENABLE(MEDIA_STREAM)
+        { "actesting"_s, &handleACTestingQuirks },
+#endif
         { "amazon"_s, &handleAmazonQuirks },
 #if PLATFORM(IOS_FAMILY)
         { "as"_s, &handleASQuirks },
@@ -3001,6 +3031,7 @@ void Quirks::determineRelevantQuirks()
         { "state"_s, &handleCEACStateGovQuirks },
 #endif
 #if PLATFORM(IOS_FAMILY)
+        { "theguardian"_s, &handleGuardianQuirks },
         { "thesaurus"_s, &handleScriptToEvaluateBeforeRunningScriptFromURLQuirk },
 #endif
 #if PLATFORM(MAC)

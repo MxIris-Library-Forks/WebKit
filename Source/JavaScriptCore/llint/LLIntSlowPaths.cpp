@@ -432,7 +432,7 @@ static UGPRPair entryOSR(CodeBlock* codeBlock, const char *name, EntryKind kind)
     if (kind == Prologue)
         LLINT_RETURN_TWO(codeBlock->jitCode()->executableAddress(), nullptr);
     ASSERT(kind == ArityCheck);
-    LLINT_RETURN_TWO(codeBlock->jitCode()->addressForCall(MustCheckArity).taggedPtr(), nullptr);
+    LLINT_RETURN_TWO(codeBlock->jitCode()->addressForCall(ArityCheckMode::MustCheckArity).taggedPtr(), nullptr);
 }
 #else // ENABLE(JIT)
 static UGPRPair entryOSR(CodeBlock* codeBlock, const char*, EntryKind)
@@ -1860,14 +1860,23 @@ LLINT_SLOW_PATH_DECL(slow_path_switch_imm)
     LLINT_BEGIN();
     auto bytecode = pc->as<OpSwitchImm>();
     JSValue scrutinee = getOperand(callFrame, bytecode.m_scrutinee);
-    ASSERT(scrutinee.isDouble());
-    double value = scrutinee.asDouble();
+    double value = scrutinee.asNumber();
     int32_t intValue = static_cast<int32_t>(value);
     auto& unlinkedTable = codeBlock->unlinkedSwitchJumpTable(bytecode.m_tableIndex);
-    if (value == intValue)
-        JUMP_TO(unlinkedTable.offsetForValue(intValue));
-    else
-        JUMP_TO(unlinkedTable.defaultOffset());
+    if (value == intValue) [[likely]] {
+        if (!unlinkedTable.isList()) {
+            JUMP_TO(unlinkedTable.offsetForValue(intValue));
+            LLINT_END();
+        }
+
+        for (unsigned i = 0; i < unlinkedTable.m_branchOffsets.size(); i += 2) {
+            if (unlinkedTable.m_branchOffsets[i] == intValue) {
+                JUMP_TO(unlinkedTable.m_branchOffsets[i + 1]);
+                LLINT_END();
+            }
+        }
+    }
+    JUMP_TO(unlinkedTable.defaultOffset());
     LLINT_END();
 }
 
@@ -1881,7 +1890,19 @@ LLINT_SLOW_PATH_DECL(slow_path_switch_char)
     ASSERT(string->length() == 1);
     auto& unlinkedTable = codeBlock->unlinkedSwitchJumpTable(bytecode.m_tableIndex);
     auto str = string->value(globalObject);
-    JUMP_TO(unlinkedTable.offsetForValue(str.data[0]));
+    int32_t intValue = str.data[0];
+    if (!unlinkedTable.isList()) {
+        JUMP_TO(unlinkedTable.offsetForValue(intValue));
+        LLINT_END();
+    }
+
+    for (unsigned i = 0; i < unlinkedTable.m_branchOffsets.size(); i += 2) {
+        if (unlinkedTable.m_branchOffsets[i] == intValue) {
+            JUMP_TO(unlinkedTable.m_branchOffsets[i + 1]);
+            LLINT_END();
+        }
+    }
+    JUMP_TO(unlinkedTable.defaultOffset());
     LLINT_END();
 }
 
@@ -2083,7 +2104,7 @@ static inline UGPRPair setUpCall(CallFrame* calleeFrame, CodeSpecializationKind 
     // FIXME: Support wasm IC.
     // https://bugs.webkit.org/show_bug.cgi?id=220339
     if (executable->isHostFunction())
-        codePtr = executable->entrypointFor(kind, MustCheckArity);
+        codePtr = executable->entrypointFor(kind, ArityCheckMode::MustCheckArity);
     else {
         FunctionExecutable* functionExecutable = static_cast<FunctionExecutable*>(executable);
         if (!isCall(kind) && functionExecutable->constructAbility() == ConstructAbility::CannotConstruct)
@@ -2098,9 +2119,9 @@ static inline UGPRPair setUpCall(CallFrame* calleeFrame, CodeSpecializationKind 
 
         ArityCheckMode arity;
         if (calleeFrame->argumentCountIncludingThis() < static_cast<size_t>(codeBlock->numParameters()))
-            arity = MustCheckArity;
+            arity = ArityCheckMode::MustCheckArity;
         else
-            arity = ArityCheckNotRequired;
+            arity = ArityCheckMode::ArityCheckNotRequired;
         codePtr = functionExecutable->entrypointFor(kind, arity);
     }
 

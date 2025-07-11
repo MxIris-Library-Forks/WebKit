@@ -299,25 +299,25 @@ static void traceFunctionPrologue(CallFrame* callFrame, const char* comment, Cod
 
 LLINT_SLOW_PATH_DECL(trace_prologue_function_for_call)
 {
-    traceFunctionPrologue(callFrame, "call prologue", CodeForCall);
+    traceFunctionPrologue(callFrame, "call prologue", CodeSpecializationKind::CodeForCall);
     LLINT_END_IMPL();
 }
 
 LLINT_SLOW_PATH_DECL(trace_prologue_function_for_construct)
 {
-    traceFunctionPrologue(callFrame, "construct prologue", CodeForConstruct);
+    traceFunctionPrologue(callFrame, "construct prologue", CodeSpecializationKind::CodeForConstruct);
     LLINT_END_IMPL();
 }
 
 LLINT_SLOW_PATH_DECL(trace_arityCheck_for_call)
 {
-    traceFunctionPrologue(callFrame, "call arity check", CodeForCall);
+    traceFunctionPrologue(callFrame, "call arity check", CodeSpecializationKind::CodeForCall);
     LLINT_END_IMPL();
 }
 
 LLINT_SLOW_PATH_DECL(trace_arityCheck_for_construct)
 {
-    traceFunctionPrologue(callFrame, "construct arity check", CodeForConstruct);
+    traceFunctionPrologue(callFrame, "construct arity check", CodeSpecializationKind::CodeForConstruct);
     LLINT_END_IMPL();
 }
 
@@ -1860,23 +1860,14 @@ LLINT_SLOW_PATH_DECL(slow_path_switch_imm)
     LLINT_BEGIN();
     auto bytecode = pc->as<OpSwitchImm>();
     JSValue scrutinee = getOperand(callFrame, bytecode.m_scrutinee);
-    double value = scrutinee.asNumber();
+    ASSERT(scrutinee.isDouble());
+    double value = scrutinee.asDouble();
     int32_t intValue = static_cast<int32_t>(value);
     auto& unlinkedTable = codeBlock->unlinkedSwitchJumpTable(bytecode.m_tableIndex);
-    if (value == intValue) [[likely]] {
-        if (!unlinkedTable.isList()) {
-            JUMP_TO(unlinkedTable.offsetForValue(intValue));
-            LLINT_END();
-        }
-
-        for (unsigned i = 0; i < unlinkedTable.m_branchOffsets.size(); i += 2) {
-            if (unlinkedTable.m_branchOffsets[i] == intValue) {
-                JUMP_TO(unlinkedTable.m_branchOffsets[i + 1]);
-                LLINT_END();
-            }
-        }
-    }
-    JUMP_TO(unlinkedTable.defaultOffset());
+    if (value == intValue)
+        JUMP_TO(unlinkedTable.offsetForValue(intValue));
+    else
+        JUMP_TO(unlinkedTable.defaultOffset());
     LLINT_END();
 }
 
@@ -1890,19 +1881,7 @@ LLINT_SLOW_PATH_DECL(slow_path_switch_char)
     ASSERT(string->length() == 1);
     auto& unlinkedTable = codeBlock->unlinkedSwitchJumpTable(bytecode.m_tableIndex);
     auto str = string->value(globalObject);
-    int32_t intValue = str.data[0];
-    if (!unlinkedTable.isList()) {
-        JUMP_TO(unlinkedTable.offsetForValue(intValue));
-        LLINT_END();
-    }
-
-    for (unsigned i = 0; i < unlinkedTable.m_branchOffsets.size(); i += 2) {
-        if (unlinkedTable.m_branchOffsets[i] == intValue) {
-            JUMP_TO(unlinkedTable.m_branchOffsets[i + 1]);
-            LLINT_END();
-        }
-    }
-    JUMP_TO(unlinkedTable.defaultOffset());
+    JUMP_TO(unlinkedTable.offsetForValue(str.data[0]));
     LLINT_END();
 }
 
@@ -2034,7 +2013,7 @@ static UGPRPair handleHostCall(CallFrame* calleeFrame, JSValue callee, CodeSpeci
     calleeFrame->setCodeBlock(nullptr);
     calleeFrame->clearReturnPC();
 
-    if (kind == CodeForCall) {
+    if (kind == CodeSpecializationKind::CodeForCall) {
         auto callData = JSC::getCallData(callee);
         ASSERT(callData.type != CallData::Type::JS);
 
@@ -2053,7 +2032,7 @@ static UGPRPair handleHostCall(CallFrame* calleeFrame, JSValue callee, CodeSpeci
         LLINT_CALL_THROW(globalObject, createNotAFunctionError(globalObject, callee));
     }
 
-    ASSERT(kind == CodeForConstruct);
+    ASSERT(kind == CodeSpecializationKind::CodeForConstruct);
 
     auto constructData = JSC::getConstructData(callee);
     ASSERT(constructData.type != CallData::Type::JS);
@@ -2240,27 +2219,27 @@ static inline UGPRPair varargsSetup(CallFrame* callFrame, const JSInstruction* p
 
 LLINT_SLOW_PATH_DECL(slow_path_call_varargs)
 {
-    return varargsSetup<OpCallVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeForCall);
+    return varargsSetup<OpCallVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeSpecializationKind::CodeForCall);
 }
 
 LLINT_SLOW_PATH_DECL(slow_path_tail_call_varargs)
 {
-    return varargsSetup<OpTailCallVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeForCall);
+    return varargsSetup<OpTailCallVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeSpecializationKind::CodeForCall);
 }
 
 LLINT_SLOW_PATH_DECL(slow_path_tail_call_forward_arguments)
 {
-    return varargsSetup<OpTailCallForwardArguments, SetArgumentsWith::CurrentArguments>(callFrame, pc, CodeForCall);
+    return varargsSetup<OpTailCallForwardArguments, SetArgumentsWith::CurrentArguments>(callFrame, pc, CodeSpecializationKind::CodeForCall);
 }
 
 LLINT_SLOW_PATH_DECL(slow_path_construct_varargs)
 {
-    return varargsSetup<OpConstructVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeForConstruct);
+    return varargsSetup<OpConstructVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeSpecializationKind::CodeForConstruct);
 }
 
 LLINT_SLOW_PATH_DECL(slow_path_super_construct_varargs)
 {
-    return varargsSetup<OpSuperConstructVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeForConstruct);
+    return varargsSetup<OpSuperConstructVarargs, SetArgumentsWith::Object>(callFrame, pc, CodeSpecializationKind::CodeForConstruct);
 }
 
 static inline UGPRPair commonCallDirectEval(CallFrame* callFrame, const JSInstruction* pc, MacroAssemblerCodeRef<JSEntryPtrTag> returnPoint)
@@ -2283,7 +2262,7 @@ static inline UGPRPair commonCallDirectEval(CallFrame* callFrame, const JSInstru
     JSValue result = eval(calleeFrame, thisValue, callerScopeChain, codeBlock, BytecodeIndex(codeBlock->bytecodeOffset(pc)), bytecode.m_lexicallyScopedFeatures);
     LLINT_CALL_CHECK_EXCEPTION(globalObject);
     if (!result)
-        RELEASE_AND_RETURN(throwScope, setUpCall(calleeFrame, CodeForCall, calleeAsValue));
+        RELEASE_AND_RETURN(throwScope, setUpCall(calleeFrame, CodeSpecializationKind::CodeForCall, calleeAsValue));
 
     vm.encodedHostCallReturnValue = JSValue::encode(result);
     AssertNoGC assertNoGC;

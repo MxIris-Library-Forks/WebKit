@@ -890,7 +890,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     RetainPtr<WKTextListTouchBarViewController> _textListTouchBarViewController;
 
 @private
-    WebKit::WebViewImpl* _webViewImpl;
+    WeakPtr<WebKit::WebViewImpl> _webViewImpl;
 }
 
 @property (nonatomic) BOOL textIsBold;
@@ -1124,7 +1124,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 - (NSViewController *)textListViewController
 {
     if (!_textListTouchBarViewController)
-        _textListTouchBarViewController = adoptNS([[WKTextListTouchBarViewController alloc] initWithWebViewImpl:_webViewImpl]);
+        _textListTouchBarViewController = adoptNS([[WKTextListTouchBarViewController alloc] initWithWebViewImpl:_webViewImpl.get()]);
     return _textListTouchBarViewController.get();
 }
 
@@ -3737,13 +3737,9 @@ void WebViewImpl::enableAccessibilityIfNecessary(NSString *attribute)
 {
 #if ENABLE(INITIALIZE_ACCESSIBILITY_ON_DEMAND)
     // The attributes NSAccessibilityParentAttribute and NSAccessibilityPositionAttribute do not require AX initialization in the WebContent process.
-    Ref processPool = m_page->protectedLegacyMainFrameProcess()->processPool();
-    if (!processPool->hasReceivedAXRequestInUIProcess()
-        && ![attribute isEqualToString:NSAccessibilityParentAttribute]
-        && ![attribute isEqualToString:NSAccessibilityPositionAttribute]) {
-        m_page->initializeAccessibility();
-        accessibilityRegisterUIProcessTokens();
-        processPool->markHasReceivedAXRequestInUIProcess();
+    if (![attribute isEqualToString:NSAccessibilityParentAttribute] && ![attribute isEqualToString:NSAccessibilityPositionAttribute]) {
+        Ref processPool = m_page->configuration().processPool();
+        processPool->initializeAccessibilityIfNecessary();
     }
 #endif
 

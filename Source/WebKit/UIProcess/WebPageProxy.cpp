@@ -311,7 +311,6 @@
 #include "PlaybackSessionInterfaceLMK.h"
 #include "RemoteLayerTreeDrawingAreaProxy.h"
 #include "RemoteLayerTreeScrollingPerformanceData.h"
-#include "UserMediaCaptureManagerProxy.h"
 #include "VideoPresentationManagerProxy.h"
 #include "VideoPresentationManagerProxyMessages.h"
 #include "WKTextExtractionUtilities.h"
@@ -12070,8 +12069,6 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.presentingApplicationBundleIdentifier = presentingApplicationBundleIdentifier();
 #endif
 
-    parameters.hasReceivedAXRequestInUIProcess = m_configuration->processPool().hasReceivedAXRequestInUIProcess();
-
 #if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
     parameters.defaultContentInsetBackgroundFillEnabled = defaultContentInsetBackgroundFillEnabled();
 #endif
@@ -16441,10 +16438,7 @@ void WebPageProxy::adjustVisibilityForTargetedElements(const Vector<Ref<API::Tar
         return {
             { info->elementIdentifier(), info->documentIdentifier() },
             info->selectors().map([](auto& selectors) {
-                HashSet<String> result;
-                result.reserveInitialCapacity(selectors.size());
-                result.add(selectors.begin(), selectors.end());
-                return result;
+                return HashSet<String>(selectors);
             })
         };
     })), WTFMove(completion));

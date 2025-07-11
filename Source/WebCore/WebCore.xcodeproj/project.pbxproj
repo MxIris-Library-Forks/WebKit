@@ -5140,6 +5140,7 @@
 		BCD9EFE92E18E58000D1C3DF /* StyleContainIntrinsicSize.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE82E18E57900D1C3DF /* StyleContainIntrinsicSize.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9EFEA2E18E58000D1C3DF /* StyleAspectRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE72E18E57900D1C3DF /* StyleAspectRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9EFED2E18E5A000D1C3DF /* StyleTextEmphasisStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFEC2E18E59C00D1C3DF /* StyleTextEmphasisStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F0092E1AF8BC00D1C3DF /* StyleGridTrackBreadth.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F0062E1AEC5700D1C3DF /* StyleGridTrackBreadth.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCDF317C11F8D683003C5BF8 /* UserTypingGestureIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDF317A11F8D683003C5BF8 /* UserTypingGestureIndicator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCDFD48E0E305290009D10AD /* XMLHttpRequestUpload.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDFD48C0E305290009D10AD /* XMLHttpRequestUpload.h */; };
@@ -18773,6 +18774,8 @@
 		BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextIndent.h; sourceTree = "<group>"; };
 		BCD9EFE72E18E57900D1C3DF /* StyleAspectRatio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleAspectRatio.h; sourceTree = "<group>"; };
 		BCD9EFE82E18E57900D1C3DF /* StyleContainIntrinsicSize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleContainIntrinsicSize.h; sourceTree = "<group>"; };
+		BCD9EFEC2E18E59C00D1C3DF /* StyleTextEmphasisStyle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextEmphasisStyle.h; sourceTree = "<group>"; };
+		BCD9EFEE2E19879200D1C3DF /* StyleTextEmphasisStyle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextEmphasisStyle.cpp; sourceTree = "<group>"; };
 		BCD9EFEF2E198A6100D1C3DF /* StyleTextIndent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextIndent.cpp; sourceTree = "<group>"; };
 		BCD9EFF02E198C0500D1C3DF /* StyleAspectRatio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleAspectRatio.cpp; sourceTree = "<group>"; };
 		BCD9EFF12E198C0500D1C3DF /* StyleContainIntrinsicSize.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleContainIntrinsicSize.cpp; sourceTree = "<group>"; };
@@ -34979,6 +34982,8 @@
 		BC3078E42D02884200630D75 /* text-decoration */ = {
 			isa = PBXGroup;
 			children = (
+				BCD9EFEE2E19879200D1C3DF /* StyleTextEmphasisStyle.cpp */,
+				BCD9EFEC2E18E59C00D1C3DF /* StyleTextEmphasisStyle.h */,
 				BC3078E32D02884200630D75 /* StyleTextShadow.cpp */,
 				BC3078E22D02884200630D75 /* StyleTextShadow.h */,
 				BC2A0D712E086B9A003CBA0E /* StyleTextUnderlineOffset.cpp */,
@@ -45077,6 +45082,7 @@
 				BC5EB5E50E81BF6D00B25965 /* StyleSurroundData.h in Headers */,
 				DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */,
 				BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */,
+				BCD9EFED2E18E5A000D1C3DF /* StyleTextEmphasisStyle.h in Headers */,
 				BC3CC22E2DE8D2D50032971C /* StyleTextShadow.h in Headers */,
 				BC2A0D902E088492003CBA0E /* StyleTextUnderlineOffset.h in Headers */,
 				BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */,

@@ -40,16 +40,16 @@ class InspectorController;
 class LocalFrame;
 class Page;
 
-enum class InspectorClientDeveloperPreference : uint8_t {
+enum class InspectorBackendClientDeveloperPreference : uint8_t {
     PrivateClickMeasurementDebugModeEnabled,
     ITPDebugModeEnabled,
     MockCaptureDevicesEnabled,
     NeedsSiteSpecificQuirks,
 };
 
-class InspectorClient {
+class InspectorBackendClient {
 public:
-    virtual ~InspectorClient() = default;
+    virtual ~InspectorBackendClient() = default;
 
     virtual void inspectedPageDestroyed() = 0;
     virtual void frontendCountChanged(unsigned) { }
@@ -72,7 +72,7 @@ public:
     virtual void elementSelectionChanged(bool) { }
     virtual void timelineRecordingChanged(bool) { }
 
-    using DeveloperPreference = InspectorClientDeveloperPreference;
+    using DeveloperPreference = InspectorBackendClientDeveloperPreference;
     virtual void setDeveloperPreferenceOverride(DeveloperPreference, std::optional<bool>) { }
 
 #if ENABLE(INSPECTOR_NETWORK_THROTTLING)

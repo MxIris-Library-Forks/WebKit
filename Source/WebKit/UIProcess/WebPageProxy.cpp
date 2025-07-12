@@ -12069,9 +12069,6 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.presentingApplicationBundleIdentifier = presentingApplicationBundleIdentifier();
 #endif
 
-#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
-    parameters.defaultContentInsetBackgroundFillEnabled = defaultContentInsetBackgroundFillEnabled();
-#endif
     return parameters;
 }
 
@@ -13642,10 +13639,10 @@ void WebPageProxy::getMarkedRangeAsync(CompletionHandler<void(const EditingRange
     sendWithAsyncReply(Messages::WebPage::GetMarkedRangeAsync(), WTFMove(callbackFunction));
 }
 
-void WebPageProxy::getSelectedRangeAsync(CompletionHandler<void(const EditingRange&)>&& callbackFunction)
+void WebPageProxy::getSelectedRangeAsync(CompletionHandler<void(const EditingRange& selectedRange, const EditingRange& compositionRange)>&& callbackFunction)
 {
     if (!hasRunningProcess()) {
-        callbackFunction(EditingRange());
+        callbackFunction({ }, { });
         return;
     }
 

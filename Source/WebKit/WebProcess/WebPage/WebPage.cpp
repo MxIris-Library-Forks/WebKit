@@ -120,7 +120,7 @@
 #include "WebHistoryItemClient.h"
 #include "WebHitTestResultData.h"
 #include "WebImage.h"
-#include "WebInspectorClient.h"
+#include "WebInspectorBackendClient.h"
 #include "WebInspectorInternal.h"
 #include "WebInspectorMessages.h"
 #include "WebInspectorUI.h"
@@ -702,10 +702,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 {
     WEBPAGE_RELEASE_LOG(Loading, "constructor:");
 
-#if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
-    cachedValueDefaultContentInsetBackgroundFillEnabled() = parameters.defaultContentInsetBackgroundFillEnabled;
-#endif
-
 #if PLATFORM(COCOA)
 #if HAVE(SANDBOX_STATE_FLAGS)
     auto auditToken = WebProcess::singleton().auditTokenForSelf();
@@ -800,7 +796,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #if ENABLE(DRAG_SUPPORT)
     pageConfiguration.dragClient = makeUnique<WebDragClient>(this);
 #endif
-    pageConfiguration.inspectorClient = makeUnique<WebInspectorClient>(this);
+    pageConfiguration.inspectorBackendClient = makeUnique<WebInspectorBackendClient>(this);
 #if USE(AUTOCORRECTION_PANEL)
     pageConfiguration.alternativeTextClient = makeUnique<WebAlternativeTextClient>(this);
 #endif
@@ -973,7 +969,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     WebCore::provideNotification(page.ptr(), new WebNotificationClient(this));
 #endif
 #if ENABLE(MEDIA_STREAM)
-    WebCore::provideUserMediaTo(page.ptr(), new WebUserMediaClient(*this));
+    WebCore::provideUserMediaTo(page.ptr(), WebUserMediaClient::create(*this));
 #endif
 #if ENABLE(ENCRYPTED_MEDIA)
     WebCore::provideMediaKeySystemTo(page, *new WebMediaKeySystemClient(*this));
@@ -2734,6 +2730,23 @@ void WebPage::enableAccessibility()
 {
     if (!WebCore::AXObjectCache::accessibilityEnabled())
         WebCore::AXObjectCache::enableAccessibility();
+}
+
+void WebPage::getAccessibilityWebProcessDebugInfo(CompletionHandler<void(WebCore::AXDebugInfo)>&& completionHandler)
+{
+    if (auto treeData = protectedCorePage()->accessibilityTreeData(IncludeDOMInfo::No)) {
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+        completionHandler({ WebCore::AXObjectCache::accessibilityEnabled(), WebCore::AXObjectCache::isAXThreadInitialized(), treeData->liveTree, treeData->isolatedTree });
+#else
+        completionHandler({ WebCore::AXObjectCache::accessibilityEnabled(), false, treeData->liveTree, treeData->isolatedTree });
+#endif
+        return;
+    }
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+    completionHandler({ WebCore::AXObjectCache::accessibilityEnabled(), WebCore::AXObjectCache::isAXThreadInitialized(), { }, { } });
+#else
+    completionHandler({ WebCore::AXObjectCache::accessibilityEnabled(), false, { }, { } });
+#endif
 }
 
 void WebPage::screenPropertiesDidChange()
@@ -4662,7 +4675,7 @@ void WebPage::getAccessibilityTreeData(CompletionHandler<void(const std::optiona
 {
     IPC::SharedBufferReference dataBuffer;
 #if PLATFORM(COCOA)
-    if (auto treeData = protectedCorePage()->accessibilityTreeData()) {
+    if (auto treeData = protectedCorePage()->accessibilityTreeData(IncludeDOMInfo::Yes)) {
         auto stream = adoptCF(CFWriteStreamCreateWithAllocatedBuffers(0, 0));
         CFWriteStreamOpen(stream.get());
 
@@ -7126,13 +7139,14 @@ void WebPage::getMarkedRangeAsync(CompletionHandler<void(const EditingRange&)>&&
     completionHandler(EditingRange::fromRange(*frame, frame->protectedEditor()->compositionRange()));
 }
 
-void WebPage::getSelectedRangeAsync(CompletionHandler<void(const EditingRange&)>&& completionHandler)
+void WebPage::getSelectedRangeAsync(CompletionHandler<void(const EditingRange& selectedRange, const EditingRange& compositionRange)>&& completionHandler)
 {
     RefPtr frame = corePage()->focusController().focusedOrMainFrame();
     if (!frame)
-        return completionHandler({ });
+        return completionHandler({ }, { });
 
-    completionHandler(EditingRange::fromRange(*frame, frame->selection().selection().toNormalizedRange()));
+    completionHandler(EditingRange::fromRange(*frame, frame->selection().selection().toNormalizedRange()),
+        EditingRange::fromRange(*frame, frame->protectedEditor()->compositionRange()));
 }
 
 void WebPage::characterIndexForPointAsync(const WebCore::IntPoint& point, CompletionHandler<void(uint64_t)>&& completionHandler)

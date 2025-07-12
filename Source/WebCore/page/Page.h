@@ -138,7 +138,7 @@ class HistoryItemClient;
 class OpportunisticTaskScheduler;
 class ImageAnalysisQueue;
 class ImageOverlayController;
-class InspectorClient;
+class InspectorBackendClient;
 class InspectorController;
 class IntSize;
 class KeyboardScrollingAnimator;
@@ -324,6 +324,9 @@ enum class LinkDecorationFilteringTrigger : uint8_t {
     Copy,
     Paste,
 };
+
+// For accessibility tree debugging.
+enum class IncludeDOMInfo : bool { No, Yes };
 
 constexpr OptionSet<RenderingUpdateStep> updateRenderingSteps = {
     RenderingUpdateStep::Reveal,
@@ -1206,7 +1209,7 @@ public:
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
     bool shouldUpdateAccessibilityRegions() const;
 #endif
-    WEBCORE_EXPORT std::optional<AXTreeData> accessibilityTreeData() const;
+    WEBCORE_EXPORT std::optional<AXTreeData> accessibilityTreeData(IncludeDOMInfo) const;
 #if USE(ATSPI)
     AccessibilityRootAtspi* accessibilityRootObject() const;
     void setAccessibilityRootObject(AccessibilityRootAtspi*);
@@ -1350,6 +1353,7 @@ public:
 
 #if HAVE(SUPPORT_HDR_DISPLAY)
     Headroom displayEDRHeadroom() const { return m_displayEDRHeadroom; }
+    bool hdrLayersRequireTonemapping() const { return m_hdrLayersRequireTonemapping; }
     void updateDisplayEDRHeadroom();
     void updateDisplayEDRSuppression();
 #endif
@@ -1786,6 +1790,7 @@ private:
 #if HAVE(SUPPORT_HDR_DISPLAY)
     Headroom m_displayEDRHeadroom { Headroom::None };
     bool m_screenSupportsHDR { false };
+    bool m_hdrLayersRequireTonemapping { false };
 #endif
 
     HashSet<std::pair<URL, ScriptTrackingPrivacyCategory>> m_scriptTrackingPrivacyReports;

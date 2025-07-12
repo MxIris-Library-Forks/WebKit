@@ -688,7 +688,7 @@
 		1C73A71521857587004CCEA5 /* TextDecorationThickness.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CB6B4F8217B83930093B9CD /* TextDecorationThickness.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C7A6EB526F5D8F50096D8C7 /* FontPalette.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C4674FD26F4843600B61273 /* FontPalette.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C81B95A0E97330800266E07 /* InspectorController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C81B9560E97330800266E07 /* InspectorController.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1C81B95C0E97330800266E07 /* InspectorClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C81B9580E97330800266E07 /* InspectorClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		1C81B95C0E97330800266E07 /* InspectorBackendClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C81B9580E97330800266E07 /* InspectorBackendClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C9F4C1429E529660015819E /* DetectedFaceInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C38F28329E3B2BC008795CC /* DetectedFaceInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C9F4C1529E529660015819E /* BarcodeDetectorInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C38F27F29E3B27C008795CC /* BarcodeDetectorInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C9F4C1629E529660015819E /* BarcodeDetectorOptionsInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C38F28029E3B28A008795CC /* BarcodeDetectorOptionsInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -3468,6 +3468,7 @@
 		8AE7A4442A6A6D2200614A30 /* NVShaderNoperspectiveInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AE7A4422A6A6D1600614A30 /* NVShaderNoperspectiveInterpolation.h */; };
 		8AF4E55611DC5A36000ED3DE /* PerformanceNavigation.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AF4E55311DC5A36000ED3DE /* PerformanceNavigation.h */; };
 		8AF4E55C11DC5A63000ED3DE /* PerformanceTiming.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AF4E55911DC5A63000ED3DE /* PerformanceTiming.h */; };
+		8B5216F72DEE4E75003BC21B /* LazyLoadModelObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B5216F42DEE4E75003BC21B /* LazyLoadModelObserver.h */; };
 		8E4C96DD1AD4483500365A50 /* JSFetchResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 8E4C96D91AD4483500365A50 /* JSFetchResponse.h */; };
 		9001774112E0347800648462 /* OESStandardDerivatives.h in Headers */ = {isa = PBXBuildFile; fileRef = 9001773E12E0347800648462 /* OESStandardDerivatives.h */; };
 		9001788112E0370700648462 /* JSOESStandardDerivatives.h in Headers */ = {isa = PBXBuildFile; fileRef = 9001787F12E0370700648462 /* JSOESStandardDerivatives.h */; };
@@ -8677,7 +8678,7 @@
 		1C6FD8B0250A35F100D6E920 /* FontCocoa.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FontCocoa.cpp; sourceTree = "<group>"; };
 		1C81B9560E97330800266E07 /* InspectorController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorController.h; sourceTree = "<group>"; };
 		1C81B9570E97330800266E07 /* InspectorController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InspectorController.cpp; sourceTree = "<group>"; };
-		1C81B9580E97330800266E07 /* InspectorClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorClient.h; sourceTree = "<group>"; };
+		1C81B9580E97330800266E07 /* InspectorBackendClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorBackendClient.h; sourceTree = "<group>"; };
 		1C84BE4126D3939F002D61FC /* ComposedCharacterClusterTextIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComposedCharacterClusterTextIterator.h; sourceTree = "<group>"; };
 		1C8D26D022C09CDE00D125F3 /* libcompression.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcompression.tbd; path = usr/lib/libcompression.tbd; sourceTree = SDKROOT; };
 		1C9067B6299CB44500A2B076 /* FontInterrogation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontInterrogation.h; sourceTree = "<group>"; };
@@ -14984,6 +14985,8 @@
 		8AF4E55411DC5A36000ED3DE /* PerformanceNavigation.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PerformanceNavigation.idl; sourceTree = "<group>"; };
 		8AF4E55911DC5A63000ED3DE /* PerformanceTiming.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerformanceTiming.h; sourceTree = "<group>"; };
 		8AF4E55A11DC5A63000ED3DE /* PerformanceTiming.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PerformanceTiming.idl; sourceTree = "<group>"; };
+		8B5216F42DEE4E75003BC21B /* LazyLoadModelObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LazyLoadModelObserver.h; sourceTree = "<group>"; };
+		8B5216F52DEE4E75003BC21B /* LazyLoadModelObserver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LazyLoadModelObserver.cpp; sourceTree = "<group>"; };
 		8E4C96D81AD4483500365A50 /* JSFetchResponse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSFetchResponse.cpp; sourceTree = "<group>"; };
 		8E4C96D91AD4483500365A50 /* JSFetchResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSFetchResponse.h; sourceTree = "<group>"; };
 		8F934D831189F1EE00508D5D /* JSExecState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSExecState.h; sourceTree = "<group>"; };
@@ -24192,11 +24195,11 @@
 				9175CE5821E281EC00DF2C27 /* InspectorAuditDOMObject.h */,
 				9109E9C7222CABC900BB6264 /* InspectorAuditResourcesObject.cpp */,
 				9109E9C5222CABC800BB6264 /* InspectorAuditResourcesObject.h */,
+				1C81B9580E97330800266E07 /* InspectorBackendClient.h */,
 				6A22E8721F1042C400F546C3 /* InspectorCanvas.cpp */,
 				6A22E86F1F10418600F546C3 /* InspectorCanvas.h */,
 				95AA570D25EEED30004E9283 /* InspectorCanvasCallTracer.cpp */,
 				95AA570E25EEED31004E9283 /* InspectorCanvasCallTracer.h */,
-				1C81B9580E97330800266E07 /* InspectorClient.h */,
 				1C81B9570E97330800266E07 /* InspectorController.cpp */,
 				1C81B9560E97330800266E07 /* InspectorController.h */,
 				99D1B2D123AC143000811CF0 /* InspectorDebuggableType.h */,
@@ -29599,6 +29602,8 @@
 				71A3D17F2562B8240064E2A6 /* HTMLModelElement.idl */,
 				7177AD5627429590002F103B /* HTMLModelElementCamera.h */,
 				7177AD542742952F002F103B /* HTMLModelElementCamera.idl */,
+				8B5216F52DEE4E75003BC21B /* LazyLoadModelObserver.cpp */,
+				8B5216F42DEE4E75003BC21B /* LazyLoadModelObserver.h */,
 				BC2B41142732F06200A2D191 /* ModelPlayer.cpp */,
 				BC2B41132732F06200A2D191 /* ModelPlayer.h */,
 				52597BB42DC3F89300CAAF01 /* ModelPlayerAnimationState.cpp */,
@@ -42334,10 +42339,10 @@
 				9175CE5E21E281ED00DF2C27 /* InspectorAuditAccessibilityObject.h in Headers */,
 				9175CE5C21E281ED00DF2C27 /* InspectorAuditDOMObject.h in Headers */,
 				9109E9C8222CABCA00BB6264 /* InspectorAuditResourcesObject.h in Headers */,
+				1C81B95C0E97330800266E07 /* InspectorBackendClient.h in Headers */,
 				6A22E8701F10418600F546C3 /* InspectorCanvas.h in Headers */,
 				A5B81CA81FAA44620037D1E6 /* InspectorCanvasAgent.h in Headers */,
 				95AA571025EEED32004E9283 /* InspectorCanvasCallTracer.h in Headers */,
-				1C81B95C0E97330800266E07 /* InspectorClient.h in Headers */,
 				1C81B95A0E97330800266E07 /* InspectorController.h in Headers */,
 				A59C230A21F29206004EC939 /* InspectorCPUProfilerAgent.h in Headers */,
 				A5B81CA91FAA44620037D1E6 /* InspectorCSSAgent.h in Headers */,
@@ -43314,6 +43319,7 @@
 				11310CF220BA4A320065A8D0 /* LayoutTreeBuilder.h in Headers */,
 				141DC0481648348F00371E5A /* LayoutUnit.h in Headers */,
 				E451C6312394027900993190 /* LayoutUnits.h in Headers */,
+				8B5216F72DEE4E75003BC21B /* LazyLoadModelObserver.h in Headers */,
 				CDE555242405CCF2008A3DDB /* LegacyCDM.h in Headers */,
 				CDE555252405CCF2008A3DDB /* LegacyCDMPrivate.h in Headers */,
 				CDE8B5ED1A69777300B4B66A /* LegacyCDMPrivateClearKey.h in Headers */,

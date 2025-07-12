@@ -127,7 +127,7 @@
 #include "ImageOverlay.h"
 #include "ImageOverlayController.h"
 #include "InlineIteratorLineBox.h"
-#include "InspectorClient.h"
+#include "InspectorBackendClient.h"
 #include "InspectorController.h"
 #include "InspectorDebuggableType.h"
 #include "InspectorFrontendClientLocal.h"
@@ -408,7 +408,7 @@
 #include "TextRecognitionResult.h"
 #endif
 
-#if ENABLE(ARKIT_INLINE_PREVIEW_MAC)
+#if ENABLE(ARKIT_INLINE_PREVIEW_MAC) || ENABLE(MODEL_ELEMENT)
 #include "HTMLModelElement.h"
 #endif
 
@@ -7963,6 +7963,16 @@ void Internals::disableModelLoadDelaysForTesting()
         return;
 
     document->page()->disableModelLoadDelaysForTesting();
+}
+
+String Internals::modelElementState(HTMLModelElement& element)
+{
+    return element.modelElementStateForTesting();
+}
+
+bool Internals::isModelElementIntersectingViewport(HTMLModelElement& element)
+{
+    return element.isIntersectingViewport();
 }
 #endif
 

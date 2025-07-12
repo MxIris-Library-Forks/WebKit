@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include <WebCore/InspectorClient.h>
+#include <WebCore/InspectorBackendClient.h>
 #include <WebCore/PageOverlay.h>
 #include <wtf/HashSet.h>
 #include <wtf/TZoneMalloc.h>
@@ -42,15 +42,15 @@ namespace WebKit {
 class WebPage;
 class RepaintIndicatorLayerClient;
 
-class WebInspectorClient : public WebCore::InspectorClient, private WebCore::PageOverlayClient {
-    WTF_MAKE_TZONE_ALLOCATED(WebInspectorClient);
+class WebInspectorBackendClient : public WebCore::InspectorBackendClient, private WebCore::PageOverlayClient {
+    WTF_MAKE_TZONE_ALLOCATED(WebInspectorBackendClient);
 friend class RepaintIndicatorLayerClient;
 public:
-    WebInspectorClient(WebPage*);
-    virtual ~WebInspectorClient();
+    WebInspectorBackendClient(WebPage*);
+    virtual ~WebInspectorBackendClient();
 
 private:
-    // WebCore::InspectorClient
+    // WebCore::InspectorBackendClient
     void inspectedPageDestroyed() override;
     void frontendCountChanged(unsigned) override;
 
@@ -75,7 +75,7 @@ private:
     void showPaintRect(const WebCore::FloatRect&) override;
     unsigned paintRectCount() const override { return m_paintRectLayers.size(); }
 
-    void setDeveloperPreferenceOverride(WebCore::InspectorClient::DeveloperPreference, std::optional<bool>) final;
+    void setDeveloperPreferenceOverride(WebCore::InspectorBackendClient::DeveloperPreference, std::optional<bool>) final;
 #if ENABLE(INSPECTOR_NETWORK_THROTTLING)
     bool setEmulatedConditions(std::optional<int64_t>&& bytesPerSecondLimit) final;
 #endif
@@ -90,7 +90,7 @@ private:
 
     WeakPtr<WebPage> m_page;
     WeakPtr<WebCore::PageOverlay> m_highlightOverlay;
-    
+
     RefPtr<WebCore::PageOverlay> m_paintRectOverlay;
     std::unique_ptr<RepaintIndicatorLayerClient> m_paintIndicatorLayerClient;
     HashSet<Ref<WebCore::GraphicsLayer>> m_paintRectLayers;

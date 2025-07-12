@@ -273,6 +273,7 @@ enum class WheelScrollGestureState : uint8_t;
 enum class WritingDirection : uint8_t;
 enum class PaginationMode : uint8_t;
 
+struct AXDebugInfo;
 struct AppHighlight;
 struct AttributedString;
 struct BackForwardItemIdentifierType;
@@ -426,7 +427,7 @@ class WebFullScreenManager;
 class WebGestureEvent;
 class WebImage;
 class WebInspector;
-class WebInspectorClient;
+class WebInspectorBackendClient;
 class WebInspectorUI;
 class WebKeyboardEvent;
 class WebMouseEvent;
@@ -822,6 +823,8 @@ public:
 #endif
     void enableAccessibilityForAllProcesses();
     void enableAccessibility();
+
+    void getAccessibilityWebProcessDebugInfo(CompletionHandler<void(WebCore::AXDebugInfo)>&&);
 
     void screenPropertiesDidChange();
 
@@ -1233,7 +1236,7 @@ public:
     void insertTextAsync(const String& text, const EditingRange& replacementRange, InsertTextOptions&&);
     void hasMarkedText(CompletionHandler<void(bool)>&&);
     void getMarkedRangeAsync(CompletionHandler<void(const EditingRange&)>&&);
-    void getSelectedRangeAsync(CompletionHandler<void(const EditingRange&)>&&);
+    void getSelectedRangeAsync(CompletionHandler<void(const EditingRange&, const EditingRange&)>&&);
     void characterIndexForPointAsync(const WebCore::IntPoint&, CompletionHandler<void(uint64_t)>&&);
     void firstRectForCharacterRangeAsync(const EditingRange&, CompletionHandler<void(const WebCore::IntRect&, const EditingRange&)>&&);
     void setCompositionAsync(const String& text, const Vector<WebCore::CompositionUnderline>&, const Vector<WebCore::CompositionHighlight>&, const HashMap<String, Vector<WebCore::CharacterRange>>&, const EditingRange& selectionRange, const EditingRange& replacementRange);

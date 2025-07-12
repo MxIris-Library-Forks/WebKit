@@ -7708,6 +7708,10 @@ struct WebCore::DragItem {
 struct WebCore::KeypressCommand {
     String commandName;
     String text;
+    Vector<WebCore::CompositionUnderline> underlines;
+    Vector<WebCore::CompositionHighlight> highlights;
+    WebCore::CharacterRange selectedRange;
+    WebCore::CharacterRange replacementRange;
 }
 #endif
 
@@ -7988,8 +7992,8 @@ enum class WebCore::CaptionUserPreferencesDisplayMode : uint8_t {
 };
 #endif
 
-header: <WebCore/InspectorClient.h>
-enum class WebCore::InspectorClientDeveloperPreference : uint8_t {
+header: <WebCore/InspectorBackendClient.h>
+enum class WebCore::InspectorBackendClientDeveloperPreference : uint8_t {
     PrivateClickMeasurementDebugModeEnabled,
     ITPDebugModeEnabled,
     MockCaptureDevicesEnabled,
@@ -9158,3 +9162,10 @@ struct WebCore::FocusEventData {
     bool altKey;
 }
 
+header: <WebCore/AXObjectCache.h>
+[CustomHeader] struct WebCore::AXDebugInfo {
+    bool isAccessibilityEnabled;
+    bool isAccessibilityThreadInitialized;
+    String liveTree;
+    String isolatedTree;
+}

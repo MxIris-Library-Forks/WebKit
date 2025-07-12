@@ -23,31 +23,30 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
+#pragma once
 
-#if PLATFORM(MAC)
+#if ENABLE(MODEL_ELEMENT)
 
-#import "TestWKWebView.h"
-#import <WebKit/WKWebViewPrivate.h>
-#import <WebKit/WKWebViewPrivateForTesting.h>
+#include "IntersectionObserver.h"
+#include <wtf/TZoneMalloc.h>
 
-namespace TestWebKitAPI {
+namespace WebCore {
 
-TEST(CustomSwipeViewTests, WindowRelativeBoundsForCustomSwipeViews)
-{
-    RetainPtr customSwipeView = adoptNS([[NSView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600)]);
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600)]);
-    [webView addSubview:customSwipeView.get()];
-    [webView _setCustomSwipeViews:@[ customSwipeView.get() ]];
-    [webView _setCustomSwipeViewsObscuredContentInsets:NSEdgeInsetsMake(100, 200, 50, 50)];
+class Document;
+class Element;
 
-    __auto_type boundsForCustomSwipeView = [webView _windowRelativeBoundsForCustomSwipeViewsForTesting];
-    EXPECT_EQ(boundsForCustomSwipeView.origin.x, 200.0);
-    EXPECT_EQ(boundsForCustomSwipeView.origin.y, 50.0);
-    EXPECT_EQ(boundsForCustomSwipeView.size.width, 550.0);
-    EXPECT_EQ(boundsForCustomSwipeView.size.height, 450.0);
-}
+class LazyLoadModelObserver {
+    WTF_MAKE_TZONE_ALLOCATED(LazyLoadModelObserver);
+public:
+    static void observe(Element&);
+    static void unobserve(Element&, Document&);
 
-} // namespace TestWebKitAPI
+private:
+    IntersectionObserver* intersectionObserver(Document&);
 
-#endif // PLATFORM(MAC)
+    RefPtr<IntersectionObserver> m_observer;
+};
+
+} // namespace WebCore
+
+#endif // ENABLE(MODEL_ELEMENT)

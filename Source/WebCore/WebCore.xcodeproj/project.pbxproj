@@ -5143,6 +5143,12 @@
 		BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9EFED2E18E5A000D1C3DF /* StyleTextEmphasisStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFEC2E18E59C00D1C3DF /* StyleTextEmphasisStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F0092E1AF8BC00D1C3DF /* StyleGridTrackBreadth.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F0062E1AEC5700D1C3DF /* StyleGridTrackBreadth.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F1332E1EE1A800D1C3DF /* StyleGridTemplateAreas.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1322E1EE19600D1C3DF /* StyleGridTemplateAreas.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F1372E1EE1D300D1C3DF /* CSSGridTemplateAreas.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1342E1EE1BD00D1C3DF /* CSSGridTemplateAreas.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F1392E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1382E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F13B2E1EE68000D1C3DF /* StyleGridNamedAreaMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F13A2E1EE68000D1C3DF /* StyleGridNamedAreaMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F13D2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F13C2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F1682E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1672E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCDF317C11F8D683003C5BF8 /* UserTypingGestureIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDF317A11F8D683003C5BF8 /* UserTypingGestureIndicator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCDFD48E0E305290009D10AD /* XMLHttpRequestUpload.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDFD48C0E305290009D10AD /* XMLHttpRequestUpload.h */; };
 		BCDFD4960E30592F009D10AD /* JSXMLHttpRequestUpload.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDFD4940E30592F009D10AD /* JSXMLHttpRequestUpload.h */; };
@@ -18787,6 +18793,15 @@
 		BCD9F05C2E1C2A9600D1C3DF /* CSSRatio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSRatio.cpp; sourceTree = "<group>"; };
 		BCD9F0992E1C4E5100D1C3DF /* CalculationValueMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CalculationValueMap.h; sourceTree = "<group>"; };
 		BCD9F09A2E1C4EB900D1C3DF /* CalculationValueMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CalculationValueMap.cpp; sourceTree = "<group>"; };
+		BCD9F1322E1EE19600D1C3DF /* StyleGridTemplateAreas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridTemplateAreas.h; sourceTree = "<group>"; };
+		BCD9F1342E1EE1BD00D1C3DF /* CSSGridTemplateAreas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSGridTemplateAreas.h; sourceTree = "<group>"; };
+		BCD9F1382E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridNamedLinesMap.h; sourceTree = "<group>"; };
+		BCD9F13A2E1EE68000D1C3DF /* StyleGridNamedAreaMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridNamedAreaMap.h; sourceTree = "<group>"; };
+		BCD9F13C2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSGridNamedAreaMap.h; sourceTree = "<group>"; };
+		BCD9F13E2E1EE99800D1C3DF /* StyleGridTemplateAreas.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleGridTemplateAreas.cpp; sourceTree = "<group>"; };
+		BCD9F1402E1EF6A400D1C3DF /* CSSGridNamedAreaMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSGridNamedAreaMap.cpp; sourceTree = "<group>"; };
+		BCD9F1672E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridOrderedNamedLinesMap.h; sourceTree = "<group>"; };
+		BCD9F1692E202E8C00D1C3DF /* StyleGridNamedLinesMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleGridNamedLinesMap.cpp; sourceTree = "<group>"; };
 		BCDBD32A2C84C27500E6D96B /* CSSPropertyParserConsumer+Transform.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Transform.cpp"; sourceTree = "<group>"; };
 		BCDBD32B2C84C27500E6D96B /* CSSPropertyParserConsumer+Transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+Transform.h"; sourceTree = "<group>"; };
 		BCDBD3362C84D4F000E6D96B /* TransformOperationsBuilder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TransformOperationsBuilder.h; sourceTree = "<group>"; };
@@ -35388,6 +35403,7 @@
 				BCEA07882CCC0B6E000AC148 /* color-adjust */,
 				BCD2C6E82D0F403700F77591 /* easing */,
 				BC3078982CFFF06800630D75 /* filter-effects */,
+				BCD9F1362E1EE1BD00D1C3DF /* grid */,
 				BCB271A12CBD7D4C00265123 /* images */,
 				BCEA072B2CC59853000AC148 /* motion */,
 				BCB271D72CC013E900265123 /* primitives */,
@@ -35882,7 +35898,23 @@
 		BCD9F0072E1AEC5700D1C3DF /* grid */ = {
 			isa = PBXGroup;
 			children = (
+				BCD9F13A2E1EE68000D1C3DF /* StyleGridNamedAreaMap.h */,
+				BCD9F1692E202E8C00D1C3DF /* StyleGridNamedLinesMap.cpp */,
+				BCD9F1382E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h */,
+				BCD9F1672E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h */,
+				BCD9F13E2E1EE99800D1C3DF /* StyleGridTemplateAreas.cpp */,
+				BCD9F1322E1EE19600D1C3DF /* StyleGridTemplateAreas.h */,
 				BCD9F0062E1AEC5700D1C3DF /* StyleGridTrackBreadth.h */,
+			);
+			path = grid;
+			sourceTree = "<group>";
+		};
+		BCD9F1362E1EE1BD00D1C3DF /* grid */ = {
+			isa = PBXGroup;
+			children = (
+				BCD9F1402E1EF6A400D1C3DF /* CSSGridNamedAreaMap.cpp */,
+				BCD9F13C2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h */,
+				BCD9F1342E1EE1BD00D1C3DF /* CSSGridTemplateAreas.h */,
 			);
 			path = grid;
 			sourceTree = "<group>";
@@ -41133,6 +41165,8 @@
 				35C74FDB228A1EF6000C21A0 /* CSSGridIntegerRepeatValue.h in Headers */,
 				CD7DBB2918CA19C600C11066 /* CSSGridLineNamesValue.h in Headers */,
 				314DDE592C6AB3F7000524AF /* CSSGridLineValue.h in Headers */,
+				BCD9F13D2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h in Headers */,
+				BCD9F1372E1EE1D300D1C3DF /* CSSGridTemplateAreas.h in Headers */,
 				CD3E252418046BCD00E27F56 /* CSSGridTemplateAreasValue.h in Headers */,
 				FB3056C2169E5DAC0096A232 /* CSSGroupingRule.h in Headers */,
 				BC4AF41E2CF972BB0037C65C /* CSSHexColor.h in Headers */,
@@ -45000,6 +45034,10 @@
 				BCB272242CC335AF00265123 /* StyleGradient.h in Headers */,
 				A10DC76B14747BAB005E2471 /* StyleGridData.h in Headers */,
 				A110DB9B14F5DF7700A03B93 /* StyleGridItemData.h in Headers */,
+				BCD9F13B2E1EE68000D1C3DF /* StyleGridNamedAreaMap.h in Headers */,
+				BCD9F1392E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h in Headers */,
+				BCD9F1682E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h in Headers */,
+				BCD9F1332E1EE1A800D1C3DF /* StyleGridTemplateAreas.h in Headers */,
 				BCD9F0092E1AF8BC00D1C3DF /* StyleGridTrackBreadth.h in Headers */,
 				BCEF43CF0E673DA1001C1287 /* StyleImage.h in Headers */,
 				BC2273040E82F1E600E7F975 /* StyleInheritedData.h in Headers */,
@@ -45087,8 +45125,8 @@
 				A8EA800A0A19516E00A8EF5F /* StyleSheetList.h in Headers */,
 				BC5EB5E50E81BF6D00B25965 /* StyleSurroundData.h in Headers */,
 				DD1C779029354C77003BD79B /* StyleTextEdge.h in Headers */,
-				BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */,
 				BCD9EFED2E18E5A000D1C3DF /* StyleTextEmphasisStyle.h in Headers */,
+				BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */,
 				BC3CC22E2DE8D2D50032971C /* StyleTextShadow.h in Headers */,
 				BC2A0D902E088492003CBA0E /* StyleTextUnderlineOffset.h in Headers */,
 				BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */,

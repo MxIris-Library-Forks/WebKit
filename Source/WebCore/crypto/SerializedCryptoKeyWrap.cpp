@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,29 +23,22 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
-#import "ClipboardImageReader.h"
+#include "config.h"
+#include "SerializedCryptoKeyWrap.h"
 
-#if PLATFORM(MAC)
-
-#import "Document.h"
-#import "SharedBuffer.h"
-#import <wtf/cocoa/VectorCocoa.h>
+#include <wtf/CompletionHandler.h>
 
 namespace WebCore {
 
-void ClipboardImageReader::readBuffer(const String&, const String&, Ref<SharedBuffer>&& buffer)
+void getDefaultWebCryptoMasterKey(CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&& handler)
 {
-    if (m_mimeType == "image/png"_s) {
-        auto image = adoptNS([[NSImage alloc] initWithData:buffer->createNSData().get()]);
-        if (RetainPtr cgImage = [image CGImageForProposedRect:nil context:nil hints:nil]) {
-            auto representation = adoptNS([[NSBitmapImageRep alloc] initWithCGImage:cgImage.get()]);
-            NSData* nsData = [representation representationUsingType:NSBitmapImageFileTypePNG properties:@{ }];
-            m_result = Blob::create(m_document.get(), makeVector(nsData), m_mimeType);
-        }
-    }
+    static NeverDestroyed<Ref<WorkQueue>> queue { WorkQueue::create("org.WebKit.WebCryptoMasterKey"_s) };
+    queue.get().get().dispatch([handler = WTFMove(handler)] mutable {
+        auto key = defaultWebCryptoMasterKey();
+        WorkQueue::protectedMain()->dispatch([handler = WTFMove(handler), key = WTFMove(key)] mutable {
+            handler(WTFMove(key));
+        });
+    });
 }
 
-} // namespace WebCore
-
-#endif // PLATFORM(MAC)
+}

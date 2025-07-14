@@ -5143,6 +5143,7 @@
 		BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9EFED2E18E5A000D1C3DF /* StyleTextEmphasisStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9EFEC2E18E59C00D1C3DF /* StyleTextEmphasisStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F0092E1AF8BC00D1C3DF /* StyleGridTrackBreadth.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F0062E1AEC5700D1C3DF /* StyleGridTrackBreadth.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCD9F1032E1E0DBD00D1C3DF /* StyleClip.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1012E1E0DA800D1C3DF /* StyleClip.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1332E1EE1A800D1C3DF /* StyleGridTemplateAreas.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1322E1EE19600D1C3DF /* StyleGridTemplateAreas.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1372E1EE1D300D1C3DF /* CSSGridTemplateAreas.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1342E1EE1BD00D1C3DF /* CSSGridTemplateAreas.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1392E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1382E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -15373,6 +15374,7 @@
 		93B248992990CD5F00B769E4 /* RectBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RectBase.h; sourceTree = "<group>"; };
 		93B2D8150F9920D2006AE6B2 /* SuddenTermination.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuddenTermination.h; sourceTree = "<group>"; };
 		93B2D8170F9920EE006AE6B2 /* SuddenTermination.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SuddenTermination.mm; sourceTree = "<group>"; };
+		93B2F9012E2330F1002DC86C /* SerializedCryptoKeyWrap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SerializedCryptoKeyWrap.cpp; sourceTree = "<group>"; };
 		93B38EB82582189900198E63 /* SpeechRecognizerCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SpeechRecognizerCocoa.mm; sourceTree = "<group>"; };
 		93B38EB92582193A00198E63 /* WebSpeechRecognizerTaskMock.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebSpeechRecognizerTaskMock.mm; sourceTree = "<group>"; };
 		93B38EBA2582193B00198E63 /* WebSpeechRecognizerTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebSpeechRecognizerTask.h; sourceTree = "<group>"; };
@@ -18793,6 +18795,8 @@
 		BCD9F05C2E1C2A9600D1C3DF /* CSSRatio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSRatio.cpp; sourceTree = "<group>"; };
 		BCD9F0992E1C4E5100D1C3DF /* CalculationValueMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CalculationValueMap.h; sourceTree = "<group>"; };
 		BCD9F09A2E1C4EB900D1C3DF /* CalculationValueMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CalculationValueMap.cpp; sourceTree = "<group>"; };
+		BCD9F1012E1E0DA800D1C3DF /* StyleClip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleClip.h; sourceTree = "<group>"; };
+		BCD9F1022E1E0DA800D1C3DF /* StyleClip.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleClip.cpp; sourceTree = "<group>"; };
 		BCD9F1322E1EE19600D1C3DF /* StyleGridTemplateAreas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridTemplateAreas.h; sourceTree = "<group>"; };
 		BCD9F1342E1EE1BD00D1C3DF /* CSSGridTemplateAreas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSGridTemplateAreas.h; sourceTree = "<group>"; };
 		BCD9F1382E1EE66E00D1C3DF /* StyleGridNamedLinesMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridNamedLinesMap.h; sourceTree = "<group>"; };
@@ -35816,6 +35820,8 @@
 		BCCE4F722DF9DDB7005554EA /* masking */ = {
 			isa = PBXGroup;
 			children = (
+				BCD9F1022E1E0DA800D1C3DF /* StyleClip.cpp */,
+				BCD9F1012E1E0DA800D1C3DF /* StyleClip.h */,
 				BCCE4F712DF9DDB7005554EA /* StyleClipPath.cpp */,
 				BCCE4F702DF9DDB7005554EA /* StyleClipPath.h */,
 			);
@@ -37686,6 +37692,7 @@
 				57E233571DC7D24800F28D01 /* JsonWebKey.idl */,
 				57E233621DC7DA2400F28D01 /* RsaOtherPrimesInfo.h */,
 				57E233591DC7D37200F28D01 /* RsaOtherPrimesInfo.idl */,
+				93B2F9012E2330F1002DC86C /* SerializedCryptoKeyWrap.cpp */,
 				E18DF33418AAF12C00773E59 /* SerializedCryptoKeyWrap.h */,
 				5778BD831DA4817B009E3009 /* SubtleCrypto.cpp */,
 				5778BD811DA4802C009E3009 /* SubtleCrypto.h */,
@@ -44999,6 +45006,7 @@
 				BCEF444D0E674628001C1287 /* StyleCachedImage.h in Headers */,
 				E401E0A41C3C0B8300F34D10 /* StyleChange.h in Headers */,
 				BCB272052CC1F1DB00265123 /* StyleCircleFunction.h in Headers */,
+				BCD9F1032E1E0DBD00D1C3DF /* StyleClip.h in Headers */,
 				BCCE4F762DF9E75C005554EA /* StyleClipPath.h in Headers */,
 				BCB660952BEEF46200528480 /* StyleColor.h in Headers */,
 				BC4AF4192CF96B930037C65C /* StyleColorOptions.h in Headers */,

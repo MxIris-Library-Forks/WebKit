@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,29 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
-#import "ClipboardImageReader.h"
+#pragma once
 
-#if PLATFORM(MAC)
+#if PLATFORM(IOS_FAMILY) && HAVE(LIQUID_GLASS)
 
-#import "Document.h"
-#import "SharedBuffer.h"
-#import <wtf/cocoa/VectorCocoa.h>
+#import <Foundation/Foundation.h>
+#import <WebCore/BoxSides.h>
 
-namespace WebCore {
+@class UIScrollEdgeEffect;
 
-void ClipboardImageReader::readBuffer(const String&, const String&, Ref<SharedBuffer>&& buffer)
-{
-    if (m_mimeType == "image/png"_s) {
-        auto image = adoptNS([[NSImage alloc] initWithData:buffer->createNSData().get()]);
-        if (RetainPtr cgImage = [image CGImageForProposedRect:nil context:nil hints:nil]) {
-            auto representation = adoptNS([[NSBitmapImageRep alloc] initWithCGImage:cgImage.get()]);
-            NSData* nsData = [representation representationUsingType:NSBitmapImageFileTypePNG properties:@{ }];
-            m_result = Blob::create(m_document.get(), makeVector(nsData), m_mimeType);
-        }
-    }
-}
+@interface WKUIScrollEdgeEffect : NSObject
 
-} // namespace WebCore
+- (instancetype)initWithScrollEdgeEffect:(UIScrollEdgeEffect *)effect boxSide:(WebCore::BoxSide)side;
 
-#endif // PLATFORM(MAC)
+@property (nonatomic, getter=isInternallyHidden) BOOL internallyHidden;
+
+@end
+
+#endif // PLATFORM(IOS_FAMILY) && HAVE(LIQUID_GLASS)

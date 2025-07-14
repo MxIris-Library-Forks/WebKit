@@ -284,6 +284,7 @@ struct AnchorNames;
 struct AspectRatio;
 struct BorderRadius;
 struct BoxShadow;
+struct Clip;
 struct ClipPath;
 struct Color;
 struct ColorScheme;
@@ -631,11 +632,7 @@ public:
     VerticalAlign verticalAlign() const;
     const Length& verticalAlignLength() const;
 
-    inline const Length& clipLeft() const;
-    inline const Length& clipRight() const;
-    inline const Length& clipTop() const;
-    inline const Length& clipBottom() const;
-    inline const LengthBox& clip() const;
+    inline const Style::Clip& clip() const;
     inline bool hasClip() const;
 
     UnicodeBidi unicodeBidi() const { return static_cast<UnicodeBidi>(m_nonInheritedFlags.unicodeBidi); }
@@ -1326,13 +1323,7 @@ public:
     void setVerticalAlign(VerticalAlign);
     void setVerticalAlignLength(Length&&);
 
-    inline void setHasClip(bool = true);
-    inline void setClipLeft(Length&&);
-    inline void setClipRight(Length&&);
-    inline void setClipTop(Length&&);
-    inline void setClipBottom(Length&&);
-    void setClip(Length&& top, Length&& right, Length&& bottom, Length&& left);
-    inline void setClip(LengthBox&&);
+    inline void setClip(Style::Clip&&);
 
     void setUnicodeBidi(UnicodeBidi v) { m_nonInheritedFlags.unicodeBidi = static_cast<unsigned>(v); }
 
@@ -1960,6 +1951,7 @@ public:
     static constexpr OverscrollBehavior initialOverscrollBehaviorY();
 
     static constexpr Clear initialClear();
+    static inline Style::Clip initialClip();
     static constexpr DisplayType initialDisplay();
     static constexpr UnicodeBidi initialUnicodeBidi();
     static constexpr PositionType initialPosition();

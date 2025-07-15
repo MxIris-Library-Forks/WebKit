@@ -2210,6 +2210,7 @@ page/UserScript.cpp
 page/UserStyleSheet.cpp
 page/VisitedLinkStore.cpp
 page/VisualViewport.cpp
+page/WebKitNodeInfo.cpp
 page/WheelEventDeltaFilter.cpp
 page/WheelEventTestMonitor.cpp
 page/WindowFeatures.cpp
@@ -2943,7 +2944,6 @@ rendering/style/FillLayer.cpp
 rendering/style/GridPosition.cpp
 rendering/style/GridPositionsResolver.cpp
 rendering/style/GridSpan.cpp
-rendering/style/GridTrackSize.cpp
 rendering/style/ListStyleType.cpp
 rendering/style/NinePieceImage.cpp
 rendering/style/OutlineValue.cpp
@@ -3180,6 +3180,10 @@ style/values/filter-effects/StyleSepiaFunction.cpp
 style/values/flexbox/StyleFlexBasis.cpp
 style/values/grid/StyleGridNamedLinesMap.cpp
 style/values/grid/StyleGridTemplateAreas.cpp
+style/values/grid/StyleGridTemplateList.cpp
+style/values/grid/StyleGridTrackBreadth.cpp
+style/values/grid/StyleGridTrackSize.cpp
+style/values/grid/StyleGridTrackSizes.cpp
 style/values/images/StyleGradient.cpp
 style/values/masking/StyleClip.cpp
 style/values/masking/StyleClipPath.cpp
@@ -4924,6 +4928,7 @@ JSWebKitMediaKeyNeededEvent.cpp
 JSWebKitMediaKeySession.cpp
 JSWebKitMediaKeys.cpp
 JSWebKitNamespace.cpp
+JSWebKitNodeInfo.cpp
 JSWebKitPlaybackTargetAvailabilityEvent.cpp
 JSWebKitPoint.cpp
 JSWebLock.cpp

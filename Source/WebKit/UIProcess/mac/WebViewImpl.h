@@ -190,6 +190,8 @@ struct DragItem;
 struct DigitalCredentialsRequestData;
 #endif
 
+struct FrameIdentifierType;
+using FrameIdentifier = ObjectIdentifier<FrameIdentifierType>;
 }
 
 namespace WebKit {
@@ -904,7 +906,9 @@ private:
     const UniqueRef<PageClient> m_pageClient;
     const Ref<WebPageProxy> m_page;
 
+#if ENABLE(TILED_CA_DRAWING_AREA)
     DrawingAreaType m_drawingAreaType { DrawingAreaType::TiledCoreAnimation };
+#endif
 
     bool m_willBecomeFirstResponderAgain { false };
     bool m_inBecomeFirstResponder { false };

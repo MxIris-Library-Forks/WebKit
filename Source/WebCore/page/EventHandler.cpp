@@ -37,6 +37,7 @@
 #include "CloseWatcherManager.h"
 #include "ComposedTreeAncestorIterator.h"
 #include "ComposedTreeIterator.h"
+#include "ContainerNodeInlines.h"
 #include "CursorList.h"
 #include "DocumentFullscreen.h"
 #include "DocumentInlines.h"
@@ -2446,14 +2447,18 @@ HandleUserInputEventResult EventHandler::handleMouseReleaseEvent(const PlatformM
 
     frame->selection().setCaretBlinkingSuspended(false);
 
+    RefPtr page = frame->page();
+    if (!page)
+        return false;
+
 #if ENABLE(POINTER_LOCK)
-    if (frame->page()->pointerLockController().isLocked()) {
-        frame->protectedPage()->pointerLockController().dispatchLockedMouseEvent(platformMouseEvent, eventNames().mouseupEvent);
+    if (auto& pointerLockController = page->pointerLockController(); pointerLockController.isLocked()) {
+        pointerLockController.dispatchLockedMouseEvent(platformMouseEvent, eventNames().mouseupEvent);
         return true;
     }
 #endif
 
-    if (frame->protectedPage()->pageOverlayController().handleMouseEvent(platformMouseEvent))
+    if (page->pageOverlayController().handleMouseEvent(platformMouseEvent))
         return true;
 
 #if ENABLE(TOUCH_EVENTS)

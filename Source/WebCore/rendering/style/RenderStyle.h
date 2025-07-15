@@ -63,7 +63,6 @@ class FontCascadeDescription;
 class FontMetrics;
 class FontSelectionValue;
 class GridPosition;
-class GridTrackSize;
 class HitTestRequest;
 class IntPoint;
 class IntSize;
@@ -297,6 +296,9 @@ struct GapGutter;
 struct GridNamedLinesMap;
 struct GridOrderedNamedLinesMap;
 struct GridTemplateAreas;
+struct GridTemplateList;
+struct GridTrackSize;
+struct GridTrackSizes;
 struct InsetEdge;
 struct MarginEdge;
 struct MaximumSize;
@@ -879,13 +881,24 @@ public:
     inline const StyleSelfAlignmentData& justifyItems() const;
     inline const StyleSelfAlignmentData& justifySelf() const;
 
-    inline const Vector<GridTrackSize>& gridColumnTrackSizes() const;
-    inline const Vector<GridTrackSize>& gridRowTrackSizes() const;
-    inline const Vector<GridTrackSize>& gridTrackSizes(GridTrackSizingDirection) const;
-    inline const GridTrackList& gridColumnList() const;
-    inline const GridTrackList& gridRowList() const;
-    inline const Vector<GridTrackSize>& gridAutoRepeatColumns() const;
-    inline const Vector<GridTrackSize>& gridAutoRepeatRows() const;
+    inline GridAutoFlow gridAutoFlow() const;
+    inline bool isGridAutoFlowDirectionRow() const;
+    inline bool isGridAutoFlowDirectionColumn() const;
+    inline bool isGridAutoFlowAlgorithmSparse() const;
+    inline bool isGridAutoFlowAlgorithmDense() const;
+    inline const Style::GridTrackSizes& gridAutoColumns() const;
+    inline const Style::GridTrackSizes& gridAutoRows() const;
+    inline const Style::GridTrackSizes& gridAutoList(GridTrackSizingDirection) const;
+    inline const Style::GridTemplateAreas& gridTemplateAreas() const;
+    inline const Style::GridTemplateList& gridTemplateColumns() const;
+    inline const Style::GridTemplateList& gridTemplateRows() const;
+    inline const Style::GridTemplateList& gridTemplateList(GridTrackSizingDirection) const;
+
+    inline const Vector<Style::GridTrackSize>& gridColumnTrackSizes() const;
+    inline const Vector<Style::GridTrackSize>& gridRowTrackSizes() const;
+    inline const Vector<Style::GridTrackSize>& gridTrackSizes(GridTrackSizingDirection) const;
+    inline const Vector<Style::GridTrackSize>& gridAutoRepeatColumns() const;
+    inline const Vector<Style::GridTrackSize>& gridAutoRepeatRows() const;
     inline unsigned gridAutoRepeatColumnsInsertionPoint() const;
     inline unsigned gridAutoRepeatRowsInsertionPoint() const;
     inline AutoRepeatType gridAutoRepeatColumnsType() const;
@@ -898,18 +911,10 @@ public:
     inline const Style::GridNamedLinesMap& autoRepeatNamedGridRowLines() const;
     inline const Style::GridOrderedNamedLinesMap& autoRepeatOrderedNamedGridColumnLines() const;
     inline const Style::GridOrderedNamedLinesMap& autoRepeatOrderedNamedGridRowLines() const;
-    inline const Style::GridTemplateAreas& gridTemplateAreas() const;
-    inline GridAutoFlow gridAutoFlow() const;
     inline bool gridSubgridRows() const;
     inline bool gridSubgridColumns() const;
     inline bool gridMasonryRows() const;
     inline bool gridMasonryColumns() const;
-    inline bool isGridAutoFlowDirectionRow() const;
-    inline bool isGridAutoFlowDirectionColumn() const;
-    inline bool isGridAutoFlowAlgorithmSparse() const;
-    inline bool isGridAutoFlowAlgorithmDense() const;
-    inline const Vector<GridTrackSize>& gridAutoColumns() const;
-    inline const Vector<GridTrackSize>& gridAutoRows() const;
 
     inline const GridPosition& gridItemColumnStart() const;
     inline const GridPosition& gridItemColumnEnd() const;
@@ -1542,12 +1547,13 @@ public:
 
     inline void setBoxDecorationBreak(BoxDecorationBreak);
 
-    inline void setGridColumnList(const GridTrackList&);
-    inline void setGridRowList(const GridTrackList&);
-    inline void setGridAutoColumns(Vector<GridTrackSize>&&);
-    inline void setGridAutoRows(Vector<GridTrackSize>&&);
-    inline void setGridTemplateAreas(Style::GridTemplateAreas&&);
     inline void setGridAutoFlow(GridAutoFlow);
+    inline void setGridAutoColumns(Style::GridTrackSizes&&);
+    inline void setGridAutoRows(Style::GridTrackSizes&&);
+    inline void setGridTemplateAreas(Style::GridTemplateAreas&&);
+    inline void setGridTemplateColumns(Style::GridTemplateList&&);
+    inline void setGridTemplateRows(Style::GridTemplateList&&);
+
     inline void setGridItemColumnStart(const GridPosition&);
     inline void setGridItemColumnEnd(const GridPosition&);
     inline void setGridItemRowStart(const GridPosition&);
@@ -2169,32 +2175,17 @@ public:
     static constexpr AppleVisualEffect initialAppleVisualEffect();
 #endif
 
-    static inline Vector<GridTrackSize> initialGridColumnTrackSizes();
-    static inline Vector<GridTrackSize> initialGridRowTrackSizes();
-
-    static inline Vector<GridTrackSize> initialGridAutoRepeatTracks();
-    static unsigned initialGridAutoRepeatInsertionPoint() { return 0; }
-    static constexpr AutoRepeatType initialGridAutoRepeatType();
-
     static constexpr GridAutoFlow initialGridAutoFlow();
-
-    static inline Vector<GridTrackSize> initialGridAutoColumns();
-    static inline Vector<GridTrackSize> initialGridAutoRows();
-
-    static Style::GridTemplateAreas initialGridTemplateAreas();
-
-    static Style::GridNamedLinesMap initialNamedGridColumnLines();
-    static Style::GridNamedLinesMap initialNamedGridRowLines();
-    static Style::GridOrderedNamedLinesMap initialOrderedNamedGridColumnLines();
-    static Style::GridOrderedNamedLinesMap initialOrderedNamedGridRowLines();
+    static inline Style::GridTrackSizes initialGridAutoColumns();
+    static inline Style::GridTrackSizes initialGridAutoRows();
+    static inline Style::GridTemplateAreas initialGridTemplateAreas();
+    static inline Style::GridTemplateList initialGridTemplateColumns();
+    static inline Style::GridTemplateList initialGridTemplateRows();
 
     static inline GridPosition initialGridItemColumnStart();
     static inline GridPosition initialGridItemColumnEnd();
     static inline GridPosition initialGridItemRowStart();
     static inline GridPosition initialGridItemRowEnd();
-
-    static GridTrackList initialGridColumnList();
-    static GridTrackList initialGridRowList();
 
     static constexpr TabSize initialTabSize();
 

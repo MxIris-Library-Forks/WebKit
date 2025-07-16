@@ -3903,9 +3903,9 @@ void WebPageProxy::setDragCaretRect(const IntRect& dragCaretRect)
 }
 
 #if ENABLE(MODEL_PROCESS)
-void WebPageProxy::modelDragEnded(const WebCore::ElementIdentifier elementIdentifier)
+void WebPageProxy::modelDragEnded(const WebCore::NodeIdentifier nodeIdentifier)
 {
-    send(Messages::WebPage::ModelDragEnded(elementIdentifier));
+    send(Messages::WebPage::ModelDragEnded(nodeIdentifier));
 }
 #endif
 #endif
@@ -3916,14 +3916,14 @@ void WebPageProxy::requestInteractiveModelElementAtPoint(const IntPoint clientPo
     send(Messages::WebPage::RequestInteractiveModelElementAtPoint(clientPosition));
 }
 
-void WebPageProxy::stageModeSessionDidUpdate(std::optional<ElementIdentifier> elementID, const TransformationMatrix& transform)
+void WebPageProxy::stageModeSessionDidUpdate(std::optional<NodeIdentifier> nodeID, const TransformationMatrix& transform)
 {
-    send(Messages::WebPage::StageModeSessionDidUpdate(elementID, transform));
+    send(Messages::WebPage::StageModeSessionDidUpdate(nodeID, transform));
 }
 
-void WebPageProxy::stageModeSessionDidEnd(std::optional<ElementIdentifier> elementID)
+void WebPageProxy::stageModeSessionDidEnd(std::optional<NodeIdentifier> nodeID)
 {
-    send(Messages::WebPage::StageModeSessionDidEnd(elementID));
+    send(Messages::WebPage::StageModeSessionDidEnd(nodeID));
 }
 #endif
 
@@ -13718,18 +13718,52 @@ void WebPageProxy::setScrollPerformanceDataCollectionEnabled(bool enabled)
 }
 #endif
 
-void WebPageProxy::takeSnapshotLegacy(IntRect rect, IntSize bitmapSize, SnapshotOptions options, CompletionHandler<void(std::optional<ShareableBitmap::Handle>&&)>&& callback)
+void WebPageProxy::takeSnapshotLegacy(const IntRect& rect, const IntSize& bitmapSize, SnapshotOptions options, CompletionHandler<void(std::optional<ShareableBitmap::Handle>&&)>&& callback)
 {
-    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options, true), [callback = WTFMove(callback)] (std::optional<ImageBufferBackendHandle>&& imageHandle) mutable {
+    options.remove(SnapshotOption::Accelerated);
+    options.remove(SnapshotOption::AllowHDR);
+    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options), [callback = WTFMove(callback)] (std::optional<ImageBufferBackendHandle>&& imageHandle, Headroom) mutable {
         RELEASE_ASSERT(!imageHandle || std::holds_alternative<ShareableBitmap::Handle>(*imageHandle));
         callback(imageHandle ? std::make_optional(std::get<ShareableBitmap::Handle>(*imageHandle)) : std::nullopt);
     });
 }
 
-void WebPageProxy::takeSnapshot(IntRect rect, IntSize bitmapSize, SnapshotOptions options, CompletionHandler<void(std::optional<ImageBufferBackendHandle>&&)>&& callback)
+#if PLATFORM(COCOA)
+void WebPageProxy::takeSnapshot(const IntRect& rect, const IntSize& bitmapSize, SnapshotOptions options, CompletionHandler<void(CGImageRef)>&& callback)
 {
-    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options, false), WTFMove(callback));
+    sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options), [callback = WTFMove(callback)] (std::optional<ImageBufferBackendHandle>&& imageHandle, Headroom headroom) mutable {
+        if (!imageHandle) {
+            callback(nullptr);
+            return;
+        }
+
+        RetainPtr<CGImageRef> image;
+        WTF::switchOn(*imageHandle,
+            [&image] (WebCore::ShareableBitmap::Handle& handle) {
+                if (RefPtr bitmap = WebCore::ShareableBitmap::create(WTFMove(handle), WebCore::SharedMemory::Protection::ReadOnly))
+                    image = bitmap->makeCGImage();
+            }
+            , [&image] (MachSendRight& machSendRight) {
+                if (auto surface = WebCore::IOSurface::createFromSendRight(WTFMove(machSendRight)))
+                    image = WebCore::IOSurface::sinkIntoImage(WTFMove(surface));
+            }
+#if ENABLE(RE_DYNAMIC_CONTENT_SCALING)
+            , [] (WebCore::DynamicContentScalingDisplayList&) {
+                ASSERT_NOT_REACHED();
+                return;
+            }
+#endif
+        );
+
+#if HAVE(SUPPORT_HDR_DISPLAY_APIS)
+        if (image && headroom > Headroom::None)
+            image = CGImageCreateCopyWithContentHeadroom(headroom.headroom, image.get());
+#endif
+
+        callback(image.get());
+    });
 }
+#endif
 
 void WebPageProxy::navigationGestureDidBegin()
 {
@@ -16374,7 +16408,7 @@ void WebPageProxy::takeSnapshotForTargetedElement(const API::TargetedElementInfo
     if (!hasRunningProcess())
         return completion({ });
 
-    sendWithAsyncReply(Messages::WebPage::TakeSnapshotForTargetedElement(info.elementIdentifier(), info.documentIdentifier()), WTFMove(completion));
+    sendWithAsyncReply(Messages::WebPage::TakeSnapshotForTargetedElement(info.nodeIdentifier(), info.documentIdentifier()), WTFMove(completion));
 }
 
 void WebPageProxy::requestTextExtraction(std::optional<FloatRect>&& collectionRectInRootView, CompletionHandler<void(WebCore::TextExtraction::Item&&)>&& completion)
@@ -16431,7 +16465,7 @@ void WebPageProxy::resetVisibilityAdjustmentsForTargetedElements(const Vector<Re
         return completion(false);
 
     sendWithAsyncReply(Messages::WebPage::ResetVisibilityAdjustmentsForTargetedElements(elements.map([](auto& info) -> TargetedElementIdentifiers {
-        return { info->elementIdentifier(), info->documentIdentifier() };
+        return { info->nodeIdentifier(), info->documentIdentifier() };
     })), WTFMove(completion));
 }
 
@@ -16442,7 +16476,7 @@ void WebPageProxy::adjustVisibilityForTargetedElements(const Vector<Ref<API::Tar
 
     sendWithAsyncReply(Messages::WebPage::AdjustVisibilityForTargetedElements(elements.map([](auto& info) -> TargetedElementAdjustment {
         return {
-            { info->elementIdentifier(), info->documentIdentifier() },
+            { info->nodeIdentifier(), info->documentIdentifier() },
             info->selectors().map([](auto& selectors) {
                 return HashSet<String>(selectors);
             })

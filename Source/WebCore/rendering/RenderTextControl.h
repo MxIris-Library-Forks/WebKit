@@ -40,9 +40,7 @@ public:
 
 #if PLATFORM(IOS_FAMILY)
     bool canScroll() const;
-
-    // Returns the line height of the inner renderer.
-    int innerLineHeight() const override;
+    WEBCORE_EXPORT int innerLineHeight() const;
 #endif
 
 protected:
@@ -90,9 +88,9 @@ public:
     RenderTextControlInnerContainer(Element&, RenderStyle&&);
     virtual ~RenderTextControlInnerContainer();
 
-    LayoutUnit baselinePosition(LinePositionMode position) const override
+    LayoutUnit baselinePosition() const override
     {
-        return RenderBlock::baselinePosition(position);
+        return RenderBlock::baselinePosition();
     }
     std::optional<LayoutUnit> firstLineBaseline() const override { return RenderBlock::firstLineBaseline(); }
     std::optional<LayoutUnit> inlineBlockBaseline(LineDirectionMode direction) const override { return RenderBlock::inlineBlockBaseline(direction); }

@@ -32,6 +32,7 @@
 #include "GridMasonryLayout.h"
 #include "GridPositionsResolver.h"
 #include "GridTrackSizingAlgorithm.h"
+#include "HitTestLocation.h"
 #include "LayoutRepainter.h"
 #include "RenderChildIterator.h"
 #include "RenderElementInlines.h"
@@ -489,7 +490,7 @@ void RenderGrid::layoutGrid(RelayoutChildren relayoutChildren)
         // Grid container should have the minimum height of a line if it's editable. That does not affect track sizing though.
         if (hasLineIfEmpty()) {
             LayoutUnit minHeightForEmptyLine = borderAndPaddingLogicalHeight()
-                + lineHeight(true, isHorizontalWritingMode() ? HorizontalLine : VerticalLine, PositionOfInteriorLineBoxes)
+                + lineHeight()
                 + scrollbarLogicalHeight();
             setLogicalHeight(std::max(logicalHeight(), minHeightForEmptyLine));
         }
@@ -626,7 +627,7 @@ void RenderGrid::layoutMasonry(RelayoutChildren relayoutChildren)
         // Grid container should have the minimum height of a line if it's editable. That does not affect track sizing though.
         if (hasLineIfEmpty()) {
             LayoutUnit minHeightForEmptyLine = borderAndPaddingLogicalHeight()
-                + lineHeight(true, isHorizontalWritingMode() ? HorizontalLine : VerticalLine, PositionOfInteriorLineBoxes)
+                + lineHeight()
                 + scrollbarLogicalHeight();
             setLogicalHeight(std::max(logicalHeight(), minHeightForEmptyLine));
         }
@@ -2012,9 +2013,8 @@ bool RenderGrid::isBaselineAlignmentForGridItem(const RenderBox& gridItem, GridT
 }
 
 // FIXME: This logic is shared by RenderFlexibleBox, so it might be refactored somehow.
-LayoutUnit RenderGrid::baselinePosition(LinePositionMode mode) const
+LayoutUnit RenderGrid::baselinePosition() const
 {
-    ASSERT_UNUSED(mode, mode == PositionOnContainingLine);
     auto baseline = firstLineBaseline();
     if (!baseline)
         return synthesizedBaseline(*this, *parentStyle(), containingBlock()->writingMode().isHorizontal() ? HorizontalLine : VerticalLine, BorderBox) + marginLogicalHeight();

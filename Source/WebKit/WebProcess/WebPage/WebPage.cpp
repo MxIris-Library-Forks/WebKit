@@ -3069,18 +3069,18 @@ void WebPage::setFooterBannerHeight(int height)
 }
 #endif
 
-void WebPage::takeSnapshot(IntRect snapshotRect, IntSize bitmapSize, SnapshotOptions snapshotOptions, bool sharedBitmapOnly, CompletionHandler<void(std::optional<ImageBufferBackendHandle>&&)>&& completionHandler)
+void WebPage::takeSnapshot(IntRect snapshotRect, IntSize bitmapSize, SnapshotOptions snapshotOptions, CompletionHandler<void(std::optional<ImageBufferBackendHandle>&&, Headroom)>&& completionHandler)
 {
     std::optional<ImageBufferBackendHandle> handle;
     RefPtr coreFrame = m_mainFrame->coreLocalFrame();
     if (!coreFrame) {
-        completionHandler(WTFMove(handle));
+        completionHandler(WTFMove(handle), Headroom::None);
         return;
     }
 
     RefPtr frameView = coreFrame->view();
     if (!frameView) {
-        completionHandler(WTFMove(handle));
+        completionHandler(WTFMove(handle), Headroom::None);
         return;
     }
 
@@ -3088,16 +3088,23 @@ void WebPage::takeSnapshot(IntRect snapshotRect, IntSize bitmapSize, SnapshotOpt
 
     auto originalLayoutViewportOverrideRect = frameView->layoutViewportOverrideRect();
     auto originalPaintBehavior = frameView->paintBehavior();
-    bool isPaintBehaviorChanged = false;
+    auto paintBehavior = originalPaintBehavior;
 
     if (snapshotOptions.contains(SnapshotOption::VisibleContentRect))
         snapshotRect = frameView->visibleContentRect();
     else if (snapshotOptions.contains(SnapshotOption::FullContentRect)) {
         snapshotRect = IntRect({ 0, 0 }, frameView->contentsSize());
         frameView->setLayoutViewportOverrideRect(LayoutRect(snapshotRect));
-        frameView->setPaintBehavior(originalPaintBehavior | PaintBehavior::AnnotateLinks);
-        isPaintBehaviorChanged = true;
+        paintBehavior.add(PaintBehavior::AnnotateLinks);
     }
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    if (snapshotOptions.contains(SnapshotOption::AllowHDR) && protectedCorePage()->drawsHDRContent())
+        paintBehavior.add(PaintBehavior::DrawsHDRContent);
+#endif
+
+    if (originalPaintBehavior != paintBehavior)
+        frameView->setPaintBehavior(paintBehavior);
 
     if (bitmapSize.isEmpty()) {
         bitmapSize = snapshotRect.size();
@@ -3105,19 +3112,21 @@ void WebPage::takeSnapshot(IntRect snapshotRect, IntSize bitmapSize, SnapshotOpt
             bitmapSize.scale(corePage()->deviceScaleFactor());
     }
 
-    ImageOptions imageOptions = { };
-    if (!sharedBitmapOnly)
-        imageOptions.add(ImageOption::SupportsBackendHandleVariant);
-
-    if (auto image = snapshotAtSize(snapshotRect, bitmapSize, snapshotOptions, *coreFrame, *frameView, imageOptions))
+    Headroom headroom = Headroom::None;
+    if (auto image = snapshotAtSize(snapshotRect, bitmapSize, snapshotOptions, *coreFrame, *frameView)) {
         handle = image->createImageBufferBackendHandle(SharedMemory::Protection::ReadOnly);
+#if HAVE(SUPPORT_HDR_DISPLAY)
+        if (image->context())
+            headroom = Headroom(image->context()->maxPaintedEDRHeadroom());
+#endif
+    }
 
-    if (isPaintBehaviorChanged) {
+    if (originalPaintBehavior != paintBehavior) {
         frameView->setLayoutViewportOverrideRect(originalLayoutViewportOverrideRect);
         frameView->setPaintBehavior(originalPaintBehavior);
     }
 
-    completionHandler(WTFMove(handle));
+    completionHandler(WTFMove(handle), headroom);
 }
 
 RefPtr<WebImage> WebPage::scaledSnapshotWithOptions(const IntRect& rect, double additionalScaleFactor, SnapshotOptions options)
@@ -3203,28 +3212,47 @@ void WebPage::paintSnapshotAtSize(const IntRect& rect, const IntSize& bitmapSize
 static DestinationColorSpace snapshotColorSpace(SnapshotOptions options, WebPage& page)
 {
 #if USE(CG)
-    if (options.contains(SnapshotOption::UseScreenColorSpace))
-        return screenColorSpace(page.protectedCorePage()->protectedMainFrame()->protectedVirtualView().get());
+    if (options.contains(SnapshotOption::UseScreenColorSpace)) {
+        auto screenColorSpace = WebCore::screenColorSpace(page.protectedCorePage()->protectedMainFrame()->protectedVirtualView().get());
+#if HAVE(SUPPORT_HDR_DISPLAY)
+        if (options.contains(SnapshotOption::AllowHDR) && page.protectedCorePage()->drawsHDRContent()) {
+            if (auto extendedScreenColorSpace = screenColorSpace.asExtended())
+                return *extendedScreenColorSpace;
+        }
 #endif
+        return screenColorSpace;
+    }
+#endif
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    if (options.contains(SnapshotOption::AllowHDR) && page.protectedCorePage()->drawsHDRContent())
+        return DestinationColorSpace::ExtendedSRGB();
+#endif
+
     return DestinationColorSpace::SRGB();
 }
 
-RefPtr<WebImage> WebPage::snapshotAtSize(const IntRect& rect, const IntSize& bitmapSize, SnapshotOptions options, LocalFrame& frame, LocalFrameView& frameView, ImageOptions imageOptions)
+RefPtr<WebImage> WebPage::snapshotAtSize(const IntRect& rect, const IntSize& bitmapSize, SnapshotOptions options, LocalFrame& frame, LocalFrameView& frameView)
 {
 #if ENABLE(PDF_PLUGIN)
-    imageOptions.add(m_pluginViews.computeSize() ? ImageOption::Local : ImageOption::Shareable);
+    ImageOptions imageOptions = m_pluginViews.computeSize() ? ImageOption::Local : ImageOption::Shareable;
 #else
-    imageOptions.add(ImageOption::Shareable);
+    ImageOptions imageOptions = ImageOption::Shareable;
 #endif
 
     if (options.contains(SnapshotOption::Accelerated))
         imageOptions.add(ImageOption::Accelerated);
+    if (options.contains(SnapshotOption::AllowHDR))
+        imageOptions.add(ImageOption::AllowHDR);
 
     auto snapshot = WebImage::create(bitmapSize, imageOptions, snapshotColorSpace(options, *this), &m_page->chrome().client());
     if (!snapshot->context())
         return nullptr;
 
     auto& graphicsContext = *snapshot->context();
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    graphicsContext.setMaxEDRHeadroom(maxEDRHeadroomForDisplay(m_page->displayID()));
+#endif
     paintSnapshotAtSize(rect, bitmapSize, options, frame, frameView, graphicsContext);
 
     return snapshot;
@@ -5635,13 +5663,13 @@ void WebPage::dragCancelled()
 }
 
 #if ENABLE(MODEL_PROCESS)
-void WebPage::modelDragEnded(ElementIdentifier elementIdentifier)
+void WebPage::modelDragEnded(NodeIdentifier nodeIdentifier)
 {
-    RefPtr element = Element::fromIdentifier(elementIdentifier);
-    if (!element)
+    RefPtr node = Node::fromIdentifier(nodeIdentifier);
+    if (!node)
         return;
 
-    RefPtr modelElement = dynamicDowncast<HTMLModelElement>(element);
+    RefPtr modelElement = dynamicDowncast<HTMLModelElement>(node);
     if (!modelElement)
         return;
 
@@ -5655,22 +5683,22 @@ void WebPage::modelDragEnded(ElementIdentifier elementIdentifier)
 void WebPage::requestInteractiveModelElementAtPoint(IntPoint clientPosition)
 {
     if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame())) {
-        auto elementID = localMainFrame->eventHandler().requestInteractiveModelElementAtPoint(clientPosition);
-        send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(elementID));
+        auto nodeID = localMainFrame->eventHandler().requestInteractiveModelElementAtPoint(clientPosition);
+        send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(nodeID));
     } else
         send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(std::nullopt));
 }
 
-void WebPage::stageModeSessionDidUpdate(std::optional<ElementIdentifier> elementID, const TransformationMatrix& transform)
+void WebPage::stageModeSessionDidUpdate(std::optional<NodeIdentifier> nodeID, const TransformationMatrix& transform)
 {
     if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
-        localMainFrame->eventHandler().stageModeSessionDidUpdate(elementID, transform);
+        localMainFrame->eventHandler().stageModeSessionDidUpdate(nodeID, transform);
 }
 
-void WebPage::stageModeSessionDidEnd(std::optional<ElementIdentifier> elementID)
+void WebPage::stageModeSessionDidEnd(std::optional<NodeIdentifier> nodeID)
 {
     if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
-        localMainFrame->eventHandler().stageModeSessionDidEnd(elementID);
+        localMainFrame->eventHandler().stageModeSessionDidEnd(nodeID);
 }
 #endif
 
@@ -8944,7 +8972,7 @@ RefPtr<Element> WebPage::elementForContext(const ElementContext& elementContext)
     if (elementContext.webPageIdentifier != m_identifier)
         return nullptr;
 
-    RefPtr element = elementContext.elementIdentifier ? Element::fromIdentifier(*elementContext.elementIdentifier) : nullptr;
+    RefPtr element = elementContext.nodeIdentifier ? dynamicDowncast<Element>(Node::fromIdentifier(*elementContext.nodeIdentifier)) : nullptr;
     if (!element)
         return nullptr;
 
@@ -8964,7 +8992,7 @@ std::optional<WebCore::ElementContext> WebPage::contextForElement(const WebCore:
     if (!frame)
         return std::nullopt;
 
-    return WebCore::ElementContext { element.boundingBoxInRootViewCoordinates(), m_identifier, document->identifier(), element.identifier() };
+    return WebCore::ElementContext { element.boundingBoxInRootViewCoordinates(), m_identifier, document->identifier(), element.nodeIdentifier() };
 }
 
 void WebPage::startTextManipulations(Vector<WebCore::TextManipulationController::ExclusionRule>&& exclusionRules, bool includeSubframes, CompletionHandler<void()>&& completionHandler)
@@ -10078,13 +10106,13 @@ void WebPage::resetVisibilityAdjustmentsForTargetedElements(const Vector<Targete
     completion(page && page->checkedElementTargetingController()->resetVisibilityAdjustments(identifiers));
 }
 
-void WebPage::takeSnapshotForTargetedElement(ElementIdentifier elementID, ScriptExecutionContextIdentifier documentID, CompletionHandler<void(std::optional<ShareableBitmapHandle>&&)>&& completion)
+void WebPage::takeSnapshotForTargetedElement(NodeIdentifier nodeID, ScriptExecutionContextIdentifier documentID, CompletionHandler<void(std::optional<ShareableBitmapHandle>&&)>&& completion)
 {
     RefPtr page = corePage();
     if (!page)
         return completion({ });
 
-    RefPtr image = page->checkedElementTargetingController()->snapshotIgnoringVisibilityAdjustment(elementID, documentID);
+    RefPtr image = page->checkedElementTargetingController()->snapshotIgnoringVisibilityAdjustment(nodeID, documentID);
     if (!image)
         return completion({ });
 

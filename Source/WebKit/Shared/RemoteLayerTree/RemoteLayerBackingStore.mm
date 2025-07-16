@@ -645,7 +645,7 @@ void RemoteLayerBackingStoreProperties::applyBackingStoreToNode(RemoteLayerTreeN
         if (!replayDynamicContentScalingDisplayListsIntoBackingStore) {
             [layer setValue:@1 forKeyPath:WKDynamicContentScalingEnabledKey];
             [layer setValue:@1 forKeyPath:WKDynamicContentScalingBifurcationEnabledKey];
-            [layer setValue:@(layer.contentsScale) forKeyPath:WKDynamicContentScalingBifurcationScaleKey];
+            [layer setValue:@([layer contentsScale]) forKeyPath:WKDynamicContentScalingBifurcationScaleKey];
         }
         [(WKCompositingLayer *)layer.get() _setWKContents:contents.get() withDisplayList:WTFMove(*m_displayListBufferHandle) replayForTesting:replayDynamicContentScalingDisplayListsIntoBackingStore];
         return;

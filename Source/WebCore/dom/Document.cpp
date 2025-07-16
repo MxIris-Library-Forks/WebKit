@@ -2675,6 +2675,11 @@ WakeLockManager& Document::wakeLockManager()
     return *m_wakeLockManager;
 }
 
+Ref<WakeLockManager> Document::protectedWakeLockManager()
+{
+    return wakeLockManager();
+}
+
 FormController& Document::formController()
 {
     if (!m_formController)
@@ -11085,16 +11090,16 @@ MessagePortChannelProvider& Document::messagePortChannelProvider()
 #if USE(SYSTEM_PREVIEW)
 void Document::dispatchSystemPreviewActionEvent(const SystemPreviewInfo& systemPreviewInfo, const String& message)
 {
-    RefPtr element = systemPreviewInfo.element.elementIdentifier ? Element::fromIdentifier(*systemPreviewInfo.element.elementIdentifier) : nullptr;
-    if (!is<HTMLAnchorElement>(element))
+    RefPtr node = systemPreviewInfo.element.nodeIdentifier ? Node::fromIdentifier(*systemPreviewInfo.element.nodeIdentifier) : nullptr;
+    if (!is<HTMLAnchorElement>(node))
         return;
 
-    if (&element->document() != this)
+    if (&node->document() != this)
         return;
 
     auto event = MessageEvent::create(message, securityOrigin().toString());
     UserGestureIndicator gestureIndicator(IsProcessingUserGesture::Yes, this);
-    element->dispatchEvent(event);
+    node->dispatchEvent(event);
 }
 #endif
 

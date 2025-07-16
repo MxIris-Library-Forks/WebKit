@@ -1530,17 +1530,15 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
     // This code doesn't consider snapshotConfiguration.afterScreenUpdates since the software snapshot always
     // contains recent updates. If we ever have a UI-side snapshot mechanism on macOS, we will need to factor
     // in snapshotConfiguration.afterScreenUpdates at that time.
-    _page->takeSnapshotLegacy(WebCore::enclosingIntRect(rectInViewCoordinates), bitmapSize, snapshotOptions, [handler, snapshotWidth, imageHeight, usesContentRect = snapshotOptions.contains(WebKit::SnapshotOption::FullContentRect)](std::optional<WebCore::ShareableBitmap::Handle>&& imageHandle) {
-        if (!imageHandle) {
+    _page->takeSnapshot(WebCore::enclosingIntRect(rectInViewCoordinates), bitmapSize, snapshotOptions, [handler, snapshotWidth, imageHeight, usesContentRect = snapshotOptions.contains(WebKit::SnapshotOption::FullContentRect)](CGImageRef cgImage) {
+        if (!cgImage) {
             tracePoint(TakeSnapshotEnd, snapshotFailedTraceValue);
             handler(nil, createNSError(WKErrorUnknown).get());
             return;
         }
-        auto bitmap = WebCore::ShareableBitmap::create(WTFMove(*imageHandle), WebCore::SharedMemory::Protection::ReadOnly);
-        RetainPtr<CGImageRef> cgImage = bitmap ? bitmap->makeCGImage() : nullptr;
-        auto width = usesContentRect ? (CGFloat)CGImageGetWidth(cgImage.get()) : snapshotWidth;
-        auto height = usesContentRect ? (CGFloat)CGImageGetHeight(cgImage.get()) : imageHeight;
-        auto image = adoptNS([[NSImage alloc] initWithCGImage:cgImage.get() size:NSMakeSize(width, height)]);
+        auto width = usesContentRect ? (CGFloat)CGImageGetWidth(cgImage) : snapshotWidth;
+        auto height = usesContentRect ? (CGFloat)CGImageGetHeight(cgImage) : imageHeight;
+        auto image = adoptNS([[NSImage alloc] initWithCGImage:cgImage size:NSMakeSize(width, height)]);
         tracePoint(TakeSnapshotEnd, true);
         handler(image.get(), nil);
     });
@@ -2025,12 +2023,26 @@ inline OptionSet<WebKit::FindOptions> toFindOptions(WKFindConfiguration *configu
 }
 
 #if PLATFORM(MAC) && HAVE(NSWINDOW_SNAPSHOT_READINESS_HANDLER)
+
 - (void)_invalidateWindowSnapshotReadinessHandler
 {
-    if (auto handler = std::exchange(_windowSnapshotReadinessHandler, nil))
-        handler();
+    auto handler = std::exchange(_windowSnapshotReadinessHandler, nil);
+    if (!handler)
+        return;
+
+    handler();
+
+    RefPtr page = _page;
+    if (!page) {
+        RELEASE_LOG(ViewState, "%p - Stopped holding window resize snapshot for window full screen (null page)", self);
+        return;
+    }
+
+    RELEASE_LOG(ViewState, "%p - [pageProxyID=%" PRIu64 ", webPageID=%" PRIu64 ", PID=%i] Stopped holding window resize snapshot for window full screen",
+        self, page->identifier().toUInt64(), page->webPageIDInMainFrameProcess().toUInt64(), page->legacyMainFrameProcessID());
 }
-#endif
+
+#endif // PLATFORM(MAC) && HAVE(NSWINDOW_SNAPSHOT_READINESS_HANDLER)
 
 #if ENABLE(WEB_PAGE_SPATIAL_BACKDROP)
 - (void)_spatialBackdropSourceDidChange
@@ -3285,9 +3297,19 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
     RetainPtr parentView = [self _containerForFixedColorExtension];
     auto insets = [self _obscuredInsetsForFixedColorExtension];
     WebCore::FloatRect bounds = self.bounds;
+#if PLATFORM(IOS_FAMILY)
+    auto contentOffset = [_scrollView contentOffset];
+    auto contentSize = [_scrollView contentSize];
+#endif
 
-    if (RetainPtr view = _fixedColorExtensionViews.top(); view && ![view isHidden])
-        [view setFrame:[parentView convertRect:CGRectMake(insets.left(), 0, bounds.width() - insets.left() - insets.right(), insets.top()) fromView:self]];
+    if (RetainPtr view = _fixedColorExtensionViews.top(); view && ![view isHidden]) {
+#if PLATFORM(IOS_FAMILY)
+        auto targetRect = CGRectMake(-contentOffset.x, 0, contentSize.width, insets.top());
+#else
+        auto targetRect = NSMakeRect(insets.left(), 0, bounds.width() - insets.left() - insets.right(), insets.top());
+#endif
+        [view setFrame:[parentView convertRect:targetRect fromView:self]];
+    }
 
     if (RetainPtr view = _fixedColorExtensionViews.left(); view && ![view isHidden])
         [view setFrame:[parentView convertRect:CGRectMake(0, 0, insets.left(), bounds.height()) fromView:self]];
@@ -3295,8 +3317,14 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
     if (RetainPtr view = _fixedColorExtensionViews.right(); view && ![view isHidden])
         [view setFrame:[parentView convertRect:CGRectMake(bounds.width() - insets.right(), 0, insets.right(), bounds.height()) fromView:self]];
 
-    if (RetainPtr view = _fixedColorExtensionViews.bottom(); view && ![view isHidden])
-        [view setFrame:[parentView convertRect:CGRectMake(insets.left(), bounds.height() - insets.bottom(), bounds.width() - insets.left() - insets.right(), insets.bottom()) fromView:self]];
+    if (RetainPtr view = _fixedColorExtensionViews.bottom(); view && ![view isHidden]) {
+#if PLATFORM(IOS_FAMILY)
+        auto targetRect = CGRectMake(-contentOffset.x, bounds.height() - insets.bottom(), contentSize.width, insets.bottom());
+#else
+        auto targetRect = NSMakeRect(insets.left(), bounds.height() - insets.bottom(), bounds.width() - insets.left() - insets.right(), insets.bottom());
+#endif
+        [view setFrame:[parentView convertRect:targetRect fromView:self]];
+    }
 }
 
 - (void)_updateHiddenScrollPocketEdges

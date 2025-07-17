@@ -4475,15 +4475,8 @@ void WebPage::runJavaScript(WebFrame* frame, RunJavaScriptParameters&& parameter
 
         JSGlobalContextRef context = frame->jsContextForWorld(world.ptr());
         JSValueRef jsValue = toRef(coreFrame->script().globalObject(Ref { world->coreWorld() }), result.value());
-#if PLATFORM(COCOA)
         if (auto result = JavaScriptEvaluationResult::extract(context, jsValue))
             return completionHandler(WTFMove(*result));
-#else
-        if (RefPtr serializedResultValue = SerializedScriptValue::create(context, jsValue, nullptr)) {
-            if (auto wireBytes = serializedResultValue->wireBytes(); !wireBytes.isEmpty())
-                return completionHandler(JavaScriptEvaluationResult { wireBytes });
-        }
-#endif
         return completionHandler(makeUnexpected(std::nullopt));
     };
 
@@ -5399,7 +5392,7 @@ void WebPage::startPlayingPredominantVideo(CompletionHandler<void(bool)>&& compl
 #if PLATFORM(IOS_FAMILY)
 void WebPage::setSceneIdentifier(String&& sceneIdentifier)
 {
-    AudioSession::sharedSession().setSceneIdentifier(sceneIdentifier);
+    AudioSession::singleton().setSceneIdentifier(sceneIdentifier);
     m_page->setSceneIdentifier(WTFMove(sceneIdentifier));
 }
 

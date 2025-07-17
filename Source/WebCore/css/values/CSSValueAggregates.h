@@ -60,7 +60,7 @@ template<typename T> inline constexpr ASCIILiteral SerializationSeparatorString 
 // Helper to define a type by extending another type via inheritance.
 #define DEFINE_TYPE_EXTENDER(wrapper, wrapped)                                \
     struct wrapper : wrapped {                                                \
-        WTF_MAKE_STRUCT_FAST_ALLOCATED;                                       \
+        WTF_DEPRECATED_MAKE_STRUCT_FAST_ALLOCATED(wrapper);                                       \
         using Wrapped = wrapped;                                              \
         using Wrapped::Wrapped;                                               \
         template<size_t I> friend const auto& get(const wrapper& self)        \
@@ -73,7 +73,7 @@ template<typename T> inline constexpr ASCIILiteral SerializationSeparatorString 
 // Helper to define a type via direct wrapping of another type.
 #define DEFINE_TYPE_WRAPPER(wrapper, wrapped)                                 \
     struct wrapper {                                                          \
-        WTF_MAKE_STRUCT_FAST_ALLOCATED;                                       \
+        WTF_DEPRECATED_MAKE_STRUCT_FAST_ALLOCATED(wrapper);                                       \
         using Wrapped = wrapped;                                              \
         wrapped value;                                                        \
         template<typename... Args>                                            \
@@ -167,7 +167,7 @@ template<CSSValueID C> TextStream& operator<<(TextStream& ts, const Constant<C>&
 
 // Helper type used to represent a CSS function.
 template<CSSValueID C, typename T> struct FunctionNotation {
-    WTF_MAKE_STRUCT_FAST_ALLOCATED;
+    WTF_DEPRECATED_MAKE_STRUCT_FAST_ALLOCATED(CustomIdentifier);
 
     static constexpr auto name = C;
     T parameters;
@@ -1077,14 +1077,24 @@ public:
 
 } // namespace std
 
-template<typename T, size_t inlineCapacity>
-struct WTF::supports_text_stream_insertion<WebCore::SpaceSeparatedVector<T, inlineCapacity>> : supports_text_stream_insertion<T> { };
+namespace WTF {
 
 template<typename T, size_t inlineCapacity>
-struct WTF::supports_text_stream_insertion<WebCore::CommaSeparatedVector<T, inlineCapacity>> : supports_text_stream_insertion<T> { };
+struct supports_text_stream_insertion<WebCore::SpaceSeparatedVector<T, inlineCapacity>> : supports_text_stream_insertion<T> { };
+
+template<typename T, size_t inlineCapacity>
+struct supports_text_stream_insertion<WebCore::CommaSeparatedVector<T, inlineCapacity>> : supports_text_stream_insertion<T> { };
 
 template<typename T>
-struct WTF::supports_text_stream_insertion<WebCore::SpaceSeparatedFixedVector<T>> : supports_text_stream_insertion<T> { };
+struct supports_text_stream_insertion<WebCore::SpaceSeparatedFixedVector<T>> : supports_text_stream_insertion<T> { };
 
 template<typename T>
-struct WTF::supports_text_stream_insertion<WebCore::CommaSeparatedFixedVector<T>> : supports_text_stream_insertion<T> { };
+struct supports_text_stream_insertion<WebCore::CommaSeparatedFixedVector<T>> : supports_text_stream_insertion<T> { };
+
+template<>
+struct MarkableTraits<WebCore::CustomIdentifier> {
+    static bool isEmptyValue(const WebCore::CustomIdentifier& value) { return value.value.isNull(); }
+    static WebCore::CustomIdentifier emptyValue() { return WebCore::CustomIdentifier { nullAtom() }; }
+};
+
+} // namespace WTF

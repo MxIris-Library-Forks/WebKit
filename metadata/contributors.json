@@ -3142,8 +3142,9 @@
    },
    {
       "emails" : [
-         "Hironori.Fujii@sony.com",
-         "fujii.hironori@gmail.com"
+         "fujii@igalia.com",
+         "fujii.hironori@gmail.com",
+         "Hironori.Fujii@sony.com"
       ],
       "github" : "fujii",
       "name" : "Fujii Hironori",
@@ -8431,6 +8432,14 @@
          "webcomponents-bugzilla@chromium.org"
       ],
       "name" : "Web Components Team"
+   },
+   {
+      "emails" : [
+         "submit-safari@apple.com"
+      ],
+      "github" : "webkit-integration",
+      "name" : "WebKit Integration",
+      "status" : "committer"
    },
    {
       "emails" : [

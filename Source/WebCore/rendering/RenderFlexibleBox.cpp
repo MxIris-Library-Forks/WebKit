@@ -264,15 +264,6 @@ void RenderFlexibleBox::computeChildIntrinsicLogicalWidths(RenderBox& flexBoxChi
     RenderBlock::computeChildIntrinsicLogicalWidths(flexBoxChild, minPreferredLogicalWidth, maxPreferredLogicalWidth);
 }
 
-LayoutUnit RenderFlexibleBox::baselinePosition() const
-{
-    auto baseline = firstLineBaseline();
-    if (!baseline)
-        return synthesizedBaseline(*this, *parentStyle(), containingBlock()->writingMode().isHorizontal() ? HorizontalLine : VerticalLine, BorderBox) + marginLogicalHeight();
-
-    return baseline.value() + (containingBlock()->writingMode().isHorizontal() ? marginTop() : marginRight()).toInt();
-}
-
 std::optional<LayoutUnit> RenderFlexibleBox::firstLineBaseline() const
 {
     if ((isWritingModeRoot() && !isFlexItem()) || !m_numberOfFlexItemsOnFirstLine || shouldApplyLayoutContainment())
@@ -321,11 +312,6 @@ std::optional <LayoutUnit> RenderFlexibleBox::lastLineBaseline() const
     }
 
     return LayoutUnit { (baseline.value() + baselineFlexItem->logicalTop()).toInt() };
-}
-
-std::optional<LayoutUnit> RenderFlexibleBox::inlineBlockBaseline() const
-{
-    return firstLineBaseline();
 }
 
 static const StyleContentAlignmentData& contentAlignmentNormalBehavior()

@@ -66,11 +66,11 @@ struct GreaterThanOrSameSizeAsStyleRareInheritedData : public RefCounted<Greater
 #if ENABLE(DARK_MODE_CSS)
     Style::ColorScheme colorScheme;
 #endif
-    ListStyleType listStyleType;
+    Style::ListStyleType listStyleType;
 
     Markable<ScrollbarColor> scrollbarColor;
 
-    BlockEllipsis blockEllipsis;
+    Style::BlockEllipsis blockEllipsis;
 };
 
 static_assert(sizeof(StyleRareInheritedData) <= sizeof(GreaterThanOrSameSizeAsStyleRareInheritedData), "StyleRareInheritedData should bit pack");

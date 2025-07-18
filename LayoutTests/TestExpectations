@@ -1740,6 +1740,7 @@ imported/w3c/web-platform-tests/css/css-grid/alignment/self-baseline/grid-self-b
 imported/w3c/web-platform-tests/css/css-grid/alignment/self-baseline/grid-self-baseline-horiz-007.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/alignment/self-baseline/grid-self-baseline-vertical-lr-007.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/alignment/self-baseline/grid-self-baseline-vertical-rl-007.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/anonymous-grid-items-002.html [ ImageOnlyFailure ]
 
 webkit.org/b/231021 imported/w3c/web-platform-tests/css/css-grid/grid-items/grid-size-with-orthogonal-child-dynamic.html [ ImageOnlyFailure ]
 webkit.org/b/231021 imported/w3c/web-platform-tests/css/css-grid/grid-items/replaced-element-015.html [ ImageOnlyFailure ]
@@ -1777,6 +1778,11 @@ imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/subgrid/track-siz
 imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/subgrid/track-sizing/masonry-subgrid-intrinsic-sizing.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-grid/parsing/grid-template-columns-crash.html [ Skip ]
+
+imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/item-placement/masonry-item-placement-004.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/item-placement/masonry-item-placement-005.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/item-placement/masonry-item-placement-006.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/masonry/tentative/item-placement/masonry-item-placement-007.html [ ImageOnlyFailure ]
 
 # Flaky tests at import time
 imported/w3c/web-platform-tests/css/css-scoping/css-scoping-shadow-host-namespace.html [ ImageOnlyFailure ]
@@ -2962,8 +2968,6 @@ imported/blink/http/tests/security/shape-image-cors-port.html [ ImageOnlyFailure
 webkit.org/b/163706 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-024.html [ ImageOnlyFailure ]
 
 # webkit.org/b/166941 missing sideways implementation.
-imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-012.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-box/shape-outside-border-box-border-radius-011.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/circle/shape-outside-circle-052.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/circle/shape-outside-circle-053.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/ellipse/shape-outside-ellipse-050.html [ ImageOnlyFailure ]
@@ -7148,79 +7152,20 @@ imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-e
 # This needs to be investigated but doesn't seem to reproduce easily locally.
 imported/w3c/web-platform-tests/navigation-api/ [ Timeout Pass ]
 
-# This is not part of the spec yet and hasn't been implemented.
-imported/w3c/web-platform-tests/navigation-api/commit-behavior/ [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/scroll-behavior/manual-scroll-in-precommit-handler.html [ Skip ]
+# These cross-window tests won't work on ports that don't run on the web-platform.test domains (not glib).
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/location-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/location-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/open-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/open-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/submit-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
+imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/submit-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
 
-# Not fully supported yet
+# Flakey test result. Skipping for now.
 imported/w3c/web-platform-tests/navigation-api/precommit-handler/precommitHandler-push.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/precommit-handler/precommitHandler-reload.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/precommit-handler/precommitHandler-replace.html [ Skip ]
-
-# Tests for sourceElement is not yet part of the HTML spec.
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-form-requestSubmit.html [ Skip ]
-
-# These cross-window tests won't work on ports that don't run on the web-platform.test domains (not glib).
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/ [ Skip ]
-
-# Consistently timing out and slowing down EWS
-imported/w3c/web-platform-tests/navigation-api/navigation-methods/traverseTo-detach-between-navigate-and-navigatesuccess.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/key-id-back-same-document.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigation-history-entry/entries-when-inactive.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/back-same-document.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/anchor-download-intercept-reject.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-intercept-reject.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/intercept-async.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-same-document-intercept-reject.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-canceled.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-same-document-intercept-reentrant.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/back-same-document-intercept-reject.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/back-same-document.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-no-popstate.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-stop.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-intercept.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-canceled.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-in-transition-finished.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-same-document.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-redirect.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-double-intercept.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-same-document-intercept-reentrant.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-intercept.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-reject.tentative.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-canceled.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/back-same-document-intercept.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-same-document.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/intercept-async.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-same-document-intercept-reject.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-double-intercept.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-stop.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-intercept-reject.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-intercept-reentrant.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-intercept.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-in-transition-finished.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-intercept-reject.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-intercept-reject.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-redirect.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/anchor-download-intercept-reject.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/location-href-intercept-reentrant.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/back-same-document-intercept.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-intercept.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/anchor-download-intercept.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-reject.tentative.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/anchor-download-intercept.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/transition-finished-mark-as-handled.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/back-same-document-intercept-reject.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/per-entry-events/dispose-for-navigation-in-child.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/per-entry-events/dispose-for-full-session-history.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/location-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/open-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/location-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
 
 # webkit.org/b/277948 WebKit can fire the load event before JS module starts executing
 imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-double-intercept.html?currententrychange [ Skip ]
@@ -7821,12 +7766,23 @@ imported/w3c/web-platform-tests/css/css-viewport/zoom/letter-spacing.html [ Imag
 imported/w3c/web-platform-tests/css/css-viewport/zoom/line-height.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/list-style-image.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/relative-units-from-parent.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/stroke.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/svg.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-indent.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-shadow.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-stroke-width.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/word-spacing.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/border.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/bottom.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/container-queries.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/height.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/inherited-length.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/left.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/max-height.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/max-width.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/min-height.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/min-width.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/right.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-viewport/zoom/top.html [ ImageOnlyFailure ]
 
 # has-slotted is not implemeneted - https://bugs.webkit.org/show_bug.cgi?id=280608
 imported/w3c/web-platform-tests/css/css-scoping/has-slotted-001.html [ ImageOnlyFailure ]
@@ -7987,9 +7943,6 @@ webkit.org/b/290285 imported/w3c/web-platform-tests/svg/struct/reftests/use-data
 webkit.org/b/290285 imported/w3c/web-platform-tests/svg/struct/reftests/use-data-url-setAttribute.tentative.html [ Skip ]
 webkit.org/b/290285 imported/w3c/web-platform-tests/svg/struct/reftests/use-data-url.tentative.svg [ Skip ]
 webkit.org/b/290285 imported/w3c/web-platform-tests/svg/struct/scripted/use-load-error-events.tentative.html [ Skip ]
-
-# Investigate timeout on this test.
-imported/w3c/web-platform-tests/html/editing/the-hidden-attribute/beforematch-scroll-to-text-fragment.html [ Skip ]
 
 # This test hits an assert in debug
 webkit.org/b/290133 [ Debug ] svg/dom/SVGGeometry-isPointInFill-with-null-path.html [ Skip ]

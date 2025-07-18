@@ -1093,6 +1093,11 @@ static void changeContentOffsetBoundedInValidRange(UIScrollView *scrollView, Web
 
         changeContentOffsetBoundedInValidRange(_scrollView.get(), CGPointMake(contentOffsetX, contentOffsetY));
     }
+
+#if HAVE(LIQUID_GLASS)
+    if (!WTF::areEssentiallyEqual<CGFloat>(oldContentSize.width, newContentSize.width))
+        [self _updateFixedColorExtensionViewFrames];
+#endif
 }
 
 - (BOOL)_restoreScrollAndZoomStateForTransaction:(const WebKit::RemoteLayerTreeTransaction&)layerTreeTransaction
@@ -2099,10 +2104,16 @@ static WebCore::FloatPoint constrainContentOffset(WebCore::FloatPoint contentOff
 
 - (void)_updateLastKnownWindowSizeAndOrientation
 {
-    UIWindowScene *scene = self.window.windowScene;
-ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-    _lastKnownWindowSizeAndOrientation = { scene.coordinateSpace.bounds.size, scene.interfaceOrientation };
-ALLOW_DEPRECATED_DECLARATIONS_END
+    RetainPtr scene = [self.window windowScene];
+    RetainPtr geometry = [scene effectiveGeometry];
+    _lastKnownWindowSizeAndOrientation = {
+#if HAVE(UI_WINDOW_SCENE_GEOMETRY_COORDINATE_SPACE)
+        [geometry coordinateSpace].bounds.size,
+#else
+        [scene coordinateSpace].bounds.size,
+#endif
+        [geometry interfaceOrientation]
+    };
 }
 
 - (void)didMoveToWindow
@@ -2769,6 +2780,10 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     transform.ty = currentContentOffset.y - newContentOffset.y;
 
     [_resizeAnimationView setTransform:transform];
+
+#if HAVE(LIQUID_GLASS)
+    [self _updateFixedColorExtensionViewFrames];
+#endif
 }
 
 #endif // HAVE(UI_WINDOW_SCENE_LIVE_RESIZE)
@@ -2867,7 +2882,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
             *didInvalidateResizeAssertions = true;
         }).get()];
 
-        RunLoop::protectedMain()->dispatchAfter(1_s, [weakSelf = WeakObjCPtr<WKWebView>(self), didInvalidateResizeAssertions] {
+        RunLoop::mainSingleton().dispatchAfter(1_s, [weakSelf = WeakObjCPtr<WKWebView>(self), didInvalidateResizeAssertions] {
             if (*didInvalidateResizeAssertions)
                 return;
 
@@ -3027,7 +3042,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         return;
     }
 
-    RunLoop::protectedMain()->dispatch([retainedSelf = retainPtr(self)] {
+    RunLoop::mainSingleton().dispatch([retainedSelf = retainPtr(self)] {
         WKWebView *webView = retainedSelf.get();
         if (![webView _isValid])
             return;
@@ -3175,7 +3190,7 @@ static bool scrollViewCanScroll(UIScrollView *scrollView)
 
             if (!CGPointEqualToPoint(activePoint, currentPoint)) {
                 RetainPtr<WKScrollView> strongScrollView = _scrollView;
-                RunLoop::protectedMain()->dispatch([strongScrollView, activePoint] {
+                RunLoop::mainSingleton().dispatch([strongScrollView, activePoint] {
                     [strongScrollView setContentOffset:activePoint animated:NO];
                 });
             }
@@ -3336,6 +3351,10 @@ static WebCore::IntDegrees activeOrientation(WKWebView *webView)
     _perProcessState.animatedResizeOldBounds = { };
 
     [self _didStopDeferringGeometryUpdates];
+
+#if HAVE(LIQUID_GLASS)
+    [self _updateFixedColorExtensionViewFrames];
+#endif
 }
 
 - (void)_didStopDeferringGeometryUpdates
@@ -3638,7 +3657,7 @@ static WebCore::IntDegrees activeOrientation(WKWebView *webView)
 {
     RetainPtr<WKWebView> strongSelf = self;
     [self _doAfterNextPresentationUpdate:[strongSelf] {
-        RunLoop::protectedMain()->dispatch([strongSelf] {
+        RunLoop::mainSingleton().dispatch([strongSelf] {
             if ([strongSelf->_stableStatePresentationUpdateCallbacks count])
                 [strongSelf _firePresentationUpdateForPendingStableStatePresentationCallbacks];
         });
@@ -3734,7 +3753,7 @@ static WebCore::UserInterfaceLayoutDirection toUserInterfaceLayoutDirection(UISe
     }).get()];
 
     // Ensure that the live resize snapshot is eventually removed, even if the webpage is unresponsive.
-    RunLoop::protectedMain()->dispatchAfter(1_s, [liveResizeSnapshotView] {
+    RunLoop::mainSingleton().dispatchAfter(1_s, [liveResizeSnapshotView] {
         [liveResizeSnapshotView removeFromSuperview];
     });
 }
@@ -3967,7 +3986,7 @@ static bool isLockdownModeWarningNeeded()
             return;
         }
 
-        RunLoop::protectedMain()->dispatch([message = retainPtr(message), protectedSelf = WTFMove(protectedSelf)] {
+        RunLoop::mainSingleton().dispatch([message = retainPtr(message), protectedSelf = WTFMove(protectedSelf)] {
             NSString *appDisplayName = [[NSBundle mainBundle] objectForInfoDictionaryKey:(__bridge NSString *)_kCFBundleDisplayNameKey];
             if (!appDisplayName)
                 appDisplayName = [[NSBundle mainBundle] objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleNameKey];
@@ -4469,7 +4488,7 @@ static bool isLockdownModeWarningNeeded()
 - (void)_doAfterNextStablePresentationUpdate:(dispatch_block_t)updateBlock
 {
     if (![self usesStandardContentView]) {
-        RunLoop::protectedMain()->dispatch([updateBlock = makeBlockPtr(updateBlock)] {
+        RunLoop::mainSingleton().dispatch([updateBlock = makeBlockPtr(updateBlock)] {
             updateBlock();
         });
         return;
@@ -4742,6 +4761,10 @@ static bool isLockdownModeWarningNeeded()
 
     _perProcessState.waitingForCommitAfterAnimatedResize = YES;
     _perProcessState.waitingForEndAnimatedResize = YES;
+
+#if HAVE(LIQUID_GLASS)
+    [self _updateFixedColorExtensionViewFrames];
+#endif
 }
 
 - (void)_endAnimatedResize

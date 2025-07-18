@@ -1446,7 +1446,7 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
         [userInfo setObject:errorMessage forKey:_WKJavaScriptExceptionMessageErrorKey];
 
         auto error = adoptNS([[NSError alloc] initWithDomain:WKErrorDomain code:WKErrorJavaScriptExceptionOccurred userInfo:userInfo.get()]);
-        RunLoop::protectedMain()->dispatch([handler, error] {
+        RunLoop::mainSingleton().dispatch([handler, error] {
             auto rawHandler = (void (^)(id, NSError *))handler.get();
             rawHandler(nil, error.get());
         });
@@ -1494,7 +1494,7 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
     auto handler = makeBlockPtr(completionHandler);
 
     if (CGRectIsEmpty(rectInViewCoordinates) || !snapshotWidth) {
-        RunLoop::protectedMain()->dispatch([handler = WTFMove(handler)] {
+        RunLoop::mainSingleton().dispatch([handler = WTFMove(handler)] {
 #if USE(APPKIT)
             auto image = adoptNS([[NSImage alloc] initWithSize:NSMakeSize(0, 0)]);
 #else
@@ -1926,7 +1926,7 @@ inline OptionSet<WebKit::FindOptions> toFindOptions(WKFindConfiguration *configu
 {
 #if PLATFORM(IOS_FAMILY)
     if (![self usesStandardContentView]) {
-        RunLoop::protectedMain()->dispatch([updateBlock = makeBlockPtr(updateBlock)] {
+        RunLoop::mainSingleton().dispatch([updateBlock = makeBlockPtr(updateBlock)] {
             updateBlock();
         });
         return;
@@ -3245,15 +3245,15 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
         }
 
         RetainPtr edgeColor = cocoaColorOrNil(_fixedContainerEdges.predominantColor(side)) ?: self.underPageBackgroundColor;
-#if PLATFORM(MAC)
         if (side == WebCore::BoxSide::Top) {
+#if PLATFORM(MAC)
             edgeColor = [self _adjustedColorForTopContentInsetColorFromUIDelegate:edgeColor.get()];
+#endif
             if (_shouldSuppressTopColorExtensionView) {
                 [extensionView fadeOut];
                 return;
             }
         }
-#endif // PLATFORM(MAC)
 
         if (!extensionView) {
             extensionView = adoptNS([[WKColorExtensionView alloc] initWithFrame:CGRectZero delegate:self]);
@@ -3299,12 +3299,14 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
     WebCore::FloatRect bounds = self.bounds;
 #if PLATFORM(IOS_FAMILY)
     auto contentOffset = [_scrollView contentOffset];
-    auto contentSize = [_scrollView contentSize];
+    auto contentWidth = [_scrollView contentSize].width;
+    if (_perProcessState.liveResizeParameters)
+        contentWidth *= self.bounds.size.width / _perProcessState.liveResizeParameters->viewWidth;
 #endif
 
     if (RetainPtr view = _fixedColorExtensionViews.top(); view && ![view isHidden]) {
 #if PLATFORM(IOS_FAMILY)
-        auto targetRect = CGRectMake(-contentOffset.x, 0, contentSize.width, insets.top());
+        auto targetRect = CGRectMake(-contentOffset.x, 0, contentWidth, insets.top());
 #else
         auto targetRect = NSMakeRect(insets.left(), 0, bounds.width() - insets.left() - insets.right(), insets.top());
 #endif
@@ -3319,7 +3321,7 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
 
     if (RetainPtr view = _fixedColorExtensionViews.bottom(); view && ![view isHidden]) {
 #if PLATFORM(IOS_FAMILY)
-        auto targetRect = CGRectMake(-contentOffset.x, bounds.height() - insets.bottom(), contentSize.width, insets.bottom());
+        auto targetRect = CGRectMake(-contentOffset.x, bounds.height() - insets.bottom(), contentWidth, insets.bottom());
 #else
         auto targetRect = NSMakeRect(insets.left(), bounds.height() - insets.bottom(), bounds.width() - insets.left() - insets.right(), insets.bottom());
 #endif
@@ -3344,7 +3346,7 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
 {
 #if PLATFORM(MAC)
     if (_isGettingAdjustedColorForTopContentInsetColorFromDelegate) {
-        RunLoop::protectedMain()->dispatch(WTFMove(callback));
+        RunLoop::mainSingleton().dispatch(WTFMove(callback));
         return;
     }
 #endif
@@ -5997,7 +5999,7 @@ static inline OptionSet<WebKit::FindOptions> toFindOptions(_WKFindOptions wkFind
     _visibleContentRectUpdateCallbacks.append(makeBlockPtr(updateBlock));
     [self _scheduleVisibleContentRectUpdate];
 #else
-    RunLoop::protectedMain()->dispatch([updateBlock = makeBlockPtr(updateBlock)] {
+    RunLoop::mainSingleton().dispatch([updateBlock = makeBlockPtr(updateBlock)] {
         updateBlock();
     });
 #endif

@@ -29,7 +29,6 @@
 #pragma once
 
 #include "AnchorPositionEvaluator.h"
-#include "BlockEllipsis.h"
 #include "CSSBasicShapeValue.h"
 #include "CSSCalcSymbolTable.h"
 #include "CSSCalcValue.h"
@@ -178,7 +177,6 @@ public:
     static GridAutoFlow convertGridAutoFlow(BuilderState&, const CSSValue&);
     static FilterOperations convertFilterOperations(BuilderState&, const CSSValue&);
     static FilterOperations convertAppleColorFilterOperations(BuilderState&, const CSSValue&);
-    static ListStyleType convertListStyleType(BuilderState&, const CSSValue&);
 #if PLATFORM(IOS_FAMILY)
     static bool convertTouchCallout(BuilderState&, const CSSValue&);
 #endif
@@ -234,7 +232,6 @@ public:
     static std::optional<PositionArea> convertPositionArea(BuilderState&, const CSSValue&);
     static OptionSet<PositionVisibility> convertPositionVisibility(BuilderState&, const CSSValue&);
 
-    static BlockEllipsis convertBlockEllipsis(BuilderState&, const CSSValue&);
     static size_t convertMaxLines(BuilderState&, const CSSValue&);
 
     static LineClampValue convertLineClamp(BuilderState&, const CSSValue&);
@@ -307,22 +304,6 @@ inline WebCore::Length BuilderConverter::convertLengthOrAuto(BuilderState& build
     if (value.valueID() == CSSValueAuto)
         return WebCore::Length(LengthType::Auto);
     return convertLength(builderState, value);
-}
-
-inline ListStyleType BuilderConverter::convertListStyleType(BuilderState& builderState, const CSSValue& value)
-{
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-
-    if (primitiveValue->isValueID()) {
-        if (primitiveValue->valueID() == CSSValueNone)
-            return { ListStyleType::Type::None, nullAtom() };
-        return { ListStyleType::Type::CounterStyle, makeAtomString(primitiveValue->stringValue()) };
-    }
-    if (primitiveValue->isCustomIdent())
-        return { ListStyleType::Type::CounterStyle, makeAtomString(primitiveValue->stringValue()) };
-    return { ListStyleType::Type::String, makeAtomString(primitiveValue->stringValue()) };
 }
 
 inline TabSize BuilderConverter::convertTabSize(BuilderState& builderState, const CSSValue& value)
@@ -2037,16 +2018,6 @@ inline OptionSet<PositionVisibility> BuilderConverter::convertPositionVisibility
         result.add(fromCSSValue<PositionVisibility>(value));
 
     return result;
-}
-
-inline BlockEllipsis BuilderConverter::convertBlockEllipsis(BuilderState& builderState, const CSSValue& value)
-{
-    if (value.valueID() == CSSValueNone)
-        return { };
-    if (value.valueID() == CSSValueAuto)
-        return { BlockEllipsis::Type::Auto, { } };
-    return { BlockEllipsis::Type::String, AtomString { convertString(builderState, value) } };
-
 }
 
 inline size_t BuilderConverter::convertMaxLines(BuilderState& builderState, const CSSValue& value)

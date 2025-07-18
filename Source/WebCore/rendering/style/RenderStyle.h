@@ -237,7 +237,6 @@ enum class WhiteSpace : uint8_t;
 enum class WhiteSpaceCollapse : uint8_t;
 enum class WordBreak : uint8_t;
 
-struct BlockEllipsis;
 struct CounterDirectiveMap;
 struct FillRepeatXY;
 struct FontPalette;
@@ -247,7 +246,6 @@ struct ImageOrientation;
 struct Length;
 struct LengthPoint;
 struct LengthSize;
-struct ListStyleType;
 struct SingleTimelineRange;
 
 struct ScrollSnapAlign;
@@ -278,6 +276,7 @@ class CustomPropertyRegistry;
 class ViewTransitionName;
 struct AnchorNames;
 struct AspectRatio;
+struct BlockEllipsis;
 struct BorderRadius;
 struct BoxShadow;
 struct Clip;
@@ -295,6 +294,7 @@ struct GridTemplateAreas;
 struct GridTemplateList;
 struct GridTrackSizes;
 struct InsetEdge;
+struct ListStyleType;
 struct MarginEdge;
 struct MaximumSize;
 struct MinimumSize;
@@ -749,7 +749,7 @@ public:
     EmptyCell emptyCells() const { return static_cast<EmptyCell>(m_inheritedFlags.emptyCells); }
     CaptionSide captionSide() const { return static_cast<CaptionSide>(m_inheritedFlags.captionSide); }
 
-    inline ListStyleType listStyleType() const;
+    inline const Style::ListStyleType& listStyleType() const;
     StyleImage* listStyleImage() const;
     ListStylePosition listStylePosition() const { return static_cast<ListStylePosition>(m_inheritedFlags.listStylePosition); }
     inline bool isFixedTableLayout() const;
@@ -940,13 +940,15 @@ public:
     inline bool hasAutoColumnCount() const;
     inline bool specifiesColumns() const;
     inline ColumnFill columnFill() const;
-    inline const Style::GapGutter& columnGap() const;
-    inline const Style::GapGutter& rowGap() const;
     inline BorderStyle columnRuleStyle() const;
     inline unsigned short columnRuleWidth() const;
     inline bool columnRuleIsTransparent() const;
     inline ColumnSpan columnSpan() const;
     inline bool columnSpanEqual(const RenderStyle&) const;
+
+    inline const Style::GapGutter& columnGap() const;
+    inline const Style::GapGutter& rowGap() const;
+    inline const Style::GapGutter& gap(Style::GridTrackSizingDirection) const;
 
     inline const TransformOperations& transform() const;
     inline bool hasTransform() const;
@@ -1087,7 +1089,7 @@ public:
 
     inline OptionSet<Style::LineBoxContain> lineBoxContain() const;
     inline const LineClampValue& lineClamp() const;
-    inline const BlockEllipsis& blockEllipsis() const;
+    inline const Style::BlockEllipsis& blockEllipsis() const;
     inline size_t maxLines() const;
     inline OverflowContinue overflowContinue() const;
     inline const IntSize& initialLetter() const;
@@ -1419,7 +1421,7 @@ public:
 
     inline void setUsedContentVisibility(ContentVisibility);
 
-    inline void setListStyleType(ListStyleType);
+    inline void setListStyleType(Style::ListStyleType&&);
     void setListStyleImage(RefPtr<StyleImage>&&);
     void setListStylePosition(ListStylePosition v) { m_inheritedFlags.listStylePosition = static_cast<unsigned>(v); }
 
@@ -1645,7 +1647,7 @@ public:
     
     inline void setMaxLines(size_t);
     inline void setOverflowContinue(OverflowContinue);
-    inline void setBlockEllipsis(const BlockEllipsis&);
+    inline void setBlockEllipsis(Style::BlockEllipsis&&);
 
     inline void setInitialLetter(const IntSize&);
     
@@ -1958,7 +1960,7 @@ public:
     static inline LengthPoint initialObjectPosition();
     static constexpr EmptyCell initialEmptyCells();
     static constexpr ListStylePosition initialListStylePosition();
-    static inline ListStyleType initialListStyleType();
+    static inline Style::ListStyleType initialListStyleType();
     static constexpr OptionSet<TextTransform> initialTextTransform();
     static inline Style::ViewTransitionClasses initialViewTransitionClasses();
     static inline Style::ViewTransitionName initialViewTransitionName();
@@ -2171,7 +2173,7 @@ public:
 
     static constexpr IntSize initialInitialLetter();
     static constexpr LineClampValue initialLineClamp();
-    static inline BlockEllipsis initialBlockEllipsis();
+    static inline Style::BlockEllipsis initialBlockEllipsis();
     static OverflowContinue initialOverflowContinue();
     static constexpr size_t initialMaxLines() { return 0; }
     static constexpr TextSecurity initialTextSecurity();

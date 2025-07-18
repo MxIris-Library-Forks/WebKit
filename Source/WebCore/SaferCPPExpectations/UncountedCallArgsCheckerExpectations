@@ -134,7 +134,6 @@ accessibility/AXLogger.cpp
 accessibility/AXObjectCache.cpp
 accessibility/AXObjectCache.h
 accessibility/AXSearchManager.cpp
-accessibility/AXTextMarker.cpp
 accessibility/AccessibilityList.cpp
 accessibility/AccessibilityListBox.cpp
 accessibility/AccessibilityListBoxOption.cpp
@@ -283,10 +282,8 @@ crypto/SubtleCrypto.cpp
 crypto/parameters/CryptoAlgorithmRsaKeyGenParams.h
 css/CSSCounterStyle.cpp
 css/CSSCounterStyleDescriptors.cpp
-css/CSSCounterStyleRegistry.cpp
 css/CSSCounterStyleRule.h
 css/CSSCounterValue.cpp
-css/CSSCounterValue.h
 css/CSSCursorImageValue.cpp
 css/CSSFontFace.cpp
 css/CSSFontFaceRule.cpp
@@ -799,7 +796,11 @@ platform/graphics/controls/TextAreaPart.h
 platform/graphics/controls/TextFieldPart.h
 platform/graphics/controls/ToggleButtonPart.h
 platform/graphics/filters/FEDisplacementMap.cpp
+platform/graphics/filters/software/FEConvolveMatrixSoftwareApplier.cpp
 platform/graphics/filters/software/FELightingSoftwareApplier.cpp
+platform/graphics/filters/software/FELightingSoftwareApplierInlines.h
+platform/graphics/filters/software/FELightingSoftwareParallelApplier.cpp
+platform/graphics/filters/software/FETurbulenceSoftwareApplier.cpp
 platform/graphics/mac/PDFDocumentImageMac.mm
 platform/graphics/opentype/OpenTypeMathData.cpp
 platform/graphics/transforms/TransformOperations.cpp

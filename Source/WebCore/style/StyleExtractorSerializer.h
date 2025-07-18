@@ -89,7 +89,6 @@ public:
     static void serializeImageOrNone(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const StyleImage*);
     static void serializeGlyphOrientation(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, GlyphOrientation);
     static void serializeGlyphOrientationOrAuto(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, GlyphOrientation);
-    static void serializeListStyleType(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ListStyleType&);
     static void serializeMarginTrim(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<MarginTrimType>);
     static void serializeShapeValue(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ShapeValue*);
     static void serializeDPath(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const StylePathData*);
@@ -113,7 +112,6 @@ public:
     static void serializeViewTransitionName(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ViewTransitionName&);
     static void serializePositionTryFallbacks(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const FixedVector<PositionTryFallback>&);
     static void serializeWillChange(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WillChangeData*);
-    static void serializeBlockEllipsis(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const BlockEllipsis&);
     static void serializeBlockStepSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, std::optional<WebCore::Length>);
     static void serializeTabSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TabSize&);
     static void serializeScrollSnapType(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ScrollSnapType&);
@@ -696,20 +694,6 @@ inline void ExtractorSerializer::serializeGlyphOrientationOrAuto(ExtractorState&
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-inline void ExtractorSerializer::serializeListStyleType(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const ListStyleType& listStyleType)
-{
-    if (listStyleType.type == ListStyleType::Type::String) {
-        serializationForCSS(builder, context, state.style, listStyleType.identifier);
-        return;
-    }
-    if (listStyleType.type == ListStyleType::Type::CounterStyle) {
-        serializationForCSS(builder, context, state.style, CustomIdentifier { listStyleType.identifier });
-        return;
-    }
-
-    serialize(state, builder, context, listStyleType.type);
-}
-
 inline void ExtractorSerializer::serializeMarginTrim(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, OptionSet<MarginTrimType> marginTrim)
 {
     if (marginTrim.isEmpty()) {
@@ -1134,23 +1118,6 @@ inline void ExtractorSerializer::serializeWillChange(ExtractorState& state, Stri
         }
     }
     builder.append(CSSValueList::createCommaSeparated(WTFMove(list))->cssText(context));
-}
-
-inline void ExtractorSerializer::serializeBlockEllipsis(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const BlockEllipsis& blockEllipsis)
-{
-    switch (blockEllipsis.type) {
-    case BlockEllipsis::Type::None:
-        serializationForCSS(builder, context, state.style, CSS::Keyword::None { });
-        return;
-    case BlockEllipsis::Type::Auto:
-        serializationForCSS(builder, context, state.style, CSS::Keyword::Auto { });
-        return;
-    case BlockEllipsis::Type::String:
-        serializationForCSS(builder, context, state.style, blockEllipsis.string);
-        return;
-    }
-
-    RELEASE_ASSERT_NOT_REACHED();
 }
 
 inline void ExtractorSerializer::serializeBlockStepSize(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, std::optional<WebCore::Length> blockStepSize)

@@ -727,8 +727,6 @@ template<CSSPropertyID propertyID> void extractCounterSerialization(ExtractorSta
 
 template<GridTrackSizingDirection direction> Ref<CSSValue> extractGridTemplateValue(ExtractorState& state)
 {
-    constexpr bool isRowAxis = direction == GridTrackSizingDirection::Columns;
-
     auto addValuesForNamedGridLinesAtIndex = [](auto& list, auto& collector, auto i, auto renderEmpty) {
         if (collector.isEmpty() && !renderEmpty)
             return;
@@ -739,23 +737,26 @@ template<GridTrackSizingDirection direction> Ref<CSSValue> extractGridTemplateVa
             list.append(CSSGridLineNamesValue::create(lineNames));
     };
 
-    auto* renderGrid = dynamicDowncast<RenderGrid>(state.renderer);
-    bool isSubgrid = isRowAxis ? state.style.gridTemplateColumns().subgrid : state.style.gridTemplateRows().subgrid;
-    auto& trackSizes = isRowAxis ? state.style.gridTemplateColumns().sizes : state.style.gridTemplateRows().sizes;
-    auto& autoRepeatTrackSizes = isRowAxis ? state.style.gridTemplateColumns().autoRepeatSizes : state.style.gridTemplateRows().autoRepeatSizes;
+    auto& tracks = state.style.gridTemplateList(direction);
 
-    if ((direction == GridTrackSizingDirection::Rows && state.style.gridTemplateRows().masonry)
-        || (direction == GridTrackSizingDirection::Columns && state.style.gridTemplateColumns().masonry))
+    if (tracks.masonry)
         return CSSPrimitiveValue::create(CSSValueMasonry);
+
+    auto* renderGrid = dynamicDowncast<RenderGrid>(state.renderer);
+
+    auto& trackSizes = tracks.sizes;
+    auto& autoRepeatTrackSizes = tracks.autoRepeatSizes;
 
     // Handle the 'none' case.
     bool trackListIsEmpty = trackSizes.isEmpty() && autoRepeatTrackSizes.isEmpty();
     if (renderGrid && trackListIsEmpty) {
         // For grids we should consider every listed track, whether implicitly or explicitly
         // created. Empty grids have a sole grid line per axis.
-        auto& positions = isRowAxis ? renderGrid->columnPositions() : renderGrid->rowPositions();
+        auto& positions = renderGrid->positions(direction);
         trackListIsEmpty = positions.size() == 1;
     }
+
+    bool isSubgrid = tracks.subgrid;
 
     if (trackListIsEmpty && !isSubgrid)
         return CSSPrimitiveValue::create(CSSValueNone);
@@ -770,26 +771,26 @@ template<GridTrackSizingDirection direction> Ref<CSSValue> extractGridTemplateVa
         if (isSubgrid) {
             list.append(CSSPrimitiveValue::create(CSSValueSubgrid));
 
-            OrderedNamedLinesCollectorInSubgridLayout collector(state, isRowAxis, renderGrid->numTracks(direction));
+            OrderedNamedLinesCollectorInSubgridLayout collector(state, tracks, renderGrid->numTracks(direction));
             for (int i = 0; i < collector.namedGridLineCount(); i++)
                 addValuesForNamedGridLinesAtIndex(list, collector, i, true);
             return CSSValueList::createSpaceSeparated(WTFMove(list));
         }
-        OrderedNamedLinesCollectorInGridLayout collector(state, isRowAxis, renderGrid->autoRepeatCountForDirection(direction), autoRepeatTrackSizes.size());
 
-        auto tracks = renderGrid->trackSizesForComputedStyle(direction);
+        OrderedNamedLinesCollectorInGridLayout collector(state, tracks, renderGrid->autoRepeatCountForDirection(direction), autoRepeatTrackSizes.size());
+        auto computedTrackSizes = renderGrid->trackSizesForComputedStyle(direction);
         // Named grid line indices are relative to the explicit grid, but we are including all tracks.
         // So we need to subtract the number of leading implicit tracks in order to get the proper line index.
         int offset = -renderGrid->explicitGridStartForDirection(direction);
 
         int start = 0;
-        int end = tracks.size();
+        int end = computedTrackSizes.size();
         ASSERT(start <= end);
-        ASSERT(static_cast<unsigned>(end) <= tracks.size());
+        ASSERT(static_cast<unsigned>(end) <= computedTrackSizes.size());
         for (int i = start; i < end; ++i) {
             if (i + offset >= 0)
                 addValuesForNamedGridLinesAtIndex(list, collector, i + offset, false);
-            list.append(ExtractorConverter::convertNumberAsPixels(state, tracks[i]));
+            list.append(ExtractorConverter::convertNumberAsPixels(state, computedTrackSizes[i]));
         }
         if (end + offset >= 0)
             addValuesForNamedGridLinesAtIndex(list, collector, end + offset, false);
@@ -797,7 +798,7 @@ template<GridTrackSizingDirection direction> Ref<CSSValue> extractGridTemplateVa
     }
 
     // Otherwise, the resolved value is the computed value, preserving repeat().
-    auto& computedTracks = (isRowAxis ? state.style.gridTemplateColumns() : state.style.gridTemplateRows()).list;
+    auto& computedTracks = tracks.list;
 
     auto repeatVisitor = [&](CSSValueListBuilder& list, const RepeatEntry& entry) {
         if (std::holds_alternative<Vector<String>>(entry)) {
@@ -1252,7 +1253,7 @@ inline Ref<CSSValue> ExtractorCustom::extractContent(ExtractorState& state)
     CSSValueListBuilder list;
     for (auto* contentData = state.style.contentData(); contentData; contentData = contentData->next()) {
         if (auto* counterContentData = dynamicDowncast<CounterContentData>(*contentData))
-            list.append(CSSCounterValue::create(counterContentData->counter().identifier(), counterContentData->counter().separator(), CSSPrimitiveValue::createCustomIdent(counterContentData->counter().listStyleType().identifier)));
+            list.append(CSSCounterValue::create(counterContentData->counter().identifier(), counterContentData->counter().separator(), CSSPrimitiveValue::createCustomIdent(counterContentData->counter().style().identifier.value)));
         else if (auto* imageContentData = dynamicDowncast<ImageContentData>(*contentData))
             list.append(imageContentData->image().computedStyleValue(state.style));
         else if (auto* quoteContentData = dynamicDowncast<QuoteContentData>(*contentData))
@@ -2686,18 +2687,10 @@ inline RefPtr<CSSValue> ExtractorCustom::extractLineClampShorthand(ExtractorStat
     if (!maxLines)
         return CSSPrimitiveValue::create(CSSValueNone);
 
-    Ref maxLinesValue = CSSPrimitiveValue::create(maxLines, CSSUnitType::CSS_INTEGER);
-
-    switch (state.style.blockEllipsis().type) {
-    case BlockEllipsis::Type::None:
-        return CSSValuePair::create(WTFMove(maxLinesValue), CSSPrimitiveValue::create(CSSValueNone));
-    case BlockEllipsis::Type::Auto:
-        return CSSValuePair::create(WTFMove(maxLinesValue), CSSPrimitiveValue::create(CSSValueAuto));
-    case BlockEllipsis::Type::String:
-        return CSSValuePair::create(WTFMove(maxLinesValue), CSSPrimitiveValue::createCustomIdent(state.style.blockEllipsis().string));
-    }
-
-    RELEASE_ASSERT_NOT_REACHED();
+    return CSSValuePair::create(
+        createCSSValue(state.pool, state.style, Integer<> { maxLines }),
+        createCSSValue(state.pool, state.style, state.style.blockEllipsis())
+    );
 }
 
 inline void ExtractorCustom::extractLineClampShorthandSerialization(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context)
@@ -2708,22 +2701,9 @@ inline void ExtractorCustom::extractLineClampShorthandSerialization(ExtractorSta
         return;
     }
 
-    CSS::serializationForCSS(builder, context, CSS::NumberRaw<> { maxLines });
+    serializationForCSS(builder, context, state.style, Integer<> { maxLines });
     builder.append(' ');
-
-    switch (state.style.blockEllipsis().type) {
-    case BlockEllipsis::Type::None:
-        CSS::serializationForCSS(builder, context, CSS::Keyword::None { });
-        return;
-    case BlockEllipsis::Type::Auto:
-        CSS::serializationForCSS(builder, context, CSS::Keyword::Auto { });
-        return;
-    case BlockEllipsis::Type::String:
-        CSS::serializationForCSS(builder, context, CustomIdentifier { state.style.blockEllipsis().string });
-        return;
-    }
-
-    RELEASE_ASSERT_NOT_REACHED();
+    serializationForCSS(builder, context, state.style, state.style.blockEllipsis());
 }
 
 inline RefPtr<CSSValue> ExtractorCustom::extractMaskShorthand(ExtractorState& state)

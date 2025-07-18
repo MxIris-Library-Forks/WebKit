@@ -249,7 +249,7 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL& url, RefPtr<API::Navigation
         navigation->setSafeBrowsingCheckOngoing(redirectChainIndex, true);
 
     auto completionHandler = makeBlockPtr([navigation = WTFMove(navigation), forMainFrameNavigation = frame.isMainFrame(), url, weakThis = WeakPtr { *this }, frame = Ref { frame }, redirectChainIndex] (SSBLookupResult *result, NSError *error) mutable {
-        RunLoop::protectedMain()->dispatch([frame = WTFMove(frame), navigation = WTFMove(navigation), result = retainPtr(result), error = retainPtr(error), forMainFrameNavigation, url = WTFMove(url), weakThis, redirectChainIndex] {
+        RunLoop::mainSingleton().dispatch([frame = WTFMove(frame), navigation = WTFMove(navigation), result = retainPtr(result), error = retainPtr(error), forMainFrameNavigation, url = WTFMove(url), weakThis, redirectChainIndex] {
             if (!navigation)
                 return;
             navigation->setSafeBrowsingCheckOngoing(redirectChainIndex, false);
@@ -795,7 +795,7 @@ void WebPageProxy::scheduleActivityStateUpdate()
             // We can't call dispatchActivityStateChange directly underneath this commit handler, because it has side-effects
             // that may result in other frameworks trying to install commit handlers for the same phase, which is not allowed.
             // So, dispatch_async here; we only care that the activity state change doesn't apply until after the active commit is complete.
-            WorkQueue::protectedMain()->dispatch([weakThis] {
+            WorkQueue::mainSingleton().dispatch([weakThis] {
                 RefPtr protectedThis { weakThis.get() };
                 if (!protectedThis)
                     return;

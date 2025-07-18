@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include "BlockEllipsis.h"
 #include "Length.h"
-#include "ListStyleType.h"
 #include "RenderStyleConstants.h"
 #include "ScrollbarColor.h"
+#include "StyleBlockEllipsis.h"
 #include "StyleColor.h"
 #include "StyleCustomPropertyData.h"
 #include "StyleLineBoxContain.h"
 #include "StyleDynamicRangeLimit.h"
+#include "StyleListStyleType.h"
 #include "StyleTextEdge.h"
 #include "StyleTextEmphasisStyle.h"
 #include "StyleTextIndent.h"
@@ -211,11 +211,11 @@ public:
     Style::Color tapHighlightColor;
 #endif
 
-    ListStyleType listStyleType;
+    Style::ListStyleType listStyleType;
 
     Markable<ScrollbarColor> scrollbarColor;
 
-    BlockEllipsis blockEllipsis;
+    Style::BlockEllipsis blockEllipsis;
 
 private:
     StyleRareInheritedData();

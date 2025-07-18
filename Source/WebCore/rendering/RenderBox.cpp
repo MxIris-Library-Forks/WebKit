@@ -413,12 +413,12 @@ void RenderBox::styleDidChange(StyleDifference diff, const RenderStyle* oldStyle
 
 static bool hasEquivalentGridPositioningStyle(const RenderStyle& style, const RenderStyle& oldStyle)
 {
-    return (oldStyle.gridItemColumnStart() == style.gridItemColumnStart()
+    return oldStyle.gridItemColumnStart() == style.gridItemColumnStart()
         && oldStyle.gridItemColumnEnd() == style.gridItemColumnEnd()
         && oldStyle.gridItemRowStart() == style.gridItemRowStart()
         && oldStyle.gridItemRowEnd() == style.gridItemRowEnd()
         && oldStyle.order() == style.order()
-        && oldStyle.hasOutOfFlowPosition() == style.hasOutOfFlowPosition())
+        && oldStyle.hasOutOfFlowPosition() == style.hasOutOfFlowPosition()
         && (oldStyle.gridTemplateColumns().subgrid == style.gridTemplateColumns().subgrid || style.gridTemplateColumns().orderedNamedLines.map.isEmpty())
         && (oldStyle.gridTemplateRows().subgrid == style.gridTemplateRows().subgrid || style.gridTemplateRows().orderedNamedLines.map.isEmpty());
 }
@@ -4978,13 +4978,6 @@ LayoutUnit RenderBox::lineHeight() const
         return marginBefore() + logicalHeight() + marginAfter();
 
     return { };
-}
-
-LayoutUnit RenderBox::baselinePosition() const
-{
-    if (isBlockLevelReplacedOrAtomicInline())
-        return roundToInt(containingBlock()->writingMode().isHorizontal() ? m_marginBox.top() + height() + m_marginBox.bottom() : m_marginBox.right() + width() + m_marginBox.left());
-    return 0;
 }
 
 RenderLayer* RenderBox::enclosingFloatPaintingLayer() const

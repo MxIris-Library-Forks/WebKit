@@ -62,7 +62,6 @@
 #include "StyleResolver.h"
 #include "StyleScope.h"
 #include "StyleTextShadow.h"
-#include "TextSizeAdjustment.h"
 
 namespace WebCore {
 namespace Style {
@@ -73,6 +72,7 @@ namespace Style {
     static void applyValue##property(BuilderState&, CSSValue&)
 
 template<typename T> inline T forwardInheritedValue(T&& value) { return std::forward<T>(value); }
+template<auto R, typename V> inline Length<R, V> forwardInheritedValue(const Length<R, V>& value) { auto copy = value; return copy; }
 inline AnchorNames forwardInheritedValue(const AnchorNames& value) { auto copy = value; return copy; }
 inline AspectRatio forwardInheritedValue(const AspectRatio& value) { auto copy = value; return copy; }
 inline BlockEllipsis forwardInheritedValue(const BlockEllipsis& value) { auto copy = value; return copy; }
@@ -115,7 +115,11 @@ inline OffsetDistance forwardInheritedValue(const OffsetDistance& value) { auto 
 inline OffsetPath forwardInheritedValue(const OffsetPath& value) { auto copy = value; return copy; }
 inline OffsetPosition forwardInheritedValue(const OffsetPosition& value) { auto copy = value; return copy; }
 inline OffsetRotate forwardInheritedValue(const OffsetRotate& value) { auto copy = value; return copy; }
+inline Position forwardInheritedValue(const Position& value) { auto copy = value; return copy; }
+inline PositionX forwardInheritedValue(const PositionX& value) { auto copy = value; return copy; }
+inline PositionY forwardInheritedValue(const PositionY& value) { auto copy = value; return copy; }
 inline SVGPaint forwardInheritedValue(const SVGPaint& value) { auto copy = value; return copy; }
+inline ScrollbarGutter forwardInheritedValue(const ScrollbarGutter& value) { auto copy = value; return copy; }
 inline TextEmphasisStyle forwardInheritedValue(const TextEmphasisStyle& value) { auto copy = value; return copy; }
 inline TextIndent forwardInheritedValue(const TextIndent& value) { auto copy = value; return copy; }
 inline TextShadows forwardInheritedValue(const TextShadows& value) { auto copy = value; return copy; }
@@ -588,17 +592,7 @@ inline void BuilderCustom::applyValueTextOrientation(BuilderState& builderState,
 #if ENABLE(TEXT_AUTOSIZING)
 inline void BuilderCustom::applyValueWebkitTextSizeAdjust(BuilderState& builderState, CSSValue& value)
 {
-    auto primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return;
-
-    if (primitiveValue->valueID() == CSSValueAuto)
-        builderState.style().setTextSizeAdjust(TextSizeAdjustment::autoAdjust());
-    else if (primitiveValue->valueID() == CSSValueNone)
-        builderState.style().setTextSizeAdjust(TextSizeAdjustment::none());
-    else
-        builderState.style().setTextSizeAdjust(TextSizeAdjustment(primitiveValue->resolveAsPercentage<float>(builderState.cssToLengthConversionData())));
-
+    builderState.style().setTextSizeAdjust(toStyleFromCSSValue<TextSizeAdjust>(builderState, value));
     builderState.setFontDirty();
 }
 #endif

@@ -117,7 +117,6 @@ public:
     static void serializeScrollSnapType(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ScrollSnapType&);
     static void serializeScrollSnapAlign(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ScrollSnapAlign&);
     static void serializeScrollbarColor(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, std::optional<ScrollbarColor>);
-    static void serializeScrollbarGutter(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ScrollbarGutter&);
     static void serializeLineBoxContain(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<Style::LineBoxContain>);
     static void serializeWebkitRubyPosition(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, RubyPosition);
     static void serializePosition(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const LengthPoint&);
@@ -140,9 +139,6 @@ public:
     static void serializePositionArea(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const std::optional<PositionArea>&);
     static void serializeNameScope(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const NameScope&);
     static void serializePositionVisibility(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<PositionVisibility>);
-#if ENABLE(TEXT_AUTOSIZING)
-    static void serializeWebkitTextSizeAdjust(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextSizeAdjustment&);
-#endif
 #if ENABLE(OVERFLOW_SCROLLING_TOUCH)
     static void serializeOverflowScrolling(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, bool);
 #endif
@@ -156,8 +152,6 @@ public:
     static void serializeFillLayerBlendMode(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, BlendMode);
     static void serializeFillLayerClip(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, FillBox);
     static void serializeFillLayerOrigin(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, FillBox);
-    static void serializeFillLayerXPosition(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WebCore::Length&);
-    static void serializeFillLayerYPosition(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WebCore::Length&);
     static void serializeFillLayerRepeat(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, FillRepeatXY);
     static void serializeFillLayerBackgroundSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, FillSize);
     static void serializeFillLayerMaskSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, FillSize);
@@ -1180,21 +1174,6 @@ inline void ExtractorSerializer::serializeScrollbarColor(ExtractorState& state, 
     serializeStyleType(state, builder, context, scrollbarColor->trackColor);
 }
 
-inline void ExtractorSerializer::serializeScrollbarGutter(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const ScrollbarGutter& gutter)
-{
-    if (!gutter.bothEdges) {
-        if (gutter.isAuto)
-            serializationForCSS(builder, context, state.style, CSS::Keyword::Auto { });
-        else
-            serializationForCSS(builder, context, state.style, CSS::Keyword::Stable { });
-        return;
-    }
-
-    serializationForCSS(builder, context, state.style, CSS::Keyword::Stable { });
-    builder.append(' ');
-    serializationForCSS(builder, context, state.style, CSS::Keyword::BothEdges { });
-}
-
 inline void ExtractorSerializer::serializeLineBoxContain(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, OptionSet<Style::LineBoxContain> lineBoxContain)
 {
     if (!lineBoxContain) {
@@ -1639,22 +1618,6 @@ inline void ExtractorSerializer::serializePositionVisibility(ExtractorState& sta
         serializationForCSS(builder, context, state.style, CSS::Keyword::Always { });
 }
 
-#if ENABLE(TEXT_AUTOSIZING)
-inline void ExtractorSerializer::serializeWebkitTextSizeAdjust(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const TextSizeAdjustment& textSizeAdjust)
-{
-    if (textSizeAdjust.isAuto()) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::Auto { });
-        return;
-    }
-    if (textSizeAdjust.isNone()) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::None { });
-        return;
-    }
-
-    CSS::serializationForCSS(builder, context, CSS::PercentageRaw<> { textSizeAdjust.percentage() });
-}
-#endif
-
 #if ENABLE(OVERFLOW_SCROLLING_TOUCH)
 inline void ExtractorSerializer::serializeOverflowScrolling(ExtractorState&, StringBuilder& builder, const CSS::SerializationContext&, bool useTouchOverflowScrolling)
 {
@@ -1689,16 +1652,6 @@ inline void ExtractorSerializer::serializeFillLayerClip(ExtractorState& state, S
 inline void ExtractorSerializer::serializeFillLayerOrigin(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, FillBox origin)
 {
     serialize(state, builder, context, origin);
-}
-
-inline void ExtractorSerializer::serializeFillLayerXPosition(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const WebCore::Length& xPosition)
-{
-    serializeLength(state, builder, context, xPosition);
-}
-
-inline void ExtractorSerializer::serializeFillLayerYPosition(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const WebCore::Length& yPosition)
-{
-    serializeLength(state, builder, context, yPosition);
 }
 
 inline void ExtractorSerializer::serializeFillLayerRepeat(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, FillRepeatXY repeat)

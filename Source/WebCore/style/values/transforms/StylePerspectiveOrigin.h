@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,30 +16,24 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "ScrollbarGutter.h"
+#pragma once
 
-#include <wtf/text/TextStream.h>
+#include "StylePosition.h"
 
 namespace WebCore {
+namespace Style {
 
-TextStream& operator<<(TextStream& ts, ScrollbarGutter scrollbarGutter)
-{
-    if (scrollbarGutter.isAuto)
-        ts << "auto"_s;
-    else if (scrollbarGutter.bothEdges)
-        ts << "stable both-edges"_s;
-    else
-        ts << "stable"_s;
-    return ts;
-}
+// <'perspective-origin'> = <position>
+// https://www.w3.org/TR/css-transforms-2/#propdef-perspective-origin
+using PerspectiveOrigin = Position;
+using PerspectiveOriginX = typename PerspectiveOrigin::X;
+using PerspectiveOriginY = typename PerspectiveOrigin::Y;
 
+} // namespace Style
 } // namespace WebCore
-

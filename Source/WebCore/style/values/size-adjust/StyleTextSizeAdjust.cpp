@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2015-2017 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,25 +24,42 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "StyleTextSizeAdjust.h"
 
-#include <optional>
-#include <wtf/Forward.h>
-#include <wtf/RefCounted.h>
-#include <wtf/Vector.h>
+#if ENABLE(TEXT_AUTOSIZING)
+
+#include "CSSPrimitiveValue.h"
+#include "StyleBuilderChecking.h"
+#include "StylePrimitiveNumericTypes+CSSValueConversion.h"
 
 namespace WebCore {
+namespace Style {
 
-struct ScrollbarGutter {
-    bool isAuto { true };
-    bool bothEdges { false };
-};
-
-inline bool operator==(const ScrollbarGutter& a, const ScrollbarGutter& b)
+auto CSSValueConversion<TextSizeAdjust>::operator()(BuilderState& state, const CSSValue& value) -> TextSizeAdjust
 {
-    return a.isAuto == b.isAuto && a.bothEdges == b.bothEdges;
+    RefPtr primitiveValue = requiredDowncast<CSSPrimitiveValue>(state, value);
+    if (!primitiveValue)
+        return CSS::Keyword::Auto { };
+
+    if (primitiveValue->isValueID()) {
+        switch (primitiveValue->valueID()) {
+        case CSSValueAuto:
+            return CSS::Keyword::Auto { };
+        case CSSValueNone:
+            return CSS::Keyword::None { };
+        default:
+            break;
+        }
+
+        state.setCurrentPropertyInvalidAtComputedValueTime();
+        return CSS::Keyword::Auto { };
+    }
+
+    return toStyleFromCSSValue<Percentage<CSS::Nonnegative, float>>(state, *primitiveValue);
 }
 
-WTF::TextStream& operator<<(WTF::TextStream&, ScrollbarGutter);
-
+} // namespace Style
 } // namespace WebCore
+
+#endif // ENABLE(TEXT_AUTOSIZING)

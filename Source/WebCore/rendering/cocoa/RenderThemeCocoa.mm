@@ -910,8 +910,8 @@ static RoundedShape shapeForRadioButton(const FloatRect& rect, ShouldComputePath
 static constexpr auto searchFieldDecorationEmMargin = 0.36f;
 static constexpr auto searchFieldDecorationEmSize = 1.f;
 #if PLATFORM(MAC)
-static constexpr auto searchFieldDecorationWithDropdownEmSizeLTR = 1.5;
-static constexpr auto searchFieldDecorationWithDropdownEmSizeRTL = 1.7;
+static constexpr auto searchFieldDecorationWithDropdownEmSizeLTR = 1.5f;
+static constexpr auto searchFieldDecorationWithDropdownEmSizeRTL = 1.7f;
 #endif
 
 static bool searchFieldCanBeCapsule(const RenderObject& box, const FloatRect& rect, float pixelsPerEm, bool supportsResults)
@@ -3380,9 +3380,9 @@ bool RenderThemeCocoa::adjustSearchFieldDecorationPartStyleForVectorBasedControl
 #endif
     auto searchFieldDecorationHeight = searchFieldDecorationEmSize;
 
-    style.setWidth(Style::PreferredSize::Fixed { searchFieldDecorationWidth * pixelsPerEm });
-    style.setHeight(Style::PreferredSize::Fixed { searchFieldDecorationHeight * pixelsPerEm });
-    style.setMarginEnd(Style::MarginEdge::Fixed { searchFieldDecorationEmMargin * pixelsPerEm });
+    style.setWidth(Style::PreferredSize::Fixed { static_cast<float>(searchFieldDecorationWidth * pixelsPerEm) });
+    style.setHeight(Style::PreferredSize::Fixed { static_cast<float>(searchFieldDecorationHeight * pixelsPerEm) });
+    style.setMarginEnd(Style::MarginEdge::Fixed { static_cast<float>(searchFieldDecorationEmMargin * pixelsPerEm) });
     return true;
 }
 

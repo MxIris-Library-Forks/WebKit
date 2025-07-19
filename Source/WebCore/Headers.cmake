@@ -1744,6 +1744,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/MemoryRelease.h
     page/ModalContainerTypes.h
     page/NavigationNavigationType.h
+    page/Navigator.h
+    page/NavigatorBase.h
     page/NavigatorLoginStatus.h
     page/OriginAccessPatterns.h
     page/Page.h
@@ -2684,7 +2686,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/RenderStyleInlines.h
     rendering/style/RenderStyleSetters.h
     rendering/style/ScrollbarColor.h
-    rendering/style/ScrollbarGutter.h
     rendering/style/SVGRenderStyle.h
     rendering/style/SVGRenderStyleDefs.h
     rendering/style/ShapeValue.h
@@ -2714,7 +2715,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/StyleTransformData.h
     rendering/style/StyleVisitedLinkColorData.h
     rendering/style/TextDecorationThickness.h
-    rendering/style/TextSizeAdjustment.h
     rendering/style/ViewTransitionName.h
     rendering/style/WillChangeData.h
 
@@ -2791,6 +2791,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/grid/StyleGridTrackSizingDirection.h
 
     style/values/images/StyleGradient.h
+    style/values/images/StyleObjectPosition.h
 
     style/values/inline/StyleLineBoxContain.h
 
@@ -2807,6 +2808,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/motion/StyleRayFunction.h
 
     style/values/overflow/StyleBlockEllipsis.h
+    style/values/overflow/StyleScrollbarGutter.h
 
     style/values/position/StyleInset.h
 
@@ -2817,6 +2819,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/primitives/StylePrimitiveNumericAdaptors.h
     style/values/primitives/StylePrimitiveNumericConcepts.h
     style/values/primitives/StylePrimitiveNumericOrKeyword.h
+    style/values/primitives/StylePrimitiveNumericTypes+Platform.h
     style/values/primitives/StylePrimitiveNumericTypes.h
     style/values/primitives/StyleRatio.h
     style/values/primitives/StyleURL.h
@@ -2845,6 +2848,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/shapes/StyleWindRuleComputation.h
     style/values/shapes/StyleXywhFunction.h
 
+    style/values/size-adjust/StyleTextSizeAdjust.h
+
     style/values/sizing/StyleAspectRatio.h
     style/values/sizing/StyleContainIntrinsicSize.h
     style/values/sizing/StyleMaximumSize.h
@@ -2860,9 +2865,11 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/text-decoration/StyleTextUnderlineOffset.h
 
     style/values/transforms/StylePerspective.h
+    style/values/transforms/StylePerspectiveOrigin.h
     style/values/transforms/StyleRotate.h
     style/values/transforms/StyleScale.h
     style/values/transforms/StyleTransformOperationWrapper.h
+    style/values/transforms/StyleTransformOrigin.h
     style/values/transforms/StyleTranslate.h
 
     style/values/view-transitions/StyleViewTransitionClass.h

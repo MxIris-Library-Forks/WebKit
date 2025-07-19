@@ -1,7 +1,6 @@
 Modules/airplay/WebMediaSessionManager.cpp
 Modules/applicationmanifest/ApplicationManifestParser.cpp
 Modules/credentialmanagement/CredentialsContainer.cpp
-Modules/gamepad/GamepadManager.cpp
 Modules/indexeddb/IDBCursor.cpp
 Modules/indexeddb/IDBIndex.cpp
 Modules/indexeddb/IDBTransaction.cpp
@@ -220,8 +219,9 @@ editing/VisiblePosition.h
 editing/VisibleSelection.cpp
 editing/VisibleUnits.cpp
 editing/cocoa/AutofillElements.cpp
+editing/cocoa/EditingHTMLConverter.mm
 editing/cocoa/EditorCocoa.mm
-editing/cocoa/HTMLConverter.mm
+editing/cocoa/NodeHTMLConverter.mm
 editing/cocoa/WebContentReaderCocoa.mm
 editing/mac/EditorMac.mm
 editing/mac/FrameSelectionMac.mm

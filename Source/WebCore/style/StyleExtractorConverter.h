@@ -200,7 +200,6 @@ public:
     static Ref<CSSValue> convertScrollSnapType(ExtractorState&, const ScrollSnapType&);
     static Ref<CSSValue> convertScrollSnapAlign(ExtractorState&, const ScrollSnapAlign&);
     static Ref<CSSValue> convertScrollbarColor(ExtractorState&, std::optional<ScrollbarColor>);
-    static Ref<CSSValue> convertScrollbarGutter(ExtractorState&, const ScrollbarGutter&);
     static Ref<CSSValue> convertLineBoxContain(ExtractorState&, OptionSet<Style::LineBoxContain>);
     static Ref<CSSValue> convertWebkitRubyPosition(ExtractorState&, RubyPosition);
     static Ref<CSSValue> convertPosition(ExtractorState&, const LengthPoint&);
@@ -224,9 +223,6 @@ public:
     static Ref<CSSValue> convertPositionArea(ExtractorState&, const std::optional<PositionArea>&);
     static Ref<CSSValue> convertNameScope(ExtractorState&, const NameScope&);
     static Ref<CSSValue> convertPositionVisibility(ExtractorState&, OptionSet<PositionVisibility>);
-#if ENABLE(TEXT_AUTOSIZING)
-    static Ref<CSSValue> convertWebkitTextSizeAdjust(ExtractorState&, const TextSizeAdjustment&);
-#endif
 #if ENABLE(OVERFLOW_SCROLLING_TOUCH)
     static Ref<CSSValue> convertOverflowScrolling(ExtractorState&, bool);
 #endif
@@ -240,8 +236,6 @@ public:
     static Ref<CSSValue> convertFillLayerBlendMode(ExtractorState&, BlendMode);
     static Ref<CSSValue> convertFillLayerClip(ExtractorState&, FillBox);
     static Ref<CSSValue> convertFillLayerOrigin(ExtractorState&, FillBox);
-    static Ref<CSSValue> convertFillLayerXPosition(ExtractorState&, const WebCore::Length&);
-    static Ref<CSSValue> convertFillLayerYPosition(ExtractorState&, const WebCore::Length&);
     static Ref<CSSValue> convertFillLayerRepeat(ExtractorState&, FillRepeatXY);
     static Ref<CSSValue> convertFillLayerBackgroundSize(ExtractorState&, FillSize);
     static Ref<CSSValue> convertFillLayerMaskSize(ExtractorState&, FillSize);
@@ -975,16 +969,6 @@ inline Ref<CSSValue> ExtractorConverter::convertScrollbarColor(ExtractorState& s
     );
 }
 
-inline Ref<CSSValue> ExtractorConverter::convertScrollbarGutter(ExtractorState&, const ScrollbarGutter& gutter)
-{
-    if (!gutter.bothEdges)
-        return CSSPrimitiveValue::create(gutter.isAuto ? CSSValueAuto : CSSValueStable);
-    return CSSValuePair::create(
-        CSSPrimitiveValue::create(CSSValueStable),
-        CSSPrimitiveValue::create(CSSValueBothEdges)
-    );
-}
-
 inline Ref<CSSValue> ExtractorConverter::convertLineBoxContain(ExtractorState&, OptionSet<Style::LineBoxContain> lineBoxContain)
 {
     if (!lineBoxContain)
@@ -1483,17 +1467,6 @@ inline Ref<CSSValue> ExtractorConverter::convertPositionVisibility(ExtractorStat
     return CSSValueList::createSpaceSeparated(WTFMove(list));
 }
 
-#if ENABLE(TEXT_AUTOSIZING)
-inline Ref<CSSValue> ExtractorConverter::convertWebkitTextSizeAdjust(ExtractorState&, const TextSizeAdjustment& textSizeAdjust)
-{
-    if (textSizeAdjust.isAuto())
-        return CSSPrimitiveValue::create(CSSValueAuto);
-    if (textSizeAdjust.isNone())
-        return CSSPrimitiveValue::create(CSSValueNone);
-    return CSSPrimitiveValue::create(textSizeAdjust.percentage(), CSSUnitType::CSS_PERCENTAGE);
-}
-#endif
-
 #if ENABLE(OVERFLOW_SCROLLING_TOUCH)
 inline Ref<CSSValue> ExtractorConverter::convertOverflowScrolling(ExtractorState&, bool useTouchOverflowScrolling)
 {
@@ -1528,16 +1501,6 @@ inline Ref<CSSValue> ExtractorConverter::convertFillLayerClip(ExtractorState& st
 inline Ref<CSSValue> ExtractorConverter::convertFillLayerOrigin(ExtractorState& state, FillBox origin)
 {
     return convert(state, origin);
-}
-
-inline Ref<CSSValue> ExtractorConverter::convertFillLayerXPosition(ExtractorState& state, const WebCore::Length& xPosition)
-{
-    return convertLength(state, xPosition);
-}
-
-inline Ref<CSSValue> ExtractorConverter::convertFillLayerYPosition(ExtractorState& state, const WebCore::Length& yPosition)
-{
-    return convertLength(state, yPosition);
 }
 
 inline Ref<CSSValue> ExtractorConverter::convertFillLayerRepeat(ExtractorState& state, FillRepeatXY repeat)

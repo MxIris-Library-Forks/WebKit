@@ -431,14 +431,25 @@ void RenderLayerScrollableArea::scrollTo(const ScrollPosition& position)
     }
 
     // Schedule the scroll and scroll-related DOM events.
-    if (RefPtr element = renderer.element())
+    if (RefPtr element = renderer.element()) {
+        setIsAwaitingScrollend(true);
         element->protectedDocument()->addPendingScrollEventTarget(*element);
+    }
 
     if (scrollsOverflow())
         view.frameView().didChangeScrollOffset();
 
     view.frameView().viewportContentsChanged();
     frame->protectedEditor()->renderLayerDidScroll(m_layer);
+}
+
+void RenderLayerScrollableArea::scrollDidEnd()
+{
+    if (!isAwaitingScrollend())
+        return;
+    setIsAwaitingScrollend(false);
+    if (RefPtr element = m_layer.renderer().element())
+        element->protectedDocument()->addPendingScrollendEventTarget(*element);
 }
 
 void RenderLayerScrollableArea::updateCompositingLayersAfterScroll()
@@ -987,7 +998,7 @@ int RenderLayerScrollableArea::verticalScrollbarWidth(OverlayScrollbarSizeReleva
     if (vBar && vBar->isOverlayScrollbar() && (relevancy == OverlayScrollbarSizeRelevancy::IgnoreOverlayScrollbarSize || !vBar->shouldParticipateInHitTesting()))
         return 0;
 
-    if (!vBar && isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto || ScrollbarTheme::theme().usesOverlayScrollbars()))
+    if (!vBar && isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto() || ScrollbarTheme::theme().usesOverlayScrollbars()))
         return ScrollbarTheme::theme().scrollbarThickness(scrollbarWidthStyle());
 
     if (!vBar || !showsOverflowControls())
@@ -1002,7 +1013,7 @@ int RenderLayerScrollableArea::horizontalScrollbarHeight(OverlayScrollbarSizeRel
     if (hBar && hBar->isOverlayScrollbar() && (relevancy == OverlayScrollbarSizeRelevancy::IgnoreOverlayScrollbarSize || !hBar->shouldParticipateInHitTesting()))
         return 0;
 
-    if (!hBar && !isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto || ScrollbarTheme::theme().usesOverlayScrollbars()))
+    if (!hBar && !isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto() || ScrollbarTheme::theme().usesOverlayScrollbars()))
         return ScrollbarTheme::theme().scrollbarThickness(scrollbarWidthStyle());
 
     if (!hBar || !showsOverflowControls())
@@ -1039,11 +1050,11 @@ Color RenderLayerScrollableArea::scrollbarTrackColorStyle() const
     return { };
 }
 
-ScrollbarGutter RenderLayerScrollableArea::scrollbarGutterStyle()  const
+Style::ScrollbarGutter RenderLayerScrollableArea::scrollbarGutterStyle()  const
 {
     if (auto* renderer = m_layer.renderBox())
         return renderer->style().scrollbarGutter();
-    return { };
+    return CSS::Keyword::Auto { };
 }
 
 ScrollbarWidth RenderLayerScrollableArea::scrollbarWidthStyle()  const

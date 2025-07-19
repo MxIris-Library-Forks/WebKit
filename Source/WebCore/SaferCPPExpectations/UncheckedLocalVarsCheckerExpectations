@@ -1,4 +1,3 @@
-Modules/gamepad/GamepadHapticActuator.cpp
 Modules/indexeddb/IDBCursor.cpp
 Modules/indexeddb/IDBTransaction.cpp
 Modules/indexeddb/server/MemoryBackingStoreTransaction.cpp
@@ -145,7 +144,8 @@ editing/TextManipulationController.cpp
 editing/VisibleUnits.cpp
 editing/cocoa/DataDetection.mm
 editing/cocoa/DictionaryLookup.mm
-editing/cocoa/HTMLConverter.mm
+editing/cocoa/EditingHTMLConverter.mm
+editing/cocoa/NodeHTMLConverter.mm
 editing/cocoa/WebContentReaderCocoa.mm
 editing/mac/EditorMac.mm
 editing/mac/FrameSelectionMac.mm

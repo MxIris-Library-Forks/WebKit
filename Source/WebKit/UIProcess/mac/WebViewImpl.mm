@@ -77,6 +77,7 @@
 #import "WebEventFactory.h"
 #import "WebFrameProxy.h"
 #import "WebInspectorUIProxy.h"
+#import "WebPageMessages.h"
 #import "WebPageProxy.h"
 #import "WebProcessPool.h"
 #import "WebProcessProxy.h"
@@ -179,8 +180,8 @@
 
 #import "AppKitSoftLink.h"
 #import <pal/cocoa/RevealSoftLink.h>
-#import <pal/cocoa/VisionKitCoreSoftLink.h>
 #import <pal/cocoa/TranslationUIServicesSoftLink.h>
+#import <pal/cocoa/VisionKitCoreSoftLink.h>
 #import <pal/cocoa/WritingToolsUISoftLink.h>
 #import <pal/mac/DataDetectorsSoftLink.h>
 
@@ -1491,7 +1492,7 @@ bool WebViewImpl::isOpaque() const
 }
 
 void WebViewImpl::setShouldSuppressFirstResponderChanges(bool shouldSuppress)
-{   
+{
     m_pageClient->setShouldSuppressFirstResponderChanges(shouldSuppress);
 }
 
@@ -2132,7 +2133,7 @@ void WebViewImpl::windowDidResize()
 void WebViewImpl::windowWillBeginSheet()
 {
 #if ENABLE(POINTER_LOCK)
-    m_page->requestPointerUnlock();
+    m_page->resetPointerLockState();
 #endif
 }
 
@@ -3670,6 +3671,8 @@ void WebViewImpl::videoControlsManagerDidChange()
 
 void WebViewImpl::setIgnoresNonWheelEvents(bool ignoresNonWheelEvents)
 {
+    RELEASE_LOG(MouseHandling, "[pageProxyID=%lld] WebViewImpl::setIgnoresNonWheelEvents:%d", m_page->identifier().toUInt64(), ignoresNonWheelEvents);
+
     if (m_ignoresNonWheelEvents == ignoresNonWheelEvents)
         return;
 
@@ -3686,6 +3689,7 @@ void WebViewImpl::setIgnoresNonWheelEvents(bool ignoresNonWheelEvents)
 
 void WebViewImpl::setIgnoresAllEvents(bool ignoresAllEvents)
 {
+    RELEASE_LOG(MouseHandling, "[pageProxyID=%lld] WebViewImpl::setIgnoresAllEvents:%d", m_page->identifier().toUInt64(), ignoresAllEvents);
     m_ignoresAllEvents = ignoresAllEvents;
     setIgnoresNonWheelEvents(ignoresAllEvents);
 }
@@ -4949,14 +4953,18 @@ void WebViewImpl::setDidMoveSwipeSnapshotCallback(BlockPtr<void (CGRect)>&& call
 
 void WebViewImpl::scrollWheel(NSEvent *event)
 {
-    if (m_ignoresAllEvents)
+    if (m_ignoresAllEvents) {
+        RELEASE_LOG(MouseHandling, "[pageProxyID=%lld] WebViewImpl::scrollWheel: ignored event", m_page->identifier().toUInt64());
         return;
+    }
 
     if (event.phase == NSEventPhaseBegan)
         dismissContentRelativeChildWindowsWithAnimation(false);
 
-    if (m_allowsBackForwardNavigationGestures && ensureProtectedGestureController()->handleScrollWheelEvent(event))
+    if (m_allowsBackForwardNavigationGestures && ensureProtectedGestureController()->handleScrollWheelEvent(event)) {
+        RELEASE_LOG(MouseHandling, "[pageProxyID=%lld] WebViewImpl::scrollWheel: Gesture controller handled wheel event", m_page->identifier().toUInt64());
         return;
+    }
 
     auto webEvent = NativeWebWheelEvent(event, m_view.getAutoreleased());
     m_page->handleNativeWheelEvent(webEvent);
@@ -5878,8 +5886,10 @@ static TextStream& operator<<(TextStream& ts, NSEventType eventType)
 
 void WebViewImpl::nativeMouseEventHandler(NSEvent *event)
 {
-    if (m_ignoresNonWheelEvents)
+    if (m_ignoresNonWheelEvents) {
+        RELEASE_LOG(MouseHandling, "[pageProxyID=%lld] WebViewImpl::nativeMouseEventHandler: ignored event", m_page->identifier().toUInt64());
         return;
+    }
 
     if (RetainPtr context = [m_view inputContext]) {
         WeakPtr weakThis { *this };

@@ -69,7 +69,6 @@
 #include "ScopedName.h"
 #include "ScrollAxis.h"
 #include "ScrollbarColor.h"
-#include "ScrollbarGutter.h"
 #include "Settings.h"
 #include "StyleBasicShape.h"
 #include "StyleBuilderChecking.h"
@@ -95,6 +94,7 @@
 #include "StylePerspective.h"
 #include "StylePreferredSize.h"
 #include "StylePrimitiveKeyword+CSSValueConversion.h"
+#include "StylePrimitiveNumericTypes+CSSValueConversion.h"
 #include "StylePrimitiveNumericTypes+Conversions.h"
 #include "StyleRayFunction.h"
 #include "StyleReflection.h"
@@ -136,9 +136,6 @@ public:
     static TabSize convertTabSize(BuilderState&, const CSSValue&);
     template<typename T> static T convertComputedLength(BuilderState&, const CSSValue&);
     template<typename T> static T convertLineWidth(BuilderState&, const CSSValue&);
-    static LengthPoint convertPosition(BuilderState&, const CSSValue&);
-    static WebCore::Length convertPositionComponentX(BuilderState&, const CSSValue&);
-    static WebCore::Length convertPositionComponentY(BuilderState&, const CSSValue&);
     static OptionSet<TextDecorationLine> convertTextDecorationLine(BuilderState&, const CSSValue&);
     static OptionSet<TextTransform> convertTextTransform(BuilderState&, const CSSValue&);
     template<typename T> static T convertNumber(BuilderState&, const CSSValue&);
@@ -171,7 +168,6 @@ public:
     static ScrollSnapType convertScrollSnapType(BuilderState&, const CSSValue&);
     static ScrollSnapAlign convertScrollSnapAlign(BuilderState&, const CSSValue&);
     static std::optional<ScrollbarColor> convertScrollbarColor(BuilderState&, const CSSValue&);
-    static ScrollbarGutter convertScrollbarGutter(BuilderState&, const CSSValue&);
     // scrollbar-width converter is only needed for quirking.
     static ScrollbarWidth convertScrollbarWidth(BuilderState&, const CSSValue&);
     static GridAutoFlow convertGridAutoFlow(BuilderState&, const CSSValue&);
@@ -356,30 +352,6 @@ inline T BuilderConverter::convertLineWidth(BuilderState& builderState, const CS
         ASSERT_NOT_REACHED();
         return 0;
     }
-}
-
-inline LengthPoint BuilderConverter::convertPosition(BuilderState& builderState, const CSSValue& value)
-{
-    RefPtr positionValue = requiredDowncast<CSSPositionValue>(builderState, value);
-    if (!positionValue)
-        return RenderStyle::initialObjectPosition();
-    return toPlatform(toStyle(positionValue->position(), builderState));
-}
-
-inline WebCore::Length BuilderConverter::convertPositionComponentX(BuilderState& builderState, const CSSValue& value)
-{
-    RefPtr positionXValue = requiredDowncast<CSSPositionXValue>(builderState, value);
-    if (!positionXValue)
-        return { };
-    return toPlatform(toStyle(positionXValue->position(), builderState));
-}
-
-inline WebCore::Length BuilderConverter::convertPositionComponentY(BuilderState& builderState, const CSSValue& value)
-{
-    RefPtr positionYValue = requiredDowncast<CSSPositionYValue>(builderState, value);
-    if (!positionYValue)
-        return { };
-    return toPlatform(toStyle(positionYValue->position(), builderState));
 }
 
 inline OptionSet<TextDecorationLine> BuilderConverter::convertTextDecorationLine(BuilderState&, const CSSValue& value)
@@ -988,23 +960,6 @@ inline std::optional<ScrollbarColor> BuilderConverter::convertScrollbarColor(Bui
         convertStyleType<Color>(builderState, pair->first(), ForVisitedLink::No),
         convertStyleType<Color>(builderState, pair->second(), ForVisitedLink::No),
     };
-}
-
-inline ScrollbarGutter BuilderConverter::convertScrollbarGutter(BuilderState&, const CSSValue& value)
-{
-    ScrollbarGutter gutter;
-    if (auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value)) {
-        if (primitiveValue->valueID() == CSSValueStable)
-            gutter.isAuto = false;
-        return gutter;
-    }
-
-    ASSERT(value.isPair());
-
-    gutter.isAuto = false;
-    gutter.bothEdges = true;
-
-    return gutter;
 }
 
 inline ScrollbarWidth BuilderConverter::convertScrollbarWidth(BuilderState& builderState, const CSSValue& value)

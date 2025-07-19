@@ -396,6 +396,8 @@ static std::optional<LayoutUnit> inlineBlockBaseline(const RenderBox& renderBox)
 
 LayoutUnit static baselinePosition(const RenderBox& renderBox)
 {
+    ASSERT(renderBox.isInFlow());
+
     auto writingMode = renderBox.containingBlock()->writingMode();
     auto marginBefore = writingMode.isHorizontal() ? renderBox.marginTop() : renderBox.marginRight();
 
@@ -470,6 +472,19 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
         return synthesizedBaseline(renderBox, *renderBox.parentStyle(), writingMode.isHorizontal() ? HorizontalLine : VerticalLine, BorderBox) + renderBox.marginLogicalHeight();
     }
 
+    if (CheckedPtr deprecatedFlexBox = dynamicDowncast<RenderDeprecatedFlexibleBox>(renderBox)) {
+        // Historically, we did this check for all baselines. But we can't
+        // remove this code from deprecated flexbox, because it effectively
+        // breaks -webkit-line-clamp, which is used in the wild -- we would
+        // calculate the baseline as if -webkit-line-clamp wasn't used.
+        // For simplicity, we use this for all uses of deprecated flexbox.
+        auto bottomOfContent = deprecatedFlexBox->borderBefore() + deprecatedFlexBox->paddingBefore() + deprecatedFlexBox->contentBoxLogicalHeight();
+        auto baseline = lastInflowBoxBaseline(*deprecatedFlexBox);
+        if (baseline && *baseline <= bottomOfContent)
+            return marginBefore + *baseline;
+        return roundToInt(deprecatedFlexBox->marginBoxLogicalHeight(writingMode));
+    }
+
     if (renderBox.style().hasUsedAppearance() && !renderBox.theme().isControlContainer(renderBox.style().usedAppearance())) {
         // For "leaf" theme objects, let the theme decide what the baseline position is.
         return renderBox.theme().baselinePosition(renderBox);
@@ -513,27 +528,21 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
             return scrollableArea->horizontalScrollbar() || scrollableArea->scrollOffset().x();
         };
 
-        if (!ignoreBaseline()) {
-            auto inlineBlockBaselinePosition = inlineBlockBaseline(renderBox);
-            if (is<RenderDeprecatedFlexibleBox>(renderBox) && inlineBlockBaselinePosition) {
-                // Historically, we did this check for all baselines. But we can't
-                // remove this code from deprecated flexbox, because it effectively
-                // breaks -webkit-line-clamp, which is used in the wild -- we would
-                // calculate the baseline as if -webkit-line-clamp wasn't used.
-                // For simplicity, we use this for all uses of deprecated flexbox.
-                auto bottomOfContent = renderBox.borderBefore() + renderBox.paddingBefore() + renderBox.contentBoxLogicalHeight();
-                if (*inlineBlockBaselinePosition > bottomOfContent)
-                    return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
-            }
-            if (inlineBlockBaselinePosition)
-                return marginBefore + *inlineBlockBaselinePosition;
-        }
+        if (ignoreBaseline())
+            return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
+
+        if (auto inlineBlockBaselinePosition = inlineBlockBaseline(renderBox))
+            return marginBefore + *inlineBlockBaselinePosition;
     }
+
     return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
 }
 
 static inline void setIntegrationBaseline(const RenderBox& renderBox)
 {
+    if (renderBox.isFloatingOrOutOfFlowPositioned())
+        return;
+
     auto hasNonSyntheticBaseline = [&] {
         if (auto* renderListMarker = dynamicDowncast<RenderListMarker>(renderBox))
             return !renderListMarker->isImage();

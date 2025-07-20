@@ -255,31 +255,31 @@ Ref<const LayoutShape> makeShapeForShapeOutside(const RenderBox& renderer)
 
     auto boxSize = computeLogicalBoxSize(renderer, isHorizontalWritingMode);
 
-    auto margin = [&] {
-        auto shapeMargin = floatValueForLength(style.shapeMargin(), containingBlock.contentBoxWidth());
+    auto logicalMargin = [&] {
+        auto shapeMargin = floatValueForLength(style.shapeMargin(), containingBlock.contentBoxLogicalWidth());
         return isnan(shapeMargin) ? 0.0f : shapeMargin;
     }();
-
 
     switch (shapeValue.type()) {
     case ShapeValue::Type::Shape: {
         ASSERT(shapeValue.shape());
         auto offset = LayoutPoint { logicalLeftOffset(renderer), logicalTopOffset(renderer) };
-        return LayoutShape::createShape(*shapeValue.shape(), offset, boxSize, writingMode, margin);
+        return LayoutShape::createShape(*shapeValue.shape(), offset, boxSize, writingMode, logicalMargin);
     }
     case ShapeValue::Type::Image: {
         ASSERT(shapeValue.isImageValid());
         auto* styleImage = shapeValue.image();
-        auto imageSize = renderer.calculateImageIntrinsicDimensions(styleImage, boxSize, RenderImage::ScaleByUsedZoom::Yes);
-        styleImage->setContainerContextForRenderer(renderer, imageSize, style.usedZoom());
+        auto logicalImageSize = renderer.calculateImageIntrinsicDimensions(styleImage, boxSize, RenderImage::ScaleByUsedZoom::Yes);
+        styleImage->setContainerContextForRenderer(renderer, logicalImageSize, style.usedZoom());
 
-        auto marginRect = shapeImageMarginRect(renderer, boxSize);
+        auto logicalMarginRect = shapeImageMarginRect(renderer, boxSize);
         auto* renderImage = dynamicDowncast<RenderImage>(renderer);
-        auto imageRect = renderImage ? renderImage->replacedContentRect() : LayoutRect { { }, imageSize };
+        auto logicalImageRect = renderImage ? renderImage->replacedContentRect() : LayoutRect { { }, logicalImageSize };
 
         ASSERT(!styleImage->isPending());
-        RefPtr<Image> image = styleImage->image(const_cast<RenderBox*>(&renderer), imageSize);
-        return LayoutShape::createRasterShape(image.get(), shapeImageThreshold, imageRect, marginRect, writingMode, margin);
+        auto physicalImageSize = writingMode.isHorizontal() ? logicalImageSize : logicalImageSize.transposedSize();
+        RefPtr image = styleImage->image(const_cast<RenderBox*>(&renderer), physicalImageSize);
+        return LayoutShape::createRasterShape(image.get(), shapeImageThreshold, logicalImageRect, logicalMarginRect, writingMode, logicalMargin);
     }
     case ShapeValue::Type::Box: {
         auto shapeRect = computeRoundedRectForBoxShape(shapeValue.effectiveCSSBox(), renderer);
@@ -301,7 +301,7 @@ Ref<const LayoutShape> makeShapeForShapeOutside(const RenderBox& renderer)
             }
         };
         flipForWritingAndInlineDirection();
-        return LayoutShape::createBoxShape(shapeRect, writingMode, margin);
+        return LayoutShape::createBoxShape(shapeRect, writingMode, logicalMargin);
     }
     }
     ASSERT_NOT_REACHED();

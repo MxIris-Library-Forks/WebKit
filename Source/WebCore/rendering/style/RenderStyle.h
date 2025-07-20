@@ -76,7 +76,6 @@ class OutlineValue;
 class PathOperation;
 class PositionArea;
 class PseudoIdSet;
-class QuotesData;
 class RenderElement;
 class RenderStyle;
 class RotateTransformOperation;
@@ -249,7 +248,6 @@ struct SingleTimelineRange;
 
 struct ScrollSnapAlign;
 struct ScrollSnapType;
-struct ScrollbarColor;
 struct NameScope;
 
 struct TabSize;
@@ -310,6 +308,7 @@ struct PositionTryFallback;
 struct PreferredSize;
 struct ProgressTimelineAxes;
 struct ProgressTimelineNames;
+struct Quotes;
 struct Rotate;
 struct SVGPaint;
 struct Scale;
@@ -317,6 +316,7 @@ struct ScopedName;
 struct ScrollMarginEdge;
 struct ScrollPaddingEdge;
 struct ScrollTimelines;
+struct ScrollbarColor;
 struct ScrollbarGutter;
 struct TextEmphasisStyle;
 struct TextIndent;
@@ -1132,9 +1132,7 @@ public:
 
     Color usedScrollbarThumbColor() const;
     Color usedScrollbarTrackColor() const;
-    inline std::optional<ScrollbarColor> scrollbarColor() const;
-    inline const Style::Color& scrollbarThumbColor() const;
-    inline const Style::Color& scrollbarTrackColor() const;
+    inline const Style::ScrollbarColor& scrollbarColor() const;
     inline const Style::ScrollbarGutter& scrollbarGutter() const;
     inline ScrollbarWidth scrollbarWidth() const;
 
@@ -1677,9 +1675,7 @@ public:
     void setScrollSnapAlign(const ScrollSnapAlign&);
     void setScrollSnapStop(ScrollSnapStop);
 
-    inline void setScrollbarColor(const std::optional<ScrollbarColor>&);
-    inline void setScrollbarThumbColor(Style::Color&&);
-    inline void setScrollbarTrackColor(Style::Color&&);
+    inline void setScrollbarColor(Style::ScrollbarColor&&);
     inline void setScrollbarGutter(Style::ScrollbarGutter&&);
     inline void setScrollbarWidth(ScrollbarWidth);
 
@@ -1850,8 +1846,8 @@ public:
     const CounterDirectiveMap& counterDirectives() const;
     CounterDirectiveMap& accessCounterDirectives();
 
-    inline QuotesData* quotes() const;
-    void setQuotes(RefPtr<QuotesData>&&);
+    inline const Style::Quotes& quotes() const;
+    void setQuotes(Style::Quotes&&);
 
     inline void setViewTransitionClasses(Style::ViewTransitionClasses&&);
     inline void setViewTransitionName(Style::ViewTransitionName&&);
@@ -2109,7 +2105,7 @@ public:
     static StyleImage* initialBorderImageSource() { return nullptr; }
     static StyleImage* initialMaskBorderSource() { return nullptr; }
     static constexpr PrintColorAdjust initialPrintColorAdjust();
-    static QuotesData* initialQuotes() { return nullptr; }
+    static inline Style::Quotes initialQuotes();
 
 #if ENABLE(DARK_MODE_CSS)
     static inline Style::ColorScheme initialColorScheme();
@@ -2148,7 +2144,7 @@ public:
     static inline Style::ProgressTimelineNames initialViewTimelineNames();
     static inline Style::ViewTimelineInsets initialViewTimelineInsets();
 
-    static inline std::optional<ScrollbarColor> initialScrollbarColor();
+    static inline Style::ScrollbarColor initialScrollbarColor();
     static constexpr Style::ScrollbarGutter initialScrollbarGutter();
     static constexpr ScrollbarWidth initialScrollbarWidth();
 

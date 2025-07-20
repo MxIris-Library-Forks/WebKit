@@ -59,7 +59,6 @@
 #include "LineClampValue.h"
 #include "LocalFrame.h"
 #include "Quirks.h"
-#include "QuotesData.h"
 #include "RenderStyleInlines.h"
 #include "RotateTransformOperation.h"
 #include "SVGElementTypeHelpers.h"
@@ -68,7 +67,6 @@
 #include "ScaleTransformOperation.h"
 #include "ScopedName.h"
 #include "ScrollAxis.h"
-#include "ScrollbarColor.h"
 #include "Settings.h"
 #include "StyleBasicShape.h"
 #include "StyleBuilderChecking.h"
@@ -156,7 +154,6 @@ public:
     static Resize convertResize(BuilderState&, const CSSValue&);
     static int convertMarqueeRepetition(BuilderState&, const CSSValue&);
     static int convertMarqueeSpeed(BuilderState&, const CSSValue&);
-    static RefPtr<QuotesData> convertQuotes(BuilderState&, const CSSValue&);
     static OptionSet<TextUnderlinePosition> convertTextUnderlinePosition(BuilderState&, const CSSValue&);
     static TextDecorationThickness convertTextDecorationThickness(BuilderState&, const CSSValue&);
     static RefPtr<StyleReflection> convertReflection(BuilderState&, const CSSValue&);
@@ -167,7 +164,6 @@ public:
     static RefPtr<ShapeValue> convertShapeValue(BuilderState&, const CSSValue&);
     static ScrollSnapType convertScrollSnapType(BuilderState&, const CSSValue&);
     static ScrollSnapAlign convertScrollSnapAlign(BuilderState&, const CSSValue&);
-    static std::optional<ScrollbarColor> convertScrollbarColor(BuilderState&, const CSSValue&);
     // scrollbar-width converter is only needed for quirking.
     static ScrollbarWidth convertScrollbarWidth(BuilderState&, const CSSValue&);
     static GridAutoFlow convertGridAutoFlow(BuilderState&, const CSSValue&);
@@ -591,33 +587,6 @@ inline int BuilderConverter::convertMarqueeSpeed(BuilderState& builderState, con
     return primitiveValue->resolveAsNumber<int>(conversionData);
 }
 
-inline RefPtr<QuotesData> BuilderConverter::convertQuotes(BuilderState& builderState, const CSSValue& value)
-{
-    if (auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value)) {
-        if (primitiveValue->valueID() == CSSValueNone)
-            return QuotesData::create({ });
-        ASSERT(primitiveValue->valueID() == CSSValueAuto);
-        return nullptr;
-    }
-
-    auto list = requiredListDowncast<CSSValueList, CSSPrimitiveValue>(builderState, value);
-    if (!list)
-        return { };
-
-    Vector<std::pair<String, String>> quotes;
-    quotes.reserveInitialCapacity(list->size() / 2);
-    for (unsigned i = 0; i < list->size(); i += 2) {
-        auto& first = list->item(i);
-        if (list->size() <= i + 1)
-            break;
-        auto& second = list->item(i + 1);
-        String startQuote = first.stringValue();
-        String endQuote = second.stringValue();
-        quotes.append(std::make_pair(startQuote, endQuote));
-    }
-    return QuotesData::create(quotes);
-}
-
 inline static OptionSet<TextUnderlinePosition> valueToUnderlinePosition(const CSSPrimitiveValue& primitiveValue)
 {
     ASSERT(primitiveValue.isValueID());
@@ -942,23 +911,6 @@ inline ScrollSnapAlign BuilderConverter::convertScrollSnapAlign(BuilderState& bu
     return {
         fromCSSValue<ScrollSnapAxisAlignType>(pair->first),
         fromCSSValue<ScrollSnapAxisAlignType>(pair->second)
-    };
-}
-
-inline std::optional<ScrollbarColor> BuilderConverter::convertScrollbarColor(BuilderState& builderState, const CSSValue& value)
-{
-    if (is<CSSPrimitiveValue>(value)) {
-        ASSERT(value.valueID() == CSSValueAuto);
-        return std::nullopt;
-    }
-
-    auto* pair = requiredDowncast<CSSValuePair>(builderState, value);
-    if (!pair)
-        return { };
-
-    return ScrollbarColor {
-        convertStyleType<Color>(builderState, pair->first(), ForVisitedLink::No),
-        convertStyleType<Color>(builderState, pair->second(), ForVisitedLink::No),
     };
 }
 

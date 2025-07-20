@@ -40,6 +40,7 @@
 #include "RenderDeprecatedFlexibleBox.h"
 #include "RenderElementInlines.h"
 #include "RenderEmbeddedObject.h"
+#include "RenderFileUploadControl.h"
 #include "RenderFlexibleBox.h"
 #include "RenderFrameSet.h"
 #include "RenderGrid.h"
@@ -298,7 +299,7 @@ static inline LayoutSize scrollbarLogicalSize(const RenderBox& renderer)
 
 static std::optional<LayoutUnit> inlineBlockBaseline(const RenderBox&);
 
-std::optional<LayoutUnit> lastInflowBoxBaseline(auto& blockContainer)
+static std::optional<LayoutUnit> lastInflowBoxBaseline(const RenderBlock& blockContainer)
 {
     auto writingMode = blockContainer.containingBlock()->writingMode();
     auto haveInFlowChild = false;
@@ -401,6 +402,14 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
     auto writingMode = renderBox.containingBlock()->writingMode();
     auto marginBefore = writingMode.isHorizontal() ? renderBox.marginTop() : renderBox.marginRight();
 
+    if (renderBox.shouldApplyLayoutContainment()) {
+        if (renderBox.isFieldset()) {
+            // This is to preserve legacy behavior.
+            return renderBox.marginBoxLogicalHeight(writingMode);
+        }
+        return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
+    }
+
     if (is<RenderIFrame>(renderBox)
         || is<RenderEmbeddedObject>(renderBox)
         || is<LegacyRenderSVGRoot>(renderBox)
@@ -446,14 +455,17 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
         // FIXME: This hardcoded baselineAdjustment is what we used to do for the old
         // widget, but I'm not sure this is right for the new control.
         const int baselineAdjustment = 7;
-        auto baseline = roundToInt(renderer->marginBoxLogicalHeight(writingMode));
-        if (renderer->shouldApplyLayoutContainment())
-            return baseline;
-        return baseline - baselineAdjustment;
+        return roundToInt(renderer->marginBoxLogicalHeight(writingMode)) - baselineAdjustment;
     }
 
     if (CheckedPtr renderer = dynamicDowncast<RenderTextControlMultiLine>(renderBox))
         return roundToInt(renderer->marginBoxLogicalHeight(writingMode));
+
+    if (CheckedPtr fileUpload = dynamicDowncast<RenderFileUploadControl>(renderBox)) {
+        if (auto* inlineLayout = fileUpload->inlineLayout())
+            return std::min(renderBox.marginBoxLogicalHeight(writingMode), marginBefore + floorToInt(inlineLayout->lastLineLogicalBaseline()));
+        return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
+    }
 
     if (CheckedPtr renderer = dynamicDowncast<RenderSlider>(renderBox)) {
         // FIXME: Patch this function for writing-mode.
@@ -466,7 +478,13 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
         return roundToInt(renderer->marginBoxLogicalHeight(writingMode));
     }
 
-    if ((is<RenderFlexibleBox>(renderBox) || is<RenderGrid>(renderBox)) && !is<RenderMenuList>(renderBox)) {
+    if (CheckedPtr menuList = dynamicDowncast<RenderMenuList>(renderBox)) {
+        if (auto baseline = lastInflowBoxBaseline(*menuList))
+            return marginBefore + *baseline;
+        return menuList->marginBoxLogicalHeight(writingMode);
+    }
+
+    if (is<RenderFlexibleBox>(renderBox) || is<RenderGrid>(renderBox)) {
         if (auto baseline = renderBox.firstLineBaseline())
             return marginBefore.toInt() + *baseline;
         return synthesizedBaseline(renderBox, *renderBox.parentStyle(), writingMode.isHorizontal() ? HorizontalLine : VerticalLine, BorderBox) + renderBox.marginLogicalHeight();
@@ -502,7 +520,7 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
     if (is<RenderMathMLBlock>(renderBox)) {
         if (auto baseline = renderBox.firstLineBaseline())
             return *baseline;
-        // Fallback to regular block level baseline.
+        return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
     }
 #endif
 

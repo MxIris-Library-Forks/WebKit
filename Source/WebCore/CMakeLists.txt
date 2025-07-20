@@ -206,6 +206,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/style/values/color-adjust"
     "${WEBCORE_DIR}/style/values/color"
     "${WEBCORE_DIR}/style/values/contain"
+    "${WEBCORE_DIR}/style/values/content"
     "${WEBCORE_DIR}/style/values/counter-styles"
     "${WEBCORE_DIR}/style/values/easing"
     "${WEBCORE_DIR}/style/values/filter-effects"
@@ -221,6 +222,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/style/values/primitives"
     "${WEBCORE_DIR}/style/values/scroll-animations"
     "${WEBCORE_DIR}/style/values/scroll-snap"
+    "${WEBCORE_DIR}/style/values/scrollbars"
     "${WEBCORE_DIR}/style/values/shapes"
     "${WEBCORE_DIR}/style/values/size-adjust"
     "${WEBCORE_DIR}/style/values/sizing"
@@ -1541,6 +1543,7 @@ set(WebCore_NON_SVG_IDL_FILES
     page/VisualViewport.idl
     page/WebKitNodeInfo.idl
     page/WebKitPoint.idl
+    page/WebKitSerializedNode.idl
     page/WindowEventHandlers.idl
     page/WindowLocalStorage.idl
     page/WindowOrWorkerGlobalScope+Crypto.idl

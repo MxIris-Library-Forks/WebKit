@@ -4,6 +4,7 @@
  *           (C) 2000 Dirk Mueller (mueller@kde.org)
  * Copyright (C) 2003-2023 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Graham Dennis (graham.dennis@gmail.com)
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -26,13 +27,14 @@
 
 #include "Length.h"
 #include "RenderStyleConstants.h"
-#include "ScrollbarColor.h"
 #include "StyleBlockEllipsis.h"
 #include "StyleColor.h"
 #include "StyleCustomPropertyData.h"
 #include "StyleLineBoxContain.h"
 #include "StyleDynamicRangeLimit.h"
 #include "StyleListStyleType.h"
+#include "StyleQuotes.h"
+#include "StyleScrollbarColor.h"
 #include "StyleTextEdge.h"
 #include "StyleTextEmphasisStyle.h"
 #include "StyleTextIndent.h"
@@ -65,7 +67,6 @@ class TextStream;
 namespace WebCore {
 
 class CursorList;
-class QuotesData;
 class StyleFilterData;
 class StyleImage;
 
@@ -104,6 +105,8 @@ public:
     Style::Color visitedLinkCaretColor;
 
     Style::Color accentColor;
+
+    Style::ScrollbarColor scrollbarColor;
 
     Style::DynamicRangeLimit dynamicRangeLimit;
 
@@ -197,7 +200,8 @@ public:
     Style::ColorScheme colorScheme;
 #endif
 
-    RefPtr<QuotesData> quotes;
+    Style::Quotes quotes;
+
     DataRef<StyleFilterData> appleColorFilter;
 
     AtomString lineGrid;
@@ -210,11 +214,7 @@ public:
 #if ENABLE(TOUCH_EVENTS)
     Style::Color tapHighlightColor;
 #endif
-
     Style::ListStyleType listStyleType;
-
-    Markable<ScrollbarColor> scrollbarColor;
-
     Style::BlockEllipsis blockEllipsis;
 
 private:

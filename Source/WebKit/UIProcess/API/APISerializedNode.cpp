@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,36 +23,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "APISerializedNode.h"
 
-#include "StyleColor.h"
+namespace API {
 
-namespace WebCore {
-
-struct ScrollbarColor {
-    Style::Color thumbColor;
-    Style::Color trackColor;
-
-    bool operator==(const ScrollbarColor&) const = default;
-};
-
-WTF::TextStream& operator<<(WTF::TextStream&, const ScrollbarColor&);
-
-} // namespace WebCore
-
-namespace WTF {
-
-template<>
-struct MarkableTraits<WebCore::ScrollbarColor> {
-    static bool isEmptyValue(const WebCore::ScrollbarColor& value)
-    {
-        return MarkableTraits<WebCore::Style::Color>::isEmptyValue(value.thumbColor);
-    }
-
-    static WebCore::ScrollbarColor emptyValue()
-    {
-        return { MarkableTraits<WebCore::Style::Color>::emptyValue(), MarkableTraits<WebCore::Style::Color>::emptyValue() };
-    }
-};
-
+SerializedNode::SerializedNode(WebCore::SerializedNode&& serializedNode)
+    : m_serializedNode(WTFMove(serializedNode))
+{
 }
+
+SerializedNode::~SerializedNode() = default;
+
+} // namespace API

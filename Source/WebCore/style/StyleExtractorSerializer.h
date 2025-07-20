@@ -108,7 +108,6 @@ public:
     static void serializeReflection(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const StyleReflection*);
     static void serializeLineFitEdge(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextEdge&);
     static void serializeTextBoxEdge(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextEdge&);
-    static void serializeQuotes(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const QuotesData*);
     static void serializeViewTransitionName(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ViewTransitionName&);
     static void serializePositionTryFallbacks(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const FixedVector<PositionTryFallback>&);
     static void serializeWillChange(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WillChangeData*);
@@ -116,7 +115,6 @@ public:
     static void serializeTabSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TabSize&);
     static void serializeScrollSnapType(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ScrollSnapType&);
     static void serializeScrollSnapAlign(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ScrollSnapAlign&);
-    static void serializeScrollbarColor(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, std::optional<ScrollbarColor>);
     static void serializeLineBoxContain(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<Style::LineBoxContain>);
     static void serializeWebkitRubyPosition(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, RubyPosition);
     static void serializePosition(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const LengthPoint&);
@@ -1018,27 +1016,6 @@ inline void ExtractorSerializer::serializeTextBoxEdge(ExtractorState& state, Str
     serialize(state, builder, context, textEdge.under);
 }
 
-inline void ExtractorSerializer::serializeQuotes(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const QuotesData* quotes)
-{
-    if (!quotes) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::Auto { });
-        return;
-    }
-
-    unsigned size = quotes->size();
-    if (!size) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::None { });
-        return;
-    }
-
-    CSSValueListBuilder list;
-    for (unsigned i = 0; i < size; ++i) {
-        list.append(CSSPrimitiveValue::create(quotes->openQuote(i)));
-        list.append(CSSPrimitiveValue::create(quotes->closeQuote(i)));
-    }
-    builder.append(CSSValueList::createSpaceSeparated(WTFMove(list))->cssText(context));
-}
-
 inline void ExtractorSerializer::serializeViewTransitionName(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const ViewTransitionName& viewTransitionName)
 {
     if (viewTransitionName.isNone()) {
@@ -1160,18 +1137,6 @@ inline void ExtractorSerializer::serializeScrollSnapAlign(ExtractorState& state,
     serialize(state, builder, context, alignment.blockAlign);
     builder.append(' ');
     serialize(state, builder, context, alignment.inlineAlign);
-}
-
-inline void ExtractorSerializer::serializeScrollbarColor(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, std::optional<ScrollbarColor> scrollbarColor)
-{
-    if (!scrollbarColor) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::Auto { });
-        return;
-    }
-
-    serializeStyleType(state, builder, context, scrollbarColor->thumbColor);
-    builder.append(' ');
-    serializeStyleType(state, builder, context, scrollbarColor->trackColor);
 }
 
 inline void ExtractorSerializer::serializeLineBoxContain(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, OptionSet<Style::LineBoxContain> lineBoxContain)

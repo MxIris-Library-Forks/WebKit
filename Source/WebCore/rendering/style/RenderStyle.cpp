@@ -41,7 +41,6 @@
 #include "MotionPath.h"
 #include "Pagination.h"
 #include "PathTraversalState.h"
-#include "QuotesData.h"
 #include "RenderBlock.h"
 #include "RenderElement.h"
 #include "RenderStyleDifference.h"
@@ -980,7 +979,7 @@ static bool rareInheritedDataChangeRequiresLayout(const StyleRareInheritedData& 
         || first.miterLimit != second.miterLimit)
         return true;
 
-    if (!arePointingToEqualData(first.quotes, second.quotes))
+    if (first.quotes != second.quotes)
         return true;
 
     return false;
@@ -2129,7 +2128,7 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyDynamicRangeLimit);
         if (first.textEmphasisStyle != second.textEmphasisStyle)
             changingProperties.m_properties.set(CSSPropertyTextEmphasisStyle);
-        if (!arePointingToEqualData(first.quotes, second.quotes))
+        if (first.quotes != second.quotes)
             changingProperties.m_properties.set(CSSPropertyQuotes);
         if (first.appleColorFilter != second.appleColorFilter)
             changingProperties.m_properties.set(CSSPropertyAppleColorFilter);
@@ -2262,12 +2261,10 @@ void RenderStyle::setCursorList(RefPtr<CursorList>&& list)
     m_rareInheritedData.access().cursorData = WTFMove(list);
 }
 
-void RenderStyle::setQuotes(RefPtr<QuotesData>&& quotes)
+void RenderStyle::setQuotes(Style::Quotes&& quotes)
 {
-    if (arePointingToEqualData(m_rareInheritedData->quotes.get(), quotes.get()))
-        return;
-
-    m_rareInheritedData.access().quotes = WTFMove(quotes);
+    if (m_rareInheritedData->quotes != quotes)
+        m_rareInheritedData.access().quotes = WTFMove(quotes);
 }
 
 void RenderStyle::setWillChange(RefPtr<WillChangeData>&& willChangeData)
@@ -3018,24 +3015,30 @@ Color RenderStyle::usedAccentColor(OptionSet<StyleColorOptions> styleColorOption
 
 Color RenderStyle::usedScrollbarThumbColor() const
 {
-    if (!scrollbarColor().has_value())
-        return { };
-
-    if (hasAppleColorFilter())
-        return colorByApplyingColorFilter(colorResolvingCurrentColor(scrollbarColor().value().thumbColor));
-
-    return colorResolvingCurrentColor(scrollbarColor().value().thumbColor);
+    return WTF::switchOn(scrollbarColor(),
+        [&](const CSS::Keyword::Auto&) -> Color {
+            return { };
+        },
+        [&](const auto& parts) -> Color {
+            if (hasAppleColorFilter())
+                return colorByApplyingColorFilter(colorResolvingCurrentColor(parts.thumb));
+            return colorResolvingCurrentColor(parts.thumb);
+        }
+    );
 }
 
 Color RenderStyle::usedScrollbarTrackColor() const
 {
-    if (!scrollbarColor().has_value())
-        return { };
-
-    if (hasAppleColorFilter())
-        return colorByApplyingColorFilter(colorResolvingCurrentColor(scrollbarColor().value().trackColor));
-
-    return colorResolvingCurrentColor(scrollbarColor().value().trackColor);
+    return WTF::switchOn(scrollbarColor(),
+        [&](const CSS::Keyword::Auto&) -> Color {
+            return { };
+        },
+        [&](const auto& parts) -> Color {
+            if (hasAppleColorFilter())
+                return colorByApplyingColorFilter(colorResolvingCurrentColor(parts.track));
+            return colorResolvingCurrentColor(parts.track);
+        }
+    );
 }
 
 const BorderValue& RenderStyle::borderBefore(const WritingMode writingMode) const

@@ -144,6 +144,7 @@ inline void RenderStyle::setContainIntrinsicHeight(Style::ContainIntrinsicSize&&
 inline void RenderStyle::setContainIntrinsicWidth(Style::ContainIntrinsicSize&& width) { SET_NESTED(m_nonInheritedData, rareData, containIntrinsicWidth, WTFMove(width)); }
 inline void RenderStyle::setContainerNames(Style::ContainerNames&& names) { SET_NESTED(m_nonInheritedData, rareData, containerNames, WTFMove(names)); }
 inline void RenderStyle::setContainerType(ContainerType type) { SET_NESTED(m_nonInheritedData, rareData, containerType, static_cast<unsigned>(type)); }
+inline void RenderStyle::setContent(Style::Content&& value) { SET_NESTED(m_nonInheritedData, miscData, content, WTFMove(value)); }
 inline void RenderStyle::setContentVisibility(ContentVisibility value) { SET_NESTED(m_nonInheritedData, rareData, contentVisibility, static_cast<unsigned>(value)); }
 inline void RenderStyle::setUsedAppearance(StyleAppearance a) { SET_NESTED(m_nonInheritedData, miscData, usedAppearance, static_cast<unsigned>(a)); }
 inline void RenderStyle::setEffectiveInert(bool effectiveInert) { SET(m_rareInheritedData, effectiveInert, effectiveInert); }
@@ -163,6 +164,7 @@ inline void RenderStyle::setGridItemRowEnd(Style::GridPosition&& rowEndPosition)
 inline void RenderStyle::setGridItemRowStart(Style::GridPosition&& rowStartPosition) { SET_DOUBLY_NESTED(m_nonInheritedData, rareData, gridItem, gridRowStart, WTFMove(rowStartPosition)); }
 inline void RenderStyle::setGridTemplateAreas(Style::GridTemplateAreas&& areas) { SET_DOUBLY_NESTED(m_nonInheritedData, rareData, grid, m_gridTemplateAreas, WTFMove(areas)); }
 inline void RenderStyle::setHangingPunctuation(OptionSet<HangingPunctuation> punctuation) { SET(m_rareInheritedData, hangingPunctuation, punctuation.toRaw()); }
+inline void RenderStyle::setHasAttrContent() { SET_NESTED(m_nonInheritedData, miscData, hasAttrContent, true); }
 inline void RenderStyle::setHasAutoAccentColor() { SET_PAIR(m_rareInheritedData, hasAutoAccentColor, true, accentColor, Style::Color::currentColor()); }
 inline void RenderStyle::setHasAutoCaretColor() { SET_PAIR(m_rareInheritedData, hasAutoCaretColor, true, caretColor, Style::Color::currentColor()); }
 inline void RenderStyle::setHasAutoColumnCount() { SET_DOUBLY_NESTED_PAIR(m_nonInheritedData, miscData, multiCol, autoCount, true, count, initialColumnCount()); }
@@ -171,7 +173,6 @@ inline void RenderStyle::setHasAutoOrphans() { SET_PAIR(m_rareInheritedData, has
 inline void RenderStyle::setHasAutoSpecifiedZIndex() { SET_NESTED_PAIR(m_nonInheritedData, boxData, m_hasAutoSpecifiedZIndex, true, m_specifiedZIndex, 0); }
 inline void RenderStyle::setHasAutoUsedZIndex() { SET_NESTED_PAIR(m_nonInheritedData, boxData, m_hasAutoUsedZIndex, true, m_usedZIndex, 0); }
 inline void RenderStyle::setHasAutoWidows() { SET_PAIR(m_rareInheritedData, hasAutoWidows, true, widows, initialWidows()); }
-inline void RenderStyle::setHasContentNone(bool value) { m_nonInheritedFlags.hasContentNone = value; }
 inline void RenderStyle::setHasDisplayAffectedByAnimations() { SET_NESTED(m_nonInheritedData, miscData, hasDisplayAffectedByAnimations, true); }
 inline void RenderStyle::setHasExplicitlySetBorderBottomLeftRadius(bool value) { SET_NESTED(m_nonInheritedData, surroundData, hasExplicitlySetBorderBottomLeftRadius, value); }
 inline void RenderStyle::setHasExplicitlySetBorderBottomRightRadius(bool value) { SET_NESTED(m_nonInheritedData, surroundData, hasExplicitlySetBorderBottomRightRadius, value); }
@@ -272,6 +273,7 @@ inline void RenderStyle::setRubyPosition(RubyPosition position) { SET(m_rareInhe
 inline void RenderStyle::setRubyAlign(RubyAlign alignment) { SET(m_rareInheritedData, rubyAlign, static_cast<unsigned>(alignment)); }
 inline void RenderStyle::setRubyOverhang(RubyOverhang overhang) { SET(m_rareInheritedData, rubyOverhang, static_cast<unsigned>(overhang)); }
 inline void RenderStyle::setScale(Style::Scale&& scale) { SET_NESTED(m_nonInheritedData, rareData, scale, WTFMove(scale)); }
+inline void RenderStyle::setScrollBehavior(Style::ScrollBehavior behavior) { SET_NESTED(m_nonInheritedData, rareData, scrollBehavior, static_cast<unsigned>(behavior)); }
 inline void RenderStyle::setScrollTimelineAxes(Style::ProgressTimelineAxes&& axes) { SET_NESTED(m_nonInheritedData, rareData, scrollTimelineAxes, WTFMove(axes)); }
 inline void RenderStyle::setScrollTimelineNames(Style::ProgressTimelineNames&& names) { SET_NESTED(m_nonInheritedData, rareData, scrollTimelineNames, WTFMove(names)); }
 inline void RenderStyle::setViewTimelineAxes(Style::ProgressTimelineAxes&& axes) { SET_NESTED(m_nonInheritedData, rareData, viewTimelineAxes, WTFMove(axes)); }
@@ -330,13 +332,12 @@ inline void RenderStyle::setTranslate(Style::Translate&& translate) { SET_NESTED
 inline void RenderStyle::setUsesAnchorFunctions() { SET_NESTED(m_nonInheritedData, rareData, usesAnchorFunctions, true); }
 inline void RenderStyle::setAnchorFunctionScrollCompensatedAxes(OptionSet<BoxAxisFlag> axes) { SET_NESTED(m_nonInheritedData, rareData, anchorFunctionScrollCompensatedAxes, axes.toRaw()); }
 inline void RenderStyle::setIsPopoverInvoker() { SET_NESTED(m_nonInheritedData, rareData, isPopoverInvoker, true); }
-inline void RenderStyle::setUseSmoothScrolling(bool value) { SET_NESTED(m_nonInheritedData, rareData, useSmoothScrolling, value); }
 inline void RenderStyle::setUsedZIndex(int index) { SET_NESTED_PAIR(m_nonInheritedData, boxData, m_usedZIndex, index, m_hasAutoUsedZIndex, false); }
 inline void RenderStyle::setUserDrag(UserDrag value) { SET_NESTED(m_nonInheritedData, miscData, userDrag, static_cast<unsigned>(value)); }
 inline void RenderStyle::setUserModify(UserModify value) { SET(m_rareInheritedData, userModify, static_cast<unsigned>(value)); }
 inline void RenderStyle::setUserSelect(UserSelect value) { SET(m_rareInheritedData, userSelect, static_cast<unsigned>(value)); }
 inline void RenderStyle::setViewTransitionClasses(Style::ViewTransitionClasses&& value) { SET_NESTED(m_nonInheritedData, rareData, viewTransitionClasses, WTFMove(value)); }
-inline void RenderStyle::setViewTransitionName(Style::ViewTransitionName&& value) { SET_NESTED(m_nonInheritedData, rareData, viewTransitionName, value); }
+inline void RenderStyle::setViewTransitionName(Style::ViewTransitionName&& value) { SET_NESTED(m_nonInheritedData, rareData, viewTransitionName, WTFMove(value)); }
 inline void RenderStyle::setVisitedLinkBackgroundColor(Style::Color&& value) { SET_DOUBLY_NESTED(m_nonInheritedData, miscData, visitedLinkColor, background, WTFMove(value)); }
 inline void RenderStyle::setVisitedLinkBorderBottomColor(Style::Color&& value) { SET_DOUBLY_NESTED(m_nonInheritedData, miscData, visitedLinkColor, borderBottom, WTFMove(value)); }
 inline void RenderStyle::setVisitedLinkBorderLeftColor(Style::Color&& value) { SET_DOUBLY_NESTED(m_nonInheritedData, miscData, visitedLinkColor, borderLeft, WTFMove(value)); }
@@ -376,12 +377,12 @@ inline void RenderStyle::setDynamicRangeLimit(Style::DynamicRangeLimit&& limit) 
 
 inline void RenderStyle::setBackdropFilter(FilterOperations&& ops) { SET_DOUBLY_NESTED(m_nonInheritedData, rareData, backdropFilter, operations, WTFMove(ops)); }
 
-#if PLATFORM(IOS_FAMILY)
-inline void RenderStyle::setTouchCalloutEnabled(bool value) { SET(m_rareInheritedData, touchCalloutEnabled, value); }
+#if ENABLE(WEBKIT_TOUCH_CALLOUT_CSS_PROPERTY)
+inline void RenderStyle::setTouchCallout(Style::WebkitTouchCallout value) { SET(m_rareInheritedData, webkitTouchCallout, static_cast<unsigned>(value)); }
 #endif
 
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-inline void RenderStyle::setUseTouchOverflowScrolling(bool value) { SET(m_rareInheritedData, useTouchOverflowScrolling, value); }
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
+inline void RenderStyle::setOverflowScrolling(Style::WebkitOverflowScrolling value) { SET(m_rareInheritedData, webkitOverflowScrolling, static_cast<unsigned>(value)); }
 #endif
 
 #if ENABLE(TEXT_AUTOSIZING)

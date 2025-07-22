@@ -108,7 +108,6 @@ public:
     static void serializeReflection(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const StyleReflection*);
     static void serializeLineFitEdge(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextEdge&);
     static void serializeTextBoxEdge(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextEdge&);
-    static void serializeViewTransitionName(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const ViewTransitionName&);
     static void serializePositionTryFallbacks(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const FixedVector<PositionTryFallback>&);
     static void serializeWillChange(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WillChangeData*);
     static void serializeBlockStepSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, std::optional<WebCore::Length>);
@@ -137,12 +136,6 @@ public:
     static void serializePositionArea(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const std::optional<PositionArea>&);
     static void serializeNameScope(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const NameScope&);
     static void serializePositionVisibility(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<PositionVisibility>);
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-    static void serializeOverflowScrolling(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, bool);
-#endif
-#if PLATFORM(IOS_FAMILY)
-    static void serializeTouchCallout(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, bool);
-#endif
 
     // MARK: FillLayer serializations
 
@@ -857,11 +850,6 @@ inline void ExtractorSerializer::serializeMaxLines(ExtractorState& state, String
     CSS::serializationForCSS(builder, context, CSS::NumberRaw<> { maxLines });
 }
 
-inline void ExtractorSerializer::serializeSmoothScrolling(ExtractorState&, StringBuilder& builder, const CSS::SerializationContext&, bool useSmoothScrolling)
-{
-    builder.append(nameLiteralForSerialization(useSmoothScrolling ? CSSValueSmooth : CSSValueAuto));
-}
-
 inline void ExtractorSerializer::serializeInitialLetter(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, IntSize initialLetter)
 {
     auto append = [&](auto axis) {
@@ -1014,26 +1002,6 @@ inline void ExtractorSerializer::serializeTextBoxEdge(ExtractorState& state, Str
     serialize(state, builder, context, textEdge.over);
     builder.append(' ');
     serialize(state, builder, context, textEdge.under);
-}
-
-inline void ExtractorSerializer::serializeViewTransitionName(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const ViewTransitionName& viewTransitionName)
-{
-    if (viewTransitionName.isNone()) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::None { });
-        return;
-    }
-
-    if (viewTransitionName.isAuto()) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::Auto { });
-        return;
-    }
-
-    if (viewTransitionName.isMatchElement()) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::MatchElement { });
-        return;
-    }
-
-    serializationForCSS(builder, context, state.style, CustomIdentifier { viewTransitionName.customIdent() });
 }
 
 inline void ExtractorSerializer::serializePositionTryFallbacks(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const FixedVector<PositionTryFallback>& fallbacks)
@@ -1582,20 +1550,6 @@ inline void ExtractorSerializer::serializePositionVisibility(ExtractorState& sta
     if (listEmpty)
         serializationForCSS(builder, context, state.style, CSS::Keyword::Always { });
 }
-
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-inline void ExtractorSerializer::serializeOverflowScrolling(ExtractorState&, StringBuilder& builder, const CSS::SerializationContext&, bool useTouchOverflowScrolling)
-{
-    builder.append(nameLiteralForSerialization(useTouchOverflowScrolling ? CSSValueTouch : CSSValueAuto));
-}
-#endif
-
-#if PLATFORM(IOS_FAMILY)
-inline void ExtractorSerializer::serializeTouchCallout(ExtractorState&, StringBuilder& builder, const CSS::SerializationContext&, bool touchCalloutEnabled)
-{
-    builder.append(nameLiteralForSerialization(touchCalloutEnabled ? CSSValueDefault : CSSValueNone));
-}
-#endif
 
 // MARK: - FillLayer serializations
 

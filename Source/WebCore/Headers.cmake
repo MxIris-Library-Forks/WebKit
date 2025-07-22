@@ -2716,7 +2716,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/StyleTransformData.h
     rendering/style/StyleVisitedLinkColorData.h
     rendering/style/TextDecorationThickness.h
-    rendering/style/ViewTransitionName.h
     rendering/style/WillChangeData.h
 
     rendering/svg/legacy/LegacyRenderSVGModelObject.h
@@ -2774,6 +2773,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/contain/StyleContainerName.h
 
+    style/values/content/StyleContent.h
     style/values/content/StyleQuotes.h
 
     style/values/counter-styles/StyleCounterStyle.h
@@ -2810,7 +2810,11 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/motion/StyleOffsetRotate.h
     style/values/motion/StyleRayFunction.h
 
+    style/values/non-standard/StyleWebKitOverflowScrolling.h
+    style/values/non-standard/StyleWebKitTouchCallout.h
+
     style/values/overflow/StyleBlockEllipsis.h
+    style/values/overflow/StyleScrollBehavior.h
     style/values/overflow/StyleScrollbarGutter.h
 
     style/values/position/StyleInset.h
@@ -2878,6 +2882,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/transforms/StyleTranslate.h
 
     style/values/view-transitions/StyleViewTransitionClass.h
+    style/values/view-transitions/StyleViewTransitionName.h
 
     style/values/StyleValueTypes.h
 

@@ -63,7 +63,6 @@
 #include "CSSValuePool.h"
 #include "CSSViewValue.h"
 #include "ContainerNodeInlines.h"
-#include "ContentData.h"
 #include "CursorList.h"
 #include "DocumentInlines.h"
 #include "FontCascade.h"
@@ -183,14 +182,12 @@ public:
     static Ref<CSSValue> convertLineClamp(ExtractorState&, const LineClampValue&);
     static Ref<CSSValue> convertContain(ExtractorState&, OptionSet<Containment>);
     static Ref<CSSValue> convertMaxLines(ExtractorState&, size_t);
-    static Ref<CSSValue> convertSmoothScrolling(ExtractorState&, bool);
     static Ref<CSSValue> convertInitialLetter(ExtractorState&, IntSize);
     static Ref<CSSValue> convertTextSpacingTrim(ExtractorState&, TextSpacingTrim);
     static Ref<CSSValue> convertTextAutospace(ExtractorState&, TextAutospace);
     static Ref<CSSValue> convertReflection(ExtractorState&, const StyleReflection*);
     static Ref<CSSValue> convertLineFitEdge(ExtractorState&, const TextEdge&);
     static Ref<CSSValue> convertTextBoxEdge(ExtractorState&, const TextEdge&);
-    static Ref<CSSValue> convertViewTransitionName(ExtractorState&, const ViewTransitionName&);
     static Ref<CSSValue> convertPositionTryFallbacks(ExtractorState&, const FixedVector<PositionTryFallback>&);
     static Ref<CSSValue> convertWillChange(ExtractorState&, const WillChangeData*);
     static Ref<CSSValue> convertBlockStepSize(ExtractorState&, std::optional<WebCore::Length>);
@@ -220,12 +217,6 @@ public:
     static Ref<CSSValue> convertPositionArea(ExtractorState&, const std::optional<PositionArea>&);
     static Ref<CSSValue> convertNameScope(ExtractorState&, const NameScope&);
     static Ref<CSSValue> convertPositionVisibility(ExtractorState&, OptionSet<PositionVisibility>);
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-    static Ref<CSSValue> convertOverflowScrolling(ExtractorState&, bool);
-#endif
-#if PLATFORM(IOS_FAMILY)
-    static Ref<CSSValue> convertTouchCallout(ExtractorState&, bool);
-#endif
 
     // MARK: FillLayer conversions
 
@@ -733,13 +724,6 @@ inline Ref<CSSValue> ExtractorConverter::convertMaxLines(ExtractorState&, size_t
     return CSSPrimitiveValue::create(maxLines);
 }
 
-inline Ref<CSSValue> ExtractorConverter::convertSmoothScrolling(ExtractorState&, bool useSmoothScrolling)
-{
-    if (useSmoothScrolling)
-        return CSSPrimitiveValue::create(CSSValueSmooth);
-    return CSSPrimitiveValue::create(CSSValueAuto);
-}
-
 inline Ref<CSSValue> ExtractorConverter::convertInitialLetter(ExtractorState&, IntSize initialLetter)
 {
     return CSSValuePair::create(
@@ -850,16 +834,6 @@ inline Ref<CSSValue> ExtractorConverter::convertTextBoxEdge(ExtractorState& stat
 
     return CSSValuePair::create(convert(state, textEdge.over), convert(state, textEdge.under));
 }
-
-inline Ref<CSSValue> ExtractorConverter::convertViewTransitionName(ExtractorState&, const ViewTransitionName& viewTransitionName)
-{
-    if (viewTransitionName.isNone())
-        return CSSPrimitiveValue::create(CSSValueNone);
-    if (viewTransitionName.isAuto())
-        return CSSPrimitiveValue::create(CSSValueAuto);
-    return CSSPrimitiveValue::createCustomIdent(viewTransitionName.customIdent());
-}
-
 
 inline Ref<CSSValue> ExtractorConverter::convertPositionTryFallbacks(ExtractorState& state, const FixedVector<PositionTryFallback>& fallbacks)
 {
@@ -1438,20 +1412,6 @@ inline Ref<CSSValue> ExtractorConverter::convertPositionVisibility(ExtractorStat
 
     return CSSValueList::createSpaceSeparated(WTFMove(list));
 }
-
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-inline Ref<CSSValue> ExtractorConverter::convertOverflowScrolling(ExtractorState&, bool useTouchOverflowScrolling)
-{
-    return CSSPrimitiveValue::create(useTouchOverflowScrolling ? CSSValueTouch : CSSValueAuto);
-}
-#endif
-
-#if PLATFORM(IOS_FAMILY)
-inline Ref<CSSValue> ExtractorConverter::convertTouchCallout(ExtractorState&, bool touchCalloutEnabled)
-{
-    return CSSPrimitiveValue::create(touchCalloutEnabled ? CSSValueDefault : CSSValueNone);
-}
-#endif
 
 // MARK: - FillLayer conversions
 

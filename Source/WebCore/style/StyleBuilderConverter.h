@@ -176,10 +176,9 @@ public:
     static Color convertTapHighlightColor(BuilderState&, const CSSValue&);
 #endif
     static OptionSet<TouchAction> convertTouchAction(BuilderState&, const CSSValue&);
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
     static bool convertOverflowScrolling(BuilderState&, const CSSValue&);
 #endif
-    static bool convertSmoothScrolling(BuilderState&, const CSSValue&);
 
     static FontSizeAdjust convertFontSizeAdjust(BuilderState&, const CSSValue&);
     static std::optional<FontSelectionValue> convertFontStyleFromValue(BuilderState&, const CSSValue&);
@@ -217,7 +216,6 @@ public:
 
     static std::optional<WebCore::Length> convertBlockStepSize(BuilderState&, const CSSValue&);
 
-    static ViewTransitionName convertViewTransitionName(BuilderState&, const CSSValue&);
     static RefPtr<WillChangeData> convertWillChange(BuilderState&, const CSSValue&);
 
     static std::optional<ScopedName> convertPositionAnchor(BuilderState&, const CSSValue&);
@@ -1084,17 +1082,12 @@ inline OptionSet<TouchAction> BuilderConverter::convertTouchAction(BuilderState&
     return RenderStyle::initialTouchActions();
 }
 
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
 inline bool BuilderConverter::convertOverflowScrolling(BuilderState&, const CSSValue& value)
 {
     return value.valueID() == CSSValueTouch;
 }
 #endif
-
-inline bool BuilderConverter::convertSmoothScrolling(BuilderState&, const CSSValue& value)
-{
-    return value.valueID() == CSSValueSmooth;
-}
 
 inline FixedVector<WebCore::Length> BuilderConverter::convertStrokeDashArray(BuilderState& builderState, const CSSValue& value)
 {
@@ -1519,24 +1512,6 @@ inline OptionSet<Containment> BuilderConverter::convertContain(BuilderState& bui
         };
     }
     return containment;
-}
-
-inline ViewTransitionName BuilderConverter::convertViewTransitionName(BuilderState& state, const CSSValue& value)
-{
-    auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value);
-    if (!primitiveValue)
-        return ViewTransitionName::createWithNone();
-
-    if (value.valueID() == CSSValueNone)
-        return ViewTransitionName::createWithNone();
-
-    if (value.valueID() == CSSValueAuto)
-        return ViewTransitionName::createWithAuto(state.styleScopeOrdinal());
-
-    if (value.valueID() == CSSValueMatchElement)
-        return ViewTransitionName::createWithMatchElement(state.styleScopeOrdinal());
-
-    return ViewTransitionName::createWithCustomIdent(state.styleScopeOrdinal(), AtomString { primitiveValue->stringValue() });
 }
 
 inline RefPtr<WillChangeData> BuilderConverter::convertWillChange(BuilderState& builderState, const CSSValue& value)

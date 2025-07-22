@@ -49,8 +49,6 @@ class BorderData;
 class BorderValue;
 struct CSSPropertiesBitSet;
 class Color;
-class ContentData;
-class CounterContent;
 class CursorList;
 class Element;
 class FillLayer;
@@ -189,7 +187,6 @@ enum class PositionType : uint8_t;
 enum class PositionVisibility : uint8_t;
 enum class PrintColorAdjust : bool;
 enum class PseudoId : uint32_t;
-enum class QuoteType : uint8_t;
 enum class Resize : uint8_t;
 enum class RubyPosition : uint8_t;
 enum class RubyAlign : uint8_t;
@@ -269,7 +266,6 @@ namespace Style {
 class CustomProperty;
 class CustomPropertyData;
 class CustomPropertyRegistry;
-class ViewTransitionName;
 struct AnchorNames;
 struct AspectRatio;
 struct BlockEllipsis;
@@ -281,6 +277,7 @@ struct Color;
 struct ColorScheme;
 struct ContainIntrinsicSize;
 struct ContainerNames;
+struct Content;
 struct CornerShapeValue;
 struct DynamicRangeLimit;
 struct FlexBasis;
@@ -328,11 +325,15 @@ struct Translate;
 struct ViewTimelineInsets;
 struct ViewTimelines;
 struct ViewTransitionClasses;
+struct ViewTransitionName;
 
 enum class Change : uint8_t;
 enum class GridTrackSizingDirection : bool;
 enum class LineBoxContain : uint8_t;
 enum class PositionTryOrder : uint8_t;
+enum class ScrollBehavior : bool;
+enum class WebkitOverflowScrolling : bool;
+enum class WebkitTouchCallout : bool;
 
 template<typename> struct Shadows;
 
@@ -457,8 +458,12 @@ public:
     void setIsPopoverInvoker();
     bool isPopoverInvoker() const;
 
+    inline bool nativeAppearanceDisabled() const;
+    inline void setNativeAppearanceDisabled(bool);
+    static bool initialNativeAppearanceDisabled() { return false; }
+
     void setColumnStylesFromPaginationMode(PaginationMode);
-    
+
     inline bool isFloating() const;
     inline bool hasMargin() const;
     inline bool hasBorder() const;
@@ -1140,16 +1145,15 @@ public:
     inline Style::Color tapHighlightColor() const;
 #endif
 
-#if PLATFORM(IOS_FAMILY)
-    inline bool touchCalloutEnabled() const;
+#if ENABLE(WEBKIT_TOUCH_CALLOUT_CSS_PROPERTY)
+    inline Style::WebkitTouchCallout touchCallout() const;
 #endif
 
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-    inline bool useTouchOverflowScrolling() const;
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
+    inline Style::WebkitOverflowScrolling overflowScrolling() const;
 #endif
 
-    inline bool useSmoothScrolling() const;
-    inline bool nativeAppearanceDisabled() const;
+    inline Style::ScrollBehavior scrollBehavior() const;
 
 #if ENABLE(TEXT_AUTOSIZING)
     inline Style::TextSizeAdjust textSizeAdjust() const;
@@ -1683,16 +1687,15 @@ public:
     inline void setTapHighlightColor(Style::Color&&);
 #endif
 
-#if PLATFORM(IOS_FAMILY)
-    inline void setTouchCalloutEnabled(bool);
+#if ENABLE(WEBKIT_TOUCH_CALLOUT_CSS_PROPERTY)
+    inline void setTouchCallout(Style::WebkitTouchCallout);
 #endif
 
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-    inline void setUseTouchOverflowScrolling(bool);
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
+    inline void setOverflowScrolling(Style::WebkitOverflowScrolling);
 #endif
 
-    inline void setUseSmoothScrolling(bool);
-    inline void setNativeAppearanceDisabled(bool);
+    inline void setScrollBehavior(Style::ScrollBehavior);
 
 #if ENABLE(TEXT_AUTOSIZING)
     inline void setTextSizeAdjust(Style::TextSizeAdjust);
@@ -1829,19 +1832,11 @@ public:
 
     inline bool hasUsedContentNone() const;
     inline bool hasContent() const;
-    inline const ContentData* contentData() const;
-    void setContent(std::unique_ptr<ContentData>, bool add);
-    inline bool contentDataEquivalent(const RenderStyle&) const;
-    void clearContent();
-    inline void setHasContentNone(bool);
-    void setContent(const String&, bool add = false);
-    void setContent(RefPtr<StyleImage>&&, bool add = false);
-    void setContent(std::unique_ptr<CounterContent>, bool add = false);
-    void setContent(QuoteType, bool add = false);
-    void setContentAltText(const String&);
-    const String& contentAltText() const;
+    inline const Style::Content& content() const;
+    inline void setContent(Style::Content&&);
+
     inline bool hasAttrContent() const;
-    void setHasAttrContent();
+    inline void setHasAttrContent();
 
     const CounterDirectiveMap& counterDirectives() const;
     CounterDirectiveMap& accessCounterDirectives();
@@ -2063,8 +2058,9 @@ public:
     static constexpr OptionSet<Containment> strictContainment();
     static constexpr OptionSet<Containment> contentContainment();
     static constexpr ContainerType initialContainerType();
-    static constexpr ContentVisibility initialContentVisibility();
     static Style::ContainerNames initialContainerNames();
+    static inline Style::Content initialContent();
+    static constexpr ContentVisibility initialContentVisibility();
 
     static inline Style::ContainIntrinsicSize initialContainIntrinsicWidth();
     static inline Style::ContainIntrinsicSize initialContainIntrinsicHeight();
@@ -2183,21 +2179,19 @@ public:
     static constexpr TextSecurity initialTextSecurity();
     static constexpr InputSecurity initialInputSecurity();
 
-#if PLATFORM(IOS_FAMILY)
-    static bool initialTouchCalloutEnabled() { return true; }
+#if ENABLE(WEBKIT_TOUCH_CALLOUT_CSS_PROPERTY)
+    static constexpr Style::WebkitTouchCallout initialTouchCallout();
 #endif
 
 #if ENABLE(TOUCH_EVENTS)
     static Style::Color initialTapHighlightColor();
 #endif
 
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-    static bool initialUseTouchOverflowScrolling() { return false; }
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
+    static constexpr Style::WebkitOverflowScrolling initialOverflowScrolling();
 #endif
 
-    static bool initialUseSmoothScrolling() { return false; }
-
-    static bool initialNativeAppearanceDisabled() { return false; }
+    static constexpr Style::ScrollBehavior initialScrollBehavior();
 
     static inline FilterOperations initialFilter();
     static inline FilterOperations initialAppleColorFilter();
@@ -2370,7 +2364,6 @@ private:
         unsigned usesViewportUnits : 1;
         unsigned usesContainerUnits : 1;
         unsigned useTreeCountingFunctions : 1;
-        unsigned hasContentNone : 1;
         unsigned textDecorationLine : TextDecorationLineBits; // Text decorations defined *only* by this element.
         unsigned hasExplicitlyInheritedProperties : 1; // Explicitly inherits a non-inherited property.
         unsigned disallowsFastPathInheritance : 1;

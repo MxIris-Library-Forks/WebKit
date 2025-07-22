@@ -2112,6 +2112,7 @@ page/DiagnosticLoggingKeys.cpp
 page/DisabledAdaptations.cpp
 page/DragController.cpp
 page/ElementTargetingController.cpp
+page/EventCounts.cpp
 page/EventHandler.cpp
 page/EventSource.cpp
 page/FocusController.cpp
@@ -2162,6 +2163,7 @@ page/PageOverlayController.cpp
 page/PageSerializer.cpp
 page/Performance.cpp
 page/PerformanceEntry.cpp
+page/PerformanceEventTiming.cpp
 page/PerformanceLogging.cpp
 page/PerformanceLoggingClient.cpp
 page/PerformanceMark.cpp
@@ -2940,7 +2942,6 @@ rendering/shapes/ShapeOutsideInfo.cpp
 rendering/style/AutosizeStatus.cpp
 rendering/style/BorderData.cpp
 rendering/style/BorderValue.cpp
-rendering/style/ContentData.cpp
 rendering/style/DropShadowFilterOperationWithStyleColor.cpp
 rendering/style/FillLayer.cpp
 rendering/style/GridSpan.cpp
@@ -3153,6 +3154,7 @@ style/values/color/StyleHexColor.cpp
 style/values/color/StyleKeywordColor.cpp
 style/values/color/StyleLightDarkColor.cpp
 style/values/color/StyleResolvedColor.cpp
+style/values/content/StyleContent.cpp
 style/values/content/StyleQuotes.cpp
 style/values/counter-styles/StyleCounterStyle.cpp
 style/values/easing/StyleCubicBezierEasingFunction.cpp
@@ -3192,7 +3194,10 @@ style/values/motion/StyleOffsetPath.cpp
 style/values/motion/StyleOffsetPosition.cpp
 style/values/motion/StyleOffsetRotate.cpp
 style/values/motion/StyleRayFunction.cpp
+style/values/non-standard/StyleWebKitOverflowScrolling.cpp
+style/values/non-standard/StyleWebKitTouchCallout.cpp
 style/values/overflow/StyleBlockEllipsis.cpp
+style/values/overflow/StyleScrollBehavior.cpp
 style/values/overflow/StyleScrollbarGutter.cpp
 style/values/primitives/StyleLengthResolution.cpp
 style/values/primitives/StylePosition.cpp
@@ -3228,6 +3233,7 @@ style/values/transforms/StyleRotate.cpp
 style/values/transforms/StylePerspective.cpp
 style/values/transforms/StyleScale.cpp
 style/values/transforms/StyleTranslate.cpp
+style/values/view-transitions/StyleViewTransitionName.cpp
 svg/DocumentSVG.cpp
 svg/SVGAElement.cpp
 svg/SVGAltGlyphDefElement.cpp
@@ -3853,6 +3859,7 @@ JSEndingType.cpp
 JSErrorCallback.cpp
 JSErrorEvent.cpp
 JSEvent.cpp
+JSEventCounts.cpp
 JSEventInit.cpp
 JSEventListenerOptions.cpp
 JSEventModifierInit.cpp
@@ -4373,6 +4380,7 @@ JSPaymentValidationErrors.cpp
 JSPbkdf2Params.cpp
 JSPerformance.cpp
 JSPerformanceEntry.cpp
+JSPerformanceEventTiming.cpp
 JSPerformanceMark.cpp
 JSPerformanceMarkOptions.cpp
 JSPerformanceMeasure.cpp

@@ -322,6 +322,8 @@ static std::optional<LayoutUnit> lastInflowBoxBaseline(const RenderBlock& blockC
 
 static std::optional<LayoutUnit> inlineBlockBaseline(const RenderBox& renderBox)
 {
+    ASSERT(!(renderBox.isInline() && renderBox.element() && renderBox.element()->isFormControlElement()));
+
     auto writingMode = renderBox.containingBlock()->writingMode();
     auto lineDirection = writingMode.isHorizontal() ? HorizontalLine : VerticalLine;
 
@@ -344,49 +346,50 @@ static std::optional<LayoutUnit> inlineBlockBaseline(const RenderBox& renderBox)
         return lastInflowBoxBaseline(*innerContainer);
 
     if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(renderBox)) {
-        RefPtr element = blockFlow->element();
-        auto isFormControlElement = element && element->isFormControlElement();
         if (blockFlow->style().display() == DisplayType::InlineBlock) {
             // The baseline of an 'inline-block' is the baseline of its last line box in the normal flow, unless it has either no in-flow line boxes or if its 'overflow'
             // property has a computed value other than 'visible'. see https://www.w3.org/TR/CSS22/visudet.html
-            auto shouldSynthesizeBaseline = !blockFlow->style().isOverflowVisible() && !isFormControlElement && !is<RenderTextControlInnerBlock>(*blockFlow);
+            auto shouldSynthesizeBaseline = !blockFlow->style().isOverflowVisible() && !is<RenderTextControlInnerBlock>(*blockFlow);
             if (shouldSynthesizeBaseline)
                 return { };
         }
 
-        // Note that here we only take the left and bottom into consideration. Our caller takes the right and top into consideration.
-        LayoutUnit lastBaseline;
-        if (!blockFlow->childrenInline()) {
-            auto inlineBlockBaseline = lastInflowBoxBaseline(*blockFlow);
-            if (!inlineBlockBaseline)
-                return { };
-            lastBaseline = *inlineBlockBaseline;
-        } else if (!blockFlow->hasLines()) {
-            if (!blockFlow->hasLineIfEmpty())
-                return { };
-            auto& fontMetrics = blockFlow->firstLineStyle().metricsOfPrimaryFont();
-            return LayoutUnit { LayoutUnit(fontMetrics.intAscent()
-                + (blockFlow->lineHeight() - fontMetrics.intHeight()) / 2
-                + (lineDirection == HorizontalLine ? blockFlow->borderTop() + blockFlow->paddingTop() : blockFlow->borderRight() + blockFlow->paddingRight())).toInt() };
-        } else if (blockFlow->svgTextLayout()) {
-            auto& style = blockFlow->firstLineStyle();
-            // LegacyInlineFlowBox::placeBoxesInBlockDirection will flip lines in case of verticalLR mode, so we can assume verticalRL for now.
-            lastBaseline = style.metricsOfPrimaryFont().intAscent(blockFlow->legacyRootBox()->baselineType()) + (style.writingMode().isLineInverted() ? blockFlow->logicalHeight() - blockFlow->legacyRootBox()->logicalBottom() : blockFlow->legacyRootBox()->logicalTop());
-        } else if (auto* inlineLayout = blockFlow->inlineLayout())
-            lastBaseline = floorToInt(inlineLayout->lastLineLogicalBaseline());
+        auto lastBaseline = [&] -> std::optional<LayoutUnit> {
+            // Note that here we only take the left and bottom into consideration. Our caller takes the right and top into consideration.
+            if (!blockFlow->childrenInline())
+                return lastInflowBoxBaseline(*blockFlow);
+
+            if (!blockFlow->hasLines()) {
+                if (!blockFlow->hasLineIfEmpty())
+                    return { };
+
+                auto& fontMetrics = blockFlow->firstLineStyle().metricsOfPrimaryFont();
+                return { LayoutUnit(fontMetrics.intAscent()
+                    + (blockFlow->lineHeight() - fontMetrics.intHeight()) / 2
+                    + (lineDirection == HorizontalLine ? blockFlow->borderTop() + blockFlow->paddingTop() : blockFlow->borderRight() + blockFlow->paddingRight())).toInt() };
+            }
+
+            if (auto* inlineLayout = blockFlow->inlineLayout())
+                return floorToInt(inlineLayout->lastLineLogicalBaseline());
+
+            if (blockFlow->svgTextLayout()) {
+                auto& style = blockFlow->firstLineStyle();
+                // LegacyInlineFlowBox::placeBoxesInBlockDirection will flip lines in case of verticalLR mode, so we can assume verticalRL for now.
+                return LayoutUnit(style.metricsOfPrimaryFont().intAscent(blockFlow->legacyRootBox()->baselineType()) + (style.writingMode().isLineInverted() ? blockFlow->logicalHeight() - blockFlow->legacyRootBox()->logicalBottom() : blockFlow->legacyRootBox()->logicalTop()));
+            }
+            return { };
+        };
 
         if (blockFlow->style().overflowY() == Overflow::Visible)
-            return lastBaseline;
+            return lastBaseline();
 
-        auto boxHeight = synthesizedBaseline(renderBox, *blockFlow->parentStyle(), lineDirection, BorderBox) + (writingMode.isHorizontal() ? blockFlow->marginBottom() : blockFlow->marginLeft());
-        // While css-align-3 defines the last baseline form block containers which are
-        // scroll containers (with an initial baseline-source value) as the block-end margin
-        // edge, we instead maintain our legacy behavior for form controls and content
-        // inside form controls to maintain compatibility.
+        RefPtr element = blockFlow->element();
         auto isInFormControl = element && element->shadowHost() && element->shadowHost()->isFormControlElement();
-        if (isFormControlElement || isInFormControl)
-            return std::min(boxHeight, lastBaseline);
-        return boxHeight;
+        // FIXME: Caller adds margin before so we can't yet return margin box height.
+        auto borderBoxHeighthWithtMarginBottom = blockFlow->marginBoxLogicalHeight(writingMode) -  (writingMode.isHorizontal() ? renderBox.marginTop() : renderBox.marginRight());
+        if (isInFormControl)
+            return std::min(borderBoxHeighthWithtMarginBottom, lastBaseline().value_or(0_lu));
+        return borderBoxHeighthWithtMarginBottom;
     }
 
     if (CheckedPtr blockRenderer = dynamicDowncast<RenderBlock>(renderBox))
@@ -461,6 +464,24 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
         return roundToInt(renderer->marginBoxLogicalHeight(writingMode)) - baselineAdjustment;
     }
 
+    if (CheckedPtr textControl = dynamicDowncast<RenderTextControlSingleLine>(renderBox)) {
+        if (auto* innerTextRenderer = textControl->innerTextRenderer()) {
+            auto baseline = LayoutUnit { };
+            if (innerTextRenderer->inlineLayout())
+                baseline = std::min<LayoutUnit>(innerTextRenderer->marginBoxLogicalHeight(writingMode), floorToInt(innerTextRenderer->inlineLayout()->lastLineLogicalBaseline()));
+            else {
+                auto& fontMetrics = innerTextRenderer->firstLineStyle().metricsOfPrimaryFont();
+                baseline = fontMetrics.intAscent() + (innerTextRenderer->lineHeight() - fontMetrics.intHeight()) / 2;
+            }
+            baseline = floorToInt(innerTextRenderer->logicalTop() + baseline);
+            for (auto* ancestor = innerTextRenderer->containingBlock(); ancestor && ancestor != textControl; ancestor = ancestor->containingBlock())
+                baseline = floorToInt(ancestor->logicalTop() + baseline);
+            return marginBefore + baseline;
+        }
+        // input::-webkit-textfield-decoration-container { display: none }
+        return roundToInt(textControl->marginBoxLogicalHeight(writingMode));
+    }
+
     if (CheckedPtr renderer = dynamicDowncast<RenderTextControlMultiLine>(renderBox))
         return roundToInt(renderer->marginBoxLogicalHeight(writingMode));
 
@@ -493,6 +514,32 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
         return synthesizedBaseline(renderBox, *renderBox.parentStyle(), writingMode.isHorizontal() ? HorizontalLine : VerticalLine, BorderBox) + renderBox.marginLogicalHeight();
     }
 
+    if (renderBox.isFieldset()) {
+        // Note that <fieldset> may simply be a flex/grid box (a non-RenderBlockFlow RenderBlock) and already handled above.
+        if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(renderBox)) {
+            // <fieldset> with no legend.
+            if (CheckedPtr inlineLayout = blockFlow->inlineLayout())
+                return marginBefore + floorToInt(inlineLayout->lastLineLogicalBaseline());
+            if (auto baseline = lastInflowBoxBaseline(*blockFlow))
+                return marginBefore + *baseline;
+        }
+        return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
+    }
+
+    if (renderBox.element() && renderBox.element()->isFormControlElement()) {
+        // For "leaf" theme objects like checkbox, let the theme decide what the baseline position is.
+        if (renderBox.style().hasUsedAppearance() && !renderBox.theme().isControlContainer(renderBox.style().usedAppearance()))
+            return renderBox.theme().baselinePosition(renderBox);
+
+        // Non-RenderTextControlSingleLine input type like input type color.
+        if (CheckedPtr container = dynamicDowncast<RenderBox>(renderBox.firstInFlowChild())) {
+            if (auto baselinePos = container->firstLineBaseline())
+                return marginBefore + container->logicalTop() + *baselinePos;
+        }
+        // e.g. leaf theme objects with no appearance (none) and empty content (e.g. before pseudo and content: "").
+        return roundToInt(renderBox.marginBoxLogicalHeight(writingMode));
+    }
+
     if (CheckedPtr deprecatedFlexBox = dynamicDowncast<RenderDeprecatedFlexibleBox>(renderBox)) {
         // Historically, we did this check for all baselines. But we can't
         // remove this code from deprecated flexbox, because it effectively
@@ -504,11 +551,6 @@ LayoutUnit static baselinePosition(const RenderBox& renderBox)
         if (baseline && *baseline <= bottomOfContent)
             return marginBefore + *baseline;
         return roundToInt(deprecatedFlexBox->marginBoxLogicalHeight(writingMode));
-    }
-
-    if (renderBox.style().hasUsedAppearance() && !renderBox.theme().isControlContainer(renderBox.style().usedAppearance())) {
-        // For "leaf" theme objects, let the theme decide what the baseline position is.
-        return renderBox.theme().baselinePosition(renderBox);
     }
 
     if (CheckedPtr renderer = dynamicDowncast<RenderListMarker>(renderBox)) {

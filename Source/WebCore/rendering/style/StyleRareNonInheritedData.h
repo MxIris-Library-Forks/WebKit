@@ -56,6 +56,7 @@
 #include "StyleProgressTimelineName.h"
 #include "StyleRotate.h"
 #include "StyleScale.h"
+#include "StyleScrollBehavior.h"
 #include "StyleScrollMargin.h"
 #include "StyleScrollPadding.h"
 #include "StyleScrollSnapPoints.h"
@@ -67,9 +68,9 @@
 #include "StyleViewTimelineInsets.h"
 #include "StyleViewTimelines.h"
 #include "StyleViewTransitionClass.h"
+#include "StyleViewTransitionName.h"
 #include "TextDecorationThickness.h"
 #include "TouchAction.h"
-#include "ViewTransitionName.h"
 #include <memory>
 #include <wtf/DataRef.h>
 #include <wtf/Markable.h>
@@ -84,7 +85,6 @@ namespace WebCore {
 using namespace CSS::Literals;
 
 class AnimationList;
-class ContentData;
 class PathOperation;
 class StyleCustomPropertyData;
 class StyleDeprecatedFlexibleBoxData;
@@ -249,7 +249,7 @@ public:
     PREFERRED_TYPE(bool) unsigned transformStyleForcedToFlat : 1; // The used value for transform-style is forced to flat by a grouping property.
     PREFERRED_TYPE(BackfaceVisibility) unsigned backfaceVisibility : 1;
 
-    PREFERRED_TYPE(ScrollBehavior) unsigned useSmoothScrolling : 1;
+    PREFERRED_TYPE(Style::ScrollBehavior) unsigned scrollBehavior : 1;
     PREFERRED_TYPE(TextDecorationStyle) unsigned textDecorationStyle : 3;
     PREFERRED_TYPE(TextGroupAlign) unsigned textGroupAlign : 3;
     PREFERRED_TYPE(ContentVisibility) unsigned contentVisibility : 2;

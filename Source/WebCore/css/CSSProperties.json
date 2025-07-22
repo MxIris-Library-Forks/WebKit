@@ -3985,11 +3985,9 @@
             "animation-type": "discrete",
             "initial": "normal",
             "codegen-properties": {
-                "animation-wrapper": "ContentWrapper",
-                "animation-wrapper-requires-override-parameters": [],
-                "style-builder-custom": "All",
+                "style-converter": "StyleType<Content>",
                 "style-extractor-custom": true,
-                "separator": ",",
+                "separator": " ",
                 "parser-function": "consumeContent",
                 "parser-grammar-unused": "none | normal | [ <image> | open-quote | close-quote | no-open-quote | no-close-quote | attr(<custom-ident>,<declaration-value>?) | counter(<counter-name>, <counter-style>?) | counters(<counter-name>, <string>, <counter-style>?) ]+",
                 "parser-grammar-unused-reason": "Needs support for ordered groups with a keyword/literal first term differentiator.",
@@ -11395,8 +11393,6 @@
                 "smooth"
             ],
             "codegen-properties": {
-                "style-converter": "SmoothScrolling",
-                "render-style-name-for-methods": "UseSmoothScrolling",
                 "parser-grammar": "<<values>>"
             },
             "specification": {
@@ -12164,7 +12160,7 @@
             ],
             "codegen-properties": {
                 "settings-flag": "viewTransitionsEnabled",
-                "style-converter": "ViewTransitionName",
+                "style-converter": "StyleType<ViewTransitionName>",
                 "parser-grammar": "none | auto | match-element | <custom-ident>"
             },
             "specification": {
@@ -12329,9 +12325,7 @@
                 "touch"
             ],
             "codegen-properties": {
-                "render-style-name-for-methods": "UseTouchOverflowScrolling",
-                "style-converter": "OverflowScrolling",
-                "enable-if": "ENABLE_OVERFLOW_SCROLLING_TOUCH",
+                "enable-if": "ENABLE_WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY",
                 "settings-flag": "legacyOverflowScrollingTouchEnabled",
                 "parser-grammar": "<<values>>"
             },
@@ -12387,9 +12381,7 @@
                 "none"
             ],
             "codegen-properties": {
-                "render-style-name-for-methods": "TouchCalloutEnabled",
-                "style-converter": "TouchCallout",
-                "enable-if": "WTF_PLATFORM_IOS_FAMILY",
+                "enable-if": "ENABLE_WEBKIT_TOUCH_CALLOUT_CSS_PROPERTY",
                 "parser-grammar": "<<values>>"
             },
             "status": "non-standard"

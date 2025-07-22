@@ -30,7 +30,6 @@
 #include "CSSPropertyParser.h"
 #include "CSSValuePool.h"
 #include "ColorBlending.h"
-#include "ContentData.h"
 #include "CursorList.h"
 #include "FloatRoundedRect.h"
 #include "FontCascade.h"
@@ -223,7 +222,6 @@ RenderStyle::RenderStyle(CreateDefaultStyleTag)
     m_nonInheritedFlags.useTreeCountingFunctions = false;
     m_nonInheritedFlags.hasExplicitlyInheritedProperties = false;
     m_nonInheritedFlags.disallowsFastPathInheritance = false;
-    m_nonInheritedFlags.hasContentNone = false;
     m_nonInheritedFlags.emptyState = false;
     m_nonInheritedFlags.firstChildState = false;
     m_nonInheritedFlags.lastChildState = false;
@@ -403,7 +401,6 @@ inline void RenderStyle::NonInheritedFlags::copyNonInheritedFrom(const NonInheri
     useTreeCountingFunctions = other.useTreeCountingFunctions;
     hasExplicitlyInheritedProperties = other.hasExplicitlyInheritedProperties;
     disallowsFastPathInheritance = other.disallowsFastPathInheritance;
-    hasContentNone = other.hasContentNone;
 }
 
 void RenderStyle::copyNonInheritedFrom(const RenderStyle& other)
@@ -419,9 +416,9 @@ void RenderStyle::copyNonInheritedFrom(const RenderStyle& other)
 
 void RenderStyle::copyContentFrom(const RenderStyle& other)
 {
-    if (!other.m_nonInheritedData->miscData->content)
+    if (!other.m_nonInheritedData->miscData->content.isData())
         return;
-    m_nonInheritedData.access().miscData.access().content = other.m_nonInheritedData->miscData->content->clone();
+    m_nonInheritedData.access().miscData.access().content = other.m_nonInheritedData->miscData->content;
 }
 
 void RenderStyle::copyPseudoElementsFrom(const RenderStyle& other)
@@ -961,8 +958,8 @@ static bool rareInheritedDataChangeRequiresLayout(const StyleRareInheritedData& 
         || first.lineAlign != second.lineAlign
         || first.hangingPunctuation != second.hangingPunctuation
         || first.usedContentVisibility != second.usedContentVisibility
-#if ENABLE(OVERFLOW_SCROLLING_TOUCH)
-        || first.useTouchOverflowScrolling != second.useTouchOverflowScrolling
+#if ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
+        || first.webkitOverflowScrolling != second.webkitOverflowScrolling
 #endif
         || first.listStyleType != second.listStyleType
         || first.listStyleImage != second.listStyleImage
@@ -1959,7 +1956,7 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyTransformStyle);
         if (first.backfaceVisibility != second.backfaceVisibility)
             changingProperties.m_properties.set(CSSPropertyBackfaceVisibility);
-        if (first.useSmoothScrolling != second.useSmoothScrolling)
+        if (first.scrollBehavior != second.scrollBehavior)
             changingProperties.m_properties.set(CSSPropertyScrollBehavior);
         if (first.textDecorationStyle != second.textDecorationStyle)
             changingProperties.m_properties.set(CSSPropertyTextDecorationStyle);
@@ -2187,7 +2184,7 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
         // hyphenationLimitLines
         // tapHighlightColor
         // nbspMode
-        // useTouchOverflowScrolling
+        // webkitOverflowScrolling
         // textSizeAdjust
         // userSelect
         // isInSubtreeWithBlendMode
@@ -2203,7 +2200,7 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
         // speakAs
         // textCombine
         // lineBoxContain
-        // touchCalloutEnabled
+        // webkitTouchCallout
         // lineGrid
         // textZoom
         // lineSnap
@@ -2279,83 +2276,6 @@ void RenderStyle::clearCursorList()
 {
     if (m_rareInheritedData->cursorData)
         m_rareInheritedData.access().cursorData = nullptr;
-}
-
-void RenderStyle::clearContent()
-{
-    if (m_nonInheritedData->miscData->content)
-        m_nonInheritedData.access().miscData.access().content = nullptr;
-}
-
-static inline ContentData& lastContent(ContentData& firstContent)
-{
-    auto* lastContent = &firstContent;
-    for (auto* content = &firstContent; content; content = content->next())
-        lastContent = content;
-    return *lastContent;
-}
-
-void RenderStyle::setContent(std::unique_ptr<ContentData> contentData, bool add)
-{
-    auto& data = m_nonInheritedData.access().miscData.access();
-    if (add && data.content)
-        lastContent(*data.content).setNext(WTFMove(contentData));
-    else {
-        data.content = WTFMove(contentData);
-        auto& altText = data.altText;
-        if (!altText.isNull())
-            data.content->setAltText(altText);
-    }
-}
-
-void RenderStyle::setContent(RefPtr<StyleImage>&& image, bool add)
-{
-    if (!image)
-        return;
-    setContent(makeUnique<ImageContentData>(image.releaseNonNull()), add);
-}
-
-void RenderStyle::setContent(const String& string, bool add)
-{
-    auto& data = m_nonInheritedData.access().miscData.access();
-    if (add && data.content)
-        lastContent(*data.content).setNext(makeUnique<TextContentData>(string));
-    else {
-        data.content = makeUnique<TextContentData>(string);
-        auto& altText = data.altText;
-        if (!altText.isNull())
-            data.content->setAltText(altText);
-    }
-}
-
-void RenderStyle::setContent(std::unique_ptr<CounterContent> counter, bool add)
-{
-    if (!counter)
-        return;
-    setContent(makeUnique<CounterContentData>(WTFMove(counter)), add);
-}
-
-void RenderStyle::setContent(QuoteType quote, bool add)
-{
-    setContent(makeUnique<QuoteContentData>(quote), add);
-}
-
-void RenderStyle::setContentAltText(const String& string)
-{
-    auto& data = m_nonInheritedData.access().miscData.access();
-    data.altText = string;
-    if (data.content)
-        data.content->setAltText(string);
-}
-
-const String& RenderStyle::contentAltText() const
-{
-    return m_nonInheritedData->miscData->altText;
-}
-
-void RenderStyle::setHasAttrContent()
-{
-    SET_NESTED_VAR(m_nonInheritedData, miscData, hasAttrContent, true);
 }
 
 bool RenderStyle::affectedByTransformOrigin() const
@@ -3895,7 +3815,6 @@ void RenderStyle::NonInheritedFlags::dumpDifferences(TextStream& ts, const NonIn
     LOG_IF_DIFFERENT(usesViewportUnits);
     LOG_IF_DIFFERENT(usesContainerUnits);
     LOG_IF_DIFFERENT(useTreeCountingFunctions);
-    LOG_IF_DIFFERENT(hasContentNone);
 
     LOG_IF_DIFFERENT_WITH_CAST(TextDecorationLine, textDecorationLine);
 

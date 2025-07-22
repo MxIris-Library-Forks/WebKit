@@ -217,6 +217,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/style/values/lists"
     "${WEBCORE_DIR}/style/values/masking"
     "${WEBCORE_DIR}/style/values/motion"
+    "${WEBCORE_DIR}/style/values/non-standard"
     "${WEBCORE_DIR}/style/values/overflow"
     "${WEBCORE_DIR}/style/values/position"
     "${WEBCORE_DIR}/style/values/primitives"
@@ -1475,6 +1476,7 @@ set(WebCore_NON_SVG_IDL_FILES
     page/DOMWindow+Selection.idl
     page/DOMWindow+VisualViewport.idl
     page/DOMWindow.idl
+    page/EventCounts.idl
     page/EventSource.idl
     page/FragmentDirective.idl
     page/GetComposedRangesOptions.idl
@@ -1503,12 +1505,14 @@ set(WebCore_NON_SVG_IDL_FILES
     page/NavigatorServiceWorker.idl
     page/NavigatorShare.idl
     page/NavigatorStorage.idl
+    page/Performance+EventCounts.idl
     page/Performance+NavigationTiming.idl
     page/Performance+PerformanceTimeline.idl
     page/Performance+ResourceTiming.idl
     page/Performance+UserTiming.idl
     page/Performance.idl
     page/PerformanceEntry.idl
+    page/PerformanceEventTiming.idl
     page/PerformanceMark.idl
     page/PerformanceMarkOptions.idl
     page/PerformanceMeasure.idl

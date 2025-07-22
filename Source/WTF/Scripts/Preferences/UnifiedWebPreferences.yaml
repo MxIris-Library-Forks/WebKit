@@ -2675,6 +2675,20 @@ EventHandlerDrivenSmoothKeyboardScrollingEnabled:
     WebCore:
       default: false
 
+EventTimingEnabled:
+  type: bool
+  status: testable
+  category: dom
+  humanReadableName: "Event Timing API"
+  humanReadableDescription: "Enable the Event Timing API and supporting instrumentation"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 ExperimentalSandboxEnabled:
   type: bool
   status: internal
@@ -4187,7 +4201,7 @@ LegacyOverflowScrollingTouchEnabled:
   webcoreOnChange: setNeedsRelayoutAllFrames
   humanReadableName: "Legacy -webkit-overflow-scrolling property"
   humanReadableDescription: "Support the legacy -webkit-overflow-scrolling CSS property"
-  condition: ENABLE(OVERFLOW_SCROLLING_TOUCH)
+  condition: ENABLE(WEBKIT_OVERFLOW_SCROLLING_CSS_PROPERTY)
   defaultValue:
     WebKitLegacy:
       default: true
@@ -5241,6 +5255,19 @@ NavigationAPIEnabled:
   category: dom
   humanReadableName: "Navigation API"
   humanReadableDescription: "Enable Navigation API"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
+NavigatorUserAgentDataJavaScriptAPIEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  humanReadableName: "Enable the navigator.userAgentData JavaScript API"
   defaultValue:
     WebKitLegacy:
       default: false

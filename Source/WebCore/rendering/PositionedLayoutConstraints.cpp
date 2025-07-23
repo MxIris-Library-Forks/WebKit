@@ -79,6 +79,7 @@ PositionedLayoutConstraints::PositionedLayoutConstraints(const RenderBox& render
     , m_insetBefore { 0_css_px }
     , m_insetAfter { 0_css_px }
 {
+    ASSERT(m_container);
 
     // Compute basic containing block info.
     auto containingInlineSize = renderer.containingBlockLogicalWidthForPositioned(*m_container, false);
@@ -193,6 +194,21 @@ void PositionedLayoutConstraints::captureGridArea()
     }
 }
 
+LayoutRange PositionedLayoutConstraints::extractRange(LayoutRect anchorRect)
+{
+    LayoutRange anchorRange;
+    if (BoxAxis::Horizontal == m_physicalAxis)
+        anchorRange.set(anchorRect.x(), anchorRect.width());
+    else
+        anchorRange.set(anchorRect.y(), anchorRect.height());
+
+    if (m_containingWritingMode.isBlockFlipped() && LogicalBoxAxis::Block == m_containingAxis) {
+        // Coordinate fixup for flipped blocks.
+        anchorRange.moveTo(m_containingRange.max() - anchorRange.max() + m_container->borderAfter());
+    }
+    return anchorRange;
+}
+
 void PositionedLayoutConstraints::captureAnchorGeometry()
 {
     if (!m_defaultAnchorBox)
@@ -200,14 +216,7 @@ void PositionedLayoutConstraints::captureAnchorGeometry()
 
     // Store the anchor geometry.
     LayoutRect anchorRect = Style::AnchorPositionEvaluator::computeAnchorRectRelativeToContainingBlock(*m_defaultAnchorBox, *m_renderer->containingBlock());
-    if (BoxAxis::Horizontal == m_physicalAxis)
-        m_anchorArea.set(anchorRect.x(), anchorRect.width());
-    else
-        m_anchorArea.set(anchorRect.y(), anchorRect.height());
-    if (m_containingWritingMode.isBlockFlipped() && LogicalBoxAxis::Block == m_containingAxis) {
-        // Coordinate fixup for flipped blocks.
-        m_anchorArea.moveTo(m_containingRange.max() - m_anchorArea.max() + m_container->borderAfter());
-    }
+    m_anchorArea = extractRange(anchorRect);
 
     // Adjust containing block for position-area.
     if (!m_style.positionArea())
@@ -266,6 +275,32 @@ LayoutRange PositionedLayoutConstraints::adjustForPositionArea(const LayoutRange
 
 // MARK: - Resolving margins and alignment (after sizing).
 
+bool PositionedLayoutConstraints::isEligibleForStaticRangeAlignment() const
+{
+
+    if (m_containingAxis == LogicalBoxAxis::Inline)
+        return false;
+
+    auto* parent = m_renderer->parent();
+
+    if (parent->isRenderBlockFlow())
+        return false;
+
+    if (parent->style().isDisplayInlineType())
+        return false;
+
+    if (parent->isRenderFlexibleBox())
+        return false;
+
+    if (parent->isRenderGrid())
+        return false;
+
+    // We can hit this in certain pieces of content (e.g. see mathml/crashtests/fixed-pos-children.html),
+    // but the spec has no definition for a static position rectangle.
+    return false;
+
+}
+
 void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComputedValues& computedValues) const
 {
     // Static position should have resolved one of our insets by now.
@@ -313,6 +348,13 @@ void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComput
         // Align into remaining space.
         if (!hasAutoBeforeInset && !hasAutoAfterInset && !hasAutoBeforeMargin && !hasAutoAfterMargin && remainingSpace)
             return resolveAlignmentShift(remainingSpace, computedValues.m_extent + usedMarginBefore + usedMarginAfter);
+
+        if (m_useStaticPosition) {
+            if (isEligibleForStaticRangeAlignment()) {
+                ASSERT_NOT_IMPLEMENTED_YET();
+                return { };
+            }
+        }
 
         if (hasAutoBeforeInset)
             return remainingSpace;

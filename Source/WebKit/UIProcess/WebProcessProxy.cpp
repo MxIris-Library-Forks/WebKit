@@ -1333,7 +1333,7 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
         remotePage->processDidTerminate(*this, reason);
 }
 
-void WebProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName, int32_t indexOfObjectFailingDecoding)
+void WebProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName, const Vector<uint32_t>& indexOfObjectFailingDecoding)
 {
     logInvalidMessage(connection, messageName);
 
@@ -2238,7 +2238,7 @@ void WebProcessProxy::didStartUsingProcessForSiteIsolation(const std::optional<W
         m_site = makeUnexpected(SiteState::SharedProcess);
         return;
     }
-    ASSERT((m_site && m_site == *site) || m_site.error() == SiteState::NotYetSpecified);
+    ASSERT(m_site ? (m_site.value().isEmpty() || m_site.value() == *site) : m_site.error() == SiteState::NotYetSpecified);
     m_site = *site;
 }
 

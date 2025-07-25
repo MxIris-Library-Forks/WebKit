@@ -4292,8 +4292,7 @@
                 }
             ],
             "codegen-properties": {
-                "style-builder-custom": "All",
-                "style-extractor-custom": true,
+                "style-converter": "StyleType<Cursor>",
                 "parser-function": "consumeCursor",
                 "parser-grammar-unused": "[ [ <url> [ <x> <y> ]? ]#{0,} [ <<values>> ] ]",
                 "parser-grammar-unused-reason": "Needs support for different parsing based on the current mode."
@@ -10811,7 +10810,7 @@
                 "line-through",
                 {
                     "value": "blink",
-                    "comment": "The value is parsed but ignored for rendering and computed style."
+                    "comment": "The value is parsed and computed but ignored for rendering."
                 }
             ],
             "codegen-properties": {

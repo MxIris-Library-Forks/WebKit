@@ -63,7 +63,6 @@
 #include "CSSValuePool.h"
 #include "CSSViewValue.h"
 #include "ContainerNodeInlines.h"
-#include "CursorList.h"
 #include "DocumentInlines.h"
 #include "FontCascade.h"
 #include "FontSelectionValueInlines.h"
@@ -1013,6 +1012,8 @@ inline Ref<CSSValue> ExtractorConverter::convertTextDecorationLine(ExtractorStat
         list.append(CSSPrimitiveValue::create(CSSValueOverline));
     if (textDecorationLine & TextDecorationLine::LineThrough)
         list.append(CSSPrimitiveValue::create(CSSValueLineThrough));
+    if (textDecorationLine & TextDecorationLine::Blink)
+        list.append(CSSPrimitiveValue::create(CSSValueBlink));
     if (list.isEmpty())
         return CSSPrimitiveValue::create(CSSValueNone);
     return CSSValueList::createSpaceSeparated(WTFMove(list));

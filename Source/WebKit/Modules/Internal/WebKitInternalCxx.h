@@ -23,29 +23,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
-#import "CoreIPCPKPaymentSetupFeature.h"
+// Add project-level C++ header files here to be able to access them from within Swift sources.
 
-#if USE(PASSKIT)
-
-#import <wtf/RuntimeApplicationChecks.h>
-#import <wtf/cocoa/VectorCocoa.h>
-
-#import <pal/cocoa/PassKitSoftLink.h>
-
-namespace WebKit {
-
-CoreIPCPKPaymentSetupFeature::CoreIPCPKPaymentSetupFeature(PKPaymentSetupFeature *feature)
-    : m_data(makeVector([NSKeyedArchiver archivedDataWithRootObject:feature requiringSecureCoding:YES error:nil])) { }
-
-RetainPtr<id> CoreIPCPKPaymentSetupFeature::toID() const
-{
-    if (!isInWebProcess())
-        return nil;
-    RetainPtr data = toNSDataNoCopy(m_data.span(), FreeWhenDone::No);
-    return [NSKeyedUnarchiver unarchivedObjectOfClass:PAL::getPKPaymentSetupFeatureClass() fromData:data.get() error:nil];
-}
-
-} // namespace WebKit
-
-#endif // USE(PASSKIT)
+#import <wtf/Platform.h>

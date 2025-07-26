@@ -2566,7 +2566,7 @@ static WebCore::FloatPoint constrainContentOffset(WebCore::FloatPoint contentOff
     [self _scheduleVisibleContentRectUpdateAfterScrollInView:scrollView];
 
 #if ENABLE(MODEL_PROCESS)
-    [_contentView _setWebViewTransform3DForModel:[scrollView zoomScale]];
+    [self _setWebViewTransform3DForModel:[scrollView zoomScale]];
 #endif
 }
 
@@ -4222,6 +4222,13 @@ static bool isLockdownModeWarningNeeded()
 {
     [_contentView _willInvalidateDraggedModelWithContainerView:containerView];
 }
+
+- (void)_setWebViewTransform3DForModel:(CGFloat)newScale
+{
+    CATransform3D newTransform = self.transform3D;
+    newTransform.m33 = newScale;
+    self.transform3D = newTransform;
+}
 #endif
 
 #if HAVE(UI_CONVERSATION_CONTEXT)
@@ -5313,7 +5320,6 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
         return;
     }
 
-    _page->setPlayerIdentifierForVideoElement();
     _page->enterExternalPlaybackForNowPlayingMediaSession([handler = makeBlockPtr(enterHandler)](bool entered, UIViewController *viewController) {
         if (entered)
             handler(viewController, nil);

@@ -56,7 +56,6 @@ OBJC_CLASS NSView;
 
 namespace WebCore {
 
-class AccessibilityObject;
 class IntPoint;
 class IntSize;
 class ScrollableArea;
@@ -362,6 +361,7 @@ public:
     String title() const override { return { }; }
     String description() const override { return { }; }
     virtual String helpText() const { return { }; }
+    String altTextFromAttributeOrStyle() const;
 
     std::optional<String> textContent() const final;
     bool hasTextContent() const;
@@ -427,7 +427,7 @@ public:
 
     String ariaRoleDescription() const final { return getAttributeTrimmed(HTMLNames::aria_roledescriptionAttr); };
 
-    AXObjectCache* axObjectCache() const override;
+    AXObjectCache* axObjectCache() const;
 
     static AccessibilityObject* anchorElementForNode(Node&);
     static AccessibilityObject* headingElementForNode(Node*);
@@ -873,7 +873,7 @@ public:
     }; // class iterator
 
 protected:
-    explicit AccessibilityObject(AXID);
+    explicit AccessibilityObject(AXID, AXObjectCache&);
 
     // FIXME: Make more of these member functions private.
 
@@ -932,6 +932,7 @@ private:
 protected: // FIXME: Make the data members private.
     AccessibilityChildrenVector m_children;
 private:
+    const WeakPtr<AXObjectCache> m_axObjectCache;
 #if PLATFORM(IOS_FAMILY)
     InlineTextPrediction m_lastPresentedTextPrediction;
     InlineTextPrediction m_lastPresentedTextPredictionComplete;

@@ -2205,7 +2205,8 @@
    },
    {
       "emails" : [
-         "d_degazio@apple.com"
+         "d_degazio@apple.com",
+         "david.degazio@gmail.com"
       ],
       "github" : "ddegazio",
       "name" : "David Degazio",
@@ -8270,6 +8271,13 @@
       ],
       "github" : "ast-hugger",
       "name" : "Vassili Bykov"
+   },
+   {
+      "emails" : [
+         "v_periwal@apple.com"
+      ],
+      "github" : "vedaperi",
+      "name" : "Veda Periwal"
    },
    {
       "emails" : [

@@ -168,6 +168,9 @@ enum LinearMediaPlayerErrors: Error {
     @nonobjc private var enterFullscreenCompletionHandler: ((Bool, (any Error)?) -> Void)?
     @nonobjc private var exitFullscreenCompletionHandler: ((Bool, (any Error)?) -> Void)?
 
+    @nonobjc
+    private var enterExternalCompletionHandler: ((Bool, (any Error)?) -> Void)?
+
     @nonobjc private var swiftOnlyData: SwiftOnlyData
     @nonobjc private var cancellables: [AnyCancellable] = []
 
@@ -207,30 +210,52 @@ enum LinearMediaPlayerErrors: Error {
         return viewController
     }
 
-    func enterExternalPresentation(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
+    func enterExternalPlayback(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
         Logger.linearMediaPlayer.log("\(#function)(\(self.logIdentifier, privacy: .public))")
 
         switch presentationState {
-        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .external:
+        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .enteringExternal, .external:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
         case .inline:
-            contentType = .planar
-            showsPlaybackControls = true
-            swiftOnlyData.fullscreenBehaviorsSubject.send([ .hostContentInline ])
-            swiftOnlyData.presentationState = .external
-            contentOverlay = .init(frame: .zero)
-            completionHandler(true, nil)
+            enterExternalCompletionHandler = completionHandler
+            swiftOnlyData.presentationState = .enteringExternal
         @unknown default:
             fatalError()
         }
     }
 
-    func exitExternalPresentation(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
+    func completeEnterExternalPlayback() {
+        Logger.linearMediaPlayer.log("\(#function)(\(self.logIdentifier, privacy: .public))")
+
+        let completionHandler = enterExternalCompletionHandler
+        enterExternalCompletionHandler = nil
+
+        switch presentationState {
+        case .enteringExternal:
+            contentType = .planar
+            showsPlaybackControls = true
+            swiftOnlyData.fullscreenBehaviorsSubject.send([ .hostContentInline ])
+            swiftOnlyData.presentationState = .external
+            contentOverlay = .init(frame: .zero)
+            completionHandler?(true, nil)
+        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .external, .inline:
+            completionHandler?(false, nil)
+        @unknown default:
+            fatalError()
+        }
+    }
+
+    func exitExternalPlayback(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
         Logger.linearMediaPlayer.log("\(#function)(\(self.logIdentifier, privacy: .public))")
 
         switch presentationState {
         case .enteringFullscreen, .exitingFullscreen, .fullscreen, .inline:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
+        case .enteringExternal:
+            swiftOnlyData.presentationState = .inline
+            enterExternalCompletionHandler?(false, nil)
+            enterExternalCompletionHandler = nil
+            completionHandler(true, nil)
         case .external:
             delegate?.linearMediaPlayerClearVideoReceiverEndpoint?(self)
             swiftOnlyData.presentationState = .inline
@@ -261,7 +286,7 @@ enum LinearMediaPlayerErrors: Error {
             swiftOnlyData.presentationState = .fullscreen
         case .fullscreen:
             completionHandler(true, nil)
-        case .external:
+        case .enteringExternal, .external:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
         @unknown default:
             fatalError()
@@ -283,7 +308,7 @@ enum LinearMediaPlayerErrors: Error {
             swiftOnlyData.presentationState = .inline
         case .inline:
             completionHandler(true, nil)
-        case .external:
+        case .enteringExternal, .external:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
         @unknown default:
             fatalError()
@@ -300,6 +325,8 @@ extension WKSLinearMediaPlayer {
             swiftOnlyData.presentationMode = .inline
         case .enteringFullscreen:
             delegate?.linearMediaPlayerEnterFullscreen?(self)
+        case .enteringExternal:
+            break
         case .fullscreen, .external:
             swiftOnlyData.presentationMode = .fullscreenFromInline
         case .exitingFullscreen:
@@ -312,15 +339,24 @@ extension WKSLinearMediaPlayer {
     private func maybeCreateSpatialOrImmersiveEntity() {
         if swiftOnlyData.peculiarEntity != nil || contentType == .immersive { return }
         if swiftOnlyData.isImmersiveVideo {
+            Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): isImmersiveVideo; setting contentType = .immersive")
             contentType = .immersive
             return
         }
         if swiftOnlyData.enteredFromInline || swiftOnlyData.spatialVideoMetadata == nil {
+            if swiftOnlyData.enteredFromInline {
+                Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): enteredFromInline; setting contentType = .planar")
+            } else {
+                Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): !spatialVideoMetadata; setting contentType = .planar")
+            }
+
             contentType = .planar
             return
         }
         let metadata = swiftOnlyData.spatialVideoMetadata!
         swiftOnlyData.peculiarEntity = ContentType.makeSpatialEntity(videoMetadata: metadata.metadata, extruded: true)
+        Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): spatialVideoMetadata; making peculiar spatial entity")
+
         swiftOnlyData.peculiarEntity?.screenMode = spatialImmersive ? .immersive : .portal
 // FIXME (147782145): Define a clang module for XPC to be used in Public SDK builds
 #if canImport(XPC)
@@ -334,10 +370,12 @@ extension WKSLinearMediaPlayer {
 
     private func maybeClearSpatialOrImmersiveEntity() {
         if swiftOnlyData.isImmersiveVideo && contentType == .immersive {
+            Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): isImmersiveVideo; setting contentType = .none")
             contentType = .none
             return
         }
         if swiftOnlyData.peculiarEntity == nil { return }
+        Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): clearing peculiarEntity; setting contentType = .none")
         swiftOnlyData.videoReceiverEndpointObserver = nil
         swiftOnlyData.peculiarEntity = nil
         contentType = .none // this causes a call to makeDefaultEntity
@@ -720,7 +758,7 @@ extension WKSLinearMediaPlayer {
             swiftOnlyData.presentationState = .enteringFullscreen
         case .fullscreen:
             swiftOnlyData.presentationState = .exitingFullscreen
-        case .enteringFullscreen, .exitingFullscreen, .external:
+        case .enteringFullscreen, .exitingFullscreen, .enteringExternal, .external:
             break
         @unknown default:
             fatalError()
@@ -734,7 +772,7 @@ extension WKSLinearMediaPlayer {
         case .inline:
             swiftOnlyData.enteredFromInline = true
             swiftOnlyData.presentationState = .enteringFullscreen
-        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .external:
+        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .enteringExternal, .external:
             break
         @unknown default:
             fatalError()
@@ -761,7 +799,7 @@ extension WKSLinearMediaPlayer {
         switch presentationState {
         case .fullscreen:
             swiftOnlyData.presentationState = .exitingFullscreen
-        case .inline, .enteringFullscreen, .exitingFullscreen, .external:
+        case .inline, .enteringFullscreen, .exitingFullscreen, .enteringExternal, .external:
             break
         @unknown default:
             fatalError()
@@ -785,18 +823,22 @@ extension WKSLinearMediaPlayer {
     }
 
     public func makeDefaultEntity() -> Entity? {
-        Logger.linearMediaPlayer.log("\(#function)(\(self.logIdentifier, privacy: .public))")
-
         // This gets called from maybeCreateSpatialOrImmersiveEntity through the KVO when setting
         // peculiarEntity. As such, we can't check if the peculiarEntity is set or not.
         // We will return nil here on the first call and will get call back again once
         // peculiarEntity is set.
-        if swiftOnlyData.spatialVideoMetadata != nil && !swiftOnlyData.enteredFromInline && swiftOnlyData.presentationState != .external {
+        if !swiftOnlyData.isImmersiveVideo
+            && swiftOnlyData.spatialVideoMetadata != nil
+            && !swiftOnlyData.enteredFromInline
+            && swiftOnlyData.presentationState != .external
+        {
+            Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): returning peculiarEntity")
             return swiftOnlyData.peculiarEntity
         }
         if let captionLayer {
             let entity = ContentType.makeEntity(captionLayer: captionLayer)
             swiftOnlyData.defaultEntity = entity
+            Logger.linearMediaPlayer.log("\(#function)\(self.logIdentifier, privacy: .public): returning new captionLayer entity")
             return entity
         }
 

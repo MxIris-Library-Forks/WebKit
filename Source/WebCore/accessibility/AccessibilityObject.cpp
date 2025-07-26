@@ -118,8 +118,9 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-AccessibilityObject::AccessibilityObject(AXID axID)
+AccessibilityObject::AccessibilityObject(AXID axID, AXObjectCache& cache)
     : AXCoreObject(axID)
+    , m_axObjectCache(cache)
 {
 }
 
@@ -1200,6 +1201,19 @@ Vector<String> AccessibilityObject::performTextOperation(const AccessibilityText
     }
 
     return result;
+}
+
+String AccessibilityObject::altTextFromAttributeOrStyle() const
+{
+    const auto& alt = getAttribute(altAttr);
+    if (!alt.isNull()) {
+        // Note that !isNull() is explicitly chosen over !isEmpty(), as alt="" is a meaningful value
+        // and should be respected.
+        return alt;
+    }
+
+    CheckedPtr style = this->style();
+    return style ? style->altFromContent() : nullString();
 }
 
 bool AccessibilityObject::isARIAInput(AccessibilityRole ariaRole)
@@ -3122,12 +3136,6 @@ AccessibilityObject* AccessibilityObject::elementAccessibilityHitTest(const IntP
     return const_cast<AccessibilityObject*>(this);
 }
     
-AXObjectCache* AccessibilityObject::axObjectCache() const
-{
-    RefPtr document = this->document();
-    return document ? document->axObjectCache() : nullptr;
-}
-
 CommandType AccessibilityObject::commandType() const
 {
     return CommandType::Invalid;

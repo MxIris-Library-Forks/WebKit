@@ -2210,6 +2210,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageBufferBackend.h
     platform/graphics/ImageBufferBackendParameters.h
     platform/graphics/ImageBufferDisplayListBackend.h
+    platform/graphics/ImageBufferFormat.h
     platform/graphics/ImageBufferPixelFormat.h
     platform/graphics/ImageBufferPlatformBackend.h
     platform/graphics/ImageBufferResourceLimits.h
@@ -2798,6 +2799,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/inline/StyleLineBoxContain.h
 
+    style/values/line-grid/StyleWebKitLineGrid.h
+
     style/values/lists/StyleListStyleType.h
 
     style/values/masking/StyleClip.h
@@ -2814,6 +2817,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/non-standard/StyleWebKitTouchCallout.h
 
     style/values/overflow/StyleBlockEllipsis.h
+    style/values/overflow/StyleMaximumLines.h
     style/values/overflow/StyleScrollBehavior.h
     style/values/overflow/StyleScrollbarGutter.h
 
@@ -2831,6 +2835,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/primitives/StyleRatio.h
     style/values/primitives/StyleURL.h
     style/values/primitives/StyleUnevaluatedCalculation.h
+
+    style/values/rhythm/StyleBlockStepSize.h
 
     style/values/scroll-animations/StyleProgressTimelineAxes.h
     style/values/scroll-animations/StyleProgressTimelineName.h
@@ -2867,6 +2873,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/svg/StyleSVGPaint.h
 
+    style/values/text/StyleHyphenateCharacter.h
+    style/values/text/StyleHyphenateLimitEdge.h
+    style/values/text/StyleHyphenateLimitLines.h
     style/values/text/StyleTextIndent.h
 
     style/values/text-decoration/StyleTextDecorationThickness.h

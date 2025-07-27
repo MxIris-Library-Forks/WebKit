@@ -214,6 +214,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/style/values/grid"
     "${WEBCORE_DIR}/style/values/images"
     "${WEBCORE_DIR}/style/values/inline"
+    "${WEBCORE_DIR}/style/values/line-grid"
     "${WEBCORE_DIR}/style/values/lists"
     "${WEBCORE_DIR}/style/values/masking"
     "${WEBCORE_DIR}/style/values/motion"
@@ -221,6 +222,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/style/values/overflow"
     "${WEBCORE_DIR}/style/values/position"
     "${WEBCORE_DIR}/style/values/primitives"
+    "${WEBCORE_DIR}/style/values/rhythm"
     "${WEBCORE_DIR}/style/values/scroll-animations"
     "${WEBCORE_DIR}/style/values/scroll-snap"
     "${WEBCORE_DIR}/style/values/scrollbars"
@@ -1506,6 +1508,9 @@ set(WebCore_NON_SVG_IDL_FILES
     page/NavigatorServiceWorker.idl
     page/NavigatorShare.idl
     page/NavigatorStorage.idl
+    page/NavigatorUA.idl
+    page/NavigatorUABrandVersion.idl
+    page/NavigatorUAData.idl
     page/Performance+EventCounts.idl
     page/Performance+NavigationTiming.idl
     page/Performance+PerformanceTimeline.idl
@@ -1543,6 +1548,8 @@ set(WebCore_NON_SVG_IDL_FILES
     page/ShadowRealmGlobalScope.idl
     page/ShareData.idl
     page/StructuredSerializeOptions.idl
+    page/UADataValues.idl
+    page/UALowEntropyJSON.idl
     page/UndoItem.idl
     page/UndoManager.idl
     page/VisualViewport.idl

@@ -1349,6 +1349,7 @@ dom/SecurityContext.cpp
 dom/SecurityOriginPolicy.cpp
 dom/SecurityPolicyViolationEvent.cpp
 dom/SelectorQuery.cpp
+dom/SerializedNode.cpp
 dom/ShadowRoot.cpp
 dom/SimpleRange.cpp
 dom/SimulatedClick.cpp
@@ -2148,6 +2149,7 @@ page/NavigationTransition.cpp
 page/Navigator.cpp
 page/NavigatorBase.cpp
 page/NavigatorLoginStatus.cpp
+page/NavigatorUAData.cpp
 page/OpportunisticTaskScheduler.cpp
 page/OriginAccessEntry.cpp
 page/OriginAccessPatterns.cpp
@@ -3205,6 +3207,7 @@ style/values/primitives/StylePrimitiveNumericTypes+Conversions.cpp
 style/values/primitives/StyleRatio.cpp
 style/values/primitives/StyleURL.cpp
 style/values/primitives/StyleUnevaluatedCalculation.cpp
+style/values/rhythm/StyleBlockStepSize.cpp
 style/values/scroll-animations/StyleProgressTimelineName.cpp
 style/values/scroll-animations/StyleViewTimelineInsets.cpp
 style/values/scroll-snap/StyleScrollMargin.cpp
@@ -4302,6 +4305,9 @@ JSNavigationTransition.cpp
 JSNavigationNavigationType.cpp
 JSNavigator.cpp
 JSNavigatorGPU.cpp
+JSNavigatorUA.cpp
+JSNavigatorUABrandVersion.cpp
+JSNavigatorUAData.cpp
 JSNode.cpp
 JSNodeFilter.cpp
 JSCustomXPathNSResolver.cpp
@@ -4818,6 +4824,8 @@ JSCSSUnitValue.cpp
 JSCSSUnparsedValue.cpp
 JSFragmentDirective.cpp
 JSFullscreenOptions.cpp
+JSUADataValues.cpp
+JSUALowEntropyJSON.cpp
 JSUIEvent.cpp
 JSUIEventInit.cpp
 JSURLPattern.cpp

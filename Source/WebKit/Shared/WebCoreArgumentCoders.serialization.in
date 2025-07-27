@@ -2616,6 +2616,13 @@ enum class WebCore::PixelFormat : uint8_t {
 #endif
 };
 
+enum class WebCore::UseLosslessCompression : bool;
+
+[AdditionalEncoder=StreamConnectionEncoder] struct WebCore::ImageBufferFormat {
+    WebCore::ImageBufferPixelFormat pixelFormat;
+    WebCore::UseLosslessCompression useLosslessCompression;
+};
+
 enum class WebCore::ImageBufferPixelFormat : uint8_t {
     BGRX8,
     BGRA8,
@@ -5013,7 +5020,7 @@ header: <WebCore/ImageBuffer.h>
     WebCore::FloatSize logicalSize;
     float resolutionScale;
     WebCore::DestinationColorSpace colorSpace
-    WebCore::ImageBufferPixelFormat pixelFormat;
+    WebCore::ImageBufferFormat bufferFormat;
     WebCore::RenderingPurpose purpose;
 };
 
@@ -9223,6 +9230,9 @@ header: <WebCore/ScriptTrackingPrivacyCategory.h>
     FormControls,
 };
 
+[Nested] struct WebCore::SerializedNode::ContainerNode {
+    Vector<WebCore::SerializedNode> children;
+};
 [Nested] struct WebCore::SerializedNode::Attr {
     String prefix;
     String localName;
@@ -9232,16 +9242,29 @@ header: <WebCore/ScriptTrackingPrivacyCategory.h>
 [Nested] struct WebCore::SerializedNode::CharacterData {
     String data;
 };
-[Nested] struct WebCore::SerializedNode::Document {
+[Nested] struct WebCore::SerializedNode::Document : WebCore::SerializedNode::ContainerNode {
+    WebCore::ClonedDocumentType type;
+    URL url;
+    URL baseURL;
+    URL baseURLOverride;
+    Variant<String, URL> documentURI;
+    String contentType;
 };
-[Nested] struct WebCore::SerializedNode::DocumentFragment {
+[Nested] enum class WebCore::ClonedDocumentType : uint8_t {
+    XMLDocument,
+    XHTMLDocument,
+    HTMLDocument,
+    SVGDocument,
+    Document
+};
+[Nested] struct WebCore::SerializedNode::DocumentFragment : WebCore::SerializedNode::ContainerNode {
 };
 [Nested] struct WebCore::SerializedNode::DocumentType {
     String name;
     String publicId;
     String systemId;
 };
-[Nested] struct WebCore::SerializedNode::Element {
+[Nested] struct WebCore::SerializedNode::Element : WebCore::SerializedNode::ContainerNode {
 };
 [Nested] struct WebCore::SerializedNode::Comment : WebCore::SerializedNode::CharacterData {
 };
@@ -9252,9 +9275,9 @@ header: <WebCore/ScriptTrackingPrivacyCategory.h>
 [Nested] struct WebCore::SerializedNode::ProcessingInstruction : WebCore::SerializedNode::CharacterData {
     String target;
 };
-[Nested] struct WebCore::SerializedNode::ShadowRoot {
+[Nested] struct WebCore::SerializedNode::ShadowRoot : WebCore::SerializedNode::DocumentFragment {
 };
-[Nested] struct WebCore::SerializedNode::HTMLTemplateElement {
+[Nested] struct WebCore::SerializedNode::HTMLTemplateElement : WebCore::SerializedNode::Element {
 };
 
 struct WebCore::SerializedNode {

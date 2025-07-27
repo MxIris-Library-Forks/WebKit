@@ -587,7 +587,8 @@ private:
     void verifyChildrenIndexInParent() const final { return AXCoreObject::verifyChildrenIndexInParent(m_children); }
 #endif
 
-    Vector<AXID> m_childrenIDs;
+    // IDs that haven't been resolved into actual objects in m_children.
+    FixedVector<AXID> m_unresolvedChildrenIDs;
     Vector<Ref<AXCoreObject>> m_children;
     AXPropertyVector m_properties;
 
@@ -596,9 +597,6 @@ private:
     Markable<AXID> m_parentID;
 
     OptionSet<AXPropertyFlag> m_propertyFlags;
-    // Some objects (e.g. display:contents) form their geometry through their children.
-    bool m_getsGeometryFromChildren { false };
-    bool m_childrenDirty { true };
 
 #if !PLATFORM(COCOA)
     PlatformWidget m_platformWidget;

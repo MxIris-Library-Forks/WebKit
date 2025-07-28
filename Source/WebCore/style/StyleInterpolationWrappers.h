@@ -126,11 +126,11 @@ private:
 
 // MARK: - Typed Wrappers
 
-template<typename StyleType>
+template<typename T, typename GetterType = T, typename SetterType = T>
 class StyleTypeWrapper : public WrapperBase {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER(StyleTypeWrapper, Animation);
 public:
-    StyleTypeWrapper(CSSPropertyID property, const StyleType& (RenderStyle::*getter)() const, void (RenderStyle::*setter)(StyleType&&))
+    StyleTypeWrapper(CSSPropertyID property, GetterType (RenderStyle::*getter)() const, void (RenderStyle::*setter)(SetterType))
         : WrapperBase(property)
         , m_getter(getter)
         , m_setter(setter)
@@ -167,22 +167,34 @@ public:
 #endif
 
 private:
-    const StyleType& value(const RenderStyle& style) const
+    GetterType value(const RenderStyle& style) const
     {
         return (style.*m_getter)();
     }
 
-    const StyleType& (RenderStyle::*m_getter)() const;
-    void (RenderStyle::*m_setter)(StyleType&&);
+    GetterType (RenderStyle::*m_getter)() const;
+    void (RenderStyle::*m_setter)(SetterType);
 };
+
+// Deduction guide for getter/setters that return and take values.
+template<typename T>
+StyleTypeWrapper(CSSPropertyID, T (RenderStyle::*getter)() const, void (RenderStyle::*setter)(T)) -> StyleTypeWrapper<T, T, T>;
+
+// Deduction guide for getter/setters that return const references and take r-value references.
+template<typename T>
+StyleTypeWrapper(CSSPropertyID, const T& (RenderStyle::*getter)() const, void (RenderStyle::*setter)(T&&)) -> StyleTypeWrapper<T, const T&, T&&>;
+
+// Deduction guide for getter/setters that return values and take r-value references.
+template<typename T>
+StyleTypeWrapper(CSSPropertyID, T (RenderStyle::*getter)() const, void (RenderStyle::*setter)(T&&)) -> StyleTypeWrapper<T, T, T&&>;
 
 template<typename T> class VisitedAffectedStyleTypeWrapper : public WrapperBase {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER(VisitedAffectedStyleTypeWrapper, Animation);
 public:
     VisitedAffectedStyleTypeWrapper(CSSPropertyID property, const T& (RenderStyle::*getter)() const, void (RenderStyle::*setter)(T&&), const T& (RenderStyle::*visitedGetter)() const, void (RenderStyle::*visitedSetter)(T&&))
         : WrapperBase(property)
-        , m_wrapper(StyleTypeWrapper<T>(property, getter, setter))
-        , m_visitedWrapper(StyleTypeWrapper<T>(property, visitedGetter, visitedSetter))
+        , m_wrapper(StyleTypeWrapper<T, const T&, T&&>(property, getter, setter))
+        , m_visitedWrapper(StyleTypeWrapper<T, const T&, T&&>(property, visitedGetter, visitedSetter))
     {
     }
 
@@ -210,8 +222,8 @@ public:
     }
 #endif
 
-    StyleTypeWrapper<T> m_wrapper;
-    StyleTypeWrapper<T> m_visitedWrapper;
+    StyleTypeWrapper<T, const T&, T&&> m_wrapper;
+    StyleTypeWrapper<T, const T&, T&&> m_visitedWrapper;
 };
 
 template<typename T>
@@ -1126,18 +1138,18 @@ public:
     ColorWrapper m_visitedWrapper;
 };
 
-class AccentColorWrapper final : public StyleTypeWrapper<Color> {
+class AccentColorWrapper final : public StyleTypeWrapper<Color, const Color&, Color&&> {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER(AccentColorWrapper, Animation);
 public:
     AccentColorWrapper()
-        : StyleTypeWrapper<Color>(CSSPropertyAccentColor, &RenderStyle::accentColor, &RenderStyle::setAccentColor)
+        : StyleTypeWrapper(CSSPropertyAccentColor, &RenderStyle::accentColor, &RenderStyle::setAccentColor)
     {
     }
 
     bool equals(const RenderStyle& a, const RenderStyle& b) const final
     {
         return a.hasAutoAccentColor() == b.hasAutoAccentColor()
-            && StyleTypeWrapper<Color>::equals(a, b);
+            && StyleTypeWrapper::equals(a, b);
     }
 
     bool canInterpolate(const RenderStyle& from, const RenderStyle& to, CompositeOperation) const final
@@ -1148,7 +1160,7 @@ public:
     void interpolate(RenderStyle& destination, const RenderStyle& from, const RenderStyle& to, const Context& context) const final
     {
         if (canInterpolate(from, to, context.compositeOperation)) {
-            StyleTypeWrapper<Color>::interpolate(destination, from, to, context);
+            StyleTypeWrapper::interpolate(destination, from, to, context);
             return;
         }
 
@@ -1289,53 +1301,6 @@ public:
         };
 
         destination.setFontSizeAdjust(blendedFontSizeAdjust());
-    }
-};
-
-class BaselineShiftWrapper final : public WrapperWithGetter<const WebCore::Length&> {
-    WTF_DEPRECATED_MAKE_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER(BaselineShiftWrapper, Animation);
-public:
-    BaselineShiftWrapper()
-        : WrapperWithGetter(CSSPropertyBaselineShift, &RenderStyle::baselineShiftValue)
-    {
-    }
-
-    bool equals(const RenderStyle& a, const RenderStyle& b) const final
-    {
-        if (&a == &b)
-            return true;
-        if (a.svgStyle().baselineShift() != b.svgStyle().baselineShift())
-            return false;
-        if (a.svgStyle().baselineShift() != BaselineShift::Length)
-            return true;
-        return value(a) == value(b);
-    }
-
-    bool canInterpolate(const RenderStyle& from, const RenderStyle& to, CompositeOperation) const final
-    {
-        if (from.svgStyle().baselineShift() != to.svgStyle().baselineShift())
-            return false;
-        if (from.svgStyle().baselineShift() != BaselineShift::Length)
-            return true;
-        return canInterpolateLengths(value(from), value(to), true);
-    }
-
-    bool requiresInterpolationForAccumulativeIteration(const RenderStyle& from, const RenderStyle& to) const final
-    {
-        if (from.svgStyle().baselineShift() != to.svgStyle().baselineShift() || from.svgStyle().baselineShift() != BaselineShift::Length)
-            return false;
-        return lengthsRequireInterpolationForAccumulativeIteration(value(from), value(to));
-    }
-
-    void interpolate(RenderStyle& destination, const RenderStyle& from, const RenderStyle& to, const Context& context) const final
-    {
-        auto& srcSVGStyle = !context.progress ? from.svgStyle() : to.svgStyle();
-        destination.accessSVGStyle().setBaselineShift(srcSVGStyle.baselineShift());
-
-        if (srcSVGStyle.baselineShift() != BaselineShift::Length)
-            return;
-
-        destination.accessSVGStyle().setBaselineShiftValue(blendFunc(value(from), value(to), context, ValueRange::All));
     }
 };
 

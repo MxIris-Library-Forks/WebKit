@@ -153,7 +153,6 @@ public:
     static RefPtr<StyleReflection> convertReflection(BuilderState&, const CSSValue&);
     static TextEdge convertTextEdge(BuilderState&, const CSSValue&);
     static IntSize convertInitialLetter(BuilderState&, const CSSValue&);
-    static float convertTextStrokeWidth(BuilderState&, const CSSValue&);
     static OptionSet<LineBoxContain> convertLineBoxContain(BuilderState&, const CSSValue&);
     static RefPtr<ShapeValue> convertShapeValue(BuilderState&, const CSSValue&);
     static ScrollSnapType convertScrollSnapType(BuilderState&, const CSSValue&);
@@ -181,7 +180,6 @@ public:
     static FontSelectionValue convertFontStyle(BuilderState&, const CSSValue&);
     static FontFeatureSettings convertFontFeatureSettings(BuilderState&, const CSSValue&);
     static FontVariationSettings convertFontVariationSettings(BuilderState&, const CSSValue&);
-    static FixedVector<WebCore::Length> convertStrokeDashArray(BuilderState&, const CSSValue&);
     static PaintOrder convertPaintOrder(BuilderState&, const CSSValue&);
     static float convertOpacity(BuilderState&, const CSSValue&);
     static URL convertSVGURIReference(BuilderState&, const CSSValue&);
@@ -683,38 +681,6 @@ inline IntSize BuilderConverter::convertInitialLetter(BuilderState& builderState
     };
 }
 
-inline float BuilderConverter::convertTextStrokeWidth(BuilderState& builderState, const CSSValue& value)
-{
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-
-    float width = 0;
-    switch (primitiveValue->valueID()) {
-    case CSSValueThin:
-    case CSSValueMedium:
-    case CSSValueThick: {
-        double result = 1.0 / 48;
-        if (primitiveValue->valueID() == CSSValueMedium)
-            result *= 3;
-        else if (primitiveValue->valueID() == CSSValueThick)
-            result *= 5;
-        auto emsValue = CSSPrimitiveValue::create(result, CSSUnitType::CSS_EM);
-        width = convertComputedLength<float>(builderState, emsValue);
-        break;
-    }
-    case CSSValueInvalid: {
-        width = convertComputedLength<float>(builderState, *primitiveValue);
-        break;
-    }
-    default:
-        ASSERT_NOT_REACHED();
-        return 0;
-    }
-
-    return width;
-}
-
 inline OptionSet<LineBoxContain> BuilderConverter::convertLineBoxContain(BuilderState& builderState, const CSSValue& value)
 {
     if (RefPtr primitive = dynamicDowncast<CSSPrimitiveValue>(value)) {
@@ -1020,25 +986,6 @@ inline bool BuilderConverter::convertOverflowScrolling(BuilderState&, const CSSV
     return value.valueID() == CSSValueTouch;
 }
 #endif
-
-inline FixedVector<WebCore::Length> BuilderConverter::convertStrokeDashArray(BuilderState& builderState, const CSSValue& value)
-{
-    if (auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value)) {
-        if (primitiveValue->valueID() == CSSValueNone)
-            return SVGRenderStyle::initialStrokeDashArray();
-
-        // Values coming from CSS-Typed-OM may not have been converted to a CSSValueList yet.
-        return FixedVector<WebCore::Length> { convertLengthAllowingNumber(builderState, *primitiveValue) };
-    }
-
-    auto list = requiredListDowncast<CSSValueList, CSSPrimitiveValue>(builderState, value);
-    if (!list)
-        return { };
-
-    return FixedVector<WebCore::Length>::map(*list, [&](auto& item) {
-        return convertLengthAllowingNumber(builderState, item);
-    });
-}
 
 inline PaintOrder BuilderConverter::convertPaintOrder(BuilderState& builderState, const CSSValue& value)
 {

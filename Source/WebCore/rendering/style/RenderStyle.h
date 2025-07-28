@@ -291,6 +291,7 @@ struct HyphenateCharacter;
 struct HyphenateLimitEdge;
 struct HyphenateLimitLines;
 struct InsetEdge;
+struct LineWidth;
 struct ListStyleType;
 struct MarginEdge;
 struct MaximumLines;
@@ -312,7 +313,14 @@ struct ProgressTimelineAxes;
 struct ProgressTimelineNames;
 struct Quotes;
 struct Rotate;
+struct SVGBaselineShift;
+struct SVGCenterCoordinateComponent;
+struct SVGCoordinateComponent;
 struct SVGPaint;
+struct SVGRadius;
+struct SVGRadiusComponent;
+struct SVGStrokeDasharray;
+struct SVGStrokeDashoffset;
 struct Scale;
 struct ScopedName;
 struct ScrollMarginEdge;
@@ -320,6 +328,7 @@ struct ScrollPaddingEdge;
 struct ScrollTimelines;
 struct ScrollbarColor;
 struct ScrollbarGutter;
+struct StrokeWidth;
 struct TextDecorationThickness;
 struct TextEmphasisStyle;
 struct TextIndent;
@@ -333,6 +342,7 @@ struct ViewTimelines;
 struct ViewTransitionClasses;
 struct ViewTransitionName;
 struct WebkitLineGrid;
+struct WebkitTextStrokeWidth;
 
 enum class Change : uint8_t;
 enum class GridTrackSizingDirection : bool;
@@ -634,9 +644,9 @@ public:
     void setCornerTopRightShape(Style::CornerShapeValue&&);
 
     inline const OutlineValue& outline() const;
-    float outlineSize() const { return std::max<float>(0, outlineWidth() + outlineOffset()); }
-    float outlineWidth() const;
-    float outlineOffset() const;
+    float outlineSize() const;
+    Style::LineWidth outlineWidth() const;
+    Style::Length<> outlineOffset() const;
     inline bool hasOutline() const;
     inline OutlineStyle outlineStyle() const;
     inline bool hasOutlineInVisualOverflow() const;
@@ -829,7 +839,7 @@ public:
 
     OptionSet<HangingPunctuation> hangingPunctuation() const;
 
-    inline float textStrokeWidth() const;
+    inline Style::WebkitTextStrokeWidth textStrokeWidth() const;
     inline float opacity() const;
     inline bool hasOpacity() const;
     inline bool hasZeroOpacity() const;
@@ -1308,7 +1318,7 @@ public:
     inline void setBorderBottomStyle(BorderStyle);
     inline void setBorderBottomColor(Style::Color&&);
 
-    inline void setOutlineWidth(float);
+    inline void setOutlineWidth(Style::LineWidth);
     inline void setOutlineStyle(OutlineStyle);
     inline void setOutlineColor(Style::Color&&);
 
@@ -1490,10 +1500,10 @@ public:
     inline void setHasAutoOrphans();
     inline void setOrphans(unsigned short);
 
-    inline void setOutlineOffset(float);
+    inline void setOutlineOffset(Style::Length<>);
     inline void setTextShadow(Style::TextShadows&&);
     inline void setTextStrokeColor(Style::Color&&);
-    inline void setTextStrokeWidth(float);
+    inline void setTextStrokeWidth(Style::WebkitTextStrokeWidth);
     inline void setTextFillColor(Style::Color&&);
     inline void setCaretColor(Style::Color&&);
     inline void setHasAutoCaretColor();
@@ -1732,10 +1742,10 @@ public:
     inline LineJoin joinStyle() const;
     static constexpr LineJoin initialJoinStyle();
     
-    inline const Length& strokeWidth() const;
-    inline void setStrokeWidth(Length&&);
+    inline const Style::StrokeWidth& strokeWidth() const;
+    inline void setStrokeWidth(Style::StrokeWidth&&);
     inline bool hasVisibleStroke() const;
-    static inline Length initialStrokeWidth();
+    static inline Style::StrokeWidth initialStrokeWidth();
 
     float computedStrokeWidth(const IntSize& viewportSize) const;
     inline void setHasExplicitlySetStrokeWidth(bool);
@@ -1756,6 +1766,9 @@ public:
     inline void setStrokeMiterLimit(float);
     static constexpr float initialStrokeMiterLimit();
 
+    static inline Style::SVGStrokeDasharray initialStrokeDashArray();
+    static inline Style::SVGStrokeDashoffset initialStrokeDashOffset();
+
     const SVGRenderStyle& svgStyle() const { return m_svgStyle; }
     inline SVGRenderStyle& accessSVGStyle();
 
@@ -1774,25 +1787,25 @@ public:
     inline void setVisitedLinkStroke(Style::SVGPaint&&);
     inline float strokeOpacity() const;
     inline void setStrokeOpacity(float);
-    inline const FixedVector<Length>& strokeDashArray() const;
-    inline void setStrokeDashArray(FixedVector<Length>&&);
-    inline const Length& strokeDashOffset() const;
-    inline void setStrokeDashOffset(Length&&);
+    inline const Style::SVGStrokeDasharray& strokeDashArray() const;
+    inline void setStrokeDashArray(Style::SVGStrokeDasharray&&);
+    inline const Style::SVGStrokeDashoffset& strokeDashOffset() const;
+    inline void setStrokeDashOffset(Style::SVGStrokeDashoffset&&);
 
-    inline const Length& cx() const;
-    inline void setCx(Length&&);
-    inline const Length& cy() const;
-    inline void setCy(Length&&);
-    inline const Length& r() const;
-    inline void setR(Length&&);
-    inline const Length& rx() const;
-    inline void setRx(Length&&);
-    inline const Length& ry() const;
-    inline void setRy(Length&&);
-    inline const Length& x() const;
-    inline void setX(Length&&);
-    inline const Length& y() const;
-    inline void setY(Length&&);
+    inline const Style::SVGCenterCoordinateComponent& cx() const;
+    inline void setCx(Style::SVGCenterCoordinateComponent&&);
+    inline const Style::SVGCenterCoordinateComponent& cy() const;
+    inline void setCy(Style::SVGCenterCoordinateComponent&&);
+    inline const Style::SVGRadius& r() const;
+    inline void setR(Style::SVGRadius&&);
+    inline const Style::SVGRadiusComponent& rx() const;
+    inline void setRx(Style::SVGRadiusComponent&&);
+    inline const Style::SVGRadiusComponent& ry() const;
+    inline void setRy(Style::SVGRadiusComponent&&);
+    inline const Style::SVGCoordinateComponent& x() const;
+    inline void setX(Style::SVGCoordinateComponent&&);
+    inline const Style::SVGCoordinateComponent& y() const;
+    inline void setY(Style::SVGCoordinateComponent&&);
 
     inline void setD(RefPtr<StylePathData>&&);
     inline StylePathData* d() const;
@@ -1808,10 +1821,8 @@ public:
     inline void setFloodColor(Style::Color&&);
     inline void setLightingColor(Style::Color&&);
 
-    inline const Length& baselineShiftValue() const;
-    inline void setBaselineShiftValue(Length&&);
-    inline SVGLengthValue kerning() const;
-    inline void setKerning(SVGLengthValue);
+    inline const Style::SVGBaselineShift& baselineShift() const;
+    inline void setBaselineShift(Style::SVGBaselineShift&&);
 
     inline void setShapeOutside(RefPtr<ShapeValue>&&);
     inline ShapeValue* shapeOutside() const; // Defined in RenderStyleInlines.h.
@@ -1935,6 +1946,8 @@ public:
 
     static constexpr Clear initialClear();
     static inline Style::Clip initialClip();
+    static inline Style::SVGCenterCoordinateComponent initialCx();
+    static inline Style::SVGCenterCoordinateComponent initialCy();
     static constexpr DisplayType initialDisplay();
     static constexpr UnicodeBidi initialUnicodeBidi();
     static constexpr PositionType initialPosition();
@@ -1974,14 +1987,16 @@ public:
     static StyleImage* initialListStyleImage() { return 0; }
     static float initialBorderWidth() { return 3; }
     static unsigned short initialColumnRuleWidth() { return 3; }
-    static float initialOutlineWidth() { return 3; }
+    static constexpr Style::LineWidth initialOutlineWidth();
     static inline Length initialLetterSpacing();
     static inline Length initialWordSpacing();
     static inline Style::PreferredSize initialSize();
     static inline Style::MinimumSize initialMinSize();
     static inline Style::MaximumSize initialMaxSize();
     static inline Style::InsetEdge initialInset();
-    static inline Length initialRadius();
+    static inline Style::SVGRadius initialR();
+    static inline Style::SVGRadiusComponent initialRx();
+    static inline Style::SVGRadiusComponent initialRy();
     static inline Style::MarginEdge initialMargin();
     static constexpr OptionSet<MarginTrimType> initialMarginTrim();
     static inline Style::PaddingEdge initialPadding();
@@ -1990,7 +2005,6 @@ public:
     static TextEdge initialTextBoxEdge();
     static TextEdge initialLineFitEdge();
     static constexpr LengthType zeroLength();
-    static inline Length oneLength();
     static unsigned short initialWidows() { return 2; }
     static unsigned short initialOrphans() { return 2; }
     // Returning -100% percent here means the line-height is not set.
@@ -2006,7 +2020,7 @@ public:
     static inline Style::TextDecorationThickness initialTextDecorationThickness();
     static float initialZoom() { return 1.0f; }
     static constexpr TextZoom initialTextZoom();
-    static float initialOutlineOffset() { return 0; }
+    static constexpr Style::Length<> initialOutlineOffset();
     static float initialOpacity() { return 1.0f; }
     static constexpr BoxAlignment initialBoxAlign();
     static constexpr BoxDecorationBreak initialBoxDecorationBreak();
@@ -2068,7 +2082,7 @@ public:
     static inline Style::ContainIntrinsicSize initialContainIntrinsicHeight();
 
     static constexpr Order initialRTLOrdering();
-    static float initialTextStrokeWidth() { return 0; }
+    static constexpr Style::WebkitTextStrokeWidth initialTextStrokeWidth();
     static unsigned short initialColumnCount() { return 1; }
     static constexpr ColumnFill initialColumnFill();
     static constexpr ColumnSpan initialColumnSpan();
@@ -2104,6 +2118,8 @@ public:
     static StyleImage* initialMaskBorderSource() { return nullptr; }
     static constexpr PrintColorAdjust initialPrintColorAdjust();
     static inline Style::Quotes initialQuotes();
+    static inline Style::SVGCoordinateComponent initialX();
+    static inline Style::SVGCoordinateComponent initialY();
 
 #if ENABLE(DARK_MODE_CSS)
     static inline Style::ColorScheme initialColorScheme();

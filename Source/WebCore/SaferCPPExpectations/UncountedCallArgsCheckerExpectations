@@ -7,9 +7,6 @@ Modules/applepay/ApplePaySession.cpp
 Modules/applepay/paymentrequest/ApplePayPaymentHandler.cpp
 Modules/applicationmanifest/ApplicationManifestParser.cpp
 Modules/cache/DOMCache.cpp
-Modules/cache/DOMCacheStorage.cpp
-Modules/cache/RetrieveRecordsOptions.h
-Modules/cache/WindowOrWorkerGlobalScopeCaches.cpp
 Modules/credentialmanagement/CredentialsContainer.cpp
 Modules/entriesapi/FileSystemDirectoryEntry.cpp
 Modules/entriesapi/FileSystemEntry.cpp
@@ -55,9 +52,7 @@ Modules/mediastream/RTCRtpScriptTransformer.cpp
 Modules/mediastream/RTCRtpSender.cpp
 Modules/mediastream/RTCRtpTransform.cpp
 Modules/mediastream/UserMediaRequest.cpp
-Modules/mediastream/libwebrtc/LibWebRTCDtlsTransportBackend.cpp
 Modules/mediastream/libwebrtc/LibWebRTCObservers.h
-Modules/mediastream/libwebrtc/LibWebRTCSctpTransportBackend.cpp
 Modules/model-element/HTMLModelElement.cpp
 Modules/model-element/scenekit/SceneKitModelPlayer.mm
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
@@ -612,9 +607,7 @@ loader/CrossOriginOpenerPolicy.cpp
 loader/CrossOriginPreflightChecker.cpp
 loader/DocumentThreadableLoader.cpp
 loader/DocumentWriter.cpp
-loader/FormSubmission.cpp
 loader/FrameLoadRequest.cpp
-loader/LinkLoader.cpp
 loader/MediaResourceLoader.cpp
 loader/MixedContentChecker.cpp
 loader/NavigationScheduler.cpp
@@ -626,14 +619,12 @@ loader/appcache/ApplicationCacheGroup.cpp
 loader/appcache/ApplicationCacheHost.cpp
 loader/appcache/ApplicationCacheStorage.cpp
 loader/archive/cf/LegacyWebArchive.cpp
-loader/cache/CachedCSSStyleSheet.cpp
 loader/cache/CachedImage.cpp
 loader/cache/CachedImage.h
 loader/cache/CachedResourceRequest.cpp
 loader/cache/CachedResourceRequestInitiatorTypes.h
 loader/cache/CachedSVGFont.cpp
 loader/cocoa/BundleResourceLoader.mm
-loader/icon/IconLoader.cpp
 mathml/MathMLElement.cpp
 mathml/MathMLSelectElement.cpp
 page/AutoscrollController.cpp

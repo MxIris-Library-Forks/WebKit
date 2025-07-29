@@ -593,8 +593,8 @@ struct WebPreferencesStore;
 struct WebSpeechSynthesisVoice;
 struct WebURLSchemeHandlerIdentifierType;
 struct WebsitePoliciesData;
-#if PLATFORM(WPE) && USE(GBM)
-struct DMABufRendererBufferFormat;
+#if USE(GBM) && (PLATFORM(GTK) || PLATFORM(WPE))
+struct RendererBufferFormat;
 #endif
 
 enum class ColorControlSupportsAlpha : bool;
@@ -1660,7 +1660,7 @@ public:
     void setPromisedDataForImage(IPC::Connection&, const String& pasteboardName, WebCore::SharedMemoryHandle&& imageHandle, const String& filename, const String& extension,
         const String& title, const String& url, const String& visibleURL, WebCore::SharedMemoryHandle&& archiveHandle, const String& originIdentifier);
 #endif
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || PLATFORM(WPE)
     void startDrag(WebCore::SelectionData&&, OptionSet<WebCore::DragOperation>, std::optional<WebCore::ShareableBitmapHandle>&& dragImage, WebCore::IntPoint&& dragImageHotspot);
 #endif
 #if ENABLE(MODEL_PROCESS)
@@ -3041,14 +3041,13 @@ private:
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void bindAccessibilityTree(const String&);
     OptionSet<WebCore::PlatformEventModifier> currentStateOfModifierKeys();
+#if USE(GBM)
+    Vector<RendererBufferFormat> preferredBufferFormats() const;
+#endif
 #endif
 
 #if PLATFORM(GTK)
     void showEmojiPicker(const WebCore::IntRect&, CompletionHandler<void(String)>&&);
-#endif
-
-#if PLATFORM(WPE) && USE(GBM)
-    Vector<DMABufRendererBufferFormat> preferredBufferFormats() const;
 #endif
 
     // Popup Menu.

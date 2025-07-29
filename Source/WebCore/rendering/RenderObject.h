@@ -110,7 +110,7 @@ typedef const void* WrappedImagePtr;
 
 // Base class for all rendering tree objects.
 class RenderObject : public CachedImageClient {
-    WTF_MAKE_TZONE_OR_ISO_ALLOCATED(RenderObject);
+    WTF_MAKE_PREFERABLY_COMPACT_TZONE_OR_ISO_ALLOCATED(RenderObject);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(RenderObject);
     friend class RenderBlock;
     friend class RenderBlockFlow;
@@ -683,6 +683,9 @@ public:
     bool isExcludedFromNormalLayout() const { return m_stateBitfields.hasFlag(StateFlag::IsExcludedFromNormalLayout); }
     void setIsExcludedFromNormalLayout(bool excluded) { m_stateBitfields.setFlag(StateFlag::IsExcludedFromNormalLayout, excluded); }
     bool isExcludedAndPlacedInBorder() const { return isExcludedFromNormalLayout() && isLegend(); }
+
+    bool isYouTubeReplacement() const { return hasRareData() && rareData().isYouTubeReplacement; }
+    void markIsYouTubeReplacement();
 
     bool hasLayer() const { return m_stateBitfields.hasFlag(StateFlag::HasLayer); }
 
@@ -1277,7 +1280,7 @@ private:
 
     // FIXME: This should be RenderElementRareData.
     class RenderObjectRareData {
-        WTF_MAKE_TZONE_ALLOCATED(RenderObjectRareData);
+        WTF_MAKE_PREFERABLY_COMPACT_TZONE_ALLOCATED(RenderObjectRareData);
     public:
         RenderObjectRareData();
         ~RenderObjectRareData();
@@ -1286,6 +1289,7 @@ private:
         bool hasOutlineAutoAncestor { false };
         // Dirty bit was set with MarkingBehavior::MarkOnlyThis
         bool preferredLogicalWidthsNeedUpdateIsMarkOnlyThis { false };
+        bool isYouTubeReplacement { false };
         OptionSet<MarginTrimType> trimmedMargins;
 
         // From RenderElement

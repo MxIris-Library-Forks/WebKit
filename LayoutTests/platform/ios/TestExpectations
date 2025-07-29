@@ -1325,6 +1325,7 @@ fast/scrolling/rtl-scrollbars-text-selection.html [ Skip ]
 fast/scrolling/v-rl-scrollbars-initial-position-dynamic.html [ Skip ]
 fast/scrolling/v-rl-scrollbars-initial-position.html [ Skip ]
 fast/scrolling/vertical-scrollbar-position.html [ Skip ]
+fast/scrolling/content-box-smaller-than-scrollbar.html [ Skip ]
 
 imported/w3c/web-platform-tests/css/css-overflow/scrollbar-gutter-root-both-edges.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/scrollbar-gutter-root.html [ ImageOnlyFailure ]
@@ -8173,3 +8174,7 @@ webkit.org/b/296389 [ Release ] http/tests/dom/noreferrer-window-not-targetable.
 [ Release ] http/tests/canvas/ctx.2d-canvas-style-color-no-document-leak.html [ Pass Failure ]
 [ Release ] http/tests/canvas/ctx.2d-canvas-style-gradient-no-document-leak.html [ Pass Failure ]
 [ Release ] http/tests/canvas/ctx.2d-canvas-style-pattern-no-document-leak.html [ Pass Failure ]
+
+webkit.org/b/296566 [ Release ] imported/w3c/web-platform-tests/screen-orientation/lock-basic.html [ Pass Failure ]
+
+webkit.org/b/295803 [ Release ] http/tests/webcodecs/video-encoder-callbacks-do-not-leak.html [ Pass Failure ]

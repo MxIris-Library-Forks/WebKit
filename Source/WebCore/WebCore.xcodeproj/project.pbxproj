@@ -1500,6 +1500,7 @@
 		41C14BC926DF79D700685BF5 /* MDNSRegisterError.h in Headers */ = {isa = PBXBuildFile; fileRef = 41C14BC826DF79D600685BF5 /* MDNSRegisterError.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41C3B8A12649B1E0004ED4DE /* AudioMediaStreamTrackRendererInternalUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 41C3B89F2649B1B7004ED4DE /* AudioMediaStreamTrackRendererInternalUnit.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41C3B8A22649B1E5004ED4DE /* AudioMediaStreamTrackRendererUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 41C3B89B2649B1B6004ED4DE /* AudioMediaStreamTrackRendererUnit.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		41C6B69D2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = 41C6B69C2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41C7678C2D004D030014EB38 /* AVVideoCaptureSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 070363DE181A1CDC00C074A5 /* AVVideoCaptureSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41CB840125CAB7B30010E2B1 /* RealtimeIncomingVideoSourceCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 41CB840025CAB7B00010E2B1 /* RealtimeIncomingVideoSourceCocoa.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41CB840225CAB81E0010E2B1 /* RealtimeIncomingVideoSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CDD833A1E4324BB00621E92 /* RealtimeIncomingVideoSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4880,6 +4881,7 @@
 		BC22AA662E357BBA009AC0C3 /* StyleSVGStrokeDashoffset.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AA652E357BBA009AC0C3 /* StyleSVGStrokeDashoffset.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AA6A2E357D38009AC0C3 /* StyleSVGStrokeDasharray.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AA692E357D38009AC0C3 /* StyleSVGStrokeDasharray.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AA6E2E35C74C009AC0C3 /* StyleSVGBaselineShift.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AA6D2E359F42009AC0C3 /* StyleSVGBaselineShift.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC22AA812E367D83009AC0C3 /* StyleVerticalAlign.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AA7F2E367D83009AC0C3 /* StyleVerticalAlign.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23875B2D84982100698102 /* CSSRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875A2D84982100698102 /* CSSRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2387602D84A59400698102 /* StyleRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875F2D84A59400698102 /* StyleRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2387AC2D8744E100698102 /* StyleLineBoxContain.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2387AB2D8742B100698102 /* StyleLineBoxContain.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10659,6 +10661,7 @@
 		41C3B89E2649B1B7004ED4DE /* AudioMediaStreamTrackRendererInternalUnit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioMediaStreamTrackRendererInternalUnit.cpp; sourceTree = "<group>"; };
 		41C3B89F2649B1B7004ED4DE /* AudioMediaStreamTrackRendererInternalUnit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioMediaStreamTrackRendererInternalUnit.h; sourceTree = "<group>"; };
 		41C3B8A02649B1B7004ED4DE /* AudioMediaStreamTrackRendererUnit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioMediaStreamTrackRendererUnit.cpp; sourceTree = "<group>"; };
+		41C6B69C2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LibWebRTCRefWrappers.h; path = libwebrtc/LibWebRTCRefWrappers.h; sourceTree = "<group>"; };
 		41C7E1051E6A54360027B4DE /* CanvasCaptureMediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasCaptureMediaStreamTrack.cpp; sourceTree = "<group>"; };
 		41C7E1061E6A54360027B4DE /* CanvasCaptureMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CanvasCaptureMediaStreamTrack.h; sourceTree = "<group>"; };
 		41C7E1081E6AA37C0027B4DE /* CanvasCaptureMediaStreamTrack.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CanvasCaptureMediaStreamTrack.idl; sourceTree = "<group>"; };
@@ -18080,6 +18083,8 @@
 		BC22AA6B2E35988A009AC0C3 /* StyleSVGStrokeDasharray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSVGStrokeDasharray.cpp; sourceTree = "<group>"; };
 		BC22AA6C2E359F42009AC0C3 /* StyleSVGBaselineShift.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSVGBaselineShift.cpp; sourceTree = "<group>"; };
 		BC22AA6D2E359F42009AC0C3 /* StyleSVGBaselineShift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleSVGBaselineShift.h; sourceTree = "<group>"; };
+		BC22AA7E2E367D83009AC0C3 /* StyleVerticalAlign.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleVerticalAlign.cpp; sourceTree = "<group>"; };
+		BC22AA7F2E367D83009AC0C3 /* StyleVerticalAlign.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleVerticalAlign.h; sourceTree = "<group>"; };
 		BC2387582D84867A00698102 /* CSSPropertyParserConsumer+UnicodeRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+UnicodeRange.h"; sourceTree = "<group>"; };
 		BC2387592D84868600698102 /* CSSPropertyParserConsumer+UnicodeRange.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+UnicodeRange.cpp"; sourceTree = "<group>"; };
 		BC23875A2D84982100698102 /* CSSRatio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSRatio.h; sourceTree = "<group>"; };
@@ -25338,6 +25343,7 @@
 				415747441E38699E00E914D8 /* LibWebRTCProvider.h */,
 				41B28B381F860BD100FB52AC /* LibWebRTCProviderCocoa.cpp */,
 				41B28B361F860BD000FB52AC /* LibWebRTCProviderCocoa.h */,
+				41C6B69C2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h */,
 				410E445F234373AD000173D4 /* LibWebRTCSocketIdentifier.h */,
 				41EB797B27C3E45D001C3E3E /* VideoFrameLibWebRTC.cpp */,
 				41EB797C27C3E45D001C3E3E /* VideoFrameLibWebRTC.h */,
@@ -35069,6 +35075,8 @@
 			isa = PBXGroup;
 			children = (
 				BC2387AB2D8742B100698102 /* StyleLineBoxContain.h */,
+				BC22AA7E2E367D83009AC0C3 /* StyleVerticalAlign.cpp */,
+				BC22AA7F2E367D83009AC0C3 /* StyleVerticalAlign.h */,
 			);
 			path = inline;
 			sourceTree = "<group>";
@@ -43721,6 +43729,7 @@
 				417612B21E3A994000C3D81D /* LibWebRTCPeerConnectionBackend.h in Headers */,
 				415747481E3869A700E914D8 /* LibWebRTCProvider.h in Headers */,
 				41B28B3D1F860EF300FB52AC /* LibWebRTCProviderCocoa.h in Headers */,
+				41C6B69D2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h in Headers */,
 				4181C5CD2555836900AEB0FF /* LibWebRTCRtpTransformableFrame.h in Headers */,
 				4181C5D12555895600AEB0FF /* LibWebRTCRtpTransformBackend.h in Headers */,
 				410E4461234373E9000173D4 /* LibWebRTCSocketIdentifier.h in Headers */,
@@ -45478,6 +45487,7 @@
 				BCC0F3DA2D99D4860065B859 /* StyleURL.h in Headers */,
 				E48137B91DB3B526005C59BF /* StyleValidity.h in Headers */,
 				BCA408182CA394CE006B037F /* StyleValueTypes.h in Headers */,
+				BC22AA812E367D83009AC0C3 /* StyleVerticalAlign.h in Headers */,
 				BC2A0F0C2E12FFD5003CBA0E /* StyleViewTimelineInsets.h in Headers */,
 				BC2A0F0E2E12FFD5003CBA0E /* StyleViewTimelines.h in Headers */,
 				BC2A0EFA2E121665003CBA0E /* StyleViewTransitionClass.h in Headers */,

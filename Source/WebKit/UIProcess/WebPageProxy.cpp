@@ -346,9 +346,6 @@
 #endif
 
 #if PLATFORM(GTK)
-#if USE(GBM)
-#include "AcceleratedBackingStoreDMABuf.h"
-#endif
 #include <WebCore/SelectionData.h>
 #endif
 
@@ -776,7 +773,6 @@ WebPageProxy::Internals::Internals(WebPageProxy& page)
 #endif
 {
 #if PLATFORM(GTK) || PLATFORM(WPE)
-    activityStateChangeTimer.setName("[WebKit] ActivityStateChange"_s);
     // Give the events causing activity state changes more priority than the change timer.
     activityStateChangeTimer.setPriority(RunLoopSourcePriority::RunLoopTimer + 1);
 #endif
@@ -3838,13 +3834,15 @@ void WebPageProxy::didPerformDragControllerAction(std::optional<WebCore::DragOpe
         pageClient->didPerformDragControllerAction();
 }
 
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || PLATFORM(WPE)
 void WebPageProxy::startDrag(SelectionData&& selectionData, OptionSet<WebCore::DragOperation> dragOperationMask, std::optional<ShareableBitmap::Handle>&& dragImageHandle, IntPoint&& dragImageHotspot)
 {
+#if PLATFORM(GTK)
     if (RefPtr pageClient = this->pageClient()) {
         RefPtr dragImage = dragImageHandle ? ShareableBitmap::create(WTFMove(*dragImageHandle)) : nullptr;
         pageClient->startDrag(WTFMove(selectionData), dragOperationMask, WTFMove(dragImage), WTFMove(dragImageHotspot));
     }
+#endif
     didStartDrag();
 }
 #endif
@@ -12071,13 +12069,8 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
         parameters.machBootstrapHandle = SandboxExtension::createHandleForMachBootstrapExtension();
 #endif
 
-#if USE(GBM)
-#if PLATFORM(GTK)
-    parameters.preferredBufferFormats = AcceleratedBackingStoreDMABuf::preferredBufferFormats();
-#endif
-#if PLATFORM(WPE)
+#if USE(GBM) && (PLATFORM(GTK) || PLATFORM(WPE))
     parameters.preferredBufferFormats = preferredBufferFormats();
-#endif
 #endif
 
 #if HAVE(AUDIT_TOKEN)

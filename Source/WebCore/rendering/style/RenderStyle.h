@@ -327,6 +327,8 @@ struct ScrollPaddingEdge;
 struct ScrollTimelines;
 struct ScrollbarColor;
 struct ScrollbarGutter;
+struct ShapeMargin;
+struct ShapeOutside;
 struct StrokeWidth;
 struct TextDecorationThickness;
 struct TextEmphasisStyle;
@@ -365,11 +367,13 @@ using PerspectiveOriginX = PositionX;
 using PerspectiveOriginY = PositionY;
 using ScrollMarginBox = MinimallySerializingSpaceSeparatedRectEdges<ScrollMarginEdge>;
 using ScrollPaddingBox = MinimallySerializingSpaceSeparatedRectEdges<ScrollPaddingEdge>;
+using ShapeImageThreshold = Number<CSS::ClosedUnitRangeClampBoth, float>;
 using TextShadows = Shadows<TextShadow>;
 using TransformOriginX = PositionX;
 using TransformOriginXY = Position;
 using TransformOriginY = PositionY;
 using TransformOriginZ = Length<>;
+using WebkitBorderSpacing = Length<CSS::Nonnegative>;
 }
 
 constexpr auto PublicPseudoIDBits = 17;
@@ -773,8 +777,8 @@ public:
     inline NinePieceImageRule maskBorderVerticalRule() const;
 
     BorderCollapse borderCollapse() const { return static_cast<BorderCollapse>(m_inheritedFlags.borderCollapse); }
-    float horizontalBorderSpacing() const;
-    float verticalBorderSpacing() const;
+    inline Style::WebkitBorderSpacing borderHorizontalSpacing() const;
+    inline Style::WebkitBorderSpacing borderVerticalSpacing() const;
     EmptyCell emptyCells() const { return static_cast<EmptyCell>(m_inheritedFlags.emptyCells); }
     CaptionSide captionSide() const { return static_cast<CaptionSide>(m_inheritedFlags.captionSide); }
 
@@ -1419,8 +1423,8 @@ public:
     inline void setMaskRepeat(FillRepeatXY);
 
     void setBorderCollapse(BorderCollapse collapse) { m_inheritedFlags.borderCollapse = static_cast<unsigned>(collapse); }
-    void setHorizontalBorderSpacing(float);
-    void setVerticalBorderSpacing(float);
+    inline void setBorderHorizontalSpacing(Style::WebkitBorderSpacing);
+    inline void setBorderVerticalSpacing(Style::WebkitBorderSpacing);
     void setEmptyCells(EmptyCell v) { m_inheritedFlags.emptyCells = static_cast<unsigned>(v); }
     void setCaptionSide(CaptionSide v) { m_inheritedFlags.captionSide = static_cast<unsigned>(v); }
 
@@ -1822,18 +1826,17 @@ public:
     inline const Style::SVGBaselineShift& baselineShift() const;
     inline void setBaselineShift(Style::SVGBaselineShift&&);
 
-    inline void setShapeOutside(RefPtr<ShapeValue>&&);
-    inline ShapeValue* shapeOutside() const; // Defined in RenderStyleInlines.h.
-    inline RefPtr<ShapeValue> protectedShapeOutside() const; // Defined in RenderStyleInlines.h.
-    static ShapeValue* initialShapeOutside() { return nullptr; }
+    inline void setShapeOutside(Style::ShapeOutside&&);
+    inline const Style::ShapeOutside& shapeOutside() const;
+    static Style::ShapeOutside initialShapeOutside();
 
-    inline const Length& shapeMargin() const;
-    inline void setShapeMargin(Length&&);
-    static inline Length initialShapeMargin();
+    inline const Style::ShapeMargin& shapeMargin() const;
+    inline void setShapeMargin(Style::ShapeMargin&&);
+    static inline Style::ShapeMargin initialShapeMargin();
 
-    inline float shapeImageThreshold() const;
-    void setShapeImageThreshold(float);
-    static float initialShapeImageThreshold() { return 0; }
+    inline Style::ShapeImageThreshold shapeImageThreshold() const;
+    void setShapeImageThreshold(Style::ShapeImageThreshold);
+    static constexpr Style::ShapeImageThreshold initialShapeImageThreshold();
 
     inline const Style::ClipPath& clipPath() const;
     inline bool hasClipPath() const;
@@ -1976,8 +1979,8 @@ public:
     static inline Style::ViewTransitionName initialViewTransitionName();
     static constexpr Visibility initialVisibility();
     static constexpr WhiteSpaceCollapse initialWhiteSpaceCollapse();
-    static float initialHorizontalBorderSpacing() { return 0; }
-    static float initialVerticalBorderSpacing() { return 0; }
+    static constexpr Style::WebkitBorderSpacing initialBorderHorizontalSpacing();
+    static constexpr Style::WebkitBorderSpacing initialBorderVerticalSpacing();
     static inline Style::Cursor initialCursor();
     static inline Color initialColor();
     static inline Style::Color initialTextStrokeColor();

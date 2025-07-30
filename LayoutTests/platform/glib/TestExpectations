@@ -875,6 +875,9 @@ accessibility/datetime [ Skip ]
 # Requires AccessibilityUIElement::dismiss to return whether or not it was handled.
 accessibility/dismiss-action-returns-whether-keyevent-handled.html [ Skip ]
 
+# Different roles
+accessibility/contenteditable-values.html [ Skip ]
+
 # Added in r263823. Both tests are timing out.
 webkit.org/b/213874 accessibility/keyevents-for-increment-actions-with-node-removal.html [ Skip ]
 webkit.org/b/213874 accessibility/keyevents-posted-for-increment-actions.html [ Skip ]
@@ -1240,6 +1243,14 @@ webkit.org/b/160120 editing/deleting/delete-emoji-9.html [ Skip ]
 webkit.org/b/178441 editing/deleting/delete-ligature-001.html [ Failure ]
 webkit.org/b/178441 editing/deleting/delete-ligature-002.html [ Failure ]
 webkit.org/b/178441 editing/deleting/delete-ligature-003.html [ Failure ]
+
+webkit.org/b/239345 editing/execCommand/insert-ordered-list-and-delete.html [ Failure Pass ]
+
+webkit.org/b/179605 editing/execCommand/underline-selection-containing-image.html [ Failure ]
+
+webkit.org/b/286128 editing/inserting/insert-list-user-select-none-crash.html [ Crash ]
+
+webkit.org/b/179261 editing/selection/drag-to-contenteditable-iframe.html [ Timeout ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Editing-related bugs
@@ -3021,6 +3032,7 @@ fast/zooming/ios [ Skip ]
 
 # Needs site isolation drawing implementation
 http/tests/site-isolation [ Skip ]
+http/tests/contentextensions/cross-origin-content-rules.html [ Skip ]
 
 # Tests behavior specific to MediaSessionManagerCocoa
 media/audio-session-category.html [ Skip ]

@@ -146,6 +146,8 @@ inline const Style::BorderRadiusValue& RenderStyle::borderTopRightRadius() const
 inline BorderStyle RenderStyle::borderTopStyle() const { return border().top().style(); }
 inline float RenderStyle::borderTopWidth() const { return border().borderTopWidth(); }
 inline FloatBoxExtent RenderStyle::borderWidth() const { return border().borderWidth(); }
+inline Style::WebkitBorderSpacing RenderStyle::borderHorizontalSpacing() const { return m_inheritedData->borderHorizontalSpacing; }
+inline Style::WebkitBorderSpacing RenderStyle::borderVerticalSpacing() const { return m_inheritedData->borderVerticalSpacing; }
 inline const Style::InsetEdge& RenderStyle::bottom() const { return m_nonInheritedData->surroundData->inset.bottom(); }
 inline BoxAlignment RenderStyle::boxAlign() const { return static_cast<BoxAlignment>(m_nonInheritedData->miscData->deprecatedFlexibleBox->align); }
 inline float RenderStyle::boxFlex() const { return m_nonInheritedData->miscData->deprecatedFlexibleBox->flex; }
@@ -345,8 +347,10 @@ constexpr BlockStepInsert RenderStyle::initialBlockStepInsert() { return BlockSt
 constexpr BlockStepRound RenderStyle::initialBlockStepRound() { return BlockStepRound::Up; }
 inline Style::BlockStepSize RenderStyle::initialBlockStepSize() { return CSS::Keyword::None { }; }
 constexpr BorderCollapse RenderStyle::initialBorderCollapse() { return BorderCollapse::Separate; }
+constexpr Style::Length<CSS::Nonnegative> RenderStyle::initialBorderHorizontalSpacing() { return 0_css_px; }
 inline Style::BorderRadiusValue RenderStyle::initialBorderRadius() { return { 0_css_px, 0_css_px }; }
 constexpr BorderStyle RenderStyle::initialBorderStyle() { return BorderStyle::None; }
+constexpr Style::Length<CSS::Nonnegative> RenderStyle::initialBorderVerticalSpacing() { return 0_css_px; }
 constexpr BoxAlignment RenderStyle::initialBoxAlign() { return BoxAlignment::Stretch; }
 constexpr BoxDecorationBreak RenderStyle::initialBoxDecorationBreak() { return BoxDecorationBreak::Slice; }
 constexpr BoxDirection RenderStyle::initialBoxDirection() { return BoxDirection::Normal; }
@@ -480,7 +484,9 @@ inline Style::ScrollbarColor RenderStyle::initialScrollbarColor() { return CSS::
 constexpr Style::ScrollbarGutter RenderStyle::initialScrollbarGutter() { return CSS::Keyword::Auto { }; }
 constexpr ScrollbarWidth RenderStyle::initialScrollbarWidth() { return ScrollbarWidth::Auto; }
 constexpr StyleSelfAlignmentData RenderStyle::initialSelfAlignment() { return { ItemPosition::Auto, OverflowAlignment::Default }; }
-inline Length RenderStyle::initialShapeMargin() { return zeroLength(); }
+constexpr Style::ShapeImageThreshold RenderStyle::initialShapeImageThreshold() { return 0_css_number; }
+inline Style::ShapeMargin RenderStyle::initialShapeMargin() { return 0_css_px; }
+inline Style::ShapeOutside RenderStyle::initialShapeOutside() { return CSS::Keyword::None { }; }
 inline Style::PreferredSize RenderStyle::initialSize() { return CSS::Keyword::Auto { }; }
 constexpr OptionSet<SpeakAs> RenderStyle::initialSpeakAs() { return { }; }
 inline Style::Color RenderStyle::initialStrokeColor() { return { Color::transparentBlack }; }
@@ -712,10 +718,9 @@ inline const NameScope& RenderStyle::timelineScope() const { return m_nonInherit
 inline const Style::ScrollbarColor& RenderStyle::scrollbarColor() const { return m_rareInheritedData->scrollbarColor; }
 inline const Style::ScrollbarGutter& RenderStyle::scrollbarGutter() const { return m_nonInheritedData->rareData->scrollbarGutter; }
 inline ScrollbarWidth RenderStyle::scrollbarWidth() const { return static_cast<ScrollbarWidth>(m_nonInheritedData->rareData->scrollbarWidth); }
-inline float RenderStyle::shapeImageThreshold() const { return m_nonInheritedData->rareData->shapeImageThreshold; }
-inline const Length& RenderStyle::shapeMargin() const { return m_nonInheritedData->rareData->shapeMargin; }
-inline ShapeValue* RenderStyle::shapeOutside() const { return m_nonInheritedData->rareData->shapeOutside.get(); }
-inline RefPtr<ShapeValue> RenderStyle::protectedShapeOutside() const { return shapeOutside(); }
+inline Style::ShapeImageThreshold RenderStyle::shapeImageThreshold() const { return m_nonInheritedData->rareData->shapeImageThreshold; }
+inline const Style::ShapeMargin& RenderStyle::shapeMargin() const { return m_nonInheritedData->rareData->shapeMargin; }
+inline const Style::ShapeOutside& RenderStyle::shapeOutside() const { return m_nonInheritedData->rareData->shapeOutside; }
 inline ContentVisibility RenderStyle::usedContentVisibility() const { return static_cast<ContentVisibility>(m_rareInheritedData->usedContentVisibility); }
 inline bool RenderStyle::isSkippedRootOrSkippedContent() const { return usedContentVisibility() != ContentVisibility::Visible; }
 inline OptionSet<SpeakAs> RenderStyle::speakAs() const { return OptionSet<SpeakAs>::fromRaw(m_rareInheritedData->speakAs); }

@@ -25,15 +25,13 @@
 
 #pragma once
 
-#if ENABLE(UNIFIED_PDF)
-
 #import <wtf/RetainPtr.h>
 
 OBJC_CLASS WKWebViewConfiguration;
 
 namespace TestWebKitAPI {
 
-#if ENABLE(UNIFIED_PDF_FOR_TESTING)
+#if ENABLE(UNIFIED_PDF_BY_DEFAULT)
 static constexpr bool unifiedPDFForTestingEnabled = true;
 #define UNIFIED_PDF_TEST(name) TEST(UnifiedPDF, name)
 #else
@@ -44,5 +42,3 @@ static constexpr bool unifiedPDFForTestingEnabled = false;
 RetainPtr<WKWebViewConfiguration> configurationForWebViewTestingUnifiedPDF(bool hudEnabled = false);
 
 }
-
-#endif

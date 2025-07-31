@@ -167,8 +167,10 @@ fast/images/image-size-unsigned-overflow.html [ Skip ]
 
 # Some Apple ports don't support RTL scrollbars.
 fast/scrolling/rtl-scrollbars-alternate-body-dir-attr-does-not-update-scrollbar-placement-2.html [ Pass ]
+fast/scrolling/rtl-scrollbars-alternate-body-dir-attr-does-not-update-scrollbar-placement.html [ Pass ]
 fast/scrolling/rtl-scrollbars-elementFromPoint-static.html [ Pass ]
 fast/scrolling/rtl-scrollbars-iframe-offset.html [ Pass ]
+fast/scrolling/rtl-scrollbars-iframe-scrolled.html [ Pass ]
 fast/scrolling/rtl-scrollbars-listbox-select-left.html [ Pass ]
 fast/scrolling/rtl-scrollbars-listbox-select-right.html [ Pass ]
 fast/scrolling/rtl-scrollbars-listbox-simple.html [ Pass ]
@@ -177,10 +179,15 @@ fast/scrolling/rtl-scrollbars-overflow-elementFromPoint.html [ Pass ]
 fast/scrolling/rtl-scrollbars-overflow-padding.html [ Pass ]
 fast/scrolling/rtl-scrollbars-overflow-position-absolute.html [ Pass ]
 fast/scrolling/rtl-scrollbars-overflow-simple.html [ Pass ]
+fast/scrolling/rtl-scrollbars-overflow-text-selection-scrolled.html  [ Pass ]
 fast/scrolling/rtl-scrollbars-overflow.html [ Pass ]
+fast/scrolling/rtl-scrollbars-position-absolute.html  [ Pass ]
+fast/scrolling/rtl-scrollbars-position-fixed.html [ Pass ]
 fast/scrolling/rtl-scrollbars-positioned-intersect-scrollbars.html [ Pass ]
 fast/scrolling/rtl-scrollbars-positioning.html [ Pass ]
 fast/scrolling/rtl-scrollbars-simple.html [ Pass ]
+fast/scrolling/rtl-scrollbars-text-selection-scrolled.html [ Pass ]
+fast/scrolling/rtl-scrollbars-text-selection.html [ Pass ]
 fast/scrolling/rtl-scrollbars.html [ Pass ]
 
 http/tests/storageAccess/ [ Pass ]
@@ -2924,6 +2931,8 @@ imported/w3c/web-platform-tests/html/interaction/focus/sequential-focus-navigati
 # xhr test suite for now. See also webkit.org/b/264596.
 webkit.org/b/264596 imported/w3c/web-platform-tests/xhr/ [ Skip ]
 # webkit.org/b/189343 imported/w3c/web-platform-tests/xhr/sync-no-timeout.any.html [ Failure ]
+
+webkit.org/b/189994 fast/files/xhr-response-blob.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of XHR-related bugs

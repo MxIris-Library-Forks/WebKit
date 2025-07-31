@@ -9541,6 +9541,21 @@
 		2AEF6FE426E802F000326D02 /* CSSMathProduct.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSMathProduct.cpp; sourceTree = "<group>"; };
 		2AEF6FE526E802F100326D02 /* CSSMathSum.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSMathSum.cpp; sourceTree = "<group>"; };
 		2B0838EE286674A800C23C32 /* GenericTransformStream.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GenericTransformStream.idl; sourceTree = "<group>"; };
+		2B1B1C1E2E3A869C00D7D9ED /* ForwardDeclCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = ForwardDeclCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C1F2E3A869C00D7D9ED /* MemoryUnsafeCastCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = MemoryUnsafeCastCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C202E3A869C00D7D9ED /* NoUncheckedPtrMemberCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = NoUncheckedPtrMemberCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C212E3A869C00D7D9ED /* NoUncountedMemberCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = NoUncountedMemberCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C222E3A869C00D7D9ED /* NoUnretainedMemberCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = NoUnretainedMemberCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C232E3A869C00D7D9ED /* RefCntblBaseVirtualDtorExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = RefCntblBaseVirtualDtorExpectations; sourceTree = "<group>"; };
+		2B1B1C242E3A869C00D7D9ED /* RetainPtrCtorAdoptCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = RetainPtrCtorAdoptCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C252E3A869C00D7D9ED /* UncheckedCallArgsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncheckedCallArgsCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C262E3A869C00D7D9ED /* UncheckedLocalVarsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncheckedLocalVarsCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C272E3A869C00D7D9ED /* UncountedCallArgsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncountedCallArgsCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C282E3A869C00D7D9ED /* UncountedLambdaCapturesCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncountedLambdaCapturesCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C292E3A869C00D7D9ED /* UncountedLocalVarsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncountedLocalVarsCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C2A2E3A869C00D7D9ED /* UnretainedCallArgsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnretainedCallArgsCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C2B2E3A869C00D7D9ED /* UnretainedLambdaCapturesCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnretainedLambdaCapturesCheckerExpectations; sourceTree = "<group>"; };
+		2B1B1C2C2E3A869C00D7D9ED /* UnretainedLocalVarsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnretainedLocalVarsCheckerExpectations; sourceTree = "<group>"; };
 		2B2BE371286EB7210031CB72 /* DecompressionStream.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DecompressionStream.idl; sourceTree = "<group>"; };
 		2B42359F15250EF555DB5CD8 /* RenderSVGEllipse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSVGEllipse.cpp; sourceTree = "<group>"; };
 		2B42359F15250F6000DBBCD8 /* LegacyRenderSVGEllipse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyRenderSVGEllipse.cpp; sourceTree = "<group>"; };
@@ -22866,6 +22881,7 @@
 				0867D69AFE84028FC02AAC07 /* Frameworks */,
 				034768DFFF38A50411DB9C8B /* Products */,
 				1CDD44660BA9C80000F90147 /* Configurations */,
+				2B1B1C2D2E3A869C00D7D9ED /* SaferCPPExpectations */,
 			);
 			name = WebCore;
 			sourceTree = "<group>";
@@ -25015,6 +25031,28 @@
 				2AEF6FD026E71F2E00326D02 /* CSSNumericType.idl */,
 			);
 			path = numeric;
+			sourceTree = "<group>";
+		};
+		2B1B1C2D2E3A869C00D7D9ED /* SaferCPPExpectations */ = {
+			isa = PBXGroup;
+			children = (
+				2B1B1C1E2E3A869C00D7D9ED /* ForwardDeclCheckerExpectations */,
+				2B1B1C1F2E3A869C00D7D9ED /* MemoryUnsafeCastCheckerExpectations */,
+				2B1B1C202E3A869C00D7D9ED /* NoUncheckedPtrMemberCheckerExpectations */,
+				2B1B1C212E3A869C00D7D9ED /* NoUncountedMemberCheckerExpectations */,
+				2B1B1C222E3A869C00D7D9ED /* NoUnretainedMemberCheckerExpectations */,
+				2B1B1C232E3A869C00D7D9ED /* RefCntblBaseVirtualDtorExpectations */,
+				2B1B1C242E3A869C00D7D9ED /* RetainPtrCtorAdoptCheckerExpectations */,
+				2B1B1C252E3A869C00D7D9ED /* UncheckedCallArgsCheckerExpectations */,
+				2B1B1C262E3A869C00D7D9ED /* UncheckedLocalVarsCheckerExpectations */,
+				2B1B1C272E3A869C00D7D9ED /* UncountedCallArgsCheckerExpectations */,
+				2B1B1C282E3A869C00D7D9ED /* UncountedLambdaCapturesCheckerExpectations */,
+				2B1B1C292E3A869C00D7D9ED /* UncountedLocalVarsCheckerExpectations */,
+				2B1B1C2A2E3A869C00D7D9ED /* UnretainedCallArgsCheckerExpectations */,
+				2B1B1C2B2E3A869C00D7D9ED /* UnretainedLambdaCapturesCheckerExpectations */,
+				2B1B1C2C2E3A869C00D7D9ED /* UnretainedLocalVarsCheckerExpectations */,
+			);
+			path = SaferCPPExpectations;
 			sourceTree = "<group>";
 		};
 		2B6C54C3286592EB00D66A51 /* compression */ = {

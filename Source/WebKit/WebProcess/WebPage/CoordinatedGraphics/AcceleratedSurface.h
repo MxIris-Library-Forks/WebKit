@@ -25,19 +25,19 @@
 
 #pragma once
 
-#if (PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(WPE_PLATFORM)))
-
-#include "AcceleratedSurface.h"
+#if USE(COORDINATED_GRAPHICS)
 
 #include "MessageReceiver.h"
-#include "RendererBufferFormat.h"
 #include <WebCore/Damage.h>
-#include <wtf/Noncopyable.h>
+#include <WebCore/IntSize.h>
 #include <wtf/RunLoop.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/ThreadSafeRefCounted.h>
+#include <wtf/WeakRef.h>
 #include <wtf/unix/UnixFileDescriptor.h>
 
 #if USE(GBM)
+#include "RendererBufferFormat.h"
 #include <WebCore/DRMDeviceNode.h>
 #include <atomic>
 #include <wtf/Lock.h>
@@ -45,40 +45,47 @@ typedef void *EGLImage;
 struct gbm_bo;
 #endif
 
+#if USE(WPE_RENDERER)
+struct wpe_renderer_backend_egl_target;
+#endif
+
+namespace WTF {
+class RunLoop;
+}
+
 namespace WebCore {
 class GLFence;
-class Region;
 class ShareableBitmap;
 class ShareableBitmapHandle;
 }
 
 namespace WebKit {
-class AcceleratedSurfaceDMABuf;
-}
-
-namespace WTF {
-template<typename T> struct IsDeprecatedTimerSmartPointerException;
-template<> struct IsDeprecatedTimerSmartPointerException<WebKit::AcceleratedSurfaceDMABuf> : std::true_type { };
+class AcceleratedSurface;
 }
 
 namespace WebKit {
-
-class ThreadedCompositor;
 class WebPage;
 
-class AcceleratedSurfaceDMABuf final : public AcceleratedSurface, public IPC::MessageReceiver {
+class AcceleratedSurface final : public ThreadSafeRefCounted<AcceleratedSurface, WTF::DestructionThread::MainRunLoop>
+#if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
+    , public IPC::MessageReceiver
+#endif
+{
+    WTF_MAKE_TZONE_ALLOCATED(AcceleratedSurface);
 public:
-    static std::unique_ptr<AcceleratedSurfaceDMABuf> create(ThreadedCompositor&, WebPage&, Function<void()>&& frameCompleteHandler);
-    ~AcceleratedSurfaceDMABuf();
+    static Ref<AcceleratedSurface> create(WebPage&, Function<void()>&& frameCompleteHandler);
+    ~AcceleratedSurface();
 
-    void ref() const final;
-    void deref() const final;
+#if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
+    void ref() const final { ThreadSafeRefCounted::ref(); }
+    void deref() const final { ThreadSafeRefCounted::deref(); }
+#endif
 
-private:
-    uint64_t window() const override { return 0; }
-    uint64_t surfaceID() const override;
-    bool resize(const WebCore::IntSize&) override;
-    bool shouldPaintMirrored() const override
+public:
+    uint64_t window() const;
+    uint64_t surfaceID() const;
+    bool resize(const WebCore::IntSize&);
+    bool shouldPaintMirrored() const
     {
 #if PLATFORM(WPE) || (PLATFORM(GTK) && USE(GTK4))
         return false;
@@ -86,30 +93,37 @@ private:
         return true;
 #endif
     }
-    void willDestroyGLContext() override;
-    void willRenderFrame() override;
-    void didRenderFrame() override;
+
+    void willDestroyGLContext();
+    void willRenderFrame();
+    void didRenderFrame();
+    void clearIfNeeded();
 
 #if ENABLE(DAMAGE_TRACKING)
-    const std::optional<WebCore::Damage>& frameDamageSinceLastUse() override;
+    void setFrameDamage(WebCore::Damage&&);
+    const std::optional<WebCore::Damage>& frameDamage() const { return m_frameDamage; }
+    const std::optional<WebCore::Damage>& frameDamageSinceLastUse();
 #endif
 
-    void didCreateCompositingRunLoop(WTF::RunLoop&) override;
-    void willDestroyCompositingRunLoop() override;
+    void didCreateCompositingRunLoop(WTF::RunLoop&);
+    void willDestroyCompositingRunLoop();
 
 #if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)
-    void preferredBufferFormatsDidChange() override;
+    void preferredBufferFormatsDidChange();
 #endif
 
-    void visibilityDidChange(bool) override;
-    bool backgroundColorDidChange() override;
+    void visibilityDidChange(bool);
+    bool backgroundColorDidChange();
 
-    AcceleratedSurfaceDMABuf(ThreadedCompositor&, WebPage&, Function<void()>&& frameCompleteHandler);
+private:
+    AcceleratedSurface(WebPage&, Function<void()>&& frameCompleteHandler);
 
+#if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
     // IPC::MessageReceiver.
     void didReceiveMessage(IPC::Connection&, IPC::Decoder&) override;
 
     void releaseBuffer(uint64_t, WTF::UnixFileDescriptor&&);
+#endif
     void frameDone();
     void releaseUnusedBuffersTimerFired();
 
@@ -119,31 +133,52 @@ private:
         virtual ~RenderTarget();
 
         uint64_t id() const { return m_id; }
+
+        virtual void willRenderFrame() { }
+        virtual void didRenderFrame(Vector<WebCore::IntRect, 1>&&) { }
+
+        virtual void sync(bool) { }
+        virtual void setReleaseFenceFD(UnixFileDescriptor&&) { }
+
 #if ENABLE(DAMAGE_TRACKING)
         void setDamage(WebCore::Damage&& damage) { m_damage = WTFMove(damage); }
         const std::optional<WebCore::Damage>& damage() { return m_damage; }
         void addDamage(const std::optional<WebCore::Damage>&);
 #endif
 
-        virtual void willRenderFrame();
-        virtual void didRenderFrame() { };
-
-        std::unique_ptr<WebCore::GLFence> createRenderingFence(bool) const;
-        void setReleaseFenceFD(UnixFileDescriptor&&);
-
     protected:
-        RenderTarget(uint64_t, const WebCore::IntSize&);
-
-        virtual bool supportsExplicitSync() const = 0;
+        explicit RenderTarget(uint64_t);
 
         uint64_t m_id { 0 };
-        unsigned m_fbo { 0 };
         uint64_t m_surfaceID { 0 };
-        unsigned m_depthStencilBuffer { 0 };
-        UnixFileDescriptor m_releaseFenceFD;
 #if ENABLE(DAMAGE_TRACKING)
         std::optional<WebCore::Damage> m_damage;
 #endif
+    };
+
+#if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
+    class RenderTargetShareableBuffer : public RenderTarget {
+        WTF_MAKE_TZONE_ALLOCATED(RenderTargetShareableBuffer);
+    public:
+        virtual ~RenderTargetShareableBuffer();
+
+    private:
+        std::unique_ptr<WebCore::GLFence> createRenderingFence(bool) const;
+
+    protected:
+        RenderTargetShareableBuffer(uint64_t, const WebCore::IntSize&);
+
+        void willRenderFrame() override;
+        void didRenderFrame(Vector<WebCore::IntRect, 1>&&) override;
+
+        virtual bool supportsExplicitSync() const = 0;
+        void sync(bool) override;
+        void setReleaseFenceFD(UnixFileDescriptor&&) override;
+
+        unsigned m_fbo { 0 };
+        unsigned m_depthStencilBuffer { 0 };
+        UnixFileDescriptor m_renderingFenceFD;
+        UnixFileDescriptor m_releaseFenceFD;
     };
 
 #if USE(GBM)
@@ -178,7 +213,7 @@ private:
         RefPtr<WebCore::DRMDeviceNode> drmDeviceNode;
     };
 
-    class RenderTargetEGLImage final : public RenderTarget {
+    class RenderTargetEGLImage final : public RenderTargetShareableBuffer {
     public:
         static std::unique_ptr<RenderTarget> create(uint64_t, const WebCore::IntSize&, const BufferFormat&);
         RenderTargetEGLImage(uint64_t, const WebCore::IntSize&, EGLImage, uint32_t format, Vector<WTF::UnixFileDescriptor>&&, Vector<uint32_t>&& offsets, Vector<uint32_t>&& strides, uint64_t modifier, RendererBufferFormat::Usage);
@@ -192,7 +227,7 @@ private:
     };
 #endif
 
-    class RenderTargetSHMImage final : public RenderTarget {
+    class RenderTargetSHMImage final : public RenderTargetShareableBuffer {
     public:
         static std::unique_ptr<RenderTarget> create(uint64_t, const WebCore::IntSize&);
         RenderTargetSHMImage(uint64_t, const WebCore::IntSize&, Ref<WebCore::ShareableBitmap>&&, WebCore::ShareableBitmapHandle&&);
@@ -200,13 +235,13 @@ private:
 
     private:
         bool supportsExplicitSync() const override { return false; }
-        void didRenderFrame() override;
+        void didRenderFrame(Vector<WebCore::IntRect, 1>&&) override;
 
         unsigned m_colorBuffer { 0 };
         const Ref<WebCore::ShareableBitmap> m_bitmap;
     };
 
-    class RenderTargetTexture final : public RenderTarget {
+    class RenderTargetTexture final : public RenderTargetShareableBuffer {
     public:
         static std::unique_ptr<RenderTarget> create(uint64_t, const WebCore::IntSize&);
         RenderTargetTexture(uint64_t, const WebCore::IntSize&, unsigned texture, uint32_t format, Vector<WTF::UnixFileDescriptor>&&, Vector<uint32_t>&& offsets, Vector<uint32_t>&& strides, uint64_t modifier);
@@ -217,6 +252,25 @@ private:
 
         unsigned m_texture { 0 };
     };
+#endif // PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
+
+#if USE(WPE_RENDERER)
+    class RenderTargetWPEBackend final : public RenderTarget {
+    public:
+        static std::unique_ptr<RenderTarget> create(uint64_t, const WebCore::IntSize&, UnixFileDescriptor&&, const AcceleratedSurface&);
+        RenderTargetWPEBackend(uint64_t, const WebCore::IntSize&, UnixFileDescriptor&&, const AcceleratedSurface&);
+        ~RenderTargetWPEBackend();
+
+        uint64_t window() const;
+        void resize(const WebCore::IntSize&);
+
+    private:
+        void willRenderFrame() override;
+        void didRenderFrame(Vector<WebCore::IntRect, 1>&&) override;
+
+        struct wpe_renderer_backend_egl_target* m_backend { nullptr };
+    };
+#endif
 
     class SwapChain {
         WTF_MAKE_NONCOPYABLE(SwapChain);
@@ -226,11 +280,16 @@ private:
 
         enum class Type {
             Invalid,
+#if PLATFORM(GTK) || ENABLE(WPE_PLATFORM)
 #if USE(GBM)
             EGLImage,
 #endif
             SharedMemory,
-            Texture
+            Texture,
+#endif
+#if USE(WPE_RENDERER)
+            WPEBackend
+#endif
         };
 
         Type type() const { return m_type; }
@@ -246,8 +305,13 @@ private:
 
         unsigned size() const { return m_freeTargets.size() + m_lockedTargets.size(); }
 
-#if USE(GBM)
+#if USE(GBM) && (PLATFORM(GTK) || ENABLE(WPE_PLATFORM))
         void setupBufferFormat(const Vector<RendererBufferFormat>&, bool);
+#endif
+
+#if USE(WPE_RENDERER)
+        void initialize(WebPage&);
+        uint64_t initializeTarget(const AcceleratedSurface&);
 #endif
 
     private:
@@ -260,22 +324,32 @@ private:
         WebCore::IntSize m_size;
         Vector<std::unique_ptr<RenderTarget>, s_maximumBuffers> m_freeTargets;
         Vector<std::unique_ptr<RenderTarget>, s_maximumBuffers> m_lockedTargets;
-#if USE(GBM)
+#if USE(GBM) && (PLATFORM(GTK) || ENABLE(WPE_PLATFORM))
         Lock m_bufferFormatLock;
         BufferFormat m_bufferFormat WTF_GUARDED_BY_LOCK(m_bufferFormatLock);
         bool m_bufferFormatChanged WTF_GUARDED_BY_LOCK(m_bufferFormatLock) { false };
 #endif
+#if USE(WPE_RENDERER)
+        UnixFileDescriptor m_hostFD;
+        WebCore::IntSize m_initialSize;
+#endif
     };
 
-    const CheckedRef<ThreadedCompositor> m_compositor;
+    WeakRef<WebPage> m_webPage;
+    Function<void()> m_frameCompleteHandler;
     uint64_t m_id { 0 };
+    WebCore::IntSize m_size;
     SwapChain m_swapChain;
     RenderTarget* m_target { nullptr };
     bool m_isVisible { false };
     bool m_useExplicitSync { false };
+    std::atomic<bool> m_isOpaque { true };
     std::unique_ptr<RunLoop::Timer> m_releaseUnusedBuffersTimer;
+#if ENABLE(DAMAGE_TRACKING)
+    std::optional<WebCore::Damage> m_frameDamage;
+#endif
 };
 
 } // namespace WebKit
 
-#endif // (PLATFORM(GTK) || (PLATFORM(WPE) && ENABLE(WPE_PLATFORM)))
+#endif // USE(COORDINATED_GRAPHICS)

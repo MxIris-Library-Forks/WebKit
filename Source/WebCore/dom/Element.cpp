@@ -647,8 +647,14 @@ SerializedNode Element::serializeNode(CloningOperation type) const
         children = serializeChildNodes();
         break;
     }
-    // FIXME: Make an equivalent of Element::cloneDataFromElement and cloneShadowTreeIfPossible.
-    return { SerializedNode::Element { { WTFMove(children) }, { tagQName() } } };
+
+    // FIXME: Make an equivalent of cloneShadowTreeIfPossible.
+
+    auto attributes = this->elementData() ? WTF::map(this->attributes(), [] (const auto& attribute) {
+        return SerializedNode::Element::Attribute { { attribute.name() }, attribute.value() };
+    }) : Vector<SerializedNode::Element::Attribute>();
+
+    return { SerializedNode::Element { { WTFMove(children) }, { tagQName() }, WTFMove(attributes) } };
 }
 
 void Element::cloneShadowTreeIfPossible(Element& newHost) const

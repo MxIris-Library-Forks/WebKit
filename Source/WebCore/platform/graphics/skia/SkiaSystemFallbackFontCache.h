@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Igalia S.L.
+ * Copyright (C) 2025 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,42 +25,28 @@
 
 #pragma once
 
-#if USE(WPE_RENDERER)
+#if USE(SKIA) && !OS(ANDROID) && !PLATFORM(WIN)
+#include <skia/core/SkFontStyle.h>
+#include <skia/core/SkTypeface.h>
+#include <wtf/HashMap.h>
+#include <wtf/text/WTFString.h>
 
-#include "AcceleratedSurface.h"
-#include <wtf/TZoneMalloc.h>
-#include <wtf/unix/UnixFileDescriptor.h>
+namespace WebCore {
+class FontSetCache;
 
-struct wpe_renderer_backend_egl_target;
-
-namespace WebKit {
-
-class WebPage;
-
-class AcceleratedSurfaceLibWPE final : public AcceleratedSurface {
-    WTF_MAKE_NONCOPYABLE(AcceleratedSurfaceLibWPE);
-    WTF_MAKE_TZONE_ALLOCATED(AcceleratedSurfaceLibWPE);
+class SkiaSystemFallbackFontCache {
+    WTF_MAKE_NONCOPYABLE(SkiaSystemFallbackFontCache);
 public:
-    static std::unique_ptr<AcceleratedSurfaceLibWPE> create(WebPage&, Function<void()>&& frameCompleteHandler);
-    ~AcceleratedSurfaceLibWPE();
+    SkiaSystemFallbackFontCache();
+    ~SkiaSystemFallbackFontCache();
 
-    uint64_t window() const override;
-    uint64_t surfaceID() const override;
-    bool resize(const WebCore::IntSize&) override;
-    void finalize() override;
-    void willRenderFrame() override;
-    void didRenderFrame() override;
-
+    sk_sp<SkTypeface> fontForCharacterCluster(const SkFontStyle&, const String& locale, StringView);
+    void clear();
 private:
-    AcceleratedSurfaceLibWPE(WebPage&, Function<void()>&& frameCompleteHandler);
-
-    void initialize();
-
-    UnixFileDescriptor m_hostFD;
-    WebCore::IntSize m_initialSize;
-    struct wpe_renderer_backend_egl_target* m_backend { nullptr };
+    HashMap<String, std::unique_ptr<FontSetCache>> m_cache;
+    HashMap<std::pair<String, int>, sk_sp<SkTypeface>> m_typefaceCache;
 };
 
-} // namespace WebKit
+} // namespace WebCore
 
-#endif // USE(WPE_RENDERER)
+#endif // USE(SKIA) && !OS(ANDROID) && !PLATFORM(WIN)

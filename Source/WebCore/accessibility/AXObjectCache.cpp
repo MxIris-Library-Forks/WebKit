@@ -36,7 +36,6 @@
 #include "AXLogger.h"
 #include "AXRemoteFrame.h"
 #include "AXTextMarker.h"
-#include "AccessibilityARIAGridCell.h"
 #include "AccessibilityARIAGridRow.h"
 #include "AccessibilityAttachment.h"
 #include "AccessibilityImageMapLink.h"
@@ -52,7 +51,6 @@
 #include "AccessibilityProgressIndicator.h"
 #include "AccessibilityRenderObject.h"
 #include "AccessibilitySVGObject.h"
-#include "AccessibilitySVGRoot.h"
 #include "AccessibilityScrollView.h"
 #include "AccessibilityScrollbar.h"
 #include "AccessibilitySlider.h"
@@ -798,7 +796,7 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
         if (isAccessibilityARIAGridRow(*element))
             return AccessibilityARIAGridRow::create(AXID::generate(), renderer, *this);
         if (isAccessibilityARIAGridCell(*element))
-            return AccessibilityARIAGridCell::create(AXID::generate(), renderer, *this);
+            return AccessibilityTableCell::create(AXID::generate(), renderer, *this, /* isARIAGridCell */ true);
 
         if (isAccessibilityTree(*element))
             return AccessibilityTree::create(AXID::generate(), renderer, *this);
@@ -815,7 +813,7 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
     }
 
     if (renderer.isRenderOrLegacyRenderSVGRoot())
-        return AccessibilitySVGRoot::create(AXID::generate(), renderer, *this);
+        return AccessibilitySVGObject::create(AXID::generate(), renderer, *this, /* isSVGRoot */ true);
 
     if (is<SVGElement>(node) || is<RenderSVGInlineText>(renderer))
         return AccessibilitySVGObject::create(AXID::generate(), renderer, *this);
@@ -890,7 +888,7 @@ Ref<AccessibilityNodeObject> AXObjectCache::createFromNode(Node& node)
         if (isAccessibilityARIAGridRow(*element))
             return AccessibilityARIAGridRow::create(AXID::generate(), *element, *this);
         if (isAccessibilityARIAGridCell(*element))
-            return AccessibilityARIAGridCell::create(AXID::generate(), *element, *this);
+            return AccessibilityTableCell::create(AXID::generate(), *element, *this, /* isARIAGridCell */ true);
         if (RefPtr areaElement = dynamicDowncast<HTMLAreaElement>(*element))
             return AccessibilityImageMapLink::create(AXID::generate(), *areaElement, *this);
     }

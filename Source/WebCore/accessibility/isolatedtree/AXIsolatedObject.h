@@ -492,7 +492,6 @@ private:
     // Functions that should never be called on an isolated tree object. ASSERT that these are not reached;
     bool isAccessibilityRenderObject() const final;
     bool isAccessibilityTableInstance() const final;
-    bool isAccessibilityARIAGridCellInstance() const final { return false; }
     bool isAXRemoteFrame() const final { return false; }
     bool isNativeTextControl() const final;
     bool isMockObject() const final;
@@ -640,6 +639,8 @@ inline bool AXIsolatedObject::hasPropertyFlag(AXProperty property) const
     uint16_t propertyIndex = static_cast<uint16_t>(property);
     return hasPropertyFlag(static_cast<AXPropertyFlag>(1 << propertyIndex));
 }
+
+bool isDefaultValue(AXProperty, AXPropertyValueVariant&);
 
 } // namespace WebCore
 

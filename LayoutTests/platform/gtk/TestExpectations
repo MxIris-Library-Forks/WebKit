@@ -27,15 +27,6 @@ ietestcenter/css3/flexbox/flexbox-layout-001.htm [ Pass ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-embed-element/embed-represent-nothing-02.html [ Pass ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-area-element/area-coords.html [ Pass ]
 
-# Some Apple ports don't support RTL scrollbars.
-fast/scrolling/rtl-scrollbars-alternate-body-dir-attr-does-not-update-scrollbar-placement.html [ Pass ]
-fast/scrolling/rtl-scrollbars-iframe-scrolled.html [ Pass ]
-fast/scrolling/rtl-scrollbars-overflow-text-selection-scrolled.html  [ Pass ]
-fast/scrolling/rtl-scrollbars-position-absolute.html  [ Pass ]
-fast/scrolling/rtl-scrollbars-position-fixed.html [ Pass ]
-fast/scrolling/rtl-scrollbars-text-selection.html [ Pass ]
-fast/scrolling/rtl-scrollbars-text-selection-scrolled.html [ Pass ]
-
 webkit.org/b/155132 http/tests/security/contentSecurityPolicy/video-with-https-url-allowed-by-csp-media-src-star.html [ Pass ]
 security/contentSecurityPolicy/plugins-types-allows-youtube-plugin-replacement.html [ Failure ]
 
@@ -1349,9 +1340,6 @@ webkit.org/b/52094 editing/pasteboard/files-during-page-drags.html [ Failure ]
 webkit.org/b/58845 fast/dom/title-directionality.html [ Failure ]
 webkit.org/b/58845 fast/dom/title-directionality-removeChild.html [ Failure ]
 
-# HTTP 204 (No Content) should be ignored
-webkit.org/b/60206 http/tests/navigation/response204.html [ Failure ]
-
 webkit.org/b/105693 http/tests/multipart/multipart-wait-before-boundary.html [ Skip ]
 
 webkit.org/b/74282 editing/pasteboard/emacs-ctrl-k-with-move.html [ Failure ]
@@ -1491,8 +1479,6 @@ webkit.org/b/189564 http/tests/xmlhttprequest/url-with-credentials.html [ Failur
 
 webkit.org/b/189739 imported/mozilla/svg/linearGradient-basic-03.svg [ ImageOnlyFailure ]
 webkit.org/b/189739 imported/mozilla/svg/marker-viewBox-01.svg [ ImageOnlyFailure ]
-
-webkit.org/b/189994 fast/files/xhr-response-blob.html [ Failure ]
 
 webkit.org/b/190709 editing/pasteboard/emacs-ctrl-a-k-y.html [ Failure ]
 

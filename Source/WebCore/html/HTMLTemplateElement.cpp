@@ -140,7 +140,12 @@ SerializedNode HTMLTemplateElement::serializeNode(CloningOperation type) const
         children = serializeChildNodes();
         break;
     }
-    return { SerializedNode::HTMLTemplateElement { { { WTFMove(children) }, { tagQName() } } } };
+
+    auto attributes = this->elementData() ? WTF::map(this->attributes(), [] (const auto& attribute) {
+        return SerializedNode::Element::Attribute { { attribute.name() }, attribute.value() };
+    }) : Vector<SerializedNode::Element::Attribute>();
+
+    return { SerializedNode::HTMLTemplateElement { { { WTFMove(children) }, { tagQName() }, WTFMove(attributes) } } };
 }
 
 void HTMLTemplateElement::didMoveToNewDocument(Document& oldDocument, Document& newDocument)

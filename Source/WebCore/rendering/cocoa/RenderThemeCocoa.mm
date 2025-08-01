@@ -504,7 +504,7 @@ void RenderThemeCocoa::inflateRectForControlRenderer(const RenderObject& rendere
     RenderTheme::inflateRectForControlRenderer(renderer, rect);
 }
 
-LengthBox RenderThemeCocoa::controlBorder(StyleAppearance appearance, const FontCascade& font, const LengthBox& zoomedBox, float zoomFactor, const Element* element) const
+Style::LineWidthBox RenderThemeCocoa::controlBorder(StyleAppearance appearance, const FontCascade& font, const Style::LineWidthBox& zoomedBox, float zoomFactor, const Element* element) const
 {
 #if ENABLE(FORM_CONTROL_REFRESH)
     if (formControlRefreshEnabled(element))
@@ -2503,9 +2503,9 @@ bool RenderThemeCocoa::paintMenuListButtonDecorationsForVectorBasedControls(cons
     }
 
     if (!style->writingMode().isInlineFlipped())
-        glyphOrigin.setX(logicalRect.maxX() - glyphSize.width() - box.style().borderEndWidth() - glyphPaddingEnd);
+        glyphOrigin.setX(logicalRect.maxX() - glyphSize.width() - Style::evaluate(box.style().borderEndWidth()) - glyphPaddingEnd);
     else
-        glyphOrigin.setX(logicalRect.x() + box.style().borderEndWidth() + glyphPaddingEnd);
+        glyphOrigin.setX(logicalRect.x() + Style::evaluate(box.style().borderEndWidth()) + glyphPaddingEnd);
 
     if (!isHorizontalWritingMode)
         glyphOrigin = glyphOrigin.transposedPoint();

@@ -88,7 +88,6 @@
 #import "WKNavigationInternal.h"
 #import "WKPDFConfiguration.h"
 #import "WKPDFPageNumberIndicator.h"
-#import "WKPDFView.h"
 #import "WKPreferencesInternal.h"
 #import "WKProcessPoolInternal.h"
 #import "WKScrollGeometry.h"
@@ -179,6 +178,7 @@
 #import <WebCore/TextManipulationItem.h>
 #import <WebCore/ViewportArguments.h>
 #import <WebCore/WebCoreObjCExtras.h>
+#import <WebCore/WebCorePersistentCoders.h>
 #import <WebCore/WebViewVisualIdentificationOverlay.h>
 #import <WebCore/WritingMode.h>
 #import <wtf/BlockPtr.h>
@@ -1544,13 +1544,9 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
         handler(image.get(), nil);
     });
 #else
-    auto useIntrinsicDeviceScaleFactor = [[_customContentView class] web_requiresCustomSnapshotting];
 
-ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-    // FIXME: <rdar://131638772> UIScreen.mainScreen is deprecated.
-    CGFloat deviceScale = useIntrinsicDeviceScaleFactor ? UIScreen.mainScreen.scale : _page->deviceScaleFactor();
-ALLOW_DEPRECATED_DECLARATIONS_END
-    CGFloat imageWidth = useIntrinsicDeviceScaleFactor ? snapshotWidth : snapshotWidth * deviceScale;
+    CGFloat deviceScale = _page->deviceScaleFactor();
+    CGFloat imageWidth = snapshotWidth * deviceScale;
     RetainPtr<WKWebView> strongSelf = self;
     BOOL afterScreenUpdates = snapshotConfiguration && snapshotConfiguration.afterScreenUpdates;
     auto callSnapshotRect = [strongSelf, afterScreenUpdates, rectInViewCoordinates, imageWidth, deviceScale, handler] {
@@ -2991,22 +2987,7 @@ static _WKSelectionAttributes selectionAttributes(const WebKit::EditorState& edi
 #endif // PLATFORM(VISION)
 #endif // ENABLE(GAMEPAD)
 
-- (_WKRectEdge)_fixedContainerEdges
-{
-    // FIXME: Remove once it's no longer required to maintain binary compatibility with internal clients.
-    _WKRectEdge edges = _WKRectEdgeNone;
-    if (_fixedContainerEdges.hasFixedEdge(WebCore::BoxSide::Bottom))
-        edges |= _WKRectEdgeBottom;
-    if (_fixedContainerEdges.hasFixedEdge(WebCore::BoxSide::Left))
-        edges |= _WKRectEdgeLeft;
-    if (_fixedContainerEdges.hasFixedEdge(WebCore::BoxSide::Right))
-        edges |= _WKRectEdgeRight;
-    if (_fixedContainerEdges.hasFixedEdge(WebCore::BoxSide::Top))
-        edges |= _WKRectEdgeTop;
-    return edges;
-}
-
-static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::FixedContainerEdges& edges, WebCore::BoxSide side)
+WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::FixedContainerEdges& edges, WebCore::BoxSide side)
 {
     if (!edges.hasFixedEdge(side))
         return nil;
@@ -3014,24 +2995,9 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
     return cocoaColorOrNil(edges.predominantColor(side)).autorelease();
 }
 
-- (WebCore::CocoaColor *)_sampledBottomFixedPositionContentColor
-{
-    return sampledFixedPositionContentColor(_fixedContainerEdges, WebCore::BoxSide::Bottom);
-}
-
-- (WebCore::CocoaColor *)_sampledLeftFixedPositionContentColor
-{
-    return sampledFixedPositionContentColor(_fixedContainerEdges, WebCore::BoxSide::Left);
-}
-
 - (WebCore::CocoaColor *)_sampledTopFixedPositionContentColor
 {
     return sampledFixedPositionContentColor(_fixedContainerEdges, WebCore::BoxSide::Top);
-}
-
-- (WebCore::CocoaColor *)_sampledRightFixedPositionContentColor
-{
-    return sampledFixedPositionContentColor(_fixedContainerEdges, WebCore::BoxSide::Right);
 }
 
 - (void)_updateScrollGeometryWithContentOffset:(CGPoint)contentOffset contentSize:(CGSize)contentSize
@@ -5719,40 +5685,14 @@ static inline OptionSet<WebKit::FindOptions> toFindOptions(_WKFindOptions wkFind
 
 - (BOOL)_isDisplayingPDF
 {
-    auto mainFrameIsDisplayingPDFDocument = [page = WeakPtr { _page.get() }] {
-        if (!page)
-            return false;
-        if (RefPtr mainFrame = page->mainFrame())
-            return mainFrame->isDisplayingPDFDocument();
-        return false;
-    };
+    if (!_page)
+        return NO;
 
-    bool unifiedPDFEnabled = false;
-#if ENABLE(UNIFIED_PDF)
-    unifiedPDFEnabled = _page->protectedPreferences()->unifiedPDFEnabled();
-#endif
+    RefPtr mainFrame = _page->mainFrame();
+    if (!mainFrame)
+        return NO;
 
-    bool hasCustomContentViewForPDFType = false;
-#if ENABLE(WKPDFVIEW)
-    hasCustomContentViewForPDFType = [weakSelf = WeakObjCPtr<WKWebView>(self)] {
-        if (![WKPDFView platformSupportsPDFView])
-            return false;
-
-        RetainPtr strongSelf = weakSelf.get();
-        if (!strongSelf)
-            return false;
-
-        for (auto& type : WebCore::MIMETypeRegistry::pdfMIMETypes()) {
-            Class providerClass = [strongSelf->_contentProviderRegistry providerForMIMEType:@(type.characters())];
-            if ([strongSelf->_customContentView isKindOfClass:providerClass])
-                return true;
-        }
-
-        return false;
-    }();
-#endif
-
-    return static_cast<BOOL>(!unifiedPDFEnabled && hasCustomContentViewForPDFType ?: mainFrameIsDisplayingPDFDocument());
+    return static_cast<BOOL>(mainFrame->isDisplayingPDFDocument());
 }
 
 - (BOOL)_isDisplayingStandaloneImageDocument

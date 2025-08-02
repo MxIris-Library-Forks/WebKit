@@ -2770,6 +2770,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/color/StyleCurrentColor.h
     style/values/color/StyleDynamicRangeLimit.h
     style/values/color/StyleDynamicRangeLimitMix.h
+    style/values/color/StyleOpacity.h
     style/values/color/StyleResolvedColor.h
 
     style/values/color-adjust/StyleColorScheme.h
@@ -2781,6 +2782,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/counter-styles/StyleCounterStyle.h
 
+    style/values/fill-stroke/StyleStrokeMiterlimit.h
     style/values/fill-stroke/StyleStrokeWidth.h
 
     style/values/flexbox/StyleFlexBasis.h

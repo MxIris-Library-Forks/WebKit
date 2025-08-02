@@ -303,7 +303,7 @@ inline bool RenderStyle::hasMargin() const { return !Style::isZero(marginBox());
 inline bool RenderStyle::hasMask() const { return maskLayers().hasImage() || maskBorder().hasImage(); }
 inline bool RenderStyle::hasInset() const { return !Style::isZero(insetBox()); }
 inline bool RenderStyle::hasOffsetPath() const { return !WTF::holdsAlternative<CSS::Keyword::None>(m_nonInheritedData->rareData->offsetPath); }
-inline bool RenderStyle::hasOpacity() const { return m_nonInheritedData->miscData->hasOpacity(); }
+inline bool RenderStyle::hasOpacity() const { return !opacity().isOpaque(); }
 inline bool RenderStyle::hasOutOfFlowPosition() const { return position() == PositionType::Absolute || position() == PositionType::Fixed; }
 inline bool RenderStyle::hasOutline() const { return outlineStyle() != OutlineStyle::None && outlineWidth().isPositive(); }
 inline bool RenderStyle::hasOutlineInVisualOverflow() const { return hasOutline() && outlineSize() > 0; }
@@ -324,7 +324,6 @@ inline bool RenderStyle::hasViewportConstrainedPosition() const { return positio
 inline bool RenderStyle::hasVisibleBorder() const { return border().hasVisibleBorder(); }
 inline bool RenderStyle::hasVisibleBorderDecoration() const { return hasVisibleBorder() || hasBorderImage(); }
 inline bool RenderStyle::hasVisitedLinkAutoCaretColor() const { return m_rareInheritedData->hasVisitedLinkAutoCaretColor; }
-inline bool RenderStyle::hasZeroOpacity() const { return m_nonInheritedData->miscData->hasZeroOpacity(); }
 inline const Style::PreferredSize& RenderStyle::height() const { return m_nonInheritedData->boxData->height(); }
 inline Style::HyphenateLimitEdge RenderStyle::hyphenateLimitAfter() const { return m_rareInheritedData->hyphenateLimitAfter; }
 inline Style::HyphenateLimitEdge RenderStyle::hyphenateLimitBefore() const { return m_rareInheritedData->hyphenateLimitBefore; }
@@ -453,6 +452,7 @@ constexpr Style::OffsetRotate RenderStyle::initialOffsetRotate() { return CSS::K
 constexpr OverflowAnchor RenderStyle::initialOverflowAnchor() { return OverflowAnchor::Auto; }
 inline OverflowContinue RenderStyle::initialOverflowContinue() { return OverflowContinue::Auto; }
 constexpr Style::Length<> RenderStyle::initialOutlineOffset() { return 0_css_px; }
+constexpr Style::Opacity RenderStyle::initialOpacity() { return 1_css_number; }
 constexpr OutlineStyle RenderStyle::initialOutlineStyle() { return OutlineStyle::None; }
 constexpr Style::LineWidth RenderStyle::initialOutlineWidth() { return CSS::Keyword::Medium { }; }
 constexpr OverflowWrap RenderStyle::initialOverflowWrap() { return OverflowWrap::Normal; }
@@ -496,7 +496,7 @@ inline Style::ShapeOutside RenderStyle::initialShapeOutside() { return CSS::Keyw
 inline Style::PreferredSize RenderStyle::initialSize() { return CSS::Keyword::Auto { }; }
 constexpr OptionSet<SpeakAs> RenderStyle::initialSpeakAs() { return { }; }
 inline Style::Color RenderStyle::initialStrokeColor() { return { Color::transparentBlack }; }
-constexpr float RenderStyle::initialStrokeMiterLimit() { return defaultMiterLimit; }
+constexpr Style::StrokeMiterlimit RenderStyle::initialStrokeMiterLimit() { return 4_css_number; }
 inline Style::StrokeWidth RenderStyle::initialStrokeWidth() { return 1_css_px; }
 constexpr TabSize RenderStyle::initialTabSize() { return 8; }
 constexpr TableLayoutType RenderStyle::initialTableLayout() { return TableLayoutType::Auto; }
@@ -665,7 +665,7 @@ inline const Style::OffsetDistance& RenderStyle::offsetDistance() const { return
 inline const Style::OffsetPath& RenderStyle::offsetPath() const { return m_nonInheritedData->rareData->offsetPath; }
 inline const Style::OffsetPosition& RenderStyle::offsetPosition() const { return m_nonInheritedData->rareData->offsetPosition; }
 inline const Style::OffsetRotate& RenderStyle::offsetRotate() const { return m_nonInheritedData->rareData->offsetRotate; }
-inline float RenderStyle::opacity() const { return m_nonInheritedData->miscData->opacity; }
+inline Style::Opacity RenderStyle::opacity() const { return m_nonInheritedData->miscData->opacity; }
 inline int RenderStyle::order() const { return m_nonInheritedData->miscData->order; }
 inline unsigned short RenderStyle::orphans() const { return m_rareInheritedData->orphans; }
 inline const OutlineValue& RenderStyle::outline() const { return m_nonInheritedData->backgroundData->outline; }
@@ -735,7 +735,7 @@ inline int RenderStyle::specifiedZIndex() const { return m_nonInheritedData->box
 inline bool RenderStyle::specifiesColumns() const { return !hasAutoColumnCount() || !hasAutoColumnWidth() || !hasInlineColumnAxis(); }
 constexpr OptionSet<Containment> RenderStyle::strictContainment() { return { Containment::Size, Containment::Layout, Containment::Paint, Containment::Style }; }
 inline const Style::Color& RenderStyle::strokeColor() const { return m_rareInheritedData->strokeColor; }
-inline float RenderStyle::strokeMiterLimit() const { return m_rareInheritedData->miterLimit; }
+inline Style::StrokeMiterlimit RenderStyle::strokeMiterLimit() const { return m_rareInheritedData->miterLimit; }
 inline const AtomString& RenderStyle::pseudoElementNameArgument() const { return m_nonInheritedData->rareData->pseudoElementNameArgument; }
 inline const TabSize& RenderStyle::tabSize() const { return m_rareInheritedData->tabSize; }
 inline TableLayoutType RenderStyle::tableLayout() const { return static_cast<TableLayoutType>(m_nonInheritedData->miscData->tableLayout); }

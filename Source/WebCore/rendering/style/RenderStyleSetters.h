@@ -241,6 +241,7 @@ inline void RenderStyle::setOffsetDistance(Style::OffsetDistance&& distance) { S
 inline void RenderStyle::setOffsetPath(Style::OffsetPath&& path) { SET_NESTED(m_nonInheritedData, rareData, offsetPath, WTFMove(path)); }
 inline void RenderStyle::setOffsetPosition(Style::OffsetPosition&& position) { SET_NESTED(m_nonInheritedData, rareData, offsetPosition, WTFMove(position)); }
 inline void RenderStyle::setOffsetRotate(Style::OffsetRotate&& rotate) { SET_NESTED(m_nonInheritedData, rareData, offsetRotate, WTFMove(rotate)); }
+inline void RenderStyle::setOpacity(Style::Opacity opacity) { SET_NESTED(m_nonInheritedData, miscData, opacity, opacity); }
 inline void RenderStyle::setOrder(int o) { SET_NESTED(m_nonInheritedData, miscData, order, o); }
 inline void RenderStyle::setOutlineColor(Style::Color&& color) { SET_NESTED(m_nonInheritedData, backgroundData, outline.m_color, WTFMove(color)); }
 inline void RenderStyle::setOutlineOffset(Style::Length<> offset) { SET_NESTED(m_nonInheritedData, backgroundData, outline.m_offset, offset); }
@@ -292,7 +293,7 @@ inline void RenderStyle::setUsedContentVisibility(ContentVisibility usedContentV
 inline void RenderStyle::setSpeakAs(OptionSet<SpeakAs> style) { SET(m_rareInheritedData, speakAs, style.toRaw()); }
 inline void RenderStyle::setSpecifiedZIndex(int value) { SET_NESTED_PAIR(m_nonInheritedData, boxData, m_hasAutoSpecifiedZIndex, false, m_specifiedZIndex, value); }
 inline void RenderStyle::setStrokeColor(Style::Color&& color) { SET(m_rareInheritedData, strokeColor, WTFMove(color)); }
-inline void RenderStyle::setStrokeMiterLimit(float value) { SET(m_rareInheritedData, miterLimit, value); }
+inline void RenderStyle::setStrokeMiterLimit(Style::StrokeMiterlimit value) { SET(m_rareInheritedData, miterLimit, value); }
 inline void RenderStyle::setStrokeWidth(Style::StrokeWidth&& width) { SET(m_rareInheritedData, strokeWidth, WTFMove(width)); }
 inline void RenderStyle::setTabSize(const TabSize& size) { SET(m_rareInheritedData, tabSize, size); }
 inline void RenderStyle::setTextAlignLast(TextAlignLast value) { SET(m_rareInheritedData, textAlignLast, static_cast<unsigned>(value)); }
@@ -582,12 +583,6 @@ inline void RenderStyle::setLogicalMaxHeight(Style::MaximumSize&& height)
         setMaxHeight(WTFMove(height));
     else
         setMaxWidth(WTFMove(height));
-}
-
-inline void RenderStyle::setOpacity(float opacity)
-{
-    float clampedOpacity = clampTo(opacity, 0.f, 1.f);
-    SET_NESTED(m_nonInheritedData, miscData, opacity, clampedOpacity);
 }
 
 inline void RenderStyle::setOrphans(unsigned short count)

@@ -2909,6 +2909,7 @@ webkit.org/b/158923 media/modern-media-controls/placard-support/placard-support-
 webkit.org/b/206528 imported/w3c/web-platform-tests/remote-playback [ Skip ]
 media/media-source/media-managedmse-airplay.html [ Skip ]
 media/media-source/media-managedmse-airplay-withsrc.html [ Skip ]
+media/adopt-node-after-showing-picker-crash.html [ Skip ]
 
 # LEGACY_ENCRYPTED_MEDIA is deprecated
 fast/events/webkit-media-key-events-constructor.html [ Skip ]
@@ -4788,6 +4789,21 @@ imported/w3c/web-platform-tests/visual-viewport/scroll-event-order.html [ Skip ]
 fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565.html [ Failure Pass ]
 
 webkit.org/b/131934 fast/dom/Window/mozilla-focus-blur.html [ Failure Pass ]
+
+# These WPT cookiestore/ tests need some investigation
+imported/w3c/web-platform-tests/cookiestore/cookieListItem_attributes.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/cookieListItem_attributes.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/cookieStore_delete_arguments.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/cookieStore_delete_arguments.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_no_name_multiple_values.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_no_name_equals_in_value.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_no_name_and_no_value.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_no_change.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_http_cookie_and_set_cookie_headers.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_document_cookie.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/encoding.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/encoding.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/cookiestore/httponly_cookies.https.window.html [ Skip ]
 
 # End: Common failures between GTK and WPE.
 

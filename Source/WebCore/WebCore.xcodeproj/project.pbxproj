@@ -891,7 +891,6 @@
 		267726011A5B3AD9003C24DD /* NFAToDFA.h in Headers */ = {isa = PBXBuildFile; fileRef = 267725FB1A5B3AD9003C24DD /* NFAToDFA.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		267726051A5DF6F2003C24DD /* URLFilterParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 267726031A5DF6F2003C24DD /* URLFilterParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		269239961505E1AA009E57FC /* JSIDBVersionChangeEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 269239921505E1AA009E57FC /* JSIDBVersionChangeEvent.h */; };
-		269397221A4A412F00E8349D /* NFANode.h in Headers */ = {isa = PBXBuildFile; fileRef = 269397201A4A412F00E8349D /* NFANode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		269397241A4A5B6400E8349D /* NFA.h in Headers */ = {isa = PBXBuildFile; fileRef = 269397231A4A5B6400E8349D /* NFA.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		26A517FE1AB92238006335DF /* DFAMinimizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 26A517FC1AB92238006335DF /* DFAMinimizer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		26A807851B18F97700E219BE /* DFACombiner.h in Headers */ = {isa = PBXBuildFile; fileRef = 26A807831B18F97700E219BE /* DFACombiner.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4888,6 +4887,7 @@
 		BC22AABA2E371A4C009AC0C3 /* StyleWebKitBorderSpacing.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AAB92E371A4C009AC0C3 /* StyleWebKitBorderSpacing.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AAE42E37F534009AC0C3 /* StylePrimitiveNumericTypes+Evaluation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB271F42CC018F100265123 /* StylePrimitiveNumericTypes+Evaluation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AAE52E37F567009AC0C3 /* StylePrimitiveNumericTypes+Calculation.h in Headers */ = {isa = PBXBuildFile; fileRef = BC05ACC82CEE5C9600750CB1 /* StylePrimitiveNumericTypes+Calculation.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC22AAFC2E37F879009AC0C3 /* StyleLengthWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AAFB2E37F866009AC0C3 /* StyleLengthWrapper.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AB362E3ABBDC009AC0C3 /* StyleOpacity.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AB332E3A9B8E009AC0C3 /* StyleOpacity.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23875B2D84982100698102 /* CSSRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875A2D84982100698102 /* CSSRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2387602D84A59400698102 /* StyleRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875F2D84A59400698102 /* StyleRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4906,7 +4906,7 @@
 		BC2A0D222E04F901003CBA0E /* StylePathOperationWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F752DF9E73F005554EA /* StylePathOperationWrappers.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D322E05D409003CBA0E /* StylePrimitiveKeyword+Serialization.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D312E05D409003CBA0E /* StylePrimitiveKeyword+Serialization.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D342E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D332E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D592E0791C7003CBA0E /* StyleLengthWrapper.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D592E0791C7003CBA0E /* StyleLengthWrapperData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D902E088492003CBA0E /* StyleTextUnderlineOffset.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D702E086B9A003CBA0E /* StyleTextUnderlineOffset.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D912E089160003CBA0E /* StyleGapGutter.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D6D2E08687E003CBA0E /* StyleGapGutter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0DAF2E08DFFD003CBA0E /* StyleBuilderChecking.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0DAE2E08DFFD003CBA0E /* StyleBuilderChecking.h */; };
@@ -9349,7 +9349,6 @@
 		267726031A5DF6F2003C24DD /* URLFilterParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = URLFilterParser.h; sourceTree = "<group>"; };
 		269239911505E1AA009E57FC /* JSIDBVersionChangeEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSIDBVersionChangeEvent.cpp; sourceTree = "<group>"; };
 		269239921505E1AA009E57FC /* JSIDBVersionChangeEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSIDBVersionChangeEvent.h; sourceTree = "<group>"; };
-		269397201A4A412F00E8349D /* NFANode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NFANode.h; sourceTree = "<group>"; };
 		269397231A4A5B6400E8349D /* NFA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NFA.h; sourceTree = "<group>"; };
 		269397251A4A5FBD00E8349D /* NFA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NFA.cpp; sourceTree = "<group>"; };
 		26A517FB1AB92238006335DF /* DFAMinimizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DFAMinimizer.cpp; sourceTree = "<group>"; };
@@ -18111,6 +18110,8 @@
 		BC22AA9D2E36A2BD009AC0C3 /* StyleImageWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleImageWrapper.h; sourceTree = "<group>"; };
 		BC22AA9F2E36A554009AC0C3 /* StyleImageWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleImageWrapper.cpp; sourceTree = "<group>"; };
 		BC22AAB92E371A4C009AC0C3 /* StyleWebKitBorderSpacing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitBorderSpacing.h; sourceTree = "<group>"; };
+		BC22AAF32E37F6CD009AC0C3 /* StyleLengthWrapperData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleLengthWrapperData.cpp; sourceTree = "<group>"; };
+		BC22AAFB2E37F866009AC0C3 /* StyleLengthWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleLengthWrapper.h; sourceTree = "<group>"; };
 		BC22AB332E3A9B8E009AC0C3 /* StyleOpacity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOpacity.h; sourceTree = "<group>"; };
 		BC22AB342E3A9BA3009AC0C3 /* StyleOpacity.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleOpacity.cpp; sourceTree = "<group>"; };
 		BC2387582D84867A00698102 /* CSSPropertyParserConsumer+UnicodeRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+UnicodeRange.h"; sourceTree = "<group>"; };
@@ -18159,7 +18160,7 @@
 		BC2A0CE12E0319B6003CBA0E /* StyleSVGPaint.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSVGPaint.cpp; sourceTree = "<group>"; };
 		BC2A0D312E05D409003CBA0E /* StylePrimitiveKeyword+Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StylePrimitiveKeyword+Serialization.h"; sourceTree = "<group>"; };
 		BC2A0D332E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StylePrimitiveKeyword+CSSValueCreation.h"; sourceTree = "<group>"; };
-		BC2A0D592E0791C7003CBA0E /* StyleLengthWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleLengthWrapper.h; sourceTree = "<group>"; };
+		BC2A0D592E0791C7003CBA0E /* StyleLengthWrapperData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleLengthWrapperData.h; sourceTree = "<group>"; };
 		BC2A0D6D2E08687E003CBA0E /* StyleGapGutter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGapGutter.h; sourceTree = "<group>"; };
 		BC2A0D702E086B9A003CBA0E /* StyleTextUnderlineOffset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextUnderlineOffset.h; sourceTree = "<group>"; };
 		BC2A0D712E086B9A003CBA0E /* StyleTextUnderlineOffset.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextUnderlineOffset.cpp; sourceTree = "<group>"; };
@@ -24818,7 +24819,6 @@
 				26F756AF1B3B65AC0005DD79 /* MutableRangeList.h */,
 				269397251A4A5FBD00E8349D /* NFA.cpp */,
 				269397231A4A5B6400E8349D /* NFA.h */,
-				269397201A4A412F00E8349D /* NFANode.h */,
 				267725FA1A5B3AD9003C24DD /* NFAToDFA.cpp */,
 				267725FB1A5B3AD9003C24DD /* NFAToDFA.h */,
 				5C2EBE0325771A4C00D55B05 /* SerializedNFA.cpp */,
@@ -36125,7 +36125,9 @@
 				BCD67C652D2477D80079EB9C /* StyleLengthResolution.cpp */,
 				BCD67C642D2477CA0079EB9C /* StyleLengthResolution.h */,
 				BC2A0DF02E0A2BCE003CBA0E /* StyleLengthWrapper+CSSValueConversion.h */,
-				BC2A0D592E0791C7003CBA0E /* StyleLengthWrapper.h */,
+				BC22AAFB2E37F866009AC0C3 /* StyleLengthWrapper.h */,
+				BC22AAF32E37F6CD009AC0C3 /* StyleLengthWrapperData.cpp */,
+				BC2A0D592E0791C7003CBA0E /* StyleLengthWrapperData.h */,
 				BCB271ED2CC0156E00265123 /* StylePosition.cpp */,
 				BCB271EC2CC0156E00265123 /* StylePosition.h */,
 				BC2A0F232E144E0A003CBA0E /* StylePrimitiveKeyword+CSSValueConversion.h */,
@@ -44158,7 +44160,6 @@
 				1A7FA6190DDA3B3A0028F8A5 /* NetworkStateNotifier.h in Headers */,
 				E13EF3441684ECF40034C83F /* NetworkStorageSession.h in Headers */,
 				269397241A4A5B6400E8349D /* NFA.h in Headers */,
-				269397221A4A412F00E8349D /* NFANode.h in Headers */,
 				267726011A5B3AD9003C24DD /* NFAToDFA.h in Headers */,
 				BCEF43DD0E674012001C1287 /* NinePieceImage.h in Headers */,
 				14115B5209F84B7100CA4FC1 /* Node.h in Headers */,
@@ -45430,7 +45431,9 @@
 				713171341FBE78DB00F758DE /* StyleInterpolationClient.h in Headers */,
 				E46C794B1F13E82B00F371E1 /* StyleInvalidationFunctions.h in Headers */,
 				E47127CB163438AE00ED6F5A /* StyleInvalidator.h in Headers */,
-				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapper.h in Headers */,
+				BC22AAFC2E37F879009AC0C3 /* StyleLengthWrapper.h in Headers */,
+				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */,
+				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */,
 				BC2387AC2D8744E100698102 /* StyleLineBoxContain.h in Headers */,
 				BC092AFE2E33E8FD002ACB2C /* StyleLineWidth.h in Headers */,
 				4C96385829BF4A51003E5741 /* StyleListStyleType.h in Headers */,

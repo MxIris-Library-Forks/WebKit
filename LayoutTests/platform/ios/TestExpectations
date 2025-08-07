@@ -7792,7 +7792,7 @@ webkit.org/b/290462 contact-picker/contacts-select-after-dismissing-picker.html 
 
 webkit.org/b/290483 [ Debug ] imported/w3c/web-platform-tests/navigation-api/scroll-behavior/manual-scroll-fragment-does-not-exist.html [ Pass Failure ]
 
-webkit.org/b/290489 [ Debug ] media/video-webm-seek-singlekeyframe.html [ Crash ]
+webkit.org/b/290489 [ Debug ] media/video-webm-seek-singlekeyframe.html [ Pass Failure ]
 
 webkit.org/b/290494 editing/caret/caret-position-sideways-lr.html [ Pass Failure ]
 
@@ -8208,3 +8208,11 @@ imported/w3c/web-platform-tests/navigation-api/per-entry-events/dispose-for-navi
 webkit.org/b/296910 http/tests/app-privacy-report/app-attribution-beacon-isnotappinitiated.html [ Pass Failure ]
 
 webkit.org/b/296964 [ Release ] imported/w3c/web-platform-tests/webrtc/RTCDataChannel-GC.html [ Pass Failure ]
+
+webkit.org/b/297001 http/tests/local/blob/navigate-blob.html [ Pass Failure ]
+
+webkit.org/b/297007 media/webaudio-background-playback.html [ Pass Failure ]
+
+webkit.org/b/297013 [ Debug ] imported/w3c/web-platform-tests/css/css-viewport/zoom/scroll-top-test-with-zoom.html [ Pass Crash ]
+
+webkit.org/b/297026 [ Release ] http/tests/app-privacy-report/app-attribution-beacon-isappinitiated.html [ Pass Failure ]

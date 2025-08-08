@@ -1747,17 +1747,17 @@ CaretBrowsingEnabled:
 
 CaretPositionFromPointEnabled:
   type: bool
-  status: testable
+  status: stable
   category: dom
   humanReadableName: "document.caretPositionFromPoint() API"
   humanReadableDescription: "Enable document.caretPositionFromPoint() API"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 ChildProcessDebuggabilityEnabled:
   comment: Disables GPU process IPC timeouts
@@ -7426,6 +7426,20 @@ StorageAPIEstimateEnabled:
     WebCore:
       "PLATFORM(COCOA)" : true
       default: false
+      
+StorageAccessAPIEnabled:
+  type: bool
+  status: embedder
+  humanReadableName: "Storage Access API"
+  humanReadableDescription: "Enable the Storage Access API for cross-site cookie access"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+  sharedPreferenceForWebProcess: true
 
 StorageBlockingPolicy:
   type: uint32_t
@@ -9457,17 +9471,17 @@ WirelessPlaybackTargetAPIEnabled:
 
 WorkerAsynchronousURLErrorHandlingEnabled:
   type: bool
-  status: preview
+  status: stable
   category: dom
   humanReadableName: "Worker asynchronous URL error handling"
   humanReadableDescription: "Worker asynchronous URL error handling"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 WriteRichTextDataWhenCopyingOrDragging:
   type: bool

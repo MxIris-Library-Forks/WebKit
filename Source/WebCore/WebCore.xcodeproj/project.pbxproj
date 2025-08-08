@@ -16128,6 +16128,8 @@
 		9DAC7C521AF2CAA100437C44 /* CSSContentDistributionValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSContentDistributionValue.cpp; sourceTree = "<group>"; };
 		9DAC7C531AF2CAA100437C44 /* CSSContentDistributionValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSContentDistributionValue.h; sourceTree = "<group>"; };
 		9DAC7C561AF2CB6400437C44 /* StyleContentAlignmentData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleContentAlignmentData.h; sourceTree = "<group>"; };
+		9E5F6AC02E441ABC001C81D8 /* SourceAlphaCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SourceAlphaCoreImageApplier.h; sourceTree = "<group>"; };
+		9E5F6AC12E441B09001C81D8 /* SourceAlphaCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SourceAlphaCoreImageApplier.mm; sourceTree = "<group>"; };
 		9E68A6952DC9406100039106 /* FrameMemoryMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameMemoryMonitor.h; sourceTree = "<group>"; };
 		9E68A6962DC9407300039106 /* FrameMemoryMonitor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameMemoryMonitor.cpp; sourceTree = "<group>"; };
 		A07D3353152B630E001B6393 /* JSWebGLShaderPrecisionFormat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebGLShaderPrecisionFormat.cpp; sourceTree = "<group>"; };
@@ -19086,7 +19088,7 @@
 		BCEA481B097D93020094C9E4 /* LegacyInlineTextBox.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = LegacyInlineTextBox.h; sourceTree = "<group>"; };
 		BCEA4820097D93020094C9E4 /* RenderBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBlock.cpp; sourceTree = "<group>"; };
 		BCEA4821097D93020094C9E4 /* RenderBlock.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderBlock.h; sourceTree = "<group>"; };
-		BCEA4822097D93020094C9E4 /* RenderBox.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBox.cpp; sourceTree = "<group>"; };
+		BCEA4822097D93020094C9E4 /* RenderBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBox.cpp; sourceTree = "<group>"; };
 		BCEA4823097D93020094C9E4 /* RenderBox.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderBox.h; sourceTree = "<group>"; };
 		BCEA4824097D93020094C9E4 /* RenderLineBreak.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLineBreak.cpp; sourceTree = "<group>"; };
 		BCEA4825097D93020094C9E4 /* RenderLineBreak.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderLineBreak.h; sourceTree = "<group>"; };
@@ -25128,6 +25130,8 @@
 				72B8B01D2751B82B00F752AA /* FEComponentTransferCoreImageApplier.h */,
 				72B8B01B2751B6BC00F752AA /* FEComponentTransferCoreImageApplier.mm */,
 				72B8B0202751C4B700F752AA /* FilterImageCoreImage.mm */,
+				9E5F6AC02E441ABC001C81D8 /* SourceAlphaCoreImageApplier.h */,
+				9E5F6AC12E441B09001C81D8 /* SourceAlphaCoreImageApplier.mm */,
 				72B8B0162751086A00F752AA /* SourceGraphicCoreImageApplier.h */,
 				72B8B0142751084D00F752AA /* SourceGraphicCoreImageApplier.mm */,
 			);

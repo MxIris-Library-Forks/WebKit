@@ -660,6 +660,8 @@ public:
             if (JSWebAssemblyException* wasmException = jsDynamicCast<JSWebAssemblyException*>(thrownValue)) {
                 m_catchableFromWasm = true;
                 m_wasmTag = &wasmException->tag();
+                if (m_wasmTag == &Wasm::Tag::jsExceptionTag())
+                    m_exception->tryUnwrapValueForJSTag(m_vm);
             } else if (ErrorInstance* error = jsDynamicCast<ErrorInstance*>(thrownValue))
                 m_catchableFromWasm = error->isCatchableFromWasm();
             else
@@ -1445,7 +1447,7 @@ JSValue Interpreter::executeEval(EvalExecutable* eval, JSValue thisValue, JSScop
             for (auto& slot : functionDecls) {
                 FunctionExecutable* function = slot.get();
                 bool canDeclare = jsCast<JSGlobalObject*>(variableObject)->canDeclareGlobalFunction(function->name());
-                throwScope.assertNoExceptionExceptTermination();
+                RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
                 if (!canDeclare)
                     return throwException(globalObject, throwScope, createErrorForInvalidGlobalFunctionDeclaration(globalObject, function->name()));
             }
@@ -1453,7 +1455,7 @@ JSValue Interpreter::executeEval(EvalExecutable* eval, JSValue thisValue, JSScop
             if (!variableObject->isStructureExtensible()) {
                 for (auto& ident : variables) {
                     bool canDeclare = jsCast<JSGlobalObject*>(variableObject)->canDeclareGlobalVar(ident);
-                    throwScope.assertNoExceptionExceptTermination();
+                    RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
                     if (!canDeclare)
                         return throwException(globalObject, throwScope, createErrorForInvalidGlobalVarDeclaration(globalObject, ident));
                 }
@@ -1462,12 +1464,12 @@ JSValue Interpreter::executeEval(EvalExecutable* eval, JSValue thisValue, JSScop
 
         auto ensureBindingExists = [&](const Identifier& ident) {
             bool hasProperty = variableObject->hasOwnProperty(globalObject, ident);
-            throwScope.assertNoExceptionExceptTermination();
+            RETURN_IF_EXCEPTION(throwScope, void());
             if (!hasProperty) {
                 bool shouldThrow = true;
                 PutPropertySlot slot(variableObject, shouldThrow);
                 variableObject->methodTable()->put(variableObject, globalObject, ident, jsUndefined(), slot);
-                throwScope.assertNoExceptionExceptTermination();
+                RETURN_IF_EXCEPTION(throwScope, void());
             }
         };
 
@@ -1478,13 +1480,15 @@ JSValue Interpreter::executeEval(EvalExecutable* eval, JSValue thisValue, JSScop
                 if (!resolvedScope.isUndefined()) {
                     if (isGlobalVariableEnvironment) {
                         bool canDeclare = jsCast<JSGlobalObject*>(variableObject)->canDeclareGlobalVar(ident);
-                        throwScope.assertNoExceptionExceptTermination();
+                        RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
                         if (canDeclare) {
                             jsCast<JSGlobalObject*>(variableObject)->createGlobalVarBinding<BindingCreationContext::Eval>(ident);
-                            throwScope.assertNoExceptionExceptTermination();
+                            RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
                         }
-                    } else
+                    } else {
                         ensureBindingExists(ident);
+                        RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
+                    }
                 }
             }
         }
@@ -1493,17 +1497,21 @@ JSValue Interpreter::executeEval(EvalExecutable* eval, JSValue thisValue, JSScop
             FunctionExecutable* function = slot.get();
             if (isGlobalVariableEnvironment) {
                 jsCast<JSGlobalObject*>(variableObject)->createGlobalFunctionBinding<BindingCreationContext::Eval>(function->name());
-                throwScope.assertNoExceptionExceptTermination();
-            } else
+                RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
+            } else {
                 ensureBindingExists(function->name());
+                RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
+            }
         }
 
         for (auto& ident : variables) {
             if (isGlobalVariableEnvironment) {
                 jsCast<JSGlobalObject*>(variableObject)->createGlobalVarBinding<BindingCreationContext::Eval>(ident);
-                throwScope.assertNoExceptionExceptTermination();
-            } else
+                RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
+            } else {
                 ensureBindingExists(ident);
+                RETURN_IF_EXCEPTION(throwScope, throwScope.exception());
+            }
         }
 
         ensureStillAliveHere(codeBlock);

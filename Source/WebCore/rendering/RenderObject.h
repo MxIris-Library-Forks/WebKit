@@ -406,11 +406,6 @@ public:
     WEBCORE_EXPORT bool useDarkAppearance() const;
     WEBCORE_EXPORT OptionSet<StyleColorOptions> styleColorOptions() const;
 
-#if ASSERT_ENABLED
-    void setHasAXObject(bool flag) { m_hasAXObject = flag; }
-    bool hasAXObject() const { return m_hasAXObject; }
-#endif
-
     // Creates a scope where this object will assert on calls to setNeedsLayout().
     class SetLayoutNeededForbiddenScope;
     
@@ -813,7 +808,7 @@ public:
     // Convert the given local point to absolute coordinates. If OptionSet<MapCoordinatesMode> includes UseTransforms, take transforms into account.
     WEBCORE_EXPORT FloatPoint localToAbsolute(const FloatPoint& localPoint = FloatPoint(), OptionSet<MapCoordinatesMode> = { }, bool* wasFixed = nullptr) const;
     TransformState viewTransitionTransform() const;
-    FloatPoint absoluteToLocal(const FloatPoint&, OptionSet<MapCoordinatesMode> = { }) const;
+    FloatPoint absoluteToLocal(const DoublePoint&, OptionSet<MapCoordinatesMode> = { }) const;
 
     // Convert a local quad to absolute coordinates, taking transforms into account.
     inline FloatQuad localToAbsoluteQuad(const FloatQuad&, OptionSet<MapCoordinatesMode> = UseTransforms, bool* wasFixed = nullptr) const; // Defined in RenderObjectInlines.h
@@ -1185,10 +1180,6 @@ private:
 
 #if ASSERT_ENABLED
     void setNeedsLayoutIsForbidden(bool flag) const { m_setNeedsLayoutForbidden = flag; }
-#endif
-
-#if ASSERT_ENABLED
-    bool m_hasAXObject : 1;
     mutable bool m_setNeedsLayoutForbidden : 1;
 #endif
 

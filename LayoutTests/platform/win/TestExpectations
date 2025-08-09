@@ -1865,7 +1865,6 @@ streams/readable-stream-byob-request-worker.html [ Skip ]
 # The Cookie Store API is not fully implemented on the Windows port yet.
 imported/w3c/web-platform-tests/cookiestore [ Skip ]
 imported/w3c/web-platform-tests/cookies/partitioned-cookies/partitioned-cookies.tentative.https.html [ Skip ]
-http/tests/cookies/cookie-store-get-secure.https.html [ Skip ]
 http/tests/cookies/cookie-store-set-secure.https.html [ Skip ]
 http/tests/navigation/ping-attribute/cross-site-url-anchor-cookie-preexisting-cookie.html [ Skip ]
 http/tests/navigation/ping-attribute/cross-site-url-anchor-cookie.html [ Skip ]
@@ -4526,6 +4525,9 @@ http/tests/iframe-memory-monitor/media-video-autoplay-in-frames.html [ Skip ]
 dom/xsl/lockdown-mode [ Skip ]
 http/tests/lockdown-mode [ Skip ]
 js/dom/lockdown-mode [ Skip ]
+
+imported/w3c/web-platform-tests/pointerevents/pointerevent_fractional_coordinates.html?mouse [ Pass ]
+imported/w3c/web-platform-tests/pointerevents/pointerevent_fractional_coordinates.html?pen [ Pass ]
 
 # New imported 'focus' timeout failures
 imported/w3c/web-platform-tests/focus/activeelement-after-focusing-different-site-iframe-contentwindow.html [ Failure ]

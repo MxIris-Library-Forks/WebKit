@@ -154,7 +154,6 @@ void RenderObjectDeleter::operator() (RenderObject* renderer) const
 RenderObject::RenderObject(Type type, Node& node, OptionSet<TypeFlag> typeFlags, TypeSpecificFlags typeSpecificFlags)
     : CachedImageClient()
 #if ASSERT_ENABLED
-    , m_hasAXObject(false)
     , m_setNeedsLayoutForbidden(false)
 #endif
     , m_node(node)
@@ -173,7 +172,6 @@ RenderObject::RenderObject(Type type, Node& node, OptionSet<TypeFlag> typeFlags,
 RenderObject::~RenderObject()
 {
     clearLayoutBox();
-    ASSERT(!m_hasAXObject);
 #ifndef NDEBUG
     renderObjectCounter.decrement();
 #endif
@@ -1508,11 +1506,12 @@ TransformState RenderObject::viewTransitionTransform() const
     return transformState;
 }
 
-FloatPoint RenderObject::absoluteToLocal(const FloatPoint& containerPoint, OptionSet<MapCoordinatesMode> mode) const
+// FIXME: Should this exist? It is lossy but not obvious when called.
+FloatPoint RenderObject::absoluteToLocal(const DoublePoint& containerPoint, OptionSet<MapCoordinatesMode> mode) const
 {
-    TransformState transformState(TransformState::UnapplyInverseTransformDirection, containerPoint);
+    TransformState transformState(TransformState::UnapplyInverseTransformDirection, FloatPoint(containerPoint));
     mapAbsoluteToLocalPoint(mode, transformState);
-    
+
     return transformState.mappedPoint();
 }
 

@@ -2463,6 +2463,9 @@ platform/graphics/DisplayRefreshMonitor.cpp
 platform/graphics/DisplayRefreshMonitorClient.cpp
 platform/graphics/DisplayRefreshMonitorManager.cpp
 platform/graphics/DisplayUpdate.cpp
+platform/graphics/DoublePoint.cpp
+platform/graphics/DoubleRect.cpp
+platform/graphics/DoubleSize.cpp
 platform/graphics/Float16ArrayPixelBuffer.cpp
 platform/graphics/FloatLine.cpp
 platform/graphics/FloatPoint.cpp
@@ -3145,6 +3148,8 @@ style/values/backgrounds/StyleLineWidth.cpp
 style/values/borders/StyleBorderRadius.cpp
 style/values/borders/StyleBoxShadow.cpp
 style/values/borders/StyleCornerShapeValue.cpp
+style/values/break/StyleOrphans.cpp
+style/values/break/StyleWidows.cpp
 style/values/color-adjust/StyleColorScheme.cpp
 style/values/color/StyleColor.cpp
 style/values/color/StyleColorLayers.cpp

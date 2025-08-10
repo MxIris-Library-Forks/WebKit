@@ -4897,6 +4897,8 @@
 		BC22AAE42E37F534009AC0C3 /* StylePrimitiveNumericTypes+Evaluation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB271F42CC018F100265123 /* StylePrimitiveNumericTypes+Evaluation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AAE52E37F567009AC0C3 /* StylePrimitiveNumericTypes+Calculation.h in Headers */ = {isa = PBXBuildFile; fileRef = BC05ACC82CEE5C9600750CB1 /* StylePrimitiveNumericTypes+Calculation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AAFC2E37F879009AC0C3 /* StyleLengthWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AAFB2E37F866009AC0C3 /* StyleLengthWrapper.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC22AB142E3944B4009AC0C3 /* StyleColumnWidth.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AB132E394476009AC0C3 /* StyleColumnWidth.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC22AB172E39485C009AC0C3 /* StyleColumnCount.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AB162E39485C009AC0C3 /* StyleColumnCount.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC22AB362E3ABBDC009AC0C3 /* StyleOpacity.h in Headers */ = {isa = PBXBuildFile; fileRef = BC22AB332E3A9B8E009AC0C3 /* StyleOpacity.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC23875B2D84982100698102 /* CSSRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875A2D84982100698102 /* CSSRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2387602D84A59400698102 /* StyleRatio.h in Headers */ = {isa = PBXBuildFile; fileRef = BC23875F2D84A59400698102 /* StyleRatio.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4955,6 +4957,10 @@
 		BC34D2BC2E3BDAB4001EAD95 /* StyleStrokeMiterlimit.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D2BB2E3BDAB4001EAD95 /* StyleStrokeMiterlimit.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D2C42E3BF0AB001EAD95 /* StyleOrphans.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D2C12E3BF039001EAD95 /* StyleOrphans.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D2C52E3BF0AB001EAD95 /* StyleWidows.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D2C22E3BF039001EAD95 /* StyleWidows.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC34D2EB2E3D22D3001EAD95 /* StyleFlexGrow.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D2EA2E3D22D3001EAD95 /* StyleFlexGrow.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC34D2ED2E3D2370001EAD95 /* StyleFlexShrink.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D2EC2E3D2370001EAD95 /* StyleFlexShrink.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC34D2EF2E3D2662001EAD95 /* StyleOrder.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D2EE2E3D2662001EAD95 /* StyleOrder.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC34D30B2E3D327B001EAD95 /* StyleZIndex.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D3092E3D2BE3001EAD95 /* StyleZIndex.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D3232E3E6F3D001EAD95 /* StyleBorderImage.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D3222E3E6F3D001EAD95 /* StyleBorderImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D3252E3E7273001EAD95 /* StyleBorderImageSlice.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D3242E3E7273001EAD95 /* StyleBorderImageSlice.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D3272E3E727D001EAD95 /* StyleBorderImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D3262E3E727D001EAD95 /* StyleBorderImageSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4967,6 +4973,8 @@
 		BC34D3442E3E8C31001EAD95 /* StyleMaskBorderRepeat.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D3392E3E8C15001EAD95 /* StyleMaskBorderRepeat.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D3452E3E8C31001EAD95 /* StyleMaskBorderSlice.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D33B2E3E8C15001EAD95 /* StyleMaskBorderSlice.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC34D3462E3E8C31001EAD95 /* StyleMaskBorder.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D3352E3E8C15001EAD95 /* StyleMaskBorder.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC34D37E2E428981001EAD95 /* StyleLengthWrapper+Blending.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D37D2E428981001EAD95 /* StyleLengthWrapper+Blending.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC34D3802E4289B1001EAD95 /* StyleLengthWrapper+Platform.h in Headers */ = {isa = PBXBuildFile; fileRef = BC34D37F2E4289B1001EAD95 /* StyleLengthWrapper+Platform.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3A00C82754496D0047C0E5 /* ColorInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = BCDC642527517B040038FB39 /* ColorInterpolation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3AA25C2DA2DD2F00BC27C6 /* CSSURLModifiers.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3AA25A2DA2DD2300BC27C6 /* CSSURLModifiers.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC3AA25E2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h in Headers */ = {isa = PBXBuildFile; fileRef = BC3AA25D2DA2F14700BC27C6 /* LoadedFromOpaqueSource.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18145,6 +18153,10 @@
 		BC22AAB92E371A4C009AC0C3 /* StyleWebKitBorderSpacing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitBorderSpacing.h; sourceTree = "<group>"; };
 		BC22AAF32E37F6CD009AC0C3 /* StyleLengthWrapperData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleLengthWrapperData.cpp; sourceTree = "<group>"; };
 		BC22AAFB2E37F866009AC0C3 /* StyleLengthWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleLengthWrapper.h; sourceTree = "<group>"; };
+		BC22AB122E394476009AC0C3 /* StyleColumnWidth.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleColumnWidth.cpp; sourceTree = "<group>"; };
+		BC22AB132E394476009AC0C3 /* StyleColumnWidth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleColumnWidth.h; sourceTree = "<group>"; };
+		BC22AB152E39485C009AC0C3 /* StyleColumnCount.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleColumnCount.cpp; sourceTree = "<group>"; };
+		BC22AB162E39485C009AC0C3 /* StyleColumnCount.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleColumnCount.h; sourceTree = "<group>"; };
 		BC22AB332E3A9B8E009AC0C3 /* StyleOpacity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOpacity.h; sourceTree = "<group>"; };
 		BC22AB342E3A9BA3009AC0C3 /* StyleOpacity.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleOpacity.cpp; sourceTree = "<group>"; };
 		BC2387582D84867A00698102 /* CSSPropertyParserConsumer+UnicodeRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+UnicodeRange.h"; sourceTree = "<group>"; };
@@ -18336,6 +18348,11 @@
 		BC34D2BB2E3BDAB4001EAD95 /* StyleStrokeMiterlimit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleStrokeMiterlimit.h; sourceTree = "<group>"; };
 		BC34D2C12E3BF039001EAD95 /* StyleOrphans.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOrphans.h; sourceTree = "<group>"; };
 		BC34D2C22E3BF039001EAD95 /* StyleWidows.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWidows.h; sourceTree = "<group>"; };
+		BC34D2EA2E3D22D3001EAD95 /* StyleFlexGrow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleFlexGrow.h; sourceTree = "<group>"; };
+		BC34D2EC2E3D2370001EAD95 /* StyleFlexShrink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleFlexShrink.h; sourceTree = "<group>"; };
+		BC34D2EE2E3D2662001EAD95 /* StyleOrder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOrder.h; sourceTree = "<group>"; };
+		BC34D3092E3D2BE3001EAD95 /* StyleZIndex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleZIndex.h; sourceTree = "<group>"; };
+		BC34D30A2E3D2EFF001EAD95 /* StyleZIndex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleZIndex.cpp; sourceTree = "<group>"; };
 		BC34D3222E3E6F3D001EAD95 /* StyleBorderImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleBorderImage.h; sourceTree = "<group>"; };
 		BC34D3242E3E7273001EAD95 /* StyleBorderImageSlice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleBorderImageSlice.h; sourceTree = "<group>"; };
 		BC34D3262E3E727D001EAD95 /* StyleBorderImageSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleBorderImageSource.h; sourceTree = "<group>"; };
@@ -18360,6 +18377,8 @@
 		BC34D33E2E3E8C15001EAD95 /* StyleMaskBorderSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleMaskBorderSource.cpp; sourceTree = "<group>"; };
 		BC34D33F2E3E8C15001EAD95 /* StyleMaskBorderWidth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleMaskBorderWidth.h; sourceTree = "<group>"; };
 		BC34D3402E3E8C15001EAD95 /* StyleMaskBorderWidth.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleMaskBorderWidth.cpp; sourceTree = "<group>"; };
+		BC34D37D2E428981001EAD95 /* StyleLengthWrapper+Blending.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StyleLengthWrapper+Blending.h"; sourceTree = "<group>"; };
+		BC34D37F2E4289B1001EAD95 /* StyleLengthWrapper+Platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StyleLengthWrapper+Platform.h"; sourceTree = "<group>"; };
 		BC38D4F22D480063004BE2FF /* StyleUnevaluatedCalculation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleUnevaluatedCalculation.cpp; sourceTree = "<group>"; };
 		BC394A362C765BE8001A629A /* CSSResolvedColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSResolvedColor.cpp; sourceTree = "<group>"; };
 		BC394A372C765BE8001A629A /* CSSResolvedColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSResolvedColor.h; sourceTree = "<group>"; };
@@ -35205,6 +35224,17 @@
 			path = js;
 			sourceTree = "<group>";
 		};
+		BC22AB112E394447009AC0C3 /* multicol */ = {
+			isa = PBXGroup;
+			children = (
+				BC22AB152E39485C009AC0C3 /* StyleColumnCount.cpp */,
+				BC22AB162E39485C009AC0C3 /* StyleColumnCount.h */,
+				BC22AB122E394476009AC0C3 /* StyleColumnWidth.cpp */,
+				BC22AB132E394476009AC0C3 /* StyleColumnWidth.h */,
+			);
+			path = multicol;
+			sourceTree = "<group>";
+		};
 		BC2387AA2D8742AB00698102 /* inline */ = {
 			isa = PBXGroup;
 			children = (
@@ -35411,6 +35441,23 @@
 			path = break;
 			sourceTree = "<group>";
 		};
+		BC34D2F02E3D2708001EAD95 /* display */ = {
+			isa = PBXGroup;
+			children = (
+				BC34D2EE2E3D2662001EAD95 /* StyleOrder.h */,
+			);
+			path = display;
+			sourceTree = "<group>";
+		};
+		BC34D3082E3D2BDE001EAD95 /* css2 */ = {
+			isa = PBXGroup;
+			children = (
+				BC34D30A2E3D2EFF001EAD95 /* StyleZIndex.cpp */,
+				BC34D3092E3D2BE3001EAD95 /* StyleZIndex.h */,
+			);
+			path = css2;
+			sourceTree = "<group>";
+		};
 		BC3CC1DD2DE38F410032971C /* transforms */ = {
 			isa = PBXGroup;
 			children = (
@@ -35523,6 +35570,8 @@
 			children = (
 				BC675B722DEEB1A600AD4D79 /* StyleFlexBasis.cpp */,
 				BC675B692DEE8B8200AD4D79 /* StyleFlexBasis.h */,
+				BC34D2EA2E3D22D3001EAD95 /* StyleFlexGrow.h */,
+				BC34D2EC2E3D2370001EAD95 /* StyleFlexShrink.h */,
 			);
 			path = flexbox;
 			sourceTree = "<group>";
@@ -35853,6 +35902,8 @@
 				BC2A0EEC2E11CFD5003CBA0E /* contain */,
 				BC0929B82E2AB817002ACB2C /* content */,
 				BC966B412E280AA30028A7AF /* counter-styles */,
+				BC34D3082E3D2BDE001EAD95 /* css2 */,
+				BC34D2F02E3D2708001EAD95 /* display */,
 				BCD2C6F42D0F4CE400F77591 /* easing */,
 				BC092AF92E33DBDF002ACB2C /* fill-stroke */,
 				BC3078BC2D020FA000630D75 /* filter-effects */,
@@ -35864,6 +35915,7 @@
 				BC966B3F2E275AB10028A7AF /* lists */,
 				BCCE4F722DF9DDB7005554EA /* masking */,
 				BCEA07322CC5EBBA000AC148 /* motion */,
+				BC22AB112E394447009AC0C3 /* multicol */,
 				BC0929AE2E2AA595002ACB2C /* non-standard */,
 				BC966B362E274F530028A7AF /* overflow */,
 				BC9ABA182DECC6AE00F7E52D /* position */,
@@ -36217,7 +36269,9 @@
 			children = (
 				BCD67C652D2477D80079EB9C /* StyleLengthResolution.cpp */,
 				BCD67C642D2477CA0079EB9C /* StyleLengthResolution.h */,
+				BC34D37D2E428981001EAD95 /* StyleLengthWrapper+Blending.h */,
 				BC2A0DF02E0A2BCE003CBA0E /* StyleLengthWrapper+CSSValueConversion.h */,
+				BC34D37F2E4289B1001EAD95 /* StyleLengthWrapper+Platform.h */,
 				BC22AAFB2E37F866009AC0C3 /* StyleLengthWrapper.h */,
 				BC22AAF32E37F6CD009AC0C3 /* StyleLengthWrapperData.cpp */,
 				BC2A0D592E0791C7003CBA0E /* StyleLengthWrapperData.h */,
@@ -45494,6 +45548,8 @@
 				BCB660952BEEF46200528480 /* StyleColor.h in Headers */,
 				BC4AF4192CF96B930037C65C /* StyleColorOptions.h in Headers */,
 				BCEA078D2CCC719D000AC148 /* StyleColorScheme.h in Headers */,
+				BC22AB172E39485C009AC0C3 /* StyleColumnCount.h in Headers */,
+				BC22AB142E3944B4009AC0C3 /* StyleColumnWidth.h in Headers */,
 				BC2A0EF22E120B93003CBA0E /* StyleContainerName.h in Headers */,
 				BCD9EFE92E18E58000D1C3DF /* StyleContainIntrinsicSize.h in Headers */,
 				BC5EB9810E82072500B25965 /* StyleContent.h in Headers */,
@@ -45519,7 +45575,9 @@
 				BCB272072CC1F1DB00265123 /* StyleFillRule.h in Headers */,
 				319AE064142D6B24006563A1 /* StyleFilterData.h in Headers */,
 				BC675B6D2DEE8BB700AD4D79 /* StyleFlexBasis.h in Headers */,
+				BC34D2EB2E3D22D3001EAD95 /* StyleFlexGrow.h in Headers */,
 				5317612313C516690026E454 /* StyleFlexibleBoxData.h in Headers */,
+				BC34D2ED2E3D2370001EAD95 /* StyleFlexShrink.h in Headers */,
 				0F4011952B491DB300A735BC /* StyleFontData.h in Headers */,
 				E4D58EB917B4ED8900CBDCA8 /* StyleFontSizeFunctions.h in Headers */,
 				BC4AF4292CFA293F0037C65C /* StyleForVisitedLink.h in Headers */,
@@ -45551,6 +45609,8 @@
 				713171341FBE78DB00F758DE /* StyleInterpolationClient.h in Headers */,
 				E46C794B1F13E82B00F371E1 /* StyleInvalidationFunctions.h in Headers */,
 				E47127CB163438AE00ED6F5A /* StyleInvalidator.h in Headers */,
+				BC34D37E2E428981001EAD95 /* StyleLengthWrapper+Blending.h in Headers */,
+				BC34D3802E4289B1001EAD95 /* StyleLengthWrapper+Platform.h in Headers */,
 				BC22AAFC2E37F879009AC0C3 /* StyleLengthWrapper.h in Headers */,
 				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */,
 				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */,
@@ -45579,6 +45639,7 @@
 				BCCE4F4A2DF75A22005554EA /* StyleOffsetPosition.h in Headers */,
 				BCCE4F4E2DF79EDD005554EA /* StyleOffsetRotate.h in Headers */,
 				BC22AB362E3ABBDC009AC0C3 /* StyleOpacity.h in Headers */,
+				BC34D2EF2E3D2662001EAD95 /* StyleOrder.h in Headers */,
 				BC3BEDD02DD8EF0C004E87D7 /* StyleOrderedNamedLinesCollector.h in Headers */,
 				715AD7202050513200D592DC /* StyleOriginatedAnimation.h in Headers */,
 				717CE23A29335E9C001463BC /* StyleOriginatedAnimationEvent.h in Headers */,
@@ -45694,6 +45755,7 @@
 				BC34D2C52E3BF0AB001EAD95 /* StyleWidows.h in Headers */,
 				BCEA07452CC97000000AC148 /* StyleWindRuleComputation.h in Headers */,
 				BCB2720D2CC1F1DB00265123 /* StyleXywhFunction.h in Headers */,
+				BC34D30B2E3D327B001EAD95 /* StyleZIndex.h in Headers */,
 				D000ED2811C1B9CD00C47726 /* SubframeLoader.h in Headers */,
 				46D0004026A0FEB300D1BF1E /* SubmitEvent.h in Headers */,
 				F55B3DD41251F12D003EF269 /* SubmitInputType.h in Headers */,

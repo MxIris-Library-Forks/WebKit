@@ -34,6 +34,7 @@
 #include "CSSGridAutoRepeatValue.h"
 #include "CSSGridIntegerRepeatValue.h"
 #include "CSSGridLineNamesValue.h"
+#include "CSSPropertyNames.h"
 #include "StyleExtractorConverter.h"
 #include "StyleExtractorSerializer.h"
 #include "StyleInterpolation.h"
@@ -123,6 +124,7 @@ public:
     static RefPtr<CSSValue> extractScrollTimelineShorthand(ExtractorState&);
     static RefPtr<CSSValue> extractTextBoxShorthand(ExtractorState&);
     static RefPtr<CSSValue> extractTextDecorationSkipShorthand(ExtractorState&);
+    static RefPtr<CSSValue> extractTextDecorationShorthand(ExtractorState&);
     static RefPtr<CSSValue> extractTextWrapShorthand(ExtractorState&);
     static RefPtr<CSSValue> extractTransformOriginShorthand(ExtractorState&);
     static RefPtr<CSSValue> extractTransitionShorthand(ExtractorState&);
@@ -212,6 +214,7 @@ public:
     static void extractScrollTimelineShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractTextBoxShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractTextDecorationSkipShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
+    static void extractTextDecorationShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractTextWrapShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractTransformOriginShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractTransitionShorthandSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
@@ -2259,32 +2262,23 @@ inline void ExtractorCustom::extractBorderRadiusShorthandSerialization(Extractor
 
 inline RefPtr<CSSValue> ExtractorCustom::extractColumnsShorthand(ExtractorState& state)
 {
-    if (state.style.hasAutoColumnCount())
-        return state.style.hasAutoColumnWidth() ? CSSPrimitiveValue::create(CSSValueAuto) : ExtractorConverter::convertNumberAsPixels(state, state.style.columnWidth());
-    if (state.style.hasAutoColumnWidth())
-        return state.style.hasAutoColumnCount() ? CSSPrimitiveValue::create(CSSValueAuto) : CSSPrimitiveValue::create(state.style.columnCount());
+    if (state.style.columnCount() == RenderStyle::initialColumnCount())
+        return createCSSValue(state.pool, state.style, state.style.columnWidth());
+    if (state.style.columnWidth() == RenderStyle::initialColumnWidth())
+        return createCSSValue(state.pool, state.style, state.style.columnCount());
     return extractStandardSpaceSeparatedShorthand(state, columnsShorthand());
 }
 
 inline void ExtractorCustom::extractColumnsShorthandSerialization(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context)
 {
-    if (state.style.hasAutoColumnCount()) {
-        if (state.style.hasAutoColumnWidth()) {
-            CSS::serializationForCSS(builder, context, CSS::Keyword::Auto { });
-            return;
-        }
-        ExtractorSerializer::serializeNumberAsPixels(state, builder, context, state.style.columnWidth());
+    if (state.style.columnCount() == RenderStyle::initialColumnCount()) {
+        serializationForCSS(builder, context, state.style, state.style.columnWidth());
         return;
     }
-    if (state.style.hasAutoColumnWidth()) {
-        if (state.style.hasAutoColumnCount()) {
-            CSS::serializationForCSS(builder, context, CSS::Keyword::Auto { });
-            return;
-        }
-        ExtractorSerializer::serializeNumber(state, builder, context, state.style.columnCount());
+    if (state.style.columnWidth() == RenderStyle::initialColumnWidth()) {
+        serializationForCSS(builder, context, state.style, state.style.columnCount());
         return;
     }
-
     extractStandardSpaceSeparatedShorthandSerialization(state, builder, context, columnsShorthand());
 }
 
@@ -2756,6 +2750,60 @@ inline void ExtractorCustom::extractTextBoxShorthandSerialization(ExtractorState
     ExtractorSerializer::serialize(state, builder, context, textBoxTrim);
     builder.append(' ');
     ExtractorSerializer::serializeTextBoxEdge(state, builder, context, textBoxEdge);
+}
+
+inline RefPtr<CSSValue> ExtractorCustom::extractTextDecorationShorthand(ExtractorState& state)
+{
+    bool hasDefaultTextDecorationLine = state.style.textDecorationLine().isEmpty();
+    bool hasDefaultTextDecorationThickness = state.style.textDecorationThickness() == RenderStyle::initialTextDecorationThickness();
+    bool hasDefaultTextDecorationStyle = state.style.textDecorationStyle() == RenderStyle::initialTextDecorationStyle();
+    bool hasDefaultTextDecorationColor = state.style.textDecorationColor().isCurrentColor();
+
+    if (hasDefaultTextDecorationLine && hasDefaultTextDecorationStyle && hasDefaultTextDecorationColor && hasDefaultTextDecorationThickness)
+        return CSSPrimitiveValue::create(CSSValueNone);
+
+    CSSValueListBuilder list;
+    if (!hasDefaultTextDecorationLine)
+        list.append(ExtractorConverter::convertTextDecorationLine(state, state.style.textDecorationLine()));
+    if (!hasDefaultTextDecorationThickness)
+        list.append(ExtractorConverter::convertStyleType<TextDecorationThickness>(state, state.style.textDecorationThickness()));
+    if (!hasDefaultTextDecorationStyle)
+        list.append(ExtractorConverter::convert(state, state.style.textDecorationStyle()));
+    if (!hasDefaultTextDecorationColor)
+        list.append(ExtractorConverter::convertStyleType<Color>(state, state.style.textDecorationColor()));
+
+    return CSSValueList::createCommaSeparated(WTFMove(list));
+}
+
+inline void ExtractorCustom::extractTextDecorationShorthandSerialization(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context)
+{
+    bool hasDefaultTextDecorationLine = state.style.textDecorationLine().isEmpty();
+    bool hasDefaultTextDecorationThickness = state.style.textDecorationThickness() == RenderStyle::initialTextDecorationThickness();
+    bool hasDefaultTextDecorationStyle = state.style.textDecorationStyle() == RenderStyle::initialTextDecorationStyle();
+    bool hasDefaultTextDecorationColor = state.style.textDecorationColor().isCurrentColor();
+
+    if (hasDefaultTextDecorationLine && hasDefaultTextDecorationStyle && hasDefaultTextDecorationColor && hasDefaultTextDecorationThickness) {
+        CSS::serializationForCSS(builder, context, CSS::Keyword::None { });
+        return;
+    }
+
+    if (!hasDefaultTextDecorationLine)
+        ExtractorSerializer::serializeTextDecorationLine(state, builder, context, state.style.textDecorationLine());
+    if (!hasDefaultTextDecorationThickness) {
+        if (!builder.isEmpty())
+            builder.append(' ');
+        ExtractorSerializer::serialize(state, builder, context, state.style.textDecorationThickness());
+    }
+    if (!hasDefaultTextDecorationStyle) {
+        if (!builder.isEmpty())
+            builder.append(' ');
+        ExtractorSerializer::serialize(state, builder, context, state.style.textDecorationStyle());
+    }
+    if (!hasDefaultTextDecorationColor) {
+        if (!builder.isEmpty())
+            builder.append(' ');
+        ExtractorSerializer::serialize(state, builder, context, state.style.textDecorationColor());
+    }
 }
 
 inline RefPtr<CSSValue> ExtractorCustom::extractTextDecorationSkipShorthand(ExtractorState& state)

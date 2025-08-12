@@ -67,6 +67,8 @@ WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderTableCell);
 struct SameSizeAsRenderTableCell : public RenderBlockFlow {
     unsigned bitfields;
     LayoutUnit padding[2];
+    bool isComputingPreferredSize;
+    std::optional<LayoutUnit> orthogonalCellContentIntrinsicHeight;
 };
 
 static_assert(sizeof(RenderTableCell) == sizeof(SameSizeAsRenderTableCell), "RenderTableCell should stay small");
@@ -316,20 +318,47 @@ bool RenderTableCell::computeIntrinsicPadding(LayoutUnit rowHeight)
     return intrinsicPaddingBefore != oldIntrinsicPaddingBefore || intrinsicPaddingAfter != oldIntrinsicPaddingAfter;
 }
 
-void RenderTableCell::updateLogicalWidth()
+RenderBox::LogicalExtentComputedValues RenderTableCell::computeLogicalHeight(LayoutUnit logicalHeight, LayoutUnit logicalTop) const
 {
+    if (isOrthogonal()) {
+        // Note that at this point, contentBoxLogicalHeight means content height.
+        m_orthogonalCellContentIntrinsicHeight = contentBoxLogicalHeight();
+    }
+    return RenderBlockFlow::computeLogicalHeight(logicalHeight, logicalTop);
 }
 
-void RenderTableCell::setCellLogicalWidth(LayoutUnit tableLayoutLogicalWidth)
+void RenderTableCell::updateLogicalWidth()
 {
-    if (tableLayoutLogicalWidth == logicalWidth())
+    if (isComputingPreferredSize()) {
+        // While table layout sets the final logical width for cells, in case of
+        // preferred width computation for orthogonal content, we have
+        // to follow normal layout flow to be able to compute logical height.
+        RenderBlockFlow::updateLogicalWidth();
+        return;
+    }
+    if (auto logicalWidth = overridingBorderBoxLogicalWidth())
+        setLogicalWidth(*logicalWidth);
+}
+
+void RenderTableCell::setCellLogicalWidth(LayoutUnit logicalWidthInTableDirection)
+{
+    auto logicalSizeInTableDirection = !isOrthogonal() ? logicalWidth() : logicalHeight();
+    if (logicalWidthInTableDirection == logicalSizeInTableDirection)
         return;
 
     setNeedsLayout(MarkOnlyThis);
     row()->setChildNeedsLayout(MarkOnlyThis);
-
-    setLogicalWidth(tableLayoutLogicalWidth);
     setCellWidthChanged(true);
+
+    if (!isOrthogonal()) {
+        setLogicalWidth(logicalWidthInTableDirection);
+        return;
+    }
+
+    setLogicalHeight(logicalWidthInTableDirection);
+    // As table layout drives the size of table cells, we have to prevent regular layout flow from
+    // overriding this height value. This is similar to how RenderTableCell handles logical widths by overriding ::updateLogicalWidth.
+    setOverridingBorderBoxLogicalHeight(logicalWidthInTableDirection);
 }
 
 void RenderTableCell::layout()
@@ -429,6 +458,30 @@ void RenderTableCell::setOverridingLogicalHeightFromRowHeight(LayoutUnit rowHeig
 {
     clearIntrinsicPadding();
     setOverridingBorderBoxLogicalHeight(rowHeight);
+}
+
+LayoutUnit RenderTableCell::minLogicalWidthForColumnSizing()
+{
+    if (!isOrthogonal())
+        return RenderBlockFlow::minPreferredLogicalWidth();
+
+    auto computingPreferredSize = SetForScope<bool> { m_isComputingPreferredSize, true };
+    setNeedsLayout(MarkOnlyThis);
+    layoutIfNeeded();
+    ASSERT(m_orthogonalCellContentIntrinsicHeight.has_value());
+    return std::max(logicalHeight(), m_orthogonalCellContentIntrinsicHeight.value_or(0_lu));
+}
+
+LayoutUnit RenderTableCell::maxLogicalWidthForColumnSizing()
+{
+    if (!isOrthogonal())
+        return RenderBlockFlow::maxPreferredLogicalWidth();
+
+    auto computingPreferredSize = SetForScope<bool> { m_isComputingPreferredSize, true };
+    setNeedsLayout(MarkOnlyThis);
+    layoutIfNeeded();
+    ASSERT(m_orthogonalCellContentIntrinsicHeight.has_value());
+    return std::max(logicalHeight(), m_orthogonalCellContentIntrinsicHeight.value_or(0_lu));
 }
 
 LayoutSize RenderTableCell::offsetFromContainer(const RenderElement& container, const LayoutPoint& point, bool* offsetDependsOnPoint) const

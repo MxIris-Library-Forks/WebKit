@@ -604,7 +604,8 @@ TextStream& operator<<(TextStream& stream, AXNotification notification)
     case AXNotification::name: \
         stream << #name; \
         break;
-    WEBCORE_AXNOTIFICATION_KEYS(WEBCORE_LOG_AXNOTIFICATION)
+
+        WEBCORE_AXNOTIFICATION_KEYS(WEBCORE_LOG_AXNOTIFICATION)
 #undef WEBCORE_LOG_AXNOTIFICATION
     }
 
@@ -1189,12 +1190,6 @@ TextStream& operator<<(WTF::TextStream& stream, AXProperty property)
         stream << "TextRuns";
         break;
 #endif
-    case AXProperty::Title:
-        stream << "Title";
-        break;
-    case AXProperty::TitleAttributeValue:
-        stream << "TitleAttributeValue";
-        break;
     case AXProperty::URL:
         stream << "URL";
         break;
@@ -1218,6 +1213,9 @@ TextStream& operator<<(WTF::TextStream& stream, AXProperty property)
         break;
     case AXProperty::VisibleRows:
         stream << "VisibleRows";
+        break;
+    case AXProperty::WebAreaTitle:
+        stream << "WebAreaTitle";
         break;
     }
     return stream;

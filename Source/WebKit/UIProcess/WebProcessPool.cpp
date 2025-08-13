@@ -1486,8 +1486,6 @@ void WebProcessPool::handleMemoryPressureWarning(Critical)
     if (RefPtr prewarmedProcess = m_prewarmedProcess.get())
         prewarmedProcess->shutDown();
     ASSERT(!m_prewarmedProcess);
-
-    m_fileSandboxExtensions.clear();
 }
 
 ProcessID WebProcessPool::prewarmedProcessID()
@@ -2877,15 +2875,5 @@ void WebProcessPool::initializeAccessibilityIfNecessary()
     m_hasReceivedAXRequestInUIProcess = true;
 }
 #endif
-
-std::optional<SandboxExtension::Handle> WebProcessPool::sandboxExtensionForFile(const String& fileName)
-{
-    return m_fileSandboxExtensions.getOptional(fileName);
-}
-
-void WebProcessPool::addSandboxExtensionForFile(const String& fileName, SandboxExtension::Handle handle)
-{
-    m_fileSandboxExtensions.add(fileName, handle);
-}
 
 } // namespace WebKit

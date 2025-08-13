@@ -23,9 +23,39 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-[
-    EnabledForWorld=nodeInfoEnabled,
-    Exposed=Window,
-    ExportMacro=WEBCORE_EXPORT
-] interface WebKitNodeInfo {
+#pragma once
+
+#include "FrameIdentifier.h"
+#include <wtf/Markable.h>
+#include <wtf/ObjectIdentifier.h>
+
+namespace JSC {
+class JSObject;
+}
+
+namespace WebCore {
+
+class Document;
+class Node;
+
+struct JSHandleIdentifierType;
+using WebProcessJSHandleIdentifier = ObjectIdentifier<JSHandleIdentifierType>;
+using JSHandleIdentifier = ProcessQualified<WebProcessJSHandleIdentifier>;
+
+class WebKitJSHandle : public RefCounted<WebKitJSHandle> {
+public:
+    static Ref<WebKitJSHandle> create(Document& document, JSC::JSObject* object) { return adoptRef(*new WebKitJSHandle(document, object)); }
+    WEBCORE_EXPORT static std::pair<RefPtr<Document>, JSC::JSObject*> objectForIdentifier(JSHandleIdentifier);
+    WEBCORE_EXPORT static void jsHandleDestroyed(JSHandleIdentifier);
+
+    JSHandleIdentifier identifier() const { return m_identifier; }
+    Markable<FrameIdentifier> windowFrameIdentifier() const { return m_windowFrameIdentifier; }
+
+private:
+    WEBCORE_EXPORT WebKitJSHandle(Document&, JSC::JSObject*);
+
+    const JSHandleIdentifier m_identifier;
+    const Markable<FrameIdentifier> m_windowFrameIdentifier;
 };
+
+} // namespace WebCore

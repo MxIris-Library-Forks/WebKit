@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <WebCore/DRMDevice.h>
 #include <wtf/Vector.h>
 #include <wtf/text/CString.h>
 
@@ -44,7 +45,9 @@ struct RendererBufferFormat {
 
     using Usage = RendererBufferFormatUsage;
     Usage usage { Usage::Rendering };
-    CString drmDevice;
+#if USE(GBM)
+    WebCore::DRMDevice drmDevice;
+#endif
     Vector<Format> formats;
 };
 

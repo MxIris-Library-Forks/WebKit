@@ -23,26 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "APIJSHandle.h"
+#import "WKObject.h"
+#import "_WKJSHandle.h"
+#import <wtf/AlignedStorage.h>
 
-#include "APIObject.h"
-#include "NodeInfo.h"
-
-namespace API {
-
-class NodeInfo final : public ObjectImpl<Object::Type::NodeInfo> {
-public:
-    static Ref<NodeInfo> create(WebKit::NodeInfo&& nodeInfo) { return adoptRef(*new NodeInfo(WTFMove(nodeInfo))); }
-    virtual ~NodeInfo();
-
-    const WebKit::NodeInfo& info() const { return m_nodeInfo; }
-
-private:
-    NodeInfo(WebKit::NodeInfo&&);
-
-    const WebKit::NodeInfo m_nodeInfo;
+namespace WebKit {
+template<> struct WrapperTraits<API::JSHandle> {
+    using WrapperClass = _WKJSHandle;
 };
+}
 
-} // namespace API
+@interface _WKJSHandle () <WKObject> {
+@package
+    AlignedStorage<API::JSHandle> _ref;
+}
 
-SPECIALIZE_TYPE_TRAITS_API_OBJECT(NodeInfo);
+@end

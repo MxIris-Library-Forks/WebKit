@@ -23,16 +23,40 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "APINodeInfo.h"
+#import "config.h"
+#import "_WKJSHandleInternal.h"
 
-namespace API {
+#import "WKFrameInfoInternal.h"
+#import "WebFrameProxy.h"
+#import "WebPageProxy.h"
+#import <WebCore/WebCoreObjCExtras.h>
+#import <wtf/BlockPtr.h>
 
-NodeInfo::NodeInfo(WebKit::NodeInfo&& nodeInfo)
-    : m_nodeInfo(WTFMove(nodeInfo))
+@implementation _WKJSHandle
+
+- (void)dealloc
 {
+    if (WebCoreObjCScheduleDeallocateOnMainRunLoop(_WKJSHandle.class, self))
+        return;
+    _ref->API::JSHandle::~JSHandle();
+    [super dealloc];
 }
 
-NodeInfo::~NodeInfo() = default;
+- (void)windowFrameInfo:(void (^)(WKFrameInfo *))completionHandler
+{
+    RefPtr webFrame = WebKit::WebFrameProxy::webFrame(_ref->info().windowProxyFrameIdentifier);
+    if (!webFrame)
+        return completionHandler(nil);
+    webFrame->getFrameInfo([completionHandler = makeBlockPtr(completionHandler), page = RefPtr { webFrame->page() }] (auto&& data) mutable {
+        if (!data)
+            return completionHandler(nil);
+        completionHandler(wrapper(API::FrameInfo::create(WTFMove(*data), WTFMove(page))).get());
+    });
+}
 
-} // namespace API
+- (API::Object&)_apiObject
+{
+    return *_ref;
+}
+
+@end

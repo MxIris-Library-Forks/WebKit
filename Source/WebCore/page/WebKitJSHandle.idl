@@ -23,28 +23,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-
-#include "FrameIdentifier.h"
-#include "NodeIdentifier.h"
-#include <wtf/Markable.h>
-
-namespace WebCore {
-
-class Node;
-
-class WebKitNodeInfo : public RefCounted<WebKitNodeInfo> {
-public:
-    static Ref<WebKitNodeInfo> create(const Node& node) { return adoptRef(*new WebKitNodeInfo(node)); }
-
-    NodeIdentifier nodeIdentifier() const { return m_nodeIdentifier; }
-    Markable<FrameIdentifier> contentFrameIdentifier() const { return m_contentFrameIdentifier; }
-
-private:
-    WebKitNodeInfo(const Node&);
-
-    const NodeIdentifier m_nodeIdentifier;
-    const Markable<FrameIdentifier> m_contentFrameIdentifier;
+[
+    EnabledForWorld=nodeInfoEnabled,
+    Exposed=Window,
+    ExportMacro=WEBCORE_EXPORT
+] interface WebKitJSHandle {
 };
-
-} // namespace WebCore

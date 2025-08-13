@@ -25,81 +25,13 @@
 
 #import "config.h"
 
-#import "HTTPServer.h"
 #import "PlatformUtilities.h"
-#import "TestNavigationDelegate.h"
-#import "TestScriptMessageHandler.h"
 #import "TestWKWebView.h"
 #import <WebKit/WKContentWorldPrivate.h>
 #import <WebKit/_WKContentWorldConfiguration.h>
-#import <WebKit/_WKFeature.h>
-#import <WebKit/_WKNodeInfo.h>
 #import <WebKit/_WKSerializedNode.h>
 
 namespace TestWebKitAPI {
-
-static WKFrameInfo *getContentFrameInfo(RetainPtr<_WKNodeInfo> node)
-{
-    EXPECT_TRUE([node isKindOfClass:_WKNodeInfo.class]);
-    __block RetainPtr<WKFrameInfo> frame;
-    __block bool done { false };
-    [node contentFrameInfo:^(WKFrameInfo *info) {
-        frame = info;
-        done = true;
-    }];
-    Util::run(&done);
-    return frame.autorelease();
-}
-
-TEST(NodeInfo, Basic)
-{
-    HTTPServer server({
-        { "/example"_s, { "<iframe id=onlyframe src='https://webkit.org/webkit'></iframe><div id=onlydiv></div>"_s } },
-        { "/webkit"_s, { "hi"_s } },
-    }, HTTPServer::Protocol::HttpsProxy);
-
-    RetainPtr configuration = server.httpsProxyConfiguration();
-
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
-    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
-    [navigationDelegate allowAnyTLSCertificate];
-    webView.get().navigationDelegate = navigationDelegate.get();
-    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
-    [navigationDelegate waitForDidFinishNavigation];
-
-    RetainPtr worldConfiguration = adoptNS([_WKContentWorldConfiguration new]);
-    worldConfiguration.get().allowNodeInfo = YES;
-    RetainPtr world = [WKContentWorld _worldWithConfiguration:worldConfiguration.get()];
-
-    RetainPtr<id> result = [webView objectByEvaluatingJavaScript:@"window.webkit.createNodeInfo(onlyframe)" inFrame:nil inContentWorld:world.get()];
-    RetainPtr<_WKNodeInfo> iframeElement = result;
-    EXPECT_WK_STREQ(getContentFrameInfo(iframeElement).request.URL.absoluteString, "https://webkit.org/webkit");
-
-    result = [webView objectByEvaluatingJavaScript:@"window.webkit.createNodeInfo(onlydiv)" inFrame:nil inContentWorld:world.get()];
-    EXPECT_NULL(getContentFrameInfo(result));
-
-    {
-        __block bool done { false };
-        [webView evaluateJavaScript:@"window.webkit.createNodeInfo(5)" inFrame:nil inContentWorld:world.get() completionHandler:^(id result, NSError *error) {
-            EXPECT_NULL(result);
-            EXPECT_NOT_NULL(error);
-            done = true;
-        }];
-        Util::run(&done);
-    }
-
-    result = [webView objectByEvaluatingJavaScript:@"window.webkit.createNodeInfo(document.createTextNode('hi'))" inFrame:nil inContentWorld:world.get()];
-    EXPECT_NULL(getContentFrameInfo(result));
-
-    result = [webView objectByEvaluatingJavaScript:@"window.WebKitNodeInfo"];
-    EXPECT_NULL(result);
-
-    result = [webView objectByCallingAsyncFunction:@"return n === undefined" withArguments:@{ @"n" : iframeElement.get() } inFrame:getContentFrameInfo(iframeElement) inContentWorld:WKContentWorld.pageWorld];
-    EXPECT_EQ(result.get(), @YES);
-
-    result = [webView objectByCallingAsyncFunction:@"return n.id" withArguments:@{ @"n" : iframeElement.get() }];
-    EXPECT_WK_STREQ(result.get(), "onlyframe");
-}
 
 TEST(SerializedNode, Basic)
 {

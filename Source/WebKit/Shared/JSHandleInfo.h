@@ -23,21 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "APINodeInfo.h"
-#import "WKObject.h"
-#import "_WKNodeInfo.h"
-#import <wtf/AlignedStorage.h>
+#pragma once
+
+#include "FrameInfoData.h"
+#include <WebCore/ProcessQualified.h>
+
+namespace WebCore {
+struct JSHandleIdentifierType;
+using JSHandleIdentifier = ProcessQualified<ObjectIdentifier<JSHandleIdentifierType>>;
+}
 
 namespace WebKit {
 
-template<> struct WrapperTraits<API::NodeInfo> {
-    using WrapperClass = _WKNodeInfo;
+struct JSHandleInfo {
+    WebCore::JSHandleIdentifier identifier;
+    Markable<WebCore::FrameIdentifier> windowProxyFrameIdentifier;
 };
 
 }
-
-@interface _WKNodeInfo () <WKObject> {
-@package
-    AlignedStorage<API::NodeInfo> _info;
-}
-@end

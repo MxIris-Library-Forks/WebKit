@@ -251,11 +251,23 @@ LayoutRect RenderTableCell::frameRectForStickyPositioning() const
     return returnValue;
 }
 
-bool RenderTableCell::computeIntrinsicPadding(LayoutUnit rowHeight)
+bool RenderTableCell::computeIntrinsicPadding(LayoutUnit heightConstraint)
 {
-    LayoutUnit oldIntrinsicPaddingBefore = intrinsicPaddingBefore();
-    LayoutUnit oldIntrinsicPaddingAfter = intrinsicPaddingAfter();
-    LayoutUnit logicalHeightWithoutIntrinsicPadding = logicalHeight() - oldIntrinsicPaddingBefore - oldIntrinsicPaddingAfter;
+    auto oldIntrinsicPaddingBefore = LayoutUnit { };
+    auto oldIntrinsicPaddingAfter = LayoutUnit { };
+    // logicalHeight() here means orginal border box height (i.e. no column stretching for orthogonal box).
+    auto borderBoxLogicalHeight = LayoutUnit { };
+    if (!isOrthogonal()) {
+        oldIntrinsicPaddingBefore = intrinsicPaddingBefore();
+        oldIntrinsicPaddingAfter = intrinsicPaddingAfter();
+        borderBoxLogicalHeight = logicalHeight();
+    } else {
+        ASSERT(m_orthogonalCellContentIntrinsicHeight);
+        borderBoxLogicalHeight = m_orthogonalCellContentIntrinsicHeight.value_or(0_lu) + RenderBlockFlow::paddingBefore() + RenderBlockFlow::paddingAfter() + borderBefore() + borderAfter();
+        oldIntrinsicPaddingBefore = { };
+        oldIntrinsicPaddingAfter = { };
+    }
+    auto borderBoxLogicalHeightWithoutIntrinsicPadding = borderBoxLogicalHeight - (oldIntrinsicPaddingBefore + oldIntrinsicPaddingAfter);
 
     auto intrinsicPaddingBefore = oldIntrinsicPaddingBefore;
     auto alignment = style().verticalAlign();
@@ -273,7 +285,7 @@ bool RenderTableCell::computeIntrinsicPadding(LayoutUnit rowHeight)
 
     auto applyStandard = [&] {
         auto baseline = cellBaselinePosition();
-        auto needsIntrinsicPadding = baseline > borderAndPaddingBefore() || !logicalHeight();
+        auto needsIntrinsicPadding = baseline > borderAndPaddingBefore() || !borderBoxLogicalHeight;
         if (needsIntrinsicPadding)
             intrinsicPaddingBefore = section()->rowBaseline(rowIndex()) - (baseline - oldIntrinsicPaddingBefore);
     };
@@ -298,10 +310,10 @@ bool RenderTableCell::computeIntrinsicPadding(LayoutUnit rowHeight)
             // Do nothing.
         },
         [&](const CSS::Keyword::Middle&) {
-            intrinsicPaddingBefore = (rowHeight - logicalHeightWithoutIntrinsicPadding) / 2;
+            intrinsicPaddingBefore = (heightConstraint - borderBoxLogicalHeightWithoutIntrinsicPadding) / 2;
         },
         [&](const CSS::Keyword::Bottom&) {
-            intrinsicPaddingBefore = rowHeight - logicalHeightWithoutIntrinsicPadding;
+            intrinsicPaddingBefore = heightConstraint - borderBoxLogicalHeightWithoutIntrinsicPadding;
         },
         [&](const CSS::Keyword::WebkitBaselineMiddle&) {
             // Do nothing.
@@ -311,7 +323,7 @@ bool RenderTableCell::computeIntrinsicPadding(LayoutUnit rowHeight)
         }
     );
 
-    LayoutUnit intrinsicPaddingAfter = rowHeight - logicalHeightWithoutIntrinsicPadding - intrinsicPaddingBefore;
+    LayoutUnit intrinsicPaddingAfter = heightConstraint - borderBoxLogicalHeightWithoutIntrinsicPadding - intrinsicPaddingBefore;
     setIntrinsicPaddingBefore(intrinsicPaddingBefore);
     setIntrinsicPaddingAfter(intrinsicPaddingAfter);
 
@@ -338,6 +350,28 @@ void RenderTableCell::updateLogicalWidth()
     }
     if (auto logicalWidth = overridingBorderBoxLogicalWidth())
         setLogicalWidth(*logicalWidth);
+}
+
+LayoutUnit RenderTableCell::logicalHeightForRowSizing() const
+{
+    auto logicalSizeForRowSizing = [&] {
+        if (!isOrthogonal())
+            return logicalHeight() - (intrinsicPaddingBefore() + intrinsicPaddingAfter());
+        LogicalExtentComputedValues values;
+        computeLogicalWidth(values);
+        return values.m_extent;
+    };
+    // FIXME: This function does too much work, and is very hot during table layout!
+    auto usedLogicalSize = logicalSizeForRowSizing();
+    auto specifiedSize = !isOrthogonal() ? style().logicalHeight() : style().logicalWidth();
+    if (!specifiedSize.isSpecified())
+        return usedLogicalSize;
+    auto computedLogicaSize = Style::evaluate(specifiedSize, 0_lu);
+    // In strict mode, box-sizing: content-box do the right thing and actually add in the border and padding.
+    // Call computedCSSPadding* directly to avoid including implicitPadding.
+    if (!document().inQuirksMode() && style().boxSizing() != BoxSizing::BorderBox)
+        computedLogicaSize += computedCSSPaddingBefore() + computedCSSPaddingAfter() + borderBefore() + borderAfter();
+    return std::max(computedLogicaSize, usedLogicalSize);
 }
 
 void RenderTableCell::setCellLogicalWidth(LayoutUnit logicalWidthInTableDirection)
@@ -566,7 +600,9 @@ LayoutUnit RenderTableCell::cellBaselinePosition() const
     // <http://www.w3.org/TR/2007/CR-CSS21-20070719/tables.html#height-layout>: The baseline of a cell is the baseline of
     // the first in-flow line box in the cell, or the first in-flow table-row in the cell, whichever comes first. If there
     // is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
-    return firstLineBaseline().value_or(borderAndPaddingBefore() + contentBoxLogicalHeight());
+    if (!isOrthogonal())
+        return firstLineBaseline().value_or(borderAndPaddingBefore() + contentBoxLogicalHeight());
+    return { };
 }
 
 static inline void markCellDirtyWhenCollapsedBorderChanges(RenderTableCell* cell)

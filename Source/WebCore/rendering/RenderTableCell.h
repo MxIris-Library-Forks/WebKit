@@ -61,7 +61,7 @@ public:
     RenderTable* table() const;
     unsigned rowIndex() const;
     inline Style::PreferredSize styleOrColLogicalWidth() const;
-    inline LayoutUnit logicalHeightForRowSizing() const;
+    LayoutUnit logicalHeightForRowSizing() const;
     LayoutUnit minLogicalWidthForColumnSizing();
     LayoutUnit maxLogicalWidthForColumnSizing();
 
@@ -90,7 +90,7 @@ public:
     LayoutUnit cellBaselinePosition() const;
     bool isBaselineAligned() const;
 
-    bool computeIntrinsicPadding(LayoutUnit rowHeight);
+    bool computeIntrinsicPadding(LayoutUnit heightConstraint);
     void clearIntrinsicPadding() { setIntrinsicPadding(0, 0); }
 
     LayoutUnit intrinsicPaddingBefore() const { return m_intrinsicPaddingBefore; }

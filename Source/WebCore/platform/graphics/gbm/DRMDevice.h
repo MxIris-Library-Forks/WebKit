@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,18 +23,25 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <WebKit/WKFrameInfo.h>
+#pragma once
 
-NS_ASSUME_NONNULL_BEGIN
+#if USE(GBM)
+#include <wtf/text/CString.h>
 
-WK_CLASS_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA), visionos(WK_XROS_TBA))
-@interface _WKNodeInfo : NSObject
+namespace WebCore {
 
-+ (instancetype)new NS_UNAVAILABLE;
-- (instancetype)init NS_UNAVAILABLE;
+struct DRMDevice {
+    bool isNull() const
+    {
+        return primaryNode.isNull();
+    }
 
-- (void)contentFrameInfo:(void (^)(WKFrameInfo * _Nullable))completionHandler;
+    bool operator==(const DRMDevice&) const = default;
 
-@end
+    CString primaryNode;
+    CString renderNode;
+};
 
-NS_ASSUME_NONNULL_END
+} // namespace WebCore
+
+#endif // USE(GBM)

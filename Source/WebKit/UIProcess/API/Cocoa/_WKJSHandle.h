@@ -23,46 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
-#import "_WKNodeInfoInternal.h"
+#import <WebKit/WKFoundation.h>
 
-#import "WKFrameInfoInternal.h"
-#import "WebFrameProxy.h"
-#import "WebPageProxy.h"
-#import <WebCore/WebCoreObjCExtras.h>
-#import <wtf/BlockPtr.h>
+@class WKFrameInfo;
 
-@implementation _WKNodeInfo
+NS_ASSUME_NONNULL_BEGIN
 
-- (void)dealloc
-{
-    if (WebCoreObjCScheduleDeallocateOnMainRunLoop(_WKNodeInfo.class, self))
-        return;
-    _info->API::NodeInfo::~NodeInfo();
-    [super dealloc];
-}
+WK_CLASS_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA), visionos(WK_XROS_TBA))
+@interface _WKJSHandle : NSObject
 
-- (void)contentFrameInfo:(void (^)(WKFrameInfo *))completionHandler
-{
-    // FIXME: This should probably proactively fetch and just expose a property.
-    auto& frameID = _info->info().contentFrameIdentifier;
-    if (!frameID)
-        return completionHandler(nil);
-    RefPtr webFrame = WebKit::WebFrameProxy::webFrame(*frameID);
-    if (!webFrame)
-        return completionHandler(nil);
-    webFrame->getFrameInfo([completionHandler = makeBlockPtr(completionHandler), page = RefPtr { webFrame->page() }] (std::optional<WebKit::FrameInfoData>&& data) mutable {
-        if (!data)
-            return completionHandler(nil);
-        Ref frameInfo = API::FrameInfo::create(WTFMove(*data), WTFMove(page));
-        RetainPtr frameInfoData = wrapper(frameInfo);
-        completionHandler(frameInfoData.get());
-    });
-}
++ (instancetype)new NS_UNAVAILABLE;
+- (instancetype)init NS_UNAVAILABLE;
 
-- (API::Object&)_apiObject
-{
-    return *_info;
-}
+- (void)windowFrameInfo:(void (^)(WKFrameInfo * _Nullable))completionHandler;
 
 @end
+
+NS_ASSUME_NONNULL_END

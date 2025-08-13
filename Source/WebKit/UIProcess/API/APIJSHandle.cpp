@@ -23,16 +23,23 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "APIJSHandle.h"
 
-#include "FrameInfoData.h"
-#include <WebCore/NodeIdentifier.h>
+#include "WebProcessMessages.h"
+#include "WebProcessProxy.h"
 
-namespace WebKit {
+namespace API {
 
-struct NodeInfo {
-    WebCore::NodeIdentifier nodeIdentifier;
-    Markable<WebCore::FrameIdentifier> contentFrameIdentifier;
-};
-
+JSHandle::JSHandle(WebKit::JSHandleInfo&& info)
+    : m_info(WTFMove(info))
+{
 }
+
+JSHandle::~JSHandle()
+{
+    if (RefPtr webProcess = WebKit::WebProcessProxy::processForIdentifier(m_info.identifier.processIdentifier()))
+        webProcess->send(Messages::WebProcess::JSHandleDestroyed(m_info.identifier), 0);
+}
+
+} // namespace API

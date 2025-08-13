@@ -40,11 +40,11 @@
 #import "ChromeClient.h"
 #import "FontCascade.h"
 #import "FrameSelection.h"
-#import "HitTestResult.h"
 #import "HTMLFrameOwnerElement.h"
 #import "HTMLInputElement.h"
 #import "HTMLNames.h"
 #import "HTMLTextAreaElement.h"
+#import "HitTestResult.h"
 #import "IntRect.h"
 #import "LocalFrame.h"
 #import "LocalizedStrings.h"
@@ -57,10 +57,10 @@
 #import "SimpleRange.h"
 #import "TextIterator.h"
 #import "VisiblePosition.h"
+#import "VisibleUnits.h"
 #import "WAKScrollView.h"
 #import "WAKWindow.h"
 #import "WebCoreThread.h"
-#import "VisibleUnits.h"
 #import <CoreText/CoreText.h>
 #import <wtf/RuntimeApplicationChecks.h>
 #import <wtf/cocoa/VectorCocoa.h>
@@ -1196,7 +1196,7 @@ static void appendStringToResult(NSMutableString *result, NSString *string)
 
     // iOS doesn't distinguish between the title and description properties,
     // so concatenate them when different.
-    String title = backingObject->titleAttributeValue();
+    String title = backingObject->title();
     String description = backingObject->descriptionAttributeValue();
     RetainPtr landmarkDescription = [self ariaLandmarkRoleDescription];
     RetainPtr interactiveVideoDescription = [self interactiveVideoDescription];

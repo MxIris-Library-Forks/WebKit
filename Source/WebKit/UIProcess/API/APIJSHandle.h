@@ -23,28 +23,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "WebKitNodeInfo.h"
+#pragma once
 
-#include "HTMLFrameOwnerElement.h"
+#include "APIObject.h"
+#include "JSHandleInfo.h"
 
-namespace WebCore {
+namespace API {
 
-static Markable<FrameIdentifier> contentFrameIdentifier(const Node& node)
-{
-    RefPtr frameOwnerElement = dynamicDowncast<const HTMLFrameOwnerElement>(node);
-    if (!frameOwnerElement)
-        return std::nullopt;
-    RefPtr contentFrame = frameOwnerElement->contentFrame();
-    if (!contentFrame)
-        return std::nullopt;
-    return contentFrame->frameID();
-}
+class JSHandle final : public ObjectImpl<Object::Type::JSHandle> {
+public:
+    static Ref<JSHandle> create(WebKit::JSHandleInfo&& info) { return adoptRef(*new JSHandle(WTFMove(info))); }
+    virtual ~JSHandle();
 
-WebKitNodeInfo::WebKitNodeInfo(const Node& node)
-    : m_nodeIdentifier(node.nodeIdentifier())
-    , m_contentFrameIdentifier(WebCore::contentFrameIdentifier(node))
-{
-}
+    const WebKit::JSHandleInfo& info() const { return m_info; }
 
-}
+private:
+    JSHandle(WebKit::JSHandleInfo&&);
+
+    const WebKit::JSHandleInfo m_info;
+};
+
+} // namespace API
+
+SPECIALIZE_TYPE_TRAITS_API_OBJECT(JSHandle);

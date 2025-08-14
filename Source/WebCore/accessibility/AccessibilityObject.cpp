@@ -29,11 +29,16 @@
 #include "config.h"
 #include "AccessibilityObject.h"
 
+#include "AXAttributeCacheScope.h"
+#include "AXIsolatedTree.h"
 #include "AXLogger.h"
+#include "AXLoggerBase.h"
 #include "AXObjectCache.h"
+#include "AXObjectCacheInlines.h"
 #include "AXRemoteFrame.h"
 #include "AXSearchManager.h"
 #include "AXTextMarker.h"
+#include "AXUtilities.h"
 #include "AccessibilityMockObject.h"
 #include "AccessibilityRenderObject.h"
 #include "AccessibilityScrollView.h"
@@ -2285,7 +2290,7 @@ void AccessibilityObject::updateChildrenIfNecessary()
 {
     if (!childrenInitialized()) {
         // Enable the cache in case we end up adding a lot of children, we don't want to recompute axIsIgnored each time.
-        AXAttributeCacheEnabler enableCache(axObjectCache());
+        AXAttributeCacheScope enableCache(axObjectCache());
         addChildren();
     }
 }
@@ -2606,11 +2611,6 @@ String AccessibilityObject::getAttributeTrimmed(const QualifiedName& attribute) 
         return { };
     auto value = rawValue.string();
     return value.trim(isASCIIWhitespace).simplifyWhiteSpace(isASCIIWhitespace);
-}
-
-String AccessibilityObject::nameAttribute() const
-{
-    return getAttribute(nameAttr);
 }
 
 int AccessibilityObject::integralAttribute(const QualifiedName& attributeName) const
@@ -3158,11 +3158,14 @@ AccessibilityObject* AccessibilityObject::elementAccessibilityHitTest(const IntP
 {
     // Send the hit test back into the sub-frame if necessary.
     if (isAttachment()) {
-        Widget* widget = widgetForAttachmentView();
+        RefPtr widget = widgetForAttachmentView();
         // Normalize the point for the widget's bounds.
         if (widget && widget->isLocalFrameView()) {
-            if (CheckedPtr cache = axObjectCache())
-                return cache->getOrCreate(*widget)->accessibilityHitTest(IntPoint(point - widget->frameRect().location()));
+            RefPtr widgetScrollView = dynamicDowncast<ScrollView>(widget);
+            if (CheckedPtr cache = widgetScrollView ? axObjectCache() : nullptr) {
+                IntPoint adjustedPoint = IntPoint(point - widget->frameRect().location()) + widgetScrollView->scrollPosition();
+                return cache->getOrCreate(*widget)->accessibilityHitTest(adjustedPoint);
+            }
         }
 
         if (widget && widget->isRemoteFrameView()) {

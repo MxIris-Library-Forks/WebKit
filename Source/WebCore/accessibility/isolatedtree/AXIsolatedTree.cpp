@@ -28,8 +28,12 @@
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
 #include "AXIsolatedTree.h"
 
+#include "AXAttributeCacheScope.h"
 #include "AXIsolatedObject.h"
 #include "AXLogger.h"
+#include "AXTreeStore.h"
+#include "AXTreeStoreInlines.h"
+#include "AXUtilities.h"
 #include "AccessibilityTable.h"
 #include "AccessibilityTableCell.h"
 #include "AccessibilityTableRow.h"
@@ -282,7 +286,7 @@ void AXIsolatedTree::generateSubtree(AccessibilityObject& axObject)
         return;
 
     // We're about to a lot of read-only work, so start the attribute cache.
-    AXAttributeCacheEnabler enableCache(axObject.axObjectCache());
+    AXAttributeCacheScope enableCache(axObject.axObjectCache());
     collectNodeChangesForSubtree(axObject);
     queueRemovalsAndUnresolvedChanges();
 }
@@ -601,6 +605,9 @@ void AXIsolatedTree::updateNodeProperties(AccessibilityObject& axObject, const A
     for (const auto& property : propertySet) {
         AXLOG(makeString("Property: "_s, property));
         switch (property) {
+        case AXProperty::Abbreviation:
+            properties.append({ AXProperty::Abbreviation, axObject.abbreviation().isolatedCopy() });
+            break;
         case AXProperty::AccessKey:
             properties.append({ AXProperty::AccessKey, axObject.accessKey().isolatedCopy() });
             break;
@@ -946,7 +953,7 @@ void AXIsolatedTree::updateChildren(AccessibilityObject& axObject, ResolveNodeCh
         return;
 
     // We're about to do a lot of work, so start the attribute cache.
-    AXAttributeCacheEnabler enableCache(axObject.axObjectCache());
+    AXAttributeCacheScope enableCache(axObject.axObjectCache());
 
     // updateChildren may be called as the result of a children changed
     // notification for an axObject that has no associated isolated object.
@@ -1080,7 +1087,7 @@ void AXIsolatedTree::updateChildrenForObjects(const ListHashSet<Ref<Accessibilit
     if (isUpdatingSubtree())
         return;
 
-    AXAttributeCacheEnabler enableCache(axObjectCache());
+    AXAttributeCacheScope enableCache(axObjectCache());
     for (auto& axObject : axObjects)
         queueNodeUpdate(axObject->objectID(), NodeUpdateOptions::childrenUpdate());
 
@@ -1703,6 +1710,8 @@ static bool shouldCacheElementName(ElementName name)
 {
     switch (name) {
     case ElementName::HTML_area:
+    case ElementName::HTML_abbr:
+    case ElementName::HTML_acronym:
     case ElementName::HTML_body:
     case ElementName::HTML_del:
     case ElementName::HTML_h1:
@@ -1786,6 +1795,7 @@ IsolatedObjectData createIsolatedObjectData(const Ref<AccessibilityObject>& axOb
         auto elementName = object.elementName();
         if (shouldCacheElementName(elementName))
             setProperty(AXProperty::ElementName, elementName);
+        setProperty(AXProperty::TitleAttribute, object.titleAttribute().isolatedCopy());
 
 #if ENABLE(AX_THREAD_TEXT_APIS)
         setProperty(AXProperty::TextRuns, std::make_shared<AXTextRuns>(object.textRuns()));
@@ -1955,11 +1965,6 @@ IsolatedObjectData createIsolatedObjectData(const Ref<AccessibilityObject>& axOb
             setProperty(AXProperty::PosInSet, object.posInSet());
         }
 
-        if (object.supportsExpandedTextValue()) {
-            setProperty(AXProperty::SupportsExpandedTextValue, true);
-            setProperty(AXProperty::ExpandedTextValue, object.expandedTextValue().isolatedCopy());
-        }
-
         if (object.supportsDatetimeAttribute())
             setProperty(AXProperty::DatetimeAttributeValue, object.datetimeAttributeValue().isolatedCopy());
 
@@ -1994,6 +1999,7 @@ IsolatedObjectData createIsolatedObjectData(const Ref<AccessibilityObject>& axOb
             setProperty(AXProperty::IsColumnHeader, object.isColumnHeader());
             setProperty(AXProperty::IsRowHeader, object.isRowHeader());
             setProperty(AXProperty::CellScope, object.cellScope().isolatedCopy());
+            setProperty(AXProperty::Abbreviation, object.abbreviation().isolatedCopy());
         }
 
         bool isTableRow = object.isTableRow();

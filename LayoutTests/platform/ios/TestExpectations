@@ -338,12 +338,25 @@ http/tests/security/contentSecurityPolicy/object-redirect-blocked2.html
 http/tests/security/contentSecurityPolicy/object-redirect-blocked3.html
 
 # Pointer-lock not supported on iOS: https://bugs.webkit.org/show_bug.cgi?id=216621
-pointer-lock
 http/tests/pointer-lock
 fast/shadow-dom/pointerlockelement-in-shadow-tree.html
 fast/shadow-dom/pointerlockelement-in-slot.html
 fast/js-promise/js-promise-invalid-context-access.html [ Skip ]
 imported/w3c/web-platform-tests/pointerlock [ Skip ]
+
+# webkit.org/b/285901 EventSender.mouse[Up|Down|MoveTo] do not work on iOS
+pointer-lock/bug90391-move-then-window-open-crash.html [ Skip ]
+pointer-lock/mouse-event-delivery.html [ Skip ]
+pointer-lock/pointermove-movement-delta.html [ Skip ]
+
+# webkit.org/b/297360 3 pointer-lock tests are failing because of missing TestRunner support
+pointer-lock/pointerlockchange-event-on-lock-lost.html [ Skip ]
+pointer-lock/pointerlockchange-pointerlockerror-events.html [ Skip ]
+pointer-lock/pointerlockelement-null-when-pending.html [ Skip ]
+
+# webkit.org/b/216621 Pointer-lock not fully supported on iOS yet
+pointer-lock/lock-lost-on-esc-in-fullscreen.html [ Skip ]
+pointer-lock/locked-element-iframe-removed-from-dom.html [ Skip ]
 
 # FIXME: Media tests not supported on iOS
 http/tests/media
@@ -4588,6 +4601,7 @@ fast/images/pagewide-play-pause-offscreen-animations.html [ Pass ]
 
 # Only applicable on platforms with HDR support
 compositing/hdr [ Pass ]
+fast/canvas/hdr [ Pass ]
 fast/images/hdr-basic-image.html [ Pass ]
 fast/images/hdr-basic-image-dynamic-range-limit.html [ Pass ]
 fast/images/hdr-background-image.html [ Pass ]
@@ -8215,12 +8229,6 @@ webkit.org/b/296824 [ Release ] http/tests/webcodecs/audio-encoder-callbacks-do-
 
 webkit.org/b/296833 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-096.html [ Pass ImageOnlyFailure ]
 
-# https://bugs.webkit.org/show_bug.cgi?id=296820 REGRESSION(298121@main): [ iOS, macOS wk2 ] 4x imported/w3c/web-platform-tests/navigation-api/ (layout-tests) tests are constant text failures
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigation-traverseTo-in-iframe-same-document-preventDefault.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigation-methods/back-forward-multiple-frames.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigation-methods/traverseTo-navigates-multiple-iframes.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/per-entry-events/dispose-for-navigation-in-child.html [ Failure ]
-
 webkit.org/b/296910 http/tests/app-privacy-report/app-attribution-beacon-isnotappinitiated.html [ Pass Failure ]
 
 webkit.org/b/296964 [ Release ] imported/w3c/web-platform-tests/webrtc/RTCDataChannel-GC.html [ Pass Failure ]
@@ -8251,8 +8259,6 @@ webkit.org/b/297144 fast/forms/state-restore-to-non-edited-controls.html [ Pass 
 
 webkit.org/b/297218 http/tests/in-app-browser-privacy/sub-frame-redirect-to-non-app-bound-domain-blocked.html [ Failure ]
 
-webkit.org/b/297222 imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/transition-finished-mark-as-handled.html [ Pass Failure ]
-
 webkit.org/b/297240 http/tests/site-isolation/edge-sampling-commit-root-frame-load.html [ Failure ]
 
 webkit.org/b/297131 [ Debug ] imported/w3c/web-platform-tests/web-locks/storage-buckets.tentative.https.any.worker.html [ Pass Failure ]
@@ -8260,3 +8266,7 @@ webkit.org/b/297131 [ Debug ] imported/w3c/web-platform-tests/web-locks/storage-
 webkit.org/b/295751 [ Release ] http/tests/geolocation/geolocation-get-current-position-does-not-leak.https.html [ Pass Failure ]
 
 webkit.org/b/297251 [ Release ] fast/mediastream/getUserMedia-echoCancellation.html [ Pass Failure ]
+
+webkit.org/b/297346 workers/message-port-gc.html [ Crash ]
+
+webkit.org/b/297364 [ Debug ] imported/w3c/web-platform-tests/digital-credentials/allow-attribute-with-create.https.html [ Failure ]

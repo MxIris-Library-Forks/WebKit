@@ -534,9 +534,6 @@ GPUProcessProxy& WebProcessPool::ensureGPUProcess()
         for (Ref process : m_processes)
             gpuProcess->updatePreferences(process);
         gpuProcess->updateScreenPropertiesIfNeeded();
-#if PLATFORM(COCOA)
-        registerFontsForGPUProcessIfNeeded();
-#endif
     }
     return *m_gpuProcess;
 }
@@ -1190,7 +1187,7 @@ void WebProcessPool::processDidFinishLaunching(WebProcessProxy& process)
 #if ENABLE(EXTENSION_CAPABILITIES)
     for (auto& page : process.pages()) {
         if (RefPtr mediaCapability = page->mediaCapability()) {
-            WEBPROCESSPOOL_RELEASE_LOG(ProcessCapabilities, "processDidFinishLaunching[envID=%{public}s]: updating media capability", mediaCapability->environmentIdentifier().utf8().data());
+            WEBPROCESSPOOL_RELEASE_LOG(ProcessCapabilities, "processDidFinishLaunching[envID=%" PUBLIC_LOG_STRING "]: updating media capability", mediaCapability->environmentIdentifier().utf8().data());
             page->updateMediaCapability();
         }
     }

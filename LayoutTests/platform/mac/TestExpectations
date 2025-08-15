@@ -952,8 +952,6 @@ webkit.org/b/187103 js/error-should-not-strong-reference-global-object.html [ Pa
 webkit.org/b/155505 http/tests/security/contentSecurityPolicy/userAgentShadowDOM/allow-audio.html [ Skip ]
 webkit.org/b/155505 http/tests/security/contentSecurityPolicy/userAgentShadowDOM/allow-video.html [ Skip ]
 
-webkit.org/b/154688 inspector/controller/runtime-controller.html [ Pass Timeout ]
-
 webkit.org/b/156351 storage/indexeddb/modern/autoincrement-abort-private.html [ Pass Timeout ]
 
 webkit.org/b/156983 media/video-fullscreen-restriction-removed.html [ Pass Failure ]
@@ -1232,8 +1230,6 @@ webkit.org/b/177323 imported/w3c/web-platform-tests/fetch/security/embedded-cred
 webkit.org/b/177388 inspector/canvas/shaderProgram-add-remove-webgl.html [ Pass Failure ]
 
 webkit.org/b/177826 inspector/dom/csp-big5-hash.html [ Pass Timeout ]
-
-webkit.org/b/175998 http/tests/security/mixedContent/insecure-css-with-secure-cookies.html [ Pass Failure ]
 
 # User-installed font infrastructure is ony present on certain OSes.
 webkit.org/b/180062 fast/text/user-installed-fonts/shadow-postscript.html [ ImageOnlyFailure ]
@@ -2476,15 +2472,6 @@ imported/w3c/web-platform-tests/css/css-view-transitions/new-content-transform-p
 # rdar://154889639 (REGRESSION(Liquid Glass): [ OS 26 ] fast/forms/datalist/datalist-fallback-content.html is a constant ImageOnlyFailure)
 fast/forms/datalist/datalist-fallback-content.html [ ImageOnlyFailure ]
 
-# rdar://154990654 (REGRESSION(Liquid Glass): [ Tahoe ] 4X fast/forms/switch/zoom-approximates-transform (layout-tests) are constant ImageOnlyFailures)
-fast/forms/switch/zoom-approximates-transform-rtl.html [ ImageOnlyFailure ]
-fast/forms/switch/zoom-approximates-transform-vertical-lr.html [ ImageOnlyFailure ] 
-fast/forms/switch/zoom-approximates-transform-vertical-rl.html [ ImageOnlyFailure ] 
-fast/forms/switch/zoom-approximates-transform.html [ ImageOnlyFailure ] 
-
-# rdar://154997421 (REGRESSION(Liquid Glass): [ Tahoe ] 5X fast/forms/range (layout-tests) are constant failures
-fast/forms/range/slider-in-multi-column.html [ Failure ]
-
 # Tests which pass only with form control refresh enabled
 fast/forms/appearance-default-button.html  [ Pass ]
 fast/forms/form-control-refresh [ Pass ]
@@ -2526,3 +2513,5 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-position-under-
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-position-under-right-001.xht [ ImageOnlyFailure ]
 
 webkit.org/b/297346 workers/message-port-gc.html [ Pass Crash ]
+
+webkit.org/b/297434 imported/w3c/web-platform-tests/event-timing/retrievability.html [ Pass Failure ]

@@ -1283,6 +1283,7 @@
 		3A25C5142CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A25C5122CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A25C51A2CF99B4700DB9C39 /* FileSystemWriteCommandType.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A25C5192CF99B4700DB9C39 /* FileSystemWriteCommandType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A25C51B2CF99D6800DB9C39 /* WritableStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 41E6D72126EAA04500B765D6 /* WritableStream.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3A2A9AB42E4BAF48009E5497 /* ParentalControlsURLFilterParameters.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A2A9AB32E4BAF48009E5497 /* ParentalControlsURLFilterParameters.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A2FE8CF2978CC7800BA1D92 /* GCGLSpan.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A2FE8CE2978CC7800BA1D92 /* GCGLSpan.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A3A05812B04973800017309 /* PlatformXRPose.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A3A05802B04971B00017309 /* PlatformXRPose.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A3A9BCB2D0C071700B99148 /* CryptoKeyData.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A3A9BCA2D0C071700B99148 /* CryptoKeyData.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4491,7 +4492,7 @@
 		A8FA6E5D0E4CFDED00D5CF49 /* Pattern.h in Headers */ = {isa = PBXBuildFile; fileRef = A8FA6E5B0E4CFDED00D5CF49 /* Pattern.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A91C9FBF1B6586DE00AFFD54 /* AccessibilityTree.h in Headers */ = {isa = PBXBuildFile; fileRef = A91C9FBD1B6586DE00AFFD54 /* AccessibilityTree.h */; };
 		A91C9FC31B659A6700AFFD54 /* AccessibilityTreeItem.h in Headers */ = {isa = PBXBuildFile; fileRef = A91C9FC11B659A6700AFFD54 /* AccessibilityTreeItem.h */; };
-		A9787CB41F5F5C6600C551C6 /* AccessibilityMediaObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A9787CB31F5F5C6500C551C6 /* AccessibilityMediaObject.cpp */; };
+		A9787CB41F5F5C6600C551C6 /* AccessibilityMediaHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A9787CB31F5F5C6500C551C6 /* AccessibilityMediaHelpers.cpp */; };
 		A9C6E4E40D745E05006442E9 /* DOMMimeType.h in Headers */ = {isa = PBXBuildFile; fileRef = A9C6E4E20D745E05006442E9 /* DOMMimeType.h */; };
 		A9C6E4E80D745E18006442E9 /* DOMMimeTypeArray.h in Headers */ = {isa = PBXBuildFile; fileRef = A9C6E4E60D745E18006442E9 /* DOMMimeTypeArray.h */; };
 		A9C6E4EC0D745E2B006442E9 /* DOMPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = A9C6E4EA0D745E2B006442E9 /* DOMPlugin.h */; };
@@ -10123,6 +10124,7 @@
 		3A25C5122CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileSystemWritableFileStreamSink.h; sourceTree = "<group>"; };
 		3A25C5132CF7E26E00DB9C39 /* FileSystemWritableFileStreamSink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FileSystemWritableFileStreamSink.cpp; sourceTree = "<group>"; };
 		3A25C5192CF99B4700DB9C39 /* FileSystemWriteCommandType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileSystemWriteCommandType.h; sourceTree = "<group>"; };
+		3A2A9AB32E4BAF48009E5497 /* ParentalControlsURLFilterParameters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParentalControlsURLFilterParameters.h; sourceTree = "<group>"; };
 		3A2FE8CE2978CC7800BA1D92 /* GCGLSpan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCGLSpan.h; sourceTree = "<group>"; };
 		3A3A057F2B04971B00017309 /* PlatformXRPose.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlatformXRPose.cpp; sourceTree = "<group>"; };
 		3A3A05802B04971B00017309 /* PlatformXRPose.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformXRPose.h; sourceTree = "<group>"; };
@@ -17171,8 +17173,8 @@
 		A91C9FBD1B6586DE00AFFD54 /* AccessibilityTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityTree.h; sourceTree = "<group>"; };
 		A91C9FC01B659A6700AFFD54 /* AccessibilityTreeItem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityTreeItem.cpp; sourceTree = "<group>"; };
 		A91C9FC11B659A6700AFFD54 /* AccessibilityTreeItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityTreeItem.h; sourceTree = "<group>"; };
-		A9787CB21F5F599200C551C6 /* AccessibilityMediaObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AccessibilityMediaObject.h; sourceTree = "<group>"; };
-		A9787CB31F5F5C6500C551C6 /* AccessibilityMediaObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityMediaObject.cpp; sourceTree = "<group>"; };
+		A9787CB21F5F599200C551C6 /* AccessibilityMediaHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AccessibilityMediaHelpers.h; sourceTree = "<group>"; };
+		A9787CB31F5F5C6500C551C6 /* AccessibilityMediaHelpers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityMediaHelpers.cpp; sourceTree = "<group>"; };
 		A9C6E4E10D745E05006442E9 /* DOMMimeType.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = DOMMimeType.cpp; sourceTree = "<group>"; };
 		A9C6E4E20D745E05006442E9 /* DOMMimeType.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DOMMimeType.h; sourceTree = "<group>"; };
 		A9C6E4E50D745E18006442E9 /* DOMMimeTypeArray.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = DOMMimeTypeArray.cpp; sourceTree = "<group>"; };
@@ -20148,6 +20150,8 @@
 		DD5ACFD62B14DAD600B36C57 /* LayoutIntegrationBoxGeometryUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationBoxGeometryUpdater.cpp; sourceTree = "<group>"; };
 		DD5ACFD72B14DADE00B36C57 /* LayoutIntegrationBoxGeometryUpdater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationBoxGeometryUpdater.h; sourceTree = "<group>"; };
 		DD6FCF222D77694F00505083 /* PositionedLayoutConstraints.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PositionedLayoutConstraints.h; sourceTree = "<group>"; };
+		DD71811E2E21AE6C00A096B7 /* AllowedSPI.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = AllowedSPI.toml; sourceTree = "<group>"; };
+		DD71811F2E21AE6C00A096B7 /* AllowedSPI-legacy.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AllowedSPI-legacy.toml"; sourceTree = "<group>"; };
 		DD763BB10992C2C900740B8E /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
 		DD76D1502C7B63B600DFDD70 /* LayoutIntegrationUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationUtils.cpp; sourceTree = "<group>"; };
 		DD76D1512C7B63BE00DFDD70 /* LayoutIntegrationUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationUtils.h; sourceTree = "<group>"; };
@@ -24534,6 +24538,8 @@
 		1CDD44660BA9C80000F90147 /* Configurations */ = {
 			isa = PBXGroup;
 			children = (
+				DD71811F2E21AE6C00A096B7 /* AllowedSPI-legacy.toml */,
+				DD71811E2E21AE6C00A096B7 /* AllowedSPI.toml */,
 				1CDD45E60BA9C84600F90147 /* Base.xcconfig */,
 				1CDD45E40BA9C84600F90147 /* DebugRelease.xcconfig */,
 				449098B10F8F82520076A327 /* FeatureDefines.xcconfig */,
@@ -24937,8 +24943,8 @@
 				29A812240FBB9C1D00510293 /* AccessibilityListBoxOption.h */,
 				2981ABC4131822EC00D12F2A /* AccessibilityMathMLElement.cpp */,
 				07B0ABCE1032242200FBDC33 /* AccessibilityMathMLElement.h */,
-				A9787CB31F5F5C6500C551C6 /* AccessibilityMediaObject.cpp */,
-				A9787CB21F5F599200C551C6 /* AccessibilityMediaObject.h */,
+				A9787CB31F5F5C6500C551C6 /* AccessibilityMediaHelpers.cpp */,
+				A9787CB21F5F599200C551C6 /* AccessibilityMediaHelpers.h */,
 				76CDD2EC1103DA6600680521 /* AccessibilityMenuList.cpp */,
 				76CDD2ED1103DA6600680521 /* AccessibilityMenuList.h */,
 				76CDD2F01103DA6600680521 /* AccessibilityMenuListOption.cpp */,
@@ -32474,6 +32480,7 @@
 				A18890AC1AA13F250026C301 /* ParentalControlsContentFilter.mm */,
 				3ACF57B12D8892CD0067DE45 /* ParentalControlsURLFilter.h */,
 				3ACF57B22D8892CD0067DE45 /* ParentalControlsURLFilter.mm */,
+				3A2A9AB32E4BAF48009E5497 /* ParentalControlsURLFilterParameters.h */,
 				9BED2CAF1F7CC06200666018 /* PasteboardCocoa.mm */,
 				F4FB35002350C96200F0094A /* PasteboardCustomDataCocoa.mm */,
 				B974ED7A2C584D5500F3CCEB /* PhotosFormatSoftLink.h */,
@@ -44468,6 +44475,7 @@
 				83040282249A7A5F00A90D8D /* PanningModelType.h in Headers */,
 				A18890AF1AA13F250026C301 /* ParentalControlsContentFilter.h in Headers */,
 				3ACF57B32D8892CD0067DE45 /* ParentalControlsURLFilter.h in Headers */,
+				3A2A9AB42E4BAF48009E5497 /* ParentalControlsURLFilterParameters.h in Headers */,
 				CDCD41E81C3DDB0A00965D99 /* ParsedContentRange.h in Headers */,
 				447958041643B49A001E0A7F /* ParsedContentType.h in Headers */,
 				5C4A0FDA25C3449A00D9EE97 /* ParsedRequestRange.h in Headers */,
@@ -47205,7 +47213,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ -f \"${SCRIPT_INPUT_FILE_0}\" ]\nthen \"${SCRIPT_INPUT_FILE_0}\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -framework JavaScriptCore -framework WebGPU -lwebrtc -lANGLE-shared --allowlist \"${SRCROOT}/Configurations/AllowedSPI-legacy.toml\" \"${SRCROOT}/Configurations/AllowedSPI.toml\"\nfi && touch \"${DERIVED_FILES_DIR}/audit-spi.d\"\n";
+			shellScript = "if [ -f \"${SCRIPT_INPUT_FILE_0}\" ]\nthen \"${SCRIPT_INPUT_FILE_0}\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -framework JavaScriptCore -framework WebGPU -lwebrtc -lANGLE-shared\nfi && touch \"${DERIVED_FILES_DIR}/audit-spi.d\"\n";
 		};
 		F4CDF3CA27E9187200191928 /* Copy Profiling Data */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -47299,7 +47307,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				71BF4C3229B098A8008344FC /* AcceleratedEffectStack.mm in Sources */,
-				A9787CB41F5F5C6600C551C6 /* AccessibilityMediaObject.cpp in Sources */,
+				A9787CB41F5F5C6600C551C6 /* AccessibilityMediaHelpers.cpp in Sources */,
 				7BE37F7D27BB86CD007A6CD3 /* ANGLEUtilities.cpp in Sources */,
 				7BE37F7C27BB86B8007A6CD3 /* ANGLEUtilitiesCocoa.mm in Sources */,
 				CD0EEE0E14743F39003EAFA2 /* AudioOutputUnitAdaptorIOS.cpp in Sources */,

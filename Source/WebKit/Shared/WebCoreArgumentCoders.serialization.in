@@ -5498,7 +5498,7 @@ enum class WebCore::ThirdPartyCookieBlockingMode : uint8_t {
     All,
     AllExceptBetweenAppBoundDomains,
     AllExceptManagedDomains,
-#if HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
+#if ENABLE(OPT_IN_PARTITIONED_COOKIES)
     AllExceptPartitioned,
 #endif
     AllOnSitesWithoutUserInteraction,
@@ -8656,7 +8656,7 @@ header: <WebCore/ShareableBitmap.h>
     [Validator='*bytesPerPixel >= 1 && *bytesPerPixel <= 8'] unsigned bytesPerPixel();
     [Validator='*bytesPerRow >= m_size->width() * *bytesPerPixel'] unsigned bytesPerRow();
 #if USE(CG)
-    [Validator='!(*m_bitmapInfo & ~(kCGBitmapAlphaInfoMask | static_cast<CGBitmapInfo>(kCGImageByteOrderMask) | kCGBitmapFloatComponents))'] CGBitmapInfo m_bitmapInfo;
+    CGBitmapInfo m_bitmapInfo;
 #endif
 }
 
@@ -9309,3 +9309,12 @@ header: <WebCore/ScriptTrackingPrivacyCategory.h>
     Speech,
     FormControls,
 };
+
+#if HAVE(WEBCONTENTRESTRICTIONS)
+struct WebCore::ParentalControlsURLFilterParameters {
+    URL urlToAllow;
+#if HAVE(WEBCONTENTRESTRICTIONS_PATH_SPI)
+    String configurationPath;
+#endif
+};
+#endif

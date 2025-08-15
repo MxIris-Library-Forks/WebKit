@@ -222,17 +222,6 @@ AllowContentSecurityPolicySourceStarToMatchAnyProtocol:
     WebCore:
       default: false
 
-AllowDisplayOfInsecureContent:
-  type: bool
-  status: embedder
-  defaultValue:
-    WebKitLegacy:
-      default: WebKit::defaultAllowDisplayOfInsecureContent()
-    WebKit:
-      default: false
-    WebCore:
-      default: false
-
 AllowFileAccessFromFileURLs:
   type: bool
   status: embedder
@@ -283,17 +272,6 @@ AllowPrivacySensitiveOperationsInNonPersistentDataStores:
     WebCore:
       default: false
   sharedPreferenceForWebProcess: true
-
-AllowRunningOfInsecureContent:
-  type: bool
-  status: embedder
-  defaultValue:
-    WebKitLegacy:
-      default: WebKit::defaultAllowRunningOfInsecureContent()
-    WebKit:
-      default: false
-    WebCore:
-      default: false
 
 AllowTestOnlyIPC:
   type: bool
@@ -5528,7 +5506,7 @@ OptInPartitionedCookiesEnabled:
   category: dom
   humanReadableName: "Opt-in partitioned cookies (CHIPS)"
   humanReadableDescription: "Enable opt-in partitioned cookies"
-  condition: HAVE(ALLOW_ONLY_PARTITIONED_COOKIES) && 0
+  condition: ENABLE(OPT_IN_PARTITIONED_COOKIES)
   defaultValue:
     WebKitLegacy:
       default: false
@@ -6633,7 +6611,7 @@ ScrollToTextFragmentMarkingEnabled:
       
 ScrollendEventEnabled:
   type: bool
-  status: testable
+  status: preview
   category: dom
   humanReadableName: "scrollend event"
   humanReadableDescription: "Enable scrollend event"
@@ -7945,20 +7923,6 @@ UpgradeKnownHostsToHTTPSEnabled:
     WebKit:
       default: true
 
-UpgradeMixedContentEnabled:
-  type: bool
-  status: stable
-  category: networking
-  humanReadableName: "Upgrade upgradable mixed content"
-  humanReadableDescription: "Upgrade upgradable mixed content"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 UseARKitForModel:
   type: bool
   status: internal
@@ -8276,14 +8240,11 @@ UsesWebContentRestrictionsForFilter:
   webcoreBinding: DeprecatedGlobalSettings
   defaultValue:
     WebKitLegacy:
-      "PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)": true
-      default: false
+      default: true
     WebKit:
-      "PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)": true
-      default: false
+      default: true
     WebCore:
-      "PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)": true
-      default: false
+      default: true
   sharedPreferenceForWebProcess: true
 
 VP9DecoderEnabled:

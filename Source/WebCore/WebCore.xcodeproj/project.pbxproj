@@ -924,7 +924,7 @@
 		27E7CA972D75735A00554A77 /* RangeBoundaryPointInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 27E7CA962D75735A00554A77 /* RangeBoundaryPointInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		27E7CA9C2D75780500554A77 /* EditingInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 27E7CA9B2D75780500554A77 /* EditingInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		27E818132BFB2A2400B872DA /* FragmentDirective.h in Headers */ = {isa = PBXBuildFile; fileRef = 27E818062BF5C67400B872DA /* FragmentDirective.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		2914E3081CAB5A440049966F /* AccessibilityAttachment.h in Headers */ = {isa = PBXBuildFile; fileRef = 2914E3061CAB5A440049966F /* AccessibilityAttachment.h */; };
+		2914E3081CAB5A440049966F /* AXAttachmentHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 2914E3061CAB5A440049966F /* AXAttachmentHelpers.h */; };
 		2936BF5C21D69E4B004A8FC9 /* AXCoreObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 2936BF5A21D6999E004A8FC9 /* AXCoreObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		29489FC712C00F0300D83F0F /* AccessibilityScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = 29489FC512C00F0300D83F0F /* AccessibilityScrollView.h */; };
 		297BE3D516C03C08003316BD /* PlatformSpeechSynthesisUtterance.h in Headers */ = {isa = PBXBuildFile; fileRef = 2527CC9116BF8BA1009DDAC0 /* PlatformSpeechSynthesisUtterance.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9428,8 +9428,8 @@
 		28DB9BC52020EA0400E54A07 /* PerformanceServerTiming.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerformanceServerTiming.cpp; sourceTree = "<group>"; };
 		28DB9BC62020EA0400E54A07 /* PerformanceServerTiming.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerformanceServerTiming.h; sourceTree = "<group>"; };
 		28DB9BC72020EA0400E54A07 /* PerformanceServerTiming.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PerformanceServerTiming.idl; sourceTree = "<group>"; };
-		2914E3051CAB5A440049966F /* AccessibilityAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityAttachment.cpp; sourceTree = "<group>"; };
-		2914E3061CAB5A440049966F /* AccessibilityAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityAttachment.h; sourceTree = "<group>"; };
+		2914E3051CAB5A440049966F /* AXAttachmentHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AXAttachmentHelpers.cpp; sourceTree = "<group>"; };
+		2914E3061CAB5A440049966F /* AXAttachmentHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AXAttachmentHelpers.h; sourceTree = "<group>"; };
 		2936BF5A21D6999E004A8FC9 /* AXCoreObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXCoreObject.h; sourceTree = "<group>"; };
 		29489FC512C00F0300D83F0F /* AccessibilityScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityScrollView.h; sourceTree = "<group>"; };
 		29498681195341940072D2BD /* TextUndoInsertionMarkupMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TextUndoInsertionMarkupMac.mm; sourceTree = "<group>"; };
@@ -14535,6 +14535,9 @@
 		80A24B482E49127D006FF9DB /* AXTreeStoreInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXTreeStoreInlines.h; sourceTree = "<group>"; };
 		80E3FD042E4B095200742026 /* AXRemoteTokenIOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXRemoteTokenIOS.h; sourceTree = "<group>"; };
 		80E3FD052E4B095C00742026 /* AXRemoteTokenIOS.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AXRemoteTokenIOS.mm; sourceTree = "<group>"; };
+		80E3FD5E2E4F812300742026 /* AXComputedObjectAttributeCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXComputedObjectAttributeCache.h; sourceTree = "<group>"; };
+		80E3FD5F2E4F812300742026 /* AXComputedObjectAttributeCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXComputedObjectAttributeCache.cpp; sourceTree = "<group>"; };
+		80E3FD602E4F835100742026 /* AXNotifications.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXNotifications.h; sourceTree = "<group>"; };
 		8102C5871325BB1100DDE67A /* StringCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StringCallback.cpp; sourceTree = "<group>"; };
 		81AC5997131636E60009A7E0 /* DataTransferItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataTransferItem.h; sourceTree = "<group>"; };
 		81AC5998131636E60009A7E0 /* DataTransferItemList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataTransferItemList.h; sourceTree = "<group>"; };
@@ -17737,7 +17740,7 @@
 		B2C3DA040D006C1D00EF6F26 /* TextBoundaries.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TextBoundaries.h; sourceTree = "<group>"; };
 		B2C3DA150D006C1D00EF6F26 /* TextFlags.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TextFlags.h; sourceTree = "<group>"; };
 		B2C3DA4F0D006CD600EF6F26 /* FontCascade.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = FontCascade.cpp; sourceTree = "<group>"; };
-		B2C3DA500D006CD600EF6F26 /* FontCascade.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FontCascade.h; sourceTree = "<group>"; };
+		B2C3DA500D006CD600EF6F26 /* FontCascade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontCascade.h; sourceTree = "<group>"; };
 		B2C3DA510D006CD600EF6F26 /* FontCache.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = FontCache.cpp; sourceTree = "<group>"; };
 		B2C3DA520D006CD600EF6F26 /* FontCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FontCache.h; sourceTree = "<group>"; };
 		B2C3DA530D006CD600EF6F26 /* Font.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Font.cpp; sourceTree = "<group>"; };
@@ -19151,7 +19154,7 @@
 		BCEA4839097D93020094C9E4 /* RenderInline.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderInline.h; sourceTree = "<group>"; };
 		BCEA483A097D93020094C9E4 /* RenderLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLayer.cpp; sourceTree = "<group>"; };
 		BCEA483B097D93020094C9E4 /* RenderLayer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderLayer.h; sourceTree = "<group>"; };
-		BCEA4840097D93020094C9E4 /* RenderObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderObject.cpp; sourceTree = "<group>"; };
+		BCEA4840097D93020094C9E4 /* RenderObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderObject.cpp; sourceTree = "<group>"; };
 		BCEA4841097D93020094C9E4 /* RenderObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderObject.h; sourceTree = "<group>"; };
 		BCEA4848097D93020094C9E4 /* RenderThemeMac.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderThemeMac.h; sourceTree = "<group>"; };
 		BCEA4849097D93020094C9E4 /* RenderThemeMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = RenderThemeMac.mm; sourceTree = "<group>"; };
@@ -24929,8 +24932,6 @@
 				AAA728EF16D1D8BC00D3BBC6 /* ios */,
 				29AE212921AB9ECB00869283 /* isolatedtree */,
 				29A812050FBB9B5200510293 /* mac */,
-				2914E3051CAB5A440049966F /* AccessibilityAttachment.cpp */,
-				2914E3061CAB5A440049966F /* AccessibilityAttachment.h */,
 				2981CAA0131822EC00D12F2A /* AccessibilityImageMapLink.cpp */,
 				29A8121D0FBB9C1D00510293 /* AccessibilityImageMapLink.h */,
 				F52A8FD51D0A88010073CF42 /* AccessibilityLabel.cpp */,
@@ -24989,8 +24990,12 @@
 				A91C9FC01B659A6700AFFD54 /* AccessibilityTreeItem.cpp */,
 				A91C9FC11B659A6700AFFD54 /* AccessibilityTreeItem.h */,
 				A9EE448C210FC9AD00B6EAE6 /* AriaAttributes.idl */,
+				2914E3051CAB5A440049966F /* AXAttachmentHelpers.cpp */,
+				2914E3061CAB5A440049966F /* AXAttachmentHelpers.h */,
 				80A24B3F2E486158006FF9DB /* AXAttributeCacheScope.cpp */,
 				80A24B3E2E486143006FF9DB /* AXAttributeCacheScope.h */,
+				80E3FD5F2E4F812300742026 /* AXComputedObjectAttributeCache.cpp */,
+				80E3FD5E2E4F812300742026 /* AXComputedObjectAttributeCache.h */,
 				C05F94852AB8E1A70028AA39 /* AXCoreObject.cpp */,
 				2936BF5A21D6999E004A8FC9 /* AXCoreObject.h */,
 				486B8DC82A04500F00E00E73 /* AXGeometryManager.cpp */,
@@ -24999,6 +25004,7 @@
 				C0493EB7244699E4009AAC80 /* AXLogger.h */,
 				80A24AF62E41AAEA006FF9DB /* AXLoggerBase.cpp */,
 				80A24AD42E3C8966006FF9DB /* AXLoggerBase.h */,
+				80E3FD602E4F835100742026 /* AXNotifications.h */,
 				2981CAAF131822EC00D12F2A /* AXObjectCache.cpp */,
 				29A8121A0FBB9C1D00510293 /* AXObjectCache.h */,
 				80A24B3D2E48605D006FF9DB /* AXObjectCacheInlines.h */,
@@ -40883,7 +40889,6 @@
 				71BF4C3529B098A8008344FC /* AcceleratedEffectStack.h in Headers */,
 				715FCD1729B09B0E002CE6A7 /* AcceleratedEffectStackUpdater.h in Headers */,
 				7164D2CF29AFA0F6000AC8DA /* AcceleratedEffectValues.h in Headers */,
-				2914E3081CAB5A440049966F /* AccessibilityAttachment.h in Headers */,
 				29A8123B0FBB9C1D00510293 /* AccessibilityImageMapLink.h in Headers */,
 				29A8122C0FBB9C1D00510293 /* AccessibilityList.h in Headers */,
 				29A812430FBB9C1D00510293 /* AccessibilityListBox.h in Headers */,
@@ -41167,6 +41172,7 @@
 				41F898F628ED702A0070549C /* AvcEncoderConfig.h in Headers */,
 				CD336F6217F9F64700DDDCD0 /* AVTrackPrivateAVFObjCImpl.h in Headers */,
 				41C7678C2D004D030014EB38 /* AVVideoCaptureSource.h in Headers */,
+				2914E3081CAB5A440049966F /* AXAttachmentHelpers.h in Headers */,
 				2936BF5C21D69E4B004A8FC9 /* AXCoreObject.h in Headers */,
 				486B8DC72A043C0600E00E73 /* AXGeometryManager.h in Headers */,
 				29AE213521ABA48A00869283 /* AXIsolatedObject.h in Headers */,

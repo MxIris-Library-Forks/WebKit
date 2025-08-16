@@ -345,13 +345,26 @@ void UIScriptControllerCocoa::requestTextExtraction(JSValueRef callback, TextExt
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
     RetainPtr configuration = adoptNS([_WKTextExtractionConfiguration new]);
     [configuration setTargetRect:extractionRect];
-    [configuration setMergeParagraphs:YES];
-    [configuration setIgnoreTransparency:YES];
+    [configuration setMergeParagraphs:options && options->mergeParagraphs];
+    [configuration setSkipNearlyTransparentContent:options && options->skipNearlyTransparentContent];
     [webView() _requestTextExtraction:configuration.get() completionHandler:^(WKTextExtractionResult *result) {
         if (!m_context)
             return;
 
         auto description = adopt(JSStringCreateWithCFString((__bridge CFStringRef)recursiveDescription([result rootItem], includeRects)));
+        m_context->asyncTaskComplete(callbackID, { JSValueMakeString(m_context->jsContext(), description.get()) });
+    }];
+}
+
+void UIScriptControllerCocoa::requestDebugText(JSValueRef callback)
+{
+    unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
+    RetainPtr configuration = adoptNS([_WKTextExtractionConfiguration new]);
+    [webView() _debugTextWithConfiguration:configuration.get() completionHandler:^(NSString *text) {
+        if (!m_context)
+            return;
+
+        auto description = adopt(JSStringCreateWithCFString((__bridge CFStringRef)text));
         m_context->asyncTaskComplete(callbackID, { JSValueMakeString(m_context->jsContext(), description.get()) });
     }];
 }

@@ -45,6 +45,8 @@ dictionary ScrollToOptions {
 dictionary TextExtractionOptions {
     boolean clipToBounds = false;
     boolean includeRects = false;
+    boolean mergeParagraphs = false;
+    boolean skipNearlyTransparentContent = false;
 };
 
 interface UIScriptController {
@@ -428,6 +430,7 @@ interface UIScriptController {
     undefined acceptInlinePrediction();
 
     undefined requestTextExtraction(object callback, TextExtractionOptions options);
+    undefined requestDebugText(object callback);
 
     undefined requestRenderedTextForFrontmostTarget(long x, long y, object callback);
     undefined adjustVisibilityForFrontmostTarget(long x, long y, object callback);

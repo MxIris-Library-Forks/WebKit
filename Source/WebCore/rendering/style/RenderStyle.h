@@ -26,10 +26,10 @@
 
 #pragma once
 
-#include "BoxExtents.h"
-#include "PseudoElementIdentifier.h"
-#include "StylePrimitiveNumeric+Forward.h"
-#include "WritingMode.h"
+#include <WebCore/BoxExtents.h>
+#include <WebCore/PseudoElementIdentifier.h>
+#include <WebCore/StylePrimitiveNumeric+Forward.h>
+#include <WebCore/WritingMode.h>
 #include <unicode/utypes.h>
 #include <wtf/CheckedRef.h>
 #include <wtf/DataRef.h>
@@ -1225,7 +1225,7 @@ public:
     inline void setBlendMode(BlendMode);
     inline bool isInSubtreeWithBlendMode() const;
 
-    inline void setIsForceHidden();
+    inline void setIsForceHidden(bool = true);
     inline bool isForceHidden() const;
 
     inline void setIsolation(Isolation);

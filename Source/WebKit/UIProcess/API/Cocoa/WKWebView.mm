@@ -6343,6 +6343,13 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 }
 #endif // PLATFORM(MAC)
 
+- (void)_debugTextWithConfiguration:(_WKTextExtractionConfiguration *)configuration completionHandler:(void(^)(NSString *))completionHandler
+{
+    [self _requestTextExtraction:configuration completionHandler:makeBlockPtr([completionHandler = makeBlockPtr(completionHandler)](WKTextExtractionResult *result) {
+        completionHandler(result.textRepresentation);
+    }).get()];
+}
+
 @end
 
 @implementation WKWebView (WKDeprecated)
@@ -6377,6 +6384,9 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
         return completionHandler(nil);
 
     auto rectInWebView = configuration.targetRect;
+    bool mergeParagraphs = configuration.mergeParagraphs;
+    bool canIncludeIdentifiers = configuration.canIncludeIdentifiers;
+    bool skipNearlyTransparentContent = configuration.skipNearlyTransparentContent;
     auto rectInRootView = [&]() -> std::optional<WebCore::FloatRect> {
         if (CGRectIsNull(rectInWebView))
             return std::nullopt;
@@ -6388,8 +6398,18 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 #endif
     }();
 
-    _page->requestTextExtraction(WTFMove(rectInRootView), [completionHandler = makeBlockPtr(completionHandler), weakSelf = WeakObjCPtr<WKWebView>(self)](auto&& item) {
-        RetainPtr rootItem = WebKit::createItem(item, [strongSelf = weakSelf.get()](auto& rectInRootView) -> WebCore::FloatRect {
+    WebCore::TextExtraction::Request request {
+        .collectionRectInRootView = WTFMove(rectInRootView),
+        .mergeParagraphs = mergeParagraphs,
+        .skipNearlyTransparentContent = skipNearlyTransparentContent,
+        .canIncludeIdentifiers = canIncludeIdentifiers,
+    };
+    _page->requestTextExtraction(WTFMove(request), [completionHandler = makeBlockPtr(completionHandler), weakSelf = WeakObjCPtr<WKWebView>(self)](auto&& item) {
+        RetainPtr strongSelf = weakSelf.get();
+        if (!strongSelf)
+            return completionHandler(nil);
+
+        RetainPtr rootItem = WebKit::createItem(std::forward<decltype(item)>(item), [strongSelf](auto& rectInRootView) -> WebCore::FloatRect {
 #if PLATFORM(IOS_FAMILY)
             if (RetainPtr contentView = strongSelf ? strongSelf->_contentView : nil)
                 return { [strongSelf convertRect:rectInRootView fromView:contentView.get()] };

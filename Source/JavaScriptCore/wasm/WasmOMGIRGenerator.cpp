@@ -1468,10 +1468,11 @@ auto OMGIRGenerator::addInlinedArguments(const TypeDefinition& signature) -> Par
 
 auto OMGIRGenerator::addArguments(const TypeDefinition& signature) -> PartialResult
 {
+    SUPPRESS_UNCOUNTED_LOCAL auto functionSignature = signature.as<FunctionSignature>();
     ASSERT(!m_locals.size());
-    WASM_COMPILE_FAIL_IF(!m_locals.tryReserveCapacity(signature.as<FunctionSignature>()->argumentCount()), "can't allocate memory for "_s, signature.as<FunctionSignature>()->argumentCount(), " arguments"_s);
+    WASM_COMPILE_FAIL_IF(!m_locals.tryReserveCapacity(functionSignature->argumentCount()), "can't allocate memory for "_s, functionSignature->argumentCount(), " arguments"_s);
 
-    m_locals.grow(signature.as<FunctionSignature>()->argumentCount());
+    m_locals.grow(functionSignature->argumentCount());
 
     if (m_inlineParent)
         return addInlinedArguments(signature);
@@ -1486,14 +1487,14 @@ auto OMGIRGenerator::addArguments(const TypeDefinition& signature) -> PartialRes
         patch->effects.reads = HeapRange::top();
         patch->effects.writes = HeapRange::top();
         m_currentBlock->append(patch);
-        patch->setGenerator([functionIndex = m_functionIndex, signature = signature.as<FunctionSignature>(), wasmCallInfo] (CCallHelpers& jit, const B3::StackmapGenerationParams&) {
-            jit.probeDebugSIMD([functionIndex, signature, wasmCallInfo] (Probe::Context& context) {
+        SUPPRESS_UNCOUNTED_LAMBDA_CAPTURE patch->setGenerator([functionIndex = m_functionIndex, functionSignature, wasmCallInfo](CCallHelpers& jit, const B3::StackmapGenerationParams&) {
+            SUPPRESS_UNCOUNTED_LAMBDA_CAPTURE jit.probeDebugSIMD([functionIndex, functionSignature, wasmCallInfo](Probe::Context& context) {
                 dataLogLn(" General Add arguments, fucntion ", functionIndex, " FP: ", RawHex(context.gpr<uint64_t>(GPRInfo::callFrameRegister)), " SP: ", RawHex(context.gpr<uint64_t>(MacroAssembler::stackPointerRegister)));
 
                 auto fpl = context.gpr<uint64_t*>(GPRInfo::callFrameRegister);
                 auto fpi = context.gpr<uint32_t*>(GPRInfo::callFrameRegister);
 
-                for (size_t i = 0; i < signature->argumentCount(); ++i) {
+                for (size_t i = 0; i < functionSignature->argumentCount(); ++i) {
                     auto rep = wasmCallInfo.params[i];
                     auto src = rep.location;
                     auto width = rep.width;
@@ -1513,8 +1514,8 @@ auto OMGIRGenerator::addArguments(const TypeDefinition& signature) -> PartialRes
         });
     }
 
-    for (size_t i = 0; i < signature.as<FunctionSignature>()->argumentCount(); ++i) {
-        B3::Type type = toB3Type(signature.as<FunctionSignature>()->argumentType(i));
+    for (size_t i = 0; i < functionSignature->argumentCount(); ++i) {
+        B3::Type type = toB3Type(functionSignature->argumentType(i));
         B3::Value* argument;
         auto rep = wasmCallInfo.params[i];
         if (rep.location.isGPR()) {
@@ -3730,21 +3731,23 @@ void OMGIRGenerator::emitRefTestOrCast(CastKind castKind, ExpressionType referen
             emitCheckOrBranchForCast(castKind, emitNotRTTKind(rtt, signature.expand().is<Wasm::ArrayType>() ? RTTKind::Array : RTTKind::Struct), castFailure, falseBlock);
         }
 
-        Value* targetRTT = m_currentBlock->appendNew<ConstPtrValue>(m_proc, origin(), m_info.rtts[toHeapType].get());
-        Value* rttsAreEqual = m_currentBlock->appendNew<Value>(m_proc, Equal, origin(), rtt, targetRTT);
+        Ref targetRTT = m_info.rtts[toHeapType];
+        auto* targetRTTPointer = constant(pointerType(), std::bit_cast<uintptr_t>(targetRTT.ptr()));
+        Value* rttsAreEqual = m_currentBlock->appendNew<Value>(m_proc, Equal, origin(), rtt, targetRTTPointer);
         BasicBlock* equalBlock;
         if (castKind == CastKind::Cast)
             equalBlock = continuation;
         else
             equalBlock = trueBlock;
-        m_currentBlock->appendNewControlValue(m_proc, B3::Branch, origin(), rttsAreEqual,
-            FrequentedBlock(equalBlock), FrequentedBlock(slowPath));
+        m_currentBlock->appendNewControlValue(m_proc, B3::Branch, origin(), rttsAreEqual, FrequentedBlock(equalBlock), FrequentedBlock(slowPath));
         equalBlock->addPredecessor(m_currentBlock);
         slowPath->addPredecessor(m_currentBlock);
 
         m_currentBlock = slowPath;
-        Value* isSubRTT = callWasmOperation(m_currentBlock, B3::Int32, operationWasmIsStrictSubRTT, rtt, targetRTT);
-        emitCheckOrBranchForCast(castKind, m_currentBlock->appendNew<Value>(m_proc, Equal, origin(), isSubRTT, constant(Int32, 0)), castFailure, falseBlock);
+        auto* displaySizeExcludingThis = m_currentBlock->appendNew<MemoryValue>(m_proc, B3::Load, Int32, origin(), rtt, safeCast<int32_t>(RTT::offsetOfDisplaySizeExcludingThis()));
+        emitCheckOrBranchForCast(castKind, m_currentBlock->appendNew<Value>(m_proc, BelowEqual, origin(), displaySizeExcludingThis, constant(Int32, targetRTT->displaySizeExcludingThis())), castFailure, falseBlock);
+        auto* pointer = m_currentBlock->appendNew<MemoryValue>(m_proc, B3::Load, pointerType(), origin(), rtt, safeCast<uint32_t>(RTT::offsetOfData() + targetRTT->displaySizeExcludingThis() * sizeof(const RTT*)));
+        emitCheckOrBranchForCast(castKind, m_currentBlock->appendNew<Value>(m_proc, NotEqual, origin(), pointer, targetRTTPointer), castFailure, falseBlock);
     }
 
     if (castKind == CastKind::Cast) {
@@ -5902,26 +5905,21 @@ auto OMGIRGenerator::addCallIndirect(unsigned tableIndex, const TypeDefinition& 
     // The subtype check can be omitted as an optimization for final types, but is needed otherwise if GC is on.
     if (!originalSignature.isFinalType()) {
         // We don't need to check the RTT kind because by validation both RTTs must be for functions.
-        Value* rttSize = m_currentBlock->appendNew<MemoryValue>(m_proc, Load, Int32, origin(), calleeRTT, safeCast<uint32_t>(RTT::offsetOfDisplaySize()));
-        Value* rttSizeAsPointerType = m_currentBlock->appendNew<Value>(m_proc, ZExt32, origin(), rttSize);
-        Value* rttPayloadPointer = m_currentBlock->appendNew<Value>(m_proc, Add, pointerType(), origin(), calleeRTT, constant(pointerType(), RTT::offsetOfPayload()));
+        Value* rttSize = m_currentBlock->appendNew<MemoryValue>(m_proc, Load, Int32, origin(), calleeRTT, safeCast<uint32_t>(RTT::offsetOfDisplaySizeExcludingThis()));
         auto signatureRTT = TypeInformation::getCanonicalRTT(originalSignature.index());
 
         // Emit RTT:isStrictSubRTT code
         BasicBlock* checkIfSupertypeIsInDisplay = m_proc.addBlock();
         // If the RTT display is not larger than the signature display, throw.
         m_currentBlock->appendNewControlValue(m_proc, B3::Branch, origin(),
-            m_currentBlock->appendNew<Value>(m_proc, Above, origin(), rttSize, constant(Int32, signatureRTT->displaySize())),
+            m_currentBlock->appendNew<Value>(m_proc, Above, origin(), rttSize, constant(Int32, signatureRTT->displaySizeExcludingThis())),
             FrequentedBlock(checkIfSupertypeIsInDisplay), FrequentedBlock(throwBlock, FrequencyClass::Rare));
 
         // Check if the display contains the supertype signature.
         m_currentBlock = checkIfSupertypeIsInDisplay;
-        Value* payloadIndexed = m_currentBlock->appendNew<Value>(m_proc, Add, pointerType(), origin(), rttPayloadPointer,
-            m_currentBlock->appendNew<Value>(m_proc, Mul, pointerType(), origin(), constant(pointerType(), sizeof(uintptr_t)),
-                m_currentBlock->appendNew<Value>(m_proc, Sub, pointerType(), origin(), rttSizeAsPointerType, constant(pointerType(), 1 + signatureRTT->displaySize()))));
-        Value* displayEntry = m_currentBlock->appendNew<MemoryValue>(m_proc, Load, pointerType(), origin(), payloadIndexed);
+        Value* displayEntry = m_currentBlock->appendNew<MemoryValue>(m_proc, Load, pointerType(), origin(), calleeRTT, safeCast<uint32_t>(RTT::offsetOfData() + signatureRTT->displaySizeExcludingThis() * sizeof(const RTT*)));
         m_currentBlock->appendNewControlValue(m_proc, B3::Branch, origin(),
-            m_currentBlock->appendNew<Value>(m_proc, Equal, origin(), displayEntry, constant(pointerType(), std::bit_cast<uintptr_t>(signatureRTT.get()))),
+            m_currentBlock->appendNew<Value>(m_proc, Equal, origin(), displayEntry, constant(pointerType(), std::bit_cast<uintptr_t>(signatureRTT.ptr()))),
             FrequentedBlock(continuation), FrequentedBlock(throwBlock, FrequencyClass::Rare));
     } else
         m_currentBlock->appendNewControlValue(m_proc, B3::Jump, origin(), throwBlock);

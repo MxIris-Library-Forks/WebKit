@@ -60,6 +60,9 @@ ScrollToOptions* toScrollToOptions(JSContextRef, JSValueRef);
 struct TextExtractionOptions {
     bool clipToBounds { false };
     bool includeRects { false };
+    bool mergeParagraphs { false };
+    bool skipNearlyTransparentContent { false };
+    bool canIncludeIdentifiers { false };
 };
 
 TextExtractionOptions* toTextExtractionOptions(JSContextRef, JSValueRef);
@@ -433,6 +436,7 @@ public:
 
     // Text Extraction
     virtual void requestTextExtraction(JSValueRef, TextExtractionOptions*) { notImplemented(); }
+    virtual void requestDebugText(JSValueRef) { notImplemented(); }
 
     // Element Targeting
     virtual void requestRenderedTextForFrontmostTarget(int, int, JSValueRef) { notImplemented(); }

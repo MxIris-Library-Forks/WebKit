@@ -30,16 +30,17 @@
 #include "AXObjectCache.h"
 
 #include "AXAttributeCacheScope.h"
+#include "AXComputedObjectAttributeCache.h"
 #include "AXIsolatedObject.h"
 #include "AXIsolatedTree.h"
 #include "AXLogger.h"
 #include "AXLoggerBase.h"
+#include "AXNotifications.h"
 #include "AXObjectCacheInlines.h"
 #include "AXRemoteFrame.h"
 #include "AXTextMarker.h"
 #include "AXTreeStoreInlines.h"
 #include "AXUtilities.h"
-#include "AccessibilityAttachment.h"
 #include "AccessibilityImageMapLink.h"
 #include "AccessibilityLabel.h"
 #include "AccessibilityList.h"
@@ -143,7 +144,6 @@
 
 namespace WebCore {
 
-DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(AXComputedObjectAttributeCache);
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(AXObjectCache);
 WTF_MAKE_TZONE_ALLOCATED_IMPL(AXObjectCache);
 
@@ -177,24 +177,6 @@ static bool nodeRendererIsValid(Node& node)
 static bool nodeAndRendererAreValid(Node* node)
 {
     return node ? nodeRendererIsValid(*node) : false;
-}
-
-AccessibilityObjectInclusion AXComputedObjectAttributeCache::getIgnored(AXID id) const
-{
-    auto it = m_idMapping.find(id);
-    return it != m_idMapping.end() ? it->value.ignored : AccessibilityObjectInclusion::DefaultBehavior;
-}
-
-void AXComputedObjectAttributeCache::setIgnored(AXID id, AccessibilityObjectInclusion inclusion)
-{
-    HashMap<AXID, CachedAXObjectAttributes>::iterator it = m_idMapping.find(id);
-    if (it != m_idMapping.end())
-        it->value.ignored = inclusion;
-    else {
-        CachedAXObjectAttributes attributes;
-        attributes.ignored = inclusion;
-        m_idMapping.set(id, attributes);
-    }
 }
 
 AccessibilityReplacedText::AccessibilityReplacedText(const VisibleSelection& selection)
@@ -718,11 +700,6 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
     if (is<RenderProgress>(renderer) || is<RenderMeter>(renderer)
         || is<HTMLProgressElement>(node) || is<HTMLMeterElement>(node))
         return AccessibilityProgressIndicator::create(AXID::generate(), renderer, *this);
-
-#if ENABLE(ATTACHMENT_ELEMENT)
-    if (auto* renderAttachment = dynamicDowncast<RenderAttachment>(renderer))
-        return AccessibilityAttachment::create(AXID::generate(), *renderAttachment, *this);
-#endif
 
     // input type=range
     if (is<RenderSlider>(renderer))

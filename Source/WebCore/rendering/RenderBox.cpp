@@ -4872,6 +4872,48 @@ void RenderBox::addOverflowWithRendererOffset(const RenderBox& renderer, LayoutS
     childLayoutOverflowRect.move(offsetFromThis);
     addLayoutOverflow(childLayoutOverflowRect, flippedClientRect);
 
+    auto ensurePaddingEndIsIncluded = [&] {
+        if (!hasNonVisibleOverflow())
+            return;
+
+        // As per https://github.com/w3c/csswg-drafts/issues/3653 padding should contribute to the scrollable overflow area.
+        if (!paddingEnd())
+            return;
+
+        // FIXME: Expand it to non-grid/flex cases when applicable.
+        if (!is<RenderGrid>(*this) && !is<RenderFlexibleBox>(*this))
+            return;
+
+        if (renderer.isOutOfFlowPositioned())
+            return;
+
+        // Note that we can't use childLayoutOverflowRect here as it already includes propagated overflow from descendents.
+        auto isMainAxisFlipped = [&] {
+            auto isInlineFlipped = writingMode().isInlineFlipped();
+            if (CheckedPtr flexContainer = dynamicDowncast<RenderFlexibleBox>(*this)) {
+                auto isColumnOrRowReverseSameAsWrapReverse = flexContainer->isColumnOrRowReverse() == flexContainer->isWrapReverse();
+                return isInlineFlipped == isColumnOrRowReverseSameAsWrapReverse;
+            }
+            return isInlineFlipped;
+        }();
+        auto childLogicalRight = [&] {
+            if (!isMainAxisFlipped)
+                return (isHorizontalWritingMode() ? offsetFromThis.width() + renderer.width() : offsetFromThis.height() + renderer.height()) + renderer.marginEnd(writingMode());
+            return (isHorizontalWritingMode() ? offsetFromThis.width() : offsetFromThis.height()) - renderer.marginEnd(writingMode());
+        };
+
+        auto layoutOverflowRect = this->layoutOverflowRect();
+        if (!isMainAxisFlipped) {
+            auto layoutOverflowLogicalRightIncludingPaddingEnd = childLogicalRight() + paddingEnd();
+            isHorizontalWritingMode() ? layoutOverflowRect.shiftMaxXEdgeTo(layoutOverflowLogicalRightIncludingPaddingEnd) : layoutOverflowRect.shiftMaxYEdgeTo(layoutOverflowLogicalRightIncludingPaddingEnd);
+        } else {
+            auto layoutOverflowLogicalRightIncludingPaddingEnd = childLogicalRight() - paddingEnd();
+            isHorizontalWritingMode() ? layoutOverflowRect.shiftXEdgeTo(layoutOverflowLogicalRightIncludingPaddingEnd) : layoutOverflowRect.shiftYEdgeTo(layoutOverflowLogicalRightIncludingPaddingEnd);
+        }
+        addLayoutOverflow(layoutOverflowRect);
+    };
+    ensurePaddingEndIsIncluded();
+
     if (paintContainmentApplies())
         return;
 

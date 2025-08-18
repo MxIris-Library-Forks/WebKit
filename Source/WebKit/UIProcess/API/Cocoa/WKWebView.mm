@@ -188,6 +188,7 @@
 #import <wtf/BlockPtr.h>
 #import <wtf/CallbackAggregator.h>
 #import <wtf/HashMap.h>
+#import <wtf/MainThread.h>
 #import <wtf/MathExtras.h>
 #import <wtf/NeverDestroyed.h>
 #import <wtf/RetainPtr.h>
@@ -1035,6 +1036,9 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
 
 - (WKNavigation *)loadRequest:(NSURLRequest *)request
 {
+    if (!isUIThread())
+        RELEASE_LOG_FAULT(Loading, "WKWebView APIs must be called from the main thread");
+
     THROW_IF_SUSPENDED;
     if (_page->isServiceWorkerPage())
         [NSException raise:NSInternalInconsistencyException format:@"The WKWebView was used to load a service worker"];
@@ -6348,6 +6352,60 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
     [self _requestTextExtraction:configuration completionHandler:makeBlockPtr([completionHandler = makeBlockPtr(completionHandler)](WKTextExtractionResult *result) {
         completionHandler(result.textRepresentation);
     }).get()];
+}
+
+static inline std::optional<WebCore::NodeIdentifier> toNodeIdentifier(const String& nodeIdentifier)
+{
+    auto rawValue = parseInteger<uint64_t>(nodeIdentifier);
+    if (!rawValue || !WebCore::NodeIdentifier::isValidIdentifier(*rawValue))
+        return std::nullopt;
+    return WebCore::NodeIdentifier { *rawValue };
+}
+
+- (void)_performInteraction:(_WKTextExtractionInteraction *)wkInteraction completionHandler:(void(^)(BOOL success))completionHandler
+{
+#if USE(APPLE_INTERNAL_SDK) || (!PLATFORM(WATCHOS) && !PLATFORM(APPLETV))
+    if (!self._isValid || !_page->protectedPreferences()->textExtractionEnabled())
+        return completionHandler(NO);
+
+    WebCore::TextExtraction::Interaction interaction;
+    interaction.action = [&] {
+        switch (wkInteraction.action) {
+        case _WKTextExtractionActionClick:
+            return WebCore::TextExtraction::Action::Click;
+        case _WKTextExtractionActionSelectText:
+            return WebCore::TextExtraction::Action::SelectText;
+        case _WKTextExtractionActionSelectMenuItem:
+            return WebCore::TextExtraction::Action::SelectMenuItem;
+        case _WKTextExtractionActionTextInput:
+            return WebCore::TextExtraction::Action::TextInput;
+        default:
+            ASSERT_NOT_REACHED();
+            return WebCore::TextExtraction::Action::Click;
+        }
+    }();
+
+    interaction.nodeIdentifier = toNodeIdentifier(wkInteraction.nodeIdentifier);
+    if (wkInteraction.hasSetLocation) {
+#if PLATFORM(IOS_FAMILY)
+        interaction.locationInRootView = [self convertPoint:wkInteraction.location toView:_contentView.get()];
+#else
+        interaction.locationInRootView = wkInteraction.location;
+#endif
+    }
+    interaction.text = wkInteraction.text;
+    interaction.replaceAll = wkInteraction.replaceAll;
+
+    _page->handleTextExtractionInteraction(WTFMove(interaction), [weakSelf = WeakObjCPtr<WKWebView>(self), completionHandler = makeBlockPtr(completionHandler)](bool success) {
+        RetainPtr strongSelf = weakSelf.get();
+        if (!strongSelf)
+            return completionHandler(success);
+
+        [strongSelf _doAfterNextPresentationUpdate:makeBlockPtr([completionHandler = WTFMove(completionHandler), success] {
+            completionHandler(success);
+        }).get()];
+    });
+#endif // USE(APPLE_INTERNAL_SDK) || (!PLATFORM(WATCHOS) && !PLATFORM(APPLETV))
 }
 
 @end

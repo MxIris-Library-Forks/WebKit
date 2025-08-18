@@ -338,6 +338,7 @@ struct OpenID4VPRequest;
 #endif
 
 namespace TextExtraction {
+struct Interaction;
 struct Item;
 struct Request;
 }
@@ -1876,10 +1877,6 @@ public:
     void resumeAllMediaPlayback(CompletionHandler<void()>&&);
     void requestMediaPlaybackState(CompletionHandler<void(MediaPlaybackState)>&&);
 
-#if ENABLE(POINTER_LOCK)
-    void requestPointerUnlock(CompletionHandler<void(bool)>&&);
-#endif
-
     void setSuppressVisibilityUpdates(bool flag);
     bool suppressVisibilityUpdates() { return m_suppressVisibilityUpdates; }
 
@@ -2621,6 +2618,7 @@ public:
     void takeSnapshotForTargetedElement(const API::TargetedElementInfo&, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
 
     void requestTextExtraction(WebCore::TextExtraction::Request&&, CompletionHandler<void(WebCore::TextExtraction::Item&&)>&&);
+    void handleTextExtractionInteraction(WebCore::TextExtraction::Interaction&&, CompletionHandler<void(bool)>&&);
 
     void hasVideoInPictureInPictureDidChange(bool);
 
@@ -2837,6 +2835,9 @@ private:
     void didAllowPointerLock(CompletionHandler<void(bool)>&&);
     void didDenyPointerLock(CompletionHandler<void(bool)>&&);
     void requestPointerLock(IPC::Connection&, CompletionHandler<void(bool)>&&);
+    void requestPointerUnlock(CompletionHandler<void(bool)>&&);
+    void platformLockPointer();
+    void platformUnlockPointer();
 #endif
 
 #if HAVE(MOUSE_DEVICE_OBSERVATION)

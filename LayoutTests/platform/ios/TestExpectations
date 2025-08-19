@@ -7725,8 +7725,6 @@ webkit.org/b/286515 fast/forms/datalist/datalist-show-hide.html [ Timeout ]
 
 webkit.org/b/286594 http/wpt/cache-storage/quota-third-party.https.html [ Pass Failure Slow ]
 
-webkit.org/b/286318 http/tests/iframe-monitor [ Pass ]
-
 # webkit.org/b/286934 [ Debug ] ipc/create-media-source-with-invalid-constraints-crash.html [ Skip ]
 
 webkit.org/b/287291 http/tests/site-isolation/selection-focus.html [ ImageOnlyFailure ]
@@ -8194,7 +8192,9 @@ webkit.org/b/297067 fast/forms/state-restore-form-associated-custom-elements.htm
 
 webkit.org/b/297081 http/tests/resourceLoadStatistics/exemptDomains/managed-domains-cookieEnabled.html [ Pass Failure ]
 
-webkit.org/b/297122 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside-010.html [ Pass Failure ]
+# webkit.org/b/297122 2x imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside (layout-tests) tests are flaky text failures
+[ Release ] imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside-010.html [ Pass Failure ]
+[ Release ] imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside-013.html [ Pass Failure ]
 
 webkit.org/b/297141 [ Debug ] fast/eventsource/eventsource-attribute-listeners.html [ Pass Crash ]
 
@@ -8225,3 +8225,8 @@ imported/w3c/web-platform-tests/css/css-flexbox/flexbox-align-self-vert-rtl-001.
 webkit.org/b/297462 [ Debug ] imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-size-containment-001.html [ Failure ]
 
 webkit.org/b/295599 [ Release ] http/tests/webcodecs/audio-decoder-callbacks-do-not-leak.html [ Pass Failure ]
+webkit.org/b/286318 http/tests/iframe-monitor [ Pass ]
+
+webkit.org/b/294931 ipc/LocalSampleBufferDisplayLayer-LogIdentifier-data-race-uaf.html [ Skip ]
+
+webkit.org/b/289010 imported/w3c/web-platform-tests/html/semantics/disabled-elements/event-propagate-disabled-keyboard.tentative.html [ Failure ]

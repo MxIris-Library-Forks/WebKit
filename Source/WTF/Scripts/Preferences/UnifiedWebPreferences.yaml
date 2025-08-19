@@ -1316,7 +1316,7 @@ CSSScrollAnchoringEnabled:
 
 CSSScrollbarColorEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS scrollbar-color property"
   humanReadableDescription: "Enable scrollbar-color CSS property"
@@ -1324,7 +1324,7 @@ CSSScrollbarColorEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: defaultScrollbarColorEnabled()
     WebCore:
       default: false
 
@@ -5287,7 +5287,7 @@ MuteCameraOnMicrophoneInterruptionEnabled:
 
 NavigationAPIEnabled:
   type: bool
-  status: stable
+  status: preview
   category: dom
   humanReadableName: "Navigation API"
   humanReadableDescription: "Enable Navigation API"
@@ -5295,10 +5295,8 @@ NavigationAPIEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
       default: false
     WebCore:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
       default: false
 
 NavigatorUserAgentDataJavaScriptAPIEnabled:
@@ -8294,7 +8292,7 @@ VerticalFormControlsEnabled:
 
 VideoFullsceenPrefersMostVisibleHeuristic:
   type: bool
-  status: testable
+  status: stable
   category: media
   humanReadableName: "Prefers most visible video in element fullscreen."
   humanReadableDescription: "Prefers most visible video in element fullscreen."
@@ -8303,9 +8301,9 @@ VideoFullsceenPrefersMostVisibleHeuristic:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 VideoFullscreenRequiresElementFullscreen:
   type: bool

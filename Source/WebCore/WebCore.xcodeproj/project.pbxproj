@@ -931,7 +931,7 @@
 		297BE3D616C03C0B003316BD /* PlatformSpeechSynthesisVoice.h in Headers */ = {isa = PBXBuildFile; fileRef = 2527CC9216BF90B4009DDAC0 /* PlatformSpeechSynthesisVoice.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		297BE3D716C03C0E003316BD /* PlatformSpeechSynthesizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 29E4D8DF16B0940F00C84704 /* PlatformSpeechSynthesizer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		29A8122B0FBB9C1D00510293 /* AccessibilityTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 29A8120D0FBB9C1D00510293 /* AccessibilityTable.h */; };
-		29A8122C0FBB9C1D00510293 /* AccessibilityList.h in Headers */ = {isa = PBXBuildFile; fileRef = 29A8120E0FBB9C1D00510293 /* AccessibilityList.h */; };
+		29A8122C0FBB9C1D00510293 /* AXListHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 29A8120E0FBB9C1D00510293 /* AXListHelpers.h */; };
 		29A812310FBB9C1D00510293 /* AccessibilityTableRow.h in Headers */ = {isa = PBXBuildFile; fileRef = 29A812130FBB9C1D00510293 /* AccessibilityTableRow.h */; };
 		29A812320FBB9C1D00510293 /* AccessibilityTableCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 29A812140FBB9C1D00510293 /* AccessibilityTableCell.h */; };
 		29A812360FBB9C1D00510293 /* AccessibilityObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 29A812180FBB9C1D00510293 /* AccessibilityObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9439,7 +9439,7 @@
 		297BE3D916C043D8003316BD /* PlatformSpeechSynthesizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlatformSpeechSynthesizer.cpp; sourceTree = "<group>"; };
 		2981ABC4131822EC00D12F2A /* AccessibilityMathMLElement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityMathMLElement.cpp; sourceTree = "<group>"; };
 		2981CAA0131822EC00D12F2A /* AccessibilityImageMapLink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityImageMapLink.cpp; sourceTree = "<group>"; };
-		2981CAA1131822EC00D12F2A /* AccessibilityList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityList.cpp; sourceTree = "<group>"; };
+		2981CAA1131822EC00D12F2A /* AXListHelpers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXListHelpers.cpp; sourceTree = "<group>"; };
 		2981CAA2131822EC00D12F2A /* AccessibilityListBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityListBox.cpp; sourceTree = "<group>"; };
 		2981CAA3131822EC00D12F2A /* AccessibilityListBoxOption.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityListBoxOption.cpp; sourceTree = "<group>"; };
 		2981CAA5131822EC00D12F2A /* AccessibilityObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityObject.cpp; sourceTree = "<group>"; };
@@ -9456,7 +9456,7 @@
 		2985709215CC532D006355CD /* AccessibilityNodeObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AccessibilityNodeObject.cpp; sourceTree = "<group>"; };
 		2985709315CC532D006355CD /* AccessibilityNodeObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AccessibilityNodeObject.h; sourceTree = "<group>"; };
 		29A8120D0FBB9C1D00510293 /* AccessibilityTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityTable.h; sourceTree = "<group>"; };
-		29A8120E0FBB9C1D00510293 /* AccessibilityList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityList.h; sourceTree = "<group>"; };
+		29A8120E0FBB9C1D00510293 /* AXListHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AXListHelpers.h; sourceTree = "<group>"; };
 		29A812130FBB9C1D00510293 /* AccessibilityTableRow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityTableRow.h; sourceTree = "<group>"; };
 		29A812140FBB9C1D00510293 /* AccessibilityTableCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityTableCell.h; sourceTree = "<group>"; };
 		29A812180FBB9C1D00510293 /* AccessibilityObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessibilityObject.h; sourceTree = "<group>"; };
@@ -24936,8 +24936,6 @@
 				29A8121D0FBB9C1D00510293 /* AccessibilityImageMapLink.h */,
 				F52A8FD51D0A88010073CF42 /* AccessibilityLabel.cpp */,
 				F52A8FD61D0A88010073CF42 /* AccessibilityLabel.h */,
-				2981CAA1131822EC00D12F2A /* AccessibilityList.cpp */,
-				29A8120E0FBB9C1D00510293 /* AccessibilityList.h */,
 				2981CAA2131822EC00D12F2A /* AccessibilityListBox.cpp */,
 				29A812250FBB9C1D00510293 /* AccessibilityListBox.h */,
 				2981CAA3131822EC00D12F2A /* AccessibilityListBoxOption.cpp */,
@@ -25000,6 +24998,8 @@
 				2936BF5A21D6999E004A8FC9 /* AXCoreObject.h */,
 				486B8DC82A04500F00E00E73 /* AXGeometryManager.cpp */,
 				486B8DC62A043C0600E00E73 /* AXGeometryManager.h */,
+				2981CAA1131822EC00D12F2A /* AXListHelpers.cpp */,
+				29A8120E0FBB9C1D00510293 /* AXListHelpers.h */,
 				C08F13A1244766DC00AB989F /* AXLogger.cpp */,
 				C0493EB7244699E4009AAC80 /* AXLogger.h */,
 				80A24AF62E41AAEA006FF9DB /* AXLoggerBase.cpp */,
@@ -40890,7 +40890,6 @@
 				715FCD1729B09B0E002CE6A7 /* AcceleratedEffectStackUpdater.h in Headers */,
 				7164D2CF29AFA0F6000AC8DA /* AcceleratedEffectValues.h in Headers */,
 				29A8123B0FBB9C1D00510293 /* AccessibilityImageMapLink.h in Headers */,
-				29A8122C0FBB9C1D00510293 /* AccessibilityList.h in Headers */,
 				29A812430FBB9C1D00510293 /* AccessibilityListBox.h in Headers */,
 				29A812420FBB9C1D00510293 /* AccessibilityListBoxOption.h in Headers */,
 				07B0ABCF1032242200FBDC33 /* AccessibilityMathMLElement.h in Headers */,
@@ -41177,6 +41176,7 @@
 				486B8DC72A043C0600E00E73 /* AXGeometryManager.h in Headers */,
 				29AE213521ABA48A00869283 /* AXIsolatedObject.h in Headers */,
 				29AE212D21AB9EEB00869283 /* AXIsolatedTree.h in Headers */,
+				29A8122C0FBB9C1D00510293 /* AXListHelpers.h in Headers */,
 				80A24AF52E41723C006FF9DB /* AXLoggerBase.h in Headers */,
 				29A812380FBB9C1D00510293 /* AXObjectCache.h in Headers */,
 				80A24B562E4A7132006FF9DB /* AXObjectCacheInlines.h in Headers */,

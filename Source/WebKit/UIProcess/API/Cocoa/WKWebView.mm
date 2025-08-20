@@ -31,7 +31,6 @@
 #import "APIFrameTreeNode.h"
 #import "APIPageConfiguration.h"
 #import "APISecurityOrigin.h"
-#import "APISerializedScriptValue.h"
 #import "AboutSchemeHandler.h"
 #import "BrowsingWarning.h"
 #import "CocoaImage.h"
@@ -6346,6 +6345,17 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 {
     return _impl->accessibilityUIProcessLocalTokenHash();
 }
+
+- (NSArray<NSNumber *> *)registeredRemoteAccessibilityPids
+{
+    return _impl->registeredRemoteAccessibilityPids();
+}
+
+- (bool)hasRemoteAccessibilityChild
+{
+    return _impl->hasRemoteAccessibilityChild();
+}
+
 #endif // PLATFORM(MAC)
 
 #if PLATFORM(MAC)
@@ -6419,6 +6429,8 @@ static inline std::optional<WebCore::NodeIdentifier> toNodeIdentifier(const Stri
             return WebCore::TextExtraction::Action::SelectMenuItem;
         case _WKTextExtractionActionTextInput:
             return WebCore::TextExtraction::Action::TextInput;
+        case _WKTextExtractionActionKeyPress:
+            return WebCore::TextExtraction::Action::KeyPress;
         default:
             ASSERT_NOT_REACHED();
             return WebCore::TextExtraction::Action::Click;

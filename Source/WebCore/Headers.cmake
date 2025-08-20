@@ -847,7 +847,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     accessibility/AXTreeStore.h
     accessibility/AXTreeStoreInlines.h
     accessibility/AXUtilities.h
-    accessibility/AccessibilityListBox.h
     accessibility/AccessibilityMenuListPopup.h
     accessibility/AccessibilityMockObject.h
     accessibility/AccessibilityNodeObject.h
@@ -1837,6 +1836,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     layout/integration/inline/LineSelection.h
 
     layout/layouttree/LayoutBox.h
+    layout/layouttree/LayoutBoxGeometry.h
     layout/layouttree/LayoutChildIterator.h
     layout/layouttree/LayoutContainingBlockChainIterator.h
     layout/layouttree/LayoutDescendantIterator.h
@@ -2194,6 +2194,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/writing-tools/WritingToolsTypes.h
 
     platform/AbortableTaskQueue.h
+    platform/AudioEncoderActiveConfiguration.h
     platform/AudioSampleFormat.h
     platform/BoxExtents.h
     platform/BoxSides.h

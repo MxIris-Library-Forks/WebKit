@@ -4440,6 +4440,7 @@ LocalFileContentSniffingEnabled:
 LocalNetworkAccessEnabled:
   type: bool
   status: unstable
+  category: networking
   humanReadableName: "Local Network Access"
   humanReadableDescription: "Enable Local Network Access"
   webKitLegacyPreferenceKey: WebKitLocalNetworkAccessEnabledPreferenceKey
@@ -5301,9 +5302,10 @@ NavigationAPIEnabled:
 
 NavigatorUserAgentDataJavaScriptAPIEnabled:
   type: bool
-  status: unstable
+  status: internal
   category: dom
-  humanReadableName: "Enable the navigator.userAgentData JavaScript API"
+  humanReadableName: "Navigator userAgentData JavaScript API"
+  humanReadableDescription: "Enable the navigator.userAgentData JavaScript API"
   defaultValue:
     WebKitLegacy:
       default: false

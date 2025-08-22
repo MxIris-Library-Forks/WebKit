@@ -25,11 +25,13 @@
 
 #pragma once
 
+#include <wtf/Platform.h>
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
 
 #include <WebCore/AXCoreObject.h>
 #include <WebCore/AXIsolatedTree.h>
 #include <WebCore/AXObjectCache.h>
+#include <WebCore/AXTreeStoreInlines.h>
 #include <WebCore/IntPoint.h>
 #include <WebCore/LayoutRect.h>
 #include <WebCore/NodeName.h>

@@ -43,7 +43,6 @@
 #include "AXTreeStoreInlines.h"
 #include "AXUtilities.h"
 #include "AccessibilityImageMapLink.h"
-#include "AccessibilityLabel.h"
 #include "AccessibilityListBoxOption.h"
 #include "AccessibilityMathMLElement.h"
 #include "AccessibilityMenuList.h"
@@ -608,11 +607,6 @@ static bool isAccessibilityARIAGridCell(Element& element)
     return hasCellARIARole(element);
 }
 
-static bool shouldCreateAccessibilityLabel(Element& element)
-{
-    return is<HTMLLabelElement>(element) && hasRole(element, nullAtom());
-}
-
 Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObject& renderer)
 {
     RefPtr node = renderer.node();
@@ -629,9 +623,6 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
             return AccessibilityTree::create(AXID::generate(), renderer, *this);
         if (isAccessibilityTreeItem(*element))
             return AccessibilityTreeItem::create(AXID::generate(), renderer, *this);
-
-        if (shouldCreateAccessibilityLabel(*element))
-            return AccessibilityLabel::create(AXID::generate(), renderer, *this);
     }
 
     if (renderer.isRenderOrLegacyRenderSVGRoot())
@@ -702,8 +693,6 @@ Ref<AccessibilityNodeObject> AXObjectCache::createFromNode(Node& node)
             return AccessibilityProgressIndicator::create(AXID::generate(), *element, *this);
         if (is<SVGElement>(*element))
             return AccessibilitySVGObject::create(AXID::generate(), *element, *this);
-        if (shouldCreateAccessibilityLabel(*element))
-            return AccessibilityLabel::create(AXID::generate(), *element, *this);
     }
     return AccessibilityRenderObject::create(AXID::generate(), node, *this);
 }
@@ -1891,7 +1880,7 @@ void AXObjectCache::onScrollbarFrameRectChange(const Scrollbar& scrollbar)
         return;
 
     if (RefPtr axScrollbar = get(const_cast<Scrollbar*>(&scrollbar)))
-        m_geometryManager->cacheRect(axScrollbar->objectID(), enclosingIntRect(axScrollbar->relativeFrame()));
+        std::ignore = m_geometryManager->cacheRectIfNeeded(axScrollbar->objectID(), enclosingIntRect(axScrollbar->relativeFrame()));
 #else
     UNUSED_PARAM(scrollbar);
 #endif
@@ -4982,7 +4971,7 @@ void AXObjectCache::updateIsolatedTree(const Vector<std::pair<Ref<AccessibilityO
             break;
         case AXNotification::TextUnderElementChanged:
             tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::AccessibilityText });
-            if (notification.first->isAccessibilityLabelInstance() || notification.first->role() == AccessibilityRole::TextField)
+            if (notification.first->isNativeLabel() || notification.first->role() == AccessibilityRole::TextField)
                 tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::StringValue });
             break;
 #if ENABLE(AX_THREAD_TEXT_APIS)
@@ -5066,8 +5055,22 @@ void AXObjectCache::onPaint(const RenderObject& renderer, IntRect&& paintRect) c
     if (!m_pageID)
         return;
 
-    if (std::optional axID = getAXID(const_cast<RenderObject&>(renderer)))
-        m_geometryManager->cacheRect(*axID, WTFMove(paintRect));
+    if (std::optional axID = getAXID(const_cast<RenderObject&>(renderer))) {
+        bool cachedNewRect = m_geometryManager->cacheRectIfNeeded(*axID, WTFMove(paintRect));
+
+        if (cachedNewRect) {
+            auto* renderImage = dynamicDowncast<RenderImage>(renderer);
+            if (RefPtr imageMap = renderImage ? renderImage->imageMap() : nullptr) {
+                // <area> elements have no renderers and thus will never be painted themselves.
+                // If the image was repainted in a new location, the associated area elements
+                // probably need new rects cached too.
+                for (Ref area : descendantsOfType<HTMLAreaElement>(*imageMap)) {
+                    if (RefPtr areaObject = get(area.get()))
+                        std::ignore = m_geometryManager->cacheRectIfNeeded(areaObject->objectID(), snappedIntRect(LayoutRect(areaObject->relativeFrame())));
+                }
+            }
+        }
+    }
 }
 
 void AXObjectCache::onPaint(const Widget& widget, IntRect&& paintRect) const
@@ -5075,7 +5078,7 @@ void AXObjectCache::onPaint(const Widget& widget, IntRect&& paintRect) const
     if (!m_pageID)
         return;
     if (std::optional axID = m_widgetObjectMapping.getOptional(const_cast<Widget&>(widget)))
-        m_geometryManager->cacheRect(*axID, WTFMove(paintRect));
+        std::ignore = m_geometryManager->cacheRectIfNeeded(*axID, WTFMove(paintRect));
 }
 
 void AXObjectCache::onPaint(const RenderText& renderText, size_t lineIndex)

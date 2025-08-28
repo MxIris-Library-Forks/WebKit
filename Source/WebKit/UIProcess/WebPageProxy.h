@@ -1114,6 +1114,7 @@ public:
     WebCore::FloatRect unobscuredContentRectRespectingInputViewBounds() const;
     // When visual viewports are enabled, this is the layout viewport rect.
     WebCore::FloatRect layoutViewportRect() const;
+    WebCore::FloatBoxExtent computedObscuredInset() const;
 
     void resendLastVisibleContentRects();
 
@@ -3682,6 +3683,9 @@ private:
 
 #if HAVE(APP_SSO)
     bool m_shouldSuppressSOAuthorizationInNextNavigationPolicyDecision { false };
+#endif
+#if ENABLE(SWIFT_DEMO_URI_SCHEME)
+    bool m_shouldSuppressSwiftDemoInNextNavigationPolicyDecision { false };
 #endif
 
     std::unique_ptr<WebWheelEventCoalescer> m_wheelEventCoalescer;

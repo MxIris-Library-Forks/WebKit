@@ -200,7 +200,7 @@ public:
     void waitBeforeFinishingFullscreenExit() { m_waitBeforeFinishingFullscreenExit = true; }
     void scrollDuringEnterFullscreen() { m_scrollDuringEnterFullscreen = true; }
     void finishFullscreenExit();
-    void requestExitFullscreenFromUIProcess(WKPageRef);
+    void requestExitFullscreenFromUIProcess();
 
     static void willEnterFullScreen(WKPageRef, WKCompletionListenerRef, const void*);
     void willEnterFullScreen(WKPageRef, WKCompletionListenerRef);
@@ -466,6 +466,8 @@ public:
     bool useWorkQueue() const { return m_useWorkQueue; }
 
     void setHasMouseDeviceForTesting(bool);
+
+    void uiScriptDidComplete(const String& result, unsigned scriptCallbackID);
 
 private:
     WKRetainPtr<WKPageConfigurationRef> generatePageConfiguration(const TestOptions&);
@@ -815,6 +817,7 @@ private:
     Callbacks m_willEndSwipeCallbacks;
     Callbacks m_didEndSwipeCallbacks;
     Callbacks m_didRemoveSwipeSnapshotCallbacks;
+    HashMap<unsigned, Callbacks> m_uiScriptCallbacks;
 
     uint64_t m_serverTrustEvaluationCallbackCallsCount { 0 };
     bool m_shouldDismissJavaScriptAlertsAsynchronously { false };

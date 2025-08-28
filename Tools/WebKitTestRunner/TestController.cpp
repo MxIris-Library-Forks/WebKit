@@ -519,6 +519,8 @@ void TestController::tooltipDidChange(WKStringRef tooltip)
 
 void TestController::Callbacks::append(WKTypeRef handle)
 {
+    if (!handle)
+        return;
     ASSERT(WKGetTypeID(handle) == WKJSHandleGetTypeID());
     m_callbacks.append((WKJSHandleRef)handle);
 }
@@ -533,7 +535,7 @@ void TestController::Callbacks::notifyListeners(WKStringRef parameter)
         setValue(arguments, "callback", callback);
         setValue(arguments, "parameter", parameter);
         WKRetainPtr frame = adoptWK(WKJSHandleCopyFrameInfo(callback.get()));
-        WKPageCallAsyncJavaScript(WKFrameInfoGetPage(frame.get()), toWK("return callback(parameter)").get(), arguments.get(), frame.get(), nullptr, nullptr);
+        WKPageCallAsyncJavaScriptWithoutUserGesture(WKFrameInfoGetPage(frame.get()), toWK("return callback(parameter)").get(), arguments.get(), frame.get(), nullptr, nullptr);
     }
 }
 
@@ -546,7 +548,7 @@ void TestController::Callbacks::notifyListeners()
         WKRetainPtr arguments = adoptWK(WKMutableDictionaryCreate());
         setValue(arguments, "callback", callback);
         WKRetainPtr frame = adoptWK(WKJSHandleCopyFrameInfo(callback.get()));
-        WKPageCallAsyncJavaScript(WKFrameInfoGetPage(frame.get()), toWK("return callback()").get(), arguments.get(), frame.get(), nullptr, nullptr);
+        WKPageCallAsyncJavaScriptWithoutUserGesture(WKFrameInfoGetPage(frame.get()), toWK("return callback()").get(), arguments.get(), frame.get(), nullptr, nullptr);
     }
 }
 
@@ -664,9 +666,9 @@ void TestController::finishFullscreenExit()
     m_finishExitFullscreenHandler();
 }
 
-void TestController::requestExitFullscreenFromUIProcess(WKPageRef page)
+void TestController::requestExitFullscreenFromUIProcess()
 {
-    WKPageRequestExitFullScreen(page);
+    WKPageRequestExitFullScreen(mainWebView()->page());
 }
 
 PlatformWebView* TestController::createOtherPlatformWebView(PlatformWebView* parentView, WKPageConfigurationRef configuration, WKNavigationActionRef, WKWindowFeaturesRef)
@@ -1599,6 +1601,7 @@ bool TestController::resetStateToConsistentValues(const TestOptions& options, Re
     m_willEndSwipeCallbacks.clear();
     m_didEndSwipeCallbacks.clear();
     m_didRemoveSwipeSnapshotCallbacks.clear();
+    m_uiScriptCallbacks.clear();
 
     return m_doneResetting;
 }
@@ -1867,10 +1870,46 @@ static WKFindOptions findOptionsFromArray(WKArrayRef array)
     return options;
 }
 
+static void adoptAndCallCompletionHandler(void* context)
+{
+    auto completionHandler = WTF::adopt(static_cast<CompletionHandler<void(WKTypeRef)>::Impl*>(context));
+    completionHandler(nullptr);
+}
+
+struct UIScriptInvocationData {
+    UIScriptInvocationData(unsigned callbackID, WebKit::WKRetainPtr<WKStringRef>&& scriptString, WeakPtr<TestInvocation>&& testInvocation)
+        : callbackID(callbackID)
+        , scriptString(WTFMove(scriptString))
+        , testInvocation(WTFMove(testInvocation)) { }
+
+    unsigned callbackID;
+    WebKit::WKRetainPtr<WKStringRef> scriptString;
+    WeakPtr<TestInvocation> testInvocation;
+
+    static unsigned nextCallbackID;
+};
+
+unsigned UIScriptInvocationData::nextCallbackID { 1 };
+
+static void runUISideScriptImmediately(void* context)
+{
+    UIScriptInvocationData* data = static_cast<UIScriptInvocationData*>(context);
+    if (TestInvocation* invocation = data->testInvocation.get()) {
+        RELEASE_ASSERT(TestController::singleton().isCurrentInvocation(invocation));
+        invocation->runUISideScript(data->scriptString.get(), data->callbackID);
+    }
+    delete data;
+};
+
+void TestController::uiScriptDidComplete(const String& result, unsigned scriptCallbackID)
+{
+    m_uiScriptCallbacks.get(scriptCallbackID).notifyListeners(toWK(result).get());
+}
+
 constexpr auto testRunnerJS = R"testRunnerJS(
 if (window.testRunner) {
     let post = window.webkit.messageHandlers.webkitTestRunner.postMessage.bind(window.webkit.messageHandlers.webkitTestRunner);
-    let createHandle = window.webkit.createJSHandle.bind(window.webkit);
+    let createHandle = (object) => object ? window.webkit.createJSHandle(object) : undefined;
 
     testRunner.installTooltipDidChangeCallback = callback => post(['InstallTooltipCallback', createHandle(callback)]);
     testRunner.installDidBeginSwipeCallback = callback => post(['InstallBeginSwipeCallback', createHandle(callback)]);
@@ -1878,6 +1917,14 @@ if (window.testRunner) {
     testRunner.installDidEndSwipeCallback = callback => post(['InstallDidEndSwipeCallback', createHandle(callback)]);
     testRunner.installDidRemoveSwipeSnapshotCallback = callback => post(['InstallDidRemoveSwipeSnapshotCallback', createHandle(callback)]);
     testRunner.findString = (target, options) => post(['FindString', target, options]);
+    testRunner.runUIScript = (script, callback) => post(['RunUIScript', script, createHandle(callback)]);
+    testRunner.runUIScriptImmediately = (script, callback) => post(['RunUIScriptImmediately', script, createHandle(callback)]);
+    testRunner.getApplicationManifestThen = async (callback) => { await post(['GetApplicationManifest']); callback() }; // NOLINT
+    testRunner.scrollDuringEnterFullscreen = () => post(['ScrollDuringEnterFullscreen']);
+    testRunner.waitBeforeFinishingFullscreenExit = () => post(['WaitBeforeFinishingFullscreenExit']);
+    testRunner.finishFullscreenExit = () => post(['FinishFullscreenExit']);
+    testRunner.requestExitFullscreenFromUIProcess = () => post(['RequestExitFullscreenFromUIProcess']);
+    testRunner.keyExistsInKeychain = (attrLabel, applicationLabelBase64) => post(['KeyExistsInKeychain', attrLabel, applicationLabelBase64]);
 }
 )testRunnerJS";
 
@@ -1898,6 +1945,7 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
     WKArrayRef array = (WKArrayRef)messageBody;
     WKStringRef command = (WKStringRef)WKArrayGetItemAtIndex(array, 0);
     WKTypeRef argument = WKArrayGetSize(array) > 1 ? WKArrayGetItemAtIndex(array, 1) : nullptr;
+    WKTypeRef argument2 = WKArrayGetSize(array) > 2 ? WKArrayGetItemAtIndex(array, 2) : nullptr;
 
     if (WKStringIsEqualToUTF8CString(command, "FindString")) {
         WKStringRef target = (WKStringRef)argument;
@@ -1936,6 +1984,50 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
         return completionHandler(nullptr);
     }
 
+    if (WKStringIsEqualToUTF8CString(command, "RunUIScript")) {
+        unsigned callbackID = UIScriptInvocationData::nextCallbackID++;
+        auto invocationData = new UIScriptInvocationData(callbackID, (WKStringRef)argument, m_currentInvocation);
+        m_uiScriptCallbacks.add(callbackID, Callbacks { }).iterator->value.append(argument2);
+        WKPageCallAfterNextPresentationUpdate(mainWebView()->page(), invocationData, [] (WKErrorRef, void* context) {
+            runUISideScriptImmediately(context);
+        });
+        return completionHandler(nullptr);
+    }
+
+    if (WKStringIsEqualToUTF8CString(command, "RunUIScriptImmediately")) {
+        unsigned callbackID = UIScriptInvocationData::nextCallbackID++;
+        auto invocationData = new UIScriptInvocationData(callbackID, (WKStringRef)argument, m_currentInvocation);
+        m_uiScriptCallbacks.add(callbackID, Callbacks { }).iterator->value.append(argument2);
+        runUISideScriptImmediately(invocationData);
+        return completionHandler(nullptr);
+    }
+
+    if (WKStringIsEqualToUTF8CString(command, "GetApplicationManifest"))
+        return WKPageGetApplicationManifest(mainWebView()->page(), completionHandler.leak(), adoptAndCallCompletionHandler);
+
+    if (WKStringIsEqualToUTF8CString(command, "WaitBeforeFinishingFullscreenExit")) {
+        waitBeforeFinishingFullscreenExit();
+        return completionHandler(nullptr);
+    }
+
+    if (WKStringIsEqualToUTF8CString(command, "ScrollDuringEnterFullscreen")) {
+        scrollDuringEnterFullscreen();
+        return completionHandler(nullptr);
+    }
+
+    if (WKStringIsEqualToUTF8CString(command, "FinishFullscreenExit")) {
+        finishFullscreenExit();
+        return completionHandler(nullptr);
+    }
+
+    if (WKStringIsEqualToUTF8CString(command, "RequestExitFullscreenFromUIProcess")) {
+        requestExitFullscreenFromUIProcess();
+        return completionHandler(nullptr);
+    }
+
+    if (WKStringIsEqualToUTF8CString(command, "KeyExistsInKeychain"))
+        return completionHandler(adoptWK(WKBooleanCreate(keyExistsInKeychain(toWTFString(argument), toWTFString(argument2)))).get());
+
     ASSERT_NOT_REACHED();
 }
 
@@ -1949,7 +2041,7 @@ void TestController::installUserScript(const TestInvocation& test)
     if (!test.options().shouldInjectTestRunner())
         return;
 
-    constexpr bool forMainFrameOnly { true };
+    constexpr bool forMainFrameOnly { false };
     WKRetainPtr script = adoptWK(WKUserScriptCreateWithSource(toWK(testRunnerJS).get(), kWKInjectAtDocumentStart, forMainFrameOnly));
     WKUserContentControllerAddUserScript(controller.get(), script.get());
     WKUserContentControllerAddScriptMessageHandler(controller.get(), toWK("webkitTestRunner").get(), didReceiveScriptMessage, nullptr);
@@ -2338,12 +2430,6 @@ RefPtr<TestInvocation> TestController::protectedCurrentInvocation()
     return m_currentInvocation;
 }
 
-static void adoptAndCallCompletionHandler(void* context)
-{
-    auto completionHandler = WTF::adopt(static_cast<CompletionHandler<void(WKTypeRef)>::Impl*>(context));
-    completionHandler(nullptr);
-}
-
 void TestController::didReceiveAsyncMessageFromInjectedBundle(WKStringRef messageName, WKTypeRef messageBody, WKMessageListenerRef listener)
 {
     CompletionHandler<void(WKTypeRef)> completionHandler = [listener = retainWK(listener)] (WKTypeRef reply) {
@@ -2547,11 +2633,6 @@ void TestController::didReceiveAsyncMessageFromInjectedBundle(WKStringRef messag
 
     if (WKStringIsEqualToUTF8CString(messageName, "LoadedSubresourceDomains"))
         return loadedSubresourceDomains(WTFMove(completionHandler));
-
-    if (WKStringIsEqualToUTF8CString(messageName, "GetApplicationManifest")) {
-        WKPageGetApplicationManifest(mainWebView()->page(), completionHandler.leak(), adoptAndCallCompletionHandler);
-        return;
-    }
 
     if (WKStringIsEqualToUTF8CString(messageName, "RemoveChromeInputField")) {
         mainWebView()->removeChromeInputField();

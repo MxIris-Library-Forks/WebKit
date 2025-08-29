@@ -7620,7 +7620,7 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-block
 imported/w3c/web-platform-tests/css/css-view-transitions/capture-with-opacity-zero-child.html [ Pass ImageOnlyFailure ]
 
 # webkit.org/b/278934 [ macOS iOS wk2 ] imported/w3c/web-platform-tests/content-security-policy/inheritance/history.sub.html is a flaky failure.
-[ Debug ] imported/w3c/web-platform-tests/content-security-policy/inheritance/history.sub.html [ Failure Pass ]
+imported/w3c/web-platform-tests/content-security-policy/inheritance/history.sub.html [ Failure Pass ]
 
 webkit.org/b/279295 fast/inline/list-marker-inside-container-with-margin.html [ ImageOnlyFailure ]
 
@@ -8231,6 +8231,9 @@ webkit.org/b/294931 ipc/LocalSampleBufferDisplayLayer-LogIdentifier-data-race-ua
 
 webkit.org/b/289010 imported/w3c/web-platform-tests/html/semantics/disabled-elements/event-propagate-disabled-keyboard.tentative.html [ Failure ]
 
+# Clicking/tapping within a selection on iOS is not supposed to clear the selection.
+fast/events/selection-clear-on-click-fractional-coordinates.html [ Skip ]
+
 # webkit.org/b/297599 [ iOS ] 6x http/tests/iframe-monitor (layout-tests) tests are constantly timing out 
 http/tests/iframe-monitor/workers/shared-worker.html [ Timeout ]
 http/tests/iframe-monitor/workers/service-worker.html [ Timeout ]
@@ -8248,3 +8251,5 @@ webkit.org/b/297674 [ Release ] http/wpt/mediarecorder/MediaRecorder-matroska-AV
 webkit.org/b/295435 compositing/layer-creation/overlap-animation-container.html [ Pass Failure ]
 
 webkit.org/b/297984 [ Release ] imported/w3c/web-platform-tests/html/cross-origin-opener-policy/navigate-top-to-aboutblank.https.html [ Failure ]
+
+webkit.org/b/298042 [ Release ] http/tests/security/clipboard/copy-paste-html-cross-origin-iframe-across-origin.html [ Pass Failure ]

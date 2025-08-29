@@ -6403,6 +6403,7 @@
 		E401E0A41C3C0B8300F34D10 /* StyleChange.h in Headers */ = {isa = PBXBuildFile; fileRef = E401E0A31C3C0B8300F34D10 /* StyleChange.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E403B7A2251B11930019E800 /* LayoutIntegrationCoverage.h in Headers */ = {isa = PBXBuildFile; fileRef = E403B7A1251B11930019E800 /* LayoutIntegrationCoverage.h */; };
 		E403B7A3251B11C10019E800 /* LayoutIntegrationPagination.h in Headers */ = {isa = PBXBuildFile; fileRef = E4312AB724B3265600678349 /* LayoutIntegrationPagination.h */; };
+		E406204C2E5F2EC0009144F4 /* StyleRuleFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = E406204B2E5F2EC0009144F4 /* StyleRuleFunction.h */; };
 		E415EB13270C351300E8DA1B /* InlineIteratorInlineBox.h in Headers */ = {isa = PBXBuildFile; fileRef = E415EB11270C351200E8DA1B /* InlineIteratorInlineBox.h */; };
 		E418025523D4549B00FFB071 /* LayoutIntegrationBoxTreeUpdater.h in Headers */ = {isa = PBXBuildFile; fileRef = E418025323D4549A00FFB071 /* LayoutIntegrationBoxTreeUpdater.h */; };
 		E419041F1CC6486B00C35F5D /* FontSelectorClient.h in Headers */ = {isa = PBXBuildFile; fileRef = E419041E1CC6486B00C35F5D /* FontSelectorClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -21092,6 +21093,8 @@
 		E401E0A51C3C0CF700F34D10 /* StyleChange.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleChange.cpp; sourceTree = "<group>"; };
 		E403B79F251B118B0019E800 /* LayoutIntegrationCoverage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationCoverage.cpp; sourceTree = "<group>"; };
 		E403B7A1251B11930019E800 /* LayoutIntegrationCoverage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationCoverage.h; sourceTree = "<group>"; };
+		E406204B2E5F2EC0009144F4 /* StyleRuleFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleRuleFunction.h; sourceTree = "<group>"; };
+		E406204D2E5F2ECA009144F4 /* StyleRuleFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleRuleFunction.cpp; sourceTree = "<group>"; };
 		E406F3FB1198307D009D59D6 /* ColorData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorData.cpp; sourceTree = "<group>"; };
 		E415EB11270C351200E8DA1B /* InlineIteratorInlineBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InlineIteratorInlineBox.h; sourceTree = "<group>"; };
 		E415EB14270C353700E8DA1B /* InlineIteratorInlineBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InlineIteratorInlineBox.cpp; sourceTree = "<group>"; };
@@ -39164,6 +39167,8 @@
 				E1B25105152A0BAF0069B779 /* StylePropertyShorthand.h */,
 				E4BBED4A14FCDBA1003F0B98 /* StyleRule.cpp */,
 				E4BBED4B14FCDBA1003F0B98 /* StyleRule.h */,
+				E406204D2E5F2ECA009144F4 /* StyleRuleFunction.cpp */,
+				E406204B2E5F2EC0009144F4 /* StyleRuleFunction.h */,
 				E4946EAC156E64DD00D3297F /* StyleRuleImport.cpp */,
 				E4946EAD156E64DD00D3297F /* StyleRuleImport.h */,
 				0F94F37C23661131003AA5C7 /* StyleRuleType.h */,
@@ -45820,6 +45825,7 @@
 				E139866415478474001E3F65 /* StyleResolver.h in Headers */,
 				BC3CC1F72DE4E3D50032971C /* StyleRotate.h in Headers */,
 				E4BBED4D14FCDBA1003F0B98 /* StyleRule.h in Headers */,
+				E406204C2E5F2EC0009144F4 /* StyleRuleFunction.h in Headers */,
 				E4946EAF156E64DD00D3297F /* StyleRuleImport.h in Headers */,
 				0F94F37E23661626003AA5C7 /* StyleRuleType.h in Headers */,
 				BC3CC1F22DE3ECF30032971C /* StyleScale.h in Headers */,

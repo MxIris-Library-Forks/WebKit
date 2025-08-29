@@ -343,7 +343,7 @@ void OpenXRCoordinator::createInstance()
     extensions.append(const_cast<char*>(XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME));
 #endif
 #if defined(XR_EXT_hand_interaction)
-    if (OpenXRExtensions::singleton().isExtensionSupported(XR_EXT_HAND_INTERACTION_EXTENSION_NAME))
+    if (OpenXRExtensions::singleton().isExtensionSupported(XR_EXT_HAND_INTERACTION_EXTENSION_NAME ""_span))
         extensions.append(const_cast<char*>(XR_EXT_HAND_INTERACTION_EXTENSION_NAME));
 #endif
 
@@ -669,7 +669,7 @@ PlatformXR::FrameData OpenXRCoordinator::populateFrameData(Box<RenderState> rend
     frameData.isPositionEmulated = !(viewState.viewStateFlags & XR_SPACE_LOCATION_POSITION_TRACKED_BIT);
 
     if (m_input)
-        frameData.inputSources = m_input->collectInputSources(renderState->frameState, m_floorSpace);
+        frameData.inputSources = m_input->collectInputSources(renderState->frameState, m_localSpace);
 
     frameData.origin = XrIdentityPose();
 

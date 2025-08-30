@@ -779,7 +779,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     PageConfiguration pageConfiguration(
         pageID,
         WebProcess::singleton().sessionID(),
-        makeUniqueRef<WebEditorClient>(this),
+        makeUniqueRef<WebEditorClient>(*this),
         WebSocketProvider::create(parameters.webPageProxyIdentifier),
         createLibWebRTCProvider(*this),
         WebProcess::singleton().cacheStorageProvider(),
@@ -1187,6 +1187,8 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
     if (parameters.allowJSHandleInPageContentWorld)
         InjectedBundleScriptWorld::normalWorldSingleton().setAllowJSHandleCreation();
+    if (parameters.allowPostingLegacySynchronousMessages)
+        InjectedBundleScriptWorld::normalWorldSingleton().setAllowPostingLegacySynchronousMessages();
 }
 
 void WebPage::updateAfterDrawingAreaCreation(const WebPageCreationParameters& parameters)
@@ -1926,7 +1928,8 @@ void WebPage::close()
 
     WEBPAGE_RELEASE_LOG_FORWARDABLE(Loading, WEBPAGE_CLOSE);
 
-    WebProcess::singleton().ensureNetworkProcessConnection().connection().send(Messages::NetworkConnectionToWebProcess::ClearPageSpecificData(m_identifier), 0);
+    if (auto networkProcessConnection = WebProcess::singleton().protectedNetworkProcessConnection())
+        networkProcessConnection->connection().send(Messages::NetworkConnectionToWebProcess::ClearPageSpecificData(m_identifier), 0);
 
     m_isClosed = true;
 

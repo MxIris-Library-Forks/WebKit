@@ -57,6 +57,7 @@ class PCToOriginMap;
 
 namespace Wasm {
 
+class CallSlot;
 class CalleeGroup;
 
 class Callee : public NativeCallee {
@@ -456,6 +457,9 @@ public:
         return *m_signatures[index];
     }
 
+    FixedVector<CallSlot>& callSlots() { return m_callSlots; }
+    const FixedVector<CallSlot>& callSlots() const { return m_callSlots; }
+
     IPIntTierUpCounter& tierUpCounter() { return m_tierUpCounter; }
 
     using OutOfLineJumpTargets = UncheckedKeyHashMap<unsigned, int>;
@@ -485,6 +489,8 @@ private:
     unsigned m_numArgumentsOnStack;
     unsigned m_maxFrameSizeInV128;
 
+    FixedVector<CallSlot> m_callSlots;
+
     IPIntTierUpCounter m_tierUpCounter;
 };
 
@@ -504,19 +510,18 @@ class WasmBuiltinCallee final : public Callee {
     friend class Callee;
     friend class JSC::LLIntOffsetsExtractor;
 public:
-    WasmBuiltinCallee(const WebAssemblyBuiltin*, FunctionSpaceIndex, std::pair<const Name*, RefPtr<NameSection>>&&);
+    WasmBuiltinCallee(const WebAssemblyBuiltin*, std::pair<const Name*, RefPtr<NameSection>>&&);
 
     const WebAssemblyBuiltin* builtin() { return m_builtin.get(); }
-    CodePtr<WasmEntryPtrTag> entrypointImpl() const;
+    CodePtr<WasmEntryPtrTag> entrypointImpl() const { return m_trampoline; };
 
 protected:
     std::tuple<void*, void*> rangeImpl() const { return { nullptr, nullptr }; }
     RegisterAtOffsetList* calleeSaveRegistersImpl() { return nullptr; }
 
 private:
-    // The C++ function implementing the builtin, fetched as 'builtin->implementation()'
-    // and retagged and cached here for ease of access by the trampoline.
-    CodePtr<WasmEntryPtrTag> m_hostFunction;
+    MacroAssemblerCodeRef<WasmEntryPtrTag> m_code;
+    CodePtr<WasmEntryPtrTag> m_trampoline;
     // Safer CPP checks do not allow a simple 'const WebAssemblyBuiltin *' because it's forward-declared.
     // We hold the pointer as a pro forma unique_ptr. It is never actually destroyed because
     // the builtin and this callee are part of a singleton structure expected to live forever.

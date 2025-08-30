@@ -677,7 +677,7 @@
 		0FF8BDEB1AD4CF7100DFE884 /* InferredValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FF8BDE91AD4CF7100DFE884 /* InferredValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FF922D414F46B410041A24E /* LLIntOffsetsExtractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0F4680A114BA7F8200BFE272 /* LLIntOffsetsExtractor.cpp */; };
 		0FF9CE741B9CD6D0004EDCA6 /* InlineCacheCompiler.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FF9CE721B9CD6D0004EDCA6 /* InlineCacheCompiler.h */; };
-		0FFA549816B8835300B3A982 /* A64DOpcode.h in Headers */ = {isa = PBXBuildFile; fileRef = 652A3A231651C69700A80AFE /* A64DOpcode.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0FFA549816B8835300B3A982 /* A64DOpcode.h in Headers */ = {isa = PBXBuildFile; fileRef = 652A3A231651C69700A80AFE /* A64DOpcode.h */; };
 		0FFB6C391AF48DDC00DB1BF7 /* TypeofType.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FFB6C371AF48DDC00DB1BF7 /* TypeofType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0FFB921A16D02EC50055A5DB /* DFGBasicBlockInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FD5652216AB780A00197653 /* DFGBasicBlockInlines.h */; };
 		0FFB921C16D02F110055A5DB /* DFGOSRExitCompilationInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 65987F2C167FE84B003C2F8D /* DFGOSRExitCompilationInfo.h */; };
@@ -805,6 +805,7 @@
 		233D768F2E288BCA00EB9FFB /* missingImport.js in CopyFiles */ = {isa = PBXBuildFile; fileRef = 233D767B2E288A8600EB9FFB /* missingImport.js */; };
 		233D76902E288BCA00EB9FFB /* referenceError.js in CopyFiles */ = {isa = PBXBuildFile; fileRef = 233D767C2E288A8600EB9FFB /* referenceError.js */; };
 		233D76912E288BCA00EB9FFB /* syntaxError.js in CopyFiles */ = {isa = PBXBuildFile; fileRef = 233D767D2E288A8600EB9FFB /* syntaxError.js */; };
+		23863EEB2E5EC93E00E57879 /* WebAssemblyBuiltinTrampoline.h in Headers */ = {isa = PBXBuildFile; fileRef = 23863EEA2E5EC92900E57879 /* WebAssemblyBuiltinTrampoline.h */; };
 		2392A1302DD51DB100DD1CB9 /* WebAssemblyBuiltin.h in Headers */ = {isa = PBXBuildFile; fileRef = 2392A12A2DD51DB100DD1CB9 /* WebAssemblyBuiltin.h */; };
 		2392A1312DD51DB100DD1CB9 /* WebAssemblyCompileOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 2392A12C2DD51DB100DD1CB9 /* WebAssemblyCompileOptions.h */; };
 		2600B5A7152BAAA70091EE5F /* JSStringJoiner.h in Headers */ = {isa = PBXBuildFile; fileRef = 2600B5A5152BAAA70091EE5F /* JSStringJoiner.h */; };
@@ -2048,6 +2049,7 @@
 		E386FD7E26E867B800E4C28B /* TemporalPlainTime.h in Headers */ = {isa = PBXBuildFile; fileRef = E386FD7826E867B800E4C28B /* TemporalPlainTime.h */; };
 		E386FD7F26E867B800E4C28B /* TemporalPlainTimePrototype.h in Headers */ = {isa = PBXBuildFile; fileRef = E386FD7926E867B800E4C28B /* TemporalPlainTimePrototype.h */; };
 		E389D854291226BC0085C3DC /* PageCount.h in Headers */ = {isa = PBXBuildFile; fileRef = E389D852291226BC0085C3DC /* PageCount.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		E38CA06F2E614C0C00041A0C /* WasmCallSlot.h in Headers */ = {isa = PBXBuildFile; fileRef = E38CA06E2E614C0C00041A0C /* WasmCallSlot.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E38DAB532A95D23A0050B7A8 /* PerfLog.h in Headers */ = {isa = PBXBuildFile; fileRef = E38DAB512A95D23A0050B7A8 /* PerfLog.h */; };
 		E38DB2E727F588F80027BD3F /* ScriptExecutableInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = E38DB2E627F588F70027BD3F /* ScriptExecutableInlines.h */; };
 		E38DE55C2C4A11C700EF7055 /* CharacterPropertyDataGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = E38DE55A2C4A11AD00EF7055 /* CharacterPropertyDataGenerator.h */; };
@@ -3897,6 +3899,8 @@
 		233D767D2E288A8600EB9FFB /* syntaxError.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = syntaxError.js; sourceTree = "<group>"; };
 		233D767F2E288A8600EB9FFB /* testapi.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = testapi.js; sourceTree = "<group>"; };
 		233D76802E288A8600EB9FFB /* testapi-function-overrides.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "testapi-function-overrides.js"; sourceTree = "<group>"; };
+		23863EE92E5EC91500E57879 /* WebAssemblyBuiltinTrampoline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = WebAssemblyBuiltinTrampoline.cpp; path = js/WebAssemblyBuiltinTrampoline.cpp; sourceTree = "<group>"; };
+		23863EEA2E5EC92900E57879 /* WebAssemblyBuiltinTrampoline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WebAssemblyBuiltinTrampoline.h; path = js/WebAssemblyBuiltinTrampoline.h; sourceTree = "<group>"; };
 		2392A12A2DD51DB100DD1CB9 /* WebAssemblyBuiltin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WebAssemblyBuiltin.h; path = js/WebAssemblyBuiltin.h; sourceTree = "<group>"; };
 		2392A12B2DD51DB100DD1CB9 /* WebAssemblyBuiltin.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = WebAssemblyBuiltin.cpp; path = js/WebAssemblyBuiltin.cpp; sourceTree = "<group>"; };
 		2392A12C2DD51DB100DD1CB9 /* WebAssemblyCompileOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WebAssemblyCompileOptions.h; path = js/WebAssemblyCompileOptions.h; sourceTree = "<group>"; };
@@ -5830,6 +5834,7 @@
 		E3893A1C2203A7C600E79A74 /* AsyncFromSyncIteratorPrototype.lut.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AsyncFromSyncIteratorPrototype.lut.h; sourceTree = "<group>"; };
 		E389D851291226BC0085C3DC /* PageCount.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageCount.cpp; sourceTree = "<group>"; };
 		E389D852291226BC0085C3DC /* PageCount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageCount.h; sourceTree = "<group>"; };
+		E38CA06E2E614C0C00041A0C /* WasmCallSlot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WasmCallSlot.h; sourceTree = "<group>"; };
 		E38D060B1F8E814100649CF2 /* JSScriptFetchParameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSScriptFetchParameters.h; sourceTree = "<group>"; };
 		E38D060C1F8E814100649CF2 /* ScriptFetchParameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptFetchParameters.h; sourceTree = "<group>"; };
 		E38D060D1F8E814100649CF2 /* JSScriptFetchParameters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSScriptFetchParameters.cpp; sourceTree = "<group>"; };
@@ -7924,6 +7929,7 @@
 				526AC4B51E977C5D003500E1 /* WasmCalleeGroup.h */,
 				53FD04D11D7AB187003287D3 /* WasmCallingConvention.cpp */,
 				53FD04D21D7AB187003287D3 /* WasmCallingConvention.h */,
+				E38CA06E2E614C0C00041A0C /* WasmCallSlot.h */,
 				E337B966224324E50093A820 /* WasmCapabilities.h */,
 				E32D51A52C6D0FD600B013D1 /* WasmCompilationContext.h */,
 				E37CFB2D22F27C57009A7B38 /* WasmCompilationMode.cpp */,
@@ -10183,6 +10189,8 @@
 				55579D8D28DD640F00153DAE /* WebAssemblyArrayPrototype.h */,
 				2392A12B2DD51DB100DD1CB9 /* WebAssemblyBuiltin.cpp */,
 				2392A12A2DD51DB100DD1CB9 /* WebAssemblyBuiltin.h */,
+				23863EE92E5EC91500E57879 /* WebAssemblyBuiltinTrampoline.cpp */,
+				23863EEA2E5EC92900E57879 /* WebAssemblyBuiltinTrampoline.h */,
 				AD2FCBB01DB58DA400B3E736 /* WebAssemblyCompileErrorConstructor.cpp */,
 				AD2FCBB11DB58DA400B3E736 /* WebAssemblyCompileErrorConstructor.h */,
 				AD2FCBB21DB58DA400B3E736 /* WebAssemblyCompileErrorPrototype.cpp */,
@@ -12094,6 +12102,7 @@
 				525C0DDA1E935847002184CD /* WasmCallee.h in Headers */,
 				526AC4B71E977C5D003500E1 /* WasmCalleeGroup.h in Headers */,
 				53FD04D41D7AB291003287D3 /* WasmCallingConvention.h in Headers */,
+				E38CA06F2E614C0C00041A0C /* WasmCallSlot.h in Headers */,
 				E337B967224324EA0093A820 /* WasmCapabilities.h in Headers */,
 				E32D51AF2C6D0FF200B013D1 /* WasmCompilationContext.h in Headers */,
 				E3BD2B7622F275020011765C /* WasmCompilationMode.h in Headers */,
@@ -12182,6 +12191,7 @@
 				55579D9128DD641000153DAE /* WebAssemblyArrayConstructor.h in Headers */,
 				55579D9028DD641000153DAE /* WebAssemblyArrayPrototype.h in Headers */,
 				2392A1302DD51DB100DD1CB9 /* WebAssemblyBuiltin.h in Headers */,
+				23863EEB2E5EC93E00E57879 /* WebAssemblyBuiltinTrampoline.h in Headers */,
 				AD2FCBED1DB58DAD00B3E736 /* WebAssemblyCompileErrorConstructor.h in Headers */,
 				AD2FCBEF1DB58DAD00B3E736 /* WebAssemblyCompileErrorPrototype.h in Headers */,
 				2392A1312DD51DB100DD1CB9 /* WebAssemblyCompileOptions.h in Headers */,

@@ -125,7 +125,6 @@ public:
     void dumpEditingCallbacks() { m_dumpEditingCallbacks = true; }
     void dumpSelectionRect() { m_dumpSelectionRect = true; }
     void dumpTitleChanges() { m_dumpTitleChanges = true; }
-    void dumpFullScreenCallbacks();
     void dumpFrameLoadCallbacks() { setShouldDumpFrameLoadCallbacks(true); }
     void dumpProgressFinishedCallback() { setShouldDumpProgressFinishedCallback(true); }
     void dumpResourceLoadCallbacks() { m_dumpResourceLoadCallbacks = true; }
@@ -210,9 +209,6 @@ public:
     void setPrinting() { m_isPrinting = true; }
 
     // Authentication
-    void setRejectsProtectionSpaceAndContinueForAuthenticationChallenges(bool);
-    void setHandlesAuthenticationChallenges(bool);
-    void setShouldLogCanAuthenticateAgainstProtectionSpace(bool);
     void setAuthenticationUsername(JSStringRef);
     void setAuthenticationPassword(JSStringRef);
 
@@ -221,7 +217,6 @@ public:
     // Audio testing.
     void setAudioResult(JSContextRef, JSValueRef data);
 
-    void setBlockAllPlugins(bool);
     void setPluginSupportedMode(JSStringRef);
 
     WhatToDump whatToDump() const;
@@ -248,10 +243,6 @@ public:
 
     // Downloads
     bool shouldFinishAfterDownload() const { return m_shouldFinishAfterDownload; }
-    void setShouldLogDownloadCallbacks(bool);
-    void setShouldLogDownloadSize(bool);
-    void setShouldLogDownloadExpectedSize(bool);
-    void setShouldDownloadContentDispositionAttachments(bool);
 
     bool shouldAllowEditing() const { return m_shouldAllowEditing; }
 
@@ -369,17 +360,6 @@ public:
     JSValueRef failNextNewCodeBlock(JSContextRef);
     JSValueRef numberOfDFGCompiles(JSContextRef, JSValueRef function);
     JSValueRef neverInlineFunction(JSContextRef, JSValueRef function);
-
-    bool shouldDecideNavigationPolicyAfterDelay() const { return m_shouldDecideNavigationPolicyAfterDelay; }
-    void setShouldDecideNavigationPolicyAfterDelay(bool);
-    bool shouldDecideResponsePolicyAfterDelay() const { return m_shouldDecideResponsePolicyAfterDelay; }
-    void setShouldDecideResponsePolicyAfterDelay(bool);
-    void setNavigationGesturesEnabled(bool);
-    void setIgnoresViewportScaleLimits(bool);
-    void setUseDarkAppearanceForTesting(bool);
-    void setShouldDownloadUndisplayableMIMETypes(bool);
-    void setShouldAllowDeviceOrientationAndMotionAccess(bool);
-    void stopLoading();
 
     bool didCancelClientRedirect() const { return m_didCancelClientRedirect; }
     void setDidCancelClientRedirect(bool value) { m_didCancelClientRedirect = value; }
@@ -616,8 +596,6 @@ private:
 
     bool m_globalFlag { false };
 
-    bool m_shouldDecideNavigationPolicyAfterDelay { false };
-    bool m_shouldDecideResponsePolicyAfterDelay { false };
     bool m_shouldFinishAfterDownload { false };
     bool m_didCancelClientRedirect { false };
 

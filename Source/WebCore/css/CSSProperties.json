@@ -10222,7 +10222,7 @@
                 "normal"
             ],
             "codegen-properties": {
-                "style-converter": "InitialLetter",
+                "style-converter": "StyleType<WebkitInitialLetter>",
                 "parser-grammar": "normal | <number [0,inf]>{1,2}@(type=CSSValuePair default=previous)",
                 "parser-grammar-comment": "Spec does not match our implementation. Spec is 'normal | [ <number [1,inf]> <integer [1,inf]> ] | [ <number [1,inf]> && [ drop | raise ]? ]'"
             },
@@ -10794,17 +10794,15 @@
                     "value": "blink",
                     "comment": "The value is parsed and computed but ignored for rendering."
                 },
-                {
-                    "value": "spelling-error",
-                    "settings-flag": "cssTextDecorationLineErrorValues"
-                }
+                "spelling-error",
+                "grammar-error"
             ],
             "codegen-properties": {
                 "style-converter": "StyleType<TextDecorationLine>",
                 "aliases": [
                     "-webkit-text-decoration-line"
                 ],
-                "parser-grammar": "none | [ underline || overline || line-through || blink ]@(no-single-item-opt) | spelling-error@(settings-flag=cssTextDecorationLineErrorValues)",
+                "parser-grammar": "none | [ underline || overline || line-through || blink ]@(no-single-item-opt) | spelling-error@(settings-flag=cssTextDecorationLineErrorValues) | grammar-error@(settings-flag=cssTextDecorationLineErrorValues)",
                 "parser-exported": true
             },
             "specification": {

@@ -59,7 +59,6 @@
 #include "AccessibilityTableCell.h"
 #include "AccessibilityTableColumn.h"
 #include "AccessibilityTableHeaderContainer.h"
-#include "AccessibilityTableRow.h"
 #include "AccessibilityTree.h"
 #include "AccessibilityTreeItem.h"
 #include "CaretRectComputation.h"
@@ -106,9 +105,11 @@
 #include "Range.h"
 #include "RenderAttachment.h"
 #include "RenderImage.h"
+#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderLineBreak.h"
 #include "RenderListBox.h"
+#include "RenderListMarker.h"
 #include "RenderMathMLOperator.h"
 #include "RenderMenuList.h"
 #include "RenderMeter.h"
@@ -588,19 +589,9 @@ static bool isAccessibilityTreeItem(Element& element)
     return hasRole(element, "treeitem"_s);
 }
 
-static bool isAccessibilityTableRow(Node* node)
-{
-    return is<HTMLTableRowElement>(node);
-}
-
 static bool isAccessibilityTableCell(Node* node)
 {
     return is<HTMLTableCellElement>(node);
-}
-
-static bool isAccessibilityARIAGridRow(Element& element)
-{
-    return hasRole(element, "row"_s);
 }
 
 static bool isAccessibilityARIAGridCell(Element& element)
@@ -615,8 +606,6 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
         // Lists shouldn't fallthrough to table components, so explicitly create a render object.
         if (AXListHelpers::isAccessibilityList(*element))
             return AccessibilityRenderObject::create(AXID::generate(), renderer, *this);
-        if (isAccessibilityARIAGridRow(*element))
-            return AccessibilityTableRow::create(AXID::generate(), renderer, *this, /* isARIAGridRow */ true);
         if (isAccessibilityARIAGridCell(*element))
             return AccessibilityTableCell::create(AXID::generate(), renderer, *this, /* isARIAGridCell */ true);
 
@@ -653,8 +642,6 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
     // FIXME: Consider removing this with https://bugs.webkit.org/show_bug.cgi?id=282117.
     isAnonymous = renderer.isAnonymous();
 #endif
-    if ((is<RenderTableRow>(renderer) && !isAnonymous) || isAccessibilityTableRow(node.get()))
-        return AccessibilityTableRow::create(AXID::generate(), renderer, *this);
     if ((is<RenderTableCell>(renderer) && !isAnonymous) || isAccessibilityTableCell(node.get()))
         return AccessibilityTableCell::create(AXID::generate(), renderer, *this);
 
@@ -676,16 +663,12 @@ Ref<AccessibilityNodeObject> AXObjectCache::createFromNode(Node& node)
         // Lists shouldn't fallthrough to table components, so explicitly create a render object.
         if (AXListHelpers::isAccessibilityList(*element))
             return AccessibilityRenderObject::create(AXID::generate(), *element, *this);
-        if (isAccessibilityTableRow(element.get()))
-            return AccessibilityTableRow::create(AXID::generate(), *element, *this);
         if (isAccessibilityTableCell(element.get()))
             return AccessibilityTableCell::create(AXID::generate(), *element, *this);
         if (isAccessibilityTree(*element))
             return AccessibilityTree::create(AXID::generate(), *element, *this);
         if (isAccessibilityTreeItem(*element))
             return AccessibilityTreeItem::create(AXID::generate(), *element, *this);
-        if (isAccessibilityARIAGridRow(*element))
-            return AccessibilityTableRow::create(AXID::generate(), *element, *this, /* isARIAGridRow */ true);
         if (isAccessibilityARIAGridCell(*element))
             return AccessibilityTableCell::create(AXID::generate(), *element, *this, /* isARIAGridCell */ true);
         if (RefPtr areaElement = dynamicDowncast<HTMLAreaElement>(*element))
@@ -1326,10 +1309,9 @@ void AXObjectCache::handleChildrenChanged(AccessibilityObject& object)
         return;
     } else if (auto* nodeObject = dynamicDowncast<AccessibilityNodeObject>(object); nodeObject && nodeObject->isTable())
         deferRecomputeTableCellSlots(*nodeObject);
-    else if (auto* axRow = dynamicDowncast<AccessibilityTableRow>(object)) {
-        if (RefPtr parentTable = dynamicDowncast<AccessibilityNodeObject>(axRow->parentTable()))
-            deferRecomputeTableCellSlots(*parentTable);
-    } else if (auto* scrollView = dynamicDowncast<AccessibilityScrollView>(object)) {
+    else if (auto* parentTable = dynamicDowncast<AccessibilityNodeObject>(object.parentTableIfExposedTableRow()))
+        deferRecomputeTableCellSlots(*parentTable);
+    else if (auto* scrollView = dynamicDowncast<AccessibilityScrollView>(object)) {
         // When the children of an iframe change, e.g., because its visibility changes,
         // then we need to dirty the web area's subtree since the scroll area doesn't
         // have a node nor renderer, thus, failing the check below and returning early.
@@ -1420,7 +1402,15 @@ void AXObjectCache::handleRowspanChanged(AccessibilityTableCell& axCell)
 #if ENABLE(AX_THREAD_TEXT_APIS)
 void AXObjectCache::onTextRunsChanged(const RenderObject& renderer)
 {
-    updateIsolatedTree(get(const_cast<RenderObject&>(renderer)), AXNotification::TextRunsChanged);
+    if (is<RenderInline>(renderer) || is<RenderListMarker>(renderer)) {
+        // Fast-path exit for common renderers that will never produce text runs.
+        return;
+    }
+
+    if (std::optional axID = getAXID(const_cast<RenderObject&>(renderer))) {
+        if (RefPtr tree = AXIsolatedTree::treeForPageID(m_pageID))
+            tree->queueNodeUpdate(*axID, { AXProperty::TextRuns });
+    }
 }
 #endif
 
@@ -4989,11 +4979,6 @@ void AXObjectCache::updateIsolatedTree(const Vector<std::pair<Ref<AccessibilityO
             if (notification.first->isNativeLabel() || notification.first->role() == AccessibilityRole::TextField)
                 tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::StringValue });
             break;
-#if ENABLE(AX_THREAD_TEXT_APIS)
-        case AXNotification::TextRunsChanged:
-            tree->queueNodeUpdate(notification.first->objectID(), { AXProperty::TextRuns });
-            break;
-#endif
         case AXNotification::URLChanged:
             tree->queueNodeUpdate(notification.first->objectID(), { { AXProperty::URL, AXProperty::InternalLinkElement } });
             break;

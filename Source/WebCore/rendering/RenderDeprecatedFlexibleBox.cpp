@@ -392,14 +392,8 @@ void RenderDeprecatedFlexibleBox::layoutBlock(RelayoutChildren relayoutChildren,
     if (layoutState && layoutState->pageLogicalHeight())
         setPageLogicalOffset(layoutState->pageLogicalOffset(this, logicalTop()));
 
-    // Update our scrollbars if we're overflow:auto/scroll/hidden now that we know if
-    // we overflow or not.
-    updateScrollInfoAfterLayout();
-
     // Repaint with our new bounds if they are different from our old bounds.
     repainter.repaintAfterLayout();
-
-    clearNeedsLayout();
 }
 
 // The first walk over our kids is to find out if we have any flexible children.
@@ -750,11 +744,7 @@ void RenderDeprecatedFlexibleBox::layoutSingleClampedFlexItem()
 
     updateLayerTransform();
 
-    updateScrollInfoAfterLayout();
-
     repainter.repaintAfterLayout();
-
-    clearNeedsLayout();
 }
 
 void RenderDeprecatedFlexibleBox::layoutVerticalBox(RelayoutChildren relayoutChildren)

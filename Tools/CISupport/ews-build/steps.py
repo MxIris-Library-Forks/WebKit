@@ -1354,29 +1354,27 @@ class CheckChangeRelevance(AnalyzeChange):
                 return False
         return False
 
-    def start(self):
+    @defer.inlineCallbacks
+    def run(self):
         patch = self._get_patch()
         if not patch:
             # This build doesn't have a patch, it might be a force build.
-            self.finished(SUCCESS)
-            return None
+            defer.returnValue(SUCCESS)
 
         if self._patch_is_relevant(patch, self.getProperty('buildername', '')):
-            self._addToLog('stdio', 'This {} contains relevant changes.'.format(self.change_type.lower()))
-            self.finished(SUCCESS)
-            return None
+            self._addToLog('stdio', f'This {self.change_type.lower()} contains relevant changes.')
+            defer.returnValue(SUCCESS)
 
-        self._addToLog('stdio', 'This {} does not have relevant changes.'.format(self.change_type.lower()))
-        self.finished(FAILURE)
+        yield self._addToLog('stdio', f'This {self.change_type.lower()} does not have relevant changes.')
         self.build.results = SKIPPED
         self.build.buildFinished(['{} {} doesn\'t have relevant changes'.format(
             self.change_type,
             self.getProperty('patch_id', '') or self.getProperty('github.number', ''),
         )], SKIPPED)
-        return None
+        defer.returnValue(FAILURE)
 
 
-class GetTestExpectationsBaseline(shell.ShellCommand, ShellMixin):
+class GetTestExpectationsBaseline(shell.ShellCommandNewStyle, ShellMixin):
     name = 'get-test-expectations-baseline'
     description = 'get-test-expectations-baseline running'
     descriptionDone = 'Found baseline expectations for layout tests'
@@ -1388,17 +1386,17 @@ class GetTestExpectationsBaseline(shell.ShellCommand, ShellMixin):
         self.addLogObserver('stdio', self.log_observer)
 
         platform = self.getProperty('platform')
-        self.setCommand(self.command + customBuildFlag(platform, self.getProperty('fullPlatform')))
+        self.command += customBuildFlag(platform, self.getProperty('fullPlatform'))
 
         patch_author = self.getProperty('patch_author')
         if patch_author in ['webkit-wpt-import-bot@igalia.com']:
-            self.setCommand(self.command + ['imported/w3c/web-platform-tests'])
+            self.command += ['imported/w3c/web-platform-tests']
 
         additionalArguments = self.getProperty('additionalArguments', '')
         if additionalArguments:
-            self.setCommand(self.command + additionalArguments)
+            self.command += additionalArguments
 
-        self.setCommand(self.shell_command(' '.join(self.command) + ' > base-expectations.txt'))
+        self.command = self.shell_command(' '.join(self.command) + ' > base-expectations.txt')
         rc = yield super().run()
 
         log_text = log_text = self.log_observer.getStdout() + self.log_observer.getStderr()
@@ -3660,9 +3658,11 @@ class CompileJSC(CompileWebKit):
     descriptionDone = ['Compiled JSC']
     build_command = ['perl', 'Tools/Scripts/build-jsc']
 
-    def start(self):
+    @defer.inlineCallbacks
+    def run(self):
         self.setProperty('group', 'jsc')
-        return CompileWebKit.start(self)
+        rc = yield super().run()
+        defer.returnValue(rc)
 
     def getResultSummary(self):
         if self.results == FAILURE:
@@ -3675,9 +3675,11 @@ class CompileJSC32(CompileWebKit):
     descriptionDone = ['Compiled JSC']
     build_command = ["linux32", "perl", "Tools/Scripts/build-jsc", "--32-bit", "--cmakeargs", "-DUSE_LIBBACKTRACE=OFF -DDEVELOPER_MODE=ON -DENABLE_OFFLINE_ASM_ALT_ENTRY=1 -DCMAKE_CXX_FLAGS='-fuse-ld=gold -Wl,--no-map-whole-files -Wl,--no-keep-memory -Wl,--no-keep-files-mapped -Wl,--no-mmap-output-file -fno-omit-frame-pointer' -DCMAKE_C_FLAGS='-fuse-ld=gold -Wl,--no-map-whole-files -Wl,--no-keep-memory -Wl,--no-keep-files-mapped -Wl,--no-mmap-output-file -fno-omit-frame-pointer' -DUSE_LD_LLD=OFF"]
 
-    def start(self):
+    @defer.inlineCallbacks
+    def run(self):
         self.setProperty('group', 'jsc')
-        return CompileWebKit.start(self)
+        rc = yield super().run()
+        defer.returnValue(rc)
 
     def getResultSummary(self):
         if self.results == FAILURE:

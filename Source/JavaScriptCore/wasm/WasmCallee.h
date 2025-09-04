@@ -194,18 +194,13 @@ public:
     friend class Callee;
     friend class JSC::LLIntOffsetsExtractor;
 
-    WasmToJSCallee(FunctionSpaceIndex, std::pair<const Name*, RefPtr<NameSection>>&&);
     static WasmToJSCallee& singleton();
-
-    CalleeBits* boxedWasmCalleeLoadLocation() { return &m_boxedThis; }
 
 private:
     WasmToJSCallee();
     std::tuple<void*, void*> rangeImpl() const { return { nullptr, nullptr }; }
     CodePtr<WasmEntryPtrTag> entrypointImpl() const { return { }; }
     RegisterAtOffsetList* calleeSaveRegistersImpl() { return nullptr; }
-
-    CalleeBits m_boxedThis;
 };
 
 #if ENABLE(JIT)

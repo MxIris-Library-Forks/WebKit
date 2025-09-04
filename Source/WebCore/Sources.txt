@@ -593,7 +593,6 @@ accessibility/AccessibilitySpinButtonPart.cpp
 accessibility/AccessibilityTableCell.cpp
 accessibility/AccessibilityTableColumn.cpp
 accessibility/AccessibilityTableHeaderContainer.cpp
-accessibility/AccessibilityTableRow.cpp
 accessibility/AccessibilityTree.cpp
 accessibility/AccessibilityTreeItem.cpp
 accessibility/isolatedtree/AXIsolatedObject.cpp
@@ -2821,6 +2820,7 @@ rendering/ImageQualityController.cpp
 rendering/InlineBoxPainter.cpp
 rendering/LayerAncestorClippingStack.cpp
 rendering/LayerOverlapMap.cpp
+rendering/LayoutScope.cpp
 rendering/LayoutDisallowedScope.cpp
 rendering/LayoutRepainter.cpp
 rendering/LegacyInlineBox.cpp
@@ -3214,6 +3214,7 @@ style/values/images/StyleGradient.cpp
 style/values/images/StyleImageOrNone.cpp
 style/values/images/StyleImageWrapper.cpp
 style/values/inline/StyleVerticalAlign.cpp
+style/values/inline/StyleWebKitInitialLetter.cpp
 style/values/lists/StyleListStyleType.cpp
 style/values/masking/StyleClip.cpp
 style/values/masking/StyleClipPath.cpp

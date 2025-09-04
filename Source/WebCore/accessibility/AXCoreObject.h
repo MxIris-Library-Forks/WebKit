@@ -427,6 +427,7 @@ public:
     typedef Vector<Ref<AXCoreObject>> AccessibilityChildrenVector;
 
     virtual bool isAccessibilityObject() const = 0;
+    virtual bool isAccessibilityNodeObject() const = 0;
     virtual bool isAccessibilityRenderObject() const = 0;
     virtual bool isAXIsolatedObjectInstance() const = 0;
     virtual bool isAXRemoteFrame() const = 0;
@@ -517,6 +518,8 @@ public:
 
     // Table row support.
     virtual bool isTableRow() const = 0;
+    virtual AXCoreObject* parentTableIfExposedTableRow() const = 0;
+    virtual bool isExposedTableRow() const = 0;
     virtual unsigned rowIndex() const = 0;
     AXCoreObject* rowHeader();
 
@@ -894,6 +897,9 @@ public:
     virtual bool isWidget() const = 0;
     virtual Widget* widget() const = 0;
     virtual PlatformWidget platformWidget() const = 0;
+#if PLATFORM(COCOA)
+    virtual RetainPtr<PlatformWidget> protectedPlatformWidget() const;
+#endif
     virtual Widget* widgetForAttachmentView() const = 0;
     virtual bool isPlugin() const = 0;
 
@@ -1149,6 +1155,9 @@ public:
     virtual void mathPostscripts(AccessibilityMathMultiscriptPairs&) = 0;
 
     AccessibilityObjectWrapper* wrapper() const { return m_wrapper.get(); }
+#if PLATFORM(COCOA)
+    RetainPtr<AccessibilityObjectWrapper> protectedWrapper() const;
+#endif
     void setWrapper(AccessibilityObjectWrapper* wrapper) { m_wrapper = wrapper; }
     void detachWrapper(AccessibilityDetachmentType);
 

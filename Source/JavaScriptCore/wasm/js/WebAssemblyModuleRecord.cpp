@@ -253,9 +253,9 @@ void WebAssemblyModuleRecord::initializeImports(JSGlobalObject* globalObject, JS
             if (!value.isCallable())
                 return exception(createJSWebAssemblyLinkError(globalObject, vm, importFailMessage(import, "import function"_s, "must be callable"_s)));
 
-            JSWebAssemblyInstance* calleeInstance = nullptr;
+            JSWebAssemblyInstance* calleeInstance = m_instance.get();
             WasmToWasmImportableFunction::LoadLocation entrypointLoadLocation = nullptr;
-            CalleeBits boxedCallee { };
+            CalleeBits boxedCallee { &Wasm::WasmToJSCallee::singleton() };
             JSObject* function = jsCast<JSObject*>(value);
 
             // ii. If v is an Exported Function Exotic Object:
@@ -273,7 +273,7 @@ void WebAssemblyModuleRecord::initializeImports(JSGlobalObject* globalObject, JS
                     importedTypeIndex = wasmWrapperFunction->typeIndex();
                     // b. Let closure be v.[[Closure]].
                     function = wasmWrapperFunction->function();
-                    boxedCallee = wasmWrapperFunction->boxedCallee();
+                    ASSERT(wasmWrapperFunction->boxedCallee() == boxedCallee);
                 }
                 Wasm::TypeIndex expectedTypeIndex = moduleInformation.importFunctionTypeIndices[import.kindIndex];
                 if (!Wasm::isSubtypeIndex(importedTypeIndex, expectedTypeIndex))
@@ -287,7 +287,7 @@ void WebAssemblyModuleRecord::initializeImports(JSGlobalObject* globalObject, JS
 
             auto* info = m_instance->importFunctionInfo(import.kindIndex);
             info->boxedCallee = boxedCallee;
-            info->targetInstance.setMayBeNull(vm, m_instance.get(), calleeInstance);
+            info->targetInstance.set(vm, m_instance.get(), calleeInstance);
             info->entrypointLoadLocation = entrypointLoadLocation;
             info->typeIndex = moduleInformation.importFunctionTypeIndices[import.kindIndex];
             m_instance->importFunction(import.kindIndex).set(vm, m_instance.get(), function);
@@ -344,7 +344,7 @@ void WebAssemblyModuleRecord::initializeImports(JSGlobalObject* globalObject, JS
                             auto global = globalValue->global()->get(globalObject);
                             RETURN_IF_EXCEPTION(scope, void());
                             value = Wasm::internalizeExternref(global);
-                            if (!Wasm::TypeInformation::castReference(value, declaredGlobalType.isNullable(), declaredGlobalType.index))
+                            if (!Wasm::TypeInformation::isReferenceValueAssignable(value, declaredGlobalType.isNullable(), declaredGlobalType.index))
                                 return exception(createJSWebAssemblyLinkError(globalObject, vm, importFailMessage(import, "imported global"_s, "Argument value did not match the reference type"_s)));
                             m_instance->setGlobal(import.kindIndex, value);
                         }
@@ -407,7 +407,7 @@ void WebAssemblyModuleRecord::initializeImports(JSGlobalObject* globalObject, JS
                             return exception(createJSWebAssemblyLinkError(globalObject, vm, importFailMessage(import, "imported global"_s, "cannot be exnref"_s)));
                         else {
                             value = Wasm::internalizeExternref(value);
-                            if (!Wasm::TypeInformation::castReference(value, global.type.isNullable(), global.type.index))
+                            if (!Wasm::TypeInformation::isReferenceValueAssignable(value, global.type.isNullable(), global.type.index))
                                 return exception(createJSWebAssemblyLinkError(globalObject, vm, importFailMessage(import, "imported global"_s, "Argument value did not match the reference type"_s)));
                             m_instance->setGlobal(import.kindIndex, value);
                         }

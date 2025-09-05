@@ -2132,7 +2132,7 @@ webkit.org/b/291710 swipe/basic-cached-back-swipe.html [ Pass Timeout ]
 
 webkit.org/b/291878 [ Sequoia ] http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/textureSampleBias.html [ Pass Failure Timeout ]
 
-webkit.org/b/291966 [ Sequoia+ ] http/tests/webgpu/webgpu/api/validation/render_pipeline/fragment_state.html [ Pass Timeout Crash ]
+webkit.org/b/291966 [ Sequoia+ ] http/tests/webgpu/webgpu/api/validation/render_pipeline/fragment_state.html [ Pass Timeout ]
 
 # webkit.org/b/292111 REGRESSION ( 294024@main): [ MacOS iOS WK2 Debug ] ASSERTION FAILED: bytecodeCanIgnoreNegativeZero(node->arithNodeFlags())
 [ Sonoma+ Debug ] imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?av1 [ Skip ]
@@ -2399,8 +2399,6 @@ webkit.org/b/297674 [ Sonoma Release ] http/wpt/mediarecorder/MediaRecorder-matr
 [ Debug ] ipc/send-filter.html [ Skip ]
 [ Debug ] ipc/send-ignored-network-message.html [ Skip ]
 
-webkit.org/b/297806 http/tests/permissions/storage-access-permissions-query.html [ Pass Timeout ]
-
 webkit.org/b/297860 http/tests/site-isolation/edge-sampling-viewport-constrained-object.html [ Skip ]
 
 webkit.org/b/297006 [ Debug ] http/tests/media/media-element-frame-destroyed-crash.html [ Skip ]
@@ -2411,8 +2409,6 @@ http/wpt/service-workers/service-worker-spinning-activate.https.html [ Failure ]
 
 webkit.org/b/267778 [ Release ] fast/forms/listbox-padding-clip-selected.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/298044 [ arm64 ] fast/scrolling/mac/scrollbars/overflow-in-iframe-overlay-scrollbar-reveal.html [ Pass Failure ]
-
 webkit.org/b/298256 [ Debug ] fast/dom/document-all.html [ Pass Timeout ]
 
 webkit.org/b/298269 imported/w3c/web-platform-tests/html/anonymous-iframe/session-storage.tentative.https.window.html [ Pass Failure ]
@@ -2420,3 +2416,5 @@ webkit.org/b/298269 imported/w3c/web-platform-tests/html/anonymous-iframe/sessio
 webkit.org/b/298278 imported/w3c/web-platform-tests/html/anonymous-iframe/local-storage.tentative.https.window.html [ Pass Failure ]
 
 webkit.org/b/298292 [ Sequoia ] http/tests/webgpu/webgpu/api/operation/sampling/sampler_texture.html [ Pass Crash ]
+
+webkit.org/b/298416 [ Debug ] http/tests/websocket/web-socket-loads-captured-in-per-page-domains.html [ Pass Crash ]

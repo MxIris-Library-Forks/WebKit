@@ -240,7 +240,7 @@ MacroAssemblerCodeRef<JITThunkPtrTag> createJSToWasmJITShared()
         jit.emitSaveCalleeSavesFor(calleeSaves);
 
         jit.loadPtr(CCallHelpers::addressFor(CallFrameSlot::callee), GPRInfo::regWS0);
-        jit.loadPtr(CCallHelpers::Address(GPRInfo::regWS0, WebAssemblyFunction::offsetOfInstance()), GPRInfo::wasmContextInstancePointer);
+        jit.loadPtr(CCallHelpers::Address(GPRInfo::regWS0, WebAssemblyFunction::offsetOfTargetInstance()), GPRInfo::wasmContextInstancePointer);
 
         // Now, the current frame is fully set up for exceptions.
         // Allocate stack space
@@ -577,7 +577,7 @@ CodePtr<JSEntryPtrTag> FunctionSignature::jsToWasmICEntrypoint() const
 
     jit.loadPtr(CCallHelpers::addressFor(CallFrameSlot::callee), GPRInfo::wasmContextInstancePointer);
     jit.loadPtr(CCallHelpers::Address(GPRInfo::wasmContextInstancePointer, WebAssemblyFunction::offsetOfBoxedCallee()), scratchJSR.payloadGPR());
-    jit.loadPtr(CCallHelpers::Address(GPRInfo::wasmContextInstancePointer, WebAssemblyFunction::offsetOfInstance()), GPRInfo::wasmContextInstancePointer);
+    jit.loadPtr(CCallHelpers::Address(GPRInfo::wasmContextInstancePointer, WebAssemblyFunction::offsetOfTargetInstance()), GPRInfo::wasmContextInstancePointer);
     if (totalFrameSize >= trampolineReservedStackSize()) {
         JIT_COMMENT(jit, "stack overflow check");
         jit.loadPtr(MacroAssembler::Address(GPRInfo::wasmContextInstancePointer, JSWebAssemblyInstance::offsetOfSoftStackLimit()), stackLimitGPR);
@@ -684,9 +684,10 @@ CodePtr<JSEntryPtrTag> FunctionSignature::jsToWasmICEntrypoint() const
 
                 isWasmFunction.link(&jit);
                 if (Wasm::isRefWithTypeIndex(type)) {
+                    auto targetRTT = TypeInformation::getCanonicalRTT(type.index);
                     jit.loadPtr(jsParam, scratchJSR.payloadGPR());
-                    jit.loadPtr(CCallHelpers::Address(scratchJSR.payloadGPR(), WebAssemblyFunctionBase::offsetOfSignatureIndex()), scratchJSR.payloadGPR());
-                    slowPath.append(jit.branchPtr(CCallHelpers::NotEqual, scratchJSR.payloadGPR(), CCallHelpers::TrustedImmPtr(type.index)));
+                    jit.loadPtr(CCallHelpers::Address(scratchJSR.payloadGPR(), WebAssemblyFunctionBase::offsetOfRTT()), scratchJSR.payloadGPR());
+                    slowPath.append(jit.branchPtr(CCallHelpers::NotEqual, scratchJSR.payloadGPR(), CCallHelpers::TrustedImmPtr(targetRTT.ptr())));
                 }
 
                 if (type.isNullable())

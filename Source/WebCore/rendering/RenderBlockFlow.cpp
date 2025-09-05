@@ -481,12 +481,6 @@ void RenderBlockFlow::layoutBlockWithNoChildren()
     };
     computeOverflow();
 
-    auto updateLayerProperties = [&] {
-        updateLayerTransform();
-    };
-    if (hasLayer())
-        updateLayerProperties();
-
     repainter.repaintAfterLayout();
 }
 
@@ -639,8 +633,6 @@ void RenderBlockFlow::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit 
     auto* state = view().frameView().layoutContext().layoutState();
     if (state && state->pageLogicalHeight())
         setPageLogicalOffset(state->pageLogicalOffset(this, logicalTop()));
-
-    updateLayerTransform();
 
     // FIXME: This repaint logic should be moved into a separate helper function!
     // Repaint with our new bounds if they are different from our old bounds.
@@ -3791,6 +3783,9 @@ bool RenderBlockFlow::hasLines() const
 
 void RenderBlockFlow::invalidateLineLayout(InvalidationReason invalidationReason)
 {
+    if (lineLayoutPath() == UndeterminedPath)
+        return;
+
     auto issueNeedsLayoutIfApplicable = [&] {
         if (selfNeedsLayout() || normalChildNeedsLayout())
             return;

@@ -906,6 +906,9 @@ css/CSSFontStyleRangeValue.cpp
 css/CSSFontStyleWithAngleValue.cpp
 css/CSSFontValue.cpp
 css/CSSFontVariationValue.cpp
+css/CSSFunctionDeclarations.cpp
+css/CSSFunctionDescriptors.cpp
+css/CSSFunctionRule.cpp
 css/CSSFunctionValue.cpp
 css/CSSGradientValue.cpp
 css/CSSGridAutoRepeatValue.cpp
@@ -2134,6 +2137,7 @@ page/IntelligenceTextEffectsSupport.cpp
 page/InteractionRegion.cpp
 page/IntersectionObserver.cpp
 page/IntersectionObserverEntry.cpp
+page/LargestContentfulPaint.cpp
 page/LocalDOMWindow.cpp
 page/LocalDOMWindowProperty.cpp
 page/LocalFrame.cpp
@@ -3675,6 +3679,9 @@ JSCSSFontFaceDescriptors.cpp
 JSCSSFontFaceRule.cpp
 JSCSSFontFeatureValuesRule.cpp
 JSCSSFontPaletteValuesRule.cpp
+JSCSSFunctionDeclarations.cpp
+JSCSSFunctionDescriptors.cpp
+JSCSSFunctionRule.cpp
 JSCSSGroupingRule.cpp
 JSCSSHSL.cpp
 JSCSSHWB.cpp
@@ -4298,6 +4305,7 @@ JSKeyframeEffect.cpp
 JSKeyframeEffectOptions.cpp
 JSLandmark.cpp
 JSLandmarkType.cpp
+JSLargestContentfulPaint.cpp
 JSLatencyMode.cpp
 JSLocation.cpp
 JSLongRange.cpp

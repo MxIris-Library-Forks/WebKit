@@ -619,9 +619,6 @@ imported/w3c/web-platform-tests/x-frame-options/multiple.html [ DumpJSConsoleLog
 imported/w3c/web-platform-tests/x-frame-options/sameorigin.sub.html [ DumpJSConsoleLogInStdErr ]
 imported/w3c/web-platform-tests/cookiestore/cookieStore_event_basic.https.window.html [ DumpJSConsoleLogInStdErr ]
 
-# Asserts in Debug
-[ Debug ] imported/w3c/web-platform-tests/FileAPI/blob/Blob-stream-sync-xhr-crash.html [ Skip ]
-
 # We need to fix our WebVTT implementation to pass most of the WebVTT rendering WPT (https://bugs.webkit.org/show_bug.cgi?id=277975).
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video [ ImageOnlyFailure ]
 
@@ -6827,9 +6824,6 @@ imported/w3c/web-platform-tests/css/css-overflow/scrollable-overflow-input-001.h
 imported/w3c/web-platform-tests/css/css-overflow/scrollable-overflow-input-002.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-overflow/scrollable-overflow-padding.html [ Skip ]
 
-# css-mixins / @function failures
-imported/w3c/web-platform-tests/css/css-mixins/at-function-cssom.html [ Skip ]
-
 # These tests have been flaky since their import.
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/sandbox-top-navigation-child-special-cases.tentative.sub.window.html [ DumpJSConsoleLogInStdErr Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/sandbox-top-navigation-child.tentative.sub.window.html [ DumpJSConsoleLogInStdErr Pass Failure ]
@@ -7080,9 +7074,6 @@ imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-range-update
 imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-range-update.html [ Skip ]
 imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-subject-bounds-update.html [ Skip ]
 
-# CSS @scope
-imported/w3c/web-platform-tests/css/css-cascade/scope-visited.html [ ImageOnlyFailure ]
-
 webkit.org/b/263923 animations/transition-and-animation-2.html [ Failure Pass ]
 
 # CloseWatcher related timeouts
@@ -7091,8 +7082,6 @@ imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-e
 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/dialog-canceling.html [ Skip ]
 
 # -- Navigation API -- #
-
-webkit.org/b/297477 imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-history-back-bfcache.html [ Timeout Pass Failure ]
 
 # These cross-window needs --allowed-host=www1.localhost, so tested manually.
 imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
@@ -7686,7 +7675,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-switch-to-fixed-anchor.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-with-position.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-chained-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-no-overflow-scroll.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-colspan-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/transform-001.tentative.html [ ImageOnlyFailure ]

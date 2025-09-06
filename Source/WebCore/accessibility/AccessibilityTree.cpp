@@ -31,7 +31,7 @@
 
 #include "AXObjectCache.h"
 #include "AXUtilities.h"
-#include "AccessibilityTreeItem.h"
+#include "AccessibilityObjectInlines.h"
 #include "Element.h"
 #include "HTMLNames.h"
 #include "NodeInlines.h"

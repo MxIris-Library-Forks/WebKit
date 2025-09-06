@@ -194,6 +194,11 @@ bool AXCoreObject::hasCellRole() const
     return role == AccessibilityRole::Cell || role == AccessibilityRole::GridCell || role == AccessibilityRole::ColumnHeader || role == AccessibilityRole::RowHeader;
 }
 
+bool AXCoreObject::hasCellOrRowRole() const
+{
+    return hasCellRole() || role() == AccessibilityRole::Row;
+}
+
 bool AXCoreObject::isButton() const
 {
     switch (role()) {
@@ -1094,6 +1099,26 @@ bool AXCoreObject::isReplacedElement() const
     }
 }
 
+AXCoreObject::AccessibilityChildrenVector AXCoreObject::revealableContainers()
+{
+    AXCoreObject::AccessibilityChildrenVector revealableContainers;
+
+    auto isCollapsedDetails = [this] {
+        return role() == AccessibilityRole::Details && !isExpanded();
+    };
+    if (isHiddenUntilFoundContainer() || isCollapsedDetails())
+        revealableContainers.append(*this);
+
+    if (role() == AccessibilityRole::Summary) {
+        // When rendered, the summary element is the thing that assistive technologies can actually
+        // navigate to. Return our containing details as the revealable container so we can search
+        // inside the details subtree for revealable text.
+        if (RefPtr details = detailsAncestor(); details && !details->isExpanded())
+            revealableContainers.append(details.releaseNonNull());
+    }
+    return revealableContainers;
+}
+
 bool AXCoreObject::containsOnlyStaticText() const
 {
     bool hasText = false;
@@ -1622,6 +1647,13 @@ AXCoreObject* AXCoreObject::parentObjectUnignored() const
 
     return Accessibility::findAncestor<AXCoreObject>(*this, false, [&] (const AXCoreObject& object) {
         return !object.isIgnored();
+    });
+}
+
+AXCoreObject* AXCoreObject::detailsAncestor() const
+{
+    return Accessibility::findAncestor<AXCoreObject>(*this, false, [&] (const AXCoreObject& object) {
+        return object.role() == AccessibilityRole::Details;
     });
 }
 

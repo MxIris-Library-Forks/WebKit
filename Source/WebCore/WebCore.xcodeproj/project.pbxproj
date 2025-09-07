@@ -5144,6 +5144,9 @@
 		BC709DE0266323CF00B9A21C /* CSSCalcSymbolTable.h in Headers */ = {isa = PBXBuildFile; fileRef = BC709DDE266323CE00B9A21C /* CSSCalcSymbolTable.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC731E752E636D8700A6584F /* StyleImageOrNone.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731E742E636D8700A6584F /* StyleImageOrNone.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC731EA72E64CCBD00A6584F /* StyleWebKitInitialLetter.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731EA62E64CCBD00A6584F /* StyleWebKitInitialLetter.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC731F292E68B37100A6584F /* StyleWebKitBoxFlex.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731F282E68B37100A6584F /* StyleWebKitBoxFlex.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC731F2B2E68B38500A6584F /* StyleWebKitBoxFlexGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731F2A2E68B38500A6584F /* StyleWebKitBoxFlexGroup.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC731F2D2E68B39D00A6584F /* StyleWebKitBoxOrdinalGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731F2C2E68B39D00A6584F /* StyleWebKitBoxOrdinalGroup.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC772C470C4EB2C60083285F /* XMLHttpRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = BC772C450C4EB2C60083285F /* XMLHttpRequest.h */; };
 		BC772C4F0C4EB3040083285F /* MIMETypeRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = BC772C4D0C4EB3040083285F /* MIMETypeRegistry.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC779E141BB215BB00CAA8BF /* CSSCustomPropertyValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC779E131BB215BB00CAA8BF /* CSSCustomPropertyValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18709,6 +18712,9 @@
 		BC731EA62E64CCBD00A6584F /* StyleWebKitInitialLetter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitInitialLetter.h; sourceTree = "<group>"; };
 		BC731EA92E64CE3C00A6584F /* StyleWebKitInitialLetter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleWebKitInitialLetter.cpp; sourceTree = "<group>"; };
 		BC731EBE2E65FC2C00A6584F /* StyleWebKitBoxReflect.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleWebKitBoxReflect.cpp; sourceTree = "<group>"; };
+		BC731F282E68B37100A6584F /* StyleWebKitBoxFlex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitBoxFlex.h; sourceTree = "<group>"; };
+		BC731F2A2E68B38500A6584F /* StyleWebKitBoxFlexGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitBoxFlexGroup.h; sourceTree = "<group>"; };
+		BC731F2C2E68B39D00A6584F /* StyleWebKitBoxOrdinalGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitBoxOrdinalGroup.h; sourceTree = "<group>"; };
 		BC772C440C4EB2C60083285F /* XMLHttpRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = XMLHttpRequest.cpp; sourceTree = "<group>"; };
 		BC772C450C4EB2C60083285F /* XMLHttpRequest.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = XMLHttpRequest.h; sourceTree = "<group>"; };
 		BC772C4C0C4EB3040083285F /* MIMETypeRegistry.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = MIMETypeRegistry.cpp; sourceTree = "<group>"; };
@@ -35753,6 +35759,9 @@
 				BC675B692DEE8B8200AD4D79 /* StyleFlexBasis.h */,
 				BC34D2EA2E3D22D3001EAD95 /* StyleFlexGrow.h */,
 				BC34D2EC2E3D2370001EAD95 /* StyleFlexShrink.h */,
+				BC731F282E68B37100A6584F /* StyleWebKitBoxFlex.h */,
+				BC731F2A2E68B38500A6584F /* StyleWebKitBoxFlexGroup.h */,
+				BC731F2C2E68B39D00A6584F /* StyleWebKitBoxOrdinalGroup.h */,
 			);
 			path = flexbox;
 			sourceTree = "<group>";
@@ -46048,6 +46057,9 @@
 				32DAE2382994A51500F0E767 /* StyleVisitedLinkColorData.h in Headers */,
 				BC22AABA2E371A4C009AC0C3 /* StyleWebKitBorderSpacing.h in Headers */,
 				BC2272870E82E70700E7F975 /* StyleWebKitBoxReflect.h in Headers */,
+				BC731F292E68B37100A6584F /* StyleWebKitBoxFlex.h in Headers */,
+				BC731F2B2E68B38500A6584F /* StyleWebKitBoxFlexGroup.h in Headers */,
+				BC731F2D2E68B39D00A6584F /* StyleWebKitBoxOrdinalGroup.h in Headers */,
 				BC731EA72E64CCBD00A6584F /* StyleWebKitInitialLetter.h in Headers */,
 				AB31C91E10AE1B8E000C7B92 /* StyleWebKitLineClamp.h in Headers */,
 				BC092AB02E31747F002ACB2C /* StyleWebKitLineGrid.h in Headers */,

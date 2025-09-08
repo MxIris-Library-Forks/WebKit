@@ -586,6 +586,8 @@ void Internals::resetToConsistentState(Page& page)
     page.setDefersLoading(false);
     page.setResourceCachingDisabledByWebInspector(false);
 
+    page.console().setConsoleMessageListener(nullptr);
+
     RefPtr localMainFrame = page.localMainFrame();
     if (!localMainFrame)
         return;
@@ -749,8 +751,6 @@ Internals::Internals(Document& document)
         setAutomaticLinkDetectionEnabled(false);
         setAutomaticTextReplacementEnabled(true);
     }
-
-    setConsoleMessageListener(nullptr);
 
 #if ENABLE(APPLE_PAY)
     auto* frame = document.frame();
@@ -2127,7 +2127,7 @@ ExceptionOr<RefPtr<ImageData>> Internals::snapshotNode(Node& node)
 
     document->updateLayoutIgnorePendingStylesheets();
 
-    SnapshotOptions options { { SnapshotFlags::DraggableElement }, ImageBufferPixelFormat::BGRA8, DestinationColorSpace::SRGB() };
+    SnapshotOptions options { { SnapshotFlags::DraggableElement }, PixelFormat::BGRA8, DestinationColorSpace::SRGB() };
 
     RefPtr imageBuffer = WebCore::snapshotNode(*document->frame(), node, WTFMove(options));
     if (!imageBuffer)
@@ -6662,10 +6662,11 @@ void Internals::updateQuotaBasedOnSpaceUsage()
 
 void Internals::setConsoleMessageListener(RefPtr<StringCallback>&& listener)
 {
-    if (!contextDocument())
+    RefPtr page = contextDocument() ? contextDocument()->page() : nullptr;
+    if (!page)
         return;
 
-    contextDocument()->setConsoleMessageListener(WTFMove(listener));
+    page->console().setConsoleMessageListener(WTFMove(listener));
 }
 
 void Internals::setResponseSizeWithPadding(FetchResponse& response, uint64_t size)
@@ -7918,7 +7919,7 @@ std::optional<RenderingMode> Internals::getEffectiveRenderingModeOfNewlyCreatedA
     if (!document || !document->page())
         return std::nullopt;
 
-    if (RefPtr imageBuffer = ImageBuffer::create({ 100, 100 }, RenderingMode::Accelerated, RenderingPurpose::DOM, 1, DestinationColorSpace::SRGB(), ImageBufferPixelFormat::BGRA8,  &document->page()->chrome())) {
+    if (RefPtr imageBuffer = ImageBuffer::create({ 100, 100 }, RenderingMode::Accelerated, RenderingPurpose::DOM, 1, DestinationColorSpace::SRGB(), PixelFormat::BGRA8,  &document->page()->chrome())) {
         imageBuffer->ensureBackendCreated();
         if (imageBuffer->hasBackend())
             return imageBuffer->renderingMode();

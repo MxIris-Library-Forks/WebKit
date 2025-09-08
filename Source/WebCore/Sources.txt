@@ -592,7 +592,6 @@ accessibility/AccessibilitySpinButton.cpp
 accessibility/AccessibilitySpinButtonPart.cpp
 accessibility/AccessibilityTableColumn.cpp
 accessibility/AccessibilityTableHeaderContainer.cpp
-accessibility/AccessibilityTree.cpp
 accessibility/isolatedtree/AXIsolatedObject.cpp
 accessibility/isolatedtree/AXIsolatedTree.cpp
 animation/AcceleratedEffectStackUpdater.cpp
@@ -4279,7 +4278,7 @@ JSImageBitmapRenderingContextSettings.cpp
 JSImageCapture.cpp
 JSImageData.cpp
 JSImageDataSettings.cpp
-JSImageDataStorageFormat.cpp
+JSImageDataPixelFormat.cpp
 JSImageResource.cpp
 JSImageSmoothingQuality.cpp
 JSImportNodeOptions.cpp

@@ -1667,8 +1667,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/ImageBitmap.h
     html/ImageData.h
     html/ImageDataArray.h
+    html/ImageDataPixelFormat.h
     html/ImageDataSettings.h
-    html/ImageDataStorageFormat.h
     html/ImageDocument.h
     html/InputMode.h
     html/InputType.h
@@ -2574,7 +2574,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageBufferBackendParameters.h
     platform/graphics/ImageBufferDisplayListBackend.h
     platform/graphics/ImageBufferFormat.h
-    platform/graphics/ImageBufferPixelFormat.h
     platform/graphics/ImageBufferPlatformBackend.h
     platform/graphics/ImageBufferResourceLimits.h
     platform/graphics/ImageDecoder.h

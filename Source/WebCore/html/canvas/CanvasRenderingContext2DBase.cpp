@@ -262,9 +262,14 @@ void CanvasRenderingContext2DBase::unwindStateStack()
     size_t stackSize = m_stateStack.size();
     if (stackSize <= 1)
         return;
+
     // We need to keep the last state because it is tracked by CanvasBase::m_contextStateSaver.
-    if (auto* context = existingDrawingContext())
-        context->unwindStateStack(stackSize - 1);
+    auto* context = existingDrawingContext();
+    while (m_stateStack.size() > 1) {
+        m_stateStack.removeLast();
+        if (context)
+            context->restore();
+    }
 }
 
 CanvasRenderingContext2DBase::~CanvasRenderingContext2DBase()
@@ -316,7 +321,7 @@ void CanvasRenderingContext2DBase::reset()
 {
     unwindStateStack();
 
-    m_stateStack.resize(1);
+    ASSERT(m_stateStack.size() == 1);
     m_stateStack.first() = State();
 
     m_path.clear();
@@ -3059,17 +3064,17 @@ FloatPoint CanvasRenderingContext2DBase::textOffset(float width, TextDirection d
     return offset;
 }
 
-PixelFormat CanvasRenderingContext2DBase::pixelFormat() const
+ImageBufferPixelFormat CanvasRenderingContext2DBase::pixelFormat() const
 {
     // FIXME: Take m_settings.alpha into account here and add PixelFormat::BGRX8.
     switch (m_settings.colorType) {
     case CanvasRenderingContext2DSettings::ColorType::Unorm8:
-        return PixelFormat::BGRA8;
+        return ImageBufferPixelFormat::BGRA8;
     case CanvasRenderingContext2DSettings::ColorType::Float16:
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
-        return PixelFormat::RGBA16F;
+        return ImageBufferPixelFormat::RGBA16F;
 #else
-        return PixelFormat::BGRA8;
+        return ImageBufferPixelFormat::BGRA8;
 #endif
     }
 }

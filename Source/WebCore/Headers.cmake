@@ -495,6 +495,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/identity/protocols/openid/OpenID4VPRequest.h
 
     Modules/indexeddb/IDBActiveDOMObject.h
+    Modules/indexeddb/IDBActiveDOMObjectInlines.h
     Modules/indexeddb/IDBCursor.h
     Modules/indexeddb/IDBDatabase.h
     Modules/indexeddb/IDBDatabaseIdentifier.h
@@ -828,6 +829,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/webtransport/WebTransportSendStreamStats.h
     Modules/webtransport/WebTransportSession.h
     Modules/webtransport/WebTransportSessionClient.h
+    Modules/webtransport/WorkerWebTransportSession.h
 
     Modules/webxr/XRCanvasConfiguration.h
     Modules/webxr/XRGPUProjectionLayerInit.h
@@ -2574,6 +2576,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageBufferBackendParameters.h
     platform/graphics/ImageBufferDisplayListBackend.h
     platform/graphics/ImageBufferFormat.h
+    platform/graphics/ImageBufferPixelFormat.h
     platform/graphics/ImageBufferPlatformBackend.h
     platform/graphics/ImageBufferResourceLimits.h
     platform/graphics/ImageDecoder.h
@@ -3296,6 +3299,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/overflow/StyleMaximumLines.h
     style/values/overflow/StyleScrollBehavior.h
     style/values/overflow/StyleScrollbarGutter.h
+
+    style/values/page/StylePageSize.h
 
     style/values/position/StyleInset.h
 

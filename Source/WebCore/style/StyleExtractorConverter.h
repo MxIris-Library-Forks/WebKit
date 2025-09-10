@@ -62,7 +62,6 @@
 #include "CSSValuePool.h"
 #include "CSSViewValue.h"
 #include "ContainerNodeInlines.h"
-#include "DocumentInlines.h"
 #include "FontCascade.h"
 #include "FontSelectionValueInlines.h"
 #include "HTMLFrameOwnerElement.h"
@@ -96,7 +95,6 @@
 #include "StyleMinimumSize.h"
 #include "StyleOffsetPath.h"
 #include "StylePadding.h"
-#include "StylePathData.h"
 #include "StylePerspective.h"
 #include "StylePreferredSize.h"
 #include "StylePrimitiveKeyword+CSSValueCreation.h"
@@ -162,7 +160,6 @@ public:
     static Ref<CSSValue> convertGlyphOrientation(ExtractorState&, GlyphOrientation);
     static Ref<CSSValue> convertGlyphOrientationOrAuto(ExtractorState&, GlyphOrientation);
     static Ref<CSSValue> convertMarginTrim(ExtractorState&, OptionSet<MarginTrimType>);
-    static Ref<CSSValue> convertDPath(ExtractorState&, const StylePathData*);
     static Ref<CSSValue> convertStrokeDashArray(ExtractorState&, const FixedVector<WebCore::Length>&);
     static Ref<CSSValue> convertFilterOperations(ExtractorState&, const FilterOperations&);
     static Ref<CSSValue> convertAppleColorFilterOperations(ExtractorState&, const FilterOperations&);
@@ -548,14 +545,6 @@ inline Ref<CSSValue> ExtractorConverter::convertMarginTrim(ExtractorState&, Opti
     if (marginTrim.contains(MarginTrimType::InlineEnd))
         list.append(CSSPrimitiveValue::create(CSSValueInlineEnd));
     return CSSValueList::createSpaceSeparated(WTFMove(list));
-}
-
-
-inline Ref<CSSValue> ExtractorConverter::convertDPath(ExtractorState& state, const StylePathData* path)
-{
-    if (!path)
-        return CSSPrimitiveValue::create(CSSValueNone);
-    return CSSPathValue::create(toCSS(Ref { *path }->path(), state.style, PathConversion::ForceAbsolute));
 }
 
 inline Ref<CSSValue> ExtractorConverter::convertStrokeDashArray(ExtractorState& state, const FixedVector<WebCore::Length>& dashes)

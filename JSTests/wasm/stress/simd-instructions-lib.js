@@ -25,18 +25,32 @@ function floatToWasmText(val) {
  */
 function arrayToV128Const(array, instruction) {
     if (instruction.startsWith('i8x16.') || instruction.startsWith('v128.')) {
-        const hexValues = array.map(val => `0x${val.toString(16).padStart(2, '0').toUpperCase()}`);
+        const hexValues = array.map(val => {
+            // Convert to unsigned 8-bit
+            const unsigned = (val & 0xFF) >>> 0;
+            return `0x${unsigned.toString(16).padStart(2, '0').toUpperCase()}`;
+        });
         return `(v128.const i8x16 ${hexValues.join(' ')})`;
     } else if (instruction.startsWith('i16x8.')) {
-        const hexValues = array.map(val => `0x${val.toString(16).padStart(4, '0').toUpperCase()}`);
+        const hexValues = array.map(val => {
+            // Convert to unsigned 16-bit
+            const unsigned = (val & 0xFFFF) >>> 0;
+            return `0x${unsigned.toString(16).padStart(4, '0').toUpperCase()}`;
+        });
         return `(v128.const i16x8 ${hexValues.join(' ')})`;
     } else if (instruction.startsWith('i32x4.')) {
-        const hexValues = array.map(val => `0x${val.toString(16).padStart(8, '0').toUpperCase()}`);
+        const hexValues = array.map(val => {
+            // Convert to unsigned 32-bit
+            const unsigned = val >>> 0;
+            return `0x${unsigned.toString(16).padStart(8, '0').toUpperCase()}`;
+        });
         return `(v128.const i32x4 ${hexValues.join(' ')})`;
     } else if (instruction.startsWith('i64x2.')) {
         const hexValues = array.map(val => {
-            const bigIntVal = typeof val === 'bigint' ? val : BigInt(val);
-            return `0x${bigIntVal.toString(16).padStart(16, '0').toUpperCase()}`;
+            let bigIntVal = typeof val === 'bigint' ? val : BigInt(val);
+            // Convert to unsigned 64-bit using BigInt mask
+            const unsigned = bigIntVal & 0xFFFFFFFFFFFFFFFFn;
+            return `0x${unsigned.toString(16).padStart(16, '0').toUpperCase()}`;
         });
         return `(v128.const i64x2 ${hexValues.join(' ')})`;
     } else if (instruction.startsWith('f32x4.')) {
@@ -51,12 +65,44 @@ function arrayToV128Const(array, instruction) {
 }
 
 /**
+ * Convert scalar value to WebAssembly text format based on instruction type
+ * @param {*} val - Scalar value
+ * @param {string} instruction - SIMD instruction name
+ * @returns {string} - WebAssembly text format representation
+ */
+function scalarToWasmText(val, instruction) {
+    if (instruction.startsWith('i8x16.') || instruction.startsWith('i16x8.') || instruction.startsWith('i32x4.')) {
+        // Integer splat instructions take i32 constants
+        return `(i32.const ${val})`;
+    } else if (instruction.startsWith('i64x2.')) {
+        // i64 splat instruction takes i64 constant
+        const bigIntVal = typeof val === 'bigint' ? val : BigInt(val);
+        return `(i64.const ${bigIntVal})`;
+    } else if (instruction.startsWith('f32x4.')) {
+        // f32 splat instruction takes f32 constant
+        return `(f32.const ${floatToWasmText(val)})`;
+    } else if (instruction.startsWith('f64x2.')) {
+        // f64 splat instruction takes f64 constant
+        return `(f64.const ${floatToWasmText(val)})`;
+    }
+    // Default fallback
+    return val.toString();
+}
+
+/**
  * Run SIMD instruction tests with given test data
  * @param {Array} testData - Array of test cases, each containing [instruction, input0, input1, expected]
  * @param {boolean} verbose - Whether to print verbose output
  * @param {string} testType - Description of test type for logging
  */
 export async function runSIMDTests(testData, verbose = false, testType = "SIMD") {
+
+    const numInputs = instruction =>
+        ['.bitselect', '.shuffle'].some(pattern => instruction.includes(pattern)) ? 3 :
+        ['.abs', '.neg', '.sqrt', '.not', '.any_true', '.popcnt', '.all_true', '.bitmask', '.splat'].some(pattern => instruction.includes(pattern)) ? 1 : 2;
+
+    const returnsI32 = instruction => ['.any_true', '.all_true', '.bitmask'].some(pattern => instruction.includes(pattern));
+
     // Generate WebAssembly module
     let wat = `
 (module
@@ -64,15 +110,47 @@ export async function runSIMDTests(testData, verbose = false, testType = "SIMD")
 `;
 
     testData.forEach((test, index) => {
-        const [instruction, input0, input1, expected] = test;
-        const input0Str = Array.isArray(input0) ? arrayToV128Const(input0, instruction) : input0;
-        const input1Str = Array.isArray(input1) ? arrayToV128Const(input1, instruction) : input1;
-        const isUnaryOp = instruction.includes('.abs') || instruction.includes('.neg') || instruction.includes('.sqrt') || instruction.includes('.not');
+        const [instruction, arg0, arg1, arg2, arg3] = test;
+
+        const numArgs = numInputs(instruction);
+
+        const input0Str = Array.isArray(arg0) ? arrayToV128Const(arg0, instruction) :
+                         (instruction.includes('.splat') ? scalarToWasmText(arg0, instruction) : arg0);
         
-        wat += `
+        if (returnsI32(instruction)) {
+            // Instructions that return i32 (like v128.any_true) store to i32 memory location
+            wat += `
+    (func (export "test_${index}") (param $addr i32)
+        (i32.store (local.get $addr)
+`;
+        } else {
+            // Instructions that return v128 store to v128 memory location
+            wat += `
     (func (export "test_${index}") (param $addr i32)
         (v128.store (local.get $addr)
-            (${instruction} ${input0Str}${isUnaryOp ? '' : ' ' + input1Str}))
+`;
+        }
+        
+        if (numArgs === 1) {
+            wat += `            (${instruction} ${input0Str})`;
+        } else if (numArgs === 2) {
+            const input1Str = Array.isArray(arg1) ? arrayToV128Const(arg1, instruction) : arg1;
+            wat += `            (${instruction} ${input0Str} ${input1Str})`;
+        } else if (numArgs === 3) {
+            const input1Str = Array.isArray(arg1) ? arrayToV128Const(arg1, instruction) : arg1;
+            if (instruction.includes('.shuffle')) {
+                // For shuffle, arg2 contains the 16 immediate indices that come right after instruction name
+                const indices = arg2.join(' ');
+                wat += `            (${instruction} ${indices} ${input0Str} ${input1Str})`;
+            } else {
+                // For other 3-arg instructions like bitselect
+                const input2Str = Array.isArray(arg2) ? arrayToV128Const(arg2, instruction) : arg2;
+                wat += `            (${instruction} ${input0Str} ${input1Str} ${input2Str})`;
+            }
+        } else
+            assert.fail(`Unsupported number of arguments: ${numArgs} for instruction: ${instruction}`);
+
+        wat += `)
     )
 `;
     });
@@ -102,8 +180,19 @@ export async function runSIMDTests(testData, verbose = false, testType = "SIMD")
 
     for (let i = 0; i < wasmTestLoopCount; ++i) {
         testData.forEach((test, testIndex) => {
-            const [instruction, input0, input1, expected] = test;
-            
+            const [instruction, arg0, arg1, arg2, arg3] = test;
+            const numArgs = numInputs(instruction);
+            let expected;
+            if (numArgs === 1)
+                expected = arg1;
+            else if (numArgs === 2)
+                expected = arg2;
+            else if (numArgs === 3) {
+                // For all 3-arg instructions (shuffle, bitselect), expected result is arg3
+                expected = arg3;
+            } else
+                assert.fail(`Unsupported number of arguments: ${numArgs} for instruction: ${instruction}`);
+
             if (verbose)
                 print(`Testing ${instruction} test ${testIndex}...`);
             
@@ -121,9 +210,18 @@ export async function runSIMDTests(testData, verbose = false, testType = "SIMD")
                     print(`\n=== TEST CASE FAILURE ===`);
                     print(`Test Index: ${testIndex}`);
                     print(`Instruction: ${instruction}`);
-                    print(`Input 0: ${Array.isArray(input0) ? `[${input0.join(', ')}]` : input0}`);
-                    print(`Input 1: ${Array.isArray(input1) ? `[${input1.join(', ')}]` : input1}`);
-                    print(`Expected Array: [${expected.join(', ')}]`);
+                    print(`Input 0: ${Array.isArray(arg0) ? `[${arg0.join(', ')}]` : arg0}`);
+                    if (numArgs >= 2) {
+                        print(`Input 1: ${Array.isArray(arg1) ? `[${arg1.join(', ')}]` : arg1}`);
+                    }
+                    if (numArgs >= 3) {
+                        print(`Input 2: ${Array.isArray(arg2) ? `[${arg2.join(', ')}]` : arg2}`);
+                    }
+                    if (returnsI32(instruction)) {
+                        print(`Expected Value: ${expected}`);
+                    } else {
+                        print(`Expected Array: [${expected.join(', ')}]`);
+                    }
                     print(`Actual Array: [${Array.from(actualArray).join(', ')}]`);
                     print(`Lane: ${lane}`);
                     print(`Expected Value: ${expectedValue}`);
@@ -134,7 +232,10 @@ export async function runSIMDTests(testData, verbose = false, testType = "SIMD")
             }
 
             // Verify the result using appropriate data type
-            if (instruction.startsWith('i8x16.') || instruction.startsWith('v128.')) {
+            if (returnsI32(instruction)) {
+                // Instructions that return i32 (like v128.any_true)
+                assertEqWithContext(u32[0], expected, 0, [u32[0]]);
+            } else if (instruction.startsWith('i8x16.') || instruction.startsWith('v128.')) {
                 for (let j = 0; j < 16; j++)
                     assertEqWithContext(u8[j], expected[j], j, u8.slice(0, 16));
             } else if (instruction.startsWith('i16x8.')) {
@@ -158,9 +259,8 @@ export async function runSIMDTests(testData, verbose = false, testType = "SIMD")
             } else if (instruction.startsWith('f64x2.')) {
                 for (let j = 0; j < 2; j++)
                     assertEqWithContext(f64[j], expected[j], j, f64.slice(0, 2));
-            } else {
+            } else
                 assert.fail(`Unhandled instruction format: ${instruction}`);
-            }
             
             if (verbose)
                 print(`✓ ${instruction} test ${testIndex} passed`);

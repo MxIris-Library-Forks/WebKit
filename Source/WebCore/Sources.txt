@@ -1920,6 +1920,8 @@ layout/formattingContexts/block/tablewrapper/TableWrapperBlockFormattingQuirks.c
 layout/formattingContexts/flex/FlexFormattingContext.cpp
 layout/formattingContexts/flex/FlexFormattingUtils.cpp
 layout/formattingContexts/flex/FlexLayout.cpp
+layout/formattingContexts/grid/GridFormattingContext.cpp
+layout/formattingContexts/grid/GridLayout.cpp
 layout/formattingContexts/inline/AbstractLineBuilder.cpp
 layout/formattingContexts/inline/InlineContentAligner.cpp
 layout/formattingContexts/inline/InlineContentBreaker.cpp
@@ -2468,7 +2470,6 @@ platform/graphics/ComplexTextController.cpp
 platform/graphics/ContentTypeUtilities.cpp
 platform/graphics/ContentsFormat.cpp
 platform/graphics/CrossfadeGeneratedImage.cpp
-platform/graphics/DecomposedGlyphs.cpp
 platform/graphics/DestinationColorSpace.cpp
 platform/graphics/DisplayRefreshMonitor.cpp
 platform/graphics/DisplayRefreshMonitorClient.cpp
@@ -2994,7 +2995,6 @@ rendering/style/StyleMultiImage.cpp
 rendering/style/StyleNamedImage.cpp
 rendering/style/StyleNonInheritedData.cpp
 rendering/style/StylePaintImage.cpp
-rendering/style/StylePathData.cpp
 rendering/style/StyleRareInheritedData.cpp
 rendering/style/StyleRareNonInheritedData.cpp
 rendering/style/StyleScrollSnapPoints.cpp
@@ -3272,6 +3272,7 @@ style/values/sizing/StyleContainIntrinsicSize.cpp
 style/values/sizing/StylePreferredSize.cpp
 style/values/svg/StyleSVGBaselineShift.cpp
 style/values/svg/StyleSVGPaint.cpp
+style/values/svg/StyleSVGPathData.cpp
 style/values/svg/StyleSVGStrokeDasharray.cpp
 style/values/svg/StyleSVGStrokeDashoffset.cpp
 style/values/text-decoration/StyleTextDecorationLine.cpp

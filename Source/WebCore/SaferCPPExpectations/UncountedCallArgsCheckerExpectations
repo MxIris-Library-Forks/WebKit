@@ -1,9 +1,4 @@
 EventNames.h
-Modules/ShapeDetection/BarcodeDetector.cpp
-Modules/ShapeDetection/FaceDetector.cpp
-Modules/ShapeDetection/TextDetector.cpp
-Modules/applepay/ApplePaySession.cpp
-Modules/applepay/paymentrequest/ApplePayPaymentHandler.cpp
 Modules/applicationmanifest/ApplicationManifestParser.cpp
 Modules/cache/DOMCache.cpp
 Modules/credentialmanagement/CredentialsContainer.cpp
@@ -13,17 +8,12 @@ Modules/entriesapi/FileSystemFileEntry.cpp
 Modules/filesystem/FileSystemFileHandle.cpp
 Modules/filesystem/WorkerFileSystemStorageConnection.cpp
 Modules/identity/CredentialRequestCoordinator.cpp
-Modules/indexeddb/IDBCursor.cpp
 Modules/indexeddb/IDBDatabase.cpp
-Modules/indexeddb/IDBIndex.cpp
 Modules/indexeddb/IDBKey.cpp
 Modules/indexeddb/IDBKeyRange.cpp
 Modules/indexeddb/IDBObjectStore.cpp
 Modules/indexeddb/IDBOpenDBRequest.cpp
 Modules/indexeddb/IDBRequest.cpp
-Modules/indexeddb/IDBTransaction.cpp
-Modules/indexeddb/client/IDBConnectionProxy.cpp
-Modules/indexeddb/server/MemoryObjectStore.cpp
 Modules/indexeddb/server/UniqueIDBDatabase.cpp
 Modules/indexeddb/server/UniqueIDBDatabaseTransaction.cpp
 Modules/mediacontrols/MediaControlsHost.cpp
@@ -747,7 +737,6 @@ platform/graphics/ca/cocoa/GraphicsLayerAsyncContentsDisplayDelegateCocoa.mm
 platform/graphics/ca/cocoa/PlatformCAAnimationCocoa.mm
 platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/cocoa/ImageAdapterCocoa.mm
-platform/graphics/controls/ApplePayButtonPart.cpp
 platform/graphics/controls/ButtonPart.h
 platform/graphics/controls/ColorWellPart.h
 platform/graphics/controls/ImageControlsButtonPart.h
@@ -944,7 +933,6 @@ style/StyleExtractorConverter.h
 style/StyleExtractorCustom.h
 style/StyleExtractorSerializer.h
 style/StyleInterpolation.cpp
-style/StyleInterpolationWrappers.h
 style/StyleInvalidator.cpp
 style/StylePendingResources.cpp
 style/StyleResolveForDocument.cpp

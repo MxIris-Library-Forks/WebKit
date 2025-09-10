@@ -1388,6 +1388,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/MouseRelatedEvent.h
     dom/MutationEvent.h
     dom/MutationObserver.h
+    dom/MutationObserverOptions.h
     dom/NameNodeList.h
     dom/NamedNodeMap.h
     dom/NativeNodeFilter.h
@@ -2488,7 +2489,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/Damage.h
     platform/graphics/DashArray.h
     platform/graphics/DecodingOptions.h
-    platform/graphics/DecomposedGlyphs.h
     platform/graphics/DestinationColorSpace.h
     platform/graphics/DisplayRefreshMonitor.h
     platform/graphics/DisplayRefreshMonitorClient.h
@@ -3136,7 +3136,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/StyleMiscNonInheritedData.h
     rendering/style/StyleMultiColData.h
     rendering/style/StyleNonInheritedData.h
-    rendering/style/StylePathData.h
     rendering/style/StyleRareInheritedData.h
     rendering/style/StyleRareNonInheritedData.h
     rendering/style/StyleScrollSnapPoints.h
@@ -3291,6 +3290,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/non-standard/StyleWebKitBorderSpacing.h
     style/values/non-standard/StyleWebKitBoxReflect.h
     style/values/non-standard/StyleWebKitLineClamp.h
+    style/values/non-standard/StyleWebKitMarqueeIncrement.h
+    style/values/non-standard/StyleWebKitMarqueeRepetition.h
+    style/values/non-standard/StyleWebKitMarqueeSpeed.h
     style/values/non-standard/StyleWebKitOverflowScrolling.h
     style/values/non-standard/StyleWebKitTextStrokeWidth.h
     style/values/non-standard/StyleWebKitTouchCallout.h
@@ -3365,6 +3367,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/svg/StyleSVGCenterCoordinateComponent.h
     style/values/svg/StyleSVGCoordinateComponent.h
     style/values/svg/StyleSVGPaint.h
+    style/values/svg/StyleSVGPathData.h
     style/values/svg/StyleSVGRadius.h
     style/values/svg/StyleSVGRadiusComponent.h
     style/values/svg/StyleSVGStrokeDasharray.h

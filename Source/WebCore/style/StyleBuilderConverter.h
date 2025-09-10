@@ -85,7 +85,6 @@
 #include "StyleOffsetPosition.h"
 #include "StyleOffsetRotate.h"
 #include "StylePadding.h"
-#include "StylePathData.h"
 #include "StylePerspective.h"
 #include "StylePreferredSize.h"
 #include "StylePrimitiveKeyword+CSSValueConversion.h"
@@ -139,10 +138,7 @@ public:
     static OptionSet<TextEmphasisPosition> convertTextEmphasisPosition(BuilderState&, const CSSValue&);
     static TextAlignMode convertTextAlign(BuilderState&, const CSSValue&);
     static TextAlignLast convertTextAlignLast(BuilderState&, const CSSValue&);
-    static RefPtr<StylePathData> convertDPath(BuilderState&, const CSSValue&);
     static Resize convertResize(BuilderState&, const CSSValue&);
-    static int convertMarqueeRepetition(BuilderState&, const CSSValue&);
-    static int convertMarqueeSpeed(BuilderState&, const CSSValue&);
     static OptionSet<TextUnderlinePosition> convertTextUnderlinePosition(BuilderState&, const CSSValue&);
     static TextEdge convertTextEdge(BuilderState&, const CSSValue&);
     static OptionSet<LineBoxContain> convertLineBoxContain(BuilderState&, const CSSValue&);
@@ -464,16 +460,6 @@ inline TextAlignLast BuilderConverter::convertTextAlignLast(BuilderState& builde
     return parentStyle.textAlignLast();
 }
 
-inline RefPtr<StylePathData> BuilderConverter::convertDPath(BuilderState& builderState, const CSSValue& value)
-{
-    if (RefPtr pathValue = dynamicDowncast<CSSPathValue>(value))
-        return StylePathData::create(toStyle(pathValue->path(), builderState));
-
-    ASSERT(is<CSSPrimitiveValue>(value));
-    ASSERT(downcast<CSSPrimitiveValue>(value).valueID() == CSSValueNone);
-    return nullptr;
-}
-
 inline Resize BuilderConverter::convertResize(BuilderState& builderState, const CSSValue& value)
 {
     auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
@@ -487,33 +473,6 @@ inline Resize BuilderConverter::convertResize(BuilderState& builderState, const 
         resize = fromCSSValue<Resize>(value);
 
     return resize;
-}
-
-inline int BuilderConverter::convertMarqueeRepetition(BuilderState& builderState, const CSSValue& value)
-{
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-    if (primitiveValue->valueID() == CSSValueInfinite)
-        return -1; // -1 means repeat forever.
-
-    ASSERT(primitiveValue->isNumber());
-    return primitiveValue->resolveAsNumber<int>(builderState.cssToLengthConversionData());
-}
-
-inline int BuilderConverter::convertMarqueeSpeed(BuilderState& builderState, const CSSValue& value)
-{
-    auto& conversionData = builderState.cssToLengthConversionData();
-
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-    if (primitiveValue->isTime())
-        return primitiveValue->resolveAsTime<int, CSS::TimeUnit::Ms>(conversionData);
-
-    // For scrollamount support.
-    ASSERT(primitiveValue->isNumber());
-    return primitiveValue->resolveAsNumber<int>(conversionData);
 }
 
 inline static OptionSet<TextUnderlinePosition> valueToUnderlinePosition(const CSSPrimitiveValue& primitiveValue)

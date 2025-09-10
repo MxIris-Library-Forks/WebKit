@@ -1297,6 +1297,14 @@ bool Quirks::shouldEnableFontLoadingAPIQuirk() const
     return m_quirksData.shouldEnableFontLoadingAPIQuirk;
 }
 
+#if HAVE(PIP_SKIP_PREROLL)
+// play.hbomax.com rdar://158430821
+bool Quirks::shouldDisableAdSkippingInPip() const
+{
+    return needsQuirks() && m_quirksData.shouldDisableAdSkippingInPip;
+}
+#endif
+
 // hulu.com rdar://100199996
 bool Quirks::needsVideoShouldMaintainAspectRatioQuirk() const
 {
@@ -1570,10 +1578,31 @@ bool Quirks::needsLaxSameSiteCookieQuirk(const URL& requestURL) const
     return url.protocolIs("https"_s) && url.host() == "login.microsoftonline.com"_s && requestURL.protocolIs("https"_s) && requestURL.host() == "www.bing.com"_s;
 }
 
+#if PLATFORM(COCOA)
+
+#if !PLATFORM(IOS_FAMILY)
+static constexpr auto frozenVersion = "10_15_7"_s;
+#elif PLATFORM(WATCHOS)
+static constexpr auto frozenVersion = "11_6_1"_s;
+#elif PLATFORM(APPLETV)
+static constexpr auto frozenVersion = "18_6"_s;
+#else
+static constexpr auto frozenVersion = "18_6_2"_s;
+#endif
+
 String Quirks::standardUserAgentWithApplicationNameIncludingCompatOverrides(const String& applicationName, const String& userAgentOSVersion, UserAgentType type)
 {
-    return standardUserAgentWithApplicationNameIncludingCompatOverridesInternal(applicationName, userAgentOSVersion, type);
+    auto overriddenUAString = standardUserAgentWithApplicationNameIncludingCompatOverridesInternal(applicationName, userAgentOSVersion, type);
+    if (overriddenUAString.length())
+        return overriddenUAString;
+
+    if (userAgentOSVersion == frozenVersion)
+        return { };
+
+    return standardUserAgentWithApplicationName(applicationName, frozenVersion, type);
 }
+
+#endif
 
 #if ENABLE(TEXT_AUTOSIZING)
 // news.ycombinator.com: rdar://127246368
@@ -2576,6 +2605,11 @@ static void handleHBOMaxQuirks(QuirksData& quirksData, const URL& quirksURL, con
 
     // play.hbomax.com https://bugs.webkit.org/show_bug.cgi?id=244737
     quirksData.shouldEnableFontLoadingAPIQuirk = true;
+
+#if HAVE(PIP_SKIP_PREROLL)
+    // play.hbomax.com rdar://158430821
+    quirksData.shouldDisableAdSkippingInPip = true;
+#endif
 }
 
 static void handleHotelsQuirks(QuirksData& quirksData, const URL&, const String& quirksDomainString, const URL&)

@@ -46,6 +46,7 @@ class KeyframeEffect;
 class LayoutUnit;
 class LocalFrame;
 class Node;
+class NodeList;
 class PlatformMouseEvent;
 class ResourceRequest;
 class RenderStyle;
@@ -147,6 +148,8 @@ public:
     WEBCORE_EXPORT static bool shouldTranscodeHeicImagesForURL(const URL&);
 
 #if ENABLE(MEDIA_STREAM)
+    bool shouldEnableFacebookFlagQuirk() const;
+    Ref<NodeList> applyFacebookFlagQuirk(Document&, const NodeList&);
     bool shouldEnableLegacyGetUserMediaQuirk() const;
     bool shouldDisableImageCaptureQuirk() const;
     bool shouldEnableSpeakerSelectionPermissionsPolicyQuirk() const;
@@ -288,14 +291,14 @@ public:
 
     bool shouldDisableDOMAudioSessionQuirk() const;
 
+    void determineRelevantQuirks();
+
 private:
     bool needsQuirks() const;
     bool isDomain(const String&) const;
     bool domainStartsWith(const String&) const;
     bool isEmbedDomain(const String&) const;
     bool isYoutubeEmbedDomain() const;
-
-    void determineRelevantQuirks();
 
     static bool domainNeedsAvoidResizingWhenInputViewBoundsChangeQuirk(const URL&, QuirksData&);
     static bool domainNeedsScrollbarWidthThinDisabledQuirk(const URL&, QuirksData&);

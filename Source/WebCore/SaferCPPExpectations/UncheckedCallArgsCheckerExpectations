@@ -401,8 +401,6 @@ loader/SubframeLoader.cpp
 loader/SubresourceLoader.cpp
 loader/ThreadableLoaderClientWrapper.h
 loader/WorkerThreadableLoader.cpp
-loader/appcache/ApplicationCacheGroup.cpp
-loader/appcache/ApplicationCacheStorage.cpp
 loader/archive/cf/LegacyWebArchive.cpp
 loader/cache/CachedImage.cpp
 mathml/MathMLElement.cpp
@@ -581,6 +579,7 @@ rendering/RenderMenuList.cpp
 rendering/RenderMultiColumnFlow.cpp
 rendering/RenderMultiColumnSet.cpp
 rendering/RenderObject.cpp
+rendering/RenderObjectNode.h
 rendering/RenderProgress.cpp
 rendering/RenderQuote.cpp
 rendering/RenderReplaced.cpp

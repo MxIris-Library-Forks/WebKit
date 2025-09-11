@@ -30,7 +30,8 @@
 #include "AXCoreObject.h"
 
 #include "LocalFrameView.h"
-#include "RenderObject.h"
+#include "RenderObjectStyle.h"
+#include "Settings.h"
 #include "TextDecorationPainter.h"
 #include <wtf/Deque.h>
 #include <wtf/text/MakeString.h>
@@ -171,6 +172,12 @@ bool AXCoreObject::isGroup() const
     default:
         return false;
     }
+}
+
+bool AXCoreObject::isImageMapLink() const
+{
+    RefPtr element = this->element();
+    return element && is<HTMLAreaElement>(*element);
 }
 
 bool AXCoreObject::hasHighlighting() const

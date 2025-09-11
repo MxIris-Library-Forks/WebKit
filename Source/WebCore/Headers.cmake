@@ -1947,9 +1947,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/TextResourceDecoder.h
     loader/ThreadableLoader.h
     loader/ThreadableLoaderClient.h
-    loader/appcache/ApplicationCache.h
-    loader/appcache/ApplicationCacheHost.h
-    loader/appcache/ApplicationCacheStorage.h
     loader/archive/Archive.h
     loader/archive/ArchiveError.h
     loader/archive/ArchiveResource.h
@@ -2576,7 +2573,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageBufferBackendParameters.h
     platform/graphics/ImageBufferDisplayListBackend.h
     platform/graphics/ImageBufferFormat.h
-    platform/graphics/ImageBufferPixelFormat.h
     platform/graphics/ImageBufferPlatformBackend.h
     platform/graphics/ImageBufferResourceLimits.h
     platform/graphics/ImageDecoder.h
@@ -3068,8 +3064,11 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/RenderMedia.h
     rendering/RenderModel.h
     rendering/RenderObject.h
+    rendering/RenderObjectDocument.h
     rendering/RenderObjectEnums.h
     rendering/RenderObjectInlines.h
+    rendering/RenderObjectNode.h
+    rendering/RenderObjectStyle.h
     rendering/RenderOverflow.h
     rendering/RenderPtr.h
     rendering/RenderReplaced.h
@@ -3173,6 +3172,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/StyleCustomProperty.h
     style/StyleForVisitedLink.h
     style/StyleInterpolationClient.h
+    style/StyleInterpolationContext.h
     style/StyleScope.h
     style/StyleScopeIdentifier.h
     style/StyleScopeOrdinal.h
@@ -3388,6 +3388,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/transforms/StylePerspectiveOrigin.h
     style/values/transforms/StyleRotate.h
     style/values/transforms/StyleScale.h
+    style/values/transforms/StyleTransform.h
+    style/values/transforms/StyleTransformFunction.h
+    style/values/transforms/StyleTransformList.h
     style/values/transforms/StyleTransformOperationWrapper.h
     style/values/transforms/StyleTransformOrigin.h
     style/values/transforms/StyleTranslate.h

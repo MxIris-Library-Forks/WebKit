@@ -88,6 +88,7 @@ public:
 #endif
 
     void flush();
+    void shutdown();
 
     void expectMinimumUpcomingSampleBufferPresentationTime(const MediaTime&);
 
@@ -116,6 +117,8 @@ public:
     void setResourceOwner(const ProcessIdentity&);
 
     static WorkQueue& queueSingleton();
+
+    void invalidateDecompressionSession();
 
 private:
     VideoMediaSampleRenderer(WebSampleBufferVideoRendering *);

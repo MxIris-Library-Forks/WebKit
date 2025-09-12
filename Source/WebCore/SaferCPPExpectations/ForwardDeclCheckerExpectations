@@ -54,8 +54,6 @@ editing/VisibleUnits.cpp
 html/HTMLMediaElement.cpp
 html/canvas/PlaceholderRenderingContext.cpp
 html/parser/HTMLConstructionSite.cpp
-html/parser/HTMLDocumentParser.cpp
-html/parser/HTMLTreeBuilder.h
 html/shadow/DateTimeEditElement.h
 html/track/InbandGenericTextTrack.cpp
 html/track/InbandWebVTTTextTrack.cpp
@@ -78,7 +76,6 @@ layout/formattingContexts/inline/text/TextUtil.cpp
 layout/integration/inline/LayoutIntegrationLineLayout.h
 layout/layouttree/LayoutElementBox.h
 loader/cache/CachedImageClient.h
-loader/cache/CachedResourceHandle.h
 page/DOMWindow.cpp
 page/EventHandler.h
 page/Page.h

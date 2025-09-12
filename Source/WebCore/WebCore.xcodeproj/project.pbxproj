@@ -1648,7 +1648,6 @@
 		440615592AEAAC17009B8F9C /* LegacyRenderSVGResourceMarker.h in Headers */ = {isa = PBXBuildFile; fileRef = 440615572AEAABE7009B8F9C /* LegacyRenderSVGResourceMarker.h */; };
 		4406155A2AEAAC1A009B8F9C /* LegacyRenderSVGResourceMasker.h in Headers */ = {isa = PBXBuildFile; fileRef = 440615582AEAABE7009B8F9C /* LegacyRenderSVGResourceMasker.h */; };
 		4406155C2AEAAC6F009B8F9C /* LegacyRenderSVGResourceMaskerInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 4406155B2AEAAC6C009B8F9C /* LegacyRenderSVGResourceMaskerInlines.h */; };
-		4415292E0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 4415292C0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		441A6BE32B6C281D002A2B27 /* FragmentDirectiveGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 441A6BE22B6A0D17002A2B27 /* FragmentDirectiveGenerator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4425070925829A2700C09368 /* AppHighlightStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4425070725829A1400C09368 /* AppHighlightStorage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4430D00B2575A83E0046D401 /* Highlight.h in Headers */ = {isa = PBXBuildFile; fileRef = 44E88E51236A5C8D009B4847 /* Highlight.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11000,8 +10999,6 @@
 		440615572AEAABE7009B8F9C /* LegacyRenderSVGResourceMarker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyRenderSVGResourceMarker.h; sourceTree = "<group>"; };
 		440615582AEAABE7009B8F9C /* LegacyRenderSVGResourceMasker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyRenderSVGResourceMasker.h; sourceTree = "<group>"; };
 		4406155B2AEAAC6C009B8F9C /* LegacyRenderSVGResourceMaskerInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyRenderSVGResourceMaskerInlines.h; sourceTree = "<group>"; };
-		4415292C0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLPlugInImageElement.h; sourceTree = "<group>"; };
-		4415292D0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLPlugInImageElement.cpp; sourceTree = "<group>"; };
 		441A6BE12B6A0D17002A2B27 /* FragmentDirectiveGenerator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FragmentDirectiveGenerator.cpp; sourceTree = "<group>"; };
 		441A6BE22B6A0D17002A2B27 /* FragmentDirectiveGenerator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FragmentDirectiveGenerator.h; sourceTree = "<group>"; };
 		4425070625829A1400C09368 /* AppHighlightStorage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AppHighlightStorage.cpp; sourceTree = "<group>"; };
@@ -31344,8 +31341,6 @@
 				BC808B111C0E23AC0066FD6B /* HTMLPictureElement.idl */,
 				A871D44D0A127CBC00B12A68 /* HTMLPlugInElement.cpp */,
 				A871D44C0A127CBC00B12A68 /* HTMLPlugInElement.h */,
-				4415292D0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.cpp */,
-				4415292C0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.h */,
 				A8EA7C9F0A192B9C00A8EF5F /* HTMLPreElement.cpp */,
 				A8EA7CA20A192B9C00A8EF5F /* HTMLPreElement.h */,
 				1AE2AB850A1CE85000B42B25 /* HTMLPreElement.idl */,
@@ -42897,7 +42892,6 @@
 				BC4A5333256059830028C592 /* HTMLParserScriptingFlagPolicy.h in Headers */,
 				BCC0E8761BFE70E9008F7F50 /* HTMLPictureElement.h in Headers */,
 				A871D4560A127CBC00B12A68 /* HTMLPlugInElement.h in Headers */,
-				4415292E0E1AE8A000C4A2D0 /* HTMLPlugInImageElement.h in Headers */,
 				A8EA7CB00A192B9C00A8EF5F /* HTMLPreElement.h in Headers */,
 				977B3873122883E900B81FF8 /* HTMLPreloadScanner.h in Headers */,
 				A43BF5991149290A00C643CA /* HTMLProgressElement.h in Headers */,

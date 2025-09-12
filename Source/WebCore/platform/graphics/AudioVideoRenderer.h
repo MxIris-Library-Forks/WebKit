@@ -70,6 +70,7 @@ public:
     virtual void notifyWhenRequiresFlushToResume(Function<void()>&&) { }
     virtual void notifyRenderingModeChanged(Function<void()>&&) { }
     virtual void setMinimumUpcomingPresentationTime(const MediaTime&) { }
+    virtual void notifySizeChanged(Function<void(const MediaTime&, FloatSize)>&&) { }
     virtual void setShouldDisableHDR(bool) { };
     virtual void setPlatformDynamicRangeLimit(const PlatformDynamicRangeLimit&) { };
     virtual void setResourceOwner(const ProcessIdentity&) { }
@@ -114,6 +115,9 @@ public:
 
     virtual ~TracksRendererManager() = default;
 
+    virtual void setPreferences(VideoMediaSampleRendererPreferences) { }
+    virtual void setHasProtectedVideoContent(bool) { }
+
     virtual TrackIdentifier addTrack(TrackType) = 0;
     virtual void removeTrack(TrackIdentifier) = 0;
 
@@ -129,6 +133,8 @@ public:
 
     virtual void flush() = 0;
     virtual void flushTrack(TrackIdentifier) = 0;
+
+    virtual void applicationWillResignActive() { }
 
     virtual void notifyWhenErrorOccurs(Function<void(PlatformMediaError)>&&) = 0;
 

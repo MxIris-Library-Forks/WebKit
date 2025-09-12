@@ -3510,8 +3510,9 @@ fast/text/line-break-with-locale.html [ ImageOnlyFailure ]
 
 webkit.org/b/229154 webrtc/peer-connection-audio-mute2.html [ Pass Failure ]
 
-# WebM is not supported on iOS
+# WebM with vp9 is not supported on iOS (lacking decoder)
 http/tests/media/video-webm-stall.html [ Skip ]
+media/media-vp9-reschange-webm.html [ Skip ]
 
 # webkit.org/b/277760 [ iOS ] 2x imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html (layout-tests) are ref mismatch
 webkit.org/b/229291 imported/w3c/web-platform-tests/html/rendering/replaced-elements/images/revoked-blob-print.html [ Pass ImageOnlyFailure ]
@@ -7543,8 +7544,6 @@ imported/w3c/web-platform-tests/screen-orientation/lock-unlock-check.html [ Pass
 # webkit.org/b/277896 ([ iOS ] fast/forms/ios/time-picker-value-change.html is a flaky text failure (277896))
 fast/forms/ios/time-picker-value-change.html [ Pass Failure ]
 
-# webkit.org/b/277897 (Regression: 282030@main? [ iOS 17 Release ] imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-inline-004.html is a flaky text failure (277897))
-imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-inline-004.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-cascade-layer-reorder.html [ Failure ]
 
 # FAIL results are platform dependent
@@ -8127,7 +8126,6 @@ imported/w3c/web-platform-tests/digital-credentials/user-activation.https.html [
 imported/w3c/web-platform-tests/shadow-dom/reference-target/tentative/interesttarget.tentative.html [ Failure ]
 imported/w3c/web-platform-tests/uievents/mouse/mousemove_after_mouseover_target_removed.html [ Failure ]
 platform/ipad/fast/viewport/viewport-overriden-by-minimum-effective-width-if-ignore-meta-viewport.html [ Failure ]
-editing/selection/ios/selection-handles-in-readonly-input.html [ Timeout ]
 fast/css/accent-color/button.html [ ImageOnlyFailure ]
 fast/css/accent-color/date.html [ ImageOnlyFailure ]
 fast/css/accent-color/select.html [ ImageOnlyFailure ]
@@ -8137,6 +8135,9 @@ imported/w3c/web-platform-tests/css/css-view-transitions/fractional-translation-
 
 # <rdar://156470462> RTL inputs with type=password have larger logical width than RTL inputs with type number, url, tel, & text
 fast/forms/input-password-logical-widths.html [ Failure ]
+
+# <rdar://160314418> Tap-and-half selection gesture is broken in WebKit
+editing/selection/ios/select-text-using-tap-and-half.html [ Skip ]
 
 webkit.org/b/296338 http/tests/site-isolation/fullscreen.html [ Pass Failure ]
 

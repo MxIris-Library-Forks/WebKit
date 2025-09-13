@@ -1429,17 +1429,17 @@ CSSTextBoxTrimEnabled:
 
 CSSTextDecorationLineErrorValues:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS text-decoration-line: spelling-error/grammar-error"
   humanReadableDescription: "Enable support for spelling-error and grammar-error values on text-decoration-line"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSTextGroupAlignEnabled:
   type: bool
@@ -7343,6 +7343,20 @@ SmartInsertDeleteEnabled:
       default: true
     WebCore:
       default: true
+
+SmartListsEnabled:
+  type: bool
+  status: embedder
+  category: dom
+  humanReadableName: "Smart Lists"
+  humanReadableDescription: "Enable Smart Lists"
+  defaultValue:
+    WebKit:
+      default: false
+    WebKitLegacy:
+      default: false
+    WebCore:
+      default: false
 
 SourceBufferChangeTypeEnabled:
   type: bool

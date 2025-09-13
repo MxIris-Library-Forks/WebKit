@@ -169,6 +169,7 @@ public:
 
     void* cachedMemory() const { return m_cachedMemory.getMayBeNull(); }
     size_t cachedBoundsCheckingSize() const { return m_cachedBoundsCheckingSize; }
+    size_t cachedMemorySize() const { return m_cachedMemorySize; }
 
     void updateCachedMemory()
     {
@@ -188,10 +189,16 @@ public:
 #else
             m_cachedBoundsCheckingSize = memory()->memory().mappedCapacity();
 #endif
+            m_cachedMemorySize = memory()->memory().size();
             m_cachedMemory = CagedPtr<Gigacage::Primitive, void>(memory()->memory().basePointer());
             ASSERT(memory()->memory().basePointer() == cachedMemory());
         }
     }
+
+    uint32_t cachedTable0Length() const { return m_cachedTable0Length; }
+    Wasm::FuncRefTable::Function* cachedTable0Buffer() const { return m_cachedTable0Buffer; }
+
+    void updateCachedTable0();
 
     int32_t loadI32Global(unsigned i) const
     {
@@ -264,6 +271,9 @@ public:
 
     static constexpr ptrdiff_t offsetOfCachedMemory() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedMemory); }
     static constexpr ptrdiff_t offsetOfCachedBoundsCheckingSize() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedBoundsCheckingSize); }
+    static constexpr ptrdiff_t offsetOfCachedMemorySize() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedMemorySize); }
+    static constexpr ptrdiff_t offsetOfCachedTable0Buffer() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedTable0Buffer); }
+    static constexpr ptrdiff_t offsetOfCachedTable0Length() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedTable0Length); }
     static constexpr ptrdiff_t offsetOfTemporaryCallFrame() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_temporaryCallFrame); }
     static constexpr ptrdiff_t offsetOfBuiltinCalleeBits() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_builtinCalleeBits); }
 
@@ -390,6 +400,9 @@ private:
     StackManager::Mirror m_stackMirror;
     CagedPtr<Gigacage::Primitive, void> m_cachedMemory;
     size_t m_cachedBoundsCheckingSize { 0 };
+    size_t m_cachedMemorySize { 0 };
+    Wasm::FuncRefTable::Function* m_cachedTable0Buffer { nullptr };
+    uint32_t m_cachedTable0Length { 0 };
     const Ref<Wasm::Module> m_module;
     const Ref<const Wasm::ModuleInformation> m_moduleInformation;
     const Ref<Wasm::ProfileCollection> m_profiles;

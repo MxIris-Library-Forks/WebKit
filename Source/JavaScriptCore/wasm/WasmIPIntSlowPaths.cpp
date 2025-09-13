@@ -551,12 +551,6 @@ WASM_IPINT_EXTERN_CPP_DECL(table_grow, IPIntStackEntry* sp, TableGrowMetadata* m
     WASM_RETURN_TWO(std::bit_cast<void*>(Wasm::tableGrow(instance, metadata->tableIndex, fill, n)), 0);
 }
 
-WASM_IPINT_EXTERN_CPP_DECL_1P(current_memory)
-{
-    size_t size = instance->memory()->memory().handle().size() >> 16;
-    WASM_RETURN_TWO(std::bit_cast<void*>(size), 0);
-}
-
 WASM_IPINT_EXTERN_CPP_DECL(memory_grow, int32_t delta)
 {
     WASM_RETURN_TWO(reinterpret_cast<void*>(Wasm::growMemory(instance, delta)), 0);
@@ -958,29 +952,33 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call_indirect, CallFrame* callFrame, Wasm::Fu
     callSlot.incrementCount();
 
     unsigned tableIndex = call->tableIndex;
+    const Wasm::FuncRefTable::Function* function = nullptr;
+    if (!tableIndex) {
+        if (*functionIndex >= instance->cachedTable0Length()) [[unlikely]]
+            IPINT_THROW(Wasm::ExceptionType::OutOfBoundsCallIndirect);
+        function = &instance->cachedTable0Buffer()[*functionIndex];
+    } else {
+        Wasm::FuncRefTable* table = instance->table(tableIndex)->asFuncrefTable();
+        if (*functionIndex >= table->length()) [[unlikely]]
+            IPINT_THROW(Wasm::ExceptionType::OutOfBoundsCallIndirect);
+        function = &table->function(*functionIndex);
+    }
 
-    Wasm::FuncRefTable* table = instance->table(tableIndex)->asFuncrefTable();
-
-    if (*functionIndex >= table->length()) [[unlikely]]
-        IPINT_THROW(Wasm::ExceptionType::OutOfBoundsCallIndirect);
-
-    const Wasm::FuncRefTable::Function& function = table->function(*functionIndex);
-
-    if (!function.m_function.rtt) [[unlikely]]
+    if (!function->m_function.rtt) [[unlikely]]
         IPINT_THROW(Wasm::ExceptionType::BadSignature);
 
-    if (!function.m_function.rtt->isSubRTT(*call->rtt)) [[unlikely]]
+    if (!function->m_function.rtt->isSubRTT(*call->rtt)) [[unlikely]]
         IPINT_THROW(Wasm::ExceptionType::BadSignature);
 
-    auto boxedCallee = function.m_function.boxedCallee.encodedBits();
+    auto boxedCallee = function->m_function.boxedCallee.encodedBits();
     Register* calleeReturn = std::bit_cast<Register*>(functionIndex);
     *calleeReturn = boxedCallee;
 
     Register& functionInfoSlot = calleeReturn[1];
-    if (function.m_function.isJS())
-        functionInfoSlot = reinterpret_cast<uintptr_t>(jsCast<WebAssemblyFunctionBase*>(function.m_value.get())->callLinkInfo());
+    if (function->m_function.isJS())
+        functionInfoSlot = reinterpret_cast<uintptr_t>(jsCast<WebAssemblyFunctionBase*>(function->m_value.get())->callLinkInfo());
     else {
-        auto* targetInstance = function.m_function.targetInstance.get();
+        auto* targetInstance = function->m_function.targetInstance.get();
         functionInfoSlot = targetInstance;
         if (instance != targetInstance)
             callSlot.observeCrossInstanceCall();
@@ -988,8 +986,8 @@ WASM_IPINT_EXTERN_CPP_DECL(prepare_call_indirect, CallFrame* callFrame, Wasm::Fu
             callSlot.observeCallIndirect(boxedCallee);
     }
 
-    auto callTarget = *function.m_function.entrypointLoadLocation;
-    WASM_CALL_RETURN(function.m_function.targetInstance.get(), callTarget);
+    auto callTarget = *function->m_function.entrypointLoadLocation;
+    WASM_CALL_RETURN(function->m_function.targetInstance.get(), callTarget);
 }
 
 WASM_IPINT_EXTERN_CPP_DECL(prepare_call_ref, CallFrame* callFrame, CallRefMetadata* call, IPIntStackEntry* sp)

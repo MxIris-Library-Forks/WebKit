@@ -43,6 +43,7 @@
 #import <wtf/MonotonicTime.h>
 #import <wtf/NativePromise.h>
 #import <wtf/cf/TypeCastsCF.h>
+#import <wtf/darwin/DispatchExtras.h>
 
 #if PLATFORM(VISION)
 #import "FormatDescriptionUtilities.h"
@@ -357,15 +358,10 @@ void VideoMediaSampleRenderer::setTimebase(RetainPtr<CMTimebaseRef>&& timebase)
     });
     dispatch_activate(timerSource.get());
     PAL::CMTimebaseAddTimerDispatchSource(timebase.get(), timerSource.get());
-    m_effectiveRateChangedListener = EffectiveRateChangedListener::create([weakThis = ThreadSafeWeakPtr { *this }, dispatcher = dispatcher()] {
-        dispatcher->dispatch([weakThis] {
-            if (RefPtr protectedThis = weakThis.get()) {
-                RetainPtr timebase = protectedThis->timebase();
-                if (!timebase)
-                    return;
-                if (PAL::CMTimebaseGetRate(timebase.get()))
+    m_effectiveRateChangedListener = EffectiveRateChangedListener::create([weakThis = ThreadSafeWeakPtr { *this }, dispatcher = dispatcher()](double rate) {
+        dispatcher->dispatch([weakThis, rate] {
+            if (RefPtr protectedThis = weakThis.get(); protectedThis && rate)
                     protectedThis->purgeDecodedSampleQueue(protectedThis->m_flushId);
-            }
         });
     }, timebase.get());
     m_timebaseAndTimerSource = { WTFMove(timebase), WTFMove(timerSource) };
@@ -911,7 +907,7 @@ void VideoMediaSampleRenderer::resetReadyForMoreMediaData()
     }
 
     ThreadSafeWeakPtr weakThis { *this };
-    [renderer() requestMediaDataWhenReadyOnQueue:dispatch_get_main_queue() usingBlock:^{
+    [renderer() requestMediaDataWhenReadyOnQueue:mainDispatchQueueSingleton() usingBlock:^{
         assertIsMainThread();
         RefPtr protectedThis = weakThis.get();
         if (!protectedThis)

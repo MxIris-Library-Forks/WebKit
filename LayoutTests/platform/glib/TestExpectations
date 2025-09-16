@@ -2106,6 +2106,7 @@ webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-text/line-break/line
 webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-view-transitions/backdrop-filter-animated.html [ ImageOnlyFailure ]
 webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-captures-spans.html [ ImageOnlyFailure ]
 webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-view-transitions/rotated-cat-off-top-edge.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/table-caption.html [ ImageOnlyFailure ]
 webkit.org/b/273396 mathml/presentation/mo-stacked-glyphs.html [ ImageOnlyFailure ]
 
 webkit.org/b/273476 fast/text/thai-joiner.html [ Failure ]
@@ -2873,16 +2874,29 @@ webkit.org/b/215912 http/tests/websocket/tests/hybi/handshake-fail-by-no-cr.html
 
 webkit.org/b/208988 http/tests/webxr/webxr-third-party-iframe-requestsession-denied-by-insufficient-feature-policy.html [ Timeout ]
 
-# Assertion failure if ASSERT_ENABLED
-webkit.org/b/298434 [ Debug ] imported/w3c/web-platform-tests/webxr/xrViewport_valid.https.html [ Skip ]
-webkit.org/b/298434 [ Release ] imported/w3c/web-platform-tests/webxr/xrViewport_valid.https.html [ Crash Pass ]
-webkit.org/b/298434 [ Debug ] imported/w3c/web-platform-tests/webxr/xrWebGLLayer_viewports.https.html [ Skip ]
-webkit.org/b/298434 [ Release ] imported/w3c/web-platform-tests/webxr/xrWebGLLayer_viewports.https.html [ Crash Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrViewport_valid.https.html [ Failure ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrWebGLLayer_viewports.https.html [ Failure ]
 
-# WebXROpaqueFramebuffer is not able to properly setup gfx resources
-webkit.org/b/296681 imported/w3c/web-platform-tests/webxr [ Skip ]
+webkit.org/b/296681 imported/w3c/web-platform-tests/webxr/ar-module/xrDevice_isSessionSupported_immersive-ar.https.html [ Pass ]
+webkit.org/b/296681 imported/w3c/web-platform-tests/webxr/ar-module/idlharness.https.window.html [ Pass ]
+webkit.org/b/296681 imported/w3c/web-platform-tests/webxr/ar-module/xrDevice_requestSession_immersive-ar.https.html [ Pass ]
 
-webkit.org/b/208988 http/wpt/webxr [ Skip ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/events_referenceSpace_reset_immersive.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/events_referenceSpace_reset_inline.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrDevice_disconnect_ends.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrDevice_requestSession_requiredFeatures_unknown.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrFrame_getViewerPose_getPose_identities.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrSession_input_events_end.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrSession_requestReferenceSpace_features.https.html [ Pass ]
+webkit.org/b/227086 imported/w3c/web-platform-tests/webxr/xrWebGLLayer_constructor.https.html [ Pass ]
+webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xr_viewport_scale.https.html [ Pass ]
+
+imported/w3c/web-platform-tests/webxr/webGLCanvasContext_create_xrcompatible.https.html [ Failure ]
+
+imported/w3c/web-platform-tests/webxr/hand-input/ [ Pass ]
+
+http/wpt/webxr [ Pass ]
+webxr [ Pass ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of WebXR-related bugs

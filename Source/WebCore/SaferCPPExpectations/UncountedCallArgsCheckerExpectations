@@ -56,7 +56,6 @@ Modules/webaudio/AudioWorkletMessagingProxy.cpp
 Modules/webaudio/AudioWorkletNode.cpp
 Modules/webaudio/BaseAudioContext.cpp
 Modules/webaudio/BiquadFilterNode.cpp
-Modules/webaudio/ChannelMergerNode.cpp
 Modules/webaudio/ConvolverNode.cpp
 Modules/webaudio/DefaultAudioDestinationNode.cpp
 Modules/webaudio/DelayNode.cpp
@@ -375,7 +374,6 @@ editing/ChangeListTypeCommand.cpp
 editing/CompositeEditCommand.cpp
 editing/CustomUndoStep.cpp
 editing/DeleteSelectionCommand.cpp
-editing/EditCommand.cpp
 editing/Editing.cpp
 editing/Editor.cpp
 editing/EditorCommand.cpp
@@ -595,7 +593,6 @@ page/NavigationDestination.cpp
 page/NavigationDestination.h
 page/Navigator.cpp
 page/NavigatorLoginStatus.cpp
-page/Page.cpp
 page/PageColorSampler.cpp
 page/PageOverlay.cpp
 page/PageOverlayController.cpp
@@ -608,7 +605,6 @@ page/PerformanceUserTiming.cpp
 page/PointerCaptureController.cpp
 page/PointerLockController.cpp
 page/PrintContext.cpp
-page/Quirks.cpp
 page/RemoteDOMWindow.cpp
 page/RemoteFrame.cpp
 page/RenderingUpdateScheduler.cpp
@@ -630,7 +626,6 @@ page/cocoa/PageCocoa.mm
 page/cocoa/ResourceUsageOverlayCocoa.mm
 page/cocoa/ResourceUsageThreadCocoa.mm
 page/cocoa/WebTextIndicatorLayer.mm
-page/csp/ContentSecurityPolicy.cpp
 page/mac/DragControllerMac.mm
 page/mac/EventHandlerMac.mm
 page/mac/ImageOverlayControllerMac.mm

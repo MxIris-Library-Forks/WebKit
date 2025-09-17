@@ -189,7 +189,6 @@ SOFT_LINK(BackBoardServices, BKSDisplayBrightnessGetCurrent, float, (), ());
 
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 SOFT_LINK_LIBRARY_OPTIONAL(libAccessibility)
-SOFT_LINK_OPTIONAL(libAccessibility, _AXSReduceMotionAutoplayAnimatedImagesEnabled, Boolean, (), ());
 SOFT_LINK_CONSTANT_MAY_FAIL(libAccessibility, kAXSReduceMotionAutoplayAnimatedImagesChangedNotification, CFStringRef)
 #endif
 
@@ -242,11 +241,6 @@ static std::optional<bool>& cachedLockdownModeEnabledGlobally()
     return cachedLockdownModeEnabledGlobally;
 }
 
-static dispatch_queue_t globalQueueSingleton()
-{
-    return dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-}
-
 #if PLATFORM(MAC)
 static NSApplication* NSAppSingleton()
 {
@@ -272,22 +266,20 @@ NSMutableDictionary *WebProcessPool::ensureBundleParameters()
 static AccessibilityPreferences accessibilityPreferences()
 {
     AccessibilityPreferences preferences;
-#if HAVE(PER_APP_ACCESSIBILITY_PREFERENCES)
-    auto appId = applicationBundleIdentifier().createCFString();
 
-    preferences.reduceMotionEnabled = toWebKitAXValueState(_AXSReduceMotionEnabledApp(appId.get()));
-    preferences.increaseButtonLegibility = toWebKitAXValueState(_AXSIncreaseButtonLegibilityApp(appId.get()));
-    preferences.enhanceTextLegibility = toWebKitAXValueState(_AXSEnhanceTextLegibilityEnabledApp(appId.get()));
-    preferences.darkenSystemColors = toWebKitAXValueState(_AXDarkenSystemColorsApp(appId.get()));
-    preferences.invertColorsEnabled = toWebKitAXValueState(_AXSInvertColorsEnabledApp(appId.get()));
+#if HAVE(PER_APP_ACCESSIBILITY_PREFERENCES)
+    preferences.reduceMotionEnabled = AXPreferenceHelpers::reduceMotionEnabled();
+    preferences.increaseButtonLegibility = AXPreferenceHelpers::increaseButtonLegibility();
+    preferences.enhanceTextLegibility = AXPreferenceHelpers::enhanceTextLegibility();
+    preferences.darkenSystemColors = AXPreferenceHelpers::darkenSystemColors();
+    preferences.invertColorsEnabled = AXPreferenceHelpers::invertColorsEnabled();
 #endif
-    preferences.enhanceTextLegibilityOverall = _AXSEnhanceTextLegibilityEnabled();
+    preferences.enhanceTextLegibilityOverall = AXPreferenceHelpers::enhanceTextLegibilityOverall();
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
-    if (auto* functionPointer = _AXSReduceMotionAutoplayAnimatedImagesEnabledPtr())
-        preferences.imageAnimationEnabled = functionPointer();
+    preferences.imageAnimationEnabled = AXPreferenceHelpers::imageAnimationEnabled();
 #endif
 #if ENABLE(ACCESSIBILITY_NON_BLINKING_CURSOR)
-    preferences.prefersNonBlinkingCursor = _AXSPrefersNonBlinkingCursorIndicator();
+    preferences.prefersNonBlinkingCursor = AXPreferenceHelpers::prefersNonBlinkingCursor();
 #endif
     return preferences;
 }
@@ -358,7 +350,7 @@ void WebProcessPool::platformInitialize(NeedsGlobalStaticInitialization needsGlo
 
 #if PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)
     if (!_MGCacheValid()) {
-        dispatch_async(globalQueueSingleton(), ^{
+        dispatch_async(globalDispatchQueueSingleton(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             [adoptNS([[objc_getClass("MobileGestaltHelperProxy") alloc] init]) proxyRebuildCache];
         });
     }
@@ -728,7 +720,7 @@ void WebProcessPool::hardwareKeyboardAvailabilityChanged()
 
 void WebProcessPool::initializeHardwareKeyboardAvailability()
 {
-    dispatch_async(globalQueueSingleton(), makeBlockPtr([weakThis = WeakPtr { *this }] {
+    dispatch_async(globalDispatchQueueSingleton(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), makeBlockPtr([weakThis = WeakPtr { *this }] {
         auto keyboardState = currentHardwareKeyboardState();
         callOnMainRunLoop([weakThis = WTFMove(weakThis), keyboardState] {
             RefPtr protectedThis = weakThis.get();
@@ -746,7 +738,7 @@ void WebProcessPool::startObservingPreferenceChanges()
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        dispatch_async(globalQueueSingleton(), ^{
+        dispatch_async(globalDispatchQueueSingleton(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             // Start observing preference changes.
             [WKPreferenceObserver sharedInstance];
         });
@@ -785,7 +777,7 @@ void WebProcessPool::registerNotificationObservers()
 
     m_notifyTokens = WTF::compactMap(notificationMessages, [weakThis = WeakPtr { *this }](const ASCIILiteral& message) -> std::optional<int> {
         int notifyToken = 0;
-        auto registerStatus = notify_register_dispatch(message, &notifyToken, globalQueueSingleton(), [weakThis, message](int token) {
+        auto registerStatus = notify_register_dispatch(message, &notifyToken, globalDispatchQueueSingleton(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), [weakThis, message](int token) {
             uint64_t state = 0;
             auto status = notify_get_state(token, &state);
             callOnMainRunLoop([weakThis, message, state, status] {
@@ -1655,7 +1647,7 @@ void WebProcessPool::registerAssetFonts(WebProcessProxy& process)
         return true;
     });
 
-    dispatch_async(globalQueueSingleton(), [descriptions = RetainPtr<NSArray>(descriptions), blockPtr] {
+    dispatch_async(globalDispatchQueueSingleton(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), [descriptions = RetainPtr<NSArray>(descriptions), blockPtr] {
         CTFontDescriptorMatchFontDescriptorsWithProgressHandler((__bridge CFArrayRef)descriptions.get(), nullptr, blockPtr.get());
     });
 }

@@ -12169,7 +12169,6 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.canUseCredentialStorage = m_canUseCredentialStorage;
 
     parameters.httpsUpgradeEnabled = preferences->upgradeKnownHostsToHTTPSEnabled() ? m_configuration->httpsUpgradeEnabled() : false;
-    parameters.allowJSHandleInPageContentWorld = m_configuration->allowJSHandleInPageContentWorld();
     parameters.allowPostingLegacySynchronousMessages = m_configuration->allowPostingLegacySynchronousMessages();
 
 #if ENABLE(APP_HIGHLIGHTS)
@@ -13913,7 +13912,7 @@ void WebPageProxy::takeSnapshot(const IntRect& rect, const IntSize& bitmapSize, 
 
 #if HAVE(SUPPORT_HDR_DISPLAY_APIS)
         if (image && headroom > Headroom::None)
-            image = CGImageCreateCopyWithContentHeadroom(headroom.headroom, image.get());
+            image = adoptCF(CGImageCreateCopyWithContentHeadroom(headroom.headroom, image.get()));
 #endif
 
         callback(image.get());

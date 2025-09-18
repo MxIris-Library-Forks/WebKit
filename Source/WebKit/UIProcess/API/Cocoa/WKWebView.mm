@@ -50,6 +50,7 @@
 #import "Logging.h"
 #import "MediaPlaybackState.h"
 #import "MediaUtilities.h"
+#import "MessageSenderInlines.h"
 #import "NavigationState.h"
 #import "NodeHitTestResult.h"
 #import "PDFPluginIdentifier.h"
@@ -2201,7 +2202,7 @@ static RetainPtr<NSError> unknownError()
 - (void)createWebArchiveDataWithCompletionHandler:(void (^)(NSData *, NSError *))completionHandler
 {
     THROW_IF_SUSPENDED;
-    _page->getWebArchive([completionHandler = makeBlockPtr(completionHandler)](API::Data* data) {
+    _page->getWebArchiveData([completionHandler = makeBlockPtr(completionHandler)](API::Data* data) {
         if (data)
             completionHandler(wrapper(data), nil);
         else
@@ -5343,6 +5344,35 @@ static inline OptionSet<WebCore::LayoutMilestone> layoutMilestones(_WKRenderingP
     [self createWebArchiveDataWithCompletionHandler:completionHandler];
 }
 
+- (void)_createWebArchiveForFrame:(WKFrameInfo *)frame completionHandler:(void (^)(NSData *, NSError *))completionHandler
+{
+    THROW_IF_SUSPENDED;
+
+    std::optional<WebCore::FrameIdentifier> frameID;
+    if (frame && frame._handle && frame._handle->_frameHandle->frameID())
+        frameID = frame._handle->_frameHandle->frameID();
+
+    if (!frameID) {
+        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : @"Frame no longer exists." };
+        completionHandler(nil, adoptNS([[NSError alloc] initWithDomain:WKErrorDomain code:WKErrorUnknown userInfo:userInfo]).get());
+        return;
+    }
+
+    RefPtr webFrame = WebKit::WebFrameProxy::webFrame(*frameID);
+    if (!frame) {
+        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : @"Frame with specified identifier no longer exists.", };
+        completionHandler(nil, adoptNS([[NSError alloc] initWithDomain:WKErrorDomain code:WKErrorUnknown userInfo:userInfo]).get());
+        return;
+    }
+
+    _page->getWebArchiveDataWithFrame(*webFrame, [completionHandler = makeBlockPtr(completionHandler)](API::Data* data) {
+        if (data)
+            completionHandler(wrapper(data), nil);
+        else
+            completionHandler(nil, unknownError().get());
+    });
+}
+
 - (void)_getContentsAsStringWithCompletionHandler:(void (^)(NSString *, NSError *))completionHandler
 {
     THROW_IF_SUSPENDED;
@@ -6370,6 +6400,38 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 #endif
 }
 
+- (void)_takeSnapshotOfNode:(_WKJSHandle *)node completionHandler:(void (^)(CocoaImage *image, NSError *))completionHandler
+{
+    if (!node)
+        return completionHandler(nil, [NSError errorWithDomain:WKErrorDomain code:WKErrorUnknown userInfo:nil]);
+
+    auto info = node->_ref->info();
+    RefPtr webFrame = WebKit::WebFrameProxy::webFrame(info.frameInfo.frameID);
+    if (!webFrame)
+        return completionHandler(nil, [NSError errorWithDomain:WKErrorDomain code:WKErrorWebViewInvalidated userInfo:nil]);
+
+    webFrame->takeSnapshotOfNode(info.identifier, [completionHandler = makeBlockPtr(completionHandler)](auto&& handle) {
+        auto makeUnknownError = [] {
+            return [NSError errorWithDomain:WKErrorDomain code:WKErrorUnknown userInfo:nil];
+        };
+
+        if (!handle)
+            return completionHandler(nil, makeUnknownError());
+
+        RefPtr bitmap = WebCore::ShareableBitmap::create(WTFMove(*handle), WebCore::SharedMemory::Protection::ReadOnly);
+        if (!bitmap)
+            return completionHandler(nil, makeUnknownError());
+
+        RetainPtr cgImage = bitmap->createPlatformImage();
+#if PLATFORM(MAC)
+        RetainPtr image = adoptNS([[NSImage alloc] initWithCGImage:cgImage.get() size:bitmap->size()]);
+#else
+        RetainPtr image = adoptNS([[UIImage alloc] initWithCGImage:cgImage.get()]);
+#endif
+        completionHandler(image.get(), nil);
+    });
+}
+
 #if PLATFORM(MAC)
 - (NSUInteger)accessibilityRemoteChildTokenHash
 {
@@ -6390,10 +6452,6 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 {
     return _impl->hasRemoteAccessibilityChild();
 }
-
-#endif // PLATFORM(MAC)
-
-#if PLATFORM(MAC)
 
 - (RetainPtr<NSPopUpButtonCell>)_activePopupButtonCell
 {

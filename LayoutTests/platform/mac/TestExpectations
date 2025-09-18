@@ -2492,8 +2492,6 @@ webkit.org/b/296976 [ x86_64 ] imported/w3c/web-platform-tests/webaudio/the-audi
 
 webkit.org/b/297067 fast/forms/state-restore-form-associated-custom-elements.html [ Pass Timeout Failure ]
 
-webkit.org/b/297131 imported/w3c/web-platform-tests/web-locks/storage-buckets.tentative.https.any.worker.html [ Pass Failure ]
-
 # webkit.org/b/296017 7x imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image (layout-tests) are flakey image failures
 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-006.html [ Pass ImageOnlyFailure ]
 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-022.html [ Pass ImageOnlyFailure ]
@@ -2510,8 +2508,6 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-position-under-
 imported/w3c/web-platform-tests/css/css-text-decor/text-emphasis-position-under-right-001.xht [ ImageOnlyFailure ]
 
 [ Debug ] imported/w3c/web-platform-tests/html/semantics/the-button-element/command-and-commandfor/interface.html [ Skip ]
-
-webkit.org/b/297346 workers/message-port-gc.html [ Pass Crash ]
 
 webkit.org/b/297434 imported/w3c/web-platform-tests/event-timing/retrievability.html [ Pass Failure ]
 
@@ -2530,3 +2526,5 @@ webkit.org/b/298042 http/tests/security/clipboard/copy-paste-html-cross-origin-i
 webkit.org/b/298402 inspector/worker/dom-debugger-event-after-terminate-crash.html [ Pass Crash ]
 
 webkit.org/b/298476 gamepad/gamepad-visibility-1.html [ Crash ]
+
+webkit.org/b/280234 imported/w3c/web-platform-tests/html/dom/idlharness.https.html [ Skip ]

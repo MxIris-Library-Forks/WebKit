@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2022-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #import "Utilities.h"
 #import "WKWebViewConfigurationExtras.h"
 #import "WKWebViewFindStringFindDelegate.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <WebKit/WKFrameInfoPrivate.h>
 #import <WebKit/WKNavigationDelegatePrivate.h>
 #import <WebKit/WKNavigationPrivate.h>
@@ -1961,7 +1962,7 @@ TEST(SiteIsolation, PasteGIF)
     [webView waitForPendingMouseEvents];
 
     auto *data = [NSData dataWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"sunset-in-cupertino-400px" ofType:@"gif"]];
-    writeImageDataToPasteboard((__bridge NSString *)kUTTypeGIF, data);
+    writeImageDataToPasteboard(UTTypeGIF.identifier, data);
     [webView paste:nil];
 
     [webView mouseEnterAtPoint:eventLocationInWindow];
@@ -4962,6 +4963,52 @@ TEST(SiteIsolation, CreateWebArchiveNestedFrame)
     done = false;
 }
 
+TEST(SiteIsolation, CreateWebArchiveForFrame)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<div>mainframe content</div><iframe src='https://apple.com/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<div>iframe content</div>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto webViewAndDelegates = makeWebViewAndDelegates(server);
+    RetainPtr webView = webViewAndDelegates.webView;
+    RetainPtr navigationDelegate = webViewAndDelegates.navigationDelegate;
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    static bool done = false;
+    __block RetainPtr<NSArray<_WKFrameTreeNode *>> childFrames;
+    [webView _frames:^(_WKFrameTreeNode *result) {
+        EXPECT_NOT_NULL(result);
+        EXPECT_NOT_NULL(result.childFrames);
+        childFrames = result.childFrames;
+        done = true;
+    }];
+    Util::run(&done);
+    done = false;
+
+    EXPECT_EQ([childFrames count], 1u);
+    [webView _createWebArchiveForFrame:childFrames.get().firstObject.info completionHandler:^(NSData *result, NSError *error) {
+        EXPECT_NULL(error);
+        EXPECT_NOT_NULL(result);
+        NSDictionary* actualDictionary = [NSPropertyListSerialization propertyListWithData:result options:0 format:nil error:nil];
+        EXPECT_NOT_NULL(actualDictionary);
+        NSDictionary *expectedDictionary = @{
+            @"WebMainResource" : @{
+                @"WebResourceData" : [@"<html><head></head><body><div>iframe content</div></body></html>" dataUsingEncoding:NSUTF8StringEncoding],
+                @"WebResourceFrameName" : @"<!--frame1-->",
+                @"WebResourceMIMEType" : @"text/html",
+                @"WebResourceTextEncodingName" : @"UTF-8",
+                @"WebResourceURL" : @"https://apple.com/iframe"
+            },
+        };
+        EXPECT_TRUE([expectedDictionary isEqualToDictionary:actualDictionary]);
+        done = true;
+    }];
+    Util::run(&done);
+    done = false;
+}
+
 // FIXME: Re-enable this once the extra resize events are gone.
 // https://bugs.webkit.org/show_bug.cgi?id=292311 might do it.
 TEST(SiteIsolation, DISABLED_Events)
@@ -5068,7 +5115,7 @@ TEST(SiteIsolation, DragAndDrop)
     [simulator runFrom:CGPointMake(100, 50) to:CGPointMake(100, 300)];
 
     NSArray *registeredTypes = [[simulator sourceItemProviders].firstObject registeredTypeIdentifiers];
-    EXPECT_WK_STREQ((__bridge NSString *)kUTTypeURL, [registeredTypes firstObject]);
+    EXPECT_WK_STREQ(UTTypeURL.identifier, [registeredTypes firstObject]);
 }
 #endif
 

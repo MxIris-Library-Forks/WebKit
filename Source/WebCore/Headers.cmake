@@ -1402,7 +1402,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/NodeList.h
     dom/NodeRenderStyle.h
     dom/NodeTraversal.h
-    dom/OverflowEvent.h
     dom/ParserContentPolicy.h
     dom/PendingScript.h
     dom/PointerEvent.h
@@ -1832,6 +1831,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     layout/integration/LayoutIntegrationBoxTreeUpdater.h
     layout/integration/LayoutIntegrationUtils.h
     layout/integration/flex/LayoutIntegrationFlexLayout.h
+
+    layout/integration/grid/LayoutIntegrationGridLayout.h
     layout/integration/inline/InlineIteratorBox.h
     layout/integration/inline/InlineIteratorBoxLegacyPath.h
     layout/integration/inline/InlineIteratorBoxModernPath.h

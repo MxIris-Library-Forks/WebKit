@@ -147,6 +147,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/layout/formattingContexts/inline/text"
     "${WEBCORE_DIR}/layout/integration"
     "${WEBCORE_DIR}/layout/integration/flex"
+    "${WEBCORE_DIR}/layout/integration/grid"
     "${WEBCORE_DIR}/layout/integration/inline"
     "${WEBCORE_DIR}/layout/layouttree"
     "${WEBCORE_DIR}/layout/formattingContexts/table"
@@ -1232,7 +1233,6 @@ set(WebCore_NON_SVG_IDL_FILES
     dom/Observable.idl
     dom/ObservableInspector.idl
     dom/ObservableInspectorAbortCallback.idl
-    dom/OverflowEvent.idl
     dom/PageRevealEvent.idl
     dom/PageSwapEvent.idl
     dom/PageTransitionEvent.idl

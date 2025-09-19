@@ -90,6 +90,7 @@
 #include "WebSharedWorkerContextManagerConnectionMessages.h"
 #include "WebSharedWorkerProvider.h"
 #include "WebTransportSession.h"
+#include "WebUserContentController.h"
 #include "WebsiteData.h"
 #include "WebsiteDataStoreParameters.h"
 #include "WebsiteDataType.h"
@@ -1410,8 +1411,10 @@ void WebProcess::networkProcessConnectionClosed(NetworkProcessConnection* connec
     m_webSocketChannelManager.networkProcessCrashed();
     m_broadcastChannelRegistry->networkProcessCrashed();
 
+#if USE(LIBWEBRTC)
     if (m_libWebRTCNetwork)
         m_libWebRTCNetwork->networkProcessCrashed();
+#endif
 
     for (auto& page : m_pageMap.values()) {
         page->stopAllURLSchemeTasks();
@@ -2166,6 +2169,7 @@ void WebProcess::clearCachedPage(BackForwardItemIdentifier backForwardItemID, Co
     completionHandler();
 }
 
+#if USE(LIBWEBRTC)
 LibWebRTCNetwork& WebProcess::libWebRTCNetwork()
 {
     if (!m_libWebRTCNetwork)
@@ -2177,6 +2181,7 @@ Ref<LibWebRTCNetwork> WebProcess::protectedLibWebRTCNetwork()
 {
     return libWebRTCNetwork();
 }
+#endif
 
 void WebProcess::establishRemoteWorkerContextConnectionToNetworkProcess(RemoteWorkerType workerType, PageGroupIdentifier pageGroupID, WebPageProxyIdentifier webPageProxyID, PageIdentifier pageID, const WebPreferencesStore& store, Site&& site, std::optional<ScriptExecutionContextIdentifier> serviceWorkerPageIdentifier, RemoteWorkerInitializationData&& initializationData, CompletionHandler<void()>&& completionHandler)
 {
@@ -2665,6 +2670,11 @@ void WebProcess::didReceiveRemoteCommand(PlatformMediaSession::RemoteControlComm
 {
     for (auto& page : m_pageMap.values())
         page->didReceiveRemoteCommand(type, argument);
+}
+
+void WebProcess::contentWorldDestroyed(ContentWorldIdentifier identifier)
+{
+    WebUserContentController::removeContentWorld(identifier);
 }
 
 } // namespace WebKit

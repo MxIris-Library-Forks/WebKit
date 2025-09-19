@@ -23,17 +23,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "PlacedGridItem.h"
 
-#if ENABLE(GPU_PROCESS)
+#include "UnplacedGridItem.h"
 
-#include <wtf/ObjectIdentifier.h>
+namespace WebCore {
+namespace Layout {
 
-namespace WebKit {
+PlacedGridItem::PlacedGridItem(const UnplacedGridItem& unplacedGridItem, GridAreaLines gridAreaLines)
+    : m_layoutBox(unplacedGridItem.m_layoutBox)
+    , m_gridAreaLines(gridAreaLines)
+{
+}
 
-struct RemoteGradientIdentifierType;
-using RemoteGradientIdentifier = AtomicObjectIdentifier<RemoteGradientIdentifierType>;
-
-} // namespace WebKit
-
-#endif
+} // namespace Layout
+} // namespace WebCore

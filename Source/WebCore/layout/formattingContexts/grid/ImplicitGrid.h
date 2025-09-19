@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,12 +23,34 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-[
-    ExceptionForEnabledBy,
-    DispatchedFrom=WebContent,
-    DispatchedTo=UI
-]
-messages -> WebUserContentControllerProxy {
-    DidPostMessage(WebKit::WebPageProxyIdentifier pageID, struct WebKit::FrameInfoData frameInfoData, WebKit::ScriptMessageHandlerIdentifier messageHandlerID, WebKit::JavaScriptEvaluationResult message) -> (Expected<WebKit::JavaScriptEvaluationResult, String> reply)
-    DidPostLegacySynchronousMessage(WebKit::WebPageProxyIdentifier pageID, struct WebKit::FrameInfoData frameInfoData, WebKit::ScriptMessageHandlerIdentifier messageHandlerID, WebKit::JavaScriptEvaluationResult message) -> (Expected<WebKit::JavaScriptEvaluationResult, String> reply) Synchronous
-}
+#pragma once
+
+#include <wtf/Forward.h>
+
+namespace WebCore {
+namespace Layout {
+
+class PlacedGridItem;
+class UnplacedGridItem;
+
+using PlacedGridItems = Vector<PlacedGridItem>;
+
+// https://drafts.csswg.org/css-grid-1/#implicit-grids
+class ImplicitGrid {
+public:
+    ImplicitGrid(size_t explicitColumnsCount, size_t explicitRowsCount);
+
+    size_t rowsCount() const { return m_gridMatrix.size(); }
+    size_t columnsCount() const { return rowsCount() ? m_gridMatrix[0].size() : 0; }
+
+    void insertUnplacedGridItem(const UnplacedGridItem&);
+
+    PlacedGridItems placedGridItems() const;
+
+private:
+    using GridMatrix = Vector<Vector<std::optional<const UnplacedGridItem>>>;
+    GridMatrix m_gridMatrix;
+};
+
+} // namespace Layout
+} // namespace WebCore

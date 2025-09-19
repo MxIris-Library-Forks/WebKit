@@ -49,7 +49,7 @@ static void setSmartListsPreference(WKWebViewConfiguration *configuration, BOOL 
 {
     auto preferences = [configuration preferences];
     for (_WKFeature *feature in [WKPreferences _features]) {
-        if ([feature.key isEqualToString:@"SmartListsEnabled"]) {
+        if ([feature.key isEqualToString:@"SmartListsAvailable"]) {
             [preferences _setEnabled:value forFeature:feature];
             break;
         }
@@ -92,15 +92,19 @@ static RetainPtr<NSMenu> invokeContextMenu(TestWKWebView *webView)
     return proposedMenu;
 }
 
-static void runTest(NSString *input, NSString *expectedHTML, NSString *expectedSelectionPath, NSInteger selectionOffset)
+static void runTest(NSString *input, NSString *expectedHTML, NSString *expectedSelectionPath, NSInteger selectionOffset, NSString *stylesheet = nil)
 {
     RetainPtr expectedSelection = [SmartListsTestSelectionConfiguration caretSelectionWithPath:expectedSelectionPath offset:selectionOffset];
-    RetainPtr configuration = [[SmartListsTestConfiguration alloc] initWithExpectedHTML:expectedHTML expectedSelection:expectedSelection.get() input:input];
+    RetainPtr configuration = [[SmartListsTestConfiguration alloc] initWithExpectedHTML:expectedHTML expectedSelection:expectedSelection.get() input:input stylesheet:stylesheet];
 
     __block bool finished = false;
     __block RetainPtr<SmartListsTestResult> result;
     [SmartListsSupport processConfiguration:configuration.get() completionHandler:^(SmartListsTestResult *testResult, NSError *error) {
-        EXPECT_NULL(error);
+        if (error) {
+            TextStream errorMessage;
+            errorMessage << error;
+            EXPECT_NULL(error) << errorMessage.release().utf8().data();
+        }
         result = testResult;
         finished = true;
     }];
@@ -121,9 +125,8 @@ TEST(SmartLists, EnablementIsLogicallyConsistentWhenInterfacedThroughResponder)
     [webView synchronouslyLoadHTMLString:@"<div>hi</div>"];
     [webView waitForNextPresentationUpdate];
 
-    // Case 1: _editable => false, user default => nil, preference => false
+    // Case 1: user default => nil, preference => false
 
-    [webView _setEditable:NO];
     setSmartListsPreference(configuration.get(), NO);
     resetUserDefaults();
 
@@ -134,22 +137,8 @@ TEST(SmartLists, EnablementIsLogicallyConsistentWhenInterfacedThroughResponder)
     EXPECT_FALSE([webView _isSmartListsEnabled]);
     EXPECT_NULL(userDefaultsValue());
 
-    // Case 2: _editable => true, user default => nil, preference => false
+    // Case 2: user default => true, preference => false
 
-    [webView _setEditable:YES];
-    setSmartListsPreference(configuration.get(), NO);
-    resetUserDefaults();
-
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_NULL(userDefaultsValue());
-
-    [webView _setSmartListsEnabled:YES];
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_NULL(userDefaultsValue());
-
-    // Case 3: _editable => false, user default => true, preference => false
-
-    [webView _setEditable:NO];
     setSmartListsPreference(configuration.get(), NO);
     setUserDefaultsValue(YES);
 
@@ -160,35 +149,8 @@ TEST(SmartLists, EnablementIsLogicallyConsistentWhenInterfacedThroughResponder)
     EXPECT_FALSE([webView _isSmartListsEnabled]);
     EXPECT_TRUE([userDefaultsValue() boolValue]);
 
-    // Case 4: _editable => true, user default => true, preference => false
+    // Case 3: _editable => true, user default => nil, preference => true
 
-    [webView _setEditable:YES];
-    setSmartListsPreference(configuration.get(), NO);
-    setUserDefaultsValue(YES);
-
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_TRUE([userDefaultsValue() boolValue]);
-
-    [webView _setSmartListsEnabled:YES];
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_TRUE([userDefaultsValue() boolValue]);
-
-    // Case 5: _editable => false, user default => nil, preference => true
-
-    [webView _setEditable:NO];
-    setSmartListsPreference(configuration.get(), YES);
-    resetUserDefaults();
-
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_NULL(userDefaultsValue());
-
-    [webView _setSmartListsEnabled:YES];
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_NULL(userDefaultsValue());
-
-    // Case 6: _editable => true, user default => nil, preference => true
-
-    [webView _setEditable:YES];
     setSmartListsPreference(configuration.get(), YES);
     resetUserDefaults();
 
@@ -203,22 +165,8 @@ TEST(SmartLists, EnablementIsLogicallyConsistentWhenInterfacedThroughResponder)
     EXPECT_TRUE([webView _isSmartListsEnabled]);
     EXPECT_TRUE([userDefaultsValue() boolValue]);
 
-    // Case 7: _editable => false, user default => true, preference => true
+    // Case 4: user default => true, preference => true
 
-    [webView _setEditable:NO];
-    setSmartListsPreference(configuration.get(), YES);
-    setUserDefaultsValue(YES);
-
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_TRUE([userDefaultsValue() boolValue]);
-
-    [webView _setSmartListsEnabled:YES];
-    EXPECT_FALSE([webView _isSmartListsEnabled]);
-    EXPECT_TRUE([userDefaultsValue() boolValue]);
-
-    // Case 8: _editable => true, user default => true, preference => true
-
-    [webView _setEditable:YES];
     setSmartListsPreference(configuration.get(), YES);
     setUserDefaultsValue(YES);
 
@@ -238,25 +186,8 @@ TEST(SmartLists, ContextMenuItemStateIsConsistentWithAvailability)
     [webView synchronouslyLoadHTMLString:@"<body contenteditable>hi</body>"];
     [webView waitForNextPresentationUpdate];
 
-    // Case 1: Feature disabled
+    // Case 1: Available
     {
-        [webView _setEditable:NO];
-        setSmartListsPreference(configuration.get(), YES);
-
-        NSString *script = @"document.body.focus()";
-        [webView stringByEvaluatingJavaScript:script];
-
-        RetainPtr menu = invokeContextMenu(webView.get());
-        RetainPtr substitutionMenu = [menu itemWithTitle:@"Substitutions"];
-        EXPECT_NOT_NULL(substitutionMenu.get());
-
-        RetainPtr smartListsItem = [[substitutionMenu submenu] itemWithTitle:@"Smart Lists"];
-        EXPECT_NULL(smartListsItem);
-    }
-
-    // Case 2: Feature enabled, preference enabled
-    {
-        [webView _setEditable:YES];
         setSmartListsPreference(configuration.get(), YES);
 
         NSString *script = @"document.body.focus()";
@@ -270,9 +201,8 @@ TEST(SmartLists, ContextMenuItemStateIsConsistentWithAvailability)
         EXPECT_TRUE([smartListsItem isEnabled]);
     }
 
-    // Case 3: Feature enabled, preference disabled
+    // Case 2: Unavailable
     {
-        [webView _setEditable:YES];
         setSmartListsPreference(configuration.get(), NO);
 
         NSString *script = @"document.body.focus()";
@@ -297,10 +227,10 @@ TEST(SmartLists, InsertingSpaceAndTextAfterBulletPointGeneratesListWithText)
     </body>
     )"""_s;
 
-    runTest(@"* Hello", expectedHTML.createNSString().get(), @"//body/ul/li/text()", [@"Hello" length]);
+    runTest(@"* Hello", expectedHTML.createNSString().get(), @"//body/ul/li/text()", @"Hello".length);
 
     RetainPtr inputWithBullet = makeString(WTF::Unicode::bullet, " Hello"_s).createNSString();
-    runTest(inputWithBullet.get(), expectedHTML.createNSString().get(), @"//body/ul/li/text()", [@"Hello" length]);
+    runTest(inputWithBullet.get(), expectedHTML.createNSString().get(), @"//body/ul/li/text()", @"Hello".length);
 }
 
 TEST(SmartLists, InsertingSpaceAndTextAfterHyphenGeneratesDashedList)
@@ -317,7 +247,7 @@ TEST(SmartLists, InsertingSpaceAndTextAfterHyphenGeneratesDashedList)
 
     RetainPtr expectedHTML = WTF::makeStringByReplacingAll(expectedHTMLTemplate, "<MARKER>"_s, marker).createNSString();
 
-    runTest(@"- Hello", expectedHTML.get(), @"//body/ul/li/text()", [@"Hello" length]);
+    runTest(@"- Hello", expectedHTML.get(), @"//body/ul/li/text()", @"Hello".length);
 }
 
 TEST(SmartLists, InsertingSpaceAfterBulletPointGeneratesEmptyList)
@@ -341,7 +271,7 @@ TEST(SmartLists, InsertingSpaceAfterBulletPointInMiddleOfSentenceDoesNotGenerate
     </body>
     )"""_s;
 
-    runTest(@"ABC * DEF", expectedHTML.createNSString().get(), @"//body/text()", [@"ABC * DEF" length]);
+    runTest(@"ABC * DEF", expectedHTML.createNSString().get(), @"//body/text()", @"ABC * DEF".length);
 }
 
 TEST(SmartLists, InsertingSpaceAfterPeriodAtStartOfSentenceDoesNotGenerateList)
@@ -352,7 +282,7 @@ TEST(SmartLists, InsertingSpaceAfterPeriodAtStartOfSentenceDoesNotGenerateList)
     </body>
     )"""_s;
 
-    runTest(@". Hi", expectedHTML.createNSString().get(), @"//body/text()", [@". Hi" length]);
+    runTest(@". Hi", expectedHTML.createNSString().get(), @"//body/text()", @". Hi".length);
 }
 
 TEST(SmartLists, InsertingSpaceAfterNumberGeneratesOrderedList)
@@ -365,9 +295,9 @@ TEST(SmartLists, InsertingSpaceAfterNumberGeneratesOrderedList)
     </body>
     )"""_s;
 
-    runTest(@"1. Hello", expectedHTML.createNSString().get(), @"//body/ol/li/text()", [@"Hello" length]);
+    runTest(@"1. Hello", expectedHTML.createNSString().get(), @"//body/ol/li/text()", @"Hello".length);
 
-    runTest(@"1) Hello", expectedHTML.createNSString().get(), @"//body/ol/li/text()", [@"Hello" length]);
+    runTest(@"1) Hello", expectedHTML.createNSString().get(), @"//body/ol/li/text()", @"Hello".length);
 }
 
 TEST(SmartLists, InsertingSpaceAfterMultipleDigitNumberGeneratesOrderedList)
@@ -380,7 +310,7 @@ TEST(SmartLists, InsertingSpaceAfterMultipleDigitNumberGeneratesOrderedList)
     </body>
     )"""_s;
 
-    runTest(@"1234. Hello", expectedHTML.createNSString().get(), @"//body/ol/li/text()", [@"Hello" length]);
+    runTest(@"1234. Hello", expectedHTML.createNSString().get(), @"//body/ol/li/text()", @"Hello".length);
 }
 
 TEST(SmartLists, InsertingSpaceAfterInvalidNumberDoesNotGenerateOrderedList)
@@ -424,6 +354,55 @@ TEST(SmartLists, InsertingListMergesWithPreviousListIfPossible)
     "";
 
     runTest(input.get(), expectedHTML.createNSString().get(), @"//body/ol/li[3]/text()", 1);
+}
+
+TEST(SmartLists, InsertingSpaceInsideListElementDoesNotActivateSmartLists)
+{
+    static constexpr auto expectedHTML = R"""(
+    <body>
+        <ul>
+            <li>A</li>
+            <li>1. Hi</li>
+        </ul>
+    </body>
+    )"""_s;
+
+    runTest(@"* A\n1. Hi", expectedHTML.createNSString().get(), @"//body/ul/li[2]/text()", @"1. Hi".length);
+}
+
+TEST(SmartLists, GeneratedSmartListsHaveAssociatedClassNames)
+{
+    auto dashMarker = WTF::makeString(WTF::Unicode::emDash, WTF::Unicode::noBreakSpace, WTF::Unicode::noBreakSpace);
+
+    static constexpr auto expectedHTMLTemplate = R"""(
+    <body contenteditable>
+        <ul class="Apple-disc-list" style="list-style-type: disc;">
+            <li>A</li>
+        </ul>
+        <div>
+            <ol class="Apple-decimal-list" start="1" style="list-style-type: decimal;">
+                <li>B</li>
+            </ol>
+            <div>
+                <ul class="Apple-dash-list" style="list-style-type: '<DASH_MARKER>';">
+                    <li>C</li>
+                </ul>
+            </div>
+        </div>
+    </body>
+    )"""_s;
+
+    static constexpr auto css = R"""(
+    <style>
+        .Apple-disc-list { color: red }
+        .Apple-dash-list { color: green }
+        .Apple-decimal-list { color: blue }
+    </style>
+    )"""_s;
+
+    RetainPtr expectedHTML = WTF::makeStringByReplacingAll(expectedHTMLTemplate, "<DASH_MARKER>"_s, dashMarker).createNSString();
+
+    runTest(@"* A\n\n1. B\n\n- C", expectedHTML.get(), @"//body/div/div/ul/li/text()", 1, css.createNSString().get());
 }
 
 #endif // PLATFORM(MAC)

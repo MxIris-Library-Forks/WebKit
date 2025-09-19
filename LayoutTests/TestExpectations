@@ -311,6 +311,8 @@ imported/w3c/web-platform-tests/video-rvfc [ Skip ]
 fast/mediastream/getUserMedia-rvfc.html [ Skip ]
 webrtc/peerConnection-rvfc.html [ Skip ]
 
+[ Debug ] webrtc/video-rotation-black.html [ Slow ]
+
 # Our implementation of pc.setLocalDescription() is not fully spec compliant, steps 4.2 and 4.3 are
 # not implemented.
 imported/w3c/web-platform-tests/webrtc/legacy/munge-dont.html [ Failure ]
@@ -2409,8 +2411,6 @@ webkit.org/b/283954 imported/w3c/web-platform-tests/svg/text/reftests/transform-
 [ Debug ] fast/loader/document-with-fragment-url-4.html [ Pass Timeout ]
 
 webkit.org/b/85902 [ Debug ] fast/overflow/lots-of-sibling-inline-boxes.html [ Slow ]
-webkit.org/b/298471 fast/frames/lots-of-objects.html [ Pass Timeout ]
-webkit.org/b/298471 fast/frames/lots-of-iframes.html [ Pass Timeout ]
 webkit.org/b/135053 [ Debug ] html5lib/webkit-resumer.html [ Slow ]
 [ Debug ] js/dfg-double-vote-fuzz.html [ Slow ]
 [ Debug ] js/array-sort-small-sparse-array-with-large-length.html [ Slow ]
@@ -7500,7 +7500,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-00
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-position-try-012.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/position-try-switch-to-fixed-anchor.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-with-position.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-no-overflow-scroll.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-colspan-003.html [ ImageOnlyFailure ]

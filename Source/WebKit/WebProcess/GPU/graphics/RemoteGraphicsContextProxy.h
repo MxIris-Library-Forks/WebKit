@@ -28,7 +28,6 @@
 #if ENABLE(GPU_PROCESS)
 
 #include "RemoteDisplayListIdentifier.h"
-#include "RemoteGradientIdentifier.h"
 #include "RemoteGraphicsContextIdentifier.h"
 #include <WebCore/DisplayListRecorder.h>
 #include <wtf/TZoneMalloc.h>
@@ -138,7 +137,7 @@ private:
 #endif
     void applyDeviceScaleFactor(float) final;
 
-    void beginPage(const WebCore::IntSize& pageSize) final;
+    void beginPage(const WebCore::FloatRect&) final;
     void endPage() final;
     void setURLForRect(const URL&, const WebCore::FloatRect&) final;
 
@@ -146,7 +145,7 @@ private:
     bool recordResourceUse(WebCore::ImageBuffer&);
     bool recordResourceUse(const WebCore::SourceImage&);
     bool recordResourceUse(WebCore::Font&);
-    std::optional<RemoteGradientIdentifier> recordResourceUse(WebCore::Gradient&);
+    bool recordResourceUse(WebCore::Gradient&);
     bool recordResourceUse(WebCore::Filter&);
     std::optional<RemoteDisplayListIdentifier> recordResourceUse(const WebCore::DisplayList::DisplayList&);
 

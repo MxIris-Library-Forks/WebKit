@@ -1232,9 +1232,7 @@ void Page::analyzeImagesForFindInPage(Function<void()>&& callback)
     if (settings().imageAnalysisDuringFindInPageEnabled()) {
         Ref imageAnalysisQueue = this->imageAnalysisQueue();
         imageAnalysisQueue->setDidBecomeEmptyCallback(WTFMove(callback));
-        RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_mainFrame.get());
-        if (RefPtr mainDocument = localMainFrame ? localMainFrame->document() : nullptr)
-            imageAnalysisQueue->enqueueAllImagesIfNeeded(*mainDocument, { }, { });
+        imageAnalysisQueue->enqueueAllImagesIfNeeded(m_mainFrame.get(), { }, { });
     }
 }
 #endif
@@ -3121,9 +3119,12 @@ void Page::setShouldSuppressHDR(bool shouldSuppressHDR)
         return;
 
     m_shouldSuppressHDR = shouldSuppressHDR;
+
+#if ENABLE(VIDEO)
     forEachDocument([](auto& document) {
         document.shouldSuppressHDRDidChange();
     });
+#endif
 }
 
 #if ENABLE(MEDIA_STREAM)

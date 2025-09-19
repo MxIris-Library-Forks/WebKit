@@ -6368,7 +6368,7 @@ void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& p
         activity = processContainingFrame(frameID)->protectedThrottler()->foregroundActivity("WebPageProxy::runJavaScriptInFrameInScriptWorld"_s);
 #endif
 
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::RunJavaScriptInFrameInScriptWorld(parameters, frameID, world.worldData(), wantsResult), [activity = WTFMove(activity), callbackFunction = WTFMove(callbackFunction)] (auto&& result) mutable {
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::RunJavaScriptInFrameInScriptWorld(parameters, frameID, world.worldDataForProcess(processContainingFrame(frameID)), wantsResult), [activity = WTFMove(activity), callbackFunction = WTFMove(callbackFunction)] (auto&& result) mutable {
         callbackFunction(WTFMove(result));
     });
 }
@@ -6476,11 +6476,6 @@ void WebPageProxy::getContentsAsMHTMLData(CompletionHandler<void(API::Data*)>&& 
 void WebPageProxy::getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&& callback)
 {
     sendWithAsyncReply(Messages::WebPage::GetSelectionOrContentsAsString(), callback);
-}
-
-void WebPageProxy::getSelectionAsWebArchiveData(CompletionHandler<void(API::Data*)>&& callback)
-{
-    sendWithAsyncReply(Messages::WebPage::GetSelectionAsWebArchiveData(), toAPIDataCallback(WTFMove(callback)));
 }
 
 void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::MarkupExclusionRule>& markupExclusionRules, const String& directory, const String& suggestedMainResourceName, CompletionHandler<void(Expected<void, WebCore::ArchiveError>)>&& completionHandler)
@@ -11902,7 +11897,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     Ref userContentController = m_userContentController;
     if (RefPtr userContentControllerFromWebsitePolicies = websitePolicies ? websitePolicies->userContentController() : nullptr)
         userContentController = userContentControllerFromWebsitePolicies.releaseNonNull();
-    process.addWebUserContentControllerProxy(userContentController);
+    userContentController->addProcess(process);
 
     if (m_sessionStateWasRestoredByAPIRequest)
         m_backForwardList->setItemsAsRestoredFromSession();
@@ -11915,7 +11910,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
         .pageGroupData = m_pageGroup->data(),
         .visitedLinkTableID = m_visitedLinkStore->identifier(),
         .overrideReferrerForAllRequests = m_configuration->overrideReferrerForAllRequests(),
-        .userContentControllerParameters = userContentController->parameters(),
+        .userContentControllerParameters = userContentController->parametersForProcess(process),
         .mainFrameIdentifier = mainFrameIdentifier,
         .openedMainFrameName = m_openedMainFrameName,
         .initialSandboxFlags = m_mainFrame ? m_mainFrame->effectiveSandboxFlags() : SandboxFlags { },
@@ -12900,8 +12895,10 @@ void WebPageProxy::updateWithTextRecognitionResult(TextRecognitionResult&& resul
 
 void WebPageProxy::startVisualTranslation(const String& sourceLanguageIdentifier, const String& targetLanguageIdentifier)
 {
-    if (hasRunningProcess())
-        send(Messages::WebPage::StartVisualTranslation(sourceLanguageIdentifier, targetLanguageIdentifier));
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        if (hasRunningProcess())
+            webProcess.send(Messages::WebPage::StartVisualTranslation(sourceLanguageIdentifier, targetLanguageIdentifier), pageID);
+    });
 }
 
 #endif // ENABLE(IMAGE_ANALYSIS)

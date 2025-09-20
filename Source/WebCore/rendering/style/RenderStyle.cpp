@@ -1227,7 +1227,7 @@ bool RenderStyle::changeRequiresLayerRepaint(const RenderStyle& other, OptionSet
 
     bool currentColorDiffers = m_inheritedData->color != other.m_inheritedData->color;
     if (currentColorDiffers) {
-        if (filter().requiresRepaintForCurrentColorChange() || backdropFilter().requiresRepaintForCurrentColorChange())
+        if (filter().hasFilterThatRequiresRepaintForCurrentColorChange() || backdropFilter().hasFilterThatRequiresRepaintForCurrentColorChange())
             return true;
     }
 
@@ -2424,64 +2424,50 @@ const AtomString& RenderStyle::hyphenString() const
 
 void RenderStyle::adjustAnimations()
 {
-    auto* animationList = m_nonInheritedData->miscData->animations.get();
-    if (!animationList)
+    if (m_nonInheritedData->miscData->animations.isNone())
         return;
 
+    auto& animationList = ensureAnimations();
+
     // Get rid of empty animations and anything beyond them
-    for (size_t i = 0, size = animationList->size(); i < size; ++i) {
-        if (animationList->animation(i).isEmpty()) {
-            animationList->resize(i);
+    for (size_t i = 0, size = animationList.size(); i < size; ++i) {
+        if (animationList[i].isEmpty()) {
+            animationList.resize(i);
             break;
         }
     }
 
-    if (animationList->isEmpty()) {
+    if (animationList.isEmpty()) {
         clearAnimations();
         return;
     }
 
     // Repeat patterns into layers that don't have some properties set.
-    animationList->fillUnsetProperties();
+    animationList.fillUnsetProperties();
 }
 
 void RenderStyle::adjustTransitions()
 {
-    auto* transitionList = m_nonInheritedData->miscData->transitions.get();
-    if (!transitionList)
+    if (m_nonInheritedData->miscData->transitions.isNone())
         return;
 
+    auto& transitionList = ensureTransitions();
+
     // Get rid of empty transitions and anything beyond them
-    for (size_t i = 0, size = transitionList->size(); i < size; ++i) {
-        if (transitionList->animation(i).isEmpty()) {
-            transitionList->resize(i);
+    for (size_t i = 0, size = transitionList.size(); i < size; ++i) {
+        if (transitionList[i].isEmpty()) {
+            transitionList.resize(i);
             break;
         }
     }
 
-    if (transitionList->isEmpty()) {
+    if (transitionList.isEmpty()) {
         clearTransitions();
         return;
     }
 
     // Repeat patterns into layers that don't have some properties set.
-    transitionList->fillUnsetProperties();
-}
-
-AnimationList& RenderStyle::ensureAnimations()
-{
-    auto& animations = m_nonInheritedData.access().miscData.access().animations;
-    if (!animations)
-        animations = AnimationList::create();
-    return *animations;
-}
-
-AnimationList& RenderStyle::ensureTransitions()
-{
-    auto& transitions = m_nonInheritedData.access().miscData.access().transitions;
-    if (!transitions)
-        transitions = AnimationList::create();
-    return *transitions;
+    transitionList.fillUnsetProperties();
 }
 
 const FontMetrics& RenderStyle::metricsOfPrimaryFont() const
@@ -3516,14 +3502,6 @@ void RenderStyle::setLineFitEdge(TextEdge value)
 TextEdge RenderStyle::initialLineFitEdge()
 {
     return { TextEdgeType::Leading, TextEdgeType::Leading };
-}
-
-bool RenderStyle::hasReferenceFilterOnly() const
-{
-    if (!hasFilter())
-        return false;
-    auto& filterOperations = m_nonInheritedData->miscData->filter->operations;
-    return filterOperations.size() == 1 && filterOperations.at(0)->type() == FilterOperation::Type::Reference;
 }
 
 Style::LineWidth RenderStyle::outlineWidth() const

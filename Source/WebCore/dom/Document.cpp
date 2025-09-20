@@ -455,7 +455,7 @@ struct Document::PendingScrollEventTargetList {
     WTF_MAKE_TZONE_ALLOCATED(PendingScrollEventTargetList);
 
 public:
-    Vector<GCReachableRef<ContainerNode>> targets;
+    Vector<std::pair<GCReachableRef<ContainerNode>, ScrollEventType>> targets;
 };
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(Document::PendingScrollEventTargetList);
@@ -988,7 +988,6 @@ void Document::commonTeardown()
         appHighlightRegistry->clear();
 #endif
     m_pendingScrollEventTargetList = nullptr;
-    m_pendingScrollendEventTargetList = nullptr;
 
     if (m_timelinesController)
         m_timelinesController->detachFromDocument();
@@ -5404,11 +5403,6 @@ MouseEventWithHitTestResults Document::prepareMouseEvent(const HitTestRequest& r
             auto& pointerCaptureController = page->pointerCaptureController();
             RefPtr previousCaptureElement = pointerCaptureController.pointerCaptureElement(this, event.pointerId());
             pointerCaptureController.processPendingPointerCapture(event.pointerId());
-
-            // Check if event processing should be suppressed due to the possible removal of the captured element.
-            if (pointerCaptureController.shouldSuppressEventProcessing(event.pointerId()))
-                return MouseEventWithHitTestResults(event, HitTestResult(LayoutPoint()));
-
             RefPtr captureElement = pointerCaptureController.pointerCaptureElement(this, event.pointerId());
             // If the capture element has changed while running the Process Pending Capture Element steps then
             // we need to indicate that when calling updateHoverActiveState to be sure that the :active and :hover
@@ -5674,36 +5668,31 @@ void Document::flushDeferredResizeEvents()
     runResizeSteps();
 }
 
-void Document::addPendingScrollendEventTarget(ContainerNode& target)
-{
-    if (!settings().scrollendEventEnabled())
-        return;
-    if (!m_pendingScrollendEventTargetList)
-        m_pendingScrollendEventTargetList = makeUnique<PendingScrollEventTargetList>();
-
-    auto& targets = m_pendingScrollendEventTargetList->targets;
-    if (targets.containsIf([&] (auto& entry) { return entry.ptr() == &target; }))
-        return;
-
-    if (targets.isEmpty())
-        scheduleRenderingUpdate(RenderingUpdateStep::Scroll);
-
-    targets.append(target);
-}
-
-void Document::addPendingScrollEventTarget(ContainerNode& target)
+void Document::addPendingScrollEventTarget(ContainerNode& originalTarget, ScrollEventType eventType)
 {
     if (!m_pendingScrollEventTargetList)
         m_pendingScrollEventTargetList = makeUnique<PendingScrollEventTargetList>();
 
+    Ref target = [&] -> Ref<ContainerNode> {
+        if (RefPtr element = dynamicDowncast<HTMLElement>(originalTarget); element && element->isTextControlInnerTextElement()) {
+            if (RefPtr shadowHost = element->shadowHost())
+                return shadowHost.releaseNonNull();
+        }
+        return originalTarget;
+    }();
+
     auto& targets = m_pendingScrollEventTargetList->targets;
-    if (targets.findIf([&] (auto& entry) { return entry.ptr() == &target; }) != notFound)
+    auto it = targets.findIf([&] (auto& pair) {
+        auto& [element, type] = pair;
+        return element.ptr() == target.ptr() && type == eventType;
+    });
+    if (it != notFound)
         return;
 
     if (targets.isEmpty())
         scheduleRenderingUpdate(RenderingUpdateStep::Scroll);
 
-    targets.append(target);
+    targets.append({ target.get(), eventType });
 }
 
 void Document::setNeedsVisualViewportScrollEvent()
@@ -5759,9 +5748,17 @@ void Document::runScrollSteps()
     if (m_pendingScrollEventTargetList && !m_pendingScrollEventTargetList->targets.isEmpty()) {
         LOG_WITH_STREAM(Events, stream << "Document " << this << " sending scroll events to pending scroll event targets");
         auto currentTargets = WTFMove(m_pendingScrollEventTargetList->targets);
-        for (auto& target : currentTargets) {
+        for (auto& [target, type] : currentTargets) {
             auto bubbles = target->isDocumentNode() ? Event::CanBubble::Yes : Event::CanBubble::No;
-            target->dispatchEvent(Event::create(eventNames().scrollEvent, bubbles, Event::IsCancelable::No));
+            auto eventName = [&] {
+                switch (type) {
+                case ScrollEventType::Scroll:
+                    return eventNames().scrollEvent;
+                case ScrollEventType::Scrollend:
+                    return eventNames().scrollendEvent;
+                }
+            }();
+            target->dispatchEvent(Event::create(eventName, bubbles, Event::IsCancelable::No));
         }
     }
     if (m_needsVisualViewportScrollEvent) {
@@ -5769,14 +5766,6 @@ void Document::runScrollSteps()
         m_needsVisualViewportScrollEvent = false;
         if (RefPtr window = this->window())
             window->visualViewport().dispatchEvent(Event::create(eventNames().scrollEvent, Event::CanBubble::No, Event::IsCancelable::No));
-    }
-    if (m_pendingScrollendEventTargetList && !m_pendingScrollendEventTargetList->targets.isEmpty()) {
-        LOG_WITH_STREAM(Events, stream << "Document " << this << " sending scrollend events to pending scrollend event targets");
-        auto currentTargets = std::exchange(m_pendingScrollendEventTargetList->targets, { });
-        for (auto& target : currentTargets) {
-            auto bubbles = target->isDocumentNode() ? Event::CanBubble::Yes : Event::CanBubble::No;
-            target->dispatchEvent(Event::create(eventNames().scrollendEvent, bubbles, Event::IsCancelable::No));
-        }
     }
 }
 

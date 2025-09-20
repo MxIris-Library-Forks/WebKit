@@ -3004,7 +3004,7 @@ header: <WebCore/KeyboardScroll.h>
 }
 
 [RefCounted] class WebCore::PerspectiveTransformOperation {
-    std::optional<WebCore::Length> perspective();
+    std::optional<float> perspective();
 }
 
 [RefCounted] class WebCore::MatrixTransformOperation {
@@ -3060,6 +3060,7 @@ class WebCore::TransformOperations {
     WebCore::ColorInterpolationMethod colorInterpolationMethod();
     WebCore::GradientSpreadMethod spreadMethod();
     WebCore::GradientColorStops stops();
+    bool isTransient();
 }
 
 header: <WebCore/Pattern.h>
@@ -7913,11 +7914,11 @@ class WebCore::FilterOperations {
 #endif // !USE(COORDINATED_GRAPHICS)
 
 [AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::Filter subclasses {
-    WebCore::CSSFilter
-    WebCore::SVGFilter
+    WebCore::CSSFilterRenderer
+    WebCore::SVGFilterRenderer
 }
 
-[AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::CSSFilter {
+[AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::CSSFilterRenderer {
     Vector<Ref<WebCore::FilterFunction>> functions();
 
     OptionSet<WebCore::FilterRenderingMode> filterRenderingModes();
@@ -7925,11 +7926,11 @@ class WebCore::FilterOperations {
     WebCore::FloatRect filterRegion();
 }
 
-[AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::SVGFilter {
+[AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::SVGFilterRenderer {
     WebCore::FloatRect targetBoundingBox();
     WebCore::SVGUnitTypes::SVGUnitType primitiveUnits();
     WebCore::SVGFilterExpression expression();
-    [Validator='WebCore::SVGFilter::isValidSVGFilterExpression(*expression, *effects)'] Vector<Ref<WebCore::FilterEffect>> effects();
+    [Validator='WebCore::SVGFilterRenderer::isValidSVGFilterExpression(*expression, *effects)'] Vector<Ref<WebCore::FilterEffect>> effects();
     std::optional<WebCore::RenderingResourceIdentifier> renderingResourceIdentifierIfExists();
 
     OptionSet<WebCore::FilterRenderingMode> filterRenderingModes();
@@ -8045,7 +8046,7 @@ enum class WebCore::PaginationMode : uint8_t {
     BottomToTopPaginated
 };
 
-header: <WebCore/RenderObject.h>
+header: <WebCore/RepaintRectCalculation.h>
 enum class WebCore::RepaintRectCalculation : bool;
 
 [Nested] enum class WebCore::HdrMetadataType : uint8_t {
@@ -8281,7 +8282,7 @@ header: <WebCore/SharedBuffer.h>
     [Validator='WebCore::FilterOperation::isBasicComponentTransferFilterOperationType(*type)'] WebCore::FilterOperation::Type type();
 };
 [CustomHeader, RefCounted] class WebCore::BlurFilterOperation {
-    WebCore::Length stdDeviation();
+    float stdDeviation();
 };
 [CustomHeader, RefCounted] class WebCore::DropShadowFilterOperation {
     WebCore::IntPoint location();
@@ -8503,7 +8504,7 @@ struct WebCore::Length {
 };
 
 [AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::FilterFunction subclasses {
-    WebCore::SVGFilter
+    WebCore::SVGFilterRenderer
     WebCore::FEBlend
     WebCore::FEColorMatrix
     WebCore::FEComponentTransfer
@@ -8864,8 +8865,8 @@ header: <WebCore/FilterOperation.h>
 
 header: <WebCore/FilterFunction.h>
 [Nested] enum class WebCore::FilterFunction::Type : uint8_t {
-    CSSFilter,
-    SVGFilter,
+    CSSFilterRenderer,
+    SVGFilterRenderer,
     FEBlend,
     FEColorMatrix,
     FEComponentTransfer,

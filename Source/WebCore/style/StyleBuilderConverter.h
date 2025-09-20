@@ -104,7 +104,6 @@
 #include "StyleValueTypes+CSSValueConversion.h"
 #include "TabSize.h"
 #include "TextSpacing.h"
-#include "TimelineRange.h"
 #include "TouchAction.h"
 #include "ViewTimeline.h"
 #include "WillChangeData.h"
@@ -145,8 +144,6 @@ public:
     // scrollbar-width converter is only needed for quirking.
     static ScrollbarWidth convertScrollbarWidth(BuilderState&, const CSSValue&);
     static GridAutoFlow convertGridAutoFlow(BuilderState&, const CSSValue&);
-    static FilterOperations convertFilterOperations(BuilderState&, const CSSValue&);
-    static FilterOperations convertAppleColorFilterOperations(BuilderState&, const CSSValue&);
 #if PLATFORM(IOS_FAMILY)
     static bool convertTouchCallout(BuilderState&, const CSSValue&);
 #endif
@@ -196,12 +193,7 @@ public:
     static std::optional<PositionArea> convertPositionArea(BuilderState&, const CSSValue&);
     static OptionSet<PositionVisibility> convertPositionVisibility(BuilderState&, const CSSValue&);
 
-    static RefPtr<TimingFunction> convertTimingFunction(BuilderState&, const CSSValue&);
-
     static NameScope convertNameScope(BuilderState&, const CSSValue&);
-
-    static SingleTimelineRange convertAnimationRangeStart(BuilderState&, const CSSValue&);
-    static SingleTimelineRange convertAnimationRangeEnd(BuilderState&, const CSSValue&);
 
     static FixedVector<PositionTryFallback> convertPositionTryFallbacks(BuilderState&, const CSSValue&);
 
@@ -750,17 +742,6 @@ inline WebCore::Length BuilderConverter::convertTextLengthOrNormal(BuilderState&
         return WebCore::Length(primitiveValue->resolveAsNumber(conversionData), LengthType::Fixed);
     ASSERT_NOT_REACHED();
     return RenderStyle::zeroLength();
-}
-
-
-inline FilterOperations BuilderConverter::convertFilterOperations(BuilderState& builderState, const CSSValue& value)
-{
-    return builderState.createFilterOperations(value);
-}
-
-inline FilterOperations BuilderConverter::convertAppleColorFilterOperations(BuilderState& builderState, const CSSValue& value)
-{
-    return builderState.createAppleColorFilterOperations(value);
 }
 
 // The input value needs to parsed and valid, this function returns std::nullopt if the input was "normal".
@@ -1612,11 +1593,6 @@ inline OptionSet<PositionVisibility> BuilderConverter::convertPositionVisibility
         result.add(fromCSSValue<PositionVisibility>(value));
 
     return result;
-}
-
-inline RefPtr<TimingFunction> BuilderConverter::convertTimingFunction(BuilderState& builderState, const CSSValue& value)
-{
-    return createTimingFunction(value, builderState.cssToLengthConversionData());
 }
 
 inline NameScope BuilderConverter::convertNameScope(BuilderState& builderState, const CSSValue& value)

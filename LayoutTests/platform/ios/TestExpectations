@@ -87,6 +87,8 @@ media/track/track-description-cue.html [ Pass ]
 media/track/track-extended-descriptions.html [ Pass ]
 media/wireless-route-monitoring.html [ Pass ]
 
+security/cocoa [ Pass ]
+
 # mac-only IPC test
 ipc/webpageproxy-correctionpanel-no-crash.html [ Skip ]
 
@@ -8066,8 +8068,6 @@ webkit.org/b/295820 [ Debug ] webrtc/audio-peer-connection-webaudio.html [ Pass 
 webkit.org/b/295907 contact-picker/contacts-select.html [ Pass Timeout ]
 
 webkit.org/b/295911 scrollingcoordinator/scrolling-tree/fixed-inside-frame.html [ Pass Failure ]
-
-webkit.org/b/295913 [ Release ] media/video-seek-pause.html [ Pass Failure ]
 
 webkit.org/b/295915 [ Debug ] accessibility/visible-character-range-basic.html [ Pass Timeout ]
 

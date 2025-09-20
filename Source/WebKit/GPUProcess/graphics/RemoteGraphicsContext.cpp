@@ -39,7 +39,7 @@
 #include <WebCore/BitmapImage.h>
 #include <WebCore/FEImage.h>
 #include <WebCore/FilterResults.h>
-#include <WebCore/SVGFilter.h>
+#include <WebCore/SVGFilterRenderer.h>
 #include <wtf/URL.h>
 
 #if USE(SYSTEM_PREVIEW)
@@ -138,7 +138,7 @@ void RemoteGraphicsContext::setFillColor(const Color& color)
     context().setFillColor(color);
 }
 
-void RemoteGraphicsContext::setFillCachedGradient(RenderingResourceIdentifier identifier, const AffineTransform& spaceTransform)
+void RemoteGraphicsContext::setFillCachedGradient(RemoteGradientIdentifier identifier, const AffineTransform& spaceTransform)
 {
     RefPtr gradient = resourceCache().cachedGradient(identifier);
     MESSAGE_CHECK(gradient);
@@ -172,7 +172,7 @@ void RemoteGraphicsContext::setStrokeColor(const WebCore::Color& color)
     context().setStrokeColor(color);
 }
 
-void RemoteGraphicsContext::setStrokeCachedGradient(RenderingResourceIdentifier identifier, const AffineTransform& spaceTransform)
+void RemoteGraphicsContext::setStrokeCachedGradient(RemoteGradientIdentifier identifier, const AffineTransform& spaceTransform)
 {
     RefPtr gradient = resourceCache().cachedGradient(identifier);
     MESSAGE_CHECK(gradient);
@@ -354,7 +354,7 @@ void RemoteGraphicsContext::drawFilteredImageBufferInternal(std::optional<Render
 
 void RemoteGraphicsContext::drawFilteredImageBuffer(std::optional<RenderingResourceIdentifier> sourceImageIdentifier, const FloatRect& sourceImageRect, Ref<Filter>&& filter)
 {
-    RefPtr svgFilter = dynamicDowncast<SVGFilter>(filter);
+    RefPtr svgFilter = dynamicDowncast<SVGFilterRenderer>(filter);
 
     if (!svgFilter || !svgFilter->hasValidRenderingResourceIdentifier()) {
         FilterResults results(makeUnique<ImageBufferShareableAllocator>(m_sharedResourceCache->resourceOwner()));
@@ -363,7 +363,7 @@ void RemoteGraphicsContext::drawFilteredImageBuffer(std::optional<RenderingResou
     }
 
     RefPtr cachedFilter = resourceCache().cachedFilter(filter->renderingResourceIdentifier());
-    RefPtr cachedSVGFilter = dynamicDowncast<SVGFilter>(WTFMove(cachedFilter));
+    RefPtr cachedSVGFilter = dynamicDowncast<SVGFilterRenderer>(WTFMove(cachedFilter));
     MESSAGE_CHECK(cachedSVGFilter);
 
     cachedSVGFilter->mergeEffects(svgFilter->effects());

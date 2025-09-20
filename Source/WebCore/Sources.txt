@@ -621,11 +621,10 @@ animation/ScrollTimeline.cpp
 animation/StyleOriginatedAnimation.cpp
 animation/StyleOriginatedAnimationEvent.cpp
 animation/StyleOriginatedTimelinesController.cpp
-animation/TimelineRange.cpp
+animation/TimelineRangeValue.cpp
 animation/ViewTimeline.cpp
 animation/WebAnimation.cpp
 animation/WebAnimationTime.cpp
-animation/WebAnimationTypes.cpp
 animation/WebAnimationUtilities.cpp
 automation/AutomationInstrumentation.cpp
 bindings/js/BindingsJSTZoneImpls.cpp
@@ -862,7 +861,7 @@ crypto/keys/CryptoKeyOKP.cpp
 crypto/keys/CryptoKeyRSA.cpp
 crypto/keys/CryptoKeyRSAComponents.cpp
 crypto/keys/CryptoKeyRaw.cpp
-css/CSSAppleColorFilterPropertyValue.cpp
+css/CSSAppleColorFilterValue.cpp
 css/CSSAttrValue.cpp
 css/CSSBackgroundRepeatValue.cpp
 css/CSSBasicShapeValue.cpp
@@ -888,7 +887,7 @@ css/CSSCustomPropertyValue.cpp
 css/CSSDynamicRangeLimitValue.cpp
 css/CSSEasingFunctionValue.cpp
 css/CSSFilterImageValue.cpp
-css/CSSFilterPropertyValue.cpp
+css/CSSFilterValue.cpp
 css/CSSFontFace.cpp
 css/CSSFontFaceDescriptors.cpp
 css/CSSFontFaceRule.cpp
@@ -964,7 +963,6 @@ css/CSSSubgridValue.cpp
 css/CSSSupportsRule.cpp
 css/CSSTextShadowPropertyValue.cpp
 css/CSSToLengthConversionData.cpp
-css/CSSToStyleMap.cpp
 css/CSSTransformListValue.cpp
 css/CSSURLValue.cpp
 css/CSSUnicodeRangeValue.cpp
@@ -2380,8 +2378,6 @@ platform/WebCorePersistentCoders.cpp
 platform/Widget.cpp
 platform/animation/AcceleratedEffect.cpp
 platform/animation/AcceleratedEffectValues.cpp
-platform/animation/Animation.cpp
-platform/animation/AnimationList.cpp
 platform/animation/TimingFunction.cpp
 platform/audio/AudioBus.cpp
 platform/audio/AudioChannel.cpp
@@ -2513,6 +2509,7 @@ platform/graphics/GraphicsContextGLImageExtractor.cpp
 platform/graphics/GraphicsContextState.cpp
 platform/graphics/GraphicsContextSwitcher.cpp
 platform/graphics/GraphicsLayer.cpp
+platform/graphics/GraphicsLayerAnimation.cpp
 platform/graphics/GraphicsLayerContentsDisplayDelegate.cpp
 platform/graphics/GraphicsLayerTransform.cpp
 platform/graphics/GraphicsStyle.cpp
@@ -2793,7 +2790,7 @@ rendering/BorderEdge.cpp
 rendering/BorderPainter.cpp
 rendering/BorderShape.cpp
 rendering/BreakLines.cpp
-rendering/CSSFilter.cpp
+rendering/CSSFilterRenderer.cpp
 rendering/CaretRectComputation.cpp
 rendering/ClipRect.cpp
 rendering/ContentfulPaintChecker.cpp
@@ -2963,6 +2960,7 @@ rendering/style/RenderStyle.cpp
 rendering/style/RenderStyleConstants.cpp
 rendering/style/SVGRenderStyle.cpp
 rendering/style/SVGRenderStyleDefs.cpp
+rendering/style/StyleAppleColorFilterData.cpp
 rendering/style/StyleBackgroundData.cpp
 rendering/style/StyleBoxData.cpp
 rendering/style/StyleCachedImage.cpp
@@ -3143,6 +3141,11 @@ style/StyleTreeResolver.cpp
 style/StyleUpdate.cpp
 style/Styleable.cpp
 style/UserAgentStyle.cpp
+style/values/animations/StyleAnimation.cpp
+style/values/animations/StyleSingleAnimationName.cpp
+style/values/animations/StyleSingleAnimationRangeName.cpp
+style/values/animations/StyleSingleAnimationRange.cpp
+style/values/animations/StyleSingleAnimationTimeline.cpp
 style/values/backgrounds/StyleBackgroundLayer.cpp
 style/values/backgrounds/StyleBackgroundSize.cpp
 style/values/backgrounds/StyleBorderImageOutset.cpp
@@ -3182,13 +3185,13 @@ style/values/easing/StyleLinearEasingFunction.cpp
 style/values/easing/StyleSpringEasingFunction.cpp
 style/values/easing/StyleStepsEasingFunction.cpp
 style/values/fill-stroke/StyleStrokeWidth.cpp
-style/values/filter-effects/StyleAppleColorFilterProperty.cpp
+style/values/filter-effects/StyleAppleColorFilter.cpp
 style/values/filter-effects/StyleAppleInvertLightnessFunction.cpp
 style/values/filter-effects/StyleBlurFunction.cpp
 style/values/filter-effects/StyleBrightnessFunction.cpp
 style/values/filter-effects/StyleContrastFunction.cpp
 style/values/filter-effects/StyleDropShadowFunction.cpp
-style/values/filter-effects/StyleFilterProperty.cpp
+style/values/filter-effects/StyleFilter.cpp
 style/values/filter-effects/StyleFilterReference.cpp
 style/values/filter-effects/StyleGrayscaleFunction.cpp
 style/values/filter-effects/StyleHueRotateFunction.cpp
@@ -3237,6 +3240,7 @@ style/values/overflow/StyleScrollBehavior.cpp
 style/values/overflow/StyleScrollbarGutter.cpp
 style/values/page/StylePageSize.cpp
 style/values/primitives/StyleLengthResolution.cpp
+style/values/primitives/StyleLengthWrapper+DeprecatedCSSValueConversion.cpp
 style/values/primitives/StyleLengthWrapperData.cpp
 style/values/primitives/StylePosition.cpp
 style/values/primitives/StylePrimitiveNumericTypes+Conversions.cpp
@@ -3245,6 +3249,8 @@ style/values/primitives/StyleURL.cpp
 style/values/primitives/StyleUnevaluatedCalculation.cpp
 style/values/rhythm/StyleBlockStepSize.cpp
 style/values/scroll-animations/StyleProgressTimelineName.cpp
+style/values/scroll-animations/StyleScrollFunction.cpp
+style/values/scroll-animations/StyleViewFunction.cpp
 style/values/scroll-animations/StyleViewTimelineInsets.cpp
 style/values/scroll-snap/StyleScrollMargin.cpp
 style/values/scroll-snap/StyleScrollPadding.cpp
@@ -3282,6 +3288,8 @@ style/values/transforms/StyleTransform.cpp
 style/values/transforms/StyleTransformFunction.cpp
 style/values/transforms/StyleTransformList.cpp
 style/values/transforms/StyleTranslate.cpp
+style/values/transitions/StyleSingleTransitionProperty.cpp
+style/values/transitions/StyleTransition.cpp
 style/values/ui/StyleCursor.cpp
 style/values/view-transitions/StyleViewTransitionName.cpp
 svg/DocumentSVG.cpp
@@ -3420,7 +3428,7 @@ svg/graphics/SVGImage.cpp
 svg/graphics/SVGImageCache.cpp
 svg/graphics/SVGImageForContainer.cpp
 svg/graphics/SVGResourceImage.cpp
-svg/graphics/filters/SVGFilter.cpp
+svg/graphics/filters/SVGFilterRenderer.cpp
 svg/properties/SVGAnimatedProperty.cpp
 svg/properties/SVGAnimatedString.cpp
 svg/properties/SVGAnimationAdditiveValueFunctionImpl.cpp

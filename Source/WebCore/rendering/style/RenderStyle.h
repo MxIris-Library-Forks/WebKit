@@ -44,13 +44,11 @@ class TextStream;
 
 namespace WebCore {
 
-class AnimationList;
 class AutosizeStatus;
 class BorderData;
 class BorderValue;
 class Color;
 class Element;
-class FilterOperations;
 class FloatPoint;
 class FloatSize;
 class FloatPoint3D;
@@ -225,7 +223,6 @@ struct LengthSize;
 struct NameScope;
 struct ScrollSnapAlign;
 struct ScrollSnapType;
-struct SingleTimelineRange;
 struct TabSize;
 struct TextEdge;
 struct TransformOperationData;
@@ -244,7 +241,9 @@ class CustomProperty;
 class CustomPropertyData;
 class CustomPropertyRegistry;
 
+struct Animation;
 struct AnchorNames;
+struct AppleColorFilter;
 struct AspectRatio;
 struct BackgroundLayer;
 struct BackgroundSize;
@@ -270,6 +269,7 @@ struct Content;
 struct CornerShapeValue;
 struct Cursor;
 struct DynamicRangeLimit;
+struct Filter;
 struct FlexBasis;
 struct GapGutter;
 struct GridPosition;
@@ -342,6 +342,7 @@ struct TextSizeAdjust;
 struct TextUnderlineOffset;
 struct Transform;
 struct TransformOrigin;
+struct Transition;
 struct Translate;
 struct VerticalAlign;
 struct ViewTimelineInsets;
@@ -367,9 +368,11 @@ enum class ScrollBehavior : bool;
 enum class WebkitOverflowScrolling : bool;
 enum class WebkitTouchCallout : bool;
 
+template<typename> struct CoordinatedValueList;
 template<typename> struct FillLayers;
 template<typename> struct Shadows;
 
+using Animations = CoordinatedValueList<Animation>;
 using BackgroundLayers = FillLayers<BackgroundLayer>;
 using BorderRadiusValue = MinimallySerializingSpaceSeparatedSize<LengthPercentage<CSS::Nonnegative>>;
 using BoxShadows = Shadows<BoxShadow>;
@@ -393,6 +396,7 @@ using TransformOriginX = PositionX;
 using TransformOriginXY = Position;
 using TransformOriginY = PositionY;
 using TransformOriginZ = Length<>;
+using Transitions = CoordinatedValueList<Transition>;
 using WebkitBorderSpacing = Length<CSS::Nonnegative>;
 using WebkitBoxFlex = Number<CSS::All, float>;
 using WebkitBoxFlexGroup = Integer<CSS::Nonnegative>;
@@ -530,8 +534,6 @@ public:
     inline bool hasBorderImageOutsets() const;
     inline LayoutBoxExtent borderImageOutsets() const;
     inline LayoutBoxExtent maskBorderOutsets() const;
-
-    inline IntOutsets filterOutsets() const;
 
     Order rtlOrdering() const { return static_cast<Order>(m_inheritedFlags.rtlOrdering); }
     void setRTLOrdering(Order ordering) { m_inheritedFlags.rtlOrdering = static_cast<unsigned>(ordering); }
@@ -1095,19 +1097,17 @@ public:
     inline const NameScope& timelineScope() const;
     inline void setTimelineScope(const NameScope&);
 
-    inline const AnimationList* animations() const;
-    inline const AnimationList* transitions() const;
-
-    AnimationList* animations();
-    AnimationList* transitions();
-    
-    inline bool hasAnimationsOrTransitions() const;
-
-    AnimationList& ensureAnimations();
-    AnimationList& ensureTransitions();
-
+    inline Style::Animations& ensureAnimations();
+    inline const Style::Animations& animations() const;
+    static inline Style::Animations initialAnimations();
     inline bool hasAnimations() const;
+
+    inline Style::Transitions& ensureTransitions();
+    inline const Style::Transitions& transitions() const;
+    static inline Style::Transitions initialTransitions();
     inline bool hasTransitions() const;
+
+    inline bool hasAnimationsOrTransitions() const;
 
     inline TransformStyle3D transformStyle3D() const;
     inline TransformStyle3D usedTransformStyle3D() const;
@@ -1191,15 +1191,14 @@ public:
 
     inline OptionSet<SpeakAs> speakAs() const;
 
-    inline const FilterOperations& filter() const;
+    inline const Style::Filter& filter() const;
     inline bool hasFilter() const;
-    bool hasReferenceFilterOnly() const;
 
-    inline const FilterOperations& appleColorFilter() const;
-    inline bool hasAppleColorFilter() const;
-
-    inline const FilterOperations& backdropFilter() const;
+    inline const Style::Filter& backdropFilter() const;
     inline bool hasBackdropFilter() const;
+
+    inline const Style::AppleColorFilter& appleColorFilter() const;
+    inline bool hasAppleColorFilter() const;
 
     inline void setBlendMode(BlendMode);
     inline bool isInSubtreeWithBlendMode() const;
@@ -1599,10 +1598,9 @@ public:
 
     inline void setTableLayout(TableLayoutType);
 
-    inline void setFilter(FilterOperations&&);
-    inline void setAppleColorFilter(FilterOperations&&);
-
-    inline void setBackdropFilter(FilterOperations&&);
+    inline void setFilter(Style::Filter&&);
+    inline void setBackdropFilter(Style::Filter&&);
+    inline void setAppleColorFilter(Style::AppleColorFilter&&);
 
     inline void setTabSize(const TabSize&);
 
@@ -2197,10 +2195,9 @@ public:
 
     static constexpr Style::ScrollBehavior initialScrollBehavior();
 
-    static inline FilterOperations initialFilter();
-    static inline FilterOperations initialAppleColorFilter();
-
-    static inline FilterOperations initialBackdropFilter();
+    static inline Style::Filter initialFilter();
+    static inline Style::Filter initialBackdropFilter();
+    static inline Style::AppleColorFilter initialAppleColorFilter();
 
     static constexpr BlendMode initialBlendMode();
     static constexpr Isolation initialIsolation();

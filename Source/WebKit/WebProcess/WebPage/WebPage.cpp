@@ -633,7 +633,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_findController(makeUniqueRef<FindController>(this))
     , m_foundTextRangeController(makeUniqueRef<WebFoundTextRangeController>(*this))
     , m_inspectorTargetController(makeUniqueRef<WebPageInspectorTargetController>(*this))
-    , m_userContentController(WebUserContentController::getOrCreate(parameters.userContentControllerParameters.identifier))
+    , m_userContentController(WebUserContentController::getOrCreate(WTFMove(parameters.userContentControllerParameters)))
     , m_screenOrientationManager(makeUniqueRefWithoutRefCountedCheck<WebScreenOrientationManager>(*this))
 #if ENABLE(GEOLOCATION)
     , m_geolocationPermissionRequestManager(makeUniqueRefWithoutRefCountedCheck<GeolocationPermissionRequestManager>(*this))
@@ -952,6 +952,11 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     // in modern WebKit.
     page->settings().setBackForwardCacheExpirationInterval(Seconds::infinity());
 
+    WebProcess::singleton().isEnhancedSecurityEnabled([weakPage = WeakPtr { page }](bool enabled) {
+        if (RefPtr page = weakPage.get())
+            page->setEnhancedSecurityEnabled(enabled);
+    });
+
     m_mainFrame->initWithCoreMainFrame(*this, page->protectedMainFrame());
 
     if (auto& remotePageParameters = parameters.remotePageParameters) {
@@ -1120,13 +1125,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         registerURLSchemeHandler(iterator.value, iterator.key);
     for (auto& scheme : parameters.urlSchemesWithLegacyCustomProtocolHandlers)
         LegacySchemeRegistry::registerURLSchemeAsHandledBySchemeHandler({ scheme });
-
-    m_userContentController->addUserScripts(WTFMove(parameters.userContentControllerParameters.userScripts), InjectUserScriptImmediately::No);
-    m_userContentController->addUserStyleSheets(parameters.userContentControllerParameters.userStyleSheets);
-    m_userContentController->addUserScriptMessageHandlers(parameters.userContentControllerParameters.messageHandlers);
-#if ENABLE(CONTENT_EXTENSIONS)
-    m_userContentController->addContentRuleLists(WTFMove(parameters.userContentControllerParameters.contentRuleLists));
-#endif
 
 #if PLATFORM(IOS_FAMILY)
     setViewportConfigurationViewLayoutSize(parameters.viewportConfigurationViewLayoutSize, parameters.viewportConfigurationLayoutSizeScaleFactorFromClient, parameters.viewportConfigurationMinimumEffectiveDeviceWidth);
@@ -10569,7 +10567,7 @@ void WebPage::frameViewLayoutOrVisualViewportChanged(const LocalFrameView& frame
 RefPtr<MediaSessionManagerInterface> WebPage::mediaSessionManager() const
 {
     RefPtr page { corePage() };
-    return page ? &page->mediaSessionManager() : nullptr;
+    return page ? page->mediaSessionManager() : nullptr;
 
 }
 

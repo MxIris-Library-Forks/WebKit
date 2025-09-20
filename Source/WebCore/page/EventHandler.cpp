@@ -3969,7 +3969,7 @@ bool EventHandler::keyEvent(const PlatformKeyboardEvent& keyEvent)
             if (page)
                 page->setUserDidInteractWithPage(savedUserDidInteractWithPage);
         } else
-            ResourceLoadObserver::shared().logUserInteractionWithReducedTimeResolution(*mainFrameDocument);
+            ResourceLoadObserver::singleton().logUserInteractionWithReducedTimeResolution(*mainFrameDocument);
     }
 
     if (!wasHandled && frame->document())
@@ -5107,7 +5107,7 @@ void EventHandler::scheduleScrollEvent()
     if (!frame->view())
         return;
     if (RefPtr document = frame->document())
-        document->addPendingScrollEventTarget(*document);
+        document->addPendingScrollEventTarget(*document, ScrollEventType::Scroll);
 }
 
 void EventHandler::setFrameWasScrolledByUser()

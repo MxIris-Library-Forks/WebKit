@@ -94,17 +94,7 @@ platform/graphics/cocoa/VideoMediaSampleRenderer.mm
 platform/graphics/cocoa/WebCoreCALayerExtras.mm
 platform/graphics/coreimage/FilterImageCoreImage.mm
 platform/graphics/coreimage/SourceGraphicCoreImageApplier.mm
-platform/graphics/coretext/ComplexTextControllerCoreText.mm
-platform/graphics/coretext/DrawGlyphsRecorder.cpp
-platform/graphics/coretext/FontCoreText.cpp
-platform/graphics/coretext/FontPlatformDataCoreText.cpp
-platform/graphics/coretext/GlyphPageCoreText.cpp
-platform/graphics/cv/CVUtilities.mm
-platform/graphics/cv/GraphicsContextGLCVCocoa.mm
-platform/graphics/cv/ImageTransferSessionVT.mm
-platform/graphics/cv/VideoFrameCV.mm
 platform/graphics/mac/ColorMac.mm
-platform/graphics/mac/LegacyDisplayRefreshMonitorMac.cpp
 platform/graphics/mac/PDFDocumentImageMac.mm
 platform/graphics/mac/ScrollbarTrackCornerSystemImageMac.mm
 platform/graphics/mac/controls/InnerSpinButtonMac.mm
@@ -117,9 +107,6 @@ platform/mac/DataDetectorHighlight.mm
 platform/mac/PasteboardMac.mm
 platform/mac/PasteboardWriter.mm
 platform/mac/PlatformEventFactoryMac.mm
-platform/mac/PlatformPasteboardMac.mm
-platform/mac/PlatformScreenMac.mm
-platform/mac/PlaybackSessionInterfaceMac.mm
 platform/mac/PowerObserverMac.cpp
 platform/mac/ScrollViewMac.mm
 platform/mac/ScrollbarThemeMac.mm

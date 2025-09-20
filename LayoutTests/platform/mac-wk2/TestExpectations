@@ -47,6 +47,7 @@ tiled-drawing [ Pass ]
 ipc/mac [ Pass ]
 ipc/restrictedendpoints/mac [ Pass ]
 fast/page-color-sampling [ Pass ]
+security/cocoa [ Pass ]
 
 fast/events/autoscroll-when-zoomed.html [ Pass ]
 fast/events/autoscroll-main-document.html [ Pass ]
@@ -2140,7 +2141,6 @@ webkit.org/b/291966 [ Sequoia+ ] http/tests/webgpu/webgpu/api/validation/render_
 [ Sonoma+ Debug ] imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?vp9_p0 [ Skip ]
 
 webkit.org/b/296195 imported/w3c/web-platform-tests/dom/events/scrolling/scrollend-event-fired-to-element-with-overscroll-behavior.html [ Skip ]
-webkit.org/b/296195 imported/w3c/web-platform-tests/dom/events/scrolling/scrollend-fires-to-text-input.html [ Skip ]
 
 webkit.org/b/292203 [ Debug ] imported/w3c/web-platform-tests/css/css-view-transitions/transition-in-hidden-page.html [ Pass Crash ]
 
@@ -2202,8 +2202,6 @@ webkit.org/b/295756 [ arm64 ] webgl/2.0.y/conformance2/rendering/texture-switch-
 webkit.org/b/295814 [ arm64 ] scrollingcoordinator/mac/latching/horizontal-overflow-back-swipe.html [ Pass Timeout ]
 
 webkit.org/b/295820 [ arm64 Debug ] webrtc/audio-peer-connection-webaudio.html [ Pass Failure ]
-
-webkit.org/b/295913 [ Sequoia Release arm64 ] media/video-seek-pause.html [ Pass Failure ]
 
 webkit.org/b/295923 [ Release ] tiled-drawing/scrolling/scroll-with-top-left-content-inset.html [ Pass ImageOnlyFailure ]
 
@@ -2424,3 +2422,5 @@ webkit.org/b/298903 webrtc/video-rotation-black.html [ Pass Failure ]
 webkit.org/b/298416 [ Debug ] http/tests/websocket/construct-in-detached-frame.html [ Skip ]
 
 webkit.org/b/299110 webrtc/calling-peerconnection-once-closed.html [ Pass Failure ]
+
+webkit.org/b/299195 [ Debug ] compositing/visible-rect/flipped-preserve-3d.html [ Pass Crash ]

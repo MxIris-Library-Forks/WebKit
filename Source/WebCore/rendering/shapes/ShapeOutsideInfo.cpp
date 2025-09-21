@@ -32,7 +32,6 @@
 
 #include "BoxLayoutShape.h"
 #include "FloatingObjects.h"
-#include "LengthFunctions.h"
 #include "RenderBlockFlow.h"
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
@@ -256,7 +255,7 @@ Ref<const LayoutShape> makeShapeForShapeOutside(const RenderBox& renderer)
     auto boxSize = computeLogicalBoxSize(renderer, isHorizontalWritingMode);
 
     auto logicalMargin = [&] {
-        auto shapeMargin = Style::evaluate(style.shapeMargin(), containingBlock.contentBoxLogicalWidth()).toFloat();
+        auto shapeMargin = Style::evaluate(style.shapeMargin(), containingBlock.contentBoxLogicalWidth(), 1.0f /* FIXME FIND ZOOM */).toFloat();
         return isnan(shapeMargin) ? 0.0f : shapeMargin;
     }();
 

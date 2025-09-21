@@ -18956,6 +18956,7 @@
 		BCAE82292E7C6F8A00F30967 /* VisibleRectContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VisibleRectContext.h; sourceTree = "<group>"; };
 		BCAE822B2E7C705800F30967 /* RepaintRectCalculation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RepaintRectCalculation.h; sourceTree = "<group>"; };
 		BCAE822F2E7C70EF00F30967 /* IntersectionObserverMarginBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IntersectionObserverMarginBox.h; sourceTree = "<group>"; };
+		BCAE825B2E7DC4A500F30967 /* StyleShadowInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleShadowInterpolation.h; sourceTree = "<group>"; };
 		BCAFEDAF25966D050030E6AA /* ColorSpace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorSpace.cpp; sourceTree = "<group>"; };
 		BCAFEDB225968D0B0030E6AA /* ColorSpaceCG.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ColorSpaceCG.h; sourceTree = "<group>"; };
 		BCAFEDB325968D0B0030E6AA /* ColorSpaceCG.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorSpaceCG.cpp; sourceTree = "<group>"; };
@@ -35517,6 +35518,7 @@
 				BC23BAB32D6E3AAB0069A80B /* StyleCornerShapeValue.cpp */,
 				BC23BAB02D6E38870069A80B /* StyleCornerShapeValue.h */,
 				BC3CC22F2DE8D4310032971C /* StyleShadow.h */,
+				BCAE825B2E7DC4A500F30967 /* StyleShadowInterpolation.h */,
 			);
 			path = borders;
 			sourceTree = "<group>";

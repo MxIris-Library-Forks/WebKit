@@ -1265,8 +1265,18 @@ OMGIRGenerator::OMGIRGenerator(CompilationContext& context, Module& module, Call
                 GPRReg fp = params[1].gpr();
                 if (m_compilationMode == CompilationMode::OMGForOSREntryMode)
                     jit.checkWasmStackOverflow(contextInstance, CCallHelpers::TrustedImm32(checkSize), fp).linkThunk(CodeLocationLabel<JITThunkPtrTag>(Thunks::singleton().stub(crashDueToOMGStackOverflowGenerator).code()), &jit);
-                else
-                    jit.checkWasmStackOverflow(contextInstance, CCallHelpers::TrustedImm32(checkSize), fp).linkThunk(CodeLocationLabel<JITThunkPtrTag>(Thunks::singleton().stub(throwStackOverflowFromWasmThunkGenerator).code()), &jit);
+                else {
+                    auto failure = jit.checkWasmStackOverflow(contextInstance, CCallHelpers::TrustedImm32(checkSize), fp);
+                    params.addLatePath(
+                        [=](CCallHelpers& jit) {
+                            failure.link(jit);
+                            int32_t stackSpace = WTF::roundUpToMultipleOf<stackAlignmentBytes()>(RegisterSetBuilder::calleeSaveRegisters().numberOfSetRegisters() * sizeof(Register));
+                            ASSERT(static_cast<unsigned>(stackSpace) < Options::softReservedZoneSize());
+                            jit.addPtr(CCallHelpers::TrustedImm32(-stackSpace), GPRInfo::callFrameRegister, MacroAssembler::stackPointerRegister);
+                            jit.move(CCallHelpers::TrustedImm32(static_cast<uint32_t>(ExceptionType::StackOverflow)), GPRInfo::argumentGPR1);
+                            jit.nearCallThunk(CodeLocationLabel<JITThunkPtrTag>(Thunks::singleton().stub(throwExceptionFromOMGThunkGenerator).code()));
+                        });
+                }
             }
         });
     }
@@ -1334,16 +1344,10 @@ void OMGIRGenerator::reloadMemoryRegistersFromInstance(const MemoryInformation& 
     }
 }
 
-void OMGIRGenerator::emitExceptionCheck(CCallHelpers& jit, Origin origin, ExceptionType type)
+void OMGIRGenerator::emitExceptionCheck(CCallHelpers& jit, Origin, ExceptionType type)
 {
     jit.move(CCallHelpers::TrustedImm32(static_cast<uint32_t>(type)), GPRInfo::argumentGPR1);
-    // Unfortunately, we still need to have this since we are throwing an error from non OMGCallee code.
-    // In that case, we will fall back to stack's CallSiteIndex. We should make the following a call instead of jump.
-    if (auto* omgOrigin = origin.omgOrigin()) {
-        jit.move(CCallHelpers::TrustedImm32(omgOrigin->m_callSiteIndex.bits()), GPRInfo::argumentGPR2);
-        jit.store32(GPRInfo::argumentGPR2, CCallHelpers::tagFor(CallFrameSlot::argumentCountIncludingThis));
-    }
-    jit.jumpThunk(CodeLocationLabel<JITThunkPtrTag>(Thunks::singleton().stub(throwExceptionFromWasmThunkGenerator).code()));
+    jit.nearCallThunk(CodeLocationLabel<JITThunkPtrTag>(Thunks::singleton().stub(throwExceptionFromOMGThunkGenerator).code()));
 }
 
 Value* OMGIRGenerator::constant(B3::Type type, uint64_t bits, std::optional<Origin> maybeOrigin)
@@ -4862,7 +4866,7 @@ auto OMGIRGenerator::addThrow(unsigned exceptionIndex, ArgumentList& args, Stack
         AllowMacroScratchRegisterUsage allowScratch(jit);
         if (handle)
             handle->collectStackMap(this, params);
-        RELEASE_ASSERT(origin.omgOrigin());
+        RELEASE_ASSERT(origin.wasmOrigin());
         emitThrowImpl(jit, exceptionIndex);
     });
     m_currentBlock->append(patch);
@@ -4889,7 +4893,7 @@ auto WARN_UNUSED_RETURN OMGIRGenerator::addThrowRef(TypedExpression exnref, Stac
         AllowMacroScratchRegisterUsage allowScratch(jit);
         if (handle)
             handle->collectStackMap(this, params);
-        RELEASE_ASSERT(origin.omgOrigin());
+        RELEASE_ASSERT(origin.wasmOrigin());
         emitThrowRefImpl(jit);
     });
     m_currentBlock->append(patch);
@@ -4911,7 +4915,7 @@ auto OMGIRGenerator::addRethrow(unsigned, ControlType& data) -> PartialResult
         AllowMacroScratchRegisterUsage allowScratch(jit);
         if (handle)
             handle->collectStackMap(this, params);
-        RELEASE_ASSERT(origin.omgOrigin());
+        RELEASE_ASSERT(origin.wasmOrigin());
         emitThrowRefImpl(jit);
     });
     m_currentBlock->append(patch);
@@ -5880,8 +5884,14 @@ auto OMGIRGenerator::emitDirectCall(unsigned callProfileIndex, FunctionSpaceInde
                 handle->collectStackMap(this, params);
 
             ASSERT(!m_info.isImportedFunctionFromFunctionIndexSpace(functionIndexSpace));
-            Ref<IPIntCallee> callee = m_calleeGroup.ipintCalleeFromFunctionIndexSpace(functionIndexSpace);
-            jit.storeWasmCalleeToCalleeCallFrame(CCallHelpers::TrustedImmPtr(CalleeBits::boxNativeCallee(callee.ptr())), isTailCallRootCaller ? sizeof(CallerFrameAndPC) - prologueStackPointerDelta() : 0);
+
+            // If the call is self-recursion, it is guaranteed that callee will be OMG as well since it ends up calling itself.
+            // Since the OMG function prologue will put callee, the caller does not need to place it.
+            bool selfRecursion = &m_inlineRoot->m_info == &m_info && m_info.toCodeIndex(functionIndexSpace) == m_inlineRoot->m_functionIndex;
+            if (!(selfRecursion && !isTailCallRootCaller)) {
+                Ref<IPIntCallee> callee = m_calleeGroup.ipintCalleeFromFunctionIndexSpace(functionIndexSpace);
+                jit.storeWasmCalleeToCalleeCallFrame(CCallHelpers::TrustedImmPtr(CalleeBits::boxNativeCallee(callee.ptr())), isTailCallRootCaller ? sizeof(CallerFrameAndPC) - prologueStackPointerDelta() : 0);
+            }
             auto call = isTailCallRootCaller ? jit.threadSafePatchableNearTailCall() : jit.threadSafePatchableNearCall();
 
             jit.addLinkTask([unlinkedWasmToWasmCalls, call, functionIndexSpace](LinkBuffer& linkBuffer) {
@@ -6268,7 +6278,7 @@ auto OMGIRGenerator::origin() -> Origin
         break;
     }
     ASSERT(isValidOpType(static_cast<uint8_t>(opcodeOrigin.opcode())));
-    OMGOrigin result { CallSiteIndex(callSiteIndex()), opcodeOrigin };
+    WasmOrigin result { CallSiteIndex(callSiteIndex()), opcodeOrigin };
     if (m_context.origins.isEmpty() || m_context.origins.last() != result)
         m_context.origins.append(result);
     return Origin(&m_context.origins.last());
@@ -6302,7 +6312,7 @@ Expected<std::unique_ptr<InternalFunction>, String> parseAndCompileOMG(Compilati
 
     procedure.setNeedsPCToOriginMap();
     procedure.setOriginPrinter([](PrintStream& out, Origin origin) {
-        if (auto* impl = origin.maybeOMGOrigin())
+        if (auto* impl = origin.maybeWasmOrigin())
             out.print("Wasm: ", impl->m_opcodeOrigin, " CallSiteIndex: ", impl->m_callSiteIndex.bits());
     });
 

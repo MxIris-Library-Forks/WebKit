@@ -5394,8 +5394,6 @@
 		BCFEE32D2DC6AF1500EC3901 /* StyleExtractorConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFEE32C2DC6AF1500EC3901 /* StyleExtractorConverter.h */; };
 		BCFEE32F2DC6AFEC00EC3901 /* StyleExtractorCustom.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFEE32E2DC6AFEC00EC3901 /* StyleExtractorCustom.h */; };
 		BCFEE3312DC6B2C300EC3901 /* StyleExtractor.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFEE3302DC6B2C300EC3901 /* StyleExtractor.h */; };
-		BCFF64910EAD15C200C1D6F7 /* LengthBox.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFF648F0EAD15C200C1D6F7 /* LengthBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BCFF64920EAD15C200C1D6F7 /* LengthSize.h in Headers */ = {isa = PBXBuildFile; fileRef = BCFF64900EAD15C200C1D6F7 /* LengthSize.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BE0787A829B2279E0067473E /* TextTransform.h in Headers */ = {isa = PBXBuildFile; fileRef = BE0787A729B2279D0067473E /* TextTransform.h */; };
 		BE16C59317CFE17200852C04 /* InbandGenericTextTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = BE16C58F17CFE17200852C04 /* InbandGenericTextTrack.h */; };
 		BE16C59517CFE17200852C04 /* InbandWebVTTTextTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = BE16C59117CFE17200852C04 /* InbandWebVTTTextTrack.h */; };
@@ -7977,7 +7975,6 @@
 		0FE71403142170B800DB33BA /* ScrollbarThemeMock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollbarThemeMock.cpp; sourceTree = "<group>"; };
 		0FE71404142170B800DB33BA /* ScrollbarThemeMock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollbarThemeMock.h; sourceTree = "<group>"; };
 		0FE71415142189FC00DB33BA /* ScrollbarTheme.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollbarTheme.cpp; sourceTree = "<group>"; };
-		0FE95F1A1CD540D000D2F45A /* LengthBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LengthBox.cpp; sourceTree = "<group>"; };
 		0FE95F1C1CD543DF00D2F45A /* TransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformOperation.cpp; sourceTree = "<group>"; };
 		0FEA3E79191B2FC5000F1B55 /* ScrollingStateFrameScrollingNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingStateFrameScrollingNode.h; sourceTree = "<group>"; };
 		0FEA3E7A191B2FC5000F1B55 /* ScrollingStateFrameScrollingNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollingStateFrameScrollingNode.cpp; sourceTree = "<group>"; };
@@ -7989,7 +7986,6 @@
 		0FEA3E86191B3BD7000F1B55 /* ScrollingTreeFrameScrollingNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingTreeFrameScrollingNode.h; sourceTree = "<group>"; };
 		0FEC120922BF2CC7004E9D35 /* LayerAncestorClippingStack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayerAncestorClippingStack.h; sourceTree = "<group>"; };
 		0FEC120B22BF2CC7004E9D35 /* LayerAncestorClippingStack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayerAncestorClippingStack.cpp; sourceTree = "<group>"; };
-		0FEF20CD1BD4A24100128E5D /* LengthSize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LengthSize.cpp; sourceTree = "<group>"; };
 		0FEF20CF1BD4A64F00128E5D /* RenderStyleConstants.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderStyleConstants.cpp; sourceTree = "<group>"; };
 		0FF29A5325101A61003C34E2 /* LayoutBoxGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutBoxGeometry.h; sourceTree = "<group>"; };
 		0FF29A5525101A61003C34E2 /* LayoutBoxGeometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutBoxGeometry.cpp; sourceTree = "<group>"; };
@@ -18957,6 +18953,7 @@
 		BCAE822B2E7C705800F30967 /* RepaintRectCalculation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RepaintRectCalculation.h; sourceTree = "<group>"; };
 		BCAE822F2E7C70EF00F30967 /* IntersectionObserverMarginBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IntersectionObserverMarginBox.h; sourceTree = "<group>"; };
 		BCAE825B2E7DC4A500F30967 /* StyleShadowInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleShadowInterpolation.h; sourceTree = "<group>"; };
+		BCAE82672E7DF01300F30967 /* BoxExtents.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BoxExtents.cpp; sourceTree = "<group>"; };
 		BCAFEDAF25966D050030E6AA /* ColorSpace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorSpace.cpp; sourceTree = "<group>"; };
 		BCAFEDB225968D0B0030E6AA /* ColorSpaceCG.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ColorSpaceCG.h; sourceTree = "<group>"; };
 		BCAFEDB325968D0B0030E6AA /* ColorSpaceCG.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorSpaceCG.cpp; sourceTree = "<group>"; };
@@ -19398,8 +19395,6 @@
 		BCFEE3302DC6B2C300EC3901 /* StyleExtractor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleExtractor.h; sourceTree = "<group>"; };
 		BCFEE3322DC6B33D00EC3901 /* StyleExtractor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleExtractor.cpp; sourceTree = "<group>"; };
 		BCFEE3332DC6C4B800EC3901 /* StyleExtractorGenerated.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleExtractorGenerated.cpp; sourceTree = "<group>"; };
-		BCFF648F0EAD15C200C1D6F7 /* LengthBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LengthBox.h; sourceTree = "<group>"; };
-		BCFF64900EAD15C200C1D6F7 /* LengthSize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LengthSize.h; sourceTree = "<group>"; };
 		BE0787A729B2279D0067473E /* TextTransform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextTransform.h; sourceTree = "<group>"; };
 		BE0C0A9F2AFCE8A6004B7765 /* CSSScopeRule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSScopeRule.cpp; sourceTree = "<group>"; };
 		BE0C0AA02AFCE8A7004B7765 /* CSSScopeRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSScopeRule.h; sourceTree = "<group>"; };
@@ -36965,6 +36960,7 @@
 				9ACB2F152AA5ECFF006E9556 /* AudioEncoder.h */,
 				9ACB2F162AA5ECFF006E9556 /* AudioEncoderActiveConfiguration.h */,
 				9A87D9DF2A82925400EE7A8A /* AudioSampleFormat.h */,
+				BCAE82672E7DF01300F30967 /* BoxExtents.cpp */,
 				F42BDC012D54528000818A9A /* BoxExtents.h */,
 				DCA7EDF42C655235000F16C7 /* BoxSides.h */,
 				E3A86FC12695EB480059264D /* CaptionPreferencesDelegate.h */,
@@ -37035,14 +37031,10 @@
 				5162C7F311F77EFB00612EFE /* LegacySchemeRegistry.h */,
 				BCE65BE80EACDF16007E4533 /* Length.cpp */,
 				BCE65BE90EACDF16007E4533 /* Length.h */,
-				0FE95F1A1CD540D000D2F45A /* LengthBox.cpp */,
-				BCFF648F0EAD15C200C1D6F7 /* LengthBox.h */,
 				E55F4979151B888000BB67DB /* LengthFunctions.cpp */,
 				E5BA7D62151437CA00FE1E3F /* LengthFunctions.h */,
 				0F87166D1C869D83004FF0DE /* LengthPoint.cpp */,
 				0F87166E1C869D83004FF0DE /* LengthPoint.h */,
-				0FEF20CD1BD4A24100128E5D /* LengthSize.cpp */,
-				BCFF64900EAD15C200C1D6F7 /* LengthSize.h */,
 				5143B2621DDD14900014FAC6 /* LinkIcon.h */,
 				F4063DDD2D71423B00F3FE6E /* LLVMProfiling.cpp */,
 				F4063DDB2D7141D700F3FE6E /* LLVMProfiling.h */,
@@ -44342,10 +44334,8 @@
 				512DD8F50D91E6AF000F89EE /* LegacyWebArchive.h in Headers */,
 				5CB05C9329CA1C2800CC1AA0 /* LegacyWebSocketInspectorInstrumentation.h in Headers */,
 				BCE65BEB0EACDF16007E4533 /* Length.h in Headers */,
-				BCFF64910EAD15C200C1D6F7 /* LengthBox.h in Headers */,
 				E5BA7D63151437CA00FE1E3F /* LengthFunctions.h in Headers */,
 				0F8716701C869D83004FF0DE /* LengthPoint.h in Headers */,
-				BCFF64920EAD15C200C1D6F7 /* LengthSize.h in Headers */,
 				415080371E3F00B00051D75D /* LibWebRTCAudioModule.h in Headers */,
 				410B38EF292BED000003E515 /* LibWebRTCDav1dDecoder.h in Headers */,
 				415747471E3869A400E914D8 /* LibWebRTCMacros.h in Headers */,

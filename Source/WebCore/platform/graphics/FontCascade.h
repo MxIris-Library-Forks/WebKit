@@ -28,6 +28,7 @@
 #include <WebCore/Font.h>
 #include <WebCore/FontCascadeDescription.h>
 #include <WebCore/FontCascadeFonts.h>
+#include <WebCore/Length.h>
 #include <WebCore/Path.h>
 #include <WebCore/TextSpacing.h>
 #include <optional>
@@ -246,7 +247,7 @@ public:
 #endif
     }
 
-    static CodePath characterRangeCodePath(std::span<const LChar>) { return CodePath::Simple; }
+    static CodePath characterRangeCodePath(std::span<const Latin1Character>) { return CodePath::Simple; }
     WEBCORE_EXPORT static CodePath characterRangeCodePath(std::span<const char16_t>);
 
     bool primaryFontIsSystemFont() const;
@@ -281,7 +282,7 @@ private:
     int offsetForPositionForComplexText(const TextRun&, float position, bool includePartialGlyphs) const;
     void adjustSelectionRectForComplexText(const TextRun&, LayoutRect& selectionRect, unsigned from, unsigned to) const;
 
-    static std::pair<unsigned, bool> expansionOpportunityCountInternal(std::span<const LChar>, TextDirection, ExpansionBehavior);
+    static std::pair<unsigned, bool> expansionOpportunityCountInternal(std::span<const Latin1Character>, TextDirection, ExpansionBehavior);
     static std::pair<unsigned, bool> expansionOpportunityCountInternal(std::span<const char16_t>, TextDirection, ExpansionBehavior);
 
     friend struct WidthIterator;
@@ -346,7 +347,7 @@ public:
         return character;
     }
 
-    static String normalizeSpaces(std::span<const LChar>);
+    static String normalizeSpaces(std::span<const Latin1Character>);
     static String normalizeSpaces(std::span<const char16_t>);
     static String normalizeSpaces(StringView);
 

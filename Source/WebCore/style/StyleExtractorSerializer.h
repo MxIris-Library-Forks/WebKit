@@ -58,13 +58,9 @@ public:
 
     static void serializeLength(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WebCore::Length&);
     static void serializeLength(const RenderStyle&, StringBuilder&, const CSS::SerializationContext&, const WebCore::Length&);
-    static void serializeLengthAllowingNumber(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WebCore::Length&);
-    static void serializeLengthOrAuto(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WebCore::Length&);
 
     template<typename T> static void serializeNumber(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, T);
     template<typename T> static void serializeNumberAsPixels(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, T);
-    template<typename T> static void serializeComputedLength(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, T);
-    template<typename T> static void serializeLineWidth(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, T lineWidth);
 
     template<CSSValueID> static void serializeCustomIdentAtomOrKeyword(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const AtomString&);
 
@@ -76,23 +72,18 @@ public:
 
     static void serializeTransformationMatrix(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TransformationMatrix&);
     static void serializeTransformationMatrix(const RenderStyle&, StringBuilder&, const CSS::SerializationContext&, const TransformationMatrix&);
-    static void serializeTransformOperation(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TransformOperation&);
-    static void serializeTransformOperation(const RenderStyle&, StringBuilder&, const CSS::SerializationContext&, const TransformOperation&);
 
     // MARK: Shared serializations
 
     static void serializeGlyphOrientation(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, GlyphOrientation);
     static void serializeGlyphOrientationOrAuto(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, GlyphOrientation);
     static void serializeMarginTrim(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<MarginTrimType>);
-    static void serializeStrokeDashArray(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const FixedVector<WebCore::Length>&);
     static void serializeWebkitTextCombine(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, TextCombine);
     static void serializeImageOrientation(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, ImageOrientation);
     static void serializeContain(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, OptionSet<Containment>);
     static void serializeSmoothScrolling(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, bool);
     static void serializeTextSpacingTrim(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, TextSpacingTrim);
     static void serializeTextAutospace(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, TextAutospace);
-    static void serializeLineFitEdge(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextEdge&);
-    static void serializeTextBoxEdge(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TextEdge&);
     static void serializePositionTryFallbacks(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const FixedVector<PositionTryFallback>&);
     static void serializeWillChange(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const WillChangeData*);
     static void serializeTabSize(ExtractorState&, StringBuilder&, const CSS::SerializationContext&, const TabSize&);
@@ -245,16 +236,6 @@ inline void ExtractorSerializer::serializeLength(const RenderStyle& style, Strin
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-inline void ExtractorSerializer::serializeLengthAllowingNumber(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const WebCore::Length& length)
-{
-    serializeLength(state, builder, context, length);
-}
-
-inline void ExtractorSerializer::serializeLengthOrAuto(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const WebCore::Length& length)
-{
-    serializeLength(state, builder, context, length);
-}
-
 template<typename T> void ExtractorSerializer::serializeNumber(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, T number)
 {
     serialize(state, builder, context, number);
@@ -263,16 +244,6 @@ template<typename T> void ExtractorSerializer::serializeNumber(ExtractorState& s
 template<typename T> void ExtractorSerializer::serializeNumberAsPixels(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, T number)
 {
     CSS::serializationForCSS(builder, context, CSS::LengthRaw<> { CSS::LengthUnit::Px, adjustFloatForAbsoluteZoom(number, state.style) });
-}
-
-template<typename T> void ExtractorSerializer::serializeComputedLength(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, T number)
-{
-    serializeNumberAsPixels(state, builder, context, number);
-}
-
-template<typename T> void ExtractorSerializer::serializeLineWidth(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, T lineWidth)
-{
-    serializeNumberAsPixels(state, builder, context, lineWidth);
 }
 
 template<CSSValueID keyword> void ExtractorSerializer::serializeCustomIdentAtomOrKeyword(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const AtomString& string)
@@ -414,18 +385,6 @@ inline void ExtractorSerializer::serializeMarginTrim(ExtractorState& state, Stri
 }
 
 
-inline void ExtractorSerializer::serializeStrokeDashArray(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const FixedVector<WebCore::Length>& dashes)
-{
-    if (dashes.isEmpty()) {
-        serializationForCSS(builder, context, state.style, CSS::Keyword::None { });
-        return;
-    }
-
-    builder.append(interleave(dashes, [&](auto& builder, auto& dash) {
-        serializeLength(state, builder, context, dash);
-    }, ", "_s));
-}
-
 inline void ExtractorSerializer::serializeWebkitTextCombine(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, TextCombine textCombine)
 {
     if (textCombine == TextCombine::All) {
@@ -521,56 +480,6 @@ inline void ExtractorSerializer::serializeTextAutospace(ExtractorState& state, S
         serializationForCSS(builder, context, state.style, CSS::Keyword::IdeographNumeric { });
         return;
     }
-}
-
-inline void ExtractorSerializer::serializeLineFitEdge(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const TextEdge& textEdge)
-{
-    if (textEdge.over == TextEdgeType::Leading && textEdge.under == TextEdgeType::Leading) {
-        serialize(state, builder, context, textEdge.over);
-        return;
-    }
-
-    // https://www.w3.org/TR/css-inline-3/#text-edges
-    // "If only one value is specified, both edges are assigned that same keyword if possible; else text is assumed as the missing value."
-    auto shouldSerializeUnderEdge = [&] {
-        if (textEdge.over == TextEdgeType::CapHeight || textEdge.over == TextEdgeType::ExHeight)
-            return textEdge.under != TextEdgeType::Text;
-        return textEdge.over != textEdge.under;
-    }();
-
-    if (!shouldSerializeUnderEdge) {
-        serialize(state, builder, context, textEdge.over);
-        return;
-    }
-
-    serialize(state, builder, context, textEdge.over);
-    builder.append(' ');
-    serialize(state, builder, context, textEdge.under);
-}
-
-inline void ExtractorSerializer::serializeTextBoxEdge(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const TextEdge& textEdge)
-{
-    if (textEdge.over == TextEdgeType::Auto && textEdge.under == TextEdgeType::Auto) {
-        serialize(state, builder, context, textEdge.over);
-        return;
-    }
-
-    // https://www.w3.org/TR/css-inline-3/#text-edges
-    // "If only one value is specified, both edges are assigned that same keyword if possible; else text is assumed as the missing value."
-    auto shouldSerializeUnderEdge = [&] {
-        if (textEdge.over == TextEdgeType::CapHeight || textEdge.over == TextEdgeType::ExHeight)
-            return textEdge.under != TextEdgeType::Text;
-        return textEdge.over != textEdge.under;
-    }();
-
-    if (!shouldSerializeUnderEdge) {
-        serialize(state, builder, context, textEdge.over);
-        return;
-    }
-
-    serialize(state, builder, context, textEdge.over);
-    builder.append(' ');
-    serialize(state, builder, context, textEdge.under);
 }
 
 inline void ExtractorSerializer::serializePositionTryFallbacks(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context, const FixedVector<PositionTryFallback>& fallbacks)

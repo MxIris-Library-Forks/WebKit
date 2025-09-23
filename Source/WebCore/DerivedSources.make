@@ -633,10 +633,7 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/streams/ByteLengthQueuingStrategy.idl \
     $(WebCore)/Modules/streams/CountQueuingStrategy.idl \
     $(WebCore)/Modules/streams/GenericTransformStream.idl \
-    $(WebCore)/Modules/streams/ReadableByteStreamController.idl \
     $(WebCore)/Modules/streams/ReadableStream.idl \
-    $(WebCore)/Modules/streams/ReadableStreamBYOBReader.idl \
-    $(WebCore)/Modules/streams/ReadableStreamBYOBRequest.idl \
     $(WebCore)/Modules/streams/ReadableStreamDefaultController.idl \
     $(WebCore)/Modules/streams/ReadableStreamDefaultReader.idl \
     $(WebCore)/Modules/streams/ReadableStreamSink.idl \
@@ -2046,7 +2043,7 @@ DOMJITAbstractHeapRepository.h : $(WebCore)/domjit/generate-abstract-heap.rb $(W
 
 all : XMLViewerCSS.h
 
-XMLViewerCSS.h : $(WebCore)/xml/XMLViewer.css $(JavaScriptCore_SCRIPTS_DIR)/cssmin.py $(JavaScriptCore_SCRIPTS_DIR)/xxd.pl
+XMLViewerCSS.h : $(WebCore)/xml/XMLViewer.css
 	$(PYTHON) $(JavaScriptCore_SCRIPTS_DIR)/cssmin.py < "$(WebCore)/xml/XMLViewer.css" > XMLViewer.min.css
 	$(PERL) $(JavaScriptCore_SCRIPTS_DIR)/xxd.pl XMLViewer_css XMLViewer.min.css XMLViewerCSS.h
 	$(DELETE) XMLViewer.min.css
@@ -2057,7 +2054,7 @@ XMLViewerCSS.h : $(WebCore)/xml/XMLViewer.css $(JavaScriptCore_SCRIPTS_DIR)/cssm
 
 all : XMLViewerJS.h
 
-XMLViewerJS.h : $(WebCore)/xml/XMLViewer.js $(JavaScriptCore_SCRIPTS_DIR)/jsmin.py $(JavaScriptCore_SCRIPTS_DIR)/xxd.pl
+XMLViewerJS.h : $(WebCore)/xml/XMLViewer.js
 	$(PYTHON) $(JavaScriptCore_SCRIPTS_DIR)/jsmin.py < "$(WebCore)/xml/XMLViewer.js" > XMLViewer.min.js
 	$(PERL) $(JavaScriptCore_SCRIPTS_DIR)/xxd.pl XMLViewer_js XMLViewer.min.js XMLViewerJS.h
 	$(DELETE) XMLViewer.min.js
@@ -2651,12 +2648,8 @@ WebCore_BUILTINS_SOURCES = \
     $(WebCore)/Modules/compression/DecompressionStream.js \
     $(WebCore)/Modules/streams/ByteLengthQueuingStrategy.js \
     $(WebCore)/Modules/streams/CountQueuingStrategy.js \
-    $(WebCore)/Modules/streams/ReadableByteStreamController.js \
-    $(WebCore)/Modules/streams/ReadableByteStreamInternals.js \
-    $(WebCore)/Modules/streams/ReadableStreamBYOBRequest.js \
     $(WebCore)/Modules/streams/ReadableStreamDefaultController.js \
     $(WebCore)/Modules/streams/ReadableStreamInternals.js \
-    $(WebCore)/Modules/streams/ReadableStreamBYOBReader.js \
     $(WebCore)/Modules/streams/ReadableStreamDefaultReader.js \
     $(WebCore)/Modules/streams/StreamInternals.js \
     $(WebCore)/Modules/streams/TransformStreamDefaultController.js \

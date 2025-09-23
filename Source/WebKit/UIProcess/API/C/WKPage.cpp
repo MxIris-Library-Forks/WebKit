@@ -280,7 +280,7 @@ static std::span<const uint8_t> dataFrom(const String& string)
 {
     if (string.isNull() || !string.is8Bit())
         return asBytes(string.span16());
-    return byteCast<uint8_t>(string.span8());
+    return string.span8();
 }
 
 static Ref<WebCore::DataSegment> dataReferenceFrom(const String& string)
@@ -458,8 +458,7 @@ void WKPageUpdateWebsitePolicies(WKPageRef pageRef, WKWebsitePoliciesRef website
     CRASH_IF_SUSPENDED;
     RELEASE_ASSERT_WITH_MESSAGE(!toProtectedImpl(websitePoliciesRef)->websiteDataStore(), "Setting WebsitePolicies.websiteDataStore is only supported during WKFramePolicyListenerUseWithPolicies().");
     RELEASE_ASSERT_WITH_MESSAGE(!toProtectedImpl(websitePoliciesRef)->userContentController(), "Setting WebsitePolicies.userContentController is only supported during WKFramePolicyListenerUseWithPolicies().");
-    auto data = toProtectedImpl(websitePoliciesRef)->data();
-    toProtectedImpl(pageRef)->updateWebsitePolicies(WTFMove(data));
+    toProtectedImpl(pageRef)->updateWebsitePolicies(*toProtectedImpl(websitePoliciesRef));
 }
 
 WKStringRef WKPageCopyTitle(WKPageRef pageRef)

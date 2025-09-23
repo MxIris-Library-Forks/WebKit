@@ -1361,6 +1361,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/FragmentDirectiveParser.h
     dom/FragmentDirectiveRangeFinder.h
     dom/FragmentDirectiveUtilities.h
+    dom/FullscreenOptions.h
     dom/GCReachableRef.h
     dom/GetHTMLOptions.h
     dom/IdTargetObserver.h
@@ -1734,6 +1735,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/track/VideoTrackClient.h
     html/track/WebVTTParser.h
 
+    inspector/FrameInspectorController.h
     inspector/InspectorBackendClient.h
     inspector/InspectorController.h
     inspector/InspectorDebuggableType.h
@@ -2667,7 +2669,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ShareableBitmap.h
     platform/graphics/ShareableBitmapHandle.h
     platform/graphics/ShouldLocalizeAxisNames.h
-    platform/graphics/SnapshotIdentifier.h
     platform/graphics/SourceBrush.h
     platform/graphics/SourceBrushLogicalGradient.h
     platform/graphics/SourceBufferPrivate.h
@@ -3144,7 +3145,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/StyleScrollSnapPoints.h
     rendering/style/StyleSelfAlignmentData.h
     rendering/style/StyleSurroundData.h
-    rendering/style/StyleTextEdge.h
     rendering/style/StyleTransformData.h
     rendering/style/StyleVisitedLinkColorData.h
     rendering/style/WillChangeData.h
@@ -3279,6 +3279,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/images/StyleObjectPosition.h
 
     style/values/inline/StyleLineBoxContain.h
+    style/values/inline/StyleLineFitEdge.h
+    style/values/inline/StyleTextBoxEdge.h
+    style/values/inline/StyleTextEdge.h
     style/values/inline/StyleVerticalAlign.h
     style/values/inline/StyleWebKitInitialLetter.h
 
@@ -3634,7 +3637,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/NodeName.h
     ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.h
     ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.h
-    ${WebCore_DERIVED_SOURCES_DIR}/ReadableByteStreamInternalsBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/ReadableStreamInternalsBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/SVGNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Settings.h

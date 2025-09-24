@@ -98,7 +98,6 @@
 #include "Settings.h"
 #include "StyleBoxShadow.h"
 #include "StylePrimitiveNumericTypes+Evaluation.h"
-#include "StyleScrollSnapPoints.h"
 #include "TransformOperationData.h"
 #include "TransformState.h"
 #include <algorithm>
@@ -3187,6 +3186,13 @@ void RenderBox::computeInlineDirectionMargins(const RenderBlock& containingBlock
             marginEndLength = 0_css_px;
     }
 
+    if (isGridItem() && downcast<RenderGrid>(containingBlock).isComputingTrackSizes()) {
+        if (marginStartLength.isAuto())
+            marginStartLength = 0_css_px;
+        if (marginEndLength.isAuto())
+            marginEndLength = 0_css_px;
+    }
+
     auto handleMarginAuto = [&] {
         auto containerWidthForMarginAuto = availableSpaceAdjustedWithFloats.value_or(containerWidth);
         // Case One: The object is being centered in the containing block's available logical width.
@@ -5662,8 +5668,10 @@ bool RenderBox::hasAutoHeightOrContainingBlockWithAutoHeight(UpdatePercentageHei
     if (updatePercentageDescendants == UpdatePercentageHeightDescendants::Yes && logicalHeight.isPercentOrCalculated() && containingBlock)
         containingBlock->addPercentHeightDescendant(const_cast<RenderBox&>(*this));
 
-    if (isFlexItem() && downcast<RenderFlexibleBox>(*parent()).canUseFlexItemForPercentageResolution(*this))
-        return false;
+    if (isFlexItem()) {
+        if (downcast<RenderFlexibleBox>(*parent()).canUseFlexItemForPercentageResolutionByStyle(*this) && overridingBorderBoxLogicalHeight())
+            return false;
+    }
 
     if (isGridItem()) {
         if (auto containingBlockContentLogicalHeight = gridAreaContentLogicalHeight())

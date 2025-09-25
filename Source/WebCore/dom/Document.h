@@ -106,6 +106,7 @@ class CSSFontSelector;
 class CSSStyleProperties;
 class CSSStyleSheet;
 class CachedCSSStyleSheet;
+class CachedImage;
 class CachedFrameBase;
 class CachedResourceLoader;
 class CachedScript;
@@ -185,6 +186,7 @@ class IntPoint;
 class IntersectionObserver;
 class JSNode;
 class JSViewTransitionUpdateCallback;
+class LargestContentfulPaintData;
 class LayoutPoint;
 class LayoutRect;
 class LazyLoadImageObserver;
@@ -219,6 +221,7 @@ class RTCNetworkManager;
 class Range;
 class RealtimeMediaSource;
 class Region;
+class RenderText;
 class RenderTreeBuilder;
 class RenderView;
 class ReportingScope;
@@ -874,6 +877,7 @@ public:
     IDBClient::IDBConnectionProxy* idbConnectionProxy() final;
     StorageConnection* storageConnection();
     SocketProvider* socketProvider() final;
+    RefPtr<SocketProvider> protectedSocketProvider();
     RefPtr<RTCDataChannelRemoteHandlerConnection> createRTCDataChannelRemoteHandlerConnection() final;
 
 #if ENABLE(WEB_RTC)
@@ -1474,6 +1478,10 @@ public:
 
     WEBCORE_EXPORT double monotonicTimestamp() const;
     const DocumentEventTiming& eventTiming() const { return m_eventTiming; }
+
+    LargestContentfulPaintData& largestContentfulPaintData() const;
+    void didPaintImage(Element&, CachedImage*, FloatRect localRect) const;
+    void didPaintText(const RenderText&, FloatRect localRect) const;
 
     int requestAnimationFrame(Ref<RequestAnimationFrameCallback>&&);
     void cancelAnimationFrame(int id);
@@ -2386,6 +2394,7 @@ private:
     ViewportArguments m_viewportArguments;
 
     DocumentEventTiming m_eventTiming;
+    mutable std::unique_ptr<LargestContentfulPaintData> m_largestContentfulPaintData;
 
     RefPtr<MediaQueryMatcher> m_mediaQueryMatcher;
     
@@ -2741,8 +2750,10 @@ private:
     mutable std::unique_ptr<CSSParserContext> m_cachedCSSParserContext;
     mutable std::unique_ptr<PermissionsPolicy> m_permissionsPolicy;
 
-    // FIXME: This will need to be re-evaluated for site isolation.
+    mutable std::unique_ptr<AXObjectCache> m_axObjectCache;
+#if !ENABLE_ACCESSIBILITY_LOCAL_FRAME
     mutable WeakPtr<AXObjectCache> m_topAXObjectCache;
+#endif
     RefPtr<FrameMemoryMonitor> m_frameMemoryMonitor;
 
 #if ENABLE(CONTENT_EXTENSIONS)

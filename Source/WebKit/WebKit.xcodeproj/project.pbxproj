@@ -1260,6 +1260,7 @@
 		5157AE032B23C34700C0E095 /* CoreIPCContacts.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5157ADFF2B23C33500C0E095 /* CoreIPCContacts.mm */; };
 		5157AE0A2B23E96A00C0E095 /* CoreIPCPassKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 5157AE092B23E96300C0E095 /* CoreIPCPassKit.h */; };
 		5157AE0B2B23E97400C0E095 /* CoreIPCPassKit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5157AE082B23E96300C0E095 /* CoreIPCPassKit.mm */; };
+		515A0C552E8284CF00D0B56C /* LayerHostingContextManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 515A0C532E8284AC00D0B56C /* LayerHostingContextManager.h */; };
 		515BE1791D53FE8F00DD7C68 /* WebGamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE1741D53FDDC00DD7C68 /* WebGamepadProvider.h */; };
 		515BE1A91D55293400DD7C68 /* UIGamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE1A51D55292800DD7C68 /* UIGamepadProvider.h */; };
 		515BE1AB1D555AA000DD7C68 /* WebGamepad.h in Headers */ = {isa = PBXBuildFile; fileRef = 515BE1A01D550AB000DD7C68 /* WebGamepad.h */; };
@@ -5844,6 +5845,8 @@
 		5157AE002B23C33500C0E095 /* CoreIPCContacts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreIPCContacts.h; sourceTree = "<group>"; };
 		5157AE082B23E96300C0E095 /* CoreIPCPassKit.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreIPCPassKit.mm; sourceTree = "<group>"; };
 		5157AE092B23E96300C0E095 /* CoreIPCPassKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreIPCPassKit.h; sourceTree = "<group>"; };
+		515A0C532E8284AC00D0B56C /* LayerHostingContextManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayerHostingContextManager.h; sourceTree = "<group>"; };
+		515A0C542E8284AC00D0B56C /* LayerHostingContextManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LayerHostingContextManager.mm; sourceTree = "<group>"; };
 		515BE1731D53FDDC00DD7C68 /* WebGamepadProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebGamepadProvider.cpp; sourceTree = "<group>"; };
 		515BE1741D53FDDC00DD7C68 /* WebGamepadProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebGamepadProvider.h; sourceTree = "<group>"; };
 		515BE19F1D550AB000DD7C68 /* WebGamepad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebGamepad.cpp; sourceTree = "<group>"; };
@@ -5977,6 +5980,8 @@
 		51C0C9791DDD78540032CAD3 /* _WKLinkIconParameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKLinkIconParameters.h; sourceTree = "<group>"; };
 		51C0C97A1DDD78540032CAD3 /* _WKLinkIconParameters.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = _WKLinkIconParameters.mm; sourceTree = "<group>"; };
 		51C0C97B1DDD78540032CAD3 /* _WKLinkIconParametersInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKLinkIconParametersInternal.h; sourceTree = "<group>"; };
+		51C5B7D62E8412A7005C9555 /* VideoReceiverEndpointManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoReceiverEndpointManager.h; sourceTree = "<group>"; };
+		51C5B7D72E8412A7005C9555 /* VideoReceiverEndpointManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoReceiverEndpointManager.mm; sourceTree = "<group>"; };
 		51C8E19B1F21617200BF731B /* WebIconDatabase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebIconDatabase.h; sourceTree = "<group>"; };
 		51CD1C591B3493A900142CA5 /* WKSecurityOriginRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WKSecurityOriginRef.cpp; sourceTree = "<group>"; };
 		51CD1C5A1B3493A900142CA5 /* WKSecurityOriginRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WKSecurityOriginRef.h; sourceTree = "<group>"; };
@@ -8119,7 +8124,6 @@
 		CDAC20F323FC383A0021DEE3 /* RemoteCDMFactoryProxyMessages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemoteCDMFactoryProxyMessages.h; sourceTree = "<group>"; };
 		CDAC20F423FC383A0021DEE3 /* RemoteCDMProxyMessages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemoteCDMProxyMessages.h; sourceTree = "<group>"; };
 		CDAC20F523FC383B0021DEE3 /* RemoteCDMInstanceProxyMessageReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteCDMInstanceProxyMessageReceiver.cpp; sourceTree = "<group>"; };
-		CDAD8DEC2BEC37BB00107D24 /* RemoteMediaPlayerManagerProxyCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RemoteMediaPlayerManagerProxyCocoa.mm; sourceTree = "<group>"; };
 		CDB2A1ED2697925C006B235C /* GPUProcessProxyCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GPUProcessProxyCocoa.mm; sourceTree = "<group>"; };
 		CDB96AD32AB379C9007A90D3 /* WKVideoView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WKVideoView.h; path = ios/WKVideoView.h; sourceTree = "<group>"; };
 		CDB96AD42AB379CA007A90D3 /* WKVideoView.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = WKVideoView.mm; path = ios/WKVideoView.mm; sourceTree = "<group>"; };
@@ -11125,8 +11129,9 @@
 		1D0ECEA923FC84BB00D172F6 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
-				CDAD8DEC2BEC37BB00107D24 /* RemoteMediaPlayerManagerProxyCocoa.mm */,
 				1D0ECEAA23FC858400D172F6 /* RemoteMediaPlayerProxyCocoa.mm */,
+				51C5B7D62E8412A7005C9555 /* VideoReceiverEndpointManager.h */,
+				51C5B7D72E8412A7005C9555 /* VideoReceiverEndpointManager.mm */,
 			);
 			path = cocoa;
 			sourceTree = "<group>";
@@ -12995,6 +13000,8 @@
 				F4351B9F25EEC87800D63892 /* ImageAnalysisUtilities.mm */,
 				BCE0937614FB128B001138D9 /* LayerHostingContext.h */,
 				BCE0937514FB128B001138D9 /* LayerHostingContext.mm */,
+				515A0C532E8284AC00D0B56C /* LayerHostingContextManager.h */,
+				515A0C542E8284AC00D0B56C /* LayerHostingContextManager.mm */,
 				A141DF4D2B06ECFB00E80B2D /* MediaCapability.h */,
 				A141DF4E2B06ECFB00E80B2D /* MediaCapability.mm */,
 				516E092C2B953EDC00A8C5B0 /* MediaPlaybackTargetContextSerialized.h */,
@@ -17571,6 +17578,7 @@
 				C1663E5B24AEAA2F00C6A3B2 /* LaunchServicesDatabaseXPCConstants.h in Headers */,
 				51E9049A27BCB9D400929E7E /* LaunchServicesSPI.h in Headers */,
 				BCE0937814FB128C001138D9 /* LayerHostingContext.h in Headers */,
+				515A0C552E8284CF00D0B56C /* LayerHostingContextManager.h in Headers */,
 				1A92DC1112F8BA460017AF65 /* LayerTreeContext.h in Headers */,
 				44E936FD2447C2D8009FA3E3 /* LegacyCustomProtocolID.h in Headers */,
 				5C1427181C23F8B700D41183 /* LegacyCustomProtocolManager.h in Headers */,

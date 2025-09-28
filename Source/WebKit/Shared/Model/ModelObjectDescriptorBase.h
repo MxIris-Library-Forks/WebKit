@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,15 +25,12 @@
 
 #pragma once
 
-#include <wtf/Vector.h>
-#include <wtf/text/LChar.h>
+#include <wtf/text/WTFString.h>
 
-namespace PAL {
+namespace WebKit::DDModel {
 
-// This function is only suitable for zip files which are guaranteed to not have any flags set in their headers.
-// See https://tools.ietf.org/html/rfc1952 for more information.
-PAL_EXPORT Vector<LChar> gunzip(std::span<const uint8_t> data);
+struct ObjectDescriptorBase {
+    String label;
+};
 
 }
-
-using PAL::gunzip;

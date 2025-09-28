@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Apple Inc. All rights reserved.
+ * Copyright (c) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,12 +21,50 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 #pragma once
 
-// A type to hold a single Latin-1 character.
-// This type complements the char16_t type that we get from C++.
-// To parallel that type, we put this one in the global namespace.
-typedef unsigned char LChar;
+#import <wtf/Ref.h>
+#import <wtf/RefCountedAndCanMakeWeakPtr.h>
+#import <wtf/TZoneMalloc.h>
+#import <wtf/WeakHashSet.h>
+#import <wtf/WeakPtr.h>
+
+typedef struct CF_BRIDGED_TYPE(id) __CVBuffer* CVPixelBufferRef;
+
+struct WGPUDDMeshImpl {
+};
+
+namespace WebGPU {
+
+class Instance;
+
+class DDMesh : public RefCountedAndCanMakeWeakPtr<DDMesh>, public WGPUDDMeshImpl {
+    WTF_MAKE_TZONE_ALLOCATED(DDMesh);
+public:
+    static Ref<DDMesh> create(const WGPUDDMeshDescriptor& descriptor, Instance& instance)
+    {
+        return adoptRef(*new DDMesh(descriptor, instance));
+    }
+    static Ref<DDMesh> createInvalid(Instance& instance)
+    {
+        return adoptRef(*new DDMesh(instance));
+    }
+
+    ~DDMesh();
+
+    bool isValid() const;
+    void update(WGPUDDUpdateMeshDescriptor*);
+
+private:
+    DDMesh(const WGPUDDMeshDescriptor&, Instance&);
+    DDMesh(Instance&);
+
+    const Ref<Instance> m_instance;
+    bool m_destroyed { false };
+    WGPUDDMeshDescriptor m_descriptor;
+};
+
+} // namespace WebGPU
+

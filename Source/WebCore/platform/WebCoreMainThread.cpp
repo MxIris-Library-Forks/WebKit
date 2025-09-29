@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,10 +23,34 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "WebCoreMainThread.h"
+
+#include <JavaScriptCore/InitializeThreading.h>
+#include <WebCore/WebCoreJITOperations.h>
+#include <wtf/MainThread.h>
+#include <wtf/RunLoop.h>
 
 namespace WebCore {
 
-enum class ImageSmoothingQuality : uint8_t { Low, Medium, High };
+bool shouldUseWebThread()
+{
+#if PLATFORM(IOS_FAMILY) && !ENABLE(WEB_THREAD_DISABLEMENT)
+    return true;
+#else
+    return false;
+#endif
+}
+
+void initializeMainThreadIfNeeded()
+{
+    if (shouldUseWebThread())
+        return;
+
+    JSC::initialize();
+    WTF::initializeMainThread();
+    WebCore::populateJITOperations();
+}
 
 }
+

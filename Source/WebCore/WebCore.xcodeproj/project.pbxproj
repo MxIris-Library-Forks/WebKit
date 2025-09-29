@@ -1863,6 +1863,7 @@
 		46EF142D1F97B7D800C2A524 /* ServiceWorkerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 46EF14241F97B7BA00C2A524 /* ServiceWorkerClient.h */; };
 		46EFAF121E5FB9F100E7F34B /* LowPowerModeNotifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 46EFAF101E5FB9E100E7F34B /* LowPowerModeNotifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46F02A1A23737F8300106A64 /* EventLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B0ABCA123679AB300B45085 /* EventLoop.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		46F674252E865AF300A1C067 /* WebCoreMainThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 46F674212E865ABB00A1C067 /* WebCoreMainThread.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46FC422A29084F4B00773DD5 /* MainThreadStylePropertyMapReadOnly.h in Headers */ = {isa = PBXBuildFile; fileRef = 46FC422929084F4400773DD5 /* MainThreadStylePropertyMapReadOnly.h */; };
 		46FCB6181A70820E00C5A21E /* DiagnosticLoggingKeys.h in Headers */ = {isa = PBXBuildFile; fileRef = CD37B37515C1A7E1006DC898 /* DiagnosticLoggingKeys.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46FE73D22968E52000B8064C /* GameControllerHapticEngines.h in Headers */ = {isa = PBXBuildFile; fileRef = 46FE73D02968E51F00B8064C /* GameControllerHapticEngines.h */; };
@@ -11508,6 +11509,8 @@
 		46EFAF0D1E5FB9C200E7F34B /* LowPowerModeNotifier.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LowPowerModeNotifier.mm; sourceTree = "<group>"; };
 		46EFAF0F1E5FB9E100E7F34B /* LowPowerModeNotifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LowPowerModeNotifier.cpp; sourceTree = "<group>"; };
 		46EFAF101E5FB9E100E7F34B /* LowPowerModeNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LowPowerModeNotifier.h; sourceTree = "<group>"; };
+		46F674212E865ABB00A1C067 /* WebCoreMainThread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCoreMainThread.h; sourceTree = "<group>"; };
+		46F674222E865ABB00A1C067 /* WebCoreMainThread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebCoreMainThread.cpp; sourceTree = "<group>"; };
 		46F91BC91FCDD0FE001599C3 /* JSWorkerNavigatorCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWorkerNavigatorCustom.cpp; sourceTree = "<group>"; };
 		46FC422829084F4400773DD5 /* MainThreadStylePropertyMapReadOnly.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MainThreadStylePropertyMapReadOnly.cpp; sourceTree = "<group>"; };
 		46FC422929084F4400773DD5 /* MainThreadStylePropertyMapReadOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainThreadStylePropertyMapReadOnly.h; sourceTree = "<group>"; };
@@ -18270,6 +18273,9 @@
 		BC06F24C06D18A7E004A6FA3 /* XSLTProcessor.h */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = XSLTProcessor.h; sourceTree = "<group>"; tabWidth = 8; usesTabs = 0; };
 		BC06F24D06D18A7E004A6FA3 /* XSLTProcessorLibxslt.cpp */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XSLTProcessorLibxslt.cpp; sourceTree = "<group>"; tabWidth = 8; usesTabs = 0; };
 		BC073BA90C399B1F000F5979 /* FloatConversion.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FloatConversion.h; sourceTree = "<group>"; };
+		BC08A72C2E8864D6005C4CD1 /* InspectorCanvasArguments.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InspectorCanvasArguments.h; sourceTree = "<group>"; };
+		BC08A72D2E888B5E005C4CD1 /* InspectorCanvasProcessedArguments.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InspectorCanvasProcessedArguments.h; sourceTree = "<group>"; };
+		BC08A72E2E889885005C4CD1 /* InspectorCanvasArguments.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InspectorCanvasArguments.cpp; sourceTree = "<group>"; };
 		BC09297E2E29CE29002ACB2C /* StyleTextSizeAdjust.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextSizeAdjust.cpp; sourceTree = "<group>"; };
 		BC09297F2E29CE29002ACB2C /* StyleTextSizeAdjust.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextSizeAdjust.h; sourceTree = "<group>"; };
 		BC0929A82E2AA1D6002ACB2C /* StyleScrollBehavior.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleScrollBehavior.h; sourceTree = "<group>"; };
@@ -24812,8 +24818,11 @@
 				1C81B9580E97330800266E07 /* InspectorBackendClient.h */,
 				6A22E8721F1042C400F546C3 /* InspectorCanvas.cpp */,
 				6A22E86F1F10418600F546C3 /* InspectorCanvas.h */,
+				BC08A72E2E889885005C4CD1 /* InspectorCanvasArguments.cpp */,
+				BC08A72C2E8864D6005C4CD1 /* InspectorCanvasArguments.h */,
 				95AA570D25EEED30004E9283 /* InspectorCanvasCallTracer.cpp */,
 				95AA570E25EEED31004E9283 /* InspectorCanvasCallTracer.h */,
+				BC08A72D2E888B5E005C4CD1 /* InspectorCanvasProcessedArguments.h */,
 				1C81B9570E97330800266E07 /* InspectorController.cpp */,
 				1C81B9560E97330800266E07 /* InspectorController.h */,
 				99D1B2D123AC143000811CF0 /* InspectorDebuggableType.h */,
@@ -37477,6 +37486,8 @@
 				4110A25B28E5C84700321D09 /* VideoPixelFormat.cpp */,
 				4110A25828E5C41700321D09 /* VideoPixelFormat.h */,
 				A1DD61892B7EB59300075A92 /* VideoReceiverEndpoint.h */,
+				46F674222E865ABB00A1C067 /* WebCoreMainThread.cpp */,
+				46F674212E865ABB00A1C067 /* WebCoreMainThread.h */,
 				5CE19CF428D8FB3700A4571E /* WebCorePersistentCoders.cpp */,
 				5CE19CF328D8FB3700A4571E /* WebCorePersistentCoders.h */,
 				9380F47109A11AB4001FDB34 /* Widget.cpp */,
@@ -47115,6 +47126,7 @@
 				BC53D911114310CC000D817E /* WebCoreJSClientData.h in Headers */,
 				93F199BB08245E59001E9ABC /* WebCoreKeyboardUIMode.h in Headers */,
 				CD1115B52E836A14000E9E44 /* WebCoreLogDefinitions.h in Headers */,
+				46F674252E865AF300A1C067 /* WebCoreMainThread.h in Headers */,
 				3140379B124BEA7F00AF40E4 /* WebCoreMotionManager.h in Headers */,
 				CDC979F51C498C0900DB50D4 /* WebCoreNSErrorExtras.h in Headers */,
 				F4E57EE1213F434A004EA98E /* WebCoreNSFontManagerExtras.h in Headers */,

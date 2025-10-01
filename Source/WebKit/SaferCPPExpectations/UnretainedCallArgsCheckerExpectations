@@ -6,7 +6,6 @@ Shared/API/Cocoa/_WKFrameHandle.mm
 Shared/API/Cocoa/_WKRemoteObjectInterface.mm
 Shared/API/c/mac/WKURLRequestNS.mm
 Shared/API/c/mac/WKURLResponseNS.mm
-Shared/Cocoa/APIObject.mm
 Shared/Cocoa/ArgumentCodersCocoa.mm
 Shared/Cocoa/CompletionHandlerCallChecker.mm
 Shared/Cocoa/CoreIPCContacts.mm
@@ -81,12 +80,10 @@ UIProcess/Gamepad/mac/UIGamepadProviderMac.mm
 UIProcess/Inspector/Cocoa/InspectorExtensionDelegate.mm
 UIProcess/Inspector/mac/WKInspectorViewController.mm
 UIProcess/Inspector/mac/WKInspectorWKWebView.mm
-UIProcess/WebsiteData/Cocoa/WebsiteDataStoreCocoa.mm
 UIProcess/mac/DisplayCaptureSessionManager.mm
 UIProcess/mac/PageClientImplMac.mm
 UIProcess/mac/SecItemShimProxy.cpp
 UIProcess/mac/TiledCoreAnimationDrawingAreaProxy.mm
-UIProcess/mac/ViewGestureControllerMac.mm
 UIProcess/mac/WKFullScreenWindowController.mm
 UIProcess/mac/WKImmediateActionController.mm
 UIProcess/mac/WKPrintingView.mm
@@ -95,11 +92,9 @@ UIProcess/mac/WKTextAnimationManagerMac.mm
 UIProcess/mac/WebContextMenuProxyMac.mm
 UIProcess/mac/WebDataListSuggestionsDropdownMac.mm
 UIProcess/mac/WebDateTimePickerMac.mm
-UIProcess/mac/WebPageProxyMac.mm
 UIProcess/mac/WebPopupMenuProxyMac.mm
 UIProcess/mac/WebViewImpl.mm
 WebProcess/GPU/webrtc/RemoteVideoFrameObjectHeapProxyProcessor.cpp
-WebProcess/GPU/webrtc/SharedVideoFrame.cpp
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessBundleParameters.mm
 WebProcess/InjectedBundle/API/mac/WKDOMInternals.mm
 WebProcess/InjectedBundle/API/mac/WKWebProcessPlugIn.mm

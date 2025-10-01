@@ -3215,6 +3215,7 @@ style/values/filter-effects/StyleSaturateFunction.cpp
 style/values/filter-effects/StyleSepiaFunction.cpp
 style/values/flexbox/StyleFlexBasis.cpp
 style/values/fonts/StyleFontPalette.cpp
+style/values/fonts/StyleFontWeight.cpp
 style/values/fonts/StyleFontWidth.cpp
 style/values/grid/StyleGridNamedLinesMap.cpp
 style/values/grid/StyleGridPosition.cpp
@@ -3573,10 +3574,12 @@ xml/parser/XMLDocumentParserScope.cpp
 CSSPropertyParsing.cpp
 CSSValueKeywords.cpp
 ColorData.cpp
+DocumentSyncClient.cpp
 DocumentSyncData.cpp
 EventFactory.cpp
 EventNames.cpp
 EventTargetFactory.cpp
+FrameTreeSyncClient.cpp
 FrameTreeSyncData.cpp
 HTMLElementFactory.cpp
 HTMLEntityTable.cpp
@@ -3584,7 +3587,6 @@ JSHTMLElementWrapperFactory.cpp
 JSMathMLElementWrapperFactory.cpp
 JSSVGElementWrapperFactory.cpp
 MathMLElementFactory.cpp
-ProcessSyncClient.cpp
 SVGElementFactory.cpp
 StyleBuilderGenerated.cpp
 StyleExtractorGenerated.cpp

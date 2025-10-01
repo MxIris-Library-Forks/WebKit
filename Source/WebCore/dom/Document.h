@@ -34,6 +34,7 @@
 #include <WebCore/DocumentClasses.h>
 #include <WebCore/DocumentEnums.h>
 #include <WebCore/DocumentEventTiming.h>
+#include <WebCore/FocusControllerTypes.h>
 #include <WebCore/FontSelectorClient.h>
 #include <WebCore/FrameDestructionObserver.h>
 #include <WebCore/FrameIdentifier.h>
@@ -221,7 +222,7 @@ class RTCNetworkManager;
 class Range;
 class RealtimeMediaSource;
 class Region;
-class RenderText;
+class RenderBlockFlow;
 class RenderTreeBuilder;
 class RenderView;
 class ReportingScope;
@@ -334,7 +335,7 @@ enum class MutationObserverOptionType : uint8_t;
 enum class NoiseInjectionPolicy : uint8_t;
 enum class ParserContentPolicy : uint8_t;
 enum class PlatformEventType : uint8_t;
-enum class ProcessSyncDataType : uint8_t;
+enum class DocumentSyncDataType : uint8_t;
 enum class ReferrerPolicySource : uint8_t;
 enum class RenderingUpdateStep : uint32_t;
 enum class RouteSharingPolicy : uint8_t;
@@ -951,8 +952,8 @@ public:
     MouseEventWithHitTestResults prepareMouseEvent(const HitTestRequest&, const LayoutPoint&, const PlatformMouseEvent&);
     // Returns whether focus was blocked. A true value does not necessarily mean the element was focused.
     // The element could have already been focused or may not be focusable (e.g. <input disabled>).
-    WEBCORE_EXPORT bool setFocusedElement(Element*);
-    WEBCORE_EXPORT bool setFocusedElement(Element*, const FocusOptions&);
+    WEBCORE_EXPORT bool setFocusedElement(Element*, BroadcastFocusedElement = BroadcastFocusedElement::Yes);
+    WEBCORE_EXPORT bool setFocusedElement(Element*, const FocusOptions&, BroadcastFocusedElement = BroadcastFocusedElement::Yes);
     Element* focusedElement() const { return m_focusedElement.get(); }
     inline RefPtr<Element> protectedFocusedElement() const; // Defined in DocumentInlines.h.
     inline bool wasLastFocusByClick() const;
@@ -1482,7 +1483,7 @@ public:
     LargestContentfulPaintData& largestContentfulPaintData() const;
     void didLoadImage(Element&, CachedImage*) const;
     void didPaintImage(Element&, CachedImage*, FloatRect localRect) const;
-    void didPaintText(const RenderText&, FloatRect localRect) const;
+    void didPaintText(const RenderBlockFlow&, FloatRect localRect) const;
 
     int requestAnimationFrame(Ref<RequestAnimationFrameCallback>&&);
     void cancelAnimationFrame(int id);
@@ -2193,7 +2194,7 @@ private:
     void securityOriginDidChange() final;
 
     inline Ref<DocumentSyncData> syncData();
-    void populateDocumentSyncDataForNewlyConstructedDocument(ProcessSyncDataType);
+    void populateDocumentSyncDataForNewlyConstructedDocument(DocumentSyncDataType);
 
     bool mainFrameDocumentHasHadUserInteraction() const;
 

@@ -848,6 +848,7 @@ WebProcess/Network/webrtc/LibWebRTCSocketFactory.cpp
 WebProcess/Network/webrtc/RTCDataChannelRemoteManager.cpp
 WebProcess/Network/webrtc/WebMDNSRegister.cpp
 WebProcess/Network/webrtc/WebRTCMonitor.cpp
+WebProcess/Network/webrtc/WebRTCNetworkBase.cpp
 WebProcess/Network/webrtc/WebRTCResolver.cpp
 
 WebProcess/Notifications/NotificationPermissionRequestManager.cpp
@@ -899,7 +900,7 @@ WebProcess/WebCoreSupport/WebPerformanceLoggingClient.cpp
 WebProcess/WebCoreSupport/WebPermissionController.cpp
 WebProcess/WebCoreSupport/WebPlatformStrategies.cpp
 WebProcess/WebCoreSupport/WebPopupMenu.cpp
-WebProcess/WebCoreSupport/WebProcessSyncClient.cpp
+WebProcess/WebCoreSupport/WebDocumentSyncClient.cpp
 WebProcess/WebCoreSupport/WebProgressTrackerClient.cpp
 WebProcess/WebCoreSupport/WebRemoteFrameClient.cpp
 WebProcess/WebCoreSupport/WebResourceLoadObserver.cpp

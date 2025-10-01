@@ -45,6 +45,7 @@
 #include "DiagnosticLoggingClient.h"
 #include "DiagnosticLoggingKeys.h"
 #include "DocumentLoader.h"
+#include "DocumentSyncClient.h"
 #include "DocumentType.h"
 #include "Editing.h"
 #include "Editor.h"
@@ -87,7 +88,6 @@
 #include "NodeTraversal.h"
 #include "Page.h"
 #include "PaymentSession.h"
-#include "ProcessSyncClient.h"
 #include "ProcessWarming.h"
 #include "RemoteFrame.h"
 #include "RenderLayerCompositor.h"
@@ -318,7 +318,7 @@ void LocalFrame::setDocument(RefPtr<Document>&& newDocument)
     m_documentIsBeingReplaced = true;
 
     if (isMainFrame()) {
-        if (RefPtr page = this->page())
+        if (RefPtr page = this->page(); page && this == &page->mainFrame())
             page->didChangeMainDocument(newDocument.get());
         loader().client().dispatchDidChangeMainDocument();
     }
@@ -831,7 +831,7 @@ void LocalFrame::injectUserScriptImmediately(DOMWrapperWorld& world, const UserS
     page->setHasInjectedUserScript();
     loader->client().willInjectUserScript(world);
 
-    WTFBeginSignpost(this, UserScript, "Loading user script: %u bytes, top frame only %d, doc start %d, %" PRIVATE_LOG_STRING, script.source().length(), script.injectedFrames() == UserContentInjectedFrames::InjectInTopFrameOnly, script.injectionTime() == UserScriptInjectionTime::DocumentStart, script.url().string().utf8().data());
+    WTFBeginSignpost(this, UserScript, "injectUserScript: %" PRIVATE_LOG_STRING " (%u bytes, top frame only %d, doc start %d)", script.debugDescription().ascii().data(), script.source().length(), script.injectedFrames() == UserContentInjectedFrames::InjectInTopFrameOnly, script.injectionTime() == UserScriptInjectionTime::DocumentStart);
     checkedScript()->evaluateInWorldIgnoringException(ScriptSourceCode(script.source(), JSC::SourceTaintedOrigin::Untainted, URL(script.url())), world);
     WTFEndSignpost(this, UserScript);
 }

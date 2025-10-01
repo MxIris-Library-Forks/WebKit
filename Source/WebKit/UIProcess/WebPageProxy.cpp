@@ -231,6 +231,7 @@
 #include <WebCore/ExceptionDetails.h>
 #include <WebCore/FloatRect.h>
 #include <WebCore/FocusDirection.h>
+#include <WebCore/FocusOptions.h>
 #include <WebCore/FontAttributeChanges.h>
 #include <WebCore/FrameLoader.h>
 #include <WebCore/FrameLoaderClient.h>
@@ -2845,6 +2846,8 @@ void WebPageProxy::setObscuredContentInsets(const WebCore::FloatBoxExtent& obscu
 
     if (!hasRunningProcess())
         return;
+
+    protectedDrawingArea()->updateDebugIndicator();
 
 #if PLATFORM(COCOA)
     send(Messages::WebPage::SetObscuredContentInsetsFenced(m_internals->obscuredContentInsets, protectedDrawingArea()->createFence()));
@@ -7114,7 +7117,7 @@ void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& p
 
     RefPtr protectedPageClient { pageClient() };
 
-    if (m_controlledByAutomation) {
+    if (m_controlledByAutomation && willInternallyHandleFailure == WillInternallyHandleFailure::No) {
         if (RefPtr automationSession = process->processPool().automationSession())
             automationSession->navigationOccurredForFrame(frame);
     }
@@ -7141,8 +7144,10 @@ void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& p
 
     protectedPageLoadState->commitChanges();
 #if ENABLE(WEBDRIVER_BIDI)
-    if (RefPtr automationSession = activeAutomationSession())
-        automationSession->navigationFailedForFrame(frame, navigationID);
+    if (willInternallyHandleFailure == WillInternallyHandleFailure::No) {
+        if (RefPtr automationSession = activeAutomationSession())
+            automationSession->navigationFailedForFrame(frame, navigationID);
+    }
 #endif
 
     ASSERT(!m_failingProvisionalLoadURL);
@@ -7497,21 +7502,25 @@ void WebPageProxy::observeAndCreateRemoteSubframesInOtherProcesses(WebFrameProxy
     });
 }
 
-void WebPageProxy::broadcastProcessSyncData(IPC::Connection& connection, const WebCore::ProcessSyncData& data)
+void WebPageProxy::broadcastDocumentSyncData(IPC::Connection& connection, const WebCore::DocumentSyncSerializationData& data)
 {
+    Ref process = WebProcessProxy::fromConnection(connection);
+    // FIXME: Check that the sending process is allowed to write the specified property.
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
-        if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
+        if (webProcess == process)
             return;
-        webProcess.send(Messages::WebPage::ProcessSyncDataChangedInAnotherProcess(data), pageID);
+        webProcess.send(Messages::WebPage::TopDocumentSyncDataChangedInAnotherProcess(data), pageID);
     });
 }
 
-void WebPageProxy::broadcastTopDocumentSyncData(IPC::Connection& connection, Ref<WebCore::DocumentSyncData>&& data)
+void WebPageProxy::broadcastAllDocumentSyncData(IPC::Connection& connection, Ref<WebCore::DocumentSyncData>&& data)
 {
+    Ref process = WebProcessProxy::fromConnection(connection);
+    MESSAGE_CHECK(process, &siteIsolatedProcess() == process.ptr());
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
-        if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
+        if (webProcess == process)
             return;
-        webProcess.send(Messages::WebPage::TopDocumentSyncDataChangedInAnotherProcess(data), pageID);
+        webProcess.send(Messages::WebPage::AllTopDocumentSyncDataChangedInAnotherProcess(data), pageID);
     });
 }
 
@@ -11401,6 +11410,22 @@ void WebPageProxy::logScrollingEvent(uint32_t eventType, MonotonicTime timestamp
         WTFLogAlways("SCROLLING: Started Rubberbanding\n");
         break;
     }
+}
+
+void WebPageProxy::focusedElementChanged(IPC::Connection& connection, const std::optional<FrameIdentifier>& frameID, FocusOptions options)
+{
+    if (!frameID)
+        return;
+
+    RefPtr frame = WebFrameProxy::webFrame(*frameID);
+    if (!frame)
+        return;
+
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
+            return;
+        webProcess.send(Messages::WebPage::ElementWasFocusedInAnotherProcess(*frameID, options), pageID);
+    });
 }
 
 void WebPageProxy::focusedFrameChanged(IPC::Connection& connection, const std::optional<FrameIdentifier>& frameID)

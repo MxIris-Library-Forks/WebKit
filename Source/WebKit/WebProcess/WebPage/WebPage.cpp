@@ -105,6 +105,7 @@
 #include "WebDatabaseProvider.h"
 #include "WebDateTimeChooser.h"
 #include "WebDiagnosticLoggingClient.h"
+#include "WebDocumentSyncClient.h"
 #include "WebDragClient.h"
 #include "WebEditorClient.h"
 #include "WebErrors.h"
@@ -156,7 +157,6 @@
 #include "WebProcess.h"
 #include "WebProcessPoolMessages.h"
 #include "WebProcessProxyMessages.h"
-#include "WebProcessSyncClient.h"
 #include "WebProgressTrackerClient.h"
 #include "WebRemoteFrameClient.h"
 #include "WebScreenOrientationManager.h"
@@ -219,6 +219,8 @@
 #include <WebCore/ExceptionCode.h>
 #include <WebCore/File.h>
 #include <WebCore/FocusController.h>
+#include <WebCore/FocusControllerTypes.h>
+#include <WebCore/FocusOptions.h>
 #include <WebCore/FontAttributeChanges.h>
 #include <WebCore/FontAttributes.h>
 #include <WebCore/FormState.h>
@@ -804,7 +806,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif
         makeUniqueRef<WebChromeClient>(*this),
         makeUniqueRef<WebCryptoClient>(this->identifier()),
-        makeUniqueRef<WebProcessSyncClient>(*this)
+        makeUniqueRef<WebDocumentSyncClient>(*this)
 #if HAVE(DIGITAL_CREDENTIALS_UI)
         , DigitalCredentialsCoordinator::create(*this)
 #endif
@@ -1269,13 +1271,13 @@ void WebPage::updateFrameTreeSyncData(WebCore::FrameIdentifier frameID, Ref<WebC
         coreFrame->updateFrameTreeSyncData(WTFMove(data));
 }
 
-void WebPage::processSyncDataChangedInAnotherProcess(const WebCore::ProcessSyncData& data)
+void WebPage::topDocumentSyncDataChangedInAnotherProcess(const WebCore::DocumentSyncSerializationData& data)
 {
     if (RefPtr page = corePage())
-        page->updateProcessSyncData(data);
+        page->updateTopDocumentSyncData(data);
 }
 
-void WebPage::topDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&& data)
+void WebPage::allTopDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&& data)
 {
     if (RefPtr page = corePage())
         page->updateTopDocumentSyncData(WTFMove(data));
@@ -10128,12 +10130,20 @@ void WebPage::dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier fram
         ownerElement->dispatchEvent(Event::create(eventNames().loadEvent, Event::CanBubble::No, Event::IsCancelable::No));
 }
 
+void WebPage::elementWasFocusedInAnotherProcess(WebCore::FrameIdentifier frameID, WebCore::FocusOptions options)
+{
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
+    if (!frame)
+        return;
+    protectedCorePage()->focusController().setFocusedElement(nullptr, frame->protectedCoreFrame().get(), options, WebCore::BroadcastFocusedElement::No);
+}
+
 void WebPage::frameWasFocusedInAnotherProcess(WebCore::FrameIdentifier frameID)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
         return;
-    protectedCorePage()->focusController().setFocusedFrame(frame->protectedCoreFrame().get(), FocusController::BroadcastFocusedFrame::No);
+    protectedCorePage()->focusController().setFocusedFrame(frame->protectedCoreFrame().get(), WebCore::BroadcastFocusedFrame::No);
 }
 
 void WebPage::remotePostMessage(WebCore::FrameIdentifier source, const String& sourceOrigin, WebCore::FrameIdentifier target, std::optional<WebCore::SecurityOriginData>&& targetOrigin, const WebCore::MessageWithMessagePorts& message)

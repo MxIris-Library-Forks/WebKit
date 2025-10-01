@@ -293,6 +293,7 @@ struct DictationContextType;
 struct ElementContext;
 struct ExceptionData;
 struct ExceptionDetails;
+struct FocusOptions;
 struct FontAttributes;
 struct GlobalFrameIdentifier;
 struct GlobalWindowIdentifier;
@@ -311,7 +312,7 @@ struct MessageWithMessagePorts;
 struct NavigationIdentifierType;
 struct NowPlayingInfo;
 struct PlatformMediaSessionRemoteCommandArgument;
-struct ProcessSyncData;
+struct DocumentSyncSerializationData;
 struct PromisedAttachmentInfo;
 struct RemoteUserInputEventData;
 struct RequestStorageAccessResult;
@@ -801,8 +802,8 @@ public:
     void frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier);
     void updateFrameTreeSyncData(WebCore::FrameIdentifier, Ref<WebCore::FrameTreeSyncData>&&);
 
-    void processSyncDataChangedInAnotherProcess(const WebCore::ProcessSyncData&);
-    void topDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&&);
+    void topDocumentSyncDataChangedInAnotherProcess(const WebCore::DocumentSyncSerializationData&);
+    void allTopDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&&);
 
     std::optional<WebCore::SimpleRange> currentSelectionAsRange();
 
@@ -2570,6 +2571,7 @@ private:
 
     void dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier);
 
+    void elementWasFocusedInAnotherProcess(WebCore::FrameIdentifier, WebCore::FocusOptions);
     void frameWasFocusedInAnotherProcess(WebCore::FrameIdentifier);
 
 #if ENABLE(WRITING_TOOLS)

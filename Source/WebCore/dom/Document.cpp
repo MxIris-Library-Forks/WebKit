@@ -84,6 +84,7 @@
 #include "DocumentLoader.h"
 #include "DocumentMarkerController.h"
 #include "DocumentSharedObjectPool.h"
+#include "DocumentSyncData.h"
 #include "DocumentTimeline.h"
 #include "DocumentType.h"
 #include "DragEvent.h"
@@ -224,7 +225,6 @@
 #include "PolicyChecker.h"
 #include "PopStateEvent.h"
 #include "Position.h"
-#include "ProcessSyncData.h"
 #include "ProcessingInstruction.h"
 #include "PseudoClassChangeInvalidation.h"
 #include "PublicSuffixStore.h"
@@ -727,34 +727,32 @@ Document::Document(LocalFrame* frame, const Settings& settings, const URL& url, 
 
     // We walk all of the relevant enums to popular one at a time in a switch statement to make sure
     // that an engineer writes the relevant manual code whenever a new generated type is added.
-    for (const ProcessSyncDataType dataType : allDocumentSyncDataTypes)
+    for (const DocumentSyncDataType dataType : allDocumentSyncDataTypes)
         populateDocumentSyncDataForNewlyConstructedDocument(dataType);
 
     if (!settings.mutationEventsEnabled())
         m_shouldNotFireMutationEvents = true;
 }
 
-void Document::populateDocumentSyncDataForNewlyConstructedDocument(ProcessSyncDataType dataType)
+void Document::populateDocumentSyncDataForNewlyConstructedDocument(DocumentSyncDataType dataType)
 {
     switch (dataType) {
-    case ProcessSyncDataType::DocumentClasses:
+    case DocumentSyncDataType::DocumentClasses:
         m_syncData->documentClasses = m_documentClasses;
         break;
 #if ENABLE(DOM_AUDIO_SESSION)
-    case ProcessSyncDataType::AudioSessionType:
+    case DocumentSyncDataType::AudioSessionType:
         m_syncData->audioSessionType = DOMAudioSession::Type::Auto;
         break;
 #endif
     // The following either have default values that match a newly constructed document
     // or are populated other ways even on newly constructed documents.
-    case ProcessSyncDataType::DocumentSecurityOrigin:
-    case ProcessSyncDataType::DocumentURL:
-    case ProcessSyncDataType::HasInjectedUserScript:
-    case ProcessSyncDataType::IsClosing:
-    case ProcessSyncDataType::IsAutofocusProcessed:
-    case ProcessSyncDataType::UserDidInteractWithPage:
-    case ProcessSyncDataType::FrameCanCreatePaymentSession:
-    case ProcessSyncDataType::FrameDocumentSecurityOrigin:
+    case DocumentSyncDataType::DocumentSecurityOrigin:
+    case DocumentSyncDataType::DocumentURL:
+    case DocumentSyncDataType::HasInjectedUserScript:
+    case DocumentSyncDataType::IsClosing:
+    case DocumentSyncDataType::IsAutofocusProcessed:
+    case DocumentSyncDataType::UserDidInteractWithPage:
         break;
     }
 }
@@ -6354,12 +6352,12 @@ void Document::invalidateRenderingDependentRegions()
 #endif
 }
 
-bool Document::setFocusedElement(Element* element)
+bool Document::setFocusedElement(Element* element, BroadcastFocusedElement broadcast)
 {
-    return setFocusedElement(element, { });
+    return setFocusedElement(element, { }, broadcast);
 }
 
-bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions& options)
+bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions& options, BroadcastFocusedElement broadcast)
 {
     // Make sure newFocusedElement is actually in this document
     if (newFocusedElement && (&newFocusedElement->document() != this))
@@ -6521,7 +6519,7 @@ bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions&
     }
 
     if (RefPtr page = this->page())
-        page->chrome().focusedElementChanged(protectedFocusedElement().get());
+        page->chrome().focusedElementChanged(protectedFocusedElement().get(), page->focusController().focusedLocalFrame(), options, broadcast);
 
     return true;
 }
@@ -9083,12 +9081,12 @@ void Document::didPaintImage(Element& element, CachedImage* image, FloatRect loc
     largestContentfulPaintData().didPaintImage(element, image, localRect);
 }
 
-void Document::didPaintText(const RenderText& renderText, FloatRect localRect) const
+void Document::didPaintText(const RenderBlockFlow& formattingContextRoot, FloatRect localRect) const
 {
     if (!supportsLargestContentfulPaint())
         return;
 
-    largestContentfulPaintData().didPaintText(renderText, localRect);
+    largestContentfulPaintData().didPaintText(formattingContextRoot, localRect);
 }
 
 int Document::requestAnimationFrame(Ref<RequestAnimationFrameCallback>&& callback)

@@ -117,6 +117,7 @@
 #include "Quirks.h"
 #include "RenderBoxInlines.h"
 #include "RenderElementInlines.h"
+#include "RenderElementStyleInlines.h"
 #include "RenderFragmentedFlow.h"
 #include "RenderLayer.h"
 #include "RenderLayerBacking.h"
@@ -148,6 +149,7 @@
 #include "ShadowRootInit.h"
 #include "SimulatedClick.h"
 #include "SlotAssignment.h"
+#include "StylableInlines.h"
 #include "StyleInvalidator.h"
 #include "StyleProperties.h"
 #include "StyleResolver.h"
@@ -4174,7 +4176,7 @@ void Element::focus(const FocusOptions& options)
         // Focus and change event handlers can cause us to lose our last ref.
         // If a focus event handler changes the focus to a different node it
         // does not make sense to continue and update appearence.
-        if (!page->focusController().setFocusedElement(newTarget.get(), frame, optionsWithVisibility))
+        if (!page->focusController().setFocusedElement(newTarget.get(), frame.ptr(), optionsWithVisibility))
             return;
     }
 
@@ -4242,7 +4244,7 @@ void Element::blur()
 {
     if (treeScope().focusedElementInScope() == this) {
         if (RefPtr frame = document().frame())
-            frame->protectedPage()->focusController().setFocusedElement(nullptr, *frame);
+            frame->protectedPage()->focusController().setFocusedElement(nullptr, frame.get());
         else
             protectedDocument()->setFocusedElement(nullptr);
     }

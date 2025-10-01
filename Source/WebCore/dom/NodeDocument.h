@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,11 +25,19 @@
 
 #pragma once
 
-#include <wtf/ObjectIdentifier.h>
+#include <WebCore/Document.h>
+#include <WebCore/Node.h>
 
-namespace WebKit {
+namespace WebCore {
 
-struct RemoteImageBufferSetIdentifierType;
-using RemoteImageBufferSetIdentifier = ObjectIdentifier<RemoteImageBufferSetIdentifierType>;
+inline Document& Node::document() const
+{
+    return treeScope().documentScope();
+}
+
+inline Ref<Document> Node::protectedDocument() const
+{
+    return document();
+}
 
 }

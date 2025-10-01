@@ -1408,6 +1408,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/NativeNodeFilter.h
     dom/Node.h
     dom/NodeConstants.h
+    dom/NodeDocument.h
     dom/NodeFilter.h
     dom/NodeFilterCondition.h
     dom/NodeIdentifier.h
@@ -2038,6 +2039,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/EventHandler.h
     page/EventTimingInteractionID.h
     page/FocusController.h
+    page/FocusControllerTypes.h
     page/FocusDirection.h
     page/FocusEventData.h
     page/FragmentDirective.h
@@ -3060,6 +3062,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/RenderBoxModelObjectInlines.h
     rendering/RenderElement.h
     rendering/RenderElementInlines.h
+    rendering/RenderElementStyleInlines.h
     rendering/RenderEmbeddedObject.h
     rendering/RenderFlexibleBox.h
     rendering/RenderFrame.h
@@ -3276,6 +3279,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/flexbox/StyleWebKitBoxOrdinalGroup.h
 
     style/values/fonts/StyleFontPalette.h
+    style/values/fonts/StyleFontWeight.h
     style/values/fonts/StyleFontWidth.h
 
     style/values/grid/StyleGridNamedAreaMap.h
@@ -3615,10 +3619,12 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.h
     ${WebCore_DERIVED_SOURCES_DIR}/CommandLineAPIModuleSourceBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/DocumentSyncData.h
+    ${WebCore_DERIVED_SOURCES_DIR}/DocumentSyncClient.h
     ${WebCore_DERIVED_SOURCES_DIR}/EventInterfaces.h
     ${WebCore_DERIVED_SOURCES_DIR}/EventNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/EventTargetInterfaces.h
     ${WebCore_DERIVED_SOURCES_DIR}/FrameTreeSyncData.h
+    ${WebCore_DERIVED_SOURCES_DIR}/FrameTreeSyncClient.h
     ${WebCore_DERIVED_SOURCES_DIR}/HTMLElementTypeHelpers.h
     ${WebCore_DERIVED_SOURCES_DIR}/HTMLNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/HTTPHeaderNames.h
@@ -3660,8 +3666,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/MathMLNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Namespace.h
     ${WebCore_DERIVED_SOURCES_DIR}/NodeName.h
-    ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.h
-    ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.h
     ${WebCore_DERIVED_SOURCES_DIR}/ReadableStreamInternalsBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/SVGNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Settings.h

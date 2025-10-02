@@ -40,6 +40,7 @@
 #include "ReadableStreamBYOBRequest.h"
 #include "ScriptExecutionContext.h"
 #include "Settings.h"
+#include "StreamTeeUtilities.h"
 #include "WritableStream.h"
 #include <wtf/Compiler.h>
 
@@ -199,12 +200,15 @@ ExceptionOr<ReadableStreamReader> ReadableStream::getReader(JSDOMGlobalObject& c
 }
 
 // https://streams.spec.whatwg.org/#rs-tee
-ExceptionOr<Vector<Ref<ReadableStream>>> ReadableStream::tee(bool shouldClone)
+ExceptionOr<Vector<Ref<ReadableStream>>> ReadableStream::tee(JSDOMGlobalObject& globalObject, bool shouldClone)
 {
-    if (!m_internalReadableStream)
-        return Exception { ExceptionCode::NotSupportedError, "Teeing byte streams is not yet supported"_s };
+    RefPtr internalReadableStream = m_internalReadableStream;
+    if (!internalReadableStream) {
+        ASSERT(m_controller);
+        return byteStreamTee(globalObject, *this);
+    }
 
-    auto result = m_internalReadableStream->tee(shouldClone);
+    auto result = internalReadableStream->tee(shouldClone);
     if (result.hasException())
         return result.releaseException();
 
@@ -475,7 +479,13 @@ JSC::JSValue JSReadableStream::cancel(JSC::JSGlobalObject& globalObject, JSC::Ca
     RefPtr internalReadableStream = wrapped().internalReadableStream();
     if (!internalReadableStream) {
         return callPromiseFunction(globalObject, callFrame, [this](auto& globalObject, auto& callFrame, auto&& promise) {
-            protectedWrapped()->cancel(globalObject, callFrame.argument(0), WTFMove(promise));
+            Ref protectedWrapped = this->wrapped();
+            if (protectedWrapped->isLocked()) {
+                promise->reject(Exception { ExceptionCode::TypeError, "ReadableStream is locked"_s });
+                return;
+            }
+
+            protectedWrapped->cancel(globalObject, callFrame.argument(0), WTFMove(promise));
         });
     }
 

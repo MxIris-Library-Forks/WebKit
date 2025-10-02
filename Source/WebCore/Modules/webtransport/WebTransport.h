@@ -54,11 +54,11 @@ class WebTransportBidirectionalStreamSource;
 class WebTransportDatagramDuplexStream;
 class WebTransportError;
 class WebTransportReceiveStreamSource;
+class WebTransportSendStreamSink;
 class WebTransportSession;
 class WorkerWebTransportSession;
 class WritableStream;
 
-struct WebTransportBidirectionalStreamConstructionParameters;
 struct WebTransportCloseInfo;
 struct WebTransportSendStreamOptions;
 struct WebTransportHash;
@@ -74,7 +74,7 @@ public:
     void ref() const final { WebTransportSessionClient::ref(); }
     void deref() const final { WebTransportSessionClient::deref(); }
 
-    void getStats(Ref<DeferredPromise>&&);
+    void getStats(ScriptExecutionContext&, Ref<DeferredPromise>&&);
     DOMPromise& ready();
     WebTransportReliabilityMode reliability();
     WebTransportCongestionControl congestionControl();
@@ -94,13 +94,14 @@ private:
 
     void initializeOverHTTP(SocketProvider&, ScriptExecutionContext&, URL&&, bool dedicated, bool http3Only, WebTransportCongestionControl, Vector<WebTransportHash>&&);
     void cleanup(Ref<DOMException>&&, std::optional<WebTransportCloseInfo>&&);
+    void cleanupWithSessionError();
 
     // ActiveDOMObject.
     bool virtualHasPendingActivity() const final;
 
     void receiveDatagram(std::span<const uint8_t>, bool, std::optional<Exception>&&) final;
     void receiveIncomingUnidirectionalStream(WebTransportStreamIdentifier) final;
-    void receiveBidirectionalStream(WebTransportBidirectionalStreamConstructionParameters&&) final;
+    void receiveBidirectionalStream(Ref<WebTransportSendStreamSink>&&) final;
     void streamReceiveBytes(WebTransportStreamIdentifier, std::span<const uint8_t>, bool, std::optional<Exception>&&) final;
     void networkProcessCrashed() final;
 

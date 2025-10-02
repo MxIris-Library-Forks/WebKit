@@ -247,6 +247,7 @@ class SerializedScriptValue;
 class Settings;
 class SleepDisabler;
 class SpaceSplitString;
+class SpeculationRules;
 class SpeechRecognition;
 class StorageConnection;
 class StringCallback;
@@ -335,7 +336,7 @@ enum class MutationObserverOptionType : uint8_t;
 enum class NoiseInjectionPolicy : uint8_t;
 enum class ParserContentPolicy : uint8_t;
 enum class PlatformEventType : uint8_t;
-enum class DocumentSyncDataType : uint8_t;
+enum class ProcessSyncDataType : uint8_t;
 enum class ReferrerPolicySource : uint8_t;
 enum class RenderingUpdateStep : uint32_t;
 enum class RouteSharingPolicy : uint8_t;
@@ -857,6 +858,11 @@ public:
     const AtomString& baseTarget() const { return m_baseTarget; }
     HTMLBaseElement* firstBaseElement() const;
     void processBaseElement();
+
+    // https://wicg.github.io/nav-speculation/speculation-rules.html#consider-speculation
+    void considerSpeculationRules();
+    Ref<const SpeculationRules> speculationRules() const;
+    Ref<SpeculationRules> speculationRules();
 
     URL baseURLForComplete(const URL& baseURLOverride) const;
     WEBCORE_EXPORT URL completeURL(const String&, ForceUTF8 = ForceUTF8::No) const final;
@@ -2020,6 +2026,7 @@ public:
     void attributeAddedToElement(const QualifiedName& attribute);
     void elementDisconnectedFromDocument(const Element&);
 
+    WEBCORE_EXPORT void prefetch(const URL&, const Vector<String>&, const String&, bool lowPriority = false);
 
 protected:
     enum class ConstructionFlag : uint8_t {
@@ -2194,7 +2201,7 @@ private:
     void securityOriginDidChange() final;
 
     inline Ref<DocumentSyncData> syncData();
-    void populateDocumentSyncDataForNewlyConstructedDocument(DocumentSyncDataType);
+    void populateDocumentSyncDataForNewlyConstructedDocument(ProcessSyncDataType);
 
     bool mainFrameDocumentHasHadUserInteraction() const;
 
@@ -2203,6 +2210,8 @@ private:
     const Ref<const Settings> m_settings;
 
     const std::unique_ptr<Quirks> m_quirks;
+
+    const Ref<SpeculationRules> m_speculationRules;
 
     RefPtr<LocalDOMWindow> m_domWindow;
     WeakPtr<Document, WeakPtrImplWithEventTargetData> m_contextDocument;

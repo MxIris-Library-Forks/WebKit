@@ -1410,6 +1410,11 @@ unsigned long TestRunner::serverTrustEvaluationCallbackCallsCount()
     return postSynchronousMessageReturningUInt64("ServerTrustEvaluationCallbackCallsCount");
 }
 
+void TestRunner::dontForceRepaint() const
+{
+    postSynchronousMessage("DontForceRepaint");
+}
+
 void TestRunner::setShouldDismissJavaScriptAlertsAsynchronously(bool shouldDismissAsynchronously)
 {
     postSynchronousMessage("ShouldDismissJavaScriptAlertsAsynchronously", shouldDismissAsynchronously);
@@ -1423,6 +1428,11 @@ void TestRunner::abortModal()
 void TestRunner::dumpPrivateClickMeasurement()
 {
     postSynchronousPageMessage("DumpPrivateClickMeasurement");
+}
+
+void TestRunner::setPrinting() const
+{
+    postSynchronousMessage("SetPrinting");
 }
 
 void TestRunner::clearMemoryCache()
@@ -1509,54 +1519,6 @@ bool TestRunner::hasAppBoundSession()
 void TestRunner::clearAppBoundSession()
 {
     postSynchronousMessage("ClearAppBoundSession");
-}
-
-void TestRunner::setAppBoundDomains(JSContextRef context, JSValueRef originArray, JSValueRef completionHandler)
-{
-    if (!JSValueIsArray(context, originArray))
-        return;
-
-    auto origins = JSValueToObject(context, originArray, nullptr);
-    auto originURLs = adoptWK(WKMutableArrayCreate());
-    auto originsLength = arrayLength(context, origins);
-    for (unsigned i = 0; i < originsLength; ++i) {
-        JSValueRef originValue = JSObjectGetPropertyAtIndex(context, origins, i, nullptr);
-        if (!JSValueIsString(context, originValue))
-            continue;
-
-        auto origin = createJSString(context, originValue);
-        size_t originBufferSize = JSStringGetMaximumUTF8CStringSize(origin.get()) + 1;
-        auto originBuffer = makeUniqueArray<char>(originBufferSize);
-        JSStringGetUTF8CString(origin.get(), originBuffer.get(), originBufferSize);
-
-        WKArrayAppendItem(originURLs.get(), adoptWK(WKURLCreateWithUTF8CString(originBuffer.get())).get());
-    }
-
-    postMessageWithAsyncReply(context, "SetAppBoundDomains", originURLs, completionHandler);
-}
-
-void TestRunner::setManagedDomains(JSContextRef context, JSValueRef originArray, JSValueRef completionHandler)
-{
-    if (!JSValueIsArray(context, originArray))
-        return;
-
-    auto origins = JSValueToObject(context, originArray, nullptr);
-    auto originURLs = adoptWK(WKMutableArrayCreate());
-    auto originsLength = arrayLength(context, origins);
-    for (unsigned i = 0; i < originsLength; ++i) {
-        JSValueRef originValue = JSObjectGetPropertyAtIndex(context, origins, i, nullptr);
-        if (!JSValueIsString(context, originValue))
-            continue;
-
-        auto origin = createJSString(context, originValue);
-        size_t originBufferSize = JSStringGetMaximumUTF8CStringSize(origin.get()) + 1;
-        auto originBuffer = makeUniqueArray<char>(originBufferSize);
-        JSStringGetUTF8CString(origin.get(), originBuffer.get(), originBufferSize);
-
-        WKArrayAppendItem(originURLs.get(), adoptWK(WKURLCreateWithUTF8CString(originBuffer.get())).get());
-    }
-
-    postMessageWithAsyncReply(context, "SetManagedDomains", originURLs, completionHandler);
 }
 
 bool TestRunner::didLoadAppInitiatedRequest()

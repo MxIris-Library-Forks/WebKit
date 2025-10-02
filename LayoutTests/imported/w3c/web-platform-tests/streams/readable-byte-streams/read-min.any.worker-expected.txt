@@ -5,11 +5,7 @@ PASS ReadableStream with byte source: read({ min }) rejects if min is larger tha
 PASS ReadableStream with byte source: read({ min }) rejects if min is larger than view's length (Uint16Array)
 PASS ReadableStream with byte source: read({ min }) rejects if min is larger than view's length (DataView)
 PASS ReadableStream with byte source: read({ min }), then read()
-FAIL ReadableStream with byte source: read({ min }) with a DataView assert_equals: result.value must be a DataView expected function "function DataView() {
-    [native code]
-}" but got function "function Uint8Array() {
-    [native code]
-}"
+PASS ReadableStream with byte source: read({ min }) with a DataView
 PASS ReadableStream with byte source: enqueue(), then read({ min })
 PASS ReadableStream with byte source: read({ min: 3 }) on a 3-byte Uint8Array, then multiple enqueue() up to 3 bytes
 PASS ReadableStream with byte source: read({ min: 3 }) on a 5-byte Uint8Array, then multiple enqueue() up to 3 bytes
@@ -24,9 +20,7 @@ PASS ReadableStream with byte source: read({ min }), then error()
 PASS ReadableStream with byte source: getReader(), read({ min }), then cancel()
 PASS ReadableStream with byte source: cancel() with partially filled pending read({ min }) request
 PASS ReadableStream with byte source: enqueue(), then read({ min }) with smaller views
-FAIL ReadableStream with byte source: 3 byte enqueue(), then close(), then read({ min }) with 2-element Uint16Array must fail promise_rejects_js: read() must fail function "function() { throw e; }" threw object "close is requested" ("") expected instance of function "function TypeError() {
-    [native code]
-}" ("TypeError")
+PASS ReadableStream with byte source: 3 byte enqueue(), then close(), then read({ min }) with 2-element Uint16Array must fail
 PASS ReadableStream with byte source: read({ min }) with 2-element Uint16Array, then 3 byte enqueue(), then close() must fail
-FAIL ReadableStream with byte source: tee() with read({ min }) from branch1 and read() from branch2 promise_test: Unhandled rejection with value: object "NotSupportedError: Teeing byte streams is not yet supported"
+PASS ReadableStream with byte source: tee() with read({ min }) from branch1 and read() from branch2
 

@@ -71,6 +71,9 @@ TEST(WebTransport, ClientBidirectional)
     WebTransportServer echoServer([](ConnectionGroup group) -> ConnectionTask {
         auto connection = co_await group.receiveIncomingConnection();
         auto request = co_await connection.awaitableReceiveBytes();
+        request.append('d');
+        request.append('e');
+        request.append('f');
         co_await connection.awaitableSend(WTFMove(request));
     });
 
@@ -93,20 +96,39 @@ TEST(WebTransport, ClientBidirectional)
         "    let t = new WebTransport('https://127.0.0.1:%d/');"
         "    await t.ready;"
         "    let s = await t.createBidirectionalStream();"
+        "    let initialReadStats = await s.readable.getStats();"
+        "    let initialWriteStats = await s.writable.getStats();"
         "    let w = s.writable.getWriter();"
         "    await w.write(new TextEncoder().encode('abc'));"
-        "    await w.close();"
+        "    let finalWriteStats = await s.writable.getStats();"
         "    let r = s.readable.getReader();"
         "    const { value, done } = await r.read();"
+        "    let finalReadStats = await s.readable.getStats();"
+        "    await w.close();"
         "    await r.cancel();"
         "    t.close();"
-        "    alert('successfully read ' + new TextDecoder().decode(value));"
+        "    let writableThrew = false;"
+        "    let readableThrew = false;"
+        "    try { await s.writable.getStats() } catch (e) { writableThrew = true }"
+        "    try { await s.readable.getStats() } catch (e) { readableThrew = true }"
+        "    alert('successfully read ' + new TextDecoder().decode(value)"
+        "        + ', stats before: ' + initialReadStats.bytesReceived + ' ' + initialWriteStats.bytesSent"
+        "        + ', stats after: ' + finalReadStats.bytesReceived + ' ' + finalWriteStats.bytesSent"
+        "        + ', writable threw after closing: ' + writableThrew"
+        "        + ', readable threw after closing: ' + readableThrew"
+        "    );"
         "  } catch (e) { alert('caught ' + e); }"
         "}; test();"
         "</script>",
         port];
     [webView loadHTMLString:html baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
-    EXPECT_WK_STREQ([webView _test_waitForAlert], "successfully read abc");
+    const char* expected =
+        "successfully read abcdef"
+        ", stats before: 0 0"
+        ", stats after: 6 3"
+        ", writable threw after closing: true"
+        ", readable threw after closing: true";
+    EXPECT_WK_STREQ([webView _test_waitForAlert], expected);
     EXPECT_TRUE(challenged);
 }
 
@@ -580,6 +602,43 @@ TEST(WebTransport, CreateStreamsBeforeReady)
     "</script>", streamServer.port()];
     [webView loadHTMLString:streamHTML baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
     EXPECT_WK_STREQ([webView _test_waitForAlert], "successfully read abc");
+}
+
+TEST(WebTransport, CSP)
+{
+    WebTransportServer server([](ConnectionGroup group) -> ConnectionTask {
+        co_return;
+    });
+
+    RetainPtr configuration = adoptNS([WKWebViewConfiguration new]);
+    enableWebTransport(configuration.get());
+    RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
+    auto delegate = adoptNS([TestNavigationDelegate new]);
+    [delegate allowAnyTLSCertificate];
+    [webView setNavigationDelegate:delegate.get()];
+
+    auto runTest = [&] (const char* allowedDestination) {
+        NSString *html = [NSString stringWithFormat:@"<script>"
+            "function setCSP(destination) {"
+            "  let meta = document.createElement('meta');"
+            "  meta.httpEquiv = 'Content-Security-Policy';"
+            "  meta.content = 'connect-src ' + destination;"
+            "  document.head.appendChild(meta);"
+            "};"
+            "async function test() {"
+            "  try {"
+            "    setCSP('%s');"
+            "    const w = new WebTransport('https://localhost:%d/');"
+            "    await w.ready;"
+            "    alert('ready');"
+            "  } catch (e) { alert('caught ' + e.name + ' ' + e.source + ' ' + e.streamErrorCode + ' ' + (e instanceof WebTransportError)); }"
+            "}; test()"
+            "</script>", allowedDestination, server.port()];
+        [webView loadHTMLString:html baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
+        return [webView _test_waitForAlert];
+    };
+    EXPECT_WK_STREQ(runTest("none"), "caught WebTransportError session null true");
+    EXPECT_WK_STREQ(runTest([NSString stringWithFormat:@"https://localhost:%d", server.port()].UTF8String), "ready");
 }
 
 } // namespace TestWebKitAPI

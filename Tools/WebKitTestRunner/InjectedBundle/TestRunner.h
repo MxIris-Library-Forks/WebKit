@@ -173,8 +173,7 @@ public:
     void display();
     void displayOnLoadFinish() { m_displayOnLoadFinish = true; }
     bool shouldDisplayOnLoadFinish() { return m_displayOnLoadFinish; }
-    void dontForceRepaint() { m_forceRepaint = false; }
-    bool shouldForceRepaint() { return m_forceRepaint; }
+    void dontForceRepaint() const;
 
     // UserContent testing.
     void addUserScript(JSStringRef source, bool runAtStart, bool allFrames);
@@ -204,8 +203,7 @@ public:
 
     // Printing
     bool isPageBoxVisible(JSContextRef, int pageIndex);
-    bool isPrinting() { return m_isPrinting; }
-    void setPrinting() { m_isPrinting = true; }
+    void setPrinting() const;
 
     void setValueForUser(JSContextRef, JSValueRef element, JSStringRef value);
 
@@ -433,8 +431,6 @@ public:
 
     bool hasAppBoundSession();
     void clearAppBoundSession();
-    void setAppBoundDomains(JSContextRef, JSValueRef originArray, JSValueRef callback);
-    void setManagedDomains(JSContextRef, JSValueRef originArray, JSValueRef callback);
 
     bool didLoadAppInitiatedRequest();
     bool didLoadNonAppInitiatedRequest();
@@ -524,8 +520,6 @@ private:
     bool m_testRepaint { false };
     bool m_testRepaintSweepHorizontally { false };
     bool m_displayOnLoadFinish { false };
-    bool m_forceRepaint { true };
-    bool m_isPrinting { false };
     bool m_willSendRequestReturnsNull { false };
     bool m_willSendRequestReturnsNullOnRedirect { false };
     bool m_shouldStopProvisionalFrameLoads { false };

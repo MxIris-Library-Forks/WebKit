@@ -383,6 +383,7 @@ Modules/streams/ReadableStreamBYOBRequest.cpp
 Modules/streams/ReadableStreamDefaultReader.cpp
 Modules/streams/ReadableStreamSink.cpp
 Modules/streams/ReadableStreamSource.cpp
+Modules/streams/StreamTeeUtilities.cpp
 Modules/streams/TransformStream.cpp
 Modules/streams/WritableStream.cpp
 Modules/url-pattern/URLPattern.cpp
@@ -519,13 +520,13 @@ Modules/webtransport/DatagramSink.cpp
 Modules/webtransport/DatagramSource.cpp
 Modules/webtransport/WebTransport.cpp
 Modules/webtransport/WebTransportBidirectionalStream.cpp
-Modules/webtransport/WebTransportBidirectionalStreamConstructionParameters.cpp
 Modules/webtransport/WebTransportBidirectionalStreamSource.cpp
 Modules/webtransport/WebTransportDatagramDuplexStream.cpp
 Modules/webtransport/WebTransportError.cpp
 Modules/webtransport/WebTransportReceiveStream.cpp
 Modules/webtransport/WebTransportReceiveStreamSource.cpp
 Modules/webtransport/WebTransportSendStream.cpp
+Modules/webtransport/WebTransportSendStreamSink.cpp
 Modules/webtransport/WebTransportSession.cpp
 Modules/webtransport/WorkerWebTransportSession.cpp
 Modules/webxr/NavigatorWebXR.cpp
@@ -679,6 +680,7 @@ bindings/js/JSDOMConvertDate.cpp
 bindings/js/JSDOMConvertNumbers.cpp
 bindings/js/JSDOMConvertStrings.cpp
 bindings/js/JSDOMConvertWebGL.cpp
+bindings/js/JSDOMExceptionCustom.cpp
 bindings/js/JSDOMExceptionHandling.cpp
 bindings/js/JSDOMGlobalObject.cpp
 bindings/js/JSDOMGuardedObject.cpp
@@ -754,6 +756,7 @@ bindings/js/JSPopStateEventCustom.cpp
 bindings/js/JSPromiseRejectionEventCustom.cpp
 bindings/js/JSRTCRtpSFrameTransformCustom.cpp
 bindings/js/JSRangeCustom.cpp
+bindings/js/JSReadableStreamCustom.cpp
 bindings/js/JSReadableStreamSourceCustom.cpp
 bindings/js/JSReportBodyCustom.cpp
 bindings/js/JSReportingObserverCustom.cpp
@@ -1368,6 +1371,7 @@ dom/SimulatedClick.cpp
 dom/SlotAssignment.cpp
 dom/SpaceSplitString.cpp
 dom/SpatialBackdropSource.cpp
+dom/SpeculationRulesMatcher.cpp
 dom/StaticNodeList.cpp
 dom/StaticRange.cpp
 dom/StringCallback.cpp
@@ -2008,6 +2012,7 @@ loader/DefaultResourceLoadPriority.cpp
 loader/DocumentLoader.cpp
 loader/DocumentThreadableLoader.cpp
 loader/DocumentWriter.cpp
+loader/DocumentPrefetcher.cpp
 loader/EmptyClients.cpp
 loader/FTPDirectoryParser.cpp
 loader/FetchIdioms.cpp
@@ -2055,6 +2060,7 @@ loader/ResourceTimingInformation.cpp
 loader/ServerTiming.cpp
 loader/ServerTimingParser.cpp
 loader/SinkDocument.cpp
+loader/SpeculationRules.cpp
 loader/SubframeLoader.cpp
 loader/SubresourceIntegrity.cpp
 loader/SubresourceLoader.cpp
@@ -2323,6 +2329,7 @@ platform/Logging.cpp
 platform/LowPowerModeNotifier.cpp
 platform/MIMETypeRegistry.cpp
 platform/MainThreadSharedTimer.cpp
+platform/MediaSamplesBlock.cpp
 platform/MediaStrategy.cpp
 platform/NotImplemented.cpp
 platform/NowPlayingManager.cpp
@@ -3303,6 +3310,14 @@ style/values/text/StyleLetterSpacing.cpp
 style/values/text/StyleTabSize.cpp
 style/values/text/StyleTextIndent.cpp
 style/values/text/StyleWordSpacing.cpp
+style/values/transforms/functions/StyleMatrix3DTransformFunction.cpp
+style/values/transforms/functions/StyleMatrixTransformFunction.cpp
+style/values/transforms/functions/StylePerspectiveTransformFunction.cpp
+style/values/transforms/functions/StyleRotateTransformFunction.cpp
+style/values/transforms/functions/StyleScaleTransformFunction.cpp
+style/values/transforms/functions/StyleSkewTransformFunction.cpp
+style/values/transforms/functions/StyleTransformFunctionBase.cpp
+style/values/transforms/functions/StyleTranslateTransformFunction.cpp
 style/values/transforms/StylePerspective.cpp
 style/values/transforms/StyleRotate.cpp
 style/values/transforms/StyleScale.cpp
@@ -3574,12 +3589,10 @@ xml/parser/XMLDocumentParserScope.cpp
 CSSPropertyParsing.cpp
 CSSValueKeywords.cpp
 ColorData.cpp
-DocumentSyncClient.cpp
 DocumentSyncData.cpp
 EventFactory.cpp
 EventNames.cpp
 EventTargetFactory.cpp
-FrameTreeSyncClient.cpp
 FrameTreeSyncData.cpp
 HTMLElementFactory.cpp
 HTMLEntityTable.cpp
@@ -3587,6 +3600,7 @@ JSHTMLElementWrapperFactory.cpp
 JSMathMLElementWrapperFactory.cpp
 JSSVGElementWrapperFactory.cpp
 MathMLElementFactory.cpp
+ProcessSyncClient.cpp
 SVGElementFactory.cpp
 StyleBuilderGenerated.cpp
 StyleExtractorGenerated.cpp
@@ -5054,6 +5068,7 @@ JSWebTransport.cpp
 JSWebTransportBidirectionalStream.cpp
 JSWebTransportCloseInfo.cpp
 JSWebTransportCongestionControl.cpp
+JSWebTransportConnectionStats.cpp
 JSWebTransportDatagramDuplexStream.cpp
 JSWebTransportDatagramStats.cpp
 JSWebTransportError.cpp
@@ -5067,7 +5082,6 @@ JSWebTransportReliabilityMode.cpp
 JSWebTransportSendStream.cpp
 JSWebTransportSendStreamOptions.cpp
 JSWebTransportSendStreamStats.cpp
-JSWebTransportStats.cpp
 JSWebXRBoundedReferenceSpace.cpp
 JSWebXRFrame.cpp
 JSWebXRHand.cpp

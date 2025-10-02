@@ -30,9 +30,11 @@
 #import "CDMInstanceFairPlayStreamingAVFObjC.h"
 #import "EffectiveRateChangedListener.h"
 #import "FormatDescriptionUtilities.h"
+#import "GraphicsContext.h"
 #import "LayoutRect.h"
 #import "Logging.h"
 #import "MediaSessionManagerCocoa.h"
+#import "NativeImage.h"
 #import "PixelBufferConformerCV.h"
 #import "PlatformDynamicRangeLimitCocoa.h"
 #import "SpatialAudioExperienceHelper.h"
@@ -137,7 +139,7 @@ AudioVideoRendererAVFObjC::~AudioVideoRendererAVFObjC()
     m_listener->invalidate();
 }
 
-void AudioVideoRendererAVFObjC::setPreferences(VideoMediaSampleRendererPreferences preferences)
+void AudioVideoRendererAVFObjC::setPreferences(VideoRendererPreferences preferences)
 {
     m_preferences = preferences;
     if (RefPtr videoRenderer = m_videoRenderer)
@@ -791,6 +793,20 @@ RefPtr<VideoFrame> AudioVideoRendererAVFObjC::currentVideoFrame() const
     return VideoFrameCV::create(entry.presentationTimeStamp, false, VideoFrame::Rotation::None, entry.pixelBuffer.get());
 }
 
+void AudioVideoRendererAVFObjC::paintCurrentVideoFrameInContext(GraphicsContext& context, const FloatRect& outputRect)
+{
+    if (context.paintingDisabled())
+        return;
+
+    auto image = currentNativeImage();
+    if (!image)
+        return;
+
+    GraphicsContextStateSaver stateSaver(context);
+    FloatRect imageRect { FloatPoint::zero(), image->size() };
+    context.drawNativeImage(*image, outputRect, imageRect);
+}
+
 std::optional<VideoPlaybackQualityMetrics> AudioVideoRendererAVFObjC::videoPlaybackQualityMetrics()
 {
     RefPtr videoRenderer = m_videoRenderer;
@@ -806,7 +822,7 @@ std::optional<VideoPlaybackQualityMetrics> AudioVideoRendererAVFObjC::videoPlayb
     };
 }
 
-PlatformLayerContainer AudioVideoRendererAVFObjC::platformVideoLayer() const
+PlatformLayer* AudioVideoRendererAVFObjC::platformVideoLayer() const
 {
     if (!m_videoRenderer)
         return nullptr;
@@ -821,14 +837,8 @@ void AudioVideoRendererAVFObjC::setVideoLayerSizeFenced(const FloatSize& newSize
 
 void AudioVideoRendererAVFObjC::setVideoFullscreenLayer(PlatformLayer *videoFullscreenLayer, WTF::Function<void()>&& completionHandler)
 {
-    RefPtr videoFrame = currentVideoFrame();
-
-    if (!m_rgbConformer) {
-        auto attributes = @{ (__bridge NSString *)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) };
-        m_rgbConformer = makeUnique<PixelBufferConformerCV>((__bridge CFDictionaryRef)attributes);
-    }
-    RefPtr<NativeImage> currentFrameImage = videoFrame ? RefPtr { NativeImage::create(m_rgbConformer->createImageFromPixelBuffer(videoFrame->protectedPixelBuffer().get())) } : nullptr;
-    m_videoLayerManager->setVideoFullscreenLayer(videoFullscreenLayer, WTFMove(completionHandler), currentFrameImage ? currentFrameImage->platformImage() : nullptr);
+    RefPtr currentImage = currentNativeImage();
+    m_videoLayerManager->setVideoFullscreenLayer(videoFullscreenLayer, WTFMove(completionHandler), currentImage ? currentImage->platformImage() : nullptr);
 }
 
 void AudioVideoRendererAVFObjC::setVideoFullscreenFrame(const FloatRect& frame)
@@ -1299,7 +1309,7 @@ void AudioVideoRendererAVFObjC::configureHasAvailableVideoFrameCallbackIfNeeded(
     if (isUsingDecompressionSession())
         return;
 
-    m_preferences |= VideoMediaSampleRendererPreference::PrefersDecompressionSession;
+    m_preferences |= VideoRendererPreference::PrefersDecompressionSession;
     if (videoRenderer)
         videoRenderer->setPreferences(m_preferences);
 
@@ -1380,9 +1390,9 @@ void AudioVideoRendererAVFObjC::flushPendingSizeChanges()
 
 bool AudioVideoRendererAVFObjC::canUseDecompressionSession() const
 {
-    if (!m_preferences.contains(VideoMediaSampleRendererPreference::PrefersDecompressionSession))
+    if (!m_preferences.contains(VideoRendererPreference::PrefersDecompressionSession))
         return false;
-    if (m_preferences.contains(VideoMediaSampleRendererPreference::UseDecompressionSessionForProtectedContent))
+    if (m_preferences.contains(VideoRendererPreference::UseDecompressionSessionForProtectedContent))
         return true;
     return !m_hasProtectedVideoContent;
 }
@@ -1397,7 +1407,7 @@ bool AudioVideoRendererAVFObjC::willUseDecompressionSessionIfNeeded() const
     if (!canUseDecompressionSession())
         return false;
 
-    return m_preferences.contains(VideoMediaSampleRendererPreference::PrefersDecompressionSession) || m_hasAvailableVideoFrameCallback;
+    return m_preferences.contains(VideoRendererPreference::PrefersDecompressionSession) || m_hasAvailableVideoFrameCallback;
 }
 
 Ref<GenericPromise> AudioVideoRendererAVFObjC::stageVideoRenderer(WebSampleBufferVideoRendering *renderer)
@@ -1627,6 +1637,19 @@ void AudioVideoRendererAVFObjC::setSynchronizerRate(float rate, std::optional<Mo
         updateLastPixelBuffer();
     else
         maybePurgeLastPixelBuffer();
+}
+
+RefPtr<NativeImage> AudioVideoRendererAVFObjC::currentNativeImage() const
+{
+    if (RefPtr videoFrame = currentVideoFrame()) {
+        if (!m_rgbConformer) {
+            auto attributes = @{ (__bridge NSString *)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) };
+            m_rgbConformer = makeUnique<PixelBufferConformerCV>((__bridge CFDictionaryRef)attributes);
+        }
+        RetainPtr pixelBuffer = videoFrame->pixelBuffer();
+        return NativeImage::create(m_rgbConformer->createImageFromPixelBuffer(pixelBuffer.get()));
+    }
+    return nullptr;
 }
 
 bool AudioVideoRendererAVFObjC::updateLastPixelBuffer()

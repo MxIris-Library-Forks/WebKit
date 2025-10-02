@@ -837,8 +837,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/websockets/WebSocketIdentifier.h
     Modules/websockets/WorkerThreadableWebSocketChannel.h
 
-    Modules/webtransport/WebTransportBidirectionalStreamConstructionParameters.h
+    Modules/webtransport/WebTransportConnectionStats.h
+    Modules/webtransport/WebTransportDatagramStats.h
     Modules/webtransport/WebTransportReceiveStreamStats.h
+    Modules/webtransport/WebTransportSendStreamSink.h
     Modules/webtransport/WebTransportSendStreamStats.h
     Modules/webtransport/WebTransportSession.h
     Modules/webtransport/WebTransportSessionClient.h
@@ -1458,6 +1460,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/SlotAssignmentMode.h
     dom/SpaceSplitString.h
     dom/SpatialBackdropSource.h
+    dom/SpeculationRulesMatcher.h
     dom/StartViewTransitionOptions.h
     dom/StaticRange.h
     dom/StyledElement.h
@@ -1894,6 +1897,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/CustomHeaderFields.h
     loader/DocumentLoadTiming.h
     loader/DocumentLoader.h
+    loader/DocumentPrefetcher.h
     loader/DocumentWriter.h
     loader/EmptyClients.h
     loader/EmptyFrameLoaderClient.h
@@ -1958,6 +1962,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/ResourceMonitorThrottlerHolder.h
     loader/ResourceTimingInformation.h
     loader/ShouldTreatAsContinuingLoad.h
+    loader/SpeculationRules.h
     loader/SubframeLoader.h
     loader/SubresourceLoader.h
     loader/SubstituteData.h
@@ -3439,6 +3444,17 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/text-decoration/StyleTextShadow.h
     style/values/text-decoration/StyleTextUnderlineOffset.h
 
+    style/values/transforms/functions/StyleTransformFunctionWrapper.h
+    style/values/transforms/functions/StyleMatrix3DTransformFunction.h
+    style/values/transforms/functions/StyleMatrixTransformFunction.h
+    style/values/transforms/functions/StylePerspectiveTransformFunction.h
+    style/values/transforms/functions/StyleRotateTransformFunction.h
+    style/values/transforms/functions/StyleScaleTransformFunction.h
+    style/values/transforms/functions/StyleSkewTransformFunction.h
+    style/values/transforms/functions/StyleTransformFunctionBase.h
+    style/values/transforms/functions/StyleTransformFunctionWrapper.h
+    style/values/transforms/functions/StyleTranslateTransformFunction.h
+
     style/values/transforms/StylePerspective.h
     style/values/transforms/StylePerspectiveOrigin.h
     style/values/transforms/StyleRotate.h
@@ -3446,7 +3462,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/transforms/StyleTransform.h
     style/values/transforms/StyleTransformFunction.h
     style/values/transforms/StyleTransformList.h
-    style/values/transforms/StyleTransformOperationWrapper.h
     style/values/transforms/StyleTransformOrigin.h
     style/values/transforms/StyleTranslate.h
 
@@ -3619,12 +3634,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.h
     ${WebCore_DERIVED_SOURCES_DIR}/CommandLineAPIModuleSourceBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/DocumentSyncData.h
-    ${WebCore_DERIVED_SOURCES_DIR}/DocumentSyncClient.h
     ${WebCore_DERIVED_SOURCES_DIR}/EventInterfaces.h
     ${WebCore_DERIVED_SOURCES_DIR}/EventNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/EventTargetInterfaces.h
     ${WebCore_DERIVED_SOURCES_DIR}/FrameTreeSyncData.h
-    ${WebCore_DERIVED_SOURCES_DIR}/FrameTreeSyncClient.h
     ${WebCore_DERIVED_SOURCES_DIR}/HTMLElementTypeHelpers.h
     ${WebCore_DERIVED_SOURCES_DIR}/HTMLNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/HTTPHeaderNames.h
@@ -3666,6 +3679,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/MathMLNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Namespace.h
     ${WebCore_DERIVED_SOURCES_DIR}/NodeName.h
+    ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncClient.h
+    ${WebCore_DERIVED_SOURCES_DIR}/ProcessSyncData.h
     ${WebCore_DERIVED_SOURCES_DIR}/ReadableStreamInternalsBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/SVGNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Settings.h

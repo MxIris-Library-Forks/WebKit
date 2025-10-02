@@ -225,6 +225,7 @@ set(WebKit_MESSAGES_IN_FILES
     GPUProcess/graphics/WebGPU/RemoteXRView
 
     GPUProcess/media/RemoteAudioDestinationManager
+    GPUProcess/media/RemoteAudioVideoRendererProxyManager
     GPUProcess/media/RemoteAudioSessionProxy
     GPUProcess/media/RemoteCDMFactoryProxy
     GPUProcess/media/RemoteCDMInstanceProxy
@@ -347,6 +348,7 @@ set(WebKit_MESSAGES_IN_FILES
 
     WebProcess/GPU/graphics/WebGPU/RemoteGPUProxy
 
+    WebProcess/GPU/media/AudioVideoRendererRemoteMessageReceiver
     WebProcess/GPU/media/RemoteAudioHardwareListener
     WebProcess/GPU/media/MediaPlayerPrivateRemote
     WebProcess/GPU/media/MediaSourcePrivateRemoteMessageReceiver
@@ -447,6 +449,8 @@ set(WebKit_SERIALIZATION_IN_FILES
     NetworkProcess/PrivateClickMeasurement/PrivateClickMeasurementManagerInterface.serialization.in
 
     NetworkProcess/storage/FileSystemStorageError.serialization.in
+
+    NetworkProcess/webtransport/WebTransport.serialization.in
 
     Platform/IPC/ConnectionHandle.serialization.in
     Platform/IPC/FormDataReference.serialization.in
@@ -691,6 +695,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     WebProcess/GPU/media/MediaOverridesForTesting.serialization.in
     WebProcess/GPU/media/MediaTimeUpdateData.serialization.in
     WebProcess/GPU/media/RemoteAudioSessionConfiguration.serialization.in
+    WebProcess/GPU/media/RemoteAudioVideoRendererState.serialization.in
     WebProcess/GPU/media/RemoteCDMConfiguration.serialization.in
     WebProcess/GPU/media/RemoteCDMInstanceConfiguration.serialization.in
     WebProcess/GPU/media/RemoteMediaPlayerConfiguration.serialization.in
@@ -717,9 +722,7 @@ set(WebCore_GENERATED_SERIALIZATION_IN_FILES
 set(WebCore_SERIALIZATION_IN_FILES
     ActivityState.serialization.in
     DDModel.serialization.in
-    DocumentSyncData.serialization.in
     DragActions.serialization.in
-    FrameTreeSyncData.serialization.in
     InbandTextTrackPrivate.serialization.in
     IndexedDB.serialization.in
     LayoutMilestones.serialization.in
@@ -729,6 +732,7 @@ set(WebCore_SERIALIZATION_IN_FILES
     PlatformMediaSession.serialization.in
     PlatformScreen.serialization.in
     PlatformWheelEvent.serialization.in
+    ProcessSyncData.serialization.in
     ProtectionSpaceBase.serialization.in
     ScrollTypes.serialization.in
     WebGPU.serialization.in

@@ -241,6 +241,7 @@ class CustomProperty;
 class CustomPropertyData;
 class CustomPropertyRegistry;
 
+struct AccentColor;
 struct Animation;
 struct AnchorNames;
 struct AppleColorFilter;
@@ -370,6 +371,7 @@ struct WebkitTextStrokeWidth;
 struct Widows;
 struct WordSpacing;
 struct ZIndex;
+struct ZoomFactor;
 
 enum class Change : uint8_t;
 enum class GridTrackSizingDirection : bool;
@@ -529,13 +531,10 @@ public:
     void setColumnStylesFromPaginationMode(PaginationMode);
 
     inline bool isFloating() const;
-    inline bool hasMargin() const;
     inline bool hasBorder() const;
     inline bool hasBorderImage() const;
     inline bool hasVisibleBorderDecoration() const;
     inline bool hasVisibleBorder() const;
-    inline bool hasPadding() const;
-    inline bool hasInset() const;
 
     inline bool hasBackgroundImage() const;
 
@@ -766,7 +765,8 @@ public:
 
     inline float zoom() const;
     inline float usedZoom() const;
-    
+    inline Style::ZoomFactor usedZoomForLength() const;
+
     inline TextZoom textZoom() const;
 
     const Length& specifiedLineHeight() const;
@@ -1504,8 +1504,7 @@ public:
     inline void setTextFillColor(Style::Color&&);
     inline void setCaretColor(Style::Color&&);
     inline void setHasAutoCaretColor();
-    inline void setAccentColor(Style::Color&&);
-    inline void setHasAutoAccentColor();
+    inline void setAccentColor(Style::AccentColor&&);
     inline void setOpacity(Style::Opacity);
     inline void setAppearance(StyleAppearance);
     inline void setUsedAppearance(StyleAppearance);
@@ -1738,7 +1737,6 @@ public:
     
     inline const Style::StrokeWidth& strokeWidth() const;
     inline void setStrokeWidth(Style::StrokeWidth&&);
-    inline bool hasVisibleStroke() const;
     static inline Style::StrokeWidth initialStrokeWidth();
 
     float computedStrokeWidth(const IntSize& viewportSize) const;
@@ -1766,6 +1764,12 @@ public:
     inline void setFill(Style::SVGPaint&&);
     inline void setVisitedLinkFill(Style::SVGPaint&&);
     static inline Style::SVGPaint initialFill();
+
+    inline bool enableEvaluationTimeZoom() const;
+    void setEnableEvaluationTimeZoom(bool);
+
+    inline bool useSVGZoomRulesForLength() const;
+    void setUseSVGZoomRulesForLength(bool);
 
     inline Style::Opacity fillOpacity() const;
     inline void setFillOpacity(Style::Opacity);
@@ -1994,8 +1998,16 @@ public:
     static constexpr Style::WebkitBorderSpacing initialBorderVerticalSpacing();
     static inline Style::Cursor initialCursor();
     static inline Color initialColor();
-    static inline Style::Color initialTextStrokeColor();
+    static inline Style::Color initialBorderBottomColor();
+    static inline Style::Color initialBorderLeftColor();
+    static inline Style::Color initialBorderRightColor();
+    static inline Style::Color initialBorderTopColor();
+    static inline Style::Color initialColumnRuleColor();
+    static inline Style::Color initialOutlineColor();
     static inline Style::Color initialTextDecorationColor();
+    static inline Style::Color initialTextFillColor();
+    static inline Style::Color initialTextStrokeColor();
+    static inline Style::AccentColor initialAccentColor();
     static inline Style::ImageOrNone initialListStyleImage();
     static constexpr Style::LineWidth initialBorderWidth();
     static constexpr Style::LineWidth initialColumnRuleWidth();
@@ -2269,7 +2281,6 @@ public:
     inline const Style::Color& outlineColor() const;
     inline const Style::Color& textEmphasisColor() const;
     inline const Style::Color& textFillColor() const;
-    static inline Style::Color initialTextFillColor();
     inline const Style::Color& textStrokeColor() const;
     inline const Style::Color& caretColor() const;
     inline bool hasAutoCaretColor() const;
@@ -2290,8 +2301,7 @@ public:
     inline bool hasVisitedLinkAutoCaretColor() const;
 
     Color usedAccentColor(OptionSet<StyleColorOptions>) const;
-    inline const Style::Color& accentColor() const;
-    inline bool hasAutoAccentColor() const;
+    inline const Style::AccentColor& accentColor() const;
 
     inline const Style::OffsetPath& offsetPath() const;
     inline bool hasOffsetPath() const;
@@ -2358,8 +2368,8 @@ public:
     const FixedVector<Style::PositionTryFallback>& positionTryFallbacks() const;
     void setPositionTryFallbacks(FixedVector<Style::PositionTryFallback>&&);
 
-    std::optional<size_t> lastSuccessfulPositionTryFallbackIndex() const;
-    void setLastSuccessfulPositionTryFallbackIndex(std::optional<size_t>);
+    std::optional<size_t> usedPositionOptionIndex() const;
+    void setUsedPositionOptionIndex(std::optional<size_t>);
 
     static constexpr OptionSet<PositionVisibility> initialPositionVisibility();
     inline OptionSet<PositionVisibility> positionVisibility() const;

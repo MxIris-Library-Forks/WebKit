@@ -5130,6 +5130,7 @@
 		BC4F32B72E89C4DA00F6AEC1 /* StyleRotateTransformFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4F32A02E89B04300F6AEC1 /* StyleRotateTransformFunction.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4F32B82E89C4DA00F6AEC1 /* StylePerspectiveTransformFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4F329E2E89B04300F6AEC1 /* StylePerspectiveTransformFunction.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4F32BB2E89C51D00F6AEC1 /* StyleTransformFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4F32B92E89C51400F6AEC1 /* StyleTransformFunction.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC4F32CC2E8C518D00F6AEC1 /* StyleAccentColor.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4F32CA2E8C518300F6AEC1 /* StyleAccentColor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC51156E12B1749C00C96754 /* ScrollAnimatorMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = BC51156D12B1749C00C96754 /* ScrollAnimatorMac.mm */; };
 		BC53C5F50DA56B920021EB5D /* Gradient.h in Headers */ = {isa = PBXBuildFile; fileRef = BC53C5F40DA56B920021EB5D /* Gradient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC53C6920DA591140021EB5D /* CSSGradientValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC53C6910DA591140021EB5D /* CSSGradientValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5219,7 +5220,7 @@
 		BC779E171BB227CA00CAA8BF /* StyleCustomPropertyData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC779E151BB226A200CAA8BF /* StyleCustomPropertyData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7826172E81FD0600FB0C7E /* StyleSVGMarkerResource.h in Headers */ = {isa = PBXBuildFile; fileRef = BC10DAAF2E81FCE9000EE742 /* StyleSVGMarkerResource.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC78261F2E8203CE00FB0C7E /* StyleTabSize.h in Headers */ = {isa = PBXBuildFile; fileRef = BC78261D2E82027900FB0C7E /* StyleTabSize.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BC7826432E8310FF00FB0C7E /* StyleZoomNeededToken.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7826422E8310DA00FB0C7E /* StyleZoomNeededToken.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC7826432E8310FF00FB0C7E /* StyleZoomPrimitives.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7826422E8310DA00FB0C7E /* StyleZoomPrimitives.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7826762E845D6000FB0C7E /* StyleFontPalette.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7826732E845D5400FB0C7E /* StyleFontPalette.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7F44A80B9E324E00A9D081 /* ImageObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7F44A70B9E324E00A9D081 /* ImageObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7FA6210D1F0CBD00DB22A9 /* LiveNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7FA61F0D1F0CBD00DB22A9 /* LiveNodeList.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6915,6 +6916,9 @@
 		FAC3C3E12A996534001E2EB8 /* WebTransport.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3E02A996530001E2EB8 /* WebTransport.h */; };
 		FAC8498F2A9EA1CE00D407EF /* WebTransportSession.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC8497A2A9E68E900D407EF /* WebTransportSession.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAC849902A9EA1D900D407EF /* WebTransportSessionClient.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC8497E2A9E6CEF00D407EF /* WebTransportSessionClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FACC82B02E8E093F00EBAFED /* WebTransportCongestionControl.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3F92A996703001E2EB8 /* WebTransportCongestionControl.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FACC82B92E8EF2AF00EBAFED /* WebTransportOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3FB2A996704001E2EB8 /* WebTransportOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FACC82BA2E8EF33A00EBAFED /* WebTransportHash.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3FD2A996705001E2EB8 /* WebTransportHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FADCF77E2DC5E3F000591E33 /* RemoteFrameGeometryTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = FADCF77C2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAEF5F6129D62710000AD8EC /* WindowPostMessageOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FAEF5F5F29D6241C000AD8EC /* WindowPostMessageOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAFFC34B2E298AA000CCC89C /* SerializedNode.h in Headers */ = {isa = PBXBuildFile; fileRef = FAFFC34A2E298AA000CCC89C /* SerializedNode.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18763,6 +18767,8 @@
 		BC4F32AC2E89C15800F6AEC1 /* StyleTransformFunctionWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTransformFunctionWrapper.h; sourceTree = "<group>"; };
 		BC4F32B92E89C51400F6AEC1 /* StyleTransformFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTransformFunction.h; sourceTree = "<group>"; };
 		BC4F32BA2E89C51400F6AEC1 /* StyleTransformFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTransformFunction.cpp; sourceTree = "<group>"; };
+		BC4F32CA2E8C518300F6AEC1 /* StyleAccentColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleAccentColor.h; sourceTree = "<group>"; };
+		BC4F32CB2E8C518300F6AEC1 /* StyleAccentColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleAccentColor.cpp; sourceTree = "<group>"; };
 		BC51156D12B1749C00C96754 /* ScrollAnimatorMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollAnimatorMac.mm; sourceTree = "<group>"; };
 		BC51580A0C03D404008BB0EE /* JSHTMLDocumentCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLDocumentCustom.cpp; sourceTree = "<group>"; };
 		BC53C5F40DA56B920021EB5D /* Gradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gradient.h; sourceTree = "<group>"; };
@@ -18932,7 +18938,7 @@
 		BC779E151BB226A200CAA8BF /* StyleCustomPropertyData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleCustomPropertyData.h; sourceTree = "<group>"; };
 		BC78261D2E82027900FB0C7E /* StyleTabSize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTabSize.h; sourceTree = "<group>"; };
 		BC78261E2E82027900FB0C7E /* StyleTabSize.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTabSize.cpp; sourceTree = "<group>"; };
-		BC7826422E8310DA00FB0C7E /* StyleZoomNeededToken.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleZoomNeededToken.h; sourceTree = "<group>"; };
+		BC7826422E8310DA00FB0C7E /* StyleZoomPrimitives.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleZoomPrimitives.h; sourceTree = "<group>"; };
 		BC7826732E845D5400FB0C7E /* StyleFontPalette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleFontPalette.h; sourceTree = "<group>"; };
 		BC7826742E845D5400FB0C7E /* StyleFontPalette.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleFontPalette.cpp; sourceTree = "<group>"; };
 		BC78B57B2BF06BBB00ACC677 /* CSSAbsoluteColorResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSAbsoluteColorResolver.h; sourceTree = "<group>"; };
@@ -35532,6 +35538,8 @@
 		BC092A032E2D50BD002ACB2C /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				BC4F32CB2E8C518300F6AEC1 /* StyleAccentColor.cpp */,
+				BC4F32CA2E8C518300F6AEC1 /* StyleAccentColor.h */,
 				BC092A042E2D5110002ACB2C /* StyleCursor.cpp */,
 				BC2272AC0E82E8F300E7F975 /* StyleCursor.h */,
 			);
@@ -36941,7 +36949,7 @@
 				BCD67C352D23113B0079EB9C /* StyleUnevaluatedCalculation.h */,
 				BCC0F3DB2D9A1D100065B859 /* StyleURL.cpp */,
 				BCC0F3D92D99D4860065B859 /* StyleURL.h */,
-				BC7826422E8310DA00FB0C7E /* StyleZoomNeededToken.h */,
+				BC7826422E8310DA00FB0C7E /* StyleZoomPrimitives.h */,
 			);
 			path = primitives;
 			sourceTree = "<group>";
@@ -46295,6 +46303,7 @@
 				41E67A8325D16847007B0A4C /* STUNMessageParsing.h in Headers */,
 				CD06644B2E723F3D00B7D658 /* StylableInlines.h in Headers */,
 				713922BE2518AB77005DB3C2 /* Styleable.h in Headers */,
+				BC4F32CC2E8C518D00F6AEC1 /* StyleAccentColor.h in Headers */,
 				E45BA6B6237622A3004DFC07 /* StyleAdjuster.h in Headers */,
 				BC2A0EF92E12165D003CBA0E /* StyleAnchorName.h in Headers */,
 				BC7320202E7343E800A6584F /* StyleAnimation.h in Headers */,
@@ -46609,7 +46618,7 @@
 				BC10DA9C2E81B928000EE742 /* StyleWordSpacing.h in Headers */,
 				BCB2720D2CC1F1DB00265123 /* StyleXywhFunction.h in Headers */,
 				BC34D30B2E3D327B001EAD95 /* StyleZIndex.h in Headers */,
-				BC7826432E8310FF00FB0C7E /* StyleZoomNeededToken.h in Headers */,
+				BC7826432E8310FF00FB0C7E /* StyleZoomPrimitives.h in Headers */,
 				D000ED2811C1B9CD00C47726 /* SubframeLoader.h in Headers */,
 				46D0004026A0FEB300D1BF1E /* SubmitEvent.h in Headers */,
 				F55B3DD41251F12D003EF269 /* SubmitInputType.h in Headers */,
@@ -47509,8 +47518,11 @@
 				07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */,
 				07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */,
 				07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */,
+				FACC82B02E8E093F00EBAFED /* WebTransportCongestionControl.h in Headers */,
 				FA0B46D42E8CBF780073E9B3 /* WebTransportConnectionStats.h in Headers */,
 				FA0B46CE2E8C7FEB0073E9B3 /* WebTransportDatagramStats.h in Headers */,
+				FACC82BA2E8EF33A00EBAFED /* WebTransportHash.h in Headers */,
+				FACC82B92E8EF2AF00EBAFED /* WebTransportOptions.h in Headers */,
 				07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */,
 				07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */,
 				07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */,

@@ -88,7 +88,6 @@ Modules/websockets/WebSocket.cpp
 Modules/websockets/WebSocketChannelInspector.cpp
 Modules/websockets/WorkerThreadableWebSocketChannel.cpp
 Modules/webtransport/WebTransport.cpp
-StyleBuilderGenerated.cpp
 StyleExtractorGenerated.cpp
 accessibility/AXLogger.cpp
 accessibility/AXObjectCache.cpp
@@ -475,6 +474,7 @@ html/canvas/CanvasRenderingContext.cpp
 html/canvas/CanvasRenderingContext2D.cpp
 html/canvas/CanvasRenderingContext2DBase.cpp
 html/canvas/CanvasStyle.cpp
+html/canvas/EXTDisjointTimerQuery.cpp
 html/canvas/GPUCanvasContextCocoa.mm
 html/canvas/ImageBitmapRenderingContext.cpp
 html/canvas/OffscreenCanvasRenderingContext2D.cpp
@@ -516,7 +516,6 @@ inspector/NetworkResourcesData.cpp
 inspector/PageDebugger.cpp
 inspector/WebInjectedScriptManager.cpp
 inspector/WorkerDebugger.cpp
-inspector/WorkerToPageFrontendChannel.h
 inspector/agents/InspectorAnimationAgent.cpp
 inspector/agents/InspectorCPUProfilerAgent.cpp
 inspector/agents/InspectorCSSAgent.cpp
@@ -538,7 +537,6 @@ inspector/agents/page/PageDebuggerAgent.cpp
 inspector/agents/page/PageNetworkAgent.cpp
 inspector/agents/page/PageRuntimeAgent.cpp
 inspector/agents/worker/ServiceWorkerAgent.cpp
-inspector/agents/worker/WorkerNetworkAgent.cpp
 inspector/agents/worker/WorkerRuntimeAgent.cpp
 layout/integration/inline/LayoutIntegrationInlineContentBuilder.cpp
 layout/integration/inline/LayoutIntegrationLineLayout.cpp
@@ -553,7 +551,6 @@ loader/NavigationScheduler.cpp
 loader/PolicyChecker.cpp
 loader/ResourceLoadNotifier.cpp
 loader/ResourceLoader.cpp
-loader/WorkerThreadableLoader.cpp
 loader/archive/cf/LegacyWebArchive.cpp
 loader/cache/CachedImage.cpp
 loader/cache/CachedImage.h
@@ -1008,7 +1005,6 @@ workers/DedicatedWorkerGlobalScope.cpp
 workers/Worker.cpp
 workers/WorkerAnimationController.cpp
 workers/WorkerGlobalScope.cpp
-workers/WorkerInspectorProxy.cpp
 workers/WorkerMessagingProxy.cpp
 workers/shared/SharedWorker.cpp
 worklets/PaintWorkletGlobalScope.cpp

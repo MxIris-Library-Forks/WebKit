@@ -420,6 +420,16 @@ void RenderStyle::copyContentFrom(const RenderStyle& other)
     m_nonInheritedData.access().miscData.access().content = other.m_nonInheritedData->miscData->content;
 }
 
+void RenderStyle::setEnableEvaluationTimeZoom(bool value)
+{
+    SET_VAR(m_rareInheritedData, enableEvaluationTimeZoom, value);
+}
+
+void RenderStyle::setUseSVGZoomRulesForLength(bool value)
+{
+    SET_NESTED_VAR(m_nonInheritedData, rareData, useSVGZoomRulesForLength, value);
+}
+
 void RenderStyle::copyPseudoElementsFrom(const RenderStyle& other)
 {
     if (!other.m_cachedPseudoStyles)
@@ -2087,7 +2097,7 @@ void RenderStyle::conservativelyCollectChangedAnimatableProperties(const RenderS
             changingProperties.m_properties.set(CSSPropertyTextEmphasisColor);
         if (first.caretColor != second.caretColor || first.visitedLinkCaretColor != second.visitedLinkCaretColor || first.hasAutoCaretColor != second.hasAutoCaretColor || first.hasVisitedLinkAutoCaretColor != second.hasVisitedLinkAutoCaretColor)
             changingProperties.m_properties.set(CSSPropertyCaretColor);
-        if (first.accentColor != second.accentColor || first.hasAutoAccentColor != second.hasAutoAccentColor)
+        if (first.accentColor != second.accentColor)
             changingProperties.m_properties.set(CSSPropertyAccentColor);
         if (first.textShadow != second.textShadow)
             changingProperties.m_properties.set(CSSPropertyTextShadow);
@@ -2668,7 +2678,7 @@ const Style::Color& RenderStyle::unresolvedColorForProperty(CSSPropertyID colorP
 {
     switch (colorProperty) {
     case CSSPropertyAccentColor:
-        return accentColor();
+        return accentColor().colorOrCurrentColor();
     case CSSPropertyBackgroundColor:
         return visitedLink ? visitedLinkBackgroundColor() : backgroundColor();
     case CSSPropertyBorderBottomColor:
@@ -2796,20 +2806,24 @@ Color RenderStyle::colorWithColorFilter(const Style::Color& color) const
 
 Color RenderStyle::usedAccentColor(OptionSet<StyleColorOptions> styleColorOptions) const
 {
-    if (hasAutoAccentColor())
-        return { };
+    return WTF::switchOn(accentColor(),
+        [](const CSS::Keyword::Auto&) -> Color {
+            return { };
+        },
+        [&](const Style::Color& color) -> Color {
+            auto resolvedAccentColor = colorResolvingCurrentColor(color);
 
-    auto resolvedAccentColor = colorResolvingCurrentColor(accentColor());
+            if (!resolvedAccentColor.isOpaque()) {
+                auto computedCanvasColor = RenderTheme::singleton().systemColor(CSSValueCanvas, styleColorOptions);
+                resolvedAccentColor = blendSourceOver(computedCanvasColor, resolvedAccentColor);
+            }
 
-    if (!resolvedAccentColor.isOpaque()) {
-        auto computedCanvasColor = RenderTheme::singleton().systemColor(CSSValueCanvas, styleColorOptions);
-        resolvedAccentColor = blendSourceOver(computedCanvasColor, resolvedAccentColor);
-    }
+            if (hasAppleColorFilter())
+                return colorByApplyingColorFilter(resolvedAccentColor);
 
-    if (hasAppleColorFilter())
-        return colorByApplyingColorFilter(resolvedAccentColor);
-
-    return resolvedAccentColor;
+            return resolvedAccentColor;
+        }
+    );
 }
 
 Color RenderStyle::usedScrollbarThumbColor() const
@@ -3472,7 +3486,7 @@ bool RenderStyle::hasPositiveStrokeWidth() const
 {
     if (!hasExplicitlySetStrokeWidth())
         return textStrokeWidth().isPositive();
-    return strokeWidth().isPositive();
+    return strokeWidth().isPossiblyPositive();
 }
 
 Color RenderStyle::computedStrokeColor() const
@@ -3544,14 +3558,14 @@ void RenderStyle::setPositionTryFallbacks(FixedVector<Style::PositionTryFallback
     SET_NESTED_VAR(m_nonInheritedData, rareData, positionTryFallbacks, WTFMove(fallbacks));
 }
 
-std::optional<size_t> RenderStyle::lastSuccessfulPositionTryFallbackIndex() const
+std::optional<size_t> RenderStyle::usedPositionOptionIndex() const
 {
-    return m_nonInheritedData->rareData->lastSuccessfulPositionTryFallbackIndex;
+    return m_nonInheritedData->rareData->usedPositionOptionIndex;
 }
 
-void RenderStyle::setLastSuccessfulPositionTryFallbackIndex(std::optional<size_t> index)
+void RenderStyle::setUsedPositionOptionIndex(std::optional<size_t> index)
 {
-    SET_NESTED_VAR(m_nonInheritedData, rareData, lastSuccessfulPositionTryFallbackIndex, WTFMove(index));
+    SET_NESTED_VAR(m_nonInheritedData, rareData, usedPositionOptionIndex, WTFMove(index));
 }
 
 std::optional<Style::PseudoElementIdentifier> RenderStyle::pseudoElementIdentifier() const

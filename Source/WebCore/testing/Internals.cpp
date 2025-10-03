@@ -5696,7 +5696,7 @@ void Internals::queueMicroTask(int testNumber)
 
     ScriptExecutionContext* context = document;
     auto& eventLoop = context->eventLoop();
-    eventLoop.queueMicrotask(*context, [document = Ref { *document }, testNumber]() {
+    eventLoop.queueMicrotask([document = Ref { *document }, testNumber]() {
         document->addConsoleMessage(MessageSource::JS, MessageLevel::Debug, makeString("MicroTask #"_s, testNumber, " has run."_s));
     });
 }
@@ -6165,7 +6165,7 @@ ExceptionOr<void> Internals::queueTaskToQueueMicrotask(Document& document, const
     ScriptExecutionContext& context = document; // This avoids unnecessarily exporting Document::eventLoop.
     context.eventLoop().queueTask(*source, [movedCallback = WTFMove(callback), protectedDocument = Ref { document }]() mutable {
         ScriptExecutionContext& context = protectedDocument.get();
-        context.eventLoop().queueMicrotask(context, [callback = WTFMove(movedCallback)] {
+        context.eventLoop().queueMicrotask([callback = WTFMove(movedCallback)] {
             callback->invoke();
         });
     });
@@ -6558,25 +6558,6 @@ bool Internals::audioSessionActive() const
     return AudioSession::singleton().isActive();
 #endif
     return false;
-}
-
-String Internals::webContentProcessVariant() const
-{
-    auto* document = contextDocument();
-    if (!document)
-        return { };
-    auto* page = document->page();
-    if (!page)
-        return { };
-
-    switch (page->webContentProcessVariant()) {
-    case WebContentProcessVariant::Security:
-        return "security"_s;
-    case WebContentProcessVariant::Lockdown:
-        return "lockdown"_s;
-    default:
-        return "standard"_s;
-    }
 }
 
 void Internals::storeRegistrationsOnDisk(DOMPromiseDeferred<void>&& promise)

@@ -837,8 +837,11 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/websockets/WebSocketIdentifier.h
     Modules/websockets/WorkerThreadableWebSocketChannel.h
 
+    Modules/webtransport/WebTransportCongestionControl.h
     Modules/webtransport/WebTransportConnectionStats.h
     Modules/webtransport/WebTransportDatagramStats.h
+    Modules/webtransport/WebTransportHash.h
+    Modules/webtransport/WebTransportOptions.h
     Modules/webtransport/WebTransportReceiveStreamStats.h
     Modules/webtransport/WebTransportSendStreamSink.h
     Modules/webtransport/WebTransportSendStreamStats.h
@@ -3375,7 +3378,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/primitives/StyleRatio.h
     style/values/primitives/StyleURL.h
     style/values/primitives/StyleUnevaluatedCalculation.h
-    style/values/primitives/StyleZoomNeededToken.h
+    style/values/primitives/StyleZoomPrimitives.h
 
     style/values/rhythm/StyleBlockStepSize.h
 
@@ -3471,6 +3474,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/transitions/StyleTransition.h
     style/values/transitions/StyleTransitions.h
 
+    style/values/ui/StyleAccentColor.h
     style/values/ui/StyleCursor.h
 
     style/values/view-transitions/StyleViewTransitionClass.h

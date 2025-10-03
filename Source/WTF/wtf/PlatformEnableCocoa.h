@@ -1129,3 +1129,12 @@
 #if !defined(ENABLE_SPATIAL_IMAGE_CONTROLS) && PLATFORM(VISION) && __VISION_OS_VERSION_MIN_REQUIRED >= 20400
 #define ENABLE_SPATIAL_IMAGE_CONTROLS 1
 #endif
+
+#if !defined(ENABLE_NETWORK_CACHE_SIGNPOSTS)
+#define ENABLE_NETWORK_CACHE_SIGNPOSTS 1
+#endif
+
+// <os/signpost.h> doesn't work from Swift since some of its macros are guarded by #ifndef __swift__.
+#if !defined(ENABLE_CORE_IPC_SIGNPOSTS) && !defined(__swift__)
+#define ENABLE_CORE_IPC_SIGNPOSTS 1
+#endif

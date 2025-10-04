@@ -220,7 +220,6 @@ enum class WordBreak : uint8_t;
 
 struct CSSPropertiesBitSet;
 struct CounterDirectiveMap;
-struct FontSizeAdjust;
 struct GridTrackList;
 struct ImageOrientation;
 struct Length;
@@ -273,6 +272,8 @@ struct DynamicRangeLimit;
 struct Filter;
 struct FlexBasis;
 struct FontPalette;
+struct FontSizeAdjust;
+struct FontStyle;
 struct FontWeight;
 struct FontWidth;
 struct GapGutter;
@@ -728,9 +729,9 @@ public:
 
     inline FontOpticalSizing fontOpticalSizing() const;
     inline FontVariationSettings fontVariationSettings() const;
-    inline std::optional<FontSelectionValue> fontItalic() const;
     inline Style::FontPalette fontPalette() const;
-    inline FontSizeAdjust fontSizeAdjust() const;
+    inline Style::FontSizeAdjust fontSizeAdjust() const;
+    inline Style::FontStyle fontStyle() const;
     inline Style::FontWeight fontWeight() const;
     inline Style::FontWidth fontWidth() const;
 
@@ -1363,12 +1364,11 @@ public:
 
     // Only used for blending font sizes when animating, for MathML anonymous blocks, and for text autosizing.
     void setFontSize(float);
-    void setFontSizeAdjust(FontSizeAdjust);
-
     void setFontOpticalSizing(FontOpticalSizing);
     void setFontVariationSettings(FontVariationSettings);
-    void setFontItalic(std::optional<FontSelectionValue>);
     void setFontPalette(Style::FontPalette&&);
+    void setFontSizeAdjust(Style::FontSizeAdjust);
+    void setFontStyle(Style::FontStyle);
     void setFontWeight(Style::FontWeight);
     void setFontWidth(Style::FontWidth);
 
@@ -1967,6 +1967,8 @@ public:
     static inline Style::VerticalAlign initialVerticalAlign();
     static constexpr Float initialFloating();
     static inline Style::FontPalette initialFontPalette();
+    static inline Style::FontSizeAdjust initialFontSizeAdjust();
+    static inline Style::FontStyle initialFontStyle();
     static inline Style::FontWeight initialFontWeight();
     static inline Style::FontWidth initialFontWidth();
     static constexpr BreakBetween initialBreakBetween();

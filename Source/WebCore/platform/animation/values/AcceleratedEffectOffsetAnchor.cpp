@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,15 +24,30 @@
  */
 
 #include "config.h"
-#include "LengthPoint.h"
+#include "AcceleratedEffectOffsetAnchor.h"
 
-#include <wtf/text/TextStream.h>
+#if ENABLE(THREADED_ANIMATION_RESOLUTION)
+
+#include "AnimationUtilities.h"
 
 namespace WebCore {
 
-TextStream& operator<<(TextStream& ts, const LengthPoint& size)
+bool canBlend(const AcceleratedEffectOffsetAnchor& from, const AcceleratedEffectOffsetAnchor& to)
 {
-    return ts << size.x << ' ' << size.y;
+    return from.value.has_value() && to.value.has_value();
+}
+
+AcceleratedEffectOffsetAnchor blend(const AcceleratedEffectOffsetAnchor& from, const AcceleratedEffectOffsetAnchor& to, const BlendingContext& context)
+{
+    if (context.isDiscrete) {
+        ASSERT(!context.progress || context.progress == 1.0);
+        return context.progress ? to : from;
+    }
+
+    ASSERT(canBlend(from, to));
+    return { .value = WebCore::blend(*from.value, *to.value, context) };
 }
 
 } // namespace WebCore
+
+#endif // ENABLE(THREADED_ANIMATION_RESOLUTION)

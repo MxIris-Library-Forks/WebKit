@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,36 +23,31 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "AcceleratedEffectOffsetPosition.h"
 
-#include <WebCore/Length.h>
+#if ENABLE(THREADED_ANIMATION_RESOLUTION)
+
+#include "AnimationUtilities.h"
 
 namespace WebCore {
 
-struct BlendingContext;
-
-struct LengthPoint {
-    LengthPoint() = default;
-
-    LengthPoint(Length x, Length y)
-        : x(x)
-        , y(y)
-    {
-    }
-
-    // FIXME: it would be nice to pack the two Lengths together better somehow (to avoid padding between them).
-    Length x;
-    Length y;
-    friend bool operator==(const LengthPoint&, const LengthPoint&) = default;
-
-    bool isZero() const { return x.isZero() && y.isZero(); }
-};
-
-inline LengthPoint blend(const LengthPoint& from, const LengthPoint& to, const BlendingContext& context)
+bool canBlend(const AcceleratedEffectOffsetPosition& from, const AcceleratedEffectOffsetPosition& to)
 {
-    return LengthPoint(blend(from.x, to.x, context), blend(from.y, to.y, context));
+    return std::holds_alternative<FloatPoint>(from.value) && std::holds_alternative<FloatPoint>(to.value);
 }
 
-WTF::TextStream& operator<<(WTF::TextStream&, const LengthPoint&);
+AcceleratedEffectOffsetPosition blend(const AcceleratedEffectOffsetPosition& from, const AcceleratedEffectOffsetPosition& to, const BlendingContext& context)
+{
+    if (context.isDiscrete) {
+        ASSERT(!context.progress || context.progress == 1.0);
+        return context.progress ? to : from;
+    }
+
+    ASSERT(canBlend(from, to));
+    return { .value = WebCore::blend(std::get<FloatPoint>(from.value), std::get<FloatPoint>(to.value), context) };
+}
 
 } // namespace WebCore
+
+#endif // ENABLE(THREADED_ANIMATION_RESOLUTION)

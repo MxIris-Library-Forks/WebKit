@@ -27,8 +27,10 @@
 #include "GridLayout.h"
 
 #include "GridAreaLines.h"
+#include "GridLayoutUtils.h"
 #include "ImplicitGrid.h"
 #include "RenderStyleInlines.h"
+#include "LayoutBoxGeometry.h"
 #include "LayoutElementBox.h"
 #include "NotImplemented.h"
 #include "PlacedGridItem.h"
@@ -48,6 +50,11 @@ struct UsedTrackSizes {
 struct UsedMargins {
     LayoutUnit marginStart;
     LayoutUnit marginEnd;
+};
+
+struct UsedGridItemSizes {
+    LayoutUnit inlineAxisSize;
+    LayoutUnit blockAxisSize;
 };
 
 GridLayout::GridLayout(const GridFormattingContext& gridFormattingContext)
@@ -76,8 +83,9 @@ auto GridLayout::placeGridItems(const UnplacedGridItems& unplacedGridItems, cons
     // 2. Process the items locked to a given row.
     // Phase 1: Only single-cell items within explicit grid bounds
     auto& definiteRowPositionedGridItems = unplacedGridItems.definiteRowPositionedItems;
+    HashMap<unsigned, unsigned, DefaultHash<unsigned>, WTF::UnsignedWithZeroKeyHashTraits<unsigned>> rowCursors;
     for (auto& definiteRowPositionedItem : definiteRowPositionedGridItems)
-        implicitGrid.insertDefiniteRowItem(definiteRowPositionedItem, autoFlowOptions);
+        implicitGrid.insertDefiniteRowItem(definiteRowPositionedItem, autoFlowOptions, &rowCursors);
 
     // 3. FIXME: Process auto-positioned items (not implemented yet)
     ASSERT(unplacedGridItems.autoPositionedItems.isEmpty());
@@ -107,15 +115,78 @@ void GridLayout::layout(GridFormattingContext::GridLayoutConstraints, const Unpl
     auto rowTrackSizingFunctionsList = trackSizingFunctions(implicitGridRowsCount, gridTemplateRowsTrackSizes);
 
     // 3. Given the resulting grid container size, run the Grid Sizing Algorithm to size the grid.
-    auto [ usedColumnSizes, usedRowSizes ] = performGridSizingAlgorithm(placedGridItems, columnTrackSizingFunctionsList, rowTrackSizingFunctionsList);
+    UsedTrackSizes usedTrackSizes = performGridSizingAlgorithm(placedGridItems, columnTrackSizingFunctionsList, rowTrackSizingFunctionsList);
 
-    UNUSED_VARIABLE(usedColumnSizes);
-    UNUSED_VARIABLE(usedRowSizes);
+    // 4. Lay out the grid items into their respective containing blocks. Each grid area’s
+    // width and height are considered definite for this purpose.
+    auto [ usedInlineSizes, usedBlockSizes ] = layoutGridItems(placedGridItems, usedTrackSizes);
+    UNUSED_VARIABLE(usedInlineSizes);
+    UNUSED_VARIABLE(usedBlockSizes);
 
     // https://drafts.csswg.org/css-grid-1/#alignment
     auto usedInlineMargins = computeInlineMargins(placedGridItems);
     auto usedBlockMargins = computeBlockMargins(placedGridItems);
 
+    // https://drafts.csswg.org/css-grid-1/#alignment
+    // After a grid container’s grid tracks have been sized, and the dimensions of all grid items
+    // are finalized, grid items can be aligned within their grid areas.
+    auto inlineAxisPositions = performInlineAxisSelfAlignment(placedGridItems, usedInlineMargins);
+    auto blockAxisPositions = performBlockAxisSelfAlignment(placedGridItems, usedBlockMargins);
+
+    UNUSED_VARIABLE(inlineAxisPositions);
+    UNUSED_VARIABLE(blockAxisPositions);
+}
+
+GridLayout::BorderBoxPositions GridLayout::performInlineAxisSelfAlignment(const PlacedGridItems& placedGridItems, const Vector<UsedMargins>& inlineMargins)
+{
+    BorderBoxPositions borderBoxPositions;
+    borderBoxPositions.reserveInitialCapacity(placedGridItems.size());
+
+    auto computeMarginBoxPosition = [](const PlacedGridItem& placedGridItem) -> LayoutUnit {
+        switch (placedGridItem.inlineAxisAlignment().position()) {
+        case ItemPosition::FlexStart:
+        case ItemPosition::SelfStart:
+        case ItemPosition::Start:
+            return { };
+        default:
+            ASSERT_NOT_IMPLEMENTED_YET();
+            return { };
+        }
+    };
+
+    for (size_t gridItemIndex = 0; gridItemIndex < placedGridItems.size(); ++gridItemIndex) {
+        auto& gridItem = placedGridItems[gridItemIndex];
+        auto marginBoxPosition = computeMarginBoxPosition(gridItem);
+        borderBoxPositions.append(marginBoxPosition + inlineMargins[gridItemIndex].marginStart);
+    }
+
+    return borderBoxPositions;
+}
+
+GridLayout::BorderBoxPositions GridLayout::performBlockAxisSelfAlignment(const PlacedGridItems& placedGridItems, const Vector<UsedMargins>& blockMargins)
+{
+    BorderBoxPositions borderBoxPositions;
+    borderBoxPositions.reserveInitialCapacity(placedGridItems.size());
+
+    auto computeMarginBoxPosition = [](const PlacedGridItem& placedGridItem) -> LayoutUnit {
+        switch (placedGridItem.blockAxisAlignment().position()) {
+        case ItemPosition::FlexStart:
+        case ItemPosition::SelfStart:
+        case ItemPosition::Start:
+            return { };
+        default:
+            ASSERT_NOT_IMPLEMENTED_YET();
+            return { };
+        }
+    };
+
+    for (size_t gridItemIndex = 0; gridItemIndex < placedGridItems.size(); ++gridItemIndex) {
+        auto& gridItem = placedGridItems[gridItemIndex];
+        auto marginBoxPosition = computeMarginBoxPosition(gridItem);
+        borderBoxPositions.append(marginBoxPosition + blockMargins[gridItemIndex].marginStart);
+    }
+
+    return borderBoxPositions;
 }
 
 TrackSizingFunctionsList GridLayout::trackSizingFunctions(size_t implicitGridTracksCount, const Vector<Style::GridTrackSize> gridTemplateTrackSizes)
@@ -239,6 +310,32 @@ Vector<UsedMargins> GridLayout::computeBlockMargins(const PlacedGridItems& place
 
         return UsedMargins { marginStart(), marginEnd() };
     });
+}
+
+// https://drafts.csswg.org/css-grid-1/#grid-item-sizing
+std::pair<GridLayout::UsedInlineSizes, GridLayout::UsedBlockSizes> GridLayout::layoutGridItems(const PlacedGridItems& placedGridItems, const UsedTrackSizes&) const
+{
+    UsedInlineSizes usedInlineSizes;
+    UsedBlockSizes usedBlockSizes;
+    auto gridItemsCount = placedGridItems.size();
+    usedInlineSizes.reserveInitialCapacity(gridItemsCount);
+    usedBlockSizes.reserveInitialCapacity(gridItemsCount);
+
+    auto& formattingContext = this->formattingContext();
+    auto& integrationUtils = formattingContext.integrationUtils();
+    for (auto& gridItem : placedGridItems) {
+        auto& gridItemBoxGeometry = formattingContext.geometryForGridItem(gridItem.layoutBox());
+
+        auto usedInlineSizeForGridItem = GridLayoutUtils::usedInlineSizeForGridItem(gridItem) + gridItemBoxGeometry.horizontalBorderAndPadding();
+        usedInlineSizes.append(usedInlineSizeForGridItem);
+
+        auto usedBlockSizeForGridItem = GridLayoutUtils::usedBlockSizeForGridItem(gridItem) + gridItemBoxGeometry.verticalBorderAndPadding();
+        usedBlockSizes.append(usedBlockSizeForGridItem);
+
+        auto& layoutBox = gridItem.layoutBox();
+        integrationUtils.layoutWithFormattingContextForBox(layoutBox, usedInlineSizeForGridItem, usedBlockSizeForGridItem);
+    }
+    return { usedInlineSizes, usedBlockSizes };
 }
 
 const ElementBox& GridLayout::gridContainer() const

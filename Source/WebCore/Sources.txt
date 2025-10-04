@@ -381,6 +381,7 @@ Modules/streams/ReadableStream.cpp
 Modules/streams/ReadableStreamBYOBReader.cpp
 Modules/streams/ReadableStreamBYOBRequest.cpp
 Modules/streams/ReadableStreamDefaultReader.cpp
+Modules/streams/ReadableStreamReadRequest.cpp
 Modules/streams/ReadableStreamSink.cpp
 Modules/streams/ReadableStreamSource.cpp
 Modules/streams/StreamTeeUtilities.cpp
@@ -1935,6 +1936,7 @@ layout/formattingContexts/flex/FlexFormattingUtils.cpp
 layout/formattingContexts/flex/FlexLayout.cpp
 layout/formattingContexts/grid/GridFormattingContext.cpp
 layout/formattingContexts/grid/GridLayout.cpp
+layout/formattingContexts/grid/GridLayoutUtils.cpp
 layout/formattingContexts/grid/ImplicitGrid.cpp
 layout/formattingContexts/grid/PlacedGridItem.cpp
 layout/formattingContexts/grid/TrackSizingAlgorithm.cpp
@@ -2322,7 +2324,6 @@ platform/LayoutUnit.cpp
 platform/LegacySchemeRegistry.cpp
 platform/Length.cpp
 platform/LengthFunctions.cpp
-platform/LengthPoint.cpp
 platform/LocalizedStrings.cpp
 platform/LogInitialization.cpp
 platform/Logging.cpp
@@ -2402,6 +2403,12 @@ platform/Widget.cpp
 platform/animation/AcceleratedEffect.cpp
 platform/animation/AcceleratedEffectValues.cpp
 platform/animation/TimingFunction.cpp
+platform/animation/values/AcceleratedEffectOffsetAnchor.cpp
+platform/animation/values/AcceleratedEffectOffsetDistance.cpp
+platform/animation/values/AcceleratedEffectOffsetPosition.cpp
+platform/animation/values/AcceleratedEffectOffsetRotate.cpp
+platform/animation/values/AcceleratedEffectOpacity.cpp
+platform/animation/values/AcceleratedEffectTransformOrigin.cpp
 platform/audio/AudioBus.cpp
 platform/audio/AudioChannel.cpp
 platform/audio/AudioDSPKernelProcessor.cpp
@@ -3222,6 +3229,8 @@ style/values/filter-effects/StyleSaturateFunction.cpp
 style/values/filter-effects/StyleSepiaFunction.cpp
 style/values/flexbox/StyleFlexBasis.cpp
 style/values/fonts/StyleFontPalette.cpp
+style/values/fonts/StyleFontSizeAdjust.cpp
+style/values/fonts/StyleFontStyle.cpp
 style/values/fonts/StyleFontWeight.cpp
 style/values/fonts/StyleFontWidth.cpp
 style/values/grid/StyleGridNamedLinesMap.cpp

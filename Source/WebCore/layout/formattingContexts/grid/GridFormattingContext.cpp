@@ -27,6 +27,7 @@
 #include "GridFormattingContext.h"
 
 #include "GridLayout.h"
+#include "LayoutBoxGeometry.h"
 #include "LayoutChildIterator.h"
 #include "PlacedGridItem.h"
 #include "RenderStyleInlines.h"
@@ -41,6 +42,7 @@ namespace Layout {
 GridFormattingContext::GridFormattingContext(const ElementBox& gridBox, LayoutState& layoutState)
     : m_gridBox(gridBox)
     , m_globalLayoutState(layoutState)
+    , m_integrationUtils(layoutState)
 {
 }
 
@@ -112,6 +114,21 @@ PlacedGridItems GridFormattingContext::constructPlacedGridItems(const GridAreas&
     for (auto [ unplacedGridItem, gridAreaLines ] : gridAreas) {
 
         CheckedRef gridItemStyle = unplacedGridItem.m_layoutBox->style();
+
+        auto usedJustifySelf = [&] {
+            if (auto gridItemJustifySelf = gridItemStyle->justifySelf(); gridItemJustifySelf.position() != ItemPosition::Auto)
+                return gridItemJustifySelf;
+            auto& formattingContextRootStyle = root().style();
+            return formattingContextRootStyle.justifyItems();
+        };
+
+        auto usedAlignSelf = [&] {
+            if (auto gridItemAlignSelf = gridItemStyle->alignSelf(); gridItemAlignSelf.position() != ItemPosition::Auto)
+                return gridItemAlignSelf;
+            auto& formattingContextRootStyle = root().style();
+            return formattingContextRootStyle.alignItems();
+        };
+
         PlacedGridItem::ComputedSizes inlineAxisSizes {
             gridItemStyle->width(),
             gridItemStyle->minWidth(),
@@ -128,9 +145,15 @@ PlacedGridItems GridFormattingContext::constructPlacedGridItems(const GridAreas&
             gridItemStyle->marginBottom()
         };
 
-        placedGridItems.constructAndAppend(unplacedGridItem, gridAreaLines, inlineAxisSizes, blockAxisSizes);
+        placedGridItems.constructAndAppend(unplacedGridItem, gridAreaLines, inlineAxisSizes, blockAxisSizes, usedJustifySelf(), usedAlignSelf());
     }
     return placedGridItems;
+}
+
+const BoxGeometry GridFormattingContext::geometryForGridItem(const ElementBox& gridItem) const
+{
+    ASSERT(gridItem.isGridItem());
+    return layoutState().geometryForBox(gridItem);
 }
 
 } // namespace Layout

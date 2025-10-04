@@ -2363,7 +2363,7 @@ void RenderStyle::applyCSSTransform(TransformationMatrix& transform, const Trans
 
     // 6. Translate and rotate by the transform specified by offset.
     if (options.contains(RenderStyle::TransformOperationOption::Offset))
-        MotionPath::applyMotionPathTransform(*this, operationData, transform);
+        MotionPath::applyMotionPathTransform(transform, operationData, *this);
 
     // 7. Multiply by each of the transform functions in transform from left to right.
     this->transform().apply(transform, boundingBox.size());
@@ -2625,10 +2625,10 @@ void RenderStyle::setFontSize(float size)
     setFontDescription(WTFMove(description));
 }
 
-void RenderStyle::setFontSizeAdjust(FontSizeAdjust sizeAdjust)
+void RenderStyle::setFontSizeAdjust(Style::FontSizeAdjust sizeAdjust)
 {
     auto description = fontDescription();
-    description.setFontSizeAdjust(sizeAdjust);
+    description.setFontSizeAdjust(sizeAdjust.platform());
     setFontDescription(WTFMove(description));
 }
 
@@ -2660,10 +2660,11 @@ void RenderStyle::setFontWidth(Style::FontWidth value)
     setFontDescription(WTFMove(description));
 }
 
-void RenderStyle::setFontItalic(std::optional<FontSelectionValue> value)
+void RenderStyle::setFontStyle(Style::FontStyle style)
 {
     auto description = fontDescription();
-    description.setItalic(value);
+    description.setFontStyleSlope(style.platformSlope());
+    description.setFontStyleAxis(style.platformAxis());
     setFontDescription(WTFMove(description));
 }
 

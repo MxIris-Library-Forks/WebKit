@@ -2335,6 +2335,9 @@
 		E3816B3D27E2463A005EAFC0 /* WebMockContentFilterManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3816B3B27E24639005EAFC0 /* WebMockContentFilterManager.cpp */; };
 		E3816B3E27E2463A005EAFC0 /* WebMockContentFilterManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E3816B3C27E24639005EAFC0 /* WebMockContentFilterManager.h */; };
 		E382D57F2C21D500005F7653 /* DownloadProxyCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = E382D57E2C21D500005F7653 /* DownloadProxyCocoa.mm */; };
+		E385F3672E86D6C900461B0C /* LaunchLogHook.mm in Sources */ = {isa = PBXBuildFile; fileRef = E385F3662E86D6C900461B0C /* LaunchLogHook.mm */; };
+		E385F3692E86D75800461B0C /* LaunchLogHook.h in Headers */ = {isa = PBXBuildFile; fileRef = E385F3682E86D6DB00461B0C /* LaunchLogHook.h */; };
+		E385F37C2E87076100461B0C /* LaunchLogMessages.h in Headers */ = {isa = PBXBuildFile; fileRef = E385F37B2E87076100461B0C /* LaunchLogMessages.h */; };
 		E3866AE52397400400F88FE9 /* WebDeviceOrientationUpdateProviderProxy.mm in Sources */ = {isa = PBXBuildFile; fileRef = E3866AE42397400400F88FE9 /* WebDeviceOrientationUpdateProviderProxy.mm */; };
 		E3866AE72397405300F88FE9 /* WebDeviceOrientationUpdateProviderProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = E3866AE62397405300F88FE9 /* WebDeviceOrientationUpdateProviderProxy.h */; };
 		E3866B082399A2D100F88FE9 /* WebDeviceOrientationUpdateProviderProxyMessages.h in Headers */ = {isa = PBXBuildFile; fileRef = E3866B052399979C00F88FE9 /* WebDeviceOrientationUpdateProviderProxyMessages.h */; };
@@ -8050,6 +8053,8 @@
 		CD20CE7525CC999F0069B542 /* RemoteAudioHardwareListenerProxy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteAudioHardwareListenerProxy.cpp; sourceTree = "<group>"; };
 		CD20CE7725CD2B9D0069B542 /* RemoteAudioHardwareListenerMessageReceiver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteAudioHardwareListenerMessageReceiver.cpp; sourceTree = "<group>"; };
 		CD20CE7925CD2B9E0069B542 /* RemoteAudioHardwareListenerMessages.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteAudioHardwareListenerMessages.h; sourceTree = "<group>"; };
+		CD3480952E8F23FD0040CEF9 /* WebCoreLogClientDeclarations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCoreLogClientDeclarations.h; sourceTree = "<group>"; };
+		CD3480962E8F23FD0040CEF9 /* WebKitLogClientDeclarations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitLogClientDeclarations.h; sourceTree = "<group>"; };
 		CD36C16C260A6EBE00C8C529 /* LocalAudioSessionRoutingArbitrator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalAudioSessionRoutingArbitrator.h; sourceTree = "<group>"; };
 		CD36C16D260A6EBE00C8C529 /* LocalAudioSessionRoutingArbitrator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LocalAudioSessionRoutingArbitrator.cpp; sourceTree = "<group>"; };
 		CD3EEF3125799618006563BB /* RemoteMediaEngineConfigurationFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteMediaEngineConfigurationFactory.h; sourceTree = "<group>"; };
@@ -8362,6 +8367,9 @@
 		E385982C2E68CAA80012AD39 /* gpu-defines.sb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "gpu-defines.sb"; sourceTree = "<group>"; };
 		E385982D2E68CAA80012AD39 /* networking-defines.sb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "networking-defines.sb"; sourceTree = "<group>"; };
 		E385982E2E68CAA80012AD39 /* webcontent-defines.sb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "webcontent-defines.sb"; sourceTree = "<group>"; };
+		E385F3662E86D6C900461B0C /* LaunchLogHook.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LaunchLogHook.mm; sourceTree = "<group>"; };
+		E385F3682E86D6DB00461B0C /* LaunchLogHook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LaunchLogHook.h; sourceTree = "<group>"; };
+		E385F37B2E87076100461B0C /* LaunchLogMessages.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LaunchLogMessages.h; sourceTree = "<group>"; };
 		E3866AE42397400400F88FE9 /* WebDeviceOrientationUpdateProviderProxy.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = WebDeviceOrientationUpdateProviderProxy.mm; path = ios/WebDeviceOrientationUpdateProviderProxy.mm; sourceTree = "<group>"; };
 		E3866AE62397405300F88FE9 /* WebDeviceOrientationUpdateProviderProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebDeviceOrientationUpdateProviderProxy.h; path = ios/WebDeviceOrientationUpdateProviderProxy.h; sourceTree = "<group>"; };
 		E3866AED2398471A00F88FE9 /* WebDeviceOrientationUpdateProviderProxy.messages.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WebDeviceOrientationUpdateProviderProxy.messages.in; path = ios/WebDeviceOrientationUpdateProviderProxy.messages.in; sourceTree = "<group>"; };
@@ -8538,6 +8546,8 @@
 		F416F1BF2C5C3E360085D8DD /* WKScrollViewTrackingTapGestureRecognizer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = WKScrollViewTrackingTapGestureRecognizer.mm; path = ios/WKScrollViewTrackingTapGestureRecognizer.mm; sourceTree = "<group>"; };
 		F41795A42AC619A2007F5F12 /* CompactContextMenuPresenter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CompactContextMenuPresenter.h; path = ios/CompactContextMenuPresenter.h; sourceTree = "<group>"; };
 		F41795A52AC619A2007F5F12 /* CompactContextMenuPresenter.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = CompactContextMenuPresenter.mm; path = ios/CompactContextMenuPresenter.mm; sourceTree = "<group>"; };
+		F4217F1C2E8EFF8A0036AAC1 /* TextExtractionToStringConversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextExtractionToStringConversion.h; sourceTree = "<group>"; };
+		F4217F1D2E8EFF8A0036AAC1 /* TextExtractionToStringConversion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextExtractionToStringConversion.cpp; sourceTree = "<group>"; };
 		F425374F2AF9A25A00873864 /* InteractionInformationRequest.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; name = InteractionInformationRequest.serialization.in; path = ios/InteractionInformationRequest.serialization.in; sourceTree = "<group>"; };
 		F4299506270E234C0032298B /* StreamMessageReceiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StreamMessageReceiver.h; sourceTree = "<group>"; };
 		F42A046C2CA1B2A4000D3118 /* _WKTextRun.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = _WKTextRun.h; sourceTree = "<group>"; };
@@ -10055,6 +10065,8 @@
 				932CA81B283C35EB00C20BEB /* StorageAreaIdentifier.h */,
 				07E2C0782C13FC0100BE6743 /* TextAnimationTypes.serialization.in */,
 				1A5E4DA312D3BD3D0099A2BB /* TextCheckerState.h */,
+				F4217F1D2E8EFF8A0036AAC1 /* TextExtractionToStringConversion.cpp */,
+				F4217F1C2E8EFF8A0036AAC1 /* TextExtractionToStringConversion.h */,
 				86DD518B28EF028500DF2A58 /* TextFlags.serialization.in */,
 				86890B81294B6FD900DB95CE /* TextRecognitionResult.serialization.in */,
 				F4A7CE842667EB4E00228685 /* TextRecognitionUpdateResult.h */,
@@ -12879,6 +12891,9 @@
 				49DAA38B24CBA1A800793D75 /* DefaultWebBrowserChecks.mm */,
 				CE550E12228373C800D28791 /* InsertTextOptions.h */,
 				86E0787C2ACE0AE400B8FADC /* InsertTextOptions.serialization.in */,
+				E385F3682E86D6DB00461B0C /* LaunchLogHook.h */,
+				E385F3662E86D6C900461B0C /* LaunchLogHook.mm */,
+				E385F37B2E87076100461B0C /* LaunchLogMessages.h */,
 				C1663E5A24AEA74200C6A3B2 /* LaunchServicesDatabaseXPCConstants.h */,
 				2D1087621D2C641B00B85F82 /* LoadParametersCocoa.mm */,
 				2D440B8325EF235E00A98D87 /* PDFKitSoftLink.h */,
@@ -16548,6 +16563,7 @@
 				1C0A195B1C916E1B00FE0EBB /* WebAutomationSessionProxyScriptSource.h */,
 				330934431315B9220097A7BC /* WebCookieManagerMessageReceiver.cpp */,
 				330934441315B9220097A7BC /* WebCookieManagerMessages.h */,
+				CD3480952E8F23FD0040CEF9 /* WebCoreLogClientDeclarations.h */,
 				E3866B062399979C00F88FE9 /* WebDeviceOrientationUpdateProviderMessageReceiver.cpp */,
 				E3866B072399979D00F88FE9 /* WebDeviceOrientationUpdateProviderMessages.h */,
 				E3866B042399979C00F88FE9 /* WebDeviceOrientationUpdateProviderProxyMessageReceiver.cpp */,
@@ -16588,6 +16604,7 @@
 				996B2B9625E2448200719379 /* WebInspectorUIExtensionControllerProxyMessages.h */,
 				1CBBE49E19B66C53006B7D81 /* WebInspectorUIMessageReceiver.cpp */,
 				1CBBE49F19B66C53006B7D81 /* WebInspectorUIMessages.h */,
+				CD3480962E8F23FD0040CEF9 /* WebKitLogClientDeclarations.h */,
 				5C9E0F972A577EC400FC2664 /* WebKitPlatformGeneratedSerializers.mm */,
 				31BA9248148830810062EDB5 /* WebNotificationManagerMessageReceiver.cpp */,
 				31BA9249148830810062EDB5 /* WebNotificationManagerMessages.h */,
@@ -17735,6 +17752,8 @@
 				1C5DC46F290B27260061EC62 /* JSWebExtensionWrappable.h in Headers */,
 				1C5DC46E290B27260061EC62 /* JSWebExtensionWrapper.h in Headers */,
 				074A6FC72D5F1FAF0027F958 /* KeyEventInterpretationContext.h in Headers */,
+				E385F3692E86D75800461B0C /* LaunchLogHook.h in Headers */,
+				E385F37C2E87076100461B0C /* LaunchLogMessages.h in Headers */,
 				C1663E5B24AEAA2F00C6A3B2 /* LaunchServicesDatabaseXPCConstants.h in Headers */,
 				51E9049A27BCB9D400929E7E /* LaunchServicesSPI.h in Headers */,
 				BCE0937814FB128C001138D9 /* LayerHostingContext.h in Headers */,
@@ -21214,6 +21233,8 @@
 				2749F6442146561B008380BF /* InjectedBundleNodeHandle.cpp in Sources */,
 				2749F6452146561E008380BF /* InjectedBundleRangeHandle.cpp in Sources */,
 				1C0F05BE2CFA5D2E007D1F62 /* JSWebExtensionAPIUnified.mm in Sources */,
+				1C5DC45F2909B05A0061EC62 /* JSWebExtensionWrapperCocoa.mm in Sources */,
+				E385F3672E86D6C900461B0C /* LaunchLogHook.mm in Sources */,
 				C14D37FE24ACE086007FF014 /* LaunchServicesDatabaseManager.mm in Sources */,
 				C1710CF724AA643200D7C112 /* LaunchServicesDatabaseObserver.mm in Sources */,
 				41A0EB142641714900794471 /* LibWebRTCCodecsProxy.mm in Sources */,

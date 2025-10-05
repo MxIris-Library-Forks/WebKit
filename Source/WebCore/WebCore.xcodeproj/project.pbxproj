@@ -5594,6 +5594,7 @@
 		CD27AE5122A9868700947FF9 /* ImageRotationSessionVT.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD27AE4F22A9868700947FF9 /* ImageRotationSessionVT.mm */; };
 		CD2F4A2418D89F700063746D /* AudioHardwareListener.h in Headers */ = {isa = PBXBuildFile; fileRef = CD2F4A2218D89F700063746D /* AudioHardwareListener.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD2F4A2818D8A3490063746D /* AudioHardwareListenerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = CD2F4A2618D8A3490063746D /* AudioHardwareListenerMac.h */; };
+		CD3184152E89FBFA00606263 /* DocumentPage.h in Headers */ = {isa = PBXBuildFile; fileRef = CD3184142E89F7B300606263 /* DocumentPage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD318623199F1E2A0030A0F7 /* CDMPrivateMediaSourceAVFObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = CD318621199F1E2A0030A0F7 /* CDMPrivateMediaSourceAVFObjC.h */; };
 		CD336F6117F9F64700DDDCD0 /* AVTrackPrivateAVFObjCImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD336F5F17F9F64700DDDCD0 /* AVTrackPrivateAVFObjCImpl.mm */; };
 		CD336F6217F9F64700DDDCD0 /* AVTrackPrivateAVFObjCImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = CD336F6017F9F64700DDDCD0 /* AVTrackPrivateAVFObjCImpl.h */; };
@@ -5655,6 +5656,9 @@
 		CD5FF49C2162E4CF004BD86F /* ISOProtectionSystemSpecificHeaderBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 12F75A9A86EA03DAF24B7971 /* ISOProtectionSystemSpecificHeaderBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5FF49D2162E4DB004BD86F /* ISOProtectionSchemeInfoBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD871C601FB52B6500F0B965 /* ISOProtectionSchemeInfoBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5FF49E2162E4E8004BD86F /* ISOOriginalFormatBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CD871C671FB52B6800F0B965 /* ISOOriginalFormatBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD6115FC2E8B0E39002A1FBD /* DocumentWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6115FB2E8B0E39002A1FBD /* DocumentWindow.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD6115FE2E8B0E93002A1FBD /* DocumentEventLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6115FD2E8B0E93002A1FBD /* DocumentEventLoop.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CD6116002E8B1927002A1FBD /* DocumentMarkers.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6115FF2E8B1927002A1FBD /* DocumentMarkers.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD641EB31818F5ED00EE4C41 /* MediaSourcePrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD641EB41818F5ED00EE4C41 /* SourceBufferPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD641EB21818F5ED00EE4C41 /* SourceBufferPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD6A1F0D297A1A8F00F7B9FA /* CanvasObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = CD6A1F0C297A1A8F00F7B9FA /* CanvasObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5812,6 +5816,11 @@
 		CDFB9A702E70963400AA1CD5 /* RenderObjectStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFB9A6F2E70963400AA1CD5 /* RenderObjectStyle.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDFC360618CA61C20026E56F /* RemoteCommandListener.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFC360418CA61C20026E56F /* RemoteCommandListener.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDFD83462DC04BC600CE19C4 /* EventTargetForTesting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDFD83452DC04BB700CE19C4 /* EventTargetForTesting.cpp */; };
+		CDFFB2122E8A52E20045D9F2 /* DocumentView.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFFB2112E8A52E20045D9F2 /* DocumentView.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDFFB2142E8A54190045D9F2 /* DocumentSettingsValues.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFFB2132E8A54190045D9F2 /* DocumentSettingsValues.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDFFB2162E8A54980045D9F2 /* DocumentQuirks.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFFB2152E8A54980045D9F2 /* DocumentQuirks.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDFFB2182E8A6B3D0045D9F2 /* DocumentSecurityOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFFB2172E8A6B3D0045D9F2 /* DocumentSecurityOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDFFB21D2E8A6F7E0045D9F2 /* DocumentResourceLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = CDFFB21C2E8A6F7E0045D9F2 /* DocumentResourceLoader.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CE057FA61220731100A476D5 /* DocumentMarkerController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE057FA41220731100A476D5 /* DocumentMarkerController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CE08C3D2152B599A0021B8C2 /* AlternativeTextController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE08C3D0152B599A0021B8C2 /* AlternativeTextController.h */; settings = {ATTRIBUTES = (); }; };
 		CE1866451F72E5B400A0CAB6 /* MarkedText.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1866431F72E5B400A0CAB6 /* MarkedText.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -19877,6 +19886,7 @@
 		CD2F4A2618D8A3490063746D /* AudioHardwareListenerMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioHardwareListenerMac.h; sourceTree = "<group>"; };
 		CD30B28623A173AA00D7488B /* MediaCapabilitiesLogging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MediaCapabilitiesLogging.h; path = mediacapabilities/MediaCapabilitiesLogging.h; sourceTree = "<group>"; };
 		CD30B28723A173AA00D7488B /* MediaCapabilitiesLogging.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MediaCapabilitiesLogging.cpp; path = mediacapabilities/MediaCapabilitiesLogging.cpp; sourceTree = "<group>"; };
+		CD3184142E89F7B300606263 /* DocumentPage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentPage.h; sourceTree = "<group>"; };
 		CD318620199F1E2A0030A0F7 /* CDMPrivateMediaSourceAVFObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CDMPrivateMediaSourceAVFObjC.mm; sourceTree = "<group>"; };
 		CD318621199F1E2A0030A0F7 /* CDMPrivateMediaSourceAVFObjC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDMPrivateMediaSourceAVFObjC.h; sourceTree = "<group>"; };
 		CD336F5F17F9F64700DDDCD0 /* AVTrackPrivateAVFObjCImpl.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AVTrackPrivateAVFObjCImpl.mm; sourceTree = "<group>"; };
@@ -19968,6 +19978,9 @@
 		CD5F16432DBB0AD200CE85D9 /* MessageClientForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageClientForTesting.h; sourceTree = "<group>"; };
 		CD5F16582DBBD72300CE85D9 /* MessageTargetForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageTargetForTesting.h; sourceTree = "<group>"; };
 		CD5F165E2DBC088400CE85D9 /* MessageForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageForTesting.h; sourceTree = "<group>"; };
+		CD6115FB2E8B0E39002A1FBD /* DocumentWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentWindow.h; sourceTree = "<group>"; };
+		CD6115FD2E8B0E93002A1FBD /* DocumentEventLoop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentEventLoop.h; sourceTree = "<group>"; };
+		CD6115FF2E8B1927002A1FBD /* DocumentMarkers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentMarkers.h; sourceTree = "<group>"; };
 		CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaSourcePrivate.h; sourceTree = "<group>"; };
 		CD641EB21818F5ED00EE4C41 /* SourceBufferPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SourceBufferPrivate.h; sourceTree = "<group>"; };
 		CD641EC7181ED60100EE4C41 /* MediaSample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSample.h; sourceTree = "<group>"; };
@@ -20358,6 +20371,11 @@
 		CDFD78C22242FC4900D7208A /* TextTrackCueGeneric.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TextTrackCueGeneric.idl; sourceTree = "<group>"; };
 		CDFD83442DC04BB700CE19C4 /* EventTargetForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EventTargetForTesting.h; sourceTree = "<group>"; };
 		CDFD83452DC04BB700CE19C4 /* EventTargetForTesting.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EventTargetForTesting.cpp; sourceTree = "<group>"; };
+		CDFFB2112E8A52E20045D9F2 /* DocumentView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentView.h; sourceTree = "<group>"; };
+		CDFFB2132E8A54190045D9F2 /* DocumentSettingsValues.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentSettingsValues.h; sourceTree = "<group>"; };
+		CDFFB2152E8A54980045D9F2 /* DocumentQuirks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentQuirks.h; sourceTree = "<group>"; };
+		CDFFB2172E8A6B3D0045D9F2 /* DocumentSecurityOrigin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentSecurityOrigin.h; sourceTree = "<group>"; };
+		CDFFB21C2E8A6F7E0045D9F2 /* DocumentResourceLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentResourceLoader.h; sourceTree = "<group>"; };
 		CE057FA31220731100A476D5 /* DocumentMarkerController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DocumentMarkerController.cpp; sourceTree = "<group>"; };
 		CE057FA41220731100A476D5 /* DocumentMarkerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentMarkerController.h; sourceTree = "<group>"; };
 		CE08C3CF152B599A0021B8C2 /* AlternativeTextController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AlternativeTextController.cpp; sourceTree = "<group>"; };
@@ -40361,6 +40379,7 @@
 				8329A4171EC25B2B008ED4BE /* DocumentAndElementEventHandlers.idl */,
 				51895F892D123D0900E8D471 /* DocumentClasses.h */,
 				7AEFEA122D52A89D007B21AC /* DocumentEnums.h */,
+				CD6115FD2E8B0E93002A1FBD /* DocumentEventLoop.h */,
 				86D982F6125C154000AD9E3D /* DocumentEventTiming.h */,
 				A8185F3459765765005826D9 /* DocumentFontLoader.cpp */,
 				A8185F3559765765005826D9 /* DocumentFontLoader.h */,
@@ -40373,6 +40392,7 @@
 				ED2BA83B09A24B91006C0AC4 /* DocumentMarker.h */,
 				CE057FA31220731100A476D5 /* DocumentMarkerController.cpp */,
 				CE057FA41220731100A476D5 /* DocumentMarkerController.h */,
+				CD6115FF2E8B1927002A1FBD /* DocumentMarkers.h */,
 				CDF946442E5F62F1004EA5B5 /* DocumentMediaElement.cpp */,
 				CDF946432E5F62F1004EA5B5 /* DocumentMediaElement.h */,
 				7C3655692506DDB700A7882B /* DocumentOrShadowRoot+CSSOM.idl */,
@@ -40381,8 +40401,13 @@
 				9B0FE8731D9E02DF004A8ACB /* DocumentOrShadowRoot.idl */,
 				46A49C9228EE67E300208B6E /* DocumentOrShadowRootFullscreen.cpp */,
 				46A49C9128EE67E300208B6E /* DocumentOrShadowRootFullscreen.h */,
+				CD3184142E89F7B300606263 /* DocumentPage.h */,
 				A8C2280D11D4A59700D5A7D3 /* DocumentParser.cpp */,
 				BCCFBAE70B5152ED0001F1D7 /* DocumentParser.h */,
+				CDFFB2152E8A54980045D9F2 /* DocumentQuirks.h */,
+				CDFFB21C2E8A6F7E0045D9F2 /* DocumentResourceLoader.h */,
+				CDFFB2172E8A6B3D0045D9F2 /* DocumentSecurityOrigin.h */,
+				CDFFB2132E8A54190045D9F2 /* DocumentSettingsValues.h */,
 				AD6E71AA1668899D00320C13 /* DocumentSharedObjectPool.cpp */,
 				AD6E71AB1668899D00320C13 /* DocumentSharedObjectPool.h */,
 				6BDB5DC1227BD3B800919770 /* DocumentStorageAccess.cpp */,
@@ -40392,6 +40417,8 @@
 				A8185F3209765765005826D9 /* DocumentType.cpp */,
 				A8185F3109765765005826D9 /* DocumentType.h */,
 				93EEC1E809C2877700C515D1 /* DocumentType.idl */,
+				CDFFB2112E8A52E20045D9F2 /* DocumentView.h */,
+				CD6115FB2E8B0E39002A1FBD /* DocumentWindow.h */,
 				978D07BD145A0F6C0096908D /* DOMException.cpp */,
 				BC60D6E80D28D83400B9918F /* DOMException.h */,
 				BC60D6EB0D28D99900B9918F /* DOMException.idl */,
@@ -42784,6 +42811,7 @@
 				A8185F4009765766005826D9 /* Document.h in Headers */,
 				51895F8A2D123D0900E8D471 /* DocumentClasses.h in Headers */,
 				7AEFEA132D52A952007B21AC /* DocumentEnums.h in Headers */,
+				CD6115FE2E8B0E93002A1FBD /* DocumentEventLoop.h in Headers */,
 				86D982F7125C154000AD9E3D /* DocumentEventTiming.h in Headers */,
 				A8185F4509765766005826D9 /* DocumentFontLoader.h in Headers */,
 				A8185F3D09765766005826D9 /* DocumentFragment.h in Headers */,
@@ -42793,10 +42821,16 @@
 				8A12E35D11FA33280025836A /* DocumentLoadTiming.h in Headers */,
 				ED2BA83C09A24B91006C0AC4 /* DocumentMarker.h in Headers */,
 				CE057FA61220731100A476D5 /* DocumentMarkerController.h in Headers */,
+				CD6116002E8B1927002A1FBD /* DocumentMarkers.h in Headers */,
 				46A49C9328EE67ED00208B6E /* DocumentOrShadowRootFullscreen.h in Headers */,
+				CD3184152E89FBFA00606263 /* DocumentPage.h in Headers */,
 				BCCFBAE80B5152ED0001F1D7 /* DocumentParser.h in Headers */,
 				1D2F8E03234474EF00993B68 /* DocumentPictureInPicture.h in Headers */,
 				BA3BAEE52E12A7B300B8D3B7 /* DocumentPrefetcher.h in Headers */,
+				CDFFB2162E8A54980045D9F2 /* DocumentQuirks.h in Headers */,
+				CDFFB21D2E8A6F7E0045D9F2 /* DocumentResourceLoader.h in Headers */,
+				CDFFB2182E8A6B3D0045D9F2 /* DocumentSecurityOrigin.h in Headers */,
+				CDFFB2142E8A54190045D9F2 /* DocumentSettingsValues.h in Headers */,
 				AD6E71AD1668899D00320C13 /* DocumentSharedObjectPool.h in Headers */,
 				6BDB5DC2227BD3B800919770 /* DocumentStorageAccess.h in Headers */,
 				51EE9D642D09479500D97E5E /* DocumentSyncData.h in Headers */,
@@ -42804,6 +42838,8 @@
 				71025ED01F99F0CE004A250C /* DocumentTimeline.h in Headers */,
 				71729F7B20F3BA4900801CE6 /* DocumentTimelineOptions.h in Headers */,
 				A8185F3909765766005826D9 /* DocumentType.h in Headers */,
+				CDFFB2122E8A52E20045D9F2 /* DocumentView.h in Headers */,
+				CD6115FC2E8B0E39002A1FBD /* DocumentWindow.h in Headers */,
 				973889A1116EA9DC00ADF313 /* DocumentWriter.h in Headers */,
 				412752D2294C7F2B00387637 /* DOMAudioSession.h in Headers */,
 				41380C271F3436AC00155FDA /* DOMCache.h in Headers */,

@@ -49,7 +49,9 @@
 #include "DOMTokenList.h"
 #include "DocumentFullscreen.h"
 #include "DocumentInlines.h"
+#include "DocumentQuirks.h"
 #include "DocumentSharedObjectPool.h"
+#include "DocumentView.h"
 #include "Editing.h"
 #include "ElementAncestorIteratorInlines.h"
 #include "ElementAnimationRareData.h"
@@ -114,7 +116,6 @@
 #include "PointerLockOptions.h"
 #include "PopoverData.h"
 #include "PseudoClassChangeInvalidation.h"
-#include "Quirks.h"
 #include "RenderBoxInlines.h"
 #include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
@@ -3427,7 +3428,7 @@ ExceptionOr<ShadowRoot&> Element::attachShadow(const ShadowRootInit& init, std::
         ASSERT(registryKind == CustomElementRegistryKind::Window);
         scopedRegistry = ShadowRootScopedCustomElementRegistry::Yes;
     } else
-        registry = CustomElementRegistry::registryForElement(*this);
+        registry = document().customElementRegistry();
     Ref shadow = ShadowRoot::create(document(), init.mode, init.slotAssignment,
         init.delegatesFocus ? ShadowRootDelegatesFocus::Yes : ShadowRootDelegatesFocus::No,
         init.clonable ? ShadowRoot::Clonable::Yes : ShadowRoot::Clonable::No,

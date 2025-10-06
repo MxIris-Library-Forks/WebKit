@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Apple Inc. All rights reserved.
- * Copyright (C) 2015 Electronic Arts, Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,30 +20,20 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #pragma once
 
-#include <string.h>
-#include <wtf/Compiler.h>
+#include "AbortSignal.h"
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+namespace WebCore {
 
-#if !HAVE(MEMMEM)
+struct StreamPipeOptions {
+    bool preventClose { false };
+    bool preventAbort { false };
+    bool preventCancel { false };
+    RefPtr<AbortSignal> signal;
+};
 
-inline const void* memmem(const void* haystack, size_t haystackLength, const void* needle, size_t needleLength)
-{
-    const char* pointer = static_cast<const char*>(haystack);
-    while (haystackLength >= needleLength) {
-        if (!memcmp(pointer, needle, needleLength))
-            return pointer;
-        pointer++;
-        haystackLength--;
-    }
-    return nullptr;
-}
-
-#endif
-
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+} // namespace WebCore

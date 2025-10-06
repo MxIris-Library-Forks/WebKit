@@ -95,6 +95,7 @@
 #include "FrameSelection.h"
 #include "FrameTree.h"
 #include "GeolocationController.h"
+#include "GraphicsLayer.h"
 #include "HTMLElement.h"
 #include "HTMLImageElement.h"
 #include "HTMLMediaElement.h"
@@ -989,6 +990,7 @@ void Page::updateProcessSyncData(const ProcessSyncData& data)
         break;
     case ProcessSyncDataType::FrameCanCreatePaymentSession:
     case ProcessSyncDataType::FrameDocumentSecurityOrigin:
+    case ProcessSyncDataType::FrameURLProtocol:
         ASSERT_NOT_REACHED();
     }
 }

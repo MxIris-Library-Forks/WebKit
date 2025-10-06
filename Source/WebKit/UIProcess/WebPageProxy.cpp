@@ -260,6 +260,7 @@
 #include <WebCore/RenderEmbeddedObject.h>
 #include <WebCore/ResourceLoadStatistics.h>
 #include <WebCore/RunJavaScriptParameters.h>
+#include <WebCore/SecurityOrigin.h>
 #include <WebCore/SerializedCryptoKeyWrap.h>
 #include <WebCore/SerializedScriptValue.h>
 #include <WebCore/ShareData.h>
@@ -9504,7 +9505,14 @@ void WebPageProxy::setMuted(WebCore::MediaProducerMutedStateFlags state, FromApp
     if (!isAllowedToChangeMuteState())
         state.add(WebCore::MediaProducer::MediaStreamCaptureIsMuted);
 
-    internals().mutedState = state;
+#if ENABLE(MEDIA_STREAM)
+    auto newState = applyWebAppDesiredMutedKinds(state, m_mutedCaptureKindsDesiredByWebApp);
+#else
+    auto newState = state;
+#endif
+    WEBPAGEPROXY_RELEASE_LOG(Media, "setMuted, app state = %d, final state = %d", state.toRaw(), newState.toRaw());
+
+    internals().mutedState = newState;
 
     if (!hasRunningProcess())
         return completionHandler();
@@ -9516,15 +9524,8 @@ void WebPageProxy::setMuted(WebCore::MediaProducerMutedStateFlags state, FromApp
 #endif // ENABLE(MEDIA_STREAM)
 
     forEachWebContentProcess([&] (auto& process, auto pageID) {
-        process.pageMutedStateChanged(pageID, state);
+        process.pageMutedStateChanged(pageID, newState);
     });
-
-#if ENABLE(MEDIA_STREAM)
-    auto newState = applyWebAppDesiredMutedKinds(state, m_mutedCaptureKindsDesiredByWebApp);
-#else
-    auto newState = state;
-#endif
-    WEBPAGEPROXY_RELEASE_LOG(Media, "setMuted, app state = %d, final state = %d", state.toRaw(), newState.toRaw());
 
     auto aggregator = CallbackAggregator::create(WTFMove(completionHandler));
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
@@ -16656,7 +16657,7 @@ void WebPageProxy::describeTextExtractionInteraction(TextExtraction::Interaction
 
 void WebPageProxy::addConsoleMessage(FrameIdentifier frameID, MessageSource messageSource, MessageLevel messageLevel, const String& message, std::optional<ResourceLoaderIdentifier> coreIdentifier)
 {
-    send(Messages::WebPage::AddConsoleMessage { frameID, messageSource, messageLevel, message, coreIdentifier });
+    sendToProcessContainingFrame(frameID, Messages::WebPage::AddConsoleMessage { frameID, messageSource, messageLevel, message, coreIdentifier });
 }
 
 #if ENABLE(ASYNC_SCROLLING) && PLATFORM(COCOA)
@@ -16693,6 +16694,25 @@ void WebPageProxy::documentURLForConsoleLog(WebCore::FrameIdentifier frameID, Co
     if (RefPtr frame = WebFrameProxy::webFrame(frameID))
         return completionHandler(frame->url());
     completionHandler({ });
+}
+
+void WebPageProxy::reportMixedContentViolation(FrameIdentifier frameID, bool blocked, const URL& target)
+{
+    RefPtr frame = WebFrameProxy::webFrame(frameID);
+    if (!frame)
+        return;
+
+    auto isUpgradingLocalhostDisabled = !protectedPreferences()->iPAddressAndLocalhostMixedContentUpgradeTestingEnabled() && shouldTreatAsPotentiallyTrustworthy(target);
+    ASCIILiteral errorString = [&] {
+        if (blocked)
+            return "blocked and must"_s;
+        if (isUpgradingLocalhostDisabled)
+            return "not upgraded to HTTPS and must be served from the local host."_s;
+        return "automatically upgraded and should"_s;
+    }();
+
+    auto message = makeString((!blocked ? ""_s : "[blocked] "_s), "The page at "_s, frame->url().stringCenterEllipsizedToLength(), " requested insecure content from "_s, target.stringCenterEllipsizedToLength(), ". This content was "_s, errorString, !isUpgradingLocalhostDisabled ? " be served over HTTPS.\n"_s : "\n"_s);
+    addConsoleMessage(frameID, MessageSource::Security, MessageLevel::Warning, message);
 }
 
 void WebPageProxy::drawFrameToSnapshot(FrameIdentifier frameID, const IntRect& rect, RemoteSnapshotIdentifier snapshotIdentifier, CompletionHandler<void(bool)>&& completionHandler)

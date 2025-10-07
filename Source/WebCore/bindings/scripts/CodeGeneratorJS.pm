@@ -1810,10 +1810,7 @@ sub ShouldGenerateToJSDeclaration
     return 0 if ($interface->extendedAttributes->{SuppressToJSObject});
     return 0 if not NeedsImplementationClass($interface);
     return 0 if IsDOMGlobalObject($interface);
-    return 1 if (!$hasParent or $interface->extendedAttributes->{JSGenerateToJSObject} or $interface->extendedAttributes->{CustomToJSObject});
-    return 1 if $interface->parentType && $interface->parentType->name eq "EventTarget";
-    return 1 if @{$interface->constructors} > 0 && !HasCustomConstructor($interface);
-    return 0;
+    return 1;
 }
 
 sub ShouldGenerateToJSImplementation
@@ -4187,8 +4184,6 @@ sub GetGnuVTableOffsetForType
         || $typename eq "SVGPolyElement"
         || $typename eq "SVGPolygonElement"
         || $typename eq "SVGPolylineElement"
-        || $typename eq "SVGRectElement"
-        || $typename eq "SVGSVGElement"
         || $typename eq "SVGGeometryElement"
         || $typename eq "SVGGraphicsElement"
         || $typename eq "SVGSwitchElement"
@@ -5536,7 +5531,7 @@ extern "C" { extern void (*const ${vtableRefWin}[])(); }
 extern "C" { extern void* ${vtableNameGnu}[]; }
 #endif
 template<std::same_as<${implType}> T>
-static inline void verifyVTable(${implType}* ptr) 
+static inline void verifyVTable(${implType}* ptr)
 {
     if constexpr (std::is_polymorphic_v<T>) {
         const void* actualVTablePointer = getVTablePointer<T>(ptr);
@@ -5558,9 +5553,37 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
 END
 
-        push(@implContent, "JSC::JSValue toJSNewlyCreated(JSC::JSGlobalObject*, JSDOMGlobalObject* globalObject, Ref<$implType>&& impl)\n");
+        push(@implContent, "JSC::JSValue toJSNewlyCreated(JSC::JSGlobalObject* lexicalGlobalObject, JSDOMGlobalObject* globalObject, Ref<$implType>&& impl)\n");
         push(@implContent, "{\n");
-        push(@implContent, <<END) if $vtableNameGnu;
+        push (@implContent, "    UNUSED_PARAM(lexicalGlobalObject);\n");
+        my $hasChildInterfaces = 0;
+        unless ($interface->extendedAttributes->{IgnoreSubclassesWhenGeneratingToJSObject}) {
+            $codeGenerator->ForEachChildInterface($interface, sub {
+                my $childInterface = shift;
+                $hasChildInterfaces = 1;
+                my $childImplType = GetImplClassName($childInterface);
+                my $conditional = $childInterface->extendedAttributes->{Conditional};
+                if ($conditional) {
+                    my $conditionalString = $codeGenerator->GenerateConditionalStringFromAttributeValue($conditional);
+                    push(@implContent, "#if ${conditionalString}\n");
+                }
+                AddToImplIncludesForIDLType($childInterface->type);
+                AddToImplIncludes("JS" . $childInterface->type->name . ".h");
+                if ($childInterface->type->name =~ m/\QElement\E$/) {
+                    if ($childInterface->type->name =~ /^\QHTML/) {
+                        AddToImplIncludes("HTMLElementTypeHelpers.h");
+                    } elsif ($childInterface->type->name =~ /^\QSVG/) {
+                        AddToImplIncludes("SVGElementTypeHelpers.h");
+                    } elsif ($childInterface->type->name =~ /^\QMathML/) {
+                        AddToImplIncludes("MathMLElementTypeHelpers.h");
+                    }
+                }
+                push(@implContent, "    if (is<${childImplType}>(impl))\n");
+                push(@implContent, "        return toJSNewlyCreated(lexicalGlobalObject, globalObject, downcast<${childImplType}>(WTFMove(impl)));\n");
+                push(@implContent, "#endif\n") if $conditional;
+            });
+        }
+        push(@implContent, <<END) if $vtableNameGnu and not $hasChildInterfaces;
 #if ENABLE(BINDING_INTEGRITY)
     verifyVTable<$implType>(impl.ptr());
 #endif
@@ -5953,6 +5976,51 @@ sub GenerateAttributeSetterBodyDefinition
         push(@$outputArray, "    UNUSED_PARAM(thisObject);\n");
         push(@$outputArray, "    UNUSED_PARAM(value);\n");
         push(@$outputArray, "    return true;\n");
+    } elsif ($attribute->type->isUnion && !$attribute->type->isNullable && $attribute->extendedAttributes->{OptimizedUnionSetterUsingOverloads}) {
+        push(@$outputArray, "    SUPPRESS_UNCOUNTED_LOCAL auto& impl = thisObject.wrapped();\n") if !$attribute->isStatic;
+
+        my $globalObjectReference = $attribute->isStatic ? "*jsCast<JSDOMGlobalObject*>(lexicalGlobalObject)" : "*thisObject.globalObject()";
+        my $exceptionThrower = GetAttributeExceptionThrower($interface, $attribute);
+
+        push(@$outputArray, "    auto valueFunctor = [&]<typename T>(T&& nativeValueConversionResult) -> bool {\n");
+        push(@$outputArray, "        if constexpr (std::same_as<T, ConversionResultException>) {\n");
+        push(@$outputArray, "            return false;\n");
+        push(@$outputArray, "        } else {\n");
+        push(@$outputArray, "            if (nativeValueConversionResult.hasException(throwScope)) [[unlikely]]\n");
+        push(@$outputArray, "                return false;\n");
+
+        my $readValue = "nativeValueConversionResult.returnValue()";
+        my $releaseValue = PassArgumentExpression("nativeValueConversionResult.releaseReturnValue()", $attribute);
+
+        my $nativeValue = $releaseValue;
+        my ($baseFunctionName, @arguments) = $codeGenerator->SetterExpression(\%implIncludes, $interface->type->name, $attribute);
+        push(@arguments, $nativeValue);
+
+        my $functionName = GetFullyQualifiedImplementationCallName($interface, $attribute, $baseFunctionName, "impl", $conditional);
+        AddAdditionalArgumentsForImplementationCall(\@arguments, $interface, $attribute, "impl", "lexicalGlobalObject", "", "thisObject");
+
+        unshift(@arguments, GenerateCallWithUsingReferences($attribute->extendedAttributes->{SetterCallWith}, $outputArray, "false", "thisObject"));
+        unshift(@arguments, GenerateCallWithUsingReferences($attribute->extendedAttributes->{CallWith}, $outputArray, "false", "thisObject"));
+
+        my $functionString = "${functionName}(" . join(", ", @arguments) . ")";
+
+        my $callTracer = $attribute->extendedAttributes->{CallTracer} || $interface->extendedAttributes->{CallTracer};
+        if ($callTracer) {
+            my $indent = "            ";
+            my @callTracerArguments = ( ["typename T::IDL", "${readValue}"] );
+            GenerateCallTracer($outputArray, $callTracer, $attribute->name, \@callTracerArguments, $indent);
+        }
+
+        push(@$outputArray, "            invokeFunctorPropagatingExceptionIfNecessary(lexicalGlobalObject, throwScope, [&] {\n");
+        push(@$outputArray, "                return $functionString;\n");
+        push(@$outputArray, "            });\n");
+        push(@$outputArray, "            return true;\n");
+        push(@$outputArray, "        }\n");
+        push(@$outputArray, "    };\n");
+
+        my $toNativeExpression = JSValueToNative($interface, $attribute, "value", $attribute->extendedAttributes->{Conditional}, "&lexicalGlobalObject", "lexicalGlobalObject", "thisObject", $globalObjectReference, $exceptionThrower, undef, undef, undef, "valueFunctor");
+
+        push(@$outputArray, "    return $toNativeExpression;\n");
     } else {
         push(@$outputArray, "    SUPPRESS_UNCOUNTED_LOCAL auto& impl = thisObject.wrapped();\n") if !$attribute->isStatic;
 
@@ -7676,7 +7744,7 @@ sub IsValidContextForJSValueToNative
 
 sub JSValueToNative
 {
-    my ($interface, $context, $value, $conditional, $lexicalGlobalObjectPointer, $lexicalGlobalObjectReference, $thisObjectReference, $globalObjectReference, $exceptionThrowerFunctor, $functionName, $optional, $defaultValueFunctor) = @_;
+    my ($interface, $context, $value, $conditional, $lexicalGlobalObjectPointer, $lexicalGlobalObjectReference, $thisObjectReference, $globalObjectReference, $exceptionThrowerFunctor, $functionName, $optional, $defaultValueFunctor, $resultValueFunctor) = @_;
 
     assert("Invalid context type") if !IsValidContextForJSValueToNative($context);
 
@@ -7701,6 +7769,7 @@ sub JSValueToNative
     push(@conversionArguments, $globalObjectReference) if JSValueToNativeDOMConvertNeedsGlobalObject($type);
     push(@conversionArguments, $defaultValueFunctor) if $defaultValueFunctor;
     push(@conversionArguments, $exceptionThrowerFunctor) if $exceptionThrowerFunctor;
+    push(@conversionArguments, $resultValueFunctor) if $resultValueFunctor;
     if ($type->name eq "ScheduledAction") {
         my $interfaceName = $codeGenerator->GetVisibleInterfaceName($interface);
         if ($functionName) {

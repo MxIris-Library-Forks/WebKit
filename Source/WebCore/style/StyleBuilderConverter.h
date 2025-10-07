@@ -139,9 +139,6 @@ public:
     static PaintOrder convertPaintOrder(BuilderState&, const CSSValue&);
     static StyleSelfAlignmentData convertSelfOrDefaultAlignmentData(BuilderState&, const CSSValue&);
     static StyleContentAlignmentData convertContentAlignmentData(BuilderState&, const CSSValue&);
-    static GlyphOrientation convertGlyphOrientation(BuilderState&, const CSSValue&);
-    static GlyphOrientation convertGlyphOrientationOrAuto(BuilderState&, const CSSValue&);
-    static WebCore::Length convertLineHeight(BuilderState&, const CSSValue&, float multiplier = 1.f);
 
     static OptionSet<HangingPunctuation> convertHangingPunctuation(BuilderState&, const CSSValue&);
 
@@ -661,72 +658,6 @@ inline StyleContentAlignmentData BuilderConverter::convertContentAlignmentData(B
     if (contentValue->overflow() != CSSValueInvalid)
         alignmentData.setOverflow(fromCSSValueID<OverflowAlignment>(contentValue->overflow()));
     return alignmentData;
-}
-
-inline GlyphOrientation BuilderConverter::convertGlyphOrientation(BuilderState& builderState, const CSSValue& value)
-{
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-
-    float angle = std::abs(fmodf(primitiveValue->resolveAsAngle(builderState.cssToLengthConversionData()), 360.0f));
-    if (angle <= 45.0f || angle > 315.0f)
-        return GlyphOrientation::Degrees0;
-    if (angle > 45.0f && angle <= 135.0f)
-        return GlyphOrientation::Degrees90;
-    if (angle > 135.0f && angle <= 225.0f)
-        return GlyphOrientation::Degrees180;
-    return GlyphOrientation::Degrees270;
-}
-
-inline GlyphOrientation BuilderConverter::convertGlyphOrientationOrAuto(BuilderState& builderState, const CSSValue& value)
-{
-    if (value.valueID() == CSSValueAuto)
-        return GlyphOrientation::Auto;
-    return convertGlyphOrientation(builderState, value);
-}
-
-inline WebCore::Length BuilderConverter::convertLineHeight(BuilderState& builderState, const CSSValue& value, float multiplier)
-{
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-
-    auto valueID = primitiveValue->valueID();
-    if (valueID == CSSValueNormal)
-        return RenderStyle::initialLineHeight();
-
-    if (CSSPropertyParserHelpers::isSystemFontShorthand(valueID))
-        return RenderStyle::initialLineHeight();
-
-    auto conversionData = builderState.cssToLengthConversionData().copyForLineHeight(zoomWithTextZoomFactor(builderState));
-
-    if (primitiveValue->isLength() || primitiveValue->isCalculatedPercentageWithLength()) {
-        WebCore::Length length;
-        if (primitiveValue->isLength())
-            length = primitiveValue->resolveAsLength<WebCore::Length>(conversionData);
-        else {
-            auto value = primitiveValue->cssCalcValue()->createCalculationValue(conversionData, CSSCalcSymbolTable { })->evaluate(builderState.style().computedFontSize());
-            length = { clampTo<float>(value, minValueForCssLength, maxValueForCssLength), LengthType::Fixed };
-        }
-        if (multiplier != 1.f)
-            length = WebCore::Length(length.value() * multiplier, LengthType::Fixed);
-        return length;
-    }
-
-    // Line-height percentages need to inherit as if they were Fixed pixel values. In the example:
-    // <div style="font-size: 10px; line-height: 150%;"><div style="font-size: 100px;"></div></div>
-    // the inner element should have line-height of 15px. However, in this example:
-    // <div style="font-size: 10px; line-height: 1.5;"><div style="font-size: 100px;"></div></div>
-    // the inner element should have a line-height of 150px. Therefore, we map percentages to Fixed
-    // values and raw numbers to percentages.
-    if (primitiveValue->isPercentage()) {
-        // FIXME: percentage should not be restricted to an integer here.
-        return WebCore::Length((builderState.style().computedFontSize() * primitiveValue->resolveAsPercentage<int>(conversionData)) / 100, LengthType::Fixed);
-    }
-
-    ASSERT(primitiveValue->isNumber());
-    return WebCore::Length(primitiveValue->resolveAsNumber(conversionData) * 100.0, LengthType::Percent);
 }
 
 inline OptionSet<SpeakAs> BuilderConverter::convertSpeakAs(BuilderState&, const CSSValue& value)
@@ -1292,7 +1223,8 @@ inline NameScope BuilderConverter::convertNameScope(BuilderState& builderState, 
 
 inline FixedVector<PositionTryFallback> BuilderConverter::convertPositionTryFallbacks(BuilderState& builderState, const CSSValue& value)
 {
-    auto convertFallback = [&](const CSSValue& fallbackValue) -> std::optional<PositionTryFallback> {
+    // FIXME: SaferCPP analysis reports that 'builderState' is an unsafe capture, even though this lambda does not escape.
+    SUPPRESS_UNCOUNTED_LAMBDA_CAPTURE auto convertFallback = [&](const CSSValue& fallbackValue) -> std::optional<PositionTryFallback> {
         auto* valueList = dynamicDowncast<CSSValueList>(fallbackValue);
         if (!valueList) {
             // Turn the inlined position-area fallback into properties object that can be applied similarly to @position-try declarations.

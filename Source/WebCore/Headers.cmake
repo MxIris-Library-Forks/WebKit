@@ -1403,6 +1403,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/LiveNodeListInlines.h
     dom/LoadableClassicScript.h
     dom/LoadableModuleScript.h
+    dom/LoadableSpeculationRules.h
     dom/LoadableScript.h
     dom/LoadableScriptClient.h
     dom/LoadableScriptError.h
@@ -3328,6 +3329,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/inline/StyleLineBoxContain.h
     style/values/inline/StyleLineFitEdge.h
+    style/values/inline/StyleLineHeight.h
     style/values/inline/StyleTextBoxEdge.h
     style/values/inline/StyleTextEdge.h
     style/values/inline/StyleVerticalAlign.h
@@ -3384,6 +3386,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/primitives/StylePosition.h
     style/values/primitives/StylePrimitiveKeyword+CSSValueCreation.h
     style/values/primitives/StylePrimitiveKeyword+Serialization.h
+    style/values/primitives/StylePrimitiveKeyword+ValueRepresentationNeeded.h
     style/values/primitives/StylePrimitiveNumeric+Forward.h
     style/values/primitives/StylePrimitiveNumeric.h
     style/values/primitives/StylePrimitiveNumericAdaptors.h
@@ -3443,6 +3446,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/svg/StyleSVGBaselineShift.h
     style/values/svg/StyleSVGCenterCoordinateComponent.h
     style/values/svg/StyleSVGCoordinateComponent.h
+    style/values/svg/StyleSVGGlyphOrientationHorizontal.h
+    style/values/svg/StyleSVGGlyphOrientationVertical.h
     style/values/svg/StyleSVGMarkerResource.h
     style/values/svg/StyleSVGPaint.h
     style/values/svg/StyleSVGPathData.h

@@ -3032,7 +3032,7 @@ private:
     void didChangeContentSize(const WebCore::IntSize&);
     void didChangeIntrinsicContentSize(const WebCore::IntSize&);
 
-    void showColorPicker(IPC::Connection&, const WebCore::Color& initialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&);
+    void showColorPicker(IPC::Connection&, const WebCore::Color& initialColor, const WebCore::IntRect&, ColorControlSupportsAlpha, Vector<WebCore::Color>&&, std::optional<WebCore::FrameIdentifier>&&);
 
     void showDataListSuggestions(WebCore::DataListSuggestionInformation&&);
     void handleKeydownInDataList(const String&);
@@ -3153,7 +3153,7 @@ private:
 #endif
 
     void focusedElementChanged(IPC::Connection&, const std::optional<WebCore::FrameIdentifier>&, WebCore::FocusOptions);
-    void focusedFrameChanged(IPC::Connection&, const std::optional<WebCore::FrameIdentifier>&);
+    void focusedFrameChanged(IPC::Connection&, std::optional<WebCore::FrameIdentifier>&&);
 
     void didFinishLoadingDataForCustomContentProvider(String&& suggestedFilename, std::span<const uint8_t>);
 
@@ -3400,7 +3400,7 @@ private:
     void sendPreventableTouchEvent(WebCore::FrameIdentifier, const WebTouchEvent&);
     void sendUnpreventableTouchEvent(WebCore::FrameIdentifier, const WebTouchEvent&);
 
-    void broadcastFocusedFrameToOtherProcesses(IPC::Connection&, const WebCore::FrameIdentifier&);
+    void broadcastFocusedFrameToOtherProcesses(IPC::Connection&, std::optional<WebCore::FrameIdentifier>&&);
 
     void focusRemoteFrame(IPC::Connection&, WebCore::FrameIdentifier);
     void postMessageToRemote(WebCore::FrameIdentifier source, const String& sourceOrigin, WebCore::FrameIdentifier target, std::optional<WebCore::SecurityOriginData> targetOrigin, const WebCore::MessageWithMessagePorts&);

@@ -1111,7 +1111,7 @@ public:
     void autofillLoginCredentials(const String&, const String&);
     void setFocusedElementValue(const WebCore::ElementContext&, const String&);
     void setFocusedElementSelectedIndex(const WebCore::ElementContext&, uint32_t index, bool allowMultipleSelection);
-    void setIsShowingInputViewForFocusedElement(bool showingInputView) { m_isShowingInputViewForFocusedElement = showingInputView; }
+    void setIsShowingInputViewForFocusedElement(bool);
     bool isShowingInputViewForFocusedElement() const { return m_isShowingInputViewForFocusedElement; }
     void updateSelectionAppearance();
     void getSelectionContext(CompletionHandler<void(const String&, const String&, const String&)>&&);
@@ -2571,7 +2571,7 @@ private:
     void dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier);
 
     void elementWasFocusedInAnotherProcess(WebCore::FrameIdentifier, WebCore::FocusOptions);
-    void frameWasFocusedInAnotherProcess(WebCore::FrameIdentifier);
+    void frameWasFocusedInAnotherProcess(std::optional<WebCore::FrameIdentifier>&&);
 
 #if ENABLE(WRITING_TOOLS)
     void willBeginWritingToolsSession(const std::optional<WebCore::WritingTools::Session>&, CompletionHandler<void(const Vector<WebCore::WritingTools::Context>&)>&&);

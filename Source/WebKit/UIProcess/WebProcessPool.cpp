@@ -1269,7 +1269,8 @@ Ref<WebProcessProxy> WebProcessPool::processForSite(WebsiteDataStore& websiteDat
         if (RefPtr process = webProcessCache().takeSharedProcess(*mainFrameSite, websiteDataStore, lockdownMode, enhancedSecurity, pageConfiguration)) {
             if (process->sharedProcessDomains().intersectionWith(isolatedDomains).isEmpty()) {
                 ASSERT(m_processes.containsIf([&](auto& item) { return item.ptr() == process; }));
-                WEBPROCESSPOOL_RELEASE_LOG(ProcessSwapping, "processForSite: Using shared WebProcess from WebProcess cache (process=%p, PID=%i)", process.get(), process->processID());                
+                WEBPROCESSPOOL_RELEASE_LOG(ProcessSwapping, "processForSite: Using shared WebProcess from WebProcess cache (process=%p, PID=%i)", process.get(), process->processID());
+                ASSERT(!process->isInProcessCache());
                 return process.releaseNonNull();
             } else
                 WEBPROCESSPOOL_RELEASE_LOG(ProcessSwapping, "processForSite: discarding the shared process since it contains a domain that needs to be isolated (process=%p, PID=%i)", process.get(), process->processID());
@@ -2343,8 +2344,12 @@ std::tuple<Ref<WebProcessProxy>, RefPtr<SuspendedPageProxy>, ASCIILiteral> WebPr
         return { WTFMove(sourceProcess), nullptr, "Navigation is same-site"_s };
 
     if (sourceURL.protocolIsAbout()) {
-        if (sourceProcess->site() && sourceProcess->site()->domain().matches(targetURL))
-            return { WTFMove(sourceProcess), nullptr, "Navigation is treated as same-site"_s };
+        if (auto sourceSite = sourceProcess->site()) {
+            if (!siteIsolationEnabled && sourceSite->domain().matches(targetURL))
+                return { WTFMove(sourceProcess), nullptr, "Navigation is treated as same-site (matched domain)"_s };
+            if (siteIsolationEnabled && sourceSite->matches(targetURL))
+                return { WTFMove(sourceProcess), nullptr, "Navigation is treated as same-site (matched site)"_s };
+        }
         // With site isolation enabled, this condition is not enough to indicate the web process can be reused;
         // we may also need to consider whether the process is used or in use by other sites.
         if (!siteIsolationEnabled && !sourceProcess->hasCommittedAnyMeaningfulProvisionalLoads())

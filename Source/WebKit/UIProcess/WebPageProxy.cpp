@@ -3268,7 +3268,7 @@ void WebPageProxy::dispatchActivityStateChange()
 #endif
 
     if (isNowInWindow)
-        protectedDrawingArea()->hideContentUntilAnyUpdate();
+        protectedDrawingArea()->hideContentUntilDidUpdateActivityState(activityStateChangeID);
 
     updateBackingStoreDiscardableState();
 
@@ -5033,6 +5033,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
         loadedWebArchive,
         replacedDataStoreForWebArchiveLoad
     ] (Ref<WebProcessProxy>&& processNavigatingTo, SuspendedPageProxy* destinationSuspendedPage, ASCIILiteral reason) mutable {
+        ASSERT(!processNavigatingTo->isInProcessCache());
         // If the navigation has been destroyed or the frame has been replaced by PSON, then no need to proceed.
         auto currentMainFrameID = m_mainFrame ? std::optional<WebCore::FrameIdentifier> { m_mainFrame->frameID() } : std::nullopt;
         if (isClosed()
@@ -5146,6 +5147,8 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
         continueWithProcessForNavigation = WTFMove(continueWithProcessForNavigation)
     ](FrameProcess* sharedProcess) mutable {
         if (sharedProcess) {
+            navigation->setPendingSharedProcess(*sharedProcess);
+            ASSERT(!sharedProcess->process().isInProcessCache());
             if (frame->isMainFrame()) {
                 protectedWebsiteDataStore()->protectedNetworkProcess()->addAllowedFirstPartyForCookies(sharedProcess->process(), site.domain(), LoadedWebArchive::No, [process = Ref { sharedProcess->process() }, continueWithProcessForNavigation = WTFMove(continueWithProcessForNavigation)] mutable {
                     continueWithProcessForNavigation(WTFMove(process), nullptr, "Uses shared Web process"_s);
@@ -9704,18 +9707,24 @@ void WebPageProxy::restartXRSessionActivityOnProcessResumeIfNeeded()
 }
 #endif
 
-void WebPageProxy::showColorPicker(IPC::Connection& connection, const WebCore::Color& initialColor, const IntRect& elementRect, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&& suggestions)
+void WebPageProxy::showColorPicker(IPC::Connection& connection, const WebCore::Color& initialColor, const IntRect& elementRect, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&& suggestions, std::optional<WebCore::FrameIdentifier>&& rootFrameID)
 {
     MESSAGE_CHECK_BASE(supportsAlpha == ColorControlSupportsAlpha::No || protectedPreferences()->inputTypeColorEnhancementsEnabled(), connection);
 
-    RefPtr pageClient = this->pageClient();
-    if (!pageClient)
-        return;
+    convertRectToMainFrameCoordinates(elementRect, rootFrameID, [weakThis = WeakPtr { *this }, initialColor, supportsAlpha, suggestions = WTFMove(suggestions)](std::optional<FloatRect> convertedRect) mutable {
+        RefPtr protectedThis = weakThis.get();
+        if (!protectedThis || !convertedRect)
+            return;
 
-    internals().colorPicker = pageClient->createColorPicker(*this, initialColor, elementRect, supportsAlpha, WTFMove(suggestions));
-    // FIXME: Remove this conditional once all ports have a functional PageClientImpl::createColorPicker.
-    if (RefPtr colorPicker = internals().colorPicker)
-        colorPicker->showColorPicker(initialColor);
+        RefPtr pageClient = protectedThis->pageClient();
+        if (!pageClient)
+            return;
+
+        protectedThis->internals().colorPicker = pageClient->createColorPicker(*protectedThis, initialColor, IntRect(*convertedRect), supportsAlpha, WTFMove(suggestions));
+        // FIXME: Remove this conditional once all ports have a functional PageClientImpl::createColorPicker.
+        if (RefPtr colorPicker = protectedThis->internals().colorPicker)
+            colorPicker->showColorPicker(initialColor);
+    });
 }
 
 void WebPageProxy::setColorPickerColor(const WebCore::Color& color)
@@ -11301,19 +11310,11 @@ void WebPageProxy::focusedElementChanged(IPC::Connection& connection, const std:
     });
 }
 
-void WebPageProxy::focusedFrameChanged(IPC::Connection& connection, const std::optional<FrameIdentifier>& frameID)
+void WebPageProxy::focusedFrameChanged(IPC::Connection& connection, std::optional<FrameIdentifier>&& frameID)
 {
-    if (!frameID) {
-        m_focusedFrame = nullptr;
-        return;
-    }
-
-    RefPtr frame = WebFrameProxy::webFrame(*frameID);
-    if (!frame)
-        return;
-
+    RefPtr frame = frameID ? WebFrameProxy::webFrame(*frameID) : nullptr;
     m_focusedFrame = WTFMove(frame);
-    broadcastFocusedFrameToOtherProcesses(connection, *frameID);
+    broadcastFocusedFrameToOtherProcesses(connection, WTFMove(frameID));
 }
 
 void WebPageProxy::processDidBecomeUnresponsive()
@@ -16347,16 +16348,12 @@ void WebPageProxy::dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier
     sendToProcessContainingFrame(parentFrame->frameID(), Messages::WebPage::DispatchLoadEventToFrameOwnerElement(frameID));
 }
 
-void WebPageProxy::broadcastFocusedFrameToOtherProcesses(IPC::Connection& connection, const WebCore::FrameIdentifier& frameID)
+void WebPageProxy::broadcastFocusedFrameToOtherProcesses(IPC::Connection& connection, std::optional<WebCore::FrameIdentifier>&& frameID)
 {
-    RefPtr frame = WebFrameProxy::webFrame(frameID);
-    if (!frame)
-        return;
-
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
             return;
-        webProcess.send(Messages::WebPage::FrameWasFocusedInAnotherProcess(frameID), pageID);
+        webProcess.send(Messages::WebPage::FrameWasFocusedInAnotherProcess(WTFMove(frameID)), pageID);
     });
 }
 
@@ -16518,7 +16515,7 @@ void WebPageProxy::focusRemoteFrame(IPC::Connection& connection, WebCore::FrameI
 
     ASSERT(destinationFrame->page() == this);
 
-    broadcastFocusedFrameToOtherProcesses(connection, frameID);
+    broadcastFocusedFrameToOtherProcesses(connection, std::make_optional(frameID));
     setFocus(true);
 }
 

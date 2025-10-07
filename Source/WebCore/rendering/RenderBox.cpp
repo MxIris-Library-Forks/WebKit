@@ -2715,7 +2715,7 @@ void RenderBox::computeLogicalWidth(LogicalExtentComputedValues& computedValues)
         ASSERT(!overridingLogicalWidthForFlexBasisComputation());
         // FIXME: This calculation is not patched for block-flow yet.
         // https://bugs.webkit.org/show_bug.cgi?id=46500
-        computePositionedLogicalWidth(computedValues);
+        computeOutOfFlowPositionedLogicalWidth(computedValues);
         return;
     }
 
@@ -3350,7 +3350,7 @@ RenderBox::LogicalExtentComputedValues RenderBox::computeLogicalHeight(LayoutUni
     }
 
     if (isOutOfFlowPositioned()) {
-        computePositionedLogicalHeight(computedValues);
+        computeOutOfFlowPositionedLogicalHeight(computedValues);
         return computedValues;
     }
 
@@ -4383,12 +4383,12 @@ LayoutUnit RenderBox::containingBlockLogicalHeightForPositioned(const RenderBoxM
     return { };
 }
 
-void RenderBox::computePositionedLogicalWidth(LogicalExtentComputedValues& computedValues) const
+void RenderBox::computeOutOfFlowPositionedLogicalWidth(LogicalExtentComputedValues& computedValues) const
 {
-    if (isBlockLevelReplacedOrAtomicInline()) {
-        computePositionedLogicalWidthReplaced(computedValues);
-        return;
-    }
+    ASSERT(isOutOfFlowPositioned());
+
+    if (CheckedPtr replaced = dynamicDowncast<RenderReplaced>(this))
+        return replaced->computeReplacedOutOfFlowPositionedLogicalWidth(computedValues);
 
     // QUESTIONS
     // FIXME 1: Should we still deal with these the cases of 'left' or 'right' having
@@ -4402,7 +4402,7 @@ void RenderBox::computePositionedLogicalWidth(LogicalExtentComputedValues& compu
     // The following is based off of the W3C Working Draft from April 11, 2006 of
     // CSS 2.1: Section 10.3.7 "Absolutely positioned, non-replaced elements"
     // <http://www.w3.org/TR/CSS21/visudet.html#abs-non-replaced-width>
-    // (block-style-comments in this function and in computePositionedLogicalWidthUsing()
+    // (block-style-comments in this function and in computeOutOfFlowPositionedLogicalWidthUsing()
     // correspond to text from the spec)
 
     PositionedLayoutConstraints inlineConstraints(*this, LogicalBoxAxis::Inline);
@@ -4410,7 +4410,7 @@ void RenderBox::computePositionedLogicalWidth(LogicalExtentComputedValues& compu
 
     // Calculate the used width. See CSS2 § 10.3.7.
     auto& styleToUse = style();
-    auto usedWidth = computePositionedLogicalWidthUsing(styleToUse.logicalWidth(), inlineConstraints);
+    auto usedWidth = computeOutOfFlowPositionedLogicalWidthUsing(styleToUse.logicalWidth(), inlineConstraints);
 
     LayoutUnit transferredMinSize = LayoutUnit::min();
     LayoutUnit transferredMaxSize = LayoutUnit::max();
@@ -4420,18 +4420,18 @@ void RenderBox::computePositionedLogicalWidth(LogicalExtentComputedValues& compu
     // Clamp by max-width.
     auto usedMaxWidth = LayoutUnit::max();
     if (auto& logicalMaxWidth = styleToUse.logicalMaxWidth(); !logicalMaxWidth.isNone())
-        usedMaxWidth = computePositionedLogicalWidthUsing(logicalMaxWidth, inlineConstraints);
+        usedMaxWidth = computeOutOfFlowPositionedLogicalWidthUsing(logicalMaxWidth, inlineConstraints);
     if (transferredMaxSize < usedMaxWidth)
-        usedMaxWidth = computePositionedLogicalWidthUsing(Style::MaximumSize { Style::MaximumSize::Fixed { transferredMaxSize } }, inlineConstraints);
+        usedMaxWidth = computeOutOfFlowPositionedLogicalWidthUsing(Style::MaximumSize { Style::MaximumSize::Fixed { transferredMaxSize } }, inlineConstraints);
     if (usedWidth > usedMaxWidth)
         usedWidth = usedMaxWidth;
 
     // Clamp by min-width.
     auto usedMinWidth = LayoutUnit::min();
     if (auto& logicalMinWidth = styleToUse.logicalMinWidth(); !logicalMinWidth.isKnownZero() || logicalMinWidth.isIntrinsic())
-        usedMinWidth = computePositionedLogicalWidthUsing(logicalMinWidth, inlineConstraints);
+        usedMinWidth = computeOutOfFlowPositionedLogicalWidthUsing(logicalMinWidth, inlineConstraints);
     if (transferredMinSize > usedMinWidth)
-        usedMinWidth = computePositionedLogicalWidthUsing(Style::MinimumSize { Style::MinimumSize::Fixed { transferredMinSize } }, inlineConstraints);
+        usedMinWidth = computeOutOfFlowPositionedLogicalWidthUsing(Style::MinimumSize { Style::MinimumSize::Fixed { transferredMinSize } }, inlineConstraints);
     if (usedWidth < usedMinWidth)
         usedWidth = usedMinWidth;
 
@@ -4461,7 +4461,7 @@ void RenderBox::computePositionedLogicalWidth(LogicalExtentComputedValues& compu
     }
 }
 
-template<typename SizeType> LayoutUnit RenderBox::computePositionedLogicalWidthUsing(const SizeType& logicalWidth, const PositionedLayoutConstraints& inlineConstraints) const
+template<typename SizeType> LayoutUnit RenderBox::computeOutOfFlowPositionedLogicalWidthUsing(const SizeType& logicalWidth, const PositionedLayoutConstraints& inlineConstraints) const
 {
     auto fallback = [&] -> LayoutUnit {
         bool logicalLeftIsAuto = inlineConstraints.insetBefore().isAuto();
@@ -4537,12 +4537,12 @@ template<typename SizeType> LayoutUnit RenderBox::computePositionedLogicalWidthU
     );
 }
 
-void RenderBox::computePositionedLogicalHeight(LogicalExtentComputedValues& computedValues) const
+void RenderBox::computeOutOfFlowPositionedLogicalHeight(LogicalExtentComputedValues& computedValues) const
 {
-    if (isBlockLevelReplacedOrAtomicInline()) {
-        computePositionedLogicalHeightReplaced(computedValues);
-        return;
-    }
+    ASSERT(isOutOfFlowPositioned());
+
+    if (CheckedPtr replaced = dynamicDowncast<RenderReplaced>(this))
+        return replaced->computeReplacedOutOfFlowPositionedLogicalHeight(computedValues);
 
     PositionedLayoutConstraints blockConstraints(*this, LogicalBoxAxis::Block);
     blockConstraints.computeInsets();
@@ -4550,18 +4550,18 @@ void RenderBox::computePositionedLogicalHeight(LogicalExtentComputedValues& comp
     // Calculate the used height. See CSS2 § 10.6.4.
     auto& styleToUse = style();
     LayoutUnit computedHeight = computedValues.m_extent;
-    LayoutUnit usedHeight = computePositionedLogicalHeightUsing(styleToUse.logicalHeight(), computedHeight, blockConstraints);
+    LayoutUnit usedHeight = computeOutOfFlowPositionedLogicalHeightUsing(styleToUse.logicalHeight(), computedHeight, blockConstraints);
 
     // Clamp by max height.
     if (auto logicalMaxHeight = styleToUse.logicalMaxHeight(); !logicalMaxHeight.isNone()) {
-        auto usedMaxHeight = computePositionedLogicalHeightUsing(logicalMaxHeight, computedHeight, blockConstraints);
+        auto usedMaxHeight = computeOutOfFlowPositionedLogicalHeightUsing(logicalMaxHeight, computedHeight, blockConstraints);
         if (usedHeight > usedMaxHeight)
             usedHeight = usedMaxHeight;
     }
 
     // Clamp by min height.
     if (auto& logicalMinHeight = styleToUse.logicalMinHeight(); logicalMinHeight.isAuto() || !logicalMinHeight.isKnownZero() || logicalMinHeight.isIntrinsic()) {
-        auto usedMinHeight = computePositionedLogicalHeightUsing(logicalMinHeight, computedHeight, blockConstraints);
+        auto usedMinHeight = computeOutOfFlowPositionedLogicalHeightUsing(logicalMinHeight, computedHeight, blockConstraints);
         if (usedHeight < usedMinHeight)
             usedHeight = usedMinHeight;
     }
@@ -4592,7 +4592,7 @@ void RenderBox::computePositionedLogicalHeight(LogicalExtentComputedValues& comp
     }
 }
 
-LayoutUnit RenderBox::computePositionedLogicalHeightUsing(const Style::PreferredSize& logicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
+LayoutUnit RenderBox::computeOutOfFlowPositionedLogicalHeightUsing(const Style::PreferredSize& logicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
 {
     auto contentLogicalHeight = computedHeight - blockConstraints.bordersPlusPadding();
 
@@ -4622,7 +4622,7 @@ LayoutUnit RenderBox::computePositionedLogicalHeightUsing(const Style::Preferred
     return contentLogicalHeight;
 }
 
-LayoutUnit RenderBox::computePositionedLogicalHeightUsing(const Style::MinimumSize& originalLogicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
+LayoutUnit RenderBox::computeOutOfFlowPositionedLogicalHeightUsing(const Style::MinimumSize& originalLogicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
 {
     auto contentLogicalHeight = computedHeight - blockConstraints.bordersPlusPadding();
 
@@ -4644,7 +4644,7 @@ LayoutUnit RenderBox::computePositionedLogicalHeightUsing(const Style::MinimumSi
     return adjustContentBoxLogicalHeightForBoxSizing(Style::evaluate<LayoutUnit>(logicalHeight, blockConstraints.containingSize(), Style::ZoomNeeded { }));
 }
 
-LayoutUnit RenderBox::computePositionedLogicalHeightUsing(const Style::MaximumSize& logicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
+LayoutUnit RenderBox::computeOutOfFlowPositionedLogicalHeightUsing(const Style::MaximumSize& logicalHeight, LayoutUnit computedHeight, const PositionedLayoutConstraints& blockConstraints) const
 {
     auto contentLogicalHeight = computedHeight - blockConstraints.bordersPlusPadding();
 
@@ -4655,34 +4655,6 @@ LayoutUnit RenderBox::computePositionedLogicalHeightUsing(const Style::MaximumSi
     if (logicalHeight.isIntrinsic())
         return adjustContentBoxLogicalHeightForBoxSizing(computeIntrinsicLogicalContentHeightUsing(logicalHeight, contentLogicalHeight, blockConstraints.bordersPlusPadding()).value_or(0_lu));
     return adjustContentBoxLogicalHeightForBoxSizing(Style::evaluate<LayoutUnit>(logicalHeight, blockConstraints.containingSize(), Style::ZoomNeeded { }));
-}
-
-void RenderBox::computePositionedLogicalWidthReplaced(LogicalExtentComputedValues& computedValues) const
-{
-    PositionedLayoutConstraints inlineConstraints(*this, LogicalBoxAxis::Inline);
-    inlineConstraints.computeInsets();
-
-    // NOTE: This value of width is final in that the min/max width calculations
-    // are dealt with in computeReplacedWidth(). This means that the steps to produce
-    // correct max/min in the non-replaced version, are not necessary.
-    computedValues.m_extent = computeReplacedLogicalWidth() + borderAndPaddingLogicalWidth();
-
-    inlineConstraints.resolvePosition(computedValues);
-    inlineConstraints.fixupLogicalLeftPosition(computedValues);
-}
-
-void RenderBox::computePositionedLogicalHeightReplaced(LogicalExtentComputedValues& computedValues) const
-{
-    PositionedLayoutConstraints blockConstraints(*this, LogicalBoxAxis::Block);
-    blockConstraints.computeInsets();
-
-    // NOTE: This value of height is final in that the min/max height calculations
-    // are dealt with in computeReplacedHeight(). This means that the steps to produce
-    // correct max/min in the non-replaced version, are not necessary.
-    computedValues.m_extent = computeReplacedLogicalHeight() + borderAndPaddingLogicalHeight();
-
-    blockConstraints.resolvePosition(computedValues);
-    blockConstraints.adjustLogicalTopWithLogicalHeightIfNeeded(computedValues);
 }
 
 PositionWithAffinity RenderBox::positionForPoint(const LayoutPoint& point, HitTestSource source, const RenderFragmentContainer* fragment)

@@ -5560,6 +5560,70 @@ TEST(SiteIsolation, SharedProcessBasicWebProcessCache)
     EXPECT_EQ(childFrameProcess2C, childFrameProcess2);
 }
 
+TEST(SiteIsolation, WebProcessCacheCrashWithZeroSharedProcess)
+{
+    HTTPServer server({
+        { "/page"_s, { "<!DOCTYPE html><p>page"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server, EnableProcessCache::Yes);
+    pid_t previousPID = 0;
+    unsigned cacheSize = webView.get().configuration.processPool._processCacheCapacity;
+    for (unsigned i = 0; i <= cacheSize + 1; ++i) {
+        auto url = makeString("https://domain-"_s, i, ".com/page"_s);
+        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url.createNSString().get()]]];
+        [navigationDelegate waitForDidFinishNavigation];
+        pid_t currentPID = [webView mainFrame].info._processIdentifier;
+        EXPECT_NE(currentPID, previousPID);
+        previousPID = currentPID;
+    }
+}
+
+TEST(SiteIsolation, SharedProcessWebProcessCacheCanEvict)
+{
+    HTTPServer server({
+        { "/empty"_s, { ""_s } },
+        { "/example"_s, { "<!DOCTYPE html><iframe src='https://webkit.org/webkit'></iframe><!DOCTYPE html><iframe src='https://apple.com/apple'></iframe>"_s } },
+        { "/webkit"_s, { "webkit"_s } },
+        { "/apple"_s, { "hi"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server, EnableProcessCache::Yes);
+
+    RetainPtr<WKProcessPool> processPool = webView.get().configuration.processPool;
+    [processPool _setCachedProcessLifetimeForTesting:0];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    checkFrameTreesInProcesses(webView.get(), {
+        {
+            "https://example.com"_s,
+            { { RemoteFrame }, { RemoteFrame } }
+        },
+        {
+            RemoteFrame,
+            { { "https://webkit.org"_s }, { "https://apple.com"_s } }
+        },
+    });
+    auto mainFrameProcess = [webView mainFrame].info._processIdentifier;
+    auto childFrameProcess1 = [webView mainFrame].childFrames[0].info._processIdentifier;
+    auto childFrameProcess2 = [webView mainFrame].childFrames[1].info._processIdentifier;
+    EXPECT_NE(childFrameProcess1, mainFrameProcess);
+    EXPECT_EQ(childFrameProcess1, childFrameProcess2);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://w3.org/empty"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    checkFrameTreesInProcesses(webView.get(), { { "https://w3.org"_s, } });
+    auto mainFrameProcessB = [webView mainFrame].info._processIdentifier;
+    EXPECT_NE(mainFrameProcessB, mainFrameProcess);
+
+    // No processes should be in the cache due to eviction timeout of 0.
+    bool cacheIsEmpty = Util::waitFor([&]() {
+        return ![processPool _processCacheSize];
+    });
+    EXPECT_TRUE(cacheIsEmpty);
+}
+
 TEST(SiteIsolation, SharedProcessBasicWebProcessCacheCrash)
 {
     HTTPServer server({

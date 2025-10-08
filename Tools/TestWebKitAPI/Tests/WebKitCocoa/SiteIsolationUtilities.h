@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,25 +23,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "JSText.h"
+#pragma once
 
-#include "JSCDATASection.h"
+@class WKWebView;
 
-namespace WebCore {
-
-using namespace JSC;
-
-JSValue toJSNewlyCreated(JSGlobalObject*, JSDOMGlobalObject* globalObject, Ref<Text>&& text)
-{
-    if (is<CDATASection>(text))
-        return createWrapper<CDATASection>(globalObject, WTFMove(text));
-    return createWrapper<Text>(globalObject, WTFMove(text));
-}
-
-JSValue toJS(JSGlobalObject* lexicalGlobalObject, JSDOMGlobalObject* globalObject, Text& text)
-{
-    return wrap(lexicalGlobalObject, globalObject, text);
-}
-
-} // namespace WebCore
+bool isSiteIsolationEnabled(WKWebView*);

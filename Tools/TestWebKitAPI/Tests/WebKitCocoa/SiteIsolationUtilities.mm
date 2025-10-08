@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,38 +24,22 @@
  */
 
 #import "config.h"
-#import "CoreIPCFont.h"
+#import "SiteIsolationUtilities.h"
 
-#if PLATFORM(COCOA)
+#import <WebKit/WKPreferences.h>
+#import <WebKit/WKPreferencesPrivate.h>
+#import <WebKit/WKWebViewConfiguration.h>
+#import <WebKit/_WKFeature.h>
+#import <wtf/RetainPtr.h>
 
-#import "CoreIPCNSCFObject.h"
-#import "CoreIPCTypes.h"
-#import "CoreTextHelpers.h"
-#import <wtf/BlockObjCExceptions.h>
-
-#if PLATFORM(IOS_FAMILY)
-#import <UIKit/UIFont.h>
-#import <UIKit/UIFontDescriptor.h>
-#endif
-
-namespace WebKit {
-
-CoreIPCFont::CoreIPCFont(WebCore::CocoaFont *font)
-    : m_fontDescriptorAttributes(font.fontDescriptor.fontAttributes)
+bool isSiteIsolationEnabled(WKWebView *webView)
 {
+    RetainPtr<WKWebViewConfiguration> configuration = [webView configuration];
+    RetainPtr<WKPreferences> preferences = [configuration preferences];
+    for (_WKFeature *feature in [WKPreferences _features]) {
+        if ([feature.key isEqualToString:@"SiteIsolationEnabled"])
+            return [preferences _isEnabledForFeature:(feature)];
+    }
+
+    return false;
 }
-
-RetainPtr<id> CoreIPCFont::toID() const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS
-
-    return { WebKit::fontWithAttributes(m_fontDescriptorAttributes.toID().get(), 0) };
-
-    END_BLOCK_OBJC_EXCEPTIONS
-
-    return nullptr;
-}
-
-} // namespace WebKit
-
-#endif // PLATFORM(COCOA)

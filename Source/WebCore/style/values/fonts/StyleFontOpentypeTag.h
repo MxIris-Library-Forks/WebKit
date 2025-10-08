@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,29 +25,29 @@
 
 #pragma once
 
-#include <WebCore/ProcessSyncClient.h>
-#include <wtf/TZoneMalloc.h>
-#include <wtf/WeakRef.h>
+#include <WebCore/FontTaggedSettings.h>
+#include <WebCore/StyleValueTypes.h>
 
-namespace WebKit {
+namespace WebCore {
+namespace Style {
 
-class WebPage;
+// <opentype-tag> = <string>
+// https://drafts.csswg.org/css-fonts-4/#typedef-opentype-tag
+struct FontOpentypeTag {
+    WebCore::FontTag value;
 
-class WebProcessSyncClient :  public WebCore::ProcessSyncClient {
-    WTF_MAKE_TZONE_ALLOCATED(WebProcessSyncClient);
-public:
-    WebProcessSyncClient(WebPage&);
-    ~WebProcessSyncClient() = default;
-
-private:
-    bool siteIsolationEnabled();
-
-    void broadcastProcessSyncDataToOtherProcesses(const WebCore::ProcessSyncData&) final;
-    void broadcastTopDocumentSyncDataToOtherProcesses(WebCore::DocumentSyncData&) final;
-
-    Ref<WebPage> protectedPage() const;
-
-    const WeakRef<WebPage> m_page;
+    constexpr bool operator==(const FontOpentypeTag&) const = default;
 };
 
-} // namespace WebKit
+// MARK: - Serialization
+
+template<> struct Serialize<FontOpentypeTag> {
+    void operator()(StringBuilder& builder, const CSS::SerializationContext&, const RenderStyle&, const FontOpentypeTag& tag)
+    {
+        builder.append('"', tag.value[0], tag.value[1], tag.value[2], tag.value[3], '"');
+    }
+};
+
+
+} // namespace Style
+} // namespace WebCore

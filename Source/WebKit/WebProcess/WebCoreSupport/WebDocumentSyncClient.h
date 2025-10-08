@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024-2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,48 +23,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "WebProcessSyncClient.h"
+#pragma once
 
-#include "MessageSenderInlines.h"
-#include "WebPage.h"
-#include "WebPageProxyMessages.h"
-#include <WebCore/DocumentSyncData.h>
-#include <WebCore/Page.h>
-#include <WebCore/Settings.h>
-#include <wtf/RefPtr.h>
-#include <wtf/TZoneMallocInlines.h>
+#include <WebCore/DocumentSyncClient.h>
+#include <wtf/TZoneMalloc.h>
+#include <wtf/WeakRef.h>
 
 namespace WebKit {
 
-WTF_MAKE_TZONE_ALLOCATED_IMPL(WebProcessSyncClient);
+class WebPage;
 
-WebProcessSyncClient::WebProcessSyncClient(WebPage& webPage)
-    : m_page(webPage)
-{
-}
+class WebDocumentSyncClient :  public WebCore::DocumentSyncClient {
+    WTF_MAKE_TZONE_ALLOCATED(WebDocumentSyncClient);
+public:
+    WebDocumentSyncClient(WebPage&);
+    ~WebDocumentSyncClient() = default;
 
-Ref<WebPage> WebProcessSyncClient::protectedPage() const
-{
-    return m_page.get();
-}
+private:
+    bool siteIsolationEnabled();
 
-bool WebProcessSyncClient::siteIsolationEnabled()
-{
-    RefPtr corePage = protectedPage()->corePage();
-    return corePage ? corePage->settings().siteIsolationEnabled() : false;
-}
+    void broadcastDocumentSyncDataToOtherProcesses(const WebCore::DocumentSyncSerializationData&) final;
+    void broadcastAllDocumentSyncDataToOtherProcesses(WebCore::DocumentSyncData&) final;
 
-void WebProcessSyncClient::broadcastProcessSyncDataToOtherProcesses(const WebCore::ProcessSyncData& data)
-{
-    ASSERT(siteIsolationEnabled());
-    protectedPage()->send(Messages::WebPageProxy::BroadcastProcessSyncData(data));
-}
+    Ref<WebPage> protectedPage() const;
 
-void WebProcessSyncClient::broadcastTopDocumentSyncDataToOtherProcesses(WebCore::DocumentSyncData& data)
-{
-    ASSERT(siteIsolationEnabled());
-    protectedPage()->send(Messages::WebPageProxy::BroadcastTopDocumentSyncData(data));
-}
+    const WeakRef<WebPage> m_page;
+};
 
 } // namespace WebKit

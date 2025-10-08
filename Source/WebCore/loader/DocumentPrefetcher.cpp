@@ -46,15 +46,7 @@ DocumentPrefetcher::DocumentPrefetcher(FrameLoader& frameLoader)
 {
 }
 
-DocumentPrefetcher::~DocumentPrefetcher()
-{
-#if ASSERT_ENABLED
-    for (auto& prefetchedResource : m_prefetchedResources.values()) {
-        if (prefetchedResource)
-            removeAssociatedResource(*prefetchedResource);
-    }
-#endif
-}
+DocumentPrefetcher::~DocumentPrefetcher() = default;
 
 static bool isPassingSecurityChecks(const URL& url, Document& document)
 {
@@ -88,6 +80,7 @@ static ResourceRequest makePrefetchRequest(URL&& url, const Vector<String>& tags
     ResourceRequest request { WTFMove(url) };
     request.setPriority(ResourceLoadPriority::VeryLow);
 
+    // https://html.spec.whatwg.org/multipage/speculative-loading.html#the-sec-speculation-tags-header
     if (!tags.isEmpty()) {
         StringBuilder builder;
         for (size_t i = 0; i < tags.size(); ++i) {
@@ -114,7 +107,7 @@ void DocumentPrefetcher::prefetch(const URL& url, const Vector<String>& tags, co
     if (!document)
         return;
 
-    if (m_prefetchedResources.contains(url))
+    if (m_prefetchedData.contains(url))
         return;
 
     if (!url.isValid())
@@ -154,7 +147,7 @@ void DocumentPrefetcher::prefetch(const URL& url, const Vector<String>& tags, co
         return;
     auto prefetchedResource = resourceErrorOr.value();
     if (prefetchedResource) {
-        m_prefetchedResources.set(url, prefetchedResource);
+        m_prefetchedData.set(url, PrefetchedResourceData { prefetchedResource, { } });
         prefetchedResource->addClient(*this);
     }
 }
@@ -165,32 +158,26 @@ void DocumentPrefetcher::responseReceived(const CachedResource&, const ResourceR
         completionHandler();
 }
 
-void DocumentPrefetcher::redirectReceived(CachedResource& resource, ResourceRequest&& request, const ResourceResponse&, CompletionHandler<void(ResourceRequest&&)>&& completionHandler)
+void DocumentPrefetcher::notifyFinished(CachedResource& resource, const NetworkLoadMetrics& metrics, LoadWillContinueInAnotherProcess)
 {
-    URL originalURL;
-    for (auto& [url, prefetchedResource] : m_prefetchedResources) {
-        if (prefetchedResource.get() == &resource) {
-            originalURL = url;
-            break;
-        }
-    }
+    URL resourceURL = resource.url();
+    auto it = m_prefetchedData.find(resourceURL);
+    if (it != m_prefetchedData.end())
+        it->value.metrics = Box<NetworkLoadMetrics>::create(metrics);
 
-    if (!originalURL.isEmpty()) {
-        URL redirectURL = request.url();
-
-        if (m_prefetchedResources.contains(originalURL)) {
-            auto prefetchedResource = m_prefetchedResources.take(originalURL);
-            m_prefetchedResources.set(redirectURL, WTFMove(prefetchedResource));
-        }
-    }
-
-    completionHandler(WTFMove(request));
-}
-
-void DocumentPrefetcher::notifyFinished(CachedResource& resource, const NetworkLoadMetrics&, LoadWillContinueInAnotherProcess)
-{
     if (resource.hasClient(*this))
         resource.removeClient(*this);
+}
+
+Box<NetworkLoadMetrics> DocumentPrefetcher::takePrefetchedNetworkLoadMetrics(const URL& url)
+{
+    auto it = m_prefetchedData.find(url);
+    if (it != m_prefetchedData.end() && it->value.metrics) {
+        auto metrics = WTFMove(it->value.metrics);
+        it->value.metrics = { };
+        return metrics;
+    }
+    return { };
 }
 
 

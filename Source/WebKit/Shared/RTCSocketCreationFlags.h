@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Apple Inc. All rights reserved.
+ * Copyright (C) 2017 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,25 +23,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "JSDocumentFragment.h"
+#pragma once
 
-#include "JSShadowRoot.h"
+#if USE(LIBWEBRTC)
 
+namespace WebKit {
 
-namespace WebCore {
-using namespace JSC;
+struct RTCSocketCreationFlags {
+    bool isFirstParty { false };
+    bool isRelayDisabled { false };
+    bool enableServiceClass { false };
+};
 
-JSValue toJSNewlyCreated(JSGlobalObject*, JSDOMGlobalObject* globalObject, Ref<DocumentFragment>&& impl)
-{
-    if (impl->isShadowRoot())
-        return createWrapper<ShadowRoot>(globalObject, WTFMove(impl));
-    return createWrapper<DocumentFragment>(globalObject, WTFMove(impl));
 }
 
-JSValue toJS(JSGlobalObject* lexicalGlobalObject, JSDOMGlobalObject* globalObject, DocumentFragment& impl)
-{
-    return wrap(lexicalGlobalObject, globalObject, impl);
-}
-
-} // namespace WebCore
+#endif // USE(LIBWEBRTC)

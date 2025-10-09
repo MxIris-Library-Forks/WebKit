@@ -1010,6 +1010,7 @@
 		3A12CDBB29D4D30200D57EAE /* WebSWRegistrationStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AC4C04529D35D1500402716 /* WebSWRegistrationStore.h */; };
 		3A18A2EF2AFF004C00DB976C /* _WKArchiveConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A18A2EE2AFF004C00DB976C /* _WKArchiveConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3A18A2F52B02969900DB976C /* _WKArchiveExclusionRule.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A18A2F32B02969800DB976C /* _WKArchiveExclusionRule.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3A4DC9CA2E9463AE0083A531 /* LegacyWebArchiveCallbackAggregator.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A4DC9C92E9463AE0083A531 /* LegacyWebArchiveCallbackAggregator.h */; };
 		3A7D62D629D38DD300D57DAC /* ServiceWorkerStorageManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A7D62D429D38DD300D57DAC /* ServiceWorkerStorageManager.h */; };
 		3AE104C029CBC8BB00661165 /* OriginQuotaManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AE104BE29CBC8BB00661165 /* OriginQuotaManager.h */; };
 		3CAECB6627465AE400AB78D0 /* UnifiedSource113.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAECB5E27465AE300AB78D0 /* UnifiedSource113.cpp */; };
@@ -2467,6 +2468,8 @@
 		F454C12A2BA3ABDC00871551 /* _WKTargetedElementInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C1272BA3ABDC00871551 /* _WKTargetedElementInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F454C12C2BA3AC8C00871551 /* _WKTargetedElementInfoInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C12B2BA3AC8C00871551 /* _WKTargetedElementInfoInternal.h */; };
 		F454C1302BA3AFFD00871551 /* APITargetedElementInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C12D2BA3AFFD00871551 /* APITargetedElementInfo.h */; };
+		F458B8EA2E8F46E900948328 /* CoreIPCPKDateComponentsRange.h in Headers */ = {isa = PBXBuildFile; fileRef = F458B8E72E8F46E100948328 /* CoreIPCPKDateComponentsRange.h */; };
+		F458B8EB2E8F46F000948328 /* CoreIPCPKDateComponentsRange.mm in Sources */ = {isa = PBXBuildFile; fileRef = F458B8E82E8F46E100948328 /* CoreIPCPKDateComponentsRange.mm */; };
 		F4648E92296E81FA00744170 /* WebPrivacyHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = F4648E90296E81F500744170 /* WebPrivacyHelpers.h */; };
 		F4660BC225DEF08100E86598 /* PasteboardAccessIntent.h in Headers */ = {isa = PBXBuildFile; fileRef = F4660BC125DEF08100E86598 /* PasteboardAccessIntent.h */; };
 		F468770B2C6402650068A20C /* CocoaWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = F468770A2C6402650068A20C /* CocoaWindow.h */; };
@@ -4705,7 +4708,6 @@
 		2D1B5D5A18586599006C6596 /* ViewGestureController.messages.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = ViewGestureController.messages.in; sourceTree = "<group>"; };
 		2D1B5D5B185869C8006C6596 /* ViewGestureControllerMessageReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewGestureControllerMessageReceiver.cpp; sourceTree = "<group>"; };
 		2D1B5D5C185869C8006C6596 /* ViewGestureControllerMessages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewGestureControllerMessages.h; sourceTree = "<group>"; };
-		2D1DE3592AFA465300D955D4 /* StorageAccessStatus.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; name = StorageAccessStatus.serialization.in; path = Classifier/StorageAccessStatus.serialization.in; sourceTree = "<group>"; };
 		2D1DE35A2AFA469000D955D4 /* PrivateClickMeasurementManagerInterface.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = PrivateClickMeasurementManagerInterface.serialization.in; sourceTree = "<group>"; };
 		2D1DE35B2AFA46BA00D955D4 /* FileSystemStorageError.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = FileSystemStorageError.serialization.in; sourceTree = "<group>"; };
 		2D1E8221216FFF5000A15265 /* WKWebEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WKWebEvent.h; path = ios/WKWebEvent.h; sourceTree = "<group>"; };
@@ -5335,6 +5337,7 @@
 		3A18A2F32B02969800DB976C /* _WKArchiveExclusionRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKArchiveExclusionRule.h; sourceTree = "<group>"; };
 		3A26F82D2B258CEF00FEB1B0 /* PlatformXR.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = PlatformXR.serialization.in; sourceTree = "<group>"; };
 		3A36AFAF2B9667770098631A /* WebCookieJarCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebCookieJarCocoa.mm; sourceTree = "<group>"; };
+		3A4DC9C92E9463AE0083A531 /* LegacyWebArchiveCallbackAggregator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyWebArchiveCallbackAggregator.h; sourceTree = "<group>"; };
 		3A5B68962AC266D400B11868 /* WKARPresentationSession.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKARPresentationSession.h; sourceTree = "<group>"; };
 		3A5B68972AC266D400B11868 /* WKARPresentationSession.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKARPresentationSession.mm; sourceTree = "<group>"; };
 		3A7D62D229D35D9D00D57DAC /* WebSWRegistrationStore.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebSWRegistrationStore.cpp; sourceTree = "<group>"; };
@@ -8594,6 +8597,9 @@
 		F454C12D2BA3AFFD00871551 /* APITargetedElementInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = APITargetedElementInfo.h; sourceTree = "<group>"; };
 		F454C12E2BA3AFFD00871551 /* APITargetedElementInfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = APITargetedElementInfo.cpp; sourceTree = "<group>"; };
 		F457FD572E40FF92003F3B28 /* _WKTextExtraction.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = _WKTextExtraction.mm; sourceTree = "<group>"; };
+		F458B8E72E8F46E100948328 /* CoreIPCPKDateComponentsRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreIPCPKDateComponentsRange.h; sourceTree = "<group>"; };
+		F458B8E82E8F46E100948328 /* CoreIPCPKDateComponentsRange.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreIPCPKDateComponentsRange.mm; sourceTree = "<group>"; };
+		F458B8E92E8F46E100948328 /* CoreIPCPKDateComponentsRange.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = CoreIPCPKDateComponentsRange.serialization.in; sourceTree = "<group>"; };
 		F4648E90296E81F500744170 /* WebPrivacyHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebPrivacyHelpers.h; sourceTree = "<group>"; };
 		F4648E91296E81F500744170 /* WebPrivacyHelpers.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebPrivacyHelpers.mm; sourceTree = "<group>"; };
 		F4660BC125DEF08100E86598 /* PasteboardAccessIntent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PasteboardAccessIntent.h; sourceTree = "<group>"; };
@@ -10375,6 +10381,7 @@
 				7A821F4D1E2F679E00604577 /* LegacyCustomProtocolManagerClient.mm */,
 				A1DF631118E0B7C8003A3E2A /* LegacyDownloadClient.h */,
 				A1DF631018E0B7C8003A3E2A /* LegacyDownloadClient.mm */,
+				3A4DC9C92E9463AE0083A531 /* LegacyWebArchiveCallbackAggregator.h */,
 				9342588F2555DCA50059EEDD /* MediaPermissionUtilities.mm */,
 				411286EF21C8A90C003A8550 /* MediaUtilities.h */,
 				411286F021C8A90D003A8550 /* MediaUtilities.mm */,
@@ -12852,6 +12859,9 @@
 				51AD568D2B1C46EF001A0ECB /* CoreIPCPersonNameComponents.h */,
 				51AD568E2B1C46EF001A0ECB /* CoreIPCPersonNameComponents.mm */,
 				51AD568F2B1C46F0001A0ECB /* CoreIPCPersonNameComponents.serialization.in */,
+				F458B8E72E8F46E100948328 /* CoreIPCPKDateComponentsRange.h */,
+				F458B8E82E8F46E100948328 /* CoreIPCPKDateComponentsRange.mm */,
+				F458B8E92E8F46E100948328 /* CoreIPCPKDateComponentsRange.serialization.in */,
 				FAF27D2E2D2850D400F1F0BB /* CoreIPCPKSecureElementPass.h */,
 				FAF27D2F2D2850D400F1F0BB /* CoreIPCPKSecureElementPass.mm */,
 				F4B63E162C49586700BC59EF /* CoreIPCPlist.serialization.in */,
@@ -14201,7 +14211,6 @@
 				7A41E9FA21F81DAC00B88CDB /* ShouldGrandfatherStatistics.h */,
 				022A83DC2E4405DD00F3E092 /* StorageAccessPermissionChangeObserver.h */,
 				7A3FECA121F7C09700F267CD /* StorageAccessStatus.h */,
-				2D1DE3592AFA465300D955D4 /* StorageAccessStatus.serialization.in */,
 				7A843A1A21E41FB200DEF663 /* WebResourceLoadStatisticsStore.cpp */,
 				7AFBD36221E50F39005DBACB /* WebResourceLoadStatisticsStore.h */,
 			);
@@ -17567,6 +17576,7 @@
 				F4EFF36D2AF0267300479AB8 /* CoreIPCNumber.h in Headers */,
 				5157AE0A2B23E96A00C0E095 /* CoreIPCPassKit.h in Headers */,
 				51AD56912B1C4704001A0ECB /* CoreIPCPersonNameComponents.h in Headers */,
+				F458B8EA2E8F46E900948328 /* CoreIPCPKDateComponentsRange.h in Headers */,
 				564599992B71C3D100BC59E6 /* CoreIPCPresentationIntent.h in Headers */,
 				5C5786922B6EFFFF005D51D5 /* CoreIPCRetainPtr.h in Headers */,
 				561A54532B61E49E00073A72 /* CoreIPCSecCertificate.h in Headers */,
@@ -17757,6 +17767,7 @@
 				2984F57D164B915F004BC0C6 /* LegacyCustomProtocolManagerProxyMessages.h in Headers */,
 				A1DF631318E0B7C8003A3E2A /* LegacyDownloadClient.h in Headers */,
 				1A1DC340196346D700FF7059 /* LegacySessionStateCoding.h in Headers */,
+				3A4DC9CA2E9463AE0083A531 /* LegacyWebArchiveCallbackAggregator.h in Headers */,
 				411B22641E371BA6004F7363 /* LibWebRTCNetwork.h in Headers */,
 				413075B41DE85F580039EC69 /* LibWebRTCProvider.h in Headers */,
 				41FAF5F81E3C1021001AE678 /* LibWebRTCResolver.h in Headers */,
@@ -21136,6 +21147,7 @@
 				FAC7C0C22D712E2900E7297E /* CoreIPCNumber.mm in Sources */,
 				5157AE0B2B23E97400C0E095 /* CoreIPCPassKit.mm in Sources */,
 				51AD56902B1C46FE001A0ECB /* CoreIPCPersonNameComponents.mm in Sources */,
+				F458B8EB2E8F46F000948328 /* CoreIPCPKDateComponentsRange.mm in Sources */,
 				FAF27D302D2851EB00F1F0BB /* CoreIPCPKSecureElementPass.mm in Sources */,
 				F4F12CB32C48B8C100BC1254 /* CoreIPCPlistArray.mm in Sources */,
 				F4F12CB02C48B2C800BC1254 /* CoreIPCPlistDictionary.mm in Sources */,

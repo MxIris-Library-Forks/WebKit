@@ -133,7 +133,6 @@ $(PROJECT_DIR)/ModelProcess/cocoa/ModelProcessModelPlayerProxy.messages.in
 $(PROJECT_DIR)/NetworkProcess/Authentication/AuthenticationManager.messages.in
 $(PROJECT_DIR)/NetworkProcess/Classifier/ITPThirdPartyData.serialization.in
 $(PROJECT_DIR)/NetworkProcess/Classifier/ITPThirdPartyDataForSpecificFirstParty.serialization.in
-$(PROJECT_DIR)/NetworkProcess/Classifier/StorageAccessStatus.serialization.in
 $(PROJECT_DIR)/NetworkProcess/Cookies/WebCookieManager.messages.in
 $(PROJECT_DIR)/NetworkProcess/CustomProtocols/LegacyCustomProtocolManager.messages.in
 $(PROJECT_DIR)/NetworkProcess/NetworkBroadcastChannelRegistry.messages.in
@@ -261,6 +260,7 @@ $(PROJECT_DIR)/Shared/Cocoa/CoreIPCNSURLProtectionSpace.serialization.in
 $(PROJECT_DIR)/Shared/Cocoa/CoreIPCNSURLRequest.serialization.in
 $(PROJECT_DIR)/Shared/Cocoa/CoreIPCNSValue.serialization.in
 $(PROJECT_DIR)/Shared/Cocoa/CoreIPCNull.serialization.in
+$(PROJECT_DIR)/Shared/Cocoa/CoreIPCPKDateComponentsRange.serialization.in
 $(PROJECT_DIR)/Shared/Cocoa/CoreIPCPassKit.serialization.in
 $(PROJECT_DIR)/Shared/Cocoa/CoreIPCPersonNameComponents.serialization.in
 $(PROJECT_DIR)/Shared/Cocoa/CoreIPCPlist.serialization.in
@@ -349,7 +349,6 @@ $(PROJECT_DIR)/Shared/Notifications/NotificationManagerMessageHandler.messages.i
 $(PROJECT_DIR)/Shared/Notifications/NotificationManagerProxy.messages.in
 $(PROJECT_DIR)/Shared/PALArgumentCoders.serialization.in
 $(PROJECT_DIR)/Shared/Pasteboard.serialization.in
-$(PROJECT_DIR)/Shared/PlatformFontInfo.serialization.in
 $(PROJECT_DIR)/Shared/PlatformPopupMenuData.serialization.in
 $(PROJECT_DIR)/Shared/PolicyDecision.serialization.in
 $(PROJECT_DIR)/Shared/PrintInfo.serialization.in

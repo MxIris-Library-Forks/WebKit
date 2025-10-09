@@ -630,6 +630,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/mediastream/UserMediaRequest.h
     Modules/mediastream/libwebrtc/LibWebRTCUtils.h
 
+    Modules/model-element/DDModelPlayer.h
     Modules/model-element/HTMLModelElement.h
     Modules/model-element/HTMLModelElementCamera.h
     Modules/model-element/ModelPlayer.h
@@ -3307,6 +3308,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/fonts/StyleFontPalette.h
     style/values/fonts/StyleFontSizeAdjust.h
     style/values/fonts/StyleFontStyle.h
+    style/values/fonts/StyleFontVariantAlternates.h
+    style/values/fonts/StyleFontVariantEastAsian.h
+    style/values/fonts/StyleFontVariantLigatures.h
+    style/values/fonts/StyleFontVariantNumeric.h
     style/values/fonts/StyleFontVariationSettings.h
     style/values/fonts/StyleFontWeight.h
     style/values/fonts/StyleFontWidth.h

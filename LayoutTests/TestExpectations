@@ -2443,8 +2443,6 @@ webkit.org/b/261667 css3/masking/mask-reference-png-fragment.html [ ImageOnlyFai
 
 webkit.org/b/142175 js/promises-tests/promises-tests-2-1-2.html [ Pass Timeout ]
 
-webkit.org/b/139840 fast/xmlhttprequest/xmlhttprequest-recursive-sync-event.html [ Pass Failure ]
-
 webkit.org/b/140043 js/dom/Promise.html [ Pass Failure ]
 
 webkit.org/b/134550 http/tests/cache/iframe-304-crash.html [ Failure Pass ]
@@ -6947,11 +6945,6 @@ imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/reload-no
 imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/transition-to.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/precommit-handler/ [ Skip ]
 
-# rdar://160391355
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-form-reload.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-form-traverse.html [ Failure ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-form-with-target.html [ Failure ]
-
 # -- View Transitions -- #
 
 imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-element-overflow-clip-with-border-radius.html [ ImageOnlyFailure ]
@@ -7540,14 +7533,11 @@ imported/w3c/web-platform-tests/css/css-viewport/width.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/border-spacing.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/iframe-zoom-nested.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/iframe-zoom.sub.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/letter-spacing.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/line-height.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/list-style-image.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/relative-units-from-parent.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/text-indent.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-shadow.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/text-stroke-width.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/word-spacing.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/border.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/bottom.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/container-queries.html [ ImageOnlyFailure ]

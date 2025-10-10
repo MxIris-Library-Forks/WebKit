@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia, S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,28 +23,32 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "JSXMLDocument.h"
+#pragma once
 
-#include "JSDocumentCustom.h"
-#include "NodeTraversal.h"
+#include "JSObject.h"
 
-namespace WebCore {
+namespace JSC {
 
-using namespace JSC;
+class TemporalPlainMonthDayPrototype final : public JSNonFinalObject {
+public:
+    using Base = JSNonFinalObject;
+    static constexpr unsigned StructureFlags = Base::StructureFlags | HasStaticPropertyTable;
 
-JSValue toJSNewlyCreated(JSGlobalObject* lexicalGlobalObject, JSDOMGlobalObject* globalObject, Ref<XMLDocument>&& document)
-{
-    reportMemoryForDocumentIfFrameless(*lexicalGlobalObject, document.get());
+    template<typename CellType, SubspaceAccess>
+    static GCClient::IsoSubspace* subspaceFor(VM& vm)
+    {
+        STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(TemporalPlainMonthDayPrototype, Base);
+        return &vm.plainObjectSpace();
+    }
 
-    return createWrapper<XMLDocument>(globalObject, WTFMove(document));
-}
+    static TemporalPlainMonthDayPrototype* create(VM&, JSGlobalObject*, Structure*);
+    static Structure* createStructure(VM&, JSGlobalObject*, JSValue);
 
-JSValue toJS(JSGlobalObject* lexicalGlobalObject, JSDOMGlobalObject* globalObject, XMLDocument& document)
-{
-    if (auto* wrapper = cachedDocumentWrapper(*lexicalGlobalObject, *globalObject, document))
-        return wrapper;
-    return toJSNewlyCreated(lexicalGlobalObject, globalObject, Ref<XMLDocument>(document));
-}
+    DECLARE_INFO;
 
-} // namespace WebCore
+private:
+    TemporalPlainMonthDayPrototype(VM&, Structure*);
+    void finishCreation(VM&, JSGlobalObject*);
+};
+
+} // namespace JSC

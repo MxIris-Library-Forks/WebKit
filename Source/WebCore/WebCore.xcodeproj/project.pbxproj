@@ -9723,7 +9723,6 @@
 		2A538A2226E3693000965FC8 /* CSSSkewX.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSkewX.cpp; sourceTree = "<group>"; };
 		2A538A2326E3693000965FC8 /* CSSSkewY.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSSkewY.cpp; sourceTree = "<group>"; };
 		2A538A2426E3693000965FC8 /* CSSSkew.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSSkew.h; sourceTree = "<group>"; };
-		2A538A4A26F3DA5E00965FC8 /* JSCSSTransformComponentCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSTransformComponentCustom.cpp; sourceTree = "<group>"; };
 		2A66438E26A006AE00C147A1 /* FormDataEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = FormDataEvent.idl; sourceTree = "<group>"; };
 		2A66439026A006AF00C147A1 /* FormDataEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FormDataEvent.h; sourceTree = "<group>"; };
 		2A66439126A006AF00C147A1 /* FormDataEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FormDataEvent.cpp; sourceTree = "<group>"; };
@@ -14991,7 +14990,6 @@
 		839C69CE2810D11C00E69BAD /* CommonAtomStrings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommonAtomStrings.h; sourceTree = "<group>"; };
 		83A2ABD824D86DC600E2D73D /* DelayOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DelayOptions.h; sourceTree = "<group>"; };
 		83A2ABDA24D86DC700E2D73D /* DelayOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = DelayOptions.idl; sourceTree = "<group>"; };
-		83A4A9F81CE7FD7E00709B00 /* JSXMLDocumentCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSXMLDocumentCustom.cpp; sourceTree = "<group>"; };
 		83A8AC3E1FABBFD1002064AC /* ServiceWorkerIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServiceWorkerIdentifier.h; sourceTree = "<group>"; };
 		83ACD01025229E04000D124E /* WorkletOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WorkletOptions.h; sourceTree = "<group>"; };
 		83ACD01225229E04000D124E /* WorkletOptions.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WorkletOptions.idl; sourceTree = "<group>"; };
@@ -18810,7 +18808,6 @@
 		BC4F32CA2E8C518300F6AEC1 /* StyleAccentColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleAccentColor.h; sourceTree = "<group>"; };
 		BC4F32CB2E8C518300F6AEC1 /* StyleAccentColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleAccentColor.cpp; sourceTree = "<group>"; };
 		BC51156D12B1749C00C96754 /* ScrollAnimatorMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollAnimatorMac.mm; sourceTree = "<group>"; };
-		BC51580A0C03D404008BB0EE /* JSHTMLDocumentCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLDocumentCustom.cpp; sourceTree = "<group>"; };
 		BC53C5F40DA56B920021EB5D /* Gradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gradient.h; sourceTree = "<group>"; };
 		BC53C6070DA56C570021EB5D /* Gradient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gradient.cpp; sourceTree = "<group>"; };
 		BC53C60A0DA56CF10021EB5D /* GradientCG.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GradientCG.cpp; sourceTree = "<group>"; };
@@ -30774,7 +30771,6 @@
 				9392262E10321084006E7D5D /* JSCSSRuleListCustom.cpp */,
 				BC5825F20C0B89380053F1B5 /* JSCSSStyleDeclarationCustom.cpp */,
 				AD726FEA16D9F40B003A4E6D /* JSCSSStyleDeclarationCustom.h */,
-				2A538A4A26F3DA5E00965FC8 /* JSCSSTransformComponentCustom.cpp */,
 				BC20FB7E0C0E8E6C00D1447F /* JSDeprecatedCSSOMValueCustom.cpp */,
 				49C7BA8C1042F5B10009D447 /* JSDocumentCustom.cpp */,
 				ADDA94BF19686F8000453029 /* JSDocumentCustom.h */,
@@ -30790,7 +30786,6 @@
 				84BBE5482597E7F100AA8F28 /* JSHTMLAllCollectionCustom.cpp */,
 				6E576BC324EB509C0094D4AA /* JSHTMLCanvasElementCustom.cpp */,
 				BCCBAD3A0C18BFF800CE890F /* JSHTMLCollectionCustom.cpp */,
-				BC51580A0C03D404008BB0EE /* JSHTMLDocumentCustom.cpp */,
 				D6F7960C166FFECE0076DD18 /* JSHTMLTemplateElementCustom.cpp */,
 				511EF2CE17F0FDF100E4FA16 /* JSIDBObjectStoreCustom.cpp */,
 				51E269321DD3BC43006B6A58 /* JSIDBTransactionCustom.cpp */,
@@ -30841,7 +30836,6 @@
 				49EED14C1051971A00099FAB /* JSWebGLRenderingContextCustom.cpp */,
 				E18258AB0EF3CD7000933242 /* JSWorkerGlobalScopeCustom.cpp */,
 				46F91BC91FCDD0FE001599C3 /* JSWorkerNavigatorCustom.cpp */,
-				83A4A9F81CE7FD7E00709B00 /* JSXMLDocumentCustom.cpp */,
 				A1C7FAA1133A5D3500D6732D /* JSXPathResultCustom.cpp */,
 			);
 			name = "GC / Wrapping Only";

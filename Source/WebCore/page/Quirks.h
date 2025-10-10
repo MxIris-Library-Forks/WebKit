@@ -164,8 +164,6 @@ public:
 
     bool needsCanPlayAfterSeekedQuirk() const;
 
-    bool shouldAvoidPastingImagesAsWebContent() const;
-
     bool shouldNotAutoUpgradeToHTTPSNavigation(const URL&);
 
     enum StorageAccessResult : bool { ShouldNotCancelEvent, ShouldCancelEvent };
@@ -277,6 +275,10 @@ public:
     bool needsNavigatorUserAgentDataQuirk() const;
 
     WEBCORE_EXPORT bool needsNowPlayingFullscreenSwapQuirk() const;
+
+
+    enum class TikTokOverflowingContentQuirkType : bool { VideoSectionQuirk, CommentsSectionQuirk };
+    std::optional<TikTokOverflowingContentQuirkType> needsTikTokOverflowingContentQuirk(const Element&, const RenderStyle& parentStyle) const;
 
     bool needsWebKitMediaTextTrackDisplayQuirk() const;
 

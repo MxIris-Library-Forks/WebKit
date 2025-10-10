@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia, S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,25 +23,28 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "JSDOMException.h"
+#pragma once
 
-#include "JSDOMBinding.h"
-#include "JSWebTransportError.h"
+#include "InternalFunction.h"
 
-namespace WebCore {
+namespace JSC {
 
-JSC::JSValue toJS(JSC::JSGlobalObject* lexicalGlobalObject, JSDOMGlobalObject* globalObject, DOMException& exception)
-{
-    return wrap(lexicalGlobalObject, globalObject, exception);
-}
+class TemporalPlainMonthDayPrototype;
 
-JSC::JSValue toJSNewlyCreated(JSC::JSGlobalObject*, JSDOMGlobalObject* globalObject, Ref<DOMException>&& exception)
-{
-    if (exception->type() == DOMException::Type::WebTransportError)
-        return createWrapper<WebTransportError>(globalObject, WTFMove(exception));
+class TemporalPlainMonthDayConstructor final : public InternalFunction {
+public:
+    using Base = InternalFunction;
+    static constexpr unsigned StructureFlags = Base::StructureFlags | HasStaticPropertyTable;
 
-    return createWrapper<DOMException>(globalObject, WTFMove(exception));
-}
+    static TemporalPlainMonthDayConstructor* create(VM&, Structure*, TemporalPlainMonthDayPrototype*);
+    static Structure* createStructure(VM&, JSGlobalObject*, JSValue);
 
-}
+    DECLARE_INFO;
+
+private:
+    TemporalPlainMonthDayConstructor(VM&, Structure*);
+    void finishCreation(VM&, TemporalPlainMonthDayPrototype*);
+};
+STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(TemporalPlainMonthDayConstructor, InternalFunction);
+
+} // namespace JSC

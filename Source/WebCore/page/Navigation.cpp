@@ -987,19 +987,19 @@ Navigation::DispatchResult Navigation::innerDispatchNavigateEvent(NavigationNavi
 
     RefPtr scriptExecutionContext = this->scriptExecutionContext();
     RefPtr<DOMFormData> formData = nullptr;
-    if (formState) {
-        if (formState->form().isMethodPost() && (navigationType == NavigationNavigationType::Push || navigationType == NavigationNavigationType::Replace)) {
-            if (auto domFormData = DOMFormData::create(*scriptExecutionContext, Ref { formState->form() }.ptr(), RefPtr { formState->submitter() }.get()); !domFormData.hasException())
+    RefPtr updatedSourceElement = sourceElement;
+    if (RefPtr state = formState) {
+        RefPtr submitter = state->submitter();
+        Ref form = state->form();
+
+        if (form->isMethodPost() && (navigationType == NavigationNavigationType::Push || navigationType == NavigationNavigationType::Replace)) {
+            if (auto domFormData = DOMFormData::create(*scriptExecutionContext, form.ptr(), submitter.get()); !domFormData.hasException())
                 formData = domFormData.releaseReturnValue();
         }
 
-        if (!formState->form().target().isEmpty())
-            sourceElement = nullptr;
-        else {
-            sourceElement = formState->submitter();
-            if (!sourceElement)
-                sourceElement = &formState->form();
-        }
+        updatedSourceElement = submitter.get();
+        if (!updatedSourceElement)
+            updatedSourceElement = form.ptr();
     }
 
     RefPtr abortController = AbortController::create(*scriptExecutionContext);
@@ -1012,7 +1012,7 @@ Navigation::DispatchResult Navigation::innerDispatchNavigateEvent(NavigationNavi
         formData,
         downloadRequestFilename,
         info,
-        sourceElement,
+        updatedSourceElement.get(),
         canIntercept,
         UserGestureIndicator::processingUserGesture(document.get()),
         hashChange,
@@ -1203,6 +1203,39 @@ void Navigation::abortOngoingNavigationIfNeeded()
 {
     if (RefPtr ongoingNavigateEvent = m_ongoingNavigateEvent)
         abortOngoingNavigation(*ongoingNavigateEvent);
+}
+
+// https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-session-history-entries-for-the-navigation-api
+Vector<Ref<HistoryItem>> Navigation::filterHistoryItemsForNavigationAPI(Vector<Ref<HistoryItem>>&& allItems, HistoryItem& currentItem)
+{
+    auto startingIndex = allItems.findIf([currentItemID = currentItem.itemID()](const Ref<HistoryItem> entry) {
+        return entry->itemID() == currentItemID;
+    });
+
+    if (startingIndex == notFound)
+        return { currentItem };
+
+    Vector<Ref<HistoryItem>> filteredItems;
+    Ref startingOrigin = SecurityOrigin::create(currentItem.url());
+
+    for (int i = static_cast<int>(startingIndex) - 1; i >= 0; --i) {
+        Ref item = allItems[i];
+        if (!SecurityOrigin::create(item->url())->isSameOriginAs(startingOrigin))
+            break;
+        filteredItems.append(WTFMove(item));
+    }
+
+    filteredItems.reverse();
+    filteredItems.append(currentItem);
+
+    for (size_t i = startingIndex + 1; i < allItems.size(); ++i) {
+        Ref item = allItems[i];
+        if (!SecurityOrigin::create(item->url())->isSameOriginAs(startingOrigin))
+            break;
+        filteredItems.append(WTFMove(item));
+    }
+
+    return filteredItems;
 }
 
 } // namespace WebCore

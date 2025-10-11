@@ -1031,7 +1031,7 @@ RegisterID* BracketAccessorNode::emitBytecode(BytecodeGenerator& generator, Regi
         }
 
         generator.emitProfileType(finalDest.get(), divotStart(), divotEnd());
-        return finalDest.get();
+        return finalDest.unsafeGet();
     }
 
     RegisterID* ret;
@@ -1335,7 +1335,7 @@ RegisterID* EvalFunctionCallNode::emitBytecode(BytecodeGenerator& generator, Reg
     } else
         generator.emitCallDirectEval(returnValue.get(), func.get(), callArguments, divot(), divotStart(), divotEnd(), DebuggableCall::No);
 
-    return returnValue.get();
+    return returnValue.unsafeGet();
 }
 
 // ------------------------------ FunctionCallValueNode ----------------------------------
@@ -1410,7 +1410,7 @@ RegisterID* StaticBlockFunctionCallNode::emitBytecode(BytecodeGenerator& generat
     RefPtr result = generator.emitCallInTailPosition(returnValue.get(), function.get(), NoExpectedFunction, callArguments, divot(), divotStart(), divotEnd(), DebuggableCall::Yes);
 
     generator.emitProfileType(returnValue.get(), divotStart(), divotEnd());
-    return result.get();
+    return result.unsafeGet();
 }
 
 // ------------------------------ FunctionCallResolveNode ----------------------------------
@@ -1716,23 +1716,6 @@ static JSPromiseAllContext::Field promiseAllContextInternalFieldIndex(BytecodeIn
     return JSPromiseAllContext::Field::Promise;
 }
 
-static JSPromiseReaction::Field promiseReactionInternalFieldIndex(BytecodeIntrinsicNode* node)
-{
-    ASSERT(node->entry().type() == BytecodeIntrinsicRegistry::Type::Emitter);
-    if (node->entry().emitter() == &BytecodeIntrinsicNode::emit_intrinsic_promiseReactionFieldPromise)
-        return JSPromiseReaction::Field::Promise;
-    if (node->entry().emitter() == &BytecodeIntrinsicNode::emit_intrinsic_promiseReactionFieldOnFulfilled)
-        return JSPromiseReaction::Field::OnFulfilled;
-    if (node->entry().emitter() == &BytecodeIntrinsicNode::emit_intrinsic_promiseReactionFieldOnRejected)
-        return JSPromiseReaction::Field::OnRejected;
-    if (node->entry().emitter() == &BytecodeIntrinsicNode::emit_intrinsic_promiseReactionFieldContext)
-        return JSPromiseReaction::Field::Context;
-    if (node->entry().emitter() == &BytecodeIntrinsicNode::emit_intrinsic_promiseReactionFieldNext)
-        return JSPromiseReaction::Field::Next;
-    RELEASE_ASSERT_NOT_REACHED();
-    return JSPromiseReaction::Field::Promise;
-}
-
 static JSDisposableStack::Field disposableStackInternalFieldIndex(BytecodeIntrinsicNode* node)
 {
     ASSERT(node->entry().type() == BytecodeIntrinsicRegistry::Type::Emitter);
@@ -1936,19 +1919,6 @@ RegisterID* BytecodeIntrinsicNode::emit_intrinsic_getPromiseAllContextInternalFi
     RELEASE_ASSERT(node->m_expr->isBytecodeIntrinsicNode());
     unsigned index = static_cast<unsigned>(promiseAllContextInternalFieldIndex(static_cast<BytecodeIntrinsicNode*>(node->m_expr)));
     ASSERT(index < JSPromiseAllContext::numberOfInternalFields);
-    ASSERT(!node->m_next);
-
-    return generator.emitGetInternalField(generator.finalDestination(dst), base.get(), index);
-}
-
-RegisterID* BytecodeIntrinsicNode::emit_intrinsic_getPromiseReactionInternalField(BytecodeGenerator& generator, RegisterID* dst)
-{
-    ArgumentListNode* node = m_args->m_listNode;
-    RefPtr<RegisterID> base = generator.emitNode(node);
-    node = node->m_next;
-    RELEASE_ASSERT(node->m_expr->isBytecodeIntrinsicNode());
-    unsigned index = static_cast<unsigned>(promiseReactionInternalFieldIndex(static_cast<BytecodeIntrinsicNode*>(node->m_expr)));
-    ASSERT(index < JSPromiseReaction::numberOfInternalFields);
     ASSERT(!node->m_next);
 
     return generator.emitGetInternalField(generator.finalDestination(dst), base.get(), index);
@@ -2251,22 +2221,6 @@ RegisterID* BytecodeIntrinsicNode::emit_intrinsic_putPromiseAllContextInternalFi
     return generator.move(dst, generator.emitPutInternalField(base.get(), index, value.get()));
 }
 
-RegisterID* BytecodeIntrinsicNode::emit_intrinsic_putPromiseReactionInternalField(BytecodeGenerator& generator, RegisterID* dst)
-{
-    ArgumentListNode* node = m_args->m_listNode;
-    RefPtr<RegisterID> base = generator.emitNode(node);
-    node = node->m_next;
-    RELEASE_ASSERT(node->m_expr->isBytecodeIntrinsicNode());
-    unsigned index = static_cast<unsigned>(promiseReactionInternalFieldIndex(static_cast<BytecodeIntrinsicNode*>(node->m_expr)));
-    ASSERT(index < JSPromiseReaction::numberOfInternalFields);
-    node = node->m_next;
-    RefPtr<RegisterID> value = generator.emitNode(node);
-
-    ASSERT(!node->m_next);
-
-    return generator.move(dst, generator.emitPutInternalField(base.get(), index, value.get()));
-}
-
 RegisterID* BytecodeIntrinsicNode::emit_intrinsic_superSamplerBegin(BytecodeGenerator& generator, RegisterID* dst)
 {
     ASSERT(!m_args->m_listNode);
@@ -2451,7 +2405,6 @@ CREATE_INTRINSIC_FOR_BRAND_CHECK(isIteratorHelper, IsIteratorHelper)
 CREATE_INTRINSIC_FOR_BRAND_CHECK(isAsyncGenerator, IsAsyncGenerator)
 CREATE_INTRINSIC_FOR_BRAND_CHECK(isPromise, IsPromise)
 CREATE_INTRINSIC_FOR_BRAND_CHECK(isPromiseAllContext, IsPromiseAllContext)
-CREATE_INTRINSIC_FOR_BRAND_CHECK(isPromiseReaction, IsPromiseReaction)
 CREATE_INTRINSIC_FOR_BRAND_CHECK(isRegExpObject, IsRegExpObject)
 CREATE_INTRINSIC_FOR_BRAND_CHECK(isMap, IsMap)
 CREATE_INTRINSIC_FOR_BRAND_CHECK(isSet, IsSet)
@@ -2495,7 +2448,7 @@ RegisterID* BytecodeIntrinsicNode::emit_intrinsic_newArrayWithSize(JSC::Bytecode
 
     RefPtr<RegisterID> finalDestination = generator.finalDestination(dst);
     generator.emitNewArrayWithSize(finalDestination.get(), size.get());
-    return finalDestination.get();
+    return finalDestination.unsafeGet();
 }
 
 RegisterID* BytecodeIntrinsicNode::emit_intrinsic_newArrayWithSpecies(JSC::BytecodeGenerator& generator, JSC::RegisterID* dst)
@@ -2508,7 +2461,7 @@ RegisterID* BytecodeIntrinsicNode::emit_intrinsic_newArrayWithSpecies(JSC::Bytec
 
     RefPtr<RegisterID> finalDestination = generator.finalDestination(dst);
     generator.emitNewArrayWithSpecies(finalDestination.get(), size.get(), array.get());
-    return finalDestination.get();
+    return finalDestination.unsafeGet();
 }
 
 RegisterID* BytecodeIntrinsicNode::emit_intrinsic_createPromise(JSC::BytecodeGenerator& generator, JSC::RegisterID* dst)
@@ -2528,7 +2481,7 @@ RegisterID* BytecodeIntrinsicNode::emit_intrinsic_newPromise(JSC::BytecodeGenera
     RefPtr<RegisterID> finalDestination = generator.finalDestination(dst);
     bool isInternalPromise = false;
     generator.emitNewPromise(finalDestination.get(), isInternalPromise);
-    return finalDestination.get();
+    return finalDestination.unsafeGet();
 }
 
 
@@ -2709,7 +2662,7 @@ RegisterID* CallFunctionCallDotNode::emitBytecode(BytecodeGenerator& generator, 
         generator.move(callArguments.thisRegister(), base.get());
         generator.emitCallInTailPosition(returnValue.get(), function.get(), NoExpectedFunction, callArguments, divot(), divotStart(), divotEnd(), DebuggableCall::Yes);
         generator.move(dst, returnValue.get());
-        return returnValue.get();
+        return returnValue.unsafeGet();
     }
 
     Ref<Label> realCall = generator.newLabel();
@@ -2755,7 +2708,7 @@ RegisterID* CallFunctionCallDotNode::emitBytecode(BytecodeGenerator& generator, 
         generator.emitLabel(end.get());
     }
     generator.emitProfileType(returnValue.get(), divotStart(), divotEnd());
-    return returnValue.get();
+    return returnValue.unsafeGet();
 }
 
 RegisterID* HasOwnPropertyFunctionCallDotNode::emitBytecode(BytecodeGenerator& generator, RegisterID* dst)
@@ -2824,7 +2777,7 @@ RegisterID* HasOwnPropertyFunctionCallDotNode::emitBytecode(BytecodeGenerator& g
     }
 
     generator.emitProfileType(returnValue.get(), divotStart(), divotEnd());
-    return returnValue.get();
+    return returnValue.unsafeGet();
 }
 
 static bool areTrivialApplyArguments(ArgumentsNode* args)
@@ -2865,7 +2818,7 @@ RegisterID* ApplyFunctionCallDotNode::emitBytecode(BytecodeGenerator& generator,
         generator.move(callArguments.thisRegister(), base.get());
         generator.emitCallInTailPosition(returnValue.get(), function.get(), NoExpectedFunction, callArguments, divot(), divotStart(), divotEnd(), DebuggableCall::Yes);
         generator.move(dst, returnValue.get());
-        return returnValue.get();
+        return returnValue.unsafeGet();
     }
 
     Ref<Label> realCall = generator.newLabel();
@@ -2948,7 +2901,7 @@ RegisterID* ApplyFunctionCallDotNode::emitBytecode(BytecodeGenerator& generator,
         generator.emitLabel(end.get());
     }
     generator.emitProfileType(returnValue.get(), divotStart(), divotEnd());
-    return returnValue.get();
+    return returnValue.unsafeGet();
 }
 
 // ------------------------------ PostfixNode ----------------------------------
@@ -2991,7 +2944,7 @@ RegisterID* PostfixNode::emitResolve(BytecodeGenerator& generator, RegisterID* d
         }
         RefPtr<RegisterID> oldValue = emitPostIncOrDec(generator, generator.finalDestination(dst), localReg.get(), m_operator);
         generator.emitProfileType(localReg.get(), var, divotStart(), divotEnd());
-        return oldValue.get();
+        return oldValue.unsafeGet();
     }
 
     generator.emitExpressionInfo(newDivot, divotStart(), newDivot);
@@ -3001,7 +2954,7 @@ RegisterID* PostfixNode::emitResolve(BytecodeGenerator& generator, RegisterID* d
     if (var.isReadOnly()) {
         bool threwException = generator.emitReadOnlyExceptionIfNeeded(var);
         if (threwException)
-            return value.get();
+            return value.unsafeGet();
     }
     RefPtr<RegisterID> oldValue = emitPostIncOrDec(generator, generator.finalDestination(dst), value.get(), m_operator);
     if (!var.isReadOnly()) {
@@ -3009,7 +2962,7 @@ RegisterID* PostfixNode::emitResolve(BytecodeGenerator& generator, RegisterID* d
         generator.emitProfileType(value.get(), var, divotStart(), divotEnd());
     }
 
-    return oldValue.get();
+    return oldValue.unsafeGet();
 }
 
 RegisterID* PostfixNode::emitBracket(BytecodeGenerator& generator, RegisterID* dst)
@@ -3304,7 +3257,7 @@ RegisterID* PrefixNode::emitResolve(BytecodeGenerator& generator, RegisterID* ds
     if (var.isReadOnly()) {
         bool threwException = generator.emitReadOnlyExceptionIfNeeded(var);
         if (threwException)
-            return value.get();
+            return value.unsafeGet();
     }
 
     emitIncOrDec(generator, value.get(), m_operator);
@@ -3956,7 +3909,7 @@ RegisterID* OptionalChainNode::emitBytecode(BytecodeGenerator& generator, Regist
     if (m_isOutermost)
         generator.popOptionalChainTarget(finalDest.get(), m_expr->isDeleteNode());
 
-    return finalDest.get();
+    return finalDest.unsafeGet();
 }
 
 // ------------------------------ ConditionalNode ------------------------------
@@ -3983,7 +3936,7 @@ RegisterID* ConditionalNode::emitBytecode(BytecodeGenerator& generator, Register
 
     generator.emitProfileControlFlow(m_expr2->endOffset() + 1);
 
-    return newDst.get();
+    return newDst.unsafeGet();
 }
 
 // ------------------------------ ReadModifyResolveNode -----------------------------------
@@ -4274,7 +4227,7 @@ RegisterID* AssignResolveNode::emitBytecode(BytecodeGenerator& generator, Regist
     if (isReadOnly) {
         bool threwException = generator.emitReadOnlyExceptionIfNeeded(var);
         if (threwException)
-            return result.get();
+            return result.unsafeGet();
     }
     RegisterID* returnResult = result.get();
     if (!isReadOnly) {
@@ -4316,7 +4269,7 @@ RegisterID* ReadModifyDotNode::emitBytecode(BytecodeGenerator& generator, Regist
     generator.emitExpressionInfo(divot(), divotStart(), divotEnd());
     RefPtr<RegisterID> ret = emitPutProperty(generator, base.get(), updatedValue, thisValue);
     generator.emitProfileType(updatedValue, divotStart(), divotEnd());
-    return ret.get();
+    return ret.unsafeGet();
 }
 
 // ------------------------------ ShortCircuitReadModifyDotNode -----------------------------------

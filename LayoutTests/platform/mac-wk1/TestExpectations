@@ -1169,8 +1169,16 @@ http/tests/security/contentSecurityPolicy/report-only-connect-src-beacon-redirec
 http/tests/referrer-policy-script/ [ Skip ]
 http/tests/security/contentSecurityPolicy/report-cross-origin-no-cookies.py [ Skip ]
 http/tests/security/contentSecurityPolicy/report-cross-origin-no-cookies-when-private-browsing-enabled.py [ Skip ]
-http/tests/security/referrer-policy-header.html [ Skip ]
-http/tests/security/referrer-policy-header-multipart.html [ Skip ]
+http/tests/security/referrer-policy-header-empty.html [ Skip ]
+http/tests/security/referrer-policy-header-invalid.html [ Skip ]
+http/tests/security/referrer-policy-header-no-referrer-when-downgrade.html [ Skip ]
+http/tests/security/referrer-policy-header-no-referrer.html [ Skip ]
+http/tests/security/referrer-policy-header-origin-when-cross-origin.html [ Skip ]
+http/tests/security/referrer-policy-header-origin.html [ Skip ]
+http/tests/security/referrer-policy-header-same-origin.html [ Skip ]
+http/tests/security/referrer-policy-header-strict-origin-when-cross-origin.html [ Skip ]
+http/tests/security/referrer-policy-header-strict-origin.html [ Skip ]
+http/tests/security/referrer-policy-header-unsafe-url.html [ Skip ]
 http/tests/navigation/ping-attribute/area-cross-origin.html [ Skip ]
 http/tests/navigation/ping-attribute/anchor-cross-origin.html [ Skip ]
 http/tests/referrer-policy/no-referrer-when-downgrade/ [ Skip ]
@@ -1232,6 +1240,9 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-eleme
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe-loading-lazy-referrerpolicy-change.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe-loading-lazy-to-eager.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe-loading-lazy.html [ Skip ]
+
+imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/show-picker-user-gesture.html [ Skip ]
 
 # testRunner.queueLoad() does not support loading data URLs in Mac WK1
 http/tests/security/contentSecurityPolicy/navigate-self-to-data-url.html [ Skip ]

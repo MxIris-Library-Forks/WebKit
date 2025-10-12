@@ -236,34 +236,6 @@
 		078E43DD1ABB6F6F001C2FA6 /* MediaPlaybackTargetPickerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 078E43DB1ABB6F6F001C2FA6 /* MediaPlaybackTargetPickerMac.h */; };
 		078ED193216D079500775B33 /* ImageTransferSessionVT.h in Headers */ = {isa = PBXBuildFile; fileRef = 0746D30C2146EA38003DDF84 /* ImageTransferSessionVT.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		079216551AA560AA00A3C049 /* MediaPlaybackTargetClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 079216531AA560AA00A3C049 /* MediaPlaybackTargetClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		07921B132E56D57000020EB1 /* MediaKeySessionType.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D9BF7371DBFDC0F007A7D99 /* MediaKeySessionType.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		07921B142E56D59400020EB1 /* MediaKeySystemConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D9BF73E1DBFDC0F007A7D99 /* MediaKeySystemConfiguration.h */; };
-		07921B152E56D5BF00020EB1 /* MediaKeySystemMediaCapability.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D9BF73F1DBFDC0F007A7D99 /* MediaKeySystemMediaCapability.h */; };
-		07921B162E56D70F00020EB1 /* MediaKeyEncryptionScheme.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF7569D215C244400EFCB50 /* MediaKeyEncryptionScheme.h */; };
-		07921B172E56E34500020EB1 /* TreeResolutionState.h in Headers */ = {isa = PBXBuildFile; fileRef = E4E8CBB52D7AF11600721796 /* TreeResolutionState.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		07921B182E56E5DE00020EB1 /* StyleSVGPaint.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0CDF2E0314ED003CBA0E /* StyleSVGPaint.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		07921B1C2E578FB000020EB1 /* StylePrimitiveKeyword+CSSValueConversion.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0F232E144E0A003CBA0E /* StylePrimitiveKeyword+CSSValueConversion.h */; };
-		07921B1E2E57901400020EB1 /* StyleColorResolutionState.h in Headers */ = {isa = PBXBuildFile; fileRef = BC394A382C765DD5001A629A /* StyleColorResolutionState.h */; };
-		07921B1F2E57901C00020EB1 /* CSSPlatformColorResolutionState.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4AF4132CF8E75C0037C65C /* CSSPlatformColorResolutionState.h */; };
-		07921B202E57903000020EB1 /* CSSCalcTree+Simplification.h in Headers */ = {isa = PBXBuildFile; fileRef = BC000BDE2C5AF9B70033AA75 /* CSSCalcTree+Simplification.h */; };
-		07921B212E57903600020EB1 /* CSSCalcTree+Evaluation.h in Headers */ = {isa = PBXBuildFile; fileRef = BC000BEF2C613D810033AA75 /* CSSCalcTree+Evaluation.h */; };
-		07921B222E579A0B00020EB1 /* FormDataConsumer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4102EE0E27830E6300D6BE74 /* FormDataConsumer.h */; };
-		07921B262E58457C00020EB1 /* FetchBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 41F54F7E1C50C4F600338488 /* FetchBody.h */; };
-		07921B272E58459300020EB1 /* ReadableStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 410B3938292F6E8A0003E515 /* ReadableStream.h */; };
-		07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC849942A9FD86000D407EF /* WebTransportReceiveStreamSource.h */; };
-		07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC849932A9FD86000D407EF /* WebTransportBidirectionalStreamSource.h */; };
-		07921B2A2E5845BA00020EB1 /* DatagramSource.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC849982A9FD8A800D407EF /* DatagramSource.h */; };
-		07921B2B2E5845C000020EB1 /* MediaStreamTrackProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 413BE28E2B30861F000D77A1 /* MediaStreamTrackProcessor.h */; };
-		07921B2C2E5845CE00020EB1 /* FetchBodyOwner.h in Headers */ = {isa = PBXBuildFile; fileRef = 4147E2B21C88337F00A7E715 /* FetchBodyOwner.h */; };
-		07921B362E5AC25800020EB1 /* TableFormattingState.h in Headers */ = {isa = PBXBuildFile; fileRef = 6FC5CA9622E3599500B13E11 /* TableFormattingState.h */; };
-		07921B372E5AC26000020EB1 /* TableFormattingContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 6FC5CA9522E3599400B13E11 /* TableFormattingContext.h */; };
-		07921B382E5AC58700020EB1 /* TableGrid.h in Headers */ = {isa = PBXBuildFile; fileRef = 6FB22E30230097E300C20866 /* TableGrid.h */; };
-		07921B392E5AC71300020EB1 /* JSMediaMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = CDDDEA472539120600A1300C /* JSMediaMetadata.h */; };
-		07921B3A2E5ACB9500020EB1 /* RTCIceTransport.h in Headers */ = {isa = PBXBuildFile; fileRef = 5E6653091DA437BF00FDD84C /* RTCIceTransport.h */; };
-		07921B3B2E5ACDD400020EB1 /* SVGAnimatedPropertyImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EE535C223B2A0D00FBA944 /* SVGAnimatedPropertyImpl.h */; };
-		07921B3C2E5ACE6B00020EB1 /* SVGAnimationAdditiveListFunctionImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = 7266F0282243120300833975 /* SVGAnimationAdditiveListFunctionImpl.h */; };
-		07921B3D2E5AD03600020EB1 /* StyleInterpolationFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = BC97703E2D65053C00B97766 /* StyleInterpolationFunctions.h */; };
-		07921B3E2E5AD04100020EB1 /* SVGPaintServerHandling.h in Headers */ = {isa = PBXBuildFile; fileRef = 42E48B662BAC7C6E0044526B /* SVGPaintServerHandling.h */; };
 		07941792166E855F009416C2 /* InbandTextTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = 07941790166E855F009416C2 /* InbandTextTrack.h */; };
 		07941794166EA04E009416C2 /* InbandTextTrackPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 07941793166EA04E009416C2 /* InbandTextTrackPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		07969DAC17D14151007FF842 /* JSRTCDataChannel.h in Headers */ = {isa = PBXBuildFile; fileRef = 07969D9217D14151007FF842 /* JSRTCDataChannel.h */; };
@@ -5013,7 +4985,6 @@
 		BC274B2F140EBEB200EADFA6 /* CSSBorderImageSliceValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BC274B2E140EBEB200EADFA6 /* CSSBorderImageSliceValue.h */; };
 		BC2A0D222E04F901003CBA0E /* StylePathOperationWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F752DF9E73F005554EA /* StylePathOperationWrappers.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D342E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D332E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D592E0791C7003CBA0E /* StyleLengthWrapperData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D902E088492003CBA0E /* StyleTextUnderlineOffset.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D702E086B9A003CBA0E /* StyleTextUnderlineOffset.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0D912E089160003CBA0E /* StyleGapGutter.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D6D2E08687E003CBA0E /* StyleGapGutter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC2A0DAF2E08DFFD003CBA0E /* StyleBuilderChecking.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0DAE2E08DFFD003CBA0E /* StyleBuilderChecking.h */; };
@@ -5293,6 +5264,10 @@
 		BCB02AE02E908995008A0B68 /* StyleFontVariantAlternates.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB02ADA2E908363008A0B68 /* StyleFontVariantAlternates.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCB02AE12E90899C008A0B68 /* StyleFontVariantEastAsian.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB02ADC2E908363008A0B68 /* StyleFontVariantEastAsian.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCB02AE22E9089A6008A0B68 /* StyleFontVariantNumeric.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB02ADE2E908363008A0B68 /* StyleFontVariantNumeric.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCB02B3F2E93FCF1008A0B68 /* MediaKeySessionType.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D9BF7371DBFDC0F007A7D99 /* MediaKeySessionType.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCB02B432E93FD66008A0B68 /* StyleLengthWrapperData.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0D592E0791C7003CBA0E /* StyleLengthWrapperData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCB02B472E93FD9D008A0B68 /* StyleSVGPaint.h in Headers */ = {isa = PBXBuildFile; fileRef = BC2A0CDF2E0314ED003CBA0E /* StyleSVGPaint.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BCB02B4B2E93FDFC008A0B68 /* TreeResolutionState.h in Headers */ = {isa = PBXBuildFile; fileRef = E4E8CBB52D7AF11600721796 /* TreeResolutionState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCB16C180979C3BD00467741 /* MemoryCache.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB16BFF0979C3BD00467741 /* MemoryCache.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCB16C1A0979C3BD00467741 /* CachedCSSStyleSheet.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB16C010979C3BD00467741 /* CachedCSSStyleSheet.h */; };
 		BCB16C1C0979C3BD00467741 /* CachedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = BCB16C030979C3BD00467741 /* CachedImage.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -19332,7 +19307,6 @@
 		BCC5BDFE0C0E93110011C2DB /* JSCSSStyleSheet.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSStyleSheet.cpp; sourceTree = "<group>"; };
 		BCC5BDFF0C0E93110011C2DB /* JSCSSStyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSCSSStyleSheet.h; sourceTree = "<group>"; };
 		BCC8CFCA0986CD2400140BF2 /* ColorData.gperf */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = ColorData.gperf; sourceTree = "<group>"; };
-		BCCBAD3A0C18BFF800CE890F /* JSHTMLCollectionCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLCollectionCustom.cpp; sourceTree = "<group>"; };
 		BCCBAD3E0C18C14200CE890F /* JSHTMLCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLCollection.cpp; sourceTree = "<group>"; };
 		BCCBAD3F0C18C14200CE890F /* JSHTMLCollection.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLCollection.h; sourceTree = "<group>"; };
 		BCCE028F2E7669A40028EA38 /* StyleSingleTransitionDuration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleSingleTransitionDuration.h; sourceTree = "<group>"; };
@@ -30785,7 +30759,6 @@
 				4131F3B11F9552810059995A /* JSFetchEventCustom.cpp */,
 				84BBE5482597E7F100AA8F28 /* JSHTMLAllCollectionCustom.cpp */,
 				6E576BC324EB509C0094D4AA /* JSHTMLCanvasElementCustom.cpp */,
-				BCCBAD3A0C18BFF800CE890F /* JSHTMLCollectionCustom.cpp */,
 				D6F7960C166FFECE0076DD18 /* JSHTMLTemplateElementCustom.cpp */,
 				511EF2CE17F0FDF100E4FA16 /* JSIDBObjectStoreCustom.cpp */,
 				51E269321DD3BC43006B6A58 /* JSIDBTransactionCustom.cpp */,
@@ -42468,12 +42441,6 @@
 				BC3079462D0783C900630D75 /* CSSCalcRandomCachingKeyMap.h in Headers */,
 				BC3301312BEC1AA700A2A878 /* CSSCalcSymbolsAllowed.h in Headers */,
 				BC709DE0266323CF00B9A21C /* CSSCalcSymbolTable.h in Headers */,
-				07921B212E57903600020EB1 /* CSSCalcTree+Evaluation.h in Headers */,
-				07921B212E57903600020EB1 /* CSSCalcTree+Evaluation.h in Headers */,
-				07921B212E57903600020EB1 /* CSSCalcTree+Evaluation.h in Headers */,
-				07921B202E57903000020EB1 /* CSSCalcTree+Simplification.h in Headers */,
-				07921B202E57903000020EB1 /* CSSCalcTree+Simplification.h in Headers */,
-				07921B202E57903000020EB1 /* CSSCalcTree+Simplification.h in Headers */,
 				BC000BE72C6011020033AA75 /* CSSCalcTree.h in Headers */,
 				BC000BE82C60110B0033AA75 /* CSSCalcType.h in Headers */,
 				49AE2D8F134EE50C0072920A /* CSSCalcValue.h in Headers */,
@@ -42579,9 +42546,6 @@
 				BCB271F92CC16DD500265123 /* CSSPathValue.h in Headers */,
 				9418278F1D8CAF9200492764 /* CSSPendingSubstitutionValue.h in Headers */,
 				2A538A2726F0103900965FC8 /* CSSPerspective.h in Headers */,
-				07921B1F2E57901C00020EB1 /* CSSPlatformColorResolutionState.h in Headers */,
-				07921B1F2E57901C00020EB1 /* CSSPlatformColorResolutionState.h in Headers */,
-				07921B1F2E57901C00020EB1 /* CSSPlatformColorResolutionState.h in Headers */,
 				BCB2721A2CC1F21B00265123 /* CSSPolygonFunction.h in Headers */,
 				BCB272202CC20AA000265123 /* CSSPosition.h in Headers */,
 				BC23888E2D8C801300698102 /* CSSPositionTryDescriptors.h in Headers */,
@@ -42712,9 +42676,6 @@
 				F446EDE8265DD8900031DA8F /* DataDetectorElementInfo.h in Headers */,
 				F4B2A909265030BA009E7286 /* DataDetectorHighlight.h in Headers */,
 				BC4A533525605A560028C592 /* DataDetectorType.h in Headers */,
-				07921B2A2E5845BA00020EB1 /* DatagramSource.h in Headers */,
-				07921B2A2E5845BA00020EB1 /* DatagramSource.h in Headers */,
-				07921B2A2E5845BA00020EB1 /* DatagramSource.h in Headers */,
 				E58B45BA20AD07DD00991025 /* DataListButtonElement.h in Headers */,
 				E517670320B88C1400D41167 /* DataListSuggestionInformation.h in Headers */,
 				E52CF54F20A35A2800DADA27 /* DataListSuggestionPicker.h in Headers */,
@@ -43086,13 +43047,7 @@
 				84730D851248F0B300D3A9C9 /* FEMorphology.h in Headers */,
 				84730D871248F0B300D3A9C9 /* FEOffset.h in Headers */,
 				84730D891248F0B300D3A9C9 /* FESpecularLighting.h in Headers */,
-				07921B262E58457C00020EB1 /* FetchBody.h in Headers */,
-				07921B262E58457C00020EB1 /* FetchBody.h in Headers */,
-				07921B262E58457C00020EB1 /* FetchBody.h in Headers */,
 				517A535B1F588A4C00DCDC0A /* FetchBodyConsumer.h in Headers */,
-				07921B2C2E5845CE00020EB1 /* FetchBodyOwner.h in Headers */,
-				07921B2C2E5845CE00020EB1 /* FetchBodyOwner.h in Headers */,
-				07921B2C2E5845CE00020EB1 /* FetchBodyOwner.h in Headers */,
 				4129C9971F59B963009D7403 /* FetchBodySource.h in Headers */,
 				41860F0D2847A49600E4A395 /* FetchEvent.h in Headers */,
 				41D129DB1F3D143800D15E47 /* FetchHeaders.h in Headers */,
@@ -43254,9 +43209,6 @@
 				F50664F8157F52DC00AC226F /* FormController.h in Headers */,
 				514C76700CE923A1007EF3CD /* FormData.h in Headers */,
 				085B92BB0EFDE73D00E6123C /* FormDataBuilder.h in Headers */,
-				07921B222E579A0B00020EB1 /* FormDataConsumer.h in Headers */,
-				07921B222E579A0B00020EB1 /* FormDataConsumer.h in Headers */,
-				07921B222E579A0B00020EB1 /* FormDataConsumer.h in Headers */,
 				7EE6846712D26E3800E79415 /* FormDataStreamCFNet.h in Headers */,
 				514C764E0CE9234E007EF3CD /* FormDataStreamMac.h in Headers */,
 				4A0DA2FF129B241900AB61E1 /* FormListedElement.h in Headers */,
@@ -44314,8 +44266,6 @@
 				2D9BF72E1DBFDB1C007A7D99 /* JSMediaKeySystemMediaCapability.h in Headers */,
 				BC3C39B70C0D3D8D005F4D7A /* JSMediaList.h in Headers */,
 				93D437A31D57B7E200AB85EA /* JSMediaListCustom.h in Headers */,
-				07921B392E5AC71300020EB1 /* JSMediaMetadata.h in Headers */,
-				07921B392E5AC71300020EB1 /* JSMediaMetadata.h in Headers */,
 				D3A94A47122DC40F00A37BBC /* JSMediaQueryList.h in Headers */,
 				073930B62AC4D26300C1D1B1 /* JSMediaSettingsRange.h in Headers */,
 				CD9DE17517AAC74C00EA386D /* JSMediaSource.h in Headers */,
@@ -44980,26 +44930,15 @@
 				E44613AD0CD6331000FADA75 /* MediaError.h in Headers */,
 				07A6D1EC1491137700051D0C /* MediaFragmentURIParser.h in Headers */,
 				0782894B25C36FED00A7BA03 /* MediaImage.h in Headers */,
-				07921B162E56D70F00020EB1 /* MediaKeyEncryptionScheme.h in Headers */,
-				07921B162E56D70F00020EB1 /* MediaKeyEncryptionScheme.h in Headers */,
-				07921B162E56D70F00020EB1 /* MediaKeyEncryptionScheme.h in Headers */,
 				0753E0982E595BA100A52914 /* MediaKeys.h in Headers */,
 				0753E0972E595B9B00A52914 /* MediaKeySession.h in Headers */,
-				07921B132E56D57000020EB1 /* MediaKeySessionType.h in Headers */,
-				07921B132E56D57000020EB1 /* MediaKeySessionType.h in Headers */,
-				07921B132E56D57000020EB1 /* MediaKeySessionType.h in Headers */,
+				BCB02B3F2E93FCF1008A0B68 /* MediaKeySessionType.h in Headers */,
 				CDF4B71A1E01D3D000E235A2 /* MediaKeySessionType.idl in Headers */,
 				CDF4B7281E03C57300E235A2 /* MediaKeysRequirement.idl in Headers */,
 				CDF4B7181E01CB9100E235A2 /* MediaKeysRestrictions.h in Headers */,
 				0753E0992E595C9A00A52914 /* MediaKeySystemAccess.h in Headers */,
 				9ACC07A825C8110D00DC6386 /* MediaKeySystemClient.h in Headers */,
-				07921B142E56D59400020EB1 /* MediaKeySystemConfiguration.h in Headers */,
-				07921B142E56D59400020EB1 /* MediaKeySystemConfiguration.h in Headers */,
-				07921B142E56D59400020EB1 /* MediaKeySystemConfiguration.h in Headers */,
 				9ACC07AF25C8141D00DC6386 /* MediaKeySystemController.h in Headers */,
-				07921B152E56D5BF00020EB1 /* MediaKeySystemMediaCapability.h in Headers */,
-				07921B152E56D5BF00020EB1 /* MediaKeySystemMediaCapability.h in Headers */,
-				07921B152E56D5BF00020EB1 /* MediaKeySystemMediaCapability.h in Headers */,
 				9ACC07A625C810DF00DC6386 /* MediaKeySystemRequest.h in Headers */,
 				0F768C3526D0AB39008DBE0B /* MediaKeySystemRequestIdentifier.h in Headers */,
 				A8EA800E0A19516E00A8EF5F /* MediaList.h in Headers */,
@@ -45094,9 +45033,6 @@
 				078E091917D14D1C00420AA1 /* MediaStreamTrackEvent.h in Headers */,
 				418882562B613A0300F1254F /* MediaStreamTrackHintValue.h in Headers */,
 				07FFDE69181AED420072D409 /* MediaStreamTrackPrivate.h in Headers */,
-				07921B2B2E5845C000020EB1 /* MediaStreamTrackProcessor.h in Headers */,
-				07921B2B2E5845C000020EB1 /* MediaStreamTrackProcessor.h in Headers */,
-				07921B2B2E5845C000020EB1 /* MediaStreamTrackProcessor.h in Headers */,
 				525B0CB12A9F8FD100E8A94B /* MediationRequirement.h in Headers */,
 				416F429C29C0C19700C080DC /* MediaTrackCapabilities.h in Headers */,
 				932CC0B71DFFD158004C0F9F /* MediaTrackConstraints.h in Headers */,
@@ -45690,9 +45626,6 @@
 				5C4A0FD725C3435000D9EE97 /* RangeResponseGenerator.h in Headers */,
 				6E84E9E117668BF100815B68 /* RasterLayoutShape.h in Headers */,
 				A84D827C11D333ED00972990 /* RawDataDocumentParser.h in Headers */,
-				07921B272E58459300020EB1 /* ReadableStream.h in Headers */,
-				07921B272E58459300020EB1 /* ReadableStream.h in Headers */,
-				07921B272E58459300020EB1 /* ReadableStream.h in Headers */,
 				4129C9A91F59C56B009D7403 /* ReadableStreamDefaultController.h in Headers */,
 				416E6FE81BBD12DF000A3F64 /* ReadableStreamInternalsBuiltins.h in Headers */,
 				4129C9AF1F59CF5B009D7403 /* ReadableStreamSink.h in Headers */,
@@ -46023,8 +45956,6 @@
 				07AB996B18DA3C010018771E /* RTCIceServer.h in Headers */,
 				517111B92AD393C40047117B /* RTCIceServerTransportProtocol.h in Headers */,
 				41E0311628AD0E7C00DA9D63 /* RTCIceTcpCandidateType.h in Headers */,
-				07921B3A2E5ACB9500020EB1 /* RTCIceTransport.h in Headers */,
-				07921B3A2E5ACB9500020EB1 /* RTCIceTransport.h in Headers */,
 				313591081E7DDC7300F30630 /* RTCIceTransportPolicy.h in Headers */,
 				313591091E7DDC7300F30630 /* RTCIceTransportState.h in Headers */,
 				410BCF5626F0CD8C0040B124 /* RTCLocalSessionDescriptionInit.h in Headers */,
@@ -46484,9 +46415,6 @@
 				BCCE4F762DF9E75C005554EA /* StyleClipPath.h in Headers */,
 				BCB660952BEEF46200528480 /* StyleColor.h in Headers */,
 				BC4AF4192CF96B930037C65C /* StyleColorOptions.h in Headers */,
-				07921B1E2E57901400020EB1 /* StyleColorResolutionState.h in Headers */,
-				07921B1E2E57901400020EB1 /* StyleColorResolutionState.h in Headers */,
-				07921B1E2E57901400020EB1 /* StyleColorResolutionState.h in Headers */,
 				BCEA078D2CCC719D000AC148 /* StyleColorScheme.h in Headers */,
 				BC22AB172E39485C009AC0C3 /* StyleColumnCount.h in Headers */,
 				BC22AB142E3944B4009AC0C3 /* StyleColumnWidth.h in Headers */,
@@ -46564,15 +46492,12 @@
 				BCB272092CC1F1DB00265123 /* StyleInsetFunction.h in Headers */,
 				713171341FBE78DB00F758DE /* StyleInterpolationClient.h in Headers */,
 				BC731F9B2E6F396E00A6584F /* StyleInterpolationContext.h in Headers */,
-				07921B3D2E5AD03600020EB1 /* StyleInterpolationFunctions.h in Headers */,
-				07921B3D2E5AD03600020EB1 /* StyleInterpolationFunctions.h in Headers */,
 				E46C794B1F13E82B00F371E1 /* StyleInvalidationFunctions.h in Headers */,
 				E47127CB163438AE00ED6F5A /* StyleInvalidator.h in Headers */,
 				BC34D37E2E428981001EAD95 /* StyleLengthWrapper+Blending.h in Headers */,
 				BC34D3802E4289B1001EAD95 /* StyleLengthWrapper+Platform.h in Headers */,
 				BC22AAFC2E37F879009AC0C3 /* StyleLengthWrapper.h in Headers */,
-				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */,
-				BC2A0D5A2E0791C7003CBA0E /* StyleLengthWrapperData.h in Headers */,
+				BCB02B432E93FD66008A0B68 /* StyleLengthWrapperData.h in Headers */,
 				BC10DA9D2E81B92F000EE742 /* StyleLetterSpacing.h in Headers */,
 				BC2387AC2D8744E100698102 /* StyleLineBoxContain.h in Headers */,
 				BC10DA922E80DC42000EE742 /* StyleLineFitEdge.h in Headers */,
@@ -46622,9 +46547,6 @@
 				BCB2720E2CC1F1DB00265123 /* StylePolygonFunction.h in Headers */,
 				BCB272212CC20CAC00265123 /* StylePosition.h in Headers */,
 				BC675B6E2DEE8BB700AD4D79 /* StylePreferredSize.h in Headers */,
-				07921B1C2E578FB000020EB1 /* StylePrimitiveKeyword+CSSValueConversion.h in Headers */,
-				07921B1C2E578FB000020EB1 /* StylePrimitiveKeyword+CSSValueConversion.h in Headers */,
-				07921B1C2E578FB000020EB1 /* StylePrimitiveKeyword+CSSValueConversion.h in Headers */,
 				BC2A0D342E05D43F003CBA0E /* StylePrimitiveKeyword+CSSValueCreation.h in Headers */,
 				BCB02AEE2E9177D4008A0B68 /* StylePrimitiveKeyword+ValueRepresentationNeeded.h in Headers */,
 				BC2A0E332E0B6642003CBA0E /* StylePrimitiveNumeric+Forward.h in Headers */,
@@ -46708,9 +46630,7 @@
 				BC0A30892E8716FA007B809D /* StyleSVGGlyphOrientationHorizontal.h in Headers */,
 				BC0A30882E8716F0007B809D /* StyleSVGGlyphOrientationVertical.h in Headers */,
 				BC7826172E81FD0600FB0C7E /* StyleSVGMarkerResource.h in Headers */,
-				07921B182E56E5DE00020EB1 /* StyleSVGPaint.h in Headers */,
-				07921B182E56E5DE00020EB1 /* StyleSVGPaint.h in Headers */,
-				07921B182E56E5DE00020EB1 /* StyleSVGPaint.h in Headers */,
+				BCB02B472E93FD9D008A0B68 /* StyleSVGPaint.h in Headers */,
 				BCB271FB2CC174D400265123 /* StyleSVGPathData.h in Headers */,
 				BC22AA612E357814009AC0C3 /* StyleSVGRadius.h in Headers */,
 				BC22AA642E357814009AC0C3 /* StyleSVGRadiusComponent.h in Headers */,
@@ -46785,14 +46705,10 @@
 				65653F2E0D9727D200CA9723 /* SVGAltGlyphElement.h in Headers */,
 				24D912B813CA9A6900D21915 /* SVGAltGlyphItemElement.h in Headers */,
 				B22279770D00BF220071B782 /* SVGAngle.h in Headers */,
-				07921B3B2E5ACDD400020EB1 /* SVGAnimatedPropertyImpl.h in Headers */,
-				07921B3B2E5ACDD400020EB1 /* SVGAnimatedPropertyImpl.h in Headers */,
 				B22279900D00BF220071B782 /* SVGAnimateElement.h in Headers */,
 				832B843419D8E55100B26055 /* SVGAnimateElementBase.h in Headers */,
 				B22279930D00BF220071B782 /* SVGAnimateMotionElement.h in Headers */,
 				B22279950D00BF220071B782 /* SVGAnimateTransformElement.h in Headers */,
-				07921B3C2E5ACE6B00020EB1 /* SVGAnimationAdditiveListFunctionImpl.h in Headers */,
-				07921B3C2E5ACE6B00020EB1 /* SVGAnimationAdditiveListFunctionImpl.h in Headers */,
 				B22279980D00BF220071B782 /* SVGAnimationElement.h in Headers */,
 				0844B01D1255B4E600B9CDD0 /* SVGBoundingBoxComputation.h in Headers */,
 				B222799C0D00BF220071B782 /* SVGCircleElement.h in Headers */,
@@ -46882,8 +46798,6 @@
 				08C7A2C710DC7462002D368B /* SVGNames.h in Headers */,
 				7CE58D501DD69A1E00128552 /* SVGNumber.h in Headers */,
 				B2227A510D00BF220071B782 /* SVGNumberList.h in Headers */,
-				07921B3E2E5AD04100020EB1 /* SVGPaintServerHandling.h in Headers */,
-				07921B3E2E5AD04100020EB1 /* SVGPaintServerHandling.h in Headers */,
 				B2227A570D00BF220071B782 /* SVGParserUtilities.h in Headers */,
 				2D3A0E3613A7D76100E85AF0 /* SVGParsingError.h in Headers */,
 				84C6784D1214814700A92902 /* SVGPathBlender.h in Headers */,
@@ -47005,14 +46919,8 @@
 				E3C0412F254CA29B0021D0E6 /* SystemSoundManager.h in Headers */,
 				5D5975B319635F1100D00878 /* SystemVersion.h in Headers */,
 				6F1E83A22665884C002E9D28 /* TableFormattingConstraints.h in Headers */,
-				07921B372E5AC26000020EB1 /* TableFormattingContext.h in Headers */,
-				07921B372E5AC26000020EB1 /* TableFormattingContext.h in Headers */,
 				47FA97002650982B00841416 /* TableFormattingGeometry.h in Headers */,
 				6F49C3E726479B3C0051953D /* TableFormattingQuirks.h in Headers */,
-				07921B362E5AC25800020EB1 /* TableFormattingState.h in Headers */,
-				07921B362E5AC25800020EB1 /* TableFormattingState.h in Headers */,
-				07921B382E5AC58700020EB1 /* TableGrid.h in Headers */,
-				07921B382E5AC58700020EB1 /* TableGrid.h in Headers */,
 				A8CFF0510A154F09000A4234 /* TableLayout.h in Headers */,
 				6F17264F2470C60B00518C96 /* TableWrapperBlockFormattingContext.h in Headers */,
 				6F15522126476B5C00E353C6 /* TableWrapperBlockFormattingQuirks.h in Headers */,
@@ -47157,9 +47065,7 @@
 				49E911D20EF86D47009D0CAF /* TranslateTransformOperation.h in Headers */,
 				F48570A52644C76D00C05F71 /* TranslationContextMenuInfo.h in Headers */,
 				854FE7370A2297BE0058D7AD /* Traversal.h in Headers */,
-				07921B172E56E34500020EB1 /* TreeResolutionState.h in Headers */,
-				07921B172E56E34500020EB1 /* TreeResolutionState.h in Headers */,
-				07921B172E56E34500020EB1 /* TreeResolutionState.h in Headers */,
+				BCB02B4B2E93FDFC008A0B68 /* TreeResolutionState.h in Headers */,
 				14D64B5D134A5B6B00E58FDA /* TreeScope.h in Headers */,
 				4644BDC52ADBA502000A2245 /* TreeScopeInlines.h in Headers */,
 				14947FFE12F80CD200A0F631 /* TreeScopeOrderedMap.h in Headers */,
@@ -47667,17 +47573,11 @@
 				44CE2BBF264379AF007AE110 /* WebTextIndicatorLayer.h in Headers */,
 				0F580FA31496939100FB5BD8 /* WebTiledBackingLayer.h in Headers */,
 				FAC3C3E12A996534001E2EB8 /* WebTransport.h in Headers */,
-				07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */,
-				07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */,
-				07921B292E5845B500020EB1 /* WebTransportBidirectionalStreamSource.h in Headers */,
 				FACC82B02E8E093F00EBAFED /* WebTransportCongestionControl.h in Headers */,
 				FA0B46D42E8CBF780073E9B3 /* WebTransportConnectionStats.h in Headers */,
 				FA0B46CE2E8C7FEB0073E9B3 /* WebTransportDatagramStats.h in Headers */,
 				FACC82BA2E8EF33A00EBAFED /* WebTransportHash.h in Headers */,
 				FACC82B92E8EF2AF00EBAFED /* WebTransportOptions.h in Headers */,
-				07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */,
-				07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */,
-				07921B282E5845AF00020EB1 /* WebTransportReceiveStreamSource.h in Headers */,
 				FA93D69F2AA40DD5006444FB /* WebTransportReceiveStreamStats.h in Headers */,
 				FA0B46D22E8C92AC0073E9B3 /* WebTransportSendStreamSink.h in Headers */,
 				FA93D69E2AA40DC9006444FB /* WebTransportSendStreamStats.h in Headers */,

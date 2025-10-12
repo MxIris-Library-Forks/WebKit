@@ -4426,9 +4426,8 @@ void Document::enqueuePaintTimingEntryIfNeeded()
     };
 
     auto enqueueLargestContentfulPaintIfNecessary = [&]() {
-        WTFEmitSignpost(this, NavigationAndPaintTiming, "largestContentfulPaint");
-
         if (RefPtr entry = largestContentfulPaintData().takePendingEntry(nowTime)) {
+            WTFEmitSignpost(this, NavigationAndPaintTiming, "largestContentfulPaint");
             Ref entryRef = entry.releaseNonNull();
             protectedWindow()->performance().reportLargestContentfulPaint(WTFMove(entryRef));
         }
@@ -8156,7 +8155,7 @@ Ref<HTMLCollection> Document::anchors()
     return ensureCachedCollection<CollectionType::DocAnchors>();
 }
 
-Ref<HTMLCollection> Document::all()
+Ref<HTMLAllCollection> Document::all()
 {
     return ensureRareData().ensureNodeLists().addCachedCollection<HTMLAllCollection>(*this, CollectionType::DocAll);
 }

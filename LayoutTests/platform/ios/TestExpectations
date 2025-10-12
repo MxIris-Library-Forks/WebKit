@@ -7563,6 +7563,7 @@ imported/w3c/web-platform-tests/screen-orientation/lock-unlock-check.html [ Pass
 fast/forms/ios/time-picker-value-change.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-cascade-layer-reorder.html [ Failure ]
+imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-after-scroll-in-document.html [ ImageOnlyFailure ]
 
 # FAIL results are platform dependent
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-invalid-fallback.html [ Failure ]
@@ -8244,6 +8245,8 @@ webkit.org/b/295435 compositing/layer-creation/overlap-animation-container.html 
 webkit.org/b/298042 [ Release ] http/tests/security/clipboard/copy-paste-html-cross-origin-iframe-across-origin.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-break/block-in-inline-012.html [ ImageOnlyFailure ]
+
+webkit.org/b/298244 imported/w3c/web-platform-tests/css/css-scroll-anchoring/shadow-dom-subscroller.html [ Pass Failure ]
 
 webkit.org/b/298256 [ Debug ] fast/dom/document-all.html [ Timeout ]
 

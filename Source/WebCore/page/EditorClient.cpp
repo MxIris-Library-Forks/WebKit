@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,37 +16,18 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-
-#include <WebCore/Length.h>
-#include <WebCore/StylePrimitiveNumericTypes.h>
-#include <WebCore/StyleValueTypes.h>
+#include "config.h"
+#include "EditorClient.h"
 
 namespace WebCore {
-namespace Style {
 
-template<auto R> struct ToPlatform<LengthPercentage<R>> {
-    auto operator()(const LengthPercentage<R>& length) -> WebCore::Length
-    {
-        return WTF::switchOn(length,
-            [](const LengthPercentage<R>::Dimension& dimension) {
-                return WebCore::Length { dimension.value, WebCore::LengthType::Fixed };
-            },
-            [](const LengthPercentage<R>::Percentage& percentage) {
-                return WebCore::Length { percentage.value, WebCore::LengthType::Percent };
-            },
-            [](const LengthPercentage<R>::Calc& calc) {
-                return WebCore::Length { calc.protectedCalculation() };
-            }
-        );
-    }
-};
+EditorClient::~EditorClient() = default;
 
-} // namespace Style
-} // namespace WebCore
+}

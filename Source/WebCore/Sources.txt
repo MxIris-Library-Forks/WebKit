@@ -2112,6 +2112,7 @@ page/DeviceController.cpp
 page/DiagnosticLoggingKeys.cpp
 page/DisabledAdaptations.cpp
 page/DragController.cpp
+page/EditorClient.cpp
 page/ElementTargetingController.cpp
 page/EventCounts.cpp
 page/EventHandler.cpp
@@ -2300,8 +2301,6 @@ platform/KeyboardScrollingAnimator.cpp
 platform/LLVMProfiling.cpp
 platform/LayoutUnit.cpp
 platform/LegacySchemeRegistry.cpp
-platform/Length.cpp
-platform/LengthFunctions.cpp
 platform/LocalizedStrings.cpp
 platform/LogInitialization.cpp
 platform/Logging.cpp

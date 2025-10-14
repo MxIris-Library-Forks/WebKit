@@ -2357,6 +2357,7 @@ struct WebCore::DateTimeChooserParameters {
     bool useDarkAppearance;
     bool hasSecondField;
     bool hasMillisecondField;
+    bool wasActivatedByKeyboard;
 }
 
 header: <WebCore/ScreenProperties.h>
@@ -6805,7 +6806,7 @@ header: <WebCore/TextExtractionTypes.h>
 
 header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::ImageItemData {
-    String name;
+    URL completedSource;
     String altText;
 };
 

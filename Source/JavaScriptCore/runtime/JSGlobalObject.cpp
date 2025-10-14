@@ -358,6 +358,8 @@ static JSC_DECLARE_HOST_FUNCTION(promiseOnRejectedWithContext);
 static JSC_DECLARE_HOST_FUNCTION(promiseAllOnFulfilled);
 static JSC_DECLARE_HOST_FUNCTION(promiseEmptyOnFulfilled);
 static JSC_DECLARE_HOST_FUNCTION(promiseEmptyOnRejected);
+static JSC_DECLARE_HOST_FUNCTION(promiseResolve);
+static JSC_DECLARE_HOST_FUNCTION(promiseReject);
 static JSC_DECLARE_HOST_FUNCTION(performPromiseThen);
 #if ASSERT_ENABLED
 static JSC_DECLARE_HOST_FUNCTION(assertCall);
@@ -654,7 +656,7 @@ const GlobalObjectMethodTable* JSGlobalObject::baseGlobalObjectMethodTable()
         &supportsRichSourceInfo,
         &shouldInterruptScript,
         &javaScriptRuntimeFlags,
-        nullptr, // queueMicrotaskToEventLoop
+        &queueMicrotaskToEventLoop,
         &shouldInterruptScriptBeforeTimeout,
         nullptr, // moduleLoaderImportModule
         nullptr, // moduleLoaderResolve
@@ -873,6 +875,22 @@ JSC_DEFINE_HOST_FUNCTION(promiseEmptyOnRejected, (JSGlobalObject* globalObject, 
     JSValue argument = callFrame->argument(0);
     scope.throwException(globalObject, argument);
     return encodedJSUndefined();
+}
+
+JSC_DEFINE_HOST_FUNCTION(promiseResolve, (JSGlobalObject* globalObject, CallFrame* callFrame))
+{
+    ASSERT(callFrame->argumentCount() == 2);
+    JSObject* constructor = jsCast<JSObject*>(callFrame->uncheckedArgument(0));
+    JSValue argument = callFrame->uncheckedArgument(1);
+    return JSValue::encode(JSPromise::promiseResolve(globalObject, constructor, argument));
+}
+
+JSC_DEFINE_HOST_FUNCTION(promiseReject, (JSGlobalObject* globalObject, CallFrame* callFrame))
+{
+    ASSERT(callFrame->argumentCount() == 2);
+    JSObject* constructor = jsCast<JSObject*>(callFrame->uncheckedArgument(0));
+    JSValue argument = callFrame->uncheckedArgument(1);
+    return JSValue::encode(JSPromise::promiseReject(globalObject, constructor, argument));
 }
 
 JSC_DEFINE_HOST_FUNCTION(performPromiseThen, (JSGlobalObject* globalObject, CallFrame* callFrame))
@@ -1916,6 +1934,12 @@ capitalName ## Constructor* lowerName ## Constructor = featureFlag ? capitalName
         });
     m_linkTimeConstants[static_cast<unsigned>(LinkTimeConstant::promiseEmptyOnRejected)].initLater([] (const Initializer<JSCell>& init) {
             init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 1, "promiseEmptyOnRejected"_s, promiseEmptyOnRejected, ImplementationVisibility::Private));
+        });
+    m_linkTimeConstants[static_cast<unsigned>(LinkTimeConstant::promiseResolve)].initLater([] (const Initializer<JSCell>& init) {
+            init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 2, "promiseResolve"_s, promiseResolve, ImplementationVisibility::Private, PromiseResolveIntrinsic));
+        });
+    m_linkTimeConstants[static_cast<unsigned>(LinkTimeConstant::promiseReject)].initLater([] (const Initializer<JSCell>& init) {
+            init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 2, "promiseReject"_s, promiseReject, ImplementationVisibility::Private, PromiseRejectIntrinsic));
         });
     m_linkTimeConstants[static_cast<unsigned>(LinkTimeConstant::performPromiseThen)].initLater([] (const Initializer<JSCell>& init) {
             init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 5, "performPromiseThen"_s, performPromiseThen, ImplementationVisibility::Private));
@@ -3549,14 +3573,17 @@ void JSGlobalObject::bumpGlobalLexicalBindingEpoch(VM& vm)
     }
 }
 
+void JSGlobalObject::queueMicrotaskToEventLoop(JSC::JSGlobalObject& globalObject, JSC::QueuedTask&& task)
+{
+    if (globalObject.debugger()) [[unlikely]]
+        task.setDispatcher(DebuggableMicrotaskDispatcher::create());
+    globalObject.vm().queueMicrotask(WTFMove(task));
+}
+
 void JSGlobalObject::queueMicrotask(InternalMicrotask job, JSValue argument0, JSValue argument1, JSValue argument2, JSValue argument3)
 {
     QueuedTask task { nullptr, job, this, argument0, argument1, argument2, argument3 };
-    if (globalObjectMethodTable()->queueMicrotaskToEventLoop) {
-        globalObjectMethodTable()->queueMicrotaskToEventLoop(*this, WTFMove(task));
-        return;
-    }
-    vm().queueMicrotask(WTFMove(task));
+    globalObjectMethodTable()->queueMicrotaskToEventLoop(*this, WTFMove(task));
 }
 
 void JSGlobalObject::reportUncaughtExceptionAtEventLoop(JSGlobalObject*, Exception* exception)

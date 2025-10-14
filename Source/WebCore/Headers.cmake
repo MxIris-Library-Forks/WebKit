@@ -1776,6 +1776,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     inspector/InspectorFrontendHost.h
     inspector/InspectorInstrumentationPublic.h
     inspector/InspectorInstrumentationWebKit.h
+    inspector/InstrumentingAgents.h
     inspector/InspectorOverlay.h
     inspector/InspectorOverlayLabel.h
     inspector/InspectorWebAgentBase.h
@@ -2470,12 +2471,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/audio/RealtimeAudioThread.h
     platform/audio/SharedAudioDestination.h
     platform/audio/SincResampler.h
-
-    platform/calc/CalculationCategory.h
-    platform/calc/CalculationOperator.h
-    platform/calc/CalculationRange.h
-    platform/calc/CalculationTree.h
-    platform/calc/CalculationValue.h
 
     platform/encryptedmedia/CDMEncryptionScheme.h
     platform/encryptedmedia/CDMFactory.h
@@ -3229,6 +3224,12 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/StyleUpdate.h
     style/StyleValidity.h
     style/Styleable.h
+
+    style/calc/StyleCalculationCategory.h
+    style/calc/StyleCalculationOperator.h
+    style/calc/StyleCalculationRange.h
+    style/calc/StyleCalculationTree.h
+    style/calc/StyleCalculationValue.h
 
     style/values/StyleValueTypes.h
 

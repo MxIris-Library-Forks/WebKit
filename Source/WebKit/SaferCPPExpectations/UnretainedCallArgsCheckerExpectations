@@ -19,7 +19,6 @@ Shared/RemoteLayerTree/RemoteLayerTreePropertyApplier.mm
 UIProcess/API/C/mac/WKNotificationPrivateMac.mm
 UIProcess/API/C/mac/WKProtectionSpaceNS.mm
 [ Mac ] UIProcess/API/Cocoa/NSAttributedString.mm
-UIProcess/API/Cocoa/WKDownload.mm
 UIProcess/API/Cocoa/WKFrameInfo.mm
 UIProcess/API/Cocoa/WKNavigationAction.mm
 UIProcess/API/Cocoa/WKNavigationResponse.mm
@@ -59,17 +58,12 @@ UIProcess/API/Cocoa/_WKWebPushAction.mm
 [ Mac ] UIProcess/API/mac/WKWebViewMac.mm
 [ Mac ] UIProcess/API/mac/WKWebViewTestingMac.mm
 [ Mac ] UIProcess/Automation/mac/WebAutomationSessionMac.mm
-UIProcess/Cocoa/UIDelegate.mm
-UIProcess/Cocoa/WKStorageAccessAlert.mm
-UIProcess/Cocoa/_WKWarningView.mm
 [ Mac ] UIProcess/Inspector/Cocoa/InspectorExtensionDelegate.mm
 [ Mac ] UIProcess/Inspector/mac/WKInspectorViewController.mm
 [ Mac ] UIProcess/Inspector/mac/WKInspectorWKWebView.mm
 [ Mac ] UIProcess/mac/DisplayCaptureSessionManager.mm
 [ Mac ] UIProcess/mac/PageClientImplMac.mm
 UIProcess/mac/SecItemShimProxy.cpp
-[ Mac ] UIProcess/mac/WKFullScreenWindowController.mm
-[ Mac ] UIProcess/mac/WKTextAnimationManagerMac.mm
 [ Mac ] UIProcess/mac/WebDataListSuggestionsDropdownMac.mm
 [ Mac ] UIProcess/mac/WebPopupMenuProxyMac.mm
 [ Mac ] UIProcess/mac/WebViewImpl.mm

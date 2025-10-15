@@ -56,7 +56,7 @@ struct DragItem final {
 
     PromisedAttachmentInfo promisedAttachmentInfo;
 
-#if ENABLE(MODEL_PROCESS)
+#if ENABLE(MODEL_ELEMENT_STAGE_MODE_INTERACTION)
     Markable<PlatformLayerIdentifier> modelLayerID;
 #endif
 

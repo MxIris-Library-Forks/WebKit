@@ -1646,7 +1646,7 @@ JSC_DEFINE_JIT_OPERATION(operationRejectPromiseFirstResolving, void, (JSGlobalOb
     JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
     auto scope = DECLARE_THROW_SCOPE(vm);
     JSValue argument = JSValue::decode(encodedArgument);
-    promise->reject(globalObject, argument);
+    promise->reject(vm, globalObject, argument);
     OPERATION_RETURN(scope);
 }
 
@@ -1657,7 +1657,7 @@ JSC_DEFINE_JIT_OPERATION(operationFulfillPromiseFirstResolving, void, (JSGlobalO
     JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
     auto scope = DECLARE_THROW_SCOPE(vm);
     JSValue argument = JSValue::decode(encodedArgument);
-    promise->fulfill(globalObject, argument);
+    promise->fulfill(vm, globalObject, argument);
     OPERATION_RETURN(scope);
 }
 
@@ -1679,6 +1679,15 @@ JSC_DEFINE_JIT_OPERATION(operationPromiseReject, JSObject*, (JSGlobalObject* glo
     auto scope = DECLARE_THROW_SCOPE(vm);
     JSValue argument = JSValue::decode(encodedArgument);
     OPERATION_RETURN(scope, JSPromise::promiseReject(globalObject, constructor, argument));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationPromiseThen, JSObject*, (JSGlobalObject* globalObject, JSPromise* promise, EncodedJSValue onFulfilled, EncodedJSValue onRejected))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+    OPERATION_RETURN(scope, promise->then(globalObject, JSValue::decode(onFulfilled), JSValue::decode(onRejected)));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationRegExpTestString, size_t, (JSGlobalObject* globalObject, RegExpObject* regExpObject, JSString* input))

@@ -108,7 +108,6 @@ css/typedom/ComputedStylePropertyMapReadOnly.cpp
 css/typedom/InlineStylePropertyMap.cpp
 dom/Attr.cpp
 dom/BoundaryPoint.cpp
-dom/CharacterData.cpp
 dom/CollectionIndexCacheInlines.h
 dom/ComposedTreeIterator.h
 dom/ContainerNode.cpp
@@ -309,6 +308,7 @@ inspector/agents/page/PageRuntimeAgent.cpp
 inspector/agents/worker/WorkerAuditAgent.cpp
 inspector/agents/worker/WorkerDebuggerAgent.cpp
 inspector/agents/worker/WorkerRuntimeAgent.cpp
+inspector/InspectorResourceUtilities.cpp
 layout/floats/FloatingContext.cpp
 layout/floats/PlacedFloats.cpp
 layout/formattingContexts/FormattingGeometry.cpp

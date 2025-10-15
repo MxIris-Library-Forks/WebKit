@@ -634,8 +634,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/model-element/HTMLModelElement.h
     Modules/model-element/HTMLModelElementCamera.h
     Modules/model-element/ModelPlayer.h
+    Modules/model-element/ModelPlayerAccessibilityChildren.h
     Modules/model-element/ModelPlayerAnimationState.h
     Modules/model-element/ModelPlayerClient.h
+    Modules/model-element/ModelPlayerIdentifier.h
     Modules/model-element/ModelPlayerProvider.h
     Modules/model-element/ModelPlayerTransformState.h
 
@@ -1189,6 +1191,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/StyleSheetContents.h
     css/StyleSheetList.h
 
+    css/calc/CSSCalcOperator.h
     css/calc/CSSCalcRandomCachingKey.h
     css/calc/CSSCalcRandomCachingKeyMap.h
     css/calc/CSSCalcSymbolTable.h
@@ -1256,6 +1259,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/primitives/CSSPrimitiveData.h
     css/values/primitives/CSSPrimitiveKeywordList.h
     css/values/primitives/CSSPrimitiveNumeric.h
+    css/values/primitives/CSSPrimitiveNumericCategory.h
     css/values/primitives/CSSPrimitiveNumericConcepts.h
     css/values/primitives/CSSPrimitiveNumericOrKeyword.h
     css/values/primitives/CSSPrimitiveNumericRange.h
@@ -2664,7 +2668,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/MediaUsageInfo.h
     platform/graphics/Model.h
     platform/graphics/ModelContext.h
-    platform/graphics/ModelPlayerIdentifier.h
     platform/graphics/NativeImage.h
     platform/graphics/NullGraphicsContext.h
     platform/graphics/NullImageBufferBackend.h
@@ -3225,9 +3228,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/StyleValidity.h
     style/Styleable.h
 
-    style/calc/StyleCalculationCategory.h
-    style/calc/StyleCalculationOperator.h
-    style/calc/StyleCalculationRange.h
     style/calc/StyleCalculationTree.h
     style/calc/StyleCalculationValue.h
 

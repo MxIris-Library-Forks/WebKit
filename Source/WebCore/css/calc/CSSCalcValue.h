@@ -32,23 +32,19 @@
 #pragma once
 
 #include <WebCore/CSSCalcTree.h>
-#include <WebCore/CSSValue.h>
-#include <wtf/Forward.h>
+#include <wtf/RefCounted.h>
 #include <wtf/Ref.h>
 
 namespace WebCore {
 
 namespace Style {
-namespace Calculation {
-enum class Category : uint8_t;
-}
-
 class CalculationValue;
 }
 
 namespace CSS {
 struct PropertyParserState;
 struct Range;
+enum class Category : uint8_t;
 }
 
 class CSSCalcSymbolTable;
@@ -65,22 +61,25 @@ enum CSSValueID : uint16_t;
 
 enum class CSSUnitType : uint8_t;
 
-class CSSCalcValue final : public CSSValue {
+namespace CSSCalc {
+
+// Boxes a `CSSCalc::Tree` along with the `Style::Calculation::Category` and `CSS::Range` used to construct it.
+class Value final : public RefCounted<Value> {
 public:
-    static RefPtr<CSSCalcValue> parse(CSSParserTokenRange&, CSS::PropertyParserState&, Style::Calculation::Category, CSS::Range, CSSCalcSymbolsAllowed, CSSPropertyParserOptions);
+    static RefPtr<Value> parse(CSSParserTokenRange&, CSS::PropertyParserState&, CSS::Category, CSS::Range, CSSCalcSymbolsAllowed, CSSPropertyParserOptions);
 
-    static Ref<CSSCalcValue> create(const Style::CalculationValue&, const RenderStyle&);
-    static Ref<CSSCalcValue> create(Style::Calculation::Category, CSS::Range, CSSCalc::Tree&&);
+    static Ref<Value> create(const Style::CalculationValue&, const RenderStyle&);
+    static Ref<Value> create(CSS::Category, CSS::Range, CSSCalc::Tree&&);
 
-    ~CSSCalcValue();
+    ~Value();
 
     // Creates a copy of the CSSCalc::Tree with non-canonical dimensions and any symbols present in the provided symbol table resolved.
-    Ref<CSSCalcValue> copySimplified(const CSSToLengthConversionData&) const;
-    Ref<CSSCalcValue> copySimplified(const CSSToLengthConversionData&, const CSSCalcSymbolTable&) const;
-    Ref<CSSCalcValue> copySimplified(NoConversionDataRequiredToken) const;
-    Ref<CSSCalcValue> copySimplified(NoConversionDataRequiredToken, const CSSCalcSymbolTable&) const;
+    Ref<Value> copySimplified(const CSSToLengthConversionData&) const;
+    Ref<Value> copySimplified(const CSSToLengthConversionData&, const CSSCalcSymbolTable&) const;
+    Ref<Value> copySimplified(NoConversionDataRequiredToken) const;
+    Ref<Value> copySimplified(NoConversionDataRequiredToken, const CSSCalcSymbolTable&) const;
 
-    Style::Calculation::Category category() const { return m_category; }
+    CSS::Category category() const { return m_category; }
     CSS::Range range() const { return m_range; }
 
     CSSUnitType primitiveType() const;
@@ -104,25 +103,24 @@ public:
 
     void collectComputedStyleDependencies(ComputedStyleDependencies&) const;
 
-    String customCSSText(const CSS::SerializationContext&) const;
-    bool equals(const CSSCalcValue&) const;
+    String cssText(const CSS::SerializationContext&) const;
+    bool equals(const Value&) const;
 
     void dump(TextStream&) const;
 
     const CSSCalc::Tree& tree() const { return m_tree; }
 
 private:
-    explicit CSSCalcValue(Style::Calculation::Category, CSS::Range, CSSCalc::Tree&&);
+    explicit Value(CSS::Category, CSS::Range, CSSCalc::Tree&&);
 
     double clampToPermittedRange(double) const;
 
-    Style::Calculation::Category m_category;
+    CSS::Category m_category;
     CSS::Range m_range;
-    CSSCalc::Tree m_tree;
+    Tree m_tree;
 };
 
-TextStream& operator<<(TextStream&, const CSSCalcValue&);
+TextStream& operator<<(TextStream&, const Value&);
 
+} // namespace CSSCalc
 } // namespace WebCore
-
-SPECIALIZE_TYPE_TRAITS_CSS_VALUE(CSSCalcValue, isCalcValue())

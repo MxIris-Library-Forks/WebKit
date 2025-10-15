@@ -1002,6 +1002,7 @@ css/StyleRuleImport.cpp
 css/StyleSheet.cpp
 css/StyleSheetContents.cpp
 css/StyleSheetList.cpp
+css/calc/CSSCalcOperator.cpp
 css/calc/CSSCalcSymbolTable.cpp
 css/calc/CSSCalcSymbolsAllowed.cpp
 css/calc/CSSCalcTree+ComputedStyleDependencies.cpp
@@ -1153,6 +1154,7 @@ css/values/grid/CSSGridNamedAreaMap.cpp
 css/values/images/CSSGradient.cpp
 css/values/motion/CSSRayFunction.cpp
 css/values/primitives/CSSPosition.cpp
+css/values/primitives/CSSPrimitiveNumericCategory.cpp
 css/values/primitives/CSSPrimitiveNumericTypes+Canonicalization.cpp
 css/values/primitives/CSSPrimitiveNumericTypes+ComputedStyleDependencies.cpp
 css/values/primitives/CSSPrimitiveNumericTypes+Serialization.cpp
@@ -1837,11 +1839,14 @@ inspector/InspectorHistory.cpp
 inspector/InspectorInstrumentation.cpp
 inspector/InspectorInstrumentationPublic.cpp
 inspector/InspectorInstrumentationWebKit.cpp
+inspector/InspectorNetworkIntercept.cpp
 inspector/InspectorNodeFinder.cpp
 inspector/InspectorOverlay.cpp
 inspector/InspectorOverlayLabel.cpp
+inspector/InspectorResourceUtilities.cpp
 inspector/InspectorShaderProgram.cpp
 inspector/InspectorStyleSheet.cpp
+inspector/InspectorThreadableLoaderClient.cpp
 inspector/InstrumentingAgents.cpp
 inspector/NetworkResourcesData.cpp
 inspector/PageDebugger.cpp
@@ -2378,6 +2383,7 @@ platform/WebCoreMainThread.cpp
 platform/WebCorePersistentCoders.cpp
 platform/Widget.cpp
 platform/animation/AcceleratedEffect.cpp
+platform/animation/AcceleratedEffectStack.cpp @no-unify
 platform/animation/AcceleratedEffectValues.cpp
 platform/animation/TimingFunction.cpp
 platform/animation/values/AcceleratedEffectOffsetAnchor.cpp
@@ -3139,8 +3145,6 @@ style/StyleTreeResolver.cpp
 style/StyleUpdate.cpp
 style/Styleable.cpp
 style/UserAgentStyle.cpp
-style/calc/StyleCalculationCategory.cpp
-style/calc/StyleCalculationOperator.cpp
 style/calc/StyleCalculationTree+Copy.cpp
 style/calc/StyleCalculationTree+Evaluation.cpp
 style/calc/StyleCalculationTree.cpp

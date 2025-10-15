@@ -26,27 +26,20 @@
 #import "config.h"
 #import "DDModelPlayer.h"
 
-#if ENABLE(GPUP_MODEL)
+#if ENABLE(GPU_PROCESS_MODEL)
 
+#import "Document.h"
+#import "GPU.h"
 #import "GraphicsLayer.h"
 #import "GraphicsLayerContentsDisplayDelegate.h"
 #import "HTMLModelElement.h"
+#import "ModelDDInlineConverters.h"
+#import "ModelDDTypes.h"
+#import "Navigator.h"
+#import "Page.h"
 #import "PlatformCALayer.h"
 #import "PlatformCALayerDelegatedContents.h"
-
-#import <WebCore/Document.h>
-#import <WebCore/GPU.h>
-#import <WebCore/ModelDDInlineConverters.h>
-#import <WebCore/ModelDDTypes.h>
-#import <WebCore/Navigator.h>
-#import <WebCore/Page.h>
-#import <WebCore/WebGPU.h>
-#import <wtf/cocoa/VectorCocoa.h>
-
-static std::optional<RetainPtr<id>> makeVectorElement(const RetainPtr<id>*, id arrayElement)
-{
-    return { retainPtr(arrayElement) };
-}
+#import "WebGPU.h"
 
 namespace WebCore {
 
@@ -160,8 +153,8 @@ void DDModelPlayer::load(Model& modelSource, LayoutSize size)
         m_modelLoader = adoptNS([[WebUSDModelLoader alloc] init]);
         RetainPtr nsURL = modelSource.url().createNSURL();
         [m_modelLoader setCallbacksWithModelAddedCallback:^(WebAddMeshRequest *addRequest) {
-            if (m_client)
-                m_client->didFinishLoading(*this);
+            if (RefPtr client = m_client.get())
+                client->didFinishLoading(*this);
 
             if (m_currentModel)
                 m_currentModel->addMesh(toCpp(addRequest));
@@ -255,11 +248,9 @@ void DDModelPlayer::updateScene()
 {
 }
 
-Vector<RetainPtr<id>> DDModelPlayer::accessibilityChildren()
+ModelPlayerAccessibilityChildren DDModelPlayer::accessibilityChildren()
 {
-    NSArray *children = nil;
-
-    return makeVector<RetainPtr<id>>(children);
+    return { };
 }
 
 WebCore::ModelPlayerIdentifier DDModelPlayer::identifier() const
@@ -296,8 +287,8 @@ void DDModelPlayer::update()
     if (auto* machSendRight = displayBuffer(); machSendRight && contentsDisplayDelegate())
         RefPtr { m_contentsDisplayDelegate }->setDisplayBuffer(*machSendRight);
 
-    if (auto client = m_client.get())
-        client->didUpdateDisplayDelegate();
+    if (RefPtr client = m_client.get())
+        client->didUpdateDisplayDelegate(*this);
 }
 
 }

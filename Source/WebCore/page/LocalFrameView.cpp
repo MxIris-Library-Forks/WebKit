@@ -2469,7 +2469,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         if (!border->isVisible())
             return samplingRect;
 
-        auto borderWidth = Style::evaluate<float>(border->width(), Style::ZoomNeeded { });
+        auto borderWidth = Style::evaluate<float>(border->width(), style->usedZoomForLength());
         if (borderWidth > thinBorderWidth)
             return samplingRect;
 
@@ -2503,8 +2503,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         return blendSourceOver(pageBackgroundColor, color);
     };
 
-    for (auto sideFlag : sides) {
-        auto side = boxSideFromFlag(sideFlag);
+    for (auto side : sides) {
         auto result = findFixedContainer(side, IgnoreCSSPointerEvents::Yes);
         if (result.retryHonoringPointerEvents)
             result = findFixedContainer(side, IgnoreCSSPointerEvents::No);

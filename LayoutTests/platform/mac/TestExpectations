@@ -1722,7 +1722,8 @@ webkit.org/b/221152 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-a
 
 webkit.org/b/221491 animations/keyframe-pseudo-shadow.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/221973 media/media-webm-no-duration.html [ Failure ]
+# webkit.org/b/221973 for failure, webkit.org/b/300940 for crash
+media/media-webm-no-duration.html [ Crash Failure ]
 
 webkit.org/b/221100 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworkletnode-channel-count.https.html [ Pass Failure ]
 
@@ -1772,7 +1773,8 @@ webkit.org/b/223975 inspector/protocol/condition.html [ Pass Timeout ]
 
 webkit.org/b/223976 [ Debug ] imported/w3c/web-platform-tests/cors/redirect-preflight.htm [ Pass Failure ]
 
-webkit.org/b/224123 media/modern-media-controls/macos-inline-media-controls/macos-inline-media-dropping-controls.html [ Pass Failure ]
+# webkit.org/b/224123 For failure, webkit.org/b/300944 for timeout
+media/modern-media-controls/macos-inline-media-controls/macos-inline-media-dropping-controls.html [ Failure Timeout ]
 
 webkit.org/b/224212 [ arm64 ] compositing/background-color/no-composited-background-color-when-perspective.html [ Pass ImageOnlyFailure ]
 
@@ -2530,8 +2532,6 @@ fast/forms/menulist-separator-painting.html [ Pass Failure ]
 fast/forms/menulist-restrict-line-height.html [ Pass Failure ]
 platform/mac/fast/forms/switch-repaint-size-vertical.html [ Pass Failure ]
 fast/forms/color/color-input-set-attribute-value.html [ Pass ImageOnlyFailure ]
-fast/dom/DOMURL/url-very-large-password-no-crash.html [ Pass Timeout ]
-fast/dom/DOMURL/url-very-large-username-no-crash.html [ Pass Timeout ]
 fast/css/accent-color/select.html [ Pass ImageOnlyFailure ]
 media/modern-media-controls/css/visibility-hidden.html [ Pass ImageOnlyFailure ]
 pdf/images/jpeg2000-embed-pdf.html [ Pass ImageOnlyFailure ]

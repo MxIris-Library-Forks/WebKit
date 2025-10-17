@@ -34,10 +34,10 @@ WebProcess/Extensions/API/Cocoa/WebExtensionAPIWebNavigationEventCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIWebRequestEventCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIWindowsCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIWindowsEventCocoa.mm
+WebProcess/Extensions/Bindings/Cocoa/JSWebExtensionWrapperCocoa.mm
+WebProcess/Extensions/Cocoa/WebExtensionControllerProxyCocoa.mm
 WebProcess/GPU/graphics/RemoteRenderingBackendProxy.cpp
 WebProcess/GPU/media/MediaPlayerPrivateRemote.cpp
-WebProcess/GPU/media/RemoteLegacyCDMFactory.cpp
-WebProcess/GPU/media/RemoteLegacyCDMSession.cpp
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInCSSStyleDeclarationHandle.mm
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInFrame.mm
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInHitTestResult.mm
@@ -58,16 +58,11 @@ WebProcess/InjectedBundle/API/mac/WKWebProcessPlugIn.mm
 WebProcess/InjectedBundle/API/mac/WKWebProcessPlugInBrowserContextController.mm
 WebProcess/InjectedBundle/InjectedBundleDOMWindowExtension.cpp
 WebProcess/InjectedBundle/InjectedBundleHitTestResult.cpp
-WebProcess/Inspector/WebInspectorUI.cpp
 WebProcess/WebCoreSupport/WebChromeClient.cpp
 WebProcess/WebCoreSupport/mac/WebDragClientMac.mm
 WebProcess/WebPage/Cocoa/TextAnimationController.mm
-WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemote.mm
-WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemoteCustom.mm
-WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemoteModelHosting.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeContext.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeDrawingArea.mm
-WebProcess/WebPage/RemoteLayerTree/RemoteScrollingCoordinator.mm
 WebProcess/WebPage/mac/WKAccessibilityWebPageObjectBase.mm
 WebProcess/cocoa/PlaybackSessionManager.mm
 WebProcess/cocoa/TextTrackRepresentationCocoa.mm
@@ -83,14 +78,11 @@ WebProcess/cocoa/WebProcessCocoa.mm
 [ iOS ] GPUProcess/GPUConnectionToWebProcess.cpp
 [ iOS ] GPUProcess/cocoa/GPUConnectionToWebProcessCocoa.mm
 [ iOS ] GPUProcess/media/RemoteAudioSessionProxyManager.cpp
-[ iOS ] GPUProcess/media/ios/RemoteMediaSessionHelperProxy.cpp
 [ iOS ] NetworkProcess/NetworkConnectionToWebProcess.cpp
 [ iOS ] NetworkProcess/NetworkProcess.cpp
 [ iOS ] NetworkProcess/cocoa/NetworkProcessCocoa.mm
 [ iOS ] NetworkProcess/ios/NetworkConnectionToWebProcessIOS.mm
 [ iOS ] Shared/ApplePay/ios/WebPaymentCoordinatorProxyIOS.mm
-[ iOS ] UIProcess/API/APIHTTPCookieStore.cpp
-[ iOS ] UIProcess/API/C/WKWebsiteDataStoreRef.cpp
 [ iOS ] UIProcess/API/Cocoa/WKContextMenuElementInfo.mm
 [ iOS ] UIProcess/API/Cocoa/WKWebExtensionCommand.mm
 [ iOS ] UIProcess/API/Cocoa/WKWebView.mm

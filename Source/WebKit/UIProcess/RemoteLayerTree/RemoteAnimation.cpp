@@ -34,19 +34,20 @@ namespace WebKit {
 
 WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RemoteAnimation);
 
-Ref<RemoteAnimation> RemoteAnimation::create(const WebCore::AcceleratedEffect& effect)
+Ref<RemoteAnimation> RemoteAnimation::create(const WebCore::AcceleratedEffect& effect, const RemoteAnimationTimeline& timeline)
 {
-    return adoptRef(*new RemoteAnimation(effect));
+    return adoptRef(*new RemoteAnimation(effect, timeline));
 }
 
-RemoteAnimation::RemoteAnimation(const WebCore::AcceleratedEffect& effect)
+RemoteAnimation::RemoteAnimation(const WebCore::AcceleratedEffect& effect, const RemoteAnimationTimeline& timeline)
     : m_effect(effect)
+    , m_timeline(timeline)
 {
 }
 
-void RemoteAnimation::apply(WebCore::WebAnimationTime currentTime, WebCore::AcceleratedEffectValues& values)
+void RemoteAnimation::apply(WebCore::AcceleratedEffectValues& values)
 {
-    Ref { m_effect }->apply(currentTime, values);
+    Ref { m_effect }->apply(m_timeline->currentTime(), values);
 }
 
 } // namespace WebKit

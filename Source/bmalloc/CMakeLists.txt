@@ -148,8 +148,6 @@ set(bmalloc_C_SOURCES
     libpas/src/libpas/pas_lock_free_read_ptr_ptr_hashtable.c
     libpas/src/libpas/pas_log.c
     libpas/src/libpas/pas_malloc_stack_logging.c
-    libpas/src/libpas/pas_mar_registry.c
-    libpas/src/libpas/pas_mar_report_crash.c
     libpas/src/libpas/pas_medium_megapage_cache.c
     libpas/src/libpas/pas_megapage_cache.c
     libpas/src/libpas/pas_monotonic_time.c
@@ -354,7 +352,6 @@ set(bmalloc_PUBLIC_HEADERS
     libpas/src/libpas/pas_allocator_index.h
     libpas/src/libpas/pas_allocator_scavenge_action.h
     libpas/src/libpas/pas_all_shared_page_directories.h
-    libpas/src/libpas/pas_backtrace_metadata.h
     libpas/src/libpas/pas_baseline_allocator.h
     libpas/src/libpas/pas_baseline_allocator_result.h
     libpas/src/libpas/pas_baseline_allocator_table.h
@@ -550,9 +547,6 @@ set(bmalloc_PUBLIC_HEADERS
     libpas/src/libpas/pas_lock.h
     libpas/src/libpas/pas_log.h
     libpas/src/libpas/pas_malloc_stack_logging.h
-    libpas/src/libpas/pas_mar_crash_reporter_report.h
-    libpas/src/libpas/pas_mar_registry.h
-    libpas/src/libpas/pas_mar_report_crash.h
     libpas/src/libpas/pas_medium_megapage_cache.h
     libpas/src/libpas/pas_megapage_cache.h
     libpas/src/libpas/pas_min_heap.h
@@ -711,6 +705,7 @@ set(bmalloc_LIBRARIES
 )
 
 if (ENABLE_MALLOC_HEAP_BREAKDOWN)
+    list(APPEND bmalloc_DEFINITIONS BENABLE_MALLOC_HEAP_BREAKDOWN=1)
     list(APPEND bmalloc_LIBRARIES ${MALLOC_HEAP_BREAKDOWN_LIBRARIES})
 endif ()
 
@@ -733,10 +728,6 @@ add_definitions(-DPAS_BMALLOC=1)
 if (MSVC)
     add_compile_options(/wd4206)
     add_compile_options(-mcx16)
-endif ()
-
-if (ENABLE_MALLOC_HEAP_BREAKDOWN)
-    add_definitions(-DBENABLE_MALLOC_HEAP_BREAKDOWN=1)
 endif ()
 
 WEBKIT_FRAMEWORK_DECLARE(bmalloc)

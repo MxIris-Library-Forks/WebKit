@@ -1046,6 +1046,11 @@ public:
     WEBCORE_EXPORT void voiceActivityDetected();
 #endif
 
+#if ENABLE(MODEL_PROCESS)
+    void incrementModelElementCount();
+    void decrementModelElementCount(unsigned);
+#endif
+
     std::optional<MediaSessionGroupIdentifier> mediaSessionGroupIdentifier() const;
     WEBCORE_EXPORT bool mediaPlaybackExists();
     WEBCORE_EXPORT bool mediaPlaybackIsPaused();
@@ -1338,6 +1343,10 @@ public:
     bool shouldDeferScrollEvents() const { return m_shouldDeferScrollEvents; }
     WEBCORE_EXPORT void startDeferringScrollEvents();
     WEBCORE_EXPORT void flushDeferredScrollEvents();
+
+    bool shouldDeferIntersectionObservations() const { return m_shouldDeferIntersectionObservations; }
+    WEBCORE_EXPORT void startDeferringIntersectionObservations();
+    WEBCORE_EXPORT void flushDeferredIntersectionObservations();
 
     bool reportScriptTrackingPrivacy(const URL&, ScriptTrackingPrivacyCategory);
     bool shouldAllowScriptAccess(const URL&, const SecurityOrigin& topOrigin, ScriptTrackingPrivacyCategory) const;
@@ -1653,6 +1662,10 @@ private:
     Timer m_playbackControlsManagerUpdateTimer;
 #endif
 
+#if ENABLE(MODEL_PROCESS)
+    unsigned m_modelElementCount { 0 };
+#endif
+
     bool m_allowsMediaDocumentInlinePlayback { false };
     bool m_allowsPlaybackControlsForAutoplayingAudio { false };
     bool m_showAllPlugins { false };
@@ -1833,6 +1846,7 @@ private:
 
     bool m_shouldDeferResizeEvents { false };
     bool m_shouldDeferScrollEvents { false };
+    bool m_shouldDeferIntersectionObservations { false };
 
     Ref<DocumentSyncData> m_topDocumentSyncData;
 

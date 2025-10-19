@@ -1662,6 +1662,7 @@ public:
     void setNeedsVisualViewportScrollEvent();
     void runScrollSteps();
     void flushDeferredScrollEvents();
+    void flushDeferredIntersectionObservations();
 
     void invalidateScrollbars();
 
@@ -1934,6 +1935,12 @@ public:
     LazyLoadImageObserver& lazyLoadImageObserver();
 #if ENABLE(MODEL_ELEMENT)
     LazyLoadModelObserver& lazyLoadModelObserver();
+#endif
+
+#if ENABLE(MODEL_PROCESS)
+    void incrementModelElementCount();
+    void decrementModelElementCount();
+    bool hasModelElement() const { return m_modelElementCount > 0; }
 #endif
 
     ContentVisibilityDocumentState& contentVisibilityDocumentState();
@@ -2306,6 +2313,10 @@ private:
     std::unique_ptr<LazyLoadImageObserver> m_lazyLoadImageObserver;
 #if ENABLE(MODEL_ELEMENT)
     std::unique_ptr<LazyLoadModelObserver> m_lazyLoadModelObserver;
+#endif
+
+#if ENABLE(MODEL_PROCESS)
+    unsigned m_modelElementCount { 0 };
 #endif
 
     std::unique_ptr<ContentVisibilityDocumentState> m_contentVisibilityDocumentState;

@@ -1359,7 +1359,6 @@ imported/w3c/web-platform-tests/largest-contentful-paint/animated/observe-animat
 imported/w3c/web-platform-tests/largest-contentful-paint/animated/observe-video.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/largest-contentful-paint/initially-invisible-images.html [ Skip ]
 imported/w3c/web-platform-tests/largest-contentful-paint/video-data-uri.html [ Skip ]
-imported/w3c/web-platform-tests/largest-contentful-paint/web-font-styled-text-resize-swap-after-interaction.html [ Skip ]
 imported/w3c/web-platform-tests/largest-contentful-paint/web-font-styled-text-resize-swap-subnode.html [ Skip ]
 imported/w3c/web-platform-tests/largest-contentful-paint/web-font-styled-text-resize-swap.html [ Skip ]
 
@@ -5703,7 +5702,6 @@ imported/w3c/web-platform-tests/webstorage/storage_session_setitem_quotaexceeded
 # This webstorage test has timed out since it was imported.
 imported/w3c/web-platform-tests/webstorage/document-domain.html [ Skip ]
 
-webkit.org/b/221973 media/media-webm-no-duration.html [ Skip ]
 webkit.org/b/222493 media/media-source/media-source-webm-vp8-malformed-header.html [ Skip ]
 
 # WebXR - Missing modules.
@@ -5889,7 +5887,6 @@ webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-conten
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-hyphens.html [ ImageOnlyFailure ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-letter-spacing.html [ ImageOnlyFailure ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-line-break.html [ ImageOnlyFailure ]
-webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-line-height.html [ ImageOnlyFailure ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-overflow-wrap.html [ ImageOnlyFailure ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-text-decoration-skip-ink.html [ ImageOnlyFailure ]
 webkit.org/b/230004 imported/w3c/web-platform-tests/css/css-pseudo/marker-text-emphasis.html [ ImageOnlyFailure ]
@@ -7961,3 +7958,9 @@ imported/w3c/web-platform-tests/svg/painting/reftests/text-shadow-03.html [ Imag
 
 # framework is missing for test to run
 webkit.org/b/299496 model-element/gpup-model-element.html [ Skip ]
+
+imported/w3c/web-platform-tests/css/css-pseudo/before-as-flex-container.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-fill-only.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-shadow.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-stroke-only.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-transparent-background.html [ ImageOnlyFailure ]

@@ -3685,6 +3685,16 @@ void WebPage::flushDeferredScrollEvents()
     protectedCorePage()->flushDeferredScrollEvents();
 }
 
+void WebPage::startDeferringIntersectionObservations()
+{
+    protectedCorePage()->startDeferringIntersectionObservations();
+}
+
+void WebPage::flushDeferredIntersectionObservations()
+{
+    protectedCorePage()->flushDeferredIntersectionObservations();
+}
+
 void WebPage::flushDeferredDidReceiveMouseEvent()
 {
     if (auto info = std::exchange(m_deferredDidReceiveMouseEvent, std::nullopt))
@@ -9345,6 +9355,13 @@ void WebPage::didFinishLoadingImageForElement(WebCore::HTMLImageElement&)
 {
 }
 
+#endif
+
+#if ENABLE(MODEL_PROCESS)
+void WebPage::setHasModelElement(bool hasModelElement)
+{
+    send(Messages::WebPageProxy::SetHasModelElement(hasModelElement));
+}
 #endif
 
 #if ENABLE(TEXT_AUTOSIZING)

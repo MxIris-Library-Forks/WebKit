@@ -3187,8 +3187,8 @@ std::unique_ptr<RenderStyle> Document::styleForElementIgnoringPendingStylesheets
 
     auto elementStyle = resolver->styleForElement(element, { parentStyle });
     if (pseudoElementIdentifier) {
-        auto pseudoId = pseudoElementIdentifier->pseudoId;
-        if ((pseudoId == PseudoId::FirstLetter || pseudoId == PseudoId::FirstLine) && elementStyle.style && !Style::supportsFirstLineAndLetterPseudoElement(*elementStyle.style))
+        auto type = pseudoElementIdentifier->type;
+        if ((type == PseudoElementType::FirstLetter || type == PseudoElementType::FirstLine) && elementStyle.style && !Style::supportsFirstLineAndLetterPseudoElement(*elementStyle.style))
             return { };
 
         auto style = resolver->styleForPseudoElement(element, { *pseudoElementIdentifier }, { parentStyle });
@@ -3542,6 +3542,15 @@ void Document::destroyRenderTree()
     ASSERT(frame());
     ASSERT(frame()->document() == this);
     ASSERT(page());
+
+#if ENABLE(MODEL_PROCESS)
+    if (m_modelElementCount) {
+        if (RefPtr page = this->page()) {
+            page->decrementModelElementCount(m_modelElementCount);
+            m_modelElementCount = 0;
+        }
+    }
+#endif
 
     // Prevent Widget tree changes from committing until the RenderView is dead and gone.
     WidgetHierarchyUpdatesSuspensionScope suspendWidgetHierarchyUpdates;
@@ -5876,6 +5885,11 @@ void Document::runScrollSteps()
 void Document::flushDeferredScrollEvents()
 {
     runScrollSteps();
+}
+
+void Document::flushDeferredIntersectionObservations()
+{
+    scheduleRenderingUpdate(RenderingUpdateStep::IntersectionObservations);
 }
 
 void Document::invalidateScrollbars()
@@ -10277,6 +10291,10 @@ void Document::updateIntersectionObservations(const Vector<WeakPtr<IntersectionO
     if (!frameView)
         return;
 
+    RefPtr page = this->page();
+    if (!page || page->shouldDeferIntersectionObservations())
+        return;
+
     bool needsLayout = frameView->layoutContext().isLayoutPending() || (renderView() && renderView()->needsLayout());
     if (needsLayout || hasPendingStyleRecalc()) {
         if (!intersectionObservers.isEmpty()) {
@@ -11407,6 +11425,35 @@ LazyLoadModelObserver& Document::lazyLoadModelObserver()
         m_lazyLoadModelObserver = makeUnique<LazyLoadModelObserver>();
     return *m_lazyLoadModelObserver;
 }
+#endif
+
+#if ENABLE(MODEL_PROCESS)
+
+void Document::incrementModelElementCount()
+{
+    RefPtr page = this->page();
+    if (!page)
+        return;
+
+    m_modelElementCount++;
+    page->incrementModelElementCount();
+}
+
+void Document::decrementModelElementCount()
+{
+    RefPtr page = this->page();
+    if (!page)
+        return;
+
+    if (!m_modelElementCount) [[unlikely]] {
+        ASSERT_NOT_REACHED();
+        return;
+    }
+
+    page->decrementModelElementCount(1);
+    m_modelElementCount--;
+}
+
 #endif
 
 const CrossOriginOpenerPolicy& Document::crossOriginOpenerPolicy() const

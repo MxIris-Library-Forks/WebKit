@@ -1646,6 +1646,10 @@ public:
 
     void didFinishLoadingImageForElement(WebCore::HTMLImageElement&);
 
+#if ENABLE(MODEL_PROCESS)
+    void setHasModelElement(bool);
+#endif
+
     WebURLSchemeHandlerProxy* urlSchemeHandlerForScheme(StringView);
     void stopAllURLSchemeTasks();
 
@@ -1958,6 +1962,9 @@ public:
 
     void startDeferringScrollEvents();
     void flushDeferredScrollEvents();
+
+    void startDeferringIntersectionObservations();
+    void flushDeferredIntersectionObservations();
 
     void flushDeferredDidReceiveMouseEvent();
 

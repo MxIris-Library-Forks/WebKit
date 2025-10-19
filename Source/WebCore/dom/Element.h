@@ -466,6 +466,7 @@ public:
     WEBCORE_EXPORT ShadowRoot* userAgentShadowRoot() const;
     RefPtr<ShadowRoot> protectedUserAgentShadowRoot() const;
     WEBCORE_EXPORT ShadowRoot& ensureUserAgentShadowRoot();
+    Ref<ShadowRoot> ensureProtectedUserAgentShadowRoot();
     WEBCORE_EXPORT ShadowRoot& createUserAgentShadowRoot();
 
     void setIsDefinedCustomElement(JSCustomElementInterface&);
@@ -629,7 +630,7 @@ public:
     void beginParsingChildren() { clearIsParsingChildrenFinished(); }
     virtual void finishParsingChildren();
 
-    PseudoElement& ensurePseudoElement(PseudoId);
+    PseudoElement& ensurePseudoElement(PseudoElementType);
     WEBCORE_EXPORT PseudoElement* beforePseudoElement() const;
     WEBCORE_EXPORT PseudoElement* afterPseudoElement() const;
     RefPtr<PseudoElement> pseudoElementIfExists(Style::PseudoElementIdentifier);

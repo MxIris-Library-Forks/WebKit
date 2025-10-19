@@ -3075,6 +3075,31 @@ void Page::schedulePlaybackControlsManagerUpdate()
 #endif
 }
 
+#if ENABLE(MODEL_PROCESS)
+
+void Page::incrementModelElementCount()
+{
+    m_modelElementCount++;
+    if (m_modelElementCount == 1)
+        chrome().client().setHasModelElement(true);
+}
+
+void Page::decrementModelElementCount(unsigned count)
+{
+    m_modelElementCount -= count;
+    if (!m_modelElementCount) {
+        chrome().client().setHasModelElement(false);
+        return;
+    }
+
+    if (m_modelElementCount < 0) [[unlikely]] {
+        m_modelElementCount = 0;
+        ASSERT_NOT_REACHED();
+    }
+}
+
+#endif
+
 #if ENABLE(VIDEO)
 
 RefPtr<HTMLMediaElement> Page::bestMediaElementForRemoteControls(MediaElementSession::PlaybackControlsPurpose purpose, Document* document)
@@ -5802,6 +5827,19 @@ void Page::flushDeferredScrollEvents()
     m_shouldDeferScrollEvents = false;
     forEachDocument([&] (Document& document) {
         document.flushDeferredScrollEvents();
+    });
+}
+
+void Page::startDeferringIntersectionObservations()
+{
+    m_shouldDeferIntersectionObservations = true;
+}
+
+void Page::flushDeferredIntersectionObservations()
+{
+    m_shouldDeferIntersectionObservations = false;
+    forEachDocument([&] (Document& document) {
+        document.flushDeferredIntersectionObservations();
     });
 }
 

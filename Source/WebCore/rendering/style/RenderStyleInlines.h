@@ -67,6 +67,7 @@
 #include <WebCore/StyleRareInheritedData.h>
 #include <WebCore/StyleRareNonInheritedData.h>
 #include <WebCore/StyleSurroundData.h>
+#include <WebCore/StyleTextSpacingTrim.h>
 #include <WebCore/StyleTransformData.h>
 #include <WebCore/StyleVisitedLinkColorData.h>
 #include <WebCore/UnicodeBidi.h>
@@ -297,7 +298,7 @@ inline bool RenderStyle::hasContent() const { return content().isData(); }
 inline bool RenderStyle::hasDisplayAffectedByAnimations() const { return m_nonInheritedData->miscData->hasDisplayAffectedByAnimations; }
 // FIXME: Rename this function.
 inline bool RenderStyle::hasUsedAppearance() const { return usedAppearance() != StyleAppearance::None && usedAppearance() != StyleAppearance::Base; }
-inline bool RenderStyle::hasUsedContentNone() const { return content().isNone() || (content().isNormal() && (pseudoElementType() == PseudoId::Before || pseudoElementType() == PseudoId::After)); }
+inline bool RenderStyle::hasUsedContentNone() const { return content().isNone() || (content().isNormal() && (pseudoElementType() == PseudoElementType::Before || pseudoElementType() == PseudoElementType::After)); }
 inline bool RenderStyle::hasExplicitlySetBorderBottomLeftRadius() const { return m_nonInheritedData->surroundData->hasExplicitlySetBorderBottomLeftRadius; }
 inline bool RenderStyle::hasExplicitlySetBorderBottomRightRadius() const { return m_nonInheritedData->surroundData->hasExplicitlySetBorderBottomRightRadius; }
 inline bool RenderStyle::hasExplicitlySetBorderRadius() const { return hasExplicitlySetBorderBottomLeftRadius() || hasExplicitlySetBorderBottomRightRadius() || hasExplicitlySetBorderTopLeftRadius() || hasExplicitlySetBorderTopRightRadius(); }
@@ -320,7 +321,7 @@ inline bool RenderStyle::hasOutline() const { return outlineStyle() != OutlineSt
 inline bool RenderStyle::hasOutlineInVisualOverflow() const { return hasOutline() && outlineSize() > 0; }
 inline bool RenderStyle::hasPerspective() const { return !perspective().isNone(); }
 inline bool RenderStyle::hasPositionedMask() const { return maskLayers().hasImage(); }
-inline bool RenderStyle::hasPseudoStyle(PseudoId pseudo) const { return m_nonInheritedFlags.hasPseudoStyle(pseudo); }
+inline bool RenderStyle::hasPseudoStyle(PseudoElementType pseudo) const { return m_nonInheritedFlags.hasPseudoStyle(pseudo); }
 inline bool RenderStyle::hasRotate() const { return !rotate().isNone(); }
 inline bool RenderStyle::hasScale() const { return !scale().isNone(); }
 inline bool RenderStyle::hasStaticBlockPosition(bool horizontal) const { return horizontal ? hasAutoTopAndBottom() : hasAutoLeftAndRight(); }
@@ -442,7 +443,7 @@ constexpr FontVariantPosition RenderStyle::initialFontVariantPosition() { return
 inline AtomString RenderStyle::initialLocale() { return nullAtom(); }
 constexpr TextAutospace RenderStyle::initialTextAutospace() { return { }; }
 constexpr TextRenderingMode RenderStyle::initialTextRendering() { return TextRenderingMode::AutoTextRendering; }
-constexpr TextSpacingTrim RenderStyle::initialTextSpacingTrim() { return { }; }
+constexpr Style::TextSpacingTrim RenderStyle::initialTextSpacingTrim() { return CSS::Keyword::SpaceAll { }; }
 inline Style::GridTrackSizes RenderStyle::initialGridAutoColumns() { return CSS::Keyword::Auto { }; }
 constexpr GridAutoFlow RenderStyle::initialGridAutoFlow() { return AutoFlowRow; }
 inline Style::GridTrackSizes RenderStyle::initialGridAutoRows() { return CSS::Keyword::Auto { }; }
@@ -798,11 +799,11 @@ inline bool RenderStyle::specifiesColumns() const { return !columnCount().isAuto
 constexpr OptionSet<Containment> RenderStyle::strictContainment() { return { Containment::Size, Containment::Layout, Containment::Paint, Containment::Style }; }
 inline const Style::Color& RenderStyle::strokeColor() const { return m_rareInheritedData->strokeColor; }
 inline Style::StrokeMiterlimit RenderStyle::strokeMiterLimit() const { return m_rareInheritedData->miterLimit; }
-inline std::optional<PseudoId> RenderStyle::pseudoElementType() const
+inline std::optional<PseudoElementType> RenderStyle::pseudoElementType() const
 {
     if (!m_nonInheritedFlags.pseudoElementType)
         return { };
-    return static_cast<PseudoId>(m_nonInheritedFlags.pseudoElementType - 1);
+    return static_cast<PseudoElementType>(m_nonInheritedFlags.pseudoElementType - 1);
 }
 inline const AtomString& RenderStyle::pseudoElementNameArgument() const { return m_nonInheritedData->rareData->pseudoElementNameArgument; }
 inline const Style::TabSize& RenderStyle::tabSize() const { return m_rareInheritedData->tabSize; }
@@ -829,6 +830,7 @@ inline TextOverflow RenderStyle::textOverflow() const { return static_cast<TextO
 inline TextSecurity RenderStyle::textSecurity() const { return static_cast<TextSecurity>(m_rareInheritedData->textSecurity); }
 inline const Style::TextShadows& RenderStyle::textShadow() const { return m_rareInheritedData->textShadow; }
 inline bool RenderStyle::hasTextShadow() const { return !textShadow().isNone(); }
+inline Style::TextSpacingTrim RenderStyle::textSpacingTrim() const { return fontDescription().textSpacingTrim(); }
 inline const Style::Color& RenderStyle::textStrokeColor() const { return m_rareInheritedData->textStrokeColor; }
 inline Style::WebkitTextStrokeWidth RenderStyle::textStrokeWidth() const { return m_rareInheritedData->textStrokeWidth; }
 inline OptionSet<TextTransform> RenderStyle::textTransform() const { return OptionSet<TextTransform>::fromRaw(m_inheritedFlags.textTransform); }
@@ -886,7 +888,7 @@ inline const Style::CornerShapeValue& RenderStyle::cornerTopRightShape() const {
 
 // ignore non-standard ::-webkit-scrollbar when standard properties are in use
 inline bool RenderStyle::usesStandardScrollbarStyle() const { return scrollbarWidth() != ScrollbarWidth::Auto || !scrollbarColor().isAuto(); }
-inline bool RenderStyle::usesLegacyScrollbarStyle() const { return hasPseudoStyle(PseudoId::WebKitScrollbar) && !usesStandardScrollbarStyle(); }
+inline bool RenderStyle::usesLegacyScrollbarStyle() const { return hasPseudoStyle(PseudoElementType::WebKitScrollbar) && !usesStandardScrollbarStyle(); }
 
 #if ENABLE(APPLE_PAY)
 inline ApplePayButtonStyle RenderStyle::applePayButtonStyle() const { return static_cast<ApplePayButtonStyle>(m_nonInheritedData->rareData->applePayButtonStyle); }
@@ -1049,10 +1051,10 @@ inline Style::SVGMarkerResource RenderStyle::initialMarkerEnd() { return CSS::Ke
 constexpr MaskType RenderStyle::initialMaskType() { return MaskType::Luminance; }
 inline Style::SVGBaselineShift RenderStyle::initialBaselineShift() { return CSS::Keyword::Baseline { }; }
 
-inline bool RenderStyle::NonInheritedFlags::hasPseudoStyle(PseudoId pseudo) const
+inline bool RenderStyle::NonInheritedFlags::hasPseudoStyle(PseudoElementType pseudo) const
 {
-    ASSERT(allPublicPseudoIds.contains(pseudo));
-    return EnumSet<PseudoId>::fromRaw(pseudoBits).contains(pseudo);
+    ASSERT(allPublicPseudoElementTypes.contains(pseudo));
+    return EnumSet<PseudoElementType>::fromRaw(pseudoBits).contains(pseudo);
 }
 
 inline bool RenderStyle::NonInheritedFlags::hasAnyPublicPseudoStyles() const

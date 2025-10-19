@@ -421,7 +421,6 @@ editing/AlternativeTextController.cpp
 editing/ApplyBlockElementCommand.cpp
 editing/ApplyStyleCommand.cpp
 editing/BreakBlockquoteCommand.cpp
-editing/ChangeListTypeCommand.cpp
 editing/CompositeEditCommand.cpp
 editing/DeleteSelectionCommand.cpp
 editing/Editing.cpp
@@ -447,7 +446,6 @@ editing/VisiblePosition.cpp
 editing/VisiblePosition.h
 editing/VisibleSelection.cpp
 editing/VisibleUnits.cpp
-editing/cocoa/AutofillElements.cpp
 editing/cocoa/EditingHTMLConverter.mm
 editing/cocoa/EditorCocoa.mm
 editing/cocoa/NodeHTMLConverter.mm
@@ -457,19 +455,16 @@ editing/markup.cpp
 history/BackForwardCache.cpp
 history/CachedFrame.cpp
 history/CachedPage.cpp
-html/AttachmentAssociatedElement.cpp
 html/CachedHTMLCollection.h
 html/CachedHTMLCollectionInlines.h
 html/CollectionTraversalInlines.h
 html/CustomPaintCanvas.cpp
-html/DOMTokenList.cpp
 html/DirectoryFileListCreator.cpp
 html/FTPDirectoryDocument.cpp
 html/FormAssociatedCustomElement.cpp
 html/FormAssociatedElement.cpp
 html/FormListedElement.cpp
 html/HTMLAttachmentElement.cpp
-html/HTMLBaseElement.cpp
 html/HTMLBodyElement.cpp
 html/HTMLButtonElement.cpp
 html/HTMLCanvasElement.cpp

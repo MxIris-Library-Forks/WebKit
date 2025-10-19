@@ -621,6 +621,9 @@ webkit.org/b/91611 media/media-higher-prio-audio-stream.html [ Skip ]
 webkit.org/b/158836 imported/w3c/web-platform-tests/encrypted-media [ Skip ]
 ## --- End unimplemeted media tests ---
 
+## --- This tests fails, the values for width and the height of the video are zero
+webkit.org/b/299529 media/video-large-pixel-aspect-ratio.html [ Skip ]
+
 # HTML sandboxing produces two or three messages flakily.
 webkit.org/b/137368 media/video-controls-no-scripting.html [ Pass Failure ]
 
@@ -1719,9 +1722,6 @@ webkit.org/b/217621 media/video-buffering-allowed.html [ Pass Timeout ]
 webkit.org/b/221152 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworkletnode-automatic-pull.https.html [ Pass Failure ]
 
 webkit.org/b/221491 animations/keyframe-pseudo-shadow.html [ Pass ImageOnlyFailure ]
-
-# webkit.org/b/221973 for failure, webkit.org/b/300940 for crash
-media/media-webm-no-duration.html [ Crash Failure ]
 
 webkit.org/b/221100 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworkletnode-channel-count.https.html [ Pass Failure ]
 

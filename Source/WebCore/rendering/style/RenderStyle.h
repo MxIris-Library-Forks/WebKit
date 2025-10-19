@@ -74,7 +74,6 @@ class StyleNonInheritedData;
 class StyleRareInheritedData;
 class StyleSelfAlignmentData;
 class TextAutospace;
-class TextSpacingTrim;
 class TransformationMatrix;
 class ViewTimeline;
 class WillChangeData;
@@ -359,6 +358,7 @@ struct TextEmphasisStyle;
 struct TextIndent;
 struct TextShadow;
 struct TextSizeAdjust;
+struct TextSpacingTrim;
 struct TextUnderlineOffset;
 struct Transform;
 struct TransformOrigin;
@@ -499,7 +499,7 @@ public:
     StyleSelfAlignmentData resolvedJustifySelf(const RenderStyle* parentStyle, ItemPosition normalValueBehavior) const;
     StyleContentAlignmentData resolvedJustifyContent(const StyleContentAlignmentData& normalValueBehavior) const;
 
-    std::optional<PseudoId> pseudoElementType() const;
+    std::optional<PseudoElementType> pseudoElementType() const;
     const AtomString& pseudoElementNameArgument() const;
 
     std::optional<Style::PseudoElementIdentifier> pseudoElementIdentifier() const;
@@ -566,8 +566,8 @@ public:
     bool isStyleAvailable() const;
 
     inline bool hasAnyPublicPseudoStyles() const;
-    inline bool hasPseudoStyle(PseudoId) const;
-    inline void setHasPseudoStyles(EnumSet<PseudoId>);
+    inline bool hasPseudoStyle(PseudoElementType) const;
+    inline void setHasPseudoStyles(EnumSet<PseudoElementType>);
 
     inline bool hasDisplayAffectedByAnimations() const;
     inline void setHasDisplayAffectedByAnimations();
@@ -786,7 +786,7 @@ public:
     inline float usedLetterSpacing() const;
     inline float usedWordSpacing() const;
 
-    TextSpacingTrim textSpacingTrim() const;
+    inline Style::TextSpacingTrim textSpacingTrim() const;
     TextAutospace textAutospace() const;
 
     inline float zoom() const;
@@ -1990,7 +1990,7 @@ public:
     inline void setMathShift(const MathShift&);
     inline void setMathStyle(const MathStyle&);
 
-    void setTextSpacingTrim(TextSpacingTrim v);
+    void setTextSpacingTrim(Style::TextSpacingTrim);
     void setTextAutospace(TextAutospace v);
 
     static constexpr Overflow initialOverflowX();
@@ -2030,7 +2030,7 @@ public:
     static inline AtomString initialLocale();
     static constexpr TextAutospace initialTextAutospace();
     static constexpr TextRenderingMode initialTextRendering();
-    static constexpr TextSpacingTrim initialTextSpacingTrim();
+    static constexpr Style::TextSpacingTrim initialTextSpacingTrim();
     static constexpr BreakBetween initialBreakBetween();
     static constexpr BreakInside initialBreakInside();
     static constexpr OptionSet<HangingPunctuation> initialHangingPunctuation();
@@ -2512,8 +2512,8 @@ private:
         inline void copyNonInheritedFrom(const NonInheritedFlags&);
 
         inline bool hasAnyPublicPseudoStyles() const;
-        bool hasPseudoStyle(PseudoId) const;
-        void setHasPseudoStyles(EnumSet<PseudoId>);
+        bool hasPseudoStyle(PseudoElementType) const;
+        void setHasPseudoStyles(EnumSet<PseudoElementType>);
 
 #if !LOG_DISABLED
         void dumpDifferences(TextStream&, const NonInheritedFlags&) const;
@@ -2539,7 +2539,7 @@ private:
         PREFERRED_TYPE(bool) unsigned firstChildState : 1;
         PREFERRED_TYPE(bool) unsigned lastChildState : 1;
         PREFERRED_TYPE(bool) unsigned isLink : 1;
-        PREFERRED_TYPE(PseudoId) unsigned pseudoElementType : PseudoElementTypeBits;
+        PREFERRED_TYPE(PseudoElementType) unsigned pseudoElementType : PseudoElementTypeBits;
         unsigned pseudoBits : PublicPseudoIDBits;
         PREFERRED_TYPE(Style::TextDecorationLine) unsigned textDecorationLine : TextDecorationLineBits; // Text decorations defined *only* by this element.
 

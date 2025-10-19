@@ -5081,6 +5081,7 @@
 		BC4630BE2E9D5CAD00EA911F /* CSSCalcOperator.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4630B92E9D59D000EA911F /* CSSCalcOperator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC46307C2E9C18D100EA911F /* ModelPlayerIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46307B2E9C18CB00EA911F /* ModelPlayerIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC46307E2E9C197500EA911F /* ModelPlayerAccessibilityChildren.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46307D2E9C197000EA911F /* ModelPlayerAccessibilityChildren.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC4631102EA310B600EA911F /* StyleTextSpacingTrim.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46310E2EA30B5900EA911F /* StyleTextSpacingTrim.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC46C1FD0C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46C1F30C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h */; };
 		BC46C1FF0C0DDC8F0020CFC3 /* JSCSSImportRule.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46C1F50C0DDC8F0020CFC3 /* JSCSSImportRule.h */; };
 		BC46C2010C0DDC8F0020CFC3 /* JSCSSMediaRule.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46C1F70C0DDC8F0020CFC3 /* JSCSSMediaRule.h */; };
@@ -18708,8 +18709,6 @@
 		BC4630662E9B098600EA911F /* StyleCalculationValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleCalculationValue.cpp; sourceTree = "<group>"; };
 		BC4630672E9B098600EA911F /* StyleCalculationValueMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleCalculationValueMap.h; sourceTree = "<group>"; };
 		BC4630682E9B098600EA911F /* StyleCalculationValueMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleCalculationValueMap.cpp; sourceTree = "<group>"; };
-		BC46306A2E9B0BA000EA911F /* CSSCalcTree+StyleCalculationValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSCalcTree+StyleCalculationValue.h"; sourceTree = "<group>"; };
-		BC46306B2E9B0BA000EA911F /* CSSCalcTree+StyleCalculationValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSCalcTree+StyleCalculationValue.cpp"; sourceTree = "<group>"; };
 		BC4630B82E9D59D000EA911F /* CSSCalcExecutor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcExecutor.h; sourceTree = "<group>"; };
 		BC4630B92E9D59D000EA911F /* CSSCalcOperator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcOperator.h; sourceTree = "<group>"; };
 		BC4630BA2E9D59D000EA911F /* CSSCalcOperator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcOperator.cpp; sourceTree = "<group>"; };
@@ -18717,6 +18716,9 @@
 		BC4630BC2E9D5A5A00EA911F /* CSSPrimitiveNumericCategory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSPrimitiveNumericCategory.cpp; sourceTree = "<group>"; };
 		BC46307B2E9C18CB00EA911F /* ModelPlayerIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayerIdentifier.h; sourceTree = "<group>"; };
 		BC46307D2E9C197000EA911F /* ModelPlayerAccessibilityChildren.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelPlayerAccessibilityChildren.h; sourceTree = "<group>"; };
+		BC4630D82E9DA09900EA911F /* StyleCalculationTree+Conversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StyleCalculationTree+Conversion.h"; sourceTree = "<group>"; };
+		BC4630D92E9DA09900EA911F /* StyleCalculationTree+Conversion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "StyleCalculationTree+Conversion.cpp"; sourceTree = "<group>"; };
+		BC46310E2EA30B5900EA911F /* StyleTextSpacingTrim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextSpacingTrim.h; sourceTree = "<group>"; };
 		BC46C1ED0C0DDBDF0020CFC3 /* JSCSSRuleCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSRuleCustom.cpp; sourceTree = "<group>"; };
 		BC46C1F20C0DDC8F0020CFC3 /* JSCSSFontFaceRule.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSFontFaceRule.cpp; sourceTree = "<group>"; };
 		BC46C1F30C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSCSSFontFaceRule.h; sourceTree = "<group>"; };
@@ -36102,6 +36104,8 @@
 		BC4630692E9B098600EA911F /* calc */ = {
 			isa = PBXGroup;
 			children = (
+				BC4630D92E9DA09900EA911F /* StyleCalculationTree+Conversion.cpp */,
+				BC4630D82E9DA09900EA911F /* StyleCalculationTree+Conversion.h */,
 				BC4630612E9B098600EA911F /* StyleCalculationTree+Copy.cpp */,
 				BC4630602E9B098600EA911F /* StyleCalculationTree+Copy.h */,
 				BC4630632E9B098600EA911F /* StyleCalculationTree+Evaluation.cpp */,
@@ -37178,6 +37182,7 @@
 				BC78261D2E82027900FB0C7E /* StyleTabSize.h */,
 				BCD9EFEF2E198A6100D1C3DF /* StyleTextIndent.cpp */,
 				BCD9EFE52E18E56700D1C3DF /* StyleTextIndent.h */,
+				BC46310E2EA30B5900EA911F /* StyleTextSpacingTrim.h */,
 				BC10DA9B2E81B64E000EE742 /* StyleWordSpacing.cpp */,
 				BC10DA992E81B57D000EE742 /* StyleWordSpacing.h */,
 			);
@@ -37345,8 +37350,6 @@
 				BC000BE52C5EB9310033AA75 /* CSSCalcTree+Serialization.h */,
 				BC000BDF2C5AF9B70033AA75 /* CSSCalcTree+Simplification.cpp */,
 				BC000BDE2C5AF9B70033AA75 /* CSSCalcTree+Simplification.h */,
-				BC46306B2E9B0BA000EA911F /* CSSCalcTree+StyleCalculationValue.cpp */,
-				BC46306A2E9B0BA000EA911F /* CSSCalcTree+StyleCalculationValue.h */,
 				BC000BF32C6291F00033AA75 /* CSSCalcTree+Traversal.h */,
 				BC000BFE2C66A1240033AA75 /* CSSCalcTree.cpp */,
 				BC000BDB2C5A9D4F0033AA75 /* CSSCalcTree.h */,
@@ -46664,6 +46667,7 @@
 				BCD9EFEB2E18E58600D1C3DF /* StyleTextIndent.h in Headers */,
 				BC3CC22E2DE8D2D50032971C /* StyleTextShadow.h in Headers */,
 				BC09298A2E29F25B002ACB2C /* StyleTextSizeAdjust.h in Headers */,
+				BC4631102EA310B600EA911F /* StyleTextSpacingTrim.h in Headers */,
 				BC2A0D902E088492003CBA0E /* StyleTextUnderlineOffset.h in Headers */,
 				BC731F932E6CA6E000A6584F /* StyleTransform.h in Headers */,
 				BC5EB8100E81F2CE00B25965 /* StyleTransformData.h in Headers */,

@@ -5082,6 +5082,7 @@
 		BC46307C2E9C18D100EA911F /* ModelPlayerIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46307B2E9C18CB00EA911F /* ModelPlayerIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC46307E2E9C197500EA911F /* ModelPlayerAccessibilityChildren.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46307D2E9C197000EA911F /* ModelPlayerAccessibilityChildren.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC4631102EA310B600EA911F /* StyleTextSpacingTrim.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46310E2EA30B5900EA911F /* StyleTextSpacingTrim.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC46311F2EA42C0500EA911F /* StyleScrollbarWidth.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46311C2EA4078B00EA911F /* StyleScrollbarWidth.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC46C1FD0C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46C1F30C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h */; };
 		BC46C1FF0C0DDC8F0020CFC3 /* JSCSSImportRule.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46C1F50C0DDC8F0020CFC3 /* JSCSSImportRule.h */; };
 		BC46C2010C0DDC8F0020CFC3 /* JSCSSMediaRule.h in Headers */ = {isa = PBXBuildFile; fileRef = BC46C1F70C0DDC8F0020CFC3 /* JSCSSMediaRule.h */; };
@@ -18719,6 +18720,8 @@
 		BC4630D82E9DA09900EA911F /* StyleCalculationTree+Conversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StyleCalculationTree+Conversion.h"; sourceTree = "<group>"; };
 		BC4630D92E9DA09900EA911F /* StyleCalculationTree+Conversion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "StyleCalculationTree+Conversion.cpp"; sourceTree = "<group>"; };
 		BC46310E2EA30B5900EA911F /* StyleTextSpacingTrim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextSpacingTrim.h; sourceTree = "<group>"; };
+		BC46311C2EA4078B00EA911F /* StyleScrollbarWidth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleScrollbarWidth.h; sourceTree = "<group>"; };
+		BC46311D2EA4078B00EA911F /* StyleScrollbarWidth.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleScrollbarWidth.cpp; sourceTree = "<group>"; };
 		BC46C1ED0C0DDBDF0020CFC3 /* JSCSSRuleCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSRuleCustom.cpp; sourceTree = "<group>"; };
 		BC46C1F20C0DDC8F0020CFC3 /* JSCSSFontFaceRule.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSCSSFontFaceRule.cpp; sourceTree = "<group>"; };
 		BC46C1F30C0DDC8F0020CFC3 /* JSCSSFontFaceRule.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSCSSFontFaceRule.h; sourceTree = "<group>"; };
@@ -36440,6 +36443,8 @@
 			children = (
 				A363392C2A280D9C00C6EA55 /* StyleScrollbarColor.cpp */,
 				A363392B2A280D8000C6EA55 /* StyleScrollbarColor.h */,
+				BC46311D2EA4078B00EA911F /* StyleScrollbarWidth.cpp */,
+				BC46311C2EA4078B00EA911F /* StyleScrollbarWidth.h */,
 			);
 			path = scrollbars;
 			sourceTree = "<group>";
@@ -46615,6 +46620,7 @@
 				A3DCA4EA2A2930DA004E18C2 /* StyleScrollbarColor.h in Headers */,
 				A39F8E232A1ECC2700967C09 /* StyleScrollbarGutter.h in Headers */,
 				4989734B2B663C6700720679 /* StyleScrollbarState.h in Headers */,
+				BC46311F2EA42C0500EA911F /* StyleScrollbarWidth.h in Headers */,
 				BC0929AB2E2AA30A002ACB2C /* StyleScrollBehavior.h in Headers */,
 				BC73202D2E734E3400A6584F /* StyleScrollFunction.h in Headers */,
 				BC2C0C2C2D2C6A5600FCFBA0 /* StyleScrollMargin.h in Headers */,

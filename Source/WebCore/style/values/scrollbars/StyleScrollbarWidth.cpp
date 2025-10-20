@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2016 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,43 +23,27 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function finally(onFinally)
+#include "config.h"
+#include "StyleScrollbarWidth.h"
+
+#include "DocumentQuirks.h"
+#include "StyleBuilderState.h"
+#include "StylePrimitiveKeyword+CSSValueConversion.h"
+
+namespace WebCore {
+namespace Style {
+
+// MARK: - Conversion
+
+auto CSSValueConversion<ScrollbarWidth>::operator()(BuilderState& state, const CSSValue& value) -> ScrollbarWidth
 {
-    "use strict";
+    auto scrollbarWidth = toStyleFromCSSValue<WebCore::ScrollbarWidth>(state, value);
 
-    if (!@isObject(this))
-        @throwTypeError("|this| is not an object");
+    if (scrollbarWidth == WebCore::ScrollbarWidth::Thin && state.document().quirks().needsScrollbarWidthThinDisabledQuirk())
+        return CSS::Keyword::Auto { };
 
-    var constructor = @speciesConstructor(this, @Promise);
-
-    @assert(@isConstructor(constructor));
-
-    var thenFinally;
-    var catchFinally;
-
-    if (!@isCallable(onFinally)) {
-        thenFinally = onFinally;
-        catchFinally = onFinally;
-    } else {
-        thenFinally = (0, /* prevent function name inference */ (value) => {
-            @assert(@isCallable(onFinally));
-            var result = onFinally();
-
-            @assert(@isConstructor(constructor));
-            var promise = @promiseResolve(constructor, result);
-
-            return promise.then(() => value);
-        });
-        catchFinally = (0, /* prevent function name inference */ (reason) => {
-            @assert(@isCallable(onFinally));
-            var result = onFinally();
-
-            @assert(@isConstructor(constructor));
-            var promise = @promiseResolve(constructor, result);
-
-            return promise.then(() => { throw reason; });
-        });
-    }
-
-    return this.then(thenFinally, catchFinally);
+    return scrollbarWidth;
 }
+
+} // namespace Style
+} // namespace WebCore

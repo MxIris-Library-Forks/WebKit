@@ -2247,7 +2247,6 @@
 		525B0CB12A9F8FD100E8A94B /* MediationRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 525B0CB02A9F8FD100E8A94B /* MediationRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5266C7E82D115B7C000C4997 /* ModelContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 5266C7E62D115B5F000C4997 /* ModelContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		52688AA627D6A7DA003577A2 /* ResidentKeyRequirement.h in Headers */ = {isa = PBXBuildFile; fileRef = 52688AA327D6A7DA003577A2 /* ResidentKeyRequirement.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		5273CC77256103CF00850007 /* PlatformXRCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 5273CC75256103CF00850007 /* PlatformXRCocoa.h */; };
 		5273CC8E25637EB500850007 /* WebXRTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E18D83E0243F71CE009247D6 /* WebXRTest.cpp */; };
 		5273CC9025637F6700850007 /* WebFakeXRDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E18D83E9243F71D3009247D6 /* WebFakeXRDevice.cpp */; };
 		5273CC9125637F7500850007 /* WebFakeXRInputController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E18D83DD243F71CC009247D6 /* WebFakeXRInputController.cpp */; };
@@ -5764,7 +5763,6 @@
 		CDE3AE1224B4916A00128E7E /* CDMUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = CDE3AE1024B4916900128E7E /* CDMUtilities.h */; };
 		CDE555242405CCF2008A3DDB /* LegacyCDM.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA98E0A1603CD5900FEA3B1 /* LegacyCDM.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDE555252405CCF2008A3DDB /* LegacyCDMPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA98E0C1603CF3C00FEA3B1 /* LegacyCDMPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		CDE595971BF26E2100A1CBE8 /* CDMSessionMediaSourceAVFObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = CDE595961BF26E2100A1CBE8 /* CDMSessionMediaSourceAVFObjC.h */; };
 		CDE7FC45181904B1002BBB77 /* OrderIterator.h in Headers */ = {isa = PBXBuildFile; fileRef = CDE7FC43181904B1002BBB77 /* OrderIterator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDE83DB2183C44060031EAA3 /* VideoPlaybackQuality.h in Headers */ = {isa = PBXBuildFile; fileRef = CDE83DB0183C44060031EAA3 /* VideoPlaybackQuality.h */; };
 		CDE8B5EC1A69777300B4B66A /* LegacyCDMPrivateClearKey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDE8B5EA1A69777300B4B66A /* LegacyCDMPrivateClearKey.cpp */; };
@@ -12427,8 +12425,6 @@
 		526724F21CB2FDF60075974D /* TextTrackRepresentationCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextTrackRepresentationCocoa.h; sourceTree = "<group>"; };
 		52688AA327D6A7DA003577A2 /* ResidentKeyRequirement.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ResidentKeyRequirement.h; sourceTree = "<group>"; };
 		52688AA527D6A7DA003577A2 /* ResidentKeyRequirement.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = ResidentKeyRequirement.idl; sourceTree = "<group>"; };
-		5273CC74256103CF00850007 /* PlatformXRCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PlatformXRCocoa.mm; sourceTree = "<group>"; };
-		5273CC75256103CF00850007 /* PlatformXRCocoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformXRCocoa.h; sourceTree = "<group>"; };
 		5273CC9A2563B21200850007 /* JSWebXRTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebXRTest.cpp; sourceTree = "<group>"; };
 		5273CC9E2563B37600850007 /* JSWebFakeXRDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebFakeXRDevice.cpp; sourceTree = "<group>"; };
 		5273CCA22563B4F700850007 /* JSXRSimulateUserActivationFunction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSXRSimulateUserActivationFunction.cpp; sourceTree = "<group>"; };
@@ -20297,8 +20293,6 @@
 		CDE44A4D2E6CA88000CA40CD /* WebCoreVirtualLogFunctions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCoreVirtualLogFunctions.h; sourceTree = "<group>"; };
 		CDE595931BF166AD00A1CBE8 /* CDMSessionAVContentKeySession.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CDMSessionAVContentKeySession.mm; sourceTree = "<group>"; };
 		CDE595941BF166D100A1CBE8 /* CDMSessionAVContentKeySession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDMSessionAVContentKeySession.h; sourceTree = "<group>"; };
-		CDE595961BF26E2100A1CBE8 /* CDMSessionMediaSourceAVFObjC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDMSessionMediaSourceAVFObjC.h; sourceTree = "<group>"; };
-		CDE5959C1BF2757100A1CBE8 /* CDMSessionMediaSourceAVFObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CDMSessionMediaSourceAVFObjC.mm; sourceTree = "<group>"; };
 		CDE667A11E4BBA4D00E8154A /* PlatformAudioData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformAudioData.h; sourceTree = "<group>"; };
 		CDE7FC42181904B1002BBB77 /* OrderIterator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OrderIterator.cpp; sourceTree = "<group>"; };
 		CDE7FC43181904B1002BBB77 /* OrderIterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OrderIterator.h; sourceTree = "<group>"; };
@@ -27844,8 +27838,6 @@
 		5273CC722561039B00850007 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
-				5273CC75256103CF00850007 /* PlatformXRCocoa.h */,
-				5273CC74256103CF00850007 /* PlatformXRCocoa.mm */,
 				3A3A057F2B04971B00017309 /* PlatformXRPose.cpp */,
 				3A3A05802B04971B00017309 /* PlatformXRPose.h */,
 			);
@@ -38463,8 +38455,6 @@
 				CDE595931BF166AD00A1CBE8 /* CDMSessionAVContentKeySession.mm */,
 				CDDE02EA18B3ED6D00CF7FF1 /* CDMSessionAVFoundationObjC.h */,
 				CDDE02EB18B3ED6D00CF7FF1 /* CDMSessionAVFoundationObjC.mm */,
-				CDE595961BF26E2100A1CBE8 /* CDMSessionMediaSourceAVFObjC.h */,
-				CDE5959C1BF2757100A1CBE8 /* CDMSessionMediaSourceAVFObjC.mm */,
 				A1038D452AB2165900F57BA4 /* ContentKeyGroupFactoryAVFObjC.h */,
 				A1038D462AB2165900F57BA4 /* ContentKeyGroupFactoryAVFObjC.mm */,
 				CD19FEAC1F574B6D000C42FB /* ImageDecoderAVFObjC.h */,
@@ -42164,7 +42154,6 @@
 				CD3CE1012401AADA004BA01D /* CDMProxy.h in Headers */,
 				CD3CE1022401AADA004BA01D /* CDMRequirement.h in Headers */,
 				CD3CE1032401AADA004BA01D /* CDMRestrictions.h in Headers */,
-				CDE595971BF26E2100A1CBE8 /* CDMSessionMediaSourceAVFObjC.h in Headers */,
 				CD3CE1042401AADA004BA01D /* CDMSessionType.h in Headers */,
 				CDE3AE1224B4916A00128E7E /* CDMUtilities.h in Headers */,
 				5FA904CA178E61F5004C8A2D /* CertificateInfo.h in Headers */,
@@ -45514,7 +45503,6 @@
 				935C476B09AC4D4F00A6AAB4 /* PlatformWheelEvent.h in Headers */,
 				F491A66B2A9FEFA300F96146 /* PlatformWheelEvent.serialization.in in Headers */,
 				E1EE8B722412B2A800E794D6 /* PlatformXR.h in Headers */,
-				5273CC77256103CF00850007 /* PlatformXRCocoa.h in Headers */,
 				3A3A05812B04973800017309 /* PlatformXRPose.h in Headers */,
 				712BE4801FE864A7002031CC /* PlaybackDirection.h in Headers */,
 				A19310D22D100972003C8410 /* PlaybackSessionInterfaceAVKit.h in Headers */,

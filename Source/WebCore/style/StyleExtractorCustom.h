@@ -85,7 +85,6 @@ public:
     static Ref<CSSValue> extractTranslate(ExtractorState&);
     static Ref<CSSValue> extractScale(ExtractorState&);
     static Ref<CSSValue> extractRotate(ExtractorState&);
-    static Ref<CSSValue> extractGridAutoFlow(ExtractorState&);
     static Ref<CSSValue> extractGridTemplateColumns(ExtractorState&);
     static Ref<CSSValue> extractGridTemplateRows(ExtractorState&);
     static Ref<CSSValue> extractAnimationDuration(ExtractorState&);
@@ -176,7 +175,6 @@ public:
     static void extractTranslateSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractScaleSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractRotateSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
-    static void extractGridAutoFlowSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractGridTemplateColumnsSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractGridTemplateRowsSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
     static void extractAnimationDurationSerialization(ExtractorState&, StringBuilder&, const CSS::SerializationContext&);
@@ -443,14 +441,16 @@ template<CSSPropertyID propertyID, typename InsetEdgeApplier, typename NumberAsP
             else
                 containingBlockSize = enclosingClippingBox.contentBoxLogicalWidth();
         } else {
-            if (isVerticalProperty == containingBlock->isHorizontalWritingMode()) {
-                containingBlockSize = box->isOutOfFlowPositioned()
-                    ? box->containingBlockLogicalHeightForPositioned(*containingBlock, false)
-                    : box->containingBlockLogicalHeightForContent(AvailableLogicalHeightType::ExcludeMarginBorderPadding);
+            if (box->isOutOfFlowPositioned()) {
+                if (isVerticalProperty)
+                    containingBlockSize = box->containingBlockRangeForPositioned(*containingBlock, BoxAxis::Vertical).size();
+                else
+                    containingBlockSize = box->containingBlockRangeForPositioned(*containingBlock, BoxAxis::Horizontal).size();
             } else {
-                containingBlockSize = box->isOutOfFlowPositioned()
-                    ? box->containingBlockLogicalWidthForPositioned(*containingBlock, false)
-                    : box->containingBlockLogicalWidthForContent();
+                if (isVerticalProperty == containingBlock->isHorizontalWritingMode())
+                    containingBlockSize = box->containingBlockLogicalHeightForContent(AvailableLogicalHeightType::ExcludeMarginBorderPadding);
+                else
+                    containingBlockSize = box->containingBlockLogicalWidthForContent();
             }
         }
         return numberAsPixelsApplier(Style::evaluate<LayoutUnit>(inset, containingBlockSize, Style::ZoomNeeded { }));
@@ -1738,41 +1738,6 @@ inline Ref<CSSValue> ExtractorCustom::extractRotate(ExtractorState& state)
 inline void ExtractorCustom::extractRotateSerialization(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context)
 {
     extractSerialization<CSSPropertyRotate>(state, builder, context);
-}
-
-inline Ref<CSSValue> ExtractorCustom::extractGridAutoFlow(ExtractorState& state)
-{
-    CSSValueListBuilder list;
-    ASSERT(state.style.isGridAutoFlowDirectionRow() || state.style.isGridAutoFlowDirectionColumn());
-    if (state.style.isGridAutoFlowDirectionColumn())
-        list.append(CSSPrimitiveValue::create(CSSValueColumn));
-    else if (!state.style.isGridAutoFlowAlgorithmDense())
-        list.append(CSSPrimitiveValue::create(CSSValueRow));
-
-    if (state.style.isGridAutoFlowAlgorithmDense())
-        list.append(CSSPrimitiveValue::create(CSSValueDense));
-
-    return CSSValueList::createSpaceSeparated(WTFMove(list));
-}
-
-inline void ExtractorCustom::extractGridAutoFlowSerialization(ExtractorState& state, StringBuilder& builder, const CSS::SerializationContext& context)
-{
-    ASSERT(state.style.isGridAutoFlowDirectionRow() || state.style.isGridAutoFlowDirectionColumn());
-
-    bool listEmpty = true;
-    if (state.style.isGridAutoFlowDirectionColumn()) {
-        CSS::serializationForCSS(builder, context, CSS::Keyword::Column { });
-        listEmpty = false;
-    } else if (!state.style.isGridAutoFlowAlgorithmDense()) {
-        CSS::serializationForCSS(builder, context, CSS::Keyword::Row { });
-        listEmpty = false;
-    }
-
-    if (state.style.isGridAutoFlowAlgorithmDense()) {
-        if (!listEmpty)
-            builder.append(' ');
-        CSS::serializationForCSS(builder, context, CSS::Keyword::Dense { });
-    }
 }
 
 inline Ref<CSSValue> ExtractorCustom::extractGridTemplateColumns(ExtractorState& state)

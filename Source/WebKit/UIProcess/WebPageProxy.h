@@ -483,6 +483,7 @@ class RemoteLayerTreeNode;
 class RemoteLayerTreeScrollingPerformanceData;
 class RemoteLayerTreeTransaction;
 class RemoteMediaSessionCoordinatorProxy;
+class RemoteMediaSessionManagerProxy;
 class RemotePageProxy;
 class RemoteScrollingCoordinatorProxy;
 class RevealItem;
@@ -822,6 +823,10 @@ public:
     VideoPresentationManagerProxy* videoPresentationManager();
     RefPtr<VideoPresentationManagerProxy> protectedVideoPresentationManager();
     void setMockVideoPresentationModeEnabled(bool);
+#endif
+
+#if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
+    void ensureRemoteMediaSessionManagerProxy();
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -2241,7 +2246,7 @@ public:
     void requestPasswordForQuickLookDocumentInMainFrameShared(const String& fileName, CompletionHandler<void(const String&)>&&);
 #endif
 #if ENABLE(CONTENT_FILTERING)
-    void contentFilterDidBlockLoadForFrameShared(Ref<WebProcessProxy>&&, const WebCore::ContentFilterUnblockHandler&, WebCore::FrameIdentifier);
+    void contentFilterDidBlockLoadForFrameShared(IPC::Connection&, const WebCore::ContentFilterUnblockHandler&, WebCore::FrameIdentifier);
 #endif
 
 #if ENABLE(SPEECH_SYNTHESIS)
@@ -2911,7 +2916,10 @@ private:
     void setNetworkRequestsInProgress(bool);
 
     void didEndNetworkRequestsForPageLoadTimingTimerFired();
-    void generatePageLoadingTimingSoon();
+
+    enum class GeneratePageLoadTimingResult : uint8_t { WaitForPageLoadTimingObject, WaitForFirstVisualLayout, WaitForFirstMeaningfulPaint, WaitForDOMContentLoaded, WaitForLoadEvent, WaitForSubresourcesFinishedLoading, WaitForQuiescence };
+    GeneratePageLoadTimingResult generatePageLoadTimingSoonImpl();
+    void generatePageLoadTimingSoon();
 #if PLATFORM(COCOA)
     void didGeneratePageLoadTiming(const WebPageLoadTiming&);
 #else
@@ -3682,9 +3690,6 @@ private:
     bool m_paginationBehavesLikeColumns { false };
     double m_pageLength { 0 };
     double m_gapBetweenPages { 0 };
-        
-    // If the process backing the web page is alive and kicking.
-    bool m_hasRunningProcess { false };
 
     // Whether WebPageProxy::close() has been called on this page.
     bool m_isClosed { false };
@@ -3986,6 +3991,10 @@ private:
 
 #if HAVE(SPATIAL_TRACKING_LABEL)
     String m_defaultSpatialTrackingLabel;
+#endif
+
+#if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
+    RefPtr<RemoteMediaSessionManagerProxy> m_mediaSessionManagerProxy;
 #endif
 
     WeakHashSet<WebCore::NowPlayingMetadataObserver> m_nowPlayingMetadataObservers;

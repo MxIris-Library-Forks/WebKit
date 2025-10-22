@@ -58,6 +58,7 @@
 #import "WebContextMenuProxy.h"
 #import "WebFrameProxy.h"
 #import "WebPage.h"
+#import "WebPageLoadTiming.h"
 #import "WebPageMessages.h"
 #import "WebPageProxyInternals.h"
 #import "WebPasteboardProxy.h"
@@ -150,6 +151,19 @@ constexpr IntSize iconSize = IntSize(400, 400);
 
 void WebPageProxy::didGeneratePageLoadTiming(const WebPageLoadTiming& timing)
 {
+    // These times will not exactly match times reported by the PLT benchmark, since the benchmark
+    // uses loadRequestForNavigation as the start timestamp, while this object uses navigationStart
+    // (didStartProvisionalLoadForFrameShared) as the start timestamp.
+    auto url = m_mainFrame ? m_mainFrame->url() : URL();
+    auto startTime = timing.navigationStart();
+    auto firstVisualLayoutDuration = timing.firstVisualLayout() - startTime;
+    auto firstMeaningfulPaintDuration = timing.firstMeaningfulPaint() - startTime;
+    auto documentFinishedLoadingDuration = timing.documentFinishedLoading() - startTime;
+    auto finishedLoadingDuration = timing.finishedLoading() - startTime;
+    auto subresourcesFinishedLoadingDuration = timing.allSubresourcesFinishedLoading() - startTime;
+
+    WEBPAGEPROXY_RELEASE_LOG(Loading, "didGeneratePageLoadTiming: url=%" SENSITIVE_LOG_STRING " firstVisualLayout=%.3f firstMeaningfulPaint=%.3f domContentLoaded=%.3f loadEvent=%.3f subresourcesFinished=%.3f", url.string().ascii().data(), firstVisualLayoutDuration.seconds(), firstMeaningfulPaintDuration.seconds(), documentFinishedLoadingDuration.seconds(), finishedLoadingDuration.seconds(), subresourcesFinishedLoadingDuration.seconds());
+
     if (RefPtr state = NavigationState::fromWebPage(*this))
         state->didGeneratePageLoadTiming(timing);
 }
@@ -279,21 +293,22 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL& url, API::Navigation& navig
 #if ENABLE(CONTENT_FILTERING)
 void WebPageProxy::contentFilterDidBlockLoadForFrame(IPC::Connection& connection, const WebCore::ContentFilterUnblockHandler& unblockHandler, FrameIdentifier frameID)
 {
+    contentFilterDidBlockLoadForFrameShared(connection, unblockHandler, frameID);
+}
+
+void WebPageProxy::contentFilterDidBlockLoadForFrameShared(IPC::Connection& connection, const WebCore::ContentFilterUnblockHandler& unblockHandler, FrameIdentifier frameID)
+{
 #if HAVE(PARENTAL_CONTROLS_WITH_UNBLOCK_HANDLER)
     bool usesWebContentRestrictions = false;
 #if HAVE(WEBCONTENTRESTRICTIONS)
     usesWebContentRestrictions = protectedPreferences()->usesWebContentRestrictionsForFilter();
 #endif
     if (usesWebContentRestrictions)
-        MESSAGE_CHECK(unblockHandler.webFilterEvaluatorData().isEmpty(), connection);
+        MESSAGE_CHECK(!unblockHandler.webFilterEvaluator(), connection);
+#else
+    UNUSED_PARAM(connection);
 #endif
 
-    RefPtr process = dynamicDowncast<WebProcessProxy>(AuxiliaryProcessProxy::fromConnection(connection));
-    contentFilterDidBlockLoadForFrameShared(*process, unblockHandler, frameID);
-}
-
-void WebPageProxy::contentFilterDidBlockLoadForFrameShared(Ref<WebProcessProxy>&& process, const WebCore::ContentFilterUnblockHandler& unblockHandler, FrameIdentifier frameID)
-{
     if (RefPtr frame = WebFrameProxy::webFrame(frameID))
         frame->contentFilterDidBlockLoad(unblockHandler);
 }

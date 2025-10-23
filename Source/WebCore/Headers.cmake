@@ -643,6 +643,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/model-element/ModelPlayerAccessibilityChildren.h
     Modules/model-element/ModelPlayerAnimationState.h
     Modules/model-element/ModelPlayerClient.h
+    Modules/model-element/ModelPlayerGraphicsLayerConfiguration.h
     Modules/model-element/ModelPlayerIdentifier.h
     Modules/model-element/ModelPlayerProvider.h
     Modules/model-element/ModelPlayerTransformState.h
@@ -2447,7 +2448,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/animation/AcceleratedEffect.h
     platform/animation/AcceleratedEffectStack.h
     platform/animation/AcceleratedEffectValues.h
+    platform/animation/AcceleratedTimeline.h
     platform/animation/AnimationUtilities.h
+    platform/animation/TimelineIdentifier.h
     platform/animation/TimingFunction.h
     platform/animation/values/AcceleratedEffectOffsetAnchor.h
     platform/animation/values/AcceleratedEffectOffsetDistance.h

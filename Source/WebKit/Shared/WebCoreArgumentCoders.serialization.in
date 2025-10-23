@@ -760,10 +760,27 @@ enum class WebCore::IndexedDB::RequestType : uint8_t {
 
 #if ENABLE(GPU_PROCESS) && ENABLE(WEBGL)
 header: <WebCore/GraphicsContextGLActiveInfo.h>
-[AdditionalEncoder=StreamConnectionEncoder, CustomHeader] class WebCore::GraphicsContextGLActiveInfo {
+[AdditionalEncoder=StreamConnectionEncoder, CustomHeader] class WebCore::GCGLUniformActiveInfo {
     CString name;
     GCGLenum type;
-    GCGLint size;
+    Vector<int> locations;
+    int blockIndex;
+    int offset;
+    int arrayStride;
+    int matrixStride;
+    int isRowMajor;
+};
+header: <WebCore/GraphicsContextGLActiveInfo.h>
+[AdditionalEncoder=StreamConnectionEncoder, CustomHeader] class WebCore::GCGLAttribActiveInfo {
+    CString name;
+    GCGLenum type;
+    int location;
+};
+header: <WebCore/GraphicsContextGLActiveInfo.h>
+[AdditionalEncoder=StreamConnectionEncoder, CustomHeader] class WebCore::GCGLTransformFeedbackActiveInfo {
+    CString name;
+    GCGLenum type;
+    int size;
 };
 #endif
 
@@ -6570,6 +6587,11 @@ struct WebCore::AnimationEffectTiming {
     [NotSerialized] std::optional<Seconds> specifiedIterationDuration;
 };
 
+[RefCounted] class WebCore::AcceleratedTimeline {
+    WebCore::TimelineIdentifier identifier();
+    Seconds originTime();
+};
+
 header: <WebCore/AcceleratedEffect.h>
 [CustomHeader, Nested] class WebCore::AcceleratedEffect::Keyframe {
     double offset();
@@ -6581,6 +6603,8 @@ header: <WebCore/AcceleratedEffect.h>
 
 [RefCounted] class WebCore::AcceleratedEffect {
     WebCore::AnimationEffectTiming timing();
+    [NotSerialized] RefPtr<WebCore::AcceleratedTimeline> timeline();
+    WebCore::TimelineIdentifier timelineIdentifier();
     Vector<WebCore::AcceleratedEffect::Keyframe> keyframes();
     WebCore::WebAnimationType animationType();
     WebCore::CompositeOperation compositeOperation();
@@ -8587,6 +8611,7 @@ enum class WebCore::PlatformMediaError : uint8_t {
     AudioDecodingError,
     VideoDecodingError,
     RequiresFlushToResume,
+    CDMInstanceKeyNeeded,
 };
 #endif
 

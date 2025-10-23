@@ -1317,29 +1317,13 @@ bool RenderLayerBacking::updateConfiguration(const RenderLayer* compositingAnces
     else if (is<RenderModel>(renderer())) {
         auto element = downcast<HTMLModelElement>(renderer().element());
 
-        // Some ModelPlayers use a platformLayer() and some pass the Model to the layer as contents,
-        // but this is a runtime decision.
-        if (element->usesPlatformLayer())
-            m_graphicsLayer->setContentsToPlatformLayer(element->platformLayer(), GraphicsLayer::ContentsLayerPurpose::Model);
-#if ENABLE(MODEL_CONTEXT) && !ENABLE(GPU_PROCESS_MODEL)
-        else if (auto modelContext = element->modelContext(); modelContext && element->document().settings().modelProcessEnabled()) {
-            modelContext->setBackgroundColor(rendererBackgroundColor());
-            m_graphicsLayer->setContentsToModelContext(*modelContext, GraphicsLayer::ContentsLayerPurpose::HostedModel);
-        }
-#endif
-        else if (auto model = element->model()) {
-#if ENABLE(GPU_PROCESS_MODEL)
-            m_graphicsLayer->setContentsDisplayDelegate(element->contentsDisplayDelegate(), GraphicsLayer::ContentsLayerPurpose::Canvas);
-#else
-            m_graphicsLayer->setContentsToModel(WTFMove(model), element->isInteractive() ? GraphicsLayer::ModelInteraction::Enabled : GraphicsLayer::ModelInteraction::Disabled);
-#endif
-        }
-
+        element->configureGraphicsLayer(*m_graphicsLayer, rendererBackgroundColor());
         element->sizeMayHaveChanged();
 
         layerConfigChanged = true;
     }
 #endif // ENABLE(MODEL_ELEMENT)
+
     // FIXME: Why do we do this twice?
     if (CheckedPtr widget = dynamicDowncast<RenderWidget>(renderer())) {
         if (compositor.attachWidgetContentLayersIfNecessary(*widget).layerHierarchyChanged) {
@@ -4428,7 +4412,7 @@ bool RenderLayerBacking::startAnimation(double timeOffset, const GraphicsLayerAn
 }
 
 #if ENABLE(THREADED_ANIMATION_RESOLUTION)
-bool RenderLayerBacking::updateAcceleratedEffectsAndBaseValues()
+bool RenderLayerBacking::updateAcceleratedEffectsAndBaseValues(HashSet<Ref<AcceleratedTimeline>>& timelines)
 {
     auto& renderer = this->renderer();
     OptionSet<AcceleratedEffectProperty> disallowedAcceleratedProperties;
@@ -4462,7 +4446,10 @@ bool RenderLayerBacking::updateAcceleratedEffectsAndBaseValues()
                 if ((animatesWidth && blendingKeyframes.hasWidthDependentTransform()) || (animatesHeight && blendingKeyframes.hasHeightDependentTransform()))
                     disallowedAcceleratedProperties.add(transformRelatedAcceleratedProperties);
             }
-            auto acceleratedEffect = AcceleratedEffect::create(*effect, borderBoxRect, baseValues, disallowedAcceleratedProperties);
+            ASSERT(effect->animation());
+            ASSERT(effect->animation()->timeline());
+            Ref acceleratedTimeline = Ref { *effect->animation()->timeline() }->acceleratedRepresentation();
+            auto acceleratedEffect = AcceleratedEffect::create(*effect, acceleratedTimeline->identifier(), borderBoxRect, baseValues, disallowedAcceleratedProperties);
             if (!acceleratedEffect)
                 continue;
             if (!hasInterpolatingEffect && effect->isRunningAccelerated())
@@ -4470,6 +4457,7 @@ bool RenderLayerBacking::updateAcceleratedEffectsAndBaseValues()
             effect->setAcceleratedRepresentation(acceleratedEffect.get());
             weakAcceleratedEffects.add(*acceleratedEffect);
             acceleratedEffects.append(acceleratedEffect.releaseNonNull());
+            timelines.add(WTFMove(acceleratedTimeline));
         }
         effectStack->setAcceleratedEffects(WTFMove(weakAcceleratedEffects));
     }

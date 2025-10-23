@@ -283,7 +283,9 @@ template<> struct PropertyExtractorAdaptor<CSSPropertyLineHeight> {
                 return functor(Length<CSS::Nonnegative> { percentage.value * state.style.fontDescription().computedSize() / 100 });
             },
             [&](const LineHeight::Calc& calc) {
-                return functor(Length<CSS::Nonnegative> { evaluate<float>(calc, 0.0f) });
+                // FIXME: We pass 1.0f here to get the unzoomed value but it really is not clear why we are even
+                // evaluating calc here. We should probably revisit this and figure out another way to do this.
+                return functor(Length<CSS::Nonnegative> { evaluate<float>(calc, 0.0f, Style::ZoomFactor { 1.0f, 1.0f }) });
             }
         );
     }
@@ -1450,7 +1452,7 @@ inline Ref<CSSValue> ExtractorCustom::extractMarginRight(ExtractorState& state)
         // RenderBox gives a marginRight() that is the distance between the right-edge of the child box
         // and the right-edge of the containing box, when display == DisplayType::Block. Let's calculate the absolute
         // value of the specified margin-right % instead of relying on RenderBox's marginRight() value.
-        value = Style::evaluateMinimum<float>(marginRight, box->containingBlockLogicalWidthForContent(), Style::ZoomNeeded { });
+        value = Style::evaluateMinimum<float>(marginRight, box->containingBlockLogicalWidthForContent(), state.style.usedZoomForLength());
     } else
         value = box->marginRight();
     return ExtractorConverter::convertNumberAsPixels(state, value);
@@ -1475,7 +1477,7 @@ inline void ExtractorCustom::extractMarginRightSerialization(ExtractorState& sta
         // RenderBox gives a marginRight() that is the distance between the right-edge of the child box
         // and the right-edge of the containing box, when display == DisplayType::Block. Let's calculate the absolute
         // value of the specified margin-right % instead of relying on RenderBox's marginRight() value.
-        value = Style::evaluateMinimum<float>(marginRight, box->containingBlockLogicalWidthForContent(), Style::ZoomNeeded { });
+        value = Style::evaluateMinimum<float>(marginRight, box->containingBlockLogicalWidthForContent(), state.style.usedZoomForLength());
     } else
         value = box->marginRight();
 

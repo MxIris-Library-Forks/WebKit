@@ -344,7 +344,7 @@
 #include <WebCore/UTIUtilities.h>
 #endif
 
-#if PLATFORM(COCOA) || PLATFORM(GTK)
+#if PLATFORM(COCOA) || PLATFORM(GTK) || (PLATFORM(WPE) && USE(SKIA))
 #include "ViewSnapshotStore.h"
 #endif
 
@@ -2058,6 +2058,9 @@ void WebPageProxy::addPlatformLoadParameters(WebProcessProxy&, LoadParameters&)
 
 WebProcessProxy& WebPageProxy::ensureRunningProcess()
 {
+    // Callers should perform page close check.
+    RELEASE_ASSERT(!m_isClosed);
+
     if (!hasRunningProcess())
         launchProcess(Site(aboutBlankURL()), ProcessLaunchReason::InitialProcess);
 
@@ -6476,6 +6479,40 @@ void WebPageProxy::getAllFrameTrees(CompletionHandler<void(Vector<FrameTreeNodeD
     });
 }
 
+#if RELEASE_LOG_DISABLED
+
+void WebPageProxy::logFrameTree()
+{
+}
+
+#else
+
+static void logFrameTreeHelper(int indent, const FrameTreeNodeData& node)
+{
+    int spaces = (indent > 2) ? indent - 2 : 0;
+    RELEASE_LOG(FrameTree, "%*s|- pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, spaces, "", node.info.processID, Site(node.info.securityOrigin).toString().ascii().data(), node.info.request.url().string().ascii().data());
+    for (const auto& child : node.children)
+        logFrameTreeHelper(indent + 2, child);
+}
+
+static void logFrameTreeRoot(uintptr_t pagePointer, const FrameTreeNodeData& root)
+{
+    RELEASE_LOG(FrameTree, "WebPageProxy %p | pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, reinterpret_cast<void*>(pagePointer), root.info.processID, Site(root.info.securityOrigin).toString().ascii().data(), root.info.request.url().string().ascii().data());
+    for (const auto& child : root.children)
+        logFrameTreeHelper(2, child);
+}
+
+void WebPageProxy::logFrameTree()
+{
+    getAllFrames([pagePointer = reinterpret_cast<uintptr_t>(this)](auto&& maybeFrameTree) {
+        if (!maybeFrameTree)
+            return;
+        logFrameTreeRoot(pagePointer, *maybeFrameTree);
+    });
+}
+
+#endif
+
 void WebPageProxy::getBytecodeProfile(CompletionHandler<void(const String&)>&& callback)
 {
     sendWithAsyncReply(Messages::WebPage::GetBytecodeProfile(), WTFMove(callback));
@@ -8938,10 +8975,9 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     configuration->setInitialReferrerPolicy(effectiveReferrerPolicy);
     configuration->setWindowFeatures(WTFMove(windowFeatures));
     configuration->setOpenedMainFrameName(openedMainFrameName);
-    if (!protectedPreferences()->siteIsolationEnabled())
-        configuration->setRelatedPage(*this);
 
     if (RefPtr openerFrame = WebFrameProxy::webFrame(originatingFrameInfoData.frameID); navigationActionData.hasOpener && openerFrame) {
+        configuration->setRelatedPage(*this);
         configuration->setOpenerInfo({ {
             openerFrame->frameProcess().process(),
             m_browsingContextGroup.copyRef(),
@@ -8953,6 +8989,8 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
     } else {
         configuration->setOpenerInfo(std::nullopt);
         configuration->setOpenedSite(WebCore::Site(request.url()));
+        if (openedBlobURL)
+            configuration->setRelatedPage(*this);
     }
 
 #if PLATFORM(MAC)
@@ -13685,7 +13723,7 @@ void WebPageProxy::setEditableElementIsFocused(bool editableElementIsFocused)
 
 #endif // PLATFORM(MAC)
 
-#if PLATFORM(COCOA) || PLATFORM(GTK)
+#if PLATFORM(COCOA) || PLATFORM(GTK) || (PLATFORM(WPE) && USE(SKIA))
 
 RefPtr<ViewSnapshot> WebPageProxy::takeViewSnapshot(std::optional<WebCore::IntRect>&& clipRect)
 {
@@ -13707,7 +13745,7 @@ RefPtr<ViewSnapshot> WebPageProxy::takeViewSnapshot(std::optional<WebCore::IntRe
 #endif
 }
 
-#endif // PLATFORM(COCOA) || PLATFORM(GTK)
+#endif // PLATFORM(COCOA) || PLATFORM(GTK) || (PLATFORM(WPE) && USE(SKIA))
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
 

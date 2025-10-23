@@ -445,6 +445,7 @@ def serialized_identifiers():
         'WebCore::TextCheckingRequestIdentifier',
         'WebCore::TextManipulationItemIdentifier',
         'WebCore::TextManipulationTokenIdentifier',
+        'WebCore::TimelineIdentifier',
         'WebCore::IDBDatabaseConnectionIdentifier',
         'WebCore::IDBResourceObjectIdentifier',
         'WebCore::UserGestureTokenIdentifierID',
@@ -682,6 +683,7 @@ def conditions_for_header(header):
         '<WebCore/PlaybackTargetClientContextIdentifier.h>': ["ENABLE(WIRELESS_PLAYBACK_TARGET)"],
         '<WebCore/SoupNetworkProxySettings.h>': ["USE(SOUP)"],
         '<WebCore/SelectionData.h>': ["PLATFORM(GTK)", "PLATFORM(WPE)"],
+        '<WebCore/TimelineIdentifier.h>': ["ENABLE(THREADED_ANIMATION_RESOLUTION)"],
         '<WebCore/VideoFrameCV.h>': ["PLATFORM(COCOA)", ],
     }
     if not header in conditions:
@@ -1101,7 +1103,9 @@ def headers_for_type(type, for_implementation_file=False):
         'WebCore::GlyphBufferGlyph': ['<WebCore/GlyphBufferMembers.h>'],
         'WebCore::GraphicsContextGL::ExternalImageSource': ['<WebCore/GraphicsContextGL.h>'],
         'WebCore::GraphicsContextGL::ExternalSyncSource': ['<WebCore/GraphicsContextGL.h>'],
-        'WebCore::GraphicsContextGLActiveInfo': ['<WebCore/GraphicsContextGL.h>'],
+        'WebCore::GCGLAttribActiveInfo': ['<WebCore/GraphicsContextGLActiveInfo.h>'],
+        'WebCore::GCGLUniformActiveInfo': ['<WebCore/GraphicsContextGLActiveInfo.h>'],
+        'WebCore::GCGLTransformFeedbackActiveInfo': ['<WebCore/GraphicsContextGLActiveInfo.h>'],
         'WebCore::GraphicsContextGLFlipY': ['<WebCore/GraphicsContextGL.h>'],
         'WebCore::GraphicsContextGLSimulatedEventForTesting': ['<WebCore/GraphicsContextGL.h>'],
         'WebCore::GraphicsContextGLSurfaceBuffer': ['<WebCore/GraphicsContextGL.h>'],

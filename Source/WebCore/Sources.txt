@@ -2389,6 +2389,7 @@ platform/Widget.cpp
 platform/animation/AcceleratedEffect.cpp
 platform/animation/AcceleratedEffectStack.cpp @no-unify
 platform/animation/AcceleratedEffectValues.cpp
+platform/animation/AcceleratedTimeline.cpp
 platform/animation/TimingFunction.cpp
 platform/animation/values/AcceleratedEffectOffsetAnchor.cpp
 platform/animation/values/AcceleratedEffectOffsetDistance.cpp
@@ -3175,6 +3176,7 @@ style/values/backgrounds/StyleRepeatStyle.cpp
 style/values/borders/StyleBorderRadius.cpp
 style/values/borders/StyleBoxShadow.cpp
 style/values/borders/StyleCornerShapeValue.cpp
+style/values/box/StyleMargin.cpp
 style/values/break/StyleOrphans.cpp
 style/values/break/StyleWidows.cpp
 style/values/color-adjust/StyleColorScheme.cpp
@@ -3265,7 +3267,6 @@ style/values/non-standard/StyleWebKitOverflowScrolling.cpp
 style/values/non-standard/StyleWebKitTextStrokeWidth.cpp
 style/values/non-standard/StyleWebKitTouchCallout.cpp
 style/values/overflow/StyleBlockEllipsis.cpp
-style/values/overflow/StyleScrollBehavior.cpp
 style/values/overflow/StyleScrollbarGutter.cpp
 style/values/page/StylePageSize.cpp
 style/values/primitives/StyleLengthResolution.cpp

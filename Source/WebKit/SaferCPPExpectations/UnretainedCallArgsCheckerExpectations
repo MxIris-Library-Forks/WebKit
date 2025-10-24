@@ -10,8 +10,6 @@ WebProcess/Plugins/PDF/WKAccessibilityPDFDocumentObject.mm
 WebProcess/WebPage/Cocoa/WebPageCocoa.mm
 WebProcess/WebPage/RemoteLayerTree/PlatformCAAnimationRemote.mm
 WebProcess/WebPage/RemoteLayerTree/PlatformCALayerRemoteCustom.mm
-WebProcess/WebPage/WebPage.cpp
-WebProcess/cocoa/WebProcessCocoa.mm
 [ Mac ] WebProcess/WebPage/mac/PageBannerMac.mm
 [ Mac ] WebProcess/WebPage/mac/TiledCoreAnimationDrawingArea.mm
 [ Mac ] WebProcess/WebPage/mac/WebPageMac.mm

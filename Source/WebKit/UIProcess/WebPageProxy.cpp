@@ -1234,16 +1234,10 @@ void WebPageProxy::setUIClient(std::unique_ptr<API::UIClient>&& uiClient)
 
 void WebPageProxy::setIconLoadingClient(std::unique_ptr<API::IconLoadingClient>&& iconLoadingClient)
 {
-    bool hasClient = iconLoadingClient.get();
     if (!iconLoadingClient)
         m_iconLoadingClient = makeUnique<API::IconLoadingClient>();
     else
         m_iconLoadingClient = WTFMove(iconLoadingClient);
-
-    if (!hasRunningProcess())
-        return;
-
-    send(Messages::WebPage::SetUseIconLoadingClient(hasClient));
 }
 
 void WebPageProxy::setPageLoadStateObserver(RefPtr<PageLoadState::Observer>&& observer)
@@ -4242,6 +4236,9 @@ void WebPageProxy::sendWheelEvent(WebCore::FrameIdentifier frameID, const WebWhe
     internals().wheelEventActivityHysteresis.impulse();
 #endif
 
+    if (!hasRunningProcess())
+        return;
+
     Ref process = processContainingFrame(frameID);
     if (protectedDrawingArea()->shouldSendWheelEventsToEventDispatcher()) {
         sendWheelEventScrollingAccelerationCurveIfNecessary(frameID, event);
@@ -4252,7 +4249,7 @@ void WebPageProxy::sendWheelEvent(WebCore::FrameIdentifier frameID, const WebWhe
             if (!protectedThis)
                 return;
 
-            if (protectedThis->isClosed())
+            if (!protectedThis->hasRunningProcess())
                 return;
 
             if (remoteWheelEventData) {

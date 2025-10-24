@@ -53,10 +53,10 @@ public:
     const Float32Array& matrix();
 
 private:
-    WebXRRay(FloatPoint3D origin, FloatPoint3D direction);
+    WebXRRay(Ref<DOMPointReadOnly>&& origin, Ref<DOMPointReadOnly>&& direction);
 
-    FloatPoint3D m_origin;
-    FloatPoint3D m_direction;
+    Ref<DOMPointReadOnly> m_origin;
+    Ref<DOMPointReadOnly> m_direction;
     RefPtr<Float32Array> m_matrix;
 };
 

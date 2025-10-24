@@ -489,10 +489,7 @@ html/HTMLTablePartElement.cpp
 html/HTMLTableRowElement.cpp
 html/HTMLTableRowsCollection.cpp
 html/HTMLTableSectionElement.cpp
-html/HTMLTemplateElement.cpp
-html/HTMLTextAreaElement.cpp
 html/HTMLTextFormControlElement.cpp
-html/HTMLTitleElement.cpp
 html/HTMLVideoElement.cpp
 html/ImageBitmap.cpp
 html/ImageDocument.cpp
@@ -1022,8 +1019,6 @@ testing/MockPageOverlay.cpp
 testing/MockPageOverlayClient.cpp
 testing/ServiceWorkerInternals.cpp
 testing/js/WebCoreTestSupport.cpp
-workers/Worker.cpp
-workers/WorkerMessagingProxy.cpp
 workers/shared/SharedWorker.cpp
 worklets/PaintWorkletGlobalScope.cpp
 worklets/WorkletGlobalScope.cpp

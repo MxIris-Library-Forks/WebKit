@@ -1365,9 +1365,9 @@ void Document::setCompatibilityMode(DocumentCompatibilityMode mode)
         // All user stylesheets have to reparse using the different mode.
         if (auto* extensionStyleSheets = extensionStyleSheetsIfExists()) {
             extensionStyleSheets->clearPageUserSheet();
-            if (extensionStyleSheets->hasCachedInjectedStyleSheets())
-                extensionStyleSheets->invalidateInjectedStyleSheetCache();
+            extensionStyleSheets->invalidateInjectedStyleSheetCache();
         }
+        styleScope().didChangeStyleSheetEnvironment();
     }
 
     if (CheckedPtr view = renderView())
@@ -2640,7 +2640,7 @@ void Document::visibilityStateChanged()
     });
 
     m_visibilityStateCallbackClients.forEach([](auto& client) {
-        Ref { client }->visibilityStateChanged();
+        client.visibilityStateChanged();
     });
 
 #if ENABLE(MEDIA_STREAM) && PLATFORM(IOS_FAMILY)
@@ -2696,7 +2696,7 @@ void Document::forEachMediaElement(NOESCAPE const Function<void(HTMLMediaElement
 {
     ASSERT(!m_mediaElements.hasNullReferences());
     m_mediaElements.forEach([&](auto& element) {
-        function(Ref { element });
+        function(element);
     });
 }
 
@@ -7780,7 +7780,7 @@ void Document::captionPreferencesChanged()
 {
     ASSERT(!m_captionPreferencesChangedElements.hasNullReferences());
     m_captionPreferencesChangedElements.forEach([](HTMLMediaElement& element) {
-        Ref { element }->captionPreferencesChanged();
+        element.captionPreferencesChanged();
     });
 }
 
@@ -9600,7 +9600,7 @@ Element* eventTargetElementForDocument(Document* document)
 // https://drafts.csswg.org/css-viewport/#zoom-om
 std::optional<float> Document::zoomForClient(const RenderStyle& style) const
 {
-    if (!settings().getBoundingClientRectZoomed())
+    if (!settings().getBoundingClientRectZoomedEnabled())
         return style.usedZoom();
     return { };
 }
@@ -9867,6 +9867,11 @@ Document& Document::ensureTemplateDocument()
     templateDocument->setTemplateDocumentHost(this); // balanced in dtor.
 
     return *m_templateDocument;
+}
+
+Ref<Document> Document::ensureProtectedTemplateDocument()
+{
+    return ensureTemplateDocument();
 }
 
 Ref<DocumentFragment> Document::documentFragmentForInnerOuterHTML()
@@ -11421,6 +11426,11 @@ TextManipulationController& Document::textManipulationController()
     if (!m_textManipulationController)
         m_textManipulationController = makeUnique<TextManipulationController>(*this);
     return *m_textManipulationController;
+}
+
+CheckedRef<TextManipulationController> Document::checkedTextManipulationController()
+{
+    return textManipulationController();
 }
 
 LazyLoadImageObserver& Document::lazyLoadImageObserver()

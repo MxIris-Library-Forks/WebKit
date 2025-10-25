@@ -1041,9 +1041,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     bridge/jsc/BridgeJSC.h
 
-    bridge/objc/WebScriptObject.h
-    bridge/objc/WebScriptObjectPrivate.h
-
     bridge/runtime_method.h
     bridge/runtime_object.h
     bridge/runtime_root.h
@@ -2198,6 +2195,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/WebKitJSHandle.h
     page/WebKitNamespace.h
     page/WebKitSerializedNode.h
+    page/WebKitStringMatcher.h
     page/WheelEventDeltaFilter.h
     page/WheelEventTestMonitor.h
     page/WindowFeatures.h
@@ -3344,6 +3342,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/images/StyleGradient.h
     style/values/images/StyleImageOrNone.h
+    style/values/images/StyleImageOrientation.h
     style/values/images/StyleImageWrapper.h
     style/values/images/StyleObjectPosition.h
 
@@ -3368,6 +3367,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/masking/StyleMaskBorderSource.h
     style/values/masking/StyleMaskBorderWidth.h
     style/values/masking/StyleMaskLayer.h
+
+    style/values/math/StyleMathDepth.h
 
     style/values/motion/StyleOffsetAnchor.h
     style/values/motion/StyleOffsetDistance.h
@@ -3479,6 +3480,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/text/StyleHyphenateLimitLines.h
     style/values/text/StyleLetterSpacing.h
     style/values/text/StyleTabSize.h
+    style/values/text/StyleTextAutospace.h
     style/values/text/StyleTextIndent.h
     style/values/text/StyleTextSpacingTrim.h
     style/values/text/StyleWordSpacing.h

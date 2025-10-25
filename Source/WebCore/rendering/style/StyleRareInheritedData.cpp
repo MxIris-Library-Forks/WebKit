@@ -71,6 +71,7 @@ struct GreaterThanOrSameSizeAsStyleRareInheritedData : public RefCounted<Greater
 #endif
     Style::ListStyleType listStyleType;
     Style::BlockEllipsis blockEllipsis;
+    Style::MathDepth mathDepth;
 };
 
 static_assert(sizeof(StyleRareInheritedData) <= sizeof(GreaterThanOrSameSizeAsStyleRareInheritedData), "StyleRareInheritedData should bit pack");
@@ -116,7 +117,7 @@ StyleRareInheritedData::StyleRareInheritedData()
     , textEmphasisPosition(static_cast<unsigned>(RenderStyle::initialTextEmphasisPosition().toRaw()))
     , textUnderlinePosition(static_cast<unsigned>(RenderStyle::initialTextUnderlinePosition().toRaw()))
     , lineBoxContain(static_cast<unsigned>(RenderStyle::initialLineBoxContain().toRaw()))
-    , imageOrientation(RenderStyle::initialImageOrientation())
+    , imageOrientation(static_cast<unsigned>(RenderStyle::initialImageOrientation()))
     , imageRendering(static_cast<unsigned>(RenderStyle::initialImageRendering()))
     , lineSnap(static_cast<unsigned>(RenderStyle::initialLineSnap()))
     , lineAlign(static_cast<unsigned>(RenderStyle::initialLineAlign()))
@@ -177,6 +178,7 @@ StyleRareInheritedData::StyleRareInheritedData()
 #endif
     , listStyleType(RenderStyle::initialListStyleType())
     , blockEllipsis(RenderStyle::initialBlockEllipsis())
+    , mathDepth(RenderStyle::initialMathDepth())
 {
 }
 
@@ -284,6 +286,7 @@ inline StyleRareInheritedData::StyleRareInheritedData(const StyleRareInheritedDa
 #endif
     , listStyleType(o.listStyleType)
     , blockEllipsis(o.blockEllipsis)
+    , mathDepth(o.mathDepth)
 {
     ASSERT(o == *this, "StyleRareInheritedData should be properly copied.");
 }
@@ -398,7 +401,8 @@ bool StyleRareInheritedData::operator==(const StyleRareInheritedData& o) const
         && listStyleType == o.listStyleType
         && blockEllipsis == o.blockEllipsis
         && evaluationTimeZoomEnabled == o.evaluationTimeZoomEnabled
-        && deviceScaleFactor == o.deviceScaleFactor;
+        && deviceScaleFactor == o.deviceScaleFactor
+        && mathDepth == o.mathDepth;
 }
 
 bool StyleRareInheritedData::hasColorFilters() const
@@ -470,7 +474,7 @@ void StyleRareInheritedData::dumpDifferences(TextStream& ts, const StyleRareInhe
 
     LOG_RAW_OPTIONSET_IF_DIFFERENT(Style::LineBoxContain, lineBoxContain);
 
-    LOG_IF_DIFFERENT_WITH_CAST(ImageOrientation, imageOrientation);
+    LOG_IF_DIFFERENT_WITH_CAST(Style::ImageOrientation, imageOrientation);
     LOG_IF_DIFFERENT_WITH_CAST(ImageRendering, imageRendering);
     LOG_IF_DIFFERENT_WITH_CAST(LineSnap, lineSnap);
     LOG_IF_DIFFERENT_WITH_CAST(LineAlign, lineAlign);
@@ -557,6 +561,8 @@ void StyleRareInheritedData::dumpDifferences(TextStream& ts, const StyleRareInhe
     LOG_IF_DIFFERENT(blockEllipsis);
 
     LOG_IF_DIFFERENT(evaluationTimeZoomEnabled);
+
+    LOG_IF_DIFFERENT(mathDepth);
 }
 #endif
 

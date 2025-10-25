@@ -2233,6 +2233,8 @@ page/VisitedLinkStore.cpp
 page/VisualViewport.cpp
 page/WebKitJSHandle.cpp
 page/WebKitSerializedNode.cpp
+page/WebKitStringMatchersNamespace.cpp
+page/WebKitStringMatcher.cpp
 page/WheelEventDeltaFilter.cpp
 page/WheelEventTestMonitor.cpp
 page/WindowFeatures.cpp
@@ -3244,6 +3246,7 @@ style/values/grid/StyleGridTrackSize.cpp
 style/values/grid/StyleGridTrackSizes.cpp
 style/values/images/StyleGradient.cpp
 style/values/images/StyleImageOrNone.cpp
+style/values/images/StyleImageOrientation.cpp
 style/values/images/StyleImageWrapper.cpp
 style/values/inline/StyleLineHeight.cpp
 style/values/inline/StyleVerticalAlign.cpp
@@ -3258,6 +3261,7 @@ style/values/masking/StyleMaskBorderSource.cpp
 style/values/masking/StyleMaskBorderWidth.cpp
 style/values/masking/StyleMaskBorder.cpp
 style/values/masking/StyleMaskLayer.cpp
+style/values/math/StyleMathDepth.cpp
 style/values/motion/StyleOffsetAnchor.cpp
 style/values/motion/StyleOffsetPath.cpp
 style/values/motion/StyleOffsetPosition.cpp
@@ -3321,6 +3325,7 @@ style/values/text-decoration/StyleTextShadow.cpp
 style/values/text-decoration/StyleTextUnderlineOffset.cpp
 style/values/text/StyleLetterSpacing.cpp
 style/values/text/StyleTabSize.cpp
+style/values/text/StyleTextAutospace.cpp
 style/values/text/StyleTextIndent.cpp
 style/values/text/StyleWordSpacing.cpp
 style/values/transforms/functions/StyleMatrix3DTransformFunction.cpp
@@ -4894,6 +4899,9 @@ JSStorage.cpp
 JSStorageEvent.cpp
 JSStorageManager.cpp
 JSStreamPipeOptions.cpp
+JSWebKitStringMatcher.cpp
+JSWebKitStringMatchersNamespace.cpp
+JSWebKitStringMatcherOptions.cpp
 JSStringCallback.cpp
 JSStructuredSerializeOptions.cpp
 JSStyleMedia.cpp

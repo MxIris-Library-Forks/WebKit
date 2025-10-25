@@ -73,7 +73,6 @@ class StyleInheritedData;
 class StyleNonInheritedData;
 class StyleRareInheritedData;
 class StyleSelfAlignmentData;
-class TextAutospace;
 class TransformationMatrix;
 class ViewTimeline;
 class WillChangeData;
@@ -222,7 +221,6 @@ enum class WordBreak : uint8_t;
 struct CSSPropertiesBitSet;
 struct CounterDirectiveMap;
 struct GridTrackList;
-struct ImageOrientation;
 struct NameScope;
 struct TransformOperationData;
 
@@ -304,6 +302,7 @@ struct MaskBorderSlice;
 struct MaskBorderSource;
 struct MaskBorderWidth;
 struct MaskLayer;
+struct MathDepth;
 struct MaximumLines;
 struct MaximumSize;
 struct MinimumSize;
@@ -352,6 +351,7 @@ struct ShapeOutside;
 struct StrokeMiterlimit;
 struct StrokeWidth;
 struct TabSize;
+struct TextAutospace;
 struct TextBoxEdge;
 struct TextDecorationThickness;
 struct TextEmphasisStyle;
@@ -384,6 +384,7 @@ struct ZoomFactor;
 
 enum class Change : uint8_t;
 enum class GridTrackSizingDirection : bool;
+enum class ImageOrientation : bool;
 enum class LineBoxContain : uint8_t;
 enum class PositionTryOrder : uint8_t;
 enum class SVGGlyphOrientationHorizontal : uint8_t;
@@ -787,7 +788,7 @@ public:
     inline float usedWordSpacing() const;
 
     inline Style::TextSpacingTrim textSpacingTrim() const;
-    TextAutospace textAutospace() const;
+    inline Style::TextAutospace textAutospace() const;
 
     inline float zoom() const;
     inline float usedZoom() const;
@@ -1226,7 +1227,7 @@ public:
     inline TextSecurity textSecurity() const;
     inline InputSecurity inputSecurity() const;
 
-    inline ImageOrientation imageOrientation() const;
+    inline Style::ImageOrientation imageOrientation() const;
     inline ImageRendering imageRendering() const;
 
     inline OptionSet<SpeakAs> speakAs() const;
@@ -1275,6 +1276,7 @@ public:
     inline AppleVisualEffect usedAppleVisualEffectForSubtree() const;
 #endif
 
+    inline Style::MathDepth mathDepth() const;
     inline MathShift mathShift() const;
     inline MathStyle mathStyle() const;
 
@@ -1438,7 +1440,7 @@ public:
     void setSpecifiedLineHeight(Style::LineHeight&&);
 #endif
 
-    inline void setImageOrientation(ImageOrientation);
+    inline void setImageOrientation(Style::ImageOrientation);
     inline void setImageRendering(ImageRendering);
 
     void setWhiteSpaceCollapse(WhiteSpaceCollapse v) { m_inheritedFlags.whiteSpaceCollapse = static_cast<unsigned>(v); }
@@ -1983,11 +1985,12 @@ public:
     bool disallowsFastPathInheritance() const { return m_nonInheritedFlags.disallowsFastPathInheritance; }
     void setDisallowsFastPathInheritance() { m_nonInheritedFlags.disallowsFastPathInheritance = true; }
 
+    inline void setMathDepth(Style::MathDepth);
     inline void setMathShift(const MathShift&);
     inline void setMathStyle(const MathStyle&);
 
     void setTextSpacingTrim(Style::TextSpacingTrim);
-    void setTextAutospace(TextAutospace v);
+    void setTextAutospace(Style::TextAutospace);
 
     static constexpr Overflow initialOverflowX();
     static constexpr Overflow initialOverflowY();
@@ -2024,7 +2027,7 @@ public:
     static constexpr Style::FontVariantNumeric initialFontVariantNumeric();
     static constexpr FontVariantPosition initialFontVariantPosition();
     static inline AtomString initialLocale();
-    static constexpr TextAutospace initialTextAutospace();
+    static constexpr Style::TextAutospace initialTextAutospace();
     static constexpr TextRenderingMode initialTextRendering();
     static constexpr Style::TextSpacingTrim initialTextSpacingTrim();
     static constexpr BreakBetween initialBreakBetween();
@@ -2197,7 +2200,7 @@ public:
     static constexpr RubyAlign initialRubyAlign();
     static constexpr RubyOverhang initialRubyOverhang();
     static constexpr OptionSet<Style::LineBoxContain> initialLineBoxContain();
-    static constexpr ImageOrientation initialImageOrientation();
+    static constexpr Style::ImageOrientation initialImageOrientation();
     static constexpr ImageRendering initialImageRendering();
     static inline Style::BorderImageSource initialBorderImageSource();
     static inline Style::MaskBorderSource initialMaskBorderSource();
@@ -2306,6 +2309,7 @@ public:
     static constexpr BlendMode initialBlendMode();
     static constexpr Isolation initialIsolation();
 
+    static constexpr Style::MathDepth initialMathDepth();
     static constexpr MathShift initialMathShift();
     static constexpr MathStyle initialMathStyle();
 

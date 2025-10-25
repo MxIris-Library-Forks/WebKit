@@ -118,7 +118,6 @@ public:
     template<typename T, typename... Rest> static T convertStyleType(BuilderState&, const CSSValue&, Rest&&...);
 
     static OptionSet<TextTransform> convertTextTransform(BuilderState&, const CSSValue&);
-    static ImageOrientation convertImageOrientation(BuilderState&, const CSSValue&);
     template<CSSValueID> static AtomString convertCustomIdentAtomOrKeyword(BuilderState&, const CSSValue&);
 
     static OptionSet<TextEmphasisPosition> convertTextEmphasisPosition(BuilderState&, const CSSValue&);
@@ -140,9 +139,6 @@ public:
     static OptionSet<Containment> convertContain(BuilderState&, const CSSValue&);
 
     static OptionSet<MarginTrimType> convertMarginTrim(BuilderState&, const CSSValue&);
-
-    static TextSpacingTrim convertTextSpacingTrim(BuilderState&, const CSSValue&);
-    static TextAutospace convertTextAutospace(BuilderState&, const CSSValue&);
 
     static RefPtr<WillChangeData> convertWillChange(BuilderState&, const CSSValue&);
 
@@ -173,16 +169,6 @@ inline OptionSet<TextTransform> BuilderConverter::convertTextTransform(BuilderSt
             result.add(TextTransform::MathAuto);
     }
     return result;
-}
-
-inline ImageOrientation BuilderConverter::convertImageOrientation(BuilderState& builderState, const CSSValue& value)
-{
-    auto* primitiveValue = requiredDowncast<CSSPrimitiveValue>(builderState, value);
-    if (!primitiveValue)
-        return { };
-    if (primitiveValue->valueID() == CSSValueFromImage)
-        return ImageOrientation::Orientation::FromImage;
-    return ImageOrientation::Orientation::None;
 }
 
 template<CSSValueID keyword> inline AtomString BuilderConverter::convertCustomIdentAtomOrKeyword(BuilderState& builderState, const CSSValue& value)
@@ -629,39 +615,6 @@ inline OptionSet<MarginTrimType> BuilderConverter::convertMarginTrim(BuilderStat
     }
     ASSERT(list->size() <= 4);
     return marginTrim;
-}
-
-inline TextAutospace BuilderConverter::convertTextAutospace(BuilderState& builderState, const CSSValue& value)
-{
-    if (auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value)) {
-        if (primitiveValue->valueID() == CSSValueNoAutospace)
-            return { };
-        if (primitiveValue->valueID() == CSSValueAuto)
-            return { TextAutospace::Type::Auto };
-        if (primitiveValue->valueID() == CSSValueNormal)
-            return { TextAutospace::Type::Normal };
-    }
-
-    TextAutospace::Options options;
-
-    auto list = requiredListDowncast<CSSValueList, CSSPrimitiveValue>(builderState, value);
-    if (!list)
-        return { };
-
-    for (auto& value : *list) {
-        switch (value.valueID()) {
-        case CSSValueIdeographAlpha:
-            options.add(TextAutospace::Type::IdeographAlpha);
-            break;
-        case CSSValueIdeographNumeric:
-            options.add(TextAutospace::Type::IdeographNumeric);
-            break;
-        default:
-            ASSERT_NOT_REACHED();
-            break;
-        }
-    }
-    return options;
 }
 
 inline OptionSet<Containment> BuilderConverter::convertContain(BuilderState& builderState, const CSSValue& value)

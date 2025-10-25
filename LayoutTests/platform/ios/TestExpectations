@@ -4545,6 +4545,10 @@ webkit.org/b/214677 imported/w3c/web-platform-tests/event-timing/shadow-dom-null
 webkit.org/b/214677 imported/w3c/web-platform-tests/event-timing/timingconditions.html [ Skip ]
 webkit.org/b/214677 imported/w3c/web-platform-tests/event-timing/toJSON.html [ Skip ]
 
+# Timing out because single down/up events are not issued by iOS when testing:
+webkit.org/b/301105 imported/w3c/web-platform-tests/event-timing/gap-keydown-keyup.html [ Skip ]
+webkit.org/b/301105 imported/w3c/web-platform-tests/event-timing/gap-pointerdown-pointerup.html [ Skip ]
+
 webkit.org/b/299907 imported/w3c/web-platform-tests/largest-contentful-paint/transparent-text.html [ Failure ]
 webkit.org/b/301028 imported/w3c/web-platform-tests/largest-contentful-paint/web-font-styled-text-resize-swap-after-interaction.html [ Failure ]
 
@@ -8286,11 +8290,6 @@ webkit.org/b/300137 imported/w3c/web-platform-tests/html/semantics/scripting-1/t
 
 webkit.org/b/300946 http/tests/site-isolation/key-events.html [ Pass Failure ]
 
-# https://bugs.webkit.org/show_bug.cgi?id=301128 3x fast tests (layout-tests) are constant text failures 
-fast/forms/auto-fill-button/input-strong-password-auto-fill-button.html [ Pass Failure ]
-fast/forms/datalist/datalist-textinput-appearance.html [ Pass Failure ]
-fast/forms/datalist/datalist-searchinput-appearance.html [ Pass Failure ]
-
 # https://bugs.webkit.org/show_bug.cgi?id=301131 [ iOS 26 ] 6x tests (layout-tests) are constant text failures 
 fast/html/details-no-summary4.html [ Pass Failure ]
 fast/html/details-open-javascript.html [ Pass Failure ]
@@ -8320,3 +8319,24 @@ scrollingcoordinator/ios/fixed-scrolling-with-keyboard.html [ Pass Failure ]
 
 # https://bugs.webkit.org/show_bug.cgi?id=301247 [ iOS 26 ] fast/forms/ios/inputmode-removing-none.html is a constant text failure
 fast/forms/ios/inputmode-removing-none.html [ Pass Failure ]
+
+# webkit.org/b/301449 [iOS26] 7x test in imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target are constantly failing
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interestevent-dispatch-shadow.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interesttarget-anchor-event-dispatch.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interesttarget-area-event-dispatch.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interesttarget-basic-delays.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interesttarget-button-event-dispatch.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interesttarget-on-popover-behavior.tentative.html [ Failure ]
+imported/w3c/web-platform-tests/html/semantics/the-button-element/interest-target/interesttarget-svg-a-event-dispatch.tentative.html [ Failure ]
+
+# https://bugs.webkit.org/show_bug.cgi?id=301384 REGRESSION(301931@main): [macOS x86_64, iOS] two tests in imported/w3c/web-platform-tests/css/css-backgrounds are constant image only failure
+imported/w3c/web-platform-tests/css/css-backgrounds/background-repeat-space-6.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-backgrounds/background-repeat-space-7.html [ ImageOnlyFailure ]
+
+# https://bugs.webkit.org/show_bug.cgi?id=301452 [ iOS 26 ] 3x imported/w3c/web-platform-tests/dom/ tests (layout-tests) are constant failures
+imported/w3c/web-platform-tests/dom/events/focus-event-document-move.html [ Failure ]
+imported/w3c/web-platform-tests/dom/events/pointer-event-document-move.html [ Failure ]
+imported/w3c/web-platform-tests/dom/nodes/Document-createEvent.https.html [ Failure ]
+
+# https://bugs.webkit.org/show_bug.cgi?id=301454 [ iOS 26 ] 3x imported/w3c/web-platform-tests/dom/ tests (layout-tests) are constant failures
+imported/w3c/web-platform-tests/css/css-cascade/scope-hover.html [ Failure ]

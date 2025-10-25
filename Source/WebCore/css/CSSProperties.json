@@ -1416,7 +1416,7 @@
                 "font-property": true,
                 "high-priority": true,
                 "sink-priority": true,
-                "style-converter": "TextAutospace",
+                "style-converter": "StyleType<TextAutospace>",
                 "parser-grammar": "normal | auto | no-autospace | [ ideograph-alpha || ideograph-numeric ]@(no-single-item-opt)",
                 "parser-grammar-comment": "Current spec grammar is 'normal | auto | no-autospace | [ [ ideograph-alpha || ideograph-numeric || punctuation ] || [ insert | replace ] ]'"
             },
@@ -4593,13 +4593,13 @@
                 "none"
             ],
             "codegen-properties": {
-                "style-converter": "ImageOrientation",
+                "style-converter": "StyleType<ImageOrientation>",
                 "parser-grammar": "<<values>>",
                 "parser-grammar-comment": "Current spec grammar is 'from-image | none | [ <angle> || flip ]'"
             },
             "specification": {
                 "category": "css-images",
-                "url": "https://www.w3.org/TR/css3-images/#the-image-orientation"
+                "url": "https://drafts.csswg.org/css-images-3/#propdef-image-orientation"
             }
         },
         "image-rendering": {
@@ -5843,6 +5843,26 @@
             "specification": {
                 "category": "css-masking",
                 "url": "https://drafts.fxtf.org/css-masking-1/#propdef-mask-type"
+            }
+        },
+        "math-depth": {
+            "animation-type": "by computed value",
+            "inherited": true,
+            "initial": "0",
+            "values": [
+                "auto-add"
+            ],
+            "codegen-properties": {
+                "animation-wrapper": "StyleTypeWrapper",
+                "settings-flag": "cssMathDepthEnabled",
+                "style-converter": "StyleType<MathDepth>",
+                "top-priority": true,
+                "top-priority-reason": "This is top priority since it affects 'font-size', which is 'high-priority'",
+                "parser-grammar": "auto-add | add(<integer>) | <integer>"
+            },
+            "specification": {
+                "category": "mathml-core",
+                "url": "https://w3c.github.io/mathml-core/#propdef-math-depth"
             }
         },
         "math-shift": {

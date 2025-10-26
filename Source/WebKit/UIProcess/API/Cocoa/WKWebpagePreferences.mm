@@ -827,7 +827,7 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
 
 - (NSURLRequest *)_alternateRequest
 {
-    return protectedWebsitePolicies(self)->alternateRequest().nsURLRequest(WebCore::HTTPBodyUpdatePolicy::UpdateHTTPBody);
+    return protectedWebsitePolicies(self)->alternateRequest().protectedNSURLRequest(WebCore::HTTPBodyUpdatePolicy::UpdateHTTPBody).autorelease();
 }
 
 
@@ -866,7 +866,7 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
 {
     if (!isEnhancedSecurityFeatureEnabled())
         return WKSecurityRestrictionModeNone;
-    if (_websitePolicies->lockdownModeEnabled())
+    if (Ref { *_websitePolicies }->lockdownModeEnabled())
         return WKSecurityRestrictionModeLockdown;
     if (_websitePolicies->enhancedSecurityEnabled())
         return WKSecurityRestrictionModeMaximizeCompatibility;

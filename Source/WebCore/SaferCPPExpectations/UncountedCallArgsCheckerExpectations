@@ -80,10 +80,6 @@ Modules/webdatabase/SQLStatement.cpp
 Modules/webdatabase/SQLTransaction.cpp
 Modules/webdatabase/SQLTransactionBackend.cpp
 Modules/webdatabase/SQLTransactionCoordinator.cpp
-Modules/websockets/ThreadableWebSocketChannel.cpp
-Modules/websockets/WebSocket.cpp
-Modules/websockets/WebSocketChannelInspector.cpp
-Modules/websockets/WorkerThreadableWebSocketChannel.cpp
 Modules/webtransport/WebTransport.cpp
 StyleExtractorGenerated.cpp
 [ Mac ] Modules/mediasession/MediaSessionCoordinator.cpp
@@ -464,7 +460,6 @@ html/FormAssociatedCustomElement.cpp
 html/FormAssociatedElement.cpp
 html/FormListedElement.cpp
 html/HTMLAttachmentElement.cpp
-html/HTMLBodyElement.cpp
 html/HTMLButtonElement.cpp
 html/HTMLCanvasElement.cpp
 html/HTMLFieldSetElement.cpp

@@ -2,6 +2,7 @@ Platform/IPC/ArgumentCoders.h
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIAlarmsCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIDeclarativeNetRequestCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm
+WebProcess/Extensions/API/Cocoa/WebExtensionAPIMenusCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPINamespaceCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIPortCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIRuntimeCocoa.mm
@@ -13,9 +14,8 @@ WebProcess/Extensions/API/Cocoa/WebExtensionAPIWebRequestEventCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIWindowsCocoa.mm
 WebProcess/Extensions/API/Cocoa/WebExtensionAPIWindowsEventCocoa.mm
 WebProcess/Extensions/Bindings/Cocoa/JSWebExtensionWrapperCocoa.mm
+WebProcess/Extensions/Bindings/JSWebExtensionWrapper.cpp
 WebProcess/Extensions/Cocoa/WebExtensionControllerProxyCocoa.mm
-WebProcess/GPU/graphics/RemoteRenderingBackendProxy.cpp
-WebProcess/GPU/media/MediaPlayerPrivateRemote.cpp
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInCSSStyleDeclarationHandle.mm
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInFrame.mm
 WebProcess/InjectedBundle/API/Cocoa/WKWebProcessPlugInHitTestResult.mm
@@ -36,8 +36,6 @@ WebProcess/InjectedBundle/API/mac/WKWebProcessPlugIn.mm
 WebProcess/InjectedBundle/API/mac/WKWebProcessPlugInBrowserContextController.mm
 WebProcess/InjectedBundle/InjectedBundleDOMWindowExtension.cpp
 WebProcess/InjectedBundle/InjectedBundleHitTestResult.cpp
-WebProcess/WebCoreSupport/WebChromeClient.cpp
-WebProcess/WebCoreSupport/mac/WebDragClientMac.mm
 WebProcess/WebPage/Cocoa/TextAnimationController.mm
 WebProcess/WebPage/RemoteLayerTree/RemoteLayerTreeDrawingArea.mm
 WebProcess/WebPage/mac/WKAccessibilityWebPageObjectBase.mm

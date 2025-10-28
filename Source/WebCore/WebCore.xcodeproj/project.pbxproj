@@ -3056,6 +3056,7 @@
 		7B6094DD270C44BD0064835C /* ANGLEUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB34A1625345CB200029D08 /* ANGLEUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B66CFD52D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B720B0C2743DBA70008ABED /* GraphicsLayerContentsDisplayDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B720B0A2743DBA60008ABED /* GraphicsLayerContentsDisplayDelegate.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		7B7363A72EA761A700770085 /* GCGLExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B7363A62EA761A000770085 /* GCGLExtension.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B8ED5F026F0C13D008AC023 /* CVUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B8ED5ED26F0C123008AC023 /* CVUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B95CFEB2754FF6E000060CE /* GraphicsContextGLState.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B95CFE92754FF6E000060CE /* GraphicsContextGLState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7B95CFED2754FF7C000060CE /* GraphicsContextGLANGLE.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B95CFEC2754FF7C000060CE /* GraphicsContextGLANGLE.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -14269,6 +14270,7 @@
 		7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOSurfaceDrawingBuffer.h; sourceTree = "<group>"; };
 		7B66CFD32D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = IOSurfaceDrawingBuffer.cpp; sourceTree = "<group>"; };
 		7B720B0A2743DBA60008ABED /* GraphicsLayerContentsDisplayDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsLayerContentsDisplayDelegate.h; sourceTree = "<group>"; };
+		7B7363A62EA761A000770085 /* GCGLExtension.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GCGLExtension.h; sourceTree = "<group>"; };
 		7B8ED5ED26F0C123008AC023 /* CVUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVUtilities.h; sourceTree = "<group>"; };
 		7B8ED5EF26F0C123008AC023 /* CVUtilities.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CVUtilities.mm; sourceTree = "<group>"; };
 		7B8F26892AF5368500F7AAD2 /* WebGLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGLUtilities.h; sourceTree = "<group>"; };
@@ -35147,6 +35149,7 @@
 				7CE6CBFA187F370700D46BF5 /* FormatConverter.h */,
 				932D26F4279B8526004DCD8D /* FourCC.cpp */,
 				CD525BA21EE0B10700788DF5 /* FourCC.h */,
+				7B7363A62EA761A000770085 /* GCGLExtension.h */,
 				3A2FE8CE2978CC7800BA1D92 /* GCGLSpan.h */,
 				4FB390AC15EF61F3007AD51F /* GeneratedImage.cpp */,
 				BC23F0DA0DAFF4A4009FDC91 /* GeneratedImage.h */,
@@ -43341,6 +43344,7 @@
 				515BE1931D54F5FB00DD7C68 /* GamepadProviderClient.h in Headers */,
 				935C477509AC4D8E00A6AAB4 /* GapRects.h in Headers */,
 				1432E8470C51493800B1500F /* GarbageCollectionController.h in Headers */,
+				7B7363A72EA761A700770085 /* GCGLExtension.h in Headers */,
 				3A2FE8CF2978CC7800BA1D92 /* GCGLSpan.h in Headers */,
 				9BAAC45C21520128003D4A98 /* GCReachableRef.h in Headers */,
 				C0C054CC1118C8E400CE2636 /* generate-bindings.pl in Headers */,

@@ -1483,6 +1483,7 @@ public:
 
 #if ENABLE(DEVICE_ORIENTATION)
     DeviceOrientationAndMotionAccessController& deviceOrientationAndMotionAccessController();
+    CheckedRef<DeviceOrientationAndMotionAccessController> checkedDeviceOrientationAndMotionAccessController();
 #endif
 
     WEBCORE_EXPORT double monotonicTimestamp() const;

@@ -510,6 +510,9 @@ struct PDFPluginIdentifierType;
 struct PlatformFontInfo;
 struct PrintInfo;
 struct ProvisionalFrameCreationParameters;
+#if PLATFORM(GTK) || PLATFORM(WPE)
+struct RenderProcessInfo;
+#endif
 struct RunJavaScriptParameters;
 struct StorageNamespaceIdentifierType;
 struct TapIdentifierType;
@@ -2311,7 +2314,6 @@ private:
     void getRenderTreeExternalRepresentation(CompletionHandler<void(const String&)>&&);
     void getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&&);
     void getSourceForFrame(WebCore::FrameIdentifier, CompletionHandler<void(const String&)>&&);
-    void getWebArchiveOfFrame(std::optional<WebCore::FrameIdentifier>, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
 #if PLATFORM(COCOA)
     void getWebArchiveData(CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
     void getWebArchivesForFrames(const Vector<WebCore::FrameIdentifier>& frameIdentifiers, CompletionHandler<void(HashMap<WebCore::FrameIdentifier, Ref<WebCore::LegacyWebArchive>>&&)>&&);
@@ -2556,6 +2558,8 @@ private:
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void sendMessageToWebProcessExtension(UserMessage&&);
     void sendMessageToWebProcessExtensionWithReply(UserMessage&&, CompletionHandler<void(UserMessage&&)>&&);
+
+    void getRenderProcessInfo(CompletionHandler<void(RenderProcessInfo&&)>&&);
 #endif
 
 #if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)

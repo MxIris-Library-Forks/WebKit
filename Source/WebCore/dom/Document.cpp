@@ -8578,7 +8578,7 @@ std::optional<RenderingContext> Document::getCSSCanvasContext(const String& type
     RefPtr element = getCSSCanvasElement(name);
     if (!element)
         return std::nullopt;
-    element->setSize({ width, height });
+    element->setCSSCanvasContextSize({ width, height });
     auto context = element->getContext(type);
     if (!context)
         return std::nullopt;
@@ -11305,6 +11305,11 @@ DeviceOrientationAndMotionAccessController& Document::deviceOrientationAndMotion
     if (!m_deviceOrientationAndMotionAccessController)
         m_deviceOrientationAndMotionAccessController = makeUnique<DeviceOrientationAndMotionAccessController>(*this);
     return *m_deviceOrientationAndMotionAccessController;
+}
+
+CheckedRef<DeviceOrientationAndMotionAccessController> Document::checkedDeviceOrientationAndMotionAccessController()
+{
+    return deviceOrientationAndMotionAccessController();
 }
 
 #endif

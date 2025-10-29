@@ -1303,6 +1303,7 @@ fast/css/hover-affects-child.html [ Skip ]
 fast/css/hover-display-block-inline.html [ Skip ]
 fast/css/hover-display-block-none.html [ Skip ]
 fast/css/hover-display-block.html [ Skip ]
+fast/css/hover-invalidation-no-jit.html [ Skip ]
 fast/css/hover-update.html [ Skip ]
 fast/css/nested-layers-with-hover.html [ Skip ]
 fast/css/pseudo-element-selector-scrollbar-hover.html [ Skip ]
@@ -4811,6 +4812,8 @@ webkit.org/b/274628 imported/w3c/web-platform-tests/css/css-text/word-break/auto
 webkit.org/b/257698 imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase/word-break-auto-phrase-overflow-001.html [ ImageOnlyFailure ]
 webkit.org/b/257698 imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase/word-break-auto-phrase-wbr-nobr-001.html [ ImageOnlyFailure ]
 webkit.org/b/257698 imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase/word-break-auto-phrase-wbr-nobr-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase/word-break-auto-phrase-fallback-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase/word-break-auto-phrase-007.html [ ImageOnlyFailure ]
 
 # CSS Ruby 1px difference
 imported/w3c/web-platform-tests/css/css-ruby/ruby-text-combine-upright-002a.html [ ImageOnlyFailure ]
@@ -6340,8 +6343,6 @@ webkit.org/b/209869 crypto/subtle/rsa-indexeddb-non-exportable-private.html [ Pa
 webkit.org/b/210201 [ Debug ] editing/editability/empty-document-delete.html [ Pass Crash ]
 
 webkit.org/b/210219 [ Debug ] http/tests/IndexedDB/collect-IDB-objects.https.html [ Pass Crash ]
-
-webkit.org/b/209189 http/tests/IndexedDB/storage-limit.https.html [ Pass Failure Timeout ]
 
 webkit.org/b/211928 http/tests/resourceLoadStatistics/standalone-web-application-exempt-from-website-data-deletion.html [ Pass Timeout ]
 
@@ -8103,8 +8104,6 @@ webkit.org/b/296010 [ Debug ] fast/frames/frame-append-body-child-crash.html [ P
 
 webkit.org/b/295992 [ Release ] http/tests/geolocation/geolocation-watch-position-does-not-leak.https.html [ Pass Failure ]
 
-webkit.org/b/295993 http/tests/IndexedDB/storage-limit-1.https.html [ Pass Failure ]
-
 webkit.org/b/295989 [ Release ] http/tests/misc/embed-image-load-outlives-gc-without-crashing.html [ Pass Timeout ]
 
 webkit.org/b/296095 fast/forms/switch/click-animation-disabled.html [ Pass Timeout ]
@@ -8350,3 +8349,11 @@ imported/w3c/web-platform-tests/editing/run/inserttext.html?2001-last [ Failure 
 # webkit.org/b/301546 [iOS26] Two tests in imported/w3c/web-platform-tests/uievents/mouse are constant failures
 imported/w3c/web-platform-tests/uievents/mouse/mouseover-at-removing-mousedown-target.html?duration=16 [ Failure ]
 imported/w3c/web-platform-tests/uievents/mouse/mouseover-at-removing-mousedown-target.html?duration=42 [ Failure ]
+
+webkit.org/b/301548 imported/w3c/web-platform-tests/uievents/mouse/offset_and_page_after_dispatch.tentative.html [ Failure ]
+
+# webkit.org/b/301591 [ iOS 26 ] imported/w3c/web-platform-tests/editing/other/empty-elements-insertion.html is a constant text failure 
+imported/w3c/web-platform-tests/editing/other/empty-elements-insertion.html [ Failure ]
+
+# webkit.org/b/301602 [ iOS 26 ] imported/w3c/web-platform-tests/inert/inert-pseudo-element-hittest.html is a constant text failure
+imported/w3c/web-platform-tests/inert/inert-pseudo-element-hittest.html [ Failure ]

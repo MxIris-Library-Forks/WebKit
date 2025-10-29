@@ -87,6 +87,7 @@ public:
     uint32_t checkedPtrCountWithoutThreadCheck() const final { return CanMakeCheckedPtr::checkedPtrCountWithoutThreadCheck(); }
     void incrementCheckedPtrCount() const final { CanMakeCheckedPtr::incrementCheckedPtrCount(); }
     void decrementCheckedPtrCount() const final { CanMakeCheckedPtr::decrementCheckedPtrCount(); }
+    void setDidBeginCheckedPtrDeletion() final { CanMakeCheckedPtr::setDidBeginCheckedPtrDeletion(); }
 
     std::function<void(Function<void()>&&)> getPostTask()
     {
@@ -384,6 +385,15 @@ bool MediaStreamTrackPrivate::isOnCreationThread()
     return m_creationThreadId ? m_creationThreadId == Thread::currentSingleton().uid() : isMainThread();
 }
 #endif
+
+void MediaStreamTrackPrivate::updateLabelIfRemoteTrack()
+{
+    if (!isMainThread() || !(protectedSource()->isIncomingAudioSource() || protectedSource()->isIncomingVideoSource()))
+        return;
+
+    m_label = makeString(m_label, " - "_s, m_id);
+}
+
 
 void MediaStreamTrackPrivate::forEachObserver(NOESCAPE const Function<void(MediaStreamTrackPrivateObserver&)>& apply)
 {

@@ -970,6 +970,12 @@ bool Quirks::shouldEnableCameraAndMicrophonePermissionStateQuirk() const
 {
     return needsQuirks() && m_quirksData.shouldEnableCameraAndMicrophonePermissionStateQuirk;
 }
+
+bool Quirks::shouldEnableRemoteTrackLabelQuirk() const
+{
+    return needsQuirks() && m_quirksData.shouldEnableRemoteTrackLabelQuirk;
+}
+
 #endif
 
 bool Quirks::shouldEnableSpeakerSelectionPermissionsPolicyQuirk() const
@@ -1987,7 +1993,7 @@ bool Quirks::needsClaudeSidebarViewportUnitQuirk(Element& element, const RenderS
         return false;
 
     if (auto fixedHeight = style.height().tryFixed()) {
-        if (fixedHeight->resolveZoom(Style::ZoomNeeded { }) == m_document->renderView()->sizeForCSSDefaultViewportUnits().height())
+        if (fixedHeight->resolveZoom(style.usedZoomForLength()) == m_document->renderView()->sizeForCSSDefaultViewportUnits().height())
             return true;
     }
 
@@ -2545,6 +2551,7 @@ static void handleFacebookQuirks(QuirksData& quirksData, const URL& quirksURL, c
 #if ENABLE(MEDIA_STREAM)
     // facebook.com rdar://158736355
     quirksData.shouldEnableCameraAndMicrophonePermissionStateQuirk = true;
+    quirksData.shouldEnableRemoteTrackLabelQuirk = true;
     // facebook.com rdar://41104397
     quirksData.shouldEnableFacebookFlagQuirk = true;
 #endif
@@ -2566,6 +2573,7 @@ static void handleFacebookMessengerQuirks(QuirksData& quirksData, const URL& qui
 #if ENABLE(MEDIA_STREAM)
     // facebook.com rdar://158736355
     quirksData.shouldEnableCameraAndMicrophonePermissionStateQuirk = true;
+    quirksData.shouldEnableRemoteTrackLabelQuirk = true;
 #endif
 #if ENABLE(WEB_RTC)
     // facebook.com rdar://158736355

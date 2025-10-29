@@ -95,6 +95,7 @@ media/media-source/media-source-mp4ttsimple.html [ Skip ]
 media/media-source/media-source-inband-cea608-track.html [ Skip ]
 media/modern-media-controls/ios-inline-media-controls/touch [ Skip ]
 media/modern-media-controls/overflow-support [ Skip ]
+media/modern-media-controls/visionos-inline-media-controls [ Skip ]
 media/wireless-route-monitoring.html [ Skip ]
 http/tests/media/modern-media-controls/overflow-support [ Skip ]
 media/modern-media-controls/tracks-support [ Skip ]
@@ -4614,6 +4615,9 @@ webgl/1.0.x/conformance/textures/misc [ Pass Slow ]
 # WebGL conformance test suite 2.0.1 is skipped until 2.0.0 is retired.
 webgl/2.0.y [ Skip ]
 
+# Conformance test needs to be updated (see comments in https://chromium-review.googlesource.com/c/angle/angle/+/6197735)
+webgl/2.0.y/conformance2/textures/misc/immutable-tex-render-feedback.html [ Failure ]
+
 webkit.org/b/254730 [ Debug ] webgl/2.0.y/conformance/extensions/webgl-compressed-texture-astc.html [ Slow ]
 
 # Explicitly enable tests which we have fixed and do not have corresponding 2.0.0 test functionality.
@@ -7022,7 +7026,6 @@ imported/w3c/web-platform-tests/css/css-break/monolithic-with-overflow.html [ Im
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-008.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-012.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-016.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-017.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-021.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-028.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-035.html [ ImageOnlyFailure ]
@@ -7038,7 +7041,6 @@ imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-054.htm
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-058.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-059.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-060.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-061.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-062.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-063.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-break/out-of-flow-in-multicolumn-065.html [ ImageOnlyFailure ]
@@ -7474,7 +7476,6 @@ webkit.org/b/282024 fast/text/text-box-edge-with-margin-padding-border-simple.ht
 
 # general failures
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-position-try-012.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-with-position.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/transform-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/transform-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/transform-003.html [ ImageOnlyFailure ]
@@ -7498,16 +7499,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-ident-function.ht
 # -- End: Anchor Positioning -- #
 
 fast/canvas/image-buffer-resource-limits.html [ Slow ]
-
-# Standardized CSS zoom tests.
-imported/w3c/web-platform-tests/css/css-viewport/width.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/border.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/height.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/inherited-length.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/max-height.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/max-width.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/min-height.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-viewport/zoom/min-width.html [ ImageOnlyFailure ]
 
 # has-slotted is not implemeneted - https://bugs.webkit.org/show_bug.cgi?id=280608
 imported/w3c/web-platform-tests/css/css-scoping/has-slotted-001.html [ ImageOnlyFailure ]

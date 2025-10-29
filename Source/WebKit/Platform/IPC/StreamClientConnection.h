@@ -155,7 +155,7 @@ private:
         const CheckedRef<StreamClientConnection> m_owner;
         WeakPtr<Connection::Client> m_receiver;
     };
-    std::optional<DedicatedConnectionClient> m_dedicatedConnectionClient;
+    const std::unique_ptr<DedicatedConnectionClient> m_dedicatedConnectionClient;
     uint64_t m_currentDestinationID { 0 };
     StreamClientConnectionBuffer m_buffer;
     unsigned m_maxBatchSize { 100 }; // Number of messages marked as StreamBatched to accumulate before notifying the server.
@@ -311,6 +311,7 @@ Error StreamClientConnection::waitForAsyncReplyAndDispatchImmediately(AsyncReply
     return m_connection->waitForAsyncReplyAndDispatchImmediately<T>(replyID, timeout);
 }
 
+#ifndef __swift__ // rdar://152496447
 template<typename T>
 std::optional<StreamClientConnection::SendSyncResult<T>> StreamClientConnection::trySendSyncStream(T& message, Timeout timeout, std::span<uint8_t> span)
 {
@@ -361,6 +362,7 @@ std::optional<StreamClientConnection::SendSyncResult<T>> StreamClientConnection:
         return { Error::FailedToDecodeReplyArguments };
     return { { WTFMove(decoder), WTFMove(*replyArguments) } };
 }
+#endif
 
 inline Error StreamClientConnection::trySendDestinationIDIfNeeded(uint64_t destinationID, Timeout timeout)
 {

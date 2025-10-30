@@ -4595,7 +4595,6 @@ imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir_auto-tex
 # https://bugs.webkit.org/show_bug.cgi?id=248545 — re-enable them here.
 fast/images/animations-resume-from-last-displayed-frame.html [ Pass ]
 fast/images/individual-animation-toggle.html [ Pass ]
-fast/images/page-wide-animation-toggle.html [ Pass ]
 fast/images/pagewide-play-pause-animateTransform-svg-animation.html [ Pass ]
 fast/images/pagewide-play-pause-offscreen-animations.html [ Pass ]
 
@@ -4610,6 +4609,7 @@ fast/images/hdr-image-layer-sdr-dynamic-range-limit.html [ Pass ]
 fast/images/hdr-pseudo-before-image.html [ Pass ]
 fast/images/hdr-svg-inline-image.html [ Pass ]
 fast/images/hdr-unaccelerated-basic-image.html [ Pass ]
+fast/images/hdr-unaccelerated-image-blur-filter.html [ Pass ]
 
 # Re-enabling tests fixed by DocumentManager in iOS16+ rdar://102159271
 fast/forms/ios/show-file-upload-context-menu-above-keyboard.html [ Pass ]
@@ -8357,3 +8357,7 @@ imported/w3c/web-platform-tests/editing/other/empty-elements-insertion.html [ Fa
 
 # webkit.org/b/301602 [ iOS 26 ] imported/w3c/web-platform-tests/inert/inert-pseudo-element-hittest.html is a constant text failure
 imported/w3c/web-platform-tests/inert/inert-pseudo-element-hittest.html [ Failure ]
+
+webkit.org/b/301655 fast/images/page-wide-animation-toggle.html [ Pass Timeout ]
+
+webkit.org/b/301670 imported/w3c/web-platform-tests/css/css-anchor-position/popover-implicit-anchor.html [ Failure ]

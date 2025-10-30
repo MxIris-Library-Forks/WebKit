@@ -23,28 +23,36 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "config.h"
+#import "RemoteMonotonicTimeline.h"
 
 #if ENABLE(THREADED_ANIMATION_RESOLUTION)
 
-#include <wtf/TZoneMalloc.h>
+#import <wtf/TZoneMallocInlines.h>
 
 namespace WebKit {
 
-class RemoteAnimationTimelineRegistry {
-    WTF_MAKE_TZONE_ALLOCATED(RemoteAnimationTimelineRegistry);
-public:
-    RemoteAnimationTimelineRegistry() = default;
+WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RemoteMonotonicTimeline);
 
-    bool isEmpty() const { return m_timelines.isEmpty(); }
-    void update(WebCore::ProcessIdentifier, const HashSet<Ref<WebCore::AcceleratedTimeline>>&, MonotonicTime);
-    RemoteAnimationTimeline* get(const TimelineID&) const;
-    void advanceCurrentTime(MonotonicTime);
+Ref<RemoteMonotonicTimeline> RemoteMonotonicTimeline::create(TimelineID identifier, const Seconds& originTime, MonotonicTime now)
+{
+    auto monotonicTimeline = adoptRef(*new RemoteMonotonicTimeline(identifier, originTime));
+    monotonicTimeline->updateCurrentTime(now);
+    return monotonicTimeline;
+}
 
-private:
-    HashMap<WebCore::ProcessIdentifier, HashSet<Ref<RemoteAnimationTimeline>>> m_timelines;
-};
+RemoteMonotonicTimeline::RemoteMonotonicTimeline(TimelineID identifier, const Seconds& originTime)
+    : RemoteAnimationTimeline(identifier, std::nullopt)
+    , m_originTime(originTime)
+{
+}
+
+void RemoteMonotonicTimeline::updateCurrentTime(MonotonicTime monotonicTime)
+{
+    m_currentTime = monotonicTime.secondsSinceEpoch() - m_originTime;
+}
 
 } // namespace WebKit
 
 #endif // ENABLE(THREADED_ANIMATION_RESOLUTION)
+

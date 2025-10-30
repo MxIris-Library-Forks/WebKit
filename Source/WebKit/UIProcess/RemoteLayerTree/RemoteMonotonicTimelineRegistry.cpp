@@ -24,20 +24,19 @@
  */
 
 #import "config.h"
-#import "RemoteAnimationTimelineRegistry.h"
+#import "RemoteMonotonicTimelineRegistry.h"
 
 #if ENABLE(THREADED_ANIMATION_RESOLUTION)
 
-#import "RemoteAnimationTimeline.h"
 #import <WebCore/AcceleratedTimeline.h>
 #import <wtf/MonotonicTime.h>
 #import <wtf/TZoneMallocInlines.h>
 
 namespace WebKit {
 
-WTF_MAKE_TZONE_ALLOCATED_IMPL(RemoteAnimationTimelineRegistry);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RemoteMonotonicTimelineRegistry);
 
-void RemoteAnimationTimelineRegistry::update(WebCore::ProcessIdentifier processIdentifier, const HashSet<Ref<WebCore::AcceleratedTimeline>>& timelineRepresentations, MonotonicTime now)
+void RemoteMonotonicTimelineRegistry::update(WebCore::ProcessIdentifier processIdentifier, const HashSet<Ref<WebCore::AcceleratedTimeline>>& timelineRepresentations, MonotonicTime now)
 {
     // If there are no active timelines for this process identifier, simply remove that entry.
     if (timelineRepresentations.isEmpty()) {
@@ -46,20 +45,27 @@ void RemoteAnimationTimelineRegistry::update(WebCore::ProcessIdentifier processI
     }
 
     // Populate the list of active timelines, creating new timelines as necessary.
-    HashSet<Ref<RemoteAnimationTimeline>> activeTimelines;
+    HashSet<Ref<RemoteMonotonicTimeline>> activeTimelines;
     for (auto& timelineRepresentation : timelineRepresentations) {
+        if (!timelineRepresentation->isMonotonic())
+            continue;
+
         TimelineID timelineID { timelineRepresentation->identifier(), processIdentifier };
+        ASSERT(timelineRepresentation->originTime());
         if (RefPtr existingTimeline = get(timelineID))
             activeTimelines.add(existingTimeline.releaseNonNull());
         else
-            activeTimelines.add(RemoteAnimationTimeline::create(timelineID, timelineRepresentation, now));
+            activeTimelines.add(RemoteMonotonicTimeline::create(timelineID, *timelineRepresentation->originTime(), now));
     }
 
     // Replace the timelines, which will clear any remaining timeline.
-    m_timelines.set(processIdentifier, WTFMove(activeTimelines));
+    if (activeTimelines.isEmpty())
+        m_timelines.remove(processIdentifier);
+    else
+        m_timelines.set(processIdentifier, WTFMove(activeTimelines));
 }
 
-RemoteAnimationTimeline* RemoteAnimationTimelineRegistry::get(const TimelineID& timelineID) const
+RemoteMonotonicTimeline* RemoteMonotonicTimelineRegistry::get(const TimelineID& timelineID) const
 {
     auto it = m_timelines.find(timelineID.processIdentifier());
     if (it == m_timelines.end())
@@ -73,7 +79,7 @@ RemoteAnimationTimeline* RemoteAnimationTimelineRegistry::get(const TimelineID& 
     return nullptr;
 }
 
-void RemoteAnimationTimelineRegistry::advanceCurrentTime(MonotonicTime now)
+void RemoteMonotonicTimelineRegistry::advanceCurrentTime(MonotonicTime now)
 {
     for (auto& timelines : m_timelines.values()) {
         for (auto& timeline : timelines)

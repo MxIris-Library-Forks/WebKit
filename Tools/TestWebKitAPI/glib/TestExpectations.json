@@ -555,11 +555,8 @@
             "/webkit/WebKitWebsiteData/service-worker-registrations": {
                 "expected": {"all" : { "status": ["PASS", "FAIL", "TIMEOUT"], "bug": "webkit.org/b/287621"}}
             },
-            "/webkit/WebKitWebsiteData/itp": {
-                "expected": {"all" : { "status": ["PASS", "FAIL"], "bug": "webkit.org/b/301570"}}
-            },
             "/webkit/WebKitWebsiteData/configuration": {
-                "expected": {"all" : { "status": ["PASS", "TIMEOUT"], "bug": "webkit.org/b/301570"}}
+                "expected": {"all" : { "status": ["PASS", "FAIL", "TIMEOUT"], "bug": "webkit.org/b/301570"}}
             },
             "/webkit/WebKitWebsiteData/cache": {
                 "expected": {"all" : { "status": ["PASS", "TIMEOUT"], "bug": "webkit.org/b/301570"}}
@@ -583,13 +580,6 @@
             },
            "/webkit/WebKitFrame/javascript-values": {
                 "expected": {"gtk": {"status": ["TIMEOUT", "PASS"], "bug": "webkit.org/b/284812"}}
-            }
-        }
-    },
-    "TestWebKitWebXR": {
-        "subtests": {
-            "/webkit/WebKitWebXR/permission-request": {
-                "expected": {"all": {"status": ["TIMEOUT", "PASS"], "bug": "webkit.org/b/301508"}}
             }
         }
     }

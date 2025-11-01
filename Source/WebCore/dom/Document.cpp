@@ -1212,7 +1212,7 @@ void Document::setMarkupUnsafe(const String& markup, OptionSet<ParserContentPoli
 
 ExceptionOr<Ref<Document>> Document::parseHTMLUnsafe(Document& context, Variant<RefPtr<TrustedHTML>, String>&& html)
 {
-    auto stringValueHolder = trustedTypeCompliantString(*context.scriptExecutionContext(), WTFMove(html), "Document parseHTMLUnsafe"_s);
+    auto stringValueHolder = trustedTypeCompliantString(context.contextDocument(), WTFMove(html), "Document parseHTMLUnsafe"_s);
     if (stringValueHolder.hasException())
         return stringValueHolder.releaseException();
 
@@ -3740,11 +3740,10 @@ void Document::resumeDeviceMotionAndOrientationUpdates()
         return;
     m_areDeviceMotionAndOrientationUpdatesSuspended = false;
 #if ENABLE(DEVICE_ORIENTATION) && PLATFORM(IOS_FAMILY)
-    auto origin = securityOrigin().data();
     if (m_deviceMotionController)
-        m_deviceMotionController->resumeUpdates(origin);
+        m_deviceMotionController->resumeUpdates();
     if (m_deviceOrientationController)
-        m_deviceOrientationController->resumeUpdates(origin);
+        m_deviceOrientationController->resumeUpdates();
 #endif
 }
 
@@ -4526,7 +4525,7 @@ ExceptionOr<void> Document::write(Document* entryDocument, FixedVector<Variant<R
     }
 
     String textString = text.toString();
-    auto stringValueHolder = trustedTypeCompliantString(TrustedType::TrustedHTML, *scriptExecutionContext(), textString, lineFeed.isEmpty() ? "Document write"_s : "Document writeln"_s);
+    auto stringValueHolder = trustedTypeCompliantString(TrustedType::TrustedHTML, contextDocument(), textString, lineFeed.isEmpty() ? "Document write"_s : "Document writeln"_s);
     if (stringValueHolder.hasException())
         return stringValueHolder.releaseException();
     SegmentedString trustedText(stringValueHolder.releaseReturnValue());
@@ -7864,7 +7863,7 @@ ExceptionOr<bool> Document::execCommand(const String& commandName, bool userInte
         [&commandName, this](const String& str) -> ExceptionOr<String> {
             if (commandName != "insertHTML"_s)
                 return String(str);
-            return trustedTypeCompliantString(TrustedType::TrustedHTML, *scriptExecutionContext(), str, "Document execCommand"_s);
+            return trustedTypeCompliantString(TrustedType::TrustedHTML, contextDocument(), str, "Document execCommand"_s);
         },
         [](const RefPtr<TrustedHTML>& trustedHtml) -> ExceptionOr<String> {
             return trustedHtml->toString();

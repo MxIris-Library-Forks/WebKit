@@ -5904,13 +5904,6 @@ imported/w3c/web-platform-tests/css/motion/offset-path-url-009.html [ ImageOnlyF
 imported/w3c/web-platform-tests/css/motion/offset-path-url-010.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/motion/offset-path-url-011.html [ ImageOnlyFailure ]
 
-# IPC test failing in Debug mode due to assert.
-[ Debug ] ipc/send-invalid-message.html [ Skip ]
-
-webkit.org/b/297616 [ Debug ] ipc/invalid-feConvolveMatrix-crash.html [ Crash ]
-
-webkit.org/b/297618 [ Debug ] ipc/restore-empty-stack-crash.html [ Crash ]
-
 # mac-only IPC test
 ipc/webpageproxy-correctionpanel-no-crash.html [ Skip ]
 
@@ -7873,3 +7866,4 @@ imported/w3c/web-platform-tests/page-lifecycle/child-display-none.tentative.html
 imported/w3c/web-platform-tests/page-lifecycle/child-out-of-viewport.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/page-lifecycle/worker-dispay-none.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/page-lifecycle/set-composited-layer-position.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/cookies/partitioned-cookies/partitioned-cookies-a-b-a-embed.tentative.https.html [ Skip ]

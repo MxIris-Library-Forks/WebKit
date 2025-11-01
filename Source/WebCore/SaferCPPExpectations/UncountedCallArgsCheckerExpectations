@@ -86,7 +86,6 @@ Modules/webdatabase/SQLTransaction.cpp
 Modules/webdatabase/SQLTransactionBackend.cpp
 Modules/webdatabase/SQLTransactionCoordinator.cpp
 Modules/webtransport/WebTransport.cpp
-StyleExtractorGenerated.cpp
 accessibility/AXLogger.cpp
 accessibility/AXObjectCache.cpp
 accessibility/AXObjectCache.h
@@ -884,13 +883,13 @@ style/StyleUpdate.cpp
 style/Styleable.cpp
 style/Styleable.h
 style/UserAgentStyle.cpp
-style/values/backgrounds/StyleFillLayers.h
 style/values/primitives/StyleLengthWrapperData.cpp
 style/values/transforms/StyleRotate.cpp
 style/values/transforms/StyleScale.cpp
 style/values/transforms/StyleTransformFunction.cpp
 style/values/transforms/StyleTransformList.cpp
 style/values/transforms/StyleTranslate.cpp
+style/values/will-change/StyleWillChange.h
 svg/SVGAElement.cpp
 svg/SVGAElement.h
 svg/SVGAltGlyphElement.cpp

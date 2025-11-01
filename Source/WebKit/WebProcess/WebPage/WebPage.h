@@ -505,6 +505,7 @@ struct InsertTextOptions;
 struct InteractionInformationAtPosition;
 struct InteractionInformationRequest;
 struct LoadParameters;
+struct MainFrameData;
 struct NodeHitTestResult;
 struct PDFPluginIdentifierType;
 struct PlatformFontInfo;
@@ -602,6 +603,7 @@ public:
 
 #if ENABLE(ASYNC_SCROLLING)
     WebCore::ScrollingCoordinator* scrollingCoordinator() const;
+    RefPtr<WebCore::ScrollingCoordinator> protectedScrollingCoordinator() const;
 #endif
 
     WebPageGroupProxy* pageGroup() const { return m_pageGroup.get(); }
@@ -634,6 +636,7 @@ public:
 
 #if PLATFORM(COCOA)
     void willCommitLayerTree(RemoteLayerTreeTransaction&, WebCore::FrameIdentifier);
+    void willCommitMainFrameData(MainFrameData&);
     void didFlushLayerTreeAtTime(MonotonicTime, bool flushSucceeded);
 #endif
 
@@ -793,9 +796,10 @@ public:
 
     WebFrame& mainWebFrame() const { return m_mainFrame; }
 
-    WebCore::Frame* mainFrame() const; // May return nullptr.
-    WebCore::FrameView* mainFrameView() const; // May return nullptr.
-    WebCore::LocalFrameView* localMainFrameView() const; // May return nullptr.
+    WebCore::Frame* mainFrame() const;
+    WebCore::FrameView* mainFrameView() const;
+    WebCore::LocalFrameView* localMainFrameView() const;
+    CheckedPtr<WebCore::LocalFrameView> checkedLocalMainFrameView() const;
     RefPtr<WebCore::LocalFrame> localMainFrame() const;
     RefPtr<WebCore::Document> localTopDocument() const;
 
@@ -1731,6 +1735,7 @@ public:
 
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
     WebExtensionControllerProxy* webExtensionControllerProxy() const { return m_webExtensionController.get(); }
+    RefPtr<WebExtensionControllerProxy> protectedWebExtensionControllerProxy() const;
 #endif
 
     WebCore::UserInterfaceLayoutDirection userInterfaceLayoutDirection() const { return m_userInterfaceLayoutDirection; }

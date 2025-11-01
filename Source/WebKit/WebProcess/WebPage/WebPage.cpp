@@ -6215,6 +6215,11 @@ ScrollingCoordinator* WebPage::scrollingCoordinator() const
 {
     return protectedCorePage()->scrollingCoordinator();
 }
+
+RefPtr<ScrollingCoordinator> WebPage::protectedScrollingCoordinator() const
+{
+    return scrollingCoordinator();
+}
 #endif
 
 WebPage::SandboxExtensionTracker::~SandboxExtensionTracker()
@@ -6917,6 +6922,11 @@ FrameView* WebPage::mainFrameView() const
 LocalFrameView* WebPage::localMainFrameView() const
 {
     return dynamicDowncast<LocalFrameView>(mainFrameView());
+}
+
+CheckedPtr<WebCore::LocalFrameView> WebPage::checkedLocalMainFrameView() const
+{
+    return localMainFrameView();
 }
 
 bool WebPage::shouldUseCustomContentProviderForResponse(const ResourceResponse& response)

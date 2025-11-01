@@ -380,13 +380,13 @@ static const String& glassMaterialMediaControlsStyleSheet()
 static const String& macOSInlineMediaControlsStyleSheet()
 {
     static NeverDestroyed<String> macOSInlineMediaControlsStyleSheet {
-        ".media-controls-container.mac.inline {"
+        ".media-controls-container.mac.inline:not(.audio) {"
         "    display: flex;"
         "    flex-direction: column;"
         "    position: relative;"
         "}"
         "/* Volume slider */"
-        ".media-controls.mac.inline .volume-slider-container {"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container {"
         "    position: absolute;"
         "    top: var(--inline-controls-inside-margin);"
         "    right: calc(var(--inline-controls-inside-margin) * 1);"
@@ -398,56 +398,51 @@ static const String& macOSInlineMediaControlsStyleSheet()
         "    border-radius: var(--inline-controls-border-radius);"
         "    transform: translateY(calc(var(--inline-controls-inside-margin) + 2));"
         "}"
-        ".media-controls.mac.inline.audio .volume-slider-container {"
-        "    transform: var(--volume-slider-transform) translateY(-8px);"
-        "}"
-        ".media-controls.mac.inline .volume-slider-container > .background-tint {"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container > .background-tint {"
         "    top: 0;"
         "    left: var(--inline-controls-inside-margin);"
         "    right: 0;"
         "    bottom: 0;"
         "    width: auto;"
         "}"
-        ".media-controls.mac.inline:focus-within .volume-slider-container,"
-        ".media-controls.mac.inline.show-controls .volume-slider-container {"
+        ".media-controls.mac.inline:focus-within:not(.audio) .volume-slider-container,"
+        ".media-controls.mac.inline:not(.audio).show-controls .volume-slider-container {"
         "    opacity: 1;"
         "    pointer-events: auto;"
         "    transform: none;"
         "}"
-        ".media-controls.mac.inline .volume-slider-container > .background-tint > div {"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container > .background-tint > div {"
         "    border-radius: var(--inline-controls-border-radius);"
         "    overflow: hidden;"
         "}"
-        ".media-controls.mac.inline .volume-slider-container > .slider {"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container > .slider {"
         "    width: 135px;"
         "}"
-        ".media-controls.mac.inline .volume-slider-container button[class*=\"mute\"],"
-        ".media-controls.mac.inline .volume-slider-container .button.mute {"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container button[class*=\"mute\"],"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container .button.mute {"
         "    position: relative !important;"
         "    transform: scale(0.8);"
         "    margin-left: 2px"
         "}"
-        ":host(audio) .media-controls.mac.inline,"
-        ":host(video.media-document.audio)"
-        ".media-controls.mac.inline,"
-        ".media-controls.mac.inline * {"
+        ":host(video.media-document.audio) .media-controls.mac.inline,"
+        ".media-controls.mac.inline:not(.audio) * {"
         "    --inline-controls-bar-height: 46px;"
         "}"
-        ".media-controls.mac.inline .controls-bar.bottom,"
-        ".media-controls.mac.inline .controls-bar.top-left {"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.bottom,"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.top-left {"
         "    border-radius: var(--inline-controls-border-radius);"
         "}"
-        ".media-controls.mac.inline {"
+        ".media-controls.mac.inline:not(.audio) {"
         "    display: flex;"
         "    flex-direction: column;"
         "    justify-content: flex-end;"
         "    height: 100%;"
         "    position: relative;"
         "}"
-        ".media-controls-container.mac.inline > .media-controls.mac.inline {"
+        ".media-controls-container.mac.inline:not(.audio) > .media-controls.mac.inline {"
         "        position: relative;"
         "}"
-        ".media-controls.mac.inline .controls-bar.bottom {"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.bottom {"
         "    position: relative !important;"
         "    bottom: auto !important;"
         "    left: auto !important;"
@@ -463,31 +458,31 @@ static const String& macOSInlineMediaControlsStyleSheet()
         "    padding-inline: var(--inline-controls-inside-margin);"
         "    margin-bottom: var(--inline-controls-inside-margin);"
         "}"
-        ".media-controls.mac.inline > .controls-bar.bottom > .left-cluster,"
-        ".media-controls.mac.inline > .controls-bar.bottom > .time-control,"
-        ".media-controls.mac.inline > .controls-bar.bottom > .right-cluster {"
+        ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .left-cluster,"
+        ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .time-control,"
+        ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .right-cluster {"
         "    display: flex;"
         "    align-items: center;"
         "    position: relative;"
         "}"
-        ".media-controls.mac.inline > .controls-bar.bottom > .left-cluster {"
+        ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .left-cluster {"
         "    flex: 0 0 auto;"
         "    justify-content: flex-start;"
         "    min-width: fit-content;"
         "}"
-        ".media-controls.mac.inline > .controls-bar.bottom > .time-control {"
+        ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .time-control {"
         "    flex: 1 1 0;"
         "    justify-content: center;"
         "    min-width: 0;"
         "    max-width: calc(100% - 200px);"
         "    margin-inline: 12px;"
         "}"
-        ".media-controls.mac.inline > .controls-bar.bottom > .right-cluster {"
+        ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .right-cluster {"
         "    flex: 0 0 auto;"
         "    justify-content: flex-end;"
         "    min-width: fit-content;"
         "}"
-        ".media-controls.mac.inline .buttons-container.right {"
+        ".media-controls.mac.inline:not(.audio) .buttons-container.right {"
         "    position: relative !important;"
         "    right: auto !important;"
         "    left: 35px !important;"
@@ -497,39 +492,39 @@ static const String& macOSInlineMediaControlsStyleSheet()
         "    align-items: center;"
         "    gap: 8px;"
         "}"
-        ".media-controls.mac.inline .controls-bar.bottom .time-control .slider,"
-        ".media-controls.mac.inline .controls-bar.bottom .time-control .scrubber{"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.bottom .time-control .slider,"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.bottom .time-control .scrubber{"
         "  display: flex;"
         "  flex: 1 1 auto;"
         "  max-width: 452px;"
         "  min-width: 0px;"
         "  position: relative;"
         "}"
-        ".media-controls.mac.inline .controls-bar.bottom .background-tint,"
-        ".media-controls.mac.inline .controls-bar.top-left .background-tint {"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.bottom .background-tint,"
+        ".media-controls.mac.inline:not(.audio) .controls-bar.top-left .background-tint {"
         "    border-radius: var(--inline-controls-border-radius);"
         "    overflow: hidden;"
         "}"
-        ".media-controls.mac.inline .slider.default > .appearance {"
+        ".media-controls.mac.inline:not(.audio) .slider.default > .appearance {"
         "    top: 50%;"
         "    transform: translateY(-50%);"
         "    height: 7.5px;"
         "}"
-        ".media-controls.mac.inline .buttons-container.right > * {"
+        ".media-controls.mac.inline:not(.audio) .buttons-container.right > * {"
         "    display: flex;"
         "    position: relative !important;"
         "    left: -8px !important;"
         "}"
-        ".media-controls.mac.inline .slider.default > .appearance > .fill > .primary {"
+        ".media-controls.mac.inline:not(.audio) .slider.default > .appearance > .fill > .primary {"
         "    left: 0;"
         "    background-color: white;"
         "}"
-        ".media-controls.mac.inline .slider.default.allows-relative-scrubbing > .appearance > .fill > .primary {"
+        ".media-controls.mac.inline:not(.audio) .slider.default.allows-relative-scrubbing > .appearance > .fill > .primary {"
         "    background-color: white;"
         "}"
         ".slider.default > .appearance > .fill > .knob.pill,"
-        ".media-controls.mac.inline .volume-slider-container .slider.default > .appearance > .fill > .knob,"
-        ".media-controls.mac.inline .time-control .slider.default > .appearance > .fill > .knob {"
+        ".media-controls.mac.inline:not(.audio) .volume-slider-container .slider.default > .appearance > .fill > .knob,"
+        ".media-controls.mac.inline:not(.audio) .time-control .slider.default > .appearance > .fill > .knob {"
         "    top: -5px;"
         "    width: 21px;"
         "    height: 17px;"
@@ -2082,8 +2077,9 @@ static void applyEmPadding(RenderStyle& style, const Element* element, float pad
 
     Ref document = element->document();
 
-    const auto paddingInlinePixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInline->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / style.usedZoom() };
-    const auto paddingBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() }))  / style.usedZoom() };
+    auto usedZoom = style.usedZoomForLength().value;
+    const auto paddingInlinePixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInline->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / usedZoom };
+    const auto paddingBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() }))  / usedZoom };
 
     const auto isVertical = !style.writingMode().isHorizontal();
     const auto horizontalPadding = isVertical ? paddingBlockPixels : paddingInlinePixels;
@@ -2103,8 +2099,9 @@ static Style::PaddingBox paddingBoxForNumberField(const RenderStyle& style, cons
     Ref paddingInlineEndAndBlock = CSSPrimitiveValue::create(standardTextControlBlockPaddingEm, CSSUnitType::CSS_EM);
     Ref document = element->document();
 
-    const auto paddingInlineStartPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineStart->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) };
-    const auto paddingInlineEndAndBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineEndAndBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) };
+    auto usedZoom = style.usedZoomForLength().value;
+    const auto paddingInlineStartPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineStart->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / usedZoom };
+    const auto paddingInlineEndAndBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineEndAndBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / usedZoom };
 
     Style::PaddingBox paddingBox { paddingInlineEndAndBlockPixels };
     paddingBox.setStart(paddingInlineStartPixels, style.writingMode());
@@ -2130,7 +2127,7 @@ bool RenderThemeCocoa::adjustTextFieldStyleForVectorBasedControls(RenderStyle& s
 
 #if PLATFORM(IOS_FAMILY)
     if (RefPtr input = dynamicDowncast<HTMLInputElement>(*element); input && input->hasDataList())
-        applyPaddingIfNotExplicitlySet(style, { 1_css_px });
+        applyPaddingIfNotExplicitlySet(style, { 1_css_px / style.usedZoomForLength().value });
     else
         applyEmPadding(style, element, standardTextControlInlinePaddingEm, standardTextControlBlockPaddingEm);
 #else
@@ -2433,7 +2430,7 @@ static void applyCommonButtonPaddingToStyleForVectorBasedControls(RenderStyle& s
     Document& document = element.document();
     Ref emSize = CSSPrimitiveValue::create(0.5, CSSUnitType::CSS_EM);
     // We don't need this element's parent style to calculate `em` units, so it's okay to pass nullptr for it here.
-    auto pixels = Style::PaddingEdge::Fixed { static_cast<float>(emSize->resolveAsLength<int>({ style, document.renderStyle(), nullptr, document.renderView() })) / style.usedZoom() };
+    auto pixels = Style::PaddingEdge::Fixed { static_cast<float>(emSize->resolveAsLength<int>({ style, document.renderStyle(), nullptr, document.renderView() })) / style.usedZoomForLength().value };
 
     auto paddingBox = Style::PaddingBox { 0_css_px, pixels, 0_css_px, pixels };
     if (!style.writingMode().isHorizontal())
@@ -2498,7 +2495,7 @@ static void adjustInputElementButtonStyleForVectorBasedControls(RenderStyle& sty
     ASSERT(estimatedMaximumWidth >= 0);
 
     if (estimatedMaximumWidth > 0) {
-        style.setLogicalMinWidth(Style::MinimumSize::Fixed { std::ceil(estimatedMaximumWidth) });
+        style.setLogicalMinWidth(Style::MinimumSize::Fixed { std::ceil(estimatedMaximumWidth) / style.usedZoomForLength().value });
         style.setBoxSizing(BoxSizing::ContentBox);
     }
 }
@@ -2629,7 +2626,8 @@ bool RenderThemeCocoa::adjustButtonStyleForVectorBasedControls(RenderStyle& styl
 
     auto paddingBox = Style::PaddingBox { 0_css_px, pixels, 0_css_px, pixels };
 #else
-    auto paddingBox = Style::PaddingBox { 0_css_px, 6_css_px, 1_css_px, 6_css_px };
+    auto usedZoom = style.usedZoomForLength().value;
+    auto paddingBox = Style::PaddingBox { 0_css_px, 6_css_px / usedZoom, 1_css_px / usedZoom, 6_css_px / usedZoom };
 #endif
     if (!style.writingMode().isHorizontal())
         paddingBox = { paddingBox.left(), paddingBox.top(), paddingBox.right(), paddingBox.bottom() };
@@ -2737,7 +2735,7 @@ bool RenderThemeCocoa::paintMenuListButtonDecorationsForVectorBasedControls(cons
     }
 
     Ref emSize = CSSPrimitiveValue::create(1.0, CSSUnitType::CSS_EM);
-    const auto emPixels = emSize->resolveAsLength<float>(conversionDataForStyle(style));
+    const auto emPixels = emSize->resolveAsLength<float>({ style, nullptr, nullptr, nullptr });
     const auto glyphScale = 0.55f * emPixels / glyphSize.width();
     glyphSize = glyphScale * glyphSize;
 

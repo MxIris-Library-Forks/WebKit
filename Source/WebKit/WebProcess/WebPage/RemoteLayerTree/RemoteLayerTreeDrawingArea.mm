@@ -362,8 +362,8 @@ void RemoteLayerTreeDrawingArea::updateRendering()
 
     // Because our view-relative overlay root layer is not attached to the FrameView's GraphicsLayer tree, we need to flush it manually.
     for (auto& rootLayer : m_rootLayers) {
-        if (rootLayer.viewOverlayRootLayer)
-            rootLayer.viewOverlayRootLayer->flushCompositingState(visibleRect);
+        if (RefPtr layer = rootLayer.viewOverlayRootLayer)
+            layer->flushCompositingState(visibleRect);
     }
 
     Ref backingStoreCollection = m_remoteLayerTreeContext->backingStoreCollection();
@@ -371,22 +371,17 @@ void RemoteLayerTreeDrawingArea::updateRendering()
 
     // FIXME: Minimize these transactions if nothing changed.
     auto transactionID = takeNextTransactionID();
-    auto transactions = WTF::map(m_rootLayers, [&](auto& rootLayer) -> RemoteLayerTreeCommitBundle::RootFrameData {
+    auto transactions = WTF::map(m_rootLayers, [&](RootLayerInfo& rootLayer) -> RemoteLayerTreeCommitBundle::RootFrameData {
         backingStoreCollection->willBuildTransaction();
         rootLayer.layer->flushCompositingStateForThisLayerOnly();
 
         RemoteLayerTreeTransaction layerTransaction(transactionID);
-        layerTransaction.setCallbackIDs(WTFMove(m_pendingCallbackIDs));
 
         RefPtr layer = downcast<GraphicsLayerCARemote>(rootLayer.layer.get()).platformCALayer();
         m_remoteLayerTreeContext->buildTransaction(layerTransaction, *layer, rootLayer.frameID);
 
         // FIXME: Investigate whether this needs to be done multiple times in a page with multiple root frames. <rdar://116202678>
         webPage->willCommitLayerTree(layerTransaction, rootLayer.frameID);
-
-        layerTransaction.setNewlyReachedPaintingMilestones(std::exchange(m_pendingNewlyReachedPaintingMilestones, { }));
-
-        willCommitLayerTree(layerTransaction);
 
         m_waitingForBackingStoreSwap = true;
 
@@ -395,7 +390,7 @@ void RemoteLayerTreeDrawingArea::updateRendering()
         RemoteScrollingCoordinatorTransaction scrollingTransaction;
 #if ENABLE(ASYNC_SCROLLING)
         if (webPage->scrollingCoordinator())
-            scrollingTransaction = downcast<RemoteScrollingCoordinator>(*webPage->scrollingCoordinator()).buildTransaction(rootLayer.frameID);
+            scrollingTransaction = downcast<RemoteScrollingCoordinator>(*webPage->protectedScrollingCoordinator()).buildTransaction(rootLayer.frameID);
         scrollingTransaction.setFrameIdentifier(rootLayer.frameID);
 #endif
 
@@ -403,18 +398,24 @@ void RemoteLayerTreeDrawingArea::updateRendering()
     });
 
     for (auto& transaction : transactions)
-        backingStoreCollection->willCommitLayerTree(transaction.first);
+        backingStoreCollection->willCommitLayerTree(CheckedRef { transaction.first });
 
-    RemoteLayerTreeCommitBundle bundle { WTFMove(transactions) };
-    if (webPage->mainWebFrame().coreLocalFrame())
-        bundle.mainFrameData = { std::exchange(m_activityStateChangeID, ActivityStateChangeAsynchronous) };
+    RemoteLayerTreeCommitBundle bundle { WTFMove(transactions), { WTFMove(m_pendingCallbackIDs) } };
+
+    if (webPage->localMainFrame()) {
+        bundle.mainFrameData = MainFrameData { };
+        bundle.mainFrameData->newlyReachedPaintingMilestones = std::exchange(m_pendingNewlyReachedPaintingMilestones, { });
+        bundle.mainFrameData->activityStateChangeID = std::exchange(m_activityStateChangeID, ActivityStateChangeAsynchronous);
+        webPage->willCommitMainFrameData(*bundle.mainFrameData);
+        willCommitLayerTree(*bundle.mainFrameData);
+    }
 
     auto commitEncoder = makeUniqueRef<IPC::Encoder>(Messages::RemoteLayerTreeDrawingAreaProxy::CommitLayerTree::name(), m_identifier.toUInt64());
     commitEncoder.get() << bundle;
 
     Vector<std::unique_ptr<ThreadSafeImageBufferSetFlusher>> flushers;
     for (auto& transaction : bundle.transactions)
-        flushers.appendVector(backingStoreCollection->didFlushLayers(transaction.first));
+        flushers.appendVector(backingStoreCollection->didFlushLayers(CheckedRef { transaction.first }));
 
     OptionSet<WebPage::DidUpdateRenderingFlags> didUpdateRenderingFlags;
     if (flushers.size())

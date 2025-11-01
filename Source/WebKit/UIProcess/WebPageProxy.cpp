@@ -3706,7 +3706,7 @@ void WebPageProxy::activateMediaStreamCaptureInPage()
 }
 
 #if !PLATFORM(COCOA)
-void WebPageProxy::didCommitLayerTree(const RemoteLayerTreeTransaction&)
+void WebPageProxy::didCommitLayerTree(const RemoteLayerTreeTransaction&, const std::optional<MainFrameData>&)
 {
 }
 
@@ -4988,12 +4988,16 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             else {
                 auto nonPersistentDataStore = WebsiteDataStore::createNonPersistent();
                 replacedDataStoreForWebArchiveLoad = websiteDataStore.ptr();
-                websiteDataStore = WTFMove(nonPersistentDataStore);
+                m_websiteDataStore = WTFMove(nonPersistentDataStore);
+                m_configuration->protectedProcessPool()->pageBeginUsingWebsiteDataStore(*this, protectedWebsiteDataStore());
+                websiteDataStore = m_websiteDataStore;
                 processSwapRequestedByClient = ProcessSwapRequestedByClient::Yes;
             }
             loadedWebArchive = LoadedWebArchive::Yes;
         } else if (didLoadWebArchive()) {
-            websiteDataStore = m_replacedDataStoreForWebArchiveLoad.releaseNonNull();
+            m_configuration->protectedProcessPool()->pageEndUsingWebsiteDataStore(*this, protectedWebsiteDataStore());
+            m_websiteDataStore = m_replacedDataStoreForWebArchiveLoad.releaseNonNull();
+            websiteDataStore = m_websiteDataStore;
             m_replacedDataStoreForWebArchiveLoad = nullptr;
             processSwapRequestedByClient = ProcessSwapRequestedByClient::Yes;
         }
@@ -12921,14 +12925,6 @@ void WebPageProxy::shouldAllowDeviceOrientationAndMotionAccess(IPC::Connection& 
     protectedWebsiteDataStore()->protectedDeviceOrientationAndMotionAccessController()->shouldAllowAccess(*this, *frame, WTFMove(frameInfo), mayPrompt, WTFMove(completionHandler));
 }
 
-bool WebPageProxy::originHasDeviceOrientationAndMotionAccess(const WebCore::SecurityOriginData& origin)
-{
-    if (!protectedPreferences()->deviceOrientationPermissionAPIEnabled())
-        return true;
-
-    return protectedWebsiteDataStore()->protectedDeviceOrientationAndMotionAccessController()->cachedDeviceOrientationPermission(origin) == DeviceOrientationOrMotionPermissionState::Granted;
-}
-
 #endif
 
 
@@ -15276,14 +15272,6 @@ void WebPageProxy::willAcquireUniversalFileReadSandboxExtension(WebProcessProxy&
 
 void WebPageProxy::simulateDeviceOrientationChange(double alpha, double beta, double gamma)
 {
-#if ENABLE(DEVICE_ORIENTATION)
-    auto origin = SecurityOrigin::createFromString(protectedPageLoadState()->activeURL())->data();
-    if (!originHasDeviceOrientationAndMotionAccess(origin)) {
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "simulateDeviceOrientationChange: Not sending simulated orientation change to page because origin %" SENSITIVE_LOG_STRING " does not have access.", origin.toString().utf8().data());
-        return;
-    }
-#endif
-
     send(Messages::WebPage::SimulateDeviceOrientationChange(alpha, beta, gamma));
 }
 

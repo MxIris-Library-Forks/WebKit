@@ -26,30 +26,24 @@
 #pragma once
 
 #include "APIObject.h"
-#include <WebCore/SharedBuffer.h>
 
 namespace WebCore {
-class SharedBuffer;
 class SharedMemory;
 }
 
 namespace API {
 
-class StringMatcher final : public ObjectImpl<Object::Type::StringMatcher> {
+class JSBuffer final : public ObjectImpl<Object::Type::JSBuffer> {
 public:
-    explicit StringMatcher(RefPtr<WebCore::SharedMemory>&&);
-    explicit StringMatcher(Ref<WebCore::SharedBuffer>&&);
-    virtual ~StringMatcher();
+    explicit JSBuffer(Ref<WebCore::SharedMemory>&&);
+    virtual ~JSBuffer();
 
-    RefPtr<WebCore::SharedMemory> sharedMemory();
-    RefPtr<WebCore::SharedBuffer> sharedBuffer();
+    Ref<WebCore::SharedMemory> sharedMemory();
 
 private:
-
-    RefPtr<WebCore::SharedMemory> m_sharedMemory;
-    RefPtr<WebCore::SharedBuffer> m_sharedBuffer;
+    Ref<WebCore::SharedMemory> m_sharedMemory;
 };
 
 } // namespace API
 
-SPECIALIZE_TYPE_TRAITS_API_OBJECT(StringMatcher);
+SPECIALIZE_TYPE_TRAITS_API_OBJECT(JSBuffer);

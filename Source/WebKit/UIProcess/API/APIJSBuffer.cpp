@@ -23,8 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-[
-    LegacyNoInterfaceObject
-] interface WebKitStringMatchersNamespace {
-    [CallWith=World] getter WebKitStringMatcher ([AtomString] DOMString name);
-};
+#include "config.h"
+#include "APIJSBuffer.h"
+
+#include <WebCore/SharedMemory.h>
+
+namespace API {
+
+JSBuffer::JSBuffer(Ref<WebCore::SharedMemory>&& sharedMemory)
+    : m_sharedMemory(WTFMove(sharedMemory)) { }
+
+Ref<WebCore::SharedMemory> JSBuffer::sharedMemory()
+{
+    return m_sharedMemory;
+}
+
+JSBuffer::~JSBuffer() = default;
+
+} // namespace API

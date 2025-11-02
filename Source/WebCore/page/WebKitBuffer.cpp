@@ -23,37 +23,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-
-#include <wtf/RefCounted.h>
-#include <wtf/WeakPtr.h>
+#include "config.h"
+#include "WebKitBuffer.h"
 
 namespace WebCore {
 
-class Document;
-class DOMWrapperWorld;
-class LocalFrame;
-class UserContentProvider;
-class WebKitStringMatcher;
+WebKitBuffer::WebKitBuffer() = default;
 
-class WebKitStringMatchersNamespace : public RefCounted<WebKitStringMatchersNamespace> {
-public:
-    static Ref<WebKitStringMatchersNamespace> create(LocalFrame& frame, UserContentProvider& userContentProvider)
-    {
-        return adoptRef(*new WebKitStringMatchersNamespace(frame, userContentProvider));
-    }
+WebKitBuffer::~WebKitBuffer() = default;
 
-    ~WebKitStringMatchersNamespace();
-
-    Vector<AtomString> supportedPropertyNames() const;
-    WebKitStringMatcher* namedItem(DOMWrapperWorld&, const AtomString&);
-    bool isSupportedPropertyName(const AtomString&);
-
-private:
-    explicit WebKitStringMatchersNamespace(LocalFrame&, UserContentProvider&);
-
-    const Ref<UserContentProvider> m_userContentProvider;
-    const WeakPtr<LocalFrame> m_frame;
-};
-
-} // namespace WebCore
+}

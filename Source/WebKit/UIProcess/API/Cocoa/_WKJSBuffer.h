@@ -23,33 +23,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "APIStringMatcher.h"
+#import <WebKit/WKFoundation.h>
 
-#include <WebCore/SharedBuffer.h>
-#include <WebCore/SharedMemory.h>
+NS_ASSUME_NONNULL_BEGIN
 
-namespace API {
+WK_CLASS_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA), visionos(WK_XROS_TBA))
+@interface _WKJSBuffer : NSObject
 
-StringMatcher::StringMatcher(RefPtr<WebCore::SharedMemory>&& sharedMemory)
-    : m_sharedMemory(WTFMove(sharedMemory)) { }
++ (instancetype)new NS_UNAVAILABLE;
+- (instancetype)init NS_UNAVAILABLE;
 
-StringMatcher::StringMatcher(Ref<WebCore::SharedBuffer>&& sharedBuffer)
-    : m_sharedBuffer(WTFMove(sharedBuffer)) { }
+- (nullable instancetype)initWithData:(NSData *)data;
+- (nullable instancetype)initWithDataInFile:(NSURL *)fileURL;
 
-RefPtr<WebCore::SharedMemory> StringMatcher::sharedMemory()
-{
-    if (RefPtr sharedBuffer = m_sharedBuffer; sharedBuffer && !m_sharedMemory)
-        m_sharedMemory = WebCore::SharedMemory::copyBuffer(*sharedBuffer);
-    return m_sharedMemory;
-}
+@end
 
-// FIXME: Remove this non-SharedMemory support when it is no longer useful for helping Safari transition away from the injected bundle.
-RefPtr<WebCore::SharedBuffer> StringMatcher::sharedBuffer()
-{
-    return m_sharedBuffer;
-}
-
-StringMatcher::~StringMatcher() = default;
-
-} // namespace API
+NS_ASSUME_NONNULL_END

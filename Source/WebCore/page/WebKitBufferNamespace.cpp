@@ -23,13 +23,41 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "WebKitBufferNamespace.h"
+
+#include "LocalFrame.h"
+#include "UserContentProvider.h"
 
 namespace WebCore {
 
-struct WebKitStringMatcherOptions {
-    bool matchAll { true };
-    bool searchReverse { false };
-};
+WebKitBufferNamespace::WebKitBufferNamespace(LocalFrame& frame, UserContentProvider& provider)
+    : m_userContentProvider(provider)
+    , m_frame(frame) { }
 
+WebKitBufferNamespace::~WebKitBufferNamespace() = default;
+
+WebKitBuffer* WebKitBufferNamespace::namedItem(DOMWrapperWorld& world, const AtomString& name)
+{
+    RefPtr frame = m_frame.get();
+    if (!frame)
+        return nullptr;
+    RefPtr provider = frame->userContentProvider();
+    if (!provider)
+        return nullptr;
+    return provider->buffer(world, String(name));
 }
+
+Vector<AtomString> WebKitBufferNamespace::supportedPropertyNames() const
+{
+    // Prevent JS from iterating available matchers.
+    return { };
+}
+
+bool WebKitBufferNamespace::isSupportedPropertyName(const AtomString&)
+{
+    // Prevent JS from iterating available matchers.
+    return false;
+}
+
+} // namespace WebCore

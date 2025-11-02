@@ -6946,10 +6946,9 @@
 		FACC82B02E8E093F00EBAFED /* WebTransportCongestionControl.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3F92A996703001E2EB8 /* WebTransportCongestionControl.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FACC82B92E8EF2AF00EBAFED /* WebTransportOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3FB2A996704001E2EB8 /* WebTransportOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FACC82BA2E8EF33A00EBAFED /* WebTransportHash.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3FD2A996705001E2EB8 /* WebTransportHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		FADAF3C92EA2FC80001ACE2E /* WebKitStringMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = FADAF3BE2EA1D011001ACE2E /* WebKitStringMatcher.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FADAF3C92EA2FC80001ACE2E /* WebKitBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = FADAF3BE2EA1D011001ACE2E /* WebKitBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FADCF77E2DC5E3F000591E33 /* RemoteFrameGeometryTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = FADCF77C2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAEF5F6129D62710000AD8EC /* WindowPostMessageOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FAEF5F5F29D6241C000AD8EC /* WindowPostMessageOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		FAFE23A72EAAF1B10062DDA9 /* WebKitStringMatcherOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FADAF3C22EA2A82A001ACE2E /* WebKitStringMatcherOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAFFC34B2E298AA000CCC89C /* SerializedNode.h in Headers */ = {isa = PBXBuildFile; fileRef = FAFFC34A2E298AA000CCC89C /* SerializedNode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAFFC3522E2A0C2600CCC89C /* JSWebKitSerializedNode.h in Headers */ = {isa = PBXBuildFile; fileRef = FAFFC3512E2A0C2600CCC89C /* JSWebKitSerializedNode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAFFC35D2E2AC24D00CCC89C /* WebKitSerializedNode.h in Headers */ = {isa = PBXBuildFile; fileRef = FAFFC34E2E29B1C200CCC89C /* WebKitSerializedNode.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -22348,14 +22347,12 @@
 		FAD041832E173E2D006BF0D7 /* WebKitJSHandle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitJSHandle.h; sourceTree = "<group>"; };
 		FAD041842E173E2D006BF0D7 /* WebKitJSHandle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitJSHandle.cpp; sourceTree = "<group>"; };
 		FAD041852E173E2D006BF0D7 /* WebKitJSHandle.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebKitJSHandle.idl; sourceTree = "<group>"; };
-		FADAF3BB2EA1CE39001ACE2E /* WebKitStringMatchersNamespace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitStringMatchersNamespace.h; sourceTree = "<group>"; };
-		FADAF3BC2EA1CE39001ACE2E /* WebKitStringMatchersNamespace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitStringMatchersNamespace.cpp; sourceTree = "<group>"; };
-		FADAF3BD2EA1CE39001ACE2E /* WebKitStringMatchersNamespace.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebKitStringMatchersNamespace.idl; sourceTree = "<group>"; };
-		FADAF3BE2EA1D011001ACE2E /* WebKitStringMatcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitStringMatcher.h; sourceTree = "<group>"; };
-		FADAF3BF2EA1D011001ACE2E /* WebKitStringMatcher.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitStringMatcher.cpp; sourceTree = "<group>"; };
-		FADAF3C02EA2A76B001ACE2E /* WebKitStringMatcher.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebKitStringMatcher.idl; sourceTree = "<group>"; };
-		FADAF3C12EA2A7E2001ACE2E /* WebKitStringMatcherOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebKitStringMatcherOptions.idl; sourceTree = "<group>"; };
-		FADAF3C22EA2A82A001ACE2E /* WebKitStringMatcherOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitStringMatcherOptions.h; sourceTree = "<group>"; };
+		FADAF3BB2EA1CE39001ACE2E /* WebKitBufferNamespace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitBufferNamespace.h; sourceTree = "<group>"; };
+		FADAF3BC2EA1CE39001ACE2E /* WebKitBufferNamespace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitBufferNamespace.cpp; sourceTree = "<group>"; };
+		FADAF3BD2EA1CE39001ACE2E /* WebKitBufferNamespace.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebKitBufferNamespace.idl; sourceTree = "<group>"; };
+		FADAF3BE2EA1D011001ACE2E /* WebKitBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebKitBuffer.h; sourceTree = "<group>"; };
+		FADAF3BF2EA1D011001ACE2E /* WebKitBuffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitBuffer.cpp; sourceTree = "<group>"; };
+		FADAF3C02EA2A76B001ACE2E /* WebKitBuffer.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebKitBuffer.idl; sourceTree = "<group>"; };
 		FADCF77C2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteFrameGeometryTransformer.h; sourceTree = "<group>"; };
 		FADCF77D2DC5DB1700591E33 /* RemoteFrameGeometryTransformer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteFrameGeometryTransformer.cpp; sourceTree = "<group>"; };
 		FAEF5F5F29D6241C000AD8EC /* WindowPostMessageOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WindowPostMessageOptions.h; sourceTree = "<group>"; };
@@ -29987,6 +29984,12 @@
 				7779BD931F2FDFCB00C21417 /* VisualViewport.h */,
 				77CAAAEF1F2FC35000CB5C8D /* VisualViewport.idl */,
 				BE983D95052A2E0A00892D85 /* WebCoreKeyboardUIMode.h */,
+				FADAF3BF2EA1D011001ACE2E /* WebKitBuffer.cpp */,
+				FADAF3BE2EA1D011001ACE2E /* WebKitBuffer.h */,
+				FADAF3C02EA2A76B001ACE2E /* WebKitBuffer.idl */,
+				FADAF3BC2EA1CE39001ACE2E /* WebKitBufferNamespace.cpp */,
+				FADAF3BB2EA1CE39001ACE2E /* WebKitBufferNamespace.h */,
+				FADAF3BD2EA1CE39001ACE2E /* WebKitBufferNamespace.idl */,
 				FAD041842E173E2D006BF0D7 /* WebKitJSHandle.cpp */,
 				FAD041832E173E2D006BF0D7 /* WebKitJSHandle.h */,
 				FAD041852E173E2D006BF0D7 /* WebKitJSHandle.idl */,
@@ -29998,14 +30001,6 @@
 				FAFFC34F2E29B1C200CCC89C /* WebKitSerializedNode.cpp */,
 				FAFFC34E2E29B1C200CCC89C /* WebKitSerializedNode.h */,
 				FAFFC3502E29B1C200CCC89C /* WebKitSerializedNode.idl */,
-				FADAF3BF2EA1D011001ACE2E /* WebKitStringMatcher.cpp */,
-				FADAF3BE2EA1D011001ACE2E /* WebKitStringMatcher.h */,
-				FADAF3C02EA2A76B001ACE2E /* WebKitStringMatcher.idl */,
-				FADAF3C22EA2A82A001ACE2E /* WebKitStringMatcherOptions.h */,
-				FADAF3C12EA2A7E2001ACE2E /* WebKitStringMatcherOptions.idl */,
-				FADAF3BC2EA1CE39001ACE2E /* WebKitStringMatchersNamespace.cpp */,
-				FADAF3BB2EA1CE39001ACE2E /* WebKitStringMatchersNamespace.h */,
-				FADAF3BD2EA1CE39001ACE2E /* WebKitStringMatchersNamespace.idl */,
 				2E19516A1B6598D200DF6EEF /* WheelEventDeltaFilter.cpp */,
 				2EBBC3D71B65988300F5253D /* WheelEventDeltaFilter.h */,
 				7AE335EF1ACB09E200E401EF /* WheelEventTestMonitor.cpp */,
@@ -47644,6 +47639,7 @@
 				A584FE301864CB8400843B10 /* WebInjectedScriptManager.h in Headers */,
 				F48223111E3869B80066FC79 /* WebItemProviderPasteboard.h in Headers */,
 				5DFEBAB718592B6D00C75BEB /* WebKitAvailability.h in Headers */,
+				FADAF3C92EA2FC80001ACE2E /* WebKitBuffer.h in Headers */,
 				1A1414B613A0F0500019996C /* WebKitFontFamilyNames.h in Headers */,
 				FA58F44F2E1DE95C0098E1C8 /* WebKitJSHandle.h in Headers */,
 				2D0621451DA639BA00A7FB26 /* WebKitMediaKeyMessageEvent.h in Headers */,
@@ -47655,8 +47651,6 @@
 				A5DEBDA416FB908700836FE0 /* WebKitPlaybackTargetAvailabilityEvent.h in Headers */,
 				494BD7950F55C8EE00747828 /* WebKitPoint.h in Headers */,
 				FAFFC35D2E2AC24D00CCC89C /* WebKitSerializedNode.h in Headers */,
-				FADAF3C92EA2FC80001ACE2E /* WebKitStringMatcher.h in Headers */,
-				FAFE23A72EAAF1B10062DDA9 /* WebKitStringMatcherOptions.h in Headers */,
 				7AFD16D32C63F70200B51D1A /* WebLayer.h in Headers */,
 				4644F7FA272A1C250055599E /* WebLock.h in Headers */,
 				4644F7F8272A1C1F0055599E /* WebLockGrantedCallback.h in Headers */,

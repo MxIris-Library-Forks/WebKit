@@ -23,34 +23,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "SharedMemoryJSBuffer.h"
 
-#include <WebCore/WebKitStringMatcher.h>
-#include <wtf/Ref.h>
-
-namespace WebCore {
-class SharedBuffer;
-class SharedMemory;
-}
+#include <WebCore/ExceptionOr.h>
+#include <WebCore/SharedMemory.h>
+#include <wtf/text/ExternalStringImpl.h>
 
 namespace WebKit {
 
-class SharedMemoryStringMatcher final : public WebCore::WebKitStringMatcher {
-public:
-    static RefPtr<SharedMemoryStringMatcher> create(RefPtr<WebCore::SharedMemory>&&);
-    static RefPtr<SharedMemoryStringMatcher> create(RefPtr<WebCore::SharedBuffer>&&);
+Ref<SharedMemoryJSBuffer> SharedMemoryJSBuffer::create(Ref<WebCore::SharedMemory>&& data)
+{
+    return adoptRef(*new SharedMemoryJSBuffer(WTFMove(data)));
+}
 
-private:
-    SharedMemoryStringMatcher(Ref<WebCore::SharedMemory>&&, std::span<const State>, std::span<const Transition>);
-    SharedMemoryStringMatcher(Ref<WebCore::SharedBuffer>&&, std::span<const State>, std::span<const Transition>);
+SharedMemoryJSBuffer::SharedMemoryJSBuffer(Ref<WebCore::SharedMemory>&& sharedMemory)
+    : m_sharedMemory(WTFMove(sharedMemory))
+{
+}
 
-    std::span<const WebCore::WebKitStringMatcher::State> states() const final { return m_states; }
-    std::span<const WebCore::WebKitStringMatcher::Transition> transitions() const final { return m_transitions; }
+WebCore::ExceptionOr<String> SharedMemoryJSBuffer::asUTF16String() const
+{
+    if (m_sharedMemory->size() % sizeof(char16_t))
+        return WebCore::Exception { WebCore::ExceptionCode::RangeError };
+    Ref<StringImpl> impl = ExternalStringImpl::create(spanReinterpretCast<const char16_t>(m_sharedMemory->span()), [protectedMemory = Ref { m_sharedMemory }] (auto...) mutable { });
+    return String(WTFMove(impl));
+}
 
-    const RefPtr<WebCore::SharedBuffer> m_sharedBuffer;
-    const RefPtr<WebCore::SharedMemory> m_sharedMemory;
-    const std::span<const WebCore::WebKitStringMatcher::State> m_states;
-    const std::span<const WebCore::WebKitStringMatcher::Transition> m_transitions;
-};
+String SharedMemoryJSBuffer::asLatin1String() const
+{
+    Ref<StringImpl> impl = ExternalStringImpl::create(spanReinterpretCast<const Latin1Character>(m_sharedMemory->span()), [protectedMemory = Ref { m_sharedMemory }] (auto...) mutable { });
+    return String(WTFMove(impl));
+}
 
 }

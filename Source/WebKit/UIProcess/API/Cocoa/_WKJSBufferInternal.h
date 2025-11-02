@@ -23,9 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-[
-    LegacyNoInterfaceObject,
-    SkipVTableValidation,
-] interface WebKitStringMatcher {
-    [CallWith=CurrentGlobalObject] any match(DOMString string, optional WebKitStringMatcherOptions options = { });
+#import "APIJSBuffer.h"
+#import "WKObject.h"
+#import "_WKJSBuffer.h"
+#import <wtf/AlignedStorage.h>
+
+namespace WebKit {
+
+template<> struct WrapperTraits<API::JSBuffer> {
+    using WrapperClass = _WKJSBuffer;
 };
+
+}
+
+@interface _WKJSBuffer () <WKObject> {
+@package
+    AlignedStorage<API::JSBuffer> _buffer;
+}
+@end

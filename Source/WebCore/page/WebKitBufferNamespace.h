@@ -23,7 +23,37 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dictionary WebKitStringMatcherOptions {
-    boolean matchAll = true;
-    boolean searchReverse = false;
+#pragma once
+
+#include <wtf/RefCounted.h>
+#include <wtf/WeakPtr.h>
+
+namespace WebCore {
+
+class Document;
+class DOMWrapperWorld;
+class LocalFrame;
+class UserContentProvider;
+class WebKitBuffer;
+
+class WebKitBufferNamespace : public RefCounted<WebKitBufferNamespace> {
+public:
+    static Ref<WebKitBufferNamespace> create(LocalFrame& frame, UserContentProvider& userContentProvider)
+    {
+        return adoptRef(*new WebKitBufferNamespace(frame, userContentProvider));
+    }
+
+    ~WebKitBufferNamespace();
+
+    Vector<AtomString> supportedPropertyNames() const;
+    WebKitBuffer* namedItem(DOMWrapperWorld&, const AtomString&);
+    bool isSupportedPropertyName(const AtomString&);
+
+private:
+    explicit WebKitBufferNamespace(LocalFrame&, UserContentProvider&);
+
+    const Ref<UserContentProvider> m_userContentProvider;
+    const WeakPtr<LocalFrame> m_frame;
 };
+
+} // namespace WebCore

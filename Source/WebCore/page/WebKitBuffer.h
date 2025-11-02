@@ -23,23 +23,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <WebKit/WKFoundation.h>
+#pragma once
 
-NS_ASSUME_NONNULL_BEGIN
+#include <span>
+#include <wtf/RefCounted.h>
 
-WK_CLASS_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA), visionos(WK_XROS_TBA))
-@interface _WKStringMatcher : NSObject
+namespace WebCore {
 
-+ (instancetype)new NS_UNAVAILABLE;
-- (instancetype)init NS_UNAVAILABLE;
+template<typename> class ExceptionOr;
 
-- (nullable instancetype)initWithData:(NSData *)data;
-- (nullable instancetype)initWithDataInFile:(NSURL *)fileURL;
-+ (nullable NSData *)matcherDataForStringsAndIdentifiers:(NSDictionary<NSString *, NSNumber *> *)strings;
+class WEBCORE_EXPORT WebKitBuffer : public RefCounted<WebKitBuffer> {
+public:
+    virtual ~WebKitBuffer();
 
-// FIXME: Remove this when it is no longer useful for helping Safari transition away from the injected bundle.
-- (NSArray *)resultsForMatchingCharacters:(const unichar*)characters length:(size_t)length matchAll:(BOOL)matchAll searchReverse:(BOOL)searchReverse;
+    virtual ExceptionOr<String> asUTF16String() const = 0;
+    virtual String asLatin1String() const = 0;
 
-@end
+protected:
+    WebKitBuffer();
+};
 
-NS_ASSUME_NONNULL_END
+}

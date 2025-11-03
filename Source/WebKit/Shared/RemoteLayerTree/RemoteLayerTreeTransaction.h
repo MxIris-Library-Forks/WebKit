@@ -53,7 +53,7 @@
 #include "DynamicViewportSizeUpdate.h"
 #endif
 
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
+#if ENABLE(THREADED_ANIMATIONS)
 #include <WebCore/AcceleratedTimeline.h>
 #endif
 
@@ -235,13 +235,13 @@ public:
     void setDynamicViewportSizeUpdateID(DynamicViewportSizeUpdateID resizeID) { m_dynamicViewportSizeUpdateID = resizeID; }
 #endif
 
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
+#if ENABLE(THREADED_ANIMATIONS)
     const HashSet<Ref<WebCore::AcceleratedTimeline>>& timelines() const { return m_timelines; }
     void setTimelines(const HashSet<Ref<WebCore::AcceleratedTimeline>>& timelines) { m_timelines = timelines; }
 #endif
 
 private:
-    friend struct IPC::ArgumentCoder<RemoteLayerTreeTransaction, void>;
+    friend struct IPC::ArgumentCoder<RemoteLayerTreeTransaction>;
 
     // Do not use, IPC constructor only
     explicit RemoteLayerTreeTransaction();
@@ -281,7 +281,7 @@ private:
 #if PLATFORM(IOS_FAMILY)
     std::optional<DynamicViewportSizeUpdateID> m_dynamicViewportSizeUpdateID;
 #endif
-#if ENABLE(THREADED_ANIMATION_RESOLUTION)
+#if ENABLE(THREADED_ANIMATIONS)
     HashSet<Ref<WebCore::AcceleratedTimeline>> m_timelines;
 #endif
 };

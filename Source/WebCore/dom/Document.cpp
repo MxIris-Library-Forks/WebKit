@@ -445,10 +445,6 @@
 #include "WebGL2RenderingContext.h"
 #endif
 
-#if ENABLE(PICTURE_IN_PICTURE_API)
-#include "HTMLVideoElement.h"
-#endif
-
 #define DOCUMENT_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->toUInt64() : 0, this->isTopDocument(), ##__VA_ARGS__)
 #define DOCUMENT_RELEASE_LOG_ERROR(channel, fmt, ...) RELEASE_LOG_ERROR(channel, "%p - [pageID=%" PRIu64 ", frameID=%" PRIu64 ", isMainFrame=%d] Document::" fmt, this, pageID() ? pageID()->toUInt64() : 0, frameID() ? frameID()->toUInt64() : 0, this->isTopDocument(), ##__VA_ARGS__)
 
@@ -6593,18 +6589,17 @@ bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions&
     }
 
     if (m_focusedElement) {
-
         if (settings().navigationAPIEnabled())
             window()->navigation().setFocusChanged(FocusDidChange::Yes);
+    }
 
 #if PLATFORM(GTK)
-        // GTK relies on creating the AXObjectCache when a focus change happens.
-        if (CheckedPtr cache = axObjectCache())
+    // GTK relies on creating the AXObjectCache when a focus change happens.
+    if (CheckedPtr cache = axObjectCache())
 #else
-        if (CheckedPtr cache = existingAXObjectCache())
+    if (CheckedPtr cache = existingAXObjectCache())
 #endif
-            cache->onFocusChange(oldFocusedElement.get(), newFocusedElement);
-    }
+        cache->onFocusChange(oldFocusedElement.get(), newFocusedElement);
 
     if (RefPtr page = this->page())
         page->chrome().focusedElementChanged(protectedFocusedElement().get(), page->focusController().focusedLocalFrame(), options, broadcast);
@@ -10929,7 +10924,7 @@ void Document::removeTopLayerElement(Element& element)
 
 HTMLDialogElement* Document::activeModalDialog() const
 {
-    for (auto& element : makeReversedRange(m_topLayerElements)) {
+    for (auto& element : m_topLayerElements | std::views::reverse) {
         if (auto* dialog = dynamicDowncast<HTMLDialogElement>(element.get()); dialog && dialog->isModal())
             return dialog;
     }
@@ -11023,7 +11018,7 @@ void Document::handlePopoverLightDismiss(const PointerEvent& event, Node& target
                 return second;
             if (!second)
                 return first;
-            for (auto& element : makeReversedRange(m_autoPopoverList)) {
+            for (auto& element : m_autoPopoverList | std::views::reverse) {
                 if (element.ptr() == first || element.ptr() == second)
                     return element.ptr();
             }

@@ -2940,8 +2940,7 @@ FacebookLiveRecordingQuirkEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      PLATFORM(MAC): true
-      default: false
+      default: WebKit::defaultFacebookLiveRecordingQuirkEnabled()
     WebCore:
       default: false
 
@@ -3418,10 +3417,24 @@ GridFormattingContextIntegrationEnabled:
 
 HTMLEnhancedSelectParsingEnabled:
    type: bool
-   status: testable
+   status: stable
    category: dom
    humanReadableName: "Enhanced HTML select element parsing"
    humanReadableDescription: "Enable enhanced HTML select element parsing"
+   defaultValue:
+     WebKitLegacy:
+       default: true
+     WebKit:
+       default: true
+     WebCore:
+       default: true
+
+HTMLEnhancedSelectSelectedContentEnabled:
+   type: bool
+   status: unstable
+   category: dom
+   humanReadableName: "Enhanced HTML select: selectedcontent element"
+   humanReadableDescription: "Enable enhanced HTML select: selectedcontent element"
    defaultValue:
      WebKitLegacy:
        default: false

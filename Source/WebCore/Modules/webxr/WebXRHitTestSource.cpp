@@ -26,6 +26,7 @@
 #include "config.h"
 #include "WebXRHitTestSource.h"
 
+#include <wtf/Ref.h>
 #include <wtf/TZoneMallocInlines.h>
 
 #if ENABLE(WEBXR_HIT_TEST)

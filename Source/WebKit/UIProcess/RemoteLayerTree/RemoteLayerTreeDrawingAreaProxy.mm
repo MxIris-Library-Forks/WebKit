@@ -289,12 +289,12 @@ void RemoteLayerTreeDrawingAreaProxy::commitLayerTree(IPC::Connection& connectio
         MESSAGE_CHECK_BASE(state.commitLayerTreeMessageState == CommitLayerTreePending || state.commitLayerTreeMessageState == MissedCommit || state.commitLayerTreeMessageState == Idle, connection);
         MESSAGE_CHECK_BASE(state.pendingLayerTreeTransactionID, connection);
         // FIXME: transactionID() should be a property of the bundle.
-        MESSAGE_CHECK_BASE(bundle.transactions.first().first.transactionID() == *state.pendingLayerTreeTransactionID, connection);
+        MESSAGE_CHECK_BASE(bundle.transactions.first().first->transactionID() == *state.pendingLayerTreeTransactionID, connection);
     }
 
     bool hasMainFrameProcessTransaction { false };
     for (const auto& [layerTreeTransaction, scrollingTreeTransaction] : bundle.transactions) {
-        if (layerTreeTransaction.isMainFrameProcessTransaction()) {
+        if (layerTreeTransaction->isMainFrameProcessTransaction()) {
             hasMainFrameProcessTransaction = true;
             break;
         }
@@ -314,7 +314,7 @@ void RemoteLayerTreeDrawingAreaProxy::commitLayerTree(IPC::Connection& connectio
     __block Vector<MachSendRight, 16> sendRights;
     for (auto& transaction : bundle.transactions) {
         // commitLayerTreeTransaction consumes the incoming buffers, so we need to grab them first.
-        for (auto& [layerID, properties] : CheckedRef { transaction.first }->changedLayerProperties()) {
+        for (auto& [layerID, properties] : CheckedRef { transaction.first.get() }->changedLayerProperties()) {
             auto* backingStoreProperties = properties->backingStoreOrProperties.properties.get();
             if (!backingStoreProperties)
                 continue;
@@ -364,7 +364,7 @@ void RemoteLayerTreeDrawingAreaProxy::commitLayerTree(IPC::Connection& connectio
     WeakPtr weakThis { *this };
 
     for (auto& transaction : bundle.transactions) {
-        commitLayerTreeTransaction(connection, CheckedRef { transaction.first }.get(), transaction.second, bundle.mainFrameData);
+        commitLayerTreeTransaction(connection, CheckedRef { transaction.first.get() }.get(), transaction.second, bundle.mainFrameData);
         if (!weakThis)
             return;
     }
@@ -782,13 +782,12 @@ void RemoteLayerTreeDrawingAreaProxy::waitForDidUpdateActivityState(ActivityStat
         switch (m_webPageProxyProcessState.commitLayerTreeMessageState) {
         case CommitLayerTreePending:
         case MissedCommit:
+        case Idle:
             if (!m_webPageProxyProcessState.receivedCommitLayerTreePendingConfirmation) {
                 if (connection->waitForAndDispatchImmediately<Messages::RemoteLayerTreeDrawingAreaProxy::NotifyPendingCommitLayerTree>(identifier(), activityStateUpdateTimeout - (MonotonicTime::now() - startTime), IPC::WaitForOption::InterruptWaitingIfSyncMessageArrives) != IPC::Error::NoError)
                     return;
             }
 
-            [[fallthrough]];
-        case Idle:
             if (connection->waitForAndDispatchImmediately<Messages::RemoteLayerTreeDrawingAreaProxy::CommitLayerTree>(identifier(), activityStateUpdateTimeout - (MonotonicTime::now() - startTime), IPC::WaitForOption::InterruptWaitingIfSyncMessageArrives) != IPC::Error::NoError)
                 return;
             break;

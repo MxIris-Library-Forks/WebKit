@@ -1690,6 +1690,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/HTMLQuoteElement.h
     html/HTMLScriptElement.h
     html/HTMLSelectElement.h
+    html/HTMLSelectedContentElement.h
     html/HTMLStyleElement.h
     html/HTMLSummaryElement.h
     html/HTMLTableCaptionElement.h
@@ -3118,6 +3119,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/RenderLineBreak.h
     rendering/RenderListItem.h
     rendering/RenderMedia.h
+    rendering/RenderMediaInlines.h
     rendering/RenderModel.h
     rendering/RenderObject.h
     rendering/RenderObjectDocument.h
@@ -3137,6 +3139,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/RenderTreeAsText.h
     rendering/RenderTreeMutationDisallowedScope.h
     rendering/RenderVideo.h
+    rendering/RenderVideoInlines.h
     rendering/RenderView.h
     rendering/RenderViewTransitionCapture.h
     rendering/RenderWidget.h
@@ -3451,6 +3454,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/shapes/StylePathOperationWrappers.h
     style/values/shapes/StylePolygonFunction.h
     style/values/shapes/StyleRectFunction.h
+    style/values/shapes/StyleShapeForward.h
     style/values/shapes/StyleShapeFunction.h
     style/values/shapes/StyleShapeImageThreshold.h
     style/values/shapes/StyleShapeMargin.h

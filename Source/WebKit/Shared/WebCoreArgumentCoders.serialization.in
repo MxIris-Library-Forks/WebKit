@@ -6189,7 +6189,7 @@ header: <WebCore/ISOVTTCue.h>
 [CustomHeader] class WebCore::ISOWebVTTCue {
     MediaTime presentationTime();
     MediaTime duration();
-    AtomString id();
+    String id();
     String cueText();
     String settings();
     String sourceID();
@@ -6732,6 +6732,7 @@ header: <WebCore/TextExtractionTypes.h>
 
 header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::Request {
+    HashMap<String, HashMap<WebCore::JSHandleIdentifier, String>> clientNodeAttributes;
     std::optional<WebCore::FloatRect> collectionRectInRootView;
     std::optional<WebCore::JSHandleIdentifier> targetNodeHandleIdentifier;
     bool mergeParagraphs;
@@ -6739,6 +6740,7 @@ header: <WebCore/TextExtractionTypes.h>
     bool includeNodeIdentifiers;
     bool includeEventListeners;
     bool includeAccessibilityAttributes;
+    bool includeTextInAutoFilledControls;
 };
 
 header: <WebCore/TextExtractionTypes.h>
@@ -6829,6 +6831,7 @@ header: <WebCore/TextExtractionTypes.h>
     OptionSet<WebCore::TextExtraction::EventListenerCategory> eventListeners;
     HashMap<String, String> ariaAttributes;
     String accessibilityRole;
+    HashMap<String, String> clientAttributes;
 };
 
 #if ENABLE(WRITING_TOOLS)

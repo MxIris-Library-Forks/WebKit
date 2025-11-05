@@ -27,11 +27,14 @@
 #import "_WKTextExtractionInternal.h"
 
 #import "WKWebViewInternal.h"
+#import "_WKJSHandleInternal.h"
 #import <WebKit/WKError.h>
 #import <wtf/RetainPtr.h>
 
 @implementation _WKTextExtractionConfiguration {
     RetainPtr<_WKJSHandle> _targetNode;
+    HashMap<RetainPtr<NSString>, HashMap<RetainPtr<_WKJSHandle>, RetainPtr<NSString>>> _clientNodeAttributes;
+    RetainPtr<NSDictionary<NSString *, NSString *>> _replacementStrings;
 }
 
 - (instancetype)init
@@ -45,6 +48,7 @@
     _includeNodeIdentifiers = YES;
     _includeEventListeners = YES;
     _includeAccessibilityAttributes = YES;
+    _includeTextInAutoFilledControls = YES;
     _targetRect = CGRectNull;
     _maxWordsPerParagraph = NSUIntegerMax;
     return self;
@@ -58,6 +62,31 @@
 - (void)setTargetNode:(_WKJSHandle *)targetNode
 {
     _targetNode = adoptNS([targetNode copy]);
+}
+
+- (void)addClientAttribute:(NSString *)attributeName value:(NSString *)attributeValue forNode:(_WKJSHandle *)node
+{
+    _clientNodeAttributes.ensure(RetainPtr { attributeName }, [] {
+        return HashMap<RetainPtr<_WKJSHandle>, RetainPtr<NSString>> { };
+    }).iterator->value.set(RetainPtr { node }, RetainPtr { attributeValue });
+}
+
+- (void)forEachClientNodeAttribute:(void(^)(NSString *attribute, NSString *value, _WKJSHandle *))block
+{
+    for (auto [attribute, values] : _clientNodeAttributes) {
+        for (auto [handle, value] : values)
+            block(attribute.get(), value.get(), handle.get());
+    }
+}
+
+- (NSDictionary<NSString *, NSString *> *)replacementStrings
+{
+    return _replacementStrings.get();
+}
+
+- (void)setReplacementStrings:(NSDictionary<NSString *, NSString *> *)replacementStrings
+{
+    _replacementStrings = adoptNS([replacementStrings copy]);
 }
 
 @end

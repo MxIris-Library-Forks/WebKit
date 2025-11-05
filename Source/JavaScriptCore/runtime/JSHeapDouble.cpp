@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,25 +21,19 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-#pragma once
+#include "config.h"
+#include "JSHeapDouble.h"
 
-#if ENABLE(MEDIA_STREAM)
+#include "JSCJSValueInlines.h"
+#include "JSObjectInlines.h"
+#include "StructureInlines.h"
 
-#include <WebCore/CoreAudioSharedUnit.h>
+#include <JavaScriptCore/VMManager.h>
+#include <mutex>
 
-namespace WebCore {
+namespace JSC {
 
-namespace MockAudioSharedUnit {
-void enable();
-void disable();
-CoreAudioSharedUnit& singleton();
-void increaseBufferSize();
-
-}
-
-} // namespace WebCore
-
-#endif // ENABLE(MEDIA_STREAM)
-
+} // namespace JSC

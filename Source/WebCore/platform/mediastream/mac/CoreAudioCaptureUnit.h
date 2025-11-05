@@ -29,7 +29,7 @@
 #if ENABLE(MEDIA_STREAM)
 
 #include <WebCore/AudioSampleDataSource.h>
-#include <WebCore/BaseAudioSharedUnit.h>
+#include <WebCore/BaseAudioCaptureUnit.h>
 #include <WebCore/CAAudioStreamDescription.h>
 #include <WebCore/CoreAudioCaptureSource.h>
 #include <WebCore/Timer.h>
@@ -61,7 +61,7 @@ class MediaCaptureStatusBarManager;
 
 class CoreAudioSpeakerSamplesProducer;
 
-class CoreAudioSharedUnit final : public BaseAudioSharedUnit {
+class CoreAudioCaptureUnit final : public BaseAudioCaptureUnit {
 public:
     class InternalUnit {
     public:
@@ -81,8 +81,10 @@ public:
         virtual bool canRenderAudio() const { return true; }
     };
 
-    WEBCORE_EXPORT static CoreAudioSharedUnit& singleton();
-    ~CoreAudioSharedUnit();
+    // The default unit - the only one that may render audio when capturing
+    WEBCORE_EXPORT static CoreAudioCaptureUnit& defaultSingleton();
+    WEBCORE_EXPORT static void forEach(NOESCAPE Function<void(CoreAudioCaptureUnit&)>&&);
+    ~CoreAudioCaptureUnit();
 
     using CreationCallback = Function<Expected<UniqueRef<InternalUnit>, OSStatus>(bool enableEchoCancellation)>;
     void setInternalUnitCreationCallback(CreationCallback&& callback) { m_creationCallback = WTFMove(callback); }
@@ -124,21 +126,24 @@ public:
 
     const std::optional<CAAudioStreamDescription>& microphoneProcFormat() const { return m_microphoneProcFormat; }
 
-private:
-    CoreAudioSharedUnit();
+    LongCapabilityRange sampleRateCapacities() const final { return m_sampleRateCapabilities; }
+    int actualSampleRate() const final;
 
-    friend class NeverDestroyed<CoreAudioSharedUnit>;
-    friend class MockAudioSharedInternalUnit;
-    friend class CoreAudioSharedInternalUnit;
+    void delaySamples(Seconds) final;
+
+private:
+    CoreAudioCaptureUnit();
+
+    friend class NeverDestroyed<CoreAudioCaptureUnit>;
+    friend class MockAudioCaptureInternalUnit;
+    friend class CoreAudioCaptureInternalUnit;
 
     static size_t preferredIOBufferSize();
 
-    LongCapabilityRange sampleRateCapacities() const final { return m_sampleRateCapabilities; }
 
     bool hasAudioUnit() const final { return !!m_ioUnit; }
     void captureDeviceChanged() final;
     OSStatus reconfigureAudioUnit() final;
-    void delaySamples(Seconds) final;
 
     OSStatus setupAudioUnit();
     void cleanupAudioUnit() final;
@@ -152,7 +157,6 @@ private:
     bool migrateToNewDefaultDevice(const CaptureDevice&) final;
     void deallocateStoredVPIOUnit();
 #endif
-    int actualSampleRate() const final;
     void resetSampleRate();
 
     void willChangeCaptureDevice() final;

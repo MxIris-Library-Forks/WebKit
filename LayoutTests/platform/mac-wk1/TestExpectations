@@ -1766,6 +1766,7 @@ fast/scrolling/iframe-scrollable-after-back.html [ Skip ]
 fast/scrolling/overflow-scrollable-after-back.html [ Skip ]
 
 compositing/rtl/rtl-fixed-overflow-scrolled.html [ Failure ]
+compositing/rtl/rtl-fixed-clipping-layer.html [ ImageOnlyFailure ]
 compositing/iframes/border-uneven-radius-composited-frame.html [ ImageOnlyFailure ]
 compositing/iframes/overlapped-nested-iframes.html [ Pass Failure ]
 compositing/clipping/border-radius-async-overflow-non-stacking.html [ ImageOnlyFailure ]
@@ -2189,9 +2190,9 @@ webkit.org/b/177397 [ Release ] compositing/masks/compositing-clip-path-change-n
 webkit.org/b/172384 fast/hidpi/hidpi-long-page-with-inset-element.html [ Skip ]
 
 webkit.org/b/195098 pointerevents/mouse/enter-leave-order.html [ Failure ]
-webkit.org/b/195098 pointerevents/mouse/over-enter-out-leave.html [ Failure ]
-webkit.org/b/195098 pointerevents/mouse/pointer-capture.html [ Failure ]
-webkit.org/b/195098 pointerevents/mouse/pointer-events-before-mouse-events.html [ Failure ]
+webkit.org/b/195098 pointerevents/mouse/over-enter-out-leave.html [ Skip ]
+webkit.org/b/195098 pointerevents/mouse/pointer-capture.html [ Skip ]
+webkit.org/b/195098 pointerevents/mouse/pointer-events-before-mouse-events.html [ Skip ]
 
 webkit.org/b/244304 pointer-lock/pointermove-movement-delta.html [ Pass Timeout ]
 

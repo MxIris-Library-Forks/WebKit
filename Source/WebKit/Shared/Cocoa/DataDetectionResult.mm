@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,20 +23,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#import "config.h"
 
-namespace WTF {
-class TextStream;
-}
+#if ENABLE(DATA_DETECTION)
+#import "DataDetectionResult.h"
+
+#import <wtf/cocoa/TypeCastsCocoa.h>
+#import <wtf/cocoa/VectorCocoa.h>
+
+#import <pal/cocoa/DataDetectorsCoreSoftLink.h>
 
 namespace WebKit {
 
-enum class SwapBuffersDisplayRequirement : uint8_t {
-    NeedsFullDisplay,
-    NeedsNormalDisplay,
-    NeedsNoDisplay
-};
+void DataDetectionResult::setResults(NSArray *detectionResults)
+{
+    results = makeVector(detectionResults, [](DDScannerResult *result) {
+        return std::optional(RetainPtr<DDScannerResult>(result));
+    });
+}
 
-WTF::TextStream& operator<<(WTF::TextStream&, SwapBuffersDisplayRequirement);
-
-} // namespace WebKit
+}
+#endif

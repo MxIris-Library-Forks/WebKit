@@ -31,7 +31,7 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreAudio/CoreAudioTypes.h>
 #include <WebCore/AudioSession.h>
-#include <WebCore/BaseAudioSharedUnit.h>
+#include <WebCore/BaseAudioCaptureUnit.h>
 #include <WebCore/CAAudioStreamDescription.h>
 #include <WebCore/CaptureDevice.h>
 #include <WebCore/RealtimeMediaSource.h>
@@ -49,6 +49,7 @@ namespace WebCore {
 
 class AudioSampleBufferList;
 class AudioSampleDataSource;
+class CoreAudioCaptureUnit;
 class CaptureDeviceInfo;
 class WebAudioSourceProviderAVFObjC;
 
@@ -74,8 +75,8 @@ protected:
     void setCanResumeAfterInterruption(bool value) { m_canResumeAfterInterruption = value; }
 
 private:
-    friend class BaseAudioSharedUnit;
-    friend class CoreAudioSharedUnit;
+    friend class BaseAudioCaptureUnit;
+    friend class CoreAudioCaptureUnit;
     friend class CoreAudioCaptureSourceFactory;
 
     bool isCaptureSource() const final { return true; }
@@ -105,7 +106,11 @@ private:
     ASCIILiteral logClassName() const override { return "CoreAudioCaptureSource"_s; }
 #endif
 
+    Ref<CoreAudioCaptureUnit> protectedUnit();
+    Ref<const CoreAudioCaptureUnit> protectedUnit() const;
+
     uint32_t m_captureDeviceID { 0 };
+    Ref<CoreAudioCaptureUnit> m_unit;
 
     std::optional<RealtimeMediaSourceCapabilities> m_capabilities;
     std::optional<RealtimeMediaSourceSettings> m_currentSettings;
@@ -115,7 +120,6 @@ private:
     bool m_echoCancellationChanging { false };
 
     std::optional<bool> m_echoCancellationCapability;
-    BaseAudioSharedUnit* m_overrideUnit { nullptr };
 };
 
 class CoreAudioSpeakerSamplesProducer {
@@ -141,7 +145,6 @@ public:
 
     WEBCORE_EXPORT void registerSpeakerSamplesProducer(CoreAudioSpeakerSamplesProducer&);
     WEBCORE_EXPORT void unregisterSpeakerSamplesProducer(CoreAudioSpeakerSamplesProducer&);
-    WEBCORE_EXPORT bool isAudioCaptureUnitRunning();
     WEBCORE_EXPORT bool shouldAudioCaptureUnitRenderAudio();
 
 private:

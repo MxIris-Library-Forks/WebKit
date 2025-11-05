@@ -40,6 +40,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/Vector.h>
+#include <wtf/text/ASCIILiteral.h>
 
 #if PLATFORM(MAC)
 #include "ImportanceAssertion.h"
@@ -113,6 +114,16 @@ public:
     void setImportanceAssertion(ImportanceAssertion&&);
 #endif
 
+#if ENABLE(IPC_TESTING_API)
+    bool hasErrorString() const { return !m_errorString.isNull(); }
+    void setErrorString(ASCIILiteral error)
+    {
+        if (!hasErrorString())
+            m_errorString = error;
+    }
+    ASCIILiteral takeErrorString() { return std::exchange(m_errorString, ASCIILiteral { nullptr }); }
+#endif
+
     static std::unique_ptr<Decoder> unwrapForTesting(Decoder&);
 
     std::span<const uint8_t> span() const { return m_buffer; }
@@ -140,9 +151,9 @@ public:
     }
 
     template<typename T>
-    auto decode()
+    std::optional<T> decode()
     {
-        auto t = ArgumentCoder<std::remove_cvref_t<T>>::decode(*this);
+        std::optional<T> t { ArgumentCoder<std::remove_cvref_t<T>>::decode(*this) };
         if (!t) [[unlikely]]
             markInvalid();
         return t;
@@ -205,10 +216,14 @@ private:
     Markable<SyncRequestID> m_syncRequestID;
 
     Vector<uint32_t> m_indicesOfObjectsFailingDecoding;
+
+#if ENABLE(IPC_TESTING_API)
+    ASCIILiteral m_errorString;
+#endif
 };
 
 template<>
-inline auto Decoder::decode<Attachment>()
+inline std::optional<Attachment> Decoder::decode<Attachment>()
 {
     return takeLastAttachment();
 }

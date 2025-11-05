@@ -39,7 +39,7 @@
 #include <wtf/text/WTFString.h>
 
 namespace WebCore {
-class BaseAudioSharedUnit;
+class BaseAudioCaptureUnit;
 }
 
 namespace WebCore {
@@ -49,9 +49,9 @@ class CaptureDevice;
 class CoreAudioCaptureSource;
 class PlatformAudioData;
 
-class BaseAudioSharedUnit : public RefCounted<BaseAudioSharedUnit>, public RealtimeMediaSourceCenterObserver {
+class BaseAudioCaptureUnit : public RefCounted<BaseAudioCaptureUnit>, public RealtimeMediaSourceCenterObserver {
 public:
-    virtual ~BaseAudioSharedUnit();
+    virtual ~BaseAudioCaptureUnit();
 
     void ref() const final { RefCounted::ref(); }
     void deref() const final { RefCounted::deref(); }
@@ -94,7 +94,7 @@ public:
 
     const String& persistentIDForTesting() const { return m_capturingDevice ? m_capturingDevice->first : emptyString(); }
 
-    void handleNewCurrentMicrophoneDevice(CaptureDevice&&);
+    void handleNewCurrentMicrophoneDevice(const CaptureDevice&);
 
     uint32_t captureDeviceID() const { return m_capturingDevice ? m_capturingDevice->second : 0; }
 
@@ -103,7 +103,7 @@ public:
 #endif
 
 protected:
-    BaseAudioSharedUnit();
+    BaseAudioCaptureUnit();
 
     void forEachClient(NOESCAPE const Function<void(CoreAudioCaptureSource&)>&) const;
     void captureFailed();

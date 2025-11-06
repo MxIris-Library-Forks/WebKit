@@ -49,7 +49,6 @@ accessibility/cocoa/AccessibilityObjectCocoa.mm
 [ Mac ] accessibility/mac/AccessibilityObjectMac.mm
 animation/AnimationTimelinesController.cpp
 animation/BlendingKeyframes.cpp
-animation/DocumentTimeline.cpp
 animation/ElementAnimationRareData.cpp
 animation/KeyframeEffect.cpp
 animation/ScrollTimeline.cpp
@@ -114,9 +113,6 @@ dom/ContainerNode.cpp
 dom/ContainerNodeAlgorithms.cpp
 dom/ContentVisibilityDocumentState.cpp
 dom/CurrentScriptIncrementer.h
-dom/DataTransfer.cpp
-dom/DeviceMotionController.cpp
-dom/DeviceOrientationController.cpp
 dom/Document.cpp
 dom/DocumentFullscreen.cpp
 dom/Element.cpp
@@ -200,7 +196,6 @@ editing/mac/FrameSelectionMac.mm
 editing/markup.cpp
 fileapi/BlobLoader.h
 fileapi/FileReader.cpp
-history/BackForwardCache.cpp
 history/CachedFrame.cpp
 html/CachedHTMLCollection.h
 html/CachedHTMLCollectionInlines.h
@@ -464,7 +459,6 @@ platform/ios/PlaybackSessionInterfaceIOS.mm
 [ iOS ] platform/ios/VideoPresentationInterfaceIOS.mm
 platform/ios/WebAVPlayerController.mm
 [ iOS ] platform/ios/WebVideoFullscreenControllerAVKit.mm
-platform/mock/DeviceOrientationClientMock.cpp
 platform/mock/MockRealtimeVideoSource.cpp
 platform/text/cocoa/LocalizedDateCache.mm
 rendering/AccessibilityRegionContext.cpp

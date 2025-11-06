@@ -28,6 +28,7 @@ remote-layer-tree [ Pass ]
 swipe [ Pass ]
 http/tests/swipe [ Pass ]
 fast/page-color-sampling [ Pass ]
+webanimations/threaded-animations [ Pass ]
 
 webkit.org/b/271780 fast/dom/Orientation/no-orientation-change-event-when-unparenting-view.html [ Pass Timeout ] # change back to pass when bug resolved
 fast/events/ios [ Pass ]
@@ -7938,6 +7939,8 @@ webkit.org/b/292402 http/tests/site-isolation/draw-after-cross-origin-navigation
 
 webkit.org/b/288957 imported/w3c/web-platform-tests/css/CSS2/tables/border-collapse-dynamic-column-001.xht [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/css/CSS2/stacking-context/composite-change-after-scroll-preserves-stacking-order.html [ ImageOnlyFailure ]
+
 webkit.org/b/288518 fast/text/emoji-num-glyphs.html [ Failure ]
 
 # rdar://148254605 (REGRESSION (iOS 18.4): media/sources-fallback-codecs.html is constantly failing.)
@@ -8368,3 +8371,5 @@ fast/forms/ios/focus-input-via-button.html [ Failure ]
 fast/forms/ios/focus-long-textarea.html [ Failure ]
 fast/forms/ios/zoom-after-input-tap-wide-input.html [ Failure ]
 fast/forms/ios/zoom-after-input-tap.html [ Failure ]
+
+webkit.org/b/301957 fast/events/ios/do-not-show-keyboard-when-focusing-after-blur.html [ Failure ]

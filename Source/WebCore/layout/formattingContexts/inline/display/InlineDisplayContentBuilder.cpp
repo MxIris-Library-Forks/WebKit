@@ -98,7 +98,7 @@ InlineDisplayContentBuilder::InlineDisplayContentBuilder(InlineFormattingContext
 InlineDisplay::Boxes InlineDisplayContentBuilder::build(const LineLayoutResult& lineLayoutResult)
 {
     auto boxes = InlineDisplay::Boxes { };
-    boxes.reserveInitialCapacity(lineLayoutResult.inlineAndOpaqueContent.size() + lineBox().nonRootInlineLevelBoxes().size() + 1);
+    boxes.reserveInitialCapacity(lineLayoutResult.runs.size() + lineBox().nonRootInlineLevelBoxes().size() + 1);
 
     auto contentNeedsBidiReordering = !lineLayoutResult.directionality.visualOrderList.isEmpty();
     if (contentNeedsBidiReordering)
@@ -300,8 +300,7 @@ void InlineDisplayContentBuilder::appendHardLineBreakDisplayBox(const Line::Run&
 
 void InlineDisplayContentBuilder::appendAtomicInlineLevelDisplayBox(const Line::Run& lineRun, const InlineRect& borderBoxRect, InlineDisplay::Boxes& boxes)
 {
-    // FIXME: Blocks in inline. Refactor and remove the block test.
-    ASSERT(lineRun.layoutBox().isAtomicInlineBox() || lineRun.isBlock());
+    ASSERT(lineRun.layoutBox().isAtomicInlineBox());
     auto& layoutBox = lineRun.layoutBox();
 
     auto isContentful = true;
@@ -325,6 +324,26 @@ void InlineDisplayContentBuilder::appendAtomicInlineLevelDisplayBox(const Line::
         , { }
         , isContentful
         , isLineFullyTruncatedInBlockDirection()
+    });
+}
+
+void InlineDisplayContentBuilder::appendBlockLevelDisplayBox(const Line::Run& lineRun, const InlineRect& borderBoxRect, InlineDisplay::Boxes& boxes)
+{
+    ASSERT(lineRun.isBlock());
+    auto& layoutBox = lineRun.layoutBox();
+
+    auto isContentful = true;
+    boxes.append({ lineIndex()
+        , InlineDisplay::Box::Type::BlockLevelBox
+        , layoutBox
+        , lineRun.bidiLevel()
+        , borderBoxRect
+        , borderBoxRect
+        , isFirstFormattedLine()
+        , { }
+        , { }
+        , isContentful
+        , { }
     });
 }
 
@@ -424,7 +443,7 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
 {
 #ifndef NDEBUG
     auto hasContent = false;
-    for (auto& lineRun : lineLayoutResult.inlineAndOpaqueContent)
+    for (auto& lineRun : lineLayoutResult.runs)
         hasContent = hasContent || lineRun.isContentful();
     ASSERT(lineLayoutResult.directionality.inlineBaseDirection == TextDirection::LTR || !hasContent);
 #endif
@@ -440,8 +459,8 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
 
     Vector<size_t> blockLevelOutOfFlowBoxList;
     auto textSpacingAdjustment = 0.f;
-    for (size_t index = 0; index < lineLayoutResult.inlineAndOpaqueContent.size(); ++index) {
-        auto& lineRun = lineLayoutResult.inlineAndOpaqueContent[index];
+    for (size_t index = 0; index < lineLayoutResult.runs.size(); ++index) {
+        auto& lineRun = lineLayoutResult.runs[index];
         if (lineRun.isWordBreakOpportunity() || lineRun.isInlineBoxEnd())
             continue;
         auto& layoutBox = lineRun.layoutBox();
@@ -487,10 +506,9 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
             }
             if (lineRun.isLineSpanningInlineBoxStart())
                 return lineBox.logicalBorderBoxForInlineBox(layoutBox, boxGeometry);
-            if (lineRun.isBlock()) {
-                // FIXME: Blocks in inline.
-                return lineBox.logicalBorderBoxForAtomicInlineBox(layoutBox, boxGeometry);
-            }
+            if (lineRun.isBlock())
+                return { { }, { }, boxGeometry.marginBoxWidth(), boxGeometry.marginBoxHeight() };
+
             ASSERT_NOT_REACHED();
             return { };
         }();
@@ -510,10 +528,9 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
                 appendHardLineBreakDisplayBox(lineRun, visualRectRelativeToRoot, boxes);
             else if (lineRun.isAtomicInlineBox() || lineRun.isListMarker())
                 appendAtomicInlineLevelDisplayBox(lineRun, visualRectRelativeToRoot, boxes);
-            else if (lineRun.isBlock()) {
-                // FIXME: Blocks in inline.
-                appendAtomicInlineLevelDisplayBox(lineRun, visualRectRelativeToRoot, boxes);
-            } else if (lineRun.isInlineBoxStart() || lineRun.isLineSpanningInlineBoxStart()) {
+            else if (lineRun.isBlock())
+                appendBlockLevelDisplayBox(lineRun, visualRectRelativeToRoot, boxes);
+            else if (lineRun.isInlineBoxStart() || lineRun.isLineSpanningInlineBoxStart()) {
                 // Do not generate display boxes for inline boxes on non-contentful lines (e.g. <span></span>)
                 if (lineBox.hasContent())
                     appendInlineBoxDisplayBox(lineRun, lineBox.inlineLevelBoxFor(lineRun), visualRectRelativeToRoot, boxes);
@@ -543,7 +560,7 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
         };
         updateAssociatedBoxGeometry();
     }
-    setGeometryForBlockLevelOutOfFlowBoxes(blockLevelOutOfFlowBoxList, lineLayoutResult.inlineAndOpaqueContent);
+    setGeometryForBlockLevelOutOfFlowBoxes(blockLevelOutOfFlowBoxList, lineLayoutResult.runs);
 }
 
 struct DisplayBoxTree {
@@ -727,7 +744,7 @@ void InlineDisplayContentBuilder::adjustVisualGeometryForDisplayBox(size_t displ
 
 void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lineLayoutResult, InlineDisplay::Boxes& boxes)
 {
-    ASSERT(lineLayoutResult.directionality.visualOrderList.size() <= lineLayoutResult.inlineAndOpaqueContent.size());
+    ASSERT(lineLayoutResult.directionality.visualOrderList.size() <= lineLayoutResult.runs.size());
 
     AncestorStack ancestorStack;
     auto displayBoxTree = DisplayBoxTree { };
@@ -753,7 +770,7 @@ void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lin
 
         Vector<size_t> blockLevelOutOfFlowBoxList;
         auto contentLineRightEdge = contentLineLeftEdge;
-        auto& inlineContent = lineLayoutResult.inlineAndOpaqueContent;
+        auto& inlineContent = lineLayoutResult.runs;
         for (size_t index = 0; index < lineLayoutResult.directionality.visualOrderList.size(); ++index) {
             auto logicalIndex = lineLayoutResult.directionality.visualOrderList[index];
             ASSERT(inlineContent[logicalIndex].bidiLevel() != InlineItem::opaqueBidiLevel);
@@ -925,7 +942,7 @@ void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lin
     handleInlineBoxes();
 
     auto handleTrailingOpenInlineBoxes = [&] {
-        for (auto& lineRun : lineLayoutResult.inlineAndOpaqueContent | std::views::reverse) {
+        for (auto& lineRun : lineLayoutResult.runs | std::views::reverse) {
             if (!lineRun.isInlineBoxStart() || lineRun.bidiLevel() != InlineItem::opaqueBidiLevel)
                 break;
             // These are trailing inline box start runs (without the closing inline box end <span> <-line breaks here</span>).
@@ -1192,7 +1209,7 @@ void InlineDisplayContentBuilder::processRubyContent(InlineDisplay::Boxes& displ
         return;
 
     HashSet<CheckedPtr<const Box>> lineSpanningRubyBaseList;
-    for (auto& lineRun : lineLayoutResult.inlineAndOpaqueContent) {
+    for (auto& lineRun : lineLayoutResult.runs) {
         if (lineRun.isLineSpanningInlineBoxStart() && lineRun.layoutBox().isRubyBase())
             lineSpanningRubyBaseList.add(&lineRun.layoutBox());
     }

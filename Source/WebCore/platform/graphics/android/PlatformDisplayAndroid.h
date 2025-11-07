@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -25,15 +25,24 @@
 
 #pragma once
 
-#include <wtf/HashFunctions.h>
-#include <wtf/Hasher.h>
+#if OS(ANDROID)
 
-namespace WTF {
+#include "PlatformDisplay.h"
 
-template<typename T, size_t inlineCapacity> struct DefaultHash<Vector<T, inlineCapacity>> {
-    static unsigned hash(const Vector<T, inlineCapacity>& vector) { return computeHash(vector); }
-    static bool equal(const Vector<T, inlineCapacity>& a, const Vector<T, inlineCapacity>& b) { return a == b; }
-    static constexpr bool safeToCompareToEmptyOrDeleted = true;
+namespace WebCore {
+
+class PlatformDisplayAndroid final : public PlatformDisplay {
+public:
+    static std::unique_ptr<PlatformDisplayAndroid> create();
+
+    virtual ~PlatformDisplayAndroid();
+
+private:
+    explicit PlatformDisplayAndroid(Ref<GLDisplay>&&);
+
+    Type type() const override { return PlatformDisplay::Type::Android; }
 };
 
-}
+} // namespace WebCore
+
+#endif // OS(ANDROID)

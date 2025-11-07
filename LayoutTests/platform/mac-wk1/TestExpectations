@@ -1265,6 +1265,7 @@ http/tests/media/cross-origin-webm-video.html [ Skip ]
 http/tests/media/video-webm-stall.html
 http/tests/media/video-src-webm-blob.html [ Failure ]
 http/tests/media/video-srcobject-webm-blob.html [ Failure ]
+media/media-multi-audio-tracks-webm.html [ Skip ]
 media/media-vp8-hiddenframes.html [ Skip ]
 media/media-vp8-webm-error.html [ Failure ]
 media/media-vp8-webm-error-offscreen.html [ Failure ]
@@ -2280,8 +2281,6 @@ webkit.org/b/207157 inspector/debugger/tail-deleted-frames/tail-deleted-frames-s
 webkit.org/b/207167 inspector/unit-tests/server-timing-entry.html [ Pass Timeout ]
 
 webkit.org/b/207469 [ Debug ] imported/w3c/web-platform-tests/svg/animations/slider-switch.html [ Pass Failure ]
-
-webkit.org/b/207470 [ Debug ] imported/w3c/web-platform-tests/workers/WorkerGlobalScope_ErrorEvent_colno.htm [ Pass Failure ]
 
 # This seems to be indicative of a CFNetwork bug.
 webkit.org/b/207895 http/tests/cookies/document-cookie-during-iframe-parsing.html [ Pass Failure ]

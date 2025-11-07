@@ -513,7 +513,7 @@ std::optional<LayoutRect> LineLayout::layout(ForceFullLayout forcedFullLayout)
             return *m_inlineContentConstraints;
         }
         auto constraintsForInFlowContent = Layout::ConstraintsForInFlowContent { m_inlineContentConstraints->horizontal(), m_lineDamage->layoutStartPosition()->partialContentTop };
-        return { constraintsForInFlowContent, m_inlineContentConstraints->visualLeft(), m_inlineContentConstraints->containerRenderSize() };
+        return { constraintsForInFlowContent, m_inlineContentConstraints->visualLeft(), m_inlineContentConstraints->formattingRootBorderBoxSize() };
     };
 
     auto parentBlockLayoutState = Layout::BlockLayoutState {
@@ -630,7 +630,7 @@ void LineLayout::updateRenderTreePositions(const Vector<LineAdjustment>& lineAdj
             // FIXME: Find out what to do with discarded (see line-clamp) floats in render tree.
             auto isInitialLetter = layoutBox.style().pseudoElementType() == PseudoElementType::FirstLetter;
             auto& floatingObject = flow().insertFloatingBox(renderer);
-            auto [marginBoxVisualRect, borderBoxVisualRect] = toMarginAndBorderBoxVisualRect(logicalGeometry, m_inlineContentConstraints->containerRenderSize(), placedFloatsWritingMode);
+            auto [marginBoxVisualRect, borderBoxVisualRect] = toMarginAndBorderBoxVisualRect(logicalGeometry, m_inlineContentConstraints->formattingRootBorderBoxSize(), placedFloatsWritingMode);
 
             auto paginationOffset = floatPaginationOffsetMap.getOptional(layoutBox);
             if (paginationOffset) {
@@ -762,9 +762,7 @@ void LineLayout::preparePlacedFloats()
         auto& visualRect = floatingObject->frameRect();
 
         auto usedPosition = RenderStyle::usedFloat(floatingObject->renderer());
-        auto logicalPosition = (usedPosition == UsedFloat::Left) == placedFloatsIsLeftToRight
-            ? Layout::PlacedFloats::Item::Position::Start
-            : Layout::PlacedFloats::Item::Position::End;
+        auto logicalPosition = (usedPosition == UsedFloat::Left) == placedFloatsIsLeftToRight ? Layout::PlacedFloats::Item::Position::Start : Layout::PlacedFloats::Item::Position::End;
 
         auto boxGeometry = Layout::BoxGeometry { };
         auto logicalRect = [&] {
@@ -791,7 +789,7 @@ void LineLayout::preparePlacedFloats()
         auto shapeOutsideInfo = floatingObject->renderer().shapeOutsideInfo();
         auto* shape = shapeOutsideInfo ? &shapeOutsideInfo->computedShape() : nullptr;
 
-        placedFloats.append({ logicalPosition, boxGeometry, logicalRect.location(), shape });
+        placedFloats.add({ logicalPosition, boxGeometry, logicalRect.location(), shape });
     }
 }
 

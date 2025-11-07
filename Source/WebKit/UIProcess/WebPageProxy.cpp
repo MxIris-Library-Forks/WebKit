@@ -1481,6 +1481,29 @@ void WebPageProxy::setBrowsingContextGroup(BrowsingContextGroup& browsingContext
     m_browsingContextGroup = browsingContextGroup;
 }
 
+#if ENABLE(VIDEO)
+void WebPageProxy::showCaptionDisplaySettings(CompletionHandler<void(bool)>&& callback)
+{
+    if (RefPtr pageClient = this->pageClient()) {
+        pageClient->showCaptionDisplaySettings(WTFMove(callback));
+        return;
+    }
+
+    callback(false);
+}
+
+void WebPageProxy::showCaptionDisplaySettingsPreview(const FrameInfoData& frameInfo, WebCore::HTMLMediaElementIdentifier identifier)
+{
+    sendToProcessContainingFrame(frameInfo.frameID, Messages::WebPage::ShowCaptionDisplaySettingsPreview(identifier));
+}
+
+void WebPageProxy::hideCaptionDisplaySettingsPreview(const FrameInfoData& frameInfo, WebCore::HTMLMediaElementIdentifier identifier)
+{
+    sendToProcessContainingFrame(frameInfo.frameID, Messages::WebPage::HideCaptionDisplaySettingsPreview(identifier));
+}
+
+#endif
+
 void WebPageProxy::swapToProvisionalPage(Ref<ProvisionalPageProxy>&& provisionalPage)
 {
     ASSERT(!m_isClosed);
@@ -7536,6 +7559,9 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
     if (frame->isMainFrame())
         m_internals->imageTranslationLanguageIdentifiers = std::nullopt;
 #endif
+
+    if (frame->isMainFrame())
+        m_internals->textManipulationParameters = std::nullopt;
 }
 
 void WebPageProxy::didFinishDocumentLoadForFrame(IPC::Connection& connection, FrameIdentifier frameID, std::optional<WebCore::NavigationIdentifier> navigationID, const UserData& userData, WallTime timestamp)
@@ -10265,12 +10291,12 @@ void WebPageProxy::setTextIndicator(const TextIndicatorData& indicatorData, WebC
     notImplemented();
 }
 
-void WebPageProxy::updateTextIndicatorFromFrame(FrameIdentifier frameID, const WebCore::TextIndicatorData& indicatorData)
+void WebPageProxy::updateTextIndicatorFromFrame(FrameIdentifier frameID, const RefPtr<WebCore::TextIndicator>&& textIndicator)
 {
     notImplemented();
 }
 
-void WebPageProxy::updateTextIndicator(const TextIndicatorData& indicatorData)
+void WebPageProxy::updateTextIndicator(RefPtr<WebCore::TextIndicator>&& textIndicator)
 {
     notImplemented();
 }
@@ -12249,6 +12275,8 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.imageTranslationLanguageIdentifiers = m_internals->imageTranslationLanguageIdentifiers;
 #endif
 
+    parameters.textManipulationParameters = m_internals->textManipulationParameters;
+
     return parameters;
 }
 
@@ -12993,12 +13021,11 @@ Ref<MediaKeySystemPermissionRequestManagerProxy> WebPageProxy::protectedMediaKey
 
 #if ENABLE(MEDIA_CONTROLS_CONTEXT_MENUS) && USE(UICONTEXTMENU)
 
-void WebPageProxy::showMediaControlsContextMenu(FloatRect&& targetFrame, Vector<MediaControlsContextMenuItem>&& items, CompletionHandler<void(MediaControlsContextMenuItem::ID)>&& completionHandler)
+void WebPageProxy::showMediaControlsContextMenu(FloatRect&& targetFrame, Vector<MediaControlsContextMenuItem>&& items, const FrameInfoData& frameInfo, HTMLMediaElementIdentifier identifier, CompletionHandler<void(MediaControlsContextMenuItem::ID)>&& completionHandler)
 {
     if (RefPtr pageClient = this->pageClient())
-        pageClient->showMediaControlsContextMenu(WTFMove(targetFrame), WTFMove(items), WTFMove(completionHandler));
+        pageClient->showMediaControlsContextMenu(WTFMove(targetFrame), WTFMove(items), frameInfo, identifier, WTFMove(completionHandler));
 }
-
 #endif // ENABLE(MEDIA_CONTROLS_CONTEXT_MENUS) && USE(UICONTEXTMENU)
 
 #if ENABLE(NOTIFICATIONS)
@@ -15516,6 +15543,8 @@ void WebPageProxy::setMockWebAuthenticationConfiguration(MockWebAuthenticationCo
 void WebPageProxy::startTextManipulations(const Vector<TextManipulationController::ExclusionRule>& exclusionRules, bool includeSubframes, TextManipulationItemCallback&& callback, CompletionHandler<void()>&& completionHandler)
 {
     m_textManipulationItemCallback = WTFMove(callback);
+    m_internals->textManipulationParameters = { includeSubframes, exclusionRules };
+
     auto callbackAggregator = CallbackAggregator::create(WTFMove(completionHandler));
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         webProcess.sendWithAsyncReply(Messages::WebPage::StartTextManipulations(exclusionRules, includeSubframes), [callbackAggregator] { }, pageID);

@@ -70,20 +70,21 @@ void layoutWithFormattingContextForBox(const Layout::ElementBox& box, std::optio
 
 void layoutWithFormattingContextForBlockInInline(const Layout::ElementBox& block, LayoutPoint blockLogicalTopLeft, Layout::BlockLayoutState& parentBlockLayoutState, Layout::LayoutState& layoutState)
 {
-    auto* renderer = dynamicDowncast<RenderBlockFlow>(*block.rendererForIntegration());
-    if (!renderer) {
-        ASSERT_NOT_REACHED();
-        return;
-    }
-
     layoutWithFormattingContextForBox(block, { }, { }, layoutState);
-    ASSERT(!renderer->needsLayout());
+    ASSERT(!block.rendererForIntegration()->needsLayout());
 
-    if (!renderer->containsFloats() || renderer->createsNewFormattingContext())
+    auto* renderBlockFlow = dynamicDowncast<RenderBlockFlow>(*block.rendererForIntegration());
+    if (!renderBlockFlow)
+        return;
+
+    auto& blockBoxGeometry = layoutState.ensureGeometryForBox(block);
+    blockBoxGeometry.setTopLeft(LayoutPoint { blockBoxGeometry.marginStart(), blockBoxGeometry.marginBefore() });
+
+    if (!renderBlockFlow->containsFloats() || renderBlockFlow->createsNewFormattingContext())
         return;
 
     auto& placedFloats = parentBlockLayoutState.placedFloats();
-    for (auto& floatingObject : *renderer->floatingObjectSet()) {
+    for (auto& floatingObject : *renderBlockFlow->floatingObjectSet()) {
         if (!floatingObject->isDescendant())
             continue;
 
@@ -99,10 +100,10 @@ void layoutWithFormattingContextForBlockInInline(const Layout::ElementBox& block
         boxGeometry.setVerticalMargin({ });
 
         auto shapeOutsideInfo = floatingObject->renderer().shapeOutsideInfo();
-        auto* shape = shapeOutsideInfo ? &shapeOutsideInfo->computedShape() : nullptr;
+        RefPtr shape = shapeOutsideInfo ? &shapeOutsideInfo->computedShape() : nullptr;
 
         auto usedPosition = RenderStyle::usedFloat(floatingObject->renderer()) == UsedFloat::Left ? Layout::PlacedFloats::Item::Position::Start : Layout::PlacedFloats::Item::Position::End;
-        placedFloats.add({ usedPosition, boxGeometry, floatRect.location(), shape });
+        placedFloats.add({ usedPosition, boxGeometry, floatRect.location(), WTFMove(shape) });
     }
 }
 

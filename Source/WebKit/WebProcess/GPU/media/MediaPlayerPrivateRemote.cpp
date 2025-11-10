@@ -1792,7 +1792,7 @@ void MediaPlayerPrivateRemote::setDefaultSpatialTrackingLabel(const String& defa
     if (defaultSpatialTrackingLabel == m_defaultSpatialTrackingLabel)
         return;
 
-    m_defaultSpatialTrackingLabel = WTFMove(defaultSpatialTrackingLabel);
+    m_defaultSpatialTrackingLabel = defaultSpatialTrackingLabel;
     protectedConnection()->send(Messages::RemoteMediaPlayerProxy::SetDefaultSpatialTrackingLabel(m_defaultSpatialTrackingLabel), m_id);
 }
 
@@ -1806,7 +1806,7 @@ void MediaPlayerPrivateRemote::setSpatialTrackingLabel(const String& spatialTrac
     if (spatialTrackingLabel == m_spatialTrackingLabel)
         return;
 
-    m_spatialTrackingLabel = WTFMove(spatialTrackingLabel);
+    m_spatialTrackingLabel = spatialTrackingLabel;
     protectedConnection()->send(Messages::RemoteMediaPlayerProxy::SetSpatialTrackingLabel(m_spatialTrackingLabel), m_id);
 }
 #endif
@@ -1850,6 +1850,7 @@ bool MediaPlayerPrivateRemote::supportsLinearMediaPlayer() const
     case MediaPlayerMediaEngineIdentifier::HolePunch:
     case MediaPlayerMediaEngineIdentifier::MediaFoundation:
     case MediaPlayerMediaEngineIdentifier::MockMSE:
+    case MediaPlayerMediaEngineIdentifier::WirelessPlayback:
         return false;
     }
 

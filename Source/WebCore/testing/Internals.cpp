@@ -7935,7 +7935,7 @@ void Internals::registerPDFTest(Ref<VoidCallback>&& callback, Element& element)
         pluginViewBase->registerPDFTestCallback(WTFMove(callback));
 }
 
-const String& Internals::defaultSpatialTrackingLabel() const
+String Internals::defaultSpatialTrackingLabel() const
 {
 #if HAVE(SPATIAL_TRACKING_LABEL)
     auto* document = contextDocument();
@@ -8080,6 +8080,19 @@ RefPtr<MediaSessionManagerInterface> Internals::sessionManager() const
         return nullptr;
 
     return page->mediaSessionManager();
+}
+
+bool Internals::hasMediaSessionManager() const
+{
+    RefPtr document = contextDocument();
+    if (!document)
+        return false;
+
+    RefPtr page = document->page();
+    if (!page)
+        return false;
+
+    return !!page->mediaSessionManagerIfExists();
 }
 
 #if ENABLE(MODEL_ELEMENT)

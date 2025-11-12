@@ -1597,7 +1597,7 @@ public:
     bool sendEditingCommandToPDFForTesting(Element&, const String& commandName, const String& argument) const;
     void registerPDFTest(Ref<VoidCallback>&&, Element&);
 
-    const String& defaultSpatialTrackingLabel() const;
+    String defaultSpatialTrackingLabel() const;
 
 #if ENABLE(VIDEO)
     bool isEffectivelyMuted(const HTMLMediaElement&);
@@ -1634,6 +1634,8 @@ public:
     String modelElementState(HTMLModelElement&);
     bool isModelElementIntersectingViewport(HTMLModelElement&);
 #endif
+
+    bool hasMediaSessionManager() const;
 
 private:
     explicit Internals(Document&);

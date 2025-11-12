@@ -364,7 +364,6 @@ webkit.org/b/107118 fast/canvas/canvas-quadratic-same-endpoint.html [ Failure ]
 webkit.org/b/142258 fast/css/object-fit/object-fit-canvas.html [ Pass ImageOnlyFailure ]
 
 # --- Compositing ----
-css3/filters/composited-during-transition-layertree.html
 
 platform/mac/fast/text/combining-character-sequence-fallback.html [ Pass Failure ]
 
@@ -2570,3 +2569,5 @@ webkit.org/b/301655 fast/images/page-wide-animation-toggle.html [ Pass Timeout ]
 webkit.org/b/301668 fast/repaint/iframe-avoid-redundant-repaint.html [ Pass Failure ]
 
 webkit.org/b/302273 accessibility/mac/focus-setting-selection-syncronizing-not-clearing.html [ Pass Timeout ]
+
+webkit.org/b/302331 imported/w3c/web-platform-tests/css/css-viewport/zoom/iframe-zoom-nested.html [ Pass Failure ]

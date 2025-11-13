@@ -571,8 +571,8 @@ public:
     const ClassInfo* currentlyDestructingCallbackObjectClassInfo { nullptr };
 
     AtomStringTable* m_atomStringTable;
-    WTF::SymbolRegistry m_symbolRegistry;
-    WTF::SymbolRegistry m_privateSymbolRegistry { WTF::SymbolRegistry::Type::PrivateSymbol };
+    UniqueRef<SymbolRegistry> m_symbolRegistry;
+    UniqueRef<SymbolRegistry> m_privateSymbolRegistry;
     CommonIdentifiers* propertyNames { nullptr };
     const ArgList* emptyList;
     SmallStrings smallStrings;
@@ -592,8 +592,10 @@ public:
     void setMightBeExecutingTaintedCode(bool value = true) { m_mightBeExecutingTaintedCode = value; }
 
     AtomStringTable* atomStringTable() const { return m_atomStringTable; }
-    WTF::SymbolRegistry& symbolRegistry() { return m_symbolRegistry; }
-    WTF::SymbolRegistry& privateSymbolRegistry() { return m_privateSymbolRegistry; }
+    SymbolRegistry& symbolRegistry() { return m_symbolRegistry.get(); }
+    CheckedRef<SymbolRegistry> checkedSymbolRegistry() { return m_symbolRegistry.get(); }
+    SymbolRegistry& privateSymbolRegistry() { return m_privateSymbolRegistry.get(); }
+    CheckedRef<SymbolRegistry> checkedPrivateSymbolRegistry() { return m_privateSymbolRegistry.get(); }
 
     WriteBarrier<JSBigInt> heapBigIntConstantOne;
 
@@ -606,9 +608,7 @@ public:
 
     JSCell* orderedHashTableSentinel()
     {
-        if (m_orderedHashTableSentinel) [[likely]]
-            return m_orderedHashTableSentinel.get();
-        return orderedHashTableSentinelSlow();
+        return m_orderedHashTableSentinel.get();
     }
 
     JSPropertyNameEnumerator* emptyPropertyNameEnumerator()
@@ -1126,7 +1126,6 @@ private:
     void createNativeThunk();
 
     JS_EXPORT_PRIVATE JSCell* orderedHashTableDeletedValueSlow();
-    JS_EXPORT_PRIVATE JSCell* orderedHashTableSentinelSlow();
     JSPropertyNameEnumerator* emptyPropertyNameEnumeratorSlow();
     NativeExecutable* promiseResolvingFunctionResolveExecutableSlow();
     NativeExecutable* promiseResolvingFunctionRejectExecutableSlow();

@@ -247,6 +247,8 @@ VM::VM(VMType vmType, HeapType heapType, WTF::RunLoop* runLoop, bool* success)
     , vmType(vmType)
     , deferredWorkTimer(DeferredWorkTimer::create(*this))
     , m_atomStringTable(vmType == VMType::Default ? Thread::currentSingleton().atomStringTable() : new AtomStringTable)
+    , m_symbolRegistry(makeUniqueRef<SymbolRegistry>())
+    , m_privateSymbolRegistry(makeUniqueRef<SymbolRegistry>(SymbolRegistry::Type::PrivateSymbol))
     , emptyList(new ArgList)
     , machineCodeBytesPerBytecodeWordForBaselineJIT(makeUnique<SimpleStats>())
     , symbolImplToSymbolMap(*this)
@@ -353,6 +355,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
     evalCodeBlockStructure.setWithoutWriteBarrier(EvalCodeBlock::createStructure(*this, nullptr, jsNull()));
     functionCodeBlockStructure.setWithoutWriteBarrier(FunctionCodeBlock::createStructure(*this, nullptr, jsNull()));
     bigIntStructure.setWithoutWriteBarrier(JSBigInt::createStructure(*this, nullptr, jsNull()));
+    m_orderedHashTableSentinel.setWithoutWriteBarrier(OrderedHashMap::createSentinel(*this));
 
     // Eagerly initialize constant cells since the concurrent compiler can access them.
     if (Options::useJIT()) {
@@ -1509,14 +1512,6 @@ JSCell* VM::orderedHashTableDeletedValueSlow()
     Symbol* deleted = OrderedHashMap::createDeletedValue(*this);
     m_orderedHashTableDeletedValue.setWithoutWriteBarrier(deleted);
     return deleted;
-}
-
-JSCell* VM::orderedHashTableSentinelSlow()
-{
-    ASSERT(!m_orderedHashTableSentinel);
-    JSCell* sentinel = OrderedHashMap::createSentinel(*this);
-    m_orderedHashTableSentinel.setWithoutWriteBarrier(sentinel);
-    return sentinel;
 }
 
 JSPropertyNameEnumerator* VM::emptyPropertyNameEnumeratorSlow()

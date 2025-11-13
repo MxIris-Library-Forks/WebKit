@@ -482,6 +482,12 @@ static inline Variant<SkipExtraction, ItemData, URL, Editable> extractItemData(N
     if (element->hasTagName(HTMLNames::navTag))
         return { ItemData { ContainerType::Nav } };
 
+    if (element->hasTagName(HTMLNames::supTag))
+        return { ItemData { ContainerType::Superscript } };
+
+    if (element->hasTagName(HTMLNames::subTag))
+        return { ItemData { ContainerType::Subscript } };
+
     if (CheckedPtr renderElement = dynamicDowncast<RenderBox>(*renderer); renderElement && renderElement->style().hasViewportConstrainedPosition())
         return { ItemData { ContainerType::ViewportConstrained } };
 
@@ -509,6 +515,8 @@ static inline bool shouldIncludeNodeIdentifier(OptionSet<EventListenerCategory> 
             case ContainerType::BlockQuote:
             case ContainerType::Section:
             case ContainerType::Nav:
+            case ContainerType::Subscript:
+            case ContainerType::Superscript:
             case ContainerType::Generic:
                 return eventListeners || AccessibilityObject::isARIAControl(role);
             case ContainerType::Button:
@@ -634,6 +642,7 @@ static inline void extractRecursive(Node& node, Item& parentItem, TraversalConte
                 WTFMove(result),
                 WTFMove(bounds),
                 { },
+                node.nodeName(),
                 WTFMove(nodeIdentifier),
                 eventListeners,
                 WTFMove(ariaAttributes),
@@ -651,6 +660,7 @@ static inline void extractRecursive(Node& node, Item& parentItem, TraversalConte
             item = {
                 TextItemData { { }, { }, emptyString(), { } },
                 WTFMove(bounds),
+                { },
                 { },
                 { },
                 eventListeners,
@@ -757,7 +767,7 @@ static Node* nodeFromJSHandle(JSHandleIdentifier identifier)
 
 Item extractItem(Request&& request, Page& page)
 {
-    Item root { ContainerType::Root, { }, { }, { }, { }, { }, { }, { } };
+    Item root { ContainerType::Root, { }, { }, { }, { }, { }, { }, { }, { } };
     RefPtr mainFrame = dynamicDowncast<LocalFrame>(page.mainFrame());
     if (!mainFrame) {
         // FIXME: Propagate text extraction to RemoteFrames.

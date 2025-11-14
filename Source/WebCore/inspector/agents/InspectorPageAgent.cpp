@@ -133,7 +133,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::enable()
 
     agents->setEnabledPageAgent(this);
 
-    auto& stopwatch = m_environment.executionStopwatch();
+    auto& stopwatch = m_environment->executionStopwatch();
     stopwatch.reset();
     stopwatch.start();
 
@@ -178,7 +178,7 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::disable()
 
 double InspectorPageAgent::timestamp()
 {
-    return m_environment.executionStopwatch().elapsedTime().seconds();
+    return m_environment->executionStopwatch().elapsedTime().seconds();
 }
 
 Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::reload(std::optional<bool>&& ignoreCache, std::optional<bool>&& revalidateAllResources)
@@ -193,25 +193,6 @@ Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::reload(std::optiona
     if (!localMainFrame)
         return makeUnexpected("main frame is not local"_s);
     localMainFrame->loader().reload(reloadOptions);
-
-    return { };
-}
-
-Inspector::Protocol::ErrorStringOr<void> InspectorPageAgent::navigate(const String& url)
-{
-    RefPtr localMainFrame = m_inspectedPage->localMainFrame();
-    if (!localMainFrame)
-        return { };
-    RefPtr localTopDocument = m_inspectedPage->localTopDocument();
-    if (!localTopDocument)
-        return { };
-
-    UserGestureIndicator indicator { IsProcessingUserGesture::Yes, localTopDocument.get() };
-
-    ResourceRequest resourceRequest { localTopDocument->completeURL(url) };
-    FrameLoadRequest frameLoadRequest { *localTopDocument, localTopDocument->securityOrigin(), WTFMove(resourceRequest), selfTargetFrameName(), InitiatedByMainFrame::Unknown };
-    frameLoadRequest.disableNavigationToInvalidURL();
-    localMainFrame->loader().changeLocation(WTFMove(frameLoadRequest));
 
     return { };
 }

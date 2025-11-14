@@ -5191,6 +5191,8 @@
 		BC6D6E2609AF943500F59759 /* ScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = BC6D6E2509AF943500F59759 /* ScrollView.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC6F79712EBE86FE0049BA02 /* StyleWebKitLineBoxContain.h in Headers */ = {isa = PBXBuildFile; fileRef = BC6F796F2EBE7EBD0049BA02 /* StyleWebKitLineBoxContain.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC6F799B2EC251D40049BA02 /* StylePositionVisibility.h in Headers */ = {isa = PBXBuildFile; fileRef = BC6F799A2EC251390049BA02 /* StylePositionVisibility.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC6F79892EC1294A0049BA02 /* StyleFontFamily.h in Headers */ = {isa = PBXBuildFile; fileRef = BC6F79872EC124B50049BA02 /* StyleFontFamily.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC6F79AC2EC25C110049BA02 /* StyleFontFamilyName.h in Headers */ = {isa = PBXBuildFile; fileRef = BC6F79AA2EC25C050049BA02 /* StyleFontFamilyName.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC709DE0266323CF00B9A21C /* CSSCalcSymbolTable.h in Headers */ = {isa = PBXBuildFile; fileRef = BC709DDE266323CE00B9A21C /* CSSCalcSymbolTable.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC731E752E636D8700A6584F /* StyleImageOrNone.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731E742E636D8700A6584F /* StyleImageOrNone.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC731EA72E64CCBD00A6584F /* StyleWebKitInitialLetter.h in Headers */ = {isa = PBXBuildFile; fileRef = BC731EA62E64CCBD00A6584F /* StyleWebKitInitialLetter.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -18977,6 +18979,10 @@
 		BC6EF49C2C813A77000E007D /* CSSPropertyParserConsumer+Easing.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Easing.cpp"; sourceTree = "<group>"; };
 		BC6F796F2EBE7EBD0049BA02 /* StyleWebKitLineBoxContain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitLineBoxContain.h; sourceTree = "<group>"; };
 		BC6F799A2EC251390049BA02 /* StylePositionVisibility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StylePositionVisibility.h; sourceTree = "<group>"; };
+		BC6F79872EC124B50049BA02 /* StyleFontFamily.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleFontFamily.h; sourceTree = "<group>"; };
+		BC6F79882EC1270E0049BA02 /* StyleFontFamily.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleFontFamily.cpp; sourceTree = "<group>"; };
+		BC6F79AA2EC25C050049BA02 /* StyleFontFamilyName.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleFontFamilyName.h; sourceTree = "<group>"; };
+		BC6F79AB2EC25C050049BA02 /* StyleFontFamilyName.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleFontFamilyName.cpp; sourceTree = "<group>"; };
 		BC709DDE266323CE00B9A21C /* CSSCalcSymbolTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcSymbolTable.h; sourceTree = "<group>"; };
 		BC709DDF266323CE00B9A21C /* CSSCalcSymbolTable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcSymbolTable.cpp; sourceTree = "<group>"; };
 		BC731E742E636D8700A6584F /* StyleImageOrNone.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleImageOrNone.h; sourceTree = "<group>"; };
@@ -36441,6 +36447,10 @@
 		BC7826752E845D5400FB0C7E /* fonts */ = {
 			isa = PBXGroup;
 			children = (
+				BC6F79882EC1270E0049BA02 /* StyleFontFamily.cpp */,
+				BC6F79872EC124B50049BA02 /* StyleFontFamily.h */,
+				BC6F79AB2EC25C050049BA02 /* StyleFontFamilyName.cpp */,
+				BC6F79AA2EC25C050049BA02 /* StyleFontFamilyName.h */,
 				BCB02AB72E8F8216008A0B68 /* StyleFontFeatureSettings.cpp */,
 				BCB02AB62E8F8216008A0B68 /* StyleFontFeatureSettings.h */,
 				BCB02AC82E9035BA008A0B68 /* StyleFontOpentypeTag.h */,
@@ -46648,6 +46658,8 @@
 				5317612313C516690026E454 /* StyleFlexibleBoxData.h in Headers */,
 				BC34D2ED2E3D2370001EAD95 /* StyleFlexShrink.h in Headers */,
 				0F4011952B491DB300A735BC /* StyleFontData.h in Headers */,
+				BC6F79892EC1294A0049BA02 /* StyleFontFamily.h in Headers */,
+				BC6F79AC2EC25C110049BA02 /* StyleFontFamilyName.h in Headers */,
 				BCB02ACA2E903C46008A0B68 /* StyleFontFeatureSettings.h in Headers */,
 				BC7826762E845D6000FB0C7E /* StyleFontPalette.h in Headers */,
 				BC0A309E2E8771BD007B809D /* StyleFontSizeAdjust.h in Headers */,

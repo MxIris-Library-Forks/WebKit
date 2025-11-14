@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1618,6 +1618,18 @@ bool Quirks::shouldUseEphemeralPartitionedStorageForDOMCookies(const URL& url) c
     return false;
 }
 
+#if PLATFORM(IOS_FAMILY)
+// m365.cloud.microsoft rdar://157794706
+// Allow popups from m365.cloud.microsoft to onedrive.live.com
+bool Quirks::needsPopupFromMicrosoftOfficeToOneDrive(const URL& targetURL) const
+{
+    if (!needsQuirks())
+        return false;
+
+    return targetURL.host().endsWithIgnoringASCIICase("onedrive.live.com"_s);
+}
+#endif
+
 // rdar://127398734
 bool Quirks::needsLaxSameSiteCookieQuirk(const URL& requestURL) const
 {
@@ -1838,23 +1850,6 @@ bool Quirks::shouldIgnoreContentObservationForClick(const Node& targetNode) cons
 bool Quirks::needsMozillaFileTypeForDataTransfer() const
 {
     return needsQuirks() && m_quirksData.needsMozillaFileTypeForDataTransferQuirk;
-}
-
-// bing.com rdar://126573838
-bool Quirks::needsBingGestureEventQuirk(EventTarget* target) const
-{
-    if (!needsQuirks())
-        return false;
-
-    if (!m_quirksData.needsBingGestureEventQuirk)
-        return false;
-
-    if (RefPtr element = dynamicDowncast<Element>(target)) {
-        static MainThreadNeverDestroyed<const AtomString> mapClass("atlas-map-canvas"_s);
-        return element->hasClassName(mapClass.get());
-    }
-
-    return false;
 }
 
 // spotify.com rdar://140707449
@@ -2662,18 +2657,14 @@ static void handleBankOfAmericaQuirks(QuirksData& quirksData, const URL& quirksU
     quirksData.maybeBypassBackForwardCache = true;
 }
 
-static void handleBingQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
+static void handleBingQuirks(QuirksData& quirksData, const URL&, const String& quirksDomainString, const URL&)
 {
     if (quirksDomainString != "bing.com"_s)
         return;
 
-    UNUSED_PARAM(documentURL);
     quirksData.isBing = true;
     // bing.com rdar://133223599
     quirksData.maybeBypassBackForwardCache = true;
-    // bing.com rdar://126573838
-    auto topDocumentHost = quirksURL.host();
-    quirksData.needsBingGestureEventQuirk = topDocumentHost == "www.bing.com"_s && startsWithLettersIgnoringASCIICase(quirksURL.path(), "/maps"_s);
     quirksData.needsMediaRewriteRangeRequestQuirk = true;
 }
 
@@ -2876,6 +2867,17 @@ static void handleMediumQuirks(QuirksData& quirksData, const URL& quirksURL, con
     // medium.com rdar://50457837
     quirksData.shouldDispatchSyntheticMouseEventsWhenModifyingSelectionQuirk = true;
 }
+
+#if PLATFORM(IOS_FAMILY)
+static void handleMicrosoftCloudQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
+{
+    UNUSED_PARAM(quirksDomainString);
+    UNUSED_PARAM(documentURL);
+    auto topDocumentHost = quirksURL.host();
+    // m365.cloud.microsoft rdar://157794706
+    quirksData.shouldAllowPopupFromMicrosoftOfficeToOneDrive = topDocumentHost.endsWithIgnoringASCIICase("m365.cloud.microsoft"_s);
+}
+#endif
 
 static void handleMenloSecurityQuirks(QuirksData& quirksData, const URL& quirksURL, const String& quirksDomainString, const URL& documentURL)
 {
@@ -3291,6 +3293,9 @@ void Quirks::determineRelevantQuirks()
         { "max"_s, &handleMaxQuirks },
 #endif
         { "medium"_s, &handleMediumQuirks },
+#if PLATFORM(IOS_FAMILY)
+        { "cloud"_s, &handleMicrosoftCloudQuirks },
+#endif
         { "menlosecurity"_s, &handleMenloSecurityQuirks },
         { "messenger"_s, &handleFacebookMessengerQuirks },
         { "netflix"_s, &handleNetflixQuirks },

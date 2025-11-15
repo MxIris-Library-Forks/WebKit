@@ -47,6 +47,7 @@
 			buildConfigurationList = DD041FC109D9DDDC0010AF2A /* Build configuration list for PBXAggregateTarget "Derived Sources" */;
 			buildPhases = (
 				DDE99306278D07DB00F60D26 /* Product Dependencies */,
+				DD453D902EC3A5B400C1D6A8 /* Generate <wtf/Platform.h> args */,
 				DD041FBD09D9DDBE0010AF2A /* Generate Derived Sources */,
 			);
 			dependencies = (
@@ -5242,6 +5243,7 @@
 		BC7826272E82152A00FB0C7E /* StyleLineHeight.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7826252E820D8800FB0C7E /* StyleLineHeight.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7826432E8310FF00FB0C7E /* StyleZoomPrimitives.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7826422E8310DA00FB0C7E /* StyleZoomPrimitives.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7826762E845D6000FB0C7E /* StyleFontPalette.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7826732E845D5400FB0C7E /* StyleFontPalette.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BC7CEF5F2EC3C643008664ED /* StyleMarginTrim.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7CEF5D2EC3C2EF008664ED /* StyleMarginTrim.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7F44A80B9E324E00A9D081 /* ImageObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7F44A70B9E324E00A9D081 /* ImageObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7FA6210D1F0CBD00DB22A9 /* LiveNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7FA61F0D1F0CBD00DB22A9 /* LiveNodeList.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC7FA62D0D1F0EFF00DB22A9 /* StaticNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7FA62B0D1F0EFF00DB22A9 /* StaticNodeList.h */; };
@@ -7127,13 +7129,6 @@
 			remoteGlobalIDString = 1C09D03D1E31C32800725F18;
 			remoteInfo = PAL;
 		};
-		1C09D0671E32079D00725F18 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1C09D04B1E31C32800725F18 /* PAL.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 1C09D03C1E31C32800725F18;
-			remoteInfo = PAL;
-		};
 		417DA6D413734E0D007C57FB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
@@ -7168,6 +7163,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = DD041FBE09D9DDBE0010AF2A;
 			remoteInfo = "Derived Sources";
+		};
+		DD453DA22EC47E9B00C1D6A8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1C09D04B1E31C32800725F18 /* PAL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1C09D03C1E31C32800725F18;
+			remoteInfo = PAL;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -19123,6 +19125,8 @@
 		BC7C5E9D2BE2BAD500AE645C /* CSSPropertyParserConsumer+IntegerDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+IntegerDefinitions.h"; sourceTree = "<group>"; };
 		BC7C5E9E2BE2BF1C00AE645C /* CSSPropertyParserConsumer+Symbol.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+Symbol.cpp"; sourceTree = "<group>"; };
 		BC7C5EA02BE2BF4400AE645C /* CSSPropertyParserConsumer+SymbolDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CSSPropertyParserConsumer+SymbolDefinitions.h"; sourceTree = "<group>"; };
+		BC7CEF5D2EC3C2EF008664ED /* StyleMarginTrim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleMarginTrim.h; sourceTree = "<group>"; };
+		BC7CEF5E2EC3C2EF008664ED /* StyleMarginTrim.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleMarginTrim.cpp; sourceTree = "<group>"; };
 		BC7F44A70B9E324E00A9D081 /* ImageObserver.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ImageObserver.h; sourceTree = "<group>"; };
 		BC7FA61E0D1F0CBD00DB22A9 /* LiveNodeList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LiveNodeList.cpp; sourceTree = "<group>"; };
 		BC7FA61F0D1F0CBD00DB22A9 /* LiveNodeList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LiveNodeList.h; sourceTree = "<group>"; };
@@ -36745,6 +36749,8 @@
 			children = (
 				7A07B2562EA8489800F8ADB5 /* StyleMargin.cpp */,
 				BC9ABA102DECC1CA00F7E52D /* StyleMargin.h */,
+				BC7CEF5E2EC3C2EF008664ED /* StyleMarginTrim.cpp */,
+				BC7CEF5D2EC3C2EF008664ED /* StyleMarginTrim.h */,
 				BC9ABA122DECC1CA00F7E52D /* StylePadding.h */,
 			);
 			path = box;
@@ -46718,6 +46724,7 @@
 				BC092AFE2E33E8FD002ACB2C /* StyleLineWidth.h in Headers */,
 				4C96385829BF4A51003E5741 /* StyleListStyleType.h in Headers */,
 				BC9ABA1A2DED228100F7E52D /* StyleMargin.h in Headers */,
+				BC7CEF5F2EC3C643008664ED /* StyleMarginTrim.h in Headers */,
 				BC5EB72A0E81DE8100B25965 /* StyleMarqueeData.h in Headers */,
 				BC34D3462E3E8C31001EAD95 /* StyleMaskBorder.h in Headers */,
 				BC34D3412E3E8C31001EAD95 /* StyleMaskBorderOutset.h in Headers */,
@@ -48034,9 +48041,9 @@
 			buildRules = (
 			);
 			dependencies = (
-				1C09D0681E32079D00725F18 /* PBXTargetDependency */,
 				DD041FF109D9E3250010AF2A /* PBXTargetDependency */,
 				5355E8DB1F967ED30031E08C /* PBXTargetDependency */,
+				DD453DA32EC47E9B00C1D6A8 /* PBXTargetDependency */,
 			);
 			name = WebCore;
 			productInstallPath = /System/Library/Frameworks/WebKit.framework/Versions/A/Frameworks;
@@ -48353,6 +48360,32 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "Scripts/generate-derived-sources.sh\n";
+		};
+		DD453D902EC3A5B400C1D6A8 /* Generate <wtf/Platform.h> args */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			dependencyFile = "$(DERIVED_FILES_DIR)/generate-platform-args.d";
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(WTF_BUILD_SCRIPTS_DIR)/generate-platform-args",
+			);
+			name = "Generate <wtf/Platform.h> args";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/platform-enabled-swift-args.arm64.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/platform-enabled-swift-args.arm64_32.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/platform-enabled-swift-args.arm64e.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/platform-enabled-swift-args.armv7k.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/platform-enabled-swift-args.x86_64.resp",
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/WebCore/rdar150228472.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SCRIPT_INPUT_FILE_0}\"\n";
 		};
 		DDFD2AD22C93BD2700ACE884 /* Audit SPI use */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -49231,11 +49264,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1C09D0681E32079D00725F18 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = PAL;
-			targetProxy = 1C09D0671E32079D00725F18 /* PBXContainerItemProxy */;
-		};
 		417DA6D513734E0D007C57FB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 93F198A508245E59001E9ABC /* WebCore */;
@@ -49260,6 +49288,11 @@
 			isa = PBXTargetDependency;
 			target = DD041FBE09D9DDBE0010AF2A /* Derived Sources */;
 			targetProxy = DD041FF009D9E3250010AF2A /* PBXContainerItemProxy */;
+		};
+		DD453DA32EC47E9B00C1D6A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = PAL;
+			targetProxy = DD453DA22EC47E9B00C1D6A8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

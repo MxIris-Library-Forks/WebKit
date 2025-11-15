@@ -196,7 +196,7 @@ bool Styleable::computeAnimationExtent(LayoutRect& bounds) const
     RefPtr<KeyframeEffect> matchingEffect = nullptr;
     for (const auto& animation : *animations) {
         if (RefPtr keyframeEffect = animation->keyframeEffect()) {
-            if (keyframeEffect->blendingKeyframes().containsProperty(CSSPropertyTransform))
+            if (animatablePropertiesContainTransformRelatedProperty(keyframeEffect->blendingKeyframes().properties()))
                 matchingEffect = keyframeEffect;
         }
     }
@@ -220,15 +220,7 @@ bool Styleable::mayHaveNonZeroOpacity() const
         return true;
 
     auto* effectStack = keyframeEffectStack();
-    if (!effectStack || !effectStack->hasEffects())
-        return false;
-
-    for (const auto& effect : effectStack->sortedEffects()) {
-        if (effect->animatesProperty(CSSPropertyOpacity))
-            return true;
-    }
-
-    return false;
+    return effectStack && effectStack->containsProperty(CSSPropertyOpacity);
 }
 
 bool Styleable::isRunningAcceleratedAnimationOfProperty(CSSPropertyID property) const
@@ -242,6 +234,17 @@ bool Styleable::isRunningAcceleratedAnimationOfProperty(CSSPropertyID property) 
             return true;
     }
 
+    return false;
+}
+
+bool Styleable::isRunningAcceleratedTransformRelatedAnimation() const
+{
+    if (auto* effectStack = keyframeEffectStack()) {
+        for (const auto& effect : effectStack->sortedEffects()) {
+            if (effect->isRunningAcceleratedTransformRelatedAnimation())
+                return true;
+        }
+    }
     return false;
 }
 

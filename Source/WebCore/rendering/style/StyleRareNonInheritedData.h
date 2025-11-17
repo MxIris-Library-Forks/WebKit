@@ -41,6 +41,7 @@
 #include <WebCore/StyleContainIntrinsicSize.h>
 #include <WebCore/StyleContainerName.h>
 #include <WebCore/StyleGapGutter.h>
+#include <WebCore/StyleItemTolerance.h>
 #include <WebCore/StyleMarginTrim.h>
 #include <WebCore/StyleMaskBorder.h>
 #include <WebCore/StyleMaximumLines.h>
@@ -70,6 +71,7 @@
 #include <WebCore/StyleShapeMargin.h>
 #include <WebCore/StyleShapeOutside.h>
 #include <WebCore/StyleTextDecorationThickness.h>
+#include <WebCore/StyleTouchAction.h>
 #include <WebCore/StyleTranslate.h>
 #include <WebCore/StyleViewTimelineInsets.h>
 #include <WebCore/StyleViewTimelines.h>
@@ -79,7 +81,6 @@
 #include <WebCore/StyleWebKitInitialLetter.h>
 #include <WebCore/StyleWebKitLineClamp.h>
 #include <WebCore/StyleWillChange.h>
-#include <WebCore/TouchAction.h>
 #include <memory>
 #include <wtf/DataRef.h>
 #include <wtf/Markable.h>
@@ -144,7 +145,7 @@ public:
 
     OverflowContinue overflowContinue { OverflowContinue::Auto };
 
-    OptionSet<TouchAction> touchActions;
+    Style::TouchAction touchAction;
 
     Style::WebkitInitialLetter initialLetter;
 
@@ -193,6 +194,8 @@ public:
 
     Style::GapGutter columnGap;
     Style::GapGutter rowGap;
+
+    Style::ItemTolerance itemTolerance;
 
     Style::OffsetPath offsetPath;
     Style::OffsetDistance offsetDistance;

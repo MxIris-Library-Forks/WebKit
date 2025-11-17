@@ -47,7 +47,7 @@ StyleRareNonInheritedData::StyleRareNonInheritedData()
     , zoom(RenderStyle::initialZoom())
     , maxLines(RenderStyle::initialMaxLines())
     , overflowContinue(RenderStyle::initialOverflowContinue())
-    , touchActions(RenderStyle::initialTouchActions())
+    , touchAction(RenderStyle::initialTouchAction())
     , initialLetter(RenderStyle::initialInitialLetter())
     , marquee(StyleMarqueeData::create())
     , backdropFilter(StyleFilterData::create())
@@ -77,6 +77,7 @@ StyleRareNonInheritedData::StyleRareNonInheritedData()
     , viewTransitionName(RenderStyle::initialViewTransitionName())
     , columnGap(RenderStyle::initialColumnGap())
     , rowGap(RenderStyle::initialRowGap())
+    , itemTolerance(RenderStyle::initialItemTolerance())
     , offsetPath(RenderStyle::initialOffsetPath())
     , offsetDistance(RenderStyle::initialOffsetDistance())
     , offsetPosition(RenderStyle::initialOffsetPosition())
@@ -154,7 +155,7 @@ inline StyleRareNonInheritedData::StyleRareNonInheritedData(const StyleRareNonIn
     , zoom(o.zoom)
     , maxLines(o.maxLines)
     , overflowContinue(o.overflowContinue)
-    , touchActions(o.touchActions)
+    , touchAction(o.touchAction)
     , initialLetter(o.initialLetter)
     , marquee(o.marquee)
     , backdropFilter(o.backdropFilter)
@@ -184,6 +185,7 @@ inline StyleRareNonInheritedData::StyleRareNonInheritedData(const StyleRareNonIn
     , viewTransitionName(o.viewTransitionName)
     , columnGap(o.columnGap)
     , rowGap(o.rowGap)
+    , itemTolerance(o.itemTolerance)
     , offsetPath(o.offsetPath)
     , offsetDistance(o.offsetDistance)
     , offsetPosition(o.offsetPosition)
@@ -268,7 +270,7 @@ bool StyleRareNonInheritedData::operator==(const StyleRareNonInheritedData& o) c
         && zoom == o.zoom
         && maxLines == o.maxLines
         && overflowContinue == o.overflowContinue
-        && touchActions == o.touchActions
+        && touchAction == o.touchAction
         && initialLetter == o.initialLetter
         && marquee == o.marquee
         && backdropFilter == o.backdropFilter
@@ -297,6 +299,7 @@ bool StyleRareNonInheritedData::operator==(const StyleRareNonInheritedData& o) c
         && containerNames == o.containerNames
         && columnGap == o.columnGap
         && rowGap == o.rowGap
+        && itemTolerance == o.itemTolerance
         && offsetPath == o.offsetPath
         && offsetDistance == o.offsetDistance
         && offsetPosition == o.offsetPosition
@@ -407,7 +410,7 @@ void StyleRareNonInheritedData::dumpDifferences(TextStream& ts, const StyleRareN
     LOG_IF_DIFFERENT(maxLines);
     LOG_IF_DIFFERENT(overflowContinue);
 
-    LOG_IF_DIFFERENT(touchActions);
+    LOG_IF_DIFFERENT(touchAction);
 
     LOG_IF_DIFFERENT(initialLetter);
 
@@ -448,6 +451,7 @@ void StyleRareNonInheritedData::dumpDifferences(TextStream& ts, const StyleRareN
 
     LOG_IF_DIFFERENT(columnGap);
     LOG_IF_DIFFERENT(rowGap);
+    LOG_IF_DIFFERENT(itemTolerance);
 
     LOG_IF_DIFFERENT(offsetPath);
     LOG_IF_DIFFERENT(offsetDistance);

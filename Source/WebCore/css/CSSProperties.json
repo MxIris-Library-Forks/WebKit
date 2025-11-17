@@ -4823,6 +4823,23 @@
                 "url": "https://www.w3.org/TR/css-logical/#inset-properties"
             }
         },
+        "item-tolerance": {
+            "animation-type": "by computed value",
+            "initial": "normal",
+            "values": [
+                "normal",
+                "infinite"
+            ],
+            "codegen-properties": {
+                "animation-wrapper": "StyleTypeWrapper",
+                "style-converter": "StyleType<ItemTolerance>",
+                "parser-grammar": "normal | <length-percentage> | infinite"
+            },
+            "specification": {
+                "category": "css-grid",
+                "url": "https://drafts.csswg.org/css-grid-3/#item-tolerance"
+            }
+        },
         "left": {
             "animation-type": "by computed value",
             "initial": "auto",
@@ -7869,6 +7886,7 @@
             "inherited": true,
             "initial": "none",
             "values": [
+                "none",
                 "capitalize",
                 "uppercase",
                 "lowercase",
@@ -7876,15 +7894,15 @@
                 "full-width",
                 {
                     "value": "math-auto",
-                    "settings-flag": "cssTextTransformMathAutoEnabled"
-                },
-                "none"
+                    "settings-flag": "cssTextTransformMathAutoEnabled",
+                    "url": "https://w3c.github.io/mathml-core/#math-auto-transform"
+                }
             ],
             "codegen-properties": {
                 "aliases": [
                     "-epub-text-transform"
                 ],
-                "style-converter": "TextTransform",
+                "style-converter": "StyleType<TextTransform>",
                 "parser-grammar": "none | [ [ capitalize | uppercase | lowercase ] || full-width || full-size-kana ]@(no-single-item-opt) | math-auto@(settings-flag=cssTextTransformMathAutoEnabled)"
             },
             "specification": {
@@ -12262,11 +12280,13 @@
                     "status": "unimplemented",
                     "url": "https://w3c.github.io/pointerevents/#the-touch-action-css-property"
                 },
-                "pinch-zoom"
+                {
+                    "value": "pinch-zoom",
+                    "status": "non-standard"
+                }
             ],
             "codegen-properties": {
-                "render-style-name-for-methods": "TouchActions",
-                "style-converter": "TouchAction",
+                "style-converter": "StyleType<TouchAction>",
                 "parser-grammar": "auto | none | [ pan-x || pan-y || pinch-zoom ]@(no-single-item-opt) | manipulation",
                 "parser-grammar-comment": "Current spec grammar is 'auto | none | [ [ pan-x | pan-left | pan-right ] || [ pan-y | pan-up | pan-down ] ] | manipulation'"
             },

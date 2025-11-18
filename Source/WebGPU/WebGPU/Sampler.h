@@ -90,7 +90,7 @@ private:
     using CachedSamplerStateContainer = HashMap<GenericHashKey<UniqueSamplerIdentifier>, WeakObjCPtr<id<MTLSamplerState>>>;
     struct SamplerStateWithReferences {
         RetainPtr<id<MTLSamplerState>> samplerState;
-        HashSet<GenericHashKey<UniqueSamplerIdentifier>> apiSamplerList;
+        HashSet<uintptr_t> apiSamplerList;
     };
     using RetainedSamplerStateContainer = HashMap<GenericHashKey<UniqueSamplerIdentifier>, SamplerStateWithReferences>;
     using CachedKeyContainer = ListHashSet<GenericHashKey<UniqueSamplerIdentifier>>;

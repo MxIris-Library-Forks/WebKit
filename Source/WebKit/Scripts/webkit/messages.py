@@ -454,6 +454,7 @@ def serialized_identifiers():
         'WebCore::WebLockIdentifierID',
         'WebCore::WebProcessJSHandleIdentifier',
         'WebCore::WebSocketIdentifier',
+        'WebCore::WebTransportSendGroupIdentifier',
         'WebCore::WebTransportStreamIdentifier',
         'WebCore::WindowIdentifier',
         'WebKit::AudioMediaStreamTrackRendererInternalUnitIdentifier',
@@ -1370,6 +1371,7 @@ def headers_for_type(type, for_implementation_file=False):
         'WebCore::WillInternallyHandleFailure': ['<WebCore/FrameLoaderTypes.h>'],
         'WebCore::WindowProxyProperty': ['<WebCore/FrameLoaderTypes.h>'],
         'WebCore::WebTransportStreamIdentifier': ['"WebTransportSession.h"'],
+        'WebCore::WebTransportSendGroupIdentifier': ['<WebCore/WebTransportSendGroup.h>'],
         'WebKit::ActivityStateChangeID': ['"DrawingAreaInfo.h"'],
         'WebKit::AllowOverwrite': ['"DownloadID.h"'],
         'WebKit::AppPrivacyReportTestingData': ['"AppPrivacyReport.h"'],
@@ -1633,16 +1635,6 @@ def generate_enabled_by_for_receiver(receiver, messages):
         '    }\n',
     ]
 
-def header_for_receiver_name(name):
-    # By default, the header name should usually be the same as the receiver name.
-
-    special_headers = {
-        # WebInspector.h is taken by the public API header, so this name is used instead.
-        'WebInspector': 'WebInspectorInternal'
-    }
-
-    return special_headers.get(name, name)
-
 
 def generate_message_handler(receiver):
     header_conditions = {
@@ -1662,7 +1654,7 @@ def generate_message_handler(receiver):
     if receiver.condition:
         result.append('#if %s\n' % receiver.condition)
 
-    result.append('#include "%s.h"\n\n' % header_for_receiver_name(receiver.name))
+    result.append('#include "%s.h"\n\n' % receiver.name)
     result += generate_header_includes_from_conditions(header_conditions)
     result.append('\n')
 

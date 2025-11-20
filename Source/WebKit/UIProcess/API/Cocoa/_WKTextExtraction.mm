@@ -154,6 +154,26 @@
 
 @end
 
+@implementation _WKTextExtractionResult {
+    RetainPtr<NSString> _textContent;
+}
+
+- (instancetype)initWithTextContent:(NSString *)textContent filteredOutAnyText:(BOOL)filteredOutAnyText
+{
+    if (self = [super init]) {
+        _textContent = textContent;
+        _filteredOutAnyText = filteredOutAnyText;
+    }
+    return self;
+}
+
+- (NSString *)textContent
+{
+    return _textContent.get();
+}
+
+@end
+
 @implementation _WKTextExtractionInteraction {
     RetainPtr<NSString> _nodeIdentifier;
     RetainPtr<NSString> _text;
@@ -164,6 +184,7 @@
 @synthesize location = _location;
 @synthesize hasSetLocation = _hasSetLocation;
 @synthesize scrollToVisible = _scrollToVisible;
+@synthesize scrollDelta = _scrollDelta;
 
 - (instancetype)initWithAction:(_WKTextExtractionAction)action
 {

@@ -1094,7 +1094,10 @@ extension WebGPU.CommandEncoder {
 
                 var compositorTexture = texture
                 if attachment.resolveTarget != nil || attachment.resolveTexture != nil {
-                    var resolveTarget = WebGPU.TextureOrTextureView(attachment)
+                    var resolveTarget =
+                        attachment.resolveTarget != nil
+                        ? WebGPU.TextureOrTextureView(WebGPU.fromAPI(attachment.resolveTarget))
+                        : WebGPU.TextureOrTextureView(WebGPU.fromAPI(attachment.resolveTexture))
                     compositorTexture = resolveTarget
 
                     if !CxxBridging.isValidToUseWith(resolveTarget, self) {

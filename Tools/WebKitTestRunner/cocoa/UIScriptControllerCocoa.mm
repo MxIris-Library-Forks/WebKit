@@ -374,11 +374,11 @@ void UIScriptControllerCocoa::requestTextExtraction(JSValueRef callback, TextExt
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
     RetainPtr configuration = createTextExtractionConfiguration(webView(), options);
     auto includeRects = [configuration includeRects] ? IncludeRects::Yes : IncludeRects::No;
-    [webView() _requestTextExtraction:configuration.get() completionHandler:^(WKTextExtractionResult *result) {
+    [webView() _requestTextExtraction:configuration.get() completionHandler:^(WKTextExtractionItem *rootItem) {
         if (!m_context)
             return;
 
-        auto description = adopt(JSStringCreateWithCFString((__bridge CFStringRef)recursiveDescription([result rootItem], includeRects)));
+        auto description = adopt(JSStringCreateWithCFString((__bridge CFStringRef)recursiveDescription(rootItem, includeRects)));
         m_context->asyncTaskComplete(callbackID, { JSValueMakeString(m_context->jsContext(), description.get()) });
     }];
 }
@@ -419,6 +419,8 @@ void UIScriptControllerCocoa::performTextExtractionInteraction(JSStringRef jsAct
         action = _WKTextExtractionActionKeyPress;
     if (equalLettersIgnoringASCIICase(actionName, "highlighttext"))
         action = _WKTextExtractionActionHighlightText;
+    if (equalLettersIgnoringASCIICase(actionName, "scrollby"))
+        action = _WKTextExtractionActionScrollBy;
 
     if (!action) {
         ASSERT_NOT_REACHED();
@@ -440,6 +442,9 @@ void UIScriptControllerCocoa::performTextExtractionInteraction(JSStringRef jsAct
         auto [x, y] = *location;
         [interaction setLocation:CGPointMake(x, y)];
     }
+
+    if (auto scrollDelta = options->scrollDelta)
+        [interaction setScrollDelta:std::apply(CGSizeMake, *scrollDelta)];
 
     [webView() _performInteraction:interaction.get() completionHandler:^(_WKTextExtractionInteractionResult *result) {
         if (!m_context)

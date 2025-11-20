@@ -183,6 +183,7 @@ class FontChanges;
 class Frame;
 class FrameView;
 class FrameSelection;
+class FrameTreeSyncData;
 class GraphicsContext;
 class HTMLElement;
 class HTMLImageElement;
@@ -296,6 +297,7 @@ struct ExceptionData;
 struct ExceptionDetails;
 struct FocusOptions;
 struct FontAttributes;
+struct FrameTreeSyncSerializationData;
 struct GlobalFrameIdentifier;
 struct GlobalWindowIdentifier;
 #if ENABLE(ATTACHMENT_ELEMENT)
@@ -441,7 +443,7 @@ class WebFrame;
 class WebFullScreenManager;
 class WebGestureEvent;
 class WebImage;
-class WebInspector;
+class WebInspectorBackend;
 class WebInspectorBackendClient;
 class WebInspectorUI;
 class WebKeyboardEvent;
@@ -662,8 +664,8 @@ public:
 
     enum class LazyCreationPolicy { UseExistingOnly, CreateIfNeeded };
 
-    WebInspector* inspector(LazyCreationPolicy = LazyCreationPolicy::CreateIfNeeded);
-    RefPtr<WebInspector> protectedInspector();
+    WebInspectorBackend* inspector(LazyCreationPolicy = LazyCreationPolicy::CreateIfNeeded);
+    RefPtr<WebInspectorBackend> protectedInspector();
     WebInspectorUI* inspectorUI();
     RemoteWebInspectorUI* remoteInspectorUI();
     bool isInspectorPage() { return !!m_inspectorUI || !!m_remoteInspectorUI; }
@@ -811,10 +813,12 @@ public:
     Awaitable<std::optional<FrameTreeNodeData>> getFrameTree();
     void didFinishLoadInAnotherProcess(WebCore::FrameIdentifier);
     void frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier);
-    void updateFrameTreeSyncData(WebCore::FrameIdentifier, Ref<WebCore::FrameTreeSyncData>&&);
 
     void topDocumentSyncDataChangedInAnotherProcess(const WebCore::DocumentSyncSerializationData&);
     void allTopDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&&);
+
+    void frameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier, const WebCore::FrameTreeSyncSerializationData&);
+    void allFrameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier, Ref<WebCore::FrameTreeSyncData>&&);
 
     std::optional<WebCore::SimpleRange> currentSelectionAsRange();
 
@@ -2034,7 +2038,7 @@ public:
 #endif
 
 #if PLATFORM(COCOA)
-    void createTextIndicatorForElementWithID(const String& elementID, CompletionHandler<void(std::optional<WebCore::TextIndicatorData>&&)>&&);
+    void createTextIndicatorForElementWithID(const String& elementID, CompletionHandler<void(RefPtr<WebCore::TextIndicator>&&)>&&);
 #endif
 
     void startObservingNowPlayingMetadata();
@@ -2797,7 +2801,7 @@ private:
 
     const UniqueRef<WebFoundTextRangeController> m_foundTextRangeController;
 
-    RefPtr<WebInspector> m_inspector;
+    RefPtr<WebInspectorBackend> m_inspector;
     RefPtr<WebInspectorUI> m_inspectorUI;
     RefPtr<RemoteWebInspectorUI> m_remoteInspectorUI;
     const UniqueRef<WebPageInspectorTargetController> m_inspectorTargetController;

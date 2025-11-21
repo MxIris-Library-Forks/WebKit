@@ -66,6 +66,7 @@ public:
 #if PLATFORM(IOS_FAMILY)
     void relayAccessibilityNotification(String&&, RetainPtr<NSData>&&) const final;
     void relayAriaNotifyNotification(WebCore::AriaNotifyData&&) const final;
+    void relayLiveRegionNotification(WebCore::LiveRegionAnnouncementData&&) const final;
 #endif
 
 private:
@@ -578,7 +579,7 @@ private:
     bool usePluginRendererScrollableArea(WebCore::LocalFrame&) const final;
 
 #if ENABLE(VIDEO)
-    void showCaptionDisplaySettings(CompletionHandler<void(bool)>&&) final;
+    void showCaptionDisplaySettings(WebCore::HTMLMediaElement&, const WebCore::ResolvedCaptionDisplaySettingsOptions&, CompletionHandler<void(WebCore::ExceptionOr<void>)>&&) final;
 #endif
 
     mutable bool m_cachedMainFrameHasHorizontalScrollbar { false };

@@ -271,6 +271,7 @@ struct DictionaryPopupInfo;
 struct DocumentSyncSerializationData;
 struct DragItem;
 struct ElementContext;
+struct ExceptionData;
 struct ExceptionDetails;
 struct FileChooserSettings;
 struct FocusOptions;
@@ -283,6 +284,7 @@ struct ImageBufferParameters;
 struct InspectorOverlayHighlight;
 struct LinkIcon;
 struct LinkDecorationFilteringData;
+struct LiveRegionAnnouncementData;
 struct MarkupExclusionRule;
 struct MediaControlsContextMenuItem;
 struct MediaDeviceHashSalts;
@@ -337,7 +339,6 @@ struct WrappedCryptoKey;
 struct MockWebAuthenticationConfiguration;
 struct DigitalCredentialsRequestData;
 struct DigitalCredentialsResponseData;
-struct ExceptionData;
 struct MobileDocumentRequest;
 struct OpenID4VPRequest;
 #endif
@@ -436,9 +437,10 @@ class ShareableBitmapHandle;
 class ShareableResourceHandle;
 class Site;
 class TransformationMatrix;
+struct NodeIdentifierType;
+struct ResolvedCaptionDisplaySettingsOptions;
 struct TextAnimationData;
 enum class ImageDecodingError : uint8_t;
-struct NodeIdentifierType;
 enum class ExceptionCode : uint8_t;
 
 using NodeIdentifier = ObjectIdentifier<NodeIdentifierType>;
@@ -574,6 +576,7 @@ struct JSHandleInfo;
 struct KeyEventInterpretationContext;
 struct LoadParameters;
 struct MainFrameData;
+struct PageData;
 struct ModelIdentifier;
 struct NavigationActionData;
 struct NetworkResourceLoadIdentifierType;
@@ -1053,6 +1056,8 @@ public:
     void setPrivateClickMeasurement(std::nullopt_t);
     void setPrivateClickMeasurement(WebCore::PrivateClickMeasurement&&);
     void setPrivateClickMeasurement(WebCore::PrivateClickMeasurement&&, String sourceDescription, String purchaser);
+    void setPrivateClickMeasurementImmediately(WebCore::PrivateClickMeasurement&&);
+    void simulatePrivateClickMeasurementConversion(int priority, int triggerData, const URL& sourceURL, const URL& destinationURL);
 
     struct EventAttribution {
         uint8_t sourceID;
@@ -1271,11 +1276,11 @@ public:
     void setDataDetectionResult(DataDetectionResult&&);
     void handleClickForDataDetectionResult(const WebCore::DataDetectorElementInfo&, const WebCore::IntPoint&);
 #endif
-    void didCommitLayerTree(const RemoteLayerTreeTransaction&, const std::optional<MainFrameData>&);
-    void didCommitMainFrameData(const MainFrameData&);
+    void didCommitLayerTree(const RemoteLayerTreeTransaction&, const std::optional<MainFrameData>&, const PageData&, const TransactionID&);
+    void didCommitMainFrameData(const MainFrameData&, const TransactionID&);
     void layerTreeCommitComplete();
 
-    bool updateLayoutViewportParameters(const RemoteLayerTreeTransaction&);
+    bool updateLayoutViewportParameters(const MainFrameData&);
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void cancelComposition(const String& compositionString);
@@ -2963,7 +2968,7 @@ private:
 
     WebContentMode effectiveContentModeAfterAdjustingPolicies(API::WebsitePolicies&, const WebCore::ResourceRequest&);
 
-    void willSubmitForm(IPC::Connection&, FrameInfoData&&, FrameInfoData&& sourceFrameInfoData, Vector<std::pair<String, String>>&& textFieldValues, const UserData&, CompletionHandler<void()>&&);
+    void willSubmitForm(IPC::Connection&, FrameInfoData&&, FrameInfoData&& sourceFrameInfoData, Vector<std::pair<String, String>>&& textFieldValues, const UserData&, const URL& requestURL, const String& method, CompletionHandler<void()>&&);
 
 #if ENABLE(CONTENT_EXTENSIONS)
     void contentRuleListNotification(URL&&, WebCore::ContentRuleListResults&&);
@@ -2995,6 +3000,7 @@ private:
 #if PLATFORM(IOS_FAMILY)
     void relayAccessibilityNotification(String&&, std::span<const uint8_t>);
     void relayAriaNotifyNotification(WebCore::AriaNotifyData&&);
+    void relayLiveRegionNotification(WebCore::LiveRegionAnnouncementData&&);
 #endif
     void runBeforeUnloadConfirmPanel(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, String&& message, CompletionHandler<void(bool)>&&);
     void pageDidScroll(const WebCore::IntPoint&);
@@ -3466,7 +3472,7 @@ private:
     void setBrowsingContextGroup(BrowsingContextGroup&);
 
 #if ENABLE(VIDEO)
-    void showCaptionDisplaySettings(CompletionHandler<void(bool)>&&);
+    void showCaptionDisplaySettings(WebCore::HTMLMediaElementIdentifier, const WebCore::ResolvedCaptionDisplaySettingsOptions&, CompletionHandler<void(Expected<void, WebCore::ExceptionData>&&)>&&);
 #endif
 
     struct Internals;

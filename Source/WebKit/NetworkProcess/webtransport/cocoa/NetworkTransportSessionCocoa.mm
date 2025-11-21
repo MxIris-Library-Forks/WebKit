@@ -200,18 +200,18 @@ static RetainPtr<nw_parameters_t> createParameters(NetworkConnectionToWebProcess
         hashes = WTFMove(hashes),
         clientOrigin = WTFMove(clientOrigin)
     ](nw_protocol_options_t options) mutable {
-        RefPtr connectionToWebProcess = weakConnection.get();
-        if (!connectionToWebProcess)
-            return;
-
         RetainPtr securityOptions = adoptNS(nw_tls_copy_sec_protocol_options(options));
         sec_protocol_options_set_peer_authentication_required(securityOptions.get(), true);
         sec_protocol_options_set_verify_block(securityOptions.get(), makeBlockPtr([
-            weakConnection = WeakPtr { connectionToWebProcess },
-            url = WTFMove(url),
-            pageID = WTFMove(pageID),
-            hashes = WTFMove(hashes),
-            clientOrigin = WTFMove(clientOrigin)
+            // The configureTLS lambda can be called more than once, which means that
+            // this inner lambda capture initialization will also run multiple times.
+            // Therefore, do not WTFMove in this capture list or it will not work
+            // after the first move.
+            weakConnection,
+            url,
+            pageID,
+            hashes,
+            clientOrigin
         ] (sec_protocol_metadata_t metadata, sec_trust_t trust, sec_protocol_verify_complete_t completion) mutable {
             RefPtr connectionToWebProcess = weakConnection.get();
             if (!connectionToWebProcess) {
@@ -288,8 +288,19 @@ void NetworkTransportSession::initialize(CompletionHandler<void(bool)>&& complet
         case nw_connection_group_state_waiting:
             return; // We will get another callback with another state change.
         case nw_connection_group_state_ready:
-            if (RefPtr protectedThis = weakThis.get())
+            if (RefPtr protectedThis = weakThis.get()) {
                 protectedThis->m_sessionMetadata = nw_connection_group_copy_protocol_metadata(protectedThis->m_connectionGroup.get(), adoptNS(nw_protocol_copy_webtransport_definition()).get());
+                if (RetainPtr metadata = protectedThis->m_sessionMetadata) {
+                    if (canLoad_Network_nw_webtransport_metadata_set_remote_drain_handler()) {
+                        softLink_Network_nw_webtransport_metadata_set_remote_drain_handler(metadata.get(), makeBlockPtr([weakThis = WeakPtr { *protectedThis }] () mutable {
+                            RefPtr protectedThis = weakThis.get();
+                            if (!protectedThis)
+                                return;
+                            protectedThis->send(Messages::WebTransportSession::DidDrain());
+                        }).get(), mainDispatchQueueSingleton());
+                    }
+                }
+            }
             return creationCompletionHandler(true);
         case nw_connection_group_state_failed:
             if (RefPtr protectedThis = weakThis.get()) {

@@ -163,7 +163,9 @@ struct DataDetectorElementInfo;
 struct DateTimeChooserParameters;
 struct FocusOptions;
 struct GraphicsDeviceAdapter;
+struct LiveRegionAnnouncementData;
 struct MockWebAuthenticationConfiguration;
+struct ResolvedCaptionDisplaySettingsOptions;
 struct ShareDataWithParsedURL;
 struct SimpleRange;
 struct StringWithDirection;
@@ -288,6 +290,7 @@ public:
 #if PLATFORM(IOS_FAMILY)
     virtual void relayAccessibilityNotification(String&&, RetainPtr<NSData>&&) const = 0;
     virtual void relayAriaNotifyNotification(AriaNotifyData&&) const = 0;
+    virtual void relayLiveRegionNotification(LiveRegionAnnouncementData&&) const = 0;
 #endif
 
     virtual void mainFrameDidChange() { };
@@ -778,7 +781,7 @@ public:
     virtual bool usePluginRendererScrollableArea(LocalFrame&) const { return true; }
 
 #if ENABLE(VIDEO)
-    virtual void showCaptionDisplaySettings(CompletionHandler<void(bool)>&& callback) { callback(false); }
+    WEBCORE_EXPORT virtual void showCaptionDisplaySettings(HTMLMediaElement&, const ResolvedCaptionDisplaySettingsOptions&, CompletionHandler<void(ExceptionOr<void>)>&&);
 #endif
 
     WEBCORE_EXPORT virtual ~ChromeClient();

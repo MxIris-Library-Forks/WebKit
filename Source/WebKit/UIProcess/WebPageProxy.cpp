@@ -454,7 +454,11 @@
 #endif
 
 #if ENABLE(SWIFT_DEMO_URI_SCHEME)
+#ifdef GENERATE_SINGLE_SWIFT_INTEROP_FILE
+#include "WebKit-Swift.h"
+#else
 #include "WebKit-Swift-CPP.h"
+#endif
 #endif
 
 #if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
@@ -1484,14 +1488,14 @@ void WebPageProxy::setBrowsingContextGroup(BrowsingContextGroup& browsingContext
 }
 
 #if ENABLE(VIDEO)
-void WebPageProxy::showCaptionDisplaySettings(CompletionHandler<void(bool)>&& callback)
+void WebPageProxy::showCaptionDisplaySettings(WebCore::HTMLMediaElementIdentifier identifier, const WebCore::ResolvedCaptionDisplaySettingsOptions& options, CompletionHandler<void(Expected<void, WebCore::ExceptionData>&&)>&& completionHandler)
 {
     if (RefPtr pageClient = this->pageClient()) {
-        pageClient->showCaptionDisplaySettings(WTFMove(callback));
+        pageClient->showCaptionDisplaySettings(identifier, options, WTFMove(completionHandler));
         return;
     }
 
-    callback(false);
+    completionHandler(makeUnexpected<WebCore::ExceptionData>({ ExceptionCode::NotSupportedError, "Caption Display Settings are not supported."_s }));
 }
 
 void WebPageProxy::showCaptionDisplaySettingsPreview(const FrameInfoData& frameInfo, WebCore::HTMLMediaElementIdentifier identifier)
@@ -3731,7 +3735,11 @@ void WebPageProxy::activateMediaStreamCaptureInPage()
 }
 
 #if !PLATFORM(COCOA)
-void WebPageProxy::didCommitLayerTree(const RemoteLayerTreeTransaction&, const std::optional<MainFrameData>&)
+void WebPageProxy::didCommitLayerTree(const RemoteLayerTreeTransaction&, const std::optional<MainFrameData>&, const PageData&, const TransactionID&)
+{
+}
+
+void WebPageProxy::didCommitMainFrameData(const MainFrameData&, const TransactionID&)
 {
 }
 
@@ -5447,7 +5455,10 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         if (navigation.isInitialFrameSrcLoad())
             frame.setIsPendingInitialHistoryItem(true);
 
-        frame.prepareForProvisionalLoadInProcess(newProcess, navigation, browsingContextGroup, [
+        // about:blank frames should be in the same process as the frame which originated navigation
+        std::optional<SecurityOriginData> originator = navigation.currentRequest().url().isAboutBlank() && navigation.originatingFrameInfo() ? std::make_optional(navigation.originatingFrameInfo()->securityOrigin) : std::nullopt;
+
+        frame.prepareForProvisionalLoadInProcess(newProcess, navigation, browsingContextGroup, originator, [
             loadParameters = WTFMove(loadParameters),
             newProcess = newProcess.copyRef(),
             preventProcessShutdownScope = newProcess->shutdownPreventingScope()
@@ -8844,7 +8855,7 @@ void WebPageProxy::triggerBrowsingContextGroupSwitchForNavigation(WebCore::Navig
 
 // FormClient
 
-void WebPageProxy::willSubmitForm(IPC::Connection& connection, FrameInfoData&& frameInfoData, FrameInfoData&& sourceFrameInfoData, Vector<std::pair<String, String>>&& textFieldValues, const UserData& userData, CompletionHandler<void()>&& completionHandler)
+void WebPageProxy::willSubmitForm(IPC::Connection& connection, FrameInfoData&& frameInfoData, FrameInfoData&& sourceFrameInfoData, Vector<std::pair<String, String>>&& textFieldValues, const UserData& userData, const URL& requestURL, const String& method, CompletionHandler<void()>&& completionHandler)
 {
     RefPtr frame = WebFrameProxy::webFrame(frameInfoData.frameID);
     if (!frame) {
@@ -8862,7 +8873,7 @@ void WebPageProxy::willSubmitForm(IPC::Connection& connection, FrameInfoData&& f
         MESSAGE_CHECK_COMPLETION_BASE(API::Dictionary::MapType::isValidKey(pair.first), connection, completionHandler());
 
     Ref process = WebProcessProxy::fromConnection(connection);
-    m_formClient->willSubmitForm(*this, *frame, *sourceFrame, WTFMove(frameInfoData), WTFMove(sourceFrameInfoData), WTFMove(textFieldValues), process->transformHandlesToObjects(userData.protectedObject().get()).get(), WTFMove(completionHandler));
+    m_formClient->willSubmitForm(*this, *frame, *sourceFrame, WTFMove(frameInfoData), WTFMove(sourceFrameInfoData), WTFMove(textFieldValues), process->transformHandlesToObjects(userData.protectedObject().get()).get(), requestURL, method, WTFMove(completionHandler));
 }
 
 #if ENABLE(CONTENT_EXTENSIONS)
@@ -15458,12 +15469,22 @@ void WebPageProxy::setPrivateClickMeasurement(std::nullopt_t)
     internals().privateClickMeasurement = std::nullopt;
 }
 
+void WebPageProxy::setPrivateClickMeasurementImmediately(PrivateClickMeasurement&& measurement)
+{
+    protectedWebsiteDataStore()->storePrivateClickMeasurement(WTFMove(measurement));
+}
+
 auto WebPageProxy::privateClickMeasurementEventAttribution() const -> std::optional<EventAttribution>
 {
     auto& pcm = internals().privateClickMeasurement;
     if (!pcm)
         return std::nullopt;
     return { { pcm->pcm.sourceID(), pcm->pcm.destinationSite().registrableDomain.string(), pcm->sourceDescription, pcm->purchaser } };
+}
+
+void WebPageProxy::simulatePrivateClickMeasurementConversion(int priority, int triggerData, const URL& sourceURL, const URL& destinationURL)
+{
+    protectedWebsiteDataStore()->simulatePrivateClickMeasurementConversion(priority, triggerData, sourceURL, destinationURL);
 }
 
 #if ENABLE(APPLE_PAY)

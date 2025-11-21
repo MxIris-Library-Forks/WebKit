@@ -50,6 +50,7 @@
 #import "PaymentAuthorizationController.h"
 #import "PrintInfo.h"
 #import "ProvisionalPageProxy.h"
+#import "RemoteLayerTreeCommitBundle.h"
 #import "RemoteLayerTreeHost.h"
 #import "RemoteLayerTreeNode.h"
 #import "RemoteLayerTreeTransaction.h"
@@ -366,15 +367,15 @@ void WebPageProxy::setOverrideViewportArguments(const std::optional<ViewportArgu
         m_legacyMainFrameProcess->send(Messages::WebPage::SetOverrideViewportArguments(viewportArguments), webPageIDInMainFrameProcess());
 }
 
-bool WebPageProxy::updateLayoutViewportParameters(const RemoteLayerTreeTransaction& layerTreeTransaction)
+bool WebPageProxy::updateLayoutViewportParameters(const MainFrameData& mainFrameData)
 {
-    if (internals().baseLayoutViewportSize == layerTreeTransaction.baseLayoutViewportSize()
-        && internals().minStableLayoutViewportOrigin == layerTreeTransaction.minStableLayoutViewportOrigin()
-        && internals().maxStableLayoutViewportOrigin == layerTreeTransaction.maxStableLayoutViewportOrigin())
+    if (internals().baseLayoutViewportSize == mainFrameData.baseLayoutViewportSize
+        && internals().minStableLayoutViewportOrigin == mainFrameData.minStableLayoutViewportOrigin
+        && internals().maxStableLayoutViewportOrigin == mainFrameData.maxStableLayoutViewportOrigin)
         return false;
-    internals().baseLayoutViewportSize = layerTreeTransaction.baseLayoutViewportSize();
-    internals().minStableLayoutViewportOrigin = layerTreeTransaction.minStableLayoutViewportOrigin();
-    internals().maxStableLayoutViewportOrigin = layerTreeTransaction.maxStableLayoutViewportOrigin();
+    internals().baseLayoutViewportSize = mainFrameData.baseLayoutViewportSize;
+    internals().minStableLayoutViewportOrigin = mainFrameData.minStableLayoutViewportOrigin;
+    internals().maxStableLayoutViewportOrigin = mainFrameData.maxStableLayoutViewportOrigin;
     LOG_WITH_STREAM(VisibleRects, stream << "WebPageProxy::updateLayoutViewportParameters: baseLayoutViewportSize: " << internals().baseLayoutViewportSize << " minStableLayoutViewportOrigin: " << internals().minStableLayoutViewportOrigin << " maxStableLayoutViewportOrigin: " << internals().maxStableLayoutViewportOrigin);
     return true;
 }
@@ -794,6 +795,12 @@ void WebPageProxy::relayAriaNotifyNotification(WebCore::AriaNotifyData&& notific
 {
     if (RefPtr pageClient = this->pageClient())
         pageClient->relayAriaNotifyNotification(notificationData);
+}
+
+void WebPageProxy::relayLiveRegionNotification(WebCore::LiveRegionAnnouncementData&& notificationData)
+{
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->relayLiveRegionNotification(notificationData);
 }
 
 void WebPageProxy::assistiveTechnologyMakeFirstResponder()

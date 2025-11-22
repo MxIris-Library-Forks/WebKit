@@ -34,6 +34,7 @@
 #include "RenderFlexibleBox.h"
 #include "RenderLayoutState.h"
 #include "RenderObjectInlines.h"
+#include "TextBoxTrimmer.h"
 
 namespace WebCore {
 namespace LayoutIntegration {
@@ -106,7 +107,7 @@ void layoutWithFormattingContextForBlockInInline(const Layout::ElementBox& block
         auto legacyLineClamp = renderTreeLayoutState.legacyLineClamp();
         if (!legacyLineClamp)
             return;
-        legacyLineClamp->currentLineCount += inlineLayoutState.lineCountForBlockDirectionClamp();
+        legacyLineClamp->currentLineCount += inlineLayoutState.lineCountWithInlineContentIncludingNestedBlocks();
         renderTreeLayoutState.setLegacyLineClamp(legacyLineClamp);
     };
     updateRenderTreeLegacyLineClamp();
@@ -116,7 +117,13 @@ void layoutWithFormattingContextForBlockInInline(const Layout::ElementBox& block
         return RenderBlockFlow::MarginInfo { marginState.canCollapseWithChildren, marginState.canCollapseMarginBeforeWithChildren, marginState.canCollapseMarginAfterWithChildren, marginState.quirkContainer, marginState.atBeforeSideOfBlock, marginState.atAfterSideOfBlock, marginState.hasMarginBeforeQuirk, marginState.hasMarginAfterQuirk, marginState.determinedMarginBeforeQuirk, marginState.positiveMargin, marginState.negativeMargin };
     };
 
-    auto positionAndMargin = rootBlockContainer.layoutBlockChildFromInlineLayout(blockRenderer, blockLogicalTopLeft.y(), marginInfoForBlock());
+    auto positionAndMargin = RenderBlockFlow::BlockPositionAndMargin { };
+    if (inlineLayoutState.lineCount()) {
+        auto textBoxTrimStartDisabler = TextBoxTrimStartDisabler { blockRenderer };
+        positionAndMargin = rootBlockContainer.layoutBlockChildFromInlineLayout(blockRenderer, blockLogicalTopLeft.y(), marginInfoForBlock());
+    } else
+        positionAndMargin = rootBlockContainer.layoutBlockChildFromInlineLayout(blockRenderer, blockLogicalTopLeft.y(), marginInfoForBlock());
+
     if (blockRenderer.isSelfCollapsingBlock()) {
         // FIXME: This gets replaced by "handling the after side of the block with margin".
         positionAndMargin.marginInfo.setMargin({ }, { });
@@ -143,8 +150,8 @@ void layoutWithFormattingContextForBlockInInline(const Layout::ElementBox& block
         auto legacyLineClamp = renderTreeLayoutState.legacyLineClamp();
         if (!legacyLineClamp)
             return;
-        auto newlyConstructedLineCount = legacyLineClamp->currentLineCount - inlineLayoutState.lineCountForBlockDirectionClamp();
-        inlineLayoutState.setLineCountForBlockDirectionClamp(inlineLayoutState.lineCountForBlockDirectionClamp() + newlyConstructedLineCount);
+        auto newlyConstructedLineCount = legacyLineClamp->currentLineCount - inlineLayoutState.lineCountWithInlineContentIncludingNestedBlocks();
+        inlineLayoutState.setLineCountWithInlineContentIncludingNestedBlocks(inlineLayoutState.lineCountWithInlineContentIncludingNestedBlocks() + newlyConstructedLineCount);
     };
     udpdateIFCLineClamp();
 

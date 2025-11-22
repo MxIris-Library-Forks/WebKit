@@ -1012,7 +1012,7 @@ void AudioVideoRendererAVFObjC::maybeCompleteSeek()
         ALWAYS_LOG(LOGIDENTIFIER, "Not resuming playback, shouldBePlaying:false");
 
     if (auto promise = std::exchange(m_seekPromise, std::nullopt))
-        promise->resolve();
+        promise->resolve(m_lastSeekTime);
     ALWAYS_LOG(LOGIDENTIFIER, "seek completed");
 }
 
@@ -1247,7 +1247,7 @@ Ref<GenericPromise> AudioVideoRendererAVFObjC::setVideoRenderer(WebSampleBufferV
         destroyVideoRenderer();
     }
 
-    RefPtr videoRenderer = VideoMediaSampleRenderer::create(renderer);
+    RefPtr videoRenderer = VideoMediaSampleRenderer::create(renderer, logger(), logIdentifier());
     m_videoRenderer = videoRenderer;
 
     videoRenderer->setPreferences(m_preferences);

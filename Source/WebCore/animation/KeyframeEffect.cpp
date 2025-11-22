@@ -1947,7 +1947,7 @@ bool KeyframeEffect::canBeAccelerated() const
 
 #if ENABLE(THREADED_ANIMATIONS)
     if (canHaveAcceleratedRepresentation())
-        return true;
+        return !animation()->pending();
 #endif
 
     if (m_isAssociatedWithProgressBasedTimeline)
@@ -2116,7 +2116,7 @@ void KeyframeEffect::updateAcceleratedAnimationIfNecessary()
 void KeyframeEffect::animationDidFinish()
 {
 #if ENABLE(THREADED_ANIMATIONS)
-    if (canHaveAcceleratedRepresentation())
+    if (canHaveAcceleratedRepresentation() && !m_isAssociatedWithProgressBasedTimeline)
         updateAcceleratedAnimationIfNecessary();
 #endif
 }

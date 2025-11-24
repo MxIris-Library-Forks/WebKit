@@ -11969,7 +11969,7 @@
                 "all"
             ],
            "codegen-properties": {
-               "style-converter": "NameScope",
+               "style-converter": "StyleType<NameScope>",
                "parser-grammar": "none | all | <dashed-ident>#",
                "settings-flag": "scrollDrivenAnimationsEnabled"
            },
@@ -12108,7 +12108,7 @@
             "animation-type": "discrete",
             "initial": "none",
             "codegen-properties": {
-                "style-converter": "NameScope",
+                "style-converter": "StyleType<NameScope>",
                 "parser-grammar": "none | all | <dashed-ident>#",
                 "settings-flag": "cssAnchorPositioningEnabled"
             },
@@ -12125,7 +12125,7 @@
             ],
             "codegen-properties": {
                 "settings-flag": "cssAnchorPositioningEnabled",
-                "style-converter": "PositionAnchor",
+                "style-converter": "StyleType<PositionAnchor>",
                 "parser-grammar": "auto | <dashed-ident>"
             },
             "specification": {

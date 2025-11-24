@@ -132,8 +132,6 @@ public:
     // MARK: Shared conversions
 
     static Ref<CSSValue> convertPositionTryFallbacks(ExtractorState&, const FixedVector<PositionTryFallback>&);
-    static Ref<CSSValue> convertPositionAnchor(ExtractorState&, const std::optional<ScopedName>&);
-    static Ref<CSSValue> convertNameScope(ExtractorState&, const NameScope&);
 
     // MARK: MaskLayer property conversions
 
@@ -255,39 +253,6 @@ inline Ref<CSSValue> ExtractorConverter::convertPositionTryFallbacks(ExtractorSt
     }
 
     return CSSValueList::createCommaSeparated(WTFMove(list));
-}
-
-inline Ref<CSSValue> ExtractorConverter::convertPositionAnchor(ExtractorState& state, const std::optional<ScopedName>& positionAnchor)
-{
-    if (!positionAnchor)
-        return CSSPrimitiveValue::create(CSSValueAuto);
-    return convert(state, *positionAnchor);
-}
-
-inline Ref<CSSValue> ExtractorConverter::convertNameScope(ExtractorState&, const NameScope& scope)
-{
-    switch (scope.type) {
-    case NameScope::Type::None:
-        return CSSPrimitiveValue::create(CSSValueNone);
-
-    case NameScope::Type::All:
-        return CSSPrimitiveValue::create(CSSValueAll);
-
-    case NameScope::Type::Ident:
-        if (scope.names.isEmpty())
-            return CSSPrimitiveValue::create(CSSValueNone);
-
-        CSSValueListBuilder list;
-        for (auto& name : scope.names) {
-            ASSERT(!name.isNull());
-            list.append(CSSPrimitiveValue::createCustomIdent(name));
-        }
-
-        return CSSValueList::createCommaSeparated(WTFMove(list));
-    }
-
-    ASSERT_NOT_REACHED();
-    return CSSPrimitiveValue::create(CSSValueNone);
 }
 
 // MARK: - MaskLayer property conversions

@@ -454,11 +454,7 @@
 #endif
 
 #if ENABLE(SWIFT_DEMO_URI_SCHEME)
-#ifdef GENERATE_SINGLE_SWIFT_INTEROP_FILE
 #include "WebKit-Swift.h"
-#else
-#include "WebKit-Swift-CPP.h"
-#endif
 #endif
 
 #if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
@@ -14688,7 +14684,7 @@ void WebPageProxy::setMockMediaPlaybackTargetPickerEnabled(bool enabled)
         pageClient->checkedMediaSessionManager()->setMockMediaPlaybackTargetPickerEnabled(enabled);
 }
 
-void WebPageProxy::setMockMediaPlaybackTargetPickerState(const String& name, WebCore::MediaPlaybackTargetContextMockState state)
+void WebPageProxy::setMockMediaPlaybackTargetPickerState(const String& name, WebCore::MediaPlaybackTargetMockState state)
 {
     if (RefPtr pageClient = this->pageClient())
         pageClient->checkedMediaSessionManager()->setMockMediaPlaybackTargetPickerState(name, state);
@@ -14706,7 +14702,7 @@ void WebPageProxy::Internals::setPlaybackTarget(PlaybackTargetClientContextIdent
     if (!protectedPage->hasRunningProcess())
         return;
 
-    protectedPage->send(Messages::WebPage::PlaybackTargetSelected(contextId, MediaPlaybackTargetContextSerialized { target->targetContext() }));
+    protectedPage->send(Messages::WebPage::PlaybackTargetSelected(contextId, MediaPlaybackTargetContextSerialized { target.get() }));
 }
 
 void WebPageProxy::Internals::externalOutputDeviceAvailableDidChange(PlaybackTargetClientContextIdentifier contextId, bool available)

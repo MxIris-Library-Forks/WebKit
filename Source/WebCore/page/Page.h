@@ -256,7 +256,7 @@ enum class FilterRenderingMode : uint8_t;
 enum class LayoutMilestone : uint16_t;
 enum class LoginStatusAuthenticationType : uint8_t;
 enum class PlatformMediaSessionPlaybackControlsPurpose : uint8_t;
-enum class MediaPlaybackTargetContextMockState : uint8_t;
+enum class MediaPlaybackTargetMockState : uint8_t;
 enum class MediaProducerMediaState : uint32_t;
 enum class MediaProducerMediaCaptureKind : uint8_t;
 enum class MediaProducerMutedState : uint8_t;
@@ -321,6 +321,9 @@ enum class RenderingUpdateStep : uint32_t {
     RestoreScrollPositionAndViewState   = 1 << 27,
     AdjustVisibility                    = 1 << 28,
     SnapshottedScrollOffsets            = 1 << 29,
+#if ENABLE(MODEL_ELEMENT_IMMERSIVE)
+    Immersive                           = 1 << 30,
+#endif
 
 };
 
@@ -1078,7 +1081,7 @@ public:
     void showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier, const IntPoint&, bool, RouteSharingPolicy, const String&);
     void playbackTargetPickerClientStateDidChange(PlaybackTargetClientContextIdentifier, MediaProducerMediaStateFlags);
     WEBCORE_EXPORT void setMockMediaPlaybackTargetPickerEnabled(bool);
-    WEBCORE_EXPORT void setMockMediaPlaybackTargetPickerState(const String&, MediaPlaybackTargetContextMockState);
+    WEBCORE_EXPORT void setMockMediaPlaybackTargetPickerState(const String&, MediaPlaybackTargetMockState);
     WEBCORE_EXPORT void mockMediaPlaybackTargetPickerDismissPopup();
 
     WEBCORE_EXPORT void setPlaybackTarget(PlaybackTargetClientContextIdentifier, Ref<MediaPlaybackTarget>&&);

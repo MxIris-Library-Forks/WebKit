@@ -184,6 +184,10 @@
 #include <WebCore/Damage.h>
 #endif
 
+#if ENABLE(VIDEO)
+#include <WebCore/HTMLMediaElement.h>
+#endif
+
 namespace WebKit {
 using namespace WebCore;
 using namespace HTMLNames;
@@ -1931,7 +1935,7 @@ void WebChromeClient::setMockMediaPlaybackTargetPickerEnabled(bool enabled)
         page->send(Messages::WebPageProxy::SetMockMediaPlaybackTargetPickerEnabled(enabled));
 }
 
-void WebChromeClient::setMockMediaPlaybackTargetPickerState(const String& name, MediaPlaybackTargetContext::MockState state)
+void WebChromeClient::setMockMediaPlaybackTargetPickerState(const String& name, MediaPlaybackTargetMockState state)
 {
     if (RefPtr page = m_page.get())
         page->send(Messages::WebPageProxy::SetMockMediaPlaybackTargetPickerState(name, state));

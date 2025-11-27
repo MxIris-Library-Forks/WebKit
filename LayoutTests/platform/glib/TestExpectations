@@ -753,6 +753,10 @@ imported/w3c/web-platform-tests/css/css-fonts/font-variant-emoji-005.html [ Pass
 
 imported/w3c/web-platform-tests/service-workers/service-worker/fetch-audio-tainting.https.html [ Pass ]
 
+# Needs rebasing and testing
+imported/w3c/web-platform-tests/service-workers/service-worker/fetch-canvas-tainting-video.https.html [ Failure ]
+imported/w3c/web-platform-tests/service-workers/service-worker/registration-script-module.https.html [ Failure ]
+
 jquery/event.html [ Pass Slow ]
 jquery/offset.html [ Pass Slow ]
 jquery/traversing.html [ Pass Slow ]
@@ -776,6 +780,7 @@ accessibility/dynamic-expanded-text.html [ Failure ]
 
 accessibility/dynamic-content-visibility.html [ Skip ]
 accessibility/dynamic-selected-radio-button.html [ Skip ]
+accessibility/dynamic-text-stitching.html [ Skip ]
 accessibility/password-notifications-timing.html [ Skip ]
 
 # Timed out since it was introduced.
@@ -4842,6 +4847,8 @@ webkit.org/b/302326 animations/animation-welcome-safari.html [ Failure Pass ]
 webkit.org/b/302326 fast/dom/rtl-scroll-to-leftmost-and-resize.html [ Failure Timeout Pass ]
 
 webkit.org/b/298463 accessibility/crash-deleting-dynamically-updated-text-input.html [ Skip ]
+
+webkit.org/b/303124 media/media-source/media-source-changetype-vp8-vp9.html [ Failure ]
 
 # End: Common failures between GTK and WPE.
 

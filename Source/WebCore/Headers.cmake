@@ -875,6 +875,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     accessibility/AXComputedObjectAttributeCache.h
     accessibility/AXCoreObject.h
     accessibility/AXGeometryManager.h
+    accessibility/AXID.h
     accessibility/AXListHelpers.h
     accessibility/AXLogger.h
     accessibility/AXLoggerBase.h
@@ -883,6 +884,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     accessibility/AXObjectCacheInlines.h
     accessibility/AXObjectRareData.h
     accessibility/AXSearchManager.h
+    accessibility/AXStitchUtilities.h
     accessibility/AXTextMarker.h
     accessibility/AXTextRun.h
     accessibility/AXTextStateChangeIntent.h
@@ -3180,7 +3182,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/GridArea.h
     rendering/style/GridSpan.h
     rendering/style/OutlineValue.h
-    rendering/style/PositionTryFallback.h
     rendering/style/PositionTryOrder.h
     rendering/style/RenderStyle.h
     rendering/style/RenderStyleConstants.h
@@ -3274,6 +3275,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/anchor-position/StylePositionAreaSelf.h
     style/values/anchor-position/StylePositionAreaSpan.h
     style/values/anchor-position/StylePositionAreaTrack.h
+    style/values/anchor-position/StylePositionTryFallback.h
+    style/values/anchor-position/StylePositionTryFallbackTactic.h
+    style/values/anchor-position/StylePositionTryFallbacks.h
     style/values/anchor-position/StylePositionVisibility.h
 
     style/values/animations/StyleAnimation.h

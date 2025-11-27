@@ -25,7 +25,8 @@
 
 #pragma once
 
-#include <WebCore/BlockLayoutState.h>
+#include "BlockLayoutState.h"
+
 #include <WebCore/LayoutPoint.h>
 #include <WebCore/LayoutUnit.h>
 #include <WebCore/RenderBlockFlow.h>
@@ -52,6 +53,7 @@ public:
 
     static BlockLayoutState::MarginState toMarginState(const RenderBlockFlow::MarginInfo&);
     static RenderBlockFlow::MarginInfo toMarginInfo(const Layout::BlockLayoutState::MarginState&);
+    static std::pair<LayoutRect, LayoutRect> toMarginAndBorderBoxVisualRect(const BoxGeometry& logicalGeometry, const LayoutSize& containerSize, WritingMode);
 
 private:
     const CheckedRef<const LayoutState> m_globalLayoutState;

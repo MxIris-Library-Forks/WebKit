@@ -2054,6 +2054,9 @@ void KeyframeEffect::addPendingAcceleratedAction(AcceleratedAction action)
         return;
 #endif
 
+    if (!animation())
+        return;
+
     if (m_runningAccelerated == RunningAccelerated::Prevented || m_runningAccelerated == RunningAccelerated::Failed)
         return;
 
@@ -3075,9 +3078,6 @@ KeyframeEffect::StackMembershipMutationScope::~StackMembershipMutationScope()
 
 bool KeyframeEffect::canHaveAcceleratedRepresentation() const
 {
-    if (m_acceleratedRepresentation)
-        return true;
-
     if (RefPtr document = this->document()) {
         Ref settings = document->settings();
         if (m_isAssociatedWithProgressBasedTimeline && settings->threadedScrollDrivenAnimationsEnabled())

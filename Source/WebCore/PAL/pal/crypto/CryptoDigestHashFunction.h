@@ -25,11 +25,14 @@
 
 #pragma once
 
-namespace WebCore::DDModel {
+namespace PAL {
 
-struct DDReplaceVertices {
-    int32_t bufferIndex;
-    Vector<uint8_t> buffer;
+enum class CryptoDigestHashFunction : int {
+    SHA_1,
+    DEPRECATED_SHA_224,
+    SHA_256,
+    SHA_384,
+    SHA_512,
 };
 
-}
+} // namespace PAL

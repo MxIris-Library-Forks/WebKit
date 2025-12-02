@@ -1248,7 +1248,7 @@ Element* Document::elementForAccessKey(const String& key)
         return nullptr;
     if (!m_accessKeyCache)
         buildAccessKeyCache();
-    return m_accessKeyCache->get(key).get();
+    return m_accessKeyCache->get(key);
 }
 
 void Document::buildAccessKeyCache()
@@ -10072,7 +10072,7 @@ void Document::didAssociateFormControlsTimerFired()
     }
 
     for (Ref control : controls) {
-        Ref event = Event::create(eventNames().webkitassociateformcontrolsEvent, Event::CanBubble::Yes, Event::IsCancelable::No);
+        Ref event = Event::create(eventNames().webkitassociateformcontrolsEvent, Event::CanBubble::Yes, Event::IsCancelable::No, Event::IsComposed::Yes);
         event->setIsAutofillEvent();
         event->setTarget(control.ptr());
         control->dispatchEvent(event);
@@ -11958,10 +11958,8 @@ RefPtr<ViewTransition> Document::startViewTransition(StartViewTransitionCallback
         }, [&](StartViewTransitionOptions& options) {
             updateCallback = WTFMove(options.update);
 
-            if (options.types) {
-                ASSERT(settings().viewTransitionTypesEnabled());
+            if (options.types)
                 activeTypes = WTFMove(*options.types);
-            }
         });
     }
 

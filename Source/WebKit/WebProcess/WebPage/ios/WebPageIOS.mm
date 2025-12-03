@@ -2114,9 +2114,9 @@ IntRect WebPage::absoluteInteractionBounds(const Node& node)
     auto& style = renderer->style();
     FloatRect boundingBox = renderer->absoluteBoundingBoxRect(true /* use transforms*/);
     // This is wrong. It's subtracting borders after converting to absolute coords on something that probably doesn't represent a rectangular element.
-    boundingBox.move(WebCore::Style::evaluate<float>(style.borderLeftWidth(), style.usedZoomForLength()), WebCore::Style::evaluate<float>(style.borderTopWidth(), style.usedZoomForLength()));
-    boundingBox.setWidth(boundingBox.width() - WebCore::Style::evaluate<float>(style.borderLeftWidth(), style.usedZoomForLength()) - WebCore::Style::evaluate<float>(style.borderRightWidth(), style.usedZoomForLength()));
-    boundingBox.setHeight(boundingBox.height() - WebCore::Style::evaluate<float>(style.borderBottomWidth(), style.usedZoomForLength()) - WebCore::Style::evaluate<float>(style.borderTopWidth(), style.usedZoomForLength()));
+    boundingBox.move(WebCore::Style::evaluate<float>(style.borderLeftWidth(), WebCore::Style::ZoomNeeded { }), WebCore::Style::evaluate<float>(style.borderTopWidth(), WebCore::Style::ZoomNeeded { }));
+    boundingBox.setWidth(boundingBox.width() - WebCore::Style::evaluate<float>(style.borderLeftWidth(), WebCore::Style::ZoomNeeded { }) - WebCore::Style::evaluate<float>(style.borderRightWidth(), WebCore::Style::ZoomNeeded { }));
+    boundingBox.setHeight(boundingBox.height() - WebCore::Style::evaluate<float>(style.borderBottomWidth(), WebCore::Style::ZoomNeeded { }) - WebCore::Style::evaluate<float>(style.borderTopWidth(), WebCore::Style::ZoomNeeded { }));
     return enclosingIntRect(boundingBox);
 }
 
@@ -3669,10 +3669,8 @@ static void elementPositionInformation(WebPage& page, Element& element, const In
 
     auto* elementForScrollTesting = linkElement ? linkElement : &element;
     if (auto* renderer = elementForScrollTesting->renderer()) {
-#if ENABLE(ASYNC_SCROLLING)
         if (auto* scrollingCoordinator = page.scrollingCoordinator())
             info.containerScrollingNodeID = scrollingCoordinator->scrollableContainerNodeID(*renderer);
-#endif
     }
 
     info.needsPointerTouchCompatibilityQuirk = document->quirks().needsPointerTouchCompatibility(element);
@@ -4193,10 +4191,8 @@ std::optional<FocusedElementInformation> WebPage::focusedElementInformation()
         information.insideFixedPosition = inFixed;
         information.isRTL = renderer->writingMode().isBidiRTL();
 
-#if ENABLE(ASYNC_SCROLLING)
         if (auto* scrollingCoordinator = this->scrollingCoordinator())
             information.containerScrollingNodeID = scrollingCoordinator->scrollableContainerNodeID(*renderer);
-#endif
     } else
         information.interactionRect = { };
 

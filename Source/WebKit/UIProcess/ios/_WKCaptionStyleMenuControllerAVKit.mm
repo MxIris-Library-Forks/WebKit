@@ -26,7 +26,7 @@
 #import "config.h"
 #import "_WKCaptionStyleMenuControllerAVKit.h"
 
-#if HAVE(AVLEGIBLEMEDIAOPTIONSMENUCONTROLLER)
+#if PLATFORM(IOS_FAMILY) && HAVE(AVLEGIBLEMEDIAOPTIONSMENUCONTROLLER)
 
 #import "_WKCaptionStyleMenuControllerInternal.h"
 

@@ -6089,7 +6089,7 @@ struct WebCore::ServiceWorkerImportedScript {
 };
 
 class WebCore::ScriptBuffer {
-    RefPtr<const WebCore::FragmentedSharedBuffer> buffer();
+    RefPtr<const WebCore::FragmentedSharedBuffer> protectedBuffer();
 };
 
 header: <wtf/RobinHoodHashTable.h>
@@ -8049,6 +8049,9 @@ using WebCore::SourceBufferPrivate::SamplesPromise::Result = Expected<Vector<Str
 header: <WebCore/MediaSourceConfiguration.h>
 struct WebCore::MediaSourceConfiguration {
     bool textTracksEnabled;
+#if USE(MEDIAPARSERD)
+    bool demuxInProcess;
+#endif
 #if ENABLE(MEDIA_RECORDER_WEBM)
     bool supportsLimitedMatroska;
 #endif
@@ -9006,11 +9009,13 @@ header: <WebCore/AXObjectCache.h>
     String language;
 };
 
+#if PLATFORM(COCOA)
 header: <WebCore/AXObjectCache.h>
 [CustomHeader] struct WebCore::LiveRegionAnnouncementData {
-    String message;
+    WebCore::AttributedString message;
     WebCore::LiveRegionStatus status;
 };
+#endif
 
 header: <WebCore/ScriptTrackingPrivacyCategory.h>
 [OptionSet] enum class WebCore::ScriptTrackingPrivacyFlag : uint16_t {

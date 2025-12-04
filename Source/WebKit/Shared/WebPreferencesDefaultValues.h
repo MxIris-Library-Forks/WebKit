@@ -73,9 +73,9 @@
 #endif
 
 #if HAVE(COMPLETE_WEB_TRANSPORT)
-#define WebTransport_status Stable
+#define Web_transport_status Stable
 #else
-#define WebTransport_status Testable
+#define Web_transport_status Testable
 #endif
 
 namespace WebKit {

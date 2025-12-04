@@ -28,6 +28,7 @@
 
 #include "APIPageConfiguration.h"
 #include "APIWebsitePolicies.h"
+#include "EnhancedSecurity.h"
 #include "FrameProcess.h"
 #include "PageLoadState.h"
 #include "ProvisionalPageProxy.h"
@@ -46,7 +47,7 @@ BrowsingContextGroup::BrowsingContextGroup() = default;
 BrowsingContextGroup::~BrowsingContextGroup() = default;
 
 void BrowsingContextGroup::sharedProcessForSite(WebsiteDataStore& websiteDataStore, API::WebsitePolicies* websitePolicies, const WebPreferences& preferences, const WebCore::Site& site, const WebCore::Site& mainFrameSite,
-    WebProcessProxy::LockdownMode lockdownMode, WebProcessProxy::EnhancedSecurity enhancedSecurity, API::PageConfiguration& pageConfiguration, IsMainFrame isMainFrame, CompletionHandler<void(FrameProcess*)>&& completionHandler)
+    WebProcessProxy::LockdownMode lockdownMode, EnhancedSecurity enhancedSecurity, API::PageConfiguration& pageConfiguration, IsMainFrame isMainFrame, CompletionHandler<void(FrameProcess*)>&& completionHandler)
 {
     if (!preferences.siteIsolationEnabled() || !preferences.siteIsolationSharedProcessEnabled())
         return completionHandler(nullptr);
@@ -307,6 +308,20 @@ bool BrowsingContextGroup::hasRemotePages(const WebPageProxy& page)
 {
     auto it = m_remotePages.find(page);
     return it != m_remotePages.end() && !it->value.isEmpty();
+}
+
+bool BrowsingContextGroup::isFrameProcessInUseForMainFrame(const FrameProcess& process)
+{
+    for (Ref page : m_pages) {
+        RefPtr mainFrame = page->mainFrame();
+        if (!mainFrame)
+            continue;
+
+        if (&mainFrame->frameProcess() == &process)
+            return true;
+    }
+
+    return false;
 }
 
 } // namespace WebKit

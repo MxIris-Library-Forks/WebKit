@@ -621,6 +621,7 @@ struct RendererBufferFormat;
 enum class ColorControlSupportsAlpha : bool;
 enum class ContentAsStringIncludesChildFrames : bool;
 enum class DragControllerAction : uint8_t;
+enum class EnhancedSecurity : uint8_t;
 enum class FindDecorationStyle : uint8_t;
 enum class FindOptions : uint16_t;
 enum class ForceSoftwareCapturingViewportSnapshot : bool;
@@ -731,7 +732,7 @@ public:
     bool isLockdownModeExplicitlySet() const { return m_isLockdownModeExplicitlySet; }
     bool shouldEnableLockdownMode() const;
 
-    bool shouldEnableEnhancedSecurity() const;
+    EnhancedSecurity currentEnhancedSecurityState(const API::WebsitePolicies* = nullptr) const;
 
     bool hasSameGPUAndNetworkProcessPreferencesAs(const API::PageConfiguration&) const;
     bool hasSameGPUAndNetworkProcessPreferencesAs(const WebPageProxy&) const;
@@ -1721,8 +1722,8 @@ public:
 #endif
 #endif
 
-    void processDidBecomeUnresponsive();
-    void processDidBecomeResponsive();
+    void processDidBecomeUnresponsive(WebProcessProxy&);
+    void processDidBecomeResponsive(WebProcessProxy&);
     void resetStateAfterProcessTermination(ProcessTerminationReason);
     void provisionalProcessDidTerminate();
     void dispatchProcessDidTerminate(WebProcessProxy&, ProcessTerminationReason);
@@ -2554,6 +2555,7 @@ public:
 
     void addOpenedPage(WebPageProxy&);
     bool hasOpenedPage() const;
+    bool hasPageOpenedByMainFrame() const;
 
     void requestImageBitmap(const WebCore::ElementContext&, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&, const String& sourceMIMEType)>&&);
 
@@ -4068,6 +4070,8 @@ private:
     bool m_statusBarIsVisible { true };
     bool m_menuBarIsVisible { true };
     bool m_toolbarsAreVisible { true };
+
+    HashSet<CheckedRef<WebProcessProxy>> m_unresponsiveProcesses;
 } SWIFT_SHARED_REFERENCE(refWebPageProxy, derefWebPageProxy);
 
 } // namespace WebKit

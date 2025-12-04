@@ -1700,11 +1700,6 @@ imported/w3c/web-platform-tests/webcodecs/videoDecoder-codec-specific.https.any.
 imported/w3c/web-platform-tests/webcodecs/videoDecoder-codec-specific.https.any.worker.html?h265_annexb [ Failure ]
 imported/w3c/web-platform-tests/webcodecs/videoDecoder-codec-specific.https.any.worker.html?h265_hevc [ Pass ]
 
-webkit.org/b/303365 imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?h264_annexb [ Crash ]
-webkit.org/b/303365 imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?h264_avc [ Crash ]
-webkit.org/b/303365 imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?h264_annexb [ Crash ]
-webkit.org/b/303365 imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?h264_avc [ Crash ]
-
 imported/w3c/web-platform-tests/webcodecs/videoFrame-createImageBitmap.any.worker.html [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.html?av1_444_high [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.worker.html?av1_444_high [ Pass ]
@@ -3674,7 +3669,7 @@ webkit.org/b/160246 fast/text/multiple-feature-properties.html [ ImageOnlyFailur
 webkit.org/b/160248 fast/text/combining-mark-paint.html [ ImageOnlyFailure ]
 webkit.org/b/160248 fast/text/synthetic-bold-transformed.html [ ImageOnlyFailure ]
 webkit.org/b/160249 fast/shrink-wrap/rect-shrink-wrap.html [ ImageOnlyFailure ]
-webkit.org/b/161583 accessibility/auto-fill-types.html [ Timeout ]
+webkit.org/b/161583 accessibility/auto-fill-types.html [ Failure ]
 webkit.org/b/162815 fast/text/variations/font-face-clamp.html [ ImageOnlyFailure ]
 webkit.org/b/162815 fast/text/variations/font-selection-properties.html [ ImageOnlyFailure ]
 webkit.org/b/162815 fast/text/variations/skia-postscript-name.html [ ImageOnlyFailure ]
@@ -4824,6 +4819,9 @@ webkit.org/b/303124 media/media-source/media-source-changetype-vp8-vp9.html [ Fa
 webkit.org/b/303130 media/media-source/media-source-ended.html [ Failure ]
 
 webkit.org/b/303208 imported/blink/fast/pagination/viewport-y-horizontal-bt-rtl.html [ Pass ImageOnlyFailure ]
+
+# Hits assert in Debug, but since GTK/WPE bots run release with assertions enabled, skip. Tracked by https://bugs.webkit.org/show_bug.cgi?id=303414
+fullscreen/fullscreen-grid-item-container-type-crash.html [ Skip ]
 
 # End: Common failures between GTK and WPE.
 

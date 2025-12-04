@@ -19247,6 +19247,7 @@
 		BC8BF1591058141800A40A07 /* UserStyleSheetTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserStyleSheetTypes.h; sourceTree = "<group>"; };
 		BC8C8FAB0DDCD31B00B592F4 /* RenderStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderStyle.cpp; sourceTree = "<group>"; };
 		BC8C8FAC0DDCD31B00B592F4 /* RenderStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderStyle.h; sourceTree = "<group>"; };
+		BC913ABD2EDF542D009E3349 /* RenderLayerModelObjectInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderLayerModelObjectInlines.h; sourceTree = "<group>"; };
 		BC926F7E0C0552470082776B /* JSHTMLFrameSetElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLFrameSetElement.cpp; sourceTree = "<group>"; };
 		BC926F7F0C0552470082776B /* JSHTMLFrameSetElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLFrameSetElement.h; sourceTree = "<group>"; };
 		BC9439C2116CF4940048C750 /* JSNodeCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSNodeCustom.h; sourceTree = "<group>"; };
@@ -40471,6 +40472,7 @@
 				9331BACE29EC9FF900137ED2 /* RenderLayerInlines.h */,
 				3C244FE5A375AC633F88BE6F /* RenderLayerModelObject.cpp */,
 				3C244FE4A375AC633F88BE6F /* RenderLayerModelObject.h */,
+				BC913ABD2EDF542D009E3349 /* RenderLayerModelObjectInlines.h */,
 				0F53FB83213B786400C40D34 /* RenderLayerScrollableArea.cpp */,
 				0F53FB84213B786400C40D34 /* RenderLayerScrollableArea.h */,
 				2D9066040BE141D400956998 /* RenderLayoutState.cpp */,

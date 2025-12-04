@@ -2740,6 +2740,21 @@ EncryptedMediaAPIEnabled:
   sharedPreferenceForWebProcess: true
   mediaPlaybackRelated: true
 
+EnhancedSecurityHeuristicsEnabled:
+  type: bool
+  status: testable
+  category: security
+  defaultsOverridable: true
+  humanReadableName: "Enable EnhancedSecurity Heuristics"
+  humanReadableDescription: "Triggers EnhancedSecurity when insecure HTTP loads occur"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 EnterKeyHintEnabled:
   type: bool
   status: internal
@@ -3427,25 +3442,9 @@ GoogleAntiFlickerOptimizationQuirkEnabled:
     WebCore:
       default: true
 
-GraphicsContextBlurFilterEnabled:
-   type: bool
-   status: stable
-   category: media
-   webcoreOnChange: setNeedsRelayoutAllFrames
-   humanReadableName: "GraphicsContext Blur Filter Rendering"
-   humanReadableDescription: "GraphicsContext Blur Filter Rendering"
-   condition: USE(GRAPHICS_CONTEXT_FILTERS)
-   defaultValue:
-     WebKitLegacy:
-       default: true
-     WebKit:
-       default: true
-     WebCore:
-       default: true
-
 GraphicsContextFiltersEnabled:
    type: bool
-   status: mature
+   status: stable
    category: media
    webcoreOnChange: setNeedsRelayoutAllFrames
    humanReadableName: "GraphicsContext Filter Rendering"
@@ -9794,13 +9793,12 @@ WebSocketEnabled:
 
 WebTransportEnabled:
   type: bool
-  status: WebTransport_status
+  status: Web_transport_status
   category: networking
   humanReadableName: "WebTransport"
   humanReadableDescription: "Enable WebTransport"
   defaultValue:
     WebKitLegacy:
-      "HAVE(COMPLETE_WEB_TRANSPORT)": true
       default: false
     WebKit:
       "HAVE(COMPLETE_WEB_TRANSPORT)": true

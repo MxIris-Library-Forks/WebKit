@@ -1032,6 +1032,15 @@ Ref<SecurityOrigin> Page::protectedMainFrameOrigin() const
     return mainFrameOrigin();
 }
 
+RefPtr<Frame> Page::findFrameByPath(const Vector<size_t>& path) const
+{
+    RefPtr current = m_mainFrame.get();
+    for (size_t i = 0; i < path.size() && current; i++)
+        current = current->tree().child(path[i]);
+
+    return current;
+}
+
 bool Page::openedByDOM() const
 {
     return m_openedByDOM;
@@ -4927,8 +4936,6 @@ OptionSet<FilterRenderingMode> Page::preferredFilterRenderingModes(const Graphic
 #endif
         if (settings().graphicsContextFiltersEnabled())
             modes.add(FilterRenderingMode::GraphicsContext);
-        if (settings().graphicsContextBlurFilterEnabled())
-            modes.add(FilterRenderingMode::GraphicsContextBlur);
 #if !HAVE(FIX_FOR_RADAR_104392017)
     }
 #endif

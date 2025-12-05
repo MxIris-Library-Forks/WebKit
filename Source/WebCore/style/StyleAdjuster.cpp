@@ -319,6 +319,14 @@ bool Adjuster::adjustEventListenerRegionTypesForRootStyle(RenderStyle& rootStyle
     if (RefPtr window = document.window())
         regionTypes.add(computeEventListenerRegionTypes(document, rootStyle, *window, { }));
 
+#if ENABLE(TOUCH_EVENT_REGIONS)
+    // https://html.spec.whatwg.org/multipage/popover.html#popover-light-dismiss
+    if (document.needsPointerEventHandlingForPopover()) {
+        regionTypes.add(EventListenerRegionType::PointerDown);
+        regionTypes.add(EventListenerRegionType::PointerUp);
+    }
+#endif
+
     bool changed = regionTypes != rootStyle.eventListenerRegionTypes();
     rootStyle.setEventListenerRegionTypes(regionTypes);
     return changed;
@@ -358,8 +366,11 @@ OptionSet<EventListenerRegionType> Adjuster::computeEventListenerRegionTypes(con
     if (eventTarget.hasEventListeners()) {
         findListeners(eventNames().touchstartEvent, EventListenerRegionType::TouchStart, EventListenerRegionType::NonPassiveTouchStart);
         findListeners(eventNames().touchendEvent, EventListenerRegionType::TouchEnd, EventListenerRegionType::NonPassiveTouchEnd);
-        findListeners(eventNames().touchcancelEvent, EventListenerRegionType::TouchCancel, EventListenerRegionType::NonPassiveTouchCancel);
+        // `touchcancel` is sent after the event has already been cancelled. Calling preventDefault() has no effect, so we don't
+        // need a synchronous version.
+        findListeners(eventNames().touchcancelEvent, EventListenerRegionType::TouchCancel, EventListenerRegionType::TouchCancel);
         findListeners(eventNames().touchmoveEvent, EventListenerRegionType::TouchMove, EventListenerRegionType::NonPassiveTouchMove);
+        findListeners(eventNames().touchforcechangeEvent, EventListenerRegionType::TouchForceChange, EventListenerRegionType::NonPassiveTouchForceChange);
 
         findListeners(eventNames().pointerdownEvent, EventListenerRegionType::PointerDown, EventListenerRegionType::NonPassivePointerDown);
         findListeners(eventNames().pointerenterEvent, EventListenerRegionType::PointerEnter, EventListenerRegionType::NonPassivePointerEnter);
@@ -382,10 +393,11 @@ OptionSet<EventListenerRegionType> Adjuster::computeEventListenerRegionTypes(con
     if (eventTarget.hasInternalTouchEventHandling()) {
         types.add(EventListenerRegionType::TouchCancel);
         types.add(EventListenerRegionType::TouchEnd);
+        types.add(EventListenerRegionType::TouchForceChange);
         types.add(EventListenerRegionType::TouchMove);
         types.add(EventListenerRegionType::TouchStart);
-        types.add(EventListenerRegionType::NonPassiveTouchCancel);
         types.add(EventListenerRegionType::NonPassiveTouchEnd);
+        types.add(EventListenerRegionType::NonPassiveTouchForceChange);
         types.add(EventListenerRegionType::NonPassiveTouchMove);
         types.add(EventListenerRegionType::NonPassiveTouchStart);
     }

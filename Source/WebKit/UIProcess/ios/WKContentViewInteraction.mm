@@ -6802,19 +6802,22 @@ static Vector<WebCore::CompositionHighlight> compositionHighlights(NSAttributedS
         WKFoundDOMTextPosition *fromPosition = (WKFoundDOMTextPosition *)from;
         WKFoundDOMTextPosition *toPosition = (WKFoundDOMTextPosition *)to;
 
-        if (fromPosition.order == toPosition.order)
-            return fromPosition.offset - toPosition.offset;
+        if (fromPosition.order != toPosition.order)
+            return fromPosition.order - toPosition.order;
+
+        return fromPosition.offset - toPosition.offset;
     }
 
     if ([from isKindOfClass:[WKFoundPDFTextPosition class]] && [to isKindOfClass:[WKFoundPDFTextPosition class]]) {
         WKFoundPDFTextPosition *fromPosition = (WKFoundPDFTextPosition *)from;
         WKFoundPDFTextPosition *toPosition = (WKFoundPDFTextPosition *)to;
 
-        if (fromPosition.order == toPosition.order) {
-            if (fromPosition.page == toPosition.page)
-                return fromPosition.offset - toPosition.offset;
-            return fromPosition.page - toPosition.page;
-        }
+        if (fromPosition.order != toPosition.order)
+            return fromPosition.order - toPosition.order;
+
+        if (fromPosition.page == toPosition.page)
+            return fromPosition.offset - toPosition.offset;
+        return fromPosition.page - toPosition.page;
     }
 
     if ([from isKindOfClass:[WKFoundTextPosition class]] && [to isKindOfClass:[WKFoundTextPosition class]]) {
@@ -12817,12 +12820,12 @@ static RetainPtr<NSItemProvider> createItemProvider(const WebKit::WebPageProxy& 
 
 - (CGImageRef)copySubjectResultForImageContextMenu
 {
-    return valueOrDefault(_imageAnalysisContextMenuActionData).copySubjectResult.unsafeGet();
+    return valueOrDefault(_imageAnalysisContextMenuActionData).copySubjectResult.getAutoreleased();
 }
 
 - (UIMenu *)machineReadableCodeSubMenuForImageContextMenu
 {
-    return valueOrDefault(_imageAnalysisContextMenuActionData).machineReadableCodeMenu.unsafeGet();
+    return valueOrDefault(_imageAnalysisContextMenuActionData).machineReadableCodeMenu.getAutoreleased();
 }
 
 #if USE(QUICK_LOOK)
@@ -14258,7 +14261,7 @@ static inline WKTextAnimationType toWKTextAnimationType(WebCore::TextAnimationTy
             if (enclosingView != selectedView && ![enclosingView _wk_isAncestorOf:selectedView])
                 return self;
         }
-        return enclosingView.unsafeGet();
+        return enclosingView.autorelease();
     }();
 
     ASSERT(_cachedSelectionContainerView);

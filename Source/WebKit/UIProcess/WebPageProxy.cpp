@@ -454,7 +454,7 @@
 #include "ModelPresentationManagerProxy.h"
 #endif
 
-#if ENABLE(SWIFT_DEMO_URI_SCHEME)
+#if ENABLE(SWIFT_DEMO_URI_SCHEME) || ENABLE(IPC_TESTING_SWIFT)
 #include "WebKit-Swift.h"
 #endif
 
@@ -606,6 +606,14 @@ void WebPageProxy::takeMutedCaptureAssertion()
     });
 }
 
+void WebPageProxy::takeNetworkActivity()
+{
+    m_mainFrameProcessActivityState->takeNetworkActivity();
+    protectedBrowsingContextGroup()->forEachRemotePage(*this, [](auto& remotePageProxy) {
+        remotePageProxy.processActivityState().takeNetworkActivity();
+    });
+}
+
 #if ENABLE(WEB_PROCESS_SUSPENSION_DELAY)
 void WebPageProxy::takeAccessibilityActivityWhenInWindow()
 {
@@ -669,6 +677,14 @@ void WebPageProxy::dropMutedCaptureAssertion()
     });
 }
 
+void WebPageProxy::dropNetworkActivity()
+{
+    m_mainFrameProcessActivityState->dropNetworkActivity();
+    protectedBrowsingContextGroup()->forEachRemotePage(*this, [](auto& remotePageProxy) {
+        remotePageProxy.processActivityState().dropNetworkActivity();
+    });
+}
+
 bool WebPageProxy::hasValidVisibleActivity() const
 {
     bool hasValidVisibleActivity = m_mainFrameProcessActivityState->hasValidVisibleActivity();
@@ -703,6 +719,15 @@ bool WebPageProxy::hasValidMutedCaptureAssertion() const
         hasValidMutedCaptureAssertion &= remotePageProxy.processActivityState().hasValidMutedCaptureAssertion();
     });
     return hasValidMutedCaptureAssertion;
+}
+
+bool WebPageProxy::hasValidNetworkActivity() const
+{
+    bool hasValidNetworkActivity = m_mainFrameProcessActivityState->hasValidNetworkActivity();
+    protectedBrowsingContextGroup()->forEachRemotePage(*this, [&](auto& remotePageProxy) {
+        hasValidNetworkActivity &= remotePageProxy.processActivityState().hasValidNetworkActivity();
+    });
+    return hasValidNetworkActivity;
 }
 
 #if PLATFORM(IOS_FAMILY)
@@ -973,6 +998,9 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
 #endif
     if (protectedPreferences()->siteIsolationEnabled())
         IPC::Connection::setShouldCrashOnMessageCheckFailure(true);
+
+    if (protectedPreferences()->enhancedSecurityHeuristicsEnabled())
+        internals().enhancedSecurityTracker.initializeWithWebsiteDataStore(protectedWebsiteDataStore());
 }
 
 WebPageProxy::~WebPageProxy()
@@ -4090,6 +4118,17 @@ void WebPageProxy::dispatchMouseDidMoveOverElementAsynchronously(const NativeWeb
     });
 }
 
+static void startResponsivenessTimerForMouseEvent(WebFrameProxy& frame, const WebEventType& eventType)
+{
+    Ref process = frame.process();
+    if (eventType == WebEventType::MouseDown || eventType == WebEventType::MouseForceChanged || eventType == WebEventType::MouseForceDown)
+        process->startResponsivenessTimer(WebProcessProxy::UseLazyStop::Yes);
+    else if (eventType != WebEventType::MouseMove) {
+        // NOTE: This does not start the responsiveness timer because mouse move should not indicate interaction.
+        process->startResponsivenessTimer();
+    }
+}
+
 void WebPageProxy::processNextQueuedMouseEvent()
 {
     if (!hasRunningProcess())
@@ -4115,14 +4154,10 @@ void WebPageProxy::processNextQueuedMouseEvent()
     if (pageClient && pageClient->windowIsFrontWindowUnderMouse(event))
         setToolTip(String());
 
-    Ref process = m_legacyMainFrameProcess;
+    RefPtr targetFrame = m_mainFrame;
+    Ref process = targetFrame->process();
     auto eventType = event->type();
-    if (eventType == WebEventType::MouseDown || eventType == WebEventType::MouseForceChanged || eventType == WebEventType::MouseForceDown)
-        process->startResponsivenessTimer(WebProcessProxy::UseLazyStop::Yes);
-    else if (eventType != WebEventType::MouseMove) {
-        // NOTE: This does not start the responsiveness timer because mouse move should not indicate interaction.
-        process->startResponsivenessTimer();
-    }
+    startResponsivenessTimerForMouseEvent(*targetFrame, eventType);
 
     std::optional<Vector<SandboxExtension::Handle>> sandboxExtensions;
 
@@ -4141,7 +4176,7 @@ void WebPageProxy::processNextQueuedMouseEvent()
 
     LOG_WITH_STREAM(MouseHandling, stream << "UIProcess: sent mouse event " << eventType << " (queue size " << internals().mouseEventQueue.size() << ", coalesced events size " << internals().coalescedMouseEvents.size() << ")");
 
-    sendMouseEvent(m_mainFrame->frameID(), eventWithCoalescedEvents, WTFMove(sandboxExtensions));
+    sendMouseEvent(targetFrame->frameID(), eventWithCoalescedEvents, WTFMove(sandboxExtensions));
 
     internals().coalescedMouseEvents.clear();
 }
@@ -4161,11 +4196,12 @@ void WebPageProxy::processNextQueuedGestureEvent()
     const CheckedRef event = internals().gestureEventQueue.first();
     const auto eventType = event->type();
 
-    protectedLegacyMainFrameProcess()->startResponsivenessTimer((eventType == WebEventType::GestureStart || eventType == WebEventType::GestureChange) ? WebProcessProxy::UseLazyStop::Yes : WebProcessProxy::UseLazyStop::No);
+    RefPtr targetFrame = m_mainFrame;
+    targetFrame->protectedProcess()->startResponsivenessTimer((eventType == WebEventType::GestureStart || eventType == WebEventType::GestureChange) ? WebProcessProxy::UseLazyStop::Yes : WebProcessProxy::UseLazyStop::No);
 
     LOG_WITH_STREAM(GestureHandling, stream << "UIProcess: sent gesture event " << eventType << " (queue size " << internals().gestureEventQueue.size() << ", dropped gestures since last gesture event processed: " << internals().droppedGestureEventCount << ")");
 
-    sendGestureEvent(m_mainFrame->frameID(), event);
+    sendGestureEvent(targetFrame->frameID(), event);
 
     internals().droppedGestureEventCount = 0;
 }
@@ -4460,8 +4496,11 @@ const NativeWebKeyboardEvent& WebPageProxy::firstQueuedKeyEvent() const
 
 void WebPageProxy::sendKeyEvent(const NativeWebKeyboardEvent& event)
 {
-    auto targetFrameID = m_focusedFrame ? m_focusedFrame->frameID() : m_mainFrame->frameID();
-    protectedLegacyMainFrameProcess()->recordUserGestureAuthorizationToken(targetFrameID, webPageIDInMainFrameProcess(), event.authorizationToken());
+    RefPtr targetFrame = m_focusedFrame ? m_focusedFrame : m_mainFrame;
+    auto targetFrameID = targetFrame->frameID();
+    Ref targetProcess = targetFrame->process();
+    targetProcess->startResponsivenessTimer(event.type() == WebEventType::KeyDown ? WebProcessProxy::UseLazyStop::Yes : WebProcessProxy::UseLazyStop::No);
+    targetProcess->recordUserGestureAuthorizationToken(targetFrameID, webPageIDInMainFrameProcess(), event.authorizationToken());
     if (event.isActivationTriggeringEvent())
         internals().lastActivationTimestamp = MonotonicTime::now();
     sendToProcessContainingFrame(targetFrameID, Messages::WebPage::KeyEvent(targetFrameID, event));
@@ -4480,9 +4519,6 @@ bool WebPageProxy::handleKeyboardEvent(const NativeWebKeyboardEvent& event)
     LOG_WITH_STREAM(KeyHandling, stream << "WebPageProxy::handleKeyboardEvent: " << event.type());
 
     internals().keyEventQueue.append(event);
-
-    Ref process = m_legacyMainFrameProcess;
-    process->startResponsivenessTimer(event.type() == WebEventType::KeyDown ? WebProcessProxy::UseLazyStop::Yes : WebProcessProxy::UseLazyStop::No);
 
     // Otherwise, sent from DidReceiveEvent message handler.
     if (internals().keyEventQueue.size() == 1) {
@@ -5121,6 +5157,9 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
         internals().enhancedSecurityTracker.trackNavigation(navigation);
 
     auto enhancedSecurity = currentEnhancedSecurityState(websitePolicies.get());
+
+    if (protectedPreferences()->enhancedSecurityHeuristicsEnabled())
+        protectedWebsiteDataStore()->trackEnhancedSecurityForDomain(RegistrableDomain { navigation.currentRequest().url() }, enhancedSecurity);
 
     Ref browsingContextGroup = m_browsingContextGroup;
     bool usesSameWebsiteDataStore = websiteDataStore.ptr() == &this->websiteDataStore();
@@ -8423,6 +8462,10 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
     if (!protectedPreferences()->safeBrowsingEnabled())
         shouldExpectSafeBrowsingResult = ShouldExpectSafeBrowsingResult::No;
 
+    ShouldWaitForSiteHasStorageCheck shouldWaitForSiteHasStorageCheck = ShouldWaitForSiteHasStorageCheck::Yes;
+    if (!frame.isMainFrame() || !protectedPreferences()->enhancedSecurityHeuristicsEnabled())
+        shouldWaitForSiteHasStorageCheck = ShouldWaitForSiteHasStorageCheck::No;
+
     ShouldExpectAppBoundDomainResult shouldExpectAppBoundDomainResult = ShouldExpectAppBoundDomainResult::No;
 #if ENABLE(APP_BOUND_DOMAINS)
     shouldExpectAppBoundDomainResult = ShouldExpectAppBoundDomainResult::Yes;
@@ -8549,11 +8592,13 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
         }
         completionHandlerWrapper(policyAction);
 
-    }, ShouldExpectSafeBrowsingResult::No, shouldExpectAppBoundDomainResult, shouldWaitForInitialLinkDecorationFilteringData);
+    }, ShouldExpectSafeBrowsingResult::No, shouldExpectAppBoundDomainResult, shouldWaitForInitialLinkDecorationFilteringData, shouldWaitForSiteHasStorageCheck);
     if (shouldExpectSafeBrowsingResult == ShouldExpectSafeBrowsingResult::Yes)
         beginSafeBrowsingCheck(request.url(), *navigation, frame.isMainFrame());
     if (shouldWaitForInitialLinkDecorationFilteringData == ShouldWaitForInitialLinkDecorationFilteringData::Yes)
         waitForInitialLinkDecorationFilteringData(listener);
+    if (shouldWaitForSiteHasStorageCheck == ShouldWaitForSiteHasStorageCheck::Yes)
+        beginSiteHasStorageCheck(request.url(), *navigation, listener);
 #if ENABLE(APP_BOUND_DOMAINS)
     bool shouldSendSecurityOriginData = !frame.isMainFrame() && shouldTreatURLProtocolAsAppBound(request.url(), websiteDataStore().configuration().enableInAppBrowserPrivacyForTesting());
     auto host = shouldSendSecurityOriginData ? frameInfo.securityOrigin.host() : request.url().host();
@@ -8718,7 +8763,7 @@ void WebPageProxy::decidePolicyForNewWindowAction(IPC::Connection& connection, N
         RELEASE_ASSERT(processSwapRequestedByClient == ProcessSwapRequestedByClient::No);
 
         receivedPolicyDecision(policyAction, nullptr, std::nullopt, WTFMove(navigationAction), WillContinueLoadInNewProcess::No, std::nullopt, std::nullopt, WTFMove(completionHandler));
-    }, ShouldExpectSafeBrowsingResult::No, ShouldExpectAppBoundDomainResult::No, ShouldWaitForInitialLinkDecorationFilteringData::No);
+    }, ShouldExpectSafeBrowsingResult::No, ShouldExpectAppBoundDomainResult::No, ShouldWaitForInitialLinkDecorationFilteringData::No, ShouldWaitForSiteHasStorageCheck::No);
 
     if (m_policyClient)
         m_policyClient->decidePolicyForNewWindowAction(*this, *frame, navigationAction.get(), request, frameName, WTFMove(listener));
@@ -8853,7 +8898,7 @@ void WebPageProxy::decidePolicyForResponseShared(Ref<WebProcessProxy>&& process,
         }
 #endif
         completionHandlerWrapper(policyAction);
-    }, expectSafeBrowsing , ShouldExpectAppBoundDomainResult::No, ShouldWaitForInitialLinkDecorationFilteringData::No);
+    }, expectSafeBrowsing , ShouldExpectAppBoundDomainResult::No, ShouldWaitForInitialLinkDecorationFilteringData::No, ShouldWaitForSiteHasStorageCheck::No);
     if (expectSafeBrowsing == ShouldExpectSafeBrowsingResult::Yes && navigation) {
         Seconds timeout = (MonotonicTime::now() - requestStart) * 1.5 + 0.25_s;
         RunLoop::mainSingleton().dispatchAfter(timeout, [listener, navigation] mutable {
@@ -11279,7 +11324,10 @@ void WebPageProxy::mouseEventHandlingCompleted(std::optional<WebEventType> event
         event->setCoalescedEvents(coalescedEvents);
 
         // FIXME: If these sandbox extensions are important, find a way to get them to the iframe process.
-        sendMouseEvent(remoteUserInputEventData->targetFrameID, event, { });
+        if (RefPtr targetFrame = WebFrameProxy::webFrame(remoteUserInputEventData->targetFrameID)) {
+            startResponsivenessTimerForMouseEvent(*targetFrame, event->type());
+            sendMouseEvent(remoteUserInputEventData->targetFrameID, event, { });
+        }
         return;
     }
 
@@ -11401,7 +11449,8 @@ void WebPageProxy::didReceiveEvent(IPC::Connection* connection, WebEventType eve
     case WebEventType::GestureChange:
     case WebEventType::GestureEnd:
 #endif
-        protectedLegacyMainFrameProcess()->stopResponsivenessTimer();
+        if (connection)
+            WebProcessProxy::fromConnection(*connection)->stopResponsivenessTimer();
         break;
     }
 
@@ -11678,28 +11727,38 @@ void WebPageProxy::focusedFrameChanged(IPC::Connection& connection, std::optiona
     broadcastFocusedFrameToOtherProcesses(connection, WTFMove(frameID));
 }
 
-void WebPageProxy::processDidBecomeUnresponsive()
+void WebPageProxy::processDidBecomeUnresponsive(WebProcessProxy& process)
 {
     WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "processDidBecomeUnresponsive:");
 
     if (!hasRunningProcess())
         return;
 
+    bool wasResponsive = m_unresponsiveProcesses.isEmpty();
+    m_unresponsiveProcesses.add(process);
+
+    // FIXME: Update updateBackingStoreDiscardableState to account for multiple web processes.
     updateBackingStoreDiscardableState();
 
-    m_navigationClient->processDidBecomeUnresponsive(*this);
+    if (wasResponsive)
+        m_navigationClient->processDidBecomeUnresponsive(*this);
 }
 
-void WebPageProxy::processDidBecomeResponsive()
+void WebPageProxy::processDidBecomeResponsive(WebProcessProxy& process)
 {
     WEBPAGEPROXY_RELEASE_LOG(Process, "processDidBecomeResponsive:");
 
-    if (!hasRunningProcess())
+    bool didRemove = m_unresponsiveProcesses.remove(process);
+    if (!didRemove)
         return;
+    bool isReponsive = m_unresponsiveProcesses.isEmpty();
 
-    updateBackingStoreDiscardableState();
+    // FIXME: Update updateBackingStoreDiscardableState to account for multiple web processes.
+    if (hasRunningProcess())
+        updateBackingStoreDiscardableState();
 
-    m_navigationClient->processDidBecomeResponsive(*this);
+    if (isReponsive)
+        m_navigationClient->processDidBecomeResponsive(*this);
 }
 
 void WebPageProxy::willChangeProcessIsResponsive()
@@ -11793,8 +11852,10 @@ void WebPageProxy::dispatchProcessDidTerminate(WebProcessProxy& process, Process
 {
     WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: reason=%" PUBLIC_LOG_STRING, processTerminationReasonToString(reason).characters());
 
-    if (protectedPreferences()->siteIsolationEnabled())
+    if (protectedPreferences()->siteIsolationEnabled()) {
+        processDidBecomeResponsive(process); // Check if all other processes are responsive.
         protectedBrowsingContextGroup()->processDidTerminate(*this, process);
+    }
 
     bool handledByClient = false;
     if (m_loaderClient)
@@ -13499,12 +13560,28 @@ void WebPageProxy::spatialBackdropSourceChanged(std::optional<WebCore::SpatialBa
 #endif
 
 #if ENABLE(MODEL_ELEMENT_IMMERSIVE)
-void WebPageProxy::canEnterImmersiveElementFromURL(const URL& url, CompletionHandler<void(bool)>&& completion)
+void WebPageProxy::allowImmersiveElementFromURL(const URL& url, CompletionHandler<void(bool)>&& completion) const
 {
     if (RefPtr pageClient = this->pageClient())
-        pageClient->canEnterImmersiveElementFromURL(url, WTFMove(completion));
+        pageClient->allowImmersiveElementFromURL(url, WTFMove(completion));
     else
         completion(false);
+}
+
+void WebPageProxy::presentImmersiveElement(const WebCore::LayerHostingContextIdentifier contextID, CompletionHandler<void(bool)>&& completion) const
+{
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->presentImmersiveElement(contextID, WTFMove(completion));
+    else
+        completion(false);
+}
+
+void WebPageProxy::dismissImmersiveElement(CompletionHandler<void()>&& completion) const
+{
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->dismissImmersiveElement(WTFMove(completion));
+    else
+        completion();
 }
 #endif
 
@@ -15543,7 +15620,9 @@ void WebPageProxy::willAcquireUniversalFileReadSandboxExtension(WebProcessProxy&
 
 void WebPageProxy::simulateDeviceOrientationChange(double alpha, double beta, double gamma)
 {
-    send(Messages::WebPage::SimulateDeviceOrientationChange(alpha, beta, gamma));
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.send(Messages::WebPage::SimulateDeviceOrientationChange(alpha, beta, gamma), pageID);
+    });
 }
 
 #if ENABLE(DATA_DETECTION)
@@ -16523,6 +16602,14 @@ void WebPageProxy::waitForInitialLinkDecorationFilteringData(WebFramePolicyListe
 #endif
 }
 
+void WebPageProxy::beginSiteHasStorageCheck(const URL& url, API::Navigation& navigation, WebFramePolicyListenerProxy& listener)
+{
+    protectedWebsiteDataStore()->hasLocalStorageOrCookies(url, [navigation = Ref { navigation }, url, listener = Ref { listener }] (bool hasStorage) mutable {
+        navigation->setHasStorageForCurrentSite(url, hasStorage);
+        listener->didReceiveSiteHasStorageResults();
+    });
+}
+
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 void WebPageProxy::pauseAllAnimations(CompletionHandler<void()>&& completionHandler)
 {
@@ -17340,6 +17427,13 @@ bool shouldShowSwiftDemoLogo()
     RELEASE_ASSERT_NOT_REACHED();
 #endif
 }
+
+#if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)
+RefPtr<WebDeviceOrientationUpdateProviderProxy> WebPageProxy::webDeviceOrientationUpdateProviderProxy()
+{
+    return m_webDeviceOrientationUpdateProviderProxy;
+}
+#endif
 
 } // namespace WebKit
 

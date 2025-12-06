@@ -63,6 +63,10 @@
 #include "RemotePageVideoPresentationManagerProxy.h"
 #endif
 
+#if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)
+#include "WebDeviceOrientationUpdateProviderProxy.h"
+#endif
+
 namespace WebKit {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(RemotePageProxy);
@@ -85,6 +89,10 @@ RemotePageProxy::RemotePageProxy(WebPageProxy& page, WebProcessProxy& process, c
         m_messageReceiverRegistration.startReceivingMessages(m_process, m_webPageID, *this, page.backForwardList());
 
     m_process->addRemotePageProxy(*this);
+
+#if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)
+    m_page->webDeviceOrientationUpdateProviderProxy()->addAsMessageReceiverForProcess(m_process.get(), m_webPageID);
+#endif
 }
 
 void RemotePageProxy::injectPageIntoNewProcess()
@@ -103,6 +111,9 @@ void RemotePageProxy::injectPageIntoNewProcess()
     if (page->preferences().backgroundWebContentRunningBoardThrottlingEnabled())
         m_process->setRunningBoardThrottlingEnabled();
 #endif
+
+    if (page->hasValidNetworkActivity())
+        m_processActivityState->takeNetworkActivity();
 
     Ref drawingArea = *page->drawingArea();
     m_drawingArea = RemotePageDrawingAreaProxy::create(drawingArea.get(), m_process);
@@ -148,6 +159,10 @@ void RemotePageProxy::processDidTerminate(WebProcessProxy& process, ProcessTermi
 
 RemotePageProxy::~RemotePageProxy()
 {
+#if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)
+    m_page->webDeviceOrientationUpdateProviderProxy()->removeAsMessageReceiverForProcess(m_process.get(), m_webPageID);
+#endif
+
     if (RefPtr page = m_page.get())
         page->isNoLongerAssociatedWithRemotePage(*this);
     if (m_drawingArea)

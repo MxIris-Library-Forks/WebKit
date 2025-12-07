@@ -5147,6 +5147,12 @@ static void convertAndAddHighlight(Vector<Ref<WebCore::SharedMemory>>& buffers, 
     return nil;
 }
 
+- (void)_simulateDeviceMotionChangeWithXAcceleration:(double)xAcceleration yAcceleration:(double)yAcceleration zAcceleration:(double)zAcceleration xAccelerationIncludingGravity:(double)xAccelerationIncludingGravity yAccelerationIncludingGravity:(double)yAccelerationIncludingGravity zAccelerationIncludingGravity:(double)zAccelerationIncludingGravity xRotationRate:(double)xRotationRate yRotationRate:(double)yRotationRate zRotationRate:(double)zRotationRate
+{
+    THROW_IF_SUSPENDED;
+    _page->simulateDeviceMotionChange(xAcceleration, yAcceleration, zAcceleration, xAccelerationIncludingGravity, yAccelerationIncludingGravity, zAccelerationIncludingGravity, xRotationRate, yRotationRate, zRotationRate);
+}
+
 - (void)_simulateDeviceOrientationChangeWithAlpha:(double)alpha beta:(double)beta gamma:(double)gamma
 {
     THROW_IF_SUSPENDED;
@@ -7015,6 +7021,18 @@ static std::optional<WebCore::JSHandleIdentifier> mainFrameJSHandleIdentifier(_W
     return info.identifier;
 }
 
+static Vector<WebCore::JSHandleIdentifier> extractHandleIdentifiersOfNodesToSkip(_WKTextExtractionConfiguration *configuration)
+{
+    Vector<WebCore::JSHandleIdentifier> nodes;
+    RetainPtr nodesToSkip = [configuration nodesToSkip];
+    nodes.reserveInitialCapacity([nodesToSkip count]);
+    for (_WKJSHandle *handle in nodesToSkip.get()) {
+        if (auto identifier = mainFrameJSHandleIdentifier(handle))
+            nodes.append(WTFMove(*identifier));
+    }
+    return nodes;
+}
+
 static HashMap<String, HashMap<WebCore::JSHandleIdentifier, String>> extractClientNodeAttributes(_WKTextExtractionConfiguration *configuration)
 {
     __block HashMap<String, HashMap<WebCore::JSHandleIdentifier, String>> result;
@@ -7070,6 +7088,7 @@ static HashMap<String, HashMap<WebCore::JSHandleIdentifier, String>> extractClie
         .clientNodeAttributes = extractClientNodeAttributes(configuration),
         .collectionRectInRootView = WTFMove(rectInRootView),
         .targetNodeHandleIdentifier = mainFrameJSHandleIdentifier(configuration.targetNode),
+        .handleIdentifiersOfNodesToSkip = extractHandleIdentifiersOfNodesToSkip(configuration),
         .mergeParagraphs = mergeParagraphs,
         .skipNearlyTransparentContent = skipNearlyTransparentContent,
         .nodeIdentifierInclusion = nodeIdentifierInclusion,

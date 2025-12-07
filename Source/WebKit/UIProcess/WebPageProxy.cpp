@@ -10352,11 +10352,20 @@ void WebPageProxy::setMockVideoPresentationModeEnabled(bool enabled)
 #endif
 
 #if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
-void WebPageProxy::ensureRemoteMediaSessionManagerProxy()
+void WebPageProxy::addRemoteMediaSessionManager(WebCore::PageIdentifier localPageIdentifier)
 {
     if (!m_mediaSessionManagerProxy)
         m_mediaSessionManagerProxy = RemoteMediaSessionManagerProxy::create(webPageIDInMainFrameProcess(), Ref { siteIsolatedProcess() });
+
+    Ref { *m_mediaSessionManagerProxy }->addRemoteMediaSessionManager(localPageIdentifier);
 }
+
+void WebPageProxy::removeRemoteMediaSessionManager(WebCore::PageIdentifier pageIdentifier)
+{
+    if (m_mediaSessionManagerProxy)
+        Ref { *m_mediaSessionManagerProxy }->removeRemoteMediaSessionManager(pageIdentifier);
+}
+
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -15618,6 +15627,13 @@ void WebPageProxy::willAcquireUniversalFileReadSandboxExtension(WebProcessProxy&
     process.willAcquireUniversalFileReadSandboxExtension();
 }
 
+void WebPageProxy::simulateDeviceMotionChange(double xAcceleration, double yAcceleration, double zAcceleration, double xAccelerationIncludingGravity, double yAccelerationIncludingGravity, double zAccelerationIncludingGravity, double xRotationRate, double yRotationRate, double zRotationRate)
+{
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.send(Messages::WebPage::SimulateDeviceMotionChange(xAcceleration, yAcceleration, zAcceleration, xAccelerationIncludingGravity, yAccelerationIncludingGravity, zAccelerationIncludingGravity, xRotationRate, yRotationRate, zRotationRate), pageID);
+    });
+}
+
 void WebPageProxy::simulateDeviceOrientationChange(double alpha, double beta, double gamma)
 {
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
@@ -17414,6 +17430,15 @@ void WebPageProxy::networkRequestsInProgressDidChange()
     Ref pageLoadState = internals().pageLoadState;
     auto transaction = pageLoadState->transaction();
     pageLoadState->setNetworkRequestsInProgress(transaction, hasNetworkRequestsInProgress);
+}
+
+void WebPageProxy::takeActivitiesOnRemotePage(RemotePageProxy& remotePage)
+{
+    if (hasValidVisibleActivity())
+        remotePage.processActivityState().takeVisibleActivity();
+
+    if (hasValidNetworkActivity())
+        remotePage.processActivityState().takeNetworkActivity();
 }
 
 // See SwiftDemoLogo.swift for the rationale here

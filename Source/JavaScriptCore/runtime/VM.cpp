@@ -76,8 +76,8 @@
 #include "JSMap.h"
 #include "JSMicrotask.h"
 #include "JSPromise.h"
-#include "JSPromiseAllContextInlines.h"
-#include "JSPromiseAllGlobalContext.h"
+#include "JSPromiseCombinatorsContextInlines.h"
+#include "JSPromiseCombinatorsGlobalContext.h"
 #include "JSPromiseConstructor.h"
 #include "JSPromiseReaction.h"
 #include "JSPropertyNameEnumeratorInlines.h"
@@ -325,8 +325,8 @@ VM::VM(VMType vmType, HeapType heapType, WTF::RunLoop* runLoop, bool* success)
     functionExecutableStructure.setWithoutWriteBarrier(FunctionExecutable::createStructure(*this, nullptr, jsNull()));
     moduleProgramExecutableStructure.setWithoutWriteBarrier(ModuleProgramExecutable::createStructure(*this, nullptr, jsNull()));
     promiseReactionStructure.setWithoutWriteBarrier(JSPromiseReaction::createStructure(*this, nullptr, jsNull()));
-    promiseAllContextStructure.setWithoutWriteBarrier(JSPromiseAllContext::createStructure(*this, nullptr, jsNull()));
-    promiseAllGlobalContextStructure.setWithoutWriteBarrier(JSPromiseAllGlobalContext::createStructure(*this, nullptr, jsNull()));
+    promiseCombinatorsContextStructure.setWithoutWriteBarrier(JSPromiseCombinatorsContext::createStructure(*this, nullptr, jsNull()));
+    promiseCombinatorsGlobalContextStructure.setWithoutWriteBarrier(JSPromiseCombinatorsGlobalContext::createStructure(*this, nullptr, jsNull()));
     regExpStructure.setWithoutWriteBarrier(RegExp::createStructure(*this, nullptr, jsNull()));
     symbolStructure.setWithoutWriteBarrier(Symbol::createStructure(*this, nullptr, jsNull()));
     symbolTableStructure.setWithoutWriteBarrier(SymbolTable::createStructure(*this, nullptr, jsNull()));
@@ -1571,6 +1571,54 @@ NativeExecutable* VM::promiseAllSlowFulfillFunctionExecutableSlow()
     return executable;
 }
 
+NativeExecutable* VM::promiseAllSettledFulfillFunctionExecutableSlow()
+{
+    ASSERT(!m_promiseAllSettledFulfillFunctionExecutable);
+    auto* executable = getHostFunction(promiseAllSettledFulfillFunction, ImplementationVisibility::Public, callHostFunctionAsConstructor, emptyString());
+    m_promiseAllSettledFulfillFunctionExecutable.setWithoutWriteBarrier(executable);
+    return executable;
+}
+
+NativeExecutable* VM::promiseAllSettledRejectFunctionExecutableSlow()
+{
+    ASSERT(!m_promiseAllSettledRejectFunctionExecutable);
+    auto* executable = getHostFunction(promiseAllSettledRejectFunction, ImplementationVisibility::Public, callHostFunctionAsConstructor, emptyString());
+    m_promiseAllSettledRejectFunctionExecutable.setWithoutWriteBarrier(executable);
+    return executable;
+}
+
+NativeExecutable* VM::promiseAllSettledSlowFulfillFunctionExecutableSlow()
+{
+    ASSERT(!m_promiseAllSettledSlowFulfillFunctionExecutable);
+    auto* executable = getHostFunction(promiseAllSettledSlowFulfillFunction, ImplementationVisibility::Public, callHostFunctionAsConstructor, emptyString());
+    m_promiseAllSettledSlowFulfillFunctionExecutable.setWithoutWriteBarrier(executable);
+    return executable;
+}
+
+NativeExecutable* VM::promiseAllSettledSlowRejectFunctionExecutableSlow()
+{
+    ASSERT(!m_promiseAllSettledSlowRejectFunctionExecutable);
+    auto* executable = getHostFunction(promiseAllSettledSlowRejectFunction, ImplementationVisibility::Public, callHostFunctionAsConstructor, emptyString());
+    m_promiseAllSettledSlowRejectFunctionExecutable.setWithoutWriteBarrier(executable);
+    return executable;
+}
+
+NativeExecutable* VM::promiseAnyRejectFunctionExecutableSlow()
+{
+    ASSERT(!m_promiseAnyRejectFunctionExecutable);
+    auto* executable = getHostFunction(promiseAnyRejectFunction, ImplementationVisibility::Public, callHostFunctionAsConstructor, emptyString());
+    m_promiseAnyRejectFunctionExecutable.setWithoutWriteBarrier(executable);
+    return executable;
+}
+
+NativeExecutable* VM::promiseAnySlowRejectFunctionExecutableSlow()
+{
+    ASSERT(!m_promiseAnySlowRejectFunctionExecutable);
+    auto* executable = getHostFunction(promiseAnySlowRejectFunction, ImplementationVisibility::Public, callHostFunctionAsConstructor, emptyString());
+    m_promiseAnySlowRejectFunctionExecutable.setWithoutWriteBarrier(executable);
+    return executable;
+}
+
 void VM::executeEntryScopeServicesOnEntry()
 {
     if (hasEntryScopeServiceRequest(EntryScopeService::FirePrimitiveGigacageEnabled)) [[unlikely]] {
@@ -1715,8 +1763,8 @@ void VM::visitAggregateImpl(Visitor& visitor)
 #endif
     visitor.append(moduleProgramExecutableStructure);
     visitor.append(promiseReactionStructure);
-    visitor.append(promiseAllContextStructure);
-    visitor.append(promiseAllGlobalContextStructure);
+    visitor.append(promiseCombinatorsContextStructure);
+    visitor.append(promiseCombinatorsGlobalContextStructure);
     visitor.append(regExpStructure);
     visitor.append(symbolStructure);
     visitor.append(symbolTableStructure);
@@ -1762,6 +1810,12 @@ void VM::visitAggregateImpl(Visitor& visitor)
     visitor.append(m_promiseCapabilityExecutorExecutable);
     visitor.append(m_promiseAllFulfillFunctionExecutable);
     visitor.append(m_promiseAllSlowFulfillFunctionExecutable);
+    visitor.append(m_promiseAllSettledFulfillFunctionExecutable);
+    visitor.append(m_promiseAllSettledRejectFunctionExecutable);
+    visitor.append(m_promiseAllSettledSlowFulfillFunctionExecutable);
+    visitor.append(m_promiseAllSettledSlowRejectFunctionExecutable);
+    visitor.append(m_promiseAnyRejectFunctionExecutable);
+    visitor.append(m_promiseAnySlowRejectFunctionExecutable);
 }
 DEFINE_VISIT_AGGREGATE(VM);
 

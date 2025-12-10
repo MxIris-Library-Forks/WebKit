@@ -1785,7 +1785,6 @@
 		469D77B82701625100142FA6 /* NavigationRequester.h in Headers */ = {isa = PBXBuildFile; fileRef = 469D77B62701625000142FA6 /* NavigationRequester.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46A49C9328EE67ED00208B6E /* DocumentOrShadowRootFullscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = 46A49C9128EE67E300208B6E /* DocumentOrShadowRootFullscreen.h */; };
 		46A78B342799BD71001154FE /* WorkerOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C1B1D2626F18A4B00882DA2 /* WorkerOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		46A877482D0D426800DE225E /* SpanCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 46A877472D0D426800DE225E /* SpanCoreAudio.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46AAAA3D25D3632000BAF42F /* AudioFileReaderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 46AAAA3A25D3631400BAF42F /* AudioFileReaderCocoa.h */; };
 		46AD2CD028E4FD5100040F10 /* ScreenOrientation.h in Headers */ = {isa = PBXBuildFile; fileRef = 46AD2CCF28E4FD3B00040F10 /* ScreenOrientation.h */; };
 		46ADA8792B6D5B6500D9D746 /* ShareableResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 46ADA8782B6D5B2B00D9D746 /* ShareableResource.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5942,6 +5941,8 @@
 		D20E878D2AF44B5E004579F3 /* SwitchMacUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = D20E878C2AF44B5E004579F3 /* SwitchMacUtilities.h */; };
 		D22B85932EB4EF6D000D2DC3 /* HTMLSelectedContentElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D22B85912EB4EF6D000D2DC3 /* HTMLSelectedContentElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D245B6DD2B679280009AA00E /* HTTPStatusCodes.h in Headers */ = {isa = PBXBuildFile; fileRef = D245B6D02B6791BA009AA00E /* HTTPStatusCodes.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D267D41F2EE1B21E00C5E212 /* Origin.h in Headers */ = {isa = PBXBuildFile; fileRef = D267D41D2EE1B21E00C5E212 /* Origin.h */; };
+		D267D41F2EE1B21E00C5E213 /* JSOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = D267D41D2EE1B21E00C5E213 /* JSOrigin.h */; };
 		D2820C472CB615D20013B346 /* ShouldPartitionCookie.h in Headers */ = {isa = PBXBuildFile; fileRef = D2820C462CB60EEE0013B346 /* ShouldPartitionCookie.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D2858AF22C58149300EEEEF1 /* HTTPSByDefaultMode.h in Headers */ = {isa = PBXBuildFile; fileRef = D2858AF12C58149300EEEEF1 /* HTTPSByDefaultMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D28D8FEA2B460CF4006F16F5 /* UserAgentParts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E51194BE270E7E4A0064FCBA /* UserAgentParts.cpp */; };
@@ -11535,7 +11536,6 @@
 		46A49C9028EE67E300208B6E /* DocumentOrShadowRoot+Fullscreen.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "DocumentOrShadowRoot+Fullscreen.idl"; sourceTree = "<group>"; };
 		46A49C9128EE67E300208B6E /* DocumentOrShadowRootFullscreen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DocumentOrShadowRootFullscreen.h; sourceTree = "<group>"; };
 		46A49C9228EE67E300208B6E /* DocumentOrShadowRootFullscreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DocumentOrShadowRootFullscreen.cpp; sourceTree = "<group>"; };
-		46A877472D0D426800DE225E /* SpanCoreAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpanCoreAudio.h; sourceTree = "<group>"; };
 		46AAAA3A25D3631400BAF42F /* AudioFileReaderCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileReaderCocoa.h; sourceTree = "<group>"; };
 		46AAAA3C25D3631400BAF42F /* AudioFileReaderCocoa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioFileReaderCocoa.cpp; sourceTree = "<group>"; };
 		46ACD8112701656A00EF8CED /* NavigationRequester.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NavigationRequester.cpp; sourceTree = "<group>"; };
@@ -20698,6 +20698,11 @@
 		D22B85912EB4EF6D000D2DC3 /* HTMLSelectedContentElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLSelectedContentElement.h; sourceTree = "<group>"; };
 		D22B85922EB4EF6D000D2DC3 /* HTMLSelectedContentElement.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HTMLSelectedContentElement.idl; sourceTree = "<group>"; };
 		D245B6D02B6791BA009AA00E /* HTTPStatusCodes.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = HTTPStatusCodes.h; sourceTree = "<group>"; };
+		D267D41C2EE1B21E00C5E212 /* Origin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Origin.cpp; sourceTree = "<group>"; };
+		D267D41D2EE1B21E00C5E212 /* Origin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Origin.h; sourceTree = "<group>"; };
+		D267D41E2EE1B21E00C5E212 /* Origin.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Origin.idl; sourceTree = "<group>"; };
+		D267D41C2EE1B21E00C5E213 /* JSOrigin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSOrigin.cpp; sourceTree = "<group>"; };
+		D267D41D2EE1B21E00C5E213 /* JSOrigin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSOrigin.h; sourceTree = "<group>"; };
 		D2820C462CB60EEE0013B346 /* ShouldPartitionCookie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShouldPartitionCookie.h; sourceTree = "<group>"; };
 		D2858AF12C58149300EEEEF1 /* HTTPSByDefaultMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HTTPSByDefaultMode.h; sourceTree = "<group>"; };
 		D2BB5C64290985E40065457D /* AdvancedPrivacyProtections.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AdvancedPrivacyProtections.h; sourceTree = "<group>"; };
@@ -32146,6 +32151,9 @@
 				314877E01FAA8FE900C05759 /* OffscreenCanvas.cpp */,
 				314877E11FAA8FE900C05759 /* OffscreenCanvas.h */,
 				314877D91FAA870600C05759 /* OffscreenCanvas.idl */,
+				D267D41C2EE1B21E00C5E212 /* Origin.cpp */,
+				D267D41D2EE1B21E00C5E212 /* Origin.h */,
+				D267D41E2EE1B21E00C5E212 /* Origin.idl */,
 				3AD4AB892C3CABCD00A3E7F3 /* OwnerPermissionsPolicyData.h */,
 				F55B3D951251F12D003EF269 /* PasswordInputType.cpp */,
 				F55B3D961251F12D003EF269 /* PasswordInputType.h */,
@@ -33683,6 +33691,8 @@
 				314877E41FAAB02200C05759 /* JSOffscreenCanvas.h */,
 				3140C5261FDF558100D2A873 /* JSOffscreenCanvasRenderingContext2D.cpp */,
 				3140C5251FDF557F00D2A873 /* JSOffscreenCanvasRenderingContext2D.h */,
+				D267D41C2EE1B21E00C5E213 /* JSOrigin.cpp */,
+				D267D41D2EE1B21E00C5E213 /* JSOrigin.h */,
 				7C193BFD1F5E10D60088F3E6 /* JSPath2D.cpp */,
 				7C193BFE1F5E10D70088F3E6 /* JSPath2D.h */,
 				B658FF9F1522EF3A00DD5595 /* JSRadioNodeList.cpp */,
@@ -38356,7 +38366,6 @@
 				417F7AEA2139BF6400FBA7EC /* MediaSessionManagerCocoa.mm */,
 				5183EBD52CF73A86005FAC1F /* PlatformRawAudioDataCocoa.cpp */,
 				5183EBD42CF73A86005FAC1F /* PlatformRawAudioDataCocoa.h */,
-				46A877472D0D426800DE225E /* SpanCoreAudio.h */,
 				CD722A0D2D6917B400F2E1E7 /* SpatialAudioExperienceHelper.h */,
 				CD722A0E2D6917B400F2E1E7 /* SpatialAudioExperienceHelper.mm */,
 				417F7AEB2139BF6400FBA7EC /* WebAudioBufferList.cpp */,
@@ -44778,6 +44787,7 @@
 				3140C5271FDF558200D2A873 /* JSOffscreenCanvasRenderingContext2D.h in Headers */,
 				57E233651DC7DB1F00F28D01 /* JsonWebKey.h in Headers */,
 				71207343216DFB4100C78329 /* JSOptionalEffectTiming.h in Headers */,
+				D267D41F2EE1B21E00C5E213 /* JSOrigin.h in Headers */,
 				FDEA6243152102E200479DF0 /* JSOscillatorNode.h in Headers */,
 				0704A40C1D6DFC690086DCDB /* JSOverconstrainedError.h in Headers */,
 				0704A4161D6F39FB0086DCDB /* JSOverconstrainedErrorEvent.h in Headers */,
@@ -45721,6 +45731,7 @@
 				CDE7FC45181904B1002BBB77 /* OrderIterator.h in Headers */,
 				D2DA641F2B0E98BD0003F9B2 /* OrganizationStorageAccessPromptQuirk.h in Headers */,
 				4184F5161EAF05A800F18BF0 /* OrientationNotifier.h in Headers */,
+				D267D41F2EE1B21E00C5E212 /* Origin.h in Headers */,
 				0014628B103CD1DE000B20DB /* OriginAccessEntry.h in Headers */,
 				FA9CD6322A01A78000EA5CAC /* OriginAccessPatterns.h in Headers */,
 				FE9E89FC16E2DC0500A908F8 /* OriginLock.h in Headers */,
@@ -46746,7 +46757,6 @@
 				84A81F420FC7E02700955300 /* SourceGraphic.h in Headers */,
 				72F7E746279B8F7500D82D2D /* SourceImage.h in Headers */,
 				D01A27AE10C9BFD800026A42 /* SpaceSplitString.h in Headers */,
-				46A877482D0D426800DE225E /* SpanCoreAudio.h in Headers */,
 				CD722A132D693CFF00F2E1E7 /* SpatialAudioExperienceHelper.h in Headers */,
 				CA3344082D16174C007473A1 /* SpatialBackdropSource.h in Headers */,
 				B9CA3B402CAB1D3E00B2607C /* SpatialImageControls.h in Headers */,

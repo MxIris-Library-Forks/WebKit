@@ -535,7 +535,7 @@ void RenderBlockFlow::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit 
         return false;
     }();
 
-    if (!firstChild() && !isPaginated && !is<RenderMultiColumnSet>(*this))
+    if (!firstChild() && !isPaginated && !is<RenderMultiColumnSet>(*this) && (parent() && parent()->isBlockContainer()))
         return layoutBlockWithNoChildren();
 
     LayoutRepainter repainter(*this);
@@ -4782,8 +4782,14 @@ void RenderBlockFlow::computeInlinePreferredLogicalWidths(LayoutUnit& minLogical
             auto blocMaxWidth = LayoutUnit { };
             computeChildPreferredLogicalWidths(downcast<RenderBox>(*child), blockMinWidth, blocMaxWidth);
 
-            minLogicalWidth = std::max(minLogicalWidth, blockMinWidth);
-            maxLogicalWidth = std::max(maxLogicalWidth, blocMaxWidth);
+            auto marginsInInlineDirection = LayoutUnit { };
+            if (auto fixedMarginStart = child->style().marginStart(writingMode()).tryFixed())
+                marginsInInlineDirection += LayoutUnit::fromFloatCeil(fixedMarginStart->resolveZoom(child->style().usedZoomForLength()));
+            if (auto fixedMarginEnd = child->style().marginEnd(writingMode()).tryFixed())
+                marginsInInlineDirection += LayoutUnit::fromFloatCeil(fixedMarginEnd->resolveZoom(child->style().usedZoomForLength()));
+
+            minLogicalWidth = std::max(minLogicalWidth, blockMinWidth + marginsInInlineDirection);
+            maxLogicalWidth = std::max(maxLogicalWidth, blocMaxWidth + marginsInInlineDirection);
             continue;
         }
 

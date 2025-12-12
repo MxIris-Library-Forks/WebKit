@@ -1616,8 +1616,6 @@ TEST(SiteIsolation, ChildBeingNavigatedToNewDomainByParent)
     EXPECT_WK_STREQ([webView _test_waitForAlert], "parent frame received pingpong");
 }
 
-// FIXME: Investigate why this asserts only on Sequoia and Sonoma. See https://bugs.webkit.org/show_bug.cgi?id=303340
-#if !PLATFORM(MAC) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 260000 || defined(NDEBUG)
 TEST(SiteIsolation, IframeRedirectSameSite)
 {
     HTTPServer server({
@@ -1672,7 +1670,6 @@ TEST(SiteIsolation, IframeRedirectCrossSite)
         }
     });
 }
-#endif
 
 TEST(SiteIsolation, CrossOriginOpenerPolicy)
 {
@@ -2016,12 +2013,7 @@ TEST(SiteIsolation, RunOpenPanel)
         Util::spinRunLoop();
 }
 
-// FIXME when rdar://163227871 is resolved.
-#if PLATFORM(MAC)
-TEST(SiteIsolation, DISABLED_CancelOpenPanel)
-#else
 TEST(SiteIsolation, CancelOpenPanel)
-#endif
 {
     auto subframeHTML = "<!DOCTYPE html><input style='width: 100vw; height: 100vh;' id='file' type='file'>"
         "<script>"
@@ -2044,7 +2036,6 @@ TEST(SiteIsolation, CancelOpenPanel)
     CGPoint eventLocationInWindow = [webView convertPoint:CGPointMake(100, 100) toView:nil];
     [webView mouseDownAtPoint:eventLocationInWindow simulatePressure:NO];
     [webView mouseUpAtPoint:eventLocationInWindow];
-    [webView waitForPendingMouseEvents];
     EXPECT_WK_STREQ([uiDelegate waitForAlert], "cancel");
 }
 
@@ -3089,8 +3080,6 @@ TEST(SiteIsolation, OpenProvisionalFailure)
     checkFrameTreesInProcesses(opened.webView.get(), { { "https://example.com"_s } });
 }
 
-// FIXME: Investigate why this asserts only on Sequoia and Sonoma. See https://bugs.webkit.org/show_bug.cgi?id=303340
-#if !PLATFORM(MAC) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 260000 || defined(NDEBUG)
 TEST(SiteIsolation, NavigateIframeToProvisionalNavigationFailure)
 {
     HTTPServer server({
@@ -3151,7 +3140,6 @@ TEST(SiteIsolation, NavigateIframeToProvisionalNavigationFailure)
     checkProvisionalLoadFailure(@"https://webkit.org/redirect_to_apple_terminate");
     checkProvisionalLoadFailure(@"https://apple.com/redirect_to_apple_terminate");
 }
-#endif
 
 TEST(SiteIsolation, DrawAfterNavigateToDomainAgain)
 {

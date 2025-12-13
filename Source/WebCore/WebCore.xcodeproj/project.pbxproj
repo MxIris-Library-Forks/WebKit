@@ -5810,6 +5810,8 @@
 		CDB7045A1F7465A1003923DF /* CDMFairPlayStreaming.h in Headers */ = {isa = PBXBuildFile; fileRef = CDB704581F7465A1003923DF /* CDMFairPlayStreaming.h */; };
 		CDB7045B1F7465A1003923DF /* CDMFairPlayStreaming.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDB704591F7465A1003923DF /* CDMFairPlayStreaming.cpp */; };
 		CDBEAEAD19D92B6C00BEBA88 /* MediaSelectionGroupAVFObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBEAEAB19D92B6C00BEBA88 /* MediaSelectionGroupAVFObjC.h */; };
+		CDBEEF9A2ECF843200963F77 /* CDMKeyID.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBEEF992ECF843200963F77 /* CDMKeyID.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDBEEF9C2ECF966900963F77 /* CDMTypesForward.h in Headers */ = {isa = PBXBuildFile; fileRef = CDBEEF9B2ECF966900963F77 /* CDMTypesForward.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDC224281F756966005F077B /* CDMInstanceFairPlayStreamingAVFObjC.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD78A2EC1F75648600DE371B /* CDMInstanceFairPlayStreamingAVFObjC.mm */; };
 		CDC26B40160A8CC60026757B /* LegacyMockCDM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDC26B3C160A62B00026757B /* LegacyMockCDM.cpp */; };
 		CDC26B41160A8CCE0026757B /* LegacyMockCDM.h in Headers */ = {isa = PBXBuildFile; fileRef = CDC26B3D160A62B00026757B /* LegacyMockCDM.h */; };
@@ -20429,6 +20431,8 @@
 		CDBEAEAA19D92B6C00BEBA88 /* MediaSelectionGroupAVFObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MediaSelectionGroupAVFObjC.mm; sourceTree = "<group>"; };
 		CDBEAEAB19D92B6C00BEBA88 /* MediaSelectionGroupAVFObjC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaSelectionGroupAVFObjC.h; sourceTree = "<group>"; };
 		CDBEEF762ECE5B6500963F77 /* JSResolvedCaptionDisplaySettingsOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSResolvedCaptionDisplaySettingsOptions.h; sourceTree = "<group>"; };
+		CDBEEF992ECF843200963F77 /* CDMKeyID.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CDMKeyID.h; sourceTree = "<group>"; };
+		CDBEEF9B2ECF966900963F77 /* CDMTypesForward.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CDMTypesForward.h; sourceTree = "<group>"; };
 		CDC26B3C160A62B00026757B /* LegacyMockCDM.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyMockCDM.cpp; sourceTree = "<group>"; };
 		CDC26B3D160A62B00026757B /* LegacyMockCDM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyMockCDM.h; sourceTree = "<group>"; };
 		CDC312E122FCD0B0001204EC /* RemotePlayback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemotePlayback.h; sourceTree = "<group>"; };
@@ -38473,6 +38477,7 @@
 				CD94A5CE1F71CB6A00F525C5 /* CDMInstance.h */,
 				CD9D375A215163E40049657B /* CDMInstanceSession.h */,
 				A1038D432AB20BEA00F57BA4 /* CDMKeyGroupingStrategy.h */,
+				CDBEEF992ECF843200963F77 /* CDMKeyID.h */,
 				CD94A5D41F71CB6C00F525C5 /* CDMKeyStatus.h */,
 				CD94A5CD1F71CB6900F525C5 /* CDMKeySystemConfiguration.h */,
 				CD8D306E23AD4FA8006C3975 /* CDMLogging.cpp */,
@@ -38486,6 +38491,7 @@
 				CD94A5CC1F71CB6900F525C5 /* CDMRequirement.h */,
 				CD94A5D01F71CB6B00F525C5 /* CDMRestrictions.h */,
 				CD94A5D51F71CB6D00F525C5 /* CDMSessionType.h */,
+				CDBEEF9B2ECF966900963F77 /* CDMTypesForward.h */,
 				CDE3AE1324B4936F00128E7E /* CDMUtilities.cpp */,
 				CDE3AE1024B4916900128E7E /* CDMUtilities.h */,
 			);
@@ -42659,6 +42665,7 @@
 				CD3CE0FA2401AAD9004BA01D /* CDMInstance.h in Headers */,
 				CD3CE0FB2401AAD9004BA01D /* CDMInstanceSession.h in Headers */,
 				A1038D442AB20BEA00F57BA4 /* CDMKeyGroupingStrategy.h in Headers */,
+				CDBEEF9A2ECF843200963F77 /* CDMKeyID.h in Headers */,
 				CD3CE0FC2401AAD9004BA01D /* CDMKeyStatus.h in Headers */,
 				CD3CE0FD2401AAD9004BA01D /* CDMKeySystemConfiguration.h in Headers */,
 				CD8D306F23AD4FA8006C3975 /* CDMLogging.h in Headers */,
@@ -42669,6 +42676,7 @@
 				CD3CE1022401AADA004BA01D /* CDMRequirement.h in Headers */,
 				CD3CE1032401AADA004BA01D /* CDMRestrictions.h in Headers */,
 				CD3CE1042401AADA004BA01D /* CDMSessionType.h in Headers */,
+				CDBEEF9C2ECF966900963F77 /* CDMTypesForward.h in Headers */,
 				CDE3AE1224B4916A00128E7E /* CDMUtilities.h in Headers */,
 				5FA904CA178E61F5004C8A2D /* CertificateInfo.h in Headers */,
 				91B8F0B521953D65000C2B00 /* CertificateSummary.h in Headers */,

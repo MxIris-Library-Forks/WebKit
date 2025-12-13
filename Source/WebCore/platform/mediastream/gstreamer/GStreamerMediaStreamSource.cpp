@@ -864,9 +864,9 @@ private:
     GRefPtr<GstStream> m_stream;
     bool m_isVideoTrack { false };
     std::pair<Seconds, unsigned> m_frameRateStats { Seconds::nan(), 0 };
-    double m_audioLevel;
-    double m_totalAudioSamplesDuration;
-    double m_totalAudioEnergy;
+    double m_audioLevel { 0 };
+    double m_totalAudioSamplesDuration { 0 };
+    double m_totalAudioEnergy { 0 };
     unsigned m_audioSamplesCountSinceLastTotalEnergyCalculation { 0 };
     GUniquePtr<GstStructure> m_stats;
 };
@@ -1377,8 +1377,8 @@ void webkitMediaStreamSrcAddTrack(WebKitMediaStreamSrc* self, MediaStreamTrackPr
         data, reinterpret_cast<GDestroyNotify>(destroyProbeData));
 
 #ifndef GST_DISABLE_GST_DEBUG
-    GUniquePtr<char> objectPath(gst_object_get_path_string(GST_OBJECT_CAST(self)));
-    GST_DEBUG_OBJECT(self, "%s Ghosting %" GST_PTR_FORMAT, objectPath.get(), pad.get());
+    auto objectPath = GMallocString::unsafeAdoptFromUTF8(gst_object_get_path_string(GST_OBJECT_CAST(self)));
+    GST_DEBUG_OBJECT(self, "%s Ghosting %" GST_PTR_FORMAT, objectPath.utf8(), pad.get());
 #endif
 
     auto* ghostPad = webkitGstGhostPadFromStaticTemplate(padTemplate, CStringView::unsafeFromUTF8(padName.utf8().data()), pad.get());

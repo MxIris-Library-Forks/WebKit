@@ -843,8 +843,6 @@ imported/w3c/web-platform-tests/html/syntax/speculative-parsing/generated/docume
 imported/w3c/web-platform-tests/workers/modules/dedicated-worker-import-data-url.any.html [ Skip ]
 imported/w3c/web-platform-tests/workers/modules/dedicated-worker-import-data-url-cross-origin.html [ Skip ]
 
-# This is passing, but timing out as `Clear-Site-Data: *` is making the test framework fail to get its own messages.
-imported/w3c/web-platform-tests/speculation-rules/prefetch/clear-prefetch-cache-after-clear-site-data-cache.https.html [ Skip ]
 # This is timing out because we do not support singleton prefetch matching, and the different initiators have different FrameLoaders.
 imported/w3c/web-platform-tests/speculation-rules/prefetch/different-initiators-2.https.html [ Skip ]
 # These tests output noisy console logs.
@@ -5540,6 +5538,24 @@ imported/w3c/web-platform-tests/css/css-multicol/column-height-008.html [ ImageO
 imported/w3c/web-platform-tests/css/css-multicol/column-height-009.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-multicol/column-height-012.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-multicol/multicol-fill-balance-030.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-013.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-014.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-015.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-016.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-017.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-018.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-019.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-020.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-021.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-022.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-023.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-024.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-025.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-027.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-028.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-height-029.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/column-wrap-no-constraints-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-multicol/multicol-on-broken-image-alt-text.html [ ImageOnlyFailure ]
 
 # Crashes
 webkit.org/b/279421 [ Debug ] imported/w3c/web-platform-tests/css/css-multicol/crashtests/inline-float-parallel-flow.html [ Skip ]
@@ -6718,7 +6734,6 @@ imported/w3c/web-platform-tests/css/css-tables/height-distribution/percentage-si
 imported/w3c/web-platform-tests/css/css-tables/height-distribution/percentage-sizing-of-table-cell-children-006.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/min-max-size-table-content-box.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/rules-groups.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-tables/table-cell-baseline-static-position.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/table-has-box-sizing-border-box-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/tentative/paint/background-image-column-collapsed.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-tables/tentative/paint/background-image-column.html [ ImageOnlyFailure ]

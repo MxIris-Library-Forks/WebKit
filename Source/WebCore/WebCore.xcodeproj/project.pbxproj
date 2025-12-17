@@ -2124,7 +2124,6 @@
 		517A63C51B74318F00E7DCDC /* KeyedDecoderCF.h in Headers */ = {isa = PBXBuildFile; fileRef = 517A63C01B74317E00E7DCDC /* KeyedDecoderCF.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		517A63C61B74319200E7DCDC /* KeyedEncoderCF.h in Headers */ = {isa = PBXBuildFile; fileRef = 517A63C21B74317E00E7DCDC /* KeyedEncoderCF.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		517B25AA1CC82B2A0061C011 /* IDBConnectionProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 517B25A81CC820320061C011 /* IDBConnectionProxy.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		517C11D52C6DD6A100489490 /* SpatialVideoMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = 517C11D42C6DD6A000489490 /* SpatialVideoMetadata.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		517E03F724B6D9840054895A /* MultiGamepadProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 517E03F424B6B9630054895A /* MultiGamepadProvider.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5182C2561F3143CD0059BA7C /* JSServiceWorker.h in Headers */ = {isa = PBXBuildFile; fileRef = 5182C2521F3142500059BA7C /* JSServiceWorker.h */; };
 		5182C2581F3143CD0059BA7C /* JSServiceWorkerContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 5182C2541F3142500059BA7C /* JSServiceWorkerContainer.h */; };
@@ -2194,6 +2193,7 @@
 		51C81B8A0C4422F70019ECE3 /* FTPDirectoryParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 51C81B880C4422F70019ECE3 /* FTPDirectoryParser.h */; };
 		51CA7EE91F883390003D3131 /* ServiceWorkerContextData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CA7EE71F8832E0003D3131 /* ServiceWorkerContextData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51CBFC990D10E483002DBF51 /* CachedFramePlatformData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51CF3E962EE8071B00EEAFDD /* FormatDescriptionUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = CDD8D310271F2C8D00DAA256 /* FormatDescriptionUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D444702D09B20A00F26553 /* WebCodecsBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D4446F2D09B1F800F26553 /* WebCodecsBase.h */; };
 		51D7236D1BB6174900478CA3 /* IDBResultData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D7236B1BB60BFE00478CA3 /* IDBResultData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D7EFEA1BDE8F8C00E93E10 /* ThreadSafeDataBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 511FAEA91BDC989A00B4AFE4 /* ThreadSafeDataBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -4353,7 +4353,7 @@
 		A5B81CB51FAA44620037D1E6 /* WebConsoleAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C8E1FAA44260037D1E6 /* WebConsoleAgent.h */; };
 		A5B81CB61FAA44620037D1E6 /* WebDebuggerAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C9B1FAA44260037D1E6 /* WebDebuggerAgent.h */; };
 		A5B81CB71FAA44620037D1E6 /* WebHeapAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C9F1FAA44260037D1E6 /* WebHeapAgent.h */; };
-		A5B81CC21FAA44BC0037D1E6 /* PageConsoleAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CBB1FAA44B70037D1E6 /* PageConsoleAgent.h */; };
+		A5B81CC21FAA44BC0037D1E6 /* FrameConsoleAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CBB1FAA44B70037D1E6 /* FrameConsoleAgent.h */; };
 		A5B81CC31FAA44BC0037D1E6 /* PageDebuggerAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CBE1FAA44B70037D1E6 /* PageDebuggerAgent.h */; };
 		A5B81CC41FAA44BC0037D1E6 /* PageHeapAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CBC1FAA44B70037D1E6 /* PageHeapAgent.h */; };
 		A5B81CC51FAA44BC0037D1E6 /* PageRuntimeAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CBF1FAA44B70037D1E6 /* PageRuntimeAgent.h */; };
@@ -5867,7 +5867,7 @@
 		CDEFA2281E7669E8000AE99C /* PlatformAudioData.h in Headers */ = {isa = PBXBuildFile; fileRef = CDE667A11E4BBA4D00E8154A /* PlatformAudioData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDEFDA0B27122638005559A7 /* DocumentInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEFDA0927122638005559A7 /* DocumentInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDEFDA0E271229BA005559A7 /* PageInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEFDA0D271229BA005559A7 /* PageInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		CDF0F6F82DC585CB00C4B09F /* VideoProjectionMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF0F6F72DC585CB00C4B09F /* VideoProjectionMetadata.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDF0F6F82DC585CB00C4B09F /* ImmersiveVideoMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF0F6F72DC585CB00C4B09F /* ImmersiveVideoMetadata.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF1350824C9FA4400432E1E /* SourceBufferParserWebM.h in Headers */ = {isa = PBXBuildFile; fileRef = CD8F667224C0F208000C421C /* SourceBufferParserWebM.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF1350924C9FCA300432E1E /* SourceBufferParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEB3D7324C41A6E001FBEEF /* SourceBufferParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF2B004181F059C00F2B424 /* MediaDescription.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF2B003181F059C00F2B424 /* MediaDescription.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -12286,7 +12286,6 @@
 		517A63C21B74317E00E7DCDC /* KeyedEncoderCF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyedEncoderCF.h; sourceTree = "<group>"; };
 		517B25A71CC820320061C011 /* IDBConnectionProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IDBConnectionProxy.cpp; sourceTree = "<group>"; };
 		517B25A81CC820320061C011 /* IDBConnectionProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDBConnectionProxy.h; sourceTree = "<group>"; };
-		517C11D42C6DD6A000489490 /* SpatialVideoMetadata.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialVideoMetadata.h; sourceTree = "<group>"; };
 		517C87101F8EE72E00EB8076 /* ServiceWorkerThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServiceWorkerThread.h; path = workers/service/context/ServiceWorkerThread.h; sourceTree = SOURCE_ROOT; };
 		517C87111F8EE72F00EB8076 /* ServiceWorkerThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServiceWorkerThread.cpp; path = workers/service/context/ServiceWorkerThread.cpp; sourceTree = SOURCE_ROOT; };
 		517C87161F8FD4D300EB8076 /* ServiceWorkerContextData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ServiceWorkerContextData.cpp; sourceTree = "<group>"; };
@@ -17086,12 +17085,12 @@
 		A5B81CA41FAA44270037D1E6 /* InspectorLayerTreeAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InspectorLayerTreeAgent.cpp; path = inspector/agents/InspectorLayerTreeAgent.cpp; sourceTree = SOURCE_ROOT; };
 		A5B81CA61FAA44270037D1E6 /* InspectorTimelineAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InspectorTimelineAgent.cpp; path = inspector/agents/InspectorTimelineAgent.cpp; sourceTree = SOURCE_ROOT; };
 		A5B81CBA1FAA44B70037D1E6 /* PageHeapAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageHeapAgent.cpp; sourceTree = "<group>"; };
-		A5B81CBB1FAA44B70037D1E6 /* PageConsoleAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageConsoleAgent.h; sourceTree = "<group>"; };
+		A5B81CBB1FAA44B70037D1E6 /* FrameConsoleAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FrameConsoleAgent.h; sourceTree = "<group>"; };
 		A5B81CBC1FAA44B70037D1E6 /* PageHeapAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageHeapAgent.h; sourceTree = "<group>"; };
 		A5B81CBD1FAA44B70037D1E6 /* PageDebuggerAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageDebuggerAgent.cpp; sourceTree = "<group>"; };
 		A5B81CBE1FAA44B70037D1E6 /* PageDebuggerAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageDebuggerAgent.h; sourceTree = "<group>"; };
 		A5B81CBF1FAA44B70037D1E6 /* PageRuntimeAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageRuntimeAgent.h; sourceTree = "<group>"; };
-		A5B81CC01FAA44B70037D1E6 /* PageConsoleAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageConsoleAgent.cpp; sourceTree = "<group>"; };
+		A5B81CC01FAA44B70037D1E6 /* FrameConsoleAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FrameConsoleAgent.cpp; sourceTree = "<group>"; };
 		A5B81CC11FAA44B70037D1E6 /* PageRuntimeAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageRuntimeAgent.cpp; sourceTree = "<group>"; };
 		A5B81CC71FAA44DA0037D1E6 /* WorkerRuntimeAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerRuntimeAgent.cpp; sourceTree = "<group>"; };
 		A5B81CC81FAA44DA0037D1E6 /* WorkerDebuggerAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerDebuggerAgent.cpp; sourceTree = "<group>"; };
@@ -20583,7 +20582,7 @@
 		CDEFD9EA2710A693005559A7 /* MediaKeyMessageType.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediaKeyMessageType.idl; sourceTree = "<group>"; };
 		CDEFDA0927122638005559A7 /* DocumentInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentInlines.h; sourceTree = "<group>"; };
 		CDEFDA0D271229BA005559A7 /* PageInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PageInlines.h; sourceTree = "<group>"; };
-		CDF0F6F72DC585CB00C4B09F /* VideoProjectionMetadata.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoProjectionMetadata.h; sourceTree = "<group>"; };
+		CDF0F6F72DC585CB00C4B09F /* ImmersiveVideoMetadata.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImmersiveVideoMetadata.h; sourceTree = "<group>"; };
 		CDF2B003181F059C00F2B424 /* MediaDescription.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaDescription.h; sourceTree = "<group>"; };
 		CDF2B0061820540600F2B424 /* MockBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MockBox.cpp; sourceTree = "<group>"; };
 		CDF2B0071820540600F2B424 /* MockBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MockBox.h; sourceTree = "<group>"; };
@@ -33251,6 +33250,7 @@
 		A5B81C831FAA44060037D1E6 /* agents */ = {
 			isa = PBXGroup;
 			children = (
+				F35F82472E832AA300215E26 /* frame */,
 				A5B81CB91FAA44820037D1E6 /* page */,
 				A5B81CC61FAA44C30037D1E6 /* worker */,
 				913FE5982362799900F9446A /* InspectorAnimationAgent.cpp */,
@@ -33300,8 +33300,6 @@
 				91278D5C21DEDAD500B57184 /* PageAuditAgent.h */,
 				953C6E6B2A0E05F100ACABC4 /* PageCanvasAgent.cpp */,
 				953C6E6A2A0E05F100ACABC4 /* PageCanvasAgent.h */,
-				A5B81CC01FAA44B70037D1E6 /* PageConsoleAgent.cpp */,
-				A5B81CBB1FAA44B70037D1E6 /* PageConsoleAgent.h */,
 				A5B81CBD1FAA44B70037D1E6 /* PageDebuggerAgent.cpp */,
 				A5B81CBE1FAA44B70037D1E6 /* PageDebuggerAgent.h */,
 				91E0DDBD230B41E40019E1E3 /* PageDOMDebuggerAgent.cpp */,
@@ -35553,6 +35551,7 @@
 				554675781FD1FC1A003B10B0 /* ImageSource.h */,
 				5550CB411E955E3C00111AA0 /* ImageTypes.h */,
 				55BBD42824DB53A200BB6E0C /* ImageUtilities.h */,
+				CDF0F6F72DC585CB00C4B09F /* ImmersiveVideoMetadata.h */,
 				078633F8240715D20087AE21 /* InbandGenericCue.cpp */,
 				078633DE23FEDF220087AE21 /* InbandGenericCue.h */,
 				0706A0D7240830A600E93818 /* InbandGenericCueIdentifier.h */,
@@ -35724,7 +35723,6 @@
 				0F1A0C36229A481800D37ADB /* VelocityData.h */,
 				1DAB3113251D725C00FC9485 /* VideoLayerManager.h */,
 				075033A6252BD36800F70CE3 /* VideoPlaybackQualityMetrics.h */,
-				CDF0F6F72DC585CB00C4B09F /* VideoProjectionMetadata.h */,
 				CDAD8DF42BED37E600107D24 /* VideoTarget.h */,
 				BEF29EEA1715DD0900C4B4C9 /* VideoTrackPrivate.h */,
 				CD1F9B12270235F700617EB6 /* VideoTrackPrivateClient.h */,
@@ -38126,7 +38124,6 @@
 				C149D55B242EA4FA003EBB12 /* SleepDisablerClient.h */,
 				C149D565242EB765003EBB12 /* SleepDisablerIdentifier.h */,
 				A3FF9B702921E6DC004F7A00 /* SourcesLibWebRTC.txt */,
-				517C11D42C6DD6A000489490 /* SpatialVideoMetadata.h */,
 				F433E9041DBBDBC200EF0D14 /* StaticPasteboard.cpp */,
 				F433E9021DBBDBA200EF0D14 /* StaticPasteboard.h */,
 				722728122947A4090048DD2E /* StyleAppearance.cpp */,
@@ -39890,6 +39887,15 @@
 				C18CC0A62580F0FA003D75FB /* UniversalAccessZoom.mm */,
 			);
 			path = mac;
+			sourceTree = "<group>";
+		};
+		F35F82472E832AA300215E26 /* frame */ = {
+			isa = PBXGroup;
+			children = (
+				A5B81CC01FAA44B70037D1E6 /* FrameConsoleAgent.cpp */,
+				A5B81CBB1FAA44B70037D1E6 /* FrameConsoleAgent.h */,
+			);
+			path = frame;
 			sourceTree = "<group>";
 		};
 		F4034F8B275C0867003A81F8 /* cookie-consent */ = {
@@ -43756,6 +43762,7 @@
 				9B50B1DE17CD4C0F0087F63C /* FormAssociatedElement.h in Headers */,
 				D05CED2A0A40BB2C00C5AF38 /* FormatBlockCommand.h in Headers */,
 				7CE6CBFB187F370700D46BF5 /* FormatConverter.h in Headers */,
+				51CF3E962EE8071B00EEAFDD /* FormatDescriptionUtilities.h in Headers */,
 				2B598F99286F6BF4005AF06F /* Formats.h in Headers */,
 				6F1E83A62665888C002E9D28 /* FormattingConstraints.h in Headers */,
 				115CFA6A208AF7D0001E6991 /* FormattingContext.h in Headers */,
@@ -43778,6 +43785,7 @@
 				2D9153F028AE0E330073A385 /* FragmentDirectiveRangeFinder.h in Headers */,
 				2DDF3EE42C8D94B30047786D /* FragmentDirectiveUtilities.h in Headers */,
 				46B95196207D633A00A7D2DD /* Frame.h in Headers */,
+				A5B81CC21FAA44BC0037D1E6 /* FrameConsoleAgent.h in Headers */,
 				DAED203116F244480070EC0F /* FrameConsoleClient.h in Headers */,
 				974A862314B7ADBB003FDC76 /* FrameDestructionObserver.h in Headers */,
 				46014ACC28333F65004C0B84 /* FrameDestructionObserverInlines.h in Headers */,
@@ -44204,6 +44212,7 @@
 				5550CB421E955E3C00111AA0 /* ImageTypes.h in Headers */,
 				55BBD42924DB560400BB6E0C /* ImageUtilities.h in Headers */,
 				33E5A6AA2C6E023400F2CD04 /* ImmediateActionStage.h in Headers */,
+				CDF0F6F82DC585CB00C4B09F /* ImmersiveVideoMetadata.h in Headers */,
 				26F756B31B3B66F70005DD79 /* ImmutableNFA.h in Headers */,
 				26F756B51B3B68F20005DD79 /* ImmutableNFANodeBuilder.h in Headers */,
 				930A76C9297FA1CE0055B743 /* ImmutableStyleProperties.h in Headers */,
@@ -45844,7 +45853,6 @@
 				953C6E6C2A0E05F100ACABC4 /* PageCanvasAgent.h in Headers */,
 				95F45D27264DFBF100D0B8B8 /* PageColorSampler.h in Headers */,
 				CD5E5B5F1A15CE54000C609E /* PageConfiguration.h in Headers */,
-				A5B81CC21FAA44BC0037D1E6 /* PageConsoleAgent.h in Headers */,
 				A5A2AF0C1829734300DE1729 /* PageDebuggable.h in Headers */,
 				A5F36D3B18F758720054C024 /* PageDebugger.h in Headers */,
 				A5B81CC31FAA44BC0037D1E6 /* PageDebuggerAgent.h in Headers */,
@@ -46857,7 +46865,6 @@
 				CA3344082D16174C007473A1 /* SpatialBackdropSource.h in Headers */,
 				B9CA3B402CAB1D3E00B2607C /* SpatialImageControls.h in Headers */,
 				626CDE0F1140424C001E5A68 /* SpatialNavigation.h in Headers */,
-				517C11D52C6DD6A100489490 /* SpatialVideoMetadata.h in Headers */,
 				BA4E976A2E3A52290033CC0D /* SpeculationRules.h in Headers */,
 				BA6920702E0E93A80014E98A /* SpeculationRulesMatcher.h in Headers */,
 				934950CD253943610099F171 /* SpeechRecognition.h in Headers */,
@@ -47821,7 +47828,6 @@
 				52D5A1A71C57489D00DE34A3 /* VideoPresentationModel.h in Headers */,
 				52D5A1A81C5748A300DE34A3 /* VideoPresentationModelVideoElement.h in Headers */,
 				0757B13E214AE79900794B0D /* VideoPreset.h in Headers */,
-				CDF0F6F82DC585CB00C4B09F /* VideoProjectionMetadata.h in Headers */,
 				A1DD618A2B7EB59400075A92 /* VideoReceiverEndpoint.h in Headers */,
 				CDAD8DFB2BED3B0200107D24 /* VideoTarget.h in Headers */,
 				CDAD8DFC2BED4D2C00107D24 /* VideoTargetFactory.h in Headers */,

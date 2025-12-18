@@ -247,6 +247,7 @@ enum class AttachmentAssociatedElementType : uint8_t;
 #endif
 
 struct AXDebugInfo;
+struct AccessibilityRemoteToken;
 struct AppHighlight;
 struct ApplePayAMSUIRequest;
 struct ApplicationManifest;
@@ -615,7 +616,8 @@ struct WebPreferencesStore;
 struct WebSpeechSynthesisVoice;
 struct WebURLSchemeHandlerIdentifierType;
 struct WebsitePoliciesData;
-#if USE(GBM) && (PLATFORM(GTK) || PLATFORM(WPE))
+
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
 struct RendererBufferFormat;
 #endif
 
@@ -1608,7 +1610,7 @@ public:
     // Called by the web process through a message.
     void registerWebProcessAccessibilityToken(std::span<const uint8_t>);
     // Called by the UI process when it is ready to send its tokens to the web process.
-    void registerUIProcessAccessibilityTokens(std::span<const uint8_t> elementToken, std::span<const uint8_t> windowToken);
+    void registerUIProcessAccessibilityTokens(WebCore::AccessibilityRemoteToken elementToken, WebCore::AccessibilityRemoteToken windowToken);
     void replaceSelectionWithPasteboardData(const Vector<String>& types, std::span<const uint8_t>);
     bool readSelectionFromPasteboard(const String& pasteboardName);
     String stringSelectionForPasteboard();
@@ -2645,7 +2647,7 @@ public:
     OptionSet<WebCore::AdvancedPrivacyProtections> advancedPrivacyProtectionsPolicies() const { return m_advancedPrivacyProtectionsPolicies; }
 #endif
 
-#if USE(GBM) && ENABLE(WPE_PLATFORM)
+#if ENABLE(WPE_PLATFORM) && (USE(GBM) || OS(ANDROID))
     void preferredBufferFormatsDidChange();
 #endif
 
@@ -2671,6 +2673,7 @@ public:
     void handleTextExtractionInteraction(WebCore::TextExtraction::Interaction&&, CompletionHandler<void(bool, String&&)>&&);
     void describeTextExtractionInteraction(WebCore::TextExtraction::Interaction&&, CompletionHandler<void(WebCore::TextExtraction::InteractionDescription&&)>&&);
     void takeSnapshotOfExtractedText(WebCore::TextExtraction::ExtractedText&&, CompletionHandler<void(RefPtr<WebCore::TextIndicator>&&)>&&);
+    void hasTextExtractionFilterRules(CompletionHandler<void(bool)>&&);
     void updateTextExtractionFilterRules(Vector<WebCore::TextExtraction::FilterRuleData>&&);
     void applyTextExtractionFilter(const String& input, std::optional<WebCore::NodeIdentifier>&&, CompletionHandler<void(String&&)>&&);
 
@@ -2861,7 +2864,7 @@ public:
     bool toolbarsAreVisible() const { return m_toolbarsAreVisible; }
     void setToolbarsAreVisible(bool);
 
-#if USE(GBM) && (PLATFORM(GTK) || PLATFORM(WPE))
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
     Vector<RendererBufferFormat> preferredBufferFormats() const;
 #endif
 
@@ -3103,6 +3106,10 @@ private:
     RefPtr<API::Navigation> launchProcessForReload();
 
     void requestNotificationPermission(const String& originString, CompletionHandler<void(bool allowed)>&&);
+
+#if ENABLE(WEB_ARCHIVE)
+    bool shouldAlwaysPromptForPermission(WebCore::PermissionName) const;
+#endif
 
     void didChangeContentSize(const WebCore::IntSize&);
     void didChangeIntrinsicContentSize(const WebCore::IntSize&);
@@ -3484,7 +3491,7 @@ private:
     void layerTreeAsTextForTesting(WebCore::FrameIdentifier, uint64_t baseIndent, OptionSet<WebCore::LayerTreeAsTextOptions>, CompletionHandler<void(String&&)>&&);
     void addMessageToConsoleForTesting(String&&);
     void frameTextForTesting(WebCore::FrameIdentifier, CompletionHandler<void(String&&)>&&);
-    void bindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier, Vector<uint8_t>&& dataToken, CompletionHandler<void(Vector<uint8_t>, int)>&&);
+    void bindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier, WebCore::AccessibilityRemoteToken dataToken, CompletionHandler<void(WebCore::AccessibilityRemoteToken, int)>&&);
     void updateRemoteFrameAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint);
     void documentURLForConsoleLog(WebCore::FrameIdentifier, CompletionHandler<void(const URL&)>&&);
     void reportMixedContentViolation(WebCore::FrameIdentifier, bool blocked, const URL& target);

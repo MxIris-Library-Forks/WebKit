@@ -23,22 +23,38 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
-#import "EventSenderProxy.h"
+#pragma once
 
-#import <WebCore/PlatformMouseEvent.h>
+#include <wtf/Forward.h>
+#include <wtf/TZoneMalloc.h>
 
-namespace WTR {
+namespace WebCore {
 
-unsigned EventSenderProxy::mouseButtonsCurrentlyDown() const
-{
-    unsigned mouseButtons = 0;
-    static constexpr std::array potentialMouseButtons { WebCore::MouseButton::Left, WebCore::MouseButton::Right, WebCore::MouseButton::Middle, WebCore::MouseButton::Back, WebCore::MouseButton::Forward };
-    for (std::size_t idx = 0; idx < potentialMouseButtons.size(); ++idx) {
-        if (m_mouseButtonsCurrentlyDown.getOptional(potentialMouseButtons[idx]).value_or(false))
-            mouseButtons += (1 << idx);
-    }
-    return mouseButtons;
-}
+class MediaSample;
+class MediaSamplesBlock;
+struct TrackInfo;
+
+class MediaSampleConverter final {
+    WTF_MAKE_TZONE_ALLOCATED(MediaSampleConverter);
+public:
+    WEBCORE_EXPORT MediaSampleConverter();
+    WEBCORE_EXPORT ~MediaSampleConverter();
+
+    enum class SetTrackInfo : bool {
+        No,
+        Yes
+    };
+    WEBCORE_EXPORT UniqueRef<MediaSamplesBlock> convert(const MediaSample&, SetTrackInfo = SetTrackInfo::Yes);
+    WEBCORE_EXPORT RefPtr<const TrackInfo> currentTrackInfo() const;
+    WEBCORE_EXPORT void setTrackInfo(Ref<const TrackInfo>&&);
+
+    WEBCORE_EXPORT RefPtr<MediaSample> convert(MediaSamplesBlock&&);
+
+    WEBCORE_EXPORT bool hasFormatChanged(const MediaSample&);
+
+private:
+    RefPtr<const MediaSample> m_lastSample;
+    RefPtr<const TrackInfo> m_lastTrackInfo;
+};
 
 }

@@ -37,7 +37,9 @@
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/glib/GUniquePtr.h>
 
-#if USE(LIBDRM)
+#if OS(ANDROID)
+#include <drm/drm_fourcc.h>
+#elif USE(LIBDRM)
 #include <drm_fourcc.h>
 #elif OS(ANDROID)
 #include <drm/drm_fourcc.h>
@@ -137,13 +139,24 @@ void AcceleratedBackingStore::didCreateSHMBuffer(uint64_t id, WebCore::Shareable
     auto data = bitmap->span();
     auto stride = bitmap->bytesPerRow();
     GRefPtr<GBytes> bytes = adoptGRef(g_bytes_new_with_free_func(data.data(), data.size(), [](gpointer userData) {
-        delete static_cast<WebCore::ShareableBitmap*>(userData);
+        adoptRef(static_cast<WebCore::ShareableBitmap*>(userData));
     }, bitmap.leakRef()));
 
     GRefPtr<WPEBuffer> buffer = adoptGRef(WPE_BUFFER(wpe_buffer_shm_new(wpe_view_get_display(m_wpeView.get()), size.width(), size.height(), WPE_PIXEL_FORMAT_ARGB8888, bytes.get(), stride)));
     m_bufferIDs.add(buffer.get(), id);
     m_buffers.add(id, WTFMove(buffer));
 }
+
+#if OS(ANDROID)
+void AcceleratedBackingStore::didCreateAndroidBuffer(uint64_t id, RefPtr<AHardwareBuffer>&& hardwareBuffer)
+{
+    RELEASE_ASSERT(hardwareBuffer);
+
+    auto buffer = adoptGRef(WPE_BUFFER(wpe_buffer_android_new(wpe_view_get_display(m_wpeView.get()), hardwareBuffer.get())));
+    m_bufferIDs.add(buffer.get(), id);
+    m_buffers.add(id, WTFMove(buffer));
+}
+#endif // OS(ANDROID)
 
 void AcceleratedBackingStore::didDestroyBuffer(uint64_t id)
 {
@@ -303,6 +316,13 @@ RendererBufferDescription AcceleratedBackingStore::bufferDescription() const
         }
         description.usage = RendererBufferFormat::Usage::Rendering;
     }
+#if OS(ANDROID)
+    else if (WPE_IS_BUFFER_ANDROID(buffer)) {
+        auto* bufferAndroid = WPE_BUFFER_ANDROID(buffer);
+        description.type = RendererBufferDescription::Type::AHardwareBuffer;
+        description.fourcc = wpe_buffer_android_get_format(bufferAndroid);
+    }
+#endif // OS(ANDROID)
 
     return description;
 }

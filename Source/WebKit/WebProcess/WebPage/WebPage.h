@@ -280,6 +280,7 @@ enum class WritingDirection : uint8_t;
 enum class PaginationMode : uint8_t;
 
 struct AXDebugInfo;
+struct AccessibilityRemoteToken;
 struct AppHighlight;
 struct AriaNotifyData;
 struct AttributedString;
@@ -489,7 +490,7 @@ enum class WebEventType : uint32_t;
 struct ContentWorldData;
 struct ContentWorldIdentifierType;
 struct CoreIPCAuditToken;
-#if (PLATFORM(GTK) || PLATFORM(WPE)) && USE(GBM)
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
 struct RendererBufferFormat;
 #endif
 struct DataDetectionResult;
@@ -1260,8 +1261,8 @@ public:
 #if PLATFORM(COCOA)
     enum class ShouldInitializeNSAccessibility : bool { No, Yes };
     void platformInitializeAccessibility(ShouldInitializeNSAccessibility);
-    void registerUIProcessAccessibilityTokens(std::span<const uint8_t> elementToken, std::span<const uint8_t> windowToken);
-    void registerRemoteFrameAccessibilityTokens(pid_t, std::span<const uint8_t>, WebCore::FrameIdentifier);
+    void registerUIProcessAccessibilityTokens(WebCore::AccessibilityRemoteToken elementToken, WebCore::AccessibilityRemoteToken windowToken);
+    void registerRemoteFrameAccessibilityTokens(pid_t, WebCore::AccessibilityRemoteToken, WebCore::FrameIdentifier);
     WKAccessibilityWebPageObject* accessibilityRemoteObject();
     RetainPtr<WKAccessibilityWebPageObject> protectedAccessibilityRemoteObject();
     WebCore::IntPoint accessibilityRemoteFrameOffset();
@@ -2016,10 +2017,8 @@ public:
     const Logger& logger() const;
     uint64_t logIdentifier() const;
 
-#if PLATFORM(GTK) || PLATFORM(WPE)
-#if USE(GBM)
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
     const Vector<RendererBufferFormat>& preferredBufferFormats() const { return m_preferredBufferFormats; }
-#endif
 #endif
 
 #if ENABLE(EXTENSION_CAPABILITIES)
@@ -2589,7 +2588,7 @@ private:
     void getRenderProcessInfo(CompletionHandler<void(RenderProcessInfo&&)>&&);
 #endif
 
-#if PLATFORM(WPE) && USE(GBM) && ENABLE(WPE_PLATFORM)
+#if PLATFORM(WPE) && ENABLE(WPE_PLATFORM) && (USE(GBM) || OS(ANDROID))
     void preferredBufferFormatsDidChange(Vector<RendererBufferFormat>&&);
 #endif
 
@@ -2644,7 +2643,7 @@ private:
     void renderTreeAsTextForTesting(WebCore::FrameIdentifier, uint64_t baseIndent, OptionSet<WebCore::RenderAsTextFlag>, CompletionHandler<void(String&&)>&&);
     void layerTreeAsTextForTesting(WebCore::FrameIdentifier, uint64_t baseIndent, OptionSet<WebCore::LayerTreeAsTextOptions>, CompletionHandler<void(String&&)>&&);
     void frameTextForTesting(WebCore::FrameIdentifier, CompletionHandler<void(String&&)>&&);
-    void bindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier, Vector<uint8_t>, CompletionHandler<void(Vector<uint8_t>, int)>&&);
+    void bindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier, WebCore::AccessibilityRemoteToken, CompletionHandler<void(WebCore::AccessibilityRemoteToken, int)>&&);
     void updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint);
     void resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier, const WebCore::IntPoint&, CompletionHandler<void(String)>&&);
 
@@ -2657,6 +2656,7 @@ private:
     void handleTextExtractionInteraction(WebCore::TextExtraction::Interaction&&, CompletionHandler<void(bool, String&&)>&&);
     void describeTextExtractionInteraction(WebCore::TextExtraction::Interaction&&, CompletionHandler<void(WebCore::TextExtraction::InteractionDescription&&)>&&);
     void takeSnapshotOfExtractedText(WebCore::TextExtraction::ExtractedText&&, CompletionHandler<void(RefPtr<WebCore::TextIndicator>&&)>&&);
+    void hasTextExtractionFilterRules(CompletionHandler<void(bool)>&&);
     void updateTextExtractionFilterRules(Vector<WebCore::TextExtraction::FilterRuleData>&&);
     void applyTextExtractionFilter(const String& input, std::optional<WebCore::NodeIdentifier>&& containerNode, CompletionHandler<void(const String&)>&&);
 
@@ -3144,10 +3144,8 @@ private:
     WebCore::Color m_accentColor;
 #endif
 
-#if PLATFORM(GTK) || PLATFORM(WPE)
-#if USE(GBM)
+#if (PLATFORM(GTK) || PLATFORM(WPE)) && (USE(GBM) || OS(ANDROID))
     Vector<RendererBufferFormat> m_preferredBufferFormats;
-#endif
 #endif
 
 #if ENABLE(APP_BOUND_DOMAINS)

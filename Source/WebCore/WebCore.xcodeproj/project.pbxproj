@@ -2194,6 +2194,7 @@
 		51CA7EE91F883390003D3131 /* ServiceWorkerContextData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CA7EE71F8832E0003D3131 /* ServiceWorkerContextData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51CBFC990D10E483002DBF51 /* CachedFramePlatformData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51CF3E962EE8071B00EEAFDD /* FormatDescriptionUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = CDD8D310271F2C8D00DAA256 /* FormatDescriptionUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		51CF3EA62EEFAA3E00EEAFDD /* MediaSampleConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 51CF3EA42EEFAA3E00EEAFDD /* MediaSampleConverter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D444702D09B20A00F26553 /* WebCodecsBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D4446F2D09B1F800F26553 /* WebCodecsBase.h */; };
 		51D7236D1BB6174900478CA3 /* IDBResultData.h in Headers */ = {isa = PBXBuildFile; fileRef = 51D7236B1BB60BFE00478CA3 /* IDBResultData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51D7EFEA1BDE8F8C00E93E10 /* ThreadSafeDataBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 511FAEA91BDC989A00B4AFE4 /* ThreadSafeDataBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -12382,6 +12383,8 @@
 		51C81B880C4422F70019ECE3 /* FTPDirectoryParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FTPDirectoryParser.h; sourceTree = "<group>"; };
 		51CA7EE71F8832E0003D3131 /* ServiceWorkerContextData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServiceWorkerContextData.h; sourceTree = "<group>"; };
 		51CBFC980D10E483002DBF51 /* CachedFramePlatformData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedFramePlatformData.h; sourceTree = "<group>"; };
+		51CF3EA42EEFAA3E00EEAFDD /* MediaSampleConverter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaSampleConverter.h; sourceTree = "<group>"; };
+		51CF3EA52EEFAA3E00EEAFDD /* MediaSampleConverter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MediaSampleConverter.cpp; sourceTree = "<group>"; };
 		51D1248A1E73625C002B2820 /* NetworkStorageSessionCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NetworkStorageSessionCocoa.mm; sourceTree = "<group>"; };
 		51D1248C1E736456002B2820 /* CookieCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CookieCocoa.mm; sourceTree = "<group>"; };
 		51D4446F2D09B1F800F26553 /* WebCodecsBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCodecsBase.h; sourceTree = "<group>"; };
@@ -35599,6 +35602,8 @@
 				518C1C4C2E212AF700083695 /* MediaReorderQueue.h */,
 				512F29252BA2BD6500F1C326 /* MediaResourceSniffer.cpp */,
 				512F29242BA2BD6500F1C326 /* MediaResourceSniffer.h */,
+				51CF3EA52EEFAA3E00EEAFDD /* MediaSampleConverter.cpp */,
+				51CF3EA42EEFAA3E00EEAFDD /* MediaSampleConverter.h */,
 				07354A272CD11FAC00D229CB /* MediaSourceConfiguration.h */,
 				5199AB3E29CD7D950076BDDE /* MediaSourcePrivate.cpp */,
 				CD641EB11818F5ED00EE4C41 /* MediaSourcePrivate.h */,
@@ -45565,6 +45570,7 @@
 				512F29262BA2BD7000F1C326 /* MediaResourceSniffer.h in Headers */,
 				1BF9DB3C1D3973AD0026AEB7 /* MediaSample.h in Headers */,
 				1B124D8D1D380B7000ECDFB0 /* MediaSampleAVFObjC.h in Headers */,
+				51CF3EA62EEFAA3E00EEAFDD /* MediaSampleConverter.h in Headers */,
 				513C7B6D2E7C2C2400079881 /* MediaSamplesBlock.h in Headers */,
 				CDBEAEAD19D92B6C00BEBA88 /* MediaSelectionGroupAVFObjC.h in Headers */,
 				A17D275E1EAC579800BF01E7 /* MediaSelectionOption.h in Headers */,

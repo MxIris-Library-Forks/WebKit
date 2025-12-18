@@ -295,8 +295,18 @@ void AudioVideoRendererRemote::paintCurrentVideoFrameInContext(GraphicsContext& 
 
 RefPtr<NativeImage> AudioVideoRendererRemote::currentNativeImage() const
 {
+#if PLATFORM(COCOA)
+    RefPtr gpuProcessConnection = m_gpuProcessConnection.get();
     RefPtr videoFrame = currentVideoFrame();
-    return videoFrame ? videoFrame->copyNativeImage() : nullptr;
+    if (!videoFrame)
+        return nullptr;
+    ASSERT(gpuProcessConnection);
+
+    return gpuProcessConnection->protectedVideoFrameObjectHeapProxy()->getNativeImage(*videoFrame);
+#else
+    ASSERT_NOT_REACHED();
+    return nullptr;
+#endif
 }
 
 std::optional<VideoPlaybackQualityMetrics> AudioVideoRendererRemote::videoPlaybackQualityMetrics()
@@ -475,7 +485,15 @@ void AudioVideoRendererRemote::enqueueSample(TrackIdentifier trackIdentifier, Re
         readyForMoreDataState(trackIdentifier).sampleEnqueued();
     }
     ensureOnDispatcherWithConnection([trackIdentifier, sample = WTFMove(sample), expectedMinimum](auto& renderer, auto& connection) {
-        connection.sendWithAsyncReplyOnDispatcher(Messages::RemoteAudioVideoRendererProxyManager::EnqueueSample(renderer.m_identifier, trackIdentifier, MediaSamplesBlock::fromMediaSample(sample), expectedMinimum), queueSingleton(), [weakThis = ThreadSafeWeakPtr { renderer }, trackIdentifier](bool readyForMoreData) {
+        assertIsCurrent(queueSingleton());
+        auto addResult = renderer.m_mediaSampleConverters.ensure(trackIdentifier, [] {
+            return MediaSampleConverter();
+        });
+        bool formatChanged = addResult.iterator->value.hasFormatChanged(sample);
+        auto block = addResult.iterator->value.convert(sample, MediaSampleConverter::SetTrackInfo::No);
+        if (formatChanged)
+            connection.send(Messages::RemoteAudioVideoRendererProxyManager::NewTrackInfoForTrack(renderer.m_identifier, trackIdentifier, Ref { const_cast<WebCore::TrackInfo&>(*addResult.iterator->value.currentTrackInfo()) }), 0);
+        connection.sendWithAsyncReplyOnDispatcher(Messages::RemoteAudioVideoRendererProxyManager::EnqueueSample(renderer.m_identifier, trackIdentifier, WTFMove(block), expectedMinimum), queueSingleton(), [weakThis = ThreadSafeWeakPtr { renderer }, trackIdentifier](bool readyForMoreData) {
             RefPtr protectedThis = weakThis.get();
             if (!protectedThis)
                 return;

@@ -2184,6 +2184,7 @@ webkit.org/b/177940 workers/wasm-hashset.html [ Skip ]
 webkit.org/b/201981 http/wpt/service-workers/server-trust-evaluation.https.html [ Failure ]
 webkit.org/b/201981 imported/w3c/web-platform-tests/service-workers/service-worker/fetch-canvas-tainting-image-cache.https.html [ Failure ]
 webkit.org/b/286484 imported/w3c/web-platform-tests/service-workers/service-worker/navigation-headers.https.html [ Pass Crash ]
+webkit.org/b/304406 http/wpt/service-workers/service-worker-process-crashing-between-installed-and-activating.html [ Pass Failure ]
 http/wpt/service-workers/fetch-service-worker-preload-use-download-and-clone.https.html [ Failure ]
 http/wpt/service-workers/fetch-service-worker-preload-use-download.https.html [ Failure ]
 http/wpt/service-workers/media-range-request.html [ DumpJSConsoleLogInStdErr ]
@@ -2268,6 +2269,8 @@ webkit.org/b/160119 fast/repaint/selection-gap-flipped-fixed-child.html [ Failur
 webkit.org/b/296730 fast/repaint/no-animation-outside-viewport-subframe.html [ Failure Pass ]
 
 webkit.org/b/298636 fast/repaint/fixed-move-after-keyboard-scroll.html [ Skip ] # Timeout
+
+webkit.org/b/304402 fast/repaint/translate-animation-repaint.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Repaint-related bugs
@@ -3722,6 +3725,7 @@ fast/events/input-event-insert-replacement.html [ Skip ]
 webkit.org/b/168430 fast/inline/outline-corners-with-offset.html [ ImageOnlyFailure ]
 webkit.org/b/258146 fast/inline/box-decoration-clone-with-padding-end.html [ ImageOnlyFailure ]
 webkit.org/b/258149 fast/inline/line-clamp-with-max-height-overflow.html [ ImageOnlyFailure ]
+webkit.org/b/304401 fast/inline/mismatching-inline-baseline-and-empty-content.html [ ImageOnlyFailure ]
 webkit.org/b/168551 http/tests/misc/slow-loading-animated-image.html [ ImageOnlyFailure ]
 webkit.org/b/168719 fast/css/paint-order-shadow.html [ ImageOnlyFailure ]
 webkit.org/b/169909 fast/css-generated-content/initial-letter-pagination-sunken.html [ ImageOnlyFailure ]
@@ -4831,6 +4835,7 @@ webkit.org/b/303677 imported/w3c/web-platform-tests/fetch/data-urls/base64.any.h
 
 webkit.org/b/303855 fast/css/view-transitions-scrolling-position-fixed.html [ Pass ImageOnlyFailure ]
 webkit.org/b/303856 fast/scrolling/rtl-scrollbars-positioning.html [ Pass ImageOnlyFailure ]
+webkit.org/b/303856 fast/scrolling/rtl-scrollbars-sticky-document.html [ Pass ImageOnlyFailure ]
 webkit.org/b/303857 imported/w3c/web-platform-tests/mathml/relations/css-styling/non-mathml-namespace-001.html [ Pass ImageOnlyFailure ]
 webkit.org/b/303863 imported/w3c/web-platform-tests/css/css-view-transitions/transformed-element-scroll-transform.html [ Pass ImageOnlyFailure ]
 webkit.org/b/303865 imported/w3c/web-platform-tests/css/css-overflow/scrollbar-gutter-fixedpos-003.html [ Pass ImageOnlyFailure ]

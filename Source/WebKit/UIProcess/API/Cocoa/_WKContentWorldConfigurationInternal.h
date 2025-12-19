@@ -23,26 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "CredentialRequestOptions.h"
+#import "APIContentWorldConfiguration.h"
+#import "_WKContentWorldConfiguration.h"
+#import <wtf/AlignedStorage.h>
 
-#if ENABLE(WEB_AUTHN)
+namespace WebKit {
 
-#include "DocumentPage.h"
-#include "ExceptionOr.h"
-#include "FrameDestructionObserverInlines.h"
-#include "JSCredentialMediationRequirement.h"
+template<> struct WrapperTraits<API::ContentWorldConfiguration> {
+    using WrapperClass = _WKContentWorldConfiguration;
+};
 
-namespace WebCore {
-
-MediationRequirement CredentialRequestOptions::mediation() const
-{
-    if (auto parsed = parseEnumerationFromString<MediationRequirement>(mediationString))
-        return *parsed;
-    // Default value if string is invalid/unknown
-    return MediationRequirement::Optional;
 }
 
-} // namespace WebCore
-
-#endif // ENABLE(WEB_AUTHN)
+@interface _WKContentWorldConfiguration () <WKObject> {
+@package
+    AlignedStorage<API::ContentWorldConfiguration> _worldConfiguration;
+}
+@end

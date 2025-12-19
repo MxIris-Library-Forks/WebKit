@@ -398,10 +398,14 @@ void OpenXRCoordinator::requestHitTestSource(WebPageProxy& page, const PlatformX
 
             auto copiedOptions = makeUniqueRef<PlatformXR::HitTestOptions>(options);
             active.renderQueue->dispatch([this, renderState = active.renderState, options = WTFMove(copiedOptions), completionHandler = WTFMove(completionHandler)]() mutable {
-#if ENABLE(WEBXR_HIT_TEST)
                 if (!renderState->hitTestManager)
                     renderState->hitTestManager = OpenXRHitTestManager::create(m_instance, m_systemId, m_session);
-#endif
+                if (!renderState->hitTestManager) {
+                    callOnMainRunLoop([completionHandler = WTFMove(completionHandler)] mutable {
+                        completionHandler(WebCore::Exception { WebCore::ExceptionCode::NotSupportedError });
+                    });
+                    return;
+                }
                 auto addResult = renderState->hitTestSources.add(renderState->nextHitTestSource, WTFMove(options));
                 ASSERT_UNUSED(addResult.isNewEntry, addResult);
                 callOnMainRunLoop([source = renderState->nextHitTestSource, completionHandler = WTFMove(completionHandler)] mutable {
@@ -457,10 +461,14 @@ void OpenXRCoordinator::requestTransientInputHitTestSource(WebPageProxy& page, c
 
             auto copiedOptions = makeUniqueRef<PlatformXR::TransientInputHitTestOptions>(options);
             active.renderQueue->dispatch([this, renderState = active.renderState, options = WTFMove(copiedOptions), completionHandler = WTFMove(completionHandler)]() mutable {
-#if ENABLE(WEBXR_HIT_TEST)
                 if (!renderState->hitTestManager)
                     renderState->hitTestManager = OpenXRHitTestManager::create(m_instance, m_systemId, m_session);
-#endif
+                if (!renderState->hitTestManager) {
+                    callOnMainRunLoop([completionHandler = WTFMove(completionHandler)] mutable {
+                        completionHandler(WebCore::Exception { WebCore::ExceptionCode::NotSupportedError });
+                    });
+                    return;
+                }
                 auto addResult = renderState->transientInputHitTestSources.add(renderState->nextTransientInputHitTestSource, WTFMove(options));
                 ASSERT_UNUSED(addResult.isNewEntry, addResult);
                 callOnMainRunLoop([source = renderState->nextTransientInputHitTestSource, completionHandler = WTFMove(completionHandler)] mutable {
@@ -520,6 +528,16 @@ void OpenXRCoordinator::createInstance()
 #endif
 #if OS(ANDROID)
     extensions.append(const_cast<char*>(XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME));
+#endif
+#if ENABLE(WEBXR_HIT_TEST)
+#if defined(XR_ANDROID_trackables)
+    if (OpenXRExtensions::singleton().isExtensionSupported(XR_ANDROID_TRACKABLES_EXTENSION_NAME ""_span))
+        extensions.append(const_cast<char*>(XR_ANDROID_TRACKABLES_EXTENSION_NAME));
+#if defined(XR_ANDROID_raycast)
+    if (OpenXRExtensions::singleton().isExtensionSupported(XR_ANDROID_RAYCAST_EXTENSION_NAME ""_span))
+        extensions.append(const_cast<char*>(XR_ANDROID_RAYCAST_EXTENSION_NAME));
+#endif
+#endif
 #endif
 
     XrInstanceCreateInfo createInfo = createOpenXRStruct<XrInstanceCreateInfo, XR_TYPE_INSTANCE_CREATE_INFO >();
@@ -720,6 +738,10 @@ void OpenXRCoordinator::tryInitializeGraphicsBinding()
         m_glContext = WebCore::GLContext::create(*m_glDisplay, target);
         if (!m_glContext) {
             LOG(XR, "Failed to create the GL context for OpenXR.");
+            return;
+        }
+        if (!m_glContext->makeContextCurrent()) {
+            LOG(XR, "Failed to make the GL context current.");
             return;
         }
     }
@@ -1074,8 +1096,6 @@ void OpenXRCoordinator::createReferenceSpacesIfNeeded(Box<RenderState> renderSta
 void OpenXRCoordinator::beginFrame(Box<RenderState> renderState)
 {
     ASSERT(!RunLoop::isMain());
-    if (!m_glContext->makeContextCurrent())
-        return;
 
     XrFrameWaitInfo frameWaitInfo = createOpenXRStruct<XrFrameWaitInfo, XR_TYPE_FRAME_WAIT_INFO>();
     XrFrameState frameState = createOpenXRStruct<XrFrameState, XR_TYPE_FRAME_STATE>();
@@ -1106,9 +1126,6 @@ void OpenXRCoordinator::beginFrame(Box<RenderState> renderState)
 void OpenXRCoordinator::endFrame(Box<RenderState> renderState, Vector<XRDeviceLayer>&& layers)
 {
     ASSERT(!RunLoop::isMain());
-
-    if (!m_glContext->makeContextCurrent())
-        return;
 
     Vector<const XrCompositionLayerBaseHeader*, 1> frameEndLayers;
     for (auto& layer : layers) {

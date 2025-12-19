@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,23 +23,35 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "PublicKeyCredentialRequestOptions.h"
+#pragma once
 
-#if ENABLE(WEB_AUTHN)
+#if USE(COORDINATED_GRAPHICS)
+#include "AcceleratedSurface.h"
+#include <WebCore/GLContext.h>
 
-#include "JSUserVerificationRequirement.h"
+namespace WebKit {
+class WebPage;
 
-namespace WebCore {
+class NonCompositedFrameRenderer {
+    WTF_MAKE_TZONE_ALLOCATED(NonCompositedFrameRenderer);
+public:
+    static std::unique_ptr<NonCompositedFrameRenderer> create(WebPage&);
 
-UserVerificationRequirement PublicKeyCredentialRequestOptions::userVerification() const
-{
-    if (auto parsed = parseEnumerationFromString<UserVerificationRequirement>(userVerificationString))
-        return *parsed;
-    // Default value if string is invalid/unknown
-    return UserVerificationRequirement::Preferred;
-}
+    NonCompositedFrameRenderer(WebPage&);
+    ~NonCompositedFrameRenderer();
 
-} // namespace WebCore
+    void display();
 
-#endif // ENABLE(WEB_AUTHN)
+private:
+    bool initialize();
+
+    WeakRef<WebPage> m_webPage;
+    Ref<AcceleratedSurface> m_surface;
+    std::unique_ptr<WebCore::GLContext> m_context;
+    bool m_canRenderNextFrame { true };
+    bool m_shouldRenderFollowupFrame { false };
+};
+
+} // namespace WebKit
+
+#endif // USE(COORDINATED_GRAPHICS)

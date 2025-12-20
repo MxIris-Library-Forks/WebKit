@@ -431,6 +431,7 @@
 #endif
 
 #if ENABLE(WIRELESS_PLAYBACK_MEDIA_PLAYER)
+#import "MediaDeviceRouteController.h"
 #import "MockMediaDeviceRouteController.h"
 #endif
 
@@ -743,6 +744,13 @@ void Internals::resetToConsistentState(Page& page)
 
 #if ENABLE(DAMAGE_TRACKING)
     page.chrome().client().resetDamageHistoryForTesting();
+#endif
+
+#if ENABLE(WIRELESS_PLAYBACK_MEDIA_PLAYER)
+#if HAVE(AVROUTING_FRAMEWORK)
+    MediaDeviceRouteController::singleton().setClient(nullptr);
+#endif
+    setMockMediaDeviceRouteControllerEnabled(false);
 #endif
 }
 
@@ -5529,7 +5537,7 @@ void Internals::setMediaElementVolumeLocked(HTMLMediaElement& element, bool volu
 }
 
 #if ENABLE(SPEECH_SYNTHESIS)
-ExceptionOr<RefPtr<SpeechSynthesisUtterance>> Internals::speechSynthesisUtteranceForCue(const VTTCue& cue)
+SpeechSynthesisUtterance* Internals::speechSynthesisUtteranceForCue(const VTTCue& cue)
 {
     return cue.speechUtterance();
 }

@@ -376,7 +376,7 @@
 		0DA042512E417B3500683D92 /* GPUTextureUsage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C66A6FB2A4F78170086DB6F /* GPUTextureUsage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DA042522E417B4800683D92 /* GPUIntegralTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C66A7DA2A4F785E0086DB6F /* GPUIntegralTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DACD8592E79D8C100CDA0DC /* DDModel.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = 0DACD8582E79D8C100CDA0DC /* DDModel.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
-		0DACD85D2E7A2A7700CDA0DC /* ModelDDInlineConverters.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DACD85C2E7A2A7700CDA0DC /* ModelDDInlineConverters.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0DACD85D2E7A2A7700CDA0DC /* ModelDDInlineConverters.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DACD85C2E7A2A7700CDA0DC /* ModelDDInlineConverters.h */; };
 		0DACE1F42E7C99E400CDA0DC /* GPU.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C66A7842A4F78440086DB6F /* GPU.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DD1FE972E78BEEA009DFD33 /* ModelDDTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DD1FE962E78BEAB009DFD33 /* ModelDDTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DD1FE9B2E78C00B009DFD33 /* WebCoreInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DD1FE992E78C00B009DFD33 /* WebCoreInternal.h */; };

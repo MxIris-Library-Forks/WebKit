@@ -6864,10 +6864,21 @@ header: <WebCore/TextExtractionTypes.h>
 };
 
 header: <WebCore/TextExtractionTypes.h>
+[CustomHeader] struct WebCore::TextExtraction::FormData {
+    String autocomplete;
+    String name;
+};
+
+header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::TextFormControlData {
     WebCore::TextExtraction::Editable editable;
     String controlType;
     String autocomplete;
+    String pattern;
+    String name;
+    std::optional<int> minLength;
+    std::optional<int> maxLength;
+    bool isRequired;
     bool isReadonly;
     bool isDisabled;
     bool isChecked;
@@ -6907,7 +6918,7 @@ header: <WebCore/TextExtractionTypes.h>
 
 header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::Item {
-    Variant<WebCore::TextExtraction::ContainerType, WebCore::TextExtraction::TextItemData, WebCore::TextExtraction::ScrollableItemData, WebCore::TextExtraction::ImageItemData, WebCore::TextExtraction::SelectData, WebCore::TextExtraction::ContentEditableData, WebCore::TextExtraction::TextFormControlData, WebCore::TextExtraction::LinkItemData> data;
+    Variant<WebCore::TextExtraction::ContainerType, WebCore::TextExtraction::TextItemData, WebCore::TextExtraction::ScrollableItemData, WebCore::TextExtraction::ImageItemData, WebCore::TextExtraction::SelectData, WebCore::TextExtraction::ContentEditableData, WebCore::TextExtraction::TextFormControlData, WebCore::TextExtraction::FormData, WebCore::TextExtraction::LinkItemData> data;
     WebCore::FloatRect rectInRootView;
     Vector<WebCore::TextExtraction::Item> children;
     String nodeName;
@@ -6916,6 +6927,7 @@ header: <WebCore/TextExtractionTypes.h>
     HashMap<String, String> ariaAttributes;
     String accessibilityRole;
     HashMap<String, String> clientAttributes;
+    unsigned enclosingBlockNumber;
 };
 
 header: <WebCore/TextExtractionTypes.h>
@@ -8897,7 +8909,7 @@ using WebCore::TrackInfoEncryptionInitData = WebCore::TrackInfoAtomData;
 header: <WebCore/TrackInfo.h>
 [CustomHeader] struct WebCore::EncryptionDataCollection {
     WebCore::TrackInfoEncryptionData encryptionData;
-    WebCore::FourCC encryptionOriginalFormat;
+    std::optional<WebCore::FourCC> encryptionOriginalFormat;
     Vector<WebCore::TrackInfoEncryptionInitData> encryptionInitDatas;
 };
 #endif

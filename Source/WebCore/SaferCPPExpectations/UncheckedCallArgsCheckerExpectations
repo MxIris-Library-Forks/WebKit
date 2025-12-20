@@ -14,11 +14,8 @@ Modules/webaudio/DefaultAudioDestinationNode.cpp
 Modules/webaudio/IIRFilterNode.cpp
 Modules/webaudio/MediaStreamAudioDestinationNode.cpp
 Modules/webaudio/WaveShaperNode.cpp
-Modules/webdatabase/ChangeVersionWrapper.cpp
 Modules/webdatabase/Database.cpp
-Modules/webdatabase/DatabaseContext.cpp
 Modules/webdatabase/DatabaseManager.cpp
-Modules/webdatabase/LocalDOMWindowWebDatabase.cpp
 Modules/webdatabase/SQLTransaction.cpp
 StyleBuilderGenerated.cpp
 StyleExtractorGenerated.cpp
@@ -35,7 +32,6 @@ accessibility/AccessibilityObjectInlines.h
 accessibility/AccessibilityProgressIndicator.cpp
 accessibility/AccessibilityRenderObject.cpp
 accessibility/AccessibilityScrollView.cpp
-accessibility/AccessibilitySlider.cpp
 accessibility/cocoa/AccessibilityObjectCocoa.mm
 [ iOS ] accessibility/ios/AccessibilityObjectIOS.mm
 [ iOS ] accessibility/ios/WebAccessibilityObjectWrapperIOS.mm
@@ -182,7 +178,6 @@ editing/cocoa/WebContentReaderCocoa.mm
 [ Mac ] editing/mac/EditorMac.mm
 editing/mac/FrameSelectionMac.mm
 editing/markup.cpp
-history/CachedFrame.cpp
 html/CachedHTMLCollection.h
 html/CachedHTMLCollectionInlines.h
 html/CollectionTraversalInlines.h
@@ -199,12 +194,10 @@ html/HTMLOptionsCollection.cpp
 html/HTMLPlugInElement.cpp
 html/HTMLTextFormControlElement.cpp
 html/ImageBitmap.cpp
-html/ImageDocument.cpp
 html/LazyLoadFrameObserver.cpp
 html/LazyLoadImageObserver.cpp
 html/MediaElementSession.cpp
 html/ModelDocument.cpp
-html/PluginDocument.cpp
 html/ValidatedFormListedElement.cpp
 html/ValidationMessage.cpp
 html/canvas/CanvasRenderingContext2D.cpp
@@ -220,9 +213,6 @@ html/parser/HTMLTreeBuilder.cpp
 html/shadow/DateTimeNumericFieldElement.cpp
 html/shadow/DateTimeSymbolicFieldElement.cpp
 html/shadow/SliderThumbElement.cpp
-html/track/InbandWebVTTTextTrack.cpp
-html/track/LoadableTextTrack.cpp
-html/track/TextTrackCue.cpp
 inspector/DOMEditor.cpp
 inspector/DOMPatchSupport.cpp
 inspector/InspectorAuditAccessibilityObject.cpp
@@ -486,6 +476,7 @@ rendering/RenderImageResourceStyleImage.h
 rendering/RenderInline.cpp
 rendering/RenderIterator.h
 rendering/RenderLayer.cpp
+rendering/RenderLayer.h
 rendering/RenderLayerBacking.cpp
 rendering/RenderLayerBacking.h
 rendering/RenderLayerCompositor.cpp

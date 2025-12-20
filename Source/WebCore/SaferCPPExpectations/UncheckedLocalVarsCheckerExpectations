@@ -13,7 +13,6 @@ accessibility/AccessibilityNodeObject.cpp
 accessibility/AccessibilityObject.cpp
 accessibility/AccessibilityRenderObject.cpp
 accessibility/AccessibilityScrollView.cpp
-accessibility/AccessibilitySlider.cpp
 [ iOS ] accessibility/cocoa/AXTextMarkerCocoa.mm
 accessibility/cocoa/AccessibilityObjectCocoa.mm
 [ iOS ] accessibility/ios/AccessibilityObjectIOS.mm
@@ -121,7 +120,6 @@ editing/cocoa/WebContentReaderCocoa.mm
 [ Mac ] editing/mac/EditorMac.mm
 [ Mac ] editing/mac/FrameSelectionMac.mm
 editing/markup.cpp
-history/CachedFrame.cpp
 html/CachedHTMLCollectionInlines.h
 html/CollectionTraversalInlines.h
 [ iOS ] html/HTMLAnchorElement.cpp
@@ -134,7 +132,6 @@ html/HTMLStyleElement.cpp
 html/HTMLTextFormControlElement.cpp
 html/MediaElementSession.cpp
 html/ModelDocument.cpp
-html/PluginDocument.cpp
 html/ValidatedFormListedElement.cpp
 html/ValidationMessage.cpp
 html/canvas/CanvasRenderingContext2D.cpp

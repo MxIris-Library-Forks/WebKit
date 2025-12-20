@@ -782,17 +782,6 @@ void WebFrameLoaderClient::dispatchDidFinishLoad()
     [m_webFrame->_private->internalLoadDelegate webFrame:m_webFrame.get() didFinishLoadWithError:nil];
 }
 
-void WebFrameLoaderClient::willDispatchDidReachLayoutMilestone(OptionSet<WebCore::LayoutMilestone> milestones)
-{
-#if !PLATFORM(IOS_FAMILY)
-    if (milestones & WebCore::LayoutMilestone::DidFirstLayout) {
-        WebDynamicScrollBarsView *scrollView = [m_webFrame->_private->webFrameView _scrollView];
-        [scrollView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
-        [scrollView setHorizontalScrollElasticity:NSScrollElasticityAutomatic];
-    }
-#endif
-}
-
 void WebFrameLoaderClient::dispatchDidReachLayoutMilestone(OptionSet<WebCore::LayoutMilestone> milestones)
 {
     WebView *webView = getWebView(m_webFrame.get());
@@ -820,6 +809,10 @@ void WebFrameLoaderClient::dispatchDidReachLayoutMilestone(OptionSet<WebCore::La
         WebDynamicScrollBarsView *scrollView = [m_webFrame->_private->webFrameView _scrollView];
         if ([getWebView(m_webFrame.get()) drawsBackground])
             [scrollView setDrawsBackground:YES];
+#if !PLATFORM(IOS_FAMILY)
+        [scrollView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
+        [scrollView setHorizontalScrollElasticity:NSScrollElasticityAutomatic];
+#endif
     }
 
     if (milestones & WebCore::LayoutMilestone::DidFirstVisuallyNonEmptyLayout) {
@@ -915,7 +908,7 @@ void WebFrameLoaderClient::dispatchDecidePolicyForNewWindowAction(const WebCore:
         decisionListener:setUpPolicyListener(WTFMove(function), WebCore::PolicyAction::Ignore, appLinkURL.get(), referrerURL.get()).get()];
 }
 
-void WebFrameLoaderClient::dispatchDecidePolicyForNavigationAction(const WebCore::NavigationAction& action, const WebCore::ResourceRequest& request, const WebCore::ResourceResponse&, WebCore::FormState* formState, const String&, std::optional<WebCore::NavigationIdentifier>, std::optional<WebCore::HitTestResult>&&, bool, WebCore::IsPerformingHTTPFallback, WebCore::SandboxFlags, WebCore::PolicyDecisionMode, WebCore::FramePolicyFunction&& function)
+void WebFrameLoaderClient::dispatchDecidePolicyForNavigationAction(const WebCore::NavigationAction& action, const WebCore::ResourceRequest& request, const WebCore::ResourceResponse&, WebCore::FormState* formState, const String&, std::optional<WebCore::NavigationIdentifier>, std::optional<WebCore::HitTestResult>&&, bool, WebCore::NavigationUpgradeToHTTPSBehavior, WebCore::SandboxFlags, WebCore::PolicyDecisionMode, WebCore::FramePolicyFunction&& function)
 {
     WebView *webView = getWebView(m_webFrame.get());
     BOOL tryAppLink = shouldTryAppLink(webView, action, core(m_webFrame.get()));

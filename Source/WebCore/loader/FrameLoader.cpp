@@ -55,7 +55,6 @@
 #include "DiagnosticLoggingClient.h"
 #include "DiagnosticLoggingKeys.h"
 #include "DiagnosticLoggingResultType.h"
-#include "DocumentEventLoop.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
 #include "DocumentPage.h"
@@ -3045,8 +3044,8 @@ void FrameLoader::checkLoadCompleteForThisFrame(LoadWillContinueInAnotherProcess
             protectedFrame()->protectedPage()->diagnosticLoggingClient().logDiagnosticMessageWithResult(DiagnosticLoggingKeys::pageLoadedKey(), emptyString(), error.isNull() ? DiagnosticLoggingResultPass : DiagnosticLoggingResultFail, ShouldSample::Yes);
         }
 
-        m_shouldSkipHTTPSUpgradeForSameSiteNavigation = m_isHTTPFallbackInProgress;
-        setHTTPFallbackInProgress(false);
+        m_shouldSkipHTTPSUpgradeForSameSiteNavigation = isHTTPFallbackInProgress();
+        resetHTTPFallbackInProgress();
 
         return;
     }
@@ -3090,23 +3089,7 @@ void FrameLoader::didReachLayoutMilestone(OptionSet<LayoutMilestone> milestones)
 {
     ASSERT(m_frame->isMainFrame());
 
-    auto queuedNavigationID = protectedActiveDocumentLoader()->navigationID();
-
-    m_client->willDispatchDidReachLayoutMilestone(milestones);
-
-    RefPtr document = m_frame->document();
-    if (!document)
-        return;
-
-    document->checkedEventLoop()->queueTask(TaskSource::InternalAsyncTask, [this, protectedThis = Ref { *this }, milestones, queuedNavigationID] {
-        RefPtr loader = activeDocumentLoader();
-        if (!loader)
-            return;
-
-        auto taskNavigationID = loader->navigationID();
-        if (taskNavigationID && taskNavigationID == queuedNavigationID)
-            m_client->dispatchDidReachLayoutMilestone(milestones);
-    });
+    m_client->dispatchDidReachLayoutMilestone(milestones);
 }
 
 void FrameLoader::didFirstLayout()

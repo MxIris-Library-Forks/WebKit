@@ -9,7 +9,6 @@ Modules/push-api/PushDatabase.cpp
 Modules/push-api/PushManager.cpp
 Modules/push-api/PushSubscription.cpp
 Modules/remoteplayback/RemotePlayback.cpp
-Modules/storage/StorageManager.cpp
 Modules/webaudio/DefaultAudioDestinationNode.cpp
 Modules/webaudio/IIRFilterNode.cpp
 Modules/webaudio/MediaStreamAudioDestinationNode.cpp
@@ -330,7 +329,6 @@ mathml/MathMLSelectElement.cpp
 page/AutoscrollController.cpp
 [ iOS ] page/Chrome.cpp
 [ Mac ] page/ContextMenuController.cpp
-page/DOMSelection.cpp
 [ iOS ] page/DOMTimer.cpp
 page/DragController.cpp
 page/ElementTargetingController.cpp

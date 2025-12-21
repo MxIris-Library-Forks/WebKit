@@ -666,7 +666,7 @@ template<size_t I, typename V> constexpr bool holdsAlternative(const V& v)
     }                                                                                \
     template<typename T> friend T&& get(Self&& self)                                 \
     {                                                                                \
-        return std::get<T>(WTFMove(self.name));                                      \
+        return std::get<T>(WTF::move(self.name));                                      \
     }                                                                                \
     template<typename T> friend const T& get(const Self& self)                       \
     {                                                                                \
@@ -1562,9 +1562,6 @@ static constexpr auto dereferenceView = std::views::transform([](auto&& x) -> de
 }
 
 } // namespace WTF
-
-// FIXME: get rid of WTFMove() and use WTF::move() directly.
-#define WTFMove(value) WTF::move(value)
 
 namespace WTF {
 namespace detail {

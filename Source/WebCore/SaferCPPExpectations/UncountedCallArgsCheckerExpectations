@@ -32,7 +32,6 @@ Modules/push-api/PushManager.cpp
 Modules/push-api/PushSubscription.cpp
 Modules/remoteplayback/RemotePlayback.cpp
 Modules/speech/SpeechSynthesis.cpp
-Modules/storage/StorageManager.cpp
 [ iOS ] Modules/system-preview/ARKitBadgeSystemImage.mm
 Modules/webaudio/AnalyserNode.cpp
 Modules/webaudio/AudioBasicInspectorNode.cpp
@@ -494,9 +493,6 @@ mathml/MathMLSelectElement.cpp
 page/AutoscrollController.cpp
 page/Chrome.cpp
 [ Mac ] page/ContextMenuController.cpp
-page/DOMSelection.cpp
-page/DOMTimer.cpp
-page/DOMWindowExtension.cpp
 page/DebugPageOverlays.h
 page/DragController.cpp
 page/ElementTargetingController.cpp

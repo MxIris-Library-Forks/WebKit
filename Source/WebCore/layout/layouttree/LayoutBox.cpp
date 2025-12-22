@@ -35,14 +35,14 @@
 #include "LayoutShape.h"
 #include "LayoutState.h"
 #include "RenderObject.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include <wtf/NeverDestroyed.h>
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 namespace Layout {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(Box);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(Box);
 WTF_MAKE_TZONE_ALLOCATED_IMPL(Box::BoxRareData);
 
 

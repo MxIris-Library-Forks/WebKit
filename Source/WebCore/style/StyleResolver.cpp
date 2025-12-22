@@ -58,8 +58,8 @@
 #include "PageRuleCollector.h"
 #include "RenderScrollbar.h"
 #include "RenderStyleConstants.h"
-#include "RenderStyleInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+GettersInlines.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderView.h"
 #include "ResolvedStyle.h"
 #include "RuleSet.h"
@@ -120,7 +120,7 @@ namespace Style {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(Resolver);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(Resolver);
 
 class Resolver::State {
 public:

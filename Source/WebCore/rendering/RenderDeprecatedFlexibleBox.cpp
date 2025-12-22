@@ -36,7 +36,8 @@
 #include "RenderLayer.h"
 #include "RenderLayoutState.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
+#include "RenderStyle+InitialInlines.h"
 #include "RenderView.h"
 #include <ranges>
 #include <wtf/Scope.h>
@@ -46,7 +47,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderDeprecatedFlexibleBox);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderDeprecatedFlexibleBox);
 
 class FlexBoxIterator {
 public:

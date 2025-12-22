@@ -33,7 +33,7 @@
 #include "NodeName.h"
 #include "Page.h"
 #include "RenderMeter.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTheme.h"
 #include "ShadowRoot.h"
 #include "UserAgentParts.h"
@@ -42,7 +42,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(HTMLMeterElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(HTMLMeterElement);
 
 using namespace HTMLNames;
 

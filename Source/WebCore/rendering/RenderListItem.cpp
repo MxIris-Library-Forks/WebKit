@@ -36,7 +36,7 @@
 #include "RenderBoxModelObjectInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTreeBuilder.h"
 #include "RenderView.h"
 #include "StyleInheritedData.h"
@@ -49,7 +49,7 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderListItem);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderListItem);
 
 RenderListItem::RenderListItem(Element& element, RenderStyle&& style)
     : RenderBlockFlow(Type::ListItem, element, WTF::move(style))

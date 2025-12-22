@@ -24,14 +24,14 @@
 #include "HTMLProgressElement.h"
 #include "RenderBoxModelObjectInlines.h"
 #include "RenderElementInlines.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTheme.h"
 #include <wtf/RefPtr.h>
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderProgress);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderProgress);
 
 RenderProgress::RenderProgress(HTMLElement& element, RenderStyle&& style)
     : RenderBlockFlow(Type::Progress, element, WTF::move(style))

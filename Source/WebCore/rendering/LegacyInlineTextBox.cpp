@@ -49,7 +49,7 @@
 #include "RenderLineBreak.h"
 #include "RenderObjectStyle.h"
 #include "RenderSVGInlineText.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTheme.h"
 #include "RenderView.h"
 #include "RenderedDocumentMarker.h"
@@ -66,7 +66,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(LegacyInlineTextBox);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(LegacyInlineTextBox);
 
 struct SameSizeAsLegacyInlineTextBox : public LegacyInlineBox {
     void* pointers[2];

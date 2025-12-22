@@ -39,7 +39,7 @@
 #include "RenderElement.h"
 #include "RenderIterator.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include <wtf/StdLibExtras.h>
 #include <wtf/TZoneMallocInlines.h>
 
@@ -47,7 +47,7 @@ namespace WebCore {
 
 using namespace MathMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderMathMLToken);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderMathMLToken);
 
 RenderMathMLToken::RenderMathMLToken(Type type, MathMLTokenElement& element, RenderStyle&& style)
     : RenderMathMLBlock(type, element, WTF::move(style))
@@ -200,7 +200,13 @@ void RenderMathMLToken::paint(PaintInfo& info, const LayoutPoint& paintOffset)
     auto glyphAscent = settings().subpixelInlineLayoutEnabled() ? -mathVariantGlyph.font->boundsForGlyph(mathVariantGlyph.glyph).y() : roundf(-mathVariantGlyph.font->boundsForGlyph(mathVariantGlyph.glyph).y());
     // FIXME: If we're just drawing a single glyph, why do we need to compute an advance?
     auto advance = makeGlyphBufferAdvance(mathVariantGlyph.font->widthForGlyph(mathVariantGlyph.glyph));
-    info.context().drawGlyphs(*mathVariantGlyph.font, singleElementSpan(mathVariantGlyph.glyph), singleElementSpan(advance), paintOffset + location() + LayoutPoint(borderLeft() + paddingLeft(), glyphAscent + borderAndPaddingBefore()), style().fontCascade().fontDescription().usedFontSmoothing());
+    auto location = paintOffset + this->location() + LayoutPoint { borderLeft() + paddingLeft(), glyphAscent + borderAndPaddingBefore() };
+    if (style().writingMode().isHorizontal())
+        location.setY(roundToDevicePixel(LayoutUnit { location.y() }, document().deviceScaleFactor()));
+    else
+        location.setX(roundToDevicePixel(LayoutUnit { location.x() }, document().deviceScaleFactor()));
+
+    info.context().drawGlyphs(*mathVariantGlyph.font, singleElementSpan(mathVariantGlyph.glyph), singleElementSpan(advance), location, style().fontCascade().fontDescription().usedFontSmoothing());
 }
 
 void RenderMathMLToken::paintChildren(PaintInfo& paintInfo, const LayoutPoint& paintOffset, PaintInfo& paintInfoForChild, bool usePrintRect)

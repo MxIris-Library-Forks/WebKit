@@ -34,7 +34,7 @@
 #include "RenderChildIterator.h"
 #include "RenderIterator.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTable.h"
 #include "RenderTableCaption.h"
 #include "RenderTableCell.h"
@@ -46,7 +46,7 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderTableCol);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderTableCol);
 
 RenderTableCol::RenderTableCol(Element& element, RenderStyle&& style)
     : RenderBox(Type::TableCol, element, WTF::move(style))

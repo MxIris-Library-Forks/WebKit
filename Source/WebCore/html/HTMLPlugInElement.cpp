@@ -69,7 +69,7 @@
 #include "RenderEmbeddedObject.h"
 #include "RenderImage.h"
 #include "RenderLayer.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTreeBuilder.h"
 #include "RenderTreeUpdater.h"
 #include "RenderView.h"
@@ -95,7 +95,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(HTMLPlugInElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(HTMLPlugInElement);
 
 using namespace HTMLNames;
 

@@ -27,13 +27,13 @@
 #include "GradientAttributes.h"
 #include "GraphicsContext.h"
 #include "RenderSVGText.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "SVGRenderingContext.h"
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(LegacyRenderSVGResourceGradient);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(LegacyRenderSVGResourceGradient);
 
 LegacyRenderSVGResourceGradient::LegacyRenderSVGResourceGradient(Type type, SVGGradientElement& node, RenderStyle&& style)
     : LegacyRenderSVGResourceContainer(type, node, WTF::move(style))

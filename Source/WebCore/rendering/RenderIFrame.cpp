@@ -32,7 +32,7 @@
 #include "LocalFrameView.h"
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderView.h"
 #include "RenderWidgetInlines.h"
 #include "Settings.h"
@@ -41,7 +41,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderIFrame);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderIFrame);
 
 using namespace HTMLNames;
     

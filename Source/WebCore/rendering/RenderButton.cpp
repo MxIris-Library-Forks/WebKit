@@ -31,7 +31,7 @@
 #include "RenderBoxModelObjectInlines.h"
 #include "RenderChildIterator.h"
 #include "RenderElementInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTheme.h"
 #include "RenderTreeBuilder.h"
 #include "StyleInheritedData.h"
@@ -45,7 +45,7 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderButton);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderButton);
 
 RenderButton::RenderButton(HTMLFormControlElement& element, RenderStyle&& style)
     : RenderFlexibleBox(Type::Button, element, WTF::move(style))

@@ -60,8 +60,8 @@
 #include "RenderFragmentedFlow.h"
 #include "RenderImageResourceStyleImage.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+GettersInlines.h"
+#include "RenderStyle+InitialInlines.h"
 #include "RenderTheme.h"
 #include "RenderView.h"
 #include "SVGElementTypeHelpers.h"
@@ -93,7 +93,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderImage);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderImage);
 
 #if PLATFORM(IOS_FAMILY)
 // FIXME: This doesn't behave correctly for floating or positioned images, but WebCore doesn't handle those well

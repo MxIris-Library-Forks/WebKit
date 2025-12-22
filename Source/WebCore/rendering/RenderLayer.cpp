@@ -129,7 +129,7 @@
 #include "RenderSVGViewportContainer.h"
 #include "RenderScrollbar.h"
 #include "RenderScrollbarPart.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTableCell.h"
 #include "RenderTableRow.h"
 #include "RenderText.h"
@@ -312,7 +312,7 @@ static ScrollingScope nextScrollingScope()
     return ++currentScope;
 }
 
-WTF_MAKE_PREFERABLY_COMPACT_TZONE_OR_ISO_ALLOCATED_IMPL(RenderLayer);
+WTF_MAKE_PREFERABLY_COMPACT_TZONE_ALLOCATED_IMPL(RenderLayer);
 
 RenderLayer::RenderLayer(RenderLayerModelObject& renderer)
     : m_isRenderViewLayer(renderer.isRenderView())
@@ -6367,8 +6367,8 @@ RenderLayerFilters& RenderLayer::ensureLayerFilters()
     if (m_filters)
         return *m_filters;
     
-    m_filters = RenderLayerFilters::create(*this);
-    m_filters->setFilterScale({ page().deviceScaleFactor(), page().deviceScaleFactor() });
+    auto scale = page().deviceScaleFactor();
+    m_filters = RenderLayerFilters::create(*this, { scale, scale });
     return *m_filters;
 }
 

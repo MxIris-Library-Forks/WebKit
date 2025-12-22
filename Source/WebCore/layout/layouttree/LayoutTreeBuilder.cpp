@@ -53,7 +53,7 @@
 #include "RenderInline.h"
 #include "RenderLineBreak.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTable.h"
 #include "RenderTableCaption.h"
 #include "RenderTableCell.h"
@@ -67,7 +67,7 @@
 namespace WebCore {
 namespace Layout {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(LayoutTree);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(LayoutTree);
 LayoutTree::LayoutTree(std::unique_ptr<ElementBox> root)
     : m_root(WTF::move(root))
 {

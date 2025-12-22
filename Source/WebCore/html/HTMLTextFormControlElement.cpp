@@ -59,7 +59,7 @@
 #include "PseudoClassChangeInvalidation.h"
 #include "RenderLineBreak.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTextControlSingleLine.h"
 #include "RenderTheme.h"
 #include "ScriptDisallowedScope.h"
@@ -72,7 +72,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(HTMLTextFormControlElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(HTMLTextFormControlElement);
 
 using namespace HTMLNames;
 

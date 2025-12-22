@@ -251,7 +251,7 @@
 #include "RenderLayoutState.h"
 #include "RenderLineBreak.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTreeUpdater.h"
 #include "RenderView.h"
 #include "RenderWidgetInlines.h"
@@ -462,7 +462,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(Document);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(Document);
 WTF_MAKE_TZONE_ALLOCATED_IMPL(DocumentParserYieldToken);
 
 using namespace HTMLNames;

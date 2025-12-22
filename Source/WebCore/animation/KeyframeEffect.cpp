@@ -65,7 +65,7 @@
 #include "RenderBoxModelObject.h"
 #include "RenderElement.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "Settings.h"
 #include "StyleAdjuster.h"
 #include "StyleEasingFunction.h"
@@ -98,7 +98,7 @@
 namespace WebCore {
 using namespace JSC;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(KeyframeEffect);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(KeyframeEffect);
 
 KeyframeEffect::~KeyframeEffect()
 {

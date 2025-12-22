@@ -30,7 +30,7 @@
 #include "InlineSoftLineBreakItem.h"
 #include "LayoutElementBox.h"
 #include "LayoutUnit.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "TextBreakingPositionContext.h"
 #include "WritingMode.h"
 #include <wtf/Range.h>
@@ -39,7 +39,7 @@
 namespace WebCore {
 namespace Layout {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(InlineDamage);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(InlineDamage);
 
 InlineInvalidation::InlineInvalidation(InlineDamage& inlineDamage, const InlineItemList& inlineItemList, const InlineDisplay::Content& displayContent)
     : m_inlineDamage(inlineDamage)

@@ -28,7 +28,7 @@
 #include "LegacyRenderSVGResource.h"
 #include "MutableStyleProperties.h"
 #include "RenderSVGPath.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "SVGDocumentExtensions.h"
 #include "SVGElementTypeHelpers.h"
 #include "SVGMPathElement.h"
@@ -41,7 +41,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(SVGPathElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(SVGPathElement);
 
 class PathSegListCache {
 public:

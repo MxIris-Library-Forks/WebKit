@@ -37,7 +37,7 @@
 #include "RenderBoxInlines.h"
 #include "RenderChildIterator.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTheme.h"
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/URL.h>
@@ -46,7 +46,7 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderAttachment);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderAttachment);
 
 RenderAttachment::RenderAttachment(HTMLAttachmentElement& element, RenderStyle&& style)
     : RenderReplaced(Type::Attachment, element, WTF::move(style), LayoutSize())

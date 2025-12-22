@@ -49,7 +49,7 @@
 #include "RenderSVGResourceMasker.h"
 #include "RenderSVGResourceRadialGradient.h"
 #include "RenderSVGText.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderView.h"
 #include "SVGClipPathElement.h"
 #include "SVGFilterElement.h"
@@ -66,7 +66,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderLayerModelObject);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderLayerModelObject);
 
 bool RenderLayerModelObject::s_wasFloating = false;
 bool RenderLayerModelObject::s_hadLayer = false;

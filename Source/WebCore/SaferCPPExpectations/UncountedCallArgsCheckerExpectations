@@ -333,9 +333,7 @@ dom/TreeScope.cpp
 dom/TreeScopeOrderedMap.cpp
 dom/TypedElementDescendantIteratorInlines.h
 dom/ViewTransition.cpp
-dom/VisitedLinkState.cpp
 dom/WindowOrWorkerGlobalScopeTrustedTypes.cpp
-[ Mac ] dom/mac/ImageControlsMac.cpp
 editing/AlternativeTextController.cpp
 editing/ApplyBlockElementCommand.cpp
 editing/ApplyStyleCommand.cpp
@@ -644,7 +642,6 @@ platform/graphics/transforms/TransformOperationsSharedPrimitivesPrefix.h
 [ iOS ] platform/ios/VideoPresentationInterfaceIOS.mm
 [ iOS ] platform/ios/WebVideoFullscreenControllerAVKit.mm
 [ iOS ] platform/ios/wak/WAKWindow.mm
-platform/libwebrtc/LibWebRTCVPXVideoEncoder.cpp
 platform/mediarecorder/MediaRecorderPrivate.h
 platform/mediarecorder/MediaRecorderPrivateAVFImpl.cpp
 platform/mediarecorder/MediaRecorderPrivateMock.cpp
@@ -744,9 +741,6 @@ rendering/mathml/RenderMathMLUnderOver.cpp
 rendering/shapes/ShapeOutsideInfo.cpp
 rendering/shapes/ShapeOutsideInfo.h
 rendering/style/BorderData.cpp
-rendering/style/RenderStyle.cpp
-rendering/style/RenderStyleInlines.h
-rendering/style/RenderStylePropertiesGettersCustom.h
 rendering/style/StyleCachedImage.cpp
 rendering/style/StyleCanvasImage.cpp
 rendering/style/StyleCrossfadeImage.cpp
@@ -829,6 +823,9 @@ style/StyleUpdate.cpp
 style/Styleable.cpp
 style/Styleable.h
 style/UserAgentStyle.cpp
+style/computed/StyleComputedStyle.cpp
+style/computed/StyleComputedStyleBase.cpp
+style/computed/StyleComputedStyleProperties+GettersCustomInlines.h
 style/values/primitives/StyleLengthWrapperData.cpp
 style/values/transforms/StyleRotate.cpp
 style/values/transforms/StyleScale.cpp

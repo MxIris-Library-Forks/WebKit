@@ -75,12 +75,11 @@
 #include "RequestAnimationFrameCallback.h"
 #include "WebGPUXRBinding.h"
 #include "XRGPUBinding.h"
-#include <wtf/IsoMallocInlines.h>
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(GPUDevice);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(GPUDevice);
 
 GPUDevice::GPUDevice(ScriptExecutionContext* scriptExecutionContext, Ref<WebGPU::Device>&& backing, String&& queueLabel, GPUAdapterInfo& adapterInfo)
     : ActiveDOMObject { scriptExecutionContext }

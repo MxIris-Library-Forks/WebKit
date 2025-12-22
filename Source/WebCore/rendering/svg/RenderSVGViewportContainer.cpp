@@ -29,7 +29,7 @@
 #include "RenderObjectDocument.h"
 #include "RenderSVGModelObjectInlines.h"
 #include "RenderSVGRoot.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "SVGContainerLayout.h"
 #include "SVGElementTypeHelpers.h"
 #include "SVGSVGElement.h"
@@ -37,7 +37,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderSVGViewportContainer);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderSVGViewportContainer);
 
 RenderSVGViewportContainer::RenderSVGViewportContainer(RenderSVGRoot& parent, RenderStyle&& style)
     : RenderSVGContainer(Type::SVGViewportContainer, parent.document(), WTF::move(style))

@@ -50,7 +50,7 @@
 #include "RenderElementInlines.h"
 #include "RenderObjectInlines.h"
 #include "RenderScrollbar.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderText.h"
 #include "RenderTheme.h"
 #include "RenderTreeBuilder.h"
@@ -69,7 +69,7 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderMenuList);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderMenuList);
 
 #if PLATFORM(IOS_FAMILY)
 static size_t selectedOptionCount(const RenderMenuList& renderMenuList)

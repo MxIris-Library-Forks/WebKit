@@ -41,7 +41,7 @@
 #include "NodeTraversal.h"
 #include "PseudoClassChangeInvalidation.h"
 #include "RenderMenuList.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTheme.h"
 #include "ScriptElement.h"
 #include "StyleResolver.h"
@@ -52,7 +52,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(HTMLOptionElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(HTMLOptionElement);
 
 using namespace HTMLNames;
 

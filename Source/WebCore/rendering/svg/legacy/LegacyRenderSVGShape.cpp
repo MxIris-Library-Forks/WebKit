@@ -39,7 +39,7 @@
 #include "LegacyRenderSVGResourceSolidColor.h"
 #include "LegacyRenderSVGShapeInlines.h"
 #include "PointerEventsHitRules.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "SVGPathData.h"
 #include "SVGRenderingContext.h"
 #include "SVGResources.h"
@@ -51,7 +51,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(LegacyRenderSVGShape);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(LegacyRenderSVGShape);
 
 LegacyRenderSVGShape::LegacyRenderSVGShape(Type type, SVGGraphicsElement& element, RenderStyle&& style)
     : LegacyRenderSVGModelObject(type, element, WTF::move(style), { SVGModelObjectFlag::IsShape, SVGModelObjectFlag::UsesBoundaryCaching })

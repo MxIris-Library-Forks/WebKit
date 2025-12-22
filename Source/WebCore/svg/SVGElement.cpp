@@ -45,7 +45,7 @@
 #include "NodeName.h"
 #include "RenderAncestorIterator.h"
 #include "RenderSVGResourceContainer.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "ResolvedStyle.h"
 #include "SVGDocumentExtensions.h"
 #include "SVGElementRareData.h"
@@ -77,7 +77,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(SVGElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(SVGElement);
 
 SVGElement::SVGElement(const QualifiedName& tagName, Document& document, UniqueRef<SVGPropertyRegistry>&& propertyRegistry, OptionSet<TypeFlag> typeFlags)
     : StyledElement(tagName, document, typeFlags | TypeFlag::IsSVGElement | TypeFlag::HasCustomStyleResolveCallbacks)

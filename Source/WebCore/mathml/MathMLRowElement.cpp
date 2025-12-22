@@ -34,13 +34,13 @@
 #include "RenderMathMLFenced.h"
 #include "RenderMathMLMenclose.h"
 #include "RenderMathMLRow.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "Settings.h"
 #include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(MathMLRowElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(MathMLRowElement);
 
 using namespace MathMLNames;
 

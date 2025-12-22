@@ -72,7 +72,8 @@
 #include "PseudoClassChangeInvalidation.h"
 #include "RadioInputType.h"
 #include "RenderObjectInlines.h"
-#include "RenderStyleSetters.h"
+#include "RenderStyle+InitialInlines.h"
+#include "RenderStyle+SettersInlines.h"
 #include "RenderTextControlSingleLine.h"
 #include "RenderTheme.h"
 #include "ResourceLoadObserver.h"
@@ -97,7 +98,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(HTMLInputElement);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(HTMLInputElement);
 
 using namespace CSS::Literals;
 using namespace HTMLNames;

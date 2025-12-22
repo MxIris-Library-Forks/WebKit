@@ -70,7 +70,7 @@
 #include "RenderElement.h"
 #include "RenderImage.h"
 #include "RenderLayer.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "RenderTheme.h"
 #include "SVGImageElement.h"
 #include "ScriptDisallowedScope.h"
@@ -94,7 +94,7 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(CanvasRenderingContext2DBase);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(CanvasRenderingContext2DBase);
 
 static constexpr ImageSmoothingQuality defaultSmoothingQuality = ImageSmoothingQuality::Low;
 

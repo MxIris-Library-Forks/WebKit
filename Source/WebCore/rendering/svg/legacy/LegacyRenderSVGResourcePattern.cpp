@@ -28,7 +28,7 @@
 #include "LegacyRenderSVGRoot.h"
 #include "LocalFrameView.h"
 #include "NativeImage.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
 #include "SVGElementTypeHelpers.h"
 #include "SVGFitToViewBox.h"
 #include "SVGRenderingContext.h"
@@ -38,7 +38,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(LegacyRenderSVGResourcePattern);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(LegacyRenderSVGResourcePattern);
 
 LegacyRenderSVGResourcePattern::LegacyRenderSVGResourcePattern(SVGPatternElement& element, RenderStyle&& style)
     : LegacyRenderSVGResourceContainer(Type::LegacySVGResourcePattern, element, WTF::move(style))

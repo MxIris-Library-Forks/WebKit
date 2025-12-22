@@ -51,8 +51,8 @@
 #include "RenderObjectInlines.h"
 #include "RenderReplaced.h"
 #include "RenderSVGRoot.h"
-#include "RenderStyleConstants.h"
-#include "RenderStyleInlines.h"
+#include "RenderStyle+GettersInlines.h"
+#include "RenderStyle+InitialInlines.h"
 #include "RenderTable.h"
 #include "RenderView.h"
 #include "StylePrimitiveNumericTypes+Evaluation.h"
@@ -65,7 +65,7 @@
 
 namespace WebCore {
 
-WTF_MAKE_TZONE_OR_ISO_ALLOCATED_IMPL(RenderFlexibleBox);
+WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderFlexibleBox);
 
 RenderFlexibleBox::FlexLayoutItem::FlexLayoutItem(RenderBox& flexItem, LayoutUnit flexBaseContentSize, LayoutUnit mainAxisBorderAndPadding, LayoutUnit mainAxisMargin, std::pair<LayoutUnit, LayoutUnit> minMaxSizes, bool everHadLayout)
     : renderer(flexItem)

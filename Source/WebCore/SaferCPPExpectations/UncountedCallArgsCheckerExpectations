@@ -13,7 +13,6 @@ Modules/mediasession/MediaSession.cpp
 Modules/mediasource/MediaSourceHandle.cpp
 Modules/mediastream/MediaStreamTrack.cpp
 Modules/mediastream/MediaStreamTrackProcessor.cpp
-Modules/mediastream/PeerConnectionBackend.cpp
 Modules/mediastream/RTCController.cpp
 Modules/mediastream/RTCDTMFSender.cpp
 Modules/mediastream/RTCDataChannelRemoteHandler.cpp
@@ -642,9 +641,6 @@ platform/graphics/transforms/TransformOperationsSharedPrimitivesPrefix.h
 [ iOS ] platform/ios/VideoPresentationInterfaceIOS.mm
 [ iOS ] platform/ios/WebVideoFullscreenControllerAVKit.mm
 [ iOS ] platform/ios/wak/WAKWindow.mm
-platform/mediarecorder/MediaRecorderPrivate.h
-platform/mediarecorder/MediaRecorderPrivateAVFImpl.cpp
-platform/mediarecorder/MediaRecorderPrivateMock.cpp
 platform/mediastream/RealtimeOutgoingAudioSource.cpp
 platform/mediastream/RealtimeOutgoingVideoSource.cpp
 platform/mediastream/cocoa/AudioMediaStreamTrackRendererCocoa.cpp

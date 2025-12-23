@@ -1,4 +1,3 @@
-Modules/mediarecorder/MediaRecorder.cpp
 Modules/mediastream/RTCPeerConnection.cpp
 Modules/mediastream/UserMediaRequest.cpp
 Modules/mediastream/libwebrtc/LibWebRTCPeerConnectionBackend.cpp
@@ -251,7 +250,6 @@ page/ResourceUsageOverlay.cpp
 page/ScreenOrientation.cpp
 page/ScrollBehavior.cpp
 page/SpatialNavigation.cpp
-page/TextIndicator.cpp
 [ iOS ] page/ios/ContentChangeObserver.cpp
 [ iOS ] page/ios/EventHandlerIOS.mm
 [ iOS ] page/ios/FrameIOS.mm
@@ -262,7 +260,6 @@ page/scrolling/AsyncScrollingCoordinator.cpp
 page/scrolling/ScrollAnchoringController.cpp
 page/scrolling/ScrollSnapOffsetsInfo.cpp
 page/scrolling/ScrollingCoordinator.cpp
-page/text-extraction/TextExtraction.cpp
 page/writing-tools/WritingToolsController.mm
 platform/DictationCaretAnimator.cpp
 platform/DragImage.cpp

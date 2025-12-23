@@ -1,9 +1,7 @@
 Modules/mediacapabilities/MediaCapabilities.cpp
 Modules/mediacontrols/MediaControlsHost.cpp
-Modules/mediarecorder/MediaRecorder.cpp
 [ Mac ] Modules/mediasession/MediaSession.cpp
 Modules/mediasource/SourceBuffer.cpp
-Modules/mediastream/PeerConnectionBackend.cpp
 Modules/mediastream/RTCController.cpp
 Modules/mediastream/RTCPeerConnection.cpp
 Modules/mediastream/UserMediaRequest.cpp
@@ -276,7 +274,6 @@ page/ScreenOrientation.cpp
 page/ScrollBehavior.cpp
 page/SettingsBase.cpp
 page/SpatialNavigation.cpp
-page/TextIndicator.cpp
 page/UserContentController.cpp
 page/UserContentProvider.cpp
 page/cocoa/ResourceUsageThreadCocoa.mm
@@ -291,7 +288,6 @@ page/scrolling/ScrollAnchoringController.cpp
 page/scrolling/ScrollingCoordinator.cpp
 page/scrolling/ScrollingTreeOverflowScrollProxyNode.cpp
 page/scrolling/ScrollingTreeStickyNode.cpp
-page/text-extraction/TextExtraction.cpp
 platform/DictationCaretAnimator.cpp
 platform/KeyboardScrollingAnimator.cpp
 platform/ScrollView.cpp
@@ -435,8 +431,8 @@ style/StyleTreeResolver.cpp
 style/StyleUpdate.cpp
 style/Styleable.cpp
 style/UserAgentStyle.cpp
-style/computed/StyleComputedStyleBase.cpp
 style/computed/StyleComputedStyleBase+SettersInlines.h
+style/computed/StyleComputedStyleBase.cpp
 style/computed/StyleComputedStyleProperties+SettersCustomInlines.h
 style/values/transforms/StyleTransformFunction.cpp
 svg/SVGAnimateMotionElement.cpp

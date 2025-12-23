@@ -8012,6 +8012,10 @@
 		0F4966A81DB40C4300A274BB /* JSDOMPointReadOnly.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMPointReadOnly.cpp; sourceTree = "<group>"; };
 		0F4966A91DB40C4300A274BB /* JSDOMPointReadOnly.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDOMPointReadOnly.h; sourceTree = "<group>"; };
 		0F4CDEAA23D91A8A00251B02 /* ScrollTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollTypes.cpp; sourceTree = "<group>"; };
+		0F53074A2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEFloodCoreImageApplier.h; sourceTree = "<group>"; };
+		0F53074B2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEFloodCoreImageApplier.mm; sourceTree = "<group>"; };
+		0F53074C2EF7AF0400F0B6B2 /* FEBlendCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEBlendCoreImageApplier.h; sourceTree = "<group>"; };
+		0F53074D2EF7AF0400F0B6B2 /* FEBlendCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEBlendCoreImageApplier.mm; sourceTree = "<group>"; };
 		0F53FB81213B1BB800C40D34 /* CSSFilterRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSFilterRenderer.cpp; sourceTree = "<group>"; };
 		0F53FB83213B1BB800C40D34 /* CSSFilterRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSSFilterRenderer.h; sourceTree = "<group>"; };
 		0F53FB83213B786400C40D34 /* RenderLayerScrollableArea.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLayerScrollableArea.cpp; sourceTree = "<group>"; };
@@ -10474,6 +10478,7 @@
 		410B3939292F70D50003E515 /* InternalReadableStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InternalReadableStream.cpp; sourceTree = "<group>"; };
 		410B393A292F70D60003E515 /* InternalReadableStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalReadableStream.h; sourceTree = "<group>"; };
 		410B7E711045FAB000D8224F /* JSMessageEventCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSMessageEventCustom.cpp; sourceTree = "<group>"; };
+		410B7ECE2EF06B19001217C2 /* RTCDataChannelHandlerClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RTCDataChannelHandlerClient.cpp; sourceTree = "<group>"; };
 		410BA1312570FE57002E2F8A /* LibWebRTCRtpTransformableFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LibWebRTCRtpTransformableFrame.cpp; path = libwebrtc/LibWebRTCRtpTransformableFrame.cpp; sourceTree = "<group>"; };
 		410BCF5326F0CD8B0040B124 /* RTCLocalSessionDescriptionInit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RTCLocalSessionDescriptionInit.h; sourceTree = "<group>"; };
 		410BCF5526F0CD8C0040B124 /* RTCLocalSessionDescriptionInit.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RTCLocalSessionDescriptionInit.idl; sourceTree = "<group>"; };
@@ -23381,6 +23386,7 @@
 				073930D92AC644A000C1D1B1 /* RedEyeReduction.h */,
 				3135910C1E7DDCB600F30630 /* RTCBundlePolicy.h */,
 				07221BA217CF0AD400848E51 /* RTCDataChannelHandler.h */,
+				410B7ECE2EF06B19001217C2 /* RTCDataChannelHandlerClient.cpp */,
 				07221BA317CF0AD400848E51 /* RTCDataChannelHandlerClient.h */,
 				416EDBFF2600E78700092675 /* RTCDataChannelIdentifier.h */,
 				861FC9E02992A1F500DFDF6D /* RTCDataChannelLocalIdentifier.h */,
@@ -25993,10 +25999,14 @@
 		2CE1189824C2402C003770E9 /* coreimage */ = {
 			isa = PBXGroup;
 			children = (
+				0F53074C2EF7AF0400F0B6B2 /* FEBlendCoreImageApplier.h */,
+				0F53074D2EF7AF0400F0B6B2 /* FEBlendCoreImageApplier.mm */,
 				72B8B01F2751B92800F752AA /* FEColorMatrixCoreImageApplier.h */,
 				72B8B01E2751B91000F752AA /* FEColorMatrixCoreImageApplier.mm */,
 				72B8B01D2751B82B00F752AA /* FEComponentTransferCoreImageApplier.h */,
 				72B8B01B2751B6BC00F752AA /* FEComponentTransferCoreImageApplier.mm */,
+				0F53074A2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.h */,
+				0F53074B2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.mm */,
 				72B8B0202751C4B700F752AA /* FilterImageCoreImage.mm */,
 				9E5F6AC02E441ABC001C81D8 /* SourceAlphaCoreImageApplier.h */,
 				9E5F6AC12E441B09001C81D8 /* SourceAlphaCoreImageApplier.mm */,

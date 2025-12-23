@@ -8208,9 +8208,6 @@ webkit.org/b/297026 [ Release ] http/tests/app-privacy-report/app-attribution-be
 webkit.org/b/297056 http/tests/site-isolation/touch-events/touch-event-coordinates.html [ Timeout ]
 
 webkit.org/b/297067 fast/forms/state-restore-form-associated-custom-elements.html [ Pass Timeout ]
-
-webkit.org/b/297081 http/tests/resourceLoadStatistics/exemptDomains/managed-domains-cookieEnabled.html [ Pass Failure ]
-
 # webkit.org/b/297122 2x imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside (layout-tests) tests are flaky text failures
 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside-010.html [ Pass Failure ]
 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside-013.html [ Pass Failure ]
@@ -8377,7 +8374,6 @@ imported/w3c/web-platform-tests/css/CSS2/linebox/inline-formatting-context-007.x
 imported/w3c/web-platform-tests/css/CSS2/linebox/inline-formatting-context-022.xht [ ImageOnlyFailure ]
 
 # webkit.org/b/302331 REGRESSION(302097@main): [macOS iOS] 2x imported/w3c/web-platform-tests/css/css-viewport tests are flaky failure
-imported/w3c/web-platform-tests/css/css-viewport/zoom/iframe-zoom-nested.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-viewport/zoom/zoom-iframe-dynamic.html [ Failure ]
 
 imported/w3c/web-platform-tests/css/CSS2/box-display/block-in-inline-001.xht [ ImageOnlyFailure ]

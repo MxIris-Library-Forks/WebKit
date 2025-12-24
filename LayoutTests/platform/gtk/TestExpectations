@@ -64,6 +64,9 @@ webkit.org/b/235941 accessibility/gtk/caret-offsets.html [ Timeout ]
 webkit.org/b/266349 imported/w3c/web-platform-tests/css/css-contain/contain-size-block-003.html [ ImageOnlyFailure ]
 webkit.org/b/266349 imported/w3c/web-platform-tests/css/css-contain/contain-size-inline-block-003.html [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/css/CSS2/normal-flow/max-width-107.xht [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/CSS2/stacking-context/composite-change-after-scroll-preserves-stacking-order.html [ ImageOnlyFailure ]
+
 webkit.org/b/290522 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/text/canvas.2d.offscreen.worker.direction.html [ ImageOnlyFailure Crash ]
 webkit.org/b/290522 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/text/canvas.2d.offscreen.worker.direction.inherit.html [ ImageOnlyFailure Crash ]
 webkit.org/b/285993 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/text/canvas.2d.offscreen.worker.lang.html [ ImageOnlyFailure Crash ]
@@ -104,9 +107,6 @@ webrtc/vp8-then-h264-gpu-process-crash.html [ Skip ]
 
 webkit.org/b/303924 webrtc/peer-connection-audio-mute2.html [ Failure ]
 webkit.org/b/303925 webrtc/audio-replace-track.html [ Failure ]
-
-# Skia-related
-webkit.org/b/304134 imported/w3c/web-platform-tests/webrtc-stats/outbound-rtp.https.html [ Pass Crash ]
 
 #//////////////////////////////////////////////////////////////////////////////////////////
 # End of Triaged Expectations
@@ -572,6 +572,11 @@ webkit.org/b/137096 svg/text/text-altglyph-01-b.svg [ Failure ]
 # Since r200320 resource-timing feature is a runtime flag.
 webkit.org/b/158617 fast/dom/Window/window-properties-performance-resource-timing.html [ Failure ]
 
+# Resource timing tests are flaky due to redirect timing variability
+webkit.org/b/197473 imported/w3c/web-platform-tests/resource-timing/resource-timing-level1.sub.html [ Pass Failure ]
+webkit.org/b/197473 http/wpt/resource-timing/rt-cors.html [ Pass Failure ]
+webkit.org/b/197473 http/wpt/resource-timing/rt-cors.worker.html [ Pass Failure ]
+
 # No support for font-variant-* properties in @font-face declarations
 webkit.org/b/161586 css3/font-feature-settings-font-face-rendering.html [ ImageOnlyFailure ]
 
@@ -698,6 +703,7 @@ webkit.org/b/286466 imported/w3c/web-platform-tests/css/css-text/hyphens/i18n/hy
 webkit.org/b/286127 editing/pasteboard/copy-paste-across-shadow-boundaries-with-style-2.html [ Crash ]
 webkit.org/b/286132 inspector/debugger/breakpoints/resolved-dump-all-inline-script-pause-locations.html [ Crash ]
 webkit.org/b/299482 inspector/dom-debugger/event-animation-frame-breakpoints.html [ Pass Crash ]
+webkit.org/b/304644 inspector/unit-tests/editing-support.html [ Crash ]
 
 imported/w3c/web-platform-tests/selection/shadow-dom/cross-shadow-boundary-6.html [ Skip ]
 imported/w3c/web-platform-tests/selection/shadow-dom/tentative/Range-isPointInRange.html [ Skip ]
@@ -1538,6 +1544,7 @@ imported/w3c/web-platform-tests/css/css-view-transitions/web-animations-api.html
 imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-on-top-of-viewport-partially-onscreen-new.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/scroller.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-types-stay.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-view-transitions/window-resize-aborts-transition-before-ready.html [ Failure ]
 
 http/tests/login-status/login-status-api-getter-setter-functions.html [ Failure ]
 

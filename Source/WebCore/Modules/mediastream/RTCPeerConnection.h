@@ -90,7 +90,7 @@ class RTCPeerConnection final
     , private LoggerHelper
 #endif
 {
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(RTCPeerConnection, WEBCORE_EXPORT);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(RTCPeerConnection);
 public:
     static ExceptionOr<Ref<RTCPeerConnection>> create(Document&, RTCConfiguration&&);
     WEBCORE_EXPORT virtual ~RTCPeerConnection();
@@ -172,9 +172,6 @@ public:
     enum EventTargetInterfaceType eventTargetInterface() const final { return EventTargetInterfaceType::RTCPeerConnection; }
     ScriptExecutionContext* scriptExecutionContext() const final;
     using ActiveDOMObject::protectedScriptExecutionContext;
-
-    // Used for testing with a mock
-    WEBCORE_EXPORT void emulatePlatformEvent(const String& action);
 
     // API used by PeerConnectionBackend and relatives
     void updateIceGatheringState(RTCIceGatheringState);

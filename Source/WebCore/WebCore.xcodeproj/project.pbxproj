@@ -8197,6 +8197,8 @@
 		0FEC120922BF2CC7004E9D35 /* LayerAncestorClippingStack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayerAncestorClippingStack.h; sourceTree = "<group>"; };
 		0FEC120B22BF2CC7004E9D35 /* LayerAncestorClippingStack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayerAncestorClippingStack.cpp; sourceTree = "<group>"; };
 		0FEF20CF1BD4A64F00128E5D /* RenderStyleConstants.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderStyleConstants.cpp; sourceTree = "<group>"; };
+		0FF1F95D2EFA147000484443 /* FECompositeCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FECompositeCoreImageApplier.h; sourceTree = "<group>"; };
+		0FF1F95E2EFA147000484443 /* FECompositeCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FECompositeCoreImageApplier.mm; sourceTree = "<group>"; };
 		0FF29A5325101A61003C34E2 /* LayoutBoxGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutBoxGeometry.h; sourceTree = "<group>"; };
 		0FF29A5525101A61003C34E2 /* LayoutBoxGeometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutBoxGeometry.cpp; sourceTree = "<group>"; };
 		0FF2E80C1EE0D430009EABD4 /* PerformanceLoggingClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerformanceLoggingClient.cpp; sourceTree = "<group>"; };
@@ -26005,6 +26007,8 @@
 				72B8B01E2751B91000F752AA /* FEColorMatrixCoreImageApplier.mm */,
 				72B8B01D2751B82B00F752AA /* FEComponentTransferCoreImageApplier.h */,
 				72B8B01B2751B6BC00F752AA /* FEComponentTransferCoreImageApplier.mm */,
+				0FF1F95D2EFA147000484443 /* FECompositeCoreImageApplier.h */,
+				0FF1F95E2EFA147000484443 /* FECompositeCoreImageApplier.mm */,
 				0F53074A2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.h */,
 				0F53074B2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.mm */,
 				72B8B0202751C4B700F752AA /* FilterImageCoreImage.mm */,

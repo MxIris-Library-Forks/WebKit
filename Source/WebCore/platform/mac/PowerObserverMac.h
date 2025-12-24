@@ -35,14 +35,14 @@
 #import <wtf/CheckedRef.h>
 #import <wtf/Function.h>
 #import <wtf/Noncopyable.h>
-#import <wtf/OSObjectPtr.h>
 #import <wtf/TZoneMalloc.h>
 #import <wtf/WeakPtr.h>
+#import <wtf/darwin/DispatchOSObject.h>
 
 namespace WebCore {
 
 class PowerObserver : public CanMakeWeakPtr<PowerObserver, WeakPtrFactoryInitialization::Eager>, public CanMakeCheckedPtr<PowerObserver> {
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(PowerObserver, WEBCORE_EXPORT);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(PowerObserver);
     WTF_MAKE_NONCOPYABLE(PowerObserver);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(PowerObserver);
 public:

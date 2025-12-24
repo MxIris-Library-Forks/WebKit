@@ -31,8 +31,7 @@
 #include <wtf/text/WTFString.h>
 
 #if USE(COCOA_EVENT_LOOP)
-#include <dispatch/dispatch.h>
-#include <wtf/OSObjectPtr.h>
+#include <wtf/darwin/DispatchOSObject.h>
 #endif
 
 #if USE(GLIB)
@@ -43,7 +42,7 @@
 namespace WebCore {
 
 class FileMonitor {
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(FileMonitor, WEBCORE_EXPORT);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(FileMonitor);
 public:
     enum class FileChangeType { Modification, Removal };
 

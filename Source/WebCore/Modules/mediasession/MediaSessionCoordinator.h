@@ -47,7 +47,7 @@ class MediaSessionCoordinator
     , public MediaSessionObserver
     , public ActiveDOMObject
     , public EventTarget  {
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(MediaSessionCoordinator);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(MediaSessionCoordinator, WEBCORE_EXPORT);
 public:
     void ref() const final { RefCounted::ref(); }
     void deref() const final { RefCounted::deref(); }
@@ -121,6 +121,8 @@ private:
     std::optional<PlaySessionCommand> m_currentPlaySessionCommand;
 };
 
-}
+} // namespace WebCore
+
+SPECIALIZE_TYPE_TRAITS_EVENTTARGET(MediaSessionCoordinator)
 
 #endif // ENABLE(MEDIA_SESSION_COORDINATOR)

@@ -1,4 +1,3 @@
-EventTargetFactory.cpp
 HTMLNames.cpp
 MathMLNames.cpp
 Modules/Model/Implementation/ModelDowncastConvertToBackingContext.cpp
@@ -45,7 +44,6 @@ domjit/DOMJITHelpers.h
 domjit/JSDocumentDOMJIT.cpp
 domjit/JSNodeDOMJIT.cpp
 html/InputType.cpp
-inspector/CommandLineAPIModule.cpp
 inspector/agents/InspectorCSSAgent.cpp
 layout/layouttree/LayoutIterator.h
 layout/layouttree/LayoutTreeBuilder.cpp

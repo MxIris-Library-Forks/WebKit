@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <wtf/Platform.h>
+
 #if ENABLE(WEBASSEMBLY)
 
 #include <JavaScriptCore/ArrayBuffer.h>
@@ -53,7 +55,7 @@ namespace Wasm {
 
 class Memory final : public RefCountedAndCanMakeWeakPtr<Memory> {
     WTF_MAKE_NONCOPYABLE(Memory);
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(Memory);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(Memory, JS_EXPORT_PRIVATE);
     friend LLIntOffsetsExtractor;
 public:
     void dump(WTF::PrintStream&) const;

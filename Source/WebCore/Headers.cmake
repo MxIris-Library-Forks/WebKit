@@ -2424,6 +2424,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/SleepDisablerClient.h
     platform/SleepDisablerIdentifier.h
     platform/StaticPasteboard.h
+    platform/StringEntropyHelpers.h
     platform/StyleAppearance.h
     platform/SuddenTermination.h
     platform/Supplementable.h
@@ -3190,7 +3191,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/style/PositionTryOrder.h
     rendering/style/RenderStyle.h
     rendering/style/RenderStyle+GettersInlines.h
-    rendering/style/RenderStyle+InitialInlines.h
     rendering/style/RenderStyleBase.h
     rendering/style/RenderStyleBase+GettersInlines.h
     rendering/style/RenderStyleConstants.h
@@ -3813,7 +3813,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/ReadableStreamInternalsBuiltins.h
     ${WebCore_DERIVED_SOURCES_DIR}/RenderStyleProperties.h
     ${WebCore_DERIVED_SOURCES_DIR}/RenderStyleProperties+GettersInlines.h
-    ${WebCore_DERIVED_SOURCES_DIR}/RenderStyleProperties+InitialInlines.h
     ${WebCore_DERIVED_SOURCES_DIR}/SVGNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Settings.h
     ${WebCore_DERIVED_SOURCES_DIR}/StreamInternalsBuiltins.h

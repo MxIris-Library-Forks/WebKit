@@ -80,7 +80,7 @@ class PlaceholderRenderingContext;
 class PlaceholderRenderingContextSource;
 
 class DetachedOffscreenCanvas {
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(DetachedOffscreenCanvas);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(DetachedOffscreenCanvas, WEBCORE_EXPORT);
     WTF_MAKE_NONCOPYABLE(DetachedOffscreenCanvas);
     friend class OffscreenCanvas;
 
@@ -98,7 +98,7 @@ private:
 };
 
 class OffscreenCanvas final : public ActiveDOMObject, public CanvasBase, public RefCounted<OffscreenCanvas>, public EventTarget {
-    WTF_MAKE_TZONE_ALLOCATED_EXPORT(OffscreenCanvas);
+    WTF_MAKE_TZONE_ALLOCATED_EXPORT(OffscreenCanvas, WEBCORE_EXPORT);
 public:
     struct ImageEncodeOptions {
         String type = "image/png"_s;
@@ -180,6 +180,9 @@ private:
 
 }
 
-SPECIALIZE_TYPE_TRAITS_CANVAS(WebCore::OffscreenCanvas, isOffscreenCanvas())
+SPECIALIZE_TYPE_TRAITS_BEGIN(WebCore::OffscreenCanvas)
+    static bool isType(const WebCore::CanvasBase& base) { return base.isOffscreenCanvas(); }
+    static bool isType(const WebCore::EventTarget& target) { return target.eventTargetInterface() == WebCore::EventTargetInterfaceType::OffscreenCanvas; }
+SPECIALIZE_TYPE_TRAITS_END()
 
 #endif

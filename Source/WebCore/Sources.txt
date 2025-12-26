@@ -2498,6 +2498,7 @@ platform/graphics/Float16ArrayPixelBuffer.cpp
 platform/graphics/FloatLine.cpp
 platform/graphics/FloatPoint.cpp
 platform/graphics/FloatPoint3D.cpp
+platform/graphics/FloatPointGraph.cpp
 platform/graphics/FloatPolygon.cpp
 platform/graphics/FloatQuad.cpp
 platform/graphics/FloatRect.cpp
@@ -2535,6 +2536,7 @@ platform/graphics/GraphicsContextSwitcher.cpp
 platform/graphics/GraphicsLayer.cpp
 platform/graphics/GraphicsLayerAnimation.cpp
 platform/graphics/GraphicsLayerContentsDisplayDelegate.cpp
+platform/graphics/GraphicsLayerKeyframeValueList.cpp
 platform/graphics/GraphicsLayerTransform.cpp
 platform/graphics/GraphicsStyle.cpp
 platform/graphics/GraphicsTZoneImpls.cpp
@@ -3170,6 +3172,7 @@ style/StyleResolver.cpp
 style/StyleScope.cpp
 style/StyleScopeRuleSets.cpp
 style/StyleSheetContentsCache.cpp
+style/StyleTransformResolver.cpp
 style/StyleTreeResolver.cpp
 style/StyleUpdate.cpp
 style/Styleable.cpp

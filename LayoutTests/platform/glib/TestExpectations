@@ -120,6 +120,7 @@ imported/w3c/web-platform-tests/css/css-ui/compute-kind-widget-generated/grouped
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/old_vt_promises_bfcache.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-will-change/will-change-abspos-cb-dynamic-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-will-change/will-change-fixedpos-cb-003.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-writing-modes/overconstrained-rel-pos-rtl-left-right-vlr-009.xht [ Pass ]
 imported/w3c/web-platform-tests/css/css-writing-modes/sizing-orthog-vlr-in-htb-008.xht [ Pass ]
 imported/w3c/web-platform-tests/css/css-writing-modes/text-combine-upright-rtl-002.html [ Pass ]
 imported/w3c/web-platform-tests/html/rendering/replaced-elements/the-select-element/customizable-select/min-height-in-flex.html [ Pass ]
@@ -384,6 +385,7 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/svg-fill-opacity.
 imported/w3c/web-platform-tests/css/css-text/text-align/text-align-justify-bidi-control.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/text-autospace/text-autospace-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/hanging-punctuation/hanging-punctuation-inline-bound-001.html [ Pass ]
+webkit.org/b/214290 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-span-002.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-003.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/shaping/shaping_lig-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-text/text-transform/text-transform-capitalize-026.html [ Pass ]
@@ -433,7 +435,10 @@ imported/w3c/web-platform-tests/css/selectors/selector-required-type-change-002.
 
 imported/w3c/web-platform-tests/css/mediaqueries/display-mode.html [ Failure ]
 
+imported/w3c/web-platform-tests/html/canvas/element/layers/2d.layer.global-states.no-cxt-filter.rotation.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/element/manual/drawing-images-to-the-canvas/image-orientation/drawImage-from-bitmap-swap-width-height.tentative.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/filters/canvas-filter-opacity.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/shadows/canvas_shadows_system_colors.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/element/text/direction-inherit-rtl.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/element/text/direction-rtl.html [ Pass ]
 
@@ -626,6 +631,7 @@ imported/w3c/web-platform-tests/css/css-position/multicol/static-position/vrl-lt
 imported/w3c/web-platform-tests/css/css-position/position-absolute-iframe-print-001.sub.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-position/position-absolute-iframe-print-002.sub.html [ Pass ]
 
+imported/w3c/web-platform-tests/css/css-pseudo/highlight-custom-properties-dynamic-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-pseudo/placeholder-excluded-properties.html [ Pass ]
 
 imported/w3c/web-platform-tests/css/css-text/text-justify/text-justify-and-trailing-spaces-003.html [ Pass ]
@@ -2156,8 +2162,6 @@ webkit.org/b/273487 svg/zoom/page/zoom-zoom-coords.xhtml [ Failure ]
 
 compositing/repaint/become-overlay-composited-layer.html  [ Pass Failure ]
 
-imported/w3c/web-platform-tests/html/semantics/embedded-content/the-canvas-element/toDataURL.jpg.html [ Failure ]
-
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/adopt-from-image-document.html [ Pass ImageOnlyFailure ]
 
 fast/mediastream/camera-powerEfficient-track.html [ Failure ]
@@ -2243,6 +2247,8 @@ fast/table/table-display-types-vertical.html [ Failure ]
 media/audioSession [ Skip ]
 
 webkit.org/b/292839 media/media-fullscreen-not-in-document.html [ Timeout ]
+
+webkit.org/b/292841 fullscreen/exit-full-screen-video-crash.html [ Timeout ]
 
 webkit.org/b/298587 fast/media/mq-inverted-colors-ua-style-on-to-off.html [ ImageOnlyFailure ]
 
@@ -4023,6 +4029,7 @@ imported/w3c/web-platform-tests/svg/painting/reftests/marker-path-023.svg [ Imag
 media/media-vp9-yuv422p10.html [ ImageOnlyFailure Pass ]
 
 webkit.org/b/223830 inspector/debugger/csp-exceptions.html [ Timeout ]
+webkit.org/b/304278 inspector/worker/debugger-pause-subworker.html [ Timeout ]
 
 # This test not only fails but may end up leaving the setShowPaintRects setting enabled and affect other tests.
 webkit.org/b/233047 inspector/page/setShowPaintRects.html [ Skip ]
@@ -4088,6 +4095,7 @@ webkit.org/b/258162 fast/images/image-alt-text-vertical.html [ ImageOnlyFailure 
 fast/scrolling/keyboard-scrolling-distance-downArrow.html [ Skip ] # Timeout
 
 webgl/2.0.y/conformance/textures/misc/texture-corner-case-videos.html [ Skip ] # Timeout
+webkit.org/b/251107 webgl/1.0.x/conformance/textures/video/tex-2d-rgba-rgba-unsigned_byte.html [ Timeout ]
 
 # Tests crashing in Debug only.
 [ Debug ] editing/pasteboard/copy-paste-across-shadow-boundaries-with-style-2.html [ Crash ]

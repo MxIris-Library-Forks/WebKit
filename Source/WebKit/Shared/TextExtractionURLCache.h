@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,44 +25,32 @@
 
 #pragma once
 
-#include <JavaScriptCore/ScriptFetcher.h>
-#include <WebCore/JSDOMPromiseDeferred.h>
-#include <WebCore/ModuleFetchParameters.h>
+#include <wtf/HashCountedSet.h>
+#include <wtf/HashMap.h>
 #include <wtf/RefCounted.h>
+#include <wtf/URL.h>
 
-namespace WebCore {
+namespace WebKit {
 
-class ModuleScriptLoaderClient;
-
-class ModuleScriptLoader : public RefCounted<ModuleScriptLoader> {
+enum class ExtractedURLType : bool { Link, Image };
+class TextExtractionURLCache : public RefCounted<TextExtractionURLCache> {
 public:
-    virtual ~ModuleScriptLoader() = default;
-
-    void clearClient()
+    static Ref<TextExtractionURLCache> create()
     {
-        ASSERT(m_client);
-        m_client = nullptr;
+        return adoptRef(*new TextExtractionURLCache);
     }
 
-    JSC::ScriptFetcher& scriptFetcher() { return m_scriptFetcher.get(); }
-    JSC::ScriptFetchParameters* parameters() { return m_parameters.get(); }
+    String add(const String& shortenedString, const URL& originalURL, ExtractedURLType);
+    void clear();
 
-    virtual bool isCachedModuleScriptLoader() const { return false; }
-    virtual bool isWorkerModuleScriptLoader() const { return false; }
+    URL urlForShortenedString(const String&) const;
 
-protected:
-    ModuleScriptLoader(ModuleScriptLoaderClient& client, DeferredPromise& promise, JSC::ScriptFetcher& scriptFetcher, RefPtr<JSC::ScriptFetchParameters>&& parameters)
-        : m_client(&client)
-        , m_promise(&promise)
-        , m_scriptFetcher(scriptFetcher)
-        , m_parameters(WTF::move(parameters))
-    {
-    }
+private:
+    TextExtractionURLCache() = default;
 
-    ModuleScriptLoaderClient* m_client;
-    RefPtr<DeferredPromise> m_promise;
-    const Ref<JSC::ScriptFetcher> m_scriptFetcher;
-    const RefPtr<JSC::ScriptFetchParameters> m_parameters;
+    HashMap<String, URL> m_shortenedStringToURLMap;
+    HashMap<URL, String> m_urlToShortenedStringMap;
+    HashCountedSet<String> m_shortenedStringCounts;
 };
 
-} // namespace WebCore
+} // namespace WebKit

@@ -65,36 +65,6 @@ function matchAll(arg)
 }
 
 @linkTimeConstant
-function repeatSlowPath(string, count)
-{
-    "use strict";
-
-    // Return an empty string.
-    if (count === 0 || string.length === 0)
-        return "";
-
-    // Return the original string.
-    if (count === 1)
-        return string;
-
-    if (string.length * count > @MAX_STRING_LENGTH)
-        @throwOutOfMemoryError();
-
-    // Bit operation onto |count| is safe because |count| should be within Int32 range,
-    // Repeat log N times to generate the repeated string rope.
-    var result = "";
-    var operand = string;
-    while (true) {
-        if (count & 1)
-            result += operand;
-        count >>= 1;
-        if (!count)
-            return result;
-        operand += operand;
-    }
-}
-
-@linkTimeConstant
 function repeatCharactersSlowPath(string, count)
 {
     "use strict";
@@ -115,26 +85,6 @@ function repeatCharactersSlowPath(string, count)
     if (remainingCharacters)
         result += @stringSubstring.@call(string, 0, remainingCharacters);
     return result;
-}
-
-
-function repeat(count)
-{
-    "use strict";
-
-    if (@isUndefinedOrNull(this))
-        @throwTypeError("String.prototype.repeat requires that |this| not be null or undefined");
-
-    var string = @toString(this);
-    count = @toIntegerOrInfinity(count);
-
-    if (count < 0 || count === @Infinity)
-        @throwRangeError("String.prototype.repeat argument must be greater than or equal to 0 and not be Infinity");
-
-    if (string.length === 1)
-        return @repeatCharacter(string, count);
-
-    return @repeatSlowPath(string, count);
 }
 
 function padStart(maxLength/*, fillString*/)
@@ -209,101 +159,6 @@ function padEnd(maxLength/*, fillString*/)
     else
         truncatedStringFiller = @repeatCharactersSlowPath(filler, fillLength);
     return string + truncatedStringFiller;
-}
-
-@linkTimeConstant
-function hasObservableSideEffectsForStringReplace(regexp, replacer)
-{
-    "use strict";
-
-    if (!@isRegExpObject(regexp))
-        return true;
-
-    if (replacer !== @regExpPrototypeSymbolReplace)
-        return true;
-    
-    var regexpExec = @tryGetById(regexp, "exec");
-    if (regexpExec !== @regExpBuiltinExec)
-        return true;
-
-    var regexpFlags = @tryGetById(regexp, "flags");
-    if (regexpFlags !== @regExpProtoFlagsGetter)
-        return true;
-
-    // These are accessed by the builtin flags getter.
-    var regexpDotAll = @tryGetById(regexp, "dotAll");
-    if (regexpDotAll !== @regExpProtoDotAllGetter)
-        return true;
-    var regexpGlobal = @tryGetById(regexp, "global");
-    if (regexpGlobal !== @regExpProtoGlobalGetter)
-        return true;
-    var regexpHasIndices = @tryGetById(regexp, "hasIndices");
-    if (regexpHasIndices !== @regExpProtoHasIndicesGetter)
-        return true;
-    var regexpIgnoreCase = @tryGetById(regexp, "ignoreCase");
-    if (regexpIgnoreCase !== @regExpProtoIgnoreCaseGetter)
-        return true;
-    var regexpMultiline = @tryGetById(regexp, "multiline");
-    if (regexpMultiline !== @regExpProtoMultilineGetter)
-        return true;
-    var regexpSticky = @tryGetById(regexp, "sticky");
-    if (regexpSticky !== @regExpProtoStickyGetter)
-        return true;
-    var regexpUnicode = @tryGetById(regexp, "unicode");
-    if (regexpUnicode !== @regExpProtoUnicodeGetter)
-        return true;
-    var regexpUnicodeSets = @tryGetById(regexp, "unicodeSets");
-    if (regexpUnicodeSets !== @regExpProtoUnicodeSetsGetter)
-        return true;
-
-    return typeof regexp.lastIndex !== "number";
-}
-
-@intrinsic=StringPrototypeReplaceIntrinsic
-function replace(search, replace)
-{
-    "use strict";
-
-    if (@isUndefinedOrNull(this))
-        @throwTypeError("String.prototype.replace requires that |this| not be null or undefined");
-
-    if (@isObject(search)) {
-        var replacer = search.@@replace;
-        if (!@isUndefinedOrNull(replacer)) {
-            if (!@hasObservableSideEffectsForStringReplace(search, replacer))
-                return @toString(this).@replaceUsingRegExp(search, replace);
-            return replacer.@call(search, this, replace);
-        }
-    }
-
-    var thisString = @toString(this);
-    var searchString = @toString(search);
-    return thisString.@replaceUsingStringSearch(searchString, replace);
-}
-
-@intrinsic=StringPrototypeReplaceAllIntrinsic
-function replaceAll(search, replace)
-{
-    "use strict";
-
-    if (@isUndefinedOrNull(this))
-        @throwTypeError("String.prototype.replaceAll requires |this| not to be null nor undefined");
-
-    if (@isObject(search)) {
-        if (@isRegExp(search) && !@stringIncludesInternal.@call(@toString(search.flags), "g"))
-            @throwTypeError("String.prototype.replaceAll argument must not be a non-global regular expression");
-
-        var replacer = search.@@replace;
-        if (!@isUndefinedOrNull(replacer)) {
-            if (!@hasObservableSideEffectsForStringReplace(search, replacer))
-                return @toString(this).@replaceUsingRegExp(search, replace);
-            return replacer.@call(search, this, replace);
-        }
-    }
-
-    var thisString = @toString(this);
-    var searchString = @toString(search);
-    return thisString.@replaceAllUsingStringSearch(searchString, replace);
 }
 
 function search(regexp)

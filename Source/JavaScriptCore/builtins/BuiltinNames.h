@@ -78,16 +78,11 @@ namespace JSC {
     macro(resolvePromise) \
     macro(rejectPromise) \
     macro(fulfillPromise) \
-    macro(resolveWithoutPromise) \
-    macro(rejectWithoutPromise) \
-    macro(fulfillWithoutPromise) \
     macro(resolvePromiseWithFirstResolvingFunctionCallCheck) \
     macro(rejectPromiseWithFirstResolvingFunctionCallCheck) \
     macro(fulfillPromiseWithFirstResolvingFunctionCallCheck) \
-    macro(resolveWithoutPromiseForAsyncAwait) \
     macro(resolveWithInternalMicrotaskForAsyncAwait) \
     macro(driveAsyncFunction) \
-    macro(awaitValue) \
     macro(newHandledRejectedPromise) \
     macro(promiseEmptyOnFulfilled) \
     macro(promiseEmptyOnRejected) \
@@ -166,7 +161,6 @@ namespace JSC {
     macro(setIterationEntryKey) \
     macro(setIteratorNext) \
     macro(setIteratorKey) \
-    macro(setClone) \
     macro(setPrototypeDirect) \
     macro(setPrototypeDirectOrThrow) \
     macro(regExpBuiltinExec) \

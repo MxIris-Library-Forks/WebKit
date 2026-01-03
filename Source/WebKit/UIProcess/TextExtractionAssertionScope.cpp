@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,42 +23,33 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "TextExtractionAssertionScope.h"
 
-#include <WebCore/TextExtractionTypes.h>
-#include <wtf/Expected.h>
+namespace WebKit {
 
-namespace WebCore {
+WTF_MAKE_TZONE_ALLOCATED_IMPL(TextExtractionAssertionScope);
 
-class Element;
-class FloatRect;
-class LocalFrame;
-class Page;
-struct SimpleRange;
-enum class ExceptionCode : uint8_t;
+TextExtractionAssertionScope::TextExtractionAssertionScope(WebPageProxy& page)
+    : m_page { page }
+{
+    if (!page.m_textExtractionCount++)
+        page.takeTextExtractionAssertion();
+}
 
-namespace TextExtraction {
+TextExtractionAssertionScope::~TextExtractionAssertionScope()
+{
+    RefPtr page = m_page.get();
+    if (!page)
+        return;
 
-WEBCORE_EXPORT Item extractItem(Request&&, Page&);
-Item extractItem(Request&&, LocalFrame&);
+    if (!page->m_textExtractionCount) {
+        ASSERT_NOT_REACHED();
+        return;
+    }
 
-WEBCORE_EXPORT Vector<std::pair<String, FloatRect>> extractAllTextAndRects(Page&);
+    if (!--page->m_textExtractionCount)
+        page->dropTextExtractionAssertion();
+}
 
-WEBCORE_EXPORT void handleInteraction(Interaction&&, Page&, CompletionHandler<void(bool, String&&)>&&);
-WEBCORE_EXPORT InteractionDescription interactionDescription(const Interaction&, Page&);
-
-WEBCORE_EXPORT std::optional<SimpleRange> rangeForExtractedText(const LocalFrame&, ExtractedText&&);
-
-WEBCORE_EXPORT Vector<FilterRule> extractRules(Vector<FilterRuleData>&&);
-WEBCORE_EXPORT void applyRules(const String&, std::optional<NodeIdentifier>&& containerNodeID, const Vector<FilterRule>&, Page&, CompletionHandler<void(const String&)>&&);
-
-struct RenderedText {
-    String textWithReplacedContent;
-    String textWithoutReplacedContent;
-    bool hasLargeReplacedDescendant { false };
-};
-
-RenderedText extractRenderedText(Element&);
-
-} // namespace TextExtraction
-} // namespace WebCore
+} // namespace WebKit

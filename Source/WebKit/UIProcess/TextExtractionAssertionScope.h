@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,40 +25,22 @@
 
 #pragma once
 
-#include <WebCore/TextExtractionTypes.h>
-#include <wtf/Expected.h>
+#include <wtf/FastMalloc.h>
+#include <wtf/WeakPtr.h>
 
-namespace WebCore {
+namespace WebKit {
 
-class Element;
-class FloatRect;
-class LocalFrame;
-class Page;
-struct SimpleRange;
-enum class ExceptionCode : uint8_t;
+class WebPageProxy;
 
-namespace TextExtraction {
+class TextExtractionAssertionScope {
+    WTF_MAKE_TZONE_ALLOCATED(TextExtractionAssertionScope);
+    WTF_MAKE_NONCOPYABLE(TextExtractionAssertionScope);
+public:
+    TextExtractionAssertionScope(WebPageProxy&);
+    ~TextExtractionAssertionScope();
 
-WEBCORE_EXPORT Item extractItem(Request&&, Page&);
-Item extractItem(Request&&, LocalFrame&);
-
-WEBCORE_EXPORT Vector<std::pair<String, FloatRect>> extractAllTextAndRects(Page&);
-
-WEBCORE_EXPORT void handleInteraction(Interaction&&, Page&, CompletionHandler<void(bool, String&&)>&&);
-WEBCORE_EXPORT InteractionDescription interactionDescription(const Interaction&, Page&);
-
-WEBCORE_EXPORT std::optional<SimpleRange> rangeForExtractedText(const LocalFrame&, ExtractedText&&);
-
-WEBCORE_EXPORT Vector<FilterRule> extractRules(Vector<FilterRuleData>&&);
-WEBCORE_EXPORT void applyRules(const String&, std::optional<NodeIdentifier>&& containerNodeID, const Vector<FilterRule>&, Page&, CompletionHandler<void(const String&)>&&);
-
-struct RenderedText {
-    String textWithReplacedContent;
-    String textWithoutReplacedContent;
-    bool hasLargeReplacedDescendant { false };
+private:
+    WeakPtr<WebPageProxy> m_page;
 };
 
-RenderedText extractRenderedText(Element&);
-
-} // namespace TextExtraction
-} // namespace WebCore
+} // namespace WebKit

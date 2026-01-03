@@ -33,6 +33,7 @@
 #include "ComposedTreeIterator.h"
 #include "ContainerNodeInlines.h"
 #include "DocumentPage.h"
+#include "DocumentSecurityOrigin.h"
 #include "DocumentView.h"
 #include "Editing.h"
 #include "Editor.h"
@@ -189,6 +190,7 @@ static inline TextNodesAndText collectText(const SimpleRange& range, IncludeText
 using ClientNodeAttributesMap = WeakHashMap<Node, HashMap<String, String>, WeakPtrImplWithEventTargetData>;
 
 struct TraversalContext {
+    const Request originalRequest;
     const ClientNodeAttributesMap clientNodeAttributes;
     const TextAndSelectedRangeMap visibleText;
     const WeakHashSet<Node, WeakPtrImplWithEventTargetData> nodesToSkip;
@@ -479,6 +481,17 @@ static inline Variant<SkipExtraction, ItemData, URL, Editable> extractItemData(N
         } };
     }
 
+    if (RefPtr iframe = dynamicDowncast<HTMLIFrameElement>(element)) {
+        if (RefPtr contentFrame = iframe->contentFrame()) {
+            if (RefPtr frameOrigin = contentFrame->frameDocumentSecurityOrigin()) {
+                return { IFrameData {
+                    .origin = frameOrigin->toString(),
+                    .identifier = contentFrame->frameID(),
+                } };
+            }
+        }
+    }
+
     if (RefPtr form = dynamicDowncast<HTMLFormElement>(element)) {
         return { FormData {
             .autocomplete = form->autocomplete(),
@@ -642,6 +655,11 @@ static inline bool shouldIncludeNodeIdentifier(NodeIdentifierInclusion inclusion
         [inclusion](auto&) {
             return inclusion == Interactive;
         });
+}
+
+static bool areSameOrigin(Document& document, Document& other)
+{
+    return document.protectedSecurityOrigin()->isSameOriginAs(other.protectedSecurityOrigin());
 }
 
 static inline void extractRecursive(Node& node, Item& parentItem, TraversalContext& context)
@@ -821,6 +839,13 @@ static inline void extractRecursive(Node& node, Item& parentItem, TraversalConte
     if (RefPtr container = dynamicDowncast<ContainerNode>(node)) {
         for (Ref child : composedTreeChildren<0>(*container))
             extractRecursive(child.get(), item ? *item : parentItem, context);
+
+        if (RefPtr iframe = dynamicDowncast<HTMLIFrameElement>(node); iframe && item) {
+            if (RefPtr frame = dynamicDowncast<LocalFrame>(iframe->contentFrame())) {
+                if (RefPtr document = frame->document(); document && areSameOrigin(*document, node.protectedDocument()))
+                    item->children.appendVector(extractItem(Request { context.originalRequest }, *frame).children);
+            }
+        }
     }
 
     if (onlyCollectTextAndLinks) {
@@ -914,25 +939,34 @@ static Node* nodeFromJSHandle(JSHandleIdentifier identifier)
     return nullptr;
 }
 
+static Item makeRootItem()
+{
+    return { ContainerType::Root, { }, { }, { }, { }, { }, { }, { }, { }, { }, 0 };
+}
+
 Item extractItem(Request&& request, Page& page)
 {
-    Item root { ContainerType::Root, { }, { }, { }, { }, { }, { }, { }, { }, { }, 0 };
     RefPtr mainFrame = dynamicDowncast<LocalFrame>(page.mainFrame());
     if (!mainFrame) {
         // FIXME: Propagate text extraction to RemoteFrames.
-        return root;
+        return makeRootItem();
     }
 
-    RefPtr mainDocument = mainFrame->document();
-    if (!mainDocument)
+    return extractItem(WTF::move(request), *mainFrame);
+}
+
+Item extractItem(Request&& request, LocalFrame& frame)
+{
+    auto root = makeRootItem();
+    RefPtr document = frame.document();
+    if (!document)
         return root;
 
-    RefPtr bodyElement = mainDocument->body();
+    RefPtr bodyElement = document->body();
     if (!bodyElement)
         return root;
 
-    mainDocument->updateLayoutIgnorePendingStylesheets();
-    root.rectInRootView = rootViewBounds(*bodyElement);
+    document->updateLayoutIgnorePendingStylesheets();
 
     RefPtr extractionRootNode = [&] -> Node* {
         if (!request.targetNodeHandleIdentifier)
@@ -944,9 +978,17 @@ Item extractItem(Request&& request, Page& page)
     if (!extractionRootNode)
         return root;
 
+    RefPtr view = frame.view();
+    if (!view)
+        return root;
+
+    root.rectInRootView = view->contentsToRootView(IntRect { IntPoint::zero(), view->contentsSize() });
+    if (root.rectInRootView.isEmpty())
+        return root;
+
     {
         ClientNodeAttributesMap clientNodeAttributes;
-        for (auto&& [attribute, values] : WTF::move(request.clientNodeAttributes)) {
+        for (auto&& [attribute, values] : request.clientNodeAttributes) {
             for (auto&& [identifier, value] : WTF::move(values)) {
                 RefPtr node = nodeFromJSHandle(identifier);
                 if (!node)
@@ -967,10 +1009,11 @@ Item extractItem(Request&& request, Page& page)
         }
 
         TraversalContext context {
+            .originalRequest = { request },
             .clientNodeAttributes = WTF::move(clientNodeAttributes),
             .visibleText = collectText(*extractionRootNode, includeTextInAutoFilledControls),
             .nodesToSkip = WTF::move(nodesToSkip),
-            .rectInRootView = WTF::move(request.collectionRectInRootView),
+            .rectInRootView = request.collectionRectInRootView,
             .enclosingBlocks = { },
             .enclosingBlockNumberMap = { },
             .onlyCollectTextAndLinksCount = 0,
@@ -1927,7 +1970,7 @@ void applyRules(const String& input, std::optional<NodeIdentifier>&& containerNo
         return completion(input);
 
     Ref world = filteringWorld();
-    auto arguments = [&] {
+    auto makeArguments = [&] {
         ArgumentMap argumentMap;
         argumentMap.reserveInitialCapacity(2);
         argumentMap.add("input"_s, [input](auto& lexicalGlobalObject) {
@@ -1942,7 +1985,7 @@ void applyRules(const String& input, std::optional<NodeIdentifier>&& containerNo
             return toJS(&lexicalGlobalObject, mainFrame->checkedScript()->globalObject(world), *containerNode);
         });
         return std::make_optional(WTF::move(argumentMap));
-    }();
+    };
 
     auto filteredStrings = Box<Vector<String>>::create();
     auto aggregator = MainRunLoopCallbackAggregator::create([completion = WTF::move(completion), input, filteredStrings] mutable {
@@ -1971,7 +2014,7 @@ void applyRules(const String& input, std::optional<NodeIdentifier>&& containerNo
             SourceTaintedOrigin::Untainted,
             { },
             true, // runAsAsyncFunction
-            WTF::move(arguments),
+            makeArguments(),
             false, // forceUserGesture
             RemoveTransientActivation::No
         };

@@ -169,13 +169,19 @@ void AutoTableLayout::fullRecalc()
                 colLogicalWidth = groupLogicalWidth;
             if (colLogicalWidth.isSpecified() && colLogicalWidth.isKnownZero())
                 colLogicalWidth = CSS::Keyword::Auto { };
-            unsigned effCol = m_table->colToEffCol(currentColumn);
             unsigned span = column->span();
-            if (!colLogicalWidth.isAuto() && span == 1 && effCol < nEffCols && m_table->spanOfEffCol(effCol) == 1) {
-                m_layoutStruct[effCol].usedZoom = column->style().usedZoom();
-                m_layoutStruct[effCol].logicalWidth = colLogicalWidth;
-                if (auto fixedColLogicalWidth = colLogicalWidth.tryFixed(); fixedColLogicalWidth && m_layoutStruct[effCol].maxLogicalWidth < fixedColLogicalWidth->resolveZoom(column->style().usedZoomForLength()))
-                    m_layoutStruct[effCol].maxLogicalWidth = fixedColLogicalWidth->resolveZoom(column->style().usedZoomForLength());
+
+            // Apply width to all columns covered by this col element.
+            if (!colLogicalWidth.isAuto()) {
+                for (unsigned spanOffset = 0; spanOffset < span; ++spanOffset) {
+                    unsigned effCol = m_table->colToEffCol(currentColumn + spanOffset);
+                    if (effCol < nEffCols && m_table->spanOfEffCol(effCol) == 1) {
+                        m_layoutStruct[effCol].usedZoom = column->style().usedZoom();
+                        m_layoutStruct[effCol].logicalWidth = colLogicalWidth;
+                        if (auto fixedColLogicalWidth = colLogicalWidth.tryFixed(); fixedColLogicalWidth && m_layoutStruct[effCol].maxLogicalWidth < fixedColLogicalWidth->resolveZoom(column->style().usedZoomForLength()))
+                            m_layoutStruct[effCol].maxLogicalWidth = fixedColLogicalWidth->resolveZoom(column->style().usedZoomForLength());
+                    }
+                }
             }
             currentColumn += span;
         }
@@ -451,10 +457,45 @@ float AutoTableLayout::calcEffectiveLogicalWidth()
                 ASSERT(allocatedMinLogicalWidth < cellMinLogicalWidth || WTF::areEssentiallyEqual(allocatedMinLogicalWidth, cellMinLogicalWidth));
                 ASSERT(allocatedMaxLogicalWidth < cellMaxLogicalWidth || WTF::areEssentiallyEqual(allocatedMaxLogicalWidth, cellMaxLogicalWidth));
                 cellMaxLogicalWidth -= allocatedMaxLogicalWidth;
+            } else if (!allColsAreFixed && totalPercent > 0 && haveAuto) {
+                // By this point, the earlier code has converted auto columns to effectiveLogicalWidth percentages,
+                // so we can use the same percentage-based distribution as the allColsArePercent case.
+#if ASSERT_ENABLED
+                float allocatedMinLogicalWidth = 0;
+#endif
+                float allocatedMaxLogicalWidth = 0;
+
+                // Calculate total effective percent (includes both original percent columns and converted auto columns)
+                float totalEffectivePercent = 0;
+                for (unsigned pos = effCol; pos < lastCol; ++pos) {
+                    if (auto percentageEffectiveLogicalWidth = m_layoutStruct[pos].effectiveLogicalWidth.tryPercentage())
+                        totalEffectivePercent += percentageEffectiveLogicalWidth->value;
+                }
+
+                // If all columns now have effective percentages, distribute accordingly
+                if (totalEffectivePercent > 0) {
+                    for (unsigned pos = effCol; pos < lastCol; ++pos) {
+                        auto percentageEffectiveLogicalWidth = m_layoutStruct[pos].effectiveLogicalWidth.tryPercentage();
+                        if (percentageEffectiveLogicalWidth) {
+                            float percent = percentageEffectiveLogicalWidth->value;
+                            float columnMinLogicalWidth = percent * cellMinLogicalWidth / totalEffectivePercent;
+                            float columnMaxLogicalWidth = percent * cellMaxLogicalWidth / totalEffectivePercent;
+                            m_layoutStruct[pos].effectiveMinLogicalWidth = std::max(m_layoutStruct[pos].effectiveMinLogicalWidth, columnMinLogicalWidth);
+                            m_layoutStruct[pos].effectiveMaxLogicalWidth = columnMaxLogicalWidth;
+#if ASSERT_ENABLED
+                            allocatedMinLogicalWidth += columnMinLogicalWidth;
+#endif
+                            allocatedMaxLogicalWidth += columnMaxLogicalWidth;
+                        }
+                    }
+                    ASSERT(allocatedMinLogicalWidth < cellMinLogicalWidth || WTF::areEssentiallyEqual(allocatedMinLogicalWidth, cellMinLogicalWidth));
+                    ASSERT(allocatedMaxLogicalWidth < cellMaxLogicalWidth || WTF::areEssentiallyEqual(allocatedMaxLogicalWidth, cellMaxLogicalWidth));
+                    cellMaxLogicalWidth -= allocatedMaxLogicalWidth;
+                }
             } else {
                 float remainingMaxLogicalWidth = spanMaxLogicalWidth;
                 float remainingMinLogicalWidth = spanMinLogicalWidth;
-                
+
                 // Give min to variable first, to fixed second, and to others third.
                 for (unsigned pos = effCol; remainingMaxLogicalWidth >= 0 && pos < lastCol; ++pos) {
                     if (auto fixedLogicalWidth = m_layoutStruct[pos].logicalWidth.tryFixed(); fixedLogicalWidth && haveAuto && fixedWidth <= cellMinLogicalWidth) {

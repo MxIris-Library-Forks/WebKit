@@ -56,8 +56,6 @@ css/StyleSheetContents.cpp
 css/parser/SizesAttributeParser.cpp
 css/query/ContainerQueryFeatures.cpp
 css/typedom/ComputedStylePropertyMapReadOnly.cpp
-css/typedom/HashMapStylePropertyMapReadOnly.cpp
-css/typedom/MainThreadStylePropertyMapReadOnly.cpp
 dom/CollectionIndexCacheInlines.h
 dom/ComposedTreeAncestorIterator.h
 dom/ComposedTreeIterator.cpp
@@ -234,7 +232,6 @@ page/LocalFrameView.cpp
 page/LocalFrameViewLayoutContext.cpp
 page/PageColorSampler.cpp
 page/PageSerializer.cpp
-page/PerformanceTiming.cpp
 page/PrintContext.cpp
 page/RemoteFrame.cpp
 page/ResizeObservation.cpp
@@ -493,8 +490,6 @@ svg/SVGUseElement.cpp
 svg/graphics/SVGImage.cpp
 svg/properties/SVGAnimatedString.cpp
 testing/Internals.cpp
-[ Mac ] testing/Internals.mm
-testing/ServiceWorkerInternals.cpp
 testing/js/WebCoreTestSupport.cpp
 workers/WorkerGlobalScope.cpp
 workers/WorkerOrWorkletThread.cpp

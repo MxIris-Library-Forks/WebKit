@@ -75,8 +75,6 @@ bindings/js/JSXMLHttpRequestCustom.cpp
 bindings/js/ScriptCachedFrameData.cpp
 bindings/js/ScriptModuleLoader.cpp
 bindings/js/StructuredClone.cpp
-bridge/objc/objc_runtime.mm
-bridge/objc/objc_utility.mm
 contentextensions/ContentExtensionsBackend.cpp
 crypto/algorithms/CryptoAlgorithmECDH.cpp
 crypto/algorithms/CryptoAlgorithmX25519.cpp
@@ -106,22 +104,9 @@ css/StyleRuleImport.cpp
 css/StyleSheetContents.cpp
 css/query/ContainerQueryFeatures.cpp
 css/query/MediaQueryFeatures.cpp
-css/typedom/CSSNumericValue.cpp
 css/typedom/CSSStyleValueFactory.cpp
 css/typedom/ComputedStylePropertyMapReadOnly.cpp
-css/typedom/DeclaredStylePropertyMap.cpp
-css/typedom/HashMapStylePropertyMapReadOnly.cpp
-css/typedom/InlineStylePropertyMap.cpp
-css/typedom/MainThreadStylePropertyMapReadOnly.cpp
-css/typedom/StylePropertyMap.cpp
 css/typedom/numeric/CSSMathValue.h
-css/typedom/transform/CSSMatrixComponent.cpp
-css/typedom/transform/CSSPerspective.cpp
-css/typedom/transform/CSSRotate.cpp
-css/typedom/transform/CSSScale.cpp
-css/typedom/transform/CSSSkew.cpp
-css/typedom/transform/CSSTransformValue.cpp
-css/typedom/transform/CSSTranslate.cpp
 css/values/CSSValueAggregates.h
 cssjit/SelectorCompiler.cpp
 dom/CollectionIndexCacheInlines.h
@@ -154,7 +139,6 @@ dom/StaticRange.cpp
 dom/StyledElement.cpp
 dom/TreeScope.cpp
 dom/TypedElementDescendantIteratorInlines.h
-dom/UIEventWithKeyState.cpp
 dom/ViewTransition.cpp
 editing/ApplyStyleCommand.cpp
 editing/ChangeListTypeCommand.cpp
@@ -221,7 +205,6 @@ layout/layouttree/LayoutTreeBuilder.cpp
 loader/ApplicationManifestLoader.cpp
 loader/EmptyClients.cpp
 mathml/MathMLSelectElement.cpp
-page/CaptionUserPreferences.cpp
 [ iOS ] page/Chrome.cpp
 [ Mac ] page/ContextMenuController.cpp
 page/ElementTargetingController.cpp
@@ -241,12 +224,6 @@ page/PageGroup.cpp
 page/PageGroupLoadDeferrer.cpp
 page/PageOverlayController.cpp
 page/PageSerializer.cpp
-page/PerformanceLogging.cpp
-page/PerformanceMark.cpp
-page/PerformanceNavigation.cpp
-page/PerformanceObserver.cpp
-page/PerformanceTiming.cpp
-page/PerformanceUserTiming.cpp
 page/PrintContext.cpp
 [ iOS ] page/Quirks.cpp
 page/RemoteDOMWindow.cpp
@@ -289,7 +266,6 @@ platform/graphics/ca/GraphicsLayerCA.cpp
 platform/graphics/ca/TileGrid.cpp
 [ iOS ] platform/graphics/ca/cocoa/PlatformCALayerCocoa.mm
 platform/graphics/coreimage/FEColorMatrixCoreImageApplier.mm
-platform/graphics/coreimage/FEComponentTransferCoreImageApplier.mm
 platform/graphics/coreimage/SourceGraphicCoreImageApplier.mm
 platform/graphics/filters/FilterOperations.cpp
 platform/graphics/filters/software/FEBlendSoftwareApplier.cpp
@@ -434,10 +410,5 @@ svg/graphics/SVGImage.cpp
 svg/graphics/SVGImageCache.cpp
 svg/properties/SVGAnimatedString.cpp
 svg/properties/SVGPropertyOwnerRegistry.h
-testing/InternalSettings.cpp
 testing/Internals.cpp
-[ Mac ] testing/Internals.mm
 testing/LegacyMockCDM.cpp
-testing/MockCDMFactory.cpp
-testing/MockPageOverlayClient.cpp
-testing/ServiceWorkerInternals.cpp

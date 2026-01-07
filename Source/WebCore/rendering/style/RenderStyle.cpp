@@ -233,7 +233,7 @@ bool RenderStyle::isIdempotentTextAutosizingCandidate(AutosizeStatus status) con
                 if (auto fixedHeight = height().tryFixed(); specifiedLineHeight().isFixed() && fixedHeight) {
                     if (auto fixedSpecifiedLineHeight = specifiedLineHeight().tryFixed()) {
                         float specifiedSize = specifiedFontSize();
-                        if (fixedSpecifiedLineHeight->resolveZoom(Style::ZoomFactor { 1.0f, deviceScaleFactor() }) - specifiedSize > smallMinimumDifferenceThresholdBetweenLineHeightAndSpecifiedFontSizeForBoostingText
+                        if (fixedSpecifiedLineHeight->resolveZoom(Style::ZoomFactor { 1.0f }) - specifiedSize > smallMinimumDifferenceThresholdBetweenLineHeightAndSpecifiedFontSizeForBoostingText
                             && fixedHeight->resolveZoom(usedZoomForLength()) - specifiedSize > smallMinimumDifferenceThresholdBetweenLineHeightAndSpecifiedFontSizeForBoostingText)
                             return true;
                     }
@@ -277,11 +277,6 @@ bool RenderStyle::isIdempotentTextAutosizingCandidate(AutosizeStatus status) con
 #endif // ENABLE(TEXT_AUTOSIZING)
 
 // MARK: - Used Values
-
-float RenderStyle::outlineSize() const
-{
-    return std::max(0.0f, Style::evaluate<float>(outlineWidth(), Style::ZoomNeeded { }) + Style::evaluate<float>(outlineOffset(), Style::ZoomNeeded { }));
-}
 
 String RenderStyle::altFromContent() const
 {
@@ -465,6 +460,29 @@ Color RenderStyle::usedAccentColor(OptionSet<StyleColorOptions> styleColorOption
             return resolvedAccentColor;
         }
     );
+}
+
+Style::Length<> RenderStyle::usedOutlineOffset() const
+{
+    auto& outline = m_computedStyle.outline();
+    if (static_cast<OutlineStyle>(outline.outlineStyle) == OutlineStyle::Auto)
+        return Style::Length<> { Style::evaluate<float>(outline.outlineOffset, Style::ZoomNeeded { }) + RenderTheme::platformFocusRingOffset(Style::evaluate<float>(outline.outlineWidth, Style::ZoomNeeded { })) };
+    return outline.outlineOffset;
+}
+
+Style::LineWidth RenderStyle::usedOutlineWidth() const
+{
+    auto& outline = m_computedStyle.outline();
+    if (static_cast<OutlineStyle>(outline.outlineStyle) == OutlineStyle::None)
+        return 0_css_px;
+    if (static_cast<OutlineStyle>(outline.outlineStyle) == OutlineStyle::Auto)
+        return Style::LineWidth { std::max(Style::evaluate<float>(outline.outlineWidth, Style::ZoomNeeded { }), RenderTheme::platformFocusRingWidth()) };
+    return outline.outlineWidth;
+}
+
+float RenderStyle::usedOutlineSize() const
+{
+    return std::max(0.0f, Style::evaluate<float>(usedOutlineWidth(), Style::ZoomNeeded { }) + Style::evaluate<float>(usedOutlineOffset(), Style::ZoomNeeded { }));
 }
 
 // MARK: - Derived Values

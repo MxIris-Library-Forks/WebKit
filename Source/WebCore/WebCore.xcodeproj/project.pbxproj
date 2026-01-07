@@ -6775,6 +6775,7 @@
 		E4DA5E3D28A2805700849BCF /* GenericMediaQueryTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = E4DA5E35289D23FD00849BCF /* GenericMediaQueryTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4DA5E4028A288F800849BCF /* GenericMediaQueryEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = E4DA5E3F28A288F800849BCF /* GenericMediaQueryEvaluator.h */; };
 		E4DACE6A1D12E10B0075980F /* StylePendingResources.h in Headers */ = {isa = PBXBuildFile; fileRef = E4DACE691D12E10B0075980F /* StylePendingResources.h */; };
+		E4DD993A2F07CB5600F46E9D /* CustomFunctionRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = E4DD99382F07CB5600F46E9D /* CustomFunctionRegistry.h */; };
 		E4DEAA1817A93DC3000E0430 /* StyleTreeResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = E4DEAA1617A93DC3000E0430 /* StyleTreeResolver.h */; };
 		E4E364742B67DF0000734648 /* CSSStartingStyleRule.h in Headers */ = {isa = PBXBuildFile; fileRef = E4E364722B67DEDA00734648 /* CSSStartingStyleRule.h */; };
 		E4E387FE294E147800C6EC1B /* CSSPropertyRule.h in Headers */ = {isa = PBXBuildFile; fileRef = E4E387FC294E147700C6EC1B /* CSSPropertyRule.h */; };
@@ -7978,6 +7979,8 @@
 		0F29D8742C6EFE3C00CEA122 /* BorderShape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BorderShape.cpp; sourceTree = "<group>"; };
 		0F2F14BE2F0C766B001B0536 /* FEConvolveMatrixCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEConvolveMatrixCoreImageApplier.h; sourceTree = "<group>"; };
 		0F2F14BF2F0C766B001B0536 /* FEConvolveMatrixCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEConvolveMatrixCoreImageApplier.mm; sourceTree = "<group>"; };
+		0F2F14B82F0C7416001B0536 /* FEDisplacementMapCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEDisplacementMapCoreImageApplier.h; sourceTree = "<group>"; };
+		0F2F14B92F0C7416001B0536 /* FEDisplacementMapCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEDisplacementMapCoreImageApplier.mm; sourceTree = "<group>"; };
 		0F36E7361BD1837A002DB891 /* LayoutPoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPoint.cpp; sourceTree = "<group>"; };
 		0F36E7381BD184B9002DB891 /* LayoutSize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutSize.cpp; sourceTree = "<group>"; };
 		0F376F3F2994C58D004CA2F9 /* FontSelector.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FontSelector.cpp; sourceTree = "<group>"; };
@@ -8030,6 +8033,10 @@
 		0F53074B2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEFloodCoreImageApplier.mm; sourceTree = "<group>"; };
 		0F53074C2EF7AF0400F0B6B2 /* FEBlendCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEBlendCoreImageApplier.h; sourceTree = "<group>"; };
 		0F53074D2EF7AF0400F0B6B2 /* FEBlendCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEBlendCoreImageApplier.mm; sourceTree = "<group>"; };
+		0F53C9872F086EB1008FB212 /* FEDropShadowCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEDropShadowCoreImageApplier.h; sourceTree = "<group>"; };
+		0F53C9882F086EB1008FB212 /* FEDropShadowCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEDropShadowCoreImageApplier.mm; sourceTree = "<group>"; };
+		0F53C9B32F08A48E008FB212 /* FEImageCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEImageCoreImageApplier.h; sourceTree = "<group>"; };
+		0F53C9B42F08A48E008FB212 /* FEImageCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEImageCoreImageApplier.mm; sourceTree = "<group>"; };
 		0F53C97F2F086C88008FB212 /* FEMergeCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEMergeCoreImageApplier.h; sourceTree = "<group>"; };
 		0F53C9802F086C88008FB212 /* FEMergeCoreImageApplier.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FEMergeCoreImageApplier.mm; sourceTree = "<group>"; };
 		0F53C9872F086EB1008FB212 /* FEDropShadowCoreImageApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEDropShadowCoreImageApplier.h; sourceTree = "<group>"; };
@@ -22099,6 +22106,8 @@
 		E4DA5E5528A5005E00849BCF /* GenericMediaQueryEvaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GenericMediaQueryEvaluator.cpp; sourceTree = "<group>"; };
 		E4DACE691D12E10B0075980F /* StylePendingResources.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StylePendingResources.h; sourceTree = "<group>"; };
 		E4DACE6B1D12E1160075980F /* StylePendingResources.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StylePendingResources.cpp; sourceTree = "<group>"; };
+		E4DD99382F07CB5600F46E9D /* CustomFunctionRegistry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomFunctionRegistry.h; sourceTree = "<group>"; };
+		E4DD99392F07CB5600F46E9D /* CustomFunctionRegistry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CustomFunctionRegistry.cpp; sourceTree = "<group>"; };
 		E4DEAA1517A93DC3000E0430 /* StyleTreeResolver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTreeResolver.cpp; sourceTree = "<group>"; };
 		E4DEAA1617A93DC3000E0430 /* StyleTreeResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleTreeResolver.h; sourceTree = "<group>"; };
 		E4E243821DAB953E00C26E4B /* meterElementShadow.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = meterElementShadow.css; sourceTree = "<group>"; };
@@ -26074,12 +26083,16 @@
 				0FF1F95E2EFA147000484443 /* FECompositeCoreImageApplier.mm */,
 				0F2F14BE2F0C766B001B0536 /* FEConvolveMatrixCoreImageApplier.h */,
 				0F2F14BF2F0C766B001B0536 /* FEConvolveMatrixCoreImageApplier.mm */,
+				0F2F14B82F0C7416001B0536 /* FEDisplacementMapCoreImageApplier.h */,
+				0F2F14B92F0C7416001B0536 /* FEDisplacementMapCoreImageApplier.mm */,
 				0F53C9872F086EB1008FB212 /* FEDropShadowCoreImageApplier.h */,
 				0F53C9882F086EB1008FB212 /* FEDropShadowCoreImageApplier.mm */,
 				0F53074A2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.h */,
 				0F53074B2EF7A88300F0B6B2 /* FEFloodCoreImageApplier.mm */,
 				0FF1F96D2EFA37F700484443 /* FEGaussianBlurCoreImageApplier.h */,
 				0FF1F96E2EFA37F700484443 /* FEGaussianBlurCoreImageApplier.mm */,
+				0F53C9B32F08A48E008FB212 /* FEImageCoreImageApplier.h */,
+				0F53C9B42F08A48E008FB212 /* FEImageCoreImageApplier.mm */,
 				0F53C97F2F086C88008FB212 /* FEMergeCoreImageApplier.h */,
 				0F53C9802F086C88008FB212 /* FEMergeCoreImageApplier.mm */,
 				9E47A8222F01986A00D57716 /* FEMorphologyCoreImageApplier.h */,
@@ -39786,6 +39799,8 @@
 				E4A814D31C6DEC4000BF85AC /* ClassChangeInvalidation.h */,
 				E4AAB38827AA95E0009F5899 /* ContainerQueryEvaluator.cpp */,
 				E4AAB38527AA95D7009F5899 /* ContainerQueryEvaluator.h */,
+				E4DD99392F07CB5600F46E9D /* CustomFunctionRegistry.cpp */,
+				E4DD99382F07CB5600F46E9D /* CustomFunctionRegistry.h */,
 				E4ABABF42368C6EF00FA4345 /* DeclarationOrigin.h */,
 				FBDB619A16D6032A00BB3394 /* ElementRuleCollector.cpp */,
 				FBDB619E16D6036500BB3394 /* ElementRuleCollector.h */,
@@ -43408,6 +43423,7 @@
 				93D437A01D57B19A00AB85EA /* CustomElementReactionQueue.h in Headers */,
 				9BD4E91B1C462CFC005065BC /* CustomElementRegistry.h in Headers */,
 				62CD325A1157E57C0063B0A7 /* CustomEvent.h in Headers */,
+				E4DD993A2F07CB5600F46E9D /* CustomFunctionRegistry.h in Headers */,
 				5C5D2385227A0652000B9BDA /* CustomHeaderFields.h in Headers */,
 				4B1E13E721790D660042CF98 /* CustomPaintCanvas.h in Headers */,
 				7B8ED5F026F0C13D008AC023 /* CVUtilities.h in Headers */,

@@ -30,6 +30,7 @@
 #include "CommonAtomStrings.h"
 #include "MutableCSSSelector.h"
 #include <wtf/TZoneMallocInlines.h>
+#include <wtf/ZippedRange.h>
 #include <wtf/text/StringBuilder.h>
 
 namespace WebCore {
@@ -80,14 +81,21 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
     m_selectorArray[arrayIndex - 1].m_isLastInSelectorList = true;
 }
 
+CSSSelectorList::CSSSelectorList(std::span<const CSSSelector* const> selectors)
+    : m_selectorArray(FixedVector<CSSSelector>::map(selectors, [](auto* selector) {
+        return *selector;
+    }))
+{
+    m_selectorArray.last().setLastInSelectorList();
+}
+
 CSSSelectorList CSSSelectorList::makeCopyingSimpleSelector(const CSSSelector& simpleSelector)
 {
-    FixedVector<CSSSelector> selectorArray(1);
-
-    new (NotNull, &selectorArray[0]) CSSSelector(simpleSelector);
-    selectorArray[0].m_isFirstInComplexSelector = true;
-    selectorArray[0].m_isLastInComplexSelector = true;
-    selectorArray[0].m_isLastInSelectorList = true;
+    FixedVector<CSSSelector> selectorArray { simpleSelector };
+    auto& firstSelector = selectorArray[0];
+    firstSelector.m_isFirstInComplexSelector = true;
+    firstSelector.m_isLastInComplexSelector = true;
+    firstSelector.m_isLastInSelectorList = true;
 
     return CSSSelectorList { WTF::move(selectorArray) };
 }
@@ -153,31 +161,10 @@ CSSSelectorList CSSSelectorList::makeJoining(const Vector<const CSSSelectorList*
     return CSSSelectorList { WTF::move(selectorArray) };
 }
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-unsigned CSSSelectorList::componentCount() const
-{
-    if (m_selectorArray.isEmpty())
-        return 0;
-    auto* current = m_selectorArray.begin();
-    while (!current->isLastInSelectorList())
-        ++current;
-    return (current - m_selectorArray.begin()) + 1;
-}
-
 unsigned CSSSelectorList::listSize() const
 {
-    if (m_selectorArray.isEmpty())
-        return 0;
-    unsigned size = 1;
-    auto* current = m_selectorArray.begin();
-    while (!current->isLastInSelectorList()) {
-        if (current->isFirstInComplexSelector())
-            ++size;
-        ++current;
-    }
-    return size;
+    return std::ranges::count_if(m_selectorArray, [](auto& selector) { return selector.isFirstInComplexSelector(); });
 }
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
 String CSSSelectorList::selectorsText() const
 {
@@ -249,10 +236,11 @@ bool CSSSelectorList::hasOnlyNestingSelector() const
 
 bool CSSSelectorList::operator==(const CSSSelectorList& other) const
 {
-    for (auto a = begin(), b = other.begin(); a != end() || b != other.end(); ++a, ++b) {
-        if (a == end() || b == other.end())
-            return false;
-        if (!complexSelectorsEqual(*a, *b))
+    if (componentCount() != other.componentCount())
+        return false;
+
+    for (auto [a, b] : zippedRange(*this, other)) {
+        if (!complexSelectorsEqual(a, b))
             return false;
     }
     return true;

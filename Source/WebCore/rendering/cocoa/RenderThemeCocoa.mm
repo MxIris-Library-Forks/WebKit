@@ -131,7 +131,7 @@ static void drawFocusRingForPathForVectorBasedControls(const RenderObject& box, 
     // macOS controls have never honored outline offset.
 #if PLATFORM(IOS_FAMILY)
     auto deviceScaleFactor = box.document().deviceScaleFactor();
-    auto outlineOffset = floorToDevicePixel(Style::evaluate<float>(box.style().outlineOffset(), Style::ZoomNeeded { }), deviceScaleFactor);
+    auto outlineOffset = floorToDevicePixel(Style::evaluate<float>(box.style().usedOutlineOffset(), Style::ZoomNeeded { }), deviceScaleFactor);
 
     if (outlineOffset > 0) {
         const auto center = rect.center();
@@ -480,6 +480,7 @@ static const String& macOSInlineMediaControlsStyleSheet()
         "    min-width: fit-content;"
         "}"
         ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .time-control {"
+        "    left: auto !important;"
         "    max-width: 540px;"
         "}"
         ".media-controls.mac.inline:not(.audio) > .controls-bar.bottom > .buttons-container.right {"
@@ -2711,7 +2712,7 @@ bool RenderThemeCocoa::adjustButtonStyleForVectorBasedControls(RenderStyle& styl
     if (!style.logicalWidth().isSpecified() || style.logicalHeight().isAuto()) {
         auto minimumHeight = controlBaseHeight / controlBaseFontSize * style.fontDescription().computedSizeForRangeZoomOption(CSS::RangeZoomOptions::Unzoomed);
         if (auto fixedValue = style.logicalMinHeight().tryFixed())
-            minimumHeight = std::max(minimumHeight, fixedValue->resolveZoom(Style::ZoomFactor { 1.0f, 1.0f }));
+            minimumHeight = std::max(minimumHeight, fixedValue->resolveZoom(Style::ZoomFactor { 1.0f }));
         // FIXME: This may need to be a layout time adjustment to support various
         // values like fit-content etc.
         style.setLogicalMinHeight(Style::MinimumSize::Fixed { minimumHeight });

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2025-2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -323,13 +323,17 @@ inline float ComputedStyleBase::usedZoom() const
 
 inline ZoomFactor ComputedStyleBase::usedZoomForLength() const
 {
+    static constexpr ZoomFactor unzoomed(1.0f);
+    if (!inheritedFlags().isZoomed)
+        return unzoomed;
+
     if (useSVGZoomRulesForLength())
-        return ZoomFactor(1.0f);
+        return unzoomed;
 
     if (evaluationTimeZoomEnabled())
         return ZoomFactor(usedZoom());
 
-    return ZoomFactor(1.0f);
+    return unzoomed;
 }
 
 // MARK: - Fonts
@@ -439,11 +443,6 @@ inline const OutlineValue& ComputedStyleBase::outline() const
 inline const BorderData& ComputedStyleBase::border() const
 {
     return m_nonInheritedData->surroundData->border;
-}
-
-inline LineWidthBox ComputedStyleBase::borderWidth() const
-{
-    return border().borderWidth();
 }
 
 inline const BorderRadius& ComputedStyleBase::borderRadii() const

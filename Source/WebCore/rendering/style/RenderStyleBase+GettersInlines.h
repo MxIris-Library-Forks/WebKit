@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2025-2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -493,11 +493,6 @@ inline const BorderData& RenderStyleBase::border() const
     return m_computedStyle.border();
 }
 
-inline Style::LineWidthBox RenderStyleBase::borderWidth() const
-{
-    return m_computedStyle.borderWidth();
-}
-
 inline const Style::BorderRadius& RenderStyleBase::borderRadii() const
 {
     return m_computedStyle.borderRadii();
@@ -521,11 +516,6 @@ inline const BorderValue& RenderStyleBase::borderRight() const
 inline const BorderValue& RenderStyleBase::borderTop() const
 {
     return m_computedStyle.borderTop();
-}
-
-inline const BorderValue& RenderStyleBase::columnRule() const
-{
-    return m_computedStyle.columnRule();
 }
 
 // MARK: - Properties/descriptors that are not yet generated

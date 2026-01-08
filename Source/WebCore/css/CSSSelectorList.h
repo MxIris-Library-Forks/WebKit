@@ -51,7 +51,7 @@ public:
     static CSSSelectorList makeJoining(const Vector<const CSSSelectorList*>&);
 
     bool isEmpty() const { return m_selectorArray.isEmpty(); }
-    const CSSSelector* first() const LIFETIME_BOUND { return m_selectorArray.begin(); } // Using begin() instead of &m_selectorArray[0] to avoid assertions when the array is empty.
+    const CSSSelector& first() const LIFETIME_BOUND { return m_selectorArray[0]; }
     const CSSSelector* selectorAt(size_t index) const LIFETIME_BOUND
     {
         return &m_selectorArray[index];
@@ -124,7 +124,6 @@ private:
     { }
 
     // End of a multipart selector is indicated by m_isLastInComplexSelector bit in the last item.
-    // End of the array is indicated by m_isLastInSelectorList bit in the last item.
     FixedVector<CSSSelector> m_selectorArray;
 };
 

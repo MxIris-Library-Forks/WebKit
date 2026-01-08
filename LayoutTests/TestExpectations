@@ -71,6 +71,7 @@ fast/viewport/ios [ Skip ]
 fast/visual-viewport/ios/ [ Skip ]
 fast/device-orientation [ Skip ]
 http/tests/device-orientation [ Skip ]
+fast/backgrounds/top-content-inset-fixed-attachment.html [ Skip ]
 fast/events/cursors [ Skip ]
 fast/events/gesture [ Skip ]
 fast/events/ios [ Skip ]
@@ -681,8 +682,6 @@ imported/w3c/web-platform-tests/background-fetch/fetch-uploads.https.window.html
 imported/w3c/web-platform-tests/background-fetch/update-ui.https.window.html [ Skip ]
 imported/w3c/web-platform-tests/background-fetch/fetch.https.window.html [ Skip ]
 
-webkit.org/b/303084 imported/w3c/web-platform-tests/fetch/api/response/response-body-read-task-handling.html [ Pass Failure ]
-
 # Skip some reporting tests that now timeout
 imported/w3c/web-platform-tests/reporting/cross-origin-same-site-credentials.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/reporting/document-reporting-bypass-report-to.https.sub.html [ Skip ]
@@ -1005,6 +1004,7 @@ imported/w3c/web-platform-tests/html/anonymous-iframe/indexeddb.tentative.https.
 imported/w3c/web-platform-tests/html/anonymous-iframe/sharedworker-partitioning.tentative.https.window.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_forward_cross_realm_method.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/browsers/the-window-object/open-close/no_window_open_when_term_nesting_level_nonzero.window.html [ Failure Pass ]
+webkit.org/b/304867  imported/w3c/web-platform-tests/html/browsers/the-window-object/open-close/open_initial_size.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/dom/render-blocking/remove-element-unblocks-rendering.optional.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/blob-data.https.html [ Failure Pass ]
 imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/microtasks/checkpoint-after-window-onerror-module.html [ Failure Pass ]

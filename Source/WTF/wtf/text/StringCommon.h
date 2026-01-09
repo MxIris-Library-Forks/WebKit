@@ -93,16 +93,6 @@ size_t strlenSpan(std::span<T, Extent> span) requires(sizeof(T) == 1)
     return strnlen(byteCast<char>(span.data()), span.size());
 }
 
-template<typename CharacterType> inline constexpr bool isLatin1(CharacterType character)
-{
-    return unsignedCast(character) <= 0xFFu;
-}
-
-template<> ALWAYS_INLINE constexpr bool isLatin1(Latin1Character)
-{
-    return true;
-}
-
 using CodeUnitMatchFunction = bool (*)(char16_t);
 
 template<typename CharacterTypeA, typename CharacterTypeB>
@@ -771,6 +761,9 @@ ALWAYS_INLINE const double* findDouble(const double* pointer, double target, siz
 
 WTF_EXPORT_PRIVATE const Latin1Character* find8NonASCIIAlignedImpl(std::span<const Latin1Character>);
 WTF_EXPORT_PRIVATE const char16_t* find16NonASCIIAlignedImpl(std::span<const char16_t>);
+
+WTF_EXPORT_PRIVATE bool isWellFormedUTF16(std::span<const char16_t>);
+WTF_EXPORT_PRIVATE void toWellFormedUTF16(std::span<const char16_t> input, std::span<char16_t> output);
 
 #if CPU(ARM64)
 ALWAYS_INLINE const Latin1Character* find8NonASCII(std::span<const Latin1Character> data)
@@ -1536,7 +1529,6 @@ using WTF::equalIgnoringASCIICaseWithLength;
 using WTF::equalLettersIgnoringASCIICase;
 using WTF::equalLettersIgnoringASCIICaseWithLength;
 using WTF::findIgnoringASCIICase;
-using WTF::isLatin1;
 using WTF::reverseFind;
 using WTF::span;
 using WTF::spanHasPrefixIgnoringASCIICase;

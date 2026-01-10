@@ -52,7 +52,6 @@ css/SelectorFilter.cpp
 css/StyleAttributeMutationScope.h
 css/StyleRuleImport.cpp
 css/StyleSheetContents.cpp
-css/parser/SizesAttributeParser.cpp
 css/query/ContainerQueryFeatures.cpp
 css/typedom/ComputedStylePropertyMapReadOnly.cpp
 dom/CollectionIndexCacheInlines.h
@@ -332,7 +331,6 @@ rendering/RenderProgress.cpp
 rendering/RenderQuote.cpp
 rendering/RenderReplaced.cpp
 rendering/RenderReplica.cpp
-rendering/RenderScrollbar.cpp
 rendering/RenderSearchField.cpp
 rendering/RenderTable.cpp
 rendering/RenderTableCell.cpp

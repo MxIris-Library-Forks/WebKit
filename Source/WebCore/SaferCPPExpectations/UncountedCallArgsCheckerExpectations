@@ -493,7 +493,6 @@ page/NavigateEvent.cpp
 page/NavigationDestination.cpp
 page/NavigationDestination.h
 page/PageColorSampler.cpp
-page/PageOverlayController.cpp
 page/PageSerializer.cpp
 page/PartitionedSecurityOrigin.h
 page/Performance.cpp
@@ -680,7 +679,6 @@ rendering/RenderProgress.cpp
 rendering/RenderQuote.cpp
 rendering/RenderReplaced.cpp
 rendering/RenderReplica.cpp
-rendering/RenderScrollbar.cpp
 rendering/RenderScrollbarPart.cpp
 rendering/RenderSearchField.cpp
 rendering/RenderTable.cpp

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Google Inc. All rights reserved.
- * Copyright (C) 2013-2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2013-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -5445,6 +5445,13 @@ ExceptionOr<Internals::NowPlayingState> Internals::nowPlayingState() const
 #endif
 }
 
+void Internals::setNowPlayingUpdateInterval(double interval)
+{
+    if (RefPtr manager = sessionManager())
+        manager->setNowPlayingUpdateInterval(interval);
+}
+
+
 #if ENABLE(VIDEO)
 RefPtr<HTMLMediaElement> Internals::bestMediaElementForRemoteControls(Internals::PlaybackControlsPurpose purpose)
 {
@@ -5993,6 +6000,16 @@ void Internals::setShowAllPlugins(bool show)
 bool Internals::isReadableStreamDisturbed(ReadableStream& stream)
 {
     return stream.isDisturbed();
+}
+
+void Internals::observeReadableStreamLifetime(ReadableStream& stream)
+{
+    m_observedLiveReadableStreams.add(stream);
+}
+
+unsigned Internals::observedLiveReadableStreamCount()
+{
+    return m_observedLiveReadableStreams.computeSize();
 }
 
 JSValue Internals::cloneArrayBuffer(JSC::JSGlobalObject& lexicalGlobalObject, JSValue buffer, JSValue srcByteOffset, JSValue srcLength)

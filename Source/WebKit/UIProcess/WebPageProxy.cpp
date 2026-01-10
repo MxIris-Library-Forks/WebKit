@@ -7845,7 +7845,8 @@ void WebPageProxy::broadcastFrameTreeSyncData(IPC::Connection& connection, Frame
     Ref process = WebProcessProxy::fromConnection(connection);
 
     RefPtr webFrameProxy = WebFrameProxy::webFrame(frameID);
-    MESSAGE_CHECK(process, webFrameProxy);
+    if (!webFrameProxy)
+        return;
 
     // FIXME: This could instead be an option in FrameTreeSyncData.in to allow
     // certain properties to be mutable from non-frame-owning processes.
@@ -7867,7 +7868,10 @@ void WebPageProxy::broadcastAllFrameTreeSyncData(IPC::Connection& connection, Fr
     Ref process = WebProcessProxy::fromConnection(connection);
 
     RefPtr webFrameProxy = WebFrameProxy::webFrame(frameID);
-    MESSAGE_CHECK(process, webFrameProxy && &webFrameProxy->process() == &process.get());
+    if (!webFrameProxy)
+        return;
+
+    MESSAGE_CHECK(process, &webFrameProxy->process() == &process.get());
 
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         if (webProcess == process)
@@ -10361,6 +10365,13 @@ void WebPageProxy::setMockVideoPresentationModeEnabled(bool enabled)
         videoPresentationManager->setMockVideoPresentationModeEnabled(enabled);
 }
 
+#endif
+
+#if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)
+RefPtr<WebDeviceOrientationUpdateProviderProxy> WebPageProxy::protectedWebDeviceOrientationUpdateProviderProxy()
+{
+    return m_webDeviceOrientationUpdateProviderProxy;
+}
 #endif
 
 #if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)

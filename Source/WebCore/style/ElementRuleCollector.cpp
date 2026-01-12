@@ -525,7 +525,7 @@ inline bool ElementRuleCollector::ruleMatches(const RuleData& ruleData, unsigned
 
     if (compilerEnabled) {
         if (compiledSelector.status == SelectorCompilationStatus::NotCompiled)
-            SelectorCompiler::compileSelector(compiledSelector, ruleData.selector(), SelectorCompiler::SelectorContext::RuleCollector);
+            SelectorCompiler::compileSelector(compiledSelector, &ruleData.selector(), SelectorCompiler::SelectorContext::RuleCollector);
 
         if (compiledSelector.status == SelectorCompilationStatus::SimpleSelectorChecker) {
             compiledSelector.wasUsed();
@@ -564,12 +564,12 @@ inline bool ElementRuleCollector::ruleMatches(const RuleData& ruleData, unsigned
     } else
 #endif // ENABLE(CSS_SELECTOR_JIT)
     {
-        auto* selector = ruleData.selector();
+        auto& selector = ruleData.selector();
         // Slow path.
         SelectorChecker selectorChecker(element().document());
-        selectorMatches = selectorChecker.match(*selector, element(), context);
+        selectorMatches = selectorChecker.match(selector, element(), context);
         if (selectorMatches)
-            specificity = selector->computeSpecificity();
+            specificity = selector.computeSpecificity();
     }
 
     m_matchedPseudoElements.add(context.publicPseudoElements);
@@ -578,12 +578,9 @@ inline bool ElementRuleCollector::ruleMatches(const RuleData& ruleData, unsigned
     return selectorMatches;
 }
 
-void ElementRuleCollector::collectMatchingRulesForList(const RuleSet::RuleDataVector* rules, const MatchRequest& matchRequest)
+void ElementRuleCollector::collectMatchingRulesForListSlow(const RuleSet::RuleDataVector& rules, const MatchRequest& matchRequest)
 {
-    if (!rules)
-        return;
-
-    for (auto& ruleData : *rules) {
+    for (auto& ruleData : rules) {
         if (!ruleData.isEnabled()) [[unlikely]]
             continue;
 
@@ -639,7 +636,7 @@ bool ElementRuleCollector::containerQueriesMatch(const RuleData& ruleData, const
     auto selectionMode = [&] {
         if (matchRequest.matchingPartPseudoElementRules)
             return ContainerQueryEvaluator::SelectionMode::PartPseudoElement;
-        if (ruleData.canMatchPseudoElement() && !complexSelectorMatchesElementBackedPseudoElement(*ruleData.selector()))
+        if (ruleData.canMatchPseudoElement() && !complexSelectorMatchesElementBackedPseudoElement(ruleData.selector()))
             return ContainerQueryEvaluator::SelectionMode::PseudoElement;
         return ContainerQueryEvaluator::SelectionMode::Element;
     }();

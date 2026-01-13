@@ -105,6 +105,7 @@ typedef struct _WebKitGstIceAgentPrivate {
     Vector<GRefPtr<RiceTurnConfig>> turnConfigs;
 
     GRefPtr<GSource> recvSource;
+    bool forceRelay { false };
 } WebKitGstIceAgentPrivate;
 
 typedef struct _WebKitGstIceAgent {
@@ -134,9 +135,10 @@ static void webkitGstWebRTCIceAgentSetOnIceCandidate(GstWebRTCICE* ice, GstWebRT
     priv->onCandidate = callback;
 }
 
-static void webkitGstWebRTCIceAgentSetForceRelay(GstWebRTCICE*, gboolean)
+static void webkitGstWebRTCIceAgentSetForceRelay(GstWebRTCICE* ice, gboolean value)
 {
-    GST_FIXME("Not implemented yet.");
+    auto backend = WEBKIT_GST_WEBRTC_ICE_BACKEND(ice);
+    backend->priv->forceRelay = value;
 }
 
 static void webkitGstWebRTCIceAgentSetRiceStunServer(WebKitGstIceAgent* agent, StringView host, uint16_t port)
@@ -273,10 +275,10 @@ static void addTurnServer(WebKitGstIceAgent* agent, const URL& url)
     std::array<RiceTransportType, 4> relays = { static_cast<RiceTransportType>(0), };
     unsigned nRelay = 0;
     bool isTurns = url.protocolIs("turns"_s);
-    StringView transport;
+    String transport;
     for (const auto& [key, value] : queryParameters(url)) {
         if (key == "transport"_s) {
-            transport = value;
+            transport = value.isolatedCopy();
             break;
         }
     }
@@ -285,14 +287,14 @@ static void addTurnServer(WebKitGstIceAgent* agent, const URL& url)
     if (!transport || transport == "tcp"_s)
         relays[nRelay++] = RICE_TRANSPORT_TYPE_TCP;
 
-    RELEASE_ASSERT(url.port());
-    auto port = url.port().value();
-
     const auto& host = url.host();
     if (URL::hostIsIPAddress(host)) {
         webkitGstWebRTCIceAgentAddRiceTurnServer(agent, url.hostAndPort(), isTurns, url.user(), url.password(), relays, nRelay);
         return;
     }
+
+    RELEASE_ASSERT(url.port());
+    auto port = url.port().value();
 
     agent->priv->iceBackend->resolveAddress(url.host().toString(), [weakAgent = GThreadSafeWeakPtr(agent), isTurns, port, nRelay, user = url.user(), password = url.password(), relays = WTF::move(relays)](ExceptionOr<String>&& result) mutable {
         auto agent = weakAgent.get();
@@ -303,7 +305,16 @@ static void addTurnServer(WebKitGstIceAgent* agent, const URL& url)
             return;
         }
 
-        auto turnAddress = makeString(result.returnValue(), ':', port);
+        StringBuilder builder;
+        auto resolvedAddress = result.returnValue();
+        bool isIPv6Address = URL::isIPv6Address(resolvedAddress);
+        if (isIPv6Address)
+            builder.append('[');
+        builder.append(WTF::move(resolvedAddress));
+        if (isIPv6Address)
+            builder.append(']');
+        builder.append(':', port);
+        auto turnAddress = builder.toString();
         GST_DEBUG_OBJECT(agent.get(), "TURN address resolved to %s", turnAddress.ascii().data());
         webkitGstWebRTCIceAgentAddRiceTurnServer(agent.get(), turnAddress, isTurns, user, password, relays, nRelay);
     });
@@ -601,7 +612,7 @@ static void webkitGstWebRTCIceAgentClose(GstWebRTCICE* ice, GstPromise* promise)
         return;
 
     bool shouldWait = promise == nullptr;
-    backend->priv->closePromise = adoptGRef(promise);
+    backend->priv->closePromise = promise;
     auto now = WTF::MonotonicTime::now().secondsSinceEpoch();
     rice_agent_close(backend->priv->agent.get(), now.nanoseconds());
     webkitGstWebRTCIceAgentWakeup(backend);
@@ -794,9 +805,14 @@ void webkitGstWebRTCIceAgentLocalCandidateGatheredForStream(WebKitGstIceAgent* a
 {
     findStreamAndApply(agent->priv->streams, streamId, [&](const auto* stream) {
         auto sdp = GMallocString::unsafeAdoptFromUTF8(rice_candidate_to_sdp_string(&candidate.gathered.candidate));
+
+        if (agent->priv->forceRelay && candidate.gathered.candidate.candidate_type != RICE_CANDIDATE_TYPE_RELAYED) {
+            GST_DEBUG_OBJECT(agent, "Ignoring non-relay ICE candidate %s", sdp.utf8());
+            return;
+        }
+
         ASSERT(startsWith(sdp.span(), "a="_s));
         String strippedSdp(sdp.span().subspan(2));
-
         agent->priv->onCandidate(GST_WEBRTC_ICE(agent), streamId, strippedSdp.utf8().data(), agent->priv->onCandidateData);
         webkitGstWebRTCIceStreamAddLocalGatheredCandidate(stream, candidate.gathered);
     });

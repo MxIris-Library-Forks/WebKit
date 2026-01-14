@@ -1265,6 +1265,7 @@ public:
     void cacheAXPosition(const WebCore::FloatPoint&);
     void cacheAXSize(const WebCore::IntSize&);
     void setIsolatedTree(Ref<WebCore::AXIsolatedTree>&&);
+    RefPtr<WebCore::AXIsolatedTree> isolatedTree() const;
 #endif
     NSObject *accessibilityObjectForMainFramePlugin();
     bool shouldFallbackToWebContentAXObjectForMainFramePlugin() const;
@@ -2277,7 +2278,7 @@ private:
     void mouseEvent(WebCore::FrameIdentifier, const WebMouseEvent&, std::optional<Vector<SandboxExtensionHandle>>&& sandboxExtensions);
     void keyEvent(WebCore::FrameIdentifier, const WebKeyboardEvent&);
 
-    void setLastKnownMousePosition(WebCore::FrameIdentifier, WebCore::IntPoint eventPoint, WebCore::IntPoint globalPoint);
+    void setLastKnownMousePosition(WebCore::FrameIdentifier, const WebCore::DoublePoint&, const WebCore::DoublePoint&);
 
 #if ENABLE(IOS_TOUCH_EVENTS)
     void touchEventSync(const WebTouchEvent&, CompletionHandler<void(bool)>&&);
@@ -2372,7 +2373,8 @@ private:
     void performDictionaryLookupForRange(WebCore::LocalFrame&, const WebCore::SimpleRange&, WebCore::TextIndicatorPresentationTransition);
     WebCore::DictionaryPopupInfo dictionaryPopupInfoForRange(WebCore::LocalFrame&, const WebCore::SimpleRange&, WebCore::TextIndicatorPresentationTransition);
 
-    void windowAndViewFramesChanged(const ViewWindowCoordinates&);
+    void windowAndViewFramesChanged(const ViewWindowCoordinates&, CompletionHandler<void()>&& = nullptr);
+    void updateMouseEventTargetAfterWindowAndViewFramesChanged(const WebCore::DoublePoint&, const WebCore::DoublePoint&);
 
     RetainPtr<PDFDocument> pdfDocumentForPrintingFrame(WebCore::LocalFrame*);
     void computePagesForPrintingPDFDocument(WebCore::FrameIdentifier, const PrintInfo&, Vector<WebCore::IntRect>& resultPageRects);

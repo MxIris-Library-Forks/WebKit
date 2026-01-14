@@ -3685,7 +3685,7 @@ void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEven
 #endif
 }
 
-void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, IntPoint eventPoint, IntPoint globalPoint)
+void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, const DoublePoint& eventPoint, const DoublePoint& globalPoint)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame || !frame->coreLocalFrame() || !frame->coreLocalFrame()->view())
@@ -6162,7 +6162,7 @@ void WebPage::sendSetWindowFrame(const FloatRect& windowFrame)
 
 #if PLATFORM(COCOA)
 
-void WebPage::windowAndViewFramesChanged(const ViewWindowCoordinates& coordinates)
+void WebPage::windowAndViewFramesChanged(const ViewWindowCoordinates& coordinates, CompletionHandler<void()>&& completionHandler)
 {
     m_windowFrameInScreenCoordinates = coordinates.windowFrameInScreenCoordinates;
     m_windowFrameInUnflippedScreenCoordinates = coordinates.windowFrameInUnflippedScreenCoordinates;
@@ -6174,6 +6174,19 @@ void WebPage::windowAndViewFramesChanged(const ViewWindowCoordinates& coordinate
 #endif
 
     m_hasCachedWindowFrame = !m_windowFrameInUnflippedScreenCoordinates.isEmpty();
+
+    if (completionHandler)
+        completionHandler();
+}
+
+void WebPage::updateMouseEventTargetAfterWindowAndViewFramesChanged(const DoublePoint& mousePositionInView, const DoublePoint& currentMouseGlobalPosition)
+{
+    RefPtr localMainFrame = m_mainFrame->coreLocalFrame();
+    if (!localMainFrame)
+        return;
+
+    setLastKnownMousePosition(localMainFrame->frameID(), mousePositionInView, currentMouseGlobalPosition);
+    localMainFrame->eventHandler().updateMouseEventTargetAfterLayoutIfNeeded();
 }
 
 #endif
@@ -9365,10 +9378,6 @@ void WebPage::scrollToEdge(WebCore::RectEdges<bool> edges, WebCore::ScrollIsAnim
 #if ENABLE(IMAGE_ANALYSIS) && ENABLE(VIDEO)
 void WebPage::beginTextRecognitionForVideoInElementFullScreen(const HTMLVideoElement& element)
 {
-    auto mediaPlayerIdentifier = element.playerIdentifier();
-    if (!mediaPlayerIdentifier)
-        return;
-
     CheckedPtr renderer = element.renderer();
     if (!renderer)
         return;
@@ -9377,7 +9386,11 @@ void WebPage::beginTextRecognitionForVideoInElementFullScreen(const HTMLVideoEle
     if (rectInRootView.isEmpty())
         return;
 
-    send(Messages::WebPageProxy::BeginTextRecognitionForVideoInElementFullScreen(*mediaPlayerIdentifier, rectInRootView));
+    RefPtr image = element.bitmapImageForCurrentTime();
+    if (!image)
+        return;
+    if (auto handle = image->createHandle())
+        send(Messages::WebPageProxy::BeginTextRecognitionForVideoInElementFullScreen(WTF::move(*handle), rectInRootView));
 }
 
 void WebPage::cancelTextRecognitionForVideoInElementFullScreen()

@@ -71,7 +71,6 @@ dom/Range.cpp
 dom/ShadowRoot.cpp
 dom/SimpleRange.cpp
 dom/SlotAssignment.cpp
-dom/StaticRange.cpp
 dom/TreeScope.cpp
 dom/TypedElementDescendantIteratorInlines.h
 dom/ViewTransition.cpp
@@ -314,7 +313,6 @@ rendering/RenderObject.h
 rendering/RenderProgress.cpp
 rendering/RenderQuote.cpp
 rendering/RenderReplaced.cpp
-rendering/RenderSearchField.cpp
 rendering/RenderTable.cpp
 rendering/RenderTableCell.cpp
 rendering/RenderTableCellInlines.h

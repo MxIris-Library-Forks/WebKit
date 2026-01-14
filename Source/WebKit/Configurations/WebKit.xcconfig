@@ -88,6 +88,8 @@ SWIFT_LIBRARY_LEVEL = api;
 SWIFT_INCLUDE_PATHS = $(SRCROOT)/Modules/Internal $(SWIFT_INCLUDE_PATHS_$(USE_INTERNAL_SDK));
 SWIFT_INCLUDE_PATHS_ = $(SRCROOT)/Platform/spi/visionos $(SRCROOT)/Platform/spi/ios $(SRCROOT)/Platform/spi/Cocoa $(SRCROOT)/Platform/spi/Cocoa/Modules $(inherited);
 
+OTHER_CPLUSPLUSFLAGS = $(inherited) -fmodules -fno-cxx-modules;
+
 // No need for automatic generation of Swift code for referencing resource bundle colors.
 ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 
@@ -417,6 +419,18 @@ WK_GENERATE_SINGLE_SWIFT_INTEROP_FILE[sdk=watch*] = ;
 GENERATE_SINGLE_SWIFT_INTEROP_FILE = $(GENERATE_SINGLE_SWIFT_INTEROP_FILE_$(WK_GENERATE_SINGLE_SWIFT_INTEROP_FILE));
 GENERATE_SINGLE_SWIFT_INTEROP_FILE_ = ;
 GENERATE_SINGLE_SWIFT_INTEROP_FILE_YES = GENERATE_SINGLE_SWIFT_INTEROP_FILE;
+
+// If (and only if) we've enabled IPC testing (on ASAN and debug builds, typically)
+// also enable testing of a Swift IPC receiver - but only if we're using a sufficiently
+// recent SDK.
+ENABLE_IPC_TESTING_SWIFT = ;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx*] = ENABLE_IPC_TESTING_SWIFT;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx14*] = ;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx15*] = ;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx26.0*] = ;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx26.1*] = ;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx26.2*] = ;
+ENABLE_IPC_TESTING_SWIFT[sdk=macosx26.3*] = ;
 
 // FIXME: (rdar://149474443) Swift/Cxx interop does not respect CLANG_CXX_LANGUAGE_STANDARD = "c++2b";
 // FIXME: (rdar://103177280) "-no-verify-emitted-module-interface;" is needed to workaround a SwiftVerifyEmittedModuleInterface bug

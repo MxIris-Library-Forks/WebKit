@@ -6910,8 +6910,6 @@
 		F42BDC022D54528000818A9A /* BoxExtents.h in Headers */ = {isa = PBXBuildFile; fileRef = F42BDC012D54528000818A9A /* BoxExtents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F43160C82A2974D90021441D /* RunLoopObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = F43160C72A2974D90021441D /* RunLoopObserver.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F433E9031DBBDBA200EF0D14 /* StaticPasteboard.h in Headers */ = {isa = PBXBuildFile; fileRef = F433E9021DBBDBA200EF0D14 /* StaticPasteboard.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		F43FF6DB2B5F222F00A9A03C /* TextExtractionTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = F43FF6D92B5F222F00A9A03C /* TextExtractionTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		F43FF6E52B5F227900A9A03C /* TextExtraction.h in Headers */ = {isa = PBXBuildFile; fileRef = F43FF6E32B5F227800A9A03C /* TextExtraction.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F440E77A233D94D70063F9AB /* NavigatorClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = F440E76F233D94D30063F9AB /* NavigatorClipboard.h */; };
 		F440E77B233D94D70063F9AB /* ClipboardItem.h in Headers */ = {isa = PBXBuildFile; fileRef = F440E770233D94D40063F9AB /* ClipboardItem.h */; };
 		F440E77D233D94D70063F9AB /* Clipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = F440E772233D94D50063F9AB /* Clipboard.h */; };
@@ -6927,6 +6925,8 @@
 		F44EBBD91DB5D21400277334 /* StaticRange.h in Headers */ = {isa = PBXBuildFile; fileRef = F44EBBD81DB5D21400277334 /* StaticRange.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F454C1342BA3B57500871551 /* ElementTargetingTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C1322BA3B54C00871551 /* ElementTargetingTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F454C13A2BA3F91100871551 /* ElementTargetingController.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C1382BA3F8FB00871551 /* ElementTargetingController.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		F457F4C32F156C5D00E97771 /* TextExtraction.h in Headers */ = {isa = PBXBuildFile; fileRef = F457F4BF2F156C5D00E97771 /* TextExtraction.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		F457F4C42F156C5D00E97771 /* TextExtractionTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = F457F4C12F156C5D00E97771 /* TextExtractionTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F45EAC7D2A8ADFC4009B986E /* PlatformScreen.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = F45EAC7B2A8ADE03009B986E /* PlatformScreen.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
 		F45EAC822A8AEED2009B986E /* InbandTextTrackPrivate.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = F45EAC812A8AEED2009B986E /* InbandTextTrackPrivate.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
 		F45EAC872A8C1A65009B986E /* LayoutMilestones.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = F45EAC862A8C1972009B986E /* LayoutMilestones.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -22395,9 +22395,6 @@
 		F43160C92A297A150021441D /* RunLoopObserver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RunLoopObserver.cpp; sourceTree = "<group>"; };
 		F433E9021DBBDBA200EF0D14 /* StaticPasteboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticPasteboard.h; sourceTree = "<group>"; };
 		F433E9041DBBDBC200EF0D14 /* StaticPasteboard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StaticPasteboard.cpp; sourceTree = "<group>"; };
-		F43FF6D92B5F222F00A9A03C /* TextExtractionTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TextExtractionTypes.h; path = "text-extraction/TextExtractionTypes.h"; sourceTree = "<group>"; };
-		F43FF6E22B5F227800A9A03C /* TextExtraction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextExtraction.cpp; path = "text-extraction/TextExtraction.cpp"; sourceTree = "<group>"; };
-		F43FF6E32B5F227800A9A03C /* TextExtraction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextExtraction.h; path = "text-extraction/TextExtraction.h"; sourceTree = "<group>"; };
 		F440E76E233D94D30063F9AB /* Clipboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Clipboard.cpp; sourceTree = "<group>"; };
 		F440E76F233D94D30063F9AB /* NavigatorClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NavigatorClipboard.h; sourceTree = "<group>"; };
 		F440E770233D94D40063F9AB /* ClipboardItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClipboardItem.h; sourceTree = "<group>"; };
@@ -22422,6 +22419,10 @@
 		F454C1322BA3B54C00871551 /* ElementTargetingTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElementTargetingTypes.h; sourceTree = "<group>"; };
 		F454C1382BA3F8FB00871551 /* ElementTargetingController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElementTargetingController.h; sourceTree = "<group>"; };
 		F454C1392BA3F8FB00871551 /* ElementTargetingController.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ElementTargetingController.cpp; sourceTree = "<group>"; };
+		F457F4BB2F156BC700E97771 /* TextExtractionTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextExtractionTypes.cpp; sourceTree = "<group>"; };
+		F457F4BF2F156C5D00E97771 /* TextExtraction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextExtraction.h; sourceTree = "<group>"; };
+		F457F4C02F156C5D00E97771 /* TextExtraction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextExtraction.cpp; sourceTree = "<group>"; };
+		F457F4C12F156C5D00E97771 /* TextExtractionTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextExtractionTypes.h; sourceTree = "<group>"; };
 		F45EAC7B2A8ADE03009B986E /* PlatformScreen.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = PlatformScreen.serialization.in; sourceTree = "<group>"; };
 		F45EAC812A8AEED2009B986E /* InbandTextTrackPrivate.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = InbandTextTrackPrivate.serialization.in; sourceTree = "<group>"; };
 		F45EAC862A8C1972009B986E /* LayoutMilestones.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = LayoutMilestones.serialization.in; sourceTree = "<group>"; };
@@ -40189,11 +40190,12 @@
 		F4C7E85A2B5F1D50001B8C9C /* text-extraction */ = {
 			isa = PBXGroup;
 			children = (
-				F43FF6E22B5F227800A9A03C /* TextExtraction.cpp */,
-				F43FF6E32B5F227800A9A03C /* TextExtraction.h */,
-				F43FF6D92B5F222F00A9A03C /* TextExtractionTypes.h */,
+				F457F4C02F156C5D00E97771 /* TextExtraction.cpp */,
+				F457F4BF2F156C5D00E97771 /* TextExtraction.h */,
+				F457F4BB2F156BC700E97771 /* TextExtractionTypes.cpp */,
+				F457F4C12F156C5D00E97771 /* TextExtractionTypes.h */,
 			);
-			name = "text-extraction";
+			path = "text-extraction";
 			sourceTree = "<group>";
 		};
 		F523D18402DE42E8018635CA /* css */ = {
@@ -47838,8 +47840,8 @@
 				97BC84841236FD93000C6161 /* TextDocumentParser.h in Headers */,
 				933A14300B7D188600A53FFD /* TextEvent.h in Headers */,
 				A77B41A012E675A90054343D /* TextEventInputType.h in Headers */,
-				F43FF6E52B5F227900A9A03C /* TextExtraction.h in Headers */,
-				F43FF6DB2B5F222F00A9A03C /* TextExtractionTypes.h in Headers */,
+				F457F4C32F156C5D00E97771 /* TextExtraction.h in Headers */,
+				F457F4C42F156C5D00E97771 /* TextExtractionTypes.h in Headers */,
 				F55B3DD81251F12D003EF269 /* TextFieldInputType.h in Headers */,
 				72B2213129502059002B5609 /* TextFieldPart.h in Headers */,
 				B2C3DA450D006C1D00EF6F26 /* TextFlags.h in Headers */,

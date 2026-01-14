@@ -21,30 +21,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
 
-#if ENABLE_IPC_TESTING_API && ENABLE_IPC_TESTING_SWIFT
+// The Swift module shadows the Clang module and the Swift module therefore needs to publicly import and re-export the underlying Clang module.
 
-internal import WebKit_Internal
-internal import wtf
-
-// Proxy interface to test IPC activities related to receiving messages in Swift.
-final class IPCTesterReceiverSwift {
-    // Optional just because of an initialization order issue. Always occupied after initialization finished.
-    private var messageForwarder: RefIPCTesterReceiverSwiftMessageForwarder?
-
-    init() {
-        self.messageForwarder = WebKit.IPCTesterReceiverSwiftMessageForwarder.create(target: self)
-    }
-
-    func getMessageReceiver() -> RefIPCTesterReceiverSwiftMessageForwarder {
-        guard let messageForwarder = self.messageForwarder else {
-            fatalError("Unreachable - guaranteed to exist")
-        }
-        return messageForwarder
-    }
-
-    func asyncMessage(data: UInt32, completionHandler: CompletionHandlers.IPCTesterReceiverSwift.AsyncMessageCompletionHandler) {
-        completionHandler.pointee(data + 2)
-    }
-}
-
+#if swift(>=6.0)
+@_exported public import pal
+#else
+@_exported import pal
 #endif

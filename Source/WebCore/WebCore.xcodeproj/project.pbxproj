@@ -351,7 +351,7 @@
 		0D0B4DA32EBD20E30053FB12 /* UnifiedSource1-ARC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0D0B4DA22EBD20E30053FB12 /* UnifiedSource1-ARC.mm */; };
 		0D431A7D2B5A397C00864655 /* DigitalCredential.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D431A7C2B5A397C00864655 /* DigitalCredential.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D431F002B9053DC001E222F /* DigitalCredentialRequestOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		0D431F012B905BC4001E222F /* DigitalCredentialRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DED2B5DF55000B61C51 /* DigitalCredentialRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		0D431F012B905BC4001E222F /* DigitalCredentialGetRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D494DED2B5DF55000B61C51 /* DigitalCredentialGetRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D44C33E2ABA1B9F0017FB5D /* ThermalMitigationNotifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D8EF8122A9D511F000118F8 /* ThermalMitigationNotifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D60CAF42E86F50800A3FF66 /* DDImageAsset.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D60CAF32E86F50800A3FF66 /* DDImageAsset.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0D649B392B9EA4E500D7F335 /* CredentialRequestCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = 0D649B382B9EA4E500D7F335 /* CredentialRequestCoordinator.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -971,6 +971,7 @@
 		29AE213521ABA48A00869283 /* AXIsolatedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 29AE213321ABA48A00869283 /* AXIsolatedObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		29D7BCFA1444AF7D0070619C /* AccessibilitySpinButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 29D7BCF91444AF7D0070619C /* AccessibilitySpinButton.h */; };
 		29FAF4B6195AB08900A522DC /* TextUndoInsertionMarkupMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 29FAF4B5195AB08900A522DC /* TextUndoInsertionMarkupMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		2A09D75F2F1747B900A9FFBB /* CornerRadii.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A09D75D2F17433200A9FFBB /* CornerRadii.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2A4107A426CB66F8003BF797 /* CSSKeywordValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A4107A326CB66EE003BF797 /* CSSKeywordValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2A538A2526F0103300965FC8 /* CSSMatrixComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A538A1826E3693000965FC8 /* CSSMatrixComponent.h */; };
 		2A538A2626F0103600965FC8 /* CSSMatrixComponentOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A538A1326E3693000965FC8 /* CSSMatrixComponentOptions.h */; };
@@ -1913,7 +1914,6 @@
 		49C7B9E61042D32F0009D447 /* WebGLTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C7B9C61042D32F0009D447 /* WebGLTexture.h */; };
 		49D5DC2C0F423A73008F20FD /* Matrix3DTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D5DC280F423A73008F20FD /* Matrix3DTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49D5DC2E0F423A73008F20FD /* PerspectiveTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D5DC2A0F423A73008F20FD /* PerspectiveTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		49D879532D836C8D00F506E9 /* CSSInternalBaseAppearanceRule.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D879512D836C6F00F506E9 /* CSSInternalBaseAppearanceRule.h */; };
 		49E911C40EF86D47009D0CAF /* TransformationMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 49E911B40EF86D47009D0CAF /* TransformationMatrix.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49E911C50EF86D47009D0CAF /* IdentityTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49E911B50EF86D47009D0CAF /* IdentityTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		49E911C70EF86D47009D0CAF /* MatrixTransformOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 49E911B70EF86D47009D0CAF /* MatrixTransformOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7831,12 +7831,12 @@
 		0D2F291C2BC84EA100872B23 /* GPUQueueDescriptor.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUQueueDescriptor.idl; sourceTree = "<group>"; };
 		0D431A7C2B5A397C00864655 /* DigitalCredential.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredential.h; sourceTree = "<group>"; };
 		0D431A7E2B5A3A9700864655 /* DigitalCredential.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredential.idl; sourceTree = "<group>"; };
-		0D431A7F2B5A3A9700864655 /* DigitalCredentialRequest.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredentialRequest.idl; sourceTree = "<group>"; };
+		0D431A7F2B5A3A9700864655 /* DigitalCredentialGetRequest.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredentialGetRequest.idl; sourceTree = "<group>"; };
 		0D431A802B5A3A9800864655 /* DigitalCredentialRequestOptions.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DigitalCredentialRequestOptions.idl; sourceTree = "<group>"; };
 		0D431A842B5A42AB00864655 /* IdentityCredentialProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IdentityCredentialProtocol.h; sourceTree = "<group>"; };
 		0D431A862B5A42AB00864655 /* IdentityCredentialProtocol.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = IdentityCredentialProtocol.idl; sourceTree = "<group>"; };
 		0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredentialRequestOptions.h; sourceTree = "<group>"; };
-		0D494DED2B5DF55000B61C51 /* DigitalCredentialRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredentialRequest.h; sourceTree = "<group>"; };
+		0D494DED2B5DF55000B61C51 /* DigitalCredentialGetRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DigitalCredentialGetRequest.h; sourceTree = "<group>"; };
 		0D494DEE2B5E0B5200B61C51 /* DigitalCredential.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DigitalCredential.cpp; sourceTree = "<group>"; };
 		0D5C81052B8B0F560099BF96 /* WGSLLanguageFeatures.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WGSLLanguageFeatures.h; sourceTree = "<group>"; };
 		0D5C81062B8B0F580099BF96 /* WGSLLanguageFeatures.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WGSLLanguageFeatures.idl; sourceTree = "<group>"; };
@@ -9820,6 +9820,8 @@
 		29F83ECF27D6C72A00E1F0FD /* SpeechSynthesisErrorEventInit.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SpeechSynthesisErrorEventInit.idl; sourceTree = "<group>"; };
 		29F83ED027D6C88500E1F0FD /* SpeechSynthesisErrorEventInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpeechSynthesisErrorEventInit.h; sourceTree = "<group>"; };
 		29FAF4B5195AB08900A522DC /* TextUndoInsertionMarkupMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextUndoInsertionMarkupMac.h; sourceTree = "<group>"; };
+		2A09D75D2F17433200A9FFBB /* CornerRadii.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CornerRadii.h; sourceTree = "<group>"; };
+		2A09D75E2F17438900A9FFBB /* CornerRadii.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CornerRadii.cpp; sourceTree = "<group>"; };
 		2A4107A026CB66ED003BF797 /* CSSKeywordValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSKeywordValue.cpp; sourceTree = "<group>"; };
 		2A4107A226CB66ED003BF797 /* CSSKeywordValue.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CSSKeywordValue.idl; sourceTree = "<group>"; };
 		2A4107A326CB66EE003BF797 /* CSSKeywordValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSKeywordValue.h; sourceTree = "<group>"; };
@@ -11868,8 +11870,6 @@
 		49D5DC280F423A73008F20FD /* Matrix3DTransformOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Matrix3DTransformOperation.h; sourceTree = "<group>"; };
 		49D5DC290F423A73008F20FD /* PerspectiveTransformOperation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectiveTransformOperation.cpp; sourceTree = "<group>"; };
 		49D5DC2A0F423A73008F20FD /* PerspectiveTransformOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerspectiveTransformOperation.h; sourceTree = "<group>"; };
-		49D879512D836C6F00F506E9 /* CSSInternalBaseAppearanceRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSInternalBaseAppearanceRule.h; sourceTree = "<group>"; };
-		49D879522D836C6F00F506E9 /* CSSInternalBaseAppearanceRule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSInternalBaseAppearanceRule.cpp; sourceTree = "<group>"; };
 		49E911B30EF86D47009D0CAF /* TransformationMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformationMatrix.cpp; sourceTree = "<group>"; };
 		49E911B40EF86D47009D0CAF /* TransformationMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransformationMatrix.h; sourceTree = "<group>"; };
 		49E911B50EF86D47009D0CAF /* IdentityTransformOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IdentityTransformOperation.h; sourceTree = "<group>"; };
@@ -24071,8 +24071,8 @@
 				0D494DEE2B5E0B5200B61C51 /* DigitalCredential.cpp */,
 				0D431A7C2B5A397C00864655 /* DigitalCredential.h */,
 				0D431A7E2B5A3A9700864655 /* DigitalCredential.idl */,
-				0D494DED2B5DF55000B61C51 /* DigitalCredentialRequest.h */,
-				0D431A7F2B5A3A9700864655 /* DigitalCredentialRequest.idl */,
+				0D494DED2B5DF55000B61C51 /* DigitalCredentialGetRequest.h */,
+				0D431A7F2B5A3A9700864655 /* DigitalCredentialGetRequest.idl */,
 				0D494DEC2B5DF3DC00B61C51 /* DigitalCredentialRequestOptions.h */,
 				0D431A802B5A3A9800864655 /* DigitalCredentialRequestOptions.idl */,
 				0DF687F52C8840D100C16DC9 /* DigitalCredentialsRequestData.h */,
@@ -30204,8 +30204,6 @@
 				F40DAAEE25D9F3BF0011B4FA /* PagePasteboardContext.h */,
 				371E65CD13661EED00BEEDB0 /* PageSerializer.cpp */,
 				371E65CB13661EDC00BEEDB0 /* PageSerializer.h */,
-				0FCA8CA32E455D1600A53EEE /* PaintTimingData.cpp */,
-				0FCA8CA22E455D1600A53EEE /* PaintTimingData.h */,
 				0FCA8CA52E455ECA00A53EEE /* PaintTimingMixin.idl */,
 				46893B8327E8D716002CC13D /* PartitionedSecurityOrigin.h */,
 				4822FD202E2A8032004CAFF9 /* Performance+EventCounts.idl */,
@@ -35527,6 +35525,8 @@
 				CDAD1A5827AFBF3900699285 /* ContentTypeUtilities.cpp */,
 				CDAD1A5727AFBF3900699285 /* ContentTypeUtilities.h */,
 				72E5768A281B292600A75432 /* CopyImageOptions.h */,
+				2A09D75E2F17438900A9FFBB /* CornerRadii.cpp */,
+				2A09D75D2F17433200A9FFBB /* CornerRadii.h */,
 				2D2FC0541460CD6F00263633 /* CrossfadeGeneratedImage.cpp */,
 				2D2FC0551460CD6F00263633 /* CrossfadeGeneratedImage.h */,
 				A8CB41020E85B8A50032C4F0 /* DashArray.h */,
@@ -40332,8 +40332,6 @@
 				A80E6CC10A1989CA007FB8C5 /* CSSImportRule.cpp */,
 				A80E6CCC0A1989CA007FB8C5 /* CSSImportRule.h */,
 				85C56CA90AA89E6600D95755 /* CSSImportRule.idl */,
-				49D879522D836C6F00F506E9 /* CSSInternalBaseAppearanceRule.cpp */,
-				49D879512D836C6F00F506E9 /* CSSInternalBaseAppearanceRule.h */,
 				31288E6E0E3005D6003619AE /* CSSKeyframeRule.cpp */,
 				31288E6F0E3005D6003619AE /* CSSKeyframeRule.h */,
 				316FE0910E6CCD7F00BF6088 /* CSSKeyframeRule.idl */,
@@ -43118,6 +43116,7 @@
 				4C7133A6299A5E8C007A4042 /* CoreTextCompositionEngine.h in Headers */,
 				463926302E7CE92200BAAF1F /* CoreVideoExtras.h in Headers */,
 				CD7D33481C7A16BF00041293 /* CoreVideoSoftLink.h in Headers */,
+				2A09D75F2F1747B900A9FFBB /* CornerRadii.h in Headers */,
 				46C3C1FE28CBCB9400C3DA78 /* CORPViolationReportBody.h in Headers */,
 				94925CE92B320BCC001C62B8 /* CorrectionIndicator.h in Headers */,
 				862F129E18C1576F005C54AF /* CountedUserActivity.h in Headers */,
@@ -43279,7 +43278,6 @@
 				A80E6CFA0A1989CA007FB8C5 /* CSSImageValue.h in Headers */,
 				A80E6CF60A1989CA007FB8C5 /* CSSImportRule.h in Headers */,
 				BCB272172CC1F21B00265123 /* CSSInsetFunction.h in Headers */,
-				49D879532D836C8D00F506E9 /* CSSInternalBaseAppearanceRule.h in Headers */,
 				31288E730E3005D6003619AE /* CSSKeyframeRule.h in Headers */,
 				31288E750E3005D6003619AE /* CSSKeyframesRule.h in Headers */,
 				BC4AF41F2CF972C70037C65C /* CSSKeywordColor.h in Headers */,
@@ -43566,7 +43564,7 @@
 				937FF3D51A1012D6008EBA31 /* DictionaryLookup.h in Headers */,
 				2D5646B01B8F8493003C4994 /* DictionaryPopupInfo.h in Headers */,
 				0D431A7D2B5A397C00864655 /* DigitalCredential.h in Headers */,
-				0D431F012B905BC4001E222F /* DigitalCredentialRequest.h in Headers */,
+				0D431F012B905BC4001E222F /* DigitalCredentialGetRequest.h in Headers */,
 				0D431F002B9053DC001E222F /* DigitalCredentialRequestOptions.h in Headers */,
 				E8E7BDE32D94D20E0000A163 /* DigitalCredentialsProtocols.h in Headers */,
 				0DF687F62C88414900C16DC9 /* DigitalCredentialsRequestData.h in Headers */,
@@ -46107,7 +46105,6 @@
 				0885067F11DA045B00182B98 /* PaintInfo.h in Headers */,
 				0885068011DA045B00182B98 /* PaintPhase.h in Headers */,
 				4B1E13EB217937B30042CF98 /* PaintRenderingContext2D.h in Headers */,
-				0FCA8CA42E455D2000A53EEE /* PaintTimingData.h in Headers */,
 				4B6B5CC02164386400603817 /* PaintWorkletGlobalScope.h in Headers */,
 				FD3160A312B026F700C1A359 /* Panner.h in Headers */,
 				FD31601A12B0267600C1A359 /* PannerNode.h in Headers */,

@@ -2573,6 +2573,7 @@
 		F4E2A3842EB5417300D7A783 /* CoreIPCDDScannerResult.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E2A3812EB5415B00D7A783 /* CoreIPCDDScannerResult.h */; };
 		F4E2A38E2EBA917100D7A783 /* CoreIPCDDSecureActionContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = F4E2A38C2EBA8A9500D7A783 /* CoreIPCDDSecureActionContext.mm */; };
 		F4E2A38F2EBAAA7700D7A783 /* CoreIPCDDSecureActionContext.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E2A38B2EBA8A9500D7A783 /* CoreIPCDDSecureActionContext.h */; };
+		F4E2D8762F0D88FF007B52E7 /* CoreIPCPKPaymentMerchantSession.mm in Sources */ = {isa = PBXBuildFile; fileRef = F4E2D8752F0D88F6007B52E7 /* CoreIPCPKPaymentMerchantSession.mm */; };
 		F4E44EB72DCD33E800A304C4 /* WKIdentityDocumentPresentmentMobileDocumentRequest+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E44EB62DCD33E800A304C4 /* WKIdentityDocumentPresentmentMobileDocumentRequest+Extras.swift */; };
 		F4E727232A547F0400CE34FD /* WKTouchEventsGestureRecognizerTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E727222A547E2100CE34FD /* WKTouchEventsGestureRecognizerTypes.h */; };
 		F4E89F5C2EFC702000E4D96E /* TextExtractionURLCache.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E89F5A2EFC702000E4D96E /* TextExtractionURLCache.h */; };
@@ -4725,7 +4726,6 @@
 		2B1B1C302E3A86F400D7D9ED /* NoUncheckedPtrMemberCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = NoUncheckedPtrMemberCheckerExpectations; sourceTree = "<group>"; };
 		2B1B1C312E3A86F400D7D9ED /* NoUncountedMemberCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = NoUncountedMemberCheckerExpectations; sourceTree = "<group>"; };
 		2B1B1C322E3A86F400D7D9ED /* NoUnretainedMemberCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = NoUnretainedMemberCheckerExpectations; sourceTree = "<group>"; };
-		2B1B1C332E3A86F400D7D9ED /* RefCntblBaseVirtualDtorExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = RefCntblBaseVirtualDtorExpectations; sourceTree = "<group>"; };
 		2B1B1C342E3A86F400D7D9ED /* RetainPtrCtorAdoptCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = RetainPtrCtorAdoptCheckerExpectations; sourceTree = "<group>"; };
 		2B1B1C352E3A86F400D7D9ED /* UncheckedCallArgsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncheckedCallArgsCheckerExpectations; sourceTree = "<group>"; };
 		2B1B1C362E3A86F400D7D9ED /* UncheckedLocalVarsCheckerExpectations */ = {isa = PBXFileReference; lastKnownFileType = text; path = UncheckedLocalVarsCheckerExpectations; sourceTree = "<group>"; };
@@ -6489,7 +6489,7 @@
 		5C411DA327CED4220068241A /* UnifiedSource129.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UnifiedSource129.cpp; sourceTree = "<group>"; };
 		5C411DA427CED4220068241A /* UnifiedSource124.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UnifiedSource124.cpp; sourceTree = "<group>"; };
 		5C426B5A28BEC8D200C695CF /* WebCoreArgumentCoders.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebCoreArgumentCoders.serialization.in; sourceTree = "<group>"; };
-		5C448C652EE06E11008931C7 /* IPCTesterReceiverSwiftMessageReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IPCTesterReceiverMessageReceiver.swift; path = "$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/IPCTesterReceiverMessageReceiver.swift"; sourceTree = "<absolute>"; };
+		5C448C652EE06E11008931C7 /* IPCTesterReceiverMessageReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IPCTesterReceiverMessageReceiver.swift; path = "$(BUILT_PRODUCTS_DIR)/DerivedSources/WebKit/IPCTesterReceiverMessageReceiver.swift"; sourceTree = "<absolute>"; };
 		5C4609E222430E4C009943C2 /* _WKContentRuleListAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKContentRuleListAction.h; sourceTree = "<group>"; };
 		5C4609E322430E4D009943C2 /* _WKContentRuleListAction.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = _WKContentRuleListAction.mm; sourceTree = "<group>"; };
 		5C4609E422430E4D009943C2 /* _WKContentRuleListActionInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKContentRuleListActionInternal.h; sourceTree = "<group>"; };
@@ -8801,6 +8801,9 @@
 		F4E2A38C2EBA8A9500D7A783 /* CoreIPCDDSecureActionContext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreIPCDDSecureActionContext.mm; sourceTree = "<group>"; };
 		F4E2A38D2EBA8A9500D7A783 /* CoreIPCDDSecureActionContext.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = CoreIPCDDSecureActionContext.serialization.in; sourceTree = "<group>"; };
 		F4E2B44A268FDE1A00327ABC /* TapHandlingResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TapHandlingResult.h; path = ios/TapHandlingResult.h; sourceTree = "<group>"; };
+		F4E2D8742F0D88F6007B52E7 /* CoreIPCPKPaymentMerchantSession.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreIPCPKPaymentMerchantSession.h; sourceTree = "<group>"; };
+		F4E2D8752F0D88F6007B52E7 /* CoreIPCPKPaymentMerchantSession.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreIPCPKPaymentMerchantSession.mm; sourceTree = "<group>"; };
+		F4E2D8772F0D91ED007B52E7 /* CoreIPCPKPaymentMerchantSession.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = CoreIPCPKPaymentMerchantSession.serialization.in; sourceTree = "<group>"; };
 		F4E44EB62DCD33E800A304C4 /* WKIdentityDocumentPresentmentMobileDocumentRequest+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKIdentityDocumentPresentmentMobileDocumentRequest+Extras.swift"; sourceTree = "<group>"; };
 		F4E47BB527B5AE5B00813B38 /* CocoaImage.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaImage.mm; sourceTree = "<group>"; };
 		F4E727222A547E2100CE34FD /* WKTouchEventsGestureRecognizerTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKTouchEventsGestureRecognizerTypes.h; sourceTree = "<group>"; };
@@ -11486,7 +11489,6 @@
 				2B1B1C302E3A86F400D7D9ED /* NoUncheckedPtrMemberCheckerExpectations */,
 				2B1B1C312E3A86F400D7D9ED /* NoUncountedMemberCheckerExpectations */,
 				2B1B1C322E3A86F400D7D9ED /* NoUnretainedMemberCheckerExpectations */,
-				2B1B1C332E3A86F400D7D9ED /* RefCntblBaseVirtualDtorExpectations */,
 				2B1B1C342E3A86F400D7D9ED /* RetainPtrCtorAdoptCheckerExpectations */,
 				2B1B1C352E3A86F400D7D9ED /* UncheckedCallArgsCheckerExpectations */,
 				2B1B1C362E3A86F400D7D9ED /* UncheckedLocalVarsCheckerExpectations */,
@@ -13026,6 +13028,9 @@
 				F458B8E72E8F46E100948328 /* CoreIPCPKDateComponentsRange.h */,
 				F458B8E82E8F46E100948328 /* CoreIPCPKDateComponentsRange.mm */,
 				F458B8E92E8F46E100948328 /* CoreIPCPKDateComponentsRange.serialization.in */,
+				F4E2D8742F0D88F6007B52E7 /* CoreIPCPKPaymentMerchantSession.h */,
+				F4E2D8752F0D88F6007B52E7 /* CoreIPCPKPaymentMerchantSession.mm */,
+				F4E2D8772F0D91ED007B52E7 /* CoreIPCPKPaymentMerchantSession.serialization.in */,
 				FAF27D2E2D2850D400F1F0BB /* CoreIPCPKSecureElementPass.h */,
 				FAF27D2F2D2850D400F1F0BB /* CoreIPCPKSecureElementPass.mm */,
 				F4B63E162C49586700BC59EF /* CoreIPCPlist.serialization.in */,
@@ -16514,7 +16519,7 @@
 				0F5562DE27EE28D000953585 /* GPUProcessMessages.h */,
 				0F5562E827EE28D200953585 /* GPUProcessProxyMessageReceiver.cpp */,
 				0F5562E427EE28D100953585 /* GPUProcessProxyMessages.h */,
-				5C448C652EE06E11008931C7 /* IPCTesterReceiverSwiftMessageReceiver.swift */,
+				5C448C652EE06E11008931C7 /* IPCTesterReceiverMessageReceiver.swift */,
 				1CC94E522AC92F190045F269 /* JSWebExtensionAPIAction.h */,
 				1CC94E512AC92F190045F269 /* JSWebExtensionAPIAction.mm */,
 				1C2B4D482A819D0C00C528A1 /* JSWebExtensionAPIAlarms.h */,
@@ -21405,6 +21410,7 @@
 				5157AE0B2B23E97400C0E095 /* CoreIPCPassKit.mm in Sources */,
 				51AD56902B1C46FE001A0ECB /* CoreIPCPersonNameComponents.mm in Sources */,
 				F458B8EB2E8F46F000948328 /* CoreIPCPKDateComponentsRange.mm in Sources */,
+				F4E2D8762F0D88FF007B52E7 /* CoreIPCPKPaymentMerchantSession.mm in Sources */,
 				FAF27D302D2851EB00F1F0BB /* CoreIPCPKSecureElementPass.mm in Sources */,
 				F4F12CB32C48B8C100BC1254 /* CoreIPCPlistArray.mm in Sources */,
 				F4F12CB02C48B2C800BC1254 /* CoreIPCPlistDictionary.mm in Sources */,

@@ -5918,6 +5918,12 @@ enum class WebCore::ShouldOpenExternalURLsPolicy : uint8_t {
     ShouldAllow,
 };
 
+enum class WebCore::NavigationUpgradeToHTTPSBehavior : uint8_t {
+    Disabled,
+    HTTPFallback,
+    BasedOnPolicy
+};
+
 header: <WebCore/NavigationScheduler.h>
 enum class WebCore::ScheduleLocationChangeResult : uint8_t {
     Stopped,
@@ -9220,4 +9226,11 @@ header: <WebCore/ResolvedCaptionDisplaySettingsOptions.h>
     std::optional<WebCore::FloatRect> anchorBounds;
     std::optional<WebCore::ResolvedCaptionDisplaySettingsOptionsXPositionArea> xPositionArea;
     std::optional<WebCore::ResolvedCaptionDisplaySettingsOptionsYPositionArea> yPositionArea;
+};
+
+header: <WebCore/EventHandler.h>
+[CustomHeader] enum class WebCore::LastKnownMousePositionSource : uint8_t {
+    Mouse,
+    Wheel,
+    Touch
 };

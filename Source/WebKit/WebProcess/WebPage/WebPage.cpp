@@ -2394,6 +2394,8 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
     {
         auto ignoreHistoryItemChangesForScope = m_historyItemClient->ignoreChangesForScope();
         item = toHistoryItem(m_historyItemClient, parameters.frameState);
+        if (RefPtr localMainFrame = protectedCorePage()->localMainFrame(); localMainFrame && item)
+            localMainFrame->loader().setNavigationUpgradeToHTTPSBehavior(item->url().protocolIs("http"_s) ? NavigationUpgradeToHTTPSBehavior::Disabled : NavigationUpgradeToHTTPSBehavior::BasedOnPolicy);
     }
 
     LOG(Loading, "In WebProcess pid %i, WebPage %" PRIu64 " is navigating to back/forward URL %s", getCurrentProcessID(), m_identifier.toUInt64(), item->url().string().utf8().data());
@@ -3685,13 +3687,13 @@ void WebPage::mouseEvent(FrameIdentifier frameID, const WebMouseEvent& mouseEven
 #endif
 }
 
-void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, const DoublePoint& eventPoint, const DoublePoint& globalPoint)
+void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, const DoublePoint& eventPoint, const DoublePoint& globalPoint, std::optional<WebCore::LastKnownMousePositionSource>&& source)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame || !frame->coreLocalFrame() || !frame->coreLocalFrame()->view())
         return;
 
-    frame->coreLocalFrame()->eventHandler().setLastKnownMousePosition(eventPoint, globalPoint);
+    frame->coreLocalFrame()->eventHandler().setLastKnownMousePosition(eventPoint, globalPoint, WTF::move(source));
 }
 
 void WebPage::startDeferringResizeEvents()
@@ -8352,7 +8354,8 @@ void WebPage::requestStorageAccess(RegistrableDomain&& subFrameDomain, Registrab
         if (result.wasGranted == StorageAccessWasGranted::Yes) {
             switch (result.scope) {
             case StorageAccessScope::PerFrame:
-                frame->protectedLocalFrameLoaderClient()->setHasFrameSpecificStorageAccess({ frameID, pageID });
+                if (RefPtr localFrameLoaderClient = frame->localFrameLoaderClient())
+                    localFrameLoaderClient->setHasFrameSpecificStorageAccess({ frameID, pageID });
                 break;
             case StorageAccessScope::PerPage:
                 addDomainWithPageLevelStorageAccess(result.topFrameDomain, result.subFrameDomain);

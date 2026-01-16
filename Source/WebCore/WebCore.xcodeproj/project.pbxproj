@@ -93,12 +93,19 @@
 		0704A4081D6DE9F10086DCDB /* OverconstrainedError.h in Headers */ = {isa = PBXBuildFile; fileRef = 0704A4051D6DE9F10086DCDB /* OverconstrainedError.h */; };
 		0704A40C1D6DFC690086DCDB /* JSOverconstrainedError.h in Headers */ = {isa = PBXBuildFile; fileRef = 0704A40A1D6DFC690086DCDB /* JSOverconstrainedError.h */; };
 		0704A4161D6F39FB0086DCDB /* JSOverconstrainedErrorEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 0704A4141D6F39FB0086DCDB /* JSOverconstrainedErrorEvent.h */; };
+		0704D7BE2F16D3B8008CA1C0 /* VP9UtilitiesCocoaInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 0704D7BD2F16D3B8008CA1C0 /* VP9UtilitiesCocoaInternal.h */; };
 		0706A0D9240830A700E93818 /* InbandGenericCueIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 0706A0D7240830A600E93818 /* InbandGenericCueIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0707568C142262D600414161 /* HTMLTrackElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 07075689142262D600414161 /* HTMLTrackElement.h */; };
 		070756951422668D00414161 /* JSTextTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = 0707568F1422668C00414161 /* JSTextTrack.h */; };
 		070756D414239A4F00414161 /* JSHTMLTrackElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 070756D214239A4E00414161 /* JSHTMLTrackElement.h */; };
 		070756DE14239B4E00414161 /* JSTextTrackCue.h in Headers */ = {isa = PBXBuildFile; fileRef = 070756D814239B4B00414161 /* JSTextTrackCue.h */; };
 		070756E014239B4E00414161 /* JSTextTrackCueList.h in Headers */ = {isa = PBXBuildFile; fileRef = 070756DA14239B4E00414161 /* JSTextTrackCueList.h */; };
+		07087C412F17446C007210D8 /* LibWebRTCObservers.h in Headers */ = {isa = PBXBuildFile; fileRef = 415A3B732138E264001B4BAA /* LibWebRTCObservers.h */; };
+		07087C422F174472007210D8 /* LibWebRTCRtpReceiverBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 4186BD3B213EDE380001826F /* LibWebRTCRtpReceiverBackend.h */; };
+		07087C432F174477007210D8 /* LibWebRTCRtpSenderBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 4186BD3D213EDE390001826F /* LibWebRTCRtpSenderBackend.h */; };
+		07087C442F17447F007210D8 /* LibWebRTCStatsCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = 41D28D0C2139E01E00F4206F /* LibWebRTCStatsCollector.h */; };
+		07087C452F174514007210D8 /* RealtimeOutgoingVideoSourceCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CDD833C1E4324BB00621B83 /* RealtimeOutgoingVideoSourceCocoa.h */; };
+		07087C462F17456A007210D8 /* LibWebRTCLogSink.h in Headers */ = {isa = PBXBuildFile; fileRef = 41BB9F0C2B7A636700BEB3E5 /* LibWebRTCLogSink.h */; };
 		0709D78F1AE55554004E42F8 /* WebMediaSessionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 0709D78D1AE55554004E42F8 /* WebMediaSessionManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0709D7931AE5557E004E42F8 /* WebMediaSessionManagerMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 0709D7911AE5557E004E42F8 /* WebMediaSessionManagerMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0709D7951AE55A29004E42F8 /* WebMediaSessionManagerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 0709D7941AE55A29004E42F8 /* WebMediaSessionManagerClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -5884,7 +5891,7 @@
 		CDEFDA0B27122638005559A7 /* DocumentInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEFDA0927122638005559A7 /* DocumentInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDEFDA0E271229BA005559A7 /* PageInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEFDA0D271229BA005559A7 /* PageInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF0F6F82DC585CB00C4B09F /* ImmersiveVideoMetadata.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF0F6F72DC585CB00C4B09F /* ImmersiveVideoMetadata.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		CDF1350824C9FA4400432E1E /* SourceBufferParserWebM.h in Headers */ = {isa = PBXBuildFile; fileRef = CD8F667224C0F208000C421C /* SourceBufferParserWebM.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CDF1350824C9FA4400432E1E /* SourceBufferParserWebM.h in Headers */ = {isa = PBXBuildFile; fileRef = CD8F667224C0F208000C421C /* SourceBufferParserWebM.h */; };
 		CDF1350924C9FCA300432E1E /* SourceBufferParser.h in Headers */ = {isa = PBXBuildFile; fileRef = CDEB3D7324C41A6E001FBEEF /* SourceBufferParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF2B004181F059C00F2B424 /* MediaDescription.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF2B003181F059C00F2B424 /* MediaDescription.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CDF2B0111820540600F2B424 /* MockBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CDF2B0071820540600F2B424 /* MockBox.h */; };
@@ -7393,6 +7400,7 @@
 		0704A40A1D6DFC690086DCDB /* JSOverconstrainedError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSOverconstrainedError.h; sourceTree = "<group>"; };
 		0704A4131D6F39FB0086DCDB /* JSOverconstrainedErrorEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSOverconstrainedErrorEvent.cpp; sourceTree = "<group>"; };
 		0704A4141D6F39FB0086DCDB /* JSOverconstrainedErrorEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSOverconstrainedErrorEvent.h; sourceTree = "<group>"; };
+		0704D7BD2F16D3B8008CA1C0 /* VP9UtilitiesCocoaInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VP9UtilitiesCocoaInternal.h; sourceTree = "<group>"; };
 		0706A0D7240830A600E93818 /* InbandGenericCueIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InbandGenericCueIdentifier.h; sourceTree = "<group>"; };
 		07075688142262D600414161 /* HTMLTrackElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLTrackElement.cpp; sourceTree = "<group>"; };
 		07075689142262D600414161 /* HTMLTrackElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLTrackElement.h; sourceTree = "<group>"; };
@@ -19150,6 +19158,7 @@
 		BC63AD502F085657007B62C4 /* StyleInheritedRareData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleInheritedRareData.cpp; sourceTree = "<group>"; };
 		BC63AD522F085C50007B62C4 /* StyleSVGNonInheritedMiscData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleSVGNonInheritedMiscData.h; sourceTree = "<group>"; };
 		BC63AD532F085C50007B62C4 /* StyleSVGNonInheritedMiscData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleSVGNonInheritedMiscData.cpp; sourceTree = "<group>"; };
+		BC63ADDF2F158517007B62C4 /* NavigateEvent.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = NavigateEvent.idl; sourceTree = "<group>"; };
 		BC64640811D7F304006455B0 /* DOMStringMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOMStringMap.h; sourceTree = "<group>"; };
 		BC64641A11D7F416006455B0 /* DatasetDOMStringMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatasetDOMStringMap.h; sourceTree = "<group>"; };
 		BC64641B11D7F416006455B0 /* DatasetDOMStringMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DatasetDOMStringMap.cpp; sourceTree = "<group>"; };
@@ -30135,6 +30144,7 @@
 				935C476209AC4CE600A6AAB4 /* MouseEventWithHitTestResults.h */,
 				A9C6E65D0D74B694006442E9 /* NavigateEvent.cpp */,
 				A9C6E65D0D74C694006442E9 /* NavigateEvent.h */,
+				BC63ADDF2F158517007B62C4 /* NavigateEvent.idl */,
 				A9C6E65D0D74E694006442E9 /* Navigation.cpp */,
 				A9C6E65D0D740F940A6442E9 /* Navigation.h */,
 				A9C6E65D0D7400D4006442E9 /* Navigation.idl */,
@@ -36062,6 +36072,7 @@
 				CDF994FE24C28136002EA062 /* VideoTrackPrivateWebM.h */,
 				CD6FE5B724BCE645009FCDA4 /* VP9UtilitiesCocoa.h */,
 				CD6FE5B824BCE645009FCDA4 /* VP9UtilitiesCocoa.mm */,
+				0704D7BD2F16D3B8008CA1C0 /* VP9UtilitiesCocoaInternal.h */,
 				2D3EF4441917915C00034184 /* WebActionDisablingCALayerDelegate.h */,
 				2D3EF4451917915C00034184 /* WebActionDisablingCALayerDelegate.mm */,
 				2D3EF4461917915C00034184 /* WebCoreCALayerExtras.h */,
@@ -45586,15 +45597,20 @@
 				5CB05C9329CA1C2800CC1AA0 /* LegacyWebSocketInspectorInstrumentation.h in Headers */,
 				415080371E3F00B00051D75D /* LibWebRTCAudioModule.h in Headers */,
 				410B38EF292BED000003E515 /* LibWebRTCDav1dDecoder.h in Headers */,
+				07087C462F17456A007210D8 /* LibWebRTCLogSink.h in Headers */,
 				415747471E3869A400E914D8 /* LibWebRTCMacros.h in Headers */,
 				417612B01E3A994000C3D81D /* LibWebRTCMediaEndpoint.h in Headers */,
+				07087C412F17446C007210D8 /* LibWebRTCObservers.h in Headers */,
 				417612B21E3A994000C3D81D /* LibWebRTCPeerConnectionBackend.h in Headers */,
 				415747481E3869A700E914D8 /* LibWebRTCProvider.h in Headers */,
 				41B28B3D1F860EF300FB52AC /* LibWebRTCProviderCocoa.h in Headers */,
 				41C6B69D2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h in Headers */,
+				07087C422F174472007210D8 /* LibWebRTCRtpReceiverBackend.h in Headers */,
+				07087C432F174477007210D8 /* LibWebRTCRtpSenderBackend.h in Headers */,
 				4181C5CD2555836900AEB0FF /* LibWebRTCRtpTransformableFrame.h in Headers */,
 				4181C5D12555895600AEB0FF /* LibWebRTCRtpTransformBackend.h in Headers */,
 				410E4461234373E9000173D4 /* LibWebRTCSocketIdentifier.h in Headers */,
+				07087C442F17447F007210D8 /* LibWebRTCStatsCollector.h in Headers */,
 				41C14BC726DE858400685BF5 /* LibWebRTCUtils.h in Headers */,
 				9A7EB29F2EC20AE500A10F7E /* LibWebRTCVideoFrameUtilities.h in Headers */,
 				A396B1C829232B4F00469612 /* LibWebRTCVPXVideoDecoder.h in Headers */,
@@ -46446,6 +46462,7 @@
 				07C1C0E51BFB60ED00BD2256 /* RealtimeMediaSourceSupportedConstraints.h in Headers */,
 				41103AAC1E39791000769F03 /* RealtimeOutgoingAudioSource.h in Headers */,
 				41103AAC1E39791000769F14 /* RealtimeOutgoingAudioSourceCocoa.h in Headers */,
+				07087C452F174514007210D8 /* RealtimeOutgoingVideoSourceCocoa.h in Headers */,
 				072880D12010F1F60071B255 /* RealtimeVideoCaptureSource.h in Headers */,
 				415864A023BF7CBF00A0A61E /* RealtimeVideoUtilities.h in Headers */,
 				91B952241F58A58F00931DC2 /* RecordingSwizzleType.h in Headers */,
@@ -48101,6 +48118,7 @@
 				E44613B60CD6344E00FADA75 /* VoidCallback.h in Headers */,
 				CD9CC58524C6BBEB00CD3C64 /* VP9Utilities.h in Headers */,
 				CDAC068324C6A95A002F727F /* VP9UtilitiesCocoa.h in Headers */,
+				0704D7BE2F16D3B8008CA1C0 /* VP9UtilitiesCocoaInternal.h in Headers */,
 				BE20507A18A4586B0080647E /* VTTCue.h in Headers */,
 				7AF9B20318CFB2DF00C64BEF /* VTTRegion.h in Headers */,
 				7AF9B20618CFB2DF00C64BEF /* VTTRegionList.h in Headers */,

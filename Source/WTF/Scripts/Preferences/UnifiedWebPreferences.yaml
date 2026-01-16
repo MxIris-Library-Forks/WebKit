@@ -6666,6 +6666,18 @@ RequestVideoFrameCallbackEnabled:
       "USE(GSTREAMER)": true
       default: false
 
+RequireUAGetDisplayMediaPrompt:
+  type: bool
+  status: internal
+  humanReadableName: "Require User Agent getDisplayMedia prompt"
+  humanReadableDescription: "Require and use User Agent getDisplayMedia prompt"
+  condition: HAVE(SC_CONTENT_SHARING_PICKER)
+  defaultValue:
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+
 RequiresPageVisibilityForVideoToBeNowPlaying:
   type: bool
   status: embedder
@@ -7794,17 +7806,17 @@ SpeakerSelectionRequiresUserGesture:
 
 SpeculationRulesPrefetchEnabled:
   type: bool
-  status: testable
+  status: stable
   category: html
   humanReadableName: "SpeculationRules prefetch"
   humanReadableDescription: "SpeculationRules prefetch"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
   richJavaScript: true

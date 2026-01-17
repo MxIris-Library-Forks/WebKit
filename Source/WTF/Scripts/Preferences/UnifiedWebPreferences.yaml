@@ -7015,20 +7015,6 @@ ScrollAnimatorEnabled:
     WebCore:
       default: false
 
-ScrollDrivenAnimationsEnabled:
-  type: bool
-  status: stable
-  category: animation
-  humanReadableName: "Scroll-driven Animations"
-  humanReadableDescription: "Enable Scroll-driven Animations"
-  defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 ScrollToTextFragmentEnabled:
   type: bool
   status: stable
@@ -8265,7 +8251,7 @@ TextTracksInMSEEnabled:
 
 ThreadedScrollDrivenAnimationsEnabled:
   type: bool
-  status: preview
+  status: stable
   category: animation
   humanReadableName: "Threaded Scroll-driven Animations"
   humanReadableDescription: "Run qualifying scroll-driven animations on a separate thread"
@@ -8274,9 +8260,9 @@ ThreadedScrollDrivenAnimationsEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 ThreadedScrollingEnabled:
   type: bool
@@ -9145,20 +9131,6 @@ WebAnimationsCustomFrameRateEnabled:
       default: false
     WebCore:
       default: false
-
-WebAnimationsOverallProgressPropertyEnabled:
-  type: bool
-  status: stable
-  category: animation
-  humanReadableName: "Web Animations 'overallProgress' property"
-  humanReadableDescription: "Support for Animation's overallProgress property"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
 
 WebArchiveDebugModeEnabled:
   type: bool

@@ -1475,6 +1475,7 @@
 		4181C648255B4C2800AEB0FF /* RTCRtpSFrameTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C642255B4C2600AEB0FF /* RTCRtpSFrameTransformer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4181C64A255B4C2800AEB0FF /* RTCRtpSFrameTransform.h in Headers */ = {isa = PBXBuildFile; fileRef = 4181C644255B4C2700AEB0FF /* RTCRtpSFrameTransform.h */; };
 		418205471E53E98C00D62207 /* RTCController.h in Headers */ = {isa = PBXBuildFile; fileRef = 418205451E53C8CD00D62207 /* RTCController.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		41832D3A2F16461600103096 /* ServiceWorkerRoute.mm in Sources */ = {isa = PBXBuildFile; fileRef = 41C4FE9F2F0C253200AF90B8 /* ServiceWorkerRoute.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4184F5161EAF05A800F18BF0 /* OrientationNotifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 4184F5151EAF059800F18BF0 /* OrientationNotifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41860F0D2847A49600E4A395 /* FetchEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 41AF37881F8C1E7900111C31 /* FetchEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41860F0E2847A58B00E4A395 /* ExtendableEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 41AF378A1F8C1E7A00111C31 /* ExtendableEvent.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11071,6 +11072,7 @@
 		41C3B89E2649B1B7004ED4DE /* AudioMediaStreamTrackRendererInternalUnit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioMediaStreamTrackRendererInternalUnit.cpp; sourceTree = "<group>"; };
 		41C3B89F2649B1B7004ED4DE /* AudioMediaStreamTrackRendererInternalUnit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioMediaStreamTrackRendererInternalUnit.h; sourceTree = "<group>"; };
 		41C3B8A02649B1B7004ED4DE /* AudioMediaStreamTrackRendererUnit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioMediaStreamTrackRendererUnit.cpp; sourceTree = "<group>"; };
+		41C4FE9F2F0C253200AF90B8 /* ServiceWorkerRoute.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ServiceWorkerRoute.mm; sourceTree = "<group>"; };
 		41C6B69C2E20E6BE009E1D19 /* LibWebRTCRefWrappers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LibWebRTCRefWrappers.h; path = libwebrtc/LibWebRTCRefWrappers.h; sourceTree = "<group>"; };
 		41C7E1051E6A54360027B4DE /* CanvasCaptureMediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasCaptureMediaStreamTrack.cpp; sourceTree = "<group>"; };
 		41C7E1061E6A54360027B4DE /* CanvasCaptureMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CanvasCaptureMediaStreamTrack.h; sourceTree = "<group>"; };
@@ -28290,6 +28292,7 @@
 				51F1754A1F3EBC0C00C74950 /* ServiceWorkerRegistrationOptions.h */,
 				419B36162D50FB4600F11700 /* ServiceWorkerRoute.cpp */,
 				419B36152D50FB4600F11700 /* ServiceWorkerRoute.h */,
+				41C4FE9F2F0C253200AF90B8 /* ServiceWorkerRoute.mm */,
 				515E37F41FAA938800D7F22A /* ServiceWorkerTypes.h */,
 				51F175471F3EBC0C00C74950 /* ServiceWorkerUpdateViaCache.h */,
 				51F175461F3EBC0C00C74950 /* ServiceWorkerUpdateViaCache.idl */,
@@ -49286,6 +49289,7 @@
 				43B85ED418CBEC5200E31AF4 /* SelectorPseudoClassAndCompatibilityElementMap.cpp in Sources */,
 				26AA0F9E18D2A18B00419381 /* SelectorPseudoElementMap.cpp in Sources */,
 				5CFC9C842B71AE1800F8D289 /* SerializedPlatformDataCueValue.mm in Sources */,
+				41832D3A2F16461600103096 /* ServiceWorkerRoute.mm in Sources */,
 				7CD58DFD1F9565A800112791 /* Settings.cpp in Sources */,
 				46C963C82B6CA1BC002F46D1 /* ShareableBitmapCG.mm in Sources */,
 				41DF2D5E27A9452A00F25A21 /* SharedVideoFrameInfo.mm in Sources */,

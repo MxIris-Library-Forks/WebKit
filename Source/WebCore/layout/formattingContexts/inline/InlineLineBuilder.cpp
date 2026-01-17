@@ -1385,7 +1385,7 @@ void LineBuilder::handleBlockContent(const InlineItem& blockItem)
 
 LineBuilder::Result LineBuilder::handleInlineContent(const InlineItemRange& layoutRange, LineCandidate& lineCandidate)
 {
-    auto result = applyLineBreakingOnCandidateInlineContent(layoutRange, lineCandidate);
+    auto result = tryPlacingCandidateInlineContentOnLine(layoutRange, lineCandidate);
     if (!m_line.hasContentOrListMarker())
         return result;
 
@@ -1421,11 +1421,11 @@ LineBuilder::Result LineBuilder::handleInlineContent(const InlineItemRange& layo
 
     auto commitPrecedingNonContentfulContent = [&] {
         LineCandidate precedingNonContentfulContent;
-        auto& firstCandidateItem = lineCandidate.inlineContent.continuousContent().runs().first().inlineItem;
-        // FIXME: There should not be any previous-non-contentful inline items here but since we "break" before/after floats, content like <span><floatbox>content</span> may trigger this (where the <span> is disconnected from the inline content)
+        auto& firstContentfulInlineItem = lineCandidate.inlineContent.continuousContent().runs().first().inlineItem;
+        // We should not find any inline content here, only non-contentful items like <span> or </span> or trimmed whitespace or out-of-flow content.
         for (size_t index = layoutRange.startIndex(); index < layoutRange.endIndex(); ++index) {
             auto& inlineItem = m_inlineItemList[index];
-            if (&inlineItem == &firstCandidateItem)
+            if (&inlineItem == &firstContentfulInlineItem)
                 break;
 
             if (!inlineItem.isFloat()) {
@@ -1434,13 +1434,13 @@ LineBuilder::Result LineBuilder::handleInlineContent(const InlineItemRange& layo
             }
         }
         if (!precedingNonContentfulContent.inlineContent.isEmpty())
-            applyLineBreakingOnCandidateInlineContent(layoutRange, precedingNonContentfulContent);
+            commitCandidateContent(precedingNonContentfulContent, { });
     };
     commitPrecedingNonContentfulContent();
-    return applyLineBreakingOnCandidateInlineContent(layoutRange, lineCandidate);
+    return tryPlacingCandidateInlineContentOnLine(layoutRange, lineCandidate);
 }
 
-LineBuilder::Result LineBuilder::applyLineBreakingOnCandidateInlineContent(const InlineItemRange& layoutRange, LineCandidate& lineCandidate)
+LineBuilder::Result LineBuilder::tryPlacingCandidateInlineContentOnLine(const InlineItemRange& layoutRange, LineCandidate& lineCandidate)
 {
     auto result = LineBuilder::Result { };
     auto& inlineContent = lineCandidate.inlineContent;

@@ -742,20 +742,6 @@ AutomaticallyForceEnableScrollingIfNeededToRevealUI:
     WebCore:
       default: true
 
-AuxclickEventEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Enable `auxclick` event"
-  humanReadableDescription: "Enable the `auxclick` UI event"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 AzimuthAngleEnabled:
   type: bool
   status: stable
@@ -1461,20 +1447,6 @@ CSSSelectorJITCompilerEnabled:
   humanReadableName: "CSS Selector JIT Compiler"
   humanReadableDescription: "Enable the JIT compiler for CSS selectors"
   condition: ENABLE(CSS_SELECTOR_JIT)
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
-CSSShapeFunctionEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS shape() function"
-  humanReadableDescription: "Enable the CSS shape() function"
   defaultValue:
     WebKitLegacy:
       default: true
@@ -6532,17 +6504,17 @@ ReadableByteStreamFetchSourceEnabled:
 
 ReadableStreamIterableEnabled:
   type: bool
-  status: preview
+  status: stable
   category: dom
   humanReadableName: "ReadableStream async iterable"
   humanReadableDescription: "Enable ReadableStream async iterable"
   defaultValue:
     WebCore:
-      default: false
+      default: true
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
 
 RemoteMediaSessionManagerEnabled:
   type: bool

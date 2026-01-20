@@ -43,7 +43,7 @@
     readonly attribute boolean metaKey;
 };
 
-dictionary TouchEventInit : UIEventInit {
+dictionary TouchEventInit : EventModifierInit {
     TouchList? touches = null;
     TouchList? targetTouches = null;
     TouchList? changedTouches = null;

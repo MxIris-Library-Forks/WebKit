@@ -2184,6 +2184,11 @@ class WebCore::LayoutRect {
     WebCore::LayoutSize m_size;
 };
 
+struct WebCore::RemoteFrameLayoutInfo {
+    std::optional<WebCore::LayoutRect> visibleRectInParent;
+    float usedZoom;
+};
+
 header: <WebCore/VP9Utilities.h>
 [CustomHeader] struct WebCore::ScreenDataOverrides {
     double width;
@@ -4167,6 +4172,7 @@ header: <WebCore/DataDetectorType.h>
     TrackingNumber,
     FlightNumber,
     LookupSuggestion,
+    Money,
 };
 #endif
 
@@ -6347,9 +6353,6 @@ struct WebCore::MockWebAuthenticationConfiguration {
     std::optional<WebCore::MockWebAuthenticationConfiguration::CcidConfiguration> ccid;
 };
 
-#if HAVE(DIGITAL_CREDENTIALS_UI)
-
-
 header: <WebCore/ISO18013.h>
 [Nested] struct WebCore::ISO18013ElementInfo {
     bool isRetaining;
@@ -6393,8 +6396,6 @@ struct WebCore::DigitalCredentialsResponseData {
 [Nested] enum class WebCore::IdentityCredentialProtocol : uint8_t {
     OrgIsoMdoc
 };
-
-#endif // HAVE(DIGITAL_CREDENTIALS_UI)
 
 #endif // ENABLE(WEB_AUTHN)
 
@@ -6829,6 +6830,9 @@ header: <WebCore/TextExtractionTypes.h>
     bool includeEventListeners;
     bool includeAccessibilityAttributes;
     bool includeTextInAutoFilledControls;
+#if ENABLE(DATA_DETECTION)
+    OptionSet<WebCore::DataDetectorType> dataDetectorTypes;
+#endif
 };
 
 header: <WebCore/TextExtractionTypes.h>

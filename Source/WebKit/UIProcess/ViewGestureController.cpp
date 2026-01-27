@@ -304,7 +304,7 @@ void ViewGestureController::didSameDocumentNavigationForMainFrame(SameDocumentNa
 void ViewGestureController::checkForActiveLoads()
 {
     RefPtr page = m_webPageProxy.get();
-    if (page && page->protectedPageLoadState()->isLoading()) {
+    if (page && protect(page->pageLoadState())->isLoading()) {
         if (!m_swipeActiveLoadMonitoringTimer.isActive())
             m_swipeActiveLoadMonitoringTimer.startRepeating(swipeSnapshotRemovalActiveLoadMonitoringInterval);
         return;
@@ -475,11 +475,6 @@ ViewGestureController::PendingSwipeTracker::PendingSwipeTracker(WebPageProxy& we
 {
 }
 
-Ref<ViewGestureController> ViewGestureController::PendingSwipeTracker::protectedViewGestureController() const
-{
-    return m_viewGestureController.get();
-}
-
 bool ViewGestureController::PendingSwipeTracker::scrollEventCanBecomeSwipe(PlatformScrollEvent event, ViewGestureController::SwipeDirection& potentialSwipeDirection)
 {
     if (!scrollEventCanStartSwipe(event) || !scrollEventCanInfluenceSwipe(event))
@@ -503,7 +498,7 @@ bool ViewGestureController::PendingSwipeTracker::scrollEventCanBecomeSwipe(Platf
         return false;
 
     potentialSwipeDirection = tryingToSwipeBack ? SwipeDirection::Back : SwipeDirection::Forward;
-    return protectedViewGestureController()->canSwipeInDirection(potentialSwipeDirection, DeferToConflictingGestures::No);
+    return protect(m_viewGestureController)->canSwipeInDirection(potentialSwipeDirection, DeferToConflictingGestures::No);
 }
 
 bool ViewGestureController::PendingSwipeTracker::handleEvent(PlatformScrollEvent event)
@@ -570,7 +565,7 @@ bool ViewGestureController::PendingSwipeTracker::tryToStartSwipe(PlatformScrollE
     }
 
     if (std::abs(m_cumulativeDelta.width()) >= minimumHorizontalSwipeDistance)
-        protectedViewGestureController()->startSwipeGesture(event, m_direction);
+        protect(m_viewGestureController)->startSwipeGesture(event, m_direction);
     else
         m_state = State::InsufficientMagnitude;
 

@@ -704,7 +704,7 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
 
     for (auto& pair : pageConfiguration->urlSchemeHandlers())
         _page->setURLSchemeHandlerForScheme(pair.value.get(), pair.key);
-    _page->setURLSchemeHandlerForScheme(_page->protectedAboutSchemeHandler(), WebKit::AboutSchemeHandler::scheme);
+    _page->setURLSchemeHandlerForScheme(protect(_page->aboutSchemeHandler()), WebKit::AboutSchemeHandler::scheme);
 
     _page->setCocoaView(self);
 
@@ -1150,12 +1150,12 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
 
 - (NSString *)title
 {
-    return _page->protectedPageLoadState()->title().createNSString().autorelease();
+    return protect(_page->pageLoadState())->title().createNSString().autorelease();
 }
 
 - (NSURL *)URL
 {
-    return [NSURL _web_URLWithWTFString:_page->protectedPageLoadState()->activeURL()];
+    return [NSURL _web_URLWithWTFString:protect(_page->pageLoadState())->activeURL()];
 }
 
 - (NSURL *)_resourceDirectoryURL
@@ -1165,17 +1165,17 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
 
 - (BOOL)isLoading
 {
-    return _page->protectedPageLoadState()->isLoading();
+    return protect(_page->pageLoadState())->isLoading();
 }
 
 - (double)estimatedProgress
 {
-    return _page->protectedPageLoadState()->estimatedProgress();
+    return protect(_page->pageLoadState())->estimatedProgress();
 }
 
 - (BOOL)hasOnlySecureContent
 {
-    return _page->protectedPageLoadState()->hasOnlySecureContent();
+    return protect(_page->pageLoadState())->hasOnlySecureContent();
 }
 
 - (SecTrustRef)serverTrust
@@ -1199,13 +1199,13 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
 - (BOOL)canGoBack
 {
     [self _didAccessBackForwardList];
-    return _page->protectedPageLoadState()->canGoBack();
+    return protect(_page->pageLoadState())->canGoBack();
 }
 
 - (BOOL)canGoForward
 {
     [self _didAccessBackForwardList];
-    return _page->protectedPageLoadState()->canGoForward();
+    return protect(_page->pageLoadState())->canGoForward();
 }
 
 - (WKNavigation *)goBack
@@ -3943,7 +3943,7 @@ FOR_EACH_PRIVATE_WKCONTENTVIEW_ACTION(FORWARD_ACTION_TO_WKCONTENTVIEW)
 
 - (BOOL)_negotiatedLegacyTLS
 {
-    return _page->protectedPageLoadState()->hasNegotiatedLegacyTLS();
+    return protect(_page->pageLoadState())->hasNegotiatedLegacyTLS();
 }
 
 - (BOOL)_wasPrivateRelayed
@@ -4785,8 +4785,8 @@ static void convertAndAddHighlight(Vector<Ref<WebCore::SharedMemory>>& buffers, 
     _page->loadAndDecodeImage(request, sizeConstraint, maximumBytesFromNetwork, [completionHandler = makeBlockPtr(completionHandler), url](Expected<Ref<WebCore::ShareableBitmap>, WebCore::ResourceError>&& result) mutable {
         if (!result) {
             if (result.error().isNull())
-                return completionHandler(nil, WebCore::internalError(url).protectedNSError().get()); // This can happen if IPC fails.
-            return completionHandler(nil, result.error().protectedNSError().get());
+                return completionHandler(nil, protect(WebCore::internalError(url).nsError()).get()); // This can happen if IPC fails.
+            return completionHandler(nil, protect(result.error().nsError()).get());
         }
         Ref bitmap = result.value();
 #if PLATFORM(MAC)
@@ -5226,7 +5226,7 @@ static void convertAndAddHighlight(Vector<Ref<WebCore::SharedMemory>>& buffers, 
 - (void)_clearBackForwardCache
 {
     THROW_IF_SUSPENDED;
-    _page->configuration().protectedProcessPool()->backForwardCache().removeEntriesForPage(*_page);
+    protect(_page->configuration().processPool())->backForwardCache().removeEntriesForPage(*_page);
 }
 
 + (BOOL)_handlesSafeBrowsing
@@ -5613,7 +5613,7 @@ static inline OptionSet<WebCore::LayoutMilestone> layoutMilestones(_WKRenderingP
 - (void)_getContentsAsStringWithCompletionHandlerKeepIPCConnectionAliveForTesting:(void (^)(NSString *, NSError *))completionHandler
 {
     THROW_IF_SUSPENDED;
-    _page->getContentsAsString(WebKit::ContentAsStringIncludesChildFrames::No, [handler = makeBlockPtr(completionHandler), connection = _page->legacyMainFrameProcess().protectedConnection()](String string) {
+    _page->getContentsAsString(WebKit::ContentAsStringIncludesChildFrames::No, [handler = makeBlockPtr(completionHandler), connection = protect(_page->legacyMainFrameProcess().connection())](String string) {
         handler(string.createNSString().get(), nil);
     });
 }
@@ -6705,7 +6705,7 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
     if (!popupMenu->isVisible())
         return nil;
 
-    return popupMenu->protectedPopup();
+    return protect(popupMenu->popup());
 }
 
 #endif // PLATFORM(MAC)

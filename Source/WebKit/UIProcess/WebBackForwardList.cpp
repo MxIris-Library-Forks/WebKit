@@ -117,7 +117,7 @@ void WebBackForwardList::addItem(Ref<WebBackForwardListItem>&& newItem)
 
         while (m_entries.size()) {
             Ref lastEntry = m_entries.last();
-            if (!lastEntry->isRemoteFrameNavigation() || lastEntry->protectedNavigatedFrameItem()->sharesAncestor(newItem->protectedNavigatedFrameItem()))
+            if (!lastEntry->isRemoteFrameNavigation() || protect(lastEntry->navigatedFrameItem())->sharesAncestor(protect(newItem->navigatedFrameItem())))
                 break;
             didRemoveItem(lastEntry);
             removedItems.append(WTF::move(lastEntry));
@@ -192,7 +192,7 @@ void WebBackForwardList::addChildItem(FrameIdentifier parentFrameID, Ref<FrameSt
     if (!currentItem)
         return;
 
-    RefPtr parentItem = currentItem->protectedMainFrameItem()->childItemForFrameID(parentFrameID);
+    RefPtr parentItem = protect(currentItem->mainFrameItem())->childItemForFrameID(parentFrameID);
     if (!parentItem)
         return;
 
@@ -264,11 +264,6 @@ WebBackForwardListItem* WebBackForwardList::currentItem() const
     return m_page && m_currentIndex ? m_entries[*m_currentIndex].ptr() : nullptr;
 }
 
-RefPtr<WebBackForwardListItem> WebBackForwardList::protectedCurrentItem() const
-{
-    return currentItem();
-}
-
 WebBackForwardListItem* WebBackForwardList::backItem() const
 {
     ASSERT(!m_currentIndex || *m_currentIndex < m_entries.size());
@@ -276,21 +271,11 @@ WebBackForwardListItem* WebBackForwardList::backItem() const
     return m_page && m_currentIndex && *m_currentIndex ? m_entries[*m_currentIndex - 1].ptr() : nullptr;
 }
 
-RefPtr<WebBackForwardListItem> WebBackForwardList::protectedBackItem() const
-{
-    return backItem();
-}
-
 WebBackForwardListItem* WebBackForwardList::forwardItem() const
 {
     ASSERT(!m_currentIndex || *m_currentIndex < m_entries.size());
 
     return m_page && m_currentIndex && m_entries.size() && *m_currentIndex < m_entries.size() - 1 ? m_entries[*m_currentIndex + 1].ptr() : nullptr;
-}
-
-RefPtr<WebBackForwardListItem> WebBackForwardList::protectedForwardItem() const
-{
-    return forwardItem();
 }
 
 WebBackForwardListItem* WebBackForwardList::itemAtIndex(int index) const
@@ -308,11 +293,6 @@ WebBackForwardListItem* WebBackForwardList::itemAtIndex(int index) const
         return nullptr;
 
     return m_entries[index + *m_currentIndex].ptr();
-}
-
-RefPtr<WebBackForwardListItem> WebBackForwardList::protectedItemAtIndex(int index) const
-{
-    return itemAtIndex(index);
 }
 
 unsigned WebBackForwardList::backListCount() const
@@ -396,7 +376,7 @@ void WebBackForwardList::removeAllItems()
         didRemoveItem(entry);
 
     m_currentIndex = std::nullopt;
-    protectedPage()->didChangeBackForwardList(nullptr, std::exchange(m_entries, { }));
+    protect(m_page)->didChangeBackForwardList(nullptr, std::exchange(m_entries, { }));
 }
 
 void WebBackForwardList::clear()
@@ -524,7 +504,7 @@ void WebBackForwardList::didRemoveItem(WebBackForwardListItem& backForwardListIt
 {
     backForwardListItem.wasRemovedFromBackForwardList();
 
-    protectedPage()->backForwardRemovedItem(backForwardListItem.identifier());
+    protect(m_page)->backForwardRemovedItem(backForwardListItem.identifier());
 
 #if PLATFORM(COCOA) || PLATFORM(GTK)
     backForwardListItem.setSnapshot(nullptr);
@@ -549,7 +529,7 @@ static RefPtr<WebBackForwardListItem> itemSkippingBackForwardItemsAddedByJSWitho
     // Yahoo -> Yahoo#a (no userInteraction) -> Google -> Google#a (no user interaction) -> Google#b (no user interaction)
     // If we're on Google and navigate back, we don't want to skip anything and load Yahoo#a.
     // However, if we're on Yahoo and navigate forward, we do want to skip items and end up on Google#b.
-    if (direction == NavigationDirection::Backward && !backForwardList.protectedCurrentItem()->wasCreatedByJSWithoutUserInteraction())
+    if (direction == NavigationDirection::Backward && !protect(backForwardList.currentItem())->wasCreatedByJSWithoutUserInteraction())
         return item;
 
     // For example:
@@ -595,11 +575,6 @@ RefPtr<WebBackForwardListItem> WebBackForwardList::goBackItemSkippingItemsWithou
 RefPtr<WebBackForwardListItem> WebBackForwardList::goForwardItemSkippingItemsWithoutUserGesture() const
 {
     return itemSkippingBackForwardItemsAddedByJSWithoutUserGesture(*this, NavigationDirection::Forward);
-}
-
-RefPtr<WebPageProxy> WebBackForwardList::protectedPage()
-{
-    return m_page.get();
 }
 
 static inline void setBackForwardItemIdentifier(FrameState& frameState, BackForwardItemIdentifier itemID)
@@ -766,7 +741,7 @@ void WebBackForwardList::backForwardAllItems(FrameIdentifier frameID, Completion
     for (Ref item : this->allItems()) {
         RefPtr<FrameState> frameState;
 
-        if (RefPtr frameItem = item->protectedMainFrameItem()->childItemForFrameID(frameID))
+        if (RefPtr frameItem = protect(item->mainFrameItem())->childItemForFrameID(frameID))
             frameState = frameItem->copyFrameStateWithChildren();
         else
             frameState = item->mainFrameState();
@@ -781,7 +756,7 @@ void WebBackForwardList::backForwardItemAtIndex(int32_t index, FrameIdentifier f
 {
     // FIXME: This should verify that the web process requesting the item hosts the specified frame.
     if (RefPtr item = itemAtIndex(index)) {
-        if (RefPtr frameItem = item->protectedMainFrameItem()->childItemForFrameID(frameID))
+        if (RefPtr frameItem = protect(item->mainFrameItem())->childItemForFrameID(frameID))
             return completionHandler(frameItem->copyFrameStateWithChildren());
         completionHandler(item->mainFrameState());
     } else

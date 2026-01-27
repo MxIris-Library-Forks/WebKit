@@ -175,7 +175,6 @@ struct SpeechSynthesisData {
     CompletionHandler<void()> speakingPausedCompletionHandler;
     CompletionHandler<void()> speakingResumedCompletionHandler;
 
-    Ref<WebCore::PlatformSpeechSynthesizer> protectedSynthesizer() { return synthesizer; }
 };
 #endif
 
@@ -452,8 +451,6 @@ public:
 
     explicit Internals(WebPageProxy&, std::optional<WebCore::SecurityOriginData>);
 
-    Ref<WebPageProxy> protectedPage() const;
-
 #if ENABLE(SPEECH_SYNTHESIS)
     SpeechSynthesisData& speechSynthesisData();
 #endif
@@ -518,16 +515,12 @@ public:
     void externalOutputDeviceAvailableDidChange(WebCore::PlaybackTargetClientContextIdentifier, bool) final;
     void setShouldPlayToPlaybackTarget(WebCore::PlaybackTargetClientContextIdentifier, bool) final;
     void playbackTargetPickerWasDismissed(WebCore::PlaybackTargetClientContextIdentifier) final;
-    bool alwaysOnLoggingAllowed() const final { return protectedPage()->isAlwaysOnLoggingAllowed(); }
+    bool alwaysOnLoggingAllowed() const final { return protect(page)->isAlwaysOnLoggingAllowed(); }
     RetainPtr<CocoaView> platformView() const final;
 #endif
 
-    Ref<PageLoadState> protectedPageLoadState() { return pageLoadState; }
-    Ref<WebNotificationManagerMessageHandler> protectedNotificationManagerMessageHandler() { return notificationManagerMessageHandler; }
 #if ENABLE(WINDOW_PROXY_PROPERTY_ACCESS_NOTIFICATION)
-    RefPtr<WebPageProxyFrameLoadStateObserver> protectedFrameLoadStateObserver() { return frameLoadStateObserver; }
 #endif
-    Ref<GeolocationPermissionRequestManagerProxy> protectedGeolocationPermissionRequestManager() { return geolocationPermissionRequestManager; }
 
     std::optional<WebCore::SecurityOriginData> openerOrigin;
 };

@@ -956,7 +956,7 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
     [_contentView _webViewDestroyed];
 
     if (_page && _remoteObjectRegistry)
-        _page->configuration().processPool().removeMessageReceiver(Messages::RemoteObjectRegistry::messageReceiverName(), _page->identifier());
+        protect(_page->configuration().processPool())->removeMessageReceiver(Messages::RemoteObjectRegistry::messageReceiverName(), _page->identifier());
 #endif
 
     if (_page)
@@ -1077,6 +1077,11 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
     if (_page->isServiceWorkerPage())
         [NSException raise:NSInternalInconsistencyException format:@"The WKWebView was used to load a service worker"];
     return wrapper(_page->loadRequest(request)).autorelease();
+}
+
+- (WKNavigation *)loadURL:(NSURL *)url
+{
+    return [self loadRequest:[NSURLRequest requestWithURL:url]];
 }
 
 - (WKNavigation *)loadFileURL:(NSURL *)URL allowingReadAccessToURL:(NSURL *)readAccessURL
@@ -1680,10 +1685,11 @@ static WKMediaPlaybackState toWKMediaPlaybackState(WebKit::MediaPlaybackState me
     _allowsBackForwardNavigationGestures = allowsBackForwardNavigationGestures;
 
     if (allowsBackForwardNavigationGestures && !_gestureController) {
-        _gestureController = WebKit::ViewGestureController::create(*_page);
-        _gestureController->installSwipeHandler(self, [self scrollView]);
+        Ref gestureController = WebKit::ViewGestureController::create(*_page);
+        _gestureController = gestureController.ptr();
+        gestureController->installSwipeHandler(self, [self scrollView]);
         if (WKWebView *alternateWebView = [_configuration _alternateWebViewForNavigationGestures])
-            _gestureController->setAlternateBackForwardListSourcePage(alternateWebView->_page.get());
+            gestureController->setAlternateBackForwardListSourcePage(alternateWebView->_page.get());
     }
 
     if (_gestureController)
@@ -4308,7 +4314,7 @@ static RetainPtr<NSArray> wkTextManipulationErrors(NSArray<_WKTextManipulationIt
 #else
     if (!_remoteObjectRegistry) {
         _remoteObjectRegistry = adoptNS([[_WKRemoteObjectRegistry alloc] _initWithWebPageProxy:*_page]);
-        _page->configuration().processPool().addMessageReceiver(Messages::RemoteObjectRegistry::messageReceiverName(), _page->identifier(), [_remoteObjectRegistry remoteObjectRegistry]);
+        protect(_page->configuration().processPool())->addMessageReceiver(Messages::RemoteObjectRegistry::messageReceiverName(), _page->identifier(), protect([_remoteObjectRegistry remoteObjectRegistry]));
     }
 
     return _remoteObjectRegistry.get();
@@ -6694,6 +6700,11 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
 - (bool)hasRemoteAccessibilityChild
 {
     return _impl->hasRemoteAccessibilityChild();
+}
+
+- (NSData *)_remoteAccessibilityChildToken
+{
+    return _impl->remoteAccessibilityChildToken();
 }
 
 - (RetainPtr<NSPopUpButtonCell>)_activePopupButtonCell

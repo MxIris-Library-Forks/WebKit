@@ -193,6 +193,22 @@ static inline TextNodesAndText collectText(const SimpleRange& range, IncludeText
     return nodesAndText;
 }
 
+static void addBoxShadowIfNeeded(Node& node, String&& styleValue)
+{
+    Ref document = node.document();
+    if (!document->settings().textExtractionDebugUIEnabled())
+        return;
+
+    RefPtr element = lineageOfType<HTMLElement>(node).first();
+    if (!element)
+        return;
+
+    if (element == document->body())
+        return;
+
+    element->setInlineStyleProperty(CSSPropertyBoxShadow, WTF::move(styleValue), IsImportant::Yes);
+}
+
 using ClientNodeAttributesMap = WeakHashMap<Node, HashMap<String, String>, WeakPtrImplWithEventTargetData>;
 
 struct TraversalContext {
@@ -211,6 +227,7 @@ struct TraversalContext {
     NodeIdentifierInclusion nodeIdentifierInclusion { NodeIdentifierInclusion::None };
     bool includeEventListeners { false };
     bool includeAccessibilityAttributes { false };
+    unsigned visibleTextLength { 0 };
 
     inline bool shouldIncludeNodeWithRect(const FloatRect& rect) const
     {
@@ -422,6 +439,7 @@ static inline Variant<SkipExtraction, ItemData, URL, Editable> extractItemData(N
 
         if (auto iterator = context.visibleText.find(*textNode); iterator != context.visibleText.end()) {
             auto& [textContent, selectedRange] = iterator->value;
+            context.visibleTextLength += textContent.length();
             return { TextItemData { { }, selectedRange, textContent, { } } };
         }
         return { SkipExtraction::Self };
@@ -888,8 +906,11 @@ static inline void extractRecursive(Node& node, Item& parentItem, TraversalConte
 
         if (RefPtr iframe = dynamicDowncast<HTMLIFrameElement>(node); iframe && item) {
             if (RefPtr frame = dynamicDowncast<LocalFrame>(iframe->contentFrame())) {
-                if (RefPtr document = frame->document(); document && areSameOrigin(*document, protect(node.document())))
-                    item->children.appendVector(extractItem(Request { context.originalRequest }, *frame).children);
+                if (RefPtr document = frame->document(); document && areSameOrigin(*document, protect(node.document()))) {
+                    auto [rootItem, textLength] = extractItem(Request { context.originalRequest }, *frame);
+                    context.visibleTextLength += textLength;
+                    item->children.appendVector(WTF::move(rootItem.children));
+                }
             }
         }
     }
@@ -1041,17 +1062,17 @@ static RefPtr<ContainerNode> findContainerNodeForDataDetectorResults(Node& rootN
 
 #endif // ENABLE(DATA_DETECTION)
 
-Item extractItem(Request&& request, LocalFrame& frame)
+Result extractItem(Request&& request, LocalFrame& frame)
 {
     auto frameID = frame.frameID();
     Item root { ScrollableItemData { }, { }, { }, { }, { }, frameID, { }, { }, { }, { }, { }, 0 };
     RefPtr document = frame.document();
     if (!document)
-        return root;
+        return { root, 0 };
 
     RefPtr bodyElement = document->body();
     if (!bodyElement)
-        return root;
+        return { root, 0 };
 
     document->updateLayoutIgnorePendingStylesheets();
 
@@ -1067,18 +1088,15 @@ Item extractItem(Request&& request, LocalFrame& frame)
         extractionRootNode = findContainerNodeForDataDetectorResults(*extractionRootNode, request.dataDetectorTypes);
 #endif
 
-    if (frame.settings().textExtractionDebugUIEnabled() && extractionRootNode) {
-        RefPtr elementAncestor = lineageOfType<HTMLElement>(*extractionRootNode).first();
-        if (elementAncestor && elementAncestor != bodyElement)
-            elementAncestor->setInlineStyleProperty(CSSPropertyBoxShadow, "0 0 10px #0088FF"_s, IsImportant::Yes);
-    }
+    if (extractionRootNode)
+        addBoxShadowIfNeeded(*extractionRootNode, "0 0 10px #0088FF"_s);
 
     if (!extractionRootNode)
-        return root;
+        return { root, 0 };
 
     RefPtr view = frame.view();
     if (!view)
-        return root;
+        return { root, 0 };
 
     root.data = { ScrollableItemData {
         .contentSize = view->contentsSize(),
@@ -1089,8 +1107,9 @@ Item extractItem(Request&& request, LocalFrame& frame)
 
     root.rectInRootView = view->contentsToRootView(IntRect { IntPoint::zero(), view->contentsSize() });
     if (root.rectInRootView.isEmpty())
-        return root;
+        return { root, 0 };
 
+    unsigned visibleTextLength = 0;
     {
         ClientNodeAttributesMap clientNodeAttributes;
         for (auto& [attribute, values] : request.clientNodeAttributes) {
@@ -1135,12 +1154,14 @@ Item extractItem(Request&& request, LocalFrame& frame)
         ASSERT(context.hasOverflowItemsStack.size() == 1);
         if (!context.hasOverflowItemsStack.isEmpty())
             std::get<ScrollableItemData>(root.data).hasOverflowItems = context.hasOverflowItemsStack.takeLast();
+
+        visibleTextLength = context.visibleTextLength;
     }
 
     pruneWhitespaceRecursive(root);
     pruneEmptyContainersRecursive(root);
 
-    return root;
+    return { WTF::move(root), visibleTextLength };
 }
 
 using Token = Variant<String, IntSize>;
@@ -1463,6 +1484,8 @@ static void dispatchSimulatedClick(Node& targetNode, const String& searchText, C
     if (!frame)
         return completion(false, nullFrameDescription);
 
+    addBoxShadowIfNeeded(targetNode, "0 0 16px #34c759"_s);
+
     std::optional<FloatRect> targetRectInRootView;
     if (!searchText.isEmpty()) {
         auto foundRange = searchForText(*element, searchText);
@@ -1515,6 +1538,7 @@ static bool selectOptionByValue(NodeIdentifier identifier, const String& optionT
         if (optionText.isEmpty())
             return false;
 
+        addBoxShadowIfNeeded(*select, "0 0 16px #34c759"_s);
         select->setValue(optionText);
         return select->selectedIndex() != -1;
     }
@@ -1551,6 +1575,7 @@ static void selectText(LocalFrame& frame, std::optional<NodeIdentifier>&& identi
     if (RefPtr control = dynamicDowncast<HTMLTextFormControlElement>(*foundNode)) {
         // FIXME: This should probably honor `searchText`.
         control->select();
+        addBoxShadowIfNeeded(*control, "0 0 16px #34c759"_s);
         return completion(true, { });
     }
 
@@ -1601,6 +1626,7 @@ static void scrollBy(LocalFrame& frame, std::optional<NodeIdentifier>&& identifi
     if (!scroller)
         return completion(false, "No scrollable area found"_s);
 
+    addBoxShadowIfNeeded(*foundNode, "0 0 16px #34c759"_s);
     scroller->scrollToOffsetWithoutAnimation(FloatPoint { scroller->scrollOffset() } + scrollDelta);
     completion(true, { });
 }
@@ -1846,6 +1872,8 @@ static String textDescription(Node* node, Vector<String>& stringsToValidate)
 {
     if (!node)
         return { };
+
+    addBoxShadowIfNeeded(*node, "0 0 16px #ff383c"_s);
 
     auto addRenderedTextOrLabeledChild = [&](const String& description) {
         StringBuilder extendedDescription;

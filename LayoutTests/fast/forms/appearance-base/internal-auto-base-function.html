@@ -1,4 +1,4 @@
-<!-- webkit-test-runner [ CSSInternalAutoBaseParsingEnabled=true HTMLEnhancedSelectPseudoElementsEnabled=true ] -->
+<!-- webkit-test-runner [ CSSInternalAutoBaseParsingEnabled=true HTMLEnhancedSelectEnabled=true ] -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,6 +11,7 @@
         }
         select {
             all: unset; /* Remove all UA styles */
+            display: inline-block;
             background-color: -internal-auto-base(red, green);
             color: white;
         }

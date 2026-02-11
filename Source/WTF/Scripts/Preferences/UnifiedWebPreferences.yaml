@@ -8225,6 +8225,21 @@ ThreadedScrollingEnabled:
     WebKit:
       default: true
 
+ThreadedTimeBasedAnimationsAtHighFrameRateEnabled:
+  type: bool
+  status: unstable
+  category: animation
+  humanReadableName: "Threaded Time-based Animations at High Frame Rate"
+  humanReadableDescription: "Run qualifying time-based animations on a separate thread at a high frame rate"
+  condition: ENABLE(THREADED_ANIMATIONS) && PLATFORM(IOS_FAMILY)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 ThreadedTimeBasedAnimationsEnabled:
   type: bool
   status: unstable
@@ -9263,6 +9278,25 @@ WebCodecsVideoEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
   mediaPlaybackRelated: true
+
+WebContentRestrictionsTransitiveTrustEnabled:
+  type: bool
+  status: stable
+  category: security
+  defaultsOverridable: true
+  humanReadableName: "Web Content Restrictions Transitive Trust"
+  humanReadableDescription: "Enable Transitive Trust for WebContentRestrictions"
+  webcoreBinding: DeprecatedGlobalSettings
+  condition: HAVE(WEBCONTENTRESTRICTIONS_TRANSITIVE_TRUST)
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+  sharedPreferenceForWebProcess: true
+
 
 WebCryptoSafeCurvesEnabled:
   type: bool

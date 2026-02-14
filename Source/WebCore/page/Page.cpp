@@ -679,15 +679,10 @@ ScrollingCoordinator* Page::scrollingCoordinator()
         if (!m_scrollingCoordinator)
             m_scrollingCoordinator = ScrollingCoordinator::create(this);
 
-        protectedScrollingCoordinator()->windowScreenDidChange(m_displayID, m_displayNominalFramesPerSecond);
+        protect(m_scrollingCoordinator)->windowScreenDidChange(m_displayID, m_displayNominalFramesPerSecond);
     }
 
     return m_scrollingCoordinator;
-}
-
-RefPtr<ScrollingCoordinator> Page::protectedScrollingCoordinator()
-{
-    return scrollingCoordinator();
 }
 
 String Page::scrollingStateTreeAsText()
@@ -1736,7 +1731,7 @@ void Page::setDeviceScaleFactor(float scaleFactor)
 void Page::screenPropertiesDidChange(bool affectsStyle)
 {
 #if ENABLE(VIDEO)
-    auto mode = preferredDynamicRangeMode(protect(mainFrame())->protectedVirtualView().get());
+    auto mode = preferredDynamicRangeMode(protect(protect(mainFrame())->virtualView()).get());
     forEachMediaElement([mode] (auto& element) {
         element.setPreferredDynamicRangeMode(mode);
     });
@@ -1788,7 +1783,7 @@ void Page::windowScreenDidChange(PlatformDisplayID displayID, std::optional<Fram
     updateScreenSupportedContentsFormats();
 
 #if ENABLE(VIDEO)
-    auto mode = preferredDynamicRangeMode(protect(mainFrame())->protectedVirtualView().get());
+    auto mode = preferredDynamicRangeMode(protect(protect(mainFrame())->virtualView()).get());
     forEachMediaElement([mode] (auto& element) {
         element.setPreferredDynamicRangeMode(mode);
     });
@@ -5765,6 +5760,11 @@ bool Page::reportScriptTrackingPrivacy(const URL& url, ScriptTrackingPrivacyCate
 bool Page::shouldAllowScriptAccess(const URL& url, const SecurityOrigin& topOrigin, ScriptTrackingPrivacyCategory category) const
 {
     return chrome().client().shouldAllowScriptAccess(url, topOrigin, category);
+}
+
+bool Page::requiresConsistentPrivacyQuirkForDomain(const URL& url) const
+{
+    return chrome().client().requiresConsistentPrivacyQuirkForDomain(url);
 }
 
 bool Page::requiresScriptTrackingPrivacyProtections(const URL& scriptURL) const

@@ -52,6 +52,7 @@ enum class GridAvoidanceReason : uint8_t {
     GridHasOutOfFlowChild,
     GridHasNonVisibleOverflow,
     GridItemIsReplacedElement,
+    GridItemDoesNotHaveElement,
     GridIsEmpty,
     GridHasNonInitialMinWidth,
     GridHasNonInitialMaxWidth,
@@ -85,6 +86,8 @@ enum class GridAvoidanceReason : uint8_t {
     GridItemHasUnsupportedAutomaticInlineSizing,
     GridItemHasUnsupportedHeightValue,
     GridItemHasUnsupportedAutomaticBlockSizing,
+    GridItemHasUnsupportedMinWidth,
+    GridItemHasUnsupportedMinHeight,
     NotAGrid,
     GridFormattingContextIntegrationDisabled,
 };
@@ -233,9 +236,6 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
 
     CheckedRef renderGridStyle = renderGrid.style();
 
-    if (!renderGridStyle->height().isFixed())
-        ADD_REASON_AND_RETURN_IF_NEEDED(GridHasNonFixedHeight, reasons, reasonCollectionMode);
-
     if (renderGridStyle->display() == DisplayType::InlineGrid)
         ADD_REASON_AND_RETURN_IF_NEEDED(GridNeedsBaseline, reasons, reasonCollectionMode);
 
@@ -289,24 +289,9 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
                 // MaxTrackBreadth to the same value we only need to check one.
                 if (!trackSize.isBreadth())
                     return GridAvoidanceReason::GridHasUnsupportedGridTemplateColumns;
-
-                auto& minBreadth = trackSize.minTrackBreadth();
-
-                if (minBreadth.isLength()) {
-                    auto& gridTrackBreadthLength = minBreadth.length();
-                    // Length types like auto, max-content, etc. not yet supported
-                    if (!gridTrackBreadthLength.isFixed() && !gridTrackBreadthLength.isMinContent() && gridTrackBreadthLength.isMaxContent())
-                        return GridAvoidanceReason::GridHasUnsupportedGridTemplateColumns;
-                    return std::nullopt;
-                }
-
-                if (minBreadth.isFlex()) {
-                    // Flex tracks (fr units) are now supported
-                    return std::nullopt;
-                }
-
-                ASSERT_NOT_REACHED();
-                return GridAvoidanceReason::GridHasUnsupportedGridTemplateColumns;
+                if (trackSize.minTrackBreadth().isPercentOrCalculated())
+                    return GridAvoidanceReason::GridHasUnsupportedGridTemplateColumns;
+                return { };
             },
             [&](const Vector<String>& names) -> std::optional<GridAvoidanceReason> {
                 if (!names.isEmpty())
@@ -341,24 +326,9 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
                 // MaxTrackBreadth to the same value we only need to check one.
                 if (!trackSize.isBreadth())
                     return GridAvoidanceReason::GridHasUnsupportedGridTemplateRows;
-
-                auto& minBreadth = trackSize.minTrackBreadth();
-
-                if (minBreadth.isLength()) {
-                    auto& gridTrackBreadthLength = minBreadth.length();
-                    // Length types like auto, min-content, etc. not yet supported
-                    if (!gridTrackBreadthLength.isFixed() && !gridTrackBreadthLength.isMinContent() && !gridTrackBreadthLength.isMaxContent())
-                        return GridAvoidanceReason::GridHasUnsupportedGridTemplateRows;
-                    return std::nullopt;
-                }
-
-                if (minBreadth.isFlex()) {
-                    // Flex tracks (fr units) are now supported
-                    return std::nullopt;
-                }
-
-                ASSERT_NOT_REACHED();
-                return GridAvoidanceReason::GridHasUnsupportedGridTemplateRows;
+                if (trackSize.minTrackBreadth().isPercentOrCalculated())
+                    return GridAvoidanceReason::GridHasUnsupportedGridTemplateRows;
+                return { };
             },
             [&](const Vector<String>& names) -> std::optional<GridAvoidanceReason> {
                 if (!names.isEmpty())
@@ -393,7 +363,11 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
     for (CheckedRef gridItem : childrenOfType<RenderBox>(renderGrid)) {
         // We do not yet support grid item sizing spec for replaced elements.
         // See: https://drafts.csswg.org/css-grid/#grid-item-sizing
-        if (protect(gridItem->element())->isReplaced())
+        RefPtr gridItemElement = gridItem->element();
+        if (!gridItemElement)
+            ADD_REASON_AND_RETURN_IF_NEEDED(GridItemDoesNotHaveElement, reasons, reasonCollectionMode);
+
+        if (gridItemElement->isReplaced())
             ADD_REASON_AND_RETURN_IF_NEEDED(GridItemIsReplacedElement, reasons, reasonCollectionMode);
 
         CheckedRef gridItemStyle = gridItem->style();
@@ -424,14 +398,16 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
         if (gridItemHeight.isAuto() && !canComputeAutomaticBlockSize(gridItem, usedAlignSelf))
             ADD_REASON_AND_RETURN_IF_NEEDED(GridItemHasUnsupportedAutomaticBlockSizing, reasons, reasonCollectionMode);
 
-        if (auto fixedMinWidth = gridItemStyle->minWidth().tryFixed(); fixedMinWidth && fixedMinWidth->unresolvedValue())
-            ADD_REASON_AND_RETURN_IF_NEEDED(GridHasNonZeroMinWidth, reasons, reasonCollectionMode);
+        auto& minWidth = gridItemStyle->minWidth();
+        if (!minWidth.isFixed() && !minWidth.isAuto())
+            ADD_REASON_AND_RETURN_IF_NEEDED(GridItemHasUnsupportedMinWidth, reasons, reasonCollectionMode);
 
         if (!gridItemStyle->maxWidth().isNone())
             ADD_REASON_AND_RETURN_IF_NEEDED(GridItemHasNonInitialMaxWidth, reasons, reasonCollectionMode);
 
-        if (auto fixedMinHeight = gridItemStyle->minHeight().tryFixed(); fixedMinHeight && fixedMinHeight->unresolvedValue())
-            ADD_REASON_AND_RETURN_IF_NEEDED(GridItemHasNonZeroMinHeight, reasons, reasonCollectionMode);
+        auto& minHeight = gridItemStyle->minHeight();
+        if (!minHeight.isFixed() && !minHeight.isAuto())
+            ADD_REASON_AND_RETURN_IF_NEEDED(GridItemHasUnsupportedMinHeight, reasons, reasonCollectionMode);
 
         if (!gridItemStyle->maxHeight().isNone())
             ADD_REASON_AND_RETURN_IF_NEEDED(GridItemHasNonInitialMaxHeight, reasons, reasonCollectionMode);
@@ -500,7 +476,10 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
                     return GridAvoidanceReason::GridItemHasUnsupportedRowPlacement;
 
                 ASSERT(rowEnd.isExplicit());
-                explicitlyPlacedItemsInRowCount.resize(rowStartLineNumber + 1);
+                size_t rowIndex = rowStartLineNumber + 1;
+                auto rowsCount = explicitlyPlacedItemsInRowCount.size();
+                if (rowIndex > rowsCount)
+                    explicitlyPlacedItemsInRowCount.insertFill(rowsCount, 0, rowIndex - rowsCount);
                 ++explicitlyPlacedItemsInRowCount[rowStartLineNumber];
                 return { };
             },
@@ -598,6 +577,9 @@ static void printReason(GridAvoidanceReason reason, TextStream& stream)
         break;
     case GridAvoidanceReason::GridHasNonVisibleOverflow:
         stream << "grid has non-visible overflow";
+        break;
+    case GridAvoidanceReason::GridItemDoesNotHaveElement:
+        stream << "grid item does not have a corresponding element";
         break;
     case GridAvoidanceReason::GridItemIsReplacedElement:
         stream << "grid item is a replaced element";
@@ -697,6 +679,12 @@ static void printReason(GridAvoidanceReason reason, TextStream& stream)
         break;
     case GridAvoidanceReason::GridItemHasUnsupportedRowPlacement:
         stream << "grid item has unsupported row placement";
+        break;
+    case GridAvoidanceReason::GridItemHasUnsupportedMinWidth:
+        stream << "grid item has unsupported min-width";
+        break;
+    case GridAvoidanceReason::GridItemHasUnsupportedMinHeight:
+        stream << "grid item has unsupported min-height";
         break;
     default:
         break;

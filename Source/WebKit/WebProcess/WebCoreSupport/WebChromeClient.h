@@ -385,6 +385,7 @@ private:
     void allowImmersiveElement(CompletionHandler<void(bool)>&&) const final;
     void presentImmersiveElement(const WebCore::LayerHostingContextIdentifier, CompletionHandler<void(bool)>&&) const final;
     void dismissImmersiveElement(CompletionHandler<void()>&&) const final;
+    bool supportsImmersiveElement() const final;
 #endif
 
 #if ENABLE(APP_HIGHLIGHTS)
@@ -555,6 +556,7 @@ private:
 
     bool requiresScriptTrackingPrivacyProtections(const URL&, const WebCore::SecurityOrigin& topOrigin) const final;
     bool shouldAllowScriptAccess(const URL&, const WebCore::SecurityOrigin& topOrigin, WebCore::ScriptTrackingPrivacyCategory) const final;
+    bool requiresConsistentPrivacyQuirkForDomain(const URL&) const final;
 
     void setIsInRedo(bool) final;
 

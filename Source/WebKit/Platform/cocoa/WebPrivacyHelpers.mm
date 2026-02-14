@@ -51,6 +51,14 @@
 #import <wtf/text/MakeString.h>
 #import <pal/cocoa/WebPrivacySoftLink.h>
 
+#if USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/WebPrivacyHelpersAdditions.mm>)
+#import <WebKitAdditions/WebPrivacyHelpersAdditions.mm>
+#endif
+
+#if !defined(IS_REQUEST_UNCONDITIONALLY_BLOCKABLE)
+#define IS_REQUEST_UNCONDITIONALLY_BLOCKABLE(domain) false
+#endif
+
 #if HAVE(SYSTEM_SUPPORT_FOR_ADVANCED_PRIVACY_PROTECTIONS)
 SOFT_LINK_LIBRARY_OPTIONAL(libnetwork)
 SOFT_LINK_OPTIONAL(libnetwork, nw_context_set_tracker_lookup_callback, void, __cdecl, (nw_context_t, nw_context_tracker_lookup_callback_t))
@@ -762,6 +770,9 @@ bool isRequestBlockable(const WebCore::ResourceRequest& request, bool needsAdvan
     TrackerDomainLookupInfo::populateIfNeeded();
 
     auto domain = WebCore::RegistrableDomain { URL { makeString("http://"_s, request.url().host()) } };
+    if (IS_REQUEST_UNCONDITIONALLY_BLOCKABLE(domain))
+        return true;
+
     if (auto info = TrackerDomainLookupInfo::find(domain.string()); info.owner().length()) {
         if (info.canBlock() == TrackerDomainLookupInfo::CanBlock::No)
             return false;
@@ -874,6 +885,54 @@ unsigned ScriptTrackingPrivacyController::resourceTypeValue() const
 }
 
 void ScriptTrackingPrivacyController::didUpdateCachedListData()
+{
+    m_cachedListData.firstPartyTopDomains.shrinkToFit();
+    m_cachedListData.firstPartyHosts.shrinkToFit();
+    m_cachedListData.thirdPartyTopDomains.shrinkToFit();
+    m_cachedListData.thirdPartyHosts.shrinkToFit();
+}
+
+void ConsistentPrivacyQuirkController::updateList(CompletionHandler<void()>&& completion)
+{
+    ASSERT(RunLoop::isMain());
+#if ENABLE(SCRIPT_TRACKING_PRIVACY_PROTECTIONS)
+    if (!PAL::isWebPrivacyFrameworkAvailable() || ![PAL::getWPResourcesClassSingleton() instancesRespondToSelector:@selector(requestFingerprintingScripts:completionHandler:)]) {
+        RunLoop::mainSingleton().dispatch(WTF::move(completion));
+        return;
+    }
+
+    static MainRunLoopNeverDestroyed<Vector<CompletionHandler<void()>, 1>> pendingCompletionHandlers;
+    pendingCompletionHandlers->append(WTF::move(completion));
+    if (pendingCompletionHandlers->size() > 1)
+        return;
+
+    RetainPtr options = adoptNS([PAL::allocWPResourceRequestOptionsInstance() init]);
+    [options setAfterUpdates:NO];
+
+    [[PAL::getWPResourcesClassSingleton() sharedInstance] requestFingerprintingScripts:options.get() completionHandler:^(NSArray<WPFingerprintingScript *> *, NSError *error) {
+        auto callCompletionHandlers = makeScopeExit([&] {
+            for (auto& completionHandler : std::exchange(pendingCompletionHandlers.get(), { }))
+                completionHandler();
+        });
+
+        if (error) {
+            RELEASE_LOG_ERROR(ResourceLoadStatistics, "Failed to request known fingerprinting scripts from WebPrivacy for consistent privacy quirks: %@", error);
+            return;
+        }
+
+        setCachedListData({ });
+    }];
+#else
+    RunLoop::mainSingleton().dispatch(WTF::move(completion));
+#endif
+}
+
+unsigned ConsistentPrivacyQuirkController::resourceTypeValue() const
+{
+    return WPResourceTypeConsistentPrivacyQuirk;
+}
+
+void ConsistentPrivacyQuirkController::didUpdateCachedListData()
 {
     m_cachedListData.firstPartyTopDomains.shrinkToFit();
     m_cachedListData.firstPartyHosts.shrinkToFit();

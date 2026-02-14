@@ -1001,6 +1001,8 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
 
     if (protect(preferences())->scriptTrackingPrivacyProtectionsEnabled())
         protect(process.processPool())->observeScriptTrackingPrivacyUpdatesIfNeeded();
+    if (protect(preferences())->consistentQueryParameterFilteringQuirkEnabled())
+        protect(process.processPool())->observeConsistentQueryParameterFilteringQuirkUpdatesIfNeeded();
 #endif // ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
 
 #if HAVE(AUDIT_TOKEN)
@@ -12563,6 +12565,10 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
 
 #if PLATFORM(VISION) && ENABLE(GAMEPAD)
     parameters.gamepadAccessRequiresExplicitConsent = m_configuration->gamepadAccessRequiresExplicitConsent();
+#endif
+
+#if ENABLE(MODEL_ELEMENT_IMMERSIVE)
+    parameters.allowsImmersiveEnvironments = m_configuration->allowsImmersiveEnvironments();
 #endif
 
     Ref preferences = m_preferences;

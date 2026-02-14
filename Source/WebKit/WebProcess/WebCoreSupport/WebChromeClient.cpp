@@ -1690,6 +1690,12 @@ void WebChromeClient::dismissImmersiveElement(CompletionHandler<void()>&& comple
     else
         completion();
 }
+
+bool WebChromeClient::supportsImmersiveElement() const
+{
+    RefPtr page = m_page.get();
+    return page && page->allowsImmersiveEnvironments();
+}
 #endif
 
 #if ENABLE(APP_HIGHLIGHTS)
@@ -2354,6 +2360,11 @@ bool WebChromeClient::requiresScriptTrackingPrivacyProtections(const URL& url, c
 bool WebChromeClient::shouldAllowScriptAccess(const URL& url, const SecurityOrigin& topOrigin, ScriptTrackingPrivacyCategory category) const
 {
     return WebProcess::singleton().shouldAllowScriptAccess(url, topOrigin, category);
+}
+
+bool WebChromeClient::requiresConsistentPrivacyQuirkForDomain(const URL& url) const
+{
+    return WebProcess::singleton().requiresConsistentPrivacyQuirkForDomain(url);
 }
 
 void WebChromeClient::callAfterPendingSyntheticClick(CompletionHandler<void(SyntheticClickResult)>&& completion)

@@ -521,7 +521,6 @@ public:
     void scheduleValidationMessageUpdate(ValidatedFormListedElement&, HTMLElement&);
 
     WEBCORE_EXPORT ScrollingCoordinator* scrollingCoordinator();
-    WEBCORE_EXPORT RefPtr<ScrollingCoordinator> protectedScrollingCoordinator();
 
     WEBCORE_EXPORT String scrollingStateTreeAsText();
     WEBCORE_EXPORT String synchronousScrollingReasonsAsText();
@@ -1332,6 +1331,7 @@ public:
     bool reportScriptTrackingPrivacy(const URL&, ScriptTrackingPrivacyCategory);
     bool shouldAllowScriptAccess(const URL&, const SecurityOrigin& topOrigin, ScriptTrackingPrivacyCategory) const;
     bool requiresScriptTrackingPrivacyProtections(const URL&) const;
+    bool requiresConsistentPrivacyQuirkForDomain(const URL&) const;
 
     WEBCORE_EXPORT bool isAlwaysOnLoggingAllowed() const;
 

@@ -1765,7 +1765,7 @@ bool RenderThemeCocoa::adjustColorWellSwatchOverlayStyleForVectorBasedControls(R
     if (!formControlRefreshEnabled(element))
         return false;
 
-    style.setDisplay(DisplayType::None);
+    style.setDisplay(Style::DisplayType::None);
 
     return true;
 #endif
@@ -2929,13 +2929,13 @@ bool RenderThemeCocoa::paintMeterForVectorBasedControls(const RenderElement& ren
 
     auto colorCSSValueID = CSSValueInvalid;
     switch (element->gaugeRegion()) {
-    case HTMLMeterElement::GaugeRegionOptimum:
+    case HTMLMeterElement::GaugeRegion::Optimum:
         colorCSSValueID = CSSValueAppleSystemGreen;
         break;
-    case HTMLMeterElement::GaugeRegionSuboptimal:
+    case HTMLMeterElement::GaugeRegion::Suboptimal:
         colorCSSValueID = CSSValueAppleSystemYellow;
         break;
-    case HTMLMeterElement::GaugeRegionEvenLessGood:
+    case HTMLMeterElement::GaugeRegion::EvenLessGood:
         colorCSSValueID = CSSValueAppleSystemRed;
         break;
     }

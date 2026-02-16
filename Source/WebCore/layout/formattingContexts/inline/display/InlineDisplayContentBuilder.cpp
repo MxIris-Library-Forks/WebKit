@@ -113,6 +113,33 @@ InlineDisplay::Boxes InlineDisplayContentBuilder::build(const LineLayoutResult& 
     return boxes;
 }
 
+InlineDisplay::Boxes InlineDisplayContentBuilder::buildTextOnlyContent(const LineLayoutResult& lineLayoutResult)
+{
+    auto boxes = InlineDisplay::Boxes { };
+    if (lineLayoutResult.runs.size() > 1)
+        boxes.reserveInitialCapacity(lineLayoutResult.runs.size() + 1);
+
+    auto rootInlineBoxRect = lineBox().logicalRectForRootInlineBox();
+    rootInlineBoxRect.moveBy(m_displayLine.topLeft());
+
+    appendRootInlineBoxDisplayBox(rootInlineBoxRect, true, boxes);
+
+    for (auto& lineRun : lineLayoutResult.runs) {
+        auto runRect = InlineRect { rootInlineBoxRect.top(), rootInlineBoxRect.left() + lineRun.logicalLeft(), lineRun.logicalWidth(), rootInlineBoxRect.height() };
+        if (lineRun.isText()) {
+            appendTextDisplayBox(lineRun, runRect, boxes);
+            continue;
+        }
+        if (lineRun.isSoftLineBreak()) {
+            appendSoftLineBreakDisplayBox(lineRun, runRect, boxes);
+            continue;
+        }
+        ASSERT_NOT_REACHED();
+    }
+    collectInkOverflowForTextDecorations(boxes);
+    return boxes;
+}
+
 static inline bool computeInkOverflowForInlineLevelBox(const RenderStyle& style, FloatRect& inkOverflow)
 {
     auto hasInkOverflow = false;
@@ -264,7 +291,7 @@ void InlineDisplayContentBuilder::appendTextDisplayBox(const Line::Run& lineRun,
     });
 }
 
-void InlineDisplayContentBuilder::appendSoftLineBreakDisplayBox(const Line::Run& lineRun, const InlineRect& softLineBreakRunRect, InlineDisplay::Boxes& boxes)
+void InlineDisplayContentBuilder::appendSoftLineBreakDisplayBox(const Line::Run& lineRun, const InlineRect& softLineBreakRunRect, InlineDisplay::Boxes& boxes) const
 {
     ASSERT(lineRun.textContent().length && is<InlineTextBox>(lineRun.layoutBox()));
 
@@ -286,7 +313,7 @@ void InlineDisplayContentBuilder::appendSoftLineBreakDisplayBox(const Line::Run&
     });
 }
 
-void InlineDisplayContentBuilder::appendHardLineBreakDisplayBox(const Line::Run& lineRun, const InlineRect& lineBreakBoxRect, InlineDisplay::Boxes& boxes)
+void InlineDisplayContentBuilder::appendHardLineBreakDisplayBox(const Line::Run& lineRun, const InlineRect& lineBreakBoxRect, InlineDisplay::Boxes& boxes) const
 {
     auto isContentful = true;
     boxes.append({ lineIndex()
@@ -352,7 +379,7 @@ void InlineDisplayContentBuilder::appendBlockLevelDisplayBox(const Line::Run& li
     });
 }
 
-void InlineDisplayContentBuilder::appendRootInlineBoxDisplayBox(const InlineRect& rootInlineBoxVisualRect, bool lineHasContent, InlineDisplay::Boxes& boxes)
+void InlineDisplayContentBuilder::appendRootInlineBoxDisplayBox(const InlineRect& rootInlineBoxVisualRect, bool lineHasContent, InlineDisplay::Boxes& boxes) const
 {
     boxes.append({ lineIndex()
         , InlineDisplay::Box::Type::RootInlineBox
@@ -472,7 +499,7 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
         CheckedRef layoutBox = lineRun.layoutBox();
 
         if (lineRun.isOpaque()) {
-            if (Style::isDisplayInlineType(layoutBox->style().originalDisplay())) {
+            if (layoutBox->style().originalDisplay().isInlineType()) {
                 formattingContext().geometryForBox(layoutBox).setTopLeft({ lineBox.logicalRect().left() + lineBox.logicalRectForRootInlineBox().left() + lineRun.logicalLeft(), lineBox.logicalRect().top() });
                 continue;
             }
@@ -560,7 +587,7 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
         auto updateAssociatedBoxGeometry = [&] {
             if (lineRun.isText() || lineRun.isSoftLineBreak())
                 return;
-            if (!lineBox.hasContent() && lineRun.isLineSpanningInlineBoxStart()) {
+            if (!lineLayoutResult.hasContentfulInFlowContent() && lineRun.isLineSpanningInlineBoxStart()) {
                 // When a spanning inline box (e.g. <div>text<span><br></span></div>) lands on an empty line
                 // (empty here means no content at all including line breaks, not just visually empty) then we
                 // don't extend the spanning line box over to this line.
@@ -803,8 +830,8 @@ void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lin
             hasInlineBox = hasInlineBox || (!lineRun.isBlock() && (parentDisplayBoxNodeIndex || lineRun.isInlineBoxStart() || lineRun.isLineSpanningInlineBoxStart()));
 
             if (lineRun.isOpaque()) {
-                if (Style::isDisplayInlineType(layoutBox->style().originalDisplay())) {
-                    // Note that out-of-flow handling (render tree integraton) really only needs logical coords (not even "content in inline diretion visual order").
+                if (layoutBox->style().originalDisplay().isInlineType()) {
+                    // Note that out-of-flow handling (render tree integration) really only needs logical coords (not even "content in inline direction visual order").
                     formattingContext().geometryForBox(layoutBox).setTopLeft({ lineBox.logicalRect().left() + lineBox.logicalRectForRootInlineBox().left() + lineRun.logicalLeft(), lineBox.logicalRect().top() });
                     continue;
                 }
@@ -882,7 +909,7 @@ void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lin
                 // some cases where the inline box has some content on the paragraph level (at bidi split) but line breaking renders it empty
                 // or their content is completely collapsed.
                 // Such inline boxes should also be handled here.
-                if (!lineBox.hasContent()) {
+                if (!lineLayoutResult.hasContentfulInFlowContent()) {
                     // FIXME: It's expected to not have any inline boxes on empty lines. They make the line taller. We should reconsider this.
                     setInlineBoxGeometry(layoutBox, formattingContext().geometryForBox(layoutBox), { { }, { } }, true);
                     continue;

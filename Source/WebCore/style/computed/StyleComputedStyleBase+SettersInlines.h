@@ -34,7 +34,7 @@
 #define SET_NESTED(group, parent, variable, value) SET_STYLE_PROPERTY(group->parent->variable, group.access().parent.access().variable, value)
 #define SET_DOUBLY_NESTED(group, grandparent, parent, variable, value) SET_STYLE_PROPERTY(group->grandparent->parent->variable, group.access().grandparent.access().parent.access().variable, value)
 #define SET_NESTED_STRUCT(group, parent, variable, value) SET_STYLE_PROPERTY(group->parent.variable, group.access().parent.variable, value)
-#define SET_STYLE_PROPERTY_PAIR(read, write, variable1, value1, variable2, value2) do { Ref readable = Ref { *read }; if (!compareEqual(readable->variable1, value1) || !compareEqual(readable->variable2, value2)) { Ref writable = write; writable->variable1 = value1; writable->variable2 = value2; } } while (0)
+#define SET_STYLE_PROPERTY_PAIR(read, write, variable1, value1, variable2, value2) do { Ref readable = Ref { *read }; if (!compareEqual(readable->variable1, value1) || !compareEqual(readable->variable2, value2)) { auto& writable = write; writable.variable1 = value1; writable.variable2 = value2; } } while (0)
 #define SET_PAIR(group, variable1, value1, variable2, value2) SET_STYLE_PROPERTY_PAIR(group, group.access(), variable1, value1, variable2, value2)
 #define SET_NESTED_PAIR(group, parent, variable1, value1, variable2, value2) SET_STYLE_PROPERTY_PAIR(group->parent, group.access().parent.access(), variable1, value1, variable2, value2)
 #define SET_DOUBLY_NESTED_PAIR(group, grandparent, parent, variable1, value1, variable2, value2) SET_STYLE_PROPERTY_PAIR(group->grandparent->parent, group.access().grandparent.access().parent.access(), variable1, value1, variable2, value2)
@@ -281,6 +281,16 @@ inline BackgroundLayers& ComputedStyleBase::ensureBackgroundLayers()
 inline MaskLayers& ComputedStyleBase::ensureMaskLayers()
 {
     return m_nonInheritedData.access().miscData.access().mask.access();
+}
+
+inline ScrollTimelines& ComputedStyleBase::ensureScrollTimelines()
+{
+    return m_nonInheritedData.access().rareData.access().scrollTimelines.access();
+}
+
+inline ViewTimelines& ComputedStyleBase::ensureViewTimelines()
+{
+    return m_nonInheritedData.access().rareData.access().viewTimelines.access();
 }
 
 inline void ComputedStyleBase::setBackgroundLayers(BackgroundLayers&& layers)

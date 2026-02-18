@@ -1414,11 +1414,15 @@ TreeScope& Node::treeScopeForSVGReferences() const
     return treeScope();
 }
 
-bool Node::isInUserAgentShadowTree() const
+#if ASSERT_ENABLED
+bool Node::checkIsInUserAgentShadowTree(bool isInUserAgentShadowTree) const
 {
     auto* shadowRoot = containingShadowRoot();
-    return shadowRoot && shadowRoot->mode() == ShadowRootMode::UserAgent;
+    auto actualValue = shadowRoot && shadowRoot->mode() == ShadowRootMode::UserAgent;
+    ASSERT(actualValue == isInUserAgentShadowTree);
+    return isInUserAgentShadowTree;
 }
+#endif
 
 Node* Node::nonBoundaryShadowTreeRootNode()
 {
@@ -1533,12 +1537,6 @@ Element* Node::rootEditableElement() const
 }
 
 // FIXME: End of obviously misplaced HTML editing functions.  Try to move these out of Node.
-
-Document* Node::ownerDocument() const
-{
-    Document* document = &this->document();
-    return document == this ? nullptr : document;
-}
 
 const URL& Node::baseURI() const
 {

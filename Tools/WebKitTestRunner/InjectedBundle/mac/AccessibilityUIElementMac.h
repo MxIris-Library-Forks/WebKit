@@ -40,6 +40,7 @@ namespace WTR {
 class AccessibilityUIElementMac final : public AccessibilityUIElement {
     // Helper functions that dispatch to AX secondary thread
     friend RetainPtr<NSArray> supportedAttributes(id);
+    friend RetainPtr<NSArray> supportedParameterizedAttributes(id);
     friend void setAttributeValue(id, NSString *, id, bool synchronous);
 
 public:
@@ -184,7 +185,6 @@ public:
     JSRetainPtr<JSStringRef> classList() const override;
     JSRetainPtr<JSStringRef> embeddedImageDescription() const override;
     JSValueRef imageOverlayElements(JSContextRef) override;
-    bool hasImageData() const override;
 
     JSRetainPtr<JSStringRef> speakAs() override;
 
@@ -313,6 +313,8 @@ public:
     RefPtr<AccessibilityTextMarker> previousSentenceStartTextMarkerForTextMarker(AccessibilityTextMarker*) override;
     JSRetainPtr<JSStringRef> textMarkerDebugDescription(AccessibilityTextMarker*) override;
     JSRetainPtr<JSStringRef> textMarkerRangeDebugDescription(AccessibilityTextMarkerRange*) override;
+    JSRetainPtr<JSStringRef> textMarkerDescription(AccessibilityTextMarker*) override;
+    JSRetainPtr<JSStringRef> textMarkerRangeDescription(AccessibilityTextMarkerRange*) override;
 
     JSRetainPtr<JSStringRef> supportedActions() const override;
     JSRetainPtr<JSStringRef> mathPostscriptsDescription() const override;

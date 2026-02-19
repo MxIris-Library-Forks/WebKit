@@ -212,7 +212,6 @@ public:
     virtual JSRetainPtr<JSStringRef> classList() const;
     virtual JSRetainPtr<JSStringRef> embeddedImageDescription() const;
     virtual JSValueRef imageOverlayElements(JSContextRef);
-    virtual bool hasImageData() const;
 
     // CSS3-speech properties.
     virtual JSRetainPtr<JSStringRef> speakAs();
@@ -362,6 +361,8 @@ public:
     virtual RefPtr<AccessibilityTextMarkerRange> textMarkerRangeMatchesTextNearMarkers(JSStringRef, AccessibilityTextMarker*, AccessibilityTextMarker*);
     virtual JSRetainPtr<JSStringRef> textMarkerDebugDescription(AccessibilityTextMarker*);
     virtual JSRetainPtr<JSStringRef> textMarkerRangeDebugDescription(AccessibilityTextMarkerRange*);
+    virtual JSRetainPtr<JSStringRef> textMarkerDescription(AccessibilityTextMarker*);
+    virtual JSRetainPtr<JSStringRef> textMarkerRangeDescription(AccessibilityTextMarkerRange*);
 
     // Returns an ordered list of supported actions for an element.
     virtual JSRetainPtr<JSStringRef> supportedActions() const;

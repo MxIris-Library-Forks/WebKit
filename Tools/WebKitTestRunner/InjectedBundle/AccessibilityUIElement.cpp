@@ -586,11 +586,6 @@ JSValueRef AccessibilityUIElement::imageOverlayElements(OpaqueJSContext const*)
     return nullptr;
 }
 
-bool AccessibilityUIElement::hasImageData() const
-{
-    return false;
-}
-
 void AccessibilityUIElement::increaseTextSelection()
 {
 }
@@ -1385,6 +1380,16 @@ RefPtr<AccessibilityTextMarker> AccessibilityUIElement::textMarkerForPoint(int, 
 }
 
 JSRetainPtr<JSStringRef> AccessibilityUIElement::textMarkerRangeDebugDescription(WTR::AccessibilityTextMarkerRange*)
+{
+    return nullptr;
+}
+
+JSRetainPtr<JSStringRef> AccessibilityUIElement::textMarkerDescription(WTR::AccessibilityTextMarker*)
+{
+    return nullptr;
+}
+
+JSRetainPtr<JSStringRef> AccessibilityUIElement::textMarkerRangeDescription(WTR::AccessibilityTextMarkerRange*)
 {
     return nullptr;
 }

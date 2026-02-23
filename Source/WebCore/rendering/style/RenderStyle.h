@@ -248,7 +248,6 @@ public:
     // MARK: - Fonts
 
     inline const FontCascade& fontCascade() const;
-    inline CheckedRef<const FontCascade> checkedFontCascade() const;
     inline FontCascade& mutableFontCascadeWithoutUpdate();
     inline void setFontCascade(FontCascade&&);
 
@@ -356,16 +355,6 @@ public:
     inline void resetBorderRadius();
     inline void resetMargin();
     inline void resetPadding();
-
-#if ENABLE(TEXT_AUTOSIZING)
-    // MARK: - Text autosizing
-
-    uint32_t hashForTextAutosizing() const;
-    bool equalForTextAutosizing(const RenderStyle&) const;
-
-    bool isIdempotentTextAutosizingCandidate() const;
-    bool isIdempotentTextAutosizingCandidate(AutosizeStatus overrideStatus) const;
-#endif
 
     // MARK: - Logical Values
 
@@ -527,21 +516,5 @@ inline bool pseudoElementRendererIsNeeded(const RenderStyle*);
 inline bool isNonVisibleOverflow(Overflow);
 
 inline bool isVisibleToHitTesting(const RenderStyle&, const HitTestRequest&);
-
-#if ENABLE(TEXT_AUTOSIZING)
-
-// MARK: - Text autosizing
-
-inline unsigned RenderStyle::hashForTextAutosizing() const
-{
-    return m_computedStyle.hashForTextAutosizing();
-}
-
-inline bool RenderStyle::equalForTextAutosizing(const RenderStyle& other) const
-{
-    return m_computedStyle.equalForTextAutosizing(other.m_computedStyle);
-}
-
-#endif // ENABLE(TEXT_AUTOSIZING)
 
 } // namespace WebCore

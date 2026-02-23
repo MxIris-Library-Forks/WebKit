@@ -336,8 +336,11 @@ static bool shouldInlinifyForRuby(const RenderStyle& style, const RenderStyle& p
     return hasRubyParent && !style.hasOutOfFlowPosition() && style.floating() == Float::None;
 }
 
-static bool hasUnsupportedRubyDisplay(Display display, const Element* element)
+static bool hasUnsupportedRubyDisplay(Display display, const Element* element, const Document& document)
 {
+    if (document.settings().cssRubyDisplayTypesInAuthorStylesEnabled())
+        return false;
+
     // Only allow ruby elements to have ruby display types for now.
     switch (display.value) {
     case DisplayType::InlineRuby:
@@ -459,7 +462,7 @@ void Adjuster::adjust(RenderStyle& style) const
                 style.setDisplayMaintainingOriginalDisplay(style.display().blockified());
         }
 
-        if (hasUnsupportedRubyDisplay(style.display(), m_element.get()))
+        if (hasUnsupportedRubyDisplay(style.display(), m_element.get(), m_document))
             style.setDisplayMaintainingOriginalDisplay(style.display() == DisplayType::BlockRuby ? DisplayType::BlockFlow : DisplayType::InlineFlow);
 
         // Top layer elements are always position: absolute; unless the position is set to fixed.
@@ -1215,7 +1218,7 @@ auto Adjuster::adjustmentForTextAutosizing(const RenderStyle& style, const Eleme
         || document->settings().idempotentModeAutosizingOnlyHonorsPercentages())
         return adjustmentForTextAutosizing;
 
-    auto newStatus = AutosizeStatus::computeStatus(style);
+    auto newStatus = AutosizeStatus::compute(style);
     if (newStatus != style.autosizeStatus())
         adjustmentForTextAutosizing.newStatus = newStatus;
 
@@ -1243,7 +1246,8 @@ auto Adjuster::adjustmentForTextAutosizing(const RenderStyle& style, const Eleme
     auto& fontDescription = style.fontDescription();
     auto initialComputedFontSize = fontDescription.computedSize();
     auto specifiedFontSize = fontDescription.specifiedSize();
-    bool isCandidate = style.isIdempotentTextAutosizingCandidate(newStatus);
+
+    bool isCandidate = newStatus.isIdempotentTextAutosizingCandidate(style);
     if (!isCandidate && WTF::areEssentiallyEqual(initialComputedFontSize, specifiedFontSize))
         return adjustmentForTextAutosizing;
 
@@ -1267,7 +1271,8 @@ auto Adjuster::adjustmentForTextAutosizing(const RenderStyle& style, const Eleme
 
 bool Adjuster::adjustForTextAutosizing(RenderStyle& style, AdjustmentForTextAutosizing adjustment)
 {
-    AutosizeStatus::updateStatus(style);
+    style.setAutosizeStatus(AutosizeStatus::compute(style));
+
     if (auto newFontSize = adjustment.newFontSize) {
         auto fontDescription = style.fontDescription();
         fontDescription.setComputedSize(*newFontSize);

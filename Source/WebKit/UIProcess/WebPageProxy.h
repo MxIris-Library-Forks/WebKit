@@ -1097,7 +1097,8 @@ public:
 
     void setViewNeedsDisplay(const WebCore::Region&);
     void requestScroll(const WebCore::FloatPoint& scrollPosition, const WebCore::IntPoint& scrollOrigin, WebCore::ScrollIsAnimated, WebCore::InterruptScrollAnimation);
-    
+
+    // FIXME: This is a scroll offset, unadjusted for content insets.
     WebCore::FloatPoint viewScrollPosition() const;
 
     void setNeedsScrollGeometryUpdates(bool);
@@ -1602,6 +1603,7 @@ public:
     bool areScrollbarAnimationsSuppressed() const { return m_suppressScrollbarAnimations; }
 
     WebCore::RectEdges<bool> NODELETE pinnedState() const;
+    WebCore::RectEdges<bool> pinnedStateIncludingAncestorsAtPoint(WebCore::FloatPoint);
 
     WebCore::RectEdges<bool> rubberBandableEdgesRespectingHistorySwipe() const;
     WebCore::RectEdges<bool> NODELETE rubberBandableEdges() const;
@@ -2951,6 +2953,8 @@ public:
 
     friend class TextExtractionAssertionScope;
     UniqueRef<TextExtractionAssertionScope> NODELETE createTextExtractionAssertionScope();
+
+    void updateRemoteIntersectionObserversInOtherWebProcesses(IPC::Connection&);
 
 private:
     WebPageProxy(PageClient&, WebProcessProxy&, Ref<API::PageConfiguration>&&);

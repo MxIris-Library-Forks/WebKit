@@ -19,15 +19,17 @@ editing/execCommand/ios [ Pass ]
 editing/deleting/ios [ Pass ]
 editing/input/cocoa [ Pass ]
 editing/selection/ios [ Pass ]
+fast/page-color-sampling [ Pass ]
+http/tests/pdf [ Pass ]
 http/tests/quicklook [ Pass ]
+http/tests/swipe [ Pass ]
 media/ios [ Pass ]
 media/audioSession/ios [ Pass ]
+pdf [ Pass ]
 quicklook [ Pass ]
 system-preview [ Pass ]
 remote-layer-tree [ Pass ]
 swipe [ Pass ]
-http/tests/swipe [ Pass ]
-fast/page-color-sampling [ Pass ]
 webanimations/threaded-animations [ Pass ]
 
 webkit.org/b/271780 fast/dom/Orientation/no-orientation-change-event-when-unparenting-view.html [ Pass Timeout ] # change back to pass when bug resolved
@@ -3855,6 +3857,7 @@ imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-casca
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-styling-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-styling-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-custom-properties-dynamic-001.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-pseudo/input-element-pseudo-open-click.optional.html [ Skip ]
 
 imported/w3c/web-platform-tests/css/css-transforms/ttwf-css-3d-polygon-cycle.html [ ImageOnlyFailure ]
 
@@ -8483,6 +8486,12 @@ webkit.org/b/307889 http/tests/multipart/multipart-async-image.html [ Pass Failu
 
 webkit.org/b/308084 [ Release ] imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-boundary.html [  Pass ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/css/cssom-view/smooth-scrollIntoView-with-unrelated-gesture-scroll.html [ Skip ]
+
 webkit.org/b/308243 [ Release ] http/tests/site-isolation/mixedContent/redirect-https-to-http-iframe-in-main-frame.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-highlight-api/highlight-text-across-elements.html [ ImageOnlyFailure ]
+
+# webkit.org/b/308506 UnifiedPDFPlugin on iOS should receive full annotations support
+pdf/annotations [ Skip ]
+pdf/pdf-in-iframe-with-text-annotation.html [ Skip ]

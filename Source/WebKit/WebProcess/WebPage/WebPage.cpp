@@ -9267,7 +9267,7 @@ void WebPage::startVisualTranslation(const String& sourceLanguageIdentifier, con
     if (!frame)
         return;
 
-    protect(corePage())->protectedImageAnalysisQueue()->enqueueAllImagesIfNeeded(*frame, sourceLanguageIdentifier, targetLanguageIdentifier);
+    protect(protect(corePage())->imageAnalysisQueue())->enqueueAllImagesIfNeeded(*frame, sourceLanguageIdentifier, targetLanguageIdentifier);
 }
 
 #endif // ENABLE(IMAGE_ANALYSIS)
@@ -10510,6 +10510,15 @@ void WebPage::hideCaptionDisplaySettingsPreview(HTMLMediaElementIdentifier ident
 #endif
 }
 #endif
+
+void WebPage::updateRemoteIntersectionObservers()
+{
+    if (RefPtr page = m_page) {
+        page->forEachDocument([] (Document& document) {
+            document.updateRemoteIntersectionObservers();
+        });
+    }
+}
 
 } // namespace WebKit
 

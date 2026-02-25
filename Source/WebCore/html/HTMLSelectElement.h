@@ -206,7 +206,7 @@ private:
     int defaultTabIndex() const final;
     bool isKeyboardFocusable(const FocusEventData&) const final;
     bool isMouseFocusable() const final;
-    bool hasCustomFocusLogic() const final { return true; }
+    bool NODELETE hasCustomFocusLogic() const final { return true; }
 
     void dispatchFocusEvent(RefPtr<Element>&& oldFocusedElement, const FocusOptions&) final;
     void dispatchBlurEvent(RefPtr<Element>&& newFocusedElement) final;
@@ -244,8 +244,8 @@ private:
     void typeAheadFind(KeyboardEvent&);
     void saveLastSelection();
 
-    bool isOptionalFormControl() const final { return !isRequiredFormControl(); }
-    bool isRequiredFormControl() const final;
+    bool NODELETE isOptionalFormControl() const final { return !isRequiredFormControl(); }
+    bool NODELETE isRequiredFormControl() const final;
 
     bool hasPlaceholderLabelOption() const;
 

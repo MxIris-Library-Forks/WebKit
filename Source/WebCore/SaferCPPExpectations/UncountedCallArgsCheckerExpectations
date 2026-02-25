@@ -4,7 +4,6 @@ Modules/entriesapi/FileSystemDirectoryEntry.cpp
 Modules/entriesapi/FileSystemEntry.cpp
 Modules/entriesapi/FileSystemFileEntry.cpp
 Modules/filesystem/FileSystemFileHandle.cpp
-[ Mac ] Modules/gamepad/Gamepad.cpp
 Modules/mediasession/MediaMetadata.cpp
 Modules/mediasession/MediaSession.cpp
 [ Mac ] Modules/mediasession/MediaSessionCoordinator.cpp
@@ -41,7 +40,6 @@ Modules/webaudio/DefaultAudioDestinationNode.cpp
 Modules/webaudio/DynamicsCompressorNode.cpp
 Modules/webaudio/MediaElementAudioSourceNode.cpp
 Modules/webaudio/MediaStreamAudioDestinationNode.cpp
-[ Mac ] Modules/webaudio/OfflineAudioContext.cpp
 Modules/webaudio/OfflineAudioDestinationNode.cpp
 Modules/webaudio/OscillatorNode.cpp
 Modules/webaudio/PannerNode.cpp
@@ -252,7 +250,7 @@ dom/CurrentScriptIncrementer.h
 dom/CustomElementDefaultARIA.cpp
 dom/CustomElementRegistry.cpp
 dom/DataTransfer.cpp
-dom/DataTransferItemList.cpp
+[ iOS ] dom/DataTransferItemList.cpp
 dom/Document.cpp
 dom/Element.cpp
 dom/ElementData.cpp
@@ -260,10 +258,8 @@ dom/ElementInlines.h
 dom/ElementInternals.cpp
 [ Mac ] dom/ElementIteratorInlines.h
 [ Mac ] dom/ElementTraversal.h
-[ Mac ] dom/EventLoop.cpp
 dom/EventPath.cpp
 dom/ExtensionStyleSheets.cpp
-dom/FragmentDirectiveRangeFinder.cpp
 dom/GCReachableRef.h
 dom/IdleCallbackController.cpp
 dom/ImageOverlay.cpp
@@ -276,13 +272,13 @@ dom/NamedNodeMap.cpp
 dom/Node.cpp
 dom/NodeIterator.cpp
 dom/NodeRareData.h
-dom/NodeWithIndex.h
+[ iOS ] dom/NodeWithIndex.h
 dom/PendingScript.cpp
 dom/Position.cpp
 dom/PositionIterator.cpp
 dom/ProcessingInstruction.cpp
 dom/Range.cpp
-dom/RangeBoundaryPoint.h
+[ iOS ] dom/RangeBoundaryPoint.h
 dom/SelectorQuery.cpp
 dom/ShadowRoot.cpp
 dom/ShadowRoot.h
@@ -330,11 +326,10 @@ editing/cocoa/WebContentReaderCocoa.mm
 editing/mac/FrameSelectionMac.mm
 editing/markup.cpp
 [ Mac ] history/CachedFrame.cpp
-[ Mac ] html/BaseDateAndTimeInputType.cpp
 html/CachedHTMLCollection.h
 html/CachedHTMLCollectionInlines.h
 html/CollectionTraversalInlines.h
-html/ColorInputType.cpp
+[ iOS ] html/ColorInputType.cpp
 html/CustomPaintCanvas.cpp
 html/DirectoryFileListCreator.cpp
 html/FTPDirectoryDocument.cpp
@@ -362,8 +357,6 @@ html/MediaElementSession.cpp
 html/ModelDocument.cpp
 html/OffscreenCanvas.cpp
 [ Mac ] html/RangeInputType.cpp
-[ Mac ] html/ResetInputType.cpp
-html/TextFieldInputType.cpp
 html/ValidatedFormListedElement.cpp
 html/ValidationMessage.cpp
 html/canvas/CanvasFilterContextSwitcher.cpp
@@ -378,7 +371,7 @@ html/canvas/PlaceholderRenderingContext.cpp
 html/canvas/WebGL2RenderingContext.cpp
 html/canvas/WebGLRenderingContextBase.cpp
 html/parser/HTMLConstructionSite.cpp
-html/parser/HTMLConstructionSite.h
+[ iOS ] html/parser/HTMLConstructionSite.h
 html/parser/HTMLParserScheduler.cpp
 html/parser/HTMLScriptRunner.cpp
 html/parser/HTMLTreeBuilder.cpp
@@ -529,7 +522,6 @@ platform/encryptedmedia/CDMProxy.h
 platform/graphics/BitmapImage.cpp
 platform/graphics/BitmapImage.h
 platform/graphics/BitmapImageSource.cpp
-[ Mac ] platform/graphics/Color.h
 platform/graphics/DisplayRefreshMonitorManager.h
 platform/graphics/FontCache.cpp
 platform/graphics/FontRanges.cpp
@@ -612,15 +604,15 @@ rendering/AttachmentLayout.mm
 rendering/BackgroundPainter.cpp
 rendering/BorderPainter.cpp
 rendering/CaretRectComputation.cpp
-rendering/EllipsisBoxPainter.cpp
+[ iOS ] rendering/EllipsisBoxPainter.cpp
 rendering/HitTestResult.cpp
-rendering/ImageQualityController.cpp
+[ iOS ] rendering/ImageQualityController.cpp
 rendering/InlineBoxPainter.cpp
 rendering/LayerAncestorClippingStack.cpp
 rendering/LegacyInlineFlowBox.cpp
 rendering/LegacyLineLayout.cpp
 rendering/MarkedText.cpp
-rendering/MotionPath.cpp
+[ iOS ] rendering/MotionPath.cpp
 rendering/RenderAttachment.cpp
 rendering/RenderBlock.cpp
 rendering/RenderBox.cpp
@@ -656,7 +648,7 @@ rendering/RenderQuote.cpp
 rendering/RenderReplaced.cpp
 rendering/RenderReplica.cpp
 rendering/RenderScrollbarPart.cpp
-rendering/RenderTable.cpp
+[ iOS ] rendering/RenderTable.cpp
 rendering/RenderTableCell.cpp
 rendering/RenderTableSection.cpp
 rendering/RenderText.cpp
@@ -696,13 +688,13 @@ rendering/svg/RenderSVGResourcePattern.cpp
 rendering/svg/RenderSVGRoot.cpp
 rendering/svg/RenderSVGText.cpp
 rendering/svg/RenderSVGTextPath.cpp
-rendering/svg/SVGLayerTransformComputation.h
+[ iOS ] rendering/svg/SVGLayerTransformComputation.h
 rendering/svg/SVGRenderTreeAsText.cpp
-rendering/svg/SVGRenderingContext.cpp
+[ iOS ] rendering/svg/SVGRenderingContext.cpp
 rendering/svg/SVGTextBoxPainter.cpp
 rendering/svg/legacy/LegacyRenderSVGForeignObject.cpp
 rendering/svg/legacy/LegacyRenderSVGImage.cpp
-rendering/svg/legacy/LegacyRenderSVGModelObject.cpp
+[ iOS ] rendering/svg/legacy/LegacyRenderSVGModelObject.cpp
 rendering/svg/legacy/LegacyRenderSVGPath.cpp
 rendering/svg/legacy/LegacyRenderSVGResourceClipper.cpp
 rendering/svg/legacy/LegacyRenderSVGResourceContainer.cpp
@@ -745,7 +737,7 @@ style/StyleExtractor.cpp
 style/StyleExtractorCustom.h
 style/StyleInvalidator.cpp
 style/StylePendingResources.cpp
-style/StyleResolveForDocument.cpp
+[ iOS ] style/StyleResolveForDocument.cpp
 style/StyleResolver.cpp
 style/StyleScope.cpp
 style/StyleScopeRuleSets.cpp

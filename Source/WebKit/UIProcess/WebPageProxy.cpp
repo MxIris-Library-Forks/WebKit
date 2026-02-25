@@ -10209,7 +10209,7 @@ void WebPageProxy::dataTaskWithRequest(WebCore::ResourceRequest&& request, const
 
 void WebPageProxy::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::optional<WebCore::FloatSize> sizeConstraint, size_t maximumBytesFromNetwork, CompletionHandler<void(Expected<Ref<WebCore::ShareableBitmap>, WebCore::ResourceError>&&)>&& completionHandler)
 {
-    if (isClosed())
+    if (isClosed() || !request.url().isValid())
         return completionHandler(makeUnexpected(decodeError(request.url())));
 
     if (!hasRunningProcess())
@@ -13695,6 +13695,15 @@ void WebPageProxy::didChangeScrollbarsForMainFrame(bool hasHorizontalScrollbar, 
 RectEdges<bool> WebPageProxy::pinnedState() const
 {
     return internals().mainFramePinnedState;
+}
+
+RectEdges<bool> WebPageProxy::pinnedStateIncludingAncestorsAtPoint(FloatPoint point)
+{
+#if PLATFORM(COCOA)
+    if (CheckedPtr scrollingCoordinatorProxy = m_scrollingCoordinatorProxy.get())
+        return scrollingCoordinatorProxy->pinnedStateIncludingAncestorsAtPoint(point);
+#endif
+    return { };
 }
 
 void WebPageProxy::didChangeScrollOffsetPinningForMainFrame(RectEdges<bool> pinnedState)
@@ -17728,6 +17737,19 @@ IGNORE_CLANG_WARNINGS_END
 }
 
 #endif
+
+void WebPageProxy::updateRemoteIntersectionObserversInOtherWebProcesses(IPC::Connection& connection)
+{
+    Ref originWebProcess = WebProcessProxy::fromConnection(connection);
+
+    forEachWebContentProcess([&] (WebProcessProxy& webProcess, WebCore::PageIdentifier pageID) {
+        // Don't send the message back to where it comes from
+        if (originWebProcess == webProcess)
+            return;
+
+        webProcess.send(Messages::WebPage::UpdateRemoteIntersectionObservers(), pageID);
+    });
+}
 
 } // namespace WebKit
 

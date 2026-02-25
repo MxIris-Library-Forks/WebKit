@@ -1002,10 +1002,10 @@ void Document::commonTeardown()
     m_documentFragmentForInnerOuterHTML = nullptr;
     m_frameMemoryMonitor = nullptr;
 
-    auto intersectionObservers = m_intersectionObservers;
-    for (auto& weakIntersectionObserver : intersectionObservers) {
-        if (RefPtr intersectionObserver = weakIntersectionObserver.get())
-            intersectionObserver->disconnect();
+    auto localIntersectionObservers = m_localIntersectionObservers;
+    for (auto& weakLocalIntersectionObserver : localIntersectionObservers) {
+        if (RefPtr localIntersectionObserver = weakLocalIntersectionObserver.get())
+            localIntersectionObserver->disconnect();
     }
 
     auto resizeObservers = m_resizeObservers;
@@ -2353,7 +2353,7 @@ std::optional<BoundaryPoint> Document::caretPositionFromPoint(const LayoutPoint&
         return std::nullopt;
 
     unsigned offset = rangeCompliantPosition.offsetInContainerNode();
-    node = retargetToScope(*protect(rangeCompliantPosition.containerNode()));
+    node = retargetToScope(*rangeCompliantPosition.containerNode());
     if (node != rangeCompliantPosition.containerNode())
         offset = 0;
 
@@ -2536,7 +2536,7 @@ void Document::setTitle(String&& title)
             m_titleElement = titleElement.copyRef();
             headElement->appendChild(titleElement);
         } else
-            oldTitle = protectedTitleElement()->textContent();
+            oldTitle = protect(m_titleElement)->textContent();
 
         // appendChild above may have run scripts which removed m_titleElement.
         if (!m_titleElement)
@@ -2587,18 +2587,13 @@ template<typename TitleElement> Element* selectNewTitleElement(Document& documen
     return newTitleElement.unsafeGet();
 }
 
-inline RefPtr<Element> Document::protectedTitleElement() const
-{
-    return m_titleElement;
-}
-
 void Document::updateTitleElement(Element& changingTitleElement)
 {
     // Most documents use HTML title rules.
     // Documents with SVG document elements use SVG title rules.
     auto selectTitleElement = is<SVGSVGElement>(documentElement())
         ? selectNewTitleElement<SVGTitleElement> : selectNewTitleElement<HTMLTitleElement>;
-    RefPtr newTitleElement = selectTitleElement(*this, protectedTitleElement().get(), changingTitleElement);
+    RefPtr newTitleElement = selectTitleElement(*this, protect(m_titleElement).get(), changingTitleElement);
     if (m_titleElement == newTitleElement)
         return;
     m_titleElement = WTF::move(newTitleElement);
@@ -4394,7 +4389,7 @@ void Document::setParsing(bool b)
     m_bParsing = b;
 
     if (m_bParsing && !m_sharedObjectPool)
-        m_sharedObjectPool = makeUnique<DocumentSharedObjectPool>(RegistrableDomain { securityOrigin().data() });
+        m_sharedObjectPool = makeUnique<DocumentSharedObjectPool>(securityOrigin());
 
     if (!m_bParsing && view() && !view()->needsLayout())
         protect(view())->fireLayoutRelatedMilestonesIfNeeded();
@@ -6132,8 +6127,8 @@ void Document::visibilityAdjustmentStateDidChange()
 #if PLATFORM(IOS_FAMILY)
 void Document::sceneIdentifierDidChange()
 {
-    for (auto& audioProducer : m_audioProducers)
-        audioProducer.sceneIdentifierDidChange();
+    for (Ref audioProducer : m_audioProducers)
+        audioProducer->sceneIdentifierDidChange();
 }
 #endif
 
@@ -6154,7 +6149,7 @@ void Document::processCaptureStateDidChange(Function<bool(const Page&)>&& isPage
         return;
 
     RefPtr window = this->window();
-    RefPtr mediaSession = window ? NavigatorMediaSession::mediaSessionIfExists(window->protectedNavigator()) : nullptr;
+    RefPtr mediaSession = window ? NavigatorMediaSession::mediaSessionIfExists(protect(window->navigator())) : nullptr;
     if (!mediaSession)
         return;
 
@@ -6228,7 +6223,7 @@ void Document::voiceActivityDetected()
         return;
 
     RefPtr window = this->window();
-    RefPtr mediaSession = window ? NavigatorMediaSession::mediaSessionIfExists(window->protectedNavigator()) : nullptr;
+    RefPtr mediaSession = window ? NavigatorMediaSession::mediaSessionIfExists(protect(window->navigator())) : nullptr;
     if (!mediaSession)
         return;
 
@@ -6938,7 +6933,7 @@ void Document::adjustFocusNavigationNodeOnNodeRemoval(Node& node, NodeRemoval no
         return;
 
     if (isNodeInSubtree(*m_focusNavigationStartingNode, node, nodeRemoval)) {
-        auto* newNode = (nodeRemoval == NodeRemoval::ChildrenOfNode) ? &node : fallbackFocusNavigationStartingNodeAfterRemoval(node);
+        RefPtr newNode = nodeRemoval == NodeRemoval::ChildrenOfNode ? &node : fallbackFocusNavigationStartingNodeAfterRemoval(node);
         m_focusNavigationStartingNode = (newNode != this) ? newNode : nullptr;
         m_focusNavigationStartingNodeIsRemoved = true;
     }
@@ -10390,21 +10385,73 @@ void Document::scheduleRenderingUpdate(OptionSet<RenderingUpdateStep> requestedS
 
 void Document::addIntersectionObserver(IntersectionObserver& observer)
 {
-    ASSERT(m_intersectionObservers.find(&observer) == notFound);
-    m_intersectionObservers.append(observer);
+    ASSERT(!m_localIntersectionObservers.contains(&observer));
+    ASSERT(!m_remoteIntersectionObservers.contains(&observer));
+
+    switch (observer.type()) {
+    case IntersectionObserver::Type::Local:
+        m_localIntersectionObservers.append(observer);
+        break;
+
+    case IntersectionObserver::Type::Remote:
+        m_remoteIntersectionObservers.append(observer);
+        break;
+    }
 }
 
 void Document::removeIntersectionObserver(IntersectionObserver& observer)
 {
-    m_intersectionObservers.removeFirst(&observer);
+    bool removed = false;
+
+    switch (observer.type()) {
+    case IntersectionObserver::Type::Local:
+        ASSERT(!m_remoteIntersectionObservers.contains(&observer));
+        removed = m_localIntersectionObservers.removeFirst(&observer);
+        break;
+
+    case IntersectionObserver::Type::Remote:
+        ASSERT(!m_localIntersectionObservers.contains(&observer));
+        removed = m_remoteIntersectionObservers.removeFirst(&observer);
+        break;
+    }
+
+    ASSERT_UNUSED(removed, removed);
 }
 
-void Document::updateIntersectionObservations()
+static void updateAndNotifyIntersectionObservers(const Vector<WeakPtr<IntersectionObserver>>& intersectionObservers, const Frame& hostFrame)
 {
-    updateIntersectionObservations(m_intersectionObservers);
+    Vector<WeakPtr<IntersectionObserver>> intersectionObserversWithPendingNotifications;
+
+    for (auto& weakObserver : intersectionObservers) {
+        RefPtr observer = weakObserver.get();
+        if (!observer)
+            continue;
+
+        auto needNotify = observer->updateObservations(hostFrame);
+        if (needNotify == IntersectionObserver::NeedNotify::Yes)
+            intersectionObserversWithPendingNotifications.append(observer);
+    }
+
+    for (auto& weakObserver : intersectionObserversWithPendingNotifications) {
+        if (RefPtr observer = weakObserver.get())
+            observer->notify();
+    }
 }
 
-void Document::updateIntersectionObservations(const Vector<WeakPtr<IntersectionObserver>>& intersectionObservers)
+void Document::updateRemoteIntersectionObservers()
+{
+    RefPtr page = this->page();
+    if (!page)
+        return;
+
+    RefPtr mainFrame = this->page()->mainFrame();
+    if (!mainFrame)
+        return;
+
+    updateAndNotifyIntersectionObservers(m_remoteIntersectionObservers, *mainFrame);
+}
+
+void Document::updateIntersectionObservers()
 {
     RefPtr frame = this->frame();
     if (!frame)
@@ -10420,32 +10467,18 @@ void Document::updateIntersectionObservations(const Vector<WeakPtr<IntersectionO
 
     bool needsLayout = frameView->layoutContext().isLayoutPending() || (renderView() && renderView()->needsLayout());
     if (needsLayout || hasPendingStyleRecalc()) {
-        if (!intersectionObservers.isEmpty()) {
+        if (numberOfIntersectionObservers()) {
             LOG_WITH_STREAM(IntersectionObserver, stream << "Document " << this << " updateIntersectionObservations - needsLayout " << needsLayout << " or has pending style recalc " << hasPendingStyleRecalc() << "; scheduling another update");
             scheduleRenderingUpdate(RenderingUpdateStep::IntersectionObservations);
         }
         return;
     }
 
-    Vector<WeakPtr<IntersectionObserver>> intersectionObserversWithPendingNotifications;
+    updateAndNotifyIntersectionObservers(m_localIntersectionObservers, *frame);
+    updateRemoteIntersectionObservers();
 
-    for (auto& weakObserver : intersectionObservers) {
-        RefPtr observer = weakObserver.get();
-        if (!observer)
-            continue;
-
-        auto needNotify = observer->updateObservations(*frame);
-        if (needNotify == IntersectionObserver::NeedNotify::Yes)
-            intersectionObserversWithPendingNotifications.append(observer);
-    }
-
-    if (intersectionObserversWithPendingNotifications.size())
-        LOG_WITH_STREAM(IntersectionObserver, stream << "Document " << this << " updateIntersectionObservations - notifying observers");
-
-    for (auto& weakObserver : intersectionObserversWithPendingNotifications) {
-        if (RefPtr observer = weakObserver.get())
-            observer->notify();
-    }
+    if (frame->isMainFrame())
+        page->chrome().client().updateRemoteIntersectionObserversInOtherWebProcesses();
 }
 
 void Document::scheduleInitialIntersectionObservationUpdate()

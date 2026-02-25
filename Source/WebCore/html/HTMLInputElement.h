@@ -302,7 +302,7 @@ public:
     bool isTextFormControlMouseFocusable() const;
     bool valueAttributeWasUpdatedAfterParsing() const { return m_valueAttributeWasUpdatedAfterParsing; }
 
-    bool hasCustomFocusLogic() const final;
+    bool NODELETE hasCustomFocusLogic() const final;
 
     void cacheSelectionInResponseToSetValue(int caretOffset) { cacheSelection(caretOffset, caretOffset, SelectionHasNoDirection); }
 
@@ -443,8 +443,8 @@ private:
     void handleFocusEvent(Node* oldFocusedNode, FocusDirection) final;
     void handleBlurEvent() final;
 
-    bool isOptionalFormControl() const final { return !isRequiredFormControl(); }
-    bool isRequiredFormControl() const final;
+    bool NODELETE isOptionalFormControl() const final { return !isRequiredFormControl(); }
+    bool NODELETE isRequiredFormControl() const final;
     bool computeWillValidate() const final;
     void requiredStateChanged() final;
 

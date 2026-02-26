@@ -749,7 +749,6 @@ imported/w3c/web-platform-tests/feature-policy/policy-extends-to-sandbox.html [ 
 imported/w3c/web-platform-tests/feature-policy/reporting/fullscreen-reporting.html [ Skip ]
 imported/w3c/web-platform-tests/feature-policy/reporting/geolocation-reporting.https.html [ Skip ]
 imported/w3c/web-platform-tests/feature-policy/reporting/screen-wake-lock-reporting.https.html [ Skip ]
-imported/w3c/web-platform-tests/geolocation/non-secure-contexts.http.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location-origin-idna.sub.window.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location_assign.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/per-global.window.html [ Skip ]
@@ -4407,6 +4406,14 @@ imported/w3c/web-platform-tests/css/css-values/resolution-with-percentage-withou
 imported/w3c/web-platform-tests/css/css-values/viewport-units-scrollbars-scroll-vw-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/vh-update-and-transition-in-subframe.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-values/attr-universal-selector.html [ Pass Failure ]
+imported/w3c/web-platform-tests/css/css-values/attr-namespace-case-sensitivity.xhtml [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/attr-style-sharing-1.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/attr-style-sharing-2.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/attr-style-sharing-3.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/calc-size/calc-size-flex-008.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/calc-size/calc-size-flex-009.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/viewport-units-scrollbars-dynamic-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-values/viewport-units-scrollbars-scroll-vw-002.html [ ImageOnlyFailure ]
 
 # wpt css-sizing failures
 webkit.org/b/203509 imported/w3c/web-platform-tests/css/css-sizing/auto-scrollbar-inside-stf-abspos.html [ ImageOnlyFailure ]
@@ -4478,7 +4485,6 @@ imported/w3c/web-platform-tests/css/css-sizing/block-size-with-min-or-max-conten
 imported/w3c/web-platform-tests/css/css-sizing/block-size-with-min-or-max-content-4.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/fit-content-max-inline-size.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/fit-content-min-inline-size.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-019.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-023.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-026.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/intrinsic-percent-replaced-030.tentative.html [ ImageOnlyFailure ]
@@ -5741,6 +5747,7 @@ webkit.org/b/214465 imported/w3c/web-platform-tests/css/mediaqueries/prefers-col
 webkit.org/b/214465 imported/w3c/web-platform-tests/css/mediaqueries/prefers-color-scheme-svg-image-normal-with-meta-dark.html [ ImageOnlyFailure ]
 
 webkit.org/b/214466 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/formatting-context/shape-outside-formatting-context.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-029.html [ ImageOnlyFailure ]
 
 # WebKit2 only.
 js/throw-large-string-oom.html [ Skip ]
@@ -5859,6 +5866,9 @@ webanimations/translate-property-and-translate-animation-with-delay-on-forced-la
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/custom-layout-container-001.https.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/inline-size-bfc-floats.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/pseudo-elements-010.html [ ImageOnlyFailure ]
+
+# Scroll-state container queries (unsupported).
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state [ Skip ]
 
 webkit.org/b/279424 [ Debug ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/svg-foreignobject-no-size-container.html [ Skip ] # Crash
 
@@ -6521,12 +6531,17 @@ imported/w3c/web-platform-tests/fetch/sec-metadata/redirect/same-origin-redirect
 imported/w3c/web-platform-tests/fetch/sec-metadata/track.tentative.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/sec-metadata/window-open.tentative.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fullscreen/api/element-request-fullscreen-cross-origin.sub.html [ Skip ]
-imported/w3c/web-platform-tests/geolocation/non-fully-active.https.html [ Skip ]
-webkit.org/b/274950 imported/w3c/web-platform-tests/geolocation/enabled-by-permission-policy-attribute.https.sub.html [ Slow Skip ]
-webkit.org/b/274950 imported/w3c/web-platform-tests/geolocation/disabled-by-permissions-policy.https.sub.html [ Slow Skip ]
-webkit.org/b/274950 imported/w3c/web-platform-tests/geolocation/enabled-by-permission-policy-attribute-redirect-on-load.https.sub.html [ Slow Skip ]
-imported/w3c/web-platform-tests/geolocation/enabled-on-self-origin-by-permissions-policy.https.sub.html [ Slow ]
-webkit.org/b/274950 imported/w3c/web-platform-tests/geolocation/enabled-by-permissions-policy.https.sub.html [ Slow Skip ]
+# Geolocation tests
+# Bug 291197: WebDriver BiDi not implemented - tests require test_driver.bidi.permissions/emulation APIs
+webkit.org/b/291197 imported/w3c/web-platform-tests/geolocation/getCurrentPosition-error.https.html [ Skip ]
+webkit.org/b/291197 imported/w3c/web-platform-tests/geolocation/getCurrentPosition-success.https.html [ Skip ]
+webkit.org/b/291197 imported/w3c/web-platform-tests/geolocation/tojson.https.window.html [ Skip ]
+webkit.org/b/291197 imported/w3c/web-platform-tests/geolocation/non-fully-active.https.html [ Skip ]
+webkit.org/b/291197 imported/w3c/web-platform-tests/geolocation/enabled-by-permission-policy-attribute-redirect-on-load.https.sub.html [ Skip ]
+# Bug 253126: Permissions-Policy HTTP header not implemented - tests use header to restrict/allow geolocation
+webkit.org/b/253126 imported/w3c/web-platform-tests/geolocation/disabled-by-permissions-policy.https.sub.html [ Skip ]
+webkit.org/b/253126 imported/w3c/web-platform-tests/geolocation/enabled-by-permissions-policy.https.sub.html [ Skip ]
+webkit.org/b/253126 imported/w3c/web-platform-tests/geolocation/enabled-on-self-origin-by-permissions-policy.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/window-name-after-cross-origin-aux-frame-navigation.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/window-name-after-cross-origin-sub-frame-navigation.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/004.html [ Skip ]
@@ -8156,10 +8171,6 @@ imported/w3c/web-platform-tests/css/CSS2/visudet/inline-block-baseline-003.xht [
 imported/w3c/web-platform-tests/css/CSS2/visudet/inline-block-baseline-004.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/visudet/inline-block-baseline-005.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/visudet/inline-block-baseline-006.xht [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/CSS2/visudet/replaced-elements-min-height-20.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/CSS2/visudet/replaced-elements-min-height-40.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/CSS2/visudet/replaced-elements-min-width-40.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/CSS2/visudet/replaced-elements-min-width-80.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/CSS2/abspos/remove-block-between-inline-and-abspos.html [ ImageOnlyFailure ]
 

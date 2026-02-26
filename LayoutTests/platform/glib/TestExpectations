@@ -915,6 +915,9 @@ accessibility/mixed-contenteditable-double-br-visible-character-range-hang.html 
 accessibility/aria-braillelabel.html [ Failure ]
 accessibility/aria-brailleroledescription.html [ Failure ]
 
+# May need some hierarchy-specific tweaks for glib platforms (or maybe the test can be written in a more platform-agnostic way).
+accessibility/loading-iframe-updates-axtree.html [ Skip ]
+
 # Need to implement AccessibilityUIElement::domIdentifier() for this test to pass after webkit.org/b/234198.
 accessibility/focusable-div.html [ Skip ]
 
@@ -1688,8 +1691,6 @@ webkit.org/b/254514 media/media-source/media-source-seek-unbuffered.html [ Failu
 webkit.org/b/167108 imported/w3c/web-platform-tests/media-source/URL-createObjectURL-revoke.html [ Failure ]
 
 webkit.org/b/224767 imported/w3c/web-platform-tests/media-source/mediasource-changetype-play-implicit.html [ Crash Pass ]
-
-webkit.org/b/285752 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-mimetype.html [ Pass Crash ]
 
 # See also bug #175578.
 webkit.org/b/167108 imported/w3c/web-platform-tests/media-source/mediasource-avtracks.html [ Failure ]
@@ -5289,6 +5290,8 @@ webkit.org/b/308480 http/wpt/service-workers/navigation-preload-without-worker-c
 webkit.org/b/308481 fast/speechsynthesis/speech-synthesis-speak-empty-string.html [ Failure Pass ]
 
 webkit.org/b/308538 resize-observer/resize-observer-keeps-js-wrapper-of-target-alive.html [ Pass Failure ]
+
+webkit.org/b/308633 fast/scrolling/scroll-corner-update-on-direction-change.html [ ImageOnlyFailure Pass ]
 
 # End: Common failures between GTK and WPE.
 

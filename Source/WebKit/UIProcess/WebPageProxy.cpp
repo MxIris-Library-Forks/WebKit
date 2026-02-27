@@ -2145,11 +2145,6 @@ WebProcessProxy& WebPageProxy::ensureRunningProcess()
     return m_legacyMainFrameProcess;
 }
 
-Ref<WebProcessProxy> WebPageProxy::ensureProtectedRunningProcess()
-{
-    return ensureRunningProcess();
-}
-
 RefPtr<API::Navigation> WebPageProxy::loadRequest(WebCore::ResourceRequest&& request, ShouldOpenExternalURLsPolicy shouldOpenExternalURLsPolicy, NavigationUpgradeToHTTPSBehavior navigationUpgradeToHTTPSBehavior, std::unique_ptr<NavigationActionData>&& lastNavigationAction, API::Object* userData, bool isRequestFromClientOrUserInput)
 {
     if (m_isClosed)
@@ -7728,6 +7723,12 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
 
         m_pageLoadTiming = std::exchange(m_pageLoadTimingPendingCommit, nullptr);
         m_framesWithSubresourceLoadingForPageLoadTiming.clear();
+
+#if HAVE(SAFE_BROWSING)
+        if (navigation && navigation->hadSafeBrowsingWarning())
+            protectedPageLoadState->setHadSafeBrowsingWarning(transaction);
+        m_hasShownSafeBrowsingWarningAfterLastLoadCommit = false;
+#endif
     }
 
 #if USE(APPKIT)
@@ -8682,6 +8683,7 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
             if (frame->isMainFrame() && safeBrowsingWarning->url().isValid()) {
                 Ref protectedPageLoadState = pageLoadState();
                 auto transaction = protectedPageLoadState->transaction();
+                protectedPageLoadState->setHadSafeBrowsingWarning(transaction);
                 protectedPageLoadState->setPendingAPIRequest(transaction, { navigation->navigationID(), safeBrowsingWarning->url().string() });
                 protectedPageLoadState->commitChanges();
             }
@@ -8998,6 +9000,7 @@ void WebPageProxy::decidePolicyForResponseShared(Ref<WebProcessProxy>&& process,
             if (frame->isMainFrame() && safeBrowsingWarning->url().isValid()) {
                 Ref protectedPageLoadState = pageLoadState();
                 auto transaction = protectedPageLoadState->transaction();
+                protectedPageLoadState->setHadSafeBrowsingWarning(transaction);
                 protectedPageLoadState->setPendingAPIRequest(transaction, { navigation->navigationID(), safeBrowsingWarning->url().string() });
                 protectedPageLoadState->commitChanges();
             }
@@ -12315,6 +12318,10 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
     if (auto modelPresentationManager = modelPresentationManagerProxy())
         modelPresentationManager->invalidateAllModels();
 #endif
+
+#if HAVE(SAFE_BROWSING)
+    m_hasShownSafeBrowsingWarningAfterLastLoadCommit = false;
+#endif
 }
 
 void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason terminationReason)
@@ -14879,7 +14886,7 @@ void WebPageProxy::updatePlayingMediaDidChange(CanDelayNotification canDelayNoti
 
 #if ENABLE(MEDIA_STREAM) && ENABLE(GPU_PROCESS)
         if (protect(preferences())->captureAudioInGPUProcessEnabled() && newMediaCaptureState & WebCore::MediaProducerMediaState::HasActiveAudioCaptureDevice)
-            protect(configuration().processPool())->ensureProtectedGPUProcess()->setPageUsingMicrophone(identifier());
+            protect(protect(configuration().processPool())->ensureGPUProcess())->setPageUsingMicrophone(identifier());
 #endif
     }
     updateMediaCaptureStateImmediatelyIfNeeded();

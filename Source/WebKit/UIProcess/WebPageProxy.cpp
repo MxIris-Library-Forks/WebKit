@@ -210,6 +210,7 @@
 #include "WebsiteDataStore.h"
 #include <JavaScriptCore/ConsoleTypes.h>
 #include <WebCore/AXObjectCache.h>
+#include <WebCore/AXSearchManager.h>
 #include <WebCore/AlternativeTextClient.h>
 #include <WebCore/AppHighlight.h>
 #include <WebCore/ArchiveError.h>
@@ -4008,13 +4009,14 @@ void WebPageProxy::dragEnded(const IntPoint& clientPosition, const IntPoint& glo
     setDragCaretRect({ });
 }
 
-void WebPageProxy::didStartDrag()
+void WebPageProxy::didStartDrag(const std::optional<FrameIdentifier>& targetFrameID)
 {
     if (!hasRunningProcess())
         return;
 
     discardQueuedMouseEvents();
-    send(Messages::WebPage::DidStartDrag());
+
+    sendToProcessContainingFrame(targetFrameID, Messages::WebPage::DidStartDrag(targetFrameID));
 }
 
 void WebPageProxy::dragCancelled()
@@ -7166,6 +7168,27 @@ void WebPageProxy::resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifie
 {
     sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::ResolveAccessibilityHitTestForTesting(frameID, point), WTF::move(callback));
 }
+
+#if PLATFORM(MAC)
+void WebPageProxy::performAccessibilitySearchInRemoteFrame(WebCore::FrameIdentifier frameID, WebCore::AccessibilitySearchCriteriaIPC criteria, CompletionHandler<void(Vector<WebCore::AccessibilityRemoteToken>&&)>&& callback)
+{
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformAccessibilitySearchInRemoteFrame(frameID, criteria), WTF::move(callback));
+}
+
+void WebPageProxy::continueAccessibilitySearchFromChildFrame(WebCore::FrameIdentifier childFrameID, WebCore::AccessibilitySearchCriteriaIPC criteria, CompletionHandler<void(Vector<WebCore::AccessibilityRemoteToken>&&)>&& callback)
+{
+    // Find the child frame and get its parent frame to continue the search.
+    RefPtr childFrame = WebFrameProxy::webFrame(childFrameID);
+    RefPtr parentFrame = childFrame ? childFrame->parentFrame() : nullptr;
+    if (!parentFrame) {
+        callback({ });
+        return;
+    }
+
+    // Send the continuation request to the parent frame's process.
+    sendWithAsyncReplyToProcessContainingFrame(parentFrame->frameID(), Messages::WebPage::ContinueAccessibilitySearchInParentFrame(childFrameID, criteria), WTF::move(callback));
+}
+#endif
 
 void WebPageProxy::updateReferrerPolicy(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::ReferrerPolicy referrerPolicy)
 {

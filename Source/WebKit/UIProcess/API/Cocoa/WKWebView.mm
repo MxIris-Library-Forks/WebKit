@@ -1940,11 +1940,11 @@ inline OptionSet<WebKit::FindOptions> toFindOptions(WKFindConfiguration *configu
     return nil;
 }
 
+#endif // PLATFORM(MAC)
+
 #if USE(APPLE_INTERNAL_SDK)
 #import <WebKitAdditions/WKWebViewAdditions.mm>
 #endif
-
-#endif // PLATFORM(MAC)
 
 #pragma mark - macOS/iOS internal
 
@@ -3813,6 +3813,19 @@ struct WKWebViewData {
 {
     protect(_page)->scrollToEdge(toRectEdges(edge), animated ? WebCore::ScrollIsAnimated::Yes : WebCore::ScrollIsAnimated::No);
 }
+
+#if !ENABLE(WEBVIEW_ADDITIONAL_SETUP) && (PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(VISION))
+
+- (void)_setWebViewInformation:(id)information
+{
+}
+
+- (id)_webViewInformation
+{
+    return nil;
+}
+
+#endif
 
 @end
 

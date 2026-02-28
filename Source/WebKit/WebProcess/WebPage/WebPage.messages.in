@@ -380,7 +380,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     PerformDragOperation(std::optional<WebCore::FrameIdentifier> frameID, WebCore::DragData dragData, WebKit::SandboxExtensionHandle sandboxExtensionHandle, Vector<WebKit::SandboxExtensionHandle> sandboxExtensionsForUpload) -> (WebKit::DragOperationResult dragOperationResult)
 #endif
 #if ENABLE(DRAG_SUPPORT)
-    DidStartDrag()
+    DidStartDrag(std::optional<WebCore::FrameIdentifier> frameID)
     DragEnded(std::optional<WebCore::FrameIdentifier> frameID, WebCore::IntPoint clientPosition, WebCore::IntPoint globalPosition, OptionSet<WebCore::DragOperation> dragOperationMask) -> (struct std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData)
     DragCancelled()
 #endif
@@ -544,6 +544,10 @@ messages -> WebPage WantsAsyncDispatchMessage {
     UpdateRemotePageAccessibilityInheritedState(WebCore::FrameIdentifier frameID, struct WebCore::InheritedFrameState state);
 #endif
     ResolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier frameID, WebCore::IntPoint point) -> (String result)
+#if PLATFORM(MAC)
+    PerformAccessibilitySearchInRemoteFrame(WebCore::FrameIdentifier frameID, struct WebCore::AccessibilitySearchCriteriaIPC criteria) -> (Vector<WebCore::AccessibilityRemoteToken> results)
+    ContinueAccessibilitySearchInParentFrame(WebCore::FrameIdentifier childFrameID, struct WebCore::AccessibilitySearchCriteriaIPC criteria) -> (Vector<WebCore::AccessibilityRemoteToken> results)
+#endif
     EnableAccessibility()
 
 #if PLATFORM(MAC)

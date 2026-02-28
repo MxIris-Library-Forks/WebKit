@@ -498,7 +498,7 @@ void InlineDisplayContentBuilder::processNonBidiContent(const LineLayoutResult& 
             continue;
         CheckedRef layoutBox = lineRun.layoutBox();
 
-        if (lineRun.isOpaque()) {
+        if (lineRun.isOutOfFlow()) {
             if (layoutBox->style().originalDisplay().isInlineType()) {
                 formattingContext().geometryForBox(layoutBox).setTopLeft({ lineBox.logicalRect().left() + lineBox.logicalRectForRootInlineBox().left() + lineRun.logicalLeft(), lineBox.logicalRect().top() });
                 continue;
@@ -793,9 +793,37 @@ void InlineDisplayContentBuilder::adjustVisualGeometryForDisplayBox(size_t displ
         displayBox.setHasContent();
 }
 
+bool InlineDisplayContentBuilder::processBidiLinesWithNoContent(const LineLayoutResult& lineLayoutResult, InlineDisplay::Boxes& boxes)
+{
+    if (lineLayoutResult.hasContentfulInFlowContent())
+        return false;
+
+    processNonBidiContent(lineLayoutResult, boxes);
+    if (m_displayLine.isLeftToRightInlineDirection())
+        return true;
+
+    for (auto& box : boxes) {
+        if (!box.isInlineBox()) {
+            boxes.clear();
+            ASSERT_NOT_REACHED();
+            return false;
+        }
+        if (box.isNonRootInlineBox()) {
+            m_displayLine.isHorizontal() ? box.setLeft(m_displayLine.lineBoxRight()) : box.setTop(m_displayLine.lineBoxBottom());
+
+            auto& inlineBoxGeometry = formattingContext().geometryForBox(box.layoutBox());
+            m_displayLine.isHorizontal() ? inlineBoxGeometry.setLeft(LayoutUnit { box.left() }) : inlineBoxGeometry.setTop(LayoutUnit { box.top() });
+        }
+    }
+    return true;
+}
+
 void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lineLayoutResult, InlineDisplay::Boxes& boxes)
 {
     ASSERT(lineLayoutResult.directionality.visualOrderList.size() <= lineLayoutResult.runs.size());
+
+    if (processBidiLinesWithNoContent(lineLayoutResult, boxes))
+        return;
 
     AncestorStack ancestorStack;
     auto displayBoxTree = DisplayBoxTree { };
@@ -835,7 +863,7 @@ void InlineDisplayContentBuilder::processBidiContent(const LineLayoutResult& lin
             auto parentDisplayBoxNodeIndex = ensureDisplayBoxForContainer(layoutBox->parent(), displayBoxTree, ancestorStack, boxes);
             hasInlineBox = hasInlineBox || (!lineRun.isBlock() && (parentDisplayBoxNodeIndex || lineRun.isInlineBoxStart() || lineRun.isLineSpanningInlineBoxStart()));
 
-            if (lineRun.isOpaque()) {
+            if (lineRun.isOutOfFlow()) {
                 if (layoutBox->style().originalDisplay().isInlineType()) {
                     // Note that out-of-flow handling (render tree integration) really only needs logical coords (not even "content in inline direction visual order").
                     formattingContext().geometryForBox(layoutBox).setTopLeft({ lineBox.logicalRect().left() + lineBox.logicalRectForRootInlineBox().left() + lineRun.logicalLeft(), lineBox.logicalRect().top() });

@@ -1386,7 +1386,7 @@ extension WebGPU.CommandEncoder {
             }
 
             if zeroColorTargets {
-                // FIXME: rdar://170997914 (Invalid render pass usage leads to crashes in the WebGPU Swift backend (308471))
+                // FIXME: rdar://170997914 (Invalid render pass usage leads to crashes in the WebGPU Swift backend (308471)).
                 // swift-format-ignore: NeverForceUnwrap
                 mtlDescriptor.defaultRasterSampleCount = metalDepthStencilTexture!.sampleCount
                 if mtlDescriptor.defaultRasterSampleCount == 0 {
@@ -2299,7 +2299,7 @@ extension WebGPU.CommandEncoder {
             // FIXME: https://bugs.webkit.org/show_bug.cgi?id=283385 - https://bugs.webkit.org/show_bug.cgi?id=283088 should be reverted when the blocking issue is resolved
             finalizeBlitCommandEncoder()
             let workaround = m_device.ptr().resolveTimestampsSharedEvent()
-            // The signal value does not matter, the event alone prevents reordering
+            // The signal value does not matter, the event alone prevents reordering.
             m_commandBuffer?.encodeSignalEvent(workaround, value: 1)
             m_commandBuffer?.encodeWaitForEvent(workaround, value: 1)
             guard ensureBlitCommandEncoder() != nil else {

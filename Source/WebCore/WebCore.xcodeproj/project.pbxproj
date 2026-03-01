@@ -4245,6 +4245,7 @@
 		A1F76B4F1F44D2420014C318 /* PaymentDetailsModifier.h in Headers */ = {isa = PBXBuildFile; fileRef = A1F76B4C1F44D2420014C318 /* PaymentDetailsModifier.h */; };
 		A1F76B551F44D2C70014C318 /* PaymentShippingOption.h in Headers */ = {isa = PBXBuildFile; fileRef = A1F76B521F44D2C70014C318 /* PaymentShippingOption.h */; };
 		A1F76B5B1F44D3B20014C318 /* PaymentComplete.h in Headers */ = {isa = PBXBuildFile; fileRef = A1F76B581F44D3B20014C318 /* PaymentComplete.h */; };
+		A1FAC4FE2F4ED86A001A00F0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1FAC4FD2F4ED869001A00F0 /* CoreMedia.framework */; };
 		A31C4E4F16E02AB4002F7957 /* OESTextureHalfFloat.h in Headers */ = {isa = PBXBuildFile; fileRef = A31C4E4E16E02AB4002F7957 /* OESTextureHalfFloat.h */; };
 		A31C4E5416E02B40002F7957 /* JSOESTextureHalfFloat.h in Headers */ = {isa = PBXBuildFile; fileRef = A31C4E5316E02B40002F7957 /* JSOESTextureHalfFloat.h */; };
 		A336CF322B86492700464599 /* TrustedType.h in Headers */ = {isa = PBXBuildFile; fileRef = A32E83D82B7CD9250055FE75 /* TrustedType.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -16917,6 +16918,7 @@
 		A1F76B581F44D3B20014C318 /* PaymentComplete.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PaymentComplete.h; sourceTree = "<group>"; };
 		A1F76B5A1F44D3B20014C318 /* PaymentComplete.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PaymentComplete.idl; sourceTree = "<group>"; };
 		A1F78D0B1C25422C00245446 /* ResourceResponseCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ResourceResponseCocoa.mm; sourceTree = "<group>"; };
+		A1FAC4FD2F4ED869001A00F0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		A208E222A56A0C7575F2A72E /* RenderMathMLMenclose.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderMathMLMenclose.h; sourceTree = "<group>"; };
 		A31AC70A24340984007F00A2 /* MediaStrategy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaStrategy.cpp; sourceTree = "<group>"; };
 		A31C4E4C16E02AA6002F7957 /* OESTextureHalfFloat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OESTextureHalfFloat.cpp; sourceTree = "<group>"; };
@@ -23230,6 +23232,7 @@
 			files = (
 				A1763F411E20586E001D58DE /* CFNetwork.framework in Frameworks */,
 				AA5F3B9116CC5BEB00455EB0 /* CoreFoundation.framework in Frameworks */,
+				A1FAC4FE2F4ED86A001A00F0 /* CoreMedia.framework in Frameworks */,
 				A15E6BF11E212A6A0080AF34 /* Foundation.framework in Frameworks */,
 				41230913138C42FF00BCCFCA /* JavaScriptCore.framework in Frameworks */,
 				F471137527A0AFA6001BC7CA /* libPAL.a in Frameworks */,
@@ -23988,6 +23991,7 @@
 				FD2DBF0F12B048A300ED98C6 /* AudioToolbox.framework */,
 				A1763F401E20586E001D58DE /* CFNetwork.framework */,
 				AA5F3B9016CC5BEB00455EB0 /* CoreFoundation.framework */,
+				A1FAC4FD2F4ED869001A00F0 /* CoreMedia.framework */,
 				948FD0332B4C9D0600043FEB /* CryptoKit.framework */,
 				A15E6BF01E212A6A0080AF34 /* Foundation.framework */,
 				1AB33DA412551E320024457A /* IOKit.framework */,

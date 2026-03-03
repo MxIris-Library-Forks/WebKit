@@ -25,22 +25,14 @@
 
 #pragma once
 
+#include <WebCore/AxisConstraint.h>
+
 namespace WebCore {
 namespace Layout {
-// https://drafts.csswg.org/css-grid-1/#algo-flex-tracks
-// Enumerate the three free space scenarios for flex track sizing (spec §11.7).
-enum class FreeSpaceScenario : uint8_t {
-    // Scenario 1: Free space is zero or sizing under min-content constraint.
-    // Flex tracks resolve to zero.
-    MinContent,
 
-    // Scenario 2: Free space is a definite length.
-    // Flex tracks distribute available space using findSizeOfFr().
-    Definite,
-
-    // Scenario 3: Free space is infinite or sizing under max-content constraint.
-    // Flex tracks compute from max-content contributions.
-    MaxContent
+struct GridLayoutConstraints {
+    AxisConstraint inlineAxis;
+    AxisConstraint blockAxis;
 };
 
 } // namespace Layout

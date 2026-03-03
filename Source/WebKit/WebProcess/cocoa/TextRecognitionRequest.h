@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,20 +23,36 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Add project-level Objective-C header files here to be able to access them from within Swift sources.
+#pragma once
 
-#import <wtf/Platform.h>
+#if ENABLE(IMAGE_ANALYSIS)
 
-#import "ModelTypes.h" // NOLINT
-#import "UIWindowScene+Extras.h"
-#import "WKMaterialHostingSupport.h"
-#import "WKMouseDeviceObserver.h"
-#import "WKPreferencesInternal.h"
-#import "WKScrollGeometry.h"
-#import "WKSeparatedImageView.h"
-#import "WKSurroundingsEffect.h"
-#import "WKUIDelegateInternal.h"
-#import "WKUSDStageConverter.h"
-#import "WKWebViewConfigurationInternal.h"
-#import "WKWebViewInternal.h"
-#import "_WKTextExtractionInternal.h"
+#include <WebCore/HTMLMediaElementIdentifier.h>
+#include <wtf/CheckedRef.h>
+#include <wtf/RunLoop.h>
+#include <wtf/WeakPtr.h>
+
+namespace WebKit {
+
+class PlaybackSessionManager;
+class WebPage;
+
+class TextRecognitionRequest final {
+    WTF_MAKE_TZONE_ALLOCATED(TextRecognitionRequest);
+public:
+    TextRecognitionRequest(WebPage&, PlaybackSessionManager&);
+    ~TextRecognitionRequest();
+
+    void requestTextRecognitionFor(WebCore::HTMLMediaElementIdentifier);
+    void cancel();
+
+private:
+    const WeakPtr<WebPage> m_page;
+    const CheckedPtr<PlaybackSessionManager> m_manager;
+    std::unique_ptr<RunLoop::Timer> m_timer;
+    std::optional<WebCore::HTMLMediaElementIdentifier> m_identifier;
+};
+
+} // namespace WebKit
+
+#endif

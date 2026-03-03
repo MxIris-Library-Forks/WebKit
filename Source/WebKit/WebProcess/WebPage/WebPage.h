@@ -2174,6 +2174,7 @@ public:
     void paintRemoteFrameContents(WebCore::FrameIdentifier, const WebCore::IntRect&, WebCore::GraphicsContext&);
 
 #if ENABLE(VIDEO)
+    void setCaptionDisplaySettingsPreviewProfileID(const String&);
     void showCaptionDisplaySettingsPreview(WebCore::HTMLMediaElementIdentifier);
     void hideCaptionDisplaySettingsPreview(WebCore::HTMLMediaElementIdentifier);
 #endif
@@ -3278,7 +3279,7 @@ private:
 
 #if ENABLE(IMAGE_ANALYSIS)
     Vector<std::pair<WeakPtr<WebCore::HTMLElement, WebCore::WeakPtrImplWithEventTargetData>, Vector<CompletionHandler<void(RefPtr<WebCore::Element>&&)>>>> m_elementsPendingTextRecognition;
-    bool m_isPerformingTextRecognitionInElementFullScreen { false };
+    std::optional<WebCore::HTMLMediaElementIdentifier> m_elementIsPerformingTextRecognitionInElementFullScreen;
 #endif
 
 #if ENABLE(WEBXR)

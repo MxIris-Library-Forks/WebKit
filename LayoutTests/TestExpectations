@@ -659,9 +659,12 @@ imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customiz
 # Top layer exit animations (remove from implicit anchor/top layer after picker transition finishes).
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-popover-exit-animation.html [ ImageOnlyFailure ]
 
+# Need option & optgroup shadow tree fix
+imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/standalone-option-no-shadow-tree.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-appearance-optgroup-rendering.html [ ImageOnlyFailure ]
+
 # Untriaged.
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-appearance-button-after-text.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-appearance-optgroup-rendering.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-appearance-switching-invalidation.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/selectedcontent-restore.html [ Skip ]
 
@@ -4943,20 +4946,6 @@ webgl/2.0.y/conformance2/uniforms [ Pass ]
 webgl/2.0.y/conformance2/vertex_arrays [ Pass ]
 webgl/2.0.y/conformance2/wasm [ Pass ]
 
-
-webkit.org/b/282031 webgl/1.0.x/conformance/context/context-lost-restored.html [ Failure ]
-webkit.org/b/282031 webgl/1.0.x/conformance/context/context-lost.html [ Failure ]
-webkit.org/b/282031 webgl/1.0.x/conformance/offscreencanvas/context-lost-restored.html [ Failure ]
-webkit.org/b/282031 webgl/1.0.x/conformance/offscreencanvas/context-lost.html [ Failure ]
-webkit.org/b/282031 webgl/1.0.x/conformance/offscreencanvas/context-lost-restored-worker.html [ Failure ]
-webkit.org/b/282031 webgl/1.0.x/conformance/offscreencanvas/context-lost-worker.html [ Failure ]
-webkit.org/b/282031 webgl/2.0.y/conformance/offscreencanvas/context-lost-restored-worker.html [ Failure ]
-webkit.org/b/282031 webgl/2.0.y/conformance/offscreencanvas/context-lost-worker.html [ Failure ]
-webkit.org/b/282031 webgl/2.0.y/conformance/context/context-lost.html [ Failure ]
-webkit.org/b/282031 webgl/2.0.y/conformance/offscreencanvas/context-lost-restored.html [ Failure ]
-webkit.org/b/282031 webgl/2.0.y/conformance/offscreencanvas/context-lost.html [ Failure ]
-
-
 # WebGL 1.0.3 and 2.0.0 tests where behavior is obsolete and WebKit contains implementation
 # and tests for the new behavior. Should be removed once 1.0.3 and 2.0.0 are retired.
 fast/canvas/webgl/invalid-passed-params.html [ Skip ]
@@ -8349,6 +8338,9 @@ webkit.org/b/307972 imported/w3c/web-platform-tests/css/css-tables/crashtests/at
 imported/w3c/web-platform-tests/css/cssom-view/scrollTo-zoom.html [ ImageOnlyFailure ]
 
 webkit.org/b/308096 imported/w3c/web-platform-tests/css/cssom-view/scrollParent.html [ Skip ]
+
+webkit.org/b/296130 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-scroller-nested-4.html [ Pass Failure ]
+webkit.org/b/281267 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-summary-element/interactive-content.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-019.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-020.html [ ImageOnlyFailure ]

@@ -262,6 +262,7 @@
 #include <WebCore/HitTestResult.h>
 #include <WebCore/ImageAnalysisQueue.h>
 #include <WebCore/ImageOverlay.h>
+#include <WebCore/ImageUtilities.h>
 #include <WebCore/JSDOMExceptionHandling.h>
 #include <WebCore/JSNode.h>
 #include <WebCore/KeyboardEvent.h>
@@ -386,7 +387,6 @@
 #include "VideoPresentationManager.h"
 #include "WKStringCF.h"
 #include "WebRemoteObjectRegistry.h"
-#include <WebCore/ImageUtilities.h>
 #include <WebCore/LegacyWebArchive.h>
 #include <WebCore/VP9UtilitiesCocoa.h>
 #include <pal/spi/cg/ImageIOSPI.h>
@@ -962,6 +962,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         windowScreenDidChange(*parameters.displayID, parameters.nominalFramesPerSecond);
 
     WebStorageNamespaceProvider::incrementUseCount(sessionStorageNamespaceIdentifier());
+
+    if (parameters.shouldForceSiteIsolationAlwaysOnForTesting)
+        WebPreferences::forceSiteIsolationAlwaysOnForTesting();
 
     updatePreferences(parameters.store);
     if (page->settings().siteIsolationEnabled()) {
@@ -4878,10 +4881,15 @@ bool WebPage::isParentProcessAWebBrowser() const
 
 void WebPage::adjustSettingsForLockdownMode(Settings& settings, const WebPreferencesStore* store)
 {
+    bool originalSiteIsolationEnabled = settings.siteIsolationEnabled();
     // Disable unstable Experimental settings, even if the user enabled them for local use.
     settings.disableUnstableFeaturesForModernWebKit();
     Settings::disableGlobalUnstableFeaturesForModernWebKit();
     settings.disableFeaturesForLockdownMode();
+
+    if (WebPreferences::forcedSiteIsolationAlwaysOnForTesting() && originalSiteIsolationEnabled)
+        settings.setSiteIsolationEnabled(true);
+
 #if PLATFORM(COCOA)
     if (settings.downloadableBinaryFontTrustedTypes() != DownloadableBinaryFontTrustedTypes::None) {
         auto downloadableBinaryFontTrustedTypes = DownloadableBinaryFontTrustedTypes::Restricted;
@@ -8737,8 +8745,7 @@ void WebPage::updateAttachmentIcon(const String& identifier, std::optional<Share
             if (attachment->isWideLayout()) {
                 if (auto imageBuffer = ImageBuffer::create(icon->size(), RenderingMode::Unaccelerated, RenderingPurpose::Unspecified, 1.0, DestinationColorSpace::SRGB(), PixelFormat::BGRA8)) {
                     icon->paint(imageBuffer->context(), IntPoint::zero(), IntRect(IntPoint::zero(), icon->size()));
-                    auto data = imageBuffer->toData("image/png"_s);
-                    attachment->updateIconForWideLayout(WTF::move(data));
+                    attachment->updateIconForWideLayout(encodeData(WTF::move(imageBuffer), "image/png"_s));
                     return;
                 }
             } else {

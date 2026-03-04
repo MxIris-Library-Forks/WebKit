@@ -464,9 +464,7 @@
 #endif
 
 // FIXME: https://bugs.webkit.org/show_bug.cgi?id=306415
-#if ENABLE(SWIFT_DEMO_URI_SCHEME) || ENABLE(IPC_TESTING_SWIFT) || ENABLE(BACK_FORWARD_LIST_SWIFT)
 #include "WebKit-Swift.h"
-#endif
 
 #if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
 #include "RemoteAudioSessionConfiguration.h"
@@ -8001,8 +7999,12 @@ void WebPageProxy::broadcastFrameTreeSyncData(IPC::Connection& connection, Frame
 
     // FIXME: This could instead be an option in FrameTreeSyncData.in to allow
     // certain properties to be mutable from non-frame-owning processes.
-    if (frameTreePropertyIsRestrictedToFrameOwningProcess(data.type))
-        MESSAGE_CHECK(process, &webFrameProxy->process() == &process.get());
+    if (frameTreePropertyIsRestrictedToFrameOwningProcess(data.type)) {
+        if (&webFrameProxy->process() != &process.get()) {
+            // FIXME: make this a MESSAGE_CHECK.
+            return;
+        }
+    }
 
     if (data.type == WebCore::FrameTreeSyncDataType::FrameRect)
         webFrameProxy->setRemoteFrameRect(std::get<IntRect>(data.value));
@@ -12844,6 +12846,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.textManipulationParameters = m_internals->textManipulationParameters;
 
     parameters.accessibilityEnabled = m_accessibilityEnabled;
+    parameters.shouldForceSiteIsolationAlwaysOnForTesting = WebPreferences::forcedSiteIsolationAlwaysOnForTesting();
 
     return parameters;
 }

@@ -3593,13 +3593,9 @@ fast/mediastream/video-rotation-gpu-process-crash.html [ Skip ]
 http/wpt/mediarecorder/MediaRecorder-AV-audio-video-dataavailable-gpuprocess.html [ Skip ]
 webgl/webgl-fail-after-context-creation-no-crash.html [ Skip ]
 
-# Payment Request
-imported/w3c/web-platform-tests/payment-request [ Skip ]
 imported/w3c/web-platform-tests/permissions-policy/payment-allowed-by-permissions-policy-attribute-redirect-on-load.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/permissions-policy/payment-allowed-by-permissions-policy-attribute.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/permissions-policy/payment-allowed-by-permissions-policy.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/permissions-policy/payment-default-permissions-policy.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/permissions-policy/payment-disabled-by-permissions-policy.https.sub.html [ Skip ]
 
 # WebArchive
 webarchive [ WontFix ]
@@ -5291,6 +5287,12 @@ webkit.org/b/308481 fast/speechsynthesis/speech-synthesis-speak-empty-string.htm
 webkit.org/b/308538 resize-observer/resize-observer-keeps-js-wrapper-of-target-alive.html [ Pass Failure ]
 
 webkit.org/b/308633 fast/scrolling/scroll-corner-update-on-direction-change.html [ ImageOnlyFailure Pass ]
+
+webkit.org/b/309255 imported/w3c/web-platform-tests/media-source/mediasource-play-then-seek-back.html [ Pass Failure ]
+webkit.org/b/309256 media/video-plays-past-end-of-test.html [ Pass Timeout ]
+webkit.org/b/309257 media/video-fast-seek.html [ Pass Timeout ]
+webkit.org/b/309258 media/video-muted.html [ Pass Timeout ]
+webkit.org/b/309259 webrtc/canvas-to-peer-connection-vp8-2d.html [ Pass Failure Crash Timeout ]
 
 # End: Common failures between GTK and WPE.
 

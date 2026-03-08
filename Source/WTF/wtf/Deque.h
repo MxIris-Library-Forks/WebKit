@@ -413,6 +413,7 @@ inline void Deque<T, inlineCapacity>::clear()
     m_end = 0;
     m_capacityMask = roundedInlineCapacity ? roundedInlineCapacity - 1 : 0;
     m_buffer.deallocateBuffer(m_buffer.buffer());
+    m_buffer.restoreInlineBufferIfNeeded();
     checkValidity();
 }
 

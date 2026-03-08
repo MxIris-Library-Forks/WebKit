@@ -210,10 +210,8 @@ TEST(WTF_Deque, WrapAroundAppendRemove)
     // Interleave append/removeFirst to keep the deque small but force wrap.
     for (int i = 0; i < 1000; ++i) {
         deque.append(i);
-        if (i % 2 == 0) {
-            EXPECT_EQ(deque.size(), 1u);
+        if (i % 2 == 0)
             deque.removeFirst();
-        }
     }
     // Should have 500 elements remaining (the odd iterations didn't remove).
     EXPECT_EQ(500u, deque.size());

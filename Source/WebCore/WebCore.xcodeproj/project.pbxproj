@@ -4359,7 +4359,6 @@
 		A6D5A99D1629D70000297330 /* ScrollingTreeScrollingNodeDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = A6D5A99B1629D70000297330 /* ScrollingTreeScrollingNodeDelegate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A70B77D62A9EE40B003D8566 /* Quaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = A70B77D52A9EE40B003D8566 /* Quaternion.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A7151BD812F1558F005A0F64 /* TextCheckerClient.h in Headers */ = {isa = PBXBuildFile; fileRef = A7151BD712F1558F005A0F64 /* TextCheckerClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		A715E653134BBBEC00D8E713 /* ProgressShadowElement.h in Headers */ = {isa = PBXBuildFile; fileRef = A715E651134BBBEC00D8E713 /* ProgressShadowElement.h */; };
 		A718760E0B2A120100A16ECE /* DragActions.h in Headers */ = {isa = PBXBuildFile; fileRef = A718760D0B2A120100A16ECE /* DragActions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A723F77B1484CA4C008C6DBE /* PlatformExportMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = A723F77A1484CA4C008C6DBE /* PlatformExportMacros.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A72763BF16689BFB002FCACB /* UserActionElementSet.h in Headers */ = {isa = PBXBuildFile; fileRef = A72763BE16689BFB002FCACB /* UserActionElementSet.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -17191,8 +17190,6 @@
 		A70B77D52A9EE40B003D8566 /* Quaternion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Quaternion.h; sourceTree = "<group>"; };
 		A70B77D72A9EE50C003D8566 /* Quaternion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Quaternion.cpp; sourceTree = "<group>"; };
 		A7151BD712F1558F005A0F64 /* TextCheckerClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextCheckerClient.h; sourceTree = "<group>"; };
-		A715E650134BBBEC00D8E713 /* ProgressShadowElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ProgressShadowElement.cpp; sourceTree = "<group>"; };
-		A715E651134BBBEC00D8E713 /* ProgressShadowElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProgressShadowElement.h; sourceTree = "<group>"; };
 		A718760D0B2A120100A16ECE /* DragActions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragActions.h; sourceTree = "<group>"; };
 		A718788F0B2D04AC00A16ECE /* DragControllerMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DragControllerMac.mm; sourceTree = "<group>"; };
 		A71A70C911AFB02000989D6D /* HTMLMeterElement.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HTMLMeterElement.idl; sourceTree = "<group>"; };
@@ -19517,6 +19514,8 @@
 		BCA2B0601050475F0043BD1C /* UserScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserScript.h; sourceTree = "<group>"; };
 		BCA2B0601050485F0043BD1C /* UserScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserScript.cpp; sourceTree = "<group>"; };
 		BCA2B08A10505BCD0043BD1C /* UserScriptTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserScriptTypes.h; sourceTree = "<group>"; };
+		BCA332A52F5B4B6B0013DC4F /* HitTestRequest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HitTestRequest.cpp; sourceTree = "<group>"; };
+		BCA332A82F5B508A0013DC4F /* PseudoElementUtilitiesInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PseudoElementUtilitiesInlines.h; sourceTree = "<group>"; };
 		BCA378BA0D15F64200B793D6 /* ScheduledAction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScheduledAction.cpp; sourceTree = "<group>"; };
 		BCA378BB0D15F64200B793D6 /* ScheduledAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScheduledAction.h; sourceTree = "<group>"; };
 		BCA407B22C9B2DFA006B037F /* CSSContrastColor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSContrastColor.h; sourceTree = "<group>"; };
@@ -26530,8 +26529,6 @@
 				417253A81354BBBC00360F2A /* MediaControlTextTrackContainerElement.cpp */,
 				417253A91354BBBC00360F2A /* MediaControlTextTrackContainerElement.h */,
 				E4E243821DAB953E00C26E4B /* meterElementShadow.css */,
-				A715E650134BBBEC00D8E713 /* ProgressShadowElement.cpp */,
-				A715E651134BBBEC00D8E713 /* ProgressShadowElement.h */,
 				D21A65EC2F2276ED004D221F /* SelectFallbackButtonElement.cpp */,
 				D21A65EB2F2276ED004D221F /* SelectFallbackButtonElement.h */,
 				D21A65EE2F2276ED004D221F /* SelectPopoverElement.cpp */,
@@ -40102,6 +40099,7 @@
 				494265302B61F7E9000446D5 /* PseudoElementRequest.h */,
 				59A4D4F6CA874D5152089306 /* PseudoElementUtilities.cpp */,
 				8E4E11F4E1E66A6928D671C6 /* PseudoElementUtilities.h */,
+				BCA332A82F5B508A0013DC4F /* PseudoElementUtilitiesInlines.h */,
 				EE62BD9C2DE12BD4006C9A05 /* ResolvedScopedName.cpp */,
 				EE62BD9B2DE12BD4006C9A05 /* ResolvedScopedName.h */,
 				930A9D8629DA3EFF006CBF0E /* ResolvedStyle.h */,
@@ -40941,6 +40939,7 @@
 				4969B0F113D0B33F00DF3521 /* HitTestingTransformState.h */,
 				2D8287F416E4A0380086BD00 /* HitTestLocation.cpp */,
 				2D8287F516E4A0380086BD00 /* HitTestLocation.h */,
+				BCA332A52F5B4B6B0013DC4F /* HitTestRequest.cpp */,
 				930908900AF7EDE40081DF01 /* HitTestRequest.h */,
 				9307F1D50AF2D59000DBA31A /* HitTestResult.cpp */,
 				9307F1D60AF2D59000DBA31A /* HitTestResult.h */,
@@ -46647,7 +46646,6 @@
 				72BA2ACF2952445D00678507 /* ProgressBarPart.h in Headers */,
 				E44613EC0CD681B500FADA75 /* ProgressEvent.h in Headers */,
 				71999DDC2EABB4D8000470E1 /* ProgressResolutionData.h in Headers */,
-				A715E653134BBBEC00D8E713 /* ProgressShadowElement.h in Headers */,
 				1A2A68240B5BEDE70002A480 /* ProgressTracker.h in Headers */,
 				1ACADD791880D91C00D8B71D /* ProgressTrackerClient.h in Headers */,
 				F47A633D1FF6FD500081B3CC /* PromisedAttachmentInfo.h in Headers */,

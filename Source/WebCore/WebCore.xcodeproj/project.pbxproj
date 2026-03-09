@@ -2595,6 +2595,7 @@
 		5CB37FFF1C62D2A100F20188 /* ScrollbarsControllerMock.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CB37FFD1C62D27800F20188 /* ScrollbarsControllerMock.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5CBC8DAD1AAA302200E1C803 /* MediaAccessibilitySoftLink.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CBC8DAB1AAA302200E1C803 /* MediaAccessibilitySoftLink.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5CBD59592280E926002B22AA /* CustomHeaderFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5C5D2386227A077C000B9BDA /* CustomHeaderFields.cpp */; };
+		5CC59425C83340698819A8EE /* NameValidation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1043649292C14384B5937F8F /* NameValidation.h */; };
 		5CC7900E266AFA89006924FE /* TimingAllowOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CC7900B266AFA88006924FE /* TimingAllowOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5CCC270922D5483A00964FA0 /* AutofillElements.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CCC270622D53B6800964FA0 /* AutofillElements.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5CCEB08B29F1056A005EF534 /* ApplePaySetupFeatureTypeWebCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C53DCD42446449B00A93124 /* ApplePaySetupFeatureTypeWebCore.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -8268,6 +8269,7 @@
 		0FFD45A8243BF257000D4BEA /* ScrollingTreeLatchingController.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollingTreeLatchingController.cpp; sourceTree = "<group>"; };
 		0FFD4D5E18651FA300512F6E /* AsyncScrollingCoordinator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AsyncScrollingCoordinator.cpp; sourceTree = "<group>"; };
 		0FFD4D5F18651FA300512F6E /* AsyncScrollingCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AsyncScrollingCoordinator.h; sourceTree = "<group>"; };
+		1043649292C14384B5937F8F /* NameValidation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NameValidation.h; sourceTree = "<group>"; };
 		10FB084A14E15C7E00A3DB98 /* PublicURLManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PublicURLManager.h; sourceTree = "<group>"; };
 		11100FC72092764C0081AA6C /* LayoutIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutIterator.h; sourceTree = "<group>"; };
 		11100FC920927CBC0081AA6C /* LayoutChildIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutChildIterator.h; sourceTree = "<group>"; };
@@ -17485,6 +17487,7 @@
 		A871DFE10A15376B00B12A68 /* RenderWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWidget.cpp; sourceTree = "<group>"; };
 		A8748BDF12CBF2DC001FBA41 /* HashTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HashTools.h; sourceTree = "<group>"; };
 		A8748D6612CC3763001FBA41 /* ImageOrientation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageOrientation.h; sourceTree = "<group>"; };
+		A87BC832E99A41359C1D4FA8 /* NameValidation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NameValidation.cpp; sourceTree = "<group>"; };
 		A8805AF116C96AEA000E9D98 /* InputStreamPreprocessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputStreamPreprocessor.h; sourceTree = "<group>"; };
 		A883DF250F3D045D00F19BF6 /* VisibleSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VisibleSelection.cpp; sourceTree = "<group>"; };
 		A883DF260F3D045D00F19BF6 /* VisibleSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VisibleSelection.h; sourceTree = "<group>"; };
@@ -41695,6 +41698,8 @@
 				85ACA9F90A9B631000671E90 /* NamedNodeMap.idl */,
 				A81872190977D3C0005826D9 /* NameNodeList.cpp */,
 				A81872130977D3C0005826D9 /* NameNodeList.h */,
+				A87BC832E99A41359C1D4FA8 /* NameValidation.cpp */,
+				1043649292C14384B5937F8F /* NameValidation.h */,
 				8306EFF01B8BCE7C0031D032 /* NativeNodeFilter.cpp */,
 				83E959E11B8BC22B004D9385 /* NativeNodeFilter.h */,
 				71FF851822A3F81F005D5959 /* NavigatorMaxTouchPoints.idl */,
@@ -46222,6 +46227,7 @@
 				A81872230977D3C0005826D9 /* NamedNodeMap.h in Headers */,
 				A818721E0977D3C0005826D9 /* NameNodeList.h in Headers */,
 				3227A93128BD744C00BC2697 /* Namespace.h in Headers */,
+				5CC59425C83340698819A8EE /* NameValidation.h in Headers */,
 				726D56E3253AE3660002EF90 /* NativeImage.h in Headers */,
 				72854E692B6987B700E0181A /* NativeImageSource.h in Headers */,
 				83B2D1751B8BCD6A00A02E47 /* NativeNodeFilter.h in Headers */,

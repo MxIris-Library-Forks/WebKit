@@ -2372,6 +2372,7 @@ struct WebCore::DateTimeChooserParameters {
     bool hasSecondField;
     bool hasMillisecondField;
     bool wasActivatedByKeyboard;
+    std::optional<WebCore::FrameIdentifier> rootFrameID;
 }
 
 header: <WebCore/ScreenProperties.h>
@@ -2498,6 +2499,7 @@ struct WebCore::DataListSuggestionInformation {
     WebCore::DataListSuggestionActivationType activationType;
     Vector<WebCore::DataListSuggestion> suggestions;
     WebCore::IntRect elementRect;
+    std::optional<WebCore::FrameIdentifier> rootFrameID;
 };
 
 struct WebCore::ClientOrigin {

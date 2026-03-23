@@ -8356,7 +8356,7 @@
 		12BB61202B6426090048B442 /* ScrollingNodeID.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScrollingNodeID.h; sourceTree = "<group>"; };
 		12F75A9A86EA03DAF24B7971 /* ISOProtectionSystemSpecificHeaderBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISOProtectionSystemSpecificHeaderBox.h; sourceTree = "<group>"; };
 		1400D7A717136EA70077CE05 /* ScriptWrappableInlines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptWrappableInlines.h; sourceTree = "<group>"; };
-		1402645D0AFDC19B005919E2 /* LoggingMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = LoggingMac.mm; sourceTree = "<group>"; };
+		1402645D0AFDC19B005919E2 /* LoggingCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = LoggingCocoa.mm; sourceTree = "<group>"; };
 		14115AF909F847D600CA4FC1 /* NodeFilter.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NodeFilter.idl; sourceTree = "<group>"; };
 		14115B5109F84B7100CA4FC1 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		14115B7009F84CD600CA4FC1 /* JSNodeFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSNodeFilter.cpp; sourceTree = "<group>"; };
@@ -30092,9 +30092,6 @@
 				06E81EEB0AB5DA9700C87837 /* LocalCurrentGraphicsContextMac.mm */,
 				445775E420472F73008DCE5D /* LocalDefaultSystemAppearance.h */,
 				445775E92047303B008DCE5D /* LocalDefaultSystemAppearance.mm */,
-				1402645D0AFDC19B005919E2 /* LoggingMac.mm */,
-				CD8ACA8D1D23971900ECC59E /* MediaRemoteSoftLink.h */,
-				CD8ACA8C1D23971900ECC59E /* MediaRemoteSoftLink.mm */,
 				93500F3113FDE3BE0099EC24 /* NSScrollerImpDetails.h */,
 				52F52E1014A0134F00ACC397 /* NSScrollerImpDetails.mm */,
 				4B2709810AF2E5E00065127F /* PasteboardMac.mm */,
@@ -30127,8 +30124,6 @@
 				9353676A09AED88B00D35CD6 /* ScrollViewMac.mm */,
 				077AF14118F4B1BB0001ED61 /* SerializedPlatformDataCueMac.h */,
 				077AF14218F4B1BB0001ED61 /* SerializedPlatformDataCueMac.mm */,
-				ECA680C61E67724500731D20 /* StringUtilities.h */,
-				ECA680C81E67730B00731D20 /* StringUtilities.mm */,
 				93B2D8170F9920EE006AE6B2 /* SuddenTermination.mm */,
 				BCE659E50EA92FB2007E4533 /* ThemeMac.h */,
 				BCE659E80EA92FFA007E4533 /* ThemeMac.mm */,
@@ -30146,10 +30141,6 @@
 				CD127DEB14F3097900E84779 /* WebCoreFullScreenWindow.mm */,
 				F4E57EDF213F434A004EA98E /* WebCoreNSFontManagerExtras.h */,
 				F4E57EE0213F434A004EA98E /* WebCoreNSFontManagerExtras.mm */,
-				C5B4C24B1509236C00A6EF37 /* WebCoreNSURLExtras.h */,
-				C5B4C24C1509236C00A6EF37 /* WebCoreNSURLExtras.mm */,
-				DD05FE0B0B8BA3C6009ACDFE /* WebCoreObjCExtras.h */,
-				B50F5B800E96CD9900AD71A6 /* WebCoreObjCExtras.mm */,
 				BE855F7F0701E83500239769 /* WebCoreView.h */,
 				BE8560510701F91100239769 /* WebCoreView.mm */,
 				CD5896E01CD2B15100B3BCC8 /* WebPlaybackControlsManager.h */,
@@ -33735,7 +33726,10 @@
 				A5C974D011485FF10066F2AB /* KeyEventCocoa.mm */,
 				06E81ED60AB5D5E900C87837 /* LocalCurrentGraphicsContext.h */,
 				1A4832B21A953BA6008B4DFE /* LocalizedStringsCocoa.mm */,
+				1402645D0AFDC19B005919E2 /* LoggingCocoa.mm */,
 				46EFAF0D1E5FB9C200E7F34B /* LowPowerModeNotifier.mm */,
+				CD8ACA8D1D23971900ECC59E /* MediaRemoteSoftLink.h */,
+				CD8ACA8C1D23971900ECC59E /* MediaRemoteSoftLink.mm */,
 				939C0D282564E7F200B3211B /* MediaUtilities.cpp */,
 				939C0D292564E7F200B3211B /* MediaUtilities.h */,
 				C53D39331C97892D007F3AE9 /* MIMETypeRegistryCocoa.mm */,
@@ -33773,6 +33767,8 @@
 				4688C4B42B6B0697003533C9 /* SharedMemoryCocoa.mm */,
 				41DC04FB27A83C92008CF968 /* SharedVideoFrameInfo.h */,
 				41DC04FD27A83C93008CF968 /* SharedVideoFrameInfo.mm */,
+				ECA680C61E67724500731D20 /* StringUtilities.h */,
+				ECA680C81E67730B00731D20 /* StringUtilities.mm */,
 				C1692DD423D23AE0006E88F7 /* SystemBattery.h */,
 				C1692DD123D23ABD006E88F7 /* SystemBattery.mm */,
 				5D5975B119635F1100D00878 /* SystemVersion.h */,
@@ -33799,6 +33795,10 @@
 				A17E4F26219BC01600E1C7EE /* WebCoreAdditions.mm */,
 				CDC979F31C498C0900DB50D4 /* WebCoreNSErrorExtras.h */,
 				CDC979F21C498C0900DB50D4 /* WebCoreNSErrorExtras.mm */,
+				C5B4C24B1509236C00A6EF37 /* WebCoreNSURLExtras.h */,
+				C5B4C24C1509236C00A6EF37 /* WebCoreNSURLExtras.mm */,
+				DD05FE0B0B8BA3C6009ACDFE /* WebCoreObjCExtras.h */,
+				B50F5B800E96CD9900AD71A6 /* WebCoreObjCExtras.mm */,
 				5DFEBAB618592B6D00C75BEB /* WebKitAvailability.h */,
 				7A2701F22C62D5D80047263F /* WebNSAttributedStringExtras.h */,
 				7A2701F32C62D5D80047263F /* WebNSAttributedStringExtras.mm */,

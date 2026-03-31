@@ -744,11 +744,11 @@ imported/w3c/web-platform-tests/clipboard-apis/feature-policy/clipboard-write/cl
 imported/w3c/web-platform-tests/clipboard-apis/feature-policy/clipboard-write/clipboard-write-enabled-by-feature-policy.tentative.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/clipboard-apis/feature-policy/clipboard-write/clipboard-write-enabled-by-feature-policy-attribute-cross-origin-tentative.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/clipboard-apis/feature-policy/clipboard-write/clipboard-write-disabled-by-feature-policy.tentative.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-feature-policy-attribute.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-disabled-by-feature-policy.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-feature-policy-attribute-redirect-on-load.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-feature-policy.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-default-feature-policy.https.sub.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-permissions-policy-attribute.https.sub.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-disabled-by-permissions-policy.https.sub.html [ Skip ] # timeout and passes a subtest
+imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-permissions-policy-attribute-redirect-on-load.https.sub.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-permissions-policy.https.sub.html [ Skip ] # timeout and passes a subtest
+imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-default-permissions-policy.https.sub.html [ Skip ] # timeout and passes a subtest
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location-origin-idna.sub.window.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/location_assign.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-location-interface/per-global.window.html [ Skip ]
@@ -4785,7 +4785,6 @@ imported/w3c/web-platform-tests/css/css-fonts/font-variant-emoji-004.html [ Imag
 imported/w3c/web-platform-tests/css/css-fonts/font-variant-emoji-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-fonts/font-variant-position-04.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-fonts/font-variant-position-05.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-fonts/italic-oblique-fallback.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-fonts/separators.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-fonts/size-adjust-unicode-range-system-fallback.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-fonts/variation-sequences.html [ ImageOnlyFailure ]
@@ -7765,7 +7764,6 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-nested-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/container-queries/anchored-fallback-color-change.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/container-queries/anchored-fallback-style-containment.html [ ImageOnlyFailure ]
-webkit.org/b/306830 imported/w3c/web-platform-tests/css/css-anchor-position/position-try-order-logical.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/position-visibility-anchors-visible-with-position-002.html
 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-overflow-icb-001.html [ ImageOnlyFailure ]
 
@@ -8344,6 +8342,14 @@ imported/w3c/web-platform-tests/css/css-text/line-breaking/segment-break-transfo
 imported/w3c/web-platform-tests/html/semantics/document-metadata/the-style-element/tentative/style-element-csp-allowed.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/html/semantics/document-metadata/the-style-element/tentative/style-element-csp-blocked.html [ Skip ] # timeout - two subtests pass
 
+imported/w3c/web-platform-tests/html/semantics/forms/customizable-combobox/customizable-combobox-appearance.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/semantics/forms/the-datalist-element/input-text-datalist-removal.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/semantics/forms/the-input-element/input-text-overflow-ellipsis-scroll.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/filterable-select/filterable-select-appearance.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/semantics/forms/form-submission-target/form-target-blank-useractivation-multi-globals.html [ Skip ] # timeout
+
 imported/w3c/web-platform-tests/css/selectors/media/media-loading-state.sub.html [ Skip ] # timeout, passes first subtest
 imported/w3c/web-platform-tests/css/selectors/media/media-loading-state-timing.sub.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/css/selectors/invalidation/media-loading-pseudo-classes-in-has.sub.html [ Skip ] # timeout
+
+imported/w3c/web-platform-tests/html/browsers/the-window-object/open-close/open_fires_resize.tentative.html [ Skip ] # timeout

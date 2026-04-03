@@ -1867,7 +1867,7 @@ CloseWatcherEnabled:
 
 ClosedbyAttributeEnabled:
   type: bool
-  status: testable
+  status: preview
   category: html
   humanReadableName: "HTML closedby attribute"
   humanReadableDescription: "Enable HTML closedby attribute support"
@@ -3901,12 +3901,12 @@ IndexedDBAPIEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
-IndexedDBGetAllRecordsEnabled:
+IndexedDBGetAllRecordsAndGetAllOptionsEnabled:
   type: bool
   category: dom
-  status: testable
-  humanReadableName: "IndexedDB getAllRecords() API"
-  humanReadableDescription: "Enable getAllRecords() on IDBIndex"
+  status: preview
+  humanReadableName: "IndexedDB getAllRecords() API and IDBGetAllOptions"
+  humanReadableDescription: "Enable the getAllRecords() API on IDBObjectStore/IDBIndex and enable getAll()/getAllKeys() to accept IDBGetAllOptions and support direction"
   defaultValue:
     WebKitLegacy:
       default: false
@@ -3914,8 +3914,6 @@ IndexedDBGetAllRecordsEnabled:
       default: false
     WebCore:
       default: false
-  sharedPreferenceForWebProcess: true
-  richJavaScript: true
 
 IndexedDBSQLiteMemoryBackingStoreEnabled:
   type: bool
@@ -5978,20 +5976,6 @@ OriginAPIEnabled:
   category: dom
   humanReadableName: "Origin API"
   humanReadableDescription: "Enable the Origin API"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
-OverlappingBackingStoreProvidersEnabled:
-  type: bool
-  status: stable
-  humanReadableName: "Overlapping backing stores"
-  humanReadableDescription: "Enable overlapping backing stores compositor optimization"
-  category: css
   defaultValue:
     WebKitLegacy:
       default: true

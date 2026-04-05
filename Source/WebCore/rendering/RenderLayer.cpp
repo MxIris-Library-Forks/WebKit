@@ -1180,7 +1180,7 @@ bool RenderLayer::ancestorLayerPositionStateChanged(OptionSet<UpdateLayerPositio
         || m_hasFixedAncestor != flags.contains(SeenFixedLayer)
         || m_hasPaginatedAncestor != flags.contains(UpdatePagination)
         || m_hasCompositedScrollingAncestor != flags.contains(SeenCompositedScrollingLayer)
-        || m_hasPaginatedAncestor != flags.contains(UpdatePagination);
+        || m_hasStickyAncestor != flags.contains(SeenStickyLayer);
 }
 
 #define LAYER_POSITIONS_ASSERT_ENABLED ASSERT_ENABLED || ENABLE(CONJECTURE_ASSERT)
@@ -1435,9 +1435,9 @@ void RenderLayer::setRepaintStatus(RepaintStatus status)
 void RenderLayer::setAncestorChainHasSelfPaintingLayerDescendant()
 {
     for (RenderLayer* layer = this; layer; layer = layer->parent()) {
-        if (renderer().shouldApplyPaintContainment()) {
-            m_hasSelfPaintingLayerDescendant = true;
-            m_hasSelfPaintingLayerDescendantDirty = false;
+        if (layer->renderer().shouldApplyPaintContainment()) {
+            layer->m_hasSelfPaintingLayerDescendant = true;
+            layer->m_hasSelfPaintingLayerDescendantDirty = false;
             break;
         }
         if (!layer->m_hasSelfPaintingLayerDescendantDirty && layer->hasSelfPaintingLayerDescendant())
@@ -1715,9 +1715,9 @@ void RenderLayer::updateTransform()
     bool hasTransform = isTransformed();
     bool had3DTransform = has3DTransform();
 
-    std::unique_ptr<TransformationMatrix> oldTransform;
+    std::optional<TransformationMatrix> oldTransform;
     if (m_transform && hasTransform)
-        oldTransform = makeUnique<TransformationMatrix>(*m_transform);
+        oldTransform = *m_transform;
     if (hasTransform != !!m_transform) {
         if (hasTransform)
             m_transform = makeUnique<TransformationMatrix>();

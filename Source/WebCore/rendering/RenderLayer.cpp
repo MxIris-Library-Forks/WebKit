@@ -159,6 +159,7 @@
 #include "TransformationMatrix.h"
 #include "ViewTransition.h"
 #include "WheelEventTestMonitor.h"
+#include <ranges>
 #include <stdio.h>
 #include <wtf/HexNumber.h>
 #include <wtf/MonotonicTime.h>
@@ -2987,8 +2988,9 @@ LayoutSize RenderLayer::minimumSizeForResizing(float zoomFactor) const
 {
     // Use the resizer size as the strict minimum size
     auto resizerRect = overflowControlsRects().resizer;
-    auto minWidth = Style::evaluateMinimum<LayoutUnit>(renderer().style().minWidth(), renderer().containingBlock()->width(), renderer().style().usedZoomForLength());
-    auto minHeight = Style::evaluateMinimum<LayoutUnit>(renderer().style().minHeight(), renderer().containingBlock()->height(), renderer().style().usedZoomForLength());
+    auto& rendererStyle = renderer().style();
+    auto minWidth = Style::evaluateMinimum<LayoutUnit>(rendererStyle.minWidth(), renderer().containingBlock()->width(), rendererStyle.usedZoomForLength());
+    auto minHeight = Style::evaluateMinimum<LayoutUnit>(rendererStyle.minHeight(), renderer().containingBlock()->height(), rendererStyle.usedZoomForLength());
     minWidth = std::max(LayoutUnit(minWidth / zoomFactor), LayoutUnit(resizerRect.width()));
     minHeight = std::max(LayoutUnit(minHeight / zoomFactor), LayoutUnit(resizerRect.height()));
     return LayoutSize(minWidth, minHeight);
@@ -4947,8 +4949,7 @@ bool RenderLayer::hitTestContentsForFragments(const LayerFragments& layerFragmen
     if (layerFragments.isEmpty())
         return false;
 
-    for (int i = layerFragments.size() - 1; i >= 0; --i) {
-        const auto& fragment = layerFragments.at(i);
+    for (auto& fragment : std::views::reverse(layerFragments)) {
         if ((hitTestFilter == HitTestSelf && !fragment.dirtyBackgroundRect().intersects(hitTestLocation))
             || (hitTestFilter == HitTestDescendants && !fragment.dirtyForegroundRect().intersects(hitTestLocation)))
             continue;
@@ -4970,8 +4971,7 @@ RenderLayer::HitLayer RenderLayer::hitTestTransformedLayerInFragments(RenderLaye
     paginatedLayer->collectFragments(enclosingPaginationFragments, rootLayer, hitTestRect, IncludeCompositedPaginatedLayers,
         RootRelativeClipRects, { ClipRectsOption::RespectOverflowClip }, offsetOfPaginationLayerFromRoot, &transformedExtent);
 
-    for (int i = enclosingPaginationFragments.size() - 1; i >= 0; --i) {
-        const LayerFragment& fragment = enclosingPaginationFragments.at(i);
+    for (auto& fragment : std::views::reverse(enclosingPaginationFragments)) {
         
         // Apply the page/column clip for this fragment, as well as any clips established by layers in between us and
         // the enclosing pagination layer.
@@ -6223,8 +6223,9 @@ void RenderLayer::styleChanged(Style::Difference diff, const RenderStyle* oldSty
     // FIXME: RenderLayer already handles visibility changes through our visibility dirty bits. This logic could
     // likely be folded along with the rest.
     if (oldStyle) {
-        bool visibilityChanged = oldStyle->usedVisibility() != renderer().style().usedVisibility();
-        if (oldStyle->usedZIndex() != renderer().style().usedZIndex() || oldStyle->usedContentVisibility() != renderer().style().usedContentVisibility() || visibilityChanged) {
+        auto& newStyle = renderer().style();
+        bool visibilityChanged = oldStyle->usedVisibility() != newStyle.usedVisibility();
+        if (oldStyle->usedZIndex() != newStyle.usedZIndex() || oldStyle->usedContentVisibility() != newStyle.usedContentVisibility() || visibilityChanged) {
             dirtyStackingContextZOrderLists();
             if (isStackingContext())
                 dirtyZOrderLists();

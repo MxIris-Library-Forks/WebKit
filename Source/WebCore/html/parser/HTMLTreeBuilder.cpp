@@ -251,7 +251,8 @@ private:
 
 inline bool HTMLTreeBuilder::isParsingTemplateContents() const
 {
-    return m_tree.openElements().hasTemplateInHTMLScope();
+    return m_tree.openElements().containsTemplateElement()
+        && m_tree.openElements().hasTemplateInHTMLScope();
 }
 
 inline bool HTMLTreeBuilder::isParsingFragmentOrTemplateContents() const
@@ -801,18 +802,11 @@ void HTMLTreeBuilder::processStartTagForInBody(AtomHTMLToken&& token)
         m_tree.insertFormattingElement(WTF::move(token));
         return;
     case TagName::applet:
-    case TagName::embed:
     case TagName::object:
     case TagName::marquee:
         m_tree.reconstructTheActiveFormattingElements();
-        if (token.tagName() == TagName::embed) {
-            m_tree.reconstructTheActiveFormattingElements();
-            m_tree.insertSelfClosingHTMLElement(WTF::move(token));
-        } else {
-            m_tree.reconstructTheActiveFormattingElements();
-            m_tree.insertHTMLElement(WTF::move(token));
-            m_tree.activeFormattingElements().appendMarker();
-        }
+        m_tree.insertHTMLElement(WTF::move(token));
+        m_tree.activeFormattingElements().appendMarker();
         m_framesetOk = false;
         return;
     case TagName::table:
@@ -831,6 +825,7 @@ void HTMLTreeBuilder::processStartTagForInBody(AtomHTMLToken&& token)
         [[fallthrough]];
     case TagName::area:
     case TagName::br:
+    case TagName::embed:
     case TagName::img:
     case TagName::keygen:
     case TagName::wbr:

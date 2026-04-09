@@ -282,17 +282,6 @@ inline const MethodTable* JSCell::methodTable() const
     return &structure->classInfoForCells()->methodTable;
 }
 
-inline bool JSCell::inherits(const ClassInfo* info) const
-{
-    return classInfo()->isSubClassOf(info);
-}
-
-template<typename Target>
-inline bool JSCell::inherits() const
-{
-    return JSCastingHelpers::inherits<Target>(this);
-}
-
 ALWAYS_INLINE JSValue JSCell::fastGetOwnProperty(VM& vm, Structure& structure, PropertyName name)
 {
     ASSERT(canUseFastGetOwnProperty(structure));
@@ -306,16 +295,6 @@ inline bool JSCell::canUseFastGetOwnProperty(const Structure& structure)
 {
     return !structure.hasAnyKindOfGetterSetterProperties()
         && !structure.typeInfo().overridesGetOwnPropertySlot();
-}
-
-ALWAYS_INLINE const ClassInfo* JSCell::classInfo() const
-{
-    // If the mutator is currently sweeping, then accessing the structure is not safe since the structure
-    // may have been swept already (and we're probably being called from this object's destructor).
-    // This can only be verified for the mutator thread since other threads might be querying JSCells
-    // that are not being swept by the mutator.
-    ASSERT_IMPLIES(vm().currentThreadIsHoldingAPILock(), vm().heap.mutatorState() != MutatorState::Sweeping);
-    return structure()->classInfoForCells();
 }
 
 inline bool JSCell::toBoolean(JSGlobalObject* globalObject) const

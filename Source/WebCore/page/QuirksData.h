@@ -33,6 +33,7 @@ namespace WebCore {
 struct QuirksData {
     bool isAmazon : 1 { false };
     bool isBankOfAmerica : 1 { false };
+    bool isBestBuy : 1 { false };
     bool isBing : 1 { false };
     bool isCBSSports : 1 { false };
     bool isCEAC : 1 { false };
@@ -44,6 +45,7 @@ struct QuirksData {
     bool isGoogleProperty : 1 { false };
     bool isGoogleMaps : 1 { false };
     bool isIHeart : 1 { false };
+    bool isInVideo : 1 { false };
     bool isNBA : 1 { false };
     bool isNetflix : 1 { false };
     bool isOutlook : 1 { false };

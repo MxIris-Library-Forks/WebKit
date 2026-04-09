@@ -358,6 +358,7 @@ public:
     Node* NODELETE parentTreeScope(Node&);
 
     String visiblePlaceholder(Element&);
+    String anchorPrefetchEagerness(Element&);
     void setCanShowPlaceholder(Element&, bool);
 
     RefPtr<Element> insertTextPlaceholder(int width, int height);
@@ -1635,6 +1636,8 @@ public:
         size_t attributes { 0 };
     };
     SelectorFilterHashCounts selectorFilterHashCounts(const String& selector);
+
+    JSC::JSValue dumpJSNodeStatistics();
 
     bool NODELETE isVisuallyNonEmpty() const;
         

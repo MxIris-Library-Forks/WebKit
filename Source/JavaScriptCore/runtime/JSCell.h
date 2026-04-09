@@ -136,9 +136,9 @@ public:
     bool isConstructor();
     template<Concurrency> TriState isCallableWithConcurrency();
     template<Concurrency> TriState isConstructorWithConcurrency();
-    bool inherits(const ClassInfo*) const;
+    inline bool inherits(const ClassInfo*) const; // Defined inline in Structure.h
     JS_EXPORT_PRIVATE bool inheritsSlow(const ClassInfo*) const;
-    template<typename Target> bool inherits() const;
+    template<typename Target> inline bool inherits() const; // Defined inline in Structure.h
     JS_EXPORT_PRIVATE bool NODELETE isValidCallee() const;
     bool isAPIValueWrapper() const { return m_type == APIValueWrapperType; }
     
@@ -202,7 +202,8 @@ public:
     JS_EXPORT_PRIVATE static void NODELETE analyzeHeap(JSCell*, HeapAnalyzer&);
 
     // Object operations, with the toObject operation included.
-    const ClassInfo* classInfo() const;
+    inline const ClassInfo* classInfo() const; // Defined inline in Structure.h
+    JS_EXPORT_PRIVATE bool validateIsNotSweeping() const;
     const MethodTable* methodTable() const;
     static bool put(JSCell*, JSGlobalObject*, PropertyName, JSValue, PutPropertySlot&);
     static bool putByIndex(JSCell*, JSGlobalObject*, unsigned propertyName, JSValue, bool shouldThrow);
@@ -327,7 +328,7 @@ inline auto subspaceForConcurrently(VM& vm)
 }
 
 #if CPU(X86_64)
-JS_EXPORT_PRIVATE NEVER_INLINE NO_RETURN_DUE_TO_CRASH NOT_TAIL_CALLED void reportZappedCellAndCrash(Heap&, const JSCell*);
+JS_EXPORT_PRIVATE NEVER_INLINE NO_RETURN_DUE_TO_CRASH NOT_TAIL_CALLED void reportZappedCellAndCrash(const JSCell*);
 #endif
 
 } // namespace JSC

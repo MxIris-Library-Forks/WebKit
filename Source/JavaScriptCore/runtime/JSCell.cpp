@@ -174,6 +174,12 @@ bool JSCell::isObjectSlow() const
     return isObject();
 }
 
+bool JSCell::validateIsNotSweeping() const
+{
+    ASSERT_IMPLIES(vm().currentThreadIsHoldingAPILock(), vm().heap.mutatorState() != MutatorState::Sweeping);
+    return !vm().currentThreadIsHoldingAPILock() || vm().heap.mutatorState() != MutatorState::Sweeping;
+}
+
 bool JSCell::inheritsSlow(const ClassInfo* info) const
 {
     return inherits(info);
@@ -287,8 +293,9 @@ void JSCellLock::unlockSlow()
 }
 
 #if CPU(X86_64)
-NEVER_INLINE NO_RETURN_DUE_TO_CRASH NOT_TAIL_CALLED void reportZappedCellAndCrash(Heap& heap, const JSCell* cell)
+NEVER_INLINE NO_RETURN_DUE_TO_CRASH NOT_TAIL_CALLED void reportZappedCellAndCrash(const JSCell* cell)
 {
+    Heap& heap = *cell->heap();
     MarkedBlock::Handle* foundBlockHandle = nullptr;
     uint64_t* cellWords = std::bit_cast<uint64_t*>(cell);
 

@@ -37,8 +37,10 @@
 #include "DeleteSelectionCommand.h"
 #include "DocumentFragment.h"
 #include "DocumentMarkerController.h"
+#include "DocumentMarkers.h"
 #include "DocumentView.h"
 #include "Editing.h"
+#include "EditingInlines.h"
 #include "Editor.h"
 #include "EditorInsertAction.h"
 #include "ElementTraversal.h"
@@ -1605,27 +1607,8 @@ VisibleSelection CompositeEditCommand::shouldBreakOutOfEmptyListItem() const
     return VisibleSelection(endingSelection().start().previous(BackwardDeletion), endingSelection().end());
 }
 
-bool CompositeEditCommand::hasSmartListMarkerAttribute() const
-{
-#if PLATFORM(COCOA)
-    if (shouldBreakOutOfEmptyListItem().isNone())
-        return false;
-
-    RefPtr emptyListItem = enclosingEmptyListItem(endingSelection().visibleStart());
-    ASSERT(emptyListItem);
-
-    RefPtr listNode = emptyListItem->parentElement();
-    ASSERT(listNode);
-
-    auto attribute = listNode->getAttribute(HTMLNames::webkitsmartlistmarkerAttr);
-    return !attribute.isEmpty() && parseTextList(attribute);
-#else
-    return false;
-#endif
-}
-
 // FIXME: Send an appropriate shouldDeleteRange call.
-bool CompositeEditCommand::breakOutOfEmptyListItem(ReconstitutePlainTextListIfNeeded reconstitutePlainTextListIfNeeded)
+bool CompositeEditCommand::breakOutOfEmptyListItem()
 {
     if (shouldBreakOutOfEmptyListItem().isNone())
         return false;
@@ -1680,11 +1663,6 @@ bool CompositeEditCommand::breakOutOfEmptyListItem(ReconstitutePlainTextListIfNe
 
     appendBlockPlaceholder(newBlock.copyRef());
     setEndingSelection(VisibleSelection(firstPositionInNode(newBlock), Affinity::Downstream, endingSelection().directionality()));
-
-    if (reconstitutePlainTextListIfNeeded == ReconstitutePlainTextListIfNeeded::Yes) {
-        if (auto smartListMarker = downcast<Element>(*listNode).getAttribute(HTMLNames::webkitsmartlistmarkerAttr); !smartListMarker.isEmpty())
-            inputText(WTF::makeString(smartListMarker, " "_s));
-    }
 
     style->prepareToApplyAt(endingSelection().start());
     if (!style->isEmpty())

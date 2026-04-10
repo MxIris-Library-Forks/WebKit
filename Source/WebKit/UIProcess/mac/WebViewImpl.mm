@@ -4691,7 +4691,7 @@ void WebViewImpl::startDrag(const WebCore::DragItem& item, ShareableBitmap::Hand
     RetainPtr dragCGImage = dragImageAsBitmap->createPlatformImage(DontCopyBackingStore);
     auto dragNSImage = adoptNS([[NSImage alloc] initWithCGImage:dragCGImage.get() size:dragImageAsBitmap->size()]);
 
-    WebCore::IntSize size([dragNSImage size]);
+    WebCore::FloatSize size { [dragNSImage size] };
     size.scale(1.0 / m_page->deviceScaleFactor());
     [dragNSImage setSize:size];
 
@@ -4793,6 +4793,7 @@ void WebViewImpl::startDrag(const WebCore::DragItem& item, ShareableBitmap::Hand
                     if (page->sessionID().isEphemeral())
                         [pasteboard _setExpirationDate:[NSDate dateWithTimeIntervalSinceNow:pasteboardExpirationDelay.seconds()]];
                 }
+                [pasteboard setString:@"" forType:PasteboardTypes::WebDummyPboardType];
                 page->didStartDrag(frameID);
             }
         });
@@ -5565,7 +5566,8 @@ void WebViewImpl::interpretKeyEvent(NSEvent *event, void(^completionHandler)(BOO
         }
 
         auto additionalCommands = checkedThis->collectKeyboardLayoutCommandsForEvent(capturedEvent.get());
-        commands.appendVector(additionalCommands);
+        if (!hasInsertText)
+            commands.appendVector(additionalCommands);
         capturedBlock(NO, commands);
 #if PLATFORM(MAC)
         ASSERT(checkedThis->m_page->editorState().inputMethodUsesCorrectKeyEventOrder || checkedThis->m_interpretKeyEventHoldingTank.isEmpty());

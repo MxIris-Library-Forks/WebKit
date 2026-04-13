@@ -907,6 +907,7 @@ imported/w3c/web-platform-tests/html/rendering/widgets/button-layout/input-type-
 imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-checked-styling.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-zero-size.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-number-text-size.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/rendering/the-details-element/details-content-pseudo-attr.html [ ImageOnlyFailure ]
 
 #[ iOS MacOS ] imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-add-label-quirks.html(layout-tests) is a constant IMAGE failure
 imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-add-label-quirks.html [ Failure ImageOnlyFailure ]
@@ -1162,6 +1163,9 @@ imported/w3c/web-platform-tests/css/css-ui/caret-color-020.html [ Skip ]
 # FIXME: Skip Content Security Policy tests that are dumping the render tree instead of text:
 imported/w3c/web-platform-tests/content-security-policy/svg/scripted.svg [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/svg/including.sub.svg [ Skip ]
+
+# FIXME (304193): CSP violation reporting from workers is not yet supported.
+imported/w3c/web-platform-tests/content-security-policy/reporting-api/dedicated-worker-correct-url-in-report.html [ Skip ]
 
 # Skip Content Security Policy tests that time out
 imported/w3c/web-platform-tests/content-security-policy/child-src/child-src-cross-origin-load.sub.html [ Skip ]

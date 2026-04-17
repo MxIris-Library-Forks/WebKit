@@ -1692,11 +1692,14 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     inspector/InspectorFrontendClient.h
     inspector/InspectorFrontendClientLocal.h
     inspector/InspectorFrontendHost.h
+    inspector/InspectorIdentifierRegistry.h
     inspector/InspectorInstrumentationPublic.h
     inspector/InspectorInstrumentationWebKit.h
     inspector/InstrumentingAgents.h
     inspector/InspectorOverlay.h
     inspector/InspectorOverlayLabel.h
+    inspector/InspectorResourceType.h
+    inspector/InspectorResourceUtilities.h
     inspector/InspectorWebAgentBase.h
     inspector/LegacyWebSocketInspectorInstrumentation.h
     inspector/PageInspectorController.h
@@ -2536,6 +2539,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageObserver.h
     platform/graphics/ImageOrientation.h
     platform/graphics/ImagePaintingOptions.h
+    platform/graphics/ImageResolution.h
     platform/graphics/ImageSource.h
     platform/graphics/ImageTypes.h
     platform/graphics/ImageUtilities.h

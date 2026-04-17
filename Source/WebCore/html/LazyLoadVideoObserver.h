@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,26 +25,32 @@
 
 #pragma once
 
-#include <JavaScriptCore/JSPromiseConstructor.h>
+#if ENABLE(VIDEO)
 
-namespace JSC {
+#include <wtf/TZoneMalloc.h>
 
-class JSInternalPromise;
-class JSInternalPromisePrototype;
+namespace WebCore {
 
-class JSInternalPromiseConstructor final : public JSPromiseConstructor {
+class Document;
+class HTMLVideoElement;
+
+class LazyLoadVideoObserver {
+    WTF_MAKE_TZONE_ALLOCATED(LazyLoadVideoObserver);
 public:
-    using Base = JSPromiseConstructor;
-    static constexpr unsigned StructureFlags = Base::StructureFlags | HasStaticPropertyTable;
+    LazyLoadVideoObserver();
+    ~LazyLoadVideoObserver();
 
-    static JSInternalPromiseConstructor* create(VM&, Structure*, JSInternalPromisePrototype*);
-    static Structure* createStructure(VM&, JSGlobalObject*, JSValue);
+    static void observe(HTMLVideoElement&);
+    static void unobserve(HTMLVideoElement&, Document&);
 
-    DECLARE_INFO;
+    bool isObserved(HTMLVideoElement&) const;
 
 private:
-    JSInternalPromiseConstructor(VM&, FunctionExecutable*, JSGlobalObject*, Structure*);
-};
-static_assert(sizeof(JSInternalPromiseConstructor) == sizeof(JSFunction), "Allocate JSInternalPromiseConstructor in JSFunction IsoSubspace");
+    IntersectionObserver* intersectionObserver(Document&);
 
-} // namespace JSC
+    RefPtr<IntersectionObserver> m_observer;
+};
+
+#endif
+
+} // namespace

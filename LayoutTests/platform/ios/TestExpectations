@@ -8215,6 +8215,7 @@ webkit.org/b/296707 imported/w3c/web-platform-tests/screen-orientation/non-fully
 
 webkit.org/b/296709 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/evil/media_height_19.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/line_1_wrapped_cue_grow_downwards.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/navigate_cue_position.html [ Skip ]
 
 webkit.org/b/296816 [ Release ] imported/w3c/web-platform-tests/css/css-shapes/spec-examples/shape-outside-012.html [ Pass Failure ]
 
@@ -8252,6 +8253,11 @@ webkit.org/b/297251 [ Release ] fast/mediastream/getUserMedia-echoCancellation.h
 # webkit.org/b/297405 2x imported/w3c/web-platform-tests/css/css-flexbox/ (layout-tests) tests are constant image failures 
 imported/w3c/web-platform-tests/css/css-flexbox/flexbox-align-self-vert-rtl-002.xhtml [ Failure ]
 imported/w3c/web-platform-tests/css/css-flexbox/flexbox-align-self-vert-rtl-001.xhtml [ Failure ]
+
+imported/w3c/web-platform-tests/css/css-flexbox/justify-content-001.htm [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-flexbox/justify-content-002.htm [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-flexbox/justify-content-004.htm [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-flexbox/justify-content-005.htm [ ImageOnlyFailure ]
 
 webkit.org/b/297462 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-size-containment-001.html [ Failure ]
 

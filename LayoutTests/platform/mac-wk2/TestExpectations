@@ -1519,6 +1519,7 @@ fast/webgpu/nocrash/fuzz-286820.html [ Skip ]
 
 # skipped outside of macOS Sequoia due to crash in failed allocation
 [ Sonoma ] fast/webgpu/nocrash/fuzz-279086.html [ Skip ]
+http/tests/webgpu/webgpu/api/operation/command_buffer/queries/timestampQuery.html [ Skip ]
 
 # skipped on non-AS due to requiring features unavailable on Intel
 [ x86_64 ] fast/webgpu/nocrash/fuzz-273021.html [ Skip ]
@@ -1567,6 +1568,7 @@ webkit.org/b/293808 [ Sequoia+ arm64 ] http/tests/webgpu/webgpu/shader [ Slow ]
 [ Debug ] http/tests/webgpu/webgpu/api/validation/image_copy/texture_related.html [ Skip ]
 [ Debug ] http/tests/webgpu/webgpu/api/validation/state/device_lost/destroy.html [ Skip ]
 [ Debug ] http/tests/webgpu/webgpu/shader/execution/expression/binary/f16_matrix_vector_multiplication.html [ Skip ]
+[ Debug ] http/tests/webgpu/webgpu/shader/validation/uniformity/uniformity.html [ Skip ]
 http/tests/webgpu/webgpu/api/operation/command_buffer/copyTextureToTexture.html [ Skip ]
 http/tests/webgpu/webgpu/api/operation/command_buffer/image_copy.html [ Skip ]
 http/tests/webgpu/webgpu/api/operation/resource_init/texture_zero.html [ Skip ]
@@ -2232,8 +2234,8 @@ webkit.org/b/298292 [ Sequoia ] http/tests/webgpu/webgpu/api/operation/sampling/
 http/tests/webgpu/webgpu/web_platform/copyToTexture [ Pass Timeout ]
 
 # this test is very slow and times out on debug so skip
-[ Release ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageData.html [ Slow ]
-[ Debug ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageData.html [ Skip ]
+[ Release arm64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageData.html [ Slow ]
+[ Debug arm64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageData.html [ Skip ]
 
 http/tests/webgpu/webgpu/web_platform/copyToTexture/image_file.html [ Pass ]
 
@@ -2242,6 +2244,7 @@ http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap.html [ Pass Time
 
 # skip on intel for now due to small precision error differences
 [ x86_64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/video.html [ Skip ]
+[ Release x86_64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageData.html [ Skip ]
 
 webkit.org/b/298416 [ Debug ] http/tests/websocket/construct-in-detached-frame.html [ Skip ]
 
@@ -2340,6 +2343,8 @@ webkit.org/b/306278 [ arm64 ] media/media-source/media-managedmse-resume-after-r
 
 webkit.org/b/306294 http/wpt/offscreen-canvas/transferToImageBitmap-webgl.html [ ImageOnlyFailure Pass ]
 
+webkit.org/b/312818 accessibility/mac/client/absolute-position-iframe.html [ Pass Failure ]
+
 webkit.org/b/309917 imported/w3c/web-platform-tests/css/css-viewport/zoom/iframe-zoom-nested.html [ ImageOnlyFailure Pass ]
 
 webkit.org/b/306570 [ Tahoe arm64 ] http/tests/webcodecs/video-decoder-callbacks-do-not-leak.html [ Pass Failure ]
@@ -2368,6 +2373,12 @@ webkit.org/b/306821 [ Tahoe ] fast/css-grid-layout/grid-item-display.html [ Pass
 webkit.org/b/306380 [ Release arm64 ] imported/w3c/web-platform-tests/media-source/mediasource-config-change-webm-av-audio-bitrate.html [ Pass Failure ]
 
 webkit.org/b/309600 [ arm64 ] http/tests/xmlhttprequest/chunked-progress-event-expectedLength.html [ Pass Failure ]
+
+# webkit.org/b/312842 imported/w3c/web-platform-tests/css/css-flexbox/justify-content-00x.htm are constant image diffs
+[ arm64 ] imported/w3c/web-platform-tests/css/css-flexbox/justify-content-001.htm [ ImageOnlyFailure ]
+[ arm64 ] imported/w3c/web-platform-tests/css/css-flexbox/justify-content-002.htm [ ImageOnlyFailure ]
+[ arm64 ] imported/w3c/web-platform-tests/css/css-flexbox/justify-content-004.htm [ ImageOnlyFailure ]
+[ arm64 ] imported/w3c/web-platform-tests/css/css-flexbox/justify-content-005.htm [ ImageOnlyFailure ]
 
 webkit.org/b/307084 [ Tahoe Release ] webgl/smell-test.html [ ImageOnlyFailure Pass ]
 webkit.org/b/307088 [ Tahoe Release ] webgl/webgl-and-dom-in-gpup.html [ ImageOnlyFailure Pass ]

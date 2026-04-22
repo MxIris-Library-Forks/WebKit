@@ -2489,6 +2489,12 @@ void RenderBox::mapLocalToContainer(const RenderLayerModelObject* ancestorContai
     if (mode.contains(MapCoordinatesMode::IgnoreStickyOffsets) && isStickilyPositioned())
         containerOffset -= stickyPositionOffset();
 
+    // Clamp overscroll if requested, so we don't layout into it.
+    if (mode.contains(MapCoordinatesMode::ClampOverscroll)) {
+        if (CheckedPtr boxContainer = dynamicDowncast<RenderBox>(container); boxContainer && boxContainer->hasPotentiallyScrollableOverflow())
+            containerOffset += boxContainer->scrollPosition() - boxContainer->constrainedScrollPosition();
+    }
+
     pushOntoTransformState(transformState, mode, ancestorContainer, container, containerOffset, containerSkipped);
     if (containerSkipped)
         return;
@@ -3810,10 +3816,24 @@ bool RenderBox::skipContainingBlockForPercentHeightCalculation(const RenderBox& 
     // non-anonymous.
     if (containingBlock.isAnonymousForPercentageResolution())
         return containingBlock.style().display() == Style::DisplayType::BlockFlow || containingBlock.style().display() == Style::DisplayType::InlineFlowRoot;
-    
+
     // For quirks mode, we skip most auto-height containing blocks when computing
     // percentages.
-    return document().inQuirksMode() && !containingBlock.isRenderTableCell() && !containingBlock.isOutOfFlowPositioned() && !containingBlock.isRenderGrid() && !containingBlock.isFlexibleBoxIncludingDeprecated() && containingBlock.style().logicalHeight().isAuto();
+    auto shouldSkipContainingBlockInQuirksMode = [&] {
+        ASSERT(document().inQuirksMode());
+        if (containingBlock.isFlexItem() && downcast<RenderFlexibleBox>(containingBlock.parent())->canUseFlexItemForPercentageResolution(containingBlock))
+            return false;
+        if (containingBlock.isRenderTableCell())
+            return false;
+        if (containingBlock.isOutOfFlowPositioned())
+            return false;
+        if (containingBlock.isRenderGrid())
+            return false;
+        if (containingBlock.isFlexibleBoxIncludingDeprecated())
+            return false;
+        return containingBlock.style().logicalHeight().isAuto();
+    };
+    return document().inQuirksMode() && shouldSkipContainingBlockInQuirksMode();
 }
 
 static bool NODELETE tableCellShouldHaveZeroInitialSize(const RenderTableCell& tableCell, const RenderBox& child, bool scrollsOverflowY)

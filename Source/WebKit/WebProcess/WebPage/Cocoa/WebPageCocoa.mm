@@ -64,6 +64,7 @@
 #import <WebCore/AccessibilityObject.h>
 #import <WebCore/AccessibilityScrollView.h>
 #import <WebCore/AnimationTimelinesController.h>
+#import <WebCore/CSSKeywordValue.h>
 #import <WebCore/Chrome.h>
 #import <WebCore/ChromeClient.h>
 #if ENABLE(CONTENT_CHANGE_OBSERVER)
@@ -1466,7 +1467,7 @@ static std::optional<bool> elementHasHiddenVisibility(StyledElement* styledEleme
     if (!inlineStyle)
         return std::nullopt;
 
-    RefPtr value = inlineStyle->getPropertyCSSValue(CSSPropertyVisibility);
+    RefPtr value = dynamicDowncast<CSSKeywordValue>(inlineStyle->getPropertyCSSValue(CSSPropertyVisibility));
     if (!value)
         return false;
 
@@ -3336,11 +3337,15 @@ void WebPage::completeSyntheticClick(std::optional<WebCore::FrameIdentifier> fra
     RefPtr<Element> newFocusedElement = newFocusedFrame ? newFocusedFrame->document()->focusedElement() : nullptr;
 
     if (nodeRespondingToClick.document().settings().contentChangeObserverEnabled()) {
-        if (RefPtr frame = nodeRespondingToClick.document().frame()) {
-            PlatformMouseEvent event { roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::None, PlatformEvent::Type::NoType, 0, platformModifiers, MonotonicTime::now(), 0, WebCore::SyntheticClickType::NoTap, m_potentialTapInputSource, pointerId };
-            if (!nodeRespondingToClick.isConnected())
-                frame->eventHandler().dispatchSyntheticMouseMove(event);
-            frame->eventHandler().dispatchSyntheticMouseOut(event);
+        Ref document = nodeRespondingToClick.document();
+        // Dispatch mouseOut to dismiss tooltip content when tapping on the control bar buttons (cc, settings).
+        if (document->quirks().needsYouTubeMouseOutQuirk()) {
+            if (RefPtr frame = document->frame()) {
+                PlatformMouseEvent event { roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::NoType, 0, platformModifiers, MonotonicTime::now(), 0, WebCore::SyntheticClickType::NoTap, m_potentialTapInputSource, pointerId };
+                if (!nodeRespondingToClick.isConnected())
+                    frame->eventHandler().dispatchSyntheticMouseMove(event);
+                frame->eventHandler().dispatchSyntheticMouseOut(event);
+            }
         }
     }
 

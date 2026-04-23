@@ -131,7 +131,7 @@ public:
 
         if (m_tagId == TagId::Source && !pictureState.isEmpty() && !pictureState.last() && m_mediaMatched && m_typeMatched && !m_srcSetAttribute.isEmpty()) {
             auto sourceSize = SizesAttributeParser(m_sizesAttribute, m_document).effectiveSize();
-            ImageCandidate imageCandidate = bestFitSourceForImageAttributes(m_deviceScaleFactor, AtomString { m_urlToLoad }, m_srcSetAttribute, sourceSize);
+            ImageCandidate imageCandidate = bestFitSourceForImageAttributes(m_deviceScaleFactor, m_urlToLoad, m_srcSetAttribute, sourceSize);
             if (!imageCandidate.isEmpty()) {
                 pictureState.last() = true;
                 setURLToLoadAllowingReplacement(imageCandidate.string.view);
@@ -141,7 +141,7 @@ public:
         // Resolve between src and srcSet if we have them and the tag is img.
         if (m_tagId == TagId::Img && !m_srcSetAttribute.isEmpty()) {
             auto sourceSize = SizesAttributeParser(m_sizesAttribute, m_document).effectiveSize();
-            ImageCandidate imageCandidate = bestFitSourceForImageAttributes(m_deviceScaleFactor, AtomString { m_urlToLoad }, m_srcSetAttribute, sourceSize);
+            ImageCandidate imageCandidate = bestFitSourceForImageAttributes(m_deviceScaleFactor, m_urlToLoad, m_srcSetAttribute, sourceSize);
             setURLToLoadAllowingReplacement(imageCandidate.string.view);
         }
 
@@ -322,6 +322,8 @@ private:
                 m_referrerPolicy = parseReferrerPolicy(attributeValue, ReferrerPolicySource::ReferrerPolicyAttribute).value_or(ReferrerPolicy::EmptyString);
             else if (match(attributeName, fetchpriorityAttr))
                 m_fetchPriority = parseEnumerationFromString<RequestPriority>(attributeValue.toString()).value_or(RequestPriority::Auto);
+            else if (match(attributeName, disabledAttr))
+                m_linkIsDisabled = true;
             break;
         case TagId::Input:
             if (match(attributeName, srcAttr))
@@ -417,6 +419,9 @@ private:
         if (m_tagId == TagId::Link && !m_linkIsStyleSheet && !m_linkIsPreload)
             return false;
 
+        if (m_tagId == TagId::Link && m_linkIsDisabled)
+            return false;
+
         if (m_tagId == TagId::Input && !m_inputIsImage)
             return false;
 
@@ -434,6 +439,7 @@ private:
     String m_crossOriginMode;
     bool m_linkIsStyleSheet;
     bool m_linkIsPreload;
+    bool m_linkIsDisabled { false };
     String m_mediaAttribute;
     String m_nonceAttribute;
     String m_metaContent;
@@ -464,7 +470,7 @@ void TokenPreloadScanner::scan(const HTMLToken& token, Vector<std::unique_ptr<Pr
     case HTMLToken::Type::Character:
         if (!m_inStyle)
             return;
-        m_cssScanner.scan(token.characters(), requests);
+        m_cssScanner.scan(token.characters(), requests, m_predictedBaseElementURL);
         return;
 
     case HTMLToken::Type::EndTag: {

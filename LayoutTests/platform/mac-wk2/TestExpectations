@@ -1491,7 +1491,6 @@ webkit.org/b/261906 imported/w3c/web-platform-tests/editing/run/forwarddelete.ht
 # webkit.org/b/262216 (REGRESSION(268472@main): 5 tests under http/tests/contentextensions/ are consistently failing.)
 http/tests/contentextensions/main-resource-redirect-blocked.py [ Pass Failure ]
 http/tests/contentextensions/main-resource-redirect-error.html [ Pass Failure ]
-http/tests/contentextensions/block-everything-unless-domain.html [ Pass Failure ] # Switch back to [ Pass Timeout ] when resolved: webkit.org/b/167653
 http/tests/contentextensions/block-everything-unless-domain-iframe.html [ Pass Failure ]
 http/tests/contentextensions/block-everything-unless-domain-redirect.py [ Pass Failure ]
 
@@ -2342,8 +2341,6 @@ webkit.org/b/306047 accessibility/mac/replaced-element-text-selection.html [ Pas
 webkit.org/b/306278 [ arm64 ] media/media-source/media-managedmse-resume-after-remove.html [ Pass Failure ]
 
 webkit.org/b/306294 http/wpt/offscreen-canvas/transferToImageBitmap-webgl.html [ ImageOnlyFailure Pass ]
-
-webkit.org/b/312818 accessibility/mac/client/absolute-position-iframe.html [ Pass Failure ]
 
 webkit.org/b/309917 imported/w3c/web-platform-tests/css/css-viewport/zoom/iframe-zoom-nested.html [ ImageOnlyFailure Pass ]
 

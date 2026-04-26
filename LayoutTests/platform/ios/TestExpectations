@@ -393,7 +393,6 @@ fast/forms/range/sideways-lr-dragging.html [ Skip ]
 fast/forms/range/slider-repaint-vertical-rl.html [ Skip ]
 fast/shadow-dom/touch-event-ios.html [ Skip ]
 fast/shadow-dom/touch-event-on-text-assigned-to-slot.html [ Skip ]
-http/tests/frame-throttling/raf-throttle-in-cross-origin-subframe.html [ Skip ]
 http/tests/frame-throttling/timer-throttle-in-cross-origin-subframe.html [ Skip ]
 http/tests/quicklook/at-import-stylesheet-blocked.html [ Skip ]
 http/tests/quicklook/base-url-blocked.html [ Skip ]
@@ -1500,7 +1499,6 @@ http/tests/security/contentSecurityPolicy/media-src-allowed.html
 http/tests/canvas/webgl/origin-clean-conformance.html
 
 # HTTP tests that fail:
-http/tests/cache/willsendrequest-returns-null-for-memory-cache-load.html [ Failure ]
 http/tests/loading/promote-img-preload-priority.html [ Failure ]
 http/tests/loading/sizes/preload-image-sizes.html [ Failure ]
 http/tests/local/formdata/form-data-with-unknown-file-extension.html [ Failure ]
@@ -2390,6 +2388,9 @@ accessibility/base-select-option-border-radius-path.html [ Pass ]
 accessibility/base-select-option-press-closes-popover.html [ Pass ]
 accessibility/button-hit-test.html [ Pass ]
 accessibility/button-inside-label-ax-text.html [ Pass ]
+accessibility/canvas-drawFocusIfNeeded-bounds.html [ Pass ]
+accessibility/canvas-drawFocusIfNeeded-bounds-with-object-fit.html [ Pass ]
+accessibility/canvas-drawFocusIfNeeded-bounds-with-transform.html [ Pass ]
 accessibility/changing-aria-hidden-with-display-none-parent.html [ Pass ]
 accessibility/checkbox-mixed-value.html [ Pass ]
 accessibility/clip-path-bounding-box.html [ Pass ]
@@ -7845,8 +7846,6 @@ webkit.org/b/289002 [ Release ] imported/blink/fast/text/international-iteration
 webkit.org/b/289005 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-position-try-006.html [ Failure ]
 
 webkit.org/b/289020 imported/w3c/web-platform-tests/webrtc-stats/hardware-capability-stats.https.html [ Pass Failure ]
-
-webkit.org/b/289090 imported/w3c/web-platform-tests/dom/nodes/remove-from-shadow-host-and-adopt-into-iframe.html [ Pass Timeout ]
 
 webkit.org/b/289097 imported/w3c/web-platform-tests/css/css-position/sticky/position-sticky-fixed-ancestor.html [ Pass Failure ]
 

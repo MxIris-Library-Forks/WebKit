@@ -281,7 +281,6 @@ http/tests/notifications/permission/ [ Skip ]
 http/tests/permissions/ [ Skip ]
 imported/w3c/web-platform-tests/storage/ [ Skip ]
 imported/w3c/web-platform-tests/storage-access-api/ [ Skip ]
-imported/w3c/web-platform-tests/file-system-access/ [ Skip ]
 imported/w3c/web-platform-tests/fs/ [ Skip ]
 storage/filesystemaccess/ [ Skip ]
 storage/storagemanager/ [ Skip ]
@@ -2206,11 +2205,6 @@ imported/w3c/web-platform-tests/quirks/tables-inherit-color-from-body-quirk-003.
 imported/w3c/web-platform-tests/quirks/tables-inherit-color-from-body-quirk-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/quirks/tables-inherit-color-from-body-quirk-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/quirks/tables-inherit-color-from-body-quirk-007.html [ ImageOnlyFailure ]
-
-# WPT tests requiring DTR/WTR to allow other URLs than localhost to not be blocked and be reachable (www2.localhost)
-imported/w3c/web-platform-tests/xhr/send-redirect-bogus.htm [ Skip ]
-imported/w3c/web-platform-tests/xhr/send-redirect-to-cors.htm [ Skip ]
-imported/w3c/web-platform-tests/xhr/send-redirect-to-non-cors.htm [ Skip ]
 
 imported/w3c/web-platform-tests/resource-timing/test_resource_timing.html [ Pass Failure ]
 imported/w3c/web-platform-tests/resource-timing/test_resource_timing.https.html [ Pass Failure ]
@@ -4498,18 +4492,12 @@ imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-014
 imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-015.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-016.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/hori-block-size-small-or-larger-than-container-with-min-or-max-content-1.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/inline-intrinsic-size-calc.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/max-content-input-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/replaced-aspect-ratio-intrinsic-size-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/vert-block-size-small-or-larger-than-container-with-min-or-max-content-1.html [ ImageOnlyFailure ]
 webkit.org/b/214463 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/flex-aspect-ratio-038.html [ ImageOnlyFailure ]
 webkit.org/b/214463 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/floats-aspect-ratio-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/block-aspect-ratio-042.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/block-aspect-ratio-043.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/block-aspect-ratio-057.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/flex-aspect-ratio-049.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/flex-aspect-ratio-050.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/flex-aspect-ratio-053.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/replaced-element-045.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/replaced-element-046.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/block-size-with-min-or-max-content-2.html [ ImageOnlyFailure ]
@@ -5957,7 +5945,6 @@ imported/w3c/web-platform-tests/css/filter-effects/visibility-hidden-element-wit
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-backdrop-root-animation-in-effect.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-backdrop-root-mask.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/fecolormatrix-display-p3.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-plus-filter-2.html [ ImageOnlyFailure ]
 
 # CSS motion path URL support.
 imported/w3c/web-platform-tests/css/motion/offset-path-url-002.html [ ImageOnlyFailure ]
@@ -7683,9 +7670,6 @@ imported/w3c/web-platform-tests/css/CSS2/floats/floats-rule7-outside-left-001.xh
 imported/w3c/web-platform-tests/css/CSS2/floats/floats-rule7-outside-right-001.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-006.xht [ ImageOnlyFailure ]
 webkit.org/b/239976 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-002.tentative.html [ ImageOnlyFailure ]
-webkit.org/b/239976 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-003.tentative.html [ ImageOnlyFailure ]
-webkit.org/b/239976 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-004.html [ ImageOnlyFailure ]
-webkit.org/b/239976 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-006.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-007.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/CSS2/floats/floats-wrap-bfc-with-margin-008.tentative.html [ ImageOnlyFailure ]
@@ -8078,7 +8062,7 @@ imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-track-settings.tentative.h
 
 media/wireless-playback-media-player/ [ Skip ]
 
-webkit.org/b/295810 [ Debug ] fast/dynamic/disappearing-content-on-size-change-crash.html [ Timeout ]
+webkit.org/b/295810 [ Debug ] fast/dynamic/disappearing-content-on-size-change-crash.html [ Timeout Pass ]
 
 [ Debug ] fast/inline/continuation-with-anon-wrappers.html [ Slow ]
 
@@ -8193,3 +8177,5 @@ svg/compositing/foreground-layer-composited-html-in-foreignobject-between-rects.
 svg/compositing/foreground-layer-composited-svg-rect-and-foreignobject-interleaved.html [ ImageOnlyFailure ]
 svg/compositing/foreground-layer-mixed-svg-and-foreignobject-composited.html [ ImageOnlyFailure ]
 svg/compositing/foreground-layer-multiple-foreignobjects-composited.html [ ImageOnlyFailure ]
+
+webkit.org/b/310217 imported/w3c/web-platform-tests/pointerevents/pointerevent_pointer_boundary_events_after_removing_last_over_element.html [ Pass Failure ]

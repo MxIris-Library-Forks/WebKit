@@ -38,15 +38,21 @@
 #include "DocumentPage.h"
 #include "DocumentPrefetcher.h"
 #include "DocumentResourceLoader.h"
+#include "Frame.h"
+#include "FrameDestructionObserverInlines.h"
+#include "FrameInlines.h"
 #include "FrameLoader.h"
+#include "HTMLFrameOwnerElement.h"
 #include "HTTPParsers.h"
 #include "HTTPStatusCodes.h"
 #include "InspectorNetworkAgent.h"
 #include "LinkLoader.h"
 #include "LocalFrame.h"
+#include "LocalFrameLoaderClient.h"
 #include "Logging.h"
 #include "MemoryCache.h"
 #include "OriginAccessPatterns.h"
+#include "RemoteFrame.h"
 #include "ResourceLoadObserver.h"
 #include "ResourceTiming.h"
 #include "SecurityOrigin.h"
@@ -413,6 +419,7 @@ void SubresourceLoader::didReceiveResponse(ResourceResponse&& response, Completi
         }
     }
 
+    // Implementing step 20 of https://fetch.spec.whatwg.org/#concept-main-fetch.
     if (auto error = validateRangeRequestedFlag(request(), response)) {
         SUBRESOURCELOADER_RELEASE_LOG(SubResourceLoaderDidReceiveResponseCancelingLoadReceivedUnexpectedRangeResponse);
         cancel(WTF::move(*error));
@@ -470,7 +477,7 @@ void SubresourceLoader::didReceiveResponse(ResourceResponse&& response, Completi
 
     if (response.isRedirection()) {
         if (options().redirect == FetchOptions::Redirect::Follow && isLocationURLFailure(response)) {
-            // Implementing https://fetch.spec.whatwg.org/#concept-http-redirect-fetch step 3
+            // Implementing https://fetch.spec.whatwg.org/#concept-http-redirect-fetch step 5
             cancel();
             return;
         }
@@ -951,6 +958,17 @@ void SubresourceLoader::reportResourceTiming(const NetworkLoadMetrics& networkLo
     }
 
     ASSERT(options().initiatorContext == InitiatorContext::Document);
+
+    if (resource->type() == CachedResource::Type::MainResource
+        && document->frame()
+        && document->frame()->loader().shouldReportResourceTimingToParentFrame()) {
+        if (RefPtr remoteParent = dynamicDowncast<RemoteFrame>(document->frame()->tree().parent())) {
+            resourceTiming.overrideInitiatorType(document->frame()->ownerElement() ? document->frame()->ownerElement()->localName() : "iframe"_s);
+            remoteParent->addResourceTimingFromChild(WTF::move(resourceTiming));
+            return;
+        }
+    }
+
     documentLoader->cachedResourceLoader().resourceTimingInformation().addResourceTiming(*protect(cachedResource()), *document, WTF::move(resourceTiming));
 }
 

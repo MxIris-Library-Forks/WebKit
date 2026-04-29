@@ -316,6 +316,8 @@
 #include <WebCore/ResourceLoadStatistics.h>
 #include <WebCore/ResourceRequest.h>
 #include <WebCore/ResourceResponse.h>
+#include <WebCore/ResourceTiming.h>
+#include <WebCore/ResourceTimingInformation.h>
 #include <WebCore/RunJavaScriptParameters.h>
 #include <WebCore/SWClientConnection.h>
 #include <WebCore/ScriptController.h>
@@ -2208,13 +2210,18 @@ void WebPage::createProvisionalFrame(ProvisionalFrameCreationParameters&& parame
     frame->createProvisionalFrame(WTF::move(parameters));
 }
 
-void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier)
+void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier, std::optional<URL>&& mainFrameDocumentURL)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
         return;
     ASSERT(frame->page() == this);
     frame->loadDidCommitInAnotherProcess(layerHostingContextIdentifier);
+
+    if (mainFrameDocumentURL) {
+        if (RefPtr page = corePage())
+            page->setMainFrameURLAndOrigin(*mainFrameDocumentURL, nullptr);
+    }
 }
 
 void WebPage::loadRequest(LoadParameters&& loadParameters)
@@ -9902,6 +9909,19 @@ void WebPage::dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier fram
 
     if (RefPtr ownerElement = coreRemoteFrame->ownerElement())
         ownerElement->dispatchEvent(Event::create(eventNames().loadEvent, Event::CanBubble::No, Event::IsCancelable::No));
+}
+
+void WebPage::addResourceTimingFromSubframe(WebCore::FrameIdentifier parentFrameID, WebCore::ResourceTiming&& resourceTiming)
+{
+    RefPtr frame = WebProcess::singleton().webFrame(parentFrameID);
+    if (!frame)
+        return;
+
+    RefPtr localFrame = frame->coreLocalFrame();
+    if (!localFrame || !localFrame->document())
+        return;
+
+    WebCore::ResourceTimingInformation::addResourceTimingToDocument(*protect(localFrame->document()), WTF::move(resourceTiming));
 }
 
 void WebPage::elementWasFocusedInAnotherProcess(WebCore::FrameIdentifier frameID, WebCore::FocusOptions options)

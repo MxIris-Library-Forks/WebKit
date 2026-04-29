@@ -2196,10 +2196,15 @@ class WebCore::LayoutRect {
     WebCore::LayoutSize m_size;
 };
 
+[OptionSet] enum class WebCore::FrameOwnerElementAppearance : uint8_t {
+    IsDark,
+    ExplicitlySet
+};
+
 struct WebCore::RemoteFrameLayoutInfo {
     std::optional<WebCore::LayoutRect> visibleRectInParent;
     float usedZoom;
-    bool useDarkAppearance;
+    OptionSet<WebCore::FrameOwnerElementAppearance> ownerElementAppearance;
 };
 
 header: <WebCore/VP9Utilities.h>
@@ -7489,6 +7494,32 @@ header: <WebCore/NetworkLoadMetrics.h>
     uint64_t responseHeaderBytesReceived;
     uint64_t requestBodyBytesSent;
     bool isProxyConnection;
+}
+
+header: <WebCore/ResourceLoadTiming.h>
+class WebCore::ResourceLoadTiming {
+    MonotonicTime startTime();
+    MonotonicTime endTime();
+}
+
+header: <WebCore/ServerTiming.h>
+struct WebCore::ServerTiming {
+    String name;
+    double duration;
+    String description;
+    bool durationSet;
+    bool descriptionSet;
+}
+
+header: <WebCore/ResourceTiming.h>
+[CustomHeader] class WebCore::ResourceTiming {
+    URL url();
+    String initiatorType();
+    WebCore::ResourceLoadTiming resourceLoadTiming();
+    WebCore::NetworkLoadMetrics networkLoadMetrics();
+    Vector<WebCore::ServerTiming> serverTiming();
+    bool isLoadedFromServiceWorker();
+    bool isSameOriginRequest();
 }
 
 struct WebCore::DisplayUpdate {

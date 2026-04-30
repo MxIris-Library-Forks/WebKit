@@ -3108,6 +3108,28 @@ auto ByteCodeParser::handleIntrinsicCall(Node* callee, Operand resultOperand, Ca
             return CallOptimizationResult::Inlined;
         }
 
+        case StringPrototypeLastIndexOfIntrinsic: {
+            if (argumentCountIncludingThis < 2)
+                return CallOptimizationResult::DidNothing;
+
+            if (m_inlineStackTop->m_exitProfile.hasExitSite(m_currentIndex, Uncountable) || m_inlineStackTop->m_exitProfile.hasExitSite(m_currentIndex, BadType))
+                return CallOptimizationResult::DidNothing;
+
+            insertChecks();
+            Node* thisValue = get(virtualRegisterForArgumentIncludingThis(0, registerOffset));
+            Node* search = get(virtualRegisterForArgumentIncludingThis(1, registerOffset));
+            Node* result = nullptr;
+            if (argumentCountIncludingThis == 2)
+                result = addToGraph(StringLastIndexOf, OpInfo(ArrayMode(Array::String, Array::Read).asWord()), thisValue, search);
+            else {
+                Node* index = get(virtualRegisterForArgumentIncludingThis(2, registerOffset));
+                result = addToGraph(StringLastIndexOf, OpInfo(ArrayMode(Array::String, Array::Read).asWord()), thisValue, search, index);
+            }
+
+            setResult(result);
+            return CallOptimizationResult::Inlined;
+        }
+
         case StringPrototypeStartsWithIntrinsic:
         case StringPrototypeEndsWithIntrinsic: {
             if (argumentCountIncludingThis < 2)
@@ -10735,11 +10757,19 @@ void ByteCodeParser::handleIteratorOpen(const JSInstruction* currentInstruction,
     auto& metadata = bytecode.metadata(codeBlock);
     uint32_t seenModes = metadata.m_iterationMetadata.seenModes;
 
+    JSGlobalObject* globalObject = m_inlineStackTop->m_codeBlock->globalObjectFor(currentCodeOrigin());
+
+    if (seenModes & IterationMode::FastArray && !globalObject->arrayIteratorProtocolWatchpointSet().isStillValid())
+        seenModes &= ~static_cast<uint32_t>(IterationMode::FastArray);
+    if (seenModes & IterationMode::FastMap && !globalObject->mapIteratorProtocolWatchpointSet().isStillValid())
+        seenModes &= ~static_cast<uint32_t>(IterationMode::FastMap);
+    if (seenModes & IterationMode::FastSet && !globalObject->setIteratorProtocolWatchpointSet().isStillValid())
+        seenModes &= ~static_cast<uint32_t>(IterationMode::FastSet);
+
     unsigned numberOfRemainingModes = std::popcount(seenModes);
     ASSERT(numberOfRemainingModes <= numberOfIterationModes);
     bool generatedCase = false;
 
-    JSGlobalObject* globalObject = m_inlineStackTop->m_codeBlock->globalObjectFor(currentCodeOrigin());
     BasicBlock* failedBlock = nullptr;
     auto connectFailedBlock = [&] {
         if (failedBlock) {
@@ -10755,7 +10785,7 @@ void ByteCodeParser::handleIteratorOpen(const JSInstruction* currentInstruction,
 
     BytecodeIndex startIndex = m_currentIndex;
 
-    if (seenModes & IterationMode::FastArray && globalObject->arrayIteratorProtocolWatchpointSet().isStillValid()) {
+    if (seenModes & IterationMode::FastArray) {
         // First set up the watchpoint conditions we need for correctness.
         m_graph.watchpoints().addLazily(globalObject->arrayIteratorProtocolWatchpointSet());
 
@@ -10816,7 +10846,7 @@ void ByteCodeParser::handleIteratorOpen(const JSInstruction* currentInstruction,
 
     m_currentIndex = startIndex;
 
-    if (seenModes & IterationMode::FastMap && globalObject->mapIteratorProtocolWatchpointSet().isStillValid()) {
+    if (seenModes & IterationMode::FastMap) {
         auto& mapIteratorProtocolWatchpointSet = globalObject->mapIteratorProtocolWatchpointSet();
         m_graph.watchpoints().addLazily(mapIteratorProtocolWatchpointSet);
 
@@ -10874,7 +10904,7 @@ void ByteCodeParser::handleIteratorOpen(const JSInstruction* currentInstruction,
 
     m_currentIndex = startIndex;
 
-    if (seenModes & IterationMode::FastSet && globalObject->setIteratorProtocolWatchpointSet().isStillValid()) {
+    if (seenModes & IterationMode::FastSet) {
         auto& setIteratorProtocolWatchpointSet = globalObject->setIteratorProtocolWatchpointSet();
         m_graph.watchpoints().addLazily(setIteratorProtocolWatchpointSet);
 
@@ -10990,6 +11020,7 @@ void ByteCodeParser::handleIteratorOpen(const JSInstruction* currentInstruction,
         generatedCase = true;
     }
 
+    ASSERT(!failedBlock);
     if (!generatedCase) {
         Node* result = jsConstant(JSValue());
         addToGraph(ForceOSRExit);
@@ -11017,11 +11048,19 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
     auto& metadata = bytecode.metadata(codeBlock);
     uint32_t seenModes = metadata.m_iterationMetadata.seenModes;
 
+    JSGlobalObject* globalObject = m_inlineStackTop->m_codeBlock->globalObjectFor(currentCodeOrigin());
+
+    if (seenModes & IterationMode::FastArray && !globalObject->arrayIteratorProtocolWatchpointSet().isStillValid())
+        seenModes &= ~static_cast<uint32_t>(IterationMode::FastArray);
+    if (seenModes & IterationMode::FastMap && !globalObject->mapIteratorProtocolWatchpointSet().isStillValid())
+        seenModes &= ~static_cast<uint32_t>(IterationMode::FastMap);
+    if (seenModes & IterationMode::FastSet && !globalObject->setIteratorProtocolWatchpointSet().isStillValid())
+        seenModes &= ~static_cast<uint32_t>(IterationMode::FastSet);
+
     unsigned numberOfRemainingModes = std::popcount(seenModes);
     ASSERT(numberOfRemainingModes <= numberOfIterationModes);
     bool generatedCase = false;
 
-    JSGlobalObject* globalObject = m_inlineStackTop->m_codeBlock->globalObjectFor(currentCodeOrigin());
     BasicBlock* failedBlock = nullptr;
     auto connectFailedBlock = [&] {
         if (failedBlock) {
@@ -11037,7 +11076,7 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
 
     BytecodeIndex startIndex = m_currentIndex;
 
-    if (seenModes & IterationMode::FastArray && globalObject->arrayIteratorProtocolWatchpointSet().isStillValid()) {
+    if (seenModes & IterationMode::FastArray) {
         // First set up the watchpoint conditions we need for correctness.
         m_graph.watchpoints().addLazily(globalObject->arrayIteratorProtocolWatchpointSet());
         numberOfRemainingModes--;
@@ -11047,14 +11086,20 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         if (!numberOfRemainingModes)
             addToGraph(CheckIsConstant, OpInfo(m_graph.freeze(JSValue())), get(bytecode.m_next));
         else {
-            Node* hasNext = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isEmpty = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isArrayIterator = addToGraph(IsCellWithType, OpInfo(JSArrayIteratorType), get(bytecode.m_iterator));
+            Node* andResult = addToGraph(ArithBitAnd, isEmpty, isArrayIterator);
+
+            m_exitOK = true;
+            addToGraph(ExitOK);
+
             failedBlock = allocateUntargetableBlock();
             BasicBlock* fastArrayBlock = allocateUntargetableBlock();
 
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(fastArrayBlock);
             branchData->notTaken = BranchTarget(failedBlock);
-            addToGraph(Branch, OpInfo(branchData), hasNext);
+            addToGraph(Branch, OpInfo(branchData), andResult);
 
             m_currentBlock = fastArrayBlock;
             clearCaches();
@@ -11150,7 +11195,7 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         generatedCase = true;
     }
 
-    if (seenModes & IterationMode::FastMap && globalObject->mapIteratorProtocolWatchpointSet().isStillValid()) {
+    if (seenModes & IterationMode::FastMap) {
         auto& mapIteratorProtocolWatchpointSet = globalObject->mapIteratorProtocolWatchpointSet();
         m_graph.watchpoints().addLazily(mapIteratorProtocolWatchpointSet);
         numberOfRemainingModes--;
@@ -11160,14 +11205,20 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         if (!numberOfRemainingModes)
             addToGraph(CheckIsConstant, OpInfo(m_graph.freeze(JSValue())), get(bytecode.m_next));
         else {
-            Node* hasNext = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isEmpty = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isMapIterator = addToGraph(IsCellWithType, OpInfo(JSMapIteratorType), get(bytecode.m_iterator));
+            Node* andResult = addToGraph(ArithBitAnd, isEmpty, isMapIterator);
+
+            m_exitOK = true;
+            addToGraph(ExitOK);
+
             failedBlock = allocateUntargetableBlock();
             BasicBlock* fastMapBlock = allocateUntargetableBlock();
 
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(fastMapBlock);
             branchData->notTaken = BranchTarget(failedBlock);
-            addToGraph(Branch, OpInfo(branchData), hasNext);
+            addToGraph(Branch, OpInfo(branchData), andResult);
 
             m_currentBlock = fastMapBlock;
             clearCaches();
@@ -11243,7 +11294,7 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         generatedCase = true;
     }
 
-    if (seenModes & IterationMode::FastSet && globalObject->setIteratorProtocolWatchpointSet().isStillValid()) {
+    if (seenModes & IterationMode::FastSet) {
         auto& setIteratorProtocolWatchpointSet = globalObject->setIteratorProtocolWatchpointSet();
         m_graph.watchpoints().addLazily(setIteratorProtocolWatchpointSet);
         numberOfRemainingModes--;
@@ -11253,14 +11304,20 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         if (!numberOfRemainingModes)
             addToGraph(CheckIsConstant, OpInfo(m_graph.freeze(JSValue())), get(bytecode.m_next));
         else {
-            Node* hasNext = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isEmpty = addToGraph(IsEmpty, get(bytecode.m_next));
+            Node* isSetIterator = addToGraph(IsCellWithType, OpInfo(JSSetIteratorType), get(bytecode.m_iterator));
+            Node* andResult = addToGraph(ArithBitAnd, isEmpty, isSetIterator);
+
+            m_exitOK = true;
+            addToGraph(ExitOK);
+
             failedBlock = allocateUntargetableBlock();
             BasicBlock* fastSetBlock = allocateUntargetableBlock();
 
             BranchData* branchData = m_graph.m_branchData.add();
             branchData->taken = BranchTarget(fastSetBlock);
             branchData->notTaken = BranchTarget(failedBlock);
-            addToGraph(Branch, OpInfo(branchData), hasNext);
+            addToGraph(Branch, OpInfo(branchData), andResult);
 
             m_currentBlock = fastSetBlock;
             clearCaches();
@@ -11427,6 +11484,7 @@ void ByteCodeParser::handleIteratorNext(const JSInstruction* currentInstruction,
         generatedCase = true;
     }
 
+    ASSERT(!failedBlock);
     if (!generatedCase) {
         Node* result = jsConstant(JSValue());
         addToGraph(ForceOSRExit);

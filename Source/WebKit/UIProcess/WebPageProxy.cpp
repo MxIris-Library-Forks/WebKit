@@ -476,6 +476,10 @@
 #include "RemoteMediaSessionManagerProxy.h"
 #endif
 
+#if HAVE(ENHANCED_SECURITY_LINKS)
+#include "EnhancedSecurityLinkUtilities.h"
+#endif
+
 #define MESSAGE_CHECK(process, assertion) MESSAGE_CHECK_BASE(assertion, process->connection())
 #define MESSAGE_CHECK_URL(process, url) MESSAGE_CHECK_BASE(checkURLReceivedFromCurrentOrPreviousWebProcess(process, url), process->connection())
 #define MESSAGE_CHECK_URL_COROUTINE(process, url) MESSAGE_CHECK_BASE_COROUTINE(checkURLReceivedFromCurrentOrPreviousWebProcess(process, url), process->connection())
@@ -548,20 +552,6 @@ StorageRequests& NODELETE StorageRequests::singleton()
     static NeverDestroyed<StorageRequests> requests;
     return requests;
 }
-
-#if ENABLE(WINDOW_PROXY_PROPERTY_ACCESS_NOTIFICATION)
-Ref<WebPageProxyFrameLoadStateObserver> WebPageProxyFrameLoadStateObserver::create()
-{
-    return adoptRef(*new WebPageProxyFrameLoadStateObserver);
-}
-
-WebPageProxyFrameLoadStateObserver::WebPageProxyFrameLoadStateObserver() = default;
-
-WebPageProxyFrameLoadStateObserver::~WebPageProxyFrameLoadStateObserver() = default;
-
-WTF_MAKE_TZONE_ALLOCATED_IMPL(WebPageProxyFrameLoadStateObserver);
-
-#endif // #if ENABLE(WINDOW_PROXY_PROPERTY_ACCESS_NOTIFICATION)
 
 void WebPageProxy::forMostVisibleWebPageIfAny(PAL::SessionID sessionID, const SecurityOriginData& origin, CompletionHandler<void(WebPageProxy*)>&& completionHandler)
 {
@@ -1855,11 +1845,6 @@ void WebPageProxy::initializeWebPage(const Site& site, WebCore::SandboxFlags eff
     if (preferences->siteIsolationEnabled())
         browsingContextGroup->addPage(*this);
     process->send(Messages::WebProcess::CreateWebPage(m_webPageID, creationParameters(process, *protect(drawingArea()), m_mainFrame->frameID(), std::nullopt)), 0);
-
-#if ENABLE(WINDOW_PROXY_PROPERTY_ACCESS_NOTIFICATION)
-    internals().frameLoadStateObserver = WebPageProxyFrameLoadStateObserver::create();
-    m_mainFrame->frameLoadState().addObserver(*protect(internals().frameLoadStateObserver));
-#endif
 
     process->addVisitedLinkStoreUser(m_visitedLinkStore, identifier());
 
@@ -3241,7 +3226,7 @@ void WebPageProxy::updateActivityState()
 
 void WebPageProxy::activityStateDidChange(OptionSet<ActivityState> mayHaveChanged, ActivityStateChangeDispatchMode dispatchMode, ActivityStateChangeReplyMode replyMode)
 {
-    LOG_WITH_STREAM(ActivityState, stream << "WebPageProxy " << identifier() << " activityStateDidChange - mayHaveChanged " << mayHaveChanged);
+    WEBPAGEPROXY_RELEASE_LOG(ActivityState, "activityStateDidChange: mayHaveChanged=%d", mayHaveChanged.toRaw());
 
     RefPtr pageClient = this->pageClient();
 
@@ -3335,10 +3320,12 @@ void WebPageProxy::dispatchActivityStateChange()
     internals().activityStateChangeTimer.stop();
 #endif
 
-    if (!hasRunningProcess())
+    if (!hasRunningProcess()) {
+        WEBPAGEPROXY_RELEASE_LOG(ActivityState, "dispatchActivityStateChange: Not dispatching because there is no running process");
         return;
+    }
 
-    LOG_WITH_STREAM(ActivityState, stream << "WebPageProxy " << identifier() << " dispatchActivityStateChange - potentiallyChangedActivityStateFlags " << internals().potentiallyChangedActivityStateFlags);
+    WEBPAGEPROXY_RELEASE_LOG(ActivityState, "dispatchActivityStateChange: potentiallyChangedActivityStateFlags=%d", internals().potentiallyChangedActivityStateFlags.toRaw());
 
     // If the visibility state may have changed, then so may the visually idle & occluded agnostic state.
     if (internals().potentiallyChangedActivityStateFlags & ActivityState::IsVisible)
@@ -3351,7 +3338,7 @@ void WebPageProxy::dispatchActivityStateChange()
     auto changed = internals().activityState ^ previousActivityState;
 
     if (changed)
-        LOG_WITH_STREAM(ActivityState, stream << "WebPageProxy " << identifier() << " dispatchActivityStateChange: state changed from " << previousActivityState << " to " << internals().activityState);
+        WEBPAGEPROXY_RELEASE_LOG(ActivityState, "dispatchActivityStateChange: state changed from %d to %d", previousActivityState.toRaw(), internals().activityState.toRaw());
 
     if ((changed & ActivityState::WindowIsActive) && isViewWindowActive())
         updateCurrentModifierState();
@@ -5377,7 +5364,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
 
     Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, processSwapRequestedByClient);
     if (frame.isMainFrame() && preferences->enhancedSecurityHeuristicsEnabled())
-        internals().enhancedSecurityTracker.trackNavigation(navigation, hasOpenedPage());
+        internals().enhancedSecurityTracker.trackNavigation(navigation, hasOpenedPage(), websitePolicies.get(), preferences.get(), sourceURL, internals().pageLoadState.httpFallbackInProgress());
 
     auto enhancedSecurity = currentEnhancedSecurityState(websitePolicies.get());
 
@@ -5705,6 +5692,21 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
     removeAllMessageReceivers();
     RefPtr navigation = m_navigationState->navigation(provisionalPage->navigationID());
     bool didSuspendPreviousPage = navigation ? suspendCurrentPageIfPossible(*navigation, WTF::move(mainFrameInPreviousProcess), shouldDelayClosingUntilFirstLayerFlush) : false;
+
+    // Deferred from ProvisionalPageProxy::didCommitLoadForFrame(): if the
+    // previous main-frame process still has local frames in this BCG,
+    // transition the WebPageProxy in that process to a RemotePageProxy.
+    // Skipped when the previous page was BFCache-suspended — the page is
+    // frozen in the cache, not transitioning to "remote."
+    if (!didSuspendPreviousPage && provisionalPage->deferredRemoteTransitionSite()) {
+        ASSERT(oldMainFrameID);
+        auto topDocumentSyncData = DocumentSyncData::create();
+        topDocumentSyncData->documentURL = request.url();
+        topDocumentSyncData->documentSecurityOrigin = SecurityOrigin::create(request.url());
+        setTopDocumentSyncData(topDocumentSyncData.copyRef());
+        protect(legacyMainFrameProcess())->send(Messages::WebPage::LoadDidCommitInAnotherProcess(*oldMainFrameID, std::nullopt, WTF::move(topDocumentSyncData)), webPageIDInMainFrameProcess());
+        protect(m_browsingContextGroup)->transitionPageToRemotePage(*this, *provisionalPage->deferredRemoteTransitionSite());
+    }
 
     if (!didSuspendPreviousPage && mainFrameInPreviousProcess && preferences->siteIsolationEnabled())
         mainFrameInPreviousProcess->removeChildFrames();
@@ -8768,6 +8770,11 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL&, API::Navigation&, bool for
 
 void WebPageProxy::decidePolicyForNavigationActionAsync(IPC::Connection& connection, NavigationActionData&& data, CompletionHandler<void(PolicyDecision&&)>&& completionHandler)
 {
+    if (auto pending = std::exchange(m_pendingBlobURLReleaseForOldPage, std::nullopt)) {
+        if (RefPtr oldProcess = pending->oldProcess.get())
+            oldProcess->send(Messages::WebPage::ReleaseKeptBlobURLForNewWindowNavigation(), pending->oldPageID);
+    }
+
     RefPtr frame = WebFrameProxy::webFrame(data.frameInfo.frameID);
     if (!frame)
         return completionHandler({ });
@@ -9764,6 +9771,12 @@ void WebPageProxy::createNewPage(IPC::Connection& connection, WindowFeatures&& w
         // When site isolation is enabled, blobs get a dedicated process if its opener process is cross-site from the main process.
         if (navigationDataForNewProcess && (protect(preferences())->siteIsolationEnabled() || !openedBlobURL))  {
             bool isRequestFromClientOrUserInput = navigationDataForNewProcess->isRequestFromClientOrUserInput;
+
+            if (openedBlobURL) {
+                newPage->m_pendingBlobURLReleaseForOldPage = PendingBlobURLReleaseForOldPage { process, webPageIDInProcess(process) };
+                auto topOrigin = m_mainFrame ? std::optional(SecurityOriginData::fromURL(m_mainFrame->url())) : std::nullopt;
+                process->send(Messages::WebPage::KeepBlobURLAliveForNewWindowNavigation(request.url(), topOrigin), webPageIDInProcess(process), IPC::SendOption::DispatchMessageEvenWhenWaitingForSyncReply);
+            }
 
             reply(std::nullopt, std::nullopt);
             newPage->loadRequest(WTF::move(request), shouldOpenExternalURLsPolicy, NavigationUpgradeToHTTPSBehavior::BasedOnPolicy, WTF::move(navigationDataForNewProcess), nullptr, isRequestFromClientOrUserInput);
@@ -17430,6 +17443,9 @@ void WebPageProxy::beginEnhancedSecurityLinkCheck(const URL& url, API::Navigatio
         }
     };
 
+    if (!hasURLsRequiringEnhancedSecurityCheck())
+        return completionHandler(false);
+
     if (RefPtr networkProcess = websiteDataStore().networkProcessIfExists())
         networkProcess->sendWithAsyncReply(Messages::NetworkProcess::IsEnhancedSecurityLink(url), WTF::move(completionHandler));
 }
@@ -17577,34 +17593,6 @@ void WebPageProxy::useRedirectionForCurrentNavigation(const ResourceResponse& re
     ASSERT(response.isRedirection());
     send(Messages::WebPage::UseRedirectionForCurrentNavigation(response));
 }
-
-#if ENABLE(WINDOW_PROXY_PROPERTY_ACCESS_NOTIFICATION)
-
-void WebPageProxy::didAccessWindowProxyPropertyViaOpenerForFrame(IPC::Connection& connection, FrameIdentifier frameID, const SecurityOriginData& parentOrigin, WindowProxyProperty property)
-{
-    if (!internals().frameLoadStateObserver)
-        return;
-
-    RefPtr frame = WebFrameProxy::webFrame(frameID);
-    if (!frame)
-        return;
-
-    RegistrableDomain parentDomain { parentOrigin };
-
-    bool isMostRecentDomain = true;
-    for (auto& childDomain : internals().frameLoadStateObserver->visitedDomains()) {
-        // If we already told the embedder about this domain/property pair before, don't tell them again.
-        auto result = internals().windowOpenerAccessedProperties.add(childDomain, OptionSet<WindowProxyProperty> { });
-        if (result.iterator->value.contains(property))
-            continue;
-        result.iterator->value.add(property);
-
-        websiteDataStore().client().didAccessWindowProxyProperty(parentDomain, childDomain, property, isMostRecentDomain);
-        isMostRecentDomain = false;
-    }
-}
-
-#endif
 
 void WebPageProxy::dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier frameID)
 {

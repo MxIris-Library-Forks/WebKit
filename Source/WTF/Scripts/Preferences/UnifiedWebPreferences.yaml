@@ -2043,6 +2043,20 @@ CookieStoreManagerEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
+CoreMathMLDeprecateLegacyMathvariant:
+  type: bool
+  status: testable
+  category: dom
+  humanReadableName: "Deprecate legacy mathvariant"
+  humanReadableDescription: "Align the mathvariant attribute with MathML Core, disabling all variants except italic."
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 CoreMathMLEnabled:
   type: bool
   status: unstable
@@ -3734,20 +3748,6 @@ ImageControlsEnabled:
   humanReadableName: "Image Controls"
   humanReadableDescription: "Enable image controls"
   condition: ENABLE(SERVICE_CONTROLS)
-  defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: false
-    WebCore:
-      default: false
-
-InWindowFullscreenEnabled:
-  type: bool
-  status: internal
-  category: media
-  humanReadableName: "In-Window Fullscreen"
-  humanReadableDescription: "Enable In-Window Fullscreen"
   defaultValue:
     WebKitLegacy:
       default: false

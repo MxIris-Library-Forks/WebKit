@@ -252,7 +252,6 @@ enum class WheelEventProcessingSteps : uint8_t;
 enum class WheelScrollGestureState : uint8_t;
 enum class WillContinueLoading : bool;
 enum class WillInternallyHandleFailure : bool;
-enum class WindowProxyProperty : uint8_t;
 enum class WritingDirection : uint8_t;
 
 #if ENABLE(ATTACHMENT_ELEMENT)
@@ -3509,10 +3508,6 @@ private:
 
     void logFrameNavigation(const WebFrameProxy&, const URL& pageURL, const WebCore::ResourceRequest&, const URL& redirectURL, bool wasPotentiallyInitiatedByUser);
 
-#if ENABLE(WINDOW_PROXY_PROPERTY_ACCESS_NOTIFICATION)
-    void didAccessWindowProxyPropertyViaOpenerForFrame(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::SecurityOriginData&, WebCore::WindowProxyProperty);
-#endif
-
 #if ENABLE(APPLE_PAY)
     void resetPaymentCoordinator(ResetStateReason);
 #endif
@@ -3710,6 +3705,12 @@ private:
     bool m_isLoadingAlternateHTMLStringForFailingProvisionalLoad { false };
 
     bool m_isCallingCreateNewPage { false };
+
+    struct PendingBlobURLReleaseForOldPage {
+        WeakPtr<WebProcessProxy> oldProcess;
+        WebCore::PageIdentifier oldPageID;
+    };
+    std::optional<PendingBlobURLReleaseForOldPage> m_pendingBlobURLReleaseForOldPage;
 
     std::unique_ptr<WebPageLoadTiming> m_pageLoadTiming;
     std::unique_ptr<WebPageLoadTiming> m_pageLoadTimingPendingCommit;

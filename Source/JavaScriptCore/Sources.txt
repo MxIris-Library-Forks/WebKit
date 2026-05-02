@@ -78,7 +78,6 @@ b3/air/AirCustom.cpp
 b3/air/AirDisassembler.cpp
 b3/air/AirEliminateDeadCode.cpp
 b3/air/AirEmitShuffle.cpp
-b3/air/AirEnsureDedicatedLoopEntryExitBlocks.cpp
 b3/air/AirFixObviousSpills.cpp
 b3/air/AirFixPartialRegisterStalls.cpp
 b3/air/AirFixSpillsAfterTerminals.cpp
@@ -714,6 +713,7 @@ llint/LLIntExceptions.cpp
 llint/LLIntSlowPaths.cpp
 llint/LLIntThunks.cpp
 
+parser/EagerIIFERegistry.cpp
 parser/Lexer.cpp
 parser/LexerUnicodeProperties.cpp
 parser/ModuleAnalyzer.cpp
@@ -1204,6 +1204,7 @@ wasm/WasmOperations.cpp
 wasm/WasmPlan.cpp
 wasm/WasmSectionParser.cpp
 wasm/WasmTypeDefinition.cpp
+wasm/WasmTypeSectionState.cpp
 wasm/WasmOpcodeCounter.cpp
 wasm/WasmSourceMappingURLSectionParser.cpp
 wasm/WasmStreamingCompiler.cpp

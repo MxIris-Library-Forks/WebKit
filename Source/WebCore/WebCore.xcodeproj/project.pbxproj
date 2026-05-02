@@ -5714,6 +5714,7 @@
 		BCEA4880097D93020094C9E4 /* RenderObject.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA4841097D93020094C9E4 /* RenderObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA4887097D93020094C9E4 /* RenderThemeMac.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA4848097D93020094C9E4 /* RenderThemeMac.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA488A097D93020094C9E4 /* RenderTheme.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA484B097D93020094C9E4 /* RenderTheme.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D72D8B7BFB8842FA17CD110E /* PlatformRenderTheme.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B17072C67B7410700BE6FB9 /* PlatformRenderTheme.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA488C097D93020094C9E4 /* RenderText.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA484D097D93020094C9E4 /* RenderText.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCEA488E097D93020094C9E4 /* RenderTextFragment.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEA484F097D93020094C9E4 /* RenderTextFragment.h */; };
 		BCEB179C143379F50052EAE9 /* RenderBoxFragmentInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEB179B143379F50052EAE9 /* RenderBoxFragmentInfo.h */; };
@@ -20492,6 +20493,7 @@
 		BCEA4849097D93020094C9E4 /* RenderThemeMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = RenderThemeMac.mm; sourceTree = "<group>"; };
 		BCEA484A097D93020094C9E4 /* RenderTheme.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTheme.cpp; sourceTree = "<group>"; };
 		BCEA484B097D93020094C9E4 /* RenderTheme.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderTheme.h; sourceTree = "<group>"; };
+		2B17072C67B7410700BE6FB9 /* PlatformRenderTheme.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformRenderTheme.h; sourceTree = "<group>"; };
 		BCEA484C097D93020094C9E4 /* RenderText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderText.cpp; sourceTree = "<group>"; };
 		BCEA484D097D93020094C9E4 /* RenderText.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderText.h; sourceTree = "<group>"; };
 		BCEA484E097D93020094C9E4 /* RenderTextFragment.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTextFragment.cpp; sourceTree = "<group>"; };
@@ -41828,6 +41830,7 @@
 				0885067E11DA045B00182B98 /* PaintPhase.h */,
 				1ABC260327FD02140064F68F /* PathOperation.cpp */,
 				FB92DF4915FED08700994433 /* PathOperation.h */,
+				2B17072C67B7410700BE6FB9 /* PlatformRenderTheme.h */,
 				B2B1F7140D00CAA8004AEA64 /* PointerEventsHitRules.cpp */,
 				B2B1F7150D00CAA8004AEA64 /* PointerEventsHitRules.h */,
 				DDE1E1742D777D9B0019B0EA /* PositionedLayoutConstraints.cpp */,
@@ -47458,6 +47461,7 @@
 				A19759492A4F9DE000FEC5EA /* PlatformPlaybackSessionInterface.h in Headers */,
 				9A87D9E22A82933500EE7A8A /* PlatformRawAudioData.h in Headers */,
 				5183EBD72CF73A86005FAC1F /* PlatformRawAudioDataCocoa.h in Headers */,
+				D72D8B7BFB8842FA17CD110E /* PlatformRenderTheme.h in Headers */,
 				BCEC01D70C274EB4009F4EC9 /* PlatformScreen.h in Headers */,
 				F45EAC7D2A8ADFC4009B986E /* PlatformScreen.serialization.in in Headers */,
 				297BE3D516C03C08003316BD /* PlatformSpeechSynthesisUtterance.h in Headers */,

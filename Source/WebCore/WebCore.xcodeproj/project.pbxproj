@@ -1501,6 +1501,8 @@
 		415080371E3F00B00051D75D /* LibWebRTCAudioModule.h in Headers */ = {isa = PBXBuildFile; fileRef = 415080351E3F00AA0051D75D /* LibWebRTCAudioModule.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4150F9F112B6E0E70008C860 /* SliderThumbElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 4150F9EF12B6E0E70008C860 /* SliderThumbElement.h */; };
 		41514FDB2E92DC40002074EA /* StreamPipeToUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41E616F92E8427DD00662181 /* StreamPipeToUtilities.cpp */; };
+		EE042903F1A0DE0100A1B2C3 /* JSDOMBindingFacade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EE042901F1A0DE0100A1B2C3 /* JSDOMBindingFacade.cpp */; };
+		EE042904F1A0DE0100A1B2C3 /* JSDOMBindingFacade.h in Headers */ = {isa = PBXBuildFile; fileRef = EE042902F1A0DE0100A1B2C3 /* JSDOMBindingFacade.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41519CB81FD1F02E007F623C /* ServiceWorkerClientQueryOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 413FC4CD1FD1DD8C00541C4B /* ServiceWorkerClientQueryOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4151AAE52F22426700E99C91 /* DOMAsyncIterator.h in Headers */ = {isa = PBXBuildFile; fileRef = 4151AAE32F22425B00E99C91 /* DOMAsyncIterator.h */; };
 		4151E5BB1FBA4C7A00E47E2D /* SWOriginStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 4151E5B71FBA4C7500E47E2D /* SWOriginStore.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -15005,6 +15007,8 @@
 		7C45C9C81E3E8B5100AAB558 /* JSDOMWrapperCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDOMWrapperCache.h; sourceTree = "<group>"; };
 		7C45C9C91E3E8CD700AAB558 /* JSDOMBindingSecurity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDOMBindingSecurity.h; sourceTree = "<group>"; };
 		7C45C9CA1E3E8D2E00AAB558 /* JSDOMBindingSecurity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMBindingSecurity.cpp; sourceTree = "<group>"; };
+		EE042901F1A0DE0100A1B2C3 /* JSDOMBindingFacade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMBindingFacade.cpp; sourceTree = "<group>"; };
+		EE042902F1A0DE0100A1B2C3 /* JSDOMBindingFacade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDOMBindingFacade.h; sourceTree = "<group>"; };
 		7C45C9CB1E3E8E4900AAB558 /* JSDOMWrapperCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMWrapperCache.cpp; sourceTree = "<group>"; };
 		7C45C9CC1E3E8F0800AAB558 /* JSDOMExceptionHandling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSDOMExceptionHandling.cpp; sourceTree = "<group>"; };
 		7C48A6CE191C9D6500026674 /* WebKitNamespace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebKitNamespace.cpp; sourceTree = "<group>"; };
@@ -37199,6 +37203,8 @@
 				932F1D39270D269F000C2813 /* JSDOMAsyncIterator.h */,
 				7C8139A31ED6281D00CE26E8 /* JSDOMAttribute.h */,
 				93B70D4809EB0C7C009D8468 /* JSDOMBinding.h */,
+				EE042901F1A0DE0100A1B2C3 /* JSDOMBindingFacade.cpp */,
+				EE042902F1A0DE0100A1B2C3 /* JSDOMBindingFacade.h */,
 				41DEFCB21E56C1B9000D9E5F /* JSDOMBindingInternals.js */,
 				7C45C9CA1E3E8D2E00AAB558 /* JSDOMBindingSecurity.cpp */,
 				7C45C9C91E3E8CD700AAB558 /* JSDOMBindingSecurity.h */,
@@ -45959,6 +45965,7 @@
 				932F1D3C270D26A0000C2813 /* JSDOMAsyncIterator.h in Headers */,
 				7C8139A61ED6286A00CE26E8 /* JSDOMAttribute.h in Headers */,
 				93B70D6409EB0C7C009D8468 /* JSDOMBinding.h in Headers */,
+				EE042904F1A0DE0100A1B2C3 /* JSDOMBindingFacade.h in Headers */,
 				416E6FE81BBD12DF000A3F65 /* JSDOMBindingInternalsBuiltins.h in Headers */,
 				7C45C9D41E3FCBDF00AAB558 /* JSDOMBindingSecurity.h in Headers */,
 				E3CA0BFC2673F47C009FDD67 /* JSDOMBindingSecurityInlines.h in Headers */,
@@ -50426,6 +50433,7 @@
 				070E2D0F26F250890014AAC3 /* InbandChapterTrackPrivateAVFObjC.mm in Sources */,
 				46CA943127B8695800F4F5FF /* InbandTextTrackPrivateAVFObjC.mm in Sources */,
 				CD063F821E23FA8900812BE3 /* InitDataRegistry.cpp in Sources */,
+				EE042903F1A0DE0100A1B2C3 /* JSDOMBindingFacade.cpp in Sources */,
 				CD14C2542ECC05CB00F9C56D /* JSResolvedCaptionDisplaySettingsOptions.cpp in Sources */,
 				935C477009AC4D7300A6AAB4 /* KeyEventMac.mm in Sources */,
 				CDA98E0B1603CD6000FEA3B1 /* LegacyCDM.cpp in Sources */,

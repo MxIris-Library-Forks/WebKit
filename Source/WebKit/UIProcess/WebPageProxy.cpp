@@ -7027,14 +7027,14 @@ void WebPageProxy::logFrameTree()
 static void logFrameTreeHelper(int indent, const FrameTreeNodeData& node)
 {
     int spaces = (indent > 2) ? indent - 2 : 0;
-    RELEASE_LOG(FrameTree, "%*s|- pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, spaces, "", node.info.processID, Site(node.info.securityOrigin).toString().ascii().data(), node.info.request.url().string().ascii().data());
+    RELEASE_LOG(FrameTree, "%*s|- pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, spaces, "", node.info.processID, Site(node.info.securityOrigin).loggingString().ascii().data(), node.info.request.url().string().ascii().data());
     for (const auto& child : node.children)
         logFrameTreeHelper(indent + 2, child);
 }
 
 static void logFrameTreeRoot(uintptr_t pagePointer, const FrameTreeNodeData& root)
 {
-    RELEASE_LOG(FrameTree, "WebPageProxy %p | pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, reinterpret_cast<void*>(pagePointer), root.info.processID, Site(root.info.securityOrigin).toString().ascii().data(), root.info.request.url().string().ascii().data());
+    RELEASE_LOG(FrameTree, "WebPageProxy %p | pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, reinterpret_cast<void*>(pagePointer), root.info.processID, Site(root.info.securityOrigin).loggingString().ascii().data(), root.info.request.url().string().ascii().data());
     for (const auto& child : root.children)
         logFrameTreeHelper(2, child);
 }
@@ -13058,6 +13058,8 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
         .userContentControllerParameters = m_userContentController->parametersForProcess(process),
         .mainFrameIdentifier = mainFrameIdentifier,
         .openedMainFrameName = m_openedMainFrameName,
+        .mainFrameOpenerIdentifier = m_mainFrame && m_mainFrame->opener() ? std::optional(m_mainFrame->opener()->frameID()) : std::nullopt,
+        .mainFrameOpenerURL = m_mainFrame && m_mainFrame->opener() ? m_mainFrame->opener()->url() : URL { },
         .initialSandboxFlags = m_mainFrame ? m_mainFrame->effectiveSandboxFlags() : SandboxFlags { },
         .initialReferrerPolicy = m_mainFrame ? m_mainFrame->effectiveReferrerPolicy() : ReferrerPolicy::EmptyString,
         .shouldSendConsoleLogsToUIProcessForTesting = m_configuration->shouldSendConsoleLogsToUIProcessForTesting(),
@@ -13066,7 +13068,6 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.processDisplayName = m_configuration->processDisplayName();
 
     parameters.remotePageParameters = WTF::move(remotePageParameters);
-    parameters.mainFrameOpenerIdentifier = m_mainFrame && m_mainFrame->opener() ? std::optional(m_mainFrame->opener()->frameID()) : std::nullopt;
     parameters.windowFeatures = m_configuration->windowFeatures();
     parameters.viewSize = pageClient ? pageClient->viewSize() : WebCore::IntSize { };
     parameters.activityState = internals().activityState;

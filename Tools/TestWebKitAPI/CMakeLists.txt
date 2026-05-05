@@ -434,10 +434,13 @@ if (ENABLE_WEBKIT)
             Tests/WebKit/WKPage/DOMWindowExtensionBasic_Bundle.cpp
 
             Helpers/cocoa/UtilitiesCocoa.mm
-
             InjectedBundle/mac/InjectedBundleControllerMac.mm
-            Helpers/mac/PlatformUtilitiesMac.mm
         )
+        if (NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+            list(APPEND TestWebKitAPIInjectedBundle_SOURCES
+                Helpers/mac/PlatformUtilitiesMac.mm
+            )
+        endif ()
     endif ()
     # macOS: MODULE + BUNDLE TRUE (PlatformMac) emits a CFBundle matching Xcode's MH_BUNDLE.
     # Other ports: SHARED dylib/so.
@@ -447,6 +450,7 @@ if (ENABLE_WEBKIT)
         set(TestWebKitAPIInjectedBundle_LIBRARY_TYPE SHARED)
     endif ()
     add_library(TestWebKitAPIInjectedBundle ${TestWebKitAPIInjectedBundle_LIBRARY_TYPE} ${TestWebKitAPIInjectedBundle_SOURCES})
+    ADD_WEBKIT_PREFIX_HEADERS(TestWebKitAPIInjectedBundle Helpers/TestWebKitAPIPrefix.h)
 
     target_compile_definitions(TestWebKitAPIInjectedBundle PRIVATE BUILDING_TestWebKit)
     target_include_directories(TestWebKitAPIInjectedBundle PRIVATE ${TestWebKit_PRIVATE_INCLUDE_DIRECTORIES})

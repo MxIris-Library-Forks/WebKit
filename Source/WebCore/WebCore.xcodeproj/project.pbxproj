@@ -1861,6 +1861,7 @@
 		466ED8D31EDE0144005E43F6 /* JSDOMRectList.h in Headers */ = {isa = PBXBuildFile; fileRef = 466ED8D21EDE0135005E43F6 /* JSDOMRectList.h */; };
 		4671E0661D67A59600C6B497 /* CanvasPath.h in Headers */ = {isa = PBXBuildFile; fileRef = 4671E0641D67A57B00C6B497 /* CanvasPath.h */; };
 		4672AA9826B0943300E6EC38 /* CrossOriginEmbedderPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 4672AA9626B0942100E6EC38 /* CrossOriginEmbedderPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		08DA6FAF74B9DD0E968D4106 /* CrossOriginEmbedderPolicyValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 89321A9857B6158E963247AF /* CrossOriginEmbedderPolicyValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4672AA9926B0943F00E6EC38 /* CrossOriginOpenerPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 4672AA9726B0942100E6EC38 /* CrossOriginOpenerPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		467302021C4EFE7800BCB357 /* UnloadCountIncrementer.h in Headers */ = {isa = PBXBuildFile; fileRef = 467302011C4EFE6600BCB357 /* UnloadCountIncrementer.h */; };
 		4674BE5128C9A5B800A6C831 /* URLKeepingBlobAlive.h in Headers */ = {isa = PBXBuildFile; fileRef = 4674BE4F28C9A5B400A6C831 /* URLKeepingBlobAlive.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -11917,6 +11918,7 @@
 		4672AA9426B0942000E6EC38 /* CrossOriginOpenerPolicy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CrossOriginOpenerPolicy.cpp; sourceTree = "<group>"; };
 		4672AA9526B0942000E6EC38 /* CrossOriginEmbedderPolicy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CrossOriginEmbedderPolicy.cpp; sourceTree = "<group>"; };
 		4672AA9626B0942100E6EC38 /* CrossOriginEmbedderPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrossOriginEmbedderPolicy.h; sourceTree = "<group>"; };
+		89321A9857B6158E963247AF /* CrossOriginEmbedderPolicyValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrossOriginEmbedderPolicyValue.h; sourceTree = "<group>"; };
 		4672AA9726B0942100E6EC38 /* CrossOriginOpenerPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrossOriginOpenerPolicy.h; sourceTree = "<group>"; };
 		467302011C4EFE6600BCB357 /* UnloadCountIncrementer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnloadCountIncrementer.h; sourceTree = "<group>"; };
 		4674BE4F28C9A5B400A6C831 /* URLKeepingBlobAlive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = URLKeepingBlobAlive.h; sourceTree = "<group>"; };
@@ -38393,6 +38395,7 @@
 				E1C416110F6562FD0092D2FB /* CrossOriginAccessControl.h */,
 				4672AA9526B0942000E6EC38 /* CrossOriginEmbedderPolicy.cpp */,
 				4672AA9626B0942100E6EC38 /* CrossOriginEmbedderPolicy.h */,
+				89321A9857B6158E963247AF /* CrossOriginEmbedderPolicyValue.h */,
 				4672AA9426B0942000E6EC38 /* CrossOriginOpenerPolicy.cpp */,
 				4672AA9726B0942100E6EC38 /* CrossOriginOpenerPolicy.h */,
 				41ABE6791D0580D5006D862D /* CrossOriginPreflightChecker.cpp */,
@@ -44283,6 +44286,7 @@
 				2D481F02146B5C5500AA7834 /* CrossfadeGeneratedImage.h in Headers */,
 				E1C416120F6562FD0092D2FB /* CrossOriginAccessControl.h in Headers */,
 				4672AA9826B0943300E6EC38 /* CrossOriginEmbedderPolicy.h in Headers */,
+				08DA6FAF74B9DD0E968D4106 /* CrossOriginEmbedderPolicyValue.h in Headers */,
 				4688EE3C26DD2610002AF5C4 /* CrossOriginMode.h in Headers */,
 				4672AA9926B0943F00E6EC38 /* CrossOriginOpenerPolicy.h in Headers */,
 				41ABE67B1D0580DB006D862D /* CrossOriginPreflightChecker.h in Headers */,

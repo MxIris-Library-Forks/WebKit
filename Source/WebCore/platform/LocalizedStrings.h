@@ -29,6 +29,11 @@
 
 #include <wtf/Forward.h>
 
+#if PLATFORM(COCOA)
+#include <CoreFoundation/CFString.h>
+#include <wtf/RetainPtr.h>
+#endif
+
 #ifdef __OBJC__
 #include <wtf/Platform.h>
 #include <wtf/cocoa/TypeCastsCocoa.h>
@@ -498,7 +503,7 @@ namespace WebCore {
 #if PLATFORM(COCOA)
     WEBCORE_EXPORT String formatLocalizedString(CFStringRef format, ...) CF_FORMAT_FUNCTION(1, 2);
 #elif PLATFORM(WIN)
-    WEBCORE_EXPORT String formatLocalizedString(const wchar_t* format, ...) WTF_ATTRIBUTE_PRINTF(1, 2);
+    WEBCORE_EXPORT String formatLocalizedString(const wchar_t* format, ...);
 #else
     WEBCORE_EXPORT String formatLocalizedString(const char* format, ...) WTF_ATTRIBUTE_PRINTF(1, 2);
 #endif

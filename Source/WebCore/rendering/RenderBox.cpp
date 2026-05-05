@@ -3813,7 +3813,7 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computeContentA
         },
         [&](const CSS::Keyword::Auto&) -> std::optional<LayoutUnit> {
             if constexpr (std::same_as<SizeType, Style::MinimumSize>) {
-                if (intrinsicContentHeight && isFlexItem() && downcast<RenderFlexibleBox>(parent())->shouldApplyMinBlockSizeAutoForFlexItem(*this))
+                if (intrinsicContentHeight && isFlexItem() && downcast<RenderFlexibleBox>(parent())->useContentBasedMinimumBlockSize(*this))
                     return adjustIntrinsicLogicalHeightForBoxSizing(*intrinsicContentHeight);
                 return LayoutUnit { 0 };
             } else
@@ -3981,7 +3981,15 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computePercenta
 
 std::optional<LayoutUnit> RenderBox::computePercentageLogicalHeight(const Style::PreferredSize& logicalHeight, UpdatePercentageHeightDescendants updateDescendants) const
 {
-    return computePercentageLogicalHeightGeneric(logicalHeight, updateDescendants);
+    if (auto result = computePercentageLogicalHeightGeneric(logicalHeight, updateDescendants))
+        return result;
+    if (style().hasUsedAppearance()) {
+        // CSS Sizing 3: an unresolvable percentage behaves as auto.
+        // CSS UI 4: widgets are laid out like replaced elements, so auto means intrinsic size.
+        if (auto intrinsicHeight = intrinsicLogicalHeight())
+            return intrinsicHeight;
+    }
+    return { };
 }
 
 std::optional<LayoutUnit> RenderBox::computePercentageLogicalHeight(const Style::MinimumSize& logicalHeight, UpdatePercentageHeightDescendants updateDescendants) const

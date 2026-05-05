@@ -1183,6 +1183,12 @@ private:
         case ArraySlice:
             compileArraySlice();
             break;
+        case ArrayConcatArray:
+            compileArrayConcatArray();
+            break;
+        case ArrayConcatAppendOne:
+            compileArrayConcatAppendOne();
+            break;
         case ArraySplice:
             compileArraySplice();
             break;
@@ -8427,6 +8433,26 @@ IGNORE_CLANG_WARNINGS_END
         setJSValue(arrayResult.array);
     }
 
+    void compileArrayConcatArray()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        LValue firstArray = lowCell(m_node->child1());
+        LValue secondArray = lowCell(m_node->child2());
+        LValue result = vmCall(pointerType(), operationArrayConcatArray, weakPointer(globalObject), firstArray, secondArray);
+        speculate(ExoticObjectMode, noValue(), nullptr, m_out.isNull(result));
+        setJSValue(result);
+    }
+
+    void compileArrayConcatAppendOne()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        LValue firstArray = lowCell(m_node->child1());
+        LValue second = lowJSValue(m_node->child2());
+        LValue result = vmCall(pointerType(), operationArrayConcatAppendOne, weakPointer(globalObject), firstArray, second);
+        speculate(ExoticObjectMode, noValue(), nullptr, m_out.isNull(result));
+        setJSValue(result);
+    }
+
     void compileArraySplice()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
@@ -8730,12 +8756,12 @@ IGNORE_CLANG_WARNINGS_END
                     setInt32(vmCall(Int32, operationArrayIndexOfValueDouble, storage, lowJSValue(searchElementEdge), startIndex));
                 return;
             case Array::Contiguous:
-                // We have to keep base alive since that keeps content of storage alive.
-                ensureStillAliveHere(base);
                 if (isArrayIncludes)
                     setBoolean(vmCall(Int32, operationArrayIncludesValueInt32OrContiguous, weakPointer(globalObject), storage, lowJSValue(searchElementEdge), startIndex));
                 else
                     setInt32(vmCall(Int32, operationArrayIndexOfValueInt32OrContiguous, weakPointer(globalObject), storage, lowJSValue(searchElementEdge), startIndex));
+                // We have to keep base alive since that keeps content of storage alive.
+                ensureStillAliveHere(base);
                 return;
             case Array::Int32:
                 if (isArrayIncludes)

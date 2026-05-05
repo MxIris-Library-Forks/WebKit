@@ -194,7 +194,9 @@ if (COMPILER_IS_GCC_OR_CLANG)
         WEBKIT_APPEND_GLOBAL_COMPILER_FLAGS(-fno-exceptions)
         WEBKIT_APPEND_GLOBAL_CXX_FLAGS(-fno-rtti)
         WEBKIT_APPEND_GLOBAL_CXX_FLAGS(-fcoroutines)
-        WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-fasynchronous-unwind-tables)
+        if (NOT APPLE)
+            WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-fasynchronous-unwind-tables)
+        endif ()
 
         WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS(-Wno-tautological-compare)
 
@@ -289,6 +291,9 @@ if (COMPILER_IS_GCC_OR_CLANG)
         # with PCH enabled the pragma is lost when the PCH is loaded.
         WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-Wno-invalid-offsetof)
 
+        # Ditto for SentinelLinkedList.h.
+        WEBKIT_PREPEND_GLOBAL_CXX_FLAGS(-Wno-dangling-pointer)
+
         # Match Clang's behavor and exit after emitting 20 errors.
         # https://bugs.webkit.org/show_bug.cgi?id=244621
         WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS(-fmax-errors=20)
@@ -349,6 +354,12 @@ elseif (LTO_MODE AND COMPILER_IS_CLANG AND MSVC AND NOT DEVELOPER_MODE)
     set(CMAKE_EXE_LINKER_FLAGS "/opt:lldlto=2 ${CMAKE_EXE_LINKER_FLAGS}")
     set(CMAKE_SHARED_LINKER_FLAGS "/opt:lldlto=2 ${CMAKE_SHARED_LINKER_FLAGS}")
     set(CMAKE_MODULE_LINKER_FLAGS "/opt:lldlto=2 ${CMAKE_MODULE_LINKER_FLAGS}")
+endif ()
+
+if (COMPILER_IS_CLANG)
+    foreach (_lang C CXX OBJC OBJCXX)
+        set(CMAKE_${_lang}_COMPILE_OPTIONS_INSTANTIATE_TEMPLATES_PCH -fpch-instantiate-templates)
+    endforeach ()
 endif ()
 
 if (COMPILER_IS_GCC_OR_CLANG)

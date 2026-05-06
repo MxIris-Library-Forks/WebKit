@@ -607,12 +607,9 @@ void SkiaCompositingLayer::paintSelfAndChildren(SkCanvas& canvas, PaintContext& 
         SkPaint paint;
         paint.setImageFilter(m_backdrop.filter);
         paint.setAlphaf(context.opacity);
-        if (context.blendMode)
-            paint.setBlendMode(*context.blendMode);
         paintWithIntermediateSurface(canvas, context, enclosingIntRect(clipTransform.mapRect(m_backdrop.clipRect.rect())), &paint, [&](SkCanvas& canvas, PaintContext& context) {
             SetForScope scopedPaintBackdropForLayer(context.paintingBackdropForLayer, this);
             SetForScope scopedOpacity(context.opacity, 1.f);
-            SetForScope scopedBlendMode(context.blendMode, std::nullopt);
             SetForScope scopedReplicaTransform(context.accumulatedReplicaTransform, TransformationMatrix());
             backdropRoot()->paintSelfAndChildren(canvas, context);
         });
@@ -709,8 +706,16 @@ sk_sp<SkImage> SkiaCompositingLayer::maskImage()
 
 void SkiaCompositingLayer::paintWithIntermediateSurface(SkCanvas& canvas, PaintContext& context, const IntRect& contentsRect, SkPaint* paint, PaintFunction&& paintFunction)
 {
+    auto bounds = clipBounds(canvas, context);
+    if (bounds.isEmpty())
+        return;
+
+    auto surfaceRect = intersection(bounds, contentsRect);
+    if (surfaceRect.isEmpty())
+        return;
+
     auto* grContext = PlatformDisplay::sharedDisplay().skiaGrContext();
-    auto imageInfo = SkImageInfo::Make(contentsRect.width(), contentsRect.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+    auto imageInfo = SkImageInfo::Make(surfaceRect.width(), surfaceRect.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
     auto surface = SkSurfaces::RenderTarget(grContext, skgpu::Budgeted::kNo, imageInfo, 0, kTopLeft_GrSurfaceOrigin, nullptr);
     if (!surface)
         return;
@@ -720,12 +725,12 @@ void SkiaCompositingLayer::paintWithIntermediateSurface(SkCanvas& canvas, PaintC
         return;
 
     surfaceCanvas->clear(SK_ColorTRANSPARENT);
-    surfaceCanvas->translate(-contentsRect.x(), -contentsRect.y());
+    surfaceCanvas->translate(-surfaceRect.x(), -surfaceRect.y());
     SetForScope scopedOffset(context.offset, toIntSize(contentsRect.location()));
     paintFunction(*surfaceCanvas, context);
     grContext->flushAndSubmit(surface.get(), GrSyncCpu::kNo);
 
-    canvas.drawImageRect(surface->makeImageSnapshot(), SkRect::MakeWH(contentsRect.width(), contentsRect.height()), SkRect::Make(SkIRect(contentsRect)), SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone), paint, SkCanvas::kFast_SrcRectConstraint);
+    canvas.drawImageRect(surface->makeImageSnapshot(), SkRect::MakeWH(surfaceRect.width(), surfaceRect.height()), SkRect::Make(surfaceRect), SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone), paint, SkCanvas::kFast_SrcRectConstraint);
 }
 
 void SkiaCompositingLayer::paintSelfAndChildrenWithFilterAndMask(SkCanvas& canvas, PaintContext& context)
@@ -941,13 +946,10 @@ void SkiaCompositingLayer::paintUsingOverlapRegions(SkCanvas& canvas, PaintConte
 
     SkPaint layerPaint;
     layerPaint.setAlphaf(context.opacity);
-    if (context.blendMode)
-        layerPaint.setBlendMode(*context.blendMode);
     for (const auto& rect : overlapRects) {
         SkAutoCanvasRestore autoRestore(&canvas, true);
         paintWithIntermediateSurface(canvas, context, rect, &layerPaint, [&](SkCanvas& canvas, PaintContext& context) {
             SetForScope scopedOpacity(context.opacity, 1);
-            SetForScope scopedBlendMode(context.blendMode, std::nullopt);
             paintSelfAndChildrenWithReplicaFilterAndMask(canvas, context);
         });
     }

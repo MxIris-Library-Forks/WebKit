@@ -108,19 +108,6 @@ compositing/repaint/sticky-repaint-on-scroll.html [ Pass ]
 
 # Cocoa-only tests
 http/tests/iframe-monitor/ [ Pass ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/blob-resource.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/cached-resource.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/compressed-resource.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/dark-mode.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/data-url-resource.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/eligibility.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/iframe-unload.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/just-use-eligible-subresource.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/throttler.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/workers/service-worker-not-count-twice.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/workers/service-worker.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/iframe-monitor/workers/shared-worker.html [ Pass Timeout ]
-webkit.org/b/307300 [ Debug arm64 ] http/tests/inspector/network/copy-as-curl.html [ Pass Timeout ]
 
 webkit.org/b/308178 [ Tahoe+ Debug arm64 ] http/tests/site-isolation/mouse-events/context-menu-event-twice.html [ Pass Timeout ]
 
@@ -1467,7 +1454,6 @@ http/tests/webgpu/webgpu/shader/execution/expression/call/builtin/textureSampleG
 http/tests/webgpu/webgpu/shader/execution/expression/call/builtin/textureSampleLevel.html [ Skip ]
 http/tests/webgpu/webgpu/shader/execution/robust_access.html [ Skip ]
 http/tests/webgpu/webgpu/shader/execution/zero_init.html [ Skip ]
-http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/clamp.html [ Skip ]
 webkit.org/b/308252 [ Debug arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/atan2.html [ Skip ]
 http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/faceForward.html [ Skip ]
 webkit.org/b/308252 [ Debug arm64 ] http/tests/webgpu/webgpu/shader/validation/expression/call/builtin/length.html [ Skip ]
@@ -2292,8 +2278,6 @@ webkit.org/b/308856 [ Debug ] http/tests/websocket/tests/hybi/handshake-ok-with-
 
 # webkit.org/b/308169 Skip until after macOS 26.4, where AXIntersectionWithSelectionRange returns AXTextMarkerRangeRef.
 [ Tahoe ] accessibility/mac/intersection-with-selection-range.html [ Skip ]
-
-webkit.org/b/314141 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/white-space_pre.html [ ImageOnlyFailure ]
 
 webkit.org/b/309850 [ Debug ] imported/w3c/web-platform-tests/uievents/mouse/mouse_boundary_events_after_removing_last_over_element.html [ Pass Failure ]
 

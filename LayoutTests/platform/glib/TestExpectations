@@ -598,6 +598,7 @@ webkit.org/b/266195 media/media-source/media-managedmse-multipletracks-bufferedc
 media/media-source/media-source-play-zero-playbackrate.html [ Pass ]
 
 webkit.org/b/272225 media/media-source/media-managedmse-resume-after-stall.html [ Failure ]
+webkit.org/b/314179 media/media-source/media-managedmse-waiting-at-gap.html [ Failure ]
 
 # Test was flaky already before 263317 but it does "enhance its flakyness"
 webkit.org/b/263317 media/video-played-collapse.html [ Failure Pass ]
@@ -2891,7 +2892,7 @@ webkit.org/b/235885 webrtc/video-addTransceiver.html [ Timeout Failure ]
 
 # Transceiver direction change support is incomplete.
 webkit.org/b/193641 webkit.org/b/235885 webrtc/video-setDirection.html [ Skip ]
-webkit.org/b/235885 webrtc/direction-change.html [ Failure ]
+webkit.org/b/235885 webkit.org/b/314219 webrtc/direction-change.html [ Crash Failure Timeout ]
 webkit.org/b/235885 webrtc/remove-track.html [ Crash Failure ]
 
 # Stopping a transceiver is unsupported in GstWebRTC.
@@ -5459,6 +5460,8 @@ webkit.org/b/313419 media/track/audio-track-configuration-webm.html [ Failure Pa
 webkit.org/b/313511 media/media-source/media-source-real-duration-after-append.html [ Failure ]
 webkit.org/b/313511 media/media-source/media-source-real-fastseek.html [ Failure ]
 webkit.org/b/313511 media/media-source/media-source-real-overlapping-dts.html [ Failure ]
+
+webkit.org/b/314089 media/media-source/media-source-append-media-before-init.html [ Failure ]
 
 [ Debug ] imported/w3c/web-platform-tests/dom/events/Event-dispatch-single-activation-behavior.html [ Pass Failure ]
 

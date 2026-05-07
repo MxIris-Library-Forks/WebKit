@@ -5978,11 +5978,12 @@
 		CD5209E41B0BD8380077184E /* MediaPlayerEnums.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5209E31B0BD8380077184E /* MediaPlayerEnums.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5209E61B0BD9E10077184E /* HTMLMediaElementEnums.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5209E51B0BD9E10077184E /* HTMLMediaElementEnums.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD525BA41EE0B10700788DF5 /* FourCC.h in Headers */ = {isa = PBXBuildFile; fileRef = CD525BA21EE0B10700788DF5 /* FourCC.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		8E595FF95A93134A1B3ADBB4 /* ISOBMFFPreParser.h in Headers */ = {isa = PBXBuildFile; fileRef = B588D917E3A23CFD5275BDE9 /* ISOBMFFPreParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5393D3175E018600C07123 /* JSMemoryInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD5393D1175E018600C07123 /* JSMemoryInfo.cpp */; };
 		CD5393D4175E018600C07123 /* JSMemoryInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5393D2175E018600C07123 /* JSMemoryInfo.h */; };
 		CD54A763180F9F7000B076C9 /* AudioTrackPrivateMediaSourceAVFObjC.h in Headers */ = {isa = PBXBuildFile; fileRef = CD54A761180F9F7000B076C9 /* AudioTrackPrivateMediaSourceAVFObjC.h */; };
 		CD5896E21CD2B15100B3BCC8 /* WebPlaybackControlsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5896E01CD2B15100B3BCC8 /* WebPlaybackControlsManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		CD5D27781E8318E000D80A3D /* WebCoreDecompressionSession.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5D27761E8318E000D80A3D /* WebCoreDecompressionSession.h */; };
+		CD5D27781E8318E000D80A3D /* WebCoreDecompressionSession.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5D27761E8318E000D80A3D /* WebCoreDecompressionSession.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5E5B5F1A15CE54000C609E /* PageConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5E5B5E1A15CE54000C609E /* PageConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5F16442DBB0AD200CE85D9 /* MessageClientForTesting.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5F16432DBB0AD200CE85D9 /* MessageClientForTesting.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD5F16592DBBD72300CE85D9 /* MessageTargetForTesting.h in Headers */ = {isa = PBXBuildFile; fileRef = CD5F16582DBBD72300CE85D9 /* MessageTargetForTesting.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -20984,6 +20985,8 @@
 		CD5209E31B0BD8380077184E /* MediaPlayerEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaPlayerEnums.h; sourceTree = "<group>"; };
 		CD5209E51B0BD9E10077184E /* HTMLMediaElementEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLMediaElementEnums.h; sourceTree = "<group>"; };
 		CD525BA21EE0B10700788DF5 /* FourCC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FourCC.h; sourceTree = "<group>"; };
+		B588D917E3A23CFD5275BDE9 /* ISOBMFFPreParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISOBMFFPreParser.h; sourceTree = "<group>"; };
+		B588D918E3A23CFD5275BDE9 /* ISOBMFFPreParser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ISOBMFFPreParser.cpp; sourceTree = "<group>"; };
 		CD5393CB175DCCE600C07123 /* MemoryInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryInfo.h; sourceTree = "<group>"; };
 		CD5393CC175DCCE600C07123 /* MemoryInfo.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MemoryInfo.idl; sourceTree = "<group>"; };
 		CD5393D1175E018600C07123 /* JSMemoryInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSMemoryInfo.cpp; sourceTree = "<group>"; };
@@ -36950,6 +36953,8 @@
 				7B66CFD32D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.cpp */,
 				7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */,
 				AD9FF6E01908391D003B61E0 /* IOSurfacePoolCocoa.mm */,
+				B588D918E3A23CFD5275BDE9 /* ISOBMFFPreParser.cpp */,
+				B588D917E3A23CFD5275BDE9 /* ISOBMFFPreParser.h */,
 				A1DD618F2B7EBD8200075A92 /* MediaPlayerCocoa.mm */,
 				CD3578AC2A28F5AA0059D97D /* MediaPlayerEnumsCocoa.h */,
 				CD3578AD2A28F5AA0059D97D /* MediaPlayerEnumsCocoa.mm */,
@@ -45782,6 +45787,7 @@
 				E86097D62D84403B00A4E526 /* ISO18013DocumentRequestSet.h in Headers */,
 				E86097D52D84403B00A4E526 /* ISO18013ElementInfo.h in Headers */,
 				E86097D32D84403B00A4E526 /* ISO18013PresentmentRequest.h in Headers */,
+				8E595FF95A93134A1B3ADBB4 /* ISOBMFFPreParser.h in Headers */,
 				CD5FF4992162E2BE004BD86F /* ISOBox.h in Headers */,
 				CD720B4F2268B51300047FDE /* ISOFairPlayStreamingPsshBox.h in Headers */,
 				CD5FF49E2162E4E8004BD86F /* ISOOriginalFormatBox.h in Headers */,

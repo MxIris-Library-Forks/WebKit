@@ -1734,7 +1734,7 @@ public:
     std::optional<double> cpuLimit() const { return m_cpuLimit; }
 
 #if ENABLE(PDF_PLUGIN)
-    static PluginView* NODELETE focusedPluginViewForFrame(WebCore::LocalFrame&);
+    static PluginView* focusedPluginViewForFrame(WebCore::LocalFrame&);
     static PluginView* NODELETE pluginViewForFrame(WebCore::LocalFrame*);
     PluginView* mainFramePlugIn() const;
 #endif
@@ -2637,7 +2637,7 @@ private:
     void setNeedsDOMWindowResizeEvent();
 
     void setIsSuspended(bool, CompletionHandler<void(std::optional<bool>)>&&);
-    void setSubframesSuspended(bool, WebCore::BackForwardFrameItemIdentifier, CompletionHandler<void(bool)>&&);
+    void setIsSuspendedWithFrameItem(bool, WebCore::BackForwardFrameItemIdentifier, CompletionHandler<void(bool)>&&);
 
     RefPtr<WebImage> snapshotAtSize(const WebCore::IntRect&, const WebCore::IntSize& bitmapSize, SnapshotOptions, WebCore::LocalFrame&, WebCore::LocalFrameView&);
     RefPtr<WebImage> snapshotNode(WebCore::Node&, SnapshotOptions, unsigned maximumPixelCount = std::numeric_limits<unsigned>::max());

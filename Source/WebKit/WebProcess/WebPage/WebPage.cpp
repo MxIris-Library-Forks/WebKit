@@ -1925,14 +1925,21 @@ Ref<API::Array> WebPage::trackedRepaintRects()
 
 PluginView* WebPage::focusedPluginViewForFrame(LocalFrame& frame)
 {
-    auto* pluginDocument = dynamicDowncast<PluginDocument>(frame.document());
-    if (!pluginDocument)
+    if (auto* pluginDocument = dynamicDowncast<PluginDocument>(frame.document())) {
+        if (pluginDocument->focusedElement() != pluginDocument->pluginElement())
+            return nullptr;
+        return pluginViewForFrame(&frame);
+    }
+
+    RefPtr document = frame.document();
+    if (!document)
         return nullptr;
 
-    if (pluginDocument->focusedElement() != pluginDocument->pluginElement())
+    RefPtr pluginElement = dynamicDowncast<HTMLPlugInElement>(document->focusedElement());
+    if (!pluginElement)
         return nullptr;
 
-    return pluginViewForFrame(&frame);
+    return dynamicDowncast<PluginView>(pluginElement->pluginWidget());
 }
 
 PluginView* WebPage::pluginViewForFrame(LocalFrame* frame)
@@ -8621,7 +8628,7 @@ void WebPage::setIsSuspended(bool suspended, CompletionHandler<void(std::optiona
     suspendForProcessSwap(WTF::move(completionHandler));
 }
 
-void WebPage::setSubframesSuspended(bool suspended, BackForwardFrameItemIdentifier identifier, CompletionHandler<void(bool)>&& completionHandler)
+void WebPage::setIsSuspendedWithFrameItem(bool suspended, BackForwardFrameItemIdentifier identifier, CompletionHandler<void(bool)>&& completionHandler)
 {
     if (m_isSuspended == suspended)
         return completionHandler(true);
@@ -8638,16 +8645,16 @@ void WebPage::setSubframesSuspended(bool suspended, BackForwardFrameItemIdentifi
 
     RefPtr page = corePage();
     if (!page) {
-        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "setSubframesSuspended: No corePage");
+        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "setIsSuspendedWithFrameItem: No corePage");
         return completionHandler(false);
     }
 
     if (!BackForwardCache::singleton().addIfCacheable(identifier, *page)) {
-        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "setSubframesSuspended: addIfCacheable failed");
+        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "setIsSuspendedWithFrameItem: addIfCacheable failed");
         return completionHandler(false);
     }
 
-    WEBPAGE_RELEASE_LOG(ProcessSwapping, "setSubframesSuspended: Successfully cached page");
+    WEBPAGE_RELEASE_LOG(ProcessSwapping, "setIsSuspendedWithFrameItem: Successfully cached page");
     completionHandler(true);
 }
 

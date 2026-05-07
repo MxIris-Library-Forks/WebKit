@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,23 +25,15 @@
 
 #pragma once
 
-#include "Nodes.h"
-#include <wtf/InlineMap.h>
-#include <wtf/RefCounted.h>
+#include <cstdint>
+#include <wtf/ExportMacros.h>
 
-namespace JSC {
+namespace WTF {
 
-class EagerIIFERegistry : public RefCounted<EagerIIFERegistry> {
-public:
-    EagerIIFERegistry() { }
-    ~EagerIIFERegistry();
+WTF_EXPORT_PRIVATE uint32_t currentThreadID();
+WTF_EXPORT_PRIVATE bool currentThreadMayBeGCThread();
 
-    void clear();
-    void add(int sourcePosition, std::unique_ptr<FunctionNode>);
-    std::unique_ptr<FunctionNode> take(int sourcePosition);
+} // namespace WTF
 
-private:
-    InlineMap<int, std::unique_ptr<FunctionNode>, 4, WTF::IntHash<int>, WTF::UnsignedWithZeroKeyHashTraits<int>> m_map;
-};
-
-} // namespace JSC
+using WTF::currentThreadID;
+using WTF::currentThreadMayBeGCThread;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Apple Inc. All rights reserved.
+ * Copyright (C) 2025 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,28 +24,20 @@
  */
 
 #include "config.h"
-#include "EagerIIFERegistry.h"
+#include <wtf/CurrentThread.h>
 
-namespace JSC {
+#include <wtf/Threading.h>
 
-EagerIIFERegistry::~EagerIIFERegistry()
+namespace WTF {
+
+uint32_t currentThreadID()
 {
-    clear();
+    return Thread::currentSingleton().uid();
 }
 
-void EagerIIFERegistry::clear()
+bool currentThreadMayBeGCThread()
 {
-    m_map.clear();
+    return Thread::mayBeGCThread();
 }
 
-void EagerIIFERegistry::add(int sourcePosition, std::unique_ptr<FunctionNode> node)
-{
-    m_map.add(sourcePosition, WTF::move(node));
-}
-
-std::unique_ptr<FunctionNode> EagerIIFERegistry::take(int sourcePosition)
-{
-    return m_map.take(sourcePosition);
-}
-
-} // namespace JSC
+} // namespace WTF

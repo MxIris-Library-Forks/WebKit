@@ -36,6 +36,7 @@
 #include "B3PatchpointValue.h"
 #include "B3SlotBaseValue.h"
 #include "B3StackmapGenerationParams.h"
+#include "BaselineJITRegisters.h"
 #include "B3ValueInlines.h"
 #include "ButterflyInlines.h"
 #include "CPUInlines.h"
@@ -1378,6 +1379,9 @@ private:
         case StringStartsWith:
         case StringEndsWith:
             compileStringStartsOrEndsWith();
+            break;
+        case StringSplit:
+            compileStringSplit();
             break;
         case GetByOffset:
         case GetGetterSetterByOffset:
@@ -11866,6 +11870,20 @@ IGNORE_CLANG_WARNINGS_END
             setInt32(vmCall(Int32, operationStringIndexOfWithOneChar, weakPointer(globalObject), base, m_out.constInt32(character.value())));
         else
             setInt32(vmCall(Int32, operationStringIndexOf, weakPointer(globalObject), base, search));
+    }
+
+    void compileStringSplit()
+    {
+        LValue base = lowString(m_node->child1());
+        LValue limit = lowJSValue(m_node->child3());
+        auto* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        if (m_node->child2().useKind() == RegExpObjectUse) {
+            LValue separator = lowRegExpObject(m_node->child2());
+            setJSValue(vmCall(pointerType(), operationStringSplitRegExp, weakPointer(globalObject), base, separator, limit));
+            return;
+        }
+        LValue separator = lowString(m_node->child2());
+        setJSValue(vmCall(pointerType(), operationStringSplit, weakPointer(globalObject), base, separator, limit));
     }
 
     void compileStringLastIndexOf()

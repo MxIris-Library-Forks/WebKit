@@ -7649,7 +7649,7 @@ imported/w3c/web-platform-tests/mathml/presentation-markup/mrow/inferred-mrow-st
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished-op-4-1.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished-op-4-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/embellished-op-4-3.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/mathml/relations/html5-tree/tabindex-002.tentative.html [ Skip ]
+imported/w3c/web-platform-tests/mathml/relations/html5-tree/tabindex-002.html [ Skip ]
 imported/w3c/web-platform-tests/mathml/relations/html5-tree/maction-click.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/mozilla-393760-1.xml [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/scripts/subsup-legacy-scriptshift-attributes-001.tentative.html [ ImageOnlyFailure ]
@@ -8501,6 +8501,9 @@ webrtc/getUserMedia-webaudio-autoplay.html [ Pass Failure ]
 fast/forms/ios/scroll-to-reveal-focused-select.html [ Pass ]
 fast/events/ios/should-be-able-to-dismiss-form-accessory-after-tapping-outside-iframe-with-focused-field.html [ Pass ]
 
+# This tests the system picker triggered by HTMLSelectElement::showPopup(), which iOS doesn't use.
+fast/css/css-anchor-position/anchor-positioned-select-picker.html [ Skip ]
+
 # from fast/ tests that are flaky: adding timeout
 webkit.org/b/304027 fast/block/basic/001.html [ Pass Failure Timeout ]
 
@@ -8563,8 +8566,6 @@ webkit.org/b/299830 imported/w3c/web-platform-tests/storage-access-api/hasStorag
 
 webkit.org/b/313089 fast/backgrounds/background-repeat-long-scroll.html [ ImageOnlyFailure Pass ]
 
-webkit.org/b/307582 compositing/overflow/rtl-scrollbar-layer-positioning.html [ Failure ]
-
 webkit.org/b/307889 http/tests/multipart/multipart-async-image.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-highlight-api/highlight-text-across-elements.html [ ImageOnlyFailure ]
@@ -8615,8 +8616,6 @@ fast/text/bidi-text-and-partial-layout-crash.html [ Skip ]
 media/video-size.html [ Pass Failure ]
 svg/custom/ellipse-radius-auto-dynamic.svg [ Skip ]
 svg/custom/rect-radius-auto-dynamic.svg [ Skip ]
-
-webkit.org/b/311222 [ Release ] imported/w3c/web-platform-tests/navigation-api/navigate-event/signal-abort-window-stop-after-intercept.html [ Skip ]
 
 # WebAuthn authenticator setup races against abort under stress mode; can timeout or produce wrong rejection
 webkit.org/b/312120 imported/w3c/web-platform-tests/credential-management/credentialscontainer-get-basics.https.html [ Pass Failure Timeout ]

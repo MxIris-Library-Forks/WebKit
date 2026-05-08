@@ -2159,6 +2159,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/AudioSampleFormat.h
     platform/BoxExtents.h
     platform/BoxSides.h
+    platform/BrowsingContextGroupIdentifier.h
     platform/CPUMonitor.h
     platform/CaptionPreferencesDelegate.h
     platform/CaretAnimator.h
@@ -3561,6 +3562,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     workers/WorkerOrWorkletThread.h
     workers/WorkerReportingProxy.h
     workers/WorkerRunLoop.h
+    workers/WorkerSTWParticipation.h
     workers/WorkerScriptLoader.h
     workers/WorkerScriptLoaderClient.h
     workers/WorkerThread.h

@@ -1007,7 +1007,9 @@ if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
         GeneratedSerializersCommon
         WebKitPlatformGeneratedSerializers
     )
-        set_source_files_properties(${WebKit_DERIVED_SOURCES_DIR}/${GeneratedSerializers_BASENAME}.cpp PROPERTIES COMPILE_OPTIONS "${GeneratedSerializers_COMPILE_OPTIONS}")
+        set_source_files_properties(${WebKit_DERIVED_SOURCES_DIR}/${GeneratedSerializers_BASENAME}.cpp PROPERTIES
+            COMPILE_OPTIONS "${GeneratedSerializers_COMPILE_OPTIONS}"
+            SKIP_PRECOMPILE_HEADERS ON)
     endforeach ()
 endif ()
 
@@ -1146,6 +1148,18 @@ list(APPEND WebKit_SOURCES
 if (ENABLE_SWIFT_DEMO_URI_SCHEME)
     list(APPEND WebKit_SOURCES
         ${WEBKIT_DIR}/UIProcess/SwiftDemoLogo.swift
+    )
+endif ()
+
+if (ENABLE_BACK_FORWARD_LIST_SWIFT)
+    set_source_files_properties(
+        ${WebKit_DERIVED_SOURCES_DIR}/WebBackForwardListMessageReceiver.swift
+        PROPERTIES GENERATED TRUE)
+    list(APPEND WebKit_SOURCES
+        ${WebKit_DERIVED_SOURCES_DIR}/WebBackForwardListMessageReceiver.swift
+        ${WEBKIT_DIR}/Shared/API/APIArray.swift
+        ${WEBKIT_DIR}/UIProcess/StdlibExtras.swift
+        ${WEBKIT_DIR}/UIProcess/WebBackForwardList.swift
     )
 endif ()
 

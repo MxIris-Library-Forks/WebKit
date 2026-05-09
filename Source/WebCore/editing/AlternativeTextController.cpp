@@ -42,6 +42,8 @@
 #include "EventLoop.h"
 #include "FloatQuad.h"
 #include "FrameDestructionObserverInlines.h"
+#include "HTMLElement.h"
+#include "HTMLTextFormControlElement.h"
 #include "LocalFrameInlines.h"
 #include "LocalFrameView.h"
 #include "Page.h"
@@ -434,6 +436,9 @@ void AlternativeTextController::respondToChangedSelection(const VisibleSelection
     
     VisiblePosition startPositionOfWord = startOfWord(selectionPosition, WordSide::RightWordIfOnBoundary);
     VisiblePosition endPositionOfWord = endOfWord(selectionPosition, WordSide::LeftWordIfOnBoundary);
+    if (endPositionOfWord.isNull())
+        return;
+
     if (!oldSelectionPosition.isNull()) {
         VisiblePosition oldStartPositionOfWord = startOfWord(oldSelectionPosition, WordSide::RightWordIfOnBoundary);
         VisiblePosition oldEndPositionOfWord = endOfWord(oldSelectionPosition, WordSide::LeftWordIfOnBoundary);
@@ -446,11 +451,11 @@ void AlternativeTextController::respondToChangedSelection(const VisibleSelection
         return;
 
     RefPtr node = position.containerNode();
+    ASSERT(node);
     CheckedPtr markers = node->document().markersIfExists();
     if (!markers)
         return;
 
-    ASSERT(node);
     bool handled = false;
     for (auto& marker : markers->markersFor(*node)) {
         ASSERT(marker);

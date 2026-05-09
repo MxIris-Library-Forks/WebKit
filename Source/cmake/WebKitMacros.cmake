@@ -619,6 +619,20 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         # of the modulemap and hader for WebKit's internal "APIs" which we
         # make available from C++ to Swift.
         list(APPEND _swift_options "-cxx-interoperability-mode=default" "-Xcc" "-std=c++2b" "-enable-upcoming-feature" "InternalImportsByDefault" "-Xcc" "-I${_interop_module_path}")
+        # On non-Apple platforms, Swift's embedded clang doesn't automatically search
+        # the compiler's C++ standard library headers (e.g. <coroutine> lives in /usr/include/c++/15/).
+        # Pass them explicitly so the wtf umbrella module can include them.
+        # Exclude GCC's architecture-specific lib directory (e.g. /usr/lib/gcc/aarch64-linux-gnu/15/include):
+        # it contains GCC-specific intrinsic headers (arm_neon.h, etc.) that use GCC builtins
+        # unknown to Swift's embedded Clang. Clang provides its own compatible versions in its
+        # resource directory and will find them automatically without an explicit -I path.
+        if (NOT APPLE)
+            foreach (_dir IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
+                if (NOT _dir MATCHES "^/usr/lib/gcc/")
+                    list(APPEND _swift_options "-Xcc" "-I${_dir}")
+                endif ()
+            endforeach ()
+        endif ()
         # swiftc spawns swift-plugin-server under sandbox-exec to expand macros
         # (e.g. SwiftUI @State). When the cmake build itself runs inside an
         # outer sandbox that disallows nested sandbox_apply, macro expansion
@@ -629,6 +643,15 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         if (NOT (PORT STREQUAL GTK OR PORT STREQUAL WPE))
             # This does not yet work on non-Apple platforms for reasons yet to be determined.
             list(APPEND _swift_options "-explicit-module-build")
+            # -explicit-module-build makes swiftc scan and compile every transitive
+            # SDK Clang module to .pcm before typechecking. Without a fixed cache
+            # path each invocation does that into a private temp dir and discards
+            # it, so the -typecheck/-emit-clang-header pass below and cmake's own
+            # Swift compile each pay the full SDK-module cold cost, every build.
+            # Pin the cache so the second invocation -- and every later rebuild --
+            # reuses the first one's .pcm set.
+            list(APPEND _swift_options "-module-cache-path" "${CMAKE_BINARY_DIR}/SwiftModuleCache")
+            set_property(DIRECTORY "${CMAKE_BINARY_DIR}" APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_BINARY_DIR}/SwiftModuleCache")
         endif ()
         # We'll use these options both for mainstream cmake invocations of swiftc (here)
         # and for our own invocation to output an interoperability .h file (later).
@@ -764,6 +787,18 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             COMMAND_EXPAND_LISTS)
 
         target_include_directories(${_target} PUBLIC ${_header_base_path})
-        target_sources(${_target} PRIVATE ${_header_path})
+        if (DEFINED ${_target}_SWIFT_HEADER_DEPENDS)
+            # The -emit-clang-header pass only needs the staged headers it actually
+            # reads, not the target's linked frameworks. When the caller names
+            # those header-producing targets, wrap the command in its own
+            # custom target so it does NOT inherit
+            # cmake_object_order_depends_target_${_target} (which would gate it
+            # on every link dependency) and can start as soon as headers exist.
+            add_custom_target(${_target}_SwiftCxxHeader DEPENDS ${_header_path})
+            add_dependencies(${_target}_SwiftCxxHeader ${${_target}_SWIFT_HEADER_DEPENDS})
+            add_dependencies(${_target} ${_target}_SwiftCxxHeader)
+        else ()
+            target_sources(${_target} PRIVATE ${_header_path})
+        endif ()
     endif ()
 endmacro()

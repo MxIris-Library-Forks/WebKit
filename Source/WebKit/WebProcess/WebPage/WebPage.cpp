@@ -269,7 +269,6 @@
 #include <WebCore/JSNode.h>
 #include <WebCore/KeyboardEvent.h>
 #include <WebCore/LegacySchemeRegistry.h>
-#include <WebCore/LocalDOMWindow.h>
 #include <WebCore/LocalFrameInlines.h>
 #include <WebCore/LocalFrameView.h>
 #include <WebCore/LocalizedStrings.h>
@@ -1361,34 +1360,6 @@ void WebPage::allFrameTreeSyncDataChangedInAnotherProcess(FrameIdentifier frameI
     RefPtr coreFrame = frame->coreFrame();
     if (coreFrame)
         coreFrame->updateFrameTreeSyncData(WTF::move(data));
-}
-
-void WebPage::updateUserActivationTimestamps(const Vector<FrameIdentifier>& frameIDs, MonotonicTime activationTime)
-{
-    for (auto frameID : frameIDs) {
-        RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
-        if (!webFrame || webFrame->page() != this)
-            continue;
-        RefPtr localFrame = webFrame->coreLocalFrame();
-        if (!localFrame)
-            continue;
-        if (RefPtr window = localFrame->window())
-            window->setLastActivationTimestamp(activationTime);
-    }
-}
-
-void WebPage::consumeUserActivations(const Vector<FrameIdentifier>& frameIDs)
-{
-    for (auto frameID : frameIDs) {
-        RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
-        if (!webFrame || webFrame->page() != this)
-            continue;
-        RefPtr localFrame = webFrame->coreLocalFrame();
-        if (!localFrame)
-            continue;
-        if (RefPtr window = localFrame->window())
-            window->consumeLastActivationIfNecessary();
-    }
 }
 
 #if ENABLE(GPU_PROCESS)
@@ -2559,7 +2530,8 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
             return;
         }
         protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad);
-    }
+    } else
+        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "goToBackForwardItem: No target local frame found for navigationID=%" PRIu64 ", backForwardItemID=%s — navigation silently dropped", parameters.navigationID.toUInt64(), parameters.frameState->itemID->toString().utf8().data());
 }
 
 // GoToBackForwardItemWaitingForProcessLaunch should never be sent to the WebProcess. It must always be converted to a GoToBackForwardItem message.
@@ -4806,6 +4778,15 @@ void WebPage::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parame
             WEBPAGE_RELEASE_LOG(Process, "runJavaScriptInFrameInScriptWorld: Request to run JavaScript succeeded");
         completionHandler(WTF::move(result));
     });
+}
+
+void WebPage::clearContentWorld(ContentWorldIdentifier worldIdentifier, CompletionHandler<void()>&& completionHandler)
+{
+    if (RefPtr world = m_userContentController->worldForIdentifier(worldIdentifier); world && world->coreWorld().allowNodeSerialization()) {
+        WEBPAGE_RELEASE_LOG(Loading, "clearContentWorld: id=%" PUBLIC_LOG_STRING " name=%" PUBLIC_LOG_STRING, worldIdentifier.loggingString().ascii().data(), world->name().utf8().data());
+        world->clearWrappers();
+    }
+    completionHandler();
 }
 
 void WebPage::getContentsAsString(ContentAsStringIncludesChildFrames includeChildFrames, CompletionHandler<void(const String&)>&& callback)

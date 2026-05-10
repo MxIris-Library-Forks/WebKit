@@ -1484,6 +1484,10 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/WriteBarrier.h
     runtime/WriteBarrierInlines.h
 
+    runtime/temporal/core/CalendarArithmetic.h
+    runtime/temporal/core/ISOArithmetic.h
+    runtime/temporal/core/InstantCore.h
+    runtime/temporal/core/Rounding.h
     runtime/temporal/core/TemporalCoreTypes.h
     runtime/temporal/core/TemporalEnums.h
 
@@ -1815,9 +1819,14 @@ else ()
 endif ()
 
 WEBKIT_COMPUTE_SOURCES(JavaScriptCore)
+
+WEBKIT_DEFINE_SUBTARGET(JavaScriptCore JavaScriptCoreJIT
+    PREFIX JavaScriptCoreJITPrefix.h
+    DIRS jit dfg ftl bytecode bytecompiler llint lol tools)
+
 WEBKIT_FRAMEWORK(JavaScriptCore)
 
-ADD_WEBKIT_PREFIX_HEADERS(JavaScriptCore JavaScriptCorePrefix.h)
+WEBKIT_ADD_PREFIX_HEADER(JavaScriptCore JavaScriptCorePrefix.h)
 
 if (NOT "${PORT}" STREQUAL "Mac")
     if (${JavaScriptCore_LIBRARY_TYPE} STREQUAL "SHARED")

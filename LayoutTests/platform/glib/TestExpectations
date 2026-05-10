@@ -146,8 +146,6 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-mode
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/embedded_style_media_queries_resized.html [ Pass ]
 
 imported/w3c/web-platform-tests/css/css-counter-styles/counter-suffix.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-grid/alignment/grid-item-no-aspect-ratio-stretch-5.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-grid/alignment/grid-item-no-aspect-ratio-stretch-6.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-scale-down-svg-003i.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-scale-down-svg-003p.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-images/object-fit-scale-down-svg-004i.html [ Pass ]
@@ -3939,6 +3937,9 @@ fast/images/low-memory-decode.html [ Skip ]
 
 # Lockdown Mode does not apply
 fast/speechsynthesis/lockdown-mode [ Skip ]
+
+# ManagedMediaSource is not supported
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/transfer-mediasourcehandle.html [ Skip ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of UNSUPPORTED tests.

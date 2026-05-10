@@ -5896,7 +5896,6 @@
 		CD14C24C2ECBCDB900F9C56D /* JSMockCaptionDisplaySettingsClientCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD14C24A2ECBCDB900F9C56D /* JSMockCaptionDisplaySettingsClientCallback.cpp */; };
 		CD14C24E2ECBCDB900F9C56D /* JSMockCaptionDisplaySettingsClientCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = CD14C2492ECBCDB900F9C56D /* JSMockCaptionDisplaySettingsClientCallback.h */; };
 		CD14C2502ECBF12C00F9C56D /* MockCaptionDisplaySettingsClientCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD14C24F2ECBF12C00F9C56D /* MockCaptionDisplaySettingsClientCallback.cpp */; };
-		CD14C2542ECC05CB00F9C56D /* JSResolvedCaptionDisplaySettingsOptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD14C2532ECC05CB00F9C56D /* JSResolvedCaptionDisplaySettingsOptions.cpp */; };
 		CD14C2562ECC65D500F9C56D /* ResolvedCaptionDisplaySettingsOptionsWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = CD14C2552ECC65D500F9C56D /* ResolvedCaptionDisplaySettingsOptionsWrapper.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CD17A45D213740810079EC7B /* UnifiedSource62-nonARC.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD17A459213740160079EC7B /* UnifiedSource62-nonARC.mm */; };
 		CD19A2681A13E700008D650E /* DiagnosticLoggingClient.h in Headers */ = {isa = PBXBuildFile; fileRef = CD19A2671A13E700008D650E /* DiagnosticLoggingClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -50506,7 +50505,6 @@
 				46CA943127B8695800F4F5FF /* InbandTextTrackPrivateAVFObjC.mm in Sources */,
 				CD063F821E23FA8900812BE3 /* InitDataRegistry.cpp in Sources */,
 				EE042903F1A0DE0100A1B2C3 /* JSDOMBindingFacade.cpp in Sources */,
-				CD14C2542ECC05CB00F9C56D /* JSResolvedCaptionDisplaySettingsOptions.cpp in Sources */,
 				935C477009AC4D7300A6AAB4 /* KeyEventMac.mm in Sources */,
 				CDA98E0B1603CD6000FEA3B1 /* LegacyCDM.cpp in Sources */,
 				CDE8B5EC1A69777300B4B66A /* LegacyCDMPrivateClearKey.cpp in Sources */,

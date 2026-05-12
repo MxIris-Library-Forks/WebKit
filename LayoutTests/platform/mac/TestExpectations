@@ -1437,10 +1437,6 @@ webkit.org/b/207142 requestidlecallback/requestidlecallback-is-called.html [ Pas
 
 webkit.org/b/207226 http/tests/misc/image-blocked-src-change.html [ Pass Failure ]
 
-webkit.org/b/206908 imported/w3c/web-platform-tests/hr-time/basic.any.html [ Pass Failure ]
-
-webkit.org/b/232316 imported/w3c/web-platform-tests/hr-time/basic.html [ Pass Failure ]
-
 webkit.org/b/207306 inspector/animation/lifecycle-css-animation.html [ Pass Failure ]
 
 webkit.org/b/112939 fast/performance/performance-now-timestamps.html [ Pass Failure ]
@@ -2454,6 +2450,5 @@ tiled-drawing/mac/margin-tiles-with-banner-view-overlay-repeat-y.html [ Skip ]
 
 # Cocoa platforms use data URLs for pasted images; blob URL tests are for Glib ports
 editing/pasteboard/paste-image-as-blob-url.html [ Skip ]
-editing/pasteboard/data-transfer-get-data-on-pasting-html-uses-blob-url.html [ Skip ]
 
 webkit.org/b/311570 [ Debug ] http/tests/site-isolation/nested-cross-origin-iframe.html [ Skip ]

@@ -870,34 +870,43 @@ void RenderReplaced::computePreferredLogicalWidths()
     // width may not be set on our containing block.
     if (style().logicalWidth().isPercentOrCalculated()) {
         if (canDerivePreferredWidthFromAspectRatio(*this)) {
-            m_maxPreferredLogicalWidth = computeLogicalWidthFromAspectRatioInternal() - borderAndPaddingLogicalWidth();
+            m_maxPreferredLogicalWidth = computeLogicalWidthFromAspectRatio() - borderAndPaddingLogicalWidth();
             m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
         } else {
             computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
             if (preferredAspectRatio())
-                applyTransferredMinMaxSizesFromAspectRatio();
+                applyTransferredMinMaxSizesFromAspectRatio(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
         }
     } else {
         m_maxPreferredLogicalWidth = computeReplacedLogicalWidth(ShouldComputePreferred::ComputePreferred);
         m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+        if (preferredAspectRatio() && !style().logicalWidth().isFixed())
+            applyTransferredMinMaxSizesFromAspectRatio(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
     }
 
-    bool ignoreMinMaxSizes = shouldIgnoreLogicalMinMaxWidthSizes();
-    const RenderStyle& styleToUse = style();
+    auto& styleToUse = style();
     if (styleToUse.logicalWidth().isPercentOrCalculated() || styleToUse.logicalMaxWidth().isPercentOrCalculated())
         m_minPreferredLogicalWidth = 0;
 
-    if (auto fixedLogicalMinWidth = styleToUse.logicalMinWidth().tryFixed(); !ignoreMinMaxSizes && fixedLogicalMinWidth && fixedLogicalMinWidth->isPositive()) {
-        m_maxPreferredLogicalWidth = std::max(m_maxPreferredLogicalWidth, adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMinWidth));
-        m_minPreferredLogicalWidth = std::max(m_minPreferredLogicalWidth, adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMinWidth));
-    }
-    
-    if (auto fixedLogicalMaxWidth = styleToUse.logicalMaxWidth().tryFixed(); !ignoreMinMaxSizes && fixedLogicalMaxWidth) {
-        m_maxPreferredLogicalWidth = std::min(m_maxPreferredLogicalWidth, adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMaxWidth));
-        m_minPreferredLogicalWidth = std::min(m_minPreferredLogicalWidth, adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMaxWidth));
-    }
+    auto applyExplicitMinMaxWidthConstraints = [&] {
+        if (shouldIgnoreLogicalMinMaxWidthSizes())
+            return;
 
-    LayoutUnit borderAndPadding = borderAndPaddingLogicalWidth();
+        if (auto fixedLogicalMinWidth = styleToUse.logicalMinWidth().tryFixed()) {
+            auto minWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMinWidth);
+            m_maxPreferredLogicalWidth = std::max(m_maxPreferredLogicalWidth, minWidth);
+            m_minPreferredLogicalWidth = std::max(m_minPreferredLogicalWidth, minWidth);
+        }
+
+        if (auto fixedLogicalMaxWidth = styleToUse.logicalMaxWidth().tryFixed()) {
+            auto maxWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMaxWidth);
+            m_maxPreferredLogicalWidth = std::min(m_maxPreferredLogicalWidth, maxWidth);
+            m_minPreferredLogicalWidth = std::min(m_minPreferredLogicalWidth, maxWidth);
+        }
+    };
+
+    applyExplicitMinMaxWidthConstraints();
+    auto borderAndPadding = borderAndPaddingLogicalWidth();
     m_minPreferredLogicalWidth += borderAndPadding;
     m_maxPreferredLogicalWidth += borderAndPadding;
 

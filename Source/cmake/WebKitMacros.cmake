@@ -136,10 +136,54 @@ endmacro()
 # OBJECT library (see ${_framework}_ARC_SOURCES) so each gets a matching PCH.
 #
 # On ports where OBJC/OBJCXX are not enabled languages those clauses are no-ops.
-macro(WEBKIT_ADD_PREFIX_HEADER _target _header)
+function(WEBKIT_ADD_PREFIX_HEADER _target _header)
+    cmake_parse_arguments(PARSE_ARGV 2 _PCH "PREFIX_NO_CODEGEN" "" "PREFIX_LANGUAGES")
+    if (NOT _PCH_PREFIX_LANGUAGES)
+        message(FATAL_ERROR "WEBKIT_ADD_PREFIX_HEADER(${_target}): PREFIX_LANGUAGES is required")
+    endif ()
+    string(JOIN "," _pch_genex_langs ${_PCH_PREFIX_LANGUAGES})
     target_precompile_headers(${_target} PRIVATE
-        "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
-endmacro()
+        "$<$<COMPILE_LANGUAGE:${_pch_genex_langs}>:${CMAKE_CURRENT_SOURCE_DIR}/${_header}>")
+    _WEBKIT_ADD_PCH_OBJECT(${_target} ${ARGN})
+endfunction()
+
+# REUSE_FROM is only safe where producer and consumer compile flags match exactly.
+# That fails on GCC (per-target BUILDING_* define -> -Werror=invalid-pch) and on
+# ELF clang when an executable reuses a library PCH (-fPIE vs -fPIC). Fall back
+# to a per-target prefix header on those ports.
+function(WEBKIT_REUSE_PREFIX_HEADER _target _from _header)
+    if (COMPILER_IS_CLANG AND APPLE)
+        target_precompile_headers(${_target} REUSE_FROM ${_from})
+    else ()
+        WEBKIT_ADD_PREFIX_HEADER(${_target} ${_header} PREFIX_NO_CODEGEN ${ARGN})
+    endif ()
+endfunction()
+
+function(_WEBKIT_ADD_PCH_OBJECT _target)
+    if (NOT (COMPILER_IS_CLANG AND APPLE))
+        return()
+    endif ()
+    cmake_parse_arguments(PARSE_ARGV 1 _PO "PREFIX_NO_CODEGEN" "" "PREFIX_LANGUAGES")
+    set(_stub_flags "-fpch-debuginfo;-Xclang;-building-pch-with-obj")
+    if (NOT _PO_PREFIX_NO_CODEGEN)
+        list(PREPEND _stub_flags "-fpch-codegen")
+    endif ()
+    get_target_property(_pch_bin_dir ${_target} BINARY_DIR)
+    list(FILTER _PO_PREFIX_LANGUAGES INCLUDE REGEX "^(CXX|OBJCXX)$")
+    foreach (_pch_lang IN LISTS _PO_PREFIX_LANGUAGES)
+        _WEBKIT_PCH_PATHS_FOR_LANGUAGE(${_pch_lang} _pch_src_ext _pch_stub_ext _pch_stem)
+        set_property(SOURCE "${_pch_bin_dir}/CMakeFiles/${_target}.dir/${_pch_stem}.${_pch_stub_ext}"
+            APPEND PROPERTY COMPILE_OPTIONS "${_stub_flags}")
+        set(_pch_obj_src "${CMAKE_CURRENT_BINARY_DIR}/${_target}_pch_obj.${_pch_src_ext}")
+        if (NOT EXISTS "${_pch_obj_src}")
+            file(WRITE "${_pch_obj_src}" "// PCH object for ${_target} (${_pch_lang})\n")
+        endif ()
+        target_sources(${_target} PRIVATE "${_pch_obj_src}")
+        set_source_files_properties("${_pch_obj_src}" PROPERTIES
+            COMPILE_OPTIONS "-Xclang;-building-pch-with-obj;-fvisibility-inlines-hidden"
+            SKIP_UNITY_BUILD_INCLUSION ON)
+    endforeach ()
+endfunction()
 
 macro(_WEBKIT_PCH_PATHS_FOR_LANGUAGE _lang _out_src_ext _out_stub_ext _out_pch_stem)
     if (${_lang} STREQUAL "OBJCXX")
@@ -161,7 +205,7 @@ macro(_WEBKIT_PCH_PATHS_FOR_LANGUAGE _lang _out_src_ext _out_stub_ext _out_pch_s
     endif ()
 endmacro()
 
-macro(WEBKIT_ADD_PREFIX_HEADER_WITH_PARENT _target _base_target _header _parent_header)
+function(WEBKIT_ADD_PREFIX_HEADER_WITH_PARENT _target _base_target _header _parent_header)
     if (COMPILER_IS_CLANG)
         string(JOIN "," _lang_genex ${ARGN})
         target_precompile_headers(${_target} PRIVATE
@@ -176,10 +220,11 @@ macro(WEBKIT_ADD_PREFIX_HEADER_WITH_PARENT _target _base_target _header _parent_
                 COMPILE_OPTIONS "-Xclang;-include-pch;-Xclang;${_base_pch}"
                 OBJECT_DEPENDS "${_base_pch}")
         endforeach ()
+        _WEBKIT_ADD_PCH_OBJECT(${_target} PREFIX_NO_CODEGEN PREFIX_LANGUAGES ${ARGN})
     else ()
-        WEBKIT_ADD_PREFIX_HEADER(${_target} ${_parent_header})
+        WEBKIT_ADD_PREFIX_HEADER(${_target} ${_parent_header} PREFIX_LANGUAGES ${ARGN})
     endif ()
-endmacro()
+endfunction()
 
 function(WEBKIT_DEFINE_SUBTARGET _target _parent)
     add_library(${_target} OBJECT)
@@ -850,8 +895,10 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         endif ()
 
         set(_header_tmp_path "${_header_path}.tmp")
+        set(_header_stamp_path "${_header_path}.stamp")
         add_custom_command(
-            OUTPUT ${_header_path}
+            OUTPUT ${_header_stamp_path}
+            BYPRODUCTS ${_header_path}
             DEPENDS ${_swift_sources}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMAND
@@ -873,6 +920,8 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
                 ${CMAKE_COMMAND} -E copy_if_different ${_header_tmp_path} ${_header_path}
             COMMAND
                 ${CMAKE_COMMAND} -E rm -f ${_header_tmp_path}
+            COMMAND
+                ${CMAKE_COMMAND} -E touch ${_header_stamp_path}
             DEPFILE ${_depfile_path}
             COMMENT
                 "Generating ${_target} C++ bindings to Swift at '${_header_path}'"
@@ -886,11 +935,11 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             # custom target so it does NOT inherit
             # cmake_object_order_depends_target_${_target} (which would gate it
             # on every link dependency) and can start as soon as headers exist.
-            add_custom_target(${_target}_SwiftCxxHeader DEPENDS ${_header_path})
+            add_custom_target(${_target}_SwiftCxxHeader DEPENDS ${_header_stamp_path})
             add_dependencies(${_target}_SwiftCxxHeader ${${_target}_SWIFT_HEADER_DEPENDS})
             add_dependencies(${_target} ${_target}_SwiftCxxHeader)
         else ()
-            target_sources(${_target} PRIVATE ${_header_path})
+            target_sources(${_target} PRIVATE ${_header_stamp_path})
         endif ()
     endif ()
 endmacro()

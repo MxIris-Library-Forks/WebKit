@@ -3026,6 +3026,7 @@ fast/mediastream/getDisplayMedia-max-constraints5.html [ Skip ]
 webkit.org/b/263466 fast/mediastream/getDisplayMedia-max-constraints4.html [ Failure ]
 webrtc/getDisplayMedia-pc.html [ Skip ]
 webrtc/getDisplayMedia-odd-size.html [ Skip ]
+webrtc/getDisplayMedia-pc-resolution.html [ Skip ]
 
 fast/mediastream/getDisplayMedia-size.html [ Skip ]
 
@@ -8620,8 +8621,6 @@ webkit.org/b/312120 imported/w3c/web-platform-tests/credential-management/creden
 
 # rdar://173890240 ([iOS] imported/w3c/web-platform-tests/css/css-images/gradient/gradient-analogous-missing-components-003.html has 2 component pixel difference)
 imported/w3c/web-platform-tests/css/css-images/gradient/gradient-analogous-missing-components-003.html [ Pass ImageOnlyFailure ]
-
-webkit.org/b/314560 http/tests/site-isolation/compositing/iframes/resize-from-zero-size.html [ Pass Failure ]
 
 # webkit.org/b/312385 NEW TEST (311246@main): [iOS] 7 tests in imported/w3c/web-platform-tests/html/semantics/popovers/ are failing
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-focus-inside-slot.html [ Skip ]

@@ -1172,6 +1172,9 @@ private:
         case ObjectDefineProperty:
             compileObjectDefineProperty();
             break;
+        case ObjectDefinePropertyFromFields:
+            compileObjectDefinePropertyFromFields();
+            break;
         case DefineAccessorProperty:
             compileDefineAccessorProperty();
             break;
@@ -3732,29 +3735,23 @@ private:
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
         if (m_node->child1().useKind() == DoubleRepUse) {
-            LValue result = nullptr;
-            if (producesInteger(m_node->arithRoundingMode()) && !shouldCheckNegativeZero(m_node->arithRoundingMode())) {
-                LValue value = lowDouble(m_node->child1());
-                result = m_out.doubleFloor(m_out.doubleAdd(value, m_out.constDouble(0.5)));
-            } else {
-                LBasicBlock shouldRoundDown = m_out.newBlock();
-                LBasicBlock continuation = m_out.newBlock();
+            LBasicBlock shouldRoundDown = m_out.newBlock();
+            LBasicBlock continuation = m_out.newBlock();
 
-                LValue value = lowDouble(m_node->child1());
-                LValue integerValue = m_out.doubleCeil(value);
-                ValueFromBlock integerValueResult = m_out.anchor(integerValue);
+            LValue value = lowDouble(m_node->child1());
+            LValue integerValue = m_out.doubleCeil(value);
+            ValueFromBlock integerValueResult = m_out.anchor(integerValue);
 
-                LValue ceilMinusHalf = m_out.doubleSub(integerValue, m_out.constDouble(0.5));
-                m_out.branch(m_out.doubleGreaterThanOrUnordered(ceilMinusHalf, value), unsure(shouldRoundDown), unsure(continuation));
+            LValue ceilMinusHalf = m_out.doubleSub(integerValue, m_out.constDouble(0.5));
+            m_out.branch(m_out.doubleGreaterThanOrUnordered(ceilMinusHalf, value), unsure(shouldRoundDown), unsure(continuation));
 
-                LBasicBlock lastNext = m_out.appendTo(shouldRoundDown, continuation);
-                LValue integerValueRoundedDown = m_out.doubleSub(integerValue, m_out.constDouble(1));
-                ValueFromBlock integerValueRoundedDownResult = m_out.anchor(integerValueRoundedDown);
-                m_out.jump(continuation);
-                m_out.appendTo(continuation, lastNext);
+            LBasicBlock lastNext = m_out.appendTo(shouldRoundDown, continuation);
+            LValue integerValueRoundedDown = m_out.doubleSub(integerValue, m_out.constDouble(1));
+            ValueFromBlock integerValueRoundedDownResult = m_out.anchor(integerValueRoundedDown);
+            m_out.jump(continuation);
+            m_out.appendTo(continuation, lastNext);
 
-                result = m_out.phi(Double, integerValueResult, integerValueRoundedDownResult);
-            }
+            LValue result = m_out.phi(Double, integerValueResult, integerValueRoundedDownResult);
 
             if (producesInteger(m_node->arithRoundingMode())) {
                 LValue integerValue = convertDoubleToInt32(result, shouldCheckNegativeZero(m_node->arithRoundingMode()));
@@ -5508,7 +5505,7 @@ private:
     void compileDefineDataProperty()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
-        LValue base = lowCell(m_graph.varArgChild(m_node, 0));
+        LValue base = lowObject(m_graph.varArgChild(m_node, 0));
         LValue value  = lowJSValue(m_graph.varArgChild(m_node, 2));
         LValue attributes = lowInt32(m_graph.varArgChild(m_node, 3));
         Edge& propertyEdge = m_graph.varArgChild(m_node, 1);
@@ -5547,10 +5544,26 @@ private:
         vmCall(Void, operationObjectDefineProperty, weakPointer(globalObject), target, key, descriptor);
     }
 
+    void compileObjectDefinePropertyFromFields()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        ASSERT(m_node->op() == ObjectDefinePropertyFromFields);
+        ASSERT(m_graph.varArgNumChildren(m_node) == 8);
+        LValue target = lowObject(m_graph.varArgChild(m_node, 0));
+        LValue key = lowJSValue(m_graph.varArgChild(m_node, 1));
+        LValue enumerable = lowJSValue(m_graph.varArgChild(m_node, 2));
+        LValue configurable = lowJSValue(m_graph.varArgChild(m_node, 3));
+        LValue value = lowJSValue(m_graph.varArgChild(m_node, 4));
+        LValue writable = lowJSValue(m_graph.varArgChild(m_node, 5));
+        LValue getter = lowJSValue(m_graph.varArgChild(m_node, 6));
+        LValue setter = lowJSValue(m_graph.varArgChild(m_node, 7));
+        vmCall(Void, operationObjectDefinePropertyFromFields, weakPointer(globalObject), target, key, enumerable, configurable, value, writable, getter, setter);
+    }
+
     void compileDefineAccessorProperty()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
-        LValue base = lowCell(m_graph.varArgChild(m_node, 0));
+        LValue base = lowObject(m_graph.varArgChild(m_node, 0));
         LValue getter = lowCell(m_graph.varArgChild(m_node, 2));
         LValue setter = lowCell(m_graph.varArgChild(m_node, 3));
         LValue attributes = lowInt32(m_graph.varArgChild(m_node, 4));

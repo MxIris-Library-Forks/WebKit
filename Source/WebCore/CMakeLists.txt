@@ -2750,15 +2750,13 @@ set(SCRIPTS_RESOLVE_SUPPLEMENTAL
 set(SCRIPTS_BINDINGS
     ${WEBCORE_DIR}/bindings/scripts/CodeGenerator.pm
     ${WEBCORE_DIR}/bindings/scripts/CodeGeneratorJS.pm
+    ${WEBCORE_DIR}/bindings/scripts/Hasher.pm
     ${WEBCORE_DIR}/bindings/scripts/IDLParser.pm
     ${WEBCORE_DIR}/bindings/scripts/InFilesParser.pm
+    ${WEBCORE_DIR}/bindings/scripts/StaticString.pm
     ${WEBCORE_DIR}/bindings/scripts/preprocessor.pm
 )
 
-set(MAKE_NAMES_DEPENDENCIES
-    ${WEBCORE_DIR}/bindings/scripts/Hasher.pm
-    ${WEBCORE_DIR}/bindings/scripts/StaticString.pm
-)
 set(SUPPLEMENTAL_DEPENDENCY_FILE ${WebCore_DERIVED_SOURCES_DIR}/supplemental_dependency.tmp)
 set(ISO_SUBSPACES_HEADER_FILE ${WebCore_DERIVED_SOURCES_DIR}/DOMIsoSubspaces.h)
 set(CLIENT_ISO_SUBSPACES_HEADER_FILE ${WebCore_DERIVED_SOURCES_DIR}/DOMClientIsoSubspaces.h)
@@ -3156,7 +3154,7 @@ WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(WebCore WebCoreAVFoundation
     PREFIX_LANGUAGES OBJCXX
     DIRS avfoundation)
 
-WEBKIT_ADD_PREFIX_HEADER(WebCore WebCorePrefix.h)
+WEBKIT_ADD_PREFIX_HEADER(WebCore WebCorePrefix.h PREFIX_LANGUAGES CXX OBJCXX)
 
 list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/DocumentSyncData.serialization.in
@@ -3238,7 +3236,7 @@ if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
 endif ()
 
 if (ENABLE_WEBCORE_TEST_SUPPORT)
-    WEBKIT_ADD_PREFIX_HEADER(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h)
+    WEBKIT_ADD_PREFIX_HEADER(WebCoreTestSupport testing/js/WebCoreTestSupportPrefix.h PREFIX_LANGUAGES CXX)
 
     WEBKIT_COPY_FILES(Copy_WebCoreTestSupportPrivateHeaders
         DESTINATION ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport

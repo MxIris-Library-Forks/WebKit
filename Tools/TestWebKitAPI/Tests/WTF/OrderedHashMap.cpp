@@ -40,7 +40,7 @@ namespace TestWebKitAPI {
 
 TEST(WTF_OrderedHashMap, EmptyMap)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     EXPECT_TRUE(map.isEmpty());
     EXPECT_EQ(0u, map.size());
     EXPECT_TRUE(map.begin() == map.end());
@@ -48,7 +48,7 @@ TEST(WTF_OrderedHashMap, EmptyMap)
 
 TEST(WTF_OrderedHashMap, BasicAddAndFind)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     auto result = map.add(1, 100);
     EXPECT_TRUE(result.isNewEntry);
     EXPECT_EQ(1, result.iterator->key);
@@ -63,7 +63,7 @@ TEST(WTF_OrderedHashMap, BasicAddAndFind)
 
 TEST(WTF_OrderedHashMap, Set)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.set(1, 100);
     EXPECT_EQ(100, map.get(1));
 
@@ -74,7 +74,7 @@ TEST(WTF_OrderedHashMap, Set)
 
 TEST(WTF_OrderedHashMap, Ensure)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     auto result1 = map.ensure(1, [] {
         return 100;
     });
@@ -90,7 +90,7 @@ TEST(WTF_OrderedHashMap, Ensure)
 
 TEST(WTF_OrderedHashMap, Contains)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
 
@@ -101,7 +101,7 @@ TEST(WTF_OrderedHashMap, Contains)
 
 TEST(WTF_OrderedHashMap, Get)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     EXPECT_EQ(100, map.get(1));
     EXPECT_EQ(0, map.get(999)); // Default for missing key
@@ -109,7 +109,7 @@ TEST(WTF_OrderedHashMap, Get)
 
 TEST(WTF_OrderedHashMap, GetOptional)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     auto result = map.getOptional(1);
     EXPECT_TRUE(result.has_value());
@@ -121,7 +121,7 @@ TEST(WTF_OrderedHashMap, GetOptional)
 
 TEST(WTF_OrderedHashMap, InsertionOrderPreserved)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(3, 300);
     map.add(1, 100);
     map.add(4, 400);
@@ -143,7 +143,7 @@ TEST(WTF_OrderedHashMap, InsertionOrderPreserved)
 
 TEST(WTF_OrderedHashMap, InsertionOrderPreservedAfterDeletion)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
     map.add(3, 300);
@@ -165,7 +165,7 @@ TEST(WTF_OrderedHashMap, InsertionOrderPreservedAfterDeletion)
 
 TEST(WTF_OrderedHashMap, SetDoesNotChangeOrder)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
     map.add(3, 300);
@@ -185,7 +185,7 @@ TEST(WTF_OrderedHashMap, SetDoesNotChangeOrder)
 
 TEST(WTF_OrderedHashMap, RemoveByKey)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
 
@@ -197,7 +197,7 @@ TEST(WTF_OrderedHashMap, RemoveByKey)
 
 TEST(WTF_OrderedHashMap, RemoveByIterator)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
 
@@ -209,7 +209,7 @@ TEST(WTF_OrderedHashMap, RemoveByIterator)
 
 TEST(WTF_OrderedHashMap, Take)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
 
@@ -224,7 +224,7 @@ TEST(WTF_OrderedHashMap, Take)
 
 TEST(WTF_OrderedHashMap, TakeOptional)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
 
     auto result = map.takeOptional(1);
@@ -238,7 +238,7 @@ TEST(WTF_OrderedHashMap, TakeOptional)
 
 TEST(WTF_OrderedHashMap, TakeFirst)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(3, 300);
     map.add(1, 100);
     map.add(2, 200);
@@ -250,7 +250,7 @@ TEST(WTF_OrderedHashMap, TakeFirst)
 
 TEST(WTF_OrderedHashMap, Clear)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
     map.clear();
@@ -262,11 +262,11 @@ TEST(WTF_OrderedHashMap, Clear)
 
 TEST(WTF_OrderedHashMap, Swap)
 {
-    OrderedHashMap<int, int> map1;
+    WTF::OrderedHashMap<int, int> map1;
     map1.add(1, 100);
     map1.add(2, 200);
 
-    OrderedHashMap<int, int> map2;
+    WTF::OrderedHashMap<int, int> map2;
     map2.add(3, 300);
 
     map1.swap(map2);
@@ -280,12 +280,12 @@ TEST(WTF_OrderedHashMap, Swap)
 
 TEST(WTF_OrderedHashMap, CopyConstruction)
 {
-    OrderedHashMap<int, int> map1;
+    WTF::OrderedHashMap<int, int> map1;
     map1.add(1, 100);
     map1.add(2, 200);
     map1.add(3, 300);
 
-    OrderedHashMap<int, int> map2(map1);
+    WTF::OrderedHashMap<int, int> map2(map1);
 
     EXPECT_EQ(3u, map2.size());
 
@@ -301,11 +301,11 @@ TEST(WTF_OrderedHashMap, CopyConstruction)
 
 TEST(WTF_OrderedHashMap, MoveConstruction)
 {
-    OrderedHashMap<int, int> map1;
+    WTF::OrderedHashMap<int, int> map1;
     map1.add(1, 100);
     map1.add(2, 200);
 
-    OrderedHashMap<int, int> map2(WTF::move(map1));
+    WTF::OrderedHashMap<int, int> map2(WTF::move(map1));
 
     EXPECT_EQ(2u, map2.size());
     EXPECT_TRUE(map2.contains(1));
@@ -315,11 +315,11 @@ TEST(WTF_OrderedHashMap, MoveConstruction)
 
 TEST(WTF_OrderedHashMap, CopyAssignment)
 {
-    OrderedHashMap<int, int> map1;
+    WTF::OrderedHashMap<int, int> map1;
     map1.add(1, 100);
     map1.add(2, 200);
 
-    OrderedHashMap<int, int> map2;
+    WTF::OrderedHashMap<int, int> map2;
     map2.add(9, 900);
     map2 = map1;
 
@@ -331,10 +331,10 @@ TEST(WTF_OrderedHashMap, CopyAssignment)
 
 TEST(WTF_OrderedHashMap, MoveAssignment)
 {
-    OrderedHashMap<int, int> map1;
+    WTF::OrderedHashMap<int, int> map1;
     map1.add(1, 100);
 
-    OrderedHashMap<int, int> map2;
+    WTF::OrderedHashMap<int, int> map2;
     map2.add(9, 900);
     map2 = WTF::move(map1);
 
@@ -345,7 +345,7 @@ TEST(WTF_OrderedHashMap, MoveAssignment)
 
 TEST(WTF_OrderedHashMap, KeysIteration)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(3, 300);
     map.add(1, 100);
     map.add(2, 200);
@@ -362,7 +362,7 @@ TEST(WTF_OrderedHashMap, KeysIteration)
 
 TEST(WTF_OrderedHashMap, ValuesIteration)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(3, 300);
     map.add(1, 100);
     map.add(2, 200);
@@ -379,7 +379,7 @@ TEST(WTF_OrderedHashMap, ValuesIteration)
 
 TEST(WTF_OrderedHashMap, RehashPreservesOrder)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     // Insert enough entries to trigger rehashing
     Vector<int> expectedOrder;
     for (int i = 0; i < 100; ++i) {
@@ -396,7 +396,7 @@ TEST(WTF_OrderedHashMap, RehashPreservesOrder)
 
 TEST(WTF_OrderedHashMap, DeleteAndReinsert)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
     map.add(3, 300);
@@ -417,7 +417,7 @@ TEST(WTF_OrderedHashMap, DeleteAndReinsert)
 
 TEST(WTF_OrderedHashMap, ManyDeletesAndInserts)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     for (int i = 0; i < 50; ++i)
         map.add(i, i);
 
@@ -438,7 +438,7 @@ TEST(WTF_OrderedHashMap, ManyDeletesAndInserts)
 
 TEST(WTF_OrderedHashMap, StringKeys)
 {
-    OrderedHashMap<String, int> map;
+    WTF::OrderedHashMap<String, int> map;
     map.add("banana"_s, 2);
     map.add("apple"_s, 1);
     map.add("cherry"_s, 3);
@@ -455,7 +455,7 @@ TEST(WTF_OrderedHashMap, StringKeys)
 
 TEST(WTF_OrderedHashMap, InitializerList)
 {
-    OrderedHashMap<int, int> map {
+    WTF::OrderedHashMap<int, int> map {
         { 3, 300 },
         { 1, 100 },
         { 2, 200 }
@@ -474,7 +474,7 @@ TEST(WTF_OrderedHashMap, InitializerList)
 
 TEST(WTF_OrderedHashMap, ReserveCapacity)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.reserveInitialCapacity(100);
 
     for (int i = 0; i < 100; ++i)
@@ -492,7 +492,7 @@ TEST(WTF_OrderedHashMap, ReserveCapacity)
 
 TEST(WTF_OrderedHashMap, ConstIteration)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
 
@@ -508,7 +508,7 @@ TEST(WTF_OrderedHashMap, ConstIteration)
 
 TEST(WTF_OrderedHashMap, FindReturnsCorrectIterator)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
     map.add(2, 200);
     map.add(3, 300);
@@ -524,13 +524,13 @@ TEST(WTF_OrderedHashMap, FindReturnsCorrectIterator)
 
 TEST(WTF_OrderedHashMap, IteratorComparison)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.add(1, 100);
 
     EXPECT_TRUE(map.begin() != map.end());
     EXPECT_FALSE(map.begin() == map.end());
 
-    OrderedHashMap<int, int>::const_iterator constBegin = map.begin();
+    WTF::OrderedHashMap<int, int>::const_iterator constBegin = map.begin();
     EXPECT_TRUE(constBegin == map.begin());
     EXPECT_TRUE(constBegin != map.end());
 }
@@ -540,7 +540,7 @@ TEST(WTF_OrderedHashMap, CompactInPlacePreservesOrderAndCapacity)
     // Fills the initial entries array (capacity=6, bucketCount=8), deletes most,
     // then adds to trigger rehashForAdd on a table that cannot shrink below
     // initialBucketCount — forcing the compactInPlace branch.
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     for (int i = 0; i < 6; ++i)
         map.add(i, i * 10);
     unsigned initialCapacity = map.capacity();
@@ -579,7 +579,7 @@ TEST(WTF_OrderedHashMap, CompactInPlacePreservesOrderAndCapacity)
 
 TEST(WTF_OrderedHashMap, CompactInPlaceOnLargerTable)
 {
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     map.reserveInitialCapacity(12);
     unsigned reservedCapacity = map.capacity();
     EXPECT_GE(reservedCapacity, 12u);
@@ -617,7 +617,7 @@ TEST(WTF_OrderedHashMap, CompactInPlaceOnLargerTable)
 TEST(WTF_OrderedHashMap, CompactInPlaceWithStringValues)
 {
     // Non-trivial value type exercises move/destroy paths inside compactInPlace.
-    OrderedHashMap<int, String> map;
+    WTF::OrderedHashMap<int, String> map;
     for (int i = 0; i < 6; ++i)
         map.add(i, makeString("v"_s, i));
     unsigned initialCapacity = map.capacity();
@@ -655,7 +655,7 @@ TEST(WTF_OrderedHashMap, RemoveIfAcrossShrinkThreshold)
     // Fill past initialBucketCount so shrinkIfNeeded() can actually rehash, then
     // removeIf enough entries to cross the 1/4 shrink threshold. Prior to the fix
     // that deferred shrink, this would rehash mid-iteration and skip entries.
-    OrderedHashMap<int, int> map;
+    WTF::OrderedHashMap<int, int> map;
     for (int i = 0; i < 64; ++i)
         map.add(i, i * 10);
     EXPECT_EQ(64u, map.size());
@@ -688,7 +688,7 @@ TEST(WTF_OrderedHashMap, RemoveIfAcrossShrinkThreshold)
 
 TEST(WTF_OrderedHashMap, MoveOnlyValue)
 {
-    OrderedHashMap<int, MoveOnly> map;
+    WTF::OrderedHashMap<int, MoveOnly> map;
     auto addResult = map.add(1, MoveOnly(100));
     EXPECT_TRUE(addResult.isNewEntry);
     EXPECT_EQ(100u, addResult.iterator->value.value());
@@ -723,7 +723,7 @@ TEST(WTF_OrderedHashMap, MoveOnlyValueRehash)
 {
     // Force enough additions to trigger rehash with move-only values, exercising
     // the move construction in the rehash path.
-    OrderedHashMap<int, MoveOnly> map;
+    WTF::OrderedHashMap<int, MoveOnly> map;
     for (unsigned i = 0; i < 64; ++i)
         map.add(i, MoveOnly(i * 7));
     EXPECT_EQ(64u, map.size());
@@ -733,7 +733,7 @@ TEST(WTF_OrderedHashMap, MoveOnlyValueRehash)
 
 TEST(WTF_OrderedHashMap, HashTranslatorFindContainsGet)
 {
-    OrderedHashMap<String, unsigned> map;
+    WTF::OrderedHashMap<String, unsigned> map;
     map.add("alpha"_s, 1u);
     map.add("beta"_s, 2u);
     map.add("gamma"_s, 3u);
@@ -749,6 +749,194 @@ TEST(WTF_OrderedHashMap, HashTranslatorFindContainsGet)
     EXPECT_EQ(1u, map.get<StringViewHashTranslator>(StringView { "alpha"_s }));
     EXPECT_EQ(3u, map.get<StringViewHashTranslator>(StringView { "gamma"_s }));
     EXPECT_EQ(0u, map.get<StringViewHashTranslator>(StringView { "missing"_s }));
+}
+
+namespace {
+
+// Mirrors TrackedValue in OrderedHashSet.cpp — a value type whose operator=
+// requires the LHS to be in a constructed state (one of the known sentinels).
+// Used as the key in a map-shaped OrderedHashTable to exercise the same
+// translator-on-raw-storage path for KeyValuePair entries.
+class TrackedKey {
+public:
+    enum State : uint32_t { Garbage = 0xDEADBEEF, Empty = 0xE11E, Deleted = 0xDEAD, Live = 0xA11E };
+
+    static int liveCount;
+
+    TrackedKey() : m_state(Empty), m_value(0) { }
+    explicit TrackedKey(int v) : m_state(Live), m_value(v) { ++liveCount; }
+    TrackedKey(const TrackedKey& other) : m_state(other.m_state), m_value(other.m_value)
+    {
+        if (m_state == Live)
+            ++liveCount;
+    }
+    TrackedKey(TrackedKey&& other) noexcept : m_state(other.m_state), m_value(other.m_value)
+    {
+        if (m_state == Live)
+            ++liveCount;
+    }
+    TrackedKey(WTF::HashTableDeletedValueType) : m_state(Deleted), m_value(0) { }
+
+    ~TrackedKey()
+    {
+        if (m_state == Live)
+            --liveCount;
+        m_state = Garbage;
+    }
+
+    TrackedKey& operator=(const TrackedKey& other)
+    {
+        EXPECT_TRUE(m_state == Empty || m_state == Live || m_state == Deleted);
+        if (m_state == Live)
+            --liveCount;
+        m_state = other.m_state;
+        m_value = other.m_value;
+        if (m_state == Live)
+            ++liveCount;
+        return *this;
+    }
+
+    bool isHashTableDeletedValue() const { return m_state == Deleted; }
+    bool operator==(const TrackedKey& other) const { return m_state == other.m_state && m_value == other.m_value; }
+
+    int value() const { return m_value; }
+
+private:
+    uint32_t m_state;
+    int m_value;
+};
+
+int TrackedKey::liveCount = 0;
+
+struct TrackedKeyHash {
+    static unsigned hash(const TrackedKey& k) { return IntHash<int>::hash(k.value()); }
+    static bool equal(const TrackedKey& a, const TrackedKey& b) { return a == b; }
+};
+
+struct TrackedKeyTraits : WTF::SimpleClassHashTraits<TrackedKey> {
+    static constexpr bool emptyValueIsZero = false;
+};
+
+using TrackedKVP = KeyValuePair<TrackedKey, int>;
+
+// KeyValuePairHashTraits already computes emptyValueIsZero = KeyTraits::emptyValueIsZero &&
+// ValueTraits::emptyValueIsZero, which is false for TrackedKey, so constructEmptyValue runs.
+using TrackedKVPTraits = WTF::KeyValuePairHashTraits<TrackedKeyTraits, HashTraits<int>>;
+
+struct TrackedKVPTranslator {
+    static unsigned hash(int v) { return IntHash<int>::hash(v); }
+    static bool equal(const TrackedKey& a, int b) { return a.value() == b; }
+    static void translate(TrackedKVP& location, int v, NOESCAPE const auto&)
+    {
+        // Standard WTF translator convention: assign. Both key and value
+        // assignments require the LHS to be a constructed KeyValuePair.
+        location.key = TrackedKey(v);
+        location.value = v * 10;
+    }
+};
+
+using TrackedOrderedHashTable = WTF::OrderedHashTable<TrackedKey, TrackedKVP, WTF::KeyValuePairKeyExtractor<TrackedKVP>, TrackedKeyHash, TrackedKVPTraits, TrackedKeyTraits, WTF::HashTableMalloc>;
+
+}
+
+TEST(WTF_OrderedHashMap, HashTranslatorAddConstructsEmptyBeforeAssign)
+{
+    // Map-side equivalent of the OrderedHashSet test. Without the pre-translate
+    // constructEmptyValue, `location.key = ...` would assign into raw malloc
+    // storage and TrackedKey::operator= would EXPECT-fail because m_state would
+    // be random bits rather than one of the known sentinels.
+    TrackedKey::liveCount = 0;
+    auto noFunctor = []() ALWAYS_INLINE_LAMBDA -> TrackedKVP { return { }; };
+    {
+        TrackedOrderedHashTable table;
+        for (int i = 0; i < 32; ++i) {
+            auto r = table.add<TrackedKVPTranslator>(i, noFunctor);
+            EXPECT_TRUE(r.isNewEntry);
+        }
+        EXPECT_EQ(32u, table.size());
+
+        // Remove half, then re-add via the translator so the path also runs
+        // after internal compact/rehash activity.
+        for (int i = 0; i < 32; i += 2)
+            table.remove(TrackedKey(i));
+        EXPECT_EQ(16u, table.size());
+        for (int i = 0; i < 32; i += 2) {
+            auto r = table.add<TrackedKVPTranslator>(i, noFunctor);
+            EXPECT_TRUE(r.isNewEntry);
+        }
+        EXPECT_EQ(32u, table.size());
+
+        // Verify values survived correctly.
+        int seen = 0;
+        for (auto it = table.begin(); it != table.end(); ++it) {
+            EXPECT_EQ(it->key.value() * 10, it->value);
+            ++seen;
+        }
+        EXPECT_EQ(32, seen);
+    }
+    EXPECT_EQ(0, TrackedKey::liveCount);
+}
+
+TEST(WTF_OrderedHashMap, EqualIgnoringOrder)
+{
+    // OrderedHashMap intentionally does not define operator==, so that the
+    // order-sensitive vs order-insensitive choice is explicit at the call
+    // site. equalIgnoringOrder compares contents, matching HashMap::operator==
+    // semantics.
+    WTF::OrderedHashMap<String, unsigned> a;
+    a.add("alpha"_s, 1);
+    a.add("beta"_s, 2);
+    a.add("gamma"_s, 3);
+
+    WTF::OrderedHashMap<String, unsigned> b;
+    b.add("gamma"_s, 3);
+    b.add("alpha"_s, 1);
+    b.add("beta"_s, 2);
+
+    EXPECT_TRUE(equalIgnoringOrder(a, b));
+    EXPECT_TRUE(equalIgnoringOrder(b, a));
+
+    // Sanity: the two really are in different iteration order.
+    auto itA = a.begin();
+    auto itB = b.begin();
+    EXPECT_NE(itA->key, itB->key);
+}
+
+TEST(WTF_OrderedHashMap, EqualIgnoringOrderDifferentSize)
+{
+    WTF::OrderedHashMap<String, unsigned> a;
+    a.add("alpha"_s, 1);
+    a.add("beta"_s, 2);
+
+    WTF::OrderedHashMap<String, unsigned> b;
+    b.add("alpha"_s, 1);
+
+    EXPECT_FALSE(equalIgnoringOrder(a, b));
+    EXPECT_FALSE(equalIgnoringOrder(b, a));
+}
+
+TEST(WTF_OrderedHashMap, EqualIgnoringOrderDifferentValues)
+{
+    WTF::OrderedHashMap<String, unsigned> a;
+    a.add("alpha"_s, 1);
+    a.add("beta"_s, 2);
+
+    WTF::OrderedHashMap<String, unsigned> b;
+    b.add("alpha"_s, 1);
+    b.add("beta"_s, 99);
+
+    EXPECT_FALSE(equalIgnoringOrder(a, b));
+    EXPECT_FALSE(equalIgnoringOrder(b, a));
+}
+
+TEST(WTF_OrderedHashMap, EqualIgnoringOrderEmpty)
+{
+    WTF::OrderedHashMap<String, unsigned> a;
+    WTF::OrderedHashMap<String, unsigned> b;
+    EXPECT_TRUE(equalIgnoringOrder(a, b));
+
+    a.add("key"_s, 0);
+    EXPECT_FALSE(equalIgnoringOrder(a, b));
 }
 
 } // namespace TestWebKitAPI

@@ -322,11 +322,13 @@ set(WebKit_MESSAGES_IN_FILES
 
     UIProcess/GPU/GPUProcessProxy
 
-    UIProcess/Model/ModelProcessProxy
+    UIProcess/Inspector/Agents/ProxyingNetworkAgent
 
     UIProcess/Inspector/RemoteWebInspectorUIProxy
     UIProcess/Inspector/WebInspectorBackendProxy
     UIProcess/Inspector/WebInspectorUIProxy
+
+    UIProcess/Model/ModelProcessProxy
 
     UIProcess/Network/NetworkProcessProxy
 
@@ -489,6 +491,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/DrawingAreaInfo.serialization.in
     Shared/EditingRange.serialization.in
     Shared/EditorState.serialization.in
+    Shared/FileSystemHandleInfo.serialization.in
     Shared/FileSystemSyncAccessHandleInfo.serialization.in
     Shared/FocusedElementInformation.serialization.in
     Shared/FrameInfoData.serialization.in
@@ -501,6 +504,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/IPCTester.serialization.in
     Shared/ImageOptions.serialization.in
     Shared/InspectorExtensionTypes.serialization.in
+    Shared/InspectorNetworkTypes.serialization.in
     Shared/JavaScriptCore.serialization.in
     Shared/JavaScriptEvaluationResult.serialization.in
     Shared/LayerTreeContext.serialization.in
@@ -686,6 +690,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/WebGPU/WebGPUVertexBufferLayout.serialization.in
     Shared/WebGPU/WebGPUVertexState.serialization.in
 
+    Shared/WebsiteData/TimeBasedEvictionMode.serialization.in
     Shared/WebsiteData/UnifiedOriginStorageLevel.serialization.in
     Shared/WebsiteData/WebsiteData.serialization.in
     Shared/WebsiteData/WebsiteDataFetchOption.serialization.in
@@ -809,9 +814,10 @@ set(WebKit_INTERFACE_INCLUDE_DIRECTORIES
     ${WebKit_FRAMEWORK_HEADERS_DIR}
     ${WebKit_PRIVATE_FRAMEWORK_HEADERS_DIR}
 )
-set(WebKit_INTERFACE_DEPENDENCIES
-    NetworkProcess
-    WebProcess
+set(WebKit_INTERFACE_DEPENDENCIES "")
+set(WebKit_INTERFACE_LINK_DEPENDS
+    $<TARGET_FILE:NetworkProcess>
+    $<TARGET_FILE:WebProcess>
 )
 
 WEBKIT_EXECUTABLE_DECLARE(WebProcess)
@@ -819,7 +825,7 @@ WEBKIT_EXECUTABLE_DECLARE(NetworkProcess)
 
 if (ENABLE_GPU_PROCESS)
     WEBKIT_EXECUTABLE_DECLARE(GPUProcess)
-    list(APPEND WebKit_INTERFACE_DEPENDENCIES GPUProcess)
+    list(APPEND WebKit_INTERFACE_LINK_DEPENDS $<TARGET_FILE:GPUProcess>)
 endif ()
 
 set(WebKit_GENERATED_SERIALIZERS_SUFFIX cpp)
@@ -829,6 +835,95 @@ set(WebKit_SWIFT_INTEROP_MODULE_PATH "${WEBKIT_DIR}/Modules/Internal")
 
 WEBKIT_FRAMEWORK_DECLARE(WebKit)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
+
+# The full WebKit_Internal C++ module pulls in WebPageProxy.h and friends, which
+# quote-include across the entire WebKit/WebCore/JSC private header set. Mirror
+# the C++ target's include directories to swiftc's Clang importer so those
+# resolve. cmakeconfig.h is force-included because the headers assume the
+# project's prefix header has already defined ENABLE()/HAVE() values.
+set(WebKit_SWIFT_CLANG_INCLUDE_DIRS
+    ${CMAKE_BINARY_DIR}
+    ${WebKit_FRAMEWORK_HEADERS_DIR}
+    ${WebKit_DERIVED_SOURCES_DIR}
+    ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
+    ${JavaScriptCore_FRAMEWORK_HEADERS_DIR}
+    ${JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
+    ${WTF_FRAMEWORK_HEADERS_DIR}
+    ${bmalloc_FRAMEWORK_HEADERS_DIR}
+    ${PAL_FRAMEWORK_HEADERS_DIR}
+    ${ICU_INCLUDE_DIRS}
+    ${WebKit_CMAKE_MODULEMAP_DIR}
+    ${WebKit_PRIVATE_INCLUDE_DIRECTORIES}
+)
+
+if (NOT APPLE AND SWIFT_REQUIRED)
+    # Export macro stubs – on Linux these expand to __attribute__((visibility))
+    # but per-module PCM compiles don't pull in the config headers that define them.
+    # Define as empty so C++ headers compile cleanly in isolation.
+    set(WebKit_SWIFT_CLANG_FLAG_PAIRS
+        "-Xcc -DJS_EXPORT_PRIVATE="
+        "-Xcc -DPAL_EXPORT="
+        "-Xcc -DWEBCORE_EXPORT="
+        "-Xcc -DWEBCORE_TESTSUPPORT_EXPORT="
+        "-Xcc -DWK_EXPORT="
+        "-Xcc -DWK_SUPPORTS_SWIFT_OBJCXX_INTEROP=1"
+        "-Xcc -DWTF_EXPORT_PRIVATE="
+
+        # NODELETE expands to [[clang::annotate_type(...)]], a type attribute.
+        # Clang 21 (Swift 6.3 embedded clang) rejects it on function declarations;
+        # nullify it for the Swift module importer since the annotation is only
+        # meaningful to Apple's static analyser.
+        "-Xcc -DNODELETE="
+
+        # libstdc++ gates coroutine support in <bits/version.h> behind
+        # __glibcxx_want_coroutine.  Swift's Clang 21 compiles <bits/version.h>
+        # as a PCM before that flag is set, so __cpp_lib_coroutine stays
+        # undefined and std::coroutine_handle is not available.  Pre-defining
+        # the flag ensures the PCM gets the right feature-test value.
+        # rdar://175928621
+        "-Xcc -D__glibcxx_want_coroutine=1"
+        "-Xcc -fmodule-map-file=${WTF_FRAMEWORK_HEADERS_DIR}/wtf/module.modulemap"
+    )
+    # Mirror cmake config variables as -Xcc -D so ENABLE()/HAVE() macros in
+    # C++ headers agree with the regular C++ compilation when the Clang importer
+    # compiles them as part of Swift's C++ interop modules.
+    GET_WEBKIT_CONFIG_VARIABLES(_swift_clang_config_vars)
+    list(REMOVE_DUPLICATES _swift_clang_config_vars)
+    foreach (_var IN LISTS _swift_clang_config_vars)
+        if (${${_var}})
+            list(APPEND WebKit_SWIFT_CLANG_FLAG_PAIRS "-Xcc -D${_var}=1")
+        else ()
+            list(APPEND WebKit_SWIFT_CLANG_FLAG_PAIRS "-Xcc -D${_var}=0")
+        endif ()
+    endforeach ()
+    unset(_swift_clang_config_vars)
+    foreach (_dir IN LISTS WebKit_SWIFT_CLANG_INCLUDE_DIRS)
+        list(APPEND WebKit_SWIFT_CLANG_FLAG_PAIRS "-Xcc -I${_dir}")
+    endforeach ()
+    # VFS overlay: inject module.modulemap files for Linux system libraries
+    # (glib, libsoup, etc.) that do not ship their own modulemaps.  The overlay
+    # makes them appear inside /usr/include/glib-2.0/ etc. without modifying
+    # the real filesystem.  Both the -typecheck/-emit-clang-header custom command
+    # and the per-file Swift compilation receive the flag via SWIFT_EXTRA_OPTIONS
+    # and target_compile_options respectively.
+    set(_linux_mm_src "${CMAKE_SOURCE_DIR}/Source/cmake/linux-modulemaps")
+    set(_linux_mm_dir "${CMAKE_BINARY_DIR}/linux-modulemaps")
+    file(MAKE_DIRECTORY "${_linux_mm_dir}")
+    configure_file("${_linux_mm_src}/glib.modulemap"    "${_linux_mm_dir}/glib.modulemap"    COPYONLY)
+    configure_file("${_linux_mm_src}/libsoup.modulemap" "${_linux_mm_dir}/libsoup.modulemap" COPYONLY)
+    set(_vfs_glib_modulemap    "${_linux_mm_dir}/glib.modulemap")
+    set(_vfs_libsoup_modulemap "${_linux_mm_dir}/libsoup.modulemap")
+    configure_file("${_linux_mm_src}/vfs-overlay.yaml.in" "${_linux_mm_dir}/vfs-overlay.yaml" @ONLY)
+    set(_vfs_overlay "${_linux_mm_dir}/vfs-overlay.yaml")
+    list(APPEND WebKit_SWIFT_CLANG_FLAG_PAIRS "-Xcc -ivfsoverlay")
+    list(APPEND WebKit_SWIFT_CLANG_FLAG_PAIRS "-Xcc ${_vfs_overlay}")
+
+    foreach (_pair IN LISTS WebKit_SWIFT_CLANG_FLAG_PAIRS)
+        target_compile_options(WebKit PRIVATE "$<$<COMPILE_LANGUAGE:Swift>:SHELL:${_pair}>")
+        string(REPLACE " " ";" _split "${_pair}")
+        list(APPEND WebKit_SWIFT_EXTRA_OPTIONS ${_split})
+    endforeach ()
+endif ()
 
 WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER(WebKit WebKit
     "${WebKit_SWIFT_INTEROP_MODULE_PATH}"

@@ -974,6 +974,16 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
             frame->inspectorController().siteIsolationFirstEnabled();
     }
 
+    if (parameters.shouldEnableNetworkInstrumentation) {
+        // Enable network instrumentation before the frontend connects so that early
+        // network events (e.g., the initial navigation) are captured. This registers
+        // InstrumentingAgents in the WebProcess via connectRemoteInstrumentation().
+        // The UIProcess-side ProxyingNetworkAgent lifecycle (didCreateFrontendAndBackend)
+        // is managed separately in WebPageInspectorController::connectFrontend().
+        if (RefPtr backend = inspector(LazyCreationPolicy::CreateIfNeeded))
+            backend->enableNetworkInstrumentation();
+    }
+
 #if PLATFORM(IOS_FAMILY) || ENABLE(ROUTING_ARBITRATION)
     DeprecatedGlobalSettings::setShouldManageAudioSessionCategory(true);
 #endif
@@ -7922,7 +7932,8 @@ void WebPage::didCommitLoad(WebFrame* frame)
     m_elementsPendingTextRecognition.clear();
 #endif
 
-    clearLoadedSubresourceDomains();
+    if (frame->isMainFrame())
+        clearLoadedSubresourceDomains();
 
     // If previous URL is invalid, then it's not a real page that's being navigated away from.
     // Most likely, this is actually the first load to be committed in this page.
@@ -8808,7 +8819,15 @@ void WebPage::wasLoadedWithDataTransferFromPrevalentResource()
 
 void WebPage::didLoadFromRegistrableDomain(RegistrableDomain&& targetDomain)
 {
-    if (targetDomain != RegistrableDomain(m_mainFrame->url()))
+    RefPtr coreMainFrame = m_mainFrame->coreFrame();
+    if (!coreMainFrame)
+        return;
+
+    RefPtr mainFrameOrigin = coreMainFrame->frameDocumentSecurityOrigin();
+    if (!mainFrameOrigin)
+        return;
+
+    if (targetDomain != RegistrableDomain(mainFrameOrigin->data()))
         m_internals->loadedSubresourceDomains.add(targetDomain);
 }
 
@@ -9433,7 +9452,7 @@ void WebPage::requestTextRecognition(Element& element, TextRecognitionOptions&& 
             return;
 
         RefPtr cachedImage = renderImage->cachedImage();
-        auto imageURL = cachedImage ? protect(weakElement->document())->completeURL(cachedImage->url().string(), ScriptExecutionContext::ForceUTF8::No) : URL { };
+        auto imageURL = cachedImage ? protect(weakElement->document())->encodingParseURL(cachedImage->url().string()) : URL { };
         protectedThis->sendWithAsyncReply(Messages::WebPageProxy::RequestTextRecognition(WTF::move(imageURL), WTF::move(*bitmapHandle), options.sourceLanguageIdentifier, options.targetLanguageIdentifier), [weakThis, weakElement, resolveAndRemoveHandlerFollowingError = WTF::move(resolveAndRemoveHandlerFollowingError)] (auto&& result) mutable {
             RefPtr protectedThis = weakThis.get();
             if (!protectedThis)

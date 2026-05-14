@@ -477,6 +477,12 @@ public:
     }
     template<typename U> Vector<Ref<AXCoreObject>> objectsForIDs(const U&);
 
+    struct CachedUnignoredChildren {
+        Vector<Ref<AXCoreObject>> children;
+        bool hasPotentialStitchable { false };
+    };
+    HashMap<AXID, CachedUnignoredChildren>& cachedUnignoredChildrenMap() { AX_ASSERT(!isMainThread()); return m_cachedUnignoredChildren; }
+
     void generateSubtree(AccessibilityObject&);
     bool shouldCreateNodeChange(AccessibilityObject&);
     enum class ResolveNodeChanges : bool { No, Yes };
@@ -558,6 +564,8 @@ public:
 
     constexpr AXTreeID treeID() const { return m_id; }
     constexpr ProcessID processID() const { return m_processID; }
+    constexpr bool isMainFrame() const { return m_isMainFrame; }
+    constexpr bool siteIsolationEnabled() const { return m_siteIsolationEnabled; }
     void setPageActivityState(OptionSet<ActivityState>);
     WEBCORE_EXPORT OptionSet<ActivityState> pageActivityState() const;
 
@@ -737,10 +745,12 @@ private:
     // Written to by main thread under lock, accessed and applied by AX thread.
     PendingChanges m_pendingChanges WTF_GUARDED_BY_LOCK(m_changeLogLock);
 
-    // These three are placed here to fit in padding that would otherwise be between m_pendingSortedLiveRegionIDs and m_pendingSortedNonRootWebAreaIDs.
+    // These are placed here to fit in padding that would otherwise be between m_pendingSortedLiveRegionIDs and m_pendingSortedNonRootWebAreaIDs.
     OptionSet<ActivityState> m_pageActivityState;
     bool m_isEmptyContentTree { false };
     bool m_queuedForDestruction WTF_GUARDED_BY_LOCK(m_changeLogLock) { false };
+    bool m_isMainFrame { false };
+    bool m_siteIsolationEnabled { false };
 
     Markable<AXID> m_focusedNodeID;
     std::atomic<double> m_loadingProgress { 0 };
@@ -752,6 +762,11 @@ private:
     Vector<AXID> m_sortedNonRootWebAreaIDs;
     HashMap<AXID, LineRange> m_mostRecentlyPaintedText;
     HashMap<AXID, AXRelations> m_relations;
+    // Cache of unignoredChildren() results for AXIsolatedObjects. Populated lazily
+    // on cache miss; cleared in applyPendingChangesFromSnapshot when the incoming snapshot
+    // carries a change that could affect any unignored-children list (tree structure change,
+    // or IsIgnored / IsExposableTable / StitchGroups property update).
+    HashMap<AXID, CachedUnignoredChildren> m_cachedUnignoredChildren;
 #if ENABLE(ACCESSIBILITY_LOCAL_FRAME)
     AXFrameGeometry m_frameGeometry;
     IntPoint m_frameViewOriginScrollPosition;

@@ -903,8 +903,9 @@ public:
     SpeculationRules& NODELETE speculationRules() const;
 
     URL baseURLForComplete(const URL& baseURLOverride) const;
-    WEBCORE_EXPORT URL completeURL(const String&, ForceUTF8 = ForceUTF8::Yes) const final;
-    URL completeURL(const String&, const URL& baseURLOverride, ForceUTF8 = ForceUTF8::Yes) const;
+    WEBCORE_EXPORT URL parseURL(const String&) const final;
+    WEBCORE_EXPORT URL encodingParseURL(const String&) const final;
+    URL encodingParseURL(const String&, const URL& baseURLOverride) const;
 
     inline bool shouldMaskURLForBindings(const URL&) const;
     inline const URL& maskedURLForBindingsIfNeeded(const URL&) const;
@@ -2086,6 +2087,8 @@ public:
     WEBCORE_EXPORT void ariaNotify(const String&, const AriaNotifyOptions&);
 
     std::optional<TextPosition> currentParserSourcePosition() const;
+
+    bool shouldUseTouchEventRegions() const;
 
 protected:
     enum class ConstructionFlag : uint8_t {

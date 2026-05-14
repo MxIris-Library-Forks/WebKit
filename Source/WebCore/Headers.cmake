@@ -428,7 +428,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/filesystem/FileSystemFileHandle.h
     Modules/filesystem/FileSystemHandle.h
     Modules/filesystem/FileSystemHandleCloseScope.h
+    Modules/filesystem/FileSystemHandleGlobalIdentifier.h
     Modules/filesystem/FileSystemHandleIdentifier.h
+    Modules/filesystem/FileSystemHandleInfo.h
     Modules/filesystem/FileSystemHandleKind.h
     Modules/filesystem/FileSystemStorageConnection.h
     Modules/filesystem/FileSystemSyncAccessHandleIdentifier.h
@@ -1700,6 +1702,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/track/VTTRegion.h
     html/track/VideoTrackClient.h
 
+    inspector/CommandLineAPIHost.h
     inspector/FrameInspectorController.h
     inspector/InspectorBackendClient.h
     inspector/InspectorDebuggableType.h
@@ -1718,6 +1721,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     inspector/InspectorWebAgentBase.h
     inspector/LegacyWebSocketInspectorInstrumentation.h
     inspector/PageInspectorController.h
+    inspector/UncachedLoadType.h
+    inspector/WebInjectedScriptManager.h
+
+    inspector/hooks/NetworkAgentInstrumentation.h
 
     inspector/agents/InspectorPageAgent.h
 
@@ -2048,7 +2055,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/ProcessWarming.h
     page/Quirks.h
     page/QuirksData.h
-    page/ReducedResolutionSeconds.h
     page/RemoteDOMWindow.h
     page/RemoteFrame.h
     page/RemoteFrameClient.h

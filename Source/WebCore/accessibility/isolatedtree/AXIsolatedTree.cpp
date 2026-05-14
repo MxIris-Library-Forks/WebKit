@@ -50,6 +50,7 @@
 #include "HTMLNames.h"
 #include "LocalFrameView.h"
 #include "Logging.h"
+#include "Settings.h"
 #include <wtf/MonotonicTime.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/SetForScope.h>
@@ -83,6 +84,19 @@ AXIsolatedTree::AXIsolatedTree(AXObjectCache& axObjectCache)
 {
     AXTRACE("AXIsolatedTree::AXIsolatedTree"_s);
     AX_ASSERT(isMainThread());
+
+    // If any of these are null at construction, the cached m_isMainFrame and
+    // m_siteIsolationEnabled values below will be wrong for the tree's entire
+    // lifetime. We _should_ always have a valid document, frame, and page, hence
+    // the asserts. If this assumption proves to be wrong, we can investigate further.
+    RefPtr document = axObjectCache.document();
+    AX_ASSERT(document);
+    RefPtr frame = document ? document->frame() : nullptr;
+    AX_ASSERT(frame);
+    RefPtr page = frame ? frame->page() : nullptr;
+    AX_ASSERT(page);
+    m_isMainFrame = frame && frame->isMainFrame();
+    m_siteIsolationEnabled = page && page->settings().siteIsolationEnabled();
 }
 
 AXIsolatedTree::~AXIsolatedTree()
@@ -1585,6 +1599,16 @@ void AXIsolatedTree::applyPendingChangesFromSnapshot(PendingChanges&& snapshot)
     if (AXObjectCache::isAppleInternalInstall()) [[unlikely]]
         WTFBeginSignpostAlways(this, AccessibilityIsolatedTreeApplyPendingChanges, "tree ID: %" PRIVATE_LOG_STRING "", treeID().loggingString().utf8().data());
 
+    // Any structural change can affect some ancestor's stitchedUnignoredChildren result.
+    // Property changes that could affect the unignored-children result (IsIgnored, StitchGroups, etc.)
+    // are detected and cleared later, fused into the property-apply loop.
+    const bool hasTreeStructureChange = !snapshot.appends.isEmpty()
+        || !snapshot.subtreeRemovals.isEmpty()
+        || !snapshot.childrenUpdates.isEmpty()
+        || !snapshot.parentUpdates.isEmpty();
+    if (hasTreeStructureChange)
+        m_cachedUnignoredChildren.clear();
+
     if (snapshot.focusedNodeID != m_focusedNodeID) {
         AXLOG(makeString("focusedNodeID "_s, m_focusedNodeID ? m_focusedNodeID->loggingString() : ""_str, " pendingFocusedNodeID "_s, snapshot.focusedNodeID ? snapshot.focusedNodeID->loggingString() : ""_str));
         m_focusedNodeID = snapshot.focusedNodeID;
@@ -1646,12 +1670,31 @@ void AXIsolatedTree::applyPendingChangesFromSnapshot(PendingChanges&& snapshot)
             object->setChildrenIDs(WTF::move(update.second));
     }
 
+    bool hasUnignoredChildrenAffectingPropertyChange = false;
     for (auto& change : snapshot.propertyChanges) {
         if (RefPtr object = objectForID(change.axID)) {
-            for (auto& property : change.properties)
+            for (auto& property : change.properties) {
+                if (!hasTreeStructureChange && !hasUnignoredChildrenAffectingPropertyChange) {
+                    switch (property.first) {
+                    case AXProperty::IsIgnored:
+                    case AXProperty::IsExposableTable:
+                    case AXProperty::StitchGroups:
+                        hasUnignoredChildrenAffectingPropertyChange = true;
+                        break;
+                    default:
+                        break;
+                    }
+                }
                 object->setProperty(property.first, WTF::move(property.second));
+            }
             object->shrinkPropertiesAfterUpdates();
         }
+    }
+
+    if (hasUnignoredChildrenAffectingPropertyChange && !hasTreeStructureChange) {
+        // Something has changed that could affect any object's computed unignored children,
+        // so clear the cache.
+        m_cachedUnignoredChildren.clear();
     }
 
     if (snapshot.sortedLiveRegionIDs)

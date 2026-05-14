@@ -50,6 +50,7 @@
 #include "StorageAreaBase.h"
 #include "StorageAreaMapMessages.h"
 #include "StorageAreaRegistry.h"
+#include "TimeBasedEvictionMode.h"
 #include "UnifiedOriginStorageLevel.h"
 #include "WebsiteDataType.h"
 #include <WebCore/DOMCacheEngine.h>
@@ -164,9 +165,9 @@ String NetworkStorageManager::persistedFilePath(const WebCore::ClientOrigin& ori
     return FileSystem::pathByAppendingComponent(directory, persistedFileName);
 }
 
-Ref<NetworkStorageManager> NetworkStorageManager::create(NetworkProcess& process, PAL::SessionID sessionID, Markable<WTF::UUID> identifier, std::optional<IPC::Connection::UniqueID> connection, const String& path, const String& customLocalStoragePath, const String& customIDBStoragePath, const String& customCacheStoragePath, const String& customServiceWorkerStoragePath, uint64_t defaultOriginQuota, std::optional<double> originQuotaRatio, std::optional<double> totalQuotaRatio, std::optional<uint64_t> standardVolumeCapacity, std::optional<uint64_t> volumeCapacityOverride, UnifiedOriginStorageLevel level, bool storageSiteValidationEnabled, bool shouldPerformTimeBasedEviction, Seconds timeBasedEvictionThreshold, std::optional<Seconds> lastModificationTimeUpdateIntervalOverride, std::optional<Seconds> timeBasedEvictionIntervalOverride)
+Ref<NetworkStorageManager> NetworkStorageManager::create(NetworkProcess& process, PAL::SessionID sessionID, Markable<WTF::UUID> identifier, std::optional<IPC::Connection::UniqueID> connection, const String& path, const String& customLocalStoragePath, const String& customIDBStoragePath, const String& customCacheStoragePath, const String& customServiceWorkerStoragePath, uint64_t defaultOriginQuota, std::optional<double> originQuotaRatio, std::optional<double> totalQuotaRatio, std::optional<uint64_t> standardVolumeCapacity, std::optional<uint64_t> volumeCapacityOverride, UnifiedOriginStorageLevel level, bool storageSiteValidationEnabled, TimeBasedEvictionMode timeBasedEvictionMode, Seconds timeBasedEvictionThreshold, std::optional<Seconds> lastModificationTimeUpdateIntervalOverride, std::optional<Seconds> timeBasedEvictionIntervalOverride)
 {
-    return adoptRef(*new NetworkStorageManager(process, sessionID, identifier, connection, path, customLocalStoragePath, customIDBStoragePath, customCacheStoragePath, customServiceWorkerStoragePath, defaultOriginQuota, originQuotaRatio, totalQuotaRatio, standardVolumeCapacity, volumeCapacityOverride, level, storageSiteValidationEnabled, shouldPerformTimeBasedEviction, timeBasedEvictionThreshold, lastModificationTimeUpdateIntervalOverride, timeBasedEvictionIntervalOverride));
+    return adoptRef(*new NetworkStorageManager(process, sessionID, identifier, connection, path, customLocalStoragePath, customIDBStoragePath, customCacheStoragePath, customServiceWorkerStoragePath, defaultOriginQuota, originQuotaRatio, totalQuotaRatio, standardVolumeCapacity, volumeCapacityOverride, level, storageSiteValidationEnabled, timeBasedEvictionMode, timeBasedEvictionThreshold, lastModificationTimeUpdateIntervalOverride, timeBasedEvictionIntervalOverride));
 }
 
 static ASCIILiteral queueName(PAL::SessionID sessionID)
@@ -176,7 +177,7 @@ static ASCIILiteral queueName(PAL::SessionID sessionID)
     return "com.apple.WebKit.Storage.persistent"_s;
 }
 
-NetworkStorageManager::NetworkStorageManager(NetworkProcess& process, PAL::SessionID sessionID, Markable<WTF::UUID> identifier, std::optional<IPC::Connection::UniqueID> connection, const String& path, const String& customLocalStoragePath, const String& customIDBStoragePath, const String& customCacheStoragePath, const String& customServiceWorkerStoragePath, uint64_t defaultOriginQuota, std::optional<double> originQuotaRatio, std::optional<double> totalQuotaRatio, std::optional<uint64_t> standardVolumeCapacity, std::optional<uint64_t> volumeCapacityOverride, UnifiedOriginStorageLevel level, bool storageSiteValidationEnabled, bool shouldPerformTimeBasedEviction, Seconds timeBasedEvictionThreshold, std::optional<Seconds> lastModificationTimeUpdateIntervalOverride, std::optional<Seconds> timeBasedEvictionIntervalOverride)
+NetworkStorageManager::NetworkStorageManager(NetworkProcess& process, PAL::SessionID sessionID, Markable<WTF::UUID> identifier, std::optional<IPC::Connection::UniqueID> connection, const String& path, const String& customLocalStoragePath, const String& customIDBStoragePath, const String& customCacheStoragePath, const String& customServiceWorkerStoragePath, uint64_t defaultOriginQuota, std::optional<double> originQuotaRatio, std::optional<double> totalQuotaRatio, std::optional<uint64_t> standardVolumeCapacity, std::optional<uint64_t> volumeCapacityOverride, UnifiedOriginStorageLevel level, bool storageSiteValidationEnabled, TimeBasedEvictionMode timeBasedEvictionMode, Seconds timeBasedEvictionThreshold, std::optional<Seconds> lastModificationTimeUpdateIntervalOverride, std::optional<Seconds> timeBasedEvictionIntervalOverride)
     : m_process(process)
     , m_sessionID(sessionID)
     , m_queue(SuspendableWorkQueue::create(queueName(sessionID), SuspendableWorkQueue::QOS::Default, SuspendableWorkQueue::ShouldLog::Yes))
@@ -196,7 +197,7 @@ NetworkStorageManager::NetworkStorageManager(NetworkProcess& process, PAL::Sessi
     m_pathNormalizedMainThread = FileSystem::lexicallyNormal(path);
     m_customIDBStoragePathNormalizedMainThread = FileSystem::lexicallyNormal(customIDBStoragePath);
 
-    workQueue().dispatch([this, weakThis = ThreadSafeWeakPtr { *this }, path = path.isolatedCopy(), customLocalStoragePath = crossThreadCopy(customLocalStoragePath), customIDBStoragePath = crossThreadCopy(customIDBStoragePath), customCacheStoragePath = crossThreadCopy(customCacheStoragePath), customServiceWorkerStoragePath = crossThreadCopy(customServiceWorkerStoragePath), defaultOriginQuota, originQuotaRatio, totalQuotaRatio, standardVolumeCapacity, volumeCapacityOverride, level, storageSiteValidationEnabled, shouldPerformTimeBasedEviction, timeBasedEvictionThreshold, lastModificationTimeUpdateIntervalOverride, timeBasedEvictionIntervalOverride]() mutable {
+    workQueue().dispatch([this, weakThis = ThreadSafeWeakPtr { *this }, path = path.isolatedCopy(), customLocalStoragePath = crossThreadCopy(customLocalStoragePath), customIDBStoragePath = crossThreadCopy(customIDBStoragePath), customCacheStoragePath = crossThreadCopy(customCacheStoragePath), customServiceWorkerStoragePath = crossThreadCopy(customServiceWorkerStoragePath), defaultOriginQuota, originQuotaRatio, totalQuotaRatio, standardVolumeCapacity, volumeCapacityOverride, level, storageSiteValidationEnabled, timeBasedEvictionMode, timeBasedEvictionThreshold, lastModificationTimeUpdateIntervalOverride, timeBasedEvictionIntervalOverride]() mutable {
         assertIsCurrent(workQueue());
 
         auto protectedThis = weakThis.get();
@@ -240,8 +241,8 @@ NetworkStorageManager::NetworkStorageManager(NetworkProcess& process, PAL::Sessi
 #endif
 
         IDBStorageManager::createVersionDirectoryIfNeeded(m_customIDBStoragePath);
-        if (shouldPerformTimeBasedEviction)
-            performTimeBasedEviction(timeBasedEvictionThreshold, timeBasedEvictionIntervalOverride);
+        if (timeBasedEvictionMode != TimeBasedEvictionMode::Disabled)
+            performTimeBasedEviction(timeBasedEvictionMode, timeBasedEvictionThreshold, timeBasedEvictionIntervalOverride);
         RunLoop::mainSingleton().dispatch([protectedThis = WTF::move(protectedThis)] { });
     });
 }
@@ -553,11 +554,11 @@ void NetworkStorageManager::donePrepareForEviction(const std::optional<HashMap<W
     performQuotaBasedEviction(WTF::move(originRecords));
 }
 
-void NetworkStorageManager::performEvictionForOrigin(const WebCore::SecurityOriginData& topOrigin, const AccessRecord& record)
+void NetworkStorageManager::performEvictionForOrigin(const WebCore::SecurityOriginData& topOrigin, const AccessRecord& record, OptionSet<WebsiteDataType> types)
 {
     for (auto& clientOrigin : record.clientOrigins) {
         auto origin = WebCore::ClientOrigin { topOrigin, clientOrigin };
-        originStorageManager(origin)->deleteData(allManagedTypes(), -WallTime::infinity());
+        originStorageManager(origin)->deleteData(types, -WallTime::infinity());
         removeOriginStorageManagerIfPossible(origin);
     }
 
@@ -588,7 +589,7 @@ void NetworkStorageManager::performQuotaBasedEviction(HashMap<WebCore::SecurityO
         if (record.isActive || valueOrDefault(record.isPersisted))
             continue;
 
-        performEvictionForOrigin(topOrigin, record);
+        performEvictionForOrigin(topOrigin, record, allManagedTypes());
         deletedDomains.append(WebCore::RegistrableDomain { topOrigin });
     }
 
@@ -615,7 +616,7 @@ bool NetworkStorageManager::shouldPerformTimeBasedEvictionNow(std::optional<Seco
     return WallTime::now() - *modificationTime > evictionInterval;
 }
 
-void NetworkStorageManager::performTimeBasedEviction(Seconds threshold, std::optional<Seconds> evictionIntervalOverride)
+void NetworkStorageManager::performTimeBasedEviction(TimeBasedEvictionMode mode, Seconds threshold, std::optional<Seconds> evictionIntervalOverride)
 {
     assertIsCurrent(workQueue());
 
@@ -625,14 +626,14 @@ void NetworkStorageManager::performTimeBasedEviction(Seconds threshold, std::opt
     }
 
     RELEASE_LOG(Storage, "%p - NetworkStorageManager::performTimeBasedEviction sessionID=%" PRIu64 " threshold=%.0f days starting", this, m_sessionID.toUInt64(), threshold.days());
-    prepareForTimeBasedEviction(threshold);
+    prepareForTimeBasedEviction(mode, threshold);
 }
 
-void NetworkStorageManager::prepareForTimeBasedEviction(Seconds threshold)
+void NetworkStorageManager::prepareForTimeBasedEviction(TimeBasedEvictionMode mode, Seconds threshold)
 {
     assertIsCurrent(workQueue());
 
-    RunLoop::mainSingleton().dispatch([weakThis = ThreadSafeWeakPtr { *this }, threshold]() mutable {
+    RunLoop::mainSingleton().dispatch([weakThis = ThreadSafeWeakPtr { *this }, mode, threshold]() mutable {
         RefPtr protectedThis = weakThis;
         if (!protectedThis || protectedThis->m_closed)
             return;
@@ -641,20 +642,20 @@ void NetworkStorageManager::prepareForTimeBasedEviction(Seconds threshold)
         if (!process)
             return;
 
-        process->diskCacheOriginAccessTimes(protectedThis->m_sessionID, [weakThis = WTF::move(weakThis), threshold](auto result) mutable {
+        process->diskCacheOriginAccessTimes(protectedThis->m_sessionID, [weakThis = WTF::move(weakThis), mode, threshold](auto result) mutable {
             RefPtr protectedThis = weakThis;
             if (!protectedThis || protectedThis->m_closed)
                 return;
 
-            protectedThis->workQueue().dispatch([weakThis = WTF::move(weakThis), threshold, result = crossThreadCopy(WTF::move(result))]() mutable {
+            protectedThis->workQueue().dispatch([weakThis = WTF::move(weakThis), mode, threshold, result = crossThreadCopy(WTF::move(result))]() mutable {
                 if (RefPtr protectedThis = weakThis)
-                    protectedThis->donePrepareForTimeBasedEviction(threshold, WTF::move(result));
+                    protectedThis->donePrepareForTimeBasedEviction(mode, threshold, WTF::move(result));
             });
         });
     });
 }
 
-void NetworkStorageManager::donePrepareForTimeBasedEviction(Seconds threshold, HashMap<WebCore::RegistrableDomain, WallTime>&& diskCacheAccessTimes)
+void NetworkStorageManager::donePrepareForTimeBasedEviction(TimeBasedEvictionMode mode, Seconds threshold, HashMap<WebCore::RegistrableDomain, WallTime>&& diskCacheAccessTimes)
 {
     assertIsCurrent(workQueue());
 
@@ -692,7 +693,8 @@ void NetworkStorageManager::donePrepareForTimeBasedEviction(Seconds threshold, H
         if (record.lastAccessTime >= cutoffTime)
             continue;
 
-        performEvictionForOrigin(topOrigin, record);
+        auto types = mode == TimeBasedEvictionMode::ServiceWorkerRegistrationsOnly ? OptionSet<WebsiteDataType> { WebsiteDataType::ServiceWorkerRegistrations } : allManagedTypes();
+        performEvictionForOrigin(topOrigin, record, types);
         deletedDomains.append(WebCore::RegistrableDomain { topOrigin });
     }
 
@@ -1036,17 +1038,17 @@ void NetworkStorageManager::didIncreaseQuota(WebCore::ClientOrigin&& origin, Quo
     });
 }
 
-void NetworkStorageManager::fileSystemGetDirectory(IPC::Connection& connection, WebCore::ClientOrigin&& origin, CompletionHandler<void(Expected<std::optional<WebCore::FileSystemHandleIdentifier>, FileSystemStorageError>)>&& completionHandler)
+void NetworkStorageManager::fileSystemGetDirectory(IPC::Connection& connection, WebCore::ClientOrigin&& origin, CompletionHandler<void(Expected<std::pair<WebCore::FileSystemHandleGlobalIdentifier, WebCore::FileSystemHandleIdentifier>, FileSystemStorageError>)>&& completionHandler)
 {
     ASSERT(!RunLoop::isMain());
     MESSAGE_CHECK_COMPLETION(isSiteAllowedForConnection(connection.uniqueID(), WebCore::RegistrableDomain { origin.topOrigin }), connection, completionHandler(makeUnexpected(FileSystemStorageError::Unknown)));
 
     Ref fileSystemStorageManager = originStorageManager(origin, ShouldWriteOriginFile::Yes, ShouldUpdateOriginAccessTime::Yes)->fileSystemStorageManager(*protect(m_fileSystemStorageHandleRegistry));
     auto result = fileSystemStorageManager->getDirectory(connection.uniqueID());
-    if (result)
-        completionHandler(std::optional { result.value() });
-    else
-        completionHandler(makeUnexpected(result.error()));
+    if (!result)
+        return completionHandler(makeUnexpected(result.error()));
+
+    completionHandler(result.value());
 }
 
 void NetworkStorageManager::closeHandle(WebCore::FileSystemHandleIdentifier identifier)
@@ -1054,7 +1056,7 @@ void NetworkStorageManager::closeHandle(WebCore::FileSystemHandleIdentifier iden
     ASSERT(!RunLoop::isMain());
 
     if (RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier))
-        handle->requestClose();
+        handle->close();
 }
 
 void NetworkStorageManager::isSameEntry(WebCore::FileSystemHandleIdentifier identifier, WebCore::FileSystemHandleIdentifier targetIdentifier, CompletionHandler<void(bool)>&& completionHandler)
@@ -1079,7 +1081,7 @@ void NetworkStorageManager::move(WebCore::FileSystemHandleIdentifier identifier,
     completionHandler(handle->move(destinationIdentifier, newName));
 }
 
-void NetworkStorageManager::getFileHandle(IPC::Connection& connection, WebCore::FileSystemHandleIdentifier identifier, String&& name, bool createIfNecessary, CompletionHandler<void(Expected<WebCore::FileSystemHandleIdentifier, FileSystemStorageError>)>&& completionHandler)
+void NetworkStorageManager::getFileHandle(IPC::Connection& connection, WebCore::FileSystemHandleIdentifier identifier, String&& name, bool createIfNecessary, CompletionHandler<void(Expected<std::pair<WebCore::FileSystemHandleGlobalIdentifier, WebCore::FileSystemHandleIdentifier>, FileSystemStorageError>)>&& completionHandler)
 {
     ASSERT(!RunLoop::isMain());
 
@@ -1087,10 +1089,14 @@ void NetworkStorageManager::getFileHandle(IPC::Connection& connection, WebCore::
     if (!handle)
         return completionHandler(makeUnexpected(FileSystemStorageError::Unknown));
 
-    completionHandler(handle->getFileHandle(connection.uniqueID(), WTF::move(name), createIfNecessary));
+    auto result = handle->getFileHandle(connection.uniqueID(), WTF::move(name), createIfNecessary);
+    if (!result)
+        return completionHandler(makeUnexpected(result.error()));
+
+    completionHandler(result.value());
 }
 
-void NetworkStorageManager::getDirectoryHandle(IPC::Connection& connection, WebCore::FileSystemHandleIdentifier identifier, String&& name, bool createIfNecessary, CompletionHandler<void(Expected<WebCore::FileSystemHandleIdentifier, FileSystemStorageError>)>&& completionHandler)
+void NetworkStorageManager::getDirectoryHandle(IPC::Connection& connection, WebCore::FileSystemHandleIdentifier identifier, String&& name, bool createIfNecessary, CompletionHandler<void(Expected<std::pair<WebCore::FileSystemHandleGlobalIdentifier, WebCore::FileSystemHandleIdentifier>, FileSystemStorageError>)>&& completionHandler)
 {
     ASSERT(!RunLoop::isMain());
 
@@ -1098,7 +1104,11 @@ void NetworkStorageManager::getDirectoryHandle(IPC::Connection& connection, WebC
     if (!handle)
         return completionHandler(makeUnexpected(FileSystemStorageError::Unknown));
 
-    completionHandler(handle->getDirectoryHandle(connection.uniqueID(), WTF::move(name), createIfNecessary));
+    auto result = handle->getDirectoryHandle(connection.uniqueID(), WTF::move(name), createIfNecessary);
+    if (!result)
+        return completionHandler(makeUnexpected(result.error()));
+
+    completionHandler(result.value());
 }
 
 void NetworkStorageManager::removeEntry(WebCore::FileSystemHandleIdentifier identifier, const String& name, bool deleteRecursively, CompletionHandler<void(std::optional<FileSystemStorageError>)>&& completionHandler)
@@ -1213,7 +1223,7 @@ void NetworkStorageManager::getHandleNames(WebCore::FileSystemHandleIdentifier i
     completionHandler(handle->getHandleNames());
 }
 
-void NetworkStorageManager::getHandle(IPC::Connection& connection, WebCore::FileSystemHandleIdentifier identifier, String&& name, CompletionHandler<void(Expected<std::optional<std::pair<WebCore::FileSystemHandleIdentifier, bool>>, FileSystemStorageError>)>&& completionHandler)
+void NetworkStorageManager::getHandle(IPC::Connection& connection, WebCore::FileSystemHandleIdentifier identifier, String&& name, CompletionHandler<void(Expected<std::optional<WebCore::FileSystemHandleInfo>, FileSystemStorageError>)>&& completionHandler)
 {
     ASSERT(!RunLoop::isMain());
 
@@ -1222,33 +1232,40 @@ void NetworkStorageManager::getHandle(IPC::Connection& connection, WebCore::File
         return completionHandler(makeUnexpected(FileSystemStorageError::Unknown));
 
     auto result = handle->getHandle(connection.uniqueID(), WTF::move(name));
-    if (result)
-        completionHandler(std::optional { result.value() });
-    else
-        completionHandler(makeUnexpected(result.error()));
+    if (!result)
+        return completionHandler(makeUnexpected(result.error()));
+
+    completionHandler(std::optional { result.value() });
 }
 
-void NetworkStorageManager::cloneHandle(IPC::Connection& connection, WebCore::ClientOrigin&& origin, WebCore::FileSystemHandleIdentifier identifier, CompletionHandler<void(Expected<std::pair<WebCore::FileSystemHandleIdentifier, String>, FileSystemStorageError>)>&& completionHandler)
+void NetworkStorageManager::addGlobalIdentifierReference(IPC::Connection& connection, WebCore::ClientOrigin&& origin, WebCore::FileSystemHandleGlobalIdentifier globalIdentifier)
 {
-    ASSERT(!RunLoop::isMain());
+    assertIsCurrent(workQueue());
+    MESSAGE_CHECK(isSiteAllowedForConnection(connection.uniqueID(), WebCore::RegistrableDomain { origin.topOrigin }), connection);
+
+    Ref fileSystemStorageManager = originStorageManager(origin)->fileSystemStorageManager(*protect(m_fileSystemStorageHandleRegistry));
+    fileSystemStorageManager->addGlobalIdentifierReference(globalIdentifier);
+}
+
+void NetworkStorageManager::removeGlobalIdentifierReference(IPC::Connection& connection, WebCore::ClientOrigin&& origin, WebCore::FileSystemHandleGlobalIdentifier globalIdentifier)
+{
+    assertIsCurrent(workQueue());
+    MESSAGE_CHECK(isSiteAllowedForConnection(connection.uniqueID(), WebCore::RegistrableDomain { origin.topOrigin }), connection);
+
+    Ref fileSystemStorageManager = originStorageManager(origin)->fileSystemStorageManager(*protect(m_fileSystemStorageHandleRegistry));
+    fileSystemStorageManager->removeGlobalIdentifierReference(globalIdentifier);
+}
+
+void NetworkStorageManager::resolveGlobalIdentifier(IPC::Connection& connection, WebCore::ClientOrigin&& origin, WebCore::FileSystemHandleGlobalIdentifier globalIdentifier, CompletionHandler<void(Expected<WebCore::FileSystemHandleIdentifier, FileSystemStorageError>)>&& completionHandler)
+{
+    assertIsCurrent(workQueue());
     MESSAGE_CHECK_COMPLETION(isSiteAllowedForConnection(connection.uniqueID(), WebCore::RegistrableDomain { origin.topOrigin }), connection, completionHandler(makeUnexpected(FileSystemStorageError::Unknown)));
 
     Ref fileSystemStorageManager = originStorageManager(origin)->fileSystemStorageManager(*protect(m_fileSystemStorageHandleRegistry));
-    completionHandler(fileSystemStorageManager->cloneHandle(connection.uniqueID(), identifier));
-}
-
-void NetworkStorageManager::addTransferReference(WebCore::FileSystemHandleIdentifier identifier)
-{
-    ASSERT(!RunLoop::isMain());
-    if (RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier))
-        handle->addTransferReference();
-}
-
-void NetworkStorageManager::removeTransferReference(WebCore::FileSystemHandleIdentifier identifier)
-{
-    ASSERT(!RunLoop::isMain());
-    if (RefPtr handle = m_fileSystemStorageHandleRegistry->getHandle(identifier))
-        handle->removeTransferReference();
+    auto result = fileSystemStorageManager->resolveGlobalIdentifier(connection.uniqueID(), globalIdentifier);
+    if (!result)
+        return completionHandler(makeUnexpected(result.error()));
+    completionHandler(result.value());
 }
 
 void NetworkStorageManager::forEachClientOriginDirectoryUnderTopOrigin(const String& encodedTopOrigin, NOESCAPE const Function<void(const String&)>& apply)
@@ -1352,6 +1369,10 @@ HashSet<WebCore::ClientOrigin> NetworkStorageManager::deleteDataOnDisk(OptionSet
 {
     ASSERT(!RunLoop::isMain());
 
+    // ServiceWorkerRegistrations are deleted through SWServer when origins may be active.
+    auto typesExcludingServiceWorkerRegistrations = types;
+    typesExcludingServiceWorkerRegistrations.remove(WebsiteDataType::ServiceWorkerRegistrations);
+
     HashSet<WebCore::ClientOrigin> deletedOrigins;
     for (auto& origin : getAllOrigins()) {
         if (!filter(origin))
@@ -1359,10 +1380,10 @@ HashSet<WebCore::ClientOrigin> NetworkStorageManager::deleteDataOnDisk(OptionSet
 
         {
             CheckedRef originStorageManager = this->originStorageManager(origin);
-            auto existingDataTypes = originStorageManager->fetchDataTypesInList(types, false);
+            auto existingDataTypes = originStorageManager->fetchDataTypesInList(typesExcludingServiceWorkerRegistrations, false);
             if (!existingDataTypes.isEmpty()) {
                 deletedOrigins.add(origin);
-                originStorageManager->deleteData(types, modifiedSinceTime);
+                originStorageManager->deleteData(typesExcludingServiceWorkerRegistrations, modifiedSinceTime);
             }
         }
 

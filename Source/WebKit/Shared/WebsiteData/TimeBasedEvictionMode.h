@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,4 +23,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Intentionally empty. This file is needed to create a linkable framework binary.
+#pragma once
+
+namespace WebKit {
+
+enum class TimeBasedEvictionMode : uint8_t {
+    Disabled,
+    ServiceWorkerRegistrationsOnly,
+    AllTypes
+};
+
+} // namespace WebKit

@@ -3345,19 +3345,27 @@ static bool NODELETE shouldFlipBeforeAfterMargins(WritingMode containingBlockWri
     return shouldFlip;
 }
 
+bool RenderBox::shouldCacheIntrinsicContentLogicalHeightForFlexItem() const
+{
+    // The flex stretch algorithm needs to know the item's intrinsic content height
+    // before stretch was applied. We cache it so the stretch phase can read back
+    // the pre-stretch value after relayout. Items with aspect-ratio don't need
+    // caching because their content height is always derivable from the current width.
+    return isFlexItem() && !isFloatingOrOutOfFlowPositioned() && !shouldComputeLogicalHeightFromAspectRatio();
+}
+
 void RenderBox::cacheIntrinsicContentLogicalHeightForFlexItem(LayoutUnit height) const
 {
     // FIXME: it should be enough with checking hasOverridingLogicalHeight() as this logic could be shared
     // by any layout system using overrides like grid or flex. However this causes a never ending sequence of calls
     // between layoutBlock() <-> relayoutToAvoidWidows().
-    if (isFloatingOrOutOfFlowPositioned())
+    if (!shouldCacheIntrinsicContentLogicalHeightForFlexItem())
         return;
-    CheckedPtr flexibleBox = dynamicDowncast<RenderFlexibleBox>(parent());
-    if (!flexibleBox)
+    ASSERT(is<RenderFlexibleBox>(parent()));
+    if (overridingBorderBoxLogicalHeight())
         return;
-    if (overridingBorderBoxLogicalHeight() || shouldComputeLogicalHeightFromAspectRatio())
-        return;
-    flexibleBox->setCachedFlexItemIntrinsicContentLogicalHeight(*this, height);
+    if (CheckedPtr flexibleBox = dynamicDowncast<RenderFlexibleBox>(parent()))
+        flexibleBox->setCachedFlexItemIntrinsicContentLogicalHeight(*this, height);
 }
 
 void RenderBox::overrideLogicalHeightForSizeContainment()
@@ -5216,6 +5224,13 @@ bool RenderBox::shouldComputeLogicalHeightFromAspectRatio() const
 
     auto h = style().logicalHeight();
     return h.isAuto() || h.isIntrinsic() || isUnresolveableStretchSize(h) || (!isOutOfFlowPositioned() && h.isPercentOrCalculated() && !percentageLogicalHeightIsResolvable());
+}
+
+bool RenderBox::hasFullyConstrainedLogicalHeight() const
+{
+    // CSS Sizing 3 section 3.2.1: "If the size is being computed in a context where
+    // it is fully constrained (e.g., because both inset properties are specified), the resulting size is definite."
+    return isOutOfFlowPositioned() && style().logicalHeight().isAuto() && !style().logicalTop().isAuto() && !style().logicalBottom().isAuto();
 }
 
 bool RenderBox::shouldComputeLogicalWidthFromAspectRatio() const

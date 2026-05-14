@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,11 +25,11 @@
 
 #pragma once
 
-#include <wtf/Seconds.h>
+namespace Inspector {
 
-namespace WebCore {
+// Some network requests do not go through the normal network loading path.
+// These network requests have to issue their own willSendRequest / didReceiveResponse
+// instrumentation calls. Some of these loads are for resources that lack a CachedResource::Type.
+enum class UncachedLoadType { Ping, Beacon };
 
-using ReducedResolutionSeconds = Seconds;
-
-}
-
+} // namespace Inspector

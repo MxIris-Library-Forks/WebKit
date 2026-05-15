@@ -180,6 +180,8 @@ namespace JSC::B3 {
     macro(SpecialPropertyCache_cachedToStringTagValue, SpecialPropertyCache::offsetOfCache(CachedSpecialPropertyKey::ToStringTag) + SpecialPropertyCacheEntry::offsetOfValue(), Mutability::Mutable) \
     macro(JSMap_storage, (JSMap::offsetOfStorage()), Mutability::Mutable) \
     macro(JSSet_storage, (JSSet::offsetOfStorage()), Mutability::Mutable) \
+    macro(JSPromise_packed, JSPromise::offsetOfPacked(), Mutability::Mutable) \
+    macro(JSPromise_slot, JSPromise::offsetOfSlot(), Mutability::Mutable) \
     macro(VM_heap_barrierThreshold, VM::offsetOfHeapBarrierThreshold(), Mutability::Mutable) \
     macro(VM_heap_mutatorShouldBeFenced, VM::offsetOfHeapMutatorShouldBeFenced(), Mutability::Mutable) \
     macro(VM_exception, VM::exceptionOffset(), Mutability::Mutable) \
@@ -207,7 +209,9 @@ namespace JSC::B3 {
     macro(WebAssemblyFunctionBase_targetInstance, WebAssemblyFunctionBase::offsetOfTargetInstance(), Mutability::Immutable) \
     macro(WebAssemblyGCStructure_rtt, WebAssemblyGCStructure::offsetOfRTT(), Mutability::Immutable) \
     macro(WebAssemblyModuleRecord_exportsObject, WebAssemblyModuleRecord::offsetOfExportsObject(), Mutability::Mutable) \
+    macro(Symbol_description, Symbol::offsetOfDescription(), Mutability::Mutable) \
     macro(Symbol_symbolImpl, Symbol::offsetOfSymbolImpl(), Mutability::Immutable) \
+    macro(Symbol_string, Symbol::offsetOfString(), Mutability::Mutable) \
 
 #define FOR_EACH_INDEXED_ABSTRACT_HEAP(macro) \
     macro(ArrayStorage_vector, ArrayStorage::vectorOffset(), sizeof(WriteBarrier<Unknown>)) \

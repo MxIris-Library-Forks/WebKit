@@ -1239,11 +1239,17 @@ private:
         case ObjectToString:
             compileObjectToString();
             break;
+        case SymbolToString:
+            compileSymbolToString();
+            break;
         case NewObject:
             compileNewObject();
             break;
         case NewInternalFieldObject:
             compileNewInternalFieldObject();
+            break;
+        case NewPromise:
+            compileNewPromise();
             break;
         case NewStringObject:
             compileNewStringObject();
@@ -1975,6 +1981,9 @@ private:
         case PerformPromiseThen:
             compilePerformPromiseThen();
             break;
+        case PerformPromiseThenOneHandler:
+            compilePerformPromiseThenOneHandler();
+            break;
 
         case LoopHint: {
             compileLoopHint();
@@ -1994,6 +2003,7 @@ private:
         case PhantomNewAsyncGeneratorFunction:
         case PhantomNewAsyncFunction:
         case PhantomNewInternalFieldObject:
+        case PhantomNewPromise:
         case PhantomCreateActivation:
         case PhantomDirectArguments:
         case PhantomCreateRest:
@@ -9507,6 +9517,27 @@ IGNORE_CLANG_WARNINGS_END
         }
     }
 
+    void compileSymbolToString()
+    {
+        JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+
+        LBasicBlock slowCase = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        auto symbol = lowSymbol(m_node->child1());
+        auto cached = m_out.loadPtr(symbol, m_heaps.Symbol_string);
+        ValueFromBlock fastResult = m_out.anchor(cached);
+        m_out.branch(m_out.notNull(cached), usually(continuation), rarely(slowCase));
+
+        LBasicBlock lastNext = m_out.appendTo(slowCase, continuation);
+        auto slowResultValue = vmCall(pointerType(), operationSymbolToString, weakPointer(globalObject), symbol);
+        ValueFromBlock slowResult = m_out.anchor(slowResultValue);
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
+        setJSValue(m_out.phi(pointerType(), fastResult, slowResult));
+    }
+
     void compileObjectAssign()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
@@ -9629,13 +9660,31 @@ IGNORE_CLANG_WARNINGS_END
         case JSAsyncGeneratorType:
             compileNewInternalFieldObjectImpl<JSAsyncGenerator>(operationNewAsyncGenerator);
             break;
-        case JSPromiseType:
-            ASSERT(m_node->structure()->classInfoForCells() == JSPromise::info());
-            compileNewInternalFieldObjectImpl<JSPromise>(operationNewPromise);
-            break;
         default:
             DFG_CRASH(m_graph, m_node, "Bad structure");
         }
+    }
+
+    void compileNewPromise()
+    {
+        ASSERT(m_node->structure()->classInfoForCells() == JSPromise::info());
+        LBasicBlock slowCase = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+        LBasicBlock lastNext = m_out.insertNewBlocksBefore(slowCase);
+
+        LValue object = allocateObject<JSPromise>(m_node->structure(), m_out.intPtrZero, slowCase);
+        m_out.store64(m_out.int64Zero, object, m_heaps.JSPromise_packed);
+        m_out.store64(m_out.constInt64(JSValue::encode(JSValue())), object, m_heaps.JSPromise_slot);
+        mutatorFence();
+        ValueFromBlock fastResult = m_out.anchor(object);
+        m_out.jump(continuation);
+
+        m_out.appendTo(slowCase, continuation);
+        ValueFromBlock slowResult = m_out.anchor(vmCall(pointerType(), operationNewPromise, m_vmValue, frozenPointer(m_graph.freezeStrong(m_node->structure().get()))));
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
+        setJSValue(m_out.phi(pointerType(), fastResult, slowResult));
     }
 
     void compileNewStringObject()
@@ -10085,8 +10134,8 @@ IGNORE_CLANG_WARNINGS_END
 
         m_out.appendTo(fastAllocationCase, slowCase);
         LValue promise = allocateObject<JSPromise>(m_out.phi(pointerType(), promiseStructure, derivedStructure), m_out.intPtrZero, slowCase);
-        m_out.store64(m_out.constInt64(JSValue::encode(jsNumber(static_cast<int32_t>(JSPromise::Status::Pending)))), promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::Flags)]);
-        m_out.store64(m_out.constInt64(JSValue::encode(JSValue())), promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::ReactionsOrResult)]);
+        m_out.store64(m_out.int64Zero, promise, m_heaps.JSPromise_packed);
+        m_out.store64(m_out.constInt64(JSValue::encode(JSValue())), promise, m_heaps.JSPromise_slot);
         mutatorFence();
         ValueFromBlock fastResult = m_out.anchor(promise);
         m_out.jump(continuation);
@@ -15610,47 +15659,21 @@ IGNORE_CLANG_WARNINGS_END
         setBoolean(m_out.phi(Int32, notCellResult, cellResult));
     }
 
-    LValue wangsInt64Hash(LValue input)
+    LValue rapidHashMix64(LValue input)
     {
-        // key += ~(key << 32);
-        LValue key = input;
-        LValue temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(32));
-        temp = m_out.bitNot(temp);
-        key = m_out.add(key, temp);
-        // key ^= (key >> 22);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(22));
-        key = m_out.bitXor(key, temp);
-        // key += ~(key << 13);
-        temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(13));
-        temp = m_out.bitNot(temp);
-        key = m_out.add(key, temp);
-        // key ^= (key >> 8);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(8));
-        key = m_out.bitXor(key, temp);
-        // key += (key << 3);
-        temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(3));
-        key = m_out.add(key, temp);
-        // key ^= (key >> 15);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(15));
-        key = m_out.bitXor(key, temp);
-        // key += ~(key << 27);
-        temp = key;
-        temp = m_out.shl(temp, m_out.constInt32(27));
-        temp = m_out.bitNot(temp);
-        key = m_out.add(key, temp);
-        // key ^= (key >> 31);
-        temp = key;
-        temp = m_out.lShr(temp, m_out.constInt32(31));
-        key = m_out.bitXor(key, temp);
-        key = m_out.castToInt32(key);
-
-        return key;
+        // WYHash / rapidhash "mum" mixer. Must match the C++ rapidHashMix64
+        // in HashMapHelper.h and the DFG AssemblyHelpers implementation so
+        // FTL-inlined hashes agree with the runtime hashers used by
+        // operationMapHash and friends. B3 lowers UMulHigh to umulh on ARM64
+        // and to the mulq rdx:rax sequence on x86-64.
+        auto secret1 = m_out.constInt64(0x2d358dccaa6c78a5ULL);
+        auto secret2 = m_out.constInt64(0x8bb84b93962eacc9ULL);
+        auto a = m_out.bitXor(input, secret1);
+        auto b = m_out.bitXor(input, secret2);
+        auto lo = m_out.mul(a, b);
+        auto hi = m_out.uMulHigh(a, b);
+        auto folded = m_out.bitXor(lo, hi);
+        return m_out.castToInt32(folded);
     }
 
     LValue mapHashString(LValue string, Edge& edge)
@@ -15690,7 +15713,7 @@ IGNORE_CLANG_WARNINGS_END
         case ObjectUse: {
             LValue key = lowJSValue(m_node->child1(), ManualOperandSpeculation);
             speculate(m_node->child1());
-            setInt32(wangsInt64Hash(key));
+            setInt32(rapidHashMix64(key));
             return;
         }
 
@@ -15724,7 +15747,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.jump(continuation);
 
             m_out.appendTo(notStringNorHeapBigIntCase, continuation);
-            ValueFromBlock notStringResult = m_out.anchor(wangsInt64Hash(value));
+            ValueFromBlock notStringResult = m_out.anchor(rapidHashMix64(value));
             m_out.jump(continuation);
 
             m_out.appendTo(continuation, lastNext);
@@ -15775,7 +15798,7 @@ IGNORE_CLANG_WARNINGS_END
             unsure(slowCase), unsure(continuation));
 
         m_out.appendTo(straightHash, slowCase);
-        ValueFromBlock fastResult = m_out.anchor(wangsInt64Hash(value));
+        ValueFromBlock fastResult = m_out.anchor(rapidHashMix64(value));
         m_out.jump(continuation);
 
         m_out.appendTo(slowCase, continuation);
@@ -18701,10 +18724,6 @@ IGNORE_CLANG_WARNINGS_END
         case JSAsyncGeneratorType:
             compileMaterializeNewInternalFieldObjectImpl<JSAsyncGenerator>(operationNewAsyncGenerator);
             break;
-        case JSPromiseType:
-            ASSERT(m_node->structure()->classInfoForCells() == JSPromise::info());
-            compileMaterializeNewInternalFieldObjectImpl<JSPromise>(operationNewPromise);
-            break;
         default:
             DFG_CRASH(m_graph, m_node, "Bad structure");
         }
@@ -21059,8 +21078,9 @@ IGNORE_CLANG_WARNINGS_END
 
             LValue structure = weakStructure(m_graph.registerStructure(globalObject->promiseStructure()));
             LValue promise = allocateObject<JSPromise>(structure, m_out.intPtrZero, slowCase);
-            m_out.store64(m_out.constInt64(JSValue::encode(jsNumber(static_cast<int32_t>(JSPromise::Status::Fulfilled)))), promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::Flags)]);
-            m_out.store64(argument, promise, m_heaps.JSInternalFieldObjectImpl_internalFields[static_cast<unsigned>(JSPromise::Field::ReactionsOrResult)]);
+            static_assert(CompactPointerTuple<JSCell*, uint16_t>::maxNumberOfBitsInPointer == 48, "JSPromise FTL initialization assumes a 48-bit pointer / 16-bit type packing");
+            m_out.store64(m_out.constInt64((static_cast<uint64_t>(JSPromise::Status::Fulfilled) | JSPromise::isFirstResolvingFunctionCalledFlag) << CompactPointerTuple<JSCell*, uint16_t>::maxNumberOfBitsInPointer), promise, m_heaps.JSPromise_packed);
+            m_out.store64(argument, promise, m_heaps.JSPromise_slot);
             mutatorFence();
             ValueFromBlock fastResult = m_out.anchor(promise);
             m_out.jump(continuation);
@@ -21118,6 +21138,41 @@ IGNORE_CLANG_WARNINGS_END
         LValue onRejected = lowJSValue(m_graph.varArgChild(m_node, 2));
         LValue resultPromise = lowCell(m_graph.varArgChild(m_node, 3));
         vmCall(Void, operationPerformPromiseThen, weakPointer(globalObject), inputPromise, onFulfilled, onRejected, resultPromise);
+    }
+
+    void compilePerformPromiseThenOneHandler()
+    {
+        auto* globalObject = m_graph.globalObjectFor(m_origin.semantic);
+        auto kind = m_node->performPromiseThenInlineReactionKind();
+
+        LValue inputPromise = lowCell(m_node->child1());
+        LValue handler = lowCell(m_node->child2());
+        LValue resultPromise = lowCell(m_node->child3());
+
+        constexpr unsigned pointerBits = CompactPointerTuple<JSCell*, uint16_t>::maxNumberOfBitsInPointer;
+        constexpr uint64_t pointerMask = (1ULL << pointerBits) - 1;
+        constexpr uint64_t flagMask = static_cast<uint64_t>(JSPromise::stateMask | JSPromise::inlineReactionKindMask) << pointerBits;
+        constexpr uint64_t mask = pointerMask | flagMask;
+        uint64_t orBits = static_cast<uint64_t>(JSPromise::isHandledFlag | (static_cast<uint16_t>(kind) << JSPromise::inlineReactionKindShift)) << pointerBits;
+
+        LBasicBlock fastPath = m_out.newBlock();
+        LBasicBlock slowPath = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        LValue packed = m_out.load64(inputPromise, m_heaps.JSPromise_packed);
+        m_out.branch(m_out.notZero64(m_out.bitAnd(packed, m_out.constInt64(mask))), rarely(slowPath), usually(fastPath));
+
+        LBasicBlock lastNext = m_out.appendTo(fastPath, slowPath);
+        LValue newPacked = m_out.bitOr(m_out.bitOr(packed, m_out.constInt64(orBits)), resultPromise);
+        m_out.store64(handler, inputPromise, m_heaps.JSPromise_slot);
+        m_out.store64(newPacked, inputPromise, m_heaps.JSPromise_packed);
+        m_out.jump(continuation);
+
+        m_out.appendTo(slowPath, continuation);
+        vmCall(Void, operationPerformPromiseThenOneHandler, weakPointer(globalObject), inputPromise, handler, resultPromise, m_out.constInt32(static_cast<int32_t>(kind)));
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
     }
 
     void compileLoopHint()

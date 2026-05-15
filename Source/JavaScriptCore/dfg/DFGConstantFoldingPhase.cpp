@@ -65,6 +65,17 @@ static bool isNegativeBigInt(JSValue& value)
     return value.asHeapBigInt()->sign();
 }
 
+static std::optional<JSPromise::InlineReactionKind> classifyPerformPromiseThen(const AbstractValue& fulfilledValue, const AbstractValue& rejectedValue)
+{
+    if (fulfilledValue.m_type == SpecNone || rejectedValue.m_type == SpecNone)
+        return std::nullopt;
+    if (fulfilledValue.isType(SpecFunction) && rejectedValue.isType(SpecOther))
+        return JSPromise::InlineReactionKind::FulfillHandler;
+    if (rejectedValue.isType(SpecFunction) && fulfilledValue.isType(SpecOther))
+        return JSPromise::InlineReactionKind::RejectHandler;
+    return std::nullopt;
+}
+
 class ConstantFoldingPhase : public Phase {
 public:
     ConstantFoldingPhase(Graph& graph)
@@ -1004,7 +1015,7 @@ private:
                 JSGlobalObject* globalObject = m_graph.globalObjectFor(node->origin.semantic);
                 if (JSValue base = m_state.forNode(node->child1()).m_value) {
                     if (base == globalObject->promiseConstructor()) {
-                        node->convertToNewInternalFieldObject(m_graph.registerStructure(globalObject->promiseStructure()));
+                        node->convertToNewPromise(m_graph.registerStructure(globalObject->promiseStructure()));
                         changed = true;
                         break;
                     }
@@ -1017,7 +1028,7 @@ private:
                                     && structure->realm() == globalObject) {
                                     m_graph.freeze(rareData);
                                     m_graph.watchpoints().addLazily(rareData->allocationProfileWatchpointSet());
-                                    node->convertToNewInternalFieldObject(m_graph.registerStructure(structure));
+                                    node->convertToNewPromise(m_graph.registerStructure(structure));
                                     changed = true;
                                     break;
                                 }
@@ -1994,21 +2005,11 @@ private:
                 JSGlobalObject* globalObject = m_graph.globalObjectFor(node->origin.semantic);
                 if (JSValue constructor = m_state.forNode(node->child1()).m_value) {
                     if (constructor == globalObject->promiseConstructor()) {
-                        auto convertToFulfilledPromise = [&](Node* node) {
-                            auto* promise = m_insertionSet.insertNode(indexInBlock, SpecPromiseObject, NewInternalFieldObject, node->origin, OpInfo(m_graph.registerStructure(globalObject->promiseStructure())));
-                            m_insertionSet.insertNode(indexInBlock, SpecNone, ExitOK, node->origin);
-                            m_insertionSet.insertNode(indexInBlock, SpecNone, PutInternalField, node->origin, OpInfo(static_cast<uint32_t>(JSPromise::Field::Flags)), Edge(promise, KnownCellUse), Edge(m_insertionSet.insertConstant(indexInBlock, node->origin, jsNumber(JSPromise::isFirstResolvingFunctionCalledFlag | static_cast<int32_t>(JSPromise::Status::Fulfilled)))));
-                            m_insertionSet.insertNode(indexInBlock, SpecNone, ExitOK, node->origin);
-                            m_insertionSet.insertNode(indexInBlock, SpecNone, PutInternalField, node->origin, OpInfo(static_cast<uint32_t>(JSPromise::Field::ReactionsOrResult)), Edge(promise, KnownCellUse), node->child2());
-                            m_insertionSet.insertNode(indexInBlock, SpecNone, ExitOK, node->origin);
-                            node->convertToIdentityOn(promise);
-                        };
-
                         auto& argument = m_state.forNode(node->child2());
                         if (argument.isType(~SpecObject)) {
                             m_interpreter.execute(indexInBlock); // Push CFA over this node after we get the state before.
                             alreadyHandled = true; // Don't allow the default constant folder to do things to this.
-                            convertToFulfilledPromise(node);
+                            node->convertToNewResolvedPromise(node->child2());
                             changed = true;
                             break;
                         }
@@ -2034,7 +2035,7 @@ private:
                                     if (m_graph.watchConditions(conditionSet)) {
                                         m_interpreter.execute(indexInBlock); // Push CFA over this node after we get the state before.
                                         alreadyHandled = true; // Don't allow the default constant folder to do things to this.
-                                        convertToFulfilledPromise(node);
+                                        node->convertToNewResolvedPromise(node->child2());
                                         changed = true;
                                         break;
                                     }
@@ -2059,15 +2060,27 @@ private:
                                     m_interpreter.execute(indexInBlock);
                                     alreadyHandled = true;
 
-                                    auto* resultPromise = m_insertionSet.insertNode(indexInBlock, SpecPromiseObject, NewInternalFieldObject, node->origin, OpInfo(m_graph.registerStructure(globalObject->promiseStructure())));
+                                    auto* resultPromise = m_insertionSet.insertNode(indexInBlock, SpecPromiseObject, NewPromise, node->origin, OpInfo(m_graph.registerStructure(globalObject->promiseStructure())));
                                     m_insertionSet.insertNode(indexInBlock, SpecNone, ExitOK, node->origin);
 
-                                    unsigned firstChild = m_graph.m_varArgChildren.size();
-                                    m_graph.m_varArgChildren.append(Edge(node->child1().node(), KnownCellUse));
-                                    m_graph.m_varArgChildren.append(node->child2());
-                                    m_graph.m_varArgChildren.append(node->child3());
-                                    m_graph.m_varArgChildren.append(Edge(resultPromise, KnownCellUse));
-                                    m_insertionSet.insertNode(indexInBlock, SpecNone, PerformPromiseThen, node->origin, AdjacencyList(AdjacencyList::Variable, firstChild, 4));
+                                    Edge onFulfilled = node->child2();
+                                    Edge onRejected = node->child3();
+                                    if (auto kindOpt = classifyPerformPromiseThen(m_state.forNode(onFulfilled), m_state.forNode(onRejected))) {
+                                        Edge handlerEdge = (*kindOpt == JSPromise::InlineReactionKind::FulfillHandler) ? onFulfilled : onRejected;
+
+                                        m_insertionSet.insertNode(indexInBlock, SpecNone, PerformPromiseThenOneHandler, node->origin,
+                                            OpInfo(static_cast<uint32_t>(*kindOpt)),
+                                            Edge(node->child1().node(), KnownCellUse),
+                                            Edge(handlerEdge.node(), KnownCellUse),
+                                            Edge(resultPromise, KnownCellUse));
+                                    } else {
+                                        unsigned firstChild = m_graph.m_varArgChildren.size();
+                                        m_graph.m_varArgChildren.append(Edge(node->child1().node(), KnownCellUse));
+                                        m_graph.m_varArgChildren.append(onFulfilled);
+                                        m_graph.m_varArgChildren.append(onRejected);
+                                        m_graph.m_varArgChildren.append(Edge(resultPromise, KnownCellUse));
+                                        m_insertionSet.insertNode(indexInBlock, SpecNone, PerformPromiseThen, node->origin, AdjacencyList(AdjacencyList::Variable, firstChild, 4));
+                                    }
                                     m_insertionSet.insertNode(indexInBlock, SpecNone, ExitOK, node->origin);
 
                                     node->convertToIdentityOn(resultPromise);
@@ -2077,6 +2090,28 @@ private:
                             }
                         }
                     }
+                }
+                break;
+            }
+
+            case PerformPromiseThen: {
+                Edge onFulfilled = m_graph.varArgChild(node, 1);
+                Edge onRejected = m_graph.varArgChild(node, 2);
+                if (auto kindOpt = classifyPerformPromiseThen(m_state.forNode(onFulfilled), m_state.forNode(onRejected))) {
+                    m_interpreter.execute(indexInBlock);
+                    alreadyHandled = true;
+
+                    Edge inputPromise = m_graph.varArgChild(node, 0);
+                    Edge resultPromise = m_graph.varArgChild(node, 3);
+                    Edge handlerEdge = (*kindOpt == JSPromise::InlineReactionKind::FulfillHandler) ? onFulfilled : onRejected;
+
+                    m_insertionSet.insertNode(indexInBlock, SpecNone, PerformPromiseThenOneHandler, node->origin,
+                        OpInfo(static_cast<uint32_t>(*kindOpt)),
+                        Edge(inputPromise.node(), KnownCellUse),
+                        Edge(handlerEdge.node(), KnownCellUse),
+                        Edge(resultPromise.node(), KnownCellUse));
+                    node->remove(m_graph);
+                    changed = true;
                 }
                 break;
             }
@@ -2107,6 +2142,7 @@ private:
             case PhantomNewAsyncGeneratorFunction:
             case PhantomNewAsyncFunction:
             case PhantomNewInternalFieldObject:
+            case PhantomNewPromise:
             case PhantomCreateActivation:
             case PhantomDirectArguments:
             case PhantomClonedArguments:

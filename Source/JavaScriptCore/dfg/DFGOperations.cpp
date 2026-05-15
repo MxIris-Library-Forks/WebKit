@@ -1730,6 +1730,18 @@ JSC_DEFINE_NOEXCEPT_JIT_OPERATION(operationPerformPromiseThen, void, (JSGlobalOb
     inputPromise->performPromiseThen(vm, globalObject, JSValue::decode(onFulfilled), JSValue::decode(onRejected), resultPromise);
 }
 
+JSC_DEFINE_NOEXCEPT_JIT_OPERATION(operationPerformPromiseThenOneHandler, void, (JSGlobalObject* globalObject, JSPromise* inputPromise, JSObject* handler, JSPromise* resultPromise, int32_t kindAsInt))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto kind = static_cast<JSPromise::InlineReactionKind>(kindAsInt);
+    JSValue handlerValue(handler);
+    JSValue onFulfilled = (kind == JSPromise::InlineReactionKind::FulfillHandler) ? handlerValue : jsUndefined();
+    JSValue onRejected = (kind == JSPromise::InlineReactionKind::RejectHandler) ? handlerValue : jsUndefined();
+    inputPromise->performPromiseThen(vm, globalObject, onFulfilled, onRejected, resultPromise);
+}
+
 JSC_DEFINE_JIT_OPERATION(operationRegExpTestString, size_t, (JSGlobalObject* globalObject, RegExpObject* regExpObject, JSString* input))
 {
     SuperSamplerScope superSamplerScope(false);
@@ -4190,11 +4202,9 @@ JSC_DEFINE_JIT_OPERATION(operationNewSymbolWithStringDescription, Symbol*, (JSGl
     CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
     JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
     auto scope = DECLARE_THROW_SCOPE(vm);
-
-    auto string = description->value(globalObject);
+    auto value = description->value(globalObject);
     OPERATION_RETURN_IF_EXCEPTION(scope, nullptr);
-
-    OPERATION_RETURN(scope, Symbol::createWithDescription(vm, WTF::move(string)));
+    OPERATION_RETURN(scope, Symbol::createWithDescription(vm, value, description));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationNewSymbolWithDescription, Symbol*, (JSGlobalObject* globalObject, EncodedJSValue encodedDescription))
@@ -4208,10 +4218,22 @@ JSC_DEFINE_JIT_OPERATION(operationNewSymbolWithDescription, Symbol*, (JSGlobalOb
     if (description.isUndefined())
         OPERATION_RETURN(scope, Symbol::create(vm));
 
-    String string = description.toWTFString(globalObject);
+    auto* string = description.toString(globalObject);
     OPERATION_RETURN_IF_EXCEPTION(scope, nullptr);
 
-    OPERATION_RETURN(scope, Symbol::createWithDescription(vm, string));
+    auto value = string->value(globalObject);
+    OPERATION_RETURN_IF_EXCEPTION(scope, nullptr);
+
+    OPERATION_RETURN(scope, Symbol::createWithDescription(vm, value, string));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationSymbolToString, JSString*, (JSGlobalObject* globalObject, Symbol* symbol))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+    OPERATION_RETURN(scope, symbol->toString(globalObject));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationNewStringObject, JSCell*, (VM* vmPointer, JSString* string, Structure* structure))

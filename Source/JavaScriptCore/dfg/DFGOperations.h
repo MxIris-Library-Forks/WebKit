@@ -369,10 +369,12 @@ JSC_DECLARE_JIT_OPERATION(operationPromiseResolve, JSObject*, (JSGlobalObject*, 
 JSC_DECLARE_JIT_OPERATION(operationPromiseReject, JSObject*, (JSGlobalObject*, JSObject*, EncodedJSValue));
 JSC_DECLARE_JIT_OPERATION(operationPromiseThen, JSObject*, (JSGlobalObject*, JSPromise*, EncodedJSValue, EncodedJSValue));
 JSC_DECLARE_NOEXCEPT_JIT_OPERATION(operationPerformPromiseThen, void, (JSGlobalObject*, JSPromise*, EncodedJSValue, EncodedJSValue, JSPromise*));
+JSC_DECLARE_NOEXCEPT_JIT_OPERATION(operationPerformPromiseThenOneHandler, void, (JSGlobalObject*, JSPromise*, JSObject*, JSPromise*, int32_t));
 
 JSC_DECLARE_JIT_OPERATION(operationNewSymbol, Symbol*, (VM*));
 JSC_DECLARE_JIT_OPERATION(operationNewSymbolWithStringDescription, Symbol*, (JSGlobalObject*, JSString*));
 JSC_DECLARE_JIT_OPERATION(operationNewSymbolWithDescription, Symbol*, (JSGlobalObject*, EncodedJSValue));
+JSC_DECLARE_JIT_OPERATION(operationSymbolToString, JSString*, (JSGlobalObject*, Symbol*));
 JSC_DECLARE_JIT_OPERATION(operationNewStringObject, JSCell*, (VM*, JSString*, Structure*));
 JSC_DECLARE_JIT_OPERATION(operationToStringOnCell, JSString*, (JSGlobalObject*, JSCell*));
 JSC_DECLARE_JIT_OPERATION(operationToString, JSString*, (JSGlobalObject*, EncodedJSValue));

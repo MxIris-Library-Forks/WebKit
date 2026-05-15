@@ -1779,12 +1779,14 @@ public:
     void compileObjectAssign(Node*);
     void compileObjectCreate(Node*);
     void compileObjectToString(Node*);
+    void compileSymbolToString(Node*);
     void compileCreateThis(Node*);
     void compileCreatePromise(Node*);
     void compileCreateGenerator(Node*);
     void compileCreateAsyncGenerator(Node*);
     void compileNewObject(Node*);
     void compileNewInternalFieldObject(Node*);
+    void compileNewPromise(Node*);
     void compileToPrimitive(Node*);
     void compileToPropertyKey(Node*);
     void compileToPropertyKeyOrNumber(Node*);
@@ -1820,6 +1822,7 @@ public:
     void compilePromiseReject(Node*);
     void compilePromiseThen(Node*);
     void compilePerformPromiseThen(Node*);
+    void compilePerformPromiseThenOneHandler(Node*);
 
     template<typename JSClass, typename Operation>
     void compileCreateInternalFieldObject(Node*, Operation);

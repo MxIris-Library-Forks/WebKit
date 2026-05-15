@@ -1388,6 +1388,7 @@ private:
             break;
 
         case NewInternalFieldObject:
+        case NewPromise:
             setPrediction(speculationFromStructure(m_currentNode->structure().get()));
             break;
             
@@ -1410,6 +1411,10 @@ private:
 
         case ObjectToString:
             setPrediction(SpecString);
+            break;
+
+        case SymbolToString:
+            setPrediction(SpecStringResolved);
             break;
 
         case Spread:
@@ -1673,6 +1678,7 @@ private:
         case PhantomNewArrayWithSpread:
         case PhantomNewArrayBuffer:
         case PhantomNewInternalFieldObject:
+        case PhantomNewPromise:
         case PhantomClonedArguments:
         case PhantomNewRegExp:
         case GetMyArgumentByVal:
@@ -1810,6 +1816,7 @@ private:
         case PromiseReject:
         case PromiseThen:
         case PerformPromiseThen:
+        case PerformPromiseThenOneHandler:
             break;
             
         // This gets ignored because it only pretends to produce a value.

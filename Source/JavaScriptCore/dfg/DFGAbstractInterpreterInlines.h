@@ -4065,6 +4065,7 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     case NewInternalFieldObject:
     case NewObject:
     case MaterializeNewInternalFieldObject:
+    case NewPromise:
         ASSERT(!!node->structure().get());
         setForNode(node, node->structure());
         break;
@@ -4128,6 +4129,11 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
         break;
     }
 
+    case SymbolToString: {
+        setTypeForNode(node, SpecStringResolved);
+        break;
+    }
+
     case ToObject:
     case CallObjectConstructor: {
         AbstractValue& source = forNode(node->child1());
@@ -4161,6 +4167,7 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     case PhantomNewArrayWithSpread:
     case PhantomNewArrayBuffer:
     case PhantomNewInternalFieldObject:
+    case PhantomNewPromise:
     case PhantomNewRegExp:
     case BottomValue: {
         clearForNode(node);
@@ -5990,6 +5997,7 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     }
 
     case PerformPromiseThen:
+    case PerformPromiseThenOneHandler:
         clobberWorld();
         break;
 

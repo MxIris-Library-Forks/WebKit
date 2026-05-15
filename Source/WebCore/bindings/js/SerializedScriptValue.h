@@ -29,6 +29,7 @@
 #include <JavaScriptCore/Forward.h>
 #include <JavaScriptCore/JSCJSValue.h>
 #include <wtf/ThreadSafeRefCounted.h>
+#include <wtf/text/WTFString.h>
 
 typedef const struct OpaqueJSContext* JSContextRef;
 typedef const struct OpaqueJSValue* JSValueRef;
@@ -45,6 +46,7 @@ class MemoryHandle;
 #endif
 
 namespace JSC {
+class ArrayBufferContents;
 class ErrorInstance;
 class JSGlobalObject;
 class JSObject;
@@ -63,6 +65,7 @@ class MessagePort;
 class DetachedImageBitmap;
 class FragmentedSharedBuffer;
 class URLKeepingBlobAlive;
+struct NonSerializedDataToken;
 struct SerializedScriptValueInternals;
 template<typename> class ExceptionOr;
 
@@ -117,6 +120,12 @@ public:
     WEBCORE_EXPORT const Vector<uint8_t>& wireBytes() const LIFETIME_BOUND;
 
     WEBCORE_EXPORT size_t memoryCost() const;
+
+    using NonSerializedDataToken = WebCore::NonSerializedDataToken;
+
+    WEBCORE_EXPORT std::unique_ptr<Vector<JSC::ArrayBufferContents>>& sharedBufferContentsArray();
+    WEBCORE_EXPORT std::optional<NonSerializedDataToken> nonSerializedDataToken() const;
+    WEBCORE_EXPORT void setNonSerializedDataToken(std::optional<NonSerializedDataToken>);
 
     WEBCORE_EXPORT ~SerializedScriptValue();
 

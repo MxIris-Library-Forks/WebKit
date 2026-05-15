@@ -327,6 +327,7 @@ namespace JSC { namespace DFG {
     macro(ObjectGetOwnPropertySymbols, NodeMustGenerate | NodeResultJS) \
     macro(ObjectToString, NodeMustGenerate | NodeResultJS) \
     macro(ReflectOwnKeys, NodeMustGenerate | NodeResultJS) \
+    macro(SymbolToString, NodeResultJS) \
     \
     /* Atomics object functions. */\
     macro(AtomicsAdd, NodeResultJS | NodeMustGenerate | NodeHasVarArgs) \
@@ -428,6 +429,7 @@ namespace JSC { namespace DFG {
     macro(ArraySortCompact, NodeResultJS | NodeMustGenerate) \
     macro(ArraySortCommit, NodeMustGenerate) \
     macro(NewInternalFieldObject, NodeResultJS) \
+    macro(NewPromise, NodeResultJS) \
     macro(NewTypedArray, NodeResultJS | NodeMustGenerate) \
     macro(NewTypedArrayBuffer, NodeResultJS | NodeMustGenerate) \
     macro(NewRegExp, NodeResultJS) \
@@ -455,6 +457,7 @@ namespace JSC { namespace DFG {
     macro(PhantomNewAsyncGeneratorFunction, NodeResultJS | NodeMustGenerate) \
     macro(PhantomNewInternalFieldObject, NodeResultJS | NodeMustGenerate) \
     macro(MaterializeNewInternalFieldObject, NodeResultJS | NodeHasVarArgs) \
+    macro(PhantomNewPromise, NodeResultJS | NodeMustGenerate) \
     macro(PhantomCreateActivation, NodeResultJS | NodeMustGenerate) \
     macro(MaterializeCreateActivation, NodeResultJS | NodeHasVarArgs) \
     macro(PhantomNewRegExp, NodeResultJS | NodeMustGenerate) \
@@ -661,6 +664,7 @@ namespace JSC { namespace DFG {
     macro(PromiseReject, NodeMustGenerate | NodeResultJS) \
     macro(PromiseThen, NodeMustGenerate | NodeResultJS) \
     macro(PerformPromiseThen, NodeMustGenerate | NodeHasVarArgs) \
+    macro(PerformPromiseThenOneHandler, NodeMustGenerate) \
 
 
 // This enum generates a monotonically increasing id for all Node types,

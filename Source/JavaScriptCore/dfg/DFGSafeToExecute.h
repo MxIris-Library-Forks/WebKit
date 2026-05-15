@@ -582,6 +582,7 @@ bool safeToExecute(AbstractStateType& state, Graph& graph, Node* node, bool igno
     case ObjectGetOwnPropertyNames:
     case ObjectGetOwnPropertySymbols:
     case ObjectToString:
+    case SymbolToString:
     case ReflectOwnKeys:
     case SetLocal:
     case SetCallee:
@@ -673,6 +674,7 @@ bool safeToExecute(AbstractStateType& state, Graph& graph, Node* node, bool igno
     case NewArrayBuffer:
     case NewArrayWithSpread:
     case NewInternalFieldObject:
+    case NewPromise:
     case Spread:
     case NewRegExp:
     case NewMap:
@@ -755,6 +757,7 @@ bool safeToExecute(AbstractStateType& state, Graph& graph, Node* node, bool igno
     case PhantomNewAsyncGeneratorFunction:
     case PhantomNewAsyncFunction:
     case PhantomNewInternalFieldObject:
+    case PhantomNewPromise:
     case PhantomCreateActivation:
     case PhantomNewRegExp:
     case PutHint:
@@ -802,6 +805,7 @@ bool safeToExecute(AbstractStateType& state, Graph& graph, Node* node, bool igno
     case PromiseReject:
     case PromiseThen:
     case PerformPromiseThen:
+    case PerformPromiseThenOneHandler:
     case SetAdd:
     case MapSet:
     case MapOrSetDelete:

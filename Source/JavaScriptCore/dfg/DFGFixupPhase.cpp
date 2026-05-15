@@ -2494,6 +2494,11 @@ private:
             break;
         }
 
+        case SymbolToString: {
+            fixEdge<SymbolUse>(node->child1());
+            break;
+        }
+
         case CheckIdent: {
             if (node->uidOperand()->isSymbol())
                 fixEdge<SymbolUse>(node->child1());
@@ -2776,6 +2781,7 @@ private:
         case PhantomNewAsyncGeneratorFunction:
         case PhantomNewAsyncFunction:
         case PhantomNewInternalFieldObject:
+        case PhantomNewPromise:
         case PhantomCreateActivation:
         case PhantomDirectArguments:
         case PhantomCreateRest:
@@ -3619,6 +3625,7 @@ private:
         case ProfileControlFlow:
         case NewObject:
         case NewInternalFieldObject:
+        case NewPromise:
         case NewRegExp:
         case NewMap:
         case NewSet:
@@ -3689,6 +3696,7 @@ private:
         case PromiseReject:
         case PromiseThen:
         case PerformPromiseThen:
+        case PerformPromiseThenOneHandler:
             break;
 #else // not ASSERT_ENABLED
         default:

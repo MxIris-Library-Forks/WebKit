@@ -2303,6 +2303,8 @@
 		51F645971F4A686F00B54DED /* SWServerRegistration.h in Headers */ = {isa = PBXBuildFile; fileRef = 51F645941F4A684F00B54DED /* SWServerRegistration.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51F645D51FECDBCE00B54DED /* ProcessIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 51F645D31FECDBC800B54DED /* ProcessIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51F645D62026050100B54DED /* BrowsingContextGroupIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 51F645D42026050100B54DED /* BrowsingContextGroupIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		44E0CD7A88F8673732B78D87 /* NonSerializedDataIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = F4CE880A7104F89208A47F24 /* NonSerializedDataIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		44E0CD7A88F8673732B78D88 /* NonSerializedDataToken.h in Headers */ = {isa = PBXBuildFile; fileRef = F4CE880A7104F89208A47F25 /* NonSerializedDataToken.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51F645E01FF4594E00B54DED /* MessagePortIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 51F645DE1FF4594B00B54DED /* MessagePortIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		51F6CA3E2B4D14D400F273C8 /* WebAVSampleBufferListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = 51F6CA3D2B4D14C900F273C8 /* WebAVSampleBufferListener.mm */; };
 		51F798F01BE880E7008AE491 /* IDBIndexInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 51F798EC1BE880D3008AE491 /* IDBIndexInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -12966,6 +12968,8 @@
 		51F645D21FECDBC800B54DED /* ProcessIdentifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ProcessIdentifier.cpp; sourceTree = "<group>"; };
 		51F645D31FECDBC800B54DED /* ProcessIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProcessIdentifier.h; sourceTree = "<group>"; };
 		51F645D42026050100B54DED /* BrowsingContextGroupIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BrowsingContextGroupIdentifier.h; sourceTree = "<group>"; };
+		F4CE880A7104F89208A47F24 /* NonSerializedDataIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonSerializedDataIdentifier.h; sourceTree = "<group>"; };
+		F4CE880A7104F89208A47F25 /* NonSerializedDataToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonSerializedDataToken.h; sourceTree = "<group>"; };
 		51F645DE1FF4594B00B54DED /* MessagePortIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessagePortIdentifier.h; sourceTree = "<group>"; };
 		51F6A3D50663BF04004D2919 /* HTMLCanvasElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLCanvasElement.cpp; sourceTree = "<group>"; tabWidth = 8; usesTabs = 0; };
 		51F6A3D60663BF04004D2919 /* HTMLCanvasElement.h */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = HTMLCanvasElement.h; sourceTree = "<group>"; tabWidth = 8; usesTabs = 0; };
@@ -15448,6 +15452,7 @@
 		83274FCD252E26A8001E35DC /* AudioWorkletProcessorConstructionData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioWorkletProcessorConstructionData.h; sourceTree = "<group>"; };
 		8329A4171EC25B2B008ED4BE /* DocumentAndElementEventHandlers.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DocumentAndElementEventHandlers.idl; sourceTree = "<group>"; };
 		8329DCC21C7A6AE300730B33 /* HTMLHyperlinkElementUtils.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HTMLHyperlinkElementUtils.idl; sourceTree = "<group>"; };
+		8329DCC21C7A6AE300730B34 /* HyperlinkElementUtils.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HyperlinkElementUtils.idl; sourceTree = "<group>"; };
 		832B843319D8E55100B26055 /* SVGAnimateElementBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGAnimateElementBase.h; sourceTree = "<group>"; };
 		832B843519D8E57400B26055 /* SVGAnimateElementBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SVGAnimateElementBase.cpp; sourceTree = "<group>"; };
 		833AE52624D386E100017C4B /* OfflineAudioCompletionEventInit.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = OfflineAudioCompletionEventInit.idl; sourceTree = "<group>"; };
@@ -33271,6 +33276,7 @@
 				CD3570EB2EC50D2B0054E843 /* HTMLVideoElementCaptionDisplaySettings.h */,
 				839AAFEA1A0C0C8D00605F99 /* HTMLWBRElement.cpp */,
 				839AAFEB1A0C0C8D00605F99 /* HTMLWBRElement.h */,
+				8329DCC21C7A6AE300730B34 /* HyperlinkElementUtils.idl */,
 				31D26BC21F86D18C008FF255 /* ImageBitmap.cpp */,
 				31D26BBF1F86D189008FF255 /* ImageBitmap.h */,
 				31D26BC11F86D18B008FF255 /* ImageBitmap.idl */,
@@ -37313,6 +37319,7 @@
 				E364321B25D37A6600F90E2A /* ModuleScriptLoader.cpp */,
 				E364321A25D37A6600F90E2A /* ModuleScriptLoader.h */,
 				E35188B325D387CF00A77AF3 /* ModuleScriptLoaderClient.h */,
+				F4CE880A7104F89208A47F25 /* NonSerializedDataToken.h */,
 				418C395E1C8F0AAB0051C8A3 /* ReadableStreamDefaultController.cpp */,
 				418C395F1C8F0AAB0051C8A3 /* ReadableStreamDefaultController.h */,
 				51BA946F23AC305000444846 /* RunJavaScriptParameters.h */,
@@ -39296,6 +39303,7 @@
 				BC772C4C0C4EB3040083285F /* MIMETypeRegistry.cpp */,
 				BC772C4D0C4EB3040083285F /* MIMETypeRegistry.h */,
 				F498C6BE299EE7A400CBA427 /* NoiseInjectionPolicy.h */,
+				F4CE880A7104F89208A47F24 /* NonSerializedDataIdentifier.h */,
 				E1513D501677F08800149FCB /* NotImplemented.cpp */,
 				98EB1F941313FE0500D0E1EA /* NotImplemented.h */,
 				4178EF1624125B6C00193C74 /* NowPlayingManager.cpp */,
@@ -47271,6 +47279,8 @@
 				E377FE4D1DADE16500CDD025 /* NodeType.h in Headers */,
 				9382AAB40D8C386100F357A6 /* NodeWithIndex.h in Headers */,
 				F498C6BF299EE7B200CBA427 /* NoiseInjectionPolicy.h in Headers */,
+				44E0CD7A88F8673732B78D87 /* NonSerializedDataIdentifier.h in Headers */,
+				44E0CD7A88F8673732B78D88 /* NonSerializedDataToken.h in Headers */,
 				312C0C41146DC6CC0016C911 /* Notification.h in Headers */,
 				33503C9A10179A74003B47E1 /* NotificationClient.h in Headers */,
 				3128CA6B147331630074C72A /* NotificationController.h in Headers */,

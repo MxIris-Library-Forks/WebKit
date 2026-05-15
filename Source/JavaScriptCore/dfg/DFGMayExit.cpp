@@ -73,6 +73,7 @@ ExitMode mayExitImpl(Graph& graph, Node* node, StateType& state)
     case PhantomNewObject:
     case PhantomNewArrayWithButterfly:
     case PhantomNewInternalFieldObject:
+    case PhantomNewPromise:
     case PhantomNewButterflyWithSize:
     case PutStack:
     case KillStack:
@@ -130,6 +131,7 @@ ExitMode mayExitImpl(Graph& graph, Node* node, StateType& state)
     case LogShadowChickenPrologue:
     case LogShadowChickenTail:
     case PerformPromiseThen:
+    case PerformPromiseThenOneHandler:
         break;
 
     case Switch: {
@@ -201,6 +203,7 @@ ExitMode mayExitImpl(Graph& graph, Node* node, StateType& state)
     case NewBoundFunction:
     case NewStringObject:
     case NewInternalFieldObject:
+    case NewPromise:
     case NewRegExp:
     case NewMap:
     case NewSet:

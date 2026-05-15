@@ -223,6 +223,7 @@ bool doesGC(Graph& graph, Node* node)
     case PhantomNewAsyncFunction:
     case PhantomNewAsyncGeneratorFunction:
     case PhantomNewInternalFieldObject:
+    case PhantomNewPromise:
     case PhantomCreateActivation:
     case PhantomDirectArguments:
     case PhantomCreateRest:
@@ -408,6 +409,7 @@ bool doesGC(Graph& graph, Node* node)
     case ObjectGetOwnPropertyNames:
     case ObjectGetOwnPropertySymbols:
     case ObjectToString:
+    case SymbolToString:
     case ReflectOwnKeys:
     case AllocatePropertyStorage:
     case ReallocatePropertyStorage:
@@ -417,6 +419,7 @@ bool doesGC(Graph& graph, Node* node)
     case NewArray:
     case NewArrayWithSpread:
     case NewInternalFieldObject:
+    case NewPromise:
     case Spread:
     case NewButterflyWithSize:
     case ArraySortCompact:
@@ -503,6 +506,7 @@ bool doesGC(Graph& graph, Node* node)
     case PromiseReject:
     case PromiseThen:
     case PerformPromiseThen:
+    case PerformPromiseThenOneHandler:
     case ArrayIsArray:
 #else // not ASSERT_ENABLED
     // See comment at the top for why the default for all nodes should be to

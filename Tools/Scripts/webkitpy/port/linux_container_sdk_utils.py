@@ -30,7 +30,6 @@ import sys
 WKDEV_CONTAINER_NAME = 'wkdev-build'
 WKDEV_SDK_VERSION_FILENAME = '.wkdev-sdk-version'
 WKDEV_SDK_IMAGE_REPOSITORY = 'ghcr.io/igalia/wkdev-sdk'
-WKDEV_INIT_DONE_FILE = '/run/.wkdev-init-done'
 WEBKIT_CONTAINER_SDK_DOCS_URL = 'https://github.com/Igalia/webkit-container-sdk'
 
 # Signals to Perl callers (via container-sdk-autoenter) that auto-enter
@@ -65,6 +64,8 @@ _ENV_VARS_TO_KEEP = frozenset((
     'RESULTS_SERVER_API_KEY',
     'SSLKEYLOGFILE',
     'TERM',
+    'USER',
+    'USERNAME',
     'XDG_SESSION_TYPE',
     'XR_RUNTIME_JSON',
 ))
@@ -146,23 +147,6 @@ def _translate_host_path_to_container(host_path):
     return host_path
 
 
-def _podman_container_info(name):
-    """Returns (image, status) for an existing container, or (None, None) if missing."""
-    try:
-        result = subprocess.run(
-            ['podman', 'inspect', '--type', 'container',
-             '--format', '{{.ImageName}}|{{.State.Status}}', name],
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        if result.returncode != 0:
-            return None, None
-        parts = result.stdout.decode().strip().split('|', 1)
-        if len(parts) != 2:
-            return None, None
-        return parts[0], parts[1]
-    except FileNotFoundError:
-        return None, None
-
-
 def _xdg_runtime_dir():
     return os.environ.get('XDG_RUNTIME_DIR') or '/run/user/{}'.format(os.getuid())
 
@@ -179,19 +163,50 @@ def _bind_mount(src, dst, options='rslave'):
     return ['--mount', 'type=bind,source={},destination={},{}'.format(src, dst, options)]
 
 
-def _build_podman_create_args(pinned_version):
-    image_ref = '{}:{}'.format(WKDEV_SDK_IMAGE_REPOSITORY, pinned_version)
+def _container_hostname():
+    # Linux caps hostnames at HOST_NAME_MAX (64) bytes; sethostname(2) returns
+    # EINVAL above that, which surfaces from crun as "sethostname: Invalid
+    # argument" and aborts container startup. In a Kubernetes pod the host
+    # hostname is already up to 63 chars, so blindly appending it overflows.
+    hostname = '{}.{}'.format(WKDEV_CONTAINER_NAME, socket.gethostname())
+    if len(hostname) > 63:
+        hostname = hostname[:63]
+    return hostname
+
+
+def _build_podman_run_args(pinned_version):
+    """Static `podman run` flags for an ephemeral wkdev-build container.
+
+    The caller appends env-var forwards, --workdir, --tty/--interactive, the
+    image ref, the inline init wrapper, and the user command."""
     container_home = _container_home_path()
     user = os.environ.get('USER') or os.environ.get('LOGNAME')
     uid = os.getuid()
+    gid = os.getgid()
     xdg = _xdg_runtime_dir()
 
     args = [
-        '--name', WKDEV_CONTAINER_NAME,
-        '--hostname', '{}.{}'.format(WKDEV_CONTAINER_NAME, socket.gethostname()),
-        '--workdir', '/home/{}'.format(user),
+        # Ephemeral: container is removed as soon as the user command exits.
+        '--rm',
+        # Name the container after the invoking process so `podman ps` shows
+        # `wkdev-build-<pid>` instead of a random `tender_bhabha`-style name.
+        # We `execvp` into podman, so this PID is also podman's PID for the
+        # container's full lifetime -- collision-free across concurrent
+        # invocations, and `--rm` frees the name when the command exits.
+        '--name', '{}-{}'.format(WKDEV_CONTAINER_NAME, os.getpid()),
+        # tini-style PID 1 forwards signals and reaps zombies, so the user
+        # command does not have to play PID 1 itself. `--init` requires the
+        # `catatonit` helper on the host and only works with `crun`, not
+        # `runc`, so pin the runtime here rather than relying on the host
+        # default.
+        '--init',
+        '--runtime', 'crun',
+        '--hostname', _container_hostname(),
         '--userns', 'keep-id',
-        '--user', 'root:root',
+        # Run as the invoking host user directly. The tmpfs mount for
+        # /run/user/<uid> below is created with the right ownership at mount
+        # time, so we no longer need a privileged init phase to chown it.
+        '--user', '{}:{}'.format(uid, gid),
         '--security-opt', 'label=disable',
         '--security-opt', 'unmask=ALL',
         '--security-opt', 'seccomp=unconfined',
@@ -204,10 +219,19 @@ def _build_podman_create_args(pinned_version):
         '--ulimit', 'host',
         '--pids-limit', '-1',
         '--tmpfs', '/tmp',
-        '--pid', 'host',
+        # XDG_RUNTIME_DIR as a per-uid tmpfs with the correct ownership and
+        # mode set at mount time. `chown=true` makes podman chown the mount
+        # point to the container's user (our invoking host UID via keep-id),
+        # so the entrypoint can populate it (Wayland / PipeWire / flatpak
+        # symlinks) without a privileged setup step. --tmpfs's option syntax
+        # rejects uid=/gid=, which is why we use --mount type=tmpfs here.
+        '--mount', 'type=tmpfs,destination=/run/user/{},tmpfs-mode=0700,chown=true'.format(uid),
         '--ipc', 'host',
         '--network', 'host',
-        '--pull=newer',
+        # Pull only when the tag is not already cached. .wkdev-sdk-version
+        # uses immutable tags, so a registry round-trip per host-wrapper
+        # invocation would be wasted work; new tags still pull on first use.
+        '--pull=missing',
         '--label', 'io.webkit.container={}'.format(WKDEV_CONTAINER_NAME),
         '--label', 'org.opencontainers.image.version={}'.format(pinned_version),
         '--env', 'WEBKIT_CONTAINER_SDK=1',
@@ -278,119 +302,62 @@ def _build_podman_create_args(pinned_version):
     if os.path.isdir(dconf_dir):
         args += _bind_mount(dconf_dir, dconf_dir)
 
+    # coredumpctl: share the coredump store and journal so `coredumpctl` works
+    # inside the container. Crashes inside the container are caught by the
+    # host's core_pattern handler (systemd-coredump), which writes to
+    # /var/lib/systemd/coredump; without these mounts the files and their
+    # journal metadata are invisible to tools running in the container.
+    if os.path.isdir('/var/lib/systemd/coredump'):
+        args += _bind_mount('/var/lib/systemd/coredump', '/var/lib/systemd/coredump')
+    if os.path.isdir('/var/log/journal'):
+        args += _bind_mount('/var/log/journal', '/var/log/journal', options='ro,rslave')
+
     # Host runtime dir is exposed as /host/run so Wayland / PipeWire / flatpak
     # sockets can be symlinked into the container's XDG_RUNTIME_DIR per exec.
     if os.path.isdir(xdg):
         args += _bind_mount(xdg, '/host/run', options='bind-propagation=rslave')
 
-    args += [image_ref, 'sleep', 'infinity']
     return args
 
 
-def _init_and_sync_container_runtime():
-    # Fused into one `podman exec` to avoid an extra round-trip per host
-    # wrapper invocation. The init step is idempotent via a /run sentinel
-    # (tmpfs, so it naturally resets on container recreation); the sync step
-    # mirrors webkit-container-sdk's .wkdev-sync-runtime-state and runs every
-    # invocation to symlink the live host Wayland/PipeWire sockets and flatpak
-    # helper dirs from /host/run into the container's XDG_RUNTIME_DIR.
-    uid = os.getuid()
-    gid = os.getgid()
-    wayland = os.environ.get('WAYLAND_DISPLAY', 'wayland-0')
-    pipewire = os.environ.get('PIPEWIRE_REMOTE', 'pipewire-0')
-    # WAYLAND_DISPLAY / PIPEWIRE_REMOTE are forwarded as positional args ($1, $2)
-    # instead of interpolated into the script body, so shell metacharacters in
-    # their values cannot break out of the quoting.
-    script = (
-        'set +e\n'
-        'init_rc=0\n'
-        'if [ ! -f {done} ]; then\n'
-        '    (set -e\n'
-        '     mkdir -p /run/user/{uid}\n'
-        '     chmod 700 /run/user/{uid}\n'
-        '     chown {uid}:{gid} /run/user/{uid}\n'
-        '     for d in /jhbuild /opt/rust /sdk; do\n'
-        '         [ -d "$d" ] && chown -R {uid}:{gid} "$d"\n'
-        '     done\n'
-        '     touch {done})\n'
-        '    init_rc=$?\n'
-        'fi\n'
-        # Wayland/PipeWire sockets are addressed by name (wayland-0, pipewire-0)
-        # but the target inode can change across compositor restarts, so always
-        # refresh the symlink. The flatpak helper dirs below are stable; guard
-        # those with [ -L ] to skip the mkdir+ln on the steady-state path.
-        'for s in "$1" "$2"; do\n'
-        '    [ -e "/host/run/$s" ] && ln -sfn "/host/run/$s" "$XDG_RUNTIME_DIR/$s"\n'
-        '    [ -e "/host/run/$s.lock" ] && ln -sfn "/host/run/$s.lock" "$XDG_RUNTIME_DIR/$s.lock"\n'
-        'done\n'
-        'for d in .flatpak .flatpak-helper doc; do\n'
-        '    if [ ! -L "$XDG_RUNTIME_DIR/$d" ]; then\n'
-        '        mkdir -p "/host/run/$d" 2>/dev/null\n'
-        '        ln -sfn "/host/run/$d" "$XDG_RUNTIME_DIR/$d" 2>/dev/null\n'
-        '    fi\n'
-        'done\n'
-        'exit $init_rc\n'
-    ).format(uid=uid, gid=gid, done=WKDEV_INIT_DONE_FILE)
-    rc = subprocess.call(['podman', 'exec', '--user', 'root', WKDEV_CONTAINER_NAME,
-                          'sh', '-c', script, 'wkdev-init', wayland, pipewire],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if rc != 0:
-        _print_prominent_warning([
-            "WARNING: First-run init for '{}' exited with status {}.".format(WKDEV_CONTAINER_NAME, rc),
-            '         Some build paths inside the container may have wrong ownership.',
-        ])
-
-
-def _stop_and_remove_container():
-    subprocess.call(['podman', 'rm', '--force', WKDEV_CONTAINER_NAME],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-
-def _create_container(pinned_version):
-    os.makedirs(_container_home_path(), mode=0o750, exist_ok=True)
-
-    print("Creating WebKit Container SDK container named '{}' (this may take a while)...".format(WKDEV_CONTAINER_NAME),
-          file=sys.stderr)
-    create_cmd = ['podman', 'create'] + _build_podman_create_args(pinned_version)
-    rc = subprocess.call(create_cmd)
-    if rc != 0:
-        print("ERROR: Failed to create WebKit Container SDK container named '{}'.".format(WKDEV_CONTAINER_NAME),
-              file=sys.stderr)
-        sys.exit(rc)
-
-
-def _ensure_container_ready(pinned_version):
-    """Bring the wkdev-build container into 'running' state at the pinned version."""
-    image, status = _podman_container_info(WKDEV_CONTAINER_NAME)
-    expected_image = '{}:{}'.format(WKDEV_SDK_IMAGE_REPOSITORY, pinned_version)
-    if image is None:
-        _create_container(pinned_version)
-        status = 'created'
-    elif image != expected_image:
-        _print_prominent_warning([
-            "Existing '{}' container uses image '{}',".format(WKDEV_CONTAINER_NAME, image),
-            "but {} pins '{}'. Recreating the container.".format(WKDEV_SDK_VERSION_FILENAME, pinned_version),
-            "Note: any changes inside the container filesystem will be lost;",
-            "the container home directory survives.",
-        ])
-        _stop_and_remove_container()
-        _create_container(pinned_version)
-        status = 'created'
-
-    if status != 'running':
-        rc = subprocess.call(['podman', 'start', WKDEV_CONTAINER_NAME], stdout=subprocess.DEVNULL)
-        if rc != 0:
-            print("ERROR: Failed to start container '{}'.".format(WKDEV_CONTAINER_NAME), file=sys.stderr)
-            sys.exit(rc)
+# The tmpfs mount in `_build_podman_run_args` prepares $XDG_RUNTIME_DIR with
+# the right ownership before this script runs, so we can populate it from the
+# user without a privileged setup step. WAYLAND_DISPLAY and PIPEWIRE_REMOTE
+# come in as positional args ($1, $2) so shell metacharacters in their values
+# cannot break out of the quoting.
+#
+# Kept as a single-line script (`;` between statements, no embedded newlines)
+# so that `podman ps` shows it as one truncated `sh -c ...` cell instead of
+# wrapping across multiple lines.
+_EPHEMERAL_ENTRYPOINT_SCRIPT = (
+    'set -e; '
+    'wayland_name=$1; pipewire_name=$2; shift 2; '
+    # Wayland/PipeWire sockets are addressed by name but the target inode can
+    # change across compositor restarts, so always refresh the symlink.
+    'for s in "$wayland_name" "$pipewire_name"; do '
+    '[ -e "/host/run/$s" ] && ln -sfn "/host/run/$s" "$XDG_RUNTIME_DIR/$s"; '
+    '[ -e "/host/run/$s.lock" ] && ln -sfn "/host/run/$s.lock" "$XDG_RUNTIME_DIR/$s.lock"; '
+    'done; '
+    'for d in .flatpak .flatpak-helper doc; do '
+    'mkdir -p "/host/run/$d" 2>/dev/null || true; '
+    'ln -sfn "/host/run/$d" "$XDG_RUNTIME_DIR/$d"; '
+    'done; '
+    'exec "$@"'
+)
 
 
 def maybe_enter_webkit_container_sdk(argv=None):
     """If invoked on the host (outside a wkdev-sdk container), re-execute the
-    current command inside the 'wkdev-build' container, creating the container
-    on first use using the version pinned in .wkdev-sdk-version.
+    current command inside an ephemeral wkdev-build container at the SDK
+    version pinned in .wkdev-sdk-version. The container is removed (--rm) as
+    soon as the command exits, so there is no persistent state to keep in
+    sync, no recreate-on-arg-change problem, and no reboot recovery to do.
 
     When already running inside a wkdev-sdk container, verify the running SDK
-    version matches the pinned one and warn loudly if not, but continue.
+    version matches the pinned one and warn loudly if not, but continue. The
+    in-container version check fires regardless of
+    WEBKIT_CONTAINER_SDK_ENABLE_AUTOENTER so users always learn when the
+    running container is out of sync with .wkdev-sdk-version.
 
     `argv` defaults to `sys.argv` when omitted; pass it explicitly when the
     caller is a wrapper (e.g. container-sdk-autoenter) whose own argv differs
@@ -410,21 +377,15 @@ def maybe_enter_webkit_container_sdk(argv=None):
     if any(os.environ.get(e) == '1' for e in ('WEBKIT_FLATPAK', 'WEBKIT_JHBUILD', 'WEBKIT_CONTAINER_SDK_INSIDE_MOUNT_NAMESPACE')):
         return
 
-    # Auto-enter is opt-in: bots and users flip it on via the environment.
-    if os.environ.get('WEBKIT_CONTAINER_SDK_ENABLE_AUTOENTER') != '1':
-        return
-
-    # Cross-target builds use their own toolchain wrapper (see webkitdirs.pm's
-    # runInCrossTargetEnvironment); don't double-wrap them in the SDK container.
-    if os.environ.get('WEBKIT_CROSS_TARGET'):
-        return
-
     source_dir = _source_dir()
     pinned_version = _read_pinned_sdk_version(source_dir)
     if not pinned_version:
         return
 
-    # Inside container: version-match check (warn, continue).
+    # Inside container: version-match check (warn, continue). Performed
+    # unconditionally -- the auto-enter opt-in below only gates host-side
+    # behavior, since by the time we are inside the container the user has
+    # already chosen the SDK they want to use.
     if os.environ.get('WEBKIT_CONTAINER_SDK') == '1':
         running_version = _read_running_sdk_version()
         if running_version and running_version != pinned_version:
@@ -433,9 +394,18 @@ def maybe_enter_webkit_container_sdk(argv=None):
                 '         Running container SDK version: {}'.format(running_version),
                 '         Pinned by .wkdev-sdk-version:  {}'.format(pinned_version),
                 '         Re-run any wrapper script (build-webkit, run-webkit-tests, ...)',
-                '         from the host to recreate the container at the pinned version.',
+                '         from the host to launch a fresh container at the pinned version.',
                 '         Continuing with the current container.',
             ])
+        return
+
+    # Auto-enter is opt-in: bots and users flip it on via the environment.
+    if os.environ.get('WEBKIT_CONTAINER_SDK_ENABLE_AUTOENTER') != '1':
+        return
+
+    # Cross-target builds use their own toolchain wrapper (see webkitdirs.pm's
+    # runInCrossTargetEnvironment); don't double-wrap them in the SDK container.
+    if os.environ.get('WEBKIT_CROSS_TARGET'):
         return
 
     # Host side: podman is the only prerequisite.
@@ -448,32 +418,43 @@ def maybe_enter_webkit_container_sdk(argv=None):
         ])
         return
 
-    _ensure_container_ready(pinned_version)
-    _init_and_sync_container_runtime()
+    # Container-internal home is bind-mounted from a host directory that must
+    # exist before `podman run` starts the container.
+    os.makedirs(_container_home_path(), mode=0o750, exist_ok=True)
 
+    image_ref = '{}:{}'.format(WKDEV_SDK_IMAGE_REPOSITORY, pinned_version)
     container_cwd = _translate_host_path_to_container(os.getcwd())
     host_command = os.path.realpath(argv[0])
     container_command = _translate_host_path_to_container(host_command)
 
-    exec_cmd = [
-        'podman', 'exec',
-        '--user', '{}:{}'.format(os.getuid(), os.getgid()),
-        '--workdir', container_cwd,
-        '--detach-keys=',
-    ]
+    run_cmd = ['podman', 'run'] + _build_podman_run_args(pinned_version)
+    run_cmd += ['--workdir', container_cwd, '--detach-keys=']
     if sys.stdin.isatty() and sys.stdout.isatty():
-        exec_cmd += ['--tty', '--interactive']
+        run_cmd += ['--tty', '--interactive']
     else:
-        exec_cmd += ['--interactive']
+        run_cmd += ['--interactive']
     for var in sorted(os.environ):
         if _env_var_should_be_forwarded(var):
-            exec_cmd += ['--env', '{}={}'.format(var, os.environ[var])]
-    exec_cmd += [WKDEV_CONTAINER_NAME, container_command] + argv[1:]
+            run_cmd += ['--env', '{}={}'.format(var, os.environ[var])]
+
+    wayland = os.environ.get('WAYLAND_DISPLAY', 'wayland-0')
+    pipewire = os.environ.get('PIPEWIRE_REMOTE', 'pipewire-0')
+    # Image, then the inline entrypoint (`sh -c <script> wkdev-init <args>`),
+    # then the user command and its args. `sh -c` sees the script as $0='wkdev-init'
+    # and the following tokens as $1, $2, …; after the script's `shift 2`,
+    # "$@" expands to (container_command, *user_args), which `exec "$@"`
+    # replaces the shell with.
+    run_cmd += [
+        image_ref,
+        'sh', '-c', _EPHEMERAL_ENTRYPOINT_SCRIPT, 'wkdev-init',
+        wayland, pipewire,
+        container_command,
+    ] + argv[1:]
 
     print('Running inside WebKit Container SDK wkdev-sdk {}.'.format(pinned_version), file=sys.stderr)
     sys.stdout.flush()
     sys.stderr.flush()
-    os.execvp('podman', exec_cmd)
+    os.execvp('podman', run_cmd)
 
 
 def maybe_use_container_sdk_root_dir():

@@ -15993,6 +15993,25 @@ void SpeculativeJIT::compileObjectToString(Node* node)
     }
 }
 
+void SpeculativeJIT::compileSymbolToString(Node* node)
+{
+    SpeculateCellOperand argument(this, node->child1());
+    GPRTemporary result(this);
+
+    GPRReg argumentGPR = argument.gpr();
+    GPRReg resultGPR = result.gpr();
+
+    speculateSymbol(node->child1(), argumentGPR);
+
+    JumpList slowCases;
+    loadPtr(Address(argumentGPR, Symbol::offsetOfString()), resultGPR);
+    slowCases.append(branchTestPtr(Zero, resultGPR));
+
+    addSlowPathGenerator(slowPathCall(slowCases, this, operationSymbolToString, resultGPR, LinkableConstant::globalObject(*this, node), argumentGPR));
+
+    cellResult(resultGPR, node);
+}
+
 void SpeculativeJIT::compileCreateThis(Node* node)
 {
     // Note that there is not so much profit to speculate here. The only things we
@@ -16037,52 +16056,6 @@ void SpeculativeJIT::compileCreateThis(Node* node)
     cellResult(resultGPR, node);
 }
 
-void SpeculativeJIT::compileCreatePromise(Node* node)
-{
-    JSGlobalObject* globalObject = m_graph.globalObjectFor(node->origin.semantic);
-
-    SpeculateCellOperand callee(this, node->child1());
-    GPRTemporary result(this);
-    GPRTemporary structure(this);
-    GPRTemporary scratch1(this);
-    GPRTemporary scratch2(this);
-
-    GPRReg calleeGPR = callee.gpr();
-    GPRReg resultGPR = result.gpr();
-    GPRReg structureGPR = structure.gpr();
-    GPRReg scratch1GPR = scratch1.gpr();
-    GPRReg scratch2GPR = scratch2.gpr();
-    // Rare data is only used to access the allocator & structure
-    // We can avoid using an additional GPR this way
-    GPRReg rareDataGPR = structureGPR;
-
-    move(TrustedImmPtr(m_graph.registerStructure(globalObject->promiseStructure())), structureGPR);
-    auto fastPromisePath = branchLinkableConstant(Equal, calleeGPR, LinkableConstant(*this, globalObject->promiseConstructor()));
-
-    JumpList slowCases;
-
-    slowCases.append(branchIfNotFunction(calleeGPR));
-    loadPtr(Address(calleeGPR, JSFunction::offsetOfExecutableOrRareData()), rareDataGPR);
-    slowCases.append(branchTestPtr(Zero, rareDataGPR, TrustedImm32(JSFunction::rareDataTag)));
-    load32(Address(rareDataGPR, FunctionRareData::offsetOfInternalFunctionAllocationProfile() + InternalFunctionAllocationProfile::offsetOfStructureID() - JSFunction::rareDataTag), structureGPR);
-    slowCases.append(branchTest32(Zero, structureGPR));
-    emitNonNullDecodeZeroExtendedStructureID(structureGPR, structureGPR);
-    move(TrustedImmPtr(JSPromise::info()), scratch1GPR);
-    slowCases.append(branchPtr(NotEqual, scratch1GPR, Address(structureGPR, Structure::classInfoOffset())));
-    loadLinkableConstant(LinkableConstant::globalObject(*this, node), scratch1GPR);
-    slowCases.append(branchPtr(NotEqual, scratch1GPR, Address(structureGPR, Structure::realmOffset())));
-
-    fastPromisePath.link(this);
-    auto butterfly = TrustedImmPtr(nullptr);
-    emitAllocateJSObjectWithKnownSize<JSPromise>(resultGPR, structureGPR, butterfly, scratch1GPR, scratch2GPR, slowCases, sizeof(JSPromise), SlowAllocationResult::UndefinedBehavior);
-    storeTrustedValue(jsNumber(static_cast<int32_t>(JSPromise::Status::Pending)), Address(resultGPR, JSInternalFieldObjectImpl<>::offsetOfInternalField(static_cast<unsigned>(JSPromise::Field::Flags))));
-    storeTrustedValue(JSValue(), Address(resultGPR, JSInternalFieldObjectImpl<>::offsetOfInternalField(static_cast<unsigned>(JSPromise::Field::ReactionsOrResult))));
-    mutatorFence(vm());
-
-    addSlowPathGenerator(slowPathCall(slowCases, this, operationCreatePromise, resultGPR, LinkableConstant::globalObject(*this, node), calleeGPR));
-
-    cellResult(resultGPR, node);
-}
 
 
 template<typename JSClass, typename Operation>
@@ -16228,11 +16201,6 @@ void SpeculativeJIT::compileNewInternalFieldObject(Node* node)
     case JSAsyncGeneratorType:
         compileNewInternalFieldObjectImpl<JSAsyncGenerator>(node, operationNewAsyncGenerator);
         break;
-    case JSPromiseType: {
-        ASSERT(node->structure()->classInfoForCells() == JSPromise::info());
-        compileNewInternalFieldObjectImpl<JSPromise>(node, operationNewPromise);
-        break;
-    }
     default:
         DFG_CRASH(m_graph, node, "Bad structure");
     }
@@ -18369,45 +18337,6 @@ void SpeculativeJIT::compileFulfillPromiseFirstResolving(Node* node)
     noResult(node);
 }
 
-void SpeculativeJIT::compileNewResolvedPromise(Node* node)
-{
-    JSGlobalObject* globalObject = m_graph.globalObjectFor(node->origin.semantic);
-    if (!(m_state.forNode(node->child1()).m_type & SpecObject)) {
-        JSValueOperand argument(this, node->child1());
-        JSValueRegs argumentRegs = argument.jsValueRegs();
-
-        GPRTemporary result(this);
-        GPRTemporary scratch1(this);
-        GPRTemporary scratch2(this);
-        GPRReg resultGPR = result.gpr();
-        GPRReg scratch1GPR = scratch1.gpr();
-        GPRReg scratch2GPR = scratch2.gpr();
-
-        JumpList slowCases;
-
-        auto structure = m_graph.registerStructure(globalObject->promiseStructure());
-        auto butterfly = TrustedImmPtr(nullptr);
-        emitAllocateJSObjectWithKnownSize<JSPromise>(resultGPR, TrustedImmPtr(structure), butterfly, scratch1GPR, scratch2GPR, slowCases, sizeof(JSPromise), SlowAllocationResult::UndefinedBehavior);
-        storeTrustedValue(jsNumber(static_cast<int32_t>(JSPromise::Status::Fulfilled)), Address(resultGPR, JSInternalFieldObjectImpl<>::offsetOfInternalField(static_cast<unsigned>(JSPromise::Field::Flags))));
-        storeValue(argumentRegs, Address(resultGPR, JSInternalFieldObjectImpl<>::offsetOfInternalField(static_cast<unsigned>(JSPromise::Field::ReactionsOrResult))));
-        mutatorFence(vm());
-
-        addSlowPathGenerator(slowPathCall(slowCases, this, operationNewResolvedPromise, resultGPR, LinkableConstant::globalObject(*this, node), argumentRegs));
-
-        cellResult(resultGPR, node);
-        return;
-    }
-
-    JSValueOperand argument(this, node->child1());
-    JSValueRegs argumentRegs = argument.jsValueRegs();
-
-    flushRegisters();
-    GPRFlushedCallResult result(this);
-    GPRReg resultGPR = result.gpr();
-    callOperation(operationNewResolvedPromise, resultGPR, LinkableConstant::globalObject(*this, node), argumentRegs);
-    cellResult(resultGPR, node);
-}
-
 void SpeculativeJIT::compileNewRejectedPromise(Node* node)
 {
     JSValueOperand argument(this, node->child1());
@@ -18487,6 +18416,45 @@ void SpeculativeJIT::compilePerformPromiseThen(Node* node)
 
     flushRegisters();
     callOperationWithoutExceptionCheck(operationPerformPromiseThen, LinkableConstant::globalObject(*this, node), inputPromiseGPR, onFulfilledRegs, onRejectedRegs, resultPromiseGPR);
+    noResult(node);
+}
+
+void SpeculativeJIT::compilePerformPromiseThenOneHandler(Node* node)
+{
+    auto kind = node->performPromiseThenInlineReactionKind();
+
+    SpeculateCellOperand inputPromise(this, node->child1());
+    SpeculateCellOperand handler(this, node->child2());
+    SpeculateCellOperand resultPromise(this, node->child3());
+
+    GPRReg inputPromiseGPR = inputPromise.gpr();
+    GPRReg handlerGPR = handler.gpr();
+    GPRReg resultPromiseGPR = resultPromise.gpr();
+
+#if USE(JSVALUE64)
+    GPRTemporary packed(this);
+    GPRReg packedGPR = packed.gpr();
+
+    constexpr unsigned pointerBits = CompactPointerTuple<JSCell*, uint16_t>::maxNumberOfBitsInPointer;
+    constexpr uint64_t pointerMask = (1ULL << pointerBits) - 1;
+    constexpr uint64_t flagMask = static_cast<uint64_t>(JSPromise::stateMask | JSPromise::inlineReactionKindMask) << pointerBits;
+    constexpr uint64_t mask = pointerMask | flagMask;
+
+    load64(Address(inputPromiseGPR, JSPromise::offsetOfPacked()), packedGPR);
+    Jump slowPath = branchTest64(NonZero, packedGPR, TrustedImm64(mask));
+
+    uint64_t orBits = static_cast<uint64_t>(JSPromise::isHandledFlag | (static_cast<uint16_t>(kind) << JSPromise::inlineReactionKindShift)) << pointerBits;
+    or64(TrustedImm64(orBits), packedGPR);
+    or64(resultPromiseGPR, packedGPR);
+
+    store64(handlerGPR, Address(inputPromiseGPR, JSPromise::offsetOfSlot()));
+    store64(packedGPR, Address(inputPromiseGPR, JSPromise::offsetOfPacked()));
+
+    addSlowPathGenerator(slowPathCall(slowPath, this, operationPerformPromiseThenOneHandler, NeedToSpill, ExceptionCheckRequirement::CheckNotNeeded, NoResult, LinkableConstant::globalObject(*this, node), inputPromiseGPR, handlerGPR, resultPromiseGPR, TrustedImm32(static_cast<int32_t>(kind))));
+#else
+    flushRegisters();
+    callOperationWithoutExceptionCheck(operationPerformPromiseThenOneHandler, LinkableConstant::globalObject(*this, node), inputPromiseGPR, handlerGPR, resultPromiseGPR, TrustedImm32(static_cast<int32_t>(kind)));
+#endif
     noResult(node);
 }
 

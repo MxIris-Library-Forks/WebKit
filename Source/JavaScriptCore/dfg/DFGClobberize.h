@@ -271,6 +271,7 @@ void clobberize(Graph& graph, Node* node, const ReadFunctor& read, const WriteFu
     case GetExecutable:
     case BottomValue:
     case TypeOf:
+    case SymbolToString:
         def(PureValue(node));
         return;
 
@@ -2226,6 +2227,7 @@ void clobberize(Graph& graph, Node* node, const ReadFunctor& read, const WriteFu
 
     case NewObject:
     case NewInternalFieldObject:
+    case NewPromise:
     case NewRegExp:
     case NewStringObject:
     case NewMap:
@@ -2238,6 +2240,7 @@ void clobberize(Graph& graph, Node* node, const ReadFunctor& read, const WriteFu
     case PhantomNewAsyncGeneratorFunction:
     case PhantomNewInternalFieldObject:
     case MaterializeNewInternalFieldObject:
+    case PhantomNewPromise:
     case PhantomCreateActivation:
     case MaterializeCreateActivation:
     case PhantomNewRegExp:
@@ -2623,6 +2626,7 @@ void clobberize(Graph& graph, Node* node, const ReadFunctor& read, const WriteFu
     case PromiseReject:
     case PromiseThen:
     case PerformPromiseThen:
+    case PerformPromiseThenOneHandler:
         clobberTop();
         return;
 

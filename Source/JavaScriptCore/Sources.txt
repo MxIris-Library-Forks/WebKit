@@ -913,7 +913,6 @@ runtime/JSBigInt.cpp
 runtime/JSBoundFunction.cpp
 runtime/JSCBytecodeCacheVersion.cpp
 runtime/JSCConfig.cpp
-runtime/JSHeapDouble.cpp
 runtime/JSCJSValue.cpp
 runtime/JSCPtrTag.cpp
 runtime/JSCallee.cpp
@@ -938,7 +937,6 @@ runtime/JSGlobalObjectDebuggable.cpp
 runtime/JSGlobalObjectFunctions.cpp
 runtime/JSGlobalProxy.cpp
 runtime/JSCellButterfly.cpp
-runtime/JSHeapInt32.cpp
 runtime/JSIterator.cpp
 runtime/JSIteratorConstructor.cpp
 runtime/JSIteratorHelper.cpp
@@ -984,6 +982,10 @@ runtime/JSTypedArrayConstructors.cpp
 runtime/JSTypedArrayPrototypes.cpp
 runtime/JSTypedArrayViewConstructor.cpp
 runtime/JSTypedArrayViewPrototype.cpp
+runtime/JSTypedArrayViewPrototypeFunctions1.cpp @no-unify
+runtime/JSTypedArrayViewPrototypeFunctions2.cpp @no-unify
+runtime/JSTypedArrayViewPrototypeFunctions3.cpp @no-unify
+runtime/JSTypedArrayViewPrototypeFunctions4.cpp @no-unify
 runtime/JSTypedArrays.cpp
 runtime/JSWeakMap.cpp
 runtime/JSWeakObjectRef.cpp

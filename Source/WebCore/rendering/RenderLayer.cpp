@@ -153,6 +153,7 @@
 #include "ShadowRoot.h"
 #include "SourceGraphic.h"
 #include "StyleAttributeMutationScope.h"
+#include "StylePrimitiveNumericTypes+Evaluation.h"
 #include "StyleProperties.h"
 #include "StyleResolver.h"
 #include "StyleScaleTransformFunction.h"
@@ -3627,7 +3628,7 @@ GraphicsContext* RenderLayer::setupFilters(GraphicsContext& destinationContext, 
     LayoutRect filterRepaintRect = paintingFilters->dirtySourceRect();
     filterRepaintRect.move(offsetFromRoot);
 
-    auto rootRelativeBounds = calculateLayerBounds(paintingInfo.rootLayer, offsetFromRoot, { RenderLayer::PreserveAncestorFlags });
+    auto rootRelativeBounds = calculateLayerBounds(paintingInfo.rootLayer, offsetFromRoot, { });
 
     // When the filter is applied via a transparency layer directly on the destination context (e.g. CG drop-shadow),
     // the switcher doesn't consult applyFilters's clipToRect path, so the ancestor border-radius clip would be lost.
@@ -6533,7 +6534,7 @@ bool RenderLayer::isTransparentRespectingParentFrames() const
 
     float currentOpacity = 1;
     for (auto* layer = this; layer; layer = parentLayerCrossFrame(*layer)) {
-        currentOpacity *= layer->renderer().style().opacity().value.value;
+        currentOpacity *= Style::evaluate<float>(layer->renderer().style().opacity());
         if (currentOpacity < minimumVisibleOpacity)
             return true;
     }

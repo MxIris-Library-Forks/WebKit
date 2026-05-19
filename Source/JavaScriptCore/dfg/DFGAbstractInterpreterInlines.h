@@ -1634,7 +1634,8 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     }
 
     case StringSubstring:
-    case StringSlice: {
+    case StringSlice:
+    case StringSubstr: {
         setTypeForNode(node, SpecString);
         break;
     }
@@ -3340,6 +3341,11 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
     }
             
     case ArrayPop:
+        clobberWorld();
+        makeHeapTopForNode(node);
+        break;
+
+    case ArrayShift:
         clobberWorld();
         makeHeapTopForNode(node);
         break;

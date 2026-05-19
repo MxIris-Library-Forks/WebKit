@@ -1036,6 +1036,7 @@ private:
         case GetByValMegamorphic:
         case ArrayPop:
         case ArrayPush:
+        case ArrayShift:
         case ArraySplice:
         case RegExpExec:
         case RegExpExecNonGlobalOrSticky:
@@ -1234,6 +1235,7 @@ private:
         case StringValueOf:
         case StringSlice:
         case StringSubstring:
+        case StringSubstr:
         case ToUpperCase:
         case ToLowerCase:
             setPrediction(SpecString);

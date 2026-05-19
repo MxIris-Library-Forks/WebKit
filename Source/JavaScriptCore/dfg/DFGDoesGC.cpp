@@ -289,6 +289,7 @@ bool doesGC(Graph& graph, Node* node)
 #if ASSERT_ENABLED
     case ArrayPush:
     case ArrayPop:
+    case ArrayShift:
     case ArraySplice:
     case PushWithScope:
     case CreateActivation:
@@ -461,6 +462,7 @@ bool doesGC(Graph& graph, Node* node)
     case StringReplaceString:
     case StringSlice:
     case StringSubstring:
+    case StringSubstr:
     case StringValueOf:
     case CreateRest:
     case ToUpperCase:

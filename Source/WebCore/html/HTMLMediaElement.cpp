@@ -1191,7 +1191,10 @@ void HTMLMediaElement::pauseAfterDetachedTask()
     if (m_inActiveDocument)
         return;
 
-    if (m_videoFullscreenMode != VideoFullscreenModePictureInPicture && m_networkState > NETWORK_EMPTY && !m_wasInterruptedForInvisibleAutoplay)
+    // Don't pause during an in-flight seek: pause()'s spec-mandated 'timeupdate' would race
+    // with the seek's own seeking/timeupdate/seeked events, and listeners attached to the
+    // (now-detached) element by an active test still receive these events.
+    if (m_videoFullscreenMode != VideoFullscreenModePictureInPicture && m_networkState > NETWORK_EMPTY && !m_wasInterruptedForInvisibleAutoplay && !m_seeking)
         pause();
     if (m_videoFullscreenMode == VideoFullscreenModeStandard && !protect(document())->quirks().needsNowPlayingFullscreenSwapQuirk())
         exitFullscreen();
@@ -3937,17 +3940,12 @@ void HTMLMediaElement::seekWithTolerance(const SeekTarget& target, bool fromDOM)
     // The flag will be cleared when the engine tells us the time has actually changed.
     setSeeking(true);
 
-    // Drop any queued timeupdate task before the seekTask (or any other task)
-    // has a chance to dispatch, per the HTML spec time-marches-on algorithm
-    // (https://html.spec.whatwg.org/multipage/media.html#time-marches-on, step 6):
-    //   "(In the other cases, such as explicit seeks, relevant events get fired
-    //   as part of the overall process of changing the current playback
-    //   position.)"
-    // This must happen synchronously from the DOM-side entry point: the seek
-    // path below enqueues seekTask onto the same task queue where a pending
-    // timeupdate may already be waiting, and the event loop would otherwise
-    // dispatch the timeupdate first.
-    m_timeupdateCancellationGroup.cancel();
+    // Drop any periodic timeupdate already on the task queue. For fromDOM=true seeks,
+    // seekTask runs asynchronously, so a periodic timeupdate queued by
+    // playbackProgressTimerFired just before setCurrentTime could otherwise dispatch
+    // ahead of 'seeking'. The m_seeking guard in scheduleTimeupdateEvent suppresses any
+    // periodic queued in the window between this point and seekTask running.
+    m_periodicTimeupdateCancellationGroup.cancel();
 
     if (m_playing) {
         if (m_lastSeekTime < now)
@@ -4039,8 +4037,7 @@ void HTMLMediaElement::seekTask()
         ALWAYS_LOG(LOGIDENTIFIER, "ignored seek to ", time);
         if (time == now) {
             scheduleEvent(eventNames().seekingEvent);
-            // Emit directly: scheduleTimeupdateEvent's m_seeking guard would drop it.
-            scheduleEvent(eventNames().timeupdateEvent);
+            scheduleTimeupdateEvent(false);
             scheduleEvent(eventNames().seekedEvent);
 
             if (protect(document())->quirks().needsCanPlayAfterSeekedQuirk() && m_readyState > HAVE_CURRENT_DATA)
@@ -5073,9 +5070,9 @@ void HTMLMediaElement::scheduleTimeupdateEvent(bool periodicEvent)
     // Per HTML spec, the periodic timeupdate is only for "the time reached through the
     // usual monotonic increase of the current playback position during normal playback".
     // During an active seek, the seek algorithm's own events (seeking -> timeupdate ->
-    // seeked via finishSeek) are responsible for notifying the page. Suppress timeupdates
-    // while seeking so they don't interleave with the seek-driven ordering.
-    if (m_seeking)
+    // seeked via finishSeek) are responsible for notifying the page. Suppress periodic
+    // timeupdates while seeking so they don't interleave with the seek-driven ordering.
+    if (periodicEvent && m_seeking)
         return;
 
     MonotonicTime now = MonotonicTime::now();
@@ -5092,14 +5089,14 @@ void HTMLMediaElement::scheduleTimeupdateEvent(bool periodicEvent)
     // event at a given time so filter here
     MediaTime movieTime = currentMediaTime();
     if (movieTime != m_lastTimeUpdateEventMovieTime) {
-        // Route through the cancellation group so seek() can drop the pending
-        // timeupdate before queueing 'seeking', per the HTML spec
-        // time-marches-on algorithm
-        // (https://html.spec.whatwg.org/multipage/media.html#time-marches-on, step 6):
-        //   "(In the other cases, such as explicit seeks, relevant events get
-        //   fired as part of the overall process of changing the current
-        //   playback position.)"
-        queueCancellableTaskToDispatchEvent(*this, TaskSource::MediaElement, m_timeupdateCancellationGroup, Event::create(eventNames().timeupdateEvent, Event::CanBubble::No, Event::IsCancelable::Yes));
+        if (periodicEvent) {
+            // Periodic timeupdates are cancellable by the seek path — if a seek starts
+            // before this task dispatches, the pending timeupdate would race ahead of
+            // the 'seeking' event, producing spec-incorrect event ordering that fails
+            // mediasource-duration.html.
+            queueCancellableTaskToDispatchEvent(*this, TaskSource::MediaElement, m_periodicTimeupdateCancellationGroup, Event::create(eventNames().timeupdateEvent, Event::CanBubble::No, Event::IsCancelable::Yes));
+        } else
+            scheduleEvent(eventNames().timeupdateEvent);
         m_clockTimeAtLastUpdateEvent = now;
         m_lastTimeUpdateEventMovieTime = movieTime;
     }
@@ -5908,10 +5905,13 @@ void HTMLMediaElement::mediaPlayerTimeChanged()
     if (m_seekRequested && m_readyState >= HAVE_CURRENT_DATA && !protect(player())->seeking())
         finishSeek();
 
-    // Always call scheduleTimeupdateEvent when the media engine reports a time discontinuity,
-    // it will only queue a 'timeupdate' event if we haven't already posted one at the current
-    // movie time.
-    else
+    // Otherwise schedule a discontinuity 'timeupdate' (per the spec's timeupdate event
+    // definition: "the current playback position changed [...] in an especially
+    // interesting way, for example discontinuously"). Skip while m_seeking is true:
+    // the seek's own seeking/timeupdate/seeked events would race with this one, and
+    // m_seekRequested is still false in the gap before seekTask runs so the if-branch
+    // above can't catch it.
+    else if (!m_seeking)
         scheduleTimeupdateEvent(false);
 
 #if ENABLE(MEDIA_SOURCE)

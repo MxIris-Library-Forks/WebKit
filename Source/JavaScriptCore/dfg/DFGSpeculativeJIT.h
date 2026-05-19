@@ -1734,6 +1734,7 @@ public:
     void compileObjectDefinePropertyFromFields(Node*);
     void compileStringSlice(Node*);
     void compileStringSubstring(Node*);
+    void compileStringSubstr(Node*);
     void compileToUpperCase(Node*);
     void compileToLowerCase(Node*);
     void compileThrow(Node*);
@@ -1803,6 +1804,9 @@ public:
     void compileStringIndexOf(Node*);
     void compileStringLastIndexOf(Node*);
     void compileStringStartsOrEndsWith(Node*);
+#if USE(JSVALUE64)
+    void compileStringStartsOrEndsWithConstant(Node*, bool isStartsWith, std::span<const Latin1Character> search);
+#endif
     void compileStringSplit(Node*);
     void compileStringMatch(Node*);
     void compileDateGet(Node*);

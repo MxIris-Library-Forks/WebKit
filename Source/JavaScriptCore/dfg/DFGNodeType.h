@@ -344,6 +344,7 @@ namespace JSC { namespace DFG {
     /* Optimizations for array mutation. */\
     macro(ArrayPush, NodeResultJS | NodeMustGenerate | NodeHasVarArgs) \
     macro(ArrayPop, NodeResultJS | NodeMustGenerate) \
+    macro(ArrayShift, NodeResultJS | NodeMustGenerate) \
     macro(ArraySlice, NodeResultJS | NodeMustGenerate | NodeHasVarArgs) \
     macro(ArrayConcatArray, NodeResultJS | NodeMustGenerate) \
     macro(ArrayConcatAppendOne, NodeResultJS | NodeMustGenerate) \
@@ -623,6 +624,7 @@ namespace JSC { namespace DFG {
     macro(StringValueOf, NodeMustGenerate | NodeResultJS) \
     macro(StringSlice, NodeResultJS) \
     macro(StringSubstring, NodeResultJS) \
+    macro(StringSubstr, NodeResultJS) \
     macro(StringLocaleCompare, NodeMustGenerate | NodeResultInt32) \
     macro(ToLowerCase, NodeResultJS) \
     macro(ToUpperCase, NodeResultJS) \

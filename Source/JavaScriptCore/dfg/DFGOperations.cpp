@@ -1247,10 +1247,39 @@ JSC_DEFINE_JIT_OPERATION(operationArrayPopAndRecoverLength, EncodedJSValue, (JSG
     CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
     JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
     auto scope = DECLARE_THROW_SCOPE(vm);
-    
+
     array->butterfly()->setPublicLength(array->butterfly()->publicLength() + 1);
-    
+
     OPERATION_RETURN(scope, JSValue::encode(array->pop(globalObject)));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationArrayShift, EncodedJSValue, (JSGlobalObject* globalObject, JSArray* array))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    JSValue result = array->fastShift(vm);
+    if (result)
+        OPERATION_RETURN(scope, JSValue::encode(result));
+
+    uint64_t length = toLength(globalObject, array);
+    OPERATION_RETURN_IF_EXCEPTION(scope, encodedJSValue());
+
+    if (!length) {
+        scope.release();
+        setLength(globalObject, vm, array, length);
+        OPERATION_RETURN(scope, JSValue::encode(jsUndefined()));
+    }
+
+    JSValue front = array->getIndex(globalObject, 0);
+    OPERATION_RETURN_IF_EXCEPTION(scope, encodedJSValue());
+    shift<JSArray::ShiftCountForShift>(globalObject, array, 0, 1, 0, length);
+    OPERATION_RETURN_IF_EXCEPTION(scope, encodedJSValue());
+    scope.release();
+    setLength(globalObject, vm, array, length - 1);
+    OPERATION_RETURN(scope, JSValue::encode(front));
 }
 
 template<bool ignoreResult>
@@ -3356,6 +3385,18 @@ JSC_DEFINE_JIT_OPERATION(operationStringSubstr, JSCell*, (JSGlobalObject* global
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     OPERATION_RETURN(scope, jsSubstring(globalObject, vm, uncheckedDowncast<JSString>(cell), from, span));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringSubstrGeneric, JSCell*, (JSGlobalObject* globalObject, JSCell* cell, int32_t start, int32_t length))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    JSString* string = uncheckedDowncast<JSString>(cell);
+    auto [from, span] = extractSubstrOffsets(static_cast<int32_t>(string->length()), start, length);
+    OPERATION_RETURN(scope, jsSubstring(globalObject, vm, string, from, span));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationStringSlice, JSString*, (JSGlobalObject* globalObject, JSString* string, int32_t start))

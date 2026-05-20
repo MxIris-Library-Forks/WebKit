@@ -835,6 +835,7 @@ set(WebKit_SWIFT_INTEROP_MODULE_PATH "${WEBKIT_DIR}/Modules/Internal")
 
 WEBKIT_FRAMEWORK_DECLARE(WebKit)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
+WEBKIT_ADD_TARGET_UNSAFE_BUFFER_WARNINGS(WebKit)
 
 # The full WebKit_Internal C++ module pulls in WebPageProxy.h and friends, which
 # quote-include across the entire WebKit/WebCore/JSC private header set. Mirror
@@ -925,16 +926,10 @@ if (NOT APPLE AND SWIFT_REQUIRED)
     endforeach ()
 endif ()
 
+set(WebKit_SWIFT_TYPECHECK_EXTRA_DEPENDS ${WebKit_DERIVED_SOURCES_DIR}/WebKitLogDefinitions.h)
 WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER(WebKit WebKit
     "${WebKit_SWIFT_INTEROP_MODULE_PATH}"
     "${WebKit_DERIVED_SOURCES_DIR}/WebKit-Swift-CPP.h")
-
-if (ENABLE_UNSAFE_BUFFER_USAGE_WARNING)
-    WEBKIT_ADD_TARGET_CXX_FLAGS(WebKit
-        -Wunsafe-buffer-usage
-        -Wunsafe-buffer-usage-in-libc-call
-    )
-endif ()
 
 if (WebKit_PUBLIC_FRAMEWORK_HEADERS)
     WEBKIT_COPY_FILES(WebKit_CopyHeaders
@@ -1267,9 +1262,10 @@ endif ()
 
 list(APPEND WebKit_SOURCES ${WebKit_DERIVED_SOURCES})
 
-if (TARGET WebKit_SwiftCxxHeader)
+if (SWIFT_REQUIRED)
+    # WebKit_SwiftCxxHeader is created by a DEFER CALL, so defer the dep wiring too.
     add_custom_target(WebKit_DerivedHeadersForSwift DEPENDS ${WebKit_HEADERS} ${WebKit_DERIVED_SOURCES})
-    add_dependencies(WebKit_SwiftCxxHeader WebKit_DerivedHeadersForSwift)
+    cmake_language(DEFER CALL add_dependencies WebKit_SwiftCxxHeader WebKit_DerivedHeadersForSwift)
 endif ()
 
 WEBKIT_COMPUTE_SOURCES(WebKit)

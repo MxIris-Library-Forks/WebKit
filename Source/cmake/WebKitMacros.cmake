@@ -705,6 +705,12 @@ macro(WEBKIT_ADD_TARGET_PROPERTIES _target _property _flags)
     unset(_tmp)
 endmacro()
 
+function(WEBKIT_ADD_TARGET_UNSAFE_BUFFER_WARNINGS _target)
+    if (ENABLE_UNSAFE_BUFFER_USAGE_WARNING AND WEBKIT_UNSAFE_BUFFER_WARNING_FLAGS)
+        WEBKIT_ADD_TARGET_CXX_FLAGS(${_target} ${WEBKIT_UNSAFE_BUFFER_WARNING_FLAGS})
+    endif ()
+endfunction()
+
 macro(WEBKIT_POPULATE_LIBRARY_VERSION library_name)
     if (NOT DEFINED ${library_name}_VERSION_MAJOR)
         set(${library_name}_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -833,13 +839,11 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         # found". -disable-sandbox skips the inner sandbox; the macros are
         # WebKit's own, so the isolation it provides isn't load-bearing here.
         list(APPEND _swift_options "-disable-sandbox")
-        if (NOT (PORT STREQUAL GTK OR PORT STREQUAL WPE))
-            # Implicit module builds share work via -module-cache-path; explicit
-            # builds were tried but strip project -Xcc -include/-I from per-module
-            # PCM compiles, which breaks the C++ interop modules' prefix header.
-            list(APPEND _swift_options "-module-cache-path" "${CMAKE_BINARY_DIR}/SwiftModuleCache")
-            set_property(DIRECTORY "${CMAKE_BINARY_DIR}" APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_BINARY_DIR}/SwiftModuleCache")
-        endif ()
+        # Implicit module builds share work via -module-cache-path; explicit
+        # builds were tried but strip project -Xcc -include/-I from per-module
+        # PCM compiles, which breaks the C++ interop modules' prefix header.
+        list(APPEND _swift_options "-module-cache-path" "${CMAKE_BINARY_DIR}/SwiftModuleCache")
+        set_property(DIRECTORY "${CMAKE_BINARY_DIR}" APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_BINARY_DIR}/SwiftModuleCache")
         # We'll use these options both for mainstream cmake invocations of swiftc (here)
         # and for our own invocation to output an interoperability .h file (later).
         # target_compile_options deduplicates repeated tokens, so collapse each
@@ -949,7 +953,7 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         add_custom_command(
             OUTPUT ${_header_stamp_path}
             BYPRODUCTS ${_header_path}
-            DEPENDS ${_swift_sources}
+            DEPENDS ${_swift_sources} ${${_target}_SWIFT_TYPECHECK_EXTRA_DEPENDS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMAND
                 ${CMAKE_Swift_COMPILER} --original-swift-compiler=${ORIGINAL_Swift_COMPILER} -typecheck

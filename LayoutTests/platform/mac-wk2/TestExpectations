@@ -2204,8 +2204,6 @@ webkit.org/b/307377 [ Tahoe Release arm64 ] compositing/webgl/update-composited-
 
 webkit.org/b/309833 fast/scrolling/mac/scrollend-event-user-scroll-basic.html [ Failure Pass ]
 
-webkit.org/b/314348 inspector/timeline/line-column.html [ Failure ]
-
 webkit.org/b/307691 [ Tahoe Release arm64 ] svg/gradients/spreadMethod.svg [ ImageOnlyFailure Pass ]
 
 webkit.org/b/309370 fast/css/vertical-text-overflow-ellipsis-text-align-center.html [ Failure Pass ]
@@ -2256,6 +2254,16 @@ webkit.org/b/310163 http/tests/site-isolation/inspector/network/cross-origin-ifr
 webkit.org/b/310163 http/tests/site-isolation/inspector/network/cross-origin-iframe-resource-appears-in-network-domain.html [ Pass Failure ]
 webkit.org/b/315225 http/tests/site-isolation/inspector/network/cross-origin-iframe-request-id-uniqueness.html [ Skip ]
 
+# Skipped on mac-wk2-stress in site-isolation mode: stress parallelism races with
+# BackendResourceDataStore lifecycle / event ordering. Tests pass cleanly on the
+# mac-site-isolation queue. Re-enable when b/315308 is fixed.
+webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-response-body.html [ Skip ]
+webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-response-body-after-navigation.html [ Skip ]
+webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-response-body-binary.html [ Skip ]
+webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-response-body-document.html [ Skip ]
+webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-response-body-error-cases.html [ Skip ]
+webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-response-body-subresources.html [ Skip ]
+
 webkit.org/b/308165 [ Debug ] scrollingcoordinator/mac/latching/simple-page-rubberbands.html [ Pass Failure ]
 
 webkit.org/b/311759 [ Release arm64 ] imported/w3c/web-platform-tests/event-timing/keydown.html [ Pass Failure ]
@@ -2280,8 +2288,6 @@ webkit.org/b/308856 [ Debug ] http/tests/websocket/tests/hybi/handshake-ok-with-
 [ Tahoe ] accessibility/mac/intersection-with-selection-range.html [ Skip ]
 
 webkit.org/b/309850 [ Debug ] imported/w3c/web-platform-tests/uievents/mouse/mouse_boundary_events_after_removing_last_over_element.html [ Pass Failure ]
-
-webkit.org/b/314668 webrtc/getUserMedia-webaudio-autoplay.html [ Pass Failure ]
 
 webkit.org/b/314136 accessibility/mac/client/div-bounds.html [ Pass Failure ]
 
@@ -2322,3 +2328,9 @@ webkit.org/b/315282 [ Tahoe Release x86_64 ] webanimations/frame-rate/document-t
 webkit.org/b/315337 [ Sequoia x86_64 ] imported/w3c/web-platform-tests/css/css-view-transitions/new-content-root-scrollbar-with-fixed-background.html [ ImageOnlyFailure ]
 webkit.org/b/315337 [ Sequoia x86_64 ] imported/w3c/web-platform-tests/css/css-view-transitions/old-content-root-scrollbar-with-fixed-background.html [ ImageOnlyFailure ]
 webkit.org/b/315337 [ Sequoia x86_64 ] imported/w3c/web-platform-tests/css/filter-effects/root-element-with-opacity-filter-001.html [ ImageOnlyFailure ]
+
+webkit.org/b/315354 media/video-concurrent-visible-playback.html [ Pass Failure ]
+
+webkit.org/b/315398 [ Release ] http/tests/site-isolation/accessibility/client/simple-iframe.html [ Timeout ]
+
+webkit.org/b/314902 [ Debug ] http/tests/site-isolation/inspector/target/target.html [ Skip ]

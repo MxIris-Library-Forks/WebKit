@@ -4427,6 +4427,7 @@
 		A578F43F1DE0B630003DFC6A /* RejectedPromiseTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = A578F43E1DE0B62B003DFC6A /* RejectedPromiseTracker.h */; };
 		A581ED131FB288CF00CED4EC /* ServiceWorkerAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A581ED101FB288C800CED4EC /* ServiceWorkerAgent.h */; };
 		A5840E25187B8AC200843B10 /* WebInjectedScriptHost.h in Headers */ = {isa = PBXBuildFile; fileRef = A5840E23187B8AC200843B10 /* WebInjectedScriptHost.h */; };
+		D17142C65B67F1DE83AF6B38 /* RuntimeAgentUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = A54A18118837979935B3492A /* RuntimeAgentUtilities.h */; };
 		A584FE2C1863870F00843B10 /* CommandLineAPIModule.h in Headers */ = {isa = PBXBuildFile; fileRef = A584FE2A1863870F00843B10 /* CommandLineAPIModule.h */; };
 		A584FE301864CB8400843B10 /* WebInjectedScriptManager.h in Headers */ = {isa = PBXBuildFile; fileRef = A584FE2E1864CB8400843B10 /* WebInjectedScriptManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A584FE351864D5AF00843B10 /* CommandLineAPIHost.h in Headers */ = {isa = PBXBuildFile; fileRef = A584FE321864D5AF00843B10 /* CommandLineAPIHost.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -17541,6 +17542,7 @@
 		A581ED121FB288C900CED4EC /* ServiceWorkerAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ServiceWorkerAgent.cpp; sourceTree = "<group>"; };
 		A5840E22187B8AC200843B10 /* WebInjectedScriptHost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebInjectedScriptHost.cpp; sourceTree = "<group>"; };
 		A5840E23187B8AC200843B10 /* WebInjectedScriptHost.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebInjectedScriptHost.h; sourceTree = "<group>"; };
+		A54A18118837979935B3492A /* RuntimeAgentUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeAgentUtilities.h; sourceTree = "<group>"; };
 		A584FE2718637DCA00843B10 /* CommandLineAPIModuleSource.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = CommandLineAPIModuleSource.js; sourceTree = "<group>"; };
 		A584FE291863870F00843B10 /* CommandLineAPIModule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CommandLineAPIModule.cpp; sourceTree = "<group>"; };
 		A584FE2A1863870F00843B10 /* CommandLineAPIModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommandLineAPIModule.h; sourceTree = "<group>"; };
@@ -34435,6 +34437,7 @@
 				A5B81C8B1FAA44260037D1E6 /* InspectorTimelineAgent.h */,
 				A5B81C981FAA44260037D1E6 /* InspectorWorkerAgent.cpp */,
 				A5B81C8A1FAA44260037D1E6 /* InspectorWorkerAgent.h */,
+				A54A18118837979935B3492A /* RuntimeAgentUtilities.h */,
 				A5B81C991FAA44260037D1E6 /* WebConsoleAgent.cpp */,
 				A5B81C8E1FAA44260037D1E6 /* WebConsoleAgent.h */,
 				A5B81CA21FAA44270037D1E6 /* WebDebuggerAgent.cpp */,
@@ -48230,6 +48233,7 @@
 				1A569D210D7E2B82007C3983 /* runtime_method.h in Headers */,
 				1A569D230D7E2B82007C3983 /* runtime_object.h in Headers */,
 				1A569D250D7E2B82007C3983 /* runtime_root.h in Headers */,
+				D17142C65B67F1DE83AF6B38 /* RuntimeAgentUtilities.h in Headers */,
 				CE7A6C28208537E200FA2B46 /* SameSiteInfo.h in Headers */,
 				41FCD6B923CE015500C62567 /* SampleBufferDisplayLayer.h in Headers */,
 				CDD7089718359F6F002B3DC6 /* SampleMap.h in Headers */,

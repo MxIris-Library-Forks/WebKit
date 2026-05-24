@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,34 +16,35 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "OrderedHashTable.h"
+#pragma once
 
-#include "ButterflyInlinesLight.h"
+#include "CSSPrimitiveNumericTypes+CSSValueCreation.h"
+#include "DeprecatedCSSOMPrimitiveValue.h"
 
-namespace JSC {
+namespace WebCore {
+namespace CSS {
 
-template<typename Traits>
-template<typename Visitor>
-void OrderedHashTable<Traits>::visitChildrenImpl(JSCell* cell, Visitor& visitor)
-{
-    OrderedHashTable<Traits>* thisObject = uncheckedDowncast<OrderedHashTable<Traits>>(cell);
-    ASSERT_GC_OBJECT_INHERITS(thisObject, info());
-    Base::visitChildren(thisObject, visitor);
+// MARK: - Conversion from strongly typed `CSS::` value types to `WebCore::DeprecatedCSSOMValue` types.
 
-    visitor.append(thisObject->m_storage);
-}
+template<NumericRaw CSSType> struct DeprecatedCSSOMValueCreation<CSSType> {
+    Ref<DeprecatedCSSOMValue> operator()(CSSValuePool& pool, CSSStyleDeclaration& owner, const CSSType& value)
+    {
+        return DeprecatedCSSOMPrimitiveValue::create(createCSSValue(pool, value), owner);
+    }
+};
 
-DEFINE_VISIT_CHILDREN_WITH_MODIFIER(template<typename Traits>, OrderedHashTable<Traits>);
+template<Calc CSSType> struct DeprecatedCSSOMValueCreation<CSSType> {
+    Ref<DeprecatedCSSOMValue> operator()(CSSValuePool& pool, CSSStyleDeclaration& owner, const CSSType& value)
+    {
+        return DeprecatedCSSOMPrimitiveValue::create(createCSSValue(pool, value), owner);
+    }
+};
 
-template class OrderedHashTable<MapTraits>;
-template class OrderedHashTable<SetTraits>;
-
-} // namespace JSC
+} // namespace CSS
+} // namespace WebCore

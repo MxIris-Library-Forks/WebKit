@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,34 +16,42 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "DeprecatedCSSOMBoxShadowValue.h"
+#pragma once
 
-#include "CSSPrimitiveNumericTypes+Serialization.h"
-#include "CSSSerializationContext.h"
+#include "CSSValue.h"
+#include "CSSValueTypes.h"
 
 namespace WebCore {
+namespace CSS {
 
-Ref<DeprecatedCSSOMBoxShadowValue> DeprecatedCSSOMBoxShadowValue::create(CSS::BoxShadow shadow, CSSStyleDeclaration& owner)
-{
-    return adoptRef(*new DeprecatedCSSOMBoxShadowValue(WTF::move(shadow), owner));
-}
+// Utility type that wraps an `<image>` production value for use with the strong style type system.
+struct ImageWrapper {
+    Ref<CSSValue> value;
 
-DeprecatedCSSOMBoxShadowValue::DeprecatedCSSOMBoxShadowValue(CSS::BoxShadow&& shadow, CSSStyleDeclaration& owner)
-    : DeprecatedCSSOMValue(ClassType::BoxShadow, owner)
-    , m_shadow(WTF::move(shadow))
-{
-}
+    bool operator==(const ImageWrapper& other) const
+    {
+        return arePointingToEqualData(value, other.value);
+    }
+};
 
-String DeprecatedCSSOMBoxShadowValue::cssText() const
-{
-    return CSS::serializationForCSS(CSS::defaultSerializationContext(), m_shadow);
-}
+// MARK: - CSSValue Visitation
 
+template<> struct CSSValueChildrenVisitor<ImageWrapper> { auto operator()(NOESCAPE const Function<IterationStatus(CSSValue&)>&, const ImageWrapper&) -> IterationStatus; };
+
+// MARK: - DeprecatedCSSOMValue Creation
+
+template<> struct DeprecatedCSSOMValueCreation<ImageWrapper> { Ref<DeprecatedCSSOMValue> operator()(CSSValuePool&, CSSStyleDeclaration&, const ImageWrapper&); };
+
+// MARK: - Serialization
+
+template<> struct Serialize<ImageWrapper> { void operator()(StringBuilder&, const SerializationContext&, const ImageWrapper&); };
+
+} // namespace CSS
 } // namespace WebCore

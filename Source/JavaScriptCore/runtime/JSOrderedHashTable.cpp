@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,34 +16,34 @@
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "JSOrderedHashTable.h"
 
-#include "CSSTextShadow.h"
-#include "DeprecatedCSSOMValue.h"
+#include "ButterflyInlinesLight.h"
 
-namespace WebCore {
+namespace JSC {
 
-// This class is needed to maintain compatibility with the historical CSSOM representation of the `text-shadow` related properties.
-// It should be used only as an element in a DeprecatedCSSOMValueList created by CSSTextShadowPropertyValue.
-class DeprecatedCSSOMTextShadowValue final : public DeprecatedCSSOMValue {
-public:
-    static Ref<DeprecatedCSSOMTextShadowValue> create(CSS::TextShadow, CSSStyleDeclaration&);
+template<typename Traits>
+template<typename Visitor>
+void JSOrderedHashTable<Traits>::visitChildrenImpl(JSCell* cell, Visitor& visitor)
+{
+    JSOrderedHashTable<Traits>* thisObject = uncheckedDowncast<JSOrderedHashTable<Traits>>(cell);
+    ASSERT_GC_OBJECT_INHERITS(thisObject, info());
+    Base::visitChildren(thisObject, visitor);
 
-    String cssText() const;
-    unsigned short cssValueType() const { return CSS_CUSTOM; }
+    visitor.append(thisObject->m_storage);
+}
 
-private:
-    DeprecatedCSSOMTextShadowValue(CSS::TextShadow&&, CSSStyleDeclaration&);
+DEFINE_VISIT_CHILDREN_WITH_MODIFIER(template<typename Traits>, JSOrderedHashTable<Traits>);
 
-    CSS::TextShadow m_shadow;
-};
+template class JSOrderedHashTable<MapTraits>;
+template class JSOrderedHashTable<SetTraits>;
 
-} // namespace WebCore
-
-SPECIALIZE_TYPE_TRAITS_CSSOM_VALUE(DeprecatedCSSOMTextShadowValue, isTextShadowValue())
+} // namespace JSC

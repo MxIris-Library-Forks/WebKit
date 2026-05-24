@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,27 +23,20 @@
  */
 
 #include "config.h"
-#include "DeprecatedCSSOMFilterFunctionValue.h"
+#include "CSSTextShadow.h"
 
 #include "CSSPrimitiveNumericTypes+Serialization.h"
-#include "CSSSerializationContext.h"
+#include "DeprecatedCSSOMLazySerializingCustomValue.h"
 
 namespace WebCore {
+namespace CSS {
 
-Ref<DeprecatedCSSOMFilterFunctionValue> DeprecatedCSSOMFilterFunctionValue::create(CSS::FilterFunction filter, CSSStyleDeclaration& owner)
+Ref<DeprecatedCSSOMValue> DeprecatedCSSOMValueCreation<TextShadow>::operator()(CSSValuePool&, CSSStyleDeclaration& owner, const TextShadow& value)
 {
-    return adoptRef(*new DeprecatedCSSOMFilterFunctionValue(WTF::move(filter), owner));
+    return DeprecatedCSSOMLazySerializingCustomValue::create([copy = TextShadow { value }](const CSS::SerializationContext& context) {
+        return CSS::serializationForCSS(context, copy);
+    }, owner);
 }
 
-DeprecatedCSSOMFilterFunctionValue::DeprecatedCSSOMFilterFunctionValue(CSS::FilterFunction&& filter, CSSStyleDeclaration& owner)
-    : DeprecatedCSSOMValue(ClassType::FilterFunction, owner)
-    , m_filter(WTF::move(filter))
-{
-}
-
-String DeprecatedCSSOMFilterFunctionValue::cssText() const
-{
-    return CSS::serializationForCSS(CSS::defaultSerializationContext(), m_filter);
-}
-
+} // namespace CSS
 } // namespace WebCore

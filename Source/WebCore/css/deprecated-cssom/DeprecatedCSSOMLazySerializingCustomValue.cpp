@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,27 +23,28 @@
  */
 
 #include "config.h"
-#include "DeprecatedCSSOMTextShadowValue.h"
+#include "DeprecatedCSSOMLazySerializingCustomValue.h"
 
-#include "CSSPrimitiveNumericTypes+Serialization.h"
 #include "CSSSerializationContext.h"
 
 namespace WebCore {
 
-Ref<DeprecatedCSSOMTextShadowValue> DeprecatedCSSOMTextShadowValue::create(CSS::TextShadow shadow, CSSStyleDeclaration& owner)
+Ref<DeprecatedCSSOMLazySerializingCustomValue> DeprecatedCSSOMLazySerializingCustomValue::create(SerializationFunctor&& functor, CSSStyleDeclaration& owner)
 {
-    return adoptRef(*new DeprecatedCSSOMTextShadowValue(WTF::move(shadow), owner));
+    return adoptRef(*new DeprecatedCSSOMLazySerializingCustomValue(WTF::move(functor), owner));
 }
 
-DeprecatedCSSOMTextShadowValue::DeprecatedCSSOMTextShadowValue(CSS::TextShadow&& shadow, CSSStyleDeclaration& owner)
-    : DeprecatedCSSOMValue(ClassType::TextShadow, owner)
-    , m_shadow(WTF::move(shadow))
+DeprecatedCSSOMLazySerializingCustomValue::DeprecatedCSSOMLazySerializingCustomValue(SerializationFunctor&& functor, CSSStyleDeclaration& owner)
+    : DeprecatedCSSOMValue(ClassType::LazySerializingCustom, owner)
+    , m_serializationFunctor(WTF::move(functor))
 {
 }
 
-String DeprecatedCSSOMTextShadowValue::cssText() const
+String DeprecatedCSSOMLazySerializingCustomValue::cssText() const
 {
-    return CSS::serializationForCSS(CSS::defaultSerializationContext(), m_shadow);
+    if (m_cachedSerialization.isNull())
+        m_cachedSerialization = m_serializationFunctor(CSS::defaultSerializationContext());
+    return m_cachedSerialization;
 }
 
 } // namespace WebCore

@@ -29,10 +29,12 @@
 #include <WebCore/DeprecatedCSSOMValue.h>
 
 namespace WebCore {
-    
+
+using DeprecatedCSSOMValueListBuilder = Vector<Ref<DeprecatedCSSOMValue>, 4>;
+
 class DeprecatedCSSOMValueList : public DeprecatedCSSOMValue {
 public:
-    static Ref<DeprecatedCSSOMValueList> create(Vector<Ref<DeprecatedCSSOMValue>, 4> values, CSSValue::ValueSeparator separator, CSSStyleDeclaration& owner)
+    static Ref<DeprecatedCSSOMValueList> create(DeprecatedCSSOMValueListBuilder&& values, CSSValue::ValueSeparator separator, CSSStyleDeclaration& owner)
     {
         return adoptRef(*new DeprecatedCSSOMValueList(WTF::move(values), separator, owner));
     }
@@ -49,7 +51,7 @@ public:
     bool isSupportedPropertyIndex(unsigned index) const { return index < m_values.size(); }
 
 private:
-    DeprecatedCSSOMValueList(Vector<Ref<DeprecatedCSSOMValue>, 4> values, CSSValue::ValueSeparator separator, CSSStyleDeclaration& owner)
+    DeprecatedCSSOMValueList(DeprecatedCSSOMValueListBuilder&& values, CSSValue::ValueSeparator separator, CSSStyleDeclaration& owner)
         : DeprecatedCSSOMValue(ClassType::List, owner)
         , m_values { WTF::move(values) }
     {

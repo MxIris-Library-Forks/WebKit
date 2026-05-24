@@ -28,10 +28,8 @@
 
 #include "CSSKeywordValue.h"
 #include "CSSSerializationContext.h"
-#include "DeprecatedCSSOMBoxShadowValue.h"
-#include "DeprecatedCSSOMFilterFunctionValue.h"
+#include "DeprecatedCSSOMLazySerializingCustomValue.h"
 #include "DeprecatedCSSOMPrimitiveValue.h"
-#include "DeprecatedCSSOMTextShadowValue.h"
 #include "DeprecatedCSSOMValueList.h"
 
 namespace WebCore {
@@ -44,14 +42,11 @@ void DeprecatedCSSOMValue::operator delete(DeprecatedCSSOMValue* value, std::des
     };
 
     switch (value->classType()) {
-    case ClassType::BoxShadow:
-        destroyAndFree(uncheckedDowncast<DeprecatedCSSOMBoxShadowValue>(*value));
+    case ClassType::LazySerializingCustom:
+        destroyAndFree(uncheckedDowncast<DeprecatedCSSOMLazySerializingCustomValue>(*value));
         break;
     case ClassType::Complex:
         destroyAndFree(uncheckedDowncast<DeprecatedCSSOMComplexValue>(*value));
-        break;
-    case ClassType::FilterFunction:
-        destroyAndFree(uncheckedDowncast<DeprecatedCSSOMFilterFunctionValue>(*value));
         break;
     case ClassType::Primitive:
         destroyAndFree(uncheckedDowncast<DeprecatedCSSOMPrimitiveValue>(*value));
@@ -59,27 +54,20 @@ void DeprecatedCSSOMValue::operator delete(DeprecatedCSSOMValue* value, std::des
     case ClassType::List:
         destroyAndFree(uncheckedDowncast<DeprecatedCSSOMValueList>(*value));
         break;
-    case ClassType::TextShadow:
-        destroyAndFree(uncheckedDowncast<DeprecatedCSSOMTextShadowValue>(*value));
-        break;
     }
 }
 
 unsigned short DeprecatedCSSOMValue::cssValueType() const
 {
     switch (classType()) {
-    case ClassType::BoxShadow:
-        return uncheckedDowncast<DeprecatedCSSOMBoxShadowValue>(*this).cssValueType();
+    case ClassType::LazySerializingCustom:
+        return uncheckedDowncast<DeprecatedCSSOMLazySerializingCustomValue>(*this).cssValueType();
     case ClassType::Complex:
         return uncheckedDowncast<DeprecatedCSSOMComplexValue>(*this).cssValueType();
-    case ClassType::FilterFunction:
-        return uncheckedDowncast<DeprecatedCSSOMFilterFunctionValue>(*this).cssValueType();
     case ClassType::Primitive:
         return uncheckedDowncast<DeprecatedCSSOMPrimitiveValue>(*this).cssValueType();
     case ClassType::List:
         return CSS_VALUE_LIST;
-    case ClassType::TextShadow:
-        return uncheckedDowncast<DeprecatedCSSOMTextShadowValue>(*this).cssValueType();
     }
     ASSERT_NOT_REACHED();
     return CSS_CUSTOM;
@@ -88,18 +76,14 @@ unsigned short DeprecatedCSSOMValue::cssValueType() const
 String DeprecatedCSSOMValue::cssText() const
 {
     switch (classType()) {
-    case ClassType::BoxShadow:
-        return uncheckedDowncast<DeprecatedCSSOMBoxShadowValue>(*this).cssText();
+    case ClassType::LazySerializingCustom:
+        return uncheckedDowncast<DeprecatedCSSOMLazySerializingCustomValue>(*this).cssText();
     case ClassType::Complex:
         return uncheckedDowncast<DeprecatedCSSOMComplexValue>(*this).cssText();
-    case ClassType::FilterFunction:
-        return uncheckedDowncast<DeprecatedCSSOMFilterFunctionValue>(*this).cssText();
     case ClassType::Primitive:
         return uncheckedDowncast<DeprecatedCSSOMPrimitiveValue>(*this).cssText();
     case ClassType::List:
         return uncheckedDowncast<DeprecatedCSSOMValueList>(*this).cssText();
-    case ClassType::TextShadow:
-        return uncheckedDowncast<DeprecatedCSSOMTextShadowValue>(*this).cssText();
     }
     ASSERT_NOT_REACHED();
     return emptyString();

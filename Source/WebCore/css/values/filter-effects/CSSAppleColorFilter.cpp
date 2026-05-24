@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,28 +22,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "CSSAppleColorFilter.h"
 
-#include "CSSBoxShadow.h"
-#include "DeprecatedCSSOMValue.h"
+#include "CSSPrimitiveNumericTypes+Serialization.h"
+#include "DeprecatedCSSOMLazySerializingCustomValue.h"
 
 namespace WebCore {
+namespace CSS {
 
-// This class is needed to maintain compatibility with the historical CSSOM representation of the `box-shadow` related properties.
-// It should be used only as an element in a DeprecatedCSSOMValueList created by CSSBoxShadowPropertyValue.
-class DeprecatedCSSOMBoxShadowValue final : public DeprecatedCSSOMValue {
-public:
-    static Ref<DeprecatedCSSOMBoxShadowValue> create(CSS::BoxShadow, CSSStyleDeclaration&);
+Ref<DeprecatedCSSOMValue> DeprecatedCSSOMValueCreation<AppleColorFilterValue>::operator()(CSSValuePool&, CSSStyleDeclaration& owner, const AppleColorFilterValue& value)
+{
+    return DeprecatedCSSOMLazySerializingCustomValue::create([copy = AppleColorFilterValue { value }](const CSS::SerializationContext& context) {
+        return CSS::serializationForCSS(context, copy);
+    }, owner);
+}
 
-    String cssText() const;
-    unsigned short cssValueType() const { return CSS_CUSTOM; }
-
-private:
-    DeprecatedCSSOMBoxShadowValue(CSS::BoxShadow&&, CSSStyleDeclaration&);
-
-    CSS::BoxShadow m_shadow;
-};
-
+} // namespace CSS
 } // namespace WebCore
-
-SPECIALIZE_TYPE_TRAITS_CSSOM_VALUE(DeprecatedCSSOMBoxShadowValue, isBoxShadowValue())

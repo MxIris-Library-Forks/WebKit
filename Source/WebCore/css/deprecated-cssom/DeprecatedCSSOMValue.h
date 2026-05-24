@@ -52,11 +52,9 @@ public:
     WEBCORE_EXPORT String cssText() const;
     ExceptionOr<void> setCssText(const String&) { return { }; } // Will never implement.
 
-    bool isBoxShadowValue() const { return classType() == ClassType::BoxShadow; }
+    bool isLazySerializingCustomValue() const { return classType() == ClassType::LazySerializingCustom; }
     bool isComplexValue() const { return classType() == ClassType::Complex; }
-    bool isFilterFunctionValue() const { return classType() == ClassType::FilterFunction; }
     bool isPrimitiveValue() const { return classType() == ClassType::Primitive; }
-    bool isTextShadowValue() const { return classType() == ClassType::TextShadow; }
     bool isValueList() const { return classType() == ClassType::List; }
 
     CSSStyleDeclaration& owner() const { return m_owner; }
@@ -66,12 +64,10 @@ public:
 protected:
     static const size_t ClassTypeBits = 3;
     enum class ClassType : uint8_t {
-        BoxShadow,
+        LazySerializingCustom,
         Complex,
-        FilterFunction,
         List,
-        Primitive,
-        TextShadow
+        Primitive
     };
     ClassType classType() const { return static_cast<ClassType>(m_classType); }
 

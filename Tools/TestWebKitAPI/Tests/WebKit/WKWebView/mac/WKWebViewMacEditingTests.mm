@@ -230,6 +230,40 @@
 
 @end
 
+// Borderless windows return canBecomeKeyWindow=NO by default, which makes
+// [NSApp sendEvent:] silently drop the keydown re-send that
+// WebViewImpl::doneWithKeyEvent issues on eventWasHandled=false. This subclass
+// (a) forces canBecomeKeyWindow=YES so re-sent keydowns reach the firstResponder,
+// and (b) counts -noResponderFor:keyDown:: when an unhandled keydown propagates
+// up the responder chain past the webView and bottoms out at the window, AppKit's
+// default -noResponderFor: would call NSBeep — our override suppresses the beep
+// and counts so tests can assert the IPC reply correctly reports handled.
+@interface KeyableBorderlessWindow : NSWindow
+@property (nonatomic, readonly) NSUInteger unhandledKeyDownCount;
+@end
+
+@implementation KeyableBorderlessWindow {
+    NSUInteger _unhandledKeyDownCount;
+}
+
+- (BOOL)canBecomeKeyWindow
+{
+    return YES;
+}
+
+- (NSUInteger)unhandledKeyDownCount
+{
+    return _unhandledKeyDownCount;
+}
+
+- (void)noResponderFor:(SEL)selector
+{
+    if (selector == @selector(keyDown:))
+        ++_unhandledKeyDownCount;
+}
+
+@end
+
 @interface WKWebView (MacEditingTests)
 - (std::pair<NSRect, NSRange>)_firstRectForCharacterRange:(NSRange)characterRange;
 @end
@@ -580,6 +614,58 @@ TEST(WKWebViewMacEditingTests, HindiInScriptViramaConjunctEmitsSuffixFromKeyboar
     Util::runFor(1_s);
 
     EXPECT_STREQ(@"\u0915\u094D\u092F\u093E".UTF8String, [webView stringByEvaluatingJavaScript:@"document.body.textContent"].UTF8String);
+}
+
+TEST(WKWebViewMacEditingTests, HindiInScriptViramaConjunctReportsKeystrokeHandled)
+{
+    RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
+    for (_WKFeature *feature in WKPreferences._features) {
+        NSString *key = feature.key;
+        if ([key isEqualToString:@"InputMethodUsesCorrectKeyEventOrder"])
+            [[configuration preferences] _setEnabled:YES forFeature:feature];
+    }
+
+    RetainPtr webView = adoptNS([[TestWebViewWithMockTextInputContext alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
+    [webView removeFromSuperview];
+    RetainPtr window = adoptNS([[KeyableBorderlessWindow alloc] initWithContentRect:NSMakeRect(100, 100, 800, 600) styleMask:NSWindowStyleMaskBorderless backing:NSBackingStoreBuffered defer:YES]);
+    [[window contentView] addSubview:webView.get()];
+    [window makeKeyAndOrderFront:nil];
+    [window makeFirstResponder:webView.get()];
+
+    // The Hindi InScript "/" keystroke goes through the partial-prefix path: the input method commits
+    // the marked virama via insertText:"\u094D" and the layout pass appends insertText:"\u092F".
+    // We need to prevent NSEvent from bubbling up to [NSApp sendEvent:] which beeps.
+    [webView _web_superInputContext].actions = [@[
+        [[[MockTextInputContextAction alloc] initWithInsertText:@"\u0915" replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+        [[[MockTextInputContextAction alloc] initWithMarkedText:@"\u094D" selectedRange:NSMakeRange(0, 1) replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+        [[[MockTextInputContextAction alloc] initWithInsertText:@"\u094D" replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+        [[[MockTextInputContextAction alloc] initWithInsertText:@"\u093E" replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+    ].mutableCopy autorelease];
+    [webView _web_superInputContext].layoutActions = [@[
+        [[[MockTextInputContextAction alloc] initWithInsertText:@"\u0915" replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+        [[[MockTextInputContextAction alloc] initWithInsertText:@"\u092F" replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+        [[[MockTextInputContextAction alloc] initWithInsertText:@"\u093E" replacementRange:NSMakeRange(NSNotFound, 0)] autorelease],
+    ].mutableCopy autorelease];
+
+    [webView synchronouslyLoadHTMLString:@"<body contenteditable></body>"];
+    [webView stringByEvaluatingJavaScript:@"document.body.focus()"];
+    [webView waitForNextPresentationUpdate];
+
+    [webView sendKey:@"\u0915" code:0x28 isDown:YES modifiers:0];
+    [webView sendKey:@"\u0915" code:0x28 isDown:NO modifiers:0];
+    Util::runFor(1_s);
+    [webView sendKey:@"\u094D" code:0x02 isDown:YES modifiers:0];
+    [webView sendKey:@"\u094D" code:0x02 isDown:NO modifiers:0];
+    Util::runFor(1_s);
+    [webView sendKey:@"\u094D\u092F" code:0x2C isDown:YES modifiers:0];
+    [webView sendKey:@"\u094D\u092F" code:0x2C isDown:NO modifiers:0];
+    Util::runFor(1_s);
+    [webView sendKey:@"\u093E" code:0x0E isDown:YES modifiers:0];
+    [webView sendKey:@"\u093E" code:0x0E isDown:NO modifiers:0];
+    Util::runFor(1_s);
+
+    EXPECT_STREQ(@"\u0915\u094D\u092F\u093E".UTF8String, [webView stringByEvaluatingJavaScript:@"document.body.textContent"].UTF8String);
+    EXPECT_EQ(0u, [window unhandledKeyDownCount]);
 }
 
 TEST(WKWebViewMacEditingTests, ModelessInputMethodStagingReportsPostKeystrokeCursorAndContent)
@@ -1029,6 +1115,54 @@ TEST(WKWebViewMacEditingTests, FirstRectForCharacterRangeForPartialLineWithNewli
     auto [firstRect, actualRange] = [webView _firstRectForCharacterRange:characterRange];
     EXPECT_TRUE(NSEqualRects(expectedRect, firstRect));
     EXPECT_TRUE(NSEqualRanges(characterRange, actualRange));
+}
+
+// Mimics the prosemirror.net Japanese-IME bug: when an IME auto-commits a portion of a
+// marked composition and immediately starts a new composition, ProseMirror's
+// compositionstart handler rebuilds the affected DOM (wrapping the just-confirmed text
+// in a span descriptor) and then sets the DOM Selection to a parent-anchored offset
+// (e.g. <P>:1) via setBaseAndExtent. TypingCommand::insertText then runs to install the
+// new marked text. Without flushing layout in Editor::setComposition between the
+// JS-driven mutation and TypingCommand::insertText, Position::upstream() can fail to
+// find a text-node candidate in the freshly-mutated tree and the marked text gets
+// inserted at offset 0 of the wrong sibling text node - landing BEFORE the auto-
+// confirmed text instead of after it.
+TEST(WKWebViewMacEditingTests, JapaneseAutoCommitWithDOMRebuildInCompositionStartLandsTextAtCursor)
+{
+    RetainPtr webView = adoptNS([[TestWKWebView<NSTextInputClient> alloc] initWithFrame:NSMakeRect(0, 0, 400, 200)]);
+    [webView synchronouslyLoadHTMLString:@"<div id='editor' contenteditable style='min-height: 50px'><p id='p'><br></p></div>"];
+    [webView stringByEvaluatingJavaScript:@""
+        "const editor = document.getElementById('editor');"
+        "const p = document.getElementById('p');"
+        "editor.focus();"
+        "const selection = window.getSelection();"
+        "const range = document.createRange();"
+        "range.setStart(p, 0); range.setEnd(p, 0);"
+        "selection.removeAllRanges(); selection.addRange(range);"];
+    [webView waitForNextPresentationUpdate];
+
+    [webView setMarkedText:@"abc" selectedRange:NSMakeRange(3, 0) replacementRange:NSMakeRange(NSNotFound, 0)];
+    [webView insertText:@"abc" replacementRange:NSMakeRange(NSNotFound, 0)];
+
+    [webView stringByEvaluatingJavaScript:@""
+        "window.compositionLog = [];"
+        "editor.addEventListener('compositionstart', () => {"
+        "    const firstChild = p.firstChild;"
+        "    if (firstChild && firstChild.nodeType === Node.TEXT_NODE && firstChild.nodeValue.length) {"
+        "        const newText = document.createTextNode(firstChild.nodeValue);"
+        "        p.insertBefore(newText, firstChild);"
+        "        p.removeChild(firstChild);"
+        "        window.compositionLog.push('mutated');"
+        "    } else {"
+        "        window.compositionLog.push('skipped:firstChild=' + (firstChild && firstChild.nodeType));"
+        "    }"
+        "}, { once: true });"];
+
+    [webView setMarkedText:@"X" selectedRange:NSMakeRange(1, 0) replacementRange:NSMakeRange(NSNotFound, 0)];
+    [webView waitForNextPresentationUpdate];
+
+    EXPECT_STREQ("mutated", [webView stringByEvaluatingJavaScript:@"window.compositionLog.join('|')"].UTF8String);
+    EXPECT_STREQ("abcX", [webView stringByEvaluatingJavaScript:@"document.getElementById('p').textContent"].UTF8String);
 }
 
 } // namespace TestWebKitAPI

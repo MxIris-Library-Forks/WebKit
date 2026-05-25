@@ -20054,6 +20054,10 @@
 		BC913B3D2EE88D91009E3349 /* StyleDifference.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleDifference.cpp; sourceTree = "<group>"; };
 		BC913B692EEB3C42009E3349 /* StyleChangedAnimatableProperties.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleChangedAnimatableProperties.h; sourceTree = "<group>"; };
 		BC913B722EEB5134009E3349 /* CSSPropertyInitialValuesGeneratedInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSPropertyInitialValuesGeneratedInlines.h; sourceTree = "<group>"; };
+		BC91562A2FBFDE4900C668BF /* CSSClip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSClip.h; sourceTree = "<group>"; };
+		BC91562B2FBFDE4900C668BF /* CSSClip.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSClip.cpp; sourceTree = "<group>"; };
+		BC9156352FC0D87D00C668BF /* CSSClipValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSClipValue.h; sourceTree = "<group>"; };
+		BC9156362FC0D87D00C668BF /* CSSClipValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSClipValue.cpp; sourceTree = "<group>"; };
 		BC926F7E0C0552470082776B /* JSHTMLFrameSetElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSHTMLFrameSetElement.cpp; sourceTree = "<group>"; };
 		BC926F7F0C0552470082776B /* JSHTMLFrameSetElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSHTMLFrameSetElement.h; sourceTree = "<group>"; };
 		BC9439C2116CF4940048C750 /* JSNodeCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSNodeCustom.h; sourceTree = "<group>"; };
@@ -37231,6 +37235,8 @@
 		BC0D731A2FB64F6000952D29 /* masking */ = {
 			isa = PBXGroup;
 			children = (
+				BC91562B2FBFDE4900C668BF /* CSSClip.cpp */,
+				BC91562A2FBFDE4900C668BF /* CSSClip.h */,
 				BC0D730F2FB64F6000952D29 /* CSSMaskBorder.cpp */,
 				BC0D730E2FB64F6000952D29 /* CSSMaskBorder.h */,
 				BC0D73112FB64F6000952D29 /* CSSMaskBorderOutset.cpp */,
@@ -41542,6 +41548,8 @@
 				BC3078F02D03667800630D75 /* CSSBoxShadowPropertyValue.h */,
 				BC604A420DB5634E00204739 /* CSSCanvasValue.cpp */,
 				BC6049CB0DB560C200204739 /* CSSCanvasValue.h */,
+				BC9156362FC0D87D00C668BF /* CSSClipValue.cpp */,
+				BC9156352FC0D87D00C668BF /* CSSClipValue.h */,
 				BCEA078A2CCC0C97000AC148 /* CSSColorSchemeValue.cpp */,
 				BCEA07892CCC0C97000AC148 /* CSSColorSchemeValue.h */,
 				BC4AF4102CF691B00037C65C /* CSSColorValue.cpp */,

@@ -1728,6 +1728,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     inspector/WebInjectedScriptManager.h
 
     inspector/hooks/NetworkAgentInstrumentation.h
+    inspector/hooks/PageAgentInstrumentation.h
 
     inspector/agents/InspectorPageAgent.h
 
@@ -3248,6 +3249,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/contain/StyleContain.h
     style/values/contain/StyleContainerName.h
+    style/values/contain/StyleContainerType.h
 
     style/values/content/StyleContent.h
     style/values/content/StyleQuotes.h

@@ -1263,6 +1263,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
     updateImageAnimationEnabled();
 #endif
+#if ENABLE(ACCESSIBILITY_VIDEO_AUTOPLAY_CONTROL)
+    updateVideoAutoplayPreviewsEnabled();
+#endif
 #if ENABLE(ACCESSIBILITY_NON_BLINKING_CURSOR)
     updatePrefersNonBlinkingCursor();
 #endif
@@ -2613,7 +2616,7 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
             WEBPAGE_RELEASE_LOG(Loading, "goToBackForwardItem: Skipping because pending async back/forward traversal was cancelled");
             return;
         }
-        protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad);
+        protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache);
     } else
         WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "goToBackForwardItem: No target local frame found for navigationID=%" PRIu64 ", backForwardItemID=%s — navigation silently dropped", parameters.navigationID.toUInt64(), parameters.frameState->itemID->toString().utf8().data());
 }
@@ -9940,6 +9943,13 @@ void WebPage::playAllAnimations(CompletionHandler<void()>&& completionHandler)
     completionHandler();
 }
 #endif // ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
+
+#if ENABLE(ACCESSIBILITY_VIDEO_AUTOPLAY_CONTROL)
+void WebPage::updateVideoAutoplayPreviewsEnabled()
+{
+    protect(corePage())->setVideoAutoplayPreviewsEnabled(WebProcess::singleton().videoAutoplayPreviewsEnabled());
+}
+#endif // ENABLE(ACCESSIBILITY_VIDEO_AUTOPLAY_CONTROL)
 
 #if ENABLE(ACCESSIBILITY_NON_BLINKING_CURSOR)
 void WebPage::updatePrefersNonBlinkingCursor()

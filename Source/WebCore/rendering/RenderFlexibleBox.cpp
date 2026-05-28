@@ -162,9 +162,7 @@ void RenderFlexibleBox::computeIntrinsicLogicalWidths(LayoutUnit& minLogicalWidt
         return;
     }
 
-    LayoutUnit flexItemMinWidth;
-    LayoutUnit flexItemMaxWidth;
-    bool hadExcludedChildren = computePreferredWidthsForExcludedChildren(flexItemMinWidth, flexItemMaxWidth);
+    auto [legendMinWidth, legendMaxWidth] = computeIntrinsicLogicalWidthsForFieldsetLegend();
 
     // FIXME: We're ignoring flex-basis here and we shouldn't. We can't start
     // honoring it though until the flex shorthand stops setting it to 0. See
@@ -216,11 +214,9 @@ void RenderFlexibleBox::computeIntrinsicLogicalWidths(LayoutUnit& minLogicalWidt
     // intrinsic width. Make sure that we never return a negative width.
     minLogicalWidth = std::max(0_lu, minLogicalWidth);
     maxLogicalWidth = std::max(0_lu, maxLogicalWidth);
-    
-    if (hadExcludedChildren) {
-        minLogicalWidth = std::max(minLogicalWidth, flexItemMinWidth);
-        maxLogicalWidth = std::max(maxLogicalWidth, flexItemMaxWidth);
-    }
+
+    minLogicalWidth = std::max(minLogicalWidth, legendMinWidth);
+    maxLogicalWidth = std::max(maxLogicalWidth, legendMaxWidth);
 
     addScrollbarWidth();
 }
@@ -1342,6 +1338,9 @@ template<typename SizeType> LayoutUnit RenderFlexibleBox::computeMainSizeFromAsp
         },
         [&](const CSS::Keyword::Stretch&) -> std::optional<LayoutUnit> {
             // Resolve stretch against the flex container's cross-axis definite size.
+            return innerCrossSizeForFlexItem(flexItem);
+        },
+        [&](const CSS::Keyword::WebkitFillAvailable&) -> std::optional<LayoutUnit> {
             return innerCrossSizeForFlexItem(flexItem);
         },
         [&](const auto&) -> std::optional<LayoutUnit> {

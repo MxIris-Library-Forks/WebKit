@@ -579,9 +579,13 @@ sub determineArchitecture
             # This gets called from argumentsForConfiguration() which needs to resolve the target architecture
             # before entering into the cross-toolchain-env, so to achieve that we call the cross-target cmake.
             if (shouldBuildForCrossTarget()) {
-                $prefix = sprintf("%s --cross-target=%s --cross-toolchain-run-cmd",
-                            File::Spec->catfile(sourceDir(), "Tools", "Scripts", "cross-toolchain-helper"),
-                            getCrossTargetName());
+                my $helper = File::Spec->catfile(sourceDir(), "Tools", "Scripts", "cross-toolchain-helper");
+                my $target = getCrossTargetName();
+                # Pre-build the toolchain so its (potentially multi-hour) bitbake output reaches
+                # the terminal instead of being swallowed by the pipe opened below.
+                system($helper, "--cross-target=$target", "--build-toolchain") == 0
+                    or die "cross-toolchain-helper --build-toolchain failed for $target\n";
+                $prefix = "$helper --cross-target=$target --cross-toolchain-run-cmd";
             }
             if (open my $cmake_sysinfo, "$prefix cmake --system-information |") {
                 while (<$cmake_sysinfo>) {
@@ -3012,6 +3016,20 @@ sub generateBuildSystemFromCMakeProject
     my $cmakeSourceDir = isCygwin() ? windowsSourceDir() : sourceDir();
     $cmakeSourceDir .= "\\\\" if $cmakeSourceDir =~ /^[A-Za-z]:$/;
     push @args, '"' . $cmakeSourceDir . '"';
+
+    # The GTK and WPE bots build and test with -DENABLE_ASSERTS=ON (both on Release and Debug).
+    # Warn when the local build differs from the CI configuration.
+    if (isGtk() || isWPE()) {
+        if (configuration() eq "Release") {
+            my $assertsOn = grep { /^-DENABLE_ASSERTS=ON\b/i } @args;
+            print STDERR "WARNING: Building Release without assertions. Pass --asserts to match the CI build.\n" unless $assertsOn;
+        } elsif (configuration() eq "Debug") {
+            my $assertsOff = grep { /^-DENABLE_ASSERTS=OFF\b/i } @args;
+            print STDERR "WARNING: Building Debug with assertions disabled. Drop --no-asserts to match the CI build.\n" if $assertsOff;
+        } else {
+            print STDERR "WARNING: Building " . configuration() . ". This is not tested on the CI.\n";
+        }
+    }
 
     # We call system("cmake @args") instead of system("cmake", @args) so that @args is
     # parsed for shell metacharacters.

@@ -829,24 +829,30 @@ function(_webkit_setup_swift_header_deps _target _stamp _header)
     if (NOT EXISTS "${_trigger_path}")
         file(WRITE "${_trigger_path}" "// Auto-generated; mtime tracks ${_target}'s Swift emit-clang-header stamp.\n")
     endif ()
+    if (DEFINED ${_target}_SWIFT_INTEROP_SOURCES)
+        set(_trigger_deps ${${_target}_SWIFT_INTEROP_HEADERS})
+    else ()
+        set(_trigger_deps "${_stamp}")
+    endif ()
     add_custom_command(
         OUTPUT "${_trigger_path}"
-        DEPENDS "${_stamp}"
+        DEPENDS ${_trigger_deps}
         COMMAND ${CMAKE_COMMAND} -E touch "${_trigger_path}"
         COMMENT "Refreshing ${_target} Swift rebuild trigger"
     )
     target_sources(${_target} PRIVATE "${_trigger_path}")
+    add_custom_target(${_target}_SwiftRebuildTrigger DEPENDS "${_trigger_path}")
 
+    add_custom_target(${_target}_SwiftCxxHeaderStamp DEPENDS ${_stamp})
+    add_dependencies(${_target}_SwiftCxxHeader ${_target}_SwiftCxxHeaderStamp)
     if (_deps)
-        # Wrap the header-generation command in its own custom target so it
-        # does NOT inherit cmake_object_order_depends_target_${_target} (which
-        # would gate it on every link dependency). It can start as soon as the
-        # relevant headers are staged. The ${_target}_SwiftCxxHeader placeholder
-        # is created at macro time; chain a stamp-bearing inner target into it.
-        add_custom_target(${_target}_SwiftCxxHeaderStamp DEPENDS ${_stamp})
-        add_dependencies(${_target}_SwiftCxxHeader ${_target}_SwiftCxxHeaderStamp ${_deps})
-        add_dependencies(${_target} ${_target}_SwiftCxxHeader)
+        add_dependencies(${_target}_SwiftCxxHeader ${_deps})
         add_dependencies(${_target}_SwiftGeneratedDeps ${_deps})
+    endif ()
+    if (DEFINED ${_target}_SWIFT_INTEROP_SOURCES)
+        add_dependencies(${_target}_SwiftInterop ${_target}_SwiftCxxHeader)
+    elseif (_deps)
+        add_dependencies(${_target} ${_target}_SwiftCxxHeader)
     else ()
         target_sources(${_target} PRIVATE ${_header})
     endif ()
@@ -924,11 +930,29 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
         # it contains GCC-specific intrinsic headers (arm_neon.h, etc.) that use GCC builtins
         # unknown to Swift's embedded Clang. Clang provides its own compatible versions in its
         # resource directory and will find them automatically without an explicit -I path.
+        # Also exclude libstdc++ version-specific dirs (/usr/include/c++/N,
+        # /usr/include/<arch>/c++/N, /usr/include/c++/N/backward) when those come from
+        # CMAKE_CXX (which may be GCC of a different version than Swift's embedded clang
+        # uses). Pinning the cmake-detected libstdc++ version forces both copies into
+        # Swift's clang importer and triggers "different definitions in different modules"
+        # errors for std::* types. Swift's clang finds its own libstdc++ on Linux.
+        # Likewise exclude the host clang's resource directory (e.g.
+        # /usr/lib/llvm-18/lib/clang/18/include): it ships its own builtin
+        # module.modulemap, and Swift's embedded clang already loads the one from
+        # /opt/swift/usr/lib/swift/clang/include. Forwarding both makes every
+        # _Builtin_* / opencl_c module get defined twice and aborts -emit-module.
         if (NOT APPLE)
             foreach (_dir IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
-                if (NOT _dir MATCHES "^/usr/lib/gcc/")
-                    list(APPEND _swift_options "-Xcc" "-I${_dir}")
+                if (_dir MATCHES "^/usr/lib/gcc/")
+                    continue ()
                 endif ()
+                if (_dir MATCHES "/c\\+\\+/[0-9]+(/|$)")
+                    continue ()
+                endif ()
+                if (_dir MATCHES "/clang/[0-9]+/include(/|$)")
+                    continue ()
+                endif ()
+                list(APPEND _swift_options "-Xcc" "-I${_dir}")
             endforeach ()
         endif ()
         # The clang importer must agree with C++ TUs on every layout-affecting
@@ -1157,7 +1181,7 @@ macro(WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER _target _module_n
             add_custom_command(
                 OUTPUT ${_header_stamp_path}
                 BYPRODUCTS ${_header_path}
-                DEPENDS ${_swift_sources} ${_target}_SwiftGeneratedDeps
+                DEPENDS ${_swift_sources} ${_target}_SwiftGeneratedDeps ${${_target}_SWIFT_INTEROP_HEADERS}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                 COMMAND
                     ${CMAKE_Swift_COMPILER} --original-swift-compiler=${ORIGINAL_Swift_COMPILER} -typecheck

@@ -4816,6 +4816,13 @@
    },
    {
       "emails" : [
+         "jhernandez89@apple.com"
+      ],
+      "github" : "Joshua-XIV",
+      "name" : "Josh Hernandez"
+   },
+   {
+      "emails" : [
          "jsbell@chromium.org",
          "jsbell@google.com"
       ],
@@ -5580,6 +5587,13 @@
          "liachen@rim.com"
       ],
       "name" : "Lia Chen"
+   },
+   {
+      "emails" : [
+         "lilly_le@apple.com"
+      ],
+      "github" : "codedbycupidity",
+      "name" : "Lilly Le"
    },
    {
       "emails" : [

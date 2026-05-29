@@ -245,10 +245,10 @@ void RenderDeprecatedFlexibleBox::computeIntrinsicLogicalWidths(LayoutUnit& minL
                 continue;
 
             LayoutUnit margin = marginWidthForChild(child);
-            LayoutUnit width = child->minPreferredLogicalWidth() + margin;
+            LayoutUnit width = child->minContentLogicalWidth() + margin;
             minLogicalWidth = std::max(width, minLogicalWidth);
 
-            width = child->maxPreferredLogicalWidth() + margin;
+            width = child->maxContentLogicalWidth() + margin;
             maxLogicalWidth = std::max(width, maxLogicalWidth);
         }
     } else {
@@ -257,8 +257,8 @@ void RenderDeprecatedFlexibleBox::computeIntrinsicLogicalWidths(LayoutUnit& minL
                 continue;
 
             LayoutUnit margin = marginWidthForChild(child);
-            minLogicalWidth += child->minPreferredLogicalWidth() + margin;
-            maxLogicalWidth += child->maxPreferredLogicalWidth() + margin;
+            minLogicalWidth += child->minContentLogicalWidth() + margin;
+            maxLogicalWidth += child->maxContentLogicalWidth() + margin;
         }
     }
 
@@ -266,21 +266,21 @@ void RenderDeprecatedFlexibleBox::computeIntrinsicLogicalWidths(LayoutUnit& minL
     addScrollbarWidth();
 }
 
-void RenderDeprecatedFlexibleBox::computePreferredLogicalWidths()
+void RenderDeprecatedFlexibleBox::computeIntrinsicLogicalWidthContributions()
 {
-    ASSERT(needsPreferredLogicalWidthsUpdate());
+    ASSERT(hasInvalidContentLogicalWidths());
 
-    m_minPreferredLogicalWidth = 0;
-    m_maxPreferredLogicalWidth = 0;
+    m_minContentLogicalWidth = 0;
+    m_maxContentLogicalWidth = 0;
     if (auto fixedWidth = style().width().tryFixed(); fixedWidth && fixedWidth->isPositive()) {
-        m_maxPreferredLogicalWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedWidth);
-        m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+        m_maxContentLogicalWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedWidth);
+        m_minContentLogicalWidth = m_maxContentLogicalWidth;
     } else
-        computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
+        computeIntrinsicLogicalWidths(m_minContentLogicalWidth, m_maxContentLogicalWidth);
 
-    constrainPreferredLogicalWidthsByMinMax(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
+    constrainIntrinsicLogicalWidthContributionsByMinMax(m_minContentLogicalWidth, m_maxContentLogicalWidth);
 
-    clearNeedsPreferredWidthsUpdate();
+    clearContentLogicalWidthsInvalidation();
 }
 
 // Use an inline capacity of 8, since flexbox containers usually have less than 8 children.
@@ -1198,9 +1198,9 @@ LayoutUnit RenderDeprecatedFlexibleBox::allowedChildFlex(RenderBox* child, bool 
             if (auto fixedMaxWidth = child->style().maxWidth().tryFixed())
                 maxWidth = fixedMaxWidth->resolveZoom(child->style().usedZoomForLength());
             else if (child->style().maxWidth().isIntrinsicKeyword())
-                maxWidth = child->maxPreferredLogicalWidth();
+                maxWidth = child->maxContentLogicalWidth();
             else if (child->style().maxWidth().isMinIntrinsic())
-                maxWidth = child->minPreferredLogicalWidth();
+                maxWidth = child->minContentLogicalWidth();
             if (maxWidth == LayoutUnit::max())
                 return maxWidth;
             return std::max<LayoutUnit>(0, maxWidth - width);
@@ -1218,14 +1218,14 @@ LayoutUnit RenderDeprecatedFlexibleBox::allowedChildFlex(RenderBox* child, bool 
 
     // FIXME: For now just handle fixed values.
     if (isHorizontal()) {
-        LayoutUnit minWidth = child->minPreferredLogicalWidth();
+        LayoutUnit minWidth = child->minContentLogicalWidth();
         LayoutUnit width = mainAxisContentExtentForChild(child, false);
         if (auto fixedMinWidth = child->style().minWidth().tryFixed())
             minWidth = fixedMinWidth->resolveZoom(child->style().usedZoomForLength());
         else if (child->style().minWidth().isIntrinsicKeyword())
-            minWidth = child->maxPreferredLogicalWidth();
+            minWidth = child->maxContentLogicalWidth();
         else if (child->style().minWidth().isMinIntrinsic())
-            minWidth = child->minPreferredLogicalWidth();
+            minWidth = child->minContentLogicalWidth();
         else if (child->style().minWidth().isAuto())
             minWidth = 0;
 

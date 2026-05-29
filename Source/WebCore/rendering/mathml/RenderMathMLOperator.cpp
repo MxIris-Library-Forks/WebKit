@@ -197,16 +197,16 @@ void RenderMathMLOperator::resetStretchSize()
         m_stretchWidth = 0;
 }
 
-void RenderMathMLOperator::computePreferredLogicalWidths()
+void RenderMathMLOperator::computeIntrinsicLogicalWidthContributions()
 {
-    ASSERT(needsPreferredLogicalWidthsUpdate());
+    ASSERT(hasInvalidContentLogicalWidths());
 
     LayoutUnit preferredWidth;
 
     if (!useMathOperator()) {
-        // No need to include padding/border/margin here, RenderMathMLToken::computePreferredLogicalWidths takes care of them.
-        RenderMathMLToken::computePreferredLogicalWidths();
-        preferredWidth = m_maxPreferredLogicalWidth;
+        // No need to include padding/border/margin here, RenderMathMLToken::computeIntrinsicLogicalWidthContributions takes care of them.
+        RenderMathMLToken::computeIntrinsicLogicalWidthContributions();
+        preferredWidth = m_maxContentLogicalWidth;
         if (isInvisibleOperator()) {
             // In some fonts, glyphs for invisible operators have nonzero width. Consequently, we subtract that width here to avoid wide gaps.
             GlyphData data = style().fontCascade().glyphDataForCharacter(singleCharCodePoint(), false);
@@ -220,10 +220,10 @@ void RenderMathMLOperator::computePreferredLogicalWidths()
     // FIXME: The spacing should only be added inside (perhaps inferred) mrow (http://www.w3.org/TR/MathML/chapter3.html#presm.opspacing).
     preferredWidth = leadingSpace() + preferredWidth + trailingSpace();
 
-    m_minPreferredLogicalWidth = preferredWidth;
-    m_maxPreferredLogicalWidth = preferredWidth;
+    m_minContentLogicalWidth = preferredWidth;
+    m_maxContentLogicalWidth = preferredWidth;
 
-    clearNeedsPreferredWidthsUpdate();
+    clearContentLogicalWidthsInvalidation();
 }
 
 void RenderMathMLOperator::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit pageLogicalHeight)

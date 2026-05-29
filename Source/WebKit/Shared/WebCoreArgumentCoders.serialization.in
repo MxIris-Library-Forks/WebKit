@@ -1308,7 +1308,9 @@ struct WebCore::ApplicationManifest {
     URL startURL
     URL id
     WebCore::Color backgroundColor
+    WebCore::Color backgroundColorDark
     WebCore::Color themeColor
+    WebCore::Color themeColorDark
     Vector<String> categories
     Vector<WebCore::ApplicationManifest::Icon> icons
     Vector<WebCore::ApplicationManifest::Shortcut> shortcuts
@@ -2205,6 +2207,7 @@ class WebCore::LayoutRect {
 struct WebCore::RemoteFrameLayoutInfo {
     std::optional<WebCore::LayoutRect> visibleRectInParent;
     float usedZoom;
+    WebCore::LayoutPoint contentBoxLocation;
     OptionSet<WebCore::FrameOwnerElementAppearance> ownerElementAppearance;
 };
 
@@ -8886,7 +8889,11 @@ using WebCore::CSSValueToSystemColorMap = HashMap<WebCore::CSSValueKey, WebCore:
 
 enum class WebCore::WorkerThreadMode : bool
 enum class WebCore::WillContinueLoading : bool
-enum class WebCore::ShouldRestoreFromBackForwardCache : bool
+enum class WebCore::ShouldRestoreFromBackForwardCache : uint8_t {
+    Yes,
+    No,
+    Unspecified,
+};
 enum class WebCore::RestoredFromBackForwardCache : bool
 
 #if ENABLE(GPU_PROCESS) && ENABLE(ENCRYPTED_MEDIA)

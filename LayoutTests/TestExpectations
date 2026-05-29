@@ -3500,7 +3500,6 @@ webkit.org/b/186045 imported/w3c/web-platform-tests/css/css-animations/animation
 
 webkit.org/b/157477 imported/w3c/web-platform-tests/css/css-display/display-contents-dynamic-table-001-inline.html [ ImageOnlyFailure ]
 webkit.org/b/157477 imported/w3c/web-platform-tests/css/css-display/display-contents-first-letter-002.html [ ImageOnlyFailure ]
-webkit.org/b/157477 imported/w3c/web-platform-tests/css/css-display/display-contents-svg-elements.html [ ImageOnlyFailure ]
 
 ### END OF display: contents failures
 ########################################
@@ -5591,8 +5590,9 @@ imported/w3c/web-platform-tests/css/css-conditional/container-queries/custom-lay
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/inline-size-bfc-floats.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/pseudo-elements-010.html [ ImageOnlyFailure ]
 
-# Scroll-state container queries (unsupported).
+# Scroll-state container queries (unsupported), enable parsing test only.
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state [ Skip ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/container-type-scroll-state-parsing.html [ Pass ]
 
 webkit.org/b/279424 [ Debug ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/svg-foreignobject-no-size-container.html [ Skip ] # Crash
 

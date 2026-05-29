@@ -284,7 +284,7 @@ protected:
     bool nodeAtPoint(const HitTestRequest&, HitTestResult&, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction) override;
 
     void computeIntrinsicLogicalWidths(LayoutUnit& minLogicalWidth, LayoutUnit& maxLogicalWidth) const override;
-    void computePreferredLogicalWidths() override;
+    void computeIntrinsicLogicalWidthContributions() override;
     
     std::optional<LayoutUnit> firstLineBaseline() const override;
     std::optional<LayoutUnit> lastLineBaseline() const override;
@@ -324,9 +324,7 @@ protected:
 
     void preparePaginationBeforeBlockLayout(RelayoutChildren&);
 
-    void computeChildPreferredLogicalWidths(RenderBox&, LayoutUnit& minPreferredLogicalWidth, LayoutUnit& maxPreferredLogicalWidth) const;
-
-    virtual void computeChildIntrinsicLogicalWidths(RenderBox&, LayoutUnit& minPreferredLogicalWidth, LayoutUnit& maxPreferredLogicalWidth) const;
+    std::pair<LayoutUnit, LayoutUnit> computeChildIntrinsicLogicalWidths(RenderBox&) const;
 
     RenderBlockRareData& ensureBlockRareData() LIFETIME_BOUND;
     RenderBlockRareData* NODELETE blockRareData() const LIFETIME_BOUND;

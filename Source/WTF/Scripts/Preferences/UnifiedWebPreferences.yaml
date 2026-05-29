@@ -1337,6 +1337,20 @@ CSSScrollAnchoringEnabled:
     WebCore:
       default: true
 
+CSSScrollStateContainerQueriesEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS Scroll State Container Queries"
+  humanReadableDescription: "Enable scroll-state value for container-type CSS property"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 CSSScrollbarColorEnabled:
   type: bool
   status: stable
@@ -3671,6 +3685,37 @@ ICECandidateFilteringEnabled:
       default: true
     WebCore:
       default: true
+
+IFrameResourceMonitorNetworkUsageThresholdForTesting:
+  type: uint32_t
+  status: internal
+  category: networking
+  condition: ENABLE(CONTENT_EXTENSIONS)
+  defaultsOverridable: true
+  humanReadableName: "Frame Resource Monitor Network Usage Threshold For Testing"
+  humanReadableDescription: "Test override for the iframe resource monitor network usage threshold in bytes (0 means use production default)"
+  defaultValue:
+    WebKitLegacy:
+      default: 0
+    WebKit:
+      default: 0
+    WebCore:
+      default: 0
+
+IFrameResourceMonitorNetworkUsageThresholdRandomnessForTesting:
+  type: double
+  status: internal
+  category: networking
+  condition: ENABLE(CONTENT_EXTENSIONS)
+  humanReadableName: "Frame Resource Monitor Network Usage Threshold Randomness For Testing"
+  humanReadableDescription: "Test override for the iframe resource monitor network usage threshold randomness factor (only applied when the threshold-for-testing preference is set)"
+  defaultValue:
+    WebKitLegacy:
+      default: 0
+    WebKit:
+      default: 0
+    WebCore:
+      default: 0
 
 IFrameResourceMonitoringEnabled:
   type: bool
@@ -7172,6 +7217,7 @@ ScrollendEventEnabled:
 ScrollingPerformanceTestingEnabled:
   type: bool
   status: internal
+  defaultsOverridable: true
   humanReadableName: "Scroll Performance Testing Enabled"
   humanReadableDescription: "Enable behaviors used by scrolling performance tests"
   webcoreOnChange: scrollingPerformanceTestingEnabledChanged

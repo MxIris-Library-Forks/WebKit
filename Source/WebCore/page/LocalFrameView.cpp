@@ -1230,7 +1230,7 @@ void LocalFrameView::forceLayoutParentViewIfNeeded()
     // correct size, which LegacyRenderSVGRoot::computeReplacedLogicalWidth/Height rely on, when laying
     // out for the first time, or when the LegacyRenderSVGRoot size has changed dynamically (eg. via <script>).
 
-    ownerRenderer->setNeedsLayoutAndPreferredWidthsUpdate();
+    ownerRenderer->setNeedsLayoutAndInvalidateContentLogicalWidths();
     ownerRenderer->view().frameView().layoutContext().scheduleLayout();
 }
 
@@ -2160,6 +2160,19 @@ OptionSet<FrameOwnerElementAppearance> LocalFrameView::appearanceOfOwnerElementO
 #endif
 
     return result;
+}
+
+LayoutPoint LocalFrameView::childFrameOwnerContentBoxLocation(const Frame& child) const
+{
+    CheckedPtr childOwnerRenderer = child.ownerRenderer();
+    if (!childOwnerRenderer)
+        return { };
+
+    // Ensure |child| is a child of this frame.
+    ASSERT(child.tree().parent()->frameID() == m_frame->frameID());
+    ASSERT(childOwnerRenderer->frame().frameID() == m_frame->frameID());
+
+    return childOwnerRenderer->contentBoxLocation();
 }
 
 LayoutRect LocalFrameView::rectForFixedPositionLayout() const
@@ -5057,7 +5070,7 @@ void LocalFrameView::performSizeToContentAutoSize()
     for (int i = 0; i < 2; i++) {
         layoutWithAdjustedStyleIfNeeded();
         // Update various sizes including contentsSize, scrollHeight, etc.
-        auto newSize = IntSize { documentRenderer->minPreferredLogicalWidth(), renderView->documentRect().height() };
+        auto newSize = IntSize { documentRenderer->minContentLogicalWidth(), renderView->documentRect().height() };
 
         // Check to see if a scrollbar is needed for a given dimension and
         // if so, increase the other dimension to account for the scrollbar.
@@ -6173,7 +6186,7 @@ void LocalFrameView::forceLayoutForPagination(const FloatSize& pageSize, const F
     float pageLogicalHeight = isHorizontalWritingMode ? pageSize.height() : pageSize.width();
 
     renderView->setPageLogicalSize({ floor(pageLogicalWidth), floor(pageLogicalHeight) });
-    renderView->setNeedsLayoutAndPreferredWidthsUpdate();
+    renderView->setNeedsLayoutAndInvalidateContentLogicalWidths();
     forceLayout();
     if (hasOneRef())
         return;
@@ -6192,7 +6205,7 @@ void LocalFrameView::forceLayoutForPagination(const FloatSize& pageSize, const F
         pageLogicalHeight = isHorizontalWritingMode ? maxPageSize.height() : maxPageSize.width();
 
         renderView->setPageLogicalSize({ floor(pageLogicalWidth), floor(pageLogicalHeight) });
-        renderView->setNeedsLayoutAndPreferredWidthsUpdate();
+        renderView->setNeedsLayoutAndInvalidateContentLogicalWidths();
         forceLayout();
         if (hasOneRef())
             return;

@@ -170,7 +170,7 @@ void RenderReplaced::layout()
     clearNeedsLayout();
 
     if (replacedContentRect() != oldContentRect) {
-        setNeedsPreferredWidthsUpdate();
+        invalidateContentLogicalWidths();
         if (shouldRepaintOnSizeChange(*this))
             repaint();
     }
@@ -181,7 +181,7 @@ void RenderReplaced::intrinsicSizeChanged()
     int scaledWidth = static_cast<int>(cDefaultWidth * style().usedZoom());
     int scaledHeight = static_cast<int>(cDefaultHeight * style().usedZoom());
     m_intrinsicSize = IntSize(scaledWidth, scaledHeight);
-    setNeedsLayoutAndPreferredWidthsUpdate();
+    setNeedsLayoutAndInvalidateContentLogicalWidths();
 }
 
 bool RenderReplaced::shouldDrawSelectionTint() const
@@ -436,7 +436,7 @@ bool RenderReplaced::hasReplacedLogicalHeight() const
 
 bool RenderReplaced::setNeedsLayoutIfNeededAfterIntrinsicSizeChange()
 {
-    setNeedsPreferredWidthsUpdate();
+    invalidateContentLogicalWidths();
 
     // If the actual area occupied by the image has changed and it is not constrained by style then a layout is required.
     bool imageSizeIsConstrained = style().logicalWidth().isSpecified() && style().logicalHeight().isSpecified()
@@ -863,31 +863,31 @@ static bool canDerivePreferredWidthFromAspectRatio(const RenderReplaced& replace
     return false;
 }
 
-void RenderReplaced::computePreferredLogicalWidths()
+void RenderReplaced::computeIntrinsicLogicalWidthContributions()
 {
-    ASSERT(needsPreferredLogicalWidthsUpdate());
+    ASSERT(hasInvalidContentLogicalWidths());
 
     // We cannot resolve any percent logical width here as the available logical
     // width may not be set on our containing block.
     if (style().logicalWidth().isPercentOrCalculated()) {
         if (canDerivePreferredWidthFromAspectRatio(*this)) {
-            m_maxPreferredLogicalWidth = computeLogicalWidthFromAspectRatio() - borderAndPaddingLogicalWidth();
-            m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+            m_maxContentLogicalWidth = computeLogicalWidthFromAspectRatio() - borderAndPaddingLogicalWidth();
+            m_minContentLogicalWidth = m_maxContentLogicalWidth;
         } else {
-            computeIntrinsicLogicalWidths(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
+            computeIntrinsicLogicalWidths(m_minContentLogicalWidth, m_maxContentLogicalWidth);
             if (preferredAspectRatio())
-                applyTransferredMinMaxSizesFromAspectRatio(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
+                applyTransferredMinMaxSizesFromAspectRatio(m_minContentLogicalWidth, m_maxContentLogicalWidth);
         }
     } else {
-        m_maxPreferredLogicalWidth = computeReplacedLogicalWidth(ShouldComputePreferred::ComputePreferred);
-        m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+        m_maxContentLogicalWidth = computeReplacedLogicalWidth(ShouldComputePreferred::ComputePreferred);
+        m_minContentLogicalWidth = m_maxContentLogicalWidth;
         if (preferredAspectRatio() && !style().logicalWidth().isFixed())
-            applyTransferredMinMaxSizesFromAspectRatio(m_minPreferredLogicalWidth, m_maxPreferredLogicalWidth);
+            applyTransferredMinMaxSizesFromAspectRatio(m_minContentLogicalWidth, m_maxContentLogicalWidth);
     }
 
     auto& styleToUse = style();
     if (styleToUse.logicalWidth().isPercentOrCalculated() || styleToUse.logicalMaxWidth().isPercentOrCalculated())
-        m_minPreferredLogicalWidth = 0;
+        m_minContentLogicalWidth = 0;
 
     auto applyExplicitMinMaxWidthConstraints = [&] {
         if (shouldIgnoreLogicalMinMaxWidthSizes())
@@ -895,23 +895,23 @@ void RenderReplaced::computePreferredLogicalWidths()
 
         if (auto fixedLogicalMinWidth = styleToUse.logicalMinWidth().tryFixed()) {
             auto minWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMinWidth);
-            m_maxPreferredLogicalWidth = std::max(m_maxPreferredLogicalWidth, minWidth);
-            m_minPreferredLogicalWidth = std::max(m_minPreferredLogicalWidth, minWidth);
+            m_maxContentLogicalWidth = std::max(m_maxContentLogicalWidth, minWidth);
+            m_minContentLogicalWidth = std::max(m_minContentLogicalWidth, minWidth);
         }
 
         if (auto fixedLogicalMaxWidth = styleToUse.logicalMaxWidth().tryFixed()) {
             auto maxWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalMaxWidth);
-            m_maxPreferredLogicalWidth = std::min(m_maxPreferredLogicalWidth, maxWidth);
-            m_minPreferredLogicalWidth = std::min(m_minPreferredLogicalWidth, maxWidth);
+            m_maxContentLogicalWidth = std::min(m_maxContentLogicalWidth, maxWidth);
+            m_minContentLogicalWidth = std::min(m_minContentLogicalWidth, maxWidth);
         }
     };
 
     applyExplicitMinMaxWidthConstraints();
     auto borderAndPadding = borderAndPaddingLogicalWidth();
-    m_minPreferredLogicalWidth += borderAndPadding;
-    m_maxPreferredLogicalWidth += borderAndPadding;
+    m_minContentLogicalWidth += borderAndPadding;
+    m_maxContentLogicalWidth += borderAndPadding;
 
-    clearNeedsPreferredWidthsUpdate();
+    clearContentLogicalWidthsInvalidation();
 }
 
 PositionWithAffinity RenderReplaced::positionForPoint(const LayoutPoint& point, HitTestSource source, const RenderFragmentContainer* fragment)
@@ -1026,7 +1026,7 @@ bool RenderReplaced::isContentLikelyVisibleInViewport()
     return visibleRect.intersects(contentRect);
 }
 
-bool RenderReplaced::shouldInvalidatePreferredWidths() const
+bool RenderReplaced::shouldInvalidateContentWidths() const
 {
     // If the height is a percentage and the width is auto, then the containingBlocks's height changing can cause this node to change it's preferred width because it maintains aspect ratio.
     return (hasRelativeLogicalHeight() || (isGridItem() && hasStretchedLogicalHeight())) && style().logicalWidth().isAuto();

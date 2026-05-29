@@ -4285,7 +4285,7 @@ void Internals::setScreenContentsFormatsForTesting(const Vector<Internals::Conte
     }
 
 #if HAVE(SUPPORT_HDR_DISPLAY)
-    WebCore::setScreenContentsFormatsForTesting(contentsFormats);
+    PlatformScreen::singleton()->updateSingletonContentsFormatsForTesting(contentsFormats);
 #else
     UNUSED_PARAM(contentsFormats);
 #endif
@@ -7385,7 +7385,7 @@ void Internals::notifyResourceLoadObserver()
 unsigned Internals::primaryScreenDisplayID()
 {
 #if PLATFORM(COCOA)
-    return WebCore::primaryScreenDisplayID();
+    return PlatformScreen::singleton()->primaryScreenDisplayID();
 #else
     return 0;
 #endif
@@ -8516,11 +8516,6 @@ void Internals::setTopDocumentURLForQuirks(const String& urlString)
 }
 
 #if ENABLE(CONTENT_EXTENSIONS)
-void Internals::setResourceMonitorNetworkUsageThreshold(size_t threshold, double randomness)
-{
-    ResourceMonitorChecker::singleton().setNetworkUsageThreshold(threshold, randomness);
-}
-
 bool Internals::shouldSkipResourceMonitorThrottling() const
 {
     if (auto* document = contextDocument())

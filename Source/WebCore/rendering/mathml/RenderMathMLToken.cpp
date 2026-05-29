@@ -76,12 +76,12 @@ void RenderMathMLToken::updateTokenContent()
     setMathVariantGlyphDirty();
 }
 
-void RenderMathMLToken::computePreferredLogicalWidths()
+void RenderMathMLToken::computeIntrinsicLogicalWidthContributions()
 {
-    ASSERT(needsPreferredLogicalWidthsUpdate());
+    ASSERT(hasInvalidContentLogicalWidths());
 
     if (document().settings().coreMathMLDeprecateLegacyMathvariant())
-        return RenderMathMLBlock::computePreferredLogicalWidths();
+        return RenderMathMLBlock::computeIntrinsicLogicalWidthContributions();
 
     if (m_mathVariantGlyphDirty)
         updateMathVariantGlyph();
@@ -89,15 +89,15 @@ void RenderMathMLToken::computePreferredLogicalWidths()
     if (m_mathVariantCodePoint) {
         auto mathVariantGlyph = style().fontCascade().glyphDataForCharacter(m_mathVariantCodePoint.value(), m_mathVariantIsMirrored);
         if (mathVariantGlyph.font) {
-            m_maxPreferredLogicalWidth = mathVariantGlyph.font->widthForGlyph(mathVariantGlyph.glyph);
-            m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+            m_maxContentLogicalWidth = mathVariantGlyph.font->widthForGlyph(mathVariantGlyph.glyph);
+            m_minContentLogicalWidth = m_maxContentLogicalWidth;
             adjustPreferredLogicalWidthsForBorderAndPadding();
-            clearNeedsPreferredWidthsUpdate();
+            clearContentLogicalWidthsInvalidation();
             return;
         }
     }
 
-    RenderMathMLBlock::computePreferredLogicalWidths();
+    RenderMathMLBlock::computeIntrinsicLogicalWidthContributions();
 }
 
 void RenderMathMLToken::updateMathVariantGlyph()
@@ -132,7 +132,7 @@ void RenderMathMLToken::updateMathVariantGlyph()
 void RenderMathMLToken::setMathVariantGlyphDirty()
 {
     m_mathVariantGlyphDirty = true;
-    setNeedsLayoutAndPreferredWidthsUpdate();
+    setNeedsLayoutAndInvalidateContentLogicalWidths();
 }
 
 void RenderMathMLToken::styleDidChange(Style::Difference diff, const RenderStyle* oldStyle)

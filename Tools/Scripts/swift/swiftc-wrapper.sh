@@ -57,13 +57,8 @@ for arg in "$@"; do
             fi
             ;;
         "-include") skip_next=1 ;;
-        # swiftc does not understand clang-specific include flags like
-        # -isystem / -iquote / -idirafter; wrap them (and their following
-        # path argument) as -Xcc so they reach the Clang importer instead
-        # of being rejected at parse time.
-        "-isystem"|"-iquote"|"-idirafter"|"-isysroot")
-            args+=("-Xcc" "$arg" "-Xcc")
-            pass_next_verbatim=1
+        "-fuse-ld="*)
+            args+=("-Xcc" "$arg")
             ;;
         # CMake leaks clang linker flags into swiftc; translate them.
         "-compatibility_version"|"-current_version")
@@ -84,21 +79,10 @@ for arg in "$@"; do
         "--original-swift-compiler="*)
             REAL_SWIFTC="${arg#--original-swift-compiler=}"
             ;;
-        "-D"*)
-            # Propagate -D to both swiftc (Swift conditionals) and -Xcc -D
-            # (Clang importer). EXCEPT for cmake-build-mode defines that signal
-            # to our own headers we're building under cmake — propagating those
-            # to the Clang importer makes SDK framework PCMs (e.g. JSC's
-            # config.h) take their cmake-only branches and look for headers
-            # like cmakeconfig.h that don't exist in the SDK build context.
-            case "$arg" in
-                "-DBUILDING_WITH_CMAKE"*|"-DHAVE_CONFIG_H"*)
-                    args+=("$arg")
-                    ;;
-                *)
-                    args+=("$arg" "-Xcc" "$arg")
-                    ;;
-            esac
+        "-D"*"="*)
+            # Swift conditional-compilation flags are valueless; the importer's
+            # -D set comes from _WEBKIT_COMPUTE_SWIFT_SHARED_CLANG_FLAGS, so
+            # valued target_compile_definitions are dropped here.
             ;;
         *)
             if [[ -n "$skip_next" ]]; then

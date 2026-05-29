@@ -187,8 +187,7 @@
         "",
         "* accepts-quirky-angle:",
         "Indicates the property requires support for unitless angles. Only used for",
-        "two properties, glyph-orientation-horizontal and glyph-orientation-vertical,",
-        "though nothing in any standard requires this.",
+        "glyph-orientation-vertical, though nothing in any standard requires this.",
         "",
         "2. Lesser known capabilities of this file format",
         "",
@@ -4855,24 +4854,6 @@
                 "url": "https://www.w3.org/TR/filter-effects/#FloodOpacityProperty"
             }
         },
-        "glyph-orientation-horizontal": {
-            "animation-type": "not animatable",
-            "inherited": true,
-            "initial": "0deg",
-            "codegen-properties": {
-                "accepts-quirky-angle": true,
-                "computed-style-initial-custom": true,
-                "computed-style-storage-path": ["m_svgData", "inheritedFlags"],
-                "computed-style-storage-container": "struct",
-                "computed-style-storage-kind": "enum",
-                "computed-style-type": "Style::SVGGlyphOrientationHorizontal",
-                "parser-grammar": "<angle unitless-zero=allowed>"
-            },
-            "specification": {
-                "category": "svg",
-                "url": "https://www.w3.org/TR/SVG11/text.html#GlyphOrientationHorizontalProperty"
-            }
-        },
         "glyph-orientation-vertical": {
             "animation-type": "not animatable",
             "inherited": true,
@@ -9360,13 +9341,14 @@
             "values": [
                 "normal",
                 "size",
-                "inline-size"
+                "inline-size",
+                "scroll-state"
             ],
             "codegen-properties": {
                 "computed-style-storage-path": ["m_nonInheritedData", "rareData"],
                 "computed-style-storage-kind": "reference",
                 "computed-style-type": "Style::ContainerType",
-                "parser-grammar": "<<values>>"
+                "parser-grammar": "normal | [ [ size | inline-size ] || scroll-state@(settings-flag=cssScrollStateContainerQueriesEnabled) ]@(type=CSSValuePair)"
             },
             "specification": {
                 "category": "css-contain",

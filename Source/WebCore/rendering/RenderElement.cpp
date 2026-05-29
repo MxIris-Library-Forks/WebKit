@@ -505,13 +505,7 @@ bool RenderElement::repaintBeforeStyleChange(Style::Difference diff, const Rende
         if (auto* modelObject = dynamicDowncast<RenderLayerModelObject>(*this)) {
             // If we don't have a layer yet, but we are going to get one because of transform or opacity, then we need to repaint the old position of the object.
             bool hasLayer = modelObject->hasLayer();
-            bool willHaveLayer = newStyle.affectsTransform()
-                || !newStyle.opacity().isOpaque()
-#if HAVE(CORE_MATERIAL)
-                || newStyle.appleVisualEffect() != AppleVisualEffect::None
-#endif
-                || !newStyle.filter().isNone()
-                || !newStyle.backdropFilter().isNone();
+            bool willHaveLayer = !newStyle.usedZIndex().isAuto();
             if (!hasLayer && willHaveLayer)
                 return RequiredRepaint::RendererOnly;
         }
@@ -1368,7 +1362,7 @@ void RenderElement::clearChildNeedsLayout()
 void RenderElement::setNeedsLayoutForStyleDifference(Style::Difference diff, const RenderStyle* oldStyle)
 {
     if (diff == Style::DifferenceResult::Layout)
-        setNeedsLayoutAndPreferredWidthsUpdate();
+        setNeedsLayoutAndInvalidateContentLogicalWidths();
     else if (diff == Style::DifferenceResult::LayoutOutOfFlowMovementOnly)
         setNeedsOutOfFlowMovementLayout(oldStyle);
     else if (diff == Style::DifferenceResult::OverflowAndOutOfFlowMovement) {

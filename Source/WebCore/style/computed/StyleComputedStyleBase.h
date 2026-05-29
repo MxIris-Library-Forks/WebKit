@@ -396,7 +396,6 @@ enum class GridTrackSizingDirection : bool;
 enum class ImageOrientation : bool;
 enum class PositionTryOrder : uint8_t;
 enum class Resize : uint8_t;
-enum class SVGGlyphOrientationHorizontal : uint8_t;
 enum class SVGGlyphOrientationVertical : uint8_t;
 enum class ScrollBehavior : bool;
 enum class ScrollbarWidth : uint8_t;
@@ -476,9 +475,6 @@ public:
 
     inline bool isLink() const;
     inline void setIsLink(bool);
-
-    inline bool emptyState() const;
-    inline void setEmptyState(bool);
 
     inline bool firstChildState() const;
     inline void setFirstChildState();
@@ -755,7 +751,6 @@ public:
         PREFERRED_TYPE(bool) unsigned disallowsFastPathInheritance : 1;
 
         // Non-property related state bits.
-        PREFERRED_TYPE(bool) unsigned emptyState : 1;
         PREFERRED_TYPE(bool) unsigned firstChildState : 1;
         PREFERRED_TYPE(bool) unsigned lastChildState : 1;
         PREFERRED_TYPE(bool) unsigned isLink : 1;

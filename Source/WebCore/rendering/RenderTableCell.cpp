@@ -189,7 +189,7 @@ void RenderTableCell::colSpanOrRowSpanChanged()
 
     // FIXME: I suspect that we could return early here if !m_hasColSpan && !m_hasRowSpan.
 
-    setNeedsLayoutAndPreferredWidthsUpdate();
+    setNeedsLayoutAndInvalidateContentLogicalWidths();
     if (parent() && section())
         section()->setNeedsCellRecalc();
 }
@@ -228,11 +228,11 @@ Style::PreferredSize RenderTableCell::logicalWidthFromColumns(RenderTableCol* fi
     return Style::PreferredSize::Fixed { colWidthSum };
 }
 
-void RenderTableCell::computePreferredLogicalWidths()
+void RenderTableCell::computeIntrinsicLogicalWidthContributions()
 {
-    // The child cells rely on the grids up in the sections to do their computePreferredLogicalWidths work.  Normally the sections are set up early, as table
-    // cells are added, but relayout can cause the cells to be freed, leaving stale pointers in the sections'
-    // grids.  We must refresh those grids before the child cells try to use them.
+    // The child cells rely on the grids up in the sections to do their computeIntrinsicLogicalWidthContributions work.
+    // Normally the sections are set up early, as table cells are added, but relayout can cause the cells to be freed, leaving stale pointers in the sections' grids.
+    // We must refresh those grids before the child cells try to use them.
     table()->recalcSectionsIfNeeded();
 
     // We don't want the preferred width from children to be affected by any
@@ -242,7 +242,7 @@ void RenderTableCell::computePreferredLogicalWidths()
     auto overridingLogicalHeight = this->overridingBorderBoxLogicalHeight();
     if (overridingLogicalHeight)
         setOverridingBorderBoxLogicalHeight({ });
-    RenderBlockFlow::computePreferredLogicalWidths();
+    RenderBlockFlow::computeIntrinsicLogicalWidthContributions();
     if (overridingLogicalHeight)
         setOverridingBorderBoxLogicalHeight(*overridingLogicalHeight);
 
@@ -254,7 +254,7 @@ void RenderTableCell::computePreferredLogicalWidths()
         // In quirks mode, when nowrap is set on a cell that also has an explicit fixed width,
         // WinIE/Moz treat the fixed width as the minimum width of the cell. Affected the top
         // of hiptop.com.
-        m_minPreferredLogicalWidth = std::max(adjustBorderBoxLogicalWidthForBoxSizing(LayoutUnit(fixedLogicalWidth->resolveZoom(usedZoom))), m_minPreferredLogicalWidth);
+        m_minContentLogicalWidth = std::max(adjustBorderBoxLogicalWidthForBoxSizing(LayoutUnit(fixedLogicalWidth->resolveZoom(usedZoom))), m_minContentLogicalWidth);
     }
 }
 
@@ -514,7 +514,7 @@ void RenderTableCell::setOverridingLogicalHeightFromRowHeight(LayoutUnit rowHeig
 LayoutUnit RenderTableCell::minLogicalWidthForColumnSizing()
 {
     if (!isOrthogonal())
-        return RenderBlockFlow::minPreferredLogicalWidth();
+        return RenderBlockFlow::minContentLogicalWidth();
 
     auto computingPreferredSize = SetForScope<bool> { m_isComputingPreferredSize, true };
     setNeedsLayout(MarkingBehavior::MarkOnlyThis);
@@ -526,7 +526,7 @@ LayoutUnit RenderTableCell::minLogicalWidthForColumnSizing()
 LayoutUnit RenderTableCell::maxLogicalWidthForColumnSizing()
 {
     if (!isOrthogonal())
-        return RenderBlockFlow::maxPreferredLogicalWidth();
+        return RenderBlockFlow::maxContentLogicalWidth();
 
     auto computingPreferredSize = SetForScope<bool> { m_isComputingPreferredSize, true };
     setNeedsLayout(MarkingBehavior::MarkOnlyThis);
@@ -643,7 +643,7 @@ static inline void markCellDirtyWhenCollapsedBorderChanges(RenderTableCell* cell
 {
     if (!cell)
         return;
-    cell->setNeedsLayoutAndPreferredWidthsUpdate();
+    cell->setNeedsLayoutAndInvalidateContentLogicalWidths();
 }
 
 void RenderTableCell::styleDidChange(Style::Difference diff, const RenderStyle* oldStyle)

@@ -185,7 +185,6 @@ public:
     virtual const AtomString& NODELETE localName() const;
     virtual const AtomString& NODELETE namespaceURI() const;
     virtual const AtomString& NODELETE prefix() const;
-    virtual ExceptionOr<void> setPrefix(const AtomString&);
     WEBCORE_EXPORT ExceptionOr<void> normalize();
 
     bool isSameNode(Node* other) const { return this == other; }
@@ -438,8 +437,6 @@ public:
     inline unsigned NODELETE countChildNodes() const;
     inline unsigned NODELETE length() const;
     inline Node* traverseToChildAt(unsigned) const;
-
-    ExceptionOr<void> checkSetPrefix(const AtomString& prefix);
 
     // https://dom.spec.whatwg.org/#concept-tree-descendant
     WEBCORE_EXPORT bool NODELETE isDescendantOf(const Node&) const;

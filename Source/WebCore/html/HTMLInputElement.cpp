@@ -522,14 +522,20 @@ void HTMLInputElement::updateType(const AtomString& typeAttributeValue)
         return;
     ASSERT(m_inputType->type() != newType->type());
 
-    Style::PseudoClassChangeInvalidation defaultInvalidation(*this, CSSSelector::PseudoClass::Default, Style::PseudoClassChangeInvalidation::AnyValue);
+    Style::PseudoClassChangeInvalidation typeChangeInvalidation(*this, {
+        CSSSelector::PseudoClass::Default,
+        CSSSelector::PseudoClass::PlaceholderShown,
+        CSSSelector::PseudoClass::Required,
+        CSSSelector::PseudoClass::Optional,
+        CSSSelector::PseudoClass::ReadWrite,
+        CSSSelector::PseudoClass::ReadOnly,
+    }, Style::PseudoClassChangeInvalidation::AnyValue);
 
     removeFromRadioButtonGroup();
     resignStrongPasswordAppearance();
 
     bool didSupportReadOnly = m_inputType->supportsReadOnly();
     bool willSupportReadOnly = newType->supportsReadOnly();
-    std::optional<Style::PseudoClassChangeInvalidation> readWriteInvalidation;
 
     bool didStoreValue = m_inputType->storesValueSeparateFromAttribute();
     bool willStoreValue = newType->storesValueSeparateFromAttribute();
@@ -560,10 +566,8 @@ void HTMLInputElement::updateType(const AtomString& typeAttributeValue)
     if (oldType == InputType::Type::Telephone || m_inputType->type() == InputType::Type::Telephone || (hasAutoTextDirectionState() && didDirAutoUseValue != m_inputType->dirAutoUsesValue()))
         updateEffectiveTextDirection();
 
-    if (didSupportReadOnly != willSupportReadOnly && hasAttributeWithoutSynchronization(readonlyAttr)) [[unlikely]] {
-        emplace(readWriteInvalidation, *this, { { CSSSelector::PseudoClass::ReadWrite, !willSupportReadOnly }, { CSSSelector::PseudoClass::ReadOnly, willSupportReadOnly } });
+    if (didSupportReadOnly != willSupportReadOnly && hasAttributeWithoutSynchronization(readonlyAttr)) [[unlikely]]
         readOnlyStateChanged();
-    }
 
     updateWillValidateAndValidity();
 
@@ -834,7 +838,7 @@ void HTMLInputElement::attributeChanged(const QualifiedName& name, const AtomStr
         unsigned oldSize = m_size;
         m_size = limitToOnlyHTMLNonNegativeNumbersGreaterThanZero(newValue, defaultSize);
         if (m_size != oldSize && renderer())
-            renderer()->setNeedsLayoutAndPreferredWidthsUpdate();
+            renderer()->setNeedsLayoutAndInvalidateContentLogicalWidths();
         break;
     }
     case AttributeNames::resultsAttr:

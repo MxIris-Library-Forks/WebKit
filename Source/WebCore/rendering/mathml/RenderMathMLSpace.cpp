@@ -51,19 +51,19 @@ MathMLSpaceElement& RenderMathMLSpace::element() const
     return static_cast<MathMLSpaceElement&>(nodeForNonAnonymous());
 }
 
-void RenderMathMLSpace::computePreferredLogicalWidths()
+void RenderMathMLSpace::computeIntrinsicLogicalWidthContributions()
 {
-    ASSERT(needsPreferredLogicalWidthsUpdate());
+    ASSERT(hasInvalidContentLogicalWidths());
 
-    m_maxPreferredLogicalWidth = spaceWidth();
-    m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+    m_maxContentLogicalWidth = spaceWidth();
+    m_minContentLogicalWidth = m_maxContentLogicalWidth;
 
     auto sizes = sizeAppliedToMathContent(LayoutPhase::CalculatePreferredLogicalWidth);
     applySizeToMathContent(LayoutPhase::CalculatePreferredLogicalWidth, sizes);
 
     adjustPreferredLogicalWidthsForBorderAndPadding();
 
-    clearNeedsPreferredWidthsUpdate();
+    clearContentLogicalWidthsInvalidation();
 }
 
 LayoutUnit RenderMathMLSpace::spaceWidth() const

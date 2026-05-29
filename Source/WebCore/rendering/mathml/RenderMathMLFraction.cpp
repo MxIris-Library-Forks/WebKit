@@ -186,26 +186,26 @@ MathMLFractionElement& RenderMathMLFraction::element() const
     return static_cast<MathMLFractionElement&>(nodeForNonAnonymous());
 }
 
-void RenderMathMLFraction::computePreferredLogicalWidths()
+void RenderMathMLFraction::computeIntrinsicLogicalWidthContributions()
 {
-    ASSERT(needsPreferredLogicalWidthsUpdate());
+    ASSERT(hasInvalidContentLogicalWidths());
 
     if (!isValid()) {
-        RenderMathMLRow::computePreferredLogicalWidths();
+        RenderMathMLRow::computeIntrinsicLogicalWidthContributions();
         return;
     }
 
-    LayoutUnit numeratorWidth = numerator().maxPreferredLogicalWidth() + marginIntrinsicLogicalWidthForChild(numerator());
-    LayoutUnit denominatorWidth = denominator().maxPreferredLogicalWidth() + marginIntrinsicLogicalWidthForChild(denominator());
-    m_maxPreferredLogicalWidth = std::max(numeratorWidth, denominatorWidth);
-    m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth;
+    LayoutUnit numeratorWidth = numerator().maxContentLogicalWidth() + marginIntrinsicLogicalWidthForChild(numerator());
+    LayoutUnit denominatorWidth = denominator().maxContentLogicalWidth() + marginIntrinsicLogicalWidthForChild(denominator());
+    m_maxContentLogicalWidth = std::max(numeratorWidth, denominatorWidth);
+    m_minContentLogicalWidth = m_maxContentLogicalWidth;
 
     auto sizes = sizeAppliedToMathContent(LayoutPhase::CalculatePreferredLogicalWidth);
     applySizeToMathContent(LayoutPhase::CalculatePreferredLogicalWidth, sizes);
 
     adjustPreferredLogicalWidthsForBorderAndPadding();
 
-    clearNeedsPreferredWidthsUpdate();
+    clearContentLogicalWidthsInvalidation();
 }
 
 LayoutUnit RenderMathMLFraction::horizontalOffset(RenderBox& child, MathMLFractionElement::FractionAlignment align) const

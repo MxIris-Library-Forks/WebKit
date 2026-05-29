@@ -44,7 +44,7 @@ public:
     LayoutSize intrinsicSize() const final;
 
     bool isContentLikelyVisibleInViewport();
-    bool shouldInvalidatePreferredWidths() const override;
+    bool shouldInvalidateContentWidths() const override;
 
     virtual bool paintsContent() const { return true; }
 
@@ -109,7 +109,7 @@ private:
 
     bool canHaveChildren() const override { return false; }
 
-    void computePreferredLogicalWidths() final;
+    void computeIntrinsicLogicalWidthContributions() final;
     virtual void paintReplaced(PaintInfo&, const LayoutPoint&) { }
 
     RepaintRects localRectsForRepaint(RepaintOutlineBounds) const override;

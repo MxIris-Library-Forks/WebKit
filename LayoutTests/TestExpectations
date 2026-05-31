@@ -1763,6 +1763,7 @@ imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-button.html [ Image
 
 # grid-lanes
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/grid-lanes-grid-template-columns-computed-withcontent.html [ Failure ]
+[ Debug ] imported/w3c/web-platform-tests/css/css-grid/grid-lanes/animation/flow-tolerance-interpolation.html [ Pass Crash ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/animation/grid-template-rows-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/alignment/column-fill-reverse-align-content-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/alignment/column-fill-reverse-justify-content-001.html [ ImageOnlyFailure ]
@@ -2028,7 +2029,10 @@ imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/auto-track-sizing-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/column-subgrid-extra-margin-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/column-subgrid-extra-margin-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/grid-lanes-subgrid-flex.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/column-subgrid-with-row-standalone-axis-size-006.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/column-subgrid-with-row-standalone-axis-size-007.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/column-subgrid-with-row-standalone-axis-size-008.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/column-subgrid-with-row-standalone-axis-size-009.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/row-subgrid-extra-margin-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/row-subgrid-extra-margin-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/row-subgrid-extra-margin-006.html [ ImageOnlyFailure ]
@@ -4335,8 +4339,6 @@ imported/w3c/web-platform-tests/css/css-images/cross-fade-cross-origin-orientati
 imported/w3c/web-platform-tests/css/css-images/cross-fade-natural-size.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/cross-fade-premultiplied-alpha.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/cross-fade-target-alpha.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/image-color-basic.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-images/image-color-layered.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/image-color-cross-fade.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/image-light-dark.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/gradient/gradient-eval-004.html [ ImageOnlyFailure ]
@@ -5201,6 +5203,9 @@ webkit.org/b/245347 imported/w3c/web-platform-tests/css/css-color/lch-010.html [
 webkit.org/b/245347 imported/w3c/web-platform-tests/css/css-color/oklch-009.html [ ImageOnlyFailure ]
 webkit.org/b/245347 imported/w3c/web-platform-tests/css/css-color/oklch-010.html [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/css/css-color/light-dark-image-none-interpolation.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-color/light-dark-image-none.html [ ImageOnlyFailure ]
+
 webkit.org/b/214456 imported/w3c/web-platform-tests/css/css-images/conic-gradient-angle.html [ ImageOnlyFailure ]
 webkit.org/b/214456 imported/w3c/web-platform-tests/css/css-images/conic-gradient-angle-negative.html [ ImageOnlyFailure ]
 webkit.org/b/214456 imported/w3c/web-platform-tests/css/css-images/conic-gradient-center.html [ ImageOnlyFailure ]
@@ -5272,6 +5277,41 @@ imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-008a.html [ Imag
 imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-008b.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-009a.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-009b.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-display-none.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-multiple.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-nested.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-pseudo-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-pseudo-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-pseudo-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-siblings-001a.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-siblings-001b.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-siblings-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-siblings-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/counter-reset-reversed-with-regular.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-010.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-012.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-013.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-014.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-015.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-016.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-017.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-018.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-019.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-020.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-023.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-024.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-025.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-026.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-027.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-028.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-value-reversed-030.html [ ImageOnlyFailure ]
+
+# Marker/counter rendering differences
+imported/w3c/web-platform-tests/css/css-lists/li-list-item-counter-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-list-item-counter-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-list-item-counter-004.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/li-list-item-counter-005.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-lists/marker-counter.html [ ImageOnlyFailure ]
 
 # list-style
 imported/w3c/web-platform-tests/css/css-lists/list-style-type-decimal-line-height.html [ ImageOnlyFailure ]
@@ -7019,6 +7059,9 @@ imported/w3c/web-platform-tests/css/css-view-transitions/nested/ [ Skip ]
 
 # View transitions Level ? - scoped view-transitions
 imported/w3c/web-platform-tests/css/css-view-transitions/scoped/ [ Skip ]
+
+# waitUntil() method.
+imported/w3c/web-platform-tests/css/css-view-transitions/view-transition-waituntil-animation-manipulation.html [ ImageOnlyFailure ]
 
 # Depends on object-view-box (unimplemented).
 imported/w3c/web-platform-tests/css/css-view-transitions/old-content-with-object-view-box.html [ ImageOnlyFailure ]

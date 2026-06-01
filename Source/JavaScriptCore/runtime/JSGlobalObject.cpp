@@ -1149,6 +1149,10 @@ void JSGlobalObject::init(VM& vm)
         [] (const Initializer<JSFunction>& init) {
             init.set(JSFunction::create(init.vm, init.owner, 0, init.vm.propertyNames->builtinNames().valuesPublicName().string(), setProtoFuncValues, ImplementationVisibility::Public, JSSetValuesIntrinsic));
         });
+    m_stringProtoSymbolIteratorFunction.initLater(
+        [] (const Initializer<JSFunction>& init) {
+            init.set(JSFunction::create(init.vm, init.owner, 0, "[Symbol.iterator]"_s, stringProtoFuncIterator, ImplementationVisibility::Public, JSStringIteratorIntrinsic));
+        });
 
     m_numberProtoToStringFunction.initLater(
         [] (const Initializer<JSFunction>& init) {
@@ -2276,6 +2280,7 @@ capitalName ## Constructor* lowerName ## Constructor = featureFlag ? capitalName
     installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->unicodeSets), m_regExpPrimordialPropertiesWatchpointSet);
     installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->replaceSymbol), m_regExpPrimordialPropertiesWatchpointSet);
     installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->matchSymbol), m_regExpPrimordialPropertiesWatchpointSet);
+    installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->searchSymbol), m_regExpPrimordialPropertiesWatchpointSet);
     installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->splitSymbol), m_regExpPrimordialPropertiesWatchpointSet);
     installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, jsSetPrototype(), vm.propertyNames->has), m_setPrimordialPropertiesWatchpointSet);
     installObjectPropertyChangeAdaptiveWatchpoint(setupAdaptiveWatchpoint(this, jsSetPrototype(), vm.propertyNames->keys), m_setPrimordialPropertiesWatchpointSet);
@@ -2287,6 +2292,8 @@ capitalName ## Constructor* lowerName ## Constructor = featureFlag ? capitalName
     // Detect property absence.
     installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_stringPrototype.get(), vm.propertyNames->matchSymbol, objectPrototype()), m_stringSymbolMatchWatchpointSet);
     installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_objectPrototype.get(), vm.propertyNames->matchSymbol, nullptr), m_stringSymbolMatchWatchpointSet);
+    installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_stringPrototype.get(), vm.propertyNames->searchSymbol, objectPrototype()), m_stringSymbolSearchWatchpointSet);
+    installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_objectPrototype.get(), vm.propertyNames->searchSymbol, nullptr), m_stringSymbolSearchWatchpointSet);
     installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_stringPrototype.get(), vm.propertyNames->replaceSymbol, objectPrototype()), m_stringSymbolReplaceWatchpointSet);
     installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_objectPrototype.get(), vm.propertyNames->replaceSymbol, nullptr), m_stringSymbolReplaceWatchpointSet);
     installObjectAdaptiveStructureWatchpoint(setupAbsenceAdaptiveWatchpoint(this, m_stringPrototype.get(), vm.propertyNames->splitSymbol, objectPrototype()), m_stringSymbolSplitWatchpointSet);
@@ -2991,6 +2998,7 @@ void JSGlobalObject::visitChildrenImpl(JSCell* cell, Visitor& visitor)
     thisObject->m_arrayProtoValuesFunction.visit(visitor);
     thisObject->m_mapProtoEntriesFunction.visit(visitor);
     thisObject->m_setProtoValuesFunction.visit(visitor);
+    thisObject->m_stringProtoSymbolIteratorFunction.visit(visitor);
     visitor.append(thisObject->m_objectProtoValueOfFunction);
     thisObject->m_numberProtoToStringFunction.visit(visitor);
     visitor.append(thisObject->m_functionProtoHasInstanceSymbolFunction);

@@ -322,6 +322,7 @@ public:
     LazyProperty<JSGlobalObject, JSFunction> m_setProtoValuesFunction;
     LazyProperty<JSGlobalObject, JSFunction> m_stringProtoSymbolIteratorFunction;
     LazyProperty<JSGlobalObject, JSFunction> m_numberProtoToStringFunction;
+    LazyProperty<JSGlobalObject, JSFunction> m_iteratorProtoSymbolIteratorFunction;
     WriteBarrier<JSFunction> m_objectProtoValueOfFunction;
     WriteBarrier<JSFunction> m_functionProtoHasInstanceSymbolFunction;
     WriteBarrier<JSFunction> m_performProxyObjectHasFunction;
@@ -521,6 +522,7 @@ public:
     InlineWatchpointSet m_stringIteratorProtocolWatchpointSet { IsWatched };
     InlineWatchpointSet m_stringSymbolMatchWatchpointSet { IsWatched };
     InlineWatchpointSet m_stringSymbolSearchWatchpointSet { IsWatched };
+    InlineWatchpointSet m_stringSymbolMatchAllWatchpointSet { IsWatched };
     InlineWatchpointSet m_stringSymbolReplaceWatchpointSet { IsWatched };
     InlineWatchpointSet m_stringSymbolSplitWatchpointSet { IsWatched };
     InlineWatchpointSet m_stringSymbolToPrimitiveWatchpointSet { IsWatched };
@@ -600,6 +602,7 @@ public:
     InlineWatchpointSet& stringIteratorProtocolWatchpointSet() LIFETIME_BOUND { return m_stringIteratorProtocolWatchpointSet; }
     InlineWatchpointSet& stringSymbolMatchWatchpointSet() LIFETIME_BOUND { return m_stringSymbolMatchWatchpointSet; }
     InlineWatchpointSet& stringSymbolSearchWatchpointSet() LIFETIME_BOUND { return m_stringSymbolSearchWatchpointSet; }
+    InlineWatchpointSet& stringSymbolMatchAllWatchpointSet() LIFETIME_BOUND { return m_stringSymbolMatchAllWatchpointSet; }
     InlineWatchpointSet& stringSymbolReplaceWatchpointSet() LIFETIME_BOUND { return m_stringSymbolReplaceWatchpointSet; }
     InlineWatchpointSet& stringSymbolSplitWatchpointSet() LIFETIME_BOUND { return m_stringSymbolSplitWatchpointSet; }
     InlineWatchpointSet& stringSymbolToPrimitiveWatchpointSet() LIFETIME_BOUND { return m_stringSymbolToPrimitiveWatchpointSet; }
@@ -805,6 +808,8 @@ public:
     JSFunction* setProtoValuesFunctionConcurrently() const LIFETIME_BOUND { return m_setProtoValuesFunction.getConcurrently(); }
     JSFunction* stringProtoSymbolIteratorFunction() const LIFETIME_BOUND { return m_stringProtoSymbolIteratorFunction.get(this); }
     JSFunction* stringProtoSymbolIteratorFunctionConcurrently() const LIFETIME_BOUND { return m_stringProtoSymbolIteratorFunction.getConcurrently(); }
+    JSFunction* iteratorProtoSymbolIteratorFunction() const LIFETIME_BOUND { return m_iteratorProtoSymbolIteratorFunction.get(this); }
+    JSFunction* iteratorProtoSymbolIteratorFunctionConcurrently() const LIFETIME_BOUND { return m_iteratorProtoSymbolIteratorFunction.getConcurrently(); }
     JSFunction* iteratorProtocolFunction() const;
     JSFunction* promiseProtoThenFunction() const;
     JSFunction* objectProtoValueOfFunction() const LIFETIME_BOUND { return m_objectProtoValueOfFunction.get(); }

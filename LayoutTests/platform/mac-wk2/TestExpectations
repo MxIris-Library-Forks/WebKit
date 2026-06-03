@@ -2263,7 +2263,7 @@ webkit.org/b/315308 http/tests/inspector/network/cross-origin-iframe-get-respons
 
 webkit.org/b/308165 [ Debug ] scrollingcoordinator/mac/latching/simple-page-rubberbands.html [ Pass Failure ]
 
-webkit.org/b/315578 imported/w3c/web-platform-tests/url/IdnaTestV2.any.html [ Failure ]
+webkit.org/b/315578 [ Sequoia ] imported/w3c/web-platform-tests/url/IdnaTestV2.any.html [ Failure ]
 
 webkit.org/b/311759 [ Release arm64 ] imported/w3c/web-platform-tests/event-timing/keydown.html [ Pass Failure ]
 
@@ -2291,8 +2291,6 @@ webkit.org/b/309850 [ Debug ] imported/w3c/web-platform-tests/uievents/mouse/mou
 webkit.org/b/314136 accessibility/mac/client/div-bounds.html [ Pass Failure ]
 
 webkit.org/b/315776 [ arm64 ] inspector/timeline/timeline-recording.html [ Pass Failure ]
-
-webkit.org/b/314851 http/tests/site-isolation/inspector/debugger/provisional-frame-target-pausing.html [ Failure ]
 
 webkit.org/b/308334 [ Debug ] http/tests/webgpu/webgpu/api/validation/gpu_external_texture_expiration.html [ Skip ]
 
@@ -2429,6 +2427,8 @@ webkit.org/b/315980 [ Sequoia Release x86_64 ] fast/css/video-poster-zoom.html [
 
 webkit.org/b/315981 [ Sequoia Release x86_64 ] imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/media_fragment_seek.html [ Pass Failure ]
 
+webkit.org/b/316117 [ Tahoe+ Debug ] fast/dom/gc-dom-tree-lifetime-shadow-tree.html [ Pass Failure ]
+
 webkit.org/b/316016 [ Debug ] fast/mediastream/image-capture-take-photo.html [ Skip ]
 
 webkit.org/b/316014 fast/dom/move-embedded-during-update.html [ Pass Failure ]
@@ -2442,4 +2442,6 @@ webkit.org/b/316006 [ Tahoe+ Release arm64 ] imported/w3c/web-platform-tests/svg
 webkit.org/b/316036 [ Debug ] inspector/timeline/timeline-event-TimerFire.html [ Skip ]
 
 webkit.org/b/315982 [ Sequoia Release x86_64 ] webgl/pending/conformance/glsl/misc/swizzle-as-lvalue.html [ Pass Timeout ]
+
+webkit.org/b/316089 [ Sequoia Release ] inspector/css/setLayoutContextTypeChangedMode.html [ Pass Failure ]
 

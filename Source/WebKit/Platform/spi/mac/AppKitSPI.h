@@ -157,6 +157,7 @@ typedef NS_ENUM(NSInteger, NSScrollPocketEdge) {
 + (_NSCornerRadius *)fixedRadius:(CGFloat)radius;
 @end
 
+// FIXME: Drop these and clean up the call sites once the supported configurations allow it.
 #if !defined(__has_include) || !__has_include(<AppKit/NSViewCornerRadii.h>)
 @interface NSViewCornerRadii : NSObject
 @property CGFloat topLeft;

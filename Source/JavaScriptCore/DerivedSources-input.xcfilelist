@@ -70,6 +70,7 @@ $(PROJECT_DIR)/builtins/SetIteratorPrototype.js
 $(PROJECT_DIR)/builtins/SetPrototype.js
 $(PROJECT_DIR)/builtins/ShadowRealmPrototype.js
 $(PROJECT_DIR)/builtins/StringConstructor.js
+$(PROJECT_DIR)/builtins/StringIteratorPrototype.js
 $(PROJECT_DIR)/builtins/TypedArrayConstructor.js
 $(PROJECT_DIR)/builtins/TypedArrayPrototype.js
 $(PROJECT_DIR)/builtins/WebAssembly.js

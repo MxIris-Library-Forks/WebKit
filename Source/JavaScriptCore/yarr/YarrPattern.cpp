@@ -255,23 +255,28 @@ public:
 
     void putRange(char32_t lo, char32_t hi)
     {
-        // This is ASCII-case-folding fast path. So intentionally using isASCII (not isLatin1).
-        if (isASCII(lo)) {
-            char asciiLo = lo;
-            char asciiHi = std::min<char32_t>(hi, 0x7f);
-            addSortedRange(lo, asciiHi);
+        // The ASCII case-folding fast path is only valid in UCS2 canonical mode. In Unicode
+        // canonical mode, U+212A and U+017F canonicalize into ASCII 'k' and 's', so ASCII
+        // ranges must go through the canonicalization table below.
+        if (!m_isCaseInsensitive || m_canonicalMode == CanonicalMode::UCS2) {
+            // This is ASCII-case-folding fast path. So intentionally using isASCII (not isLatin1).
+            if (isASCII(lo)) {
+                char asciiLo = lo;
+                char asciiHi = std::min<char32_t>(hi, 0x7f);
+                addSortedRange(lo, asciiHi);
 
-            if (m_isCaseInsensitive) {
-                if ((asciiLo <= 'Z') && (asciiHi >= 'A'))
-                    addSortedRange(std::max(asciiLo, 'A')+('a'-'A'), std::min(asciiHi, 'Z')+('a'-'A'));
-                if ((asciiLo <= 'z') && (asciiHi >= 'a'))
-                    addSortedRange(std::max(asciiLo, 'a')+('A'-'a'), std::min(asciiHi, 'z')+('A'-'a'));
+                if (m_isCaseInsensitive) {
+                    if ((asciiLo <= 'Z') && (asciiHi >= 'A'))
+                        addSortedRange(std::max(asciiLo, 'A')+('a'-'A'), std::min(asciiHi, 'Z')+('a'-'A'));
+                    if ((asciiLo <= 'z') && (asciiHi >= 'a'))
+                        addSortedRange(std::max(asciiLo, 'a')+('A'-'a'), std::min(asciiHi, 'z')+('A'-'a'));
+                }
             }
-        }
-        if (isASCII(hi))
-            return;
+            if (isASCII(hi))
+                return;
 
-        lo = std::max<char32_t>(lo, 0x80);
+            lo = std::max<char32_t>(lo, 0x80);
+        }
         addSortedRange(lo, hi);
 
         if (!m_isCaseInsensitive)
@@ -1741,9 +1746,19 @@ public:
 
         if (min == max)
             term.quantify(min, max, QuantifierType::FixedCount);
-        else if (!min || (term.type == PatternTerm::Type::ParenthesesSubpattern && m_pattern.m_hasCopiedParenSubexpressions))
+        else if (!min
+            || (term.type == PatternTerm::Type::ParenthesesSubpattern
+                && (m_pattern.m_hasCopiedParenSubexpressions || term.matchDirection() == Forward))) {
+            // Forward-direction parenthesized subpatterns with non-zero minimum are kept
+            // as a single PatternTerm with quantityMinCount > 0; YarrJIT compiles these
+            // natively (see opCompileParenthesesSubpattern) without splitting into
+            // FixedCount{min} + Greedy/NonGreedy{0,max-min}. The split would deep-copy
+            // the disjunction subtree, which can hit OffsetTooLarge / pattern-size limits
+            // for very large bounds (e.g. (?:x){2147483648,...}). Backward parens
+            // (lookbehinds) still use the expansion path; the JIT's right-to-left
+            // backtracking machinery hasn't been generalized for single-term VariableMin.
             term.quantify(min, max, greedy ? QuantifierType::Greedy : QuantifierType::NonGreedy);
-        else {
+        } else {
             if (term.matchDirection() == Forward) {
                 term.quantify(min, min, QuantifierType::FixedCount);
                 auto copied = copyTerm(term, /* filterStartsWithBOL */ false);

@@ -2206,11 +2206,11 @@ class WebCore::LayoutRect {
     ExplicitlySet
 };
 
-struct WebCore::RemoteFrameLayoutInfo {
-    std::optional<WebCore::LayoutRect> visibleRectInParent;
-    float usedZoom;
-    WebCore::LayoutPoint contentBoxLocation;
-    OptionSet<WebCore::FrameOwnerElementAppearance> ownerElementAppearance;
+[RefCounted] class WebCore::RemoteFrameLayoutInfo {
+    std::optional<WebCore::LayoutRect> visibleRectInParent();
+    float usedZoom();
+    WebCore::LayoutPoint contentBoxLocation();
+    OptionSet<WebCore::FrameOwnerElementAppearance> ownerElementAppearance();
 };
 
 header: <WebCore/VP9Utilities.h>
@@ -6494,6 +6494,13 @@ enum class WebCore::AcceleratedEffectTransformBox : uint8_t {
 
 struct WebCore::AcceleratedEffectTransformOrigin {
     WebCore::FloatPoint value;
+};
+
+struct WebCore::AcceleratedEffectClipPath {
+    Variant<WebCore::AcceleratedEffectClipPath::None, WebCore::AcceleratedEffectReferencePath, WebCore::AcceleratedEffectBasicShapePath, WebCore::AcceleratedEffectBoxPath> value;
+};
+
+[Nested] struct WebCore::AcceleratedEffectClipPath::None {
 };
 
 struct WebCore::AcceleratedEffectValues {

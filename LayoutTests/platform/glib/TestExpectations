@@ -1278,6 +1278,8 @@ webkit.org/b/305740 compositing/backing/solid-color-with-paints-into-ancestor.ht
 
 imported/w3c/web-platform-tests/css/compositing/mix-blend-mode/mix-blend-mode-plus-lighter-svg.html [ ImageOnlyFailure Pass ]
 
+imported/w3c/web-platform-tests/css/compositing/mix-blend-mode/mix-blend-mode-rotated-clip.html [ Pass ]
+
 webkit.org/b/310417 compositing/masks/become-tiled-mask.html [ ImageOnlyFailure Pass ]
 
 webkit.org/b/314309 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-edge-behavior.html [ ImageOnlyFailure ]
@@ -1512,7 +1514,6 @@ webkit.org/b/305744 imported/w3c/web-platform-tests/html/dom/idlharness.https.ht
 #////////////////////////////////////////////////////////////////////////////////////////
 
 webkit.org/b/307135 platform/glib/damage/animations-opacity-to-invisibility.html [ Failure Pass ]
-webkit.org/b/314299 platform/glib/damage/transform-3d-rotate-in-still-rotate.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Damage Tracking-related bugs
@@ -2665,6 +2666,8 @@ webkit.org/b/307727 webaudio/decode-audio-data-mp3-8000.html [ Failure ]
 webaudio/MediaElementAudioSource/mediaelementaudiosourcenode-playbackrate.html [ Skip ]
 webaudio/MediaElementAudioSource/mediaelementaudiosourcenode-volume.html [ Skip ]
 
+webkit.org/b/316179 webaudio/decode-audio-data-ogg-vorbis.html [ Failure ]
+
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of WebAudio-related bugs
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -2677,7 +2680,7 @@ webaudio/MediaElementAudioSource/mediaelementaudiosourcenode-volume.html [ Skip 
 webkit.org/b/216071 fast/canvas/webgl/move-canvas-in-document-while-clean.html [ ImageOnlyFailure ]
 
 webkit.org/b/172812 fast/canvas/webgl/lose-context-on-status-failure.html [ Skip ]
-webkit.org/b/172812 webgl/lose-context-after-context-lost.html [ Failure ]
+webkit.org/b/172812 webgl/lose-context-after-context-lost.html [ Failure Timeout ]
 webkit.org/b/172812 webgl/multiple-context-losses.html [ Failure ]
 webkit.org/b/305355 webgl/max-active-contexts-webglcontextlost-prevent-default.html [ Failure ]
 
@@ -3108,7 +3111,6 @@ imported/w3c/web-platform-tests/webrtc/RTCRtpSender-getCapabilities.html [ Pass 
 imported/w3c/web-platform-tests/webrtc/RTCRtpSender-getParameters.html [ Failure ]
 webkit.org/b/315948 imported/w3c/web-platform-tests/webrtc/RTCRtpSender-getStats.https.html [ Failure ]
 imported/w3c/web-platform-tests/webrtc/RTCRtpSender-replaceTrack.https.html [ Pass ]
-imported/w3c/web-platform-tests/webrtc/RTCRtpSender-setParameters-keyFrame.html [ Pass ]
 imported/w3c/web-platform-tests/webrtc/RTCRtpSender-setStreams.https.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/webrtc/RTCRtpSender-transport.https.html [ Failure ]
 imported/w3c/web-platform-tests/webrtc/RTCRtpTransceiver-direction.html [ Pass ]
@@ -3185,6 +3187,7 @@ imported/w3c/web-platform-tests/webrtc/simulcast/h264.https.html [ Pass Failure 
 imported/w3c/web-platform-tests/webrtc/simulcast/negotiation-encodings.https.html [ Failure ]
 imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-encodings.https.html [ Failure ]
 webkit.org/b/315758 imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-maxFramerate.https.html [ Crash Pass Failure ]
+webkit.org/b/315758 imported/w3c/web-platform-tests/webrtc/RTCRtpSender-setParameters-keyFrame.html [ Crash Pass ]
 webkit.org/b/235885 imported/w3c/web-platform-tests/webrtc/protocol/simulcast-answer.html [ Skip ]
 webkit.org/b/235885 imported/w3c/web-platform-tests/webrtc/protocol/simulcast-offer.html [ Skip ]
 webkit.org/b/306018 imported/w3c/web-platform-tests/webrtc/simulcast/av1.https.html [ Pass Failure ]
@@ -4685,10 +4688,7 @@ imported/w3c/web-platform-tests/css/css-view-transitions/input-targets-root-whil
 imported/w3c/web-platform-tests/css/css-view-transitions/paint-holding-in-iframe.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/content-with-clip-root.html [ ImageOnlyFailure ]
 
-imported/w3c/web-platform-tests/css/css-view-transitions/navigation/at-rule-opt-in-auto.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/navigation/mismatched-snapshot-containing-block-size-skips.html [ Failure Pass ]
-imported/w3c/web-platform-tests/css/css-view-transitions/navigation/with-types/at-rule-opt-in-auto-with-types-no-cascade.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/navigation/with-types/at-rule-opt-in-auto-with-types.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/start-skip-start.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/css/css-view-transitions/input-touch-while-render-blocked.html [ Skip ]
@@ -4781,7 +4781,7 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-mode
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_background_properties.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_background_shorthand.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_color.html [ Pass ]
-imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_namespace.html [ Pass ]
+webkit.org/b/316195 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_namespace.html [ Crash Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_outline_properties.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_outline_shorthand.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_text-decoration_line-through.html [ Pass ]
@@ -5412,9 +5412,6 @@ webkit.org/b/195466 imported/w3c/web-platform-tests/html/semantics/embedded-cont
 webkit.org/b/311276 imported/w3c/web-platform-tests/css/selectors/media/media-playback-state.html [ Pass Failure ]
 webkit.org/b/311276 imported/w3c/web-platform-tests/css/selectors/invalidation/media-pseudo-classes-in-has.html [ Pass Failure ]
 
-# Skipped in main file, let's skip as it's timing out in EWS after 311870@main
-imported/w3c/web-platform-tests/css/selectors/invalidation/has-complexity.html [ Skip ]
-
 webkit.org/b/261024 fast/multicol/pagination/RightToLeft-rl-hittest.html [ Failure ]
 webkit.org/b/146731 fast/backgrounds/hidpi-background-image-contain-cover-scale-needs-more-precision.html [ ImageOnlyFailure ]
 webkit.org/b/197473 imported/w3c/web-platform-tests/resource-timing/resource-timing-level1.sub.html [ Failure ]
@@ -5548,6 +5545,10 @@ webkit.org/b/315925 inspector/heap/getRemoteObject.html [ Failure Pass ]
 webkit.org/b/315934 fast/dom/lazy-image-loading-document-leak.html [ Crash Pass ]
 
 webkit.org/b/316158 fullscreen/full-screen-enter-while-exiting-mid-completion-handler.html [ Crash Pass ]
+
+webkit.org/b/316192 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-mediaelementaudiosourcenode-interface/no-cors.https.html [ Crash Pass ]
+
+webkit.org/b/316197 imported/w3c/web-platform-tests/media-source/mediasource-addsourcebuffer-mode.html [ Crash Pass ]
 
 # Needs picture-in-picture support
 media/media-visible-in-viewport-in-fullscreen.html

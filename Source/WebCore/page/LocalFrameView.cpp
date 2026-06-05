@@ -110,7 +110,6 @@
 #include "RenderSVGRoot.h"
 #include "RenderScrollbar.h"
 #include "RenderScrollbarPart.h"
-#include "RenderStyle+SettersInlines.h"
 #include "RenderText.h"
 #include "RenderTheme.h"
 #include "RenderTreeAsText.h"
@@ -132,6 +131,7 @@
 #include "Settings.h"
 #include "ShadowRoot.h"
 #include "SimpleRange.h"
+#include "StyleComputedStyle+SettersInlines.h"
 #include "StyleResolver.h"
 #include "StyleScope.h"
 #include "TextIndicator.h"
@@ -177,7 +177,7 @@ static constexpr float defaultSignificantRenderedTextMeanLength = 50;
 static constexpr unsigned mainArticleSignificantRenderedTextCharacterThreshold = 1500;
 static constexpr float mainArticleSignificantRenderedTextMeanLength = 25;
 
-Pagination::Mode paginationModeForRenderStyle(const RenderStyle& style)
+Pagination::Mode paginationModeForRenderStyle(const Style::ComputedStyle& style)
 {
     auto overflow = style.overflowY();
     if (overflow != Overflow::PagedX && overflow != Overflow::PagedY)
@@ -909,7 +909,7 @@ void LocalFrameView::updateSnapOffsets()
     RefPtr documentElement = m_frame->document()->documentElement();
     CheckedPtr rootRenderer = documentElement ? documentElement->renderBox() : nullptr;
 
-    const RenderStyle* styleToUse = nullptr;
+    const Style::ComputedStyle* styleToUse = nullptr;
     if (rootRenderer && !rootRenderer->style().scrollSnapType().isNone())
         styleToUse = &rootRenderer->style();
 
@@ -2558,7 +2558,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         };
     };
 
-    auto computeSamplingRect = [&](const RenderStyle* style, BoxSide side) -> LayoutRect {
+    auto computeSamplingRect = [&](const Style::ComputedStyle* style, BoxSide side) -> LayoutRect {
         auto samplingRect = computeSampleRectIgnoringBorderWidth(fixedRect, side);
         if (!style)
             return samplingRect;
@@ -2670,7 +2670,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
     return { WTF::move(edges), WTF::move(containers) };
 }
 
-FloatRect LocalFrameView::insetClipLayerRect(const FloatPoint& scrollPosition, const FloatBoxExtent& obscuredContentInset, const FloatSize& sizeForVisibleContent)
+FloatRect LocalFrameView::insetClipLayerRect(const FloatPoint& scrollPosition, const FloatSize& totalContentsSize, const FloatBoxExtent& obscuredContentInset, const FloatSize& sizeForVisibleContent)
 {
     auto computeOffset = [](float scrollAmount, float insetAmount) {
         if (!insetAmount)
@@ -2690,14 +2690,26 @@ FloatRect LocalFrameView::insetClipLayerRect(const FloatPoint& scrollPosition, c
     if (obscuredContentInset.top())
         adjustedSize.setHeight(std::max(0.f, adjustedSize.height() - position.y()));
 
-    if (obscuredContentInset.bottom())
-        adjustedSize.setHeight(std::max(0.f, adjustedSize.height() - obscuredContentInset.bottom()));
+    if (obscuredContentInset.bottom()) {
+        float visibleContentTop = std::max(0.f, scrollPosition.y());
+        float visibleContentBottom = visibleContentTop + sizeForVisibleContent.height();
+        // How much of the visible content rect eats into the bottom obscured content inset area.
+        float obscuredInsetOverlap = std::max(0.f, visibleContentBottom - (obscuredContentInset.top() + totalContentsSize.height()));
+
+        adjustedSize.setHeight(std::max(0.f, adjustedSize.height() - obscuredInsetOverlap));
+    }
 
     if (obscuredContentInset.left())
         adjustedSize.setWidth(std::max(0.f, adjustedSize.width() - position.x()));
 
-    if (obscuredContentInset.right())
-        adjustedSize.setWidth(std::max(0.f, adjustedSize.width() - obscuredContentInset.right()));
+    if (obscuredContentInset.right()) {
+        float visibleContentLeft = std::max(0.f, scrollPosition.x());
+        float visibleContentRight = visibleContentLeft + sizeForVisibleContent.width();
+        // How much of the visible content rect eats into the right obscured content inset area.
+        float obscureInsetOverlap = std::max(0.f, visibleContentRight - (obscuredContentInset.left() + totalContentsSize.width()));
+
+        adjustedSize.setWidth(std::max(0.f, adjustedSize.width() - obscureInsetOverlap));
+    }
 
     return { position, adjustedSize };
 }
@@ -3471,7 +3483,7 @@ void LocalFrameView::cancelScheduledTextFragmentIndicatorTimer()
     m_delayedTextFragmentIndicatorTimer.stop();
 }
 
-static void NODELETE adjustScrollRectToVisibleOptionsForHiddenOverflow(ScrollRectToVisibleOptions& options, const RenderStyle& style)
+static void NODELETE adjustScrollRectToVisibleOptionsForHiddenOverflow(ScrollRectToVisibleOptions& options, const Style::ComputedStyle& style)
 {
     if (options.allowScrollingOverflowHidden == AllowScrollingOverflowHidden::Yes)
         return;
@@ -5425,7 +5437,7 @@ void LocalFrameView::notifyScrollableAreasThatContentAreaWillPaint() const
 void LocalFrameView::updateScrollCorner()
 {
     CheckedPtr<RenderElement> renderer;
-    std::unique_ptr<RenderStyle> cornerStyle;
+    std::unique_ptr<Style::ComputedStyle> cornerStyle;
     IntRect cornerRect = scrollCornerRect();
     RefPtr doc = m_frame->document();
 

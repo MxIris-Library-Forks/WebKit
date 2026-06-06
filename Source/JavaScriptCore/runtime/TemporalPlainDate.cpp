@@ -189,9 +189,7 @@ String TemporalPlainDate::toString(JSGlobalObject* globalObject, JSValue options
     if (!options)
         return toString();
 
-    String calOpt = intlStringOption(globalObject, options, Identifier::fromString(vm, "calendarName"_s),
-        { "auto"_s, "always"_s, "never"_s, "critical"_s },
-        "calendarName must be \"auto\", \"always\", \"never\", or \"critical\""_s, "auto"_s);
+    String calOpt = temporalShowCalendarName(globalObject, options);
     RETURN_IF_EXCEPTION(scope, { });
 
     auto base = ISO8601::temporalDateToString(m_plainDate);
@@ -439,7 +437,7 @@ TemporalPlainDate::mergeDateFields(JSGlobalObject* globalObject, JSObject* tempo
     JSValue dayProperty = temporalDateLike->get(globalObject, vm.propertyNames->day);
     RETURN_IF_EXCEPTION(scope, { });
     if (!dayProperty.isUndefined()) {
-        day = dayProperty.toIntegerOrInfinity(globalObject);
+        day = dayProperty.toIntegerWithTruncation(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
         if (day.value() <= 0 || !std::isfinite(day.value())) [[unlikely]] {
@@ -454,7 +452,7 @@ TemporalPlainDate::mergeDateFields(JSGlobalObject* globalObject, JSObject* tempo
     JSValue monthProperty = temporalDateLike->get(globalObject, vm.propertyNames->month);
     RETURN_IF_EXCEPTION(scope, { });
     if (!monthProperty.isUndefined()) {
-        month = monthProperty.toIntegerOrInfinity(globalObject);
+        month = monthProperty.toIntegerWithTruncation(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
         if (month.value() <= 0 || !std::isfinite(month.value())) [[unlikely]] {
@@ -479,7 +477,7 @@ TemporalPlainDate::mergeDateFields(JSGlobalObject* globalObject, JSObject* tempo
     JSValue yearProperty = temporalDateLike->get(globalObject, vm.propertyNames->year);
     RETURN_IF_EXCEPTION(scope, { });
     if (!yearProperty.isUndefined()) {
-        year = yearProperty.toIntegerOrInfinity(globalObject);
+        year = yearProperty.toIntegerWithTruncation(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
         if (!std::isfinite(year.value())) [[unlikely]] {
@@ -553,7 +551,7 @@ std::optional<int32_t> TemporalPlainDate::toDay(JSGlobalObject* globalObject, JS
     JSValue dayProperty = temporalDateLike->get(globalObject, vm.propertyNames->day);
     RETURN_IF_EXCEPTION(scope, { });
     if (!dayProperty.isUndefined()) {
-        double doubleDay = dayProperty.toIntegerOrInfinity(globalObject);
+        double doubleDay = dayProperty.toIntegerWithTruncation(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
         if (!std::isfinite(doubleDay)) [[unlikely]] {
@@ -579,7 +577,7 @@ std::optional<int32_t> TemporalPlainDate::toYear(JSGlobalObject* globalObject, J
     JSValue yearProperty = temporalDateLike->get(globalObject, vm.propertyNames->year);
     RETURN_IF_EXCEPTION(scope, { });
     if (!yearProperty.isUndefined()) {
-        double doubleYear = yearProperty.toIntegerOrInfinity(globalObject);
+        double doubleYear = yearProperty.toIntegerWithTruncation(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
         if (!std::isfinite(doubleYear)) [[unlikely]] {
@@ -605,7 +603,7 @@ TemporalPlainDate::toYearMonth(JSGlobalObject* globalObject, JSObject* temporalD
     JSValue monthProperty = temporalDateLike->get(globalObject, vm.propertyNames->month);
     RETURN_IF_EXCEPTION(scope, { });
     if (!monthProperty.isUndefined()) {
-        double doubleMonth = monthProperty.toIntegerOrInfinity(globalObject);
+        double doubleMonth = monthProperty.toIntegerWithTruncation(globalObject);
         RETURN_IF_EXCEPTION(scope, { });
 
         if (!std::isfinite(doubleMonth)) [[unlikely]] {
@@ -735,7 +733,12 @@ ISO8601::Duration TemporalPlainDate::differenceTemporalPlainDate(JSGlobalObject*
             return { };
         }
     }
-    auto result = TemporalDuration::temporalDurationFromInternal(duration, TemporalUnit::Day);
+    auto durResult = TemporalDuration::temporalDurationFromInternal(duration, TemporalUnit::Day);
+    if (!durResult) [[unlikely]] {
+        throwTemporalError(globalObject, scope, durResult.error());
+        return { };
+    }
+    ISO8601::Duration result = *durResult;
     if (op == DifferenceOperation::Since)
         result = -result;
     return result;
@@ -762,10 +765,9 @@ ISO8601::Duration TemporalPlainDate::since(JSGlobalObject* globalObject, Tempora
     VM& vm = globalObject->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    // Steps 3-4: GetDifferenceSettings; negate roundingMode for since.
-    auto [smallestUnit, largestUnit, roundingMode, increment] = extractDifferenceOptions(globalObject, optionsValue, UnitGroup::Date, TemporalUnit::Day, TemporalUnit::Day);
+    // Steps 3-4: GetDifferenceSettings(~since~, ...).
+    auto [smallestUnit, largestUnit, roundingMode, increment] = extractDifferenceOptions(globalObject, optionsValue, UnitGroup::Date, TemporalUnit::Day, TemporalUnit::Day, DifferenceOperation::Since);
     RETURN_IF_EXCEPTION(scope, { });
-    roundingMode = TemporalCore::negateTemporalRoundingMode(roundingMode);
 
     // Steps 5-9: DifferenceTemporalPlainDate.
     RELEASE_AND_RETURN(scope, differenceTemporalPlainDate(globalObject,

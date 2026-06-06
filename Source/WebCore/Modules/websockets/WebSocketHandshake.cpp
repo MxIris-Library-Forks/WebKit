@@ -197,6 +197,7 @@ ResourceRequest WebSocketHandshake::clientHandshakeRequest(NOESCAPE const Functi
     auto extensions = m_extensionDispatcher.createHeaderValue();
     ResourceRequest request { URL { m_url } };
     request.setHTTPMethod("GET"_s);
+    request.setHTTPHeaderField(HTTPHeaderName::Upgrade, "websocket"_s);
     request.setHTTPHeaderField(HTTPHeaderName::Connection, "Upgrade"_s);
     request.setHTTPHeaderField(HTTPHeaderName::Host, hostName(m_url, m_secure));
     request.setHTTPHeaderField(HTTPHeaderName::Origin, m_clientOrigin);
@@ -430,7 +431,7 @@ int WebSocketHandshake::readStatusLine(std::span<const uint8_t> header, int& sta
     }
 
     statusCode = parseInteger<int>(statusCodeString).value();
-    statusText = String(byteCast<Latin1Character>(header.subspan(*secondSpaceIndex + 1, index - *secondSpaceIndex - 3))); // Exclude "\r\n".
+    statusText = String(byteCast<Latin1Character>(header.subspan(*secondSpaceIndex + 1, lineLength - *secondSpaceIndex - 3))); // Exclude "\r\n".
     return lineLength;
 }
 

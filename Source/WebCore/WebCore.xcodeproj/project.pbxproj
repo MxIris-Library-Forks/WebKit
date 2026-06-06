@@ -2050,8 +2050,6 @@
 		4C05BAE1297AD12E004FE77D /* TextSpacing.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C05BADF297AD120004FE77D /* TextSpacing.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4C15087A2E512B4100B720D9 /* StyleTextDecorationLine.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C1508772E512B4100B720D9 /* StyleTextDecorationLine.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4C15D8D0294786F000A220AD /* TrustedFonts.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C15D8CF294786F000A220AD /* TrustedFonts.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		4C7133A6299A5E8C007A4042 /* CoreTextCompositionEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7133A5299A5E54007A4042 /* CoreTextCompositionEngine.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		4C7133A7299A5E93007A4042 /* CoreTextChineseCompositionEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7133A4299A5E54007A4042 /* CoreTextChineseCompositionEngine.h */; };
 		4C96385829BF4A51003E5741 /* StyleListStyleType.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C96385729BF4A51003E5741 /* StyleListStyleType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4CB808852964AF9A00BC59FE /* CSSCounterStyleDescriptors.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CB808832964AF4600BC59FE /* CSSCounterStyleDescriptors.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4CBE86982955BAA500832AAA /* CSSCounterStyleRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CBE86962955BA7F00832AAA /* CSSCounterStyleRegistry.h */; };
@@ -12434,11 +12432,7 @@
 		4C1508772E512B4100B720D9 /* StyleTextDecorationLine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTextDecorationLine.h; sourceTree = "<group>"; };
 		4C1508782E512B4100B720D9 /* StyleTextDecorationLine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleTextDecorationLine.cpp; sourceTree = "<group>"; };
 		4C15D8CF294786F000A220AD /* TrustedFonts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TrustedFonts.h; sourceTree = "<group>"; };
-		4C2B9981299A7C0E00D6CE0C /* CoreTextCompositionEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CoreTextCompositionEngine.cpp; sourceTree = "<group>"; };
 		4C5BEFD529489295006E05E5 /* TrustedFonts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TrustedFonts.cpp; sourceTree = "<group>"; };
-		4C7133A3299A5E53007A4042 /* CoreTextChineseCompositionEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CoreTextChineseCompositionEngine.cpp; sourceTree = "<group>"; usesTabs = 0; };
-		4C7133A4299A5E54007A4042 /* CoreTextChineseCompositionEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreTextChineseCompositionEngine.h; sourceTree = "<group>"; };
-		4C7133A5299A5E54007A4042 /* CoreTextCompositionEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreTextCompositionEngine.h; sourceTree = "<group>"; };
 		4C96385729BF4A51003E5741 /* StyleListStyleType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleListStyleType.h; sourceTree = "<group>"; };
 		4CA012DB29A7D56700C260C6 /* counterStyles.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = counterStyles.css; sourceTree = "<group>"; };
 		4CA6FA18AEA1958D18A49C88 /* UnifiedSource31-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource31-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
@@ -25699,10 +25693,6 @@
 		1C165E4F23ECF55E00B0FCFB /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
-				4C7133A3299A5E53007A4042 /* CoreTextChineseCompositionEngine.cpp */,
-				4C7133A4299A5E54007A4042 /* CoreTextChineseCompositionEngine.h */,
-				4C2B9981299A7C0E00D6CE0C /* CoreTextCompositionEngine.cpp */,
-				4C7133A5299A5E54007A4042 /* CoreTextCompositionEngine.h */,
 				F5973DDE15CFB2030027F804 /* LocaleCocoa.h */,
 				F5973DDF15CFB2030027F804 /* LocaleCocoa.mm */,
 				DFB4A19C26177D68005676A2 /* LocalizedDateCache.h */,
@@ -44536,8 +44526,6 @@
 				412F59B6288ECFB3007BD290 /* CoreAudioCaptureUnit.h in Headers */,
 				463642A629687D4C003D43F2 /* CoreHapticsSoftLink.h in Headers */,
 				4688E98027B6B45000567CD2 /* CoreLocationGeolocationProvider.h in Headers */,
-				4C7133A7299A5E93007A4042 /* CoreTextChineseCompositionEngine.h in Headers */,
-				4C7133A6299A5E8C007A4042 /* CoreTextCompositionEngine.h in Headers */,
 				463926302E7CE92200BAAF1F /* CoreVideoExtras.h in Headers */,
 				CD7D33481C7A16BF00041293 /* CoreVideoSoftLink.h in Headers */,
 				2A09D75F2F1747B900A9FFBB /* CornerRadii.h in Headers */,

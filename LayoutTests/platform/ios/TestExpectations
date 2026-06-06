@@ -8293,7 +8293,7 @@ webkit.org/b/304298 accessibility/text-stitching-inside-links.html [ Failure ]
 
 webkit.org/b/304427 fast/html/HTMLPluginElement-renderer-destroyed-crash.html [ Skip ]
 
-webkit.org/b/313562 imported/w3c/web-platform-tests/navigation-api/navigate-event/signal-abort-replaceState-crash.html [ Pass Crash Timeout ]
+
 
 webkit.org/b/304851 imported/w3c/web-platform-tests/workers/worker-performance.worker.html [ Pass Failure ]
 
@@ -8438,3 +8438,7 @@ webkit.org/b/316218 fast/scrolling/ios/scroll-into-view-smooth-after-snap.html [
 webkit.org/b/316228 fast/dom/Orientation/no-orientation-change-event-when-unparenting-view.html [ Failure ]
 
 webkit.org/b/316118 imported/w3c/web-platform-tests/url/IdnaTestV2.any.html [ Failure ]
+
+fast/events/pointerleave-after-ancestor-removal.html [ Skip ]
+
+webkit.org/b/316446 imported/w3c/web-platform-tests/css/css-borders/border-width-rounding.tentative.html [ Failure ]

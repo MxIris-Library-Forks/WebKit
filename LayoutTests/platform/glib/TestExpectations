@@ -1319,9 +1319,6 @@ imported/blink/fast/pagination/viewport-y-horizontal-tb-rtl.html [ ImageOnlyFail
 
 webkit.org/b/213114 fast/flexbox/line-clamp-with-anchor-content-only.html [ ImageOnlyFailure ]
 
-webkit.org/b/189483 imported/w3c/web-platform-tests/css/css-fonts/variations/slnt-variable.html [ ImageOnlyFailure ]
-webkit.org/b/189483 imported/w3c/web-platform-tests/css/css-fonts/variations/slnt-backslant-variable.html [ ImageOnlyFailure ]
-
 # fast/gradients are Skip in the top level Expectation. When fixing, change this to
 # Pass instead of removing this line.
 webkit.org/b/234606 fast/gradients/conic-gradient-alpha.html [ ImageOnlyFailure ]
@@ -1914,6 +1911,8 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-canvasImageSource.html [ Pa
 imported/w3c/web-platform-tests/webcodecs/videoFrame-createImageBitmap.any.worker.html [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.html?av1_444_high [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.worker.html?av1_444_high [ Pass ]
+
+http/tests/webcodecs/vp9-hdr.html [ Failure ]
 
 # Test decoding a corrupt frame after reset in a flush callback assert_unreached: Should have rejected: undefined Reached unreachable code
 imported/w3c/web-platform-tests/webcodecs/videoDecoder-codec-specific.https.any.html?av1 [ Failure ]
@@ -5550,6 +5549,14 @@ webkit.org/b/316158 fullscreen/full-screen-enter-while-exiting-mid-completion-ha
 webkit.org/b/316192 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-mediaelementaudiosourcenode-interface/no-cors.https.html [ Crash Pass ]
 
 webkit.org/b/316197 imported/w3c/web-platform-tests/media-source/mediasource-addsourcebuffer-mode.html [ Crash Pass ]
+
+webkit.org/b/316421 media/track/in-band/track-in-band-srt-mkv-addtrack.html [ Pass Failure ]
+
+webkit.org/b/316424 fast/mediastream/enumerateDevices-camera-denied-expose-with-capture.html [ Pass Failure ]
+
+webkit.org/b/316427 animations/restart-after-scroll.html [ Pass Failure ]
+
+webkit.org/b/316428 imported/w3c/web-platform-tests/html/semantics/popovers/popover-focus-inert-invoker.html [ Pass Failure ]
 
 # Needs picture-in-picture support
 media/media-visible-in-viewport-in-fullscreen.html

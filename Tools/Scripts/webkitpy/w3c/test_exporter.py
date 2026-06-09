@@ -29,9 +29,10 @@ import logging
 import sys
 import subprocess
 
-from webkitcorepy import string_utils, run
+from webkitcorepy import arguments, string_utils, run
 from webkitbugspy import bugzilla
 from webkitscmpy import local
+from webkitscmpy.program.pull_request import PullRequest as PullRequestProgram
 
 from webkitpy.common.host import Host
 from webkitpy.common.webkit_finder import WebKitFinder
@@ -209,14 +210,17 @@ class WebPlatformTestExporter(object):
 
     def create_branch_with_patch(self, patch):
         _log.info('Applying patch to web-platform-tests branch ' + self._branch_name)
-        try:
-            self._run_wpt_git(['checkout', '-b', self._branch_name])
-        except Exception as e:
-            _log.warning(e)
-            _log.info('Retrying to create the branch')
-            if self._run_wpt_git(['show-ref', '--quiet', '--verify', f'refs/heads/{self._branch_name}']):
-                self._run_wpt_git(['branch', '-D', self._branch_name])
-            self._run_wpt_git(['checkout', '-b', self._branch_name])
+        branch_exists = not self._run_wpt_git(['show-ref', '--verify', '--quiet', f'refs/heads/{self._branch_name}']).returncode
+        if branch_exists:
+            if not self._options.delete_existing:
+                _log.error(f'Local branch {self._branch_name} already exists. Use --delete-existing to overwrite.')
+                return False
+            if self._run_wpt_git(['checkout', '-B', self._branch_name]).returncode:
+                _log.error(f'Failed to create branch {self._branch_name}')
+                return False
+        elif self._run_wpt_git(['checkout', '-b', self._branch_name]).returncode:
+            _log.error(f'Failed to create branch {self._branch_name}')
+            return False
 
         try:
             output = self._run_wpt_git(['apply', '--index', patch, '-3'], stderr=subprocess.STDOUT)
@@ -260,9 +264,24 @@ class WebPlatformTestExporter(object):
 
     def push_to_wpt_fork(self):
         _log.info(f'Pushing branch {self._branch_name} to {self._wpt_fork_remote}...')
-        if self._run_wpt_git(['push', self._wpt_fork_remote, self._branch_name + ':' + self._public_branch_name, '-f']).returncode:
-            _log.error('Failed to push to WPT fork')
-            return 1
+        refspec = self._branch_name + ':' + self._public_branch_name
+        result = self._run_wpt_git(['push', '--porcelain', self._wpt_fork_remote, refspec], capture_output=True)
+        if result.returncode:
+            if result.returncode >= 128:
+                _log.error('Failed to push to WPT fork')
+                return None
+            stdout = result.stdout or b''
+            if any(line.startswith(b'!') for line in stdout.splitlines()):
+                if not self._options.delete_existing:
+                    _log.error(f'Remote branch {self._public_branch_name} already exists. Use --delete-existing to overwrite.')
+                    return None
+                retry = self._run_wpt_git(['push', '--porcelain', self._wpt_fork_remote, refspec, '-f'], capture_output=True)
+                if retry.returncode:
+                    _log.error('Failed to push to WPT fork')
+                    return None
+            else:
+                _log.error('Failed to push to WPT fork')
+                return None
         _log.info(f'Branch available at {self._wpt_fork_branch_github_url}')
         return True
 
@@ -292,9 +311,18 @@ class WebPlatformTestExporter(object):
         return pr
 
     def create_wpt_pull_request(self, remote_branch_name, title, body):
-        _log.info(f"\nCreating pull-request for '{remote_branch_name}'...")
+        existing_pr = PullRequestProgram.find_existing_pull_request(self._wpt_repo, self._remote, branch=self._public_branch_name)
 
-        # FIXME: If the pull request/branch exists, we should give the option to overwrite or rebase - https://bugs.webkit.org/show_bug.cgi?id=295350
+        if existing_pr and existing_pr.opened:
+            _log.info(f"\nUpdating pull-request for '{remote_branch_name}'...")
+            pr = self._remote.pull_requests.update(pull_request=existing_pr, title=title, body=body)
+            if not pr:
+                _log.error(f"Failed to update pull-request for '{self._wpt_repo.branch}'\n")
+                return None
+            print(f"Updated '{pr}'!")
+            return pr
+
+        _log.info(f"\nCreating pull-request for '{remote_branch_name}'...")
         pr = self._remote.pull_requests.create(
             title=title,
             body=body,
@@ -303,7 +331,6 @@ class WebPlatformTestExporter(object):
         if not pr:
             _log.error(f"Failed to create pull-request for '{self._wpt_repo.branch}'\n")
             return None
-
         print(f"Created '{pr}'!")
         return pr
 
@@ -390,7 +417,6 @@ def parse_args(args):
     - As a dry run, one can start by running the script without -c. This will only create the branch on the user public GitHub repository.
     - By default, the script will create an https remote URL that will require a password-based authentication to GitHub. If you are using an SSH key, please use the --remote-url option.
     FIXME:
-    - The script is not yet able to update an existing pull request.
     - Need a way to monitor the progress of the pull request so that status of all pending pull requests can be done at import time.
     """
     parser = argparse.ArgumentParser(prog='export-w3c-test-changes ...', description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -407,6 +433,12 @@ def parse_args(args):
     parser.add_argument('--no-clean', action='store_false', dest='clean', help='Do not clean up.')
     parser.add_argument('--clean-on-failure', action='store_true', dest='clean_on_failure', help='Do not clean up on failure.')
     parser.add_argument('--dry-run', action='store_true', dest='dry_run', default=False, help='Create local branch and commit but do not push to remote.')
+    parser.add_argument(
+        '--delete-existing', '--no-delete-existing',
+        dest='delete_existing', default=False,
+        action=arguments.NoAction,
+        help='Allow overwriting an existing local branch or force-pushing to an existing remote branch.',
+    )
 
     options, args = parser.parse_known_args(args)
 

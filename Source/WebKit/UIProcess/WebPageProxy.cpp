@@ -4500,10 +4500,8 @@ void WebPageProxy::didFinishProcessingAllPendingMouseEvents()
 
 void WebPageProxy::flushPendingMouseEventCallbacks()
 {
-    for (auto& callback : internals().callbackHandlersAfterProcessingPendingMouseEvents)
+    for (auto&& callback : std::exchange(internals().callbackHandlersAfterProcessingPendingMouseEvents, { }))
         callback();
-
-    internals().callbackHandlersAfterProcessingPendingMouseEvents.clear();
 }
 
 void WebPageProxy::doAfterProcessingAllPendingKeyEvents(WTF::Function<void ()>&& action)
@@ -4523,10 +4521,8 @@ void WebPageProxy::didFinishProcessingAllPendingKeyEvents()
 
 void WebPageProxy::flushPendingKeyEventCallbacks()
 {
-    for (auto& callback : internals().callbackHandlersAfterProcessingPendingKeyEvents)
+    for (auto&& callback : std::exchange(internals().callbackHandlersAfterProcessingPendingKeyEvents, { }))
         callback();
-
-    internals().callbackHandlersAfterProcessingPendingKeyEvents.clear();
 }
 
 #if PLATFORM(IOS_FAMILY)
@@ -6874,6 +6870,7 @@ void WebPageProxy::viewScaleFactorDidChange(IPC::Connection& connection, double 
     MESSAGE_CHECK_BASE(scaleFactorIsValid(scaleFactor), connection);
     if (!legacyMainFrameProcess().hasConnection(connection))
         return;
+    m_viewScaleFactor = scaleFactor;
 
     forEachWebContentProcess([&] (auto& process, auto pageID) {
         if (&process == &legacyMainFrameProcess())
@@ -9738,13 +9735,14 @@ void WebPageProxy::decidePolicyForResponseShared(Ref<WebProcessProxy>&& process,
     MESSAGE_CHECK_URL_COMPLETION(process, request.url(), completionHandler({ }));
     MESSAGE_CHECK_URL_COMPLETION(process, response.url(), completionHandler({ }));
     RefPtr navigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr;
-    Ref navigationResponse = API::NavigationResponse::create(API::FrameInfo::create(WTF::move(frameInfo)).get(), request, response, canShowMIMEType, WTF::move(downloadAttribute), navigation.get());
 
     // COOP only applies to top-level browsing contexts.
     if (frameInfo.isMainFrame && coopValuesRequireBrowsingContextGroupSwitch(isShowingInitialAboutBlank, activeDocumentCOOPValue, frameInfo.securityOrigin.securityOrigin().get(), obtainCrossOriginOpenerPolicy(response).value, SecurityOrigin::create(response.url()).get())) {
         mainFrame()->disownOpener();
         m_openedMainFrameName = { };
     }
+
+    Ref navigationResponse = API::NavigationResponse::create(API::FrameInfo::create(FrameInfoData { frameInfo }).get(), request, response, canShowMIMEType, WTF::move(downloadAttribute), navigation.get());
 
     auto expectSafeBrowsing = ShouldExpectSafeBrowsingResult::No;
     MonotonicTime requestStart;

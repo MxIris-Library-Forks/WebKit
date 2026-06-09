@@ -61,6 +61,7 @@ class Git(mocks.Subprocess):
         self.remote = remote or 'git@example.org:mock/{}'.format(os.path.basename(path))
         self.detached = detached or False
         self.is_worktree = is_worktree
+        self.push_error = None
 
         self.tags = tags or {}
 
@@ -475,7 +476,7 @@ nothing to commit, working tree clean
                 self.executable, 'checkout', '-B', re.compile(r'.+'),
                 cwd=self.path,
                 generator=lambda *args, **kwargs:
-                    mocks.ProcessCompletion(returncode=0) if self.checkout(args[3], source=args[4] if len(args) > 4 else None, create=False, force=True) else mocks.ProcessCompletion(returncode=1)
+                    mocks.ProcessCompletion(returncode=0) if self.checkout(args[3], source=args[4] if len(args) > 4 else None, create=True, force=True) else mocks.ProcessCompletion(returncode=1)
             ), mocks.Subprocess.Route(
                 self.executable, 'checkout', re.compile(r'.+'),
                 cwd=self.path,
@@ -649,6 +650,14 @@ nothing to commit, working tree clean
                 self.executable, 'add', re.compile(r'.+'),
                 cwd=self.path,
                 generator=lambda *args, **kwargs: self.add(args[2]),
+            ), mocks.Subprocess.Route(
+                self.executable, 'show-ref', '--verify', '--quiet', re.compile(r'.+'),
+                cwd=self.path,
+                generator=lambda *args, **kwargs: self.show_ref_verify(args[4]),
+            ), mocks.Subprocess.Route(
+                self.executable, 'push', '--porcelain', re.compile(r'.+'), re.compile(r'.+'),
+                cwd=self.path,
+                generator=lambda *args, **kwargs: self.push_porcelain(args[3], args[4], force='-f' in args),
             ), mocks.Subprocess.Route(
                 self.executable, 'push', '-f', re.compile(r'.+'), re.compile(r'.+'),
                 cwd=self.path,
@@ -975,9 +984,19 @@ nothing to commit, working tree clean
         if create:
             if commit:
                 if force:
-                    self.head = commit
-                    self.detached = something not in self.commits.keys()
-                    return True
+                    if source == something:
+                        # checkout -B branch (no start-point): reset to current HEAD
+                        del self.commits[something]
+                        # Fall through to create branch from current HEAD
+                    else:
+                        # checkout -B branch start-point: reset branch to start-point
+                        self.head = commit
+                        self.detached = False
+                        return True
+                else:
+                    return False
+            elif source != something:
+                # Source was explicitly provided but doesn't exist: fail
                 return False
             self.commits[something] = [Commit.from_json(Commit.Encoder().default(self.head))]
             # Copy one more to create a bridge commit
@@ -1342,6 +1361,30 @@ nothing to commit, working tree clean
             self.remotes[remote_branch] = self.commits[branch][:]
         elif remote_branch in self.remotes:
             del self.remotes[remote_branch]
+        return mocks.ProcessCompletion(returncode=0)
+
+    def show_ref_verify(self, ref):
+        branch = ref.replace('refs/heads/', '')
+        if branch in self.commits:
+            return mocks.ProcessCompletion(returncode=0)
+        return mocks.ProcessCompletion(returncode=1)
+
+    def push_porcelain(self, remote, refspec, force=False):
+        if self.push_error is not None:
+            return mocks.ProcessCompletion(returncode=self.push_error)
+
+        local_branch = refspec.split(':')[0]
+        remote_ref = refspec.split(':')[-1] if ':' in refspec else local_branch
+        remote_branch = '{}/{}'.format(remote, remote_ref)
+
+        if not force and remote_branch in self.remotes:
+            return mocks.ProcessCompletion(
+                returncode=1,
+                stdout='!\trefs/heads/{ref}:refs/heads/{ref}\t[rejected] (non-fast-forward)\n'.format(ref=remote_ref),
+            )
+
+        if local_branch in self.commits:
+            self.remotes[remote_branch] = self.commits[local_branch][:]
         return mocks.ProcessCompletion(returncode=0)
 
     def _fetch_with_refspec(self, refspecs):

@@ -4089,6 +4089,7 @@
 		9995243E2E8F0CA50093C3E0 /* InspectorNetworkIntercept.h in Headers */ = {isa = PBXBuildFile; fileRef = 9995243B2E8F0CA50093C3E0 /* InspectorNetworkIntercept.h */; };
 		999524422E8F1E420093C3E0 /* InspectorThreadableLoaderClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 9995243F2E8F1E420093C3E0 /* InspectorThreadableLoaderClient.h */; };
 		9995EAAA019FDD08826EB9FB /* UnifiedSource77-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52D2ED227687272BB8AC7430 /* UnifiedSource77-header-RenderStyleGetters.cpp */; };
+		A1D0C50120260608000B0001 /* UnifiedSource78-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C50120260608000B0002 /* UnifiedSource78-header-RenderStyleGetters.cpp */; };
 		99A5144D2D5AA7B200937177 /* AutomationInstrumentation.h in Headers */ = {isa = PBXBuildFile; fileRef = 99A5144A2D5AA74200937177 /* AutomationInstrumentation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		99C2CC9F2E8DFD890008FCDF /* InspectorResourceUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 99C2CC9C2E8DFD890008FCDF /* InspectorResourceUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		99D1B2D323AC143100811CF0 /* InspectorDebuggableType.h in Headers */ = {isa = PBXBuildFile; fileRef = 99D1B2D123AC143000811CF0 /* InspectorDebuggableType.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6943,6 +6944,7 @@
 		E4605FEC2166480900E53046 /* PrewarmInformation.h in Headers */ = {isa = PBXBuildFile; fileRef = E4605FEA2166480800E53046 /* PrewarmInformation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E461802D1C8DD2900026C02C /* StyleRelations.h in Headers */ = {isa = PBXBuildFile; fileRef = E461802C1C8DD2900026C02C /* StyleRelations.h */; };
 		E461D65F1BB0C80D00CB5645 /* StyleScope.h in Headers */ = {isa = PBXBuildFile; fileRef = E461D65E1BB0C80D00CB5645 /* StyleScope.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		A1D0C50120260608000A0003 /* StyleDocumentScope.h in Headers */ = {isa = PBXBuildFile; fileRef = A1D0C50120260608000A0002 /* StyleDocumentScope.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E462A4A1113E71BE004A4220 /* IntPointHash.h in Headers */ = {isa = PBXBuildFile; fileRef = E462A4A0113E71BE004A4220 /* IntPointHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E462E5A52D1164690058FD21 /* CSSPropertyParserConsumer+PositionTry.h in Headers */ = {isa = PBXBuildFile; fileRef = E462E5A42D1164690058FD21 /* CSSPropertyParserConsumer+PositionTry.h */; };
 		E464328A273D2E7C005B756B /* SelectorMatchingState.h in Headers */ = {isa = PBXBuildFile; fileRef = E4643288273D2E7C005B756B /* SelectorMatchingState.h */; };
@@ -13029,6 +13031,7 @@
 		52B0D4C11C57FF910077CE53 /* VideoPresentationInterfaceMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoPresentationInterfaceMac.h; sourceTree = "<group>"; };
 		52B84CA048CEC33FFD5367B8 /* VolumeMuted-RTL.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = "VolumeMuted-RTL.svg"; sourceTree = "<group>"; };
 		52D2ED227687272BB8AC7430 /* UnifiedSource77-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource77-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
+		A1D0C50120260608000B0002 /* UnifiedSource78-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource78-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
 		52D4C867EF1213EBE219805C /* StyleOutlineOffset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleOutlineOffset.h; sourceTree = "<group>"; };
 		52D5A18D1C54590300DE34A3 /* VideoLayerManagerObjC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VideoLayerManagerObjC.mm; sourceTree = "<group>"; };
 		52D5A18E1C54590300DE34A3 /* VideoLayerManagerObjC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoLayerManagerObjC.h; sourceTree = "<group>"; };
@@ -22773,6 +22776,8 @@
 		E461802C1C8DD2900026C02C /* StyleRelations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleRelations.h; sourceTree = "<group>"; };
 		E461802E1C8DD4D20026C02C /* StyleRelations.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleRelations.cpp; sourceTree = "<group>"; };
 		E461D65C1BB0C7F000CB5645 /* StyleScope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleScope.cpp; sourceTree = "<group>"; };
+		A1D0C50120260608000A0001 /* StyleDocumentScope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleDocumentScope.cpp; sourceTree = "<group>"; };
+		A1D0C50120260608000A0002 /* StyleDocumentScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleDocumentScope.h; sourceTree = "<group>"; };
 		E461D65E1BB0C80D00CB5645 /* StyleScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleScope.h; sourceTree = "<group>"; };
 		E462A4A0113E71BE004A4220 /* IntPointHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IntPointHash.h; sourceTree = "<group>"; };
 		E462E5A32D11644D0058FD21 /* CSSPropertyParserConsumer+PositionTry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "CSSPropertyParserConsumer+PositionTry.cpp"; sourceTree = "<group>"; };
@@ -29421,6 +29426,7 @@
 				538EC83E1F993F12004D22A8 /* UnifiedSource76.cpp */,
 				52D2ED227687272BB8AC7430 /* UnifiedSource77-header-RenderStyleGetters.cpp */,
 				538EC8641F993F26004D22A8 /* UnifiedSource77.cpp */,
+				A1D0C50120260608000B0002 /* UnifiedSource78-header-RenderStyleGetters.cpp */,
 				538EC85D1F993F22004D22A8 /* UnifiedSource78.cpp */,
 				538EC8371F993F0E004D22A8 /* UnifiedSource79.cpp */,
 				538EC8401F993F13004D22A8 /* UnifiedSource80.cpp */,
@@ -41224,6 +41230,8 @@
 				BC6AFC452DFCA2670065FA1D /* StyleCustomPropertyRegistry.h */,
 				BC913B3D2EE88D91009E3349 /* StyleDifference.cpp */,
 				BC913B3C2EE88D34009E3349 /* StyleDifference.h */,
+				A1D0C50120260608000A0001 /* StyleDocumentScope.cpp */,
+				A1D0C50120260608000A0002 /* StyleDocumentScope.h */,
 				BCFEE3322DC6B33D00EC3901 /* StyleExtractor.cpp */,
 				BCFEE3302DC6B2C300EC3901 /* StyleExtractor.h */,
 				BCFEE32E2DC6AFEC00EC3901 /* StyleExtractorCustom.h */,
@@ -48766,6 +48774,7 @@
 				BC913B3E2EE89B0E009E3349 /* StyleDifference.h in Headers */,
 				BC83412C2F3E61F2007B3176 /* StyleDisplay.h in Headers */,
 				E440FD5325A4AFDF00F7C849 /* StyledMarkedText.h in Headers */,
+				A1D0C50120260608000A0003 /* StyleDocumentScope.h in Headers */,
 				BC95FBDF2F19DA5800AC941B /* StyleDropShadowFunction.h in Headers */,
 				BC5C89BE2D567E23000F45B7 /* StyleDynamicRangeLimit.h in Headers */,
 				BC5C89C02D567E31000F45B7 /* StyleDynamicRangeLimitMix.h in Headers */,
@@ -51023,6 +51032,7 @@
 				538EC8BD1F993F9D004D22A8 /* UnifiedSource76.cpp in Sources */,
 				9995EAAA019FDD08826EB9FB /* UnifiedSource77-header-RenderStyleGetters.cpp in Sources */,
 				538EC8BE1F993F9D004D22A8 /* UnifiedSource77.cpp in Sources */,
+				A1D0C50120260608000B0001 /* UnifiedSource78-header-RenderStyleGetters.cpp in Sources */,
 				538EC8BF1F993F9D004D22A8 /* UnifiedSource78.cpp in Sources */,
 				538EC8C01F993F9D004D22A8 /* UnifiedSource79.cpp in Sources */,
 				538EC8C11F993F9D004D22A8 /* UnifiedSource80.cpp in Sources */,

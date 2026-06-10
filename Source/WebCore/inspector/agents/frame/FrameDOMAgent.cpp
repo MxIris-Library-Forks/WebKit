@@ -33,6 +33,9 @@
 #include "DocumentInlines.h"
 #include "DocumentType.h"
 #include "ElementInlines.h"
+#include "Event.h"
+#include "EventListener.h"
+#include "EventNames.h"
 #include "FrameInlines.h"
 #include "HTMLFrameOwnerElement.h"
 #include "HTMLNames.h"
@@ -41,19 +44,30 @@
 #include "HTMLStyleElement.h"
 #include "HTMLTemplateElement.h"
 #include "InspectorDOMAgent.h"
+#include "InspectorNodeFinder.h"
 #include "InstrumentingAgents.h"
+#include "JSEventListener.h"
+#include "LocalDOMWindow.h"
 #include "LocalFrame.h"
 #include "LocalFrameInlines.h"
+#include "NodeList.h"
 #include "PseudoElement.h"
+#include "RegisteredEventListener.h"
+#include "ScriptController.h"
 #include "ShadowRoot.h"
 #include "Text.h"
 #include "TextNodeTraversal.h"
+#include "markup.h"
+#include <JavaScriptCore/IdentifiersFactory.h>
 #include <JavaScriptCore/InspectorProtocolObjects.h>
+#include <JavaScriptCore/JSCInlines.h>
+#include <JavaScriptCore/TopExceptionScope.h>
 #include <pal/crypto/CryptoDigest.h>
 #include <pal/text/TextEncoding.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/Base64.h>
 #include <wtf/text/MakeString.h>
+#include <wtf/text/StringToIntegerConversion.h>
 #include <wtf/unicode/CharacterNames.h>
 
 namespace WebCore {
@@ -473,6 +487,9 @@ void FrameDOMAgent::reset()
 {
     discardBindings();
     m_document = nullptr;
+    m_searchResults.clear();
+    m_eventListenerEntries.clear();
+    m_lastEventListenerId = 1;
 
     m_destroyedDetachedNodeIdentifiers.clear();
     m_destroyedAttachedNodeIdentifiers.clear();
@@ -757,6 +774,389 @@ void FrameDOMAgent::frameDocumentUpdated(LocalFrame& frame)
 
     RefPtr document = frame.document();
     setDocument(document.get());
+}
+
+Inspector::CommandResult<std::optional<int>> FrameDOMAgent::querySelector(int nodeId, const String& selector)
+{
+    Inspector::Protocol::ErrorString errorString;
+
+    RefPtr node = assertNode(errorString, nodeId);
+    if (!node)
+        return makeUnexpected(errorString);
+    RefPtr containerNode = dynamicDowncast<ContainerNode>(*node);
+    if (!containerNode)
+        return makeUnexpected("Node for given nodeId is not a container node"_s);
+
+    auto queryResult = containerNode->querySelector(selector);
+    if (queryResult.hasException())
+        return makeUnexpected(InspectorDOMAgent::toErrorString(queryResult.releaseException()));
+
+    RefPtr queryResultNode = queryResult.releaseReturnValue();
+    if (!queryResultNode)
+        return { };
+
+    auto resultNodeId = pushNodePathToFrontend(errorString, queryResultNode.get());
+    if (!resultNodeId)
+        return makeUnexpected(errorString);
+
+    return { resultNodeId };
+}
+
+Inspector::CommandResult<Ref<JSON::ArrayOf<int>>> FrameDOMAgent::querySelectorAll(int nodeId, const String& selector)
+{
+    Inspector::Protocol::ErrorString errorString;
+
+    RefPtr node = assertNode(errorString, nodeId);
+    if (!node)
+        return makeUnexpected(errorString);
+    RefPtr containerNode = dynamicDowncast<ContainerNode>(*node);
+    if (!containerNode)
+        return makeUnexpected("Node for given nodeId is not a container node"_s);
+
+    auto queryResult = containerNode->querySelectorAll(selector);
+    if (queryResult.hasException())
+        return makeUnexpected(InspectorDOMAgent::toErrorString(queryResult.releaseException()));
+
+    auto nodes = queryResult.releaseReturnValue();
+
+    auto nodeIds = JSON::ArrayOf<Inspector::Protocol::DOM::NodeId>::create();
+    for (unsigned i = 0; i < nodes->length(); ++i) {
+        RefPtr node = nodes->item(i);
+        nodeIds->addItem(pushNodePathToFrontend(node.get()));
+    }
+    return nodeIds;
+}
+
+Inspector::CommandResult<String> FrameDOMAgent::getOuterHTML(int nodeId)
+{
+    Inspector::Protocol::ErrorString errorString;
+
+    RefPtr node = assertNode(errorString, nodeId);
+    if (!node)
+        return makeUnexpected(errorString);
+
+    return serializeFragment(*node, SerializedNodes::SubtreeIncludingNode);
+}
+
+Inspector::CommandResult<Ref<JSON::ArrayOf<String>>> FrameDOMAgent::getSupportedEventNames()
+{
+    auto list = JSON::ArrayOf<String>::create();
+
+    for (auto& event : eventNames().allEventNames())
+        list->addItem(event);
+
+    return list;
+}
+
+Inspector::CommandResultOf<String, int> FrameDOMAgent::performSearch(const String& query, RefPtr<JSON::Array>&& nodeIds, std::optional<bool>&& caseSensitive)
+{
+    Inspector::Protocol::ErrorString errorString;
+
+    // FIXME: <https://webkit.org/b/316549> Search works with node granularity - number of matches within node is not calculated.
+    InspectorNodeFinder finder(query, caseSensitive && *caseSensitive);
+
+    if (nodeIds) {
+        for (auto& nodeValue : *nodeIds) {
+            auto nodeId = nodeValue->asInteger();
+            if (!nodeId)
+                return makeUnexpected("Unexpected non-integer item in given nodeIds"_s);
+
+            RefPtr node = assertNode(errorString, *nodeId);
+            if (!node)
+                return makeUnexpected(errorString);
+
+            finder.performSearch(node.get());
+        }
+    } else
+        finder.performSearch(m_document.get());
+
+    auto searchId = IdentifiersFactory::createIdentifier();
+
+    auto& resultsVector = m_searchResults.add(searchId, Vector<RefPtr<Node>>()).iterator->value;
+    for (auto& result : finder.results())
+        resultsVector.append(result);
+
+    return { { searchId, resultsVector.size() } };
+}
+
+Inspector::CommandResult<Ref<JSON::ArrayOf<int>>> FrameDOMAgent::getSearchResults(const String& searchId, int fromIndex, int toIndex)
+{
+    auto it = m_searchResults.find(searchId);
+    if (it == m_searchResults.end())
+        return makeUnexpected("Missing search result for given searchId"_s);
+
+    int size = it->value.size();
+    if (fromIndex < 0 || toIndex > size || fromIndex >= toIndex)
+        return makeUnexpected("Invalid search result range for given fromIndex and toIndex"_s);
+
+    auto nodeIds = JSON::ArrayOf<Inspector::Protocol::DOM::NodeId>::create();
+    for (int i = fromIndex; i < toIndex; ++i)
+        nodeIds->addItem(pushNodePathToFrontend((it->value)[i].get()));
+    return nodeIds;
+}
+
+Inspector::CommandResult<void> FrameDOMAgent::discardSearchResults(const String& searchId)
+{
+    m_searchResults.remove(searchId);
+    return { };
+}
+
+RefPtr<Node> FrameDOMAgent::nodeForPath(const String& path)
+{
+    // The path is of form "1,HTML,2,BODY,1,DIV"
+    if (!m_document)
+        return nullptr;
+
+    RefPtr<Node> node = m_document;
+    auto pathTokens = StringView(path).split(',');
+    auto it = pathTokens.begin();
+    if (it == pathTokens.end())
+        return nullptr;
+
+    for (; it != pathTokens.end(); ++it) {
+        auto childNumberView = *it;
+        if (++it == pathTokens.end())
+            break;
+        auto childNumber = parseIntegerAllowingTrailingJunk<unsigned>(childNumberView);
+        if (!childNumber)
+            return nullptr;
+
+        RefPtr<Node> child;
+        if (RefPtr frameOwner = dynamicDowncast<HTMLFrameOwnerElement>(*node)) {
+            ASSERT(!*childNumber);
+            child = frameOwner->contentDocument();
+        } else {
+            if (*childNumber >= InspectorDOMAgent::innerChildNodeCount(node.get()))
+                return nullptr;
+            child = InspectorDOMAgent::innerFirstChild(node.get());
+            for (size_t j = 0; child && j < *childNumber; ++j)
+                child = InspectorDOMAgent::innerNextSibling(child.get());
+        }
+
+        auto childName = *it;
+        if (!child || child->nodeName() != childName)
+            return nullptr;
+        node = child;
+    }
+
+    return node;
+}
+
+Inspector::CommandResult<int> FrameDOMAgent::pushNodeByPathToFrontend(const String& path)
+{
+    Inspector::Protocol::ErrorString errorString;
+
+    if (RefPtr node = nodeForPath(path)) {
+        if (auto nodeId = pushNodePathToFrontend(errorString, node.get()))
+            return nodeId;
+        return makeUnexpected(errorString);
+    }
+
+    return makeUnexpected("Missing node for given path"_s);
+}
+
+Inspector::CommandResult<void> FrameDOMAgent::setAllowEditingUserAgentShadowTrees(bool allow)
+{
+    m_allowEditingUserAgentShadowTrees = allow;
+    return { };
+}
+
+Inspector::CommandResult<Ref<JSON::ArrayOf<Inspector::Protocol::DOM::EventListener>>> FrameDOMAgent::getEventListenersForNode(int nodeId, std::optional<bool>&& includeAncestors)
+{
+    Inspector::Protocol::ErrorString errorString;
+
+    RefPtr node = assertNode(errorString, nodeId);
+    if (!node)
+        return makeUnexpected(errorString);
+
+    Vector<RefPtr<EventTarget>> ancestors;
+    ancestors.append(node.get());
+    if (includeAncestors.value_or(true)) {
+        for (RefPtr ancestor = node->parentOrShadowHostNode(); ancestor; ancestor = ancestor->parentOrShadowHostNode())
+            ancestors.append(ancestor.get());
+        if (RefPtr window = node->document().window())
+            ancestors.append(window.get());
+    }
+
+    struct EventListenerInfo {
+        RefPtr<EventTarget> eventTarget;
+        const AtomString eventType;
+        const EventListenerVector eventListeners;
+    };
+
+    Vector<EventListenerInfo> eventInformation;
+    for (size_t i = ancestors.size(); i; --i) {
+        auto& ancestor = ancestors[i - 1];
+        for (auto& eventType : ancestor->eventTypes()) {
+            EventListenerVector filteredListeners;
+            for (auto& listener : ancestor->eventListeners(eventType)) {
+                if (listener->callback().type() == EventListener::JSEventListenerType)
+                    filteredListeners.append(listener);
+            }
+            if (!filteredListeners.isEmpty())
+                eventInformation.append({ ancestor, eventType, WTF::move(filteredListeners) });
+        }
+    }
+
+    auto listeners = JSON::ArrayOf<Inspector::Protocol::DOM::EventListener>::create();
+
+    auto addListener = [&](const Ref<RegisteredEventListener>& listener, const EventListenerInfo& info) {
+        Inspector::Protocol::DOM::EventListenerId identifier = 0;
+        bool disabled = false;
+
+        for (auto& inspectorEventListener : m_eventListenerEntries.values()) {
+            if (inspectorEventListener.matches(*info.eventTarget, info.eventType, listener->callback(), listener->useCapture())) {
+                identifier = inspectorEventListener.identifier;
+                disabled = inspectorEventListener.disabled;
+                break;
+            }
+        }
+
+        if (!identifier) {
+            InspectorEventListener inspectorEventListener(m_lastEventListenerId++, *info.eventTarget, info.eventType, listener->callback(), listener->useCapture());
+
+            identifier = inspectorEventListener.identifier;
+            disabled = inspectorEventListener.disabled;
+
+            m_eventListenerEntries.add(identifier, inspectorEventListener);
+        }
+
+        listeners->addItem(buildObjectForEventListener(listener, identifier, *info.eventTarget, info.eventType, disabled));
+    };
+
+    // Get Capturing Listeners (in this order)
+    size_t eventInformationLength = eventInformation.size();
+    for (auto& info : eventInformation) {
+        for (auto& listener : info.eventListeners) {
+            if (listener->useCapture())
+                addListener(listener, info);
+        }
+    }
+
+    // Get Bubbling Listeners (reverse order)
+    for (size_t i = eventInformationLength; i; --i) {
+        const EventListenerInfo& info = eventInformation[i - 1];
+        for (auto& listener : info.eventListeners) {
+            if (!listener->useCapture())
+                addListener(listener, info);
+        }
+    }
+
+    return listeners;
+}
+
+Inspector::CommandResult<void> FrameDOMAgent::setEventListenerDisabled(int eventListenerId, bool disabled)
+{
+    auto it = m_eventListenerEntries.find(eventListenerId);
+    if (it == m_eventListenerEntries.end())
+        return makeUnexpected("Missing event listener for given eventListenerId"_s);
+
+    it->value.disabled = disabled;
+
+    return { };
+}
+
+bool FrameDOMAgent::isEventListenerDisabled(EventTarget& target, const AtomString& eventType, EventListener& listener, bool capture)
+{
+    for (auto& inspectorEventListener : m_eventListenerEntries.values()) {
+        if (inspectorEventListener.matches(target, eventType, listener, capture))
+            return inspectorEventListener.disabled;
+    }
+    return false;
+}
+
+Ref<Inspector::Protocol::DOM::EventListener> FrameDOMAgent::buildObjectForEventListener(const Ref<RegisteredEventListener>& registeredEventListener, Inspector::Protocol::DOM::EventListenerId identifier, EventTarget& eventTarget, const AtomString& eventType, bool disabled)
+{
+    Ref<EventListener> eventListener = registeredEventListener->callback();
+
+    String handlerName;
+    int lineNumber = 0;
+    int columnNumber = 0;
+    String scriptID;
+    if (RefPtr scriptListener = dynamicDowncast<JSEventListener>(eventListener); scriptListener && scriptListener->isolatedWorld()) {
+        RefPtr<Document> document;
+        if (RefPtr scriptExecutionContext = eventTarget.scriptExecutionContext())
+            document = dynamicDowncast<Document>(*scriptExecutionContext);
+        else if (RefPtr node = dynamicDowncast<Node>(eventTarget))
+            document = node->document();
+
+        JSC::JSObject* handlerObject = nullptr;
+        JSC::JSGlobalObject* globalObject = nullptr;
+
+        RefPtr isolatedWorld = scriptListener->isolatedWorld();
+        JSC::JSLockHolder lock(isolatedWorld->vm());
+
+        if (document) {
+            handlerObject = scriptListener->ensureJSFunction(*document);
+            if (RefPtr frame = document->frame()) {
+                CheckedRef script = frame->script();
+                // FIXME: Why do we need the canExecuteScripts check here?
+                if (script->canExecuteScripts(ReasonForCallingCanExecuteScripts::NotAboutToExecuteScript))
+                    globalObject = script->globalObject(*isolatedWorld);
+            }
+        }
+
+        if (handlerObject && globalObject) {
+            JSC::VM& vm = globalObject->vm();
+            JSC::JSFunction* handlerFunction = dynamicDowncast<JSC::JSFunction>(handlerObject);
+
+            if (!handlerFunction) {
+                auto scope = DECLARE_TOP_EXCEPTION_SCOPE(vm);
+
+                // If the handler is not actually a function, see if it implements the EventListener interface and use that.
+                auto handleEventValue = handlerObject->get(globalObject, JSC::Identifier::fromString(vm, "handleEvent"_s));
+
+                if (scope.exception()) [[unlikely]]
+                    scope.clearException();
+
+                if (handleEventValue)
+                    handlerFunction = dynamicDowncast<JSC::JSFunction>(handleEventValue);
+            }
+
+            if (handlerFunction && !handlerFunction->isHostOrBuiltinFunction()) {
+                // If the listener implements the EventListener interface, use the class name instead of
+                // "handleEvent", unless it is a plain object.
+                if (handlerFunction != handlerObject)
+                    handlerName = JSC::JSObject::calculatedClassName(handlerObject);
+                if (handlerName.isEmpty() || handlerName == "Object"_s)
+                    handlerName = handlerFunction->calculatedDisplayName(vm);
+
+                if (auto executable = handlerFunction->jsExecutable()) {
+                    lineNumber = executable->firstLine() - 1;
+                    columnNumber = executable->startColumn() - 1;
+                    scriptID = executable->sourceID() == JSC::SourceProvider::nullID ? emptyString() : String::number(executable->sourceID());
+                }
+            }
+        }
+    }
+
+    auto value = Inspector::Protocol::DOM::EventListener::create()
+        .setEventListenerId(identifier)
+        .setType(eventType)
+        .setUseCapture(registeredEventListener->useCapture())
+        .setIsAttribute(eventListener->isAttribute())
+        .release();
+    if (RefPtr node = dynamicDowncast<Node>(eventTarget))
+        value->setNodeId(pushNodePathToFrontend(node.get()));
+    else if (is<LocalDOMWindow>(eventTarget))
+        value->setOnWindow(true);
+    if (!scriptID.isNull()) {
+        auto location = Inspector::Protocol::Debugger::Location::create()
+            .setScriptId(scriptID)
+            .setLineNumber(lineNumber)
+            .release();
+        location->setColumnNumber(columnNumber);
+        value->setLocation(WTF::move(location));
+    }
+    if (!handlerName.isEmpty())
+        value->setHandlerName(handlerName);
+    if (registeredEventListener->isPassive())
+        value->setPassive(true);
+    if (registeredEventListener->isOnce())
+        value->setOnce(true);
+    if (disabled)
+        value->setDisabled(disabled);
+    return value;
 }
 
 } // namespace WebCore

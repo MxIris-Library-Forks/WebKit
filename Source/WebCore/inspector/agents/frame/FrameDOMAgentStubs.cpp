@@ -30,16 +30,6 @@ namespace WebCore {
 
 using namespace Inspector;
 
-Inspector::CommandResult<std::optional<int>> FrameDOMAgent::querySelector(int, const String&)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
-Inspector::CommandResult<Ref<JSON::ArrayOf<int>>> FrameDOMAgent::querySelectorAll(int, const String&)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
 Inspector::CommandResult<int> FrameDOMAgent::setNodeName(int, const String&)
 {
     return makeUnexpected("Not yet implemented for frame targets"_s);
@@ -70,11 +60,6 @@ Inspector::CommandResult<void> FrameDOMAgent::removeAttribute(int, const String&
     return makeUnexpected("Not yet implemented for frame targets"_s);
 }
 
-Inspector::CommandResult<Ref<JSON::ArrayOf<String>>> FrameDOMAgent::getSupportedEventNames()
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
 Inspector::CommandResult<Ref<JSON::ArrayOf<Inspector::Protocol::DOM::DataBinding>>> FrameDOMAgent::getDataBindingsForNode(int)
 {
@@ -86,16 +71,6 @@ Inspector::CommandResult<String> FrameDOMAgent::getAssociatedDataForNode(int)
     return makeUnexpected("Not supported for frame targets"_s);
 }
 #endif
-
-Inspector::CommandResult<Ref<JSON::ArrayOf<Inspector::Protocol::DOM::EventListener>>> FrameDOMAgent::getEventListenersForNode(int, std::optional<bool>&&)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
-Inspector::CommandResult<void> FrameDOMAgent::setEventListenerDisabled(int, bool)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
 
 Inspector::CommandResult<void> FrameDOMAgent::setBreakpointForEventListener(int, RefPtr<JSON::Object>&&)
 {
@@ -112,32 +87,12 @@ Inspector::CommandResult<Ref<Inspector::Protocol::DOM::AccessibilityProperties>>
     return makeUnexpected("Not yet implemented for frame targets"_s);
 }
 
-Inspector::CommandResult<String> FrameDOMAgent::getOuterHTML(int)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
 Inspector::CommandResult<void> FrameDOMAgent::setOuterHTML(int, const String&)
 {
     return makeUnexpected("Not yet implemented for frame targets"_s);
 }
 
 Inspector::CommandResult<void> FrameDOMAgent::insertAdjacentHTML(int, const String&, const String&)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
-Inspector::CommandResultOf<String, int> FrameDOMAgent::performSearch(const String&, RefPtr<JSON::Array>&&, std::optional<bool>&&)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
-Inspector::CommandResult<Ref<JSON::ArrayOf<int>>> FrameDOMAgent::getSearchResults(const String&, int, int)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
-Inspector::CommandResult<void> FrameDOMAgent::discardSearchResults(const String&)
 {
     return makeUnexpected("Not yet implemented for frame targets"_s);
 }
@@ -231,11 +186,6 @@ Inspector::CommandResult<void> FrameDOMAgent::hideFlexOverlay(std::optional<int>
     return makeUnexpected("Not supported for frame targets"_s);
 }
 
-Inspector::CommandResult<int> FrameDOMAgent::pushNodeByPathToFrontend(const String&)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
-}
-
 Inspector::CommandResult<Ref<Inspector::Protocol::Runtime::RemoteObject>> FrameDOMAgent::resolveNode(int, const String&)
 {
     return makeUnexpected("Not yet implemented for frame targets"_s);
@@ -269,11 +219,6 @@ Inspector::CommandResult<void> FrameDOMAgent::focus(int)
 Inspector::CommandResult<void> FrameDOMAgent::setInspectedNode(int)
 {
     return makeUnexpected("Not supported for frame targets"_s);
-}
-
-Inspector::CommandResult<void> FrameDOMAgent::setAllowEditingUserAgentShadowTrees(bool)
-{
-    return makeUnexpected("Not yet implemented for frame targets"_s);
 }
 
 Inspector::CommandResult<Ref<Inspector::Protocol::DOM::MediaStats>> FrameDOMAgent::getMediaStats(int)

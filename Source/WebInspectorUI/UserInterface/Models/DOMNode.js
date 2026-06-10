@@ -445,6 +445,12 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            callback("ERROR: not supported on cross-origin frame nodes");
+            return;
+        }
+
         let target = WI.assumingMainTarget();
         target.DOMAgent.setNodeName(this.id, name, this._makeUndoableCallback(callback));
     }
@@ -507,6 +513,12 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            callback("ERROR: not supported on cross-origin frame nodes");
+            return;
+        }
+
         let target = WI.assumingMainTarget();
         target.DOMAgent.setNodeValue(this.id, value, this._makeUndoableCallback(callback));
     }
@@ -525,6 +537,12 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            callback("ERROR: not supported on cross-origin frame nodes");
+            return;
+        }
+
         let target = WI.assumingMainTarget();
         target.DOMAgent.setAttributesAsText(this.id, text, name, this._makeUndoableCallback(callback));
     }
@@ -537,6 +555,14 @@ WI.DOMNode = class DOMNode extends WI.Object
                 return Promise.reject("ERROR: node is destroyed");
 
             callback("ERROR: node is destroyed");
+            return;
+        }
+
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            if (!callback)
+                return Promise.reject("ERROR: not supported on cross-origin frame nodes");
+            callback("ERROR: not supported on cross-origin frame nodes");
             return;
         }
 
@@ -561,6 +587,12 @@ WI.DOMNode = class DOMNode extends WI.Object
         console.assert(!this._destroyed, this);
         if (this._destroyed) {
             callback("ERROR: node is destroyed");
+            return;
+        }
+
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            callback("ERROR: not supported on cross-origin frame nodes");
             return;
         }
 
@@ -610,12 +642,12 @@ WI.DOMNode = class DOMNode extends WI.Object
     {
         console.assert(!this._destroyed, this);
 
-        let target = WI.assumingMainTarget();
+        let target = this.owningTarget || WI.assumingMainTarget();
 
         if (typeof callback !== "function") {
             if (this._destroyed)
                 return Promise.reject("ERROR: node is destroyed");
-            return target.DOMAgent.querySelector(this.id, selector).then(({nodeId}) => nodeId);
+            return target.DOMAgent.querySelector(this.backendNodeId, selector).then(({nodeId}) => nodeId);
         }
 
         if (this._destroyed) {
@@ -623,19 +655,19 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
-        target.DOMAgent.querySelector(this.id, selector, WI.DOMManager.wrapClientCallback(callback));
+        target.DOMAgent.querySelector(this.backendNodeId, selector, WI.DOMManager.wrapClientCallback(callback));
     }
 
     querySelectorAll(selector, callback)
     {
         console.assert(!this._destroyed, this);
 
-        let target = WI.assumingMainTarget();
+        let target = this.owningTarget || WI.assumingMainTarget();
 
         if (typeof callback !== "function") {
             if (this._destroyed)
                 return Promise.reject("ERROR: node is destroyed");
-            return target.DOMAgent.querySelectorAll(this.id, selector).then(({nodeIds}) => nodeIds);
+            return target.DOMAgent.querySelectorAll(this.backendNodeId, selector).then(({nodeIds}) => nodeIds);
         }
 
         if (this._destroyed) {
@@ -643,7 +675,7 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
-        target.DOMAgent.querySelectorAll(this.id, selector, WI.DOMManager.wrapClientCallback(callback));
+        target.DOMAgent.querySelectorAll(this.backendNodeId, selector, WI.DOMManager.wrapClientCallback(callback));
     }
 
     highlight(mode)
@@ -672,6 +704,10 @@ WI.DOMNode = class DOMNode extends WI.Object
         console.assert(!this._destroyed, this);
         if (this._destroyed)
             return Promise.reject("ERROR: node is destroyed");
+
+        // FIXME: <https://webkit.org/b/298980> Layout overlays for cross-origin frame nodes are not yet supported.
+        if (this.owningTarget)
+            return Promise.reject("ERROR: not supported on cross-origin frame nodes");
 
         console.assert(Object.values(WI.DOMNode._LayoutContextTypes).includes(this.layoutContextType), this);
 
@@ -746,6 +782,10 @@ WI.DOMNode = class DOMNode extends WI.Object
         console.assert(!this._destroyed, this);
         if (this._destroyed)
             return Promise.reject("ERROR: node is destroyed");
+
+        // FIXME: <https://webkit.org/b/298980> Layout overlays for cross-origin frame nodes are not yet supported.
+        if (this.owningTarget)
+            return Promise.reject("ERROR: not supported on cross-origin frame nodes");
 
         console.assert(Object.values(WI.DOMNode._LayoutContextTypes).includes(this.layoutContextType), this);
 
@@ -883,12 +923,12 @@ WI.DOMNode = class DOMNode extends WI.Object
     {
         console.assert(!this._destroyed, this);
 
-        let target = WI.assumingMainTarget();
+        let target = this.owningTarget || WI.assumingMainTarget();
 
         if (typeof callback !== "function") {
             if (this._destroyed)
                 return Promise.reject("ERROR: node is destroyed");
-            return target.DOMAgent.getOuterHTML(this.id).then(({outerHTML}) => outerHTML);
+            return target.DOMAgent.getOuterHTML(this.backendNodeId).then(({outerHTML}) => outerHTML);
         }
 
         if (this._destroyed) {
@@ -896,7 +936,7 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
-        target.DOMAgent.getOuterHTML(this.id, callback);
+        target.DOMAgent.getOuterHTML(this.backendNodeId, callback);
     }
 
     setOuterHTML(html, callback)
@@ -904,6 +944,12 @@ WI.DOMNode = class DOMNode extends WI.Object
         console.assert(!this._destroyed, this);
         if (this._destroyed) {
             callback("ERROR: node is destroyed");
+            return;
+        }
+
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            callback("ERROR: not supported on cross-origin frame nodes");
             return;
         }
 
@@ -920,6 +966,10 @@ WI.DOMNode = class DOMNode extends WI.Object
         if (this.nodeType() !== Node.ELEMENT_NODE)
             return;
 
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget)
+            return;
+
         let target = WI.assumingMainTarget();
         target.DOMAgent.insertAdjacentHTML(this.id, position, html, this._makeUndoableCallback());
     }
@@ -929,6 +979,12 @@ WI.DOMNode = class DOMNode extends WI.Object
         console.assert(!this._destroyed, this);
         if (this._destroyed) {
             callback("ERROR: node is destroyed");
+            return;
+        }
+
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget) {
+            callback("ERROR: not supported on cross-origin frame nodes");
             return;
         }
 
@@ -946,9 +1002,9 @@ WI.DOMNode = class DOMNode extends WI.Object
 
         console.assert(WI.domManager.inspectedNode === this || !includeAncestors, this, includeAncestors);
 
-        let target = WI.assumingMainTarget();
+        let target = this.owningTarget || WI.assumingMainTarget();
         return target.DOMAgent.getEventListenersForNode.invoke({
-            nodeId: this.id,
+            nodeId: this.backendNodeId,
             includeAncestors,
         });
     }
@@ -957,6 +1013,12 @@ WI.DOMNode = class DOMNode extends WI.Object
     {
         console.assert(!this._destroyed, this);
         if (this._destroyed) {
+            callback({});
+            return;
+        }
+
+        // FIXME: <https://webkit.org/b/298980> Accessibility properties for cross-origin frame nodes are not yet supported.
+        if (this.owningTarget) {
             callback({});
             return;
         }
@@ -1265,6 +1327,12 @@ WI.DOMNode = class DOMNode extends WI.Object
             return;
         }
 
+        // FIXME: <https://webkit.org/b/298980> Mutating nodes in cross-origin frame targets is not yet supported.
+        if (this.owningTarget || targetNode.owningTarget || (anchorNode && anchorNode.owningTarget)) {
+            callback("ERROR: not supported on cross-origin frame nodes");
+            return;
+        }
+
         let target = WI.assumingMainTarget();
         target.DOMAgent.moveTo(this.id, targetNode.id, anchorNode ? anchorNode.id : undefined, this._makeUndoableCallback(callback));
     }
@@ -1291,6 +1359,10 @@ WI.DOMNode = class DOMNode extends WI.Object
                 return;
             pseudoClasses.remove(pseudoClass);
         }
+
+        // FIXME: <https://webkit.org/b/298980> Forcing pseudo classes on cross-origin frame nodes is not yet supported.
+        if (this.owningTarget)
+            return;
 
         function changed(error)
         {
@@ -1393,6 +1465,10 @@ WI.DOMNode = class DOMNode extends WI.Object
     // COMPATIBILITY (macOS 14.4, iOS 17.4): `DOM.getMediaStats` did not exist yet.
     async getMediaStats()
     {
+        // FIXME: <https://webkit.org/b/298980> Media stats for cross-origin frame nodes are not yet supported.
+        if (this.owningTarget)
+            return null;
+
         let target = WI.assumingMainTarget();
         let {mediaStats} = await target.DOMAgent.getMediaStats(this.id);
         return mediaStats;

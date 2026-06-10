@@ -942,7 +942,7 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
     , m_aboutSchemeHandler(AboutSchemeHandler::create())
     , m_pageForTesting(WebPageProxyTesting::create(*this))
 {
-    WEBPAGEPROXY_RELEASE_LOG(Loading, "constructor, site isolation enabled %d", protect(preferences())->siteIsolationEnabled());
+    WEBPAGEPROXY_RELEASE_LOG(Loading, "constructor, site isolation enabled %d, site isolation shared process enabled %d", protect(preferences())->siteIsolationEnabled(), protect(preferences())->siteIsolationSharedProcessEnabled());
 
     ASSERT(!webPageProxyMap().contains(m_identifier));
     webPageProxyMap().set(m_identifier, this);
@@ -3289,6 +3289,8 @@ void WebPageProxy::updateActivityState(OptionSet<ActivityState> flagsToUpdate)
 {
     bool wasVisible = isViewVisible();
     RefPtr pageClient = this->pageClient();
+    if (!pageClient)
+        return;
     internals().activityState.remove(flagsToUpdate);
     if (flagsToUpdate & ActivityState::IsFocused && pageClient->isViewFocused())
         internals().activityState.add(ActivityState::IsFocused);

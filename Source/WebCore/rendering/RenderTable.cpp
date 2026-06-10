@@ -401,11 +401,11 @@ void RenderTable::layoutCaptions(BottomCaptionLayoutPhase bottomCaptionLayoutPha
     if (m_captions.isEmpty())
         return;
     // FIXME: Collapse caption margin.
-    for (unsigned i = 0; i < m_captions.size(); ++i) {
-        if ((bottomCaptionLayoutPhase == BottomCaptionLayoutPhase::Yes && m_captions[i]->style().captionSide() != CaptionSide::Bottom)
-            || (bottomCaptionLayoutPhase == BottomCaptionLayoutPhase::No && m_captions[i]->style().captionSide() == CaptionSide::Bottom))
+    for (auto& caption : m_captions) {
+        if ((bottomCaptionLayoutPhase == BottomCaptionLayoutPhase::Yes && caption->style().captionSide() != CaptionSide::Bottom)
+            || (bottomCaptionLayoutPhase == BottomCaptionLayoutPhase::No && caption->style().captionSide() == CaptionSide::Bottom))
             continue;
-        layoutCaption(*m_captions[i]);
+        layoutCaption(*caption);
     }
 }
 
@@ -429,39 +429,25 @@ void RenderTable::distributeExtraLogicalHeight(LayoutUnit extraLogicalHeight)
         for (auto& section : tbodySections)
             totalTBodyHeight += section->logicalHeight();
 
-        if (totalTBodyHeight > 0) {
-            // Distribute proportionally among tbodies based on their intrinsic heights
-            LayoutUnit remainingHeight = extraLogicalHeight;
-            for (size_t sectionIndex = 0; sectionIndex < tbodySections.size(); ++sectionIndex) {
-                CheckedPtr section = tbodySections[sectionIndex];
-                LayoutUnit sectionHeight = section->logicalHeight();
+        // Distribute proportionally to each tbody's intrinsic height; if all tbodies
+        // are empty, distribute equally. The last section absorbs any rounding remainder.
+        auto shareForSection = [&](size_t sectionIndex) -> LayoutUnit {
+            if (totalTBodyHeight > 0)
+                return (extraLogicalHeight * tbodySections[sectionIndex]->logicalHeight()) / totalTBodyHeight;
+            return extraLogicalHeight / tbodySections.size();
+        };
 
-                LayoutUnit extraHeightForSection;
-                if (sectionIndex == tbodySections.size() - 1)
-                    extraHeightForSection = remainingHeight;
-                else {
-                    extraHeightForSection = (extraLogicalHeight * sectionHeight) / totalTBodyHeight;
-                    remainingHeight -= extraHeightForSection;
-                }
-
-                section->distributeExtraLogicalHeightToRows(extraHeightForSection);
+        LayoutUnit remainingHeight = extraLogicalHeight;
+        for (size_t sectionIndex = 0; sectionIndex < tbodySections.size(); ++sectionIndex) {
+            LayoutUnit extraHeightForSection;
+            if (sectionIndex == tbodySections.size() - 1)
+                extraHeightForSection = remainingHeight;
+            else {
+                extraHeightForSection = shareForSection(sectionIndex);
+                remainingHeight -= extraHeightForSection;
             }
-        } else {
-            // All tbodies are empty - distribute equally among them
-            LayoutUnit remainingHeight = extraLogicalHeight;
-            LayoutUnit heightPerSection = extraLogicalHeight / tbodySections.size();
 
-            for (size_t sectionIndex = 0; sectionIndex < tbodySections.size(); ++sectionIndex) {
-                LayoutUnit extraHeightForSection;
-                if (sectionIndex == tbodySections.size() - 1)
-                    extraHeightForSection = remainingHeight;
-                else {
-                    extraHeightForSection = heightPerSection;
-                    remainingHeight -= extraHeightForSection;
-                }
-
-                tbodySections[sectionIndex]->distributeExtraLogicalHeightToRows(extraHeightForSection);
-            }
+            tbodySections[sectionIndex]->distributeExtraLogicalHeightToRows(extraHeightForSection);
         }
         return;
     }
@@ -524,8 +510,8 @@ void RenderTable::layout()
         LayoutUnit oldLogicalHeight = logicalHeight();
         updateLogicalWidth();
         if (logicalWidth() != oldLogicalWidth) {
-            for (unsigned i = 0; i < m_captions.size(); i++)
-                m_captions[i]->setNeedsLayout(MarkingBehavior::MarkOnlyThis);
+            for (auto& caption : m_captions)
+                caption->setNeedsLayout(MarkingBehavior::MarkOnlyThis);
         }
         resetLogicalHeightBeforeLayoutIfNeeded();
         // FIXME: The optimisation below doesn't work since the internal table
@@ -537,10 +523,10 @@ void RenderTable::layout()
 
         LayoutUnit totalSectionLogicalHeight;
         LayoutUnit oldTableLogicalTop;
-        for (unsigned i = 0; i < m_captions.size(); i++) {
-            if (m_captions[i]->style().captionSide() == CaptionSide::Bottom)
+        for (auto& caption : m_captions) {
+            if (caption->style().captionSide() == CaptionSide::Bottom)
                 continue;
-            oldTableLogicalTop += m_captions[i]->logicalHeight() + m_captions[i]->marginBefore() + m_captions[i]->marginAfter();
+            oldTableLogicalTop += caption->logicalHeight() + caption->marginBefore() + caption->marginAfter();
         }
 
         bool collapsing = collapseBorders();
@@ -791,8 +777,8 @@ void RenderTable::addOverflowFromInFlowChildren(OptionSet<ComputeOverflowOptions
     }
 
     // Add overflow from our caption.
-    for (unsigned i = 0; i < m_captions.size(); ++i) {
-        if (auto* caption = m_captions[i].get())
+    for (auto& caption : m_captions) {
+        if (caption)
             addOverflowFromContainedBox(*caption);
     }
 
@@ -908,9 +894,9 @@ void RenderTable::paintCollapsedBordersForRow(PaintInfo& paintInfo, RenderTableR
 
 void RenderTable::adjustBorderBoxRectForPainting(LayoutRect& rect)
 {
-    for (unsigned i = 0; i < m_captions.size(); i++) {
-        LayoutUnit captionLogicalHeight = m_captions[i]->logicalHeight() + m_captions[i]->marginBefore() + m_captions[i]->marginAfter();
-        bool captionIsBefore = (m_captions[i]->style().captionSide() != CaptionSide::Bottom) ^ writingMode().isBlockFlipped();
+    for (auto& caption : m_captions) {
+        LayoutUnit captionLogicalHeight = caption->logicalHeight() + caption->marginBefore() + caption->marginAfter();
+        bool captionIsBefore = (caption->style().captionSide() != CaptionSide::Bottom) ^ writingMode().isBlockFlipped();
         if (writingMode().isHorizontal()) {
             rect.setHeight(rect.height() - captionLogicalHeight);
             if (captionIsBefore)
@@ -1005,9 +991,9 @@ void RenderTable::computeIntrinsicLogicalWidthContributions()
 
     m_tableLayout->applyContentLogicalWidthQuirks(m_minContentLogicalWidthContribution, m_maxContentLogicalWidthContribution);
 
-    for (unsigned i = 0; i < m_captions.size(); i++) {
-        LayoutUnit captionMinWidth = m_captions[i]->minContentLogicalWidthContribution();
-        captionMinWidth += marginIntrinsicLogicalWidthForChild(*m_captions[i]);
+    for (auto& caption : m_captions) {
+        LayoutUnit captionMinWidth = caption->minContentLogicalWidthContribution();
+        captionMinWidth += marginIntrinsicLogicalWidthForChild(*caption);
 
         m_minContentLogicalWidthContribution = std::max(m_minContentLogicalWidthContribution, captionMinWidth);
     }
@@ -1555,7 +1541,7 @@ RenderTableSection* RenderTable::sectionAbove(const RenderTableSection* section,
     RenderObject* prevSection = section == m_foot ? lastChild() : section->previousSibling();
     while (prevSection) {
         auto* tableSection = dynamicDowncast<RenderTableSection>(*prevSection);
-        if (tableSection && prevSection != m_head && prevSection != m_foot && (skipEmptySections == DoNotSkipEmptySections || downcast<RenderTableSection>(*prevSection).numRows()))
+        if (tableSection && prevSection != m_head && prevSection != m_foot && (skipEmptySections == DoNotSkipEmptySections || tableSection->numRows()))
             return tableSection;
         prevSection = prevSection->previousSibling();
     }
@@ -1574,7 +1560,7 @@ RenderTableSection* RenderTable::sectionBelow(const RenderTableSection* section,
     RenderObject* nextSection = section == m_head ? firstChild() : section->nextSibling();
     while (nextSection) {
         auto* tableSection = dynamicDowncast<RenderTableSection>(*nextSection);
-        if (tableSection && nextSection != m_head && nextSection != m_foot && (skipEmptySections  == DoNotSkipEmptySections || downcast<RenderTableSection>(*nextSection).numRows()))
+        if (tableSection && nextSection != m_head && nextSection != m_foot && (skipEmptySections  == DoNotSkipEmptySections || tableSection->numRows()))
             return tableSection;
         nextSection = nextSection->nextSibling();
     }
@@ -1608,8 +1594,8 @@ RenderTableCell* RenderTable::cellAbove(const RenderTableCell* cell) const
         unsigned effCol = colToEffCol(cell->col());
         RenderTableSection::CellStruct& aboveCell = section->cellAt(rAbove, effCol);
         return aboveCell.primaryCell();
-    } else
-        return nullptr;
+    }
+    return nullptr;
 }
 
 RenderTableCell* RenderTable::cellBelow(const RenderTableCell* cell) const
@@ -1635,8 +1621,8 @@ RenderTableCell* RenderTable::cellBelow(const RenderTableCell* cell) const
         unsigned effCol = colToEffCol(cell->col());
         RenderTableSection::CellStruct& belowCell = section->cellAt(rBelow, effCol);
         return belowCell.primaryCell();
-    } else
-        return nullptr;
+    }
+    return nullptr;
 }
 
 RenderTableCell* RenderTable::cellBefore(const RenderTableCell* cell) const

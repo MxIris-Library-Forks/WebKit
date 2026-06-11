@@ -1038,6 +1038,10 @@ void Document::commonTeardown()
     if (RefPtr rtcNetworkManager = std::exchange(m_rtcNetworkManager, nullptr))
         rtcNetworkManager->close();
 #endif
+
+#if ENABLE(VIDEO)
+    m_lazyLoadVideoObserver = nullptr;
+#endif
 }
 
 Quirks& Document::ensureQuirks()
@@ -6907,6 +6911,9 @@ void Document::nodeWillBeMoved(Node& node)
 
     for (Ref range : m_ranges)
         range->nodeWillBeRemoved(node);
+
+    if (RefPtr frame = this->frame())
+        frame->selection().nodeWillBeRemoved(node);
 }
 
 void Document::parentlessNodeMovedToNewDocument(Node& node)

@@ -7161,6 +7161,7 @@
 		F3D461491161D53200CA0D09 /* JSErrorHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = F3D461471161D53200CA0D09 /* JSErrorHandler.h */; };
 		F3E5BBEBC56FC96C0C330EBC /* Overflow.svg in Copy Modern Media Controls Images */ = {isa = PBXBuildFile; fileRef = C029AAD880833E8D745FD969 /* Overflow.svg */; platformFilters = (ios, maccatalyst, tvos, xros, ); };
 		F3EB1F322F43B92600725B79 /* FrameConsoleAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = F3EB1F2E2F43B92600725B79 /* FrameConsoleAgent.h */; };
+		E6F93CF6265A334D32D41777 /* FrameCSSAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C0F6A57EB56935552649019 /* FrameCSSAgent.h */; };
 		F4023C4B2D3C4E670008A06D /* UnicodeHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = F4023C482D3C4E670008A06D /* UnicodeHelpers.h */; };
 		F402822F2D88C9A700F3680B /* CocoaView.h in Headers */ = {isa = PBXBuildFile; fileRef = F402822E2D88C9A700F3680B /* CocoaView.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F403E7872363B58C00044550 /* EnterKeyHint.h in Headers */ = {isa = PBXBuildFile; fileRef = F403E7852363B58C00044550 /* EnterKeyHint.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -23206,6 +23207,8 @@
 		F3EB1F2E2F43B92600725B79 /* FrameConsoleAgent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameConsoleAgent.h; sourceTree = "<group>"; };
 		F3EB1F2F2F43B92600725B79 /* FrameConsoleAgent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameConsoleAgent.cpp; sourceTree = "<group>"; };
 		F3FB34D3C8B0041EA738900D /* Ellipsis.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = Ellipsis.svg; sourceTree = "<group>"; };
+		7C0F6A57EB56935552649019 /* FrameCSSAgent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameCSSAgent.h; sourceTree = "<group>"; };
+		28B3EF64E96201CC125E5C5F /* FrameCSSAgent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameCSSAgent.cpp; sourceTree = "<group>"; };
 		F4023C482D3C4E670008A06D /* UnicodeHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UnicodeHelpers.h; sourceTree = "<group>"; };
 		F4023C492D3C4E670008A06D /* UnicodeHelpers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UnicodeHelpers.cpp; sourceTree = "<group>"; };
 		F402822E2D88C9A700F3680B /* CocoaView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CocoaView.h; sourceTree = "<group>"; };
@@ -41472,6 +41475,8 @@
 			children = (
 				F3EB1F2F2F43B92600725B79 /* FrameConsoleAgent.cpp */,
 				F3EB1F2E2F43B92600725B79 /* FrameConsoleAgent.h */,
+				28B3EF64E96201CC125E5C5F /* FrameCSSAgent.cpp */,
+				7C0F6A57EB56935552649019 /* FrameCSSAgent.h */,
 				5EAA0AFF2F4FC900009CAB0D /* FrameDebuggerAgent.cpp */,
 				5EAA0B002F4FC900009CAB0D /* FrameDebuggerAgent.h */,
 				5E3DD8072F903C9A00250DF5 /* FrameDOMAgent.cpp */,
@@ -45457,6 +45462,7 @@
 				46B95196207D633A00A7D2DD /* Frame.h in Headers */,
 				F3EB1F322F43B92600725B79 /* FrameConsoleAgent.h in Headers */,
 				DAED203116F244480070EC0F /* FrameConsoleClient.h in Headers */,
+				E6F93CF6265A334D32D41777 /* FrameCSSAgent.h in Headers */,
 				5EAA0B042F4FC901009CAB0D /* FrameDebugger.h in Headers */,
 				5EAA0B012F4FC900009CAB0D /* FrameDebuggerAgent.h in Headers */,
 				974A862314B7ADBB003FDC76 /* FrameDestructionObserver.h in Headers */,

@@ -5654,6 +5654,7 @@
 		BCD9F13D2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F13C2E1EE70A00D1C3DF /* CSSGridNamedAreaMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1682E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1672E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1752E203A0200D1C3DF /* StyleObjectPosition.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1742E20384800D1C3DF /* StyleObjectPosition.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		9D41451DA980438DA186DBDF /* StyleObjectViewBox.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA340CB3EC1453981DF6B56 /* StyleObjectViewBox.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1782E2040DC00D1C3DF /* StylePerspectiveOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1772E2040DC00D1C3DF /* StylePerspectiveOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F17A2E2045C500D1C3DF /* StyleTransformOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1792E2045C500D1C3DF /* StyleTransformOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD9F1B32E21D62800D1C3DF /* StyleGridTemplateList.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD9F1B22E21D62800D1C3DF /* StyleGridTemplateList.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -20502,6 +20503,8 @@
 		BCD9F1672E202E2100D1C3DF /* StyleGridOrderedNamedLinesMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridOrderedNamedLinesMap.h; sourceTree = "<group>"; };
 		BCD9F1692E202E8C00D1C3DF /* StyleGridNamedLinesMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleGridNamedLinesMap.cpp; sourceTree = "<group>"; };
 		BCD9F1742E20384800D1C3DF /* StyleObjectPosition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleObjectPosition.h; sourceTree = "<group>"; };
+		CEA340CB3EC1453981DF6B56 /* StyleObjectViewBox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleObjectViewBox.h; sourceTree = "<group>"; };
+		DCD61E9000DE48A88138DCA4 /* StyleObjectViewBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleObjectViewBox.cpp; sourceTree = "<group>"; };
 		BCD9F1772E2040DC00D1C3DF /* StylePerspectiveOrigin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StylePerspectiveOrigin.h; sourceTree = "<group>"; };
 		BCD9F1792E2045C500D1C3DF /* StyleTransformOrigin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleTransformOrigin.h; sourceTree = "<group>"; };
 		BCD9F1B22E21D62800D1C3DF /* StyleGridTemplateList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleGridTemplateList.h; sourceTree = "<group>"; };
@@ -38842,6 +38845,8 @@
 				BC22AA9F2E36A554009AC0C3 /* StyleImageWrapper.cpp */,
 				BC22AA9D2E36A2BD009AC0C3 /* StyleImageWrapper.h */,
 				BCD9F1742E20384800D1C3DF /* StyleObjectPosition.h */,
+				DCD61E9000DE48A88138DCA4 /* StyleObjectViewBox.cpp */,
+				CEA340CB3EC1453981DF6B56 /* StyleObjectViewBox.h */,
 			);
 			path = images;
 			sourceTree = "<group>";
@@ -48891,6 +48896,7 @@
 				BC63AD4D2F085646007B62C4 /* StyleNonInheritedMiscData.h in Headers */,
 				BC63AD4E2F085646007B62C4 /* StyleNonInheritedRareData.h in Headers */,
 				BCD9F1752E203A0200D1C3DF /* StyleObjectPosition.h in Headers */,
+				9D41451DA980438DA186DBDF /* StyleObjectViewBox.h in Headers */,
 				BCCE4F462DF74F1D005554EA /* StyleOffsetAnchor.h in Headers */,
 				BCCE4F412DF73F64005554EA /* StyleOffsetDistance.h in Headers */,
 				BCCE4F612DF89776005554EA /* StyleOffsetPath.h in Headers */,

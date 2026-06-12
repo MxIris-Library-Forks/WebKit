@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,26 +23,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "WebCoreDOMAndRenderingPrefix.h"
+#ifndef TAGGED_BMALLOC_HEAP_H
+#define TAGGED_BMALLOC_HEAP_H
 
-#ifdef __cplusplus
-#undef new
-#undef delete
+#include "tagged_bmalloc_heap_utils.h"
+#include "pas_reallocate_free_mode.h"
 
-#include "StyleComputedStyle+GettersInlines.h"
-#include "StyleComputedStyle+SettersInlines.h"
+#if PAS_ENABLE_BMALLOC
 
-#include "RenderBlock.h"
-#include "RenderBlockFlow.h"
+PAS_BEGIN_EXTERN_C;
 
-#include <map>
-#include "GraphicsContext.h"
-#include "NodeName.h"
-#include "Page.h"
-#include "RenderLayer.h"
-#include "ScrollView.h"
-#include "ScrollableArea.h"
+PAS_API void* tagged_bmalloc_try_allocate(size_t size);
+PAS_API void* tagged_bmalloc_try_allocate_with_alignment(size_t size, size_t alignment);
 
-#define new ("if you use new/delete make sure to include config.h at the top of the file"())
-#define delete ("if you use new/delete make sure to include config.h at the top of the file"())
-#endif
+PAS_API void* tagged_bmalloc_try_allocate_zeroed(size_t size);
+PAS_API void* tagged_bmalloc_try_allocate_zeroed_with_alignment(size_t size, size_t alignment);
+
+PAS_API void* tagged_bmalloc_allocate(size_t size);
+PAS_API void* tagged_bmalloc_allocate_with_alignment(size_t size, size_t alignment);
+
+PAS_API void* tagged_bmalloc_allocate_zeroed(size_t size);
+PAS_API void* tagged_bmalloc_allocate_zeroed_with_alignment(size_t size, size_t alignment);
+
+PAS_API void* tagged_bmalloc_try_reallocate(void* old_ptr, size_t new_size,
+                                            pas_reallocate_free_mode free_mode);
+
+PAS_API void* tagged_bmalloc_reallocate(void* old_ptr, size_t new_size,
+                                        pas_reallocate_free_mode free_mode);
+
+PAS_API void tagged_bmalloc_deallocate(void*);
+
+PAS_END_EXTERN_C;
+
+#endif /* PAS_ENABLE_BMALLOC */
+
+#endif /* TAGGED_BMALLOC_HEAP_H */
+

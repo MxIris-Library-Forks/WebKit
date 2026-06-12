@@ -1817,6 +1817,7 @@ webkit.org/b/265919 media/track/media-source-audio-track.html [ Failure ]
 media/media-source/media-managedmse-memorypressure.html [ Timeout ]
 media/media-source/media-managedmse-memorypressure-inactive.html [ Timeout ]
 media/media-source/media-managedmse-eviction.html [ Timeout ]
+media/media-source/media-source-evict-invalid-time-crash.html [ Timeout ]
 
 webkit.org/b/211995 fast/images/animated-image-mp4.html [ Timeout ]
 
@@ -2183,6 +2184,7 @@ webkit.org/b/221311 [ Debug ] imported/w3c/web-platform-tests/html/canvas/offscr
 
 # This failure is related with (incomplete?) webgl support for OffscreenCanvas.
 webgl/1.0.x/conformance/offscreencanvas/offscreencanvas-transfer-image-bitmap.html [ Timeout ]
+webgl/webgl-modify-after-drawimage.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of OffscreenCanvas-related bugs
@@ -4354,6 +4356,9 @@ webkit.org/b/224067 media/media-source/media-source-timestampoffset-trim.html [ 
 webkit.org/b/254207 media/media-source/media-source-remove-readystate.html [ Pass Timeout ]
 webkit.org/b/160119 media/video-object-fit-change.html [ Pass ImageOnlyFailure Timeout ]
 
+webkit.org/b/316875 imported/w3c/web-platform-tests/media-source/mediasource-config-change-mp4-av-audio-bitrate.html [ Failure Timeout ]
+webkit.org/b/316875 imported/w3c/web-platform-tests/media-source/mediasource-config-change-mp4-av-video-bitrate.html [ Failure Timeout ]
+
 webkit.org/b/61487 http/tests/media/video-cross-site.html [ Failure Timeout ]
 
 webkit.org/b/306026 media/video-unmuted-after-play-holds-sleep-assertion.html [ Failure Timeout ]
@@ -5546,8 +5551,6 @@ webkit.org/b/316192 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-m
 webkit.org/b/316197 imported/w3c/web-platform-tests/media-source/mediasource-addsourcebuffer-mode.html [ Crash Pass ]
 
 webkit.org/b/316421 media/track/in-band/track-in-band-srt-mkv-addtrack.html [ Pass Failure ]
-
-webkit.org/b/316424 fast/mediastream/enumerateDevices-camera-denied-expose-with-capture.html [ Pass Failure ]
 
 webkit.org/b/316427 animations/restart-after-scroll.html [ Pass Failure ]
 

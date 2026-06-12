@@ -1079,6 +1079,9 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/CallData.h
     runtime/TopExceptionScope.h
     runtime/ClassInfo.h
+    runtime/CloneBase.h
+    runtime/CloneDeserializerBase.h
+    runtime/CloneSerializerBase.h
     runtime/ClonedArguments.h
     runtime/CodeSpecializationKind.h
     runtime/CommonIdentifiers.h
@@ -1416,6 +1419,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/StructureRareData.h
     runtime/StructureRareDataInlines.h
     runtime/StructureTransitionTable.h
+    runtime/StructuredCloneTags.h
     runtime/SubspaceAccess.h
     runtime/Symbol.h
     runtime/SymbolConstructor.h
@@ -1826,7 +1830,7 @@ endif ()
 if (${JavaScriptCore_LIBRARY_TYPE} STREQUAL "OBJECT")
     list(APPEND JavaScriptCore_PRIVATE_LIBRARIES $<TARGET_OBJECTS:LowLevelInterpreterLib>)
 else ()
-    list(APPEND JavaScriptCore_SOURCES $<TARGET_OBJECTS:LowLevelInterpreterLib>)
+    list(APPEND JavaScriptCore_PRIVATE_LIBRARIES LowLevelInterpreterLib)
 endif ()
 
 WEBKIT_COMPUTE_SOURCES(JavaScriptCore)

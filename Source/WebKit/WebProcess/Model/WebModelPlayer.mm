@@ -197,7 +197,7 @@ static WebCore::ContentsFormat contentsFormatForDynamicRange(bool isStandard)
 
 // MARK: - ModelPlayer overrides.
 
-void WebModelPlayer::load(WebCore::Model& modelSource, WebCore::LayoutSize size)
+void WebModelPlayer::load(WebCore::Model& modelSource, WebCore::LayoutSize size, bool)
 {
     RefPtr corePage = m_page.get();
     if (!corePage)
@@ -856,7 +856,7 @@ void WebModelPlayer::reload(WebCore::Model& modelSource, WebCore::LayoutSize siz
     if (disableReloading())
         return;
 
-    load(modelSource, size);
+    load(modelSource, size, false);
     m_cachedAnimationState = animationState;
     if (transformState) {
         setStageMode(transformState->stageMode());

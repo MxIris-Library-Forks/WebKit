@@ -1001,6 +1001,7 @@ accessibility/dynamic-speak-as.html [ Failure ]
 
 # Missing AccessibilityUIElement::{ariaActionsElementAtIndex, invokeCustomActionAtIndex} implementations.
 accessibility/aria-actions.html [ Skip ]
+accessibility/aria-actions-ignored-target.html [ Skip ]
 
 # Missing AccessibilityUIElement::showMenu implementation.
 accessibility/show-menu-fires-contextmenu-event.html [ Skip ]
@@ -1094,6 +1095,10 @@ accessibility/display-contents/search-traversal.html [ Skip ]
 accessibility/display-none-descendant-of-relation.html [ Skip ]
 accessibility/empty-text-under-element-cached.html [ Skip ]
 accessibility/menuitem-is-selected.html [ Skip ]
+accessibility/search-predicate-ignored-start-backward.html [ Skip ]
+accessibility/search-predicate-ignored-start-no-loop-to-top.html [ Skip ]
+accessibility/search-predicate-ignored-start-non-immediate.html [ Skip ]
+accessibility/search-predicate-ignored-start-relative-search-key.html [ Skip ]
 accessibility/search-for-focusable-separator-and-spinbutton.html [ Skip ]
 accessibility/search-traversal-after-role-change.html [ Skip ]
 accessibility/spinbutton-inside-collapsed-details.html [ Skip ]
@@ -5552,7 +5557,7 @@ webkit.org/b/316197 imported/w3c/web-platform-tests/media-source/mediasource-add
 
 webkit.org/b/316421 media/track/in-band/track-in-band-srt-mkv-addtrack.html [ Pass Failure ]
 
-webkit.org/b/316427 animations/restart-after-scroll.html [ Pass Failure ]
+webkit.org/b/316427 webkit.org/b/315994 animations/restart-after-scroll.html [ Pass Failure Crash ]
 
 webkit.org/b/316428 imported/w3c/web-platform-tests/html/semantics/popovers/popover-focus-inert-invoker.html [ Pass Failure ]
 
@@ -5560,7 +5565,7 @@ webkit.org/b/316428 imported/w3c/web-platform-tests/html/semantics/popovers/popo
 media/media-visible-in-viewport-in-fullscreen.html [ Skip ]
 
 webkit.org/b/316712 fast/forms/validation-message-clone.html [ Failure ]
-webkit.org/b/316712 fast/events/touch/gesture/touch-gesture-scroll-sideways.html [ Timeout ]
+webkit.org/b/316712 fast/events/touch/gesture/touch-gesture-scroll-sideways.html [ Failure Timeout ]
 webkit.org/b/316712 fast/events/touch/gesture/gesture-scroll.html [ Failure ]
 webkit.org/b/316712 fast/events/touch/gesture/gesture-dblclick.html [ Failure ]
 webkit.org/b/316712 fast/events/touch/gesture/gesture-click.html [ Failure ]
@@ -5572,6 +5577,12 @@ webkit.org/b/316719 fast/html/HTMLCollection-set-property.html [ Pass Crash ]
 
 webkit.org/b/316573 fast/parser/empty-text-resource.html [ Pass Timeout ]
 webkit.org/b/316575 [ x86_64 ] http/tests/IndexedDB/collect-IDB-objects.https.html [ Pass Crash ]
+
+webkit.org/b/317006 ipc/indexed-colorspace-null-inner-crash.html [ Crash ]
+webkit.org/b/317007 fast/replaced/replaced-percentage-size-in-aspect-ratio-shrink-to-fit.html [ ImageOnlyFailure ]
+webkit.org/b/317008 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/sizes/sizes-auto-resize-observer-removes-auto.html [ Pass Failure ]
+webkit.org/b/317010 [ x86_64 ] imported/w3c/web-platform-tests/largest-contentful-paint/ [ Pass Failure ]
+webkit.org/b/317011 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/shape-image/shape-image-018.html [ Pass Timeout ]
 
 # End: Common failures between GTK and WPE.
 

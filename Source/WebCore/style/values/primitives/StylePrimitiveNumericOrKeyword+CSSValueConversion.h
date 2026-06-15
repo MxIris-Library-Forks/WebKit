@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025-2026 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,7 +26,7 @@
 
 #include "CSSKeywordValue.h"
 #include "StyleBuilderChecking.h"
-#include "StyleLengthWrapper.h"
+#include "StylePrimitiveNumericOrKeyword.h"
 #include "StylePrimitiveNumericTypes+Conversions.h"
 
 namespace WebCore {
@@ -38,7 +38,7 @@ namespace Style {
 
 // MARK: Keyword conversion
 
-template<LengthWrapperBaseDerived StyleType, typename K>
+template<PrimitiveNumericOrKeywordDerived StyleType, typename K>
 static auto processKeywordForCSSValueConversion(const K& keyword, CSSValueID valueID, std::optional<StyleType>& result) -> bool
 {
     if (valueID == keyword.value) {
@@ -68,8 +68,8 @@ static auto processKeywordForCSSValueConversion(const K& keyword, CSSValueID val
     return false;
 }
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(const CSSKeywordValue& value, Rest&&...) -> std::optional<StyleType>
+template<PrimitiveNumericOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(const CSSKeywordValue& value, Rest&&...) -> std::optional<StyleType>
 {
     auto valueID = value.valueID();
 
@@ -82,18 +82,18 @@ auto convertLengthWrapperFromCSSValue(const CSSKeywordValue& value, Rest&&...) -
     }, keywordsTuple);
 }
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(const CSSToLengthConversionData&, const CSSKeywordValue& value, Rest&&... rest) -> std::optional<StyleType>
+template<PrimitiveNumericOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(const CSSToLengthConversionData&, const CSSKeywordValue& value, Rest&&... rest) -> std::optional<StyleType>
 {
-    return convertLengthWrapperFromCSSValue<StyleType>(value, std::forward<Rest>(rest)...);
+    return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(value, std::forward<Rest>(rest)...);
 }
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(BuilderState& state, const CSSKeywordValue& value, Rest&&... rest) -> StyleType
+template<LengthPercentageOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(BuilderState& state, const CSSKeywordValue& value, Rest&&... rest) -> StyleType
 {
     using namespace CSS::Literals;
 
-    auto result = convertLengthWrapperFromCSSValue<StyleType>(value, std::forward<Rest>(rest)...);
+    auto result = convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(value, std::forward<Rest>(rest)...);
     if (result)
         return *result;
 
@@ -103,8 +103,8 @@ auto convertLengthWrapperFromCSSValue(BuilderState& state, const CSSKeywordValue
 
 // MARK: <length-percentage> conversion
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(const CSSToLengthConversionData& conversionData, const CSSPrimitiveValue& value, Rest&&... rest) -> std::optional<StyleType>
+template<LengthPercentageOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(const CSSToLengthConversionData& conversionData, const CSSPrimitiveValue& value, Rest&&... rest) -> std::optional<StyleType>
 {
     using CSSSpecified = typename StyleType::Specified::CSS;
     using CSSRaw = typename CSSSpecified::Raw;
@@ -126,8 +126,8 @@ auto convertLengthWrapperFromCSSValue(const CSSToLengthConversionData& conversio
     );
 }
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(BuilderState& state, const CSSPrimitiveValue& value, Rest&&... rest) -> StyleType
+template<LengthPercentageOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(BuilderState& state, const CSSPrimitiveValue& value, Rest&&... rest) -> StyleType
 {
     using CSSSpecified = typename StyleType::Specified::CSS;
     using CSSRaw = typename CSSSpecified::Raw;
@@ -155,8 +155,8 @@ auto convertLengthWrapperFromCSSValue(BuilderState& state, const CSSPrimitiveVal
 
 // MARK: <length-percentage> + keyword conversion
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(const CSSToLengthConversionData& conversionData, const CSSValue& value, Rest&&... rest) -> std::optional<StyleType>
+template<LengthPercentageOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(const CSSToLengthConversionData& conversionData, const CSSValue& value, Rest&&... rest) -> std::optional<StyleType>
 {
     using namespace CSS::Literals;
 
@@ -164,20 +164,20 @@ auto convertLengthWrapperFromCSSValue(const CSSToLengthConversionData& conversio
         RefPtr primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value);
         if (!primitiveValue)
             return std::nullopt;
-        return convertLengthWrapperFromCSSValue<StyleType>(conversionData, *primitiveValue, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(conversionData, *primitiveValue, std::forward<Rest>(rest)...);
     } else {
         if (RefPtr primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value))
-            return convertLengthWrapperFromCSSValue<StyleType>(conversionData, *primitiveValue, std::forward<Rest>(rest)...);
+            return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(conversionData, *primitiveValue, std::forward<Rest>(rest)...);
 
         RefPtr keywordValue = dynamicDowncast<CSSKeywordValue>(value);
         if (!keywordValue)
             return std::nullopt;
-        return convertLengthWrapperFromCSSValue<StyleType>(conversionData, *keywordValue, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(conversionData, *keywordValue, std::forward<Rest>(rest)...);
     }
 }
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto convertLengthWrapperFromCSSValue(BuilderState& state, const CSSValue& value, Rest&&... rest) -> StyleType
+template<LengthPercentageOrKeywordDerived StyleType, typename... Rest>
+auto convertPrimitiveNumericOrKeywordFromCSSValue(BuilderState& state, const CSSValue& value, Rest&&... rest) -> StyleType
 {
     using namespace CSS::Literals;
 
@@ -185,49 +185,49 @@ auto convertLengthWrapperFromCSSValue(BuilderState& state, const CSSValue& value
         RefPtr primitiveValue = requiredDowncast<CSSPrimitiveValue>(state, value);
         if (!primitiveValue)
             return 0_css_px;
-        return convertLengthWrapperFromCSSValue<StyleType>(state, *primitiveValue, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(state, *primitiveValue, std::forward<Rest>(rest)...);
     } else {
         if (RefPtr primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value))
-            return convertLengthWrapperFromCSSValue<StyleType>(state, *primitiveValue, std::forward<Rest>(rest)...);
+            return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(state, *primitiveValue, std::forward<Rest>(rest)...);
 
         RefPtr keywordValue = requiredDowncast<CSSKeywordValue>(state, value);
         if (!keywordValue)
             return 0_css_px;
-        return convertLengthWrapperFromCSSValue<StyleType>(state, *keywordValue, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(state, *keywordValue, std::forward<Rest>(rest)...);
     }
 }
 
-template<LengthWrapperBaseDerived StyleType> struct CSSValueConversion<StyleType> {
+template<LengthPercentageOrKeywordDerived StyleType> struct CSSValueConversion<StyleType> {
     template<typename... Rest> auto operator()(const CSSToLengthConversionData& conversionData, const CSSPrimitiveValue& value, Rest&&... rest) -> StyleType
     {
         using namespace CSS::Literals;
 
-        return convertLengthWrapperFromCSSValue<StyleType>(conversionData, value, std::forward<Rest>(rest)...).value_or(StyleType { 0_css_px });
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(conversionData, value, std::forward<Rest>(rest)...).value_or(StyleType { 0_css_px });
     }
     template<typename... Rest> auto operator()(const CSSToLengthConversionData& conversionData, const CSSKeywordValue& value, Rest&&... rest) -> StyleType
     {
         using namespace CSS::Literals;
 
-        return convertLengthWrapperFromCSSValue<StyleType>(conversionData, value, std::forward<Rest>(rest)...).value_or(StyleType { 0_css_px });
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(conversionData, value, std::forward<Rest>(rest)...).value_or(StyleType { 0_css_px });
     }
     template<typename... Rest> auto operator()(const CSSToLengthConversionData& conversionData, const CSSValue& value, Rest&&... rest) -> StyleType
     {
         using namespace CSS::Literals;
 
-        return convertLengthWrapperFromCSSValue<StyleType>(conversionData, value, std::forward<Rest>(rest)...).value_or(StyleType { 0_css_px });
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(conversionData, value, std::forward<Rest>(rest)...).value_or(StyleType { 0_css_px });
     }
 
     template<typename... Rest> auto operator()(BuilderState& state, const CSSPrimitiveValue& value, Rest&&... rest) -> StyleType
     {
-        return convertLengthWrapperFromCSSValue<StyleType>(state, value, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(state, value, std::forward<Rest>(rest)...);
     }
     template<typename... Rest> auto operator()(BuilderState& state, const CSSKeywordValue& value, Rest&&... rest) -> StyleType
     {
-        return convertLengthWrapperFromCSSValue<StyleType>(state, value, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(state, value, std::forward<Rest>(rest)...);
     }
     template<typename... Rest> auto operator()(BuilderState& state, const CSSValue& value, Rest&&... rest) -> StyleType
     {
-        return convertLengthWrapperFromCSSValue<StyleType>(state, value, std::forward<Rest>(rest)...);
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(state, value, std::forward<Rest>(rest)...);
     }
 };
 

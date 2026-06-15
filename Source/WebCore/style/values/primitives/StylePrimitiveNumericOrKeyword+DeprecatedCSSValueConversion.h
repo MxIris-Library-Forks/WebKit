@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025-2026 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "StyleLengthWrapper+CSSValueConversion.h"
+#include "StylePrimitiveNumericOrKeyword+CSSValueConversion.h"
 #include "StylePrimitiveNumericTypes+DeprecatedConversions.h"
 
 namespace WebCore {
@@ -32,8 +32,8 @@ namespace Style {
 
 // MARK: - Deprecated Conversions
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto deprecatedConvertLengthWrapperFromCSSValue(const CSSPrimitiveValue& value, Rest&&... rest) -> std::optional<StyleType>
+template<PrimitiveNumericOrKeywordDerived StyleType, typename... Rest>
+auto deprecatedConvertPrimitiveNumericOrKeywordFromCSSValue(const CSSPrimitiveValue& value, Rest&&... rest) -> std::optional<StyleType>
 {
     using CSSSpecified = typename StyleType::Specified::CSS;
     using CSSRaw = typename CSSSpecified::Raw;
@@ -55,8 +55,8 @@ auto deprecatedConvertLengthWrapperFromCSSValue(const CSSPrimitiveValue& value, 
     );
 }
 
-template<LengthWrapperBaseDerived StyleType, typename... Rest>
-auto deprecatedConvertLengthWrapperFromCSSValue(const CSSValue& value, Rest&&... rest) -> std::optional<StyleType>
+template<PrimitiveNumericOrKeywordDerived StyleType, typename... Rest>
+auto deprecatedConvertPrimitiveNumericOrKeywordFromCSSValue(const CSSValue& value, Rest&&... rest) -> std::optional<StyleType>
 {
     using namespace CSS::Literals;
 
@@ -64,24 +64,24 @@ auto deprecatedConvertLengthWrapperFromCSSValue(const CSSValue& value, Rest&&...
         RefPtr primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value);
         if (!primitiveValue)
             return std::nullopt;
-        return deprecatedConvertLengthWrapperFromCSSValue<StyleType>(*primitiveValue, std::forward<Rest>(rest)...);
+        return deprecatedConvertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(*primitiveValue, std::forward<Rest>(rest)...);
     } else {
         if (RefPtr primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value))
-            return deprecatedConvertLengthWrapperFromCSSValue<StyleType>(*primitiveValue, std::forward<Rest>(rest)...);
+            return deprecatedConvertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(*primitiveValue, std::forward<Rest>(rest)...);
 
         RefPtr keywordValue = dynamicDowncast<CSSKeywordValue>(value);
         if (!keywordValue)
             return std::nullopt;
 
-        // NOTE: The non-deprecated `convertLengthWrapperFromCSSValue` can be used for keywords, since they never require conversion data.
-        return convertLengthWrapperFromCSSValue<StyleType>(*keywordValue, std::forward<Rest>(rest)...);
+        // NOTE: The non-deprecated `convertPrimitiveNumericOrKeywordFromCSSValue` can be used for keywords, since they never require conversion data.
+        return convertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(*keywordValue, std::forward<Rest>(rest)...);
     }
 }
 
-template<LengthWrapperBaseDerived StyleType> struct DeprecatedCSSValueConversion<StyleType> {
+template<PrimitiveNumericOrKeywordDerived StyleType> struct DeprecatedCSSValueConversion<StyleType> {
     template<typename... Rest> auto operator()(const CSSValue& value, Rest&&... rest) -> std::optional<StyleType>
     {
-        return deprecatedConvertLengthWrapperFromCSSValue<StyleType>(value, std::forward<Rest>(rest)...);
+        return deprecatedConvertPrimitiveNumericOrKeywordFromCSSValue<StyleType>(value, std::forward<Rest>(rest)...);
     }
 };
 

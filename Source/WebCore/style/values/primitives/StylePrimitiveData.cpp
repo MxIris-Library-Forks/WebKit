@@ -23,7 +23,7 @@
  */
 
 #include "config.h"
-#include "StyleLengthWrapperData.h"
+#include "StylePrimitiveData.h"
 
 #include "StyleCalculationValue.h"
 #include "StyleCalculationValueMap.h"
@@ -33,57 +33,57 @@
 namespace WebCore {
 namespace Style {
 
-LengthWrapperData::LengthWrapperData(uint8_t opaqueType, UnevaluatedCalculationBase&& value)
+PrimitiveData::PrimitiveData(uint8_t opaqueType, UnevaluatedCalculationBase&& value)
     : m_opaqueType { opaqueType }
-    , m_kind { LengthWrapperDataKind::Calculation }
+    , m_kind { PrimitiveDataKind::Calculation }
 {
     m_calculationValueHandle = Calculation::ValueMap::calculationValues().insert(value.leakRef());
 }
 
-LengthWrapperData::LengthWrapperData(uint8_t opaqueType, const UnevaluatedCalculationBase& value)
+PrimitiveData::PrimitiveData(uint8_t opaqueType, const UnevaluatedCalculationBase& value)
     : m_opaqueType { opaqueType }
-    , m_kind { LengthWrapperDataKind::Calculation }
+    , m_kind { PrimitiveDataKind::Calculation }
 {
     m_calculationValueHandle = Calculation::ValueMap::calculationValues().insert(value.calculation());
 }
 
-Calculation::Value& LengthWrapperData::calculationValue() const
+Calculation::Value& PrimitiveData::calculationValue() const
 {
-    ASSERT(m_kind == LengthWrapperDataKind::Calculation);
+    ASSERT(m_kind == PrimitiveDataKind::Calculation);
     return Calculation::ValueMap::calculationValues().get(m_calculationValueHandle);
 }
 
-void LengthWrapperData::ref() const
+void PrimitiveData::ref() const
 {
-    ASSERT(m_kind == LengthWrapperDataKind::Calculation);
+    ASSERT(m_kind == PrimitiveDataKind::Calculation);
     Calculation::ValueMap::calculationValues().ref(m_calculationValueHandle);
 }
 
-void LengthWrapperData::deref() const
+void PrimitiveData::deref() const
 {
-    ASSERT(m_kind == LengthWrapperDataKind::Calculation);
+    ASSERT(m_kind == PrimitiveDataKind::Calculation);
     Calculation::ValueMap::calculationValues().deref(m_calculationValueHandle);
 }
 
-float LengthWrapperData::nonNanCalculatedValue(CSS::Range range, float maxValue, const ZoomFactor& usedZoom) const
+float PrimitiveData::nonNanCalculatedValue(CSS::Range range, float maxValue, const ZoomFactor& usedZoom) const
 {
-    ASSERT(m_kind == LengthWrapperDataKind::Calculation);
+    ASSERT(m_kind == PrimitiveDataKind::Calculation);
     float result = protect(calculationValue())->evaluate(range, maxValue, usedZoom);
     if (std::isnan(result))
         return 0;
     return result;
 }
 
-float LengthWrapperData::nonNanCalculatedValue(CSS::Range range, float maxValue, const ZoomNeeded& token) const
+float PrimitiveData::nonNanCalculatedValue(CSS::Range range, float maxValue, const ZoomNeeded& token) const
 {
-    ASSERT(m_kind == LengthWrapperDataKind::Calculation);
+    ASSERT(m_kind == PrimitiveDataKind::Calculation);
     float result = protect(calculationValue())->evaluate(range, maxValue, token);
     if (std::isnan(result))
         return 0;
     return result;
 }
 
-bool LengthWrapperData::isCalculatedEqual(const LengthWrapperData& other) const
+bool PrimitiveData::isCalculatedEqual(const PrimitiveData& other) const
 {
     return calculationValue() == other.calculationValue();
 }

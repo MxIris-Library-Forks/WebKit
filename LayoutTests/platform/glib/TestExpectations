@@ -850,7 +850,7 @@ imported/w3c/web-platform-tests/service-workers/service-worker/registration-scri
 
 imported/w3c/web-platform-tests/content-security-policy/font-src/font-match-allowed.sub.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/frame-src/frame-src-same-document.sub.html [ Pass ]
-imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/script-src-self/worklet-audio.https.html [ Pass ]
+imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/script-src-self/worklet-audio.https.html [ Failure ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/script-src-wildcard/worklet-audio.https.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/worker-src-none/script-tag.http.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/worker-src-none/script-tag.https.html [ Pass ]
@@ -864,7 +864,7 @@ imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/worker-s
 imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/worker-src-wildcard/script-tag.https.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/worker-src-wildcard/worklet-audio-import-data.https.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.http-rp/worker-src-wildcard/worklet-audio.https.html [ Pass ]
-imported/w3c/web-platform-tests/content-security-policy/gen/top.meta/script-src-self/worklet-audio.https.html [ Pass ]
+imported/w3c/web-platform-tests/content-security-policy/gen/top.meta/script-src-self/worklet-audio.https.html [ Failure ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.meta/script-src-wildcard/worklet-audio.https.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.meta/worker-src-none/script-tag.http.html [ Pass ]
 imported/w3c/web-platform-tests/content-security-policy/gen/top.meta/worker-src-none/script-tag.https.html [ Pass ]
@@ -981,6 +981,7 @@ accessibility/text-stitching-across-inline-elements.html [ Skip ]
 accessibility/text-stitching-after-atomic-inline.html [ Skip ]
 accessibility/text-stitching-end-text-marker.html [ Skip ]
 accessibility/text-stitching-inside-links.html [ Skip ]
+accessibility/text-stitching-line-break.html [ Skip ]
 
 webkit.org/b/316359 accessibility/aria-hidden-deep-dom-no-crash.html [ Timeout Pass ]
 
@@ -1652,6 +1653,11 @@ webkit.org/b/219248 imported/w3c/web-platform-tests/uievents/mouse/mouseevent_mo
 webkit.org/b/296246 imported/w3c/web-platform-tests/event-timing/first-input-interactionid-key.html [ Skip ]
 webkit.org/b/296246 imported/w3c/web-platform-tests/event-timing/interaction-count-tap.html [ Skip ]
 webkit.org/b/296246 imported/w3c/web-platform-tests/event-timing/TapToStopFling.html [ Skip ]
+
+# Crash mentioning WTR::UIScriptController::notImplemented()
+imported/w3c/web-platform-tests/dom/events/scrolling/scrollIntoView-in-onscroll-to-sticky.html [ Skip ]
+imported/w3c/web-platform-tests/dom/events/scrolling/wheel-event-composed.html [ Skip ]
+imported/w3c/web-platform-tests/dom/events/scrolling/wheel-event-no-scroll-after-prevent-default.html [ Skip ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Events-related bugs

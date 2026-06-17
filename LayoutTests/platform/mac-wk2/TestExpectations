@@ -2271,8 +2271,6 @@ webkit.org/b/308326 [ Debug ] imported/w3c/web-platform-tests/fetch/api/basic/er
 
 webkit.org/b/308586 imported/w3c/web-platform-tests/fullscreen/rendering/fullscreen-pseudo-class.html [ Pass Failure ]
 
-webkit.org/b/316539 media/media-source/media-source-real-webm-fastseek.html [ Pass Failure ]
-
 # REGRESSION(314534@main): [macOS] 2x media/media-source/media-source-real-webm-currenttime-progression.html are a flaky text diff 
 webkit.org/b/316578 media/media-source/media-source-real-webm-currenttime-progression.html [ Pass Failure ]
 webkit.org/b/316578 media/media-source/media-source-real-currenttime-progression.html [ Pass Failure ]
@@ -2441,4 +2439,8 @@ webkit.org/b/316089 [ Sequoia Release ] inspector/css/setLayoutContextTypeChange
 
 webkit.org/b/317031 [ Release ] imported/w3c/web-platform-tests/web-locks/acquire.https.any.sharedworker.html  [ Pass Crash ]
 
-webkit.org/b/317141 [ Tahoe ] fast/speechsynthesis/speech-synthesis-speak.html [ Skip ]
+# webkit.org/b/317141 REGRESSION(315124@main): [macOS] fast/speechsynthesis/speech-synthesis-speak.html is flaky crash
+[ Tahoe ] fast/speechsynthesis/speech-synthesis-speak.html [ Skip ]
+[ Tahoe ] fast/speechsynthesis/speech-synthesis-speak-fuzzer-crash.html [ Skip ]
+
+webkit.org/b/317173 [ arm64 ] fast/webgpu/nocrash/fuzz-298315.html [ Pass Crash ]

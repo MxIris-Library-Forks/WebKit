@@ -2704,6 +2704,7 @@ media/airplay-target-availability-disableremoteplayback.html
 
 # needs enhanced eventSender.contextMenu() return value
 webkit.org/b/116651 media/context-menu-actions.html
+webkit.org/b/317174 media/context-menu-download-media-uses-media-url.html [ Skip ]
 
 media/crash-closing-page-with-media-as-plugin-fallback.html
 
@@ -2793,7 +2794,6 @@ webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/font-synthesis
 webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/font-variation-settings-descriptor-01.html [ ImageOnlyFailure ]
 webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/font-variation-settings-descriptor-03.html [ ImageOnlyFailure ]
 webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/font-variation-settings-descriptor-04.html [ ImageOnlyFailure ]
-webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/synthetic-oblique-out-of-capabilities-range.html [ ImageOnlyFailure ]
 webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/variations/variable-avar2-warp.html [ ImageOnlyFailure ]
 webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/variations/variable-gpos-avar2.html [ ImageOnlyFailure ]
 
@@ -3077,6 +3077,7 @@ imported/w3c/web-platform-tests/selection/user-select-on-input-and-contenteditab
 # accessibilityController.role cannot be tested on iOS
 media/modern-media-controls/time-label/time-label.html [ Skip ]
 media/modern-media-controls/tracks-button [ Pass ]
+media/modern-media-controls/ios-inline-media-controls/touch/ios-inline-media-controls-timeline-scrub-stops-propagation.html [ Pass ]
 
 # AirPlay cannot be tested on iOS
 webkit.org/b/166062 media/modern-media-controls/airplay-support [ Skip ]

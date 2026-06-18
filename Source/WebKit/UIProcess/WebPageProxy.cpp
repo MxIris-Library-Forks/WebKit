@@ -6529,7 +6529,7 @@ void WebPageProxy::accessibilitySettingsDidChange()
 
 #if PLATFORM(COCOA)
     // Also update screen properties which encodes invert colors.
-    protect(legacyMainFrameProcess().processPool())->screenPropertiesChanged("accessibilitySettingsDidChange"_s);
+    protect(legacyMainFrameProcess().processPool())->screenPropertiesChanged();
 #endif
     send(Messages::WebPage::AccessibilitySettingsDidChange());
 }
@@ -10843,6 +10843,12 @@ void WebPageProxy::pageDidScroll(const WebCore::IntPoint& scrollOffset)
 #if !PLATFORM(IOS_FAMILY)
     closeOverlayedViews();
 #endif
+}
+
+void WebPageProxy::didEndSyntheticMomentumScrolling()
+{
+    if (RefPtr pageClient = this->pageClient())
+        pageClient->didEndSyntheticMomentumScrolling();
 }
 
 void WebPageProxy::setHasActiveAnimatedScrolls(bool isRunning)

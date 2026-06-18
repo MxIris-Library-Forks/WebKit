@@ -1010,6 +1010,7 @@
 				WebKit/WKWebView/mac/PageVisibilityStateWithWindowChanges.mm,
 				WebKit/WKWebView/mac/RenderedImageFromDOMNode.mm,
 				WebKit/WKWebView/mac/RenderedImageFromDOMRange.mm,
+				WebKit/WKWebView/mac/RunningBoardManagement.mm,
 				WebKit/WKWebView/mac/ScrollbarTests.mm,
 				WebKit/WKWebView/mac/ScrollingCoordinatorTests.mm,
 				WebKit/WKWebView/mac/SetAndUpdateCacheModel.mm,
@@ -2110,7 +2111,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 1140;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					0723A7492F80357300CB96E7 = {
 						CreatedOnToolsVersion = 26.0;

@@ -381,10 +381,16 @@ public:
     void activeSpaceDidChange();
 
     void pageDidScroll(const WebCore::IntPoint&);
+    void didEndSyntheticMomentumScrolling();
 
     NSRect scrollViewFrame();
     bool NODELETE hasScrolledContentsUnderTitlebar();
     void updateTitlebarAdjacencyState();
+
+#if ENABLE(SCROLL_POCKET_IN_FULLSCREEN)
+    void setFullScreenTitlebarOverlayHeight(CGFloat);
+    CGFloat NODELETE fullScreenTitlebarOverlayHeight() const { return m_fullScreenTitlebarOverlayHeight; }
+#endif
 
     RetainPtr<NSView> hitTest(CGPoint);
 
@@ -1157,6 +1163,8 @@ private:
     WebCore::IntPoint m_lastPageScrollOffset;
     bool m_isRegisteredScrollViewSeparatorTrackingAdapter { false };
     NSRect m_lastScrollViewFrame { NSZeroRect };
+
+    CGFloat m_fullScreenTitlebarOverlayHeight { 0 };
 
     RetainPtr<NSMenu> m_domPasteMenu;
     RetainPtr<WKDOMPasteMenuDelegate> m_domPasteMenuDelegate;

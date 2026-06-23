@@ -28,7 +28,6 @@
 
 #if ENABLE(DFG_JIT)
 
-#include "DFGBlockMapInlines.h"
 #include "JSCJSValueInlines.h"
 #include <wtf/CommaPrinter.h>
 
@@ -57,12 +56,39 @@ void SSACalculator::Def::dump(PrintStream& out) const
 }
 
 SSACalculator::SSACalculator(Graph& graph)
-    : m_data(graph)
+    : m_data(graph.numBlocks())
     , m_graph(graph)
 {
 }
 
 SSACalculator::~SSACalculator() = default;
+
+void SSACalculator::ensureDominanceFrontiers()
+{
+    if (m_dominanceFrontiersComputed)
+        return;
+    m_dominanceFrontiersComputed = true;
+
+    // "A Simple, Fast Dominance Algorithm", Cooper, Harvey, and Kennedy, 2001.
+    // https://www.cs.tufts.edu/~nr/cs257/archive/keith-cooper/dom14.pdf
+    m_dominanceFrontiers = IndexMap<BasicBlock*, Vector<BasicBlock*>>(m_graph.numBlocks());
+    auto& dominators = *m_graph.m_ssaDominators;
+    for (BlockIndex blockIndex = m_graph.numBlocks(); blockIndex--;) {
+        BasicBlock* block = m_graph.block(blockIndex);
+        if (!block || block->predecessors.size() < 2)
+            continue;
+        BasicBlock* idomBlock = dominators.idom(block);
+        for (BasicBlock* predecessor : block->predecessors) {
+            BasicBlock* runner = predecessor;
+            while (runner && runner != idomBlock) {
+                Vector<BasicBlock*>& frontier = m_dominanceFrontiers[runner];
+                if (frontier.isEmpty() || frontier.last() != block)
+                    frontier.append(block);
+                runner = dominators.idom(runner);
+            }
+        }
+    }
+}
 
 void SSACalculator::reset()
 {
@@ -73,6 +99,7 @@ void SSACalculator::reset()
         m_data[blockIndex].m_defs.clear();
         m_data[blockIndex].m_phis.clear();
     }
+    m_dominanceFrontiersComputed = false;
 }
 
 SSACalculator::Variable* SSACalculator::newVariable()

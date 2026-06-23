@@ -7126,6 +7126,7 @@
 		EB3C29B72729C38C00FB65B4 /* PushSubscriptionChangeEventInit.h in Headers */ = {isa = PBXBuildFile; fileRef = EB3C29B12729C36D00FB65B4 /* PushSubscriptionChangeEventInit.h */; };
 		EB7CE1272CFBCFBE00BECB13 /* ResourceMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = EB7CE1262CFBCFA300BECB13 /* ResourceMonitor.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EB83220A2D70DC7F009515DA /* FetchingWorkerIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = EB8322092D70DC7F009515DA /* FetchingWorkerIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		EB8B7D722FDB23010008B670 /* CueMatch.h in Headers */ = {isa = PBXBuildFile; fileRef = EB8B7D712FDB23010008B670 /* CueMatch.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EB9AD8CB27646E9400D893A4 /* PushDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = EB9AD8C827646E9000D893A4 /* PushDatabase.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EBA75C46275EC61A00D6D31C /* PushCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = EBA75C42275EBDAB00D6D31C /* PushCrypto.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		EBA75C47275EC62100D6D31C /* PushMessageCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = EBA75C40275EBDAA00D6D31C /* PushMessageCrypto.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7199,6 +7200,7 @@
 		F454C1342BA3B57500871551 /* ElementTargetingTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C1322BA3B54C00871551 /* ElementTargetingTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F454C13A2BA3F91100871551 /* ElementTargetingController.h in Headers */ = {isa = PBXBuildFile; fileRef = F454C1382BA3F8FB00871551 /* ElementTargetingController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F457F4C32F156C5D00E97771 /* TextExtraction.h in Headers */ = {isa = PBXBuildFile; fileRef = F457F4BF2F156C5D00E97771 /* TextExtraction.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		F457F4D22F156C5D00E97771 /* TextExtractionScriptFiltering.h in Headers */ = {isa = PBXBuildFile; fileRef = F457F4D12F156C5D00E97771 /* TextExtractionScriptFiltering.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F457F4C42F156C5D00E97771 /* TextExtractionTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = F457F4C12F156C5D00E97771 /* TextExtractionTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F45EAC7D2A8ADFC4009B986E /* PlatformScreen.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = F45EAC7B2A8ADE03009B986E /* PlatformScreen.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
 		F45EAC822A8AEED2009B986E /* InbandTextTrackPrivate.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = F45EAC812A8AEED2009B986E /* InbandTextTrackPrivate.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -23151,6 +23153,7 @@
 		EB7CE1252CFBCF9900BECB13 /* ResourceMonitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceMonitor.cpp; sourceTree = "<group>"; };
 		EB7CE1262CFBCFA300BECB13 /* ResourceMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceMonitor.h; sourceTree = "<group>"; };
 		EB8322092D70DC7F009515DA /* FetchingWorkerIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FetchingWorkerIdentifier.h; sourceTree = "<group>"; };
+		EB8B7D712FDB23010008B670 /* CueMatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CueMatch.h; sourceTree = "<group>"; };
 		EB9AD8C827646E9000D893A4 /* PushDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PushDatabase.h; sourceTree = "<group>"; };
 		EB9AD8CA27646E9100D893A4 /* PushDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PushDatabase.cpp; sourceTree = "<group>"; };
 		EBA75C3E275EBDAA00D6D31C /* PushMessageCrypto.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PushMessageCrypto.cpp; sourceTree = "<group>"; };
@@ -23280,6 +23283,8 @@
 		F457F4BF2F156C5D00E97771 /* TextExtraction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextExtraction.h; sourceTree = "<group>"; };
 		F457F4C02F156C5D00E97771 /* TextExtraction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextExtraction.cpp; sourceTree = "<group>"; };
 		F457F4C12F156C5D00E97771 /* TextExtractionTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextExtractionTypes.h; sourceTree = "<group>"; };
+		F457F4D02F156C5D00E97771 /* TextExtractionScriptFiltering.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextExtractionScriptFiltering.cpp; sourceTree = "<group>"; };
+		F457F4D12F156C5D00E97771 /* TextExtractionScriptFiltering.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextExtractionScriptFiltering.h; sourceTree = "<group>"; };
 		F45EAC7B2A8ADE03009B986E /* PlatformScreen.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = PlatformScreen.serialization.in; sourceTree = "<group>"; };
 		F45EAC812A8AEED2009B986E /* InbandTextTrackPrivate.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = InbandTextTrackPrivate.serialization.in; sourceTree = "<group>"; };
 		F45EAC862A8C1972009B986E /* LayoutMilestones.serialization.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = LayoutMilestones.serialization.in; sourceTree = "<group>"; };
@@ -30967,6 +30972,7 @@
 				975CA288130365F800E99AD9 /* Crypto.h */,
 				975CA289130365F800E99AD9 /* Crypto.idl */,
 				94077C6F2B92B0570012E357 /* CryptoClient.h */,
+				EB8B7D712FDB23010008B670 /* CueMatch.h */,
 				1ACB2B211A5733F400333392 /* DatabaseProvider.cpp */,
 				1ACB2B221A5733F400333392 /* DatabaseProvider.h */,
 				BC4A532C256056D50028C592 /* DebugOverlayRegions.h */,
@@ -41584,6 +41590,8 @@
 			children = (
 				F457F4C02F156C5D00E97771 /* TextExtraction.cpp */,
 				F457F4BF2F156C5D00E97771 /* TextExtraction.h */,
+				F457F4D02F156C5D00E97771 /* TextExtractionScriptFiltering.cpp */,
+				F457F4D12F156C5D00E97771 /* TextExtractionScriptFiltering.h */,
 				F457F4BB2F156BC700E97771 /* TextExtractionTypes.cpp */,
 				F457F4C12F156C5D00E97771 /* TextExtractionTypes.h */,
 			);
@@ -44903,6 +44911,7 @@
 				71ED24B62B1E345300B3EFAB /* CSSViewValue.h in Headers */,
 				BC6AFC412DFC83840065FA1D /* CSSWideKeyword.h in Headers */,
 				BCB272192CC1F21B00265123 /* CSSXywhFunction.h in Headers */,
+				EB8B7D722FDB23010008B670 /* CueMatch.h in Headers */,
 				AEBAFFB52D65D537008311A5 /* CurrentUserDetailsOptions.h in Headers */,
 				93F1992F08245E59001E9ABC /* Cursor.h in Headers */,
 				7173694C275E0BAB003ADA9B /* CustomAnimationOptions.h in Headers */,
@@ -49397,6 +49406,7 @@
 				933A14300B7D188600A53FFD /* TextEvent.h in Headers */,
 				A77B41A012E675A90054343D /* TextEventInputType.h in Headers */,
 				F457F4C32F156C5D00E97771 /* TextExtraction.h in Headers */,
+				F457F4D22F156C5D00E97771 /* TextExtractionScriptFiltering.h in Headers */,
 				F457F4C42F156C5D00E97771 /* TextExtractionTypes.h in Headers */,
 				F55B3DD81251F12D003EF269 /* TextFieldInputType.h in Headers */,
 				72B2213129502059002B5609 /* TextFieldPart.h in Headers */,

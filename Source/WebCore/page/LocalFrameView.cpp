@@ -3155,9 +3155,6 @@ bool LocalFrameView::scrollToTextFragment(IsRetry isRetry)
         return false;
 
     FragmentDirectiveParser fragmentDirectiveParser(fragmentDirective);
-    if (!fragmentDirectiveParser.isValid())
-        return false;
-
     auto parsedTextDirectives = fragmentDirectiveParser.parsedTextDirectives();
     auto highlightRanges = FragmentDirectiveRangeFinder::findRangesFromTextDirectives(parsedTextDirectives, document);
     if (m_frame->settings().scrollToTextFragmentMarkingEnabled()) {
@@ -4504,9 +4501,9 @@ LocalFrameView::ExtendedBackgroundMode LocalFrameView::calculateExtendedBackgrou
         mode.add(BoxSide::Bottom);
     }
 
-#if ENABLE(TOP_BANNER_VIEW_OVERLAYS)
+#if HAVE(NSREFRESHCONTROLLER)
     if (mode.contains(BoxSide::Top)) {
-        if (RefPtr page = m_frame->page(); page && page->hasBannerViewOverlay())
+        if (RefPtr page = m_frame->page(); page && page->hasRefreshController())
             mode.remove(BoxSide::Top);
     }
 #endif

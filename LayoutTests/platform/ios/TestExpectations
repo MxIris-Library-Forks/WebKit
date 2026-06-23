@@ -4935,7 +4935,6 @@ css3/scroll-snap/scroll-padding-overflow-paging.html [ Failure ]
 svg/transforms/layout-tiny-elements-in-scaled-group.svg [ ImageOnlyFailure ]
 svg/transforms/rotation-origin-in-small-units.svg [ ImageOnlyFailure ]
 svg/transforms/rotation-tiny-element-in-group.svg [ ImageOnlyFailure ]
-svg/transforms/transform-origin-and-box-getCTM.html [ Failure ]
 svg/transforms/translation-tiny-element.svg [ ImageOnlyFailure ]
 
 # SVG tests that time out (these require EventSender)
@@ -8077,6 +8076,8 @@ webkit.org/b/297007 media/webaudio-background-playback.html [ Pass Failure ]
 webkit.org/b/297013 [ Debug ] imported/w3c/web-platform-tests/css/css-viewport/zoom/scroll-top-test-with-zoom.html [ Pass Crash ]
 
 webkit.org/b/297026 [ Release ] http/tests/app-privacy-report/app-attribution-beacon-isappinitiated.html [ Pass Failure ]
+
+http/tests/ipc/write-web-archive-frame-ancestry-check.html [ Pass ]
 
 webkit.org/b/297056 http/tests/site-isolation/touch-events/touch-event-coordinates.html [ Timeout ]
 

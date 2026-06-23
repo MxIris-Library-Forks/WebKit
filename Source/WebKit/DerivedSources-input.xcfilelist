@@ -422,6 +422,7 @@ $(PROJECT_DIR)/Shared/WebCoreArgumentCodersAuth.serialization.in
 $(PROJECT_DIR)/Shared/WebCoreArgumentCodersMedia.serialization.in
 $(PROJECT_DIR)/Shared/WebCoreArgumentCodersNetwork.serialization.in
 $(PROJECT_DIR)/Shared/WebCoreArgumentCodersPayment.serialization.in
+$(PROJECT_DIR)/Shared/WebCoreArgumentCodersPlatform.serialization.in
 $(PROJECT_DIR)/Shared/WebCoreArgumentCodersStorage.serialization.in
 $(PROJECT_DIR)/Shared/WebCoreFont.serialization.in
 $(PROJECT_DIR)/Shared/WebEvent.serialization.in
@@ -524,6 +525,7 @@ $(PROJECT_DIR)/Shared/WebsiteDataStoreParameters.serialization.in
 $(PROJECT_DIR)/Shared/WebsitePoliciesData.serialization.in
 $(PROJECT_DIR)/Shared/WebsitePopUpPolicy.serialization.in
 $(PROJECT_DIR)/Shared/WebsitePushAndNotificationsEnabledPolicy.serialization.in
+$(PROJECT_DIR)/Shared/WriteWebArchiveToPasteBoardResult.serialization.in
 $(PROJECT_DIR)/Shared/XR/PlatformXR.serialization.in
 $(PROJECT_DIR)/Shared/XR/XRSystem.serialization.in
 $(PROJECT_DIR)/Shared/cf/CFTypes.serialization.in

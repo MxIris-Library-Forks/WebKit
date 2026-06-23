@@ -560,6 +560,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/WebCoreArgumentCodersMedia.serialization.in
     Shared/WebCoreArgumentCodersNetwork.serialization.in
     Shared/WebCoreArgumentCodersPayment.serialization.in
+    Shared/WebCoreArgumentCodersPlatform.serialization.in
     Shared/WebCoreArgumentCodersStorage.serialization.in
     Shared/WebCoreFont.serialization.in
     Shared/WebCompiledContentRuleListData.serialization.in
@@ -587,6 +588,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/WebsitePoliciesData.serialization.in
     Shared/WebsitePopUpPolicy.serialization.in
     Shared/WebsitePushAndNotificationsEnabledPolicy.serialization.in
+    Shared/WriteWebArchiveToPasteBoardResult.serialization.in
 
     Shared/API/APIArray.serialization.in
     Shared/API/APIData.serialization.in
@@ -1129,14 +1131,28 @@ list(APPEND WebKit_SERIALIZATION_DEPENDENCIES "${WebKit_DERIVED_SOURCES_DIR}/Sha
 
 list(APPEND WebKit_DERIVED_SOURCES
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializers.h
-    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersShared.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersExtra.h
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersShared0.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersShared1.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedAPI.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedCocoa.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedEditorState.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedExtensions.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
-    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebGPU.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedModel.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedRemoteLayerTree.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreArgumentCodersAuth.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreArgumentCodersMedia.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreArgumentCodersNetwork.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreArgumentCodersPayment.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreArgumentCodersPlatform.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreArgumentCodersStorage.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebCoreFont.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebEvent.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebGL.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebGPU.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebPageCreationParameters.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedWebProcessCreationParameters.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersSharedXR.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersWebProcess.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersGPUProcess.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializersNetworkProcess.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
@@ -1151,14 +1167,28 @@ list(APPEND WebKit_DERIVED_SOURCES
 set(_serializers_stage_dir ${WebKit_DERIVED_SOURCES_DIR}/.serializers-stage)
 set(_serializers_outputs
     GeneratedSerializers.h
-    GeneratedSerializersShared.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersExtra.h
+    GeneratedSerializersShared0.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersShared1.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedAPI.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedCocoa.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedEditorState.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersSharedExtensions.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
-    GeneratedSerializersSharedWebGPU.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedModel.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedRemoteLayerTree.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersSharedWebCoreArgumentCodersAuth.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersSharedWebCoreArgumentCodersMedia.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersSharedWebCoreArgumentCodersNetwork.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersSharedWebCoreArgumentCodersPayment.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebCoreArgumentCodersPlatform.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersSharedWebCoreArgumentCodersStorage.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebCoreFont.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebEvent.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebGL.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebGPU.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebPageCreationParameters.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedWebProcessCreationParameters.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    GeneratedSerializersSharedXR.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersWebProcess.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersGPUProcess.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     GeneratedSerializersNetworkProcess.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
@@ -1198,14 +1228,27 @@ add_custom_command(
 if (WTF_CPU_ARM AND NOT CMAKE_CROSSCOMPILING)
     set(GeneratedSerializers_COMPILE_OPTIONS -O0 -DRELEASE_WITHOUT_OPTIMIZATIONS=ON)
     foreach (GeneratedSerializers_BASENAME
-        GeneratedSerializersShared
+        GeneratedSerializersShared0
+        GeneratedSerializersShared1
+        GeneratedSerializersSharedAPI
+        GeneratedSerializersSharedCocoa
+        GeneratedSerializersSharedEditorState
         GeneratedSerializersSharedExtensions
-        GeneratedSerializersSharedWebGPU
+        GeneratedSerializersSharedModel
+        GeneratedSerializersSharedRemoteLayerTree
         GeneratedSerializersSharedWebCoreArgumentCodersAuth
         GeneratedSerializersSharedWebCoreArgumentCodersMedia
         GeneratedSerializersSharedWebCoreArgumentCodersNetwork
         GeneratedSerializersSharedWebCoreArgumentCodersPayment
+        GeneratedSerializersSharedWebCoreArgumentCodersPlatform
         GeneratedSerializersSharedWebCoreArgumentCodersStorage
+        GeneratedSerializersSharedWebCoreFont
+        GeneratedSerializersSharedWebEvent
+        GeneratedSerializersSharedWebGL
+        GeneratedSerializersSharedWebGPU
+        GeneratedSerializersSharedWebPageCreationParameters
+        GeneratedSerializersSharedWebProcessCreationParameters
+        GeneratedSerializersSharedXR
         GeneratedSerializersWebProcess
         GeneratedSerializersGPUProcess
         GeneratedSerializersNetworkProcess
@@ -1379,12 +1422,6 @@ endif ()
 
 list(APPEND WebKit_SOURCES ${WebKit_DERIVED_SOURCES})
 
-if (SWIFT_REQUIRED)
-    # WebKit_SwiftCxxHeader is created by a DEFER CALL, so defer wiring its dep too.
-    add_custom_target(WebKit_DerivedHeadersForSwift DEPENDS ${WebKit_HEADERS} ${WebKit_DERIVED_SOURCES})
-    cmake_language(DEFER CALL add_dependencies WebKit_SwiftCxxHeader WebKit_DerivedHeadersForSwift)
-endif ()
-
 WEBKIT_COMPUTE_SOURCES(WebKit)
 if (DEFINED WebKit_SWIFT_INTEROP_SOURCES)
     list(REMOVE_ITEM WebKit_SOURCES ${WebKit_SWIFT_INTEROP_SOURCES})
@@ -1422,9 +1459,6 @@ if (DEFINED WebKit_SWIFT_INTEROP_SOURCES)
     WEBKIT_DEFINE_SUBTARGET(WebKit_SwiftInterop WebKit ${WebKit_SWIFT_INTEROP_SOURCES})
     WEBKIT_REUSE_PREFIX_HEADER(WebKit_SwiftInterop WebKit WebKitPrefix.h PREFIX_LANGUAGES CXX OBJCXX)
     target_compile_definitions(WebKit_SwiftInterop PRIVATE WK_COMPILING_SWIFT_INTEROP_SUBTARGET)
-    # Kept out of cmake_object_order_depends_target_WebKit (see below), so depend
-    # on the derived headers explicitly to avoid racing *Messages.h generation.
-    add_dependencies(WebKit_SwiftInterop WebKit_DerivedHeadersForSwift)
     # Feed objects into the WebKit link via a response file + LINK_DEPENDS so
     # cmake_object_order_depends_target_WebKit doesn't pick up this sub-target
     # (and through it, WebKit_SwiftCxxHeader).

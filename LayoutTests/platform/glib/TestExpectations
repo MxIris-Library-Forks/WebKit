@@ -2393,6 +2393,8 @@ imported/w3c/web-platform-tests/css/css-images/gradient/gradient-longer-hue-lch-
 imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientation-exif-png-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientation-exif-png.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientation-background-position.html [ ImageOnlyFailure ]
+webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-rect-003.html [ ImageOnlyFailure ]
+webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-round-zero-size.html [ ImageOnlyFailure ]
 webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/multiple-noblur.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/svg-fill-none.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text-decor/text-shadow/svg-stroke-dasharray.html [ ImageOnlyFailure ]
@@ -5257,6 +5259,7 @@ webkit.org/b/306384 fast/text/vertical-displacement-simple-codepath.html [ Image
 webkit.org/b/306384 fast/text/vertical-quotation-marks.html [ ImageOnlyFailure ]
 webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-align/content-distribution/place-content-shorthand-007.html [ ImageOnlyFailure ]
 webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-backgrounds/background-color-body-propagation-009.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-text-multiline-background-image.html [ ImageOnlyFailure ]
 webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-hidden-and-float-inside-skipped-subtree.html [ ImageOnlyFailure ]
 webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-resize-observer-no-error.html [ ImageOnlyFailure ]
 webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-grid/grid-model/grid-floats-no-intrude-002.html [ ImageOnlyFailure ]
@@ -5599,6 +5602,9 @@ webkit.org/b/317119 fast/repaint/layer-repaint-with-layout-delta-2.html [ Pass I
 [ Release ] imported/w3c/web-platform-tests/preload/prefetch-document.html [ Failure Pass ]
 fast/dom/HTMLImageElement/sizes/image-sizes-js-change.html [ Pass Failure ]
 gamepad/gamepad-event-handlers.html [ Pass Timeout ]
+
+webkit.org/b/317607 http/tests/media/track/text-track-cross-origin-in-band.html [ Failure ]
+webkit.org/b/317607 http/tests/media/track/track-removal-clears-pending-list.html [ Failure ]
 
 # End: Common failures between GTK and WPE.
 

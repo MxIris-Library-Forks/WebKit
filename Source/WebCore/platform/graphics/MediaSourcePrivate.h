@@ -33,9 +33,11 @@
 #if ENABLE(MEDIA_SOURCE)
 
 #include <WebCore/MediaPlayer.h>
+#include <WebCore/MediaPromiseTypes.h>
 #include <WebCore/PlatformTimeRanges.h>
 #include <WebCore/TrackInfo.h>
 #include <wtf/Forward.h>
+#include <wtf/NativePromise.h>
 #include <wtf/ThreadSafeWeakPtr.h>
 #include <wtf/Vector.h>
 
@@ -117,6 +119,7 @@ public:
     Ref<GenericPromise> reenqueueMediaForTime(const MediaTime&);
     bool isReenqueuePending() const { return m_reenqueuePending; }
     void clearReenqueuePending() { m_reenqueuePending = false; }
+    virtual void cancelPendingWaitForTarget();
 
     virtual void setTimeFudgeFactor(const MediaTime& fudgeFactor) { m_timeFudgeFactor = fudgeFactor; }
     MediaTime timeFudgeFactor() const { return m_timeFudgeFactor; }
@@ -127,9 +130,12 @@ public:
     // m_buffered into the caller. Useful for short-circuit checks on the main
     // thread which would otherwise pay a full PlatformTimeRanges copy via buffered().
     bool isBufferedEqual(const PlatformTimeRanges&) const;
+    bool isBuffered(const PlatformTimeRanges&) const;
     PlatformTimeRanges seekable() const;
 
     bool hasBufferedData() const;
+    bool hasCurrentTime() const;
+    bool hasFutureTime() const;
     bool hasFutureTime(const MediaTime& currentTime) const;
     static constexpr MediaTime futureDataThreshold() { return MediaTime { 1001, 24000 }; }
     bool hasFutureTime(const MediaTime& currentTime, const MediaTime& threshold) const;
@@ -162,9 +168,15 @@ protected:
 private:
     void updateBufferedRanges();
     void updateTracksType();
+    bool canCompleteWaitForTarget() const WTF_REQUIRES_CAPABILITY(m_dispatcher.get());
+    void completeWaitForTarget() WTF_REQUIRES_CAPABILITY(m_dispatcher.get());
+    void tryCompleteWaitForTarget() WTF_REQUIRES_CAPABILITY(m_dispatcher.get());
+    bool hasBufferedTime(const MediaTime&) const;
 
     MediaTime m_duration WTF_GUARDED_BY_LOCK(m_lock) { MediaTime::invalidTime() };
     PlatformTimeRanges m_buffered WTF_GUARDED_BY_LOCK(m_lock);
+    std::optional<SeekTarget> m_pendingSeekTarget WTF_GUARDED_BY_LOCK(m_lock);
+    std::optional<MediaTimePromise::AutoRejectProducer> m_waitForTargetPromise WTF_GUARDED_BY_CAPABILITY(m_dispatcher.get());
     HashMap<SourceBufferPrivate*, Vector<PlatformTimeRanges>> m_bufferedRanges;
     PlatformTimeRanges m_liveSeekable WTF_GUARDED_BY_LOCK(m_lock);
     std::atomic<bool> m_streaming { false };

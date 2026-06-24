@@ -4089,6 +4089,7 @@
 		9940EAFB2E8DBD6E007F64DD /* InspectorResourceType.h in Headers */ = {isa = PBXBuildFile; fileRef = 9940EAFA2E8DBD6E007F64DD /* InspectorResourceType.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		994C603A253A277300BDF060 /* InspectorFrontendAPIDispatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 994C6037253A277200BDF060 /* InspectorFrontendAPIDispatcher.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		996E59DF1DF0128D006612B9 /* NavigatorWebDriver.h in Headers */ = {isa = PBXBuildFile; fileRef = 996E59DC1DF00D90006612B9 /* NavigatorWebDriver.h */; };
+		996E59E01DF0128D006612B9 /* NavigatorWebDriverActivePolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 996E59DE1DF00D90006612B9 /* NavigatorWebDriverActivePolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		997C7BD0D5FF097D76C4E1F5 /* UnifiedSource69-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DB768C810AA85BE70BB2E08 /* UnifiedSource69-header-RenderStyleGetters.cpp */; };
 		9990E3F071D846D88700442D /* SpinnerSprite@2x.png in Copy Modern Media Controls Images */ = {isa = PBXBuildFile; fileRef = 71D474A42462E834002F0106 /* SpinnerSprite@2x.png */; platformFilters = (watchos, ); };
 		9995243E2E8F0CA50093C3E0 /* InspectorNetworkIntercept.h in Headers */ = {isa = PBXBuildFile; fileRef = 9995243B2E8F0CA50093C3E0 /* InspectorNetworkIntercept.h */; };
@@ -4339,6 +4340,7 @@
 		A1CC567F1F4614B700A4555B /* JSPaymentShippingType.h in Headers */ = {isa = PBXBuildFile; fileRef = A1CC56501F46145300A4555B /* JSPaymentShippingType.h */; };
 		A1D0C50120260608000A0003 /* StyleDocumentScope.h in Headers */ = {isa = PBXBuildFile; fileRef = A1D0C50120260608000A0002 /* StyleDocumentScope.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A1D0C50120260608000B0001 /* UnifiedSource78-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C50120260608000B0002 /* UnifiedSource78-header-RenderStyleGetters.cpp */; };
+		A1D0C50120260608000B0003 /* UnifiedSource79-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C50120260608000B0004 /* UnifiedSource79-header-RenderStyleGetters.cpp */; };
 		A1D506142331EDD40014EE4E /* JSApplePaySessionError.h in Headers */ = {isa = PBXBuildFile; fileRef = A1D506112331ED960014EE4E /* JSApplePaySessionError.h */; };
 		A1DD618A2B7EB59400075A92 /* VideoReceiverEndpoint.h in Headers */ = {isa = PBXBuildFile; fileRef = A1DD61892B7EB59300075A92 /* VideoReceiverEndpoint.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A1DF5A7F1F7EBD0B0058A477 /* ApplePayRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = A1DF5A7C1F7EBD0B0058A477 /* ApplePayRequest.h */; };
@@ -8441,6 +8443,7 @@
 		0F580CFA0F12DE9B0051D689 /* RenderLayerCompositor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLayerCompositor.cpp; sourceTree = "<group>"; };
 		0F580CFB0F12DE9B0051D689 /* RenderLayerBacking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderLayerBacking.h; sourceTree = "<group>"; };
 		0F580CFC0F12DE9B0051D689 /* RenderLayerBacking.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLayerBacking.cpp; sourceTree = "<group>"; };
+		B5E7A1C20D4F8A2E91C3F6D8 /* RenderLayerBackingSVGAdditions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLayerBackingSVGAdditions.cpp; sourceTree = "<group>"; };
 		0F580FA11496939100FB5BD8 /* WebTiledBackingLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTiledBackingLayer.h; sourceTree = "<group>"; };
 		0F580FA21496939100FB5BD8 /* WebTiledBackingLayer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebTiledBackingLayer.mm; sourceTree = "<group>"; };
 		0F580FAE149800D400FB5BD8 /* AnimationUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AnimationUtilities.h; sourceTree = "<group>"; };
@@ -16857,6 +16860,7 @@
 		996E59DB1DF00D90006612B9 /* NavigatorWebDriver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NavigatorWebDriver.cpp; sourceTree = "<group>"; };
 		996E59DC1DF00D90006612B9 /* NavigatorWebDriver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NavigatorWebDriver.h; sourceTree = "<group>"; };
 		996E59DD1DF00D90006612B9 /* Navigator+WebDriver.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Navigator+WebDriver.idl"; sourceTree = "<group>"; };
+		996E59DE1DF00D90006612B9 /* NavigatorWebDriverActivePolicy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NavigatorWebDriverActivePolicy.h; sourceTree = "<group>"; };
 		9995243B2E8F0CA50093C3E0 /* InspectorNetworkIntercept.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InspectorNetworkIntercept.h; sourceTree = "<group>"; };
 		9995243C2E8F0CA50093C3E0 /* InspectorNetworkIntercept.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InspectorNetworkIntercept.cpp; sourceTree = "<group>"; };
 		9995243F2E8F1E420093C3E0 /* InspectorThreadableLoaderClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InspectorThreadableLoaderClient.h; sourceTree = "<group>"; };
@@ -17313,6 +17317,7 @@
 		A1D0C50120260608000A0001 /* StyleDocumentScope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleDocumentScope.cpp; sourceTree = "<group>"; };
 		A1D0C50120260608000A0002 /* StyleDocumentScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleDocumentScope.h; sourceTree = "<group>"; };
 		A1D0C50120260608000B0002 /* UnifiedSource78-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource78-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
+		A1D0C50120260608000B0004 /* UnifiedSource79-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource79-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
 		A1D506112331ED960014EE4E /* JSApplePaySessionError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSApplePaySessionError.h; sourceTree = "<group>"; };
 		A1D506132331ED970014EE4E /* JSApplePaySessionError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSApplePaySessionError.cpp; sourceTree = "<group>"; };
 		A1DD61892B7EB59300075A92 /* VideoReceiverEndpoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoReceiverEndpoint.h; sourceTree = "<group>"; };
@@ -29455,6 +29460,7 @@
 				538EC8641F993F26004D22A8 /* UnifiedSource77.cpp */,
 				A1D0C50120260608000B0002 /* UnifiedSource78-header-RenderStyleGetters.cpp */,
 				538EC85D1F993F22004D22A8 /* UnifiedSource78.cpp */,
+				A1D0C50120260608000B0004 /* UnifiedSource79-header-RenderStyleGetters.cpp */,
 				538EC8371F993F0E004D22A8 /* UnifiedSource79.cpp */,
 				538EC8401F993F13004D22A8 /* UnifiedSource80.cpp */,
 				538EC8651F993F26004D22A8 /* UnifiedSource81.cpp */,
@@ -34108,6 +34114,7 @@
 				996E59DD1DF00D90006612B9 /* Navigator+WebDriver.idl */,
 				996E59DB1DF00D90006612B9 /* NavigatorWebDriver.cpp */,
 				996E59DC1DF00D90006612B9 /* NavigatorWebDriver.h */,
+				996E59DE1DF00D90006612B9 /* NavigatorWebDriverActivePolicy.h */,
 			);
 			path = webdriver;
 			sourceTree = "<group>";
@@ -42222,6 +42229,7 @@
 				BCEA483B097D93020094C9E4 /* RenderLayer.h */,
 				0F580CFC0F12DE9B0051D689 /* RenderLayerBacking.cpp */,
 				0F580CFB0F12DE9B0051D689 /* RenderLayerBacking.h */,
+				B5E7A1C20D4F8A2E91C3F6D8 /* RenderLayerBackingSVGAdditions.cpp */,
 				0F580CFA0F12DE9B0051D689 /* RenderLayerCompositor.cpp */,
 				0F580CF90F12DE9B0051D689 /* RenderLayerCompositor.h */,
 				0F53FB8B213B768400C40D34 /* RenderLayerFilters.cpp */,
@@ -47483,6 +47491,7 @@
 				466C9F6528DD0DD700D21153 /* NavigatorScreenWakeLock.h in Headers */,
 				D640B2462E30461D00EB6C49 /* NavigatorUAData.h in Headers */,
 				996E59DF1DF0128D006612B9 /* NavigatorWebDriver.h in Headers */,
+				996E59E01DF0128D006612B9 /* NavigatorWebDriverActivePolicy.h in Headers */,
 				E1EE8B782413191F00E794D6 /* NavigatorWebXR.h in Headers */,
 				8A309C9F123950BE00CB9204 /* NestingLevelIncrementer.h in Headers */,
 				656D37430ADBA5DE00A4554D /* NetscapePlugInStreamLoader.h in Headers */,
@@ -51084,6 +51093,7 @@
 				538EC8BE1F993F9D004D22A8 /* UnifiedSource77.cpp in Sources */,
 				A1D0C50120260608000B0001 /* UnifiedSource78-header-RenderStyleGetters.cpp in Sources */,
 				538EC8BF1F993F9D004D22A8 /* UnifiedSource78.cpp in Sources */,
+				A1D0C50120260608000B0003 /* UnifiedSource79-header-RenderStyleGetters.cpp in Sources */,
 				538EC8C01F993F9D004D22A8 /* UnifiedSource79.cpp in Sources */,
 				538EC8C11F993F9D004D22A8 /* UnifiedSource80.cpp in Sources */,
 				538EC8C21F993F9D004D22A8 /* UnifiedSource81.cpp in Sources */,

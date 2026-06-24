@@ -214,7 +214,6 @@ MESSAGE_RECEIVERS = \
 	WebProcess/GPU/webrtc/SampleBufferDisplayLayer \
 	WebProcess/GPU/media/AudioVideoRendererRemoteMessageReceiver \
 	WebProcess/GPU/media/MediaPlayerPrivateRemote \
-	WebProcess/GPU/media/MediaSourcePrivateRemoteMessageReceiver \
 	WebProcess/GPU/media/RemoteAudioHardwareListener \
 	WebProcess/GPU/media/RemoteAudioSession \
 	WebProcess/GPU/media/RemoteAudioSourceProviderManager \
@@ -1113,7 +1112,6 @@ all : JSWebExtensionAPIUnified.mm $(EXTENSION_INTERFACES:%=JS%.h) $(EXTENSION_IN
 
 ifeq ($(USE_INTERNAL_SDK),YES)
 WEBKIT_ADDITIONS_SWIFT_FILES = \
-	NSGlassEffectView+Extras.swift \
 	TestWebKitAPILibraryAdditions.swift \
 	UIWindowScene+Extras.swift \
 	WKDeferringGestureRecognizerExtras.swift \

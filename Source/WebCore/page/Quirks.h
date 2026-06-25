@@ -124,6 +124,8 @@ public:
     bool needsYouTubeEmbedAutoplayQuirk() const;
     WEBCORE_EXPORT bool NODELETE needsYouTubeMouseOutQuirk() const;
 
+    WEBCORE_EXPORT bool needsCNNCaptionQuirk() const;
+
     WEBCORE_EXPORT bool shouldDisableWritingSuggestionsByDefault() const;
 
     WEBCORE_EXPORT static void updateStorageAccessUserAgentStringQuirks(HashMap<RegistrableDomain, String>&&);
@@ -319,6 +321,9 @@ public:
     bool NODELETE needsFacebookStoriesCreationFormQuirk(const Element&, const Style::ComputedStyle&) const;
 
     bool needsLimitedMatroskaSupport() const;
+#if ENABLE(MEDIA_SOURCE)
+    bool needsSupportsProgressMonitoring() const;
+#endif
 
     bool needsCustomUserAgentData() const;
     bool needsNavigatorUserAgentDataQuirk() const;

@@ -12,6 +12,13 @@ add_definitions(-DWEBRTC_WEBKIT_BUILD=1)
 # Suppress all warnings for third-party libwebrtc code.
 add_compile_options(-w)
 
+# Match the Xcode build (Configurations/Base.xcconfig: CLANG_ENABLE_OBJC_ARC = YES).
+# The webkit_sdk Objective-C(++) sources rely on ARC for block/object ownership —
+# e.g. RTCVideoEncoderH264 stores its callback blocks via plain ivar assignment,
+# which only retains/copies under ARC. Compiling them MRR produces immediate
+# use-after-free of the GPU-process encoder callback blocks.
+add_compile_options("$<$<COMPILE_LANGUAGE:OBJC,OBJCXX>:-fobjc-arc>")
+
 if (NOT APPLE)
     find_package(LibEvent)
     if (NOT LIBEVENT_FOUND)
@@ -50,6 +57,11 @@ set(webrtc_SOURCES
     Source/third_party/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
     Source/third_party/abseil-cpp/absl/container/internal/raw_hash_set.cc
     Source/third_party/abseil-cpp/absl/container/internal/test_instance_tracker.cc
+    Source/third_party/abseil-cpp/absl/crc/crc32c.cc
+    Source/third_party/abseil-cpp/absl/crc/internal/cpu_detect.cc
+    Source/third_party/abseil-cpp/absl/crc/internal/crc.cc
+    Source/third_party/abseil-cpp/absl/crc/internal/crc_cord_state.cc
+    Source/third_party/abseil-cpp/absl/crc/internal/crc_x86_arm_combined.cc
     Source/third_party/abseil-cpp/absl/debugging/failure_signal_handler.cc
     Source/third_party/abseil-cpp/absl/debugging/internal/address_is_readable.cc
     Source/third_party/abseil-cpp/absl/debugging/internal/decode_rust_punycode.cc
@@ -305,6 +317,7 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/api/video_codecs/video_decoder_factory.cc
     Source/webrtc/api/video_codecs/video_decoder_software_fallback_wrapper.cc
     Source/webrtc/api/video_codecs/video_encoder.cc
+    Source/webrtc/api/video_codecs/video_encoder_factory.cc
     Source/webrtc/api/video_codecs/video_encoder_software_fallback_wrapper.cc
     Source/webrtc/api/video_codecs/vp8_frame_config.cc
     Source/webrtc/api/video_codecs/vp8_temporal_layers.cc
@@ -396,7 +409,6 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/common_audio/signal_processing/lpc_to_refl_coef.c
     Source/webrtc/common_audio/signal_processing/min_max_operations.c
     Source/webrtc/common_audio/signal_processing/randomization_functions.c
-    Source/webrtc/common_audio/signal_processing/real_fft.c
     Source/webrtc/common_audio/signal_processing/refl_coef_to_lpc.c
     Source/webrtc/common_audio/signal_processing/resample.c
     Source/webrtc/common_audio/signal_processing/resample_48khz.c
@@ -653,7 +665,7 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/modules/audio_processing/aec3/fullband_erle_estimator.cc
     Source/webrtc/modules/audio_processing/aec3/matched_filter.cc
     Source/webrtc/modules/audio_processing/aec3/matched_filter_lag_aggregator.cc
-    Source/webrtc/modules/audio_processing/aec3/moving_average.cc
+    Source/webrtc/modules/audio_processing/aec3/moving_average_spectrum.cc
     Source/webrtc/modules/audio_processing/aec3/multi_channel_content_detector.cc
     Source/webrtc/modules/audio_processing/aec3/refined_filter_update_gain.cc
     Source/webrtc/modules/audio_processing/aec3/render_buffer.cc
@@ -756,8 +768,6 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/modules/audio_processing/splitting_filter.cc
     Source/webrtc/modules/audio_processing/three_band_filter_bank.cc
     Source/webrtc/modules/audio_processing/utility/cascaded_biquad_filter.cc
-    Source/webrtc/modules/audio_processing/utility/delay_estimator.cc
-    Source/webrtc/modules/audio_processing/utility/delay_estimator_wrapper.cc
     Source/webrtc/modules/audio_processing/utility/pffft_wrapper.cc
     Source/webrtc/modules/audio_processing/vad/gmm.cc
     Source/webrtc/modules/audio_processing/vad/pitch_based_vad.cc
@@ -795,6 +805,8 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/modules/congestion_controller/rtp/transport_feedback_adapter.cc
     Source/webrtc/modules/congestion_controller/rtp/transport_feedback_demuxer.cc
     Source/webrtc/modules/congestion_controller/scream/delay_based_congestion_control.cc
+    Source/webrtc/modules/congestion_controller/scream/loss_estimator.cc
+    Source/webrtc/modules/congestion_controller/scream/scream_feedback.cc
     Source/webrtc/modules/congestion_controller/scream/scream_network_controller.cc
     Source/webrtc/modules/congestion_controller/scream/scream_v2.cc
     Source/webrtc/modules/congestion_controller/scream/scream_v2_parameters.cc
@@ -1110,7 +1122,6 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/pc/dtls_srtp_transport.cc
     Source/webrtc/pc/dtls_transport.cc
     Source/webrtc/pc/dtmf_sender.cc
-    Source/webrtc/pc/external_hmac.cc
     Source/webrtc/pc/ice_server_parsing.cc
     Source/webrtc/pc/ice_transport.cc
     Source/webrtc/pc/jitter_buffer_delay.cc
@@ -1138,6 +1149,7 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/pc/rtp_transceiver.cc
     Source/webrtc/pc/rtp_transmission_manager.cc
     Source/webrtc/pc/rtp_transport.cc
+    Source/webrtc/pc/scoped_operations_batcher.cc
     Source/webrtc/pc/sctp_data_channel.cc
     Source/webrtc/pc/sctp_transport.cc
     Source/webrtc/pc/sctp_utils.cc
@@ -1254,6 +1266,7 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/rtc_base/rate_limiter.cc
     Source/webrtc/rtc_base/rate_statistics.cc
     Source/webrtc/rtc_base/rate_tracker.cc
+    Source/webrtc/rtc_base/ref_counter.cc
     Source/webrtc/rtc_base/rtc_certificate.cc
     Source/webrtc/rtc_base/rtc_certificate_generator.cc
     Source/webrtc/rtc_base/rtp_to_ntp_estimator.cc
@@ -1277,9 +1290,11 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/rtc_base/synchronization/yield.cc
     Source/webrtc/rtc_base/synchronization/yield_policy.cc
     Source/webrtc/rtc_base/system/file_wrapper.cc
+    Source/webrtc/rtc_base/system/system_time.cc
     Source/webrtc/rtc_base/system_time.cc
     Source/webrtc/rtc_base/task_queue_stdlib.cc
     Source/webrtc/rtc_base/task_utils/repeating_task.cc
+    Source/webrtc/rtc_base/text2pcap.cc
     Source/webrtc/rtc_base/thread.cc
     Source/webrtc/rtc_base/time_utils.cc
     Source/webrtc/rtc_base/timestamp_aligner.cc
@@ -1328,6 +1343,7 @@ list(APPEND webrtc_SOURCES
     Source/webrtc/video/frame_dumping_decoder.cc
     Source/webrtc/video/frame_dumping_encoder.cc
     Source/webrtc/video/frame_encode_metadata_writer.cc
+    Source/webrtc/video/null_video_decoder.cc
     Source/webrtc/video/quality_convergence_controller.cc
     Source/webrtc/video/quality_convergence_monitor.cc
     Source/webrtc/video/quality_limitation_reason_tracker.cc
@@ -2078,7 +2094,6 @@ if (APPLE)
         Source/webrtc/webkit_sdk/WebKit/WebKitEncoder.mm
         Source/webrtc/webkit_sdk/WebKit/WebKitDecoderReceiver.cpp
 
-        Source/webrtc/webkit_sdk/objc/api/peerconnection/RTCVideoEncoderSettings+Private.mm
         Source/webrtc/webkit_sdk/objc/api/video_codec/RTCVideoCodecConstants.mm
         Source/webrtc/webkit_sdk/objc/api/video_codec/RTCVideoDecoderVP8.mm
         Source/webrtc/webkit_sdk/objc/api/video_codec/RTCVideoDecoderVP9.mm
@@ -2435,6 +2450,31 @@ endif ()
 target_include_directories(webrtc ${webrtc_INCLUDE_DIRECTORIES})
 WEBKIT_ADD_PREFIX_HEADER(webrtc WebRTCPrefix.h PREFIX_LANGUAGES CXX)
 WEBKIT_ADD_PREFIX_HEADER(webrtc WebRTCObjCPrefix.h PREFIX_LANGUAGES OBJCXX)
+
+if (APPLE)
+    # ObjC categories whose object files export no external symbols. If these
+    # lived inside the static archive, ld would never load them (nothing
+    # references a symbol they define) and category methods such as
+    # -[RTCVideoCodecInfo initWithNativeSdpVideoFormat:] would be missing at
+    # runtime, breaking webrtc::createLocalEncoder. Build them as an OBJECT
+    # library so consumers (WebCore) link the objects directly.
+    add_library(webrtc_objc_categories OBJECT
+        Source/webrtc/webkit_sdk/objc/api/peerconnection/RTCEncodedImage+Private.mm
+        Source/webrtc/webkit_sdk/objc/api/peerconnection/RTCVideoCodecInfo+Private.mm
+        Source/webrtc/webkit_sdk/objc/api/peerconnection/RTCVideoEncoderSettings+Private.mm
+        Source/webrtc/webkit_sdk/objc/helpers/NSString+StdString.mm
+    )
+    target_compile_options(webrtc_objc_categories PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-std=c++2b>")
+    target_compile_definitions(webrtc_objc_categories PRIVATE
+        WEBRTC_POSIX
+        WEBRTC_ARCH_LITTLE_ENDIAN
+        WEBRTC_USE_H265=1
+        RTC_ENABLE_H265
+        RTC_ENABLE_VP9
+    )
+    target_include_directories(webrtc_objc_categories ${webrtc_INCLUDE_DIRECTORIES})
+endif ()
+
 set_source_files_properties(Source/third_party/libyuv/util/color.cc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(Source/webrtc/rtc_base/logging.cc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 if (LIBPULSE_FOUND)

@@ -3836,6 +3836,9 @@ void Document::stopActiveDOMObjects()
     ScriptExecutionContext::stopActiveDOMObjects();
     platformSuspendOrStopActiveDOMObjects();
 
+    if (RefPtr eventLoop = m_eventLoop)
+        eventLoop->removeMutationObserversForContext(*this);
+
     // https://www.w3.org/TR/screen-wake-lock/#handling-document-loss-of-full-activity
     if (m_wakeLockManager)
         m_wakeLockManager->releaseAllLocks(WakeLockType::Screen);
@@ -6599,7 +6602,8 @@ bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions&
             }
 
             // Dispatch the blur event and let the node do any other blur related activities (important for text fields)
-            oldFocusedElement->dispatchBlurEvent(newFocusedElement);
+            if (RefPtr page = this->page(); page && page->focusController().isFocused())
+                oldFocusedElement->dispatchBlurEvent(newFocusedElement);
 
             if (m_focusedElement) {
                 // handler shifted focus
@@ -6679,7 +6683,8 @@ bool Document::setFocusedElement(Element* newFocusedElement, const FocusOptions&
         }
 
         // Dispatch the focus event and let the node do any other focus related activities (important for text fields)
-        focusedElement->dispatchFocusEvent(oldFocusedElement.copyRef(), options);
+        if (RefPtr page = this->page(); page && page->focusController().isFocused())
+            focusedElement->dispatchFocusEvent(oldFocusedElement.copyRef(), options);
 
         if (m_focusedElement != focusedElement) {
             // handler shifted focus
@@ -8047,7 +8052,7 @@ RefPtr<Document> Document::sameOriginTopLevelTraversable() const
 
 bool Document::printing() const
 {
-    if (RefPtr frame = m_frame.get())
+    if (auto* frame = m_frame.get())
         return frame->isPrinting();
     return false;
 }
@@ -10955,7 +10960,7 @@ Vector<Ref<WebAnimation>> Document::matchingAnimations(NOESCAPE const Function<b
     };
 
     for (auto& animation : WebAnimation::instances()) {
-        if (animation->isRelevant() && effectCanBeListed(animation->effect()))
+        if (animation->isRelevant() && effectCanBeListed(protect(animation->effect())))
             animations.append(animation);
     }
 

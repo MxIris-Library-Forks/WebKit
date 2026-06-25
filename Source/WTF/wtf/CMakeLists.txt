@@ -297,8 +297,9 @@ set(WTF_PUBLIC_HEADERS
     SHA1.h
     SIMDHelpers.h
     SIMDUTF.h
+    SSACalculator.h
     SafeStrerror.h
-    SaturatedArithmetic.h
+    SaturatingArithmetic.h
     SchedulePair.h
     Scope.h
     ScopedLambda.h

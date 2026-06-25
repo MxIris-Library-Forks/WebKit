@@ -81,7 +81,7 @@ CoreIPCNSURLCredential::CoreIPCNSURLCredential(NSURLCredential *credential)
                 break;
             }
             id value = [attributes objectForKey:key];
-            if (![value isKindOfClass:NSString.class] || ![value isKindOfClass:NSNumber.class] || ![value isKindOfClass:NSDate.class]) {
+            if (![value isKindOfClass:NSString.class] && ![value isKindOfClass:NSNumber.class] && ![value isKindOfClass:NSDate.class]) {
                 ASSERT_NOT_REACHED();
                 break;
             }
@@ -217,7 +217,7 @@ RetainPtr<id> CoreIPCNSURLCredential::toID() const
                         value = d.toID();
                     }
                 );
-                [attributes setObject:attributes.get() forKey:attributePair.first.toID().get()];
+                [attributes setObject:value.get() forKey:attributePair.first.toID().get()];
             }
             [dict setObject:attributes.get() forKey:@"attributes"];
         }

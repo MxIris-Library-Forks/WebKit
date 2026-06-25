@@ -1342,6 +1342,7 @@ def headers_for_type(type, for_implementation_file=False):
         'WebCore::MediaSettingsRange': ['<WebCore/MediaSettingsRange.h>'],
         'WebCore::MediaSourcePrivateAddStatus': ['<WebCore/MediaSourcePrivate.h>'],
         'WebCore::MediaSourcePrivateEndOfStreamStatus': ['<WebCore/MediaSourcePrivate.h>'],
+        'WebCore::MediaSourceReadyState': ['<WebCore/MediaSourcePrivate.h>'],
         'WebCore::MediaTimePromise::Result': ['<WebCore/MediaPromiseTypes.h>'],
         'WebCore::MessagePortChannelProvider::HasActivity': ['<WebCore/MessagePortChannelProvider.h>'],
         'WebCore::ModalContainerControlType': ['<WebCore/ModalContainerTypes.h>'],
@@ -1818,7 +1819,6 @@ def generate_enabled_by_for_receiver(receiver, messages):
 
 def generate_get_target_statements(receiver):
     result = []
-    result.append('    Ref protectedThis { *this };\n')
 
     def append_swift_get_target_statements(result):
         result.append('    auto target = getMessageTarget();\n')

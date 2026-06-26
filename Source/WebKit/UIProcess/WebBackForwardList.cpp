@@ -843,7 +843,7 @@ void WebBackForwardList::backForwardUpdateItem(IPC::Connection& connection, Ref<
         ASSERT(webPageProxy->identifier() == item->pageID() && frameState->itemID == item->identifier());
 
         auto oldFrameID = frameItem->frameID();
-        frameItem->setFrameState(WTF::move(frameState));
+        frameItem->updateFrameStatePayload(WTF::move(frameState));
         auto newFrameID = frameItem->frameID();
 
         if (oldFrameID && newFrameID && oldFrameID != newFrameID)
@@ -865,7 +865,7 @@ void WebBackForwardList::replaceFrameStateForChild(WebBackForwardListItem& item,
     if (!targetFrameItem)
         return;
 
-    targetFrameItem->setFrameState(WTF::move(newFrameState));
+    targetFrameItem->updateFrameStatePayload(WTF::move(newFrameState));
 }
 
 void WebBackForwardList::backForwardGoToItem(BackForwardItemIdentifier itemID, CompletionHandler<void(const WebBackForwardListCounts&)>&& completionHandler)
@@ -1081,11 +1081,32 @@ void appendToBackForwardStateItems(Vector<WebKit::BackForwardListItemState>& ite
     items.append({ entry.copyMainFrameStateWithChildren(), entry.navigatedFrameID() });
 }
 
+void setFrameStateBackForwardItemIdentifier(WebKit::FrameState& frameState, const WebCore::BackForwardItemIdentifier& itemID)
+{
+    frameState.itemID = itemID;
+    for (auto& child : frameState.children)
+        setFrameStateBackForwardItemIdentifier(child, itemID);
+}
+
 Ref<WebKit::WebBackForwardListItem> createItemFromState(const WebKit::BackForwardListItemState& itemState, WebKit::WebPageProxyIdentifier pageIdentifier)
 {
     Ref stateCopy = itemState.frameState->copy();
     setBackForwardItemIdentifiers(stateCopy, WebCore::BackForwardItemIdentifier::generate());
     return WebKit::WebBackForwardListItem::create(WTF::move(stateCopy), pageIdentifier, itemState.navigatedFrameID);
+}
+
+Vector<Ref<WebKit::WebBackForwardListItem>> createItemsFromState(const WebKit::BackForwardListState& state, WebKit::WebPageProxyIdentifier pageIdentifier)
+{
+    Vector<Ref<WebKit::WebBackForwardListItem>> items;
+    items.reserveInitialCapacity(state.items.size());
+    for (auto& itemState : state.items)
+        items.append(createItemFromState(itemState, pageIdentifier));
+    return items;
+}
+
+WebKit::WebBackForwardListItem* itemAtIndexInBackForwardListItemVector(const Vector<Ref<WebKit::WebBackForwardListItem>>& items, size_t index)
+{
+    return items[index].ptr();
 }
 
 

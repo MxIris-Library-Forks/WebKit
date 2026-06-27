@@ -982,6 +982,16 @@ void WebProcessProxy::sendPageCloseMessage(std::optional<WebPageProxyIdentifier>
     }, pageID);
 }
 
+void WebProcessProxy::addPagePendingClose(WebPageProxyIdentifier pageID)
+{
+    m_pagesPendingClose.add(pageID);
+}
+
+void WebProcessProxy::removePagePendingClose(WebPageProxyIdentifier pageID)
+{
+    m_pagesPendingClose.remove(pageID);
+}
+
 bool WebProcessProxy::hasCommittedClientOrigin(const WebCore::ClientOrigin& clientOrigin) const
 {
     if (m_committedClientOrigins.contains(clientOrigin))
@@ -1617,6 +1627,13 @@ bool WebProcessProxy::wasPreviouslyApprovedFileURL(const URL& url) const
     if (fileSystemPath.isEmpty())
         return false;
     return m_previouslyApprovedFilePaths.contains(fileSystemPath);
+}
+
+bool WebProcessProxy::hasGrantedSandboxExtensionForFile(const URL& url) const
+{
+    return m_mayHaveUniversalFileReadSandboxExtension
+        || hasAssumedReadAccessToURL(url)
+        || wasPreviouslyApprovedFileURL(url);
 }
 
 void WebProcessProxy::recordUserGestureAuthorizationToken(FrameIdentifier frameID, PageIdentifier pageID, WTF::UUID authorizationToken)
@@ -2648,8 +2665,8 @@ void WebProcessProxy::createSpeechRecognitionServer(SpeechRecognitionServerIdent
 
     m_speechRecognitionServerMap.ensure(identifier, [&]() {
 #if ENABLE(MEDIA_STREAM)
-        auto createRealtimeMediaSource = [weakPage = WeakPtr { targetPage }]() {
-            return weakPage ? weakPage->createRealtimeMediaSourceForSpeechRecognition() : CaptureSourceOrError { { "Page is invalid"_s, WebCore::MediaAccessDenialReason::InvalidAccess } };
+        auto createRealtimeMediaSource = [weakPage = WeakPtr { targetPage }](WebCore::SpeechRecognitionConnectionClientIdentifier clientIdentifier) {
+            return weakPage ? weakPage->createRealtimeMediaSourceForSpeechRecognition(clientIdentifier) : CaptureSourceOrError { { "Page is invalid"_s, WebCore::MediaAccessDenialReason::InvalidAccess } };
         };
         Ref speechRecognitionServer = SpeechRecognitionServer::create(*this, identifier, WTF::move(permissionChecker), WTF::move(checkIfMockCaptureDevicesEnabled), WTF::move(createRealtimeMediaSource));
 #else

@@ -1750,7 +1750,7 @@ webkit.org/b/223472 [ Release arm64 ] imported/w3c/web-platform-tests/resource-t
 
 webkit.org/b/227753 fast/dom/Window/post-message-large-array-buffer-should-not-crash.html [ Pass Failure ]
 
-webkit.org/b/227877 imported/w3c/web-platform-tests/navigation-timing/test_timing_attributes_order.html [ Pass Failure ]
+webkit.org/b/227877 imported/w3c/web-platform-tests/navigation-timing/test-timing-attributes-order.html [ Pass Failure ]
 
 webkit.org/b/222385 imported/w3c/web-platform-tests/xhr/event-upload-progress-crossorigin.any.worker.html [ Pass Failure ]
 
@@ -1819,8 +1819,6 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-drawImage.any.worker.html [
 imported/w3c/web-platform-tests/css/css-scroll-snap/snap-fling-in-large-area.html [ Skip ]
 
 imported/w3c/web-platform-tests/css/css-scroll-snap/snap-after-relayout/multiple-aligned-targets/common-to-both-axes-supercedes-first-in-tree-order.html [ Pass Failure ]
-imported/w3c/web-platform-tests/css/css-scroll-snap/snap-after-relayout/multiple-aligned-targets/prefer-focused-nested-containers.html [ Pass Failure ]
-imported/w3c/web-platform-tests/css/css-scroll-snap/snap-after-relayout/multiple-aligned-targets/prefer-targeted-element.html [ Skip ]
 
 webkit.org/b/170629  memory/memory-pressure-simulation.html [ Pass Failure Crash ]
 

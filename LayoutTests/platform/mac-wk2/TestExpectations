@@ -1097,7 +1097,7 @@ webkit.org/b/229561 http/tests/navigation/page-cache-video.html [ Pass Failure ]
 
 webkit.org/b/231088 [ Release ] http/tests/loading/preload-slow-loading.py [ Pass Failure ]
 
-webkit.org/b/229585 imported/w3c/web-platform-tests/navigation-timing/test_performance_attributes.sub.html [ Pass Failure ]
+webkit.org/b/229585 imported/w3c/web-platform-tests/navigation-timing/test-performance-attributes.sub.html [ Pass Failure ]
 
 webkit.org/b/229595 imported/w3c/web-platform-tests/fetch/http-cache/invalidate.any.worker.html [ Pass Failure ]
 
@@ -1852,8 +1852,6 @@ webkit.org/b/295743 [ Debug ] media/video-display-aspect-ratio.html [ Pass Failu
 [ Sequoia ] imported/w3c/web-platform-tests/digital-credentials/allow-attribute-with-get.https.html [ Skip ]
 [ Sequoia ] imported/w3c/web-platform-tests/digital-credentials/get.https.html [ Skip ]
 [ Sequoia ] imported/w3c/web-platform-tests/digital-credentials/user-activation-get.https.html [ Skip ]
-# FIXME: Needs bug. On arm64 Debug (internal DC UI), non-fully-active get() returns UnknownError instead of AbortError.
-[ arm64 Debug ] imported/w3c/web-platform-tests/digital-credentials/get-non-fully-active.https.html [ Pass Failure ]
 
 # FIXME: Needs bug.
 http/tests/resourceLoadStatistics/website-data-removal-for-site-navigated-to-with-unfiltered-link-decoration-before-short-deletion.html [ Failure ]
@@ -2398,3 +2396,9 @@ webkit.org/b/317031 [ Release ] imported/w3c/web-platform-tests/web-locks/acquir
 webkit.org/b/317173 [ arm64 ] fast/webgpu/nocrash/fuzz-298315.html [ Pass Crash ]
 
 webkit.org/b/317857 [ Debug ] http/tests/site-isolation/frame-index.html [ Skip ]
+
+webkit.org/b/317884 imported/w3c/web-platform-tests/digital-credentials/get-non-fully-active.https.html [ Failure ]
+
+webkit.org/b/317799 [ Debug ] http/wpt/site-isolation/overlapping-navigations-and-traversals/cross-document-traversal-cross-document-traversal.html [ Skip ]
+
+webkit.org/b/317962 [ Debug ] ipc/networksessioncocoa-empty-resource-request.html [ Failure ]

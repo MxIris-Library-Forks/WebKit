@@ -233,6 +233,9 @@ enum class WebCore::AutofillFieldName : uint8_t {
     OneTimeCode,
     DeviceEID,
     DeviceIMEI,
+    DeviceIMEI1,
+    DeviceIMEI2,
+    DeviceNAL,
 };
 
 enum class WebCore::NonAutofillCredentialType : bool;
@@ -1016,6 +1019,8 @@ header: <WebCore/AttachmentAssociatedElement.h>
     ExplicitlySet
 };
 
+using WebCore::ScrollPosition = WebCore::IntPoint;
+
 [RefCounted] class WebCore::RemoteFrameLayoutInfo {
     std::optional<WebCore::LayoutRect> visibleRectInParent();
     WebCore::TransformationMatrix childFrameOwnerToRootContentTransform();
@@ -1609,6 +1614,7 @@ enum class WebCore::ScrollSnapStop : bool;
     WebCore::ScrollSnapStop stop;
     bool hasSnapAreaLargerThanViewport;
     bool isFocused;
+    bool isTarget;
     Markable<WebCore::NodeIdentifier> snapTargetID;
     Vector<size_t, 1> snapAreaIndices;
 };

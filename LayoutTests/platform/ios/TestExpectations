@@ -231,6 +231,8 @@ imported/w3c/web-platform-tests/video-rvfc/request-video-frame-callback-before-x
 imported/w3c/web-platform-tests/video-rvfc/request-video-frame-callback-during-xr-session.https.html [ Skip ]
 webkit.org/b/235072 imported/w3c/web-platform-tests/video-rvfc/request-video-frame-callback-repeating.html [ Skip ]
 
+fast/mediastream/audio-session-stays-active-when-removing-session-during-speech-recognition.html [ Pass Failure ]
+
 webanimations/frame-rate [ Pass ]
 
 imported/w3c/web-platform-tests/fs/ [ Pass ]
@@ -6315,7 +6317,7 @@ quicklook/pages.html [ ImageOnlyFailure ]
 quicklook/multi-sheet-numbers-09.html [ Failure ]
 http/tests/quicklook/secure-document-with-subresources.html [ ImageOnlyFailure ]
 
-webkit.org/b/209446 imported/w3c/web-platform-tests/navigation-timing/test_timing_attributes_order.html [ Pass Failure ]
+webkit.org/b/209446 imported/w3c/web-platform-tests/navigation-timing/test-timing-attributes-order.html [ Pass Failure ]
 
 webkit.org/b/231630 http/tests/cache/disk-cache/redirect-chain-limits.html [ Slow ]
 
@@ -6548,7 +6550,7 @@ webkit.org/b/229561 http/tests/navigation/page-cache-video.html [ Pass Failure ]
 
 webkit.org/b/222563 [ Release ] http/tests/loading/basic-auth-load-URL-with-consecutive-slashes.html [ Pass Failure ]
 
-webkit.org/b/229585 imported/w3c/web-platform-tests/navigation-timing/test_performance_attributes.sub.html [ Pass Failure ]
+webkit.org/b/229585 imported/w3c/web-platform-tests/navigation-timing/test-performance-attributes.sub.html [ Pass Failure ]
 
 # On iOS15+, CFNetwork does full NSURLSession partitioning based on first-party domains and ITP session partitioning is thus disabled.
 http/tests/resourceLoadStatistics/do-not-switch-session-on-navigation-to-prevalent-without-interaction.py [ Skip ]
@@ -8492,3 +8494,9 @@ imported/w3c/web-platform-tests/intersection-observer/cross-origin-tall-iframe.s
 imported/w3c/web-platform-tests/svg/text/scripted/getrotationofchar.html [ Skip ]
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-createDataChannel.html?rest [ Skip ]
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-setLocalDescription-offer.html?rest [ Skip ]
+
+imported/w3c/web-platform-tests/css/css-scroll-snap/input/keyboard-snap-interruption.html [ Skip ] # timeout
+
+webkit.org/b/317884 imported/w3c/web-platform-tests/digital-credentials/get-non-fully-active.https.html [ Skip ]
+
+webkit.org/b/317962 [ Debug ] ipc/networksessioncocoa-empty-resource-request.html [ Failure ]

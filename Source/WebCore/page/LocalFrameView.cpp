@@ -926,7 +926,7 @@ void LocalFrameView::updateSnapOffsets()
     LayoutRect viewport = LayoutRect(IntPoint(), baseLayoutViewportSize());
     viewport.move(-rootRenderer->marginLeft(), -rootRenderer->marginTop());
 
-    updateSnapOffsetsForScrollableArea(*this, *rootRenderer, *styleToUse, viewport, rootRenderer->style().writingMode(), protect(m_frame->document()->focusedElement()).get());
+    updateSnapOffsetsForScrollableArea(*this, *rootRenderer, *styleToUse, viewport, rootRenderer->style().writingMode(), protect(m_frame->document()->focusedElement()).get(), protect(m_frame->document()->cssTarget()).get());
 }
 
 bool LocalFrameView::isScrollSnapInProgress() const
@@ -3495,10 +3495,9 @@ void LocalFrameView::textFragmentIndicatorTimerFired()
     if (!m_pendingTextFragmentIndicatorRange)
         return;
     
-    if (m_pendingTextFragmentIndicatorText != plainText(m_pendingTextFragmentIndicatorRange.value()))
-        return;
-    
     auto range = m_pendingTextFragmentIndicatorRange.value();
+    if (m_pendingTextFragmentIndicatorText != plainText(range))
+        return;
 
     // FIXME: <http://webkit.org/b/245262> (Scroll To Text Fragment should use DelegateMainFrameScroll)
     auto selectionChange = revealRangeWithTemporarySelection(range);
@@ -3805,6 +3804,9 @@ void LocalFrameView::scrollPositionChanged(const ScrollPosition& oldPosition, co
         if (CheckedPtr layer = renderView->layer())
             m_frame->editor().renderLayerDidScroll(*layer);
     }
+
+    if (m_frame->settings().siteIsolationEnabled() && oldPosition != newPosition)
+        static_cast<Frame&>(m_frame).loaderClient().broadcastFrameScrollPositionToOtherProcesses(newPosition);
 }
 
 void LocalFrameView::applyRecursivelyWithVisibleRect(NOESCAPE const Function<void(LocalFrameView& frameView, const IntRect& visibleRect)>& apply)

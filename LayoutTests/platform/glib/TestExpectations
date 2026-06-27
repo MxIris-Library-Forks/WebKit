@@ -1546,22 +1546,7 @@ editing/async-clipboard/clipboard-change-data-while-reading.html [ Skip ]
 editing/async-clipboard/clipboard-read-text-from-platform.html [ Skip ]
 
 # These tests are intended to exercise Smart Lists support specific to Apple ports.
-editing/smart-lists/different-list-styles-do-not-merge.html [ Skip ]
-editing/smart-lists/inserting-space-after-bullet-point-generates-empty-list.html [ Skip ]
-editing/smart-lists/inserting-space-after-em-dash-generates-dashed-list.html [ Skip ]
-editing/smart-lists/inserting-space-after-en-dash-generates-dashed-list.html [ Skip ]
-editing/smart-lists/inserting-space-after-hyphen-minus-generates-dashed-list.html [ Skip ]
-editing/smart-lists/inserting-space-after-multi-digit-number-generates-ordered-list.html [ Skip ]
-editing/smart-lists/inserting-space-after-number-generates-ordered-list.html [ Skip ]
-editing/smart-lists/inserting-space-after-unicode-hyphen-generates-dashed-list.html [ Skip ]
-editing/smart-lists/inserting-space-and-text-after-bullet-point-generates-list-with-text.html [ Skip ]
-editing/smart-lists/list-merges-with-previous-list-if-possible.html [ Skip ]
-editing/smart-lists/list-preserves-typing-style.html [ Skip ]
-editing/smart-lists/newline-on-empty-list-element-removes-plain-text-markers.html [ Skip ]
-editing/smart-lists/ordered-list-starting-from-non-one-sets-start-attribute.html [ Skip ]
-editing/smart-lists/ordered-markers-with-different-delimiters-generate-list.html [ Skip ]
-editing/smart-lists/ordered-smart-list-rtl.html [ Skip ]
-editing/smart-lists/space-inside-list-element-does-not-activate-smart-lists.html [ Skip ]
+editing/smart-lists/ [ Skip ]
 
 webkit.org/b/186099 editing/caret/caret-in-empty-cell.html [ ImageOnlyFailure ]
 
@@ -1963,7 +1948,7 @@ webkit.org/b/264666 imported/w3c/web-platform-tests/encrypted-media/clearkey-gen
 
 media/now-playing-status-for-video-conference-web-page.html [ Pass Timeout ]
 
-webkit.org/b/187804 imported/w3c/web-platform-tests/media-source/mediasource-seek-beyond-duration.html [ Failure Pass ]
+webkit.org/b/187804 imported/w3c/web-platform-tests/media-source/mediasource-seek-beyond-duration.html [ Crash Failure Pass ]
 
 # Lack of AudioSession category
 http/wpt/mediasession/setCaptureState-audio-category.html [ Skip ]
@@ -2354,9 +2339,9 @@ webkit.org/b/273486 svg/filters/svg-gaussianblur-edgeMode-duplicate.svg [ ImageO
 webkit.org/b/272582 [ x86_64 ] fast/canvas/canvas-strokePath-gradient-shadow.html [ Failure ]
 webkit.org/b/272582 [ x86_64 ] fast/canvas/canvas-strokeRect-alpha-shadow.html [ Failure ]
 webkit.org/b/272582 [ x86_64 ] fast/canvas/canvas-strokeRect-gradient-shadow.html [ Failure ]
-webkit.org/b/272582 [ arm64 ] fast/canvas/canvas-strokePath-gradient-shadow.html [ Pass ]
-webkit.org/b/272582 [ arm64 ] fast/canvas/canvas-strokeRect-alpha-shadow.html [ Pass ]
-webkit.org/b/272582 [ arm64 ] fast/canvas/canvas-strokeRect-gradient-shadow.html [ Pass ]
+webkit.org/b/272582 [ arm64 ] fast/canvas/canvas-strokePath-gradient-shadow.html [ Failure ]
+webkit.org/b/272582 [ arm64 ] fast/canvas/canvas-strokeRect-alpha-shadow.html [ Failure ]
+webkit.org/b/272582 [ arm64 ] fast/canvas/canvas-strokeRect-gradient-shadow.html [ Failure ]
 webkit.org/b/274513 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-canvas.html [ ImageOnlyFailure ]
 
 webkit.org/b/273766 fast/canvas/canvas-scale-shadowBlur.html [ Failure ]
@@ -3854,6 +3839,7 @@ fast/dom/Window/slow-unload-handler-only-frame-is-stopped.html [ WontFix ]
 # Missing WebSpeech implementation
 webkit.org/b/136224 fast/speechrecognition [ Skip ]
 http/tests/media/media-stream/speech-recognition-iframe-allow-attribute.html [ Skip ]
+fast/mediastream/audio-session-stays-active-when-removing-session-during-speech-recognition.html [ Skip ]
 
 # Depends on HTTP Live Streaming (non-supported in non-Apple ports).
 fast/url/data-url-mediatype.html [ Skip ]
@@ -5282,6 +5268,9 @@ webkit.org/b/219498 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-t
 webkit.org/b/244538 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-margin-003.html [ Pass ImageOnlyFailure ]
 webkit.org/b/245034 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-003.html [ Pass ImageOnlyFailure ]
 webkit.org/b/227085 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-snap-003.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-004.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-005.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-006.html [ ImageOnlyFailure ]
 
 webkit.org/b/306455 http/tests/xmlhttprequest/logout.html [ Failure Pass ]
 
@@ -5608,6 +5597,9 @@ gamepad/gamepad-event-handlers.html [ Pass Timeout ]
 
 webkit.org/b/317607 http/tests/media/track/text-track-cross-origin-in-band.html [ Failure ]
 webkit.org/b/317607 http/tests/media/track/track-removal-clears-pending-list.html [ Failure ]
+
+webkit.org/b/317966 [ x86_64 ] http/tests/web-locks/web-lock-in-serviceworker.html [ Crash Failure Pass ]
+webkit.org/b/317968 [ x86_64 ] imported/w3c/web-platform-tests/navigation-timing/nav2-test-redirect-server.html [ Pass Failure ]
 
 # End: Common failures between GTK and WPE.
 

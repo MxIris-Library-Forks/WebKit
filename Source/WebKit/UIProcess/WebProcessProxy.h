@@ -277,6 +277,8 @@ public:
     void removeWebPage(WebPageProxy&, EndsUsingDataStore);
 
     void sendPageCloseMessage(std::optional<WebPageProxyIdentifier>, WebCore::PageIdentifier, CompletionHandler<void()>&& = [] { });
+    void addPagePendingClose(WebPageProxyIdentifier);
+    void removePagePendingClose(WebPageProxyIdentifier);
 
     void addProvisionalPageProxy(ProvisionalPageProxy&);
     void removeProvisionalPageProxy(ProvisionalPageProxy&);
@@ -327,6 +329,9 @@ public:
     void addPreviouslyApprovedFileURL(const URL&);
     void addPreviouslyApprovedFileURLsFromFrameStateTree(const FrameState&);
     bool wasPreviouslyApprovedFileURL(const URL&) const;
+    bool hasGrantedSandboxExtensionForFile(const URL&) const;
+
+    bool isAssociatedWithPage(WebPageProxyIdentifier) const;
 
     void updateTextCheckerState();
 
@@ -686,7 +691,6 @@ private:
     void initializePreferencesForGPUAndNetworkProcesses(const WebPageProxy&);
 
     void reportProcessDisassociatedWithPageIfNecessary(WebPageProxyIdentifier);
-    bool isAssociatedWithPage(WebPageProxyIdentifier) const;
 
     void platformInitialize();
     void platformDestroy();

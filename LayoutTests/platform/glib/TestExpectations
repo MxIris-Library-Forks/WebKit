@@ -1104,6 +1104,7 @@ accessibility/display-contents/object-ordering.html [ Skip ]
 accessibility/display-contents/search-traversal.html [ Skip ]
 accessibility/display-none-descendant-of-relation.html [ Skip ]
 accessibility/empty-text-under-element-cached.html [ Skip ]
+accessibility/hidden-until-found-programmatically-revealed.html [ Skip ]
 accessibility/menuitem-is-selected.html [ Skip ]
 accessibility/search-predicate-ignored-start-backward.html [ Skip ]
 accessibility/search-predicate-ignored-start-no-loop-to-top.html [ Skip ]
@@ -1765,7 +1766,7 @@ webkit.org/b/182103 fast/forms/focus-selection-textarea.html [ Failure ]
 #////////////////////////////////////////////////////////////////////////////////////////
 
 webkit.org/b/308037 imported/w3c/web-platform-tests/webrtc/simulcast/vp8.https.html [ Failure Pass ]
-webkit.org/b/308037 imported/w3c/web-platform-tests/webrtc/simulcast/vp9.https.html [ Failure Pass ]
+webkit.org/b/308037 imported/w3c/web-platform-tests/webrtc/simulcast/vp9.https.html [ Crash Failure Pass ]
 
 imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-audio-jitterBufferTarget-stats.https.html [ Failure ]
 imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-video-jitterBufferTarget-stats.html [ Failure ]
@@ -3622,7 +3623,6 @@ ipc/web-authenticator-get-assertion.html [ Skip ]
 
 # These tests require UseGPUProcessForMediaEnabled
 ipc/restrictedendpoints/allow-access-testOnlyIPC.html [ Skip ]
-media/media-source/media-source-seek-complete-gpu.html [ Skip ]
 
 ### FAILING TESTS
 

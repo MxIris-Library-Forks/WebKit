@@ -2003,6 +2003,9 @@ void AXObjectCache::notificationPostTimerFired()
     // In tests, posting notifications has a tendency to immediately queue up other notifications, which can lead to unexpected behavior
     // when the notification list is cleared at the end. Instead copy this list at the start.
     auto notifications = std::exchange(m_notificationsToPost, { });
+    // The pending-LayoutComplete coalescing set tracks entries in m_notificationsToPost, so clear it in
+    // lockstep with draining that vector. Any LayoutComplete posted during this flush belongs to the next batch.
+    m_pendingLayoutCompleteObjectIDs.clear();
 
     // Filter out the notifications that are not going to be posted to platform clients.
     Vector<std::pair<Ref<AccessibilityObject>, AXNotificationWithData>> notificationsToPost;
@@ -2057,6 +2060,27 @@ void AXObjectCache::setShouldRepostNotificationsForTests(bool value)
     gShouldRepostNotificationsForTests = value;
 }
 #endif
+
+void AXObjectCache::enqueueNotificationToPost(Ref<AccessibilityObject>&& object, AXNotificationWithData&& notification)
+{
+    // JavaScript can starve the zero-delay m_notificationPostTimer by forcing layout (or otherwise
+    // mutating the tree) in a loop without ever returning to the run loop, which would let
+    // m_notificationsToPost grow without bound. LayoutComplete notifications -- by far the most common
+    // offender -- are coalesced per object in postNotification() so that case can't trigger this issue.
+    // This cap is a backstop for every other notification type. If it is ever hit, that notification is
+    // being posted in an unbounded loop and needs its own coalescing strategy like LayoutComplete's, so
+    // assert to surface it while degrading gracefully (dropping the notification) in release rather than
+    // overflowing the Vector and crashing the WebContent process.
+    static constexpr size_t maxNotificationsToPost = 100000;
+    if (m_notificationsToPost.size() >= maxNotificationsToPost) [[unlikely]] {
+        AX_ASSERT_NOT_REACHED();
+        return;
+    }
+
+    m_notificationsToPost.append(std::make_pair(WTF::move(object), WTF::move(notification)));
+    if (!m_notificationPostTimer.isActive())
+        m_notificationPostTimer.startOneShot(0_s);
+}
 
 void AXObjectCache::postNotification(RenderObject* renderer, AXNotification notification, PostTarget postTarget)
 {
@@ -2125,9 +2149,14 @@ void AXObjectCache::postNotification(AccessibilityObject* object, Document* docu
         return;
 #endif
 
-    m_notificationsToPost.append(std::make_pair(axObject.releaseNonNull(), notification));
-    if (!m_notificationPostTimer.isActive())
-        m_notificationPostTimer.startOneShot(0_s);
+    if (notification == AXNotification::LayoutComplete) {
+        // To avoid needlessly accumulating large amounts of redundant layout-complete notifications,
+        // e.g. from JS that forces synchronous layout in a loop, coalesce them on a per-object basis.
+        if (!m_pendingLayoutCompleteObjectIDs.add(axObject->objectID()).isNewEntry)
+            return;
+    }
+
+    enqueueNotificationToPost(axObject.releaseNonNull(), notification);
 }
 
 void AXObjectCache::postNotification(AccessibilityObject& object, AXNotification notification)
@@ -2145,9 +2174,7 @@ void AXObjectCache::postNotification(AccessibilityObject& object, AXNotification
         return;
 #endif
 
-    m_notificationsToPost.append(std::make_pair(Ref { object }, dataNotification));
-    if (!m_notificationPostTimer.isActive())
-        m_notificationPostTimer.startOneShot(0_s);
+    enqueueNotificationToPost(Ref { object }, WTF::move(dataNotification));
 }
 
 void AXObjectCache::postARIANotifyNotification(Node& node, const String& announcement, const AriaNotifyOptions& options)
@@ -2183,17 +2210,13 @@ void AXObjectCache::postARIANotifyNotification(Node& node, const String& announc
         }
     }
 
-    m_notificationsToPost.append(std::make_pair(Ref { *object }, AXNotificationWithData(AXNotification::ARIANotify, AriaNotifyData { announcement, priority, interruptBehavior, object->languageIncludingAncestors() })));
-    if (!m_notificationPostTimer.isActive())
-        m_notificationPostTimer.startOneShot(0_s);
+    enqueueNotificationToPost(Ref { *object }, AXNotificationWithData(AXNotification::ARIANotify, AriaNotifyData { announcement, priority, interruptBehavior, object->languageIncludingAncestors() }));
 }
 
 #if PLATFORM(COCOA)
 void AXObjectCache::postLiveRegionNotification(AccessibilityObject& object, LiveRegionStatus status, const AttributedString& announcement)
 {
-    m_notificationsToPost.append(std::make_pair(Ref { object }, AXNotificationWithData(AXNotification::LiveRegionAnnouncement, LiveRegionAnnouncementData { announcement, status })));
-    if (!m_notificationPostTimer.isActive())
-        m_notificationPostTimer.startOneShot(0_s);
+    enqueueNotificationToPost(Ref { object }, AXNotificationWithData(AXNotification::LiveRegionAnnouncement, LiveRegionAnnouncementData { announcement, status }));
 }
 #endif
 
@@ -2646,8 +2669,18 @@ void AXObjectCache::onStyleChange(Element& element, OptionSet<Style::Change> cha
     if (element.renderer()) {
         // Unlike changes to `visibility`, changes to `content-visibility` do not provide accessibility
         // children changed notifications via the render tree, so check for that here.
-        if (isContentVisibilityHidden(*oldStyle) != isContentVisibilityHidden(*newStyle))
+        if (isContentVisibilityHidden(*oldStyle) != isContentVisibilityHidden(*newStyle)) {
             childrenChanged(object.get());
+
+#if ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
+            // Object's ignored state is dependent on content-visibility:hidden, so clear the is-ignored
+            // cache and update the isolated tree.
+            stopCachingComputedObjectAttributes();
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+            updateIsolatedTree(*object, AXNotification::InertOrVisibilityChanged);
+#endif
+#endif // ENABLE(INCLUDE_IGNORED_IN_CORE_AX_TREE)
+        }
     } else if (isVisibilityHidden(*oldStyle) != isVisibilityHidden(*newStyle)) {
         // We only need to do this when the given element doesn't have a renderer, as if it did, we would
         // get a children-changed event through the render tree.

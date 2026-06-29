@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2021 Apple Inc. All rights reserved.
- * Copyright (C) 2024-2026 Samuel Weinig <sam@webkit.org>
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,48 +25,46 @@
 
 #pragma once
 
-#include <wtf/Forward.h>
+#include "TextExtractionToStringConversion.h"
+#include <wtf/HashMap.h>
+#include <wtf/Vector.h>
+#include <wtf/text/WTFString.h>
 
-namespace WebCore {
-namespace CSSCalc {
+namespace WebKit {
 
-// Don't change these values; parsing uses them.
-enum class Operator : uint8_t {
-    Sum = '+',
-    Negate = '-',
-    Product = '*',
-    Invert = '/',
-    Min = 0,
-    Max,
-    Clamp,
-    Pow,
-    Sqrt,
-    Hypot,
-    Sin,
-    Cos,
-    Tan,
-    Exp,
-    Log,
-    Asin,
-    Acos,
-    Atan,
-    Atan2,
-    Abs,
-    Sign,
-    Mod,
-    Rem,
-    RoundNearest,
-    RoundUp,
-    RoundDown,
-    RoundToZero,
-    Progress,
-    ProgressNoClamp,
-    Random,
-    CalcMix,
-    Blend,
+class TextExtractionCache {
+public:
+    static constexpr auto maxEntries = 4;
+    static constexpr auto contextLineCount = 3;
+
+    enum class NodeResolution : uint8_t {
+        Current,
+        Remapped,
+        Stale,
+        Ambiguous,
+        Unknown,
+    };
+
+    struct ResolvedNode {
+        String identifier;
+        NodeResolution resolution { NodeResolution::Unknown };
+    };
+
+    void add(const String& url, Vector<TextExtractionLineContent>&&);
+    ResolvedNode resolve(const String& identifier) const;
+    void clear() { m_entries.clear(); }
+
+private:
+    struct Entry {
+        String url;
+        Vector<TextExtractionLineContent> lines;
+        HashMap<String, unsigned> lineIndexForUID;
+    };
+
+    static Vector<String> contextWindowBefore(const Vector<TextExtractionLineContent>&, unsigned targetIndex);
+    static Vector<String> contextWindowAfter(const Vector<TextExtractionLineContent>&, unsigned targetIndex);
+
+    Vector<Entry> m_entries;
 };
 
-TextStream& operator<<(TextStream&, Operator);
-
-} // namespace CSSCalc
-} // namespace WebCore
+} // namespace WebKit

@@ -5624,6 +5624,8 @@
 		BCCE4F762DF9E75C005554EA /* StyleClipPath.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCE4F702DF9DDB7005554EA /* StyleClipPath.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCCFBAE80B5152ED0001F1D7 /* DocumentParser.h in Headers */ = {isa = PBXBuildFile; fileRef = BCCFBAE70B5152ED0001F1D7 /* DocumentParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD0E0FB0E972C3500265DEA /* SecurityOrigin.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD0E0F80E972C3500265DEA /* SecurityOrigin.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D61496E32E428EDB00BAF335 /* UserAgentStringParser.h in Headers */ = {isa = PBXBuildFile; fileRef = D61496E12E428EDB00BAF335 /* UserAgentStringParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D6F1F4B42E42AAA200FAB161 /* UserAgentStringData.h in Headers */ = {isa = PBXBuildFile; fileRef = D6F1F4B32E42AAA200FAB161 /* UserAgentStringData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD0E0FC0E972C3500265DEA /* SecurityOriginHash.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD0E0F90E972C3500265DEA /* SecurityOriginHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD278132EAEA4D00047A4DE /* StyleCoordinatedValueListValue.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD278122EAEA47F0047A4DE /* StyleCoordinatedValueListValue.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BCD533640ED6848900887468 /* CachedScriptSourceProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BCD533630ED6848900887468 /* CachedScriptSourceProvider.h */; };
@@ -49597,6 +49599,8 @@
 				A3AF9D8620326861006CAD06 /* UserAgent.h in Headers */,
 				E51194BF270E7E4A0064FCBA /* UserAgentParts.h in Headers */,
 				CDAB6D3117C9259500C60B34 /* UserAgentScripts.h in Headers */,
+				D6F1F4B42E42AAA200FAB161 /* UserAgentStringData.h in Headers */,
+				D61496E32E428EDB00BAF335 /* UserAgentStringParser.h in Headers */,
 				4A9CC81816BB9AC600EC645A /* UserAgentStyle.h in Headers */,
 				656581B209D14EE6000E61D7 /* UserAgentStyleSheets.h in Headers */,
 				1AE79D43188DB61F002239C2 /* UserContentController.h in Headers */,

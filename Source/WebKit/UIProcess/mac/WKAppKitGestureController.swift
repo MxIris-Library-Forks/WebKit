@@ -28,6 +28,7 @@ import WebKit_Internal
 import AppKit
 import AppKit_Private.NSPanGestureRecognizer_Private
 private import CxxStdlib
+private import WebCore_Private
 
 final class WKPanGestureRecognizer: NSPanGestureRecognizer {
     private weak var webView: WKWebView?
@@ -43,6 +44,7 @@ final class WKPanGestureRecognizer: NSPanGestureRecognizer {
         super.init(coder: coder)
     }
 
+    #if canImport(AppKit, _version: "2759")
     // swift-format-ignore: NoLeadingUnderscores
     override func _shouldRecognize(forDelta delta: NSPoint) -> NSPanShouldRecognizeResponse {
         guard let webView, let page = webView._protectedPage().get() else {
@@ -78,6 +80,7 @@ final class WKPanGestureRecognizer: NSPanGestureRecognizer {
 
         return .recognize
     }
+    #endif // canImport(AppKit, _version: "2759")
 }
 
 @objc(Swift)

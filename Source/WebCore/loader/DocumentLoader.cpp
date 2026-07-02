@@ -1142,6 +1142,16 @@ void DocumentLoader::continueAfterContentPolicy(PolicyAction policy)
             return;
         }
 
+        // Defense-in-depth: refuse to download a data: URL through a top-frame navigation that
+        // wasn't initiated by the user or the API client, mirroring the existing check in the
+        // PolicyAction::Use branch. The primary defense lives in the UI process; this guards
+        // ports / future flows that don't share that boundary.
+        if (disallowDataRequest()) {
+            protect(frameLoader())->policyChecker().cannotShowMIMEType(m_response);
+            stopLoadingForPolicyChange();
+            return;
+        }
+
         if (RefPtr mainResourceLoader = this->mainResourceLoader())
             InspectorInstrumentation::continueWithPolicyDownload(*frame, *mainResourceLoader->identifier(), *this, m_response);
 
@@ -1914,12 +1924,6 @@ void DocumentLoader::scheduleSubstituteResourceLoad(ResourceLoader& loader, Subs
     deliverSubstituteResourcesAfterDelay();
 }
 
-void DocumentLoader::scheduleCannotShowURLError(ResourceLoader& loader)
-{
-    m_pendingSubstituteResources.set(loader, nullptr);
-    deliverSubstituteResourcesAfterDelay();
-}
-
 void DocumentLoader::addResponse(const ResourceResponse& response)
 {
     if (!m_stopRecordingResponses)
@@ -2124,7 +2128,7 @@ bool DocumentLoader::maybeLoadEmpty()
     }
 
     SetForScope isInFinishedLoadingOfEmptyDocument { m_isInFinishedLoadingOfEmptyDocument, true };
-    m_isInitialAboutBlank = isDisplayingInitialEmptyDocument;
+    m_isInitialAboutBlank = isDisplayingInitialEmptyDocument ? IsInitialAboutBlank::Yes : IsInitialAboutBlank::No;
     finishedLoading();
     return true;
 }

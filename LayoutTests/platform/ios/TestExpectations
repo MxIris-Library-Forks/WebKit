@@ -2495,6 +2495,7 @@ accessibility/table-display-flex.html [ Pass ]
 accessibility/table-display-grid.html [ Pass ]
 accessibility/table-display-inline-block.html [ Pass ]
 accessibility/text-input-hit-test.html [ Pass ]
+accessibility/textarea-line-for-index.html [ Pass ]
 accessibility/tree-update-with-dirty-layout.html [ Pass ]
 accessibility/tree-update-with-dynamically-ignored-inline-child-div.html [ Pass ]
 accessibility/tree-update-with-dynamically-ignored-tabindex-div.html [ Pass ]
@@ -8601,3 +8602,5 @@ webkit.org/b/318157 [ Debug ] imported/w3c/web-platform-tests/IndexedDB/interlea
 webkit.org/b/318157 [ Debug ] imported/w3c/web-platform-tests/IndexedDB/interleaved-cursors-small.any.worker.html [ Failure ]
 webkit.org/b/318157 [ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.any.serviceworker.html [ Failure ]
 webkit.org/b/318157 [ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.any.sharedworker.html [ Failure ]
+
+webkit.org/b/318375 imported/w3c/web-platform-tests/css/css-anchor-position/scroll-to-anchored-fixed-001.html [ Pass ImageOnlyFailure ]

@@ -638,6 +638,21 @@ ApplePayEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
+AsyncAudioSessionActivationEnabled:
+  type: bool
+  status: stable
+  category: media
+  humanReadableName: "Async Audio Session Activation"
+  humanReadableDescription: "Use async IPC for audio session activation"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+  sharedPreferenceForWebProcess: true
+
 # FIXME: This is on by default in WebKit2 PLATFORM(COCOA). Perhaps we should consider turning it on for WebKitLegacy as well.
 AsyncClipboardAPIEnabled:
   type: bool
@@ -2345,7 +2360,7 @@ DataTransferItemsEnabled:
     WebKitLegacy:
       default: true
     WebKit:
-      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
+      "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(WIN)": true
       default: false
     WebCore:
       default: false
@@ -3149,6 +3164,21 @@ FilterLinkDecorationByDefaultEnabled:
   category: networking
   humanReadableName: "Filter Link Decoration"
   humanReadableDescription: "Enable Filtering Link Decoration"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
+FindInVideoEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "Find in Video"
+  humanReadableDescription: "Include video subtitle/caption cues in Find-in-Page results"
+  condition: ENABLE(VIDEO)
   defaultValue:
     WebKitLegacy:
       default: false

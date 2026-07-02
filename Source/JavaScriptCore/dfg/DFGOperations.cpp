@@ -2779,7 +2779,7 @@ JSC_DEFINE_JIT_OPERATION(operationNewArrayBuffer, JSCell*, (VM* vmPointer, Struc
         if (auto* arrayBuffer = dynamicDowncast<JSArrayBuffer>(firstValue)) \
             isResizableOrGrowableShared = arrayBuffer->isResizableOrGrowableShared(); \
         Structure* structure = globalObject->typedArrayStructure(Type##type, isResizableOrGrowableShared); \
-        OPERATION_RETURN(scope, reinterpret_cast<char*>(constructGenericTypedArrayViewWithArguments<JS##type##Array>(globalObject, structure, firstValue, 0, std::nullopt))); \
+        OPERATION_RETURN(scope, reinterpret_cast<char*>(operationConstructGenericTypedArrayViewWithOneArgumentImpl<JS##type##Array>(globalObject, structure, firstValue))); \
     } \
 
     FOR_EACH_TYPED_ARRAY_TYPE_EXCLUDING_DATA_VIEW(JSC_TYPED_ARRAY_OPERATIONS)
@@ -3746,6 +3746,52 @@ JSC_DEFINE_JIT_OPERATION(operationToLowerCase, JSString*, (JSGlobalObject* globa
     if (lowercasedString.impl() == inputString->impl())
         OPERATION_RETURN(scope, string);
     OPERATION_RETURN(scope, jsString(vm, WTF::move(lowercasedString)));
+}
+
+template<TrimKind trimKind>
+static ALWAYS_INLINE JSString* stringTrimImpl(JSGlobalObject* globalObject, JSString* string)
+{
+    VM& vm = globalObject->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    auto view = string->view(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    auto [left, right] = extractTrimOffsets<trimKind>(view);
+
+    if (!left && right == view->length())
+        return string;
+    RELEASE_AND_RETURN(scope, jsSubstring(globalObject, vm, string, left, right - left));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringTrim, JSString*, (JSGlobalObject* globalObject, JSString* string))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    OPERATION_RETURN(scope, stringTrimImpl<TrimKind::TrimBoth>(globalObject, string));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringTrimStart, JSString*, (JSGlobalObject* globalObject, JSString* string))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    OPERATION_RETURN(scope, stringTrimImpl<TrimKind::TrimStart>(globalObject, string));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringTrimEnd, JSString*, (JSGlobalObject* globalObject, JSString* string))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    OPERATION_RETURN(scope, stringTrimImpl<TrimKind::TrimEnd>(globalObject, string));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationStringLocaleCompare, UCPUStrictInt32, (JSGlobalObject* globalObject, JSString* base, JSString* argument))

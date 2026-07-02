@@ -2882,7 +2882,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
 // navigation — which is not the initial empty document — is correctly dispatched.
 static bool isStaleInitialAboutBlankIframeTarget(WebBackForwardListFrameItem& toFrame)
 {
-    if (!toFrame.frameState().isInitialAboutBlank)
+    if (toFrame.frameState().isInitialAboutBlank == WebCore::IsInitialAboutBlank::No)
         return false;
     auto toFrameID = toFrame.frameID();
     if (!toFrameID)
@@ -5923,6 +5923,19 @@ void WebPageProxy::receivedNavigationResponsePolicyDecision(WebCore::PolicyActio
 {
     if (!hasRunningProcess())
         return completionHandler(PolicyDecision { });
+
+    // Refuse to convert a navigation response into a download when the request is a data: URL,
+    // unless the navigation was driven by the API client (e.g. -loadRequest: with a data: URL).
+    // Otherwise a compromised Web Content process could navigate to a data: URL with an unshowable
+    // MIME type and rely on the navigation delegate's stock "download unshowable responses"
+    // behavior to write attacker-controlled bytes to disk without user interaction. Legitimate
+    // downloads of data: URLs go through the navigation action policy (e.g. <a href="data:..." download>)
+    // or the explicit download API, neither of which reaches this code path.
+    if (action == PolicyAction::Download && request.url().protocolIsData()
+        && (!navigation || !navigation->isFromAPIClientRequest())) {
+        WEBPAGEPROXY_RELEASE_LOG(Loading, "receivedNavigationResponsePolicyDecision: refusing to download data: URL not initiated by API client");
+        action = PolicyAction::Ignore;
+    }
 
     Ref pageLoadState = internals().pageLoadState;
     auto transaction = pageLoadState->transaction();
@@ -9907,7 +9920,7 @@ void WebPageProxy::decidePolicyForResponseShared(Ref<WebProcessProxy>&& process,
     RefPtr navigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr;
 
     // COOP only applies to top-level browsing contexts.
-    if (frameInfo.isMainFrame && coopValuesRequireBrowsingContextGroupSwitch(isShowingInitialAboutBlank, activeDocumentCOOPValue, frameInfo.securityOrigin.securityOrigin().get(), obtainCrossOriginOpenerPolicy(response).value, SecurityOrigin::create(response.url()).get())) {
+    if (frameInfo.isMainFrame && coopValuesRequireBrowsingContextGroupSwitch(isShowingInitialAboutBlank ? WebCore::IsInitialAboutBlank::Yes : WebCore::IsInitialAboutBlank::No, activeDocumentCOOPValue, frameInfo.securityOrigin.securityOrigin().get(), obtainCrossOriginOpenerPolicy(response).value, SecurityOrigin::create(response.url()).get())) {
         mainFrame()->disownOpener();
         m_openedMainFrameName = { };
     }
@@ -16779,8 +16792,8 @@ void WebPageProxy::closeOverlayedViews()
 #if ENABLE(POINTER_LOCK)
 void WebPageProxy::requestPointerLock(IPC::Connection& connection, CompletionHandler<void(bool)>&& completionHandler)
 {
+    MESSAGE_CHECK_COMPLETION_BASE(!m_isPointerLocked, connection, didDenyPointerLock(WTF::move(completionHandler)));
     ASSERT(!m_isPointerLockPending);
-    ASSERT(!m_isPointerLocked);
     m_isPointerLockPending = true;
 
     if (!isViewVisible() || !isViewFocused()) {
@@ -16811,7 +16824,11 @@ void WebPageProxy::didAllowPointerLock(CompletionHandler<void(bool)>&& completio
     if (!m_isPointerLockPending)
         return completionHandler(false);
 
-    ASSERT(!m_isPointerLocked);
+    if (m_isPointerLocked) {
+        ASSERT_NOT_REACHED();
+        return completionHandler(false);
+    }
+
     m_isPointerLocked = true;
     m_isPointerLockPending = false;
 
@@ -16825,7 +16842,11 @@ void WebPageProxy::didDenyPointerLock(CompletionHandler<void(bool)>&& completion
     if (!m_isPointerLockPending)
         return completionHandler(false);
 
-    ASSERT(!m_isPointerLocked);
+    if (m_isPointerLocked) {
+        ASSERT_NOT_REACHED();
+        return completionHandler(false);
+    }
+
     m_isPointerLockPending = false;
 
     completionHandler(false);

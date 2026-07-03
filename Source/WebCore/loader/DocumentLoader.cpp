@@ -2331,8 +2331,7 @@ void DocumentLoader::loadMainResource(ResourceRequest&& request)
         }
 
         if (advancedPrivacyProtections().contains(AdvancedPrivacyProtections::HTTPSOnly)) {
-            if (auto httpNavigationWithHTTPSOnlyError = platformStrategies()->loaderStrategy()->httpNavigationWithHTTPSOnlyError(m_request); mainResourceOrError.error().domain() == httpNavigationWithHTTPSOnlyError.domain()
-                && mainResourceOrError.error().errorCode() == httpNavigationWithHTTPSOnlyError.errorCode()) {
+            if (platformStrategies()->loaderStrategy()->isHttpNavigationWithHTTPSOnlyError(mainResourceOrError.error())) {
                 DOCUMENTLOADER_RELEASE_LOG("loadMainResource: Unable to load main resource, URL has HTTP scheme with HTTPSOnly enabled");
                 cancelMainResourceLoad(mainResourceOrError.error());
                 return;
@@ -2546,6 +2545,12 @@ ShouldOpenExternalURLsPolicy DocumentLoader::shouldOpenExternalURLsPolicyToPropa
 CanTriggerCrossDocumentViewTransition DocumentLoader::navigationCanTriggerCrossDocumentViewTransition(Document& oldDocument, bool fromBackForwardCache)
 {
     if (loadStartedDuringSwipeAnimation())
+        return CanTriggerCrossDocumentViewTransition::No;
+
+    // A document that navigates away before it has been revealed (had its first
+    // rendering opportunity) has no captured state to animate from, so no outbound
+    // cross-document view transition is started.
+    if (!oldDocument.hasBeenRevealed())
         return CanTriggerCrossDocumentViewTransition::No;
 
     if (std::holds_alternative<Document::SkipTransition>(oldDocument.resolveViewTransitionRule()))

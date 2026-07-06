@@ -967,6 +967,7 @@ public:
     void NODELETE convertToCallDOM(Graph&);
 
     void NODELETE convertToRegExpExecNonGlobalOrStickyWithoutChecks(FrozenValue* regExp);
+    void NODELETE convertToRegExpExecStickyWithoutChecks(FrozenValue* regExp);
     void NODELETE convertToRegExpMatchFastGlobalWithoutChecks(FrozenValue* regExp);
     void NODELETE convertToRegExpMatchFast(Node* globalObjectNode);
     void NODELETE convertToRegExpSearch(Node* globalObjectNode);
@@ -985,6 +986,7 @@ public:
     void convertToDefineAccessorProperty(Graph&, Edge base, Edge property, Edge getter, Edge setter, Edge attributes);
     void convertToObjectDefinePropertyFromFields(Graph&, Edge target, Edge key, Edge enumerable, Edge configurable, Edge value, Edge writable, Edge getter, Edge setter);
     void convertToPutByIdDirect(Graph&, Edge base, Edge value, CacheableIdentifier, ECMAMode);
+    void convertToEnumeratorHasOwnProperty(Graph&, Edge base, Edge propertyName, Edge index, Edge mode, Edge enumerator, ArrayMode, unsigned enumeratorMetadata);
 
     void convertToSetRegExpObjectLastIndex()
     {
@@ -2151,6 +2153,7 @@ public:
         case ArraySplice:
         case RegExpExec:
         case RegExpExecNonGlobalOrSticky:
+        case RegExpExecSticky:
         case RegExpTest:
         case RegExpTestInline:
         case RegExpMatchFast:
@@ -2255,6 +2258,7 @@ public:
         case CallWasm:
         case TailCallInlinedCallerWasm:
         case RegExpExecNonGlobalOrSticky:
+        case RegExpExecSticky:
         case RegExpMatchFastGlobal:
         case RegExpTestInline:
             return true;

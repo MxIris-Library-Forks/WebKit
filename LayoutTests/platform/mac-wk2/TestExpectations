@@ -882,8 +882,6 @@ webkit.org/b/212721 svg/custom/textPath-change-id.svg [ Pass ImageOnlyFailure ]
 
 webkit.org/b/213804 fast/scrolling/mac/scroll-snapping-in-progress.html [ Pass Failure ]
 
-webkit.org/b/229206 [ Debug ] http/wpt/webrtc/sframe-transform-error.html [ Pass Failure ]
-
 webkit.org/b/214478 [ Debug ] http/wpt/webrtc/generateCertificate.html [ Skip ]
 
 webkit.org/b/214661 [ Debug ] imported/w3c/web-platform-tests/webrtc/RTCSctpTransport-events.html [ Pass Crash Failure ]
@@ -2311,6 +2309,8 @@ webkit.org/b/315877 [ Sequoia Debug x86_64 ] webgl/2.0.y/conformance2/textures/m
 webkit.org/b/315877 [ Sequoia Debug x86_64 ] webgl/2.0.y/conformance2/textures/webgl_canvas/tex-3d-r11f_g11f_b10f-rgb-float.html [ Pass Timeout ]
 webkit.org/b/315877 [ Sequoia Debug x86_64 ] webgl/2.0.y/conformance2/textures/image_bitmap_from_video/tex-2d-rgba32f-rgba-float.html [ Pass Failure ]
 
+webkit.org/b/318751 [ Debug arm64 ] webgl/2.0.y/conformance2/textures/misc/tex-unpack-params.html [ Pass Failure ]
+
 webkit.org/b/315881 [ Sequoia Release x86_64 ] fast/attachment/cocoa/wide-attachment-class.html [ Pass ImageOnlyFailure ]
 webkit.org/b/315881 [ Sequoia Release x86_64 ] fast/attachment/cocoa/wide-attachment-default-icon.html [ Pass ImageOnlyFailure ]
 webkit.org/b/315881 [ Sequoia Release x86_64 ] fast/attachment/cocoa/wide-attachment-folder-icon.html [ Pass ImageOnlyFailure ]
@@ -2415,3 +2415,9 @@ webkit.org/b/318452 [ Release ] platform/mac/media/audio-session-deactivated-whe
 fast/animation/css-animation-throttling.html [ Pass Failure ]
 fast/animation/request-animation-frame-throttle-inside-overflow-scroll.html [ Pass Failure ]
 fast/animation/request-animation-frame-throttle-subframe-display-none.html [ Pass Failure ]
+
+webkit.org/b/318697 inspector/animation/lifecycle-web-animation.html [ Failure ]
+
+webkit.org/b/318382 [ Debug ] ipc/networksessioncocoa-empty-resource-request.html [ Failure ]
+
+webkit.org/b/318732 http/tests/site-isolation/page-zoom.html [ Pass ImageOnlyFailure ]

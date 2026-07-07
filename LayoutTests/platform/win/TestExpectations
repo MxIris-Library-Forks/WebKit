@@ -390,7 +390,11 @@ fast/canvas/offscreen-no-script-context-crash.html [ Skip ]
 fast/canvas/offscreen-scaling.html [ Skip ]
 fast/canvas/offscreen-toggle-display.html [ Skip ]
 fast/canvas/offscreen-visibility-change.html [ Skip ]
+fast/canvas/offscreencanvas-in-dedicated-worker-readback.html [ Skip ]
+fast/canvas/offscreencanvas-in-shared-worker-readback.html [ Skip ]
 fast/images/protected-image-queue.html [ Skip ]
+http/wpt/service-workers/offscreencanvas-in-separate-service-worker-process-cpu-fallback.https.html [ Skip ]
+http/wpt/service-workers/offscreencanvas-in-separate-service-worker-process.https.html [ Skip ]
 webgl/2.0.y/conformance/offscreencanvas/context-lost-restored.html [ Skip ]
 webgl/2.0.y/conformance/offscreencanvas/context-lost.html [ Skip ]
 webgl/offscreen-webgl-errors-to-console.html [ Skip ]
@@ -4511,9 +4515,6 @@ imported/w3c/web-platform-tests/css/selectors/selectors-4/lang-020.html [ Pass ]
 fast/css/bidi-override-in-anonymous-block.html [ Failure ]
 
 fonts/font-cache-memory-pressure-crash.html [ Failure ]
-
-# SFrameTransform isn't supported yet
-streams/writable-stream-create-within-multiple-workers-crash.html [ Skip ]
 
 [ Release ] imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-inset-animation.html [ Pass Failure ]
 imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-lookup.html [ Pass Failure ]

@@ -1004,6 +1004,8 @@ enum class WebCore::ReferrerPolicy : uint8_t {
 enum class WebCore::StyleAppearance : uint8_t {
     None,
     Auto,
+    Base,
+    BaseSelect,
     Checkbox,
     Radio,
     PushButton,
@@ -2855,7 +2857,8 @@ header: <WebCore/FilterRenderingMode.h>
 
 header: <WebCore/Filter.h>
 [OptionSet] enum class WebCore::FilterRenderingOption : uint8_t {
-    ShowDebugOverlay
+    ShowDebugOverlay,
+    FastAndLowQuality
 };
 
 header: <WebCore/FEComponentTransfer.h>

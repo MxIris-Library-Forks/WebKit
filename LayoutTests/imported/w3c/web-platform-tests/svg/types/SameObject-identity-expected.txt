@@ -1,3 +1,4 @@
+abc
 
 PASS SVGAnimatedLength: rect.x
 PASS SVGAnimatedLength: rect.y

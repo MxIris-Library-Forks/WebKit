@@ -111,17 +111,17 @@ LayoutUnit RenderFlexibleBox::FlexLayoutItem::constrainSizeByMinMax(const Layout
 }
 
 struct RenderFlexibleBox::LineState {
-    LineState(LayoutUnit crossAxisOffset, LayoutUnit crossAxisExtent, std::optional<BaselineAlignmentState> baselineAlignmentState, FlexLayoutItems&& flexLayoutItems)
+    LineState(LayoutUnit crossAxisOffset, LayoutUnit crossAxisExtent, BaselineSharingGroups&& baselineSharingGroups, FlexLayoutItems&& flexLayoutItems)
         : crossAxisOffset(crossAxisOffset)
         , crossAxisExtent(crossAxisExtent)
-        , baselineAlignmentState(baselineAlignmentState)
+        , baselineSharingGroups(WTF::move(baselineSharingGroups))
         , flexLayoutItems(WTF::move(flexLayoutItems))
     {
     }
-    
+
     LayoutUnit crossAxisOffset;
     LayoutUnit crossAxisExtent;
-    std::optional<BaselineAlignmentState> baselineAlignmentState;
+    BaselineSharingGroups baselineSharingGroups;
     FlexLayoutItems flexLayoutItems;
 };
 
@@ -320,8 +320,8 @@ std::optional<LayoutUnit> RenderFlexibleBox::firstLineBaseline() const
         // This would also fix some cases where the flexbox is orthogonal to its container.
         auto direction = isHorizontalWritingMode() ? LineDirection::Horizontal : LineDirection::Vertical;
         auto flexboxWritingMode = style().writingMode();
-        auto dominantBaseline = BaselineAlignmentState::dominantBaseline(flexboxWritingMode);
-        baseline = BaselineAlignmentState::synthesizedBaseline(*baselineFlexItem, dominantBaseline, flexboxWritingMode, direction, BaselineSynthesisEdge::BorderBox);
+        auto dominantBaseline = BaselineAlignment::dominantBaseline(flexboxWritingMode);
+        baseline = BaselineAlignment::synthesizedBaseline(*baselineFlexItem, dominantBaseline, flexboxWritingMode, direction, BaselineSynthesisEdge::BorderBox);
     }
     auto result = (settings().subpixelInlineLayoutEnabled() ? LayoutUnit(baselineFlexItem->logicalTop()) : LayoutUnit(baselineFlexItem->logicalTop().toInt())) + *baseline;
     // CSS Align §9.1: if a scroll container's baseline is outside its border edge, clamp to the border edge.
@@ -351,8 +351,8 @@ std::optional <LayoutUnit> RenderFlexibleBox::lastLineBaseline() const
         // This would also fix some cases where the flexbox is orthogonal to its container.
         auto direction = isHorizontalWritingMode() ? LineDirection::Horizontal : LineDirection::Vertical;
         auto flexboxWritingMode = style().writingMode();
-        auto dominantBaseline = BaselineAlignmentState::dominantBaseline(flexboxWritingMode);
-        baseline = BaselineAlignmentState::synthesizedBaseline(*baselineFlexItem, dominantBaseline, flexboxWritingMode, direction, BaselineSynthesisEdge::BorderBox);
+        auto dominantBaseline = BaselineAlignment::dominantBaseline(flexboxWritingMode);
+        baseline = BaselineAlignment::synthesizedBaseline(*baselineFlexItem, dominantBaseline, flexboxWritingMode, direction, BaselineSynthesisEdge::BorderBox);
     }
     auto result = (settings().subpixelInlineLayoutEnabled() ? LayoutUnit(baselineFlexItem->logicalTop()) : LayoutUnit(baselineFlexItem->logicalTop().toInt())) + *baseline;
     // CSS Align §9.1: if a scroll container's baseline is outside its border edge, clamp to the border edge.
@@ -1635,7 +1635,7 @@ void RenderFlexibleBox::performFlexLayout(RelayoutChildren relayoutChildren)
         remainingFreeSpace -= (lineItems.size() - 1) * gapBetweenItems;
 
         auto lineResult = layoutAndPlaceFlexItems(crossAxisOffset, lineItems, remainingFreeSpace, relayoutChildren, gapBetweenItems);
-        lineStates.append(LineState(crossAxisOffset, lineResult.crossAxisExtent, lineResult.baselineAlignmentState, WTF::move(lineItems)));
+        lineStates.append(LineState(crossAxisOffset, lineResult.crossAxisExtent, WTF::move(lineResult.baselineSharingGroups), WTF::move(lineItems)));
         crossAxisOffset = lineResult.crossAxisOffsetForNextLine;
     }
 
@@ -1831,14 +1831,14 @@ LayoutUnit RenderFlexibleBox::marginBoxAscentForFlexItem(const RenderBox& flexIt
     if (!mainAxisIsFlexItemInlineAxis(flexItem)) {
         auto flexboxWritingMode = style().writingMode();
         auto alignmentContextAxis = style().isRowFlexDirection() ? LogicalBoxAxis::Inline : LogicalBoxAxis::Block;
-        auto writingModeForSynthesis = BaselineAlignmentState::usedWritingModeForBaselineAlignment(alignmentContextAxis, flexboxWritingMode, flexItem.writingMode());
-        return BaselineAlignmentState::synthesizedBaseline(flexItem, BaselineAlignmentState::dominantBaseline(flexboxWritingMode),
+        auto writingModeForSynthesis = BaselineAlignment::usedWritingModeForBaselineAlignment(alignmentContextAxis, flexboxWritingMode, flexItem.writingMode());
+        return BaselineAlignment::synthesizedBaseline(flexItem, BaselineAlignment::dominantBaseline(flexboxWritingMode),
             writingModeForSynthesis, direction, BaselineSynthesisEdge::BorderBox) + flowAwareMarginBeforeForFlexItem(flexItem);
     }
     auto ascent = alignmentForFlexItem(flexItem) == ItemPosition::LastBaseline ? flexItem.lastLineBaseline() : flexItem.firstLineBaseline();
     if (!ascent) {
         auto flexboxWritingMode = style().writingMode();
-        return BaselineAlignmentState::synthesizedBaseline(flexItem, BaselineAlignmentState::dominantBaseline(flexboxWritingMode),
+        return BaselineAlignment::synthesizedBaseline(flexItem, BaselineAlignment::dominantBaseline(flexboxWritingMode),
             flexboxWritingMode, direction, BaselineSynthesisEdge::BorderBox) + flowAwareMarginBeforeForFlexItem(flexItem);
     }
 
@@ -2660,6 +2660,7 @@ RenderFlexibleBox::FlexLineResult RenderFlexibleBox::layoutAndPlaceFlexItems(Lay
     LayoutUnit maxDescent = LayoutUnit::min();
     LayoutUnit lastBaselineMaxAscent;
     std::optional<BaselineAlignmentState> baselineAlignmentState;
+    BaselineSharingGroups baselineSharingGroups;
 
     auto resolvedJustifyContent = style().justifyContent().resolve(contentAlignmentNormalBehavior());
     auto distribution = resolvedJustifyContent.distribution();
@@ -2681,11 +2682,18 @@ RenderFlexibleBox::FlexLineResult RenderFlexibleBox::layoutAndPlaceFlexItems(Lay
             LayoutUnit descent = (crossAxisMarginExtentForFlexItem(flexItem) + crossAxisExtentForFlexItem(flexItem)) - ascent;
             maxDescent = std::max(maxDescent, descent);
 
+            size_t baselineSharingGroupIndex = 0;
             if (!baselineAlignmentState) {
                 auto alignmentContextAxis = style().isRowFlexDirection() ? LogicalBoxAxis::Inline : LogicalBoxAxis::Block;
-                baselineAlignmentState = { flexItem, alignment, ascent, alignmentContextAxis, style().writingMode() };
+                baselineAlignmentState = { flexItem, flexItem.writingMode(), alignment, ascent, alignmentContextAxis, style().writingMode() };
             } else
-                baselineAlignmentState->updateSharedGroup(flexItem, alignment, ascent);
+                baselineSharingGroupIndex = baselineAlignmentState->updateSharedGroup(flexItem, flexItem.writingMode(), alignment, ascent);
+
+            if (baselineSharingGroupIndex == baselineSharingGroups.size())
+                baselineSharingGroups.append({ });
+            auto& baselineSharingGroup = baselineSharingGroups[baselineSharingGroupIndex];
+            baselineSharingGroup.maxAscent = std::max(baselineSharingGroup.maxAscent, ascent);
+            baselineSharingGroup.items.append(flexItem);
 
             if (alignment == ItemPosition::Baseline) {
                 maxAscent =  std::max(maxAscent, ascent);
@@ -2731,7 +2739,7 @@ RenderFlexibleBox::FlexLineResult RenderFlexibleBox::layoutAndPlaceFlexItems(Lay
         layoutColumnReverse(flexLayoutItems, crossAxisOffset, availableFreeSpace, gapBetweenItems);
     }
 
-    return { crossAxisOffset + maxFlexItemCrossAxisExtent, maxFlexItemCrossAxisExtent, baselineAlignmentState };
+    return { crossAxisOffset + maxFlexItemCrossAxisExtent, maxFlexItemCrossAxisExtent, WTF::move(baselineSharingGroups) };
 }
 
 void RenderFlexibleBox::layoutFlexItemAfterMainSizing(FlexLayoutItem& flexLayoutItem, RelayoutChildren relayoutChildren)
@@ -2887,9 +2895,8 @@ void RenderFlexibleBox::alignFlexItems(FlexLineStates& lineStates)
 {
     for (LineState& lineState : lineStates) {
         LayoutUnit lineCrossAxisExtent = lineState.crossAxisExtent;
-        auto baselineAlignmentState = lineState.baselineAlignmentState;
 
-        if (lineState.baselineAlignmentState)
+        if (!lineState.baselineSharingGroups.isEmpty())
             performBaselineAlignment(lineState);
 
         for (auto& flexLayoutItem : lineState.flexLayoutItems) {
@@ -2913,7 +2920,7 @@ void RenderFlexibleBox::alignFlexItems(FlexLineStates& lineStates)
 
 void RenderFlexibleBox::performBaselineAlignment(LineState& lineState)
 {
-    ASSERT(lineState.baselineAlignmentState);
+    ASSERT(!lineState.baselineSharingGroups.isEmpty());
 
     auto lineCrossAxisExtent = lineState.crossAxisExtent;
     bool containerHasWrapReverse = isWrapReverse();
@@ -2923,7 +2930,7 @@ void RenderFlexibleBox::performBaselineAlignment(LineState& lineState)
             return flexItem.style().writingMode();
 
         auto alignmentContextAxis = style().isRowFlexDirection() ? LogicalBoxAxis::Inline : LogicalBoxAxis::Block;
-        return BaselineAlignmentState::usedWritingModeForBaselineAlignment(alignmentContextAxis, writingMode(), flexItem.writingMode());
+        return BaselineAlignment::usedWritingModeForBaselineAlignment(alignmentContextAxis, writingMode(), flexItem.writingMode());
     };
 
     auto shouldAdjustItemTowardsCrossAxisEnd = [&](const FlowDirection& flexItemBlockFlowDirection, ItemPosition alignment) {
@@ -2945,12 +2952,13 @@ void RenderFlexibleBox::performBaselineAlignment(LineState& lineState)
         return crossAxisDirection() == flexItemBlockFlowDirection;
     };
 
-    for (auto& baselineSharingGroup : lineState.baselineAlignmentState.value().sharedGroups()) {
+    for (auto& baselineSharingGroup : lineState.baselineSharingGroups) {
         LayoutUnit minMarginAfterBaseline = LayoutUnit::max();
-        for (auto& flexItem : baselineSharingGroup) {
+        for (auto& item : baselineSharingGroup.items) {
+            auto& flexItem = item.get();
             auto position = alignmentForFlexItem(flexItem);
             ASSERT(position == ItemPosition::Baseline || position == ItemPosition::LastBaseline);
-            auto offset = alignmentOffset(availableAlignmentSpaceForFlexItem(lineCrossAxisExtent, flexItem), position, marginBoxAscentForFlexItem(flexItem), baselineSharingGroup.maxAscent(), containerHasWrapReverse);
+            auto offset = alignmentOffset(availableAlignmentSpaceForFlexItem(lineCrossAxisExtent, flexItem), position, marginBoxAscentForFlexItem(flexItem), baselineSharingGroup.maxAscent, containerHasWrapReverse);
             adjustAlignmentForFlexItem(flexItem, offset);
 
             if (shouldAdjustItemTowardsCrossAxisEnd(flexItemWritingModeForBaselineAlignment(flexItem).blockDirection(), position))
@@ -2961,7 +2969,8 @@ void RenderFlexibleBox::performBaselineAlignment(LineState& lineState)
         // fallback alignment. The fallback alignment of a baseline-sharing group is the fallback alignment
         // of its items as resolved to physical directions.
         if (minMarginAfterBaseline) {
-            for (auto& flexItem : baselineSharingGroup) {
+            for (auto& item : baselineSharingGroup.items) {
+                auto& flexItem = item.get();
                 if (shouldAdjustItemTowardsCrossAxisEnd(flexItemWritingModeForBaselineAlignment(flexItem).blockDirection(), alignmentForFlexItem(flexItem)) && !hasAutoMarginsInCrossAxis(flexItem))
                     adjustAlignmentForFlexItem(flexItem, minMarginAfterBaseline);
             }

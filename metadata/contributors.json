@@ -5610,7 +5610,8 @@
          "lilly_le@apple.com"
       ],
       "github" : "codedbycupidity",
-      "name" : "Lilly Le"
+      "name" : "Lilly Le",
+      "status" : "committer"
    },
    {
       "emails" : [
@@ -7694,6 +7695,15 @@
       ],
       "github" : "serakeri",
       "name" : "Sara Kelley"
+   },
+   {
+      "emails" : [
+         "s_krigel@apple.com",
+         "sasha.krigel@gmail.com",
+         "skrigel@mit.edu"
+      ],
+      "github" : "skrigel",
+      "name" : "Sasha Krigel"
    },
    {
       "emails" : [

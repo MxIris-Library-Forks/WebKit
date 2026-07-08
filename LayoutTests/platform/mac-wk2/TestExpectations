@@ -2017,8 +2017,6 @@ http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap.html [ Pass Time
 
 webkit.org/b/298416 [ Debug ] http/tests/websocket/construct-in-detached-frame.html [ Skip ]
 
-webkit.org/b/299561 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-003.html [ Pass ]
-
 webkit.org/b/299830 imported/w3c/web-platform-tests/storage-access-api/hasStorageAccess-insecure.sub.window.html [ Pass Failure ]
 
 webkit.org/b/299826 [ Release x86_64 ] media/modern-media-controls/media-controller/media-controller-click-on-video-background-should-pause.html [ Crash ]
@@ -2415,9 +2413,5 @@ webkit.org/b/318452 [ Release ] platform/mac/media/audio-session-deactivated-whe
 fast/animation/css-animation-throttling.html [ Pass Failure ]
 fast/animation/request-animation-frame-throttle-inside-overflow-scroll.html [ Pass Failure ]
 fast/animation/request-animation-frame-throttle-subframe-display-none.html [ Pass Failure ]
-
-webkit.org/b/318697 inspector/animation/lifecycle-web-animation.html [ Failure ]
-
-webkit.org/b/318382 [ Debug ] ipc/networksessioncocoa-empty-resource-request.html [ Failure ]
 
 webkit.org/b/318732 http/tests/site-isolation/page-zoom.html [ Pass ImageOnlyFailure ]

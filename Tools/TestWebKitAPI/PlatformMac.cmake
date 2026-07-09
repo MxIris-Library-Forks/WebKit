@@ -160,6 +160,16 @@ list(APPEND TestWebKit_SOURCES
     Helpers/mac/WKWebViewForTestingImmediateActions.mm
     Helpers/mac/WebKitAgnosticTest.mm
 
+    Helpers/mac/GamepadMappings/GoogleStadia.mm
+    Helpers/mac/GamepadMappings/LogitechF310.mm
+    Helpers/mac/GamepadMappings/LogitechF710.mm
+    Helpers/mac/GamepadMappings/MicrosoftXboxOne.mm
+    Helpers/mac/GamepadMappings/ShenzhenLongshengweiTechnologyGamepad.mm
+    Helpers/mac/GamepadMappings/SonyDualShock3.mm
+    Helpers/mac/GamepadMappings/SonyDualShock4.mm
+    Helpers/mac/GamepadMappings/SteelSeriesNimbus.mm
+    Helpers/mac/GamepadMappings/SunLightApplicationGenericNES.mm
+
     Tests/WebCore/ASN1Utilities.cpp
 
     Tests/WebCore/cocoa/ISOBMFFTrackInfoParserTests.cpp
@@ -196,6 +206,7 @@ list(APPEND TestWebKit_PRIVATE_INCLUDE_DIRECTORIES
 
 list(APPEND TestWebKit_LIBRARIES
     "-framework AuthenticationServices"
+    "-framework HID"
     "-framework LocalAuthentication"
     "-framework Network"
     "-framework QuartzCore"
@@ -314,13 +325,17 @@ endif ()
 set(_testapi_framework_headers
     ${WTF_FRAMEWORK_HEADERS_DIR}
     ${bmalloc_FRAMEWORK_HEADERS_DIR}
-    ${JavaScriptCore_FRAMEWORK_HEADERS_DIR}
-    ${JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
     ${PAL_FRAMEWORK_HEADERS_DIR}
-    ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
-    ${WebKit_FRAMEWORK_HEADERS_DIR}
-    ${WebKitLegacy_FRAMEWORK_HEADERS_DIR}
 )
+if (NOT USE_FRAMEWORK_BUNDLES)
+    list(APPEND _testapi_framework_headers
+        ${JavaScriptCore_FRAMEWORK_HEADERS_DIR}
+        ${JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
+        ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
+        ${WebKit_FRAMEWORK_HEADERS_DIR}
+        ${WebKitLegacy_FRAMEWORK_HEADERS_DIR}
+    )
+endif ()
 
 foreach (_dir IN LISTS _testapi_framework_headers)
     list(APPEND TESTWEBKITAPI_SWIFT_FLAGS "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -I${_dir}>")
@@ -415,8 +430,10 @@ foreach (_dual_src
     InjectedBundleNodeHandleIsTextField
     TestAwakener
 )
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/WebProcessPlugIn-${_dual_src}.mm"
-        "#include \"${TESTWEBKITAPI_DIR}/Tests/WebKit/WKWebView/${_dual_src}.mm\"\n")
+    file(CONFIGURE
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/WebProcessPlugIn-${_dual_src}.mm"
+        CONTENT "#include \"${TESTWEBKITAPI_DIR}/Tests/WebKit/WKWebView/${_dual_src}.mm\"\n"
+        @ONLY)
 endforeach ()
 
 target_include_directories(TestWebKitAPIWebProcessPlugIn PRIVATE

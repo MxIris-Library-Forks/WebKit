@@ -7004,6 +7004,7 @@
 		E4A814E01C7338EB00BF85AC /* IdChangeInvalidation.h in Headers */ = {isa = PBXBuildFile; fileRef = E4A814DF1C7338EB00BF85AC /* IdChangeInvalidation.h */; };
 		E4A8D21622578DB700A8463C /* EventRegion.h in Headers */ = {isa = PBXBuildFile; fileRef = E4A8D21422578DA000A8463C /* EventRegion.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E4AAB38727AA95D7009F5899 /* ContainerQueryEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = E4AAB38527AA95D7009F5899 /* ContainerQueryEvaluator.h */; };
+		A1F00E012026070800000C03 /* IfConditionEvaluator.h in Headers */ = {isa = PBXBuildFile; fileRef = A1F00E012026070800000C02 /* IfConditionEvaluator.h */; };
 		E4ABABDD236088FE00FA4345 /* LayoutIntegrationLineLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = E4ABABDB236088FD00FA4345 /* LayoutIntegrationLineLayout.h */; };
 		E4ABABE42361A32900FA4345 /* PropertyCascade.h in Headers */ = {isa = PBXBuildFile; fileRef = E4ABABE22361A32900FA4345 /* PropertyCascade.h */; };
 		E4ABABF32368B95900FA4345 /* StyleBuilderState.h in Headers */ = {isa = PBXBuildFile; fileRef = E4ABABF22368B95800FA4345 /* StyleBuilderState.h */; };
@@ -7501,7 +7502,6 @@
 		FEB5079D8E50CAD92E49CE04 /* UnifiedSource54-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 73C6E6F635A4B4C36B107EAE /* UnifiedSource54-header-RenderStyleGetters.cpp */; };
 		FED13D520CEA949700D89466 /* RenderThemeIOS.h in Headers */ = {isa = PBXBuildFile; fileRef = FED13D500CEA949700D89466 /* RenderThemeIOS.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FEE1811416C319E800084849 /* SQLTransactionBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = FEE1811216C319E800084849 /* SQLTransactionBackend.h */; };
-		FF6A572B2FA64F1100386D4F /* WorkerSTWParticipation.h in Headers */ = {isa = PBXBuildFile; fileRef = FF6A572A2FA64F1100386D4F /* WorkerSTWParticipation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FF945ECC161F7F3600971BC8 /* PseudoElement.h in Headers */ = {isa = PBXBuildFile; fileRef = FF945ECA161F7F3600971BC8 /* PseudoElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FFAC30FE184FB145008C4F1E /* TrailingObjects.h in Headers */ = {isa = PBXBuildFile; fileRef = FFAC30FC184FB145008C4F1E /* TrailingObjects.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FFDBC047183D27B700407109 /* LineWidth.h in Headers */ = {isa = PBXBuildFile; fileRef = FFDBC045183D27B700407109 /* LineWidth.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -22898,6 +22898,8 @@
 		E4A8D21422578DA000A8463C /* EventRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventRegion.h; sourceTree = "<group>"; };
 		E4A8D21522578DA000A8463C /* EventRegion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventRegion.cpp; sourceTree = "<group>"; };
 		E4AAB38527AA95D7009F5899 /* ContainerQueryEvaluator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContainerQueryEvaluator.h; sourceTree = "<group>"; };
+		A1F00E012026070800000C01 /* IfConditionEvaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IfConditionEvaluator.cpp; sourceTree = "<group>"; };
+		A1F00E012026070800000C02 /* IfConditionEvaluator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IfConditionEvaluator.h; sourceTree = "<group>"; };
 		E4AAB38827AA95E0009F5899 /* ContainerQueryEvaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContainerQueryEvaluator.cpp; sourceTree = "<group>"; };
 		E4ABABDB236088FD00FA4345 /* LayoutIntegrationLineLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationLineLayout.h; sourceTree = "<group>"; };
 		E4ABABDE2360893D00FA4345 /* LayoutIntegrationLineLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutIntegrationLineLayout.cpp; sourceTree = "<group>"; };
@@ -23931,8 +23933,6 @@
 		FED13D500CEA949700D89466 /* RenderThemeIOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderThemeIOS.h; sourceTree = "<group>"; };
 		FEE1811116C319E800084849 /* SQLTransactionBackend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SQLTransactionBackend.cpp; sourceTree = "<group>"; };
 		FEE1811216C319E800084849 /* SQLTransactionBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SQLTransactionBackend.h; sourceTree = "<group>"; };
-		FF6A572A2FA64F1100386D4F /* WorkerSTWParticipation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WorkerSTWParticipation.h; sourceTree = "<group>"; };
-		FF8B5B282FAC142000AD63FC /* WorkerSTWParticipation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WorkerSTWParticipation.cpp; sourceTree = "<group>"; };
 		FF945EC9161F7F3600971BC8 /* PseudoElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PseudoElement.cpp; sourceTree = "<group>"; };
 		FF945ECA161F7F3600971BC8 /* PseudoElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PseudoElement.h; sourceTree = "<group>"; };
 		FFAC30FC184FB145008C4F1E /* TrailingObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TrailingObjects.h; sourceTree = "<group>"; };
@@ -27068,8 +27068,6 @@
 				A7D6B3480F61104500B79FD1 /* WorkerScriptLoader.cpp */,
 				A7D6B3470F61104500B79FD1 /* WorkerScriptLoader.h */,
 				2EA768030FE7126400AB9C8A /* WorkerScriptLoaderClient.h */,
-				FF8B5B282FAC142000AD63FC /* WorkerSTWParticipation.cpp */,
-				FF6A572A2FA64F1100386D4F /* WorkerSTWParticipation.h */,
 				2E4346420F546A8200B0F1BA /* WorkerThread.cpp */,
 				2E4346430F546A8200B0F1BA /* WorkerThread.h */,
 				4650AD1726FCCA5A0047F7AD /* WorkerThreadMode.h */,
@@ -41220,6 +41218,8 @@
 				E4ED3ECA2768A51C00F17AC8 /* HasSelectorFilter.h */,
 				E4A814DD1C7338D100BF85AC /* IdChangeInvalidation.cpp */,
 				E4A814DF1C7338EB00BF85AC /* IdChangeInvalidation.h */,
+				A1F00E012026070800000C01 /* IfConditionEvaluator.cpp */,
+				A1F00E012026070800000C02 /* IfConditionEvaluator.h */,
 				1C0106FE192594DF008A4201 /* InlineTextBoxStyle.cpp */,
 				1C0106FF192594DF008A4201 /* InlineTextBoxStyle.h */,
 				4A9CC81E16BF9BB400EC645A /* InspectorCSSOMWrappers.cpp */,
@@ -45907,6 +45907,7 @@
 				7C5222961E1DAE03002CB8F7 /* IDLTypes.h in Headers */,
 				C3CF17A515B0063F00276D39 /* IdTargetObserver.h in Headers */,
 				C3CF17A715B0063F00276D39 /* IdTargetObserverRegistry.h in Headers */,
+				A1F00E012026070800000C03 /* IfConditionEvaluator.h in Headers */,
 				8AB4BC77126FDB7100DEB727 /* IgnoreDestructiveWriteCountIncrementer.h in Headers */,
 				835DA90224F582650022DDA4 /* IIRDSPKernel.h in Headers */,
 				839BE6D524F58762004DF50F /* IIRFilter.h in Headers */,
@@ -50157,7 +50158,6 @@
 				A7D6B3490F61104500B79FD1 /* WorkerScriptLoader.h in Headers */,
 				2EA768040FE7126400AB9C8A /* WorkerScriptLoaderClient.h in Headers */,
 				932199FA2702162500B1FAF9 /* WorkerStorageConnection.h in Headers */,
-				FF6A572B2FA64F1100386D4F /* WorkerSTWParticipation.h in Headers */,
 				2E4346550F546A8200B0F1BA /* WorkerThread.h in Headers */,
 				0B9056F90F2685F30095FF6A /* WorkerThreadableLoader.h in Headers */,
 				97AABD2D14FA09D5007457AE /* WorkerThreadableWebSocketChannel.h in Headers */,
@@ -50412,7 +50412,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${ACTION}\" = \"installhdrs\" -o \"${ACTION}\" = \"installapi\" ]; then\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-inappropriate-objc-class-names ]; then\n    ../../Tools/Scripts/check-for-inappropriate-objc-class-names Web || exit $?\nfi\n\ntouch \"${TARGET_TEMP_DIR}/CheckForInappropriateObjCClassNames.txt\"\n";
+			shellScript = "if [ \"${WK_ENABLE_SLOW_BUILD_VERIFICATION}\" != \"YES\" ] || [ \"${ACTION}\" = \"installhdrs\" ] || [ \"${ACTION}\" = \"installapi\" ]; then\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-inappropriate-objc-class-names ]; then\n    ../../Tools/Scripts/check-for-inappropriate-objc-class-names Web || exit $?\nfi\n\ntouch \"${TARGET_TEMP_DIR}/CheckForInappropriateObjCClassNames.txt\"\n";
 		};
 		446EE4E7255DF00D00454463 /* Concatenate and Copy Localizable.strings */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -50496,7 +50496,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "Scripts/check-xcfilelists.sh && touch \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "if [ \"${WK_ENABLE_SLOW_BUILD_VERIFICATION}\" != \"YES\" ]; then touch \"${SCRIPT_OUTPUT_FILE_0}\"; exit 0; fi\nScripts/check-xcfilelists.sh && touch \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 		};
 		5D0D540D0E9862F60029E223 /* Check For Weak VTables and Externals */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -50515,7 +50515,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${ACTION}\" = \"installhdrs\" -o \"${ACTION}\" = \"installapi\" ]; then\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-weak-vtables-and-externals ]; then\n    ../../Tools/Scripts/check-for-weak-vtables-and-externals || exit $?\nfi\n\ntouch \"${TARGET_TEMP_DIR}/CheckForWeakVTablesAndExternals.txt\"\n";
+			shellScript = "if [ \"${WK_ENABLE_SLOW_BUILD_VERIFICATION}\" != \"YES\" ] || [ \"${ACTION}\" = \"installhdrs\" ] || [ \"${ACTION}\" = \"installapi\" ]; then\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-weak-vtables-and-externals ]; then\n    ../../Tools/Scripts/check-for-weak-vtables-and-externals || exit $?\nfi\n\ntouch \"${TARGET_TEMP_DIR}/CheckForWeakVTablesAndExternals.txt\"\n";
 		};
 		5DF50887116F3077005202AB /* Check For Inappropriate Files In Framework */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -50532,7 +50532,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${ACTION}\" = \"installhdrs\" -o \"${ACTION}\" = \"installapi\" ]; then\n    touch \"${SCRIPT_OUTPUT_FILE_0}\"\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-inappropriate-files-in-framework ]; then\n    ../../Tools/Scripts/check-for-inappropriate-files-in-framework || exit $?\nfi\n\ntouch \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "if [ \"${WK_ENABLE_SLOW_BUILD_VERIFICATION}\" != \"YES\" ] || [ \"${ACTION}\" = \"installhdrs\" -o \"${ACTION}\" = \"installapi\" ]; then\n    touch \"${SCRIPT_OUTPUT_FILE_0}\"\n    exit 0;\nfi\n\nif [ -f ../../Tools/Scripts/check-for-inappropriate-files-in-framework ]; then\n    ../../Tools/Scripts/check-for-inappropriate-files-in-framework || exit $?\nfi\n\ntouch \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 		};
 		6577FFC7276AC9AD0011AEC8 /* Create Symlink to Cryptex Path */ = {
 			isa = PBXShellScriptBuildPhase;

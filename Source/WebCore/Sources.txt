@@ -295,7 +295,6 @@ Modules/mediastream/RTCSctpTransport.cpp
 Modules/mediastream/RTCSessionDescription.cpp
 Modules/mediastream/RTCTrackEvent.cpp
 Modules/mediastream/RTCTransformEvent.cpp
-Modules/mediastream/SFrameUtils.cpp
 Modules/mediastream/STUNMessageParsing.cpp
 Modules/mediastream/UserMediaController.cpp
 Modules/mediastream/UserMediaRequest.cpp
@@ -2563,6 +2562,7 @@ platform/gamepad/GamepadProvider.cpp
 platform/graphics/AV1Utilities.cpp
 platform/graphics/AlphaPremultiplication.cpp
 platform/graphics/AnimationFrameRate.cpp
+platform/graphics/BezierUtilities.cpp
 platform/graphics/BifurcatedGraphicsContext.cpp
 platform/graphics/BitmapImage.cpp
 platform/graphics/BitmapImageDescriptor.cpp
@@ -3305,6 +3305,7 @@ style/values/anchor-position/StylePositionAreaSpan.cpp
 style/values/anchor-position/StylePositionAreaTrack.cpp
 style/values/anchor-position/StylePositionArea.cpp
 style/values/anchor-position/StylePositionTryFallback.cpp
+style/values/animation-triggers/StyleTimelineTrigger.cpp
 style/values/animations/StyleAnimation.cpp
 style/values/animations/StyleSingleAnimationName.cpp
 style/values/animations/StyleSingleAnimationRangeName.cpp

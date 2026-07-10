@@ -600,7 +600,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/mediastream/RTCRtpTransformableFrame.h
     Modules/mediastream/RTCSessionDescription.h
     Modules/mediastream/RTCStatsReport.h
-    Modules/mediastream/SFrameUtils.h
     Modules/mediastream/STUNMessageParsing.h
     Modules/mediastream/UserMediaClient.h
     Modules/mediastream/UserMediaController.h
@@ -1463,7 +1462,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/messageports/MessageWithMessagePorts.h
     dom/messageports/TransferredMessagePort.h
 
-
+    editing/CachedMatchFinder.h
     editing/CharacterRange.h
     editing/ClipboardAccessPolicy.h
     editing/CompositionHighlight.h
@@ -3212,6 +3211,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/anchor-position/StylePositionTryFallbacks.h
     style/values/anchor-position/StylePositionVisibility.h
 
+    style/values/animation-triggers/StyleTimelineTrigger.h
+    style/values/animation-triggers/StyleTimelineTriggerName.h
+    style/values/animation-triggers/StyleTimelineTriggers.h
+
     style/values/animations/StyleAnimation.h
     style/values/animations/StyleAnimations.h
     style/values/animations/StyleSingleAnimationDelay.h
@@ -3576,7 +3579,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     testing/MockGamepadProvider.h
     testing/MockParentalControlsURLFilter.h
     testing/MockWebAuthenticationConfiguration.h
-
     testing/js/WebCoreTestSupport.h
 
     workers/FetchingWorkerIdentifier.h

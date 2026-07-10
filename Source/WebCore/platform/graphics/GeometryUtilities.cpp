@@ -195,12 +195,17 @@ bool ellipseContainsPoint(const FloatPoint& center, const FloatSize& radii, cons
     return std::abs(transformedPoint.x()) + std::abs(transformedPoint.y()) <= transformedRadius || transformedPoint.lengthSquared() <= transformedRadius * transformedRadius;
 }
 
+float eccentricAngle(FloatPoint point, FloatPoint center, float radiusX, float radiusY)
+{
+    return std::atan2((point.y() - center.y()) / radiusY, (point.x() - center.x()) / radiusX);
+}
+
 FloatPoint midPoint(const FloatPoint& first, const FloatPoint& second)
 {
     return { std::midpoint(first.x(), second.x()), std::midpoint(first.y(), second.y()) };
 }
 
-static float NODELETE dotProduct(const FloatSize& u, const FloatSize& v)
+float dotProduct(const FloatSize& u, const FloatSize& v)
 {
     return u.width() * v.width() + u.height() * v.height();
 }

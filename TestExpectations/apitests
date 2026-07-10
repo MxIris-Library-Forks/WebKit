@@ -52,9 +52,13 @@
 #     Bug(identifier)       - Other bug tracker
 #
 
+webkit.org/b/318967 [ ios ] TestWebKitAPI.DownloadProgress.PublishProgressOnPartialDownload [ Pass Failure ]
+
 # webkit.org/b/318893 [ iOS DEBUG ] 2x TestWebKitAPI.IPCTestingAPI.* (api-tests) are constant fails.
 [ iOS Debug ] TestWebKitAPI.IPCTestingAPI.LockdownModeDetection [ Failure ]
 [ iOS Debug ] TestWebKitAPI.IPCTestingAPI.LockdownModeDisabledAllowsWebGL [ Failure ]
+
+webkit.org/b/318978 [ ios ] TestWebKitAPI.VisualViewport.RotationResize [ Pass Failure ]
 
 TestWebKitAPI.WebPageTransferableTests/exportToImage(type:) [ Skip ]
 
@@ -73,6 +77,8 @@ TestWebKitAPI.WebPageTransferableTests/exportToImage(type:) [ Skip ]
 [ iOS Debug ] TestWebKitAPI.WebKitLegacy.TimeInputAccessoryViewTest [ Crash ]
 [ iOS Debug ] TestWebKitAPI.WebKitLegacy.WebGLNoCrashOnOtherThreadAccess [ Crash ]
 [ iOS Debug ] TestWebKitAPI.WebKitLegacy.WebGLPrepareDisplayOnWebThread [ Crash ]
+
+webkit.org/b/319000 [ ios ] TestWebKitAPI.WKHTTPCookieStore.ObserveCookiesReceivedFromHTTP [ Pass Failure ]
 
 # webkit.org/b/318742 [ iOS DEBUG ] 3x TestWebKitAPI.WKWebExtensionAPICookies.* (api-tests) are constant crashes/timeout.
 [ iOS Debug ] TestWebKitAPI.WKWebExtensionAPICookies.GetAllAfterNetworkProcessTermination [ Timeout ]

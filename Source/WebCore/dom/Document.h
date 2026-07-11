@@ -1069,7 +1069,6 @@ public:
     void nodeWillBeMoved(Node&);
     void parentlessNodeMovedToNewDocument(Node&);
 
-    enum class AcceptChildOperation : bool { Replace, InsertOrAdd };
     bool NODELETE canAcceptChild(const Node& newChild, const Node* refChild, AcceptChildOperation) const;
 
     void textInserted(Node&, unsigned offset, unsigned length);
@@ -2027,6 +2026,9 @@ public:
     void addElementWithPendingUserAgentShadowTreeUpdate(Element&);
     WEBCORE_EXPORT void removeElementWithPendingUserAgentShadowTreeUpdate(Element&);
 
+    bool usesHeadingOffsetAttribute() const { return m_usesHeadingOffsetAttribute; }
+    void setUsesHeadingOffsetAttribute() { m_usesHeadingOffsetAttribute = true; }
+
     std::optional<PAL::SessionID> sessionID() const final;
 
     ReportingScope* reportingScopeIfExists() const { return m_reportingScope.get(); }
@@ -2812,6 +2814,7 @@ private:
     bool m_inHitTesting { false };
 #endif
     bool m_isDirAttributeDirty { false };
+    bool m_usesHeadingOffsetAttribute { false };
 
     bool m_scheduledDeferredAXObjectCacheUpdate { false };
     bool m_wasRemovedLastRefCalled { false };

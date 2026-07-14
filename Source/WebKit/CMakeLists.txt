@@ -305,6 +305,7 @@ set(WebKit_MESSAGES_IN_FILES
     UIProcess/VisitedLinkStore
     UIProcess/WebBackForwardList
     UIProcess/WebFrameProxy
+    UIProcess/WebFrameProxyFromNetworkProcess
     UIProcess/WebFullScreenManagerProxy
     UIProcess/WebGeolocationManagerProxy
     UIProcess/WebLockRegistryProxy
@@ -1382,6 +1383,13 @@ if (ENABLE_BACK_FORWARD_LIST_SWIFT)
         ${WEBKIT_DIR}/Shared/API/APIArray.swift
         ${WEBKIT_DIR}/UIProcess/StdlibExtras.swift
         ${WEBKIT_DIR}/UIProcess/WebBackForwardList.swift
+    )
+endif ()
+
+if (ENABLE_IPC_TESTING_SWIFT)
+    list(APPEND WebKit_SOURCES
+        ${WEBKIT_DIR}/Shared/IPCTesterReceiver.swift
+        ${WebKit_DERIVED_SOURCES_DIR}/IPCTesterReceiverMessageReceiver.swift
     )
 endif ()
 

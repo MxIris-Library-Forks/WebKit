@@ -530,9 +530,7 @@ auto NetworkProcess::allowsFirstPartyForCookies(WebCore::ProcessIdentifier proce
         return terminateOrDisallow;
     }
 
-    auto result = set.contains(firstPartyDomain);
-    ASSERT(result || terminateOrDisallow == AllowCookieAccess::Disallow);
-    return result ? AllowCookieAccess::Allow : terminateOrDisallow;
+    return set.contains(firstPartyDomain) ? AllowCookieAccess::Allow : terminateOrDisallow;
 }
 
 #if PLATFORM(COCOA)
@@ -3427,10 +3425,13 @@ void NetworkProcess::allowFilesAccessFromWebProcess(WebCore::ProcessIdentifier p
     completionHandler();
 }
 
-void NetworkProcess::allowFileAccessFromWebProcess(WebCore::ProcessIdentifier processID, const String& path, CompletionHandler<void()>&& completionHandler)
+void NetworkProcess::allowFileAccessFromWebProcess(WebCore::ProcessIdentifier processID, const String& path, std::optional<WebKit::SandboxExtensionHandle> handle, CompletionHandler<void()>&& completionHandler)
 {
-    if (RefPtr connection = webProcessConnection(processID))
+    if (RefPtr connection = webProcessConnection(processID)) {
+        if (handle)
+            SandboxExtension::consumePermanently(*handle);
         connection->allowAccessToFile(path);
+    }
     completionHandler();
 }
 

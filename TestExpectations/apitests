@@ -52,12 +52,15 @@
 #     Bug(identifier)       - Other bug tracker
 #
 
+webkit.org/b/319115 [ ios ] TestWebKitAPI.AppPrivacyReport.AppInitiatedRequestWithServiceWorker [ Pass Timeout ]
+
 webkit.org/b/318967 [ ios ] TestWebKitAPI.DownloadProgress.PublishProgressOnPartialDownload [ Pass Failure ]
 
 # webkit.org/b/318893 [ iOS DEBUG ] 2x TestWebKitAPI.IPCTestingAPI.* (api-tests) are constant fails.
 [ iOS Debug ] TestWebKitAPI.IPCTestingAPI.LockdownModeDetection [ Failure ]
 [ iOS Debug ] TestWebKitAPI.IPCTestingAPI.LockdownModeDisabledAllowsWebGL [ Failure ]
 
+webkit.org/b/319130 [ ios ] TestWebKitAPI.TextManipulation.CompleteTextManipulationAvoidExtractingManipulatedTextAfterManipulation [ Pass Timeout ]
 webkit.org/b/318978 [ ios ] TestWebKitAPI.VisualViewport.RotationResize [ Pass Failure ]
 
 TestWebKitAPI.WebPageTransferableTests/exportToImage(type:) [ Skip ]
@@ -77,6 +80,8 @@ TestWebKitAPI.WebPageTransferableTests/exportToImage(type:) [ Skip ]
 [ iOS Debug ] TestWebKitAPI.WebKitLegacy.TimeInputAccessoryViewTest [ Crash ]
 [ iOS Debug ] TestWebKitAPI.WebKitLegacy.WebGLNoCrashOnOtherThreadAccess [ Crash ]
 [ iOS Debug ] TestWebKitAPI.WebKitLegacy.WebGLPrepareDisplayOnWebThread [ Crash ]
+
+webkit.org/b/319125 [ ios release ] TestWebKitAPI.WKDownload.BlobDownload [ Pass Timeout ]
 
 webkit.org/b/319000 [ ios ] TestWebKitAPI.WKHTTPCookieStore.ObserveCookiesReceivedFromHTTP [ Pass Failure ]
 
@@ -339,6 +344,7 @@ rdar://174495016 [ mac ] TestWebKitAPI.WKWebExtensionAPIAlarms.DelaySingleShot [
 webkit.org/b/311933 [ mac ] TestWebKitAPI.WKWebExtensionAPIAlarms.WhenSingleShot [ Skip ]
 webkit.org/b/301660 [ mac debug ] TestWebKitAPI.WKWebExtensionAPIDeclarativeNetRequest.BlockedLoadInPrivateBrowsingTest [ Skip ]
 webkit.org/b/318265 [ mac debug ] TestWebKitAPI.WKWebExtensionAPIDeclarativeNetRequest.BlockedLoadTest [ Timeout ]
+webkit.org/b/318265 [ ios debug ] TestWebKitAPI.WKWebExtensionAPIDeclarativeNetRequest.BlockedLoadTest [ Pass Timeout ]
 webkit.org/b/318265 [ mac debug ] TestWebKitAPI.WKWebExtensionAPIDeclarativeNetRequest.UpdateEnabledRulesets [ Timeout ]
 webkit.org/b/318265 [ mac debug ] TestWebKitAPI.WKWebExtensionAPIDeclarativeNetRequest.UpdateEnabledRulesetsPerformsCompilation [ Timeout ]
 rdar://137268889 [ mac ] TestWebKitAPI.WKWebExtensionAPIDevTools.CreatePanel [ Skip ]

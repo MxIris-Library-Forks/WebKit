@@ -68,6 +68,11 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
         "SourcesCMakeCocoa.txt"
     )
 endif ()
+if (USE_APPLE_INTERNAL_SDK)
+    list(APPEND WebCore_UNIFIED_SOURCE_LIST_FILES
+        "SourcesCocoaInternalSDK.txt"
+    )
+endif ()
 
 list(APPEND WebCore_LIBRARIES
     ${ACCELERATE_LIBRARY}
@@ -90,6 +95,16 @@ list(APPEND WebCore_LIBRARIES
     ${VIDEOTOOLBOX_LIBRARY}
     ${XML2_LIBRARY}
 )
+
+if (USE_APPLE_INTERNAL_SDK AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+    # FIXME: WebCore's precompiled header, when built with -fpch-codegen,
+    # compiles an inline function from CoreGraphics which references a symbol
+    # from libCrashReporterClient. Work around by linking aginst the library,
+    # but really, it's hazardous for WebCore to generate code from other system
+    # libraries, and we should find away to keep these out of the prefix.
+    # Debug-only because the code is dead-stripped in Release.
+    list(APPEND WebCore_LIBRARIES -lCrashReporterClient)
+endif ()
 
 if (ACCESSIBILITYSUPPORT_LIBRARY)
     list(APPEND WebCore_LIBRARIES ${ACCESSIBILITYSUPPORT_LIBRARY})

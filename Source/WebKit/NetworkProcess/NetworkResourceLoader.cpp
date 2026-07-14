@@ -50,6 +50,7 @@
 #include "ServiceWorkerFetchTask.h"
 #include "SharedBufferReference.h"
 #include "WebErrors.h"
+#include "WebFrameProxyFromNetworkProcessMessages.h"
 #include "WebLoaderStrategy.h"
 #include "WebPageMessages.h"
 #include "WebResourceLoaderMessages.h"
@@ -397,25 +398,9 @@ bool NetworkResourceLoader::shouldSendResourceLoadMessages() const
 #if ENABLE(BLOCKING_OF_LOCAL_FILE_LOADS_WITHOUT_SANDBOX_EXTENSION)
 bool NetworkResourceLoader::isLocalFileLoadAllowed(const URL& url)
 {
-#if PLATFORM(IOS_FAMILY)
-    // Some 3rd party apps are relying on using the fetch JS API or -[WKWebView loadHTMLString:baseURL:] to load local files in their temp directory.
-    // In this case, the WebContent process will not provide the Networking process with a sandbox extension to that file, since it does not have access.
-    // This is because the load is not initiated from the UI process which would provide an extension, but from JS in the WebContent process.
-    // To continue supporting this undocumented feature, we should allow local file loads from that location.
-
-    // FIXME: rdar://177160334
-    // The method -[WKWebView loadHTMLString:baseURL:] can be used to load local files by referring to links relative to the base URL in the HTML string.
-    // When the app is using -[WKWebView loadHTMLString:baseURL:] to load files in the temp directory, we should create a sandbox extension for the base URL.
-    // This can be done in WebPageProxy::loadDataWithNavigationShared. However, this is a larger change, so for now we rely on this exemption.
-
-    String directory = connectionToWebProcess().networkProcess().containerTemporaryDirectory();
-    if (!WTF::IOSApplication::isMobileSafari() && !directory.isEmpty() && FileSystem::isAncestor(directory, FileSystem::realPath(url.fileSystemPath()))) {
-        RELEASE_LOG(Network, "shouldAllowLocalFileLoad: allowing loads from the temp directory");
-        return true;
-    }
-#endif // PLATFORM(IOS_FAMILY)
-
-    return !pathIsBlockedForSandboxExtensions(url.fileSystemPath());
+    bool pathIsAllowed = !pathIsBlockedForSandboxExtensions(url.fileSystemPath());
+    LOADER_RELEASE_LOG("isLocalFileLoadAllowed: allowed = %d, path = %{public}s", pathIsAllowed, url.fileSystemPath().utf8().data());
+    return pathIsAllowed;
 }
 #endif // ENABLE(BLOCKING_OF_LOCAL_FILE_LOADS_WITHOUT_SANDBOX_EXTENSION)
 
@@ -1196,8 +1181,17 @@ void NetworkResourceLoader::didReceiveBuffer(const WebCore::FragmentedSharedBuff
     sendBuffer(buffer);
 }
 
-void NetworkResourceLoader::didFinishLoading(const NetworkLoadMetrics& networkLoadMetrics)
+void NetworkResourceLoader::didFinishLoading(const NetworkLoadMetrics& originalNetworkLoadMetrics)
 {
+    // https://fetch.spec.whatwg.org/#navigation-tao-check
+    std::optional<NetworkLoadMetrics> navigationMetrics;
+    if (parameters().options.mode == FetchOptions::Mode::Navigate && originalNetworkLoadMetrics.hasCrossOriginRedirect
+        && !(m_networkLoadChecker && m_networkLoadChecker->navigationTAOCheckPassed())) {
+        navigationMetrics = originalNetworkLoadMetrics;
+        navigationMetrics->redirectCount = 0;
+    }
+    const NetworkLoadMetrics& networkLoadMetrics = navigationMetrics ? *navigationMetrics : originalNetworkLoadMetrics;
+
     ASSERT(!m_networkLoadChecker || networkLoadMetrics.failsTAOCheck == m_networkLoadChecker->timingAllowFailedFlag());
 
     LOADER_RELEASE_LOG("didFinishLoading: (numBytesReceived=%zd, hasCacheEntryForValidation=%d)", m_numBytesReceived, !!m_cacheEntryForValidation);
@@ -1749,7 +1743,7 @@ void NetworkResourceLoader::didReceiveMainResourceResponse(const WebCore::Resour
     if (CheckedPtr speculativeLoadManager = m_cache ? m_cache->speculativeLoadManager() : nullptr)
         speculativeLoadManager->registerMainResourceLoadResponse(globalFrameID(), originalRequest(), response);
     if (auto& certificateInfo = response.certificateInfo(); certificateInfo && !certificateInfo->isEmpty())
-        connectionToWebProcess().networkProcess().parentProcessConnection()->send(Messages::NetworkProcessProxy::ReceivedMainResourceResponseWithCertificateInfo(frameID(), response.url().hostAndPort(), *certificateInfo), 0);
+        connectionToWebProcess().networkProcess().parentProcessConnection()->send(Messages::WebFrameProxyFromNetworkProcess::ReceivedMainResourceResponseWithCertificateInfo(response.url().hostAndPort(), *certificateInfo), frameID());
 }
 
 void NetworkResourceLoader::initializeReportingEndpoints(const ResourceResponse& response)

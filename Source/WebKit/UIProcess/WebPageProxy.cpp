@@ -1628,8 +1628,7 @@ void WebPageProxy::swapToProvisionalPage(Ref<ProvisionalPageProxy>&& provisional
     ASSERT(!m_drawingArea);
     setDrawingArea(provisionalPage->takeDrawingArea());
 
-    // FIXME: Think about what to do if the provisional page didn't get its browsing context group from the SuspendedPageProxy.
-    // We do need to clear it at some point for navigations that aren't from back/forward navigations. Probably in the same place as PSON?
+    // The group was chosen in browsingContextGroupForNavigation(); adopt whatever the provisional page carries.
     setBrowsingContextGroup(provisionalPage->browsingContextGroup());
 
     protect(legacyMainFrameProcess())->addExistingWebPage(*this, WebProcessProxy::BeginsUsingDataStore::No);
@@ -2353,8 +2352,10 @@ RefPtr<API::Navigation> WebPageProxy::loadFile(const String& fileURLString, cons
     drainDeferredModalsForNewNavigation();
 #endif
 
+    URL fileURL { fileURLString };
+
 #if PLATFORM(MAC)
-    if (isQuarantinedAndNotUserApproved(fileURLString)) {
+    if (isQuarantinedAndNotUserApproved(fileURL)) {
         WEBPAGEPROXY_RELEASE_LOG(Loading, "loadFile: file cannot be opened because it is from an unidentified developer.");
         return nullptr;
     }
@@ -2363,7 +2364,6 @@ RefPtr<API::Navigation> WebPageProxy::loadFile(const String& fileURLString, cons
     if (!hasRunningProcess())
         launchProcess(Site(aboutBlankURL()), ProcessLaunchReason::InitialProcess);
 
-    URL fileURL { fileURLString };
     if (!fileURL.protocolIsFile()) {
         WEBPAGEPROXY_RELEASE_LOG(Loading, "loadFile: file is not local");
         return nullptr;
@@ -2497,7 +2497,7 @@ void WebPageProxy::loadDataWithNavigationShared(Ref<WebProcessProxy>&& process, 
             return;
         protectedProcess->send(Messages::WebPage::LoadData(WTF::move(loadParameters)), webPageID);
         protectedProcess->startResponsivenessTimer();
-    }, true);
+    }, WebProcessProxy::CreateSandboxExtensionForNetworkingProcess::Yes);
 }
 
 RefPtr<API::Navigation> WebPageProxy::loadSimulatedRequest(WebCore::ResourceRequest&& simulatedRequest, WebCore::ResourceResponse&& simulatedResponse, Ref<WebCore::SharedBuffer>&& data)
@@ -5522,7 +5522,7 @@ Expected<WebPageProxy::DataStoreUpdateResult, WebCore::ResourceError> WebPagePro
     }
 
 #if PLATFORM(MAC)
-    bool clientDoesNotHaveAccessToArchiveFile = !isSubstituteDataWebArchive && isQuarantinedAndNotUserApproved(requestURL.fileSystemPath());
+    bool clientDoesNotHaveAccessToArchiveFile = !isSubstituteDataWebArchive && isQuarantinedAndNotUserApproved(requestURL);
     if (clientDoesNotHaveAccessToArchiveFile) {
         auto error = WebKit::cancelledError(URL { requestURL });
         error.setType(WebCore::ResourceError::Type::Cancellation);
@@ -5551,11 +5551,21 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
         return m_browsingContextGroup;
 
     bool usesSameWebsiteDataStore = &websiteDataStore == &this->websiteDataStore();
-    bool mainFrameSiteChanges = !m_mainFrame || Site { m_mainFrame->url() } != Site { navigation.currentRequest().url() };
+    Site requestedSite { navigation.currentRequest().url() };
+    bool mainFrameSiteChanges = !m_mainFrame || Site { m_mainFrame->url() } != requestedSite;
     if (RefPtr targetBackForwardItem = navigation.targetItem(); targetBackForwardItem && targetBackForwardItem->browsingContextGroup() && usesSameWebsiteDataStore)
         return *targetBackForwardItem->browsingContextGroup();
 
     if (processSwapRequestedByClient == ProcessSwapRequestedByClient::Yes || !usesSameWebsiteDataStore || (navigation.isRequestFromClientOrUserInput() && !navigation.isFromLoadData() && mainFrameSiteChanges))
+        return BrowsingContextGroup::create();
+
+    // Under Site Isolation, keeping the current group for a site-changing, non-back/forward main-frame
+    // navigation would let the incoming document share a group with the outgoing page once that page enters
+    // the back/forward cache, linking their iframe processes across unrelated top-level browsing contexts.
+    // Start a fresh group instead.
+    // FIXME: The non-Site-Isolation PSON path still adopts the outgoing (possibly back/forward-cached) group;
+    // it should get a fresh group here too.
+    if (protect(preferences())->siteIsolationEnabled() && !navigation.targetItem() && m_mainFrame && mainFrameSiteChanges && !requestedSite.isEmpty() && !protect(m_browsingContextGroup)->hasMultiplePages())
         return BrowsingContextGroup::create();
 
     return m_browsingContextGroup;
@@ -7439,28 +7449,30 @@ void WebPageProxy::logFrameTree()
 
 #else
 
-static void logFrameTreeHelper(int indent, const FrameTreeNodeData& node)
+static void logFrameTreeHelper(int indent, const WebFrameProxy& frame)
 {
     int spaces = (indent > 2) ? indent - 2 : 0;
-    RELEASE_LOG(FrameTree, "%*s|- pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, spaces, "", node.info.processID, Site(node.info.securityOrigin).loggingString().ascii().data(), node.info.request.url().string().ascii().data());
-    for (const auto& child : node.children)
+    RELEASE_LOG(FrameTree, "%*s|- pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, spaces, "", frame.process().processID(), Site(frame.documentSecurityOriginData()).loggingString().ascii().data(), frame.url().string().ascii().data());
+    for (Ref child : frame.childFrames()) {
+        // m_childFrames can still contain iframes that are in the back/forward cache and no longer
+        // parented to this frame. Skip them so we only log the currently-connected tree.
+        if (child->parentFrame() != &frame)
+            continue;
         logFrameTreeHelper(indent + 2, child);
-}
-
-static void logFrameTreeRoot(uintptr_t pagePointer, const FrameTreeNodeData& root)
-{
-    RELEASE_LOG(FrameTree, "WebPageProxy %p | pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, reinterpret_cast<void*>(pagePointer), root.info.processID, Site(root.info.securityOrigin).loggingString().ascii().data(), root.info.request.url().string().ascii().data());
-    for (const auto& child : root.children)
-        logFrameTreeHelper(2, child);
+    }
 }
 
 void WebPageProxy::logFrameTree()
 {
-    getAllFrames([pagePointer = reinterpret_cast<uintptr_t>(this)](auto&& maybeFrameTree) {
-        if (!maybeFrameTree)
-            return;
-        logFrameTreeRoot(pagePointer, *maybeFrameTree);
-    });
+    RefPtr mainFrame = m_mainFrame;
+    if (!mainFrame)
+        return;
+    RELEASE_LOG(FrameTree, "WebPageProxy %p | pid: %d | site: %" SENSITIVE_LOG_STRING " | url: %" SENSITIVE_LOG_STRING, this, mainFrame->process().processID(), Site(mainFrame->documentSecurityOriginData()).loggingString().ascii().data(), mainFrame->url().string().ascii().data());
+    for (Ref child : mainFrame->childFrames()) {
+        if (child->parentFrame() != mainFrame.get())
+            continue;
+        logFrameTreeHelper(2, child);
+    }
 }
 
 #endif

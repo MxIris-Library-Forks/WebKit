@@ -1388,6 +1388,7 @@ fast/css/resize-textarea-align-content.html [ Skip ]
 fast/events/mouse-events-on-textarea-resize.html [ Skip ]
 fast/events/mouse_resizer_mousedown.html [ Skip ]
 fast/css/resize-corner-over-child-layer.html [ Skip ]
+fast/frames/frameset-noresize-removal-allows-resize.html [ Skip ]
 
 # The file-wrapper part of <attachment> is not yet working on iOS
 fast/attachment/attachment-type-attribute.html [ Skip ]
@@ -1490,9 +1491,15 @@ imported/w3c/web-platform-tests/css/css-view-transitions/input-pointer-capture-w
 
 # Needs special fuzziness on iOS.
 imported/w3c/web-platform-tests/css/css-view-transitions/rotated-cat-off-top-edge.html [ ImageOnlyFailure ]
+
 imported/w3c/web-platform-tests/css/css-view-transitions/table-caption.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-left-of-viewport-offscreen-old.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-on-top-of-viewport-partially-onscreen-new.html [ ImageOnlyFailure ]
+
+# webkit.org/b/316882 1px device-pixel rounding difference in snapRectToDevicePixels for the
+# overflow-visible ::view-transition-old/new object-view-box path.
+webkit.org/b/316882 imported/w3c/web-platform-tests/css/css-view-transitions/old-content-with-object-view-box.html [ Skip ]
+webkit.org/b/316882 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-with-object-view-box.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-inline-with-offset-from-containing-block-clipped.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/old-content-inline-with-offset-from-containing-block-clipped.html [ ImageOnlyFailure ]
 

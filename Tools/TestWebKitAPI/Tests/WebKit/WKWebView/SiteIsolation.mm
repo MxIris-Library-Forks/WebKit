@@ -925,15 +925,15 @@ TEST(SiteIsolation, OpenWithNoopener)
     auto [opener, opened] = openerAndOpenedViews(server, @"https://example.com/example", false);
     __block RetainPtr openerView = opener.webView;
     __block RetainPtr openedView = opened.webView;
-    opened.navigationDelegate.get().decidePolicyForNavigationAction = ^(WKNavigationAction *, void (^completionHandler)(WKNavigationActionPolicy)) {
+    opened.navigationDelegate.get().decidePolicyForNavigationAction = ^(WKNavigationAction *action, void (^completionHandler)(WKNavigationActionPolicy)) {
         checkFrameTreesInProcesses(openerView.get(), { { "https://example.com"_s } });
-        checkFrameTreesInProcesses(openedView.get(), { { "://"_s } }); // FIXME: This should be https://webkit.org
+        checkFrameTreesInProcesses(openedView.get(), { { "://"_s } });
         EXPECT_NE([openerView _webProcessIdentifier], [openedView _webProcessIdentifier]);
         completionHandler(WKNavigationActionPolicyAllow);
     };
     opened.navigationDelegate.get().decidePolicyForNavigationResponse = ^(WKNavigationResponse *, void (^completionHandler)(WKNavigationResponsePolicy)) {
         checkFrameTreesInProcesses(openerView.get(), { { "https://example.com"_s } });
-        checkFrameTreesInProcesses(openedView.get(), { { "://"_s } }); // FIXME: This should be https://webkit.org
+        checkFrameTreesInProcesses(openedView.get(), { { "://"_s } });
         EXPECT_NE([openerView _webProcessIdentifier], [openedView _webProcessIdentifier]);
         completionHandler(WKNavigationResponsePolicyAllow);
     };
@@ -5109,7 +5109,8 @@ TEST(SiteIsolation, MultipleWebViewsWithSameOpenedConfiguration)
     auto [opener, opened] = openerAndOpenedViews(server, @"https://example.com/example", false);
     RetainPtr webView2 = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:opened.webView.get().configuration]);
     [opened.navigationDelegate waitForDidFinishNavigation];
-    // FIXME: load something with webView2 without asserting, like https://example.com/popup
+    [webView2 loadURL:[NSURL URLWithString:@"https://example.com/popup"]];
+    [webView2 _test_waitForDidFinishNavigation];
 }
 
 TEST(SiteIsolation, RecoverFromCrash)
@@ -10174,6 +10175,78 @@ TEST(SiteIsolation, PasteboardReading)
     [webView evaluateJavaScript:@"document.getElementById('testbutton').click();" inFrame:[webView firstChildFrame] inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
 
     EXPECT_WK_STREQ([webView _test_waitForAlert], "hello");
+}
+
+TEST(SiteIsolation, DOMPasteAccessGrantedInCrossOriginFrame)
+{
+    auto subframeMarkup = "<script>function tryToReadPasteboard() {"
+        "navigator.clipboard.readText()"
+        "    .then(text => { window.readTextResult = 'PASS: ' + text; })"
+        "    .catch(error => { window.readTextResult = 'FAIL: ' + error; })"
+        "}</script>"
+        "<button onclick='tryToReadPasteboard()' id='testbutton'>Click</button>"_s;
+
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { subframeMarkup } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+#if PLATFORM(MAC)
+    [NSPasteboard.generalPasteboard declareTypes:@[NSPasteboardTypeString] owner:nil];
+    [NSPasteboard.generalPasteboard setString:@"hello" forType:NSPasteboardTypeString];
+#else
+    [UIPasteboard generalPasteboard].string = @"hello";
+#endif
+
+    auto [webView, delegate] = siteIsolatedViewAndDelegate(server.httpsProxyConfiguration());
+#if PLATFORM(MAC)
+    [[webView window] orderFrontRegardless];
+#endif
+    [webView loadURL:[NSURL URLWithString:@"https://example.com/example"]];
+    [delegate waitForDidFinishNavigation];
+    [webView evaluateJavaScript:@"document.getElementById('testbutton').click();" inFrame:[webView firstChildFrame] inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
+
+#if PLATFORM(MAC)
+    bool selectedPasteItem = false;
+    BlockPtr allowPasteHandler = makeBlockPtr([webView, &selectedPasteItem](NSTimer *timer) {
+        RetainPtr activeMenu = [webView _activeMenu];
+        if (!activeMenu)
+            return;
+
+        for (NSMenuItem *item in [activeMenu itemArray]) {
+            if ([item.title isEqualToString:@"Paste"]) {
+                [activeMenu performActionForItemAtIndex:[activeMenu indexOfItem:item]];
+                [activeMenu cancelTracking];
+                [timer invalidate];
+                selectedPasteItem = true;
+                break;
+            }
+        }
+    });
+
+    RetainPtr selectPasteItemTimer = [NSTimer timerWithTimeInterval:0.1 repeats:YES block:allowPasteHandler.get()];
+    [NSRunLoop.mainRunLoop addTimer:selectPasteItemTimer forMode:NSEventTrackingRunLoopMode];
+    Util::run(&selectedPasteItem);
+#else
+    __block bool shownMenu = false;
+    ALLOW_DEPRECATED_DECLARATIONS_BEGIN
+    InstanceMethodSwizzler showMenuSwizzler {
+        UIMenuController.class,
+        @selector(showMenuFromView:rect:),
+        imp_implementationWithBlock(^(UIMenuController *, UIView *, CGRect) {
+            shownMenu = true;
+        })
+    };
+    Util::run(&shownMenu);
+
+    [[webView textInputContentView] paste:UIMenuController.sharedMenuController];
+    ALLOW_DEPRECATED_DECLARATIONS_END
+#endif
+
+    TestWebKitAPI::Util::waitForConditionWithLogging([&] {
+        RetainPtr readTextResult = [webView stringByEvaluatingJavaScript:@"window.readTextResult" inFrame:[webView firstChildFrame]];
+        return [readTextResult isEqualToString:@"PASS: hello"];
+    }, 5, @"Timed out waiting for subframe to finish paste.");
 }
 
 TEST(SiteIsolation, UserGesture)

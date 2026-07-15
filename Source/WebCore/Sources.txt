@@ -3506,6 +3506,7 @@ style/values/text/StyleTextAlignLast.cpp @header:RenderStyleGetters @cost:5
 style/values/text/StyleTextAutospace.cpp
 style/values/text/StyleTextIndent.cpp
 style/values/text/StyleTextTransform.cpp
+style/values/text/StyleWhiteSpaceTrim.cpp
 style/values/text/StyleWordSpacing.cpp @header:RenderStyleGetters
 style/values/transforms/functions/StyleMatrix3DTransformFunction.cpp
 style/values/transforms/functions/StyleMatrixTransformFunction.cpp
@@ -3531,6 +3532,7 @@ style/values/ui/StyleResize.cpp
 style/values/view-transitions/StyleViewTransitionName.cpp
 style/values/will-change/StyleWillChange.cpp
 svg/DocumentSVG.cpp
+svg/IsolatedSVGDocumentContext.cpp
 svg/SVGAElement.cpp @header:RenderStyleGetters
 svg/SVGAltGlyphDefElement.cpp
 svg/SVGAltGlyphElement.cpp @header:RenderStyleGetters

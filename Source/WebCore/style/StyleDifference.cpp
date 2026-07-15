@@ -312,6 +312,9 @@ public:
         if (a.textBoxTrim != b.textBoxTrim)
             return true;
 
+        if (a.whiteSpaceTrim != b.whiteSpaceTrim)
+            return true;
+
         if (a.maxLines != b.maxLines)
             return true;
 
@@ -349,6 +352,7 @@ public:
     #endif
             || a.wordBreak != b.wordBreak
             || a.overflowWrap != b.overflowWrap
+            || a.effectiveWrapInsideAvoid != b.effectiveWrapInsideAvoid
             || a.nbspMode != b.nbspMode
             || a.lineBreak != b.lineBreak
             || a.textSecurity != b.textSecurity

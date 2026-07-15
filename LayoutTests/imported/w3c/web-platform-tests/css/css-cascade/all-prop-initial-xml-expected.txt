@@ -401,11 +401,13 @@ PASS view-transition-class
 PASS view-transition-name
 PASS visibility
 PASS white-space-collapse
+PASS white-space-trim
 PASS widows
 PASS width
 PASS will-change
 PASS word-break
 PASS word-spacing
+PASS wrap-inside
 PASS writing-mode
 PASS x
 PASS y

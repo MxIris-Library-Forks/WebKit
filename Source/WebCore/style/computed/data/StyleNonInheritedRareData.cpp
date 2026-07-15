@@ -125,6 +125,7 @@ NonInheritedRareData::NonInheritedRareData()
     , positionTryOrder(static_cast<unsigned>(ComputedStyle::initialPositionTryOrder()))
     , positionVisibility(ComputedStyle::initialPositionVisibility().toRaw())
     , fieldSizing(static_cast<unsigned>(ComputedStyle::initialFieldSizing()))
+    , wrapInside(static_cast<unsigned>(ComputedStyle::initialWrapInside()))
     , nativeAppearanceDisabled(static_cast<unsigned>(false))
 #if HAVE(CORE_MATERIAL)
     , appleVisualEffect(static_cast<unsigned>(ComputedStyle::initialAppleVisualEffect()))
@@ -138,6 +139,7 @@ NonInheritedRareData::NonInheritedRareData()
     , contain(ComputedStyle::initialContain().toRaw())
     , overflowContinue(static_cast<unsigned>(ComputedStyle::initialOverflowContinue()))
     , scrollSnapStop(static_cast<unsigned>(ComputedStyle::initialScrollSnapStop()))
+    , whiteSpaceTrim(ComputedStyle::initialWhiteSpaceTrim().toRaw())
 {
 }
 
@@ -233,6 +235,7 @@ inline NonInheritedRareData::NonInheritedRareData(const NonInheritedRareData& o)
     , positionTryOrder(o.positionTryOrder)
     , positionVisibility(o.positionVisibility)
     , fieldSizing(o.fieldSizing)
+    , wrapInside(o.wrapInside)
     , nativeAppearanceDisabled(o.nativeAppearanceDisabled)
 #if HAVE(CORE_MATERIAL)
     , appleVisualEffect(o.appleVisualEffect)
@@ -246,6 +249,7 @@ inline NonInheritedRareData::NonInheritedRareData(const NonInheritedRareData& o)
     , contain(o.contain)
     , overflowContinue(o.overflowContinue)
     , scrollSnapStop(o.scrollSnapStop)
+    , whiteSpaceTrim(o.whiteSpaceTrim)
 {
 }
 
@@ -348,6 +352,7 @@ bool NonInheritedRareData::operator==(const NonInheritedRareData& o) const
         && positionTryOrder == o.positionTryOrder
         && positionVisibility == o.positionVisibility
         && fieldSizing == o.fieldSizing
+        && wrapInside == o.wrapInside
         && nativeAppearanceDisabled == o.nativeAppearanceDisabled
 #if HAVE(CORE_MATERIAL)
         && appleVisualEffect == o.appleVisualEffect
@@ -360,7 +365,8 @@ bool NonInheritedRareData::operator==(const NonInheritedRareData& o) const
         && marginTrim == o.marginTrim
         && contain == o.contain
         && overflowContinue == o.overflowContinue
-        && scrollSnapStop == o.scrollSnapStop;
+        && scrollSnapStop == o.scrollSnapStop
+        && whiteSpaceTrim == o.whiteSpaceTrim;
 }
 
 Contain NonInheritedRareData::usedContain() const
@@ -507,6 +513,7 @@ void NonInheritedRareData::dumpDifferences(TextStream& ts, const NonInheritedRar
     LOG_IF_DIFFERENT_WITH_CAST(OverflowAnchor, overflowAnchor);
     LOG_IF_DIFFERENT_WITH_CAST(PositionTryOrder, positionTryOrder);
     LOG_IF_DIFFERENT_WITH_CAST(FieldSizing, fieldSizing);
+    LOG_IF_DIFFERENT_WITH_CAST(WrapInside, wrapInside);
 
     LOG_IF_DIFFERENT_WITH_CAST(bool, nativeAppearanceDisabled);
 
@@ -526,6 +533,7 @@ void NonInheritedRareData::dumpDifferences(TextStream& ts, const NonInheritedRar
 
     LOG_IF_DIFFERENT_WITH_CAST(OverflowContinue, overflowContinue);
     LOG_IF_DIFFERENT_WITH_CAST(ScrollSnapStop, scrollSnapStop);
+    LOG_IF_DIFFERENT_WITH_FROM_RAW(WhiteSpaceTrim, whiteSpaceTrim);
 }
 #endif // !LOG_DISABLED
 

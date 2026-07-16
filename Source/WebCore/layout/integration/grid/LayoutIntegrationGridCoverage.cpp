@@ -26,6 +26,7 @@
 #include "config.h"
 #include "LayoutIntegrationGridCoverage.h"
 
+#include "BaselineAlignmentInlines.h"
 #include "Document.h"
 #include "RenderChildIterator.h"
 #include "RenderDescendantIterator.h"
@@ -53,6 +54,7 @@ enum class GridAvoidanceReason : uint8_t {
     GridHasNonVisibleOverflow,
     GridItemIsReplacedElement,
     GridItemDoesNotHaveElement,
+    GridItemIsSubgrid,
     GridIsEmpty,
     GridHasGridTemplateAreas,
     GridHasColumnAutoFlow,
@@ -284,8 +286,10 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
         ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridFormattingContextIntegrationDisabled, reasons, reasonCollectionMode);
 
     CheckedRef renderGridStyle = renderGrid.style();
-
-    if (renderGridStyle->display() == Style::DisplayType::InlineGrid)
+    CheckedPtr gridParentStyle = renderGrid.parent() ? &renderGrid.parent()->style() : nullptr;
+    if (renderGridStyle->display() == Style::DisplayType::InlineGrid
+        || isBaselinePosition(renderGridStyle->justifySelf().resolve(gridParentStyle).position())
+        || isBaselinePosition(renderGridStyle->alignSelf().resolve(gridParentStyle).position()))
         ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridNeedsBaseline, reasons, reasonCollectionMode);
 
     if (renderGridStyle->display() != Style::DisplayType::BlockGrid)
@@ -436,6 +440,12 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
 
         if (gridItemElement->isReplaced())
             ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridItemIsReplacedElement, reasons, reasonCollectionMode);
+
+        // GFC has no subgrid support, so a subgrid item would fall through to the legacy
+        // RenderGrid path, which crashes when its grid-item-area map has not been populated
+        // by a legacy parent grid.
+        if (CheckedPtr renderGridItem = dynamicDowncast<RenderGrid>(gridItem.get()); renderGridItem && renderGridItem->isSubgrid())
+            ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridItemIsSubgrid, reasons, reasonCollectionMode);
 
         CheckedRef gridItemStyle = gridItem->style();
 
@@ -685,6 +695,9 @@ static void printReason(GridAvoidanceReason reason, TextStream& stream)
         break;
     case GridAvoidanceReason::GridItemIsReplacedElement:
         stream << "grid item is a replaced element";
+        break;
+    case GridAvoidanceReason::GridItemIsSubgrid:
+        stream << "grid item is a subgrid";
         break;
     case GridAvoidanceReason::GridIsEmpty:
         stream << "grid is empty";

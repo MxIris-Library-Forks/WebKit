@@ -974,6 +974,7 @@ css/CSSPropertyInitialValues.cpp
 css/CSSPropertyRule.cpp
 css/CSSPropertySourceData.cpp
 css/CSSQuotesValue.cpp
+css/CSSRandomKeyParser.cpp
 css/CSSRatioValue.cpp
 css/CSSRayValue.cpp
 css/CSSRegisteredCounterStyle.cpp
@@ -2316,7 +2317,7 @@ page/UserStyleSheet.cpp
 page/VisitedLinkStore.cpp
 page/VisualViewport.cpp
 page/WebKitJSHandle.cpp
-page/WebKitSerializedNode.cpp
+page/WebKitNodeSnapshot.cpp
 page/WebKitBuffer.cpp
 page/WebKitBufferNamespace.cpp
 page/WheelEventDeltaFilter.cpp
@@ -2983,6 +2984,7 @@ rendering/RenderElement.cpp @header:RenderStyleGetters @cost:12
 rendering/RenderEmbeddedObject.cpp @header:RenderStyleGetters @cost:7
 rendering/RenderFileUploadControl.cpp @header:RenderStyleGetters @cost:7
 rendering/RenderFlexibleBox.cpp @header:RenderStyleGetters @cost:7
+rendering/RenderFlexLayout.cpp @header:RenderStyleGetters @cost:4
 rendering/RenderFragmentContainer.cpp @header:RenderStyleGetters @cost:6
 rendering/RenderFragmentContainerSet.cpp @header:RenderStyleGetters @cost:5
 rendering/RenderFragmentedFlow.cpp @header:RenderStyleGetters @cost:6
@@ -3491,6 +3493,7 @@ style/values/svg/StyleSVGPaintOrder.cpp
 style/values/svg/StyleSVGPathData.cpp
 style/values/svg/StyleSVGStrokeDasharray.cpp
 style/values/svg/StyleSVGStrokeDashoffset.cpp
+style/values/text-decoration/StyleTextDecorationInset.cpp @header:RenderStyleGetters @cost:5
 style/values/text-decoration/StyleTextDecorationLine.cpp
 style/values/text-decoration/StyleTextDecorationThickness.cpp @header:RenderStyleGetters @cost:5
 style/values/text-decoration/StyleTextEmphasisPosition.cpp
@@ -5275,7 +5278,7 @@ JSWebKitMediaKeys.cpp
 JSWebKitNamespace.cpp
 JSWebKitPlaybackTargetAvailabilityEvent.cpp
 JSWebKitPoint.cpp
-JSWebKitSerializedNode.cpp
+JSWebKitNodeSnapshot.cpp
 JSWebLock.cpp
 JSWebLockGrantedCallback.cpp
 JSWebLockManager.cpp

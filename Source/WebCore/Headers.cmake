@@ -2120,7 +2120,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/WebKitBuffer.h
     page/WebKitJSHandle.h
     page/WebKitNamespace.h
-    page/WebKitSerializedNode.h
+    page/WebKitNodeSnapshot.h
     page/WheelEventDeltaFilter.h
     page/WheelEventTestMonitor.h
     page/WindowFeatures.h
@@ -3036,6 +3036,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/RenderElementInlines.h
     rendering/RenderElementStyleInlines.h
     rendering/RenderEmbeddedObject.h
+    rendering/RenderFlexLayout.h
     rendering/RenderFlexibleBox.h
     rendering/RenderFrame.h
     rendering/RenderFrameBase.h
@@ -3499,6 +3500,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/text/StyleWhiteSpaceTrim.h
     style/values/text/StyleWordSpacing.h
 
+    style/values/text-decoration/StyleTextDecorationInset.h
     style/values/text-decoration/StyleTextDecorationLine.h
     style/values/text-decoration/StyleTextDecorationThickness.h
     style/values/text-decoration/StyleTextEmphasisPosition.h
@@ -3728,7 +3730,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/JSStyleSheetList.h
     ${WebCore_DERIVED_SOURCES_DIR}/JSTreeWalker.h
     ${WebCore_DERIVED_SOURCES_DIR}/JSWebKitJSHandle.h
-    ${WebCore_DERIVED_SOURCES_DIR}/JSWebKitSerializedNode.h
+    ${WebCore_DERIVED_SOURCES_DIR}/JSWebKitNodeSnapshot.h
     ${WebCore_DERIVED_SOURCES_DIR}/JSXPathExpression.h
     ${WebCore_DERIVED_SOURCES_DIR}/JSXPathResult.h
     ${WebCore_DERIVED_SOURCES_DIR}/MathMLNames.h

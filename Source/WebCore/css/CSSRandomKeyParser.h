@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,22 +25,32 @@
 
 #pragma once
 
-#include <WebCore/SerializedNode.h>
+#include "CSSCalcTree.h"
+#include <optional>
+#include <wtf/Compiler.h>
+#include <wtf/Function.h>
 
 namespace WebCore {
 
-class Node;
+class CSSParserTokenRange;
 
-class WebKitSerializedNode : public RefCounted<WebKitSerializedNode> {
-public:
-    static Ref<WebKitSerializedNode> create(const Node& node, bool deep) { return adoptRef(*new WebKitSerializedNode(node, deep)); }
+namespace CSS {
+struct PropertyParserState;
+}
 
-    const SerializedNode& serializedNode() const LIFETIME_BOUND { return m_serializedNode; }
+namespace CSSPropertyParserHelpers {
 
-private:
-    WebKitSerializedNode(const Node&, bool);
+// <random-key> = auto | <random-cache-key> | fixed <number [0,1]>
+// <random-cache-key> = <dashed-ident> || element-scoped || [ property-scoped | property-index-scoped | <random-ua-ident> ]
+// https://drafts.csswg.org/css-values-5/#random-caching
+//
+// property-scoped / property-index-scoped / <random-ua-ident> are not yet supported by this consumer; only the
+// subset needed by random() and random-item() ([ [ auto | <dashed-ident> ] || element-scoped ] | fixed <number [0,1]>)
+// is parsed. `makeAuto` is called (at most once) to produce the caching key used for `auto`, letting callers pick
+// their own auto-index scheme (e.g. parse-time vs. substitution-time counters).
+std::optional<CSSCalc::Random::Sharing> consumeUnresolvedRandomKey(CSSParserTokenRange&, CSS::PropertyParserState&, NOESCAPE const Function<CSSCalc::RandomSharingOptions::Auto()>& makeAuto);
 
-    const SerializedNode m_serializedNode;
-};
+CSSCalc::RandomSharingOptions::Auto autoRandomSharingKey(const CSS::PropertyParserState&);
 
+} // namespace CSSPropertyParserHelpers
 } // namespace WebCore

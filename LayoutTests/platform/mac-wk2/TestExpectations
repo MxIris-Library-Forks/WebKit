@@ -2418,11 +2418,11 @@ webkit.org/b/318452 [ Release ] platform/mac/media/audio-session-deactivated-whe
 fast/animation/css-animation-throttling.html [ Pass Failure ]
 fast/animation/request-animation-frame-throttle-inside-overflow-scroll.html [ Pass Failure ]
 fast/animation/request-animation-frame-throttle-subframe-display-none.html [ Pass Failure ]
+webkit.org/b/319501 fast/animation/request-animation-frame-throttle-subframe.html [ Pass Timeout ]
 
 webkit.org/b/318732 http/tests/site-isolation/page-zoom.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/318879 [ x86_64 Release ] webgl/ [ Skip ]
-webkit.org/b/319003 fast/mediastream/microphone-interruption-and-audio-session.html [ Failure ]
 
 # webkit.org/b/319018 2x media/media-source/* (layout-tests) are flaky timeouts.
 media/media-source/media-source-real-play-after-eos.html [ Pass ImageOnlyFailure Timeout ]

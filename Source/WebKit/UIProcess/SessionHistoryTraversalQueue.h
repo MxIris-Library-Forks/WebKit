@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,21 +23,42 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "APISerializedNode.h"
-#import "WKJSSerializedNode.h"
-#import "WKObject.h"
-#import <wtf/AlignedStorage.h>
+#pragma once
+
+#include <wtf/CheckedPtr.h>
+#include <wtf/RunLoop.h>
+#include <wtf/TZoneMalloc.h>
+#include <wtf/WeakRef.h>
 
 namespace WebKit {
 
-template<> struct WrapperTraits<API::SerializedNode> {
-    using WrapperClass = WKJSSerializedNode;
+class WebPageProxy;
+
+class SessionHistoryTraversalQueue final : public CanMakeCheckedPtr<SessionHistoryTraversalQueue> {
+    WTF_MAKE_TZONE_ALLOCATED(SessionHistoryTraversalQueue);
+    WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(SessionHistoryTraversalQueue);
+public:
+    explicit SessionHistoryTraversalQueue(WebPageProxy&);
+    ~SessionHistoryTraversalQueue();
+
+    void enqueueDelta(int32_t delta);
+    void cancel();
+
+    // Release any deltas held while a traversal was in flight, once it settles (commit or failure).
+    void traversalDidSettle();
+
+    // -1 for a back traversal, +1 for forward, 0 when none is in flight. A dispatched traversal always
+    // has a non-zero delta, so this doubles as the "traversal in flight" flag.
+    int32_t inFlightDirection() const { return m_inFlightDirection; }
+
+private:
+    void flush();
+
+    WeakRef<WebPageProxy> m_pageProxy;
+    int32_t m_pendingDelta { 0 };
+    RunLoop::Timer m_flushTimer;
+    bool m_hasPending { false };
+    int8_t m_inFlightDirection { 0 };
 };
 
-}
-
-@interface WKJSSerializedNode () <WKObject> {
-@package
-    AlignedStorage<API::SerializedNode> _node;
-}
-@end
+} // namespace WebKit

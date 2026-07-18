@@ -831,7 +831,12 @@ void TextBoxPainter::collectDecoratingBoxesForBackgroundPainting(DecoratingBoxLi
     auto textBoxLocation = textBoxRect.location();
     auto decorationWidth = textBoxRect.width();
     if (parentInlineBox->isRootInlineBox()) {
-        decoratingBoxList.append({ parentInlineBox, decoratingBoxStyleForInlineBox(*parentInlineBox, m_isFirstLine), overrideDecorationStyle, textBoxLocation, decorationWidth });
+        CheckedRef rootStyle = decoratingBoxStyleForInlineBox(*parentInlineBox, m_isFirstLine);
+        decoratingBoxList.append({ parentInlineBox, rootStyle, overrideDecorationStyle, textBoxLocation, decorationWidth });
+        // The highlight overlay's decoration layers over the originating box's own decoration rather than replacing it.
+        auto rootDecorationStyle = TextDecorationPainter::stylesForRenderer(parentInlineBox->renderer(), rootStyle->textDecorationLineInEffect(), m_isFirstLine);
+        if (!rootStyle->textDecorationLineInEffect().isNone() && overrideDecorationStyle != rootDecorationStyle)
+            decoratingBoxList.append({ parentInlineBox, rootStyle, rootDecorationStyle, textBoxLocation, decorationWidth });
         return;
     }
 
@@ -1006,7 +1011,7 @@ void TextBoxPainter::paintBackgroundDecorations(TextDecorationPainter& decoratio
             auto underlineOffset = [&] {
                 if (!computedTextDecorationType.hasUnderline())
                     return 0.f;
-                auto baseOffset = underlineOffsetForTextBoxPainting(*decoratingBox.inlineBox, decoratingBox.style.get());
+                auto baseOffset = underlineOffsetForTextBoxPainting(*decoratingBox.inlineBox, decoratingBox.style.get(), decoratingBox.textDecorationStyles.underlineOffset);
                 auto wavyOffset = decoratingBox.textDecorationStyles.underline.decorationStyle == TextDecorationStyle::Wavy ? wavyOffsetFromDecoration() : 0.f;
                 return baseOffset + wavyOffset;
             };
@@ -1052,7 +1057,12 @@ void TextBoxPainter::collectDecoratingBoxesForForegroundPainting(DecoratingBoxLi
     auto textBoxLocation = textBoxRect.location();
     auto decorationWidth = textBoxRect.width();
     if (parentInlineBox->isRootInlineBox()) {
-        decoratingBoxList.append({ parentInlineBox, decoratingBoxStyleForInlineBox(*parentInlineBox, m_isFirstLine), overrideDecorationStyle, textBoxLocation, decorationWidth });
+        CheckedRef rootStyle = decoratingBoxStyleForInlineBox(*parentInlineBox, m_isFirstLine);
+        decoratingBoxList.append({ parentInlineBox, rootStyle, overrideDecorationStyle, textBoxLocation, decorationWidth });
+        // The highlight overlay's decoration layers over the originating box's own decoration rather than replacing it.
+        auto rootDecorationStyle = TextDecorationPainter::stylesForRenderer(parentInlineBox->renderer(), rootStyle->textDecorationLineInEffect(), m_isFirstLine);
+        if (!rootStyle->textDecorationLineInEffect().isNone() && overrideDecorationStyle != rootDecorationStyle)
+            decoratingBoxList.append({ parentInlineBox, rootStyle, rootDecorationStyle, textBoxLocation, decorationWidth });
         return;
     }
 

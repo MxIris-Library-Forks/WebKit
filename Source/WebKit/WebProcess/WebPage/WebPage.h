@@ -462,7 +462,7 @@ class VideoPresentationManager;
 class VisibleContentRectUpdateInfo;
 #endif
 class WebBackForwardListItem;
-#if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
+#if ENABLE(WK_WEB_EXTENSIONS)
 class WebExtensionControllerProxy;
 #endif
 class WebFrame;
@@ -1835,8 +1835,15 @@ public:
 
     inline UserContentControllerIdentifier userContentControllerIdentifier() const;
 
-#if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    WebExtensionControllerProxy* webExtensionControllerProxy() const { return m_webExtensionController.get(); }
+#if ENABLE(WK_WEB_EXTENSIONS)
+    WebExtensionControllerProxy* webExtensionControllerProxy() const
+    {
+#if PLATFORM(COCOA)
+        return m_webExtensionController.get();
+#else
+        return nullptr;
+#endif
+    }
 #endif
 
     WebCore::UserInterfaceLayoutDirection userInterfaceLayoutDirection() const { return m_userInterfaceLayoutDirection; }
@@ -2367,8 +2374,8 @@ private:
 
     void setNeedsFontAttributes(bool);
 
-    void mouseEvent(WebCore::FrameIdentifier, const WebMouseEvent&, std::optional<Vector<SandboxExtensionHandle>>&& sandboxExtensions);
-    void keyEvent(WebCore::FrameIdentifier, const WebKeyboardEvent&);
+    void mouseEvent(WebCore::FrameIdentifier, const WebMouseEvent&, std::optional<Vector<SandboxExtensionHandle>>&& sandboxExtensions, CompletionHandler<void(bool handled, std::optional<WebCore::RemoteUserInputEventData>)>&&);
+    void keyEvent(WebCore::FrameIdentifier, const WebKeyboardEvent&, CompletionHandler<void(bool handled)>&&);
 
     void setLastKnownMousePosition(WebCore::FrameIdentifier, const WebCore::DoublePoint&, const WebCore::DoublePoint&, std::optional<WebCore::LastKnownMousePositionSource>&& = std::nullopt);
 
@@ -3062,7 +3069,7 @@ private:
     unsigned m_cachedPageCount { 0 };
 
     struct DeferredDidReceiveMouseEvent {
-        std::optional<WebEventType> type;
+        CompletionHandler<void(bool handled, std::optional<WebCore::RemoteUserInputEventData>)> completionHandler;
         bool handled { false };
     };
     std::optional<DeferredDidReceiveMouseEvent> m_deferredDidReceiveMouseEvent;

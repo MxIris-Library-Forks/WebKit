@@ -25,38 +25,47 @@
 
 #pragma once
 
-#if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
+#include "ReadableStreamSource.h"
 
-#include "MessageReceiver.h"
-#include <WebCore/PageIdentifier.h>
-#include <wtf/Ref.h>
-#include <wtf/RefCounted.h>
-#include <wtf/WeakPtr.h>
+namespace WebCore {
 
-namespace WebKit {
+class DOMPromise;
+class DeferredPromise;
+class Exception;
+class ReadableStream;
+class WebTransport;
+class WebTransportReceiveStream;
 
-class RemoteMediaSessionManagerProxy;
-class WebProcessProxy;
+struct WebTransportStreamIdentifierType;
 
-class RemotePageMediaSessionManagerProxy : public IPC::MessageReceiver, public RefCounted<RemotePageMediaSessionManagerProxy> {
+using WebTransportStreamIdentifier = ObjectIdentifier<WebTransportStreamIdentifierType>;
+
+class WebTransportReceiveStreamByteSource final : public RefCounted<WebTransportReceiveStreamByteSource> {
 public:
-    static Ref<RemotePageMediaSessionManagerProxy> create(WebCore::PageIdentifier, WebProcessProxy&, RemoteMediaSessionManagerProxy*);
+    static Ref<WebTransportReceiveStreamByteSource> create(WebTransport& transport, WebTransportStreamIdentifier identifier) { return adoptRef(*new WebTransportReceiveStreamByteSource(transport, identifier)); }
 
-    ~RemotePageMediaSessionManagerProxy();
+    Ref<DOMPromise> pull(JSDOMGlobalObject&);
+    void receiveBytes(std::span<const uint8_t>, bool, std::optional<Exception>&&);
+    void receiveError(JSDOMGlobalObject&, JSC::JSValue error);
+    void cancel(JSC::JSValue reason, Ref<DeferredPromise>&&);
 
-    void ref() const final { RefCounted::ref(); }
-    void deref() const final { RefCounted::deref(); }
+    void setStream(ReadableStream& stream)
+    {
+        ASSERT(!m_stream);
+        m_stream = stream;
+    }
+    ReadableStream* stream() const { return m_stream.get(); }
 
 private:
-    RemotePageMediaSessionManagerProxy(WebCore::PageIdentifier, WebProcessProxy&, RemoteMediaSessionManagerProxy*);
+    WebTransportReceiveStreamByteSource(WebTransport&, WebTransportStreamIdentifier);
 
-    void didReceiveMessage(IPC::Connection&, IPC::Decoder&) final;
+    bool m_isCancelled { false };
+    bool m_isClosed { false };
 
-    const WebCore::PageIdentifier m_identifier;
-    const Ref<WebProcessProxy> m_process;
-    const WeakPtr<RemoteMediaSessionManagerProxy> m_manager;
+    ThreadSafeWeakPtr<WebTransport> m_transport;
+    WeakPtr<ReadableStream> m_stream;
+    const WebTransportStreamIdentifier m_identifier;
 };
 
-} // namespace WebKit
+}
 
-#endif // ENABLE(VIDEO) || ENABLE(WEB_AUDIO)

@@ -231,11 +231,10 @@ void RenderFlexibleBox::layoutBlock(RelayoutChildren relayoutChildren, LayoutUni
 
         if (!layoutUsingFlexFormattingContext()) {
             auto flexItems = collectFlexItems(relayoutChildren);
-            if (flexItems.isEmpty()) {
-                adjustLogicalHeightForLineIfEmpty();
-                updateLogicalHeight();
-            } else {
-                auto flexLayoutResult = FlexLayout(*this, flexLayoutConstraints()).performFlexLayout(flexItems, relayoutChildren);
+            if (flexItems.isEmpty())
+                updateFlexContainerLogicalHeight();
+            else {
+                auto flexLayoutResult = FlexLayout(*this, flexLayoutConstraints()).layout(flexItems);
                 if (flexLayoutResult.alignContentStartOverflow)
                     m_alignContentStartOverflow = *flexLayoutResult.alignContentStartOverflow;
                 m_justifyContentStartOverflow = flexLayoutResult.justifyContentStartOverflow;
@@ -695,7 +694,7 @@ void RenderFlexibleBox::dirtyPercentHeightDescendantsWithinFlexItem(RenderBox& f
     }
 }
 
-void RenderFlexibleBox::layoutFlexItemAfterMainSizing(FlexLayoutItem& flexLayoutItem, LayoutUnit mainSize, RelayoutChildren relayoutChildren)
+void RenderFlexibleBox::layoutFlexItemWithMainSize(FlexLayoutItem& flexLayoutItem, LayoutUnit mainSize)
 {
     auto& flexItem = flexLayoutItem.renderer.get();
 
@@ -712,7 +711,7 @@ void RenderFlexibleBox::layoutFlexItemAfterMainSizing(FlexLayoutItem& flexLayout
     }
     // We may have already forced relayout for orthogonal flowing children in
     // computeInnerFlexBaseSizeForFlexItem.
-    bool forceFlexItemRelayout = relayoutChildren == RelayoutChildren::Yes && !hasFlexItemCompletedLayout(flexItem);
+    bool forceFlexItemRelayout = flexLayoutItem.shouldInvalidateChildContent && !hasFlexItemCompletedLayout(flexItem);
     if (!forceFlexItemRelayout && flexItemHasPercentHeightDescendants(flexItem)) {
         // Have to force another relayout even though the child is sized
         // correctly, because its descendants are not sized correctly yet. Our
@@ -1105,7 +1104,6 @@ FlexLayoutConstraints RenderFlexibleBox::flexLayoutConstraints()
         .flowAwarePaddingBlock = { utils.flowAwarePaddingBefore(), utils.flowAwarePaddingAfter() },
         .mainAxisAvailableSpace = mainAxisAvailableSpace(),
         .mainAxisSizeForLengthResolution = utils.isColumnFlow() ? availableLogicalHeight(AvailableLogicalHeightType::ExcludeMarginBorderPadding) : contentBoxLogicalWidth(),
-        .minimumHeightForLineIfEmpty = minimumHeightForLineIfEmpty(),
     };
 }
 
@@ -1131,17 +1129,15 @@ LayoutUnit RenderFlexibleBox::mainAxisAvailableSpace()
     return logicalHeight == LayoutUnit::max() ? logicalHeight : std::max(0_lu, logicalHeight - (borderAndPaddingLogicalHeight() + scrollbarLogicalHeight()));
 }
 
-void RenderFlexibleBox::updateLogicalHeightForFlexContent(std::optional<LayoutUnit> contentLogicalHeightForRowFlow, std::optional<LayoutUnit> minimumHeightForLineIfEmpty, LayoutUnit interLineGapTotal)
+FlexContainerCrossExtents RenderFlexibleBox::updateFlexContainerLogicalHeight()
 {
-    // Row flow's cross size is the content extent FlexLayout accumulated from the lines; column flow's logical
-    // height is its main size, already set while placing the items, so this is provided only for row flow.
-    if (contentLogicalHeightForRowFlow)
-        setLogicalHeight(*contentLogicalHeightForRowFlow);
-    if (minimumHeightForLineIfEmpty && borderBoxHeight() < *minimumHeightForLineIfEmpty)
-        setLogicalHeight(*minimumHeightForLineIfEmpty);
-    if (interLineGapTotal)
-        setLogicalHeight(logicalHeight() + interLineGapTotal);
+    // Reserve a line's worth of height if the container has a line even while empty, then resolve the final
+    // logical height against the container's own specified/min/max height and box-sizing. Return the resulting
+    // used cross extents (content-box and border-box) so FlexLayout takes them as values rather than reading
+    // them back off the container.
+    adjustLogicalHeightForLineIfEmpty();
     updateLogicalHeight();
+    return { flexLayoutUtils().crossAxisContentExtent(), flexLayoutUtils().crossAxisExtent() };
 }
 
 FlexLayoutItems RenderFlexibleBox::collectFlexItems(RelayoutChildren relayoutChildren)
@@ -1162,7 +1158,7 @@ FlexLayoutItems RenderFlexibleBox::collectFlexItems(RelayoutChildren relayoutChi
         if (flexItem->shouldInvalidateContentWidths())
             flexItem->invalidateContentLogicalWidths(MarkingBehavior::MarkOnlyThis);
         updateBlockChildDirtyBitsBeforeLayout(relayoutChildren, *flexItem);
-        flexItems.append({ *flexItem, everHadLayout });
+        flexItems.append({ *flexItem, everHadLayout, relayoutChildren == RelayoutChildren::Yes });
     }
     return flexItems;
 }

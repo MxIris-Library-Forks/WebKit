@@ -455,7 +455,7 @@ public:
 };
 WTF_MAKE_TZONE_ALLOCATED_IMPL(MaskedAlternativeInfo);
 
-static constexpr MacroAssembler::TrustedImm32 surrogateTagMask = MacroAssembler::TrustedImm32(0xdc00dc00);
+static constexpr MacroAssembler::TrustedImm32 surrogateTagMask = MacroAssembler::TrustedImm32(0xfc00fc00);
 static constexpr MacroAssembler::TrustedImm32 surrogatePairTags = MacroAssembler::TrustedImm32(0xdc00d800);
 
 #if ENABLE(YARR_JIT_UNICODE_EXPRESSIONS)
@@ -542,7 +542,7 @@ void tryReadUnicodeCharSlowImpl(CCallHelpers& jit)
     // regs.input contains the pointer of the beginning of the string.
     // regs.endOfStringAddress contains the address one past the end of the string.
     // For architectures that put the surrogate masks and tags in registers,
-    // regs.surrogateTagMask contains 0xdc00dc00 and regs.surrogatePairTags contains 0xdc00d800.
+    // regs.surrogateTagMask contains 0xfc00fc00 and regs.surrogatePairTags contains 0xdc00d800.
     // When the YARR_JIT_UNICODE_CAN_INCREMENT_INDEX_FOR_NON_BMP optimization is enabled and used,
     // regs.firstCharacterAdditionalReadSize is used to advance 2 characters when we read a non-BMP codepoint.
     // regs.unicodeAndSubpatternIdTemp is used as a temporary.
@@ -3473,36 +3473,27 @@ class YarrGenerator final : public YarrJITInfo {
         loadFromFrame(term->frameLocation + BackTrackInfoCharacterClass::matchAmountIndex(), countRegister);
         m_backtrackingState.append(m_jit.branchTest32(MacroAssembler::Zero, countRegister));
         m_jit.sub32(MacroAssembler::TrustedImm32(1), countRegister);
-        storeToFrame(countRegister, term->frameLocation + BackTrackInfoCharacterClass::matchAmountIndex());
 
         if (!m_decodeSurrogatePairs)
             m_jit.sub32(MacroAssembler::TrustedImm32(1), m_regs.index);
         else if (term->isFixedWidthCharacterClass())
             m_jit.sub32(MacroAssembler::TrustedImm32(term->characterClass->hasNonBMPCharacters() ? 2 : 1), m_regs.index);
         else {
-            // Rematch one less
+            // The last matched character occupied two code units iff the two code units
+            // preceding the current position form a surrogate pair.
             const MacroAssembler::RegisterID character = m_regs.regT0;
 
+            MacroAssembler::Jump backtrackToBegin = m_jit.branchTest32(MacroAssembler::Zero, countRegister);
+
+            m_jit.load32WithUnalignedHalfWords(negativeOffsetIndexedAddress(op.m_checkedOffset - term->inputPosition + 2, character), character);
+            m_jit.and32(surrogateTagMask, character);
+            m_jit.compare32(MacroAssembler::Equal, character, surrogatePairTags, character);
+            m_jit.add32(MacroAssembler::TrustedImm32(1), character);
+            m_jit.sub32(character, m_regs.index);
+            m_jit.jump(op.m_reentry);
+
+            backtrackToBegin.link(&m_jit);
             loadFromFrame(term->frameLocation + BackTrackInfoCharacterClass::beginIndex(), m_regs.index);
-
-            MacroAssembler::Label rematchLoop(&m_jit);
-            MacroAssembler::Jump doneRematching = m_jit.branchTest32(MacroAssembler::Zero, countRegister);
-
-            readCharacter(op.m_checkedOffset - term->inputPosition, character);
-
-            m_jit.sub32(MacroAssembler::TrustedImm32(1), countRegister);
-            m_jit.add32(MacroAssembler::TrustedImm32(1), m_regs.index);
-
-#if ENABLE(YARR_JIT_UNICODE_EXPRESSIONS)
-            MacroAssembler::Jump isBMPChar = m_jit.branch32(MacroAssembler::LessThan, character, MacroAssembler::TrustedImm32(0x10000));
-            m_jit.add32(MacroAssembler::TrustedImm32(1), m_regs.index);
-            isBMPChar.link(&m_jit);
-#endif
-
-            m_jit.jump(rematchLoop);
-            doneRematching.link(&m_jit);
-
-            loadFromFrame(term->frameLocation + BackTrackInfoCharacterClass::matchAmountIndex(), countRegister);
         }
         m_jit.jump(op.m_reentry);
     }

@@ -43,7 +43,7 @@ class RenderFlexibleBox;
 // LFC integration builds LogicalFlexItems for Layout::FlexLayout.
 class FlexLayoutItem {
 public:
-    FlexLayoutItem(RenderBox&, bool everHadLayout);
+    FlexLayoutItem(RenderBox&, bool everHadLayout, bool shouldInvalidateChildContent);
 
     LayoutUnit NODELETE hypotheticalMainAxisMarginBoxSize(LayoutUnit hypotheticalMainContentSize) const;
     LayoutUnit NODELETE flexBaseMarginBoxSize(LayoutUnit flexBaseContentSize) const;
@@ -55,11 +55,14 @@ public:
     const LayoutUnit crossAxisBorderAndPadding;
     // True when the flex container's main axis is this item's inline axis (i.e. the item is not orthogonal to the container).
     const bool mainAxisIsInlineAxis;
-    // The item's main-axis margin extent. Snapshotted in FlexLayout::performFlexLayout after the item is laid out for
+    // The item's main-axis margin extent. Snapshotted in FlexLayout::layout after the item is laid out for
     // its flex base size (an orthogonal item only resolves its physical margins then), not at construction time.
     // margin-trim reduces it during line collection.
     LayoutUnit mainAxisMargin;
     bool everHadLayout { false };
+    // Whether the container is relaying out all its items this pass (RelayoutChildren::Yes); layoutFlexItemWithMainSize
+    // combines it with !hasFlexItemCompletedLayout to decide whether to invalidate this child's content.
+    bool shouldInvalidateChildContent { false };
 };
 
 using FlexLayoutItems = Vector<FlexLayoutItem, 4>;
@@ -91,8 +94,15 @@ struct FlexLayoutConstraints {
     // flow; availableLogicalHeight for column flow). Unlike mainAxisAvailableSpace this never carries the indefinite
     // LayoutUnit::max() marker, since a percentage main-size must resolve against a real size.
     LayoutUnit mainAxisSizeForLengthResolution;
-    // The minimum logical height the container needs when it has a line even while empty (nullopt when it does not).
-    std::optional<LayoutUnit> minimumHeightForLineIfEmpty;
+};
+
+// The flex container's used cross-axis size once 9.6 (#15) has finalized its logical height: the content-box
+// extent (used for line positioning, align-content, and resolving each item's cross size) and the border-box
+// extent (used for the right-to-left column flip). FlexLayout takes these from updateFlexContainerLogicalHeight
+// as values rather than reading them back off the container.
+struct FlexContainerCrossExtents {
+    LayoutUnit contentBox;
+    LayoutUnit borderBox;
 };
 
 // The layout logic for a legacy flex container, factored out of RenderFlexibleBox (mirrors the
@@ -114,7 +124,7 @@ public:
         size_t numberOfFlexItemsOnFirstLine { 0 };
         size_t numberOfFlexItemsOnLastLine { 0 };
     };
-    Result performFlexLayout(FlexLayoutItems&, RelayoutChildren);
+    Result layout(FlexLayoutItems&);
 
 private:
     struct FlexBaseAndHypotheticalMainSize {
@@ -148,7 +158,7 @@ private:
     // Resolves each flex item's flexed main size (spec 9.7) for every line, and returns the used main size of each item.
     Vector<LayoutUnit> computeMainSizeForFlexItems(FlexLayoutItems& flexItems, const FlexLines&, std::span<const FlexBaseAndHypotheticalMainSize> flexBaseAndHypotheticalMainSizeList);
     void resolveFlexibleLengthsForLineItems(std::span<FlexLayoutItem> lineItems, std::span<const FlexBaseAndHypotheticalMainSize> lineFlexBaseAndHypotheticalMainSizeList, std::span<LayoutUnit> flexItemsMainSizeList, LayoutUnit flexContainerInnerMainSize);
-    void distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(const FlexLines&, FlexLayoutItems&, std::span<const FlexBaseAndHypotheticalMainSize> flexBaseAndHypotheticalMainSizeList, Vector<LayoutUnit>& flexItemsMainSizeList, Vector<LayoutPoint>& positionList, const Vector<LayoutUnit>& flexLinesCrossPositionList);
+    void distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(const FlexLines&, FlexLayoutItems&, std::span<const FlexBaseAndHypotheticalMainSize> flexBaseAndHypotheticalMainSizeList, Vector<LayoutUnit>& flexItemsMainSizeList, Vector<LayoutPoint>& flexItemsPositionList, const Vector<LayoutUnit>& flexLinesCrossPositionList);
     // CSS Flexbox 9.7/9.6: the space available to distribute among a line's items (respectively among the lines
     // within the container) is the container's inner main (cross) size minus the gaps between them.
     LayoutUnit mainAxisAvailableSpaceForItemAlignment(LayoutUnit mainAxisAvailableSpace, size_t numberOfFlexItems) const;
@@ -156,14 +166,15 @@ private:
     // Trims the cross-axis margins of the items on the first and last flex line (must run before laying the items out).
     void trimCrossAxisMarginsForFlexItems(FlexLayoutItems& flexItems, const FlexLines&);
     // Lays out each flex item at its resolved main size.
-    void layoutFlexItems(std::span<FlexLayoutItem>, std::span<const LayoutUnit> flexItemsMainSizeList, RelayoutChildren);
+    void layoutFlexItems(std::span<FlexLayoutItem>, std::span<const LayoutUnit> flexItemsMainSizeList);
     Vector<LayoutUnit> hypotheticalCrossSizeForFlexItems(const FlexLayoutItems&);
     Vector<LayoutUnit> crossSizeForFlexLines(const FlexLines&, const FlexLayoutItems&, const Vector<LayoutUnit>& flexItemsHypotheticalCrossSizeList);
     Vector<LayoutPoint> handleMainAxisAlignment(const FlexLines&, FlexLayoutItems&, const Vector<LayoutUnit>& flexItemsMainSizeList, const Vector<LayoutUnit>& flexLinesCrossPositionList);
-    Vector<LayoutUnit> computeCrossSizeForFlexItems(const FlexLines&, FlexLayoutItems&, const Vector<LayoutUnit>& flexLinesCrossSizeList);
-    void handleCrossAxisAlignmentForFlexLines(const FlexLines&, Vector<LayoutPoint>& positionList, Vector<LayoutUnit>& flexLinesCrossPositionList, Vector<LayoutUnit>& flexLinesCrossSizeList);
-    void handleCrossAxisAlignmentForFlexItems(const FlexLines&, FlexLayoutItems&, const Vector<LayoutUnit>& flexItemsCrossSizeList, const Vector<LayoutUnit>& flexLinesCrossSizeList, Vector<LayoutPoint>& positionList);
+    Vector<LayoutUnit> computeCrossSizeForFlexItems(const FlexLines&, FlexLayoutItems&, const Vector<LayoutUnit>& flexLinesCrossSizeList, LayoutUnit crossContentExtent);
+    void handleCrossAxisAlignmentForFlexLines(const FlexLines&, Vector<LayoutPoint>& flexItemsPositionList, Vector<LayoutUnit>& flexLinesCrossPositionList, Vector<LayoutUnit>& flexLinesCrossSizeList, LayoutUnit crossContentExtent);
+    void handleCrossAxisAlignmentForFlexItems(const FlexLines&, FlexLayoutItems&, const Vector<LayoutUnit>& flexItemsCrossSizeList, const Vector<LayoutUnit>& flexLinesCrossSizeList, Vector<LayoutPoint>& flexItemsPositionList);
     void performBaselineAlignment(WTF::Range<size_t> lineRange, FlexLayoutItems&, Vector<LayoutUnit>& flexItemsCrossOffsetList, const Vector<LayoutUnit>& flexItemsCrossSizeList, LayoutUnit lineCrossAxisExtent);
+    void computeFlexItemRects(const FlexLines&, FlexLayoutItems&, const Vector<LayoutPoint>& flexItemsPositionList, const Vector<LayoutUnit>& flexLinesCrossPositionList, const Vector<LayoutUnit>& flexLinesCrossSizeList, const Vector<LayoutUnit>& flexItemsCrossSizeList, LayoutUnit crossAxisStartEdge, LayoutUnit crossContentExtent, LayoutUnit crossExtent);
 
     void placeFlexItems(LayoutUnit crossAxisOffset, std::span<FlexLayoutItem>, std::span<LayoutPoint> positions, LayoutUnit availableFreeSpace);
     void layoutColumnReverse(std::span<FlexLayoutItem>, std::span<LayoutPoint> positions, LayoutUnit crossAxisOffset, LayoutUnit availableFreeSpace);
@@ -199,8 +210,8 @@ private:
     void NODELETE updateAutoMarginsInMainAxis(RenderBox& flexItem, LayoutUnit autoMarginOffset);
 
     bool NODELETE updateAutoMarginsInCrossAxis(FlexLayoutItem&, LayoutUnit& crossOffset, LayoutUnit availableAlignmentSpace);
-    LayoutUnit applyStretchAlignmentToFlexItem(const FlexLayoutItem&, LayoutUnit lineCrossAxisExtent);
-    LayoutUnit applyStretchMinMaxCrossSize(const FlexLayoutItem&, LayoutUnit lineCrossAxisExtent, LogicalBoxAxis);
+    LayoutUnit applyStretchAlignmentToFlexItem(const FlexLayoutItem&, LayoutUnit lineCrossAxisExtent, LayoutUnit crossContentExtent);
+    LayoutUnit applyStretchMinMaxCrossSize(const FlexLayoutItem&, LayoutUnit lineCrossAxisExtent, LogicalBoxAxis, LayoutUnit crossContentExtent);
 
     void NODELETE setFlowAwareLocationForFlexItem(RenderBox& flexItem, const LayoutPoint&);
     void setFlexItemGeometry(FlexLayoutItem&, const LayoutPoint& location);

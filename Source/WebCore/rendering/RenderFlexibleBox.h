@@ -165,7 +165,7 @@ private:
     FlexLayoutItems collectFlexItems(RelayoutChildren);
     FlexLayoutConstraints flexLayoutConstraints();
     LayoutUnit mainAxisAvailableSpace();
-    void updateLogicalHeightForFlexContent(std::optional<LayoutUnit> contentLogicalHeightForRowFlow, std::optional<LayoutUnit> minimumHeightForLineIfEmpty, LayoutUnit interLineGapTotal);
+    FlexContainerCrossExtents updateFlexContainerLogicalHeight();
     void prepareFlexItemForPositionedLayout(RenderBox& flexItem);
     void adjustLogicalHeightForLineIfEmpty();
     std::optional<LayoutUnit> minimumHeightForLineIfEmpty() const;
@@ -187,7 +187,7 @@ private:
     void stretchFlexItemLogicalHeight(RenderBox& flexItem, LayoutUnit desiredLogicalHeight, bool needsRelayout);
     void relayoutFlexItemForStretchedCrossSize(RenderBox& flexItem, LayoutUnit crossSize, LogicalBoxAxis crossAxis);
     void dirtyPercentHeightDescendantsWithinFlexItem(RenderBox& flexItem);
-    void layoutFlexItemAfterMainSizing(FlexLayoutItem&, LayoutUnit mainSize, RelayoutChildren);
+    void layoutFlexItemWithMainSize(FlexLayoutItem&, LayoutUnit mainSize);
     void setOverridingMainSizeForFlexItem(RenderBox& flexItem, LayoutUnit mainSize);
     void resetAutoMarginsAndLogicalTopInCrossAxis(RenderBox& flexItem);
     bool flexItemHasPercentHeightDescendants(const RenderBox&) const;

@@ -258,7 +258,6 @@ fast/shapes/shape-outside-floats/shape-outside-imagedata-overflow.html [ Skip ]
 [ Debug ] fast/files/blob-stream-chunks.html [ Skip ]
 [ Debug ] security/decode-buffer-size.html [ Skip ]
 [ Debug ] security/text-decode-long-strings.html [ Skip ]
-[ Debug ] media/media-source/media-source-evict-invalid-time-crash.html [ Skip ]
 
 # Only iOS supports QuickLook
 quicklook [ Skip ]
@@ -3066,7 +3065,6 @@ imported/w3c/web-platform-tests/css/css-masking/mask-image/mask-origin-3.html [ 
 
 imported/w3c/web-platform-tests/css/css-masking/animations/clip-path-interpolation-shape-arc-direction-agnostic-radius.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-polygon-014.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-shape-011.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-url-reference-empty-while-loading.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-masking/clip-path/clip-path-url-reference-external.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-masking/mask-image/mask-composite-1c.html [ ImageOnlyFailure ]
@@ -3924,7 +3922,6 @@ imported/w3c/web-platform-tests/css/css-pseudo/selection-originating-decoration-
 imported/w3c/web-platform-tests/css/css-pseudo/selection-text-decoration-currentcolor.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/invalidation/css-highlight-invalidation-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/css-highlight-painting-underline-offset-001.html [ ImageOnlyFailure ]
 
 webkit.org/b/177799,webkit.org/b/290781 accessibility/table-detection.html [ Pass Failure Timeout ]
 
@@ -4089,7 +4086,6 @@ imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-018.h
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-019.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-020.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-021.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-024.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-025.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-027.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-028.html [ ImageOnlyFailure ]
@@ -5724,7 +5720,6 @@ webkit.org/b/217931 imported/w3c/web-platform-tests/html/semantics/scripting-1/t
 webkit.org/b/220325 imported/w3c/web-platform-tests/css/css-highlight-api/highlight-text-cascade.html [ ImageOnlyFailure ]
 
 # Tests need updating relating to Highlight Spec
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/css-target-text-decoration-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-container-metrics-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-container-metrics-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-container-metrics-003.html [ ImageOnlyFailure ]
@@ -6830,79 +6825,55 @@ webkit.org/b/257336 imported/w3c/web-platform-tests/css/css-tables/visibility-co
 # Only Sonoma+/iOS 17+ have support for auto word breaking. Skipped globally and re-enabled for each platform.
 imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase [ Skip ]
 
-# These tests time out because the layout test harness does not yet run a WebTransport-over-HTTP/3
-# (webtransport-h3) server. https://bugs.webkit.org/show_bug.cgi?id=318998
+# WebTransport: the webtransport-h3 server now runs (webkit.org/b/319008); the rest stay skipped. https://bugs.webkit.org/show_bug.cgi?id=318998
+
+# Crash tests, must pass.
 imported/w3c/web-platform-tests/webtransport/bidirectional-cancel-crash.https.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/congestion-control.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/congestion-control.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/congestion-control.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/congestion-control.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/incoming-multiple-streams.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/incoming-multiple-streams.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/incoming-multiple-streams.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/incoming-multiple-streams.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/constructor.https.sub.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/constructor.https.sub.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/constructor.https.sub.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/datagram-cancel-crash.https.sub.window.html [ Skip ]
+
+# Internal timeout (streams hang).
 imported/w3c/web-platform-tests/webtransport/echo-large-bidirectional-streams.https.any.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/echo-large-bidirectional-streams.https.any.serviceworker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/echo-large-bidirectional-streams.https.any.sharedworker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/echo-large-bidirectional-streams.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/close.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/close.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/close.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/close.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/connect.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/connect.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/connect.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/connect.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagram-bad-chunk.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagram-bad-chunk.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagram-bad-chunk.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagram-bad-chunk.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagrams.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagrams.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagrams.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagrams.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/streams-close.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/streams-close.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/streams-close.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/streams-close.https.any.worker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/streams-echo.https.any.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/streams-echo.https.any.serviceworker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/streams-echo.https.any.sharedworker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/streams-echo.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/server-certificate-hashes.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/server-certificate-hashes.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/server-certificate-hashes.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/server-certificate-hashes.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/csp-pass.https.window.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/csp-fail.https.window.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/constructor.https.sub.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/back-forward-cache-with-open-webtransport-connection.https.window.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/back-forward-cache-with-closed-webtransport-connection.https.window.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/stats.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/stats.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/stats.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/streams-close.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/streams-close.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/streams-close.https.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/streams-close.https.any.worker.html [ Skip ]
+
+# Backend gaps (datagram flow-control, getStats, sendOrder, close, historical, idlharness exportKeyingMaterial).
+imported/w3c/web-platform-tests/webtransport/datagrams.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/datagrams.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/datagrams.https.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/datagrams.https.any.worker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/stats.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendstream-bad-chunk.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendstream-bad-chunk.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendstream-bad-chunk.https.any.serviceworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendstream-bad-chunk.https.any.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendorder.https.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendorder.https.any.sharedworker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/sendorder.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/stats.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/stats.https.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/stats.https.any.worker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/sendorder.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/sendorder.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/sendorder.https.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/sendorder.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/close.https.any.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/close.https.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/close.https.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/close.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.sharedworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/historical.https.sub.any.worker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.serviceworker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.sharedworker.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.worker.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagram-cancel-crash.https.sub.window.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/in-removed-iframe.https.html [ Skip ]
+
+# BFCache.
+imported/w3c/web-platform-tests/webtransport/back-forward-cache-with-open-webtransport-connection.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/back-forward-cache-with-closed-webtransport-connection.https.window.html [ Skip ]
 
 # Some of Canvas Layer API features are not supported yet.
 imported/w3c/web-platform-tests/html/canvas/element/layers/2d.layer.anisotropic-blur.isotropic.html [ ImageOnlyFailure ]
@@ -8185,11 +8156,8 @@ webkit.org/b/308096 imported/w3c/web-platform-tests/css/cssom-view/scrollParent.
 webkit.org/b/296130 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-scroller-nested-4.html [ Pass Failure ]
 webkit.org/b/281267 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-summary-element/interactive-content.html [ Pass Failure ]
 
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-019.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-020.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-021.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-text-shadow-invalidation.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-text-shadow.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/cookies/third-party-cookies/third-party-cookie-heuristics.tentative.https.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-canvas-element/canvas-descendants-focusability-006.html [ Skip ] # Timeout
@@ -8289,3 +8257,7 @@ webkit.org/b/318777 fast/block/out-of-flow-intrinsic-height.html [ Timeout Pass 
 webkit.org/b/318779 fast/css/has-lang-jit-crash.html [ Failure Pass ]
 
 webkit.org/b/315806 imported/w3c/web-platform-tests/gpc/sec-gpc.https.html [ Failure Pass ]
+
+# webkit.org/b/319643 http/tests/inspector/target/pause-on-inline-debugger-statement.html (layout-tests) is a flaky timeout/crash.
+[ Release arm64 ] http/tests/inspector/target/pause-on-inline-debugger-statement.html [ Pass Timeout ]
+[ Debug arm64 ] http/tests/inspector/target/pause-on-inline-debugger-statement.html [ Pass Crash ]

@@ -28,7 +28,9 @@
 #include "bmalloc_heap.h"
 #include "bmalloc_heap_config.h"
 #include "pas_internal_config.h"
+#include "pas_page_malloc.h"
 #include "tagged_bmalloc_heap.h"
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -72,21 +74,37 @@ void dirtyBuffer(void* ptr, size_t size)
 }
 
 // Return the offset of the first non-zero byte, or size if every byte is zero.
+// Scans 8 bytes at a time (a word is non-zero iff some byte is), byte-scanning an
+// unaligned head and the sub-word tail.
 size_t firstNonZeroByte(const void* ptr, size_t size)
 {
     const uint8_t* bytes = static_cast<const uint8_t*>(ptr);
-    for (size_t offset = 0; offset < size; ++offset) {
-        if (bytes[offset])
-            return offset;
+    size_t i = 0;
+    while (i < size && (reinterpret_cast<uintptr_t>(bytes + i) & (sizeof(uint64_t) - 1))) {
+        if (bytes[i])
+            return i;
+        ++i;
+    }
+    for (; i + sizeof(uint64_t) <= size; i += sizeof(uint64_t)) {
+        if (*reinterpret_cast<const uint64_t*>(bytes + i)) {
+            for (size_t b = i; b < i + sizeof(uint64_t); ++b) {
+                if (bytes[b])
+                    return b;
+            }
+        }
+    }
+    for (; i < size; ++i) {
+        if (bytes[i])
+            return i;
     }
     return size;
 }
 
-// The two axes varied below, in addition to size and alignment. Untagged vs
-// tagged selects the two families of zeroed entry points. Plain vs
-// with-alignment selects entry points that take different internal paths even
-// when the requested alignment is the natural minimum.
-enum class HeapVariant { Untagged, Tagged };
+// The two axes varied below, besides size and alignment. HeapVariant selects the
+// zeroed entry point; Compact routes to the separate compact primitive
+// heap and is untagged-only, as the tagged API takes no allocation mode. Plain vs
+// with-alignment takes a different internal path even at the minimum alignment.
+enum class HeapVariant { Untagged, Compact, Tagged };
 enum class AlignmentApi { Plain, WithAlignment };
 
 // Whether reuse goes straight through (WithoutScavenge) or forces a synchronous
@@ -97,7 +115,16 @@ enum class Reuse { WithoutScavenge, WithScavenge };
 
 const char* variantName(HeapVariant variant)
 {
-    return variant == HeapVariant::Tagged ? "tagged" : "untagged";
+    switch (variant) {
+    case HeapVariant::Untagged:
+        return "untagged";
+    case HeapVariant::Compact:
+        return "compact";
+    case HeapVariant::Tagged:
+        return "tagged";
+    }
+    CHECK(!"Invalid variant");
+    return "";
 }
 
 const char* alignmentApiName(AlignmentApi api)
@@ -112,6 +139,10 @@ void* allocateZeroed(HeapVariant variant, AlignmentApi api, size_t size, size_t 
         if (api == AlignmentApi::WithAlignment)
             return bmalloc_try_allocate_zeroed_with_alignment(size, alignment, pas_non_compact_allocation_mode);
         return bmalloc_try_allocate_zeroed(size, pas_non_compact_allocation_mode);
+    case HeapVariant::Compact:
+        if (api == AlignmentApi::WithAlignment)
+            return bmalloc_try_allocate_zeroed_with_alignment(size, alignment, pas_always_compact_allocation_mode);
+        return bmalloc_try_allocate_zeroed(size, pas_always_compact_allocation_mode);
     case HeapVariant::Tagged:
         if (api == AlignmentApi::WithAlignment)
             return tagged_bmalloc_try_allocate_zeroed_with_alignment(size, alignment);
@@ -137,19 +168,93 @@ void reportParameters(HeapVariant variant, AlignmentApi api, size_t size, size_t
               << " size=" << size << " alignment=" << alignment << " phase=" << phase << std::endl;
 }
 
-// Require every byte to be zero, reporting the identifying parameters and the
-// first offending offset/value on failure.
-void checkIsZeroed(const void* ptr, size_t size, HeapVariant variant, AlignmentApi api,
-                   size_t alignment, const char* phase)
+// The order in which a buffer's pages are first faulted during verification. The
+// large VA-zeroing path (madvise(MADV_ZERO) or the mmap fallback) leaves pages
+// zero-fill-on-demand, so a page is only observed zero when first touched; a
+// hashtable reads its buckets in hash order -- effectively at random -- so a
+// fault-order-dependent zeroing bug could surface under non-ascending access but
+// not under an ascending scan. (For the eagerly memset-zeroed regimes the order
+// is immaterial, so those callers use the default Ascending.)
+enum class FaultOrder { Ascending, Descending, Shuffled };
+
+const char* faultOrderName(FaultOrder order)
 {
-    size_t offset = firstNonZeroByte(ptr, size);
-    if (offset < size) {
-        const uint8_t* bytes = static_cast<const uint8_t*>(ptr);
-        reportParameters(variant, api, size, alignment, phase);
-        std::cout << "  first non-zero byte at offset " << offset << " is 0x" << std::hex
-                  << static_cast<unsigned>(bytes[offset]) << std::dec << "." << std::endl;
+    switch (order) {
+    case FaultOrder::Ascending:
+        return "ascending";
+    case FaultOrder::Descending:
+        return "descending";
+    case FaultOrder::Shuffled:
+        return "shuffled";
     }
-    CHECK_EQUAL(offset, size);
+    CHECK(!"Invalid fault order");
+    return "";
+}
+
+// In-place Fisher-Yates shuffle using the seeded test RNG: random order, but
+// reproducible across runs.
+template<typename T>
+void seededShuffle(std::vector<T>& values)
+{
+    for (size_t i = values.size(); i-- > 1;) {
+        size_t j = deterministicRandomNumber(static_cast<unsigned>(i + 1));
+        T swapTemp = values[i];
+        values[i] = values[j];
+        values[j] = swapTemp;
+    }
+}
+
+// The sequence of page indices to touch, in the requested first-fault order.
+std::vector<size_t> pageVisitationOrder(size_t numPages, FaultOrder order)
+{
+    std::vector<size_t> pages;
+    pages.reserve(numPages);
+    for (size_t i = 0; i < numPages; ++i)
+        pages.push_back(i);
+
+    switch (order) {
+    case FaultOrder::Ascending:
+        break;
+    case FaultOrder::Descending:
+        std::reverse(pages.begin(), pages.end());
+        break;
+    case FaultOrder::Shuffled:
+        seededShuffle(pages);
+        break;
+    }
+    return pages;
+}
+
+// Require every byte to be zero, reporting the identifying parameters and the
+// first offending offset/value on failure. `order` controls the order in which
+// the buffer's pages are first faulted: Ascending walks them front to back;
+// Descending/Shuffled visit pages out of order (the first byte touched in each
+// page faults it), which matters only for the large VA-zeroed path.
+void checkIsZeroed(const void* ptr, size_t size, HeapVariant variant, AlignmentApi api,
+                   size_t alignment, const char* phase, FaultOrder order = FaultOrder::Ascending)
+{
+    const uint8_t* bytes = static_cast<const uint8_t*>(ptr);
+
+    // Visit the pages in the requested order so the first byte touched in each
+    // page faults it in that order.
+    size_t pageSize = pas_page_malloc_alignment();
+    size_t numPages = (size + pageSize - 1) / pageSize;
+    std::vector<size_t> pages = pageVisitationOrder(numPages, order);
+    for (size_t pageIndex : pages) {
+        size_t begin = pageIndex * pageSize;
+        // The allocation might not be a whole number of pages; clamp the last one.
+        size_t end = std::min(begin + pageSize, size);
+        size_t pageLength = end - begin;
+        size_t nonZero = firstNonZeroByte(bytes + begin, pageLength);
+        if (nonZero < pageLength) {
+            size_t offset = begin + nonZero;
+            reportParameters(variant, api, size, alignment, phase);
+            std::cout << "  first non-zero byte at offset " << offset << " (page " << pageIndex << " of "
+                      << numPages << ") is 0x" << std::hex << static_cast<unsigned>(bytes[offset]) << std::dec
+                      << " with " << faultOrderName(order) << " fault order." << std::endl;
+            CHECK(!bytes[offset]);
+        }
+    }
 }
 
 void checkIsAligned(const void* ptr, size_t size, HeapVariant variant, AlignmentApi api,
@@ -165,9 +270,11 @@ void checkIsAligned(const void* ptr, size_t size, HeapVariant variant, Alignment
 // then zeroed-alloc the same size again and verify the reused region is zero.
 // With Reuse::WithScavenge, a synchronous scavenge runs after the free so the
 // region is decommitted and the reuse must go through recommit rather than a
-// straight free-list handback.
+// straight free-list handback. `order` sets the fault order of the reused
+// buffer's check -- Ascending for the generic runs; the large VA-zeroed
+// fault-order test (testLargeZeroingFaultOrder) drives Descending/Shuffled.
 void zeroingReuse(HeapVariant variant, AlignmentApi api, size_t size, size_t alignment,
-                  Reuse reuse)
+                  Reuse reuse, FaultOrder order = FaultOrder::Ascending)
 {
     void* first = allocateZeroed(variant, api, size, alignment);
     if (!first)
@@ -200,7 +307,7 @@ void zeroingReuse(HeapVariant variant, AlignmentApi api, size_t size, size_t ali
         std::cout << "Note: reuse returned a different region for size " << size
                   << "; dirtied-backing reuse not exercised." << std::endl;
     }
-    checkIsZeroed(second, size, variant, api, alignment, "reused");
+    checkIsZeroed(second, size, variant, api, alignment, "reused", order);
     if (api == AlignmentApi::WithAlignment)
         checkIsAligned(second, size, variant, api, alignment, "reused");
 
@@ -218,14 +325,36 @@ void runZeroingReuse(const std::vector<size_t>& sizes, Reuse reuse = Reuse::With
 {
     pas_scavenger_suspend();
 
-    static const HeapVariant variants[] = { HeapVariant::Untagged, HeapVariant::Tagged };
-    static const size_t alignments[] = { 16, 512, 4096, 16384 };
+    static constexpr HeapVariant variants[] = { HeapVariant::Untagged, HeapVariant::Compact, HeapVariant::Tagged };
+    static constexpr size_t alignments[] = { 16, 512, 4096, 16384 };
 
     for (HeapVariant variant : variants) {
         for (size_t size : sizes) {
             zeroingReuse(variant, AlignmentApi::Plain, size, bmallocMinAlign, reuse);
             for (size_t alignment : alignments)
                 zeroingReuse(variant, AlignmentApi::WithAlignment, size, alignment, reuse);
+        }
+    }
+}
+
+// Companion run for the large VA-zeroed path: for each size, cross the fault
+// order (how the reused buffer's pages are first touched) with the reuse mode
+// (immediate free-list reuse vs forced decommit/recommit). Untagged/plain only,
+// since the VA-zeroing path is variant- and alignment-independent. Suspends the
+// scavenger for the same determinism reason as runZeroingReuse.
+void runZeroingReuseFaultOrders(const std::vector<size_t>& sizes)
+{
+    pas_scavenger_suspend();
+
+    static constexpr FaultOrder orders[] = {
+        FaultOrder::Ascending, FaultOrder::Descending, FaultOrder::Shuffled,
+    };
+    static constexpr Reuse reuses[] = { Reuse::WithoutScavenge, Reuse::WithScavenge };
+
+    for (size_t size : sizes) {
+        for (FaultOrder order : orders) {
+            for (Reuse reuse : reuses)
+                zeroingReuse(HeapVariant::Untagged, AlignmentApi::Plain, size, bmallocMinAlign, reuse, order);
         }
     }
 }
@@ -394,15 +523,262 @@ void testSmallZeroingPageBatching()
     // Small sizes bracketing the batching density: the smallest object (the most
     // per page) and the largest small-segregated object (the fewest per page, but
     // still at least PAS_MIN_OBJECTS_PER_PAGE).
-    static const size_t sizes[] = {
+    static constexpr size_t sizes[] = {
         bmallocMinAlign,
         PAS_SMALL_PAGE_DEFAULT_SIZE / PAS_MIN_OBJECTS_PER_PAGE,
     };
-    static const HeapVariant variants[] = { HeapVariant::Untagged, HeapVariant::Tagged };
+    static constexpr HeapVariant variants[] = { HeapVariant::Untagged, HeapVariant::Compact, HeapVariant::Tagged };
     for (HeapVariant variant : variants) {
         for (size_t size : sizes)
             smallPageBatching(variant, size);
     }
+}
+
+// Verify large VA-zeroed allocations read zero regardless of the order in which
+// their pages are first faulted, mimicking a hashtable's non-sequential bucket
+// access on reused (previously-dirtied) memory. Runs each order under both reuse
+// modes; ascending is a control against descending and shuffled.
+void testLargeZeroingFaultOrder()
+{
+    // A fixed multi-megabyte size (spans many pages) alongside the threshold; kept
+    // independent of vaZeroThreshold so lowering the threshold can't shrink it.
+    constexpr size_t multiMegabyteSize = static_cast<size_t>(4) << 20;
+    static_assert(multiMegabyteSize >= vaZeroThreshold,
+                  "large fault-order sample should stay on the VA-zeroing path");
+    runZeroingReuseFaultOrders({ vaZeroThreshold, multiMegabyteSize });
+}
+
+// A live buffer in the fragmentation pool, carrying the unique stamp written into
+// it. stamp() fills the whole buffer with a single non-zero byte keyed to stampId:
+// the high bit is always set (so it is never mistaken for zeroed memory) and the
+// low 7 bits are the id. Two live buffers whose ids differ mod 128 therefore hold
+// different bytes, so if one is handed the other's still-live memory the overwrite
+// differs from the expected byte at every overlapping position -- at any offset, so
+// a partial/shifted overlap is caught too. Stamp and verify run 8 bytes at a time.
+struct LiveBuffer {
+    void* ptr;
+    size_t size;
+    uint32_t stampId;
+
+    uint8_t stampByte() const
+    {
+        return static_cast<uint8_t>(0x80 | (stampId & 0x7f));
+    }
+
+    // The stamp byte broadcast to all 8 lanes, for word-at-a-time stamp/verify.
+    uint64_t stampWord() const
+    {
+        return static_cast<uint64_t>(stampByte()) * 0x0101010101010101ULL;
+    }
+
+    // Write the stamp across the whole buffer. The allocation base is at least
+    // 8-byte aligned, so full words are written aligned; the sub-word tail is
+    // written byte-wise.
+    void stamp()
+    {
+        uint8_t* bytes = static_cast<uint8_t*>(ptr);
+        uint64_t word = stampWord();
+        size_t i = 0;
+        for (; i + sizeof(uint64_t) <= size; i += sizeof(uint64_t))
+            *reinterpret_cast<uint64_t*>(bytes + i) = word;
+        for (; i < size; ++i)
+            bytes[i] = stampByte();
+    }
+
+    // Verify the buffer still holds its stamp, reporting the first mismatching
+    // offset on failure. A mismatch means another allocation was handed this
+    // still-live buffer's memory (overwriting the stamp, or re-zeroing it).
+    void verify(HeapVariant variant, const char* phase) const
+    {
+        const uint8_t* bytes = static_cast<const uint8_t*>(ptr);
+        uint64_t word = stampWord();
+        uint8_t expected = stampByte();
+        size_t i = 0;
+        for (; i + sizeof(uint64_t) <= size; i += sizeof(uint64_t)) {
+            if (*reinterpret_cast<const uint64_t*>(bytes + i) != word)
+                break;
+        }
+        for (; i < size; ++i) {
+            if (bytes[i] != expected) {
+                std::cout << "  stamp mismatch: variant=" << variantName(variant) << " phase=" << phase
+                          << " stampId=" << stampId << " size=" << size << " offset=" << i << " expected=0x"
+                          << std::hex << static_cast<unsigned>(expected) << " actual=0x"
+                          << static_cast<unsigned>(bytes[i]) << std::dec << "." << std::endl;
+                CHECK_EQUAL(bytes[i], expected);
+                return;
+            }
+        }
+    }
+};
+
+// One zeroing regime's size range. The pool takes one size per regime per round,
+// so every regime stays covered while the exact size within it is randomized --
+// varying fragmentation and catching any size-rounding bug. Ranges track the config
+// constants; the large-VA range is capped so the many-live pool, whose stamps are
+// verified byte-for-byte, stays bounded.
+struct FragmentationRegime {
+    size_t minSize;
+    size_t maxSize;
+};
+
+std::vector<FragmentationRegime> fragmentationRegimes()
+{
+    size_t smallSegMax = PAS_SMALL_PAGE_DEFAULT_SIZE / PAS_MIN_OBJECTS_PER_PAGE;
+    size_t mediumSegMax = PAS_MEDIUM_PAGE_DEFAULT_SIZE / PAS_MIN_OBJECTS_PER_PAGE;
+    size_t bitfitMax = PAS_MARGE_PAGE_DEFAULT_SIZE / PAS_MIN_OBJECTS_PER_PAGE;
+    return {
+        { bmallocMinAlign, smallSegMax }, // small-segregated (memset)
+        { smallSegMax + 1, mediumSegMax }, // medium-segregated (memset)
+        { mediumSegMax + 1, bitfitMax }, // medium/marge bitfit (memset)
+        { bitfitMax + 1, vaZeroThreshold - 1 }, // large heap, memset
+        { vaZeroThreshold, 2 * vaZeroThreshold }, // large heap, virtual-memory zeroing
+    };
+}
+
+// One pool allocation's randomized size and alignment entry point.
+struct AllocationSpec {
+    size_t size;
+    size_t alignment;
+    AlignmentApi api;
+};
+
+struct AlignmentChoice {
+    AlignmentApi api;
+    size_t alignment;
+};
+
+// A size in [minSize, maxSize], chosen with the seeded RNG.
+size_t randomSizeInRange(size_t minSize, size_t maxSize)
+{
+    if (maxSize <= minSize)
+        return minSize;
+    return minSize + deterministicRandomNumber(static_cast<unsigned>(maxSize - minSize + 1));
+}
+
+// Randomly pick an alignment entry point (seeded): the plain API at the natural
+// minimum, or the with-alignment API at one of the reuse sweep's quanta, so the
+// pool exercises both paths across a range of alignments.
+AlignmentChoice randomAlignmentChoice()
+{
+    static constexpr AlignmentChoice choices[] = {
+        { AlignmentApi::Plain, bmallocMinAlign },
+        { AlignmentApi::WithAlignment, 16 },
+        { AlignmentApi::WithAlignment, 512 },
+        { AlignmentApi::WithAlignment, 4096 },
+        { AlignmentApi::WithAlignment, 16384 },
+    };
+    unsigned count = static_cast<unsigned>(sizeof(choices) / sizeof(choices[0]));
+    return choices[deterministicRandomNumber(count)];
+}
+
+// A shuffled, stratified allocation plan: one spec per regime per round (so every
+// regime is covered poolRounds times) with a randomized size and alignment, then
+// shuffled so regimes and sizes interleave. A fresh call re-randomizes, so fill and
+// refill differ.
+std::vector<AllocationSpec> fragmentationPlan(size_t poolRounds)
+{
+    std::vector<FragmentationRegime> regimes = fragmentationRegimes();
+    std::vector<AllocationSpec> plan;
+    plan.reserve(regimes.size() * poolRounds);
+    for (size_t round = 0; round < poolRounds; ++round) {
+        for (const FragmentationRegime& regime : regimes) {
+            AlignmentChoice choice = randomAlignmentChoice();
+            plan.push_back({ randomSizeInRange(regime.minSize, regime.maxSize), choice.alignment, choice.api });
+        }
+    }
+    seededShuffle(plan);
+    return plan;
+}
+
+// Fragmentation + aliasing coverage over randomized, per-regime-stratified sizes
+// and alignments (phases detailed inline). Every allocation is zero-checked,
+// extending born-dirty coverage to fragmented and possibly-decommitted backing;
+// each live buffer's unique stamp is re-verified after every phase, catching a
+// double-handout -- an allocation returned an address still owned by a live buffer.
+// Single-threaded; the chaos tests cover the concurrent case.
+void fragmentationReuse(HeapVariant variant, Reuse reuse)
+{
+    constexpr size_t poolRounds = 12;
+
+    std::vector<LiveBuffer> live;
+    uint32_t nextStampId = 1;
+
+    auto allocateStamped = [&](const AllocationSpec& spec, const char* phase) {
+        void* ptr = allocateZeroed(variant, spec.api, spec.size, spec.alignment);
+        if (!ptr)
+            reportParameters(variant, spec.api, spec.size, spec.alignment, phase);
+        CHECK(ptr);
+        checkIsZeroed(ptr, spec.size, variant, spec.api, spec.alignment, phase);
+        if (spec.api == AlignmentApi::WithAlignment)
+            checkIsAligned(ptr, spec.size, variant, spec.api, spec.alignment, phase);
+        LiveBuffer buffer { ptr, spec.size, nextStampId };
+        buffer.stamp();
+        live.push_back(buffer);
+        ++nextStampId;
+    };
+
+    auto verifyAllStamps = [&](const char* phase) {
+        for (const LiveBuffer& buffer : live)
+            buffer.verify(variant, phase);
+    };
+
+    // Fill the pool from a shuffled, stratified plan.
+    for (const AllocationSpec& spec : fragmentationPlan(poolRounds))
+        allocateStamped(spec, "fill");
+    verifyAllStamps("after-fill");
+
+    // Free a seeded-random subset so live and freed regions interleave irregularly;
+    // WithScavenge decommits them before the refill. Survivors' stamps must stay
+    // untouched.
+    std::vector<LiveBuffer> survivors;
+    for (const LiveBuffer& buffer : live) {
+        if (deterministicRandomNumber(2))
+            survivors.push_back(buffer);
+        else
+            deallocateVariant(variant, buffer.ptr);
+    }
+    live = survivors;
+    if (reuse == Reuse::WithScavenge)
+        pas_scavenger_run_synchronously_now();
+    verifyAllStamps("after-scattered-free");
+
+    // Refill from a fresh plan so the irregularly fragmented free regions must be
+    // split and coalesced to serve the new sizes, not just reused in the order freed.
+    for (const AllocationSpec& spec : fragmentationPlan(poolRounds))
+        allocateStamped(spec, "refill");
+    verifyAllStamps("after-refill");
+
+    // Teardown: a final stamp check as each buffer is freed.
+    for (const LiveBuffer& buffer : live) {
+        buffer.verify(variant, "teardown");
+        deallocateVariant(variant, buffer.ptr);
+    }
+}
+
+// Run across both heap variants, scavenger suspended so freed regions decommit
+// only at the forced scavenge (WithScavenge), not at an unpredictable background
+// point.
+void runFragmentationReuse(Reuse reuse)
+{
+    pas_scavenger_suspend();
+
+    static constexpr HeapVariant variants[] = { HeapVariant::Untagged, HeapVariant::Compact, HeapVariant::Tagged };
+    for (HeapVariant variant : variants)
+        fragmentationReuse(variant, reuse);
+}
+
+// Fragmentation + aliasing with immediate free-list reuse (no scavenge between
+// free and refill).
+void testFragmentationReuse()
+{
+    runFragmentationReuse(Reuse::WithoutScavenge);
+}
+
+// Same, but forcing a synchronous scavenge after the scattered frees so the
+// refills recommit and re-zero decommitted, fragmented backing.
+void testFragmentationReuseWithScavenge()
+{
+    runFragmentationReuse(Reuse::WithScavenge);
 }
 
 } // anonymous namespace
@@ -421,5 +797,8 @@ void addAllocationZeroingTests()
     ADD_TEST(testZeroingReuseWithScavengeLargeMemsetSizes());
     ADD_TEST(testZeroingReuseWithScavengeLargeVirtualMemorySizes());
     ADD_TEST(testSmallZeroingPageBatching());
+    ADD_TEST(testLargeZeroingFaultOrder());
+    ADD_TEST(testFragmentationReuse());
+    ADD_TEST(testFragmentationReuseWithScavenge());
 #endif // PAS_ENABLE_BMALLOC
 }

@@ -75,6 +75,8 @@ FlexLayout::Result FlexLayout::layout(FlexLayoutItems& flexItems)
         InspectorInstrumentation::flexibleBoxRendererBeganLayout(m_flexBox);
         // 9.3. (#5) Collect the flex items into flex lines.
         flexLines = computeFlexLines(flexItems, flexBaseAndHypotheticalMainSizeList.span());
+        for (auto lineRange : flexLines.ranges)
+            InspectorInstrumentation::flexibleBoxRendererWrappedToNextLine(m_flexBox, lineRange.end());
         // 9.3. (#6) Resolve the flexible lengths to find the used main size of each item.
         flexItemsMainSizeList = computeMainSizeForFlexItems(flexItems, flexLines, flexBaseAndHypotheticalMainSizeList.span());
         trimCrossAxisMarginsForFlexItems(flexItems, flexLines);
@@ -86,68 +88,59 @@ FlexLayout::Result FlexLayout::layout(FlexLayoutItems& flexItems)
     };
     performContentSizing();
 
-    Vector<LayoutUnit> flexLinesCrossPositionList;
-    auto computeFlexLineCrossPositions = [&] {
-        // Stack the flex lines along the cross axis, recording each line's cross-axis position. For row flow, grow the
-        // container's logical height to fit the lines plus the inter-line gaps as we go, so its content cross extent is
-        // known before alignment. (Column flow's height is its main size, set later while placing the items.)
-        // performContentAlignment resolves the final used cross size (9.6 #15) for both flows.
-        flexLinesCrossPositionList = Vector<LayoutUnit>(flexLines.ranges.size());
-        auto crossAxisOffset = m_constraints.flowAwareBorderBlock.first + m_constraints.flowAwarePaddingBlock.first;
+    Vector<LayoutUnit> flexLinesCrossPositionList(flexLines.ranges.size());
+    auto computeFlexLineCrossPositions = [&] -> LayoutUnit {
+        // Stack the flex lines along the cross axis, recording each line's position, and return the flex content's
+        // block-axis extent (line cross sizes + inter-line gaps + cross-axis scrollbar). RenderFlexibleBox resolves
+        // this into the container's logical height in updateFlexContainerLogicalHeight. Column flow's block axis is
+        // its main axis, sized later while placing the items, so nothing is returned there.
+        auto contentStart = m_constraints.flowAwareBorderBlock.first + m_constraints.flowAwarePaddingBlock.first;
+        auto crossAxisOffset = contentStart;
         for (size_t lineIndex = 0; lineIndex < flexLines.ranges.size(); ++lineIndex) {
-            InspectorInstrumentation::flexibleBoxRendererWrappedToNextLine(m_flexBox, flexLines.ranges[lineIndex].end());
-            if (!m_constraints.isColumnFlow) {
-                auto flexlineLogicalBottom = crossAxisOffset + m_constraints.flowAwareBorderBlock.second + m_constraints.flowAwarePaddingBlock.second + flexLinesCrossSizeList[lineIndex] + flexLayoutUtils().crossAxisScrollbarExtent();
-                if (m_flexBox.logicalHeight() < flexlineLogicalBottom)
-                    m_flexBox.setLogicalHeight(flexlineLogicalBottom);
-            }
             flexLinesCrossPositionList[lineIndex] = crossAxisOffset;
             crossAxisOffset += flexLinesCrossSizeList[lineIndex];
         }
         if (m_constraints.isColumnFlow)
-            return;
+            return { };
 
         auto totalGapBetweenLines = flexLines.ranges.size() > 1 ? flexLayoutUtils().computeGap(FlexLayoutUtils::GapType::BetweenLines) * (flexLines.ranges.size() - 1) : 0_lu;
-        m_flexBox.setLogicalHeight(m_flexBox.logicalHeight() + totalGapBetweenLines);
+        return (crossAxisOffset - contentStart) + totalGapBetweenLines + flexLayoutUtils().crossAxisScrollbarExtent();
     };
-    computeFlexLineCrossPositions();
+    auto flexContentBlockExtent = computeFlexLineCrossPositions();
 
     LayoutUnit crossAxisStartEdge;
-    FlexContainerCrossExtents flexContainerCrossExtents;
+    FlexContainerUsedExtents flexContainerUsedExtents;
     Vector<LayoutPoint> flexItemsPositionList;
     Vector<LayoutUnit> flexItemsCrossSizeList;
     auto performContentAlignment = [&] {
         // 9.5. (#12) Main-Axis Alignment.
-        flexItemsPositionList = handleMainAxisAlignment(flexLines, flexItems, flexItemsMainSizeList, flexLinesCrossPositionList);
+        auto mainAxisAlignment = handleMainAxisAlignment(flexLines, flexItems, flexItemsMainSizeList, flexLinesCrossPositionList);
+        flexItemsPositionList = WTF::move(mainAxisAlignment.positions);
         setFlexItemCountsForFirstAndLastLine(flexLines);
-
-        // 9.6. (#15) Finalize the container's logical height: apply the empty-line minimum, then resolve it against
-        // the container's own specified/min/max height and box-sizing. Row flow's height was set in computeFlexLineCrossPositions
-        // above; column flow's is its main size, set just now while placing the items.
-        flexContainerCrossExtents = m_flexBox.updateFlexContainerLogicalHeight();
-
+        // 9.6. (#15) Finalize the container's logical height from the block extent computeFlexLineCrossPositions built
+        // (row flow) or the main content extent handleMainAxisAlignment built while placing the items (column flow):
+        // apply the empty-line minimum, then resolve it against the container's own specified/min/max height and box-sizing.
+        flexContainerUsedExtents = m_flexBox.updateFlexContainerLogicalHeight(m_constraints.isColumnFlow ? mainAxisAlignment.columnMainContentExtent : flexContentBlockExtent);
         // Multi-line column flex only knows its main size now, so re-resolve the flexible lengths of any lines that were left short.
-        distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(flexLines, flexItems, flexBaseAndHypotheticalMainSizeList.span(), flexItemsMainSizeList, flexItemsPositionList, flexLinesCrossPositionList);
-
+        distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(flexLines, flexItems, flexBaseAndHypotheticalMainSizeList.span(), flexItemsMainSizeList, flexItemsPositionList, flexLinesCrossPositionList, flexContainerUsedExtents.blockContentBox);
+        // 9.5. (#12) For column-reverse, reposition each line's items from the finalized container main-axis end.
+        reverseColumnLinesFromContainerMainEndIfNeeded(flexLines, flexItems, flexItemsMainSizeList, flexItemsPositionList, flexLinesCrossPositionList, flexContainerUsedExtents.blockContentBox, flexContainerUsedExtents.blockBorderBox);
         // 9.6. (#13 - #16) Cross-Axis Alignment.
         crossAxisStartEdge = flexLinesCrossPositionList.isEmpty() ? 0_lu : flexLinesCrossPositionList[0];
         // If we have a single line flexbox, the line height is all the available space. For flex-direction: row,
         // this means we need to use the height, so we do this after calling updateLogicalHeight.
         if (!m_constraints.isMultiline && !flexLinesCrossSizeList.isEmpty())
-            flexLinesCrossSizeList[0] = flexContainerCrossExtents.contentBox;
-
+            flexLinesCrossSizeList[0] = flexContainerUsedExtents.crossContentBox;
         // 9.4. (#9) Handle 'align-content: stretch' and 9.6. (#16) align all flex lines per align-content.
-        handleCrossAxisAlignmentForFlexLines(flexLines, flexItemsPositionList, flexLinesCrossPositionList, flexLinesCrossSizeList, flexContainerCrossExtents.contentBox);
-
+        handleCrossAxisAlignmentForFlexLines(flexLines, flexItemsPositionList, flexLinesCrossPositionList, flexLinesCrossSizeList, flexContainerUsedExtents.crossContentBox);
         // 9.4. (#11) Determine the used cross size of each flex item.
-        flexItemsCrossSizeList = computeCrossSizeForFlexItems(flexLines, flexItems, flexLinesCrossSizeList, flexContainerCrossExtents.contentBox);
-
+        flexItemsCrossSizeList = computeCrossSizeForFlexItems(flexLines, flexItems, flexLinesCrossSizeList, flexContainerUsedExtents.crossContentBox);
         // 9.6. (#13 - #14) Resolve cross-axis auto margins and align each item per align-self.
         handleCrossAxisAlignmentForFlexItems(flexLines, flexItems, flexItemsCrossSizeList, flexLinesCrossSizeList, flexItemsPositionList);
     };
     performContentAlignment();
 
-    computeFlexItemRects(flexLines, flexItems, flexItemsPositionList, flexLinesCrossPositionList, flexLinesCrossSizeList, flexItemsCrossSizeList, crossAxisStartEdge, flexContainerCrossExtents.contentBox, flexContainerCrossExtents.borderBox);
+    computeFlexItemRects(flexLines, flexItems, flexItemsPositionList, flexLinesCrossPositionList, flexLinesCrossSizeList, flexItemsCrossSizeList, crossAxisStartEdge, flexContainerUsedExtents.crossContentBox, flexContainerUsedExtents.crossBorderBox);
     return m_result;
 }
 
@@ -385,7 +378,7 @@ LayoutUnit FlexLayout::crossAxisAvailableSpaceForLineSizingAndAlignment(LayoutUn
     return crossAxisAvailableSpace - (numberOfFlexLines - 1) * flexLayoutUtils().computeGap(FlexLayoutUtils::GapType::BetweenLines);
 }
 
-void FlexLayout::distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(const FlexLines& flexLines, FlexLayoutItems& flexItems, std::span<const FlexBaseAndHypotheticalMainSize> flexBaseAndHypotheticalMainSizeList, Vector<LayoutUnit>& flexItemsMainSizeList, Vector<LayoutPoint>& flexItemsPositionList, const Vector<LayoutUnit>& flexLinesCrossPositionList)
+void FlexLayout::distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(const FlexLines& flexLines, FlexLayoutItems& flexItems, std::span<const FlexBaseAndHypotheticalMainSize> flexBaseAndHypotheticalMainSizeList, Vector<LayoutUnit>& flexItemsMainSizeList, Vector<LayoutPoint>& flexItemsPositionList, const Vector<LayoutUnit>& flexLinesCrossPositionList, LayoutUnit containerMainBlockContentExtent)
 {
     // In multi-line column flex, the container's main size (height) is only known
     // after all lines are laid out. Lines whose items had flex-grow may not have
@@ -394,7 +387,7 @@ void FlexLayout::distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(const Fle
     if (!m_constraints.isMultiline || !m_constraints.isColumnFlow)
         return;
 
-    auto containerMainInnerSize = m_flexBox.contentBoxLogicalHeight();
+    auto containerMainInnerSize = containerMainBlockContentExtent;
     for (size_t lineIndex = 0; lineIndex < flexLines.ranges.size(); ++lineIndex) {
         auto lineRange = flexLines.ranges[lineIndex];
         auto lineItems = flexItems.mutableSpan().subspan(lineRange.begin(), lineRange.distance());
@@ -498,9 +491,10 @@ Vector<LayoutUnit> FlexLayout::crossSizeForFlexLines(const FlexLines& flexLines,
     return flexLinesCrossSizeList;
 }
 
-Vector<LayoutPoint> FlexLayout::handleMainAxisAlignment(const FlexLines& flexLines, FlexLayoutItems& flexItems, const Vector<LayoutUnit>& flexItemsMainSizeList, const Vector<LayoutUnit>& flexLinesCrossPositionList)
+FlexLayout::MainAxisAlignment FlexLayout::handleMainAxisAlignment(const FlexLines& flexLines, FlexLayoutItems& flexItems, const Vector<LayoutUnit>& flexItemsMainSizeList, const Vector<LayoutUnit>& flexLinesCrossPositionList)
 {
     Vector<LayoutPoint> flexItemsPositionList(flexItems.size());
+    LayoutUnit columnMainContentExtent;
     for (size_t lineIndex = 0; lineIndex < flexLines.ranges.size(); ++lineIndex) {
         auto lineRange = flexLines.ranges[lineIndex];
         auto containerMainInnerSize = m_constraints.isColumnFlow ? flexLayoutUtils().columnInnerMainSize(flexLines.hypotheticalMainSizes[lineIndex]) : m_constraints.mainAxisAvailableSpace;
@@ -514,9 +508,9 @@ Vector<LayoutPoint> FlexLayout::handleMainAxisAlignment(const FlexLines& flexLin
             remainingFreeSpace -= flexItemsMainSizeList[flexItemIndex] + flexItems[flexItemIndex].mainAxisBorderAndPadding + flexItems[flexItemIndex].mainAxisMargin;
         }
 
-        placeFlexItems(flexLinesCrossPositionList[lineIndex], flexItems.mutableSpan().subspan(lineRange.begin(), lineRange.distance()), flexItemsPositionList.mutableSpan().subspan(lineRange.begin(), lineRange.distance()), remainingFreeSpace);
+        columnMainContentExtent = std::max(columnMainContentExtent, placeFlexItems(flexLinesCrossPositionList[lineIndex], flexItems.mutableSpan().subspan(lineRange.begin(), lineRange.distance()), flexItemsPositionList.mutableSpan().subspan(lineRange.begin(), lineRange.distance()), remainingFreeSpace));
     }
-    return flexItemsPositionList;
+    return { WTF::move(flexItemsPositionList), columnMainContentExtent };
 }
 
 Vector<LayoutUnit> FlexLayout::computeCrossSizeForFlexItems(const FlexLines& flexLines, FlexLayoutItems& flexItems, const Vector<LayoutUnit>& flexLinesCrossSizeList, LayoutUnit crossContentExtent)
@@ -713,7 +707,7 @@ void FlexLayout::computeFlexItemRects(const FlexLines& flexLines, FlexLayoutItem
     }
 }
 
-void FlexLayout::placeFlexItems(LayoutUnit crossAxisOffset, std::span<FlexLayoutItem> flexLayoutItems, std::span<LayoutPoint> positions, LayoutUnit availableFreeSpace)
+LayoutUnit FlexLayout::placeFlexItems(LayoutUnit crossAxisOffset, std::span<FlexLayoutItem> flexLayoutItems, std::span<LayoutPoint> positions, LayoutUnit availableFreeSpace)
 {
     // 9.5. (#12) Position the items along the main axis: first give any positive free space to main-axis auto
     // margins, then place each item per justify-content (the initial offset plus the spacing between items).
@@ -732,7 +726,7 @@ void FlexLayout::placeFlexItems(LayoutUnit crossAxisOffset, std::span<FlexLayout
         m_result.justifyContentStartOverflow = std::max(m_result.justifyContentStartOverflow, overflow);
     }
 
-    LayoutUnit totalMainExtent = flexLayoutUtils().mainAxisExtent();
+    LayoutUnit totalMainExtent = m_constraints.mainAxisBorderBoxExtent;
 
     auto resolvedJustifyContent = m_constraints.style.justifyContent().resolve(FlexLayoutUtils::contentAlignmentNormalBehavior());
     auto distribution = resolvedJustifyContent.distribution();
@@ -764,24 +758,41 @@ void FlexLayout::placeFlexItems(LayoutUnit crossAxisOffset, std::span<FlexLayout
         // FIXME: Deal with pagination.
     }
 
-    if (m_constraints.isColumnFlow)
-        m_flexBox.setLogicalHeight(std::max(m_flexBox.logicalHeight(), mainAxisOffset + m_constraints.flowAwareBorderInline.second + m_constraints.flowAwarePaddingInline.second + m_flexBox.scrollbarLogicalHeight()));
+    // For column flow, return the line's main-axis content extent (its main content size plus the cross-axis
+    // scrollbar); handleMainAxisAlignment folds the largest line's extent into the container's logical height at the
+    // 9.6 finalize instead of growing the container here. Row flow builds its block extent elsewhere, so return 0.
+    if (!m_constraints.isColumnFlow)
+        return { };
+    return mainAxisOffset - (m_constraints.flowAwareBorderInline.first + m_constraints.flowAwarePaddingInline.first) + m_flexBox.scrollbarLogicalHeight();
+}
 
-    if (m_constraints.style.flexDirection() == FlexDirection::ColumnReverse) {
-        // We have to do an extra pass for column-reverse to reposition the flex
-        // items since the start depends on the height of the flexbox, which we
-        // only know after we've positioned all the flex items.
-        m_flexBox.updateLogicalHeight();
-        layoutColumnReverse(flexLayoutItems, positions, crossAxisOffset, availableFreeSpace);
+void FlexLayout::reverseColumnLinesFromContainerMainEndIfNeeded(const FlexLines& flexLines, FlexLayoutItems& flexItems, const Vector<LayoutUnit>& flexItemsMainSizeList, Vector<LayoutPoint>& flexItemsPositionList, const Vector<LayoutUnit>& flexLinesCrossPositionList, LayoutUnit containerMainBlockContentExtent, LayoutUnit containerMainBorderBoxExtent)
+{
+    // The container's main size is settled by now (9.2 determines it before 9.5 places the items), so every line
+    // is reversed against the one finalized height rather than growing and reading it back per line.
+    if (m_constraints.style.flexDirection() != FlexDirection::ColumnReverse)
+        return;
+
+    for (size_t lineIndex = 0; lineIndex < flexLines.ranges.size(); ++lineIndex) {
+        auto lineRange = flexLines.ranges[lineIndex];
+        auto lineItems = flexItems.mutableSpan().subspan(lineRange.begin(), lineRange.distance());
+        auto linePositions = flexItemsPositionList.mutableSpan().subspan(lineRange.begin(), lineRange.distance());
+        auto remainingFreeSpace = mainAxisAvailableSpaceForItemAlignment(containerMainBlockContentExtent, lineItems.size());
+        for (size_t index = 0; index < lineItems.size(); ++index)
+            remainingFreeSpace -= lineItems[index].flexedMarginBoxSize(flexItemsMainSizeList[lineRange.begin() + index]);
+        layoutColumnReverse(lineItems, linePositions, flexLinesCrossPositionList[lineIndex], remainingFreeSpace, containerMainBorderBoxExtent);
     }
 }
 
-void FlexLayout::layoutColumnReverse(std::span<FlexLayoutItem> flexLayoutItems, std::span<LayoutPoint> positions, LayoutUnit crossAxisOffset, LayoutUnit availableFreeSpace)
+void FlexLayout::layoutColumnReverse(std::span<FlexLayoutItem> flexLayoutItems, std::span<LayoutPoint> positions, LayoutUnit crossAxisOffset, LayoutUnit availableFreeSpace, LayoutUnit columnMainBorderBoxExtent)
 {
     // This is similar to the logic in placeFlexItems, except we place
     // the children starting from the end of the flexbox. We also don't need to
     // layout anything since we're just moving the children to a new position.
-    LayoutUnit mainAxisOffset = m_flexBox.logicalHeight() - m_constraints.flowAwareBorderInline.second - m_constraints.flowAwarePaddingInline.second;
+    // The flex container's main size (its logical height) has been finalized by now, so it is passed in
+    // rather than read back off the container (css-flexbox-1 9.2 determines the container main size before
+    // 9.5 main-axis alignment places the items).
+    LayoutUnit mainAxisOffset = columnMainBorderBoxExtent - m_constraints.flowAwareBorderInline.second - m_constraints.flowAwarePaddingInline.second;
     mainAxisOffset -= FlexLayoutUtils::initialJustifyContentOffset(m_constraints.style, availableFreeSpace, flexLayoutItems.size(), m_constraints.isColumnOrRowReverse);
     mainAxisOffset -= m_constraints.isHorizontalFlow ? m_flexBox.verticalScrollbarWidth() : m_flexBox.horizontalScrollbarHeight();
 
@@ -1110,12 +1121,12 @@ template<typename SizeType> LayoutUnit FlexLayout::computeMainSizeFromAspectRati
         [&](const SizeType::Percentage& percentageCrossSizeLength) -> std::optional<LayoutUnit> {
             return flexLayoutItem.mainAxisIsInlineAxis
                 ? flexItem.computePercentageLogicalHeight(SizeType { percentageCrossSizeLength })
-                : m_flexBox.adjustBorderBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(percentageCrossSizeLength, m_flexBox.contentBoxWidth()));
+                : m_flexBox.adjustBorderBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(percentageCrossSizeLength, m_constraints.crossAxisSizeForLengthResolution));
         },
         [&](const SizeType::Calc& calcCrossSizeLength) -> std::optional<LayoutUnit> {
             return flexLayoutItem.mainAxisIsInlineAxis
                 ? flexItem.computePercentageLogicalHeight(calcCrossSizeLength)
-                : m_flexBox.adjustBorderBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(calcCrossSizeLength, m_flexBox.contentBoxWidth(), flexItem.style().usedZoomForLength()));
+                : m_flexBox.adjustBorderBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(calcCrossSizeLength, m_constraints.crossAxisSizeForLengthResolution, flexItem.style().usedZoomForLength()));
         },
         [&](const CSS::Keyword::Auto&) -> std::optional<LayoutUnit> {
             ASSERT(flexLayoutUtils().hasDefiniteCrossSizeForFlexItem(flexItem));

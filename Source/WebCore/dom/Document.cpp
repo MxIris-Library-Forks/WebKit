@@ -1943,9 +1943,19 @@ CustomElementNameValidationStatus Document::validateCustomElementName(const Atom
     return CustomElementNameValidationStatus::Valid;
 }
 
-void Document::setActiveCustomElementRegistry(CustomElementRegistry* registry)
+CustomElementRegistry* Document::activeCustomElementConstructorRegistry(JSC::JSObject* constructor)
 {
-    m_activeCustomElementRegistry = registry;
+    return m_activeCustomElementConstructorMap.get(reinterpret_cast<uintptr_t>(constructor));
+}
+
+void Document::addToActiveCustomElementConstructorMap(JSC::JSObject* constructor, CustomElementRegistry& registry)
+{
+    m_activeCustomElementConstructorMap.set(reinterpret_cast<uintptr_t>(constructor), registry);
+}
+
+void Document::removeFromActiveCustomElementConstructorMap(JSC::JSObject* constructor)
+{
+    m_activeCustomElementConstructorMap.remove(reinterpret_cast<uintptr_t>(constructor));
 }
 
 ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceURI, const AtomString& qualifiedName, Variant<String, ElementCreationOptions>&& argument)
@@ -7970,6 +7980,14 @@ void Document::applyPendingXSLTransformsNowIfScheduled()
     applyPendingXSLTransformsTimerFired();
 }
 
+void Document::logXSLTDeprecationWarningIfNeeded()
+{
+    if (m_hasLoggedXSLTDeprecationWarning)
+        return;
+    m_hasLoggedXSLTDeprecationWarning = true;
+    addConsoleMessage(MessageSource::JS, MessageLevel::Warning, "XSLT is deprecated and will be removed in a future version of WebKit."_s);
+}
+
 void Document::applyPendingXSLTransformsTimerFired()
 {
     ASSERT(settings().isXSLTEnabled());
@@ -7996,6 +8014,8 @@ void Document::applyPendingXSLTransformsTimerFired()
         // changing to a new document, don't attempt to create a new Document from the XSLT.
         if (!frame() || frame()->documentIsBeingReplaced())
             return;
+
+        logXSLTDeprecationWarningIfNeeded();
 
         Ref processor = XSLTProcessor::create();
         processor->setXSLStyleSheet(downcast<XSLStyleSheet>(processingInstruction->sheet()));

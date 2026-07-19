@@ -462,6 +462,19 @@ AXObjectCache::AXObjectCache(LocalFrame& localFrame, Document* document)
     if (RefPtr page = localFrame.page())
         page->chrome().client().requestFrameScreenPosition(m_frameID);
 #endif
+
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+    if (isIsolatedTreeEnabled() && !clientIsInTestMode()) {
+        // Proactively (and asynchronously) queue up the build of the isolated tree associated with this cache,
+        // guaranteeing it gets built rather than implicitly relying on something later calling getOrCreateIsolatedTree()
+        // on |this| instance. Doing this here is critical — otherwise, after navigation, nothing may actually
+        // call getOrCreateIsolatedTree() on |this|, leaving web content empty forever.
+        //
+        // Do not do this in test mode, for which we build the full tree synchronously in getOrCreateIsolatedTree()
+        // (unlike the real-AT path, where we serve a placeholder while the full tree gets built via this timer).
+        m_buildIsolatedTreeTimer.startOneShot(0_s);
+    }
+#endif // ENABLE(ACCESSIBILITY_ISOLATED_TREE)
 }
 
 AXObjectCache::~AXObjectCache()
@@ -3291,15 +3304,30 @@ void AXObjectCache::frameLoadingEventNotification(LocalFrame* frame, AXLoadingEv
     }
 }
 
-void AXObjectCache::postLiveRegionChangeNotification(AccessibilityObject& object)
+unsigned AXObjectCache::liveRegionSnapshotBuildCount() const
 {
 #if PLATFORM(COCOA)
-    if (m_liveRegionManager) {
-        m_liveRegionManager->handleLiveRegionChange(object);
-        return;
-    }
+    if (m_liveRegionManager)
+        return m_liveRegionManager->snapshotBuildCount();
 #endif
+    return 0;
+}
 
+void AXObjectCache::resetLiveRegionSnapshotBuildCount()
+{
+#if PLATFORM(COCOA)
+    if (m_liveRegionManager)
+        m_liveRegionManager->resetSnapshotBuildCount();
+#endif
+}
+
+void AXObjectCache::postLiveRegionChangeNotification(AccessibilityObject& object)
+{
+    // Consolidate multiple live region changes to the same object within a run loop iteration.
+    // Web content (e.g. rebuilding a large calendar) can fire hundreds of text changes that each
+    // walk up to a live-region ancestor; deduplicating here and processing once when the timer fires
+    // collapses that into a single snapshot rebuild per region. On COCOA, the timer drives
+    // AXLiveRegionManager; elsewhere it posts a LiveRegionChanged notification.
     if (m_liveRegionChangedPostTimer.isActive())
         m_liveRegionChangedPostTimer.stop();
 
@@ -3316,6 +3344,15 @@ void AXObjectCache::liveRegionChangedNotificationPostTimerFired()
 
     if (m_changedLiveRegions.isEmpty())
         return;
+
+#if PLATFORM(COCOA)
+    if (m_liveRegionManager) {
+        for (auto& object : m_changedLiveRegions)
+            m_liveRegionManager->handleLiveRegionChange(object.get());
+        m_changedLiveRegions.clear();
+        return;
+    }
+#endif
 
     for (auto& object : m_changedLiveRegions)
         postNotification(object.ptr(), protect(object->document()).get(), AXNotification::LiveRegionChanged);

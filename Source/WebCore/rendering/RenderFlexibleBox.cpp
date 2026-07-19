@@ -232,7 +232,7 @@ void RenderFlexibleBox::layoutBlock(RelayoutChildren relayoutChildren, LayoutUni
         if (!layoutUsingFlexFormattingContext()) {
             auto flexItems = collectFlexItems(relayoutChildren);
             if (flexItems.isEmpty())
-                updateFlexContainerLogicalHeight();
+                updateFlexContainerLogicalHeight(0_lu);
             else {
                 auto flexLayoutResult = FlexLayout(*this, flexLayoutConstraints()).layout(flexItems);
                 if (flexLayoutResult.alignContentStartOverflow)
@@ -1070,22 +1070,6 @@ void RenderFlexibleBox::prepareOrderIteratorAndMargins()
     }
 }
 
-std::optional<LayoutUnit> RenderFlexibleBox::minimumHeightForLineIfEmpty() const
-{
-    // Even if we collected a flex line, the flexbox might not have a line because all our children
-    // might be out of flow positioned. Make sure the flexbox has at least a line's worth of height.
-    if (!hasLineIfEmpty())
-        return { };
-    return borderAndPaddingLogicalHeight() + lineHeight() + scrollbarLogicalHeight();
-}
-
-void RenderFlexibleBox::adjustLogicalHeightForLineIfEmpty()
-{
-    auto minHeight = minimumHeightForLineIfEmpty();
-    if (minHeight && borderBoxHeight() < *minHeight)
-        setLogicalHeight(*minHeight);
-}
-
 FlexLayoutConstraints RenderFlexibleBox::flexLayoutConstraints()
 {
     auto& utils = flexLayoutUtils();
@@ -1104,6 +1088,8 @@ FlexLayoutConstraints RenderFlexibleBox::flexLayoutConstraints()
         .flowAwarePaddingBlock = { utils.flowAwarePaddingBefore(), utils.flowAwarePaddingAfter() },
         .mainAxisAvailableSpace = mainAxisAvailableSpace(),
         .mainAxisSizeForLengthResolution = utils.isColumnFlow() ? availableLogicalHeight(AvailableLogicalHeightType::ExcludeMarginBorderPadding) : contentBoxLogicalWidth(),
+        .mainAxisBorderBoxExtent = utils.mainAxisExtent(),
+        .crossAxisSizeForLengthResolution = contentBoxLogicalWidth(),
     };
 }
 
@@ -1129,15 +1115,20 @@ LayoutUnit RenderFlexibleBox::mainAxisAvailableSpace()
     return logicalHeight == LayoutUnit::max() ? logicalHeight : std::max(0_lu, logicalHeight - (borderAndPaddingLogicalHeight() + scrollbarLogicalHeight()));
 }
 
-FlexContainerCrossExtents RenderFlexibleBox::updateFlexContainerLogicalHeight()
+FlexContainerUsedExtents RenderFlexibleBox::updateFlexContainerLogicalHeight(LayoutUnit flexContentBlockExtent)
 {
-    // Reserve a line's worth of height if the container has a line even while empty, then resolve the final
-    // logical height against the container's own specified/min/max height and box-sizing. Return the resulting
-    // used cross extents (content-box and border-box) so FlexLayout takes them as values rather than reading
-    // them back off the container.
-    adjustLogicalHeightForLineIfEmpty();
+    // Resolve the container's logical height to the largest of: what is already set, the block-axis extent FlexLayout
+    // built from its line sizes (row flow) or its column lines' main content extent (column flow), and the empty-line
+    // minimum for a container that establishes a line with no in-flow items (e.g. all children are out of flow). The
+    // empty-line minimum is a block-axis floor, so it is folded into the block-axis max here rather than compared
+    // against the physical borderBoxHeight() (which is the inline extent in a vertical writing mode). Then resolve
+    // against the container's own specified/min/max height and box-sizing, and return the used cross extents (line
+    // positioning / item cross sizing / rtl-column flip) and block extents (column re-resolve / column-reverse
+    // placement) so FlexLayout takes them as values rather than reading them back off the container.
+    auto minimumHeightForEmptyLine = hasLineIfEmpty() ? borderAndPaddingLogicalHeight() + lineHeight() + scrollbarLogicalHeight() : 0_lu;
+    setLogicalHeight(std::max(minimumHeightForEmptyLine, std::max(logicalHeight(), borderAndPaddingLogicalHeight() + flexContentBlockExtent)));
     updateLogicalHeight();
-    return { flexLayoutUtils().crossAxisContentExtent(), flexLayoutUtils().crossAxisExtent() };
+    return { flexLayoutUtils().crossAxisContentExtent(), flexLayoutUtils().crossAxisExtent(), contentBoxLogicalHeight(), logicalHeight() };
 }
 
 FlexLayoutItems RenderFlexibleBox::collectFlexItems(RelayoutChildren relayoutChildren)

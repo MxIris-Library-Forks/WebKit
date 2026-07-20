@@ -2835,6 +2835,7 @@ webkit.org/b/265865 imported/w3c/web-platform-tests/webrtc-stats/rtp-stats-creat
 fast/mediastream/video-rotation2.html [ Failure ]
 
 http/wpt/mediastream/webrtc-vp9-colorspace.html [ Failure ]
+webrtc/vp9.html [ Failure ]
 
 webkit.org/b/314659 webrtc/getDisplayMedia-pc-resolution.html [ Failure ]
 
@@ -4496,6 +4497,7 @@ imported/w3c/web-platform-tests/css/css-color/system-color-hightlights-vs-getSel
 webkit.org/b/286131 imported/w3c/web-platform-tests/css/css-transforms/transform-box/cssbox-content-box-002.html [ Pass Crash ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-overscroll-behavior/overscroll-behavior.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/input/mouse-wheel.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scroll-snap/snap-at-user-scroll-end.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-transforms/scroll-preserve-3d.html [ Skip ]
 imported/w3c/web-platform-tests/dom/events/non-cancelable-when-passive [ Skip ]

@@ -616,6 +616,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/model-element/ModelPlayerIdentifier.h
     Modules/model-element/ModelPlayerProvider.h
     Modules/model-element/ModelPlayerTransformState.h
+    Modules/model-element/SpatialPortalController.h
 
     Modules/model-element/dummy/DummyModelPlayerProvider.h
 
@@ -2449,6 +2450,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     platform/graphics/AlphaPremultiplication.h
     platform/graphics/AnimationFrameRate.h
+    platform/graphics/ArrayPixelBuffer.h
     platform/graphics/AudioTrackPrivate.h
     platform/graphics/AudioTrackPrivateClient.h
     platform/graphics/AudioVideoRenderer.h

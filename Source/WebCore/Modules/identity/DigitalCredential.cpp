@@ -45,6 +45,7 @@
 #include "LocalFrame.h"
 #include "MediationRequirement.h"
 #include "PermissionsPolicy.h"
+#include "Settings.h"
 #include "VisibilityState.h"
 #include <JavaScriptCore/ConsoleTypes.h>
 #include <JavaScriptCore/JSONObject.h>
@@ -70,6 +71,23 @@ DigitalCredential::DigitalCredential(JSC::Strong<JSC::JSObject>&& data, DigitalC
 {
 }
 
+bool DigitalCredential::userAgentAllowsProtocol(const Document& document, const String& protocol)
+{
+    if (protocol == "org-iso-mdoc"_s)
+        return true;
+
+    // The OpenID4VP protocols are gated behind an off-by-default setting while their request
+    // validation and wallet plumbing are still under development, so that the API does not
+    // advertise support for a protocol it cannot yet fulfill.
+    if (document.settings().digitalCredentialsOpenID4VPEnabled()) {
+        return protocol == "openid4vp-v1-unsigned"_s
+            || protocol == "openid4vp-v1-signed"_s
+            || protocol == "openid4vp-v1-multisigned"_s;
+    }
+
+    return false;
+}
+
 static std::optional<DigitalCredentialPresentationProtocol> convertProtocolString(const String& protocolString)
 {
     if (protocolString == "org-iso-mdoc"_s)
@@ -79,6 +97,10 @@ static std::optional<DigitalCredentialPresentationProtocol> convertProtocolStrin
 
 static ExceptionOr<std::optional<UnvalidatedDigitalCredentialRequest>> jsToCredentialRequest(const Document& document, const DigitalCredentialGetRequest& request)
 {
+    auto protocol = convertProtocolString(request.protocol);
+    if (!protocol)
+        return std::optional<UnvalidatedDigitalCredentialRequest> { std::nullopt }; // Skip requests with an unsupported protocol.
+
     auto scope = DECLARE_THROW_SCOPE(document.globalObject()->vm());
     auto* globalObject = document.globalObject();
 
@@ -86,10 +108,6 @@ static ExceptionOr<std::optional<UnvalidatedDigitalCredentialRequest>> jsToCrede
     JSC::JSONStringify(globalObject, request.data.get(), 0);
     if (scope.exception()) [[unlikely]]
         return Exception { ExceptionCode::ExistingExceptionError };
-
-    auto protocol = convertProtocolString(request.protocol);
-    if (!protocol)
-        return std::optional<UnvalidatedDigitalCredentialRequest> { std::nullopt }; // Return empty optional for unknown protocols
 
     switch (*protocol) {
     case DigitalCredentialPresentationProtocol::OrgIsoMdoc: {

@@ -1354,17 +1354,17 @@ CSSLineFitEdgeEnabled:
 
 CSSMarkerContentEnabled:
   type: bool
-  status: preview
+  status: stable
   category: css
   humanReadableName: "CSS content on ::marker"
   humanReadableDescription: "Enable the content property on the ::marker pseudo-element"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSMathDepthEnabled:
   type: bool
@@ -1583,18 +1583,18 @@ CSSSelectorJITCompilerEnabled:
 
 CSSTextDecorationInsetEnabled:
   type: bool
-  status: preview
+  status: stable
   category: css
   webcoreOnChange: setNeedsRecalcStyleInAllFrames
   humanReadableName: "CSS text-decoration-inset property"
   humanReadableDescription: "Enable the text-decoration-inset property, defined in CSS Text Decoration 4"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSTextDecorationLineErrorValues:
   type: bool
@@ -1770,18 +1770,18 @@ CSSUnprefixedBackdropFilterEnabled:
 
 CSSWhiteSpaceTrimEnabled:
   type: bool
-  status: preview
+  status: stable
   category: css
   webcoreOnChange: setNeedsRecalcStyleInAllFrames
   humanReadableName: "CSS white-space-trim property"
   humanReadableDescription: "Enable the property white-space-trim, defined in CSS Text 4"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSWordBreakAutoPhraseEnabled:
   type: bool
@@ -1800,18 +1800,18 @@ CSSWordBreakAutoPhraseEnabled:
 
 CSSWrapInsideEnabled:
   type: bool
-  status: preview
+  status: stable
   category: css
   webcoreOnChange: setNeedsRecalcStyleInAllFrames
   humanReadableName: "CSS wrap-inside property"
   humanReadableDescription: "Enable the wrap-inside property, defined in CSS Text 4"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 # FIXME: This is not relevent for WebKitLegacy, so should be excluded from WebKitLegacy entirely (though we should still set the default value to false when initializing settings).
 CacheAPIEnabled:
@@ -2707,6 +2707,22 @@ DigitalCredentialsEnabled:
   disableInLockdownMode: true
   richJavaScript: true
 
+DigitalCredentialsOpenID4VPEnabled:
+  type: bool
+  status: internal
+  category: dom
+  humanReadableName: "OpenID4VP for Digital Credentials API"
+  humanReadableDescription: "Enable the OpenID4VP presentation protocols for the Digital Credentials API"
+  condition: ENABLE(WEB_AUTHN)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  disableInLockdownMode: true
+
 DirectoryUploadEnabled:
   type: bool
   status: embedder
@@ -3328,20 +3344,6 @@ FixedFontFamily:
       default: '"Courier New"_str'
     WebCore:
       default: '""_str'
-
-FlexFormattingContextIntegrationEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Next-generation flex layout integration (FFC)"
-  humanReadableDescription: "Enable next-generation flex layout integration (FFC)"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
 
 FontFaceSetConstructorEnabled:
   type: bool
@@ -9746,7 +9748,7 @@ WasmMultiMemoryEnabled:
 
 WasmRelaxedSIMDEnabled:
   type: bool
-  status: testable
+  status: stable
   category: javascript
   humanReadableName: "WebAssembly Relaxed SIMD"
   humanReadableDescription: "Allow the relaxed simd instructions and types from the wasm relaxed simd spec."
@@ -9755,7 +9757,7 @@ WasmRelaxedSIMDEnabled:
   sharedPreferenceForWebProcess: true
   defaultValue:
     WebKit:
-      default: false
+      default: true
 
 WasmSIMDEnabled:
   type: bool

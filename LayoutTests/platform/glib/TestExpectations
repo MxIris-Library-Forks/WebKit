@@ -1810,6 +1810,7 @@ media/media-source/media-managedmse-memorypressure.html [ Timeout ]
 media/media-source/media-managedmse-memorypressure-inactive.html [ Timeout ]
 media/media-source/media-managedmse-eviction.html [ Timeout ]
 media/media-source/media-source-evict-invalid-time-crash.html [ Timeout ]
+media/media-source/media-source-evict-ignorable-gap.html [ Skip ]
 
 webkit.org/b/211995 fast/images/animated-image-mp4.html [ Timeout ]
 
@@ -3364,6 +3365,9 @@ webkit.org/b/214472 imported/w3c/web-platform-tests/css/css-images/normalization
 webkit.org/b/214472 imported/w3c/web-platform-tests/css/css-images/normalization-conic.html [ Pass ]
 webkit.org/b/214472 imported/w3c/web-platform-tests/css/css-images/normalization-conic-2.html [ Pass ]
 
+imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientation-exif-png-3.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-images/infinite-radial-gradient-refcrash.html [ ImageOnlyFailure ]
+
 webkit.org/b/203448 imported/w3c/web-platform-tests/css/css-position/position-absolute-dynamic-static-position-table-cell.html [ Pass ]
 
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-001.html [ Pass ]
@@ -3683,6 +3687,7 @@ webkit.org/b/202756 media/modern-media-controls/pip-placard [ Skip ]
 webkit.org/b/202756 media/modern-media-controls/pip-support [ Skip ]
 webkit.org/b/202756 media/modern-media-controls/placard-support/placard-support-pip.html [ Skip ]
 webkit.org/b/202756 media/picture-in-picture/ [ Skip ]
+webkit.org/b/202756 imported/w3c/web-platform-tests/picture-in-picture/ [ Skip ]
 webkit.org/b/211569 media/video-presentation-mode.html [ Skip ]
 webkit.org/b/206584 media/video-set-presentation-mode-to-inline.html [ Skip ]
 # Also crashing with others in webkit.org/b/198830

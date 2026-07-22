@@ -46,6 +46,7 @@
 #include "ReadableStream.h"
 #include "ScriptExecutionContextInlines.h"
 #include "SocketProvider.h"
+#include "TaskSource.h"
 #include "WebTransportBidirectionalStreamSource.h"
 #include "WebTransportCloseInfo.h"
 #include "WebTransportCongestionControl.h"
@@ -60,6 +61,7 @@
 #include "WebTransportReliabilityMode.h"
 #include "WebTransportSendGroup.h"
 #include "WebTransportSendStream.h"
+#include "WebTransportSendStreamOptions.h"
 #include "WebTransportSendStreamSink.h"
 #include "WebTransportSession.h"
 #include "WorkerGlobalScope.h"
@@ -211,10 +213,8 @@ bool WebTransport::virtualHasPendingActivity() const
 
 void WebTransport::suspend(ReasonForSuspension why)
 {
-    if (why == ReasonForSuspension::BackForwardCache) {
-        if (RefPtr context = scriptExecutionContext())
-            cleanupContext(*context);
-    }
+    if (why == ReasonForSuspension::BackForwardCache)
+        cleanupContext();
 }
 
 void WebTransport::receiveDatagram(std::span<const uint8_t> datagram, bool withFin, std::optional<Exception>&& exception)
@@ -253,12 +253,12 @@ void WebTransport::receiveIncomingUnidirectionalStream(WebTransportStreamIdentif
         protect(m_session)->destroyStream(identifier, std::nullopt);
 }
 
-static ExceptionOr<Ref<WebTransportBidirectionalStream>> createBidirectionalStream(WebTransport& transport, WebTransportSession& session, JSDOMGlobalObject& globalObject, Ref<WebTransportSendStreamSink>&& sink, Ref<WebTransportReceiveStreamByteSource>&& source)
+static ExceptionOr<Ref<WebTransportBidirectionalStream>> createBidirectionalStream(WebTransport& transport, WebTransportSession& session, JSDOMGlobalObject& globalObject, Ref<WebTransportSendStreamSink>&& sink, Ref<WebTransportReceiveStreamByteSource>&& source, const WebTransportSendStreamOptions& options)
 {
     auto identifier = sink->identifier();
     auto sendStream = [&] {
         Locker<JSC::JSLock> locker(globalObject.vm().apiLock());
-        return WebTransportSendStream::create(transport, globalObject, WTF::move(sink));
+        return WebTransportSendStream::create(transport, globalObject, WTF::move(sink), options);
     } ();
     if (sendStream.hasException())
         return sendStream.releaseException();
@@ -286,7 +286,7 @@ void WebTransport::receiveBidirectionalStream(WebTransportStreamIdentifier ident
     Ref sink = WebTransportSendStreamSink::create(*this, identifier);
     auto& jsDOMGlobalObject = *downcast<JSDOMGlobalObject>(globalObject);
     Ref incomingStream = WebTransportReceiveStreamByteSource::create(*this, identifier);
-    auto stream = WebCore::createBidirectionalStream(*this, *session, jsDOMGlobalObject, sink.copyRef(), incomingStream.copyRef());
+    auto stream = WebCore::createBidirectionalStream(*this, *session, jsDOMGlobalObject, sink.copyRef(), incomingStream.copyRef(), WebTransportSendStreamOptions { });
     if (stream.hasException())
         return;
     Ref bidiStream = stream.releaseReturnValue();
@@ -455,15 +455,17 @@ void WebTransport::cleanupWithSessionError()
     }), std::nullopt);
 }
 
-void WebTransport::cleanupContext(ScriptExecutionContext& context)
+void WebTransport::cleanupContext()
 {
     // https://www.w3.org/TR/webtransport/#web-transport-context-cleanup-steps
+    // Use a suspendable event-loop task, not postTask: postTask would run during back/forward cache entry
+    // (frame detached, null global object) and drop the rejection; this instead runs on resume.
     if (m_state == State::Connected) {
         m_state = State::Failed;
         if (auto session = std::exchange(m_session, nullptr))
             session->terminate(0, { });
-        context.postTask([protectedThis = Ref { *this }] (auto&) {
-            protectedThis->cleanupWithSessionError();
+        queueTaskKeepingObjectAlive(*this, TaskSource::Networking, [](auto& transport) {
+            transport.cleanupWithSessionError();
         });
     }
     if (m_state == State::Connecting)
@@ -547,7 +549,7 @@ WebTransportDatagramDuplexStream& WebTransport::datagrams()
     return m_datagrams.get();
 }
 
-void WebTransport::createBidirectionalStream(ScriptExecutionContext& context, WebTransportSendStreamOptions&&, Ref<DeferredPromise>&& promise)
+void WebTransport::createBidirectionalStream(ScriptExecutionContext& context, WebTransportSendStreamOptions&& options, Ref<DeferredPromise>&& promise)
 {
     // https://www.w3.org/TR/webtransport/#dom-webtransport-createbidirectionalstream
     RefPtr session = m_session;
@@ -558,7 +560,8 @@ void WebTransport::createBidirectionalStream(ScriptExecutionContext& context, We
         promise = WTF::move(promise),
         context = WeakPtr { context },
         protectedThis = Ref { *this },
-        session
+        session,
+        options = WTF::move(options)
     ] (auto&& identifier) mutable {
         if (!identifier)
             return promise->reject(ExceptionCode::InvalidStateError);
@@ -571,7 +574,7 @@ void WebTransport::createBidirectionalStream(ScriptExecutionContext& context, We
         Ref sink = WebTransportSendStreamSink::create(protectedThis.get(), *identifier);
         auto& jsDOMGlobalObject = *downcast<JSDOMGlobalObject>(globalObject);
         Ref incomingStream = WebTransportReceiveStreamByteSource::create(protectedThis.get(), *identifier);
-        auto stream = WebCore::createBidirectionalStream(protectedThis, *session, jsDOMGlobalObject, sink.copyRef(), incomingStream.copyRef());
+        auto stream = WebCore::createBidirectionalStream(protectedThis, *session, jsDOMGlobalObject, sink.copyRef(), incomingStream.copyRef(), options);
         if (stream.hasException())
             return promise->reject(stream.releaseException());
         Ref bidiStream = stream.releaseReturnValue();
@@ -592,7 +595,7 @@ ReadableStream& WebTransport::incomingBidirectionalStreams()
     return m_incomingBidirectionalStreams.get();
 }
 
-void WebTransport::createUnidirectionalStream(ScriptExecutionContext& context, WebTransportSendStreamOptions&&, Ref<DeferredPromise>&& promise)
+void WebTransport::createUnidirectionalStream(ScriptExecutionContext& context, WebTransportSendStreamOptions&& options, Ref<DeferredPromise>&& promise)
 {
     // https://www.w3.org/TR/webtransport/#dom-webtransport-createunidirectionalstream
     RefPtr session = m_session;
@@ -603,7 +606,8 @@ void WebTransport::createUnidirectionalStream(ScriptExecutionContext& context, W
         promise = WTF::move(promise),
         context = WeakPtr { context },
         protectedThis = Ref { *this },
-        session
+        session,
+        options = WTF::move(options)
     ] (auto&& identifier) mutable {
         if (!identifier)
             return promise->reject(ExceptionCode::InvalidStateError);
@@ -617,7 +621,7 @@ void WebTransport::createUnidirectionalStream(ScriptExecutionContext& context, W
         auto& jsDOMGlobalObject = *downcast<JSDOMGlobalObject>(globalObject);
         auto stream = [&] {
             Locker<JSC::JSLock> locker(jsDOMGlobalObject.vm().apiLock());
-            return WebTransportSendStream::create(protectedThis, jsDOMGlobalObject, sink.copyRef());
+            return WebTransportSendStream::create(protectedThis, jsDOMGlobalObject, sink.copyRef(), options);
         } ();
         if (stream.hasException())
             return promise->reject(stream.releaseException());

@@ -190,6 +190,9 @@ void SpeculativeJIT::cachedGetById(Node* node, CodeOrigin codeOrigin, JSValueReg
 
     addGetById(gen, slowPath.get());
     addSlowPathGenerator(WTF::move(slowPath));
+    addSlowPathGeneratorLambda([=, this]() mutable {
+        gen.generateDataICSlowPath(*this);
+    });
 }
 
 void SpeculativeJIT::cachedGetByIdWithThis(Node* node, CodeOrigin codeOrigin, JSValueRegs baseRegs, JSValueRegs thisRegs, JSValueRegs resultRegs, CacheableIdentifier identifier, bool needsBaseAndThisCellCheck)
@@ -226,6 +229,9 @@ void SpeculativeJIT::cachedGetByIdWithThis(Node* node, CodeOrigin codeOrigin, JS
 
     addGetByIdWithThis(gen, slowPath.get());
     addSlowPathGenerator(WTF::move(slowPath));
+    addSlowPathGeneratorLambda([=, this]() mutable {
+        gen.generateDataICSlowPath(*this);
+    });
 }
 
 void SpeculativeJIT::nonSpeculativeNonPeepholeCompareNullOrUndefined(Edge operand)
@@ -5891,11 +5897,6 @@ void SpeculativeJIT::compile(Node* node)
         break;
     }
 
-    case IsTypedArrayView: {
-        compileIsTypedArrayView(node);
-        break;
-    }
-
     case ArrayIsArray: {
         compileArrayIsArray(node);
         break;
@@ -6461,6 +6462,7 @@ void SpeculativeJIT::compile(Node* node)
                     isLittleEndian.link(this);
                 }
 
+#if USE(BIGINT32)
                 flushRegisters();
                 GPRFlushedCallResult result(this);
                 GPRReg resultGPR = result.gpr();
@@ -6470,6 +6472,22 @@ void SpeculativeJIT::compile(Node* node)
                     callOperation(operationUInt64ToBigInt, resultGPR, LinkableConstant::globalObject(*this, node), t2);
                 exceptionCheck();
                 jsValueResult(resultGPR, node);
+#else
+                GPRTemporary result(this);
+                GPRTemporary scratch(this);
+                GPRReg resultGPR = result.gpr();
+                GPRReg scratchGPR = scratch.gpr();
+
+                JumpList slowCases;
+                emitAllocateJSBigInt64(vm(), resultGPR, t2, scratchGPR, t1, TrustedImmPtr(m_graph.registerStructure(vm().bigIntStructure.get())), data.isSigned, slowCases);
+
+                if (data.isSigned)
+                    addSlowPathGenerator(slowPathCall(slowCases, this, operationInt64ToBigInt, resultGPR, LinkableConstant::globalObject(*this, node), t2));
+                else
+                    addSlowPathGenerator(slowPathCall(slowCases, this, operationUInt64ToBigInt, resultGPR, LinkableConstant::globalObject(*this, node), t2));
+
+                jsValueResult(resultGPR, node);
+#endif
                 break;
             }
             default:
@@ -7561,6 +7579,9 @@ void SpeculativeJIT::compileInById(Node* node)
 
     addInById(gen, slowPath.get());
     addSlowPathGenerator(WTF::move(slowPath));
+    addSlowPathGeneratorLambda([=, this]() mutable {
+        gen.generateDataICSlowPath(*this);
+    });
 
     blessedBooleanResult(resultRegs.payloadGPR(), node);
 }
@@ -8294,6 +8315,9 @@ void SpeculativeJIT::cachedPutById(Node*, CodeOrigin codeOrigin, GPRReg baseGPR,
 
     addPutById(gen, slowPath.get());
     addSlowPathGenerator(WTF::move(slowPath));
+    addSlowPathGeneratorLambda([=, this]() mutable {
+        gen.generateDataICSlowPath(*this);
+    });
 }
 
 void SpeculativeJIT::compilePutPrivateNameById(Node* node)

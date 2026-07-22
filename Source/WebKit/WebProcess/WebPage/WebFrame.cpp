@@ -103,16 +103,21 @@
 #include <WebCore/HTMLTextAreaElement.h>
 #include <WebCore/HandleUserInputEventResult.h>
 #include <WebCore/ImageBuffer.h>
+#include <WebCore/ImageData.h>
 #include <WebCore/JSCSSStyleDeclaration.h>
 #include <WebCore/JSElement.h>
 #include <WebCore/JSFile.h>
+#include <WebCore/JSImageData.h>
 #include <WebCore/JSNode.h>
+#include <WebCore/JSOffscreenCanvas.h>
 #include <WebCore/JSRange.h>
 #include <WebCore/LocalFrameInlines.h>
 #include <WebCore/LocalFrameView.h>
 #include <WebCore/MouseEventTypes.h>
+#include <WebCore/NativeImage.h>
 #include <WebCore/NavigationActivation.h>
 #include <WebCore/NodeDocument.h>
+#include <WebCore/OffscreenCanvas.h>
 #include <WebCore/OriginAccessPatterns.h>
 #include <WebCore/PluginDocument.h>
 #include <WebCore/PointerCaptureController.h>
@@ -126,6 +131,7 @@
 #include <WebCore/RenderView.h>
 #include <WebCore/ScriptController.h>
 #include <WebCore/SecurityOrigin.h>
+#include <WebCore/ShareableBitmap.h>
 #include <WebCore/ShareableBitmapHandle.h>
 #include <WebCore/SharedMemory.h>
 #include <WebCore/SubresourceLoader.h>
@@ -497,8 +503,9 @@ void WebFrame::createProvisionalFrame(ProvisionalFrameCreationParameters&& param
 
     if (parameters.layerHostingContextIdentifier)
         setLayerHostingContextIdentifier(*parameters.layerHostingContextIdentifier);
+    m_hasAppliedInitialRemoteFrameRect = false;
     if (parameters.initialRect)
-        updateLocalFrameRect(localFrame, *parameters.initialRect);
+        updateLocalFrameRect(localFrame, *parameters.initialRect, consumeIsInitialFrameRect());
 
     if (parameters.commitTiming == CommitTiming::Immediately)
         commitProvisionalFrame();
@@ -1272,7 +1279,7 @@ void WebFrame::updateFrameRectFromRemote(WebCore::IntRect newRect)
 {
     ASSERT(m_page->corePage()->settings().siteIsolationEnabled());
     if (RefPtr localFrame = coreLocalFrame())
-        updateLocalFrameRect(*localFrame, newRect);
+        updateLocalFrameRect(*localFrame, newRect, consumeIsInitialFrameRect());
     else {
         RefPtr remoteFrame = coreRemoteFrame();
         RefPtr remoteFrameView = remoteFrame->view();
@@ -1282,7 +1289,7 @@ void WebFrame::updateFrameRectFromRemote(WebCore::IntRect newRect)
     }
 }
 
-void WebFrame::updateLocalFrameRect(WebCore::LocalFrame& localFrame, WebCore::IntRect newRect)
+void WebFrame::updateLocalFrameRect(WebCore::LocalFrame& localFrame, WebCore::IntRect newRect, IsInitialFrameRect isInitialFrameRect)
 {
     RefPtr frameView = localFrame.view();
     if (!frameView)
@@ -1292,6 +1299,10 @@ void WebFrame::updateLocalFrameRect(WebCore::LocalFrame& localFrame, WebCore::In
 
     if (oldRect == newRect)
         return;
+
+    if (isInitialFrameRect == IsInitialFrameRect::Yes)
+        frameView->primeResizeEventBaseline(newRect.size());
+
     frameView->setFrameRect(newRect);
 
 #if PLATFORM(IOS_FAMILY)
@@ -1695,17 +1706,73 @@ static RefPtr<Node> nodeFromJSHandleIdentifier(JSHandleIdentifier identifier)
     return jsNode->wrapped();
 }
 
+static RefPtr<ImageData> imageDataFromJSHandleIdentifier(JSHandleIdentifier identifier)
+{
+    auto* object = WebKitJSHandle::objectForIdentifier(identifier);
+    if (!object)
+        return nullptr;
+    return JSImageData::toWrapped(object->vm(), object);
+}
+
+#if ENABLE(OFFSCREEN_CANVAS)
+static RefPtr<OffscreenCanvas> offscreenCanvasFromJSHandleIdentifier(JSHandleIdentifier identifier)
+{
+    auto* object = WebKitJSHandle::objectForIdentifier(identifier);
+    if (!object)
+        return nullptr;
+    return JSOffscreenCanvas::toWrapped(object->vm(), object);
+}
+#endif
+
+static RefPtr<ShareableBitmap> shareableBitmapFromImageBuffer(ImageBuffer& imageBuffer)
+{
+    RefPtr nativeImage = imageBuffer.copyNativeImage();
+    if (!nativeImage)
+        return nullptr;
+    return ShareableBitmap::createFromImageDraw(*nativeImage, DestinationColorSpace::SRGB());
+}
+
+RefPtr<ShareableBitmap> shareableBitmapFromImageData(ImageData& imageData)
+{
+    Ref pixelBuffer = imageData.byteArrayPixelBuffer();
+    auto size = pixelBuffer->size();
+    if (size.isEmpty())
+        return nullptr;
+
+    RefPtr imageBuffer = ImageBuffer::create(size, RenderingMode::Unaccelerated, RenderingPurpose::Unspecified, 1, DestinationColorSpace::SRGB(), PixelFormat::BGRA8);
+    if (!imageBuffer)
+        return nullptr;
+
+    imageBuffer->putPixelBuffer(pixelBuffer.get(), IntRect { { }, size });
+    return shareableBitmapFromImageBuffer(*imageBuffer);
+}
+
+#if ENABLE(OFFSCREEN_CANVAS)
+RefPtr<ShareableBitmap> shareableBitmapFromOffscreenCanvas(OffscreenCanvas& offscreenCanvas)
+{
+    RefPtr imageBuffer = offscreenCanvas.makeRenderingResultsAvailable();
+    if (!imageBuffer)
+        return nullptr;
+    return shareableBitmapFromImageBuffer(*imageBuffer);
+}
+#endif
+
 void WebFrame::takeSnapshotOfNode(JSHandleIdentifier identifier, CompletionHandler<void(std::optional<ShareableBitmapHandle>&&)>&& completion)
 {
     RefPtr page = m_page.get();
     if (!page)
         return completion({ });
 
-    RefPtr node = nodeFromJSHandleIdentifier(identifier);
-    if (!node)
-        return completion({ });
+    RefPtr<ShareableBitmap> bitmap;
+    if (RefPtr node = nodeFromJSHandleIdentifier(identifier))
+        bitmap = page->shareableBitmapForNodeIncludingOffscreen(*node);
+#if ENABLE(OFFSCREEN_CANVAS)
+    else if (RefPtr offscreenCanvas = offscreenCanvasFromJSHandleIdentifier(identifier))
+        bitmap = shareableBitmapFromOffscreenCanvas(*offscreenCanvas);
+#endif
+    else if (RefPtr imageData = imageDataFromJSHandleIdentifier(identifier))
+        bitmap = shareableBitmapFromImageData(*imageData);
 
-    RefPtr bitmap = page->shareableBitmapSnapshotForNode(*node);
     if (!bitmap)
         return completion({ });
 

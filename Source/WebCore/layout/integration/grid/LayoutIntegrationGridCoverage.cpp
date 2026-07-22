@@ -71,7 +71,6 @@ enum class GridAvoidanceReason : uint8_t {
     GridHasUnsupportedMaxHeight,
     GridItemHasNonInitialMaxWidth,
     GridItemHasNonInitialMaxHeight,
-    GridItemHasBorder,
     GridItemHasPercentOrCalcPadding,
     GridItemHasMargin,
     GridItemHasBorderBoxSizing,
@@ -270,7 +269,7 @@ static bool gridItemHasValidWidth(const Style::PreferredSize& width)
 
 static bool canComputeAutomaticInlineSize(const RenderBox& gridItem, const StyleSelfAlignmentData& usedJustifySelf)
 {
-    return usedJustifySelf.position() == ItemPosition::Normal
+    return (usedJustifySelf.position() == ItemPosition::Normal || usedJustifySelf.position() == ItemPosition::Stretch)
         && !protect(gridItem.element())->isReplaced()
         && !gridItem.style().aspectRatio().hasRatio();
 }
@@ -292,7 +291,7 @@ static bool gridItemHasValidHeight(const Style::PreferredSize& height)
 
 static bool canComputeAutomaticBlockSize(const RenderBox& gridItem, const StyleSelfAlignmentData& usedAlignSelf)
 {
-    return usedAlignSelf.position() == ItemPosition::Normal
+    return (usedAlignSelf.position() == ItemPosition::Normal || usedAlignSelf.position() == ItemPosition::Stretch)
         && !protect(gridItem.element())->isReplaced()
         && !gridItem.style().aspectRatio().hasRatio();
 }
@@ -470,7 +469,7 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
 
         auto usedJustifySelf = gridItemStyle->justifySelf().resolve(renderGridStyle.ptr());
 
-        if ((usedJustifySelf.position() != ItemPosition::Start && usedJustifySelf.position() != ItemPosition::Normal)
+        if ((usedJustifySelf.position() != ItemPosition::Start && usedJustifySelf.position() != ItemPosition::Normal && usedJustifySelf.position() != ItemPosition::Stretch)
             || usedJustifySelf.overflow() != OverflowAlignment::Default || usedJustifySelf.positionType() != ItemPositionType::NonLegacy)
             ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridItemHasUnsupportedInlineAxisAlignment, reasons, reasonCollectionMode);
 
@@ -483,7 +482,7 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
 
         auto usedAlignSelf = gridItemStyle->alignSelf().resolve(renderGridStyle.ptr());
 
-        if ((usedAlignSelf.position() != ItemPosition::Start && usedAlignSelf.position() != ItemPosition::Normal)
+        if ((usedAlignSelf.position() != ItemPosition::Start && usedAlignSelf.position() != ItemPosition::Normal && usedAlignSelf.position() != ItemPosition::Stretch)
             || usedAlignSelf.overflow() != OverflowAlignment::Default || usedAlignSelf.positionType() != ItemPositionType::NonLegacy)
             ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridItemHasUnsupportedBlockAxisAlignment, reasons, reasonCollectionMode);
 
@@ -507,9 +506,6 @@ static EnumSet<GridAvoidanceReason> gridLayoutAvoidanceReason(const RenderGrid& 
 
         if (!gridItemStyle->maxHeight().isNone())
             ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridItemHasNonInitialMaxHeight, reasons, reasonCollectionMode);
-
-        if (gridItemStyle->border().hasBorder())
-            ADD_REASON_AND_RETURN_IF_NEEDED(GridAvoidanceReason::GridItemHasBorder, reasons, reasonCollectionMode);
 
         // Fixed padding is threaded into item and track sizing as part of the border-box size and lays
         // out identically to legacy RenderGrid. Percentage and calc() padding resolve against the grid
@@ -774,9 +770,6 @@ static void printReason(GridAvoidanceReason reason, TextStream& stream)
         break;
     case GridAvoidanceReason::GridItemHasNonInitialMaxHeight:
         stream << "grid item has non-initial max-height";
-        break;
-    case GridAvoidanceReason::GridItemHasBorder:
-        stream << "grid item has border";
         break;
     case GridAvoidanceReason::GridItemHasPercentOrCalcPadding:
         stream << "grid item has percent or calc padding";

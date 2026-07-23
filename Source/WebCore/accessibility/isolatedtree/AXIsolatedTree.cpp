@@ -121,6 +121,7 @@ Ref<AXIsolatedTree> AXIsolatedTree::createEmpty(AXObjectCache& axObjectCache)
     AX_ASSERT(isMainThread());
 
     auto tree = adoptRef(*new AXIsolatedTree(axObjectCache));
+    axObjectCache.initializeIsolatedTreeGeometry();
 
     if (RefPtr axRoot = axObjectCache.document() ? axObjectCache.getOrCreate(axObjectCache.document()->view()) : nullptr) {
         tree->updatingSubtree(axRoot.get());
@@ -193,6 +194,7 @@ RefPtr<AXIsolatedTree> AXIsolatedTree::create(AXObjectCache& axObjectCache)
     auto tree = adoptRef(*new AXIsolatedTree(axObjectCache));
     if (RefPtr existingTree = isolatedTreeForID(tree->treeID()))
         tree->m_replacingTree = existingTree;
+    axObjectCache.initializeIsolatedTreeGeometry();
 
     RefPtr document = axObjectCache.document();
     if (!document)
@@ -1295,6 +1297,16 @@ void AXIsolatedTree::updateLoadingProgress(double newProgressValue)
 
     m_loadingProgress = newProgressValue;
 }
+
+#if ENABLE(WRITING_TOOLS)
+void AXIsolatedTree::setWritingToolsAvailable(bool isAvailable)
+{
+    AXTRACE("AXIsolatedTree::setWritingToolsAvailable"_s);
+    AX_ASSERT(isMainThread());
+
+    m_writingToolsAvailable = isAvailable;
+}
+#endif // ENABLE(WRITING_TOOLS)
 
 void AXIsolatedTree::updateFrame(AXID axID, IntRect&& newFrame)
 {

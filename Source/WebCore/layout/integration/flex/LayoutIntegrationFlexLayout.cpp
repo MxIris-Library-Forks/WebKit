@@ -66,11 +66,58 @@ void FlexLayout::prepareFlexItemForPositionedLayout(RenderBox& flexItem)
     }
 }
 
-FlexLayoutItems FlexLayout::collectFlexItems(RelayoutChildren relayoutChildren)
+FlexLayoutConstraints FlexLayout::flexLayoutConstraints() const
+{
+    FlexFormattingUtils utils { flexBox() };
+    return {
+        .style = flexBox().style(),
+        .isHorizontalFlow = FlexFormattingUtils::isHorizontalFlow(flexBox()),
+        .isColumnFlow = FlexFormattingUtils::isColumnFlow(flexBox()),
+        .isMultiline = FlexFormattingUtils::isMultiline(flexBox()),
+        .isWrapReverse = FlexFormattingUtils::isWrapReverse(flexBox()),
+        .isColumnOrRowReverse = utils.isColumnOrRowReverse(),
+        .isLeftToRightFlow = utils.isLeftToRightFlow(),
+        .crossAxisDirection = utils.crossAxisDirection(),
+        .flowAwareBorderInline = { utils.flowAwareBorderStart(), utils.flowAwareBorderEnd() },
+        .flowAwareBorderBlock = { utils.flowAwareBorderBefore(), utils.flowAwareBorderAfter() },
+        .flowAwarePaddingInline = { utils.flowAwarePaddingStart(), utils.flowAwarePaddingEnd() },
+        .flowAwarePaddingBlock = { utils.flowAwarePaddingBefore(), utils.flowAwarePaddingAfter() },
+        .mainAxisAvailableSpace = mainAxisAvailableSpace(),
+        .mainAxisSizeForLengthResolution = FlexFormattingUtils::isColumnFlow(flexBox()) ? flexBox().availableLogicalHeight(AvailableLogicalHeightType::ExcludeMarginBorderPadding) : flexBox().contentBoxLogicalWidth(),
+        .mainAxisBorderBoxExtent = utils.mainAxisExtent(),
+        .crossAxisSizeForLengthResolution = flexBox().contentBoxLogicalWidth(),
+        .mainAxisScrollbarExtent = utils.mainAxisScrollbarExtent(),
+        .crossAxisScrollbarExtent = utils.crossAxisScrollbarExtent(),
+    };
+}
+
+LayoutUnit FlexLayout::mainAxisAvailableSpace() const
+{
+    if (!FlexFormattingUtils::isColumnFlow(flexBox()))
+        return flexBox().contentBoxLogicalWidth();
+
+    auto logicalHeightIgnoringFlexBasisOverride = [&] {
+        // The flex-basis override is for the parent flex's sizing of this item,
+        // not for this container's own wrapping decisions. Temporarily clear it
+        // so computeLogicalHeight sees the specified height.
+        auto override = flexBox().overridingLogicalHeightForFlexBasisComputation();
+        if (!override)
+            return flexBox().computeLogicalHeight(LayoutUnit::max(), flexBox().logicalTop()).extent;
+
+        flexBox().clearOverridingLogicalHeightForFlexBasisComputation();
+        auto computedValues = flexBox().computeLogicalHeight(LayoutUnit::max(), flexBox().logicalTop());
+        flexBox().setOverridingBorderBoxLogicalHeightForFlexBasisComputation(*override);
+        return computedValues.extent;
+    };
+    auto logicalHeight = logicalHeightIgnoringFlexBasisOverride();
+    return logicalHeight == LayoutUnit::max() ? logicalHeight : std::max(0_lu, logicalHeight - (flexBox().borderAndPaddingLogicalHeight() + flexBox().scrollbarLogicalHeight()));
+}
+
+FlexLayoutItems FlexLayout::collectFlexItems(RelayoutChildren relayoutChildren, const FlexLayoutConstraints& constraints)
 {
     // Out-of-flow children are not flex items, but the container still establishes their static position.
-    for (auto& child : childrenOfType<RenderBox>(flexBox())) {
-        if (child.isOutOfFlowPositioned())
+    for (CheckedRef child : childrenOfType<RenderBox>(flexBox())) {
+        if (child->isOutOfFlowPositioned())
             prepareFlexItemForPositionedLayout(child);
     }
 
@@ -88,20 +135,21 @@ FlexLayoutItems FlexLayout::collectFlexItems(RelayoutChildren relayoutChildren)
         if (flexItem->shouldInvalidateContentWidths())
             flexItem->invalidateContentLogicalWidths(MarkingBehavior::MarkOnlyThis);
         flexBox().updateBlockChildDirtyBitsBeforeLayout(relayoutChildren, *flexItem);
-        flexItems.append({ *flexItem, everHadLayout, relayoutChildren == RelayoutChildren::Yes });
+        flexItems.append({ *flexItem, constraints.isHorizontalFlow, everHadLayout, relayoutChildren == RelayoutChildren::Yes });
     }
     return flexItems;
 }
 
 void FlexLayout::layout(RelayoutChildren relayoutChildren)
 {
-    auto flexItems = collectFlexItems(relayoutChildren);
+    auto constraints = flexLayoutConstraints();
+    auto flexItems = collectFlexItems(relayoutChildren, constraints);
     if (flexItems.isEmpty()) {
         flexBox().updateFlexContainerLogicalHeight(0_lu);
         return;
     }
 
-    auto flexLayoutResult = WebCore::FlexFormattingContext(flexBox()).layout(flexItems);
+    auto flexLayoutResult = WebCore::FlexFormattingContext(flexBox(), constraints).layout(flexItems);
     if (flexLayoutResult.alignContentStartOverflow)
         flexBox().m_alignContentStartOverflow = *flexLayoutResult.alignContentStartOverflow;
     flexBox().m_justifyContentStartOverflow = flexLayoutResult.justifyContentStartOverflow;
@@ -173,92 +221,50 @@ std::optional<LayoutUnit> FlexLayout::lastLineBaseline() const
     return result;
 }
 
-const RenderBox* FlexLayout::flexItemForFirstBaseline() const
+CheckedPtr<const RenderBox> FlexLayout::flexItemForFirstBaseline() const
 {
-    // Looking for baseline flex candidate on visually first line.
-    auto useLastLine = FlexFormattingUtils::isWrapReverse(flexBox());
-    auto useLastItem = flexBox().style().flexDirection() == FlexDirection::RowReverse || flexBox().style().flexDirection() == FlexDirection::ColumnReverse;
-
-    if (!useLastLine) {
-        if (!useLastItem) {
-            // Logically (and visually) first item on logically (and visually) first line.
-            return firstBaselineCandidateOnLine(false, flexBox().m_numberOfFlexItemsOnFirstLine);
-        }
-        // Logically last (but visually first) item on logically (and visually) first line.
-        return lastBaselineCandidateOnLine(false, flexBox().m_numberOfFlexItemsOnFirstLine);
-    }
-
-    if (!useLastItem) {
-        // Logically (and visually) first item on logically last (but visually first) line.
-        return lastBaselineCandidateOnLine(true, flexBox().m_numberOfFlexItemsOnLastLine);
-    }
-    // Logically last (but visually first) item on logically last (but visually first) line.
-    return firstBaselineCandidateOnLine(true, flexBox().m_numberOfFlexItemsOnLastLine);
-}
-
-const RenderBox* FlexLayout::flexItemForLastBaseline() const
-{
-    // Looking for baseline flex candidate on visually last line.
-    auto useLastLine = FlexFormattingUtils::isWrapReverse(flexBox());
-    auto useLastItem = flexBox().style().flexDirection() == FlexDirection::RowReverse || flexBox().style().flexDirection() == FlexDirection::ColumnReverse;
-
-    if (!useLastLine) {
-        if (!useLastItem) {
-            // Logically (and visually) last item on logically (and visually) last line.
-            return firstBaselineCandidateOnLine(true, flexBox().m_numberOfFlexItemsOnLastLine);
-        }
-        // Logically first (but visually last) item  on logically (and visually) last line.
-        return lastBaselineCandidateOnLine(true, flexBox().m_numberOfFlexItemsOnLastLine);
-    }
-
-    if (!useLastItem) {
-        // Logically (and visually) last item on logically first (but visually last) line.
-        return lastBaselineCandidateOnLine(false, flexBox().m_numberOfFlexItemsOnFirstLine);
-    }
-    // Logically first (but visually last) item on logically last (but visually first) line.
-    return firstBaselineCandidateOnLine(false, flexBox().m_numberOfFlexItemsOnFirstLine);
-}
-
-const RenderBox* FlexLayout::firstBaselineCandidateOnLine(bool reversed, size_t numberOfItemsOnLine) const
-{
-    // Note that "first" here means in iteration order and not logical flex order (the caller can iterate reversed).
+    // The first baseline comes from the visually-first flex line, and within it the item nearest that line's visual
+    // start. flex-wrap: wrap-reverse makes the visually-first line the logically-last line; a reversed main axis
+    // (row/column-reverse) puts the visual start at the logically-last item, so we scan the line in reverse.
     auto& flexItems = flexBox().flexItems();
-    size_t index = 0;
-    const RenderBox* baselineFlexItem = nullptr;
-    for (size_t i = 0; i < flexItems.size(); ++i) {
-        auto* flexItem = flexItems[reversed ? flexItems.size() - 1 - i : i].get();
+    bool reverse = flexBox().style().flexDirection() == FlexDirection::RowReverse || flexBox().style().flexDirection() == FlexDirection::ColumnReverse;
+    if (FlexFormattingUtils::isWrapReverse(flexBox()))
+        return baselineFlexItemInLine(flexItems.size() - flexBox().m_numberOfFlexItemsOnLastLine, flexBox().m_numberOfFlexItemsOnLastLine, reverse);
+    return baselineFlexItemInLine(0, flexBox().m_numberOfFlexItemsOnFirstLine, reverse);
+}
+
+CheckedPtr<const RenderBox> FlexLayout::flexItemForLastBaseline() const
+{
+    // The last baseline comes from the visually-last flex line, and within it the item nearest that line's visual
+    // end (the opposite end to flexItemForFirstBaseline, hence the negated reverse). wrap-reverse makes the
+    // visually-last line the logically-first line.
+    auto& flexItems = flexBox().flexItems();
+    bool reverse = !(flexBox().style().flexDirection() == FlexDirection::RowReverse || flexBox().style().flexDirection() == FlexDirection::ColumnReverse);
+    if (FlexFormattingUtils::isWrapReverse(flexBox()))
+        return baselineFlexItemInLine(0, flexBox().m_numberOfFlexItemsOnFirstLine, reverse);
+    return baselineFlexItemInLine(flexItems.size() - flexBox().m_numberOfFlexItemsOnLastLine, flexBox().m_numberOfFlexItemsOnLastLine, reverse);
+}
+
+CheckedPtr<const RenderBox> FlexLayout::baselineFlexItemInLine(size_t lineStart, size_t itemCount, bool reverse) const
+{
+    // A flex line is the slice [lineStart, lineStart + itemCount) of the flex items (items are collected into lines
+    // in order). Scanning it in the given direction, return the first item that participates in baseline alignment
+    // (baseline self-alignment, the main axis is the item's inline axis, and no auto margins in the cross axis), or
+    // the first item scanned when none participate.
+    auto& flexItems = flexBox().flexItems();
+    CheckedPtr<const RenderBox> fallback = nullptr;
+    for (size_t i = 0; i < itemCount; ++i) {
+        CheckedPtr flexItem = flexItems[lineStart + (reverse ? itemCount - 1 - i : i)].get();
         if (!flexItem)
             continue;
-        auto flexItemPosition = FlexFormattingUtils::alignmentForFlexItem(flexBox(), *flexItem);
-        if ((flexItemPosition == ItemPosition::Baseline || flexItemPosition == ItemPosition::LastBaseline)
+        if (!fallback)
+            fallback = flexItem;
+        auto position = FlexFormattingUtils::alignmentForFlexItem(flexBox(), *flexItem);
+        if ((position == ItemPosition::Baseline || position == ItemPosition::LastBaseline)
             && FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexBox(), *flexItem) && !FlexFormattingUtils::hasAutoMarginsInCrossAxis(flexBox(), *flexItem))
             return flexItem;
-        if (!baselineFlexItem)
-            baselineFlexItem = flexItem;
-        if (++index == numberOfItemsOnLine)
-            return baselineFlexItem;
     }
-    return nullptr;
-}
-
-const RenderBox* FlexLayout::lastBaselineCandidateOnLine(bool reversed, size_t numberOfItemsOnLine) const
-{
-    // Note that "last" here means in iteration order and not logical flex order (the caller can iterate reversed).
-    auto& flexItems = flexBox().flexItems();
-    size_t index = 0;
-    const RenderBox* baselineFlexItem = nullptr;
-    for (size_t i = 0; i < flexItems.size(); ++i) {
-        auto* flexItem = flexItems[reversed ? flexItems.size() - 1 - i : i].get();
-        if (!flexItem)
-            continue;
-        auto flexItemPosition = FlexFormattingUtils::alignmentForFlexItem(flexBox(), *flexItem);
-        if ((flexItemPosition == ItemPosition::Baseline || flexItemPosition == ItemPosition::LastBaseline)
-            && FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexBox(), *flexItem) && !FlexFormattingUtils::hasAutoMarginsInCrossAxis(flexBox(), *flexItem))
-            baselineFlexItem = flexItem;
-        if (++index == numberOfItemsOnLine)
-            return baselineFlexItem ? baselineFlexItem : flexItem;
-    }
-    return nullptr;
+    return fallback;
 }
 
 LayoutUnit FlexLayout::staticMainAxisPositionForPositionedFlexItem(const RenderBox& flexItem)

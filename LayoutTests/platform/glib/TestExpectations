@@ -3436,6 +3436,11 @@ webkit.org/b/232346 media/video-canvas-createPattern.html [ Failure Timeout ]
 webkit.org/b/232346 media/video-canvas-drawing-output.html [ Failure ]
 webkit.org/b/232346 media/video-orientation-canvas.html [ Failure ]
 
+webkit.org/b/319956 imported/w3c/web-platform-tests/html/canvas/element/manual/imagebitmap/createImageBitmap-colorSpaceConversion.html [ Failure ]
+webkit.org/b/319956 imported/w3c/web-platform-tests/html/canvas/element/manual/imagebitmap/createImageBitmap-invalid-args.html [ Failure ]
+webkit.org/b/319956 imported/w3c/web-platform-tests/html/canvas/element/manual/imagebitmap/createImageBitmap-serializable.html [ Failure ]
+webkit.org/b/319956 imported/w3c/web-platform-tests/html/canvas/element/manual/imagebitmap/createImageBitmap-transfer.html [ Failure ]
+
 # These are skipped globally as they only work with the web-platform.test domain.
 imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/ [ Pass ]
 
@@ -3549,6 +3554,7 @@ ipc/send-invalid-message.html [ Skip ]
 ipc/pasteboard-write-custom-data.html [ Skip ]
 ipc/remotedisplaylistrecorder-drawcontrolpart-slidertrackpart-crash.html [ Skip ]
 ipc/nested-display-list-draw-control-part-crash.html [ Skip ]
+ipc/move-to-image-buffer-cross-thread-font-crash.html [ Skip ]
 ipc/media-containment-bypass-create-player.html [ Skip ]
 http/tests/ipc/gpu-load-error-empty-user-info-crssh.html [ Skip ]
 http/tests/ipc/webpageproxy-didfailload-failingurl-message-check.html [ Skip ]
@@ -5444,10 +5450,15 @@ fast/dom/HTMLImageElement/sizes/image-sizes-js-change.html [ Pass Failure ]
 webkit.org/b/317607 http/tests/media/track/text-track-cross-origin-in-band.html [ Failure ]
 webkit.org/b/317607 http/tests/media/track/track-removal-clears-pending-list.html [ Failure ]
 
+webkit.org/b/319954 [ x86_64 ] imported/w3c/web-platform-tests/css/css-text/white-space/white-space-trim-inline-block.html [ ImageOnlyFailure ]
+webkit.org/b/319954 [ arm64 ] imported/w3c/web-platform-tests/css/css-text/white-space/white-space-trim-inline-block.html [ Pass ImageOnlyFailure ]
+
 webkit.org/b/317966 [ x86_64 ] http/tests/web-locks/web-lock-in-serviceworker.html [ Crash Failure Pass ]
 webkit.org/b/317968 [ x86_64 ] imported/w3c/web-platform-tests/navigation-timing/nav2-test-redirect-server.html [ Pass Failure ]
 
 webkit.org/b/318434 ipc/send-gpu-GetShareableBitmap-RemoteRenderingBackend.html [ Crash Pass ]
+
+webkit.org/b/318634 ipc/loadping-firstpartyforcookies-message-check.html [ Failure ]
 
 webkit.org/b/319043 http/wpt/navigation-api/traverse-subframe-remote-sibling.sub.html [ Crash ]
 webkit.org/b/319044 imported/w3c/web-platform-tests/html/rendering/widgets/shadow-dom.html [ Failure ]
@@ -5464,8 +5475,14 @@ webkit.org/b/319310 [ Debug ] fast/repaint/iframe-avoid-redundant-repaint.html [
 webkit.org/b/319311 [ Debug ] fast/repaint/missing-out-of-flow-repaint-on-destroy.html [ Pass ImageOnlyFailure ]
 webkit.org/b/319312 [ Debug ] workers/bomb.html [ Skip ]
 
+webkit.org/b/319950 imported/w3c/web-platform-tests/css/css-pseudo/marker-hit-testing.html [ Failure ]
+
 # WebTransport is Cocoa-only (non-Cocoa ports are a stub). https://bugs.webkit.org/show_bug.cgi?id=319008
 imported/w3c/web-platform-tests/webtransport/ [ Skip ]
+
+# Crashes on both GLib ports since 317427@main (Remove DidReceiveEventIPC): thread-affinity assertion (threadLikeAssertion.isCurrent()) in EventDispatcher::dispatchWheelEvent.
+webkit.org/b/319949 fast/events/wheel/wheel-event-destroys-frame.html [ Crash ]
+webkit.org/b/319949 fast/events/wheel/wheelevent-basic.html [ Crash ]
 
 # End: Common failures between GTK and WPE.
 

@@ -1253,11 +1253,6 @@ RefPtr<AXIsolatedTree> AXObjectCache::getOrCreateIsolatedTree()
         tree = nullptr;
     }
 
-    // A new isolated tree needs to be created. Initialize the GeometryManager primary screen rect to be ready when needed.
-    m_geometryManager->initializePrimaryScreenRect();
-    // Schedule a paint to cache the rects for the objects in this new isolated tree.
-    scheduleObjectRegionsUpdate(true /* scheduleImmediately */);
-
     if (clientIsInTestMode()) [[unlikely]] {
         // For test clients (LayoutTests / XCTests) build the whole isolated tree synchronously.
         // This is necessary because tests assume that APIs like accessibleElementById can
@@ -1276,6 +1271,14 @@ RefPtr<AXIsolatedTree> AXObjectCache::getOrCreateIsolatedTree()
     }
 
     return tree;
+}
+
+void AXObjectCache::initializeIsolatedTreeGeometry()
+{
+    // Cache the primary display's rect on the geometry manager (its height is exposed to AX clients as
+    // AXPrimaryScreenHeight) and schedule an immediate object-region paint to cache per-object rects.
+    m_geometryManager->initializePrimaryScreenRect();
+    scheduleObjectRegionsUpdate(true /* scheduleImmediately */);
 }
 
 void AXObjectCache::buildIsolatedTree()
@@ -2364,6 +2367,18 @@ void AXObjectCache::onPageActivityStateChange(OptionSet<ActivityState> newState)
         tree->setPageActivityState(newState);
 #endif
 }
+
+#if ENABLE(WRITING_TOOLS)
+void AXObjectCache::setWritingToolsAvailable(bool isAvailable)
+{
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+    if (auto tree = AXIsolatedTree::treeForFrameID(m_frameID))
+        tree->setWritingToolsAvailable(isAvailable);
+#else
+    UNUSED_PARAM(isAvailable);
+#endif // ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+}
+#endif // ENABLE(WRITING_TOOLS)
 
 static bool shouldDeferFocusChange(Element* element)
 {
@@ -5563,7 +5578,7 @@ void AXObjectCache::performDeferredCacheUpdate(ForceLayout forceLayout)
     AXLOGDeferredCollection("AttributeChange"_s, m_deferredAttributeChange);
     for (const auto& attributeChange : borrow(m_deferredAttributeChange).get()) {
         handleAttributeChange(protect(attributeChange.element.get()), attributeChange.attrName, attributeChange.oldValue, attributeChange.newValue);
-        if (attributeChange.attrName == idAttr)
+        if (attributeChange.attrName == idAttr && idChangeCanAffectRelations(attributeChange.element.get(), attributeChange.oldValue, attributeChange.newValue))
             markRelationsDirty();
     }
     m_deferredAttributeChange.clear();
@@ -6728,6 +6743,7 @@ void AXObjectCache::updateRelationsIfNeeded()
     m_recentlyRemovedRelations.clear();
     m_relationTargets.clear();
     m_unresolvedRelationTargetIds.clear();
+    m_referencedRelationTargetIds.clear();
     m_hasAriaOwnsRelations = false;
 
     if (!m_doneInitialRelationsBuild) {
@@ -6789,6 +6805,24 @@ void AXObjectCache::trackRelationAttributeElement(Element& element)
         relationsNeedUpdate(true);
 }
 
+bool AXObjectCache::idChangeCanAffectRelations(Element* element, const AtomString& oldID, const AtomString& newID) const
+{
+    auto isReferenced = [&](const AtomString& id) {
+        return !id.isEmpty() && m_referencedRelationTargetIds.contains(id);
+    };
+    if (isReferenced(oldID) || isReferenced(newID)) {
+        // An id change affects relations only if the old or new id is referenced by a relation attribute.
+        return true;
+    }
+
+    // A relation can also resolve through a shadow root's reference target, in which case it depends on
+    // an inner id (the reference target) rather than the relation attribute's value, so that inner id is
+    // not in m_referencedRelationTargetIds. Conservatively re-resolve when an id changes inside a shadow
+    // tree that uses a reference target.
+    RefPtr shadowRoot = element ? element->containingShadowRoot() : nullptr;
+    return shadowRoot && shadowRoot->hasReferenceTarget();
+}
+
 bool AXObjectCache::addRelation(Element& origin, const QualifiedName& attribute)
 {
     if (attribute == aria_labeledbyAttr && origin.hasAttribute(aria_labelledbyAttr)) {
@@ -6802,13 +6836,23 @@ bool AXObjectCache::addRelation(Element& origin, const QualifiedName& attribute)
         return false;
 
     // Remember any referenced ids whose target doesn't exist yet, so that if an element with one of
-    // these ids is inserted later, we know to dirty relations and re-resolve it
+    // these ids is inserted later, we know to dirty relations and re-resolve it. Also remember every
+    // referenced id (resolved or not) so that an id-attribute change can be cheaply checked against it.
     if (const auto& value = origin.attributeWithoutSynchronization(attribute); !value.isNull()) {
         Ref treeScope = origin.treeScope();
         for (auto& id : SpaceSplitString(value, SpaceSplitString::ShouldFoldCase::No)) {
+            m_referencedRelationTargetIds.add(id);
             if (!treeScope->elementByIdResolvingReferenceTarget(id))
                 m_unresolvedRelationTargetIds.add(id);
         }
+    }
+
+    if (!origin.isInTreeScope()) {
+        // When an origin is not in a tree scope, Element::elementsArrayForAttributeInternal() can't use the
+        // TreeScope id map and falls back to getElementByIdIncludingDisconnected(), which linearly scans
+        // the entire detached subtree once per referenced id. On pages with large detached subtrees this
+        // can cause performance issues.
+        return false;
     }
 
     if (Element::isElementReflectionAttribute(m_document->settings(), attribute)) {
@@ -6852,10 +6896,22 @@ bool AXObjectCache::addRelation(Element& origin, const QualifiedName& attribute)
 
 void AXObjectCache::addLabelForRelation(Element& origin)
 {
+    RefPtr label = dynamicDowncast<HTMLLabelElement>(origin);
+
+    if (label) {
+        if (const auto& controlID = label->attributeWithoutSynchronization(forAttr); !controlID.isEmpty())
+            m_referencedRelationTargetIds.add(controlID);
+    }
+
+    // A detached label has no accessibility object, so its label relations have no consumer. Skipping
+    // it here also avoids HTMLLabelElement::control()'s scan of the label's descendants.
+    if (!origin.isInTreeScope())
+        return;
+
     bool addedRelation = false;
 
     // LabelFor relations are established for <label for=...>.
-    if (RefPtr label = dynamicDowncast<HTMLLabelElement>(origin)) {
+    if (label) {
         if (RefPtr control = Accessibility::controlForLabelElement(*label)) {
             // Always add NativeLabelFor for geometry purposes.
             addedRelation = addRelation(origin, *control, AXRelation::NativeLabelFor);

@@ -346,6 +346,7 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/fetch/FetchRequestCache.idl \
     $(WebCore)/Modules/fetch/FetchRequestCredentials.idl \
     $(WebCore)/Modules/fetch/FetchRequestDestination.idl \
+    $(WebCore)/Modules/fetch/FetchRequestDuplex.idl \
     $(WebCore)/Modules/fetch/FetchRequestInit.idl \
     $(WebCore)/Modules/fetch/FetchRequestMode.idl \
     $(WebCore)/Modules/fetch/FetchRequestRedirect.idl \
@@ -855,6 +856,7 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/webtransport/WebTransportSendStream.idl \
     $(WebCore)/Modules/webtransport/WebTransportSendStreamOptions.idl \
     $(WebCore)/Modules/webtransport/WebTransportSendStreamStats.idl \
+    $(WebCore)/Modules/webtransport/WebTransportWriter.idl \
     $(WebCore)/Modules/webxr/Navigator+WebXR.idl \
     $(WebCore)/Modules/webxr/WebXRBoundedReferenceSpace.idl \
     $(WebCore)/Modules/webxr/WebXRFrame+HandInput.idl \

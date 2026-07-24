@@ -540,6 +540,7 @@ Modules/webtransport/WebTransportSendGroup.cpp
 Modules/webtransport/WebTransportSendStream.cpp
 Modules/webtransport/WebTransportSendStreamSink.cpp
 Modules/webtransport/WebTransportSession.cpp
+Modules/webtransport/WebTransportWriter.cpp
 Modules/webtransport/WorkerWebTransportSession.cpp
 Modules/webxr/NavigatorWebXR.cpp
 Modules/webxr/WebGLOpaqueTexture.cpp
@@ -2880,6 +2881,7 @@ platform/network/NetworkStateNotifier.cpp
 platform/network/NetworkStorageSession.cpp
 platform/network/ParsedContentRange.cpp
 platform/network/ParsedContentType.cpp
+platform/network/PendingStreamState.cpp
 platform/network/ProtectionSpaceBase.cpp
 platform/network/RFC7230.cpp
 platform/network/RFC8941.cpp
@@ -4230,6 +4232,7 @@ JSFetchRequest.cpp
 JSFetchRequestCache.cpp
 JSFetchRequestCredentials.cpp
 JSFetchRequestDestination.cpp
+JSFetchRequestDuplex.cpp
 JSFetchRequestInit.cpp
 JSFetchRequestMode.cpp
 JSFetchRequestRedirect.cpp
@@ -5307,6 +5310,7 @@ JSWebTransportSendOptions.cpp
 JSWebTransportSendStream.cpp
 JSWebTransportSendStreamOptions.cpp
 JSWebTransportSendStreamStats.cpp
+JSWebTransportWriter.cpp
 JSWebXRBoundedReferenceSpace.cpp
 JSWebXRFrame.cpp
 JSWebXRHand.cpp

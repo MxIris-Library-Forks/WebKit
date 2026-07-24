@@ -1765,6 +1765,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     layout/formattingContexts/flex/FlexFormattingContext.h
     layout/formattingContexts/flex/FlexFormattingUtils.h
+    layout/formattingContexts/flex/FlexLayoutState.h
 
     layout/formattingContexts/grid/AxisConstraint.h
     layout/formattingContexts/grid/GridAreaLines.h
@@ -2940,6 +2941,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/network/ParsedContentRange.h
     platform/network/ParsedContentType.h
     platform/network/PendingStreamIdentifier.h
+    platform/network/PendingStreamState.h
     platform/network/ProtectionSpace.h
     platform/network/ProtectionSpaceBase.h
     platform/network/ProtectionSpaceHash.h

@@ -652,6 +652,21 @@ ApplePayEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
+AsyncAudioSessionActivationEnabled:
+  type: bool
+  status: stable
+  category: media
+  humanReadableName: "Async Audio Session Activation"
+  humanReadableDescription: "Use async IPC for audio session activation"
+  defaultValue:
+    WebKitLegacy:
+      default: true
+    WebKit:
+      default: true
+    WebCore:
+      default: true
+  sharedPreferenceForWebProcess: true
+
 # FIXME: This is on by default in WebKit2 PLATFORM(COCOA). Perhaps we should consider turning it on for WebKitLegacy as well.
 AsyncClipboardAPIEnabled:
   type: bool
@@ -3659,18 +3674,13 @@ GetUserMediaRequiresFocus:
       default: true
 
 GlobalPrivacyControlEnabled:
-  type: bool
-  status: testable
-  category: privacy
+  type: "std::optional<bool>"
+  status: embedder
   humanReadableName: "Global Privacy Control"
   humanReadableDescription: "Enable Global Privacy Control (GPC) signal"
   defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: false
     WebCore:
-      default: false
+      default: std::nullopt
 
 GoogleAntiFlickerOptimizationQuirkEnabled:
   type: bool

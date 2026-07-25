@@ -101,35 +101,6 @@ public:
 
     bool isInCrossAxisStretchLayout() const { return m_flexLayoutState && m_flexLayoutState->phase() == FlexLayoutState::Phase::CrossAxisItemSizing; }
 
-    class OverridingSizesScope {
-    public:
-        enum class Axis { Inline, Block, Both };
-
-        OverridingSizesScope(RenderBox&, Axis, std::optional<LayoutUnit> size = std::nullopt);
-        ~OverridingSizesScope();
-
-    private:
-        const CheckedRef<RenderBox> m_box;
-        Axis m_axis;
-        std::optional<LayoutUnit> m_previousOverridingBorderBoxLogicalWidth;
-        std::optional<LayoutUnit> m_previousOverridingBorderBoxLogicalHeight;
-    };
-
-    class ScopedCrossAxisOverrideForFlexItem {
-    public:
-        enum class InvalidateContentWidths : bool { No, Yes };
-        ScopedCrossAxisOverrideForFlexItem(RenderBox& flexItem, InvalidateContentWidths);
-        ~ScopedCrossAxisOverrideForFlexItem();
-
-    private:
-        SetForScope<bool> m_intrinsicWidthComputation;
-        std::optional<OverridingSizesScope> m_overridingScope;
-#if ASSERT_ENABLED
-        RenderBox& m_flexItem;
-        bool m_didInvalidateContentLogicalWidths { false };
-#endif
-    };
-
 protected:
     std::pair<LayoutUnit, LayoutUnit> computeIntrinsicLogicalWidths() const override;
 
@@ -137,8 +108,8 @@ private:
     friend class FlexFormattingContext;
     friend class FlexFormattingUtils;
     friend class LayoutIntegration::FlexLayout;
-
-    enum class SizeDefiniteness : uint8_t { Definite, Indefinite, Unknown };
+    friend class LayoutIntegration::FlexIntegrationUtils;
+    friend class LayoutIntegration::ScopedCrossAxisOverrideForFlexItem;
 
     using FlexItemBorderBoxRects = Vector<LayoutRect, 4>;
 
@@ -157,25 +128,15 @@ private:
 
     FlexContainerUsedExtents updateFlexContainerLogicalHeight(LayoutUnit flexContentBlockExtent);
 
-    void resetHasDefiniteHeight() { m_hasDefiniteHeight = SizeDefiniteness::Unknown; }
-
     FlexLayoutState& flexLayoutState() LIFETIME_BOUND { ASSERT(m_flexLayoutState); return *m_flexLayoutState; }
 
-    SizeDefiniteness hasDefiniteHeight() const { return m_hasDefiniteHeight; }
-    void setHasDefiniteHeight(SizeDefiniteness definiteness) { m_hasDefiniteHeight = definiteness; }
     void setBlockAxisSizeForFlexItem(const RenderBox& flexItem, LayoutUnit size) { m_blockAxisSize.set(flexItem, size); }
     std::optional<LayoutUnit> blockAxisSizeForFlexItem(const RenderBox& flexItem) const { return m_blockAxisSize.getOptional(flexItem); }
     void cacheFlexItemContentLogicalHeightIfAllowed(const RenderBox& flexItem, LayoutUnit height);
     LayoutUnit computeBlockAxisContentSizeForFlexItem(RenderBox& flexItem);
-    void applyStretchedLogicalHeightToFlexItem(RenderBox& flexItem, LayoutUnit desiredLogicalHeight, bool needsRelayout);
-    void relayoutFlexItemForStretchedCrossSize(RenderBox& flexItem, LayoutUnit crossSize, LogicalBoxAxis crossAxis);
     void dirtyPercentHeightDescendantsWithinFlexItem(RenderBox& flexItem);
-    void layoutFlexItemWithMainSize(FlexLayoutItem&, LayoutUnit mainSize);
-    void setOverridingMainSizeForFlexItem(RenderBox& flexItem, LayoutUnit mainSize);
     void resetAutoMarginsAndLogicalTopInCrossAxis(RenderBox& flexItem);
     bool flexItemHasPercentHeightDescendants(const RenderBox&) const;
-    void markFlexItemLayoutComplete(const RenderBox& flexItem) { m_flexItemsWithCompletedLayout.add(flexItem); }
-    bool hasFlexItemCompletedLayout(const RenderBox& flexItem) const { return m_flexItemsWithCompletedLayout.contains(flexItem); }
     void addItemAtFlexLineStart(const RenderBox& flexItem) { m_marginTrimItems.m_itemsAtFlexLineStart.add(flexItem); }
     void addItemAtFlexLineEnd(const RenderBox& flexItem) { m_marginTrimItems.m_itemsAtFlexLineEnd.add(flexItem); }
     void addItemOnFirstFlexLine(const RenderBox& flexItem) { m_marginTrimItems.m_itemsOnFirstFlexLine.add(flexItem); }
@@ -187,13 +148,6 @@ private:
     // This is used to cache the intrinsic size on the cross axis to avoid
     // relayouts when stretching.
     HashMap<SingleThreadWeakRef<const RenderBox>, LayoutUnit> m_contentLogicalHeights;
-
-    // This set is used to keep track of which children we laid out in this
-    // current layout iteration. We need it because the ones in this set may
-    // need an additional layout pass for correct stretch alignment handling, as
-    // the first layout likely did not use the correct value for percentage
-    // sizing of children.
-    SingleThreadWeakHashSet<const RenderBox> m_flexItemsWithCompletedLayout;
 
     Vector<SingleThreadWeakPtr<RenderBox>> m_flexItems;
     // The flex formatting context integration: RenderFlexibleBox owns it and befriends it so it can reach the
@@ -210,8 +164,6 @@ private:
     LayoutUnit m_alignContentStartOverflow { 0 };
     LayoutUnit m_justifyContentStartOverflow { 0 };
 
-    // This is SizeIsUnknown outside of layoutBlock()
-    SizeDefiniteness m_hasDefiniteHeight { SizeDefiniteness::Unknown };
     std::optional<FlexLayoutState> m_flexLayoutState;
     bool m_inSimplifiedLayout { false };
     mutable bool m_inFlexItemIntrinsicWidthComputation { false };

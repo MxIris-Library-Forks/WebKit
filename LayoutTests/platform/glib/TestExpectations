@@ -277,6 +277,12 @@ imported/w3c/web-platform-tests/css/css-break/change-inline-color.html [ Pass ]
 http/wpt/background-fetch [ Skip ]
 imported/w3c/web-platform-tests/background-fetch [ Pass Failure ]
 
+# ReadableStream upload is not supported.
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/fetch/api/basic/request-upload.h2.any.sharedworker.html [ Skip ]
+
 imported/mozilla/svg/blend-hard-light.svg [ Pass ]
 imported/mozilla/svg/dynamic-textPath-01.svg [ Pass ]
 imported/mozilla/svg/dynamic-textPath-02.svg [ Pass ]
@@ -1759,7 +1765,6 @@ webkit.org/b/182103 fast/forms/focus-selection-textarea.html [ Failure ]
 # GStreamer-related bugs
 #////////////////////////////////////////////////////////////////////////////////////////
 
-webkit.org/b/308037 imported/w3c/web-platform-tests/webrtc/simulcast/vp8.https.html [ Failure Pass ]
 webkit.org/b/308037 imported/w3c/web-platform-tests/webrtc/simulcast/vp9.https.html [ Crash Failure Pass ]
 
 imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-audio-jitterBufferTarget-stats.https.html [ Failure ]
@@ -2803,6 +2808,8 @@ imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-maxFramerate.http
 imported/w3c/web-platform-tests/webrtc/simulcast/vp9-scalability-mode.https.html [ Skip ] # Timeout
 webrtc/getDisplayMedia-odd-size.html [ Skip ] # Timeout
 webrtc/video-rotation.html [ Failure ]
+webrtc/video-maxBitrate-vp8.html [ Skip ] # Timeout
+webrtc/video-maxBitrate.html [ Skip ] # Timeout
 
 # Flakies since migration to libwebrtc:
 fast/mediastream/RTCPeerConnection-icecandidate-event.html [ Timeout Pass ]
@@ -2819,10 +2826,11 @@ imported/w3c/web-platform-tests/webrtc/simulcast/negotiation-encodings.https.htm
 imported/w3c/web-platform-tests/webrtc/transfer-datachannel.html [ Pass Failure ]
 webrtc/encrypted-rtp-header-extensions.html [ Pass Crash ]
 webrtc/h264-baseline.html [ Pass Crash ]
-webrtc/h264-high.html [ Pass Crash ]
+webkit.org/b/311846 webrtc/h264-high.html [ Pass Crash ]
 webrtc/vp8-then-h264.html [ Pass Crash ]
+webkit.org/b/310095 imported/w3c/web-platform-tests/webrtc/simulcast/screenshare.https.html [ Crash Failure ]
 
-imported/w3c/web-platform-tests/webrtc/RTCIceTransport.html?rest [ Failure Slow ]
+imported/w3c/web-platform-tests/webrtc/RTCIceTransport.html?rest [ Pass Failure Slow ]
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-setRemoteDescription-offer.html?rest [ Slow ]
 
 # Specific to apple ports.
@@ -2843,19 +2851,14 @@ webkit.org/b/264803 fast/mediastream/mediastreamtrack-video-resize-event.html [ 
 
 http/tests/media/video-play-stall-seek.html [ Skip ] # Timeout
 
-# Requires video scaling adaptation.
-webrtc/video-maxBitrate.html [ Failure ]
-webrtc/video-maxBitrate-vp8.html [ Failure ]
-
 # Times out waiting for DTLS transport setup. Some bug related with data-channel, pending investigation.
 webkit.org/b/265860 imported/w3c/web-platform-tests/webrtc-stats/supported-stats.https.html [ Skip ]
 
 fast/mediastream/video-rotation2.html [ Failure ]
 
 http/wpt/mediastream/webrtc-vp9-colorspace.html [ Failure ]
-webrtc/vp9.html [ Failure ]
 
-webkit.org/b/314659 webrtc/getDisplayMedia-pc-resolution.html [ Failure ]
+webkit.org/b/314659 webrtc/getDisplayMedia-pc-resolution.html [ Pass Crash Failure ]
 
 # Regressions introduced by https://commits.webkit.org/263750@main
 fast/mediastream/apply-constraints-advanced.html [ Failure ]
@@ -2894,7 +2897,6 @@ imported/w3c/web-platform-tests/webrtc/protocol/h265-level-id.https.html [ Skip 
 # Missing support for AV1 in current libwebrtc backend.
 webkit.org/b/302254 webrtc/video-av1.html [ Skip ]
 webkit.org/b/302254 imported/w3c/web-platform-tests/webrtc/protocol/av1-profile-asymmetry.https.html [ Skip ]
-webkit.org/b/302254 imported/w3c/web-platform-tests/webrtc/simulcast/av1.https.html [ Skip ]
 
 # Lack of mDNS support. Currently we expect to communicate with Avahi on host (not guest) but
 # apparently it is not running on current infra.
@@ -2921,9 +2923,6 @@ imported/w3c/web-platform-tests/webrtc-encoded-transform/idlharness.https.window
 imported/w3c/web-platform-tests/webrtc-encoded-transform/tentative/RTCEncodedAudioFrame-audiolevel.html [ Skip ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/tentative/RTCEncodedFrame-timestamps.html [ Skip ]
 http/wpt/webrtc/video-script-transform-simulcast.html [ Skip ]
-http/wpt/webrtc/unset-transform.html [ Failure ]
-
-webrtc/RTCConfiguration-targetLatency.html [ Failure ]
 
 # This test is a constant failure (assert_true: front stream should be small expected true got false).
 webkit.org/b/313153 webrtc/video-replace-track.html [ Failure ]
@@ -2933,31 +2932,17 @@ webkit.org/b/235885 webrtc/video.html [ Skip ]
 
 # Pending investigation.
 webkit.org/b/235885 fast/mediastream/mediastreamtrack-video-clone.html [ Failure ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-addIceCandidate.html [ Failure ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-have-local-offer.html [ Failure ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-have-local-pranswer.html [ Failure ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-have-remote-offer.html [ Failure ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-have-remote-pranswer.html [ Failure ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-media-setup-two-dialogs.html [ Failure Timeout ]
 webkit.org/b/235885 fast/mediastream/RTCPeerConnection-remotely-assigned-transceiver-mid.html [ Pass Failure Timeout ]
-webkit.org/b/235885 fast/mediastream/RTCPeerConnection-setLocalDescription-offer.html [ Failure ]
 webkit.org/b/235885 http/tests/webrtc/video-mediastream-invisible-autoplay-detached.html [ Pass Timeout ]
-webkit.org/b/235885 imported/w3c/web-platform-tests/mst-content-hint/RTCRtpSendParameters-degradationPreference.html [ Failure ]
-webkit.org/b/235885 webrtc/addTransceiver-then-addTrack.html [ Failure ]
 webkit.org/b/235885 webrtc/audio-video-element-playing.html [ Failure ]
 webkit.org/b/235885 [ Release ] webrtc/canvas-to-peer-connection-2d.html [ Failure Pass Crash Timeout ]
 webkit.org/b/235885 webrtc/datachannel/bufferedAmountLowThreshold-default.html [ Failure Pass ]
-webkit.org/b/235885 webrtc/ephemeral-certificates-and-cnames.html [ Failure Timeout ]
-webkit.org/b/235885 webrtc/filtering-ice-candidate-after-reload.html [ Failure ]
 webkit.org/b/235885 webrtc/negotiatedneeded-event-addStream.html [ Failure Pass ]
 webkit.org/b/235885 webrtc/peerconnection-page-cache.html [ Skip ]
 webkit.org/b/235885 webrtc/peerconnection-page-cache-long.html [ Skip ]
-webkit.org/b/235885 webrtc/peer-connection-track-end.html [ Crash Failure Timeout ]
 webkit.org/b/235885 webrtc/video-maxFramerate.html [ Failure ]
 webkit.org/b/235885 webrtc/video-unmute.html [ Pass Failure Timeout ]
 http/tests/webrtc/muted-video-mediastream-invisible-autoplay.html [ Failure Timeout Pass ]
-
-webkit.org/b/187064 webrtc/video-with-data-channel.html [ Failure ]
 
 webkit.org/b/258541 webrtc/vp9-profile2.html [ Timeout Pass Failure ]
 webkit.org/b/258541 webrtc/vp9-sw.html [ Timeout Pass Failure ]
@@ -3004,9 +2989,14 @@ imported/w3c/web-platform-tests/webrtc/simulcast/h264.https.html [ Pass Crash Fa
 imported/w3c/web-platform-tests/webrtc/simulcast/negotiation-encodings.https.html [ Failure ]
 imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-encodings.https.html [ Failure ]
 
+imported/w3c/web-platform-tests/webrtc/simulcast/vp8.https.html [ Failure ] # Timeout
+
+# AV1 not supported yet.
+webkit.org/b/302254 imported/w3c/web-platform-tests/webrtc/simulcast/av1.https.html [ Skip ]
+
 webkit.org/b/235885 imported/w3c/web-platform-tests/webrtc/protocol/simulcast-answer.html [ Skip ]
 webkit.org/b/235885 imported/w3c/web-platform-tests/webrtc/protocol/simulcast-offer.html [ Skip ]
-webkit.org/b/308371 imported/w3c/web-platform-tests/webrtc/simulcast/basic.https.html [ Pass Failure ]
+webkit.org/b/308371 imported/w3c/web-platform-tests/webrtc/simulcast/basic.https.html [ Failure ]
 
 # RTP sender de-activation is not working as expected due to internal queues in rtpbin. The valve we
 # use in our RTPPacketizer is not sufficient, we would need it to be further downstream.
@@ -3015,8 +3005,6 @@ imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-active.https.html
 # For simulcast outbound streams webrtcbin currently returns the stats for the merged stream.
 # Instead it should create one outbound-rtp stat structure per configured rid.
 imported/w3c/web-platform-tests/webrtc/simulcast/getStats.https.html [ Failure ]
-
-webkit.org/b/310095 imported/w3c/web-platform-tests/webrtc/simulcast/screenshare.https.html [ Pass Failure ]
 
 # Legacy Offer options are enabled by default in WPE and GTK ports.
 imported/w3c/web-platform-tests/webrtc/legacy/RTCPeerConnection-createOffer-offerToReceive.optional.html [ Pass ]
@@ -5280,6 +5268,7 @@ webkit.org/b/319954 [ x86_64 ] imported/w3c/web-platform-tests/css/css-text/whit
 webkit.org/b/319954 [ arm64 ] imported/w3c/web-platform-tests/css/css-text/white-space/white-space-trim-inline-block.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/317966 http/tests/web-locks/web-lock-in-serviceworker.html [ Crash Failure Pass ]
+webkit.org/b/320245 [ x86_64 ] imported/w3c/web-platform-tests/web-locks/bfcache/abort.tentative.https.html [ Pass Failure ]
 webkit.org/b/317968 [ x86_64 ] imported/w3c/web-platform-tests/navigation-timing/nav2-test-redirect-server.html [ Pass Failure ]
 
 webkit.org/b/318434 ipc/send-gpu-GetShareableBitmap-RemoteRenderingBackend.html [ Crash Pass ]
@@ -5318,6 +5307,45 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-decoration-inset-009.htm
 imported/w3c/web-platform-tests/css/css-text-decor/text-decoration-inset-014.html [ Pass ]
 imported/w3c/web-platform-tests/svg/painting/reftests/gradient-external-reference.svg [ Pass ]
 imported/w3c/web-platform-tests/svg/painting/reftests/pattern-external-reference.svg [ Pass ]
+
+compositing/overflow/dynamic-composited-scrolling-status.html [ Failure ]
+
+webkit.org/b/250610 fast/events/wheel/wheel-event-destroys-overflow.html [ Skip ]
+webkit.org/b/250610 fast/scrolling/rtl-scrollbars-listbox-scroll.html [ Skip ]
+webkit.org/b/250610 scrollbars/scroll-rtl-or-bt-layer.html [ Skip ]
+
+webkit.org/b/263955 imported/w3c/web-platform-tests/css/compositing/mix-blend-mode/mix-blend-mode-parent-element-overflow-scroll.html [ ImageOnlyFailure ]
+webkit.org/b/263955 imported/w3c/web-platform-tests/css/css-masking/clip/clip-rect-scroll.html [ ImageOnlyFailure ]
+webkit.org/b/263955 imported/w3c/web-platform-tests/css/css-position/position-fixed-scroll-nested-fixed.html [ ImageOnlyFailure ]
+webkit.org/b/287572 imported/w3c/web-platform-tests/css/css-scrollbars/textarea-scrollbar-width-none.html [ ImageOnlyFailure ]
+webkit.org/b/262893 imported/w3c/web-platform-tests/css/css-transforms/backface-visibility-hidden-005.html [ ImageOnlyFailure ]
+webkit.org/b/230277 imported/w3c/web-platform-tests/css/css-transforms/backface-visibility-hidden-006.html [ ImageOnlyFailure ]
+webkit.org/b/227061 imported/w3c/web-platform-tests/css/css-ui/outline-negative-offset-composited-scroll.html [ ImageOnlyFailure ]
+
+imported/w3c/web-platform-tests/dom/events/scrolling/scrollend-event-fires-for-repeat-key-ending-after-scroll-container-end-is-reached.html [ Failure ] # Different outputs
+
+# Assertion failure since 317783@main -- see webkit.org/b/320000. Crashes on assert-enabled builds; image-fails without assertions.
+webkit.org/b/320212 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/row-auto-repeat-auto-014.html [ Crash ImageOnlyFailure ]
+webkit.org/b/320212 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/row-auto-repeat-auto-019.html [ Crash ImageOnlyFailure ]
+webkit.org/b/320212 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/track-sizing/auto-repeat/row-auto-repeat-015.html [ Crash ImageOnlyFailure ]
+webkit.org/b/320212 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/track-sizing/auto-repeat/row-auto-repeat-021.html [ Crash ImageOnlyFailure ]
+
+# Assertion failure since 317846@main -- see webkit.org/b/320083. Crashes on assert-enabled builds; passes without assertions.
+webkit.org/b/320213 imported/w3c/web-platform-tests/fetch/api/redirect/redirect-upload.h2.any.serviceworker.html [ Crash Pass ]
+webkit.org/b/320213 imported/w3c/web-platform-tests/fetch/api/redirect/redirect-upload.h2.any.sharedworker.html [ Crash Pass ]
+webkit.org/b/320213 imported/w3c/web-platform-tests/fetch/api/redirect/redirect-upload.h2.any.worker.html [ Crash Pass ]
+
+webkit.org/b/224596 imported/w3c/web-platform-tests/css/css-grid/grid-model/grid-container-scrollbar-vertical-lr-001.html [ ImageOnlyFailure ]
+webkit.org/b/224596 imported/w3c/web-platform-tests/css/css-grid/grid-model/grid-container-scrollbar-vertical-rl-001.html [ ImageOnlyFailure ]
+webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-position/sticky/position-sticky-rendering.html [ ImageOnlyFailure ]
+webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-margin-002.html [ ImageOnlyFailure ]
+webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-margin-004.html [ ImageOnlyFailure ]
+webkit.org/b/306384 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-padding-002.html [ ImageOnlyFailure ]
+webkit.org/b/227085 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-snap-003.html [ Pass ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-position/hypothetical-box-scroll-parent.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-005.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-006.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-snap-002.html [ ImageOnlyFailure ]
 
 # End: Common failures between GTK and WPE.
 

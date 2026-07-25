@@ -39,6 +39,8 @@ struct MinimumSize;
 class FlexLayoutState;
 class RenderFlexibleBox;
 
+namespace LayoutIntegration { class FlexIntegrationUtils; }
+
 class FlexLayoutItem {
 public:
     FlexLayoutItem(RenderBox&, bool flexContainerIsHorizontalFlow, bool everHadLayout, bool shouldInvalidateChildContent);
@@ -94,7 +96,7 @@ struct FlexContainerUsedExtents {
 
 class FlexFormattingContext {
 public:
-    FlexFormattingContext(RenderFlexibleBox&, const FlexLayoutConstraints&);
+    FlexFormattingContext(LayoutIntegration::FlexIntegrationUtils&, const FlexLayoutConstraints&);
 
     struct Result {
         std::optional<LayoutUnit> alignContentStartOverflow;
@@ -162,7 +164,6 @@ private:
     std::optional<LayoutUnit> computeUsedMaxMainSize(const FlexLayoutItem&);
     LayoutUnit computeUsedNonAutoMinMainSize(const FlexLayoutItem&, const Style::MinimumSize&);
     LayoutUnit computeContentBasedMinMainSize(const FlexLayoutItem&, std::optional<LayoutUnit> maxExtent);
-    template<typename SizeType> std::optional<LayoutUnit> computeMainAxisExtentForFlexItem(const FlexLayoutItem&, const SizeType&);
     template<typename SizeType> LayoutUnit computeMainSizeFromAspectRatioUsing(const FlexLayoutItem&, const SizeType& crossSizeLength) const;
     LayoutUnit adjustFlexItemSizeForAspectRatioCrossAxisMinAndMax(const FlexLayoutItem&, LayoutUnit flexItemSize);
 
@@ -186,13 +187,12 @@ private:
     LayoutUnit applyStretchAlignmentToFlexItem(const FlexLayoutItem&, LayoutUnit lineCrossAxisExtent, LayoutUnit crossContentExtent);
     LayoutUnit applyStretchMinMaxCrossSize(const FlexLayoutItem&, LayoutUnit lineCrossAxisExtent, LogicalBoxAxis, LayoutUnit crossContentExtent);
 
-    void NODELETE setFlowAwareLocationForFlexItem(RenderBox& flexItem, const LayoutPoint&);
-    void setFlexItemGeometry(FlexLayoutItem&, const LayoutPoint& location);
-
     const FlexFormattingUtils& flexFormattingUtils() const;
-    FlexLayoutState& flexLayoutState() const;
+    FlexLayoutState& layoutState() const;
+    LayoutIntegration::FlexIntegrationUtils& integrationUtils() const LIFETIME_BOUND { return m_integrationUtils; }
 
     const CheckedRef<RenderFlexibleBox> m_flexBox;
+    LayoutIntegration::FlexIntegrationUtils& m_integrationUtils;
     FlexFormattingUtils m_flexFormattingUtils;
     const FlexLayoutConstraints m_constraints;
     Result m_result;

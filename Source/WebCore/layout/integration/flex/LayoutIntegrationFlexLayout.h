@@ -26,8 +26,10 @@
 #pragma once
 
 #include <WebCore/FlexFormattingContext.h>
-#include <WebCore/FlexIntegrationUtils.h>
+#include <WebCore/FlexItemContentCache.h>
+#include <WebCore/FlexLayoutState.h>
 #include <wtf/CheckedRef.h>
+#include <wtf/SetForScope.h>
 
 namespace WebCore {
 
@@ -47,6 +49,19 @@ public:
     // Sets the static position of an out-of-flow flex item; returns true if it changed.
     bool setStaticPositionForPositionedLayout(const RenderBox&);
 
+    // The state of the flex algorithm, engaged for its duration only. Absent outside of it, which is how
+    // RenderFlexibleBox tells that the flex algorithm is not the one asking.
+    bool isInLayout() const { return !!m_flexLayoutState; }
+    std::optional<LayoutPhase> layoutPhase() const { return m_flexLayoutState ? std::make_optional(m_flexLayoutState->phase()) : std::nullopt; }
+
+    bool isFlexBoxBlockSizeDefinite() const { return m_flexLayoutState && m_flexLayoutState->isFlexBoxBlockSizeDefinite(); }
+    bool isFlexBoxBlockSizeIndefinite() const { return m_flexLayoutState && m_flexLayoutState->isFlexBoxBlockSizeIndefinite(); }
+    void setFlexBoxBlockSizeIsDefinite(bool isDefinite) { ASSERT(m_flexLayoutState); m_flexLayoutState->setFlexBoxBlockSizeIsDefinite(isDefinite); }
+
+    void setFlexItemContentLogicalHeightFromLayout(const RenderBox& flexItem, LayoutUnit);
+    void invalidateBlockAxisSizeForFlexItem(const RenderBox& flexItem);
+    void flexItemWillBeRemoved(const RenderBox& flexItem);
+
 private:
     FlexLayoutItems collectFlexItems(RelayoutChildren, const FlexLayoutConstraints&);
     FlexLayoutConstraints flexLayoutConstraints() const;
@@ -63,7 +78,8 @@ private:
     RenderFlexibleBox& flexBox() const LIFETIME_BOUND { return m_flexBox; }
 
     const CheckedRef<RenderFlexibleBox> m_flexBox;
-    FlexIntegrationUtils m_integrationUtils;
+    std::optional<FlexLayoutState> m_flexLayoutState;
+    FlexItemContentCache m_flexItemContentCache;
 
     size_t m_numberOfFlexItemsOnFirstLine { 0 };
     size_t m_numberOfFlexItemsOnLastLine { 0 };

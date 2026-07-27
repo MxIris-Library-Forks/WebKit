@@ -65,11 +65,6 @@ namespace WebCore {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderFlexibleBox);
 
-static bool canSetFlexItemContentLogicalHeight(const RenderBox& flexItem)
-{
-    return !flexItem.isFloatingOrOutOfFlowPositioned() && !flexItem.shouldComputeLogicalHeightFromAspectRatio() && !is<RenderReplaced>(flexItem);
-}
-
 RenderFlexibleBox::RenderFlexibleBox(Type type, Element& element, Style::ComputedStyle&& style)
     : RenderBlock(type, element, WTF::move(style), TypeFlag::IsFlexibleBox)
 {
@@ -105,8 +100,6 @@ void RenderFlexibleBox::layoutBlock(RelayoutChildren relayoutChildren, LayoutUni
 
     resetLogicalHeightBeforeLayoutIfNeeded();
 
-    SetForScope flexLayoutStateScope(m_flexLayoutState, FlexLayoutState { });
-
     if (!style().marginTrim().isNone())
         initializeMarginTrimState();
 
@@ -141,7 +134,6 @@ void RenderFlexibleBox::layoutBlock(RelayoutChildren relayoutChildren, LayoutUni
 
         m_flexLayout.layout(relayoutChildren);
 
-        m_flexLayoutState->setPhase(FlexLayoutState::Phase::PostFlexScrollbarLayout);
         endAndCommitUpdateScrollInfoAfterLayoutTransaction();
 
         repaintFlexItemsDuringLayoutIfMoved(oldFlexItemRects);
@@ -367,41 +359,54 @@ bool RenderFlexibleBox::canUseFlexItemForPercentageResolution(const RenderBox& f
 {
     ASSERT(flexItem.isFlexItem());
 
-    auto canUseByLayoutPhase = [&] {
+    // A percentage resolved against a flex item resolves against the item's overriding logical height, so the
+    // question is whether the flex algorithm has settled that height yet. Which step settles it depends on the item:
+    // main-axis sizing does when the item's block axis is the container's main axis, cross-axis stretching does
+    // otherwise. A settled height is then only usable if flexbox 9.8 considers it definite.
+    auto isPercentResolutionDisabledInThisLayoutPhase = [&] {
         if (m_inFlexItemIntrinsicWidthComputation)
-            return FlexFormattingUtils::hasDefiniteCrossSizeForFlexItem(flexItem);
+            return !FlexFormattingUtils::hasDefiniteCrossSizeForFlexItem(flexItem);
 
-        if (m_flexLayoutState) {
-            auto phase = m_flexLayoutState->phase();
-            if (phase >= FlexLayoutState::Phase::CrossAxisItemSizing) {
-                // Final sizes for flex items are known in both the main and cross directions, so it's fine to resolve percentage heights using those final values.
-                // Note that we run layout on flex content _after_ performing flex layout (see endAndCommitUpdateScrollInfoAfterLayoutTransaction/updateScrollInfoAfterLayout).
+        if (auto layoutPhase = m_flexLayout.layoutPhase()) {
+            switch (*layoutPhase) {
+            case LayoutPhase::PreparingFlexItems:
+            case LayoutPhase::ComputingFlexBaseSizes:
+                // The algorithm has not sized anything yet -- PreparingFlexItems is layoutBlock's own setup, which
+                // measures the container's intrinsic widths before the flex algorithm starts. No flexed height exists.
                 return true;
-            }
-            if (phase >= FlexLayoutState::Phase::MainAxisItemSizing) {
-                // Final sizes for flex items are available only along the main axis.
-                // Percentages can be resolved only against those items when they are orthogonal to the flex container (i.e., their logical height is computed and final)
-                return !FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem);
+            case LayoutPhase::MainAxisItemSizing:
+            case LayoutPhase::MainAxisAlignment:
+                // Only the main size is settled, so the height is usable when the item's block axis is the main axis.
+                // Multi-line column flow re-runs main-axis item sizing from the alignment step, once the container's
+                // main size is known, so that phase lands here too.
+                return FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem);
+            case LayoutPhase::CrossAxisItemSizing:
+            case LayoutPhase::CrossAxisAlignment:
+                // Both axes are settled, so the height is final whichever axis it is.
+                return false;
+            default:
+                ASSERT_NOT_REACHED();
+                return true;
             }
         }
 
         if (m_inSimplifiedLayout) {
             // While in simplified layout, we should only re-compute overflow and/or re-position out-of-flow boxes, some renderers (e.g. RenderReplaced and subclasses)
-            // currently ignore this optimization and run regular layout.
-            // Final sizes for flex items are known in both the main and cross directions, computed during previous layout(s).
-            return true;
+            // currently ignore this optimization and run regular layout. The flex items are at their final sizes in both
+            // directions here, computed during previous layout(s).
+            return false;
         }
 
         if (&flexItem == view().frameView().layoutContext().subtreeLayoutRoot())
-            return !FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem);
+            return FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem);
 
-        // Outside of layout (i.e. when using relative percentage positioning), base the decision on style.
-        return !m_flexLayoutState;
+        // Outside of layout (i.e. when using relative percentage positioning), base the decision on style alone.
+        return false;
     };
-    if (!canUseByLayoutPhase())
+    if (isPercentResolutionDisabledInThisLayoutPhase())
         return false;
 
-    auto canUseByStyle = [&] {
+    auto hasDefiniteSizeForPercentResolution = [&] {
         if (FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem))
             return FlexFormattingUtils::alignmentForFlexItem(flexItem) == ItemPosition::Stretch;
 
@@ -410,81 +415,34 @@ bool RenderFlexibleBox::canUseFlexItemForPercentageResolution(const RenderBox& f
             return true;
 
         // Flexbox 9.8 rule 1: definite container main size makes post-flexing sizes definite.
-        return canComputePercentageFlexBasis(flexItem, Style::PreferredSize { 0_css_percentage }, UpdatePercentageHeightDescendants::Yes);
+        return canResolvePercentAgainstContainerBlockSize(flexItem, UpdatePercentageHeightDescendants::Yes);
     };
-    return canUseByStyle();
+    return hasDefiniteSizeForPercentResolution();
 }
 
 void RenderFlexibleBox::invalidateBlockAxisSizeForFlexItem(const RenderBox& flexItem)
 {
-    m_blockAxisSize.remove(flexItem);
+    m_flexLayout.invalidateBlockAxisSizeForFlexItem(flexItem);
 }
 
 void RenderFlexibleBox::flexItemWillBeRemoved(const RenderBox& flexItem)
 {
-    m_contentLogicalHeights.remove(flexItem);
-    m_blockAxisSize.remove(flexItem);
+    m_flexLayout.flexItemWillBeRemoved(flexItem);
 }
 
-// https://drafts.csswg.org/css-flexbox/#min-size-auto
-
-LayoutUnit RenderFlexibleBox::flexItemContentLogicalHeight(const RenderBox& flexItem) const
+bool RenderFlexibleBox::isComputingFlexBaseSizes() const
 {
-    if (CheckedPtr renderReplaced = dynamicDowncast<RenderReplaced>(flexItem))
-        return renderReplaced->intrinsicLogicalHeight();
-
-    if (auto logicalHeight = m_contentLogicalHeights.getOptional(flexItem))
-        return *logicalHeight;
-
-    return flexItem.contentBoxLogicalHeight();
+    return m_flexLayout.layoutPhase() == LayoutPhase::ComputingFlexBaseSizes;
 }
 
-void RenderFlexibleBox::setFlexItemContentLogicalHeightIfNeeded(const RenderBox& flexItem, LayoutUnit height)
+bool RenderFlexibleBox::isInCrossAxisStretchLayout() const
 {
-    // Captures a flex item's content logical height mid-layout, before computeLogicalHeight
-    // applies fixed/min/max or any overridingBorderBoxLogicalHeight set by the flex
-    // container for stretch alignment.
-    // Reading logicalHeight() at the end of the flex item's layout would give the constrained/overridden value,
-    // not the content height the flex algorithm needs.
-    if (!canSetFlexItemContentLogicalHeight(flexItem))
-        return;
-    if (flexItem.overridingBorderBoxLogicalHeight())
-        return;
-    m_contentLogicalHeights.set(flexItem, height);
+    return m_flexLayout.layoutPhase() == LayoutPhase::CrossAxisItemSizing;
 }
 
-void RenderFlexibleBox::cacheFlexItemContentLogicalHeightIfAllowed(const RenderBox& flexItem, LayoutUnit height)
+void RenderFlexibleBox::setFlexItemContentLogicalHeightFromLayout(const RenderBox& flexItem, LayoutUnit height)
 {
-    if (canSetFlexItemContentLogicalHeight(flexItem))
-        m_contentLogicalHeights.set(flexItem, height);
-}
-
-LayoutUnit RenderFlexibleBox::computeBlockAxisContentSizeForFlexItem(RenderBox& flexItem)
-{
-    // Reuse the size cached in a previous layout while the item stays clean.
-    if (!flexItem.needsLayout()) {
-        if (auto cachedBlockAxisContentSize = blockAxisSizeForFlexItem(flexItem))
-            return *cachedBlockAxisContentSize;
-    }
-
-    // Don't resolve percentages in children. This is especially important for the min-height calculation,
-    // where we want percentages to be treated as auto. For flex-basis itself, this is not a problem because
-    // by definition we have an indefinite flex basis here and thus percentages should not resolve.
-    auto percentResolveDisableScope = FlexPercentResolveDisabler { view().frameView().layoutContext(), flexItem };
-    flexItem.setChildNeedsLayout(MarkingBehavior::MarkOnlyThis);
-    flexItem.layoutIfNeeded();
-    m_flexLayoutState->setFlexItemHasCompletedLayout(flexItem);
-
-    auto blockAxisContentSize = [&] {
-        auto flexBasis = FlexFormattingUtils::flexBasisForFlexItem(flexItem);
-        if (flexBasis.isPercentOrCalculated() && !flexItemMainSizeIsDefinite(flexItem, flexBasis))
-            return flexItemContentLogicalHeight(flexItem) + flexItem.scrollbarLogicalHeight();
-        return flexItem.logicalHeight() - flexItem.borderAndPaddingLogicalHeight();
-    }();
-
-    // Cache it so a later layout can skip re-laying-out this item while it stays clean, and record that we laid it out this iteration.
-    setBlockAxisSizeForFlexItem(flexItem, blockAxisContentSize);
-    return blockAxisContentSize;
+    m_flexLayout.setFlexItemContentLogicalHeightFromLayout(flexItem, height);
 }
 
 void RenderFlexibleBox::dirtyPercentHeightDescendantsWithinFlexItem(RenderBox& flexItem)
@@ -631,25 +589,31 @@ void RenderFlexibleBox::repaintFlexItemsDuringLayoutIfMoved(const FlexItemBorder
 // virtual returning false by default. RenderReplaced will overwrite it with the current implementation
 // plus this extra check. See wkb.ug/231955.
 
-template<typename SizeType> bool RenderFlexibleBox::canComputePercentageFlexBasis(const RenderBox& flexItem, const SizeType& flexBasis, UpdatePercentageHeightDescendants updateDescendants)
+template<typename SizeType> bool RenderFlexibleBox::canResolvePercentAgainstContainerBlockSize(const RenderBox& flexItem, const SizeType& percentSize, UpdatePercentageHeightDescendants updateDescendants)
 {
     if (!FlexFormattingUtils::isColumnFlow(*this))
         return true;
 
-    if (m_flexLayoutState) {
-        if (m_flexLayoutState->isFlexBoxBlockSizeDefinite())
+    if (m_flexLayout.isInLayout()) {
+        if (m_flexLayout.isFlexBoxBlockSizeDefinite())
             return true;
-        if (m_flexLayoutState->isFlexBoxBlockSizeIndefinite())
+        if (m_flexLayout.isFlexBoxBlockSizeIndefinite())
             return false;
     }
 
     auto isPercentResolveSuspended = view().frameView().layoutContext().isPercentHeightResolveDisabledFor(flexItem);
     ASSERT(!isPercentResolveSuspended || is<RenderBlock>(flexItem));
 
-    bool definite = !isPercentResolveSuspended && flexItem.computePercentageLogicalHeight(flexBasis, updateDescendants).has_value();
-    if (m_flexLayoutState && !writingMode().isOrthogonal(flexItem.writingMode()))
-        m_flexLayoutState->setFlexBoxBlockSizeIsDefinite(definite);
+    bool definite = !isPercentResolveSuspended && flexItem.computePercentageLogicalHeight(percentSize, updateDescendants).has_value();
+    if (m_flexLayout.isInLayout() && !writingMode().isOrthogonal(flexItem.writingMode()))
+        m_flexLayout.setFlexBoxBlockSizeIsDefinite(definite);
     return definite;
+}
+
+bool RenderFlexibleBox::canResolvePercentAgainstContainerBlockSize(const RenderBox& flexItem, UpdatePercentageHeightDescendants updateDescendants)
+{
+    // Any percentage resolves against the same container block size, so a zero one answers the question.
+    return canResolvePercentAgainstContainerBlockSize(flexItem, Style::PreferredSize { 0_css_percentage }, updateDescendants);
 }
 
 template<typename SizeType> bool RenderFlexibleBox::flexItemMainSizeIsDefinite(const RenderBox& flexItem, const SizeType& size)
@@ -664,13 +628,11 @@ template<typename SizeType> bool RenderFlexibleBox::flexItemMainSizeIsDefinite(c
     }
     if (!FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem) && (size.isIntrinsic() || size.isIntrinsicKeyword()))
         return false;
-    // Stretch is definite in the same cases as percentages, i.e., when the
-    // container's cross size is definite. We use a dummy percentage since
-    // canComputePercentageFlexBasis evaluates the value as a percentage.
+    // Stretch is definite in the same cases as percentages, i.e., when the container's cross size is definite.
     if (size.isStretch())
-        return canComputePercentageFlexBasis(flexItem, Style::PreferredSize { 0_css_percentage }, UpdatePercentageHeightDescendants::No);
+        return canResolvePercentAgainstContainerBlockSize(flexItem, UpdatePercentageHeightDescendants::No);
     if (size.isPercentOrCalculated())
-        return canComputePercentageFlexBasis(flexItem, size, UpdatePercentageHeightDescendants::No);
+        return canResolvePercentAgainstContainerBlockSize(flexItem, size, UpdatePercentageHeightDescendants::No);
     return true;
 }
 

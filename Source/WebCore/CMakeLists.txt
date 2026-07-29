@@ -456,6 +456,9 @@ set(WebCore_NON_SVG_IDL_FILES
 
     Modules/identity/protocols/ISO18013/MobileDocumentRequest.idl
 
+    Modules/identity/protocols/openid/OpenID4VPMultisignedRequest.idl
+    Modules/identity/protocols/openid/OpenID4VPSignature.idl
+    Modules/identity/protocols/openid/OpenID4VPSignedRequest.idl
 
     Modules/indexeddb/IDBCursor.idl
     Modules/indexeddb/IDBCursorDirection.idl
@@ -2911,10 +2914,10 @@ add_custom_command(
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/WebCoreLogDefinitions.h)
 
 # The generators never include Platform.h, so pass its feature defines through
-# --defines-file. Mac-only. Tools' bindings have no [Conditional] IDL to gate.
+# --defines-file.
 set(_platform_defines_file_arg)
 set(_platform_defines_file_dep)
-if (PORT STREQUAL "Mac")
+if (APPLE)
     webkit_generate_platform_feature_defines_file(WEBKIT_PLATFORM_FEATURE_DEFINES_FILE)
     set(_platform_defines_file_arg --defines-file "${WEBKIT_PLATFORM_FEATURE_DEFINES_FILE}")
     set(_platform_defines_file_dep "${WEBKIT_PLATFORM_FEATURE_DEFINES_FILE}")

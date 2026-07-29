@@ -113,6 +113,21 @@ AVFoundationEnabled:
       "PLATFORM(WATCHOS)": false
       default: true
 
+AXCustomColorModeEnabled:
+  type: bool
+  status: embedder
+  getter: axCustomColorModeEnabled
+  webcoreName: axCustomColorModeEnabled
+  webcoreOnChange: setNeedsRecalcStyleInAllFrames
+  condition: ENABLE(AX_CUSTOM_COLOR_MODE)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
 AcceleratedCompositingEnabled:
   type: bool
   status: embedder
@@ -3792,6 +3807,21 @@ HTMLEnhancedSelectParsingQuirkEnabled:
   defaultValue:
     WebKitLegacy:
       PLATFORM(MAC): WebKit::defaultHTMLEnhancedSelectParsingQuirkEnabled()
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
+HTMLInCanvasEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  webcoreOnChange: setNeedsRelayoutAllFrames
+  humanReadableName: "HTML-in-Canvas"
+  humanReadableDescription: "Enable HTML-in-Canvas"
+  defaultValue:
+    WebKitLegacy:
       default: false
     WebKit:
       default: false

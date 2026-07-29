@@ -159,14 +159,34 @@ FlexLayoutState::MarginTrimItems FlexLayout::marginTrimItemsBeforeFlexLayout() c
     if (marginTrim.isNone())
         return { };
 
-    // FIXME: Which item starts a flex line is decided by the used 'order' value, not by render tree order. The
-    // flex algorithm below gets this right; the container's intrinsic width, which this feeds, does not.
+    auto trimsInlineStart = marginTrim.contains(Style::MarginTrimSide::InlineStart);
+    auto trimsInlineEnd = marginTrim.contains(Style::MarginTrimSide::InlineEnd);
+    if (!trimsInlineStart && !trimsInlineEnd)
+        return { };
+
+    // The items at the start and end of the container's single line of items, in the order the flex algorithm will
+    // use: the lowest and highest used 'order' value, document order breaking ties. Scanning for them keeps this in
+    // step with buildFlexItemList without having to build the sorted list before the container has been sized.
+    CheckedPtr<RenderBox> firstFlexItem;
+    CheckedPtr<RenderBox> lastFlexItem;
+    for (CheckedRef child : childrenOfType<RenderBox>(flexBox())) {
+        if (child->isOutOfFlowPositioned() || child->isExcludedFromNormalLayout())
+            continue;
+        auto order = child->style().order().value;
+        if (!firstFlexItem || order < firstFlexItem->style().order().value)
+            firstFlexItem = child.ptr();
+        if (!lastFlexItem || order >= lastFlexItem->style().order().value)
+            lastFlexItem = child.ptr();
+    }
+    if (!firstFlexItem)
+        return { };
+
     auto marginTrimItems = FlexLayoutState::MarginTrimItems { };
     auto isRowsFlexbox = FlexFormattingUtils::isHorizontalFlow(flexBox());
-    if (auto flexItem = flexBox().firstInFlowChildBox(); flexItem && marginTrim.contains(Style::MarginTrimSide::InlineStart))
-        isRowsFlexbox ? marginTrimItems.itemsAtFlexLineStart.add(*flexItem) : marginTrimItems.itemsOnFirstFlexLine.add(*flexItem);
-    if (auto flexItem = flexBox().lastInFlowChildBox(); flexItem && marginTrim.contains(Style::MarginTrimSide::InlineEnd))
-        isRowsFlexbox ? marginTrimItems.itemsAtFlexLineEnd.add(*flexItem) : marginTrimItems.itemsOnLastFlexLine.add(*flexItem);
+    if (trimsInlineStart)
+        isRowsFlexbox ? marginTrimItems.itemsAtFlexLineStart.add(*firstFlexItem) : marginTrimItems.itemsOnFirstFlexLine.add(*firstFlexItem);
+    if (trimsInlineEnd)
+        isRowsFlexbox ? marginTrimItems.itemsAtFlexLineEnd.add(*lastFlexItem) : marginTrimItems.itemsOnLastFlexLine.add(*lastFlexItem);
     return marginTrimItems;
 }
 
@@ -303,7 +323,9 @@ void FlexLayout::layout(RelayoutChildren relayoutChildren)
     auto constraints = flexLayoutConstraints();
     auto flexLayoutItems = buildFlexLayoutItems(relayoutChildren, constraints);
 
-    auto flexLayoutStateScope = SetForScope { m_flexLayoutState, FlexLayoutState { marginTrimItemsBeforeFlexLayout() } };
+    // hasDefiniteLogicalHeight() is asked here, before the algorithm starts installing overriding sizes on the
+    // items, because a percentage has to resolve as it would have before the item was flexed.
+    auto flexLayoutStateScope = SetForScope { m_flexLayoutState, FlexLayoutState { marginTrimItemsBeforeFlexLayout(), flexBox().hasDefiniteLogicalHeight() } };
     m_flexLayoutResult = WebCore::FlexFormattingContext(flexBox(), constraints, *m_flexLayoutState, m_flexItemContentCache).layout(flexLayoutItems);
 }
 
@@ -543,63 +565,12 @@ bool FlexLayout::hasDefiniteSizeForPercentResolution(const RenderBox& flexItem)
         return FlexFormattingUtils::alignmentForFlexItem(flexItem) == ItemPosition::Stretch;
 
     // Flexbox 9.8 rule 2: definite flex-basis makes post-flexing main size definite.
-    if (flexItemMainSizeIsDefinite(flexItem, FlexFormattingUtils::flexBasisForFlexItem(flexItem)))
+    auto* flexLayoutState = m_flexLayoutState ? &*m_flexLayoutState : nullptr;
+    if (FlexIntegrationUtils::flexItemMainSizeIsDefinite(flexItem, FlexFormattingUtils::flexBasisForFlexItem(flexItem), flexLayoutState))
         return true;
 
     // Flexbox 9.8 rule 1: definite container main size makes post-flexing sizes definite.
-    return canResolvePercentAgainstContainerBlockSize(flexItem, RenderBox::UpdatePercentageHeightDescendants::Yes);
-}
-
-template<typename SizeType> bool FlexLayout::flexItemMainSizeIsDefinite(const RenderBox& flexItem, const SizeType& size)
-{
-    if constexpr (!std::same_as<SizeType, Style::MaximumSize>) {
-        if (size.isAuto())
-            return false;
-    }
-    if constexpr (std::same_as<SizeType, Style::FlexBasis>) {
-        if (size.isContent())
-            return false;
-    }
-    if (!FlexFormattingUtils::mainAxisIsFlexItemInlineAxis(flexItem) && (size.isIntrinsic() || size.isIntrinsicKeyword()))
-        return false;
-    // Stretch is definite in the same cases as percentages, i.e., when the container's cross size is definite.
-    if (size.isStretch())
-        return canResolvePercentAgainstContainerBlockSize(flexItem, RenderBox::UpdatePercentageHeightDescendants::No);
-    if (size.isPercentOrCalculated())
-        return canResolvePercentAgainstContainerBlockSize(flexItem, size, RenderBox::UpdatePercentageHeightDescendants::No);
-    return true;
-}
-
-template bool FlexLayout::flexItemMainSizeIsDefinite<Style::FlexBasis>(const RenderBox&, const Style::FlexBasis&);
-template bool FlexLayout::flexItemMainSizeIsDefinite<Style::MinimumSize>(const RenderBox&, const Style::MinimumSize&);
-template bool FlexLayout::flexItemMainSizeIsDefinite<Style::MaximumSize>(const RenderBox&, const Style::MaximumSize&);
-template bool FlexLayout::flexItemMainSizeIsDefinite<Style::PreferredSize>(const RenderBox&, const Style::PreferredSize&);
-
-template<typename SizeType> bool FlexLayout::canResolvePercentAgainstContainerBlockSize(const RenderBox& flexItem, const SizeType& percentSize, RenderBox::UpdatePercentageHeightDescendants updateDescendants)
-{
-    if (!FlexFormattingUtils::isColumnFlow(flexBox()))
-        return true;
-
-    if (isInLayout()) {
-        if (isFlexBoxBlockSizeDefinite())
-            return true;
-        if (isFlexBoxBlockSizeIndefinite())
-            return false;
-    }
-
-    auto isPercentResolveSuspended = flexBox().view().frameView().layoutContext().isPercentHeightResolveDisabledFor(flexItem);
-    ASSERT(!isPercentResolveSuspended || is<RenderBlock>(flexItem));
-
-    bool definite = !isPercentResolveSuspended && flexItem.computePercentageLogicalHeight(percentSize, updateDescendants).has_value();
-    if (isInLayout() && !flexBox().writingMode().isOrthogonal(flexItem.writingMode()))
-        setFlexBoxBlockSizeIsDefinite(definite);
-    return definite;
-}
-
-bool FlexLayout::canResolvePercentAgainstContainerBlockSize(const RenderBox& flexItem, RenderBox::UpdatePercentageHeightDescendants updateDescendants)
-{
-    // Any percentage resolves against the same container block size, so a zero one answers the question.
-    return canResolvePercentAgainstContainerBlockSize(flexItem, Style::PreferredSize { 0_css_percentage }, updateDescendants);
+    return FlexIntegrationUtils::canResolvePercentAgainstContainerBlockSize(flexItem, RenderBox::UpdatePercentageHeightDescendants::Yes, flexLayoutState);
 }
 
 }

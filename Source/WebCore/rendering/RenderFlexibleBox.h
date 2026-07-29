@@ -66,8 +66,6 @@ public:
 
     bool willStretchItem(const RenderBox& item, LogicalBoxAxis containingAxis, StretchingMode = StretchingMode::Normal) const override;
 
-    LayoutIntegration::FlexLayout& flexLayout() LIFETIME_BOUND { return m_flexLayout; }
-
     LayoutOptionalOutsets allowedLayoutOverflow() const override;
 
     virtual bool isFlexibleBoxImpl() const { return false; };
@@ -86,8 +84,8 @@ public:
     // Returns true if the position changed. In that case, the flexItem will have to be laid out again.
     bool setStaticPositionForPositionedLayout(const RenderBox&);
 
-    bool isComputingFlexBaseSizes() const;
-    bool isInCrossAxisStretchLayout() const;
+    bool NODELETE isComputingFlexBaseSizes() const;
+    bool NODELETE isInCrossAxisStretchLayout() const;
 
 protected:
     std::pair<LayoutUnit, LayoutUnit> computeIntrinsicLogicalWidths() const override;

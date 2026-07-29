@@ -50,6 +50,7 @@ static LayoutUnit constrainSizeByMinMax(LayoutUnit size, std::pair<LayoutUnit, L
 
 FlexFormattingContext::FlexFormattingContext(RenderFlexibleBox& flexBox, const FlexLayoutConstraints& constraints, FlexLayoutState& layoutState, FlexItemContentCache& contentCache)
     : m_flexBox(flexBox)
+    , m_layoutState(layoutState)
     , m_integrationUtils(flexBox, layoutState, contentCache)
     , m_flexFormattingUtils(flexBox)
     , m_constraints(constraints)
@@ -109,8 +110,6 @@ FlexFormattingContext::Result FlexFormattingContext::layout(FlexLayoutItems& fle
         flexContainerUsedExtents = integrationUtils().updateFlexContainerLogicalHeight(m_constraints.isColumnFlow ? columnMainContentExtent : flexContentBlockExtent);
         // Multi-line column flex only knows its main size now, so re-resolve the flexible lengths of any lines that were left short.
         distributeMainAxisFreeSpaceForMultilineColumnIfNeeded(flexLines, flexItems, flexBaseAndHypotheticalMainSizeList.span(), flexItemsMainSizeList, flexItemsPositionList, flexLinesCrossPositionList, flexContainerUsedExtents.blockContentBox);
-        // 9.5. (#12) For column-reverse, reposition each line's items from the finalized container main-axis end.
-        reverseColumnLinesFromContainerMainEndIfNeeded(flexLines, flexItems, flexItemsMainSizeList, flexItemsPositionList, flexLinesCrossPositionList, flexContainerUsedExtents.blockContentBox, flexContainerUsedExtents.blockBorderBox);
         // Cross-Axis Alignment: with the container's cross size now final, run the remaining cross-axis steps
         // (§9.4 #9 and #11, §9.6 #13, #14 and #16) here rather than in spec-number order. First record where the
         // lines start on the cross axis, for the wrap-reverse flip in computeFlexItemRects.
@@ -128,7 +127,7 @@ FlexFormattingContext::Result FlexFormattingContext::layout(FlexLayoutItems& fle
     };
     performContentAlignment();
 
-    computeFlexItemRects(flexLines, flexItems, flexItemsPositionList, flexLinesCrossPositionList, flexLinesCrossSizeList, flexItemsCrossSizeList, crossAxisStartEdge, flexContainerUsedExtents.crossContentBox, flexContainerUsedExtents.crossBorderBox);
+    computeFlexItemRects(flexLines, flexItems, flexItemsPositionList, flexLinesCrossPositionList, flexLinesCrossSizeList, flexItemsCrossSizeList, crossAxisStartEdge, flexContainerUsedExtents.crossContentBox, flexContainerUsedExtents.crossBorderBox, flexContainerUsedExtents.blockBorderBox);
     m_result.marginTrimItems = layoutState().marginTrimItems();
     return m_result;
 }
@@ -147,8 +146,6 @@ FlexFormattingContext::FlexBaseAndHypotheticalMainSizeList FlexFormattingContext
         auto minMaxMainSizes = minMaxMainSizesForFlexItem(flexItem);
         // The hypothetical main size is the item's flex base size clamped according to its used min and max main sizes.
         flexBaseAndHypotheticalMainSizeList[index] = { flexBase, std::max(minMaxMainSizes.first, std::min(flexBase, minMaxMainSizes.second)), minMaxMainSizes };
-        // FIXME: Figure out if we can do this outside of the loop.
-        layoutState().resetFlexBoxBlockSizeDefiniteness();
     }
     return flexBaseAndHypotheticalMainSizeList;
 }
@@ -693,15 +690,36 @@ void FlexFormattingContext::performBaselineAlignment(WTF::Range<size_t> lineRang
     }
 }
 
-void FlexFormattingContext::computeFlexItemRects(const FlexLines& flexLines, FlexLayoutItems& flexItems, const PositionList& flexItemsPositionList, const LinesCrossPositionList& flexLinesCrossPositionList, const LinesCrossSizeList& flexLinesCrossSizeList, const SizeList& flexItemsCrossSizeList, LayoutUnit crossAxisStartEdge, LayoutUnit crossContentExtent, LayoutUnit crossExtent)
+void FlexFormattingContext::computeFlexItemRects(const FlexLines& flexLines, FlexLayoutItems& flexItems, const PositionList& flexItemsPositionList, const LinesCrossPositionList& flexLinesCrossPositionList, const LinesCrossSizeList& flexLinesCrossSizeList, const SizeList& flexItemsCrossSizeList, LayoutUnit crossAxisStartEdge, LayoutUnit crossContentExtent, LayoutUnit crossExtent, LayoutUnit mainBorderBoxExtent)
 {
-    // 9.6. Place each flex item at its final flow-aware location, applying the wrap-reverse and rtl-column
-    // cross-axis flips, and write it to the renderer.
+    // 9.6. Turn each item's flow-relative position into its final physical location and write it to the renderer.
+    // This is where reversed directions are resolved: the lines above are laid out forwards regardless, and the
+    // flips pivot on the container's extents, which are only final by now.
     bool isRightToLeftColumn = !m_constraints.style->writingMode().isLogicalLeftInlineStart() && m_constraints.isColumnFlow;
+    // A reversed row is flipped about the container's inline extent, which the constraints already carry.
+    // isLeftToRightFlow covers both the writing mode's own reversal and row-reverse for that axis.
+    bool shouldFlipMainAxis = !m_constraints.isColumnFlow && !m_constraints.isLeftToRightFlow;
+    // column-reverse is flipped about the container's block extent, which is only final now. Note this is a
+    // flex-direction reversal only: the writing mode's own block reversal is applied by the renderer
+    // (RenderBox::flipForWritingMode), and isLeftToRightFlow already moved the flow-aware start edge for it, so
+    // mixing the two here would reverse a vertical-rl column twice.
+    bool shouldFlipColumnReverse = m_constraints.style->flexDirection() == FlexDirection::ColumnReverse;
+    auto columnReverseFlipEdge = mainBorderBoxExtent - m_constraints.mainAxisScrollbarExtent
+        + (m_constraints.flowAwareBorderInline.first + m_constraints.flowAwarePaddingInline.first)
+        - (m_constraints.flowAwareBorderInline.second + m_constraints.flowAwarePaddingInline.second);
     for (size_t lineIndex = 0; lineIndex < flexLines.ranges.size(); ++lineIndex) {
         auto lineRange = flexLines.ranges[lineIndex];
         for (auto flexItemIndex = lineRange.begin(); flexItemIndex < lineRange.end(); ++flexItemIndex) {
             auto location = flexItemsPositionList[flexItemIndex];
+            if (shouldFlipMainAxis)
+                location.setX(mainAxisFlippedOffsetForRow(flexItems[flexItemIndex], location.x()));
+            if (shouldFlipColumnReverse) {
+                // Flip the item's margin box, then step back over its leading margin to land on the border box.
+                auto& flexLayoutItem = flexItems[flexItemIndex];
+                auto marginStart = flexFormattingUtils().flowAwareMarginStartForFlexItem(flexLayoutItem);
+                auto marginBoxEnd = flexFormattingUtils().mainAxisExtentForFlexItem(flexLayoutItem) + flexFormattingUtils().flowAwareMarginEndForFlexItem(flexLayoutItem);
+                location.setX(columnReverseFlipEdge - (location.x() - marginStart) - marginBoxEnd);
+            }
             if (m_constraints.isWrapReverse) {
                 auto originalOffset = flexLinesCrossPositionList[lineIndex] - crossAxisStartEdge;
                 location.move(0_lu, (crossContentExtent - originalOffset - flexLinesCrossSizeList[lineIndex]) - originalOffset);
@@ -716,6 +734,13 @@ void FlexFormattingContext::computeFlexItemRects(const FlexLines& flexLines, Fle
             integrationUtils().setFlexItemGeometry(flexItems[flexItemIndex], location, m_constraints.isHorizontalFlow);
         }
     }
+}
+
+LayoutUnit FlexFormattingContext::mainAxisFlippedOffsetForRow(const FlexLayoutItem& flexLayoutItem, LayoutUnit flowRelativeOffset) const
+{
+    ASSERT(!m_constraints.isColumnFlow);
+    auto leadingScrollbarSize = m_constraints.style->writingMode().isInlineFlipped() && m_constraints.style->writingMode().isVertical() ? m_constraints.mainAxisScrollbarExtent : LayoutUnit();
+    return m_constraints.mainAxisBorderBoxExtent - flowRelativeOffset - flexFormattingUtils().mainAxisExtentForFlexItem(flexLayoutItem) - leadingScrollbarSize;
 }
 
 LayoutUnit FlexFormattingContext::placeFlexItems(LayoutUnit crossAxisOffset, std::span<FlexLayoutItem> flexLayoutItems, std::span<LayoutPoint> positions, LayoutUnit availableFreeSpace)
@@ -737,11 +762,8 @@ LayoutUnit FlexFormattingContext::placeFlexItems(LayoutUnit crossAxisOffset, std
         m_result.justifyContentStartOverflow = std::max(m_result.justifyContentStartOverflow, overflow);
     }
 
-    LayoutUnit totalMainExtent = m_constraints.mainAxisBorderBoxExtent;
-
     auto resolvedJustifyContent = m_constraints.style->justifyContent().resolve(FlexFormattingUtils::contentAlignmentNormalBehavior());
     auto distribution = resolvedJustifyContent.distribution();
-    bool shouldFlipMainAxis = !m_constraints.isColumnFlow && !m_constraints.isLeftToRightFlow;
     auto gapBetweenItems = flexFormattingUtils().computeGap(FlexFormattingUtils::GapType::BetweenItems);
     for (size_t i = 0; i < flexLayoutItems.size(); ++i) {
         auto& flexLayoutItem = flexLayoutItems[i];
@@ -750,12 +772,12 @@ LayoutUnit FlexFormattingContext::placeFlexItems(LayoutUnit crossAxisOffset, std
         mainAxisOffset += flexFormattingUtils().flowAwareMarginStartForFlexItem(flexLayoutItem);
 
         LayoutUnit flexItemMainExtent = flexFormattingUtils().mainAxisExtentForFlexItem(flexLayoutItem);
-        // In an RTL column situation, this will apply the margin-right/margin-end
-        // on the left. This will be fixed later by the rtl-column flip in computeFlexItemRects.
-        auto leadingScrollbarSize = m_constraints.style->writingMode().isInlineFlipped() && m_constraints.style->writingMode().isVertical() ? m_constraints.mainAxisScrollbarExtent : LayoutUnit();
-        LayoutPoint location(shouldFlipMainAxis ? totalMainExtent - mainAxisOffset - flexItemMainExtent - leadingScrollbarSize : mainAxisOffset, crossAxisOffset + flexFormattingUtils().flowAwareMarginBeforeForFlexItem(flexLayoutItem));
-        positions[i] = location;
-        integrationUtils().setFlexItemGeometry(flexLayoutItems[i], positions[i], m_constraints.isHorizontalFlow);
+        // Main-axis offsets are flow-relative here; computeFlexItemRects turns them into physical positions once
+        // the container's main extent is final, applying the reversed-direction flip along with the cross-axis ones.
+        positions[i] = LayoutPoint { mainAxisOffset, crossAxisOffset + flexFormattingUtils().flowAwareMarginBeforeForFlexItem(flexLayoutItem) };
+        // Give the item a main-axis position before anything lays it out again. Cross-axis stretching relays the item out,
+        // and content inside it reads its position back off the renderer.
+        integrationUtils().setFlexItemGeometry(flexLayoutItem, { m_constraints.isColumnFlow || m_constraints.isLeftToRightFlow ? mainAxisOffset : mainAxisFlippedOffsetForRow(flexLayoutItem, mainAxisOffset), positions[i].y() }, m_constraints.isHorizontalFlow);
         mainAxisOffset += flexItemMainExtent + flexFormattingUtils().flowAwareMarginEndForFlexItem(flexLayoutItem);
 
         if (i != flexLayoutItems.size() - 1) {
@@ -773,53 +795,6 @@ LayoutUnit FlexFormattingContext::placeFlexItems(LayoutUnit crossAxisOffset, std
         return { };
 
     return mainAxisOffset - (m_constraints.flowAwareBorderInline.first + m_constraints.flowAwarePaddingInline.first) + m_constraints.mainAxisScrollbarExtent;
-}
-
-void FlexFormattingContext::reverseColumnLinesFromContainerMainEndIfNeeded(const FlexLines& flexLines, FlexLayoutItems& flexItems, const SizeList& flexItemsMainSizeList, PositionList& flexItemsPositionList, const LinesCrossPositionList& flexLinesCrossPositionList, LayoutUnit containerMainBlockContentExtent, LayoutUnit containerMainBorderBoxExtent)
-{
-    // The container's main size is settled by now (9.2 determines it before 9.5 places the items), so every line
-    // is reversed against the one finalized height rather than growing and reading it back per line.
-    if (m_constraints.style->flexDirection() != FlexDirection::ColumnReverse)
-        return;
-
-    for (size_t lineIndex = 0; lineIndex < flexLines.ranges.size(); ++lineIndex) {
-        auto lineRange = flexLines.ranges[lineIndex];
-        auto lineItems = flexItems.mutableSpan().subspan(lineRange.begin(), lineRange.distance());
-        auto linePositions = flexItemsPositionList.mutableSpan().subspan(lineRange.begin(), lineRange.distance());
-        auto remainingFreeSpace = mainAxisAvailableSpaceForItemAlignment(containerMainBlockContentExtent, lineItems.size());
-        for (size_t index = 0; index < lineItems.size(); ++index)
-            remainingFreeSpace -= lineItems[index].flexedMarginBoxSize(flexItemsMainSizeList[lineRange.begin() + index]);
-        layoutColumnReverse(lineItems, linePositions, flexLinesCrossPositionList[lineIndex], remainingFreeSpace, containerMainBorderBoxExtent);
-    }
-}
-
-void FlexFormattingContext::layoutColumnReverse(std::span<FlexLayoutItem> flexLayoutItems, std::span<LayoutPoint> positions, LayoutUnit crossAxisOffset, LayoutUnit availableFreeSpace, LayoutUnit columnMainBorderBoxExtent)
-{
-    // This is similar to the logic in placeFlexItems, except we place
-    // the children starting from the end of the flexbox. We also don't need to
-    // layout anything since we're just moving the children to a new position.
-    // The flex container's main size (its logical height) has been finalized by now, so it is passed in
-    // rather than read back off the container (css-flexbox-1 9.2 determines the container main size before
-    // 9.5 main-axis alignment places the items).
-    LayoutUnit mainAxisOffset = columnMainBorderBoxExtent - m_constraints.flowAwareBorderInline.second - m_constraints.flowAwarePaddingInline.second;
-    mainAxisOffset -= FlexFormattingUtils::initialJustifyContentOffset(m_constraints.style, availableFreeSpace, flexLayoutItems.size(), m_constraints.isColumnOrRowReverse);
-    mainAxisOffset -= m_constraints.mainAxisScrollbarExtent;
-
-    auto distribution = m_constraints.style->justifyContent().resolve(FlexFormattingUtils::contentAlignmentNormalBehavior()).distribution();
-    auto gapBetweenItems = flexFormattingUtils().computeGap(FlexFormattingUtils::GapType::BetweenItems);
-
-    for (size_t i = 0; i < flexLayoutItems.size(); ++i) {
-        auto& flexLayoutItem = flexLayoutItems[i];
-        mainAxisOffset -= flexFormattingUtils().mainAxisExtentForFlexItem(flexLayoutItem) + flexFormattingUtils().flowAwareMarginEndForFlexItem(flexLayoutItem);
-        positions[i] = LayoutPoint(mainAxisOffset, crossAxisOffset + flexFormattingUtils().flowAwareMarginBeforeForFlexItem(flexLayoutItem));
-        integrationUtils().setFlexItemGeometry(flexLayoutItems[i], positions[i], m_constraints.isHorizontalFlow);
-        mainAxisOffset -= flexFormattingUtils().flowAwareMarginStartForFlexItem(flexLayoutItem);
-
-        if (i != flexLayoutItems.size() - 1) {
-            // The last item does not get extra space added.
-            mainAxisOffset -= FlexFormattingUtils::justifyContentSpaceBetweenFlexItems(availableFreeSpace, distribution, flexLayoutItems.size()) + gapBetweenItems;
-        }
-    }
 }
 
 void FlexFormattingContext::setFlexItemCountsForFirstAndLastLine(const FlexLines& flexLines)
@@ -1089,13 +1064,11 @@ template<typename SizeType> bool FlexFormattingContext::flexItemCrossSizeIsDefin
     // container's cross size is definite. We use a dummy percentage for stretch
     // since computePercentageLogicalHeight evaluates the value as a percentage.
     auto crossSizeIsDefinite = [&](const auto& sizeForPercentageComputation) {
-        if (!flexLayoutItem.mainAxisIsInlineAxis || layoutState().isFlexBoxBlockSizeDefinite())
+        if (!flexLayoutItem.mainAxisIsInlineAxis)
             return true;
-        if (layoutState().isFlexBoxBlockSizeIndefinite())
-            return false;
-        bool definite = bool(integrationUtils().computePercentageLogicalHeightForFlexItem(flexLayoutItem, sizeForPercentageComputation));
-        layoutState().setFlexBoxBlockSizeIsDefinite(definite);
-        return definite;
+        if (auto isDefinite = integrationUtils().isFlexBoxBlockSizeDefiniteForFlexItem(flexLayoutItem))
+            return *isDefinite;
+        return bool(integrationUtils().computePercentageLogicalHeightForFlexItem(flexLayoutItem, sizeForPercentageComputation));
     };
 
     if (size.isPercentOrCalculated())
@@ -1270,7 +1243,7 @@ const FlexFormattingUtils& FlexFormattingContext::flexFormattingUtils() const
 
 FlexLayoutState& FlexFormattingContext::layoutState() const
 {
-    return integrationUtils().flexLayoutState();
+    return m_layoutState;
 }
 
 FlexLayoutItem::FlexLayoutItem(RenderBox& flexItem, bool flexContainerIsHorizontalFlow, bool everHadLayout, bool shouldInvalidateChildContent)
@@ -1317,12 +1290,14 @@ LayoutUnit FlexLayoutItem::logicalHeight() const
 
 LayoutUnit FlexLayoutItem::borderAndPaddingLogicalHeight() const
 {
-    return renderer->borderAndPaddingLogicalHeight();
+    CheckedRef flexItem = renderer;
+    return flexItem->borderAndPaddingLogicalHeight();
 }
 
 LayoutSize FlexLayoutItem::intrinsicSize() const
 {
-    return renderer->intrinsicSize();
+    CheckedRef flexItem = renderer;
+    return flexItem->intrinsicSize();
 }
 
 #if ASSERT_ENABLED

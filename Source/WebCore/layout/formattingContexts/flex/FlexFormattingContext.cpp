@@ -48,10 +48,10 @@ static LayoutUnit constrainSizeByMinMax(LayoutUnit size, std::pair<LayoutUnit, L
     return std::max(minMaxSizes.first, std::min(size, minMaxSizes.second));
 }
 
-FlexFormattingContext::FlexFormattingContext(RenderFlexibleBox& flexBox, const FlexLayoutConstraints& constraints, FlexLayoutState& layoutState, FlexItemContentCache& contentCache)
+FlexFormattingContext::FlexFormattingContext(RenderFlexibleBox& flexBox, LayoutIntegration::FlexIntegrationUtils& integrationUtils, const FlexLayoutConstraints& constraints, FlexLayoutState& layoutState)
     : m_flexBox(flexBox)
     , m_layoutState(layoutState)
-    , m_integrationUtils(flexBox, layoutState, contentCache)
+    , m_integrationUtils(integrationUtils)
     , m_flexFormattingUtils(flexBox)
     , m_constraints(constraints)
 {
@@ -445,9 +445,12 @@ FlexFormattingContext::LinesCrossSizeList FlexFormattingContext::crossSizeForFle
         auto lineRange = flexLines.ranges[lineIndex];
 
         LayoutUnit maxFlexItemCrossAxisExtent;
+        // 'baseline' and 'last baseline' items are separate baseline-sharing groups, so each contributes its own
+        // max ascent plus its own max descent -- one group's descent must not be added to the other group's ascent.
         LayoutUnit maxAscent;
         LayoutUnit maxDescent = LayoutUnit::min();
         LayoutUnit lastBaselineMaxAscent;
+        LayoutUnit lastBaselineMaxDescent = LayoutUnit::min();
         for (auto flexItemIndex = lineRange.begin(); flexItemIndex < lineRange.end(); ++flexItemIndex) {
             auto& flexLayoutItem = flexItems[flexItemIndex];
 
@@ -456,13 +459,14 @@ FlexFormattingContext::LinesCrossSizeList FlexFormattingContext::crossSizeForFle
             if ((alignment == ItemPosition::Baseline || alignment == ItemPosition::LastBaseline) && !flexFormattingUtils().hasAutoMarginsInCrossAxis(flexLayoutItem)) {
                 LayoutUnit ascent = flexFormattingUtils().marginBoxAscentForFlexItem(flexLayoutItem, flexFormattingUtils().crossAxisExtentForFlexItem(flexLayoutItem));
                 LayoutUnit descent = (flexFormattingUtils().crossAxisMarginExtentForFlexItem(flexLayoutItem) + flexFormattingUtils().crossAxisExtentForFlexItem(flexLayoutItem)) - ascent;
-                maxDescent = std::max(maxDescent, descent);
                 if (alignment == ItemPosition::Baseline) {
                     maxAscent = std::max(maxAscent, ascent);
+                    maxDescent = std::max(maxDescent, descent);
                     flexItemCrossAxisMarginBoxExtent = maxAscent + maxDescent;
                 } else {
                     lastBaselineMaxAscent = std::max(lastBaselineMaxAscent, ascent);
-                    flexItemCrossAxisMarginBoxExtent = lastBaselineMaxAscent + maxDescent;
+                    lastBaselineMaxDescent = std::max(lastBaselineMaxDescent, descent);
+                    flexItemCrossAxisMarginBoxExtent = lastBaselineMaxAscent + lastBaselineMaxDescent;
                 }
             } else
                 flexItemCrossAxisMarginBoxExtent = flexItemsHypotheticalCrossSizeList[flexItemIndex] + flexFormattingUtils().crossAxisMarginExtentForFlexItem(flexLayoutItem);
@@ -802,12 +806,11 @@ void FlexFormattingContext::setFlexItemCountsForFirstAndLastLine(const FlexLines
     if (flexLines.ranges.isEmpty())
         return;
 
-    auto isWrapReverse = m_constraints.isWrapReverse;
-    auto firstLineItemsCountInOriginalOrder = flexLines.ranges.first().distance();
-    auto lastLineItemsCountInOriginalOrder = flexLines.ranges.last().distance();
-
-    m_result.numberOfFlexItemsOnFirstLine = !isWrapReverse ? firstLineItemsCountInOriginalOrder : lastLineItemsCountInOriginalOrder;
-    m_result.numberOfFlexItemsOnLastLine = !isWrapReverse ? lastLineItemsCountInOriginalOrder : firstLineItemsCountInOriginalOrder;
+    // Counted in the order the lines were collected, which is the order the flex item list is in: the caller indexes
+    // that list by these counts, so they must not be flipped for wrap-reverse here. Mapping the visually-first and
+    // -last line onto those slices is FlexLayout::flexItemForFirstBaseline's job.
+    m_result.numberOfFlexItemsOnFirstLine = flexLines.ranges.first().distance();
+    m_result.numberOfFlexItemsOnLastLine = flexLines.ranges.last().distance();
 }
 
 LayoutUnit FlexFormattingContext::flexBaseSizeForFlexItem(const FlexLayoutItem& flexLayoutItem)
@@ -1157,7 +1160,7 @@ LayoutUnit FlexFormattingContext::applyStretchAlignmentToFlexItem(const FlexLayo
             // Have to force another relayout even though the child is sized correctly,
             // because its descendants are not sized correctly yet.
             // The previous layout of the child was done without an override height set.
-            return layoutState().hasFlexItemCompletedLayout(flexLayoutItem.renderer) && integrationUtils().flexItemHasPercentHeightDescendants(flexLayoutItem);
+            return integrationUtils().hasFlexItemCompletedLayout(flexLayoutItem) && integrationUtils().flexItemHasPercentHeightDescendants(flexLayoutItem);
         };
         if (flexItemNeedsLayout())
             integrationUtils().applyStretchedLogicalHeightToFlexItem(flexLayoutItem, blockSize);

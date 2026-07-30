@@ -36,25 +36,11 @@
 NS_HEADER_AUDIT_BEGIN(nullability, sendability)
 
 NS_SWIFT_UI_ACTOR
-@interface WKPDFHUDView : NSView
+@protocol WKPDFHUDView
 
-@property (nonatomic, readonly) uint64_t pluginIdentifier;
 @property (nonatomic, readonly) uint64_t frameIdentifier;
-@property (nonatomic, readonly, weak, nullable) WKWebView *webView;
 
-- (instancetype)initWithFrame:(NSRect)frame pluginIdentifier:(uint64_t)pluginIdentifier frameIdentifier:(uint64_t)frameIdentifier webView:(nullable WKWebView *)webView NS_DESIGNATED_INITIALIZER;
-- (instancetype)initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
-- (instancetype)initWithFrame:(NSRect)frame NS_UNAVAILABLE;
 - (void)show;
-
-@end
-
-@interface WKPDFHUDView (Cpp)
-
-- (void)performPDFZoomIn;
-- (void)performPDFZoomOut;
-- (void)performPDFOpenWithPreview;
-- (void)performPDFSaveToPDF;
 
 @end
 

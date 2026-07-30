@@ -3047,20 +3047,6 @@ EnumeratingVisibleNetworkInterfacesEnabled:
     WebKit:
       default: true
 
-EvaluationTimeZoomEnabled:
-  category: css
-  type: bool
-  status: stable
-  humanReadableName: "Evaluation time zoom enabled"
-  humanReadableDescription: "Enables used zoom value to be applied during layout and avoid applying at style-build time"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 EventHandlerDrivenSmoothKeyboardScrollingEnabled:
   type: bool
   status: internal
@@ -4746,7 +4732,7 @@ IteratorChunkingEnabled:
 
 IteratorIncludesEnabled:
   type: bool
-  status: testable
+  status: stable
   category: javascript
   humanReadableName: "Iterator Includes"
   humanReadableDescription: "Expose the Iterator.includes method."
@@ -4755,7 +4741,7 @@ IteratorIncludesEnabled:
   sharedPreferenceForWebProcess: true
   defaultValue:
     WebKit:
-      default: false
+      default: true
 
 IteratorJoinEnabled:
   type: bool
@@ -9218,6 +9204,19 @@ UseAVCaptureDeviceRotationCoordinatorAPI:
       "PLATFORM(APPLETV)": true
       default: false
   sharedPreferenceForWebProcess: true
+
+UseAlternatePDFHUD:
+  type: bool
+  status: internal
+  category: html
+  humanReadableName: "Alternate PDF HUD"
+  humanReadableDescription: "Use the alternate PDF HUD"
+  webcoreBinding: none
+  exposed: [ WebKit ]
+  condition: ENABLE(PDF_HUD)
+  defaultValue:
+    WebKit:
+      default: false
 
 UseAppKitGestures:
   type: bool

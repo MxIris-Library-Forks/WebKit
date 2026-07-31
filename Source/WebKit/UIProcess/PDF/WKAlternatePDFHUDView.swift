@@ -25,26 +25,24 @@
 
 import AppKit
 public import Foundation
-internal import WebKit_Internal
-@_weakLinked import SwiftUI
-
-// FIXME: Add actions to the buttons.
-// FIXME: Add fade animations.
-// FIXME: Add localizable strings support.
-// FIXME: Implement `WKAlternatePDFHUDView.show`.
-// FIXME: Figure out the final design.
-
-private let barVerticalOffset: CGFloat = 40
-
-private enum ControlsAction {
-    case zoomIn
-    case zoomOut
-    case openInPreview
-    case savePDF
-}
+import WebKit_Internal
+@_weakLinked @_spi(Private) import SwiftUI
 
 private struct Controls: View {
-    let action: (ControlsAction) -> Void
+    private static let autoHideDelay: Duration = .seconds(3)
+
+    let showSystemActions: Bool
+    let action: (WKPDFHUDViewControlAction) -> Void
+
+    @State
+    private var initialHideTimerFired = false
+
+    @State
+    private var isHovered = false
+
+    private var isVisible: Bool {
+        !initialHideTimerFired || isHovered
+    }
 
     var body: some View {
         ControlGroup {
@@ -56,48 +54,64 @@ private struct Controls: View {
                 action(.zoomIn)
             }
 
-            Button {
-                action(.openInPreview)
-            } label: {
-                Label {
-                    Text("Open in Preview")
-                } icon: {
-                    Image(_internalSystemName: "preview")
+            if showSystemActions {
+                Button {
+                    action(.openInPreview)
+                } label: {
+                    Label {
+                        Text("Open in Preview")
+                    } icon: {
+                        Image(_internalSystemName: "preview")
+                    }
                 }
-            }
 
-            Button("Save PDF", systemImage: "arrow.down.circle") {
-                action(.savePDF)
+                Button("Save PDF", systemImage: "arrow.down.circle") {
+                    action(.savePDF)
+                }
             }
         }
         .labelStyle(.iconOnly)
-        .controlSize(.extraLarge)
-        #if HAVE_LIQUID_GLASS
-        .glassEffect(.regular.interactive())
+        .opacity(isVisible ? 1 : 0)
+        .animation(.easeInOut, value: isVisible)
+        #if USE_APPLE_INTERNAL_SDK && HAVE_NSGLASSEFFECTVIEW_EFFECT_IS_INTERACTIVE
+        .controlGroupStyle(.toolbar)
         #endif
+        .onHover {
+            isHovered = $0
+        }
+        .task {
+            try? await Task.sleep(for: Self.autoHideDelay)
+            guard !Task.isCancelled else { return }
+            initialHideTimerFired = true
+        }
     }
 }
 
 @objc
 @implementation
 extension WKAlternatePDFHUDView {
+    private static let barVerticalOffset: CGFloat = 40
+
     let frameIdentifier: UInt64
 
-    init(frame: NSRect, frameIdentifier: UInt64) {
+    init(
+        frame: NSRect,
+        frameIdentifier: UInt64,
+        compositingBordersVisible: Bool,
+        actionHandler: @MainActor @Sendable @escaping (WKPDFHUDViewControlAction) -> Void
+    ) {
         self.frameIdentifier = frameIdentifier
 
         super.init(frame: frame)
 
-        let controls = Controls { action in
-            print(action)
-        }
+        let controls = Controls(showSystemActions: !isInRecoveryOS(), action: actionHandler)
 
         let hostingView = NSHostingView(rootView: controls)
         hostingView.translatesAutoresizingMaskIntoConstraints = false
 
         addSubview(hostingView)
         hostingView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        hostingView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -barVerticalOffset).isActive = true
+        hostingView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Self.barVerticalOffset).isActive = true
     }
 
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
@@ -108,6 +122,7 @@ extension WKAlternatePDFHUDView {
     }
 
     func show() {
+        // FIXME: Implement `WKAlternatePDFHUDView.show`.
     }
 }
 

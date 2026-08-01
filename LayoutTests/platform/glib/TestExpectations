@@ -4244,6 +4244,11 @@ webkit.org/b/236298 fast/text/combining-character-sequence-vertical.html [ Image
 
 fast/webgpu [ Skip ]
 http/tests/webgpu/webgpu/api/operation/memory_sync/buffer/multiple_buffers.html [ Skip ]
+inspector/canvas/create-context-webgpu.html [ Skip ]
+inspector/canvas/requestClientNodes-webgpu.html [ Skip ]
+inspector/canvas/requestContent-webgpu.html [ Skip ]
+inspector/canvas/resolveContext-webgpu.html [ Skip ]
+inspector/canvas/worker-webgpu.html [ Skip ]
 
 # NetworkStorageSession::deleteCookies() doesn't obey partitioning for glib ports.
 http/wpt/clear-site-data/partitioning.html [ Skip ]
@@ -4315,7 +4320,6 @@ imported/w3c/web-platform-tests/css/css-scroll-snap/snap-at-user-scroll-end.html
 imported/w3c/web-platform-tests/css/css-transforms/scroll-preserve-3d.html [ Skip ]
 imported/w3c/web-platform-tests/dom/events/non-cancelable-when-passive [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-light-dismiss-scroll-within.html [ Skip ]
-imported/w3c/web-platform-tests/html/semantics/popovers/popover-light-dismiss-touch-scroll.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-self-invoke.html [ Skip ]
 imported/w3c/web-platform-tests/uievents/order-of-events/mouse-events/wheel-scrolling.html [ Skip ]
 
@@ -4766,7 +4770,6 @@ webkit.org/b/204115 imported/w3c/web-platform-tests/pointerevents/pointerevent_s
 webkit.org/b/204115 imported/w3c/web-platform-tests/pointerevents/pointerevent_setpointercapture_to_same_element_twice.html?touch [ Skip ]
 webkit.org/b/204115 imported/w3c/web-platform-tests/pointerevents/pointerevent_pointerrawupdate_changes_pointer_capture.https.html [ Skip ]
 
-imported/w3c/web-platform-tests/pointerevents/pointerevent_hit_test_scroll_visible_descendant.html [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointer-events-none-skip-scroll-in-iframe.html [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointer-events-none-skip-scroll-will-change-in-iframe.html [ Skip ]
 imported/w3c/web-platform-tests/pointerevents/pointerevent_attributes.html?pen [ Skip ]

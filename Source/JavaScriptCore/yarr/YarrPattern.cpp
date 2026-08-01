@@ -1981,6 +1981,12 @@ public:
                     error = setupDisjunctionOffsets(term.parentheses.disjunction, currentCallFrameSize, currentInputPosition, currentCallFrameSize);
                     if (hasError(error))
                         return error;
+                    // The JIT saves this group's interior frame slots [base+4, m_callFrameSize) into a
+                    // ParenContext using indices relative to base+4, so the saved-frame area only needs to
+                    // hold the max size across all repeating groups.
+                    unsigned innerFrameBase = term.frameLocation + YarrStackSpaceForBackTrackInfoParentheses;
+                    ASSERT(term.parentheses.disjunction->m_callFrameSize >= innerFrameBase);
+                    m_pattern.m_maxParenContextFrameSize = std::max(m_pattern.m_maxParenContextFrameSize, term.parentheses.disjunction->m_callFrameSize - innerFrameBase);
                 }
                 // Fixed count of 1 could be accepted, if they have a fixed size *AND* if all alternatives are of the same length.
                 alternative->m_hasFixedSize = false;
@@ -2581,6 +2587,20 @@ public:
         }
     }
 
+    void computeEndAnchoredFixedSize()
+    {
+        if (m_pattern.multiline() || m_pattern.sticky() || m_pattern.m_containsModifiers || m_pattern.m_containsBOL || m_pattern.m_containsUnsignedLengthPattern || !m_pattern.m_body->m_hasFixedSize || m_pattern.m_saveInitialStartValue)
+            return;
+
+        unsigned maximumSize = 0;
+        for (auto& alternative : m_pattern.m_body->m_alternatives) {
+            if (!alternative->m_hasFixedSize || alternative->m_terms.isEmpty() || alternative->m_terms.last().type != PatternTerm::Type::AssertionEOL)
+                return;
+            maximumSize = std::max(maximumSize, alternative->m_minimumSize);
+        }
+        m_pattern.m_endAnchoredFixedSize = maximumSize;
+    }
+
     void extractSpecificPattern()
     {
         if (m_pattern.m_containsBackreferences)
@@ -3057,6 +3077,7 @@ ErrorCode YarrPattern::compile(StringView patternString)
             return error;
     }
 
+    constructor.computeEndAnchoredFixedSize();
     constructor.setupNamedCaptures();
 
     constructor.extractSpecificPattern();
@@ -3440,6 +3461,8 @@ void YarrPattern::dumpPattern(PrintStream& out, StringView patternString)
     out.print(":\n");
     if (m_specificPattern != SpecificPattern::None)
         out.print("    specific pattern: ", m_specificPattern, "\n");
+    if (hasEndAnchoredFixedSize())
+        out.print("    end anchored fixed size: ", m_endAnchoredFixedSize, "\n");
     if (m_body->m_callFrameSize)
         out.print("    callframe size: ", m_body->m_callFrameSize, "\n");
     m_body->dump(out, this);

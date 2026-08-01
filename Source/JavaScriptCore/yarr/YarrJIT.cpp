@@ -800,7 +800,11 @@ class YarrGenerator final : public YarrJITInfo {
 
     enum class FrameSlotTransfer : bool { Save, Restore };
 
-    // Copy frame slots [firstSlot, lastSlot) between the frame and the ParenContext save area.
+    // Copy frame slots [firstSlot, lastSlot) between the frame and the ParenContext save area. The
+    // save area is indexed relative to firstSlot (i.e. frame slot firstSlot maps to save-area slot
+    // 0), so the area only needs to hold m_maxParenContextFrameSize slots. A group's
+    // sibling/ancestor slots do not need to be saved.
+    //
     // contextGPR is preserved. framePointerGPR and scratchGPR are clobbered in the walking path.
     void emitFrameSlotsTransfer(FrameSlotTransfer direction, MacroAssembler::RegisterID contextGPR, MacroAssembler::RegisterID framePointerGPR, MacroAssembler::RegisterID scratchGPR, unsigned firstSlot, unsigned lastSlot)
     {
@@ -815,9 +819,9 @@ class YarrGenerator final : public YarrJITInfo {
 
         // Copy each slot directly if count is less than the threshold.
         if (count < directCopySlotThreshold) {
-            for (unsigned slot = firstSlot; slot < lastSlot; ++slot) {
-                MacroAssembler::Address frameSlot = frameAddress().withOffset(slot * sizeof(uintptr_t));
-                MacroAssembler::Address contextSlot(contextGPR, contextSaveAreaOffset + slot * sizeof(uintptr_t));
+            for (unsigned index = 0; index < count; ++index) {
+                MacroAssembler::Address frameSlot = frameAddress().withOffset((firstSlot + index) * sizeof(uintptr_t));
+                MacroAssembler::Address contextSlot(contextGPR, contextSaveAreaOffset + index * sizeof(uintptr_t));
                 if (isSave)
                     m_jit.transferPtr(frameSlot, contextSlot);
                 else
@@ -827,7 +831,9 @@ class YarrGenerator final : public YarrJITInfo {
         }
 
         const intptr_t framePointerBias = frameAddress().offset + static_cast<intptr_t>(firstSlot) * static_cast<intptr_t>(sizeof(uintptr_t));
-        const intptr_t contextPointerBias = contextSaveAreaOffset + static_cast<intptr_t>(firstSlot) * static_cast<intptr_t>(sizeof(uintptr_t));
+        // The save area is base-relative (frame slot firstSlot -> save-area slot 0), so the context
+        // pointer starts at the save-area base regardless of firstSlot.
+        const intptr_t contextPointerBias = contextSaveAreaOffset;
 
         m_jit.addPtr(MacroAssembler::TrustedImmPtr(framePointerBias), GPRInfo::callFrameRegister, framePointerGPR);
         m_jit.addPtr(MacroAssembler::TrustedImmPtr(contextPointerBias), contextGPR);
@@ -882,14 +888,17 @@ class YarrGenerator final : public YarrJITInfo {
     }
 
     // On return matchAmountGPR holds the pre-iteration matchAmount for the caller to increment.
-    void saveParenContext(MacroAssembler::RegisterID parenContextReg, MacroAssembler::RegisterID matchAmountGPR, MacroAssembler::RegisterID scratchGPR, unsigned firstSubpattern, unsigned lastSubpattern, unsigned subpatternBaseFrameLocation, bool savesReturnAddress)
+    void saveParenContext(MacroAssembler::RegisterID parenContextReg, MacroAssembler::RegisterID matchAmountGPR, MacroAssembler::RegisterID scratchGPR, unsigned firstSubpattern, unsigned lastSubpattern, unsigned subpatternBaseFrameLocation, bool savesReturnAddress, unsigned lastSlot)
     {
         ASSERT(noOverlap(parenContextReg, matchAmountGPR, scratchGPR, m_regs.index, GPRInfo::callFrameRegister));
 
         BitVector duplicateNamedCaptureGroups;
         bool hasNamedCaptures = m_pattern.hasDuplicateNamedCaptureGroups();
 
-        emitFrameSlotsTransfer(FrameSlotTransfer::Save, parenContextReg, matchAmountGPR, scratchGPR, subpatternBaseFrameLocation + YarrStackSpaceForBackTrackInfoParentheses, m_parenContextSizes.frameSlots());
+        // Save only this group's own interior slots [base+4, lastSlot); a group's
+        // sibling/ancestor slots are never touched by its iterations, so they do not need to be
+        // snapshotted.
+        emitFrameSlotsTransfer(FrameSlotTransfer::Save, parenContextReg, matchAmountGPR, scratchGPR, subpatternBaseFrameLocation + YarrStackSpaceForBackTrackInfoParentheses, lastSlot);
 
         // Save-at-BEGIN: snapshot the pre-iteration index and matchAmount.
         loadFromFrame(subpatternBaseFrameLocation + BackTrackInfoParentheses::matchAmountIndex(), matchAmountGPR);
@@ -922,16 +931,16 @@ class YarrGenerator final : public YarrJITInfo {
     }
 
     // On return matchAmountGPR holds the restored matchAmount, so the caller can use it without reloading from the frame.
-    void restoreParenContext(MacroAssembler::RegisterID parenContextReg, MacroAssembler::RegisterID matchAmountGPR, MacroAssembler::RegisterID scratchGPR, unsigned firstSubpattern, unsigned lastSubpattern, unsigned subpatternBaseFrameLocation, bool savesReturnAddress)
+    void restoreParenContext(MacroAssembler::RegisterID parenContextReg, MacroAssembler::RegisterID matchAmountGPR, MacroAssembler::RegisterID scratchGPR, unsigned firstSubpattern, unsigned lastSubpattern, unsigned subpatternBaseFrameLocation, bool savesReturnAddress, unsigned lastSlot)
     {
         ASSERT(noOverlap(parenContextReg, matchAmountGPR, scratchGPR, m_regs.index, GPRInfo::callFrameRegister));
 
         BitVector duplicateNamedCaptureGroups;
         bool hasNamedCaptures = m_pattern.hasDuplicateNamedCaptureGroups();
 
-        // Copy the saved frame slots back first (this clobbers matchAmountGPR), then load
+        // Copy this group's own interior slots back first (this clobbers matchAmountGPR), then load
         // matchAmount into matchAmountGPR so it stays live for the caller.
-        emitFrameSlotsTransfer(FrameSlotTransfer::Restore, parenContextReg, matchAmountGPR, scratchGPR, subpatternBaseFrameLocation + YarrStackSpaceForBackTrackInfoParentheses, m_parenContextSizes.frameSlots());
+        emitFrameSlotsTransfer(FrameSlotTransfer::Restore, parenContextReg, matchAmountGPR, scratchGPR, subpatternBaseFrameLocation + YarrStackSpaceForBackTrackInfoParentheses, lastSlot);
 
         loadBeginAndMatchAmountFromParenContext(parenContextReg, m_regs.index, matchAmountGPR);
         storeToFrame(m_regs.index, subpatternBaseFrameLocation + BackTrackInfoParentheses::beginIndex());
@@ -4482,7 +4491,7 @@ class YarrGenerator final : public YarrJITInfo {
                 // Save-at-BEGIN. saveParenContext leaves the pre-iteration matchAmount
                 // in regT2 (countTemporary) for the increment below.
                 bool savesReturnAddress = term->parentheses.disjunction->m_alternatives.size() > 1;
-                saveParenContext(newParenContextReg, /* matchAmountGPR */ countTemporary, /* scratchGPR */ m_regs.regT3, term->parentheses.subpatternId, term->parentheses.lastSubpatternId, parenthesesFrameLocation, savesReturnAddress);
+                saveParenContext(newParenContextReg, /* matchAmountGPR */ countTemporary, /* scratchGPR */ m_regs.regT3, term->parentheses.subpatternId, term->parentheses.lastSubpatternId, parenthesesFrameLocation, savesReturnAddress, term->parentheses.disjunction->m_callFrameSize);
 
                 // Bump matchAmount: the just-pushed context captured the pre-increment value.
                 m_jit.add32(MacroAssembler::TrustedImm32(1), countTemporary);
@@ -5208,7 +5217,7 @@ class YarrGenerator final : public YarrJITInfo {
                 // matchAmount in regT2, which survives freeParenContext below, so we skip
                 // reloading it from the frame.
                 bool savesReturnAddress = term->parentheses.disjunction->m_alternatives.size() > 1;
-                restoreParenContext(currParenContextReg, /* matchAmountGPR */ countTemporary, /* scratchGPR */ m_regs.regT3, term->parentheses.subpatternId, term->parentheses.lastSubpatternId, parenthesesFrameLocation, savesReturnAddress);
+                restoreParenContext(currParenContextReg, /* matchAmountGPR */ countTemporary, /* scratchGPR */ m_regs.regT3, term->parentheses.subpatternId, term->parentheses.lastSubpatternId, parenthesesFrameLocation, savesReturnAddress, term->parentheses.disjunction->m_callFrameSize);
 
                 m_jit.loadPtr(MacroAssembler::Address(currParenContextReg, ParenContext::nextOffset()), newParenContextReg);
                 freeParenContext(currParenContextReg);
@@ -6719,6 +6728,20 @@ class YarrGenerator final : public YarrJITInfo {
         return registers;
     }
 
+    void skipToEndAnchoredStart()
+    {
+        if (!m_pattern.hasEndAnchoredFixedSize())
+            return;
+
+        unsigned endAnchoredFixedSize = m_pattern.m_endAnchoredFixedSize;
+        MacroAssembler::JumpList noStartAdjustment;
+        noStartAdjustment.append(m_jit.branch32(MacroAssembler::Below, m_regs.length, MacroAssembler::TrustedImm32(endAnchoredFixedSize)));
+        m_jit.sub32(m_regs.length, MacroAssembler::TrustedImm32(endAnchoredFixedSize), m_regs.regT0);
+        noStartAdjustment.append(m_jit.branch32(MacroAssembler::AboveOrEqual, m_regs.index, m_regs.regT0));
+        m_jit.move(m_regs.regT0, m_regs.index);
+        noStartAdjustment.link(&m_jit);
+    }
+
     void generateEnter()
     {
 #if CPU(X86_64) || CPU(ARM_THUMB2) || CPU(RISCV64)
@@ -6822,7 +6845,7 @@ public:
         , m_callFrameSizeInBytes(alignCallFrameSizeInBytes(m_pattern.m_body->m_callFrameSize))
         , m_canonicalMode(m_pattern.eitherUnicode() ? CanonicalMode::Unicode : CanonicalMode::UCS2)
 #if ENABLE(YARR_JIT_ALL_PARENS_EXPRESSIONS)
-        , m_parenContextSizes(needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numSubpatterns : 0, needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numDuplicateNamedCaptureGroups : 0, m_pattern.m_body->m_callFrameSize)
+        , m_parenContextSizes(needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numSubpatterns : 0, needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numDuplicateNamedCaptureGroups : 0, m_pattern.m_maxParenContextFrameSize)
 #endif
         , m_sampleString(sampleString)
         , m_sampler(charSize)
@@ -6846,7 +6869,7 @@ public:
         , m_callFrameSizeInBytes(alignCallFrameSizeInBytes(m_pattern.m_body->m_callFrameSize))
         , m_canonicalMode(m_pattern.eitherUnicode() ? CanonicalMode::Unicode : CanonicalMode::UCS2)
 #if ENABLE(YARR_JIT_ALL_PARENS_EXPRESSIONS)
-        , m_parenContextSizes(needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numSubpatterns : 0, needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numDuplicateNamedCaptureGroups : 0, m_pattern.m_body->m_callFrameSize)
+        , m_parenContextSizes(needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numSubpatterns : 0, needsSubpatternRecording(executionMode, m_pattern) ? m_pattern.m_numDuplicateNamedCaptureGroups : 0, m_pattern.m_maxParenContextFrameSize)
 #endif
         , m_sampler(charSize)
     {
@@ -6989,6 +7012,8 @@ public:
         generateFailReturn();
         hasInput.link(&m_jit);
 
+        skipToEndAnchoredStart();
+
         if (m_callFrameSizeInBytes) {
             // Check stack size
             m_jit.addPtr(MacroAssembler::TrustedImm32(-m_callFrameSizeInBytes), MacroAssembler::stackPointerRegister, m_regs.regT0);
@@ -7045,11 +7070,15 @@ public:
         // Initialize subpatterns' starts. And initialize matchStart if `!m_pattern.m_body->m_hasFixedSize`.
         // If shouldRecordSubpatterns(), then matchStart is subpatterns[0]'s start.
         emitClearAllCaptures();
-        if (!m_pattern.m_body->m_hasFixedSize)
+        if (!m_pattern.m_body->m_hasFixedSize) {
+            ASSERT(!m_pattern.hasEndAnchoredFixedSize());
             setMatchStart(m_regs.index);
+        }
 
-        if (m_pattern.m_saveInitialStartValue)
+        if (m_pattern.m_saveInitialStartValue) {
+            ASSERT(!m_pattern.hasEndAnchoredFixedSize());
             storeToFrame(m_regs.index, m_pattern.m_initialStartValueFrameLocation);
+        }
 
         generate();
         if (m_disassembler)
@@ -7175,6 +7204,8 @@ public:
         generateFailReturn();
         hasInput.link(&m_jit);
 
+        skipToEndAnchoredStart();
+
         if (m_callFrameSizeInBytes) {
             // Create space on stack for matching context data.
             // Note that this stack check cannot clobber m_regs.regT1 as it is needed for the slow path we call if we fail the stack check.
@@ -7196,11 +7227,15 @@ public:
 #endif
 
         emitClearAllCaptures();
-        if (!m_pattern.m_body->m_hasFixedSize)
+        if (!m_pattern.m_body->m_hasFixedSize) {
+            ASSERT(!m_pattern.hasEndAnchoredFixedSize());
             setMatchStart(m_regs.index);
+        }
 
-        if (m_pattern.m_saveInitialStartValue)
+        if (m_pattern.m_saveInitialStartValue) {
+            ASSERT(!m_pattern.hasEndAnchoredFixedSize());
             storeToFrame(m_regs.index, m_pattern.m_initialStartValueFrameLocation);
+        }
 
         generate();
         if (m_disassembler)

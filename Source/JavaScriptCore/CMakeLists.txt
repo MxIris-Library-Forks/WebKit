@@ -1200,6 +1200,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/JSArrayBufferViewInlinesLight.h
     runtime/JSArrayInlines.h
     runtime/JSArrayIterator.h
+    runtime/JSArrayIteratorInlines.h
     runtime/JSArrayBuffer.h
     runtime/JSBigInt.h
     runtime/JSBigIntInlines.h
@@ -1763,6 +1764,7 @@ endif ()
 
 WEBKIT_FRAMEWORK_DECLARE(JavaScriptCore)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
+WEBKIT_ADD_TARGET_THREAD_SAFETY_WARNINGS(JavaScriptCore)
 WEBKIT_ADD_TARGET_UNSAFE_BUFFER_WARNINGS(JavaScriptCore)
 
 if (COMPILER_IS_GCC_OR_CLANG)
@@ -1782,13 +1784,11 @@ if (COMPILER_IS_GCC_OR_CLANG)
 endif ()
 
 WEBKIT_COPY_FILES(JavaScriptCore_CopyHeaders
-    PRUNE_STALE
     DESTINATION ${JavaScriptCore_HEADERS_DIR}
     FILES ${JavaScriptCore_PUBLIC_FRAMEWORK_HEADERS}
     FLATTENED
 )
 WEBKIT_SYMLINK_FILES(JavaScriptCore_CopyPrivateHeaders
-    PRUNE_STALE
     DESTINATION ${JavaScriptCore_PRIVATE_HEADERS_DIR}
     FILES ${JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS}
     FLATTENED

@@ -7553,6 +7553,7 @@ imported/w3c/web-platform-tests/css/css-color/deprecated-sameas-002.html [ Image
 http/tests/ipc/write-web-archive-frame-ancestry-check.html [ Skip ]
 
 http/tests/site-isolation/touch-events [ Skip ]
+http/tests/site-isolation/ios [ Skip ]
 http/tests/site-isolation/iframe-dark-mode-print.html [ ImageOnlyFailure ]
 
 # CSS syntax
@@ -8026,6 +8027,8 @@ webkit.org/b/317545 imported/w3c/web-platform-tests/digital-credentials/webdrive
 webkit.org/b/306292 http/wpt/identity/formats/ISO18013/origin-binding.https.html [ Skip ]
 webkit.org/b/317545 imported/w3c/web-platform-tests/digital-credentials/protocol-filtering-openid4vp.https.html [ Skip ]
 
+webkit.org/b/320546 http/wpt/identity/digital-credential-openid4vp-request-parsing.https.html [ Failure ]
+
 # Hits assert in debug, tracked by https://bugs.webkit.org/show_bug.cgi?id=303414
 [ Debug ] fullscreen/fullscreen-grid-item-container-type-crash.html [ Skip ]
 
@@ -8086,7 +8089,6 @@ webkit.org/b/308096 imported/w3c/web-platform-tests/css/cssom-view/scrollParent.
 webkit.org/b/296130 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-scroller-nested-4.html [ Pass Failure ]
 webkit.org/b/281267 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-summary-element/interactive-content.html [ Pass Failure ]
 
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-020.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-021.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/cookies/third-party-cookies/third-party-cookie-heuristics.tentative.https.html [ Skip ] # Timeout

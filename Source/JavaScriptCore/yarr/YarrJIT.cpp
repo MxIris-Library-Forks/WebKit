@@ -911,7 +911,6 @@ class YarrGenerator final : public YarrJITInfo {
         }
         if (shouldRecordSubpatterns()) {
             for (unsigned subpattern = firstSubpattern; subpattern <= lastSubpattern; subpattern++) {
-                static_assert(is64Bit());
                 m_jit.transfer64(subpatternStartAddress(subpattern), MacroAssembler::Address(parenContextReg, ParenContext::subpatternOffset(subpattern)));
                 if (hasNamedCaptures) {
                     unsigned duplicateNamedGroup = m_pattern.m_duplicateNamedGroupForSubpatternId[subpattern];
@@ -952,7 +951,6 @@ class YarrGenerator final : public YarrJITInfo {
         }
         if (shouldRecordSubpatterns()) {
             for (unsigned subpattern = firstSubpattern; subpattern <= lastSubpattern; subpattern++) {
-                static_assert(is64Bit());
                 m_jit.transfer64(MacroAssembler::Address(parenContextReg, ParenContext::subpatternOffset(subpattern)), subpatternStartAddress(subpattern));
                 if (hasNamedCaptures) {
                     unsigned duplicateNamedGroup = m_pattern.m_duplicateNamedGroupForSubpatternId[subpattern];
@@ -1018,17 +1016,10 @@ class YarrGenerator final : public YarrJITInfo {
             break;
         default: {
             // Otherwise, actually perform the bit test.
-#if CPU(REGISTER64)
             m_jit.sub32(character, MacroAssembler::Imm32(static_cast<unsigned>(min)), scratch);
             MacroAssembler::Jump notInVector = m_jit.branch32(MacroAssembler::Above, scratch, MacroAssembler::TrustedImm32(max - min));
             m_jit.lshift64(MacroAssembler::TrustedImm32(1), scratch, scratch);
             matchDest.append(m_jit.branchTest64(MacroAssembler::NonZero, scratch, MacroAssembler::TrustedImm64(mask.storage()[0])));
-#else
-            m_jit.sub32(character, MacroAssembler::Imm32(static_cast<unsigned>(min)), scratch);
-            MacroAssembler::Jump notInVector = m_jit.branch32(MacroAssembler::Above, scratch, MacroAssembler::TrustedImm32(max - min));
-            m_jit.lshift32(MacroAssembler::TrustedImm32(1), scratch, scratch);
-            matchDest.append(m_jit.branchTest32(MacroAssembler::NonZero, scratch, MacroAssembler::TrustedImm32(mask.storage()[0])));
-#endif
             notInVector.link(&m_jit);
         }
         }
@@ -1755,12 +1746,7 @@ class YarrGenerator final : public YarrJITInfo {
     }
     void clearSubpattern(unsigned subpattern)
     {
-#if USE(JSVALUE64)
         m_jit.store64(MacroAssembler::TrustedImm64(static_cast<uint64_t>(-1)), subpatternStartAddress(subpattern));
-#else
-        m_jit.store32(MacroAssembler::TrustedImm32(static_cast<uint32_t>(-1)), subpatternStartAddress(subpattern));
-        m_jit.store32(MacroAssembler::TrustedImm32(static_cast<uint32_t>(-1)), subpatternEndAddress(subpattern));
-#endif
     }
 
     void emitClearCapturesForTerm(PatternTerm* term)
@@ -6717,12 +6703,6 @@ class YarrGenerator final : public YarrJITInfo {
         } else if (m_pattern.hasDuplicateNamedCaptureGroups())
             registers.add(X86Registers::r14, IgnoreVectors);
 #elif CPU(ARM64)
-#elif CPU(ARM_THUMB2)
-        registers.add(ARMRegisters::r4, IgnoreVectors);
-        registers.add(ARMRegisters::r5, IgnoreVectors);
-        registers.add(ARMRegisters::r6, IgnoreVectors);
-        registers.add(ARMRegisters::r8, IgnoreVectors);
-        registers.add(ARMRegisters::r10, IgnoreVectors);
 #elif CPU(RISCV64)
 #endif
         return registers;
@@ -6744,7 +6724,7 @@ class YarrGenerator final : public YarrJITInfo {
 
     void generateEnter()
     {
-#if CPU(X86_64) || CPU(ARM_THUMB2) || CPU(RISCV64)
+#if CPU(X86_64) || CPU(RISCV64)
         m_jit.emitFunctionPrologue();
 #elif CPU(ARM64)
         // JITCage code is doing prologue and epilogue in thunk.
@@ -6778,7 +6758,7 @@ class YarrGenerator final : public YarrJITInfo {
 #endif
 
         m_jit.emitRestoreCalleeSavesFor(&m_calleeSaves);
-#if CPU(X86_64) || CPU(ARM_THUMB2) || CPU(RISCV64)
+#if CPU(X86_64) || CPU(RISCV64)
         m_jit.emitFunctionEpilogue();
 #elif CPU(ARM64)
         // JITCage code is doing prologue and epilogue in thunk.
@@ -7023,15 +7003,8 @@ public:
             functionChecks<YarrCodeBlock::YarrJITCode16>();
             functionChecks<YarrCodeBlock::YarrJITCodeMatchOnly8>();
             functionChecks<YarrCodeBlock::YarrJITCodeMatchOnly16>();
-#if CPU(ARM_THUMB2)
-            // Not enough argument registers: try to load the 5th argument from the stack
-            MacroAssembler::RegisterID matchingContext = m_regs.regT1;
-            unsigned offset = POKE_ARGUMENT_OFFSET;
-            m_jit.loadPtr(MacroAssembler::Address(GPRInfo::callFrameRegister, offset * sizeof(void*)), matchingContext);
-#else
             // The MatchingContextHolder* arrives in the 5th argument register.
             MacroAssembler::RegisterID matchingContext = GPRInfo::argumentGPR4;
-#endif
             MacroAssembler::Jump stackOk = m_jit.branchPtr(MacroAssembler::BelowOrEqual, MacroAssembler::Address(matchingContext, MatchingContextHolder::offsetOfStackLimit()), m_regs.regT0);
 
             // Exceeded stack limit, punt to the interpreter.

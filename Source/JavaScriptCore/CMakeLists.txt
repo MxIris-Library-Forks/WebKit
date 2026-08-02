@@ -235,12 +235,10 @@ set(LLINT_ASM
     llint/InPlaceInterpreter.asm
     llint/InPlaceInterpreter64.asm
     llint/LowLevelInterpreter.asm
-    llint/LowLevelInterpreter32_64.asm
     llint/LowLevelInterpreter64.asm
 )
 
 set(OFFLINE_ASM
-    offlineasm/arm.rb
     offlineasm/arm64.rb
     offlineasm/arm64e.rb
     offlineasm/asm.rb
@@ -311,8 +309,6 @@ elseif (WTF_CPU_ARM64)
     else ()
         set(OFFLINE_ASM_BACKEND "ARM64")
     endif ()
-elseif (ARM_THUMB2_DETECTED)
-    set(OFFLINE_ASM_BACKEND "ARMv7")
 elseif (WTF_CPU_RISCV64)
     set(OFFLINE_ASM_BACKEND "RISCV64")
 endif ()
@@ -618,8 +614,6 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     assembler/ARM64Assembler.h
     assembler/ARM64EAssembler.h
     assembler/ARM64Registers.h
-    assembler/ARMv7Assembler.h
-    assembler/ARMv7Registers.h
     assembler/AbortReason.h
     assembler/AbstractMacroAssembler.h
     assembler/AllowMacroScratchRegisterUsage.h
@@ -636,7 +630,6 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     assembler/MacroAssembler.h
     assembler/MacroAssemblerARM64.h
     assembler/MacroAssemblerARM64E.h
-    assembler/MacroAssemblerARMv7.h
     assembler/MacroAssemblerCodeRef.h
     assembler/MacroAssemblerHelpers.h
     assembler/MacroAssemblerX86_64.h

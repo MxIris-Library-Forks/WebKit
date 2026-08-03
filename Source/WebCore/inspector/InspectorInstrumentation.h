@@ -288,7 +288,9 @@ public:
     static void stopProfiling(LocalFrame&, const String& title);
     static void stopProfiling(WorkerOrWorkletGlobalScope&, const String& title);
     static void consoleStartRecordingCanvas(CanvasRenderingContext&, JSC::JSGlobalObject&, JSC::JSObject* options);
+    static void consoleStartRecordingCanvas(GPUDevice&, JSC::JSGlobalObject&, JSC::JSObject* options);
     static void consoleStopRecordingCanvas(CanvasRenderingContext&);
+    static void consoleStopRecordingCanvas(GPUDevice&);
 
     static void performanceMark(ScriptExecutionContext&, const String&, std::optional<MonotonicTime>);
 
@@ -341,6 +343,7 @@ public:
     static void willDestroyWebGPUComputePipeline(GPUComputePipeline&);
     static void didCreateWebGPURenderPipeline(GPUDevice&, GPURenderPipeline&);
     static void willDestroyWebGPURenderPipeline(GPURenderPipeline&);
+    static bool isWebGPURenderPipelineDisabled(GPURenderPipeline&);
 
     static void willApplyKeyframeEffect(const Styleable&, KeyframeEffect&, const ComputedEffectTiming&);
     static void didChangeWebAnimationName(WebAnimation&);
@@ -503,7 +506,9 @@ private:
     static void startProfilingImpl(InstrumentingAgents&, const String& title);
     static void stopProfilingImpl(InstrumentingAgents&, const String& title);
     static void consoleStartRecordingCanvasImpl(InstrumentingAgents&, CanvasRenderingContext&, JSC::JSGlobalObject&, JSC::JSObject* options);
+    static void consoleStartRecordingCanvasImpl(InstrumentingAgents&, GPUDevice&, JSC::JSGlobalObject&, JSC::JSObject* options);
     static void consoleStopRecordingCanvasImpl(InstrumentingAgents&, CanvasRenderingContext&);
+    static void consoleStopRecordingCanvasImpl(InstrumentingAgents&, GPUDevice&);
 
     static void performanceMarkImpl(InstrumentingAgents&, const String& label, std::optional<MonotonicTime>);
     static void didEnqueueFirstContentfulPaintImpl(InstrumentingAgents&);
@@ -555,6 +560,7 @@ private:
     static void willDestroyWebGPUComputePipelineImpl(InstrumentingAgents&, GPUComputePipeline&);
     static void didCreateWebGPURenderPipelineImpl(InstrumentingAgents&, GPUDevice&, GPURenderPipeline&);
     static void willDestroyWebGPURenderPipelineImpl(InstrumentingAgents&, GPURenderPipeline&);
+    static bool isWebGPURenderPipelineDisabledImpl(InstrumentingAgents&, GPURenderPipeline&);
 
     static void willApplyKeyframeEffectImpl(InstrumentingAgents&, const Styleable&, KeyframeEffect&, const ComputedEffectTiming&);
     static void didChangeWebAnimationNameImpl(InstrumentingAgents&, WebAnimation&);
@@ -1581,6 +1587,16 @@ inline void InspectorInstrumentation::willDestroyWebGPURenderPipeline(GPURenderP
     }
 }
 
+inline bool InspectorInstrumentation::isWebGPURenderPipelineDisabled(GPURenderPipeline& pipeline)
+{
+    FAST_RETURN_IF_NO_FRONTENDS(false);
+    if (RefPtr device = pipeline.device()) {
+        if (RefPtr agents = instrumentingAgents(protect(device->scriptExecutionContext())))
+            return isWebGPURenderPipelineDisabledImpl(*agents, pipeline);
+    }
+    return false;
+}
+
 inline void InspectorInstrumentation::willApplyKeyframeEffect(const Styleable& target, KeyframeEffect& effect, const ComputedEffectTiming& computedTiming)
 {
     FAST_RETURN_IF_NO_FRONTENDS(void());
@@ -1745,10 +1761,22 @@ inline void InspectorInstrumentation::consoleStartRecordingCanvas(CanvasRenderin
         consoleStartRecordingCanvasImpl(*agents, context, exec, options);
 }
 
+inline void InspectorInstrumentation::consoleStartRecordingCanvas(GPUDevice& device, JSC::JSGlobalObject& exec, JSC::JSObject* options)
+{
+    if (RefPtr agents = instrumentingAgents(protect(device.scriptExecutionContext())))
+        consoleStartRecordingCanvasImpl(*agents, device, exec, options);
+}
+
 inline void InspectorInstrumentation::consoleStopRecordingCanvas(CanvasRenderingContext& context)
 {
     if (RefPtr agents = instrumentingAgents(protect(protect(context.canvasBase())->scriptExecutionContext())))
         consoleStopRecordingCanvasImpl(*agents, context);
+}
+
+inline void InspectorInstrumentation::consoleStopRecordingCanvas(GPUDevice& device)
+{
+    if (RefPtr agents = instrumentingAgents(protect(device.scriptExecutionContext())))
+        consoleStopRecordingCanvasImpl(*agents, device);
 }
 
 inline void InspectorInstrumentation::performanceMark(ScriptExecutionContext& context, const String& label, std::optional<MonotonicTime> startTime)

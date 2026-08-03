@@ -33,6 +33,7 @@
 #include "Timer.h"
 #include <JavaScriptCore/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/InspectorFrontendDispatchers.h>
+#include <cstdint>
 #include <initializer_list>
 #include <wtf/CheckedPtr.h>
 #include <wtf/CheckedRef.h>
@@ -88,7 +89,9 @@ public:
     Inspector::Protocol::ErrorStringOr<String> requestShaderSource(const Inspector::Protocol::Canvas::ProgramId&, Inspector::Protocol::Canvas::ShaderType);
 #if ENABLE(WEBGL)
     Inspector::Protocol::ErrorStringOr<void> updateShader(const Inspector::Protocol::Canvas::ProgramId&, Inspector::Protocol::Canvas::ShaderType, const String& source);
+#endif
     Inspector::Protocol::ErrorStringOr<void> setShaderProgramDisabled(const Inspector::Protocol::Canvas::ProgramId&, bool disabled);
+#if ENABLE(WEBGL)
     Inspector::Protocol::ErrorStringOr<void> setShaderProgramHighlighted(const Inspector::Protocol::Canvas::ProgramId&, bool highlighted);
 #endif // ENABLE(WEBGL)
 
@@ -103,7 +106,9 @@ public:
     void didChangeCanvasMemory(const CanvasRenderingContext&);
     void didFinishRecordingCanvasFrame(CanvasRenderingContext&, bool forceDispatch = false);
     void consoleStartRecordingCanvas(CanvasRenderingContext&, JSC::JSGlobalObject&, JSC::JSObject* options);
+    void consoleStartRecordingCanvas(GPUDevice&, JSC::JSGlobalObject&, JSC::JSObject* options);
     void consoleStopRecordingCanvas(CanvasRenderingContext&);
+    void consoleStopRecordingCanvas(GPUDevice&);
 #if ENABLE(WEBGL)
     void didEnableExtension(WebGLRenderingContextBase&, const String&);
     void didCreateWebGLProgram(WebGLRenderingContextBase&, WebGLProgram&);
@@ -117,8 +122,13 @@ public:
     void willDestroyWebGPUComputePipeline(GPUComputePipeline&);
     void didCreateWebGPURenderPipeline(GPUDevice&, GPURenderPipeline&);
     void willDestroyWebGPURenderPipeline(GPURenderPipeline&);
+    bool isWebGPURenderPipelineDisabled(GPURenderPipeline&);
+    void didFinishRecordingCanvasFrame(GPUDevice&, bool forceDispatch = false);
 
     void recordAction(CanvasRenderingContext&, String&&, InspectorCanvasProcessedArguments&& = { });
+    void recordAction(CanvasRenderingContext&, RecordingSwizzleType, String&&, InspectorCanvasProcessedArguments&& = { });
+    void recordAction(GPUDevice&, String&&, InspectorCanvasProcessedArguments&& = { });
+    void recordAction(GPUDevice&, uintptr_t receiver, RecordingSwizzleType, String&&, InspectorCanvasProcessedArguments&& = { });
 
     RefPtr<InspectorCanvas> assertInspectorCanvas(Inspector::Protocol::ErrorString&, const String& canvasId);
     RefPtr<InspectorCanvas> findInspectorCanvas(const CanvasRenderingContext&);
@@ -146,6 +156,9 @@ private:
         std::optional<String> name;
     };
     void startRecording(InspectorCanvas&, Inspector::Protocol::Recording::Initiator, RecordingOptions&& = { });
+    void consoleStartRecordingCanvas(InspectorCanvas&, JSC::JSGlobalObject&, JSC::JSObject* options);
+    void didFinishRecordingCanvasFrame(InspectorCanvas&, bool forceDispatch);
+    void scheduleRecordingCanvasFrame(InspectorCanvas&);
 
     void canvasDestroyedTimerFired();
     void programDestroyedTimerFired();

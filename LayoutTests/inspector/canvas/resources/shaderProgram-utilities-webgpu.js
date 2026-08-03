@@ -34,13 +34,14 @@ async function initializeWebGPU() {
     device = await adapter.requestDevice();
     presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 
-    await createComputePipeline();
-    await createRenderPipeline();
+    await createComputePipeline({label: "Labeled Compute Pipeline"});
+    await createRenderPipeline({label: "Labeled Render Pipeline"});
 }
 
-async function createComputePipeline({asynchronously = false} = {}) {
+async function createComputePipeline({asynchronously = false, label = ""} = {}) {
     let shaderModule = device.createShaderModule({code: computeShaderSource});
     let descriptor = {
+        label,
         layout: "auto",
         compute: {
             module: shaderModule,
@@ -51,10 +52,11 @@ async function createComputePipeline({asynchronously = false} = {}) {
     computePipelines.push(pipeline);
 }
 
-async function createRenderPipeline({asynchronously = false} = {}) {
+async function createRenderPipeline({asynchronously = false, label = ""} = {}) {
     let vertexShaderModule = device.createShaderModule({code: vertexShaderSource});
     let fragmentShaderModule = device.createShaderModule({code: fragmentShaderSource});
     let descriptor = {
+        label,
         layout: "auto",
         vertex: {
             module: vertexShaderModule,
@@ -98,6 +100,60 @@ function renderToContext(context) {
     renderPassEncoder.draw(3);
     renderPassEncoder.end();
     device.queue.submit([commandEncoder.finish()]);
+}
+
+async function renderAndReadPixel(encodeRenderPass) {
+    const bytesPerRow = 256;
+    let texture = device.createTexture({
+        size: [1, 1],
+        format: presentationFormat,
+        usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+    let readbackBuffer = device.createBuffer({
+        size: bytesPerRow,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    let commandEncoder = device.createCommandEncoder();
+    let renderPassEncoder = commandEncoder.beginRenderPass({
+        colorAttachments: [{
+            view: texture.createView(),
+            clearValue: {r: 0, g: 0, b: 0, a: 1},
+            loadOp: "clear",
+            storeOp: "store",
+        }],
+    });
+    encodeRenderPass(renderPassEncoder);
+    renderPassEncoder.end();
+    commandEncoder.copyTextureToBuffer({texture}, {buffer: readbackBuffer, bytesPerRow}, [1, 1]);
+    device.queue.submit([commandEncoder.finish()]);
+
+    await readbackBuffer.mapAsync(GPUMapMode.READ);
+    let pixel = new Uint8Array(readbackBuffer.getMappedRange()).slice(0, 4).join(",");
+    readbackBuffer.unmap();
+    readbackBuffer.destroy();
+    texture.destroy();
+    return pixel;
+}
+
+async function renderWithPipeline(eventName) {
+    let content = await renderAndReadPixel((renderPassEncoder) => {
+        renderPassEncoder.setPipeline(renderPipelines[0]);
+        renderPassEncoder.draw(3);
+    });
+    TestPage.dispatchEventToFrontend(eventName, {content});
+}
+
+async function renderWithRenderBundle(eventName) {
+    let renderBundleEncoder = device.createRenderBundleEncoder({colorFormats: [presentationFormat]});
+    renderBundleEncoder.setPipeline(renderPipelines[0]);
+    renderBundleEncoder.draw(3);
+    let renderBundle = renderBundleEncoder.finish();
+
+    let content = await renderAndReadPixel((renderPassEncoder) => {
+        renderPassEncoder.executeBundles([renderBundle]);
+    });
+    TestPage.dispatchEventToFrontend(eventName, {content});
 }
 
 async function renderWithOffscreenPipeline(eventName) {

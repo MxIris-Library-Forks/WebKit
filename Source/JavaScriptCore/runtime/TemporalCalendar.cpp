@@ -84,38 +84,6 @@ CalendarID getTemporalCalendarIdentifierWithISODefault(JSGlobalObject* globalObj
     RELEASE_AND_RETURN(scope, toTemporalCalendarIdentifier(globalObject, calendarLike));
 }
 
-// https://tc39.es/proposal-temporal/#sec-temporal-calendarresolvefields
-static void calendarResolveFields(JSGlobalObject* globalObject, std::optional<int32_t> year, unsigned month, std::optional<ParsedMonthCode> monthCode, TemporalDateFormat format, CalendarID calendarId)
-{
-    VM& vm = globalObject->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
-
-    bool isISO = calendarId == iso8601CalendarID();
-
-    if ((format == TemporalDateFormat::Date || format == TemporalDateFormat::YearMonth)
-        && !year) [[unlikely]] {
-        throwTypeError(globalObject, scope, "year must be supplied for this Temporal type"_s);
-        return;
-    }
-    if (monthCode) {
-        if (isISO) {
-            if (monthCode->isLeapMonth) [[unlikely]] {
-                throwRangeError(globalObject, scope, "iso8601 calendar does not have leap months"_s);
-                return;
-            }
-            if (monthCode->monthNumber > 12) [[unlikely]] {
-                throwRangeError(globalObject, scope, "month must be <= 12 with iso8601 calendar"_s);
-                return;
-            }
-            if (month != monthCode->monthNumber) [[unlikely]] {
-                throwRangeError(globalObject, scope, "month does not match month code"_s);
-                return;
-            }
-        }
-        // For non-ISO calendars, monthCode validation is handled by the ICU calendar.
-    }
-}
-
 // temporal_rs: CalendarFields::from_prop_bag
 // https://tc39.es/proposal-temporal/#sec-temporal-preparecalendarfields
 template<FieldSetType type>
@@ -158,11 +126,6 @@ TemporalCore::CalendarFieldsIn readCalendarFieldsFromObject(JSGlobalObject* glob
                 return fields;
             }
             fields.eraYear = clampTo<int32_t>(ey);
-        }
-        // era and eraYear must be provided together or not at all.
-        if (fields.era.has_value() != fields.eraYear.has_value()) [[unlikely]] {
-            throwTypeError(globalObject, scope, "era and eraYear must both be present or both absent"_s);
-            return fields;
         }
     }
 
@@ -279,11 +242,6 @@ ZonedDateTimeFields readZonedDateTimeFieldsFromObject(JSGlobalObject* globalObje
             }
             result.dateFields.eraYear = clampTo<int32_t>(ey);
             result.anyFieldSet = true;
-        }
-        // CalendarResolveFields requires era and eraYear to be present together or both absent.
-        if (result.dateFields.era.has_value() != result.dateFields.eraYear.has_value()) [[unlikely]] {
-            throwTypeError(globalObject, scope, "era and eraYear must both be present or both absent"_s);
-            return result;
         }
     }
 
@@ -443,56 +401,6 @@ std::optional<ParsedMonthCode> parseMonthCode(JSGlobalObject* globalObject, JSVa
         return { };
     }
     return parsed;
-}
-
-// https://tc39.es/proposal-temporal/#sec-temporal-isodatefromfields
-ISO8601::PlainDate isoDateFromFields(JSGlobalObject* globalObject, TemporalDateFormat format, int32_t year, uint32_t month, uint32_t day, std::optional<ParsedMonthCode> monthCode, TemporalOverflow overflow, CalendarID calendarId)
-{
-
-    VM& vm = globalObject->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
-
-    calendarResolveFields(globalObject, year, month, monthCode, format, calendarId);
-    RETURN_IF_EXCEPTION(scope, { });
-
-    ASSERT(month > 0);
-    ASSERT(day > 0);
-
-    if (calendarId != iso8601CalendarID()) {
-        auto result = TemporalCore::calendarDateFromFields(
-            calendarId, std::optional<int32_t>(year), static_cast<uint8_t>(month), static_cast<uint8_t>(day),
-            std::nullopt, std::nullopt, monthCode, overflow);
-        if (!result) [[unlikely]] {
-            throwRangeError(globalObject, scope, String(result.error().message));
-            return { };
-        }
-        return *result;
-    }
-
-    if (overflow == TemporalOverflow::Constrain) {
-        month = std::min<uint32_t>(month, 12);
-        day = std::min<uint32_t>(day, ISO8601::daysInMonth(year, month));
-    }
-
-    auto plainDate = TemporalPlainDate::validateAndCreateISODateRecord(globalObject, ISO8601::Duration(year, month, 0LL, day, 0LL, 0LL, 0LL, 0LL, Int128(0), Int128(0)));
-    RETURN_IF_EXCEPTION(scope, { });
-
-    bool valid = true;
-    switch (format) {
-    case TemporalDateFormat::YearMonth:
-        valid = ISO8601::isYearMonthWithinLimits(plainDate.year(), plainDate.month());
-        break;
-    default:
-        valid = ISO8601::isDateTimeWithinLimits(plainDate.year(), plainDate.month(), plainDate.day(), 12, 0, 0, 0, 0, 0);
-        break;
-    }
-
-    if (!valid) [[unlikely]] {
-        throwRangeError(globalObject, scope, "date time is out of range of ECMAScript representation"_s);
-        return { };
-    }
-
-    return plainDate;
 }
 
 // https://tc39.es/proposal-temporal/#sec-temporal-interprettemporaldatetimefields

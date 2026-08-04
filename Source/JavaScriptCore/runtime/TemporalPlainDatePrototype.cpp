@@ -320,8 +320,20 @@ JSC_DEFINE_HOST_FUNCTION(temporalPlainDatePrototypeFuncWith, (JSGlobalObject* gl
             return throwVMTypeError(globalObject, scope, "Object must contain at least one Temporal date property"_s);
 
         // Step 10: isoDate = ? CalendarDateFromFields(calendar, fields, overflow).
-        result = isoDateFromFields(globalObject, TemporalDateFormat::Date, y, m, d, optionalMonthCode, overflow, calendarId);
-        RETURN_IF_EXCEPTION(scope, { });
+        TemporalCore::CalendarFieldsIn fields;
+        fields.year = y;
+        fields.month = m;
+        fields.monthCode = optionalMonthCode;
+        fields.day = static_cast<uint8_t>(d);
+        auto resolved = TemporalCore::dateFromFields(calendarId, fields, overflow);
+        if (!resolved) [[unlikely]] {
+            if (resolved.error().kind == TemporalErrorKind::TypeError)
+                throwTypeError(globalObject, scope, String(resolved.error().message));
+            else
+                throwRangeError(globalObject, scope, String(resolved.error().message));
+            return { };
+        }
+        result = resolved->isoDate;
     }
 
     // Step 11: Return ! CreateTemporalDate(isoDate, calendar).
@@ -710,13 +722,10 @@ JSC_DEFINE_CUSTOM_GETTER(temporalPlainDatePrototypeGetterDayOfYear, (JSGlobalObj
     if (!plainDate) [[unlikely]]
         return throwVMTypeError(globalObject, scope, "Temporal.PlainDate.prototype.dayOfYear called on value that's not a PlainDate"_s);
 
-    if (!TemporalCore::calendarIsISO(plainDate->calendarID())) {
-        auto result = TemporalCore::calendarDayOfYear(plainDate->calendarID(), plainDate->plainDate());
-        if (!result) [[unlikely]]
-            return throwVMRangeError(globalObject, scope, result.error().message);
-        return JSValue::encode(jsNumber(*result));
-    }
-    return JSValue::encode(jsNumber(plainDate->dayOfYear()));
+    auto result = TemporalCore::calendarDayOfYear(plainDate->calendarID(), plainDate->plainDate());
+    if (!result) [[unlikely]]
+        return throwVMRangeError(globalObject, scope, String(result.error().message));
+    return JSValue::encode(jsNumber(*result));
 }
 
 // https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.weekofyear

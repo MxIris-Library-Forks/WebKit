@@ -16,6 +16,9 @@ accessibility/ios-simulator [ Skip ]
 accessibility/gtk [ Skip ]
 accessibility/mac [ Skip ]
 accessibility/win [ Skip ]
+# The isolated tree only ships in Safari on macOS, so these run there alone
+# (re-enabled in platform/mac/TestExpectations).
+accessibility/isolated-tree [ Skip ]
 http/tests/site-isolation/accessibility/client [ Skip ]
 # Exercises iOS-specific remote-frame accessibility search behavior; enabled only on iOS (see platform/ios/TestExpectations).
 http/tests/site-isolation/accessibility/heading-search-returns-remote-frame.html [ Skip ]
@@ -392,9 +395,6 @@ media/deactivate-audio-session.html [ Skip ]
 
 # Skip the test which hits a debug assertion for now.
 [ Debug ] media/track/webvtt-parser-does-not-leak.html [ Skip ]
-
-# Skip isolated-tree specific tests.
-accessibility/isolated-tree [ Skip ]
 
 # ApplePay is only available on iOS (greater than iOS 10) and macOS (greater than macOS 10.12) and only for WebKit2.
 fast/css/appearance-apple-pay-button.html [ Skip ]
@@ -2321,6 +2321,9 @@ imported/w3c/web-platform-tests/mathml/relations/css-styling/first-line-first-le
 imported/w3c/web-platform-tests/mathml/relations/css-styling/first-line-first-letter-pseudo-elements-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/table-width-3.html [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/mathml/relations/html5-tree/href-navigation.html [ Skip ] # timeout
+imported/w3c/web-platform-tests/mathml/relations/text-and-math/non-mathml-children-in-annotation.tentative.html [ ImageOnlyFailure ]
+
 # This MathML test should be rewritten.
 webkit.org/b/201356 mathml/presentation/stretchy-depth-height-symmetric.html [ Skip ]
 
@@ -4063,9 +4066,6 @@ imported/w3c/web-platform-tests/css/css-overflow/clip-008.html [ ImageOnlyFailur
 imported/w3c/web-platform-tests/css/css-overflow/column-style-change-triggers-relayout.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-007.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-008.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-009.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-011.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-012.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-013.html [ ImageOnlyFailure ]
@@ -4997,6 +4997,18 @@ webkit.org/b/292182 webgl/2.0.y/conformance/textures/misc/texture-video-transpar
 webkit.org/b/292182 webgl/2.0.y/conformance2/rendering/clipping-wide-points.html [ Failure Pass ]
 
 webkit.org/b/313392 webgl/2.0.y/conformance2/textures/misc/tex-image-10bpc.html
+
+# To be fixed failures after "Update WebGL conformance tests 2026-07-18 (f15a73f727d8ee66a3ec6d0bed9f02f08cacc2c1)"
+webkit.org/b/320901 webgl/1.0.x/conformance/attribs/gl-get-attrib-location-errors.html [ Failure ]
+webkit.org/b/320901 webgl/1.0.x/conformance/glsl/misc/shader-with-double-underscore.html [ Failure ]
+webkit.org/b/320901 webgl/1.0.x/conformance/textures/misc/tex-image-svg-image-no-natural-width-and-height.html [ Failure ]
+webkit.org/b/320901 webgl/1.0.x/conformance/uniforms/gl-get-uniform-location-errors.html [ Failure ]
+webkit.org/b/320901 webgl/2.0.y/conformance/attribs/gl-get-attrib-location-errors.html [ Failure ]
+webkit.org/b/320901 webgl/2.0.y/conformance/glsl/misc/shader-with-double-underscore.html [ Failure ]
+webkit.org/b/320901 webgl/2.0.y/conformance/textures/misc/tex-image-svg-image-no-natural-width-and-height.html [ Failure ]
+webkit.org/b/320901 webgl/2.0.y/conformance/uniforms/gl-get-uniform-location-errors.html [ Failure ]
+webkit.org/b/320901 webgl/2.0.y/conformance2/extensions/webgl-render-shared-exponent.html [ Failure ]
+webkit.org/b/320901 webgl/2.0.y/conformance2/rendering/blitframebuffer-test.html [ Failure ]
 
 # Until more platforms ship with WebGL GPUP
 webgl/webgl-fail-platform-context-creation-no-crash.html [ Failure Pass ]
@@ -8027,8 +8039,6 @@ webkit.org/b/303807 imported/w3c/web-platform-tests/digital-credentials/webdrive
 webkit.org/b/317545 imported/w3c/web-platform-tests/digital-credentials/webdriver/get-openid4vp.https.html [ Skip ]
 webkit.org/b/306292 http/wpt/identity/formats/ISO18013/origin-binding.https.html [ Skip ]
 webkit.org/b/317545 imported/w3c/web-platform-tests/digital-credentials/protocol-filtering-openid4vp.https.html [ Skip ]
-
-webkit.org/b/320546 http/wpt/identity/digital-credential-openid4vp-request-parsing.https.html [ Failure ]
 
 # Hits assert in debug, tracked by https://bugs.webkit.org/show_bug.cgi?id=303414
 [ Debug ] fullscreen/fullscreen-grid-item-container-type-crash.html [ Skip ]

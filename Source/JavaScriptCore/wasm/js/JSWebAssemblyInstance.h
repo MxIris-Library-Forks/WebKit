@@ -214,6 +214,8 @@ public:
 
             // reload all of the cached base and size pointers
             for (unsigned i = 0; i < m_moduleInformation->memoryCount(); i++) {
+                if (!m_memories[i])
+                    continue;
                 cachedMemoryBaseSizePairs()[i] = {
                     m_memories[i]->basePointer(),
 #if CPU(ARM)
@@ -306,7 +308,6 @@ public:
 
     static constexpr ptrdiff_t offsetOfCachedTable0Buffer() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedTable0Buffer); }
     static constexpr ptrdiff_t offsetOfCachedTable0Length() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedTable0Length); }
-    static constexpr ptrdiff_t offsetOfTemporaryCallFrame() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_temporaryCallFrame); }
     static constexpr ptrdiff_t offsetOfBuiltinCalleeBits() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_builtinCalleeBits); }
     static constexpr ptrdiff_t offsetOfCachedIsMemory64() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedIsMemory64); }
     static constexpr ptrdiff_t offsetOfCachedMemory0Size() { return OBJECT_OFFSETOF(JSWebAssemblyInstance, m_cachedMemory0Size); }
@@ -414,12 +415,6 @@ public:
     const Wasm::Tag& tag(unsigned i) const { return *m_tags[i]; }
     void setTag(unsigned, Ref<const Wasm::Tag>&&);
 
-    CallFrame* temporaryCallFrame() const { return m_temporaryCallFrame; }
-    void setTemporaryCallFrame(CallFrame* callFrame)
-    {
-        m_temporaryCallFrame = callFrame;
-    }
-
     void* softStackLimit() const LIFETIME_BOUND { return m_stackMirror.softStackLimit(); }
 
     void setFaultPC(Wasm::ExceptionType exception, void* pc)
@@ -460,7 +455,6 @@ private:
     uint64_t m_cachedMemory0Size; // memory.size for memory 0, handled specially to avoid performance regressions
 
     RefPtr<Wasm::Memory> m_wasmMemory;
-    CallFrame* m_temporaryCallFrame { nullptr };
     Wasm::Global::Value* m_globals { nullptr };
     FunctionWrapperMap m_functionWrappers;
 

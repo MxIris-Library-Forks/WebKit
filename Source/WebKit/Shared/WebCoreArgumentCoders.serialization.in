@@ -4920,7 +4920,6 @@ header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::Result {
     WebCore::TextExtraction::Item rootItem;
     unsigned visibleTextLength;
-    std::optional<String> pdfMarkdownContent;
 };
 
 header: <WebCore/TextExtractionTypes.h>
@@ -6521,7 +6520,8 @@ header: <WebCore/FilterRenderingMode.h>
 header: <WebCore/Filter.h>
 [OptionSet] enum class WebCore::FilterRenderingOption : uint8_t {
     ShowDebugOverlay,
-    FastAndLowQuality
+    FastAndLowQuality,
+    ApplyToSVGRenderer
 };
 
 header: <WebCore/FEComponentTransfer.h>

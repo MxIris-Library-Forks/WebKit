@@ -47,7 +47,6 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #endif
 
 namespace WebCore {
-class CoordinatedAnimatedBackingStoreClient;
 class CoordinatedBackingStore;
 class CoordinatedBackingStoreProxy;
 class CoordinatedImageBackingStore;
@@ -61,7 +60,6 @@ class TextureMapperLayer;
 #if USE(SKIA)
 class SkiaCompositingLayer;
 class SkiaPaintingEngine;
-class SkiaRecordingResult;
 #endif
 #if USE(CAIRO)
 namespace Cairo {
@@ -211,11 +209,6 @@ public:
     RunLoop* compositingRunLoop() const;
     int maxTextureSize() const;
 
-    Ref<CoordinatedTileBuffer> paint(const IntRect&) WTF_REQUIRES_LOCK(m_lock);
-#if USE(SKIA)
-    Ref<SkiaRecordingResult> record(const IntRect&, unsigned dirtyTilesCount) WTF_REQUIRES_LOCK(m_lock);
-    Ref<CoordinatedTileBuffer> replay(Ref<SkiaRecordingResult>&&, const IntRect&, const IntRect&) WTF_REQUIRES_LOCK(m_lock);
-#endif
     void willPaintTile();
     void didPaintTile();
     void waitUntilPaintingComplete();
@@ -325,7 +318,6 @@ private:
     float m_contentsScale WTF_GUARDED_BY_LOCK(m_lock) { 1. };
     RefPtr<CoordinatedBackingStoreProxy> m_backingStoreProxy WTF_GUARDED_BY_LOCK(m_lock);
     RefPtr<CoordinatedBackingStore> m_backingStore WTF_GUARDED_BY_LOCK(m_lock);
-    RefPtr<CoordinatedAnimatedBackingStoreClient> m_animatedBackingStoreClient WTF_GUARDED_BY_LOCK(m_lock);
     struct {
         RefPtr<CoordinatedImageBackingStore> current;
         RefPtr<CoordinatedImageBackingStore> committed;

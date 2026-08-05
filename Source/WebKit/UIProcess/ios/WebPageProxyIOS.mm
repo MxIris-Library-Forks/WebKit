@@ -260,7 +260,7 @@ WebCore::FloatRect WebPageProxy::computeLayoutViewportRect(const FloatRect& unob
         constrainedUnobscuredRect.setHeight(adjustedUnexposedMaxEdge(documentRect.maxY(), constrainedUnobscuredRect.maxY(), factor) - constrainedUnobscuredRect.y());
     }
 
-    bool resizesContent = pageClient->viewportMetaTagInteractiveWidget() == WebCore::InteractiveWidget::ResizesContent;
+    bool resizesContent = pageClient->viewportMetaTagInteractiveWidget() == WebCore::InteractiveWidgetValue::ResizesContent;
     FloatRect sizeSourceRect = resizesContent ? unobscuredContentRectRespectingInputViewBounds : unobscuredContentRect;
     FloatSize constrainedSize = isBelowMinimumScale ? constrainedUnobscuredRect.size() : sizeSourceRect.size();
     FloatRect unobscuredContentRectForViewport = isBelowMinimumScale ? constrainedUnobscuredRect : unobscuredContentRectRespectingInputViewBounds;
@@ -398,7 +398,8 @@ void WebPageProxy::updateSelectionWithTouches(IntPoint point, SelectionTouch tou
     if (!hasRunningProcess())
         return callback(WebCore::IntPoint(), SelectionTouch::Started, { });
 
-    protect(legacyMainFrameProcess())->sendWithAsyncReply(Messages::WebPage::UpdateSelectionWithTouches(point, touches, baseIsStart), WTF::move(callback), webPageIDInMainFrameProcess());
+    RefPtr focusedFrame = focusedOrMainFrame();
+    sendWithAsyncReplyToProcessContainingFrame(focusedFrame ? std::optional(focusedFrame->frameID()) : std::nullopt, Messages::WebPage::UpdateSelectionWithTouches(point, touches, baseIsStart), Messages::WebPage::UpdateSelectionWithTouches::Reply { WTF::move(callback) });
 }
 
 void WebPageProxy::willInsertFinalDictationResult()

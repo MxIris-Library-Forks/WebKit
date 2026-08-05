@@ -18447,8 +18447,10 @@ void WebPageProxy::clearAppPrivacyReportTestingData(CompletionHandler<void()>&& 
 #endif
 
 #if ENABLE(IMAGE_ANALYSIS) && ENABLE(VIDEO)
-void WebPageProxy::beginTextRecognitionForVideoInElementFullScreen(PlaybackSessionContextIdentifier identifier, ShareableBitmap::Handle&& bitmapHandle, FloatRect bounds)
+void WebPageProxy::beginTextRecognitionForVideoInElementFullScreen(IPC::Connection& connection, WebCore::HTMLMediaElementIdentifier mediaElementIdentifier, ShareableBitmap::Handle&& bitmapHandle, FloatRect bounds)
 {
+    auto identifier = PlaybackSessionContextIdentifier { mediaElementIdentifier, WebProcessProxy::fromConnection(connection)->coreProcessIdentifier() };
+
     RefPtr pageClient = this->pageClient();
     if (!pageClient || !pageClient->isTextRecognitionInFullscreenVideoEnabled())
         return;
@@ -18961,6 +18963,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWit
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectTextWithGranularityAtPoint);
 #endif
 #if PLATFORM(IOS_FAMILY)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithTouches);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::ApplyAutocorrection);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawToImage);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawToPDFiOS);
@@ -18978,6 +18981,10 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::OpenPDFWi
 #endif
 #if ENABLE(MEDIA_STREAM)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UserMediaAccessWasGranted);
+#endif
+#if PLATFORM(COCOA)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithExtentPoint);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithExtentPointAndBoundary);
 #endif
 #undef INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME
 

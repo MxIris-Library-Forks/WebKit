@@ -380,6 +380,8 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/geolocation/PositionOptions.idl \
     $(WebCore)/Modules/highlight/HighlightRegistry.idl \
     $(WebCore)/Modules/highlight/Highlight.idl \
+    $(WebCore)/Modules/highlight/HighlightHitResult.idl \
+    $(WebCore)/Modules/highlight/HighlightsFromPointOptions.idl \
     $(WebCore)/Modules/identity/DigitalCredential.idl \
     $(WebCore)/Modules/identity/DigitalCredentialGetRequest.idl \
     $(WebCore)/Modules/identity/DigitalCredentialRequestOptions.idl \
@@ -816,6 +818,10 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/webcodecs/WebCodecsEncodedVideoChunkOutputCallback.idl \
     $(WebCore)/Modules/webcodecs/WebCodecsEncodedVideoChunkType.idl \
     $(WebCore)/Modules/webcodecs/WebCodecsErrorCallback.idl \
+	$(WebCore)/Modules/webcodecs/WebCodecsImageDecodeResult.idl \
+	$(WebCore)/Modules/webcodecs/WebCodecsImageDecoder.idl \
+	$(WebCore)/Modules/webcodecs/WebCodecsImageTrack.idl \
+	$(WebCore)/Modules/webcodecs/WebCodecsImageTrackList.idl \
     $(WebCore)/Modules/webcodecs/WebCodecsSvcOutputMetadata.idl \
     $(WebCore)/Modules/webcodecs/WebCodecsVideoDecoder.idl \
     $(WebCore)/Modules/webcodecs/WebCodecsVideoDecoderConfig.idl \

@@ -41,15 +41,9 @@
 #include "TextureMapperLayer.h"
 #include <wtf/MainThread.h>
 
-#if USE(CAIRO)
-#include "CairoPaintingContext.h"
-#include "CairoPaintingEngine.h"
-#endif
-
 #if USE(SKIA)
 #include "SkiaCompositingLayer.h"
 #include "SkiaPaintingEngine.h"
-#include "SkiaRecordingResult.h"
 #endif
 
 namespace WebCore {
@@ -846,33 +840,48 @@ bool CoordinatedPlatformLayer::needsBackingStore() const
 void CoordinatedPlatformLayer::updateBackingStore()
 {
     assertIsMainThread();
-    Locker locker { m_lock };
-    if (!m_backingStoreProxy)
-        return;
 
     if (m_dirtyRegion.isEmpty() && !m_pendingTilesCreation && !m_needsTilesUpdate)
         return;
 
-    Damage damage(m_size, Damage::Mode::Rectangles);
-    IntRect contentsRect(IntPoint::zero(), IntSize(m_size));
-    auto updateResult = m_backingStoreProxy->updateIfNeeded(m_transformedVisibleRect, contentsRect, enclosingIntRect(m_visibleRect).size(), m_contentsScale, m_pendingTilesCreation || m_needsTilesUpdate, m_dirtyRegion, damage, *this);
-    m_needsTilesUpdate = false;
-#if ENABLE(DAMAGE_TRACKING)
-    addDamage(WTF::move(damage));
-#endif
-    m_dirtyRegion.clear();
-    if (m_animatedBackingStoreClient)
-        m_animatedBackingStoreClient->update(m_visibleRect, m_backingStoreProxy->coverRect(), m_size, m_contentsScale);
+    FloatSize size;
+    float contentsScale;
+    bool contentsOpaque;
+    RefPtr<CoordinatedBackingStoreProxy> backingStoreProxy;
+    {
+        Locker locker { m_lock };
+        if (!m_backingStoreProxy)
+            return;
 
-    if (updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::TilesChanged)) {
-        if (m_repaintCount != -1 && updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::BuffersChanged)) {
-            m_repaintCount = m_owner->incrementRepaintCount();
-            m_pendingChanges.add(Change::DebugIndicators);
-        }
-        notifyCompositionRequired();
+        size = m_size;
+        contentsScale = m_contentsScale;
+        contentsOpaque = m_contentsOpaque;
+        backingStoreProxy = m_backingStoreProxy;
     }
 
+    Damage damage(size, Damage::Mode::Rectangles);
+    auto updateResult = backingStoreProxy->updateIfNeeded(m_transformedVisibleRect, size, m_visibleRect, contentsScale, contentsOpaque, m_pendingTilesCreation || m_needsTilesUpdate, m_dirtyRegion, damage, *this);
+    m_dirtyRegion.clear();
+    m_needsTilesUpdate = false;
     m_pendingTilesCreation = updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::TilesPending);
+
+    bool tilesChanged = updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::TilesChanged);
+    {
+        Locker locker { m_lock };
+#if ENABLE(DAMAGE_TRACKING)
+        addDamage(WTF::move(damage));
+#endif
+
+        if (tilesChanged) {
+            if (m_repaintCount != -1 && updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::BuffersChanged)) {
+                m_repaintCount = m_owner->incrementRepaintCount();
+                m_pendingChanges.add(Change::DebugIndicators);
+            }
+        }
+    }
+
+    if (tilesChanged)
+        notifyCompositionRequired();
 }
 
 void CoordinatedPlatformLayer::updateContents(bool affectedByTransformAnimation)
@@ -883,28 +892,20 @@ void CoordinatedPlatformLayer::updateContents(bool affectedByTransformAnimation)
     if (needsBackingStore()) {
         if (!m_backingStoreProxy) {
             m_backingStoreProxy = CoordinatedBackingStoreProxy::create();
+            m_backingStoreProxy->setAffectedByTransformAnimation(affectedByTransformAnimation);
             m_needsTilesUpdate = true;
             m_pendingChanges.add(Change::BackingStore);
-        }
-
-        if (affectedByTransformAnimation) {
-            if (!m_animatedBackingStoreClient) {
-                m_animatedBackingStoreClient = CoordinatedAnimatedBackingStoreClient::create(*m_owner);
+        } else {
+            bool wasAffectedByTransformAnimation = !!m_backingStoreProxy->animatedBackingStoreClient();
+            if (wasAffectedByTransformAnimation != affectedByTransformAnimation) {
+                m_backingStoreProxy->setAffectedByTransformAnimation(affectedByTransformAnimation);
                 m_pendingChanges.add(Change::BackingStore);
             }
-        } else if (m_animatedBackingStoreClient) {
-            m_animatedBackingStoreClient->invalidate();
-            m_animatedBackingStoreClient = nullptr;
-            m_pendingChanges.add(Change::BackingStore);
         }
     } else {
         if (m_backingStoreProxy) {
+            m_backingStoreProxy->invalidate();
             m_backingStoreProxy = nullptr;
-            m_pendingChanges.add(Change::BackingStore);
-        }
-        if (m_animatedBackingStoreClient) {
-            m_animatedBackingStoreClient->invalidate();
-            m_animatedBackingStoreClient = nullptr;
             m_pendingChanges.add(Change::BackingStore);
         }
     }
@@ -918,10 +919,9 @@ void CoordinatedPlatformLayer::updateContents(bool affectedByTransformAnimation)
 void CoordinatedPlatformLayer::purgeBackingStores()
 {
     Locker locker { m_lock };
-    m_backingStoreProxy = nullptr;
-    if (m_animatedBackingStoreClient) {
-        m_animatedBackingStoreClient->invalidate();
-        m_animatedBackingStoreClient = nullptr;
+    if (m_backingStoreProxy) {
+        m_backingStoreProxy->invalidate();
+        m_backingStoreProxy = nullptr;
     }
     m_imageBackingStore.current = nullptr;
     if (shouldReleaseBuffer(m_contentsBuffer.pending.get()))
@@ -963,25 +963,6 @@ void CoordinatedPlatformLayer::didPaintTile()
         m_client->didPaintTile();
 }
 
-Ref<CoordinatedTileBuffer> CoordinatedPlatformLayer::paint(const IntRect& dirtyRect)
-{
-    assertIsMainThread();
-    assertIsHeld(m_lock);
-    ASSERT(m_client);
-    ASSERT(m_owner);
-#if USE(CAIRO)
-    FloatRect scaledDirtyRect(dirtyRect);
-    scaledDirtyRect.scale(1 / m_contentsScale);
-
-    auto buffer = CoordinatedUnacceleratedTileBuffer::create(dirtyRect.size(), m_contentsOpaque ? CoordinatedTileBuffer::NoFlags : CoordinatedTileBuffer::SupportsAlpha);
-    m_client->paintingEngine().paint(*m_owner, buffer.get(), dirtyRect, enclosingIntRect(scaledDirtyRect), IntRect { { }, dirtyRect.size() }, m_contentsScale);
-    return buffer;
-#elif USE(SKIA)
-    UNUSED_PARAM(dirtyRect);
-    RELEASE_ASSERT_NOT_REACHED();
-#endif
-}
-
 #if USE(SKIA)
 sk_sp<GrContextThreadSafeProxy> CoordinatedPlatformLayer::threadSafeGrContext() const
 {
@@ -989,24 +970,6 @@ sk_sp<GrContextThreadSafeProxy> CoordinatedPlatformLayer::threadSafeGrContext() 
         return nullptr;
 
     return m_client->paintingEngine().threadSafeGrContext();
-}
-
-Ref<SkiaRecordingResult> CoordinatedPlatformLayer::record(const IntRect& recordRect, unsigned dirtyTilesCount)
-{
-    assertIsMainThread();
-    assertIsHeld(m_lock);
-    ASSERT(m_client);
-    ASSERT(m_owner);
-    return m_client->paintingEngine().record(*m_owner, recordRect, m_contentsOpaque, m_contentsScale, dirtyTilesCount);
-}
-
-Ref<CoordinatedTileBuffer> CoordinatedPlatformLayer::replay(Ref<SkiaRecordingResult>&& recording, const IntRect& tileRect, const IntRect& dirtyRect)
-{
-    assertIsMainThread();
-    assertIsHeld(m_lock);
-    ASSERT(m_client);
-    ASSERT(m_owner);
-    return m_client->paintingEngine().replay(*m_owner, WTF::move(recording), tileRect, dirtyRect);
 }
 #endif
 
@@ -1170,8 +1133,8 @@ void CoordinatedPlatformLayer::flushCompositingStateOnTarget(const OptionSet<Com
                     m_backingStore = CoordinatedBackingStore::create();
                 layer.setBackingStore(m_backingStore.get());
 
-                if (m_animatedBackingStoreClient)
-                    layer.setAnimatedBackingStoreClient(m_animatedBackingStoreClient.get());
+                if (auto* animatedBackingStoreClient = m_backingStoreProxy->animatedBackingStoreClient())
+                    layer.setAnimatedBackingStoreClient(animatedBackingStoreClient);
             } else {
                 layer.setBackingStore(nullptr);
                 layer.setAnimatedBackingStoreClient(nullptr);
@@ -1364,7 +1327,7 @@ void CoordinatedPlatformLayer::flushCompositingStateOnSkiaTarget(const OptionSet
         }
 
         if (m_pendingChanges.contains(Change::BackingStore)) {
-            layer.setUseBackingStore(!!m_backingStoreProxy, m_backingStoreProxy && m_animatedBackingStoreClient ? m_animatedBackingStoreClient.get() : nullptr);
+            layer.setUseBackingStore(!!m_backingStoreProxy, m_backingStoreProxy ? m_backingStoreProxy->animatedBackingStoreClient() : nullptr);
             m_pendingChanges.remove(Change::BackingStore);
         }
 

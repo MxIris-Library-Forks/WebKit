@@ -1921,7 +1921,6 @@ webkit.org/b/254044 http/wpt/webxr [ Skip ]
 webkit.org/b/237415 webgl/1.0.x/conformance/rendering/clipping-wide-points.html [ Pass Failure ]
 
 # webkit.org/b/255427 [ Ventura ] 4/13 batch mark expectations and branch bugs
-imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioparam-interface/k-rate-audiobuffersource-connections.html [ Failure ]
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioparam-interface/k-rate-dynamics-compressor-connections.html [ Failure ]
 [ arm64 ] webaudio/ScriptProcessor/scriptprocessor-offlineaudiocontext.html [ Failure ]
 
@@ -2373,7 +2372,6 @@ fast/forms/color/color-input-set-attribute-value.html [ Pass ImageOnlyFailure ]
 fast/css/accent-color/select.html [ Pass ImageOnlyFailure ]
 pdf/images/jpeg2000-embed-pdf.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-ui/transparent-accent-color-002.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-ui/compute-kind-widget-no-fallback-props-001.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-contain/contain-layout-suppress-baseline-002.html [ Pass ImageOnlyFailure ]
 media/modern-media-controls/volume-support/volume-support-drag-to-mute.html [ Pass Timeout ]
 fast/forms/input-appearance-spinbutton-up.html [ Pass Failure ]

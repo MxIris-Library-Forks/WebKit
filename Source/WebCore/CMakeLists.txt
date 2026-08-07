@@ -1630,27 +1630,6 @@ set(WebCore_SVG_IDL_FILES
     svg/SVGNumber.idl
     svg/SVGNumberList.idl
     svg/SVGPathElement.idl
-    svg/SVGPathSeg.idl
-    svg/SVGPathSegArcAbs.idl
-    svg/SVGPathSegArcRel.idl
-    svg/SVGPathSegClosePath.idl
-    svg/SVGPathSegCurvetoCubicAbs.idl
-    svg/SVGPathSegCurvetoCubicRel.idl
-    svg/SVGPathSegCurvetoCubicSmoothAbs.idl
-    svg/SVGPathSegCurvetoCubicSmoothRel.idl
-    svg/SVGPathSegCurvetoQuadraticAbs.idl
-    svg/SVGPathSegCurvetoQuadraticRel.idl
-    svg/SVGPathSegCurvetoQuadraticSmoothAbs.idl
-    svg/SVGPathSegCurvetoQuadraticSmoothRel.idl
-    svg/SVGPathSegLinetoAbs.idl
-    svg/SVGPathSegLinetoHorizontalAbs.idl
-    svg/SVGPathSegLinetoHorizontalRel.idl
-    svg/SVGPathSegLinetoRel.idl
-    svg/SVGPathSegLinetoVerticalAbs.idl
-    svg/SVGPathSegLinetoVerticalRel.idl
-    svg/SVGPathSegList.idl
-    svg/SVGPathSegMovetoAbs.idl
-    svg/SVGPathSegMovetoRel.idl
     svg/SVGPatternElement.idl
     svg/SVGPoint.idl
     svg/SVGPointList.idl
@@ -2765,6 +2744,7 @@ set(MODERN_MEDIA_CONTROLS_SCRIPTS
     "${WEBCORE_DIR}/Modules/modern-media-controls/media/seek-forward-support.js"
     "${WEBCORE_DIR}/Modules/modern-media-controls/media/skip-back-support.js"
     "${WEBCORE_DIR}/Modules/modern-media-controls/media/skip-forward-support.js"
+    "${WEBCORE_DIR}/Modules/modern-media-controls/media/spatial-video-support.js"
     "${WEBCORE_DIR}/Modules/modern-media-controls/media/start-support.js"
     "${WEBCORE_DIR}/Modules/modern-media-controls/media/status-support.js"
     "${WEBCORE_DIR}/Modules/modern-media-controls/media/time-control-support.js"

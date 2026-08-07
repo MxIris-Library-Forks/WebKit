@@ -50,6 +50,11 @@ extension WKAlternatePDFHUDView {
             fatalError()
         }
     }
+
+    @objc(_hideForTesting)
+    private func hideForTesting() {
+        model.isAutoHidden = true
+    }
 }
 
 #endif // ENABLE_PDF_HUD

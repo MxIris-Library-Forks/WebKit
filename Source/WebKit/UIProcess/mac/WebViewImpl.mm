@@ -1443,7 +1443,7 @@ WebViewImpl::WebViewImpl(WKWebView *view, WebProcessPool& processPool, Ref<API::
     }, viewStateHysteresis);
 
 #if HAVE(APPKIT_GESTURES_SUPPORT)
-    m_appKitGestureController = adoptNS([[WKAppKitGestureController alloc] initWithPage:m_page viewImpl:*this]);
+    m_appKitGestureController = adoptNS([[WKAppKitGestureController alloc] initWithView:view]);
     m_textSelectionController = adoptNS([[WKTextSelectionController alloc] initWithView:view]);
 #endif
 
@@ -5740,16 +5740,18 @@ void WebViewImpl::magnifyWithEvent(NSEvent *event)
 
     Ref gestureController = ensureGestureController();
 
+    auto magnification = event.magnification;
+    auto phase = WebEventFactory::phaseForEvent(event);
 #if ENABLE(MAC_GESTURE_EVENTS)
     if (gestureController->hasActiveMagnificationGesture()) {
-        gestureController->handleMagnificationGestureEvent(event, [m_view.get() convertPoint:event.locationInWindow fromView:nil]);
+        gestureController->handleMagnificationGesture(magnification, phase, [m_view.get() convertPoint:event.locationInWindow fromView:nil]);
         return;
     }
 
     if (auto webEvent = NativeWebGestureEvent::create(event, m_view.getAutoreleased()))
         m_page->handleGestureEvent(*webEvent);
 #else
-    gestureController->handleMagnificationGestureEvent(event, [m_view.get() convertPoint:event.locationInWindow fromView:nil]);
+    gestureController->handleMagnificationGesture(magnification, phase, [m_view.get() convertPoint:event.locationInWindow fromView:nil]);
 #endif
 }
 
@@ -8254,6 +8256,11 @@ void WebViewImpl::showCaptionDisplaySettings(WebCore::HTMLMediaElementIdentifier
 #endif
 
 #if HAVE(APPKIT_GESTURES_SUPPORT)
+void WebViewImpl::setUpGestureController()
+{
+    [m_appKitGestureController setUp];
+}
+
 void WebViewImpl::addTextSelectionManager()
 {
     [m_textSelectionController addTextSelectionManager];

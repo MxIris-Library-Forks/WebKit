@@ -1747,27 +1747,6 @@ JS_BINDING_IDLS := \
     $(WebCore)/svg/SVGNumber.idl \
     $(WebCore)/svg/SVGNumberList.idl \
     $(WebCore)/svg/SVGPathElement.idl \
-    $(WebCore)/svg/SVGPathSeg.idl \
-    $(WebCore)/svg/SVGPathSegArcAbs.idl \
-    $(WebCore)/svg/SVGPathSegArcRel.idl \
-    $(WebCore)/svg/SVGPathSegClosePath.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoCubicAbs.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoCubicRel.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoCubicSmoothAbs.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoCubicSmoothRel.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoQuadraticAbs.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoQuadraticRel.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoQuadraticSmoothAbs.idl \
-    $(WebCore)/svg/SVGPathSegCurvetoQuadraticSmoothRel.idl \
-    $(WebCore)/svg/SVGPathSegLinetoAbs.idl \
-    $(WebCore)/svg/SVGPathSegLinetoHorizontalAbs.idl \
-    $(WebCore)/svg/SVGPathSegLinetoHorizontalRel.idl \
-    $(WebCore)/svg/SVGPathSegLinetoRel.idl \
-    $(WebCore)/svg/SVGPathSegLinetoVerticalAbs.idl \
-    $(WebCore)/svg/SVGPathSegLinetoVerticalRel.idl \
-    $(WebCore)/svg/SVGPathSegList.idl \
-    $(WebCore)/svg/SVGPathSegMovetoAbs.idl \
-    $(WebCore)/svg/SVGPathSegMovetoRel.idl \
     $(WebCore)/svg/SVGPatternElement.idl \
     $(WebCore)/svg/SVGPoint.idl \
     $(WebCore)/svg/SVGPointList.idl \
@@ -2337,6 +2316,7 @@ MODERN_MEDIA_CONTROLS_SCRIPTS = \
     $(WebCore)/Modules/modern-media-controls/media/seek-forward-support.js \
     $(WebCore)/Modules/modern-media-controls/media/skip-back-support.js \
     $(WebCore)/Modules/modern-media-controls/media/skip-forward-support.js \
+    $(WebCore)/Modules/modern-media-controls/media/spatial-video-support.js \
     $(WebCore)/Modules/modern-media-controls/media/start-support.js \
     $(WebCore)/Modules/modern-media-controls/media/status-support.js \
     $(WebCore)/Modules/modern-media-controls/media/time-control-support.js \

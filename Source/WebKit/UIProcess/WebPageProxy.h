@@ -771,6 +771,7 @@ public:
 
     WebFrameProxy* mainFrame() const { return m_mainFrame.get(); }
     void setTopDocumentSyncData(Ref<WebCore::DocumentSyncData>&&);
+    Ref<WebCore::DocumentSyncData> topDocumentSyncData() const;
     WebFrameProxy* focusedFrame() const { return m_focusedFrame.get(); }
     WebFrameProxy* focusedOrMainFrame() const { return m_focusedFrame ? m_focusedFrame.get() : m_mainFrame.get(); }
 
@@ -3050,6 +3051,8 @@ private:
     void removeAllMessageReceivers();
 
     void notifyProcessPoolToPrewarm();
+
+    void recordFirstPartyVisit(const URL&);
 
     bool attachmentElementEnabled();
     bool modelElementEnabled();

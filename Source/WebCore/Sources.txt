@@ -2730,6 +2730,7 @@ platform/graphics/TypedArrayPixelBuffer.cpp
 platform/graphics/VP9Utilities.cpp
 platform/graphics/VelocityData.cpp
 platform/graphics/WOFFFileFormat.cpp
+platform/graphics/WebGPUFramePacer.cpp
 platform/graphics/WebMResourceClient.cpp
 platform/graphics/WidthIterator.cpp
 platform/graphics/controls/ApplePayButtonPart.cpp
@@ -3468,7 +3469,6 @@ style/values/primitives/StyleCustomIdent.cpp
 style/values/primitives/StyleLengthResolution.cpp @header:RenderStyleGetters @cost:6
 style/values/primitives/StylePosition.cpp
 style/values/primitives/StylePrimitiveData.cpp
-style/values/primitives/StylePrimitiveNumericTypes+Conversions.cpp @header:RenderStyleGetters @cost:5
 style/values/primitives/StyleRatio.cpp
 style/values/primitives/StyleString.cpp
 style/values/primitives/StyleURL.cpp

@@ -64,7 +64,10 @@ test/built-ins/Uint8Array/prototype/setFromBase64/trailing-garbage-empty.js:
 test/built-ins/Uint8Array/prototype/setFromBase64/trailing-garbage.js:
   default: 3
   strict mode: 3
-test/intl402/Temporal/ZonedDateTime/links.js:
+test/intl402/Locale/prototype/getHourCycles/region-priority.js:
+  default: 3
+  strict mode: 3
+test/intl402/Locale/prototype/getHourCycles/subdivision-region.js:
   default: 3
   strict mode: 3
 test/language/destructuring/binding/keyed-destructuring-property-reference-target-evaluation-order-with-bindings.js:
@@ -140,6 +143,8 @@ test/language/import/import-attributes/text-self.js:
 test/language/import/import-attributes/text-string.js:
   module: 3
 test/language/import/import-attributes/text-via-namespace.js:
+  module: 3
+test/language/import/import-defer/evaluation-top-level-await/async-cycle-dependency-of-deferred-module/main.js:
   module: 3
 test/language/statements/class/elements/private-class-field-on-nonextensible-objects.js:
   strict mode: 3

@@ -8586,6 +8586,18 @@ static OptionSet<CrossSiteNavigationDataTransfer::Flag> checkIfNavigationContain
     return navigationDataTransfer;
 }
 
+void WebPageProxy::recordFirstPartyVisit(const URL& url)
+{
+    if (url.isEmpty() || url.protocolIsAbout() || url.protocolIsFile())
+        return;
+
+    Site site { url };
+    if (site.isEmpty())
+        return;
+
+    websiteDataStore().isolatedSiteStore().addSite(site, IsolatedSiteStore::Signal::FirstPartyVisit);
+}
+
 void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, String&& mimeType, bool frameHasCustomContentProvider, FrameLoadType frameLoadType, bool usedLegacyTLS, bool wasPrivateRelayed, String&& proxyName, const WebCore::ResourceResponseSource source, bool containsPluginDocument, HasInsecureContent hasInsecureContent, MouseEventPolicy mouseEventPolicy, DocumentSecurityPolicy&& documentSecurityPolicy, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const UserData& userData, RestoredFromBackForwardCache restoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState)
 {
     LOG(Loading, "(Loading) WebPageProxy %" PRIu64 " didCommitLoadForFrame in navigation %" PRIu64, identifier().toUInt64(), navigationID ? navigationID->toUInt64() : 0);
@@ -8603,8 +8615,10 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
 
     // BackForwardGoToItem is sent on the same connection ahead of this commit, so the current index
     // has already advanced; settle the cross-process traversal queue here; no-op unless a traversal is in flight.
-    if (frame->isMainFrame())
+    if (frame->isMainFrame()) {
         m_sessionHistoryTraversalQueue->traversalDidSettle();
+        recordFirstPartyVisit(request.url());
+    }
 
     if (frame->provisionalFrame()) {
         frame->commitProvisionalFrame(connection, frameID, WTF::move(frameInfo), WTF::move(request), navigationID, WTF::move(mimeType), frameHasCustomContentProvider, frameLoadType, usedLegacyTLS, wasPrivateRelayed, WTF::move(proxyName), source, containsPluginDocument, hasInsecureContent, mouseEventPolicy, WTF::move(documentSecurityPolicy), WTF::move(cspOriginsThatUpgradeInsecureNavigations), userData, restoredFromBackForwardCache, WTF::move(redirectReplaceFrameState));
@@ -8899,6 +8913,13 @@ void WebPageProxy::observeAndCreateRemoteSubframesInOtherProcesses(WebFrameProxy
 void WebPageProxy::setTopDocumentSyncData(Ref<WebCore::DocumentSyncData>&& data)
 {
     m_topDocumentSyncData = WTF::move(data);
+}
+
+Ref<WebCore::DocumentSyncData> WebPageProxy::topDocumentSyncData() const
+{
+    if (RefPtr topDocumentSyncData = m_topDocumentSyncData)
+        return topDocumentSyncData.releaseNonNull();
+    return WebCore::DocumentSyncData::create();
 }
 
 void WebPageProxy::broadcastDocumentSyncData(IPC::Connection& connection, const WebCore::DocumentSyncSerializationData& data)
@@ -9550,7 +9571,7 @@ RefPtr<FrameState> WebPageProxy::frameStateForBackForwardChildFrame(WebFrameProx
     if (!index)
         return nullptr;
 
-    RefPtr frameState = backForwardList().findFrameStateInItem(targetBackForwardItemIdentifier, frame.parentFrame()->frameID(), frame.frameID(), *index);
+    RefPtr frameState = backForwardList().findFrameStateInItem(targetBackForwardItemIdentifier, frame.parentFrame()->frameID(), frame.frameID(), *index, frame.frameName());
     if (!frameState)
         return nullptr;
 

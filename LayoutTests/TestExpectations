@@ -825,6 +825,19 @@ imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/pageswap/pageswap-traverse-navigation-cross-origin-redirect-no-bfcache.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_pushstate_url.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/traverse_the_history_3.html [ Skip ]
+
+# webkit.org/b/321061 These tests time out now that the back/forward cache is enabled for web-platform-tests.
+imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/srcdoc/srcdoc-history-entries.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_back_1.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_forward_1.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_go_no_argument.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_go_to_uri.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/history_go_undefined.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/traverse_the_history_unload_1.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/traverse_the_history_write_after_load_1.html [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/history/the-history-interface/traverse_the_history_write_after_load_2.html [ Skip ]
+imported/w3c/web-platform-tests/html/cross-origin-opener-policy/coop-navigated-history-popup.https.html [ Skip ]
+
 imported/w3c/web-platform-tests/html/browsers/origin/origin-keyed-agent-clusters/going-back.sub.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/origin/relaxing-the-same-origin-restriction/document_domain_feature_policy.tentative.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/browsers/sandboxing/sandbox-document-open.html [ Skip ]
@@ -3869,8 +3882,6 @@ imported/w3c/web-platform-tests/css/css-pseudo/first-line-line-height-002.html [
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-currentcolor-painting-properties-001.html [ ImageOnlyFailure Timeout Pass ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-currentcolor-painting-properties-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-currentcolor-painting-text-shadow-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-currentcolor-root-explicit-default-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-pseudo/highlight-cascade/highlight-currentcolor-root-implicit-default-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-painting-currentcolor-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-painting-currentcolor-002a.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-pseudo/highlight-painting-currentcolor-002b.html [ ImageOnlyFailure ]
@@ -3903,7 +3914,6 @@ imported/w3c/web-platform-tests/css/css-pseudo/slider/slider-track-003.html [ Im
 imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-002.html [ ImageOnlyFailure ]
 # Implement highlight pseudo-element cascade / painting behaviors (webkit.org/b/278216)
 imported/w3c/web-platform-tests/css/css-pseudo/target-text-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-pseudo/target-text-009.html [ ImageOnlyFailure ]
 # Incorrect test, needs WPT resync (webkit.org/b/277692)
 imported/w3c/web-platform-tests/css/css-pseudo/selection-background-painting-order.html [ ImageOnlyFailure ]
 
@@ -5737,11 +5747,6 @@ webkit.org/b/217931 imported/w3c/web-platform-tests/html/semantics/scripting-1/t
 webkit.org/b/217931 imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/moving-between-documents/move-back-iframe-success-external-module.html [ Pass Failure ]
 webkit.org/b/217931 imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/moving-between-documents/move-back-iframe-success-inline-classic.html [ Pass Failure ]
 
-webkit.org/b/220325 imported/w3c/web-platform-tests/css/css-highlight-api/highlight-text-cascade.html [ ImageOnlyFailure ]
-
-# Tests need updating relating to Highlight Spec
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-inheritance-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-inheritance-002.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-highlight-api/highlight-image-currentcolor.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-highlight-api/highlight-image-stacked.html [ ImageOnlyFailure ]

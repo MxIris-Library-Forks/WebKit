@@ -5067,6 +5067,37 @@ TEST(SiteIsolation, GoBackToNestedIframeCreatedAfterNavigatingSibling)
     EXPECT_WK_STREQ([webView _test_waitForAlert], "c");
 }
 
+TEST(SiteIsolation, GoBackReloadsDynamicallyCreatedCrossSiteIframe)
+{
+    HTTPServer server({
+        { "/example"_s, { "<body><script>"
+            "var reloaded = sessionStorage.getItem('loaded');"
+            "sessionStorage.setItem('loaded', '1');"
+            "var iframe = document.createElement('iframe');"
+            "iframe.name = reloaded ? 'frame2' : 'frame1';"
+            "iframe.src = reloaded ? 'https://webkit.org/a2' : 'https://webkit.org/a';"
+            "document.body.appendChild(iframe);"
+            "</script></body>"_s } },
+        { "/a"_s, { "<script> alert('a'); </script>"_s } },
+        { "/a2"_s, { "<script> alert('a2'); </script>"_s } },
+        { "/b"_s, { ""_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto *configuration = server.httpsProxyConfiguration();
+    configuration.processPool = processPoolWithBackForwardCacheDisabled().get();
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    EXPECT_WK_STREQ("a", [webView _test_waitForAlert]);
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://apple.com/b"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView goBack];
+    EXPECT_WK_STREQ("a2", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://webkit.org/a2", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[webView firstChildFrame]]);
+}
+
 TEST(SiteIsolation, AdvancedPrivacyProtectionsHideScreenMetricsFromBindings)
 {
     auto frameHTML = [NSString stringWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"simple" ofType:@"html"] encoding:NSUTF8StringEncoding error:NULL];
@@ -8044,6 +8075,44 @@ TEST(SiteIsolation, SharedProcessInProcessCacheAfterNavigation)
     }
 }
 
+#if USE(RUNNINGBOARD)
+TEST(SiteIsolation, SharedProcessDropsPageLoadActivityAfterCrossSiteNavigation)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/webkit'>"_s } },
+        { "/webkit"_s, { "webkit"_s } },
+        { "/safari"_s, { "<body>safari</body>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server, EnableProcessCache::No, nil, nil, nil, EnableBackForwardCache::Yes);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    checkFrameTreesInProcesses(webView.get(), {
+        {
+            "https://example.com"_s,
+            { { RemoteFrame } }
+        },
+        {
+            RemoteFrame,
+            { { "https://webkit.org"_s } }
+        },
+    });
+    auto sharedProcess = [webView mainFrame].childFrames[0].info._processIdentifier;
+    EXPECT_NE(sharedProcess, [webView mainFrame].info._processIdentifier);
+
+    // Cross-site navigation. The example.com page enters the back/forward cache, which keeps the
+    // old BrowsingContextGroup and webkit.org remote page alive.
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://apple.com/safari"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    // The shared process is still alive so the cached example.com page can be restored, but it
+    // shouldn't be holding on to any page load activity.
+    EXPECT_TRUE(processStillRunning(sharedProcess));
+    EXPECT_EQ([WKWebView _suspendedRemotePageNetworkActivityCountForTesting], 0u);
+}
+#endif // USE(RUNNINGBOARD)
+
 TEST(SiteIsolation, WebProcessCacheCrashWithZeroSharedProcess)
 {
     HTTPServer server({
@@ -8322,10 +8391,8 @@ TEST(SiteIsolation, SharedProcessAfterClick)
 TEST(SiteIsolation, SharedProcessAfterKeyDown)
 {
     HTTPServer server({
-        { "/warmup"_s, { "<iframe src='https://w3.org/w3c'></iframe>"_s } },
-        { "/example"_s, { "<iframe src='https://webkit.org/webkit'></iframe><iframe src='https://apple.com/apple'></iframe><iframe src='https://w3.org/w3c'></iframe>"_s } },
+        { "/webkit"_s, { "<iframe src='https://apple.com/apple'></iframe><iframe src='https://w3.org/w3c'></iframe>"_s } },
         { "/apple"_s, { "apple content"_s } },
-        { "/webkit"_s, { "webkit content"_s } },
         { "/w3c"_s, { "w3c content"_s } },
     }, HTTPServer::Protocol::HttpsProxy);
 
@@ -8342,41 +8409,44 @@ TEST(SiteIsolation, SharedProcessAfterKeyDown)
     EXPECT_TRUE([defaultFileManager fileExistsAtPath:itpDatabaseFile.path]);
 
     auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server, EnableProcessCache::No, dataStoreRoot, itpRoot);
-    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://apple.com/warmup"]]];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/webkit"]]];
     [navigationDelegate waitForDidFinishNavigation];
 
+    // Both subframe sites are new to the user, so they share one process.
     checkFrameTreesInProcesses(webView.get(), {
         {
-            "https://apple.com"_s,
-            { { RemoteFrame } }
+            "https://webkit.org"_s,
+            { { RemoteFrame }, { RemoteFrame } }
         },
         {
             RemoteFrame,
-            { { "https://w3.org"_s } }
+            { { "https://apple.com"_s }, { "https://w3.org"_s } }
         },
     });
 
-    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/webkit"]]];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://apple.com/apple"]]];
     [navigationDelegate waitForDidFinishNavigation];
 
     [webView typeCharacter:'n'];
     [webView waitForNextPresentationUpdate];
 
-    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/webkit"]]];
     [navigationDelegate waitForDidFinishNavigation];
 
+    // The user has now used apple.com as a page, so it gets a process of its own rather than joining
+    // w3.org, which it shared one with before.
     checkFrameTreesInProcesses(webView.get(), {
         {
-            "https://example.com"_s,
-            { { RemoteFrame }, { RemoteFrame }, { RemoteFrame } }
+            "https://webkit.org"_s,
+            { { RemoteFrame }, { RemoteFrame } }
         },
         {
             RemoteFrame,
-            { { "https://webkit.org"_s }, { RemoteFrame }, { RemoteFrame } }
+            { { "https://apple.com"_s }, { RemoteFrame } }
         },
         {
             RemoteFrame,
-            { { RemoteFrame }, { "https://apple.com"_s }, { "https://w3.org"_s } }
+            { { RemoteFrame }, { "https://w3.org"_s } }
         },
     });
 }

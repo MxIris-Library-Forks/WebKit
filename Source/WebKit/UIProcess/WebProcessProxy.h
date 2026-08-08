@@ -370,7 +370,7 @@ public:
     void disableSuddenTermination();
     bool isSuddenTerminationEnabled() { return !m_numberOfTimesSuddenTerminationWasDisabled; }
 
-    void requestTermination(ProcessTerminationReason);
+    void requestTermination(ProcessTerminationReason, std::optional<IPC::MessageName> invalidMessageName = std::nullopt);
 
     RefPtr<API::Object> transformHandlesToObjects(API::Object*);
     static RefPtr<API::Object> transformObjectsToHandles(API::Object*);
@@ -749,6 +749,7 @@ private:
     void didCollectPrewarmInformation(const WebCore::RegistrableDomain&, const WebCore::PrewarmInformation&);
 
     void didCompleteAutofill(const WebCore::Site&);
+    void didObserveFirstPartyUserGesture(const WebCore::Site&);
 
     void logDiagnosticMessageForResourceLimitTermination(const String& limitKey);
     

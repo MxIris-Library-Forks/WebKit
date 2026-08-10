@@ -1365,6 +1365,10 @@ webkit.org/b/216853 css3/font-synthesis-small-caps.html [ ImageOnlyFailure ]
 fast/forms/vertical-writing-mode/meter.html [ ImageOnlyFailure ]
 webkit.org/b/264558 fast/forms/vertical-writing-mode/listbox-horizontal-scrollbar.html [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/css/CSS2/css1/c43-rpl-ibx-000.xht [ Pass ]
+imported/w3c/web-platform-tests/css/CSS2/css1/c5507-padn-r-000.xht [ Pass ]
+imported/w3c/web-platform-tests/css/CSS2/css1/c5510-padn-000.xht [ Pass ]
+
 imported/w3c/web-platform-tests/css/CSS2/floats/line-pushed-by-floats-crash.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-vs-float-clearance-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-text/letter-spacing/letter-spacing-ligatures-001.html [ ImageOnlyFailure ]
@@ -5001,6 +5005,8 @@ webkit.org/b/307292 imported/w3c/web-platform-tests/resource-timing/buffered-fla
 webkit.org/b/294295 fullscreen/full-screen-request-removed-with-raf.html [ Pass Timeout ]
 
 webkit.org/b/307368 fast/repaint/iframe-from-display-none-repaint.html [ Pass ImageOnlyFailure ]
+
+imported/w3c/web-platform-tests/css/CSS2/normal-flow/canvas-paint-order.html [ ImageOnlyFailure ]
 
 # Note: this randomly crashes on the EWS (which runs Release+Asserts) but passes always on post-commit (Release)
 webkit.org/b/307597 imported/w3c/web-platform-tests/service-workers/service-worker/redirected-response.https.html [ Crash Pass ]

@@ -827,6 +827,8 @@ webkit.org/b/146731 fast/backgrounds/hidpi-background-image-contain-cover-scale-
 
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-plus-filter.html [ ImageOnlyFailure ]
 
+imported/w3c/web-platform-tests/content-security-policy/inside-worker/dedicatedworker-worker-src.html [ Timeout Pass ]
+
 # Flaky tests Nov2023
 webkit.org/b/264680 imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.crossOriginSource.sub.html [ Failure Pass ]
 
@@ -1124,7 +1126,6 @@ webkit.org/b/309369 [ arm64 ] imported/w3c/web-platform-tests/css/motion/offset-
 
 webkit.org/b/309372 [ arm64 ] imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioparam-interface/k-rate-dynamics-compressor-connections.html [ Failure ]
 webkit.org/b/309372 [ arm64 ] imported/w3c/web-platform-tests/webaudio/the-audio-api/the-convolvernode-interface/convolution-mono-mono.html [ Failure ]
-webkit.org/b/309372 [ arm64 ] imported/w3c/web-platform-tests/webaudio/the-audio-api/the-convolvernode-interface/realtime-conv.html [ Failure ]
 webkit.org/b/309372 [ arm64 ] webaudio/Analyser/realtimeanalyser-freq-data.html [ Failure ]
 webkit.org/b/309372 [ arm64 ] webaudio/ScriptProcessor/scriptprocessor-offlineaudiocontext.html [ Failure ]
 
@@ -1234,6 +1235,8 @@ webkit.org/b/315455 fast/dom/Range/detach-range-during-deletecontents.html [ Tim
 webkit.org/b/315455 [ Release ] http/tests/IndexedDB/transaction-commit-pending-requests-stop.html [ Pass Failure ]
 webkit.org/b/315455 webgl/1.0.x/conformance/extensions/ext-sRGB.html [ Failure ]
 
+webkit.org/b/321411 [ arm64 Release ] imported/w3c/web-platform-tests/IndexedDB/idb-partitioned-coverage.sub.html [ Failure Pass ]
+
 webkit.org/b/317967 [ x86_64 ] fast/scrolling/scroll-animator-overlay-scrollbars-clicked.html [ Pass Failure ]
 webkit.org/b/317969 [ x86_64 Release ] imported/w3c/web-platform-tests/webrtc/RTCDataChannel-send-close-blob-negotiated.window.html [ Pass Failure ]
 webkit.org/b/317970 [ x86_64 ] imported/w3c/web-platform-tests/css/css-anchor-position/scroll-to-anchored-fixed-000.html [ ImageOnlyFailure Pass ]
@@ -1309,3 +1312,7 @@ webkit.org/b/252878 [ Debug ] fast/frames/exponential-frames.html [ Pass Timeout
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/corner-shape/corner-shape-inset-shadow.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/corner-shape/corner-shape-notch-mixed.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/corner-shape/corner-shape-superellipse-negative-100.html [ ImageOnlyFailure ]
+
+webkit.org/b/321450 [ arm64 ] fast/mediacapturefromelement/CanvasCaptureMediaStream-capture-out-of-DOM-canvas.html [ Failure Pass ]
+webkit.org/b/316453 [ arm64 ] imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/track-sizing/row-auto-placed-subgrid-inherited-tracks-001.html [ Crash Timeout ]
+[ arm64 ] webrtc/video-rotation.html [ Failure Pass ]

@@ -39,6 +39,7 @@ set(TestWTF_SOURCES
     Tests/WTF/BitSet.cpp
     Tests/WTF/BitVector.cpp
     Tests/WTF/BloomFilter.cpp
+    Tests/WTF/Borrow.cpp
     Tests/WTF/BorrowedBytes.cpp
     Tests/WTF/BoxPtr.cpp
     Tests/WTF/BumpPointerAllocator.cpp
@@ -157,6 +158,7 @@ set(TestWTF_SOURCES
     Tests/WTF/UniqueRef.cpp
     Tests/WTF/UniqueRefVector.cpp
     Tests/WTF/Vector.cpp
+    Tests/WTF/VectorBorrow.cpp
     Tests/WTF/WTFString.cpp
     Tests/WTF/WeakPtr.cpp
     Tests/WTF/WorkQueue.cpp

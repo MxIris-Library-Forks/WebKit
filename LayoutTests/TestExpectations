@@ -1216,7 +1216,6 @@ imported/w3c/web-platform-tests/content-security-policy/script-src/tentative/scr
 imported/w3c/web-platform-tests/content-security-policy/script-src/tentative/script-url-blocked-report-contains-hash-shared-worker.https.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/script-src/tentative/script-url-blocked-report-contains-hash.https.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/child-src/child-src-cross-origin-load.sub.html [ Skip ]
-imported/w3c/web-platform-tests/content-security-policy/connect-src/connect-src-text-import-blocked.sub.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/connect-src/connect-src-webtransport-allowed.sub.https.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/connect-src/connect-src-webtransport-hashes.sub.https.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/frame-ancestors/frame-ancestors-nested-cross-in-cross-none-block.html [ Skip ]
@@ -1447,8 +1446,6 @@ imported/w3c/web-platform-tests/fetch/fetch-later [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/fetch/api/crashtests/huge-fetch.any.serviceworker.html [ Skip ]
 
 # These fetch tests time out.
-imported/w3c/web-platform-tests/fetch/metadata/generated/script-text-module-import-static.https.sub.html [ Skip ]
-imported/w3c/web-platform-tests/fetch/metadata/generated/script-text-module-import-static.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/object.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/metadata/window-open.https.sub.html [ Skip ]
 imported/w3c/web-platform-tests/fetch/orb/tentative/status.sub.html [ Skip ]
@@ -4971,9 +4968,6 @@ imported/w3c/web-platform-tests/css/css-fonts/font-weight-normal-001.xht [ Image
 # DEQP is skipped on the main fleet of bots because of the long run time.
 webgl/2.0.y/deqp [ Skip ]
 
-# webkit.org/b/211220 svg_image WebGL 2.0 tests currently fail due to inconsistencies between browsers
-webgl/2.0.y/conformance2/textures/svg_image [ Skip ]
-
 # Flaky failures
 
 webgl/1.0.x/conformance/glsl [ Slow ]
@@ -8143,8 +8137,6 @@ webkit.org/b/308096 imported/w3c/web-platform-tests/css/cssom-view/scrollParent.
 
 webkit.org/b/296130 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-scroller-nested-4.html [ Pass Failure ]
 webkit.org/b/281267 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-summary-element/interactive-content.html [ Pass Failure ]
-
-imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-021.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/cookies/third-party-cookies/third-party-cookie-heuristics.tentative.https.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-canvas-element/canvas-descendants-focusability-006.html [ Skip ] # Timeout

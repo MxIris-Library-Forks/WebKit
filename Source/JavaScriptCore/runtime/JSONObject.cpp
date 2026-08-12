@@ -1587,17 +1587,11 @@ void FastStringifier<CharType, bufferMode>::append(JSValue value)
                             recordBufferFull();
                             return false;
                         }
-
-                        {
-                            // Same reason as the property name above; cache after the capacity check.
-                            CharType* out = buffer();
-                            unsigned length = m_length;
-                            out[length] = '"';
-                            if (!stringCopySameType(valueString.data.span8(), out + length + 1)) [[likely]] {
-                                out[length + 1 + valueLength] = '"';
-                                m_length = length + 1 + valueLength + 1;
-                                return true;
-                            }
+                        buffer()[m_length] = '"';
+                        if (!stringCopySameType(valueString.data.span8(), buffer() + m_length + 1)) [[likely]] {
+                            buffer()[m_length + 1 + valueLength] = '"';
+                            m_length += 1 + valueLength + 1;
+                            return true;
                         }
                     }
                 }

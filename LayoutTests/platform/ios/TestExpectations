@@ -1505,10 +1505,10 @@ imported/w3c/web-platform-tests/css/css-view-transitions/table-caption.html [ Im
 imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-left-of-viewport-offscreen-old.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/massive-element-on-top-of-viewport-partially-onscreen-new.html [ ImageOnlyFailure ]
 
-# webkit.org/b/316882 1px device-pixel rounding difference in snapRectToDevicePixels for the
+# webkit.org/b/321467 1px device-pixel rounding difference in snapRectToDevicePixels for the
 # overflow-visible ::view-transition-old/new object-view-box path.
-webkit.org/b/316882 imported/w3c/web-platform-tests/css/css-view-transitions/old-content-with-object-view-box.html [ Skip ]
-webkit.org/b/316882 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-with-object-view-box.html [ Skip ]
+webkit.org/b/321467 imported/w3c/web-platform-tests/css/css-view-transitions/old-content-with-object-view-box.html [ ImageOnlyFailure ]
+webkit.org/b/321467 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-with-object-view-box.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/new-content-inline-with-offset-from-containing-block-clipped.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/old-content-inline-with-offset-from-containing-block-clipped.html [ ImageOnlyFailure ]
 
@@ -8703,3 +8703,5 @@ imported/w3c/web-platform-tests/infrastructure/testdriver/key-source-pause.html 
 imported/w3c/web-platform-tests/css/css-values/dynamic-viewport-units-rule-cache.html [ Skip ]
 
 webkit.org/b/321191 imported/w3c/web-platform-tests/service-workers/service-worker/fetch-event.https.h2.html [ Pass Crash Failure ]
+
+webkit.org/b/321528 [ Release ] imported/w3c/web-platform-tests/background-fetch/match.https.window.html [ Pass Failure ]

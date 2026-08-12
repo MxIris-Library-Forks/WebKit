@@ -1317,7 +1317,7 @@ CSSFunctionAtRuleEnabled:
 
 CSSIdentFunctionEnabled:
   type: bool
-  status: testable
+  status: preview
   category: css
   humanReadableName: "CSS ident() function"
   humanReadableDescription: "Enable the CSS Values 5 ident() function"
@@ -1342,6 +1342,20 @@ CSSIfFunctionEnabled:
       default: true
     WebCore:
       default: true
+
+CSSInheritFunctionEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS inherit() function"
+  humanReadableDescription: "Enable the CSS Values 5 inherit() function"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
 
 CSSInputSecurityEnabled:
   type: bool
@@ -1429,17 +1443,17 @@ CSSMathDepthEnabled:
       
 CSSObjectViewBoxEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS object-view-box property"
   humanReadableDescription: "Enable support for CSS object-view-box property"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSOverflowClipMarginEnabled:
   type: bool
@@ -4194,6 +4208,19 @@ ImportDeferEnabled:
     WebKit:
       default: true
 
+ImportTextEnabled:
+  type: bool
+  status: stable
+  category: javascript
+  humanReadableName: "Import Text"
+  humanReadableDescription: "Enable text module import."
+  webcoreBinding: none
+  jscOptionName: useImportText
+  sharedPreferenceForWebProcess: true
+  defaultValue:
+    WebKit:
+      default: true
+
 InactiveMediaCaptureStreamRepromptIntervalInMinutes:
   type: double
   status: embedder
@@ -6880,17 +6907,17 @@ PopoverAttributeEnabled:
 
 PopoverHintEnabled:
   type: bool
-  status: preview
+  status: stable
   category: html
   humanReadableName: "HTML popover hint type"
   humanReadableDescription: "Enable popover='hint' type support"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 PreferFasterClickOverDoubleTap:
   type: bool

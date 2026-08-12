@@ -68,12 +68,14 @@ private:
     bool substituteEnvFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
     bool substituteNamedValueOrFallback(const std::optional<AtomString>& name, const std::optional<CSSParserTokenRange>& fallbackRange, CSSValueID, Vector<CSSParserToken>&, const CSSParserContext&);
     bool substituteFirstValid(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
+    bool substituteInheritFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
     bool substituteDashedFunction(StringView functionName, CSSParserTokenRange, Vector<CSSParserToken>&);
     RefPtr<MutableStyleProperties> resolveAndRegisterDashedFunctionArguments(const Vector<StyleRuleFunction::Parameter>&, const Vector<Vector<CSSParserToken>>&, LocalPropertyRegistry&, ScopeOrdinal definitionScope);
     bool substituteAttrFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
     bool substituteIfFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
     bool substituteInternalAutoBaseFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
     bool substituteRandomItemFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
+    bool substituteIdentFunction(CSSParserTokenRange, Vector<CSSParserToken>&, const CSSParserContext&);
     std::optional<double> randomItemBaseValue(Vector<CSSParserToken> randomKey);
 
     struct VarArgumentGrammarSubstitution {
@@ -114,7 +116,7 @@ private:
     Builder& m_styleBuilder;
     const CSSRegisteredCustomProperty* m_registration { nullptr };
     RefPtr<const CSSSubstitutionValue> m_substitutionValue;
-    Vector<String> m_intermediateTokenStrings;
+    Vector<WTF::String> m_intermediateTokenStrings;
     Vector<RefPtr<const CustomProperty>> m_intermediateCustomProperties;
     unsigned m_urlContextDepth { 0 };
     unsigned m_randomItemAutoIndex { 0 };

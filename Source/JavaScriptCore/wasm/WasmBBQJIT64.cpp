@@ -342,9 +342,7 @@ Value BBQJIT::instanceValue()
 
 [[nodiscard]] PartialResult BBQJIT::load(LoadOpType loadOp, Value pointer, Value& result, uint64_t uoffset, uint8_t memoryIndex)
 {
-    bool offsetAndSizeOverflows = m_info.memory(memoryIndex).isMemory64()
-        ? sumOverflows<uint64_t>(uoffset, sizeOfLoadOp(loadOp))
-        : sumOverflows<uint32_t>(uoffset, sizeOfLoadOp(loadOp));
+    bool offsetAndSizeOverflows = m_info.memory(memoryIndex).doesAccessOverflow(uoffset, sizeOfLoadOp(loadOp));
 
     if (offsetAndSizeOverflows) [[unlikely]] {
         // FIXME: Same issue as in AirIRGenerator::load(): https://bugs.webkit.org/show_bug.cgi?id=166435
@@ -439,9 +437,7 @@ Value BBQJIT::instanceValue()
 [[nodiscard]] PartialResult BBQJIT::store(StoreOpType storeOp, Value pointer, Value value, uint64_t uoffset, uint8_t memoryIndex)
 {
     Location valueLocation = locationOf(value);
-    bool offsetAndSizeOverflows = m_info.memory(memoryIndex).isMemory64()
-        ? sumOverflows<uint64_t>(uoffset, sizeOfStoreOp(storeOp))
-        : sumOverflows<uint32_t>(uoffset, sizeOfStoreOp(storeOp));
+    bool offsetAndSizeOverflows = m_info.memory(memoryIndex).doesAccessOverflow(uoffset, sizeOfStoreOp(storeOp));
 
     if (offsetAndSizeOverflows) [[unlikely]] {
         // FIXME: Same issue as in AirIRGenerator::load(): https://bugs.webkit.org/show_bug.cgi?id=166435
@@ -1463,7 +1459,7 @@ void BBQJIT::emitAllocateGCArrayUninitialized(GPRReg resultGPR, TypeSignatureInd
             size_t sizeClassIndex = MarkedSpace::sizeClassToIndex(sizeInBytes.value());
             m_jit.loadPtr(allocatorBufferBase.withOffset(sizeClassIndex * sizeof(Allocator)), scratchGPR2);
             JIT_COMMENT(m_jit, "Do array allocation constant sized");
-            m_jit.emitAllocateWithNonNullAllocator(resultGPR, JITAllocator::variableNonNull(), scratchGPR2, scratchGPR, slowPath, AssemblyHelpers::SlowAllocationResult::UndefinedBehavior);
+            m_jit.emitAllocateWithNonNullAllocator(resultGPR, JITAllocator::variableNonNullWithConstantCellSize(MarkedSpace::s_sizeClassForSizeStep[sizeClassIndex]), scratchGPR2, scratchGPR, slowPath, AssemblyHelpers::SlowAllocationResult::UndefinedBehavior);
             m_jit.load32(structureIDAddress, scratchGPR);
             m_jit.move(TrustedImm32(JSWebAssemblyArray::typeInfoBlob().blob()), scratchGPR2);
             static_assert(JSCell::structureIDOffset() + sizeof(int32_t) == JSCell::indexingTypeAndMiscOffset());
@@ -2001,7 +1997,7 @@ void BBQJIT::emitAllocateGCStructUninitialized(GPRReg resultGPR, TypeSignatureIn
         size_t sizeClassIndex = MarkedSpace::sizeClassToIndex(sizeInBytes);
         m_jit.loadPtr(allocatorBufferBase.withOffset(sizeClassIndex * sizeof(Allocator)), scratchGPR2);
         JIT_COMMENT(m_jit, "Do struct allocation");
-        m_jit.emitAllocateWithNonNullAllocator(resultGPR, JITAllocator::variableNonNull(), scratchGPR2, scratchGPR, slowPath, AssemblyHelpers::SlowAllocationResult::UndefinedBehavior);
+        m_jit.emitAllocateWithNonNullAllocator(resultGPR, JITAllocator::variableNonNullWithConstantCellSize(MarkedSpace::s_sizeClassForSizeStep[sizeClassIndex]), scratchGPR2, scratchGPR, slowPath, AssemblyHelpers::SlowAllocationResult::UndefinedBehavior);
         m_jit.load32(structureIDAddress, scratchGPR);
         m_jit.move(TrustedImm32(JSWebAssemblyStruct::typeInfoBlob().blob()), scratchGPR2);
         static_assert(JSCell::structureIDOffset() + sizeof(int32_t) == JSCell::indexingTypeAndMiscOffset());
@@ -3847,7 +3843,7 @@ void NODELETE BBQJIT::notifyFunctionUsesSIMD()
         RELEASE_ASSERT_NOT_REACHED();
     }
     Location pointerLocation = emitCheckAndPreparePointer(pointer, uoffset, bytesForWidth(width), memoryIndex);
-    Address address = materializePointer(pointerLocation, uoffset);
+    Address address = materializePointer(pointerLocation, uoffset, width);
 
     result = topValue(TypeKind::V128);
     Location resultLocation = allocate(result);
@@ -3900,7 +3896,7 @@ void NODELETE BBQJIT::notifyFunctionUsesSIMD()
         RELEASE_ASSERT_NOT_REACHED();
     }
     Location pointerLocation = emitCheckAndPreparePointer(pointer, uoffset, bytesForWidth(width), memoryIndex);
-    Address address = materializePointer(pointerLocation, uoffset);
+    Address address = materializePointer(pointerLocation, uoffset, width);
 
     Location vectorLocation = loadIfNecessary(vector);
     consume(vector);
@@ -3951,7 +3947,7 @@ void NODELETE BBQJIT::notifyFunctionUsesSIMD()
         RELEASE_ASSERT_NOT_REACHED();
     }
     Location pointerLocation = emitCheckAndPreparePointer(pointer, uoffset, bytesForWidth(width), memoryIndex);
-    Address address = materializePointer(pointerLocation, uoffset);
+    Address address = materializePointer(pointerLocation, uoffset, width);
 
     Location vectorLocation = loadIfNecessary(vector);
     consume(vector);

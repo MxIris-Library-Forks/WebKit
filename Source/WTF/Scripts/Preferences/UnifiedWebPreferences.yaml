@@ -1317,17 +1317,17 @@ CSSFunctionAtRuleEnabled:
 
 CSSIdentFunctionEnabled:
   type: bool
-  status: preview
+  status: stable
   category: css
   humanReadableName: "CSS ident() function"
   humanReadableDescription: "Enable the CSS Values 5 ident() function"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSIfFunctionEnabled:
   type: bool
@@ -1345,17 +1345,17 @@ CSSIfFunctionEnabled:
 
 CSSInheritFunctionEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS inherit() function"
   humanReadableDescription: "Enable the CSS Values 5 inherit() function"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
     WebCore:
-      default: false
+      default: true
 
 CSSInputSecurityEnabled:
   type: bool
@@ -1841,6 +1841,20 @@ CSSUnprefixedBackdropFilterEnabled:
       default: false
     WebCore:
       "ENABLE(UNPREFIXED_BACKDROP_FILTER)": true
+      default: false
+
+CSSUserSelectEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS Unprefixed User Select"
+  humanReadableDescription: "Enable the unprefixed user-select CSS property"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
       default: false
 
 CSSWhiteSpaceTrimEnabled:
@@ -10196,9 +10210,8 @@ WebCodecsHEVCEnabled:
 
 WebCodecsImageEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: media
-  webcoreOnChange: setNeedsRelayoutAllFrames
   humanReadableName: "WebCodecs Image API"
   humanReadableDescription: "Enable WebCodecs Image API"
   condition: ENABLE(WEB_CODECS)

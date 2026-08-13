@@ -1114,7 +1114,7 @@ public:
 
     inline Location emitCheckAndPreparePointer(Value pointer, uint64_t uoffset, uint32_t sizeOfOperation, uint8_t memoryIndex)
     {
-        if (WTF::sumOverflows<uint64_t>(static_cast<uint64_t>(sizeOfOperation), uoffset)) {
+        if (m_info.memory(memoryIndex).doesAccessOverflow(uoffset, sizeOfOperation)) {
             recordJumpToThrowException(ExceptionType::OutOfBoundsMemoryAccess, m_jit.jump());
             consume(pointer);
             return Location::fromGPR(wasmScratchGPR);
@@ -1273,7 +1273,7 @@ public:
         RELEASE_ASSERT_NOT_REACHED();
     }
 
-    Address materializePointer(Location pointerLocation, uint64_t uoffset);
+    Address materializePointer(Location pointerLocation, uint64_t uoffset, Width accessWidth);
 
     constexpr static const char* LOAD_OP_NAMES[14] = {
         "I32Load", "I64Load", "F32Load", "F64Load",

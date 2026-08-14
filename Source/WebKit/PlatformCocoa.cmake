@@ -218,6 +218,7 @@ list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBKIT_DIR}/UIProcess/ios/forms"
     "${WEBKIT_DIR}/UIProcess/ios/fullscreen"
     "${WEBKIT_DIR}/UIProcess/mac"
+    "${WEBKIT_DIR}/UIProcess/mac/AppKitGestures"
     "${WEBKIT_DIR}/WebKitSwift/GroupActivities"
     "${WEBKIT_DIR}/WebKitSwift/IdentityDocumentServices"
     "${WEBKIT_DIR}/WebKitSwift/MarketplaceKit"
@@ -472,10 +473,11 @@ list(APPEND WebKit_SOURCES
     ${WEBKIT_DIR}/UIProcess/WebPageProxy.swift
     ${WEBKIT_DIR}/UIProcess/mac/_WKCaptionStyleMenuControllerAVKitMac.mm
     ${WEBKIT_DIR}/UIProcess/mac/_WKCaptionStyleMenuControllerMac.mm
+    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKAppKitGestureController.swift
+    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKDOMDoubleClickGestureRecognizer.swift
+    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKDirectionalScrollLockTracker.swift
+    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKFastScrollTracker.swift
     ${WEBKIT_DIR}/UIProcess/mac/SpatialShim.swift
-    ${WEBKIT_DIR}/UIProcess/mac/WKAppKitGestureController.swift
-    ${WEBKIT_DIR}/UIProcess/mac/WKDirectionalScrollLockTracker.swift
-    ${WEBKIT_DIR}/UIProcess/mac/WKFastScrollTracker.swift
     ${WEBKIT_DIR}/UIProcess/mac/WKTextSelectionController.swift
     ${WEBKIT_DIR}/UIProcess/PDF/WKAlternatePDFHUDView.swift
     ${WEBKIT_DIR}/UIProcess/PDF/WKDefaultPDFHUDView.swift
@@ -2155,14 +2157,7 @@ target_compile_options(WebKitSwift PRIVATE
     "$<$<NOT:$<COMPILE_LANGUAGE:Swift>>:-DBUILDING_WITH_CMAKE=1>"
 )
 
-# Explicit-module-build for WebKitSwift Swift compile. Mirrors the macro
-# WEBKIT_SETUP_SWIFT_AND_GENERATE_SWIFT_CPP_INTEROP_HEADER's enablement of the
-# same flags for WebKit / WebGPU / PAL. https://bugs.webkit.org/show_bug.cgi?id=312083
 target_compile_options(WebKitSwift PRIVATE
-    "$<$<COMPILE_LANGUAGE:Swift>:-explicit-module-build>"
-    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fexperimental-late-parse-attributes>"
-    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fexperimental-bounds-safety-attributes>"
-    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-module-cache-path ${CMAKE_BINARY_DIR}/SwiftModuleCache>"
     # Swift macro expansion runs swift-plugin-server under sandbox-exec;
     # -disable-sandbox avoids a nested sandbox_apply failure in a sandboxed build.
     "$<$<COMPILE_LANGUAGE:Swift>:-disable-sandbox>"
@@ -2268,15 +2263,7 @@ if (USE_LIBWEBRTC)
     endforeach ()
 endif ()
 
-# Explicit-module-build for _WebKit_SwiftUI Swift compile. The dep graph
-# includes WebKit (the cross-import-overlay does `@_exported public import WebKit`)
-# so libSwiftScan must be able to find WebKit.swiftmodule built by our cmake
-# WebKit target. https://bugs.webkit.org/show_bug.cgi?id=312083
 target_compile_options(_WebKit_SwiftUI PRIVATE
-    "$<$<COMPILE_LANGUAGE:Swift>:-explicit-module-build>"
-    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fexperimental-late-parse-attributes>"
-    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-Xcc -fexperimental-bounds-safety-attributes>"
-    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-module-cache-path ${CMAKE_BINARY_DIR}/SwiftModuleCache>"
     # @Entry and other SwiftUI macros run swift-plugin-server under sandbox-exec;
     # -disable-sandbox avoids a nested sandbox_apply failure in a sandboxed build.
     "$<$<COMPILE_LANGUAGE:Swift>:-disable-sandbox>"

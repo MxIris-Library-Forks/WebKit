@@ -3627,10 +3627,19 @@ void AXObjectCache::onScrollbarUpdate(ScrollView& view)
 void AXObjectCache::handleScrollbarUpdate(ScrollView& view)
 {
     // We don't want to create a scroll view from this method, only update an existing one.
-    if (RefPtr scrollViewObject = get(&view)) {
-        stopCachingComputedObjectAttributes();
-        scrollViewObject->updateChildrenIfNecessary();
-    }
+    RefPtr scrollViewObject = get(&view);
+    if (!scrollViewObject)
+        return;
+
+    stopCachingComputedObjectAttributes();
+    scrollViewObject->updateChildrenIfNecessary();
+
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+    // AccessibilityScrollView::updateChildrenIfNecessary() rebuilds the live children
+    // but doesn't mark the scroll view as needing a children update.
+    if (RefPtr tree = AXIsolatedTree::treeForFrameID(m_frameID))
+        tree->queueNodeUpdate(scrollViewObject->objectID(), NodeUpdateOptions::childrenUpdate());
+#endif
 }
 
 void AXObjectCache::handleAriaExpandedChange(Element& element)
@@ -4321,7 +4330,14 @@ VisiblePosition AXObjectCache::visiblePositionForTextMarkerData(const TextMarker
     if (node->isPseudoElement())
         return { };
 
-    auto visiblePosition = VisiblePosition({ node.get(), textMarkerData.offset, textMarkerData.anchorType }, textMarkerData.affinity);
+    // Only the offset-in-anchor constructor takes an offset. A marker can be anchored before or
+    // after its node instead — the caret on the empty final line of a text control is anchored
+    // before the placeholder <br>, for instance — and those anchor types have their own constructor,
+    // which derives the offset from the node.
+    auto position = textMarkerData.anchorType == Position::PositionIsOffsetInAnchor
+        ? Position { node.get(), textMarkerData.offset, textMarkerData.anchorType }
+        : Position { node.get(), textMarkerData.anchorType };
+    auto visiblePosition = VisiblePosition(position, textMarkerData.affinity);
     auto deepPosition = visiblePosition.deepEquivalent();
     if (deepPosition.isNull())
         return { };

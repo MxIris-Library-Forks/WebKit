@@ -1925,6 +1925,7 @@ accessibility/mac/text-operation/text-operation-lowercase.html [ Slow ]
 accessibility/mac/text-operation/text-operation-capitalize.html [ Slow ]
 accessibility/datetime/input-date-field-labels-and-value-changes.html [ Slow ]
 accessibility/list/list-active-element-selected-children.html [ Slow ]
+accessibility/isolated-tree/list/list-active-element-selected-children.html [ Slow ]
 accessibility/display-contents/aria-hidden.html [ Slow ]
 accessibility/isolated-tree/display-contents/aria-hidden.html [ Slow ]
 accessibility/display-contents/aria-grid.html [ Slow ]
@@ -2465,3 +2466,5 @@ webkit.org/b/321312 imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-getSyn
 
 # Debug assertion in PaymentRequest::suspend() when a request is Interactive as the document enters the back/forward cache
 webkit.org/b/321524 [ Debug ] imported/w3c/web-platform-tests/payment-request/payment-request-show-method.https.html [ Skip ]
+
+webkit.org/b/321726 imported/w3c/web-platform-tests/largest-contentful-paint/observe-svg-data-uri-image.html [ Pass Failure ]

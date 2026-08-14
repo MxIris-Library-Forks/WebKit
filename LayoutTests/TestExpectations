@@ -7130,14 +7130,6 @@ imported/w3c/web-platform-tests/navigation-api/navigate-event/dangling-navigate-
 imported/w3c/web-platform-tests/navigation-api/navigate-event/replaceState-inside-back-handler-infinite.optional.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-multiple-history-pushState.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-api/navigate-event/navigate-multiple-location.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-redirect.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-redirect.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-reject.tentative.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler-reject.tentative.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler.html?currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/navigate-intercept-precommitHandler.html?no-currententrychange [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/ordering-and-transition/transition-to.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/precommit-handler/ [ Skip ]
 
 # Require enabling CSS Scroll Anchoring
 imported/w3c/web-platform-tests/navigation-api/scroll-behavior/after-transition-reload.html [ Skip ]
@@ -7604,7 +7596,6 @@ http/tests/ipc/write-web-archive-frame-ancestry-check.html [ Skip ]
 
 http/tests/site-isolation/touch-events [ Skip ]
 http/tests/site-isolation/ios [ Skip ]
-http/tests/site-isolation/iframe-dark-mode-print.html [ ImageOnlyFailure ]
 
 # CSS syntax
 imported/w3c/web-platform-tests/css/css-scoping/scoped-reference-animation-002.html [ ImageOnlyFailure ]
@@ -8204,8 +8195,6 @@ webkit.org/b/314100 imported/w3c/web-platform-tests/css/selectors/has-specificit
 imported/w3c/web-platform-tests/scroll-animations/animation-trigger/animation-trigger-fill-mode-both.tentative.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/animation-trigger/animation-trigger-fill-mode-none.tentative.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/scroll-animations/animation-trigger/timeline-trigger-source-starts-in-trigger-range.tentative.html [ Pass Failure ]
-
-webkit.org/b/314830 [ Debug ] imported/w3c/web-platform-tests/IndexedDB/interleaved-cursors-small.any.serviceworker.html [ Failure ]
 
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/path/shape-outside-path-000.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-shapes/shape-outside/supported-shapes/path/shape-outside-path-001.html [ ImageOnlyFailure ]

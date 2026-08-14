@@ -8324,6 +8324,8 @@ TEST(SiteIsolation, SharedProcessWithResourceLoadStatistics)
     NSURL *itpRoot = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"SharedProcessWithResourceLoadStatisticsTestITP"] isDirectory:YES];
     auto defaultFileManager = [NSFileManager defaultManager];
     [defaultFileManager removeItemAtPath:itpRoot.path error:nil];
+    // Its recorded import would make a second run of this binary skip the import entirely.
+    [defaultFileManager removeItemAtPath:dataStoreRoot.path error:nil];
 
     [defaultFileManager createDirectoryAtURL:itpRoot withIntermediateDirectories:YES attributes:nil error:nil];
     NSURL *itpDatabaseFile = [itpRoot URLByAppendingPathComponent:@"observations.db"];
@@ -8422,6 +8424,8 @@ TEST(SiteIsolation, SharedProcessAfterClick)
     NSURL *itpRoot = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"SharedProcessAfterClickTestITP"] isDirectory:YES];
     auto defaultFileManager = [NSFileManager defaultManager];
     [defaultFileManager removeItemAtPath:itpRoot.path error:nil];
+    // Its recorded import would make a second run of this binary skip the import entirely.
+    [defaultFileManager removeItemAtPath:dataStoreRoot.path error:nil];
 
     [defaultFileManager createDirectoryAtURL:itpRoot withIntermediateDirectories:YES attributes:nil error:nil];
     NSURL *itpDatabaseFile = [itpRoot URLByAppendingPathComponent:@"observations.db"];
@@ -8482,6 +8486,8 @@ TEST(SiteIsolation, SharedProcessAfterKeyDown)
     NSURL *itpRoot = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"SharedProcessAfterKeyDownTestITP"] isDirectory:YES];
     auto defaultFileManager = [NSFileManager defaultManager];
     [defaultFileManager removeItemAtPath:itpRoot.path error:nil];
+    // Its recorded import would make a second run of this binary skip the import entirely.
+    [defaultFileManager removeItemAtPath:dataStoreRoot.path error:nil];
 
     [defaultFileManager createDirectoryAtURL:itpRoot withIntermediateDirectories:YES attributes:nil error:nil];
     NSURL *itpDatabaseFile = [itpRoot URLByAppendingPathComponent:@"observations.db"];
@@ -12745,6 +12751,69 @@ TEST(SiteIsolation, ColorSchemePreferenceInheritedByCrossSiteIframe)
     NSString *check = @"String(matchMedia('(prefers-color-scheme: dark)').matches)";
     EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:check], "true");
     EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:check inFrame:childFrame.get()], "true");
+}
+
+TEST(SiteIsolation, RestoredPageIsRenderedAfterCrossSiteBFCacheRoundTrip)
+{
+    HTTPServer server({
+        { "/a"_s, { "a"_s } },
+        { "/b"_s, { "b"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto *configuration = server.httpsProxyConfiguration();
+    enableFeature(configuration, @"MultiProcessBackForwardCacheEnabled");
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/a"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://b.com/b"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView goBack];
+    [navigationDelegate waitForDidFinishNavigation];
+    checkFrameTreesInProcesses(webView.get(), { { "https://a.com"_s } });
+
+    [webView waitForNextPresentationUpdate];
+
+    [webView goForward];
+    [navigationDelegate waitForDidFinishNavigation];
+    checkFrameTreesInProcesses(webView.get(), { { "https://b.com"_s } });
+
+    [webView waitForNextPresentationUpdate];
+}
+
+TEST(SiteIsolation, RestoredPageWithIframeIsRenderedAfterCrossSiteBFCacheRoundTrip)
+{
+    HTTPServer server({
+        { "/a"_s, { "<iframe src='https://frame.com/frame'></iframe>"_s } },
+        { "/frame"_s, { "frame"_s } },
+        { "/b"_s, { "b"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto *configuration = server.httpsProxyConfiguration();
+    enableFeature(configuration, @"MultiProcessBackForwardCacheEnabled");
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/a"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://b.com/b"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView goBack];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    Vector<ExpectedFrameTree> expectedAfterGoBack = {
+        { "https://a.com"_s, { { RemoteFrame } } },
+        { RemoteFrame, { { "https://frame.com"_s } } },
+    };
+    while (!frameTreesMatch(frameTrees(webView.get()).get(), Vector<ExpectedFrameTree> { expectedAfterGoBack }))
+        TestWebKitAPI::Util::spinRunLoop();
+    checkFrameTreesInProcesses(webView.get(), Vector<ExpectedFrameTree> { expectedAfterGoBack });
+
+    [webView goForward];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    checkFrameTreesInProcesses(webView.get(), { { "https://b.com"_s } });
 }
 
 }

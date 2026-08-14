@@ -1076,20 +1076,6 @@ CSS3DTransformBackfaceVisibilityInteroperabilityEnabled:
     WebCore:
       default: false
 
-CSSAnchorPositioningEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS Anchor Positioning"
-  humanReadableDescription: "Enable CSS Anchor Positioning"
-  defaultValue:
-    WebKitLegacy:
-      default: true
-    WebKit:
-      default: true
-    WebCore:
-      default: true
-
 CSSAppearanceBaseEnabled:
   type: bool
   status: testable
@@ -3552,18 +3538,18 @@ FullScreenEnabled:
 
 FullScreenKeyboardLock:
   type: bool
-  status: stable
+  status: unstable
   category: dom
   humanReadableName: "Fullscreen API based Keyboard Lock"
   humanReadableDescription: "Fullscreen API based Keyboard Lock"
   condition: ENABLE(FULLSCREEN_API)
   defaultValue:
     WebKitLegacy:
-      default: true
+      default: false
     WebKit:
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 FullscreenRequirementForScreenOrientationLockingEnabled:
   type: bool
@@ -6011,7 +5997,7 @@ MediaVideoCodecIDsAllowedInLockdownMode:
 
 MetaViewportInteractiveWidgetEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "Meta Viewport Interactive Widget"
   humanReadableDescription: "Enable the interactive-widget attribute on the viewport meta element"
@@ -6019,6 +6005,7 @@ MetaViewportInteractiveWidgetEnabled:
     WebKitLegacy:
       default: false
     WebKit:
+      "PLATFORM(COCOA)": true
       default: false
     WebCore:
       default: false
@@ -6307,6 +6294,20 @@ NavigationAPIEnabled:
       default: false
     WebCore:
       "PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)": true
+      default: false
+
+NavigationAPIPrecommitHandlerEnabled:
+  type: bool
+  status: testable
+  category: dom
+  humanReadableName: "Navigation API Precommit Handler"
+  humanReadableDescription: "Enable Navigation API Precommit Handler"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
       default: false
 
 NavigatorUserAgentDataJavaScriptAPIEnabled:
@@ -9336,6 +9337,20 @@ UseAppKitGestures:
       default: false
     WebKit:
       default: defaultUseAppKitGestures()
+    WebCore:
+      default: false
+
+UseAppKitGesturesForGestureEvents:
+  type: bool
+  status: internal
+  humanReadableName: "AppKit gestures for gesture events"
+  humanReadableDescription: "Use AppKit gestures to drive gesture event synthesis"
+  condition: PLATFORM(MAC)
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
     WebCore:
       default: false
 

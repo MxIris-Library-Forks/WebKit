@@ -538,6 +538,7 @@ Modules/webcodecs/WebCodecsAudioDataAlgorithms.cpp
 Modules/webcodecs/WebCodecsAudioDecoder.cpp
 Modules/webcodecs/WebCodecsAudioEncoder.cpp
 Modules/webcodecs/WebCodecsBase.cpp
+Modules/webcodecs/WebCodecsControlMessageQueue.cpp
 Modules/webcodecs/WebCodecsEncodedAudioChunk.cpp
 Modules/webcodecs/WebCodecsEncodedVideoChunk.cpp
 Modules/webcodecs/WebCodecsImageDecoder.cpp
@@ -817,6 +818,7 @@ bindings/js/JSMutationObserverCustom.cpp
 bindings/js/JSMutationRecordCustom.cpp
 bindings/js/JSNavigateEventCustom.cpp
 bindings/js/JSNavigationCustom.cpp
+bindings/js/JSNavigationPrecommitControllerCustom.cpp
 bindings/js/JSNavigatorCustom.cpp @cost:3
 bindings/js/JSNodeCustom.cpp
 bindings/js/JSNodeIteratorCustom.cpp
@@ -2309,6 +2311,7 @@ page/NavigationActivation.cpp
 page/NavigationCurrentEntryChangeEvent.cpp
 page/NavigationDestination.cpp
 page/NavigationHistoryEntry.cpp
+page/NavigationPrecommitController.cpp
 page/NavigationTransition.cpp
 page/Navigator.cpp
 page/NavigatorBase.cpp
@@ -4729,11 +4732,17 @@ JSNavigation.cpp @cost:3
 JSNavigationActivation.cpp
 JSNavigationCurrentEntryChangeEvent.cpp
 JSNavigationDestination.cpp
+JSNavigationHistoryBehavior.cpp
 JSNavigationHistoryEntry.cpp
 JSNavigationInterceptHandler.cpp
+JSNavigationNavigateOptions.cpp
 JSNavigationNavigationType.cpp
+JSNavigationOptions.cpp
+JSNavigationPrecommitController.cpp
+JSNavigationPrecommitHandler.cpp
 JSNavigationPreloadManager.cpp
 JSNavigationPreloadState.cpp
+JSNavigationReloadOptions.cpp
 JSNavigationTransition.cpp
 JSNavigator.cpp
 JSNavigatorGPU.cpp

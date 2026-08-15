@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,37 +25,25 @@
 
 #pragma once
 
-#if ENABLE(IPC_TESTING_API)
+#if ENABLE(GPU_PROCESS)
 
-#include "MessageReceiver.h"
-#include <wtf/RefCounted.h>
-
-namespace IPC {
-class Connection;
-class Semaphore;
-}
+#include "ObjectIdentifierReferenceTracker.h"
+#include <WebCore/RenderingResourceIdentifier.h>
 
 namespace WebKit {
 
-// Proxy interface to test various IPC stream related activities.
-// Currently this is not instantiated. This only exists due to the IPCStreamTesterProxy
-// messages that are caught in the JS IPC_TESTING_API tests. The messages need to
-// compile the IPCStreamTesterProxyMessageReceiver.cpp, so this class definition is needed.
-class IPCStreamTesterProxy final : public IPC::MessageReceiver, public RefCounted<IPCStreamTesterProxy> {
-public:
-    void ref() const final { RefCounted::ref(); }
-    void deref() const final { RefCounted::deref(); }
+// NativeImages held in the RemoteSharedResourceCache are identified by the same
+// WebCore::RenderingResourceIdentifier that keys the rendering backend's cache, so an image can be
+// adopted from the shared cache into a rendering backend without re-identifying it.
+using RemoteNativeImageIdentifier = WebCore::RenderingResourceIdentifier;
 
-    // IPC::MessageReceiver overrides.
-    void didReceiveMessage(IPC::Connection&, IPC::Decoder&);
+// Reference-tracker versioning on top of the identifier, so a NativeImage produced by one context can
+// be safely read by another and released when the WebContent-side handle is destroyed.
+using RemoteNativeImageReadReference = IPC::ObjectIdentifierReadReference<RemoteNativeImageIdentifier>;
+using RemoteNativeImageWriteReference = IPC::ObjectIdentifierWriteReference<RemoteNativeImageIdentifier>;
+using RemoteNativeImageReference = IPC::ObjectIdentifierReference<RemoteNativeImageIdentifier>;
+using RemoteNativeImageReferenceTracker = IPC::ObjectIdentifierReferenceTracker<RemoteNativeImageIdentifier>;
 
-private:
-    IPCStreamTesterProxy() = default;
+} // namespace WebKit
 
-    // Messages.
-    void wasCreated(IPC::Semaphore&&, IPC::Semaphore&&) { }
-};
-
-}
-
-#endif
+#endif // ENABLE(GPU_PROCESS)

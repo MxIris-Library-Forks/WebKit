@@ -1183,7 +1183,7 @@
 		2D9F0E1314FF1CBF00BA0FF7 /* linearSRGB.icc in Resources */ = {isa = PBXBuildFile; fileRef = 2D9F0E1214FF1CBF00BA0FF7 /* linearSRGB.icc */; };
 		2DA397E5265C737500468F33 /* NullGraphicsContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DA397E3265C737400468F33 /* NullGraphicsContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2DABFA7F2B216C68001C33D7 /* DynamicContentScalingDisplayList.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DABFA7E2B216C68001C33D7 /* DynamicContentScalingDisplayList.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		2DAF343D1EA7E0F100382CD3 /* ConstantPropertyMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DAF343B1EA7E0F100382CD3 /* ConstantPropertyMap.h */; };
+		2DAF343D1EA7E0F100382CD3 /* StyleEnvironmentVariables.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DAF343B1EA7E0F100382CD3 /* StyleEnvironmentVariables.h */; };
 		2DC05CA827D80956004ED403 /* InteractionRegion.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DC05CA327D7F6B5004ED403 /* InteractionRegion.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2DC8D39825F2FE9700CFCBAB /* Model.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DC8D39725F2FE9400CFCBAB /* Model.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		2DD5A7271EBEE47D009BA597 /* CompositionUnderline.h in Headers */ = {isa = PBXBuildFile; fileRef = 2DD5A7261EBEE47D009BA597 /* CompositionUnderline.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -7346,6 +7346,7 @@
 		FAC8498F2A9EA1CE00D407EF /* WebTransportSession.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC8497A2A9E68E900D407EF /* WebTransportSession.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FAC849902A9EA1D900D407EF /* WebTransportSessionClient.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC8497E2A9E6CEF00D407EF /* WebTransportSessionClient.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FACC82B02E8E093F00EBAFED /* WebTransportCongestionControl.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3F92A996703001E2EB8 /* WebTransportCongestionControl.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CA7C3E0D2F31A94700AA1147 /* WebTransportHeaderValidation.h in Headers */ = {isa = PBXBuildFile; fileRef = CA7C3E0B2F31A94700AA1147 /* WebTransportHeaderValidation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FACC82B92E8EF2AF00EBAFED /* WebTransportOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3FB2A996704001E2EB8 /* WebTransportOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FACC82BA2E8EF33A00EBAFED /* WebTransportHash.h in Headers */ = {isa = PBXBuildFile; fileRef = FAC3C3FD2A996705001E2EB8 /* WebTransportHash.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		FADAF3C92EA2FC80001ACE2E /* WebKitBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = FADAF3BE2EA1D011001ACE2E /* WebKitBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10563,8 +10564,8 @@
 		2DAAE32C19DCAF6000E002D2 /* MockPageOverlayClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MockPageOverlayClient.cpp; sourceTree = "<group>"; };
 		2DAAE32D19DCAF6000E002D2 /* MockPageOverlayClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MockPageOverlayClient.h; sourceTree = "<group>"; };
 		2DABFA7E2B216C68001C33D7 /* DynamicContentScalingDisplayList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynamicContentScalingDisplayList.h; sourceTree = "<group>"; };
-		2DAF343A1EA7E0F100382CD3 /* ConstantPropertyMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstantPropertyMap.cpp; sourceTree = "<group>"; };
-		2DAF343B1EA7E0F100382CD3 /* ConstantPropertyMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstantPropertyMap.h; sourceTree = "<group>"; };
+		2DAF343A1EA7E0F100382CD3 /* StyleEnvironmentVariables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StyleEnvironmentVariables.cpp; sourceTree = "<group>"; };
+		2DAF343B1EA7E0F100382CD3 /* StyleEnvironmentVariables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleEnvironmentVariables.h; sourceTree = "<group>"; };
 		2DC05CA327D7F6B5004ED403 /* InteractionRegion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InteractionRegion.h; sourceTree = "<group>"; };
 		2DC05CA727D80217004ED403 /* InteractionRegion.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InteractionRegion.cpp; sourceTree = "<group>"; };
 		2DC8D39625F2FE9300CFCBAB /* Model.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model.cpp; sourceTree = "<group>"; };
@@ -23670,6 +23671,8 @@
 		FAC3C3FA2A996704001E2EB8 /* WebTransportDatagramDuplexStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTransportDatagramDuplexStream.h; sourceTree = "<group>"; };
 		FAC3C3FB2A996704001E2EB8 /* WebTransportOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTransportOptions.h; sourceTree = "<group>"; };
 		FAC3C3FD2A996705001E2EB8 /* WebTransportHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTransportHash.h; sourceTree = "<group>"; };
+		CA7C3E0C2F31A94700AA1147 /* WebTransportHeaderValidation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebTransportHeaderValidation.cpp; sourceTree = "<group>"; };
+		CA7C3E0B2F31A94700AA1147 /* WebTransportHeaderValidation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTransportHeaderValidation.h; sourceTree = "<group>"; };
 		FAC3C3FF2A996705001E2EB8 /* WebTransportReceiveStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTransportReceiveStream.h; sourceTree = "<group>"; };
 		FAC3C4002A996706001E2EB8 /* WebTransportError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebTransportError.cpp; sourceTree = "<group>"; };
 		FAC3C4012A996706001E2EB8 /* WebTransportSendStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebTransportSendStream.cpp; sourceTree = "<group>"; };
@@ -41476,6 +41479,8 @@
 				BC913B3C2EE88D34009E3349 /* StyleDifference.h */,
 				A1D0C50120260608000A0001 /* StyleDocumentScope.cpp */,
 				A1D0C50120260608000A0002 /* StyleDocumentScope.h */,
+				2DAF343A1EA7E0F100382CD3 /* StyleEnvironmentVariables.cpp */,
+				2DAF343B1EA7E0F100382CD3 /* StyleEnvironmentVariables.h */,
 				BCFEE3322DC6B33D00EC3901 /* StyleExtractor.cpp */,
 				BCFEE3302DC6B2C300EC3901 /* StyleExtractor.h */,
 				BCFEE32E2DC6AFEC00EC3901 /* StyleExtractorCustom.h */,
@@ -42680,8 +42685,6 @@
 				79F2F59E1091939A000D87CB /* CompositionEvent.cpp */,
 				79F2F59F1091939A000D87CB /* CompositionEvent.h */,
 				79F2F5A01091939A000D87CB /* CompositionEvent.idl */,
-				2DAF343A1EA7E0F100382CD3 /* ConstantPropertyMap.cpp */,
-				2DAF343B1EA7E0F100382CD3 /* ConstantPropertyMap.h */,
 				A81872140977D3C0005826D9 /* ContainerNode.cpp */,
 				A81872110977D3C0005826D9 /* ContainerNode.h */,
 				A7A78CD41532BA62006C21E4 /* ContainerNodeAlgorithms.cpp */,
@@ -43487,6 +43490,8 @@
 				FAC3C3DF2A9960E0001E2EB8 /* WebTransportErrorSource.idl */,
 				FAC3C3FD2A996705001E2EB8 /* WebTransportHash.h */,
 				FAC3C3D02A9960DA001E2EB8 /* WebTransportHash.idl */,
+				CA7C3E0C2F31A94700AA1147 /* WebTransportHeaderValidation.cpp */,
+				CA7C3E0B2F31A94700AA1147 /* WebTransportHeaderValidation.h */,
 				FAC3C3FB2A996704001E2EB8 /* WebTransportOptions.h */,
 				FAC3C3D22A9960DB001E2EB8 /* WebTransportOptions.idl */,
 				FAC3C3EC2A9966FF001E2EB8 /* WebTransportReceiveStream.cpp */,
@@ -44715,7 +44720,6 @@
 				7A7C8B5827F32EF70008E234 /* ComputedStylePropertyMapReadOnly.h in Headers */,
 				FD31608F12B026F700C1A359 /* Cone.h in Headers */,
 				65C97AF308EA908800ACD273 /* config.h in Headers */,
-				2DAF343D1EA7E0F100382CD3 /* ConstantPropertyMap.h in Headers */,
 				E7C8E13B24E2FE7E0027A27F /* ConstantSourceNode.h in Headers */,
 				E7C8E13724E2FBCE0027A27F /* ConstantSourceOptions.h in Headers */,
 				E596DD5D251BB08200C275A7 /* ContactInfo.h in Headers */,
@@ -49056,6 +49060,7 @@
 				BC5C89C02D567E31000F45B7 /* StyleDynamicRangeLimitMix.h in Headers */,
 				BC7320362E73558D00A6584F /* StyleEasingFunction.h in Headers */,
 				BCB2720B2CC1F1DB00265123 /* StyleEllipseFunction.h in Headers */,
+				2DAF343D1EA7E0F100382CD3 /* StyleEnvironmentVariables.h in Headers */,
 				BCFEE3312DC6B2C300EC3901 /* StyleExtractor.h in Headers */,
 				BCFEE32F2DC6AFEC00EC3901 /* StyleExtractorCustom.h in Headers */,
 				BCFEE3292DC6AC6800EC3901 /* StyleExtractorGenerated.h in Headers */,
@@ -50268,6 +50273,7 @@
 				FA0B46D42E8CBF780073E9B3 /* WebTransportConnectionStats.h in Headers */,
 				FA0B46CE2E8C7FEB0073E9B3 /* WebTransportDatagramStats.h in Headers */,
 				FACC82BA2E8EF33A00EBAFED /* WebTransportHash.h in Headers */,
+				CA7C3E0D2F31A94700AA1147 /* WebTransportHeaderValidation.h in Headers */,
 				FACC82B92E8EF2AF00EBAFED /* WebTransportOptions.h in Headers */,
 				FA93D69F2AA40DD5006444FB /* WebTransportReceiveStreamStats.h in Headers */,
 				244447FB2ECD1F8E00EED177 /* WebTransportReliabilityMode.h in Headers */,

@@ -276,6 +276,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/TransformationMatrix.cpp
         Tests/WebCore/URLParserTextEncoding.cpp
         Tests/WebCore/URLPatternTests.cpp
+        Tests/WebCore/WebTransportHeaderValidation.cpp
         Tests/WebCore/WritingModeTests.cpp
         Tests/WebCore/XRCompositionLayer.cpp
     )
@@ -510,6 +511,7 @@ if (ENABLE_WEBKIT)
             Tests/IPC/ArgumentCoderTests.cpp
             Tests/IPC/ConnectionTests.cpp
             Tests/IPC/EventTests.cpp
+            Tests/IPC/IPCEventTests.cpp
             Tests/IPC/IPCTestUtilities.cpp
             Tests/IPC/MachMessageTests.cpp
             Tests/IPC/MessageLogEndToEndTests.cpp

@@ -37,12 +37,16 @@
 #import "WKWebViewInternal.h"
 #import "WebExtensionContextProxyMessages.h"
 #import "WebExtensionOffscreenDocumentParameters.h"
+#import "WebPageProxy.h"
 
 namespace WebKit {
 
 bool WebExtensionContext::isOffscreenMessageAllowed(IPC::Decoder& message)
 {
-    return isLoadedAndPrivilegedMessage(message) && hasPermission(WebExtensionPermission::offscreen());
+    if (RefPtr controller = extensionController())
+        return isLoadedAndPrivilegedMessage(message) && hasPermission(WebExtensionPermission::offscreen()) && controller->isFeatureEnabled(@"WebExtensionOffscreenEnabled");
+
+    return false;
 }
 
 void WebExtensionContext::offscreenCreateDocument(const WebExtensionOffscreenDocumentParameters& parameters, CompletionHandler<void(Expected<void, WebExtensionError>&&)>&& completionHandler)
@@ -86,6 +90,15 @@ void WebExtensionContext::offscreenCreateDocument(const WebExtensionOffscreenDoc
     else
         m_offscreenWebViewActivity = protect(offscreenProcess->throttler())->foregroundActivity(activityName);
 
+    // Put the offscreen web view into a window so that it can be used to play audio (a common use case for the API).
+#if PLATFORM(MAC)
+    m_offscreenWebViewWindow = adoptNS([[NSWindow alloc] initWithContentRect:NSZeroRect styleMask:NSWindowStyleMaskBorderless backing:NSBackingStoreBuffered defer:NO]);
+    [m_offscreenWebViewWindow.get().contentView addSubview:m_offscreenWebView.get()];
+#elif PLATFORM(IOS_FAMILY)
+    m_offscreenWebViewWindow = adoptNS([[UIWindow alloc] initWithFrame:CGRectZero]);
+    [m_offscreenWebViewWindow.get() addSubview:m_offscreenWebView.get()];
+#endif
+
     [m_offscreenWebView loadRequest:[NSURLRequest requestWithURL:documentURL.createNSURL().get()]];
 
     m_offscreenDocumentLoadCompletionHandlers.append(WTF::move(completionHandler));
@@ -117,6 +130,11 @@ void WebExtensionContext::unloadOffscreenWebView()
         completionHandler(toWebExtensionError(completionHandlerAPIName, nullString(), @"offscreen document was closed"));
 
     m_offscreenWebViewActivity = { };
+
+#if PLATFORM(MAC) || PLATFORM(IOS_FAMILY)
+    [m_offscreenWebView removeFromSuperview];
+    m_offscreenWebViewWindow = nil;
+#endif
 
     [m_offscreenWebView _close];
     m_offscreenWebView = nil;

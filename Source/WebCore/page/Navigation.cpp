@@ -300,7 +300,7 @@ void Navigation::setActivation(HistoryItem* previousItem, std::optional<Navigati
         previousEntry = m_entries.at(previousEntryIndex.value()).ptr();
     if (type == NavigationNavigationType::Reload)
         previousEntry = currentEntry();
-    else if (type == NavigationNavigationType::Replace && (isSameOrigin || wasAboutBlank))
+    else if (type == NavigationNavigationType::Replace && isSameOrigin && !wasAboutBlank)
         previousEntry = NavigationHistoryEntry::create(*this, *previousItem);
 
     m_activation = NavigationActivation::create(*type, *currentEntry(), WTF::move(previousEntry));
@@ -1616,8 +1616,12 @@ bool Navigation::dispatchDownloadNavigateEvent(const URL& url, const String& dow
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#inform-the-navigation-api-about-aborting-navigation
 void Navigation::abortOngoingNavigationIfNeeded()
 {
-    if (RefPtr ongoingNavigateEvent = m_ongoingNavigateEvent)
+    while (RefPtr ongoingNavigateEvent = m_ongoingNavigateEvent) {
         abortOngoingNavigation(*ongoingNavigateEvent);
+        // abortOngoingNavigation() bails without clearing the event when there is no global object.
+        if (m_ongoingNavigateEvent == ongoingNavigateEvent)
+            break;
+    }
 }
 
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#inform-the-navigation-api-about-child-navigable-destruction
@@ -1631,6 +1635,19 @@ void Navigation::informAboutChildNavigableDestruction()
 
     for (Ref tracker : m_methodTrackers.upcomingTraverseTrackers())
         rejectFinishedPromise(tracker.ptr());
+}
+
+void Navigation::discardOngoingNavigationForBackForwardCache()
+{
+    if (hasInterceptedOngoingNavigateEvent())
+        return;
+
+    m_ongoingNavigateEvent = nullptr;
+    m_focusChangedDuringOngoingNavigation = FocusDidChange::No;
+    m_suppressNormalScrollRestorationDuringOngoingNavigation = false;
+
+    if (RefPtr ongoingAPIMethodTracker = m_methodTrackers.ongoing())
+        m_methodTrackers.unregister(*ongoingAPIMethodTracker);
 }
 
 // https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-session-history-entries-for-the-navigation-api

@@ -2193,6 +2193,21 @@ CompositingRepaintCountersVisible:
     WebCore:
       default: false
 
+CompressionDictionaryEnabled:
+  type: bool
+  status: testable
+  category: networking
+  humanReadableName: "Compression Dictionary Transport"
+  humanReadableDescription: "Enable compression dictionary transport"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+  sharedPreferenceForWebProcess: true
+
 CompressionStreamEnabled:
   type: bool
   status: stable
@@ -8392,9 +8407,24 @@ SiteIsolationEnabled:
       default: false
   sharedPreferenceForWebProcess: true
 
-SiteIsolationSharedProcessEnabled:
+SiteIsolationHighValueFraudTargetDomainsEnabled:
   type: bool
   status: unstable
+  category: security
+  humanReadableName: "High-value fraud target domains for Site Isolation"
+  humanReadableDescription: "Exclude sites on the high-value fraud target domains list from the shared web process"
+  defaultValue:
+    WebKitLegacy:
+      default: false
+    WebKit:
+      default: false
+    WebCore:
+      default: false
+
+SiteIsolationSharedProcessEnabled:
+  type: bool
+  status: internal
+  defaultsOverridable: true
   category: security
   humanReadableName: "Shared process for Site Isolation"
   humanReadableDescription: "Put cross-site frames in a shared Web process"

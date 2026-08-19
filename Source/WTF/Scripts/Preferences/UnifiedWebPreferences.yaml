@@ -540,6 +540,7 @@ AlwaysUseTouchEventRegions:
     WebKitLegacy:
       default: false
     WebKit:
+      "ENABLE(COORDINATED_TOUCH_EVENTS)" : true
       default: false
     WebCore:
       default: false
@@ -3326,18 +3327,18 @@ FasterClicksEnabled:
 
 FetchUploadStreamsEnabled:
   type: bool
-  status: testable
+  status: stable
   category: networking
   humanReadableName: "Fetch upload streams"
   humanReadableDescription: "Enable ReadableStream request bodies for fetch(). HTTP/2 (or later) required."
   exposed: [ WebKit ]
   defaultValue:
     WebCore:
-      default: false
+      default: true
     WebKitLegacy:
       default: false
     WebKit:
-      default: false
+      default: true
 
 FileReaderAPIEnabled:
   type: bool
@@ -7506,17 +7507,17 @@ SKAttributionEnabled:
 
 SVGExternalResourcesEnabled:
   type: bool
-  status: preview
+  status: stable
   category: css
   humanReadableName: "SVG external resources"
   humanReadableDescription: "Enable referencing SVG resources (paint servers, etc.) via external or data: URLs"
   defaultValue:
     WebCore:
-      default: false
+      default: true
     WebKitLegacy:
-      default: false
+      default: true
     WebKit:
-      default: false
+      default: true
 
 SWVPDecodersAlwaysEnabled:
   type: bool

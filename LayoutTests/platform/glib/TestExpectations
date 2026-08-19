@@ -947,29 +947,29 @@ imported/w3c/web-platform-tests/storage/ [ Pass ]
 storage/storagemanager/ [ Pass ]
 
 # display-p3 canvas and ImageData enabled for WebKitGTK/WPEWebKit since 319168@main.
-fast/canvas/canvas-color-space-display-p3-ImageData.html
-fast/canvas/gradient-into-p3-canvas.html
-imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-canvas.html
-imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-ImageBitmap.html
-imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-ImageData.html
-imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-pattern-canvas.html
-imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-settings.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.fillText.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.fillText.shadow.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.strokeText.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toBlob.p3.canvas.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toBlob.with.putImageData.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.jpeg.p3.canvas.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.p3.canvas.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.with.putImageData.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.to.p3.html
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.to.srgb.html
+fast/canvas/canvas-color-space-display-p3-ImageData.html [ Pass ]
+fast/canvas/gradient-into-p3-canvas.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-canvas.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-ImageBitmap.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-ImageData.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-pattern-canvas.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-settings.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.fillText.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.fillText.shadow.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.strokeText.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toBlob.p3.canvas.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toBlob.with.putImageData.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.jpeg.p3.canvas.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.p3.canvas.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.with.putImageData.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.to.p3.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.to.srgb.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/wide-gamut-canvas/2d.color.space.p3.convertToBlobp3.canvas.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.p3.html
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.p3.worker.html
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.srgb.html
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.srgb.worker.html
-storage/indexeddb/structured-clone-image-data-display-p3.html
+imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.p3.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.p3.worker.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.srgb.html [ Pass ]
+imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.srgb.worker.html [ Pass ]
+storage/indexeddb/structured-clone-image-data-display-p3.html [ Pass ]
 
 imported/w3c/web-platform-tests/css/css-pseudo/marker-content-012.html [ Pass ]
 
@@ -1040,9 +1040,6 @@ accessibility/css-content-alt-text.html [ Skip ]
 
 # AXObjectCache::announce not implemented.
 accessibility/announcement-notification.html [ Skip ]
-
-# Failing since introduced.
-accessibility/focus-change-id-mutation-and-removal-crash.html [ Skip ]
 
 # AccessibilityUIElement::isInTable is not implemented.
 accessibility/table-ancestry.html [ Skip ]
@@ -1133,9 +1130,6 @@ accessibility/aria-multiline.html [ Skip ]
 
 # Failing since added in https://bugs.webkit.org/show_bug.cgi?id=244069.
 accessibility/dynamically-ignored-canvas.html [ Skip ]
-
-# Missing AccessibilityUIElement::takeFocus().
-accessibility/basic-focusability.html [ Skip ]
 
 # Missing AccessibilityUIElement::uiElementForSearchPredicate implementation.
 accessibility/aria-controlled-table-row-visibility.html [ Skip ]
@@ -1273,9 +1267,6 @@ webkit.org/b/232249 accessibility/video-element-url-attribute.html [ Failure ]
 webkit.org/b/232255 accessibility/math-has-non-presentational-children.html [ Failure ]
 
 webkit.org/b/232256 accessibility/auto-fill-crash.html [ Failure ]
-
-# Times out due to missing AccessibilityUIElement::takeFocus
-http/tests/accessibility/focus-text-field-in-iframe.html [ Skip ]
 
 # Times out due to missing AccessibilityUIElement::linkedUIElementAtIndex() implementation.
 accessibility/combobox/combobox-linked-listbox-destroyed.html [ Skip ]
@@ -4339,7 +4330,7 @@ imported/w3c/web-platform-tests/css/css-color/system-color-hightlights-vs-getSel
 imported/w3c/web-platform-tests/css/css-color/system-color-hightlights-vs-getSelection-002.html [ ImageOnlyFailure ]
 
 # Flakily crashing on GTK and WPE bots
-webkit.org/b/286131 imported/w3c/web-platform-tests/css/css-transforms/transform-box/cssbox-content-box-002.html [ Pass Crash ImageOnlyFailure ]
+webkit.org/b/286131 imported/w3c/web-platform-tests/css/css-transforms/transform-box/cssbox-content-box-002.html [ Pass Crash ImageOnlyFailure Timeout ]
 
 imported/w3c/web-platform-tests/css/css-overscroll-behavior/overscroll-behavior.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-scroll-snap/input/mouse-wheel.html [ Skip ]
@@ -4895,6 +4886,8 @@ webkit.org/b/303873 imported/w3c/web-platform-tests/trusted-types/navigate-to-ja
 
 # No USE(AUDIO_SESSION) support:
 media/volume-activate-audio-session.html [ Skip ]
+media/audio-session-not-activated-for-denied-audible-element.html [ Skip ]
+media/audio-session-not-activated-when-unmuting-denied-element.html [ Skip ]
 
 # Does not work on glib platforms
 http/tests/performance/performance-resource-timing-cross-origin-media-with-cors.html [ Skip ]

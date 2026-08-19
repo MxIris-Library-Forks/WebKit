@@ -1101,6 +1101,8 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     m_mayStartMediaWhenInWindow = parameters.mayStartMediaWhenInWindow;
     if (parameters.mediaPlaybackIsSuspended)
         page->suspendAllMediaPlayback();
+    if (parameters.areActiveDOMObjectsAndAnimationsSuspended)
+        page->suspendActiveDOMObjectsAndAnimations();
 
     if (parameters.openedByDOM)
         page->setOpenedByDOM();
@@ -1562,6 +1564,21 @@ void WebPage::updateUserActivationState(const Vector<FrameIdentifier>& frameIDs,
             continue;
         if (RefPtr window = localFrame->window())
             window->updateActivation(activationTime);
+    }
+}
+
+void WebPage::updateLastHandledUserGestureTimestamp(const Vector<FrameIdentifier>& frameIDs, MonotonicTime gestureTime)
+{
+    for (auto frameID : frameIDs) {
+        RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+        if (!webFrame || webFrame->page() != this)
+            continue;
+        RefPtr localFrame = webFrame->coreLocalFrame();
+        if (!localFrame)
+            continue;
+        localFrame->setHasHadUserInteraction();
+        if (RefPtr document = localFrame->document())
+            document->updateLastHandledUserGestureTimestamp(gestureTime);
     }
 }
 
@@ -2724,14 +2741,16 @@ void WebPage::loadSimulatedRequestAndResponse(LoadParameters&& loadParameters, R
 
 void WebPage::stopLoading()
 {
-    if (!m_page || !m_mainFrame->coreLocalFrame())
+    if (!m_page)
         return;
 
     SendStopResponsivenessTimer stopper;
 
-    Ref coreFrame = *m_mainFrame->coreLocalFrame();
-    coreFrame->loader().stopForUserCancel();
-    coreFrame->loader().completePageTransitionIfNeeded();
+    for (Ref frame : copyToVectorOf<Ref<LocalFrame>>(m_page->rootFrames()))
+        frame->loader().stopForUserCancel();
+
+    if (RefPtr localMainFrame = m_page->localMainFrame())
+        localMainFrame->loader().completePageTransitionIfNeeded();
 }
 
 void WebPage::stopLoadingDueToProcessSwap()
@@ -4509,6 +4528,17 @@ void WebPage::touchEvent(const WebTouchEvent& touchEvent, CompletionHandler<void
     bool handled = handleTouchEvent(localMainFrame->frameID(), touchEvent, m_page.get()).value_or(false);
 
     completionHandler(touchEvent.type(), handled);
+}
+#endif
+
+#if ENABLE(COORDINATED_TOUCH_EVENTS)
+bool WebPage::dispatchTouchEvent(const WebTouchEvent& event)
+{
+    bool result = false;
+    touchEvent(event, [&](std::optional<WebEventType>, bool handled) {
+        result = handled;
+    });
+    return result;
 }
 #endif
 
@@ -10716,7 +10746,7 @@ void WebPage::remoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier frame
     completionHandler(popupInfo);
 }
 
-void WebPage::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoint point, CompletionHandler<void(NodeHitTestResult)>&& completionHandler)
+void WebPage::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoint point, const ContentWorldData& worldData, CompletionHandler<void(NodeHitTestResult)>&& completionHandler)
 {
     RefPtr frame = WebFrame::webFrame(frameID);
     if (!frame)
@@ -10740,7 +10770,7 @@ void WebPage::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoi
             case Frame::FrameType::Remote:
                 return completionHandler( { NodeHitTestResult::RemoteFrameInfo { contentFrame->frameID(), transformedCoordinates } });
             case Frame::FrameType::Local:
-                return hitTestAtPoint(contentFrame->frameID(), transformedCoordinates, WTF::move(completionHandler));
+                return hitTestAtPoint(contentFrame->frameID(), transformedCoordinates, worldData, WTF::move(completionHandler));
             }
         }
     }
@@ -10753,7 +10783,12 @@ void WebPage::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoi
     if (!nodeWebFrame)
         return completionHandler({ });
 
-    auto handleAndInfo = nodeWebFrame->createAndPrepareToSendJSHandle(*node);
+    m_userContentController->addContentWorldIfNecessary(worldData);
+    RefPtr world = m_userContentController->worldForIdentifier(worldData.identifier);
+    if (!world)
+        return completionHandler({ });
+
+    auto handleAndInfo = nodeWebFrame->createAndPrepareToSendJSHandle(*node, *world);
     if (!handleAndInfo)
         return completionHandler({ });
 

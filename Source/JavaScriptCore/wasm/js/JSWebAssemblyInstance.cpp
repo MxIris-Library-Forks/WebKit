@@ -104,6 +104,11 @@ JSWebAssemblyInstance::JSWebAssemblyInstance(VM& vm, Structure* structure, JSWeb
 
     zeroSpan(cachedMemoryBaseSizePairs());
 
+    for (unsigned i = 0; i < m_moduleInformation->memoryCount(); ++i) {
+        if (m_moduleInformation->memory(i).isMemory64())
+            m_memoryIsMemory64Bits.set(i);
+    }
+
     m_globals = globals().data();
     memset(reinterpret_cast<uint8_t*>(globals().data()), 0, globals().size_bytes());
     for (unsigned i = 0; i < m_moduleInformation->globals.size(); ++i) {
@@ -223,6 +228,8 @@ void JSWebAssemblyInstance::visitChildrenImpl(JSCell* cell, Visitor& visitor)
     for (auto& entry : thisObject->m_constantExpressionValues)
         visitor.append(entry.value);
     for (auto& entry : thisObject->m_tagWrappers)
+        visitor.append(entry.value);
+    for (auto& entry : thisObject->m_importedGlobalWrappers)
         visitor.append(entry.value);
 }
 
@@ -466,6 +473,22 @@ JSWebAssemblyTag* JSWebAssemblyInstance::tagWrapper(unsigned index) const
     Locker locker { cellLock() };
     auto iterator = m_tagWrappers.find(index);
     if (iterator == m_tagWrappers.end())
+        return nullptr;
+    return iterator->value.get();
+}
+
+void JSWebAssemblyInstance::setImportedGlobalWrapper(VM& vm, unsigned index, JSWebAssemblyGlobal* global)
+{
+    ASSERT(global);
+    Locker locker { cellLock() };
+    m_importedGlobalWrappers.set(index, WriteBarrier<JSWebAssemblyGlobal>(vm, this, global));
+}
+
+JSWebAssemblyGlobal* JSWebAssemblyInstance::importedGlobalWrapper(unsigned index) const
+{
+    Locker locker { cellLock() };
+    auto iterator = m_importedGlobalWrappers.find(index);
+    if (iterator == m_importedGlobalWrappers.end())
         return nullptr;
     return iterator->value.get();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Igalia S.L.
+ * Copyright (C) 2026 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,28 +23,41 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "config.h"
+#include "CoreIPCGVariant.h"
 
-#include "ArgumentCoders.h"
-#include <wtf/glib/GRefPtr.h>
+#if USE(GLIB)
 
-typedef struct _GtkPrintSettings GtkPrintSettings;
-typedef struct _GtkPageSetup GtkPageSetup;
+#include <glib.h>
+#include <wtf/glib/GUniquePtr.h>
 
-namespace WebCore {
-class SelectionData;
+namespace WebKit {
+
+CoreIPCGVariant::CoreIPCGVariant(const GRefPtr<GVariant>& variant)
+    : m_typeString(g_variant_get_type_string(variant.get()))
+    , m_data(adoptGRef(g_variant_get_data_as_bytes(variant.get())))
+{
 }
 
-namespace IPC {
+CoreIPCGVariant::CoreIPCGVariant(CString&& typeString, std::span<const uint8_t> data)
+    : m_typeString(WTF::move(typeString))
+    , m_data(adoptGRef(g_bytes_new(data.data(), data.size())))
+{
+}
 
-template<> struct ArgumentCoder<GRefPtr<GtkPrintSettings>> {
-    static void encode(Encoder&, const GRefPtr<GtkPrintSettings>&);
-    static std::optional<GRefPtr<GtkPrintSettings>> decode(Decoder&);
-};
+std::span<const uint8_t> CoreIPCGVariant::data() const
+{
+    gsize size = 0;
+    const auto* data = static_cast<const uint8_t*>(g_bytes_get_data(m_data.get(), &size));
+    return unsafeMakeSpan(data, size);
+}
 
-template<> struct ArgumentCoder<GRefPtr<GtkPageSetup>> {
-    static void encode(Encoder&, const GRefPtr<GtkPageSetup>&);
-    static std::optional<GRefPtr<GtkPageSetup>> decode(Decoder&);
-};
+CoreIPCGVariant::operator GRefPtr<GVariant>() const
+{
+    GUniquePtr<GVariantType> type(g_variant_type_new(m_typeString.data()));
+    return g_variant_new_from_bytes(type.get(), m_data.get(), FALSE);
+}
 
-} // namespace IPC
+} // namespace WebKit
+
+#endif // USE(GLIB)

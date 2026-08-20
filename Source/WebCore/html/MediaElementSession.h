@@ -84,7 +84,7 @@ public:
     void unregisterWithDocument(Document&);
 
     void clientWillBeginAutoplaying() final;
-    void clientWillBeginPlayback(CompletionHandler<void(bool)>&&) final;
+    Ref<GenericPromise> clientWillBeginPlayback() final;
     bool clientWillPausePlayback() final;
     void clientCharacteristicsChanged(bool) final;
 
@@ -165,6 +165,8 @@ public:
     WEBCORE_EXPORT void addBehaviorRestriction(BehaviorRestrictions);
     WEBCORE_EXPORT void removeBehaviorRestriction(BehaviorRestrictions);
     bool hasBehaviorRestriction(BehaviorRestrictions restriction) const { return restriction & m_restrictions; }
+
+    void mediaUsageManagerSessionWillBeSuspended();
 
     inline HTMLMediaElement* element() const; // Defined in HTMLMediaElement.h.
 

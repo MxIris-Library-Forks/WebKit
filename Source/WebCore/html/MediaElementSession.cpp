@@ -64,6 +64,7 @@
 #include "VideoTrackConfiguration.h"
 #include "VideoTrackList.h"
 #include <wtf/CryptographicallyRandomNumber.h>
+#include <wtf/RunLoop.h>
 #include <wtf/RuntimeApplicationChecks.h>
 #include <wtf/TZoneMallocInlines.h>
 #include <wtf/text/StringBuilder.h>
@@ -235,6 +236,18 @@ void MediaElementSession::addMediaUsageManagerSessionIfNecessary()
 #endif
 }
 
+void MediaElementSession::mediaUsageManagerSessionWillBeSuspended()
+{
+#if ENABLE(MEDIA_USAGE)
+    // The back/forward cache keeps this MediaElementSession (and thus this flag) alive across
+    // suspend/resume, but the UI process unconditionally clears its usage-tracking map on every
+    // navigation commit, including the eventual restore commit.
+    // Reset the flag so the next updateMediaUsageIfChanged() after resuming re-adds the session
+    // before updating it, instead of sending an update for an identifier the UI process no longer has.
+    m_haveAddedMediaUsageManagerSession = false;
+#endif
+}
+
 void MediaElementSession::registerWithDocument(Document& document)
 {
 #if ENABLE(WIRELESS_PLAYBACK_TARGET)
@@ -267,14 +280,12 @@ void MediaElementSession::clientWillBeginAutoplaying()
     updateClientDataBuffering();
 }
 
-void MediaElementSession::clientWillBeginPlayback(CompletionHandler<void(bool)>&& completionHandler)
+Ref<GenericPromise> MediaElementSession::clientWillBeginPlayback()
 {
-    PlatformMediaSession::clientWillBeginPlayback([weakThis = WeakPtr { *this }, completionHandler = WTF::move(completionHandler)](bool willBegin) mutable {
+    return PlatformMediaSession::clientWillBeginPlayback()->whenSettled(RunLoop::mainSingleton(), [weakThis = WeakPtr { *this }](auto&& result) {
         RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !willBegin) {
-            completionHandler(false);
-            return;
-        }
+        if (!protectedThis || !result)
+            return GenericPromise::createAndReject();
 
         protectedThis->m_elementIsHiddenBecauseItWasRemovedFromDOM = false;
         protectedThis->updateClientDataBuffering();
@@ -284,7 +295,7 @@ void MediaElementSession::clientWillBeginPlayback(CompletionHandler<void(bool)>&
             session->willBeginPlayback();
 #endif
 
-        completionHandler(true);
+        return GenericPromise::createAndResolve();
     });
 }
 

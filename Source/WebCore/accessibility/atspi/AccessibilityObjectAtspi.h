@@ -133,6 +133,9 @@ public:
     WEBCORE_EXPORT double minimumValue() const;
     WEBCORE_EXPORT double maximumValue() const;
     WEBCORE_EXPORT double minimumIncrement() const;
+    WEBCORE_EXPORT void increment();
+    WEBCORE_EXPORT void decrement();
+    WEBCORE_EXPORT bool dismiss();
     void valueChanged(double);
 
     WEBCORE_EXPORT URL url() const;
@@ -168,6 +171,10 @@ public:
     WEBCORE_EXPORT std::pair<std::optional<unsigned>, std::optional<unsigned>> cellPosition() const;
 
     WEBCORE_EXPORT bool focus() const;
+
+    WEBCORE_EXPORT AccessibilityObjectAtspi* focusableAncestor() const;
+    WEBCORE_EXPORT AccessibilityObjectAtspi* editableAncestor() const;
+    WEBCORE_EXPORT AccessibilityObjectAtspi* highestEditableAncestor() const;
 
 private:
     AccessibilityObjectAtspi(AXCoreObject*, AccessibilityRootAtspi*);

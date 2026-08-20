@@ -7903,6 +7903,53 @@ TEST(SiteIsolation, UserScript)
     EXPECT_WK_STREQ([webView _test_waitForAlert], "script ran in iframe");
 }
 
+// A window opened with no URL has an about:blank main frame that inherits the opener frame's origin.
+// Processes seeded with that origin must be told the new one once the window navigates away.
+TEST(SiteIsolation, TopOriginInRemoteProcessesAfterMainFrameProcessSwap)
+{
+    HTTPServer server({
+        { "/top"_s, { "<!DOCTYPE html><iframe src='https://widget.com/idle'></iframe><iframe src='https://opener.com/frame'></iframe>"_s } },
+        { "/idle"_s, { "<!DOCTYPE html><p>idle</p>"_s } },
+        { "/frame"_s, { "<!DOCTYPE html><script>const w = window.open(); setTimeout(() => { w.location = 'https://landing.com/landing' }, 0)</script>"_s } },
+        { "/landing"_s, { "<!DOCTYPE html><iframe src='https://widget.com/widget'></iframe>"_s } },
+        { "/widget"_s, { "<!DOCTYPE html><script>navigator.serviceWorker.register('/sw.js').then(() => { alert('registered') })</script>"_s } },
+        { "/sw.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, "self.addEventListener('message', () => { });"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    webView.get().configuration.preferences.javaScriptCanOpenWindowsAutomatically = YES;
+
+    // The NetworkProcess terminating a Web process is reported as _WKProcessTerminationReasonCrash.
+    __block bool done = false;
+    __block bool terminatedByNetworkProcess = false;
+    navigationDelegate.get().webContentProcessDidTerminate = ^(WKWebView *, _WKProcessTerminationReason reason) {
+        terminatedByNetworkProcess = reason == _WKProcessTerminationReasonCrash;
+        done = true;
+    };
+
+    __block auto *sharedNavigationDelegate = navigationDelegate.get();
+    __block RetainPtr<TestWKWebView> openedWebView;
+    RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
+    webView.get().UIDelegate = uiDelegate.get();
+    uiDelegate.get().runJavaScriptAlertPanelWithMessage = ^(WKWebView *, NSString *, WKFrameInfo *, void (^completionHandler)(void)) {
+        done = true;
+        completionHandler();
+    };
+    uiDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
+        openedWebView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 400, 200) configuration:configuration]);
+        openedWebView.get().navigationDelegate = sharedNavigationDelegate;
+        openedWebView.get().UIDelegate = uiDelegate.get();
+        return openedWebView.get();
+    };
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://top.com/top"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    TestWebKitAPI::Util::run(&done);
+
+    EXPECT_FALSE(terminatedByNetworkProcess);
+}
+
 TEST(SiteIsolation, SharedProcessMostBasic)
 {
     HTTPServer server({
@@ -11366,6 +11413,50 @@ TEST(SiteIsolation, CrossOriginIframeWithoutHorizontalOverflowCanShortCircuitHor
     EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
         return !WKPageWillHandleHorizontalScrollEvents([webView _pageForTesting]);
     }));
+}
+
+// Hosted subtree nodes are removed without the frame-scoped pruning in commitTreeStateInternal(),
+// stranding active entries that then fail a MESSAGE_CHECK. See rdar://175191840.
+TEST(SiteIsolation, RemoveIframeWithActiveScrollProxyNodes)
+{
+    auto mainHTML = "<body style='margin:0'><iframe id='frame' src='https://webkit.org/iframe' style='width:300px;height:200px;border:none'></iframe></body>"_s;
+
+    // Overflow on html and body keeps body a composited scroller; the clipped
+    // composited banners are what give it overflow scroll proxy nodes.
+    auto iframeHTML = "<style>"
+        "  html { margin: 0; height: 100%; overflow: hidden auto; }"
+        "  body { margin: 0; height: 100%; overflow: hidden auto; position: relative; }"
+        "  #content { height: 3000px; }"
+        "  .clipper { position: relative; overflow: hidden; width: 200px; height: 100px; border-radius: 8px; }"
+        "  .banner { position: absolute; top: 10px; width: 150px; height: 50px;"
+        "            background-color: green; will-change: transform; }"
+        "</style>"
+        "<div id='content'>"
+        "  <div class='clipper'><div class='banner'></div></div>"
+        "  <div class='clipper'><div class='banner'></div></div>"
+        "</div>"
+        "<script>onload=()=>{ document.body.scrollTop = 400; alert('loaded') }</script>"_s;
+
+    HTTPServer server({
+        { "/main"_s, { mainHTML } },
+        { "/iframe"_s, { iframeHTML } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "loaded");
+    [webView waitForNextPresentationUpdate];
+
+    EXPECT_TRUE([[webView _scrollingTreeIncludingNodeIDsAsText] containsString:@"(overflow scroll proxy nodes"]);
+
+    [webView objectByEvaluatingJavaScript:@"document.getElementById('frame').remove();1"];
+    [webView waitForNextPresentationUpdate];
+    [webView waitForNextPresentationUpdate];
+
+    EXPECT_FALSE([[webView _scrollingTreeIncludingNodeIDsAsText] containsString:@"(overflow scroll proxy nodes"]);
+
+    // The UI process surviving to round-trip this is the real assertion.
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"'alive'"], "alive");
 }
 #endif
 

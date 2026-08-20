@@ -144,6 +144,11 @@ void GPUProcess::sharedPreferencesForWebProcessDidChange(WebCore::ProcessIdentif
     completionHandler();
 }
 
+void GPUProcess::securityFlagsDidChange(SecurityFlags&& securityFlags)
+{
+    m_securityFlags.replaceWith(securityFlags);
+}
+
 void GPUProcess::removeGPUConnectionToWebProcess(GPUConnectionToWebProcess& connection)
 {
     RELEASE_LOG(Process, "%p - GPUProcess::removeGPUConnectionToWebProcess: processIdentifier=%" PRIu64, this, connection.webProcessIdentifier().toUInt64());
@@ -222,6 +227,7 @@ void GPUProcess::initializeGPUProcess(GPUProcessCreationParameters&& parameters,
     CompletionHandlerCallingScope callCompletionHandler(WTF::move(completionHandler));
 
     applyProcessCreationParameters(WTF::move(parameters.auxiliaryProcessParameters));
+    m_securityFlags.replaceWith(parameters.securityFlags);
     RELEASE_LOG(Process, "%p - GPUProcess::initializeGPUProcess:", this);
     WTF::Thread::setCurrentThreadIsUserInitiated();
     WebCore::initializeCommonAtomStrings();
@@ -385,11 +391,13 @@ void GPUProcess::sinkCompletedSnapshotToPDF(RemoteSnapshotIdentifier identifier,
     if (!snapshot->isComplete()) {
         // Currently the callbacks ensure the completeness.
         ASSERT_NOT_REACHED();
+        completionHandler({ });
         return;
     }
     auto result = snapshot->drawToPDF(size, rootFrameIdentifier);
     if (!result) {
         ASSERT_NOT_REACHED();
+        completionHandler({ });
         return;
     }
     completionHandler(WTF::move(*result));
@@ -412,6 +420,7 @@ void GPUProcess::sinkCompletedSnapshotToBitmap(RemoteSnapshotIdentifier identifi
     if (!snapshot->isComplete()) {
         // Currently the callbacks ensure the completeness.
         ASSERT_NOT_REACHED();
+        completionHandler({ });
         return;
     }
     completionHandler(snapshot->drawToBitmap(size, rootFrameIdentifier));

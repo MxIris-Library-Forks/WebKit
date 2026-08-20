@@ -2407,8 +2407,6 @@ webkit.org/b/317173 [ arm64 ] fast/webgpu/nocrash/fuzz-298315.html [ Pass Crash 
 
 webkit.org/b/317857 [ Debug ] http/tests/site-isolation/frame-index.html [ Skip ]
 
-webkit.org/b/317884 imported/w3c/web-platform-tests/digital-credentials/get-non-fully-active.https.html [ Failure ]
-
 webkit.org/b/318150 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-border-area-border-shape-overflow.html [ ImageOnlyFailure ]
 webkit.org/b/318150 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-border-area-border-shape.html [ ImageOnlyFailure ]
 
@@ -2468,5 +2466,3 @@ imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.sharedwork
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.worker.html [ Failure ]
 
 webkit.org/b/322051 [ Release ] media/picture-in-picture/picture-in-picture-interruption.html [ Pass Failure ]
-
-webkit.org/b/321961 [ Debug ] imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audionode-interface/audionode-channel-rules.html [ Pass Crash ]

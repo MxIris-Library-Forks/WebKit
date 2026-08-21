@@ -4339,12 +4339,23 @@ void Quirks::determineRelevantQuirks()
     m_quirksData.setQuirkState(QuirksData::SiteSpecificQuirk::ShouldPreventOrientationMediaQueryFromEvaluatingToLandscapeQuirk, shouldPreventOrientationMediaQueryFromEvaluatingToLandscapeInternal(quirksURL));
 }
 
-bool Quirks::hasRelevantQuirks() const
+void Quirks::logQuirksToConsoleIfNecessary() const
 {
-    return !m_quirksData.activeQuirks.isEmpty();
+    RefPtr document = m_document.get();
+    if (!document)
+        return;
+
+    // FIXME: should we use log english sentences instead of the quirk enum names?
+    const auto quirks = activeQuirks();
+    if (quirks.isEmpty())
+        return;
+
+    const auto formattedQuirksList = makeStringByJoining(quirks, ", "_s);
+    const auto message = makeString(topDocumentURL().string(), " has active WebKit quirks: "_s, formattedQuirksList, ". Visit https://docs.webkit.org/Infrastructure/Quirks.html for more information."_s);
+    document->addConsoleMessage(MessageSource::Other, MessageLevel::Warning, message);
 }
 
-Vector<String> Quirks::activeQuirksForTesting() const
+Vector<String> Quirks::activeQuirks() const
 {
     Vector<String> result;
 
@@ -4353,6 +4364,11 @@ Vector<String> Quirks::activeQuirksForTesting() const
 
     std::ranges::sort(result, codePointCompareLessThan);
     return result;
+}
+
+bool Quirks::hasRelevantQuirks() const
+{
+    return !m_quirksData.activeQuirks.isEmpty();
 }
 
 }

@@ -58,6 +58,19 @@
 #include "InputMethodState.h"
 #endif
 
+#if defined(__swift__) && OS(WINDOWS)
+// The Swift C++ importer eagerly instantiates class-template members
+// (including Vector<T>::span()), and MSVC's STL rejects std::span<T> when T
+// is incomplete.
+#include "WebFoundTextRange.h"
+#include "WebPopupItem.h"
+#include <WebCore/MarkupExclusionRule.h>
+#include <WebCore/SearchPopupMenu.h>
+#include <WebCore/TextExtractionTypes.h>
+#include <WebCore/TextManipulationControllerManipulationFailure.h>
+#include <WebCore/TextManipulationItem.h>
+#endif
+
 namespace API {
 class Attachment;
 class ContentWorld;
@@ -2952,6 +2965,8 @@ public:
 
     void closeCurrentTypingCommand();
 
+    void receivedQualifiedServerTrust(WebCore::CertificateInfo&&, WebCore::CertificateInfo&&);
+
     void simulateClickOverFirstMatchingTextInViewportWithUserInteraction(String&& targetText, CompletionHandler<void(bool)>&&);
 
     void startNetworkRequestsForPageLoadTiming(WebCore::FrameIdentifier);
@@ -4018,13 +4033,14 @@ private:
     double m_pageLength { 0 };
     double m_gapBetweenPages { 0 };
 
+    std::optional<WebCore::FrameIdentifier> m_printingFrameID;
+
     // Whether WebPageProxy::close() has been called on this page.
     bool m_isClosed { false };
 
     // Whether it can run modal child web pages.
     bool m_canRunModal { false };
 
-    bool m_isInPrintingMode { false };
     bool m_isPerformingDOMPrintOperation { false };
 
     bool m_hasUpdatedRenderingAfterDidCommitLoad { true };

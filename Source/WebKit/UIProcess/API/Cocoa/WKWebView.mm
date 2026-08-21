@@ -998,6 +998,9 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
     if ([key isEqualToString:@"serverTrust"])
         return (__bridge id)[self serverTrust];
 
+    if ([key isEqualToString:@"qualifiedServerTrust"])
+        return (__bridge id)[self qualifiedServerTrust];
+
     return [super valueForUndefinedKey:key];
 }
 
@@ -1200,6 +1203,11 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
 - (SecTrustRef)serverTrust
 {
     return _page->pageLoadState().certificateInfo().trust().get();
+}
+
+- (SecTrustRef)qualifiedServerTrust
+{
+    return _page->pageLoadState().qualifiedServerTrust().trust();
 }
 
 - (void)_didAccessBackForwardList
@@ -4526,6 +4534,10 @@ FOR_EACH_PRIVATE_WKCONTENTVIEW_ACTION(FORWARD_ACTION_TO_WKCONTENTVIEW)
 
     if (wasEditable == editable)
         return;
+
+#if PLATFORM(MAC) && ENABLE(CONTENT_INSET_BACKGROUND_FILL)
+    _impl->updateScrollPocketVisibilityWhenScrolledToTopAndNonEditable();
+#endif
 
 #if PLATFORM(IOS_FAMILY)
     [_contentView _didChangeWebViewEditability];

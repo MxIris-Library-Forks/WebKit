@@ -830,15 +830,13 @@ webkit.org/b/206708 fast/animation/request-animation-frame-iframe.html [ Pass Fa
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-transform.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-write-twice-transform.https.html [ Pass Failure ]
 
-webkit.org/b/206903 inspector/heap/getRemoteObject.html [ Pass Crash Failure ]
+webkit.org/b/206903 inspector/heap/getRemoteObject.html [ Pass Crash ]
 
 webkit.org/b/207141 [ Debug ] inspector/canvas/create-context-bitmaprenderer.html [ Pass Failure ]
 
 webkit.org/b/207166 http/wpt/mediarecorder/MediaRecorder-AV-audio-video-dataavailable-gpuprocess.html [ Pass Failure ]
 
 webkit.org/b/228934 inspector/canvas/shaderProgram-add-remove-webgl2.html [ Pass Crash Timeout Failure ]
-
-webkit.org/b/207209 inspector/heap/getPreview.html [ Pass Failure Timeout ]
 
 webkit.org/b/207269 [ Debug ] http/tests/websocket/tests/hybi/server-close.html [ Pass Crash ]
 

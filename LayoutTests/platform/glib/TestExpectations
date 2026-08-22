@@ -608,6 +608,8 @@ media/media-source/media-source-video-seek-pause.html [ Failure Pass ]
 # GStreamer incorrectly demux the webm and creates gaps.
 webkit.org/b/266195 media/media-source/media-managedmse-multipletracks-bufferedchange.html [ Failure ]
 
+webkit.org/b/322164 media/media-source/media-source-real-webm-backwards-timecode.html [ Failure ]
+
 # Support to pause with 0 rate playback seems to work only in GStreamer ports
 media/media-source/media-source-play-zero-playbackrate.html [ Pass ]
 
@@ -1585,6 +1587,13 @@ webkit.org/b/178441 editing/deleting/delete-ligature-003.html [ Failure ]
 webkit.org/b/239345 editing/execCommand/insert-ordered-list-and-delete.html [ Failure Pass ]
 
 webkit.org/b/179605 editing/execCommand/underline-selection-containing-image.html [ Failure ]
+
+# Moving the selection out of a composition only aborts the composition on macOS, where
+# Editor::selectionWillChange() cancels it. That function is an empty stub on every other
+# port, so no compositionend is dispatched. Same gap as
+# fast/events/ime-compositionend-on-selection-change.html.
+editing/input/compositionend-after-clicking-outside-editable.html [ Failure ]
+editing/input/compositionend-data-after-aborting-composition.html [ Failure ]
 
 # Assertion failure if ASSERT_ENABLED
 webkit.org/b/286128 [ Release ] editing/inserting/insert-list-user-select-none-crash.html [ Crash Pass Timeout ]
@@ -5209,8 +5218,6 @@ webkit.org/b/315294 [ Release ] imported/w3c/web-platform-tests/preload/prefetch
 webkit.org/b/315517 imported/w3c/web-platform-tests/css/css-values/attr-pseudo-elem-invalidation-2.html [ Failure ]
 
 webkit.org/b/315756 fast/css/container-query-orientation-modal-dialog-crash.html [ Crash Pass ]
-
-webkit.org/b/315925 inspector/heap/getRemoteObject.html [ Failure Pass ]
 
 webkit.org/b/316158 fullscreen/full-screen-enter-while-exiting-mid-completion-handler.html [ Crash Pass ]
 

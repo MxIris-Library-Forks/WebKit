@@ -54,11 +54,15 @@ public:
     RenderListMarker(RenderListItem&, Style::ComputedStyle&&);
     virtual ~RenderListMarker();
 
-    String textWithoutSuffix() const { return m_textContent.textWithoutSuffix().toString(); };
-    String textWithSuffix() const { return m_textContent.textWithSuffix; };
+    enum class IncludeSuffix : bool { No, Yes };
+    String textContent(IncludeSuffix includeSuffix = IncludeSuffix::Yes) const
+    {
+        return includeSuffix == IncludeSuffix::Yes ? m_textContent.textWithSuffix : m_textContent.textWithoutSuffix().toString();
+    }
 
     bool NODELETE isInside() const;
     bool isDisclosureMarker() const;
+    bool synthesizesGlyph() const;
 
     void updateInlineMarginsAndContent();
 
@@ -128,7 +132,6 @@ private:
     void paintDisclosureMarker(GraphicsContext&, const FloatRect& markerRect);
 
     RefPtr<CSSRegisteredCounterStyle> counterStyle() const;
-    bool drawsBulletShape() const;
     bool textNeedsBidiResolution() const;
 
 private:

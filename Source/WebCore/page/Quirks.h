@@ -380,10 +380,13 @@ public:
     bool NODELETE shouldSendFakeTouchForceChangeEvent() const;
 #endif
 
+#if PLATFORM(COCOA)
+    bool needsWebKitMediaKeysTransportStreamIsTypeSupportedQuirk() const;
+#endif
+
 private:
     bool needsQuirks() const;
     bool isDomain(const String&) const;
-    bool domainStartsWith(const String&) const;
     bool isEmbedDomain(const String&) const;
     bool isYoutubeEmbedDomain() const;
 

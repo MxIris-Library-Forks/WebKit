@@ -1751,6 +1751,24 @@ bool Internals::areTimersThrottled() const
     return contextDocument()->isTimerThrottlingEnabled();
 }
 
+double Internals::domTimerAlignmentInterval() const
+{
+    RefPtr document = contextDocument();
+    RefPtr page = document ? document->page() : nullptr;
+    if (!page)
+        return 0;
+    return page->domTimerAlignmentInterval().milliseconds();
+}
+
+double Internals::domTimerAlignmentIntervalIncreaseLimit() const
+{
+    RefPtr document = contextDocument();
+    RefPtr page = document ? document->page() : nullptr;
+    if (!page)
+        return 0;
+    return page->domTimerAlignmentIntervalIncreaseLimit().milliseconds();
+}
+
 void Internals::setEventThrottlingBehaviorOverride(std::optional<EventThrottlingBehavior> value)
 {
     Document* document = contextDocument();
@@ -4285,6 +4303,15 @@ void Internals::setFooterHeight(float height)
         return;
 
     document->page()->setFooterHeight(height);
+}
+
+float Internals::obscuredContentInsetTop()
+{
+    RefPtr document = contextDocument();
+    if (!document || !document->page())
+        return 0;
+
+    return protect(document->page())->obscuredContentInsets().top();
 }
 
 void Internals::setFullscreenInsets(FullscreenInsets insets)

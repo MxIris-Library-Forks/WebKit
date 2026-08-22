@@ -925,6 +925,8 @@ enum ContentsFormat {
     undefined setHeaderHeight(unrestricted float height);
     undefined setFooterHeight(unrestricted float height);
 
+    float obscuredContentInsetTop();
+
     undefined setFullscreenInsets(FullscreenInsets insets);
     undefined setFullscreenAutoHideDuration(double duration);
 
@@ -961,6 +963,9 @@ enum ContentsFormat {
 
     DOMString requestAnimationFrameThrottlingReasons();
     boolean areTimersThrottled();
+
+    double domTimerAlignmentInterval();
+    double domTimerAlignmentIntervalIncreaseLimit();
 
     undefined setLowPowerModeEnabled(boolean enabled);
     undefined setAggressiveThermalMitigationEnabled(boolean enabled);

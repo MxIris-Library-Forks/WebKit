@@ -284,6 +284,7 @@ fullscreen
 http/tests/fullscreen
 imported/w3c/web-platform-tests/fullscreen
 compositing/no-compositing-when-full-screen-is-present.html
+http/tests/site-isolation/viewer-mode-fullscreens-owner-iframe.html
 webkit.org/b/200308 fast/events/touch/ios/content-observation/non-visible-content-change-in-fullscreen-mode.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-interactions.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/popovers/popover-top-layer-combinations.html [ Skip ]
@@ -1639,6 +1640,13 @@ webkit.org/b/180275 editing/caret/color-span-inside-editable-background.html [ I
 webkit.org/b/180725 editing/caret/color-span-inside-editable.html [ ImageOnlyFailure ]
 
 webkit.org/b/180286 editing/input/editable-container-with-word-wrap-normal.html [ Failure ]
+
+# Moving the selection out of a composition only aborts the composition on macOS, where
+# Editor::selectionWillChange() cancels it. That function is an empty stub on every other
+# port, so no compositionend is dispatched. Same gap as
+# fast/events/ime-compositionend-on-selection-change.html.
+editing/input/compositionend-after-clicking-outside-editable.html [ Failure ]
+editing/input/compositionend-data-after-aborting-composition.html [ Failure ]
 
 # Font tests that fail:
 fonts/font-fallback-prefers-pictographs.html [ ImageOnlyFailure ]
@@ -10019,3 +10027,5 @@ http/tests/resourceLoadStatistics/website-data-removal-for-site-navigated-to-wit
 
 # rdar://175824217 (New Test (312034@main): imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-plus-filter-2.html is a constant IMAGE failure on iOS 26 and later.)
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-plus-filter-2.html [ ImageOnlyFailure ]
+
+webkit.org/b/322305 fast/visual-viewport/ios/interactive-widget/resizes-content-orientation-rotations.html [ Failure ]

@@ -69,7 +69,7 @@ template<typename T> struct DefaultRefDerefTraits {
 };
 
 template<typename T>
-concept CanUseDefaultRefDerefTraits = HasRefPtrMemberFunctions<T>::value || !DefaultRefDerefTraits<T>::isDefaultImplementation;
+concept CanUseDefaultRefDerefTraits = HasRefPtrMemberFunctions<T> || !DefaultRefDerefTraits<T>::isDefaultImplementation;
 
 template<typename T, typename PtrTraits, typename RefDerefTraits> class Ref;
 template<typename T, typename PtrTraits = RawPtrTraits<T>, typename RefDerefTraits = DefaultRefDerefTraits<T>> Ref<T, PtrTraits, RefDerefTraits> adoptRef(T&);
@@ -111,14 +111,14 @@ public:
     {
     }
 
-    Ref(Ref&& other)
+    Ref(Ref&& other) noexcept
         : m_ptr(&other.leakRef())
     {
         ASSERT(m_ptr);
     }
 
     template<typename X, typename Y>
-    Ref(Ref<X, Y>&& other)
+    Ref(Ref<X, Y>&& other) noexcept
         : m_ptr(&other.leakRef())
     {
         ASSERT(m_ptr);

@@ -1580,12 +1580,16 @@ void WebPageProxy::setBrowsingContextGroup(BrowsingContextGroup& browsingContext
     if (protectedBrowsingContextGroup.ptr() == &browsingContextGroup)
         return;
 
+    m_browsingContextGroup = browsingContextGroup;
+
     if (protect(preferences())->siteIsolationEnabled()) {
         protectedBrowsingContextGroup->removePage(*this);
         browsingContextGroup.addPage(*this);
-    }
 
-    m_browsingContextGroup = browsingContextGroup;
+        protect(browsingContextGroup)->forEachRemotePage(*this, [drawingArea = m_drawingArea](auto& remotePageProxy) {
+            remotePageProxy.setDrawingArea(drawingArea.get());
+        });
+    }
 }
 
 #if ENABLE(VIDEO)
@@ -1646,6 +1650,7 @@ void WebPageProxy::swapToProvisionalPage(Ref<ProvisionalPageProxy>&& provisional
 
     ASSERT(!m_mainFrame);
     m_mainFrame = provisionalPage->mainFrame();
+
     ASSERT(!m_drawingArea);
     setDrawingArea(provisionalPage->takeDrawingArea());
 
@@ -6328,7 +6333,7 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
         topDocumentSyncData->documentURL = request.url();
         topDocumentSyncData->documentSecurityOrigin = SecurityOrigin::create(request.url());
         setTopDocumentSyncData(topDocumentSyncData.copyRef());
-        protect(legacyMainFrameProcess())->send(Messages::WebPage::LoadDidCommitInAnotherProcess(*oldMainFrameID, provisionalPage->process().coreProcessIdentifier(), std::nullopt, WTF::move(topDocumentSyncData)), webPageIDInMainFrameProcess());
+        protect(legacyMainFrameProcess())->sendWithAsyncReply(Messages::WebPage::LoadDidCommitInAnotherProcess(*oldMainFrameID, provisionalPage->process().coreProcessIdentifier(), std::nullopt, WTF::move(topDocumentSyncData)), [] { }, webPageIDInMainFrameProcess());
         protect(m_browsingContextGroup)->transitionPageToRemotePage(*this, *provisionalPage->deferredRemoteTransitionSite());
     }
 
@@ -16568,7 +16573,7 @@ void WebPageProxy::hasMarkedText(CompletionHandler<void(bool)>&& callback)
         callback(false);
         return;
     }
-    sendWithAsyncReply(Messages::WebPage::HasMarkedText(), WTF::move(callback));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::HasMarkedText(), WTF::move(callback));
 }
 
 void WebPageProxy::isMarkedTextRequiredForComposition(CompletionHandler<void(bool)>&& callback)
@@ -16577,7 +16582,7 @@ void WebPageProxy::isMarkedTextRequiredForComposition(CompletionHandler<void(boo
         callback(false);
         return;
     }
-    sendWithAsyncReply(Messages::WebPage::IsMarkedTextRequiredForComposition(), WTF::move(callback));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::IsMarkedTextRequiredForComposition(), WTF::move(callback));
 }
 
 void WebPageProxy::getMarkedRangeAsync(CompletionHandler<void(const EditingRange&)>&& callbackFunction)
@@ -16587,7 +16592,7 @@ void WebPageProxy::getMarkedRangeAsync(CompletionHandler<void(const EditingRange
         return;
     }
 
-    sendWithAsyncReply(Messages::WebPage::GetMarkedRangeAsync(), WTF::move(callbackFunction));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::GetMarkedRangeAsync(), WTF::move(callbackFunction));
 }
 
 void WebPageProxy::getSelectedRangeAsync(CompletionHandler<void(const EditingRange& selectedRange, const EditingRange& compositionRange)>&& callbackFunction)
@@ -16597,11 +16602,12 @@ void WebPageProxy::getSelectedRangeAsync(CompletionHandler<void(const EditingRan
         return;
     }
 
-    sendWithAsyncReply(Messages::WebPage::GetSelectedRangeAsync(), WTF::move(callbackFunction));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::GetSelectedRangeAsync(), WTF::move(callbackFunction));
 }
 
 void WebPageProxy::characterIndexForPointAsync(const WebCore::IntPoint& point, CompletionHandler<void(uint64_t)>&& callbackFunction)
 {
+    // FIXME: This needs to use `sendWithAsyncReplyToFocusedOrMainFrameProcess` and convert to frame coordinates.
     sendWithAsyncReply(Messages::WebPage::CharacterIndexForPointAsync(point), WTF::move(callbackFunction));
 }
 
@@ -16610,7 +16616,15 @@ void WebPageProxy::firstRectForCharacterRangeAsync(const EditingRange& range, Co
     if (!hasRunningProcess())
         return callbackFunction({ }, { });
 
-    sendWithAsyncReply(Messages::WebPage::FirstRectForCharacterRangeAsync(range), WTF::move(callbackFunction));
+    RefPtr frame = focusedOrMainFrame();
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::FirstRectForCharacterRangeAsync(range), [protectedThis = Ref { *this }, frame, callbackFunction = WTF::move(callbackFunction)](const WebCore::IntRect& rect, const EditingRange& actualRange) mutable {
+        if (!frame)
+            return callbackFunction(rect, actualRange);
+
+        protectedThis->convertRectToMainFrameCoordinates(WebCore::FloatRect(rect), frame->rootFrame()->frameID(), [callbackFunction = WTF::move(callbackFunction), rect, actualRange](std::optional<WebCore::FloatRect> convertedRect) mutable {
+            callbackFunction(convertedRect ? WebCore::enclosingIntRect(*convertedRect) : rect, actualRange);
+        });
+    });
 }
 
 void WebPageProxy::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const HashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selectionRange, const EditingRange& replacementRange)
@@ -19214,6 +19228,13 @@ void WebPageProxy::sendToFocusedOrMainFrameProcess(M&& message, OptionSet<IPC::S
 {
     RefPtr frame = focusedOrMainFrame();
     sendToProcessContainingFrame(frame ? std::optional(frame->frameID()) : std::nullopt, std::forward<M>(message), options);
+}
+
+template<typename M, typename C>
+std::optional<IPC::AsyncReplyID> WebPageProxy::sendWithAsyncReplyToFocusedOrMainFrameProcess(M&& message, C&& completionHandler, OptionSet<IPC::SendOption> options)
+{
+    RefPtr frame = focusedOrMainFrame();
+    return sendWithAsyncReplyToProcessContainingFrame(frame ? std::optional(frame->frameID()) : std::nullopt, std::forward<M>(message), std::forward<C>(completionHandler), options);
 }
 
 template<typename M>

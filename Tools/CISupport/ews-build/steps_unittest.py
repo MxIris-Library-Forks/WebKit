@@ -56,6 +56,12 @@ from .steps import *
 FakeBuild.addStepsAfterCurrentStep = lambda FakeBuild, step_factories: None
 FakeBuild._builderid = 1
 
+# Several tests below replace FindUnexpectedStaticAnalyzerResults methods on the class rather than
+# with self.patch, so the replacements outlive the test that made them. Capture the real
+# implementations here, at import time, so tests that need them can patch them back.
+REAL_FILTER_RESULTS_USING_RESULTS_DB = FindUnexpectedStaticAnalyzerResults.filter_results_using_results_db
+REAL_WRITE_UNEXPECTED_RESULTS_FILE_TO_MASTER = FindUnexpectedStaticAnalyzerResults.write_unexpected_results_file_to_master
+
 # Prevent unit-tests from talking to live bugzilla and github servers
 BugzillaMixin.fetch_data_from_url_with_authentication_bugzilla = lambda x, y: None
 GitHubMixin.fetch_data_from_url_with_authentication_github = lambda x, y: None
@@ -2169,23 +2175,6 @@ ts","version":4,"num_passes":42158,"pixel_tests_enabled":false,"date":"11:28AM o
             .exit(2),
         )
         self.expect_outcome(result=FAILURE, state_string='layout-tests (failure)')
-        return self.run_step()
-
-    def test_success_wpt_import_bot(self):
-        self.configureStep()
-        self.setProperty('fullPlatform', 'ios-simulator')
-        self.setProperty('configuration', 'release')
-        self.setProperty('patch_author', 'webkit-wpt-import-bot@igalia.com')
-        self.expectRemoteCommands(
-            ExpectShell(workdir='wkdir',
-                        logfiles={'json': self.jsonFileName},
-                        log_environ=False,
-                        timeout=19800,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --release --results-directory layout-test-results --debug-rwt-logging imported/w3c/web-platform-tests 2>&1 | Tools/Scripts/filter-test-logs layout'],
-                        )
-            .exit(0),
-        )
-        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
         return self.run_step()
 
     def test_failure_no_failure_limits(self):
@@ -7144,6 +7133,8 @@ ProductName:		macOS
 ProductVersion:		15.7.3
 BuildVersion:		24G419
 '''),
+            ExpectShell(command=['uname', '-m'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
+            .log('stdio', stdout='arm64\n'),
             ExpectShell(command=['system_profiler', 'SPSoftwareDataType', 'SPHardwareDataType'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
             .log('stdio', stdout='Configuration version: Software: System Software Overview: System Version: macOS 11.4 (20F71) Kernel Version: Darwin 20.5.0 Boot Volume: Macintosh HD Boot Mode: Normal Computer Name: bot1020 User Name: WebKit Build Worker (buildbot) Secure Virtual Memory: Enabled System Integrity Protection: Enabled Time since boot: 27 seconds Hardware: Hardware Overview: Model Name: Mac mini Model Identifier: Macmini8,1 Processor Name: 6-Core Intel Core i7 Processor Speed: 3.2 GHz Number of Processors: 1 Total Number of Cores: 6 L2 Cache (per Core): 256 KB L3 Cache: 12 MB Hyper-Threading Technology: Enabled Memory: 32 GB System Firmware Version: 1554.120.19.0.0 (iBridge: 18.16.14663.0.0,0) Serial Number (system): C07DXXXXXXXX Hardware UUID: F724DE6E-706A-5A54-8D16-000000000000 Provisioning UDID: E724DE6E-006A-5A54-8D16-000000000000 Activation Lock Status: Disabled Xcode 12.5 Build version 12E262'),
             ExpectShell(command=['cat', '/usr/share/zoneinfo/+VERSION'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
@@ -7181,6 +7172,8 @@ Build version 17C52''')
             .log('stdio', stdout='''ProductName:	macOS
 ProductVersion:	14.5
 BuildVersion:	23F79'''),
+            ExpectShell(command=['uname', '-m'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
+            .log('stdio', stdout='arm64\n'),
             ExpectShell(command=['system_profiler', 'SPSoftwareDataType', 'SPHardwareDataType'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
             .log('stdio', stdout='Sample system information'),
             ExpectShell(command=['cat', '/usr/share/zoneinfo/+VERSION'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
@@ -7208,6 +7201,7 @@ Build version 15F31d''')
 
         self.expectRemoteCommands(*self.mac_remote_commands)
         self.expect_outcome(result=SUCCESS, state_string='OS: Sequoia (15.7.3), Xcode: 26.2')
+        self.expect_property('machine_architecture', 'arm64')
         return self.run_step()
 
     @defer.inlineCallbacks
@@ -7276,6 +7270,8 @@ Build version 15F31d''')
             .log('stdio', stdout='''ProductName:	macOS
 ProductVersion:	14.5
 BuildVersion:	23F79'''),
+            ExpectShell(command=['uname', '-m'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
+            .log('stdio', stdout='arm64\n'),
             ExpectShell(command=['system_profiler', 'SPSoftwareDataType', 'SPHardwareDataType'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
             .log('stdio', stdout='Sample system information'),
             ExpectShell(command=['cat', '/usr/share/zoneinfo/+VERSION'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
@@ -7300,11 +7296,15 @@ BuildVersion:	23F79'''),
             .log('stdio', stdout='Tue Apr  9 15:30:52 PDT 2019'),
             ExpectShell(command=['uname', '-a'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
             .log('stdio', stdout='''Linux kodama-ews 5.0.4-arch1-1-ARCH #1 SMP PREEMPT Sat Mar 23 21:00:33 UTC 2019 x86_64 GNU/Linux'''),
+            ExpectShell(command=['uname', '-m'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
+            .log('stdio', stdout='aarch64\n'),
             ExpectShell(command=['uptime'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
             .log('stdio', stdout=' 6:31  up 22 seconds, 12:05, 2 users, load averages: 3.17 7.23 5.45'),
             ExpectShell(command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'if test -f /etc/build-info; then cat /etc/build-info; else cat /etc/os-release; fi'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
         )
         self.expect_outcome(result=SUCCESS, state_string='Printed configuration')
+        # uname reports aarch64, GLibPort and results.webkit.org call the same architecture arm64.
+        self.expect_property('machine_architecture', 'arm64')
         return self.run_step()
 
     def test_success_linux_gtk(self):
@@ -7316,6 +7316,8 @@ BuildVersion:	23F79'''),
             ExpectShell(command=['df', '-hl', '--exclude-type=fuse.portal'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
             ExpectShell(command=['date'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
             ExpectShell(command=['uname', '-a'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
+            ExpectShell(command=['uname', '-m'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
+            .log('stdio', stdout='aarch64\n'),
             ExpectShell(command=['uptime'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
             ExpectShell(command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'if test -f /etc/build-info; then cat /etc/build-info; else cat /etc/os-release; fi'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
         )
@@ -7341,6 +7343,8 @@ BuildVersion:	23F79'''),
   File "/usr/lib/python2.7/os.py", line 382, in _execvpe
     func(fullname, *argrest)
 OSError: [Errno 2] No such file or directory'''),
+            ExpectShell(command=['uname', '-m'], workdir='wkdir', timeout=60, log_environ=False).exit(0)
+            .log('stdio', stdout='arm64\n'),
             ExpectShell(command=['system_profiler', 'SPSoftwareDataType', 'SPHardwareDataType'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
             ExpectShell(command=['cat', '/usr/share/zoneinfo/+VERSION'], workdir='wkdir', timeout=60, log_environ=False).exit(0),
             ExpectShell(command=['xcodebuild', '-sdk', '-version'], workdir='wkdir', timeout=60, log_environ=False)
@@ -8804,6 +8808,84 @@ class TestCheckOutSource(BuildStepMixinAdditions, unittest.TestCase):
             )
         )
         self.expect_outcome(result=FAILURE, state_string='Failed to updated working directory')
+        return self.run_step()
+
+
+class TestShowWebKitVersion(BuildStepMixinAdditions, unittest.TestCase):
+    def setUp(self):
+        self.longMessage = True
+        return self.setup_test_build_step()
+
+    def tearDown(self):
+        return self.tear_down_test_build_step()
+
+    def configureStep(self, platform):
+        self.setup_step(ShowWebKitVersion())
+        self.setProperty('platform', platform)
+
+    def test_version_for_wpe(self):
+        self.configureStep('wpe')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=60,
+                        log_environ=False,
+                        command=['grep', 'SET_PROJECT_VERSION', 'Source/cmake/OptionsWPE.cmake'])
+            .log('stdio', stdout='SET_PROJECT_VERSION(2 53 3)\n')
+            .exit(0),
+        )
+        # GLibPort uploads the port release rather than the OS version, and drops the micro version.
+        self.expect_outcome(result=SUCCESS, state_string='WebKit version: 2.53')
+        rc = self.run_step()
+        self.expect_property('webkit_version', '2.53')
+        return rc
+
+    def test_version_for_gtk(self):
+        self.configureStep('gtk')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=60,
+                        log_environ=False,
+                        command=['grep', 'SET_PROJECT_VERSION', 'Source/cmake/OptionsGTK.cmake'])
+            .log('stdio', stdout='SET_PROJECT_VERSION(2 48 0)\n')
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='WebKit version: 2.48')
+        rc = self.run_step()
+        self.expect_property('webkit_version', '2.48')
+        return rc
+
+    def test_a_missing_options_file_does_not_fail_the_build(self):
+        # grep exits 1 when there is nothing to find, so the step reports that honestly. The version
+        # is best effort, so flunkOnFailure keeps it off the build's verdict.
+        self.configureStep('gtk')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=60,
+                        log_environ=False,
+                        command=['grep', 'SET_PROJECT_VERSION', 'Source/cmake/OptionsGTK.cmake'])
+            .exit(1),
+        )
+        self.expect_outcome(result=FAILURE, state_string='Failed to find WebKit version')
+        rc = self.run_step()
+        self.assertIsNone(self.get_nth_step(0).getProperty('webkit_version'))
+        self.assertFalse(ShowWebKitVersion.flunkOnFailure)
+        self.assertFalse(ShowWebKitVersion.haltOnFailure)
+        return rc
+
+    def test_the_step_is_skipped_on_a_platform_that_has_no_project_version(self):
+        # Only the GLib ports keep a version in the checkout, and doStepIf decides that. It is also
+        # called from hideStepIf, so anything it raises surfaces as a buildbot error, not a red step.
+        self.configureStep('mac')
+        self.expectRemoteCommands()
+        self.expect_outcome(result=SKIPPED, state_string='Failed to find WebKit version')
+        rc = self.run_step()
+        self.assertIsNone(self.get_nth_step(0).getProperty('webkit_version'))
+        return rc
+
+    def test_apple_platforms_do_not_run_it(self):
+        self.configureStep('mac')
+        self.expectRemoteCommands()
+        self.expect_outcome(result=SKIPPED)
         return self.run_step()
 
 
@@ -11646,6 +11728,68 @@ class TestFindUnexpectedStaticAnalyzerResults(BuildStepMixinAdditions, unittest.
         self.assertEqual([], next_steps)
         return rc
 
+    def configureResultsDatabase(self, rows_by_test):
+        self.patch(FindUnexpectedStaticAnalyzerResults, 'filter_results_using_results_db', REAL_FILTER_RESULTS_USING_RESULTS_DB)
+        self.patch(FindUnexpectedStaticAnalyzerResults, 'write_unexpected_results_file_to_master', REAL_WRITE_UNEXPECTED_RESULTS_FILE_TO_MASTER)
+        self.patch(ResultsDatabase, 'has_commit', classmethod(lambda cls, commit=None: defer.succeed(True)))
+
+        def fake_get_results(cls, suite, test=None, commit=None, configuration=None, logger=None):
+            if test is None:
+                return defer.succeed([{'results': [{'actual': 'FAIL'}]}])
+            return defer.succeed(rows_by_test.get(test, []))
+
+        self.patch(ResultsDatabase, 'get_results', classmethod(fake_get_results))
+
+    def expectCheckExpectationsCommand(self, stdout):
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        log_environ=False,
+                        logfiles={'json': self.jsonFileName},
+                        command=['python3', 'Tools/Scripts/compare-static-analysis-results', 'wkdir/build/new', '--build-output', SCAN_BUILD_OUTPUT_DIR, '--check-expectations', '--platform', 'mac'],
+                        env={'RESULTS_SERVER_API_KEY': 'test-api-key'})
+            .log('stdio', stdout=stdout)
+            .exit(0),
+        )
+
+    @defer.inlineCallbacks
+    def test_no_results_db_data_rebuilds_without_change(self):
+        self.configureStep(True)
+        FindUnexpectedStaticAnalyzerResults.decode_results_data = lambda self: {'passes': {'WebCore': {'UncountedCallArgsChecker': []}}, 'failures': {'WebCore': {'UncountedCallArgsChecker': ['Modules/webtransport/DatagramSink.cpp']}}}
+        self.configureResultsDatabase({})
+        next_steps = []
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda s: next_steps.extend(s))
+        self.expectCheckExpectationsCommand('Total unexpected issues: 1\nTotal unexpected failing files: 1\n')
+        self.expect_outcome(result=SUCCESS, state_string='1 new issue 1 failing file ')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertEqual([ValidateChange(verifyBugClosed=False, addURLs=False), RevertAppliedChanges(exclude=['new*', 'scan-build-output*']), ScanBuildWithoutChange()], next_steps)
+
+    @defer.inlineCallbacks
+    def test_no_results_db_data_for_failures_escalates_despite_empty_passes(self):
+        self.configureStep(True)
+        FindUnexpectedStaticAnalyzerResults.decode_results_data = lambda self: {'passes': {}, 'failures': {'WebCore': {'UncountedCallArgsChecker': ['Modules/webtransport/DatagramSink.cpp']}}}
+        self.configureResultsDatabase({})
+        next_steps = []
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda s: next_steps.extend(s))
+        self.expectCheckExpectationsCommand('Total unexpected issues: 1\nTotal unexpected failing files: 1\n')
+        self.expect_outcome(result=SUCCESS, state_string='1 new issue 1 failing file ')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertEqual([ValidateChange(verifyBugClosed=False, addURLs=False), RevertAppliedChanges(exclude=['new*', 'scan-build-output*']), ScanBuildWithoutChange()], next_steps)
+
+    @defer.inlineCallbacks
+    def test_pre_existing_failure_is_filtered_without_rebuilding(self):
+        self.configureStep(True)
+        FindUnexpectedStaticAnalyzerResults.decode_results_data = lambda self: {'passes': {'WebCore': {'UncountedCallArgsChecker': []}}, 'failures': {'WebCore': {'UncountedCallArgsChecker': ['Modules/webtransport/DatagramSink.cpp']}}}
+        self.configureResultsDatabase({'WebCore/Modules/webtransport/DatagramSink.cpp/UncountedCallArgsChecker': [{'results': [{'actual': 'FAIL'}]}]})
+        next_steps = []
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda s: next_steps.extend(s))
+        self.expectCheckExpectationsCommand('Total unexpected issues: 1\nTotal unexpected failing files: 1\n')
+        self.expect_outcome(result=SUCCESS, state_string='Found no unexpected results')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertEqual([], next_steps)
+
 
 class TestDownloadUnexpectedResultsfromMaster(BuildStepMixinAdditions, unittest.TestCase):
     READ_LIMIT = 1000
@@ -12186,22 +12330,33 @@ class TestResultsDatabaseFailureHandling(unittest.TestCase):
         self.assertNotIn('Reported WithinStepDirtyTree flaky tests:', logs)
 
     @defer.inlineCallbacks
-    def test_does_result_match_returns_none_on_request_failure_even_with_default(self):
+    def test_does_result_match_returns_none_on_request_failure(self):
         with self._mock_twisted_request(None):
             result = yield ResultsDatabase.does_result_match(
                 'JavaScriptCore/b3/air/AirAllocateStackByGraphColoring.cpp/NoDeleteChecker',
-                result_type='FAIL', suite='safer-cpp-checks', default='PASS',
+                result_type='FAIL', suite='safer-cpp-checks',
             )
         self.assertIsNone(result)
 
     @defer.inlineCallbacks
-    def test_does_result_match_uses_default_on_empty_success(self):
+    def test_does_result_match_returns_none_when_there_is_no_result_for_the_test(self):
         with self._mock_twisted_request(self._ok_response([])):
             result = yield ResultsDatabase.does_result_match(
-                'foo.cpp/Checker', result_type='FAIL', suite='safer-cpp-checks', default='PASS',
+                'foo.cpp/Checker', result_type='FAIL', suite='safer-cpp-checks',
             )
-        self.assertIsNotNone(result)
-        self.assertFalse(result['does_result_match'])
+        self.assertIsNone(result)
+
+    @defer.inlineCallbacks
+    def test_does_result_match_compares_a_real_result(self):
+        with self._mock_twisted_request(self._ok_response([{'results': [{'actual': 'FAIL'}]}])):
+            failing = yield ResultsDatabase.does_result_match(
+                'foo.cpp/Checker', result_type='FAIL', suite='safer-cpp-checks',
+            )
+            passing = yield ResultsDatabase.does_result_match(
+                'foo.cpp/Checker', result_type='PASS', suite='safer-cpp-checks',
+            )
+        self.assertTrue(failing['does_result_match'])
+        self.assertFalse(passing['does_result_match'])
 
     @defer.inlineCallbacks
     def test_is_test_pre_existing_failure_flags_request_failure(self):

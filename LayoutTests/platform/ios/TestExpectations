@@ -3158,6 +3158,9 @@ fast/canvas/webgl/texImage2D-mse-in-dom-flipY-true.html [ Skip ]
 fast/canvas/webgl/texImage2D-video-flipY-false.html [ Skip ]
 fast/canvas/webgl/texImage2D-video-flipY-true.html [ Skip ]
 
+# WEBGL_draw_instanced_base_vertex_base_instance is unavailable on the iOS simulator.
+webkit.org/b/319507 fast/canvas/webgl/draw-elements-base-vertex-out-of-bounds.html [ Skip ]
+
 # No colorspaces in iOS WebGL yet.
 webkit.org/b/247166 fast/canvas/webgl/colorspaces-test.html [ Failure ]
 webkit.org/b/247166 fast/canvas/webgl/context-lost-restored-p3.html [ Failure ]
@@ -8151,6 +8154,8 @@ fast/forms/form-control-refresh/checkbox-radio-inactive-appearance-dark-bg-light
 fast/forms/form-control-refresh/checkbox-radio-inactive-appearance-light-bg-dark-color-scheme.html [ Skip ]
 fast/forms/form-control-refresh/progress-window-inactive-state-dark-mode.html [ Skip ]
 fast/forms/form-control-refresh/progress-window-inactive-state-light-mode.html [ Skip ]
+fast/forms/form-control-refresh/spinbutton-window-inactive-state-dark-mode.html [ Skip ]
+fast/forms/form-control-refresh/spinbutton-window-inactive-state-light-mode.html [ Skip ]
 
 # rdar://155348715 (REGRESSION (Liquid Glass): [ iOS 26 ] 72 WPT/css/css-ui/compute-kind-widget-generated/kind-of-widget-fallback-select-*.html tests are constantly failing (IMAGE).)
 # Explicit pass expectations for many of these tests are set above. Uncomment that block once this is resolved.

@@ -2633,6 +2633,8 @@ accessibility/listitem-title.html [ Pass ]
 accessibility/listmarker-suffix.html [ Pass ]
 accessibility/live-region-attributes-update-after-dynamic-change.html [ Pass ]
 accessibility/math-has-non-presentational-children.html [ Pass ]
+accessibility/mathml-multiscript-none-holds-slot.html [ Pass ]
+accessibility/mathml-multiscript-odd-postscripts.html [ Pass ]
 accessibility/menu-item-crash.html [ Pass ]
 accessibility/menu-list-crash2.html [ Pass ]
 accessibility/menu-with-menuitem-grandchildren.html [ Pass ]
@@ -3728,6 +3730,9 @@ imported/w3c/web-platform-tests/css/css-grid/alignment/grid-self-baseline-not-ap
 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-self-baseline-not-applied-if-sizing-cyclic-dependency-002.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-grid/subgrid/alignment-in-subgridded-axes-001.html [ Skip ]
 webkit.org/b/266091 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/intrinsic-sizing/grid-lanes-intrinsic-sizing-cols-006.html
+
+imported/w3c/web-platform-tests/css/css-grid/layout-algorithm/flex-sizing-rows-indefinite-height.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-grid/layout-algorithm/grid-template-flexible-rerun-track-sizing.html [ ImageOnlyFailure ]
 
 
 fast/text/text-styles/-apple-system [ Pass ]

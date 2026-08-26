@@ -240,20 +240,26 @@ bool AudioBufferSourceNode::renderFromBuffer(AudioBus& bus, unsigned destination
     if (maxFrame > bufferLength)
         maxFrame = bufferLength;
 
-    // If the .loop attribute is true, then values of m_loopStart == 0 && m_loopEnd == 0 implies
-    // that we should use the entire buffer as the loop, otherwise use the loop values in m_loopStart and m_loopEnd.
+    // Defaults to the entire buffer, which is also the fallback when the loop points below do not
+    // describe a usable range.
     double virtualMaxFrame = maxFrame;
     double virtualMinFrame = 0;
     double virtualDeltaFrames = maxFrame;
 
-    if (m_isLooping && (m_loopStart || m_loopEnd) && m_loopStart >= 0 && m_loopEnd > 0 && m_loopStart < m_loopEnd) {
-        // Convert from seconds to sample-frames.
-        double loopMinFrame = m_loopStart * m_buffer->sampleRate();
-        double loopMaxFrame = m_loopEnd * m_buffer->sampleRate();
+    // Compute the effective loop points by clamping both endpoints into the buffer, then falling
+    // back to looping the entire buffer unless what is left is a range of positive length. Clamping
+    // before validating keeps an out-of-range endpoint from producing an inverted range.
+    // https://webaudio.github.io/web-audio-api/#playback-AudioBufferSourceNode
+    if (m_isLooping) {
+        double bufferDuration = m_buffer->duration();
+        double loopStart = std::clamp(m_loopStart, 0.0, bufferDuration);
+        double loopEnd = m_loopEnd <= 0 ? 0 : std::min(m_loopEnd, bufferDuration);
 
-        virtualMaxFrame = std::min(loopMaxFrame, virtualMaxFrame);
-        virtualMinFrame = std::max(loopMinFrame, virtualMinFrame);
-        virtualDeltaFrames = virtualMaxFrame - virtualMinFrame;
+        if (loopStart < loopEnd) {
+            virtualMinFrame = loopStart * bufferSampleRate;
+            virtualMaxFrame = std::min(loopEnd * bufferSampleRate, virtualMaxFrame);
+            virtualDeltaFrames = virtualMaxFrame - virtualMinFrame;
+        }
     }
 
     if (!reverse) {
@@ -263,19 +269,13 @@ bool AudioBufferSourceNode::renderFromBuffer(AudioBus& bus, unsigned destination
                 return false;
 
             // Wrap back to the beginning of the loop.
-            m_virtualReadIndex = (m_loopStart < 0) ? 0 : (m_loopStart * m_buffer->sampleRate());
-            m_virtualReadIndex = std::min(m_virtualReadIndex, static_cast<double>(bufferLength) - 1);
+            m_virtualReadIndex = virtualMinFrame;
         }
     } else if (m_isLooping && m_virtualReadIndex < virtualMinFrame) {
         // https://webaudio.github.io/web-audio-api/#playback-AudioBufferSourceNode
         // For a negative playback rate, only an offset before the loop start is clamped, to the
         // loop start. An offset past the loop end is left alone so playback descends into the loop.
         m_virtualReadIndex = virtualMinFrame;
-    } else if (m_virtualReadIndex >= bufferLength) {
-        // The playhead starts past the end of the buffer, e.g. for an offset at the buffer
-        // duration. There is nothing to read, so output silence rather than a partially
-        // written bus.
-        return false;
     }
 
     // Sanity check that our playback rate isn't larger than the loop size.
@@ -292,6 +292,20 @@ bool AudioBufferSourceNode::renderFromBuffer(AudioBus& bus, unsigned destination
     if (startFrameOffset < 0 && pitchRate) {
         double skippedFrames = std::abs(startFrameOffset * pitchRate);
         virtualReadIndex += reverse ? -skippedFrames : skippedFrames;
+    }
+
+    // With a negative playback rate the playhead can start at or past the end of the buffer, since
+    // offset is only clamped to [0, duration]. Those frames are outside the buffer and so are
+    // silent; playback picks up once the playhead descends into the buffer.
+    // https://webaudio.github.io/web-audio-api/#playback-AudioBufferSourceNode
+    if (reverse) {
+        while (framesToProcess > 0 && virtualReadIndex >= bufferLength) {
+            for (unsigned i = 0; i < numberOfChannels; ++i)
+                m_destinationChannels[i][writeIndex] = 0;
+            ++writeIndex;
+            --framesToProcess;
+            virtualReadIndex += pitchRate;
+        }
     }
 
     bool needsInterpolation = virtualReadIndex != floor(virtualReadIndex)

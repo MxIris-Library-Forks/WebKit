@@ -7,11 +7,11 @@ PASS AudioBufferSourceNode supports very low negative playbackRate (-0.02)
 PASS AudioBufferSourceNode enters loop backwards from offset > loopEnd
 PASS AudioBufferSourceNode clamps offset to loopStart for playbackRate < 0
 PASS AudioBufferSourceNode loops backwards with negative rate (offset in loop)
-FAIL AudioBufferSourceNode handles offset exactly at duration with negative rate assert_equals: Frame 1 should be 4 expected 4 but got 0
-FAIL AudioBufferSourceNode handles out-of-bounds start offset correctly assert_equals: Frame 1 should be 4.0 expected 4 but got 0
+PASS AudioBufferSourceNode handles offset exactly at duration with negative rate
+PASS AudioBufferSourceNode handles out-of-bounds start offset correctly
 PASS AudioBufferSourceNode performs sub-sample interpolation backwards
 PASS AudioBufferSourceNode ran successfully with zero delta and playbackRate 0
 PASS AudioBufferSourceNode loops backwards using entire buffer when loopStart > loopEnd
-FAIL AudioBufferSourceNode loops backwards using clamped loopStart when loopStart < 0 assert_array_equals: expected property 4 to be 2 but got 4 (expected array [4, 3, 2, 1, 2, 1, 2, 1] got object "4,3,2,1,4,3,2,1")
+PASS AudioBufferSourceNode loops backwards using clamped loopStart when loopStart < 0
 PASS AudioBufferSourceNode loops backwards using entire buffer when loopEnd < 0
 

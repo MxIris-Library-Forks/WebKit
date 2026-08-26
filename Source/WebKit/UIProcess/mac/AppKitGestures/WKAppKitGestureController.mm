@@ -1492,6 +1492,9 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     if (gesture.state != NSGestureRecognizerStateEnded)
         return;
 
+    if (![self supportsMomentumScroll:gesture])
+        return;
+
     auto unfilteredVelocity = velocityInView(gesture, webView.get());
 
     // Continue the scroll along the same axis the drag was locked to rather than reintroducing
@@ -1633,7 +1636,7 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     WebKit::NativeWebGestureEvent::Init init {
         .kind = WebKit::NativeWebGestureEvent::Kind::Magnification,
         .phase = phase,
-        .locationInWindow = WebCore::FloatPoint { [gesture locationInView:nil] },
+        .locationInWindow = [self gestureCentroidInWindowForGesture:gesture],
         .gestureScale = static_cast<float>(magnification),
         .gestureRotation = 0,
         .timestamp = MonotonicTime::fromRawSeconds(GetCurrentEventTime()),
@@ -1682,7 +1685,7 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     WebKit::NativeWebGestureEvent::Init init {
         .kind = WebKit::NativeWebGestureEvent::Kind::Rotation,
         .phase = phase,
-        .locationInWindow = WebCore::FloatPoint { [gesture locationInView:nil] },
+        .locationInWindow = [self gestureCentroidInWindowForGesture:gesture],
         .gestureScale = 0,
         .gestureRotation = static_cast<float>([self currentRotation:gesture.rotationInDegrees atPhase:phase]),
         .timestamp = MonotonicTime::fromRawSeconds(GetCurrentEventTime())

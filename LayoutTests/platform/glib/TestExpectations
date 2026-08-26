@@ -998,6 +998,11 @@ accessibility/aria-owns-crash-after-subtree-update.html [ Skip ]
 # installImageOverlay is a no-op on platforms without IMAGE_ANALYSIS.
 accessibility/image-overlay-elements-presentational.html [ Skip ]
 
+# AccessibilityUIElementAtspi::mathPostscriptsDescription is unimplemented, so it returns
+# null rather than the multiscript pairs these tests read.
+accessibility/mathml-multiscript-none-holds-slot.html [ Skip ]
+accessibility/mathml-multiscript-odd-postscripts.html [ Skip ]
+
 accessibility/dynamic-expanded-text.html [ Failure ]
 
 accessibility/dynamic-content-visibility.html [ Skip ]
@@ -2400,8 +2405,6 @@ webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens
 webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-view-transitions/backdrop-filter-animated.html [ ImageOnlyFailure ]
 webkit.org/b/273396 imported/w3c/web-platform-tests/css/css-view-transitions/rotated-cat-off-top-edge.html [ ImageOnlyFailure ]
 
-webkit.org/b/273477 fast/writing-mode/vertical-subst-font-vert-no-dflt.html [ ImageOnlyFailure ]
-
 webkit.org/b/273480 imported/w3c/web-platform-tests/css/geometry/DOMMatrix2DInit-validate-fixup.html [ Failure ]
 
 webkit.org/b/273481 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/draw-generic-family/2d.text.draw.generic.family.html [ Failure ]
@@ -3407,6 +3410,7 @@ http/tests/ipc/gpu-load-error-empty-user-info-crssh.html [ Skip ]
 http/tests/ipc/webpageproxy-didfailload-failingurl-message-check.html [ Skip ]
 ipc/usermedia-capture-start-producing-data-race.html [ Skip ]
 ipc/LocalSampleBufferDisplayLayer-flushAndRemoveImage-cross-thread-uaf.html [ Skip ]
+ipc/indexed-colorspace-null-inner-crash.html [ Skip ]
 # Hardcodes Cocoa's WebCore::CertificateInfo::trust field in the IPC payload; SOUP's
 # CertificateInfo serializes a GRefPtr<GTlsCertificate> that coreipc.js cannot construct.
 http/tests/ipc/createnewpage-file-body-sandbox-extension.html [ Skip ]
@@ -3447,6 +3451,9 @@ ipc/restrictedendpoints/deny-access-webPush.html [ Skip ]
 ipc/validate-message-check-in-networkconnectiontowebproces-crash.html [ Skip ]
 
 ### NEEDS PROPER TRIAGGING/GARDENING
+
+# Times out: the wiretap never captures m_databaseConnectionIdentifier.
+ipc/networksindexeddb-close-connection-during-version-change.html [ Skip ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of IPC testing
@@ -3979,6 +3986,7 @@ webkit.org/b/168430 fast/inline/outline-corners-with-offset.html [ ImageOnlyFail
 webkit.org/b/258146 fast/inline/box-decoration-clone-with-padding-end.html [ ImageOnlyFailure ]
 webkit.org/b/258149 fast/inline/line-clamp-with-max-height-overflow.html [ ImageOnlyFailure ]
 webkit.org/b/304002 fast/inline/missing-content-on-autofill-with-out-of-flow-input-descendant.html [ Skip ]
+webkit.org/b/322063 fast/inline/inline-item-width-cache-stale-after-font-cache-invalidation.html [ Skip ]
 webkit.org/b/168551 http/tests/misc/slow-loading-animated-image.html [ ImageOnlyFailure ]
 webkit.org/b/168719 fast/css/paint-order-shadow.html [ ImageOnlyFailure ]
 webkit.org/b/169909 fast/css-generated-content/initial-letter-pagination-sunken.html [ ImageOnlyFailure ]
@@ -4143,7 +4151,7 @@ webkit.org/b/315568 imported/w3c/web-platform-tests/css/css-fonts/matching/font-
 webkit.org/b/207711 [ Debug ] fast/selectors/slow-style-sharing-with-long-cousin-list.html [ Slow ]
 webkit.org/b/209720 fast/css-grid-layout/grid-align-baseline-vertical.html [ Failure ]
 webkit.org/b/302127 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/alignment/column-justify-items-end-justify-self-start-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/animation/flow-tolerance-interpolation.html [ Crash ]
+imported/w3c/web-platform-tests/css/css-grid/grid-lanes/animation/fit-tolerance-interpolation.html [ Crash ]
 webkit.org/b/211940 fast/text/multiple-codeunit-vertical-upright-2.html [ ImageOnlyFailure ]
 webkit.org/b/211940 fast/text/multiple-codeunit-vertical-upright.html [ ImageOnlyFailure ]
 

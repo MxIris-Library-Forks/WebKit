@@ -26119,6 +26119,13 @@ IGNORE_CLANG_WARNINGS_END
         return m_out.testIsZeroPtr(m_out.loadPtr(string, m_heaps.JSString_value), m_out.constIntPtr(JSString::isRopeInPointer));
     }
 
+    // True only when the string is known to be a non-rope holding an AtomStringImpl. False proves
+    // nothing, so callers must keep their full check on the false path.
+    LValue isDefinitelyAtomString(LValue string)
+    {
+        return m_out.testNonZero32(m_out.load8ZeroExt32(string, m_heaps.JSCell_typeInfoFlags), m_out.constInt32(TypeInfoPerCellBit));
+    }
+
     LValue isNotSymbol(LValue cell, SpeculatedType type = SpecFullTop)
     {
         if (LValue proven = isProvenValue(type & SpecCell, ~SpecSymbol))
@@ -26608,12 +26615,21 @@ IGNORE_CLANG_WARNINGS_END
         if (!m_interpreter.needsTypeCheck(edge, SpecStringIdent | ~SpecString))
             return;
 
+        LBasicBlock checkCase = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        m_out.branch(isDefinitelyAtomString(string), usually(continuation), rarely(checkCase));
+
+        LBasicBlock lastNext = m_out.appendTo(checkCase, continuation);
         speculate(BadStringType, jsValueValue(string), edge.node(), isRopeString(string));
         speculate(
             BadStringType, jsValueValue(string), edge.node(),
             m_out.testIsZero32(
                 m_out.load32(stringImpl, m_heaps.StringImpl_hashAndFlags),
                 m_out.constInt32(StringImpl::flagIsAtom())));
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
         m_interpreter.filter(edge, SpecStringIdent | ~SpecString);
     }
 
@@ -27147,11 +27163,7 @@ IGNORE_CLANG_WARNINGS_END
                 }
             }
         }
-        return &m_ftlState.jitCode->osrExitDescriptors.alloc(
-            lowValue.format(), profile,
-            availabilityMap().m_locals.numberOfArguments(),
-            availabilityMap().m_locals.numberOfLocals(),
-            availabilityMap().m_locals.numberOfTmps());
+        return &m_ftlState.jitCode->osrExitDescriptors.alloc(lowValue.format(), profile);
     }
 
     void appendOSRExit(
@@ -27291,8 +27303,9 @@ IGNORE_CLANG_WARNINGS_END
                 }
             });
 
-        for (unsigned i = 0; i < exitDescriptor->m_values.size(); ++i) {
-            Operand operand = exitDescriptor->m_values.operandForIndex(i);
+        Operands<ExitValue> exitValues(OperandsLike, availabilityMap.m_locals);
+        for (unsigned i = 0; i < exitValues.size(); ++i) {
+            Operand operand = exitValues.operandForIndex(i);
 
             Availability availability = availabilityMap.m_locals[i];
 
@@ -27306,8 +27319,9 @@ IGNORE_CLANG_WARNINGS_END
             ExitValue exitValue = exitValueForAvailability(arguments, map, availability);
             if (exitValue.hasIndexInStackmapLocations())
                 exitValue.adjustStackmapLocationsIndexByOffset(offsetOfExitArgumentsInStackmapLocations);
-            exitDescriptor->m_values[i] = exitValue;
+            exitValues[i] = exitValue;
         }
+        exitDescriptor->m_values.encode(exitValues, exitDescriptor->m_materializations, *m_ftlState.jitCode);
 
         for (auto& heapPair : availabilityMap.m_heap) {
             Node* node = heapPair.key.base();
@@ -27325,7 +27339,7 @@ IGNORE_CLANG_WARNINGS_END
 
         if (verboseCompilationEnabled()) [[unlikely]] {
             WTF::dataFile().atomically([&](auto&) {
-                dataLogLn("        Exit values: ", exitDescriptor->m_values);
+                dataLogLn("        Exit values: ", exitValues);
                 if (!exitDescriptor->m_materializations.isEmpty()) {
                     dataLogLn("        Materializations:");
                     for (ExitTimeObjectMaterialization* materialization : exitDescriptor->m_materializations)

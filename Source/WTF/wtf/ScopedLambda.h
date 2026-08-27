@@ -29,6 +29,7 @@
 #include <type_traits>
 #include <wtf/Compiler.h>
 #include <wtf/ForbidHeapAllocation.h>
+#include <wtf/Nonmovable.h>
 #include <wtf/StdLibExtras.h>
 
 namespace WTF {
@@ -54,6 +55,7 @@ template<typename FunctionType> class ScopedLambda;
 template<typename ResultType, typename... ArgumentTypes>
 class ScopedLambda<ResultType(ArgumentTypes...)> final {
     WTF_FORBID_HEAP_ALLOCATION;
+    WTF_MAKE_NONMOVABLE(ScopedLambda);
 public:
     ScopedLambda(ResultType (*impl)(void* arg, ArgumentTypes...) = nullptr, void* arg = nullptr)
         : m_impl(impl)
@@ -64,6 +66,7 @@ public:
 
     template<typename Functor>
     requires (!std::same_as<std::remove_cvref_t<Functor>, std::nullptr_t>
+        && !std::same_as<std::remove_cvref_t<Functor>, ScopedLambda>
         && Invocable<Functor, ResultType(ArgumentTypes...)>)
     ScopedLambda(Functor&& functor LIFETIME_BOUND)
         : m_impl([] (void* argument, ArgumentTypes... arguments) -> ResultType {

@@ -89,6 +89,11 @@ RefPtr<AudioVideoRenderer> RemoteAudioVideoRendererProxyManager::createRenderer(
 #endif
 }
 
+Ref<RemoteAudioVideoRendererProxyManager> RemoteAudioVideoRendererProxyManager::create(GPUConnectionToWebProcess& connection)
+{
+    return adoptRef(*new RemoteAudioVideoRendererProxyManager(connection));
+}
+
 RemoteAudioVideoRendererProxyManager::RemoteAudioVideoRendererProxyManager(GPUConnectionToWebProcess& connection)
     : m_videoFrameObjectHeap(connection.videoFrameObjectHeap())
     , m_gpuConnectionToWebProcess(connection)
@@ -110,19 +115,15 @@ RemoteAudioVideoRendererProxyManager::~RemoteAudioVideoRendererProxyManager()
     }
 }
 
-void RemoteAudioVideoRendererProxyManager::ref() const
+void RemoteAudioVideoRendererProxyManager::connectionToWebProcessClosed()
 {
-    m_gpuConnectionToWebProcess.get()->ref();
-}
-
-void RemoteAudioVideoRendererProxyManager::deref() const
-{
-    m_gpuConnectionToWebProcess.get()->deref();
-}
-
-ThreadSafeWeakPtrControlBlock& RemoteAudioVideoRendererProxyManager::controlBlock() const
-{
-    return m_gpuConnectionToWebProcess.get()->controlBlock();
+    ALWAYS_LOG(LOGIDENTIFIER);
+    for (auto& keyValuePair : std::exchange(m_renderers, { })) {
+        if (RefPtr renderer = keyValuePair.value.renderer) {
+            renderer->pause();
+            renderer->flush();
+        }
+    }
 }
 
 std::optional<SharedPreferencesForWebProcess> RemoteAudioVideoRendererProxyManager::sharedPreferencesForWebProcess() const
@@ -130,7 +131,7 @@ std::optional<SharedPreferencesForWebProcess> RemoteAudioVideoRendererProxyManag
     return m_gpuConnectionToWebProcess.get()->sharedPreferencesForWebProcess();
 }
 
-void RemoteAudioVideoRendererProxyManager::create(RemoteAudioVideoRendererIdentifier identifier, WebCore::HTMLMediaElementIdentifier mediaElementIdentifier, WebCore::MediaPlayerIdentifier playerIdentifier, CompletionHandler<void(std::optional<WebCore::SharedTimebaseHandle>)>&& completionHandler)
+void RemoteAudioVideoRendererProxyManager::createManager(RemoteAudioVideoRendererIdentifier identifier, WebCore::HTMLMediaElementIdentifier mediaElementIdentifier, WebCore::MediaPlayerIdentifier playerIdentifier, CompletionHandler<void(std::optional<WebCore::SharedTimebaseHandle>)>&& completionHandler)
 {
     MESSAGE_CHECK(!m_renderers.contains(identifier));
 

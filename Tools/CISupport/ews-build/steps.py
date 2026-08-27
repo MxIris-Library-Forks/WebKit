@@ -585,7 +585,7 @@ class ResultsDBReportMixin(abc.ABC):
             configuration['platform'] = ResultsDatabase.platform_for_query(platform)
         if (style := self.getProperty('configuration', None)) in ('debug', 'release'):
             configuration['style'] = style
-        if (flavor := self.getProperty('flavor', None)) in ('wk1', 'wk2'):
+        if (flavor := self.getProperty('flavor', None)) in ('wk1', 'wk2', 'site-isolation'):
             configuration['flavor'] = flavor
         return configuration
 
@@ -593,7 +593,7 @@ class ResultsDBReportMixin(abc.ABC):
         architecture = self.getProperty('machine_architecture', None) or self.getProperty('architecture', None)
         return {
             **self.results_db_query_configuration(),
-            'version': self.getProperty('os_version', None) or None,
+            'version': self.getProperty('os_version', None) or self.getProperty('webkit_version', None) or None,
             'architecture': architecture if architecture and ' ' not in architecture else None,
             'is_simulator': 'simulator' in (self.getProperty('fullPlatform', '') or ''),
         }
@@ -3511,8 +3511,15 @@ class RunJavaScriptCoreTests(shell.Test, AddToLogMixin, ShellMixin):
     logfiles = {'json': jsonFileName}
     results_db_log_name = 'results-db'
     command = ['perl', 'Tools/Scripts/run-javascriptcore-tests', '--no-build', '--no-fail-fast', f'--json-output={jsonFileName}', WithProperties('--%(configuration)s')]
-    # We rely on run-jsc-stress-tests to weed out any flaky tests
-    command_extra = ['--treat-failing-as-flaky=0.6,10,200']
+    # We rely on run-jsc-stress-tests to weed out any flaky tests. We also cap
+    # the effective timeout to avoid the dreaded "command timed out: 1200
+    # seconds without output" with buildbot killing the whole run because of a
+    # hanging stress test.
+    # NB: The default JSCTEST_hardTimeout is 300s (and is additive, see
+    # https://commits.webkit.org/227144@main), so use 800 here to also allow for
+    # some slack (run-jsc-stress-test spends some time silently collecting test
+    # results before printing out the summary).
+    command_extra = ['--treat-failing-as-flaky=0.6,10,200', '--max-timeout', '800']
     prefix = 'jsc_'
     NUM_FAILURES_TO_DISPLAY_IN_STATUS = 5
     FAILURE_THRESHOLD = 1000
@@ -3934,6 +3941,7 @@ class RunWebKitTests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin
     logfiles = {'json': jsonFileName}
     test_failures_log_name = 'test-failures'
     results_db_log_name = 'results-db'
+    results_db_flavor = 'wk2'
     suite = 'layout-tests'
     ENABLE_GUARD_MALLOC = False
     ENABLE_ADDITIONAL_ARGUMENTS = True
@@ -4008,10 +4016,10 @@ class RunWebKitTests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin
         self.addLogObserver('json', self.log_observer_json)
         self.setLayoutTestCommand()
 
-        if self.layout_test_driver == 'DumpRenderTree':
-            self.setProperty('flavor', 'wk1')
-        elif self.layout_test_driver == 'WebKitTestRunner':
-            self.setProperty('flavor', 'wk2')
+        # Only the step that starts a run labels the build: every queue reruns with
+        # ReRunWebKitTests, so a wk1 queue would relabel itself wk2 halfway through.
+        if self.results_db_flavor:
+            self.setProperty('flavor', self.results_db_flavor)
 
         if SHOULD_FILTER_LOGS is True:
             self.command = self.shell_command(' '.join(quote(str(c)) for c in self.command) + ' 2>&1 | Tools/Scripts/filter-test-logs layout')
@@ -4273,6 +4281,7 @@ class RunWebKitTests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin
 
 class RunWebKitTestsInStressMode(RunWebKitTests):
     reports_to_results_db = False
+    results_db_flavor = None
     name = 'run-layout-tests-in-stress-mode'
     suffix = 'stress-mode'
     EXIT_AFTER_FAILURES = '10'
@@ -4368,6 +4377,7 @@ class RunWebKitTestsInSiteIsolationMode(RunWebKitTestsInStressMode):
 
 class ReRunWebKitTests(RunWebKitTests):
     name = 're-run-layout-tests'
+    results_db_flavor = None
     NUM_FAILURES_TO_DISPLAY = 10
 
     def evaluateCommand(self, cmd):
@@ -4523,6 +4533,7 @@ class ReRunWebKitTests(RunWebKitTests):
 
 class RunWebKitTestsWithoutChange(RunWebKitTests):
     name = 'run-layout-tests-without-change'
+    results_db_flavor = None
 
     @defer.inlineCallbacks
     def run(self):
@@ -4632,15 +4643,8 @@ class RunWebKitTestsWithoutChange(RunWebKitTests):
 
 
 class SiteIsolationResultsDBMixin(object):
-    reports_to_results_db = False
-
-    def results_db_query_configuration(self) -> dict:
-        # Use flavor='site-isolation' without a platform filter so that results from
-        # Apple-Tahoe-Release-WK2-Site-Isolation-Tree-Tests (the closest post-commit queue) are consulted.
-        configuration = super().results_db_query_configuration()
-        configuration['flavor'] = 'site-isolation'
-        configuration.pop('platform', None)
-        return configuration
+    # Precedes ReRunWebKitTests in the MRO so a rerun keeps this flavor instead of inheriting None.
+    results_db_flavor = 'site-isolation'
 
 
 class RunWebKitTestsEWSSiteIsolation(SiteIsolationResultsDBMixin, RunWebKitTests):
@@ -4930,6 +4934,8 @@ class AnalyzeLayoutTestsResults(ResultsDBReportMixin, buildstep.BuildStep, Bugzi
 
 
 class RunWebKit1Tests(RunWebKitTests):
+    results_db_flavor = 'wk1'
+
     @defer.inlineCallbacks
     def run(self):
         self.layout_test_driver = 'DumpRenderTree'

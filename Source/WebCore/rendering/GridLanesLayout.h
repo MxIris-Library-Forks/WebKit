@@ -50,15 +50,17 @@ public:
         MaxContent
     };
 
-    void performGridLanesPlacement(const GridTrackSizingAlgorithm&, Phase);
+    using ResolvedFitTolerance = Variant<LayoutUnit, CSS::Keyword::Infinite>;
+
+    void performGridLanesPlacement(const GridTrackSizingAlgorithm&, ResolvedFitTolerance, Phase);
     LayoutUnit NODELETE offsetForGridItem(const RenderBox&) const;
     LayoutUnit gridContentSize() const { return m_gridContentSize; };
 
 private:
-    GridArea gridAreaForIndefiniteGridAxisItem(const RenderBox& item);
+    GridArea gridAreaForIndefiniteGridAxisItem(const RenderBox& item, ResolvedFitTolerance);
     GridArea gridAreaForDefiniteGridAxisItem(const RenderBox&) const;
 
-    void placeGridLanesItems(const GridTrackSizingAlgorithm&, Phase);
+    void placeGridLanesItems(const GridTrackSizingAlgorithm&, ResolvedFitTolerance, Phase);
     void setItemContainingBlockToGridArea(const GridTrackSizingAlgorithm&, RenderBox&);
     void insertIntoGridAndLayoutItem(const GridTrackSizingAlgorithm&, RenderBox&, const GridArea&, Phase);
     LayoutUnit calculateGridLanesIntrinsicLogicalWidth(RenderBox&, Phase);
@@ -69,11 +71,11 @@ private:
     LayoutUnit maxRunningPositionForSpan(unsigned startLine, unsigned spanLength) const;
     inline Style::GridTrackSizingDirection NODELETE gridAxisDirection() const;
 
+    unsigned gridAxisTracksCount() const { return static_cast<unsigned>(m_runningPositions.size()); }
+
     bool hasDefiniteGridAxisPosition(const RenderBox& gridItem, Style::GridTrackSizingDirection gridAxisDirection) const;
     GridArea NODELETE gridAreaFromGridAxisSpan(const GridSpan&) const;
     GridSpan NODELETE gridAxisSpanFromArea(const GridArea&) const;
-
-    const unsigned m_gridAxisTracksCount;
 
     Vector<LayoutUnit> m_runningPositions;
     HashMap<SingleThreadWeakRef<const RenderBox>, LayoutUnit> m_itemOffsets;
@@ -82,7 +84,6 @@ private:
     LayoutUnit m_gridContentSize;
 
     const Style::GridTrackSizingDirection m_stackingAxisDirection;
-    const GridSpan m_stackingAxisSpan = GridSpan::stackingAxisTranslatedDefiniteGridSpan();
 
     unsigned m_autoFlowNextCursor { 0 };
 };

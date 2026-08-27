@@ -3,7 +3,7 @@ include(VersioningUtils)
 
 WEBKIT_OPTION_BEGIN()
 
-SET_PROJECT_VERSION(2 53 4)
+SET_PROJECT_VERSION(2 55 0)
 
 set(USER_AGENT_BRANDING "" CACHE STRING "Branding to add to user agent string")
 
@@ -192,11 +192,11 @@ EXPOSE_STRING_VARIABLE_TO_BUILD(WEBKITGTK_API_INFIX)
 EXPOSE_STRING_VARIABLE_TO_BUILD(WEBKITGTK_API_VERSION)
 
 if (WEBKITGTK_API_VERSION VERSION_EQUAL "4.1")
-    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(WEBKIT 23 0 23)
-    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(JAVASCRIPTCORE 11 3 11)
+    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(WEBKIT 25 0 25)
+    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(JAVASCRIPTCORE 12 0 12)
 elseif (WEBKITGTK_API_VERSION VERSION_EQUAL "6.0")
-    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(WEBKIT 22 0 18)
-    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(JAVASCRIPTCORE 9 3 8)
+    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(WEBKIT 24 0 20)
+    CALCULATE_LIBRARY_VERSIONS_FROM_LIBTOOL_TRIPLE(JAVASCRIPTCORE 10 0 9)
 else ()
     message(FATAL_ERROR "Unhandled API version")
 endif ()
@@ -221,17 +221,14 @@ SET_AND_EXPOSE_TO_BUILD(WTF_PLATFORM_QUARTZ ${ENABLE_QUARTZ_TARGET})
 SET_AND_EXPOSE_TO_BUILD(WTF_PLATFORM_X11 ${ENABLE_X11_TARGET})
 SET_AND_EXPOSE_TO_BUILD(WTF_PLATFORM_WAYLAND ${ENABLE_WAYLAND_TARGET})
 
-add_definitions(-DBUILDING_GTK__=1)
-add_definitions(-DGETTEXT_PACKAGE="WebKitGTK-${WEBKITGTK_API_VERSION}")
+# FIXME: Swift should be using the .resp file of platform flags from
+# `WTF/Scripts/generate-platform-args`, which would define BUILDING_GTK.
+webkit_add_compile_definitions(BUILDING_GTK__=1)
+webkit_add_compile_definitions(GETTEXT_PACKAGE="WebKitGTK-${WEBKITGTK_API_VERSION}")
 add_definitions(-DJSC_GLIB_API_ENABLED)
-# We do not yet have a systematic way of representing the equivalent of WTF PLATFORM_ macros
-# within Swift. This task is represented within Apple as rdar://168139870.
-# For now, our only immediate need is to determine if we're being built
-# on GTK, so pass --DBUILDING_GTK__.
-add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:-DBUILDING_GTK__>")
 
 if (USER_AGENT_BRANDING)
-    add_definitions(-DUSER_AGENT_BRANDING="${USER_AGENT_BRANDING}")
+    webkit_add_compile_definitions(USER_AGENT_BRANDING="${USER_AGENT_BRANDING}")
 endif ()
 
 if (NOT EXISTS "${TOOLS_DIR}/glib/apply-build-revision-to-files.py")
@@ -325,12 +322,14 @@ if (ENABLE_SPEECH_SYNTHESIS)
             message(FATAL_ERROR "LibSpiel is needed for ENABLE_SPEECH_SYNTHESIS")
         endif ()
         SET_AND_EXPOSE_TO_BUILD(USE_SPIEL ON)
+        SET_AND_EXPOSE_TO_BUILD(USE_FLITE OFF)
     elseif (USE_FLITE)
         find_package(Flite 2.2)
         if (NOT Flite_FOUND)
             message(FATAL_ERROR "Flite is needed for ENABLE_SPEECH_SYNTHESIS")
         endif ()
         SET_AND_EXPOSE_TO_BUILD(USE_FLITE ON)
+        SET_AND_EXPOSE_TO_BUILD(USE_SPIEL OFF)
     else ()
         message(FATAL_ERROR "Either USE_SPIEL or USE_FLITE is needed for ENABLE_SPEECH_SYNTHESIS")
     endif ()

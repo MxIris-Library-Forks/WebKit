@@ -1616,7 +1616,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
             ExpectShell(workdir='wkdir',
                         log_environ=False,
                         timeout=1 * 60 * 60,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         logfiles={'json': self.jsonFileName},
                         )
             .exit(0),
@@ -1631,7 +1631,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
             ExpectShell(workdir='wkdir',
                         log_environ=False,
                         timeout=1 * 60 * 60,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --remote-config-file=remote-machines.json --no-testmasm --no-testair --no-testb3 --no-testdfg --no-testapi --memory-limited --verbose --jsc-only --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --remote-config-file=remote-machines.json --no-testmasm --no-testair --no-testb3 --no-testdfg --no-testapi --memory-limited --verbose --jsc-only --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         logfiles={'json': self.jsonFileName},
                         )
             .exit(0),
@@ -1645,7 +1645,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
             ExpectShell(workdir='wkdir',
                         log_environ=False,
                         timeout=1 * 60 * 60,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         logfiles={'json': self.jsonFileName},
                         )
             .log('stdio', stdout='9 failures found.')
@@ -1662,7 +1662,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
                         log_environ=False,
                         timeout=1 * 60 * 60,
                         logfiles={'json': self.jsonFileName},
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         )
             .exit(2)
             .log('json', stdout=self.jsc_single_stress_test_failure),
@@ -1681,7 +1681,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
                         log_environ=False,
                         timeout=1 * 60 * 60,
                         logfiles={'json': self.jsonFileName},
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         )
             .exit(2)
             .log('json', stdout=self.jsc_multiple_stress_test_failures),
@@ -1700,7 +1700,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
                         log_environ=False,
                         timeout=1 * 60 * 60,
                         logfiles={'json': self.jsonFileName},
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         )
             .exit(2)
             .log('json', stdout=self.jsc_masm_failure),
@@ -1718,7 +1718,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
                         log_environ=False,
                         timeout=1 * 60 * 60,
                         logfiles={'json': self.jsonFileName},
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         )
             .exit(2)
             .log('json', stdout=self.jsc_b3_and_stress_test_failure),
@@ -1736,7 +1736,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
                         log_environ=False,
                         timeout=1 * 60 * 60,
                         logfiles={'json': self.jsonFileName},
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --memory-limited --verbose --jsc-only --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --memory-limited --verbose --jsc-only --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         )
             .exit(2)
             .log('json', stdout=self.jsc_dfg_air_and_stress_test_failure),
@@ -1755,7 +1755,7 @@ class TestRunJavaScriptCoreTests(BuildStepMixinAdditions, unittest.TestCase):
                         log_environ=False,
                         timeout=1 * 60 * 60,
                         logfiles={'json': self.jsonFileName},
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --memory-limited --verbose --jsc-only --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --memory-limited --verbose --jsc-only --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         )
             .exit(0)
             .log('json', stdout=self.jsc_passed_with_flaky),
@@ -1785,7 +1785,7 @@ class TestRunJSCTestsWithoutChange(BuildStepMixinAdditions, unittest.TestCase):
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --release --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         logfiles={'json': self.jsonFileName},
                         timeout=1 * 60 * 60,
                         )
@@ -1801,7 +1801,7 @@ class TestRunJSCTestsWithoutChange(BuildStepMixinAdditions, unittest.TestCase):
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 2>&1 | Tools/Scripts/filter-test-logs jsc'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'perl Tools/Scripts/run-javascriptcore-tests --no-build --no-fail-fast --json-output={self.jsonFileName} --debug --treat-failing-as-flaky=0.6,10,200 --max-timeout 800 2>&1 | Tools/Scripts/filter-test-logs jsc'],
                         logfiles={'json': self.jsonFileName},
                         timeout=1 * 60 * 60,
                         )
@@ -1963,6 +1963,32 @@ ts","version":4,"num_passes":42158,"pixel_tests_enabled":false,"date":"11:28AM o
         )
         self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
         return self.run_step()
+
+    @defer.inlineCallbacks
+    def test_the_run_labels_the_build_wk2(self) -> None:
+        # Nothing else sets `flavor`, and a query missing it is a partial configuration: it reads
+        # wk1 and site-isolation history for the same test alongside this queue's own.
+        self.configureStep()
+        self.setProperty('platform', 'mac')
+        self.setProperty('fullPlatform', 'mac-sequoia')
+        self.setProperty('configuration', 'release')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        logfiles={'json': self.jsonFileName},
+                        log_environ=False,
+                        timeout=19800,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --release --results-directory layout-test-results --debug-rwt-logging --exit-after-n-failures 60 --skip-failing-tests 2>&1 | Tools/Scripts/filter-test-logs layout'],
+                        )
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        yield self.run_step()
+
+        self.assertEqual(self.getProperty('flavor'), 'wk2')
+        self.assertEqual(
+            self.get_nth_step(0).results_db_query_configuration(),
+            {'platform': 'mac', 'style': 'release', 'flavor': 'wk2'},
+        )
 
     def test_warnings(self):
         self.configureStep()
@@ -2248,6 +2274,29 @@ ts","version":4,"num_passes":42158,"pixel_tests_enabled":false,"date":"11:28AM o
         self.property_failures = 'second_run_failures'
         ReRunWebKitTests.filter_failures_using_results_db = lambda x, failing_tests: ''
 
+    @defer.inlineCallbacks
+    def test_the_rerun_leaves_the_label_the_first_run_set(self) -> None:
+        # Every queue reruns with this class, wk1 queues included, so relabelling here would move a
+        # wk1 build's rows and queries to wk2 halfway through the build.
+        self.configureStep()
+        self.setProperty('fullPlatform', 'ios-simulator')
+        self.setProperty('configuration', 'release')
+        self.setProperty('flavor', 'wk1')
+        self.setProperty('first_run_failures', ['test1'])
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        logfiles={'json': self.jsonFileName},
+                        log_environ=False,
+                        timeout=19800,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --release --results-directory layout-test-results --debug-rwt-logging --exit-after-n-failures 60 --skip-failing-tests 2>&1 | Tools/Scripts/filter-test-logs layout'],
+                        )
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        yield self.run_step()
+
+        self.assertEqual(self.getProperty('flavor'), 'wk1')
+
     def test_flaky_failures_in_first_run(self):
         self.configureStep()
         self.setProperty('fullPlatform', 'ios-simulator')
@@ -2318,6 +2367,28 @@ class TestRunWebKitTestsInStressMode(BuildStepMixinAdditions, unittest.TestCase)
         self.setup_step(RunWebKitTestsInStressMode())
         self.property_exceed_failure_limit = 'first_results_exceed_failure_limit'
         self.property_failures = 'first_run_failures'
+
+    @defer.inlineCallbacks
+    def test_stress_mode_does_not_label_the_build(self) -> None:
+        # It runs one test 100 times to provoke a failure, so its rates are not comparable with an
+        # ordinary run's. It reports nothing, and must not label the rows the real run writes.
+        self.configureStep()
+        self.setProperty('fullPlatform', 'ios-simulator')
+        self.setProperty('configuration', 'release')
+        self.setProperty('modified_tests', ['test1'])
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        logfiles={'json': self.jsonFileName},
+                        log_environ=False,
+                        timeout=19800,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --release -2 --results-directory layout-test-results --debug-rwt-logging --exit-after-n-failures 10 --skipped always --iterations 100 test1 2>&1 | Tools/Scripts/filter-test-logs layout'],
+                        )
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        yield self.run_step()
+
+        self.assertIsNone(self.getProperty('flavor'))
 
     def test_success(self):
         self.configureStep()
@@ -2808,11 +2879,31 @@ class TestRunWebKitTestsEWSSiteIsolation(BuildStepMixinAdditions, unittest.TestC
         self.expect_outcome(result=FAILURE, state_string='layout-tests (failure)')
         return self.run_step()
 
-    def test_results_db_query_configuration_uses_site_isolation_flavor(self):
-        self.setup_step(RunWebKitTestsEWSSiteIsolation())
-        self.setProperty('platform', 'mac-sequoia')
+    @defer.inlineCallbacks
+    def test_the_run_labels_the_build_site_isolation(self) -> None:
+        # The rows this queue writes carry the label, so the query has to ask for it too. An
+        # unlabelled query is a partial configuration, which matches every other flavor instead.
+        self.configureStep()
+        self.setProperty('platform', 'mac')
+        self.setProperty('fullPlatform', 'mac-sequoia')
         self.setProperty('configuration', 'release')
-        self.assertEqual(self.get_nth_step(0).results_db_query_configuration(), {'flavor': 'site-isolation', 'style': 'release'})
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        logfiles={'json': self.jsonFileName},
+                        log_environ=False,
+                        timeout=19800,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --release --results-directory layout-test-results --debug-rwt-logging --exit-after-n-failures 60 --skip-failing-tests 2>&1 | Tools/Scripts/filter-test-logs layout'],
+                        )
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        yield self.run_step()
+
+        self.assertEqual(self.getProperty('flavor'), 'site-isolation')
+        self.assertEqual(
+            self.get_nth_step(0).results_db_query_configuration(),
+            {'platform': 'mac', 'style': 'release', 'flavor': 'site-isolation'},
+        )
 
     def test_failure_schedules_site_isolation_rerun(self):
         self.configureStep()
@@ -2840,10 +2931,28 @@ class TestReRunWebKitTestsEWSSiteIsolation(BuildStepMixinAdditions, unittest.Tes
         self.setup_step(ReRunWebKitTestsEWSSiteIsolation())
         ReRunWebKitTestsEWSSiteIsolation.filter_failures_using_results_db = lambda x, failing_tests: ''
 
-    def test_results_db_query_configuration_uses_site_isolation_flavor(self):
+    @defer.inlineCallbacks
+    def test_the_rerun_keeps_the_site_isolation_label(self) -> None:
+        # ReRunWebKitTests declares no flavor so an ordinary rerun leaves the first run's label
+        # alone; the mixin has to win the MRO here or a site-isolation rerun would go unlabelled.
         self.configureStep()
-        self.setProperty('configuration', 'debug')
-        self.assertEqual(self.get_nth_step(0).results_db_query_configuration(), {'flavor': 'site-isolation', 'style': 'debug'})
+        self.setProperty('platform', 'mac')
+        self.setProperty('fullPlatform', 'mac-sequoia')
+        self.setProperty('configuration', 'release')
+        self.setProperty('first_run_failures', ['imported/w3c/web-platform-tests/test1.html'])
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        logfiles={'json': self.jsonFileName},
+                        log_environ=False,
+                        timeout=19800,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --release --results-directory layout-test-results --debug-rwt-logging --exit-after-n-failures 60 --skip-failing-tests 2>&1 | Tools/Scripts/filter-test-logs layout'],
+                        )
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        yield self.run_step()
+
+        self.assertEqual(self.getProperty('flavor'), 'site-isolation')
 
     def test_failure_schedules_clean_tree_run(self):
         self.configureStep()
@@ -2884,6 +2993,33 @@ class TestRunWebKit1Tests(BuildStepMixinAdditions, unittest.TestCase):
         )
         self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
         return self.run_step()
+
+    @defer.inlineCallbacks
+    def test_the_run_labels_the_build_wk1(self) -> None:
+        # wk1 and wk2 keep separate history for the same test, so a wk1 queue asking without the
+        # label would be answered largely out of wk2's rows.
+        self.setup_step(RunWebKit1Tests())
+        RunWebKit1Tests.filter_failures_using_results_db = lambda x, failing_tests: ''
+        self.setProperty('platform', 'mac')
+        self.setProperty('fullPlatform', 'mac-sequoia')
+        self.setProperty('configuration', 'debug')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        logfiles={'json': self.jsonFileName},
+                        log_environ=False,
+                        timeout=19800,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'python3 Tools/Scripts/run-webkit-tests --no-build --no-show-results --no-new-test-results --clobber-old-results --debug -1 --results-directory layout-test-results --debug-rwt-logging --exit-after-n-failures 60 --skip-failing-tests 2>&1 | Tools/Scripts/filter-test-logs layout'],
+                        )
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        yield self.run_step()
+
+        self.assertEqual(self.getProperty('flavor'), 'wk1')
+        self.assertEqual(
+            self.get_nth_step(0).results_db_query_configuration(),
+            {'platform': 'mac', 'style': 'debug', 'flavor': 'wk1'},
+        )
 
     def test_failure(self):
         self.setup_step(RunWebKit1Tests())
@@ -3337,15 +3473,16 @@ class TestFilterLayoutTestFailuresUsingResultsDB(BuildStepMixinAdditions, unitte
             {'platform': 'mac', 'style': 'release', 'flavor': 'wk2'},
         )
 
-    def test_site_isolation_queries_across_platforms(self):
-        # There is no mac-sequoia site-isolation post-commit queue, so the query has to reach the
-        # closest one on another platform rather than filter itself down to nothing.
+    def test_site_isolation_queries_keep_their_platform(self) -> None:
+        # mac has its own site-isolation post-commit queue, so dropping the platform here would
+        # fold another platform's history for the same test into the verdict.
         self.setup_step(RunWebKitTestsEWSSiteIsolation())
         self.setProperty('platform', 'mac')
         self.setProperty('configuration', 'release')
+        self.setProperty('flavor', 'site-isolation')
         self.assertEqual(
             self.get_nth_step(0).results_db_query_configuration(),
-            {'style': 'release', 'flavor': 'site-isolation'},
+            {'platform': 'mac', 'style': 'release', 'flavor': 'site-isolation'},
         )
 
     @defer.inlineCallbacks
@@ -3665,6 +3802,15 @@ class TestReportToResultsDB(BuildStepMixinAdditions, unittest.TestCase):
         step = self.configureStep()
         self.setProperty('platform', 'wpe')
         self.assertEqual(step.results_db_configuration()['platform'], 'WPE')
+
+    def test_a_glib_port_reports_the_webkit_version_it_builds(self) -> None:
+        # GTK and WPE workers leave os_version empty, and version is a required member, so without
+        # this fallback the guard drops every glib report.
+        step = self.configureStep()
+        self.setProperty('platform', 'gtk')
+        self.setProperty('os_version', '')
+        self.setProperty('webkit_version', '2.53')
+        self.assertEqual(step.results_db_configuration()['version'], '2.53')
 
     def test_merges_a_tests_outcomes_across_runs_without_repeating_them(self):
         step = self.configureStep()

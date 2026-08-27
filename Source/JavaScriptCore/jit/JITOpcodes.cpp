@@ -85,8 +85,8 @@ void JIT::emit_op_new_object(const JSInstruction* currentInstruction)
     RegisterID scratchReg = regT2;
     RegisterID structureReg = regT3;
 
-    loadPtrFromMetadata(bytecode, OpNewObject::Metadata::offsetOfObjectAllocationProfile() + ObjectAllocationProfile::offsetOfAllocator(), allocatorReg);
-    loadPtrFromMetadata(bytecode, OpNewObject::Metadata::offsetOfObjectAllocationProfile() + ObjectAllocationProfile::offsetOfStructure(), structureReg);
+    static_assert(ObjectAllocationProfile::offsetOfStructure() == ObjectAllocationProfile::offsetOfAllocator() + sizeof(void*));
+    loadPairPtrFromMetadata(bytecode, OpNewObject::Metadata::offsetOfObjectAllocationProfile() + ObjectAllocationProfile::offsetOfAllocator(), allocatorReg, structureReg);
 
     JumpList slowCases;
     auto butterfly = TrustedImmPtr(nullptr);
@@ -745,8 +745,7 @@ void JIT::compileOpStrictEq(const JSInstruction* currentInstruction)
 
         fallThrough.append(branchIfNotString(stringGPR));
         loadPtr(Address(stringGPR, JSString::offsetOfValue()), regT5);
-        addSlowCase(branchIfRopeStringImpl(regT5));
-        addSlowCase(branchTest32(Zero, Address(regT5, StringImpl::flagsOffset()), TrustedImm32(StringImpl::flagIsAtom())));
+        addSlowCase(branchIfNotAtomStringImpl(stringGPR, regT5));
         fallThrough.append(branchPtr(NotEqual, regT5, TrustedImmPtr(string->tryGetValueImpl())));
 
         equals.link(this);

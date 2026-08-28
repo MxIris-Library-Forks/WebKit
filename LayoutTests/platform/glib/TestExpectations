@@ -438,8 +438,6 @@ imported/w3c/web-platform-tests/css/css-values/ch-unit-012.html [ Pass ]
 
 # Test passing since added in r258661.
 imported/w3c/web-platform-tests/css/css-writing-modes/baseline-with-orthogonal-flow-001.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-writing-modes/ch-units-vrl-007.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-writing-modes/ch-units-vrl-008.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-writing-modes/mongolian-orientation-001.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-writing-modes/mongolian-orientation-002.html [ Pass ]
 
@@ -1610,6 +1608,8 @@ editing/async-clipboard/clipboard-read-text-from-platform.html [ Skip ]
 # These tests are intended to exercise Smart Lists support specific to Apple ports.
 editing/smart-lists/ [ Skip ]
 
+# The caret-color legibility adjustment is only built where HAVE(REDESIGNED_TEXT_CURSOR) is enabled.
+editing/caret/caret-color-legibility-after-paste.html [ Skip ]
 webkit.org/b/186099 editing/caret/caret-in-empty-cell.html [ ImageOnlyFailure ]
 
 webkit.org/b/178441 editing/deleting/delete-ligature-001.html [ Failure ]
@@ -2019,6 +2019,8 @@ webkit.org/b/312138 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-v
 webkit.org/b/312138 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/text-decoration_overline.html [ ImageOnlyFailure ]
 webkit.org/b/312138 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/text-decoration_overline_underline_line-through.html [ ImageOnlyFailure ]
 webkit.org/b/312138 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/text-decoration_underline.html [ ImageOnlyFailure ]
+
+webkit.org/b/322706 media/media-source/worker/media-source-worker-logger-observer-crash.html [ Timeout ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of GStreamer-related bugs
@@ -2844,24 +2846,19 @@ imported/w3c/web-platform-tests/webrtc-extensions/transfer-datachannel-service-w
 imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-maxFramerate.https.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/webrtc/simulcast/vp9-scalability-mode.https.html [ Skip ] # Timeout
 webrtc/getDisplayMedia-odd-size.html [ Skip ] # Timeout
-webrtc/video-rotation.html [ Failure ]
+webkit.org/b/322821 webrtc/video-rotation.html [ Failure Pass Timeout ]
 webrtc/video-maxBitrate-vp8.html [ Skip ] # Timeout
 webrtc/video-maxBitrate.html [ Skip ] # Timeout
 
 # Flakies since migration to libwebrtc:
 fast/mediastream/RTCPeerConnection-icecandidate-event.html [ Timeout Pass ]
 imported/w3c/web-platform-tests/webrtc-extensions/RTCRtpSynchronizationSource-captureTimestamp.html [ Crash Pass ]
-imported/w3c/web-platform-tests/webrtc-stats/hardware-capability-stats.https.html [ Pass Crash ]
-imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-canTrickleIceCandidates.html [ Pass Crash ]
-imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-createDataChannel.html?rest [ Pass Crash ]
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-getStats.https.html?rest [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-mandatory-getStats.https.html [ Pass Failure ]
-imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-getSynchronizationSources.https.html [ Pass Failure Crash ]
-imported/w3c/web-platform-tests/webrtc/RTCRtpTransceiver.https.html?rest [ Pass Crash ]
+imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-getSynchronizationSources.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc/legacy/RTCRtpTransceiver-with-OfferToReceive-options.optional.https.html [ Timeout Pass ]
 imported/w3c/web-platform-tests/webrtc/simulcast/negotiation-encodings.https.html?interop-2026 [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc/transfer-datachannel.html [ Pass Failure ]
-webrtc/encrypted-rtp-header-extensions.html [ Pass Crash ]
 webkit.org/b/311846 webrtc/h264-baseline.html [ Pass Crash Timeout ]
 webkit.org/b/311846 webrtc/h264-high.html [ Pass Crash Timeout ]
 webrtc/vp8-then-h264.html [ Pass Crash ]
@@ -3044,7 +3041,7 @@ imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-active.https.html
 imported/w3c/web-platform-tests/webrtc/simulcast/getStats.https.html [ Failure ]
 
 # Legacy Offer options are enabled by default in WPE and GTK ports.
-webkit.org/b/321284 [ x86_64 ] imported/w3c/web-platform-tests/webrtc/legacy/RTCPeerConnection-createOffer-offerToReceive.optional.html [ Pass Crash ]
+imported/w3c/web-platform-tests/webrtc/legacy/RTCPeerConnection-createOffer-offerToReceive.optional.html [ Pass ]
 
 imported/w3c/web-platform-tests/webrtc/legacy/munge-dont.html [ Pass ]
 
@@ -3162,10 +3159,12 @@ imported/w3c/web-platform-tests/html/semantics/forms/the-meter-element/meter-app
 imported/w3c/web-platform-tests/html/semantics/forms/the-meter-element/meter-appearance-none-suboptimum-value-rendering.html [ ImageOnlyFailure ]
 
 # Passes for GTK/WPE (but not for Mac/iOS) after WPT update of css-writing-modes tests
+webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-001.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-004.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-006.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-008.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-009.html [ Pass ]
+webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-012.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-015.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-016.html [ Pass ]
 webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-018.html [ Pass ]
@@ -3176,6 +3175,8 @@ webkit.org/b/214291 imported/w3c/web-platform-tests/css/css-writing-modes/availa
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/background-position-vrl-018.xht [ ImageOnlyFailure ]
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/background-position-vrl-020.xht [ ImageOnlyFailure ]
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/background-position-vrl-022.xht [ ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/ch-units-vrl-003.html [ ImageOnlyFailure ]
+webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/ch-units-vrl-004.html [ ImageOnlyFailure ]
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/normal-flow-overconstrained-vrl-002.xht [ ImageOnlyFailure ]
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/normal-flow-overconstrained-vrl-004.xht [ ImageOnlyFailure ]
 webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/overconstrained-rel-pos-ltr-top-bottom-vrl-002.xht [ ImageOnlyFailure ]
@@ -3219,9 +3220,6 @@ imported/w3c/web-platform-tests/css/css-images/image-orientation/image-orientati
 imported/w3c/web-platform-tests/css/css-images/infinite-radial-gradient-refcrash.html [ ImageOnlyFailure ]
 
 webkit.org/b/203448 imported/w3c/web-platform-tests/css/css-position/position-absolute-dynamic-static-position-table-cell.html [ Pass ]
-
-webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-001.html [ Pass ]
-webkit.org/b/209080 imported/w3c/web-platform-tests/css/css-writing-modes/available-size-012.html [ Pass ]
 
 webkit.org/b/215799 imported/w3c/web-platform-tests/css/css-content/quotes-005.html [ ImageOnlyFailure ]
 
@@ -3776,6 +3774,7 @@ webkit.org/b/264574 imported/w3c/web-platform-tests/css/css-pseudo/backdrop-anim
 webkit.org/b/264575 imported/w3c/web-platform-tests/css/css-text-decor/text-combine-emphasis.html [ ImageOnlyFailure ]
 
 webkit.org/b/264577 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-auto-004.html [ ImageOnlyFailure ]
+webkit.org/b/264577 imported/w3c/web-platform-tests/css/css-text/hyphens/hyphens-vertical-004.html [ ImageOnlyFailure ]
 webkit.org/b/264577 imported/w3c/web-platform-tests/css/css-text/line-breaking/line-breaking-replaced-002.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-ui/compute-kind-widget-generated/kind-of-widget-fallback-input-search-border-bottom-left-radius-001.html [ ImageOnlyFailure ]
@@ -4065,9 +4064,6 @@ webkit.org/b/202225 accessibility/misspelling-range.html [ Failure Timeout ]
 webkit.org/b/201981 http/wpt/resource-timing/rt-resources-per-worker.html [ Failure Pass ]
 
 webkit.org/b/306019 imported/w3c/web-platform-tests/resource-timing/resource_timing.worker.html [ Failure Pass ]
-
-# ch units should be ignored in these tests.
-webkit.org/b/206001 imported/w3c/web-platform-tests/css/css-values/ch-unit-017.html [ ImageOnlyFailure ]
 
 # WPT fetch tests.
 webkit.org/b/206416 imported/w3c/web-platform-tests/fetch/range/sw.https.window.html [ Failure ]
@@ -5225,7 +5221,6 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-copyTo.crossOriginIsolated.
 imported/w3c/web-platform-tests/workers/Worker-creation-happens-in-parallel.https.html [ Skip ]
 imported/w3c/web-platform-tests/workers/postMessage_block.https.html [ Skip ]
 imported/w3c/web-platform-tests/workers/Worker-postMessage-happens-in-parallel.https.html [ Skip ]
-ipc/serialized-type-info.html [ Skip ]
 ipc/stream-sync-reply-shared-memory.html [ Skip ]
 webkit.org/b/297737 ipc/send-gradient.html [ Skip ]
 webkit.org/b/297737 ipc/send-filter.html [ Skip ]
@@ -5374,11 +5369,6 @@ imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-snap-002.html 
 webkit.org/b/320646 [ Debug ] webrtc/canvas-to-peer-connection-2d.html [ Failure ]
 webkit.org/b/320647 [ Debug ] webrtc/canvas-to-peer-connection-vp8-2d.html [ Failure ]
 webkit.org/b/320648 [ Debug ] imported/w3c/web-platform-tests/css/css-grid/computed-grid-column.html [ Timeout Pass ]
-webkit.org/b/320653 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-connectionState.https.html [ Crash Pass ]
-
-webkit.org/b/321170 imported/w3c/web-platform-tests/webrtc/RTCIceTransport.html?interop-2026 [ Pass Crash ]
-
-webkit.org/b/321285 [ x86_64 ] imported/w3c/web-platform-tests/webrtc-extensions/RTCRtpSynchronizationSource-senderCaptureTimeOffset.html [ Crash Pass ]
 
 webkit.org/b/321282 [ Debug ] imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworkletglobalscope-creation-time.https.html [ Failure Pass ]
 
@@ -5402,12 +5392,13 @@ webkit.org/b/322624 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subg
 webkit.org/b/322624 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/baseline/row-grid-lanes-item-baseline-subgrid-004.html [ Crash Timeout Pass ]
 webkit.org/b/322624 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/baseline/row-grid-lanes-item-baseline-subgrid-005.html [ Crash Timeout Pass ]
 webkit.org/b/322625 [ Release ] ipc/send-gpu-GetShareableBitmap-RemoteRenderingBackend.html [ Crash ]
-webkit.org/b/322633 [ Debug ] imported/w3c/web-platform-tests/webrtc/protocol/additional-codecs.html [ Pass Crash ]
-webkit.org/b/322634 [ Debug ] imported/w3c/web-platform-tests/webrtc/RTCRtpSender-encode-same-track-twice.https.html [ Pass Crash ]
 webkit.org/b/322641 [ Debug ] imported/w3c/web-platform-tests/web-animations/timing-model/animations/start-time-compat.html [ Pass Failure ]
 webkit.org/b/322642 [ Debug ] imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworkletprocessor-unconnected-outputs.https.window.html [ Pass Failure ]
 webkit.org/b/322646 [ Debug ] media/track/track-readiness-state.html [ Pass Failure ]
-webkit.org/b/322649 [ Debug ] webrtc/libwebrtc/descriptionGetters.html [ Pass Crash ]
+
+webkit.org/b/322814 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-error.html [ Crash Failure Pass ]
+webkit.org/b/322815 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-pause-resume.html [ Pass Timeout ]
+webkit.org/b/322816 imported/w3c/web-platform-tests/resource-timing/initiator-type/style.html [ Failure Pass ]
 
 # End: Common failures between GTK and WPE.
 

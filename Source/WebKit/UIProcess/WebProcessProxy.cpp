@@ -433,13 +433,19 @@ WebProcessProxy::WebProcessProxy(WebProcessPool& processPool, WebsiteDataStore* 
     , m_displayLinkClient(makeUniqueRef<DisplayLinkProcessProxyClient>())
 #endif
     , m_isResponsive(NoOrMaybe::Maybe)
-    , m_visiblePageCounter([this](RefCounterEvent) { updateBackgroundResponsivenessTimer(); })
+    , m_visiblePageCounter([weakThis = WeakPtr { *this }](RefCounterEvent) {
+        if (RefPtr protectedThis = weakThis)
+            protectedThis->updateBackgroundResponsivenessTimer();
+    })
     , m_websiteDataStore(websiteDataStore)
     , m_isPrewarmed(isPrewarmed == IsPrewarmed::Yes)
     , m_lockdownMode(lockdownMode)
     , m_enhancedSecurity(enhancedSecurity)
     , m_crossOriginMode(crossOriginMode)
-    , m_shutdownPreventingScopeCounter([this](RefCounterEvent event) { if (event == RefCounterEvent::Decrement) maybeShutDown(); })
+    , m_shutdownPreventingScopeCounter([weakThis = WeakPtr { *this }](RefCounterEvent event) {
+        if (RefPtr protectedThis = weakThis; protectedThis && event == RefCounterEvent::Decrement)
+            protectedThis->maybeShutDown();
+    })
     , m_webLockRegistry(websiteDataStore ? makeUniqueWithoutRefCountedCheck<WebLockRegistryProxy>(*this) : nullptr)
     , m_webPermissionController(makeUniqueRefWithoutRefCountedCheck<WebPermissionControllerProxy>(*this))
 {
@@ -627,6 +633,11 @@ void WebProcessProxy::initializeWebProcess(WebProcessCreationParameters&& parame
 
 void WebProcessProxy::initializePreferencesForGPUAndNetworkProcesses(const WebPageProxy& page)
 {
+    // A dummy process proxy is shared by session and never launches a process, so its shared preferences
+    // are never used and pages that disagree on them may legitimately share the same dummy proxy.
+    if (isDummyProcessProxy())
+        return;
+
     if (!m_sharedPreferencesForWebProcess.version) {
         updateSharedPreferences(page.preferences().store());
         ASSERT(m_sharedPreferencesForWebProcess.version);

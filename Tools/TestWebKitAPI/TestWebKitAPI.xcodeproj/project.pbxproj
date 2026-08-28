@@ -652,6 +652,7 @@
 				mac/VirtualGamepad.mm,
 				mac/WebKitAgnosticTest.mm,
 				"WTFCompletionHandler+Extras.swift",
+				"WTFExpected+Extras.swift",
 			);
 			target = 7CCE7E8B1A41144E00447C4C /* TestWebKitAPILibrary */;
 		};
@@ -661,6 +662,7 @@
 				cocoa/UtilitiesCocoa.mm,
 				Counters.cpp,
 				"WTFCompletionHandler+Extras.swift",
+				"WTFExpected+Extras.swift",
 			);
 			target = 7C83DE951D0A590C00FEBCF3 /* TestWTFLibrary */;
 		};
@@ -821,6 +823,7 @@
 				WebCore/Quirks.cpp,
 				WebCore/RegionTests.cpp,
 				WebCore/RegistrableDomain.cpp,
+				WebCore/WellKnownOriginList.cpp,
 				WebCore/RenderStyleChange.cpp,
 				WebCore/SampleMap.cpp,
 				WebCore/SecurityOrigin.cpp,
@@ -993,6 +996,7 @@
 				WebKit/WKWebView/ios/FullscreenTouchSecheuristicTests.cpp,
 				WebKit/WKWebView/ios/GestureRecognizerTests.mm,
 				WebKit/WKWebView/ios/GrantAccessToMobileAssets.mm,
+				WebKit/WKWebView/ios/InteractiveWidget.mm,
 				WebKit/WKWebView/ios/KeyboardInputTestsIOS.mm,
 				WebKit/WKWebView/ios/ModalDialogDuringOverlappingFocus.mm,
 				WebKit/WKWebView/ios/OverflowScrollViewTests.mm,
@@ -1257,6 +1261,7 @@
 				WTF/LazyRef.cpp,
 				WTF/LazyUniqueRef.cpp,
 				WTF/LEBDecoder.cpp,
+				WTF/LEBEncoder.cpp,
 				WTF/LifecycleLogger.cpp,
 				WTF/LineEnding.cpp,
 				WTF/ListHashSet.cpp,

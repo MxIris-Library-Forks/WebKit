@@ -34,6 +34,119 @@ namespace SwiftCxxInteropTestbed {
 // Handed to a stored handler that resetStoredIntCompletionHandler() has to call itself.
 static constexpr int teardownValue = -2;
 
+// Left behind in a probe that has been moved from, so a test sees an obviously wrong value rather than a
+// plausible one if the bridge hands Swift the source of a move instead of the destination.
+static constexpr int movedFromValue = -1;
+
+static int& liveMoveOnlyProbes()
+{
+    static int count = 0;
+    return count;
+}
+
+MoveOnlyProbe::MoveOnlyProbe(int value)
+    : m_value(value)
+{
+    ++liveMoveOnlyProbes();
+}
+
+MoveOnlyProbe::MoveOnlyProbe(MoveOnlyProbe&& other)
+    : m_value(other.m_value)
+{
+    other.m_value = movedFromValue;
+    ++liveMoveOnlyProbes();
+}
+
+MoveOnlyProbe::~MoveOnlyProbe()
+{
+    --liveMoveOnlyProbes();
+}
+
+int liveMoveOnlyProbeCount()
+{
+    return liveMoveOnlyProbes();
+}
+
+static int& liveCopyCountingProbes()
+{
+    static int count = 0;
+    return count;
+}
+
+static int& copyCountingProbeCopies()
+{
+    static int count = 0;
+    return count;
+}
+
+CopyCountingProbe::CopyCountingProbe(int value)
+    : m_value(value)
+{
+    ++liveCopyCountingProbes();
+}
+
+CopyCountingProbe::CopyCountingProbe(const CopyCountingProbe& other)
+    : m_value(other.m_value)
+{
+    ++copyCountingProbeCopies();
+    ++liveCopyCountingProbes();
+}
+
+CopyCountingProbe::CopyCountingProbe(CopyCountingProbe&& other)
+    : m_value(other.m_value)
+{
+    other.m_value = movedFromValue;
+    ++liveCopyCountingProbes();
+}
+
+CopyCountingProbe::~CopyCountingProbe()
+{
+    --liveCopyCountingProbes();
+}
+
+int liveCopyCountingProbeCount()
+{
+    return liveCopyCountingProbes();
+}
+
+int copyCountingProbeCopyCount()
+{
+    return copyCountingProbeCopies();
+}
+
+void resetCopyCountingProbeCounts()
+{
+    copyCountingProbeCopies() = 0;
+}
+
+static int& liveCountingProbeErrors()
+{
+    static int count = 0;
+    return count;
+}
+
+CountingProbeError::CountingProbeError(ProbeError value)
+    : m_value(value)
+{
+    ++liveCountingProbeErrors();
+}
+
+CountingProbeError::CountingProbeError(const CountingProbeError& other)
+    : m_value(other.m_value)
+{
+    ++liveCountingProbeErrors();
+}
+
+CountingProbeError::~CountingProbeError()
+{
+    --liveCountingProbeErrors();
+}
+
+int liveCountingProbeErrorCount()
+{
+    return liveCountingProbeErrors();
+}
+
 int callIntBoolFunction(bool argument, IntBoolFunction&& function)
 {
     return function(argument);
@@ -83,6 +196,196 @@ void resetStoredIntCompletionHandler()
     // must never assert itself, so check the handler has not already run.
     if (handler && *handler)
         (*handler)(teardownValue);
+}
+
+void callMoveOnlyProbeCompletionHandler(int argument, MoveOnlyProbeCompletionHandler&& completionHandler)
+{
+    completionHandler(MoveOnlyProbe { argument });
+}
+
+void callCopyCountingProbeCompletionHandler(int argument, CopyCountingProbeCompletionHandler&& completionHandler)
+{
+    completionHandler(CopyCountingProbe { argument });
+}
+
+static std::optional<MoveOnlyProbeCompletionHandler>& storedMoveOnlyProbeCompletionHandler()
+{
+    static std::optional<MoveOnlyProbeCompletionHandler> handler;
+    return handler;
+}
+
+void storeMoveOnlyProbeCompletionHandler(MoveOnlyProbeCompletionHandler&& completionHandler)
+{
+    // See storeIntCompletionHandler().
+    RELEASE_ASSERT(!storedMoveOnlyProbeCompletionHandler());
+    storedMoveOnlyProbeCompletionHandler().emplace(WTF::move(completionHandler));
+}
+
+void invokeStoredMoveOnlyProbeCompletionHandler(int argument)
+{
+    auto handler = WTF::move(storedMoveOnlyProbeCompletionHandler());
+    storedMoveOnlyProbeCompletionHandler().reset();
+
+    if (handler)
+        (*handler)(MoveOnlyProbe { argument });
+}
+
+void resetStoredMoveOnlyProbeCompletionHandler()
+{
+    auto handler = WTF::move(storedMoveOnlyProbeCompletionHandler());
+    storedMoveOnlyProbeCompletionHandler().reset();
+
+    // See resetStoredIntCompletionHandler().
+    if (handler && *handler)
+        (*handler)(MoveOnlyProbe { teardownValue });
+}
+
+static int& sharedProbeRefs()
+{
+    static int count = 0;
+    return count;
+}
+
+static int& sharedProbeDerefs()
+{
+    static int count = 0;
+    return count;
+}
+
+void SharedProbe::ref()
+{
+    ++sharedProbeRefs();
+    ++m_refCount;
+}
+
+void SharedProbe::deref()
+{
+    ++sharedProbeDerefs();
+    --m_refCount;
+
+    // Deliberately never freed: see the class comment. A test that drove the count to zero has to be
+    // able to report that rather than crash on the next access.
+}
+
+static SharedProbe& sharedProbe()
+{
+    static SharedProbe probe;
+    return probe;
+}
+
+int callSharedProbeHolderCompletionHandler(SharedProbeHolderCompletionHandler&& completionHandler)
+{
+    completionHandler(SharedProbeHolder { &sharedProbe() });
+    return sharedProbe().refCount();
+}
+
+int sharedProbeRefCalls()
+{
+    return sharedProbeRefs();
+}
+
+int sharedProbeDerefCalls()
+{
+    return sharedProbeDerefs();
+}
+
+int sharedProbeRefCount()
+{
+    return sharedProbe().refCount();
+}
+
+void resetSharedProbe()
+{
+    sharedProbeRefs() = 0;
+    sharedProbeDerefs() = 0;
+    sharedProbe().resetRefCount();
+}
+
+SelfReferentialProbe::SelfReferentialProbe(int value)
+    : m_value(value)
+    , m_self(&m_value)
+{
+}
+
+SelfReferentialProbe::SelfReferentialProbe(SelfReferentialProbe&& other)
+    : m_value(other.m_value)
+    , m_self(&m_value)
+{
+    other.m_value = movedFromValue;
+}
+
+SelfReferentialProbe::~SelfReferentialProbe()
+{
+    // Non-trivial on purpose. See the class comment: this is what makes Swift relocate the value with
+    // the move constructor above instead of copying its bytes.
+    m_self = nullptr;
+}
+
+void callSelfReferentialProbeCompletionHandler(int argument, SelfReferentialProbeCompletionHandler&& completionHandler)
+{
+    completionHandler(SelfReferentialProbe { argument });
+}
+
+IntExpected makeIntExpected(int value)
+{
+    return IntExpected { value };
+}
+
+IntExpected makeIntUnexpected(ProbeError error)
+{
+    return IntExpected { makeUnexpected(error) };
+}
+
+CopyCountingProbeExpected makeCopyCountingProbeExpected(int value)
+{
+    // In place, so that the probe the `Expected` holds is the only one this constructed: a test counting
+    // copies is measuring what Swift did, not what building the `Expected` did.
+    return CopyCountingProbeExpected { std::in_place, value };
+}
+
+CopyCountingProbeExpected makeCopyCountingProbeUnexpected(ProbeError error)
+{
+    return CopyCountingProbeExpected { makeUnexpected(error) };
+}
+
+SharedProbeHolderExpected makeSharedProbeHolderExpected()
+{
+    return SharedProbeHolderExpected { SharedProbeHolder { &sharedProbe() } };
+}
+
+SharedProbeHolderExpected makeSharedProbeHolderUnexpected(ProbeError error)
+{
+    return SharedProbeHolderExpected { makeUnexpected(error) };
+}
+
+MoveOnlyProbeExpected makeMoveOnlyProbeExpected(int value)
+{
+    return MoveOnlyProbeExpected { std::in_place, value };
+}
+
+MoveOnlyProbeExpected makeMoveOnlyProbeUnexpected(ProbeError error)
+{
+    return MoveOnlyProbeExpected { makeUnexpected(error) };
+}
+
+SelfReferentialProbeExpected makeSelfReferentialProbeExpected(int value)
+{
+    return SelfReferentialProbeExpected { std::in_place, value };
+}
+
+SelfReferentialProbeExpected makeSelfReferentialProbeUnexpected(ProbeError error)
+{
+    return SelfReferentialProbeExpected { makeUnexpected(error) };
+}
+
+CountedErrorExpected makeCountedErrorExpected(int value)
+{
+    return CountedErrorExpected { std::in_place, value };
+}
+
+CountedErrorExpected makeCountedErrorUnexpected(ProbeError error)
+{
+    return CountedErrorExpected { makeUnexpected(CountingProbeError { error }) };
 }
 
 };

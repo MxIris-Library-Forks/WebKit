@@ -84,6 +84,7 @@ set(TestWTF_SOURCES
     Tests/WTF/IteratorRange.cpp
     Tests/WTF/JSONValue.cpp
     Tests/WTF/LEBDecoder.cpp
+    Tests/WTF/LEBEncoder.cpp
     Tests/WTF/LazyRef.cpp
     Tests/WTF/LazyUniqueRef.cpp
     Tests/WTF/LifecycleLogger.cpp
@@ -281,6 +282,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/URLParserTextEncoding.cpp
         Tests/WebCore/URLPatternTests.cpp
         Tests/WebCore/WebTransportHeaderValidation.cpp
+        Tests/WebCore/WellKnownOriginList.cpp
         Tests/WebCore/WritingModeTests.cpp
         Tests/WebCore/XRCompositionLayer.cpp
     )

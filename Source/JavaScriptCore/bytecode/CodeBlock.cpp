@@ -1221,6 +1221,14 @@ void CodeBlock::visitChildren(Visitor& visitor)
 
     stronglyVisitStrongReferences(locker, visitor);
     stronglyVisitWeakReferences(locker, visitor);
+
+    // Update profiles from concurrent markers to reduce the cost of update at the GC end phase as its execution is serialized.
+    if constexpr (std::is_same_v<Visitor, SlotVisitor>) {
+        if (visitor.isFirstVisit() && JITCode::isBaselineCode(jitType())) {
+            updateAllNonLazyValueProfilePredictions();
+            updateAllLazyValueProfilePredictions();
+        }
+    }
     
     Heap::CodeBlockSpaceAndSet::setFor(*subspace()).add(this);
 }
@@ -3018,7 +3026,7 @@ bool CodeBlock::hasIdentifier(UniquedStringImpl* uid)
 }
 #endif
 
-void CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(const ConcurrentJSLocker& locker, unsigned& numberOfLiveNonArgumentValueProfiles, unsigned& numberOfSamplesInProfiles)
+void CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(unsigned& numberOfLiveNonArgumentValueProfiles, unsigned& numberOfSamplesInProfiles)
 {
     numberOfLiveNonArgumentValueProfiles = 0;
     numberOfSamplesInProfiles = 0;
@@ -3030,7 +3038,7 @@ void CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(const Co
     forEachValueProfile([&](auto& profile, bool isArgument) {
         using Profile = std::remove_reference_t<decltype(profile)>;
         static_assert(Profile::numberOfBuckets == 1);
-        bool wasLive = profile.computeUpdatedPrediction(locker) != SpecNone;
+        bool wasLive = profile.computeUpdatedPrediction() != SpecNone;
         if (wasLive) {
             ++numberOfSamplesInProfiles;
             if (!isArgument)
@@ -3045,25 +3053,23 @@ void CodeBlock::updateAllNonLazyValueProfilePredictionsAndCountLiveness(const Co
         m_metadata->forEach<OpCatch>([&](auto& metadata) {
             if (metadata.m_buffer) {
                 metadata.m_buffer->forEach([&](ValueProfileAndVirtualRegister& profile) {
-                    profile.computeUpdatedPrediction(locker);
+                    profile.computeUpdatedPrediction();
                 });
             }
         });
     }
 }
 
-void CodeBlock::updateAllNonLazyValueProfilePredictions(const ConcurrentJSLocker& locker)
+void CodeBlock::updateAllNonLazyValueProfilePredictions()
 {
     unsigned ignoredValue1, ignoredValue2;
-    updateAllNonLazyValueProfilePredictionsAndCountLiveness(locker, ignoredValue1, ignoredValue2);
+    updateAllNonLazyValueProfilePredictionsAndCountLiveness(ignoredValue1, ignoredValue2);
 }
 
-void CodeBlock::updateAllLazyValueProfilePredictions(const ConcurrentJSLocker& locker)
+void CodeBlock::updateAllLazyValueProfilePredictions()
 {
 #if ENABLE(DFG_JIT)
-    lazyValueProfiles().computeUpdatedPredictions(locker, this);
-#else
-    UNUSED_PARAM(locker);
+    lazyValueProfiles().computeUpdatedPredictions(this);
 #endif
 }
 
@@ -3104,14 +3110,11 @@ void CodeBlock::updateAllArrayAllocationProfilePredictions()
 
 // Folds each profile's sampled value into a pointer-free SpeculatedType and clears the sample.
 // The samples are untraced JSValues and StructureIDs, so this only runs while they are still
-// readable: after marking, before sweep.
+// readable, which means any time from marking up to the sweep that would free them.
 void CodeBlock::updateAllPredictions()
 {
-    {
-        ConcurrentJSLocker locker(valueProfileLock());
-        updateAllNonLazyValueProfilePredictions(locker);
-        updateAllLazyValueProfilePredictions(locker);
-    }
+    updateAllNonLazyValueProfilePredictions();
+    updateAllLazyValueProfilePredictions();
     updateAllArrayAllocationProfilePredictions();
     updateAllArrayProfilePredictions();
 }
@@ -3125,11 +3128,8 @@ bool CodeBlock::shouldOptimizeNowFromBaseline()
     
     unsigned numberOfLiveNonArgumentValueProfiles;
     unsigned numberOfSamplesInProfiles;
-    {
-        ConcurrentJSLocker locker(valueProfileLock());
-        updateAllNonLazyValueProfilePredictionsAndCountLiveness(locker, numberOfLiveNonArgumentValueProfiles, numberOfSamplesInProfiles);
-        updateAllLazyValueProfilePredictions(locker);
-    }
+    updateAllNonLazyValueProfilePredictionsAndCountLiveness(numberOfLiveNonArgumentValueProfiles, numberOfSamplesInProfiles);
+    updateAllLazyValueProfilePredictions();
     updateAllArrayAllocationProfilePredictions();
     updateAllArrayProfilePredictions();
 
@@ -3393,12 +3393,12 @@ ValueProfile* CodeBlock::tryGetValueProfileForBytecodeIndex(BytecodeIndex byteco
     }
 }
 
-SpeculatedType CodeBlock::valueProfilePredictionForBytecodeIndex(const ConcurrentJSLocker& locker, BytecodeIndex bytecodeIndex, JSValue* specFailValue)
+SpeculatedType CodeBlock::valueProfilePredictionForBytecodeIndex(BytecodeIndex bytecodeIndex, JSValue* specFailValue)
 {
     if (ValueProfile* valueProfile = tryGetValueProfileForBytecodeIndex(bytecodeIndex)) {
         if (specFailValue)
-            valueProfile->computeUpdatedPredictionForExtraValue(locker, *specFailValue);
-        return valueProfile->computeUpdatedPrediction(locker);
+            valueProfile->computeUpdatedPredictionForExtraValue(*specFailValue);
+        return valueProfile->computeUpdatedPrediction();
     }
     return SpecNone;
 }

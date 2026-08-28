@@ -61,6 +61,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
 #include "WasmOMGIRGenerator.h"
 #include "WasmOperations.h"
 #include "WasmOps.h"
+#include "WasmTable.h"
 #include "WasmThunks.h"
 #include "WasmTypeDefinition.h"
 #include "WebAssemblyFunctionBase.h"
@@ -155,26 +156,61 @@ Value BBQJIT::instanceValue()
 // Tables
 [[nodiscard]] PartialResult BBQJIT::addTableGet(unsigned tableIndex, Value index, Value& result)
 {
-    // FIXME: Emit this inline <https://bugs.webkit.org/show_bug.cgi?id=198506>.
-    auto table = m_info.table(tableIndex);
+    auto& table = m_info.table(tableIndex);
     ASSERT(index.type() == table.addressType().asWasmTypeKind());
     TypeKind returnType = table.wasmType().kind();
     ASSERT(typeKindSizeInBytes(returnType) == 8);
 
+    if (table.type() == TableElementType::Funcref) {
+        emitZeroExtendAddressOperand(table.addressType().is64Bit(), index);
+
+        Vector<Value, 8> arguments = {
+            instanceValue(),
+            Value::fromI32(tableIndex),
+            index
+        };
+        result = topValue(returnType);
+        emitCCall(&operationGetWasmTableElement, arguments, result);
+        Location resultLocation = loadIfNecessary(result);
+
+        LOG_INSTRUCTION("TableGet", tableIndex, index, RESULT(result));
+
+        recordJumpToThrowException(ExceptionType::OutOfBoundsTableAccess, m_jit.branchTest64(ResultCondition::Zero, resultLocation.asGPR()));
+        return { };
+    }
+
     emitZeroExtendAddressOperand(table.addressType().is64Bit(), index);
 
-    Vector<Value, 8> arguments = {
-        instanceValue(),
-        Value::fromI32(tableIndex),
-        index
-    };
-    result = topValue(returnType);
-    emitCCall(&operationGetWasmTableElement, arguments, result);
-    Location resultLocation = loadIfNecessary(result);
+    {
+        ScratchScope<3, 0> scratches(*this);
+        GPRReg tableGPR = scratches.gpr(0);
+        GPRReg scratchGPR = scratches.gpr(1);
+        GPRReg valueGPR = scratches.gpr(2);
+
+        m_jit.loadPtr(Address(GPRInfo::wasmContextInstancePointer, JSWebAssemblyInstance::offsetOfTable(m_info, tableIndex)), tableGPR);
+        m_jit.load32(Address(tableGPR, Table::offsetOfLength()), scratchGPR);
+
+        GPRReg indexGPR;
+        if (index.isConst()) {
+            uint64_t indexValue = table.addressType().is64Bit() ? static_cast<uint64_t>(index.asI64()) : static_cast<uint32_t>(index.asI32());
+            recordJumpToThrowException(ExceptionType::OutOfBoundsTableAccess, m_jit.branch64(RelationalCondition::BelowOrEqual, scratchGPR, TrustedImm64(indexValue)));
+            m_jit.move(TrustedImm64(indexValue), scratchGPR);
+            indexGPR = scratchGPR;
+        } else {
+            indexGPR = loadIfNecessary(index).asGPR();
+            recordJumpToThrowException(ExceptionType::OutOfBoundsTableAccess, m_jit.branch64(RelationalCondition::AboveOrEqual, indexGPR, scratchGPR));
+        }
+
+        m_jit.loadPtr(Address(tableGPR, ExternOrAnyRefTable::offsetOfJSValues()), tableGPR);
+        static_assert(sizeof(WriteBarrier<Unknown>) == 8);
+        m_jit.load64(MacroAssembler::BaseIndex(tableGPR, indexGPR, MacroAssembler::TimesEight), valueGPR);
+
+        consume(index);
+        result = topValue(returnType);
+        m_jit.move(valueGPR, allocate(result).asGPR());
+    }
 
     LOG_INSTRUCTION("TableGet", tableIndex, index, RESULT(result));
-
-    recordJumpToThrowException(ExceptionType::OutOfBoundsTableAccess, m_jit.branchTest64(ResultCondition::Zero, resultLocation.asGPR()));
     return { };
 }
 
@@ -1575,22 +1611,6 @@ void BBQJIT::emitAllocateGCArrayUninitialized(GPRReg resultGPR, TypeSignatureInd
 [[nodiscard]] PartialResult BBQJIT::addArrayNewDefault(TypeSignatureIndex typeIndex, ExpressionType size, ExpressionType& result)
 {
     StorageType elementType = getArrayElementType(typeIndex);
-    // FIXME: We don't have a good way to fill V128s yet so just make a call.
-    if (elementType.unpacked().isV128()) {
-        Vector<Value, 8> arguments = {
-            instanceValue(),
-            Value::fromI32(typeIndex.rawIndex()),
-            size,
-        };
-        result = topValue(TypeKind::Arrayref);
-        emitCCall(operationWasmArrayNewEmpty, arguments, result);
-
-        Location resultLocation = loadIfNecessary(result);
-        emitThrowOnNullReference(ExceptionType::BadArrayNew, resultLocation);
-
-        LOG_INSTRUCTION("ArrayNewDefault", typeIndex, size, RESULT(result));
-        return { };
-    }
 
     GPRReg resultGPR;
     {
@@ -1603,7 +1623,13 @@ void BBQJIT::emitAllocateGCArrayUninitialized(GPRReg resultGPR, TypeSignatureInd
         JIT_COMMENT(m_jit, "Array allocation done do initialization");
         std::optional<ScratchScope<1, 0>> sizeScratch;
         Location sizeLocation = materializeToGPR(size, sizeScratch);
-        Value initValue = Value::fromI64(Wasm::isRefType(elementType.unpacked()) ? JSValue::encode(jsNull()) : 0);
+        Value initValue;
+        if (elementType.unpacked().isV128()) {
+            // FIXME: We should have V128 Constant.
+            materializeVectorConstant(v128_t { }, Location::fromFPR(wasmScratchFPR));
+            initValue = Value::pinned(TypeKind::V128, Location::fromFPR(wasmScratchFPR));
+        } else
+            initValue = Value::fromI64(Wasm::isRefType(elementType.unpacked()) ? JSValue::encode(jsNull()) : 0);
 
         emitArrayGetPayload(elementType, resultGPR, scratchGPR);
 

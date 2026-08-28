@@ -755,6 +755,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/webauthn/UserVerificationRequirement.h
     Modules/webauthn/WebAuthenticationConstants.h
     Modules/webauthn/WebAuthenticationUtils.h
+    Modules/webauthn/WellKnownOriginList.h
 
     Modules/webauthn/apdu/ApduCommand.h
     Modules/webauthn/apdu/ApduResponse.h
@@ -2081,6 +2082,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/PrintContext.h
     page/ProcessWarming.h
     page/QuirkMatch.h
+    page/QuirkNames.h
     page/QuirkTable.h
     page/Quirks.h
     page/QuirksData.h
@@ -3436,6 +3438,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/overflow/StyleOverflowClipMargin.h
     style/values/overflow/StyleScrollBehavior.h
     style/values/overflow/StyleScrollbarGutter.h
+    style/values/overflow/StyleTextOverflow.h
 
     style/values/page/StylePageSize.h
 

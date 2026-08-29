@@ -7621,12 +7621,12 @@ void WebPageProxy::launchInitialProcessIfNecessary()
         launchProcess(Site(aboutBlankURL()), ProcessLaunchReason::InitialProcess);
 }
 
-void WebPageProxy::runJavaScriptInMainFrame(RunJavaScriptParameters&& parameters, bool wantsResult, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&& callbackFunction)
+void WebPageProxy::runJavaScriptInMainFrame(RunJavaScriptParameters&& parameters, bool wantsResult, RunJavaScriptInFrameCompletionHandler&& callbackFunction)
 {
     runJavaScriptInFrameInScriptWorld(WTF::move(parameters), std::nullopt, API::ContentWorld::pageContentWorldSingleton(), wantsResult, WTF::move(callbackFunction));
 }
 
-void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parameters, std::optional<WebCore::FrameIdentifier> frameID, API::ContentWorld& world, bool wantsResult, CompletionHandler<void(Expected<JavaScriptEvaluationResult, std::optional<WebCore::ExceptionDetails>>)>&& callbackFunction)
+void WebPageProxy::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parameters, std::optional<WebCore::FrameIdentifier> frameID, API::ContentWorld& world, bool wantsResult, RunJavaScriptInFrameCompletionHandler&& callbackFunction)
 {
     static uintptr_t nextLoggingIdentifier;
     uintptr_t loggingIdentifier = nextLoggingIdentifier++;
@@ -9238,8 +9238,10 @@ void WebPageProxy::didNotifyUserActivation(IPC::Connection& connection, FrameIde
             addFrame(*descendant);
     }
 
-    for (auto& [process, frameIDs] : framesByProcess)
-        protect(process)->send(Messages::WebPage::UpdateUserActivationState(frameIDs, activationTime), webPageIDInProcess(process));
+    for (auto& [process, frameIDs] : framesByProcess) {
+        Ref protectedProcess = process;
+        protectedProcess->send(Messages::WebPage::UpdateUserActivationState(frameIDs, activationTime), webPageIDInProcess(protectedProcess));
+    }
 }
 
 void WebPageProxy::didHandleFirstUserGesture(IPC::Connection& connection, FrameIdentifier sourceFrameID, MonotonicTime gestureTime)
@@ -9261,8 +9263,10 @@ void WebPageProxy::didHandleFirstUserGesture(IPC::Connection& connection, FrameI
         framesByProcess.add(process, Vector<FrameIdentifier> { }).iterator->value.append(ancestor->frameID());
     }
 
-    for (auto& [process, frameIDs] : framesByProcess)
-        protect(process)->send(Messages::WebPage::UpdateLastHandledUserGestureTimestamp(frameIDs, gestureTime), webPageIDInProcess(process));
+    for (auto& [process, frameIDs] : framesByProcess) {
+        Ref protectedProcess = process;
+        protectedProcess->send(Messages::WebPage::UpdateLastHandledUserGestureTimestamp(frameIDs, gestureTime), webPageIDInProcess(protectedProcess));
+    }
 }
 
 void WebPageProxy::didConsumeUserActivation(IPC::Connection& connection, FrameIdentifier sourceFrameID)
@@ -9288,8 +9292,10 @@ void WebPageProxy::didConsumeUserActivation(IPC::Connection& connection, FrameId
         framesByProcess.add(process, Vector<FrameIdentifier> { }).iterator->value.append(frame->frameID());
     }
 
-    for (auto& [process, frameIDs] : framesByProcess)
-        protect(process)->send(Messages::WebPage::ConsumeUserActivations(frameIDs), webPageIDInProcess(process));
+    for (auto& [process, frameIDs] : framesByProcess) {
+        Ref protectedProcess = process;
+        protectedProcess->send(Messages::WebPage::ConsumeUserActivations(frameIDs), webPageIDInProcess(protectedProcess));
+    }
 }
 
 void WebPageProxy::didFinishLoadForFrame(IPC::Connection& connection, FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, const UserData& userData, WallTime timestamp)

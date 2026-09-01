@@ -969,6 +969,10 @@ private:
     bool emitNullCheckBeforeAccess(Value*, ptrdiff_t offset);
     void emitArraySetUnchecked(TypeSignatureIndex, Value*, Value*, Value*);
     bool emitArraySetUncheckedWithoutWriteBarrier(TypeSignatureIndex, Value*, Value*, Value*);
+    static bool isConstantNonCell(Value* value)
+    {
+        return value->hasInt64() && !JSValue::decode(static_cast<EncodedJSValue>(value->asInt64())).isCell();
+    }
     // Returns true if a writeBarrier/mutatorFence is needed.
     [[nodiscard]] bool emitStructSet(bool canTrap, Value*, uint32_t, const RTT&, Value*);
     using ArraySegmentOperation = EncodedJSValue SYSV_ABI (&)(JSC::JSWebAssemblyInstance*, uint32_t, uint32_t, uint32_t, uint32_t);
@@ -1669,7 +1673,7 @@ auto OMGIRGenerator::addArguments(const RTT& signature) -> PartialResult
                     dataLog("     Arg source ", i, " located at ", src, " = ");
 
                     if (src.isGPR())
-                        dataLog(context.gpr(src.jsr().payloadGPR()), " / ", (int) context.gpr(src.jsr().payloadGPR()));
+                        dataLog(context.gpr(src.gpr()), " / ", (int) context.gpr(src.gpr()));
                     else if (src.isFPR() && width <= Width::Width64)
                         dataLog(context.fpr(src.fpr()));
                     else if (src.isFPR())
@@ -1687,7 +1691,7 @@ auto OMGIRGenerator::addArguments(const RTT& signature) -> PartialResult
         B3::Value* argument;
         auto rep = wasmCallInfo.params[i];
         if (rep.location.isGPR()) {
-            argument = m_currentBlock->appendNew<B3::ArgumentRegValue>(m_proc, Origin(), rep.location.jsr().payloadGPR());
+            argument = m_currentBlock->appendNew<B3::ArgumentRegValue>(m_proc, Origin(), rep.location.gpr());
             if (type == B3::Int32)
                 argument = m_currentBlock->appendNew<B3::Value>(m_proc, B3::Trunc, Origin(), argument);
         } else if (rep.location.isFPR()) {
@@ -3241,8 +3245,9 @@ Value* OMGIRGenerator::emitAtomicCompareExchange(ExtAtomicOpType op, Type valueT
 
     m_heaps.decorateWasmStructSet(structFieldHeap(definingRTT, fieldIndex), storeValue);
 
-    // FIXME: We should be able elide this write barrier if we know we're storing jsNull();
-    return fieldType.is<Type>() && isRefType(fieldType.unpacked());
+    if (!fieldType.is<Type>() || !isRefType(fieldType.unpacked()))
+        return false;
+    return !isConstantNonCell(argument);
 }
 
 auto OMGIRGenerator::atomicCompareExchange(ExtAtomicOpType op, Type valueType, ExpressionType pointer, ExpressionType expected, ExpressionType value, ExpressionType& result, uint64_t offset, uint8_t memoryIndex) -> PartialResult
@@ -3958,7 +3963,9 @@ bool OMGIRGenerator::emitArraySetUncheckedWithoutWriteBarrier(TypeSignatureIndex
         arrayref, indexValue, setValue, Ref { m_info.rtt(typeIndex) });
     m_heaps.decorateWasmArraySet(arrayElementHeap(elementType, indexValue), storeNode);
 
-    return isRefType(elementType.unpacked());
+    if (!isRefType(elementType.unpacked()))
+        return false;
+    return !isConstantNonCell(setValue);
 }
 
 void OMGIRGenerator::emitArraySetUnchecked(TypeSignatureIndex typeIndex, Value* arrayref, Value* index, Value* setValue)
@@ -4404,7 +4411,30 @@ void OMGIRGenerator::mutatorFence()
 
 auto OMGIRGenerator::addAnyConvertExtern(ExpressionType reference, ExpressionType& result) -> PartialResult
 {
-    result = push(callWasmOperation(m_currentBlock, toB3Type(anyrefType()), operationWasmAnyConvertExtern, get(reference)));
+    Value* bits = get(reference);
+    Value* numberTag = constant(Int64, JSValue::NumberTag);
+    Value* isInt32 = m_currentBlock->appendNew<Value>(m_proc, AboveEqual, origin(), bits, numberTag);
+    Value* isNumber = m_currentBlock->appendNew<Value>(m_proc, NotEqual, origin(), m_currentBlock->appendNew<Value>(m_proc, BitAnd, origin(), bits, numberTag), constant(Int64, 0));
+    Value* isDouble = m_currentBlock->appendNew<Value>(m_proc, BitAnd, origin(), isNumber, m_currentBlock->appendNew<Value>(m_proc, Equal, origin(), isInt32, constant(Int32, 0)));
+
+    auto* slowPath = m_proc.addBlock();
+    auto* continuation = m_proc.addBlock();
+    auto* phi = continuation->appendNew<Value>(m_proc, Phi, toB3Type(anyrefType()), origin());
+
+    m_currentBlock->appendNew<UpsilonValue>(m_proc, origin(), bits, phi);
+    m_currentBlock->appendNewControlValue(m_proc, B3::Branch, origin(), isDouble,
+        FrequentedBlock(slowPath, FrequencyClass::Rare), FrequentedBlock(continuation));
+    slowPath->addPredecessor(m_currentBlock);
+    continuation->addPredecessor(m_currentBlock);
+
+    m_currentBlock = slowPath;
+    auto* called = callWasmOperation(m_currentBlock, toB3Type(anyrefType()), operationWasmAnyConvertExtern, bits);
+    m_currentBlock->appendNew<UpsilonValue>(m_proc, origin(), called, phi);
+    m_currentBlock->appendNewControlValue(m_proc, Jump, origin(), continuation);
+    continuation->addPredecessor(m_currentBlock);
+
+    m_currentBlock = continuation;
+    result = push(phi);
     return { };
 }
 
@@ -5898,7 +5928,7 @@ static inline void prepareForTailCallImpl(unsigned functionIndex, CCallHelpers& 
 
         ShuffleLocation dst;
         if (dstParam.location.isGPR())
-            dst = ShuffleLocation::fromGPR(dstParam.location.jsr().payloadGPR());
+            dst = ShuffleLocation::fromGPR(dstParam.location.gpr());
         else if (dstParam.location.isFPR())
             dst = ShuffleLocation::fromFPR(dstParam.location.fpr());
         else {
@@ -6203,7 +6233,7 @@ static inline void prepareForTailCallImpl(unsigned functionIndex, CCallHelpers& 
                     auto src = arg.location;
                     dataLog("Arg ", i, " located at ", arg.location, " = ");
                     if (arg.location.isGPR())
-                        dataLog(context.gpr(arg.location.jsr().payloadGPR()), " / ", (int) context.gpr(arg.location.jsr().payloadGPR()));
+                        dataLog(context.gpr(arg.location.gpr()), " / ", (int) context.gpr(arg.location.gpr()));
                     else if (arg.location.isFPR() && arg.width <= Width::Width64)
                         dataLog(context.fpr(arg.location.fpr()));
                     else if (arg.location.isFPR())

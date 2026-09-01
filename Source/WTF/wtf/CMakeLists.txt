@@ -91,7 +91,6 @@ set(WTF_PUBLIC_HEADERS
     EnumTraits.h
     EnumeratedArray.h
     EscapableByteSpan.h
-    Expected.h
     ExperimentalFeatureNames.h
     ExportMacros.h
     FailureAction.h
@@ -840,7 +839,6 @@ set(WTF_INTERFACE_DEPENDENCIES WTF_CopyHeaders)
 
 WEBKIT_FRAMEWORK_DECLARE(WTF)
 WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
-WEBKIT_ADD_TARGET_THREAD_SAFETY_WARNINGS(WTF)
 WEBKIT_ADD_TARGET_UNSAFE_BUFFER_WARNINGS(WTF)
 
 WEBKIT_COPY_FILES(WTF_CopyHeaders

@@ -185,9 +185,6 @@ bool Extractor::updateStyleIfNeededForProperty(Element& element, CSSPropertyID p
 {
     Ref document = element.document();
 
-    if (RefPtr owner = document->ownerElement(); owner && !owner->renderer())
-        protect(owner->document())->updateStyleIfNeeded();
-
     document->styleScope().flushPendingUpdate();
 
     auto hasValidStyle = [&] {
@@ -336,6 +333,7 @@ static bool isLayoutDependent(CSSPropertyID propertyID, const Style::ComputedSty
     case CSSPropertyHeight:
     case CSSPropertyInlineSize:
     case CSSPropertyBlockSize:
+    case CSSPropertySize:
         if (!renderer)
             return false;
         if (renderer->isSVGRenderer()) {

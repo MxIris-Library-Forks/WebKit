@@ -1201,6 +1201,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/color/CSSKeywordColor.h
     css/values/color/CSSResolvedColor.h
 
+    css/values/flexbox/CSSFlexWrap.h
+
     css/values/grid/CSSGridAutoFlow.h
     css/values/grid/CSSGridLineNames.h
     css/values/grid/CSSGridNamedAreaMap.h
@@ -2599,6 +2601,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/Icon.h
     platform/graphics/Image.h
     platform/graphics/ImageAdapter.h
+    platform/graphics/ImageBackingStore.h
     platform/graphics/ImageBuffer.h
     platform/graphics/ImageBufferAllocator.h
     platform/graphics/ImageBufferBackend.h
@@ -3339,6 +3342,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/flexbox/StyleFlexBasis.h
     style/values/flexbox/StyleFlexGrow.h
     style/values/flexbox/StyleFlexShrink.h
+    style/values/flexbox/StyleFlexWrap.h
     style/values/flexbox/StyleWebKitBoxFlex.h
     style/values/flexbox/StyleWebKitBoxFlexGroup.h
     style/values/flexbox/StyleWebKitBoxOrdinalGroup.h

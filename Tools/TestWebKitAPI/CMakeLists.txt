@@ -64,7 +64,6 @@ set(TestWTF_SOURCES
     Tests/WTF/EmbeddedFixedVector.cpp
     Tests/WTF/EnumTraits.cpp
     Tests/WTF/EscapableByteSpan.cpp
-    Tests/WTF/Expected.cpp
     Tests/WTF/FileSystem.cpp
     Tests/WTF/FormattedLogging.cpp
     Tests/WTF/FixedBitVector.cpp
@@ -246,6 +245,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/IDBKeyData.cpp
         Tests/WebCore/IDBSerializationTest.cpp
         Tests/WebCore/IPAddressSpaceTests.cpp
+        Tests/WebCore/ImageBackingStoreTests.cpp
         Tests/WebCore/ImageBufferTests.cpp
         Tests/WebCore/IntPointTests.cpp
         Tests/WebCore/IntRectTests.cpp

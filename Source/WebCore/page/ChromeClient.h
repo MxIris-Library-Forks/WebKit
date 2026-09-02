@@ -674,11 +674,12 @@ public:
 #if ENABLE(WIRELESS_PLAYBACK_TARGET)
     virtual void addPlaybackTargetPickerClient(PlaybackTargetClientContextIdentifier) { }
     virtual void removePlaybackTargetPickerClient(PlaybackTargetClientContextIdentifier) { }
-    virtual void showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier, const IntPoint&, bool /*isVideo*/) { }
+    virtual void showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier, FrameIdentifier, const IntPoint&, bool /*isVideo*/) { }
     virtual void playbackTargetPickerClientStateDidChange(PlaybackTargetClientContextIdentifier, MediaProducerMediaStateFlags) { }
     virtual void setMockMediaPlaybackTargetPickerEnabled(bool)  { }
     virtual void setMockMediaPlaybackTargetPickerState(const String&, MediaPlaybackTargetMockState) { }
     virtual void mockMediaPlaybackTargetPickerDismissPopup() { }
+    virtual void mockMediaPlaybackTargetPickerRect(CompletionHandler<void(FloatRect)>&& completionHandler) { completionHandler({ }); }
 #endif
 
     virtual void imageOrMediaDocumentSizeChanged(const IntSize&) { }
@@ -816,8 +817,6 @@ public:
 #if ENABLE(VIDEO)
     WEBCORE_EXPORT virtual void showCaptionDisplaySettings(HTMLMediaElement&, const ResolvedCaptionDisplaySettingsOptions&, CompletionHandler<void(ExceptionOr<void>)>&&);
 #endif
-
-    virtual void updateRemoteIntersectionObserversInOtherWebProcesses() { }
 
     WEBCORE_EXPORT virtual ~ChromeClient();
 

@@ -175,16 +175,12 @@ target_include_directories(WGSLCore PUBLIC
 target_link_libraries(WGSLCore PUBLIC WebKit::JavaScriptCore)
 add_dependencies(WGSLCore wgsl-types)
 
-if (DEVELOPER_MODE_CXX_FLAGS)
-    target_compile_options(WGSLCore PRIVATE ${DEVELOPER_MODE_CXX_FLAGS})
-endif ()
-
 # wgslc executable
 set(wgslc_SOURCES wgslc.cpp)
 set(wgslc_LIBRARIES WGSLCore)
 WEBKIT_EXECUTABLE_DECLARE(wgslc)
 WEBKIT_EXECUTABLE(wgslc)
-if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+if (WEBKIT_SDK_IS_IOS_FAMILY)
     set_target_properties(wgslc PROPERTIES MACOSX_BUNDLE FALSE)
 endif ()
 WEBKIT_REUSE_PREFIX_HEADER(wgslc WGSLCore WGSLPrefix.h PREFIX_LANGUAGES CXX)

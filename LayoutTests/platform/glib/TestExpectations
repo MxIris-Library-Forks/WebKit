@@ -611,8 +611,8 @@ fast/css/accent-color/text.html [ Pass ]
 fast/events/keyboardevent-modifier.html [ Pass ]
 
 # Support for VP9 encoded videos with transparency is only available on ports that use GStreamer.
-# Currently failing due to a different issue below.
-# media/video-with-alpha.html [ Pass ]
+media/video-with-alpha.html [ Pass ]
+media/video-with-alpha-premultiplied.html [ Pass ]
 
 # MSE text track support for formats other than WebVTT
 media/media-source/media-source-mp4ttsimple.html [ Pass ]
@@ -2209,6 +2209,8 @@ webgl/webgl-modify-after-drawimage.html [ Failure ]
 webkit.org/b/318780 [ Release ] http/wpt/service-workers/offscreencanvas-in-separate-service-worker-process-cpu-fallback.https.html [ Failure Pass ]
 webkit.org/b/318780 [ Release ] http/wpt/service-workers/offscreencanvas-in-separate-service-worker-process.https.html [ Failure Pass ]
 
+webkit.org/b/323074 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/the-offscreen-canvas/offscreencanvas.resize.html [ Failure ]
+
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of OffscreenCanvas-related bugs
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -3218,6 +3220,9 @@ webkit.org/b/215799 imported/w3c/web-platform-tests/css/css-content/quotes-005.h
 
 # WIRELESS_PLAYBACK_TARGET not enabled.
 media/airplay-target-availability.html
+http/tests/media/airplay-target-availability-in-cross-origin-iframe.html
+http/tests/media/airplay-select-target-in-cross-origin-iframe.html
+http/tests/media/airplay-picker-rect-in-cross-origin-iframe.html
 webkit.org/b/205112 media/remoteplayback-cancel-invalid.html [ Skip ]
 webkit.org/b/205112 media/remoteplayback-prompt.html [ Skip ]
 webkit.org/b/205112 media/remoteplayback-target-availability.html [ Skip ]

@@ -32,6 +32,7 @@ fast/web-share [ Pass ]
 imported/w3c/web-platform-tests/web-share [ Pass ]
 media/modern-media-controls/overflow-support [ Pass ]
 http/tests/media/modern-media-controls/overflow-support [ Pass ]
+http/tests/media/media-controls-context-menu-anchor-in-iframe.html [ Pass ]
 http/tests/text-extraction [ Pass ]
 media/modern-media-controls/tracks-support [ Pass ]
 remote-layer-tree [ Pass ]
@@ -836,8 +837,6 @@ webkit.org/b/206903 inspector/heap/getRemoteObject.html [ Pass Crash ]
 webkit.org/b/207141 [ Debug ] inspector/canvas/create-context-bitmaprenderer.html [ Pass Failure ]
 
 webkit.org/b/207166 http/wpt/mediarecorder/MediaRecorder-AV-audio-video-dataavailable-gpuprocess.html [ Pass Failure ]
-
-webkit.org/b/228934 inspector/canvas/shaderProgram-add-remove-webgl2.html [ Pass Crash Timeout Failure ]
 
 webkit.org/b/207269 [ Debug ] http/tests/websocket/tests/hybi/server-close.html [ Pass Crash ]
 
@@ -2188,10 +2187,9 @@ webkit.org/b/310302 imported/w3c/web-platform-tests/uievents/mouse/mouse_boundar
 http/tests/site-isolation/inspector/debugger/scriptParsed-frame-target.html [ Skip ]
 http/tests/site-isolation/inspector/debugger/pause-in-cross-origin-iframe.html [ Skip ]
 http/tests/site-isolation/inspector/debugger/setBreakpoint-cross-origin-iframe.html [ Skip ]
-# These await a cross-origin FrameTarget (TargetAdded) that never fires with Site Isolation off, so
-# they time out on this bot. They run (expected Pass) on platform/mac-site-isolation.
+# This awaits a cross-origin FrameTarget (TargetAdded) that never fires with Site Isolation off, so
+# it times out on this bot. It runs (expected Pass) on platform/mac-site-isolation.
 http/tests/site-isolation/inspector/storage/storage-get-cookies-cross-origin-iframe.html [ Skip ]
-http/tests/site-isolation/inspector/storage/storage-frontend-gate.html [ Skip ]
 http/tests/site-isolation/inspector/page/override-setting-cross-origin-iframe.html [ Pass Failure ]
 webkit.org/b/311836 http/tests/site-isolation/inspector/page/set-emulated-media-cross-origin-iframe.html [ Pass Failure ]
 
@@ -2469,6 +2467,19 @@ webkit.org/b/322051 [ Release ] media/picture-in-picture/picture-in-picture-inte
 # rdar://172228955 (REGRESSION (macOS 26?): [macOS 26 and later] Two http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed tests are a consistent failure)
 [ Tahoe+ ] http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-iframe-from-prevalent-domain-with-user-interaction-and-access-from-right-frame.https.html [ Failure ]
 [ Tahoe+ ] http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-iframe-from-prevalent-domain-with-user-interaction-but-access-from-wrong-frame.https.html [ Failure ]
+
+# webkit.org/b/323152 [Tahoe DEBUG arm64] 11x imported/w3c/web-platform-tests/encrypted-media/drm-mp4-* (layout-tests) are constant crashes.
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-encrypted-clear-sources.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-playduration.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-setMediaKeys-after-update.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-setMediaKeys-immediately.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-setMediaKeys-onencrypted.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-two-videos.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary-waitingforkey.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-playback-temporary.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-setmediakeys-again-after-playback.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-setmediakeys-again-after-resetting-src.https.html [ Failure Crash ]
+imported/w3c/web-platform-tests/encrypted-media/drm-mp4-waiting-for-a-key.https.html [ Failure Crash ]
 
 webkit.org/b/321323 [ Tahoe+ ] http/tests/websocket/tests/hybi/inspector/before-load.html [ Failure ]
 

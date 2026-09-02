@@ -14348,6 +14348,8 @@ void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason termina
     m_areActiveDOMObjectsAndAnimationsSuspended = false;
     m_isServiceWorkerPage = false;
 
+    internals().processInheritedFromOpener = false;
+
     m_userScriptsNotified = false;
     m_hasActiveAnimatedScroll = false;
     m_registeredForFullSpeedUpdates = false;
@@ -17367,10 +17369,19 @@ void WebPageProxy::removePlaybackTargetPickerClient(PlaybackTargetClientContextI
         protect(pageClient->mediaSessionManager())->removePlaybackTargetPickerClient(internals(), contextId);
 }
 
-void WebPageProxy::showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier contextId, const WebCore::FloatRect& rect, bool hasVideo)
+void WebPageProxy::showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier contextId, WebCore::FrameIdentifier frameID, const WebCore::FloatRect& rect, bool hasVideo)
 {
-    if (RefPtr pageClient = this->pageClient())
-        protect(pageClient->mediaSessionManager())->showPlaybackTargetPicker(internals(), contextId, pageClient->rootViewToScreen(IntRect(rect)), hasVideo, useDarkAppearance());
+    convertRectToMainFrameCoordinates(rect, frameID, [weakThis = WeakPtr { *this }, contextId, hasVideo](std::optional<FloatRect> convertedRect) {
+        RefPtr protectedThis = weakThis.get();
+        if (!protectedThis || !convertedRect)
+            return;
+
+        RefPtr pageClient = protectedThis->pageClient();
+        if (!pageClient)
+            return;
+
+        protect(pageClient->mediaSessionManager())->showPlaybackTargetPicker(protectedThis->internals(), contextId, pageClient->rootViewToScreen(IntRect(*convertedRect)), hasVideo, protectedThis->useDarkAppearance());
+    });
 }
 
 void WebPageProxy::playbackTargetPickerClientStateDidChange(PlaybackTargetClientContextIdentifier contextId, WebCore::MediaProducerMediaStateFlags state)
@@ -17397,13 +17408,28 @@ void WebPageProxy::mockMediaPlaybackTargetPickerDismissPopup()
         protect(pageClient->mediaSessionManager())->mockMediaPlaybackTargetPickerDismissPopup();
 }
 
+void WebPageProxy::mockMediaPlaybackTargetPickerRect(CompletionHandler<void(WebCore::FloatRect)>&& completionHandler)
+{
+    if (RefPtr pageClient = this->pageClient())
+        return completionHandler(protect(pageClient->mediaSessionManager())->mockMediaPlaybackTargetPickerRect());
+
+    completionHandler({ });
+}
+
+template<typename M>
+static void sendToPlaybackTargetClientProcess(WebPageProxy& page, PlaybackTargetClientContextIdentifier contextId, M&& message)
+{
+    if (RefPtr process = WebProcessProxy::processForIdentifier(contextId.processIdentifier()))
+        process->send(std::forward<M>(message), page.webPageIDInProcess(*process));
+}
+
 void WebPageProxy::Internals::setPlaybackTarget(PlaybackTargetClientContextIdentifier contextId, Ref<MediaPlaybackTarget>&& target)
 {
     Ref protectedPage = page.get();
     if (!protectedPage->hasRunningProcess())
         return;
 
-    protectedPage->send(Messages::WebPage::PlaybackTargetSelected(contextId, MediaPlaybackTargetContextSerialized { target.get() }));
+    sendToPlaybackTargetClientProcess(protectedPage, contextId, Messages::WebPage::PlaybackTargetSelected(contextId, MediaPlaybackTargetContextSerialized { target.get() }));
 }
 
 void WebPageProxy::Internals::externalOutputDeviceAvailableDidChange(PlaybackTargetClientContextIdentifier contextId, bool available)
@@ -17412,7 +17438,7 @@ void WebPageProxy::Internals::externalOutputDeviceAvailableDidChange(PlaybackTar
     if (!protectedPage->hasRunningProcess())
         return;
 
-    protectedPage->send(Messages::WebPage::PlaybackTargetAvailabilityDidChange(contextId, available));
+    sendToPlaybackTargetClientProcess(protectedPage, contextId, Messages::WebPage::PlaybackTargetAvailabilityDidChange(contextId, available));
 }
 
 void WebPageProxy::Internals::setShouldPlayToPlaybackTarget(PlaybackTargetClientContextIdentifier contextId, bool shouldPlay)
@@ -17421,7 +17447,7 @@ void WebPageProxy::Internals::setShouldPlayToPlaybackTarget(PlaybackTargetClient
     if (!protectedPage->hasRunningProcess())
         return;
 
-    protectedPage->send(Messages::WebPage::SetShouldPlayToPlaybackTarget(contextId, shouldPlay));
+    sendToPlaybackTargetClientProcess(protectedPage, contextId, Messages::WebPage::SetShouldPlayToPlaybackTarget(contextId, shouldPlay));
 }
 
 void WebPageProxy::Internals::playbackTargetPickerWasDismissed(PlaybackTargetClientContextIdentifier contextId)
@@ -17430,7 +17456,7 @@ void WebPageProxy::Internals::playbackTargetPickerWasDismissed(PlaybackTargetCli
     if (!protectedPage->hasRunningProcess())
         return;
 
-    protectedPage->send(Messages::WebPage::PlaybackTargetPickerWasDismissed(contextId));
+    sendToPlaybackTargetClientProcess(protectedPage, contextId, Messages::WebPage::PlaybackTargetPickerWasDismissed(contextId));
 }
 
 #endif
@@ -19364,6 +19390,7 @@ IPC::ConnectionSendSyncResult<M> WebPageProxy::sendSyncToProcessContainingFrame(
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(RemoteScrollingCoordinator::ScrollingTreeNodeScrollbarVisibilityDidChange);
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(RemoteScrollingCoordinator::ScrollingTreeNodeScrollbarMinimumThumbLengthDidChange);
+INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(RemoteScrollingCoordinator::RequestFullScrollingTreeCommit);
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::InsertDictatedTextAsync);
 #endif
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebInspectorBackend::ShowMainResourceForFrame);
@@ -20163,19 +20190,6 @@ WebBackForwardListMessageForwarder& WebPageProxy::backForwardListMessageReceiver
 }
 
 #endif
-
-void WebPageProxy::updateRemoteIntersectionObserversInOtherWebProcesses(IPC::Connection& connection)
-{
-    Ref originWebProcess = WebProcessProxy::fromConnection(connection);
-
-    forEachWebContentProcess([&] (WebProcessProxy& webProcess, WebCore::PageIdentifier pageID) {
-        // Don't send the message back to where it comes from
-        if (originWebProcess == webProcess)
-            return;
-
-        webProcess.send(Messages::WebPage::UpdateRemoteIntersectionObservers(), pageID);
-    });
-}
 
 void WebPageProxy::receivedQualifiedServerTrust(WebCore::CertificateInfo&& serverTrust, WebCore::CertificateInfo&& qualifiedServerTrust)
 {

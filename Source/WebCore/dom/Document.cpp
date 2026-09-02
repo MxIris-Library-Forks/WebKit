@@ -10303,9 +10303,12 @@ void Document::showPlaybackTargetPicker(MediaPlaybackTargetClient& client, bool 
     if (it == m_clientToIDMap.end())
         return;
 
-    // FIXME: This is probably wrong for subframes.
-    auto position = flooredIntPoint(frame()->eventHandler().lastKnownMousePosition());
-    page->showPlaybackTargetPicker(it->value, position, isVideo, routeSharingPolicy, routingContextUID);
+    RefPtr localRootView = frame()->rootFrame().view();
+    if (!localRootView)
+        return;
+
+    auto position = localRootView->contentsToRootView(localRootView->windowToContents(flooredIntPoint(frame()->eventHandler().lastKnownMousePosition())));
+    page->showPlaybackTargetPicker(it->value, frame()->rootFrame().frameID(), position, isVideo, routeSharingPolicy, routingContextUID);
 }
 
 void Document::playbackTargetPickerClientStateDidChange(MediaPlaybackTargetClient& client, MediaProducerMediaStateFlags state)
@@ -10583,9 +10586,6 @@ void Document::updateIntersectionObservers()
 
     updateAndNotifyIntersectionObservers(m_localIntersectionObservers, *frame);
     updateRemoteIntersectionObservers();
-
-    if (page->hasRemoteFrames())
-        page->chrome().client().updateRemoteIntersectionObserversInOtherWebProcesses();
 }
 
 void Document::scheduleInitialIntersectionObservationUpdate()
@@ -11667,7 +11667,7 @@ const Style::ComputedStyle& Document::initialStyle() const
 
         auto initialFontFamily = FontFamily { standardFamily, FontFamilyKind::Generic };
         auto initialSpecifiedFontSize = Style::fontSizeForKeyword(CSSValueMedium, false, settingsValues(), inQuirksMode());
-        auto initialComputedFontSize = Style::computedFontSizeFromSpecifiedSize(initialSpecifiedFontSize, false, zoomForFontDescription, Style::MinimumFontSizeRule::AbsoluteAndRelative, settingsValues());
+        auto initialUsedFontSize = Style::usedFontSizeFromSpecifiedSize(initialSpecifiedFontSize, false, zoomForFontDescription, Style::MinimumFontSizeRule::AbsoluteAndRelative, settingsValues());
         auto allowUserInstalledFonts = settings().shouldAllowUserInstalledFonts() ? AllowUserInstalledFonts::Yes : AllowUserInstalledFonts::No;
 
         FontCascadeDescription fontDescription;
@@ -11675,7 +11675,7 @@ const Style::ComputedStyle& Document::initialStyle() const
         fontDescription.setOneFamily(WTF::move(initialFontFamily));
         fontDescription.setKeywordSizeFromIdentifier(CSSValueMedium);
         fontDescription.setSpecifiedSize(initialSpecifiedFontSize);
-        fontDescription.setComputedSize(initialComputedFontSize, zoomForFontDescription);
+        fontDescription.setUsedSize(initialUsedFontSize, zoomForFontDescription);
         fontDescription.setShouldAllowUserInstalledFonts(allowUserInstalledFonts);
 
         m_cachedInitialStyle->setFontDescription(WTF::move(fontDescription));

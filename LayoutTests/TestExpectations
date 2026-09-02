@@ -1556,6 +1556,7 @@ media/video-supports-fullscreen.html [ Skip ]
 
 # Support for VP9 encoded videos with transparency is only available on ports that use GStreamer.
 media/video-with-alpha.html [ Skip ]
+media/video-with-alpha-premultiplied.html [ Skip ]
 
 # Support to pause with 0 rate playback seems to work only in GStreamer ports
 media/media-source/media-source-play-zero-playbackrate.html [ Skip ]
@@ -1779,22 +1780,10 @@ imported/w3c/web-platform-tests/css/css-flexbox/align-self-016.html
 imported/w3c/web-platform-tests/css/css-flexbox/abspos/flex-abspos-align-self-safe-outer-cb-001.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/abspos/flex-abspos-align-self-safe-outer-cb-002.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/abspos/flex-abspos-align-self-safe-outer-cb-003.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-available-size-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-available-size-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-complex.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-dynamic-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-dynamic-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-dynamic-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-dynamic-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-dynamic-006.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-dynamic-007.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-flex-grow.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intrinsic-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intrinsic-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intrinsic-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intrinsic-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intrinsic-005.html [ ImageOnlyFailure ]
@@ -1805,14 +1794,9 @@ imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-min-line-count-0
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-min-line-count-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-min-line-count-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-min-line-count-005.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-min-line-count-006.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-negative-margin-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-percentage-size-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-percentage-size-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-start-bias-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-start-bias-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-start-bias-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-zero-size.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/flex-aspect-ratio-percentage-height-stale-width.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/gap-collapse.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/intrinsic-size/col-wrap-dynamic.html [ ImageOnlyFailure ]
@@ -2323,9 +2307,6 @@ imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/flow-tole
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/flow-tolerance/flow-tolerance-percentage-intrinsic-column-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/flow-tolerance/flow-tolerance-percentage-intrinsic-row-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/flow-tolerance/flow-tolerance-percentage-row-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/grid-lanes-item-placement-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/grid-lanes-item-placement-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/grid-lanes-item-placement-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/overflow/grid-lanes-overflow-reverse-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/overflow/grid-lanes-overflow-reverse-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/overflow/grid-lanes-overflow-reverse-003.html [ ImageOnlyFailure ]
@@ -2360,7 +2341,6 @@ imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/baseline/row-grid-lanes-item-baseline-subgrid-006.html [ ImageOnlyFailure Crash ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/column-subgrid-button.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/row-subgrid-button.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/track-sizing/auto-repeat/column-auto-repeat-014.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-item-with-margin-left-auto.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/parsing/grid-template-columns-crash.html [ Skip ]
@@ -5161,7 +5141,6 @@ webgl/2.0.y/conformance/textures/misc/texture-corner-case-videos.html [ Failure 
 webkit.org/b/292182 webgl/1.0.x/conformance/ogles/GL/fract/fract_001_to_006.html [ Failure Pass ]  # Flaky
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-luminance-luminance-unsigned_byte.html [ Pass Timeout ]
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
-webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/tex-video-using-tex-unit-non-zero.html [ Failure Pass ]
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/texture-srgb-upload.html [ Failure Pass ]
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/texture-video-transparent.html [ Failure Pass ]
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/video/tex-2d-rgba-rgba-unsigned_byte.html [ Failure Pass ]
@@ -8517,3 +8496,6 @@ fast/shadow-dom/svg-pattern-dynamic-update-href-in-shadow-tree.html [ ImageOnlyF
 fast/shadow-dom/svg-pattern-href-in-shadow-tree.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/svg/as-image/sprite-sheet-fractional-size.html [ ImageOnlyFailure ]
+
+# Media controls context menus are only implemented on WK2 Cocoa platforms.
+http/tests/media/media-controls-context-menu-anchor-in-iframe.html [ Skip ]

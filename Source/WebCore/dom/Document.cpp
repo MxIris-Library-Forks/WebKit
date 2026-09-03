@@ -3981,7 +3981,7 @@ void Document::collectHighlightRangesFromRegister(Vector<WeakPtr<HighlightRange>
             if (highlightRange->startPosition().isNotNull() && highlightRange->endPosition().isNotNull() && !highlightRange->range().isLiveRange())
                 continue;
 
-            if (auto* liveRange = dynamicDowncast<Range>(highlightRange->range()); liveRange && !liveRange->didChangeForHighlight())
+            if (auto* liveRange = dynamicDowncast<Range>(highlightRange->range()); liveRange && !liveRange->didChangeForHighlight() && !highlightRange->needsPositionUpdate())
                 continue;
 
             auto simpleRange = makeSimpleRange(highlightRange->range());
@@ -4031,6 +4031,7 @@ void Document::updateHighlightPositions()
                 highlightRange->setStartPosition(WTF::move(startPosition));
             if (!endPosition.isNull())
                 highlightRange->setEndPosition(WTF::move(endPosition));
+            highlightRange->didUpdatePositions();
 
             Highlight::repaintRange(highlightRange->range());
         }
@@ -7902,7 +7903,7 @@ ExceptionOr<bool> Document::execCommand(const String& commandName, bool userInte
 
     auto stringValueHolder = WTF::switchOn(value,
         [&commandName, this](const String& str) -> ExceptionOr<String> {
-            if (commandName != "insertHTML"_s)
+            if (!equalIgnoringASCIICase(commandName, "insertHTML"_s))
                 return String(str);
             return trustedTypeCompliantString(TrustedType::TrustedHTML, protect(contextDocument()), str, "Document execCommand"_s);
         },

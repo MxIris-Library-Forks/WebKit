@@ -5057,6 +5057,7 @@
 		B5A684220FFABE9800D24689 /* SQLiteFileSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = B5A684210FFABE9800D24689 /* SQLiteFileSystem.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B5B65874186FDE4C009C26E8 /* RenderPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = ADE16736181050C300463A2E /* RenderPtr.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B5B7A17117C10AC000E4AA0A /* ElementData.h in Headers */ = {isa = PBXBuildFile; fileRef = B5B7A16E17C1048000E4AA0A /* ElementData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		B5C381C0AE2187EE9DB58B96 /* ContentRuleListBlockedLoadInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 81C71BB55DE07F0C78F8DC8F /* ContentRuleListBlockedLoadInfo.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		B6566270120B1227006EA85C /* JSIDBTransaction.h in Headers */ = {isa = PBXBuildFile; fileRef = B656626E120B1227006EA85C /* JSIDBTransaction.h */; };
 		B658FFA21522EF3A00DD5595 /* JSRadioNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = B658FFA01522EF3A00DD5595 /* JSRadioNodeList.h */; };
 		B658FFA61522EFAA00DD5595 /* RadioNodeList.h in Headers */ = {isa = PBXBuildFile; fileRef = B658FFA41522EFAA00DD5595 /* RadioNodeList.h */; };
@@ -10432,7 +10433,6 @@
 		2B59E5CB287B81B3004CC9FF /* DecompressionStreamDecoder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DecompressionStreamDecoder.cpp; sourceTree = "<group>"; };
 		2B6C54C82865945300D66A51 /* CompressionStream.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CompressionStream.idl; sourceTree = "<group>"; };
 		2BB68FC62EB3278700349579 /* StyleFitTolerance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleFitTolerance.h; sourceTree = "<group>"; };
-		2BB68FC82EB3279A00349579 /* StyleFitTolerance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleFitTolerance.cpp; sourceTree = "<group>"; };
 		2BE8E2C612A589EC00FAD550 /* HTMLMetaCharsetParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTMLMetaCharsetParser.h; sourceTree = "<group>"; };
 		2BE8E2C812A58A0100FAD550 /* HTMLMetaCharsetParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTMLMetaCharsetParser.cpp; sourceTree = "<group>"; };
 		2BF6455D2878D75F0072285F /* CompressionStreamEncoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CompressionStreamEncoder.h; sourceTree = "<group>"; };
@@ -12019,7 +12019,7 @@
 		46273CAE260E59DF006FAA91 /* SWScriptStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SWScriptStorage.cpp; sourceTree = "<group>"; };
 		462E4C4D2616A801003A2C67 /* ScriptBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptBuffer.h; sourceTree = "<group>"; };
 		462E4C4F2616A801003A2C67 /* ScriptBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScriptBuffer.cpp; sourceTree = "<group>"; };
-		4634592B1AC2271000ECB71C /* PowerObserverMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PowerObserverMac.cpp; sourceTree = "<group>"; };
+		4634592B1AC2271000ECB71C /* PowerObserverMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerObserverMac.mm; sourceTree = "<group>"; };
 		463521AA2081090B00C28922 /* WindowProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WindowProxy.h; sourceTree = "<group>"; };
 		463521AC2081090E00C28922 /* WindowProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WindowProxy.cpp; sourceTree = "<group>"; };
 		463642A329687D47003D43F2 /* CoreHapticsSoftLink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreHapticsSoftLink.h; sourceTree = "<group>"; };
@@ -15600,6 +15600,7 @@
 		81AC6C34131C57C20009A7E0 /* StringCallback.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = StringCallback.idl; sourceTree = "<group>"; };
 		81AC6C35131C57D30009A7E0 /* StringCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StringCallback.h; sourceTree = "<group>"; };
 		81BE20A811F4B66F00915DFA /* JSIDBCursor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSIDBCursor.h; sourceTree = "<group>"; };
+		81C71BB55DE07F0C78F8DC8F /* ContentRuleListBlockedLoadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContentRuleListBlockedLoadInfo.h; sourceTree = "<group>"; };
 		81F65FF513788FAA00FF6F2D /* DragState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragState.h; sourceTree = "<group>"; };
 		8225432CA9D4B4CF4628EC7F /* JSBeforeUnloadEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSBeforeUnloadEvent.cpp; sourceTree = "<group>"; };
 		82AB176F125C826700C5069D /* InspectorStyleSheet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InspectorStyleSheet.cpp; sourceTree = "<group>"; };
@@ -26850,6 +26851,7 @@
 				5C2C01992734398E00F89D37 /* ContentExtensionStringSerialization.h */,
 				51FB67D91AE6B5E400D06C5A /* ContentExtensionStyleSheet.cpp */,
 				51FB67DA1AE6B5E400D06C5A /* ContentExtensionStyleSheet.h */,
+				81C71BB55DE07F0C78F8DC8F /* ContentRuleListBlockedLoadInfo.h */,
 				E7AA0A0B2E45139300ABEF7F /* ContentRuleListMatchedRule.h */,
 				5C9C2DB32241A67300996B0B /* ContentRuleListResults.h */,
 				267725F61A5B3AD9003C24DD /* DFA.cpp */,
@@ -31140,8 +31142,8 @@
 				BC94D1070C274F88006BC617 /* PlatformScreenMac.mm */,
 				CDA29A151CBDA56C00901CCF /* PlaybackSessionInterfaceMac.h */,
 				CDA29A141CBDA56C00901CCF /* PlaybackSessionInterfaceMac.mm */,
-				4634592B1AC2271000ECB71C /* PowerObserverMac.cpp */,
 				46DBB64E1AB8C96F00D9A813 /* PowerObserverMac.h */,
+				4634592B1AC2271000ECB71C /* PowerObserverMac.mm */,
 				F49532D828FB4FA600D52F09 /* RevealUtilities.h */,
 				F49532D928FB4FA600D52F09 /* RevealUtilities.mm */,
 				0F38186C2708D20200414F32 /* ScrollAnimationRubberBand.h */,
@@ -39507,7 +39509,6 @@
 		BCD9F0072E1AEC5700D1C3DF /* grid */ = {
 			isa = PBXGroup;
 			children = (
-				2BB68FC82EB3279A00349579 /* StyleFitTolerance.cpp */,
 				2BB68FC62EB3278700349579 /* StyleFitTolerance.h */,
 				BC4631442EA6B0B200EA911F /* StyleGridAutoFlow.cpp */,
 				BC4631432EA6AD5900EA911F /* StyleGridAutoFlow.h */,
@@ -44883,6 +44884,7 @@
 				CA7E9B4924361DC5004E89F6 /* ContentfulPaintChecker.h in Headers */,
 				A1C7D7C22AB7AD010055AD62 /* ContentKeyGroupDataSource.h in Headers */,
 				A1038D472AB2165900F57BA4 /* ContentKeyGroupFactoryAVFObjC.h in Headers */,
+				B5C381C0AE2187EE9DB58B96 /* ContentRuleListBlockedLoadInfo.h in Headers */,
 				E7AA0A0C2E4519DF00ABEF7F /* ContentRuleListMatchedRule.h in Headers */,
 				5C9C2DB52241A67B00996B0B /* ContentRuleListResults.h in Headers */,
 				97C471DC12F925BD0086354B /* ContentSecurityPolicy.h in Headers */,

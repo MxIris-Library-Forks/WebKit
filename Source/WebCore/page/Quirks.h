@@ -208,6 +208,7 @@ public:
     bool requiresUserGestureToPauseInPictureInPicture() const;
     bool requiresUserGestureToLoadInPictureInPicture() const;
     bool requiresUserGestureToPlayInFullscreen() const;
+    bool requiresUserGestureToPauseInFullscreenAfterOrientationChange() const;
 
     WEBCORE_EXPORT bool blocksReturnToFullscreenFromPictureInPictureQuirk() const;
     WEBCORE_EXPORT bool blocksEnteringStandardFullscreenFromPictureInPictureQuirk() const;
@@ -277,7 +278,6 @@ public:
     bool needsPopupFromMicrosoftOfficeToOneDrive(const URL& targetURL) const;
 #endif
 
-    bool needsLaxSameSiteCookieQuirk(const URL&) const;
     WEBCORE_EXPORT bool needsConsistentQueryParameterFilteringQuirk(const URL&) const;
     bool mayBenefitFromFingerprintingProtectionQuirk(const URL&) const;
     static String standardUserAgentWithApplicationNameIncludingCompatOverrides(const String&, const String&, UserAgentType);

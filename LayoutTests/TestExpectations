@@ -1865,7 +1865,6 @@ imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-button.html [ Image
 
 # grid-lanes
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/grid-lanes-grid-template-columns-computed-withcontent.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/css/css-grid/grid-lanes/animation/fit-tolerance-interpolation.html [ Pass Crash ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/animation/grid-template-rows-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/alignment/column-fill-reverse-align-content-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/alignment/column-fill-reverse-justify-content-001.html [ ImageOnlyFailure ]
@@ -2442,7 +2441,6 @@ imported/w3c/web-platform-tests/mathml/presentation-markup/scripts/munderover-al
 imported/w3c/web-platform-tests/mathml/presentation-markup/scripts/munderover-align-accent-true.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/scripts/stretchy-munderover-1e.html [ ImageOnlyFailure Pass ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/scripts/stretchy-munderover-2g.html [ ImageOnlyFailure Pass ]
-imported/w3c/web-platform-tests/mathml/presentation-markup/tables/columnspan-rowspan-006.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/lengths-1.html [ ImageOnlyFailure ]
 
 mathml/non-core/mathvariant/mathvariant-case-sensitivity.html [ ImageOnlyFailure ]
@@ -2467,7 +2465,6 @@ imported/w3c/web-platform-tests/mathml/relations/css-styling/table-width-3.html 
 webkit.org/b/322327 imported/w3c/web-platform-tests/mathml/relations/html5-tree/href-navigation.html [ Skip ]
 webkit.org/b/322327 imported/w3c/web-platform-tests/mathml/relations/html5-tree/a-rel-policy.html [ Skip ]
 webkit.org/b/322327 imported/w3c/web-platform-tests/mathml/relations/html5-tree/href-target-base.html [ Skip ]
-imported/w3c/web-platform-tests/mathml/relations/text-and-math/non-mathml-children-in-annotation.tentative.html [ ImageOnlyFailure ]
 
 # This MathML test should be rewritten.
 webkit.org/b/201356 mathml/presentation/stretchy-depth-height-symmetric.html [ Skip ]
@@ -5138,16 +5135,14 @@ webgl/1.0.x/conformance/textures/misc/texture-corner-case-videos.html [ Failure 
 webgl/2.0.y/conformance/textures/misc/texture-corner-case-videos.html [ Failure ]
 
 # WebGL tests to be investigated and categorized.
-webkit.org/b/292182 webgl/1.0.x/conformance/ogles/GL/fract/fract_001_to_006.html [ Failure Pass ]  # Flaky
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/image_bitmap_from_video/tex-2d-luminance-luminance-unsigned_byte.html [ Pass Timeout ]
-webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
-webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/texture-srgb-upload.html [ Failure Pass ]
+webkit.org/b/292182 [ x86_64 ] webgl/1.0.x/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
+webkit.org/b/292182 [ x86_64 ] webgl/1.0.x/conformance/textures/misc/texture-srgb-upload.html [ Failure ]
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/texture-video-transparent.html [ Failure Pass ]
-webkit.org/b/292182 webgl/1.0.x/conformance/textures/video/tex-2d-rgba-rgba-unsigned_byte.html [ Failure Pass ]
-webkit.org/b/292182 webgl/2.0.y/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
+webkit.org/b/292182 [ x86_64 ] webgl/2.0.y/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
 webkit.org/b/292182 webgl/2.0.y/conformance/textures/misc/texture-srgb-upload.html [ Failure Pass Timeout ]
 webkit.org/b/292182 webgl/2.0.y/conformance/textures/misc/texture-video-transparent.html [ Failure Pass ]
-webkit.org/b/292182 webgl/2.0.y/conformance2/rendering/clipping-wide-points.html [ Failure Pass ]
+webkit.org/b/292182 [ x86_64 ] webgl/2.0.y/conformance2/rendering/clipping-wide-points.html [ Failure Pass ]
 
 webkit.org/b/313392 webgl/2.0.y/conformance2/textures/misc/tex-image-10bpc.html
 
@@ -5157,9 +5152,6 @@ webkit.org/b/320901 webgl/1.0.x/conformance/textures/misc/tex-image-svg-image-no
 webkit.org/b/320901 webgl/2.0.y/conformance/glsl/misc/shader-with-double-underscore.html [ Failure ]
 webkit.org/b/320901 webgl/2.0.y/conformance/textures/misc/tex-image-svg-image-no-natural-width-and-height.html [ Failure ]
 webkit.org/b/320901 webgl/2.0.y/conformance2/rendering/blitframebuffer-test.html [ Failure ]
-
-# Until more platforms ship with WebGL GPUP
-webgl/webgl-fail-platform-context-creation-no-crash.html [ Failure Pass ]
 
 # pre-wrap progression. Other rendering engines agree with the result.
 webkit.org/b/206168 [ Debug ] fast/dom/insert-span-into-long-text-bug-28245.html [ Skip ]

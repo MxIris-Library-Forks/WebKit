@@ -245,12 +245,12 @@ const aliases = {
     'CGColorSpaceRef': 'WebKit::CoreIPCCGColorSpace'
 }
 
-// A DestinationColorSpace holding sRGB. Under USE(CG) it is a structured variant; under
+// A ColorSpace holding sRGB. Under USE(CG) it is a structured variant; under
 // USE(SKIA) sk_sp<SkColorSpace> crosses IPC as the bytes SkColorSpace::serialize() produces,
 // which IPC.serializedSRGBColorSpace() obtains from the real serializer.
 export function sRGBColorSpace() {
     if ('WebKit::CoreIPCCGColorSpace' in CoreIPC.typeInfo)
-        return { serializableColorSpace: { alias: { optionalValue: { m_cgColorSpace: { alias: { variantType: 'WebCore::ColorSpace', variant: 19 } } } } } }; // WebCore::ColorSpace::SRGB
+        return { serializableColorSpace: { alias: { optionalValue: { m_cgColorSpace: { alias: { variantType: 'WebCore::ColorSpaceName', variant: 19 } } } } } }; // WebCore::ColorSpaceName::SRGB
 
     if ('sk_sp<SkColorSpace>' in CoreIPC.typeInfo)
         return { serializableColorSpace: { alias: { dataReference: IPC.serializedSRGBColorSpace() } } };

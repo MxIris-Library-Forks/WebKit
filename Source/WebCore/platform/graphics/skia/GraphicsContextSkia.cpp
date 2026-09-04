@@ -70,20 +70,20 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 
 namespace WebCore {
 
-static sk_sp<SkColorSpace> skColorSpaceForColorSpace(ColorSpace colorSpace)
+static sk_sp<SkColorSpace> skColorSpaceForColorSpace(ColorSpaceName colorSpace)
 {
     switch (colorSpace) {
-    case ColorSpace::SRGB:
+    case ColorSpaceName::SRGB:
         return sRGBColorSpaceSingleton();
-    case ColorSpace::LinearSRGB:
-    case ColorSpace::ExtendedLinearSRGB:
+    case ColorSpaceName::LinearSRGB:
+    case ColorSpaceName::ExtendedLinearSRGB:
         return linearSRGBColorSpaceSingleton();
 #if ENABLE(DESTINATION_COLOR_SPACE_DISPLAY_P3)
-    case ColorSpace::DisplayP3:
-    case ColorSpace::ExtendedDisplayP3:
+    case ColorSpaceName::DisplayP3:
+    case ColorSpaceName::ExtendedDisplayP3:
         return displayP3ColorSpaceSingleton();
-    case ColorSpace::LinearDisplayP3:
-    case ColorSpace::ExtendedLinearDisplayP3:
+    case ColorSpaceName::LinearDisplayP3:
+    case ColorSpaceName::ExtendedLinearDisplayP3:
         return linearDisplayP3ColorSpaceSingleton();
 #endif
     default:
@@ -116,7 +116,7 @@ GraphicsContextSkia::GraphicsContextSkia(SkCanvas& canvas, RenderingMode renderi
     , m_renderingMode(renderingMode)
     , m_renderingPurpose(renderingPurpose)
     , m_destroyNotify(WTF::move(destroyNotify))
-    , m_colorSpace(canvas.imageInfo().colorSpace() ? DestinationColorSpace(canvas.imageInfo().refColorSpace()) : DestinationColorSpace::SRGB())
+    , m_colorSpace(canvas.imageInfo().colorSpace() ? ColorSpace(canvas.imageInfo().refColorSpace()) : ColorSpace::SRGB())
 {
 }
 
@@ -142,7 +142,7 @@ SkCanvas* GraphicsContextSkia::platformContext() const
     return &m_canvas;
 }
 
-const DestinationColorSpace& GraphicsContextSkia::colorSpace() const
+const ColorSpace& GraphicsContextSkia::colorSpace() const
 {
     return m_colorSpace;
 }
@@ -329,14 +329,15 @@ void GraphicsContextSkia::drawNativeImage(const NativeImage& nativeImage, const 
     // However, if we have to make a raster copy (see the hasDropShadow() case below), then imageForDrawing will point to the raster copy instead.
     // This is the image we have to pass on to m_canvas.drawImageRect(...) below.
     auto* imageForDrawing = imageInThisThread.get();
+    auto samplingOptions = toSkSamplingOptions(imageInterpolationQualityForOptions(options));
 
     if (hasDropShadow()) {
         inExtraTransparencyLayer = drawOutsetShadow(paint, [&](const SkPaint& paint) {
-            m_canvas.drawImageRect(imageForDrawing, normalizedSrcRect, normalizedDestRect, toSkSamplingOptions(m_state.imageInterpolationQuality()), &paint, clampingConstraint);
+            m_canvas.drawImageRect(imageForDrawing, normalizedSrcRect, normalizedDestRect, samplingOptions, &paint, clampingConstraint);
         });
     }
 
-    m_canvas.drawImageRect(imageForDrawing, normalizedSrcRect, normalizedDestRect, toSkSamplingOptions(m_state.imageInterpolationQuality()), &paint, clampingConstraint);
+    m_canvas.drawImageRect(imageForDrawing, normalizedSrcRect, normalizedDestRect, samplingOptions, &paint, clampingConstraint);
     if (inExtraTransparencyLayer)
         restoreLayer();
 
@@ -1151,7 +1152,7 @@ void GraphicsContextSkia::drawPattern(const NativeImage& nativeImage, const Floa
     SkMatrix phaseMatrix;
     phaseMatrix.setTranslate(phaseOffset.x(), phaseOffset.y());
     SkMatrix shaderMatrix = SkMatrix::Concat(phaseMatrix, patternTransform);
-    auto samplingOptions = toSkSamplingOptions(m_state.imageInterpolationQuality());
+    auto samplingOptions = toSkSamplingOptions(imageInterpolationQualityForOptions(options));
 
     SkPaint paint = createFillPaint();
     paint.setBlendMode(SkiaUtilities::toSkiaBlendMode(options.blendMode(), options.compositeOperator()));

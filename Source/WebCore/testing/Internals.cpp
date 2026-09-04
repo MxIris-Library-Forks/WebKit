@@ -2316,7 +2316,7 @@ ExceptionOr<RefPtr<ImageData>> Internals::snapshotNode(Node& node)
 
     document->updateLayoutIgnorePendingStylesheets();
 
-    SnapshotOptions options { { SnapshotFlags::DraggableElement }, PixelFormat::BGRA8, DestinationColorSpace::SRGB() };
+    SnapshotOptions options { { SnapshotFlags::DraggableElement }, PixelFormat::BGRA8, ColorSpace::SRGB() };
 
     RefPtr imageBuffer = WebCore::snapshotNode(*document->frame(), node, WTF::move(options));
     if (!imageBuffer)
@@ -2329,7 +2329,7 @@ ExceptionOr<RefPtr<ImageData>> Internals::snapshotNode(Node& node)
     PixelBufferFormat destinationFormat {
         AlphaPremultiplication::Unpremultiplied,
         PixelFormat::RGBA8,
-        DestinationColorSpace::SRGB()
+        ColorSpace::SRGB()
     };
 
     auto pixelBuffer = imageBuffer->getPixelBuffer(destinationFormat, sourceRect);
@@ -5696,6 +5696,11 @@ bool Internals::isPlayerVisibleInViewport(const HTMLMediaElement& element) const
     return player && player->viewportVisibility() == HTMLMediaElement::ViewportVisibility::VisibleInViewport;
 }
 
+bool Internals::isMediaElementIntersectingViewport(const HTMLMediaElement& element) const
+{
+    return element.isIntersectingViewport();
+}
+
 bool Internals::isPlayerMuted(const HTMLMediaElement& element) const
 {
     RefPtr player = element.player();
@@ -8643,6 +8648,19 @@ bool Internals::sendEditingCommandToPDFForTesting(Element& element, const String
     return pluginViewBase->sendEditingCommandToPDFForTesting(commandName, argument);
 }
 
+Vector<String> Internals::pdfContextMenuItemTitlesForTesting(Element& element, int x, int y) const
+{
+    RefPtr pluginElement = dynamicDowncast<HTMLPlugInElement>(element);
+    if (!pluginElement)
+        return { };
+
+    RefPtr pluginViewBase = pluginElement->pluginWidget();
+    if (!pluginViewBase)
+        return { };
+
+    return pluginViewBase->pdfContextMenuItemTitlesForTesting({ x, y });
+}
+
 Vector<Internals::PDFAnnotationRect> Internals::pdfAnnotationRectsForTesting(Element& element) const
 {
     Vector<PDFAnnotationRect> annotationRects;
@@ -8708,7 +8726,7 @@ std::optional<RenderingMode> Internals::getEffectiveRenderingModeOfNewlyCreatedA
     if (!document || !document->page())
         return std::nullopt;
 
-    if (RefPtr imageBuffer = ImageBuffer::create({ 100, 100 }, RenderingMode::Accelerated, RenderingPurpose::DOM, 1, DestinationColorSpace::SRGB(), PixelFormat::BGRA8,  &document->page()->chrome())) {
+    if (RefPtr imageBuffer = ImageBuffer::create({ 100, 100 }, RenderingMode::Accelerated, RenderingPurpose::DOM, 1, ColorSpace::SRGB(), PixelFormat::BGRA8,  &document->page()->chrome())) {
         imageBuffer->ensureBackendCreated();
         if (imageBuffer->hasBackend())
             return imageBuffer->renderingMode();

@@ -140,11 +140,11 @@ class AuthenticationChallenge;
 class CaptureDevice;
 class CertificateInfo;
 class Color;
+class ColorSpace;
 class ContentFilterUnblockHandler;
 class CornerRadii;
 class Cursor;
 class DataSegment;
-class DestinationColorSpace;
 class DocumentSyncData;
 class DragData;
 class Exception;
@@ -926,6 +926,10 @@ public:
 #if USE(SYSTEM_PREVIEW)
     SystemPreviewController* systemPreviewController() { return m_systemPreviewController.get(); }
     void systemPreviewActionTriggered(const WebCore::SystemPreviewInfo&, const String&);
+#endif
+
+#if ENABLE(APPLE_PAY)
+    void didCompleteApplePayPayment();
 #endif
 
 #if ENABLE(APPLE_PAY_AMS_UI)
@@ -1714,7 +1718,7 @@ public:
     void makeFirstResponder();
     void assistiveTechnologyMakeFirstResponder();
 
-    WebCore::DestinationColorSpace colorSpace() const;
+    WebCore::ColorSpace colorSpace() const;
 
 #if ENABLE(MULTI_REPRESENTATION_HEIC)
     void insertMultiRepresentationHEIC(NSData *, NSString *);

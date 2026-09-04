@@ -277,12 +277,12 @@ bool SVGImage::hasHDRContent() const
     return false;
 }
 
-RefPtr<NativeImage> SVGImage::nativeImage(const DestinationColorSpace& colorSpace)
+RefPtr<NativeImage> SVGImage::nativeImage(const ColorSpace& colorSpace)
 {
     return nativeImage(size(), colorSpace);
 }
 
-RefPtr<NativeImage> SVGImage::nativeImage(const FloatSize& size, const DestinationColorSpace& colorSpace)
+RefPtr<NativeImage> SVGImage::nativeImage(const FloatSize& size, const ColorSpace& colorSpace)
 {
     if (!m_page)
         return nullptr;
@@ -348,6 +348,8 @@ ImageDrawResult SVGImage::draw(GraphicsContext& context, const FloatRect& dstRec
 
     GraphicsContextStateSaver stateSaver(context);
     context.setCompositeOperation(options.compositeOperator(), options.blendMode());
+    if (options.interpolationQuality() != InterpolationQuality::Default)
+        context.setImageInterpolationQuality(options.interpolationQuality());
     context.clip(enclosingIntRect(dstRect));
 
     float alpha = context.alpha();

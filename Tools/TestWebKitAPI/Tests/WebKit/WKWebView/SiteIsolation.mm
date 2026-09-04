@@ -1184,6 +1184,67 @@ TEST(SiteIsolation, OpenWithNoopener)
     EXPECT_NE([openerView _webProcessIdentifier], [openedView _webProcessIdentifier]);
 }
 
+TEST(SiteIsolation, ConcurrentPopupNavigationsToSameSiteShareProcessWhenOneFails)
+{
+    HTTPServer server({
+        { "/example"_s, { "hi"_s } },
+        { "/webkit-failing"_s, { HTTPResponse::Behavior::TerminateConnectionAfterReceivingRequest } },
+        { "/webkit-first"_s, { "hi"_s } },
+        { "/webkit-second"_s, { "hi"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration);
+
+    __block Vector<RetainPtr<TestWKWebView>> openedViews;
+    __block Vector<RetainPtr<TestNavigationDelegate>> openedDelegates;
+    __block unsigned failedPopups { 0 };
+    __block unsigned finishedPopups { 0 };
+    RetainPtr openerUIDelegate = adoptNS([TestUIDelegate new]);
+    openerUIDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
+        enableSiteIsolation(configuration);
+        RetainPtr openedDelegate = adoptNS([TestNavigationDelegate new]);
+        [openedDelegate allowAnyTLSCertificate];
+        openedDelegate.get().didFailProvisionalNavigation = ^(WKWebView *, WKNavigation *, NSError *) {
+            failedPopups++;
+        };
+        openedDelegate.get().didFinishNavigation = ^(WKWebView *, WKNavigation *) {
+            finishedPopups++;
+        };
+        RetainPtr opened = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+        opened.get().navigationDelegate = openedDelegate.get();
+        openedDelegates.append(WTF::move(openedDelegate));
+        openedViews.append(WTF::move(opened));
+        return openedViews.last().get();
+    };
+
+    RetainPtr openerDelegate = adoptNS([TestNavigationDelegate new]);
+    [openerDelegate allowAnyTLSCertificate];
+    RetainPtr opener = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration]);
+    opener.get().navigationDelegate = openerDelegate.get();
+    opener.get().UIDelegate = openerUIDelegate.get();
+    opener.get().configuration.preferences.javaScriptCanOpenWindowsAutomatically = YES;
+    [opener loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [openerDelegate waitForDidFinishNavigation];
+
+    [opener evaluateJavaScript:@"w1 = window.open(); w2 = window.open(); w3 = window.open();"
+        "w1.location = 'https://webkit.org/webkit-failing';"
+        "w2.location = 'https://webkit.org/webkit-first';"
+        "w3.location = 'https://webkit.org/webkit-second';" completionHandler:nil];
+    while (openedViews.size() < 3 || !failedPopups || finishedPopups < 2)
+        Util::spinRunLoop();
+
+    pid_t webKitPid = [openedViews[1] _webProcessIdentifier];
+    EXPECT_NE(webKitPid, 0);
+    EXPECT_EQ(webKitPid, [openedViews[2] _webProcessIdentifier]);
+    EXPECT_NE(webKitPid, [opener _webProcessIdentifier]);
+
+    for (auto& view : openedViews)
+        [view _close];
+    while (processStillRunning(webKitPid))
+        Util::spinRunLoop();
+}
+
 TEST(SiteIsolation, PreferencesUpdatesToAllProcesses)
 {
     HTTPServer server({
@@ -3147,7 +3208,48 @@ TEST(SiteIsolation, OpenerProcessSharing)
         { "/opened_iframe"_s, { "<script>alert('done')</script>"_s } }
     }, HTTPServer::Protocol::HttpsProxy);
 
-    auto [webView, delegate] = siteIsolatedViewAndDelegate(server);
+    auto [webView, delegate] = siteIsolatedViewAndDelegateWithoutSharedProcess(server);
+
+    __block RetainPtr<TestWKWebView> openedWebView;
+    __block RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
+    webView.get().UIDelegate = uiDelegate.get();
+    uiDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
+        openedWebView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+        static RetainPtr openedNavigationDelegate = adoptNS([TestNavigationDelegate new]);
+        [openedNavigationDelegate allowAnyTLSCertificate];
+        openedWebView.get().navigationDelegate = openedNavigationDelegate.get();
+        openedWebView.get().UIDelegate = uiDelegate.get();
+        return openedWebView.get();
+    };
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [delegate waitForDidFinishNavigation];
+    [webView evaluateJavaScript:@"w = window.open('/opened')" completionHandler:nil];
+    EXPECT_WK_STREQ([uiDelegate waitForAlert], "done");
+
+    auto openerMainFrame = [webView mainFrame];
+    auto openedMainFrame = [openedWebView mainFrame];
+    pid_t openerMainFramePid = openerMainFrame.info._processIdentifier;
+    pid_t openedMainFramePid = openedMainFrame.info._processIdentifier;
+    pid_t openerIframePid = openerMainFrame.childFrames.firstObject.info._processIdentifier;
+    pid_t openedIframePid = openedMainFrame.childFrames.firstObject.info._processIdentifier;
+
+    EXPECT_EQ(openerMainFramePid, openedMainFramePid);
+    EXPECT_NE(openerMainFramePid, 0);
+    EXPECT_EQ(openerIframePid, openedIframePid);
+    EXPECT_NE(openerIframePid, 0);
+}
+
+TEST(SiteIsolation, OpenerProcessSharingWithSharedProcess)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/opener_iframe'></iframe>"_s } },
+        { "/opened"_s, { "<iframe src='https://webkit.org/opened_iframe'></iframe>"_s } },
+        { "/opener_iframe"_s, { "hello"_s } },
+        { "/opened_iframe"_s, { "<script>alert('done')</script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, delegate] = siteIsolatedViewWithSharedProcess(server);
 
     __block RetainPtr<TestWKWebView> openedWebView;
     __block RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);

@@ -8655,6 +8655,8 @@ imported/w3c/web-platform-tests/css/css-highlight-api/highlight-text-across-elem
 pdf/annotations [ Skip ]
 pdf/pdf-in-iframe-with-text-annotation.html [ Skip ]
 
+pdf/mac [ Skip ]
+
 webkit.org/b/312496 fast/forms/select/base/select-pagedown-pageup-vertical.html [ Pass Failure Timeout ] # rdar://178158648
 
 webkit.org/b/312499 imported/w3c/web-platform-tests/shadow-dom/reference-target/tentative/form.html [ Pass Failure ]
@@ -8829,7 +8831,6 @@ media/video-webm-seek-multi-audio-tracks.html [ Timeout ] # rdar://180007922
 quicklook/word-legacy.html [ Failure ] # rdar://174850780
 quicklook/word.html [ Failure ] # rdar://174850780
 svg/filters/feMorphology-negative-radius.html [ Pass Crash ] # rdar://178675229
-webgl/1.0.x/conformance/textures/misc/texture-srgb-upload.html [ Timeout ] # rdar://176399952
 workers/worker-set-delete-terminate-crash.html [ Timeout ] # rdar://178590046
 svg/transforms/nested-svg-transform-attribute-creates-layer.html [ Failure ] # rdar://180457293
 svg/compositing/segment-removed-after-anchor-decomposited-layer-tree.html [ Failure ] # rdar://180457293

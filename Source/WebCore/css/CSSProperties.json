@@ -435,7 +435,8 @@
             "initial": "auto",
             "values": [
                 "auto",
-                "discard"
+                "discard",
+                "-webkit-legacy"
             ],
             "codegen-properties": {
                 "settings-flag": "cssLineClampEnabled",
@@ -697,7 +698,6 @@
                 "style-extractor-custom": true,
                 "high-priority": true,
                 "skip-computed-style-initial": true,
-                "computed-style-getter": "specifiedFontSize",
                 "computed-style-storage-container": "opaque",
                 "computed-style-storage-path": ["m_inheritedData", "fontData", "fontCascade"],
                 "computed-style-type": "float",
@@ -7490,7 +7490,7 @@
                 "computed-style-storage-kind": "reference",
                 "computed-style-type": "Style::OverflowClipMargin",
                 "parser-function": "consumeOverflowClipMargin",
-                "parser-grammar-unused": "<visual-box> || <length [0,inf]>",
+                "parser-grammar-unused": "<visual-box> || <length>",
                 "parser-grammar-unused-reason": "Needs support for transforming parsed input to minimal form and default values in '||' groups.",
                 "settings-flag": "cssOverflowClipMarginEnabled"
             },

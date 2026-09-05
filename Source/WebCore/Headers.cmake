@@ -1131,7 +1131,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/ImmutableStyleProperties.h
     css/IsImportant.h
     css/MediaList.h
-    css/MediaQueryParserContext.h
     css/MutableStyleProperties.h
     css/PropertySetCSSDescriptors.h
     css/ShorthandSerializer.h
@@ -3343,6 +3342,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/flexbox/StyleFlexBasis.h
     style/values/flexbox/StyleFlexGrow.h
+    style/values/flexbox/StyleFlexLineCount.h
     style/values/flexbox/StyleFlexShrink.h
     style/values/flexbox/StyleFlexWrap.h
     style/values/flexbox/StyleWebKitBoxFlex.h

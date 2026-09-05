@@ -8650,6 +8650,7 @@ IGNORE_CLANG_WARNINGS_END
         switch (searchElementEdge.useKind()) {
         case Int32Use:
         case DoubleRepUse: {
+            LBasicBlock vectorized = m_out.newBlock();
             LBasicBlock loopHeader = m_out.newBlock();
             LBasicBlock loopBody = m_out.newBlock();
             LBasicBlock loopNext = m_out.newBlock();
@@ -8676,14 +8677,30 @@ IGNORE_CLANG_WARNINGS_END
             length = m_out.zeroExtPtr(length);
 
             ValueFromBlock initialStartIndex = m_out.anchor(startIndex);
-            m_out.jump(loopHeader);
+            m_out.branch(m_out.aboveOrEqual(m_out.sub(length, startIndex), m_out.constIntPtr(arrayIndexOfVectorizedThreshold)), unsure(vectorized), unsure(loopHeader));
 
-            LBasicBlock lastNext = m_out.appendTo(loopHeader, loopBody);
+            LBasicBlock lastNext = m_out.appendTo(vectorized, loopHeader);
+            LValue vectorizedResult;
+            switch (searchElementEdge.useKind()) {
+            case Int32Use:
+                vectorizedResult = vmCall(Int32, isArrayIncludes ? operationArrayIncludesNonStringIdentityValueContiguous : operationArrayIndexOfNonStringIdentityValueContiguous, storage, searchElement, m_out.castToInt32(startIndex));
+                break;
+            case DoubleRepUse:
+                vectorizedResult = vmCall(Int32, isArrayIncludes ? operationArrayIncludesDouble : operationArrayIndexOfDouble, storage, searchElement, m_out.castToInt32(startIndex));
+                break;
+            default:
+                RELEASE_ASSERT_NOT_REACHED();
+                break;
+            }
+            ValueFromBlock vectorizedResultValue = m_out.anchor(vectorizedResult);
+            m_out.jump(continuation);
+
+            m_out.appendTo(loopHeader, loopBody);
             LValue index = m_out.phi(pointerType(), initialStartIndex);
             m_out.branch(m_out.notEqual(index, length), unsure(loopBody), unsure(notFound));
 
             m_out.appendTo(loopBody, loopNext);
-            ValueFromBlock foundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(true)) : m_out.anchor(index);
+            ValueFromBlock foundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(true)) : m_out.anchor(m_out.castToInt32(index));
             switch (searchElementEdge.useKind()) {
             case Int32Use: {
                 // Empty value is ignored because of JSValue::NumberTag.
@@ -8708,16 +8725,16 @@ IGNORE_CLANG_WARNINGS_END
             m_out.jump(loopHeader);
 
             m_out.appendTo(notFound, continuation);
-            ValueFromBlock notFoundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(false)) : m_out.anchor(m_out.constIntPtr(-1));
+            ValueFromBlock notFoundResult = isArrayIncludes ? m_out.anchor(m_out.constBool(false)) : m_out.anchor(m_out.constInt32(-1));
             m_out.jump(continuation);
 
             m_out.appendTo(continuation, lastNext);
             // We have to keep base alive since that keeps content of storage alive.
             ensureStillAliveHere(base);
             if (isArrayIncludes)
-                setBoolean(m_out.phi(Int32, notFoundResult, foundResult));
+                setBoolean(m_out.phi(Int32, notFoundResult, foundResult, vectorizedResultValue));
             else
-                setInt32(m_out.castToInt32(m_out.phi(pointerType(), notFoundResult, foundResult)));
+                setInt32(m_out.phi(Int32, notFoundResult, foundResult, vectorizedResultValue));
             return;
         }
 
@@ -19645,8 +19662,7 @@ IGNORE_CLANG_WARNINGS_END
                     return;
                 if (compileRegExpTestStickyFilter(globalObject, base, argument, m_node->child2(), m_node->child3()))
                     return;
-                LValue result = vmCall(Int32, operationRegExpTestString, globalObject, base, argument);
-                setBoolean(result);
+                compileRegExpTestMinimumLengthFilter(globalObject, base, argument, m_node->child2(), m_node->child3());
                 return;
             }
 
@@ -19655,8 +19671,7 @@ IGNORE_CLANG_WARNINGS_END
                 return;
             if (compileRegExpTestStickyFilter(globalObject, base, argument, m_node->child2(), m_node->child3()))
                 return;
-            LValue result = vmCall(Int32, operationRegExpTest, globalObject, base, argument);
-            setBoolean(result);
+            compileRegExpTestMinimumLengthFilter(globalObject, base, argument, m_node->child2(), m_node->child3());
             return;
         }
 
@@ -19730,6 +19745,71 @@ IGNORE_CLANG_WARNINGS_END
         m_out.appendTo(continuation, lastNext);
         setBoolean(m_out.phi(Int32, falseResult, operationResult));
         return true;
+    }
+
+    void emitMinimumLengthGuardChain(std::optional<unsigned> constantMinimumSize, LValue base, LValue argument, Edge argumentEdge, LBasicBlock operationCase, LBasicBlock noMatchCase)
+    {
+        bool knownString = argumentEdge.useKind() == StringUse || argumentEdge.useKind() == KnownStringUse;
+        LBasicBlock isCellCase = knownString ? nullptr : m_out.newBlock();
+        LBasicBlock isStringCase = knownString ? nullptr : m_out.newBlock();
+        LBasicBlock ropeCase = m_out.newBlock();
+        LBasicBlock nonRopeCase = m_out.newBlock();
+        LBasicBlock checkLength = m_out.newBlock();
+        LBasicBlock checkFlags = constantMinimumSize ? nullptr : m_out.newBlock();
+
+        if (!knownString)
+            emitFirstCharacterGuardStringCheck(argument, argumentEdge, isCellCase, isStringCase, ropeCase, operationCase);
+
+        m_out.branch(isRopeString(argument, argumentEdge), rarely(ropeCase), usually(nonRopeCase));
+
+        m_out.appendTo(ropeCase, nonRopeCase);
+        ValueFromBlock ropeLength = m_out.anchor(m_out.load32(argument, m_heaps.JSRopeString_length));
+        m_out.jump(checkLength);
+
+        m_out.appendTo(nonRopeCase, checkLength);
+        ValueFromBlock nonRopeLength = m_out.anchor(m_out.load32(m_out.loadPtr(argument, m_heaps.JSString_value), m_heaps.StringImpl_length));
+        m_out.jump(checkLength);
+
+        m_out.appendTo(checkLength, constantMinimumSize ? noMatchCase : checkFlags);
+        LValue stringLength = m_out.phi(Int32, ropeLength, nonRopeLength);
+        if (constantMinimumSize) {
+            m_out.branch(m_out.below(stringLength, m_out.constInt32(static_cast<int32_t>(*constantMinimumSize))), unsure(noMatchCase), unsure(operationCase));
+            return;
+        }
+
+        LValue regExp = m_out.bitAnd(m_out.loadPtr(base, m_heaps.RegExpObject_regExpAndFlags), m_out.constIntPtr(RegExpObject::regExpMask));
+        m_out.branch(m_out.below(stringLength, m_out.load32(regExp, m_heaps.RegExp_minimumSize)), unsure(checkFlags), unsure(operationCase));
+
+        m_out.appendTo(checkFlags, noMatchCase);
+        LValue flags = m_out.load16ZeroExt32(regExp, m_heaps.RegExp_flags);
+        m_out.branch(m_out.testNonZero32(flags, m_out.constInt32(RegExp::globalOrStickyFlagsMask)), unsure(operationCase), unsure(noMatchCase));
+    }
+
+    void compileRegExpTestMinimumLengthFilter(LValue globalObject, LValue base, LValue argument, Edge baseEdge, Edge argumentEdge)
+    {
+        std::optional<unsigned> constantMinimumSize = m_graph.tryGetConstantRegExpTestMinimumSize(baseEdge.node());
+        if (constantMinimumSize && !*constantMinimumSize) {
+            setBoolean(emitRegExpTestOperationCall(globalObject, base, argument, argumentEdge));
+            return;
+        }
+
+        LBasicBlock falseCase = m_out.newBlock();
+        LBasicBlock operationCase = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        LBasicBlock lastNext = m_out.insertNewBlocksBefore(falseCase);
+        emitMinimumLengthGuardChain(constantMinimumSize, base, argument, argumentEdge, operationCase, falseCase);
+
+        m_out.appendTo(falseCase, operationCase);
+        ValueFromBlock falseResult = m_out.anchor(m_out.int32Zero);
+        m_out.jump(continuation);
+
+        m_out.appendTo(operationCase, continuation);
+        ValueFromBlock operationResult = m_out.anchor(emitRegExpTestOperationCall(globalObject, base, argument, argumentEdge));
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
+        setBoolean(m_out.phi(Int32, falseResult, operationResult));
     }
 
     void compileRegExpTestInline()

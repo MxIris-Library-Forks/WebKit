@@ -1525,32 +1525,19 @@ void WebPage::updateChildFrameVisibleRectsFromParent(WebCore::Frame& parentCoreF
             needsViewportContentsChanged = true;
         }
 
-        auto visibleRectFromParentFrameProcess = [&]() -> std::optional<IntRect> {
-            // This is the portion of the child frame that is on screen in the parent's content
-            // coordinate space.
-            auto onScreenRectInParent = layoutInfo->visibleRectInParent();
-            if (!onScreenRectInParent) {
-                // Either the owner element has no renderer, or this frame is entirely clipped by an
-                // ancestor in the parent frame process.
-                return IntRect { };
-            }
-            onScreenRectInParent->intersect(layoutInfo->windowClipRectInParent());
-
-            auto onScreenRectInChild = layoutInfo->mapParentContentsToChildWindow(*onScreenRectInParent);
-            if (onScreenRectInChild) {
-                onScreenRectInChild->intersect(FloatRect { { }, childView->size() });
-                return enclosingIntRect(*onScreenRectInChild);
-            }
-
-            // We couldn't map the rect into the child's coordinate space (e.g. non-affine
-            // transform). Return std::nullopt, which will cause LocalFrameView::windowClipRect
-            // to make the conservative assumption that the visibleContentRect is unclipped.
-            return std::nullopt;
-        }();
+        auto visibleRectFromParentFrameProcess = layoutInfo->onScreenRectInChildView();
+        visibleRectFromParentFrameProcess.intersect(IntRect { { }, childView->size() });
 
         if (childView->visibleRectFromParentFrameProcess() != visibleRectFromParentFrameProcess) {
             childView->setVisibleRectFromParentFrameProcess(visibleRectFromParentFrameProcess);
             needsViewportContentsChanged = true;
+
+            // FIXME: if this frame has a remote descendant, then we have to propagate this frame's
+            // windowClipRect to it via Page::syncLocalFrameInfoToRemote(), and that currently only
+            // happens in updateRendering. We should see if we can figure out a more efficient way
+            // of doing this.
+            if (!needsRenderingUpdate && localChild->tree().hasRemoteFrameDescendant())
+                needsRenderingUpdate = true;
         }
 
         if (needsViewportContentsChanged)
@@ -1560,15 +1547,10 @@ void WebPage::updateChildFrameVisibleRectsFromParent(WebCore::Frame& parentCoreF
         // FIXME (320601): this only affects tile coverage on iOS by setting exposedContentRect on
         // this child frame based on the exposedContentRect from the parent frame process. We need
         // to do something similar on macOS (see visibleRectForLayerFlushing).
-        auto exposedContentRectInParent = layoutInfo->exposedContentRectInParent();
-        bool exposedContentRectInParentIsEmpty = !exposedContentRectInParent || exposedContentRectInParent->isEmpty();
-        auto projected = exposedContentRectInParentIsEmpty ? FloatRect { } : layoutInfo->mapParentContentsToChildWindow(*exposedContentRectInParent).value_or(FloatRect { });
-        projected.intersect(FloatRect { { }, childView->size() });
-
-        // The parent frame process thinks this frame is visible, but we think it isn't. Err on the
-        // side of tiling the full view until we get updated geometry from the parent frame process.
-        if (!exposedContentRectInParentIsEmpty && projected.isEmpty())
-            projected = FloatRect { { }, childView->size() };
+        auto fullChildViewRect = FloatRect { { }, childView->size() };
+        auto exposedContentRectInChildView = layoutInfo->exposedContentRectInChildView();
+        auto projected = exposedContentRectInChildView;
+        projected.intersect(fullChildViewRect);
 
         if (childView->exposedContentRect() != projected) {
             childView->setExposedContentRect(projected);
@@ -3056,12 +3038,27 @@ String WebPage::dumpHistoryForTesting(const String& directory)
 
     CheckedRef list = m_page->backForward();
 
-    StringBuilder builder;
-    int begin = -list->backCount();
-    if (list->itemAtIndex(begin)->url() == aboutBlankURL())
+    // A page with no current item has nothing to dump. That is the state a window.open() page is
+    // in before its initial load commits, and WebKitTestRunner dumps every page it knows about.
+    if (!list->currentItem())
+        return { };
+
+    // itemAtIndex() takes an offset relative to the current item, so the range of valid offsets is
+    // [-backCount(), forwardCount()] inclusive. It is a synchronous round trip to the UI process,
+    // while backCount() and forwardCount() are served from a cache in this process, so the bounds
+    // and the items are sampled at different times and an item can be absent at an offset the
+    // bounds include. Skip those rather than crashing.
+    int begin = -static_cast<int>(list->backCount());
+    int end = static_cast<int>(list->forwardCount());
+
+    if (RefPtr item = list->itemAtIndex(begin); item && item->url() == aboutBlankURL())
         ++begin;
-    for (int i = begin; i <= static_cast<int>(list->forwardCount()); ++i)
-        dumpHistoryItem(*list->itemAtIndex(i), 8, !i, builder, directory);
+
+    StringBuilder builder;
+    for (int i = begin; i <= end; ++i) {
+        if (RefPtr item = list->itemAtIndex(i))
+            dumpHistoryItem(*item, 8, !i, builder, directory);
+    }
     return builder.toString();
 }
 
@@ -9082,8 +9079,10 @@ void WebPage::stopAllURLSchemeTasks()
 void WebPage::registerURLSchemeHandler(WebURLSchemeHandlerIdentifier handlerIdentifier, const String& scheme)
 {
     WEBPAGE_RELEASE_LOG(Process, "registerURLSchemeHandler: Registered handler %" PRIu64 " for the '%s' scheme", handlerIdentifier.toUInt64(), scheme.utf8().data());
+
     WebCore::LegacySchemeRegistry::registerURLSchemeAsHandledBySchemeHandler(scheme);
-    WebCore::LegacySchemeRegistry::registerURLSchemeAsCORSEnabled(scheme);
+    WebProcess::singleton().registerURLSchemeAsCORSEnabled(scheme);
+
     auto schemeResult = m_schemeToURLSchemeHandlerProxyMap.add(scheme, WebURLSchemeHandlerProxy::create(*this, handlerIdentifier));
     m_identifierToURLSchemeHandlerProxyMap.add(handlerIdentifier, Ref { schemeResult.iterator->value }.get());
 }

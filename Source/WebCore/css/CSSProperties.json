@@ -10690,6 +10690,22 @@
                 "url": "https://www.w3.org/TR/css-flexbox-1/#propdef-flex-grow"
             }
         },
+        "flex-line-count": {
+            "animation-type": "by computed value",
+            "initial": "1",
+            "codegen-properties": {
+                "settings-flag": "cssFlexWrapBalanceEnabled",
+                "computed-style-initial-constexpr": true,
+                "computed-style-storage-path": ["m_nonInheritedData", "miscData", "flexibleBox"],
+                "computed-style-storage-kind": "value",
+                "computed-style-type": "Style::FlexLineCount",
+                "parser-grammar": "<integer [1,inf]>"
+            },
+            "specification": {
+                "category": "css-flexbox-2",
+                "url": "https://drafts.csswg.org/css-flexbox-2/#flex-line-count-property"
+            }
+        },
         "flex-shrink": {
             "animation-type": "by computed value",
             "initial": "1",
@@ -13654,10 +13670,11 @@
                 "auto"
             ],
             "codegen-properties": {
+                "comment": "The '#'-delimited attachment point is proposed in the Spatial CSS explainer, not yet in a specification: https://github.com/WebKit/explainers/blob/main/css-spatial/explainer.md",
                 "computed-style-storage-path": ["m_nonInheritedData", "rareData"],
                 "computed-style-storage-kind": "reference",
                 "computed-style-type": "Style::PositionAnchor",
-                "parser-grammar": "normal | none | auto | <dashed-ident>"
+                "parser-grammar": "normal | none | auto | <pinned-anchor-name>"
             },
             "specification": {
                 "category": "css-anchor-position",
@@ -14710,6 +14727,15 @@
         }
     },
     "shared-grammar-rules": {
+        "<pinned-anchor-name>": {
+            "grammar-unused": "<anchor-name> [ '#' <ident> ]?",
+            "grammar-unused-reason": "Needs support for token adjacency: the '#' must immediately follow the anchor name, which grammar notation cannot express.",
+            "grammar-function": "consumePinnedAnchorName",
+            "specification": {
+                "category": "css-anchor-position",
+                "url": "https://github.com/WebKit/explainers/blob/main/css-spatial/explainer.md"
+            }
+        },
         "<opacity-value>": {
             "grammar": "<number-or-percentage-resolved-to-number>",
             "specification": {

@@ -1031,6 +1031,7 @@ css/CSSPageRule.cpp
 css/CSSPaintImageValue.cpp
 css/CSSParamValue.cpp
 css/CSSPathValue.cpp
+css/CSSPinnedAnchorNameValue.cpp
 css/CSSShorthandSubstitutionValue.cpp
 css/CSSPositionTryDescriptors.cpp
 css/CSSPositionTryRule.cpp
@@ -1088,7 +1089,6 @@ css/MediaList.cpp
 css/MediaQueryList.cpp
 css/MediaQueryListEvent.cpp
 css/MediaQueryMatcher.cpp @cost:3
-css/MediaQueryParserContext.cpp
 css/MutableStyleProperties.cpp
 css/PropertySetCSSDescriptors.cpp
 css/SelectorChecker.cpp @cost:6
@@ -3094,7 +3094,7 @@ rendering/RenderLineBoxList.cpp @header:RenderStyleGetters @cost:5
 rendering/RenderLineBreak.cpp @header:RenderStyleGetters @cost:6
 rendering/RenderListBox.cpp @header:RenderStyleGetters @cost:8
 rendering/RenderListItem.cpp @header:RenderStyleGetters @cost:7
-rendering/RenderListMarker.cpp @header:RenderStyleGetters @cost:8
+rendering/RenderListOutsideMarker.cpp @header:RenderStyleGetters @cost:8
 rendering/RenderMarquee.cpp @header:RenderStyleGetters @cost:5
 rendering/RenderMedia.cpp @header:RenderStyleGetters @cost:6
 rendering/RenderMenuList.cpp @header:RenderStyleGetters @cost:8
@@ -3384,6 +3384,7 @@ style/values/align/StyleAlignSelf.cpp @header:RenderStyleGetters @cost:5
 style/values/align/StyleJustifyContent.cpp
 style/values/align/StyleJustifyItems.cpp
 style/values/align/StyleJustifySelf.cpp @header:RenderStyleGetters @cost:5
+style/values/anchor-position/StylePinnedAnchorName.cpp
 style/values/anchor-position/StylePositionAnchor.cpp
 style/values/anchor-position/StylePositionAreaAxis.cpp
 style/values/anchor-position/StylePositionAreaSelf.cpp

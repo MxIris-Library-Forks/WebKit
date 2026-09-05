@@ -422,6 +422,7 @@ using BackgroundLayers = CoordinatedValueList<BackgroundLayer>;
 using BorderRadiusValue = MinimallySerializingSpaceSeparatedSize<LengthPercentage<CSS::Nonnegative>>;
 using BoxShadows = Shadows<BoxShadow>;
 using FlexGrow = Number<CSS::Nonnegative, float>;
+using FlexLineCount = Integer<CSS::Positive>;
 using FlexShrink = Number<CSS::Nonnegative, float>;
 using InsetBox = MinimallySerializingSpaceSeparatedRectEdges<InsetEdge>;
 using LineWidthBox = MinimallySerializingSpaceSeparatedRectEdges<LineWidth>;
@@ -595,6 +596,8 @@ public:
     // MARK: - Pseudo element/style
 
     inline std::optional<PseudoElementType> pseudoElementType() const;
+    // True for the ::marker style itself and for the styles its content renderers inherit from it.
+    inline bool isListMarkerStyle() const;
     const AtomString& pseudoElementNameArgument() const LIFETIME_BOUND;
 
     std::optional<PseudoElementIdentifier> NODELETE pseudoElementIdentifier() const;

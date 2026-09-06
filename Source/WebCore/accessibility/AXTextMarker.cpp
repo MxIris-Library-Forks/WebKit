@@ -86,15 +86,17 @@ TextMarkerData::TextMarkerData(AXObjectCache& cache, const CharacterOffset& char
 
     zeroBytes(*this);
 
-    auto visiblePosition = cache.visiblePositionFromCharacterOffset(characterOffsetParam);
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
     if (AXObjectCache::shouldCreateAXThreadCompatibleMarkers()) {
+        // Accessibility exposes the text of a user-select:none element, so a marker has to be able to address it.
+        auto visiblePosition = cache.visiblePositionFromCharacterOffset(characterOffsetParam, AllowUserSelectNone::Yes);
         if (std::optional data = cache.textMarkerDataForVisiblePosition(WTF::move(visiblePosition), origin))
             *this = *data;
         return;
     }
 #endif // ENABLE(ACCESSIBILITY_ISOLATED_TREE)
 
+    auto visiblePosition = cache.visiblePositionFromCharacterOffset(characterOffsetParam);
     treeID = cache.treeID().toUInt64();
     auto optionalObjectID = nodeID(cache, characterOffsetParam.node.get());
     objectID = optionalObjectID ? optionalObjectID->toUInt64() : 0;
@@ -737,16 +739,18 @@ AXTextRunLineID AXTextMarker::lineID() const
     return runIndex != notFound ? runs->lineID(runIndex) : AXTextRunLineID();
 }
 
-int AXTextMarker::lineIndex() const
+int AXTextMarker::lineIndex(std::optional<AXID> rootID) const
 {
     if (!isValid())
         return -1;
     if (!isInTextRun())
-        return toTextRunMarker().lineIndex();
+        return toTextRunMarker().lineIndex(rootID);
 
     AXTextMarker startMarker;
     RefPtr object = isolatedObject();
-    if (object->isTextControl())
+    if (rootID)
+        startMarker = { treeID(), *rootID, 0 };
+    else if (object->isTextControl())
         startMarker = { *object, 0 };
     else if (RefPtr editableAncestor = object->editableAncestor())
         startMarker = { editableAncestor->treeID(), editableAncestor->objectID(), 0 };

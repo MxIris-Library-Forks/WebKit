@@ -503,6 +503,7 @@ enum class MediaPlaybackState : uint8_t;
 #if ENABLE(UNIFIED_PDF)
 enum class PDFPluginDisplayMode : uint8_t;
 #endif
+enum class ShouldFreezeLayerTree : bool;
 enum class SnapshotOption : uint16_t;
 enum class SyntheticEditingCommandType : uint8_t;
 enum class TextInteractionSource : uint8_t;
@@ -922,7 +923,6 @@ public:
     // Called when we inherit an accessibility mode from the UI process.
     // The inheritance aspect is an important semantic, as if we inherit
     // AXThread mode, we should skip the client checks it normally does.
-    void inheritAccessibilityMode(WebCore::AccessibilityMode);
 
 #if PLATFORM(MAC)
     void getAccessibilityWebProcessDebugInfo(CompletionHandler<void(WebCore::AXDebugInfo)>&&);
@@ -2704,7 +2704,7 @@ private:
 
     void setIsSuspended(bool, CompletionHandler<void(std::optional<bool>)>&&);
     void suspendWithFrameItem(WebCore::BackForwardFrameItemIdentifier, CompletionHandler<void(bool)>&&);
-    void restoreWithFrameItem(WebCore::BackForwardFrameItemIdentifier, std::optional<std::pair<URL, WebCore::SecurityOriginData>>&&, CompletionHandler<void(bool)>&&);
+    void restoreWithFrameItem(WebCore::BackForwardFrameItemIdentifier, std::optional<std::pair<URL, WebCore::SecurityOriginData>>&&, ShouldFreezeLayerTree, CompletionHandler<void(bool)>&&);
     void detachResidualSubframesForBackForwardCacheRestore(WebCore::Page&);
 
     RefPtr<WebImage> snapshotAtSize(const WebCore::IntRect&, const WebCore::IntSize& bitmapSize, SnapshotOptions, WebCore::LocalFrame&, WebCore::LocalFrameView&);

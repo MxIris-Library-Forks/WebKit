@@ -84,6 +84,7 @@
 #include "SessionStateConversion.h"
 #include "ShareableBitmapUtilities.h"
 #include "SharedBufferReference.h"
+#include "ShouldFreezeLayerTree.h"
 #include "TextRecognitionUpdateResult.h"
 #include "UserMediaPermissionRequestManager.h"
 #include "ViewGestureGeometryCollector.h"
@@ -1141,26 +1142,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     if (parameters.isEditable)
         setEditable(true);
 
-    inheritAccessibilityMode(parameters.accessibilityMode);
-
-    WebCore::AXObjectCache::setSyncModeToOtherProcessesCallback([weakPage = WeakPtr { *this }](WebCore::AccessibilityMode mode) {
-        if (RefPtr page = weakPage.get())
-            page->send(Messages::WebPageProxy::SetAccessibilityMode(mode));
-    });
-
-    if (auto mode = WebCore::AXObjectCache::accessibilityMode(); !WebCore::isAccessibilityModeOff(mode)) {
-        // If accessibility was already enabled process-wide before this WebPage was
-        // created (e.g. WebProcess::setEnhancedAccessibility ran before initialize),
-        // the mode transition fired before the sync callback above was registered, so
-        // the new WebPageProxy on the UIProcess never learned about it. Sync the
-        // current mode now so requestFrameScreenPosition and other AX-mode-gated
-        // IPCs aren't dropped.
-        send(Messages::WebPageProxy::SetAccessibilityMode(mode));
-    }
-
 #if PLATFORM(MAC)
     if (WebCore::AXObjectCache::shouldForceAccessibilityEnabled())
-        WebCore::AXObjectCache::enableAccessibility(WebCore::AXObjectCache::ForceAXThreadMode::Yes);
+        WebCore::AXObjectCache::enableAccessibility(WebCore::AXObjectCache::AXThreadModePreconditions::None);
 #endif // PLATFORM(MAC)
 
 #if PLATFORM(MAC)
@@ -3238,27 +3222,6 @@ float WebPage::deviceScaleFactor() const
 void WebPage::accessibilitySettingsDidChange()
 {
     protect(corePage())->accessibilitySettingsDidChange();
-}
-
-void WebPage::inheritAccessibilityMode(WebCore::AccessibilityMode mode)
-{
-    if (WebCore::isAccessibilityModeOff(mode)) {
-        // Accessibility may already be enabled process-wide (e.g. a prior
-        // WebPage in this process received a non-Off mode, or
-        // shouldForceAccessibilityEnabled() triggered enableAccessibility).
-        // Receiving Off for a new page is normal in that case — just no-op.
-        //
-        // In the future, we may add a way to disable accessibility in
-        // production (i.e. the user turns off their AT), in which case
-        // this function will need to change.
-        return;
-    }
-
-    auto forceAXThreadMode = mode == WebCore::AccessibilityMode::AXThread
-        ? WebCore::AXObjectCache::ForceAXThreadMode::Yes
-        : WebCore::AXObjectCache::ForceAXThreadMode::No;
-
-    WebCore::AXObjectCache::enableAccessibility(forceAXThreadMode);
 }
 
 void WebPage::screenPropertiesDidChange(bool affectsStyle)
@@ -9186,7 +9149,7 @@ void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, Co
     completionHandler(true);
 }
 
-void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, std::optional<std::pair<URL, SecurityOriginData>>&& mainFrameURLAndOrigin, CompletionHandler<void(bool)>&& completionHandler)
+void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, std::optional<std::pair<URL, SecurityOriginData>>&& mainFrameURLAndOrigin, ShouldFreezeLayerTree shouldFreezeLayerTree, CompletionHandler<void(bool)>&& completionHandler)
 {
     if (!BackForwardCache::singleton().isInBackForwardCache(identifier))
         return completionHandler(true);
@@ -9213,6 +9176,11 @@ void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, st
     m_isSuspended = false;
     auto restoredFrames = cachedPage->takeDetachedRootFrames();
     detachResidualSubframesForBackForwardCacheRestore(*page);
+
+    // Freeze here so the compositing update, and with it the root compositing layer attachment, can't happen until the new drawing area is in place.
+    // The layer tree is unfreezed in WebPage::reinitializeWebPage.
+    if (shouldFreezeLayerTree == ShouldFreezeLayerTree::Yes)
+        freezeLayerTree(LayerTreeFreezeReason::PageSuspended);
 
     // Resume rendering for the frames detached in suspendWithFrameItem.
     for (auto& weakFrame : restoredFrames) {

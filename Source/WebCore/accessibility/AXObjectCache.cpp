@@ -87,6 +87,7 @@
 #include "HTMLInputElement.h"
 #include "HTMLLabelElement.h"
 #include "HTMLMapElement.h"
+#include "HTMLMediaElement.h"
 #include "HTMLMeterElement.h"
 #include "HTMLNames.h"
 #include "HTMLOptGroupElement.h"
@@ -310,15 +311,15 @@ void AXObjectCache::disableAccessibilityForTesting()
 }
 
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
-std::optional<AccessibilityMode> AXObjectCache::transitionToAXThreadModeIfNeeded(ForceAXThreadMode forceAXThread)
+std::optional<AccessibilityMode> AXObjectCache::transitionToAXThreadModeIfNeeded(AXThreadModePreconditions preconditions)
 {
     if (accessibilityMode() == AccessibilityMode::AXThread)
         return std::nullopt;
 
-    if (platformAXThreadSupport(forceAXThread) == PlatformAXThreadSupport::NotSupported)
+    if (platformAXThreadSupport(preconditions) == PlatformAXThreadSupport::NotSupported)
         return std::nullopt;
 
-    if (forceAXThread == ForceAXThreadMode::No
+    if (preconditions != AXThreadModePreconditions::None
         && !DeprecatedGlobalSettings::isAccessibilityIsolatedTreeEnabled())
         return std::nullopt;
 
@@ -2878,6 +2879,13 @@ void AXObjectCache::selectedChildrenChanged(RenderObject* renderer)
         selectedChildrenChanged(protect(renderer->node()));
 }
 
+#if ENABLE(VIDEO)
+void AXObjectCache::onMediaElementCurrentSrcChanged(HTMLMediaElement& element)
+{
+    postNotification(&element, AXNotification::URLChanged);
+}
+#endif
+
 void AXObjectCache::onScrollbarFrameRectChange(const Scrollbar& scrollbar)
 {
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
@@ -2912,14 +2920,18 @@ void AXObjectCache::onSelectedOptionChanged(Element& element)
 
 void AXObjectCache::onSelectedOptionChanged(HTMLSelectElement& select, int optionIndex)
 {
-    if (RefPtr axMenuList = dynamicDowncast<AccessibilityMenuList>(get(select))) {
+    if (RefPtr axMenuList = dynamicDowncast<AccessibilityMenuList>(get(select)))
         axMenuList->didUpdateActiveOption(optionIndex);
-        return;
+    else {
+        // Base-appearance selects don't use AccessibilityMenuList (which normally handles this),
+        // so post the value change notification directly.
+        deferMenuListValueChange(&select);
     }
 
-    // Base-appearance selects don't use AccessibilityMenuList (which normally handles this),
-    // so post the value change notification directly.
-    deferMenuListValueChange(&select);
+#if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
+    // Make sure the string value is updated in the same cycle as the expanded-state change.
+    updateIsolatedTree(get(select), AXProperty::StringValue);
+#endif
 }
 
 void AXObjectCache::onSlottedContentChange(const HTMLSlotElement& slot)
@@ -4835,7 +4847,7 @@ Node* AXObjectCache::previousNode(Node* node) const
     return NodeTraversal::previousSkippingChildren(*node);
 }
 
-VisiblePosition AXObjectCache::visiblePositionFromCharacterOffset(const CharacterOffset& characterOffset)
+VisiblePosition AXObjectCache::visiblePositionFromCharacterOffset(const CharacterOffset& characterOffset, AllowUserSelectNone allowUserSelectNone)
 {
     if (characterOffset.isNull())
         return VisiblePosition();
@@ -4845,7 +4857,7 @@ VisiblePosition AXObjectCache::visiblePositionFromCharacterOffset(const Characte
     auto range = rangeForUnorderedCharacterOffsets(characterOffset, characterOffset);
     if (!range)
         return { };
-    return makeContainerOffsetPosition(range->start);
+    return { makeContainerOffsetPosition(range->start), VisiblePosition::defaultAffinity, allowUserSelectNone };
 }
 
 CharacterOffset AXObjectCache::characterOffsetFromVisiblePosition(const VisiblePosition& targetVisiblePosition)

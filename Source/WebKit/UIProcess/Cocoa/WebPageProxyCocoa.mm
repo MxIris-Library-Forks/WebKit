@@ -502,8 +502,7 @@ void WebPageProxy::platformRegisterAttachment(Ref<API::Attachment>&& attachment,
     if (!pageClient)
         return;
 
-    // FIXME: This is a safer cpp false positive.
-    SUPPRESS_RETAINPTR_CTOR_ADOPT RetainPtr fileWrapper = adoptNS([pageClient->allocFileWrapperInstance() initRegularFileWithContents:bufferCopy.unsafeBuffer()->createNSData().get()]);
+    RetainPtr fileWrapper = adoptNS([pageClient->allocFileWrapperInstance() initRegularFileWithContents:bufferCopy.unsafeBuffer()->createNSData().get()]);
     [fileWrapper setPreferredFilename:preferredFileName.createNSString().get()];
     attachment->setFileWrapper(fileWrapper.get());
 }
@@ -517,8 +516,7 @@ void WebPageProxy::platformRegisterAttachment(Ref<API::Attachment>&& attachment,
     if (!pageClient)
         return;
 
-    // FIXME: This is a safer cpp false positive.
-    SUPPRESS_RETAINPTR_CTOR_ADOPT RetainPtr fileWrapper = adoptNS([pageClient->allocFileWrapperInstance() initWithURL:adoptNS([[NSURL alloc] initFileURLWithPath:filePath.createNSString().get()]).get() options:0 error:nil]);
+    RetainPtr fileWrapper = adoptNS([pageClient->allocFileWrapperInstance() initWithURL:adoptNS([[NSURL alloc] initFileURLWithPath:filePath.createNSString().get()]).get() options:0 error:nil]);
     attachment->setFileWrapper(fileWrapper.get());
 }
 
@@ -993,9 +991,8 @@ void WebPageProxy::setUpHighlightsObserver()
     WeakPtr weakThis { *this };
     auto updateAppHighlightsVisibility = ^(BOOL isVisible) {
         ensureOnMainRunLoop([weakThis, isVisible] {
-            if (!weakThis)
-                return;
-            weakThis->setAppHighlightsVisibility(isVisible ? WebCore::HighlightVisibility::Visible : WebCore::HighlightVisibility::Hidden);
+            if (RefPtr protectedThis = weakThis)
+                protectedThis->setAppHighlightsVisibility(isVisible ? WebCore::HighlightVisibility::Visible : WebCore::HighlightVisibility::Hidden);
         });
     };
     

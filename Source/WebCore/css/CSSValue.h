@@ -78,6 +78,7 @@ public:
     bool isBorderImageSourceValue() const { return m_classType == ClassType::BorderImageSource; }
     bool isBorderImageWidthValue() const { return m_classType == ClassType::BorderImageWidth; }
     bool isBoxShadowPropertyValue() const { return m_classType == ClassType::BoxShadowProperty; }
+    bool isCalcSizeValue() const { return m_classType == ClassType::CalcSize; }
     bool isColorImageValue() const { return m_classType == ClassType::ColorImage; }
     bool isLightDarkImageValue() const { return m_classType == ClassType::LightDarkImage; }
     bool isCanvasValue() const { return m_classType == ClassType::Canvas; }
@@ -100,6 +101,7 @@ public:
     bool isFontFaceSrcResourceValue() const { return m_classType == ClassType::FontFaceSrcResource; }
     bool isFontFamilyNameValue() const { return m_classType == ClassType::FontFamilyName; }
     bool isFontFeatureValue() const { return m_classType == ClassType::FontFeature; }
+    bool isFontPaletteValue() const { return m_classType == ClassType::FontPalette; }
     bool isFontStyleRangeValue() const { return m_classType == ClassType::FontStyleRange; }
     bool isFontStyleWithAngleValue() const { return m_classType == ClassType::FontStyleWithAngle; }
     bool isFontValue() const { return m_classType == ClassType::Font; }
@@ -225,6 +227,7 @@ protected:
         BorderImageSource,
         BorderImageWidth,
         BoxShadowProperty,
+        CalcSize,
         Clip,
         Color,
 #if ENABLE(DARK_MODE_CSS)
@@ -242,6 +245,7 @@ protected:
         FontFaceSrcResource,
         FontFamilyName,
         FontFeature,
+        FontPalette,
         FontStyleRange,
         FontStyleWithAngle,
         FontVariation,

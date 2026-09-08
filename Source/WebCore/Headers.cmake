@@ -1196,6 +1196,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     css/values/color/CSSColor.h
     css/values/color/CSSColorDescriptors.h
+    css/values/color/CSSColorInterpolationMethod.h
     css/values/color/CSSColorType.h
     css/values/color/CSSHexColor.h
     css/values/color/CSSKeywordColor.h
@@ -1253,6 +1254,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/shapes/CSSRectFunction.h
     css/values/shapes/CSSShapeFunction.h
     css/values/shapes/CSSXywhFunction.h
+
+    css/values/sizing/CSSCalcSizeFunction.h
 
     css/values/text-decoration/CSSTextShadow.h
 

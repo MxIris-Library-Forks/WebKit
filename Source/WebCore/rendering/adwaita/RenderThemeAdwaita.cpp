@@ -227,7 +227,7 @@ RefPtr<FragmentedSharedBuffer> RenderThemeAdwaita::mediaControlsImageDataForIcon
 {
 #if USE(GLIB)
     auto path = makeString("/org/webkit/media-controls/"_s, iconName, '.', iconType);
-    GRefPtr data = adoptGRef(g_resources_lookup_data(path.latin1().data(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr));
+    GRefPtr data = adoptGRef(g_resources_lookup_data(path.utf8().data(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr));
     if (!data)
         return nullptr;
     return SharedBuffer::create(span(data));
@@ -246,7 +246,7 @@ String RenderThemeAdwaita::mediaControlsBase64StringForIconNameAndType(const Str
 {
 #if USE(GLIB)
     auto path = makeString("/org/webkit/media-controls/"_s, iconName, '.', iconType);
-    GRefPtr data = adoptGRef(g_resources_lookup_data(path.latin1().data(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr));
+    GRefPtr data = adoptGRef(g_resources_lookup_data(path.utf8().data(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr));
     if (!data)
         return emptyString();
     return base64EncodeToString(span(data));
@@ -343,7 +343,8 @@ void RenderThemeAdwaita::adjustSearchFieldStyle(Style::ComputedStyle& style, con
 void RenderThemeAdwaita::adjustMenuListStyle(Style::ComputedStyle& style, const Element* element) const
 {
     RenderTheme::adjustMenuListStyle(style, element);
-    style.setLineHeight(Style::ComputedStyle::initialLineHeight());
+    style.setSpecifiedLineHeight(Style::ComputedStyle::initialSpecifiedLineHeight());
+    style.setTextAutosizingAdjustedLineHeight(Style::ComputedStyle::initialSpecifiedLineHeight());
 }
 
 void RenderThemeAdwaita::adjustMenuListButtonStyle(Style::ComputedStyle& style, const Element* element) const

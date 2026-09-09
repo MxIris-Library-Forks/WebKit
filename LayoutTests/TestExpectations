@@ -6887,10 +6887,6 @@ imported/w3c/web-platform-tests/css/css-text/word-break/auto-phrase [ Skip ]
 
 # WebTransport: the webtransport-h3 server now runs (webkit.org/b/319008); the rest stay skipped. https://bugs.webkit.org/show_bug.cgi?id=318998
 
-# Crash tests, must pass.
-imported/w3c/web-platform-tests/webtransport/bidirectional-cancel-crash.https.html [ Skip ]
-imported/w3c/web-platform-tests/webtransport/datagram-cancel-crash.https.sub.window.html [ Skip ]
-
 # Internal timeout (streams hang).
 imported/w3c/web-platform-tests/webtransport/echo-large-bidirectional-streams.https.any.html [ Skip ]
 imported/w3c/web-platform-tests/webtransport/echo-large-bidirectional-streams.https.any.serviceworker.html [ Skip ]
@@ -7799,6 +7795,9 @@ ipc/create-media-source-with-invalid-constraints-crash.html [ Skip ]
 ipc/create-image-buffer-crash.html [ Skip ]
 ipc/validate-media-constraint.html [ Skip ]
 ipc/validate-message-check-in-networkconnectiontowebprocess.html [ Skip ]
+
+# Testing MESSAGE_CHECK of sync messages is incorrect.
+webkit.org/b/323670 ipc/getpixelbuffer-layerbacking-heap-disclosure.html [ Skip ]
 
 # webkit.org/b/287275 [ Sequoia EWS] media/video-replaces-poster.html is a flaky crash
 media/video-presentation-mode.html [ Skip ]

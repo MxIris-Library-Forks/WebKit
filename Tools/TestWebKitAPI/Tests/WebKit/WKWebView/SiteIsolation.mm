@@ -6165,6 +6165,58 @@ TEST(SiteIsolation, SandboxFlagsDuringNavigation)
     EXPECT_FALSE(receivedAlert);
 }
 
+TEST(SiteIsolation, SandboxFlagsRemovedBeforeSameSiteNavigation)
+{
+    NSString *checkAlertJS = @"alert('alerted');window.open('https://example.com/opened');window.webkit.messageHandlers.testHandler.postMessage('testHandler')";
+
+    HTTPServer server({
+        { "/example"_s, { "<iframe sandbox='allow-scripts allow-modals' id='testiframe' src='https://webkit.org/iframe1'></iframe>"_s } },
+        { "/iframe1"_s, { "hi"_s } },
+        { "/iframe2"_s, { [NSString stringWithFormat:@"<script>onload = ()=>{ %@ }</script>", checkAlertJS] } },
+        { "/opened"_s, { "hi"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    bool receivedMessage { false };
+    bool receivedAlert { false };
+    bool receivedOpen { false };
+    auto reset = [&] {
+        receivedMessage = false;
+        receivedAlert = false;
+        receivedOpen = false;
+    };
+
+    auto webViewAndDelegates = makeWebViewAndDelegates(server);
+    RetainPtr webView = webViewAndDelegates.webView;
+    webView.get().configuration.preferences.javaScriptCanOpenWindowsAutomatically = YES;
+    [webViewAndDelegates.messageHandler addMessage:@"testHandler" withHandler:[&] {
+        receivedMessage = true;
+    }];
+    RetainPtr uiDelegate = webViewAndDelegates.uiDelegate;
+    uiDelegate.get().runJavaScriptAlertPanelWithMessage = [&](WKWebView *, NSString *, WKFrameInfo *, void (^completionHandler)()) {
+        receivedAlert = true;
+        completionHandler();
+    };
+    uiDelegate.get().createWebViewWithConfiguration = [&](WKWebViewConfiguration *, WKNavigationAction *, WKWindowFeatures *) -> WKWebView * {
+        receivedOpen = true;
+        return nil;
+    };
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [webViewAndDelegates.navigationDelegate waitForDidFinishNavigation];
+    [webView evaluateJavaScript:checkAlertJS inFrame:[webView firstChildFrame] completionHandler:nil];
+    Util::run(&receivedMessage);
+    EXPECT_TRUE(receivedAlert);
+    EXPECT_FALSE(receivedOpen);
+
+    reset();
+    // iframe2 is same-site with iframe1, so the frame stays in the process it is already in and the
+    // now-empty sandbox flags have to be delivered by the load itself rather than by frame creation.
+    [webView evaluateJavaScript:@"let i = document.getElementById('testiframe'); i.removeAttribute('sandbox'); i.src = 'https://webkit.org/iframe2'" completionHandler:nil];
+    Util::run(&receivedMessage);
+    EXPECT_TRUE(receivedAlert);
+    EXPECT_TRUE(receivedOpen);
+}
+
 TEST(SiteIsolation, NavigateNestedRootFramesBackForward)
 {
     HTTPServer server({
@@ -12347,22 +12399,6 @@ TEST(SiteIsolation, MultiProcessBFCacheCrossSiteToJavaScriptURL)
 
 TEST(SiteIsolation, MultiProcessBFCacheSameSiteWithDifferentCrossSiteIframes)
 {
-    // m_childFrames pollution under same-site BFCache: when a1 (a.com with
-    // b.com iframe) is cached and replaced by a2 (a.com with c.com iframe),
-    // BFCache does NOT destroy the cached frames, so no DidDestroyFrame IPC
-    // fires for b.com. Its stale WebFrameProxy stays in
-    // m_mainFrame->m_childFrames alongside the live c.com WebFrameProxy
-    // from a2.
-    //
-    // After a2 is fully loaded, the live frame tree under m_mainFrame must
-    // only reflect a2 (a.com + c.com remote). The cached b.com WebFrameProxy
-    // must hang off the WebBackForwardCacheEntry and not pollute the live
-    // tree. The b.com process itself remains in the BrowsingContextGroup
-    // while suspended (UI-driven flow does not pull RemotePageProxies out
-    // of the BCG), so getAllFrameTrees still surfaces a third tree from
-    // the suspended b.com process; that tree shows the b.com main as
-    // (remote) and its child as (remote) because the suspended WebPage's
-    // live document is empty (the cached document lives inside CachedPage).
     HTTPServer server({
         { "/a1"_s, { "<iframe src='https://b.com/bframe'></iframe>"_s } },
         { "/bframe"_s, { "b iframe content"_s } },
@@ -12376,27 +12412,27 @@ TEST(SiteIsolation, MultiProcessBFCacheSameSiteWithDifferentCrossSiteIframes)
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/a1"]]];
     [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
 
-    checkFrameTreesInProcesses(webView.get(), {
-        { "https://a.com"_s, { { RemoteFrame } } },
-        { RemoteFrame, { { "https://b.com"_s } } },
-    });
+    EXPECT_WK_STREQ(@"https://b.com/bframe", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[webView firstChildFrame]]);
+    [webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker_a1 = true"];
+    [webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker = true" inFrame:[webView firstChildFrame]];
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/a2"]]];
     [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
 
-    // After a2 loads:
-    //  - a.com (main proc): a.com main with c.com remote child  → live tree, 1 tree
-    //  - b.com (cached proc, suspended): remote main with remote child → cached tree, 1 tree
-    //  - c.com (live iframe proc): remote main with c.com local child → live tree, 1 tree
-    // The stale b.com WebFrameProxy from a1 must be owned by the same-site
-    // BFCache entry, not by m_mainFrame->m_childFrames. The b.com process
-    // tree is still surfaced via the BCG because UI-driven BFCache leaves
-    // RemotePageProxies in place during suspension.
-    checkFrameTreesInProcesses(webView.get(), {
-        { "https://a.com"_s, { { RemoteFrame } } },
-        { RemoteFrame, { { RemoteFrame } } },
-        { RemoteFrame, { { "https://c.com"_s } } },
-    });
+    EXPECT_WK_STREQ(@"https://c.com/cframe", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[webView firstChildFrame]]);
+
+    [webView goBack];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    EXPECT_WK_STREQ(@"https://a.com/a1", [webView URL].absoluteString);
+    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker_a1 ? true : false"] boolValue]);
+
+    // The iframe subtree is reattached after the main frame commits, so c.com is still the child frame for a moment after the navigation finishes.
+    while (![[webView firstChildFrame].securityOrigin.host isEqualToString:@"b.com"])
+        Util::spinRunLoop();
+
+    EXPECT_WK_STREQ(@"https://b.com/bframe", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[webView firstChildFrame]]);
+    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker ? true : false" inFrame:[webView firstChildFrame]] boolValue]);
 }
 
 TEST(SiteIsolation, IframePushStateBackForwardRoutesToIframe)
@@ -14299,7 +14335,7 @@ TEST(SiteIsolation, MultiProcessBFCacheIframeRendersAfterBackNavigation)
 {
     HTTPServer server({
         { "/main"_s, { "<iframe src='https://b.com/iframe'></iframe>"_s } },
-        { "/iframe"_s, { "<a id='link' href='https://b.com/destination' target='_top'>click me</a>"_s } },
+        { "/iframe"_s, { "<body style='margin:0'><div style='width:137px;height:59px;background:magenta;transform:translateZ(0)'></div><a id='link' href='https://b.com/destination' target='_top'>click me</a></body>"_s } },
         { "/destination"_s, { "<body>destination page</body>"_s } },
     }, HTTPServer::Protocol::HttpsProxy);
 
@@ -14338,8 +14374,11 @@ TEST(SiteIsolation, MultiProcessBFCacheIframeRendersAfterBackNavigation)
     TestWebKitAPI::Util::run(&done);
     EXPECT_FALSE(frozen);
 
-    NSString *layerTree = [webView _caLayerTreeAsText];
-    EXPECT_TRUE([layerTree containsString:@"(layer bounds"]);
+    // The iframe composites a 137x59 layer, a size nothing in a.com's process can produce, so those
+    // bounds appearing in the hosted CALayer tree detect b.com's contribution alone.
+    [webView waitForNextPresentationUpdate];
+    RetainPtr layerTree = [webView _caLayerTreeAsText];
+    EXPECT_TRUE([layerTree containsString:@"width: 137 height: 59"]) << [layerTree UTF8String];
 
     startCountingAnimationFrames(webView.get(), [webView firstChildFrame]);
     expectAnimationFrameCountToIncrease(webView.get(), [webView firstChildFrame]);

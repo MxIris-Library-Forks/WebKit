@@ -110,10 +110,7 @@ private:
 
     LayoutRect NODELETE localSelectionRect();
 
-
 private:
-    RefPtr<Style::Image> m_image;
-
     SingleThreadWeakPtr<RenderListItem> m_listItem;
     std::pair<float, float> m_layoutBounds;
     std::optional<ExcludedPosition> m_excludedPosition;
@@ -122,8 +119,9 @@ private:
 // The room an image marker keeps between itself and the content it labels.
 constexpr int listMarkerImagePadding = 7;
 ListMarkerTextContent listMarkerTextContent(const Style::ComputedStyle& markerStyle, RenderListItem&);
-bool listMarkerSynthesizesGlyph(const Style::ComputedStyle& markerStyle);
-bool listMarkerShowsImage(const Style::ComputedStyle& markerStyle);
+bool listMarkerHasContent(const Style::ComputedStyle& markerStyle, Document&);
+bool listMarkerSynthesizesGlyph(const Style::ComputedStyle& markerStyle, Document&);
+RefPtr<Style::Image> listMarkerImage(const Style::ComputedStyle& markerStyle);
 bool listMarkerIsDisclosure(const Style::ComputedStyle& markerStyle, Document&);
 bool listMarkerIsDisclosure(const RenderElement*);
 void setListMarkerInlineMargins(Style::ComputedStyle& markerStyle, WritingMode listItemWritingMode, LayoutUnit marginStart, LayoutUnit marginEnd);

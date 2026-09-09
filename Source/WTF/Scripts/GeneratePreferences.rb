@@ -64,6 +64,16 @@ def frontendsFor(opts)
   FRONTENDS - (opts["excludeFrom"] || [])
 end
 
+KEYS = %w{
+  category comment condition defaultValue defaultsOverridable disableInLockdownMode
+  excludeFrom getter hidden humanReadableDescription humanReadableName
+  inspectorOverride jscOptionName mediaPlaybackRelated refinedType richJavaScript
+  sharedPreferenceForWebProcess status type webKitLegacyBinding webKitLegacyExposed
+  webKitLegacyPreferenceKey webcoreDeprecatedGlobalSettings
+  webcoreExcludeFromInternalSettings webcoreGetter webcoreImplementation webcoreName
+  webcoreOnChange
+}
+
 # "defaultValue" is the value shared by every frontend the preference is in,
 # either directly or as a map of build conditions ending in "default". A frontend
 # is listed under it only where its value differs.
@@ -87,6 +97,9 @@ def validate(path, parsed)
   end
 
   parsed.each do |name, opts|
+    (opts.keys - KEYS).each { |key| reject.call name, "\"#{key}\" is not a known key." }
+    reject.call name, "\"webcoreDeprecatedGlobalSettings\" is only ever true, so leave it out instead." if opts.key?("webcoreDeprecatedGlobalSettings") && opts["webcoreDeprecatedGlobalSettings"] != true
+
     excluded = opts["excludeFrom"]
     if excluded
       if !excluded.is_a?(Array) || excluded.empty? || !(excluded - FRONTENDS).empty?
@@ -97,14 +110,8 @@ def validate(path, parsed)
       reject.call name, "\"excludeFrom\" excludes every frontend, so the preference would not exist anywhere." if excluded == FRONTENDS
     end
 
-    exposed = opts["exposed"]
-    if exposed
-      if !exposed.is_a?(Array) || exposed.empty? || !(exposed - FRONTENDS).empty?
-        reject.call name, "\"exposed\" must be a non-empty list of #{FRONTENDS.join(", ")}."
-        next
-      end
-      reject.call name, "\"exposed\" must be listed in the order #{FRONTENDS.join(", ")}." if exposed != FRONTENDS & exposed
-    end
+    reject.call name, "\"webKitLegacyExposed\" is only ever false, so leave it out instead." if opts.key?("webKitLegacyExposed") && opts["webKitLegacyExposed"] != false
+    reject.call name, "\"webKitLegacyExposed\" says nothing when WebKitLegacy is excluded." if opts["webKitLegacyExposed"] == false && !frontendsFor(opts).include?("WebKitLegacy")
 
     specification = opts["defaultValue"]
     if specification.nil?
@@ -183,7 +190,7 @@ class Preference
   attr_accessor :defaultsOverridable
   attr_accessor :humanReadableName
   attr_accessor :humanReadableDescription
-  attr_accessor :webcoreBinding
+  attr_accessor :webcoreDeprecatedGlobalSettings
   attr_accessor :condition
   attr_accessor :hidden
   attr_accessor :defaultValues
@@ -211,12 +218,12 @@ class Preference
         @humanReadableDescription = '"' + humanReadableDescription + '"'
     end
     @getter = opts["getter"]
-    @webcoreBinding = opts["webcoreBinding"]
+    @webcoreDeprecatedGlobalSettings = opts["webcoreDeprecatedGlobalSettings"] || false
     @webcoreName = opts["webcoreName"]
     @condition = opts["condition"]
     @hidden = opts["hidden"] || false
     @defaultValues = defaultValueFor(opts, frontend)
-    @exposed = !opts["exposed"] || opts["exposed"].include?(frontend)
+    @exposed = !(frontend == "WebKitLegacy" && opts["webKitLegacyExposed"] == false)
     @sharedPreferenceForWebProcess = opts["sharedPreferenceForWebProcess"] || false
     @richJavaScript = opts["richJavaScript"] || false
     @mediaPlaybackRelated = opts["mediaPlaybackRelated"] || false
@@ -280,6 +287,12 @@ class Preference
 
   def hasInspectorOverride?
     @inspectorOverride == true
+  end
+
+  # A preference in WebCore is a WebCore::Settings member unless it is one of the
+  # globals declared by hand in DeprecatedGlobalSettings.h.
+  def boundToWebCoreSettings?
+    frontendsFor(@opts).include?("WebCore") && !@webcoreDeprecatedGlobalSettings
   end
 
   # WebKitLegacy specific helpers.
@@ -364,8 +377,8 @@ class Preferences
     @sharedPreferencesForWebProcess = @exposedPreferences.select { |p| p.sharedPreferenceForWebProcess }
     @inspectorOverridePreferences = @preferences.select { |p| p.hasInspectorOverride? }
 
-    @preferencesBoundToSetting = @preferences.select { |p| !p.webcoreBinding }
-    @preferencesBoundToDeprecatedGlobalSettings = @preferences.select { |p| p.webcoreBinding == "DeprecatedGlobalSettings" }
+    @preferencesBoundToSetting = @preferences.select { |p| p.boundToWebCoreSettings? }
+    @preferencesBoundToDeprecatedGlobalSettings = @preferences.select { |p| p.webcoreDeprecatedGlobalSettings }
 
     @jscOptions = @preferences.select { |p| p.jscOptionName }.sort_by { |p| p.jscOptionName }
 
@@ -385,7 +398,7 @@ class Preferences
 
     if parsedPreferences
       parsedPreferences.each do |name, options|
-        webcoreSettingOnly = !options["webcoreBinding"] && frontendsFor(options) == ["WebCore"]
+        webcoreSettingOnly = !options["webcoreDeprecatedGlobalSettings"] && frontendsFor(options) == ["WebCore"]
         status = options["status"]
 
         if options["jscOptionName"]

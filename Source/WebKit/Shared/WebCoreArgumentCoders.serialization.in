@@ -1298,6 +1298,7 @@ header: <WebCore/FileChooser.h>
 #if ENABLE(MEDIA_CAPTURE)
     WebCore::MediaCaptureType mediaCaptureType;
 #endif
+    WebCore::IntRect elementRectInMainFrameViewCoordinates;
 };
 
 header: <WebCore/TextChecking.h>
@@ -2651,6 +2652,13 @@ header: <WebCore/ModalContainerTypes.h>
     MediaIsMainContent,
 };
 
+header: <WebCore/ActivityState.h>
+enum class WebCore::ActivityStateForCPUSampling : uint8_t {
+    NonVisible,
+    VisibleNonActive,
+    VisibleAndActive
+};
+
 header: <WebCore/FocusDirection.h>
 enum class WebCore::FocusDirection : uint8_t {
     None,
@@ -3274,7 +3282,7 @@ class WebCore::SpeechRecognitionUpdate {
     Vector<WebCore::GradientColorStop, 2> stops();
 };
 
-header: <WebCore/ImageBuffer.h>
+header: <WebCore/ImageBufferParameters.h>
 [CustomHeader] struct WebCore::ImageBufferParameters {
     WebCore::FloatSize logicalSize;
     float resolutionScale;

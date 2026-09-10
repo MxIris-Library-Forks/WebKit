@@ -36,7 +36,7 @@ from unittest.mock import call, create_autospec, patch
 
 from buildbot.process import properties
 from buildbot.process import remotetransfer
-from buildbot.process.results import SUCCESS, FAILURE, WARNINGS, SKIPPED, RETRY
+from buildbot.process.results import SUCCESS, FAILURE, WARNINGS, SKIPPED, RETRY, CANCELLED
 from buildbot.test.fake.fakebuild import FakeBuild
 from buildbot.test.reactor import TestReactorMixin
 from buildbot.test.steps import Expect, ExpectShell
@@ -1395,6 +1395,47 @@ class TestCompileWebKit(BuildStepMixinAdditions, unittest.TestCase):
         )
         self.expect_outcome(result=FAILURE, state_string='Failed to compile WebKit')
         return self.run_step()
+
+    @defer.inlineCallbacks
+    def test_failure_adds_errors_log(self):
+        self.setup_step(CompileWebKit())
+        self.setProperty('platform', 'mac')
+        self.setProperty('fullPlatform', 'mac-sequoia')
+        self.setProperty('configuration', 'debug')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=3600,
+                        log_environ=False,
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'perl Tools/Scripts/build-webkit --debug -hideShellScriptEnvironment WK_VALIDATE_DEPENDENCIES=YES WK_ENABLE_SLOW_BUILD_VERIFICATION=YES 2>&1 | perl Tools/Scripts/filter-build-webkit -logfile build-log.txt'],
+                        )
+            .log('stdio', stdout='Compiling A.cpp\nA.cpp:1:1: error: no member named foo\nB.cpp:2:2: error: bar\n2 errors generated.\n')
+            .exit(2),
+        )
+        self.expect_outcome(result=FAILURE, state_string='Failed to compile WebKit')
+        yield self.run_step()
+        self.assertEqual(
+            self.get_nth_step(0).logs['errors'].stdout,
+            'Compiling A.cpp\nA.cpp:1:1: error: no member named foo\nB.cpp:2:2: error: bar\n',
+        )
+
+    @defer.inlineCallbacks
+    def test_success_has_no_errors_log(self):
+        self.setup_step(CompileWebKit())
+        self.setProperty('platform', 'gtk')
+        self.setProperty('fullPlatform', 'gtk')
+        self.setProperty('configuration', 'release')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=3600,
+                        log_environ=False,
+                        command=['perl', 'Tools/Scripts/build-webkit', '--release', '--gtk'],
+                        )
+            .log('stdio', stdout='Compiling A.cpp\nCompiling B.cpp\n')
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Compiled WebKit')
+        yield self.run_step()
+        self.assertNotIn('errors', self.get_nth_step(0).logs)
 
 
 class TestCompileWebKitWithoutChange(BuildStepMixinAdditions, unittest.TestCase):
@@ -3876,6 +3917,15 @@ class TestFilterLayoutTestFailuresUsingResultsDB(BuildStepMixinAdditions, unitte
         yield self.run_step()
         self.assertEqual(self.build.results, SUCCESS)
 
+    @defer.inlineCallbacks
+    def test_set_build_summary_keeps_a_cancelled_build_cancelled(self):
+        self.setup_step(SetBuildSummary())
+        self.setProperty('build_summary', 'Passed layout tests')
+        self.build.results = CANCELLED
+        self.expect_outcome(result=SUCCESS)
+        yield self.run_step()
+        self.assertEqual(self.build.results, CANCELLED)
+
     def test_ignoring_every_failure_sets_the_property_set_build_summary_reads(self):
         # The other half of the wiring: nothing else tells SetBuildSummary to keep this build green.
         class Cmd:
@@ -4613,7 +4663,7 @@ class TestReRunAPITestsExcusesKnownFlakes(BuildStepMixinAdditions, unittest.Test
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --release --verbose --json-output=api_test_results.json 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --release --verbose --json-output=api_test_results.json --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': 'api_test_results.json'},
                         timeout=20 * 60,
                         )
@@ -7253,7 +7303,7 @@ class TestRunAPITests(BuildStepMixinAdditions, unittest.TestCase):
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --release --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --release --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7282,7 +7332,7 @@ All tests successfully passed!
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --ios-simulator 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --ios-simulator --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7379,7 +7429,7 @@ Ran 1316 tests of 1318 with 1316 successful
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7422,7 +7472,7 @@ Testing completed, Exit status: 3
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7479,7 +7529,7 @@ Testing completed, Exit status: 3
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7498,7 +7548,7 @@ Testing completed, Exit status: 3
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7528,7 +7578,7 @@ All tests successfully passed!
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7561,7 +7611,7 @@ Expected failures (not blocking):
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
-                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} 2>&1 | Tools/Scripts/filter-test-logs api'],
+                        command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', f'python3 Tools/Scripts/run-api-tests --timestamps --no-build --debug --verbose --json-output={self.jsonFileName} --exit-after-n-failures 60 2>&1 | Tools/Scripts/filter-test-logs api'],
                         logfiles={'json': self.jsonFileName},
                         timeout=20 * 60
                         )
@@ -7893,6 +7943,40 @@ class TestAnalyzeAPITestsResults(BuildStepMixinAdditions, unittest.TestCase):
         self.setProperty('api_first_run_failures', ['suite.test1'])
         self.setProperty('api_second_run_failures', ['suite.test1'])
         self.expect_outcome(result=FAILURE, state_string='Found 1 new API test failure: suite.test1 (failure)')
+        return self.run_step()
+
+    def test_exceeded_limit_appends_note_to_message(self):
+        self.configureStep()
+        self.setProperty('api_first_run_failures', ['suite.test1'])
+        self.setProperty('api_second_run_failures', ['suite.test1'])
+        self.setProperty('api_first_run_exceeded_failure_limit', True)
+        self.expect_outcome(result=FAILURE, state_string='Found 1 new API test failure (failure limit exceeded): suite.test1 (failure)')
+        return self.run_step()
+
+    def test_exceeded_limit_on_second_run_also_triggers_union_path(self):
+        self.configureStep()
+        self.setProperty('api_first_run_failures', ['suite.test1'])
+        self.setProperty('api_second_run_failures', ['suite.test1'])
+        self.setProperty('api_second_run_exceeded_failure_limit', True)
+        self.expect_outcome(result=FAILURE, state_string='Found 1 new API test failure (failure limit exceeded): suite.test1 (failure)')
+        return self.run_step()
+
+    def test_exceeded_limit_disjoint_runs_still_reports_failures(self):
+        # Without the cap-hit branch these disjoint failures would look flaky and pass.
+        self.configureStep()
+        self.setProperty('api_first_run_failures', ['suite.only_first'])
+        self.setProperty('api_second_run_failures', ['suite.only_second'])
+        self.setProperty('api_first_run_exceeded_failure_limit', True)
+        self.expect_outcome(result=FAILURE)
+        return self.run_step()
+
+    def test_exceeded_limit_pre_existing_failures_still_filtered(self):
+        self.configureStep()
+        self.setProperty('api_first_run_failures', ['suite.pre_existing'])
+        self.setProperty('api_second_run_failures', ['suite.pre_existing'])
+        self.setProperty('api_clean_tree_run_failures', ['suite.pre_existing'])
+        self.setProperty('api_first_run_exceeded_failure_limit', True)
+        self.expect_outcome(result=SUCCESS, state_string='Passed API tests')
         return self.run_step()
 
 

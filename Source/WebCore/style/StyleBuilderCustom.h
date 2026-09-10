@@ -59,6 +59,7 @@
 #include "StylePrimitiveNumericTypes+CSSValueConversion.h"
 #include "StyleResolveForFont.h"
 #include "StyleResolver.h"
+#include "StyleSizeOrKeyword+CSSValueConversion.h"
 #include "StyleTextEdge+CSSValueConversion.h"
 #include "StyleValueTypes+CSSValueConversion.h"
 #include "TextSpacing.h"
@@ -305,13 +306,13 @@ inline void BuilderCustom::applyValueLetterSpacing(BuilderState& builderState, C
 inline void BuilderCustom::applyInheritLineHeight(BuilderState& builderState)
 {
     builderState.style().setTextAutosizingAdjustedLineHeight(forwardInheritedValue(builderState.parentStyle().textAutosizingAdjustedLineHeight()));
-    builderState.style().setSpecifiedLineHeight(forwardInheritedValue(builderState.parentStyle().specifiedLineHeight()));
+    builderState.style().setLineHeight(forwardInheritedValue(builderState.parentStyle().lineHeight()));
 }
 
 inline void BuilderCustom::applyInitialLineHeight(BuilderState& builderState)
 {
-    builderState.style().setTextAutosizingAdjustedLineHeight(ComputedStyle::initialSpecifiedLineHeight());
-    builderState.style().setSpecifiedLineHeight(ComputedStyle::initialSpecifiedLineHeight());
+    builderState.style().setTextAutosizingAdjustedLineHeight(ComputedStyle::initialLineHeight());
+    builderState.style().setLineHeight(ComputedStyle::initialLineHeight());
 }
 
 static inline float computeBaseComputedFontSize(const Document& document, const ComputedStyle& style)
@@ -377,7 +378,7 @@ inline void BuilderCustom::applyValueLineHeight(BuilderState& builderState, CSSV
     }();
 
     builderState.style().setTextAutosizingAdjustedLineHeight(WTF::move(textAutosizingAdjustedLineHeight));
-    builderState.style().setSpecifiedLineHeight(WTF::move(lineHeight));
+    builderState.style().setLineHeight(WTF::move(lineHeight));
 }
 
 inline void BuilderCustom::applyValueWebkitLocale(BuilderState& builderState, CSSValue& value)

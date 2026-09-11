@@ -3800,6 +3800,7 @@ bool JSObject::increaseVectorLength(VM& vm, unsigned newLength)
         // The cell was already big enough for the desired length!
         for (unsigned i = vectorLength; i < availableVectorLength; ++i)
             storage->m_vector[i].clear();
+        WTF::storeStoreFence();
         storage->setVectorLength(availableVectorLength);
         return true;
     }
@@ -4109,7 +4110,7 @@ void JSObject::convertToUncacheableDictionary(VM& vm)
 }
 
 
-void JSObject::shiftButterflyAfterFlattening(const GCSafeConcurrentJSLocker&, VM& vm, Structure* structure, size_t outOfLineCapacityAfter)
+void JSObject::shiftButterflyAfterFlattening(const ConcurrentJSLocker&, VM& vm, Structure* structure, size_t outOfLineCapacityAfter)
 {
     // This could interleave visitChildren because some old structure could have been a non
     // dictionary structure. We have to be crazy careful. But, we are guaranteed to be holding

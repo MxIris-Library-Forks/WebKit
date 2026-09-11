@@ -75,6 +75,16 @@ static auto invalidEntryPointName()
     return CString(""_s);
 }
 
+static auto invalidConstantName()
+{
+    return CString(""_s);
+}
+
+static bool containsOnlyValidUTF8Characters(StringView string)
+{
+    return !hasUnpairedSurrogate(string) && !string.contains('\0');
+}
+
 WTF_MAKE_TZONE_ALLOCATED_IMPL(DeviceImpl);
 
 DeviceImpl::DeviceImpl(WebGPUPtr<WGPUDevice>&& device, Ref<SupportedFeatures>&& features, Ref<SupportedLimits>&& limits, ConvertToBackingContext& convertToBackingContext)
@@ -167,25 +177,6 @@ RefPtr<Sampler> DeviceImpl::createSampler(const SamplerDescriptor& descriptor)
     return SamplerImpl::create(adoptWebGPU(wgpuDeviceCreateSampler(m_backing.get(), &backingDescriptor)), convertToBackingContext);
 }
 
-static WGPUColorSpace NODELETE convertToWGPUColorSpace(const PredefinedColorSpace& colorSpace)
-{
-    switch (colorSpace) {
-    case PredefinedColorSpace::SRGB:
-        return WGPUColorSpace::SRGB;
-    case PredefinedColorSpace::SRGBLinear:
-        return WGPUColorSpace::SRGBLinear;
-#if ENABLE(PREDEFINED_COLOR_SPACE_DISPLAY_P3)
-    case PredefinedColorSpace::DisplayP3:
-        return WGPUColorSpace::DisplayP3;
-    case PredefinedColorSpace::DisplayP3Linear:
-        return WGPUColorSpace::DisplayP3Linear;
-#endif
-    }
-
-    ASSERT_NOT_REACHED();
-    return WGPUColorSpace::SRGB;
-}
-
 void DeviceImpl::updateExternalTexture(const WebCore::WebGPU::ExternalTexture&, const WebCore::MediaPlayerIdentifier&)
 {
     RELEASE_ASSERT_NOT_REACHED();
@@ -199,7 +190,7 @@ RefPtr<ExternalTexture> DeviceImpl::importExternalTexture(const ExternalTextureD
     WGPUExternalTextureDescriptor backingDescriptor {
         .label = label.data(),
         .pixelBuffer = pixelBuffer ? pixelBuffer->get() : nullptr,
-        .colorSpace = convertToWGPUColorSpace(descriptor.colorSpace),
+        .colorSpace = m_convertToBackingContext->convertToBacking(descriptor.colorSpace),
     };
     return ExternalTextureImpl::create(adoptWebGPU(wgpuDeviceImportExternalTexture(m_backing.get(), &backingDescriptor)), descriptor, m_convertToBackingContext);
 }
@@ -336,8 +327,7 @@ static auto convertToBacking(const ComputePipelineDescriptor& descriptor, Conver
     }
 
     auto constantNames = descriptor.compute.constants.map([](const auto& constant) {
-        bool lengthsMatch = constant.key.length() == String::fromUTF8(constant.key.utf8().data()).length();
-        return lengthsMatch ? constant.key.utf8() : "";
+        return containsOnlyValidUTF8Characters(constant.key) ? constant.key.utf8() : invalidConstantName();
     });
 
     Vector<WGPUConstantEntry> backingConstantEntries(descriptor.compute.constants.size(), [&](size_t i) {
@@ -382,8 +372,7 @@ static auto convertToBacking(const RenderPipelineDescriptor& descriptor, Convert
     }
 
     auto vertexConstantNames = descriptor.vertex.constants.map([](const auto& constant) {
-        bool lengthsMatch = constant.key.length() == String::fromUTF8(constant.key.utf8().data()).length();
-        return lengthsMatch ? constant.key.utf8() : "";
+        return containsOnlyValidUTF8Characters(constant.key) ? constant.key.utf8() : invalidConstantName();
     });
 
     Vector<WGPUConstantEntry> vertexConstantEntries(descriptor.vertex.constants.size(), [&](size_t i) {
@@ -450,8 +439,7 @@ static auto convertToBacking(const RenderPipelineDescriptor& descriptor, Convert
         }
 
         fragmentConstantNames = descriptor.fragment->constants.map([](const auto& constant) {
-            bool lengthsMatch = constant.key.length() == String::fromUTF8(constant.key.utf8().data()).length();
-            return lengthsMatch ? constant.key.utf8() : "";
+            return containsOnlyValidUTF8Characters(constant.key) ? constant.key.utf8() : invalidConstantName();
         });
     }
 
@@ -766,7 +754,7 @@ void DeviceImpl::pauseAllErrorReporting(bool pause)
 
 void DeviceImpl::setLabelInternal(const String& label)
 {
-    wgpuDeviceSetLabel(m_backing.get(), label.utf8().data());
+    wgpuDeviceSetLabel(m_backing.get(), label.utf8().legacyCStringPointer());
 }
 
 Ref<CommandEncoder> DeviceImpl::invalidCommandEncoder()

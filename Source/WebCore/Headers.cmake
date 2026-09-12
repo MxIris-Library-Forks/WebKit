@@ -422,6 +422,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/fetch/FetchRequestMode.h
     Modules/fetch/FetchResponse.h
     Modules/fetch/IPAddressSpace.h
+    Modules/fetch/LocalNetworkAccess.h
     Modules/fetch/RequestPriority.h
 
     Modules/filesystem/FileSystemDirectoryHandle.h
@@ -2072,6 +2073,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/NavigatorBase.h
     page/NavigatorLoginStatus.h
     page/NavigatorUAData.h
+    page/NetworkLoadPolicy.h
     page/OriginAccessPatterns.h
     page/Page.h
     page/PageColorSampler.h

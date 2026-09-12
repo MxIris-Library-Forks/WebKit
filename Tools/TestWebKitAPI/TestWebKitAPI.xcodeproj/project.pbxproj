@@ -590,6 +590,7 @@
 				WebKit/WebPage/WebViewTests.swift,
 				WebKit/WKWebView/CodingTests.swift,
 				WebKit/WKWebView/TextFragments.swift,
+				WebKit/WKWebView/WKWebExtensionAPIAction.swift,
 				WebKit/WKWebView/WKWebViewSwiftOverlayTests.swift,
 			);
 			target = 8DD76F960486AA7600D96B5E /* TestWebKitAPI */;
@@ -630,6 +631,7 @@
 				cocoa/TestPDFDocument.swift,
 				cocoa/UtilitiesCocoa.mm,
 				cocoa/WebExtensionUtilities.mm,
+				cocoa/WebExtensionUtilities.swift,
 				"cocoa/WebPage+Extras.swift",
 				"cocoa/WebPage+JavaScriptExpression.swift",
 				"cocoa/WebPageConfiguration+Extras.swift",
@@ -773,6 +775,7 @@
 				WebCore/ContentExtensions.cpp,
 				WebCore/ContextMenuAction.cpp,
 				WebCore/CookieJar.cpp,
+				WebCore/CredentialStorage.cpp,
 				WebCore/CryptoDigest.cpp,
 				WebCore/CSSParser.cpp,
 				WebCore/CSSParserFastPaths.cpp,
@@ -814,6 +817,7 @@
 				WebCore/KeyedCoding.cpp,
 				WebCore/LayoutRoundedRectTests.cpp,
 				WebCore/LayoutUnitTests.cpp,
+				WebCore/LocalNetworkAccess.cpp,
 				WebCore/Logging.cpp,
 				WebCore/LoginStatus.cpp,
 				WebCore/MarkedText.cpp,

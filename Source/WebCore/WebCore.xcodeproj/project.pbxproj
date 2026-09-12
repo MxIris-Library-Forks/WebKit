@@ -1392,6 +1392,7 @@
 		3BB6B81122A7D313003A2A69 /* TabSize.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BB6B80F22A7D311003A2A69 /* TabSize.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3C244FEAA375AC633F88BE6F /* RenderLayerModelObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 3C244FE4A375AC633F88BE6F /* RenderLayerModelObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3C8D24EE2E25CF1A00D2A929 /* IPAddressSpace.h in Headers */ = {isa = PBXBuildFile; fileRef = 3C8D24ED2E25CF1A00D2A929 /* IPAddressSpace.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3C6A59722E5B011000A908CC /* LocalNetworkAccess.h in Headers */ = {isa = PBXBuildFile; fileRef = 3C6A59712E5B011000A908CC /* LocalNetworkAccess.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3D42BC4514B0E28F44D62E77 /* UnifiedSource51-header-RenderStyleGetters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D90699809046B96AE290168 /* UnifiedSource51-header-RenderStyleGetters.cpp */; };
 		3D4E6A98F12B0C85A2C173D6 /* RenderLayerSVGAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 2C7B5F48E0A31D9467FB8C52 /* RenderLayerSVGAdditions.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		3F42B31D1881191B00278AAC /* WebVideoFullscreenControllerAVKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F42B31B1881191B00278AAC /* WebVideoFullscreenControllerAVKit.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -3698,7 +3699,7 @@
 		9001788112E0370700648462 /* JSOESStandardDerivatives.h in Headers */ = {isa = PBXBuildFile; fileRef = 9001787F12E0370700648462 /* JSOESStandardDerivatives.h */; };
 		900C20842CAF8232002C79C5 /* URLPattern.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C207A2CAF8225002C79C5 /* URLPattern.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		900C20852CAF8237002C79C5 /* URLPatternInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C207D2CAF8225002C79C5 /* URLPatternInit.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C207F2CAF8225002C79C5 /* URLPatternOptions.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		900C20862CAF823C002C79C5 /* URLPatternOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C207F2CAF8225002C79C5 /* URLPatternOptions.h */; };
 		900C20872CAF8243002C79C5 /* URLPatternResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 900C20812CAF8225002C79C5 /* URLPatternResult.h */; };
 		9016EA4D2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 9016EA4C2454D8130021D9D1 /* IDBDatabaseNameAndVersion.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9017C9FE2CD007F2002E1DBC /* URLPatternParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 9017C9FD2CD007F2002E1DBC /* URLPatternParser.h */; };
@@ -6299,6 +6300,7 @@
 		D61496E32E428EDB00BAF335 /* UserAgentStringParser.h in Headers */ = {isa = PBXBuildFile; fileRef = D61496E12E428EDB00BAF335 /* UserAgentStringParser.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D619A308144E00BE004BC302 /* ChildListMutationScope.h in Headers */ = {isa = PBXBuildFile; fileRef = D619A306144E00BE004BC302 /* ChildListMutationScope.h */; };
 		D640B2462E30461D00EB6C49 /* NavigatorUAData.h in Headers */ = {isa = PBXBuildFile; fileRef = D640B2422E2F09F900EB6C49 /* NavigatorUAData.h */; };
+		08B786B0CEACA0F21D6A5676 /* NetworkLoadPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 02357438619C3D1E3719E438 /* NetworkLoadPolicy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D640B24B2E30589300EB6C49 /* UALowEntropyJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = D640B2472E30587100EB6C49 /* UALowEntropyJSON.h */; };
 		D640B24F2E3058D500EB6C49 /* UADataValues.h in Headers */ = {isa = PBXBuildFile; fileRef = D640B24C2E3058C800EB6C49 /* UADataValues.h */; };
 		D6489D26166FFCF1007C031B /* JSHTMLTemplateElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D6489D24166FFCF1007C031B /* JSHTMLTemplateElement.h */; };
@@ -10993,6 +10995,8 @@
 		3C8D24ED2E25CF1A00D2A929 /* IPAddressSpace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPAddressSpace.h; sourceTree = "<group>"; };
 		3CE7C6702E270278005CDFD8 /* IPAddressSpace.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = IPAddressSpace.idl; sourceTree = "<group>"; };
 		3D9194F39EFB04C0917E9354 /* FrameGeometrySyncData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameGeometrySyncData.cpp; sourceTree = "<group>"; };
+		3C6A59702E5B011000A908CC /* LocalNetworkAccess.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LocalNetworkAccess.cpp; sourceTree = "<group>"; };
+		3C6A59712E5B011000A908CC /* LocalNetworkAccess.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalNetworkAccess.h; sourceTree = "<group>"; };
 		3DCCA4B4BF1CEDC0C5E7B3BB /* Airplay.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = Airplay.svg; sourceTree = "<group>"; };
 		3EB98985C78E4C2A4C58889D /* UnifiedSource61-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource61-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
 		3F3BB5821E709EE400C701F2 /* CoreAudioCaptureSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CoreAudioCaptureSource.cpp; sourceTree = "<group>"; };
@@ -21963,6 +21967,8 @@
 		D6306E5657152075F782FE3A /* SkipForward10.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = SkipForward10.svg; sourceTree = "<group>"; };
 		D640B2412E2F09DE00EB6C49 /* NavigatorUA.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = NavigatorUA.idl; sourceTree = "<group>"; };
 		D640B2422E2F09F900EB6C49 /* NavigatorUAData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavigatorUAData.h; sourceTree = "<group>"; };
+		02357438619C3D1E3719E438 /* NetworkLoadPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkLoadPolicy.h; sourceTree = "<group>"; };
+		E5E93BDFA28F5D63963BED0F /* NetworkLoadPolicy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkLoadPolicy.cpp; sourceTree = "<group>"; };
 		D640B2442E2F09F900EB6C49 /* NavigatorUAData.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = NavigatorUAData.idl; sourceTree = "<group>"; };
 		D640B2452E3038FD00EB6C49 /* NavigatorUAData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NavigatorUAData.cpp; sourceTree = "<group>"; };
 		D640B2472E30587100EB6C49 /* UALowEntropyJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UALowEntropyJSON.h; sourceTree = "<group>"; };
@@ -28164,6 +28170,8 @@
 				3C6A595F2E4E5D5300A908CC /* IPAddressSpace.cpp */,
 				3C8D24ED2E25CF1A00D2A929 /* IPAddressSpace.h */,
 				3CE7C6702E270278005CDFD8 /* IPAddressSpace.idl */,
+				3C6A59702E5B011000A908CC /* LocalNetworkAccess.cpp */,
+				3C6A59712E5B011000A908CC /* LocalNetworkAccess.h */,
 				44CF5098299B906F0038D284 /* RequestPriority.h */,
 				44CF5097299B90600038D284 /* RequestPriority.idl */,
 				7C2E0BD125106AC4005F3C87 /* WindowOrWorkerGlobalScope+Fetch.idl */,
@@ -31506,6 +31514,8 @@
 				D640B2452E3038FD00EB6C49 /* NavigatorUAData.cpp */,
 				D640B2422E2F09F900EB6C49 /* NavigatorUAData.h */,
 				D640B2442E2F09F900EB6C49 /* NavigatorUAData.idl */,
+				E5E93BDFA28F5D63963BED0F /* NetworkLoadPolicy.cpp */,
+				02357438619C3D1E3719E438 /* NetworkLoadPolicy.h */,
 				F4E9E2462A23C5D000A5B134 /* OpportunisticTaskScheduler.cpp */,
 				F4E9E2452A23C5D000A5B134 /* OpportunisticTaskScheduler.h */,
 				00146288103CD1DE000B20DB /* OriginAccessEntry.cpp */,
@@ -47623,6 +47633,7 @@
 				E35B907F23F60A50000011FF /* LocalizedDeviceModel.h in Headers */,
 				935207BE09BD410A00F2038D /* LocalizedStrings.h in Headers */,
 				550A0BCC085F6039007353D7 /* LocalNameWithNamespace.h in Headers */,
+				3C6A59722E5B011000A908CC /* LocalNetworkAccess.h in Headers */,
 				41FCD6BB23CE027700C62567 /* LocalSampleBufferDisplayLayer.h in Headers */,
 				BCE1C41B0D982980003B02F2 /* Location.h in Headers */,
 				E3C788EE2D035C9500D6C13D /* LogClient.h in Headers */,
@@ -47953,6 +47964,7 @@
 				628D214C12131ED10055DCFC /* NetworkingContext.h in Headers */,
 				416D75A220C651A500D02D2C /* NetworkLoadInformation.h in Headers */,
 				8A81BF8511DCFD9000DA2B98 /* NetworkLoadMetrics.h in Headers */,
+				08B786B0CEACA0F21D6A5676 /* NetworkLoadPolicy.h in Headers */,
 				59C27F07138D28CF0079B7E2 /* NetworkResourcesData.h in Headers */,
 				41E9DCE92319CA7600F35949 /* NetworkSendQueue.h in Headers */,
 				1A7FA6190DDA3B3A0028F8A5 /* NetworkStateNotifier.h in Headers */,

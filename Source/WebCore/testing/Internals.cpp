@@ -132,6 +132,7 @@
 #include "HitTestResult.h"
 #include "IDBRequest.h"
 #include "IDBTransaction.h"
+#include "IPAddressSpace.h"
 #include "ImageData.h"
 #include "ImageOverlay.h"
 #include "ImageOverlayController.h"
@@ -1908,7 +1909,8 @@ void Internals::simulateSpeechSynthesizerVoiceListChange()
     if (m_platformSpeechSynthesizer) {
         m_platformSpeechSynthesizer->setInitialVoiceListToEmpty(false);
         m_platformSpeechSynthesizer->initializeVoiceList();
-        m_platformSpeechSynthesizer->client().voicesDidChange();
+        if (RefPtr client = m_platformSpeechSynthesizer->client())
+            client->voicesDidChange();
         return;
     }
 
@@ -6353,6 +6355,26 @@ String Internals::createTemporaryFile(const String& name, const String& contents
 
     file.write(byteCast<uint8_t>(contents.utf8().span()));
     return path;
+}
+
+String Internals::documentIPAddressSpace() const
+{
+    RefPtr document = contextDocument();
+    if (!document)
+        return "unknown"_s;
+
+    switch (document->ipAddressSpace()) {
+    case IPAddressSpace::Public:
+        return "public"_s;
+    case IPAddressSpace::Local:
+        return "local"_s;
+    case IPAddressSpace::Loopback:
+        return "loopback"_s;
+    case IPAddressSpace::Unknown:
+        return "unknown"_s;
+    }
+    ASSERT_NOT_REACHED();
+    return "unknown"_s;
 }
 
 void Internals::queueMicroTask(int testNumber)

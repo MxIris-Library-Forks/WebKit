@@ -555,7 +555,7 @@ void RegExp::printTraceData()
     formattedRegExp[SameLineFormatedRegExpnWidth] = '\0';
 
     auto patternCStr = pattern().utf8(); // Hold a reference so it doesn't get destroyed.
-    auto patternStr = patternCStr.data();
+    auto patternStr = patternCStr.legacyCStringPointer();
     auto patternLength = pattern().length();
 
     auto appendRawPatternBuffer = [&] (size_t& index) {
@@ -664,7 +664,7 @@ void RegExp::dumpToStream(const JSCell* cell, PrintStream& out)
 {
     // This function can be called concurrently. So we must not ref m_pattern.
     auto* regExp = uncheckedDowncast<RegExp>(cell);
-    out.print(toCString("/", regExp->pattern().impl(), "/", Yarr::flagsString(regExp->flags()).data()));
+    out.print(toUTF8CString("/", regExp->pattern().impl(), "/", Yarr::flagsString(regExp->flags()).data()));
 }
 
 template <typename CharacterType>

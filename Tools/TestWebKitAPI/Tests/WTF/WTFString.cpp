@@ -242,33 +242,33 @@ TEST(WTF, StringReplaceWithLiteral)
     String testString = "1224"_s;
     EXPECT_TRUE(testString.is8Bit());
     testString = makeStringByReplacingAll(testString, '2', ""_s);
-    EXPECT_STREQ("14", testString.utf8().legacyCStringPointer());
+    EXPECT_EQ("14"_s, testString);
 
     testString = "1224"_s;
     EXPECT_TRUE(testString.is8Bit());
     testString = makeStringByReplacingAll(testString, '2', "3"_s);
-    EXPECT_STREQ("1334", testString.utf8().legacyCStringPointer());
+    EXPECT_EQ("1334"_s, testString);
 
     testString = "1224"_s;
     EXPECT_TRUE(testString.is8Bit());
     testString = makeStringByReplacingAll(testString, '2', "555"_s);
-    EXPECT_STREQ("15555554", testString.utf8().legacyCStringPointer());
+    EXPECT_EQ("15555554"_s, testString);
 
     testString = "1224"_s;
     EXPECT_TRUE(testString.is8Bit());
     testString = makeStringByReplacingAll(testString, '3', "NotFound"_s);
-    EXPECT_STREQ("1224", testString.utf8().legacyCStringPointer());
+    EXPECT_EQ("1224"_s, testString);
 
     // Cases for 16Bit source.
     testString = String::fromUTF8("résumé");
     EXPECT_FALSE(testString.is8Bit());
     testString = makeStringByReplacingAll(testString, char16_t(0x00E9 /*U+00E9 is 'é'*/), "e"_s);
-    EXPECT_STREQ("resume", testString.utf8().legacyCStringPointer());
+    EXPECT_EQ("resume"_s, testString);
 
     testString = String::fromUTF8("résumé");
     EXPECT_FALSE(testString.is8Bit());
     testString = makeStringByReplacingAll(testString, char16_t(0x00E9 /*U+00E9 is 'é'*/), ""_s);
-    EXPECT_STREQ("rsum", testString.utf8().legacyCStringPointer());
+    EXPECT_EQ("rsum"_s, testString);
 
     testString = String::fromUTF8("résumé");
     EXPECT_FALSE(testString.is8Bit());
@@ -488,13 +488,13 @@ TEST(WTF, StringSplitWithConsecutiveSeparators)
     Vector<String> expected { "This"_s, "is"_s, "a"_s, "sentence."_s };
     ASSERT_EQ(expected.size(), actual.size());
     for (auto i = 0u; i < actual.size(); ++i)
-        EXPECT_STREQ(expected[i].utf8().legacyCStringPointer(), actual[i].utf8().legacyCStringPointer()) << "Vectors differ at index " << i;
+        EXPECT_EQ(expected[i], actual[i]) << "Vectors differ at index " << i;
 
     actual = string.splitAllowingEmptyEntries(' ');
     expected = { ""_s, "This"_s, ""_s, ""_s, ""_s, ""_s, "is"_s, ""_s, "a"_s, ""_s, ""_s, ""_s, ""_s, ""_s, ""_s, "sentence."_s, ""_s };
     ASSERT_EQ(expected.size(), actual.size());
     for (auto i = 0u; i < actual.size(); ++i)
-        EXPECT_STREQ(expected[i].utf8().legacyCStringPointer(), actual[i].utf8().legacyCStringPointer()) << "Vectors differ at index " << i;
+        EXPECT_EQ(expected[i], actual[i]) << "Vectors differ at index " << i;
 }
 
 TEST(WTF, StringMakeStringByJoining)
@@ -510,6 +510,25 @@ TEST(WTF, StringMakeStringByJoining)
     std::vector<String> test3 = { "foo"_s, "bar"_s };
     auto test3_result = makeStringByJoining(test3, ", "_s);
     ASSERT_EQ(test3_result, "foo, bar"_s);
+
+    Vector<String> test4 = { emptyString(), "a"_s };
+    ASSERT_EQ(makeStringByJoining(test4, "\n"_s), "\na"_s);
+
+    Vector<String> test5 = { emptyString(), emptyString(), "a"_s, "b"_s };
+    ASSERT_EQ(makeStringByJoining(test5, "\n"_s), "\n\na\nb"_s);
+
+    Vector<String> test6 = { emptyString(), emptyString() };
+    ASSERT_EQ(makeStringByJoining(test6, "\n"_s), "\n"_s);
+
+    Vector<String> test7 = { String { }, "a"_s };
+    ASSERT_EQ(makeStringByJoining(test7, "\n"_s), "\na"_s);
+
+    Vector<String> test8 = { "a"_s, emptyString(), "b"_s };
+    ASSERT_EQ(makeStringByJoining(test8, "\n"_s), "a\n\nb"_s);
+
+    auto test9_result = makeStringByJoining(Vector<String> { }, ", "_s);
+    ASSERT_TRUE(test9_result.isEmpty());
+    ASSERT_FALSE(test9_result.isNull());
 }
 
 TEST(WTF, StringUTF8ConversionInvalidUTF16LenientMode)
@@ -523,14 +542,14 @@ TEST(WTF, StringUTF8ConversionInvalidUTF16LenientMode)
 
     auto result = stringWithOrphanHigh.utf8(LenientConversion);
     // U+FFFD in UTF-8 is 0xEF 0xBF 0xBD
-    EXPECT_STREQ("abc\xEF\xBF\xBD" "def", result.data());
+    EXPECT_STREQ("abc\xEF\xBF\xBD" "def", result.legacyCStringPointer());
 
     // Create a string with an orphan low surrogate (0xDC00)
     char16_t orphanLowSurrogate[] = { 'x', 0xDC00, 'y', 0 };
     String stringWithOrphanLow = String(std::span { orphanLowSurrogate, 3 });
 
     auto resultLow = stringWithOrphanLow.utf8(LenientConversion);
-    EXPECT_STREQ("x\xEF\xBF\xBDy", resultLow.data());
+    EXPECT_STREQ("x\xEF\xBF\xBDy", resultLow.legacyCStringPointer());
 
     // Create a string with two consecutive orphan surrogates
     char16_t doubleOrphan[] = { 0xD800, 0xD800, 0 };
@@ -538,7 +557,7 @@ TEST(WTF, StringUTF8ConversionInvalidUTF16LenientMode)
 
     auto resultDouble = stringWithDoubleOrphan.utf8(LenientConversion);
     // Each orphan should become one replacement character
-    EXPECT_STREQ("\xEF\xBF\xBD\xEF\xBF\xBD", resultDouble.data());
+    EXPECT_STREQ("\xEF\xBF\xBD\xEF\xBF\xBD", resultDouble.legacyCStringPointer());
 
     // Create a string with reversed surrogate pair (low then high)
     char16_t reversedPair[] = { 0xDC00, 0xD800, 0 };
@@ -546,7 +565,7 @@ TEST(WTF, StringUTF8ConversionInvalidUTF16LenientMode)
 
     auto resultReversed = stringWithReversed.utf8(LenientConversion);
     // Both are invalid, should become two replacement characters
-    EXPECT_STREQ("\xEF\xBF\xBD\xEF\xBF\xBD", resultReversed.data());
+    EXPECT_STREQ("\xEF\xBF\xBD\xEF\xBF\xBD", resultReversed.legacyCStringPointer());
 }
 
 TEST(WTF, StringUTF8ConversionStrictReplacingMode)
@@ -559,7 +578,7 @@ TEST(WTF, StringUTF8ConversionStrictReplacingMode)
     String stringWithOrphan = String(std::span { orphanHighSurrogate, 4 });
 
     auto result = stringWithOrphan.utf8(StrictConversionReplacingUnpairedSurrogatesWithFFFD);
-    EXPECT_STREQ("ab\xEF\xBF\xBD" "c", result.data());
+    EXPECT_STREQ("ab\xEF\xBF\xBD" "c", result.legacyCStringPointer());
 }
 
 } // namespace TestWebKitAPI

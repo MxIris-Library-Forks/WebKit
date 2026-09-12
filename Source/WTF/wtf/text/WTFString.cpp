@@ -78,14 +78,7 @@ char32_t String::codePointAt(unsigned i) const
 
 String makeStringByJoining(std::span<const String> strings, const String& separator)
 {
-    StringBuilder builder;
-    for (const auto& string : strings) {
-        if (builder.isEmpty())
-            builder.append(string);
-        else
-            builder.append(separator, string);
-    }
-    return builder.toString();
+    return makeString(interleave(strings, separator));
 }
 
 String makeStringByRemoving(const String& string, unsigned position, unsigned lengthToRemove)
@@ -458,7 +451,7 @@ std::expected<UTF8CString, UTF8ConversionError> String::tryGetUTF8() const
     return tryGetUTF8(LenientConversion);
 }
 
-CString String::utf8(ConversionMode mode) const
+UTF8CString String::utf8(ConversionMode mode) const
 {
     auto expectedString = tryGetUTF8(mode);
     RELEASE_ASSERT(expectedString);

@@ -270,6 +270,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/ComplexTextController.cpp
         Tests/WebCore/ContextMenuAction.cpp
         Tests/WebCore/CookieJar.cpp
+        Tests/WebCore/CredentialStorage.cpp
         Tests/WebCore/CryptoDigest.cpp
         Tests/WebCore/CtapPinTest.cpp
         Tests/WebCore/CtapRequestTest.cpp
@@ -306,6 +307,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/KeyedCoding.cpp
         Tests/WebCore/LayoutRoundedRectTests.cpp
         Tests/WebCore/LayoutUnitTests.cpp
+        Tests/WebCore/LocalNetworkAccess.cpp
         Tests/WebCore/LoginStatus.cpp
         Tests/WebCore/MIMESniffer.cpp
         Tests/WebCore/MIMETypeRegistry.cpp
@@ -496,9 +498,11 @@ if (ENABLE_WEBKIT)
 
     set(TestWebKit_PRIVATE_INCLUDE_DIRECTORIES
         ${CMAKE_BINARY_DIR}
+        ${bmalloc_FRAMEWORK_HEADERS_DIR}
         ${JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
         ${PAL_FRAMEWORK_HEADERS_DIR}
         ${TESTWEBKITAPI_DIR}
+        ${WTF_FRAMEWORK_HEADERS_DIR}
         ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}
         ${WebKit_FRAMEWORK_HEADERS_DIR}
         ${WebKit_PRIVATE_FRAMEWORK_HEADERS_DIR}

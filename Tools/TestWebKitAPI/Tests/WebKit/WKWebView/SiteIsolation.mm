@@ -5387,6 +5387,65 @@ TEST(SiteIsolation, GoBackToPageWithIframeBFCache)
     checkFrameTreesInProcesses(webView.get(), WTF::move(expectedAfterGoBack));
 }
 
+TEST(SiteIsolation, BFCacheRestoredIframeIsVisibleAndFiresPageShow)
+{
+    auto iframeHTML = "<script>"
+        "  window.__pageshowCount = 0;"
+        "  window.__pageshowPersisted = null;"
+        "  window.addEventListener('pageshow', (event) => {"
+        "    window.__pageshowCount++;"
+        "    window.__pageshowPersisted = event.persisted;"
+        "  });"
+        "</script>"_s;
+    auto mainHTML = "<script>"
+        "  window.__pageshowCount = 0;"
+        "  window.addEventListener('pageshow', () => { window.__pageshowCount++ });"
+        "</script>"
+        "<iframe src='https://frame.com/frame'></iframe>"_s;
+
+    HTTPServer server({
+        { "/a"_s, { mainHTML } },
+        { "/b"_s, { ""_s } },
+        { "/frame"_s, { iframeHTML } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto *configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration, @"MultiProcessBackForwardCacheEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/a"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+
+    [webView objectByEvaluatingJavaScript:@"window.__marker = true" inFrame:[webView firstChildFrame]];
+    EXPECT_EQ(1, [[webView objectByEvaluatingJavaScript:@"window.__pageshowCount" inFrame:[webView firstChildFrame]] intValue]);
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"document.visibilityState" inFrame:[webView firstChildFrame]], "visible");
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://b.com/b"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView goBack];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    Vector<ExpectedFrameTree> expectedAfterGoBack = {
+        { "https://a.com"_s, { { RemoteFrame } } },
+        { RemoteFrame, { { "https://frame.com"_s } } },
+    };
+    while (!frameTreesMatch(frameTrees(webView.get()).get(), Vector<ExpectedFrameTree> { expectedAfterGoBack }))
+        TestWebKitAPI::Util::spinRunLoop();
+
+    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__marker ? true : false" inFrame:[webView firstChildFrame]] boolValue]);
+
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"window.__pageshowCount" inFrame:[webView firstChildFrame]] intValue] == 2;
+    }));
+    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__pageshowPersisted === true" inFrame:[webView firstChildFrame]] boolValue]);
+
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"document.visibilityState" inFrame:[webView firstChildFrame]], "visible");
+    EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"document.hidden" inFrame:[webView firstChildFrame]] boolValue]);
+
+    EXPECT_EQ(2, [[webView objectByEvaluatingJavaScript:@"window.__pageshowCount"] intValue]);
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"document.visibilityState"], "visible");
+}
+
 TEST(SiteIsolation, BFCacheSameSitePageChangesTopDocumentURL)
 {
     HTTPServer server({
@@ -8226,6 +8285,7 @@ TEST(SiteIsolation, Events)
     }, HTTPServer::Protocol::HttpsProxy);
 
     __block bool receivedLastExpectedMessage = false;
+    __block bool receivedResize = false;
     __block RetainPtr<NSMutableArray<NSString *>> webkitMessages = adoptNS([NSMutableArray new]);
     __block RetainPtr<NSMutableArray<NSString *>> exampleMessages = adoptNS([NSMutableArray new]);
     __block RetainPtr<NSMutableArray<NSString *>> appleMessages = adoptNS([NSMutableArray new]);
@@ -8241,6 +8301,8 @@ TEST(SiteIsolation, Events)
         else
             EXPECT_FALSE(true);
         completionHandler();
+        if ([message isEqualToString:@"resize"] && [host isEqualToString:@"webkit.org"])
+            receivedResize = true;
         if ([message isEqualToString:@"pageshow"] && [frame.securityOrigin.host isEqualToString:@"apple.com"])
             receivedLastExpectedMessage = true;
     };
@@ -8250,6 +8312,7 @@ TEST(SiteIsolation, Events)
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
     [navigationDelegate waitForDidFinishNavigation];
     [webView evaluateJavaScript:@"wk.height = 75" completionHandler:nil];
+    Util::run(&receivedResize);
     [webView evaluateJavaScript:@"window.location = 'https://apple.com/iframe'" inFrame:[webView firstChildFrame] completionHandler:nil];
     Util::run(&receivedLastExpectedMessage);
     Util::runFor(Seconds(0.1));

@@ -418,7 +418,7 @@ void ResourceResponseBase::setHTTPVersion(String&& versionText)
 {
     lazyInit(AllFields);
     
-    m_httpVersion = versionText;
+    m_httpVersion = WTF::move(versionText);
     
     // FIXME: Should invalidate or update platform response if present.
 }
@@ -436,7 +436,6 @@ static bool NODELETE isSafeRedirectionResponseHeader(HTTPHeaderName name)
         || name == HTTPHeaderName::LastModified
         || name == HTTPHeaderName::Age
         || name == HTTPHeaderName::Pragma
-        || name == HTTPHeaderName::ReferrerPolicy
         || name == HTTPHeaderName::Refresh
         || name == HTTPHeaderName::Vary
         || name == HTTPHeaderName::CrossOriginOpenerPolicy

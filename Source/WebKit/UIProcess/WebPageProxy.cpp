@@ -127,12 +127,12 @@
 #include "ProvisionalPageProxy.h"
 #include "RemotePageProxy.h"
 #include "RemoteWebTouchEvent.h"
+#include "ResourceLoadInfo.h"
 #include "RestrictedOpenerType.h"
 #include "RunJavaScriptParameters.h"
 #include "SandboxExtension.h"
 #include "SessionHistoryTraversalQueue.h"
 #include "SharedBufferReference.h"
-#include "ShouldFreezeLayerTree.h"
 #include "SpeechRecognitionPermissionManager.h"
 #include "SpeechRecognitionRemoteRealtimeMediaSource.h"
 #include "SpeechRecognitionRemoteRealtimeMediaSourceManager.h"
@@ -2135,7 +2135,7 @@ void WebPageProxy::maybeInitializeSandboxExtensionHandle(WebProcessProxy& proces
     auto urlHash = url.isValid() ? WTF::URLHash::hash(url) : 0;
     auto resourceDirectoryURLHash = resourceDirectoryURL.isValid() ? WTF::URLHash::hash(resourceDirectoryURL) : 0;
 #endif
-    WEBPAGEPROXY_RELEASE_LOG(Sandbox, "maybeInitializeSandboxExtensionHandle: url(%u) = %" PRIVATE_LOG_STRING ", resourceDirectoryURL(%u) = %" PRIVATE_LOG_STRING ", checkAssumedReadAccessToResourceURL = %d", urlHash, url.string().utf8().legacyCStringPointer(), resourceDirectoryURLHash, resourceDirectoryURL.string().utf8().legacyCStringPointer(), checkAssumedReadAccessToResourceURL);
+    WEBPAGEPROXY_RELEASE_LOG(Sandbox, "maybeInitializeSandboxExtensionHandle: url(%u) = %" PRIVATE_LOG_STRING ", resourceDirectoryURL(%u) = %" PRIVATE_LOG_STRING ", checkAssumedReadAccessToResourceURL = %d", urlHash, url.string().utf8(), resourceDirectoryURLHash, resourceDirectoryURL.string().utf8(), checkAssumedReadAccessToResourceURL);
 
 #if HAVE(AUDIT_TOKEN)
     // If the process is still launching then it does not have a PID yet. We will take care of creating the sandbox extension
@@ -2947,7 +2947,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
                         continue;
                     }
                     RELEASE_LOG(ProcessSwapping, "WebPageProxy::goToBackForwardItem: dispatching RestoreWithFrameItem to pid %i", iframeProcess->processID());
-                    iframeProcess->sendWithAsyncReply(Messages::WebPage::RestoreWithFrameItem(mainFrameItemID, std::nullopt, ShouldFreezeLayerTree::No), aggregator->chain(), webPageIDInProcess(iframeProcess));
+                    iframeProcess->sendWithAsyncReply(Messages::WebPage::RestoreWithFrameItem(mainFrameItemID, std::nullopt), aggregator->chain(), webPageIDInProcess(iframeProcess));
                 }
             }
         }
@@ -4078,7 +4078,7 @@ void WebPageProxy::selectAll()
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::SelectAll());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::SelectAll());
 }
 
 static std::optional<DOMPasteAccessCategory> pasteAccessCategoryForCommand(const String& commandName)
@@ -6505,7 +6505,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         // send GoToBackForwardItem so the new process performs a proper history navigation using
         // the FrameState stored on the Navigation object.
         if (RefPtr frameState = navigation.backForwardFrameState()) {
-            WEBPAGEPROXY_RELEASE_LOG(Loading, "continueNavigationInNewProcess: Sending GoToBackForwardItem for child frame to new process, URL=%" SENSITIVE_LOG_STRING, frameState->urlString.utf8().legacyCStringPointer());
+            WEBPAGEPROXY_RELEASE_LOG(Loading, "continueNavigationInNewProcess: Sending GoToBackForwardItem for child frame to new process, URL=%" SENSITIVE_LOG_STRING, frameState->urlString.utf8());
             auto publicSuffix = WebCore::PublicSuffixStore::singleton().publicSuffix(currentRequestURL);
             frame.prepareForProvisionalLoadInProcess(newProcess, navigation, browsingContextGroup, originator, [
                 navigationID = navigation.navigationID(),
@@ -8616,7 +8616,7 @@ void WebPageProxy::didFailProvisionalLoadForFrame(IPC::Connection& connection, F
 void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& process, WebFrameProxy& frame, FrameInfoData&& frameInfo, WebCore::ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, String&& provisionalURL, ResourceError&& error, WillContinueLoading willContinueLoading, const UserData& userData, WillInternallyHandleFailure willInternallyHandleFailure)
 {
     LOG_WITH_STREAM(Loading, stream << "(Loading) WebPageProxy "_s << identifier().toUInt64() << " in web process pid "_s << process->processID() << " didFailProvisionalLoadForFrame to provisionalURL "_s << provisionalURL);
-    WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "didFailProvisionalLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d, isMainFrame=%d, willInternallyHandleFailure=%d", frame.frameID().toUInt64(), frame.isMainFrame(), error.domain().utf8().legacyCStringPointer(), error.errorCode(), frame.isMainFrame(), willInternallyHandleFailure == WillInternallyHandleFailure::Yes);
+    WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "didFailProvisionalLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d, isMainFrame=%d, willInternallyHandleFailure=%d", frame.frameID().toUInt64(), frame.isMainFrame(), error.domain().utf8(), error.errorCode(), frame.isMainFrame(), willInternallyHandleFailure == WillInternallyHandleFailure::Yes);
 
     MESSAGE_CHECK_URL(process, provisionalURL);
     MESSAGE_CHECK_URL(process, error.failingURL());
@@ -9422,11 +9422,11 @@ void WebPageProxy::didFailLoadForFrame(IPC::Connection& connection, FrameIdentif
     // load is continuing in another process.
     Ref process = WebProcessProxy::fromConnection(connection);
     if (m_provisionalPage && frame->isMainFrame() && m_provisionalPage->process() != process.get()) {
-        WEBPAGEPROXY_RELEASE_LOG(Loading, "didFailLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d, provisionalPID=%i", frameID.toUInt64(), frame->isMainFrame(), error.domain().utf8().legacyCStringPointer(), error.errorCode(), m_provisionalPage->process().processID());
+        WEBPAGEPROXY_RELEASE_LOG(Loading, "didFailLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d, provisionalPID=%i", frameID.toUInt64(), frame->isMainFrame(), error.domain().utf8(), error.errorCode(), m_provisionalPage->process().processID());
         return;
     }
 
-    WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "didFailLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d", frameID.toUInt64(), frame->isMainFrame(), error.domain().utf8().legacyCStringPointer(), error.errorCode());
+    WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "didFailLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d", frameID.toUInt64(), frame->isMainFrame(), error.domain().utf8(), error.errorCode());
 
     MESSAGE_CHECK_URL(process, error.failingURL());
 
@@ -9491,7 +9491,13 @@ void WebPageProxy::didSameDocumentNavigationForFrame(IPC::Connection& connection
     if (!frame)
         return;
 
-    MESSAGE_CHECK_URL(protect(m_legacyMainFrameProcess), url);
+    Ref process = WebProcessProxy::fromConnection(connection);
+    if (process->coreProcessIdentifier() != frame->process().coreProcessIdentifier()) {
+        ASSERT(preferences().siteIsolationEnabled());
+        return;
+    }
+
+    MESSAGE_CHECK_URL(process, url);
 
     WEBPAGEPROXY_RELEASE_LOG(Loading, "didSameDocumentNavigationForFrame: frameID=%" PRIu64 ", isMainFrame=%d, type=%u", frameID.toUInt64(), frame->isMainFrame(), std::to_underlying(navigationType));
 
@@ -9525,10 +9531,8 @@ void WebPageProxy::didSameDocumentNavigationForFrame(IPC::Connection& connection
         automationSession->fragmentNavigatedForFrame(*frame, navigationID);
 #endif
 
-    if (isMainFrame) {
-        Ref process = WebProcessProxy::fromConnection(connection);
+    if (isMainFrame)
         m_navigationClient->didSameDocumentNavigation(*this, navigation.get(), navigationType, process->transformHandlesToObjects(protect(userData.object()).get()).get());
-    }
 
     if (isMainFrame)
         protectedPageClient->didSameDocumentNavigationForMainFrame(navigationType);
@@ -9885,7 +9889,7 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
     RefPtr<FrameState> frameStateForBackForwardNavigation;
     if (protect(preferences())->useUIProcessForBackForwardItemLoading() && navigationActionData.navigationType == WebCore::NavigationType::BackForward && navigationActionData.targetBackForwardItemIdentifier) {
         if (RefPtr frameState = frameStateForBackForwardChildFrame(frame, *navigationActionData.targetBackForwardItemIdentifier)) {
-            WEBPAGEPROXY_RELEASE_LOG(Loading, "frameStateForBackForwardChildFrame: Back/Forward child frame, rewriting URL to %" SENSITIVE_LOG_STRING, frameState->urlString.utf8().legacyCStringPointer());
+            WEBPAGEPROXY_RELEASE_LOG(Loading, "frameStateForBackForwardChildFrame: Back/Forward child frame, rewriting URL to %" SENSITIVE_LOG_STRING, frameState->urlString.utf8());
             navigationActionData.request.setURL(URL { frameState->urlString });
 
             frameStateForBackForwardNavigation = WTF::move(frameState);
@@ -10975,8 +10979,14 @@ void WebPageProxy::didUpdateHistoryTitle(IPC::Connection& connection, String&& t
     if (!frame)
         return;
 
+    Ref process = WebProcessProxy::fromConnection(connection);
+    if (process->coreProcessIdentifier() != frame->process().coreProcessIdentifier()) {
+        ASSERT(preferences().siteIsolationEnabled());
+        return;
+    }
+
     MESSAGE_CHECK_BASE(frame->page() == this, connection);
-    MESSAGE_CHECK_URL(protect(m_legacyMainFrameProcess), url);
+    MESSAGE_CHECK_URL(process, url);
 
     if (frame->isMainFrame())
         m_historyClient->didUpdateHistoryTitle(*this, title, url);
@@ -12319,15 +12329,13 @@ void WebPageProxy::restartXRSessionActivityOnProcessResumeIfNeeded()
 }
 #endif
 
-void WebPageProxy::showColorPicker(IPC::Connection& connection, const WebCore::Color& initialColor, const IntRect& elementRect, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&& suggestions, std::optional<WebCore::FrameIdentifier>&& rootFrameID)
+void WebPageProxy::showColorPicker(const WebCore::Color& initialColor, const IntRect& elementRect, ColorControlSupportsAlpha supportsAlpha, Vector<WebCore::Color>&& suggestions, std::optional<WebCore::FrameIdentifier>&& rootFrameID)
 {
-    MESSAGE_CHECK_BASE(supportsAlpha == ColorControlSupportsAlpha::No || protect(preferences())->inputTypeColorEnhancementsEnabled(), connection);
-
     RefPtr pageClient = this->pageClient();
     if (!pageClient)
         return;
 
-    RefPtr colorPicker = pageClient->createColorPicker(*this, initialColor, elementRect, supportsAlpha, WTF::move(suggestions), rootFrameID);
+    RefPtr colorPicker = pageClient->createColorPicker(*this, initialColor, supportsAlpha, WTF::move(suggestions), rootFrameID);
     internals().colorPicker = colorPicker;
 
     // FIXME: Remove this conditional once all ports have a functional PageClientImpl::createColorPicker.
@@ -12498,11 +12506,20 @@ WebInspectorUIProxy* WebPageProxy::inspector() const
     return m_inspector.get();
 }
 
+#if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
+static bool isParentFrameMainFrame(const ResourceLoadInfo& loadInfo, WebFrameProxy* mainFrame)
+{
+    return loadInfo.parentFrameID && mainFrame && *loadInfo.parentFrameID == mainFrame->frameID();
+}
+#endif
+
 void WebPageProxy::resourceLoadDidSendRequest(ResourceLoadInfo&& loadInfo, WebCore::ResourceRequest&& request)
 {
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = this->webExtensionController())
+    if (RefPtr webExtensionController = this->webExtensionController()) {
+        loadInfo.parentFrameIsMainFrame = isParentFrameMainFrame(loadInfo, mainFrame());
         webExtensionController->resourceLoadDidSendRequest(identifier(), loadInfo, request);
+    }
 #endif
 
     if (m_resourceLoadClient)
@@ -12512,8 +12529,10 @@ void WebPageProxy::resourceLoadDidSendRequest(ResourceLoadInfo&& loadInfo, WebCo
 void WebPageProxy::resourceLoadDidPerformHTTPRedirection(ResourceLoadInfo&& loadInfo, WebCore::ResourceResponse&& response, WebCore::ResourceRequest&& request)
 {
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = this->webExtensionController())
+    if (RefPtr webExtensionController = this->webExtensionController()) {
+        loadInfo.parentFrameIsMainFrame = isParentFrameMainFrame(loadInfo, mainFrame());
         webExtensionController->resourceLoadDidPerformHTTPRedirection(identifier(), loadInfo, response, request);
+    }
 #endif
 
     if (m_resourceLoadClient)
@@ -12523,8 +12542,10 @@ void WebPageProxy::resourceLoadDidPerformHTTPRedirection(ResourceLoadInfo&& load
 void WebPageProxy::resourceLoadDidReceiveChallenge(ResourceLoadInfo&& loadInfo, WebCore::AuthenticationChallenge&& challenge)
 {
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = this->webExtensionController())
+    if (RefPtr webExtensionController = this->webExtensionController()) {
+        loadInfo.parentFrameIsMainFrame = isParentFrameMainFrame(loadInfo, mainFrame());
         webExtensionController->resourceLoadDidReceiveChallenge(identifier(), loadInfo, challenge);
+    }
 #endif
 
     if (m_resourceLoadClient)
@@ -12534,8 +12555,10 @@ void WebPageProxy::resourceLoadDidReceiveChallenge(ResourceLoadInfo&& loadInfo, 
 void WebPageProxy::resourceLoadDidReceiveResponse(ResourceLoadInfo&& loadInfo, WebCore::ResourceResponse&& response)
 {
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = this->webExtensionController())
+    if (RefPtr webExtensionController = this->webExtensionController()) {
+        loadInfo.parentFrameIsMainFrame = isParentFrameMainFrame(loadInfo, mainFrame());
         webExtensionController->resourceLoadDidReceiveResponse(identifier(), loadInfo, response);
+    }
 #endif
 
     if (m_resourceLoadClient)
@@ -12545,8 +12568,10 @@ void WebPageProxy::resourceLoadDidReceiveResponse(ResourceLoadInfo&& loadInfo, W
 void WebPageProxy::resourceLoadDidCompleteWithError(ResourceLoadInfo&& loadInfo, WebCore::ResourceResponse&& response, WebCore::ResourceError&& error)
 {
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = this->webExtensionController())
+    if (RefPtr webExtensionController = this->webExtensionController()) {
+        loadInfo.parentFrameIsMainFrame = isParentFrameMainFrame(loadInfo, mainFrame());
         webExtensionController->resourceLoadDidCompleteWithError(identifier(), loadInfo, response, error);
+    }
 #endif
 
     if (m_resourceLoadClient)
@@ -18818,7 +18843,7 @@ void WebPageProxy::gpuProcessDidFinishLaunching()
         pageClient->gpuProcessDidFinishLaunching();
 #if ENABLE(EXTENSION_CAPABILITIES)
     if (RefPtr mediaCapability = this->mediaCapability()) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessCapabilities, "gpuProcessDidFinishLaunching[envID=%" PUBLIC_LOG_STRING "]: updating media capability", mediaCapability->environmentIdentifier().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG(ProcessCapabilities, "gpuProcessDidFinishLaunching[envID=%" PUBLIC_LOG_STRING "]: updating media capability", mediaCapability->environmentIdentifier().utf8());
         updateMediaCapability();
     }
 #endif
@@ -19873,7 +19898,7 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
 {
     RefPtr item = WebBackForwardListItem::itemForID(itemID);
     if (!item) {
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: unknown itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: unknown itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8());
         return completionHandler(false);
     }
 
@@ -19882,7 +19907,7 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
     // against that stale item, re-home the entry onto the current item: it describes the same
     // main-frame document and is what a subsequent Back will actually traverse.
     if (RefPtr currentItem = backForwardList().currentItem(); currentItem && currentItem != item && item->hasSameMainFrameHistoryEntry(*currentItem)) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "didCacheBackForwardItem: redirecting cache from stale itemID %" PUBLIC_LOG_STRING " to current itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8().legacyCStringPointer(), currentItem->identifier().toString().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "didCacheBackForwardItem: redirecting cache from stale itemID %" PUBLIC_LOG_STRING " to current itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8(), currentItem->identifier().toString().utf8());
         item = WTF::move(currentItem);
         itemID = item->identifier();
     }
@@ -19890,13 +19915,13 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
     // Race guard: skip when the item is the target of a pending API navigation
     // (e.g. an in-flight back/forward to the same item).
     if (auto& pendingURL = internals().pageLoadState.pendingAPIRequestURL(); pendingURL.isValid() && pendingURL == item->url()) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "didCacheBackForwardItem: skipping; itemID %" PUBLIC_LOG_STRING " is the target of a pending navigation", itemID.toString().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "didCacheBackForwardItem: skipping; itemID %" PUBLIC_LOG_STRING " is the target of a pending navigation", itemID.toString().utf8());
         return completionHandler(false);
     }
 
     RefPtr mainFrame = m_mainFrame;
     if (!mainFrame) {
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: m_mainFrame is null for itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: m_mainFrame is null for itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8());
         return completionHandler(false);
     }
 
@@ -19904,7 +19929,7 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
 
     RefPtr entry = item->backForwardCacheEntry();
     if (!entry) {
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: cache entry missing after addEntry for itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: cache entry missing after addEntry for itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8());
         return completionHandler(false);
     }
 
@@ -19956,7 +19981,7 @@ void WebPageProxy::didTakeBackForwardItemForRestoration(BackForwardItemIdentifie
     // the UI-side entry.
     RefPtr item = WebBackForwardListItem::itemForID(itemID);
     if (!item) {
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didTakeBackForwardItemForRestoration: unknown itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8().legacyCStringPointer());
+        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didTakeBackForwardItemForRestoration: unknown itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8());
         return;
     }
     if (!item->backForwardCacheEntry())

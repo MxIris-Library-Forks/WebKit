@@ -397,8 +397,8 @@ imported/w3c/web-platform-tests/css/css-pseudo/placeholder-input-number.html [ P
 imported/w3c/web-platform-tests/css/css-pseudo/selection-paint-image.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-pseudo/target-text-dynamic-004.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-ruby/ruby-bidi-004.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-scoping/stylesheet-title-001.html [ Pass ]
-imported/w3c/web-platform-tests/css/css-shadow-parts/interaction-with-nested-pseudo-class.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-shadow/stylesheet-title-001.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-shadow/part/interaction-with-nested-pseudo-class.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/intrinsic-size-005.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio/parsing/aspect-ratio-invalid.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-sizing/slice-intrinsic-size.html [ Pass ]
@@ -2894,7 +2894,7 @@ fast/mediastream/apply-constraints-video.html [ Failure ]
 fast/mediastream/cloned-video-stream-aspect-ratio.html [ Failure ]
 fast/mediastream/getDisplayMedia-frame-rate.html [ Failure ]
 fast/mediastream/getDisplayMedia-size.html [ Failure ]
-webkit.org/b/324111 fast/mediastream/getUserMedia-default.html [ Timeout Failure ]
+fast/mediastream/getUserMedia-default.html [ Failure ]
 fast/mediastream/getUserMedia-video-rescaling.html [ Failure ]
 fast/mediastream/getUserMedia-frame-rate.html [ Failure ]
 fast/mediastream/get-user-media-constraints.html [ Failure ]
@@ -5331,6 +5331,8 @@ webkit.org/b/324046 imported/w3c/web-platform-tests/css/selectors/old-tests/css3
 webkit.org/b/249918 imported/w3c/web-platform-tests/css/css-lists/list-marker-symbol-bidi.html [ Pass ]
 imported/w3c/web-platform-tests/css/filter-effects/filter-function/filter-function-001.html [ Pass ]
 
+webkit.org/b/324147 imported/w3c/web-platform-tests/dom/nodes/moveBefore/focus-preserve.html [ Pass Failure ]
+
 # End: Common failures between GTK and WPE.
 
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -5339,3 +5341,6 @@ imported/w3c/web-platform-tests/css/filter-effects/filter-function/filter-functi
 
 # Times out on the GLib ports (GTK/WPE): the PDF-in-iframe never fires its load event (no PDF viewer), so the test never completes. Passes on macOS.
 webkit.org/b/319150 imported/w3c/web-platform-tests/loading/early-hints/iframe-pdf.h2.window.html [ Skip ]
+
+# New test in the css/css-shadow import. Fails on GTK and WPE, passes on macOS.
+imported/w3c/web-platform-tests/css/css-shadow/part/pseudo-classes-after-part.html [ Failure ]

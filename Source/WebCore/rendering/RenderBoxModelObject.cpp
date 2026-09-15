@@ -41,12 +41,15 @@
 #include "ImageBuffer.h"
 #include "ImageQualityController.h"
 #include "InlineIteratorInlineBox.h"
+#include "LayoutIntegrationLineLayout.h"
+#include "LegacyInlineFlowBox.h"
 #include "LocalFrame.h"
 #include "LocalFrameView.h"
 #include "Path.h"
 #include "RenderBlock.h"
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
+#include "RenderChildIterator.h"
 #include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderFlexibleBox.h"
@@ -56,8 +59,10 @@
 #include "RenderLayerBacking.h"
 #include "RenderLayerCompositor.h"
 #include "RenderLayerScrollableArea.h"
+#include "RenderLayoutState.h"
 #include "RenderMultiColumnFlow.h"
 #include "RenderObjectInlines.h"
+#include "RenderSVGInline.h"
 #include "RenderTable.h"
 #include "RenderText.h"
 #include "RenderTextFragment.h"
@@ -115,9 +120,39 @@ static FirstLetterRemainingTextMap& NODELETE firstLetterRemainingTextMap()
     return map;
 }
 
+static RenderObject* firstContentfulChild(const RenderBoxModelObject& renderer)
+{
+    for (auto& current : childrenOfType<RenderObject>(renderer)) {
+        if (current.isFloatingOrOutOfFlowPositioned())
+            continue;
+        if (auto* text = dynamicDowncast<RenderText>(current); text && text->containsOnlyCollapsibleWhitespace())
+            continue;
+        if (auto* renderInline = dynamicDowncast<RenderInline>(current)) {
+            if (auto* nested = firstContentfulChild(*renderInline))
+                return nested;
+            continue;
+        }
+        return const_cast<RenderObject*>(&current);
+    }
+    return { };
+}
+
+bool isEmptyInline(const RenderBoxModelObject& renderer)
+{
+    return !firstContentfulChild(renderer);
+}
+
+RenderObject* firstContentfulChild(RenderBoxModelObject& renderer)
+{
+    return firstContentfulChild(const_cast<const RenderBoxModelObject&>(renderer));
+}
+
 void RenderBoxModelObject::styleWillChange(Style::Difference diff, const Style::ComputedStyle& newStyle)
 {
     const Style::ComputedStyle* oldStyle = hasInitializedStyle() ? &style() : nullptr;
+
+    if (oldStyle)
+        removeOutOfFlowBoxesIfNeededOnStyleChange(*oldStyle, newStyle);
 
     if (Style::AnchorPositionEvaluator::isAnchor(newStyle))
         view().registerAnchor(*this);
@@ -900,6 +935,12 @@ void RenderBoxModelObject::clearFirstLetterRemainingText()
     firstLetterRemainingTextMap().remove(*this);
 }
 
+PositionWithAffinity RenderBoxModelObject::positionForPoint(const LayoutPoint& point, HitTestSource source, const RenderFragmentContainer* fragment)
+{
+    CheckedPtr containingBlock = this->containingBlock();
+    return containingBlock->positionForPoint(point, source, fragment);
+}
+
 void RenderBoxModelObject::mapAbsoluteToLocalPoint(OptionSet<MapCoordinatesMode> mode, TransformState& transformState) const
 {
     RenderElement* container = this->container();
@@ -932,27 +973,32 @@ bool RenderBoxModelObject::requiresLayer() const
     return isDocumentElementRenderer() || isPositioned() || createsGroup() || hasTransformRelatedProperty() || hasHiddenBackface() || hasReflection() || requiresRenderingConsolidationForViewTransition() || isRenderViewTransitionCapture();
 }
 
-void RenderBoxModelObject::removeOutOfFlowBoxesIfNeededOnStyleChange(RenderBlock& delegateBlock, const Style::ComputedStyle& oldStyle, const Style::ComputedStyle& newStyle)
+void RenderBoxModelObject::removeOutOfFlowBoxesIfNeededOnStyleChange(const Style::ComputedStyle& oldStyle, const Style::ComputedStyle& newStyle)
 {
+    // Only a block keeps a list of out-of-flow boxes, so any other box has its descendants on the nearest non-anonymous block.
+    CheckedPtr containingBlockForOutOfFlowBoxes = nearestNonAnonymousContainingBlockIncludingSelf();
+    if (!containingBlockForOutOfFlowBoxes)
+        return;
+
     auto wasContainingBlockForFixedContent = canContainFixedPositionObjects(&oldStyle);
     auto wasContainingBlockForAbsoluteContent = canContainAbsolutelyPositionedObjects(&oldStyle);
     auto isContainingBlockForFixedContent = canContainFixedPositionObjects(&newStyle);
     auto isContainingBlockForAbsoluteContent = canContainAbsolutelyPositionedObjects(&newStyle);
 
-    // FIXME: If an inline becomes a containing block, but the delegate was already one (or vice-versa),
-    // then we don't really need to remove the out-of-flows from the delegate only for them to be re-added
+    // FIXME: If an inline becomes a containing block, but that block was already one (or vice-versa),
+    // then we don't really need to remove the out-of-flows from it only for them to be re-added
     // to the same spot. We would need to correctly mark for layout instead though.
 
     if ((wasContainingBlockForFixedContent && !isContainingBlockForFixedContent) || (wasContainingBlockForAbsoluteContent && !isContainingBlockForAbsoluteContent)) {
         // We are no longer the containing block for out-of-flow descendants.
-        delegateBlock.removeOutOfFlowBoxes({ }, RenderBlock::ContainingBlockState::NewContainingBlock);
+        containingBlockForOutOfFlowBoxes->removeOutOfFlowBoxes({ }, RenderBlock::ContainingBlockState::NewContainingBlock);
     }
 
     if (!wasContainingBlockForFixedContent && isContainingBlockForFixedContent) {
         // We are a new containing block for all out-of-flow boxes. Find first ancestor that has our fixed positioned boxes and remove them.
         // They will be inserted into our positioned objects list during their static position layout.
         if (CheckedPtr containingBlock = RenderObject::containingBlockForPositionType(PositionType::Fixed, *this))
-            containingBlock->removeOutOfFlowBoxes(&delegateBlock,  RenderBlock::ContainingBlockState::NewContainingBlock);
+            containingBlock->removeOutOfFlowBoxes(this, RenderBlock::ContainingBlockState::NewContainingBlock);
     }
 
     if (!wasContainingBlockForAbsoluteContent && isContainingBlockForAbsoluteContent) {
@@ -960,8 +1006,129 @@ void RenderBoxModelObject::removeOutOfFlowBoxesIfNeededOnStyleChange(RenderBlock
         // Remove our absolutely positioned descendants from their current containing block.
         // They will be inserted into our positioned objects list during layout.
         if (CheckedPtr containingBlock = RenderObject::containingBlockForPositionType(PositionType::Absolute, *this))
-            containingBlock->removeOutOfFlowBoxes(&delegateBlock,  RenderBlock::ContainingBlockState::NewContainingBlock);
+            containingBlock->removeOutOfFlowBoxes(this, RenderBlock::ContainingBlockState::NewContainingBlock);
     }
+}
+
+const RenderElement* RenderBoxModelObject::pushMappingToContainer(const RenderLayerModelObject* ancestorToStopAt, RenderGeometryMap& geometryMap) const
+{
+    ASSERT(ancestorToStopAt != this);
+
+    bool ancestorSkipped;
+    RenderElement* container = this->container(ancestorToStopAt, ancestorSkipped);
+    if (!container)
+        return nullptr;
+
+    pushOntoGeometryMap(geometryMap, ancestorToStopAt, container, ancestorSkipped);
+    return ancestorSkipped ? ancestorToStopAt : container;
+}
+
+auto RenderBoxModelObject::computeVisibleRectsUsingPaintOffset(const RepaintRects& rects) const -> RepaintRects
+{
+    auto adjustedRects = rects;
+    auto* layoutState = view().frameView().layoutContext().layoutState();
+
+    // We can't trust the bits on RenderObject, because this might be called while re-resolving style.
+    if (style().hasInFlowPosition() && layer())
+        adjustedRects.move(layer()->offsetForInFlowPosition());
+
+    adjustedRects.move(layoutState->paintOffset());
+    if (layoutState->isClipped())
+        adjustedRects.clippedOverflowRect.intersect(layoutState->clipRect());
+    return adjustedRects;
+}
+
+LayoutUnit RenderBoxModelObject::marginTop() const
+{
+    return computedCSSMarginTop();
+}
+
+LayoutUnit RenderBoxModelObject::marginBottom() const
+{
+    return computedCSSMarginBottom();
+}
+
+LayoutUnit RenderBoxModelObject::marginLeft() const
+{
+    return computedCSSMarginLeft();
+}
+
+LayoutUnit RenderBoxModelObject::marginRight() const
+{
+    return computedCSSMarginRight();
+}
+
+LayoutUnit RenderBoxModelObject::marginBefore(const WritingMode writingMode) const
+{
+    return computedCSSMarginBefore(writingMode);
+}
+
+LayoutUnit RenderBoxModelObject::marginAfter(const WritingMode writingMode) const
+{
+    return computedCSSMarginAfter(writingMode);
+}
+
+LayoutUnit RenderBoxModelObject::marginStart(const WritingMode writingMode) const
+{
+    return computedCSSMarginStart(writingMode);
+}
+
+LayoutUnit RenderBoxModelObject::marginEnd(const WritingMode writingMode) const
+{
+    return computedCSSMarginEnd(writingMode);
+}
+
+LayoutRect RenderBoxModelObject::borderBoxRectInContainer() const
+{
+    auto boundingBoxOfFragments = [&]() -> IntRect {
+        if (auto* layout = LayoutIntegration::LineLayout::containing(*this)) {
+            if (!layoutBox() || !layout->contains(*this)) {
+                // Repaint may be issued on subtrees during content mutation with newly inserted renderers
+                // (or we just forgot to initiate layout before querying geometry on stale content after moving inline boxes between blocks).
+                ASSERT(needsLayout());
+                return { };
+            }
+            if (isRenderSVGInline()) {
+                // FIXME: Always build the bounding box like this. LineLayouyt::enclosingBorderBoxRectFor does not include
+                // any post-layout box adjustments.
+                FloatRect result;
+                for (auto box = InlineIterator::lineLeftmostInlineBoxFor(*this); box; box.traverseInlineBoxLineRightward())
+                    result.unite(box->visualRectIgnoringBlockDirection());
+                return enclosingIntRect(result);
+            }
+            return enclosingIntRect(layout->enclosingBorderBoxRectFor(*this));
+        }
+
+        auto* firstInlineBox = firstLegacyInlineBoxFor(*this);
+        auto* lastInlineBox = lastLegacyInlineBoxFor(*this);
+
+        // See <rdar://problem/5289721>, for an unknown reason the linked list here is sometimes inconsistent, first is non-zero and last is zero. We have been
+        // unable to reproduce this at all (and consequently unable to figure ot why this is happening). The assert will hopefully catch the problem in debug
+        // builds and help us someday figure out why. We also put in a redundant check of lastLineBox() to avoid the crash for now.
+        ASSERT(!firstInlineBox == !lastInlineBox); // Either both are null or both exist.
+        if (!firstInlineBox || !lastInlineBox)
+            return { };
+
+        // Return the width of the minimal left side and the maximal right side.
+        float logicalLeftSide = 0;
+        float logicalRightSide = 0;
+        for (auto* curr = firstInlineBox; curr; curr = curr->nextLineBox()) {
+            if (curr == firstInlineBox || curr->logicalLeft() < logicalLeftSide)
+                logicalLeftSide = curr->logicalLeft();
+            if (curr == firstInlineBox || curr->logicalRight() > logicalRightSide)
+                logicalRightSide = curr->logicalRight();
+        }
+
+        bool isHorizontal = writingMode().isHorizontal();
+
+        float x = isHorizontal ? logicalLeftSide : firstInlineBox->x();
+        float y = isHorizontal ? firstInlineBox->y() : logicalLeftSide;
+        float width = isHorizontal ? logicalRightSide - logicalLeftSide : lastInlineBox->logicalBottom() - x;
+        float height = isHorizontal ? lastInlineBox->logicalBottom() - y : logicalRightSide - logicalLeftSide;
+        return enclosingIntRect(FloatRect { x, y, width, height });
+    };
+
+    return boundingBoxOfFragments();
 }
 
 } // namespace WebCore

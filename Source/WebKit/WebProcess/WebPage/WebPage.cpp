@@ -84,7 +84,6 @@
 #include "SessionStateConversion.h"
 #include "ShareableBitmapUtilities.h"
 #include "SharedBufferReference.h"
-#include "ShouldFreezeLayerTree.h"
 #include "TextRecognitionUpdateResult.h"
 #include "UserMediaPermissionRequestManager.h"
 #include "ViewGestureGeometryCollector.h"
@@ -1470,6 +1469,29 @@ void WebPage::allFrameTreeSyncDataChangedInAnotherProcess(FrameIdentifier frameI
         coreFrame->updateFrameTreeSyncData(WTF::move(data));
         updateChildFrameVisibleRectsFromParent(*coreFrame);
     }
+
+    // UIProcess sends this message when the frame associated with frameID navigates or is newly
+    // added to this page. Since UIProcess doesn't store any geometry, the FrameGeometrySyncData in
+    // this message is empty.
+    //
+    // 1. If this frame is one of our own local frames, then its geometry was cleared from all
+    //    processes, so we should clear our last-sent geometry cache.
+    // 2. If this frame is a descendant of one of our local frames, its process may have just been
+    //    added to the page and have no geometry data, so we need to send it our frame geometry.
+    //
+    // We send the frame geometry if needed by clearing our cached frame geometry and triggering a
+    // rendering update, which eventually broadcasts a FrameGeometry IPC.
+    bool needsGeometryRebroadcast = false;
+    protect(m_page)->forEachLocalFrame([&](LocalFrame& localFrame) {
+        if (auto* client = dynamicDowncast<WebLocalFrameLoaderClient>(localFrame.loader().client()))
+            client->clearLastBroadcastFrameGeometry();
+        needsGeometryRebroadcast |= localFrame.tree().hasRemoteFrameDescendant();
+    });
+
+    if (needsGeometryRebroadcast) {
+        if (RefPtr drawingArea = this->drawingArea())
+            drawingArea->triggerRenderingUpdate();
+    }
 }
 
 void WebPage::updateChildFrameVisibleRectsFromParent(WebCore::Frame& parentCoreFrame)
@@ -2806,7 +2828,7 @@ void WebPage::reload(WebCore::NavigationIdentifier navigationID, OptionSet<WebCo
 
 void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
 {
-    WEBPAGE_RELEASE_LOG(Loading, "goToBackForwardItem: navigationID=%" PRIu64 ", backForwardItemID=%s, shouldTreatAsContinuingLoad=%u, lastNavigationWasAppInitiated=%d, existingNetworkResourceLoadIdentifierToResume=%" PRIu64, parameters.navigationID.toUInt64(), parameters.frameState->itemID->toString().utf8().legacyCStringPointer(), static_cast<unsigned>(parameters.shouldTreatAsContinuingLoad), parameters.lastNavigationWasAppInitiated, parameters.existingNetworkResourceLoadIdentifierToResume ? parameters.existingNetworkResourceLoadIdentifierToResume->toUInt64() : 0);
+    WEBPAGE_RELEASE_LOG(Loading, "goToBackForwardItem: navigationID=%" PRIu64 ", backForwardItemID=%s, shouldTreatAsContinuingLoad=%u, lastNavigationWasAppInitiated=%d, existingNetworkResourceLoadIdentifierToResume=%" PRIu64, parameters.navigationID.toUInt64(), parameters.frameState->itemID->toString().utf8(), static_cast<unsigned>(parameters.shouldTreatAsContinuingLoad), parameters.lastNavigationWasAppInitiated, parameters.existingNetworkResourceLoadIdentifierToResume ? parameters.existingNetworkResourceLoadIdentifierToResume->toUInt64() : 0);
     SendStopResponsivenessTimer stopper;
 
     m_sandboxExtensionTracker.beginLoad(WTF::move(parameters.sandboxExtensionHandle));
@@ -2854,7 +2876,7 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
         }
         protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache);
     } else
-        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "goToBackForwardItem: No target local frame found for navigationID=%" PRIu64 ", backForwardItemID=%s — navigation silently dropped", parameters.navigationID.toUInt64(), parameters.frameState->itemID->toString().utf8().legacyCStringPointer());
+        WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "goToBackForwardItem: No target local frame found for navigationID=%" PRIu64 ", backForwardItemID=%s — navigation silently dropped", parameters.navigationID.toUInt64(), parameters.frameState->itemID->toString().utf8());
 }
 
 // GoToBackForwardItemWaitingForProcessLaunch should never be sent to the WebProcess. It must always be converted to a GoToBackForwardItem message.
@@ -5142,7 +5164,7 @@ void WebPage::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parame
         UNUSED_PARAM(this);
 #endif
         if (!result && result.error())
-            WEBPAGE_RELEASE_LOG_ERROR(Process, "runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error %" PRIVATE_LOG_STRING, result.error()->message.utf8().legacyCStringPointer());
+            WEBPAGE_RELEASE_LOG_ERROR(Process, "runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error %" PRIVATE_LOG_STRING, result.error()->message.utf8());
         else
             WEBPAGE_RELEASE_LOG(Process, "runJavaScriptInFrameInScriptWorld: Request to run JavaScript succeeded");
 #if PLATFORM(IOS_FAMILY)
@@ -5155,7 +5177,7 @@ void WebPage::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parame
 void WebPage::clearContentWorld(ContentWorldIdentifier worldIdentifier, CompletionHandler<void()>&& completionHandler)
 {
     if (RefPtr world = m_userContentController->worldForIdentifier(worldIdentifier); world && world->coreWorld().allowNodeSnapshotCreation()) {
-        WEBPAGE_RELEASE_LOG(Loading, "clearContentWorld: id=%" PUBLIC_LOG_STRING " name=%" PUBLIC_LOG_STRING, worldIdentifier.loggingString().ascii().data(), world->name().utf8().legacyCStringPointer());
+        WEBPAGE_RELEASE_LOG(Loading, "clearContentWorld: id=%" PUBLIC_LOG_STRING " name=%" PUBLIC_LOG_STRING, worldIdentifier.loggingString().ascii().data(), world->name().utf8());
         world->clearWrappers();
     }
     completionHandler();
@@ -9041,7 +9063,7 @@ void WebPage::stopAllURLSchemeTasks()
 
 void WebPage::registerURLSchemeHandler(WebURLSchemeHandlerIdentifier handlerIdentifier, const String& scheme)
 {
-    WEBPAGE_RELEASE_LOG(Process, "registerURLSchemeHandler: Registered handler %" PRIu64 " for the '%s' scheme", handlerIdentifier.toUInt64(), scheme.utf8().legacyCStringPointer());
+    WEBPAGE_RELEASE_LOG(Process, "registerURLSchemeHandler: Registered handler %" PRIu64 " for the '%s' scheme", handlerIdentifier.toUInt64(), scheme.utf8());
 
     WebCore::LegacySchemeRegistry::registerURLSchemeAsHandledBySchemeHandler(scheme);
     WebProcess::singleton().registerURLSchemeAsCORSEnabled(scheme);
@@ -9132,6 +9154,9 @@ void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, Co
         return completionHandler(false);
     }
 
+    if (RefPtr frame = m_mainFrame->coreLocalFrame())
+        frame->detachFromAllOpenedFrames();
+
     if (!page->localMainFrame()) {
         // Detach the current root frames instead of freezing the whole page, so a same-site navigation
         // later reusing this WebPage for a new root frame doesn't get frozen too.
@@ -9149,7 +9174,7 @@ void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, Co
     completionHandler(true);
 }
 
-void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, std::optional<std::pair<URL, SecurityOriginData>>&& mainFrameURLAndOrigin, ShouldFreezeLayerTree shouldFreezeLayerTree, CompletionHandler<void(bool)>&& completionHandler)
+void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, std::optional<std::pair<URL, SecurityOriginData>>&& mainFrameURLAndOrigin, CompletionHandler<void(bool)>&& completionHandler)
 {
     if (!BackForwardCache::singleton().isInBackForwardCache(identifier))
         return completionHandler(true);
@@ -9176,11 +9201,6 @@ void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, st
     m_isSuspended = false;
     auto restoredFrames = cachedPage->takeDetachedRootFrames();
     detachResidualSubframesForBackForwardCacheRestore(*page);
-
-    // Freeze here so the compositing update, and with it the root compositing layer attachment, can't happen until the new drawing area is in place.
-    // The layer tree is unfreezed in WebPage::reinitializeWebPage.
-    if (shouldFreezeLayerTree == ShouldFreezeLayerTree::Yes)
-        freezeLayerTree(LayerTreeFreezeReason::PageSuspended);
 
     // Resume rendering for the frames detached in suspendWithFrameItem.
     for (auto& weakFrame : restoredFrames) {

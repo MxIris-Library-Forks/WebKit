@@ -39,19 +39,6 @@ public:
     RenderInline(Type, Document&, Style::ComputedStyle&&);
     virtual ~RenderInline();
 
-    LayoutUnit marginLeft() const final;
-    LayoutUnit marginRight() const final;
-    LayoutUnit marginTop() const final;
-    LayoutUnit marginBottom() const final;
-    LayoutUnit marginBefore(const WritingMode) const final;
-    LayoutUnit marginAfter(const WritingMode) const final;
-    LayoutUnit marginStart(const WritingMode) const final;
-    LayoutUnit marginEnd(const WritingMode) const final;
-    LayoutUnit marginBefore() const { return marginBefore(writingMode()); }
-    LayoutUnit marginAfter() const { return marginAfter(writingMode()); }
-    LayoutUnit marginStart() const { return marginStart(writingMode()); }
-    LayoutUnit marginEnd() const { return marginEnd(writingMode()); }
-
     void boundingRects(Vector<LayoutRect>&, const LayoutPoint& accumulatedOffset) const final;
     void absoluteQuads(Vector<FloatQuad>&, bool* wasFixed) const override;
 
@@ -59,37 +46,31 @@ public:
 
     LayoutRect borderBoundingBox() const final
     {
-        return LayoutRect(LayoutPoint(), linesBoundingBox().size());
+        return LayoutRect(LayoutPoint(), borderBoxRectInContainer().size());
     }
 
     LayoutUnit innerPaddingBoxWidth() const;
     LayoutUnit innerPaddingBoxHeight() const;
 
-    WEBCORE_EXPORT IntRect linesBoundingBox() const;
     LayoutRect linesVisualOverflowBoundingBox() const;
 
     LayoutSize offsetForInFlowPositionedInline(const RenderBox* child) const;
 
     void collectLineBoxRects(Vector<LayoutRect>&, const LayoutPoint& additionalOffset) const;
 
-    bool mayAffectLayout() const;
     bool requiresLayer() const override;
 
     LayoutPoint firstInlineBoxTopLeft() const;
 
 protected:
-    void styleWillChange(Style::Difference, const Style::ComputedStyle& newStyle) override;
     void styleDidChange(Style::Difference, const Style::ComputedStyle* oldStyle) override;
-
-    void updateFromStyle() override;
 
 private:
     ASCIILiteral renderName() const override;
 
     bool canHaveChildren() const final { return true; }
 
-    template<typename GeneratorContext>
-    void generateLineBoxRects(GeneratorContext& yield) const;
+    Vector<FloatRect> lineBoxRects() const;
 
     void layout() final { ASSERT_NOT_REACHED(); } // Do nothing for layout()
 
@@ -99,29 +80,24 @@ private:
 
     LayoutUnit offsetLeft() const final;
     LayoutUnit offsetTop() const final;
-    LayoutUnit offsetWidth() const final { return linesBoundingBox().width(); }
-    LayoutUnit offsetHeight() const final { return linesBoundingBox().height(); }
+    LayoutUnit offsetWidth() const final { return borderBoxRectInContainer().width(); }
+    LayoutUnit offsetHeight() const final { return borderBoxRectInContainer().height(); }
 
 protected:
     RepaintRects localRectsForRepaint(RepaintOutlineBounds) const override;
     LayoutRect rectWithOutlineForRepaint(const RenderLayerModelObject* repaintContainer, LayoutUnit outlineWidth) const final;
 
     std::optional<RepaintRects> computeVisibleRectsInContainer(const RepaintRects&, const RenderLayerModelObject* container, const VisibleRectContext&, VisibleRectState) const final;
-    RepaintRects computeVisibleRectsUsingPaintOffset(const RepaintRects&) const;
 
     void mapLocalToContainer(const RenderLayerModelObject* repaintContainer, TransformState&, OptionSet<MapCoordinatesMode>, bool* wasFixed) const override;
-    const RenderElement* pushMappingToContainer(const RenderLayerModelObject* ancestorToStopAt, RenderGeometryMap&) const override;
 
 private:
-    PositionWithAffinity positionForPoint(const LayoutPoint&, HitTestSource, const RenderFragmentContainer*) final;
 
-    LayoutRect frameRectForStickyPositioning() const final { return linesBoundingBox(); }
+    LayoutRect frameRectForStickyPositioning() const final { return borderBoxRectInContainer(); }
 
     void imageChanged(WrappedImagePtr, const IntRect* = 0) final;
 };
 
-bool isEmptyInline(const RenderInline&);
-RenderObject* firstContentfulChild(RenderInline&);
 
 } // namespace WebCore
 

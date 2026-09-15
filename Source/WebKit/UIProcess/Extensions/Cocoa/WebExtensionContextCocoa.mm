@@ -1839,7 +1839,7 @@ void WebExtensionContext::resourceLoadDidCompleteWithError(WebPageProxyIdentifie
     if (error.isAccessControl() && (loadInfo.type == ResourceLoadInfo::Type::Fetch || loadInfo.type == ResourceLoadInfo::Type::XMLHTTPRequest)) {
         RefPtr<WebFrameProxy> originatingFrame = loadInfo.frameID ? WebFrameProxy::webFrame(*loadInfo.frameID) : nullptr;
         if (originatingFrame && isURLForThisExtension(originatingFrame->url())) {
-            RELEASE_LOG_ERROR(Extensions, "Requesting permission to access URL due to CORS failure: %{sensitive}s", loadInfo.originalURL.string().utf8().legacyCStringPointer());
+            RELEASE_LOG_ERROR(Extensions, "Requesting permission to access URL due to CORS failure: %{sensitive}s", loadInfo.originalURL.string().utf8());
             requestPermissionToAccessURLs({ loadInfo.originalURL }, tab, nullptr, GrantOnCompletion::Yes, { PermissionStateOptions::RequestedWithTabsPermission, PermissionStateOptions::IncludeOptionalPermissions });
         }
     }
@@ -1862,6 +1862,7 @@ void WebExtensionContext::resourceLoadDidCompleteWithError(WebPageProxyIdentifie
 void WebExtensionContext::resourceLoadWasBlockedByDeclarativeNetRequest(WebPageProxyIdentifier pageID, const WebExtensionContentRuleListBlockedLoadInfo& info)
 {
     RefPtr tab = getTab(pageID);
+    RefPtr parentFrame = WebFrameProxy::webFrame(info.parentFrameID);
 
     ResourceLoadInfo loadInfo {
         NetworkResourceLoadIdentifier::generate(),
@@ -1872,7 +1873,8 @@ void WebExtensionContext::resourceLoadWasBlockedByDeclarativeNetRequest(WebPageP
         info.httpMethod,
         WallTime::now(),
         false,
-        info.type
+        info.type,
+        parentFrame && parentFrame->isMainFrame()
     };
 
     if (!hasPermissionToSendWebRequestEvent(tab.get(), info.url, loadInfo))

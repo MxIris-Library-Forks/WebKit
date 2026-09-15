@@ -304,7 +304,6 @@ void RenderBlock::styleWillChange(Style::Difference diff, const Style::ComputedS
     const Style::ComputedStyle* oldStyle = hasInitializedStyle() ? &style() : nullptr;
     setBlockLevelReplacedOrAtomicInline(newStyle.display().isInlineType());
     if (oldStyle) {
-        removeOutOfFlowBoxesIfNeededOnStyleChange(*this, *oldStyle, newStyle);
         if (isLegend() && oldStyle->floating() == Float::None && newStyle.floating() != Float::None)
             setIsExcludedFromNormalLayout(false);
     }
@@ -1823,7 +1822,7 @@ static inline void markRendererAndParentForLayout(RenderBox& renderer)
     parentBlock->setChildNeedsLayout();
 }
 
-void RenderBlock::removeOutOfFlowBoxes(const RenderBlock* newContainingBlockCandidate, ContainingBlockState containingBlockState)
+void RenderBlock::removeOutOfFlowBoxes(const RenderElement* newContainingBlockCandidate, ContainingBlockState containingBlockState)
 {
     auto* outOfFlowDescendants = outOfFlowBoxes();
     if (!outOfFlowDescendants)
@@ -2712,16 +2711,6 @@ void RenderBlock::absoluteQuads(Vector<FloatQuad>& quads, bool* wasFixed) const
     CheckedPtr fragmentedFlow = enclosingFragmentedFlow();
     if (!fragmentedFlow || !fragmentedFlow->absoluteQuadsForBox(quads, wasFixed, *this))
         quads.append(localToAbsoluteQuad(logicalRect, MapCoordinatesMode::UseTransforms, wasFixed));
-}
-
-LayoutRect RenderBlock::rectWithOutlineForRepaint(const RenderLayerModelObject* repaintContainer, LayoutUnit outlineWidth) const
-{
-    return RenderBox::rectWithOutlineForRepaint(repaintContainer, outlineWidth);
-}
-
-const Style::ComputedStyle& RenderBlock::outlineStyleForRepaint() const
-{
-    return RenderElement::outlineStyleForRepaint();
 }
 
 LayoutUnit RenderBlock::offsetFromLogicalTopOfFirstPage() const

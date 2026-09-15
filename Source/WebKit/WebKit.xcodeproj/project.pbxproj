@@ -2348,6 +2348,7 @@
 		C0CE72A11247E71D00BC0EC4 /* WebPageMessages.h in Headers */ = {isa = PBXBuildFile; fileRef = C0CE729F1247E71D00BC0EC4 /* WebPageMessages.h */; };
 		C0CE72A11A47E71D00BC0EC4 /* WebPageTestingMessages.h in Headers */ = {isa = PBXBuildFile; fileRef = C0CE729F1347E71D00BC0EC4 /* WebPageTestingMessages.h */; };
 		C0CE72AD1247E78D00BC0EC4 /* HandleMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = C0CE72AC1247E78D00BC0EC4 /* HandleMessage.h */; };
+		C0D1C7A02E9000000000C003 /* NetworkCacheCompressionDictionaryEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = C0D1C7A02E9000000000C001 /* NetworkCacheCompressionDictionaryEntry.h */; };
 		C0E3AA7C1209E83C00A49D01 /* Module.h in Headers */ = {isa = PBXBuildFile; fileRef = C0E3AA441209E2BA00A49D01 /* Module.h */; };
 		C149380922347104000CD707 /* WebSpeechSynthesisClient.h in Headers */ = {isa = PBXBuildFile; fileRef = C149380222341C60000CD707 /* WebSpeechSynthesisClient.h */; };
 		C14D306924B79BE000480387 /* XPCEndpoint.mm in Sources */ = {isa = PBXBuildFile; fileRef = C14D306524B794E700480387 /* XPCEndpoint.mm */; };
@@ -2507,7 +2508,6 @@
 		E326F4DC2CA6C44F00182187 /* LogStream.mm in Sources */ = {isa = PBXBuildFile; fileRef = E326F4DA2CA6C44F00182187 /* LogStream.mm */; };
 		E326F4DD2CA6C44F00182187 /* LogStream.h in Headers */ = {isa = PBXBuildFile; fileRef = E326F4D92CA6C44F00182187 /* LogStream.h */; };
 		E3301EE32F48C85500796190 /* WKNavigationPrivateForTesting.h in Headers */ = {isa = PBXBuildFile; fileRef = E3301EE22F48C84E00796190 /* WKNavigationPrivateForTesting.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		E331D424304B85F80075E6CA /* ShouldFreezeLayerTree.h in Headers */ = {isa = PBXBuildFile; fileRef = E331D423304B85F80075E6CA /* ShouldFreezeLayerTree.h */; };
 		E33E8FFD2C7FD2980002BEB3 /* UseDownloadPlaceholder.h in Headers */ = {isa = PBXBuildFile; fileRef = E33E8FFC2C7FD2980002BEB3 /* UseDownloadPlaceholder.h */; };
 		E34DAD392B753FA700FABEE2 /* ExtensionProcess.mm in Sources */ = {isa = PBXBuildFile; fileRef = E34DAD372B753FA700FABEE2 /* ExtensionProcess.mm */; };
 		E34DAD3A2B753FA700FABEE2 /* ExtensionProcess.h in Headers */ = {isa = PBXBuildFile; fileRef = E34DAD382B753FA700FABEE2 /* ExtensionProcess.h */; };
@@ -3531,6 +3531,7 @@
 		073B19992FEFB66B00BD5D69 /* WKAppKitGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKAppKitGestureController.swift; sourceTree = "<group>"; };
 		073EFBB72D0F448500FAE7CF /* Foundation+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Foundation+Extras.swift"; sourceTree = "<group>"; };
 		074021602DDA651600BAEC91 /* GroupActivities_SPI.swiftinterface */ = {isa = PBXFileReference; lastKnownFileType = text; path = GroupActivities_SPI.swiftinterface; sourceTree = "<group>"; };
+		07B4C1E12FA1D30400A5E91C /* Network_SPI.swiftinterface */ = {isa = PBXFileReference; lastKnownFileType = text; path = Network_SPI.swiftinterface; sourceTree = "<group>"; };
 		0744720525E5BD020054B231 /* MediaOverridesForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaOverridesForTesting.h; sourceTree = "<group>"; };
 		0744DA532CE05F9500AACC81 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		074A6FC52D5F1DEA0027F958 /* KeyEventInterpretationContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = KeyEventInterpretationContext.h; sourceTree = "<group>"; };
@@ -7063,6 +7064,8 @@
 		728E86F01795188C0087879E /* WebColorPickerMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebColorPickerMac.mm; sourceTree = "<group>"; };
 		729F145827DA4BFB83A7C750 /* RemotePageWebAuthenticatorCoordinatorProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemotePageWebAuthenticatorCoordinatorProxy.h; sourceTree = "<group>"; };
 		729F145827DA4BFB83A7C751 /* RemotePageWebAuthenticatorCoordinatorProxy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemotePageWebAuthenticatorCoordinatorProxy.cpp; sourceTree = "<group>"; };
+		72A3F35930560F7400E1413C /* SharedFont.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SharedFont.cpp; sourceTree = "<group>"; };
+		72A3F35A30560F7400E1413C /* SharedFont.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedFont.h; sourceTree = "<group>"; };
 		72A87BBB287678A700289098 /* RemoteRenderingBackend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteRenderingBackend.cpp; sourceTree = "<group>"; };
 		72B53157253C1E4D0049295A /* RemoteResourceCacheProxy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteResourceCacheProxy.cpp; sourceTree = "<group>"; };
 		72B53158253C1E4D0049295A /* RemoteResourceCacheProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteResourceCacheProxy.h; sourceTree = "<group>"; };
@@ -8406,6 +8409,8 @@
 		C0CE72AC1247E78D00BC0EC4 /* HandleMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HandleMessage.h; sourceTree = "<group>"; };
 		C0CE72DB1247E8F700BC0EC4 /* DerivedSources.make */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DerivedSources.make; sourceTree = "<group>"; };
 		C0CE73361247F70E00BC0EC4 /* generate-message-receiver.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "generate-message-receiver.py"; sourceTree = "<group>"; };
+		C0D1C7A02E9000000000C001 /* NetworkCacheCompressionDictionaryEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkCacheCompressionDictionaryEntry.h; sourceTree = "<group>"; };
+		C0D1C7A02E9000000000C002 /* NetworkCacheCompressionDictionaryEntry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkCacheCompressionDictionaryEntry.cpp; sourceTree = "<group>"; };
 		C0E3AA441209E2BA00A49D01 /* Module.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Module.h; sourceTree = "<group>"; };
 		C0E3AA451209E2BA00A49D01 /* Module.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Module.cpp; sourceTree = "<group>"; };
 		C0E3AA481209E45000A49D01 /* ModuleCF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModuleCF.cpp; sourceTree = "<group>"; };
@@ -8786,7 +8791,6 @@
 		E326F4D92CA6C44F00182187 /* LogStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogStream.h; sourceTree = "<group>"; };
 		E326F4DA2CA6C44F00182187 /* LogStream.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LogStream.mm; sourceTree = "<group>"; };
 		E3301EE22F48C84E00796190 /* WKNavigationPrivateForTesting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKNavigationPrivateForTesting.h; sourceTree = "<group>"; };
-		E331D423304B85F80075E6CA /* ShouldFreezeLayerTree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShouldFreezeLayerTree.h; sourceTree = "<group>"; };
 		E33E8FFC2C7FD2980002BEB3 /* UseDownloadPlaceholder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UseDownloadPlaceholder.h; sourceTree = "<group>"; };
 		E3439B632345463A0011DE0B /* NetworkProcessConnectionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NetworkProcessConnectionInfo.h; path = Network/NetworkProcessConnectionInfo.h; sourceTree = "<group>"; };
 		E34B110C27C46BC6006D2F2E /* libWebCoreTestShim.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = libWebCoreTestShim.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -10649,7 +10653,6 @@
 				8313F7E71F7DAE0300B944EB /* SharedStringHashTable.h */,
 				83F9644B1FA0F76200C47750 /* SharedStringHashTableReadOnly.cpp */,
 				83F9644C1FA0F76300C47750 /* SharedStringHashTableReadOnly.h */,
-				E331D423304B85F80075E6CA /* ShouldFreezeLayerTree.h */,
 				932CA81B283C35EB00C20BEB /* StorageAreaIdentifier.h */,
 				7B50E9812771F6CF003DAAC5 /* TestParameter.h */,
 				07E2C0782C13FC0100BE6743 /* TextAnimationTypes.serialization.in */,
@@ -12917,6 +12920,7 @@
 				074021602DDA651600BAEC91 /* GroupActivities_SPI.swiftinterface */,
 				574217912400E098002B303D /* LocalAuthenticationSPI.h */,
 				57B826402304EB3E00B72EB0 /* NearFieldSPI.h */,
+				07B4C1E12FA1D30400A5E91C /* Network_SPI.swiftinterface */,
 				3754D5441B3A29FD003A4C7F /* NSInvocationSPI.h */,
 				F4EB4AFC269CD23600D297AE /* OSStateSPI.h */,
 				3178AF9720E2A7F80074DE94 /* PDFKitSPI.h */,
@@ -14787,6 +14791,8 @@
 				7BCF70CE2614935F00E4FB70 /* ScopedWebGLRenderingResourcesRequest.h */,
 				72C11DB52849933700E826DD /* ShareablePixelBuffer.cpp */,
 				72C11DB62849933700E826DD /* ShareablePixelBuffer.h */,
+				72A3F35930560F7400E1413C /* SharedFont.cpp */,
+				72A3F35A30560F7400E1413C /* SharedFont.h */,
 			);
 			path = graphics;
 			sourceTree = "<group>";
@@ -17859,6 +17865,8 @@
 				E49D40D61AD3FB170066B7B9 /* NetworkCacheBlobStorage.h */,
 				E489D2841A0A2DB80078C06A /* NetworkCacheCoders.cpp */,
 				E489D2851A0A2DB80078C06A /* NetworkCacheCoders.h */,
+				C0D1C7A02E9000000000C002 /* NetworkCacheCompressionDictionaryEntry.cpp */,
+				C0D1C7A02E9000000000C001 /* NetworkCacheCompressionDictionaryEntry.h */,
 				E47D1E961B062B66002676A8 /* NetworkCacheData.cpp */,
 				E42E06111AA75ABD00B11699 /* NetworkCacheData.h */,
 				E42E06131AA75B7000B11699 /* NetworkCacheDataCocoa.mm */,
@@ -18751,6 +18759,7 @@
 				E4436ECC1A0D040B00EAD204 /* NetworkCache.h in Headers */,
 				E49D40D71AD3FB170066B7B9 /* NetworkCacheBlobStorage.h in Headers */,
 				E489D28C1A0A2DB80078C06A /* NetworkCacheCoders.h in Headers */,
+				C0D1C7A02E9000000000C003 /* NetworkCacheCompressionDictionaryEntry.h in Headers */,
 				E42E06121AA75ABD00B11699 /* NetworkCacheData.h in Headers */,
 				E413F59D1AC1ADC400345360 /* NetworkCacheEntry.h in Headers */,
 				834B250F1A831A8D00CFB150 /* NetworkCacheFileSystem.h in Headers */,
@@ -19002,7 +19011,6 @@
 				8313F7EC1F7DAE0800B944EB /* SharedStringHashStore.h in Headers */,
 				8313F7EE1F7DAE0800B944EB /* SharedStringHashTable.h in Headers */,
 				83F9644E1FA0F76E00C47750 /* SharedStringHashTableReadOnly.h in Headers */,
-				E331D424304B85F80075E6CA /* ShouldFreezeLayerTree.h in Headers */,
 				7A41E9FB21F81DAD00B88CDB /* ShouldGrandfatherStatistics.h in Headers */,
 				995226D6207D184600F78420 /* SimulatedInputDispatcher.h in Headers */,
 				2DAF06D618BD1A470081CEB1 /* SmartMagnificationController.h in Headers */,

@@ -10774,6 +10774,42 @@ TEST(SiteIsolation, ReplaceDictatedTextInCrossOriginIframe)
     EXPECT_WK_STREQ("world", [webView stringByEvaluatingJavaScript:@"document.body.textContent" inFrame:childFrame.get()]);
 }
 
+TEST(SiteIsolation, SelectAllAndCopyInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'>main frame text<iframe id='iframe' style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    [webView focusInWindow];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    [webView evaluateJavaScript:@"document.getElementById('iframe').focus()" completionHandler:nil];
+    while (![childFrame _isFocused]) {
+        Util::spinRunLoop();
+        childFrame = [webView firstChildFrame];
+    }
+
+    [webView selectAll:nil];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()] isEqualToString:@"subframe text"];
+    }));
+    EXPECT_WK_STREQ("", [webView stringByEvaluatingJavaScript:@"getSelection().toString()"]);
+
+    auto changeCountBeforeCopy = [UIPasteboard.generalPasteboard changeCount];
+    [webView copy:nil];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [UIPasteboard.generalPasteboard changeCount] != changeCountBeforeCopy;
+    }));
+    EXPECT_WK_STREQ("subframe text", [UIPasteboard.generalPasteboard string]);
+}
+
 TEST(SiteIsolation, SelectionBoundingRectInCrossOriginIframeUsesMainFrameCoordinates)
 {
     HTTPServer server({
@@ -11110,6 +11146,62 @@ TEST(SiteIsolation, FocusingMainFrameFieldKeepsFocusAfterCrossOriginIframeField)
     [webView waitForNextPresentationUpdate];
 
     EXPECT_TRUE([webView hasActiveInputSession]);
+}
+
+TEST(SiteIsolation, RefocusingCrossOriginIframeFieldStartsInputSessionAgain)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><input id='mainInput' placeholder='main'><iframe id='iframe' style='display: block; width: 300px; height: 200px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'><input id='iframeInput' placeholder='iframe'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    RetainPtr focusedElements = adoptNS([NSMutableArray new]);
+    RetainPtr inputSessionElements = adoptNS([NSMutableArray new]);
+
+    RetainPtr inputDelegate = adoptNS([[TestInputDelegate alloc] init]);
+    [inputDelegate setFocusStartsInputSessionPolicyHandler:[&] (WKWebView *, id<_WKFocusedElementInfo> info) {
+        [focusedElements addObject:info.placeholder];
+        // Disallowing an input session for the main frame's field is essential to reproducing the bug:
+        // -_elementDidFocus bails before storing the new focused element information, so the UI process
+        // keeps the iframe field's information. Refocusing the iframe field then looks like a refocus of
+        // the element that is already focused and is dropped. Allowing an input session here would
+        // overwrite that information, and the refocus would start a new session even without the fix.
+        return [info.placeholder isEqualToString:@"main"] ? _WKFocusStartsInputSessionPolicyDisallow : _WKFocusStartsInputSessionPolicyAllow;
+    }];
+    [inputDelegate setWillStartInputSessionHandler:[&] (WKWebView *, id<_WKFormInputSession>) {
+        [inputSessionElements addObject:[focusedElements lastObject]];
+    }];
+    [webView _setInputDelegate:inputDelegate.get()];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    [webView focusInWindow];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.getElementById('iframeInput').focus()" inFrame:childFrame.get()];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [inputSessionElements count] > 0;
+    }));
+
+    auto focusCountBeforeMainFrameFocus = [focusedElements count];
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.getElementById('mainInput').focus()"];
+    EXPECT_TRUE(Util::waitFor([&] { return [focusedElements count] > focusCountBeforeMainFrameFocus; }));
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return ![[webView stringByEvaluatingJavaScript:@"document.activeElement.id" inFrame:childFrame.get()] isEqualToString:@"iframeInput"];
+    }));
+
+    auto focusCountBeforeRefocus = [focusedElements count];
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.getElementById('iframeInput').focus()" inFrame:childFrame.get()];
+    EXPECT_TRUE(Util::waitFor([&] { return [focusedElements count] > focusCountBeforeRefocus; }));
+    [webView waitForNextPresentationUpdate];
+
+    EXPECT_WK_STREQ("iframe,main,iframe", [focusedElements componentsJoinedByString:@","]);
+    EXPECT_WK_STREQ("iframe,iframe", [inputSessionElements componentsJoinedByString:@","]);
 }
 
 TEST(SiteIsolation, ZoomToRevealFocusedElementRectIsInMainFrameCoordinates)

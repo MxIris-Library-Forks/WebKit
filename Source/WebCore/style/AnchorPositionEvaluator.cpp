@@ -478,7 +478,7 @@ static LayoutRect boxBoundingBoxInContainer(const RenderBoxModelObject& box, con
     bool wasFixed = false;
     auto localRect = [&]() -> LayoutRect {
         if (CheckedPtr inlineBox = dynamicDowncast<RenderInline>(&box))
-            return inlineBox->linesBoundingBox();
+            return inlineBox->borderBoxRectInContainer();
         return box.borderBoundingBox();
     }();
     // FIXME: figure out if OverscrollClamp is still needed.
@@ -1662,8 +1662,8 @@ bool AnchorPositionEvaluator::overflowsInsetModifiedContainingBlock(const Render
     inlineConstraints.computeInsets();
     blockConstraints.computeInsets();
 
-    auto anchorInlineSize = anchoredBox.logicalWidth() + anchoredBox.marginStart() + anchoredBox.marginEnd();
-    auto anchorBlockSize = anchoredBox.logicalHeight() + anchoredBox.marginBefore() + anchoredBox.marginAfter();
+    auto anchorInlineSize = anchoredBox.logicalWidth() + anchoredBox.marginStart(anchoredBox.writingMode()) + anchoredBox.marginEnd(anchoredBox.writingMode());
+    auto anchorBlockSize = anchoredBox.logicalHeight() + anchoredBox.marginBefore(anchoredBox.writingMode()) + anchoredBox.marginAfter(anchoredBox.writingMode());
 
     return inlineConstraints.insetModifiedContainingSize() < anchorInlineSize
         || blockConstraints.insetModifiedContainingSize() < anchorBlockSize;

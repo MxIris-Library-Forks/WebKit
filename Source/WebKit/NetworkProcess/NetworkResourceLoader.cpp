@@ -65,12 +65,14 @@
 #include <WebCore/BlobDataFileReference.h>
 #include <WebCore/COEPInheritenceViolationReportBody.h>
 #include <WebCore/CORPViolationReportBody.h>
+#include <WebCore/CacheValidation.h>
 #include <WebCore/CertificateInfo.h>
 #include <WebCore/ClientOrigin.h>
 #include <WebCore/ContentSecurityPolicy.h>
 #include <WebCore/CrossOriginEmbedderPolicy.h>
 #include <WebCore/DiagnosticLoggingClient.h>
 #include <WebCore/DiagnosticLoggingKeys.h>
+#include <WebCore/ExceptionOr.h>
 #include <WebCore/HTTPParsers.h>
 #include <WebCore/HTTPStatusCodes.h>
 #include <WebCore/LegacySchemeRegistry.h>
@@ -80,6 +82,7 @@
 #include <WebCore/NetworkLoadMetrics.h>
 #include <WebCore/OriginAccessPatterns.h>
 #include <WebCore/PendingStreamState.h>
+#include <WebCore/RFC8941.h>
 #include <WebCore/RegistrableDomain.h>
 #include <WebCore/ReportingScope.h>
 #include <WebCore/ResourceLoaderOptions.h>
@@ -90,6 +93,8 @@
 #include <WebCore/SecurityPolicy.h>
 #include <WebCore/ShareableResource.h>
 #include <WebCore/SharedBuffer.h>
+#include <WebCore/URLPattern.h>
+#include <WebCore/URLPatternOptions.h>
 #include <WebCore/ViolationReportType.h>
 #include <wtf/Borrow.h>
 #include <wtf/CallbackAggregator.h>
@@ -275,7 +280,7 @@ void NetworkResourceLoader::startRequest(const ResourceRequest& newRequest)
 
             WTF::switchOn(result,
                 [protectedThis] (ResourceError& error) {
-                    LOADER_RELEASE_LOG_WITH_THIS(protectedThis, "start: NetworkLoadChecker::check returned an error (error.domain=%" PUBLIC_LOG_STRING ", error.code=%d, isCancellation=%d)", error.domain().utf8().legacyCStringPointer(), error.errorCode(), error.isCancellation());
+                    LOADER_RELEASE_LOG_WITH_THIS(protectedThis, "start: NetworkLoadChecker::check returned an error (error.domain=%" PUBLIC_LOG_STRING ", error.code=%d, isCancellation=%d)", error.domain().utf8(), error.errorCode(), error.isCancellation());
                     if (!error.isCancellation())
                         protectedThis->didFailLoading(error);
                 },
@@ -426,7 +431,7 @@ bool NetworkResourceLoader::shouldSendResourceLoadMessages() const
 bool NetworkResourceLoader::isLocalFileLoadAllowed(const URL& url)
 {
     bool pathIsAllowed = !pathIsBlockedForSandboxExtensions(url.fileSystemPath());
-    LOADER_RELEASE_LOG("isLocalFileLoadAllowed: allowed = %d, path = %{public}s", pathIsAllowed, url.fileSystemPath().utf8().legacyCStringPointer());
+    LOADER_RELEASE_LOG("isLocalFileLoadAllowed: allowed = %d, path = %{public}s", pathIsAllowed, url.fileSystemPath().utf8());
     return pathIsAllowed;
 }
 #endif // ENABLE(BLOCKING_OF_LOCAL_FILE_LOADS_WITHOUT_SANDBOX_EXTENSION)
@@ -451,8 +456,10 @@ void NetworkResourceLoader::startNetworkLoad(ResourceRequest&& request, FirstLoa
         if (isSynchronous() || m_parameters.maximumBufferingTime > 0_s)
             m_bufferedData.empty();
 
-        if (canUseCache(request))
+        if (canUseCache(request)) {
             m_bufferedDataForCache.empty();
+            m_compressionDictionaryInfoForCache.reset();
+        }
     }
 
     NetworkLoadParameters parameters = m_parameters.networkLoadParameters();
@@ -514,7 +521,7 @@ void NetworkResourceLoader::startNetworkLoad(ResourceRequest&& request, FirstLoa
         networkLoad->startWithScheduling();
 
     if (weakThis && networkLoad)
-        LOADER_RELEASE_LOG("startNetworkLoad: Going to the network (description=%" PUBLIC_LOG_STRING ")", networkLoad->description().utf8().legacyCStringPointer());
+        LOADER_RELEASE_LOG("startNetworkLoad: Going to the network (description=%" PUBLIC_LOG_STRING ")", networkLoad->description().utf8());
 }
 
 ResourceLoadInfo NetworkResourceLoader::resourceLoadInfo()
@@ -978,6 +985,103 @@ void NetworkResourceLoader::processClearSiteDataHeader(const WebCore::ResourceRe
     }
 }
 
+static const String* stringBareItem(const RFC8941::ItemOrInnerList& value)
+{
+    auto* bareItem = std::get_if<RFC8941::BareItem>(&value);
+    return bareItem ? std::get_if<String>(bareItem) : nullptr;
+}
+
+// https://fetch.spec.whatwg.org/#http-network-or-cache-fetch step 19, and
+// https://www.rfc-editor.org/rfc/rfc9842#name-use-as-dictionary.
+void NetworkResourceLoader::processUseAsDictionaryHeader(const ResourceResponse& response)
+{
+    if (response.tainting() == ResourceResponse::Tainting::Opaque)
+        return;
+
+    auto header = response.httpHeaderField(HTTPHeaderName::UseAsDictionary);
+    if (header.isEmpty())
+        return;
+
+    auto dictionaryValue = RFC8941::parseDictionaryStructuredFieldValue(header);
+    if (!dictionaryValue)
+        return;
+
+    NetworkCache::CompressionDictionaryEntry::Info info;
+    for (auto& [name, valueAndParameters] : *dictionaryValue) {
+        auto& value = valueAndParameters.first;
+        if (name == "match"_s) {
+            auto* match = stringBareItem(value);
+            if (!match)
+                return;
+            info.match = *match;
+        } else if (name == "id"_s) {
+            static constexpr unsigned maximumDictionaryIdLength = 1024;
+            auto* id = stringBareItem(value);
+            if (!id || !id->containsOnlyASCII() || id->length() > maximumDictionaryIdLength)
+                return;
+            info.id = *id;
+        } else if (name == "type"_s) {
+            auto* bareItem = std::get_if<RFC8941::BareItem>(&value);
+            auto* type = bareItem ? std::get_if<RFC8941::Token>(bareItem) : nullptr;
+            if (!type || type->string() != "raw"_s)
+                return;
+        } else if (name == "match-dest"_s) {
+            auto* matchDest = std::get_if<RFC8941::InnerList>(&value);
+            if (!matchDest)
+                return;
+            for (auto& [item, parameters] : *matchDest) {
+                auto* destinationString = std::get_if<String>(&item);
+                if (!destinationString)
+                    return;
+                if (auto destination = NetworkCache::parseFetchDestination(*destinationString))
+                    info.matchDest.add(*destination);
+            }
+            // Unsupported destinations are dropped, but at least one must remain.
+            if (info.matchDest.isEmpty())
+                return;
+        }
+    }
+
+    if (info.match.isEmpty())
+        return;
+
+    auto& url = m_networkLoad ? m_networkLoad->currentRequest().url() : originalRequest().url();
+    if (!WebCore::shouldTreatAsPotentiallyTrustworthy(url))
+        return;
+
+    auto patternResult = URLPattern::create(info.match, String { url.string() }, { });
+    if (patternResult.hasException())
+        return;
+    Ref pattern = patternResult.releaseReturnValue();
+    if (pattern->hasRegExpGroups())
+        return;
+
+    auto port = url.port();
+    if (pattern->protocol() != url.protocol() || pattern->hostname() != url.host() || pattern->port() != (port ? String::number(*port) : emptyString()))
+        return;
+
+    // The record keeps the lifetime the response allowed rather than the response, so that a
+    // dictionary can be matched without decoding one. https://www.rfc-editor.org/rfc/rfc9842#name-dictionary-freshness-requir
+    auto responseTimestamp = WallTime::now();
+    auto freshnessLifetime = computeFreshnessLifetimeForHTTPFamily(response, responseTimestamp);
+    auto currentAge = computeCurrentAge(response, responseTimestamp);
+    if (freshnessLifetime <= currentAge)
+        return;
+    info.expirationTime = responseTimestamp + (freshnessLifetime - currentAge);
+
+    m_compressionDictionaryInfoForCache = WTF::move(info);
+}
+
+void NetworkResourceLoader::storeCompressionDictionaryIfNeeded(const ResourceResponse& response, RefPtr<WebCore::FragmentedSharedBuffer>&& body)
+{
+    if (!m_compressionDictionaryInfoForCache || !body)
+        return;
+
+    LOADER_RELEASE_LOG("storeCompressionDictionaryIfNeeded: Storing compression dictionary in HTTP disk cache");
+    auto info = std::exchange(m_compressionDictionaryInfoForCache, std::nullopt);
+    protect(m_cache)->storeCompressionDictionary(m_networkLoad ? m_networkLoad->currentRequest() : originalRequest(), response, WTF::move(body), WTF::move(*info));
+}
+
 static BrowsingContextGroupSwitchDecision NODELETE toBrowsingContextGroupSwitchDecision(const std::optional<CrossOriginOpenerPolicyEnforcementResult>& currentCoopEnforcementResult)
 {
     if (!currentCoopEnforcementResult || !currentCoopEnforcementResult->needsBrowsingContextGroupSwitch)
@@ -1100,7 +1204,7 @@ void NetworkResourceLoader::didReceiveResponse(ResourceResponse&& receivedRespon
     };
 #endif
 
-    LOADER_RELEASE_LOG("didReceiveResponse: (httpStatusCode=%d, MIMEType=%" PUBLIC_LOG_STRING ", expectedContentLength=%lld, hasCachedEntryForValidation=%d, hasNetworkLoadChecker=%d)", receivedResponse.httpStatusCode(), receivedResponse.mimeType().utf8().legacyCStringPointer(), receivedResponse.expectedContentLength(), !!m_cacheEntryForValidation, !!m_networkLoadChecker);
+    LOADER_RELEASE_LOG("didReceiveResponse: (httpStatusCode=%d, MIMEType=%" PUBLIC_LOG_STRING ", expectedContentLength=%lld, hasCachedEntryForValidation=%d, hasNetworkLoadChecker=%d)", receivedResponse.httpStatusCode(), receivedResponse.mimeType().utf8(), receivedResponse.expectedContentLength(), !!m_cacheEntryForValidation, !!m_networkLoadChecker);
 
 #if ENABLE(CONTENT_FILTERING)
     if (m_contentFilter && !protect(m_contentFilter)->continueAfterResponseReceived(receivedResponse))
@@ -1154,14 +1258,20 @@ void NetworkResourceLoader::didReceiveResponse(ResourceResponse&& receivedRespon
     if (!isSynchronous() && m_response.isMultipart())
         m_bufferedData.reset();
 
-    if (m_response.isMultipart())
+    if (m_response.isMultipart()) {
         m_bufferedDataForCache.reset();
+        m_compressionDictionaryInfoForCache.reset();
+    }
 
     if (m_cacheEntryForValidation) {
         bool validationSucceeded = m_response.httpStatusCode() == httpStatus304NotModified;
         LOADER_RELEASE_LOG("didReceiveResponse: Received revalidation response (validationSucceeded=%d, wasOriginalRequestConditional=%d)", validationSucceeded, originalRequest().isConditional());
         if (validationSucceeded) {
             m_cacheEntryForValidation = protect(m_cache)->update(originalRequest(), *m_cacheEntryForValidation, m_response, m_privateRelayed);
+            if (connectionToWebProcess().compressionDictionaryEnabled()) {
+                processUseAsDictionaryHeader(m_cacheEntryForValidation->response());
+                storeCompressionDictionaryIfNeeded(m_cacheEntryForValidation->response(), m_cacheEntryForValidation->buffer());
+            }
             // If the request was conditional then this revalidation was not triggered by the network cache and we pass the 304 response to WebCore.
             if (originalRequest().isConditional()) {
                 // Add CORP header to the 304 response if previously set to avoid being blocked by load checker due to COEP.
@@ -1182,7 +1292,7 @@ void NetworkResourceLoader::didReceiveResponse(ResourceResponse&& receivedRespon
     if (networkLoadChecker) {
         auto error = networkLoadChecker->validateResponse(m_networkLoad ? m_networkLoad->currentRequest() : originalRequest(), m_response);
         if (!error.isNull()) {
-            LOADER_RELEASE_LOG_ERROR("didReceiveResponse: NetworkLoadChecker::validateResponse returned an error (error.domain=%" PUBLIC_LOG_STRING ", error.code=%d)", error.domain().utf8().legacyCStringPointer(), error.errorCode());
+            LOADER_RELEASE_LOG_ERROR("didReceiveResponse: NetworkLoadChecker::validateResponse returned an error (error.domain=%" PUBLIC_LOG_STRING ", error.code=%d)", error.domain().utf8(), error.errorCode());
             RunLoop::mainSingleton().dispatch([protectedThis = Ref { *this }, error = WTF::move(error)] {
                 if (protectedThis->m_networkLoad)
                     protectedThis->didFailLoading(error);
@@ -1237,6 +1347,9 @@ void NetworkResourceLoader::continueDidReceiveResponseAfterLocalNetworkAccessChe
     }
 
     processClearSiteDataHeader(m_response, [this, protectedThis = Ref { *this }, privateRelayed, resourceLoadInfo = WTF::move(resourceLoadInfo), completionHandler = WTF::move(completionHandler)] () mutable {
+        if (connectionToWebProcess().compressionDictionaryEnabled())
+            processUseAsDictionaryHeader(m_response);
+
         auto response = sanitizeResponseIfPossible(ResourceResponse { m_response }, ResourceResponse::SanitizationType::CrossOriginSafe);
         if (isSynchronous()) {
             LOADER_RELEASE_LOG("didReceiveResponse: Using response for synchronous load");
@@ -2070,6 +2183,9 @@ void NetworkResourceLoader::tryStoreAsCacheEntry()
         }
         return;
     }
+
+    storeCompressionDictionaryIfNeeded(m_response, m_bufferedDataForCache.copyBuffer());
+
     LOADER_RELEASE_LOG("tryStoreAsCacheEntry: Storing entry in HTTP disk cache");
     protect(m_cache)->store(m_networkLoad->currentRequest(), m_response, m_privateRelayed, m_bufferedDataForCache.takeBuffer(), [loader = Ref { *this }](auto&& mappedBody) mutable {
 #if ENABLE(SHAREABLE_RESOURCE)
@@ -2397,12 +2513,12 @@ static void logBlockedCookieInformation(NetworkConnectionToWebProcess& connectio
 
 #define LOCAL_LOG_IF_ALLOWED(fmt, ...) RELEASE_LOG_IF(connection.isAlwaysOnLoggingAllowed(), Network, "%p - %s::" fmt, loggedObject, label.characters(), ##__VA_ARGS__)
 #define LOCAL_LOG(str, ...) \
-    LOCAL_LOG_IF_ALLOWED("logCookieInformation: BLOCKED cookie access for webPageProxyID=%s, frameID=%s, resourceID=%s, firstParty=%s: " str, escapedWebPageProxyID.utf8().legacyCStringPointer(), escapedFrameID.utf8().legacyCStringPointer(), escapedIdentifier.utf8().legacyCStringPointer(), escapedFirstParty.utf8().legacyCStringPointer(), ##__VA_ARGS__)
+    LOCAL_LOG_IF_ALLOWED("logCookieInformation: BLOCKED cookie access for webPageProxyID=%s, frameID=%s, resourceID=%s, firstParty=%s: " str, escapedWebPageProxyID.utf8(), escapedFrameID.utf8(), escapedIdentifier.utf8(), escapedFirstParty.utf8(), ##__VA_ARGS__)
 
-    LOCAL_LOG("{ \"url\": \"%" PUBLIC_LOG_STRING "\",", escapedURL.utf8().legacyCStringPointer());
+    LOCAL_LOG("{ \"url\": \"%" PUBLIC_LOG_STRING "\",", escapedURL.utf8());
     LOCAL_LOG("  \"partition\": \"%" PUBLIC_LOG_STRING "\",", "BLOCKED");
     LOCAL_LOG("  \"hasStorageAccess\": %" PUBLIC_LOG_STRING ",", "false");
-    LOCAL_LOG("  \"referer\": \"%" PUBLIC_LOG_STRING "\",", escapedReferrer.utf8().legacyCStringPointer());
+    LOCAL_LOG("  \"referer\": \"%" PUBLIC_LOG_STRING "\",", escapedReferrer.utf8());
     LOCAL_LOG("  \"isSameSite\": \"%" PUBLIC_LOG_STRING "\",", sameSiteInfo.isSameSite ? "true" : "false");
     LOCAL_LOG("  \"isTopSite\": \"%" PUBLIC_LOG_STRING "\",", sameSiteInfo.isTopSite ? "true" : "false");
     LOCAL_LOG("  \"cookies\": []");
@@ -2429,12 +2545,12 @@ static void logCookieInformationInternal(NetworkConnectionToWebProcess& connecti
 
 #define LOCAL_LOG_IF_ALLOWED(fmt, ...) RELEASE_LOG_IF(connection.isAlwaysOnLoggingAllowed(), Network, "%p - %s::" fmt, loggedObject, label.characters(), ##__VA_ARGS__)
 #define LOCAL_LOG(str, ...) \
-    LOCAL_LOG_IF_ALLOWED("logCookieInformation: webPageProxyID=%s, frameID=%s, resourceID=%s: " str, escapedWebPageProxyID.utf8().legacyCStringPointer(), escapedFrameID.utf8().legacyCStringPointer(), escapedIdentifier.utf8().legacyCStringPointer(), ##__VA_ARGS__)
+    LOCAL_LOG_IF_ALLOWED("logCookieInformation: webPageProxyID=%s, frameID=%s, resourceID=%s: " str, escapedWebPageProxyID.utf8(), escapedFrameID.utf8(), escapedIdentifier.utf8(), ##__VA_ARGS__)
 
-    LOCAL_LOG("{ \"url\": \"%" PUBLIC_LOG_STRING "\",", escapedURL.utf8().legacyCStringPointer());
-    LOCAL_LOG("  \"partition\": \"%" PUBLIC_LOG_STRING "\",", escapedPartition.utf8().legacyCStringPointer());
+    LOCAL_LOG("{ \"url\": \"%" PUBLIC_LOG_STRING "\",", escapedURL.utf8());
+    LOCAL_LOG("  \"partition\": \"%" PUBLIC_LOG_STRING "\",", escapedPartition.utf8());
     LOCAL_LOG("  \"hasStorageAccess\": %" PUBLIC_LOG_STRING ",", hasStorageAccess ? "true" : "false");
-    LOCAL_LOG("  \"referer\": \"%" PUBLIC_LOG_STRING "\",", escapedReferrer.utf8().legacyCStringPointer());
+    LOCAL_LOG("  \"referer\": \"%" PUBLIC_LOG_STRING "\",", escapedReferrer.utf8());
     LOCAL_LOG("  \"isSameSite\": \"%" PUBLIC_LOG_STRING "\",", sameSiteInfo.isSameSite ? "true" : "false");
     LOCAL_LOG("  \"isTopSite\": \"%" PUBLIC_LOG_STRING "\",", sameSiteInfo.isTopSite ? "true" : "false");
     LOCAL_LOG("  \"cookies\": [");
@@ -2454,17 +2570,17 @@ static void logCookieInformationInternal(NetworkConnectionToWebProcess& connecti
         auto escapedCommentURL = escapeForJSON(cookie.commentURL.string());
         // FIXME: Log Same-Site policy for each cookie. See <https://bugs.webkit.org/show_bug.cgi?id=184894>.
 
-        LOCAL_LOG("  { \"name\": \"%" PUBLIC_LOG_STRING "\",", escapedName.utf8().legacyCStringPointer());
-        LOCAL_LOG("    \"value\": \"%" PUBLIC_LOG_STRING "\",", escapedValue.utf8().legacyCStringPointer());
-        LOCAL_LOG("    \"domain\": \"%" PUBLIC_LOG_STRING "\",", escapedDomain.utf8().legacyCStringPointer());
-        LOCAL_LOG("    \"path\": \"%" PUBLIC_LOG_STRING "\",", escapedPath.utf8().legacyCStringPointer());
+        LOCAL_LOG("  { \"name\": \"%" PUBLIC_LOG_STRING "\",", escapedName.utf8());
+        LOCAL_LOG("    \"value\": \"%" PUBLIC_LOG_STRING "\",", escapedValue.utf8());
+        LOCAL_LOG("    \"domain\": \"%" PUBLIC_LOG_STRING "\",", escapedDomain.utf8());
+        LOCAL_LOG("    \"path\": \"%" PUBLIC_LOG_STRING "\",", escapedPath.utf8());
         LOCAL_LOG("    \"created\": %f,", cookie.created);
         LOCAL_LOG("    \"expires\": %f,", cookie.expires.value_or(0));
         LOCAL_LOG("    \"httpOnly\": %" PUBLIC_LOG_STRING ",", cookie.httpOnly ? "true" : "false");
         LOCAL_LOG("    \"secure\": %" PUBLIC_LOG_STRING ",", cookie.secure ? "true" : "false");
         LOCAL_LOG("    \"session\": %" PUBLIC_LOG_STRING ",", cookie.session ? "true" : "false");
-        LOCAL_LOG("    \"comment\": \"%" PUBLIC_LOG_STRING "\",", escapedComment.utf8().legacyCStringPointer());
-        LOCAL_LOG("    \"commentURL\": \"%" PUBLIC_LOG_STRING "\"", escapedCommentURL.utf8().legacyCStringPointer());
+        LOCAL_LOG("    \"comment\": \"%" PUBLIC_LOG_STRING "\",", escapedComment.utf8());
+        LOCAL_LOG("    \"commentURL\": \"%" PUBLIC_LOG_STRING "\"", escapedCommentURL.utf8());
         LOCAL_LOG("  }%" PUBLIC_LOG_STRING, trailingComma.characters());
     }
     LOCAL_LOG("]}");

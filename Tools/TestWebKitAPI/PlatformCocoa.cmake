@@ -635,11 +635,13 @@ add_library(TestWebKitAPILibrary OBJECT
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/Bundle+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/CocoaTypes.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/Foundation+Extras.swift
-    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer.swift
-    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServerBridging.swift
-    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServerConnection.swift
-    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServerCore.swift
-    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServerRouting.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPSProxyFramer.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServer.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServerBridging.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServerConnection.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServerCore.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServerRouting.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/TestCertificates.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/ImageAnalysisTestingUtilities.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/JavaScriptMessages.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/JavaScriptTypes.swift
@@ -666,7 +668,17 @@ webkit_target_add_swift_options(TestWebKitAPILibrary
 list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/CodingTests.swift
     Tests/WebKit/WKWebView/TextFragments.swift
+    Tests/WebKit/WKWebView/TextPlaceholderTests.swift
+    Tests/WebKit/WKWebView/TextSize.swift
+    Tests/WebKit/WKWebView/TextWidth.swift
+    Tests/WebKit/WKWebView/TimeZoneOverride.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIAction.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIAlarms.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPICommands.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPICookies.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIEvent.swift
+    Tests/WebKit/WKWebView/WKWebExtensionTab.swift
+    Tests/WebKit/WKWebView/WKWebExtensionWindow.swift
     Tests/WebKit/WKWebView/WKWebViewSwiftOverlayTests.swift
 
     Tests/WebKit/WebPage/ControlledByExternalAgent.swift

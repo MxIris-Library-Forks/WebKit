@@ -333,6 +333,10 @@ fast/frames/frame-append-body-child-crash.html [ Slow ]
 [ Debug ] fast/frames/lots-of-objects.html [ Slow ]
 [ Debug ] fast/frames/lots-of-iframes.html [ Slow ]
 
+# Builds a 10000 link aria-labelledby chain, which has to be long enough to overflow the stack on
+# release builds, so it is unavoidably slow to walk in a debug build.
+[ Debug ] accessibility/accessible-name-chain-depth-no-crash.html [ Slow ]
+
 # This test is failing in all major browser engines as of Sept 2022. The reason is that the Reporting-Endpoints header
 # is served on the parent of the reporting frame, not the reporting frame.
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/reporting-to-endpoint.https.html
@@ -920,7 +924,7 @@ imported/w3c/web-platform-tests/workers/interfaces/WorkerGlobalScope/onerror/mes
 [ Debug ] imported/w3c/web-platform-tests/css/css-position/position-absolute-crash-chrome-006.html [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-position/position-absolute-crash-chrome-013.html [ Skip ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-properties-values-api/registered-property-revert.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/css/css-scoping/slotted-matches.html [ Skip ]
+[ Debug ] imported/w3c/web-platform-tests/css/css-shadow/slotted-matches.html [ Skip ]
 
 # Cookie tests that are flaky since their import because they fail and and out some kind of unique id.
 imported/w3c/web-platform-tests/cookies/prefix/document-cookie.non-secure.html [ Pass Failure ]
@@ -2353,7 +2357,7 @@ imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-baseline-017.html [
 imported/w3c/web-platform-tests/css/css-grid/subgrid/subgrid-baseline-018.html [ Pass Crash ]
 
 # Flaky tests at import time
-imported/w3c/web-platform-tests/css/css-scoping/css-scoping-shadow-host-namespace.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/css-scoping-shadow-host-namespace.html [ ImageOnlyFailure ]
 
 # WPT tests for custom elements
 webkit.org/b/187800 imported/w3c/web-platform-tests/custom-elements/Document-createElement-svg.svg [ Skip ]
@@ -2958,7 +2962,7 @@ imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/img-with-url-f
 imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/img-with-url-function-1.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/img-with-url-function-2.html [ ImageOnlyFailure ]
 
-imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/link-parameters-currentcolor.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/link-parameters-currentcolor-typed.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/animations/scripted/syncbase-after-removal.html [ Skip ]
 imported/w3c/web-platform-tests/svg/animations/media-fragment-override-animation.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/interact/use-instance-hover.html [ ImageOnlyFailure ]
@@ -5732,9 +5736,9 @@ webkit.org/b/204163 imported/w3c/web-platform-tests/css/css-pseudo/marker-conten
 webkit.org/b/214461 imported/w3c/web-platform-tests/css/css-pseudo/marker-list-style-position.html [ ImageOnlyFailure ]
 webkit.org/b/214461 imported/w3c/web-platform-tests/css/css-pseudo/spelling-error-001.html [ ImageOnlyFailure ]
 
-webkit.org/b/214462 imported/w3c/web-platform-tests/css/css-scoping/host-context-specificity-001.html [ ImageOnlyFailure ]
-webkit.org/b/214462 imported/w3c/web-platform-tests/css/css-scoping/host-context-specificity-002.html [ ImageOnlyFailure ]
-webkit.org/b/214462 imported/w3c/web-platform-tests/css/css-scoping/host-context-specificity-003.html [ ImageOnlyFailure ]
+webkit.org/b/214462 imported/w3c/web-platform-tests/css/css-shadow/host-context-specificity-001.html [ ImageOnlyFailure ]
+webkit.org/b/214462 imported/w3c/web-platform-tests/css/css-shadow/host-context-specificity-002.html [ ImageOnlyFailure ]
+webkit.org/b/214462 imported/w3c/web-platform-tests/css/css-shadow/host-context-specificity-003.html [ ImageOnlyFailure ]
 
 webkit.org/b/214464 imported/w3c/web-platform-tests/css/css-text-decor/text-decoration-thickness-ink-skip-dilation.html [ ImageOnlyFailure ]
 
@@ -6205,6 +6209,14 @@ imported/w3c/web-platform-tests/trusted-types/should-sink-type-mismatch-violatio
 imported/w3c/web-platform-tests/trusted-types/should-trusted-type-policy-creation-be-blocked-by-csp-004-worker.html [ Skip ]
 
 # Needs moveBefore support
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/fieldset-child-date-input-blur-event.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/role-updates-after-move.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/select-option-optgroup.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/selection-preserve.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-iframe-crash.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-legend-input-crash.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-range-iframe-crash.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-subframe-count-crash.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/focus-preserve-render.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-option-recalc-style.html [ Skip ]
 
@@ -7622,7 +7634,7 @@ http/tests/site-isolation/touch-events [ Skip ]
 http/tests/site-isolation/ios [ Skip ]
 
 # CSS syntax
-imported/w3c/web-platform-tests/css/css-scoping/scoped-reference-animation-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/scoped-reference-animation-002.html [ ImageOnlyFailure ]
 
 # CSS Ruby
 # inline boxes (e.g. ruby base) are not supposed to get stretched by their content (needs clarification)
@@ -7654,8 +7666,11 @@ webkit.org/b/261557 media/video-remove-insert-repaints.html [ Pass Crash ]
 
 # CSS match :not(:not(:host))
 # webkit.org/b/283062
-imported/w3c/web-platform-tests/css/css-scoping/host-multiple-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/host-multiple-004.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/host-multiple-002.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/host-multiple-004.html [ ImageOnlyFailure ]
+
+# ::part() cascade is wrong when the part name is forwarded with exportparts and !important is used.
+imported/w3c/web-platform-tests/css/css-shadow/part/exportparts-layered.html [ ImageOnlyFailure ]
 
 # Out-of-flow line break handling
 [ Debug ] fast/text/remove-renderer-and-select-crash.html [ Skip ]
@@ -7673,7 +7688,6 @@ imported/w3c/web-platform-tests/svg/painting/svg-with-outline.html [ Pass Failur
 imported/w3c/web-platform-tests/svg/painting/color-interpolation-001.svg [ Pass Failure ]
 
 # web-platform-tests/svg/pservers failures
-imported/w3c/web-platform-tests/svg/pservers/scripted/pattern-transform-clear.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/pservers/reftests/gradient-transform-03.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/pservers/reftests/pattern-transform-03.svg [ ImageOnlyFailure ]
 
@@ -7704,17 +7718,17 @@ imported/w3c/web-platform-tests/css/css-anchor-position/anchor-ident-function.ht
 fast/canvas/image-buffer-resource-limits.html [ Slow ]
 
 # has-slotted is not implemeneted - https://bugs.webkit.org/show_bug.cgi?id=280608
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-flattened-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-flattened-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-001.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-004.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-006.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-007.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-flattened-001.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-flattened-004.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-scoping/has-slotted-functional-flattened-006.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-flattened-001.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-flattened-003.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-004.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-006.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-007.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-flattened-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-flattened-004.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-shadow/has-slotted-functional-flattened-006.tentative.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-transform-generateKeyFrame-simulcast.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc-encoded-transform/RTCRtpScriptTransform-encoded-transform.https.html [ Pass Failure ]
@@ -7725,9 +7739,6 @@ inspector/css/getMatchedStylesForNodeNestingStyleGrouping.html [ Failure ]
 
 # https://bugs.webkit.org/show_bug.cgi?id=266843 flakey tests with racey promise console.logs
 imported/w3c/web-platform-tests/dom/observable/tentative/observable-from.any.html [ Skip ]
-
-# It is failing only via WebKit Test Runner but passes on WPT dashboard
-imported/w3c/web-platform-tests/dom/xslt/encoding-single-chunk.html [ ImageOnlyFailure ]
 
 # Dump `rendertree` rather than proper test expectation as `testharness` test
 imported/w3c/web-platform-tests/WebIDL/ecmascript-binding/global-mutable-prototype.any.html [ Skip ]
@@ -8136,8 +8147,6 @@ imported/w3c/web-platform-tests/xml/xslt/encoding-single-chunk.html [ ImageOnlyF
 webkit.org/b/307614 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-display-types.html [ ImageOnlyFailure ]
 
 webkit.org/b/307602 imported/w3c/web-platform-tests/svg/text/reftests/rtl-text-path.html [ ImageOnlyFailure ]
-webkit.org/b/307602 imported/w3c/web-platform-tests/svg/text/reftests/textpath-path-attr-precedence-over-href.svg [ ImageOnlyFailure ]
-webkit.org/b/307602 imported/w3c/web-platform-tests/svg/text/reftests/textpath-path-attr.svg [ ImageOnlyFailure ]
 
 # VNE testing is flaky.
 webkit.org/b/211221 http/tests/performance/paint-timing/performance-paint-timing-fcp-after-visually-non-empty-for-num-chars.html [ Pass Failure ]
@@ -8187,7 +8196,6 @@ imported/w3c/web-platform-tests/svg/path/distance/path-length-css-overrides-pres
 imported/w3c/web-platform-tests/svg/path/distance/path-length-css-property.tentative.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/path/distance/path-length-css-zero.tentative.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/struct/reftests/use-foreignObject.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/text/reftests/textpath-path-attr-use-up-to-first-error.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/textpath-pathlength-css-display-none.tentative.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/textpath-side-003.svg [ ImageOnlyFailure ]    
 imported/w3c/web-platform-tests/svg/text/reftests/textpath-side-005.svg [ ImageOnlyFailure ]

@@ -1147,8 +1147,6 @@ webkit.org/b/240987 fast/images/heic-as-background-image.html [ ImageOnlyFailure
 
 webkit.org/b/244968 [ arm64 ] imported/w3c/web-platform-tests/web-animations/timing-model/animations/update-playback-rate-zero.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/245007 imported/w3c/web-platform-tests/html/cross-origin-opener-policy/coop-popup-opener-navigates.https.html [ Pass Failure ]
-
 webkit.org/b/245010 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/navigating-across-documents/replace-before-load/location-setter.html [ Pass Failure ]
 
 # webkit.org/b/246773 Constant crashes on wk2 debug
@@ -1522,7 +1520,7 @@ http/tests/webgpu/webgpu/api/validation/buffer/mapping.html [ Pass ]
 [ Release Sequoia+ ] http/tests/webgpu/webgpu/api/validation/render_pipeline/resource_compatibility.html [ Pass Slow ]
 [ Release Sequoia+ ] http/tests/webgpu/webgpu/api/operation/render_pipeline/sample_mask.html [ Pass Slow ]
 [ Release Sequoia+ ] http/tests/webgpu/webgpu/api/validation/image_copy/texture_related.html [ Pass Slow ]
-[ Release arm64 Sequoia+ ] http/tests/webgpu/webgpu/api/validation/state/device_lost/destroy.html [ Pass Slow ]
+[ Release arm64 Sequoia+ ] http/tests/webgpu/webgpu/api/validation/state/device_lost/destroy.html [ Pass Failure Timeout ]
 
 http/tests/webgpu/webgpu/api/validation/queue/buffer_mapped.html [ Pass ]
 http/tests/webgpu/webgpu/api/validation/queue/submit.html [ Pass ]
@@ -2465,9 +2463,6 @@ imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.sharedwork
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.worker.html [ Failure ]
 
 webkit.org/b/322051 [ Release ] media/picture-in-picture/picture-in-picture-interruption.html [ Pass Failure ]
-
-# rdar://181715555 (REGRESSION(26A343b): [macOS 27] webrtc/h265.html is a constant TIMEOUT)
-[ GoldenGate ] webrtc/h265.html [ Timeout ]
 
 # rdar://183487942 ([macOS 27] fast/inline/blocks-in-inline-ax-invalid.html is a flaky test failure)
 [ GoldenGate ] fast/inline/blocks-in-inline-ax-invalid.html [ Pass ImageOnlyFailure ]

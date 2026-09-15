@@ -1397,6 +1397,48 @@ class MemoryAtomicWaitNoTimeoutTestCase:
         self.session.cmd("thread select 1", patterns=["->  0x4000000000000030: memory.atomic.wait32 0"])
 
 
+class ThreadStopInfoUnknownThreadTestCase:
+    test_file = "resources/wasm/memory-atomic-wait.js"
+    extra_jsc_options = ["--useDollarVM=1"]
+
+    def execute(self):
+        # An unknown thread id must be refused without wedging. The error reply used to route back
+        # through ExecutionHandler::sendReply, which re-takes the lock sendStopReplyForThread is
+        # already holding, so the server never answered again. Thread 0 is never a valid id, so
+        # this always takes that path. The follow-up read is the real assertion.
+        self.session.cmd("process plugin packet send qThreadStopInfo0", patterns=["response: E02"])
+        self.session.cmd("process plugin packet send m0000000000000000,08", patterns=["response: 0000000000000000"])
+
+
+class MalformedMemoryPacketTestCase:
+    test_file = "resources/wasm/memory-atomic-wait.js"
+    extra_jsc_options = ["--useDollarVM=1"]
+
+    def execute(self):
+        # Malformed m/M fields must be rejected, not silently defaulted, and must not stop the
+        # stub serving. Each bad packet is followed by a good one: a wedged server answers nothing,
+        # so the good packet is the real assertion.
+        self.session.cmd("process plugin packet send m0000000000000000,08", patterns=["response: 0000000000000000"])
+
+        # A parse failure used to default to 0, which is a real address: instance 0's memory.
+        self.session.cmd("process plugin packet send mzzzzzzzz,10", patterns=["response: E01"])
+        # parseInteger() accepts a leading '+', which is also the RSP ack character.
+        self.session.cmd("process plugin packet send m+20,08", patterns=["response: E01"])
+        self.session.cmd("process plugin packet send m0000000000000000,zz", patterns=["response: E01"])
+
+        # offset + length overflowed back inside the module, so the read ran with a huge length.
+        self.session.cmd("process plugin packet send m4000000000000020,ffffffffffffffe8", patterns=["response: E02"])
+        self.session.cmd("process plugin packet send m4000000000000000,04", patterns=["response: 0061736d"])
+
+        # A non-hex payload reaches toASCIIHexValue, which asserts.
+        self.session.cmd("process plugin packet send M0000000000000000,2:zzzz", patterns=["response: E01"])
+        self.session.cmd("process plugin packet send m0000000000000000,08", patterns=["response: 0000000000000000"])
+
+        # Positive control: a well-formed write still lands.
+        self.session.cmd("process plugin packet send M0000000000000000,2:41ff", patterns=["response: OK"])
+        self.session.cmd("process plugin packet send m0000000000000000,08", patterns=["response: 41ff000000000000"])
+
+
 class DoCatchThrowTestCase:
     test_file = "resources/swift-wasm/do-catch-throw/main.js"
 
@@ -1539,12 +1581,12 @@ class WasmUnreachableFaultTestCase:
     def execute(self):
         for _ in range(10):
             self.session.cmd("c", patterns=["Process 1 stopped"])
-            self.session.cmd("dis", patterns=["->  0x4000000000000024: unreachable"])
+            self.session.cmd("dis", patterns=["->  0x4000000000000025: unreachable"])
 
         self.session.cmd(
             "bt",
             patterns=[
-                "frame #0: 0x4000000000000024",
+                "frame #0: 0x4000000000000025",
                 "frame #1: 0xc000000000000000",
             ]
         )
@@ -1555,10 +1597,10 @@ class BreakpointOnUnreachableTestCase:
 
     def execute(self):
         # A breakpoint on unreachable reports the breakpoint first, then the trap.
-        self.session.cmd("b 0x4000000000000024", patterns=["Breakpoint 1"])
+        self.session.cmd("b 0x4000000000000025", patterns=["Breakpoint 1"])
         self.session.cmd(
             "c",
-            patterns=["Process 1 stopped", "stop reason = breakpoint 1", "->  0x4000000000000024: unreachable"],
+            patterns=["Process 1 stopped", "stop reason = breakpoint 1", "->  0x4000000000000025: unreachable"],
         )
         self.session.cmd(
             "c",
@@ -1571,10 +1613,10 @@ class StepOffUnreachableTestCase:
 
     def execute(self):
         # Unreachable has no successor instruction, so a step off it lands on the trap.
-        self.session.cmd("b 0x4000000000000024", patterns=["Breakpoint 1"])
+        self.session.cmd("b 0x4000000000000025", patterns=["Breakpoint 1"])
         self.session.cmd(
             "c",
-            patterns=["Process 1 stopped", "stop reason = breakpoint 1", "->  0x4000000000000024: unreachable"],
+            patterns=["Process 1 stopped", "stop reason = breakpoint 1", "->  0x4000000000000025: unreachable"],
         )
         self.session.cmd("si", patterns=["Unreachable code should not be executed"])
 
@@ -1979,14 +2021,9 @@ class MultiInstanceUnreachableOwnSiteTestCase:
         # A site on instance 0's own `unreachable`. The patch byte and the instruction are both
         # 0x00, so there is no displaced opcode to replay on resume -- the trap has to propagate.
         self.session.cmd("b 0x4000000000000024", patterns=["Breakpoint 1"])
-        # FIXME: This cannot be looped, so the breakpoint is only checked on its first hit.
-        # Resuming from a site, LLDB runs a z0 / step / Z0 dance, which assumes the step executes
-        # one instruction and stops. At a wasm trap there is no next wasm instruction -- the trap
-        # unwinds to JS, which can catch it -- so step() resumes all instead. The step therefore
-        # covers unbounded execution: the JS catch runs, the loop calls the export again, and the
-        # interpreter reaches this byte once more while the site is still lifted, so that hit is
-        # reported as a plain trap. Z0 arrives only after the stop, too late to catch it. Net
-        # effect: the breakpoint reports on the first hit and the trap on every hit after.
+        # FIXME: Cannot be looped; the breakpoint only reports on its first hit. LLDB's z0/step/Z0
+        # dance assumes the step retires one instruction, but a wasm trap unwinds to JS, so step()
+        # resumes all and the JS catch re-enters the export while the site is still lifted.
         self.session.cmd(
             "c",
             patterns=["Process 1 stopped", "stop reason = breakpoint 1", "->  0x4000000000000024: unreachable"],
@@ -2270,6 +2307,8 @@ ALL_TESTS = [
     MultiVMSameModuleDifferentFunctionsTestCase,
     MemoryAtomicWaitTestCase,
     MemoryAtomicWaitNoTimeoutTestCase,
+    ThreadStopInfoUnknownThreadTestCase,
+    MalformedMemoryPacketTestCase,
     DoCatchThrowTestCase,
     WasmWasmWasmCallStackTestCase,
     JsWasmJsWasmCallStackTestCase,

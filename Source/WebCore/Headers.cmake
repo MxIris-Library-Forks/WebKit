@@ -1159,6 +1159,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/deprecated-cssom/DeprecatedCSSOMValue.h
     css/deprecated-cssom/DeprecatedCSSOMValueList.h
 
+    css/parser/CSSCustomPropertySyntax.h
     css/parser/CSSParser.h
     css/parser/CSSParserContext.h
     css/parser/CSSParserEnum.h
@@ -1241,6 +1242,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/primitives/CSSRatio.h
     css/values/primitives/CSSString.h
     css/values/primitives/CSSSymbol.h
+    css/values/primitives/CSSTypeSpecifier.h
     css/values/primitives/CSSURL.h
     css/values/primitives/CSSURLModifiers.h
     css/values/primitives/CSSUnevaluatedCalc.h
@@ -1871,6 +1873,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/AttributionSecondsUntilSendData.h
     loader/AttributionTimeToSendData.h
     loader/AttributionTriggerData.h
+    loader/BackForwardCacheCommitData.h
     loader/COEPInheritenceViolationReportBody.h
     loader/CORPViolationReportBody.h
     loader/CanvasActivityRecord.h
@@ -3313,6 +3316,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/color/StyleColor.h
     style/values/color/StyleColorOptions.h
+    style/values/color/StyleCurrentAccentColor.h
     style/values/color/StyleCurrentColor.h
     style/values/color/StyleDynamicRangeLimit.h
     style/values/color/StyleDynamicRangeLimitMix.h
@@ -3468,6 +3472,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     style/values/position/StyleInset.h
 
+    style/values/primitives/StyleCalcSizeValue+Evaluation.h
+    style/values/primitives/StyleCalcSizeValue.h
     style/values/primitives/StyleCustomIdent.h
     style/values/primitives/StyleDeclarationValue.h
     style/values/primitives/StyleCoordinatedValueList.h
@@ -3487,8 +3493,11 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/primitives/StyleSizeOrKeyword.h
     style/values/primitives/StyleSnapLengthAsBorderWidth.h
     style/values/primitives/StyleString.h
+    style/values/primitives/StyleTypeSpecifier.h
     style/values/primitives/StyleURL.h
+    style/values/primitives/StyleUnevaluatedCalcSize.h
     style/values/primitives/StyleUnevaluatedCalculation.h
+    style/values/primitives/StyleValueHandleMap.h
 
     style/values/rhythm/StyleBlockStepSize.h
 

@@ -887,6 +887,9 @@ target_include_directories(WebKitSwift PRIVATE
     ${CMAKE_BINARY_DIR}
     ${WTF_FRAMEWORK_HEADERS_DIR}
     ${bmalloc_FRAMEWORK_HEADERS_DIR}
+    # The Objective-C++ sources include Source/WebKit/config.h, which includes
+    # <pal/ExportMacros.h>.
+    ${PAL_FRAMEWORK_HEADERS_DIR}
 )
 
 webkit_target_add_swift_options(WebKitSwift
@@ -1841,13 +1844,16 @@ foreach (_dest IN LISTS _webkit_swiftmodule_dests)
 endforeach ()
 add_custom_command(
     OUTPUT ${_webkit_staged_swiftmodule_artifacts}
-    DEPENDS WebKit
+    DEPENDS "${_webkit_swift_output}/WebKit.swiftmodule"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${_webkit_fw_swiftmodule_dir}"
     ${_webkit_stage_swiftmodule_commands}
     COMMENT "Staging WebKit.swiftmodule into WebKit.framework/Modules/"
     VERBATIM
 )
 add_custom_target(WebKit_StageSwiftModule DEPENDS ${_webkit_staged_swiftmodule_artifacts})
+# Ordering only; a dependency on the WebKit target would track the framework
+# binary, which code signing rewrites later.
+add_dependencies(WebKit_StageSwiftModule WebKit)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/WebKit/Modules/WebKit.swiftcrossimport")
 file(WRITE "${CMAKE_BINARY_DIR}/WebKit/Modules/WebKit.swiftcrossimport/SwiftUI.swiftoverlay"
@@ -2603,7 +2609,7 @@ set(_wk_swiftmodule_outputs
 
 add_custom_command(
         OUTPUT ${_wk_swiftmodule_outputs}
-        DEPENDS WebKit
+        DEPENDS "${_wk_swift_out}/WebKit.swiftmodule"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${_wk_swiftmodule_dir}/Project"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_wk_swift_out}/WebKit.swiftmodule"
         "${_wk_swiftmodule_dir}/${_wk_triple}.swiftmodule"
@@ -2665,9 +2671,12 @@ WEBKIT_SYMLINK_FILES(WebKit_CopyAutomationAtoms
 )
 list(APPEND WebKit_DEPENDENCIES WebKit_CopyAutomationProtocol WebKit_CopyAutomationAtoms)
 
-# The staging command above depends on WebKit, so this target must not be added
-# to WebKit_DEPENDENCIES; ALL is what gets it built.
+# The staging command above is ordered after WebKit, so this target must not be
+# added to WebKit_DEPENDENCIES; ALL is what gets it built.
 add_custom_target(WebKit_StageSwiftModuleMac ALL DEPENDS ${_wk_swiftmodule_outputs})
+# Ordering only; a dependency on the WebKit target would track the framework
+# binary, which code signing rewrites later.
+add_dependencies(WebKit_StageSwiftModuleMac WebKit)
 
 add_custom_command(
     OUTPUT "${_wk_modules_dir}/WebKit.swiftcrossimport/SwiftUI.swiftoverlay"

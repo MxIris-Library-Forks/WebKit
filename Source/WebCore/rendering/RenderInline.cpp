@@ -36,7 +36,6 @@
 #include "LayoutIntegrationLineLayout.h"
 #include "LegacyInlineFlowBox.h"
 #include "LegacyInlineTextBox.h"
-#include "LegacyRootInlineBox.h"
 #include "OutlinePainter.h"
 #include "RenderBlock.h"
 #include "RenderBoxInlines.h"
@@ -94,59 +93,6 @@ void RenderInline::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         lineLayout->paint(paintInfo, paintOffset, this);
 }
 
-Vector<FloatRect> RenderInline::lineBoxRects() const
-{
-    if (auto* lineLayout = LayoutIntegration::LineLayout::containing(*this)) {
-        auto inlineBoxRects = lineLayout->collectInlineBoxRects(*this);
-        if (inlineBoxRects.isEmpty())
-            return { FloatRect { } };
-        return inlineBoxRects;
-    }
-
-    Vector<FloatRect> rects;
-    for (auto* box = firstLegacyInlineBoxFor(*this); box; box = box->nextLineBox())
-        rects.append(FloatRect { box->topLeft(), box->size() });
-    if (rects.isEmpty())
-        rects.append({ });
-    return rects;
-}
-
-void RenderInline::boundingRects(Vector<LayoutRect>& rects, const LayoutPoint& accumulatedOffset) const
-{
-    for (auto rect : lineBoxRects()) {
-        auto adjustedRect = LayoutRect { rect };
-        adjustedRect.moveBy(accumulatedOffset);
-        rects.append(adjustedRect);
-    }
-}
-
-void RenderInline::absoluteQuads(Vector<FloatQuad>& quads, bool*) const
-{
-    RenderGeometryMap geometryMap;
-    geometryMap.pushMappingsToAncestor(this, nullptr);
-    for (auto rect : lineBoxRects())
-        quads.append(geometryMap.absoluteRect(rect));
-}
-
-LayoutUnit RenderInline::offsetLeft() const
-{
-    return adjustedPositionRelativeToOffsetParent(firstInlineBoxTopLeft()).x();
-}
-
-LayoutUnit RenderInline::offsetTop() const
-{
-    return adjustedPositionRelativeToOffsetParent(firstInlineBoxTopLeft()).y();
-}
-
-LayoutPoint RenderInline::firstInlineBoxTopLeft() const
-{
-    if (auto* lineLayout = LayoutIntegration::LineLayout::containing(*this))
-        return lineLayout->firstInlineBoxRect(*this).location();
-    if (auto* inlineBox = firstLegacyInlineBoxFor(*this))
-        return flooredLayoutPoint(inlineBox->locationIncludingFlipping());
-    return { };
-}
-
 ASCIILiteral RenderInline::renderName() const
 {
     if (isRelativelyPositioned())
@@ -166,88 +112,6 @@ bool RenderInline::nodeAtPoint(const HitTestRequest& request, HitTestResult& res
     if (auto* lineLayout = LayoutIntegration::LineLayout::containing(*this))
         return lineLayout->hitTest(request, result, locationInContainer, accumulatedOffset, hitTestAction, this);
     return false;
-}
-
-LayoutUnit RenderInline::innerPaddingBoxWidth() const
-{
-    auto firstInlineBoxPaddingBoxLeft = LayoutUnit { };
-    auto lastInlineBoxPaddingBoxRight = LayoutUnit { };
-
-    if (LayoutIntegration::LineLayout::containing(*this)) {
-        if (auto inlineBox = InlineIterator::lineLeftmostInlineBoxFor(*this)) {
-            if (writingMode().isBidiLTR()) {
-                firstInlineBoxPaddingBoxLeft = inlineBox->logicalLeftIgnoringInlineDirection() + borderStart();
-                for (; inlineBox->nextInlineBoxLineRightward(); inlineBox.traverseInlineBoxLineRightward()) { }
-                ASSERT(inlineBox);
-                lastInlineBoxPaddingBoxRight = inlineBox->logicalRightIgnoringInlineDirection() - borderEnd();
-            } else {
-                lastInlineBoxPaddingBoxRight = inlineBox->logicalRightIgnoringInlineDirection() - borderStart();
-                for (; inlineBox->nextInlineBoxLineRightward(); inlineBox.traverseInlineBoxLineRightward()) { }
-                ASSERT(inlineBox);
-                firstInlineBoxPaddingBoxLeft = inlineBox->logicalLeftIgnoringInlineDirection() + borderEnd();
-            }
-            return std::max(0_lu, lastInlineBoxPaddingBoxRight - firstInlineBoxPaddingBoxLeft);
-        }
-        return { };
-    }
-
-    auto* firstInlineBox = firstLegacyInlineBoxFor(*this);
-    auto* lastInlineBox = lastLegacyInlineBoxFor(*this);
-    if (!firstInlineBox || !lastInlineBox)
-        return { };
-
-    if (writingMode().isBidiLTR()) {
-        firstInlineBoxPaddingBoxLeft = firstInlineBox->logicalLeft();
-        lastInlineBoxPaddingBoxRight = lastInlineBox->logicalRight();
-    } else {
-        lastInlineBoxPaddingBoxRight = firstInlineBox->logicalRight();
-        firstInlineBoxPaddingBoxLeft = lastInlineBox->logicalLeft();
-    }
-    return std::max(0_lu, lastInlineBoxPaddingBoxRight - firstInlineBoxPaddingBoxLeft);
-}
-
-LayoutUnit RenderInline::innerPaddingBoxHeight() const
-{
-    auto innerPaddingBoxLogicalHeight = LayoutUnit { isHorizontalWritingMode() ? borderBoxRectInContainer().height() : borderBoxRectInContainer().width() };
-    innerPaddingBoxLogicalHeight -= (borderBefore() + borderAfter());
-    return innerPaddingBoxLogicalHeight;
-}
-
-LayoutRect RenderInline::linesVisualOverflowBoundingBox() const
-{
-    if (auto* layout = LayoutIntegration::LineLayout::containing(*this)) {
-        if (!layoutBox()) {
-            // Repaint may be issued on subtrees during content mutation with newly inserted renderers.
-            ASSERT(needsLayout());
-            return { };
-        }
-        return layout->inkOverflowBoundingBoxRectFor(*this);
-    }
-
-    auto* firstInlineBox = firstLegacyInlineBoxFor(*this);
-    auto* lastInlineBox = lastLegacyInlineBoxFor(*this);
-    if (!firstInlineBox || !lastInlineBox)
-        return { };
-
-    // Return the width of the minimal left side and the maximal right side.
-    LayoutUnit logicalLeftSide = LayoutUnit::max();
-    LayoutUnit logicalRightSide = LayoutUnit::min();
-    for (auto* curr = firstInlineBox; curr; curr = curr->nextLineBox()) {
-        logicalLeftSide = std::min(logicalLeftSide, curr->logicalLeftVisualOverflow());
-        logicalRightSide = std::max(logicalRightSide, curr->logicalRightVisualOverflow());
-    }
-
-    const LegacyRootInlineBox& firstRootBox = firstInlineBox->root();
-    const LegacyRootInlineBox& lastRootBox = lastInlineBox->root();
-
-    LayoutUnit logicalTop = firstInlineBox->logicalTopVisualOverflow(firstRootBox.lineTop());
-    LayoutUnit logicalWidth = logicalRightSide - logicalLeftSide;
-    LayoutUnit logicalHeight = lastInlineBox->logicalBottomVisualOverflow(lastRootBox.lineBottom()) - logicalTop;
-
-    LayoutRect rect(logicalLeftSide, logicalTop, logicalWidth, logicalHeight);
-    if (!writingMode().isHorizontal())
-        rect = rect.transposedRect();
-    return rect;
 }
 
 auto RenderInline::localRectsForRepaint(RepaintOutlineBounds) const -> RepaintRects
@@ -272,7 +136,7 @@ auto RenderInline::localRectsForRepaint(RepaintOutlineBounds) const -> RepaintRe
     if (!firstLegacyInlineBoxFor(*this) && !LayoutIntegration::LineLayout::containing(*this))
         return { };
 
-    auto repaintRect = linesVisualOverflowBoundingBox();
+    auto repaintRect = visualOverflowRect();
     repaintRect.inflate(LayoutUnit { style().usedOutlineSize(style().usedZoomForLength(), style().deviceScaleFactor()) });
     return { repaintRect };
 }
@@ -283,52 +147,6 @@ LayoutRect RenderInline::rectWithOutlineForRepaint(const RenderLayerModelObject*
     for (auto& child : childrenOfType<RenderElement>(*this))
         r.unite(child.rectWithOutlineForRepaint(repaintContainer, outlineWidth));
     return r;
-}
-
-auto RenderInline::computeVisibleRectsInContainer(const RepaintRects& rects, const RenderLayerModelObject* container, const VisibleRectContext& context, VisibleRectState state) const -> std::optional<RepaintRects>
-{
-    // Repaint offset cache is only valid for root-relative repainting
-    if (view().frameView().layoutContext().isPaintOffsetCacheEnabled() && !container && !context.options.contains(VisibleRectContext::Option::UseEdgeInclusiveIntersection))
-        return computeVisibleRectsUsingPaintOffset(rects);
-
-    if (container == this)
-        return rects;
-
-    bool containerSkipped;
-    RenderElement* localContainer = this->container(container, containerSkipped);
-    if (!localContainer)
-        return rects;
-
-    auto adjustedRects = rects;
-    if (style().hasInFlowPosition() && layer()) {
-        // Apply the in-flow position offset when invalidating a rectangle. The layer
-        // is translated, but the render box isn't, so we need to do this to get the
-        // right dirty rect. Since this is called from RenderObject::setStyle, the relative or sticky position
-        // flag on the RenderObject has been cleared, so use the one on the style().
-        auto offsetForInFlowPosition = layer()->offsetForInFlowPosition();
-        adjustedRects.move(offsetForInFlowPosition);
-    }
-
-    if (localContainer->hasNonVisibleOverflow()) {
-        // FIXME: Respect the value of context.options.
-        auto containerContext = context;
-        containerContext.options.add(VisibleRectContext::Option::ApplyCompositedContainerScrolls);
-        bool isEmpty = !downcast<RenderLayerModelObject>(*localContainer).applyCachedClipAndScrollPosition(adjustedRects, container, containerContext);
-        if (isEmpty) {
-            if (context.options.contains(VisibleRectContext::Option::UseEdgeInclusiveIntersection))
-                return std::nullopt;
-            return adjustedRects;
-        }
-    }
-
-    if (containerSkipped) {
-        // If the repaintContainer is below o, then we need to map the rect into repaintContainer's coordinates.
-        auto containerOffset = container->offsetFromAncestorContainer(*localContainer);
-        adjustedRects.move(-containerOffset);
-        return adjustedRects;
-    }
-
-    return localContainer->computeVisibleRectsInContainer(adjustedRects, container, context, state);
 }
 
 LayoutSize RenderInline::offsetFromContainer(const RenderElement& container, const LayoutPoint&, bool* offsetDependsOnPoint) const
@@ -389,61 +207,6 @@ void RenderInline::mapLocalToContainer(const RenderLayerModelObject* ancestorCon
     container->mapLocalToContainer(ancestorContainer, transformState, mode, wasFixed);
 }
 
-LayoutSize RenderInline::offsetForInFlowPositionedInline(const RenderBox* child) const
-{
-    // FIXME: This function isn't right with mixed writing modes.
-    // An inline box is the containing block for an out-of-flow child when it is in-flow positioned, and also when
-    // something else about it makes it one, e.g. a filter. Either way the child's static position is relative to the
-    // inline's own content, so it needs the offset of the line the inline starts on.
-    if (!canContainAbsolutelyPositionedObjects()) {
-        ASSERT_NOT_REACHED();
-        return { };
-    }
-
-    if (!hasLayer()) {
-        // It looks like we are a containing block but no layer created yet. It essentially means we don't have a position offset yet.
-        return { };
-    }
-
-    // When we have an enclosing relpositioned inline, we need to add in the offset of the first line
-    // box from the rest of the content, but only in the cases where we know we're positioned
-    // relative to the inline itself.
-    auto inlinePosition = layer()->staticInlinePosition();
-    auto blockPosition = layer()->staticBlockPosition();
-    if (auto* inlineBox = firstLegacyInlineBoxFor(*this)) {
-        inlinePosition = LayoutUnit::fromFloatRound(inlineBox->logicalLeft());
-        blockPosition = inlineBox->logicalTop();
-    } else if (LayoutIntegration::LineLayout::containing(*this)) {
-        if (!layoutBox()) {
-            // Repaint may be issued on subtrees during content mutation with newly inserted renderers.
-            ASSERT(needsLayout());
-            return { };
-        }
-        if (auto inlineBox = InlineIterator::lineLeftmostInlineBoxFor(*this)) {
-            inlinePosition = LayoutUnit::fromFloatRound(inlineBox->logicalLeftIgnoringInlineDirection());
-            blockPosition = inlineBox->logicalTop();
-        } else if (auto* blockContainer = containingBlock()) {
-            // This must be a block with no in-flow content e.g. <div><span><abs pos box></span></div> where we don't construct any display box at all.
-            auto contentBoxLocation = blockContainer->contentBoxLocation();
-            inlinePosition = contentBoxLocation.x();
-            blockPosition = contentBoxLocation.y();
-        }
-    }
-
-    // Per http://www.w3.org/TR/CSS2/visudet.html#abs-non-replaced-width an absolute positioned box with a static position
-    // should locate itself as though it is a normal flow box in relation to its containing block.
-    LayoutSize logicalOffset;
-    if (!child->style().hasStaticInlinePosition(writingMode().isHorizontal())
-        || !child->style().positionArea().isNone() || child->style().justifySelf().isAnchorCenter())
-        logicalOffset.setWidth(inlinePosition);
-
-    if (!child->style().hasStaticBlockPosition(writingMode().isHorizontal())
-        || !child->style().positionArea().isNone() || child->style().alignSelf().isAnchorCenter())
-        logicalOffset.setHeight(blockPosition);
-
-    return writingMode().isHorizontal() ? logicalOffset : logicalOffset.transposedSize();
-}
-
 void RenderInline::imageChanged(WrappedImagePtr image, const IntRect*)
 {
     if (!parent())
@@ -458,17 +221,6 @@ void RenderInline::imageChanged(WrappedImagePtr image, const IntRect*)
 
     // FIXME: We can do better.
     repaint();
-}
-
-void RenderInline::collectLineBoxRects(Vector<LayoutRect>& rects, const LayoutPoint& additionalOffset) const
-{
-    for (auto rect : lineBoxRects()) {
-        if (rect.isEmpty())
-            continue;
-        auto adjustedRect = LayoutRect { rect };
-        adjustedRect.moveBy(additionalOffset);
-        rects.append(adjustedRect);
-    }
 }
 
 

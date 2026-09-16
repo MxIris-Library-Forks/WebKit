@@ -34,7 +34,7 @@ directly into an application that constructs the [class@Display]
 itself. The module is optional — this page focuses on writing the
 implementation; how WebKit discovers modules at runtime is a separate
 topic.
-<!-- FIXME: link backend-model.html (discovery) and overview.html model once available/landed -->
+<!-- FIXME: link backend-model.html (discovery) once that page lands -->
 
 The conceptual model behind these classes is introduced in
 [Overview](overview.html). The examples here use the public
@@ -99,8 +99,9 @@ have:
   [vfunc@Display.create_input_method_context],
   [vfunc@Display.create_gamepad_manager] — keyboard, clipboard, input
   method, and gamepad support. A display that provides no keymap gets a
-  fallback XKB one automatically, and one that provides no gamepad
-  manager gets a libmanette-based one.
+  fallback XKB one automatically, one that provides no clipboard gets a
+  local one, and one that provides no gamepad manager gets a
+  libmanette-based one when WebKit is built with libmanette.
 - [vfunc@Display.get_n_screens] / [vfunc@Display.get_screen] — the
   monitors the platform exposes (see
   [The display's screens](#the-displays-screens)).
@@ -111,7 +112,13 @@ have:
   whether the platform has monitors: even an offscreen implementation
   has to agree on buffer formats.
 
-Anything left unset falls back to a sensible default.
+Only some of the optional slots have a fallback (the keymap, clipboard,
+gamepad manager and, when built with libdrm, the preferred buffer
+formats). The others simply report the capability as missing: without
+`get_egl_display` there is no `EGLDisplay` (a
+`WPE_DISPLAY_ERROR_NOT_SUPPORTED` error), without `create_toplevel` views
+get no toplevel, and without the screen vfuncs the display has no
+screens.
 
 When a vfunc fails, populate the `GError` with the [error@DisplayError]
 domain and an appropriate code, such as
@@ -178,8 +185,8 @@ my_view_render_buffer (WPEView *view, WPEBuffer *buffer,
 }
 ```
 
-WebKit produces a [class@BufferDMABuf] or a [class@BufferSHM]; dispatch
-on the concrete type. [method@Buffer.import_to_egl_image] turns a DMA-BUF
+WebKit produces a [class@BufferDMABuf] or a [class@BufferSHM] (or a
+`WPEBufferAndroid` on Android); dispatch on the concrete type. [method@Buffer.import_to_egl_image] turns a DMA-BUF
 into an `EGLImage` for hardware-accelerated presentation.
 
 The reporting is a two-step lifecycle, and the distinction between the
@@ -198,9 +205,13 @@ later, when the platform signals the buffer is free — a Wayland
 so on.
 
 On an explicit-sync platform the buffer carries fences instead of
-blocking. Wait on its rendering fence
-([method@Buffer.take_rendering_fence]) before reading the buffer, and
-attach a release fence with [method@Buffer.set_release_fence] before
+blocking. Take its rendering fence
+([method@Buffer.take_rendering_fence]) and hand it to whatever consumes
+the buffer (the in-tree Wayland implementation passes it to the
+compositor as the acquire fence, and DRM passes it to KMS as the input
+fence), or wait on it yourself before reading the buffer. If the
+consumer gives you a release fence (as the Wayland compositor does),
+attach it with [method@Buffer.set_release_fence] before
 `buffer_released`, so WebKit holds off reusing the buffer until your
 presentation completes. The [vfunc@Display.use_explicit_sync] slot
 advertises the capability.
@@ -248,7 +259,8 @@ sequence id ([method@Event.touch_get_sequence_id]) so WebKit can track
 individual points across their lifetime.
 
 Key events are interpreted through a [class@Keymap]; if your display
-provides none, WebKit falls back to an XKB keymap. The Wayland
+provides none, WPEPlatform falls back to an XKB keymap for the pc105 US
+layout. The Wayland
 implementation is the reference here — it drives input from the
 `wl_seat` family of interfaces and builds its keymap from the
 compositor. A windowless implementation has no input at all, which is
@@ -270,12 +282,11 @@ negotiate formats without having any monitors.
 ## Making the implementation discoverable
 
 WebKit finds implementations through the GIO extension point
-`WPE_DISPLAY_EXTENSION_POINT_NAME`: a [class@Display] subclass registers
-itself there with a unique name and a priority. The name is what
-`WPE_DISPLAY` selects — by convention `wpe-display-<name>` — and the
-priority orders candidates when several are installed: the Wayland
-implementation uses `0`, and the more specialized DRM and headless ones
-use `-100` so they are tried only after Wayland declines.
+`WPE_DISPLAY_EXTENSION_POINT_NAME`: a [class@Display] subclass registers itself
+there with a unique name and a priority. The name is what `WPE_PLATFORM` selects
+and the priority orders candidates when several are installed: the Wayland
+implementation uses `0`, and the more specialized DRM and headless ones use
+`-100` so they are tried only after Wayland declines.
 
 How you register depends on whether the implementation is compiled in or
 loaded as a module.
@@ -287,7 +298,7 @@ type-registration time:
 ```c
 G_DEFINE_FINAL_TYPE_WITH_CODE (MyDisplay, my_display, WPE_TYPE_DISPLAY,
     g_io_extension_point_implement (WPE_DISPLAY_EXTENSION_POINT_NAME,
-        g_define_type_id, "wpe-display-myplatform", 0))
+        g_define_type_id, "myplatform", 0))
 ```
 
 An application that links the library can then construct `MyDisplay`
@@ -305,7 +316,7 @@ g_io_module_load (GIOModule *module)
 {
     my_display_register_type (G_TYPE_MODULE (module));
     g_io_extension_point_implement (WPE_DISPLAY_EXTENSION_POINT_NAME,
-        MY_TYPE_DISPLAY, "wpe-display-myplatform", 0);
+        MY_TYPE_DISPLAY, "myplatform", 0);
 }
 
 G_MODULE_EXPORT void
@@ -329,11 +340,17 @@ directory WebKit scans:
 ${LIBDIR}/wpe-platform-2.0/modules/
 ```
 
-Once installed, force WebKit to use it by setting `WPE_DISPLAY` to the
+The exact path is available from the `pkg-config` module:
+
+```sh
+pkg-config --variable=moduledir wpe-platform-2.0
+```
+
+Once installed, force WebKit to use it by setting `WPE_PLATFORM` to the
 name you registered:
 
 ```sh
-WPE_DISPLAY=wpe-display-myplatform MiniBrowser https://webkit.org
+WPE_PLATFORM=myplatform MiniBrowser https://webkit.org
 ```
 
 While iterating on a module that is not installed yet, point WebKit at
@@ -342,12 +359,18 @@ the build directory with `WPE_PLATFORMS_PATH`.
 ## A minimum viable implementation
 
 The smallest implementation that renders anything is a [class@Display]
-that overrides [vfunc@Display.connect] and [vfunc@Display.create_view],
-plus a [class@View] that overrides [vfunc@View.render_buffer]. That is
-enough to run — silently, offscreen — as the headless implementation
-demonstrates. Every other vfunc fills in a capability the defaults
-cannot guess: add `create_toplevel` and `get_egl_display` early (they
-unblock most of WebKit), then input, screens, and buffer-format
+that overrides [vfunc@Display.connect], [vfunc@Display.create_view], and
+[vfunc@Display.create_toplevel], plus a [class@View] whose
+[vfunc@View.render_buffer] calls [method@View.buffer_rendered] and
+[method@View.buffer_released] (WebKit stops producing frames otherwise).
+The view must also be given a size and be mapped: a new view is 0×0 and
+unmapped, and attaching a toplevel does not change that. A toplevel gets
+a default size from the settings, so the headless implementation
+connects to `notify::toplevel` and calls [method@View.resized] with the
+toplevel's size followed by [method@View.map].
+The headless implementation is close to this minimum, and additionally
+provides `get_egl_display` and `get_drm_device` so that DMA-BUF buffers
+can be used. From there, add input, screens, and buffer-format
 negotiation as the platform you are targeting requires.
 
 For complete, working code, read the in-tree implementations under

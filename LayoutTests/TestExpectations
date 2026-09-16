@@ -85,6 +85,10 @@ http/tests/site-isolation/select-in-cross-origin-iframe.html [ Skip ]
 http/tests/site-isolation/autofill-credentials-in-cross-origin-iframe.html [ Skip ]
 http/tests/site-isolation/focus-navigation-cross-origin-iframe.html [ Skip ]
 http/tests/site-isolation/magnify-gesture-over-cross-origin-pdf-iframe.html [ Skip ]
+# Needs ENABLE(MAC_GESTURE_EVENTS), so eventSender.scaleGesture* only exists on
+# internal SDK builds. Re-enabled alongside the test above in the internal mac-wk2
+# expectations.
+http/tests/site-isolation/magnify-gesture-coordinates.html [ Skip ]
 fast/viewport/ios [ Skip ]
 fast/visual-viewport/ios/ [ Skip ]
 http/tests/visual-viewport/ios/ [ Skip ]
@@ -729,6 +733,7 @@ imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customiz
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-button-text-and-icon-clipping.html [ ImageOnlyFailure ]
 # Overflow handling differences.
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/select-overflow-x.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-clipping.html [ ImageOnlyFailure ]
 # The picker-icon's negative margin glyph adjustment (margin-block-start: -0.25em) shifts the icon, which the reference doesn't account for.
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-display-block.tentative.html [ ImageOnlyFailure ]
 
@@ -4742,8 +4747,10 @@ imported/w3c/web-platform-tests/css/css-images/radial-gradient-line-height-relat
 # wpt css-transitions and css-animations failures and flakiness
 webkit.org/b/225407 imported/w3c/web-platform-tests/css/css-animations/nested-scale-animations.html [ ImageOnlyFailure ]
 webkit.org/b/225407 imported/w3c/web-platform-tests/css/css-animations/transform-animation-under-large-scale.html [ ImageOnlyFailure ]
+webkit.org/b/324039 imported/w3c/web-platform-tests/css/css-animations/keyframes-tree-scoped-property-with-var.html [ ImageOnlyFailure ]
 webkit.org/b/203356 imported/w3c/web-platform-tests/css/css-transitions/properties-value-003.html [ Failure Pass Timeout ]
 imported/w3c/web-platform-tests/css/css-transitions/transitioncancel-003.html [ Failure Pass ]
+webkit.org/b/324038 imported/w3c/web-platform-tests/css/css-transitions/crashtests/transition-shape-outside-crash.html [ Skip ]
 
 # wpt css-values failures
 # The "Shared between elements within a property - shorthand" subtest compares two random() draws in
@@ -8452,3 +8459,7 @@ imported/w3c/web-platform-tests/svg/as-image/sprite-sheet-fractional-size.html [
 
 # Media controls context menus are only implemented on WK2 Cocoa platforms.
 http/tests/media/media-controls-context-menu-anchor-in-iframe.html [ Skip ]
+
+# webkit.org/b/324231
+accessibility/line-clamp-text.html [ Skip ]
+accessibility/isolated-tree/line-clamp-text.html [ Skip ]

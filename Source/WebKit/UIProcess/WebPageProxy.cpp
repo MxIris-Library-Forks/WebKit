@@ -1509,13 +1509,18 @@ void WebPageProxy::launchProcess(const Site& site, ProcessLaunchReason reason)
         send(Messages::WebPage::PostInjectedBundleMessage(message.messageName, UserData(process->transformObjectsToHandles(protect(message.messageBody)).get())));
 }
 
-bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, RefPtr<WebFrameProxy>&& mainFrame, ShouldDelayClosingUntilFirstLayerFlush shouldDelayClosingUntilFirstLayerFlush)
+bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, const ProvisionalPageProxy& provisionalPage, RefPtr<WebFrameProxy>&& mainFrame, ShouldDelayClosingUntilFirstLayerFlush shouldDelayClosingUntilFirstLayerFlush)
 {
     m_suspendedPageKeptToPreventFlashing = nullptr;
     m_lastSuspendedPage = nullptr;
 
     if (!mainFrame)
         return false;
+
+    if (provisionalPage.mainFrame() == mainFrame) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because the provisional page is committing into its main frame", m_legacyMainFrameProcess->processID());
+        return false;
+    }
 
     if (!hasCommittedAnyProvisionalLoads()) {
         WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because has not committed any load yet", m_legacyMainFrameProcess->processID());
@@ -6377,7 +6382,7 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
 
     removeAllMessageReceivers();
     RefPtr navigation = m_navigationState->navigation(provisionalPage->navigationID());
-    bool didSuspendPreviousPage = navigation ? suspendCurrentPageIfPossible(*navigation, WTF::move(mainFrameInPreviousProcess), shouldDelayClosingUntilFirstLayerFlush) : false;
+    bool didSuspendPreviousPage = navigation ? suspendCurrentPageIfPossible(*navigation, *provisionalPage, WTF::move(mainFrameInPreviousProcess), shouldDelayClosingUntilFirstLayerFlush) : false;
 
     // Deferred from ProvisionalPageProxy::didCommitLoadForFrame(): if the
     // previous main-frame process still has local frames in this BCG,
@@ -12743,7 +12748,9 @@ void WebPageProxy::compositionWasCanceled()
 
 void WebPageProxy::registerEditCommandForUndo(IPC::Connection& connection, WebUndoStepID commandID, String&& label)
 {
-    registerEditCommand(WebEditCommandProxy::create(commandID, WTF::move(label), *this), UndoOrRedo::Undo);
+    Ref process = WebProcessProxy::fromConnection(connection);
+    auto pageIDInProcess = webPageIDInProcess(process);
+    registerEditCommand(WebEditCommandProxy::create(commandID, WTF::move(label), *this, process, pageIDInProcess), UndoOrRedo::Undo);
 }
 
 void WebPageProxy::registerInsertionUndoGrouping()
@@ -12760,13 +12767,26 @@ void WebPageProxy::canUndoRedo(UndoOrRedo action, CompletionHandler<void(bool)>&
     completionHandler(pageClient && pageClient->canUndoRedo(action));
 }
 
-void WebPageProxy::executeUndoRedo(UndoOrRedo action, CompletionHandler<void(uint32_t undoVersion, Vector<std::pair<WebUndoStepID, UndoOrRedo>>&&)>&& completionHandler)
+void WebPageProxy::executeUndoRedo(IPC::Connection& connection, UndoOrRedo action, CompletionHandler<void(uint64_t firstSequence, Vector<std::pair<WebUndoStepID, UndoOrRedo>>&&)>&& completionHandler)
 {
     if (RefPtr pageClient = this->pageClient())
         pageClient->executeUndoRedo(action);
-    // FIXME: <rdar://168324268> Fix this for site isolation. We need a separate pending undo/redo stack for each process.
-    ++m_undoVersion;
-    completionHandler(m_undoVersion, WTF::moveToVector(std::exchange(m_pendingUndoRedo, { })));
+
+    auto callingProcess = WebProcessProxy::fromConnection(connection)->coreProcessIdentifier();
+    auto firstSequence = m_nextUndoRedoSequenceByProcess.get(callingProcess);
+    Vector<std::pair<WebUndoStepID, UndoOrRedo>> undoRedoInCallingProcess;
+    m_pendingUndoRedo.removeAllMatching([&](auto& pendingUndoRedo) {
+        if (pendingUndoRedo.process != callingProcess)
+            return false;
+        if (undoRedoInCallingProcess.isEmpty())
+            firstSequence = pendingUndoRedo.sequence;
+        else
+            ASSERT(pendingUndoRedo.sequence == firstSequence + undoRedoInCallingProcess.size());
+        undoRedoInCallingProcess.append({ pendingUndoRedo.stepID, pendingUndoRedo.action });
+        return true;
+    });
+
+    completionHandler(firstSequence, WTF::move(undoRedoInCallingProcess));
 }
 
 void WebPageProxy::clearAllEditCommands()
@@ -12775,16 +12795,17 @@ void WebPageProxy::clearAllEditCommands()
         pageClient->clearAllEditCommands();
 }
 
-void WebPageProxy::addPendingUndoRedo(WebUndoStepID commandID, UndoOrRedo action)
+uint64_t WebPageProxy::addPendingUndoRedo(WebUndoStepID commandID, UndoOrRedo action, WebCore::ProcessIdentifier process)
 {
-    ++m_undoVersion;
-    m_pendingUndoRedo.append({ commandID, action });
+    auto sequence = m_nextUndoRedoSequenceByProcess.add(process, 0).iterator->value++;
+    m_pendingUndoRedo.append({ commandID, action, process, sequence });
+    return sequence;
 }
 
-void WebPageProxy::removePendingUndoRedo(WebUndoStepID commandID)
+void WebPageProxy::removePendingUndoRedo(WebUndoStepID commandID, WebCore::ProcessIdentifier process)
 {
-    m_pendingUndoRedo.removeFirstMatching([commandID](auto& item) {
-        return item.first == commandID;
+    m_pendingUndoRedo.removeFirstMatching([&](auto& pendingUndoRedo) {
+        return pendingUndoRedo.stepID == commandID && pendingUndoRedo.process == process;
     });
 }
 
@@ -13531,7 +13552,12 @@ void WebPageProxy::removeEditCommand(WebEditCommandProxy& command)
 
     if (!hasRunningProcess())
         return;
-    send(Messages::WebPage::DidRemoveEditCommand(command.commandID()));
+
+    RefPtr process = command.process();
+    if (!process)
+        return;
+
+    process->send(Messages::WebPage::DidRemoveEditCommand(command.commandID()), command.pageIDInProcess());
 }
 
 bool WebPageProxy::canUndo()
@@ -13771,7 +13797,11 @@ void WebPageProxy::mouseEventHandlingCompleted(bool handled, std::optional<Remot
 void WebPageProxy::gestureEventHandlingCompleted(std::optional<WebEventType> eventType, bool handled, std::optional<RemoteUserInputEventData> remoteUserInputEventData)
 {
     if (remoteUserInputEventData) {
-        sendGestureEvent(remoteUserInputEventData->targetFrameID, internals().gestureEventQueue.first().copyRef());
+        Ref event = internals().gestureEventQueue.first();
+        // The remote frame's process re-hit-tests the gesture, so it needs the position in that
+        // frame's root view coordinates rather than this page's.
+        event->setPosition(roundedIntPoint(remoteUserInputEventData->transformedPoint));
+        sendGestureEvent(remoteUserInputEventData->targetFrameID, WTF::move(event));
         return;
     }
 
@@ -16845,15 +16875,7 @@ void WebPageProxy::firstRectForCharacterRangeAsync(const EditingRange& range, Co
     if (!hasRunningProcess())
         return callbackFunction({ }, { });
 
-    RefPtr frame = focusedOrMainFrame();
-    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::FirstRectForCharacterRangeAsync(range), [protectedThis = Ref { *this }, frame, callbackFunction = WTF::move(callbackFunction)](const WebCore::IntRect& rect, const EditingRange& actualRange) mutable {
-        if (!frame)
-            return callbackFunction(rect, actualRange);
-
-        protectedThis->convertRectToMainFrameCoordinates(WebCore::FloatRect(rect), frame->rootFrame()->frameID(), [callbackFunction = WTF::move(callbackFunction), rect, actualRange](std::optional<WebCore::FloatRect> convertedRect) mutable {
-            callbackFunction(convertedRect ? WebCore::enclosingIntRect(*convertedRect) : rect, actualRange);
-        });
-    });
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::FirstRectForCharacterRangeAsync(range), WTF::move(callbackFunction));
 }
 
 void WebPageProxy::setCompositionAsync(const String& text, const Vector<CompositionUnderline>& underlines, const Vector<CompositionHighlight>& highlights, const HashMap<String, Vector<CharacterRange>>& annotations, const EditingRange& selectionRange, const EditingRange& replacementRange)
@@ -17441,7 +17463,11 @@ void WebPageProxy::didEndMagnificationGesture()
 {
     if (!hasRunningProcess())
         return;
-    send(Messages::WebPage::DidEndMagnificationGesture());
+    // A gesture can be handled by any frame's process under site isolation, so every one of them
+    // needs to reset its gesture state.
+    forEachWebContentProcess([](auto& process, auto pageID) {
+        process.send(Messages::WebPage::DidEndMagnificationGesture(), pageID);
+    });
 }
 
 #endif
@@ -19306,6 +19332,18 @@ WebCore::PageIdentifier WebPageProxy::webPageIDInProcess(const WebProcessProxy& 
     return m_webPageID;
 }
 
+bool WebPageProxy::hasWebPageInProcess(const WebProcessProxy& process, WebCore::PageIdentifier pageID)
+{
+    // Unlike webPageIDInProcess(), which falls back to m_webPageID, this answers whether the process
+    // still hosts a WebPage of this page under that specific identifier.
+    bool found = false;
+    forEachWebContentProcess([&](auto& webProcess, auto pageIDInProcess) {
+        if (&webProcess == &process && pageIDInProcess == pageID)
+            found = true;
+    });
+    return found;
+}
+
 WebPopupMenuProxyClient& WebPageProxy::popupMenuClient()
 {
     return internals();
@@ -19641,6 +19679,9 @@ void WebPageProxy::postMessageToRemote(WebCore::FrameIdentifier source, IPC::Unt
     auto sourceOrigin = WTF::move(untrustedSourceOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::NeedsReview);
     auto targetOrigin = WTF::move(untrustedTargetOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::NeedsReview);
 
+    // FIXME: This message carries no blob URLs, so unlike the MessagePort, BroadcastChannel and service worker paths
+    // the network process takes no blob URL handles on the message's blobs. If the source frame releases them before
+    // the destination frame dispatches the message, the destination is left with blobs it cannot read.
     if (message.transferredPorts.isEmpty()) {
         sendToProcessContainingFrame(target, Messages::WebPage::RemotePostMessage(source, sourceOrigin, target, targetOrigin, message, userGestureToken));
         return;

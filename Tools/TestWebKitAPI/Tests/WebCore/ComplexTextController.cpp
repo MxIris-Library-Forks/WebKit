@@ -269,7 +269,7 @@ TEST_F(ComplexTextControllerTest, SubstitutedSpaceAdvanceCompensatesFollowingMar
     description.setUsedSize(80);
     FontCascade font(WTF::move(description));
     font.update();
-    auto spaceWidth = font.primaryFont().spaceWidth(Font::SyntheticBoldInclusion::Exclude);
+    auto spaceWidth = font.primaryFont().spaceWidth();
 
     // 'a', then a [space, combining mark] cluster whose whole 100pt advance Core Text put on the space.
     Vector<FloatSize> advances = { FloatSize(40, 0), FloatSize(100, 0), FloatSize() };
@@ -308,7 +308,7 @@ TEST_F(ComplexTextControllerTest, SubstitutedSpaceAdvanceDoesNotCompensateInRTL)
     description.setUsedSize(80);
     FontCascade font(WTF::move(description));
     font.update();
-    auto spaceWidth = font.primaryFont().spaceWidth(Font::SyntheticBoldInclusion::Exclude);
+    auto spaceWidth = font.primaryFont().spaceWidth();
 
     // [alef, mark] then [space, mark], in visual order: the space's mark, the space, the alef's mark, the alef.
     // Core Text widened the space to 100pt to hold its mark, so a compensation here would be (100 - spaceWidth).
@@ -406,7 +406,7 @@ TEST_F(ComplexTextControllerTest, WordSpacingDoesNotSlideAFollowingMark)
     FontCascade font(WTF::move(description));
     font.setWordSpacing(wordSpacing);
     font.update();
-    auto spaceWidth = font.primaryFont().spaceWidth(Font::SyntheticBoldInclusion::Exclude);
+    auto spaceWidth = font.primaryFont().spaceWidth();
 
     std::array<char16_t, 3> characters { 'a', 0x20, 0x336 };
     TextRun textRun { StringView(characters) };
@@ -434,7 +434,7 @@ TEST_F(ComplexTextControllerTest, ExpansionDoesNotSlideAFollowingMark)
     description.setUsedSize(fontSize);
     FontCascade font(WTF::move(description));
     font.update();
-    auto spaceWidth = font.primaryFont().spaceWidth(Font::SyntheticBoldInclusion::Exclude);
+    auto spaceWidth = font.primaryFont().spaceWidth();
 
     std::array<char16_t, 3> characters { 'a', 0x20, 0x336 };
     TextRun textRun(StringView(characters), 0, expansion);
@@ -489,8 +489,9 @@ TEST_F(ComplexTextControllerTest, LeftExpansionDoesNotSlideAFollowingMark)
 #endif // PLATFORM(COCOA)
 
 #if USE(CORE_TEXT)
-// Synthetic bold widens the base's advance to leave room for ink smeared by a second, offset draw of the glyph.
-// The mark is smeared the same way, so it stays on its base instead of sliding right by the offset.
+// Synthetic bold smears ink at paint time and does not reach the advances, so a synthetically bolded run
+// measures exactly as the same run at a real bold weight would. Nothing widens the base, and the mark owes
+// it no compensation.
 TEST_F(ComplexTextControllerTest, SyntheticBoldDoesNotSlideAFollowingMark)
 {
     FontCascadeDescription description;
@@ -504,6 +505,7 @@ TEST_F(ComplexTextControllerTest, SyntheticBoldDoesNotSlideAFollowingMark)
     FontPlatformData syntheticBoldPlatformData(RetainPtr { font.primaryFont().platformData().ctFont() }, fontSize, true);
     auto syntheticBoldFont = Font::create(syntheticBoldPlatformData);
     auto syntheticBoldOffset = syntheticBoldFont->syntheticBoldOffset();
+    // Otherwise the run would not be emboldened at all and the expectations below would hold trivially.
     EXPECT_GT(syntheticBoldOffset, 0);
 
     std::array<char16_t, 3> characters { 'a', 'b', 0x336 };
@@ -512,13 +514,13 @@ TEST_F(ComplexTextControllerTest, SyntheticBoldDoesNotSlideAFollowingMark)
     runs.append(makeMarkOnBaseRun(syntheticBoldFont, std::span { characters }));
     ComplexTextController controller(font, textRun, runs);
 
-    EXPECT_NEAR(controller.totalAdvance().width(), leadingGlyphAdvance + clusterAdvance + 2 * syntheticBoldOffset, 0.0001);
+    EXPECT_NEAR(controller.totalAdvance().width(), leadingGlyphAdvance + clusterAdvance, 0.0001);
     GlyphBuffer glyphBuffer;
     controller.advance(3, &glyphBuffer);
     EXPECT_EQ(glyphBuffer.size(), 3U);
-    EXPECT_NEAR(width(glyphBuffer.advanceAt(0)), leadingGlyphAdvance + syntheticBoldOffset, 0.0001);
+    EXPECT_NEAR(width(glyphBuffer.advanceAt(0)), leadingGlyphAdvance, 0.0001);
     EXPECT_NEAR(width(glyphBuffer.advanceAt(1)), 0, 0.0001);
-    EXPECT_NEAR(width(glyphBuffer.advanceAt(2)), clusterAdvance + syntheticBoldOffset, 0.0001);
+    EXPECT_NEAR(width(glyphBuffer.advanceAt(2)), clusterAdvance, 0.0001);
 }
 #endif
 
@@ -538,7 +540,7 @@ TEST_F(ComplexTextControllerTest, TabWidthDoesNotSlideAFollowingMark)
     ComplexTextController controller(font, textRun, runs);
 
     // The tab starts where the leading glyph ended, so that is the position the next tab stop is measured from.
-    auto tabWidth = font.tabWidth(font.primaryFont(), textRun.tabSize(), leadingGlyphAdvance, Font::SyntheticBoldInclusion::Exclude);
+    auto tabWidth = font.tabWidth(font.primaryFont(), textRun.tabSize(), leadingGlyphAdvance);
     EXPECT_GT(tabWidth, 0);
     // Otherwise the substitution would be a no-op and the test could not tell compensated from uncompensated.
     EXPECT_NE(tabWidth, clusterAdvance);
@@ -609,7 +611,7 @@ TEST_F(ComplexTextControllerTest, WordSpacingDoesNotSlideAMarkInRTL)
     FontCascade font(WTF::move(description));
     font.setWordSpacing(wordSpacing);
     font.update();
-    auto spaceWidth = font.primaryFont().spaceWidth(Font::SyntheticBoldInclusion::Exclude);
+    auto spaceWidth = font.primaryFont().spaceWidth();
     // Otherwise the substitution would be a no-op and the test could not tell compensated from uncompensated.
     EXPECT_NE(spaceWidth + wordSpacing, clusterAdvance);
 
@@ -646,7 +648,7 @@ TEST_F(ComplexTextControllerTest, TabWidthDoesNotSlideAMarkInRTL)
     ComplexTextController controller(font, textRun, runs);
 
     // The tab is the first glyph with an advance, so the next tab stop is measured from zero.
-    auto tabWidth = font.tabWidth(font.primaryFont(), textRun.tabSize(), 0, Font::SyntheticBoldInclusion::Exclude);
+    auto tabWidth = font.tabWidth(font.primaryFont(), textRun.tabSize(), 0);
     EXPECT_GT(tabWidth, 0);
     // Otherwise the substitution would be a no-op and the test could not tell compensated from uncompensated.
     EXPECT_NE(tabWidth, clusterAdvance);
@@ -673,6 +675,7 @@ TEST_F(ComplexTextControllerTest, SyntheticBoldDoesNotSlideAMarkInRTL)
     FontPlatformData syntheticBoldPlatformData(RetainPtr { font.primaryFont().platformData().ctFont() }, fontSize, true);
     auto syntheticBoldFont = Font::create(syntheticBoldPlatformData);
     auto syntheticBoldOffset = syntheticBoldFont->syntheticBoldOffset();
+    // Otherwise the run would not be emboldened at all and the expectations below would hold trivially.
     EXPECT_GT(syntheticBoldOffset, 0);
 
     std::array<char16_t, 4> characters { 0x627, 0x336, 0x628, 0x336 };
@@ -681,13 +684,13 @@ TEST_F(ComplexTextControllerTest, SyntheticBoldDoesNotSlideAMarkInRTL)
     runs.append(makeMarkOnBaseRunRTL(syntheticBoldFont, std::span { characters }));
     ComplexTextController controller(font, textRun, runs);
 
-    EXPECT_NEAR(controller.totalAdvance().width(), leadingGlyphAdvance + clusterAdvance + 2 * syntheticBoldOffset, 0.0001);
+    EXPECT_NEAR(controller.totalAdvance().width(), leadingGlyphAdvance + clusterAdvance, 0.0001);
     GlyphBuffer glyphBuffer;
     controller.advance(4, &glyphBuffer);
     EXPECT_EQ(glyphBuffer.size(), 4U);
-    EXPECT_NEAR(width(glyphBuffer.advanceAt(0)), leadingGlyphAdvance + syntheticBoldOffset, 0.0001);
+    EXPECT_NEAR(width(glyphBuffer.advanceAt(0)), leadingGlyphAdvance, 0.0001);
     EXPECT_NEAR(width(glyphBuffer.advanceAt(1)), leadingGlyphAdvance, 0.0001);
-    EXPECT_NEAR(width(glyphBuffer.advanceAt(2)), clusterAdvance + syntheticBoldOffset - leadingGlyphAdvance, 0.0001);
+    EXPECT_NEAR(width(glyphBuffer.advanceAt(2)), clusterAdvance - leadingGlyphAdvance, 0.0001);
     EXPECT_NEAR(width(glyphBuffer.advanceAt(3)), clusterAdvance, 0.0001);
 }
 #endif

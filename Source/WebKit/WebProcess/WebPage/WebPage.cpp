@@ -1354,7 +1354,6 @@ Awaitable<std::optional<FrameTreeNodeData>> WebPage::getFrameTreeForBackForwardC
         std::nullopt,
         std::nullopt,
         topDocument ? std::optional { topDocument-> identifier() }  : std::nullopt,
-        WebCore::CertificateInfo { },
         getCurrentProcessID(),
         false,
         false,
@@ -2477,21 +2476,21 @@ void WebPage::sendClose()
     send(Messages::WebPageProxy::ClosePage());
 }
 
-void WebPage::suspendForProcessSwap(CompletionHandler<void(std::optional<bool>)>&& completionHandler)
+bool WebPage::suspendForProcessSwap()
 {
     flushDeferredDidReceiveMouseEvent();
 
     RefPtr page = corePage();
     if (!page)
-        return completionHandler(false);
+        return false;
 
     // FIXME: Make this work if the main frame is not a LocalFrame.
     RefPtr currentHistoryItem = m_mainFrame->coreLocalFrame()->loader().history().currentItem();
     if (!currentHistoryItem)
-        return completionHandler(false);
+        return false;
 
     if (!BackForwardCache::singleton().addIfCacheable(currentHistoryItem->frameItemID(), *page))
-        return completionHandler(false);
+        return false;
 
     // Back/forward cache does not break the opener link for the main frame (only does so for the subframes) because the
     // main frame is normally re-used for the navigation. However, in the case of process-swapping, the main frame
@@ -2499,7 +2498,7 @@ void WebPage::suspendForProcessSwap(CompletionHandler<void(std::optional<bool>)>
     if (RefPtr frame = m_mainFrame->coreLocalFrame())
         frame->detachFromAllOpenedFrames();
 
-    completionHandler(true);
+    return true;
 }
 
 void WebPage::loadURLInFrame(URL&& url, const String& referrer, FrameIdentifier frameID)
@@ -6262,12 +6261,11 @@ void WebPage::removeWebEditCommand(WebUndoStepID stepID)
         undoStep->didRemoveFromUndoManager();
 }
 
-void WebPage::unapplyEditCommand(uint32_t undoVersion, WebUndoStepID stepID, CompletionHandler<void()>&& completionHandler)
+void WebPage::unapplyEditCommand(uint64_t sequence, WebUndoStepID stepID, CompletionHandler<void()>&& completionHandler)
 {
-    if (undoVersion < m_currentUndoVersion)
+    if (sequence < m_nextUndoRedoSequenceToApply)
         return completionHandler();
-
-    m_currentUndoVersion = undoVersion;
+    m_nextUndoRedoSequenceToApply = sequence + 1;
 
     RefPtr step = webUndoStep(stepID);
     if (!step)
@@ -6277,12 +6275,11 @@ void WebPage::unapplyEditCommand(uint32_t undoVersion, WebUndoStepID stepID, Com
     completionHandler();
 }
 
-void WebPage::reapplyEditCommand(uint32_t undoVersion, WebUndoStepID stepID, CompletionHandler<void()>&& completionHandler)
+void WebPage::reapplyEditCommand(uint64_t sequence, WebUndoStepID stepID, CompletionHandler<void()>&& completionHandler)
 {
-    if (undoVersion < m_currentUndoVersion)
+    if (sequence < m_nextUndoRedoSequenceToApply)
         return completionHandler();
-
-    m_currentUndoVersion = undoVersion;
+    m_nextUndoRedoSequenceToApply = sequence + 1;
 
     RefPtr step = webUndoStep(stepID);
     if (!step)
@@ -9132,7 +9129,7 @@ void WebPage::setIsSuspended(bool suspended, CompletionHandler<void(std::optiona
 
     WebProcess::singleton().sendPrewarmInformation(m_mainFrame->url());
 
-    suspendForProcessSwap(WTF::move(completionHandler));
+    completionHandler(suspendForProcessSwap());
 }
 
 void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, CompletionHandler<void(bool)>&& completionHandler)

@@ -788,9 +788,9 @@ void RenderBox::setScrollPosition(const ScrollPosition& position, const ScrollPo
     scrollableArea->setScrollPosition(position, options);
 }
 
-void RenderBox::boundingRects(Vector<LayoutRect>& rects, const LayoutPoint& accumulatedOffset) const
+Vector<FloatRect> RenderBox::localBorderBoxRects() const
 {
-    rects.append({ accumulatedOffset, borderBoxSize() });
+    return { FloatRect { { }, borderBoxSize() } };
 }
 
 void RenderBox::absoluteQuads(Vector<FloatQuad>& quads, bool* wasFixed) const
@@ -798,8 +798,7 @@ void RenderBox::absoluteQuads(Vector<FloatQuad>& quads, bool* wasFixed) const
     if (CheckedPtr fragmentedFlow = enclosingFragmentedFlow(); fragmentedFlow && fragmentedFlow->absoluteQuadsForBox(quads, wasFixed, *this))
         return;
 
-    auto localRect = FloatRect { 0, 0, borderBoxWidth(), borderBoxHeight() };
-    quads.append(localToAbsoluteQuad(localRect, MapCoordinatesMode::UseTransforms, wasFixed));
+    RenderBoxModelObject::absoluteQuads(quads, wasFixed);
 }
 
 void RenderBox::applyTransform(TransformationMatrix& t, const Style::ComputedStyle& style, const FloatRect& boundingBox, OptionSet<Style::TransformResolverOption> options) const
@@ -2684,8 +2683,8 @@ LayoutSize RenderBox::offsetFromContainer(const RenderElement& container, const 
     if (auto* boxContainer = dynamicDowncast<RenderBox>(container))
         offset -= toLayoutSize(boxContainer->scrollPosition());
 
-    if (auto* inlineContainer = dynamicDowncast<RenderInline>(container); isAbsolutelyPositioned() && inlineContainer && inlineContainer->canContainAbsolutelyPositionedObjects())
-        offset += inlineContainer->offsetForInFlowPositionedInline(this);
+    if (isAbsolutelyPositioned() && container.isInlineBox() && container.canContainAbsolutelyPositionedObjects())
+        offset += PositionedLayoutConstraints::containingBlockOffsetForNonStaticAxes(downcast<RenderBoxModelObject>(container), style());
 
     if (offsetDependsOnPoint)
         *offsetDependsOnPoint |= is<RenderFragmentedFlow>(container);
@@ -2719,110 +2718,6 @@ auto RenderBox::computeVisibleRectsUsingPaintOffset(const RepaintRects& rects) c
 
     adjustedRects.moveBy(location());
     return RenderBoxModelObject::computeVisibleRectsUsingPaintOffset(adjustedRects);
-}
-
-auto RenderBox::computeVisibleRectsInContainer(const RepaintRects& rects, const RenderLayerModelObject* container, const VisibleRectContext& context, VisibleRectState state) const -> std::optional<RepaintRects>
-{
-    // The rect we compute at each step is shifted by our x/y offset in the parent container's coordinate space.
-    // Only when we cross a writing mode boundary will we have to possibly flipForWritingMode (to convert into a more appropriate
-    // offset corner for the enclosing container).  This allows for a fully RL or BT document to repaint
-    // properly even during layout, since the rect remains flipped all the way until the end.
-    //
-    // RenderView::computeVisibleRectInContainer then converts the rect to physical coordinates. We also convert to
-    // physical when we hit a repaint container boundary. Therefore the final rect returned is always in the
-    // physical coordinate space of the container.
-    const Style::ComputedStyle& styleToUse = style();
-    // Paint offset cache is only valid for root-relative, non-fixed position repainting
-    if (view().frameView().layoutContext().isPaintOffsetCacheEnabled() && !container && styleToUse.position() != PositionType::Fixed && !context.options.contains(VisibleRectContext::Option::UseEdgeInclusiveIntersection))
-        return computeVisibleRectsUsingPaintOffset(rects);
-
-    auto adjustedRects = rects;
-    if (hasReflection()) {
-        auto reflectedRects = RepaintRects { reflectedRect(adjustedRects.clippedOverflowRect) };
-        adjustedRects.unite(reflectedRects);
-    }
-
-    if (container == this) {
-        if (container->writingMode().isBlockFlipped())
-            flipForWritingMode(adjustedRects);
-        if (state.descendantNeedsEnclosingIntRect)
-            adjustedRects.encloseToIntRects();
-        return adjustedRects;
-    }
-
-    bool containerIsSkipped;
-    auto* localContainer = this->container(container, containerIsSkipped);
-    if (!localContainer)
-        return adjustedRects;
-
-    if (isWritingModeRoot()) {
-        if (!isOutOfFlowPositioned() || !state.dirtyRectIsFlipped) {
-            flipForWritingMode(adjustedRects);
-            state.dirtyRectIsFlipped = true;
-        }
-    }
-
-    auto locationOffset = this->locationOffset();
-
-    // FIXME: This is needed as long as RenderWidget snaps to integral size/position.
-    // is<RenderReplaced>() is a fast bit check, is<RenderWidget>() is a virtual function call.
-    if (is<RenderReplaced>(this) && is<RenderWidget>(this)) {
-        LayoutSize flooredLocationOffset = flooredIntSize(locationOffset);
-        adjustedRects.expand(locationOffset - flooredLocationOffset);
-        locationOffset = flooredLocationOffset;
-        state.descendantNeedsEnclosingIntRect = true;
-    } else if (auto* columnFlow = dynamicDowncast<RenderMultiColumnFlow>(*this)) {
-        // We won't normally run this code. Only when the container is null (i.e., we're trying
-        // to get the rect in view coordinates) will we come in here, since normally container
-        // will be set and we'll stop at the flow thread. This case is mainly hit by the check for whether
-        // or not images should animate.
-        // FIXME: Just as with offsetFromContainer, we aren't really handling objects that span multiple columns properly.
-        LayoutPoint physicalPoint(flipForWritingMode(adjustedRects.clippedOverflowRect.location()));
-        if (auto* fragment = columnFlow->physicalTranslationFromFlowToFragment((physicalPoint))) {
-            adjustedRects.clippedOverflowRect.setLocation(fragment->flipForWritingMode(physicalPoint));
-            return fragment->computeVisibleRectsInContainer(adjustedRects, container, context, state);
-        }
-    }
-
-    // We are now in our parent container's coordinate space. Apply our transform to obtain a bounding box
-    // in the parent's coordinate space that encloses us.
-    auto position = styleToUse.position();
-    if (hasLayer() && layer()->isTransformed()) {
-        state.hasPositionFixedDescendant = position == PositionType::Fixed;
-        adjustedRects.transform(layer()->currentTransform(), protect(document())->deviceScaleFactor());
-    } else if (position == PositionType::Fixed)
-        state.hasPositionFixedDescendant = true;
-
-    adjustedRects.move(locationOffset);
-
-    if (auto* inlineContainer = dynamicDowncast<RenderInline>(*localContainer); position == PositionType::Absolute && inlineContainer && inlineContainer->canContainAbsolutelyPositionedObjects()) {
-        auto offsetForInFlowPosition = inlineContainer->offsetForInFlowPositionedInline(this);
-        adjustedRects.move(offsetForInFlowPosition);
-    } else if (styleToUse.hasInFlowPosition() && layer()) {
-        // Apply the relative position offset when invalidating a rectangle.  The layer
-        // is translated, but the render box isn't, so we need to do this to get the
-        // right dirty rect.  Since this is called from RenderObject::setStyle, the relative position
-        // flag on the RenderObject has been cleared, so use the one on the style().
-        auto offsetForInFlowPosition = layer()->offsetForInFlowPosition();
-        adjustedRects.move(offsetForInFlowPosition);
-    }
-
-    if (localContainer->hasNonVisibleOverflow()) {
-        bool isEmpty = !downcast<RenderLayerModelObject>(*localContainer).applyCachedClipAndScrollPosition(adjustedRects, container, context);
-        if (isEmpty) {
-            if (context.options.contains(VisibleRectContext::Option::UseEdgeInclusiveIntersection))
-                return std::nullopt;
-            return adjustedRects;
-        }
-    }
-
-    if (containerIsSkipped) {
-        // If the container is below localContainer, then we need to map the rect into container's coordinates.
-        LayoutSize containerOffset = container->offsetFromAncestorContainer(*localContainer);
-        adjustedRects.move(-containerOffset);
-        return adjustedRects;
-    }
-    return localContainer->computeVisibleRectsInContainer(adjustedRects, container, context, state);
 }
 
 void RenderBox::repaintDuringLayoutIfMoved(const LayoutRect& oldRect)
@@ -3883,6 +3778,16 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computeContentA
         [&](const typename SizeType::Calc&) -> std::optional<LayoutUnit> {
             return computePercentageLogicalHeight(logicalHeight);
         },
+        [&](const typename SizeType::CalcSize& calcSize) -> std::optional<LayoutUnit> {
+            if (auto result = computePercentageLogicalHeight(logicalHeight))
+                return result;
+            // A percentage basis against an indefinite containing block leaves the function behaving
+            // as the basis does.
+            if (calcSize.basisHasPercentage())
+                return { };
+            // Percentages in the calculation resolve against zero when indefinite.
+            return Style::evaluate<LayoutUnit>(calcSize, 0_lu, style().usedZoomForLength());
+        },
         [&](const CSS::Keyword::MinContent&) -> std::optional<LayoutUnit> {
             return keywordSize();
         },
@@ -4116,6 +4021,11 @@ std::optional<LayoutUnit> RenderBox::computePercentageLogicalHeight(const Style:
     return computePercentageLogicalHeightGeneric(logicalHeight, updateDescendants);
 }
 
+std::optional<LayoutUnit> RenderBox::computePercentageLogicalHeight(const Style::UnevaluatedCalcSize& logicalHeight, UpdatePercentageHeightDescendants updateDescendants) const
+{
+    return computePercentageLogicalHeightGeneric(logicalHeight, updateDescendants);
+}
+
 void RenderBox::computeIntrinsicLogicalWidthContributions()
 {
     ASSERT(hasInvalidContentLogicalWidths());
@@ -4274,6 +4184,16 @@ inline static LayoutRange getScrollableContainingBlockRange(const RenderBox& con
     return containingBlock.scrollablePaddingAreaOverflowRect().yRange();
 }
 
+LayoutUnit RenderBox::paddingBoxLogicalWidth() const
+{
+    return writingMode().isHorizontal() ? paddingBoxWidth() : paddingBoxHeight();
+}
+
+LayoutUnit RenderBox::paddingBoxLogicalHeight() const
+{
+    return writingMode().isHorizontal() ? paddingBoxHeight() : paddingBoxWidth();
+}
+
 LayoutRange RenderBox::containingBlockRangeForPositioned(const RenderBoxModelObject& container, BoxAxis physicalAxis) const
 {
     ASSERT(container.canContainAbsolutelyPositionedObjects() || container.canContainFixedPositionObjects());
@@ -4290,10 +4210,10 @@ LayoutRange RenderBox::containingBlockRangeForPositioned(const RenderBoxModelObj
     }
 
     // Inline containing blocks are formed by relatively-positioned inline boxes.
-    if (auto* inlineContainer = dynamicDowncast<RenderInline>(container)) {
+    if (container.isInlineBox()) {
         return isContainerInlineAxis
-            ? LayoutRange(startEdge, inlineContainer->innerPaddingBoxWidth())
-            : LayoutRange(startEdge, inlineContainer->innerPaddingBoxHeight());
+            ? LayoutRange(startEdge, container.paddingBoxLogicalWidth())
+            : LayoutRange(startEdge, container.paddingBoxLogicalHeight());
     }
 
     auto* containingBlock = dynamicDowncast<RenderBlock>(container) ? : container.containingBlock();
@@ -4446,6 +4366,9 @@ template<typename SizeType> LayoutUnit RenderBox::computeOutOfFlowPositionedLogi
         },
         [&](const typename SizeType::Calc& calculatedLogicalWidth) -> LayoutUnit {
             return adjustContentBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(calculatedLogicalWidth, inlineConstraints.containingSize(), style().usedZoomForLength()));
+        },
+        [&](const typename SizeType::CalcSize& calcSizeLogicalWidth) -> LayoutUnit {
+            return adjustContentBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(calcSizeLogicalWidth, inlineConstraints.containingSize(), style().usedZoomForLength()));
         },
         [&](const CSS::Keyword::FitContent& keyword) -> LayoutUnit {
             return intrinsic(keyword);
@@ -5191,16 +5114,6 @@ LayoutRect RenderBox::flippedPaddingBoxRect() const
         rect.contract(verticalScrollbarWidth(), horizontalScrollbarHeight());
     }
     return rect;
-}
-
-LayoutUnit RenderBox::offsetLeft() const
-{
-    return adjustedPositionRelativeToOffsetParent(topLeftLocation()).x();
-}
-
-LayoutUnit RenderBox::offsetTop() const
-{
-    return adjustedPositionRelativeToOffsetParent(topLeftLocation()).y();
 }
 
 LayoutPoint RenderBox::flipForWritingModeForChild(const RenderBox& child, const LayoutPoint& point) const

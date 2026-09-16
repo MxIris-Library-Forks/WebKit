@@ -84,10 +84,6 @@ public:
     WTF_EXPORT_PRIVATE CString(ASCIILiteral);
     WTF_EXPORT_PRIVATE CString(const char*); // Any encoding
     WTF_EXPORT_PRIVATE CString(std::span<const char>); // Any encoding
-    // FIXME: These two should be removed. They are the exact ambiguity CStringWithEncoding exists to
-    // eliminate: both encodings land in the same char buffer and become indistinguishable.
-    CString(std::span<const Latin1Character>); // Latin1
-    CString(std::span<const char8_t> characters) : CString(byteCast<Latin1Character>(characters)) { } // UTF-8
     CString(CStringBuffer* buffer) : m_buffer(buffer) { }
     CString(const std::string&); // Any encoding.
     WTF_EXPORT_PRIVATE static CString newUninitialized(size_t length, std::span<char>& characterBuffer);
@@ -148,11 +144,6 @@ template<> struct DefaultHash<CString> : CStringHash { };
 template<typename> struct HashTraits;
 template<> struct HashTraits<CString> : SimpleClassHashTraits<CString> { };
 
-inline CString::CString(std::span<const Latin1Character> bytes)
-    : CString(byteCast<char>(bytes))
-{
-}
-
 inline CString::CString(const std::string& value)
     : CString(unsafeMakeSpan(value.data(), value.size()))
 {
@@ -193,7 +184,10 @@ inline const char* safePrintfType(const CString& cstring) { return cstring.data(
 
 // A CString that remembers the encoding of its bytes. Converts implicitly to CString, which erases the encoding.
 // The character type carries the encoding, following WTF convention: char8_t is UTF-8, Latin1Character is
-// Latin-1, and char is ASCII, as in ASCIILiteral.
+// Latin-1, and char is ASCII, as in ASCIILiteral. For char that is a representation, not a meaning: a char in
+// CString itself means "any encoding", and ASCII is spelled with char here only because const char* is what C
+// string interfaces take, which is what an ASCII string is for. ASCIICString::data() is therefore directly
+// usable by those interfaces and needs no escape hatch.
 //
 // Unlike ASCIILiteral, ASCIICString cannot enforce that its bytes really are ASCII: newUninitialized hands out
 // a mutable buffer, so there is no point at which the contents can be checked. It is therefore defined as
@@ -255,11 +249,12 @@ public:
     // This is the escape hatch for external C functions and printf-style formatting. It is named for the
     // destination rather than the contents: const char* is what C string interfaces take, which is why this
     // is char and not the char8_t that would otherwise be correct for UTF-8.
-    // Interactions with other strings should go through the span. Not offered for Latin-1: handing Latin-1 bytes to a
-    // const char* API is only meaningful when they happen to be ASCII, and such a string should have come from
-    // String::ascii(). Callers that really want the raw bytes can use byteCast<char>(span()) or slice to CString.
+    // Interactions with other strings should go through the span. Only offered for UTF-8: Latin-1 bytes are
+    // meaningful to a const char* API only when they happen to be ASCII, and such a string should have come from
+    // String::ascii(), whose data() is already a const char*. Callers that really want the raw bytes can use
+    // byteCast<char>(span()) or slice to CString.
     // FIXME: Should go away once callers that only need bytes have moved to span().
-    const char* legacyCStringPointer() const LIFETIME_BOUND requires (!std::same_as<CharacterType, Latin1Character>) { return CString::data(); }
+    const char* legacyCStringPointer() const LIFETIME_BOUND requires std::same_as<CharacterType, char8_t> { return CString::data(); }
 
 #if USE(FOUNDATION) && defined(__OBJC__)
     // Converts a null string to an empty string, like String::createNSString(). ASCII decodes as

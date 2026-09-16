@@ -6383,9 +6383,7 @@ void Internals::queueMicroTask(int testNumber)
     if (!document)
         return;
 
-    RefPtr context = document;
-    auto& eventLoop = context->eventLoop();
-    eventLoop.queueMicrotask(document->vm(), [document = Ref { *document }, testNumber]() {
+    document->eventLoop().queueMicrotask(document->vm(), [document, testNumber]() {
         document->addConsoleMessage(MessageSource::JS, MessageLevel::Debug, makeString("MicroTask #"_s, testNumber, " has run."_s));
     });
 }
@@ -6558,7 +6556,7 @@ void Internals::setPageHasRefreshControllerForTesting(bool hasRefreshController)
 
 String Internals::userVisibleString(const DOMURL& url)
 {
-    return WTF::URLHelpers::userVisibleURL(url.href().string().utf8());
+    return WTF::URLHelpers::userVisibleURL(url.href().string().utf8().span());
 }
 
 #endif
@@ -7551,9 +7549,10 @@ static TextRecognitionLineData makeDataForLine(const Internals::ImageOverlayLine
 void Internals::requestTextRecognition(Element& element, Ref<VoidCallback>&& callback)
 {
     RefPtr page = contextDocument()->page();
-    if (!page)
+    if (!page) {
         callback->invoke();
-
+        return;
+    }
     page->chrome().client().requestTextRecognition(element, { }, [callback = WTF::move(callback)] (auto&&) {
         callback->invoke();
     });

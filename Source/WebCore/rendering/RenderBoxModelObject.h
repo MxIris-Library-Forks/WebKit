@@ -92,10 +92,15 @@ public:
 
     bool requiresLayer() const override;
 
-    // This will work on inlines to return the bounding box of all of the lines' border boxes.
-    virtual LayoutRect borderBoundingBox() const = 0;
-
     virtual LayoutRect borderBoxRectInContainer() const;
+    virtual Vector<FloatRect> localBorderBoxRects() const;
+    void boundingRects(Vector<LayoutRect>&, const LayoutPoint& accumulatedOffset) const final;
+    LayoutRect borderBoundingBox() const { return { { }, borderBoxRectInContainer().size() }; }
+    virtual LayoutRect visualOverflowRect() const;
+    virtual LayoutRect firstFragmentBorderBoxRect() const;
+    virtual LayoutUnit paddingBoxLogicalWidth() const;
+    virtual LayoutUnit paddingBoxLogicalHeight() const;
+    void absoluteQuads(Vector<FloatQuad>&, bool* wasFixed = nullptr) const override;
 
     // These return the CSS computed padding values.
     inline LayoutUnit computedCSSPaddingTop() const;
@@ -191,6 +196,7 @@ public:
     void mapAbsoluteToLocalPoint(OptionSet<MapCoordinatesMode>, TransformState&) const override;
 
     PositionWithAffinity positionForPoint(const LayoutPoint&, HitTestSource, const RenderFragmentContainer*) override;
+    std::optional<RepaintRects> computeVisibleRectsInContainer(const RepaintRects&, const RenderLayerModelObject* container, const VisibleRectContext&, VisibleRectState) const override;
 
     void setSelectionState(HighlightState) override;
 
@@ -237,7 +243,7 @@ protected:
 
 protected:
     const RenderElement* pushMappingToContainer(const RenderLayerModelObject* ancestorToStopAt, RenderGeometryMap&) const override;
-    RepaintRects computeVisibleRectsUsingPaintOffset(const RepaintRects&) const;
+    virtual RepaintRects computeVisibleRectsUsingPaintOffset(const RepaintRects&) const;
 
 private:
     virtual LayoutRect frameRectForStickyPositioning() const = 0;

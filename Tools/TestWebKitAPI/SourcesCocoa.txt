@@ -218,6 +218,7 @@ Tests/WebKit/WKWebView/MediaMutedState.mm @nonARC
 Tests/WebKit/WKWebView/MediaSession.mm @nonARC
 Tests/WebKit/WKWebView/MediaType.mm @nonARC
 Tests/WebKit/WKWebView/MemoryCachePartitioning.mm @nonARC
+Tests/WebKit/WKWebView/MemoryFootprintMonitor.mm @nonARC
 Tests/WebKit/WKWebView/MemoryFootprintThreshold.mm @nonARC
 Tests/WebKit/WKWebView/MessagePortProviders.mm @nonARC
 Tests/WebKit/WKWebView/ModalAlerts.mm @nonARC
@@ -319,7 +320,6 @@ Tests/WebKit/WKWebView/TabOutOfWebView.mm @nonARC
 Tests/WebKit/WKWebView/TestAwakener.mm @nonARC
 Tests/WebKit/WKWebView/SOAuthorizationTests.mm @nonARC
 Tests/WebKit/WKWebView/TestURLSchemeHandler.mm @nonARC
-Tests/WebKit/WKWebView/TextExtractionTests.mm @nonARC
 Tests/WebKit/WKWebView/TextManipulation.mm @nonARC
 Tests/WebKit/WKWebView/UIDelegate.mm @nonARC
 Tests/WebKit/WKWebView/UnifiedPDFTests.mm @nonARC

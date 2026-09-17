@@ -159,8 +159,8 @@ OpType ExecutionHandler::handleDebuggerTrapIfNeeded(CallFrame* callFrame, JSWebA
         }
     }
 
-    if (!m_debugServer.isDebuggerReady())
-        return OpType::Unreachable; // Throw; no debugger connected
+    if (!m_debugServer.hasSentLibraryList())
+        return OpType::Unreachable; // Throw; LLDB has no module list to resolve a stop against
 
     if (exceptionType == Wasm::ExceptionType::StackOverflow || exceptionType == Wasm::ExceptionType::Termination) {
         // Prologue trap: pc/mc/stack are caller's, not the overflowing function's.
@@ -296,7 +296,7 @@ StopTheWorldStatus wasmDebuggerOnStopCallback(VM& debuggee, StopTheWorldEvent ev
 {
     dataLogLnIf(Options::verboseWasmDebugger(), "[STW] Callback invoked with event:", event);
     auto& server = DebugServer::singleton();
-    if (!server.hasDebugger()) {
+    if (!server.isConnected()) {
         dataLogLnIf(Options::verboseWasmDebugger(), "[STW] Not connected, resuming all");
         return STW_RESUME_ALL();
     }
@@ -320,7 +320,7 @@ void ExecutionHandler::handlePostResume()
 void wasmDebuggerOnResumeCallback()
 {
     auto& server = DebugServer::singleton();
-    if (!server.hasDebugger()) {
+    if (!server.isConnected()) {
         dataLogLnIf(Options::verboseWasmDebugger(), "[STW][PostResume] Not connected, resuming all");
         return;
     }
@@ -675,6 +675,12 @@ void ExecutionHandler::setBreakpoint(StringView packet)
         return;
     }
 
+    if (!instance->moduleInformation().isInstructionStart(address.offset())) {
+        dataLogLnIf(Options::verboseWasmDebugger(), "[Debugger] Not an instruction boundary: ", address);
+        sendErrorReply(ProtocolError::InvalidAddress);
+        return;
+    }
+
     // Idempotent: LLDB sends one Z0 per instance for shared bytecode. The address is
     // recorded so the patch survives until all sites referring to it are removed.
     m_breakpointManager->setBreakpointAt(address, instance->moduleInformation(), pc);
@@ -851,9 +857,9 @@ void ExecutionHandler::sendStopReplyForThread(AbstractLocker& locker, uint64_t v
         m_breakpointManager->removeSitesForInstance(instanceId);
 
     // Prompt LLDB to re-query libraries on new instances or instance teardown.
-    // Gated on isDebuggerReady() to avoid sending library:; in the ? reply before the initial
+    // Gated on hasSentLibraryList() to avoid sending library:; in the ? reply before the initial
     // qXfer:libraries:read handshake completes.
-    if (requeryLibraries && m_debugServer.isDebuggerReady()) {
+    if (requeryLibraries && m_debugServer.hasSentLibraryList()) {
         reply.append("library:;"_s);
         // Include a human-readable description only for dedicated new-instance-load stops.
         if (state->isNewModuleLoad) {

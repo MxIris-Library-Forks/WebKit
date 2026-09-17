@@ -1242,8 +1242,6 @@ webkit.org/b/321789 animations/no-style-recalc-during-accelerated-animation.html
 
 webkit.org/b/322025 fast/animation/request-animation-frame-during-modal.html [ Failure Pass ]
 
-webkit.org/b/322486 media/event-attributes.html [ Crash ]
-
 # Gardening 2026-08-26
 webkit.org/b/321107 imported/w3c/web-platform-tests/css/selectors/media/media-loading-state-timing.sub.html [ Failure ]
 webkit.org/b/322626 fast/events/touch/touch-target-limited.html [ Timeout ]
@@ -1283,7 +1281,6 @@ webkit.org/b/323612 imported/w3c/web-platform-tests/css/css-counter-styles/count
 webkit.org/b/323611 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-overflow-icb-004-rtl.html [ ImageOnlyFailure Pass ]
 webkit.org/b/323611 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-overflow-icb-006-rtl.html [ ImageOnlyFailure Pass ]
 webkit.org/b/323611 imported/w3c/web-platform-tests/css/css-anchor-position/position-area-overflow-icb-008-rtl.html [ ImageOnlyFailure Pass ]
-webkit.org/b/323666 [ Release ] imported/w3c/web-platform-tests/webrtc-extensions/RTCRtpSynchronizationSource-senderCaptureTimeOffset.html [ Crash Pass ]
 webkit.org/b/323778 [ Debug ] media/media-source/media-source-addsourcebuffer-after-canplaytype.html [ Crash Pass ]
 
 webkit.org/b/323779 imported/w3c/web-platform-tests/web-locks/held.https.any.sharedworker.html [ Failure Pass ]
@@ -1303,3 +1300,10 @@ webkit.org/b/324254 imported/w3c/web-platform-tests/svg/animations/use-animate-d
 webkit.org/b/324255 imported/w3c/web-platform-tests/webrtc/RTCDataChannel-bufferedAmount.html [ Failure Pass ]
 webkit.org/b/324256 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-videoDetectorTest.html [ Failure Pass ]
 webkit.org/b/324257 inspector/runtime/getCollectionEntries.html [ Failure Pass ]
+
+# Gardening 2026-09-16
+webkit.org/b/323049 [ Debug ] fast/webcodecs/resetting-audio-decoder-with-unsupported-codec-crash.html [ Crash Pass ]
+webkit.org/b/323049 [ Debug ] fast/webcodecs/resetting-video-encoder-with-unsupported-codec-crash.html [ Crash Pass ]
+webkit.org/b/323049 [ Debug ] imported/w3c/web-platform-tests/service-workers/service-worker/static-router-subresource.https.html [ Crash Pass ]
+webkit.org/b/323049 [ Debug ] imported/w3c/web-platform-tests/service-workers/service-worker/unregister-then-register.https.html [ Crash Pass ]
+webkit.org/b/324338 [ Debug ] webaudio/silent-audio-interrupted-in-background.html [ Failure Pass ]

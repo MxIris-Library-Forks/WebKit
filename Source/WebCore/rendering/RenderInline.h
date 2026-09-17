@@ -40,7 +40,6 @@ public:
     virtual ~RenderInline();
 
 
-    LayoutSize offsetFromContainer(const RenderElement&, const LayoutPoint&, bool* offsetDependsOnPoint = nullptr) const final;
 
 
 
@@ -64,10 +63,7 @@ private:
     LayoutUnit offsetHeight() const final { return borderBoxRectInContainer().height(); }
 
 protected:
-    RepaintRects localRectsForRepaint(RepaintOutlineBounds) const override;
-    LayoutRect rectWithOutlineForRepaint(const RenderLayerModelObject* repaintContainer, LayoutUnit outlineWidth) const final;
 
-    void mapLocalToContainer(const RenderLayerModelObject* repaintContainer, TransformState&, OptionSet<MapCoordinatesMode>, bool* wasFixed) const override;
 
 private:
 

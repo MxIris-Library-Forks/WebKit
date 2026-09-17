@@ -496,7 +496,6 @@ Page::Page(PageConfiguration&& pageConfiguration)
 #if ENABLE(WRITING_TOOLS_TEXT_EFFECTS)
     , m_textEffectController(makeUniqueRef<TextEffectController>(*this))
 #endif
-    , m_activeNowPlayingSessionUpdateTimer(*this, &Page::updateActiveNowPlayingSessionNow)
     , m_topDocumentSyncData(DocumentSyncData::create())
 #if HAVE(AUDIT_TOKEN)
     , m_presentingApplicationAuditToken(WTF::move(pageConfiguration.presentingApplicationAuditToken))
@@ -2505,6 +2504,7 @@ void Page::updateRendering()
     runProcessingStep(RenderingUpdateStep::SnapshottedScrollOffsets, [&] (Document& document) {
         if (CheckedPtr renderView = document.renderView())
             Style::AnchorPositionEvaluator::updateScrollAdjustments(*renderView);
+        document.styleScope().updateScrollStateSnapshots();
     });
 
     for (auto& document : initialDocuments) {
@@ -4677,8 +4677,6 @@ void Page::didChangeMainDocument(Document* newDocument)
 #endif
 
     m_elementTargetingController->didChangeMainDocument(newDocument);
-
-    updateActiveNowPlayingSessionNow();
 }
 
 RenderingUpdateScheduler& Page::renderingUpdateScheduler()
@@ -5931,29 +5929,6 @@ void Page::intelligenceTextAnimationsDidComplete()
     m_writingToolsController->intelligenceTextAnimationsDidComplete();
 }
 #endif
-
-void Page::hasActiveNowPlayingSessionChanged()
-{
-    if (!m_activeNowPlayingSessionUpdateTimer.isActive())
-        m_activeNowPlayingSessionUpdateTimer.startOneShot(0_s);
-}
-
-void Page::updateActiveNowPlayingSessionNow()
-{
-    if (m_activeNowPlayingSessionUpdateTimer.isActive())
-        m_activeNowPlayingSessionUpdateTimer.stop();
-
-    RefPtr manager = mediaSessionManagerIfExists();
-    if (!manager)
-        return;
-
-    bool hasActiveNowPlayingSession = manager->hasActiveNowPlayingSessionInGroup(mediaSessionGroupIdentifier());
-    if (hasActiveNowPlayingSession == m_hasActiveNowPlayingSession)
-        return;
-
-    m_hasActiveNowPlayingSession = hasActiveNowPlayingSession;
-    chrome().client().hasActiveNowPlayingSessionChanged(hasActiveNowPlayingSession);
-}
 
 void Page::setLastAuthentication(LoginStatus::AuthenticationType authType)
 {

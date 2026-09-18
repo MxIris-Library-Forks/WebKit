@@ -245,6 +245,7 @@ public:
     std::span<const CharacterType> spanIncludingNullTerminator() const LIFETIME_BOUND { return byteCast<CharacterType>(CString::spanIncludingNullTerminator()); }
     std::span<CharacterType> mutableSpan() LIFETIME_BOUND { return byteCast<CharacterType>(CString::mutableSpan()); }
     std::span<CharacterType> mutableSpanIncludingNullTerminator() LIFETIME_BOUND { return byteCast<CharacterType>(CString::mutableSpanIncludingNullTerminator()); }
+    CStringWithEncoding isolatedCopy() const { return CStringWithEncoding { span() }; }
 
     // This is the escape hatch for external C functions and printf-style formatting. It is named for the
     // destination rather than the contents: const char* is what C string interfaces take, which is why this
@@ -257,6 +258,15 @@ public:
     const char* legacyCStringPointer() const LIFETIME_BOUND requires std::same_as<CharacterType, char8_t> { return CString::data(); }
 
 #if USE(FOUNDATION) && defined(__OBJC__)
+    // Converts nil to a null string, like String(NSString *), which is the reverse of how
+    // createNSString() below converts a null string to an empty NSString. Truncates at an embedded
+    // null, as the result is a C string. Only offered for UTF-8: -cStringUsingEncoding: returns null
+    // for a string Latin-1 cannot represent, which would silently produce a null CString here.
+    explicit CStringWithEncoding(NSString *string) requires std::same_as<CharacterType, char8_t>
+        : CString(string.UTF8String)
+    {
+    }
+
     // Converts a null string to an empty string, like String::createNSString(). ASCII decodes as
     // Latin-1, matching how the comparison operators below treat it, so that an ASCIICString holding
     // a mislabeled non-ASCII byte round-trips instead of failing.

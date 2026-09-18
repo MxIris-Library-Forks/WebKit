@@ -16,6 +16,7 @@ PASS :not(div) does not match the shadow host
 PASS :not(span) does not match the shadow host
 PASS :not(.foo) does not match the shadow host
 PASS :not(:nth-of-type(99)) does not match the shadow host
+PASS :not(:hover) does not match the shadow host
 PASS :not(:host.host) does not match the shadow host
 PASS :not(.foo:host) does not match the shadow host
 PASS :not(:host > .foo) does not match the shadow host
@@ -27,4 +28,21 @@ PASS :host:has(.inner) matches the shadow host
 PASS :not(:has(.inner)) does not match the shadow host
 PASS :not(:host:has(.inner)) does not match the shadow host
 PASS :not(:host:has(.nope)) matches the shadow host
+PASS :not(:has(.inner):host) does not match the shadow host
+PASS :not(:has(.nope):host) matches the shadow host
+PASS [a]:host does not match the shadow host
+PASS :nth-child(1):host does not match the shadow host
+PASS :host:nth-child(1 of :host) does not match the shadow host
+PASS [a^='']:host does not match the shadow host
+PASS :nth-child(0):host does not match the shadow host
+PASS :nth-child(0 of :host) does not match the shadow host
+PASS ::before does not match the shadow host
+PASS :host::before matches the shadow host
+PASS :is(:host)::before matches the shadow host
+PASS :not(:not(:host))::before matches the shadow host
+PASS :not(:hover)::before does not match the shadow host
+PASS :not(:host(.nope)) does not match the shadow host after a class change
+PASS :not(:host(#nope)) does not match the shadow host after an id change
+PASS :not(:host([a])) does not match the shadow host after an attribute change
+PASS :host(.nope) matches the shadow host after a class change
 

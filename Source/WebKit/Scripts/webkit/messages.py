@@ -529,6 +529,7 @@ def serialized_identifiers():
         'WebKit::NonProcessQualifiedContentWorldIdentifier',
         'WebKit::PDFPluginIdentifier',
         'WebKit::PageGroupIdentifier',
+        'WebKit::PolicyListenerIdentifier',
         'WebKit::QuotaIncreaseRequestIdentifier',
         'WebKit::RealmIdentifier',
         'WebKit::RemoteAudioDestinationIdentifier',
@@ -1672,6 +1673,7 @@ def headers_for_type(type, for_implementation_file=False):
         'WebCore::UsedLegacyTLS': ['<WebCore/ResourceResponseBase.h>'],
         'WebCore::UsedPortalTransform': ['<WebCore/PortalTransform.h>'],
         'WebCore::VideoFrameRotation': ['<WebCore/VideoFrame.h>'],
+        'WebCore::GPUVideoEncoderFrameInfo': ['<WebCore/GPUVideoEncoder.h>'],
         'WebCore::VideoPlaybackQualityMetrics': ['<WebCore/VideoPlaybackQualityMetrics.h>'],
         'WebCore::VideoPresetData': ['<WebCore/VideoPreset.h>'],
         'WebCore::JSHandleIdentifier': ['<WebCore/WebKitJSHandle.h>'],
@@ -1761,6 +1763,7 @@ def headers_for_type(type, for_implementation_file=False):
         'WebKit::PageGroupIdentifier': ['"IdentifierTypes.h"'],
         'WebKit::PDFAccessibilityDisplayModeState': ['"PDFAccessibilityDisplayModeState.h"'],
         'WebKit::PDFPluginDisplayMode': ['"PDFDisplayMode.h"'],
+        'WebKit::PolicyListenerIdentifier': ['"PolicyListenerIdentifier.h"'],
         'WebKit::RealmIdentifier': ['"IdentifierTypes.h"'],
         'WebKit::PaymentSetupConfiguration': ['"PaymentSetupConfigurationWebKit.h"'],
         'WebKit::PaymentSetupFeatures': ['"ApplePayPaymentSetupFeaturesWebKit.h"'],
@@ -1878,7 +1881,6 @@ def headers_for_type(type, for_implementation_file=False):
         'WebKit::WebUserStyleSheetData': ['"WebUserContentControllerDataTypes.h"'],
         'WTF::UnixFileDescriptor': ['<wtf/unix/UnixFileDescriptor.h>'],
         'WTF::SystemMemoryPressureStatus': ['<wtf/MemoryPressureHandler.h>'],
-        'webrtc::WebKitEncodedFrameInfo': ['"RTCWebKitEncodedFrameInfo.h"'],
     }
 
     headers = []

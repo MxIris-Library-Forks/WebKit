@@ -83,24 +83,6 @@ static unsigned NODELETE rulesCountForName(const RuleSet::AtomRuleMap& map, cons
     return 0;
 }
 
-// FIXME: Maybe we can unify both following functions
-
-static bool NODELETE hasHostOrScopePseudoClassSubjectInSelectorList(const CSSSelectorList* selectorList)
-{
-    if (!selectorList)
-        return false;
-
-    for (auto& selector : *selectorList) {
-        if (selector.isHostPseudoClass() || selector.isScopePseudoClass())
-            return true;
-
-        if (hasHostOrScopePseudoClassSubjectInSelectorList(selector.selectorList()))
-            return true;
-    }
-
-    return false;
-}
-
 static bool isHostSelectorMatchingInShadowTree(const CSSSelector& startSelector)
 {
     auto isHostSelectorMatchingInShadowTreeInSelectorList = [](const CSSSelectorList* selectorList) {
@@ -206,7 +188,6 @@ void RuleSet::addRuleToBucket(RuleData& ruleData)
 #if ENABLE(VIDEO)
     const CSSSelector* cuePseudoElementSelector = nullptr;
 #endif
-    bool hasHostOrScopePseudoClassSubject = false;
     Vector<const CSSSelector*, 4> nestedSelectors;
     // We only process the subject (rightmost) compound.
     for (const CSSSelector* selector = &ruleData.selector(); selector; selector = selector->followingInCompound()) {
@@ -310,9 +291,6 @@ void RuleSet::addRuleToBucket(RuleData& ruleData)
                     fullscreenPseudoClassSelector = current;
                     break;
 #endif
-                case CSSSelector::PseudoClass::Scope:
-                    hasHostOrScopePseudoClassSubject = true;
-                    break;
                 case CSSSelector::PseudoClass::Heading:
                     headingPseudoClassSelector = current;
                     break;
@@ -323,13 +301,9 @@ void RuleSet::addRuleToBucket(RuleData& ruleData)
                         for (auto* inner = &selectorList->first(); inner; inner = inner->followingInCompound())
                             nestedSelectors.append(inner);
                     }
-                    if (hasHostOrScopePseudoClassSubjectInSelectorList(selectorList))
-                        hasHostOrScopePseudoClassSubject = true;
                     break;
                 }
                 default:
-                    if (hasHostOrScopePseudoClassSubjectInSelectorList(current->selectorList()))
-                        hasHostOrScopePseudoClassSubject = true;
                     break;
                 }
                 break;
@@ -545,8 +519,9 @@ void RuleSet::addRuleToBucket(RuleData& ruleData)
 
     // If we didn't find a specialized map to stick it in, file under universal rules.
     m_universalRules.append(ruleData);
-    if (hasHostOrScopePseudoClassSubject)
-        m_hostOrScopePseudoClassRulesInUniversalBucket.append(ruleData);
+    // Only a rule whose subject compound is allowed to match a featureless element can match the shadow host.
+    if (SelectorChecker::isCompoundSelectorAllowedToMatchFeaturelessShadowHost(ruleData.selector()))
+        m_shadowHostRulesInUniversalBucket.append(ruleData);
 }
 
 void RuleSet::addPageRule(StyleRulePage& rule)
@@ -590,7 +565,7 @@ void RuleSet::traverseRuleDatas(Function&& function)
     traverseVector(m_cuePseudoRules);
 #endif
     traverseVector(m_hostPseudoClassRules);
-    traverseVector(m_hostOrScopePseudoClassRulesInUniversalBucket);
+    traverseVector(m_shadowHostRulesInUniversalBucket);
     traverseVector(m_slottedPseudoElementRules);
     traverseVector(m_partPseudoElementRules);
     traverseVector(m_focusPseudoClassRules);
@@ -696,7 +671,7 @@ void RuleSet::shrinkToFit()
     m_cuePseudoRules.shrinkToFit();
 #endif
     m_hostPseudoClassRules.shrinkToFit();
-    m_hostOrScopePseudoClassRulesInUniversalBucket.shrinkToFit();
+    m_shadowHostRulesInUniversalBucket.shrinkToFit();
     m_slottedPseudoElementRules.shrinkToFit();
     m_partPseudoElementRules.shrinkToFit();
     m_focusPseudoClassRules.shrinkToFit();

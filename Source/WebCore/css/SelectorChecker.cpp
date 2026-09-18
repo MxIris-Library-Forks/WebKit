@@ -796,6 +796,8 @@ static bool isSelectorListAllowedToMatchFeaturelessShadowHost(const CSSSelectorL
 // https://drafts.csswg.org/selectors-4/#featureless
 static bool isSimpleSelectorAllowedToMatchFeaturelessShadowHost(const CSSSelector& selector)
 {
+    if (selector.match() == CSSSelector::Match::PseudoElement || selector.match() == CSSSelector::Match::HasScope)
+        return true;
     if (selector.match() != CSSSelector::Match::PseudoClass)
         return false;
     if (selector.isHostPseudoClass() || selector.isScopePseudoClass())
@@ -811,21 +813,18 @@ static bool isSimpleSelectorAllowedToMatchFeaturelessShadowHost(const CSSSelecto
     }
 }
 
-static bool isCompoundSelectorAllowedToMatchFeaturelessShadowHost(const CSSSelector& firstInCompound)
+bool SelectorChecker::isCompoundSelectorAllowedToMatchFeaturelessShadowHost(const CSSSelector& firstInCompound)
 {
     // :has() is allowed only if some other simple selector in its compound is.
     bool hasAllowedSimpleSelector = false;
-    bool containsHas = false;
     for (auto* simpleSelector = &firstInCompound; simpleSelector; simpleSelector = simpleSelector->followingInCompound()) {
-        if (simpleSelector->match() == CSSSelector::Match::PseudoClass && simpleSelector->pseudoClass() == CSSSelector::PseudoClass::Has) {
-            containsHas = true;
+        if (simpleSelector->isHasPseudoClass())
             continue;
-        }
         if (!isSimpleSelectorAllowedToMatchFeaturelessShadowHost(*simpleSelector))
             return false;
         hasAllowedSimpleSelector = true;
     }
-    return hasAllowedSimpleSelector || !containsHas;
+    return hasAllowedSimpleSelector;
 }
 
 static bool isSelectorListAllowedToMatchFeaturelessShadowHost(const CSSSelectorList* selectorList)
@@ -833,7 +832,7 @@ static bool isSelectorListAllowedToMatchFeaturelessShadowHost(const CSSSelectorL
     if (!selectorList)
         return false;
     for (auto& selector : *selectorList) {
-        if (isCompoundSelectorAllowedToMatchFeaturelessShadowHost(selector))
+        if (SelectorChecker::isCompoundSelectorAllowedToMatchFeaturelessShadowHost(selector))
             return true;
     }
     return false;
@@ -845,9 +844,7 @@ bool SelectorChecker::checkOne(CheckingContext& checkingContext, LocalContext& c
     const CSSSelector& selector = *context.selector;
 
     if (context.mustMatchHostPseudoClass) {
-        // The featureless shadow host only matches the simple selectors it is allowed to, and functional pseudo-classes that may contain one of those.
-        bool isPseudoElement = selector.match() == CSSSelector::Match::PseudoElement;
-        if (!selector.isHostPseudoClass() && !isPseudoElement && !selector.isScopePseudoClass() && selector.match() != CSSSelector::Match::HasScope && !selector.selectorList())
+        if (!isSimpleSelectorAllowedToMatchFeaturelessShadowHost(selector) && !selector.isHasPseudoClass())
             return false;
     }
 

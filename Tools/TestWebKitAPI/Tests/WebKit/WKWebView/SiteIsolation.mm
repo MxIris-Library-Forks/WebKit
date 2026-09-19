@@ -10747,12 +10747,8 @@ TEST(SiteIsolation, CrossSiteIframeOpenWindowWithBlobURL)
 
 #if PLATFORM(MAC)
 
-NSPoint testColorPickerPopoverLocation(const String& iframeSource)
+NSPoint testColorPickerPopoverLocation(const String& mainPageSource, const String& iframeSource)
 {
-    auto mainPageSource =
-        "<iframe id=iframe style='margin: 100px; width: 400px; height: 300px;' src='https://webkit.org/iframe' onload='load()'></iframe>"_s
-        "<script>function load() { alert('loaded'); }</script>"_s;
-
     HTTPServer server({
         { "/mainframe"_s, { mainPageSource } },
         { "/iframe"_s, { iframeSource } }
@@ -10784,16 +10780,24 @@ NSPoint testColorPickerPopoverLocation(const String& iframeSource)
 
 TEST(SiteIsolation, ColorInputPickerLocationInCrossSiteIframe)
 {
+    auto mainPageSource =
+        "<iframe id=iframe style='margin: 100px; width: 400px; height: 300px;' src='https://webkit.org/iframe' onload='load()'></iframe>"_s
+        "<script>function load() { alert('loaded'); }</script>"_s;
+
     auto iframeSource =
         "<!DOCTYPE html>"_s
         "<input style='margin: 50px; appearance: none; width: 50px; height: 50px;' type='color'>"_s;
 
-    auto pickerLocation = testColorPickerPopoverLocation(iframeSource);
+    auto pickerLocation = testColorPickerPopoverLocation(mainPageSource, iframeSource);
     EXPECT_EQ(pickerLocation, NSMakePoint(168, 168));
 }
 
 TEST(SiteIsolation, ColorInputPickerLocationInScrolledCrossSiteIframe)
 {
+    auto mainPageSource =
+        "<iframe id=iframe style='margin: 100px; width: 400px; height: 300px;' src='https://webkit.org/iframe' onload='load()'></iframe>"_s
+        "<script>function load() { alert('loaded'); }</script>"_s;
+
     auto iframeSource =
         "<!DOCTYPE html>"_s
         "<div style='height: 1000px'></div>"_s
@@ -10801,7 +10805,33 @@ TEST(SiteIsolation, ColorInputPickerLocationInScrolledCrossSiteIframe)
         "<div style='height: 1000px'></div>"_s
         "<script>onload = () => window.scroll(0, 1000);</script>"_s;
 
-    auto pickerLocation = testColorPickerPopoverLocation(iframeSource);
+    auto pickerLocation = testColorPickerPopoverLocation(mainPageSource, iframeSource);
+    EXPECT_EQ(pickerLocation, NSMakePoint(168, 168));
+}
+
+TEST(SiteIsolation, ColorInputPickerLocationInDelayLoadedCrossSiteIframe)
+{
+    auto mainPageSource =
+        "<div style='height: 1000px'></div>"_s
+        "<iframe id=iframe style='margin: 100px; width: 400px; height: 300px;'></iframe>"_s
+        "<div style='height: 1000px'></div>"_s
+        "<script>"_s
+        "  window.scroll(0, 1000);"_s
+        "  requestAnimationFrame(() => {"_s
+        "    requestAnimationFrame(() => {"_s
+        "      requestAnimationFrame(() => {"_s
+        "        iframe.onload = () => alert('loaded');"_s
+        "        iframe.src = 'https://webkit.org/iframe';"_s
+        "      });"_s
+        "    });"_s
+        "  });"_s
+        "</script>"_s;
+
+    auto iframeSource =
+        "<!DOCTYPE html>"_s
+        "<input style='margin: 50px; appearance: none; width: 50px; height: 50px;' type='color'>"_s;
+
+    auto pickerLocation = testColorPickerPopoverLocation(mainPageSource, iframeSource);
     EXPECT_EQ(pickerLocation, NSMakePoint(168, 168));
 }
 
@@ -11159,6 +11189,157 @@ TEST(SiteIsolation, SelectAllAndCopyInCrossOriginIframe)
     EXPECT_WK_STREQ("subframe text", [UIPasteboard.generalPasteboard string]);
 }
 
+// Selection commands are sent to the process containing the focused frame. These tests put the
+// selection in a cross-origin iframe and check that each command takes effect there; if the message
+// is routed to the main frame's process instead it finds no selection and silently does nothing.
+
+static constexpr auto mainFrameWithCrossOriginIframe = "<body style='margin: 0'>main frame text<iframe id='iframe' style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s;
+
+struct SiteIsolatedViewWithFocusedIframe {
+    RetainPtr<TestWKWebView> webView;
+    RetainPtr<TestNavigationDelegate> navigationDelegate;
+    RetainPtr<WKFrameInfo> childFrame;
+};
+
+static SiteIsolatedViewWithFocusedIframe siteIsolatedViewWithFocusedIframe(const HTTPServer& server)
+{
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    [webView focusInWindow];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    [webView evaluateJavaScript:@"document.getElementById('iframe').focus()" completionHandler:nil];
+    while (![childFrame _isFocused]) {
+        Util::spinRunLoop();
+        childFrame = [webView firstChildFrame];
+    }
+
+    return { WTF::move(webView), WTF::move(navigationDelegate), WTF::move(childFrame) };
+}
+
+TEST(SiteIsolation, SelectWordInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = siteIsolatedViewWithFocusedIframe(server);
+
+    // Put the caret inside "subframe" so that selecting a word has to extend the selection in the
+    // iframe's process.
+    [webView objectByEvaluatingJavaScript:@"getSelection().collapse(document.body.firstChild, 3)" inFrame:childFrame.get()];
+
+    [webView select:nil];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()] isEqualToString:@"subframe"];
+    }));
+    EXPECT_WK_STREQ("", [webView stringByEvaluatingJavaScript:@"getSelection().toString()"]);
+}
+
+TEST(SiteIsolation, SelectWordBackwardInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = siteIsolatedViewWithFocusedIframe(server);
+
+    // Caret at the end of "subframe text"; selecting the word backward must select "text".
+    [webView objectByEvaluatingJavaScript:@"getSelection().collapse(document.body.firstChild, 13)" inFrame:childFrame.get()];
+
+    [webView selectWordBackwardForTesting];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()] isEqualToString:@"text"];
+    }));
+}
+
+TEST(SiteIsolation, SelectWordForReplacementInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = siteIsolatedViewWithFocusedIframe(server);
+
+    [webView objectByEvaluatingJavaScript:@"getSelection().collapse(document.body.firstChild, 3)" inFrame:childFrame.get()];
+
+    [[webView textInputContentView] selectWordForReplacement];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()] isEqualToString:@"subframe"];
+    }));
+}
+
+TEST(SiteIsolation, MoveSelectionByOffsetInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = siteIsolatedViewWithFocusedIframe(server);
+
+    [webView objectByEvaluatingJavaScript:@"getSelection().collapse(document.body.firstChild, 3)" inFrame:childFrame.get()];
+
+    [[webView textInputContentView] moveByOffset:-1];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [webView selectionRangeHasStartOffset:2 endOffset:2 inFrame:childFrame.get()];
+    }));
+}
+
+TEST(SiteIsolation, MoveSelectionAtBoundaryInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = siteIsolatedViewWithFocusedIframe(server);
+
+    // Caret in the middle of "subframe"; moving to the word boundary to the left lands at offset 0.
+    [webView objectByEvaluatingJavaScript:@"getSelection().collapse(document.body.firstChild, 3)" inFrame:childFrame.get()];
+
+    __block bool didMoveSelection = false;
+    [[webView textInputContentView] moveSelectionAtBoundary:UITextGranularityWord inDirection:UITextLayoutDirectionLeft completionHandler:^{
+        didMoveSelection = true;
+    }];
+    Util::run(&didMoveSelection);
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [webView selectionRangeHasStartOffset:0 endOffset:0 inFrame:childFrame.get()];
+    }));
+}
+
+TEST(SiteIsolation, ReplaceSelectedTextInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0' contenteditable>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = siteIsolatedViewWithFocusedIframe(server);
+
+    [webView _synchronouslyExecuteEditCommand:@"SelectAll" argument:nil];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()] isEqualToString:@"subframe text"];
+    }));
+
+    [[webView textInputContentView] replaceText:@"subframe text" withText:@"replaced"];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"document.body.textContent" inFrame:childFrame.get()] isEqualToString:@"replaced"];
+    }));
+}
+
 TEST(SiteIsolation, SelectionBoundingRectInCrossOriginIframeUsesMainFrameCoordinates)
 {
     HTTPServer server({
@@ -11417,6 +11598,39 @@ TEST(SiteIsolation, SelectionInCrossOriginIframeIsContainedByContentView)
     EXPECT_EQ(webView.get().selectionHighlightView.superview, webView.get().textInputContentView);
 }
 #endif // HAVE(UI_TEXT_SELECTION_DISPLAY_INTERACTION)
+
+#if HAVE(UI_EDIT_MENU_INTERACTION)
+TEST(SiteIsolation, EditMenuSelectsWordInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><iframe id='iframe' style='display: block; position: absolute; top: 100px; left: 100px; width: 400px; height: 200px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0; font: 50px/60px monospace'>Hello world</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get() addToWindow:YES]);
+    webView.get().navigationDelegate = navigationDelegate.get();
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    __block bool done = false;
+    [webView selectTextForContextMenuWithLocationInView:CGPointMake(140, 130) completion:^(BOOL shouldPresentMenu) {
+        EXPECT_TRUE(shouldPresentMenu);
+        done = true;
+    }];
+    Util::run(&done);
+
+    EXPECT_WK_STREQ("Hello", [webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()]);
+    EXPECT_WK_STREQ("", [webView stringByEvaluatingJavaScript:@"getSelection().toString()"]);
+}
+#endif // HAVE(UI_EDIT_MENU_INTERACTION)
 
 } // namespace TestWebKitAPI
 

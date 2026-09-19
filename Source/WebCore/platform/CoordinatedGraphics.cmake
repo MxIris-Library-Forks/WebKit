@@ -18,6 +18,8 @@ list(APPEND WebCore_SOURCES
     page/scrolling/coordinated/ScrollingTreeScrollingNodeDelegateCoordinated.cpp
     page/scrolling/coordinated/ScrollingTreeStickyNodeCoordinated.cpp
 
+    platform/graphics/texmap/coordinated/AcceleratedAnimation.cpp
+    platform/graphics/texmap/coordinated/AcceleratedAnimations.cpp
     platform/graphics/texmap/coordinated/CoordinatedAnimatedBackingStoreClient.cpp
     platform/graphics/texmap/coordinated/CoordinatedBackingStoreProxy.cpp
     platform/graphics/texmap/coordinated/CoordinatedImageBackingStore.cpp
@@ -49,17 +51,11 @@ if (USE_TEXTURE_MAPPER)
     )
 else ()
     list(APPEND WebCore_SOURCES
-        platform/graphics/texmap/FloatPlane3D.cpp
-        platform/graphics/texmap/FloatPolygon3D.cpp
         platform/graphics/texmap/GraphicsContextGLTextureMapperANGLE.cpp
-        platform/graphics/texmap/TextureMapperAnimation.cpp
     )
 
     list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
-        platform/graphics/texmap/FloatPlane3D.h
-        platform/graphics/texmap/FloatPolygon3D.h
         platform/graphics/texmap/GraphicsContextGLTextureMapperANGLE.h
-        platform/graphics/texmap/TextureMapperAnimation.h
         platform/graphics/texmap/TextureMapperFlags.h
     )
 endif ()
@@ -67,6 +63,8 @@ endif ()
 list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/scrolling/coordinated/ScrollingTreeCoordinated.h
 
+    platform/graphics/texmap/coordinated/AcceleratedAnimation.h
+    platform/graphics/texmap/coordinated/AcceleratedAnimations.h
     platform/graphics/texmap/coordinated/CoordinatedAnimatedBackingStoreClient.h
     platform/graphics/texmap/coordinated/CoordinatedBackingStoreProxy.h
     platform/graphics/texmap/coordinated/CoordinatedCompositionReason.h

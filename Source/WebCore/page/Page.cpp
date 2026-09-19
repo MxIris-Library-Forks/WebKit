@@ -300,8 +300,8 @@ unsigned NODELETE Page::nonUtilityPageCount()
 
 void Page::forEachPage(NOESCAPE const Function<void(Page&)>& function)
 {
-    for (auto& page : allPages())
-        function(Ref { page.get() });
+    for (auto& page : copyToVectorOf<Ref<Page>>(allPages()))
+        function(page);
 }
 
 Page* Page::fromPageIdentifier(PageIdentifier identifier)
@@ -607,7 +607,7 @@ void Page::firstTimeInitialization()
 
 void Page::clearPreviousItemFromAllPages(BackForwardFrameItemIdentifier frameItemID)
 {
-    for (auto& page : allPages()) {
+    for (auto& page : copyToVectorOf<Ref<Page>>(allPages())) {
         RefPtr localMainFrame = page->localMainFrame();
         if (!localMainFrame)
             return;
@@ -1145,14 +1145,14 @@ void Page::updateStyleAfterChangeInEnvironment()
 
 void Page::updateStyleForAllPagesAfterGlobalChangeInEnvironment()
 {
-    for (auto& page : allPages())
-        Ref { page.get() }->updateStyleAfterChangeInEnvironment();
+    for (auto& page : copyToVectorOf<Ref<Page>>(allPages()))
+        page->updateStyleAfterChangeInEnvironment();
 }
 
 void Page::updateControlTintsForAllPages()
 {
-    for (auto& page : allPages())
-        Ref { page.get() }->updateControlTints();
+    for (auto& page : copyToVectorOf<Ref<Page>>(allPages()))
+        page->updateControlTints();
 }
 
 void Page::setNeedsRecalcStyleInAllFrames()
@@ -2265,6 +2265,13 @@ void Page::syncLocalFrameInfoToRemote()
 
     forEachLocalFrame([] (LocalFrame& frame) {
         RefPtr<LocalFrameView> frameView = frame.view();
+        if (!frameView)
+            return;
+
+        frame.loader().client().broadcastFrameViewportInfoToOtherProcesses({
+            frameView->layoutViewportRect(),
+            frameView->scrollPosition()
+        });
 
         HashMap<FrameIdentifier, Ref<RemoteFrameLayoutInfo>> childrenFrameLayoutInfo;
         auto windowClipRectInContentCoordinates = [&frameView, rect = std::optional<LayoutRect> { }]() mutable {
@@ -2345,7 +2352,6 @@ void Page::syncLocalFrameInfoToRemote()
         }
 
         frame.loader().client().broadcastFrameGeometryToOtherProcesses({
-            frameView->layoutViewportRect(),
             frameView->contentsSize(),
             WTF::move(childrenFrameLayoutInfo)
         });
@@ -2649,6 +2655,8 @@ void Page::doAfterUpdateRendering()
     }
 
     computeSampledPageTopColorIfNecessary();
+
+    m_renderingUpdateRemainingSteps.last().remove(RenderingUpdateStep::SyncLocalFrameInfoToRemote);
 
     if (mainFrame().tree().containsRemoteFrame())
         syncLocalFrameInfoToRemote();
@@ -5215,6 +5223,7 @@ WTF::TextStream& operator<<(WTF::TextStream& ts, RenderingUpdateStep step)
     case RenderingUpdateStep::PrepareCanvasesForDisplayOrFlush: ts << "PrepareCanvasesForDisplayOrFlush"_s; break;
     case RenderingUpdateStep::CaretAnimation: ts << "CaretAnimation"_s; break;
     case RenderingUpdateStep::FocusFixup: ts << "FocusFixup"_s; break;
+    case RenderingUpdateStep::SyncLocalFrameInfoToRemote: ts << "SyncLocalFrameInfoToRemote"_s; break;
     case RenderingUpdateStep::UpdateValidationMessagePositions: ts << "UpdateValidationMessagePositions"_s; break;
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
     case RenderingUpdateStep::AccessibilityRegionUpdate: ts << "AccessibilityRegionUpdate"_s; break;

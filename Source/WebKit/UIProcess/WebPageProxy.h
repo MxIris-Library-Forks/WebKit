@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2010-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1217,7 +1217,7 @@ public:
     void selectWithGesture(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, GestureType, GestureRecognizerState, bool isInteractingWithFocusedElement, SelectWithGestureCompletionHandler&&);
 
     void didReceivePositionInformation(const InteractionInformationAtPosition&);
-    void requestPositionInformation(const InteractionInformationRequest&);
+    std::optional<std::pair<IPC::AsyncReplyID, Ref<IPC::Connection>>> requestPositionInformation(const InteractionInformationRequest&);
 
     void selectPositionAtPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, CompletionHandler<void()>&&);
     void updateSelectionWithExtentPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, RespectSelectionAnchor, CompletionHandler<void(bool)>&&);
@@ -1281,7 +1281,7 @@ public:
     void clearSelectionAfterTappingSelectionHighlightIfNeeded(WebCore::FloatPoint);
 #if ENABLE(REVEAL)
     void requestRVItemInCurrentSelectedRange(CompletionHandler<void(const RevealItem&)>&&);
-    void prepareSelectionForContextMenuWithLocationInView(WebCore::IntPoint, CompletionHandler<void(bool, const RevealItem&)>&&);
+    void prepareSelectionForContextMenuWithLocationInView(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, CompletionHandler<void(bool, const RevealItem&)>&&);
 #endif
     void willInsertFinalDictationResult();
     void didInsertFinalDictationResult();
@@ -2280,6 +2280,7 @@ public:
     void setWindowFrame(const WebCore::FloatRect&);
     void getWindowFrame(CompletionHandler<void(const WebCore::FloatRect&)>&&);
     void getWindowFrameWithCallback(Function<void(WebCore::FloatRect)>&&);
+    static WebCore::FloatRect windowFrameRespectingHostingWindow(const PageClient&, std::optional<WebCore::FloatRect> frameFromUIClient);
 
     WebCore::UserInterfaceLayoutDirection userInterfaceLayoutDirection();
     void setUserInterfaceLayoutDirection(WebCore::UserInterfaceLayoutDirection);
@@ -2403,7 +2404,7 @@ public:
     void loadDataWithNavigationShared(Ref<WebProcessProxy>&&, WebCore::PageIdentifier, API::Navigation&, Ref<WebCore::SharedBuffer>&&, const String& MIMEType, const String& encoding, const String& baseURL, API::Object* userData, WebCore::ShouldTreatAsContinuingLoad, std::optional<NavigatingToAppBoundDomain>, RefPtr<API::WebsitePolicies>&&, WebCore::ShouldOpenExternalURLsPolicy, WebCore::SessionHistoryVisibility);
     void loadRequestWithNavigationShared(Ref<WebProcessProxy>&&, WebCore::PageIdentifier, API::Navigation&, WebCore::ResourceRequest&&, WebCore::ShouldOpenExternalURLsPolicy, WebCore::NavigationUpgradeToHTTPSBehavior, API::Object* userData, WebCore::ShouldTreatAsContinuingLoad, std::optional<NavigatingToAppBoundDomain>, RefPtr<API::WebsitePolicies>&&, std::optional<NetworkResourceLoadIdentifier> existingNetworkResourceLoadIdentifierToResume, MonotonicTime originalNavigationStartTime);
     void backForwardAddItemShared(IPC::Connection&, Ref<FrameState>&&, LoadedWebArchive);
-    void backForwardGoToItemShared(WebCore::BackForwardItemIdentifier);
+    void backForwardGoToItemShared(IPC::Connection&, WebCore::BackForwardItemIdentifier);
     void didDestroyNavigationShared(Ref<WebProcessProxy>&&, WebCore::NavigationIdentifier);
 #if USE(QUICK_LOOK)
     void requestPasswordForQuickLookDocumentInMainFrameShared(const String& fileName, CompletionHandler<void(const String&)>&&);
@@ -3742,7 +3743,8 @@ private:
     void resetRecentGamepadAccessState();
 #endif
 
-    void adjustAdvancedPrivacyProtectionsIfNeeded(API::WebsitePolicies&);
+    void adjustAdvancedPrivacyProtectionsIfNeeded(API::WebsitePolicies&, const URL& destinationURL);
+    bool shouldUseOverrideHardwareConcurrency(const URL&) const;
 
     void setAllowsLayoutViewportHeightExpansion(bool);
     void setBrowsingContextGroup(BrowsingContextGroup&);
@@ -4337,6 +4339,8 @@ private:
     bool m_needsScrollGeometryUpdates { false };
 
     unsigned m_textExtractionCount { 0 };
+
+    bool m_usingOverrideHardwareConcurrency { false };
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
     RefPtr<ListDataObserver> m_linkDecorationFilteringDataUpdateObserver;

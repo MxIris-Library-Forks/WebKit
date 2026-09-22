@@ -1521,7 +1521,7 @@ private:
 
 static inline SourceCode jscSource(const String& source, const SourceOrigin& sourceOrigin, String sourceURL = String(), const TextPosition& startPosition = TextPosition(), SourceProviderSourceType sourceType = SourceProviderSourceType::Program)
 {
-    return SourceCode(ShellSourceProvider::create(source, sourceOrigin, WTF::move(sourceURL), startPosition, sourceType), startPosition.m_line.oneBasedInt(), startPosition.m_column.oneBasedInt());
+    return SourceCode(ShellSourceProvider::create(source, sourceOrigin, WTF::move(sourceURL), startPosition, sourceType));
 }
 
 template<typename Vector>
@@ -3814,7 +3814,7 @@ int main(int argc, char** argv)
         CommaPrinter space(" "_s);
         for (int i = 0; i < argc; ++i)
             out.print(space, argv[i]);
-        WTF::setCrashLogMessage(out.toUTF8CString().legacyCStringPointer());
+        WTF::setCrashLogMessage(out.toUTF8CString());
     }
 #endif
 

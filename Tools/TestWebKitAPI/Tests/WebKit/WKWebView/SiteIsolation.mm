@@ -4398,6 +4398,46 @@ TEST(SiteIsolation, CountStringMatches)
         Util::spinRunLoop();
 }
 
+TEST(SiteIsolation, FindStringMatchIndexAcrossFrames)
+{
+    auto mainframeHTML = "<p>word word</p>"
+        "<iframe src='https://domain2.com/subframe'></iframe>"_s;
+    HTTPServer server({
+        { "/mainframe"_s, { mainframeHTML } },
+        { "/subframe"_s, { "<p>word word</p>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    RetainPtr findDelegate = adoptNS([[WKWebViewFindStringFindDelegate alloc] init]);
+    [webView _setFindDelegate:findDelegate.get()];
+
+    [webView loadURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    auto findNextWord = [&] {
+        isDone = false;
+        [webView _findString:@"word" options:_WKFindOptionsWrapAround | _WKFindOptionsDetermineMatchIndex maxCount:100];
+        Util::run(&isDone);
+    };
+
+    findNextWord();
+    EXPECT_EQ(4u, [findDelegate matchesCount]);
+    EXPECT_EQ(0, [findDelegate matchIndex]);
+
+    findNextWord();
+    EXPECT_EQ(4u, [findDelegate matchesCount]);
+    EXPECT_EQ(1, [findDelegate matchIndex]);
+
+    findNextWord();
+    EXPECT_EQ(4u, [findDelegate matchesCount]);
+    EXPECT_EQ(2, [findDelegate matchIndex]);
+
+    findNextWord();
+    EXPECT_EQ(4u, [findDelegate matchesCount]);
+    EXPECT_EQ(3, [findDelegate matchIndex]);
+}
+
 #if PLATFORM(MAC)
 TEST(SiteIsolation, ProcessDisplayNames)
 {
@@ -7141,7 +7181,7 @@ TEST(SiteIsolation, UnresponsiveProcessMousedown)
     // from one that recovered, so keep w3.org out of the shared process.
     navigationDelegate.get().decidePolicyForNavigationActionWithPreferences = ^(WKNavigationAction *navigationAction, WKWebpagePreferences *preferences, void (^decisionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {
         if ([navigationAction.request.URL.host isEqualToString:@"w3.org"])
-            preferences._allowSharedProcess = NO;
+            preferences._prefersIsolatedProcess = YES;
         decisionHandler(WKNavigationActionPolicyAllow, preferences);
     };
 
@@ -9183,7 +9223,7 @@ TEST(SiteIsolation, SharedProcessWithWebsitePolicies)
     auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server);
     navigationDelegate.get().decidePolicyForNavigationActionWithPreferences = ^(WKNavigationAction *navigationAction, WKWebpagePreferences *preferences, void (^decisionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {
         if ([navigationAction.request.URL.host isEqual:@"apple.com"] || [navigationAction.request.URL.path isEqual:@"alert_when_loaded"])
-            preferences._allowSharedProcess = NO;
+            preferences._prefersIsolatedProcess = YES;
         decisionHandler(WKNavigationActionPolicyAllow, preferences);
     };
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];

@@ -351,6 +351,7 @@ Modules/mediastream/STUNMessageParsing.cpp
 Modules/mediastream/UserMediaController.cpp
 Modules/mediastream/UserMediaRequest.cpp
 Modules/mediastream/VideoTrackGenerator.cpp
+Modules/model-element/EnvironmentMapLoader.cpp
 Modules/model-element/HTMLModelElement.cpp @header:RenderStyleGetters @cost:10
 Modules/model-element/LazyLoadModelObserver.cpp
 Modules/model-element/ModelPlayer.cpp
@@ -542,6 +543,7 @@ Modules/webcodecs/WebCodecsAudioDataAlgorithms.cpp
 Modules/webcodecs/WebCodecsAudioDecoder.cpp
 Modules/webcodecs/WebCodecsAudioEncoder.cpp
 Modules/webcodecs/WebCodecsBase.cpp
+Modules/webcodecs/WebCodecsBufferTransfer.cpp
 Modules/webcodecs/WebCodecsControlMessageQueue.cpp
 Modules/webcodecs/WebCodecsEncodedAudioChunk.cpp
 Modules/webcodecs/WebCodecsEncodedVideoChunk.cpp
@@ -973,6 +975,7 @@ css/CSSContentValue.cpp
 css/CSSCounterStyleDescriptors.cpp
 css/CSSCounterStyleRegistry.cpp
 css/CSSCounterStyleRule.cpp
+css/CSSEnvironmentMapRule.cpp
 css/CSSCrossfadeValue.cpp
 css/CSSCursorImageValue.cpp
 css/CSSCustomIdentValue.cpp
@@ -3452,6 +3455,7 @@ style/values/color/StyleLightDarkColor.cpp
 style/values/color/StyleOpacity.cpp
 style/values/color/StyleRelativeAlphaColor.cpp
 style/values/color/StyleResolvedColor.cpp
+style/values/color/StyleResolvedColors.cpp
 style/values/contain/StyleContain.cpp
 style/values/contain/StyleContainerType.cpp
 style/values/content/StyleContent.cpp @header:RenderStyleGetters @cost:6
@@ -4041,6 +4045,7 @@ JSCSSAnimationEvent.cpp
 JSCSSConditionRule.cpp
 JSCSSContainerRule.cpp
 JSCSSCounterStyleRule.cpp
+JSCSSEnvironmentMapRule.cpp
 JSCSSFontFaceDescriptors.cpp
 JSCSSFontFaceRule.cpp
 JSCSSFontFeatureValuesRule.cpp
@@ -5164,6 +5169,7 @@ JSScreenOrientation.cpp
 JSScriptProcessorNode.cpp
 JSScrollAxis.cpp
 JSScrollBehavior.cpp
+JSScrollIntoViewContainer.cpp
 JSScrollIntoViewOptions.cpp
 JSScrollLogicalPosition.cpp
 JSScrollOptions.cpp

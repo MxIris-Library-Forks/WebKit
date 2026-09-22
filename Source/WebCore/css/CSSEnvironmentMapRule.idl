@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,17 +23,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Foundation/Foundation.h>
+typedef USVString CSSOMString;
 
-#import "RTCMacros.h"
-#import "RTCVideoDecoder.h"
-
-RTC_OBJC_EXPORT
-__attribute__((objc_runtime_name("WK_RTCVideoDecoderVTBVP9")))
-@interface RTCVideoDecoderVTBVP9 : NSObject <RTCVideoDecoder>
-- (void)setWidth:(uint16_t)width height:(uint16_t)height;
-- (NSInteger)decodeData:(const uint8_t *)data
-    size:(size_t)size
-    timeStamp:(int64_t)timeStamp;
-- (void)flush;
-@end
+[
+    Conditional=SPATIAL_PORTAL,
+    EnabledBySetting=SpatialPortalEnabled,
+    Exposed=Window
+] interface CSSEnvironmentMapRule : CSSRule {
+  readonly attribute CSSOMString name;
+  readonly attribute CSSOMString format;
+  readonly attribute CSSOMString src;
+};

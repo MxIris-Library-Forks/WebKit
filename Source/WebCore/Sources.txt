@@ -2409,6 +2409,7 @@ page/UserContentURLPattern.cpp
 page/UserAgentStringParser.cpp
 page/UserScript.cpp
 page/UserStyleSheet.cpp
+page/ViewportProximityInfo.cpp
 page/VisitedLinkStore.cpp
 page/VisualViewport.cpp
 page/WebKitJSHandle.cpp
@@ -2741,6 +2742,7 @@ platform/graphics/GraphicsLayerTransform.cpp
 platform/graphics/GraphicsStyle.cpp
 platform/graphics/GraphicsTZoneImpls.cpp
 platform/graphics/GraphicsTypes.cpp
+platform/graphics/H264Utilities.cpp
 platform/graphics/HEVCUtilities.cpp
 platform/graphics/Icon.cpp
 platform/graphics/Image.cpp
@@ -3286,6 +3288,7 @@ rendering/svg/legacy/SVGResourcesCycleSolver.cpp
 rendering/updating/RenderTreeBuilder.cpp @header:RenderStyleGetters
 rendering/updating/RenderTreeBuilderBlock.cpp @header:RenderStyleGetters
 rendering/updating/RenderTreeBuilderBlockFlow.cpp
+rendering/updating/RenderTreeBuilderCanvas.cpp
 rendering/updating/RenderTreeBuilderFirstLetter.cpp @header:RenderStyleGetters
 rendering/updating/RenderTreeBuilderFormControls.cpp @header:RenderStyleGetters
 rendering/updating/RenderTreeBuilderInline.cpp @header:RenderStyleGetters

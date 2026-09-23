@@ -53,6 +53,7 @@
 #include <WebCore/OwnerPermissionsPolicyData.h>
 #include <WebCore/PageIdentifier.h>
 #include <WebCore/PageOverlay.h>
+#include <WebCore/PendingNavigateEventIdentifier.h>
 #include <WebCore/PlatformLayerIdentifier.h>
 #include <WebCore/PlaybackTargetClientContextIdentifier.h>
 #include <WebCore/PluginData.h>
@@ -1143,7 +1144,7 @@ public:
 
     void selectPositionAtPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, CompletionHandler<void()>&&);
     void updateSelectionWithExtentPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, RespectSelectionAnchor, CompletionHandler<void(bool)>&&);
-    void updateSelectionWithExtentPointAndBoundary(WebCore::IntPoint, WebCore::TextGranularity, bool isInteractingWithFocusedElement, TextInteractionSource, CompletionHandler<void(bool)>&&);
+    void updateSelectionWithExtentPointAndBoundary(WebCore::IntPoint, WebCore::TextGranularity, bool isInteractingWithFocusedElement, TextInteractionSource, SelectionExtentAnchor, CompletionHandler<void(bool)>&&);
     void selectTextWithGranularityAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, WebCore::TextGranularity, bool isInteractingWithFocusedElement, CompletionHandler<void(std::optional<WebCore::RemoteUserInputEventData>)>&&);
 #endif // PLATFORM(COCOA)
 
@@ -2374,6 +2375,7 @@ private:
 
     // Actions
     void tryClose(CompletionHandler<void(bool)>&&);
+    void dispatchPendingNavigateEventForProcessSwap(WebCore::FrameIdentifier, WebCore::PendingNavigateEventIdentifier, CompletionHandler<void(bool)>&&);
     void dispatchCrossOriginBeforeUnloadCheckForFrame(WebCore::FrameIdentifier, WebCore::SecurityOriginData&&);
     void platformDidReceiveLoadParameters(const LoadParameters&);
     void createProvisionalFrame(ProvisionalFrameCreationParameters&&);

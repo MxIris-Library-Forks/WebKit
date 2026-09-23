@@ -2435,6 +2435,12 @@ void WebPage::close(CompletionHandler<void()>&& completionHandler)
     completionHandler();
 }
 
+void WebPage::dispatchPendingNavigateEventForProcessSwap(WebCore::FrameIdentifier frameID, WebCore::PendingNavigateEventIdentifier pendingNavigateEventID, CompletionHandler<void(bool)>&& completionHandler)
+{
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    completionHandler(webFrame && !webFrame->dispatchPendingNavigateEventAfterNavigationPolicy(pendingNavigateEventID));
+}
+
 void WebPage::tryClose(CompletionHandler<void(bool)>&& completionHandler)
 {
     RefPtr coreFrame = m_mainFrame->coreLocalFrame();
@@ -2633,6 +2639,7 @@ void WebPage::loadRequest(LoadParameters&& loadParameters)
     frameLoadRequest.setShouldTreatAsContinuingLoad(loadParameters.shouldTreatAsContinuingLoad);
     frameLoadRequest.setLockHistory(loadParameters.lockHistory);
     frameLoadRequest.setLockBackForwardList(loadParameters.lockBackForwardList);
+    frameLoadRequest.setNavigationHistoryBehavior(loadParameters.navigationHistoryBehavior);
     frameLoadRequest.setClientRedirectSourceForHistory(WTF::move(loadParameters.clientRedirectSourceForHistory));
     frameLoadRequest.setIsHandledByAboutSchemeHandler(loadParameters.isHandledByAboutSchemeHandler);
     if (loadParameters.isRequestFromClientOrUserInput)

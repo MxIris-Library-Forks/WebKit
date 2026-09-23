@@ -686,7 +686,7 @@ TransformationMatrix SkiaCompositingLayer::combinedTransform(const PaintContext&
     return transform;
 }
 
-static std::optional<SkMatrix> rotateContentsIfNeeded(OptionSet<TextureMapperFlags> flags, const FloatRect& contentsRect)
+static std::optional<SkMatrix> rotateContentsIfNeeded(CoordinatedPlatformLayerBuffer::Rotation rotation, const FloatRect& contentsRect)
 {
     auto rotate = [](float degrees, float x, float y) {
         auto matrix = SkMatrix::Translate(x, y);
@@ -694,15 +694,16 @@ static std::optional<SkMatrix> rotateContentsIfNeeded(OptionSet<TextureMapperFla
         return matrix;
     };
 
-    if (flags.contains(TextureMapperFlags::ShouldRotateTexture90))
+    switch (rotation) {
+    case CoordinatedPlatformLayerBuffer::Rotation::None:
+        return std::nullopt;
+    case CoordinatedPlatformLayerBuffer::Rotation::Right:
         return rotate(90, contentsRect.maxX(), contentsRect.y());
-
-    if (flags.contains(TextureMapperFlags::ShouldRotateTexture180))
+    case CoordinatedPlatformLayerBuffer::Rotation::UpsideDown:
         return rotate(180, contentsRect.maxX(), contentsRect.maxY());
-
-    if (flags.contains(TextureMapperFlags::ShouldRotateTexture270))
+    case CoordinatedPlatformLayerBuffer::Rotation::Left:
         return rotate(270, contentsRect.x(), contentsRect.maxY());
-
+    }
     return std::nullopt;
 }
 
@@ -728,11 +729,11 @@ void SkiaCompositingLayer::paintContents(SkCanvas& canvas, PaintContext& context
             return true;
 
         if (m_contentsBuffer)
-            return m_contentsBuffer->flags().contains(TextureMapperFlags::ShouldBlend);
+            return !m_contentsBuffer->isOpaque();
 
         if (m_imageBackingStore) {
             if (const auto* buffer = m_imageBackingStore->buffer())
-                return buffer->flags().contains(TextureMapperFlags::ShouldBlend);
+                return !buffer->isOpaque();
         }
 
         return true;
@@ -835,11 +836,11 @@ void SkiaCompositingLayer::paintContents(SkCanvas& canvas, PaintContext& context
 #endif // ENABLE(VIDEO)
                 image = m_contentsBuffer->skiaImage();
 
-            auto flags = m_contentsBuffer->flags();
-            rotationMatrix = rotateContentsIfNeeded(flags, m_contentsRect);
+            auto rotation = m_contentsBuffer->rotation();
+            rotationMatrix = rotateContentsIfNeeded(rotation, m_contentsRect);
             if (rotationMatrix) {
                 imageRect.setLocation({ });
-                if (flags.containsAny({ TextureMapperFlags::ShouldRotateTexture90, TextureMapperFlags::ShouldRotateTexture270 }))
+                if (rotation == CoordinatedPlatformLayerBuffer::Rotation::Right || rotation == CoordinatedPlatformLayerBuffer::Rotation::Left)
                     imageRect.setSize(m_contentsRect.size().transposedSize());
             }
         } else if (auto* buffer = m_imageBackingStore->buffer()) {
@@ -887,9 +888,8 @@ void SkiaCompositingLayer::collectFrameDamage(SkCanvas& canvas, PaintContext& co
         return;
 
     const auto transform = combinedTransform(context);
-    auto layerRectInFrame = transform.mapRect(paintedLayerRect());
-    auto clipBounds = FloatRect(canvas.getDeviceClipBounds());
-    layerRectInFrame.intersect(clipBounds);
+    const IntRect clipBounds = canvas.getDeviceClipBounds();
+    auto layerRectInFrame = FloatRect(projectedBoundingBox(transform, paintedLayerRect(), clipBounds));
 
     trackLayerRect(context, layerRectInFrame);
 
@@ -903,11 +903,8 @@ void SkiaCompositingLayer::collectFrameDamage(SkCanvas& canvas, PaintContext& co
         return;
     }
 
-    for (const auto& rect : *m_layerDamage) {
-        auto damageRect = transform.mapRect(FloatRect(rect));
-        damageRect.intersect(clipBounds);
-        context.collectState->frameDamage.add(damageRect);
-    }
+    for (const auto& rect : *m_layerDamage)
+        context.collectState->frameDamage.add(projectedBoundingBox(transform, FloatRect(rect), clipBounds));
 }
 
 void SkiaCompositingLayer::collectBackdropDamage(SkCanvas& canvas, PaintContext& context)
@@ -918,10 +915,8 @@ void SkiaCompositingLayer::collectBackdropDamage(SkCanvas& canvas, PaintContext&
     // The filter samples the whole backdrop, so anything changing underneath changes every pixel of it. Only
     // the rect is collected here, because what changed underneath is only known once the walk has finished.
     // The backdrop root's subtree is walked by the walk itself, so it is not walked again.
-    auto backdropRectInFrame = combinedTransform(context).mapRect(m_backdrop.clipRect.rect());
-    backdropRectInFrame.intersect(FloatRect(canvas.getDeviceClipBounds()));
-
-    context.collectState->backdropRectsInFrame.append(backdropRectInFrame);
+    const auto transform = combinedTransform(context);
+    context.collectState->backdropRectsInFrame.append(FloatRect(projectedBoundingBox(transform, m_backdrop.clipRect.rect(), canvas.getDeviceClipBounds())));
 }
 
 bool SkiaCompositingLayer::hasGroupPropertyDamage() const
@@ -951,15 +946,14 @@ void SkiaCompositingLayer::addGroupDamage(SkCanvas& canvas, PaintContext& contex
     if (!damagePropagationEnabled())
         return;
 
-    const auto clipBounds = FloatRect(canvas.getDeviceClipBounds());
+    const IntRect clipBounds = canvas.getDeviceClipBounds();
 
-    auto layerRectInFrame = combinedTransform(context).mapRect(paintedLayerRect());
-    layerRectInFrame.intersect(clipBounds);
+    auto layerRectInFrame = projectedBoundingBox(combinedTransform(context), paintedLayerRect(), clipBounds);
     if (!layerRectInFrame.isEmpty())
         context.collectState->frameDamage.add(layerRectInFrame);
 
     for (const auto& rect : overlapRects) {
-        auto damageRect = FloatRect(rect);
+        auto damageRect = rect;
         damageRect.intersect(clipBounds);
         if (!damageRect.isEmpty())
             context.collectState->frameDamage.add(damageRect);

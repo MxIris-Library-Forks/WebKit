@@ -1363,9 +1363,6 @@ imported/w3c/web-platform-tests/css/compositing/mix-blend-mode/mix-blend-mode-pa
 
 webkit.org/b/314312 media/media-sources-selection.html [ ImageOnlyFailure ]
 
-# Passes with the clampedBoundsOfProjectedQuad() fix from webkit.org/b/324623.
-webkit.org/b/324623 imported/w3c/web-platform-tests/css/filter-effects/filter-in-3d-transformed-ancestor-child-near-eye-plane.html [ ImageOnlyFailure ]
-
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Compositing tests
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -4298,9 +4295,6 @@ imported/w3c/web-platform-tests/html/canvas/offscreen/path-objects/2d.path.isPoi
 # Flakies Aug2023
 webkit.org/b/261024 media/video-playsinline.html [ Failure Timeout Pass ]
 
-# Initial css/compositing test import
-imported/w3c/web-platform-tests/css/compositing/mix-blend-mode/mix-blend-mode-both-parent-and-blended-with-3D-transform.html [ ImageOnlyFailure ]
-
 webkit.org/b/245032 imported/w3c/web-platform-tests/css/compositing/root-element-background-image-transparency-004.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-color/system-color-hightlights-vs-getSelection-001.html [ ImageOnlyFailure ]
@@ -4841,7 +4835,7 @@ webkit.org/b/303208 imported/blink/fast/pagination/viewport-y-horizontal-bt-rtl.
 # Hits assert in Debug, but since GTK/WPE bots run release with assertions enabled, skip. Tracked by https://bugs.webkit.org/show_bug.cgi?id=303414
 fullscreen/fullscreen-grid-item-container-type-crash.html [ Skip ]
 
-webkit.org/b/303539 imported/w3c/web-platform-tests/service-workers/service-worker/multipart-image.https.html [ Crash Failure ]
+webkit.org/b/303539 imported/w3c/web-platform-tests/service-workers/service-worker/multipart-image.https.html [ Crash Failure Pass ]
 
 webkit.org/b/303855 fast/css/view-transitions-scrolling-position-fixed.html [ Pass ImageOnlyFailure ]
 webkit.org/b/303856 fast/scrolling/rtl-scrollbars-positioning.html [ Pass ImageOnlyFailure ]
@@ -5135,6 +5129,8 @@ imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-d
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-failure.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-iframe-messagechannel.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-messagechannel-success.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-noopener-failure.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-opener-success.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-simple-success.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-serviceworker-failure.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/window-sharedworker-failure.https.html [ Skip ]
@@ -5357,6 +5353,46 @@ webkit.org/b/324339 imported/w3c/web-platform-tests/html/canvas/offscreen/manual
 
 # Gardening 2026-09-18
 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-border-area-corner-shape.html [ Pass ]
+
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/close-invalid.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/close-invalid.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/001.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/004.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/005.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/007.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/010.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/011.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/012.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/017.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/constructor/021.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-asciiSep-protocol-string.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-asciiSep-protocol-string.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-nonAscii-protocol-string.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-nonAscii-protocol-string.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-protocol-with-space.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-protocol-with-space.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-protocols-repeated.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-protocols-repeated.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-url-with-space.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-url-with-space.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-valid-url-protocol-empty.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Create-valid-url-protocol-empty.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/eventhandlers.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/eventhandlers.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/close/close-connecting-async.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/close/close-connecting-async.any.worker.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/events/001.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/events/002.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/events/007.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/events/015.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/interfaces/WebSocket/events/017.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/opening-handshake/001.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Send-before-open.any.html?wpt_flags=h2 [ Pass ]
+webkit.org/b/206652 imported/w3c/web-platform-tests/websockets/Send-before-open.any.worker.html?wpt_flags=h2 [ Pass ]
+
+webkit.org/b/324839 [ Debug ] imported/w3c/web-platform-tests/html/anonymous-iframe/cookie.tentative.https.window.html [ Crash Pass ]
 
 # End: Common failures between GTK and WPE.
 

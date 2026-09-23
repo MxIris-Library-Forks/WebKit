@@ -79,6 +79,10 @@
 #include "WebPermissionController.h"
 #include "WebPlatformStrategies.h"
 #include "WebProcessCreationParameters.h"
+#if ENABLE(GPU_PROCESS)
+#include "RemoteImageBufferProxy.h"
+#endif
+#include <WebCore/ImageBuffer.h>
 #include "WebProcessDataStoreParameters.h"
 #include "WebProcessMessages.h"
 #include "WebProcessProxyMessages.h"
@@ -266,7 +270,7 @@
 #endif
 
 #if ENABLE(GPU_PROCESS) && ENABLE(WEBGL) && USE(COORDINATED_GRAPHICS) && USE(GBM)
-#include <WebCore/GraphicsContextGLTextureMapperGBM.h>
+#include <WebCore/GraphicsContextGLGBM.h>
 #endif
 
 #undef WEBPROCESS_RELEASE_LOG
@@ -436,7 +440,7 @@ void WebProcess::initializeProcess(const AuxiliaryProcessInitializationParameter
     }
 
     MessagePortChannelProvider::setSharedProvider(WebMessagePortChannelProvider::singleton());
-    
+
     platformInitializeProcess(parameters);
     updateCPULimit();
 }
@@ -2605,7 +2609,7 @@ bool WebProcess::shouldUseRemoteRenderingForWebGL() const
 {
 #if USE(COORDINATED_GRAPHICS)
 #if USE(GBM)
-    return m_useGPUProcessForWebGL && WebCore::GraphicsContextGLTextureMapperGBM::checkRequirements();
+    return m_useGPUProcessForWebGL && WebCore::GraphicsContextGLGBM::checkRequirements();
 #else
     return false;
 #endif

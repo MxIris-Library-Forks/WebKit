@@ -309,6 +309,13 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         return;
     }
 
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+    if (paintInfo.phase == PaintPhase::AXCustomColorCollectBackgrounds) {
+        paintInfo.axCustomColorBackdropContext()->recordBackdrop(*this, FloatRect { LayoutRect(adjustedPaintOffset, borderBoxSize()) }, paintInfo.paintBehavior);
+        return;
+    }
+#endif
+
     SetLayoutNeededForbiddenScope scope(*this);
 
     GraphicsContextStateSaver savedGraphicsContext(paintInfo.context(), false);
@@ -348,16 +355,16 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         return;
     }
 
-    if (paintInfo.phase != PaintPhase::Foreground && paintInfo.phase != PaintPhase::Selection)
+    if (!canHaveChildren() && paintInfo.phase != PaintPhase::Foreground && paintInfo.phase != PaintPhase::Selection)
         return;
     
     if (!paintInfo.shouldPaintWithinRoot(*this))
         return;
-    
+
     Color highlightColor;
     if (!protect(document())->printing() && !paintInfo.paintBehavior.contains(PaintBehavior::ExcludeSelection))
         highlightColor = calculateHighlightColor();
-    
+
     bool drawSelectionTint = shouldDrawSelectionTint();
     if (paintInfo.phase == PaintPhase::Selection) {
         if (selectionState() == HighlightState::None)
@@ -382,7 +389,7 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         if (style().border().hasBorderRadius())
             paintInfo.context().restore();
     }
-        
+
     // The selection tint never gets clipped by border-radius rounding, since we want it to run right up to the edges of
     // surrounding content.
     if (drawSelectionTint) {
@@ -390,7 +397,7 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         selectionPaintingRect.moveBy(adjustedPaintOffset);
         paintInfo.context().fillRect(snappedIntRect(selectionPaintingRect), selectionBackgroundColor());
     }
-    
+
     if (highlightColor.isVisible()) {
         auto selectionPaintingRect = localSelectionRect(false);
         selectionPaintingRect.moveBy(adjustedPaintOffset);
@@ -406,23 +413,28 @@ bool RenderReplaced::shouldPaint(PaintInfo& paintInfo, const LayoutPoint& paintO
     if (paintInfo.paintBehavior.contains(PaintBehavior::ExcludeReplacedContentExceptForIFrames) && !isRenderIFrame())
         return false;
 
-    if (paintInfo.phase != PaintPhase::Foreground
+    if (!canHaveChildren()
+        && paintInfo.phase != PaintPhase::Foreground
         && paintInfo.phase != PaintPhase::Outline
         && paintInfo.phase != PaintPhase::SelfOutline
         && paintInfo.phase != PaintPhase::Selection
         && paintInfo.phase != PaintPhase::Mask
         && paintInfo.phase != PaintPhase::ClippingMask
         && paintInfo.phase != PaintPhase::EventRegion
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+        && paintInfo.phase != PaintPhase::AXCustomColorCollectBackgrounds
+        && paintInfo.phase != PaintPhase::AXCustomColorComputeBackdrops
+#endif
         && paintInfo.phase != PaintPhase::Accessibility)
         return false;
 
     if (!paintInfo.shouldPaintWithinRoot(*this))
         return false;
-        
+
     // if we're invisible or haven't received a layout yet, then just bail.
     if (style().usedVisibility() != Visibility::Visible)
         return false;
-    
+
     LayoutRect paintRect(visualOverflowRect());
     paintRect.moveBy(paintOffset + location());
 

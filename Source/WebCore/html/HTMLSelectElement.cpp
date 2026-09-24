@@ -285,6 +285,23 @@ void HTMLSelectElement::optionSelectedByUser(int optionIndex, bool fireOnChangeN
     selectOption(optionIndex, flags);
 }
 
+// https://html.spec.whatwg.org/multipage/form-elements.html#concept-select-pick
+void HTMLSelectElement::pickOrToggleOption(HTMLOptionElement& option)
+{
+    ASSERT(!m_multiple || document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled());
+
+    if (isDisabledFormControl())
+        return;
+
+    option.setDirty(true);
+
+    // Toggling rather than picking is not yet in the specification.
+    optionSelectedByUser(option.index(), true, m_multiple);
+
+    if (!m_multiple)
+        hidePickerPopoverElement();
+}
+
 bool HTMLSelectElement::hasPlaceholderLabelOption() const
 {
     // The select element has no placeholder label option if it has an attribute "multiple" specified or a display size of non-1.
@@ -342,7 +359,7 @@ bool HTMLSelectElement::usesMenuList() const
 
 bool HTMLSelectElement::isSingleSelectDropdownBox() const
 {
-    return !m_multiple && usesMenuList();
+    return !m_multiple && isDropdownBox();
 }
 
 // https://html.spec.whatwg.org/multipage/form-elements.html#concept-select-size
@@ -353,9 +370,29 @@ unsigned HTMLSelectElement::preferredSize() const
     return m_multiple ? 4 : 1;
 }
 
+auto HTMLSelectElement::boxType(const Style::ComputedStyle* style) const -> BoxType
+{
+    if (document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled() && hasBaseAppearance(style ? style : existingComputedStyle()))
+        return preferredSize() == 1 ? BoxType::DropdownBox : BoxType::ListBox;
+    return usesMenuList() ? BoxType::DropdownBox : BoxType::ListBox;
+}
+
+bool HTMLSelectElement::isDropdownBox(const Style::ComputedStyle* style) const
+{
+    return boxType(style) == BoxType::DropdownBox;
+}
+
+bool HTMLSelectElement::supportsPickerPseudoElement() const
+{
+    return preferredSize() == 1;
+}
+
 bool HTMLSelectElement::usesBaseAppearancePicker() const
 {
-    if (m_multiple || m_size > 1)
+    if (preferredSize() != 1)
+        return false;
+
+    if (m_multiple && !document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled())
         return false;
 
     RefPtr popover = m_popover;
@@ -633,7 +670,7 @@ bool HTMLSelectElement::isMouseFocusable() const
 
 RenderPtr<RenderElement> HTMLSelectElement::createElementRenderer(Style::ComputedStyle&& style, const RenderTreePosition& position)
 {
-    if (usesMenuList()) {
+    if (boxType(&style) == BoxType::DropdownBox) {
         if (hasBaseAppearance(&style))
             return HTMLElement::createElementRenderer(WTF::move(style), position);
         return createRenderer<RenderMenuList>(*this, WTF::move(style));
@@ -645,7 +682,7 @@ bool HTMLSelectElement::childShouldCreateRenderer(const Node& child) const
 {
     if (!HTMLFormControlElement::childShouldCreateRenderer(child))
         return false;
-    if (!usesMenuList())
+    if (boxType() == BoxType::ListBox)
         return isAnyOf<HTMLOptionElement, HTMLOptGroupElement>(child) || validationMessageShadowTreeContains(child);
     if (child.isInShadowTree() && child.containingShadowRoot() == userAgentShadowRoot())
         return true;
@@ -1563,12 +1600,12 @@ void HTMLSelectElement::restoreFormControlState(const FormControlState& state)
 
 void HTMLSelectElement::parseMultipleAttribute(const AtomString& value)
 {
-    bool oldUsesMenuList = usesMenuList();
+    auto oldBoxType = boxType();
     bool oldMultiple = m_multiple;
     int oldSelectedIndex = selectedIndex();
     m_multiple = !value.isNull();
     updateValidity();
-    if (oldUsesMenuList != usesMenuList())
+    if (oldBoxType != boxType())
         invalidateStyleAndRenderersForSubtree();
     if (oldMultiple != m_multiple) {
         if (oldSelectedIndex >= 0)
@@ -1648,7 +1685,7 @@ bool HTMLSelectElement::platformHandleKeydownEvent(KeyboardEvent* event)
             // Calling focus() may cause us to lose our renderer. Return true so
             // that our caller doesn't process the event further, but don't set
             // the event as handled.
-            if (!renderer() || !usesMenuList())
+            if (!renderer() || !isDropdownBox())
                 return true;
 
             openPickerForUserInteraction();
@@ -1683,7 +1720,7 @@ static bool isClickInsidePopover(SelectPopoverElement* popover, Event& event)
 void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
 {
     ASSERT(renderer());
-    ASSERT(usesMenuList());
+    ASSERT(isDropdownBox());
 
     if (!event.isTrusted())
         return;
@@ -1763,7 +1800,7 @@ void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
                 protect(document())->updateStyleIfNeeded();
 
                 // Calling focus() may remove the renderer or change the renderer type.
-                if (!renderer() || !usesMenuList())
+                if (!renderer() || !isDropdownBox())
                     return;
 
                 openPickerForUserInteraction();
@@ -1776,7 +1813,7 @@ void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
                 protect(document())->updateStyleIfNeeded();
 
                 // Calling focus() may remove the renderer or change the renderer type.
-                if (!renderer() || !usesMenuList())
+                if (!renderer() || !isDropdownBox())
                     return;
 
                 openPickerForUserInteraction();
@@ -1799,7 +1836,7 @@ void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
         focus();
         protect(document())->updateStyleIfNeeded();
 #if !PLATFORM(IOS_FAMILY)
-        if (!renderer() || !usesMenuList()) {
+        if (!renderer() || !isDropdownBox()) {
 #else
         if (!usesBaseAppearancePicker()) {
 #endif
@@ -2095,9 +2132,9 @@ void HTMLSelectElement::defaultEventHandler(Event& event)
         return;
     }
 
-    if (usesMenuList())
+    if (isDropdownBox())
         menuListDefaultEventHandler(event);
-    else 
+    else
         listBoxDefaultEventHandler(event);
 
     if (event.defaultHandled())

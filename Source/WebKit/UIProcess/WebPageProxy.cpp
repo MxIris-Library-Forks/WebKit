@@ -1244,6 +1244,16 @@ ProcessID WebPageProxy::gpuProcessID() const
     return 0;
 }
 
+void WebPageProxy::addAllowedFirstPartyForCookies(WebProcessProxy& process, const WebCore::RegistrableDomain& firstPartyForCookies, LoadedWebArchive loadedWebArchive, CompletionHandler<void()>&& completionHandler)
+{
+    Ref networkProcess = protect(websiteDataStore())->networkProcess();
+    // Record that this process is now legitimately hosting a frame of this page, so the network process can validate
+    // the WebPageProxyIdentifier the process supplies over IPC. Sent for every page (independent of the cookie-relaxation
+    // opt-in), since the allow-list gates access for all pages, not just relaxed ones.
+    networkProcess->addAllowedWebPageProxyIdentifier(process, identifier());
+    networkProcess->addAllowedFirstPartyForCookies(process, firstPartyForCookies, loadedWebArchive, WTF::move(completionHandler));
+}
+
 ProcessID WebPageProxy::modelProcessID() const
 {
     if (m_isClosed)
@@ -1914,6 +1924,10 @@ void WebPageProxy::initializeWebPage(const Site& site, WebCore::SandboxFlags eff
     if (RefPtr networkProcess = websiteDataStore().networkProcessIfExists()) {
         if (m_pageToCloneSessionStorageFrom)
             networkProcess->send(Messages::NetworkProcess::CloneSessionStorageForWebPage(sessionID(), m_pageToCloneSessionStorageFrom->identifier(), identifier()), 0);
+        // Authorize the main-frame process to reference this page over IPC. The connection-creation seed only covers
+        // pages already hosted when the process's network connection was created, so a reused process that gains this
+        // page later needs the grant here, before the initial document can issue any page-scoped IPC.
+        networkProcess->addAllowedWebPageProxyIdentifier(m_legacyMainFrameProcess, identifier());
         if (m_configuration->shouldRelaxThirdPartyCookieBlocking() == ShouldRelaxThirdPartyCookieBlocking::Yes)
             networkProcess->send(Messages::NetworkProcess::SetShouldRelaxThirdPartyCookieBlockingForPage(identifier()), 0);
     }
@@ -2748,7 +2762,7 @@ void WebPageProxy::loadAlternateHTML(Ref<WebCore::DataSegment>&& htmlData, const
         });
     };
 
-    protect(protect(websiteDataStore())->networkProcess())->addAllowedFirstPartyForCookies(process, RegistrableDomain(baseURL), LoadedWebArchive::No, WTF::move(continueLoad));
+    addAllowedFirstPartyForCookies(process, RegistrableDomain(baseURL), LoadedWebArchive::No, WTF::move(continueLoad));
 }
 
 void WebPageProxy::stopLoading()
@@ -3362,6 +3376,12 @@ void WebPageProxy::setObscuredContentInsets(const WebCore::FloatBoxExtent& obscu
 #else
     send(Messages::WebPage::SetObscuredContentInsets(m_internals->obscuredContentInsets));
 #endif
+
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        if (&webProcess == &legacyMainFrameProcess())
+            return;
+        webProcess.send(Messages::WebPage::SetObscuredContentInsets(m_internals->obscuredContentInsets), pageID);
+    });
 }
 
 const WebCore::FloatBoxExtent& WebPageProxy::obscuredContentInsets() const
@@ -6250,7 +6270,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             if (frame->isMainFrame()) {
                 Ref process { sharedProcess->process() };
                 auto shutdownPreventingScope = process->shutdownPreventingScope();
-                protect(websiteDataStore->networkProcess())->addAllowedFirstPartyForCookies(sharedProcess->process(), site.domain(), LoadedWebArchive::No, [
+                addAllowedFirstPartyForCookies(sharedProcess->process(), site.domain(), LoadedWebArchive::No, [
                     process = WTF::move(process),
                     sharedFrameProcess = WTF::move(sharedFrameProcess),
                     shutdownPreventingScope = WTF::move(shutdownPreventingScope),
@@ -6405,6 +6425,16 @@ void WebPageProxy::commitProvisionalPage(IPC::Connection& connection, FrameIdent
 
     RefPtr mainFrameInPreviousProcess = m_mainFrame;
     Ref preferences = m_preferences;
+
+    // The committed main frame has a new FrameIdentifier, so node references issued under the old
+    // one have to be re-keyed or they read as never having existed. This happens at commit rather
+    // than when the provisional page is created because a load that never commits must leave the
+    // previous main frame's references where they are.
+    if (mainFrameInPreviousProcess && mainFrameInPreviousProcess->frameID() != frameID) {
+        if (RefPtr automationSession = m_configuration->processPool().automationSession())
+            automationSession->transferKnownNodeReferences(mainFrameInPreviousProcess->frameID(), frameID);
+    }
+
     std::optional<WebCore::FrameIdentifier> oldMainFrameID;
     if (mainFrameInPreviousProcess && preferences->siteIsolationEnabled()) {
         oldMainFrameID = mainFrameInPreviousProcess->frameID();
@@ -6683,14 +6713,14 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
 
     if (provisionalPage->needsCookieAccessAddedInNetworkProcess()) {
         continuation = [
-            networkProcess = protect(Ref { websiteDataStore() }->networkProcess()),
+            protectedThis = Ref { *this },
             continuation = WTF::move(continuation),
             navigationDomain = RegistrableDomain(currentRequestURL),
             process,
             preventProcessShutdownScope = process->shutdownPreventingScope(),
             loadedWebArchive
         ] () mutable {
-            networkProcess->addAllowedFirstPartyForCookies(process, navigationDomain, loadedWebArchive, WTF::move(continuation));
+            protectedThis->addAllowedFirstPartyForCookies(process, navigationDomain, loadedWebArchive, WTF::move(continuation));
         };
     }
 
@@ -10840,7 +10870,7 @@ void WebPageProxy::performProcessSwapForNavigationResponse(API::Navigation& navi
         completionHandler(true);
     };
 
-    protect(protect(websiteDataStore())->networkProcess())->addAllowedFirstPartyForCookies(process, domain, LoadedWebArchive::No, WTF::move(addCookiesCompletionHandler));
+    addAllowedFirstPartyForCookies(process, domain, LoadedWebArchive::No, WTF::move(addCookiesCompletionHandler));
 }
 
 void WebPageProxy::triggerBrowsingContextGroupSwitchForNavigation(WebCore::NavigationIdentifier navigationID, BrowsingContextGroupSwitchDecision browsingContextGroupSwitchDecision, const Site& responseSite, NetworkResourceLoadIdentifier existingNetworkResourceLoadIdentifierToResume, MonotonicTime originalNavigationStartTime, CompletionHandler<void(bool success)>&& completionHandler)
@@ -15374,6 +15404,10 @@ bool WebPageProxy::shouldAlwaysPromptForPermission(PermissionName permissionName
     case PermissionName::Camera:
     case PermissionName::Geolocation:
     case PermissionName::Microphone:
+
+    // Answered in the networking process, before reaching queryPermission().
+    case PermissionName::LocalNetwork:
+    case PermissionName::LoopbackNetwork:
         break;
 
     // Notifications are not available in ephemeral sessions.
@@ -19692,6 +19726,9 @@ INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::SetIsShowingInputViewForFo
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::AutofillLoginCredentials);
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::BlurFocusedElement);
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::ReplaceDictatedText);
+INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::StartInteractionWithElementContextOrPosition);
+INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::StopInteraction);
+INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::PerformActionOnElements);
 #endif
 #undef INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME
 
@@ -19733,6 +19770,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawToPDF
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawPrintingPagesToSnapshotiOS);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawPrintingToSnapshotiOS);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::FocusNextFocusedElement);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PerformActionOnElement);
 #if ENABLE(REVEAL)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PrepareSelectionForContextMenuWithLocationInView);
 #endif

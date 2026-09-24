@@ -82,6 +82,11 @@
 #import <WebCore/DOMPasteAccess.h>
 #import <WebCore/FrameIdentifier.h>
 #import <WebCore/IntRect.h>
+#import <WebKit/_WKActivatedElementInfo.h>
+
+@interface WKContentView ()
+- (BOOL)hasSelectablePositionAtPoint:(CGPoint)point;
+@end
 #endif
 
 #if PLATFORM(MAC)
@@ -4097,6 +4102,85 @@ TEST(SiteIsolation, FindStringInNestedFrame)
     EXPECT_TRUE([[webView findStringAndWait:@"Hello World" withConfiguration:findConfiguration.get()] matchFound]);
     EXPECT_FALSE([[webView findStringAndWait:@"Missing string" withConfiguration:findConfiguration.get()] matchFound]);
 }
+
+#if PLATFORM(MAC)
+
+static CGRect findIndicatorRectInIsolatedIframe(int mainFrameScrollY, CGFloat topObscuredInset = 0, bool setInsetsAfterLoad = false)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0; height: 2000px'><iframe style='display: block; margin-left: 100px; margin-top: 500px; width: 400px; height: 300px; border: none;' src='https://domain2.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<!DOCTYPE html><body style='margin: 0'><p style='margin: 50px'>Hello world</p></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    if (topObscuredInset) {
+        [webView _setAutomaticallyAdjustsContentInsets:NO];
+        if (!setInsetsAfterLoad)
+            [webView setObscuredContentInsets:NSEdgeInsetsMake(topObscuredInset, 0, 0, 0)];
+    }
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    if (topObscuredInset && setInsetsAfterLoad) {
+        [webView setObscuredContentInsets:NSEdgeInsetsMake(topObscuredInset, 0, 0, 0)];
+        [webView waitForNextPresentationUpdate];
+    }
+
+    if (mainFrameScrollY) {
+        [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.scrollTo(0, %d)", mainFrameScrollY]];
+        while ([[webView objectByEvaluatingJavaScript:@"window.scrollY"] intValue] != mainFrameScrollY)
+            Util::spinRunLoop();
+        [webView waitForNextPresentationUpdate];
+    }
+
+    [webView _findString:@"Hello world" options:_WKFindOptionsCaseInsensitive | _WKFindOptionsWrapAround | _WKFindOptionsShowFindIndicator | _WKFindOptionsShowOverlay maxCount:1];
+
+    CGRect rect = CGRectNull;
+    while (CGRectIsNull(rect)) {
+        Util::spinRunLoop();
+        rect = [webView _textIndicatorBoundingRectForTesting];
+    }
+    return rect;
+}
+
+TEST(SiteIsolation, FindStringIndicatorPositionInIsolatedIframe)
+{
+    auto rect = findIndicatorRectInIsolatedIframe(0);
+
+    EXPECT_NEAR(CGRectGetMinX(rect), 150, 5);
+    EXPECT_NEAR(CGRectGetMinY(rect), 550, 5);
+    EXPECT_GE(CGRectGetMinY(rect), 500);
+    EXPECT_LE(CGRectGetMaxY(rect), 800);
+}
+
+TEST(SiteIsolation, FindStringIndicatorPositionWithScrolledMainFrame)
+{
+    auto rect = findIndicatorRectInIsolatedIframe(400);
+
+    EXPECT_NEAR(CGRectGetMinX(rect), 150, 5);
+    EXPECT_NEAR(CGRectGetMinY(rect), 150, 5);
+}
+
+TEST(SiteIsolation, FindStringIndicatorPositionWithObscuredContentInsets)
+{
+    auto rect = findIndicatorRectInIsolatedIframe(0, 100);
+
+    EXPECT_NEAR(CGRectGetMinX(rect), 150, 5);
+    EXPECT_NEAR(CGRectGetMinY(rect), 650, 5);
+}
+
+TEST(SiteIsolation, FindStringIndicatorPositionWithObscuredContentInsetsChangedAfterLoad)
+{
+    auto rect = findIndicatorRectInIsolatedIframe(0, 100, true);
+
+    EXPECT_NEAR(CGRectGetMinX(rect), 150, 5);
+    EXPECT_NEAR(CGRectGetMinY(rect), 650, 5);
+}
+
+#endif // PLATFORM(MAC)
 
 TEST(SiteIsolation, FindStringSelection)
 {
@@ -12109,6 +12193,52 @@ TEST(SiteIsolation, FileUploadPanelAnchorRectForHiddenInputInCrossOriginIframe)
 
 #endif // HAVE(UICONTEXTMENU_LOCATION)
 
+TEST(SiteIsolation, PositionInformationForImageInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><iframe style='display: block; margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'><img style='display: block; margin: 50px; width: 100px; height: 100px;' src='https://webkit.org/image.png'></body>"_s } },
+        { "/image.png"_s, { [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"large-red-square" withExtension:@"png"]] } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    __block RetainPtr<_WKActivatedElementInfo> elementInfo;
+    __block bool done = false;
+    [webView _requestActivatedElementAtPosition:CGPointMake(200, 200) completionBlock:^(_WKActivatedElementInfo *info) {
+        elementInfo = info;
+        done = true;
+    }];
+    Util::run(&done);
+
+    EXPECT_EQ(_WKActivatedElementTypeImage, [elementInfo type]);
+    EXPECT_WK_STREQ(@"https://webkit.org/image.png", [elementInfo imageURL].absoluteString);
+
+    CGRect bounds = [elementInfo boundingRect];
+    EXPECT_NEAR(150, bounds.origin.x, 1);
+    EXPECT_NEAR(150, bounds.origin.y, 1);
+    EXPECT_NEAR(100, bounds.size.width, 1);
+    EXPECT_NEAR(100, bounds.size.height, 1);
+}
+
+TEST(SiteIsolation, SynchronousPositionInformationForTextInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><iframe style='display: block; margin: 100px; width: 400px; height: 200px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0; font: 50px/60px monospace'>Hello world</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    EXPECT_TRUE([[webView wkContentView] hasSelectablePositionAtPoint:CGPointMake(140, 130)]);
+}
+
 #endif // PLATFORM(IOS_FAMILY)
 
 #if ENABLE(IMAGE_ANALYSIS)
@@ -15716,6 +15846,180 @@ TEST(SiteIsolation, MainFrameFinishesLoadWithCrossOriginAndSameOriginIframes)
     EXPECT_WK_STREQ(sameOriginFrame.info.securityOrigin.host, "example.com");
     EXPECT_NE(crossOriginFrame.info._processIdentifier, [webView mainFrame].info._processIdentifier);
     EXPECT_EQ(sameOriginFrame.info._processIdentifier, [webView mainFrame].info._processIdentifier);
+}
+
+// A page with _shouldRelaxThirdPartyCookieBlocking must keep that relaxation for its cross-origin,
+// out-of-process (site-isolated) subframes.
+static void runRelaxThirdPartyCookieBlockingSubframeTest(bool shouldRelax)
+{
+    bool thirdPartySubframeRequestSawCookie = false;
+    bool sawSubframeResourceRequest = false;
+    HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
+        while (1) {
+            auto request = co_await connection.awaitableReceiveHTTPRequest();
+            auto path = HTTPServer::parsePath(request);
+            if (path == "/main"_s) {
+                // Top document (example.com) embeds a cross-origin webkit.org subframe (separate process).
+                co_await connection.awaitableSend(HTTPResponse("<iframe src='https://webkit.org/subframe'></iframe>"_s).serialize());
+                continue;
+            }
+            if (path == "/subframe"_s) {
+                // The subframe (webkit.org) issues a credentialed request back to webkit.org. Relative to the
+                // example.com top document this is a third-party cookie context, blocked by ITP unless relaxed.
+                co_await connection.awaitableSend(HTTPResponse("<script>fetch('https://webkit.org/resource', { credentials: 'include' }).then(() => { alert('fetched'); }).catch(() => { alert('error'); });</script>"_s).serialize());
+                continue;
+            }
+            if (path == "/resource"_s) {
+                sawSubframeResourceRequest = true;
+                thirdPartySubframeRequestSawCookie = contains(request.span(), "Cookie: a=b"_span);
+                co_await connection.awaitableSend(HTTPResponse({ { { "Access-Control-Allow-Origin"_s, "https://webkit.org"_s } }, "hi"_s }).serialize());
+                continue;
+            }
+            EXPECT_FALSE(true);
+        }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    RetainPtr dataStore = [configuration websiteDataStore];
+    [dataStore _setResourceLoadStatisticsEnabled:YES];
+    if (shouldRelax)
+        [configuration _setShouldRelaxThirdPartyCookieBlocking:YES];
+
+    // Seed webkit.org's cross-origin cookie.
+    __block bool setCookie = false;
+    RetainPtr cookie = [NSHTTPCookie cookieWithProperties:@{
+        NSHTTPCookieName: @"a",
+        NSHTTPCookieValue: @"b",
+        NSHTTPCookieDomain: @"webkit.org",
+        NSHTTPCookiePath: @"/",
+        NSHTTPCookieSecure: @YES,
+    }];
+    [dataStore.get().httpCookieStore setCookie:cookie.get() completionHandler:^{
+        setCookie = true;
+    }];
+    Util::run(&setCookie);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "fetched");
+
+    // The webkit.org subframe must be in a different process than the example.com main frame.
+    EXPECT_NE(findFramePID(frameTrees(webView.get()).get(), FrameType::Remote), [webView _webProcessIdentifier]);
+
+    EXPECT_TRUE(sawSubframeResourceRequest);
+    // With relaxation, the out-of-process subframe keeps third-party cookie access (no over-block). Without
+    // it, the cookie is blocked as before.
+    EXPECT_EQ(thirdPartySubframeRequestSawCookie, shouldRelax);
+}
+
+TEST(SiteIsolation, RelaxThirdPartyCookieBlockingSubframe)
+{
+    runRelaxThirdPartyCookieBlockingSubframeTest(true);
+    runRelaxThirdPartyCookieBlockingSubframeTest(false);
+}
+
+// A compromised WebContent must not read another page's relaxed third-party cookies by spoofing that page's
+// WebPageProxyIdentifier over IPC. Victim WKWebView has _setShouldRelaxThirdPartyCookieBlocking:YES; attacker
+// WKWebView (separate WebContent, IPCTestingAPI enabled) uses CoreIPC to send GetRawCookies carrying the
+// victim's WebPageProxyIdentifier. The NetworkProcess must reject via the per-process allow-list and return
+// no cookies.
+TEST(SiteIsolation, ThirdPartyCookieBlockingSpoofedWebPageProxyID)
+{
+    RetainPtr coreIPCURL = [NSBundle.test_resourcesBundle URLForResource:@"coreipc" withExtension:@"js"];
+    RetainPtr coreIPCData = [NSData dataWithContentsOfURL:coreIPCURL.get()];
+    RetainPtr coreIPCString = adoptNS([[NSString alloc] initWithData:coreIPCData.get() encoding:NSUTF8StringEncoding]);
+    String coreIPC { coreIPCString.get() };
+
+    HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
+        while (1) {
+            auto request = co_await connection.awaitableReceiveHTTPRequest();
+            auto path = HTTPServer::parsePath(request);
+            if (path == "/victim"_s) {
+                co_await connection.awaitableSend(HTTPResponse("<iframe src='https://webkit.org/sub'></iframe>"_s).serialize());
+                continue;
+            }
+            if (path == "/sub"_s) {
+                co_await connection.awaitableSend(HTTPResponse("<script>fetch('https://webkit.org/ping', { credentials: 'include' }).then(() => alert('victim-fetched')).catch(() => alert('victim-error'));</script>"_s).serialize());
+                continue;
+            }
+            if (path == "/ping"_s) {
+                co_await connection.awaitableSend(HTTPResponse({ { { "Access-Control-Allow-Origin"_s, "https://webkit.org"_s } }, "hi"_s }).serialize());
+                continue;
+            }
+            if (path == "/attacker"_s) {
+                co_await connection.awaitableSend(HTTPResponse("<!DOCTYPE html><script src='/coreipc.js'></script><body></body>"_s).serialize());
+                continue;
+            }
+            if (path == "/coreipc.js"_s) {
+                co_await connection.awaitableSend(HTTPResponse({ { { "Content-Type"_s, "text/javascript"_s } }, coreIPC }).serialize());
+                continue;
+            }
+            EXPECT_FALSE(true);
+        }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr victimConfiguration = server.httpsProxyConfiguration();
+    RetainPtr dataStore = [victimConfiguration websiteDataStore];
+    [dataStore _setResourceLoadStatisticsEnabled:YES];
+    [victimConfiguration _setShouldRelaxThirdPartyCookieBlocking:YES];
+
+    __block bool setCookie = false;
+    RetainPtr cookie = [NSHTTPCookie cookieWithProperties:@{
+        NSHTTPCookieName: @"a",
+        NSHTTPCookieValue: @"b",
+        NSHTTPCookieDomain: @"webkit.org",
+        NSHTTPCookiePath: @"/",
+        NSHTTPCookieSecure: @YES,
+    }];
+    [dataStore.get().httpCookieStore setCookie:cookie.get() completionHandler:^{
+        setCookie = true;
+    }];
+    Util::run(&setCookie);
+
+    auto [victimView, victimDelegate] = siteIsolatedViewAndDelegate(victimConfiguration);
+    [victimView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/victim"]]];
+    EXPECT_WK_STREQ([victimView _test_waitForAlert], "victim-fetched");
+    uint64_t victimPageProxyID = [victimView _webPageProxyIdentifierForTesting];
+
+    RetainPtr attackerConfiguration = adoptNS([victimConfiguration copy]);
+    [attackerConfiguration _setShouldRelaxThirdPartyCookieBlocking:NO];
+    for (_WKFeature *feature in [WKPreferences _features]) {
+        if ([feature.key isEqualToString:@"IPCTestingAPIEnabled"]) {
+            [[attackerConfiguration preferences] _setEnabled:YES forFeature:feature];
+            break;
+        }
+    }
+    auto [attackerView, attackerDelegate] = siteIsolatedViewAndDelegate(attackerConfiguration);
+    [attackerView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://attacker.example/attacker"]]];
+    [attackerDelegate waitForDidFinishNavigation];
+
+    EXPECT_NE([attackerView _webProcessIdentifier], [victimView _webProcessIdentifier]);
+
+    // firstParty must be in the attacker WebContent's allowed-first-parties set, or the earlier
+    // `allowsFirstPartyForCookies` MESSAGE_CHECK terminates the process before our WebPageProxyID
+    // check runs. Use attacker.example (the attacker's own origin) as firstParty and webkit.org as
+    // the target URL - a third-party cookie context that is only unlocked by relaxation from the
+    // spoofed victim WebPageProxyIdentifier.
+    NSString *attackScript = [NSString stringWithFormat:
+        @"const CoreIPC = new CoreIPCClass();"
+        "const reply = await new Promise(resolve => CoreIPC.Networking.NetworkConnectionToWebProcess.GetRawCookies(0, {"
+        "  firstParty: { string: 'https://attacker.example/' },"
+        "  sameSiteInfo: { isSameSite: false, isTopSite: false, isSafeHTTPMethod: true },"
+        "  url: { string: 'https://webkit.org/' },"
+        "  frameID: { optionalValue: BigInt(IPC.frameID) },"
+        "  pageID: { optionalValue: BigInt(IPC.pageID) },"
+        "  webPageProxyID: { optionalValue: %llun },"
+        "}, resolve));"
+        "const cookies = reply && reply.cookies ? reply.cookies : [];"
+        "return Array.isArray(cookies) ? cookies.length : Object.keys(cookies).length;", (unsigned long long)victimPageProxyID];
+    __block bool completed = false;
+    __block RetainPtr<NSNumber> cookieCount;
+    [attackerView callAsyncJavaScript:attackScript arguments:nil inFrame:nil inContentWorld:WKContentWorld.pageWorld completionHandler:^(id result, NSError *) {
+        cookieCount = [result isKindOfClass:NSNumber.class] ? result : nil;
+        completed = true;
+    }];
+    Util::run(&completed);
+    EXPECT_EQ([cookieCount unsignedIntegerValue], 0u);
 }
 
 }

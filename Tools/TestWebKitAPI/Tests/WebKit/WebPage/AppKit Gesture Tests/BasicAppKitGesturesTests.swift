@@ -94,6 +94,49 @@ extension AppKitGesturesTests.Basic {
         #expect(actual.map(\.type) == expectedEvents)
     }
 
+    @Test(
+        .bug("https://webkit.org/b/324987")
+    )
+    func singleClickReportsHeldButtonAndPressure() async throws {
+        try await loadHTML()
+
+        try await page.callJavaScript {
+            """
+            window.fieldLog = [];
+            for (const type of ["pointerdown", "mousedown", "pointerup", "mouseup", "click"]) {
+                document.addEventListener(type, event => {
+                    window.fieldLog.push(`${event.type}:${event.buttons}:${event.pressure ?? "-"}:${event.webkitForce}`);
+                });
+            }
+            """
+        }
+
+        let toBounds = try await screenBoundsOfText("to")
+
+        await recap.play { composer in
+            composer._wk_click(at: toBounds.center, for: .seconds(0.05))
+        }
+
+        await page.waitForPendingMouseEvents()
+        await page.waitForNextPresentationUpdate()
+
+        let fieldLog = try await page.callJavaScript(returning: [String].self) {
+            """
+            return window.fieldLog;
+            """
+        }
+
+        #expect(
+            fieldLog == [
+                "pointerdown:1:0.5:0",
+                "mousedown:1:-:1",
+                "pointerup:0:0:0",
+                "mouseup:0:-:0",
+                "click:0:0:0",
+            ]
+        )
+    }
+
     @Test
     func singleClickFiresEventsForListenersOnTheDocument() async throws {
         try await loadHTML()
@@ -802,6 +845,84 @@ extension AppKitGesturesTests.Basic {
         #expect(newSelection == crazySelection)
     }
 
+    @Test(arguments: [true, false])
+    func clickAndHoldOnVideoOpensContextMenu(controls: Bool) async throws {
+        let baseURL = try #require(Bundle.testResources.resourceURL)
+        let controlsMarkup = controls ? "controls" : ""
+
+        let html = """
+            <video id="video" \(controlsMarkup) src="video-with-audio.mp4" style="display: block; width: 100vw; height: 100vh; margin: 0"></video>
+            """
+        try await page.load(html: html, baseURL: baseURL).wait()
+
+        try await waitForVideoToLoadData(elementID: "video")
+
+        await page.waitForNextPresentationUpdate()
+
+        let videoBounds = try await screenBounds(ofElementWithID: "video")
+
+        await withSwizzledContextMenu {
+            await recap.play { composer in
+                composer._wk_click(at: videoBounds.center, for: .seconds(2))
+            }
+        }
+    }
+
+    @Test(arguments: [true, false])
+    func clickAndHoldOnUnselectableVideoPlayerOpensContextMenu(overlay: Bool) async throws {
+        let baseURL = try #require(Bundle.testResources.resourceURL)
+        let overlayMarkup = overlay ? "<div style='position: absolute; inset: 0'></div>" : ""
+
+        let html = """
+            <div id="player" style="position: relative; width: 100vw; height: 100vh; -webkit-user-select: none; user-select: none">
+                <video id="video" src="video-with-audio.mp4" style="display: block; width: 100%; height: 100%"></video>
+                \(overlayMarkup)
+            </div>
+            """
+        try await page.load(html: html, baseURL: baseURL).wait()
+
+        try await waitForVideoToLoadData(elementID: "video")
+
+        await page.waitForNextPresentationUpdate()
+
+        let playerBounds = try await screenBounds(ofElementWithID: "player")
+
+        await withSwizzledContextMenu {
+            await recap.play { composer in
+                composer._wk_click(at: playerBounds.center, for: .seconds(2))
+            }
+        }
+    }
+
+    @Test
+    func clickAndHoldOnUnselectableContentDoesNotOpenContextMenu() async throws {
+        let html = """
+            <div id="target" style="width: 100vw; height: 100vh; font-size: 30px; -webkit-user-select: none; user-select: none">Hello world</div>
+            <script>
+                window.contextMenuEventCount = 0;
+                document.addEventListener("contextmenu", event => {
+                    window.contextMenuEventCount++;
+                    event.preventDefault();
+                });
+            </script>
+            """
+        try await page.load(html: html).wait()
+        await page.waitForNextPresentationUpdate()
+
+        let targetBounds = try await screenBounds(ofElementWithID: "target")
+
+        await recap.play { composer in
+            composer._wk_click(at: targetBounds.center, for: .seconds(2))
+        }
+
+        await page.waitForNextPresentationUpdate()
+
+        let contextMenuEventCount = try await page.callJavaScript(returning: Int.self) {
+            "return window.contextMenuEventCount;"
+        }
+        #expect(contextMenuEventCount == 0)
+    }
+
     @Test
     func scrollingDoesNotRemoveTextSelection() async throws {
         try await loadHTML()
@@ -1467,19 +1588,7 @@ extension AppKitGesturesTests.Basic {
 
         let elementID = try await dragAcrossSlider(useNativeWidget: useNativeWidget)
 
-        let finalSliderValue = try await page.callJavaScript(
-            returning: Double.self,
-            arguments: ["elementID": elementID, "useNativeWidget": useNativeWidget]
-        ) {
-            """
-            if (useNativeWidget) {
-                return Number(document.getElementById(elementID).value);
-            } else {
-                return Number(document.getElementById(elementID).getAttribute("aria-valuenow"));
-            }
-            """
-        }
-
+        let finalSliderValue = try await sliderValue(elementID: elementID, useNativeWidget: useNativeWidget)
         #expect(finalSliderValue == Double(maximumValue))
 
         let eventLog = try await page.callJavaScript(returning: [Double].self, arguments: ["elementID": elementID]) {
@@ -1489,6 +1598,22 @@ extension AppKitGesturesTests.Basic {
         }
 
         #expect(eventLog == (initialValue...maximumValue).map(Double.init))
+    }
+
+    @Test(arguments: [true, false])
+    func pressAndHoldBeforeDraggingOverSliderDoesNotOpenContextMenu(useNativeWidget: Bool) async throws {
+        let elementID = try await dragAcrossSlider(useNativeWidget: useNativeWidget, pressAndWait: .seconds(1))
+
+        let contextMenuEventCount = try await page.callJavaScript(returning: Int.self) {
+            "return window.contextMenuEventCount;"
+        }
+        #expect(contextMenuEventCount == 0)
+
+        let selection = try await page.callJavaScript(JavaScriptMessages.GetSelection())
+        #expect(selection == .none)
+
+        let finalSliderValue = try await sliderValue(elementID: elementID, useNativeWidget: useNativeWidget)
+        #expect(finalSliderValue == 10)
     }
 
     @Test(
@@ -2573,7 +2698,11 @@ extension CGPoint {
 
 extension AppKitGesturesTests.Basic {
     @discardableResult
-    private func dragAcrossSlider(useNativeWidget: Bool, verticalTravelFraction: Double = 0) async throws -> String {
+    private func dragAcrossSlider(
+        useNativeWidget: Bool,
+        verticalTravelFraction: Double = 0,
+        pressAndWait: Duration = .seconds(0.5)
+    ) async throws -> String {
         let elementID = useNativeWidget ? "native-slider" : "custom-slider"
 
         let customHTML = try #require(Bundle.testResources.url(forResource: "custom-slider", withExtension: "html"))
@@ -2597,12 +2726,42 @@ extension AppKitGesturesTests.Basic {
         )
 
         await recap.play { composer in
-            composer._wk_drag(withStart: start, end: end, duration: .seconds(1.5), pressAndWait: .seconds(0.5))
+            composer._wk_drag(withStart: start, end: end, duration: .seconds(1.5), pressAndWait: pressAndWait)
         }
 
         await page.waitForNextPresentationUpdate()
 
         return elementID
+    }
+
+    private func sliderValue(elementID: String, useNativeWidget: Bool) async throws -> Double {
+        try await page.callJavaScript(
+            returning: Double.self,
+            arguments: ["elementID": elementID, "useNativeWidget": useNativeWidget]
+        ) {
+            """
+            if (useNativeWidget) {
+                return Number(document.getElementById(elementID).value);
+            } else {
+                return Number(document.getElementById(elementID).getAttribute("aria-valuenow"));
+            }
+            """
+        }
+    }
+
+    private func waitForVideoToLoadData(elementID: String) async throws {
+        try await page.callJavaScript(arguments: ["elementID": elementID]) {
+            """
+            const video = document.getElementById(elementID);
+            if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA)
+                return;
+
+            await new Promise((resolve, reject) => {
+                video.addEventListener("loadeddata", resolve, { once: true });
+                video.addEventListener("error", () => reject(new Error(`Failed to load video: ${video.error?.message}`)), { once: true });
+            });
+            """
+        }
     }
 
     private func waitForModelReady() async throws {

@@ -2803,15 +2803,75 @@ VisiblePosition WebPage::visiblePositionInFocusedNodeForPoint(const LocalFrame& 
     return frame.visiblePositionForPoint(constrainedPoint);
 }
 
-InteractionInformationAtPosition WebPage::positionInformation(const InteractionInformationRequest& request)
+static void convertPositionInformationToMainFrameCoordinates(const LocalFrameView& localRootView, InteractionInformationAtPosition& information)
 {
-    return WebKit::positionInformationForWebPage(*this, request);
+    if (localRootView.frame().isMainFrame())
+        return;
+
+    auto convertRect = [&](auto rect) {
+        return localRootView.convertToRootViewAcrossIsolatedFrames(rect);
+    };
+    auto convertPoint = [&](WebCore::IntPoint point) {
+        return roundedIntPoint(localRootView.convertToRootViewAcrossIsolatedFrames(FloatPoint { point }));
+    };
+
+    information.request.point = convertPoint(information.request.point);
+    if (information.automationAdjustedInteractionLocation)
+        information.automationAdjustedInteractionLocation = convertPoint(*information.automationAdjustedInteractionLocation);
+
+    information.bounds = convertRect(information.bounds);
+    information.adjustedPointForNodeRespondingToClickEvents = localRootView.convertToRootViewAcrossIsolatedFrames(information.adjustedPointForNodeRespondingToClickEvents);
+    information.cursorContext.lineCaretExtent = convertRect(information.cursorContext.lineCaretExtent);
+#if PLATFORM(MACCATALYST)
+    information.caretRect = convertRect(information.caretRect);
+#endif
+#if ENABLE(DATA_DETECTION) && PLATFORM(IOS_FAMILY)
+    information.dataDetectorBounds = convertRect(information.dataDetectorBounds);
+#endif
+
+    if (RefPtr textIndicator = information.textIndicator) {
+        // textRectsInBoundingRectCoordinates() are relative to the bounding rect, so they follow it.
+        textIndicator->setSelectionRectInMainFrameViewCoordinates(convertRect(textIndicator->selectionRectInMainFrameViewCoordinates()));
+        textIndicator->setTextBoundingRectInRootViewCoordinates(convertRect(textIndicator->textBoundingRectInRootViewCoordinates()));
+        textIndicator->setContentImageWithoutSelectionRectInRootViewCoordinates(convertRect(textIndicator->contentImageWithoutSelectionRectInRootViewCoordinates()));
+    }
+
+    if (information.elementContext)
+        information.elementContext->boundingRect = convertRect(information.elementContext->boundingRect);
+
+    if (information.hostImageOrVideoElementContext)
+        information.hostImageOrVideoElementContext->boundingRect = convertRect(information.hostImageOrVideoElementContext->boundingRect);
 }
 
-void WebPage::requestPositionInformation(const InteractionInformationRequest& request, CompletionHandler<void(InteractionInformationAtPosition&&)>&& completionHandler)
+std::optional<InteractionInformationAtPosition> WebPage::positionInformation(WebCore::LocalFrame& localRoot, const InteractionInformationRequest& request)
+{
+    RefPtr localRootView = localRoot.view();
+    if (!localRootView)
+        return std::nullopt;
+
+    auto result = WebKit::positionInformationForWebPage(*this, localRoot, request);
+    return WTF::switchOn(WTF::move(result), [&](InteractionInformationAtPosition&& information) -> std::optional<InteractionInformationAtPosition> {
+        convertPositionInformationToMainFrameCoordinates(*localRootView, information);
+        return WTF::move(information);
+    }, [](const RemoteUserInputEventData&) {
+        return std::optional<InteractionInformationAtPosition>();
+    });
+}
+
+void WebPage::requestPositionInformation(std::optional<WebCore::FrameIdentifier> frameID, const InteractionInformationRequest& request, CompletionHandler<void(Variant<InteractionInformationAtPosition, RemoteUserInputEventData>&&)>&& completionHandler)
 {
     sendEditorStateUpdate();
-    completionHandler(positionInformation(request));
+
+    RefPtr localRoot = localRootFrame(frameID);
+    RefPtr localRootView = localRoot ? localRoot->view() : nullptr;
+    if (!localRootView)
+        return completionHandler(InteractionInformationAtPosition::invalidInformation());
+
+    auto result = positionInformationForWebPage(*this, *localRoot, request);
+    if (auto* information = std::get_if<InteractionInformationAtPosition>(&result))
+        convertPositionInformationToMainFrameCoordinates(*localRootView, *information);
+
+    completionHandler(WTF::move(result));
 }
 
 bool WebPage::isAssistableElement(Element& element)
@@ -3615,6 +3675,13 @@ void WebPage::completeSyntheticClick(std::optional<WebCore::FrameIdentifier> fra
     auto platformModifiers = platform(modifiers);
 
     auto pressEvent = PlatformMouseEvent { roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::MousePressed, 1, platformModifiers, MonotonicTime::now(), WebCore::ForceAtClick, syntheticClickType, m_potentialTapInputSource, pointerId };
+
+    // FIXME: <https://webkit.org/b/314881> For input sources where pointer events may not have already been
+    // dispatched upstream by other compat paths, the pointer events that are dispatched in response to this
+    // synthetic click will not carry the correct `buttons` value, so we account for that here.
+    bool becomesPointerEvents = m_potentialTapInputSource == WebCore::MouseEventInputSource::Automation;
+    if (becomesPointerEvents)
+        pressEvent.setButtons(1);
     bool handledPress = localRootFrame->eventHandler().handleMousePressEvent(pressEvent).wasHandled();
     if (m_isClosed)
         return;
@@ -3626,7 +3693,7 @@ void WebPage::completeSyntheticClick(std::optional<WebCore::FrameIdentifier> fra
         clearSelectionAfterTapIfNeeded();
 #endif
 
-    auto releaseEvent = PlatformMouseEvent { roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::MouseReleased, 1, platformModifiers, MonotonicTime::now(), ForceAtClick, syntheticClickType, m_potentialTapInputSource, pointerId };
+    auto releaseEvent = PlatformMouseEvent { roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::MouseReleased, 1, platformModifiers, MonotonicTime::now(), 0.0, syntheticClickType, m_potentialTapInputSource, pointerId };
     bool handledRelease = localRootFrame->eventHandler().handleMouseReleaseEvent(releaseEvent).wasHandled();
     if (m_isClosed)
         return;
@@ -3712,7 +3779,13 @@ void WebPage::handleDoubleTapForDoubleClickAtPoint(const IntPoint& point, Option
     auto platformInputSource = platform(inputSource);
     auto syntheticClickType = coreSyntheticClickType(webSyntheticClickType);
     auto roundedAdjustedPoint = roundedIntPoint(adjustedPoint);
-    frameRespondingToDoubleClick->eventHandler().handleMousePressEvent(PlatformMouseEvent(roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::MousePressed, 2, platformModifiers, MonotonicTime::now(), 0, syntheticClickType, platformInputSource));
+
+    bool becomesPointerEvents = platformInputSource == WebCore::MouseEventInputSource::Automation;
+    auto pressEvent = PlatformMouseEvent { roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::MousePressed, 2, platformModifiers, MonotonicTime::now(), becomesPointerEvents ? WebCore::ForceAtClick : 0.0, syntheticClickType, platformInputSource };
+    if (becomesPointerEvents)
+        pressEvent.setButtons(1);
+
+    frameRespondingToDoubleClick->eventHandler().handleMousePressEvent(pressEvent);
     if (m_isClosed)
         return;
     frameRespondingToDoubleClick->eventHandler().handleMouseReleaseEvent(PlatformMouseEvent(roundedAdjustedPoint, roundedAdjustedPoint, MouseButton::Left, PlatformEvent::Type::MouseReleased, 2, platformModifiers, MonotonicTime::now(), 0, syntheticClickType, platformInputSource));

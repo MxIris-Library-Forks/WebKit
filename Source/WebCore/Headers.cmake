@@ -1510,6 +1510,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     editing/Editor.h
     editing/EditorDeleteAction.h
     editing/EditorInsertAction.h
+    editing/EditorInternalCommand.h
     editing/FindOptions.h
     editing/FontAttributeChanges.h
     editing/FontAttributes.h
@@ -1565,6 +1566,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     history/ProcessSwapDisposition.h
 
     html/Allowlist.h
+    html/AnchorElementFunctions.h
     html/AttachmentAssociatedElement.h
     html/Autocapitalize.h
     html/AutocapitalizeTypes.h
@@ -2496,8 +2498,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/AV1Utilities.h
     platform/graphics/AlphaPremultiplication.h
     platform/graphics/AnimationFrameRate.h
+    platform/graphics/AnnexBUtilities.h
     platform/graphics/ArrayPixelBuffer.h
-    platform/graphics/AsyncImageDecoder.h
     platform/graphics/AudioTrackPrivate.h
     platform/graphics/AudioTrackPrivateClient.h
     platform/graphics/AudioVideoRenderer.h

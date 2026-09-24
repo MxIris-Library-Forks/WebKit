@@ -978,7 +978,8 @@ Awaitable<DragInitiationResult> WebPage::requestDragStart(std::optional<WebCore:
     co_return { DragInitiationResult::RemoteFrameData {
         transformer.remoteFrameID(),
         transformer.transformToRemoteFrameCoordinates(clientPosition),
-        transformer.transformToRemoteFrameCoordinates(globalPosition)
+        // globalPosition is not frame-relative, so it survives the hop unchanged.
+        globalPosition
     } };
 }
 
@@ -1005,7 +1006,8 @@ Awaitable<DragInitiationResult> WebPage::requestAdditionalItemsForDragSession(st
     co_return { DragInitiationResult::RemoteFrameData {
         transformer.remoteFrameID(),
         transformer.transformToRemoteFrameCoordinates(clientPosition),
-        transformer.transformToRemoteFrameCoordinates(globalPosition)
+        // globalPosition is not frame-relative, so it survives the hop unchanged.
+        globalPosition
     } };
 }
 
@@ -2507,7 +2509,7 @@ static inline bool isObscuredElement(Element& element)
     return true;
 }
 
-void WebPage::startInteractionWithElementContextOrPosition(std::optional<WebCore::ElementContext>&& elementContext, WebCore::IntPoint&& point)
+void WebPage::startInteractionWithElementContextOrPosition(std::optional<WebCore::FrameIdentifier> frameID, std::optional<WebCore::ElementContext>&& elementContext, WebCore::IntPoint&& point)
 {
     if (elementContext) {
         m_interactionNode = elementForContext(*elementContext);
@@ -2515,9 +2517,15 @@ void WebPage::startInteractionWithElementContextOrPosition(std::optional<WebCore
             return;
     }
 
+    m_interactionNode = nullptr;
+
+    RefPtr localRoot = localRootFrame(frameID);
+    RefPtr localRootView = localRoot ? localRoot->view() : nullptr;
+    if (!localRootView)
+        return;
+
     FloatPoint adjustedPoint;
-    if (RefPtr localMainFrame = protect(m_page)->localMainFrame())
-        m_interactionNode = localMainFrame->nodeRespondingToInteraction(point, adjustedPoint);
+    m_interactionNode = localRoot->nodeRespondingToInteraction(localRootView->convertFromRootViewAcrossIsolatedFrames(FloatPoint { point }), adjustedPoint);
 }
 
 void WebPage::stopInteraction()

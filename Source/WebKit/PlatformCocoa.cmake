@@ -2434,7 +2434,12 @@ add_dependencies(_WebKit_SwiftUI WebKit WebKit_StageSwiftModule)
 
 set(_swiftui_module_output "${CMAKE_BINARY_DIR}/Source/WebKit")
 set(_swiftui_module_dir "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/_WebKit_SwiftUI.framework/Modules/_WebKit_SwiftUI.swiftmodule")
-add_custom_command(TARGET _WebKit_SwiftUI POST_BUILD
+set(_WebKit_SwiftUI_CODE_SIGN_INPUTS
+    "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.swiftmodule"
+    "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.swiftdoc"
+    "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.abi.json"
+)
+add_custom_command(OUTPUT ${_WebKit_SwiftUI_CODE_SIGN_INPUTS} DEPENDS "${_swiftui_module_output}/_WebKit_SwiftUI.swiftmodule"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${_swiftui_module_dir}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${_swiftui_module_output}/_WebKit_SwiftUI.swiftmodule"
@@ -2445,7 +2450,9 @@ add_custom_command(TARGET _WebKit_SwiftUI POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${_swiftui_module_output}/_WebKit_SwiftUI.abi.json"
         "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.abi.json"
+    VERBATIM
 )
+add_custom_target(_WebKit_SwiftUI_StageSwiftModule ALL DEPENDS ${_WebKit_SwiftUI_CODE_SIGN_INPUTS})
 
 WEBKIT_FRAMEWORK(_WebKit_SwiftUI)
 
@@ -2769,7 +2776,11 @@ add_dependencies(_WebKit_SwiftUI WebKit WebKit_StageSwiftModuleMac WebKit_CopyMo
 # this binary.
 set(_swiftui_framework "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/_WebKit_SwiftUI.framework")
 set(_swiftui_module_dir "${_swiftui_framework}/Versions/A/Modules/_WebKit_SwiftUI.swiftmodule")
-add_custom_command(TARGET _WebKit_SwiftUI POST_BUILD
+set(_WebKit_SwiftUI_CODE_SIGN_INPUTS
+    "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.swiftmodule"
+    "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.swiftdoc"
+)
+add_custom_command(OUTPUT ${_WebKit_SwiftUI_CODE_SIGN_INPUTS} DEPENDS "${CMAKE_BINARY_DIR}/Source/WebKit/_WebKit_SwiftUI.swiftmodule"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${_swiftui_module_dir}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_BINARY_DIR}/Source/WebKit/_WebKit_SwiftUI.swiftmodule"
@@ -2777,7 +2788,9 @@ add_custom_command(TARGET _WebKit_SwiftUI POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_BINARY_DIR}/Source/WebKit/_WebKit_SwiftUI.swiftdoc"
         "${_swiftui_module_dir}/${WEBKIT_SWIFT_MODULE_TRIPLE}.swiftdoc"
+    VERBATIM
 )
+add_custom_target(_WebKit_SwiftUI_StageSwiftModule ALL DEPENDS ${_WebKit_SwiftUI_CODE_SIGN_INPUTS})
 
 WEBKIT_FRAMEWORK(_WebKit_SwiftUI)
 
@@ -2889,23 +2902,27 @@ function(WEBKIT_DEFINE_XPC_SERVICES)
 
     add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.sb COMMAND
         grep -o "^[^;]*" ${WEBKIT_DIR}/WebProcess/com.apple.WebProcess.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.sb
+        DEPENDS ${WEBKIT_DIR}/WebProcess/com.apple.WebProcess.sb.in
         VERBATIM)
     list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.sb)
 
     add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebKit.NetworkProcess.sb COMMAND
         grep -o "^[^;]*" ${WEBKIT_DIR}/NetworkProcess/mac/com.apple.WebKit.NetworkProcess.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebKit.NetworkProcess.sb
+        DEPENDS ${WEBKIT_DIR}/NetworkProcess/mac/com.apple.WebKit.NetworkProcess.sb.in
         VERBATIM)
     list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebKit.NetworkProcess.sb)
 
     if (ENABLE_GPU_PROCESS)
         add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebKit.GPUProcess.sb COMMAND
             grep -o "^[^;]*" ${WEBKIT_DIR}/GPUProcess/mac/com.apple.WebKit.GPUProcess.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebKit.GPUProcess.sb
+            DEPENDS ${WEBKIT_DIR}/GPUProcess/mac/com.apple.WebKit.GPUProcess.sb.in
             VERBATIM)
         list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebKit.GPUProcess.sb)
     endif ()
     if (ENABLE_WEB_PUSH_NOTIFICATIONS)
         add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb COMMAND
             grep -o "^[^;]*" ${WEBKIT_DIR}/webpushd/mac/com.apple.WebKit.webpushd.mac.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb
+            DEPENDS ${WEBKIT_DIR}/webpushd/mac/com.apple.WebKit.webpushd.mac.sb.in
             VERBATIM)
         list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb)
     endif ()

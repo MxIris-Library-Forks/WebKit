@@ -534,10 +534,23 @@ void NetworkConnectionToWebProcess::didReceiveInvalidMessage(IPC::Connection&, I
     protect(m_networkProcess->parentProcessConnection())->send(Messages::NetworkProcessProxy::TerminateWebProcess(m_webProcessIdentifier, messageName), 0);
 }
 
+void NetworkConnectionToWebProcess::queryLocalNetworkAccessPermission(WebCore::ClientOrigin&& origin, WebCore::IPAddressSpace addressSpace, CompletionHandler<void(std::optional<WebCore::PermissionState>)>&& completion)
+{
+    CheckedPtr session = networkSession();
+    // No session is not a decision, and Prompt is how "nothing recorded" is already reported.
+    if (!session)
+        return completion(WebCore::PermissionState::Prompt);
+    completion(session->localNetworkAccessPermission(origin, addressSpace));
+}
+
 void NetworkConnectionToWebProcess::createSocketChannel(const ResourceRequest& request, const String& protocol, WebSocketIdentifier identifier, WebPageProxyIdentifier webPageProxyID, std::optional<FrameIdentifier> frameID, std::optional<PageIdentifier> pageID, const ClientOrigin& clientOrigin, bool hadMainFrameMainResourcePrivateRelayed, bool allowPrivacyProxy, OptionSet<AdvancedPrivacyProtections> advancedPrivacyProtections, WebCore::StoredCredentialsPolicy storedCredentialsPolicy, WebCore::IsInitiatedByDedicatedWorker isInitiatedByDedicatedWorker)
 {
     MESSAGE_CHECK(request.url().isValid());
     MESSAGE_CHECK(m_networkProcess->allowsFirstPartyForCookies(m_webProcessIdentifier, request.firstPartyForCookies()) != NetworkProcess::AllowCookieAccess::Terminate);
+    if (!m_networkProcess->allowsWebPageProxyIdentifier(m_webProcessIdentifier, webPageProxyID)) {
+        RELEASE_LOG_ERROR(IPC, "createSocketChannel: dropping request from process %" PRIu64 " for pageID not in allow-list", m_webProcessIdentifier.toUInt64());
+        return;
+    }
 
     ASSERT(!m_networkSocketChannels.contains(identifier));
     if (RefPtr channel = NetworkSocketChannel::create(*this, m_sessionID, request, protocol, identifier, webPageProxyID, frameID, pageID, clientOrigin, hadMainFrameMainResourcePrivateRelayed, allowPrivacyProxy, advancedPrivacyProtections, storedCredentialsPolicy, isInitiatedByDedicatedWorker))
@@ -595,6 +608,10 @@ void NetworkConnectionToWebProcess::scheduleResourceLoad(NetworkResourceLoadPara
         RELEASE_LOG_ERROR(Loading, "scheduleResourceLoad: Web process does not have cookie access to url %" SENSITIVE_LOG_STRING " for request %" SENSITIVE_LOG_STRING, loadParameters.request.firstPartyForCookies().string().utf8(), loadParameters.request.url().string().utf8());
 
     MESSAGE_CHECK(allowCookieAccess != NetworkProcess::AllowCookieAccess::Terminate);
+    if (!m_networkProcess->allowsWebPageProxyIdentifier(m_webProcessIdentifier, loadParameters.webPageProxyID)) {
+        RELEASE_LOG_ERROR(Loading, "scheduleResourceLoad: dropping load from process %" PRIu64 " for pageID not in allow-list", m_webProcessIdentifier.toUInt64());
+        return;
+    }
 
     CONNECTION_RELEASE_LOG(Loading, "scheduleResourceLoad: (parentPID=%d, pageProxyID=%" PRIu64 ", webPageID=%" PRIu64 ", frameID=%" PRIu64 ", resourceID=%" PRIu64 ", existingLoaderToResume=%" PRIu64 ")", loadParameters.parentPID, loadParameters.webPageProxyID.toUInt64(), loadParameters.webPageID.toUInt64(), loadParameters.webFrameID.toUInt64(), loadParameters.identifier ? loadParameters.identifier->toUInt64() : 0, existingLoaderToResume ? existingLoaderToResume->toUInt64() : 0);
 
@@ -646,6 +663,10 @@ void NetworkConnectionToWebProcess::scheduleResourceLoad(NetworkResourceLoadPara
 void NetworkConnectionToWebProcess::performSynchronousLoad(NetworkResourceLoadParameters&& loadParameters, CompletionHandler<void(const ResourceError&, const ResourceResponse, Vector<uint8_t>&&)>&& reply)
 {
     MESSAGE_CHECK(m_networkProcess->allowsFirstPartyForCookies(m_webProcessIdentifier, loadParameters.request.firstPartyForCookies()) == NetworkProcess::AllowCookieAccess::Allow);
+    if (!m_networkProcess->allowsWebPageProxyIdentifier(m_webProcessIdentifier, loadParameters.webPageProxyID)) {
+        RELEASE_LOG_ERROR(Loading, "performSynchronousLoad: dropping load from process %" PRIu64 " for pageID not in allow-list", m_webProcessIdentifier.toUInt64());
+        return reply({ }, { }, { });
+    }
     CONNECTION_RELEASE_LOG(Loading, "performSynchronousLoad: (parentPID=%d, pageProxyID=%" PRIu64 ", webPageID=%" PRIu64 ", frameID=%" PRIu64 ", resourceID=%" PRIu64 ")", loadParameters.parentPID, loadParameters.webPageProxyID.toUInt64(), loadParameters.webPageID.toUInt64(), loadParameters.webFrameID.toUInt64(), loadParameters.identifier ? loadParameters.identifier->toUInt64() : 0);
 
     auto identifier = loadParameters.identifier;
@@ -850,11 +871,19 @@ static bool shouldTreatAsSameSite(const URL& firstParty, const URL& url)
 #endif
 }
 
-auto NetworkConnectionToWebProcess::validateCookieAccess(ASCIILiteral messageName, const URL& firstParty, const URL& url, const SameSiteInfo* sameSiteInfo) -> CookieAccess
+auto NetworkConnectionToWebProcess::validateCookieAccess(ASCIILiteral messageName, const URL& firstParty, const URL& url, const SameSiteInfo* sameSiteInfo, std::optional<WebPageProxyIdentifier> webPageProxyID) -> CookieAccess
 {
     auto allowCookieAccess = m_networkProcess->allowsFirstPartyForCookies(m_webProcessIdentifier, firstParty);
     if (allowCookieAccess == NetworkProcess::AllowCookieAccess::Terminate)
         return CookieAccess::Terminate;
+
+    // Deliberately not a MESSAGE_CHECK: a process can legitimately send a stale page identifier during page
+    // teardown, and terminating it for that would be a regression.
+    if (!m_networkProcess->allowsWebPageProxyIdentifier(m_webProcessIdentifier, webPageProxyID)) {
+        CONNECTION_RELEASE_LOG_ERROR(IPC, "%" PUBLIC_LOG_STRING ": dropping request from process %" PRIu64 " for pageID not in allow-list", messageName.characters(), m_webProcessIdentifier.toUInt64());
+        return CookieAccess::Disallow;
+    }
+
     if (allowCookieAccess != NetworkProcess::AllowCookieAccess::Allow)
         return CookieAccess::Disallow;
 
@@ -868,7 +897,7 @@ auto NetworkConnectionToWebProcess::validateCookieAccess(ASCIILiteral messageNam
 
 void NetworkConnectionToWebProcess::cookiesForDOM(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, FrameIdentifier frameID, IncludeSecureCookies includeSecureCookies, WebPageProxyIdentifier webPageProxyID, CompletionHandler<void(String cookieString, bool secureCookiesAccessed)>&& completionHandler)
 {
-    auto access = validateCookieAccess("cookiesForDOM"_s, firstParty, url, &sameSiteInfo);
+    auto access = validateCookieAccess("cookiesForDOM"_s, firstParty, url, &sameSiteInfo, webPageProxyID);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler({ }, false));
     if (access != CookieAccess::Allow)
         return completionHandler({ }, false);
@@ -888,7 +917,7 @@ void NetworkConnectionToWebProcess::cookiesForDOM(const URL& firstParty, const S
 
 void NetworkConnectionToWebProcess::setCookiesFromDOM(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, FrameIdentifier frameID, const String& cookieString, RequiresScriptTrackingPrivacy requiresScriptTrackingPrivacy, WebPageProxyIdentifier webPageProxyID)
 {
-    auto access = validateCookieAccess("setCookiesFromDOM"_s, firstParty, url, &sameSiteInfo);
+    auto access = validateCookieAccess("setCookiesFromDOM"_s, firstParty, url, &sameSiteInfo, webPageProxyID);
     MESSAGE_CHECK(access != CookieAccess::Terminate);
     if (access != CookieAccess::Allow)
         return;
@@ -913,7 +942,7 @@ void NetworkConnectionToWebProcess::cookiesEnabledSync(const URL& firstParty, co
 
 void NetworkConnectionToWebProcess::cookiesEnabled(const URL& firstParty, const URL& url, std::optional<FrameIdentifier> frameID, WebPageProxyIdentifier webPageProxyID, CompletionHandler<void(bool)>&& completionHandler)
 {
-    auto access = validateCookieAccess("cookiesEnabled"_s, firstParty, url, nullptr);
+    auto access = validateCookieAccess("cookiesEnabled"_s, firstParty, url, nullptr, webPageProxyID);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(false));
     if (access != CookieAccess::Allow)
         return completionHandler(false);
@@ -931,7 +960,7 @@ void NetworkConnectionToWebProcess::cookiesEnabled(const URL& firstParty, const 
 // The only caller never passed frame, page or web page proxy identifiers, so relaxed third-party cookie blocking never applied here.
 void NetworkConnectionToWebProcess::cookieRequestHeaderFieldValueDigest(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, IncludeSecureCookies includeSecureCookies, CompletionHandler<void(std::optional<SHA1::Digest>)>&& completionHandler)
 {
-    auto access = validateCookieAccess("cookieRequestHeaderFieldValueDigest"_s, firstParty, url, &sameSiteInfo);
+    auto access = validateCookieAccess("cookieRequestHeaderFieldValueDigest"_s, firstParty, url, &sameSiteInfo, std::nullopt);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(std::nullopt));
     if (access != CookieAccess::Allow)
         return completionHandler(std::nullopt);
@@ -945,7 +974,7 @@ void NetworkConnectionToWebProcess::cookieRequestHeaderFieldValueDigest(const UR
 
 void NetworkConnectionToWebProcess::getRawCookies(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, std::optional<FrameIdentifier> frameID, std::optional<WebPageProxyIdentifier> webPageProxyID, CompletionHandler<void(Vector<WebCore::Cookie>&&)>&& completionHandler)
 {
-    auto access = validateCookieAccess("getRawCookies"_s, firstParty, url, &sameSiteInfo);
+    auto access = validateCookieAccess("getRawCookies"_s, firstParty, url, &sameSiteInfo, webPageProxyID);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler({ }));
     if (access != CookieAccess::Allow)
         return completionHandler({ });
@@ -960,7 +989,7 @@ void NetworkConnectionToWebProcess::getRawCookies(const URL& firstParty, const S
 
 void NetworkConnectionToWebProcess::setRawCookie(const URL& firstParty, const URL& url, const WebCore::Cookie& cookie, ShouldPartitionCookie shouldPartitionCookie)
 {
-    auto access = validateCookieAccess("setRawCookie"_s, firstParty, url, nullptr);
+    auto access = validateCookieAccess("setRawCookie"_s, firstParty, url, nullptr, std::nullopt);
     MESSAGE_CHECK(access != CookieAccess::Terminate);
     MESSAGE_CHECK(RegistrableDomain::uncheckedCreateFromHost(cookie.domain).matches(firstParty));
     MESSAGE_CHECK(RegistrableDomain(url).matches(firstParty));
@@ -985,7 +1014,7 @@ void NetworkConnectionToWebProcess::deleteCookie(const URL& firstParty, const UR
     MESSAGE_CHECK_COMPLETION(!firstParty.isEmpty() && firstParty.isValid(), completionHandler());
     MESSAGE_CHECK_COMPLETION(!url.isEmpty() && url.isValid(), completionHandler());
     MESSAGE_CHECK_COMPLETION(!cookieName.isEmpty(), completionHandler());
-    auto access = validateCookieAccess("deleteCookie"_s, firstParty, url, nullptr);
+    auto access = validateCookieAccess("deleteCookie"_s, firstParty, url, nullptr, std::nullopt);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler());
     if (access != CookieAccess::Allow)
         return completionHandler();
@@ -998,7 +1027,7 @@ void NetworkConnectionToWebProcess::deleteCookie(const URL& firstParty, const UR
 
 void NetworkConnectionToWebProcess::cookiesForDOMAsync(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, std::optional<WebCore::FrameIdentifier> frameID, IncludeSecureCookies includeSecureCookies, WebCore::CookieStoreGetOptions&& options, std::optional<WebPageProxyIdentifier> webPageProxyID, CompletionHandler<void(std::optional<Vector<WebCore::Cookie>>&&)>&& completionHandler)
 {
-    auto access = validateCookieAccess("cookiesForDOMAsync"_s, firstParty, url, &sameSiteInfo);
+    auto access = validateCookieAccess("cookiesForDOMAsync"_s, firstParty, url, &sameSiteInfo, webPageProxyID);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(std::nullopt));
     if (access != CookieAccess::Allow)
         return completionHandler(std::nullopt);
@@ -1018,7 +1047,7 @@ void NetworkConnectionToWebProcess::cookiesForDOMAsync(const URL& firstParty, co
 
 void NetworkConnectionToWebProcess::setCookieFromDOMAsync(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, std::optional<FrameIdentifier> frameID, WebCore::Cookie&& cookie, RequiresScriptTrackingPrivacy requiresScriptTrackingPrivacy, std::optional<WebPageProxyIdentifier> webPageProxyID, CompletionHandler<void(bool)>&& completionHandler)
 {
-    auto access = validateCookieAccess("setCookieFromDOMAsync"_s, firstParty, url, &sameSiteInfo);
+    auto access = validateCookieAccess("setCookieFromDOMAsync"_s, firstParty, url, &sameSiteInfo, webPageProxyID);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(false));
     if (access != CookieAccess::Allow)
         return completionHandler(false);
@@ -1041,7 +1070,7 @@ void NetworkConnectionToWebProcess::domCookiesForHost(const URL& url, Completion
 {
     auto host = url.host().toString();
     MESSAGE_CHECK_COMPLETION(HashSet<String>::isValidValue(url.host().toString()), completionHandler({ }));
-    auto access = validateCookieAccess("domCookiesForHost"_s, url, url, nullptr);
+    auto access = validateCookieAccess("domCookiesForHost"_s, url, url, nullptr, std::nullopt);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler({ }));
     if (access != CookieAccess::Allow)
         return completionHandler({ });
@@ -1057,7 +1086,7 @@ void NetworkConnectionToWebProcess::domCookiesForHost(const URL& url, Completion
 
 void NetworkConnectionToWebProcess::subscribeToCookieChangeNotifications(const URL& url, const URL& firstParty, WebCore::FrameIdentifier frameID, WebPageProxyIdentifier webPageProxyID, CompletionHandler<void(bool)>&& completionHandler)
 {
-    auto access = validateCookieAccess("subscribeToCookieChangeNotifications"_s, firstParty, url, nullptr);
+    auto access = validateCookieAccess("subscribeToCookieChangeNotifications"_s, firstParty, url, nullptr, webPageProxyID);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(false));
     if (access != CookieAccess::Allow)
         return completionHandler({ });

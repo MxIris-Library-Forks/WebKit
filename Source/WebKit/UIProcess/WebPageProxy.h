@@ -1225,8 +1225,11 @@ public:
     using SelectWithGestureCompletionHandler = CompletionHandler<void(SelectWithGestureResult)>;
     void selectWithGesture(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, GestureType, GestureRecognizerState, bool isInteractingWithFocusedElement, SelectWithGestureCompletionHandler&&);
 
-    void didReceivePositionInformation(const InteractionInformationAtPosition&);
-    std::optional<std::pair<IPC::AsyncReplyID, Ref<IPC::Connection>>> requestPositionInformation(const InteractionInformationRequest&);
+    void didReceivePositionInformation(const InteractionInformationAtPosition&, std::optional<WebCore::FrameIdentifier>);
+    void requestPositionInformation(const InteractionInformationRequest&);
+    void requestPositionInformationInFrame(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint pointInFrameRootViewCoordinates, const InteractionInformationRequest&);
+
+    std::optional<std::pair<IPC::AsyncReplyID, Ref<IPC::Connection>>> takeOutstandingPositionInformationReply();
 
     void selectPositionAtPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, CompletionHandler<void()>&&);
     void updateSelectionWithExtentPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, RespectSelectionAnchor, CompletionHandler<void(bool)>&&);
@@ -1297,7 +1300,7 @@ public:
     void didInsertFinalDictationResult();
     void replaceDictatedText(const String& oldText, const String& newText);
     void replaceSelectedText(const String& oldText, const String& newText);
-    void startInteractionWithPositionInformation(const InteractionInformationAtPosition&);
+    void startInteractionWithPositionInformation(std::optional<WebCore::FrameIdentifier>, const InteractionInformationAtPosition&);
     void stopInteraction();
     void performActionOnElement(uint32_t action);
     void performActionOnElements(uint32_t action, Vector<WebCore::ElementContext>&&);
@@ -1759,6 +1762,9 @@ public:
     void clearTextIndicatorWithAnimation(WebCore::TextIndicatorDismissalAnimation);
     void teardownTextIndicatorLayer();
     void startTextIndicatorFadeOut();
+#if PLATFORM(COCOA)
+    WebCore::TextIndicator* textIndicator() const { return m_textIndicator.get(); }
+#endif
 
     void findTextRangesForStringMatches(const String&, OptionSet<FindOptions>, unsigned maxMatchCount, CompletionHandler<void(Vector<WebFoundTextRange>&&)>&&);
     void replaceFoundTextRangeWithString(const WebFoundTextRange&, const String&);
@@ -1910,6 +1916,10 @@ public:
     WebProcessProxy& legacyMainFrameProcess() const SWIFT_NAME(__legacyMainFrameProcessUnsafe()) { return m_legacyMainFrameProcess; }
 
     ProcessID NODELETE legacyMainFrameProcessID() const;
+
+    // Grants a process this page's first-party cookie access and records that the process may reference this
+    // page's WebPageProxyIdentifier over IPC. Call this for any process that begins hosting a frame of the page.
+    void addAllowedFirstPartyForCookies(WebProcessProxy&, const WebCore::RegistrableDomain&, LoadedWebArchive, CompletionHandler<void()>&&);
 
     ProcessID gpuProcessID() const;
     ProcessID NODELETE modelProcessID() const;

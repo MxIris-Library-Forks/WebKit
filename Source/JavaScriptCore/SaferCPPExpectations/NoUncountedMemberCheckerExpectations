@@ -15,7 +15,6 @@ dfg/DFGNode.h
 dfg/DFGSpeculativeJIT.h
 ftl/FTLLowerDFGToB3.cpp
 ftl/FTLOSRExitHandle.h
-heap/Heap.h
 heap/HeapSnapshotBuilder.h
 heap/JITStubRoutineSet.h
 inspector/InspectorAgentBase.h
@@ -33,6 +32,7 @@ runtime/PropertyName.h
 runtime/PropertySlot.h
 runtime/Structure.h
 wasm/WasmBBQJIT.h
+wasm/WasmConstExprGenerator.cpp
 wasm/WasmEntryPlan.cpp
 wasm/WasmFormat.h
 wasm/WasmFunctionParser.h

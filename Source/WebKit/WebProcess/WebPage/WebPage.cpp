@@ -1762,6 +1762,9 @@ void WebPage::reinitializeWebPage(WebPageCreationParameters&& parameters)
         createProvisionalFrame(WTF::move(*provisionalFrameCreationParameters));
     }
 
+    didSetPageZoomFactor(parameters.pageZoomFactor);
+    didSetTextZoomFactor(parameters.textZoomFactor);
+
     platformReinitializeAccessibilityToken();
 }
 
@@ -2433,12 +2436,6 @@ void WebPage::close(CompletionHandler<void()>&& completionHandler)
         RunLoop::mainSingleton().stop();
 
     completionHandler();
-}
-
-void WebPage::dispatchPendingNavigateEventForProcessSwap(WebCore::FrameIdentifier frameID, WebCore::PendingNavigateEventIdentifier pendingNavigateEventID, CompletionHandler<void(bool)>&& completionHandler)
-{
-    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
-    completionHandler(webFrame && !webFrame->dispatchPendingNavigateEventAfterNavigationPolicy(pendingNavigateEventID));
 }
 
 void WebPage::tryClose(CompletionHandler<void(bool)>&& completionHandler)
@@ -4249,6 +4246,15 @@ void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, const 
         return;
 
     frame->coreLocalFrame()->eventHandler().setLastKnownMousePosition(eventPoint, globalPoint, WTF::move(source));
+}
+
+void WebPage::mousePointerDidDisappear()
+{
+    if (RefPtr page = corePage()) {
+        page->forEachLocalFrame([](LocalFrame& frame) {
+            frame.eventHandler().mousePointerDidDisappear();
+        });
+    }
 }
 
 void WebPage::startDeferringResizeEvents()
@@ -9063,10 +9069,8 @@ void WebPage::stopAllURLSchemeTasks()
 void WebPage::registerURLSchemeHandler(WebURLSchemeHandlerIdentifier handlerIdentifier, const String& scheme)
 {
     WEBPAGE_RELEASE_LOG(Process, "registerURLSchemeHandler: Registered handler %" PRIu64 " for the '%s' scheme", handlerIdentifier.toUInt64(), scheme.utf8());
-
     WebCore::LegacySchemeRegistry::registerURLSchemeAsHandledBySchemeHandler(scheme);
-    WebProcess::singleton().registerURLSchemeAsCORSEnabled(scheme);
-
+    WebCore::LegacySchemeRegistry::registerURLSchemeAsCORSEnabled(scheme);
     auto schemeResult = m_schemeToURLSchemeHandlerProxyMap.add(scheme, WebURLSchemeHandlerProxy::create(*this, handlerIdentifier));
     m_identifierToURLSchemeHandlerProxyMap.add(handlerIdentifier, Ref { schemeResult.iterator->value }.get());
 }

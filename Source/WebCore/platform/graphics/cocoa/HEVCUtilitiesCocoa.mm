@@ -29,7 +29,6 @@
 #if PLATFORM(COCOA)
 
 #import "CMUtilities.h"
-#import "FormatDescriptionUtilities.h"
 #import "FourCC.h"
 #import "HEVCUtilities.h"
 #import "Logging.h"
@@ -213,40 +212,12 @@ Vector<uint8_t> convertHEVCCMSampleBufferToAnnexB(CMSampleBufferRef hvccSampleBu
     return convertParameterSetsCMSampleBufferToAnnexB(hvccSampleBuffer, isKeyframe, PAL::CMVideoFormatDescriptionGetHEVCParameterSetAtIndex);
 }
 
-// FIXME: Remove this default. https://bugs.webkit.org/show_bug.cgi?id=324554
-static PlatformVideoColorSpace defaultHEVCPlatformVideoColorSpace()
-{
-    return {
-        PlatformVideoColorPrimaries::Bt709,
-        PlatformVideoTransferCharacteristics::Iec6196621,
-        PlatformVideoMatrixCoefficients::Bt709,
-        true
-    };
-}
-
 static RetainPtr<CMFormatDescriptionRef> createHEVCFormatDescriptionFromParameterSets(std::span<const uint8_t* const> paramSetPointers, std::span<const size_t> paramSetSizes, size_t nalUnitHeaderLength)
 {
     CMFormatDescriptionRef rawDescription = nullptr;
     if (PAL::CMVideoFormatDescriptionCreateFromHEVCParameterSets(kCFAllocatorDefault, paramSetPointers.size(), paramSetPointers.data(), paramSetSizes.data(), nalUnitHeaderLength, nullptr, &rawDescription) != noErr)
         return nullptr;
     return adoptCF(rawDescription);
-}
-
-static RefPtr<VideoInfo> createVideoInfoFromHEVCFormatDescription(CMFormatDescriptionRef description, Ref<SharedBuffer>&& hvcCData)
-{
-    auto dimensions = PAL::CMVideoFormatDescriptionGetDimensions(description);
-    auto presentationDimensions = PAL::CMVideoFormatDescriptionGetPresentationDimensions(description, true, true);
-
-    return VideoInfo::create({
-        {
-            .codecName = kCMVideoCodecType_HEVC
-        }, {
-            .size = { static_cast<float>(dimensions.width), static_cast<float>(dimensions.height) },
-            .displaySize = { static_cast<float>(presentationDimensions.width), static_cast<float>(presentationDimensions.height) },
-            .colorSpace = defaultHEVCPlatformVideoColorSpace(),
-            .extensionAtoms = { FillWith { }, 1, { computeBoxType(kCMVideoCodecType_HEVC), WTF::move(hvcCData) } },
-        }
-    });
 }
 
 static bool hevcAnnexBVpsIsFollowedBySpsAndPps(std::span<const uint8_t> data, const Vector<NaluIndex>& naluIndices, size_t vpsIndex)
@@ -280,12 +251,7 @@ RefPtr<VideoInfo> createVideoInfoFromHEVCAnnexBStream(std::span<const uint8_t> d
     if (!description)
         return nullptr;
 
-    RetainPtr sampleExtensionsDict = dynamic_cf_cast<CFDictionaryRef>(PAL::CMFormatDescriptionGetExtension(description.get(), PAL::kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms));
-    RetainPtr hvcCData = sampleExtensionsDict ? dynamic_cf_cast<CFDataRef>(CFDictionaryGetValue(sampleExtensionsDict.get(), CFSTR("hvcC"))) : nullptr;
-    if (!hvcCData)
-        return nullptr;
-
-    return createVideoInfoFromHEVCFormatDescription(description.get(), SharedBuffer::create(hvcCData.get()));
+    return createVideoInfoFromFormatDescription(description);
 }
 
 Vector<uint8_t> convertHEVCAnnexBToLengthPrefixed(std::span<const uint8_t> data, const Vector<NaluIndex>& naluIndices)
@@ -320,7 +286,7 @@ Vector<uint8_t> convertHEVCAnnexBToLengthPrefixed(std::span<const uint8_t> data,
     return result;
 }
 
-RefPtr<VideoInfo> createVideoInfoFromHVCC(std::span<const uint8_t> hvcc, const HVCCParameterSets& parameterSets)
+RefPtr<VideoInfo> createVideoInfoFromHVCC(const HVCCParameterSets& parameterSets)
 {
     if (parameterSets.paramSets.isEmpty())
         return nullptr;
@@ -341,7 +307,7 @@ RefPtr<VideoInfo> createVideoInfoFromHVCC(std::span<const uint8_t> hvcc, const H
     if (!description)
         return nullptr;
 
-    return createVideoInfoFromHEVCFormatDescription(description.get(), SharedBuffer::create(hvcc));
+    return createVideoInfoFromFormatDescription(description);
 }
 
 }

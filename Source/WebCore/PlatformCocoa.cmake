@@ -811,6 +811,7 @@ list(REMOVE_ITEM WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/WebGPU/GPUVertexState.h
     Modules/WebGPU/GPUVertexStepMode.h
 
+    Modules/WebGPU/Implementation/WebGPUAPIUtilities.h
     Modules/WebGPU/Implementation/WebGPUAdapterImpl.h
     Modules/WebGPU/Implementation/WebGPUBindGroupImpl.h
     Modules/WebGPU/Implementation/WebGPUBindGroupLayoutImpl.h
@@ -1482,8 +1483,8 @@ list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/network/ios/LegacyPreviewLoaderClient.h
     platform/network/ios/WebCoreURLResponseIOS.h
 
+    platform/video-codecs/cocoa/GPUVideoDecoder.h
     platform/video-codecs/cocoa/GPUVideoEncoder.h
-    platform/video-codecs/cocoa/WebRTCVideoDecoder.h
 
     platform/xr/cocoa/PlatformXRPose.h
 

@@ -388,9 +388,15 @@ RefPtr<RemoteImageBufferProxy> RemoteRenderingBackendProxy::moveToImageBuffer(Re
     return result;
 }
 
-void RemoteRenderingBackendProxy::moveSerializedBufferToTransferHeap(RemoteSerializedImageBufferProxy& serialized, WebCore::ImageBufferTransferIdentifier transferIdentifier)
+std::optional<WebCore::ImageBufferTransferIdentifier> RemoteRenderingBackendProxy::moveSerializedBufferToTransferHeap(RemoteSerializedImageBufferProxy& serialized)
 {
-    send(Messages::RemoteRenderingBackend::MoveSerializedBufferToTransferHeap(serialized.identifier(), transferIdentifier));
+    // Waited for, so that the buffer is already in place when the message naming it is sent: a
+    // recipient's claim then never has to wait for this process.
+    auto sendResult = sendSync(Messages::RemoteRenderingBackend::MoveSerializedBufferToTransferHeap(serialized.identifier()));
+    if (!sendResult.succeeded())
+        return std::nullopt;
+    auto [transferIdentifier] = sendResult.takeReply();
+    return transferIdentifier;
 }
 
 RefPtr<RemoteImageBufferProxy> RemoteRenderingBackendProxy::takeTransferredBuffer(const WebCore::ImageBufferTransferHandle& handle)
@@ -634,7 +640,7 @@ void RemoteRenderingBackendProxy::endPreparingImageBufferSetsForDisplay()
         send(Messages::RemoteRenderingBackend::PrepareImageBufferSetsForDisplay(inputData));
     }
 
-    m_bufferSetsToPrepare.clear();
+    m_bufferSetsToPrepare.shrink(0);
 }
 
 void RemoteRenderingBackendProxy::prepareImageBufferSetForDisplay(LayerPrepareBuffersData&& bufferSetToPrepare)

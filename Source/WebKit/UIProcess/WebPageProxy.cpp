@@ -275,6 +275,7 @@
 #include <WebCore/PermissionDescriptor.h>
 #include <WebCore/PermissionState.h>
 #include <WebCore/PlatformEvent.h>
+#include <WebCore/PlatformScreen.h>
 #include <WebCore/ProcessIdentifier.h>
 #include <WebCore/ProcessSwapDisposition.h>
 #include <WebCore/PublicSuffixStore.h>
@@ -874,6 +875,7 @@ WebPageProxy::Internals::Internals(WebPageProxy& page, bool processInheritedFrom
     , audibleActivityTimer(RunLoop::mainSingleton(), "WebPageProxy::Internals::AudibleActivityTimer"_s, &page, &WebPageProxy::clearAudibleActivity)
     , geolocationPermissionRequestManager(page)
     , updatePlayingMediaDidChangeTimer(RunLoop::mainSingleton(), "WebPageProxy::Internals::UpdatePlayingMediaDidChangeTimer"_s, &page, &WebPageProxy::updatePlayingMediaDidChangeTimerFired)
+    , remoteFrameMouseEventTimeoutTimer(RunLoop::mainSingleton(), "WebPageProxy::Internals::RemoteFrameMouseEventTimeoutTimer"_s, &page, &WebPageProxy::remoteFrameMouseEventTimedOut)
     , notificationManagerMessageHandler(page)
     , pageLoadState(page)
     , resetRecentCrashCountTimer(RunLoop::mainSingleton(), "WebPageProxy::Internals::ResetRecentCrashCountTimer"_s, &page, &WebPageProxy::resetRecentCrashCount)
@@ -1709,8 +1711,8 @@ void WebPageProxy::swapToProvisionalPage(Ref<ProvisionalPageProxy>&& provisional
     finishAttachingToWebProcess(unusedSite, ProcessLaunchReason::ProcessSwap);
 
 #if PLATFORM(IOS_FAMILY)
-    // On iOS, the displayID is derived from the webPageID.
-    m_displayID = generateDisplayIDFromPageID();
+    RefPtr pageClient = this->pageClient();
+    SUPPRESS_FORWARD_DECL_ARG m_displayID = WebCore::displayID(pageClient ? pageClient->screen() : nullptr);
 
     std::optional<FramesPerSecond> nominalFramesPerSecond;
     if (m_drawingArea)
@@ -4667,13 +4669,29 @@ void WebPageProxy::sendMouseEvent(FrameIdentifier frameID, Ref<NativeWebMouseEve
     }
 
     auto eventType = event->type();
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::MouseEvent(frameID, WTF::move(event), WTF::move(sandboxExtensions)), [weakThis = WeakPtr { *this }, eventType] (IPC::Connection* connection, bool handled, std::optional<RemoteUserInputEventData> remoteUserInputEventData) mutable {
+    Ref sentEvent = event;
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::MouseEvent(frameID, WTF::move(event), WTF::move(sandboxExtensions)), [weakThis = WeakPtr { *this }, eventType, sentEvent = WTF::move(sentEvent)] (IPC::Connection* connection, bool handled, std::optional<RemoteUserInputEventData> remoteUserInputEventData) mutable {
         RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !connection)
+        if (!protectedThis)
             return;
 
-        if (protectedThis->internals().mouseEventQueue.isEmpty())
+        // Ignore replies for events that have already been retired, e.g. because the queue was cleared or the event timed out.
+        auto& mouseEventQueue = protectedThis->internals().mouseEventQueue;
+        bool isReplyForCurrentEvent = !mouseEventQueue.isEmpty() && mouseEventQueue.first().ptr() == sentEvent.ptr();
+
+        // The process handling this event went away (e.g. it crashed or was terminated for being unresponsive).
+        // Retire the event so that the queue doesn't get stuck forever.
+        if (!connection) {
+            if (isReplyForCurrentEvent)
+                protectedThis->mouseEventHandlingCompleted(false, std::nullopt);
             return;
+        }
+
+        if (!isReplyForCurrentEvent) {
+            if (eventType != WebEventType::MouseMove)
+                WebProcessProxy::fromConnection(*connection)->stopResponsivenessTimer();
+            return;
+        }
 
         MESSAGE_CHECK_BASE(!remoteUserInputEventData || protect(protectedThis->preferences())->siteIsolationEnabled(), connection);
 
@@ -5019,6 +5037,14 @@ void WebPageProxy::handleWheelEvent(Ref<WebWheelEvent>&& wheelEvent)
 void WebPageProxy::continueWheelEventHandling(Ref<WebWheelEvent>&& wheelEvent, const WheelEventHandlingResult& result, std::optional<bool> willStartSwipe)
 {
     LOG_WITH_STREAM(WheelEvents, stream << "WebPageProxy::continueWheelEventHandling - " << result);
+
+#if PLATFORM(COCOA)
+    if (m_mainFrame && wheelEvent->phase() == WebWheelEvent::Phase::Began && wheelEvent->inputSource() != WebEventInputSource::UserDriven) {
+        forEachWebContentProcess([](auto& process, auto pageID) {
+            process.send(Messages::WebPage::MousePointerDidDisappear(), pageID);
+        });
+    }
+#endif
 
     if (!result.needsMainThreadProcessing()) {
         bool setLastKnownMousePosition = m_mainFrame && wheelEvent->phase() == WebWheelEvent::Phase::Began;
@@ -6131,50 +6157,9 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             if (suspendedPage && suspendedPage->pageIsClosedOrClosing())
                 suspendedPage = nullptr;
 
+            receivedPolicyDecision(policyAction, navigation.ptr(), std::nullopt, WTF::move(navigationAction), WillContinueLoadInNewProcess::Yes, std::nullopt, WTF::move(message), WTF::move(completionHandler));
             Ref bcgForNavigation = suspendedPage ? suspendedPage->browsingContextGroup() : browsingContextGroup.get();
-            auto navigationUpgradeToHTTPSBehavior = navigationAction->data().navigationUpgradeToHTTPSBehavior;
-            auto pendingNavigateEventID = navigationAction->data().pendingNavigateEventID;
-
-            CompletionHandler<void(bool)> startSwap = [
-                weakThis = WeakPtr { *this },
-                policyAction,
-                navigation = navigation.copyRef(),
-                frame = frame.copyRef(),
-                navigationAction = WTF::move(navigationAction),
-                message = WTF::move(message),
-                completionHandler = WTF::move(completionHandler),
-                suspendedPage = WTF::move(suspendedPage),
-                bcgForNavigation = WTF::move(bcgForNavigation),
-                processNavigatingTo = WTF::move(processNavigatingTo),
-                processSwapRequestedByClient,
-                loadedWebArchive,
-                navigationUpgradeToHTTPSBehavior,
-                replacedDataStoreForWebArchiveLoad,
-                preventNavigationProcessShutdown = WTF::move(preventNavigationProcessShutdown)
-            ] (bool cancelled) mutable {
-                RefPtr protectedThis = weakThis.get();
-                if (!protectedThis) {
-                    completionHandler(PolicyDecision { });
-                    return;
-                }
-
-                if (cancelled) {
-                    protectedThis->receivedPolicyDecision(PolicyAction::Ignore, navigation.ptr(), std::nullopt, WTF::move(navigationAction), WillContinueLoadInNewProcess::No, std::nullopt, WTF::move(message), WTF::move(completionHandler));
-                    return;
-                }
-
-                protectedThis->receivedPolicyDecision(policyAction, navigation.ptr(), std::nullopt, WTF::move(navigationAction), WillContinueLoadInNewProcess::Yes, std::nullopt, WTF::move(message), WTF::move(completionHandler));
-                protectedThis->continueNavigationInNewProcess(navigation, frame.get(), WTF::move(suspendedPage), bcgForNavigation, WTF::move(processNavigatingTo), processSwapRequestedByClient, ShouldTreatAsContinuingLoad::YesAfterNavigationPolicyDecision, std::nullopt, loadedWebArchive, navigationUpgradeToHTTPSBehavior, WebCore::ProcessSwapDisposition::None, replacedDataStoreForWebArchiveLoad.get(), MonotonicTime { });
-            };
-
-            // A lost reply is not a hang: Connection::cancelAsyncReplyHandlers runs pending handlers with a
-            // default-constructed `cancelled`, so a crashed source process lets the swap proceed.
-            if (!pendingNavigateEventID) {
-                startSwap(false);
-                return;
-            }
-
-            sendWithAsyncReplyToProcessContainingFrame(frame->frameID(), Messages::WebPage::DispatchPendingNavigateEventForProcessSwap(frame->frameID(), *pendingNavigateEventID), WTF::move(startSwap));
+            continueNavigationInNewProcess(navigation, frame.get(), WTF::move(suspendedPage), bcgForNavigation, WTF::move(processNavigatingTo), processSwapRequestedByClient, ShouldTreatAsContinuingLoad::YesAfterNavigationPolicyDecision, std::nullopt, loadedWebArchive, navigationAction->data().navigationUpgradeToHTTPSBehavior, WebCore::ProcessSwapDisposition::None, replacedDataStoreForWebArchiveLoad.get(), MonotonicTime { });
             return;
         }
 
@@ -7360,6 +7345,15 @@ RectEdges<bool> WebPageProxy::rubberBandableEdgesRespectingHistorySwipe(const We
         return rubberBandableEdges;
 
 #if PLATFORM(MAC)
+    if (wheelEvent.inputSource() == WebEventInputSource::Automation) {
+        RefPtr pageClient = this->pageClient();
+        if (!pageClient || !pageClient->everMagnifiedDuringCurrentGesture()) {
+            rubberBandableEdges.setLeft(false);
+            rubberBandableEdges.setRight(false);
+            return rubberBandableEdges;
+        }
+    }
+
     // The left and right edges are reserved for history swipes, but only until the swipe gesture fails.
     if (wheelEvent.phase() != WebWheelEvent::Phase::None || wheelEvent.momentumPhase() != WebWheelEvent::Phase::None) {
         RefPtr gestureController = ViewGestureController::controllerForPage(identifier());
@@ -9358,6 +9352,10 @@ void WebPageProxy::broadcastFrameTreeSyncData(IPC::Connection& connection, Frame
 
     if (data.value.index() == std::to_underlying(WebCore::FrameTreeSyncDataType::FrameRect))
         webFrameProxy->setRemoteFrameRect(std::get<IntRect>(data.value));
+    else if (auto* frameGeometry = std::get_if<WebCore::FrameGeometrySyncData>(&data.value))
+        webFrameProxy->setFrameGeometry(*frameGeometry);
+    else if (auto* viewportInfo = std::get_if<WebCore::FrameViewportInfo>(&data.value))
+        webFrameProxy->setFrameViewportInfo(*viewportInfo);
 
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         if (webProcess == process)
@@ -12543,22 +12541,14 @@ void WebPageProxy::showDataListSuggestions(WebCore::DataListSuggestionInformatio
         RefPtr pageClient = this->pageClient();
         if (!pageClient)
             return;
-        internals().dataListSuggestionsDropdown = pageClient->createDataListSuggestionsDropdown(*this);
+        RefPtr pageClientDropdown = pageClient->createDataListSuggestionsDropdown(*this);
+        if (!pageClientDropdown)
+            return;
+
+        internals().dataListSuggestionsDropdown = WTF::move(pageClientDropdown);
     }
-    if (!internals().dataListSuggestionsDropdown)
-        return;
 
-    convertRectToMainFrameCoordinates(info.elementRect, info.rootFrameID, [weakThis = WeakPtr { *this }, info = WTF::move(info)](std::optional<FloatRect> convertedRect) mutable {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !convertedRect)
-            return;
-
-        if (!protectedThis->internals().dataListSuggestionsDropdown)
-            return;
-
-        info.elementRect = IntRect(*convertedRect);
-        protect(*protectedThis->internals().dataListSuggestionsDropdown)->show(WTF::move(info));
-    });
+    protect(internals().dataListSuggestionsDropdown.get())->show(WTF::move(info));
 }
 
 void WebPageProxy::handleKeydownInDataList(const String& key)
@@ -12599,20 +12589,9 @@ void WebPageProxy::showDateTimePicker(WebCore::DateTimeChooserParameters&& param
         if (RefPtr pageClient = this->pageClient())
             m_dateTimePicker = pageClient->createDateTimePicker(*this);
     }
-    if (!m_dateTimePicker)
-        return;
 
-    convertRectToMainFrameCoordinates(params.anchorRectInRootView, params.rootFrameID, [weakThis = WeakPtr { *this }, params = WTF::move(params)](std::optional<FloatRect> convertedRect) mutable {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !convertedRect)
-            return;
-
-        if (!protectedThis->m_dateTimePicker)
-            return;
-
-        params.anchorRectInRootView = IntRect(*convertedRect);
-        protect(*protectedThis->m_dateTimePicker)->showDateTimePicker(WTF::move(params));
-    });
+    if (RefPtr dateTimePicker = m_dateTimePicker)
+        dateTimePicker->showDateTimePicker(WTF::move(params));
 }
 
 void WebPageProxy::endDateTimePicker()
@@ -13143,24 +13122,12 @@ void WebPageProxy::Internals::failedToShowPopupMenu()
 }
 #endif
 
-void WebPageProxy::showPopupMenuFromFrame(IPC::Connection& connection, FrameIdentifier frameID, const IntRect& rect, uint64_t textDirection, Vector<WebPopupItem>&& items, int32_t selectedIndex, const PlatformPopupMenuData& data)
+void WebPageProxy::showPopupMenuFromFrame(IPC::Connection& connection, FrameIdentifier frameID, const IntRect& rectInMainFrameView, uint64_t textDirection, Vector<WebPopupItem>&& items, int32_t selectedIndex, const PlatformPopupMenuData& data)
 {
-    RefPtr frame = WebFrameProxy::webFrame(frameID);
-    if (!frame)
-        return;
-
-    convertRectToMainFrameCoordinates(rect, frame->rootFrame()->frameID(), [weakThis = WeakPtr { *this }, frameID, textDirection, selectedIndex, data, items = WTF::move(items), connection = protect(connection)] (std::optional<FloatRect> convertedRect) {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !convertedRect)
-            return;
-        protectedThis->showPopupMenu(connection, frameID, IntRect(*convertedRect), textDirection, items, selectedIndex, data);
-    });
-}
-
-void WebPageProxy::showPopupMenu(IPC::Connection& connection, FrameIdentifier frameID, const IntRect& rect, uint64_t textDirection, const Vector<WebPopupItem>& items, int32_t selectedIndex, const PlatformPopupMenuData& data)
-{
-    // FIXME: Move all IPC callers of this to WebPageProxy::showPopupMenuFromFrame and move the message check to there before converting coordinates.
     MESSAGE_CHECK_BASE(selectedIndex == -1 || static_cast<uint32_t>(selectedIndex) < items.size(), connection);
+
+    if (!WebFrameProxy::webFrame(frameID))
+        return;
 
     if (RefPtr activePopupMenu = std::exchange(m_activePopupMenu, nullptr)) {
         activePopupMenu->hidePopupMenu();
@@ -13188,7 +13155,7 @@ void WebPageProxy::showPopupMenu(IPC::Connection& connection, FrameIdentifier fr
 
     // Showing a popup menu runs a nested runloop, which can handle messages that cause |this| to get closed.
     Ref protectedThis { *this };
-    activePopupMenu->showPopupMenu(rect, static_cast<TextDirection>(textDirection), m_pageScaleFactor, items, data, selectedIndex);
+    activePopupMenu->showPopupMenu(rectInMainFrameView, static_cast<TextDirection>(textDirection), m_pageScaleFactor, items, data, selectedIndex);
 }
 
 void WebPageProxy::hidePopupMenu()
@@ -13897,10 +13864,19 @@ void WebPageProxy::mouseEventHandlingCompleted(bool handled, std::optional<Remot
         // FIXME: If these sandbox extensions are important, find a way to get them to the iframe process.
         if (RefPtr targetFrame = WebFrameProxy::webFrame(remoteUserInputEventData->targetFrameID)) {
             startResponsivenessTimerForMouseEvent(*targetFrame, event->type());
+            // Don't let an unresponsive subframe process block mouse events for the rest of the page.
+            internals().remoteFrameMouseEventTimeoutTimer.startOneShot(ResponsivenessTimer::defaultResponsivenessTimeout);
             sendMouseEvent(remoteUserInputEventData->targetFrameID, event.copyRef(), { });
+            return;
         }
-        return;
+
+        // The target frame is gone; retire the event instead of leaving it at the front of the queue.
+#if ENABLE(CONTEXT_MENU_EVENT) || PLATFORM(GTK) || PLATFORM(WPE)
+        handled = false;
+#endif
     }
+
+    internals().remoteFrameMouseEventTimeoutTimer.stop();
 
     // Retire the last sent event now that WebProcess is done handling it.
     Ref event = internals().mouseEventQueue.takeFirst();
@@ -13933,6 +13909,15 @@ void WebPageProxy::mouseEventHandlingCompleted(bool handled, std::optional<Remot
             automationSession->mouseEventsFlushedForPage(*this);
         didFinishProcessingAllPendingMouseEvents();
     }
+}
+
+void WebPageProxy::remoteFrameMouseEventTimedOut()
+{
+    if (internals().mouseEventQueue.isEmpty())
+        return;
+
+    WEBPAGEPROXY_RELEASE_LOG_ERROR(MouseHandling, "remoteFrameMouseEventTimedOut: Giving up on a mouse event sent to a subframe process");
+    mouseEventHandlingCompleted(false, std::nullopt);
 }
 
 #if ENABLE(MAC_GESTURE_EVENTS)
@@ -14678,6 +14663,7 @@ void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason termina
 
     internals().mouseEventQueue.clear();
     internals().coalescedMouseEvents.clear();
+    internals().remoteFrameMouseEventTimeoutTimer.stop();
     internals().keyEventQueue.clear();
     if (m_wheelEventCoalescer)
         m_wheelEventCoalescer->clear();
@@ -16764,17 +16750,13 @@ void WebPageProxy::substitutionsPanelIsShowing(CompletionHandler<void(bool)>&& c
     completionHandler(TextChecker::substitutionsPanelIsShowing());
 }
 
-Awaitable<void> WebPageProxy::showCorrectionPanel(AlternativeTextType panelType, FloatRect boundingBoxOfReplacedString, String replacedString, String replacementString, Vector<String> alternativeReplacementStrings, FrameIdentifier rootFrameID)
+void WebPageProxy::showCorrectionPanel(AlternativeTextType panelType, FloatRect boundingBoxOfReplacedString, String replacedString, String replacementString, Vector<String> alternativeReplacementStrings)
 {
     RefPtr pageClient = this->pageClient();
     if (!pageClient)
-        co_return;
+        return;
 
-    auto convertedBoundingBox = co_await convertRectToMainFrameCoordinates(boundingBoxOfReplacedString, rootFrameID);
-    if (!convertedBoundingBox)
-        co_return;
-
-    pageClient->showCorrectionPanel(panelType, *convertedBoundingBox, replacedString, replacementString, alternativeReplacementStrings);
+    pageClient->showCorrectionPanel(panelType, boundingBoxOfReplacedString, replacedString, replacementString, alternativeReplacementStrings);
 }
 
 void WebPageProxy::dismissCorrectionPanel(ReasonForDismissingAlternativeText reason)
@@ -18902,13 +18884,13 @@ void WebPageProxy::loadServiceWorker(const URL& url, bool usingModules, Completi
     m_isServiceWorkerPage = true;
     internals().serviceWorkerLaunchCompletionHandler = WTF::move(completionHandler);
 
-    CString html;
+    UTF8CString html;
     if (usingModules)
         html = makeString("<script>navigator.serviceWorker.register('"_s, url.string(), "', { type: 'module' });</script>"_s).utf8();
     else
         html = makeString("<script>navigator.serviceWorker.register('"_s, url.string(), "');</script>"_s).utf8();
 
-    loadData(SharedBuffer::create(html.span()), "text/html"_s, "UTF-8"_s, url.protocolHostAndPort());
+    loadData(SharedBuffer::create(byteCast<uint8_t>(html.span())), "text/html"_s, "UTF-8"_s, url.protocolHostAndPort());
 }
 
 #if !PLATFORM(COCOA)
@@ -19880,16 +19862,13 @@ void WebPageProxy::postMessageToRemote(WebCore::FrameIdentifier source, IPC::Unt
     };
 
     // Only this process knows where the message is going, so it hands ownership of any sunk
-    // ImageBuffers to the destination. Held back until the GPU process confirms: the destination's
-    // claim travels on its own connection and could otherwise overtake the handover.
+    // ImageBuffers to the destination, so that they outlive the process that sent them. Not waited
+    // for: the destination can claim them either way, since they were deposited before being sent.
 #if ENABLE(GPU_PROCESS)
     RefPtr serializedValue = message.message;
     auto transferIdentifiers = serializedValue ? serializedValue->transferredImageBufferIdentifiers() : Vector<WebCore::ImageBufferTransferIdentifier> { };
-    if (RefPtr gpuProcess = transferIdentifiers.isEmpty() ? nullptr : GPUProcessProxy::singletonIfCreated()) {
-        auto destinationProcess = processContainingFrame(target)->coreProcessIdentifier();
-        gpuProcess->sendWithAsyncReply(Messages::GPUProcess::AuthorizeImageBufferTransfers(WTF::move(transferIdentifiers), destinationProcess), WTF::move(deliver));
-        return;
-    }
+    if (RefPtr gpuProcess = transferIdentifiers.isEmpty() ? nullptr : GPUProcessProxy::singletonIfCreated())
+        gpuProcess->send(Messages::GPUProcess::HandOverTransferredImageBuffers(WTF::move(transferIdentifiers), processContainingFrame(target)->coreProcessIdentifier()), 0);
 #endif
 
     deliver();

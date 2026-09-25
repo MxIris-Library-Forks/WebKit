@@ -644,7 +644,7 @@ static MTLVertexDescriptor *createVertexDescriptor(WGPUVertexState vertexState, 
     }
 
     ShaderModule::VertexStageIn shaderLocations;
-    for (auto [ bufferIndex, buffer ] : indexedRange(vertexState.buffersSpan())) {
+    for (auto [ bufferIndex, buffer ] : indexedRange(buffersSpan(vertexState))) {
         if (buffer.arrayStride == WGPU_COPY_STRIDE_UNDEFINED)
             continue;
 
@@ -671,7 +671,7 @@ static MTLVertexDescriptor *createVertexDescriptor(WGPUVertexState vertexState, 
         vertexDescriptor.layouts[bufferIndex].stepFunction = stepFunction(buffer.stepMode, buffer.arrayStride);
         if (vertexDescriptor.layouts[bufferIndex].stepFunction == MTLVertexStepFunctionConstant)
             vertexDescriptor.layouts[bufferIndex].stepRate = 0;
-        for (auto& attribute : buffer.attributesSpan()) {
+        for (auto& attribute : attributesSpan(buffer)) {
             auto formatSize = vertexFormatSize(attribute.format);
             auto offsetPlusFormatSize = checkedSum<uint64_t>(attribute.offset, formatSize);
             if (offsetPlusFormatSize.hasOverflowed()) {
@@ -923,34 +923,39 @@ static auto makeBindingLayout(WGPUBindGroupLayoutEntry& newEntry, auto& bindingM
 {
     using Result = BindGroupLayout::Entry::BindingLayout;
     return WTF::switchOn(bindingMember, [&](const WGSL::BufferBindingLayout& bufferBinding) -> Result {
-        return newEntry.buffer = WGPUBufferBindingLayout {
+        newEntry.buffer = WGPUBufferBindingLayout {
             .type = (bufferTypeOverride != WGPUBufferBindingType_Undefined) ? bufferTypeOverride : convertBindingType(bufferBinding.type),
             .hasDynamicOffset = bufferBinding.hasDynamicOffset,
             .minBindingSize = bufferBinding.minBindingSize,
             .bufferSizeForBinding = bufferSizeForBinding,
         };
+        return BindGroupLayout::bindingLayoutFromAPI(newEntry.buffer);
     }, [&](const WGSL::SamplerBindingLayout& sampler) -> Result {
-        return newEntry.sampler = WGPUSamplerBindingLayout {
+        newEntry.sampler = WGPUSamplerBindingLayout {
             .type = convertSamplerBindingType(sampler.type)
         };
+        return BindGroupLayout::bindingLayoutFromAPI(newEntry.sampler);
     }, [&](const WGSL::TextureBindingLayout& texture) -> Result {
-        return newEntry.texture = WGPUTextureBindingLayout {
+        newEntry.texture = WGPUTextureBindingLayout {
             .sampleType = convertSampleType(texture.sampleType),
             .viewDimension = convertViewDimension(texture.viewDimension),
             .multisampled = texture.multisampled
         };
+        return BindGroupLayout::bindingLayoutFromAPI(newEntry.texture);
     }, [&](const WGSL::StorageTextureBindingLayout& storageTexture) -> Result {
-        return newEntry.storageTexture = WGPUStorageTextureBindingLayout {
+        newEntry.storageTexture = WGPUStorageTextureBindingLayout {
             .access = convertAccess(storageTexture.access),
             .format = convertFormat(storageTexture.format),
             .viewDimension = convertViewDimension(storageTexture.viewDimension)
         };
+        return BindGroupLayout::bindingLayoutFromAPI(newEntry.storageTexture);
     }, [&](const WGSL::ExternalTextureBindingLayout&) -> Result {
-        return newEntry.texture = WGPUTextureBindingLayout {
+        newEntry.texture = WGPUTextureBindingLayout {
             .sampleType = static_cast<WGPUTextureSampleType>(WGPUTextureSampleType_ExternalTexture),
             .viewDimension = WGPUTextureViewDimension_2D,
             .multisampled = false
         };
+        return BindGroupLayout::bindingLayoutFromAPI(newEntry.texture);
     });
 }
 
@@ -958,13 +963,13 @@ static BindGroupLayout::Entry::BindingLayout toBindingLayout(const WGPUBindGroup
 {
     BindGroupLayout::Entry::BindingLayout result;
     if (BindGroupLayout::isPresent(entry.buffer))
-        result = entry.buffer;
+        result = BindGroupLayout::bindingLayoutFromAPI(entry.buffer);
     else if (BindGroupLayout::isPresent(entry.sampler))
-        result = entry.sampler;
+        result = BindGroupLayout::bindingLayoutFromAPI(entry.sampler);
     else if (BindGroupLayout::isPresent(entry.texture))
-        result = entry.texture;
+        result = BindGroupLayout::bindingLayoutFromAPI(entry.texture);
     else if (BindGroupLayout::isPresent(entry.storageTexture))
-        result = entry.storageTexture;
+        result = BindGroupLayout::bindingLayoutFromAPI(entry.storageTexture);
 
     return result;
 }
@@ -1128,7 +1133,7 @@ static NSString* errorValidatingDepthStencilState(const WGPUDepthStencilState& d
         return ERROR_STRING(@"Color format passed to depth / stencil format");
 
     auto depthFormat = Texture::depthOnlyAspectMetalFormat(depthStencil.format);
-    if ((depthStencil.depthWriteEnabled && *depthStencil.depthWriteEnabled) || (depthStencil.depthCompare != WGPUCompareFunction_Undefined && depthStencil.depthCompare != WGPUCompareFunction_Always)) {
+    if (depthStencil.depthWriteEnabled == WGPUOptionalBool_True || (depthStencil.depthCompare != WGPUCompareFunction_Undefined && depthStencil.depthCompare != WGPUCompareFunction_Always)) {
         if (!depthFormat)
             return ERROR_STRING(@"depth-stencil state missing format");
     }
@@ -1144,10 +1149,10 @@ static NSString* errorValidatingDepthStencilState(const WGPUDepthStencilState& d
     }
 
     if (depthFormat) {
-        if (!depthStencil.depthWriteEnabled)
+        if (depthStencil.depthWriteEnabled == WGPUOptionalBool_Undefined)
             return ERROR_STRING(@"depthWrite must be provided");
 
-        bool depthWriteEnabled = *depthStencil.depthWriteEnabled;
+        bool depthWriteEnabled = depthStencil.depthWriteEnabled == WGPUOptionalBool_True;
         if (depthWriteEnabled || depthStencil.stencilFront.depthFailOp != WGPUStencilOperation_Keep || depthStencil.stencilBack.depthFailOp != WGPUStencilOperation_Keep) {
             if (depthStencil.depthCompare == WGPUCompareFunction_Undefined)
                 return ERROR_STRING(@"Depth compare must be provided");
@@ -1566,7 +1571,7 @@ void Device::createRenderPipeline(const WGPURenderPipelineDescriptor& descriptor
         if (NSString* error = errorValidatingVertexStageIn(vertexStageIn, *this))
             return callback(returnInvalidRenderPipeline(*this, isAsync, error));
         NSError *error = nil;
-        preparedVertexLibrary = prepareLibrary(vertexModule, pipelineLayout.get(), vertexEntryPoint, label.get(), descriptor.vertex.constantsSpan(), minimumBufferSizes, &error);
+        preparedVertexLibrary = prepareLibrary(vertexModule, pipelineLayout.get(), vertexEntryPoint, label.get(), constantsSpan(descriptor.vertex), minimumBufferSizes, &error);
         if (!preparedVertexLibrary)
             return callback(returnInvalidRenderPipeline(*this, isAsync, error.localizedDescription ?: @"Vertex library failed creation"));
 
@@ -1616,7 +1621,7 @@ void Device::createRenderPipeline(const WGPURenderPipelineDescriptor& descriptor
     if (descriptor.fragment) {
         uint32_t bytesPerSample = 0;
         const auto& fragmentDescriptor = *descriptor.fragment;
-        for (auto [ i, targetDescriptor ] : indexedRange(fragmentDescriptor.targetsSpan())) {
+        for (auto [ i, targetDescriptor ] : indexedRange(targetsSpan(fragmentDescriptor))) {
             if (targetDescriptor.format == WGPUTextureFormat_Undefined)
                 continue;
 
@@ -1674,7 +1679,7 @@ void Device::createRenderPipeline(const WGPURenderPipelineDescriptor& descriptor
 
         NSError *error = nil;
         const auto& fragmentEntryPoint = fragmentDescriptor.entryPoint ? fromAPI(fragmentDescriptor.entryPoint) : fragmentModule->defaultFragmentEntryPoint();
-        preparedFragmentLibrary = prepareLibrary(*fragmentModule, pipelineLayout.get(), fragmentEntryPoint, label.get(), fragmentDescriptor.constantsSpan(), minimumBufferSizes, &error);
+        preparedFragmentLibrary = prepareLibrary(*fragmentModule, pipelineLayout.get(), fragmentEntryPoint, label.get(), constantsSpan(fragmentDescriptor), minimumBufferSizes, &error);
         if (!preparedFragmentLibrary)
             return callback(returnInvalidRenderPipeline(*this, isAsync, error.localizedDescription ?: @"Fragment library could not be created"));
 
@@ -1702,7 +1707,7 @@ void Device::createRenderPipeline(const WGPURenderPipelineDescriptor& descriptor
 
         depthStencilDescriptor = [MTLDepthStencilDescriptor new];
         depthStencilDescriptor.depthCompareFunction = convertToMTLCompare(depthStencil->depthCompare);
-        depthStencilDescriptor.depthWriteEnabled = depthStencil->depthWriteEnabled.value_or(false);
+        depthStencilDescriptor.depthWriteEnabled = depthStencil->depthWriteEnabled == WGPUOptionalBool_True;
         populateStencilOperation(depthStencilDescriptor.frontFaceStencil, depthStencil->stencilFront, depthStencil->stencilReadMask, depthStencil->stencilWriteMask);
         populateStencilOperation(depthStencilDescriptor.backFaceStencil, depthStencil->stencilBack, depthStencil->stencilReadMask, depthStencil->stencilWriteMask);
         depthBias = depthStencil->depthBias;
@@ -2054,30 +2059,30 @@ NSString* RenderPipeline::errorValidatingColorDepthStencilTargets(const WGPURend
     return nil;
 }
 
-bool RenderPipeline::validateRenderBundle(const WGPURenderBundleEncoderDescriptor& descriptor) const
+bool RenderPipeline::validateRenderBundle(bool depthReadOnly, bool stencilReadOnly, uint32_t sampleCount, std::span<const WGPUTextureFormat> colorFormats, WGPUTextureFormat depthStencilFormat) const
 {
-    if (!validateDepthStencilState(descriptor.depthReadOnly, descriptor.stencilReadOnly))
+    if (!validateDepthStencilState(depthReadOnly, stencilReadOnly))
         return false;
 
-    if (descriptor.sampleCount != m_descriptor.multisample.count)
+    if (sampleCount != m_descriptor.multisample.count)
         return false;
 
     size_t fragmentTargetCount = m_descriptor.fragment ? m_descriptor.fragment->targetCount : 0;
-    for (size_t i = 0, maxTargetCount = std::max<size_t>(fragmentTargetCount, descriptor.colorFormatCount); i < maxTargetCount; ++i) {
-        auto colorFormat = i < descriptor.colorFormatCount ? descriptor.colorFormatsSpan()[i] : WGPUTextureFormat_Undefined;
+    for (size_t i = 0, maxTargetCount = std::max<size_t>(fragmentTargetCount, colorFormats.size()); i < maxTargetCount; ++i) {
+        auto colorFormat = i < colorFormats.size() ? colorFormats[i] : WGPUTextureFormat_Undefined;
         auto descriptorFormat = i < m_descriptorTargets.size() ? m_descriptorTargets[i].format : WGPUTextureFormat_Undefined;
         if (descriptorFormat != colorFormat)
             return false;
     }
 
     if (!m_descriptor.depthStencil) {
-        if (descriptor.depthStencilFormat == WGPUTextureFormat_Undefined)
+        if (depthStencilFormat == WGPUTextureFormat_Undefined)
             return true;
 
         return false;
     }
 
-    if (descriptor.depthStencilFormat != m_descriptor.depthStencil->format)
+    if (depthStencilFormat != m_descriptor.depthStencil->format)
         return false;
 
     return true;

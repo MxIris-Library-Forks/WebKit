@@ -1963,6 +1963,7 @@ imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.worker.html?
 
 http/tests/webcodecs/vp9-hdr.html [ Failure ]
 http/tests/webcodecs/av1-sdr.html [ Failure ]
+http/tests/webcodecs/hevc-hdr.html [ Failure ]
 http/wpt/webrtc/peer-connection-color-space.html [ Failure ]
 
 # Test decoding a corrupt frame after reset in a flush callback assert_unreached: Should have rejected: undefined Reached unreachable code
@@ -3416,8 +3417,6 @@ ipc/restrictedendpoints/deny-access-updateQuotaBasedOnSpaceUsageForTesting.html 
 ipc/restrictedendpoints/deny-access-webGPU.html [ Skip ]
 ipc/restrictedendpoints/deny-access-webPush.html [ Skip ]
 ipc/validate-message-check-in-networkconnectiontowebproces-crash.html [ Skip ]
-
-### NEEDS PROPER TRIAGGING/GARDENING
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of IPC testing

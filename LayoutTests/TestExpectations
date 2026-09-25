@@ -2969,9 +2969,6 @@ imported/w3c/web-platform-tests/svg/text/reftests/text-font-face-load-image.html
 # x/y attribute still produces per-chunk div-by-zero and silently drops
 # textLength. Pinned here until the spacing-mode follow-up patch lands.
 imported/w3c/web-platform-tests/svg/text/reftests/textLength-list-y-spacing.svg [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/css-linked-parameters-precedence-1.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/img-with-url-fragment-identifiers-1.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/styling/css-linked-parameters/img-with-url-fragment-identifiers-2.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/svg/animations/scripted/syncbase-after-removal.html [ Skip ]
 imported/w3c/web-platform-tests/svg/animations/media-fragment-override-animation.html [ ImageOnlyFailure ]
@@ -5377,7 +5374,6 @@ imported/w3c/web-platform-tests/html/canvas/element/compositing/2d.composite.gri
 imported/w3c/web-platform-tests/html/canvas/element/compositing/2d.composite.grid.no_filter.shadow.pattern.html [ ImageOnlyFailure ]
 
 webkit.org/b/209460 imported/w3c/web-platform-tests/css/css-grid/abspos/descendant-static-position-002.html [ ImageOnlyFailure ]
-webkit.org/b/212246 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-baseline-align-cycles-001.html [ ImageOnlyFailure ]
 webkit.org/b/212246 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-item-content-baseline-001.html [ ImageOnlyFailure ]
 webkit.org/b/212246 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-item-content-baseline-002.html [ ImageOnlyFailure ]
 webkit.org/b/212246 imported/w3c/web-platform-tests/css/css-grid/alignment/grid-item-content-baseline-003.html [ ImageOnlyFailure ]
@@ -6763,7 +6759,6 @@ webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape/border-shape-outline-auto-with-border.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape/border-shape-outline-auto.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape/border-shape-outline-double-path.html [ ImageOnlyFailure ]
-webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/corner-shape/corner-shorthand-rendering.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape/border-shape-outline-double-shape.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape/border-shape-outline-offset.html [ ImageOnlyFailure ]
 webkit.org/b/277912 imported/w3c/web-platform-tests/css/css-borders/border-shape/border-shape-outline-with-border-double-ellipse.html [ ImageOnlyFailure ]
@@ -7669,6 +7664,11 @@ http/tests/ipc/write-web-archive-frame-ancestry-check.html [ Skip ]
 http/tests/site-isolation/touch-events [ Skip ]
 http/tests/site-isolation/ios [ Skip ]
 
+# The UIScriptController method used by these tests is only implemented on macOS (for now)
+# webkit.org/b/324206
+http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-001.html [ Skip ]
+http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-002.html [ Skip ]
+
 # CSS syntax
 imported/w3c/web-platform-tests/css/css-shadow/scoped-reference-animation-002.html [ ImageOnlyFailure ]
 
@@ -8168,6 +8168,10 @@ imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal
 webkit.org/b/307086 http/tests/geolocation/geolocation-watch-position-does-not-leak.https.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/xml/xslt/encoding-single-chunk.html [ ImageOnlyFailure ]
+
+# Crash inside libxslt/libxml2 on all ports (type confusion in xsltCheckExtPrefix; double free in xmlFreeDoc).
+imported/w3c/web-platform-tests/xml/xslt/xslt-attribute-double-free-crash.html [ Skip ]
+imported/w3c/web-platform-tests/xml/xslt/xslt-type-confusion-crash.html [ Skip ]
 
 webkit.org/b/307614 imported/w3c/web-platform-tests/css/css-highlight-api/painting/custom-highlight-painting-display-types.html [ ImageOnlyFailure ]
 

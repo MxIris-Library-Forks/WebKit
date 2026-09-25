@@ -433,7 +433,7 @@ std::expected<Ref<WebCore::Element>, String> WebAutomationSessionProxy::elementF
             JSObjectRef exceptionObject = JSValueToObject(context, exception, nullptr);
             JSValueRef nameValue = JSObjectGetProperty(context, exceptionObject, OpaqueJSString::tryCreate("name"_s).get(), nullptr);
             String exceptionName;
-            if (JSRetainPtr nameString = JSValueToStringCopy(context, nameValue, nullptr))
+            if (RefPtr nameString = adoptRef(JSValueToStringCopy(context, nameValue, nullptr)))
                 exceptionName = nameString->string();
             errorType = errorTypeFromJavaScriptExceptionName(exceptionName);
         }

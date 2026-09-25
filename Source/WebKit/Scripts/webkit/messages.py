@@ -468,9 +468,7 @@ def serialized_identifiers():
         'WebCore::MediaUniqueIdentifier',
         'WebCore::NavigationIdentifier',
         'WebCore::OpaqueOriginIdentifier',
-        'WebCore::PendingNavigateEventIdentifier',
         'WebCore::PageIdentifier',
-        'WebCore::ImageBufferTransferIdentifierID',
         'WebCore::PlatformLayerIdentifierID',
         'WebCore::PlaybackTargetClientContextID',
         'WebCore::NonSerializedDataIdentifier',
@@ -1518,7 +1516,7 @@ def headers_for_type(type, for_implementation_file=False):
         'WebCore::LineJoin': ['<WebCore/GraphicsTypes.h>'],
         'WebCore::PackedColor::RGBA': ['<WebCore/ColorTypes.h>'],
         'WebCore::PaginationMode': ['<WebCore/Pagination.h>'],
-        'WebCore::ImageBufferTransferIdentifierID': ['"GeneratedSerializers.h"'],
+        'WebCore::ImageBufferTransferIdentifier': ['<WebCore/ImageBufferTransferIdentifier.h>'],
         'WebCore::PlatformLayerIdentifierID': ['"GeneratedSerializers.h"'],
         'WebCore::PlatformMediaSessionRemoteControlCommandType': ['<WebCore/PlatformMediaSession.h>'],
         'WebCore::PlatformMediaSessionRemoteCommandArgument': ['<WebCore/PlatformMediaSession.h>'],
@@ -2369,7 +2367,8 @@ def generate_swift_message_handler(receiver):
         if not generates_swift_trampoline(receiver, message):
             continue
 
-        parameters = ['connection: IPC.Connection']
+        connection_type = 'IPC.StreamServerConnection' if receiver.has_attribute(STREAM_ATTRIBUTE) else 'IPC.Connection'
+        parameters = ['connection: %s' % connection_type]
         arguments = ['connection: connection']
         for parameter in message.parameters:
             parameters.append('%s: %s' % (parameter.name, swift_type_name(parameter.type)))

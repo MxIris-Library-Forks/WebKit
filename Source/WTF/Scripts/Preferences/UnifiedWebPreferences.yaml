@@ -1113,6 +1113,14 @@ CSSScrollAnchoringEnabled:
   humanReadableDescription: "Enable CSS Scroll Anchoring"
   defaultValue: true
 
+CSSScrollAxisLockEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS Scroll Axis Lock"
+  humanReadableDescription: "Enable scroll-axis-lock property"
+  defaultValue: false
+
 CSSScrollStateContainerQueriesEnabled:
   type: bool
   status: testable
@@ -6831,14 +6839,14 @@ WasmTailCallsEnabled:
 
 WasmWideArithmeticEnabled:
   type: bool
-  status: testable
+  status: stable
   category: javascript
   humanReadableName: "WebAssembly Wide Arithmetic"
   humanReadableDescription: "Allow the wide arithmetic instructions from the wasm wide-arithmetic spec."
   jscOptionName: useWasmWideArithmetic
   sharedPreferenceForWebProcess: true
   excludeFrom: [ WebKitLegacy, WebCore ]
-  defaultValue: false
+  defaultValue: true
 
 WebAPIStatisticsEnabled:
   type: bool

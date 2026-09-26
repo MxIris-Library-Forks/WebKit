@@ -21,7 +21,6 @@
 #include "config.h"
 #include "WebViewTest.h"
 
-#include <JavaScriptCore/JSRetainPtr.h>
 #include <WebKitWebViewInternal.h>
 #include <wtf/URL.h>
 
@@ -355,6 +354,11 @@ JSCValue* WebViewTest::runJavaScriptAndWaitUntilFinished(const char* javascript,
     webkit_web_view_evaluate_javascript(webView, javascript, -1, nullptr, nullptr, nullptr, reinterpret_cast<GAsyncReadyCallback>(runJavaScriptReadyCallback), this);
     g_main_loop_run(m_mainLoop);
     return m_javascriptResult.get();
+}
+
+JSCValue* WebViewTest::runJavaScriptAndWaitUntilFinished(CStringView javascript, GError** error, WebKitWebView* webView)
+{
+    return runJavaScriptAndWaitUntilFinished(javascript.utf8(), error, webView);
 }
 
 JSCValue* WebViewTest::runJavaScriptFromGResourceAndWaitUntilFinished(const char* resource, GError** error)

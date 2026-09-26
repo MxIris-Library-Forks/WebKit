@@ -439,7 +439,9 @@ set(LLIntSettingsExtractor_DEPENDENCIES
     WTF_CopyHeaders
     bmalloc_CopyHeaders
 )
+# Only used for local analysis; skip the normal post-link steps.
 set_property(TARGET LLIntSettingsExtractor PROPERTY SKIP_CODESIGN YES)
+set_property(TARGET LLIntSettingsExtractor PROPERTY SKIP_DSYM YES)
 WEBKIT_EXECUTABLE(LLIntSettingsExtractor)
 
 # LLIntSettingsExtractor target needs to have a direct or indirect
@@ -467,7 +469,9 @@ set(LLIntOffsetsExtractor_DEPENDENCIES
     WTF_CopyHeaders
     bmalloc_CopyHeaders
 )
+# Only used for local analysis; skip the normal post-link steps.
 set_property(TARGET LLIntOffsetsExtractor PROPERTY SKIP_CODESIGN YES)
+set_property(TARGET LLIntOffsetsExtractor PROPERTY SKIP_DSYM YES)
 WEBKIT_EXECUTABLE(LLIntOffsetsExtractor)
 
 # The build system will execute asm.rb every time LLIntOffsetsExtractor's mtime is newer than
@@ -595,6 +599,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     API/JSStringRefCF.h
     API/JSStringRefCPP.h
     API/JSStringRefPrivate.h
+    API/JSStringRefPtr.h
     API/JSTypedArray.h
     API/JSValue.h
     API/JSValueInternal.h
@@ -813,6 +818,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     heap/CellState.h
     heap/CollectionScope.h
     heap/Collector.h
+    heap/CollectorInlines.h
     heap/CollectorPhase.h
     heap/CompleteSubspace.h
     heap/CompleteSubspaceInlines.h
@@ -1276,6 +1282,7 @@ set(JavaScriptCore_PRIVATE_FRAMEWORK_HEADERS
     runtime/JSModuleRecord.h
     runtime/JSNativeStdFunction.h
     runtime/JSONAtomStringCache.h
+    runtime/JSONTransitionCache.h
     runtime/JSObject.h
     runtime/JSObjectInlines.h
     runtime/JSONObject.h

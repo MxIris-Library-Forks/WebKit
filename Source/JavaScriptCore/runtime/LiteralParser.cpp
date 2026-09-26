@@ -31,6 +31,7 @@
 #include "JSArray.h"
 #include "JSCInlines.h"
 #include "JSONAtomStringCacheInlines.h"
+#include "JSONTransitionCacheInlines.h"
 #include "Lexer.h"
 #include "ObjectConstructor.h"
 #include "SourceCharacters.h"
@@ -958,20 +959,25 @@ template<typename CharType, JSONReviverMode reviverMode>
 ALWAYS_INLINE bool LiteralParser<CharType, reviverMode>::Lexer::tryConsumeStringEqualTo(std::span<const Latin1Character> expected)
 {
     ASSERT(m_mode == StrictJSON);
-    constexpr size_t stride = SIMD::stride<uint8_t>;
-    if (sizeof(CharType) != 1 || expected.size() >= stride)
-        return false;
+    constexpr size_t stride8 = SIMD::stride<uint8_t>;
     const CharType* body = m_ptr + 1;
-    if (m_end - body < static_cast<ptrdiff_t>(stride) || *m_ptr != '"')
-        return false;
-
-    auto input = SIMD::load(std::bit_cast<const uint8_t*>(body));
-    auto quotes = SIMD::equal(input, SIMD::splat<uint8_t>('"'));
-    auto escapes = SIMD::equal(input, SIMD::splat<uint8_t>('\\'));
-    auto controls = SIMD::lessThan(input, SIMD::splat<uint8_t>(' '));
-    auto index = SIMD::findFirstNonZeroIndex(SIMD::bitOr(quotes, escapes, controls));
-    if (!index || *index != expected.size() || body[expected.size()] != '"')
-        return false;
+    if (sizeof(CharType) == 1 && expected.size() < stride8) {
+        if (m_end - body < static_cast<ptrdiff_t>(stride8) || *m_ptr != '"')
+            return false;
+        auto input = SIMD::load(std::bit_cast<const uint8_t*>(body));
+        auto quotes = SIMD::equal(input, SIMD::splat<uint8_t>('"'));
+        auto escapes = SIMD::equal(input, SIMD::splat<uint8_t>('\\'));
+        auto controls = SIMD::lessThan(input, SIMD::splat<uint8_t>(' '));
+        auto index = SIMD::findFirstNonZeroIndex(SIMD::bitOr(quotes, escapes, controls));
+        if (!index || *index != expected.size() || body[expected.size()] != '"')
+            return false;
+    } else {
+        if (m_end - body <= static_cast<ptrdiff_t>(expected.size()) || *m_ptr != '"')
+            return false;
+        const CharType* terminator = body + expected.size();
+        if (*terminator != '"' || findUnsafeStringCharacter(body, terminator, '"') != terminator)
+            return false;
+    }
     if (!WTF::equal(expected.data(), std::span { body, expected.size() }))
         return false;
     m_ptr = body + expected.size() + 1;
@@ -1021,63 +1027,66 @@ static ALWAYS_INLINE bool NODELETE isSafeStringCharacterForIdentifier(char16_t c
 }
 
 template<typename CharType, JSONReviverMode reviverMode>
+ALWAYS_INLINE const CharType* LiteralParser<CharType, reviverMode>::Lexer::findUnsafeStringCharacter(const CharType* start, const CharType* end, CharType terminator) const
+{
+    using UnsignedType = SameSizeUnsignedInteger<CharType>;
+    constexpr auto escapeMask = SIMD::splat<UnsignedType>('\\');
+    constexpr auto controlMask = SIMD::splat<UnsignedType>(' ');
+    if (m_mode == StrictJSON) {
+        ASSERT(terminator == '"');
+        constexpr auto quoteMask = SIMD::splat<UnsignedType>('"');
+        auto vectorMatch = [&](auto input) ALWAYS_INLINE_LAMBDA {
+            auto quotes = SIMD::equal(input, quoteMask);
+            auto escapes = SIMD::equal(input, escapeMask);
+            auto controls = SIMD::lessThan(input, controlMask);
+            auto mask = SIMD::bitOr(quotes, escapes, controls);
+            return SIMD::findFirstNonZeroIndex(mask);
+        };
+
+        auto scalarMatch = [&](CharType character) ALWAYS_INLINE_LAMBDA {
+            return !isSafeStringCharacter<SafeStringCharacterSet::Strict>(character, terminator);
+        };
+
+        return SIMD::find(std::span { start, end }, vectorMatch, scalarMatch);
+    }
+
+    auto quoteMask = SIMD::splat<UnsignedType>(terminator);
+    constexpr auto tabMask = SIMD::splat<UnsignedType>('\t');
+    auto vectorMatch = [&](auto input) ALWAYS_INLINE_LAMBDA {
+        auto quotes = SIMD::equal(input, quoteMask);
+        auto escapes = SIMD::equal(input, escapeMask);
+        auto controls = SIMD::lessThan(input, controlMask);
+        auto notTabs = SIMD::bitNot(SIMD::equal(input, tabMask));
+        auto controlsExceptTabs = SIMD::bitAnd(notTabs, controls);
+        auto mask = SIMD::bitOr(quotes, escapes, controlsExceptTabs);
+        return SIMD::findFirstNonZeroIndex(mask);
+    };
+
+    auto scalarMatch = [&](auto character) ALWAYS_INLINE_LAMBDA {
+        return !isSafeStringCharacter<SafeStringCharacterSet::Sloppy>(character, terminator);
+    };
+
+    return SIMD::find(std::span { start, end }, vectorMatch, scalarMatch);
+}
+
+template<typename CharType, JSONReviverMode reviverMode>
 template <JSONIdentifierHint hint>
 ALWAYS_INLINE TokenType LiteralParser<CharType, reviverMode>::Lexer::lexString(LiteralParserToken<CharType>& token, CharType terminator)
 {
     ++m_ptr;
     const CharType* runStart = m_ptr;
 
-    if (m_mode == StrictJSON) {
-        ASSERT(terminator == '"');
-        if constexpr (hint == JSONIdentifierHint::MaybeIdentifier) {
+    if constexpr (hint == JSONIdentifierHint::MaybeIdentifier) {
+        if (m_mode == StrictJSON) {
+            ASSERT(terminator == '"');
             while (m_ptr < m_end && isSafeStringCharacterForIdentifier<SafeStringCharacterSet::Strict>(*m_ptr, terminator))
                 ++m_ptr;
         } else {
-            using UnsignedType = SameSizeUnsignedInteger<CharType>;
-            constexpr auto quoteMask = SIMD::splat<UnsignedType>('"');
-            constexpr auto escapeMask = SIMD::splat<UnsignedType>('\\');
-            constexpr auto controlMask = SIMD::splat<UnsignedType>(' ');
-            auto vectorMatch = [&](auto input) ALWAYS_INLINE_LAMBDA {
-                auto quotes = SIMD::equal(input, quoteMask);
-                auto escapes = SIMD::equal(input, escapeMask);
-                auto controls = SIMD::lessThan(input, controlMask);
-                auto mask = SIMD::bitOr(quotes, escapes, controls);
-                return SIMD::findFirstNonZeroIndex(mask);
-            };
-
-            auto scalarMatch = [&](CharType character) ALWAYS_INLINE_LAMBDA {
-                return !isSafeStringCharacter<SafeStringCharacterSet::Strict>(character, terminator);
-            };
-
-            m_ptr = SIMD::find(std::span { m_ptr, m_end }, vectorMatch, scalarMatch);
-        }
-    } else {
-        if constexpr (hint == JSONIdentifierHint::MaybeIdentifier) {
             while (m_ptr < m_end && isSafeStringCharacterForIdentifier<SafeStringCharacterSet::Sloppy>(*m_ptr, terminator))
                 ++m_ptr;
-        } else {
-            using UnsignedType = SameSizeUnsignedInteger<CharType>;
-            auto quoteMask = SIMD::splat<UnsignedType>(terminator);
-            constexpr auto escapeMask = SIMD::splat<UnsignedType>('\\');
-            constexpr auto controlMask = SIMD::splat<UnsignedType>(' ');
-            constexpr auto tabMask = SIMD::splat<UnsignedType>('\t');
-            auto vectorMatch = [&](auto input) ALWAYS_INLINE_LAMBDA {
-                auto quotes = SIMD::equal(input, quoteMask);
-                auto escapes = SIMD::equal(input, escapeMask);
-                auto controls = SIMD::lessThan(input, controlMask);
-                auto notTabs = SIMD::bitNot(SIMD::equal(input, tabMask));
-                auto controlsExceptTabs = SIMD::bitAnd(notTabs, controls);
-                auto mask = SIMD::bitOr(quotes, escapes, controlsExceptTabs);
-                return SIMD::findFirstNonZeroIndex(mask);
-            };
-
-            auto scalarMatch = [&](auto character) ALWAYS_INLINE_LAMBDA {
-                return !isSafeStringCharacter<SafeStringCharacterSet::Sloppy>(character, terminator);
-            };
-
-            m_ptr = SIMD::find(std::span { m_ptr, m_end }, vectorMatch, scalarMatch);
         }
-    }
+    } else
+        m_ptr = findUnsafeStringCharacter(m_ptr, m_end, terminator);
 
     if (m_ptr < m_end && *m_ptr == terminator) [[likely]] {
         setParserTokenString<CharType>(token, runStart);
@@ -1095,13 +1104,7 @@ TokenType LiteralParser<CharType, reviverMode>::Lexer::lexStringSlow(LiteralPars
     goto slowPathBegin;
     do {
         runStart = m_ptr;
-        if (m_mode == StrictJSON) {
-            while (m_ptr < m_end && isSafeStringCharacter<SafeStringCharacterSet::Strict>(*m_ptr, terminator))
-                ++m_ptr;
-        } else {
-            while (m_ptr < m_end && isSafeStringCharacter<SafeStringCharacterSet::Sloppy>(*m_ptr, terminator))
-                ++m_ptr;
-        }
+        m_ptr = findUnsafeStringCharacter(m_ptr, m_end, terminator);
 
         if (!m_builder.isEmpty())
             m_builder.append(std::span { runStart, m_ptr });
@@ -1429,8 +1432,10 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursivelyEntry(VM& vm)
     if (!Options::useRecursiveJSONParse()) [[unlikely]]
         return parse(vm, StartParseExpression, nullptr);
     TokenType type = m_lexer.currentToken()->type;
-    if (type == TokLBrace || type == TokLBracket)
+    if (type == TokLBrace || type == TokLBracket) {
+        JSONTransitionCache::ParsingScope parsingScope(vm.jsonTransitionCache);
         return parseRecursively<ParserMode::StrictJSON>(vm, std::bit_cast<uint8_t*>(vm.softStackLimit()));
+    }
     return parsePrimitiveValue(vm);
 }
 
@@ -1589,7 +1594,7 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
     // JSON.parse will encounter the same-shaped objects repeatedly, so the next key is likely the one
     // the single existing transition adds, and it can be compared against the source directly.
     auto tryConsumeTransitionPropertyName = [&](Structure* structure) ALWAYS_INLINE_LAMBDA -> std::optional<ExistingProperty> {
-        if constexpr (parserMode == StrictJSON && sizeof(CharType) == 1) {
+        if constexpr (parserMode == StrictJSON) {
             if (Structure* transition = structure->trySingleTransition()) {
                 SUPPRESS_UNCOUNTED_LOCAL UniquedStringImpl* name = transition->transitionPropertyName();
                 if (transition->transitionKind() == TransitionKind::PropertyAddition
@@ -1634,14 +1639,48 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
                             return ExistingProperty { transition, transition->transitionOffset() };
                     }
                 } else if (!originalStructure->isDictionary()) {
+                    bool isCacheable = false;
+                    if constexpr (parserMode == StrictJSON) {
+                        auto token = m_lexer.currentToken();
+                        auto tryCachedTransition = [&]<typename KeyCharacterType>(std::span<const KeyCharacterType> key) ALWAYS_INLINE_LAMBDA -> Structure* {
+                            isCacheable = true;
+                            Structure* transition = vm.jsonTransitionCache.get(originalStructure, key);
+#if ASSERT_ENABLED
+                            if (transition) {
+                                PropertyOffset expectedOffset = 0;
+                                RefPtr<AtomStringImpl> expectedName = key.empty() ? RefPtr { emptyAtom().impl() } : AtomStringImpl::lookUp(key);
+                                ASSERT(expectedName);
+                                ASSERT(Structure::addPropertyTransitionToExistingStructure(originalStructure, expectedName.get(), 0, expectedOffset) == transition);
+                                ASSERT(expectedOffset == transition->transitionOffset());
+                            }
+#endif
+                            return transition;
+                        };
+                        Structure* transition = nullptr;
+                        if (token->type == TokString) {
+                            if (token->stringIs8Bit)
+                                transition = tryCachedTransition(token->string8());
+                            else if constexpr (sizeof(CharType) == 2)
+                                transition = tryCachedTransition(token->string16());
+                        }
+                        if (transition)
+                            return ExistingProperty { transition, transition->transitionOffset() };
+                    }
                     // This check avoids refcount churn in the common case of a cached Identifier.
                     if (SUPPRESS_UNCOUNTED_LOCAL AtomStringImpl* ident = existingIdentifier(vm, m_lexer.currentToken())) {
                         PropertyOffset offset = 0;
                         Structure* newStructure = Structure::addPropertyTransitionToExistingStructure(originalStructure, ident, 0, offset);
                         if (newStructure) [[likely]] {
-                            if constexpr (parserMode == StrictJSON)
+                            if constexpr (parserMode == StrictJSON) {
+                                if (isCacheable) {
+                                    auto token = m_lexer.currentToken();
+                                    if (sizeof(CharType) == 1 || token->stringIs8Bit)
+                                        vm.jsonTransitionCache.add(originalStructure, newStructure, token->string8());
+                                    else
+                                        vm.jsonTransitionCache.add(originalStructure, newStructure, token->string16());
+                                }
                                 return ExistingProperty { newStructure, offset };
-                            else if (newStructure->transitionPropertyName() != vm.propertyNames->underscoreProto && m_visitedUnderscoreProto.isEmpty())
+                            } else if (newStructure->transitionPropertyName() != vm.propertyNames->underscoreProto && m_visitedUnderscoreProto.isEmpty())
                                 return ExistingProperty { newStructure, offset };
                         }
                         return Identifier::fromString(vm, ident);

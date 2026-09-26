@@ -2784,6 +2784,7 @@ platform/graphics/NamedImageGeneratedImage.cpp
 platform/graphics/NativeImage.cpp
 platform/graphics/NativeImageSource.cpp
 platform/graphics/NullImageBufferBackend.cpp
+platform/graphics/ObjectSizeNegotiation.cpp
 platform/graphics/Path.cpp
 platform/graphics/PathArcLengthMapper.cpp
 platform/graphics/PathImpl.cpp
@@ -2800,6 +2801,7 @@ platform/graphics/PixelFormat.cpp
 platform/graphics/PlatformDynamicRangeLimit.cpp
 platform/graphics/PlatformTimeRanges.cpp
 platform/graphics/PlatformVideoColorSpace.cpp
+platform/graphics/Polygon4D.cpp
 platform/graphics/Region.cpp
 platform/graphics/RenderingMode.cpp
 platform/graphics/RotationDirection.cpp

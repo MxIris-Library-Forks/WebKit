@@ -1889,21 +1889,30 @@ TEST(SiteIsolation, PostMessageToIFrameWithOpaqueOrigin)
 TEST(SiteIsolation, QueryFramesStateAfterNavigating)
 {
     HTTPServer server({
-        { "/page1.html"_s, { "<iframe src='subframe1.html'></iframe><iframe src='subframe2.html'></iframe><iframe src='subframe3.html'></iframe>"_s } },
         { "/page2.html"_s, { "<iframe src='subframe4.html'></iframe>"_s } },
         { "/subframe1.html"_s, { "SubFrame1"_s } },
         { "/subframe2.html"_s, { "SubFrame2"_s } },
         { "/subframe3.html"_s, { "SubFrame3"_s } },
         { "/subframe4.html"_s, { "SubFrame4"_s } }
     }, HTTPServer::Protocol::Http);
-    RetainPtr configuration = adoptNS([WKWebViewConfiguration new]);
-    enableSiteIsolation(configuration.get());
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
-    [webView synchronouslyLoadRequest:server.request("/page1.html"_s)];
-    EXPECT_EQ(3u, [webView mainFrame].childFrames.count);
+    server.addResponse("/page1.html"_s, { makeString("<iframe src='subframe1.html'></iframe><iframe src='subframe2.html'></iframe><iframe src='http://localhost:"_s, server.port(), "/subframe3.html'></iframe>"_s) });
 
-    [webView synchronouslyLoadRequest:server.request("/page2.html"_s)];
-    EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
+    auto runTest = [&] (bool withSiteIsolation) {
+        RetainPtr configuration = adoptNS([WKWebViewConfiguration new]);
+        if (withSiteIsolation)
+            enableSiteIsolation(configuration.get());
+        RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
+        [webView synchronouslyLoadRequest:server.request("/page1.html"_s)];
+        EXPECT_EQ(3u, [webView mainFrame].childFrames.count);
+
+        [webView synchronouslyLoadRequest:server.request("/page2.html"_s)];
+        EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
+
+        [webView synchronouslyGoBack];
+        EXPECT_EQ(3u, [webView mainFrame].childFrames.count);
+    };
+    runTest(true);
+    runTest(false);
 }
 
 TEST(SiteIsolation, QueryFramesStateAfterGoingBackToCachedPageWithIframe)
@@ -1913,23 +1922,39 @@ TEST(SiteIsolation, QueryFramesStateAfterGoingBackToCachedPageWithIframe)
         { "/page2.html"_s, { ""_s } },
         { "/subframe.html"_s, { "SubFrame"_s } }
     }, HTTPServer::Protocol::Http);
-    RetainPtr configuration = adoptNS([WKWebViewConfiguration new]);
-    enableSiteIsolation(configuration.get());
-    setFeatureEnabled(configuration.get(), @"MultiProcessBackForwardCacheEnabled", true);
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
-    [webView synchronouslyLoadRequest:server.request("/page1.html"_s)];
-    EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
-    RetainPtr<WKFrameInfo> childFrame = [webView mainFrame].childFrames.firstObject.info;
-    [webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker = true"];
-    [webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker = true" inFrame:childFrame.get()];
 
-    [webView synchronouslyLoadRequest:server.request("/page2.html"_s)];
-    EXPECT_EQ(0u, [webView mainFrame].childFrames.count);
+    auto runTest = [&] (bool withSiteIsolation) {
+        RetainPtr configuration = adoptNS([WKWebViewConfiguration new]);
+        if (withSiteIsolation) {
+            enableSiteIsolation(configuration.get());
+            setFeatureEnabled(configuration.get(), @"MultiProcessBackForwardCacheEnabled", true);
+        }
+        RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
+        [webView synchronouslyLoadRequest:server.request("/page1.html"_s)];
+        EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
+        RetainPtr<WKFrameInfo> childFrame = [webView mainFrame].childFrames.firstObject.info;
+        [webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker = true"];
+        [webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker = true" inFrame:childFrame.get()];
 
-    [webView synchronouslyGoBack];
-    EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
-    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker ? true : false"] boolValue]);
-    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker ? true : false" inFrame:[webView mainFrame].childFrames.firstObject.info] boolValue]);
+        [webView synchronouslyLoadRequest:server.request("/page2.html"_s)];
+        EXPECT_EQ(0u, [webView mainFrame].childFrames.count);
+
+        [webView synchronouslyGoBack];
+        EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
+        EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker ? true : false"] boolValue]);
+        EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker ? true : false" inFrame:[webView mainFrame].childFrames.firstObject.info] boolValue]);
+
+        [webView synchronouslyGoForward];
+        EXPECT_EQ(0u, [webView mainFrame].childFrames.count);
+
+        [webView evaluateJavaScript:@"history.back()" completionHandler:nil];
+        [webView _test_waitForDidFinishNavigation];
+        EXPECT_EQ(1u, [webView mainFrame].childFrames.count);
+        EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__bfcacheMarker ? true : false"] boolValue]);
+        EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__iframeBfcacheMarker ? true : false" inFrame:[webView mainFrame].childFrames.firstObject.info] boolValue]);
+    };
+    runTest(true);
+    runTest(false);
 }
 
 TEST(SiteIsolation, NavigatingCrossOriginIframeToSameOrigin)
@@ -3096,6 +3121,33 @@ TEST(SiteIsolation, CancelOpenPanel)
     [webView mouseUpAtPoint:eventLocationInWindow];
     EXPECT_WK_STREQ([uiDelegate waitForAlert], "cancel");
 }
+
+#if PLATFORM(MAC)
+TEST(SiteIsolation, OpenPanelTranscodedImageReachesCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://b.com/subframe'></iframe>"_s } },
+        { "/subframe"_s, { "<!DOCTYPE html><input type='file' accept='image/jpeg'>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
+    [webView setUIDelegate:uiDelegate.get()];
+    [uiDelegate setRunOpenPanelWithParameters:^(WKWebView *, WKOpenPanelParameters *, WKFrameInfo *, void (^completionHandler)(NSArray<NSURL *> *)) {
+        completionHandler(@[ [NSBundle.test_resourcesBundle URLForResource:@"sunset-in-cupertino-400px" withExtension:@"gif"] ]);
+    }];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.querySelector('input').showPicker()" inFrame:childFrame.get()];
+
+    // The input only accepts JPEG, so the GIF is transcoded, and the result must reach the iframe's process.
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"document.querySelector('input').files[0]?.type ?? ''" inFrame:childFrame.get()] isEqualToString:@"image/jpeg"];
+    }));
+}
+#endif
 
 TEST(SiteIsolation, DragEvents)
 {
@@ -5912,6 +5964,111 @@ TEST(SiteIsolation, CrossSiteIframeBackForwardEntryThenMainFrameBackTraversesWit
     testCrossSiteIframeBackForwardEntryThenMainFrameBack(false);
 }
 
+TEST(SiteIsolation, NestedCrossSiteIframeBackForwardEntryThenMainFrameBackTraverses)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/nest'></iframe>"_s } },
+        { "/nest"_s, { "<iframe src='https://a.com/original'></iframe>"_s } },
+        { "/original"_s, { "<script>alert('original')</script>"_s } },
+        { "/navigated"_s, { "<script>alert('navigated')</script>"_s } },
+        { "/page2"_s, { "<script>alert('page2')</script><p>page2</p>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    // Without this, goBack resurrects the suspended page instead of rebuilding the frame tree.
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    configuration.get().processPool = processPoolWithBackForwardCacheDisabled().get();
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    EXPECT_WK_STREQ("original", [webView _test_waitForAlert]);
+
+    RetainPtr<_WKFrameTreeNode> nestedChildFrame = [webView mainFrame].childFrames.firstObject.childFrames.firstObject;
+    [webView evaluateJavaScript:@"location.href = 'https://a.com/navigated'" inFrame:[nestedChildFrame info] completionHandler:nil];
+    EXPECT_WK_STREQ("navigated", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://a.com/navigated", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[nestedChildFrame info]]);
+
+    [webView evaluateJavaScript:@"location.href = 'https://example.com/page2'" completionHandler:nil];
+    EXPECT_WK_STREQ("page2", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://example.com/page2", [webView objectByEvaluatingJavaScript:@"location.href"]);
+
+    // Poll rather than wait for an alert, so a regression fails fast instead of hanging.
+    [webView goBack];
+    RetainPtr<NSString> mainURL;
+    for (int i = 0; i < 50; i++) {
+        mainURL = [webView objectByEvaluatingJavaScript:@"location.href"];
+        if ([mainURL isEqualToString:@"https://example.com/example"])
+            break;
+        Util::runFor(0.1_s);
+    }
+    EXPECT_WK_STREQ("https://example.com/example", mainURL.get());
+
+    RetainPtr<NSString> nestedChildURL;
+    for (int i = 0; i < 50; i++) {
+        nestedChildFrame = [webView mainFrame].childFrames.firstObject.childFrames.firstObject;
+        nestedChildURL = [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[nestedChildFrame info]];
+        if ([nestedChildURL isEqualToString:@"https://a.com/navigated"])
+            break;
+        Util::runFor(0.1_s);
+    }
+    EXPECT_WK_STREQ("https://a.com/navigated", nestedChildURL.get());
+}
+
+static void testNestedIframeBackForwardAfterSessionRestore(NSString *navigationURL, SessionRestoreMethod restoreMethod)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/nest'></iframe>"_s } },
+        { "/nest"_s, { "<iframe src='https://a.com/source'></iframe>"_s } },
+        { "/source"_s, { "<script> alert('source'); </script>"_s } },
+        { "/destination"_s, { "<script> alert('destination'); </script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "source");
+
+    RetainPtr<_WKFrameTreeNode> nestedChildFrame = [webView mainFrame].childFrames.firstObject.childFrames.firstObject;
+    [webView evaluateJavaScript:[NSString stringWithFormat:@"location.href = '%@'", navigationURL] inFrame:[nestedChildFrame info] completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "destination");
+
+    switch (restoreMethod) {
+    case SessionRestoreMethod::None:
+        break;
+    case SessionRestoreMethod::InPlace:
+        [webView _restoreSessionState:[webView _sessionState] andNavigate:NO];
+        break;
+    case SessionRestoreMethod::NewWebView: {
+        RetainPtr sessionState = [webView _sessionState];
+        auto [newWebView, newNavigationDelegate] = siteIsolatedViewAndDelegate(server);
+        [newWebView _restoreSessionState:sessionState.get() andNavigate:YES];
+        EXPECT_WK_STREQ([newWebView _test_waitForAlert], "destination");
+        webView = WTF::move(newWebView);
+        navigationDelegate = WTF::move(newNavigationDelegate);
+        break;
+    }
+    }
+
+    nestedChildFrame = [webView mainFrame].childFrames.firstObject.childFrames.firstObject;
+
+    [webView goBack];
+    EXPECT_WK_STREQ("source", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://a.com/source", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[nestedChildFrame info]]);
+
+    [webView goForward];
+    EXPECT_WK_STREQ("destination", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ(navigationURL, [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[nestedChildFrame info]]);
+
+    [webView goBack];
+    EXPECT_WK_STREQ("source", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://a.com/source", [webView objectByEvaluatingJavaScript:@"location.href" inFrame:[nestedChildFrame info]]);
+}
+
+TEST(SiteIsolation, NestedIframeCrossOriginBackForwardAfterSessionRestore)
+{
+    testNestedIframeBackForwardAfterSessionRestore(@"https://apple.com/destination", SessionRestoreMethod::InPlace);
+}
+
+TEST(SiteIsolation, NestedIframeCrossOriginBackForwardAfterSessionRestoreToNewWebView)
+{
+    testNestedIframeBackForwardAfterSessionRestore(@"https://apple.com/destination", SessionRestoreMethod::NewWebView);
+}
+
 TEST(SiteIsolation, CancelledChildAsyncBackForwardNotifiesParent)
 {
     HTTPServer server({
@@ -6366,6 +6523,40 @@ TEST(SiteIsolation, GoBackToCrossSiteIframeAfterPersistedSessionRestore)
     [newWebView goBack];
     EXPECT_WK_STREQ("source", [newWebView _test_waitForAlert]);
     EXPECT_WK_STREQ("https://webkit.org/source", [newWebView objectByEvaluatingJavaScript:@"location.href" inFrame:childFrame.get()]);
+
+    [newWebView goForward];
+    EXPECT_WK_STREQ("destination", [newWebView _test_waitForAlert]);
+}
+
+TEST(SiteIsolation, GoBackToNestedCrossSiteIframeAfterPersistedSessionRestore)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/nest'></iframe>"_s } },
+        { "/nest"_s, { "<iframe src='https://a.com/source'></iframe>"_s } },
+        { "/source"_s, { "<script> alert('source'); </script>"_s } },
+        { "/destination"_s, { "<script> alert('destination'); </script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "source");
+
+    RetainPtr<_WKFrameTreeNode> nestedChildFrame = [webView mainFrame].childFrames.firstObject.childFrames.firstObject;
+    [webView evaluateJavaScript:@"location.href = 'https://apple.com/destination'" inFrame:[nestedChildFrame info] completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "destination");
+
+    RetainPtr sessionState = [webView _sessionState];
+    RetainPtr persistedSessionState = adoptNS([[_WKSessionState alloc] initWithData:[sessionState data]]);
+
+    auto [newWebView, newNavigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [newWebView _restoreSessionState:persistedSessionState.get() andNavigate:YES];
+    EXPECT_WK_STREQ([newWebView _test_waitForAlert], "destination");
+
+    nestedChildFrame = [newWebView mainFrame].childFrames.firstObject.childFrames.firstObject;
+
+    [newWebView goBack];
+    EXPECT_WK_STREQ("source", [newWebView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://a.com/source", [newWebView objectByEvaluatingJavaScript:@"location.href" inFrame:[nestedChildFrame info]]);
 
     [newWebView goForward];
     EXPECT_WK_STREQ("destination", [newWebView _test_waitForAlert]);
@@ -10840,6 +11031,64 @@ TEST(SiteIsolation, HitTestingInContentWorld)
     runTest(false);
 }
 
+TEST(SiteIsolation, HitTestingInScrolledCrossOriginIframe)
+{
+    auto runTest = [] (int iframeTop) {
+        HTTPServer server({
+            { "/example"_s, { makeString(
+                "<body style='margin: 0; height: 2000px'><iframe style='position: absolute; left: 10px; top: "_s, iframeTop,
+                "px; width: 200px; height: 200px; border: none' src='https://webkit.org/iframe'></iframe></body>"_s) } },
+            { "/iframe"_s, { "<body style='margin: 0'>"
+                "<div id=first style='height: 200px'></div>"
+                "<div id=second style='height: 200px'></div>"
+                "<div id=third style='height: 200px'></div>"
+                "</body>"_s } },
+        }, HTTPServer::Protocol::HttpsProxy);
+
+        RetainPtr configuration = server.httpsProxyConfiguration();
+        enableSiteIsolation(configuration.get());
+
+        RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 400, 400) configuration:configuration.get()]);
+        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+        [webView _test_waitForDidFinishNavigationWhileIgnoringSSLErrors];
+
+        auto hitElementID = [&] {
+            __block bool done { false };
+            __block RetainPtr<_WKJSHandle> node;
+            [webView _hitTestAtPoint:CGPointMake(110, iframeTop + 100) inFrameCoordinateSpace:nil inContentWorld:WKContentWorld.pageWorld completionHandler:^(_WKJSHandle *result, NSError *) {
+                node = result;
+                done = true;
+            }];
+            Util::run(&done);
+            if (!node)
+                return RetainPtr<NSString> { @"(none)" };
+            return RetainPtr<NSString> { [webView objectByCallingAsyncFunction:@"return n.id" withArguments:@{ @"n" : node.get() } inFrame:node.get().frame inContentWorld:WKContentWorld.pageWorld] };
+        };
+
+        RetainPtr childFrame = [webView firstChildFrame];
+        EXPECT_TRUE(Util::waitFor([&] {
+            return [hitElementID() isEqualToString:@"first"];
+        })) << "iframeTop=" << iframeTop;
+
+        // Ensure that hit testing in scrolled cross-origin frames still works even after enabling FrameViewportInfo update throttling.
+        for (auto [scrollY, expectedID] : { std::pair { 200, @"second" }, std::pair { 400, @"third" } }) {
+            RetainPtr script = [NSString stringWithFormat:@"window.scrollTo(0, %d)", scrollY];
+            [webView objectByEvaluatingJavaScript:script.get() inFrame:childFrame.get()];
+            EXPECT_TRUE(Util::waitFor([&] {
+                return [[webView objectByEvaluatingJavaScript:@"window.scrollY" inFrame:childFrame.get()] intValue] == scrollY;
+            }));
+            [webView waitForNextPresentationUpdate];
+
+            EXPECT_TRUE(Util::waitFor([&] {
+                return [hitElementID() isEqualToString:expectedID];
+            })) << "iframeTop=" << iframeTop << " scrollY=" << scrollY;
+        }
+    };
+
+    for (int iframeTop : { 20, 600 })
+        runTest(iframeTop);
+}
+
 TEST(SiteIsolation, WKFrameInfo_isSameFrame)
 {
     HTTPServer server({
@@ -11053,6 +11302,68 @@ TEST(SiteIsolation, DragImageLocation)
     [simulator runFrom:CGPointMake(300, 300) to:CGPointMake(350, 350)];
 
     EXPECT_EQ([simulator initialDragImageLocationInView], NSMakePoint(252, 252));
+}
+
+static NSPoint selectionDragImageLocationInSubframe(bool siteIsolationEnabled, unsigned mainFrameScrollY, unsigned subframeScrollY)
+{
+    // The iframe and the editable text are offset by the scroll amounts so that they appear at the same place in the view after scrolling.
+    auto mainframeHTML = makeString("<body style='margin: 0; height: 3000px;'><iframe width='300' height='300' style='position: absolute; top: "_s, 200 + mainFrameScrollY, "px; left: 200px; border: 2px solid red;' src='https://domain2.com/subframe'></iframe></body>"_s);
+    auto subframeHTML = makeString("<body style='margin: 0; height: 3000px;'>"
+        "<div id='editor' contenteditable style='position: absolute; top: "_s, 50 + subframeScrollY, "px; left: 50px; font-size: 24px; line-height: 30px;'>Hello world</div>"
+        "</body>"_s);
+
+    HTTPServer server({
+        { "/mainframe"_s, { mainframeHTML } },
+        { "/subframe"_s, { subframeHTML } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    if (siteIsolationEnabled)
+        enableSiteIsolation(configuration.get());
+    RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 600, 600) configuration:configuration.get()]);
+    RetainPtr webView = [simulator webView];
+    [webView setNavigationDelegate:navigationDelegate.get()];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"scrollTo(0, %u); true", mainFrameScrollY]];
+    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"scrollTo(0, %u); getSelection().selectAllChildren(document.getElementById('editor')); true", subframeScrollY] inFrame:[webView firstChildFrame]];
+    [webView waitForNextPresentationUpdate];
+
+    // The iframe's content box starts at (202, 202), so "Hello world" starts at (252, 252) in the view.
+    [simulator runFrom:CGPointMake(280, 267) to:CGPointMake(380, 367)];
+    return [simulator initialDragImageLocationInView];
+}
+
+static void testSelectionDragImageLocation(unsigned mainFrameScrollY, unsigned subframeScrollY)
+{
+    auto expected = selectionDragImageLocationInSubframe(false, mainFrameScrollY, subframeScrollY);
+    auto actual = selectionDragImageLocationInSubframe(true, mainFrameScrollY, subframeScrollY);
+    EXPECT_GT(expected.x, 250);
+    EXPECT_GT(expected.y, 250);
+    EXPECT_EQ(expected, actual);
+}
+
+TEST(SiteIsolation, SelectionDragImageLocation)
+{
+    testSelectionDragImageLocation(0, 0);
+}
+
+TEST(SiteIsolation, SelectionDragImageLocationInScrolledMainFrame)
+{
+    testSelectionDragImageLocation(500, 0);
+}
+
+TEST(SiteIsolation, SelectionDragImageLocationInScrolledSubframe)
+{
+    testSelectionDragImageLocation(0, 500);
+}
+
+TEST(SiteIsolation, SelectionDragImageLocationInScrolledMainFrameAndSubframe)
+{
+    testSelectionDragImageLocation(500, 500);
 }
 
 TEST(SiteIsolation, MouseClickAfterIncompleteDragging)

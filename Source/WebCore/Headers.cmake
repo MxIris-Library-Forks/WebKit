@@ -2103,6 +2103,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/PrintContext.h
     page/ProcessWarming.h
     page/QuirkBehaviors.h
+    page/QuirkSelectors.h
     page/QuirkTable.h
     page/Quirks.h
     page/QuirksData.h
@@ -2500,6 +2501,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/AnimationFrameRate.h
     platform/graphics/AnnexBUtilities.h
     platform/graphics/ArrayPixelBuffer.h
+    platform/graphics/AspectRatioFit.h
     platform/graphics/AudioTrackPrivate.h
     platform/graphics/AudioTrackPrivateClient.h
     platform/graphics/AudioVideoRenderer.h
@@ -2524,6 +2526,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ColorTypes.h
     platform/graphics/ColorUtilities.h
     platform/graphics/ComplexTextController.h
+    platform/graphics/ConcreteObjectSize.h
     platform/graphics/ContentTypeUtilities.h
     platform/graphics/ContentsFormat.h
     platform/graphics/CopyImageOptions.h
@@ -2684,8 +2687,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/Model.h
     platform/graphics/ModelContext.h
     platform/graphics/NativeImage.h
+    platform/graphics/NaturalDimensions.h
     platform/graphics/NullGraphicsContext.h
     platform/graphics/NullImageBufferBackend.h
+    platform/graphics/ObjectSizeNegotiation.h
     platform/graphics/Path.h
     platform/graphics/PathElement.h
     platform/graphics/PathImpl.h
@@ -2720,6 +2725,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/PlatformVideoPresentationInterface.h
     platform/graphics/PlatformVideoTrackConfiguration.h
     platform/graphics/PlatformVideoTransferCharacteristics.h
+    platform/graphics/Polygon4D.h
     platform/graphics/Region.h
     platform/graphics/RenderingMode.h
     platform/graphics/RenderingResource.h

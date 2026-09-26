@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <WebCore/DoublePoint.h>
 #include <WebCore/HTMLFormControlElement.h>
 #include <WebCore/HTMLOptionElement.h>
 #include <WebCore/PopupMenuClient.h>
@@ -41,6 +42,7 @@
 namespace WebCore {
 
 class HTMLOptionsCollection;
+class MouseEvent;
 class SelectPopoverElement;
 class ShadowRoot;
 
@@ -63,7 +65,7 @@ public:
     ~HTMLSelectElement();
 
     enum class ExcludeOptGroup : bool { No, Yes };
-    enum class PickerScrollMode : uint8_t { Nearest, AlignTop, AlignBottom };
+    enum class OptionScrollMode : uint8_t { Nearest, AlignTop, AlignBottom };
     static HTMLSelectElement* NODELETE findOwnerSelect(ContainerNode*, ExcludeOptGroup);
 
     WEBCORE_EXPORT int selectedIndex() const;
@@ -203,20 +205,27 @@ public:
     void NODELETE registerSelectedContentElement();
     void NODELETE unregisterSelectedContentElement();
 
-    WEBCORE_EXPORT bool usesBaseAppearancePicker() const;
+    bool usesBaseAppearancePicker() const;
+    WEBCORE_EXPORT bool optionsAreRenderedWithBaseAppearance() const;
+    Element* NODELETE optionContainer() const;
     SelectPopoverElement* NODELETE pickerPopoverElement() const;
     void openPickerForUserInteraction(std::optional<bool> focusVisible = std::nullopt);
     void hidePickerPopoverElement();
-    void queuePickerCloseForAppearanceChange();
+    void clearPickerOpeningMouseLocation() { m_pickerOpeningMouseLocation = { }; }
+    bool consumePickerOpeningPress(const MouseEvent&);
+    enum class PickerCloseReason : bool { Appearance, PickerSupport };
+    void queuePickerClose(PickerCloseReason);
 
     struct NavigationKeyIdentifiers {
         ASCIILiteral next;
         ASCIILiteral previous;
         WritingMode writingMode { };
     };
-    NavigationKeyIdentifiers pickerNavigationKeyIdentifiers() const;
+    NavigationKeyIdentifiers optionNavigationKeyIdentifiers() const;
     int computeNavigationIndex(const String& keyIdentifier, int currentListIndex, NavigationKeyIdentifiers) const;
-    void focusOptionAtIndex(int listIndex, std::optional<bool> focusVisible = std::nullopt, PickerScrollMode = PickerScrollMode::Nearest);
+    bool handleNavigationKeydown(KeyboardEvent&, int currentListIndex);
+    bool handleTypeAheadKeypress(KeyboardEvent&);
+    void focusOptionAtIndex(int listIndex, std::optional<bool> focusVisible = std::nullopt, OptionScrollMode = OptionScrollMode::Nearest);
     int typeAheadMatchIndex(KeyboardEvent&);
 
 protected:
@@ -284,6 +293,10 @@ private:
     int lastSelectedListIndex() const;
     void updateSelectedState(int listIndex, bool multi, bool shift);
     void menuListDefaultEventHandler(Event&);
+    void baseAppearanceListBoxDefaultEventHandler(Event&);
+    void closePickerIfNoLongerSupported(bool hadOpenPicker);
+    void optionDeselectedByUser(HTMLOptionElement&);
+    bool handleImplicitSubmissionKeypress(KeyboardEvent&);
     bool platformHandleKeydownEvent(KeyboardEvent*);
     void listBoxDefaultEventHandler(Event&);
     void setOptionsChangedOnRenderer();
@@ -340,6 +353,7 @@ private:
     RefPtr<PopupMenu> m_popup;
 #endif
     std::optional<FloatPoint> m_lastPopupLocationForTesting;
+    std::optional<DoublePoint> m_pickerOpeningMouseLocation;
     bool m_popupIsVisible { false };
     bool m_wasBaseAppearance { false };
     bool m_buttonTextNeedsUpdate { false };

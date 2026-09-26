@@ -3994,7 +3994,7 @@ void WebPageProxy::restoreSelectionInFocusedEditableElement()
 {
     if (!hasRunningProcess())
         return;
-    send(Messages::WebPage::RestoreSelectionInFocusedEditableElement());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::RestoreSelectionInFocusedEditableElement());
 }
 
 void WebPageProxy::validateCommand(const String& commandName, CompletionHandler<void(bool, int32_t)>&& callbackFunction)
@@ -4002,7 +4002,7 @@ void WebPageProxy::validateCommand(const String& commandName, CompletionHandler<
     if (!hasRunningProcess())
         return callbackFunction(false, 0);
 
-    sendWithAsyncReply(Messages::WebPage::ValidateCommand(commandName), WTF::move(callbackFunction));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::ValidateCommand(commandName), WTF::move(callbackFunction));
 }
 
 void WebPageProxy::increaseListLevel()
@@ -4010,7 +4010,7 @@ void WebPageProxy::increaseListLevel()
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::IncreaseListLevel());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::IncreaseListLevel());
 }
 
 void WebPageProxy::decreaseListLevel()
@@ -4018,7 +4018,7 @@ void WebPageProxy::decreaseListLevel()
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::DecreaseListLevel());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::DecreaseListLevel());
 }
 
 void WebPageProxy::changeListType()
@@ -4026,7 +4026,7 @@ void WebPageProxy::changeListType()
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::ChangeListType());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::ChangeListType());
 }
 
 void WebPageProxy::setBaseWritingDirection(WritingDirection direction)
@@ -4034,7 +4034,7 @@ void WebPageProxy::setBaseWritingDirection(WritingDirection direction)
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::SetBaseWritingDirection(direction));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::SetBaseWritingDirection(direction));
 }
 
 const EditorState& WebPageProxy::editorState() const
@@ -4201,7 +4201,7 @@ void WebPageProxy::requestFontAttributesAtSelectionStart(CompletionHandler<void(
         return;
     }
 
-    sendWithAsyncReply(Messages::WebPage::RequestFontAttributesAtSelectionStart(), [this, protectedThis = Ref { *this }, callback = WTF::move(callback)] (const WebCore::FontAttributes& attributes) mutable {
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::RequestFontAttributesAtSelectionStart(), [this, protectedThis = Ref { *this }, callback = WTF::move(callback)] (const WebCore::FontAttributes& attributes) mutable {
         internals().cachedFontAttributesAtSelectionStart = attributes;
         callback(attributes);
     });
@@ -5777,7 +5777,7 @@ void WebPageProxy::centerSelectionInVisibleArea()
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::CenterSelectionInVisibleArea());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::CenterSelectionInVisibleArea());
 }
 
 #if ENABLE(APP_BOUND_DOMAINS)
@@ -8004,7 +8004,7 @@ void WebPageProxy::getContentsAsMHTMLData(CompletionHandler<void(API::Data*)>&& 
 
 void WebPageProxy::getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&& callback)
 {
-    sendWithAsyncReply(Messages::WebPage::GetSelectionOrContentsAsString(), WTF::move(callback));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::GetSelectionOrContentsAsString(), WTF::move(callback));
 }
 
 void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::MarkupExclusionRule>& markupExclusionRules, const String& directory, const String& suggestedMainResourceName, CompletionHandler<void(std::expected<void, WebCore::ArchiveError>)>&& completionHandler)
@@ -13485,7 +13485,7 @@ void WebPageProxy::didChooseFilesForOpenPanelWithDisplayStringAndIcon(const Vect
 }
 #endif
 
-bool WebPageProxy::didChooseFilesForOpenPanelWithImageTranscoding(const Vector<String>& fileURLs, const Vector<String>& allowedMIMETypes)
+bool WebPageProxy::didChooseFilesForOpenPanelWithImageTranscoding(WebProcessProxy& process, const Vector<String>& fileURLs, const Vector<String>& allowedMIMETypes)
 {
 #if PLATFORM(MAC)
     auto transcodingMIMEType = WebCore::MIMETypeRegistry::preferredImageMIMETypeForEncoding(allowedMIMETypes, { });
@@ -13506,24 +13506,24 @@ bool WebPageProxy::didChooseFilesForOpenPanelWithImageTranscoding(const Vector<S
     auto transcodingUTI = WebCore::UTIFromMIMEType(transcodingMIMEType);
     auto transcodingExtension = WebCore::MIMETypeRegistry::preferredExtensionForMIMEType(transcodingMIMEType);
 
-    sharedImageTranscodingQueueSingleton().dispatch([this, protectedThis = Ref { *this }, fileURLs = crossThreadCopy(fileURLs), transcodingURLs = crossThreadCopy(WTF::move(transcodingURLs)), transcodingUTI = WTF::move(transcodingUTI).isolatedCopy(), transcodingExtension = WTF::move(transcodingExtension).isolatedCopy()]() mutable {
+    sharedImageTranscodingQueueSingleton().dispatch([this, protectedThis = Ref { *this }, process = Ref { process }, fileURLs = crossThreadCopy(fileURLs), transcodingURLs = crossThreadCopy(WTF::move(transcodingURLs)), transcodingUTI = WTF::move(transcodingUTI).isolatedCopy(), transcodingExtension = WTF::move(transcodingExtension).isolatedCopy()]() mutable {
         ASSERT(!RunLoop::isMain());
 
         auto transcodedURLs = transcodeImages(transcodingURLs, transcodingUTI, transcodingExtension);
         ASSERT(transcodingURLs.size() == transcodedURLs.size());
 
-        RunLoop::mainSingleton().dispatch([this, protectedThis = Ref { *this }, fileURLs = crossThreadCopy(WTF::move(fileURLs)), transcodedURLs = crossThreadCopy(WTF::move(transcodedURLs))]() {
-            auto sendFilesToWebProcess = [this, protectedThis = Ref { *this }, fileURLs, transcodedURLs] {
+        RunLoop::mainSingleton().dispatch([this, protectedThis = Ref { *this }, process = WTF::move(process), fileURLs = crossThreadCopy(WTF::move(fileURLs)), transcodedURLs = crossThreadCopy(WTF::move(transcodedURLs))]() {
+            auto sendFilesToWebProcess = [this, protectedThis = Ref { *this }, process, fileURLs, transcodedURLs] {
 #if ENABLE(SANDBOX_EXTENSIONS)
                 Vector<String> sandboxExtensionFiles;
                 for (size_t i = 0, size = fileURLs.size(); i < size; ++i)
                     sandboxExtensionFiles.append(!transcodedURLs[i].isNull() ? transcodedURLs[i] : fileURLs[i]);
                 for (auto& file : sandboxExtensionFiles)
-                    protect(legacyMainFrameProcess())->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(file));
+                    process->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(file));
                 auto sandboxExtensionHandles = SandboxExtension::createReadOnlyHandlesForFiles("WebPageProxy::didChooseFilesForOpenPanel"_s, sandboxExtensionFiles);
-                send(Messages::WebPage::ExtendSandboxForFilesFromOpenPanel(WTF::move(sandboxExtensionHandles)));
+                process->send(Messages::WebPage::ExtendSandboxForFilesFromOpenPanel(WTF::move(sandboxExtensionHandles)), webPageIDInProcess(process.get()));
 #endif
-                send(Messages::WebPage::DidChooseFilesForOpenPanel(fileURLs, transcodedURLs));
+                process->send(Messages::WebPage::DidChooseFilesForOpenPanel(fileURLs, transcodedURLs), webPageIDInProcess(process.get()));
             };
             auto allowedTranscodedURLs = transcodedURLs;
             allowedTranscodedURLs.removeAllMatching([](auto& url) {
@@ -13533,12 +13533,13 @@ bool WebPageProxy::didChooseFilesForOpenPanelWithImageTranscoding(const Vector<S
                 sendFilesToWebProcess();
                 return;
             }
-            protect(protect(websiteDataStore())->networkProcess())->sendWithAsyncReply(Messages::NetworkProcess::AllowFilesAccessFromWebProcess(legacyMainFrameProcess().coreProcessIdentifier(), allowedTranscodedURLs), WTF::move(sendFilesToWebProcess));
+            protect(protect(websiteDataStore())->networkProcess())->sendWithAsyncReply(Messages::NetworkProcess::AllowFilesAccessFromWebProcess(process->coreProcessIdentifier(), allowedTranscodedURLs), WTF::move(sendFilesToWebProcess));
         });
     });
 
     return true;
 #else
+    UNUSED_PARAM(process);
     UNUSED_PARAM(fileURLs);
     UNUSED_PARAM(allowedMIMETypes);
     return false;
@@ -13600,7 +13601,7 @@ void WebPageProxy::didChooseFilesForOpenPanel(const Vector<String>& fileURLs, co
         if (!protectedThis)
             return;
         if (RefPtr process = openPanelResultListener->process()) {
-            if (!protectedThis->didChooseFilesForOpenPanelWithImageTranscoding(fileURLs, allowedMIMETypes)) {
+            if (!protectedThis->didChooseFilesForOpenPanelWithImageTranscoding(*process, fileURLs, allowedMIMETypes)) {
                 for (auto& fileURL : fileURLs)
                     process->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(fileURL));
 #if ENABLE(SANDBOX_EXTENSIONS)
@@ -13633,7 +13634,7 @@ void WebPageProxy::didCancelForOpenPanel()
 
 void WebPageProxy::advanceToNextMisspelling(bool startBeforeSelection)
 {
-    send(Messages::WebPage::AdvanceToNextMisspelling(startBeforeSelection));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::AdvanceToNextMisspelling(startBeforeSelection));
 }
 
 void WebPageProxy::changeSpellingToWord(const String& word)
@@ -13641,7 +13642,7 @@ void WebPageProxy::changeSpellingToWord(const String& word)
     if (word.isEmpty())
         return;
 
-    send(Messages::WebPage::ChangeSpellingToWord(word));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::ChangeSpellingToWord(word));
 }
 
 void WebPageProxy::registerEditCommand(Ref<WebEditCommandProxy>&& commandProxy, UndoOrRedo undoOrRedo)
@@ -14215,6 +14216,8 @@ void WebPageProxy::focusedFrameChanged(IPC::Connection& connection, std::optiona
     if (frame)
         MESSAGE_CHECK_BASE(frame->page() == this, connection);
     m_focusedFrame = WTF::move(frame);
+    // The cached attributes came from the previously focused frame, which may be in another process.
+    internals().cachedFontAttributesAtSelectionStart.reset();
     broadcastFocusedFrameToOtherProcesses(connection, WTF::move(frameID));
 }
 
@@ -16782,7 +16785,7 @@ void WebPageProxy::recordAutocorrectionResponse(AutocorrectionResponse response,
 void WebPageProxy::handleAlternativeTextUIResult(const String& result)
 {
     if (!isClosed())
-        send(Messages::WebPage::HandleAlternativeTextUIResult(result));
+        sendToFocusedOrMainFrameProcess(Messages::WebPage::HandleAlternativeTextUIResult(result));
 }
 
 void WebPageProxy::setFocusedElementInputType(InputType inputType)
@@ -16926,7 +16929,7 @@ void WebPageProxy::changeFontAttributes(WebCore::FontAttributeChanges&& changes)
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::ChangeFontAttributes(WTF::move(changes)));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::ChangeFontAttributes(WTF::move(changes)));
 }
 
 void WebPageProxy::changeFont(WebCore::FontChanges&& changes)
@@ -16934,7 +16937,7 @@ void WebPageProxy::changeFont(WebCore::FontChanges&& changes)
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::ChangeFont(WTF::move(changes)));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::ChangeFont(WTF::move(changes)));
 }
 
 // FIXME: Move these functions to WebPageProxyCocoa.mm.
@@ -17542,7 +17545,9 @@ void WebPageProxy::didPerformImmediateActionHitTest(IPC::Connection& connection,
             performImmediateActionHitTestAtLocation(result.remoteUserInputEventData->targetFrameID, FloatPoint(result.remoteUserInputEventData->transformedPoint));
             return;
         }
-        if (auto parentFrameID = result.frameInfo->parentFrameID) {
+        RefPtr frame = WebFrameProxy::webFrame(result.frameInfo->frameID);
+        RefPtr parentFrame = frame ? frame->parentFrame() : nullptr;
+        if (auto parentFrameID = parentFrame ? std::optional(parentFrame->frameID()) : std::nullopt) {
             sendWithAsyncReplyToProcessContainingFrame(parentFrameID, Messages::WebPage::RemoteDictionaryPopupInfoToRootView(result.frameInfo->frameID, result.dictionaryPopupInfo), [protectedThis = Ref { *this }, userData, result = WTF::move(result), contentPreventsDefault] (IPC::Connection* connection, WebCore::DictionaryPopupInfo popupInfo) mutable {
                 result.dictionaryPopupInfo = popupInfo;
                 if (!connection)
@@ -19776,15 +19781,22 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSel
 
 #define INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(message) \
     template void WebPageProxy::sendToFocusedOrMainFrameProcess<Messages::message>(Messages::message&&, OptionSet<IPC::SendOption>)
+#if PLATFORM(COCOA)
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::CancelAutoscroll);
+#endif
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ReplaceSelectedText);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::SelectWordBackward);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::StoreSelectionForAccessibility);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GenerateSyntheticEditingCommand);
 #endif
 #undef INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS
 
 #define INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(message) \
     template std::optional<IPC::AsyncReplyID> WebPageProxy::sendWithAsyncReplyToFocusedOrMainFrameProcess<Messages::message, Messages::message::Reply>(Messages::message&&, Messages::message::Reply&&, OptionSet<IPC::SendOption>)
+#if PLATFORM(COCOA)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::StartAutoscrollAtPosition);
+#endif
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::BeginSelectionInDirection);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ExtendSelection);
@@ -19796,6 +19808,9 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::Upda
 #if ENABLE(REVEAL)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::RequestRVItemInCurrentSelectedRange);
 #endif
+#endif
+#if PLATFORM(MAC)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::AttributedSubstringForCharacterRangeAsync);
 #endif
 #undef INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS
 
@@ -19811,10 +19826,10 @@ INSTANTIATE_SEND_SYNC_TO_PROCESS_CONTAINING_FRAME(WebPage::SyncApplyAutocorrecti
 void WebPageProxy::focusRemoteFrame(IPC::Connection& connection, WebCore::FrameIdentifier frameID, std::optional<WebCore::UserGestureTokenIdentifier> userGestureTokenIdentifier)
 {
     RefPtr destinationFrame = WebFrameProxy::webFrame(frameID);
-    if (!destinationFrame || !destinationFrame->isMainFrame())
+    if (!destinationFrame || !destinationFrame->isMainFrame() || !destinationFrame->page())
         return;
-
-    ASSERT(destinationFrame->page() == this);
+    // Sent on the WebPage mirroring the frame's page, so an opener's message arrives here too.
+    MESSAGE_CHECK_BASE(destinationFrame->page() == this, connection);
 
     if (userGestureTokenIdentifier) {
         if (RefPtr userInitiatedAction = WebProcessProxy::fromConnection(connection)->userInitiatedActivity(userGestureTokenIdentifier)) {
@@ -19828,10 +19843,30 @@ void WebPageProxy::focusRemoteFrame(IPC::Connection& connection, WebCore::FrameI
     setFocus(true);
 }
 
-void WebPageProxy::postMessageToRemote(WebCore::FrameIdentifier source, IPC::Untrusted<WebCore::SecurityOriginData>&& untrustedSourceOrigin, WebCore::FrameIdentifier target, IPC::Untrusted<std::optional<WebCore::SecurityOriginData>>&& untrustedTargetOrigin, const WebCore::MessageWithMessagePorts& message, std::optional<WebCore::UserGestureTokenData>&& userGestureToken)
+void WebPageProxy::postMessageToRemote(IPC::Connection& connection, WebCore::FrameIdentifier source, IPC::Untrusted<WebCore::SecurityOriginData>&& untrustedSourceOrigin, WebCore::FrameIdentifier target, IPC::Untrusted<std::optional<WebCore::SecurityOriginData>>&& untrustedTargetOrigin, const WebCore::MessageWithMessagePorts& message, std::optional<WebCore::UserGestureTokenData>&& userGestureToken)
 {
-    auto sourceOrigin = WTF::move(untrustedSourceOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::NeedsReview);
-    auto targetOrigin = WTF::move(untrustedTargetOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::NeedsReview);
+    auto targetOrigin = WTF::move(untrustedTargetOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::RequestTarget);
+
+    // Sent on the WebPage mirroring the target frame's page, so an opener's message arrives here too.
+    // Only the source frame may belong to another page.
+    RefPtr sourceFrame = WebFrameProxy::webFrame(source);
+    RefPtr targetFrame = WebFrameProxy::webFrame(target);
+    if (!sourceFrame || !targetFrame || !targetFrame->page())
+        return;
+    MESSAGE_CHECK_BASE(targetFrame->page() == this, connection);
+
+    if (&sourceFrame->process() != WebProcessProxy::fromConnection(connection).ptr())
+        return;
+
+    // Opaque is allowed since a CSP sandbox header makes a document opaque without the UI process knowing.
+    auto sourceOrigin = WTF::move(untrustedSourceOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::ValidatedElsewhere);
+    auto expectedSourceOrigin = sourceFrame->documentSecurityOriginData();
+    if (!sourceOrigin.isOpaque() && sourceOrigin != expectedSourceOrigin) {
+        // FIXME: A frame's process never learns of sandbox attribute changes made by a cross-process parent,
+        // so it can commit a real origin where the UI process expects an opaque one.
+        MESSAGE_CHECK_BASE(expectedSourceOrigin.isOpaque(), connection);
+        return;
+    }
 
     // FIXME: This message carries no blob URLs, so unlike the MessagePort, BroadcastChannel and service worker paths
     // the network process takes no blob URL handles on the message's blobs. If the source frame releases them before
@@ -20144,11 +20179,10 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
     // Frame processes need to be fetched before child frames are removed.
     auto iframeProcesses = activeRemoteFrameProcesses();
 
-    // Children are stored in the cache entry; if restore is implemented they
-    // would be reattached at restore time. Until then they are released when
-    // the entry is discarded.
-    if (protect(preferences())->siteIsolationEnabled() && protect(preferences())->multiProcessBackForwardCacheEnabled())
-        entry->setCachedChildren(mainFrame->takeChildFrames());
+    // WebCore detaches the cached page's subframes from the main frame's FrameTree, so do the same here.
+    // They are stored in the cache entry, reattached in didCommitLoadForFrame when the page is restored,
+    // and released when the entry is discarded.
+    entry->setCachedChildren(mainFrame->takeChildFrames());
 
     if (iframeProcesses.isEmpty())
         return completionHandler(true);
@@ -20200,6 +20234,12 @@ void WebPageProxy::didTakeBackForwardItemForRestoration(BackForwardItemIdentifie
         // chain). They must never reach this handler with their SPP intact.
         ASSERT_NOT_REACHED();
         return;
+    }
+
+    Ref entry = *item->backForwardCacheEntry();
+    if (entry->hasCachedChildren()) {
+        auto [cachedChildren, _] = entry->takeForRestoration();
+        internals().pendingBackForwardCachedChildren.set(itemID, WTF::move(cachedChildren));
     }
     protect(backForwardCache())->removeEntry(*item);
 }
@@ -20353,7 +20393,7 @@ void WebPageProxy::setAllowsLayoutViewportHeightExpansion(bool value)
 void WebPageProxy::closeCurrentTypingCommand()
 {
     if (hasRunningProcess())
-        send(Messages::WebPage::CloseCurrentTypingCommand());
+        sendToFocusedOrMainFrameProcess(Messages::WebPage::CloseCurrentTypingCommand());
 }
 
 bool WebPageProxy::isAlwaysOnLoggingAllowed() const

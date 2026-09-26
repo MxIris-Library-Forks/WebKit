@@ -907,9 +907,8 @@ void AXObjectCache::updateAncestorFramesFocusedObject()
 
     RefPtr document = this->document();
     RefPtr frame = document ? document->frame() : nullptr;
-    for (RefPtr<Frame> ancestor = frame ? frame->tree().parent() : nullptr; ancestor; ancestor = ancestor->tree().parent()) {
-        RefPtr localAncestorFrame = dynamicDowncast<LocalFrame>(ancestor.get());
-        RefPtr ancestorDocument = localAncestorFrame ? localAncestorFrame->document() : nullptr;
+    for (Ref localAncestorFrame : ancestorFrames<LocalFrame>(frame.get())) {
+        RefPtr ancestorDocument = localAncestorFrame->document();
         // focusedObjectForLocalFrame() returns the AXLocalFrame leading toward the focused subframe
         // for an ancestor cache, so this points each ancestor tree's focus at the correct child frame.
         if (CheckedPtr ancestorCache = ancestorDocument ? ancestorDocument->existingAXObjectCache() : nullptr) {
@@ -1807,7 +1806,7 @@ void AXObjectCache::handleChildrenChanged(AccessibilityObject& object)
 
     object.recomputeIsIgnored();
 
-    if (auto* optionElement = dynamicDowncast<HTMLOptionElement>(object.node()); optionElement && optionElement->belongsToBaseAppearancePicker()) {
+    if (auto* optionElement = dynamicDowncast<HTMLOptionElement>(object.node()); optionElement && optionElement->isRenderedWithBaseAppearance()) {
         // When a base-appearance select option's children change, its text descendants may need to
         // change their is-ignored state. Text is only exposed when the option has complex content
         // (non-text descendants like buttons or links), so adding or removing such elements

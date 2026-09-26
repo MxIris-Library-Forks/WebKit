@@ -1352,8 +1352,7 @@ Awaitable<std::optional<FrameTreeNodeData>> WebPage::getFrameTreeForBackForwardC
         mainFrame->tree().specifiedName().string(),
         mainFrame->frameID(),
         std::nullopt,
-        std::nullopt,
-        topDocument ? std::optional { topDocument-> identifier() }  : std::nullopt,
+        topDocument ? std::optional { topDocument->identifier() } : std::nullopt,
         getCurrentProcessID(),
         false,
         false,
@@ -10572,7 +10571,7 @@ void WebPage::frameWasFocusedInAnotherProcess(std::optional<WebCore::FrameIdenti
 void WebPage::remotePostMessage(WebCore::FrameIdentifier source, const WebCore::SecurityOriginData& sourceOrigin, WebCore::FrameIdentifier target, std::optional<WebCore::SecurityOriginData>&& targetOrigin, const WebCore::MessageWithMessagePorts& message, std::optional<WebCore::UserGestureTokenData>&& userGestureToken)
 {
     RefPtr targetFrame = WebProcess::singleton().webFrame(target);
-    if (!targetFrame)
+    if (!targetFrame || targetFrame->page() != this)
         return;
 
     if (!targetFrame->coreLocalFrame())

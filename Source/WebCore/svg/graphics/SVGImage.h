@@ -37,6 +37,7 @@ class Element;
 class ImageBuffer;
 class LocalFrameView;
 class Page;
+class RenderObject;
 class RenderReplaced;
 class SVGSVGElement;
 class SVGImageChromeClient;
@@ -50,6 +51,9 @@ public:
         float containerZoom { 1 };
         URL initialFragmentURL { };
         Style::LinkParameters linkParameters { CSS::Keyword::None { } };
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+        std::optional<bool> invertContent { };
+#endif
     };
 
     static Ref<SVGImage> create(ImageObserver* observer) { return adoptRef(*new SVGImage(observer)); }
@@ -102,6 +106,7 @@ private:
     bool usesContainerSize() const final { return true; }
     void computeIntrinsicDimensions(float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio) final;
     bool hasNaturalAspectRatio() const final;
+    NaturalDimensions unorientedNaturalDimensions() const final;
 
     void reportApproximateMemoryCost() const;
     EncodedDataStatus dataChanged(bool allDataReceived) final;
@@ -123,11 +128,17 @@ private:
     void drawPatternForContainer(GraphicsContext&, const ContainerContext&, const FloatRect& srcRect, const AffineTransform&, const FloatPoint& phase, const FloatSize& spacing, const FloatRect& dstRect, ImagePaintingOptions = { });
 
     void applyLinkParameters(const Style::LinkParameters&);
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+    void applyInvertContent(std::optional<bool>);
+#endif
 
     RefPtr<Page> m_page;
     FloatSize m_intrinsicSize;
 
     Style::LinkParameters m_appliedLinkParameters;
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+    bool m_fallbackInvertContent { false };
+#endif
 
     Timer m_startAnimationTimer;
 };

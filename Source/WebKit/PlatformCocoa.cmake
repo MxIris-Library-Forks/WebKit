@@ -2298,15 +2298,6 @@ function(WEBKIT_DEFINE_IOS_RESOURCES)
     endforeach ()
     add_custom_target(WebKitIOSSandboxProfiles ALL DEPENDS ${WebKit_SB_FILES})
     add_dependencies(WebKit WebKitIOSSandboxProfiles)
-
-    get_property(_auxiliary_processes GLOBAL PROPERTY WEBKIT_AUXILIARY_PROCESS_TARGETS)
-    add_custom_target(WebKitPostBuild ALL
-        COMMAND ${CMAKE_COMMAND}
-            -DSRC=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/WebKit.dSYM
-            -DDST=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework.dSYM
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/MoveDirectory.cmake
-        COMMENT "Moving WebKit.framework dSYM to adjacent directory")
-    add_dependencies(WebKitPostBuild WebKit ${_auxiliary_processes})
 endfunction()
 
 function(WEBKIT_DEFINE_PROCESS_EXTENSIONS)
@@ -2521,7 +2512,7 @@ add_custom_target(_WebKit_SwiftUI_StageSwiftModule ALL DEPENDS ${_WebKit_SwiftUI
 WEBKIT_FRAMEWORK(_WebKit_SwiftUI)
 
 unset(_swiftui_dir)
-    return()
+    return ()
 endif (WEBKIT_SDK_IS_IOS_FAMILY)
 
 list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES

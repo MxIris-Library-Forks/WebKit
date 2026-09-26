@@ -952,6 +952,7 @@ void TestController::initialize(int argc, const char* argv[])
 
     m_useWaitToDumpWatchdogTimer = options.useWaitToDumpWatchdogTimer;
     m_forceNoTimeout = options.forceNoTimeout;
+    m_ipAddressSpaceOverrides = options.ipAddressSpaceOverrides;
     m_verbose = options.verbose;
     m_gcBetweenTests = options.gcBetweenTests;
     m_shouldDumpPixelsForAllTests = options.shouldDumpPixelsForAllTests;
@@ -1049,6 +1050,8 @@ WKWebsiteDataStoreRef TestController::defaultWebsiteDataStore()
     if (!dataStore) {
         auto configuration = adoptWK(WKWebsiteDataStoreConfigurationCreate());
         configureWebsiteDataStoreTemporaryDirectories(configuration.get());
+        if (!singleton().m_ipAddressSpaceOverrides.empty())
+            WKWebsiteDataStoreConfigurationSetIPAddressSpaceOverridesForTesting(configuration.get(), toWK(singleton().m_ipAddressSpaceOverrides.c_str()).get());
 
         // Including any non-trivial value of "persistent notifications have a minimum timeout before being closeable"
         // is counterproductive for layout tests - especially WPT tests. We cover the behavior in API tests.
@@ -1449,7 +1452,7 @@ void TestController::ensureViewSupportsOptionsForTest(const TestInvocation& test
     createWebViewWithOptions(options);
 
     if (!resetStateToConsistentValues(options, ResetStage::BeforeTest))
-        TestInvocation::dumpWebProcessUnresponsiveness("<unknown> - TestController::run - Failed to reset state to consistent values\n");
+        TestInvocation::dumpWebProcessUnresponsiveness("<unknown> - TestController::run - Failed to reset state to consistent values\n"_s);
 }
 
 template<typename F> static void batchUpdatePreferences(WKPreferencesRef preferences, F&& functor)
@@ -3098,8 +3101,7 @@ void TestController::didReceiveScriptMessage(WKScriptMessageRef message, Complet
         Vector<unsigned char> bytes;
         for (size_t i = 0; i < length; i++) {
             auto key = WKArrayGetItemAtIndex(keys, i);
-            auto keyStr = toWTFString(stringValue(key)).utf8();
-            auto intValue = doubleValue(dictionary, keyStr.legacyCStringPointer());
+            auto intValue = doubleValue(WKDictionaryGetItemForKey(dictionary, stringValue(key)));
             bytes.append(static_cast<unsigned char>(intValue));
         }
         WKDataRef data = WKDataCreate(bytes.begin(), bytes.size());

@@ -559,7 +559,7 @@ RenderLayerCompositor::RenderLayerCompositor(RenderView& renderView)
 {
 #if PLATFORM(IOS_FAMILY)
     if (m_renderView.frameView().platformWidget())
-        m_legacyScrollingLayerCoordinator = makeUnique<LegacyWebKitScrollingLayerCoordinator>(page().chrome().client(), isRootFrameCompositor());
+        lazyInitialize(m_legacyScrollingLayerCoordinator, makeUnique<LegacyWebKitScrollingLayerCoordinator>(page().chrome().client(), isRootFrameCompositor()));
 #endif
 }
 
@@ -872,11 +872,7 @@ void RenderLayerCompositor::updateScrollCoordinatedLayersAfterFlushIncludingSubf
 {
     updateScrollCoordinatedLayersAfterFlush();
 
-    auto& frame = m_renderView.frameView().frame();
-    for (auto* subframe = frame.tree().firstChild(); subframe; subframe = subframe->tree().traverseNext(&frame)) {
-        auto* localFrame = dynamicDowncast<LocalFrame>(subframe);
-        if (!localFrame)
-            continue;
+    for (Ref localFrame : descendantFrames<LocalFrame>(m_renderView.frameView().frame())) {
         auto* view = localFrame->contentRenderer();
         if (!view)
             continue;

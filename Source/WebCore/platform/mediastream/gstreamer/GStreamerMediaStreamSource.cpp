@@ -162,9 +162,9 @@ public:
     {
         ASSERT(m_track);
         if (newTrack)
-            GST_DEBUG_OBJECT(m_src.get(), "Replacing track %s with track %s", m_track->id().utf8().legacyCStringPointer(), newTrack->id().utf8().legacyCStringPointer());
+            GST_DEBUG_OBJECT(m_src.get(), "Replacing track %s with track %s", m_track->id().utf8(), newTrack->id().utf8());
         else
-            GST_DEBUG_OBJECT(m_src.get(), "Replacing track %s with nothing", m_track->id().utf8().legacyCStringPointer());
+            GST_DEBUG_OBJECT(m_src.get(), "Replacing track %s with nothing", m_track->id().utf8());
         stopObserving();
         if (!newTrack)
             return;
@@ -209,7 +209,7 @@ public:
         if (!m_track)
             return;
 
-        GST_DEBUG_OBJECT(m_src.get(), "Starting observation of track %s", m_track->id().utf8().legacyCStringPointer());
+        GST_DEBUG_OBJECT(m_src.get(), "Starting observation of track %s", m_track->id().utf8());
         m_track->addObserver(*this);
         if (m_track->isAudio())
             m_track->source().addAudioSampleObserver(*this);
@@ -226,7 +226,7 @@ public:
         if (!m_track)
             return;
 
-        GST_DEBUG_OBJECT(m_src.get(), "Stopping observation of track %s", m_track->id().utf8().legacyCStringPointer());
+        GST_DEBUG_OBJECT(m_src.get(), "Stopping observation of track %s", m_track->id().utf8());
         m_isObserving = false;
 
         if (m_track->isAudio())
@@ -397,7 +397,7 @@ public:
             m_videoMirrored = videoMirrored;
 
             auto orientation = makeString(videoMirrored ? "flip-"_s : ""_s, "rotate-"_s, m_videoRotation);
-            GST_DEBUG_OBJECT(m_src.get(), "Setting orientation tag: %s", orientation.utf8().legacyCStringPointer());
+            GST_DEBUG_OBJECT(m_src.get(), "Setting orientation tag: %s", orientation.utf8());
             GRefPtr tags = adoptGRef(gst_tag_list_make_writable(gst_stream_get_tags(m_stream.get())));
             gst_tag_list_add(tags.get(), GST_TAG_MERGE_REPLACE, GST_TAG_IMAGE_ORIENTATION, orientation.utf8().legacyCStringPointer(), nullptr);
             gst_stream_set_tags(m_stream.get(), tags.get());
@@ -481,12 +481,12 @@ private:
         static uint64_t videoCounter = 0;
         String elementName;
         if (track.isAudio()) {
-            m_audioTrack = AudioTrackPrivateMediaStream::create(track);
+            lazyInitialize(m_audioTrack, AudioTrackPrivateMediaStream::create(track));
             elementName = makeString(namePrefix, "audiosrc"_s, audioCounter);
             audioCounter++;
         } else {
             RELEASE_ASSERT(m_isVideoTrack);
-            m_videoTrack = VideoTrackPrivateMediaStream::create(track);
+            lazyInitialize(m_videoTrack, VideoTrackPrivateMediaStream::create(track));
             elementName = makeString(namePrefix, "videosrc"_s, videoCounter);
             videoCounter++;
         }
@@ -521,7 +521,7 @@ private:
         // RealtimeMediaSource::source() is usable only from the main thread, so keep track of
         // capture sources separately.
         if (m_track->source().isCaptureSource())
-            m_trackSource = &(m_track->source());
+            lazyInitialize(m_trackSource, Ref { m_track->source() });
 
         GRefPtr pad = adoptGRef(gst_element_get_static_pad(m_src.get(), "src"));
         m_upstreamQueryPadProbeHandle = PadProbeHandle<InternalSource>::create(*this, WTF::move(pad), GST_PAD_PROBE_TYPE_QUERY_UPSTREAM, [](const auto& self, const auto&, auto info) -> GstPadProbeReturn {
@@ -650,7 +650,7 @@ private:
 
     GThreadSafeWeakPtr<GstElement> m_parent { nullptr };
     RefPtr<MediaStreamTrackPrivate> m_track;
-    RefPtr<RealtimeMediaSource> m_trackSource;
+    const RefPtr<RealtimeMediaSource> m_trackSource;
     GRefPtr<GstElement> m_src;
     bool m_hasPushedInitialTags { false };
     bool m_hasPushedInitialSample { false };
@@ -658,8 +658,8 @@ private:
     bool m_needsDiscont { false };
     String m_padName;
     bool m_isObserving { false };
-    RefPtr<AudioTrackPrivateMediaStream> m_audioTrack;
-    RefPtr<VideoTrackPrivateMediaStream> m_videoTrack;
+    const RefPtr<AudioTrackPrivateMediaStream> m_audioTrack;
+    const RefPtr<VideoTrackPrivateMediaStream> m_videoTrack;
     IntSize m_configuredSize;
     IntSize m_lastKnownSize;
     GRefPtr<GstCaps> m_blackFrameCaps;
@@ -710,7 +710,7 @@ private:
 };
 
 struct _WebKitMediaStreamSrcPrivate {
-    CString uri;
+    UTF8CString uri;
     HashMap<String, RefPtr<InternalSource>> sources;
     RefPtr<WebKitMediaStreamObserver> mediaStreamObserver;
     RefPtr<MediaStreamPrivate> stream;
@@ -811,7 +811,7 @@ void WebKitMediaStreamObserver::didRemoveTrack(MediaStreamTrackPrivate& track)
     auto self = WEBKIT_MEDIA_STREAM_SRC_CAST(src.get());
     auto priv = self->priv;
 
-    GST_DEBUG_OBJECT(self, "Track with ID %s was removed", track.id().utf8().legacyCStringPointer());
+    GST_DEBUG_OBJECT(self, "Track with ID %s was removed", track.id().utf8());
 
     String sourceId;
     for (auto& [padName, currentSource] : priv->sources) {
@@ -876,13 +876,13 @@ static const char* const* webkitMediaStreamSrcUriGetProtocols(GType)
 static char* webkitMediaStreamSrcUriGetUri(GstURIHandler* handler)
 {
     WebKitMediaStreamSrc* self = WEBKIT_MEDIA_STREAM_SRC_CAST(handler);
-    return g_strdup(self->priv->uri.data());
+    return g_strdup(self->priv->uri.legacyCStringPointer());
 }
 
 static gboolean webkitMediaStreamSrcUriSetUri(GstURIHandler* handler, const char* uri, GError**)
 {
     WebKitMediaStreamSrc* self = WEBKIT_MEDIA_STREAM_SRC_CAST(handler);
-    self->priv->uri = CString(uri);
+    self->priv->uri = UTF8CString { byteCast<char8_t>(uri) };
     return TRUE;
 }
 
@@ -1138,7 +1138,7 @@ void webkitMediaStreamSrcAddTrack(WebKitMediaStreamSrc* self, MediaStreamTrackPr
         counter = self->priv->videoPadCounter.exchangeAdd(1);
     }
 
-    GST_DEBUG_OBJECT(self, "Setup %s source for track %s", sourceType.characters(), track->id().utf8().legacyCStringPointer());
+    GST_DEBUG_OBJECT(self, "Setup %s source for track %s", sourceType.characters(), track->id().utf8());
 
     auto padName = makeString(sourceType, "_src"_s, counter);
     Ref source = InternalSource::create(GST_ELEMENT_CAST(self), *track, padName, consumerIsVideoPlayer);

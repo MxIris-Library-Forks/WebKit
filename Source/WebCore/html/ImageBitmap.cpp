@@ -513,7 +513,7 @@ static RefPtr<ImageBuffer> unpremultipliedImageBuffer(ScriptExecutionContext& sc
         if (!buffer)
             return nullptr;
         Ref channelBitmap = BitmapImage::create(channelImage.releaseNonNull());
-        buffer->context().drawImage(channelBitmap.get(), FloatRect { FloatPoint(), outputSize }, sourceRectangle, { interpolationQualityForResizeQuality(options.resizeQuality), options.resolvedImageOrientation(orientation) });
+        buffer->context().drawBitmapImage(channelBitmap.get(), FloatRect { FloatPoint(), outputSize }, sourceRectangle, { interpolationQualityForResizeQuality(options.resizeQuality), options.resolvedImageOrientation(orientation) });
 
         // Buffer is opaque so unpremultiplied is free
         return buffer->getPixelBuffer({ AlphaPremultiplication::Unpremultiplied, decoded.format, colorSpace }, { { }, outputIntSize });
@@ -611,12 +611,12 @@ void ImageBitmap::createCompletionHandler(ScriptExecutionContext& scriptExecutio
         return;
     }
 
-    createCompletionHandler(scriptExecutionContext, imageElement->cachedImage(), imageElement->renderer(), WTF::move(options), rect, WTF::move(completionHandler));
+    createCompletionHandler(scriptExecutionContext, protect(imageElement->cachedImage()).get(), protect(imageElement->renderer()), WTF::move(options), rect, WTF::move(completionHandler));
 }
 
 void ImageBitmap::createCompletionHandler(ScriptExecutionContext& scriptExecutionContext, Ref<SVGImageElement>&& imageElement, ImageBitmapOptions&& options, std::optional<IntRect> rect, ImageBitmapCompletionHandler&& completionHandler)
 {
-    createCompletionHandler(scriptExecutionContext, imageElement->cachedImage(), imageElement->renderer(), WTF::move(options), rect, WTF::move(completionHandler));
+    createCompletionHandler(scriptExecutionContext, protect(imageElement->cachedImage()).get(), protect(imageElement->renderer()), WTF::move(options), rect, WTF::move(completionHandler));
 }
 
 void ImageBitmap::createCompletionHandler(ScriptExecutionContext& scriptExecutionContext, CachedImage* cachedImage, RenderElement* renderer, ImageBitmapOptions&& options, std::optional<IntRect> rect, ImageBitmapCompletionHandler&& completionHandler)
@@ -942,7 +942,7 @@ void ImageBitmap::createCompletionHandler(ScriptExecutionContext& scriptExecutio
     }
 
     FloatRect destRect(FloatPoint(), outputSize);
-    bitmapData->context().drawImage(*imageForRender, destRect, sourceRectangle.releaseReturnValue(), { interpolationQualityForResizeQuality(options.resizeQuality), options.resolvedImageOrientation(ImageOrientation::Orientation::None) });
+    bitmapData->context().drawBitmapImage(*imageForRender, destRect, sourceRectangle.releaseReturnValue(), { interpolationQualityForResizeQuality(options.resizeQuality), options.resolvedImageOrientation(ImageOrientation::Orientation::None) });
 
     const bool originClean = existingImageBitmap->originClean();
     bool forciblyPremultiplyAlpha = false;
@@ -1126,7 +1126,7 @@ void ImageBitmap::createFromBuffer(ScriptExecutionContext& scriptExecutionContex
             return;
         }
         FloatRect destRect(FloatPoint(), outputSize);
-        bitmapData->context().drawImage(image, destRect, sourceRect, { interpolationQualityForResizeQuality(options.resizeQuality), options.resolvedImageOrientation(orientation), drawsHDRContent, scriptExecutionContext.settingsValues().hdrAcceleratedApplyGainMapEnabled ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No });
+        bitmapData->context().drawBitmapImage(image, destRect, sourceRect, { interpolationQualityForResizeQuality(options.resizeQuality), options.resolvedImageOrientation(orientation), drawsHDRContent, scriptExecutionContext.settingsValues().hdrAcceleratedApplyGainMapEnabled ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No });
     }
 
     auto imageBitmap = create(bitmapData.releaseNonNull(), originClean, premultiplyAlpha, false, bufferAlphaFormat);
@@ -1201,7 +1201,7 @@ void ImageBitmap::createCompletionHandler(ScriptExecutionContext& scriptExecutio
 
 ImageBitmap::ImageBitmap(Ref<ImageBuffer> bitmap, bool originClean, bool premultiplyAlpha, bool forciblyPremultiplyAlpha, AlphaPremultiplication bufferAlphaFormat)
     : m_bitmap(WTF::move(bitmap))
-    , m_memoryCost(m_bitmap->memoryCost())
+    , m_memoryCost(protect(m_bitmap)->memoryCost())
     , m_originClean(originClean)
     , m_premultiplyAlpha(premultiplyAlpha)
     , m_forciblyPremultiplyAlpha(forciblyPremultiplyAlpha)

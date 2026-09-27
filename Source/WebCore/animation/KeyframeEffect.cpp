@@ -1726,6 +1726,11 @@ bool KeyframeEffect::isRunningAcceleratedTransformRelatedAnimation() const
     return isRunningAccelerated() && animatablePropertiesContainTransformRelatedProperty(m_blendingKeyframes.properties());
 }
 
+bool KeyframeEffect::isRunningOrAboutToRunAcceleratedTransformRelatedAnimation() const
+{
+    return (isRunningAccelerated() || isAboutToRunAccelerated()) && animatablePropertiesContainTransformRelatedProperty(m_blendingKeyframes.properties());
+}
+
 void KeyframeEffect::invalidate()
 {
     LOG_WITH_STREAM(Animations, stream << "KeyframeEffect::invalidate on element " << ValueOrNull(m_target.get()));
@@ -3246,11 +3251,10 @@ bool KeyframeEffect::preventsAnimationReadiness() const
 #if ENABLE(THREADED_ANIMATIONS)
 KeyframeEffect::StackMembershipMutationScope::StackMembershipMutationScope(KeyframeEffect& effect)
     : m_effect(&effect)
+    , m_originalTarget(effect.m_target)
 {
-    if (effect.m_target) {
-        m_originalTarget = effect.m_target;
+    if (effect.m_target)
         m_originalPseudoElementIdentifier = effect.m_pseudoElementIdentifier;
-    }
 }
 
 KeyframeEffect::StackMembershipMutationScope::~StackMembershipMutationScope()

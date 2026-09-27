@@ -1,8 +1,6 @@
 dom/Document.cpp
 dom/Position.cpp
 [ iOS ] editing/cocoa/EditorCocoa.mm
-[ macOS ] html/HTMLMediaElement.cpp
-inspector/InspectorOverlay.cpp
 inspector/agents/InspectorDOMAgent.cpp
 inspector/agents/InspectorDOMDebuggerAgent.cpp
 layout/formattingContexts/FormattingGeometry.cpp
@@ -17,7 +15,6 @@ layout/formattingContexts/table/TableLayout.cpp
 layout/integration/LayoutIntegrationBoxGeometryUpdater.cpp
 layout/integration/LayoutIntegrationBoxTreeUpdater.cpp
 layout/integration/inline/LayoutIntegrationLineLayout.cpp
-[ iOS ] page/DOMTimer.cpp
 page/ElementTargetingController.cpp
 page/EventHandler.cpp
 page/LocalFrameView.cpp
@@ -26,7 +23,6 @@ page/LocalFrameView.cpp
 platform/graphics/ca/GraphicsLayerCA.cpp
 platform/graphics/cg/CGSubimageCacheWithTimer.cpp
 [ iOS ] platform/ios/WebVideoFullscreenControllerAVKit.mm
-platform/network/cocoa/ResourceHandleCocoa.mm
 rendering/AutoTableLayout.cpp
 rendering/BackgroundPainter.cpp
 rendering/CounterNode.cpp
@@ -166,6 +162,5 @@ svg/SVGFilterPrimitiveStandardAttributes.cpp
 svg/SVGGeometryElement.cpp
 svg/SVGLengthContext.cpp
 svg/SVGUseElement.cpp
-testing/Internals.cpp
 workers/WorkerGlobalScope.cpp
 workers/WorkerOrWorkletThread.cpp

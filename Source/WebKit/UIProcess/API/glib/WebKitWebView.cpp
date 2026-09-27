@@ -96,8 +96,8 @@
 #include <wtf/glib/GSpanExtras.h>
 #include <wtf/glib/GUniquePtr.h>
 #include <wtf/glib/WTFGType.h>
-#include <wtf/text/CStringView.h>
 #include <wtf/text/StringBuilder.h>
+#include <wtf/text/UTF8CStringView.h>
 
 #if ENABLE(POINTER_LOCK)
 #include "WebKitPointerLockPermissionRequest.h"
@@ -801,21 +801,21 @@ static void webkitWebViewRequestFavicon(WebKitWebView* webView)
     webkitFaviconDatabaseGetFaviconInternal(database, priv->activeURI, webkitWebViewIsEphemeral(webView), priv->faviconCancellable.get(), gotFaviconCallback, webView);
 }
 
-static void webkitWebViewUpdateFaviconURI(WebKitWebView* webView, const char* faviconURI)
+static void webkitWebViewUpdateFaviconURI(WebKitWebView* webView, UTF8CString&& faviconURI)
 {
     if (webView->priv->faviconURI == faviconURI)
         return;
 
-    webView->priv->faviconURI = UTF8CString { byteCast<char8_t>(faviconURI) };
+    webView->priv->faviconURI = WTF::move(faviconURI);
     webkitWebViewRequestFavicon(webView);
 }
 
 static void faviconChangedCallback(WebKitFaviconDatabase*, const char* pageURI, const char* faviconURI, WebKitWebView* webView)
 {
-    if (webView->priv->activeURI != pageURI)
+    if (webView->priv->activeURI != UTF8CString { byteCast<char8_t>(pageURI) })
         return;
 
-    webkitWebViewUpdateFaviconURI(webView, faviconURI);
+    webkitWebViewUpdateFaviconURI(webView, UTF8CString { byteCast<char8_t>(faviconURI) });
 }
 #endif // PLATFORM(GTK)
 
@@ -2791,7 +2791,7 @@ void webkitWebViewLoadChanged(WebKitWebView* webView, WebKitLoadEvent loadEvent)
 #if PLATFORM(GTK)
         if (auto* database = webkitWebViewGetFaviconDatabase(webView)) {
             GUniquePtr<char> faviconURI(webkit_favicon_database_get_favicon_uri(database, priv->activeURI.legacyCStringPointer()));
-            webkitWebViewUpdateFaviconURI(webView, faviconURI.get());
+            webkitWebViewUpdateFaviconURI(webView, UTF8CString { byteCast<char8_t>(faviconURI.get()) });
         }
 #endif
         break;
@@ -3647,7 +3647,7 @@ void webkit_web_view_load_html(WebKitWebView* webView, const gchar* content, con
     g_return_if_fail(WEBKIT_IS_WEB_VIEW(webView));
     g_return_if_fail(content);
 
-    auto contentData = spanReinterpretCast<const uint8_t>(CStringView::unsafeFromUTF8(content).span());
+    auto contentData = spanReinterpretCast<const uint8_t>(UTF8CStringView::unsafeFromUTF8(content).span());
     getPage(webView).loadData(WebCore::SharedBuffer::create(WTF::move(contentData)), "text/html"_s, "UTF-8"_s, String::fromUTF8(baseURI));
 }
 
@@ -3671,7 +3671,7 @@ void webkit_web_view_load_alternate_html(WebKitWebView* webView, const gchar* co
     g_return_if_fail(content);
     g_return_if_fail(contentURI);
 
-    Vector contentData(spanReinterpretCast<const uint8_t>(CStringView::unsafeFromUTF8(content).span()));
+    Vector contentData(spanReinterpretCast<const uint8_t>(UTF8CStringView::unsafeFromUTF8(content).span()));
     getPage(webView).loadAlternateHTML(WebCore::DataSegment::create(WTF::move(contentData)), "UTF-8"_s, URL { String::fromUTF8(baseURI) }, URL { String::fromUTF8(contentURI) }, nullptr);
 }
 

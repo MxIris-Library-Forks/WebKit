@@ -349,7 +349,7 @@ private:
     // value string/geometry were computed for.
     struct {
         std::optional<unsigned> count;
-        CString string;
+        ASCIICString string;
         float backgroundWidth { 0 };
         float backgroundHeight { 0 };
         float baselineOffset { 0 };
@@ -372,7 +372,7 @@ private:
 #if ENABLE(DAMAGE_TRACKING)
     bool m_damagePropagationEnabled { false };
     std::optional<Damage> m_layerDamage;
-    std::unique_ptr<LayerRectTracker> m_layerRectTracker;
+    const std::unique_ptr<LayerRectTracker> m_layerRectTracker;
     uint64_t m_layerRectID { 0 };
     bool m_groupPropertyChanged { false };
 #endif

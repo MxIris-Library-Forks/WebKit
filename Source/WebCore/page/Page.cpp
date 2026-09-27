@@ -713,11 +713,12 @@ void Page::setOverrideViewportArguments(const std::optional<ViewportArguments>& 
 ScrollingCoordinator* Page::scrollingCoordinator()
 {
     if (!m_scrollingCoordinator && m_settings->scrollingCoordinatorEnabled()) {
-        m_scrollingCoordinator = chrome().client().createScrollingCoordinator(*this);
-        if (!m_scrollingCoordinator)
-            m_scrollingCoordinator = ScrollingCoordinator::create(this);
+        RefPtr scrollingCoordinator = chrome().client().createScrollingCoordinator(*this);
+        if (!scrollingCoordinator)
+            scrollingCoordinator = ScrollingCoordinator::create(this);
+        lazyInitialize(m_scrollingCoordinator, scrollingCoordinator.releaseNonNull());
 
-        protect(m_scrollingCoordinator)->windowScreenDidChange(m_displayID, m_displayNominalFramesPerSecond);
+        m_scrollingCoordinator->windowScreenDidChange(m_displayID, m_displayNominalFramesPerSecond);
     }
 
     return m_scrollingCoordinator;
@@ -1205,10 +1206,7 @@ bool Page::showAllPlugins() const
 
 inline std::optional<std::pair<WeakRef<MediaCanStartListener>, WeakRef<Document, WeakPtrImplWithEventTargetData>>>  Page::takeAnyMediaCanStartListener()
 {
-    for (RefPtr frame = mainFrame(); frame; frame = frame->tree().traverseNext()) {
-        RefPtr localFrame = dynamicDowncast<LocalFrame>(*frame);
-        if (!localFrame)
-            continue;
+    for (Ref localFrame : inclusiveDescendantFrames<LocalFrame>(mainFrame())) {
         RefPtr document = localFrame->document();
         if (!document)
             continue;
@@ -1682,10 +1680,8 @@ void Page::setDefersLoading(bool defers)
     }
 
     m_defersLoading = defers;
-    for (RefPtr frame = mainFrame(); frame; frame = frame->tree().traverseNext()) {
-        if (RefPtr localFrame = dynamicDowncast<LocalFrame>(*frame))
-            localFrame->loader().setDefersLoading(defers);
-    }
+    for (Ref localFrame : inclusiveDescendantFrames<LocalFrame>(mainFrame()))
+        localFrame->loader().setDefersLoading(defers);
 }
 
 void Page::clearUndoRedoOperations()
@@ -4731,7 +4727,7 @@ void Page::didChangeMainDocument(Document* newDocument)
 RenderingUpdateScheduler& Page::renderingUpdateScheduler()
 {
     if (!m_renderingUpdateScheduler)
-        m_renderingUpdateScheduler = RenderingUpdateScheduler::create(*this);
+        lazyInitialize(m_renderingUpdateScheduler, RenderingUpdateScheduler::create(*this));
     return *m_renderingUpdateScheduler;
 }
 
@@ -4764,14 +4760,14 @@ void Page::forEachDocument(NOESCAPE const Function<void(Document&)>& functor) co
 DeviceOrientationAndMotionAccessController& Page::deviceOrientationAndMotionAccessController()
 {
     if (!m_deviceOrientationAndMotionAccessController)
-        m_deviceOrientationAndMotionAccessController = makeUnique<DeviceOrientationAndMotionAccessController>(*this);
+        lazyInitialize(m_deviceOrientationAndMotionAccessController, makeUnique<DeviceOrientationAndMotionAccessController>(*this));
     return *m_deviceOrientationAndMotionAccessController;
 }
 
 void Page::clearDeviceOrientationAndMotionPermissions()
 {
     if (m_deviceOrientationAndMotionAccessController)
-        protect(m_deviceOrientationAndMotionAccessController)->clearPermissions();
+        m_deviceOrientationAndMotionAccessController->clearPermissions();
 }
 #endif
 
@@ -6193,12 +6189,13 @@ RefPtr<MediaSessionManagerInterface> Page::mediaSessionManager()
             };
         }
 
-        m_mediaSessionManager = m_mediaSessionManagerFactory.value()(*m_identifier);
-        if (!m_mediaSessionManager)
+        RefPtr mediaSessionManager = m_mediaSessionManagerFactory.value()(*m_identifier);
+        if (!mediaSessionManager)
             return nullptr;
+        lazyInitialize(m_mediaSessionManager, mediaSessionManager.releaseNonNull());
 
 #if USE(AUDIO_SESSION)
-        Ref { *m_mediaSessionManager }->setShouldDeactivateAudioSession(true);
+        m_mediaSessionManager->setShouldDeactivateAudioSession(true);
 #endif
 
         PlatformMediaEngineConfigurationFactory::setMediaSessionManagerProvider([](PageIdentifier identifier) {

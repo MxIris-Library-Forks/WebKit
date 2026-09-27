@@ -31,6 +31,7 @@
 #import "Helpers/cocoa/DragAndDropSimulator.h"
 #import "Helpers/cocoa/FindInPageUtilities.h"
 #import "Helpers/cocoa/HTTPServer.h"
+#import "Helpers/cocoa/SiteIsolationTestUtilities.h"
 #import "Helpers/cocoa/TestCocoa.h"
 #import "Helpers/cocoa/TestDownloadDelegate.h"
 #import "Helpers/cocoa/TestNavigationDelegate.h"
@@ -433,22 +434,6 @@ std::pair<std::unique_ptr<InstanceMethodSwizzler>, std::unique_ptr<InstanceMetho
 
 namespace TestWebKitAPI {
 
-static void setFeatureEnabled(WKWebViewConfiguration *configuration, NSString *featureName, bool enabled)
-{
-    auto preferences = [configuration preferences];
-    for (_WKFeature *feature in [WKPreferences _features]) {
-        if ([feature.key isEqualToString:featureName]) {
-            [preferences _setEnabled:enabled forFeature:feature];
-            break;
-        }
-    }
-}
-
-static void enableSiteIsolation(WKWebViewConfiguration *configuration)
-{
-    setFeatureEnabled(configuration, @"SiteIsolationEnabled", true);
-}
-
 static void disableSharedProcess(WKWebViewConfiguration *configuration)
 {
     setFeatureEnabled(configuration, @"SiteIsolationSharedProcessEnabled", false);
@@ -464,25 +449,9 @@ static RetainPtr<WKProcessPool> processPoolWithBackForwardCacheDisabled()
     return adoptNS([[WKProcessPool alloc] _initWithConfiguration:poolConfiguration.get()]);
 }
 
-static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> siteIsolatedViewAndDelegate(RetainPtr<WKWebViewConfiguration> configuration, CGRect rect, bool enable)
-{
-    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
-    [navigationDelegate allowAnyTLSCertificate];
-    if (enable)
-        enableSiteIsolation(configuration.get());
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:rect configuration:configuration.get()]);
-    webView.get().navigationDelegate = navigationDelegate.get();
-    return { WTF::move(webView), WTF::move(navigationDelegate) };
-}
-
 static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> viewAndDelegate(RetainPtr<WKWebViewConfiguration> configuration, CGRect rect = CGRectZero)
 {
     return siteIsolatedViewAndDelegate(configuration, rect, false);
-}
-
-static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> siteIsolatedViewAndDelegate(RetainPtr<WKWebViewConfiguration> configuration, CGRect rect = CGRectZero)
-{
-    return siteIsolatedViewAndDelegate(configuration, rect, true);
 }
 
 enum class EnableProcessCache : bool { No, Yes };
@@ -529,11 +498,6 @@ static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> si
     RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
     webView.get().navigationDelegate = navigationDelegate.get();
     return { WTF::move(webView), WTF::move(navigationDelegate) };
-}
-
-static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> siteIsolatedViewAndDelegate(const HTTPServer& server, CGRect rect = CGRectZero)
-{
-    return siteIsolatedViewAndDelegate(server.httpsProxyConfiguration(), rect, true);
 }
 
 static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> siteIsolatedViewAndDelegateWithoutSharedProcess(const HTTPServer& server, CGRect rect = CGRectZero)
@@ -1742,6 +1706,8 @@ TEST(SiteIsolation, PostMessageWithMessagePortsFromIFrameToMainFrame)
     "            parent.postMessage('port message ' + event.data, '*');"
     "        };"
     "        parent.postMessage('ping', '*', [channel.port2]);"
+    "        parent.postMessage('message sent after transferring port', '*');"
+    "        parent.postMessage('another message sent after transferring port', '*');"
     "    }"
     "</script>"_s;
 
@@ -1753,7 +1719,10 @@ TEST(SiteIsolation, PostMessageWithMessagePortsFromIFrameToMainFrame)
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
 
+    // The message transferring the port must be delivered before the messages sent right after it.
     EXPECT_WK_STREQ([webView _test_waitForAlert], "main frame received ping with 1 ports");
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "main frame received message sent after transferring port with 0 ports");
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "main frame received another message sent after transferring port with 0 ports");
     EXPECT_WK_STREQ([webView _test_waitForAlert], "main frame received port message pong with 0 ports");
 
     auto mainFrame = [webView mainFrame];
@@ -8515,17 +8484,6 @@ TEST(SiteIsolation, CoordinateTransformation)
 
     auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
 
-    auto convertPoint = [] (TestWKWebView *webView, CGPoint point) {
-        __block CGPoint result;
-        __block bool done { false };
-        [webView _convertPoint:point fromFrame:[webView firstChildFrame] toMainFrameCoordinates:^(CGPoint transformedPoint, NSError *error) {
-            EXPECT_NULL(error);
-            result = transformedPoint;
-            done = true;
-        }];
-        Util::run(&done);
-        return result;
-    };
     auto convertRect = [] (TestWKWebView *webView, CGRect rect) {
         __block CGRect result;
         __block bool done { false };
@@ -8542,9 +8500,6 @@ TEST(SiteIsolation, CoordinateTransformation)
     {
         [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
         [navigationDelegate waitForDidFinishNavigation];
-        auto transformedPoint = convertPoint(webView.get(), { 11, 10 });
-        EXPECT_EQ(transformedPoint.x, 21);
-        EXPECT_EQ(transformedPoint.y, expectedTransformedY);
         auto transformedRect = convertRect(webView.get(), { { 11, 10 }, { 9, 8 } });
         EXPECT_EQ(transformedRect.origin.x, 21);
         EXPECT_EQ(transformedRect.origin.y, expectedTransformedY);
@@ -8555,9 +8510,6 @@ TEST(SiteIsolation, CoordinateTransformation)
     {
         [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/example"]]];
         [navigationDelegate waitForDidFinishNavigation];
-        auto transformedPoint = convertPoint(webView.get(), { 11, 10 });
-        EXPECT_EQ(transformedPoint.x, 21);
-        EXPECT_EQ(transformedPoint.y, expectedTransformedY);
         auto transformedRect = convertRect(webView.get(), { { 11, 10 }, { 9, 8 } });
         EXPECT_EQ(transformedRect.origin.x, 21);
         EXPECT_EQ(transformedRect.origin.y, expectedTransformedY);
@@ -8572,12 +8524,6 @@ TEST(SiteIsolation, CoordinateTransformation)
     }];
     Util::run(&removedIframe);
     __block bool done { false };
-    [webView _convertPoint:CGPoint { 11, 10 } fromFrame:frameInfoOfRemovedFrame.get() toMainFrameCoordinates:^(CGPoint, NSError *error) {
-        EXPECT_NOT_NULL(error);
-        done = true;
-    }];
-    Util::run(&done);
-    done = false;
     [webView _convertRect:CGRect { { 11, 10 }, { 9, 8 } } fromFrame:frameInfoOfRemovedFrame.get() toMainFrameCoordinates:^(CGRect, NSError *error) {
         EXPECT_NOT_NULL(error);
         done = true;
@@ -12061,11 +12007,15 @@ static void swizzledRequestDOMPasteAccess(id, SEL,
 
 namespace TestWebKitAPI {
 
-TEST(SiteIsolation, DOMPasteAccessRectInCrossOriginIframe)
+static ASCIILiteral defaultDOMPasteMainframeHTML = "<body style='margin: 0'><iframe style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s;
+static ASCIILiteral defaultDOMPasteSubframeHTML = "<!DOCTYPE html><body style='margin: 0'><textarea style='margin: 50px; width: 100px; height: 50px; border: none; padding: 0;'></textarea></body>"_s;
+static ASCIILiteral tallDOMPasteSubframeHTML = "<!DOCTYPE html><body style='margin: 0; min-height: 1000px'><textarea style='margin: 50px; width: 100px; height: 50px; border: none; padding: 0;'></textarea></body>"_s;
+
+static CGPoint checkDOMPasteAccessRectInCrossOriginIframe(const String& mainframeHTML, const String& subframeHTML, void (^prepareBeforeFocusing)(TestWKWebView *, WKFrameInfo *) = nil)
 {
     HTTPServer server({
-        { "/mainframe"_s, { "<body style='margin: 0'><iframe style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
-        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'><textarea style='margin: 50px; width: 100px; height: 50px; border: none; padding: 0;'></textarea></body>"_s } }
+        { "/mainframe"_s, { mainframeHTML } },
+        { "/iframe"_s, { subframeHTML } }
     }, HTTPServer::Protocol::HttpsProxy);
 
     SiteIsolationDOMPaste::capturedElementRect = CGRectZero;
@@ -12082,14 +12032,39 @@ TEST(SiteIsolation, DOMPasteAccessRectInCrossOriginIframe)
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
     [navigationDelegate waitForDidFinishNavigation];
     [webView waitForNextPresentationUpdate];
+    RetainPtr childFrameInfo = [webView firstChildFrame];
 
-    [webView evaluateJavaScript:@"document.querySelector('textarea').focus(); document.execCommand('paste')" inFrame:[webView firstChildFrame] completionHandler:nil];
+    if (prepareBeforeFocusing)
+        prepareBeforeFocusing(webView.get(), childFrameInfo.get());
 
+    [webView evaluateJavaScript:@"document.querySelector('textarea').focus(); document.execCommand('paste')" inFrame:childFrameInfo.get() completionHandler:nil];
     Util::run(&SiteIsolationDOMPaste::receivedRequest);
 
-    // The iframe is at (100, 100) in main-frame coordinates, so the rect should be converted from subframe coords.
-    EXPECT_EQ(SiteIsolationDOMPaste::capturedElementRect.origin.x, 100);
-    EXPECT_EQ(SiteIsolationDOMPaste::capturedElementRect.origin.y, 100);
+    // Without a real touch event, the reported rect comes from a hit-test at the origin of the
+    // subframe's viewport (i.e. the enclosing <body>), converted to main-frame coordinates -- not
+    // from the focused <textarea>'s own bounds.
+    return SiteIsolationDOMPaste::capturedElementRect.origin;
+}
+
+TEST(SiteIsolation, DOMPasteAccessRectInCrossOriginIframe)
+{
+    CGPoint origin = checkDOMPasteAccessRectInCrossOriginIframe(defaultDOMPasteMainframeHTML, defaultDOMPasteSubframeHTML);
+    EXPECT_EQ(origin.x, 100);
+    EXPECT_EQ(origin.y, 100);
+}
+
+TEST(SiteIsolation, DOMPasteAccessRectInScrolledCrossOriginIframe)
+{
+    CGPoint origin = checkDOMPasteAccessRectInCrossOriginIframe(defaultDOMPasteMainframeHTML, tallDOMPasteSubframeHTML,
+        ^(TestWKWebView *webView, WKFrameInfo *childFrameInfo) {
+            [webView objectByEvaluatingJavaScript:@"window.scrollTo(0, 500)" inFrame:childFrameInfo];
+            EXPECT_TRUE(Util::waitFor([&] {
+                return [[webView objectByEvaluatingJavaScript:@"window.scrollY" inFrame:childFrameInfo] intValue] == 500;
+            }));
+            [webView waitForNextPresentationUpdate];
+        });
+    EXPECT_EQ(origin.x, 100);
+    EXPECT_EQ(origin.y, -400);
 }
 
 TEST(SiteIsolation, ApplyAutocorrectionInCrossOriginIframe)

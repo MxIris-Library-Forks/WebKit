@@ -36,11 +36,17 @@
 #import "Helpers/cocoa/SiteIsolationTestUtilities.h"
 #import "Helpers/cocoa/TestNavigationDelegate.h"
 #import "Helpers/cocoa/TestWKWebView.h"
+#import "Helpers/cocoa/WKWebViewConfigurationExtras.h"
 #import "InstanceMethodSwizzler.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <WebKit/WKUIDelegatePrivate.h>
+#import <WebKit/WKWebViewConfigurationPrivate.h>
 #import <WebKit/WKWebViewPrivate.h>
 #import <WebKit/WKWebViewPrivateForTesting.h>
+#import <WebKit/WKWebsiteDataStorePrivate.h>
+#import <WebKit/_WKAttachment.h>
+#import <WebKit/_WKWebsiteDataStoreConfiguration.h>
+#import <wtf/BlockPtr.h>
 #import <wtf/RetainPtr.h>
 
 #if PLATFORM(IOS_FAMILY)
@@ -54,6 +60,7 @@
 #if PLATFORM(MAC)
 #import "Helpers/mac/AppKitSPI.h"
 #import <WebCore/LegacyNSPasteboardTypes.h>
+#import <pal/spi/mac/NSSpellCheckerSPI.h>
 
 // Stands in for the font panel's attribute converter, and always adds a single underline.
 @interface SiteIsolationUnderlineAttributeConverter : NSObject
@@ -89,6 +96,36 @@
 }
 
 @end
+
+#if ENABLE(ATTACHMENT_ELEMENT)
+@interface SiteIsolationAttachmentObserver : NSObject <WKUIDelegatePrivate>
+- (NSArray<_WKAttachment *> *)insertedAttachments;
+@end
+
+@implementation SiteIsolationAttachmentObserver {
+    RetainPtr<NSMutableArray<_WKAttachment *>> _insertedAttachments;
+}
+
+- (instancetype)init
+{
+    if (!(self = [super init]))
+        return nil;
+    _insertedAttachments = adoptNS([[NSMutableArray alloc] init]);
+    return self;
+}
+
+- (void)_webView:(WKWebView *)webView didInsertAttachment:(_WKAttachment *)attachment withSource:(NSString *)source
+{
+    [_insertedAttachments addObject:attachment];
+}
+
+- (NSArray<_WKAttachment *> *)insertedAttachments
+{
+    return _insertedAttachments.get();
+}
+
+@end
+#endif // ENABLE(ATTACHMENT_ELEMENT)
 
 namespace TestWebKitAPI {
 
@@ -523,5 +560,232 @@ TEST(SiteIsolation, InsertAdaptiveImageGlyphInCrossOriginIframe)
 }
 
 #endif // ENABLE(MULTI_REPRESENTATION_HEIC)
+
+#if ENABLE(ATTACHMENT_ELEMENT)
+
+// Inserting an attachment acts on the focused frame's selection, so it must go to the focused frame's process.
+// Updates and icons for an existing attachment must go to the process whose document contains it, and that
+// process must be able to find the element even when it isn't in the main frame's document.
+
+static RetainPtr<WKWebViewConfiguration> attachmentEnabledConfiguration(const HTTPServer& server)
+{
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    [configuration _setAttachmentElementEnabled:YES];
+    return configuration;
+}
+
+static RetainPtr<NSFileWrapper> textFileWrapper(NSString *filename)
+{
+    RetainPtr fileWrapper = adoptNS([[NSFileWrapper alloc] initRegularFileWithContents:[@"Hello world" dataUsingEncoding:NSUTF8StringEncoding]]);
+    [fileWrapper setPreferredFilename:filename];
+    return fileWrapper;
+}
+
+static NSString * const attachmentTitleScript = @"document.querySelector('attachment')?.getAttribute('title') ?? ''";
+
+TEST(SiteIsolation, InsertAttachmentInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body contenteditable></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = attachmentEnabledConfiguration(server);
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configuration.get());
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body, 0)", _WKSelectionAttributeIsCaret);
+
+    // The completion handler runs whether or not anything was inserted, so check the iframe's document.
+    __block bool done = false;
+    [webView _insertAttachmentWithFileWrapper:textFileWrapper(@"hello.txt").get() contentType:@"text/plain" completion:^(BOOL) {
+        done = true;
+    }];
+    Util::run(&done);
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:attachmentTitleScript inFrame:childFrame.get()] isEqualToString:@"hello.txt"];
+    }));
+}
+
+TEST(SiteIsolation, SetFileWrapperForAttachmentInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body><attachment title='original.txt' type='text/plain'></attachment></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(attachmentEnabledConfiguration(server), CGRectMake(0, 0, 800, 600));
+    RetainPtr observer = adoptNS([SiteIsolationAttachmentObserver new]);
+    [webView setUIDelegate:observer.get()];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    // The iframe's process reports the attachment when its element is connected.
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [observer insertedAttachments].count == 1;
+    }));
+    RetainPtr<_WKAttachment> attachment = [observer insertedAttachments].firstObject;
+
+    __block bool done = false;
+    [attachment setFileWrapper:textFileWrapper(@"updated.txt").get() contentType:@"text/plain" completion:^(NSError *) {
+        done = true;
+    }];
+    Util::run(&done);
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:attachmentTitleScript inFrame:childFrame.get()] isEqualToString:@"updated.txt"];
+    }));
+}
+
+#if PLATFORM(MAC)
+
+TEST(SiteIsolation, AttachmentIconInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><attachment title='main.txt' type='text/plain'></attachment><iframe id='iframe' style='width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<body><attachment title='subframe.txt' type='text/plain'></attachment></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    // Use the internals-enabled plug-in to reach the attachment's user agent shadow tree, and point the data
+    // store at the test HTTPS proxy, since _test_configurationWithTestPlugInClassName: doesn't set one up.
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    RetainPtr storeConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initNonPersistentConfiguration]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+    [configuration _setAttachmentElementEnabled:YES];
+
+    // A wide-layout attachment shows its icon in an <img> in its shadow tree, so a delivered icon is observable.
+    // This has to be set on the configuration; WKWebView overwrites the preference from it at initialization.
+    [configuration _setAttachmentWideLayoutEnabled:YES];
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    NSString *iconIsLoadedScript = @"(() => {"
+        "    const icon = internals.shadowRoot(document.querySelector('attachment'))?.getElementById('attachment-icon');"
+        "    return !!icon && icon.src.startsWith('blob:');"
+        "})()";
+
+    // The main frame's attachment checks that icons are delivered at all, so a failure below is specific to the iframe.
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:iconIsLoadedScript] boolValue];
+    }));
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:iconIsLoadedScript inFrame:childFrame.get()] boolValue];
+    }));
+}
+
+#endif // PLATFORM(MAC)
+
+#endif // ENABLE(ATTACHMENT_ELEMENT)
+
+// Replies to a text checking request must go to the web process that made it. Only that process has the
+// pending request; any other process drops the reply.
+
+#if PLATFORM(MAC)
+
+static unsigned synchronousTextCheckCount;
+static RetainPtr<NSString> pendingExtendedCheckString;
+static BlockPtr<void(NSInteger, NSArray<NSTextCheckingResult *> *)> pendingExtendedCheckCompletion;
+
+static NSArray<NSTextCheckingResult *> *swizzledCheckStringCountingChecks(id, SEL, NSString *, NSRange, NSTextCheckingTypes, NSDictionary *, NSInteger, NSOrthography **, NSInteger *)
+{
+    ++synchronousTextCheckCount;
+    return @[ ];
+}
+
+static NSInteger swizzledRequestGrammarCheckingDeferringCompletion(id, SEL, NSString *stringToCheck, NSRange, NSString *, NSDictionary *, void (^completionHandler)(NSInteger, NSArray<NSTextCheckingResult *> *))
+{
+    pendingExtendedCheckString = stringToCheck;
+    pendingExtendedCheckCompletion = makeBlockPtr(completionHandler);
+    return 0;
+}
+
+// Types into the editable body of the frame (the main frame if nil), then replies to the extended proofreading
+// request that follows with a grammar result the synchronous check didn't report. The web process that made the
+// request responds by checking the paragraph again, so this returns whether another synchronous check arrives.
+// Setup problems are reported as separate failures, so a bare false means the reply never reached the requester.
+static bool extendedProofreadingReplyTriggersRecheck(TestWKWebView *webView, WKFrameInfo *frame)
+{
+    synchronousTextCheckCount = 0;
+    pendingExtendedCheckString = nil;
+    pendingExtendedCheckCompletion = nullptr;
+
+    [webView objectByEvaluatingJavaScript:@"getSelection().setPosition(document.body)" inFrame:frame];
+    [(id<NSTextInputClient>)webView insertText:@"Let's go in then store\n" replacementRange:NSMakeRange(NSNotFound, 0)];
+    if (!Util::waitFor([] { return !!pendingExtendedCheckCompletion; })) {
+        ADD_FAILURE() << "No extended proofreading request was made";
+        return false;
+    }
+
+    // Let every check caused by the insertion finish, so that any check after the reply is the re-check.
+    [webView waitForNextPresentationUpdate];
+    auto checkCountBeforeReply = synchronousTextCheckCount;
+
+    NSRange phraseRange = [pendingExtendedCheckString rangeOfString:@"go in then"];
+    if (phraseRange.location == NSNotFound) {
+        ADD_FAILURE() << "The extended proofreading request didn't include the typed text: " << [pendingExtendedCheckString UTF8String];
+        return false;
+    }
+    NSDictionary *detail = @{
+        NSGrammarRange: [NSValue valueWithRange:NSMakeRange(0, phraseRange.length)],
+        NSGrammarCorrections: @[ @"go in the" ],
+    };
+    auto completion = std::exchange(pendingExtendedCheckCompletion, nullptr);
+    completion(0, @[ [NSTextCheckingResult grammarCheckingResultWithRange:phraseRange details:@[ detail ]] ]);
+
+    return Util::waitFor([&] {
+        return synchronousTextCheckCount > checkCountBeforeReply;
+    });
+}
+
+TEST(SiteIsolation, ExtendedProofreadingReplyReachesCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/control"_s, { "<body contenteditable></body>"_s } },
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body contenteditable></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    InstanceMethodSwizzler checkStringSwizzler {
+        NSSpellChecker.sharedSpellChecker.class,
+        @selector(checkString:range:types:options:inSpellDocumentWithTag:orthography:wordCount:),
+        reinterpret_cast<IMP>(swizzledCheckStringCountingChecks)
+    };
+    InstanceMethodSwizzler requestGrammarCheckingSwizzler {
+        NSSpellChecker.sharedSpellChecker.class,
+        @selector(requestGrammarCheckingOfString:range:language:options:completionHandler:),
+        reinterpret_cast<IMP>(swizzledRequestGrammarCheckingDeferringCompletion)
+    };
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration.get(), @"ExtendedProofreadingEnabled", true);
+
+    // Check the whole mechanism in a main frame first, so that a failure below can only be the routing of the reply.
+    {
+        auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/control"]]];
+        [navigationDelegate waitForDidFinishNavigation];
+        [webView _setContinuousSpellCheckingEnabledForTesting:YES];
+        [webView _setGrammarCheckingEnabledForTesting:YES];
+        [webView objectByEvaluatingJavaScript:@"document.body.focus()"];
+        EXPECT_TRUE(extendedProofreadingReplyTriggersRecheck(webView.get(), nil));
+    }
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configuration.get());
+    [webView _setContinuousSpellCheckingEnabledForTesting:YES];
+    [webView _setGrammarCheckingEnabledForTesting:YES];
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.body.focus()" inFrame:childFrame.get()];
+    EXPECT_TRUE(extendedProofreadingReplyTriggersRecheck(webView.get(), childFrame.get()));
+
+    pendingExtendedCheckCompletion = nullptr;
+    pendingExtendedCheckString = nil;
+}
+
+#endif // PLATFORM(MAC)
 
 } // namespace TestWebKitAPI

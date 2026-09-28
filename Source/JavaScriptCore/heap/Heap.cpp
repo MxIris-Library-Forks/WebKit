@@ -297,7 +297,7 @@ Heap::Heap(VM& vm, HeapType heapType)
     , m_objectSpace(this)
     , m_machineThreads(makeUnique<MachineThreads>())
     , m_collector(makeUnique<Collector>(*this))
-    , m_mutatorSlotVisitor(makeUnique<SlotVisitor>(*this, *m_collector, "M"_s))
+    , m_mutatorSlotVisitor(makeUnique<SlotVisitor>(*m_collector, "M"_s))
     , m_mutatorMarkStack(makeUnique<MarkStackArray>())
     , m_constraintSet(makeUnique<MarkingConstraintSet>(*this))
     , m_strongSet(vm)
@@ -395,7 +395,7 @@ Heap::Heap(VM& vm, HeapType heapType)
     // FIXME: move Collector related initialization into Collector
 
     for (unsigned i = 0, numberOfParallelThreads = heapHelperPool().numberOfThreads(); i < numberOfParallelThreads; ++i) {
-        std::unique_ptr<SlotVisitor> visitor = makeUnique<SlotVisitor>(*this, *m_collector, toASCIICString("P", i + 1));
+        std::unique_ptr<SlotVisitor> visitor = makeUnique<SlotVisitor>(*m_collector, toASCIICString("P", i + 1));
         if (Options::optimizeParallelSlotVisitorsForStoppedMutator())
             visitor->optimizeForStoppedMutator();
         m_collector->m_availableParallelSlotVisitors.append(visitor.get());
@@ -853,7 +853,7 @@ void Heap::beginMarking()
     setMutatorShouldBeFenced(true);
 
 #if ENABLE(WEBASSEMBLY)
-    prepareWasmCalleeCleanup();
+    beginMarkingWasmCallees();
 #endif
 }
 
@@ -937,7 +937,7 @@ void Heap::endMarking()
     setMutatorShouldBeFenced(Options::forceFencedBarrier());
 
 #if ENABLE(WEBASSEMBLY)
-    finalizeWasmCalleeCleanup();
+    releaseUnmarkedWasmCallees();
 #endif
 }
 
@@ -1800,7 +1800,7 @@ void Heap::willStartCollection()
 
     ++m_gcVersion;
     if (Options::verifyGC()) [[unlikely]] {
-        m_verifierSlotVisitor = makeUnique<VerifierSlotVisitor>(*this, *m_collector);
+        m_verifierSlotVisitor = makeUnique<VerifierSlotVisitor>(*m_collector);
         ASSERT(!m_isMarkingForGCVerifier);
     }
 
@@ -2745,9 +2745,11 @@ void Heap::removeGCCompletionCallback(const GCCompletionCallback& callback)
 void Heap::verifierMark()
 {
     RELEASE_ASSERT(!m_isMarkingForGCVerifier);
+    RELEASE_ASSERT(m_collectionScope);
 
     SetForScope isMarkingForGCVerifierScope(m_isMarkingForGCVerifier, true);
     VerifierSlotVisitor& visitor = *m_verifierSlotVisitor;
+    visitor.didStartMarking(m_collectionScope.value(), vm().activeHeapAnalyzer());
     do {
         while (!visitor.isEmpty())
             visitor.drain();
@@ -2876,21 +2878,21 @@ bool Heap::isWasmCalleePendingDestruction(Wasm::Callee& callee)
     return m_wasmCalleesPendingDestruction.contains(callee);
 }
 
-bool Heap::didDiscoverPendingWasmCallee(Wasm::Callee* callee)
+bool Heap::markWasmCalleeIfPending(Wasm::Callee* callee)
 {
     if (!m_wasmCalleesPendingDestructionSnapshot.contains(callee))
         return false;
-    m_wasmCalleesDiscoveredDuringGC.add(callee);
+    m_wasmCalleesFoundOnStacks.add(callee);
     return true;
 }
 
-void Heap::prepareWasmCalleeCleanup()
+void Heap::beginMarkingWasmCallees()
 {
     ASSERT(worldIsStopped());
     ASSERT(m_wasmCalleesPendingDestructionSnapshot.isEmpty());
-    ASSERT(m_wasmCalleesDiscoveredDuringGC.isEmpty());
+    ASSERT(m_wasmCalleesFoundOnStacks.isEmpty());
     m_wasmCalleesPendingDestructionSnapshot.clear();
-    m_wasmCalleesDiscoveredDuringGC.clear();
+    m_wasmCalleesFoundOnStacks.clear();
     m_boxedWasmCalleeFilter = TinyBloomFilter<uintptr_t>();
 
     Locker locker(m_wasmCalleesPendingDestructionLock);
@@ -2900,7 +2902,7 @@ void Heap::prepareWasmCalleeCleanup()
     }
 }
 
-void Heap::finalizeWasmCalleeCleanup()
+void Heap::releaseUnmarkedWasmCallees()
 {
     ASSERT(worldIsStopped());
     if (m_wasmCalleesPendingDestructionSnapshot.isEmpty())
@@ -2912,7 +2914,7 @@ void Heap::finalizeWasmCalleeCleanup()
         Locker locker(m_wasmCalleesPendingDestructionLock);
         wasmCalleesToRelease = m_wasmCalleesPendingDestruction.takeIf<8>([&](const auto& callee) {
             return m_wasmCalleesPendingDestructionSnapshot.contains(callee.ptr())
-                && !m_wasmCalleesDiscoveredDuringGC.contains(callee.ptr());
+                && !m_wasmCalleesFoundOnStacks.contains(callee.ptr());
         });
     }
 
@@ -2925,7 +2927,7 @@ void Heap::finalizeWasmCalleeCleanup()
         WTF::crossModifyingCodeFence();
 
     m_wasmCalleesPendingDestructionSnapshot.clear();
-    m_wasmCalleesDiscoveredDuringGC.clear();
+    m_wasmCalleesFoundOnStacks.clear();
 }
 
 #endif

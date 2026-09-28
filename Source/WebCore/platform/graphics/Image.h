@@ -27,6 +27,7 @@
 #pragma once
 
 #include <WebCore/ColorSpace.h>
+#include <WebCore/ConcreteObjectSize.h>
 #include <WebCore/DecodingOptions.h>
 #include <WebCore/FloatRect.h>
 #include <WebCore/ImageAdapter.h>
@@ -48,6 +49,7 @@ class FloatPoint;
 class FloatSize;
 class FragmentedSharedBuffer;
 class GraphicsContext;
+class ImageDrawingExtras;
 class NativeImage;
 class ShareableBitmap;
 class Timer;
@@ -170,12 +172,12 @@ public:
 
     enum TileRule { StretchTile, RoundTile, SpaceTile, RepeatTile };
 
-    virtual RefPtr<NativeImage> nativeImage(const ColorSpace& = ColorSpace::SRGB());
-    virtual RefPtr<NativeImage> nativeImageAtIndex(unsigned);
-    virtual RefPtr<NativeImage> currentNativeImage();
-    virtual RefPtr<NativeImage> currentPreTransformedNativeImage(ImageOrientation = ImageOrientation::Orientation::FromImage);
+    virtual RefPtr<NativeImage> nativeImage(ConcreteObjectSize, const ColorSpace& = ColorSpace::SRGB(), const ImageDrawingExtras* = nullptr);
+    virtual RefPtr<NativeImage> nativeImageAtIndex(unsigned, ConcreteObjectSize, const ImageDrawingExtras* = nullptr);
+    virtual RefPtr<NativeImage> currentNativeImage(ConcreteObjectSize, const ImageDrawingExtras* = nullptr);
+    virtual RefPtr<NativeImage> currentPreTransformedNativeImage(ConcreteObjectSize, ImageOrientation = ImageOrientation::Orientation::FromImage, const ImageDrawingExtras* = nullptr);
 
-    virtual void drawPattern(GraphicsContext&, const FloatRect& destRect, const FloatRect& srcRect, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImagePaintingOptions = { });
+    virtual void drawPattern(GraphicsContext&, ConcreteObjectSize, const FloatRect& destRect, const FloatRect& srcRect, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImagePaintingOptions = { }, const ImageDrawingExtras* = nullptr);
 
 #if ASSERT_ENABLED
     virtual bool hasSolidColor() { return false; }
@@ -194,6 +196,7 @@ public:
 
     virtual void dump(WTF::TextStream&) const;
 
+    WEBCORE_EXPORT RefPtr<ShareableBitmap> toShareableBitmap(ConcreteObjectSize) const;
     WEBCORE_EXPORT RefPtr<ShareableBitmap> toShareableBitmap() const;
 
 protected:
@@ -203,7 +206,7 @@ protected:
 
     virtual bool shouldDrawFromCachedSubimage(GraphicsContext&) const { return false; }
     virtual bool mustDrawFromCachedSubimage(GraphicsContext&) const { return false; }
-    virtual ImageDrawResult draw(GraphicsContext&, const FloatRect& dstRect, const FloatRect& srcRect, ImagePaintingOptions = { }) = 0;
+    virtual ImageDrawResult draw(GraphicsContext&, ConcreteObjectSize, const FloatRect& dstRect, const FloatRect& srcRect, ImagePaintingOptions = { }, const ImageDrawingExtras* = nullptr) = 0;
     ImageDrawResult drawTiled(GraphicsContext&, const FloatRect& dstRect, const FloatPoint& srcPoint, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions = { });
     ImageDrawResult drawTiled(GraphicsContext&, const FloatRect& dstRect, const FloatRect& srcRect, const FloatSize& tileScaleFactor, TileRule hRule, TileRule vRule, ImagePaintingOptions = { });
 
@@ -218,11 +221,11 @@ protected:
 private:
     RefPtr<FragmentedSharedBuffer> m_encodedImageData;
     WeakPtr<ImageObserver> m_imageObserver;
-    std::unique_ptr<ImageAdapter> m_adapter;
+    const std::unique_ptr<ImageAdapter> m_adapter;
 
     // A value of true or false will override the default Page::imageAnimationEnabled state.
     std::optional<bool> m_allowsAnimation { std::nullopt };
-    std::unique_ptr<Timer> m_animationStartTimer;
+    const std::unique_ptr<Timer> m_animationStartTimer;
     WEBCORE_EXPORT static bool gSystemAllowsAnimationControls;
 };
 

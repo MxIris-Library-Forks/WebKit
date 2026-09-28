@@ -806,6 +806,7 @@ public:
 
     void forceAXObjectCacheUpdate() const;
     void setAccessibilityAnnouncementTranslationTimeout(double seconds);
+    void setAccessibilityFormErrorSettleDelay(double seconds);
     unsigned liveRegionSnapshotBuildCount() const;
     void resetLiveRegionSnapshotBuildCount() const;
     void setShouldMockParentSearchResultsForTesting(bool);
@@ -1800,17 +1801,17 @@ private:
     std::unique_ptr<TextIterator> m_textIterator;
 
 #if ENABLE(WEBXR)
-    RefPtr<WebXRTest> m_xrTest;
+    const RefPtr<WebXRTest> m_xrTest;
 #endif
 
 #if ENABLE(SPEECH_SYNTHESIS)
     RefPtr<PlatformSpeechSynthesizerMock> m_platformSpeechSynthesizer;
 #endif
 #if ENABLE(MEDIA_SESSION_COORDINATOR)
-    RefPtr<MockMediaSessionCoordinator> m_mockMediaSessionCoordinator;
+    const RefPtr<MockMediaSessionCoordinator> m_mockMediaSessionCoordinator;
 #endif
 #if ENABLE(VIDEO)
-    std::unique_ptr<CaptionUserPreferencesTestingModeToken> m_testingModeToken;
+    const std::unique_ptr<CaptionUserPreferencesTestingModeToken> m_testingModeToken;
     RefPtr<MockCaptionDisplaySettingsClientCallback> m_mockCaptionDisplaySettingsClientCallback;
 #endif
 #if ENABLE(WIRELESS_PLAYBACK_MEDIA_PLAYER)

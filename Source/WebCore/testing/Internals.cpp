@@ -28,6 +28,7 @@
 #include "Internals.h"
 
 #include "AXCrossProcessSearch.h"
+#include "AXFormActivityMonitor.h"
 #include "AXObjectCacheInlines.h"
 #include "AnimationTimeline.h"
 #include "AnimationTimelinesController.h"
@@ -689,6 +690,9 @@ void Internals::resetToConsistentState(Page& page)
     AXObjectCache::setEnhancedUserInterfaceAccessibility(false);
     AXObjectCache::disableAccessibilityForTesting();
     AXObjectCache::setAnnouncementTranslationTimeoutForTesting(std::nullopt);
+#if PLATFORM(COCOA)
+    AXFormActivityMonitor::setSettleDelayForTesting(std::nullopt);
+#endif
     WebCore::setShouldMockParentSearchResultsForTesting(false);
     WebCore::setShouldMockChildFrameSearchResultsForTesting(false);
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
@@ -791,7 +795,7 @@ Internals::Internals(Document& document)
 
 #if ENABLE(VIDEO)
     if (RefPtr page = document.page())
-        m_testingModeToken = protect(page->group())->ensureCaptionPreferences().createTestingModeToken().moveToUniquePtr();
+        lazyInitialize(m_testingModeToken, protect(page->group())->ensureCaptionPreferences().createTestingModeToken().moveToUniquePtr());
 #endif
 
     if (contextDocument() && protect(contextDocument())->frame()) {
@@ -4911,6 +4915,15 @@ void Internals::setAccessibilityAnnouncementTranslationTimeout(double seconds)
     AXObjectCache::setAnnouncementTranslationTimeoutForTesting(Seconds { seconds });
 }
 
+void Internals::setAccessibilityFormErrorSettleDelay(double seconds)
+{
+#if PLATFORM(COCOA)
+    AXFormActivityMonitor::setSettleDelayForTesting(Seconds { seconds });
+#else
+    UNUSED_PARAM(seconds);
+#endif
+}
+
 unsigned Internals::liveRegionSnapshotBuildCount() const
 {
     if (RefPtr document = contextDocument()) {
@@ -8292,7 +8305,7 @@ ExceptionOr<Ref<WebXRTest>> Internals::xrTest()
         if (!navigator)
             return Exception { ExceptionCode::InvalidAccessError };
 
-        m_xrTest = WebXRTest::create(NavigatorWebXR::xr(*navigator));
+        lazyInitialize(m_xrTest, WebXRTest::create(NavigatorWebXR::xr(*navigator)));
     }
     return Ref<WebXRTest> { *m_xrTest };
 }
@@ -8382,7 +8395,7 @@ void Internals::loadArtworkImage(String&& url, ArtworkImagePromise&& promise)
             return;
 
         auto promise = std::exchange(protectedThis->m_artworkImagePromise, { });
-        RefPtr nativeImage = image ? image->nativeImage() : nullptr;
+        RefPtr nativeImage = image ? image->nativeImage(ConcreteObjectSize::fixed(image->size())) : nullptr;
         if (!nativeImage) {
             promise->reject(Exception { ExceptionCode::InvalidAccessError, "No image retrieved."_s });
             return;
@@ -8424,7 +8437,7 @@ ExceptionOr<void> Internals::registerMockMediaSessionCoordinator(ScriptExecution
 
     Ref session = NavigatorMediaSession::mediaSession(protect(protect(document->window())->navigator()));
     auto mock = MockMediaSessionCoordinator::create(context, WTF::move(listener));
-    m_mockMediaSessionCoordinator = mock.ptr();
+    lazyInitialize(m_mockMediaSessionCoordinator, mock.copyRef());
     session->coordinator().setMediaSessionCoordinatorPrivate(WTF::move(mock));
 
     return { };

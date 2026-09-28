@@ -1232,7 +1232,7 @@ public:
 
     std::optional<std::pair<IPC::AsyncReplyID, Ref<IPC::Connection>>> takeOutstandingPositionInformationReply();
 
-    void selectPositionAtPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, CompletionHandler<void()>&&);
+    void selectPositionAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, bool isInteractingWithFocusedElement, CompletionHandler<void()>&&);
     void updateSelectionWithExtentPoint(WebCore::IntPoint, bool isInteractingWithFocusedElement, RespectSelectionAnchor, CompletionHandler<void(bool)>&&);
     void updateSelectionWithExtentPointAndBoundary(WebCore::IntPoint, WebCore::TextGranularity, bool isInteractingWithFocusedElement, TextInteractionSource, SelectionExtentAnchor, CompletionHandler<void(bool)>&&);
     void updateSelectionWithExtentPointAndBoundary(WebCore::IntPoint, WebCore::TextGranularity, bool isInteractingWithFocusedElement, TextInteractionSource, CompletionHandler<void(bool)>&&);
@@ -2123,9 +2123,6 @@ public:
     void didApplyLinkDecorationFiltering(const URL&, const URL&);
 
     SpellDocumentTag spellDocumentTag();
-
-    void didFinishCheckingText(TextCheckerRequestID, const Vector<WebCore::TextCheckingResult>&);
-    void didCancelCheckingText(TextCheckerRequestID);
         
     void setScrollPinningBehavior(WebCore::ScrollPinningBehavior);
     WebCore::ScrollPinningBehavior NODELETE scrollPinningBehavior() const;
@@ -2781,7 +2778,7 @@ public:
 #endif
 
 #if ENABLE(ATTACHMENT_ELEMENT) && PLATFORM(MAC)
-    bool updateIconForDirectory(NSFileWrapper *, const String&);
+    bool updateIconForDirectory(NSFileWrapper *, const String&, WebProcessProxy&, WebCore::PageIdentifier);
 #endif
 
 #if ENABLE(NOTIFICATIONS)
@@ -3444,8 +3441,8 @@ private:
     void updateSpellingUIWithGrammarString(const String& badGrammarPhrase, const WebCore::GrammarDetail&);
     void learnWord(IPC::Connection&, const String& word);
     void ignoreWord(IPC::Connection&, const String& word);
-    void requestCheckingOfString(TextCheckerRequestID, const WebCore::TextCheckingRequestData&, int32_t insertionPoint);
-    void requestExtendedCheckingOfString(TextCheckerRequestID, const WebCore::TextCheckingRequestData&, int32_t insertionPoint);
+    void requestCheckingOfString(IPC::Connection&, TextCheckerRequestID, const WebCore::TextCheckingRequestData&, int32_t insertionPoint);
+    void requestExtendedCheckingOfString(IPC::Connection&, TextCheckerRequestID, const WebCore::TextCheckingRequestData&, int32_t insertionPoint);
 
     void takeFocus(WebCore::FocusDirection);
     void setToolTip(const String&);
@@ -3894,7 +3891,7 @@ private:
     const Ref<WebUserContentControllerProxy> m_userContentController;
 
 #if ENABLE(WK_WEB_EXTENSIONS)
-    RefPtr<WebExtensionController> m_webExtensionController;
+    const RefPtr<WebExtensionController> m_webExtensionController;
     WeakPtr<WebExtensionController> m_weakWebExtensionController;
 #endif
 
@@ -3918,7 +3915,7 @@ private:
     String m_overrideContentSecurityPolicy;
     String m_openedMainFrameName;
 
-    RefPtr<WebInspectorUIProxy> m_inspector;
+    const RefPtr<WebInspectorUIProxy> m_inspector;
 
     struct PendingUndoRedo {
         WebUndoStepID stepID;
@@ -3941,7 +3938,7 @@ private:
 #endif
 
 #if ENABLE(MEDIA_USAGE)
-    std::unique_ptr<MediaUsageManager> m_mediaUsageManager;
+    const std::unique_ptr<MediaUsageManager> m_mediaUsageManager;
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -4106,7 +4103,7 @@ private:
     bool m_shouldSuppressSOAuthorizationInNextNavigationPolicyDecision { false };
 #endif
 
-    std::unique_ptr<WebWheelEventCoalescer> m_wheelEventCoalescer;
+    const std::unique_ptr<WebWheelEventCoalescer> m_wheelEventCoalescer;
 
     std::optional<WebCore::PlatformDisplayID> m_displayID;
 
@@ -4194,7 +4191,7 @@ private:
     bool m_madeViewBlankDueToLackOfRenderingUpdate { false };
 
 #if PLATFORM(COCOA)
-    std::unique_ptr<WebCore::RunLoopObserver> m_activityStateChangeDispatcher;
+    const std::unique_ptr<WebCore::RunLoopObserver> m_activityStateChangeDispatcher;
 
     std::unique_ptr<RemoteLayerTreeScrollingPerformanceData> m_scrollingPerformanceData;
     bool m_scrollPerformanceDataCollectionEnabled { false };
@@ -4362,14 +4359,14 @@ private:
     bool m_usingOverrideHardwareConcurrency { false };
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    RefPtr<ListDataObserver> m_linkDecorationFilteringDataUpdateObserver;
+    const RefPtr<ListDataObserver> m_linkDecorationFilteringDataUpdateObserver;
     bool m_needsInitialLinkDecorationFilteringData { true };
     bool m_shouldUpdateAllowedQueryParametersForAdvancedPrivacyProtections { false };
     OptionSet<WebCore::AdvancedPrivacyProtections> m_advancedPrivacyProtectionsPolicies;
 #endif
 
 #if ENABLE(APP_HIGHLIGHTS)
-    RetainPtr<SYNotesActivationObserver> m_appHighlightsObserver;
+    const RetainPtr<SYNotesActivationObserver> m_appHighlightsObserver;
 #endif
 
 #if ENABLE(IMAGE_ANALYSIS) && PLATFORM(MAC)

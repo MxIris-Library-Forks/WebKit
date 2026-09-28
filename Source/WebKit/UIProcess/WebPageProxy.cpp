@@ -1041,7 +1041,7 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
         webExtensionController->addPage(*this);
 #endif
 
-    m_inspector = WebInspectorUIProxy::create(*this);
+    lazyInitialize(m_inspector, WebInspectorUIProxy::create(*this));
 
     if (hasRunningProcess())
         didAttachToRunningProcess();
@@ -1056,10 +1056,10 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
 #endif
 
 #if PLATFORM(COCOA)
-    m_activityStateChangeDispatcher = makeUnique<RunLoopObserver>(RunLoopObserver::WellKnownOrder::ActivityStateChange, [weakThis = WeakPtr { *this }] {
+    lazyInitialize(m_activityStateChangeDispatcher, makeUnique<RunLoopObserver>(RunLoopObserver::WellKnownOrder::ActivityStateChange, [weakThis = WeakPtr { *this }] {
         if (RefPtr protectedThis = weakThis)
             protectedThis->dispatchActivityStateChange();
-    });
+    }));
 #endif
 
 #if ENABLE(REMOTE_INSPECTOR)
@@ -1090,10 +1090,10 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
     m_pageToCloneSessionStorageFrom = configuration->pageToCloneSessionStorageFrom();
 
 #if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    m_linkDecorationFilteringDataUpdateObserver = LinkDecorationFilteringController::sharedSingleton().observeUpdates([weakThis = WeakPtr { *this }] {
+    lazyInitialize(m_linkDecorationFilteringDataUpdateObserver, LinkDecorationFilteringController::sharedSingleton().observeUpdates([weakThis = WeakPtr { *this }] {
         if (RefPtr protectedThis = weakThis.get())
             protectedThis->sendCachedLinkDecorationFilteringData();
-    });
+    }));
 
     if (protect(preferences())->scriptTrackingPrivacyProtectionsEnabled())
         protect(process.processPool())->observeScriptTrackingPrivacyUpdatesIfNeeded();
@@ -1489,7 +1489,7 @@ void WebPageProxy::launchProcess(const Site& site, ProcessLaunchReason reason)
     // In case we are currently connected to the dummy process, we need to make sure the inspector proxy
     // disconnects from the dummy process first. Do not call inspector() since it returns null after the
     // page has closed.
-    protect(m_inspector)->reset();
+    m_inspector->reset();
 
     protect(legacyMainFrameProcess())->removeWebPage(*this, WebProcessProxy::EndsUsingDataStore::Yes);
     removeAllMessageReceivers();
@@ -1840,7 +1840,7 @@ RefPtr<API::Navigation> WebPageProxy::launchProcessForReload()
         return nullptr;
     }
 
-    Ref navigation = m_navigationState->createReloadNavigation(legacyMainFrameProcess().coreProcessIdentifier(), protect(backForwardList().currentItem()));
+    Ref navigation = m_navigationState->createReloadNavigation(legacyMainFrameProcess().coreProcessIdentifier(), backForwardList().currentItem());
 
     String url = currentURL();
     if (!url.isEmpty()) {
@@ -2010,8 +2010,8 @@ void WebPageProxy::close()
 #endif
 
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = m_webExtensionController)
-        webExtensionController->removePage(*this);
+    if (m_webExtensionController)
+        m_webExtensionController->removePage(*this);
     if (RefPtr webExtensionController = m_weakWebExtensionController.get())
         webExtensionController->removePage(*this);
 #endif
@@ -2026,7 +2026,7 @@ void WebPageProxy::close()
     m_pageForTesting = nullptr;
 
     // Do not call inspector() since it returns null after the page has closed.
-    protect(m_inspector)->invalidate();
+    m_inspector->invalidate();
 
     backForwardList().pageClosed();
     m_inspectorController->pageClosed();
@@ -2338,7 +2338,7 @@ RefPtr<API::Navigation> WebPageProxy::loadRequest(WebCore::ResourceRequest&& req
     if (!hasRunningProcess())
         launchProcess(Site { request.url() }, ProcessLaunchReason::InitialProcess);
 
-    Ref navigation = m_navigationState->createLoadRequestNavigation(legacyMainFrameProcess().coreProcessIdentifier(), ResourceRequest(request), protect(backForwardList().currentItem()));
+    Ref navigation = m_navigationState->createLoadRequestNavigation(legacyMainFrameProcess().coreProcessIdentifier(), ResourceRequest(request), backForwardList().currentItem());
 
     if (lastNavigationAction)
         navigation->setLastNavigationAction(*lastNavigationAction);
@@ -2502,7 +2502,7 @@ RefPtr<API::Navigation> WebPageProxy::loadFile(const String& fileURLString, cons
         }
     }
 
-    Ref navigation = m_navigationState->createLoadRequestNavigation(legacyMainFrameProcess().coreProcessIdentifier(), ResourceRequest(URL { fileURL }), protect(backForwardList().currentItem()));
+    Ref navigation = m_navigationState->createLoadRequestNavigation(legacyMainFrameProcess().coreProcessIdentifier(), ResourceRequest(URL { fileURL }), backForwardList().currentItem());
 
     navigation->markRequestAsFromClientInput();
 
@@ -2645,7 +2645,7 @@ RefPtr<API::Navigation> WebPageProxy::loadSimulatedRequest(WebCore::ResourceRequ
     if (!hasRunningProcess())
         launchProcess(Site { simulatedRequest.url() }, ProcessLaunchReason::InitialProcess);
 
-    Ref navigation = m_navigationState->createSimulatedLoadWithDataNavigation(legacyMainFrameProcess().coreProcessIdentifier(), ResourceRequest(simulatedRequest), makeUnique<API::SubstituteData>(Vector(data->span()), ResourceResponse(simulatedResponse), WebCore::SubstituteData::SessionHistoryVisibility::Visible), protect(backForwardList().currentItem()));
+    Ref navigation = m_navigationState->createSimulatedLoadWithDataNavigation(legacyMainFrameProcess().coreProcessIdentifier(), ResourceRequest(simulatedRequest), makeUnique<API::SubstituteData>(Vector(data->span()), ResourceResponse(simulatedResponse), WebCore::SubstituteData::SessionHistoryVisibility::Visible), backForwardList().currentItem());
 
     if (shouldForceForegroundPriorityForClientNavigation())
         setClientNavigationActivity(navigation);
@@ -2812,7 +2812,7 @@ RefPtr<API::Navigation> WebPageProxy::reload(OptionSet<WebCore::ReloadOption> op
     if (!hasRunningProcess())
         return launchProcessForReload();
 
-    Ref navigation = m_navigationState->createReloadNavigation(legacyMainFrameProcess().coreProcessIdentifier(), protect(backForwardList().currentItem()));
+    Ref navigation = m_navigationState->createReloadNavigation(legacyMainFrameProcess().coreProcessIdentifier(), backForwardList().currentItem());
 
     String url = currentURL();
     if (!url.isEmpty()) {
@@ -2984,7 +2984,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
         }
     }
 
-    Ref navigation = m_navigationState->createBackForwardNavigation(process->coreProcessIdentifier(), frameItem, protect(backForwardList().currentItem()), frameLoadType);
+    Ref navigation = m_navigationState->createBackForwardNavigation(process->coreProcessIdentifier(), frameItem, backForwardList().currentItem(), frameLoadType);
     Ref pageLoadState = internals().pageLoadState;
     auto transaction = pageLoadState->transaction();
     pageLoadState->setPendingAPIRequest(transaction, { navigation->navigationID(), URL { item->url() } });
@@ -5239,7 +5239,7 @@ void WebPageProxy::updateWheelEventActivityAfterProcessSwap()
 WebWheelEventCoalescer& WebPageProxy::wheelEventCoalescer()
 {
     if (!m_wheelEventCoalescer)
-        m_wheelEventCoalescer = makeUnique<WebWheelEventCoalescer>();
+        lazyInitialize(m_wheelEventCoalescer, makeUnique<WebWheelEventCoalescer>());
 
     return *m_wheelEventCoalescer;
 }
@@ -10143,7 +10143,7 @@ void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& proces
             }
         }
         if (!navigation)
-            navigation = m_navigationState->createLoadRequestNavigation(process->coreProcessIdentifier(), ResourceRequest(request), protect(backForwardList().currentItem()));
+            navigation = m_navigationState->createLoadRequestNavigation(process->coreProcessIdentifier(), ResourceRequest(request), backForwardList().currentItem());
     }
 
     // Store frameState on navigation for Site Isolation process swap.
@@ -13794,28 +13794,19 @@ void WebPageProxy::ignoreWord(IPC::Connection& connection, const String& word)
     TextChecker::ignoreWord(spellDocumentTag(), word);
 }
 
-void WebPageProxy::requestCheckingOfString(TextCheckerRequestID requestID, const TextCheckingRequestData& request, int32_t insertionPoint)
+void WebPageProxy::requestCheckingOfString(IPC::Connection& connection, TextCheckerRequestID requestID, const TextCheckingRequestData& request, int32_t insertionPoint)
 {
-    TextChecker::requestCheckingOfString(TextCheckerCompletion::create(requestID, request, *this), insertionPoint);
+    Ref process = WebProcessProxy::fromConnection(connection);
+    TextChecker::requestCheckingOfString(TextCheckerCompletion::create(requestID, request, *this, process, webPageIDInProcess(process)), insertionPoint);
 }
 
 
-void WebPageProxy::requestExtendedCheckingOfString(TextCheckerRequestID requestID, const TextCheckingRequestData& request, int32_t insertionPoint)
+void WebPageProxy::requestExtendedCheckingOfString(IPC::Connection& connection, TextCheckerRequestID requestID, const TextCheckingRequestData& request, int32_t insertionPoint)
 {
 #if PLATFORM(COCOA)
-    TextChecker::requestExtendedCheckingOfString(TextCheckerCompletion::create(requestID, request, *this), insertionPoint);
+    Ref process = WebProcessProxy::fromConnection(connection);
+    TextChecker::requestExtendedCheckingOfString(TextCheckerCompletion::create(requestID, request, *this, process, webPageIDInProcess(process)), insertionPoint);
 #endif
-}
-
-
-void WebPageProxy::didFinishCheckingText(TextCheckerRequestID requestID, const Vector<WebCore::TextCheckingResult>& result)
-{
-    send(Messages::WebPage::DidFinishCheckingText(requestID, result));
-}
-
-void WebPageProxy::didCancelCheckingText(TextCheckerRequestID requestID)
-{
-    send(Messages::WebPage::DidCancelCheckingText(requestID));
 }
 
 void WebPageProxy::focusFromServiceWorker(CompletionHandler<void()>&& callback)
@@ -14322,7 +14313,7 @@ URL WebPageProxy::currentResourceDirectoryURL() const
     auto resourceDirectoryURL = internals().pageLoadState.resourceDirectoryURL();
     if (!resourceDirectoryURL.isEmpty())
         return resourceDirectoryURL;
-    if (auto* item = backForwardList().currentItem())
+    if (RefPtr item = backForwardList().currentItem())
         return item->resourceDirectoryURL();
     return { };
 }
@@ -14484,7 +14475,7 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
     closeOverlayedViews();
 
     // Do not call inspector() since it returns null after the page has closed.
-    protect(m_inspector)->reset();
+    m_inspector->reset();
 
 #if ENABLE(FULLSCREEN_API)
     if (m_fullScreenManager) {
@@ -15045,8 +15036,8 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.portsForUpgradingInsecureSchemeForTesting = m_configuration->portsForUpgradingInsecureSchemeForTesting();
 
 #if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
-    if (RefPtr webExtensionController = m_webExtensionController)
-        parameters.webExtensionControllerParameters = webExtensionController->parameters(m_configuration, process);
+    if (m_webExtensionController)
+        parameters.webExtensionControllerParameters = m_webExtensionController->parameters(m_configuration, process);
 
     if (RefPtr weakWebExtensionController = m_weakWebExtensionController.get())
         parameters.webExtensionControllerParameters = weakWebExtensionController->parameters(m_configuration, process);
@@ -18156,6 +18147,10 @@ void WebPageProxy::requestAttachmentIcon(IPC::Connection& connection, const Stri
 {
     MESSAGE_CHECK_BASE(protect(preferences())->attachmentElementEnabled(), connection);
 
+    // The icon goes to the process that asked for it, which is the one whose document contains the attachment.
+    Ref process = WebProcessProxy::fromConnection(connection);
+    auto pageID = webPageIDInProcess(process);
+
     auto updateAttachmentIcon = [&, protectedThis = Ref { *this }] {
         FloatSize size = requestedSize;
         std::optional<ShareableBitmap::Handle> handle;
@@ -18167,13 +18162,13 @@ void WebPageProxy::requestAttachmentIcon(IPC::Connection& connection, const Stri
         }
 #endif
 
-        protect(legacyMainFrameProcess())->send(Messages::WebPage::UpdateAttachmentIcon(identifier, WTF::move(handle), size), webPageIDInMainFrameProcess());
+        process->send(Messages::WebPage::UpdateAttachmentIcon(identifier, WTF::move(handle), size), pageID);
     };
 
 #if PLATFORM(MAC)
     if (RefPtr attachment = attachmentForIdentifier(identifier); attachment && attachment->shouldUseFileWrapperIconForDirectory()) {
         attachment->doWithFileWrapper([&, updateAttachmentIcon = WTF::move(updateAttachmentIcon)] (NSFileWrapper *fileWrapper) {
-            if (updateIconForDirectory(fileWrapper, attachment->identifier()))
+            if (updateIconForDirectory(fileWrapper, attachment->identifier(), process, pageID))
                 return;
 
             updateAttachmentIcon();
@@ -18196,13 +18191,23 @@ RefPtr<API::Attachment> WebPageProxy::attachmentForIdentifier(const String& iden
 void WebPageProxy::insertAttachment(Ref<API::Attachment>&& attachment, CompletionHandler<void()>&& callback)
 {
     auto attachmentIdentifier = attachment->identifier();
-    sendWithAsyncReply(Messages::WebPage::InsertAttachment(attachmentIdentifier, attachment->fileSizeForDisplay(), attachment->fileName(), attachment->contentType()), WTF::move(callback));
+
+    // The attachment is inserted at the focused frame's selection, so its element will be in that frame's process.
+    // Record that now, since the client can update the attachment before that process reports the insertion.
+    if (RefPtr frame = focusedOrMainFrame())
+        attachment->setOwningProcess(protect(frame->process()));
+
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::InsertAttachment(attachmentIdentifier, attachment->fileSizeForDisplay(), attachment->fileName(), attachment->contentType()), WTF::move(callback));
     m_attachmentIdentifierToAttachmentMap.set(attachmentIdentifier, WTF::move(attachment));
 }
 
 void WebPageProxy::updateAttachmentAttributes(const API::Attachment& attachment, CompletionHandler<void()>&& callback)
 {
-    sendWithAsyncReply(Messages::WebPage::UpdateAttachmentAttributes(attachment.identifier(), attachment.fileSizeForDisplay(), attachment.contentType(), attachment.fileName(), IPC::SharedBufferReference(attachment.associatedElementData())), WTF::move(callback));
+    // The element is in the document of the process that reported it, which can be other than the main frame's.
+    RefPtr process = attachment.owningProcess();
+    if (!process)
+        process = &legacyMainFrameProcess();
+    process->sendWithAsyncReply(Messages::WebPage::UpdateAttachmentAttributes(attachment.identifier(), attachment.fileSizeForDisplay(), attachment.contentType(), attachment.fileName(), IPC::SharedBufferReference(attachment.associatedElementData())), WTF::move(callback), webPageIDInProcess(*process));
 }
 
 void WebPageProxy::registerAttachmentIdentifierFromData(IPC::Connection& connection, const String& identifier, const String& contentType, const String& preferredFileName, const IPC::SharedBufferReference& data)
@@ -18344,6 +18349,7 @@ void WebPageProxy::didInsertAttachmentWithIdentifier(IPC::Connection& connection
     MESSAGE_CHECK_BASE(IdentifierToAttachmentMap::isValidKey(identifier), connection);
 
     Ref attachment = ensureAttachment(identifier);
+    attachment->setOwningProcess(WebProcessProxy::fromConnection(connection));
     attachment->setAssociatedElementType(associatedElementType);
     attachment->setInsertionState(API::Attachment::InsertionState::Inserted);
     if (RefPtr pageClient = this->pageClient())
@@ -19783,6 +19789,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::Potential
 #endif
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithGesture);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtPoint);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectTextWithGranularityAtPoint);
 #endif
 #if PLATFORM(IOS_FAMILY)

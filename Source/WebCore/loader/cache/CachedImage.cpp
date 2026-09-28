@@ -228,7 +228,7 @@ void CachedImage::allClientsRemoved()
         image->resetAnimation();
 }
 
-std::pair<WeakPtr<BitmapImage>, float> CachedImage::brokenImage(float deviceScaleFactor) const
+std::pair<WeakPtr<BitmapImage>, float> CachedImage::brokenImage(float deviceScaleFactor)
 {
     if (deviceScaleFactor >= 3) {
         static NeverDestroyed<BitmapImage*> brokenImageVeryHiRes(&ImageAdapter::loadPlatformResource("missingImage@3x").leakRef());
@@ -365,6 +365,13 @@ void CachedImage::computeIntrinsicDimensions(float& intrinsicWidth, float& intri
 {
     if (RefPtr image = m_image)
         image->computeIntrinsicDimensions(intrinsicWidth, intrinsicHeight, intrinsicRatio);
+}
+
+NaturalDimensions CachedImage::naturalDimensions(ImageOrientation orientation) const
+{
+    if (RefPtr image = m_image)
+        return image->naturalDimensions(orientation);
+    return NaturalDimensions::none();
 }
 
 bool CachedImage::hasHDRContent() const

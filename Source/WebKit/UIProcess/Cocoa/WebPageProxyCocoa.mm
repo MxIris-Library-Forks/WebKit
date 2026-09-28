@@ -154,6 +154,10 @@ SOFT_LINK_CLASS_OPTIONAL(AppleMediaServicesUI, AMSUIEngagementTask)
 
 #define WEBPAGEPROXY_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [pageProxyID=%llu, webPageID=%llu, PID=%i] WebPageProxy::" fmt, this, identifier().toUInt64(), webPageIDInMainFrameProcess().toUInt64(), m_legacyMainFrameProcess->processID(), ##__VA_ARGS__)
 
+#if USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/WebPageProxyCocoaAdditionsImpl.mm>)
+#import <WebKitAdditions/WebPageProxyCocoaAdditionsImpl.mm>
+#endif
+
 namespace WebKit {
 using namespace WebCore;
 
@@ -791,7 +795,7 @@ void WebPageProxy::didCreateContextInModelProcessForVisibilityPropagation(LayerH
 MediaUsageManager& WebPageProxy::mediaUsageManager()
 {
     if (!m_mediaUsageManager)
-        m_mediaUsageManager = MediaUsageManager::create();
+        lazyInitialize(m_mediaUsageManager, MediaUsageManager::create());
 
     return *m_mediaUsageManager;
 }
@@ -846,7 +850,7 @@ void WebPageProxy::exitExternalPlayback()
 
 #if ENABLE(ATTACHMENT_ELEMENT) && PLATFORM(MAC)
 
-bool WebPageProxy::updateIconForDirectory(NSFileWrapper *fileWrapper, const String& identifier)
+bool WebPageProxy::updateIconForDirectory(NSFileWrapper *fileWrapper, const String& identifier, WebProcessProxy& process, WebCore::PageIdentifier pageID)
 {
     RetainPtr image = [fileWrapper icon];
     if (!image)
@@ -859,7 +863,7 @@ bool WebPageProxy::updateIconForDirectory(NSFileWrapper *fileWrapper, const Stri
     auto handle = convertedImage->createHandle();
     if (!handle)
         return false;
-    protect(legacyMainFrameProcess())->send(Messages::WebPage::UpdateAttachmentIcon(identifier, WTF::move(handle), iconSize), webPageIDInMainFrameProcess());
+    process.send(Messages::WebPage::UpdateAttachmentIcon(identifier, WTF::move(handle), iconSize), pageID);
     return true;
 }
 
@@ -997,7 +1001,7 @@ void WebPageProxy::setUpHighlightsObserver()
         });
     };
     
-    m_appHighlightsObserver = adoptNS([allocSYNotesActivationObserverInstance() initWithHandler:updateAppHighlightsVisibility]);
+    lazyInitialize(m_appHighlightsObserver, adoptNS([allocSYNotesActivationObserverInstance() initWithHandler:updateAppHighlightsVisibility]));
 }
 
 #endif
@@ -2288,16 +2292,24 @@ void WebPageProxy::requestPositionInformationInFrame(std::optional<WebCore::Fram
         internals().outstandingPositionInformationRequest = { { request, *replyID, process->connection() } };
 }
 
-void WebPageProxy::selectPositionAtPoint(WebCore::IntPoint point, bool isInteractingWithFocusedElement, CompletionHandler<void()>&& callbackFunction)
+void WebPageProxy::selectPositionAtPoint(std::optional<WebCore::FrameIdentifier> frameID, WebCore::IntPoint point, bool isInteractingWithFocusedElement, CompletionHandler<void()>&& callbackFunction)
 {
     if (!hasRunningProcess()) {
         callbackFunction();
         return;
     }
 
-    WTF::protect(legacyMainFrameProcess())->sendWithAsyncReply(Messages::WebPage::SelectPositionAtPoint(point, isInteractingWithFocusedElement), [callbackFunction = WTF::move(callbackFunction), backgroundActivity = protect(m_legacyMainFrameProcess->throttler())->backgroundActivity("WebPageProxy::selectPositionAtPoint"_s)] mutable {
+    Ref process = processContainingFrame(frameID);
+    auto backgroundActivity = protect(process->throttler())->backgroundActivity("WebPageProxy::selectPositionAtPoint"_s);
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::SelectPositionAtPoint(frameID, point, isInteractingWithFocusedElement), Messages::WebPage::SelectPositionAtPoint::Reply { [weakThis = WeakPtr { *this }, isInteractingWithFocusedElement, callbackFunction = WTF::move(callbackFunction), backgroundActivity = WTF::move(backgroundActivity)](std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) mutable {
+        RefPtr protectedThis = weakThis.get();
+        if (protectedThis && remoteUserInputEventData) {
+            // The gesture landed on a cross-origin frame; re-dispatch it into that frame's process.
+            protectedThis->selectPositionAtPoint(remoteUserInputEventData->targetFrameID, roundedIntPoint(FloatPoint { remoteUserInputEventData->transformedPoint }), isInteractingWithFocusedElement, WTF::move(callbackFunction));
+            return;
+        }
         callbackFunction();
-    }, webPageIDInMainFrameProcess());
+    } });
 }
 
 void WebPageProxy::selectTextWithGranularityAtPoint(std::optional<WebCore::FrameIdentifier> frameID, WebCore::IntPoint point, WebCore::TextGranularity granularity, bool isInteractingWithFocusedElement, CompletionHandler<void()>&& callbackFunction)

@@ -47,6 +47,8 @@
 #include "HTMLPictureElement.h"
 #include "HTMLSourceElement.h"
 #include "HTMLSrcsetParser.h"
+#include "ImageOrientation.h"
+#include "ImageRequestState.h"
 #include "JSRequestPriority.h"
 #include "LazyLoadElementObserver.h"
 #include "LocalFrameView.h"
@@ -67,6 +69,8 @@
 #include "Settings.h"
 #include "ShadowRoot.h"
 #include "SizesAttributeParser.h"
+#include "StyleComputedStyle.h"
+#include "StyleImageOrientation.h"
 #include "StyleZoomPrimitivesInlines.h"
 #include <wtf/TZoneMallocInlines.h>
 #include "DocumentPage.h"
@@ -918,6 +922,27 @@ bool HTMLImageElement::allowsOrientationOverride() const
     return true;
 }
 
+ImageOrientation HTMLImageElement::orientationForSourceImage()
+{
+    if (!allowsOrientationOverride())
+        return ImageOrientation::Orientation::FromImage;
+    if (CheckedPtr renderer = this->renderer())
+        return Style::toPlatform(renderer->style().imageOrientationOutOfLine()).orientation();
+    if (CheckedPtr computedStyle = this->computedStyle())
+        return Style::toPlatform(computedStyle->imageOrientationOutOfLine()).orientation();
+    return ImageOrientation::Orientation::FromImage;
+}
+
+ImageRequestState HTMLImageElement::currentRequestState() const
+{
+    return m_imageLoader->currentRequestState();
+}
+
+RefPtr<Image> HTMLImageElement::sourceImage() const
+{
+    return image();
+}
+
 Image* HTMLImageElement::image() const
 {
     if (RefPtr cachedImage = this->cachedImage())
@@ -1150,7 +1175,7 @@ bool HTMLImageElement::originClean(const SecurityOrigin& origin) const
 IntersectionObserverData& HTMLImageElement::ensureIntersectionObserverData()
 {
     if (!m_intersectionObserverData)
-        m_intersectionObserverData = makeUnique<IntersectionObserverData>();
+        lazyInitialize(m_intersectionObserverData, makeUnique<IntersectionObserverData>());
     return *m_intersectionObserverData;
 }
 

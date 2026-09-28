@@ -58,7 +58,7 @@ public:
     bool currentFrameKnownToBeOpaque(const RenderElement*);
     bool currentFrameIsComplete(const RenderElement*);
 
-    std::pair<WeakPtr<BitmapImage>, float> brokenImage(float deviceScaleFactor) const; // Returns an image and the image's resolution scale factor.
+    static std::pair<WeakPtr<BitmapImage>, float> brokenImage(float deviceScaleFactor); // Returns an image and the image's resolution scale factor.
     bool NODELETE willPaintBrokenImage() const;
 
     bool canRender(const RenderElement* renderer, float multiplier) { return !errorOccurred() && !imageSizeForRenderer(renderer, multiplier).isEmpty(); }
@@ -84,6 +84,8 @@ public:
     LayoutSize imageSizeForRenderer(const RenderElement*, float multiplier, SizeType = UsedSize, float density = 1.0f) const;
     LayoutSize unclampedImageSizeForRenderer(const RenderElement*, float multiplier, SizeType = UsedSize, float density = 1.0f) const;
     void computeIntrinsicDimensions(float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio);
+
+    NaturalDimensions naturalDimensions(ImageOrientation = ImageOrientation::Orientation::FromImage) const;
 
     bool hasHDRContent() const;
 

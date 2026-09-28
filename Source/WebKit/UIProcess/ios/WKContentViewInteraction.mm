@@ -5901,7 +5901,7 @@ static void logTextInteraction(const char* methodName, UIGestureRecognizer *loup
     _autocorrectionContextNeedsUpdate = YES;
     _usingGestureForSelection = YES;
 
-    protect(_page)->selectPositionAtPoint(WebCore::IntPoint(point), stayingWithinFocusedElement, [view = retainPtr(self), completionHandler = makeBlockPtr(completionHandler)]() {
+    protect(_page)->selectPositionAtPoint(std::nullopt, WebCore::IntPoint(point), stayingWithinFocusedElement, [view = retainPtr(self), completionHandler = makeBlockPtr(completionHandler)]() {
         completionHandler();
         view->_usingGestureForSelection = NO;
     });
@@ -11836,7 +11836,7 @@ static RetainPtr<UIImage> uiImageForImage(WebCore::Image* image)
     if (!image)
         return nil;
 
-    auto nativeImage = image->nativeImage();
+    auto nativeImage = image->nativeImage(WebCore::ConcreteObjectSize::fixed(image->size()));
     if (!nativeImage)
         return nil;
 

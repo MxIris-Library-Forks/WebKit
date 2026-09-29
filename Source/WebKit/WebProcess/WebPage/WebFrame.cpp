@@ -553,6 +553,14 @@ void WebFrame::destroyProvisionalFrame()
     }
 }
 
+void WebFrame::updateSandboxFlags(SandboxFlags sandboxFlags)
+{
+    if (RefPtr localFrame = coreLocalFrame())
+        localFrame->updateSandboxFlags(sandboxFlags, Frame::NotifyUIProcess::No);
+    if (RefPtr provisionalFrame = m_provisionalFrame)
+        provisionalFrame->updateSandboxFlags(sandboxFlags, Frame::NotifyUIProcess::No);
+}
+
 void WebFrame::commitProvisionalFrame()
 {
     RefPtr localFrame = std::exchange(m_provisionalFrame, nullptr);
@@ -628,6 +636,9 @@ void WebFrame::removeFromTree()
 
     if (RefPtr client = localFrameLoaderClient())
         client->removeStorageAccess();
+
+    if (RefPtr localFrame = dynamicDowncast<LocalFrame>(*coreFrame))
+        localFrame->loader().closeURL();
 
     // Instrumentation is added in createSubframe()/createProvisionalFrame() and normally removed in
     // detachedFromParent2(). This removal path (a remote parent removing the frame ->

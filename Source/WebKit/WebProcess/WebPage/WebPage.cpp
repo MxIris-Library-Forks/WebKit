@@ -1374,18 +1374,19 @@ void WebPage::didFinishLoadInAnotherProcess(WebCore::FrameIdentifier frameID)
     frame->didFinishLoadInAnotherProcess();
 }
 
-void WebPage::frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier frameID)
+void WebPage::frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier frameID, CompletionHandler<void()>&& completionHandler)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame)
-        return;
+        return completionHandler();
 
     frame->markAsRemovedInAnotherProcess();
 
     if (frame->page() != this)
-        return;
+        return completionHandler();
 
     frame->removeFromTree();
+    completionHandler();
 }
 
 void WebPage::topDocumentSyncDataChangedInAnotherProcess(const WebCore::DocumentSyncSerializationData& data)
@@ -5184,7 +5185,7 @@ void WebPage::runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&& parame
 void WebPage::clearContentWorld(ContentWorldIdentifier worldIdentifier, CompletionHandler<void()>&& completionHandler)
 {
     if (RefPtr world = m_userContentController->worldForIdentifier(worldIdentifier); world && world->coreWorld().allowNodeSnapshotCreation()) {
-        WEBPAGE_RELEASE_LOG(Loading, "clearContentWorld: id=%" PUBLIC_LOG_STRING " name=%" PUBLIC_LOG_STRING, worldIdentifier.loggingString().ascii().data(), world->name().utf8());
+        WEBPAGE_RELEASE_LOG(Loading, "clearContentWorld: id=%" PUBLIC_LOG_STRING " name=%" PUBLIC_LOG_STRING, worldIdentifier.loggingString().utf8(), world->name().utf8());
         world->clearWrappers();
     }
     completionHandler();
@@ -6176,6 +6177,32 @@ void WebPage::dragEnded(std::optional<FrameIdentifier> frameID, IntPoint clientP
     m_isStartingDrag = false;
 }
 
+void WebPage::dragSourceEnded(FrameIdentifier frameID, IntPoint clientPositionInMainFrameView, IntPoint globalPosition, OptionSet<DragOperation> dragOperationMask)
+{
+    IntPoint adjustedGlobalPosition(globalPosition.x() + m_page->dragController().dragOffset().x(), globalPosition.y() + m_page->dragController().dragOffset().y());
+
+    m_isStartingDrag = false;
+    m_page->dragController().dragEnded();
+
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
+    if (!frame)
+        return;
+
+    RefPtr localFrame = frame->coreLocalFrame();
+    if (!localFrame)
+        return;
+
+    RefPtr localRootView = localFrame->rootFrame().view();
+    if (!localRootView)
+        return;
+
+    auto clientPosition = roundedIntPoint(localRootView->convertFromRootViewAcrossIsolatedFrames(FloatPoint { clientPositionInMainFrameView }));
+
+    // FIXME: These are fake modifier keys here, but they should be real ones instead.
+    PlatformMouseEvent event(clientPosition, adjustedGlobalPosition, MouseButton::Left, PlatformEvent::Type::MouseMoved, 0, { }, MonotonicTime::now(), 0, WebCore::SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
+    localFrame->eventHandler().dragSourceEnded(event, dragOperationMask);
+}
+
 void WebPage::willPerformLoadDragDestinationAction()
 {
     if (auto pendingDropSandboxExtensionHandle = std::exchange(m_pendingDropSandboxExtensionHandle, std::nullopt))
@@ -6205,11 +6232,14 @@ void WebPage::didStartDrag(std::optional<FrameIdentifier> frameID)
     }
 }
 
-void WebPage::dragCancelled()
+void WebPage::dragCancelled(std::optional<FrameIdentifier> frameID)
 {
     m_isStartingDrag = false;
-    if (RefPtr localMainFrame = this->localMainFrame())
-        localMainFrame->eventHandler().dragCancelled();
+
+    if (RefPtr frame = frameID ? WebProcess::singleton().webFrame(*frameID) : &mainWebFrame()) {
+        if (RefPtr localFrame = frame->coreLocalFrame())
+            localFrame->eventHandler().dragCancelled();
+    }
 }
 
 #if ENABLE(MODEL_PROCESS)
@@ -7733,13 +7763,18 @@ void WebPage::deleteSurrounding(int64_t offset, unsigned characterCount)
         return;
 
     auto selectionStart = selection.visibleStart();
-    auto surroundingRange = makeSimpleRange(startOfEditableContent(selectionStart), selectionStart);
-    if (!surroundingRange)
+    auto surroundingStart = startOfEditableContent(selectionStart);
+    auto surroundingRange = makeSimpleRange(surroundingStart, endOfEditableContent(selectionStart));
+    auto cursorPositionRange = makeSimpleRange(surroundingStart, selectionStart);
+    if (!surroundingRange || !cursorPositionRange)
         return;
 
-    Ref rootNode = surroundingRange->start.container->treeScope().rootNode();
-    auto characterRange = WebCore::CharacterRange(WebCore::characterCount(*surroundingRange) + offset, characterCount);
-    auto selectionRange = resolveCharacterRange(makeRangeSelectingNodeContents(rootNode), characterRange);
+    auto cursorPosition = WebCore::characterCount(*cursorPositionRange);
+    if (offset < -static_cast<int64_t>(cursorPosition))
+        return;
+
+    auto characterRange = WebCore::CharacterRange(cursorPosition + offset, characterCount);
+    auto selectionRange = resolveCharacterRange(*surroundingRange, characterRange);
 
     targetFrame->editor().setIgnoreSelectionChanges(true);
     protect(targetFrame->selection())->setSelection(VisibleSelection(selectionRange));

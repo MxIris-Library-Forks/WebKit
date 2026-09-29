@@ -1044,6 +1044,11 @@ void DocumentLoader::responseReceived(ResourceResponse&& response, CompletionHan
             frameLoader->notifier().dispatchDidReceiveResponse(this, *m_identifierForLoadWithoutResourceLoader, m_response, 0);
     }
 
+    // Don't ask the client about error responses from failed prefetches. The response will
+    // not be committed, and the navigation will be retried with a fresh request when the load finishes.
+    if (m_prefetchResponseFailed)
+        return;
+
     ASSERT(!m_waitingForContentPolicy);
     ASSERT(frameLoader());
     m_waitingForContentPolicy = true;
@@ -1156,16 +1161,6 @@ void DocumentLoader::continueAfterContentPolicy(PolicyAction policy)
         if (!m_mainResource) {
             DOCUMENTLOADER_RELEASE_LOG("continueAfterContentPolicy: cannot show URL");
             mainReceivedError(platformStrategies()->loaderStrategy()->cannotShowURLError(m_request));
-            return;
-        }
-
-        // Defense-in-depth: refuse to download a data: URL through a top-frame navigation that
-        // wasn't initiated by the user or the API client, mirroring the existing check in the
-        // PolicyAction::Use branch. The primary defense lives in the UI process; this guards
-        // ports / future flows that don't share that boundary.
-        if (disallowDataRequest()) {
-            protect(frameLoader())->policyChecker().cannotShowMIMEType(m_response);
-            stopLoadingForPolicyChange();
             return;
         }
 

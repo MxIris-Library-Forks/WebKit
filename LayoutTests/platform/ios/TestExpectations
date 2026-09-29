@@ -179,6 +179,7 @@ accessibility/detected-form-error-long-text-is-not-a-message.html [ Pass ]
 accessibility/detected-form-error-empty-field-waits-for-interaction.html [ Pass ]
 accessibility/detected-form-error-distant-text-is-not-a-message.html [ Pass ]
 accessibility/detected-form-error-message-emptied.html [ Pass ]
+accessibility/detected-form-error-message-hidden.html [ Pass ]
 accessibility/detected-form-error-message-replaced.html [ Pass ]
 accessibility/detected-form-error-message-rewritten.html [ Pass ]
 accessibility/detected-form-error-message-wrapper-without-a-box.html [ Pass ]
@@ -2979,6 +2980,10 @@ fast/forms/listbox-top-padding-do-not-clip-items.html [ Failure ]
 fast/forms/listbox-scrollbar-dark-mode.html [ Skip ]
 fast/forms/vertical-writing-mode/listbox-drag-horizontal-scrollbar.html [ Failure ]
 fast/forms/vertical-writing-mode/listbox-horizontal-scrollbar.html [ ImageOnlyFailure ]
+
+# HTMLSelectElement::usesMenuList() is unconditionally true on iOS, so there is no list box
+# event handling to exercise.
+fast/forms/select/listbox-keydown-change-event-destroys-renderer-crash.html [ Skip ]
 
 # No focusring on iOS.
 fast/images/image-map-outline-in-positioned-container.html [ Pass ImageOnlyFailure ]
@@ -10362,3 +10367,8 @@ imported/w3c/web-platform-tests/css/filter-effects/filter-in-3d-transformed-ance
 # webkit.org/b/301546 [iOS26-iOS27] Two tests in imported/w3c/web-platform-tests/uievents/mouse are constant failures
 imported/w3c/web-platform-tests/uievents/mouse/mouseover-at-removing-mousedown-target.html?duration=16 [ Failure ]
 imported/w3c/web-platform-tests/uievents/mouse/mouseover-at-removing-mousedown-target.html?duration=42 [ Failure ]
+
+# The layer next to a backdrop filter snaps its antialiased edge to the pixel grid.
+webkit.org/b/325197 css3/filters/backdrop/backdrop-filter-fractional-translation-edge.html [ ImageOnlyFailure ]
+
+webkit.org/b/325521 http/tests/IndexedDB/transaction-commit-pending-requests-stop.html [ Pass Failure ]

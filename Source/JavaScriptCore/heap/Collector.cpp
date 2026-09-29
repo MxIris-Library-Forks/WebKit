@@ -34,6 +34,9 @@
 #include "JSCInlines.h"
 #include "MarkingConstraintSet.h"
 #include "MutatorScheduler.h"
+#include "SpaceTimeMutatorScheduler.h"
+#include "StochasticSpaceTimeMutatorScheduler.h"
+#include "SynchronousStopTheWorldMutatorScheduler.h"
 #include "TypeProfiler.h"
 #include <wtf/ListDump.h>
 #include <wtf/ParkingLot.h>
@@ -117,12 +120,56 @@ Collector::Collector(Heap& heap)
     , m_raceMarkStack(makeUnique<MarkStackArray>())
     , m_collectorSlotVisitor(makeUnique<SlotVisitor>(*this, "C"_s))
     , m_helperClient(&heapHelperPool())
+    , m_constraintSet(makeUnique<MarkingConstraintSet>())
     , m_threadLock(Box<Lock>::create())
     , m_threadCondition(AutomaticThreadCondition::create())
 {
+    for (unsigned i = 0, numberOfParallelThreads = heapHelperPool().numberOfThreads(); i < numberOfParallelThreads; ++i) {
+        std::unique_ptr<SlotVisitor> visitor = makeUnique<SlotVisitor>(*this, toASCIICString("P", i + 1));
+        if (Options::optimizeParallelSlotVisitorsForStoppedMutator())
+            visitor->optimizeForStoppedMutator();
+        m_availableParallelSlotVisitors.append(visitor.get());
+        m_parallelSlotVisitors.append(WTF::move(visitor));
+    }
+
+    if (Options::useConcurrentGC()) {
+        if (Options::useStochasticMutatorScheduler())
+            m_scheduler = makeUnique<StochasticSpaceTimeMutatorScheduler>(heap);
+        else
+            m_scheduler = makeUnique<SpaceTimeMutatorScheduler>(heap);
+    } else {
+        // We simulate turning off concurrent GC by making the scheduler say that the world
+        // should always be stopped when the collector is running.
+        m_scheduler = makeUnique<SynchronousStopTheWorldMutatorScheduler>();
+    }
+
+    m_collectorSlotVisitor->optimizeForStoppedMutator();
+
+    Locker locker { *m_threadLock };
+    lazyInitialize(m_thread, adoptRef(*new CollectorThread(locker, *this)));
 }
 
-Collector::~Collector() = default;
+Collector::~Collector()
+{
+    m_raceMarkStack->clear();
+}
+
+void Collector::stopThread()
+{
+    RELEASE_ASSERT(m_requests.isEmpty());
+    RELEASE_ASSERT(!hasOutstandingRequest());
+
+    bool stopped = false;
+    {
+        Locker locker { *m_threadLock };
+        stopped = m_thread->tryStop(locker);
+        m_threadShouldStop = true;
+        if (!stopped)
+            m_threadCondition->notifyOne(locker);
+    }
+    if (!stopped)
+        m_thread->join();
+}
 
 void Collector::assertMarkStacksEmpty()
 {
@@ -148,12 +195,6 @@ void Collector::assertMarkStacksEmpty()
         });
 
     RELEASE_ASSERT(ok);
-}
-
-void Collector::startThread()
-{
-    Locker locker { *m_threadLock };
-    lazyInitialize(m_thread, adoptRef(*new CollectorThread(locker, *this)));
 }
 
 GCRequest::Ticket Collector::requestCollection(GCRequest request)
@@ -346,7 +387,7 @@ NEVER_INLINE bool Collector::runBeginPhase(GCConductor conn)
 
     SlotVisitor& visitor = *m_collectorSlotVisitor;
 
-    m_heap.m_constraintSet->didStartMarking();
+    m_constraintSet->didStartMarking();
 
     m_scheduler->beginCollection();
     if (Options::logGC()) [[unlikely]]
@@ -404,7 +445,7 @@ NEVER_INLINE bool Collector::runFixpointPhase(GCConductor conn)
 
         // Wondering what this does? Look at Heap::addCoreConstraints(). The DOM and others can also
         // add their own using Heap::addMarkingConstraint().
-        bool converged = m_heap.m_constraintSet->executeConvergence(visitor);
+        bool converged = m_constraintSet->executeConvergence(visitor);
 
         // FIXME: The visitor.isEmpty() check is most likely not needed.
         // https://bugs.webkit.org/show_bug.cgi?id=180310
@@ -769,6 +810,19 @@ void Collector::resumeCompilerThreads()
 #if ENABLE(JIT)
     JITWorklist::ensureGlobalWorklist().resumeAllThreads();
 #endif
+}
+
+void Collector::addMarkingConstraint(std::unique_ptr<MarkingConstraint> constraint)
+{
+    ASSERT(!m_heap.m_collectionScope);
+    m_constraintSet->add(WTF::move(constraint));
+}
+
+void Collector::addMarkingConstraint(ASCIICString abbreviatedName, ASCIICString name, MarkingConstraintExecutorPair&& executors,
+    ConstraintVolatility volatility, ConstraintConcurrency concurrency, ConstraintParallelism parallelism)
+{
+    ASSERT(!m_heap.m_collectionScope);
+    m_constraintSet->add(WTF::move(abbreviatedName), WTF::move(name), WTF::move(executors), volatility, concurrency, parallelism);
 }
 
 size_t Collector::bytesVisited()

@@ -13510,6 +13510,11 @@ IGNORE_CLANG_WARNINGS_END
             LValue left = lowHeapBigInt(m_node->child1());
             LValue right = lowHeapBigInt(m_node->child2());
 
+            if (m_node->child1()->isHeapBigIntZeroConstant(m_graph) || m_node->child2()->isHeapBigIntZeroConstant(m_graph)) {
+                setBoolean(compareHeapBigIntWithZero(CompareEq, left, right));
+                return;
+            }
+
             LBasicBlock notTriviallyEqualCase = m_out.newBlock();
             LBasicBlock continuation = m_out.newBlock();
 
@@ -20979,6 +20984,11 @@ IGNORE_CLANG_WARNINGS_END
             LValue left = lowHeapBigInt(m_node->child1());
             LValue right = lowHeapBigInt(m_node->child2());
 
+            if (m_node->child1()->isHeapBigIntZeroConstant(m_graph) || m_node->child2()->isHeapBigIntZeroConstant(m_graph)) {
+                setBoolean(compareHeapBigIntWithZero(m_node->op(), left, right));
+                return;
+            }
+
             LValue result;
             switch (m_node->op()) {
             case CompareLess:
@@ -21006,6 +21016,54 @@ IGNORE_CLANG_WARNINGS_END
 
         DFG_ASSERT(m_graph, m_node, m_node->isBinaryUseKind(UntypedUse) || m_node->isBinaryUseKind(AnyBigIntUse), m_node->child1().useKind(), m_node->child2().useKind());
         genericJSValueCompare(intFunctor, fallbackFunction);
+    }
+
+    LValue compareHeapBigIntWithZero(NodeType op, LValue left, LValue right)
+    {
+        LValue value = left;
+        LValue zero = right;
+        if (m_node->child1()->isHeapBigIntZeroConstant(m_graph)) {
+            std::swap(value, zero);
+            switch (op) {
+            case CompareLess:
+                op = CompareGreater;
+                break;
+            case CompareLessEq:
+                op = CompareGreaterEq;
+                break;
+            case CompareGreater:
+                op = CompareLess;
+                break;
+            case CompareGreaterEq:
+                op = CompareLessEq;
+                break;
+            default:
+                break;
+            }
+        }
+
+        auto isNonNegative = [&] {
+            return m_out.testIsZero32(m_out.load8ZeroExt32(value, m_heaps.JSCell_typeInfoFlags), m_out.constInt32(TypeInfoPerCellBit));
+        };
+        auto isPositive = [&] {
+            return m_out.bitAnd(isNonNegative(), m_out.notEqual(value, zero));
+        };
+        switch (op) {
+        case CompareLess:
+            return m_out.logicalNot(isNonNegative());
+        case CompareLessEq:
+            return m_out.logicalNot(isPositive());
+        case CompareGreater:
+            return isPositive();
+        case CompareGreaterEq:
+            return isNonNegative();
+        case CompareEq:
+        case CompareStrictEq:
+            return m_out.equal(value, zero);
+        default:
+            RELEASE_ASSERT_NOT_REACHED();
+            return nullptr;
+        }
     }
 
     void compileStringSliceOrSubstring()
@@ -25688,8 +25746,8 @@ IGNORE_CLANG_WARNINGS_END
 
     LValue isStrictInt52(LValue int64Value)
     {
-        LValue added = m_out.add(m_out.constInt64(0x0008000000000000ULL), int64Value);
-        return m_out.testIsZero64(added, m_out.constInt64(0xFFF0000000000000ULL));
+        LValue shiftAmount = m_out.constInt32(64 - JSValue::numberOfInt52Bits);
+        return m_out.equal(m_out.aShr(m_out.shl(int64Value, shiftAmount), shiftAmount), int64Value);
     }
 
     LValue isNotStrictInt52(LValue int64Value)

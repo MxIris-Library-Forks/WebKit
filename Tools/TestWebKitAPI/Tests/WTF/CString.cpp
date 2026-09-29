@@ -137,13 +137,11 @@ TEST(WTF, CStringZeroTerminated)
 
 TEST(WTF, CStringLegacyCStringPointer)
 {
-    ASCIICString typedNullString;
-    const CStringBase& nullString = typedNullString;
+    UTF8CString nullString;
     EXPECT_EQ(nullString.legacyCStringPointer(), static_cast<const char*>(nullptr));
 
-    ASCIICString typedString { "WebKit"_s };
-    const CStringBase& string = typedString;
-    EXPECT_EQ(string.legacyCStringPointer(), string.data());
+    UTF8CString string { u8"WebKit"_span };
+    EXPECT_EQ(string.legacyCStringPointer(), static_cast<const CStringBase&>(string).data());
     EXPECT_STREQ(string.legacyCStringPointer(), "WebKit");
 }
 
@@ -302,15 +300,13 @@ static_assert(std::same_as<decltype(std::declval<const ASCIICString&>().data()),
 static_assert(std::same_as<decltype(std::declval<const ASCIICString&>().span())::element_type, const char>);
 // Erasing the encoding gives back the untyped CStringBase span.
 static_assert(std::same_as<decltype(std::declval<const CStringBase&>().span())::element_type, const char>);
-static_assert(std::same_as<decltype(std::declval<const CStringBase&>().legacyCStringPointer()), const char*>);
-// Only UTF-8 needs the escape hatch, so the constrained override has to keep hiding
-// CStringBase::legacyCStringPointer() for the other encodings: Latin-1 bytes are not a C string, and
-// ASCIICString::data() is already a const char*.
+// Only UTF-8 needs the escape hatch, and the encoding-erased CStringBase does not offer it: Latin-1 bytes
+// are not a C string, and ASCIICString::data() is already a const char*.
 template<typename StringType> concept HasLegacyCStringPointer = requires(const StringType& string)
 {
     string.legacyCStringPointer();
 };
-static_assert(HasLegacyCStringPointer<CStringBase>);
+static_assert(!HasLegacyCStringPointer<CStringBase>);
 static_assert(HasLegacyCStringPointer<UTF8CString>);
 static_assert(!HasLegacyCStringPointer<ASCIICString>);
 static_assert(!HasLegacyCStringPointer<Latin1CString>);
@@ -328,7 +324,7 @@ static_assert(!HasSafePrintfType<Latin1CString>);
 static_assert(std::is_convertible_v<const UTF8CString&, const CStringBase&>);
 static_assert(!std::is_convertible_v<const CStringBase&, const UTF8CString&>);
 static_assert(!std::is_convertible_v<Latin1CString, UTF8CString>);
-// CStringBase only exists as the base of CStringWithEncoding, so bytes get into one only through a typed
+// CStringBase only exists as the base of CString, so bytes get into one only through a typed
 // string: it cannot be created, copied or moved out of a typed string, or assigned through, which
 // would relabel the encoding of the string it refers to.
 static_assert(!std::is_destructible_v<CStringBase>);
@@ -388,7 +384,7 @@ static_assert(!IsLessThanComparable<CStringBase, CStringBase>);
 // An ASCII literal is valid in every encoding, so this stays available too.
 static_assert(IsEqualityComparable<UTF8CString, ASCIILiteral>);
 
-TEST(WTF, CStringWithEncodingConstruction)
+TEST(WTF, CStringConstruction)
 {
     UTF8CString nullString;
     EXPECT_TRUE(nullString.isNull());
@@ -413,7 +409,7 @@ TEST(WTF, CStringWithEncodingConstruction)
     EXPECT_TRUE(equalSpans(latin1String.span(), std::span<const Latin1Character> { latin1Cafe }));
 }
 
-TEST(WTF, CStringWithEncodingNewUninitialized)
+TEST(WTF, CStringNewUninitialized)
 {
     std::span<char8_t> characters;
     auto string = UTF8CString::newUninitialized(4, characters);
@@ -423,7 +419,7 @@ TEST(WTF, CStringWithEncodingNewUninitialized)
     EXPECT_EQ(string.spanIncludingNullTerminator()[4], u8'\0');
 }
 
-TEST(WTF, CStringWithEncodingComparison)
+TEST(WTF, CStringComparisonSameEncoding)
 {
     UTF8CString a { u8"abc"_span };
     UTF8CString b { u8"abd"_span };
@@ -438,7 +434,7 @@ TEST(WTF, CStringWithEncodingComparison)
     EXPECT_TRUE(nullString < a);
 }
 
-TEST(WTF, CStringWithEncodingHashing)
+TEST(WTF, CStringHashing)
 {
     HashSet<UTF8CString> set;
     EXPECT_TRUE(set.add(UTF8CString { u8"Water🍉Melon"_span }).isNewEntry);
@@ -458,7 +454,7 @@ TEST(WTF, CStringWithEncodingHashing)
 
 template<typename StringType> concept AdaptableToString = std::constructible_from<WTF::StringTypeAdapter<StringType>, const StringType&>;
 
-TEST(WTF, CStringWithEncodingMakeString)
+TEST(WTF, CStringMakeString)
 {
     // makeString picks its adapter off the span's element type, so a UTF8CString is decoded as UTF-8.
     // An untyped CStringBase has no encoding to decode from, so it has no adapter at all and erasing the
@@ -482,7 +478,7 @@ template<typename StringType> concept PrintableToStream = requires(StringPrintSt
     WTF::printInternal(out, string);
 };
 
-TEST(WTF, CStringWithEncodingPrintStream)
+TEST(WTF, CStringPrintStream)
 {
     // A PrintStream holds UTF-8, so printing transcodes whatever it is given. An untyped CStringBase
     // has no encoding to transcode from, so printing one does not compile.
@@ -508,7 +504,7 @@ TEST(WTF, CStringWithEncodingPrintStream)
     EXPECT_EQ(print(asciiString), "cafe"_s);
 }
 
-TEST(WTF, CStringWithEncodingFromPrintStream)
+TEST(WTF, CStringFromPrintStream)
 {
     // A PrintStream can be read back as either encoding. toUTF8CString() reports the bytes it holds,
     // while toASCIICString() is for streams that only ever print ASCII, where const char* is wanted.

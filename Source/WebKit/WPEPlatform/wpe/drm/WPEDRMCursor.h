@@ -27,7 +27,7 @@
 
 #include <gbm.h>
 #include <wtf/TZoneMalloc.h>
-#include <wtf/glib/GUniquePtr.h>
+#include <wtf/text/CString.h>
 #include <wtf/text/UTF8CStringView.h>
 
 namespace WPE {
@@ -59,13 +59,13 @@ private:
     bool tryEnsureBuffer();
     void updateBuffer(const uint8_t*, uint32_t width, uint32_t height, uint32_t stride);
 
-    std::unique_ptr<Plane> m_plane;
+    const std::unique_ptr<Plane> m_plane;
     struct gbm_device* m_device { nullptr };
     uint32_t m_deviceWidth { 0 };
     uint32_t m_deviceHeight { 0 };
-    std::unique_ptr<CursorTheme> m_theme;
+    const std::unique_ptr<CursorTheme> m_theme;
     bool m_isHidden { false };
-    GUniquePtr<char> m_name;
+    UTF8CString m_name;
     std::unique_ptr<Buffer> m_buffer;
     struct {
         uint32_t x { 0 };

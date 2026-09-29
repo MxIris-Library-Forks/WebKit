@@ -28,8 +28,6 @@
 #if USE(LIBWEBRTC)
 
 #include "GPUVideoDecoderVTB.h"
-#include "VideoDecoderVTBSession.h"
-#include <WebCore/PlatformVideoColorSpace.h>
 #include <wtf/TZoneMalloc.h>
 
 namespace WebCore {

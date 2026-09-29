@@ -176,7 +176,7 @@ void WebPageProxy::didGeneratePageLoadTiming(const WebPageLoadTiming& timing)
     auto finishedLoadingDuration = timing.finishedLoading() - startTime;
     auto subresourcesFinishedLoadingDuration = timing.allSubresourcesFinishedLoading() - startTime;
 
-    WEBPAGEPROXY_RELEASE_LOG(Loading, "didGeneratePageLoadTiming: url=%" SENSITIVE_LOG_STRING " firstVisualLayout=%.3f firstMeaningfulPaint=%.3f domContentLoaded=%.3f loadEvent=%.3f subresourcesFinished=%.3f", url.string().ascii().data(), firstVisualLayoutDuration.seconds(), firstMeaningfulPaintDuration.seconds(), documentFinishedLoadingDuration.seconds(), finishedLoadingDuration.seconds(), subresourcesFinishedLoadingDuration.seconds());
+    WEBPAGEPROXY_RELEASE_LOG(Loading, "didGeneratePageLoadTiming: url=%" SENSITIVE_LOG_STRING " firstVisualLayout=%.3f firstMeaningfulPaint=%.3f domContentLoaded=%.3f loadEvent=%.3f subresourcesFinished=%.3f", url.string().utf8(), firstVisualLayoutDuration.seconds(), firstMeaningfulPaintDuration.seconds(), documentFinishedLoadingDuration.seconds(), finishedLoadingDuration.seconds(), subresourcesFinishedLoadingDuration.seconds());
 
     static bool shouldLogFrameTree = CFPreferencesGetAppBooleanValue(CFSTR("WebKitDebugLogFrameTreesWithPageLoadTiming"), kCFPreferencesCurrentApplication, nullptr);
     if (shouldLogFrameTree)
@@ -490,6 +490,7 @@ bool WebPageProxy::scrollingUpdatesDisabledForTesting()
 
 void WebPageProxy::startDrag(const DragItem& dragItem, ShareableBitmap::Handle&& dragImageHandle, const std::optional<NodeIdentifier>& nodeID, const std::optional<FrameIdentifier>& frameID)
 {
+    m_dragSourceFrameID = frameID;
     if (RefPtr pageClient = this->pageClient())
         pageClient->startDrag(dragItem, WTF::move(dragImageHandle), nodeID, frameID);
 }
@@ -2250,7 +2251,11 @@ std::optional<std::pair<IPC::AsyncReplyID, Ref<IPC::Connection>>> WebPageProxy::
     auto outstandingRequest = std::exchange(internals().outstandingPositionInformationRequest, std::nullopt);
     if (!outstandingRequest)
         return std::nullopt;
-    return { { outstandingRequest->replyID, WTF::move(outstandingRequest->connection) } };
+
+    RefPtr process = outstandingRequest->process.get();
+    if (!process || !process->hasConnection())
+        return std::nullopt;
+    return { { outstandingRequest->replyID, process->connection() } };
 }
 
 void WebPageProxy::requestPositionInformation(const InteractionInformationRequest& request)
@@ -2289,7 +2294,7 @@ void WebPageProxy::requestPositionInformationInFrame(std::optional<WebCore::Fram
     }, webPageIDInProcessForFrame(frameID));
 
     if (replyID)
-        internals().outstandingPositionInformationRequest = { { request, *replyID, process->connection() } };
+        internals().outstandingPositionInformationRequest = { { request, *replyID, process } };
 }
 
 void WebPageProxy::selectPositionAtPoint(std::optional<WebCore::FrameIdentifier> frameID, WebCore::IntPoint point, bool isInteractingWithFocusedElement, CompletionHandler<void()>&& callbackFunction)

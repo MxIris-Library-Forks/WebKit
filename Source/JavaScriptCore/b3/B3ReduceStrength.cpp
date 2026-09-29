@@ -131,17 +131,6 @@ struct WasmGCAvailableValue {
 //   operation is less expensive, but it's useful for subsequent phases - particularly LowerToAir -
 //   to have only one way of representing things.
 //
-// This phase runs to fixpoint. Therefore, the canonicalizations must be designed to be monotonic.
-// For example, if we had a canonicalization that said that Add(x, -c) should be Sub(x, c) and
-// another canonicalization that said that Sub(x, d) should be Add(x, -d), then this phase would end
-// up running forever. We don't want that.
-//
-// Therefore, we need to prioritize certain canonical forms over others. Naively, we want strength
-// reduction to reduce the number of values, and so a form involving fewer total values is more
-// canonical. But we might break this, for example when reducing strength of Mul(x, 9). This could be
-// better written as Add(Shl(x, 3), x), which also happens to be representable using a single
-// instruction on x86.
-//
 // Here are some of the rules we have:
 //
 // Canonical form of logical not: BitXor(value, 1). We may have to avoid using this form if we don't
@@ -639,29 +628,6 @@ public:
     }
 
     bool run()
-    {
-        if (Options::useB3ReduceStrengthFixpoint())
-            return runFixpoint();
-        return runSinglePass();
-    }
-
-    bool runFixpoint()
-    {
-        bool result = false;
-        do {
-            result |= runOnePass();
-        } while (m_changed && m_proc.optLevel() >= 2);
-
-        if (m_proc.optLevel() < 2) {
-            m_changedCFG = false;
-            simplifyCFG();
-            handleChangedCFGIfNecessary();
-        }
-
-        return result;
-    }
-
-    bool runSinglePass()
     {
         bool result = runOnePass();
 
@@ -2084,6 +2050,25 @@ private:
 
                 if (m_value->opcode() != SShr)
                     break;
+            }
+
+            // Turn this: SShr(Mul(value, constant << amount), amount)
+            // Into this: Mul(value, constant)
+            // This is exact when the Mul cannot overflow.
+            if (m_value->child(1)->hasInt32()
+                && m_value->child(0)->opcode() == Mul
+                && m_value->child(0)->child(1)->hasInt()) {
+                int32_t amount = m_value->child(1)->asInt32();
+                Value* multiply = m_value->child(0);
+                int64_t multiplier = multiply->child(1)->asInt();
+                if (amount > 0
+                    && static_cast<size_t>(amount) < sizeofType(m_value->type()) * 8
+                    && !(multiplier & ((static_cast<int64_t>(1) << amount) - 1))
+                    && !rangeFor(multiply->child(0)).couldOverflowMul(rangeFor(multiply->child(1)), m_value->type())) {
+                    replaceWithNew<Value>(Mul, m_value->origin(), multiply->child(0),
+                        m_insertionSet.insertIntConstant(m_index, m_value, multiplier >> amount));
+                    break;
+                }
             }
 
             handleShiftAmount();

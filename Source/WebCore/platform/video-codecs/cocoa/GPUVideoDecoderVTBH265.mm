@@ -29,14 +29,11 @@
 
 #if USE(LIBWEBRTC)
 
+#import "AnnexBUtilities.h"
 #import "CMUtilities.h"
-#import "HEVCUtilities.h"
 #import "HEVCUtilitiesCocoa.h"
 #import "Logging.h"
 #import "TrackInfo.h"
-#import <wtf/BlockPtr.h>
-
-#import <pal/cf/CoreMediaSoftLink.h>
 
 namespace WebCore {
 

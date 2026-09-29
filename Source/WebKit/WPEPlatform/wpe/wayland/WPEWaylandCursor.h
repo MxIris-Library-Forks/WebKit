@@ -27,8 +27,8 @@
 
 #include "WPEDisplayWayland.h"
 #include <wayland-client.h>
-#include <wtf/glib/GUniquePtr.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/text/CString.h>
 #include <wtf/text/UTF8CStringView.h>
 
 namespace WPE {
@@ -48,8 +48,8 @@ public:
 private:
     WPEDisplayWayland* m_display { nullptr };
     struct wl_surface* m_surface { nullptr };
-    std::unique_ptr<WaylandCursorTheme> m_theme;
-    GUniquePtr<char> m_name;
+    const std::unique_ptr<WaylandCursorTheme> m_theme;
+    UTF8CString m_name;
     struct {
         int32_t x { 0 };
         int32_t y { 0 };

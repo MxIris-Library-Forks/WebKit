@@ -875,7 +875,7 @@ public:
     Awaitable<std::optional<FrameTreeNodeData>> getFrameTree();
     Awaitable<std::optional<FrameTreeNodeData>> getFrameTreeForBackForwardCacheEntry(WebCore::BackForwardFrameItemIdentifier);
     void didFinishLoadInAnotherProcess(WebCore::FrameIdentifier);
-    void frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier);
+    void frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier, CompletionHandler<void()>&&);
 
     void topDocumentSyncDataChangedInAnotherProcess(const WebCore::DocumentSyncSerializationData&);
     void allTopDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&&);
@@ -1469,13 +1469,14 @@ public:
 
 #if ENABLE(DRAG_SUPPORT)
     void dragEnded(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint clientPosition, WebCore::IntPoint globalPosition, OptionSet<WebCore::DragOperation>, CompletionHandler<void(std::optional<WebCore::RemoteUserInputEventData>)>&&);
+    void dragSourceEnded(WebCore::FrameIdentifier, WebCore::IntPoint clientPositionInMainFrameView, WebCore::IntPoint globalPosition, OptionSet<WebCore::DragOperation>);
 
     void willPerformLoadDragDestinationAction();
     void mayPerformUploadDragDestinationAction();
 
     void willStartDrag() { ASSERT(!m_isStartingDrag); m_isStartingDrag = true; }
     void didStartDrag(std::optional<WebCore::FrameIdentifier>);
-    void dragCancelled();
+    void dragCancelled(std::optional<WebCore::FrameIdentifier>);
     OptionSet<WebCore::DragSourceAction> allowedDragSourceActions() const { return m_allowedDragSourceActions; }
 #if ENABLE(MODEL_PROCESS)
     void modelDragEnded(WebCore::NodeIdentifier);
@@ -1943,6 +1944,7 @@ public:
     // These include layout overflow for overflow:visible elements, but exclude borders.
     static WebCore::IntRect absoluteInteractionBounds(const WebCore::Node&);
     static WebCore::IntRect rootViewInteractionBounds(const WebCore::Node&);
+    static WebCore::IntRect mainFrameViewInteractionBounds(const WebCore::Node&);
 
     static WebCore::IntPoint constrainPoint(const WebCore::IntPoint&, const WebCore::LocalFrame&, const WebCore::Element& focusedElement);
 
@@ -1954,6 +1956,7 @@ public:
 #if PLATFORM(IOS_FAMILY)
     // This excludes layout overflow, includes borders.
     static WebCore::IntRect rootViewBounds(const WebCore::Node&);
+    static WebCore::IntRect mainFrameViewBounds(const WebCore::Node&);
 
     void setSceneIdentifier(String&&);
 #endif // PLATFORM(IOS_FAMILY)

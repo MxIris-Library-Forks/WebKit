@@ -39,17 +39,22 @@
 #import "Helpers/cocoa/WKWebViewConfigurationExtras.h"
 #import "InstanceMethodSwizzler.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#import <WebKit/WKFrameInfoPrivate.h>
 #import <WebKit/WKUIDelegatePrivate.h>
 #import <WebKit/WKWebViewConfigurationPrivate.h>
 #import <WebKit/WKWebViewPrivate.h>
 #import <WebKit/WKWebViewPrivateForTesting.h>
 #import <WebKit/WKWebsiteDataStorePrivate.h>
+#import <WebKit/_WKAppHighlight.h>
+#import <WebKit/_WKAppHighlightDelegate.h>
 #import <WebKit/_WKAttachment.h>
+#import <WebKit/_WKFrameTreeNode.h>
 #import <WebKit/_WKWebsiteDataStoreConfiguration.h>
 #import <wtf/BlockPtr.h>
 #import <wtf/RetainPtr.h>
 
 #if PLATFORM(IOS_FAMILY)
+#import "UIKitSPIForTesting.h"
 #import <WebKit/_WKTextInputContext.h>
 #endif
 
@@ -76,6 +81,13 @@
 }
 @end
 #endif // PLATFORM(MAC)
+
+#if PLATFORM(IOS_FAMILY)
+@interface UIView (SiteIsolationDictationStreamingOpacity)
+- (void)_setDictationStreamingOpacity:(CGFloat)opacity forHypothesisText:(NSString *)hypothesisText streamingRange:(NSRange)streamingRange;
+- (void)_clearDictationStreamingOpacity;
+@end
+#endif
 
 @interface SiteIsolationFontAttributesListener : NSObject <WKUIDelegatePrivate>
 - (NSDictionary<NSString *, id> *)lastFontAttributes;
@@ -126,6 +138,36 @@
 
 @end
 #endif // ENABLE(ATTACHMENT_ELEMENT)
+
+#if ENABLE(APP_HIGHLIGHTS)
+@interface SiteIsolationAppHighlightDelegate : NSObject <_WKAppHighlightDelegate>
+- (NSArray<_WKAppHighlight *> *)storedHighlights;
+@end
+
+@implementation SiteIsolationAppHighlightDelegate {
+    RetainPtr<NSMutableArray<_WKAppHighlight *>> _storedHighlights;
+}
+
+- (instancetype)init
+{
+    if (!(self = [super init]))
+        return nil;
+    _storedHighlights = adoptNS([[NSMutableArray alloc] init]);
+    return self;
+}
+
+- (void)_webView:(WKWebView *)webView storeAppHighlight:(_WKAppHighlight *)highlight inNewGroup:(BOOL)inNewGroup requestOriginatedInApp:(BOOL)requestOriginatedInApp
+{
+    [_storedHighlights addObject:highlight];
+}
+
+- (NSArray<_WKAppHighlight *> *)storedHighlights
+{
+    return _storedHighlights.get();
+}
+
+@end
+#endif // ENABLE(APP_HIGHLIGHTS)
 
 namespace TestWebKitAPI {
 
@@ -561,6 +603,135 @@ TEST(SiteIsolation, InsertAdaptiveImageGlyphInCrossOriginIframe)
 
 #endif // ENABLE(MULTI_REPRESENTATION_HEIC)
 
+// Dictation acts on the focused frame's selection, so it must be sent to the process containing the focused frame.
+// A text placeholder must be removed by the process whose document contains it, even if focus has moved since.
+
+TEST(SiteIsolation, TextPlaceholderInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><input id='input'><iframe id='iframe' style='width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<body contenteditable>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body.firstChild, 8)", _WKSelectionAttributeIsCaret);
+
+#if PLATFORM(MAC)
+    using TextPlaceholder = NSTextPlaceholder;
+    id<NSTextInputClient_Async> textInput = (id<NSTextInputClient_Async>)webView.get();
+#else
+    using TextPlaceholder = UITextPlaceholder;
+    auto textInput = [webView textInputContentView];
+#endif
+
+    __block RetainPtr<TextPlaceholder> placeholder;
+    __block bool done = false;
+    [textInput insertTextPlaceholderWithSize:CGSizeMake(50, 100) completionHandler:^(TextPlaceholder *insertedPlaceholder) {
+        placeholder = insertedPlaceholder;
+        done = true;
+    }];
+    Util::run(&done);
+    ASSERT_NOT_NULL(placeholder.get());
+    EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"!!document.querySelector('div')" inFrame:childFrame.get()] boolValue]);
+
+    [webView objectByEvaluatingJavaScript:@"input.focus()"];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return ![[webView firstChildFrame] _isFocused];
+    }));
+
+    done = false;
+    [textInput removeTextPlaceholder:placeholder.get() willInsertText:NO completionHandler:^{
+        done = true;
+    }];
+    Util::run(&done);
+    EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"!!document.querySelector('div')" inFrame:childFrame.get()] boolValue]);
+}
+
+#if PLATFORM(IOS_FAMILY)
+
+static RetainPtr<WKWebViewConfiguration> configurationWithInternals(const HTTPServer& server)
+{
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    [configuration setWebsiteDataStore:[server.httpsProxyConfiguration() websiteDataStore]];
+    return configuration;
+}
+
+static NSUInteger markerCountInFrame(TestWKWebView *webView, WKFrameInfo *frame, NSString *markerType)
+{
+    RetainPtr script = [NSString stringWithFormat:@"internals.markerCountForNode(document.body.firstChild, '%@')", markerType];
+    return [[webView objectByEvaluatingJavaScript:script.get() inFrame:frame] unsignedIntegerValue];
+}
+
+TEST(SiteIsolation, DictationAlternativesInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body contenteditable>hello world&nbsp;</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = configurationWithInternals(server);
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configuration.get());
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body.firstChild, 11)", _WKSelectionAttributeIsCaret);
+
+    RetainPtr alternatives = adoptNS([[NSTextAlternatives alloc] initWithPrimaryString:@"hello world" alternativeStrings:@[ @"👋🌎" ]]);
+    [[webView textInputContentView] addTextAlternatives:alternatives.get()];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return markerCountInFrame(webView.get(), childFrame.get(), @"dictationalternatives") == 1;
+    }));
+
+    [[webView textInputContentView] removeEmojiAlternatives];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !markerCountInFrame(webView.get(), childFrame.get(), @"dictationalternatives");
+    }));
+}
+
+TEST(SiteIsolation, DictationStreamingOpacityInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body contenteditable>hello world</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = configurationWithInternals(server);
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configuration.get());
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body.firstChild, 11)", _WKSelectionAttributeIsCaret);
+
+    [[webView textInputContentView] _setDictationStreamingOpacity:0.5 forHypothesisText:@"hello world" streamingRange:NSMakeRange(6, 5)];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return markerCountInFrame(webView.get(), childFrame.get(), @"dictationstreamingopacity") == 1;
+    }));
+
+    [[webView textInputContentView] _clearDictationStreamingOpacity];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !markerCountInFrame(webView.get(), childFrame.get(), @"dictationstreamingopacity");
+    }));
+}
+
+TEST(SiteIsolation, InsertFinalDictationResultInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body contenteditable></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = configurationWithInternals(server);
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configuration.get());
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body, 0)", _WKSelectionAttributeIsCaret);
+
+    // Typing right after a dictated word removes its alternatives, unless it's part of inserting the final dictation result.
+    [[webView textInputContentView] willInsertFinalDictationResult];
+    [webView insertText:@"wanna" alternatives:@[ @"want to" ]];
+    [webView insertText:@"." alternatives:@[ ]];
+    [[webView textInputContentView] didInsertFinalDictationResult];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"document.body.textContent" inFrame:childFrame.get()] isEqualToString:@"wanna."];
+    }));
+    EXPECT_EQ(1U, markerCountInFrame(webView.get(), childFrame.get(), @"dictationalternatives"));
+}
+
+#endif // PLATFORM(IOS_FAMILY)
+
 #if ENABLE(ATTACHMENT_ELEMENT)
 
 // Inserting an attachment acts on the focused frame's selection, so it must go to the focused frame's process.
@@ -787,5 +958,61 @@ TEST(SiteIsolation, ExtendedProofreadingReplyReachesCrossOriginIframe)
 }
 
 #endif // PLATFORM(MAC)
+
+#if ENABLE(APP_HIGHLIGHTS)
+
+// Creating an app highlight acts on the focused frame's selection, so it must go to the focused frame's process.
+// The request must also complete even when there's nothing to highlight: under site isolation the UI process
+// crashes on a failed message check, and a request that's never answered is eventually cancelled with an empty
+// highlight, which fails the check.
+
+TEST(SiteIsolation, AddAppHighlightInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    RetainPtr delegate = adoptNS([SiteIsolationAppHighlightDelegate new]);
+    [webView _setAppHighlightDelegate:delegate.get()];
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().selectAllChildren(document.body)", _WKSelectionAttributeIsRange);
+
+    [webView _addAppHighlight];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [delegate storedHighlights].count == 1;
+    }));
+    EXPECT_WK_STREQ("subframe text", [delegate storedHighlights].firstObject.text);
+}
+
+TEST(SiteIsolation, AddAppHighlightWithoutSelectionDoesNotCrashWhenWebProcessesExit)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    RetainPtr delegate = adoptNS([SiteIsolationAppHighlightDelegate new]);
+    [webView _setAppHighlightDelegate:delegate.get()];
+
+    // Nothing is selected in either frame, so whichever process gets the request has nothing to highlight.
+    [webView _addAppHighlight];
+    [webView waitForNextPresentationUpdate];
+
+    // Any request that was never answered is cancelled when its process exits. That must not crash the UI process.
+    pid_t mainFramePID = [webView mainFrame].info._processIdentifier;
+    pid_t childFramePID = [webView firstChildFrame]._processIdentifier;
+    EXPECT_NE(mainFramePID, childFramePID);
+    kill(childFramePID, SIGKILL);
+    kill(mainFramePID, SIGKILL);
+    while (!kill(childFramePID, 0) || !kill(mainFramePID, 0))
+        Util::spinRunLoop();
+    Util::runFor(0.5_s);
+
+    EXPECT_EQ(0U, [delegate storedHighlights].count);
+}
+
+#endif // ENABLE(APP_HIGHLIGHTS)
 
 } // namespace TestWebKitAPI

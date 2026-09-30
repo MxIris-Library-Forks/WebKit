@@ -42,6 +42,7 @@
 namespace WebCore {
 
 class HTMLOptionsCollection;
+class HTMLSelectedContentElement;
 class MouseEvent;
 class SelectPopoverElement;
 class ShadowRoot;
@@ -201,9 +202,12 @@ public:
     bool isDevolvableWidget() const override { return true; }
 
     void updateSelectedContent(HTMLOptionElement* = nullptr) const;
+    void updateSelectedContent(HTMLSelectedContentElement&) const;
+    void queueSelectedContentUpdate();
 
     void NODELETE registerSelectedContentElement();
     void NODELETE unregisterSelectedContentElement();
+    bool hasSelectedContentDescendants() const { return m_selectedContentDescendantCount; }
 
     bool usesBaseAppearancePicker() const;
     WEBCORE_EXPORT bool optionsAreRenderedWithBaseAppearance() const;
@@ -259,6 +263,7 @@ private:
     bool hasPresentationalHintsForAttribute(const QualifiedName&) const final;
 
     bool childShouldCreateRenderer(const Node&) const final;
+    bool NODELETE supportsBaseAppearance(StyleAppearance) const final;
     RenderPtr<RenderElement> createElementRenderer(Style::ComputedStyle&&, const RenderTreePosition&) final;
     bool appendFormData(DOMFormData&) final;
 
@@ -286,6 +291,7 @@ private:
         DeselectOtherOptions = 1 << 0,
         DispatchChangeEvent = 1 << 1,
         UserDriven = 1 << 2,
+        SkipSelectedContentUpdate = 1 << 3,
     };
     void selectOption(int optionIndex, OptionSet<SelectOptionFlag> = { });
     void deselectItemsWithoutValidation(HTMLElement* elementToExclude = nullptr);
@@ -295,7 +301,9 @@ private:
     void menuListDefaultEventHandler(Event&);
     void baseAppearanceListBoxDefaultEventHandler(Event&);
     void updateSelectedContentIfEnabled(HTMLOptionElement* = nullptr) const;
+    RefPtr<HTMLOptionElement> firstSelectedOption() const;
     void closePickerIfNoLongerSupported(bool hadOpenPicker);
+    void updateOptionSlotIfNeeded(bool usedListBoxSlot);
     void optionDeselectedByUser(HTMLOptionElement&);
     bool handleImplicitSubmissionKeypress(KeyboardEvent&);
     bool platformHandleKeydownEvent(KeyboardEvent*);
@@ -344,10 +352,12 @@ private:
     bool m_isCapturingMouseEvents { false };
     mutable bool m_shouldRecalcListItems;
     unsigned m_selectedContentDescendantCount { 0 };
+    bool m_hasQueuedSelectedContentUpdate { false };
 
     std::optional<int> m_lastActiveIndex;
 
     WeakPtr<HTMLSlotElement, WeakPtrImplWithEventTargetData> m_buttonSlot;
+    WeakPtr<HTMLSlotElement, WeakPtrImplWithEventTargetData> m_listBoxSlot;
     WeakPtr<SelectPopoverElement, WeakPtrImplWithEventTargetData> m_popover;
 
 #if !PLATFORM(IOS_FAMILY)

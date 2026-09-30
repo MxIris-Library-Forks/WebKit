@@ -65,11 +65,11 @@
 #include "SVGNames.h"
 #include "SVGSVGElement.h"
 #include "SVGURIReference.h"
+#include "SelectPopoverElement.h"
 #include "Settings.h"
 #include "ShadowRoot.h"
 #include "StyleableInlines.h"
 #include "StyleContainmentCheckerInlines.h"
-#include "StyleColorResolver.h"
 #include "StyleComputedStyle+GettersInlines.h"
 #include "StyleComputedStyle+InitialInlines.h"
 #include "StyleComputedStyle+SettersInlines.h"
@@ -719,6 +719,13 @@ void Adjuster::adjust(Style::ComputedStyle& style) const
     if (style.appearance() != StyleAppearance::None && style.appearance() != StyleAppearance::Base)
         adjustThemeStyle(style, m_parentStyle);
 
+    bool hasBaseAppearance = style.usedAppearance() == StyleAppearance::Base;
+    if ((hasBaseAppearance || style.inBaseAppearanceSubtree()) && !style.pseudoElementType() && m_element && m_element->supportsBaseAppearance(StyleAppearance::Base)) {
+        if (is<SelectPopoverElement>(m_element))
+            hasBaseAppearance = hasBaseAppearance && m_parentStyle.inBaseAppearanceSubtree();
+        style.setInBaseAppearanceSubtree(hasBaseAppearance);
+    }
+
     // This should be kept in sync with requiresRenderingConsolidationForViewTransition
     if (style.usedTransformStyle3D() == TransformStyle3D::Preserve3D) {
         bool forceToFlat = style.overflowX() != Overflow::Visible
@@ -740,13 +747,6 @@ void Adjuster::adjust(Style::ComputedStyle& style) const
             forceToFlat |= styleable.capturedInViewTransition();
         }
         style.setTransformStyleForcedToFlat(forceToFlat);
-    }
-
-    auto backgroundColor = style.backgroundColor();
-    if (style.backgroundColor() != ComputedStyle::initialBackgroundColor()
-        && style.display() != DisplayType::Contents) {
-        style.setCurrentBackgroundColor(Style::ColorResolver { style }.colorResolvingCurrentColor(backgroundColor));
-        style.setDisallowsFastPathInheritance();
     }
 
     style.setIsEffectivelyTransparent(style.opacity().isTransparent() || m_parentStyle.isEffectivelyTransparent());

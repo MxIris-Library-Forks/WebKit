@@ -96,8 +96,6 @@ bool MatchedDeclarationsCache::isCacheable(const Element& element, const Style::
         return false;
     if (style.usesAnchorFunctions())
         return false;
-    if (style.usesCurrentBackgroundColorKeyword())
-        return false;
 
     // Getting computed style after a font environment change but before full style resolution may involve styles with non-current fonts.
     // Avoid caching them.
@@ -159,6 +157,9 @@ std::optional<MatchedDeclarationsCache::Result> MatchedDeclarationsCache::find(u
             continue;
 
         if (&entry.parentRenderStyle->inheritedCustomProperties() != &inheritedCustomProperties)
+            continue;
+
+        if (entry.parentRenderStyle->inBaseAppearanceSubtree() != parentStyle.inBaseAppearanceSubtree())
             continue;
 
         if (parentStyle.inheritedEqual(*entry.parentRenderStyle))

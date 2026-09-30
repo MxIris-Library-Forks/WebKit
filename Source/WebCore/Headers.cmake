@@ -1575,6 +1575,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     html/CachedHTMLCollection.h
     html/CachedHTMLCollectionInlines.h
     html/CanvasBase.h
+    html/CanvasContent.h
     html/CanvasNoiseInjection.h
     html/CaptionDisplaySettingsClient.h
     html/CaptionDisplaySettingsOptions.h
@@ -2229,6 +2230,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/writing-tools/WritingToolsTypes.h
 
     platform/AbortableTaskQueue.h
+    platform/AudioEncodedData.h
     platform/AudioEncoderActiveConfiguration.h
     platform/AudioSampleFormat.h
     platform/BoxExtents.h
@@ -2406,6 +2408,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/UserInterfaceLayoutDirection.h
     platform/ValidationBubble.h
     platform/VideoDecoder.h
+    platform/VideoEncodedData.h
     platform/VideoEncoder.h
     platform/VideoEncoderActiveConfiguration.h
     platform/VideoEncoderScalabilityMode.h
@@ -3424,6 +3427,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/grid/StyleGridTrackSizingDirection.h
 
     style/values/images/StyleGradient.h
+    style/values/images/StyleImageDrawingExtras.h
     style/values/images/StyleImageOrNone.h
     style/values/images/StyleImageOrientation.h
     style/values/images/StyleImageWrapper.h

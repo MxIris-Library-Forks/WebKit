@@ -1344,7 +1344,6 @@ Awaitable<std::optional<FrameTreeNodeData>> WebPage::getFrameTreeForBackForwardC
     RefPtr mainFrameOrigin = mainFrame->frameDocumentSecurityOrigin();
     auto mainFrameOriginData = mainFrameOrigin ? SecurityOriginData { mainFrameOrigin->data() } : WebCore::SecurityOriginData::createOpaque();
     FrameInfoData data {
-        true,
         mainFrame->frameType() == Frame::FrameType::Local ? FrameType::Local : FrameType::Remote,
         ResourceRequest { URL { page->mainFrameURL() } },
         mainFrameOriginData,
@@ -10228,18 +10227,23 @@ void WebPage::createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighli
     SetForScope highlightIsNewGroupScope { m_internals->highlightIsNewGroup, createNewGroup };
     SetForScope highlightRequestOriginScope { m_internals->highlightRequestOriginatedInApp, requestOriginatedInApp };
 
+    // Always reply, so the UI process isn't left waiting for a highlight that will never come.
+    auto replyWithoutHighlight = [&] {
+        completionHandler({ WebCore::SharedBuffer::create(), std::nullopt, createNewGroup, requestOriginatedInApp });
+    };
+
     RefPtr focusedOrMainFrame = corePage()->focusController().focusedOrMainFrame();
     if (!focusedOrMainFrame)
-        return;
+        return replyWithoutHighlight();
     RefPtr document = focusedOrMainFrame->document();
 
     RefPtr frame = document->frame();
     if (!frame)
-        return;
+        return replyWithoutHighlight();
 
     auto selectionRange = frame->selection().selection().toNormalizedRange();
     if (!selectionRange)
-        return;
+        return replyWithoutHighlight();
 
     protect(document->appHighlightRegistry())->addAnnotationHighlightWithRange(StaticRange::create(selectionRange.value()));
     document->appHighlightStorage().storeAppHighlight(StaticRange::create(selectionRange.value()), [completionHandler = WTF::move(completionHandler), protectedThis = Ref { *this }, this] (WebCore::AppHighlight&& highlight) mutable {
@@ -10807,16 +10811,22 @@ void WebPage::contentsToRootViewRect(FrameIdentifier frameID, FloatRect rect, Co
     completionHandler(contentsToRootView(frameID, rect));
 }
 
-void WebPage::contentsToRootViewRects(FrameIdentifier frameID, Vector<FloatRect> rects, CompletionHandler<void(Vector<FloatRect>)>&& completionHandler)
-{
-    for (auto& rect : rects)
-        rect = contentsToRootView(frameID, rect);
-    completionHandler(WTF::move(rects));
-}
-
 void WebPage::contentsToRootViewPoint(FrameIdentifier frameID, FloatPoint point, CompletionHandler<void(FloatPoint)>&& completionHandler)
 {
     completionHandler(contentsToRootView(frameID, point));
+}
+
+void WebPage::contentsToMainFrameViewRect(FrameIdentifier frameID, FloatRect rect, CompletionHandler<void(FloatRect)>&& completionHandler)
+{
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    RefPtr coreFrame = webFrame ? webFrame->coreFrame() : nullptr;
+    RefPtr view = coreFrame ? coreFrame->virtualView() : nullptr;
+
+    if (!view) {
+        completionHandler(rect);
+        return;
+    }
+    completionHandler(view->contentsToMainFrameView(rect));
 }
 
 void WebPage::remoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier frameID, WebCore::DictionaryPopupInfo popupInfo, CompletionHandler<void(WebCore::DictionaryPopupInfo)>&& completionHandler)

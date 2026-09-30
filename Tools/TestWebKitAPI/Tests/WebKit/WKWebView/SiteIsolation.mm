@@ -50,6 +50,7 @@
 #import <WebCore/SQLiteStatement.h>
 #import <WebKit/WKContentWorldPrivate.h>
 #import <WebKit/WKFrameInfoPrivate.h>
+#import <WebKit/WKMediaKeySystemPermissionCallback.h>
 #import <WebKit/WKNavigationActionPrivate.h>
 #import <WebKit/WKNavigationDelegatePrivate.h>
 #import <WebKit/WKNavigationPrivate.h>
@@ -8485,6 +8486,35 @@ TEST(SiteIsolation, MediaCapturePermissionUsesRemoteFrameOrigin)
 
 #endif // ENABLE(MEDIA_STREAM)
 
+#if ENABLE(ENCRYPTED_MEDIA)
+TEST(SiteIsolation, RequestMediaKeySystemAccessInCrossSiteIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://b.com/subframe'></iframe>"_s } },
+        { "/subframe"_s, { "<!DOCTYPE html>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    auto requestAccess = [&] {
+        return [webView objectByCallingAsyncFunction:@"return navigator.requestMediaKeySystemAccess('org.w3.clearkey', [{ initDataTypes: ['cenc'], videoCapabilities: [{ contentType: 'video/mp4; codecs=\"avc1.64001F\"' }] }]).then(() => 'granted', (error) => error.name)" withArguments:@{ } inFrame:childFrame.get() inContentWorld:WKContentWorld.pageWorld];
+    };
+
+    EXPECT_WK_STREQ(requestAccess(), "granted");
+
+    WKPageUIClientV16 uiClient;
+    zeroBytes(uiClient);
+    uiClient.base.version = 16;
+    uiClient.decidePolicyForMediaKeySystemPermissionRequest = [](WKPageRef, WKSecurityOriginRef, WKStringRef, WKMediaKeySystemPermissionCallbackRef callback) {
+        WKMediaKeySystemPermissionCallbackComplete(callback, false);
+    };
+    WKPageSetPageUIClient([webView _pageForTesting], &uiClient.base);
+    EXPECT_WK_STREQ(requestAccess(), "NotSupportedError");
+}
+#endif
+
 TEST(SiteIsolation, AutoplayPolicyInRemoteFrameFollowsMainFrame)
 {
     auto mainFrameHTML = "<script>"
@@ -12156,6 +12186,89 @@ TEST(SiteIsolation, SelectPopupMenuLocationInScrolledCrossSiteIframeWithScrolled
     EXPECT_EQ(rect, NSMakeRect(150, 150, 100, 30));
 }
 
+const ASCIILiteral contextMenuLocationTestMainPage =
+    "<body style='margin: 0'>"_s
+    "  <iframe style='margin: 100px; width: 300px; height: 300px;' src='https://webkit.org/iframe'></iframe>"_s
+    "</body>"_s;
+
+const ASCIILiteral contextMenuLocationTestScrolledMainPage =
+    "<body style='margin: 0'>"_s
+    "  <div style='height: 1000px'></div>"_s
+    "  <iframe style='margin: 100px; width: 300px; height: 300px;' src='https://webkit.org/iframe'></iframe>"_s
+    "  <div style='height: 1000px'></div>"_s
+    "</body>"_s;
+
+const ASCIILiteral contextMenuLocationTestIframePage =
+    "<p style='font-size: 100px'>Iframe</p>"_s
+    "<script>onload = alert('loaded');</script>"_s;
+
+const ASCIILiteral contextMenuLocationTestScrolledIframePage =
+    "<div style='height: 1000px'></div>"_s
+    "<p style='font-size: 100px'>Iframe</p>"_s
+    "<div style='height: 1000px'></div>"_s
+    "<script>onload = alert('loaded');</script>"_s;
+
+static void testContextMenuLocationInCrossSiteIframe(ASCIILiteral mainframeHTML, ASCIILiteral iframeHTML, int mainFrameScrollY = 0, int iframeScrollY = 0)
+{
+    // Invariant: subframe is at (100, 100) of the main frame, with size (300, 300)
+    HTTPServer server({
+        { "/mainframe"_s, { mainframeHTML } },
+        { "/iframe"_s, { iframeHTML } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webViewBinding, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    RetainPtr webView = webViewBinding;
+
+    __block bool done = false;
+    __block NSPoint contextMenuActualLocation = NSZeroPoint;
+    InstanceMethodSwizzler popUpSwizzler {
+        NSMenu.class,
+        NSSelectorFromString(@"_popUpContextMenu:withEvent:forView:"),
+        imp_implementationWithBlock(^(id, NSMenu *, NSEvent *event, NSView *) {
+            contextMenuActualLocation = [event locationInWindow];
+            done = true;
+        })
+    };
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    EXPECT_WK_STREQ("loaded", [webView _test_waitForAlert]);
+
+    if (mainFrameScrollY)
+        scrollFrameAndWait(webView, nil, mainFrameScrollY);
+    if (iframeScrollY)
+        scrollFrameAndWait(webView, [webView firstChildFrame], iframeScrollY);
+    [webView waitForNextPresentationUpdate];
+
+    // Right click on point (200, 200) in the main frame's view (Y flipped for window coordinate)
+    // This should be the "Iframe" text inside the iframe.
+    auto contextMenuExpectedLocation = NSMakePoint(200, 600 - 200);
+    [webView rightClickAtPoint:contextMenuExpectedLocation];
+    Util::run(&done);
+
+    // Context menu should be shown where the right click is.
+    EXPECT_EQ(contextMenuActualLocation, contextMenuExpectedLocation);
+}
+
+TEST(SiteIsolation, ContextMenuLocationInCrossSiteIframe)
+{
+    testContextMenuLocationInCrossSiteIframe(contextMenuLocationTestMainPage, contextMenuLocationTestIframePage);
+}
+
+TEST(SiteIsolation, ContextMenuLocationInScrolledCrossSiteIframe)
+{
+    testContextMenuLocationInCrossSiteIframe(contextMenuLocationTestMainPage, contextMenuLocationTestScrolledIframePage, 0, 1000);
+}
+
+TEST(SiteIsolation, ContextMenuLocationInCrossSiteIframeWithScrolledMainPage)
+{
+    testContextMenuLocationInCrossSiteIframe(contextMenuLocationTestScrolledMainPage, contextMenuLocationTestIframePage, 1000, 0);
+}
+
+TEST(SiteIsolation, ContextMenuLocationInScrolledCrossSiteIframeWithScrolledMainPage)
+{
+    testContextMenuLocationInCrossSiteIframe(contextMenuLocationTestScrolledMainPage, contextMenuLocationTestScrolledIframePage, 1000, 1000);
+}
+
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -13609,11 +13722,37 @@ TEST(SiteIsolation, IframeImageTranslationIfIframeIsAddedAfterTranslationCall)
 
 #if ENABLE(SERVICE_CONTROLS)
 
-TEST(SiteIsolation, ImageServiceControlledImageBoundsInCrossOriginIframe)
+const ASCIILiteral imageServiceControlTestMainPage =
+    "<body style='margin: 0'>"_s
+    "  <iframe style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe>"_s
+    "</body>"_s;
+
+const ASCIILiteral imageServiceControlTestScrolledMainPage =
+    "<body style='margin: 0'>"_s
+    "  <div style='height: 1000px'></div>"_s
+    "  <iframe style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe>"_s
+    "  <div style='height: 1000px'></div>"_s
+    "</body>"_s;
+
+const ASCIILiteral imageServiceControlTestIframePage =
+    "<!DOCTYPE html>"_s
+    "<body style='margin: 0'>"_s
+    "  <img style='margin: 50px; width: 100px; height: 100px;' src='https://webkit.org/image.png'>"_s
+    "</body>"_s;
+
+const ASCIILiteral imageServiceControlTestScrolledIframePage =
+    "<!DOCTYPE html>"_s
+    "<body style='margin: 0'>"_s
+    "  <div style='height: 1000px'></div>"_s
+    "  <img style='margin: 50px; width: 100px; height: 100px;' src='https://webkit.org/image.png'>"_s
+    "  <div style='height: 1000px'></div>"_s
+    "</body>"_s;
+
+static void testImageServiceControlledImageBounds(const ASCIILiteral& mainFrameHTML, const ASCIILiteral& iframeHTML, int mainFrameScrollY = 0, int iframeScrollY = 0)
 {
     HTTPServer server({
-        { "/mainframe"_s, { "<body style='margin: 0'><iframe style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
-        { "/iframe"_s, { "<!DOCTYPE html><body style='margin: 0'><img style='margin: 50px; width: 100px; height: 100px;' src='https://webkit.org/image.png'></body>"_s } },
+        { "/mainframe"_s, mainFrameHTML },
+        { "/iframe"_s, iframeHTML },
         { "/image.png"_s, { [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"large-red-square" withExtension:@"png"]] } }
     }, HTTPServer::Protocol::HttpsProxy);
 
@@ -13633,6 +13772,11 @@ TEST(SiteIsolation, ImageServiceControlledImageBoundsInCrossOriginIframe)
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
     [navigationDelegate waitForDidFinishNavigation];
+
+    if (mainFrameScrollY)
+        scrollFrameAndWait(webView, nil, mainFrameScrollY);
+    if (iframeScrollY)
+        scrollFrameAndWait(webView, [webView firstChildFrame], iframeScrollY);
     [webView waitForNextPresentationUpdate];
 
     // Capture the screen-space rect that controlledImageBounds is converted to in setupServicesMenu().
@@ -13688,6 +13832,26 @@ TEST(SiteIsolation, ImageServiceControlledImageBoundsInCrossOriginIframe)
     EXPECT_NEAR(capturedSourceFrame.origin.y, expectedOnScreen.origin.y, 1);
     EXPECT_NEAR(capturedSourceFrame.size.width, expectedOnScreen.size.width, 1);
     EXPECT_NEAR(capturedSourceFrame.size.height, expectedOnScreen.size.height, 1);
+}
+
+TEST(SiteIsolation, ImageServiceControlledImageBoundsInCrossOriginIframe)
+{
+    testImageServiceControlledImageBounds(imageServiceControlTestMainPage, imageServiceControlTestIframePage);
+}
+
+TEST(SiteIsolation, ImageServiceControlledImageBoundsInScrolledCrossOriginIframe)
+{
+    testImageServiceControlledImageBounds(imageServiceControlTestMainPage, imageServiceControlTestScrolledIframePage, 0, 1000);
+}
+
+TEST(SiteIsolation, ImageServiceControlledImageBoundsInCrossOriginIframeWithScrolledMainPage)
+{
+    testImageServiceControlledImageBounds(imageServiceControlTestScrolledMainPage, imageServiceControlTestIframePage, 1000, 0);
+}
+
+TEST(SiteIsolation, ImageServiceControlledImageBoundsInScrolledCrossOriginIframeWithScrolledMainPage)
+{
+    testImageServiceControlledImageBounds(imageServiceControlTestScrolledMainPage, imageServiceControlTestScrolledIframePage, 1000, 1000);
 }
 
 #endif // ENABLE(SERVICE_CONTROLS)
@@ -14630,6 +14794,159 @@ TEST(SiteIsolation, NoRedundantFocusPolicyCallbackAfterBlurAndRefocusInCrossOrig
     EXPECT_EQ(1, focusPolicyCallCount);
 }
 #endif
+
+#if PLATFORM(IOS_FAMILY)
+
+static constexpr auto iframeContentForCrossOriginDblclickWindowListener = "<!DOCTYPE html>"
+    "<html>"
+    "<body style='margin: 0; padding: 0;'>"
+    "<script>"
+    "window.addEventListener('dblclick', function(e) {"
+    "    parent.postMessage({"
+    "        type: 'dblclick',"
+    "        clientX: e.clientX,"
+    "        clientY: e.clientY"
+    "    }, '*');"
+    "});"
+    "requestAnimationFrame(() => parent.postMessage({ type: 'iframeReady' }, '*'));"
+    "</script>"
+    "</body>"
+    "</html>"_s;
+
+static constexpr auto iframeContentForCrossOriginDblclickDocumentListener = "<!DOCTYPE html>"
+    "<html>"
+    "<body style='margin: 0; padding: 0;'>"
+    "<script>"
+    "document.addEventListener('dblclick', function(e) {"
+    "    parent.postMessage({"
+    "        type: 'dblclick',"
+    "        clientX: e.clientX,"
+    "        clientY: e.clientY"
+    "    }, '*');"
+    "});"
+    "requestAnimationFrame(() => parent.postMessage({ type: 'iframeReady' }, '*'));"
+    "</script>"
+    "</body>"
+    "</html>"_s;
+
+static constexpr auto mainHTMLForCrossOriginDblclick = "<!DOCTYPE html>"
+    "<html>"
+    "<body style='margin: 0; padding: 0;'>"
+    "<iframe id='frame' src='https://webkit.org/iframe' style='width: 100px; height: 100px; position: absolute; border: none;'></iframe>"
+    "<script>"
+    "window.iframeReady = new Promise(resolve => {"
+    "    window.addEventListener('message', function(e) {"
+    "        if (e.data.type === 'iframeReady')"
+    "            resolve();"
+    "    });"
+    "});"
+    "window.dblclickReceived = new Promise(resolve => {"
+    "    window.addEventListener('message', function(e) {"
+    "        if (e.data.type === 'dblclick') {"
+    "            window.clientX = e.data.clientX;"
+    "            window.clientY = e.data.clientY;"
+    "            resolve();"
+    "        }"
+    "    });"
+    "});"
+    "</script>"
+    "</body>"
+    "</html>"_s;
+
+static void testDblclickInCrossOriginIFrame(TestWKWebView *webView, CGFloat tapX, CGFloat tapY, NSString *expectedX, NSString *expectedY, NSString *jsTransform = nil)
+{
+    [webView objectByCallingAsyncFunction:@"return await window.iframeReady;" withArguments:@{ }];
+    [webView waitForNextPresentationUpdate];
+
+    if (jsTransform) {
+        __block bool done = false;
+        [webView evaluateJavaScript:jsTransform completionHandler:^(id, NSError *) {
+            done = true;
+        }];
+        Util::run(&done);
+        [webView waitForNextPresentationUpdate];
+    }
+
+    [webView _simulateDoubleClickAtLocation:CGPointMake(tapX, tapY)];
+    [webView objectByCallingAsyncFunction:@"return await window.dblclickReceived;" withArguments:@{ }];
+
+    EXPECT_WK_STREQ(expectedX, [webView stringByEvaluatingJavaScript:@"window.clientX"]);
+    EXPECT_WK_STREQ(expectedY, [webView stringByEvaluatingJavaScript:@"window.clientY"]);
+}
+
+TEST(SiteIsolation, DblclickWithWindowListenerInSimpleIFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { mainHTMLForCrossOriginDblclick } },
+        { "/iframe"_s, { iframeContentForCrossOriginDblclickWindowListener } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    testDblclickInCrossOriginIFrame(webView.get(), 50, 50, @"50", @"50");
+}
+
+TEST(SiteIsolation, DblclickWithWindowListenerInRotatedIFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { mainHTMLForCrossOriginDblclick } },
+        { "/iframe"_s, { iframeContentForCrossOriginDblclickWindowListener } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    testDblclickInCrossOriginIFrame(webView.get(), 10, 10, @"90", @"90", @"frame.style.rotate = \"180deg\";");
+}
+
+TEST(SiteIsolation, DblclickWithWindowListenerInScaledIFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { mainHTMLForCrossOriginDblclick } },
+        { "/iframe"_s, { iframeContentForCrossOriginDblclickWindowListener } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    testDblclickInCrossOriginIFrame(webView.get(), 50, 50, @"25", @"25", @"frame.style.transformOrigin = \"top left\"; frame.style.scale = \"2\";");
+}
+
+TEST(SiteIsolation, DblclickWithDocumentListenerInSimpleIFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { mainHTMLForCrossOriginDblclick } },
+        { "/iframe"_s, { iframeContentForCrossOriginDblclickDocumentListener } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    testDblclickInCrossOriginIFrame(webView.get(), 50, 50, @"50", @"50");
+}
+
+TEST(SiteIsolation, DblclickWithDocumentListenerInRotatedIFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { mainHTMLForCrossOriginDblclick } },
+        { "/iframe"_s, { iframeContentForCrossOriginDblclickDocumentListener } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    testDblclickInCrossOriginIFrame(webView.get(), 10, 10, @"90", @"90", @"frame.style.rotate = \"180deg\";");
+}
+
+TEST(SiteIsolation, DblclickWithDocumentListenerInScaledIFrameCrossOrigin)
+{
+    HTTPServer server({
+        { "/example"_s, { mainHTMLForCrossOriginDblclick } },
+        { "/iframe"_s, { iframeContentForCrossOriginDblclickDocumentListener } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    testDblclickInCrossOriginIFrame(webView.get(), 50, 50, @"25", @"25", @"frame.style.transformOrigin = \"top left\"; frame.style.scale = \"2\";");
+}
+
+#endif // PLATFORM(IOS_FAMILY)
 
 TEST(SiteIsolation, MultiProcessBFCacheSameSiteCaching)
 {
@@ -15592,6 +15909,24 @@ TEST(SiteIsolation, ContextMenuPasteInCrossOriginFrame)
     EXPECT_TRUE(Util::waitFor([&] {
         return [[webView stringByEvaluatingJavaScript:@"document.getElementById('editor').textContent" inFrame:[webView firstChildFrame]] isEqualToString:@"hello"];
     }));
+}
+
+TEST(SiteIsolation, ContextMenuKeyInCrossOriginFrame)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<script>addEventListener('contextmenu', event => { event.preventDefault(); window.receivedContextMenu = true; })</script>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    [webView objectByEvaluatingJavaScript:@"addEventListener('contextmenu', event => { event.preventDefault(); window.receivedContextMenu = true; }); true"];
+
+    [webView showContextMenuForSelection:nil];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"!!window.receivedContextMenu" inFrame:childFrame.get()] boolValue];
+    }));
+    EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"!!window.receivedContextMenu"] boolValue]);
 }
 #endif
 

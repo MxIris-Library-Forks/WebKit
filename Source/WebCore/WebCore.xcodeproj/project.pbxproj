@@ -1586,6 +1586,7 @@
 		419BD1B928E599FE0089D7B7 /* BitrateMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 419BD1AB28E593800089D7B7 /* BitrateMode.h */; };
 		419BD1BA28E599FF0089D7B7 /* WebCodecsEncodedVideoChunkOutputCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 419BD1AD28E593810089D7B7 /* WebCodecsEncodedVideoChunkOutputCallback.h */; };
 		419BD1BF28E5C5C00089D7B7 /* VideoDecoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 419BD1BE28E5C5C00089D7B7 /* VideoDecoder.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		9F70A68E552A4773813480AB /* VideoEncodedData.h in Headers */ = {isa = PBXBuildFile; fileRef = BD80140F6ACB4086AF35615B /* VideoEncodedData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		419BE7591BC7F42B00E1C85B /* WebCoreBuiltinNames.h in Headers */ = {isa = PBXBuildFile; fileRef = 419BE7521BC7F3DB00E1C85B /* WebCoreBuiltinNames.h */; };
 		419E6EC92566D278002B5010 /* RTCPeerConnectionIceErrorEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 419E6EC72566D214002B5010 /* RTCPeerConnectionIceErrorEvent.h */; };
 		419F0FD22A39F7D1002F5972 /* VideoEncoderActiveConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 412576A52A2E1B0E00A4F935 /* VideoEncoderActiveConfiguration.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1669,8 +1670,8 @@
 		41FFD2C327563E0D00501BBF /* AudioSampleDataConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 41FFD2C027563DFF00501BBF /* AudioSampleDataConverter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		41FFD2C42756570F00501BBF /* VideoLayerManagerObjC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 52D5A18D1C54590300DE34A3 /* VideoLayerManagerObjC.mm */; };
 		41FFD2C62756573E00501BBF /* MediaPlayerPrivateAVFoundationObjC.mm in Sources */ = {isa = PBXBuildFile; fileRef = DF9AFD7113FC31D80015FEB7 /* MediaPlayerPrivateAVFoundationObjC.mm */; };
-		421129B22EC39C0A00778FE7 /* AXFormActivityMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 421129B02EC39C0A00778FE7 /* AXFormActivityMonitor.h */; };
 		421129A62EC39C0A00778FE6 /* AXLiveRegionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 421129A32EC39C0A00778FE6 /* AXLiveRegionManager.h */; };
+		421129B22EC39C0A00778FE7 /* AXFormActivityMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 421129B02EC39C0A00778FE7 /* AXFormActivityMonitor.h */; };
 		422EBF162E6EA20F00D4C0E9 /* AXImageMapHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 422EBF142E6EA20F00D4C0E9 /* AXImageMapHelpers.h */; };
 		427BEAA8627D34396339098A /* Pause.svg in Copy Modern Media Controls Images */ = {isa = PBXBuildFile; fileRef = 8FD72914D37DB42A29060A28 /* Pause.svg */; platformFilters = (macos, ); };
 		427DA71D13735DFA007C57FB /* JSServiceWorkerInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 427DA71B13735DFA007C57FB /* JSServiceWorkerInternals.cpp */; };
@@ -3085,6 +3086,7 @@
 		72BDED112F8DABFA00199F64 /* CVPixelBufferUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 72BDED0F2F8D9F9700199F64 /* CVPixelBufferUtilities.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72BDED122F8DAC0A00199F64 /* ShareableCVPixelBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 72BDED0D2F8D9B1600199F64 /* ShareableCVPixelBuffer.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72BDF25F2A2B670D00260319 /* PathSegmentData.h in Headers */ = {isa = PBXBuildFile; fileRef = 72BDF25E2A2B647200260319 /* PathSegmentData.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		72BE1E993066183F008E5A73 /* CanvasContent.h in Headers */ = {isa = PBXBuildFile; fileRef = 72BE1E9830660D54008E5A73 /* CanvasContent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72C172132983717600136E02 /* CachedSubimage.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C172112983717500136E02 /* CachedSubimage.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72C37B9D29650466007E8F52 /* SearchFieldPart.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C37B9B29650466007E8F52 /* SearchFieldPart.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		72C37B9E29650466007E8F52 /* SearchFieldCancelButtonPart.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C37B9C29650466007E8F52 /* SearchFieldCancelButtonPart.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -3171,7 +3173,6 @@
 		7A93868618DCC14500B8263D /* VTTScanner.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A93868318DCC14500B8263D /* VTTScanner.h */; };
 		7AA3A69A194A64E7001CBD24 /* TileController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AA3A696194A64E7001CBD24 /* TileController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AA3A69C194A64E7001CBD24 /* TileGrid.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AA3A698194A64E7001CBD24 /* TileGrid.h */; };
-		7AA3A6A0194B59B6001CBD24 /* LayerPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AA3A69E194B59B6001CBD24 /* LayerPool.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7AA3A6A4194B5C22001CBD24 /* TileCoverageMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AA3A6A2194B5C22001CBD24 /* TileCoverageMap.h */; };
 		7AAA32B6C6C7C1328978606C /* Ellipsis.svg in Copy Modern Media Controls Images */ = {isa = PBXBuildFile; fileRef = F3FB34D3C8B0041EA738900D /* Ellipsis.svg */; platformFilters = (macos, ); };
 		7AABA25A14BC613300AA9A11 /* DOMEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7AABA25814BC613300AA9A11 /* DOMEditor.h */; };
@@ -4163,6 +4164,7 @@
 		9A87D9E02A82925400EE7A8A /* AudioSampleFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A87D9DF2A82925400EE7A8A /* AudioSampleFormat.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9A87D9E22A82933500EE7A8A /* PlatformRawAudioData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A87D9E12A82933500EE7A8A /* PlatformRawAudioData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9A87D9E42A8293E100EE7A8A /* AudioDecoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A87D9E32A8293E100EE7A8A /* AudioDecoder.h */; };
+		5CE40F64DF8D457695087B59 /* AudioEncodedData.h in Headers */ = {isa = PBXBuildFile; fileRef = 708BA7773D004FD093A58C79 /* AudioEncodedData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9A87D9E62A8294BE00EE7A8A /* WebCodecsAudioDecoderSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A87D9E52A8294BE00EE7A8A /* WebCodecsAudioDecoderSupport.h */; };
 		9A87D9E82A82951B00EE7A8A /* WebCodecsAudioData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A87D9E72A82951A00EE7A8A /* WebCodecsAudioData.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9A87D9EA2A82955300EE7A8A /* WebCodecsAudioDataAlgorithms.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A87D9E92A82955200EE7A8A /* WebCodecsAudioDataAlgorithms.h */; };
@@ -6354,6 +6356,7 @@
 		DB51863CE0109E78B0C3ED83 /* AVCaptureDeviceManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 070363DB181A1CDC00C074A5 /* AVCaptureDeviceManager.mm */; };
 		DBAAA5A17A33454D339D8E56 /* FlowMode.h in Headers */ = {isa = PBXBuildFile; fileRef = BBF58114651D5C792A7CFBD4 /* FlowMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DCA7EDF52C655235000F16C7 /* BoxSides.h in Headers */ = {isa = PBXBuildFile; fileRef = DCA7EDF42C655235000F16C7 /* BoxSides.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		DCF2ED1324BA51D75BA1FF5F /* StyleImageDrawingExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = C9C41627C002EDD04D2DAE1C /* StyleImageDrawingExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD05637D29B6B88100A98258 /* InlineDisplayContent.h in Headers */ = {isa = PBXBuildFile; fileRef = DD05637C29B6B88100A98258 /* InlineDisplayContent.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD05FE0D0B8BA3C6009ACDFE /* WebCoreObjCExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = DD05FE0B0B8BA3C6009ACDFE /* WebCoreObjCExtras.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		DD14265D2F81000000C1D6A8 /* InspectorNativeFunctionParameters.json in Headers */ = {isa = PBXBuildFile; fileRef = DD14265E2F81000000C1D6A8 /* InspectorNativeFunctionParameters.json */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -10744,6 +10747,7 @@
 		3084F8472F643F2600EC9C6E /* CSSCustomIdent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCustomIdent.cpp; sourceTree = "<group>"; };
 		3084F84E2F64403D00EC9C6E /* StyleCustomIdent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleCustomIdent.h; sourceTree = "<group>"; };
 		3084F84F2F64403D00EC9C6E /* StyleCustomIdent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleCustomIdent.cpp; sourceTree = "<group>"; };
+		30877432D1026706D7E805DA /* GPUVideoDecoderVTBH264.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUVideoDecoderVTBH264.h; sourceTree = "<group>"; };
 		3103B7DE1DB01556008BB890 /* ColorHash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ColorHash.h; sourceTree = "<group>"; };
 		31055BB81E4FE18900EB604E /* WebKitFontFamilyNames.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WebKitFontFamilyNames.in; sourceTree = "<group>"; };
 		31078CC21880A6A6008099DC /* OESTextureHalfFloatLinear.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OESTextureHalfFloatLinear.cpp; sourceTree = "<group>"; };
@@ -11544,6 +11548,7 @@
 		419BD1B128E599CC0089D7B7 /* WebCodecsVideoEncoderEncodeOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebCodecsVideoEncoderEncodeOptions.h; sourceTree = "<group>"; };
 		419BD1B228E599CD0089D7B7 /* WebCodecsVideoEncoderEncodeOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebCodecsVideoEncoderEncodeOptions.idl; sourceTree = "<group>"; };
 		419BD1BE28E5C5C00089D7B7 /* VideoDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoDecoder.h; sourceTree = "<group>"; };
+		BD80140F6ACB4086AF35615B /* VideoEncodedData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoEncodedData.h; sourceTree = "<group>"; };
 		419BD1C328E5F4410089D7B7 /* VideoDecoder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoDecoder.cpp; sourceTree = "<group>"; };
 		419BE7521BC7F3DB00E1C85B /* WebCoreBuiltinNames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCoreBuiltinNames.h; sourceTree = "<group>"; };
 		419BEE3A2ABAD620008B070E /* WebCodecsAudioData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebCodecsAudioData.cpp; sourceTree = "<group>"; };
@@ -11622,10 +11627,6 @@
 		41B5AABB291A7E73000C6777 /* MultiCacheQueryOptions.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MultiCacheQueryOptions.idl; sourceTree = "<group>"; };
 		41B6319F305BF77400276A69 /* GPUVideoEncoderVTB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUVideoEncoderVTB.h; sourceTree = "<group>"; };
 		41B631A0305BF77400276A69 /* GPUVideoEncoderVTB.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GPUVideoEncoderVTB.mm; sourceTree = "<group>"; };
-		30877432D1026706D7E805DA /* GPUVideoDecoderVTBH264.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUVideoDecoderVTBH264.h; sourceTree = "<group>"; };
-		846A32C3BB81E3C29B621792 /* GPUVideoDecoderVTBH264.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GPUVideoDecoderVTBH264.mm; sourceTree = "<group>"; };
-		9F1E4B7C0D3A5C6E28B1F470 /* GPUVideoDecoderVTBH265.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUVideoDecoderVTBH265.h; sourceTree = "<group>"; };
-		3C7D2A916B8E4F5019C3D8A2 /* GPUVideoDecoderVTBH265.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GPUVideoDecoderVTBH265.mm; sourceTree = "<group>"; };
 		41B631A1305BF77400276A69 /* GPUVideoEncoderVTBH265.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUVideoEncoderVTBH265.h; sourceTree = "<group>"; };
 		41B631A2305BF77400276A69 /* GPUVideoEncoderVTBH265.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GPUVideoEncoderVTBH265.mm; sourceTree = "<group>"; };
 		41B631A3305BF85500276A69 /* VideoEncoderVTBSession.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoEncoderVTBSession.h; sourceTree = "<group>"; };
@@ -11800,10 +11801,10 @@
 		41FF206D0243146B78FDD0FB /* UnifiedSource74-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource74-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
 		41FFD2C027563DFF00501BBF /* AudioSampleDataConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioSampleDataConverter.h; sourceTree = "<group>"; };
 		41FFD2C227563E0000501BBF /* AudioSampleDataConverter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AudioSampleDataConverter.mm; sourceTree = "<group>"; };
-		421129B02EC39C0A00778FE7 /* AXFormActivityMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AXFormActivityMonitor.h; sourceTree = "<group>"; };
-		421129B12EC39C0A00778FE7 /* AXFormActivityMonitor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXFormActivityMonitor.cpp; sourceTree = "<group>"; };
 		421129A32EC39C0A00778FE6 /* AXLiveRegionManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AXLiveRegionManager.h; sourceTree = "<group>"; };
 		421129A42EC39C0A00778FE6 /* AXLiveRegionManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXLiveRegionManager.cpp; sourceTree = "<group>"; };
+		421129B02EC39C0A00778FE7 /* AXFormActivityMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AXFormActivityMonitor.h; sourceTree = "<group>"; };
+		421129B12EC39C0A00778FE7 /* AXFormActivityMonitor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXFormActivityMonitor.cpp; sourceTree = "<group>"; };
 		422EBF142E6EA20F00D4C0E9 /* AXImageMapHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXImageMapHelpers.h; sourceTree = "<group>"; };
 		422EBF152E6EA20F00D4C0E9 /* AXImageMapHelpers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AXImageMapHelpers.cpp; sourceTree = "<group>"; };
 		427DA71B13735DFA007C57FB /* JSServiceWorkerInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSServiceWorkerInternals.cpp; sourceTree = "<group>"; };
@@ -14595,11 +14596,13 @@
 		71FF851822A3F81F005D5959 /* NavigatorMaxTouchPoints.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NavigatorMaxTouchPoints.idl; sourceTree = "<group>"; };
 		7209C47E2931C86400633C0D /* TransparencyLayerContextSwitcher.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TransparencyLayerContextSwitcher.cpp; sourceTree = "<group>"; };
 		7209C47F2931C86400633C0D /* TransparencyLayerContextSwitcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TransparencyLayerContextSwitcher.h; sourceTree = "<group>"; };
+		720A3757306344850022199A /* CanvasDrawElementImageOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CanvasDrawElementImageOptions.idl; sourceTree = "<group>"; };
+		720A3758306345980022199A /* CanvasDrawElementImageOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasDrawElementImageOptions.h; sourceTree = "<group>"; };
 		7211B5D6276536820076FEF8 /* FilterResults.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilterResults.h; sourceTree = "<group>"; };
 		721292A1301AE64C009DA7C9 /* CanvasPaintEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CanvasPaintEvent.h; sourceTree = "<group>"; };
 		721292A2301AE64C009DA7C9 /* CanvasPaintEvent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasPaintEvent.cpp; sourceTree = "<group>"; };
-		721292A4301BAE1A009DA7C9 /* GPUCopyElementImageSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUCopyElementImageSource.h; sourceTree = "<group>"; };
-		721292A5301BAE31009DA7C9 /* GPUCopyElementImageDestination.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUCopyElementImageDestination.h; sourceTree = "<group>"; };
+		721292A4301BAE1A009DA7C9 /* GPUDrawElementImageSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUDrawElementImageSource.h; sourceTree = "<group>"; };
+		721292A5301BAE31009DA7C9 /* GPUDrawElementImageDestination.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GPUDrawElementImageDestination.h; sourceTree = "<group>"; };
 		721443452240C8BA00F12FF7 /* SVGAnimatedValueProperty.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGAnimatedValueProperty.h; sourceTree = "<group>"; };
 		721443462240CAD200F12FF7 /* SVGValueProperty.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGValueProperty.h; sourceTree = "<group>"; };
 		7214B9B7274458FA003BE6DF /* FilterEffectVector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilterEffectVector.h; sourceTree = "<group>"; };
@@ -14620,8 +14623,8 @@
 		7224293A301AB8B700856621 /* WebGLCopyElementImageConfig.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = WebGLCopyElementImageConfig.idl; sourceTree = "<group>"; };
 		7224293B301ABB3600856621 /* CanvasElementImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasElementImage.h; sourceTree = "<group>"; };
 		7224293C301ABB3600856621 /* CanvasElementImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasElementImage.cpp; sourceTree = "<group>"; };
-		7224293D301ACFD400856621 /* GPUCopyElementImageDestination.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUCopyElementImageDestination.idl; sourceTree = "<group>"; };
-		7224293E301ACFD400856621 /* GPUCopyElementImageSource.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUCopyElementImageSource.idl; sourceTree = "<group>"; };
+		7224293D301ACFD400856621 /* GPUDrawElementImageDestination.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUDrawElementImageDestination.idl; sourceTree = "<group>"; };
+		7224293E301ACFD400856621 /* GPUDrawElementImageSource.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUDrawElementImageSource.idl; sourceTree = "<group>"; };
 		72242943301ADA9800856621 /* WebGLCopyElementImageConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGLCopyElementImageConfig.h; sourceTree = "<group>"; };
 		7224ABCF2C0174EE00D85362 /* BitmapImageDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapImageDescriptor.h; sourceTree = "<group>"; };
 		7225E8062A3E298C00947EBF /* RotationDirection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RotationDirection.cpp; sourceTree = "<group>"; };
@@ -14741,6 +14744,9 @@
 		7299BC6423D686A600CC6883 /* AlphaPremultiplication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlphaPremultiplication.h; sourceTree = "<group>"; };
 		7299BC6623D686C600CC6883 /* RenderingMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderingMode.h; sourceTree = "<group>"; };
 		729D052E25313E2600422098 /* RenderingResourceIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderingResourceIdentifier.h; sourceTree = "<group>"; };
+		729E39483066D74800AFE142 /* UpdateElementGeometryOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = UpdateElementGeometryOptions.idl; sourceTree = "<group>"; };
+		729E39493066D76E00AFE142 /* UpdateElementGeometryOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateElementGeometryOptions.h; sourceTree = "<group>"; };
+		729E394A3066E85F00AFE142 /* UpdateElementGeometryOptions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UpdateElementGeometryOptions.cpp; sourceTree = "<group>"; };
 		72A13A9F274C5CC700E2A88E /* FilterEffectApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilterEffectApplier.h; sourceTree = "<group>"; };
 		72A13AB6274DCEDC00E2A88E /* FEColorMatrixSoftwareApplier.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FEColorMatrixSoftwareApplier.cpp; sourceTree = "<group>"; };
 		72A13AB7274DCEDC00E2A88E /* FEColorMatrixSoftwareApplier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FEColorMatrixSoftwareApplier.h; sourceTree = "<group>"; };
@@ -14817,6 +14823,7 @@
 		72BDED0F2F8D9F9700199F64 /* CVPixelBufferUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVPixelBufferUtilities.h; sourceTree = "<group>"; };
 		72BDED102F8D9F9700199F64 /* CVPixelBufferUtilities.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CVPixelBufferUtilities.cpp; sourceTree = "<group>"; };
 		72BDF25E2A2B647200260319 /* PathSegmentData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PathSegmentData.h; sourceTree = "<group>"; };
+		72BE1E9830660D54008E5A73 /* CanvasContent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasContent.h; sourceTree = "<group>"; };
 		72BEE7CC2E79E32200026436 /* LayoutIntegrationGridLayout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutIntegrationGridLayout.h; sourceTree = "<group>"; };
 		72BEE7CD2E79E3E900026436 /* LayoutIntegrationGridLayout.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LayoutIntegrationGridLayout.cpp; sourceTree = "<group>"; };
 		72C172102983717500136E02 /* CachedSubimage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CachedSubimage.cpp; sourceTree = "<group>"; };
@@ -15051,8 +15058,6 @@
 		7AA3A696194A64E7001CBD24 /* TileController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TileController.h; sourceTree = "<group>"; };
 		7AA3A697194A64E7001CBD24 /* TileGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TileGrid.cpp; sourceTree = "<group>"; };
 		7AA3A698194A64E7001CBD24 /* TileGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TileGrid.h; sourceTree = "<group>"; };
-		7AA3A69D194B59B6001CBD24 /* LayerPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayerPool.cpp; sourceTree = "<group>"; };
-		7AA3A69E194B59B6001CBD24 /* LayerPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayerPool.h; sourceTree = "<group>"; };
 		7AA3A6A1194B5C22001CBD24 /* TileCoverageMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TileCoverageMap.cpp; sourceTree = "<group>"; };
 		7AA3A6A2194B5C22001CBD24 /* TileCoverageMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TileCoverageMap.h; sourceTree = "<group>"; };
 		7AABA25714BC613300AA9A11 /* DOMEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DOMEditor.cpp; sourceTree = "<group>"; };
@@ -16004,6 +16009,7 @@
 		84650E7C2387AD7C006266E2 /* MediaQueryListEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaQueryListEvent.h; sourceTree = "<group>"; };
 		84650E7F2387AD8A006266E2 /* MediaQueryListEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MediaQueryListEvent.cpp; sourceTree = "<group>"; };
 		84650E802387AD8B006266E2 /* MediaQueryListEvent.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MediaQueryListEvent.idl; sourceTree = "<group>"; };
+		846A32C3BB81E3C29B621792 /* GPUVideoDecoderVTBH264.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GPUVideoDecoderVTBH264.mm; sourceTree = "<group>"; };
 		84730D5A1248F0B300D3A9C9 /* DistantLightSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DistantLightSource.h; sourceTree = "<group>"; };
 		84730D5B1248F0B300D3A9C9 /* FEConvolveMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FEConvolveMatrix.cpp; sourceTree = "<group>"; };
 		84730D5C1248F0B300D3A9C9 /* FEConvolveMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FEConvolveMatrix.h; sourceTree = "<group>"; };
@@ -17137,6 +17143,7 @@
 		9A87D9DF2A82925400EE7A8A /* AudioSampleFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioSampleFormat.h; sourceTree = "<group>"; };
 		9A87D9E12A82933500EE7A8A /* PlatformRawAudioData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlatformRawAudioData.h; sourceTree = "<group>"; };
 		9A87D9E32A8293E100EE7A8A /* AudioDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioDecoder.h; sourceTree = "<group>"; };
+		708BA7773D004FD093A58C79 /* AudioEncodedData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioEncodedData.h; sourceTree = "<group>"; };
 		9A87D9E52A8294BE00EE7A8A /* WebCodecsAudioDecoderSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCodecsAudioDecoderSupport.h; sourceTree = "<group>"; };
 		9A87D9E72A82951A00EE7A8A /* WebCodecsAudioData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCodecsAudioData.h; sourceTree = "<group>"; };
 		9A87D9E92A82955200EE7A8A /* WebCodecsAudioDataAlgorithms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebCodecsAudioDataAlgorithms.h; sourceTree = "<group>"; };
@@ -18978,7 +18985,7 @@
 		B2E27C9E0B0F2B0900F17C7B /* FloatPoint3D.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FloatPoint3D.h; sourceTree = "<group>"; };
 		B2ED97700B1F55CE00257D0F /* GraphicsContextCG.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsContextCG.cpp; sourceTree = "<group>"; };
 		B2F34FE50E82F81400F627CD /* DNS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNS.h; sourceTree = "<group>"; };
-		B2F34FE80E82F82700F648CD /* DNSResolveQueueCFNet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSResolveQueueCFNet.cpp; sourceTree = "<group>"; };
+		B2F34FE80E82F82700F648CD /* DNSResolveQueueCFNet.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DNSResolveQueueCFNet.mm; sourceTree = "<group>"; };
 		B2FA3C500AB75A6E000E5AC4 /* JSSVGAnimatedAngle.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSSVGAnimatedAngle.cpp; sourceTree = "<group>"; };
 		B2FA3C510AB75A6E000E5AC4 /* JSSVGAnimatedAngle.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = JSSVGAnimatedAngle.h; sourceTree = "<group>"; };
 		B2FA3C520AB75A6E000E5AC4 /* JSSVGAnimatedBoolean.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSSVGAnimatedBoolean.cpp; sourceTree = "<group>"; };
@@ -20113,6 +20120,7 @@
 		BC6F79AB2EC25C050049BA02 /* StyleFontFamilyName.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleFontFamilyName.cpp; sourceTree = "<group>"; };
 		BC709DDE266323CE00B9A21C /* CSSCalcSymbolTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSSCalcSymbolTable.h; sourceTree = "<group>"; };
 		BC709DDF266323CE00B9A21C /* CSSCalcSymbolTable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSSCalcSymbolTable.cpp; sourceTree = "<group>"; };
+		BC715EE1306AC4DA007C4D0C /* StyleImageDrawingExtras.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleImageDrawingExtras.cpp; sourceTree = "<group>"; };
 		BC731E742E636D8700A6584F /* StyleImageOrNone.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleImageOrNone.h; sourceTree = "<group>"; };
 		BC731E762E636E9F00A6584F /* StyleImageOrNone.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StyleImageOrNone.cpp; sourceTree = "<group>"; };
 		BC731EA62E64CCBD00A6584F /* StyleWebKitInitialLetter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleWebKitInitialLetter.h; sourceTree = "<group>"; };
@@ -21269,6 +21277,7 @@
 		C7CE9CAD86C00846197AE7D5 /* StylePortalTransform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StylePortalTransform.h; sourceTree = "<group>"; };
 		C91C8C4B6EDB7E3196424FBE /* UnifiedSource66-header-RenderStyleGetters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "UnifiedSource66-header-RenderStyleGetters.cpp"; sourceTree = "<group>"; };
 		C994659FB046BBF6205518AD /* SharedTimebase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedTimebase.h; sourceTree = "<group>"; };
+		C9C41627C002EDD04D2DAE1C /* StyleImageDrawingExtras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleImageDrawingExtras.h; sourceTree = "<group>"; };
 		C9D467041E60C3EB008195FB /* AutoplayEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoplayEvent.h; sourceTree = "<group>"; };
 		CA1635DC2072E76900E7D2CE /* ReferrerPolicy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReferrerPolicy.cpp; sourceTree = "<group>"; };
 		CA1933D52407D6400071241A /* PerformancePaintTiming.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PerformancePaintTiming.h; sourceTree = "<group>"; };
@@ -22022,8 +22031,8 @@
 		D2E733882C8F9D9F00C7E549 /* Site.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Site.cpp; sourceTree = "<group>"; };
 		D32148900000000000000001 /* GPUComputePassDescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUComputePassDescriptor.cpp; sourceTree = "<group>"; };
 		D32148900000000000000002 /* GPUComputePassTimestampWrites.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUComputePassTimestampWrites.cpp; sourceTree = "<group>"; };
-		D32148900000000000000003 /* GPUCopyElementImageDestination.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUCopyElementImageDestination.cpp; sourceTree = "<group>"; };
-		D32148900000000000000004 /* GPUCopyElementImageSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUCopyElementImageSource.cpp; sourceTree = "<group>"; };
+		D32148900000000000000003 /* GPUDrawElementImageDestination.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUDrawElementImageDestination.cpp; sourceTree = "<group>"; };
+		D32148900000000000000004 /* GPUDrawElementImageSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUDrawElementImageSource.cpp; sourceTree = "<group>"; };
 		D32148900000000000000005 /* GPUExternalTextureDescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUExternalTextureDescriptor.cpp; sourceTree = "<group>"; };
 		D32148900000000000000006 /* GPUImageCopyBuffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUImageCopyBuffer.cpp; sourceTree = "<group>"; };
 		D32148900000000000000007 /* GPUImageCopyExternalImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPUImageCopyExternalImage.cpp; sourceTree = "<group>"; };
@@ -26213,12 +26222,6 @@
 				1C66A7A32A4F784E0086DB6F /* GPUComputePipeline.idl */,
 				1C66A6F82A4F78160086DB6F /* GPUComputePipelineDescriptor.h */,
 				1C66A71A2A4F78200086DB6F /* GPUComputePipelineDescriptor.idl */,
-				D32148900000000000000003 /* GPUCopyElementImageDestination.cpp */,
-				721292A5301BAE31009DA7C9 /* GPUCopyElementImageDestination.h */,
-				7224293D301ACFD400856621 /* GPUCopyElementImageDestination.idl */,
-				D32148900000000000000004 /* GPUCopyElementImageSource.cpp */,
-				721292A4301BAE1A009DA7C9 /* GPUCopyElementImageSource.h */,
-				7224293E301ACFD400856621 /* GPUCopyElementImageSource.idl */,
 				1C66A6DB2A4F780D0086DB6F /* GPUCullMode.h */,
 				1C66A73C2A4F782A0086DB6F /* GPUCullMode.idl */,
 				1C66A8152A4F78700086DB6F /* GPUDebugCommandsMixin.idl */,
@@ -26238,6 +26241,12 @@
 				1C66A7FB2A4F78680086DB6F /* GPUDeviceLostReason.h */,
 				1C66A7E22A4F78600086DB6F /* GPUDeviceLostReason.idl */,
 				1C66A6E42A4F78100086DB6F /* GPUDeviceUncapturedError.idl */,
+				D32148900000000000000003 /* GPUDrawElementImageDestination.cpp */,
+				721292A5301BAE31009DA7C9 /* GPUDrawElementImageDestination.h */,
+				7224293D301ACFD400856621 /* GPUDrawElementImageDestination.idl */,
+				D32148900000000000000004 /* GPUDrawElementImageSource.cpp */,
+				721292A4301BAE1A009DA7C9 /* GPUDrawElementImageSource.h */,
+				7224293E301ACFD400856621 /* GPUDrawElementImageSource.idl */,
 				1C66A7182A4F781F0086DB6F /* GPUError.h */,
 				1C66A7442A4F782C0086DB6F /* GPUErrorFilter.h */,
 				1C66A7432A4F782C0086DB6F /* GPUErrorFilter.idl */,
@@ -28646,6 +28655,8 @@
 				7C193BB61F5E0EB90088F3E6 /* CanvasDirection.h */,
 				7C193BAC1F5E0EB20088F3E6 /* CanvasDirection.idl */,
 				72242938301AAC3E00856621 /* CanvasDrawElementImage.idl */,
+				720A3758306345980022199A /* CanvasDrawElementImageOptions.h */,
+				720A3757306344850022199A /* CanvasDrawElementImageOptions.idl */,
 				7C193B9A1F5E0EA70088F3E6 /* CanvasDrawImage.idl */,
 				3BD120F885B67FA75D46CBE1 /* CanvasDrawImageSizing.h */,
 				7C193BA61F5E0EAE0088F3E6 /* CanvasDrawPath.idl */,
@@ -28832,6 +28843,9 @@
 				BCA5591D263F10B9007F19B3 /* PredefinedColorSpace.cpp */,
 				BCA5591A263F10B9007F19B3 /* PredefinedColorSpace.h */,
 				BCA5591C263F10B9007F19B3 /* PredefinedColorSpace.idl */,
+				729E394A3066E85F00AFE142 /* UpdateElementGeometryOptions.cpp */,
+				729E39493066D76E00AFE142 /* UpdateElementGeometryOptions.h */,
+				729E39483066D74800AFE142 /* UpdateElementGeometryOptions.idl */,
 				D3F3D35B1A69A5060059FC2B /* WebGL2RenderingContext.cpp */,
 				D3F3D35C1A69A5060059FC2B /* WebGL2RenderingContext.h */,
 				D3F3D35D1A69A5060059FC2B /* WebGL2RenderingContext.idl */,
@@ -29007,8 +29021,6 @@
 				0F1A2B3C4D5E6F7080910A02 /* FrameProcessIndicators.h */,
 				499B3ED4128CD31400E726C2 /* GraphicsLayerCA.cpp */,
 				499B3ED5128CD31400E726C2 /* GraphicsLayerCA.h */,
-				7AA3A69D194B59B6001CBD24 /* LayerPool.cpp */,
-				7AA3A69E194B59B6001CBD24 /* LayerPool.h */,
 				0FDF45A61BD1C6FD00E4FA8C /* PlatformCAAnimation.cpp */,
 				499B3EDC128DB50100E726C2 /* PlatformCAAnimation.h */,
 				0F13163D16ED0CC80035CC04 /* PlatformCAFilters.h */,
@@ -33604,6 +33616,7 @@
 				CD814C342996CA6A005A780A /* CachedHTMLCollectionInlines.h */,
 				313171571FB0969E008D91FC /* CanvasBase.cpp */,
 				313171541FB079D1008D91FC /* CanvasBase.h */,
+				72BE1E9830660D54008E5A73 /* CanvasContent.h */,
 				D2C4612B2A0C744E00A5F791 /* CanvasNoiseInjection.cpp */,
 				D2C4612C2A0C744E00A5F791 /* CanvasNoiseInjection.h */,
 				CD6A1F0C297A1A8F00F7B9FA /* CanvasObserver.h */,
@@ -37583,8 +37596,8 @@
 				5F2DBBE8178E336900141486 /* CertificateInfo.h */,
 				5F2DBBE7178E332D00141486 /* CertificateInfoCFNet.cpp */,
 				1E177CEEB040E8C9436CBB2D /* CookieStorageSessionCFNet.cpp */,
-				B2F34FE80E82F82700F648CD /* DNSResolveQueueCFNet.cpp */,
 				7EE6845C12D26E3800FF9415 /* DNSResolveQueueCFNet.h */,
+				B2F34FE80E82F82700F648CD /* DNSResolveQueueCFNet.mm */,
 				7EE6845412D26E3800E79415 /* FormDataStreamCFNet.h */,
 				7EE6845312D26E3800E79415 /* FormDataStreamCFNet.mm */,
 				7EE6845712D26E3800E79415 /* ResourceError.h */,
@@ -39450,6 +39463,8 @@
 				BC1777802F42418A00E318C5 /* kinds */,
 				BCB271B42CBD7D6B00265123 /* StyleGradient.cpp */,
 				BCB271B32CBD7D6B00265123 /* StyleGradient.h */,
+				BC715EE1306AC4DA007C4D0C /* StyleImageDrawingExtras.cpp */,
+				C9C41627C002EDD04D2DAE1C /* StyleImageDrawingExtras.h */,
 				BC4631752EA8539A00EA911F /* StyleImageOrientation.cpp */,
 				BC4631742EA8539A00EA911F /* StyleImageOrientation.h */,
 				BC731E762E636E9F00A6584F /* StyleImageOrNone.cpp */,
@@ -40025,6 +40040,7 @@
 				DFDB912CF8E88A6DA1AD264F /* AbortableTaskQueue.h */,
 				419321592CBD1DBE0049AA57 /* AudioDecoder.cpp */,
 				9A87D9E32A8293E100EE7A8A /* AudioDecoder.h */,
+				708BA7773D004FD093A58C79 /* AudioEncodedData.h */,
 				9ACB2F172AA5ECFF006E9556 /* AudioEncoder.cpp */,
 				9ACB2F152AA5ECFF006E9556 /* AudioEncoder.h */,
 				9ACB2F162AA5ECFF006E9556 /* AudioEncoderActiveConfiguration.h */,
@@ -40324,6 +40340,7 @@
 				83C45B8D1DC2B67C008871BA /* ValidationBubble.h */,
 				419BD1C328E5F4410089D7B7 /* VideoDecoder.cpp */,
 				419BD1BE28E5C5C00089D7B7 /* VideoDecoder.h */,
+				BD80140F6ACB4086AF35615B /* VideoEncodedData.h */,
 				41F898B328EAEAA20070549C /* VideoEncoder.cpp */,
 				41F898B228EAEAA20070549C /* VideoEncoder.h */,
 				412576A52A2E1B0E00A4F935 /* VideoEncoderActiveConfiguration.h */,
@@ -44736,6 +44753,7 @@
 				7BC9642C291E76BE00377DF1 /* AudioDestinationResampler.h in Headers */,
 				FD31608012B026F700C1A359 /* AudioDSPKernel.h in Headers */,
 				FD31608212B026F700C1A359 /* AudioDSPKernelProcessor.h in Headers */,
+				5CE40F64DF8D457695087B59 /* AudioEncodedData.h in Headers */,
 				07257B5E2E506D8E00AD0DF1 /* AudioEncoder.h in Headers */,
 				07257B602E5072E600AD0DF1 /* AudioEncoderActiveConfiguration.h in Headers */,
 				510CF7572CFDB1B3005E1950 /* AudioEncoderCocoa.h in Headers */,
@@ -45013,6 +45031,7 @@
 				EFCC6C8F20FE914400A2321B /* CanvasActivityRecord.h in Headers */,
 				313171561FB079E5008D91FC /* CanvasBase.h in Headers */,
 				415CDAF51E6B8F8B004F11EE /* CanvasCaptureMediaStreamTrack.h in Headers */,
+				72BE1E993066183F008E5A73 /* CanvasContent.h in Headers */,
 				7C193BBB1F5E0EED0088F3E6 /* CanvasDirection.h in Headers */,
 				2AE6B3D33C13DE3929FC2021 /* CanvasDrawImageSizing.h in Headers */,
 				721292A3301BA12F009DA7C9 /* CanvasElementImage.h in Headers */,
@@ -47694,7 +47713,6 @@
 				0FEC120C22BF2CD2004E9D35 /* LayerAncestorClippingStack.h in Headers */,
 				580371641A66F1D300BAF519 /* LayerFragment.h in Headers */,
 				5C5CD2EB29897A7900D10877 /* LayerHostingContextIdentifier.h in Headers */,
-				7AA3A6A0194B59B6001CBD24 /* LayerPool.h in Headers */,
 				0F4D5D1826CCC4AE00A9DFC1 /* LayerTreeAsTextOptions.h in Headers */,
 				115CFA97208B952B001E6991 /* LayoutBox.h in Headers */,
 				07E9C65B2E5061F4001DFE83 /* LayoutBoxGeometry.h in Headers */,
@@ -49619,6 +49637,7 @@
 				BC092AAF2E317441002ACB2C /* StyleHyphenateLimitEdge.h in Headers */,
 				BC092AA92E31573F002ACB2C /* StyleHyphenateLimitLines.h in Headers */,
 				BC1777832F42513300E318C5 /* StyleImage.h in Headers */,
+				DCF2ED1324BA51D75BA1FF5F /* StyleImageDrawingExtras.h in Headers */,
 				BC4631762EA854B700EA911F /* StyleImageOrientation.h in Headers */,
 				BC731E752E636D8700A6584F /* StyleImageOrNone.h in Headers */,
 				BC22AA9E2E36A2BD009AC0C3 /* StyleImageWrapper.h in Headers */,
@@ -50374,6 +50393,7 @@
 				41DD3C2B2902C42F00369BEF /* VideoColorSpace.h in Headers */,
 				41DD3C2E2902C63100369BEF /* VideoColorSpaceInit.h in Headers */,
 				419BD1BF28E5C5C00089D7B7 /* VideoDecoder.h in Headers */,
+				9F70A68E552A4773813480AB /* VideoEncodedData.h in Headers */,
 				41F898B428EAEAA30070549C /* VideoEncoder.h in Headers */,
 				419F0FD22A39F7D1002F5972 /* VideoEncoderActiveConfiguration.h in Headers */,
 				419F0FD32A39F7D3002F5972 /* VideoEncoderScalabilityMode.h in Headers */,

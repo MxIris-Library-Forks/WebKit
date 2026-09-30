@@ -728,6 +728,9 @@ imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customiz
 # Untriaged.
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/selectedcontent-restore.optional.html [ Skip ]
 
+# moveBefore() of a <select> double-registers the named slot in its shadow tree.
+webkit.org/b/325616 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/selectedcontent-subtree-mutations.html [ Skip ]
+
 # Our selectedcontent avoids overflow, but test expects it.
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/select-button-text-and-icon-clipping.html [ ImageOnlyFailure ]
 # Overflow handling differences.
@@ -4209,11 +4212,8 @@ webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/
 webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-009.html [ ImageOnlyFailure ]
 webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-013.html [ ImageOnlyFailure ]
 webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-014.html [ ImageOnlyFailure ]
-webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-text-overflow-string-004.html [ ImageOnlyFailure ]
-webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-text-overflow-string-005.html [ ImageOnlyFailure ]
 webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-text-overflow-string-006.html [ ImageOnlyFailure ]
 webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-text-overflow-string-007.html [ ImageOnlyFailure ]
-webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-text-overflow-string-008.html [ ImageOnlyFailure ]
 webkit.org/b/206748 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-text-overflow-string-009.html [ ImageOnlyFailure ]
 webkit.org/b/324326 imported/w3c/web-platform-tests/css/css-overflow/scroll-axis-lock-dynamic-change.html [ Skip ]
 webkit.org/b/324326 imported/w3c/web-platform-tests/css/css-overflow/scroll-axis-lock-none-touch-viewport.html [ Skip ]
@@ -6265,7 +6265,6 @@ imported/w3c/web-platform-tests/trusted-types/should-trusted-type-policy-creatio
 # Needs moveBefore support
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/fieldset-child-date-input-blur-event.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/role-updates-after-move.html [ Skip ]
-webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/select-option-optgroup.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/selection-preserve.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-iframe-crash.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-legend-input-crash.html [ Skip ]
@@ -7676,8 +7675,6 @@ imported/w3c/web-platform-tests/dom/events/scrolling/wheel-event-transactions-ta
 imported/w3c/web-platform-tests/dom/events/scrolling/wheel-event-transactions-target-resize.html?include=passive-false [ Skip ]
 imported/w3c/web-platform-tests/dom/events/scrolling/wheel-event-transactions-target-resize.html?include=passive-true [ Skip ]
 
-imported/w3c/web-platform-tests/css/css-color/deprecated-sameas-002.html [ ImageOnlyFailure ]
-
 http/tests/ipc/write-web-archive-frame-ancestry-check.html [ Skip ]
 
 http/tests/site-isolation/touch-events [ Skip ]
@@ -8215,6 +8212,7 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-eleme
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-object-element/object-allowed-schemas.sub.window.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video-loading-lazy-autoplay-when-visible.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video-loading-lazy-in-viewport.html [ Skip ] # Timeout
+imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video-loading-lazy-resume-on-loading-attribute-change.html [ Skip ] # Timeout
 webkit.org/b/200128 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video_timeupdate_on_seek.html [ Skip ]
 imported/w3c/web-platform-tests/cookies/samesite/sandbox-allow-same-site-none-cookies-value.tentative.https.html [ Skip ] # Different result on each platform for subtest
 

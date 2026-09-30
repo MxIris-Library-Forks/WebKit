@@ -496,19 +496,11 @@ void NetworkResourceLoader::startNetworkLoad(ResourceRequest&& request, FirstLoa
         // https://fetch.spec.whatwg.org/#http-network-compression-dictionary-fetch
         // 8. Let bestMatch be the result of finding the best matching dictionary in
         //    compressionDictionaryCache for request.
-        protect(m_cache)->retrieveCompressionDictionaryBestMatch(WTF::move(request), destination, [weakThis = WeakPtr { *this }, parameters = WTF::move(parameters)](ResourceRequest&& request, auto&& match) mutable {
-            RefPtr protectedThis = weakThis.get();
-            if (!protectedThis)
-                return;
-
-            // 9. If bestMatch is null, then return the result of running fallback.
-            // 10-12. Available-Dictionary, Dictionary-ID and the Accept-Encoding update are left to
-            //        the network layer, which has to redo this for a redirect anyway.
-            if (match)
-                parameters.compressionDictionary->match = CompressionDictionaryParameters::Match { match->key, match->hash, match->id };
-            protectedThis->continueStartNetworkLoad(WTF::move(request), WTF::move(parameters));
-        });
-        return;
+        // 9. If bestMatch is null, then return the result of running fallback.
+        // 10-12. Available-Dictionary, Dictionary-ID and the Accept-Encoding update are left to
+        //        the network layer, which has to redo this for a redirect anyway.
+        if (auto match = protect(m_cache)->bestCompressionDictionaryMatch(request, destination))
+            parameters.compressionDictionary->match = CompressionDictionaryParameters::Match { match->key, match->hash, match->id };
     }
 
     continueStartNetworkLoad(WTF::move(request), WTF::move(parameters));
@@ -2584,12 +2576,6 @@ template<typename IdentifierType, typename ThreadSafety>
 static String escapeIDForJSON(const std::optional<ObjectIdentifierGeneric<IdentifierType, ThreadSafety>>& value)
 {
     return value ? String::number(value->toUInt64()) : "None"_str;
-}
-
-template<typename IdentifierType, typename ThreadSafety>
-static String escapeIDForJSON(const std::optional<ProcessQualified<ObjectIdentifierGeneric<IdentifierType, ThreadSafety>>>& value)
-{
-    return value ? String::number(value->object().toUInt64()) : "None"_str;
 }
 
 void NetworkResourceLoader::logCookieInformation() const

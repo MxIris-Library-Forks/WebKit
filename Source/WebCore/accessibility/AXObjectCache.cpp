@@ -1015,6 +1015,14 @@ Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObj
     if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node); select && select->usesMenuList() && !select->usesBaseAppearancePicker())
         return AccessibilityMenuList::create(AXID::generate(), renderer, *this);
 
+    RefPtr optionElement = dynamicDowncast<HTMLOptionElement>(node);
+    RefPtr optGroupElement = dynamicDowncast<HTMLOptGroupElement>(node);
+    if (optionElement || optGroupElement) {
+        RefPtr select = optionElement ? optionElement->ownerSelectElement() : optGroupElement->ownerSelectElement();
+        if (select && !select->usesMenuList())
+            return AccessibilityListBoxOption::create(AXID::generate(), downcast<HTMLElement>(*node), *this);
+    }
+
     // Progress indicator.
     if (is<RenderProgress>(renderer) || is<RenderMeter>(renderer)
         || is<HTMLProgressElement>(node) || is<HTMLMeterElement>(node))
@@ -1890,6 +1898,8 @@ void AXObjectCache::onRemoteFrameInitialized(AXRemoteFrame& remoteFrame)
 {
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
     updateIsolatedTree(remoteFrame, AXProperty::RemoteFramePlatformElement);
+    // The hosting scroll view creates its remote frame child lazily, so it may have been added to the isolated tree before it had one.
+    updateIsolatedTree(protect(remoteFrame.parentObject()).get(), AXProperty::HasRemoteFrameChild);
 #else
     UNUSED_PARAM(remoteFrame);
 #endif
@@ -5704,29 +5714,6 @@ static void conditionallyAddNodeToFilterList(Node* node, const Document& documen
 {
     if (node && (!node->isConnected() || &node->document() == &document))
         nodesToRemove.add(*node);
-}
-
-template<typename T>
-static void filterVectorPairForRemoval(const Vector<std::pair<T, T>>& list, const Document& document, HashSet<Ref<Node>>& nodesToRemove)
-{
-    for (auto& entry : list) {
-        conditionallyAddNodeToFilterList(entry.first, document, nodesToRemove);
-        conditionallyAddNodeToFilterList(entry.second, document, nodesToRemove);
-    }
-}
-
-template<typename T, typename U>
-static void filterMapForRemoval(const HashMap<T, U>& list, const Document& document, HashSet<Ref<Node>>& nodesToRemove)
-{
-    for (auto& entry : list)
-        conditionallyAddNodeToFilterList(entry.key, document, nodesToRemove);
-}
-
-template<typename T>
-static void filterListForRemoval(const ListHashSet<T>& list, const Document& document, HashSet<Ref<Node>>& nodesToRemove)
-{
-    for (Ref node : list)
-        conditionallyAddNodeToFilterList(node.ptr(), document, nodesToRemove);
 }
 
 template<typename WeakHashSet>

@@ -1158,7 +1158,7 @@ public:
     void sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier, WebCore::Node*, WebCore::FloatPoint);
     void handleSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::PointerID = WebCore::mousePointerID);
     void completeSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::SyntheticClickType, WebCore::PointerID = WebCore::mousePointerID);
-    void handleDoubleTapForDoubleClickAtPoint(const WebCore::IntPoint&, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebEventInputSource, WebMouseEventSyntheticClickType);
+    Awaitable<std::optional<WebCore::RemoteUserInputEventData>> handleDoubleTapForDoubleClickAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebEventInputSource, WebMouseEventSyntheticClickType);
     void invokePendingSyntheticClickCallback(WebCore::SyntheticClickResult);
 #endif
 
@@ -2425,6 +2425,10 @@ private:
     void touchEvent(Ref<WebTouchEvent>&&, CompletionHandler<void(std::optional<WebEventType>, bool)>&&);
 #endif
 
+#if ENABLE(TWO_PHASE_CLICKS)
+    void dispatchDeferredSyntheticClickIfNeeded();
+#endif
+
     void cancelPointer(WebCore::PointerID, const WebCore::IntPoint&);
     void touchWithIdentifierWasRemoved(WebCore::PointerID);
     void resetPointerCapture();
@@ -2830,8 +2834,8 @@ private:
     template<typename T> T contentsToRootView(WebCore::FrameIdentifier, T);
     template<typename T> T rootViewToContents(WebCore::FrameIdentifier, T);
     void contentsToRootViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
-    void contentsToRootViewRects(WebCore::FrameIdentifier, Vector<WebCore::FloatRect>, CompletionHandler<void(Vector<WebCore::FloatRect>)>&&);
     void contentsToRootViewPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, CompletionHandler<void(WebCore::FloatPoint)>&&);
+    void contentsToMainFrameViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
     void remoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier, WebCore::DictionaryPopupInfo, CompletionHandler<void(WebCore::DictionaryPopupInfo)>&&);
 
     void hitTestAtPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, const ContentWorldData&, CompletionHandler<void(NodeHitTestResult)>&&);
@@ -3205,6 +3209,8 @@ private:
     WebCore::FloatPoint m_pendingSyntheticClickLocation;
     OptionSet<WebKit::WebEventModifier> m_pendingSyntheticClickModifiers;
     WebCore::PointerID m_pendingSyntheticClickPointerId { 0 };
+    Function<void()> m_deferredSyntheticClick;
+    uint64_t m_deferredSyntheticClickGeneration { 0 };
 #endif
 
 #if PLATFORM(IOS_FAMILY)

@@ -320,7 +320,6 @@ FrameInfoData WebFrame::info() const
     }
 
     return {
-        isMainFrame(),
         frameType,
         // FIXME: This should use the full request.
         ResourceRequest(url()),
@@ -1405,7 +1404,7 @@ void WebFrame::updateLocalFrameRect(WebCore::LocalFrame& localFrame, WebCore::In
         frameView->setExposedContentRect(FloatRect { { }, frameView->size() });
 #endif
 
-    if (!rectChanged)
+    if (oldRect.size() == newRect.size())
         return;
 
     if (RefPtr drawingArea = m_page ? m_page->drawingArea() : nullptr) {

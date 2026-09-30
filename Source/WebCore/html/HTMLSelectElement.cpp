@@ -79,6 +79,7 @@
 #include "Settings.h"
 #include "ShadowRoot.h"
 #include "SlotAssignment.h"
+#include "StyleAppearance.h"
 #include "StyleComputedStyle+GettersInlines.h"
 #include "StyleDisplay.h"
 #include "UnicodeBidi.h"
@@ -105,6 +106,19 @@ static const AtomString& buttonSlotName()
     return buttonSlot;
 }
 
+static const AtomString& listBoxSlotName()
+{
+    static MainThreadNeverDestroyed<const AtomString> listBoxSlot("listBoxSlot"_s);
+    return listBoxSlot;
+}
+
+// Only attributes decide this, so that slotting does not depend on style. Where the select is not
+// rendered as the box type this implies, it is rendered natively, which does not use the slots.
+static bool NODELETE usesListBoxSlot(const HTMLSelectElement& select)
+{
+    return select.document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled() && !select.supportsPickerPseudoElement();
+}
+
 static bool NODELETE isFirstElementChildButton(const Node& child)
 {
     return is<HTMLButtonElement>(child) && !child.previousElementSibling();
@@ -113,8 +127,15 @@ static bool NODELETE isFirstElementChildButton(const Node& child)
 class SelectSlotAssignment final : public NamedSlotAssignment {
 private:
     void hostChildElementDidChange(const Element&, ShadowRoot&) final;
+    void didChangeSlotNamesOfShadowHostChildren(ShadowRoot&) final;
     const AtomString& NODELETE slotNameForHostChild(const Node&) const final;
 };
+
+SUPPRESS_NODELETE static const AtomString& NODELETE optionSlotName(const Node* host)
+{
+    auto* select = dynamicDowncast<HTMLSelectElement>(host);
+    return select && usesListBoxSlot(*select) ? listBoxSlotName() : NamedSlotAssignment::defaultSlotName();
+}
 
 void SelectSlotAssignment::hostChildElementDidChange(const Element& childElement, ShadowRoot& shadowRoot)
 {
@@ -123,12 +144,18 @@ void SelectSlotAssignment::hostChildElementDidChange(const Element& childElement
         // since we don't know the answer when this function is called inside Element::removedFrom.
         didChangeSlot(buttonSlotName(), shadowRoot);
     } else
-        didChangeSlot(NamedSlotAssignment::defaultSlotName(), shadowRoot);
+        didChangeSlot(optionSlotName(shadowRoot.host()), shadowRoot);
+}
+
+void SelectSlotAssignment::didChangeSlotNamesOfShadowHostChildren(ShadowRoot& shadowRoot)
+{
+    didChangeSlot(NamedSlotAssignment::defaultSlotName(), shadowRoot);
+    didChangeSlot(listBoxSlotName(), shadowRoot);
 }
 
 SUPPRESS_NODELETE const AtomString& SelectSlotAssignment::slotNameForHostChild(const Node& child) const
 {
-    return isFirstElementChildButton(child) ? buttonSlotName() : NamedSlotAssignment::defaultSlotName();
+    return isFirstElementChildButton(child) ? buttonSlotName() : optionSlotName(child.parentNode());
 }
 
 // https://html.spec.whatwg.org/#dom-htmloptionscollection-length
@@ -205,6 +232,15 @@ void HTMLSelectElement::didAddUserAgentShadowRoot(ShadowRoot& root)
 
     root.appendChild(popover);
     m_popover = WTF::move(popover);
+
+    if (!document->settings().htmlEnhancedSelectMultipleAndListBoxEnabled())
+        return;
+
+    Ref listBoxSlot = HTMLSlotElement::create(slotTag, document);
+    ScriptDisallowedScope::EventAllowedScope listBoxSlotScope { listBoxSlot };
+    listBoxSlot->setAttributeWithoutSynchronization(nameAttr, listBoxSlotName());
+    root.appendChild(listBoxSlot);
+    m_listBoxSlot = WTF::move(listBoxSlot);
 }
 
 HTMLSelectElement* HTMLSelectElement::findOwnerSelect(ContainerNode* startNode, ExcludeOptGroup excludeOptGroup)
@@ -480,6 +516,14 @@ void HTMLSelectElement::hidePickerPopoverElement()
     popover->hidePopover();
 }
 
+void HTMLSelectElement::updateOptionSlotIfNeeded(bool usedListBoxSlot)
+{
+    if (usedListBoxSlot == usesListBoxSlot(*this))
+        return;
+    if (RefPtr root = userAgentShadowRoot())
+        root->didChangeSlotNamesOfShadowHostChildren();
+}
+
 void HTMLSelectElement::closePickerIfNoLongerSupported(bool hadOpenPicker)
 {
     if (!hadOpenPicker || supportsPickerPseudoElement())
@@ -674,9 +718,11 @@ void HTMLSelectElement::attributeChanged(const QualifiedName& name, const AtomSt
             updateListItemSelectedStates();
 
         bool hadOpenPicker = m_popupIsVisible && usesBaseAppearancePicker();
+        bool usedListBoxSlot = usesListBoxSlot(*this);
         m_size = size;
         updateValidity();
         closePickerIfNoLongerSupported(hadOpenPicker);
+        updateOptionSlotIfNeeded(usedListBoxSlot);
         if (m_size != oldSize) {
             invalidateStyleAndRenderersForSubtree();
             setRecalcListItems();
@@ -735,6 +781,11 @@ bool HTMLSelectElement::isMouseFocusable() const
     return HTMLFormControlElement::isMouseFocusable();
 }
 
+bool HTMLSelectElement::supportsBaseAppearance(StyleAppearance appearance) const
+{
+    return appearance == StyleAppearance::Base || appearance == StyleAppearance::BaseSelect;
+}
+
 RenderPtr<RenderElement> HTMLSelectElement::createElementRenderer(Style::ComputedStyle&& style, const RenderTreePosition& position)
 {
     if (isBaseListBox(&style))
@@ -755,6 +806,8 @@ bool HTMLSelectElement::childShouldCreateRenderer(const Node& child) const
         return &child != m_buttonSlot.get();
     if (boxType() == BoxType::ListBox)
         return isAnyOf<HTMLOptionElement, HTMLOptGroupElement>(child) || validationMessageShadowTreeContains(child);
+    if (&child == m_listBoxSlot.get())
+        return false;
     if (child.isInShadowTree() && child.containingShadowRoot() == userAgentShadowRoot())
         return true;
     if (isFirstElementChildButton(child))
@@ -831,7 +884,7 @@ CompletionHandlerCallingScope HTMLSelectElement::optionToSelectFromChildChangeSc
 
     return CompletionHandlerCallingScope { [optionToSelect = WTF::move(optionToSelect), isInsertion = change.isInsertion(), select = Ref { *this }] {
         if (optionToSelect)
-            select->optionSelectionStateChanged(*optionToSelect, true);
+            select->selectOption(optionToSelect->index(), SelectOptionFlag::SkipSelectedContentUpdate);
         else if (isInsertion)
             select->scrollToSelection();
     } };
@@ -1524,7 +1577,8 @@ void HTMLSelectElement::selectOption(int optionIndex, OptionSet<SelectOptionFlag
     // Update the button text element to display the new selection and ensure it picks up the new
     // selection's direction and unicode-bidi.
     updateButtonText(selectedOption.get(), optionIndex);
-    updateSelectedContentIfEnabled(selectedOption.get());
+    if (!flags.contains(SelectOptionFlag::SkipSelectedContentUpdate))
+        updateSelectedContentIfEnabled(selectedOption.get());
 
     scrollToSelection();
 
@@ -1672,10 +1726,12 @@ void HTMLSelectElement::parseMultipleAttribute(const AtomString& value)
     auto oldBoxType = boxType();
     bool oldMultiple = m_multiple;
     bool hadOpenPicker = m_popupIsVisible && usesBaseAppearancePicker();
+    bool usedListBoxSlot = usesListBoxSlot(*this);
     int oldSelectedIndex = selectedIndex();
     m_multiple = !value.isNull();
     updateValidity();
     closePickerIfNoLongerSupported(hadOpenPicker);
+    updateOptionSlotIfNeeded(usedListBoxSlot);
     if (oldBoxType != boxType())
         invalidateStyleAndRenderersForSubtree();
     if (oldMultiple != m_multiple) {
@@ -1740,6 +1796,7 @@ void HTMLSelectElement::reset()
     invalidateStyleForSubtree();
     updateValidity();
     invalidateButtonText();
+    updateSelectedContentIfEnabled();
 }
 
 #if !PLATFORM(WIN)
@@ -2564,6 +2621,8 @@ ExceptionOr<void> HTMLSelectElement::showPicker()
 
 void HTMLSelectElement::updateSelectedContentIfEnabled(HTMLOptionElement* selectedOption) const
 {
+    ASSERT(ScriptDisallowedScope::InMainThread::isScriptAllowed());
+
     auto& settings = document().settings();
     if (settings.htmlEnhancedSelectParsingEnabled() && settings.htmlEnhancedSelectEnabled() && !settings.mutationEventsEnabled())
         updateSelectedContent(selectedOption);
@@ -2571,6 +2630,7 @@ void HTMLSelectElement::updateSelectedContentIfEnabled(HTMLOptionElement* select
 
 void HTMLSelectElement::updateSelectedContent(HTMLOptionElement* selectedOption) const
 {
+    ASSERT(ScriptDisallowedScope::InMainThread::isScriptAllowed());
     ASSERT(document().settings().htmlEnhancedSelectParsingEnabled());
     ASSERT(document().settings().htmlEnhancedSelectEnabled());
     ASSERT(!document().settings().mutationEventsEnabled());
@@ -2579,16 +2639,8 @@ void HTMLSelectElement::updateSelectedContent(HTMLOptionElement* selectedOption)
         return;
 
     RefPtr selectedOptionRef = selectedOption;
-    if (!selectedOptionRef) {
-        for (auto& element : listItems()) {
-            if (RefPtr option = dynamicDowncast<HTMLOptionElement>(*element)) {
-                if (option->selected()) {
-                    selectedOptionRef = option;
-                    break;
-                }
-            }
-        }
-    }
+    if (!selectedOptionRef)
+        selectedOptionRef = firstSelectedOption();
 
     Vector<Ref<HTMLSelectedContentElement>> selectedContentElements;
     for (Ref selectedContent : descendantsOfType<HTMLSelectedContentElement>(*const_cast<HTMLSelectElement*>(this))) {
@@ -2602,6 +2654,45 @@ void HTMLSelectElement::updateSelectedContent(HTMLOptionElement* selectedOption)
         else
             selectedOptionRef->cloneIntoSelectedContent(selectedContent);
     }
+}
+
+// https://html.spec.whatwg.org/#update-a-selectedcontent
+void HTMLSelectElement::updateSelectedContent(HTMLSelectedContentElement& selectedContent) const
+{
+    ASSERT(ScriptDisallowedScope::InMainThread::isScriptAllowed());
+
+    if (selectedContent.isDisabled())
+        return;
+
+    if (RefPtr selectedOption = firstSelectedOption())
+        selectedOption->cloneIntoSelectedContent(selectedContent);
+    else
+        selectedContent.removeChildren();
+}
+
+void HTMLSelectElement::queueSelectedContentUpdate()
+{
+    if (m_hasQueuedSelectedContentUpdate || m_multiple || !m_selectedContentDescendantCount)
+        return;
+
+    m_hasQueuedSelectedContentUpdate = true;
+    Ref document = this->document();
+    protect(document->eventLoop())->queueMicrotask(document->vm(), [weakThis = WeakPtr<HTMLSelectElement, WeakPtrImplWithEventTargetData> { *this }] {
+        RefPtr select = weakThis;
+        if (!select)
+            return;
+        select->m_hasQueuedSelectedContentUpdate = false;
+        select->updateSelectedContentIfEnabled();
+    });
+}
+
+RefPtr<HTMLOptionElement> HTMLSelectElement::firstSelectedOption() const
+{
+    for (auto& element : listItems()) {
+        if (RefPtr option = dynamicDowncast<HTMLOptionElement>(*element); option && option->selected())
+            return option;
+    }
+    return nullptr;
 }
 
 void HTMLSelectElement::registerSelectedContentElement()

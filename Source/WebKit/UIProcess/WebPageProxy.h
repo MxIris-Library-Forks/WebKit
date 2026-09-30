@@ -2076,6 +2076,7 @@ public:
     void isPotentialTapInProgress(CompletionHandler<void(bool)>&&);
     void didGetTapHighlightGeometries(TapIdentifier requestID, const WebCore::Color&, const Vector<WebCore::FloatQuad>& geometries, const WebCore::IntSize& topLeftRadius, const WebCore::IntSize& topRightRadius, const WebCore::IntSize& bottomLeftRadius, const WebCore::IntSize& bottomRightRadius, bool nodeHasBuiltInClickHandling);
     void handleDoubleTapForDoubleClickAtPoint(const WebCore::IntPoint&, OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastInteractionStart, WebEventInputSource, WebMouseEventSyntheticClickType);
+    void handleDoubleTapForDoubleClickAtPointInFrame(std::optional<WebCore::FrameIdentifier>, const WebCore::IntPoint&, OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastInteractionStart, WebEventInputSource, WebMouseEventSyntheticClickType);
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -2957,11 +2958,10 @@ public:
     template<typename M> IPC::ConnectionSendSyncResult<M> sendSyncToProcessContainingFrame(std::optional<WebCore::FrameIdentifier>, M&&, const IPC::Timeout&, OptionSet<IPC::SendSyncOption>);
     Ref<WebProcessProxy> processContainingFrame(std::optional<WebCore::FrameIdentifier>);
 
-    void forEachWebContentProcess(NOESCAPE Function<void(WebProcessProxy&, WebCore::PageIdentifier)>&&);
+    void forEachWebContentProcess(NOESCAPE const Function<void(WebProcessProxy&, WebCore::PageIdentifier)>&);
 
     void convertPointToMainFrameCoordinates(WebCore::FloatPoint, std::optional<WebCore::FrameIdentifier>, CompletionHandler<void(std::optional<WebCore::FloatPoint>)>&&);
     void convertRectToMainFrameCoordinates(WebCore::FloatRect, std::optional<WebCore::FrameIdentifier>, CompletionHandler<void(std::optional<WebCore::FloatRect>)>&&);
-    void convertRectsToMainFrameCoordinates(Vector<WebCore::FloatRect>, std::optional<WebCore::FrameIdentifier>, CompletionHandler<void(std::optional<Vector<WebCore::FloatRect>>)>&&);
     void hitTestAtPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, API::ContentWorld&, CompletionHandler<void(std::optional<JSHandleInfo>&&)>&&);
 
 #if HAVE(SPATIAL_TRACKING_LABEL)
@@ -3266,7 +3266,7 @@ private:
     void rootViewToAccessibilityScreen(const WebCore::IntRect& viewRect, CompletionHandler<void(WebCore::IntRect)>&&);
 #if ENABLE(ACCESSIBILITY_LOCAL_FRAME)
     void requestFrameScreenPosition(WebCore::FrameIdentifier);
-    void applyAccessibilityFrameScreenPosition(WebCore::FrameIdentifier, const WebCore::FloatRect& rootViewRect);
+    void applyAccessibilityFrameScreenPosition(WebCore::FrameIdentifier, const WebCore::FloatRect& mainFrameViewRect);
 #endif
 #if PLATFORM(IOS_FAMILY)
     void relayAccessibilityNotification(String&&, std::span<const uint8_t>);
@@ -3408,7 +3408,6 @@ private:
 
 #if ENABLE(CONTEXT_MENUS)
     void showContextMenuFromFrame(FrameInfoData&&, ContextMenuContextData&&, UserData&&);
-    void showContextMenu(FrameInfoData&&, ContextMenuContextData&&, const UserData&);
 #endif
 
 #if ENABLE(CONTEXT_MENU_EVENT)
@@ -3722,7 +3721,7 @@ private:
     template<typename Message> void send(Message&&);
     template<typename Message, typename CH> void sendWithAsyncReply(Message&&, CH&&);
 
-    template<typename F> decltype(auto) sendToWebPage(std::optional<WebCore::FrameIdentifier>, F&&);
+    template<typename F> decltype(auto) sendToWebPage(std::optional<WebCore::FrameIdentifier>, NOESCAPE const F&);
 
     void sendPreventableTouchEvent(WebCore::FrameIdentifier, Ref<WebTouchEvent>&&);
     void sendUnpreventableTouchEvent(WebCore::FrameIdentifier, Ref<WebTouchEvent>&&);

@@ -931,16 +931,6 @@ WebPageProxy* WebPageProxy::fromIdentifier(std::optional<WebPageProxyIdentifier>
     return identifier ? webPageProxyMap().get(*identifier) : nullptr;
 }
 
-static bool windowFeature(auto getter, const API::PageConfiguration& configuration)
-{
-    if (!configuration.windowFeatures())
-        return true;
-    auto optional = getter(*configuration.windowFeatures());
-    if (!optional)
-        return true;
-    return *optional;
-}
-
 static Ref<BrowsingContextGroup> getOrCreateBrowsingContextGroup(const API::PageConfiguration& configuration)
 {
     if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup())
@@ -2397,7 +2387,10 @@ void WebPageProxy::loadRequestWithNavigationShared(Ref<WebProcessProxy>&& proces
                 return;
             auto requestURL = request.url();
             auto error = cannotShowURLError(request);
-            protectedThis->m_navigationClient->didFailProvisionalNavigationWithError(*protectedThis, legacyEmptyFrameInfo(WTF::move(request)), navigation.ptr(), requestURL, error, nullptr);
+            auto frameInfo = legacyEmptyFrameInfo(WTF::move(request));
+            if (RefPtr mainFrame = protectedThis->m_mainFrame)
+                frameInfo.frameID = mainFrame->frameID();
+            protectedThis->m_navigationClient->didFailProvisionalNavigationWithError(*protectedThis, WTF::move(frameInfo), navigation.ptr(), requestURL, error, nullptr);
         });
         return;
     }
@@ -6916,7 +6909,7 @@ SessionState WebPageProxy::sessionState(WTF::Function<bool (WebBackForwardListIt
 #if ENABLE(BACK_FORWARD_LIST_SWIFT)
     sessionState.backForwardListState = backForwardList().backForwardListState(WebBackForwardListItemFilter::create(WTF::move(filter)).ptr());
 #else
-    sessionState.backForwardListState = backForwardList().backForwardListState(WTF::move(filter));
+    sessionState.backForwardListState = backForwardList().backForwardListState(filter);
 #endif
 
     auto& pendingURL = internals().pageLoadState.pendingAPIRequestURL();
@@ -8646,7 +8639,7 @@ void WebPageProxy::didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& 
     if (m_loaderClient)
         m_loaderClient->didStartProvisionalLoadForFrame(*this, *frame, navigation.get(), process->transformHandlesToObjects(protect(userData.object()).get()).get());
     else {
-        if (frameInfo.isMainFrame)
+        if (frame->isMainFrame())
             m_navigationClient->didStartProvisionalNavigation(*this, request, navigation.get(), process->transformHandlesToObjects(protect(userData.object()).get()).get());
         m_navigationClient->didStartProvisionalLoadForFrame(*this, WTF::move(request), WTF::move(frameInfo));
     }
@@ -9214,7 +9207,7 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
     if (m_loaderClient)
         m_loaderClient->didCommitLoadForFrame(*this, *frame, navigation, process->transformHandlesToObjects(protect(userData.object()).get()).get());
     else {
-        if (frameInfo.isMainFrame)
+        if (frame->isMainFrame())
             m_navigationClient->didCommitNavigation(*this, navigation, process->transformHandlesToObjects(protect(userData.object()).get()).get());
         m_navigationClient->didCommitLoadForFrame(*this, WTF::move(request), WTF::move(frameInfo));
     }
@@ -9312,7 +9305,7 @@ HashSet<Ref<WebProcessProxy>> WebPageProxy::webContentProcessesWithFrame()
     return processes;
 }
 
-void WebPageProxy::forEachWebContentProcess(NOESCAPE Function<void(WebProcessProxy&, PageIdentifier)>&& function)
+void WebPageProxy::forEachWebContentProcess(NOESCAPE const Function<void(WebProcessProxy&, PageIdentifier)>& function)
 {
     protect(browsingContextGroup())->forEachRemotePage(*this, [&] (auto& remotePageProxy) {
         function(remotePageProxy.process(), remotePageProxy.pageID());
@@ -9592,7 +9585,7 @@ void WebPageProxy::didFinishLoadForFrame(IPC::Connection& connection, FrameIdent
     if (m_loaderClient)
         m_loaderClient->didFinishLoadForFrame(*this, *frame, navigation.get(), process->transformHandlesToObjects(protect(userData.object()).get()).get());
     else {
-        if (frameInfo.isMainFrame)
+        if (frame->isMainFrame())
             m_navigationClient->didFinishNavigation(*this, navigation.get(), process->transformHandlesToObjects(protect(userData.object()).get()).get());
         m_navigationClient->didFinishLoadForFrame(*this, WTF::move(request), WTF::move(frameInfo));
     }
@@ -9671,7 +9664,7 @@ void WebPageProxy::didFailLoadForFrame(IPC::Connection& connection, FrameIdentif
     if (m_loaderClient)
         m_loaderClient->didFailLoadWithErrorForFrame(*this, *frame, navigation.get(), error, process->transformHandlesToObjects(protect(userData.object()).get()).get());
     else {
-        if (frameInfo.isMainFrame)
+        if (frame->isMainFrame())
             m_navigationClient->didFailNavigationWithError(*this, frameInfo, navigation.get(), request.url(), error, process->transformHandlesToObjects(protect(userData.object()).get()).get());
         m_navigationClient->didFailLoadWithErrorForFrame(*this, WTF::move(request), error, WTF::move(frameInfo));
     }
@@ -10676,7 +10669,7 @@ void WebPageProxy::decidePolicyForResponseShared(Ref<WebProcessProxy>&& process,
     RefPtr navigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr;
 
     // COOP only applies to top-level browsing contexts.
-    if (frameInfo.isMainFrame && coopValuesRequireBrowsingContextGroupSwitch(isShowingInitialAboutBlank ? WebCore::IsInitialAboutBlank::Yes : WebCore::IsInitialAboutBlank::No, activeDocumentCOOPValue, frameInfo.securityOrigin.securityOrigin().get(), obtainCrossOriginOpenerPolicy(response).value, SecurityOrigin::create(response.url()).get())) {
+    if (frame->isMainFrame() && coopValuesRequireBrowsingContextGroupSwitch(isShowingInitialAboutBlank ? WebCore::IsInitialAboutBlank::Yes : WebCore::IsInitialAboutBlank::No, activeDocumentCOOPValue, frameInfo.securityOrigin.securityOrigin().get(), obtainCrossOriginOpenerPolicy(response).value, SecurityOrigin::create(response.url()).get())) {
         mainFrame()->disownOpener();
         m_openedMainFrameName = { };
     }
@@ -11805,33 +11798,17 @@ void WebPageProxy::requestFrameScreenPosition(FrameIdentifier frameID)
 
     static constexpr float unitRectSize = 1000;
 
-    RefPtr frame = WebFrameProxy::webFrame(frameID);
-    if (!frame)
-        return;
-
-    RefPtr parent = frame->parentFrame();
-
-    if (parent) {
-        // For non-main frames, use convertRectToMainFrameCoordinates to chain ContentsToRootViewRect
-        // calls up through the frame hierarchy.
-        convertRectToMainFrameCoordinates(FloatRect(0, 0, unitRectSize, unitRectSize), frameID, [weakThis = WeakPtr { *this }, frameID](std::optional<FloatRect> finalRect) mutable {
-            RefPtr protectedThis = weakThis.get();
-            if (!protectedThis || !finalRect)
-                return;
-            protectedThis->applyAccessibilityFrameScreenPosition(frameID, *finalRect);
-        });
-    } else {
-        // Main frame: apply ContentsToRootViewRect directly to account for main frame scroll.
-        sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::ContentsToRootViewRect(frameID, FloatRect(0, 0, unitRectSize, unitRectSize)), [weakThis = WeakPtr { *this }, frameID](FloatRect convertedRect) mutable {
-            RefPtr protectedThis = weakThis.get();
-            if (!protectedThis)
-                return;
-            protectedThis->applyAccessibilityFrameScreenPosition(frameID, convertedRect);
-        });
-    }
+    // The frame's own process converts this rect all the way up to main frame view coordinates,
+    // which accounts for the scroll position and transform of this frame and each of its ancestors.
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::ContentsToMainFrameViewRect(frameID, FloatRect(0, 0, unitRectSize, unitRectSize)), [weakThis = WeakPtr { *this }, frameID](FloatRect convertedRect) {
+        RefPtr protectedThis = weakThis.get();
+        if (!protectedThis)
+            return;
+        protectedThis->applyAccessibilityFrameScreenPosition(frameID, convertedRect);
+    });
 }
 
-void WebPageProxy::applyAccessibilityFrameScreenPosition(FrameIdentifier frameID, const FloatRect& rootViewRect)
+void WebPageProxy::applyAccessibilityFrameScreenPosition(FrameIdentifier frameID, const FloatRect& mainFrameViewRect)
 {
     static constexpr float unitRectSize = 1000;
 
@@ -11841,7 +11818,7 @@ void WebPageProxy::applyAccessibilityFrameScreenPosition(FrameIdentifier frameID
 
     // This screen rect will be offset based on the scroll of the frame, so when combined with element rects,
     // will properly account for iframe's scroll.
-    auto screenRect = client->rootViewToAccessibilityScreen(enclosingIntRect(rootViewRect));
+    auto screenRect = client->rootViewToAccessibilityScreen(enclosingIntRect(mainFrameViewRect));
 
     AXFrameGeometry geometry;
 #if PLATFORM(MAC)
@@ -13239,33 +13216,6 @@ void WebPageProxy::hidePopupMenu()
 
 void WebPageProxy::showContextMenuFromFrame(FrameInfoData&& frameInfo, ContextMenuContextData&& contextMenuContextData, UserData&& userData)
 {
-    RefPtr frame = WebFrameProxy::webFrame(frameInfo.frameID);
-    if (!frame)
-        return;
-
-    Vector<FloatRect> rectsToConvert { FloatRect { FloatPoint { contextMenuContextData.menuLocation() }, FloatSize { } } };
-#if ENABLE(SERVICE_CONTROLS)
-    if (!contextMenuContextData.controlledImageBounds().isEmpty())
-        rectsToConvert.append(FloatRect { contextMenuContextData.controlledImageBounds() });
-#endif
-
-    auto rootFrameID = frame->rootFrame()->frameID();
-    convertRectsToMainFrameCoordinates(WTF::move(rectsToConvert), rootFrameID, [weakThis = WeakPtr { *this }, contextMenuContextData = WTF::move(contextMenuContextData), userData = WTF::move(userData), frameInfo = WTF::move(frameInfo)] (std::optional<Vector<FloatRect>> convertedRects) mutable {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !convertedRects || convertedRects->isEmpty())
-            return;
-
-        contextMenuContextData.setMenuLocation(IntPoint(convertedRects->first().location()));
-#if ENABLE(SERVICE_CONTROLS)
-        if (convertedRects->size() > 1)
-            contextMenuContextData.setControlledImageBounds(IntRect(convertedRects->last()));
-#endif
-        protectedThis->showContextMenu(WTF::move(frameInfo), WTF::move(contextMenuContextData), userData);
-    });
-}
-
-void WebPageProxy::showContextMenu(FrameInfoData&& frameInfo, ContextMenuContextData&& contextMenuContextData, const UserData& userData)
-{
     // Showing a context menu runs a nested runloop, which can handle messages that cause |this| to get closed.
     Ref protectedThis { *this };
 
@@ -13493,7 +13443,7 @@ void WebPageProxy::contextMenuItemSelected(const WebContextMenuItemData& item, c
 
 void WebPageProxy::handleContextMenuKeyEvent()
 {
-    send(Messages::WebPage::ContextMenuForKeyEvent());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::ContextMenuForKeyEvent());
 }
 
 #endif // ENABLE(CONTEXT_MENUS)
@@ -16410,24 +16360,6 @@ void WebPageProxy::convertRectToMainFrameCoordinates(WebCore::FloatRect rect, st
     });
 }
 
-void WebPageProxy::convertRectsToMainFrameCoordinates(Vector<WebCore::FloatRect> rects, std::optional<WebCore::FrameIdentifier> frameID, CompletionHandler<void(std::optional<Vector<WebCore::FloatRect>>)>&& completionHandler)
-{
-    RefPtr frame = WebFrameProxy::webFrame(frameID);
-    if (!frame)
-        return completionHandler(std::nullopt);
-
-    RefPtr parent = frame->parentFrame();
-    if (!parent)
-        return completionHandler(WTF::move(rects));
-
-    sendWithAsyncReplyToProcessContainingFrame(parent->frameID(), Messages::WebPage::ContentsToRootViewRects(frame->frameID(), WTF::move(rects)), [weakThis = WeakPtr { *this }, completionHandler = WTF::move(completionHandler), nextFrameID = parent->rootFrame()->frameID()](Vector<FloatRect> convertedRects) mutable {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis)
-            return completionHandler(std::nullopt);
-        protectedThis->convertRectsToMainFrameCoordinates(WTF::move(convertedRects), nextFrameID, WTF::move(completionHandler));
-    });
-}
-
 void WebPageProxy::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoint point, API::ContentWorld& world, CompletionHandler<void(std::optional<JSHandleInfo>&&)>&& completionHandler)
 {
     sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::HitTestAtPoint(frameID, point, world.worldDataForProcess(processContainingFrame(frameID))), [weakThis = WeakPtr { *this }, world = Ref { world }, completionHandler = WTF::move(completionHandler)] (auto&& result) mutable {
@@ -18439,7 +18371,7 @@ void WebPageProxy::insertTextPlaceholder(const IntSize& size, CompletionHandler<
         completionHandler({ });
         return;
     }
-    sendWithAsyncReply(Messages::WebPage::InsertTextPlaceholder { size }, WTF::move(completionHandler));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::InsertTextPlaceholder { size }, WTF::move(completionHandler));
 }
 
 void WebPageProxy::removeTextPlaceholder(const ElementContext& placeholder, CompletionHandler<void()>&& completionHandler)
@@ -18448,7 +18380,17 @@ void WebPageProxy::removeTextPlaceholder(const ElementContext& placeholder, Comp
         completionHandler();
         return;
     }
-    sendWithAsyncReply(Messages::WebPage::RemoveTextPlaceholder { placeholder }, WTF::move(completionHandler));
+
+    RefPtr<WebProcessProxy> placeholderProcess;
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        if (placeholder.webPageIdentifier == pageID)
+            placeholderProcess = &process;
+    });
+    if (!placeholderProcess) {
+        completionHandler();
+        return;
+    }
+    placeholderProcess->sendWithAsyncReply(Messages::WebPage::RemoveTextPlaceholder { placeholder }, WTF::move(completionHandler), *placeholder.webPageIdentifier);
 }
 #endif
 
@@ -19673,7 +19615,7 @@ WebCore::PageIdentifier WebPageProxy::webPageIDInProcessForFrame(std::optional<W
 }
 
 template<typename F>
-decltype(auto) WebPageProxy::sendToWebPage(std::optional<FrameIdentifier> frameID, F&& sendFunction)
+decltype(auto) WebPageProxy::sendToWebPage(std::optional<FrameIdentifier> frameID, NOESCAPE const F& sendFunction)
 {
     if (RefPtr frame = WebFrameProxy::webFrame(frameID)) {
         if (RefPtr remotePage = protect(browsingContextGroup())->remotePageInProcess(*this, protect(frame->process())))
@@ -19777,6 +19719,10 @@ INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::TogglePDFAccessibilityDisp
 #if ENABLE(MEDIA_STREAM)
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::UserMediaAccessWasDenied);
 #endif
+#if ENABLE(ENCRYPTED_MEDIA)
+INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::MediaKeySystemWasGranted);
+INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::MediaKeySystemWasDenied);
+#endif
 #if PLATFORM(GTK)
 INSTANTIATE_SEND_TO_PROCESS_CONTAINING_FRAME(WebPage::CollapseSelectionInFrame);
 #endif
@@ -19819,6 +19765,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::NavigateS
 #if ENABLE(TWO_PHASE_CLICKS)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::CommitPotentialTap);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PotentialTapAtPosition);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::HandleDoubleTapForDoubleClickAtPoint);
 #endif
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithGesture);
@@ -19860,6 +19807,9 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSel
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::CancelAutoscroll);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ReplaceSelectionWithPasteboardData);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ClearDictationAlternatives);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::SetDictationStreamingOpacity);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ClearDictationStreamingOpacity);
 #endif
 #if ENABLE(MULTI_REPRESENTATION_HEIC)
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::InsertMultiRepresentationHEIC);
@@ -19869,6 +19819,8 @@ INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ReplaceSelectedText);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::SelectWordBackward);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::StoreSelectionForAccessibility);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GenerateSyntheticEditingCommand);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::WillInsertFinalDictationResult);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::DidInsertFinalDictationResult);
 #endif
 #undef INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS
 
@@ -19876,6 +19828,11 @@ INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GenerateSyntheticEdit
     template std::optional<IPC::AsyncReplyID> WebPageProxy::sendWithAsyncReplyToFocusedOrMainFrameProcess<Messages::message, Messages::message::Reply>(Messages::message&&, Messages::message::Reply&&, OptionSet<IPC::SendOption>)
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::StartAutoscrollAtPosition);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::AddDictationAlternative);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::DictationAlternativesAtSelection);
+#endif
+#if ENABLE(APP_HIGHLIGHTS)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::CreateAppHighlightInSelectedRange);
 #endif
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::BeginSelectionInDirection);

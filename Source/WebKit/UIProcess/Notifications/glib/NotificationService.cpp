@@ -47,6 +47,7 @@
 #include <wtf/glib/GUniquePtr.h>
 #include <wtf/glib/RunLoopSourcePriority.h>
 #include <wtf/glib/Sandbox.h>
+#include <wtf/posix/POSIXExtras.h>
 #include <wtf/text/CString.h>
 #include <wtf/text/MakeString.h>
 
@@ -159,7 +160,7 @@ public:
                 return { };
             }
 
-            return UTF8CString { byteCast<char8_t>(filename.get()) };
+            return UTF8CString::unsafeFromUTF8(filename.get());
         };
 
         auto addResult = m_iconCache.add(iconURL, std::pair<uint32_t, UTF8CString>({ 0, UTF8CString() }));
@@ -240,7 +241,7 @@ public:
                 WTF::switchOn(it.value.second,
                     [](const UTF8CString& path) {
                         if (!path.isNull()) {
-                            if (unlink(path.legacyCStringPointer()) == -1)
+                            if (posixUnlink(path) == -1)
                                 SAFE_WTFLOGALWAYS("Failed to remove cached notification icon %s: %s", path, safeStrerror(errno));
                         }
                     },
@@ -357,12 +358,12 @@ static const char* applicationIcon()
 
             if (G_IS_FILE_ICON(icon)) {
                 GUniquePtr<char> uri(g_file_get_uri(g_file_icon_get_file(G_FILE_ICON(icon))));
-                return UTF8CString { byteCast<char8_t>(uri.get()) };
+                return UTF8CString::unsafeFromUTF8(uri.get());
             }
 
             if (G_IS_THEMED_ICON(icon)) {
                 const char* const* iconNames = g_themed_icon_get_names(G_THEMED_ICON(icon));
-                return UTF8CString { byteCast<char8_t>(iconNames[0]) };
+                return UTF8CString::unsafeFromUTF8(iconNames[0]);
             }
 
             return { };

@@ -155,6 +155,7 @@ public:
     bool NODELETE needsFullscreenDisplayNoneQuirk() const;
     bool NODELETE needsFullscreenObjectFitQuirk() const;
     bool needsZomatoEmailLoginLabelQuirk() const;
+    bool NODELETE needsGoogleMapsEmbedManipulationSurfaceQuirk() const;
     bool NODELETE needsGoogleMapsScrollingQuirk() const;
     bool NODELETE needsGoogleTranslateScrollingQuirk() const;
     bool NODELETE needsNetflixVolumeSliderQuirk() const;
@@ -291,6 +292,7 @@ public:
     bool needsAmazonDesignMenuViewportUnitQuirk(const Style::ComputedStyle&, const Style::ComputedStyle& parentStyle) const;
     bool needsClaudeSidebarViewportUnitQuirk(Element&, const Style::ComputedStyle&) const;
     WEBCORE_EXPORT bool needsHideSelectionDuringOverflowScrollQuirk() const;
+    WEBCORE_EXPORT bool shouldAllowTouchMoveToChangeSelection() const;
     bool needsChromeOSNavigatorUserAgentQuirk(const Document&) const;
 
     bool shouldTreatAddingMouseOutEventListenerAsContentChange() const;
@@ -298,6 +300,10 @@ public:
     bool needsMozillaFileTypeForDataTransfer() const;
 
     WEBCORE_EXPORT bool shouldAvoidStartingSelectionOnMouseDownOverPointerCursor(const Node&) const;
+
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    WEBCORE_EXPORT bool shouldTreatLongClickAsSecondaryClick(const Node&) const;
+#endif
 
     bool shouldReuseLiveRangeForSelectionUpdate() const;
 
@@ -360,6 +366,7 @@ public:
 private:
     bool needsQuirks() const;
     URL topDocumentURL() const;
+    URL documentURL() const;
 
     bool behaviorAppliesToNode(QuirkBehaviorID, const Node*) const;
     bool behaviorAppliesToDocument(QuirkBehaviorID) const;
@@ -373,7 +380,7 @@ private:
     mutable QuirkBitSet m_probedQuirks;
 
     template<typename Probe>
-    bool isBehaviorEnabledAfterProbing(const QuirkBehavior& quirk, NOESCAPE Probe&& probe) const
+    bool isBehaviorEnabledAfterProbing(const QuirkBehavior& quirk, NOESCAPE const Probe& probe) const
     {
         auto index = static_cast<size_t>(quirk.id);
         if (!m_probedQuirks.get(index)) {

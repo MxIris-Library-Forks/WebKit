@@ -51,7 +51,7 @@ namespace WebCore {
 WTF_MAKE_TZONE_ALLOCATED_IMPL(SVGFEImageElement);
 
 inline SVGFEImageElement::SVGFEImageElement(const QualifiedName& tagName, Document& document)
-    : SVGFilterPrimitiveStandardAttributes(tagName, document, makeUniqueRef<PropertyRegistry>())
+    : SVGFilterPrimitiveStandardAttributes(tagName, document, PropertyRegistry::singleton())
     , SVGURIReference(this)
 {
     ASSERT(hasTagName(SVGNames::feImageTag));
@@ -265,7 +265,7 @@ std::tuple<RefPtr<ImageBuffer>, FloatRect> SVGFEImageElement::imageBufferForEffe
 RefPtr<FilterEffect> SVGFEImageElement::createFilterEffect(const FilterEffectVector&, const GraphicsContext& destinationContext) const
 {
     if (RefPtr cachedImage = m_cachedImage) {
-        RefPtr image = cachedImage->imageForRenderer(protect(renderer()));
+        RefPtr image = cachedImage->image();
         if (!image || image->isNull())
             return nullptr;
 

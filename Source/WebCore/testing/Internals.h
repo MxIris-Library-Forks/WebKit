@@ -184,6 +184,10 @@ class MockMediaSessionCoordinator;
 class HTMLModelElement;
 #endif
 
+#if ENABLE(MODEL_PROCESS)
+struct ModelSceneGraphAsTextOptions;
+#endif
+
 #if ENABLE(SPEECH_SYNTHESIS)
 class PlatformSpeechSynthesizerMock;
 #endif
@@ -970,6 +974,7 @@ public:
     void suspendAllMediaBuffering();
     void suspendAllMediaPlayback();
     void resumeAllMediaPlayback();
+    void setMediaElementGracePeriodForResumingPlaybackInBackground(const HTMLMediaElement&, double gracePeriodInSeconds);
 #endif
 
 #if ENABLE(WIRELESS_PLAYBACK_TARGET)
@@ -1090,7 +1095,9 @@ public:
 #if ENABLE(WEBGL)
     enum class SimulatedWebGLContextEvent {
         GPUStatusFailure,
-        Timeout
+        Timeout,
+        DisplayBufferAllocationFailure,
+        RenderbufferAllocationFailure
     };
     void simulateEventForWebGLContext(SimulatedWebGLContextEvent, WebGLRenderingContextBase&);
 
@@ -1577,6 +1584,7 @@ public:
     bool destroySleepDisabler(unsigned identifier);
 
     void setTopDocumentURLForQuirks(const String&);
+    void setSubframeURLForQuirks(const String&);
     Vector<String> activeQuirks() const;
 
 #if ENABLE(APP_HIGHLIGHTS)
@@ -1597,6 +1605,10 @@ public:
 
     enum class ContentSizeCategory { L, XXXL };
     void setContentSizeCategory(ContentSizeCategory);
+
+#if ENABLE(TELEPHONE_NUMBER_DETECTION)
+    unsigned telephoneNumberRangesChangedCount() const;
+#endif
 
 #if ENABLE(ATTACHMENT_ELEMENT)
 #if ENABLE(SERVICE_CONTROLS)
@@ -1717,6 +1729,10 @@ public:
     void disableModelLoadDelaysForTesting();
     String modelElementState(HTMLModelElement&);
     bool NODELETE isModelElementIntersectingViewport(HTMLModelElement&);
+#endif
+
+#if ENABLE(MODEL_PROCESS)
+    void modelSceneGraphAsText(Element&, const ModelSceneGraphAsTextOptions&, DOMPromiseDeferred<IDLDOMString>&&);
 #endif
 
 #if ENABLE(SPATIAL_PORTAL)

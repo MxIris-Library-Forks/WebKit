@@ -272,17 +272,6 @@ list(APPEND TestWebKit_UNIFIED_SOURCE_LIST_FILES
     "SourcesMac.txt"
 )
 
-# Test files that reference ObjC classes from Swift-only helpers or private
-# frameworks unavailable in the CMake build
-set(TestWebKit_UNIFIED_SOURCE_EXCLUDES
-    "DrawingToPDF\\.mm"
-    "PDFSnapshot\\.mm"
-    "SOAuthorizationTests\\.mm"
-    "UnifiedPDFTests\\.mm"
-    "WKWebViewPrintFormatter\\.mm"
-    "WritingTools\\.mm"
-)
-
 # Files compiled outside unified sources (Xcode membershipExceptions).
 list(APPEND TestWebKit_SOURCES
     ${TOOLS_DIR}/TestRunnerShared/mac/SyntheticNSEvent.mm
@@ -327,6 +316,8 @@ list(APPEND TestWebKit_SOURCES
     Helpers/mac/GamepadMappings/SonyDualShock4.mm
     Helpers/mac/GamepadMappings/SteelSeriesNimbus.mm
     Helpers/mac/GamepadMappings/SunLightApplicationGenericNES.mm
+
+    InjectedBundle/cocoa/WebProcessPlugIn/WebProcessPlugInWithInternals.mm
 
     Tests/TestWebKitAPIAdditionsHook.mm
 
@@ -455,6 +446,7 @@ list(APPEND TestWebKit_PRIVATE_INCLUDE_DIRECTORIES
 )
 
 list(APPEND TestWebKit_LIBRARIES
+    "-framework AuthKit"
     "-framework AuthenticationServices"
     "-framework HID"
     "-framework LocalAuthentication"
@@ -466,6 +458,11 @@ list(APPEND TestWebKit_LIBRARIES
     WebCoreTestSupport
     WebKitLegacy
     ${CARBON_LIBRARY}
+)
+
+target_link_options(TestWebKit PRIVATE
+    "LINKER:-weak_framework,WritingTools"
+    "LINKER:-weak_framework,WritingToolsUI"
 )
 
 set_source_files_properties(
@@ -688,7 +685,16 @@ webkit_target_add_swift_options(TestWebKitAPILibrary
 )
 
 list(APPEND TestWebKit_SOURCES
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift"
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift"
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift"
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/EmbeddedAppKitGesturesTests.swift"
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/InactiveWindowAppKitGesturesTests.swift"
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/RefreshControlGesturesTests.swift"
+
     Tests/WebKit/WKWebView/CodingTests.swift
+    Tests/WebKit/WKWebView/HTTP2Server.swift
+    Tests/WebKit/WKWebView/HTTP3Server.swift
     Tests/WebKit/WKWebView/TextExtractionTests.swift
     Tests/WebKit/WKWebView/TextFragments.swift
     Tests/WebKit/WKWebView/TextPlaceholderTests.swift
@@ -720,10 +726,17 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WebPage/SimulateClickOverTextTests.swift
     Tests/WebKit/WebPage/URLSchemeHandlerTests.swift
     Tests/WebKit/WebPage/UserContentControllerTests.swift
+    Tests/WebKit/WebPage/WebPageMouseEventsTests.swift
     Tests/WebKit/WebPage/WebPageNavigationTests.swift
+    Tests/WebKit/WebPage/WebPageScrollbarTests.swift
+    Tests/WebKit/WebPage/WebPageTests.swift
+    Tests/WebKit/WebPage/WebPageTransferableTests.swift
+    Tests/WebKit/WebPage/WebViewTests.swift
 )
 
-# FIXME: Support WebKitAdditions and tests which need the _WebKit_SwiftUI cross-import overlay linked.
+# Tests importing both WebKit and SwiftUI load the _WebKit_SwiftUI cross-import
+# overlay; ensure it builds first.
+list(APPEND TestWebKit_FRAMEWORKS _WebKit_SwiftUI)
 
 # TestWebKitAPIBase needs framework headers for config.h includes.
 target_include_directories(TestWebKitAPIBase PRIVATE ${_testapi_framework_headers})

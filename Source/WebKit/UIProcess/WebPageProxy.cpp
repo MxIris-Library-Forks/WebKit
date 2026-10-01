@@ -380,7 +380,9 @@
 #endif
 
 #if PLATFORM(IOS_FAMILY)
+#include "DocumentEditingContext.h"
 #include "DragInitiationResult.h"
+#include "WebAutocorrectionData.h"
 #endif
 
 #if PLATFORM(MAC)
@@ -5662,13 +5664,18 @@ void WebPageProxy::processNextQueuedTouchEvent()
         if (!pageClient)
             return;
 
+        auto doneWithTouchEvents = [&](const QueuedTouchEvents& queuedEvents, bool handled) {
+            // Unlike the ENABLE(TOUCH_EVENTS) implementation, which defers the events received after the
+            // forwarded one, handleTouchEvent() replaces the forwarded touch move with the newer one and
+            // defers the replaced ones. So the deferred events are older and must be reported first.
+            for (auto& event : queuedEvents.deferredTouchEvents)
+                pageClient->doneWithTouchEvent(event, handled);
+            pageClient->doneWithTouchEvent(queuedEvents.forwardedEvent, handled);
+        };
+
         if (!connection) {
-            while (!internals().touchEventQueue.isEmpty()) {
-                auto queuedEvents = internals().touchEventQueue.takeFirst();
-                pageClient->doneWithTouchEvent(queuedEvents.forwardedEvent, false);
-                for (auto& event : queuedEvents.deferredTouchEvents)
-                    pageClient->doneWithTouchEvent(event, false);
-            }
+            while (!internals().touchEventQueue.isEmpty())
+                doneWithTouchEvents(internals().touchEventQueue.takeFirst(), false);
             didFinishProcessingAllPendingTouchEvents();
             return;
         }
@@ -5679,9 +5686,7 @@ void WebPageProxy::processNextQueuedTouchEvent()
         MESSAGE_CHECK_BASE(eventType == queuedEvents.forwardedEvent->type(), connection);
         protect(legacyMainFrameProcess())->stopResponsivenessTimer();
 
-        pageClient->doneWithTouchEvent(queuedEvents.forwardedEvent, handled);
-        for (auto& event : queuedEvents.deferredTouchEvents)
-            pageClient->doneWithTouchEvent(event, handled);
+        doneWithTouchEvents(queuedEvents, handled);
 
         if (!internals().touchEventQueue.isEmpty())
             processNextQueuedTouchEvent();
@@ -5698,10 +5703,18 @@ void WebPageProxy::handleTouchEvent(IPC::Connection*, Ref<NativeWebTouchEvent>&&
     if (!m_mainFrame)
         return;
 
-    if (event->type() == WebEventType::TouchMove && !internals().touchEventQueue.isEmpty()) {
+    // Coalesce the touch moves waiting to be sent to the web process. The newer event replaces the
+    // queued one so that the page gets the latest touch point positions. The first queued event has
+    // already been sent, so it can't be replaced; otherwise the newer event would never be sent.
+    if (event->type() == WebEventType::TouchMove && internals().touchEventQueue.size() > 1) {
         QueuedTouchEvents& lastEvent = internals().touchEventQueue.last();
         if (lastEvent.forwardedEvent->type() == WebEventType::TouchMove) {
-            lastEvent.deferredTouchEvents.append(WTF::move(event));
+            // GTK and WPE send a touch move per moved touch point, marking the others as stationary.
+            // Keep the touch points that moved in the replaced event as moved so that their movement
+            // isn't lost from TouchEvent.changedTouches.
+            event->mergeMovedTouchPointsFrom(lastEvent.forwardedEvent.get());
+            auto replacedEvent = std::exchange(lastEvent.forwardedEvent, WTF::move(event));
+            lastEvent.deferredTouchEvents.append(WTF::move(replacedEvent));
             return;
         }
     }
@@ -6457,7 +6470,9 @@ void WebPageProxy::receivedNavigationResponsePolicyDecision(WebCore::PolicyActio
     if (action == PolicyAction::Use && protect(m_preferences)->originAgentClusterEnabled()) {
         auto& response = navigationResponse->response();
         Ref responseOrigin = SecurityOrigin::create(response.url());
-        isOriginKeyed = protect(browsingContextGroup())->resolveAgentClusterKeying(responseOrigin->data(), obtainOriginAgentClusterPolicy(response, nullptr));
+        RefPtr mainFrame = m_mainFrame;
+        auto& topLevelCreationURL = navigationResponse->frame().isMainFrame() || !mainFrame ? response.url() : mainFrame->url();
+        isOriginKeyed = protect(browsingContextGroup())->resolveAgentClusterKeying(responseOrigin->data(), obtainOriginAgentClusterPolicy(response, topLevelCreationURL, nullptr));
     }
 
     completionHandler(PolicyDecision { isNavigatingToAppBoundDomain(), action, navigation ? std::optional { navigation->navigationID() } : std::nullopt, downloadID, { }, { }, { }, SafeBrowsingCheckOngoing::No, nullptr, isOriginKeyed });
@@ -16982,8 +16997,7 @@ void WebPageProxy::getSelectedRangeAsync(CompletionHandler<void(const EditingRan
 
 void WebPageProxy::characterIndexForPointAsync(const WebCore::IntPoint& point, CompletionHandler<void(uint64_t)>&& callbackFunction)
 {
-    // FIXME: This needs to use `sendWithAsyncReplyToFocusedOrMainFrameProcess` and convert to frame coordinates.
-    sendWithAsyncReply(Messages::WebPage::CharacterIndexForPointAsync(point), WTF::move(callbackFunction));
+    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::CharacterIndexForPointAsync(point), WTF::move(callbackFunction));
 }
 
 void WebPageProxy::firstRectForCharacterRangeAsync(const EditingRange& range, CompletionHandler<void(const WebCore::IntRect&, const EditingRange&)>&& callbackFunction)
@@ -17495,12 +17509,12 @@ void WebPageProxy::handleAutoplayEvent(WebCore::AutoplayEvent event, OptionSet<A
 #if PLATFORM(MAC)
 void WebPageProxy::setCaretAnimatorType(WebCore::CaretAnimatorType caretType)
 {
-    send(Messages::WebPage::SetCaretAnimatorType(caretType));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::SetCaretAnimatorType(caretType));
 }
 
 void WebPageProxy::setCaretBlinkingSuspended(bool suspended)
 {
-    send(Messages::WebPage::SetCaretBlinkingSuspended(suspended));
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::SetCaretBlinkingSuspended(suspended));
 }
 
 void WebPageProxy::performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier frameID, FloatPoint point)
@@ -17640,19 +17654,13 @@ void WebPageProxy::removePlaybackTargetPickerClient(PlaybackTargetClientContextI
         protect(pageClient->mediaSessionManager())->removePlaybackTargetPickerClient(internals(), contextId);
 }
 
-void WebPageProxy::showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier contextId, WebCore::FrameIdentifier frameID, const WebCore::FloatRect& rect, bool hasVideo)
+void WebPageProxy::showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier contextId, const WebCore::FloatRect& rectInMainFrameView, bool hasVideo)
 {
-    convertRectToMainFrameCoordinates(rect, frameID, [weakThis = WeakPtr { *this }, contextId, hasVideo](std::optional<FloatRect> convertedRect) {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis || !convertedRect)
-            return;
+    RefPtr pageClient = this->pageClient();
+    if (!pageClient)
+        return;
 
-        RefPtr pageClient = protectedThis->pageClient();
-        if (!pageClient)
-            return;
-
-        protect(pageClient->mediaSessionManager())->showPlaybackTargetPicker(protectedThis->internals(), contextId, pageClient->rootViewToScreen(IntRect(*convertedRect)), hasVideo, protectedThis->useDarkAppearance());
-    });
+    protect(pageClient->mediaSessionManager())->showPlaybackTargetPicker(internals(), contextId, pageClient->rootViewToScreen(IntRect(rectInMainFrameView)), hasVideo, useDarkAppearance());
 }
 
 void WebPageProxy::playbackTargetPickerClientStateDidChange(PlaybackTargetClientContextIdentifier contextId, WebCore::MediaProducerMediaStateFlags state)
@@ -19784,6 +19792,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PerformAc
 #if ENABLE(REVEAL)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PrepareSelectionForContextMenuWithLocationInView);
 #endif
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtBoundaryWithDirection);
 #if ENABLE(DRAG_SUPPORT)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestDragStart);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestAdditionalItemsForDragSession);
@@ -19821,6 +19830,7 @@ INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::StoreSelectionForAcce
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GenerateSyntheticEditingCommand);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::WillInsertFinalDictationResult);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::DidInsertFinalDictationResult);
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::HandleAutocorrectionContextRequest);
 #endif
 #undef INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS
 
@@ -19836,12 +19846,18 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::Crea
 #endif
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::BeginSelectionInDirection);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::SelectWithTwoTouches);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ExtendSelection);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::ExtendSelectionForReplacement);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GetSelectionContext);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::MoveSelectionAtBoundaryWithDirection);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::MoveSelectionByOffset);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::UpdateSelectionWithDelta);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::RequestFocusedElementInformation);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::RequestAutocorrectionData);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GetRectsForGranularityWithSelectionOffset);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::GetRectsAtSelectionOffsetWithText);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::RequestDocumentEditingContext);
 #if ENABLE(REVEAL)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::RequestRVItemInCurrentSelectedRange);
 #endif
@@ -19916,61 +19932,52 @@ void WebPageProxy::postMessageToRemote(IPC::Connection& connection, WebCore::Fra
         return;
     }
 
-    // FIXME: This message carries no blob URLs, so unlike the MessagePort, BroadcastChannel and service worker paths
-    // the network process takes no blob URL handles on the message's blobs. If the source frame releases them before
-    // the destination frame dispatches the message, the destination is left with blobs it cannot read.
-    auto deliver = [weakThis = WeakPtr { *this }, source, sourceOrigin, target, targetOrigin, message, userGestureToken = WTF::move(userGestureToken)] () mutable {
-        RefPtr protectedThis = weakThis.get();
-        if (!protectedThis)
-            return;
-
-        RefPtr pendingMessagesForTargetFrame = protectedThis->m_pendingPostMessages.get(target);
-        if (message.transferredPorts.isEmpty() && (!pendingMessagesForTargetFrame || pendingMessagesForTargetFrame->isEmpty())) {
-            protectedThis->sendToProcessContainingFrame(target, Messages::WebPage::RemotePostMessage(source, sourceOrigin, target, targetOrigin, message, userGestureToken));
-            return;
-        }
-
-        auto ports = WTF::map(message.transferredPorts, [](auto& transferredPort) {
-            return transferredPort.first;
-        });
-
-        if (!pendingMessagesForTargetFrame) {
-            pendingMessagesForTargetFrame = PendingPostMessages::create();
-            protectedThis->m_pendingPostMessages.set(target, pendingMessagesForTargetFrame);
-        }
-
-        pendingMessagesForTargetFrame->append(PendingPostMessages::PendingPostMessage { source, sourceOrigin, target, targetOrigin, message, userGestureToken });
-
-        if (message.transferredPorts.isEmpty())
-            return;
-
-        // First, notify the NetworkProcess of all message ports that will be transfered.
-        // Then pass the message along to all web content processes to finalize the transfer.
-        Ref networkProcess = protect(protectedThis->websiteDataStore())->networkProcess();
-        networkProcess->sendWithAsyncReply(Messages::NetworkProcess::RecordMessagePortTransferDestinationsForSiteIsolation(WTF::move(ports), protectedThis->processContainingFrame(target)->coreProcessIdentifier()), [weakThis = WTF::move(weakThis), target, pendingMessagesForTargetFrame] mutable {
-            RefPtr protectedThis = weakThis.get();
-            if (!protectedThis)
-                return;
-            auto messagesToSend = pendingMessagesForTargetFrame->takeMessagesThroughNextPortTransfer();
-            if (pendingMessagesForTargetFrame->isEmpty())
-                protectedThis->m_pendingPostMessages.remove(target);
-            for (auto& pendingPostMessage : messagesToSend)
-                protectedThis->sendToProcessContainingFrame(target, Messages::WebPage::RemotePostMessage(pendingPostMessage.source, pendingPostMessage.sourceOrigin, pendingPostMessage.target, pendingPostMessage.targetOrigin, pendingPostMessage.message, pendingPostMessage.userGestureToken));
-        });
-    };
-
     // Only this process knows where the message is going, so it hands ownership of any sunk
     // ImageBuffers to the destination, so that they outlive the process that sent them. Not waited
     // for: the destination can claim them either way, since they were deposited before being sent.
 #if ENABLE(GPU_PROCESS)
-    // FIXME: a message with ImageBuffers immediately followed by a plain message can arrive out of order at the destination.
     RefPtr serializedValue = message.message;
     auto transferIdentifiers = serializedValue ? serializedValue->transferredImageBufferIdentifiers() : Vector<WebCore::ImageBufferTransferIdentifier> { };
     if (RefPtr gpuProcess = transferIdentifiers.isEmpty() ? nullptr : GPUProcessProxy::singletonIfCreated())
         gpuProcess->send(Messages::GPUProcess::HandOverTransferredImageBuffers(WTF::move(transferIdentifiers), processContainingFrame(target)->coreProcessIdentifier()), 0);
 #endif
 
-    deliver();
+    // FIXME: This message carries no blob URLs, so unlike the MessagePort, BroadcastChannel and service worker paths
+    // the network process takes no blob URL handles on the message's blobs. If the source frame releases them before
+    // the destination frame dispatches the message, the destination is left with blobs it cannot read.
+    RefPtr pendingMessagesForTargetFrame = m_pendingPostMessages.get(target);
+    if (message.transferredPorts.isEmpty() && (!pendingMessagesForTargetFrame || pendingMessagesForTargetFrame->isEmpty())) {
+        sendToProcessContainingFrame(target, Messages::WebPage::RemotePostMessage(source, sourceOrigin, target, targetOrigin, message, userGestureToken));
+        return;
+    }
+
+    auto ports = WTF::map(message.transferredPorts, [](auto& transferredPort) {
+        return transferredPort.first;
+    });
+
+    if (!pendingMessagesForTargetFrame) {
+        pendingMessagesForTargetFrame = PendingPostMessages::create();
+        m_pendingPostMessages.set(target, pendingMessagesForTargetFrame);
+    }
+
+    pendingMessagesForTargetFrame->append(PendingPostMessages::PendingPostMessage { source, sourceOrigin, target, targetOrigin, message, userGestureToken });
+
+    if (message.transferredPorts.isEmpty())
+        return;
+
+    // First, notify the NetworkProcess of all message ports that will be transfered.
+    // Then pass the message along to all web content processes to finalize the transfer.
+    Ref networkProcess = protect(websiteDataStore())->networkProcess();
+    networkProcess->sendWithAsyncReply(Messages::NetworkProcess::RecordMessagePortTransferDestinationsForSiteIsolation(WTF::move(ports), processContainingFrame(target)->coreProcessIdentifier()), [weakThis = WeakPtr { *this }, target, pendingMessagesForTargetFrame] mutable {
+        RefPtr protectedThis = weakThis.get();
+        if (!protectedThis)
+            return;
+        auto messagesToSend = pendingMessagesForTargetFrame->takeMessagesThroughNextPortTransfer();
+        if (pendingMessagesForTargetFrame->isEmpty())
+            protectedThis->m_pendingPostMessages.remove(target);
+        for (auto& pendingPostMessage : messagesToSend)
+            protectedThis->sendToProcessContainingFrame(target, Messages::WebPage::RemotePostMessage(pendingPostMessage.source, pendingPostMessage.sourceOrigin, pendingPostMessage.target, pendingPostMessage.targetOrigin, pendingPostMessage.message, pendingPostMessage.userGestureToken));
+    });
 }
 
 void WebPageProxy::renderTreeAsTextForTesting(WebCore::FrameIdentifier frameID, uint64_t baseIndent, OptionSet<WebCore::RenderAsTextFlag> behavior, CompletionHandler<void(String&&)>&& completionHandler)
@@ -20174,9 +20181,10 @@ void WebPageProxy::reportMixedContentViolation(FrameIdentifier frameID, bool blo
     addConsoleMessage(frameID, MessageSource::Security, MessageLevel::Warning, message);
 }
 
-void WebPageProxy::drawFrameToSnapshot(FrameIdentifier frameID, const IntRect& rect, RemoteSnapshotIdentifier snapshotIdentifier, CompletionHandler<void(bool)>&& completionHandler)
+void WebPageProxy::drawFrameToSnapshot(IPC::Connection& connection, FrameIdentifier frameID, const IntRect& rect, RemoteSnapshotIdentifier snapshotIdentifier, RenderingMode renderingMode, CompletionHandler<void(bool)>&& completionHandler)
 {
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawFrameToSnapshot(frameID, rect, snapshotIdentifier), WTF::move(completionHandler));
+    MESSAGE_CHECK_COMPLETION(WebProcessProxy::fromConnection(connection), renderingMode == RenderingMode::DisplayList || renderingMode == RenderingMode::PDFDocument, completionHandler(false));
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawFrameToSnapshot(frameID, rect, snapshotIdentifier, renderingMode), WTF::move(completionHandler));
 }
 
 Vector<Ref<WebProcessProxy>> WebPageProxy::activeRemoteFrameProcesses() const

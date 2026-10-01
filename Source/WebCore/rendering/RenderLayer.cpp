@@ -1328,11 +1328,7 @@ void RenderLayer::recursiveUpdateLayerPositions(OptionSet<UpdateLayerPositionsFl
     }
 
     if (m_svgData) {
-        if (!is<RenderSVGRoot>(renderer())) {
-            ASSERT(!renderer().isFixedPositioned());
-            if (mode == Write)
-                m_repaintStatus = RepaintStatus::NeedsFullRepaint;
-        }
+        ASSERT_IMPLIES(!is<RenderSVGRoot>(renderer()), !renderer().isFixedPositioned());
 
         // Only the outermost <svg> and / <foreignObject> are potentially scrollable.
         // An SVG renderer reused as the document element (e.g. after replaceChild) can
@@ -2996,7 +2992,7 @@ bool RenderLayer::shouldTryToScrollForScrollIntoView(const ScrollRectToVisibleOp
 
     // Don't scroll to reveal an overflow layer that is restricted by the -webkit-line-clamp property.
     // FIXME: Is this still needed? It used to be relevant for Safari RSS.
-    if (renderer().parent() && !renderer().parent()->style().lineClamp().isNone())
+    if (renderer().parent() && renderer().parent()->style().hasLegacyLineClamp())
         return false;
 
     auto& box = *renderBox();
@@ -6663,7 +6659,7 @@ bool RenderLayer::isBitmapOnly() const
         if (auto* cachedImage = imageRenderer->cachedImage()) {
             if (!cachedImage->hasImage())
                 return false;
-            return is<BitmapImage>(cachedImage->imageForRenderer(imageRenderer.get()));
+            return is<BitmapImage>(cachedImage->image());
         }
         return false;
     }

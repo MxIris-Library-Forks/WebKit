@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <wtf/HashMap.h>
+#include <wtf/glib/GLibExtras.h>
 #include <wtf/glib/GRefPtr.h>
 #include <wtf/glib/GUniquePtr.h>
 #include <wtf/text/StringBuilder.h>
@@ -99,9 +100,9 @@ public:
         }
 
         URISchemeHandler(const char* reply, int replyLength, const char* mimeType, int statusCode = 200)
-            : reply(UTF8CString { byteCast<char8_t>(reply) })
+            : reply(UTF8CString::unsafeFromUTF8(reply))
             , replyLength(replyLength)
-            , mimeType(UTF8CString { byteCast<char8_t>(mimeType) })
+            , mimeType(UTF8CString::unsafeFromUTF8(mimeType))
             , statusCode(statusCode)
         {
         }
@@ -629,11 +630,11 @@ static void xhrMessageReceivedCallback(WebKitUserContentManager*, WebKitJavascri
 
 static void testWebContextSecurityFileXHR(WebViewTest* test, gconstpointer)
 {
-    GUniquePtr<char> fileURL(g_strdup_printf("file://%s/simple.html", Test::getResourcesDir(Test::WebKit2Resources).legacyCStringPointer()));
+    GUniquePtr<char> fileURL(SAFE_G_STRDUP_PRINTF("file://%s/simple.html", Test::getResourcesDir(Test::WebKit2Resources)));
     test->loadURI(fileURL.get());
     test->waitUntilLoadFinished();
 
-    GUniquePtr<char> jsonURL(g_strdup_printf("file://%s/simple.json", Test::getResourcesDir().legacyCStringPointer()));
+    GUniquePtr<char> jsonURL(SAFE_G_STRDUP_PRINTF("file://%s/simple.json", Test::getResourcesDir()));
     GUniquePtr<char> xhr(g_strdup_printf("var xhr = new XMLHttpRequest; xhr.open(\"GET\", \"%s\"); xhr.onreadystatechange = ()=> { if (xhr.readyState == 4) { setTimeout(() => { window.webkit.messageHandlers.xhr.postMessage('DONE'); }, 0)} }; xhr.onerror = () => { window.webkit.messageHandlers.xhr.postMessage('ERROR'); }; xhr.send();", jsonURL.get()));
 
     JSCValue* xhrMessage = nullptr;
@@ -730,7 +731,7 @@ public:
         waitUntilLoadFinished();
         size_t dataSize = 0;
         const char* data = mainResourceData(dataSize);
-        return UTF8CString { byteCast<char8_t>(std::span { data, dataSize }) };
+        return UTF8CString::fromUTF8(std::span { data, dataSize });
     }
 
     UTF8CString loadURIAndGetMainResourceData(const UTF8CString& uri) { return loadURIAndGetMainResourceData(uri.legacyCStringPointer()); }
@@ -750,7 +751,7 @@ public:
     WebSocketServerType createWebSocketAndWaitUntilConnected()
     {
         m_webSocketRequestReceived = WebSocketServerType::Unknown;
-        GUniquePtr<char> createWebSocket(g_strdup_printf("var ws = new WebSocket('%s');", kServer->getWebSocketURIForPath("/foo").legacyCStringPointer()));
+        GUniquePtr<char> createWebSocket(SAFE_G_STRDUP_PRINTF("var ws = new WebSocket('%s');", kServer->getWebSocketURIForPath("/foo")));
         runJavaScriptAndWait(createWebSocket.get());
         return m_webSocketRequestReceived;
     }
@@ -814,7 +815,7 @@ static void testWebContextProxySettings(ProxyTest* test, gconstpointer)
         g_assert_nonnull(data);
         auto* test = static_cast<ProxyTest*>(userData);
         GUniquePtr<char> proxyServerPortAsString = test->proxyServerPortAsString();
-        ASSERT_CMP_CSTRING(UTF8CString { byteCast<char8_t>(std::span { data.get(), dataSize }) }, ==, proxyServerPortAsString.get());
+        ASSERT_CMP_CSTRING(UTF8CString::fromUTF8(std::span { data.get(), dataSize }), ==, proxyServerPortAsString.get());
         test->quitMainLoop();
         }, test);
     g_main_loop_run(test->m_mainLoop);

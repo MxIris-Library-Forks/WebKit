@@ -1095,7 +1095,7 @@ public:
 #if ENABLE(WIRELESS_PLAYBACK_TARGET)
     void addPlaybackTargetPickerClient(PlaybackTargetClientContextIdentifier);
     void removePlaybackTargetPickerClient(PlaybackTargetClientContextIdentifier);
-    void showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier, FrameIdentifier, const IntPoint&, bool, RouteSharingPolicy, const String&);
+    void showPlaybackTargetPicker(PlaybackTargetClientContextIdentifier, const IntPoint& positionInMainFrameView, bool, RouteSharingPolicy, const String&);
     void playbackTargetPickerClientStateDidChange(PlaybackTargetClientContextIdentifier, MediaProducerMediaStateFlags);
     WEBCORE_EXPORT void setMockMediaPlaybackTargetPickerEnabled(bool);
     WEBCORE_EXPORT void setMockMediaPlaybackTargetPickerState(const String&, MediaPlaybackTargetMockState);
@@ -1304,6 +1304,9 @@ public:
 
     std::optional<std::pair<uint16_t, uint16_t>> NODELETE portsForUpgradingInsecureSchemeForTesting() const;
     WEBCORE_EXPORT void NODELETE setPortsForUpgradingInsecureSchemeForTesting(uint16_t upgradeFromInsecurePort, uint16_t upgradeToSecurePort);
+
+    const URL& NODELETE quirksSubframeURLForTesting() const LIFETIME_BOUND { return m_quirksSubframeURLForTesting; }
+    WEBCORE_EXPORT void setQuirksSubframeURLForTesting(URL&&);
 
 #if PLATFORM(IOS_FAMILY) && ENABLE(WEBXR)
     WEBCORE_EXPORT bool hasActiveImmersiveSession() const;
@@ -1836,6 +1839,8 @@ private:
     mutable Markable<MediaSessionGroupIdentifier> m_mediaSessionGroupIdentifier;
 
     std::optional<std::pair<uint16_t, uint16_t>> m_portsForUpgradingInsecureSchemeForTesting;
+
+    URL m_quirksSubframeURLForTesting;
 
     RefPtr<StringCallback> m_consoleMessageListenerForTesting;
 

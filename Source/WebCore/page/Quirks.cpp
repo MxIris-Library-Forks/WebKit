@@ -689,6 +689,14 @@ bool Quirks::needsZomatoEmailLoginLabelQuirk() const
     return m_quirksData.isBehaviorEnabled(QuirkBehaviorID::NeedsZomatoEmailLoginLabelQuirk);
 }
 
+// google.com/maps/embed rdar://184166392
+bool Quirks::needsGoogleMapsEmbedManipulationSurfaceQuirk() const
+{
+    QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
+
+    return m_quirksData.isBehaviorEnabled(QuirkBehaviorID::NeedsGoogleMapsEmbedManipulationSurfaceQuirk);
+}
+
 // maps.google.com rdar://67358928
 bool Quirks::needsGoogleMapsScrollingQuirk() const
 {
@@ -1617,9 +1625,12 @@ std::optional<String> Quirks::needsCustomUserAgentOverride(const URL& url, const
 {
     auto quirksData = resolveTopURLQuirks(url);
 
+    std::optional<String> userAgent;
     for (const auto& behavior : quirksData.behaviorsMatching(QuirkBehaviorID::NeedsUserAgentStringOverrideQuirk)) {
-        if (behavior.parameters && !behavior.parameters->userAgent.isEmpty())
-            return String { behavior.parameters->userAgent };
+        if (behavior.parameters && !behavior.parameters->userAgent.isEmpty()) {
+            userAgent = String { behavior.parameters->userAgent };
+            break;
+        }
     }
 
 #if PLATFORM(COCOA)
@@ -1627,16 +1638,17 @@ std::optional<String> Quirks::needsCustomUserAgentOverride(const URL& url, const
         if (!behavior.parameters || behavior.parameters->chromeCompatibilityVersion.isEmpty())
             continue;
 
-        auto baseUserAgent = currentUserAgent.isEmpty() ? standardUserAgentWithApplicationName(applicationNameForUserAgent) : currentUserAgent;
+        if (!userAgent)
+            userAgent = currentUserAgent.isEmpty() ? standardUserAgentWithApplicationName(applicationNameForUserAgent) : currentUserAgent;
         auto chromeCompatibilityToken = makeString("like Gecko, like Chrome/"_s, behavior.parameters->chromeCompatibilityVersion, '.');
-        return makeStringByReplacingAll(baseUserAgent, "like Gecko"_s, chromeCompatibilityToken);
+        return makeStringByReplacingAll(*userAgent, "like Gecko"_s, chromeCompatibilityToken);
     }
 #else
     UNUSED_PARAM(applicationNameForUserAgent);
     UNUSED_PARAM(currentUserAgent);
 #endif
 
-    return { };
+    return userAgent;
 }
 
 bool Quirks::needsDesktopUserAgent(const URL& url)
@@ -1936,6 +1948,18 @@ bool Quirks::shouldAvoidStartingSelectionOnMouseDownOverPointerCursor(const Node
     return false;
 }
 
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+
+// Outlook on the web: rdar://187832523
+bool Quirks::shouldTreatLongClickAsSecondaryClick(const Node& target) const
+{
+    QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
+
+    return behaviorAppliesToNode(QuirkBehaviorID::ShouldTreatLongClickAsSecondaryClickQuirk, &target);
+}
+
+#endif
+
 bool Quirks::shouldReuseLiveRangeForSelectionUpdate() const
 {
     QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
@@ -2058,6 +2082,13 @@ bool Quirks::needsHideSelectionDuringOverflowScrollQuirk() const
 {
     QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
     return m_quirksData.isBehaviorEnabled(QuirkBehaviorID::NeedsHideSelectionDuringOverflowScrollQuirk);
+}
+
+// outlook.live.com: rdar://151851274
+bool Quirks::shouldAllowTouchMoveToChangeSelection() const
+{
+    QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
+    return m_quirksData.isBehaviorEnabled(QuirkBehaviorID::ShouldAllowTouchMoveToChangeSelectionQuirk);
 }
 
 // amazon.design rdar://175953409
@@ -2322,6 +2353,18 @@ URL Quirks::topDocumentURL() const
     return protect(m_document)->topURL();
 }
 
+URL Quirks::documentURL() const
+{
+    Ref document = *protect(m_document);
+
+    if (!document->isTopDocument()) [[unlikely]] {
+        if (RefPtr page = document->page(); page && !page->quirksSubframeURLForTesting().isEmpty())
+            return page->quirksSubframeURLForTesting();
+    }
+
+    return document->url();
+}
+
 void Quirks::setTopDocumentURLForTesting(URL&& url)
 {
     m_topDocumentURLForTesting = WTF::move(url);
@@ -2360,7 +2403,7 @@ void Quirks::determineRelevantQuirks()
         return;
 
     Ref document = *protect(m_document);
-    m_quirksData.merge(resolveSiteSpecificQuirks(quirksURL, document->url(), document->isTopDocument() ? IsTopDocument::Yes : IsTopDocument::No));
+    m_quirksData.merge(resolveSiteSpecificQuirks(quirksURL, documentURL(), document->isTopDocument() ? IsTopDocument::Yes : IsTopDocument::No));
 
 #if ENABLE(FLIP_SCREEN_DIMENSIONS_QUIRKS)
     // rdar://133423460

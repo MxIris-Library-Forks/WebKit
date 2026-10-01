@@ -5,7 +5,7 @@ include(WebKitVersion)
 # match. Without this CMake compiles .mm as CXX, CMAKE_OBJCXX_FLAGS are
 # ignored, and WEBKIT_ADD_PREFIX_HEADER produces no OBJCXX precompiled
 # header for .mm sources.
-enable_language(OBJC OBJCXX)
+WEBKIT_ENABLE_LANGUAGE(OBJC OBJCXX)
 
 WEBKIT_OPTION_BEGIN()
 
@@ -528,7 +528,8 @@ endif ()
 
 if (CMAKE_OSX_SYSROOT)
     add_compile_options("$<$<NOT:$<COMPILE_LANGUAGE:Swift>>:-F${CMAKE_BINARY_DIR};-iframework${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks>")
-    add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:-F${CMAKE_BINARY_DIR};-Fsystem;${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks>")
+    # -F rather than -Fsystem for SDK frameworks, cf. rdar://problem/30939744
+    add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:-F${CMAKE_BINARY_DIR};-F${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks>")
 endif ()
 
 # Regenerate the Xcode debug wrapper on every (re)configure so its scheme paths

@@ -313,6 +313,11 @@ class CppStyleTestBase(unittest.TestCase):
         basic_error_rules = ('-', '+runtime/leaky_pattern')
         return self.perform_lint(code, 'test.cpp', basic_error_rules)
 
+    # Only keep UTF8CString construction errors.
+    def perform_utf8cstring_from_utf8_check(self, code, filename='test.cpp'):
+        basic_error_rules = ('-', '+runtime/utf8cstring_from_utf8')
+        return self.perform_lint(code, filename, basic_error_rules)
+
     # Only include what you use errors.
     def perform_include_what_you_use(self, code, filename='foo.h', io=codecs):
         basic_error_rules = ('-', '+build/include_what_you_use')
@@ -6365,6 +6370,24 @@ class WebKitStyleTest(CppStyleTestBase):
             "  [runtime/wtf_to_array] [4]",
             'foo.cpp')
 
+    def test_utf8cstring_from_utf8(self):
+        message = ("Use 'UTF8CString::unsafeFromUTF8()' or 'UTF8CString::fromUTF8()' instead of constructing a UTF8CString from 'byteCast<char8_t>()'."
+                   "  [runtime/utf8cstring_from_utf8] [4]")
+
+        def assert_utf8cstring_lint(code, expected_message, file_name='foo.cpp'):
+            self.assertEqual(expected_message, self.perform_utf8cstring_from_utf8_check(code, file_name))
+
+        assert_utf8cstring_lint('auto string = UTF8CString::unsafeFromUTF8(g_get_prgname());', '')
+        assert_utf8cstring_lint('auto string = UTF8CString::fromUTF8(std::span { data, size });', '')
+        assert_utf8cstring_lint('auto view = UTF8CStringView::fromUTF8(byteCast<char8_t>(span));', '')
+        assert_utf8cstring_lint('UTF8CString string { span };', '')
+
+        assert_utf8cstring_lint('return UTF8CString { byteCast<char8_t>(g_get_prgname()) };', message)
+        assert_utf8cstring_lint('return UTF8CString(byteCast<char8_t>(data));', message)
+        assert_utf8cstring_lint('UTF8CString string { byteCast<char8_t>(path) };', message)
+        assert_utf8cstring_lint('UTF8CString string(byteCast<char8_t>(path));', message)
+        assert_utf8cstring_lint('return UTF8CString { byteCast<char8_t>(path.fileSystemRepresentation) };', message, 'foo.mm')
+
     def _construct_and_append_message(self, type_name):
         return ("If this is a WTF::Vector, SegmentedVector, or Deque of '%s', use 'constructAndAppend()'; if its element type is a "
                 "WTF::Variant with a '%s' alternative, use 'constructAndAppend(WTF::InPlaceType<%s>)'.  Either constructs the element in place "
@@ -6792,6 +6815,40 @@ class WebKitStyleTest(CppStyleTestBase):
             'foo.cpp')
 
         self.assert_lint(
+            'GUniquePtr<char> message(g_strdup_printf("The site says: %s", realm.utf8().legacyCStringPointer()));',
+            "Use 'SAFE_G_STRDUP_PRINTF()' from <wtf/glib/GLibExtras.h> instead of 'g_strdup_printf()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/glib_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'g_set_error(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT, "Invalid host \'%s\'", host.utf8().legacyCStringPointer());',
+            "Use 'SAFE_G_SET_ERROR()' from <wtf/glib/GLibExtras.h> instead of 'g_set_error()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/glib_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'g_warning("Failed at %s: %s", address.legacyCStringPointer(), error->message);',
+            "Use 'SAFE_G_WARNING()' from <wtf/glib/GLibExtras.h> instead of 'g_warning()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/glib_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'SAFE_G_SET_ERROR(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT, "Invalid host \'%s\'", host.utf8());',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'char* replyHTML = g_strdup_printf(handler.reply.legacyCStringPointer(), requestPath);',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'g_set_error(error, domain, code, format.legacyCStringPointer(), host.utf8().legacyCStringPointer());',
+            "Use 'SAFE_G_SET_ERROR()' from <wtf/glib/GLibExtras.h> instead of 'g_set_error()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/glib_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
             'g_variant_builder_add(&builder, "{sv}", "reason", g_variant_new_string(reason.utf8().legacyCStringPointer()));',
             "Use 'gVariantNewString()' from <wtf/glib/GLibExtras.h> instead of 'g_variant_new_string()', and pass the typed string instead of calling legacyCStringPointer()."
             "  [runtime/glib_string_wrappers] [4]",
@@ -6834,6 +6891,103 @@ class WebKitStyleTest(CppStyleTestBase):
             'const char* name = string.legacyCStringPointer();',
             '',
             'foo.cpp')
+
+    def test_log_string_conversions(self):
+        self.assert_lint(
+            'RELEASE_LOG(Network, "Loading %s", url.string().utf8().legacyCStringPointer());',
+            "Pass the typed string instead of calling legacyCStringPointer(). 'RELEASE_LOG()' converts typed strings itself."
+            "  [runtime/log_string_conversion] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'WEBPAGEPROXY_RELEASE_LOG(Loading, "Loading %s", url.string().utf8().legacyCStringPointer());',
+            "Pass the typed string instead of calling legacyCStringPointer(). 'WEBPAGEPROXY_RELEASE_LOG()' converts typed strings itself."
+            "  [runtime/log_string_conversion] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'LOG(Network, "Loading %s", url.string().ascii().data());',
+            "Pass '.utf8()' instead of '.ascii().data()' to 'LOG()'. It converts typed strings itself, and ASCII conversion loses non-ASCII characters."
+            "  [runtime/log_string_conversion] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'SAFE_PRINTF("Loading %s", url.string().latin1().data());',
+            "Pass '.utf8()' instead of '.latin1().data()' to 'SAFE_PRINTF()'. It converts typed strings itself, and a Latin-1 pointer loses non-ASCII characters."
+            "  [runtime/log_string_conversion] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'RELEASE_LOG(Network, "Loading %s", url.string().utf8());',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'RELEASE_LOG(Network, "Name has %zu bytes", strlen(name.legacyCStringPointer()));',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'RELEASE_LOG_FORWARDABLE(Loading, MESSAGE_NAME, name.legacyCStringPointer());',
+            '',
+            'foo.cpp')
+
+    def test_posix_string_wrappers(self):
+        self.assert_lint(
+            'int fd = open(path.legacyCStringPointer(), O_RDONLY);',
+            "Use 'posixOpen()' from <wtf/posix/POSIXExtras.h> instead of 'open()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/posix_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'int fd = ::open(path.legacyCStringPointer(), O_RDONLY);',
+            "Use 'posixOpen()' from <wtf/posix/POSIXExtras.h> instead of 'open()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/posix_string_wrappers] [4]",
+            'foo.mm')
+
+        self.assert_lint(
+            'FILE* file = fopen(fileName.utf8().legacyCStringPointer(), "rb");',
+            "Use 'posixFopen()' from <wtf/posix/POSIXExtras.h> instead of 'fopen()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/posix_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'rename(oldPath.legacyCStringPointer(), newPath.legacyCStringPointer());',
+            "Use 'posixRename()' from <wtf/posix/POSIXExtras.h> instead of 'rename()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/posix_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_multi_line_lint(
+            'int fd = open(path.legacyCStringPointer(),\n'
+            '    O_CREAT | O_RDWR, 0666);\n',
+            "Use 'posixOpen()' from <wtf/posix/POSIXExtras.h> instead of 'open()', and pass the typed string instead of calling legacyCStringPointer()."
+            "  [runtime/posix_string_wrappers] [4]",
+            'foo.cpp')
+
+        self.assert_lint(
+            'bool opened = file.open(path.legacyCStringPointer());',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'int fd = Foo::open(path.legacyCStringPointer(), O_RDONLY);',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'int fd = posixOpen(path, O_RDONLY);',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'int fd = open(otherCString, O_RDONLY);',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'int fd = open(path.legacyCStringPointer(), O_RDONLY);',
+            '',
+            'foo.c')
 
     def test_lock_guard(self):
         self.assert_lint(
@@ -7044,6 +7198,21 @@ class WebKitStyleTest(CppStyleTestBase):
         self.assert_lint(
             'snprintf(buffer, "%s", s);',
             'snprintf is unsafe. Use SAFE_SPRINTF instead.  [safercpp/printf] [4]',
+            'foo.cpp')
+
+        self.assert_lint(
+            'dataLogF("%s", s);',
+            'dataLogF is unsafe. Use SAFE_DATALOGF instead.  [safercpp/printf] [4]',
+            'foo.cpp')
+
+        self.assert_lint(
+            'SAFE_DATALOGF("%s", s.utf8());',
+            '',
+            'foo.cpp')
+
+        self.assert_lint(
+            'dataLogFIf(verbose, "%s", s);',
+            '',
             'foo.cpp')
 
         # Method calls should not trigger warnings (PrintStream::printf is safe)

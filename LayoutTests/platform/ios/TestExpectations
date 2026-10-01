@@ -183,6 +183,7 @@ accessibility/detected-form-error-empty-field-waits-for-interaction.html [ Pass 
 accessibility/detected-form-error-distant-text-is-not-a-message.html [ Pass ]
 accessibility/detected-form-error-message-emptied.html [ Pass ]
 accessibility/detected-form-error-message-hidden.html [ Pass ]
+accessibility/detected-form-error-message-in-shadow-root.html [ Pass ]
 accessibility/detected-form-error-message-replaced.html [ Pass ]
 accessibility/detected-form-error-message-rewritten.html [ Pass ]
 accessibility/detected-form-error-message-wrapper-without-a-box.html [ Pass ]
@@ -387,6 +388,7 @@ fast/scrolling/programmatic-scroll-to-zero-zero.html [ Skip ]
 http/tests/site-isolation/wheel-event-coordinates.html [ Skip ]
 http/tests/site-isolation/scrolling/basic-mouse-wheel-scrolling.html [ Skip ]
 http/tests/site-isolation/scrolling/scrolling-after-cross-origin-navigation.html [ Skip ]
+http/tests/site-isolation/scrolling/wheel-scroll-full-size-iframe-after-content-grows.html [ Skip ]
 
 # This test requires alpha-channel video support.
 compositing/video/video-background-color.html [ WontFix ]
@@ -4508,6 +4510,7 @@ webkit.org/b/251216 imported/w3c/web-platform-tests/fetch/metadata/generated/css
 webkit.org/b/254714 imported/w3c/web-platform-tests/css/css-images/image-set/image-set-calc-x-rendering-2.html [ ImageOnlyFailure ]
 
 fast/webgpu [ Skip ]
+http/wpt/webcodecs/webgpu-importExternalTexture-videoFrame-I420.html [ Skip ]
 http/tests/webgpu/cts.https.html [ Skip ]
 http/tests/webgpu/webgpu/idl/constants/flags.html [ Skip ]
 http/tests/webgpu/webgpu/idl/exposed.https.html [ Skip ]
@@ -7565,9 +7568,6 @@ webkit.org/b/183258 imported/w3c/web-platform-tests/css/css-text/white-space/tex
 
 webkit.org/b/195275 imported/w3c/web-platform-tests/css/css-text/white-space/textarea-break-spaces-002.html [ ImageOnlyFailure ]
 
-# Baseline Alignment tests affected by 1px diff failures only on Mac and iOS platforms
-webkit.org/b/170293 fast/css-grid-layout/grid-align-baseline-vertical.html [ Failure ]
-
 # A sub-test in this test is extremely flaky and fails most of the time, messing up partial-failure expectations
 webkit.org/b/189686 webgl/2.0.y/conformance2/renderbuffers/multisampled-renderbuffer-initialization.html [ Skip ]
 
@@ -10432,3 +10432,11 @@ fast/text-extraction/debug-text-extraction-max-depth-no-crash.html [ Timeout ]
 fast/text-extraction/debug-text-extraction-offscreen-password-fields.html [ Timeout ]
 fast/text-extraction/debug-text-extraction-shorten-urls.html [ Timeout ]
 fast/text-extraction/text-extraction-scroll-to-next-page.html [ Timeout ]
+
+webkit.org/b/325809 fast/scrolling/ios/overflow-scrolling-touch-enabled-stacking.html [ Pass ImageOnlyFailure ]
+
+webkit.org/b/325810 editing/async-clipboard/clipboard-change-data-while-getting-type.html [ Pass Timeout ]
+
+# webkit.org/b/325812 NEW TEST(318573@main): [iOS] 2x tests in fast/visual-viewport/ios/interactive-widget are flaky
+fast/visual-viewport/ios/interactive-widget/resizes-content-hardware-keyboard.html [ Pass Failure ]
+fast/visual-viewport/ios/interactive-widget/resizes-content-keyboard-scroll.html [ Pass Failure ]

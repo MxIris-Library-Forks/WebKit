@@ -78,7 +78,7 @@ public:
     {
         g_assert_cmpuint(connectionID, ==, m_connectionID);
         g_assert_cmpuint(targetID, ==, m_target.id);
-        m_message = UTF8CString { byteCast<char8_t>(message) };
+        m_message = UTF8CString::unsafeFromUTF8(message);
         g_main_loop_quit(m_mainLoop.get());
     }
 
@@ -159,7 +159,7 @@ public:
     WebKitAutomationSession* requestSession(UTF8CStringView sessionID)
     {
         auto signalID = g_signal_connect(m_webContext.get(), "automation-started", G_CALLBACK(automationStartedCallback), this);
-        m_connection->sendMessage("StartAutomationSession"_s, g_variant_new("(sa{sv})", sessionID.utf8(), nullptr));
+        m_connection->sendMessage("StartAutomationSession"_s, gVariantNew("(sa{sv})", sessionID, nullptr));
         auto timeoutID = g_timeout_add(1000, [](gpointer userData) -> gboolean {
             g_main_loop_quit(static_cast<GMainLoop*>(userData));
             return G_SOURCE_REMOVE;
@@ -279,7 +279,7 @@ const SocketConnection::MessageHandlers AutomationTest::s_messageHandlers = {
             gboolean isPaired;
             while (g_variant_iter_loop(iter.get(), "(t&s&s&sb)", &targetID, &type, &name, &dummy, &isPaired)) {
                 if (!g_strcmp0(type, "Automation")) {
-                    test.setTarget(connectionID, Target(targetID, UTF8CString { byteCast<char8_t>(name) }, isPaired));
+                    test.setTarget(connectionID, Target(targetID, UTF8CString::unsafeFromUTF8(name), isPaired));
                     break;
                 }
             }

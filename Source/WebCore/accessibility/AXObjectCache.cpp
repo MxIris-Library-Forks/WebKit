@@ -64,6 +64,7 @@
 #include "CaretRectComputation.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
+#include "ComposedTreeIterator.h"
 #include "ContainerNodeInlines.h"
 #include "CustomElementDefaultARIA.h"
 #include "DeprecatedGlobalSettings.h"
@@ -144,10 +145,10 @@
 #include "SelectPopoverElement.h"
 #include "Settings.h"
 #include "ShadowRoot.h"
+#include "Text.h"
 #include "TextBoundaries.h"
 #include "TextControlInnerElements.h"
 #include "TextIterator.h"
-#include "TextNodeTraversal.h"
 #include "TypedElementDescendantIteratorInlines.h"
 #include <utility>
 #include <wtf/Borrow.h>
@@ -3275,13 +3276,18 @@ void AXObjectCache::onValidityChange(Element& element)
     postNotification(protect(get(&element)), AXNotification::InvalidStatusChanged);
 }
 
-static bool messageIsEmpty(const Element* message)
+static bool messageIsEmpty(Element* message)
 {
     if (!message || !message->isConnected())
         return true;
 
-    // Pages withdraw a message by hiding it as well as by emptying it, so only visible text counts.
-    for (RefPtr text = TextNodeTraversal::firstWithin(*message); text; text = TextNodeTraversal::next(*text, message)) {
+    // Pages withdraw a message by hiding it as well as by emptying it, so only visible text counts. That includes text
+    // a component renders from its shadow root, but not text the browser renders inside its own controls.
+    for (Ref node : composedTreeDescendants(*message)) {
+        RefPtr text = dynamicDowncast<Text>(node);
+        if (!text || text->isInUserAgentShadowTree())
+            continue;
+
         CheckedPtr renderer = text->renderer();
         if (renderer && !isVisibilityHidden(renderer->style()) && !text->data().containsOnly<isASCIIWhitespace>())
             return false;
@@ -3905,9 +3911,36 @@ void AXObjectCache::handleRoleChanged(Element& element, const AtomString& oldVal
     object->updateRole();
 }
 
+bool AXObjectCache::isCounted(const AccessibilityObject& object) const
+{
+    return isCounted(object, object.role());
+}
+
+bool AXObjectCache::isCounted(const AccessibilityObject& object, AccessibilityRole role) const
+{
+    // Only a known-unignored object counts.
+    return object.cachedIsIgnored() == std::optional { false } && !isMockObjectOrWebAreaRole(role);
+}
+
+void AXObjectCache::reconcileCount(const AccessibilityObject& object, bool wasCounted)
+{
+    bool nowCounted = isCounted(object);
+    if (nowCounted == wasCounted)
+        return;
+    if (nowCounted)
+        count(object);
+    else
+        uncount(object);
+}
+
 void AXObjectCache::handleRoleChanged(AccessibilityObject& axObject, AccessibilityRole oldRole)
 {
     stopCachingComputedObjectAttributes();
+
+    // Must reconcile the role delta before recomputeIsIgnored() applies the ignored-state delta.
+    bool wasCounted = isCounted(axObject, oldRole);
+    reconcileCount(axObject, wasCounted);
+
     axObject.recomputeIsIgnored();
 
 #if PLATFORM(MAC)
@@ -3915,8 +3948,6 @@ void AXObjectCache::handleRoleChanged(AccessibilityObject& axObject, Accessibili
         deferSortForNewLiveRegion(axObject);
     else if (AXCoreObject::liveRegionStatusIsEnabled(AtomString { AXCoreObject::defaultLiveRegionStatusForRole(oldRole) }))
         removeLiveRegion(axObject);
-#else
-    UNUSED_PARAM(oldRole);
 #endif // PLATFORM(MAC)
 
     if (axObject.needsRareData()) {
@@ -7632,7 +7663,7 @@ void AXObjectCache::onWidgetVisibilityChanged(RenderWidget& widget)
 #endif
 }
 
-#if PLATFORM(MAC)
+#if PLATFORM(COCOA)
 bool AXObjectCache::isAppleInternalInstall()
 {
     static bool isInternal = os_variant_allows_internal_security_policies("com.apple.Accessibility");

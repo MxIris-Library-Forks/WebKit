@@ -66,6 +66,11 @@ constexpr bool vision = true;
 #else
 constexpr bool vision = false;
 #endif
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+constexpr bool appKitGestures = true;
+#else
+constexpr bool appKitGestures = false;
+#endif
 #if ENABLE(CONTENT_CHANGE_OBSERVER)
 constexpr bool contentChangeObserver = true;
 #else
@@ -188,6 +193,7 @@ enum class QuirkBehaviorID {
     NeedsFullscreenDisplayNoneQuirk,
     NeedsFullscreenObjectFitQuirk,
     NeedsGMailOverflowScrollQuirk,
+    NeedsGoogleMapsEmbedManipulationSurfaceQuirk,
     NeedsGoogleMapsScrollingQuirk,
     NeedsGoogleTranslateScrollingQuirk,
     NeedsNetflixVolumeSliderQuirk,
@@ -228,6 +234,7 @@ enum class QuirkBehaviorID {
     ReturnNullPictureInPictureElementDuringFullscreenChangeQuirk,
     ShouldAllowMSTeamsProtocolWithoutUserGestureQuirk,
     ShouldAllowPopupFromMicrosoftOfficeToOneDrive,
+    ShouldAllowTouchMoveToChangeSelectionQuirk,
     ShouldAutoplayWebAudioForArbitraryUserGestureQuirk,
     ShouldAvoidProgrammaticScrollClampingQuirk,
     ShouldAvoidResizingWhenInputViewBoundsChangeQuirk,
@@ -320,6 +327,7 @@ enum class QuirkBehaviorID {
     NeedsKinjaLoginStorageAccessQuirk,
     NeedsStorageAccessOnLoginButtonClickQuirk,
     NeedsStorageAccessForYouTubeWatchLaterQuirk,
+    ShouldTreatLongClickAsSecondaryClickQuirk,
 
     NumberOfIDs
 };
@@ -497,6 +505,7 @@ inline constexpr QuirkBehavior needsFormControlToBeMouseFocusableQuirk { WebCore
 inline constexpr QuirkBehavior needsFullscreenDisplayNoneQuirk { WebCore::QuirkBehaviorID::NeedsFullscreenDisplayNoneQuirk, BuildCondition::iOSFamily };
 inline constexpr QuirkBehavior needsFullscreenObjectFitQuirk { WebCore::QuirkBehaviorID::NeedsFullscreenObjectFitQuirk, BuildCondition::iOSFamily };
 inline constexpr QuirkBehavior needsGMailOverflowScrollQuirk { WebCore::QuirkBehaviorID::NeedsGMailOverflowScrollQuirk, BuildCondition::iOSFamily };
+inline constexpr QuirkBehavior needsGoogleMapsEmbedManipulationSurfaceQuirk { WebCore::QuirkBehaviorID::NeedsGoogleMapsEmbedManipulationSurfaceQuirk, BuildCondition::mac };
 inline constexpr QuirkBehavior needsGoogleMapsScrollingQuirk { WebCore::QuirkBehaviorID::NeedsGoogleMapsScrollingQuirk, BuildCondition::iOSFamily };
 inline constexpr QuirkBehavior needsGoogleTranslateScrollingQuirk { WebCore::QuirkBehaviorID::NeedsGoogleTranslateScrollingQuirk, BuildCondition::iOSFamily };
 inline constexpr QuirkBehavior needsNetflixVolumeSliderQuirk { WebCore::QuirkBehaviorID::NeedsNetflixVolumeSliderQuirk, BuildCondition::iOS || BuildCondition::vision };
@@ -537,6 +546,7 @@ inline constexpr QuirkBehavior requiresUserGestureToPlayInFullscreenQuirk { WebC
 inline constexpr QuirkBehavior returnNullPictureInPictureElementDuringFullscreenChangeQuirk { WebCore::QuirkBehaviorID::ReturnNullPictureInPictureElementDuringFullscreenChangeQuirk, BuildCondition::always };
 inline constexpr QuirkBehavior shouldAllowMSTeamsProtocolWithoutUserGestureQuirk { WebCore::QuirkBehaviorID::ShouldAllowMSTeamsProtocolWithoutUserGestureQuirk, BuildCondition::always };
 inline constexpr QuirkBehavior shouldAllowPopupFromMicrosoftOfficeToOneDrive { .id = WebCore::QuirkBehaviorID::ShouldAllowPopupFromMicrosoftOfficeToOneDrive, .isAvailable = BuildCondition::iOSFamily, .quirkConditionsSupported = QuirkConditionsSupported::SecondaryURL, .quirkConditionsNeeded = QuirkConditionsSupported::SecondaryURL };
+inline constexpr QuirkBehavior shouldAllowTouchMoveToChangeSelectionQuirk { WebCore::QuirkBehaviorID::ShouldAllowTouchMoveToChangeSelectionQuirk, BuildCondition::iOSFamily };
 inline constexpr QuirkBehavior shouldAutoplayWebAudioForArbitraryUserGestureQuirk { WebCore::QuirkBehaviorID::ShouldAutoplayWebAudioForArbitraryUserGestureQuirk, BuildCondition::always };
 inline constexpr QuirkBehavior shouldAvoidProgrammaticScrollClampingQuirk { WebCore::QuirkBehaviorID::ShouldAvoidProgrammaticScrollClampingQuirk, BuildCondition::always };
 inline constexpr QuirkBehavior shouldAvoidResizingWhenInputViewBoundsChangeQuirk { WebCore::QuirkBehaviorID::ShouldAvoidResizingWhenInputViewBoundsChangeQuirk, BuildCondition::always };
@@ -629,6 +639,7 @@ inline constexpr QuirkBehavior shouldAllowNativeTapsOnMediaElementsQuirk { .id =
 inline constexpr QuirkBehavior needsKinjaLoginStorageAccessQuirk { .id = WebCore::QuirkBehaviorID::NeedsKinjaLoginStorageAccessQuirk, .isAvailable = BuildCondition::always, .quirkConditionsSupported = QuirkConditionsSupported::ElementSelector };
 inline constexpr QuirkBehavior needsStorageAccessOnLoginButtonClickQuirk { .id = WebCore::QuirkBehaviorID::NeedsStorageAccessOnLoginButtonClickQuirk, .isAvailable = BuildCondition::always, .quirkConditionsSupported = QuirkConditionsSupported::ElementSelector };
 inline constexpr QuirkBehavior needsStorageAccessForYouTubeWatchLaterQuirk { .id = WebCore::QuirkBehaviorID::NeedsStorageAccessForYouTubeWatchLaterQuirk, .isAvailable = BuildCondition::always, .quirkConditionsSupported = QuirkConditionsSupported::ElementSelector };
+inline constexpr QuirkBehavior shouldTreatLongClickAsSecondaryClickQuirk { .id = WebCore::QuirkBehaviorID::ShouldTreatLongClickAsSecondaryClickQuirk, .isAvailable = BuildCondition::appKitGestures, .quirkConditionsSupported = QuirkConditionsSupported::ElementSelector };
 
 } // namespace Behaviors
 

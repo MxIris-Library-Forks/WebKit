@@ -434,7 +434,7 @@ static void serverCallback(SoupServer* server, SoupServerMessage* message, const
     soup_server_message_set_status(message, SOUP_STATUS_OK, nullptr);
 
     if (g_str_has_prefix(path, "/ua-"))
-        s_userAgentMap.add(UTF8CString { byteCast<char8_t>(path) }, UTF8CString { byteCast<char8_t>(soup_message_headers_get_one(soup_server_message_get_request_headers(message), "User-Agent")) });
+        s_userAgentMap.add(UTF8CString::unsafeFromUTF8(path), UTF8CString::unsafeFromUTF8(soup_message_headers_get_one(soup_server_message_get_request_headers(message), "User-Agent")));
 
     if (g_str_equal(path, "/cancel-after-destination")) {
         // Use an infinite message to make sure it's cancelled before it finishes.
@@ -593,7 +593,7 @@ public:
         if (test->m_shouldDelayDecideDestination)
             g_usleep(0.2 * G_USEC_PER_SEC);
 
-        test->m_suggestedFilename = UTF8CString { byteCast<char8_t>(suggestedFilename) };
+        test->m_suggestedFilename = UTF8CString::unsafeFromUTF8(suggestedFilename);
         if (test->m_shouldAsynchronouslyDecideDestination) {
             g_idle_add(reinterpret_cast<GSourceFunc>(+[](WebViewDownloadTest* test) {
                 test->finishDecideDestination();
@@ -966,7 +966,7 @@ static void testContextMenuDownloadActions(WebViewDownloadTest* test, gconstpoin
     test->showInWindow();
 
     static const char* linkHTMLFormat = "<html><body><a style='position:absolute; left:1; top:1' href='%s'>Download Me</a></body></html>";
-    GUniquePtr<char> linkHTML(g_strdup_printf(linkHTMLFormat, kServer->getURIForPath("/test.pdf").legacyCStringPointer()));
+    GUniquePtr<char> linkHTML(SAFE_G_STRDUP_PRINTF(linkHTMLFormat, kServer->getURIForPath("/test.pdf")));
     test->loadHtml(linkHTML.get(), kServer->getURIForPath("/").legacyCStringPointer());
     test->waitUntilLoadFinished();
 

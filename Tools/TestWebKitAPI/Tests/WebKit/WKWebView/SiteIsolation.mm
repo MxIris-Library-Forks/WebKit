@@ -8558,6 +8558,9 @@ TEST(SiteIsolation, AutoplayPolicyInRemoteFrameFollowsMainFrame)
     __block _WKWebsiteAutoplayPolicy subframePolicy = _WKWebsiteAutoplayPolicyAllow;
 
     auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+#if PLATFORM(MAC)
+    [webView _setWindowOcclusionDetectionEnabled:NO];
+#endif
     [navigationDelegate setDecidePolicyForNavigationActionWithPreferences:^(WKNavigationAction *action, WKWebpagePreferences *preferences, void (^completionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {
         [preferences _setAutoplayPolicy:[action.request.URL.host isEqualToString:@"webkit.org"] ? subframePolicy : mainFramePolicy];
         completionHandler(WKNavigationActionPolicyAllow, preferences);
@@ -12086,13 +12089,19 @@ TEST(SiteIsolation, SelectElementPopupAfterFocusChangesDuringTracking)
     }));
 }
 
-static void scrollFrameAndWait(TestWKWebView *webView, WKFrameInfo *frame, int scrollY)
+static void scrollFrameAndWait(TestWKWebView *webView, WKFrameInfo *frame, int scrollX, int scrollY)
 {
-    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.scrollTo(0, %d)", scrollY] inFrame:frame];
+    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.scrollTo(%d, %d)", scrollX, scrollY] inFrame:frame];
     EXPECT_TRUE(Util::waitFor([&] {
-        return [[webView objectByEvaluatingJavaScript:@"window.scrollY" inFrame:frame] intValue] == scrollY;
+        return [[webView objectByEvaluatingJavaScript:@"window.scrollX" inFrame:frame] intValue] == scrollX
+            && [[webView objectByEvaluatingJavaScript:@"window.scrollY" inFrame:frame] intValue] == scrollY;
     }));
     [webView waitForNextPresentationUpdate];
+}
+
+static void scrollFrameAndWait(TestWKWebView *webView, WKFrameInfo *frame, int scrollY)
+{
+    scrollFrameAndWait(webView, frame, 0, scrollY);
 }
 
 // In every test below, the <select> ends up at (150, 150) with size 100x30 in main frame view coordinates.
@@ -12269,7 +12278,163 @@ TEST(SiteIsolation, ContextMenuLocationInScrolledCrossSiteIframeWithScrolledMain
     testContextMenuLocationInCrossSiteIframe(contextMenuLocationTestScrolledMainPage, contextMenuLocationTestScrolledIframePage, 1000, 1000);
 }
 
+#if ENABLE(WIRELESS_PLAYBACK_TARGET)
+
+static constexpr NSPoint airPlayPickerPointerInMainFrameView { 200, 340 };
+
+static constexpr ASCIILiteral airPlayPickerMainframeHTML =
+    "<body style='margin: 0'>"
+    "<script>internals.setMockMediaPlaybackTargetPickerEnabled(true);</script>"
+    "<div style='height: 200px'></div>"
+    "<iframe style='display: block; margin-left: 120px; width: 320px; height: 240px; border: none;' src='https://domain2.com/subframe'></iframe>"
+    "</body>"_s;
+
+static constexpr ASCIILiteral airPlayPickerTallMainframeHTML =
+    "<body style='margin: 0; height: 2000px'>"
+    "<script>internals.setMockMediaPlaybackTargetPickerEnabled(true);</script>"
+    "<div style='height: 600px'></div>"
+    "<iframe style='display: block; margin-left: 120px; width: 320px; height: 240px; border: none;' src='https://domain2.com/subframe'></iframe>"
+    "</body>"_s;
+
+static constexpr ASCIILiteral airPlayPickerSubframeHTML =
+    "<body style='margin: 0; width: 1000px; height: 1000px'>"
+    "<video id='video' muted playsinline preload='auto' src='/video-with-audio.mp4'"
+    " style='position: absolute; left: 60px; top: 300px; width: 200px; height: 150px'></video>"
+    "<script>"
+    "window.airPlayIsAvailable = false;"
+    "internals.settings.setAllowsAirPlayForMediaPlayback(true);"
+    "document.getElementById('video').addEventListener('webkitplaybacktargetavailabilitychanged', (event) => {"
+    "    if (event.availability === 'available')"
+    "        window.airPlayIsAvailable = true;"
+    "}, true);"
+    "</script>"
+    "</body>"_s;
+
+static NSPoint airPlayPickerAnchorInCrossSiteIframe(ASCIILiteral mainframeHTML, int mainFrameScrollY = 0, int subframeScrollX = 0, int subframeScrollY = 0)
+{
+    RetainPtr videoData = [NSData dataWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"video-with-audio" ofType:@"mp4"] options:0 error:NULL];
+
+    HTTPServer server({
+        { "/mainframe"_s, { { { "Content-Type"_s, "text/html"_s } }, mainframeHTML } },
+        { "/subframe"_s, { { { "Content-Type"_s, "text/html"_s } }, airPlayPickerSubframeHTML } },
+        { "/video-with-audio.mp4"_s, { videoData.get() } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    RetainPtr storeConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initNonPersistentConfiguration]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+
+    auto [webViewBinding, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    RetainPtr webView = webViewBinding;
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"document.getElementById('video').readyState >= HTMLMediaElement.HAVE_METADATA" inFrame:childFrame.get()] boolValue];
+    }));
+
+    [webView objectByEvaluatingJavaScript:@"internals.setMockMediaPlaybackTargetPickerState('', 'DeviceAvailable')"];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"window.airPlayIsAvailable" inFrame:childFrame.get()] boolValue];
+    }));
+
+    if (mainFrameScrollY)
+        scrollFrameAndWait(webView.get(), nil, 0, mainFrameScrollY);
+    if (subframeScrollX || subframeScrollY)
+        scrollFrameAndWait(webView.get(), childFrame.get(), subframeScrollX, subframeScrollY);
+
+    NSPoint pointerInWindow = [webView convertPoint:airPlayPickerPointerInMainFrameView toView:nil];
+    [webView mouseEnterAtPoint:pointerInWindow];
+    [webView mouseMoveToPoint:pointerInWindow withFlags:0];
+    [webView waitForPendingMouseEvents];
+
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.getElementById('video').webkitShowPlaybackTargetPicker()" inFrame:childFrame.get()];
+
+    NSPoint anchorInScreen = NSZeroPoint;
+    EXPECT_TRUE(Util::waitFor([&] {
+        RetainPtr anchor = [webView objectByCallingAsyncFunction:@"const rect = await internals.mockMediaPlaybackTargetPickerRect(); return { x: rect.x, y: rect.y };" withArguments:nil];
+        anchorInScreen = NSMakePoint([[anchor objectForKey:@"x"] doubleValue], [[anchor objectForKey:@"y"] doubleValue]);
+        return !NSEqualPoints(anchorInScreen, NSZeroPoint);
+    }));
+
+    NSRect anchorInWindow = [[webView window] convertRectFromScreen:NSMakeRect(anchorInScreen.x, anchorInScreen.y, 0, 0)];
+    return [webView convertPoint:anchorInWindow.origin fromView:nil];
+}
+
+static void expectAnchoredAtPointer(NSPoint anchor)
+{
+    EXPECT_NEAR(anchor.x, airPlayPickerPointerInMainFrameView.x, 1);
+    EXPECT_NEAR(anchor.y, airPlayPickerPointerInMainFrameView.y, 1);
+}
+
+TEST(SiteIsolation, AirPlayPickerLocationInCrossSiteIframe)
+{
+    expectAnchoredAtPointer(airPlayPickerAnchorInCrossSiteIframe(airPlayPickerMainframeHTML));
+}
+
+TEST(SiteIsolation, AirPlayPickerLocationInScrolledCrossSiteIframe)
+{
+    expectAnchoredAtPointer(airPlayPickerAnchorInCrossSiteIframe(airPlayPickerMainframeHTML, 0, 60, 300));
+}
+
+TEST(SiteIsolation, AirPlayPickerLocationInCrossSiteIframeWithScrolledMainFrame)
+{
+    expectAnchoredAtPointer(airPlayPickerAnchorInCrossSiteIframe(airPlayPickerTallMainframeHTML, 400));
+}
+
+TEST(SiteIsolation, AirPlayPickerLocationInScrolledCrossSiteIframeWithScrolledMainFrame)
+{
+    expectAnchoredAtPointer(airPlayPickerAnchorInCrossSiteIframe(airPlayPickerTallMainframeHTML, 400, 60, 300));
+}
+
+#endif // ENABLE(WIRELESS_PLAYBACK_TARGET)
+
 #endif
+
+static IMP originalAddSublayer;
+static unsigned redundantAddSublayerCount;
+
+static void addSublayerCountingRedundantInsertions(CALayer *self, SEL selector, CALayer *layer)
+{
+    if (layer.superlayer == self)
+        ++redundantAddSublayerCount;
+    reinterpret_cast<void (*)(CALayer *, SEL, CALayer *)>(originalAddSublayer)(self, selector, layer);
+}
+
+TEST(SiteIsolation, CommitsFromCrossSiteIframeDoNotReparentItsLayers)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><iframe style='width: 300px; height: 200px; border: none' src='https://domain2.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<body style='background-color: green'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    RetainPtr childFrame = [webView firstChildFrame];
+
+    originalAddSublayer = class_getMethodImplementation(CALayer.class, @selector(addSublayer:));
+    redundantAddSublayerCount = 0;
+    InstanceMethodSwizzler swizzler { CALayer.class, @selector(addSublayer:), reinterpret_cast<IMP>(addSublayerCountingRedundantInsertions) };
+
+    [webView objectByEvaluatingJavaScript:@"window.ticks = 0;"
+        "(function tick() {"
+        "    document.body.style.backgroundColor = window.ticks % 2 ? 'green' : 'blue';"
+        "    if (++window.ticks < 10)"
+        "        requestAnimationFrame(tick);"
+        "})();" inFrame:childFrame.get()];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"window.ticks" inFrame:childFrame.get()] intValue] >= 10;
+    }));
+    [webView waitForNextPresentationUpdate];
+
+    EXPECT_EQ(redundantAddSublayerCount, 0u);
+}
 
 #if PLATFORM(IOS_FAMILY)
 
@@ -17638,3 +17803,62 @@ TEST(SiteIsolation, ThirdPartyCookieBlockingSpoofedWebPageProxyID)
 }
 
 }
+
+#if PLATFORM(MAC)
+
+@interface SiteIsolationPageScrollCounter : NSObject<WKUIDelegatePrivate>
+@property (nonatomic) NSUInteger pageScrollCount;
+@end
+
+@implementation SiteIsolationPageScrollCounter
+- (void)_webViewDidScroll:(WKWebView *)webView
+{
+    ++_pageScrollCount;
+}
+@end
+
+namespace TestWebKitAPI {
+
+TEST(SiteIsolation, CrossSiteIframeProcessesDoNotReportMainFrameScroll)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0; height: 5000px'>"
+            "<iframe style='width: 300px; height: 200px; border: none' src='https://domain2.com/subframe'></iframe>"
+            "<iframe style='width: 300px; height: 200px; border: none' src='https://domain3.com/subframe'></iframe>"
+            "</body>"_s } },
+        { "/subframe"_s, { "<body style='background-color: green'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegateWithoutSharedProcess(server, CGRectMake(0, 0, 800, 600));
+    RetainPtr scrollCounter = adoptNS([SiteIsolationPageScrollCounter new]);
+    webView.get().UIDelegate = scrollCounter.get();
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    RetainPtr<NSArray<_WKFrameTreeNode *>> childFrames = [webView mainFrame].childFrames;
+    EXPECT_EQ([childFrames count], 2u);
+
+    auto pageScrollsForMainFrameScrollTo = [&](int y) {
+        [scrollCounter setPageScrollCount:0];
+        [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.scrollTo(0, %d)", y]];
+        EXPECT_TRUE(Util::waitFor([&] {
+            return [scrollCounter pageScrollCount] > 0;
+        }));
+
+        // Wait for the next presentation update since the main frame broadcasts its scroll position
+        // to remote frame processes as part of the rendering update. Then wait for each remote
+        // frame process to do some request/response IPC to make sure it's processed that update.
+        [webView waitForNextPresentationUpdate];
+        for (_WKFrameTreeNode *childFrame in childFrames.get())
+            [webView objectByEvaluatingJavaScript:@"0" inFrame:childFrame.info];
+
+        return [scrollCounter pageScrollCount];
+    };
+
+    EXPECT_EQ(pageScrollsForMainFrameScrollTo(100), 1u);
+    EXPECT_EQ(pageScrollsForMainFrameScrollTo(300), 1u);
+}
+
+} // namespace TestWebKitAPI
+
+#endif // PLATFORM(MAC)

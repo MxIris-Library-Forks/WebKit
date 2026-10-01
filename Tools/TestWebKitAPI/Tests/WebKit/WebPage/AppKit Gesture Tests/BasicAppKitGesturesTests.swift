@@ -1966,6 +1966,63 @@ extension AppKitGesturesTests.Basic {
         #expect(try await settledScrollPosition() == .zero)
     }
 
+    @Test(arguments: CustomScrubberSliderPlacement.allCases)
+    func mouseDragOverCustomVideoScrubberDoesNotScroll(sliderPlacement: CustomScrubberSliderPlacement) async throws {
+        let baseURL = try #require(Bundle.testResources.resourceURL)
+
+        // Mirrors players which draw the scrubber with plain elements, handle it with mouse events
+        // (listening for moves on the window once the drag starts), and provide a visually hidden
+        // range input alongside it for accessibility.
+        let sliderMarkup =
+            "<div style='position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden'><input type='range' min='0' max='100' value='0'></div>"
+        let visibleSliderMarkup = "<input type='range' min='0' max='100' value='0' style='position: absolute; top: 20px; left: 20px;'>"
+
+        let html = """
+            <body style="margin: 0; width: 4000px; height: 4000px;">
+                <div style="position: relative; width: 600px; height: 340px;">
+                    <video src="video-with-audio.mp4" style="display: block; width: 100%; height: 100%"></video>
+                    <div id="scrubber" style="position: absolute; left: 20px; right: 20px; bottom: 20px; height: 24px; cursor: pointer; background-color: red;"></div>
+                    \(sliderPlacement == .insidePlayer ? sliderMarkup : "")
+                    \(sliderPlacement == .visibleInsidePlayer ? visibleSliderMarkup : "")
+                </div>
+                \(sliderPlacement == .outsidePlayer ? sliderMarkup : "")
+                <script>
+                    window.sliderEvents = [];
+                    document.getElementById("scrubber").addEventListener("mousedown", event => {
+                        window.sliderEvents.push(event.type);
+                        event.preventDefault();
+                        window.addEventListener("mousemove", event => window.sliderEvents.push(event.type), true);
+                        window.addEventListener("mouseup", event => window.sliderEvents.push(event.type), true);
+                    });
+                </script>
+            </body>
+            """
+        try await page.load(html: html, baseURL: baseURL).wait()
+        await page.waitForNextPresentationUpdate()
+
+        let scrubber = try await screenBounds(ofElementWithID: "scrubber")
+        // Drag leftward, so that if the gesture scrolls instead, it moves away from the pinned left edge.
+        let startPoint = CGPoint(x: scrubber.minX + scrubber.width * 0.75, y: scrubber.midY)
+        let endPoint = CGPoint(x: scrubber.minX + scrubber.width * 0.25, y: scrubber.midY)
+
+        await recap.play { composer in
+            composer._wk_drag(withStart: startPoint, end: endPoint, duration: .seconds(0.2), release: true)
+        }
+
+        await page.waitForPendingMouseEvents()
+        await page.waitForNextPresentationUpdate()
+
+        if sliderPlacement == .insidePlayer {
+            let events = try await sliderEvents()
+            #expect(events.first == "mousedown")
+            #expect(events.contains("mousemove"))
+            #expect(try await settledScrollPosition() == .zero)
+        } else {
+            #expect(try await sliderEvents().isEmpty)
+            #expect(try await settledScrollPosition() != .zero)
+        }
+    }
+
     @Test(
         .bug("https://webkit.org/b/323383", "<model> element in orbit stage mode does not rotate on press drag"),
         arguments: [false, true]
@@ -1993,38 +2050,6 @@ extension AppKitGesturesTests.Basic {
         }
         await page.waitForNextPresentationUpdate()
         #expect(try await entityTransformDidChange(from: initialEntityTransform))
-    }
-
-    @Test(arguments: verticalDragOverManipulationSurfaceArguments)
-    func verticalDragOverManipulationSurface(styleValue: String, reachesContent: Bool) async throws {
-        let surface = try await loadManipulationSurface(styleValue: styleValue)
-
-        let start = CGPoint(x: surface.bounds.midX, y: surface.bounds.maxY - manipulationSurfaceDragInset)
-        let end = CGPoint(x: surface.bounds.midX, y: surface.bounds.minY + manipulationSurfaceDragInset)
-
-        await recap.play { composer in
-            composer._wk_drag(withStart: start, end: end, duration: .seconds(1))
-        }
-
-        await page.waitForNextPresentationUpdate()
-
-        try await expectDrag(from: start, to: end, over: surface, reachesContent: reachesContent)
-    }
-
-    @Test
-    func horizontalDragOverManipulationSurface() async throws {
-        let surface = try await loadManipulationSurface(styleValue: "pan-x pan-y")
-
-        let start = CGPoint(x: surface.bounds.minX + manipulationSurfaceDragInset, y: surface.bounds.midY)
-        let end = CGPoint(x: surface.bounds.maxX - manipulationSurfaceDragInset, y: surface.bounds.midY)
-
-        await recap.play { composer in
-            composer._wk_drag(withStart: start, end: end, duration: .seconds(1))
-        }
-
-        await page.waitForNextPresentationUpdate()
-
-        try await expectDrag(from: start, to: end, over: surface, reachesContent: true)
     }
 
     @Test(
@@ -3083,6 +3108,13 @@ extension AppKitGesturesTests.Basic {
         await page.waitForNextPresentationUpdate()
     }
 
+    enum CustomScrubberSliderPlacement: Sendable, CaseIterable {
+        case absent
+        case insidePlayer
+        case visibleInsidePlayer
+        case outsidePlayer
+    }
+
     enum ThinSliderDragStart: Sendable, CaseIterable {
         case onTrack
 
@@ -3408,91 +3440,6 @@ extension AppKitGesturesTests.Basic {
         var rect = CGRect(viewportRect)
         rect.origin.y += Self.topInset
         return NSPoint(x: rect.midX, y: contentView.frame.height - rect.midY)
-    }
-}
-
-// MARK: - Manipulation Surface Helpers
-
-private let manipulationSurfaceDragInset: CGFloat = 60
-
-extension AppKitGesturesTests.Basic {
-    struct ManipulationSurface {
-        let bounds: CGRect
-
-        let initialScrollY: Double
-    }
-
-    fileprivate func loadManipulationSurface(styleValue: String) async throws -> ManipulationSurface {
-        let url = try #require(Bundle.testResources.url(forResource: "manipulation-surface", withExtension: "html"))
-        try await page.load(url).wait()
-        await page.waitForNextPresentationUpdate()
-
-        try await page.callJavaScript(
-            arguments: ["elementID": "surface", "styleValue": styleValue],
-            script: styleAdjustmentForManipulationSurfaceScript
-        )
-        await page.waitForNextPresentationUpdate()
-
-        try await page.callJavaScript {
-            #"document.getElementById("surface").scrollIntoView({ block: "center" });"#
-        }
-        await page.waitForNextPresentationUpdate()
-
-        let scrollPosition = try await page.callJavaScript(JavaScriptMessages.ScrollPosition())
-        try #require(scrollPosition.y > 0)
-
-        return ManipulationSurface(
-            bounds: try await screenBounds(ofElementWithID: "surface"),
-            initialScrollY: scrollPosition.y
-        )
-    }
-
-    private func manipulationSurfaceEvents() async throws -> (down: Int, move: Int, up: Int, wheel: Int, translation: CGSize) {
-        let values = try await page.callJavaScript(returning: [Double].self) {
-            """
-            const events = window.surfaceEvents;
-            return [events.down, events.move, events.up, events.wheel, events.dx, events.dy];
-            """
-        }
-
-        try #require(values.count == 6)
-
-        return (
-            down: Int(values[0]),
-            move: Int(values[1]),
-            up: Int(values[2]),
-            wheel: Int(values[3]),
-            translation: CGSize(width: values[4], height: values[5])
-        )
-    }
-
-    fileprivate func expectDrag(
-        from start: CGPoint,
-        to end: CGPoint,
-        over surface: ManipulationSurface,
-        reachesContent: Bool
-    ) async throws {
-        let events = try await manipulationSurfaceEvents()
-        let scrollPosition = try await page.callJavaScript(JavaScriptMessages.ScrollPosition())
-
-        guard reachesContent else {
-            #expect(events.down == 0)
-            #expect(events.up == 0)
-            #expect(events.wheel > 0)
-
-            #expect(scrollPosition.y > surface.initialScrollY)
-            return
-        }
-
-        #expect(events.down == 1)
-        #expect(events.up == 1)
-        #expect(events.move > 0)
-        #expect(events.wheel == 0)
-
-        #expect(abs(events.translation.width - (end.x - start.x)) < manipulationSurfaceDragInset)
-        #expect(abs(events.translation.height - (end.y - start.y)) < manipulationSurfaceDragInset)
-
-        #expect(scrollPosition.y == surface.initialScrollY)
     }
 }
 

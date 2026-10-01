@@ -3430,10 +3430,10 @@ sub GenerateHeader
     }
 
     if ($interface->extendedAttributes->{GenerateForEachEventHandlerContentAttribute}) {
-        push(@headerContent, "    static void forEachEventHandlerContentAttribute(const Function<void(const AtomString& attributeName, const AtomString& eventName)>&);\n\n");
+        push(@headerContent, "    static void forEachEventHandlerContentAttribute(NOESCAPE const Function<void(const AtomString& attributeName, const AtomString& eventName)>&);\n\n");
     }
     if ($interface->extendedAttributes->{GenerateForEachWindowEventHandlerContentAttribute}) {
-        push(@headerContent, "    static void forEachWindowEventHandlerContentAttribute(const Function<void(const AtomString& attributeName, const AtomString& eventName)>&);\n\n");
+        push(@headerContent, "    static void forEachWindowEventHandlerContentAttribute(NOESCAPE const Function<void(const AtomString& attributeName, const AtomString& eventName)>&);\n\n");
     }
 
     my $numCustomOperations = 0;
@@ -5860,7 +5860,7 @@ sub GenerateForEachEventHandlerContentAttribute
 {
     my ($outputArray, $interface, $className, $functionName, $eventHandlerExtendedAttributeName) = @_;
     AddToImplIncludes("HTMLNames.h");
-    push(@$outputArray, "void ${className}::${functionName}(const Function<void(const AtomString& attributeName, const AtomString& eventName)>& function)\n");
+    push(@$outputArray, "void ${className}::${functionName}(NOESCAPE const Function<void(const AtomString& attributeName, const AtomString& eventName)>& function)\n");
     push(@$outputArray, "{\n");
     push(@$outputArray, "    static constexpr std::array table {\n");
     foreach my $attribute (@{$interface->attributes}) {
@@ -7459,8 +7459,18 @@ sub GenerateCallbackImplementationOperationBody
 
         push(@$contentRef, "    auto throwScope = DECLARE_THROW_SCOPE(vm);\n");
         push(@$contentRef, "    auto returnValue = ${nativeValue};\n");
-        push(@$contentRef, "    if (returnValue.hasException(throwScope)) [[unlikely]]\n");
-        push(@$contentRef, "        return CallbackResultType::ExceptionThrown;\n");
+        if ($codeGenerator->IsPromiseType($operation->type)) {
+            push(@$contentRef, "    if (returnValue.hasException(throwScope)) [[unlikely]] {\n");
+            push(@$contentRef, "        auto exceptionValue = throwScope.exception()->value();\n");
+            push(@$contentRef, "        TRY_CLEAR_EXCEPTION(throwScope, CallbackResultType::ExceptionThrown);\n");
+            push(@$contentRef, "        auto* jsPromise = JSC::JSPromise::create(vm, globalObject.promiseStructure());\n");
+            push(@$contentRef, "        jsPromise->rejectAsHandled(vm, exceptionValue);\n");
+            push(@$contentRef, "        return { DOMPromise::create(globalObject, *jsPromise) };\n");
+            push(@$contentRef, "    }\n");
+        } else {
+            push(@$contentRef, "    if (returnValue.hasException(throwScope)) [[unlikely]]\n");
+            push(@$contentRef, "        return CallbackResultType::ExceptionThrown;\n");
+        }
         push(@$contentRef, "    return { returnValue.releaseReturnValue() };\n");
     }
 

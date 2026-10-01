@@ -141,7 +141,7 @@ static bool representsSelectableContent(const WebKit::InteractionInformationAtPo
 
 static bool prefersDirectManipulation(const WebKit::InteractionInformationAtPosition& info)
 {
-    bool prefersInteraction = info.isRangeInput || info.isARIASlider || info.hasDirectionalResizeCursor || info.isInResizeControl;
+    bool prefersInteraction = info.isRangeInput || info.isARIASlider || info.hasDirectionalResizeCursor || info.isInResizeControl || info.isCustomSlider;
 #if ENABLE(MODEL_ELEMENT_STAGE_MODE)
     prefersInteraction = prefersInteraction || info.isInteractiveModel;
 #endif
@@ -154,6 +154,9 @@ static bool representsSecondaryClickableElement(const WebKit::InteractionInforma
         return false;
 
     if (representsSelectableContent(info))
+        return true;
+
+    if (info.shouldTreatLongClickAsSecondaryClickQuirk)
         return true;
 
     if (info.isImage && isDisplayingStandaloneImageDocument)
@@ -1932,7 +1935,7 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     using enum WebKit::WebEventPhase;
     if (phase == Began)
         _lastCumulativeMagnification = 0;
-    auto currentMagnification = magnification - _lastCumulativeMagnification;
+    auto currentMagnification = (1 + magnification) / (1 + _lastCumulativeMagnification) - 1;
     _lastCumulativeMagnification = magnification;
     return currentMagnification;
 }

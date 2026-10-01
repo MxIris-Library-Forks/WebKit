@@ -415,6 +415,7 @@
 #if PLATFORM(MAC)
 #include "GraphicsChecksMac.h"
 #include "ScrollbarsControllerMac.h"
+#include "ServicesOverlayController.h"
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -636,6 +637,7 @@ void Internals::resetToConsistentState(Page& page)
     page.setDefersLoading(false);
     page.setResourceCachingDisabledByWebInspector(false);
     page.setConsoleMessageListenerForTesting(nullptr);
+    page.setQuirksSubframeURLForTesting({ });
 
     RefPtr localMainFrame = page.localMainFrame();
     if (!localMainFrame)
@@ -5719,6 +5721,8 @@ void Internals::setMediaElementRestrictions(HTMLMediaElement& element, StringVie
         if (equalLettersIgnoringASCIICase(restrictionString, "requirepagevisibilityforvideotobenowplaying"_s))
             restrictions |= MediaElementSession::RequirePageVisibilityForVideoToBeNowPlaying;
 #endif
+        if (equalLettersIgnoringASCIICase(restrictionString, "requireusergesturetostartaudibleplaybackwhenhidden"_s))
+            restrictions |= MediaElementSession::RequireUserGestureToStartAudiblePlaybackWhenHidden;
     }
     mediaSession->addBehaviorRestriction(restrictions);
 }
@@ -5890,6 +5894,10 @@ void Internals::resumeAllMediaPlayback()
     page->resumeAllMediaPlayback();
 }
 
+void Internals::setMediaElementGracePeriodForResumingPlaybackInBackground(const HTMLMediaElement& element, double gracePeriodInSeconds)
+{
+    element.mediaSession().setGracePeriodForResumingPlaybackInBackgroundForTesting(Seconds(gracePeriodInSeconds));
+}
 #endif // ENABLE(VIDEO)
 
 #if ENABLE(WEB_AUDIO)
@@ -7001,6 +7009,12 @@ void Internals::simulateEventForWebGLContext(SimulatedWebGLContextEvent event, W
         break;
     case SimulatedWebGLContextEvent::Timeout:
         contextEvent = WebGLRenderingContext::SimulatedEventForTesting::Timeout;
+        break;
+    case SimulatedWebGLContextEvent::DisplayBufferAllocationFailure:
+        contextEvent = WebGLRenderingContext::SimulatedEventForTesting::DisplayBufferAllocationFailure;
+        break;
+    case SimulatedWebGLContextEvent::RenderbufferAllocationFailure:
+        contextEvent = WebGLRenderingContext::SimulatedEventForTesting::RenderbufferAllocationFailure;
         break;
     default:
         ASSERT_NOT_REACHED();
@@ -8350,6 +8364,19 @@ void Internals::setContentSizeCategory(Internals::ContentSizeCategory category)
 #endif
 }
 
+#if ENABLE(TELEPHONE_NUMBER_DETECTION)
+unsigned Internals::telephoneNumberRangesChangedCount() const
+{
+#if PLATFORM(MAC)
+    if (RefPtr document = contextDocument()) {
+        if (RefPtr page = document->page())
+            return page->servicesOverlayController().telephoneNumberRangesChangedCountForTesting();
+    }
+#endif
+    return 0;
+}
+#endif
+
 #if ENABLE(ATTACHMENT_ELEMENT)
 #if ENABLE(SERVICE_CONTROLS)
 bool Internals::hasImageControls(const HTMLImageElement& element) const
@@ -8903,6 +8930,17 @@ void Internals::setTopDocumentURLForQuirks(const String& urlString)
     document->quirks().setTopDocumentURLForTesting(URL { urlString });
 }
 
+void Internals::setSubframeURLForQuirks(const String& urlString)
+{
+    RefPtr document = contextDocument();
+    if (!document || !document->page())
+        return;
+
+    Ref page = *protect(document->page());
+    page->settings().setNeedsSiteSpecificQuirks(true);
+    page->setQuirksSubframeURLForTesting(URL { urlString });
+}
+
 Vector<String> Internals::activeQuirks() const
 {
     RefPtr document = contextDocument();
@@ -9043,6 +9081,37 @@ String Internals::modelElementState(HTMLModelElement& element)
 bool Internals::isModelElementIntersectingViewport(HTMLModelElement& element)
 {
     return element.isIntersectingViewport();
+}
+#endif
+
+#if ENABLE(MODEL_PROCESS)
+void Internals::modelSceneGraphAsText(Element& element, const ModelSceneGraphAsTextOptions& options, DOMPromiseDeferred<IDLDOMString>&& promise)
+{
+    protect(element.document())->updateStyleIfNeeded();
+
+    auto completionHandler = [promise = WTF::move(promise)](String&& sceneGraph) mutable {
+        if (sceneGraph.isNull()) {
+            promise.reject(Exception { ExceptionCode::InvalidStateError, "The element has no loaded model"_s });
+            return;
+        }
+        promise.resolve(WTF::move(sceneGraph));
+    };
+
+#if ENABLE(SPATIAL_PORTAL)
+    CheckedPtr controller = element.spatialPortalController();
+    if (controller) {
+        controller->sceneGraphAsTextForTesting(std::nullopt, options, WTF::move(completionHandler));
+        return;
+    }
+#endif
+
+    RefPtr model = dynamicDowncast<HTMLModelElement>(element);
+    if (model) {
+        model->sceneGraphAsTextForTesting(options, WTF::move(completionHandler));
+        return;
+    }
+
+    completionHandler({ });
 }
 #endif
 

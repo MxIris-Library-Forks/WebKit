@@ -725,7 +725,7 @@ static inline bool shouldClearWindowName(const LocalFrame& frame, const Document
     return !protect(newDocument.securityOrigin())->isSameOriginAs(protect(protect(frame.document())->securityOrigin()));
 }
 
-void FrameLoader::clear(RefPtr<Document>&& newDocument, bool clearWindowProperties, bool clearScriptObjects, bool clearFrameView, Function<void()>&& handleDOMWindowCreation)
+void FrameLoader::clear(RefPtr<Document>&& newDocument, bool clearWindowProperties, bool clearScriptObjects, bool clearFrameView, NOESCAPE const Function<void()>& handleDOMWindowCreation)
 {
     bool neededClear = m_needsClear;
     m_needsClear = false;
@@ -2321,17 +2321,17 @@ void FrameLoader::stopForUserCancel(bool deferCheckLoadComplete)
 
     stopAllLoaders();
 
-    if (m_frame->document()->settings().navigationAPIEnabled()) {
-        RefPtr window = m_frame->document()->window();
-        protect(window->navigation())->abortOngoingNavigationIfNeeded();
+    if (frame->document()->settings().navigationAPIEnabled()) {
+        if (RefPtr window = frame->document()->window())
+            protect(window->navigation())->abortOngoingNavigationIfNeeded();
     }
 
 #if PLATFORM(IOS_FAMILY)
     // Lay out immediately when stopping to immediately clear the old page if we just committed this one
     // but haven't laid out/painted yet.
     // FIXME: Is this behavior specific to iOS? Or should we expose a setting to toggle this behavior?
-    if (frame->view() && !frame->view()->didFirstLayout())
-        protect(protect(frame->view())->layoutContext())->layout();
+    if (RefPtr view = frame->view(); view && !view->didFirstLayout())
+        protect(view->layoutContext())->layout();
 #endif
 
     if (deferCheckLoadComplete)

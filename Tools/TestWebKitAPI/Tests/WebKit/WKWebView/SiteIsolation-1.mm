@@ -54,6 +54,7 @@
 #import <wtf/RetainPtr.h>
 
 #if PLATFORM(IOS_FAMILY)
+#import "TestInputDelegate.h"
 #import "UIKitSPIForTesting.h"
 #import <WebKit/_WKTextInputContext.h>
 #endif
@@ -86,6 +87,13 @@
 @interface UIView (SiteIsolationDictationStreamingOpacity)
 - (void)_setDictationStreamingOpacity:(CGFloat)opacity forHypothesisText:(NSString *)hypothesisText streamingRange:(NSRange)streamingRange;
 - (void)_clearDictationStreamingOpacity;
+@end
+
+// UIWKGestureType stands in for WKBEGestureType, which is BEGestureType with BrowserEngineKit and
+// UIWKGestureType without; both are NSInteger-backed, and these handlers ignore the value.
+@interface UIView (SiteIsolationPointBasedSelection)
+- (void)changeSelectionWithTouchesFrom:(CGPoint)from to:(CGPoint)to withGesture:(UIWKGestureType)gestureType withState:(UIGestureRecognizerState)gestureState;
+- (void)selectPositionAtBoundary:(UITextGranularity)granularity inDirection:(UITextDirection)direction fromPoint:(CGPoint)point completionHandler:(void (^)(void))completionHandler;
 @end
 #endif
 
@@ -647,14 +655,14 @@ TEST(SiteIsolation, TextPlaceholderInCrossOriginIframe)
     EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"!!document.querySelector('div')" inFrame:childFrame.get()] boolValue]);
 }
 
-#if PLATFORM(IOS_FAMILY)
-
 static RetainPtr<WKWebViewConfiguration> configurationWithInternals(const HTTPServer& server)
 {
     RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
     [configuration setWebsiteDataStore:[server.httpsProxyConfiguration() websiteDataStore]];
     return configuration;
 }
+
+#if PLATFORM(IOS_FAMILY)
 
 static NSUInteger markerCountInFrame(TestWKWebView *webView, WKFrameInfo *frame, NSString *markerType)
 {
@@ -1014,5 +1022,277 @@ TEST(SiteIsolation, AddAppHighlightWithoutSelectionDoesNotCrashWhenWebProcessesE
 }
 
 #endif // ENABLE(APP_HIGHLIGHTS)
+
+#if PLATFORM(IOS_FAMILY)
+
+// UIKit reads text and geometry around the insertion point to drive autocorrection, predictive text, and
+// accessibility. With the caret in a cross-origin iframe, those requests must go to the iframe's process, and
+// any rects in the reply must be in the main frame's coordinates rather than the iframe's.
+
+static constexpr auto mainFrameWithPositionedCrossOriginIframe = "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+    "<body style='margin: 0'><iframe id='iframe' style='position: absolute; left: 100px; top: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s;
+static constexpr auto editableIframeWithText = "<body contenteditable style='margin: 0; font-size: 20px;'>hello world</body>"_s;
+
+// The iframe in mainFrameWithPositionedCrossOriginIframe covers (100, 100) to (500, 400) in the main frame.
+static void expectRectInPositionedCrossOriginIframe(CGRect rect)
+{
+    EXPECT_FALSE(CGRectIsEmpty(rect));
+    EXPECT_GE(CGRectGetMinX(rect), 100);
+    EXPECT_GE(CGRectGetMinY(rect), 100);
+    EXPECT_LE(CGRectGetMaxX(rect), 500);
+    EXPECT_LE(CGRectGetMaxY(rect), 400);
+}
+
+// Focuses the iframe's editable body with a user gesture, so that it becomes the focused element and starts an
+// input session, then puts the caret after "hello world". Focusing already leaves a caret, so the UI process may not
+// have seen the caret move by the time this returns; callers that depend on UI-side editor state must wait for more.
+static RetainPtr<TestInputDelegate> startInputSessionInCrossOriginIframe(TestWKWebView *webView, WKFrameInfo *frame)
+{
+    RetainPtr inputDelegate = adoptNS([TestInputDelegate new]);
+    __block bool didStartInputSession = false;
+    [inputDelegate setFocusStartsInputSessionPolicyHandler:^_WKFocusStartsInputSessionPolicy(WKWebView *, id<_WKFocusedElementInfo>) {
+        didStartInputSession = true;
+        return _WKFocusStartsInputSessionPolicyAllow;
+    }];
+    [webView _setInputDelegate:inputDelegate.get()];
+    [webView objectByEvaluatingJavaScriptWithUserGesture:@"document.body.focus()" inFrame:frame];
+    Util::run(&didStartInputSession);
+    setSelectionInFrame(webView, frame, @"getSelection().setPosition(document.body.firstChild, 11)", _WKSelectionAttributeIsCaret);
+    return inputDelegate;
+}
+
+TEST(SiteIsolation, AutocorrectionContextInCrossOriginIframe)
+{
+    // With the out-of-process keyboard, UIKit doesn't ask the web process for autocorrection context.
+    if ([UIKeyboard usesInputSystemUI])
+        return;
+
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithPositionedCrossOriginIframe } },
+        { "/iframe"_s, { editableIframeWithText } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    RetainPtr inputDelegate = startInputSessionInCrossOriginIframe(webView.get(), childFrame.get());
+
+    // The UI process caches the context the iframe sent when its body was focused, and only asks a web process
+    // again after it sees the selection change. Switching from a caret to a range gives us something to wait for.
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setBaseAndExtent(document.body.firstChild, 6, document.body.firstChild, 11)", _WKSelectionAttributeIsRange);
+
+    // The request is answered by a separate message that the UI process waits for, so the wait has to be on the
+    // process that got the request. Otherwise the wait times out and the context comes back empty.
+    auto context = [webView autocorrectionContext];
+    EXPECT_WK_STREQ("world", context.selectedText);
+    EXPECT_TRUE(context.contextBeforeSelection.startsWith("hello"_s));
+}
+
+TEST(SiteIsolation, AutocorrectionRectsInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithPositionedCrossOriginIframe } },
+        { "/iframe"_s, { editableIframeWithText } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    RetainPtr inputDelegate = startInputSessionInCrossOriginIframe(webView.get(), childFrame.get());
+
+    auto [firstRect, lastRect] = [webView autocorrectionRectsForString:@"world"];
+    expectRectInPositionedCrossOriginIframe(firstRect);
+    expectRectInPositionedCrossOriginIframe(lastRect);
+}
+
+TEST(SiteIsolation, AccessibilityRectsAtSelectionOffsetInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithPositionedCrossOriginIframe } },
+        { "/iframe"_s, { editableIframeWithText } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().selectAllChildren(document.body)", _WKSelectionAttributeIsRange);
+
+    __block bool done = false;
+    __block RetainPtr<NSArray<NSValue *>> rects;
+    [webView _accessibilityRetrieveRectsAtSelectionOffset:0 withText:@"hello" completionHandler:^(NSArray<NSValue *> *result) {
+        rects = result;
+        done = true;
+    }];
+    Util::run(&done);
+
+    ASSERT_GE([rects count], 1U);
+    expectRectInPositionedCrossOriginIframe([rects firstObject].CGRectValue);
+}
+
+#if HAVE(UI_WK_DOCUMENT_CONTEXT)
+
+TEST(SiteIsolation, DocumentEditingContextInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithPositionedCrossOriginIframe } },
+        { "/iframe"_s, { editableIframeWithText } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    RetainPtr inputDelegate = startInputSessionInCrossOriginIframe(webView.get(), childFrame.get());
+
+    RetainPtr request = adoptNS([[UIWKDocumentRequest alloc] init]);
+    [request setFlags:UIWKDocumentRequestText | UIWKDocumentRequestRects];
+    [request setSurroundingGranularity:UITextGranularityParagraph];
+    [request setGranularityCount:1];
+    RetainPtr context = [webView synchronouslyRequestDocumentContext:request.get()];
+
+    EXPECT_TRUE([[context contextBefore] isKindOfClass:NSString.class]);
+    EXPECT_WK_STREQ("hello world", (NSString *)[context contextBefore]);
+    RetainPtr<NSArray<NSValue *>> characterRects = [context characterRectsForCharacterRange:NSMakeRange(0, 1)];
+    ASSERT_GE([characterRects count], 1U);
+    expectRectInPositionedCrossOriginIframe([characterRects firstObject].CGRectValue);
+}
+
+#endif // HAVE(UI_WK_DOCUMENT_CONTEXT)
+
+#endif // PLATFORM(IOS_FAMILY)
+
+// Point-based selection. The UI process hands these messages a point in web-view coordinates, and every
+// web-process handler resolves it against `focusedOrMainFrame()`'s own LocalFrameView (via
+// `rootViewToContents`, directly or through `visiblePositionInFocusedNodeForPoint`). So each one needs to
+// reach the focused frame's process *and* have its point converted into that frame's root view; routing
+// alone would land the point off by the iframe's position. `SelectPositionAtPoint` and
+// `SelectTextWithGranularityAtPoint` are already handled, by hit-testing and re-dispatching on a
+// `RemoteUserInputEventData` reply.
+
+// initial-scale=1 keeps CSS pixels equal to web-view coordinates, which the helper below relies on.
+static constexpr auto pointSelectionMainFrame = "<meta name='viewport' content='initial-scale=1'><body style='margin: 0'>main frame text<iframe id='iframe' style='position: absolute; left: 100px; top: 100px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s;
+static constexpr auto pointSelectionIframe = "<body contenteditable style='margin: 0; font: 20px monospace'>hello world</body>"_s;
+
+// A point in web-view coordinates just inside the left edge of the character at `offset` in the iframe's
+// first text node, so that the nearest character boundary is unambiguously `offset` itself. The iframe is
+// positioned at (100, 100) and nothing is scrolled, so its client coordinates are offset by exactly that.
+static CGPoint pointAtCharacterInIframe(TestWKWebView *webView, WKFrameInfo *childFrame, unsigned offset)
+{
+    RetainPtr script = [NSString stringWithFormat:@"(() => {"
+        "let range = document.createRange();"
+        "range.setStart(document.body.firstChild, %u);"
+        "range.setEnd(document.body.firstChild, %u);"
+        "let rect = range.getBoundingClientRect();"
+        "return [rect.left + 2, rect.top + rect.height / 2];"
+        "})()", offset, offset + 1];
+    RetainPtr result = [webView objectByEvaluatingJavaScript:script.get() inFrame:childFrame];
+    return CGPointMake(100 + [[result objectAtIndex:0] doubleValue], 100 + [[result objectAtIndex:1] doubleValue]);
+}
+
+#if PLATFORM(IOS_FAMILY)
+
+static int selectionAnchorOffsetInFrame(TestWKWebView *webView, WKFrameInfo *frame)
+{
+    return [[webView objectByEvaluatingJavaScript:@"getSelection().anchorOffset" inFrame:frame] intValue];
+}
+
+TEST(SiteIsolation, SelectPositionAtBoundaryInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { pointSelectionMainFrame } },
+        { "/iframe"_s, { pointSelectionIframe } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body.firstChild, 0)", _WKSelectionAttributeIsCaret);
+    ASSERT_EQ(0, selectionAnchorOffsetInFrame(webView.get(), childFrame.get()));
+
+    // Starting from a point at "h", the next word boundary forward is the end of "hello".
+    __block bool done = false;
+    [[webView textInputContentView] selectPositionAtBoundary:UITextGranularityWord inDirection:UITextStorageDirectionForward fromPoint:pointAtCharacterInIframe(webView.get(), childFrame.get(), 0) completionHandler:^{
+        done = true;
+    }];
+    Util::run(&done);
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return selectionAnchorOffsetInFrame(webView.get(), childFrame.get()) == 5;
+    }));
+    EXPECT_EQ(5, selectionAnchorOffsetInFrame(webView.get(), childFrame.get()));
+}
+
+TEST(SiteIsolation, SelectWithTwoTouchesInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { pointSelectionMainFrame } },
+        { "/iframe"_s, { pointSelectionIframe } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body.firstChild, 0)", _WKSelectionAttributeIsCaret);
+
+    // Two touches at "h" and at "w" must select everything between them, in the iframe.
+    CGPoint from = pointAtCharacterInIframe(webView.get(), childFrame.get(), 0);
+    CGPoint to = pointAtCharacterInIframe(webView.get(), childFrame.get(), 6);
+    [[webView textInputContentView] changeSelectionWithTouchesFrom:from to:to withGesture:UIWKGestureLoupe withState:UIGestureRecognizerStateEnded];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()] isEqualToString:@"hello "];
+    }));
+    EXPECT_WK_STREQ("hello ", [webView stringByEvaluatingJavaScript:@"getSelection().toString()" inFrame:childFrame.get()]);
+}
+
+#endif // PLATFORM(IOS_FAMILY)
+
+#if PLATFORM(MAC)
+
+TEST(SiteIsolation, CharacterIndexForPointInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { pointSelectionMainFrame } },
+        { "/iframe"_s, { pointSelectionIframe } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+
+    // characterIndexForPoint: takes a screen point, so undo what WebViewImpl will redo. WKWebView is
+    // flipped on macOS, so its coordinates match the CSS pixels the helper reports.
+    CGPoint pointInView = pointAtCharacterInIframe(webView.get(), childFrame.get(), 6);
+    NSPoint pointInWindow = [webView convertPoint:NSPointFromCGPoint(pointInView) toView:nil];
+    NSPoint point = [webView window] ? [[webView window] convertPointToScreen:pointInWindow] : pointInWindow;
+
+    __block NSUInteger index = NSNotFound;
+    __block bool done = false;
+    [static_cast<id<NSTextInputClient_Async>>(webView.get()) characterIndexForPoint:point completionHandler:^(NSUInteger result) {
+        index = result;
+        done = true;
+    }];
+    Util::run(&done);
+
+    // "w" is at offset 6 in the iframe's "hello world".
+    EXPECT_EQ(6U, index);
+}
+
+#endif // PLATFORM(MAC)
+
+#if HAVE(REDESIGNED_TEXT_CURSOR) && PLATFORM(MAC)
+
+TEST(SiteIsolation, DictationCaretStateInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body contenteditable>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = configurationWithInternals(server);
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configuration.get());
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().setPosition(document.body.firstChild, 8)", _WKSelectionAttributeIsCaret);
+
+    auto isCaretBlinkingSuspendedInIframe = [&] {
+        return [[webView objectByEvaluatingJavaScript:@"internals.isCaretBlinkingSuspended()" inFrame:childFrame.get()] boolValue];
+    };
+    ASSERT_FALSE(isCaretBlinkingSuspendedInIframe());
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"_NSTextInputContextDictationDidPauseNotification" object:nil];
+    EXPECT_TRUE(Util::waitFor(isCaretBlinkingSuspendedInIframe));
+
+    // Changing the caret animator type replaces the animator, and a new animator's blinking isn't suspended.
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"_NSTextInputContextDictationDidStartNotification" object:nil];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !isCaretBlinkingSuspendedInIframe();
+    }));
+}
+
+#endif // HAVE(REDESIGNED_TEXT_CURSOR) && PLATFORM(MAC)
 
 } // namespace TestWebKitAPI

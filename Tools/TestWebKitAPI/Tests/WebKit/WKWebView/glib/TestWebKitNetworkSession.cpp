@@ -24,6 +24,7 @@
 #include "WebKitTestServer.h"
 #include "WebViewTest.h"
 #include <libsoup/soup.h>
+#include <wtf/glib/GLibExtras.h>
 #include <wtf/glib/GRefPtr.h>
 #include <wtf/glib/GUniquePtr.h>
 
@@ -119,7 +120,7 @@ public:
         waitUntilLoadFinished();
         size_t dataSize = 0;
         const char* data = mainResourceData(dataSize);
-        return UTF8CString { byteCast<char8_t>(std::span { data, dataSize }) };
+        return UTF8CString::fromUTF8(std::span { data, dataSize });
     }
 
     UTF8CString loadURIAndGetMainResourceData(const UTF8CString& uri) { return loadURIAndGetMainResourceData(uri.legacyCStringPointer()); }
@@ -139,7 +140,7 @@ public:
     WebSocketServerType createWebSocketAndWaitUntilConnected()
     {
         m_webSocketRequestReceived = WebSocketServerType::Unknown;
-        GUniquePtr<char> createWebSocket(g_strdup_printf("var ws = new WebSocket('%s');", kServer->getWebSocketURIForPath("/foo").legacyCStringPointer()));
+        GUniquePtr<char> createWebSocket(SAFE_G_STRDUP_PRINTF("var ws = new WebSocket('%s');", kServer->getWebSocketURIForPath("/foo")));
         runJavaScriptAndWaitUntilFinished(createWebSocket.get(), nullptr);
         if (m_webSocketRequestReceived == WebSocketServerType::Unknown)
             g_main_loop_run(m_mainLoop);
@@ -204,7 +205,7 @@ static void testNetworkSessionProxySettings(ProxyTest* test, gconstpointer)
         g_assert_nonnull(data);
         auto* test = static_cast<ProxyTest*>(userData);
         GUniquePtr<char> proxyServerPortAsString = test->proxyServerPortAsString();
-        ASSERT_CMP_CSTRING(UTF8CString { byteCast<char8_t>(std::span { data.get(), dataSize }) }, ==, proxyServerPortAsString.get());
+        ASSERT_CMP_CSTRING(UTF8CString::fromUTF8(std::span { data.get(), dataSize }), ==, proxyServerPortAsString.get());
         test->quitMainLoop();
         }, test);
     g_main_loop_run(test->m_mainLoop);

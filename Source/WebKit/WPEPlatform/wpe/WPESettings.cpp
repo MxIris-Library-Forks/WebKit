@@ -110,7 +110,7 @@ struct _WPESettingsPrivate {
         };
 
         for (auto& setting : defaultSettings)
-            settings.add(UTF8CString { byteCast<char8_t>(setting.key) }, SettingEntry(setting.defaultValue, GUniquePtr<GVariantType>(g_variant_type_copy(setting.type))));
+            settings.add(UTF8CString::unsafeFromUTF8(setting.key), SettingEntry(setting.defaultValue, GUniquePtr<GVariantType>(g_variant_type_copy(setting.type))));
     }
 };
 
@@ -181,12 +181,12 @@ gboolean wpe_settings_register(WPESettings* settingsObject, const char* key, con
     g_return_val_if_fail(type, FALSE);
     g_return_val_if_fail(g_variant_type_equal(type, g_variant_get_type(defaultValue)), FALSE);
 
-    if (settingsObject->priv->settings.contains(UTF8CString { byteCast<char8_t>(key) })) {
+    if (settingsObject->priv->settings.contains(UTF8CString::unsafeFromUTF8(key))) {
         g_set_error(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_ALREADY_REGISTERED, "%s has already been reigstered", key);
         return FALSE;
     }
 
-    settingsObject->priv->settings.add(UTF8CString { byteCast<char8_t>(key) }, SettingEntry(defaultValue, GUniquePtr<GVariantType>(g_variant_type_copy(type))));
+    settingsObject->priv->settings.add(UTF8CString::unsafeFromUTF8(key), SettingEntry(defaultValue, GUniquePtr<GVariantType>(g_variant_type_copy(type))));
 
     return TRUE;
 }
@@ -234,14 +234,14 @@ gboolean wpe_settings_load_from_keyfile(WPESettings* settingsObject, GKeyFile* k
             auto path = makeKeyPath(group, key);
             auto iter = settingsObject->priv->settings.find(path);
             if (iter == settingsObject->priv->settings.end()) {
-                g_set_error(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_NOT_REGISTERED, "Key %s not registered", path.legacyCStringPointer());
+                SAFE_G_SET_ERROR(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_NOT_REGISTERED, "Key %s not registered", path);
                 return FALSE;
             }
 
             GUniqueOutPtr<GError> innerError;
             GRefPtr<GVariant> parsedValue = adoptGRef(g_variant_parse(iter->value.type.get(), value.get(), nullptr, nullptr, &innerError.outPtr()));
             if (!parsedValue) {
-                g_set_error(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_INVALID_VALUE, "Failed to parse value for key %s: %s", path.legacyCStringPointer(), innerError->message);
+                SAFE_G_SET_ERROR(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_INVALID_VALUE, "Failed to parse value for key %s: %s", path, innerError->message);
                 return FALSE;
             }
 
@@ -318,7 +318,7 @@ gboolean wpe_settings_set_value(WPESettings* settingsObject, const char* key, GV
     g_return_val_if_fail(!error || !*error, FALSE);
     g_return_val_if_fail(key && *key == '/', FALSE);
 
-    auto iter = settingsObject->priv->settings.find(UTF8CString { byteCast<char8_t>(key) });
+    auto iter = settingsObject->priv->settings.find(UTF8CString::unsafeFromUTF8(key));
     if (iter == settingsObject->priv->settings.end()) {
         g_set_error(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_NOT_REGISTERED, "Key %s not registered", key);
         return FALSE;
@@ -367,7 +367,7 @@ GVariant* wpe_settings_get_value(WPESettings* settingsObject, const char* key, G
     g_return_val_if_fail(WPE_IS_SETTINGS(settingsObject), NULL);
     g_return_val_if_fail(key && *key == '/', NULL);
 
-    const auto iter = settingsObject->priv->settings.find(UTF8CString { byteCast<char8_t>(key) });
+    const auto iter = settingsObject->priv->settings.find(UTF8CString::unsafeFromUTF8(key));
     if (iter == settingsObject->priv->settings.end()) {
         g_set_error(error, WPE_SETTINGS_ERROR, WPE_SETTINGS_ERROR_NOT_REGISTERED, "Key %s not registered", key);
         return nullptr;

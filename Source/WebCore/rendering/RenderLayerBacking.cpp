@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2009-2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -158,7 +158,10 @@ using namespace HTMLNames;
 CanvasCompositingStrategy canvasCompositingStrategy(const RenderObject& renderer)
 {
     ASSERT(renderer.isRenderHTMLCanvas());
-    RefPtr context = downcast<RenderHTMLCanvas>(renderer).canvasElement().renderingContext();
+    CheckedRef canvasRenderer = downcast<RenderHTMLCanvas>(renderer);
+    RefPtr context = canvasRenderer->canvasElement().renderingContext();
+    if (canvasRenderer->hasDrawableContent() && !(context && context->delegatesDisplay()))
+        return CanvasPaintedToLayer;
     if (!context)
         return CanvasPaintedToEnclosingLayer;
     if (context->delegatesDisplay())
@@ -601,7 +604,7 @@ void RenderLayerBacking::updateDebugIndicators(bool showBorder, bool showRepaint
         // depth() is 1-based and counts through cross-process ancestor frames, so subtract 1 to keep the
         // mainframe's indicator unstaggered while nested frames offset further with each level of nesting.
         unsigned frameNestingDepth = showFrameProcessBorders ? renderer().frame().tree().depth() - 1 : 0;
-        m_childContainmentLayer->setShowFrameProcessBorders(showFrameProcessBorders, frameNestingDepth, renderer().frame().frameID().toUInt64());
+        m_childContainmentLayer->setShowFrameProcessBorders(showFrameProcessBorders, frameNestingDepth, renderer().frame().frameID());
     }
 
     if (m_backgroundLayer) {
@@ -5194,18 +5197,14 @@ void RenderLayerBacking::updateAcceleratedEffectsAndBaseValues(HashSet<Ref<Accel
     // Now let's prune any effect that only animates a non-interpolating property.
     auto nonInterpolatingProperties = allAcceleratedProperties ^ interpolatingProperties ^ disallowedAcceleratedProperties;
     if (!nonInterpolatingProperties.isEmpty()) {
-        // Make a copy of our current list of effects and clear the the original list as well
-        // as the set of timelines. We'll re-populate both without effects that are only animating
-        // non-interpolating properties.
-        auto effectsIncludingNonInterpolating = acceleratedEffects;
-        acceleratedEffects.clear();
+        // Remove effects that are only animating non-interpolating properties and
+        // re-populate the set of timelines from the remaining effects.
+        acceleratedEffects.removeAllMatching([&](auto& acceleratedEffect) {
+            return nonInterpolatingProperties.containsAll(acceleratedEffect->animatedProperties());
+        });
         effectTimelines.clear();
-        for (auto& acceleratedEffect : effectsIncludingNonInterpolating) {
-            if (nonInterpolatingProperties.containsAll(acceleratedEffect->animatedProperties()))
-                continue;
-            acceleratedEffects.append(acceleratedEffect);
+        for (auto& acceleratedEffect : acceleratedEffects)
             effectTimelines.add(Ref { *acceleratedEffect->timeline() });
-        }
     }
 
     // If all of the effects in the stack are either idle, paused or filling, then the

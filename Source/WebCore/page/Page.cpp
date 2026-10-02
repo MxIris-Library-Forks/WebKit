@@ -63,6 +63,7 @@
 #include "DebugOverlayRegions.h"
 #include "DebugPageOverlays.h"
 #include "DeviceOrientationAndMotionAccessController.h"
+#include "DevicePosture.h"
 #include "DiagnosticLoggingClient.h"
 #include "DiagnosticLoggingKeys.h"
 #include "DisplayRefreshMonitorManager.h"
@@ -133,6 +134,7 @@
 #include "NavigationScheduler.h"
 #include "Navigator.h"
 #include "NavigatorAudioSession.h"
+#include "NavigatorDevicePosture.h"
 #include "NavigatorGamepad.h"
 #include "NavigatorMediaSession.h"
 #include "OpportunisticTaskScheduler.h"
@@ -1737,8 +1739,8 @@ void Page::setZoomedOutPageScaleFactor(float scale)
     if (m_zoomedOutPageScaleFactor == scale)
         return;
     m_zoomedOutPageScaleFactor = scale;
-    if (RefPtr localMainFrame = this->localMainFrame())
-        localMainFrame->deviceOrPageScaleFactorChanged();
+    for (auto& rootFrame : m_rootFrames)
+        rootFrame->deviceOrPageScaleFactorChanged();
 }
 
 void Page::setPageScaleFactor(float scale, const IntPoint& origin, bool inStableState)
@@ -1825,8 +1827,8 @@ void Page::setDeviceScaleFactor(float scaleFactor)
 
     m_deviceScaleFactor = scaleFactor;
     setNeedsRecalcStyleInAllFrames();
-    if (RefPtr localMainFrame = this->localMainFrame())
-        localMainFrame->deviceOrPageScaleFactorChanged();
+    for (auto& rootFrame : m_rootFrames)
+        rootFrame->deviceOrPageScaleFactorChanged();
     BackForwardCache::singleton().markPagesForDeviceOrPageScaleChanged(*this);
 
     pageOverlayController().didChangeDeviceScaleFactor();
@@ -3103,6 +3105,23 @@ void Page::userAgentChanged()
             if (RefPtr navigator = window->optionalNavigator())
                 navigator->userAgentChanged();
         }
+    });
+}
+
+void Page::devicePostureTypeChanged()
+{
+    forEachDocument([] (Document& document) {
+        if (RefPtr window = document.window()) {
+            if (RefPtr navigator = window->optionalNavigator()) {
+                Ref devicePosture = NavigatorDevicePosture::devicePosture(*navigator);
+                devicePosture->typeChanged();
+            }
+        }
+
+        document.styleScope().didChangeStyleSheetEnvironment();
+        document.styleScope().evaluateMediaQueriesForAppearanceChange();
+        document.updateElementsAffectedByMediaQueries();
+        document.scheduleRenderingUpdate(RenderingUpdateStep::MediaQueryEvaluation);
     });
 }
 

@@ -52,6 +52,7 @@
 #import <WebKit/_WKWebsiteDataStoreConfiguration.h>
 #import <wtf/BlockPtr.h>
 #import <wtf/RetainPtr.h>
+#import <wtf/text/MakeString.h>
 
 #if PLATFORM(IOS_FAMILY)
 #import "TestInputDelegate.h"
@@ -65,7 +66,10 @@
 
 #if PLATFORM(MAC)
 #import "Helpers/mac/AppKitSPI.h"
+#import "Helpers/mac/WKWebViewForTestingImmediateActions.h"
 #import <WebCore/LegacyNSPasteboardTypes.h>
+#import <WebKit/_WKHitTestResult.h>
+#import <pal/spi/mac/NSImmediateActionGestureRecognizerSPI.h>
 #import <pal/spi/mac/NSSpellCheckerSPI.h>
 
 // Stands in for the font panel's attribute converter, and always adds a single underline.
@@ -862,6 +866,42 @@ TEST(SiteIsolation, AttachmentIconInCrossOriginIframe)
 
 #endif // ENABLE(ATTACHMENT_ELEMENT)
 
+#if PLATFORM(MAC)
+
+TEST(SiteIsolation, DeviceScaleFactorChangeUpdatesCrossOriginIframeCompositingScale)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body><div style='will-change: transform; width: 100px; height: 100px; background: green'></div></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    RetainPtr storeConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initNonPersistentConfiguration]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrame = [webView firstChildFrame];
+
+    NSString *layerTreeScript = @"internals.layerTreeAsText(document, internals.LAYER_TREE_INCLUDES_VISIBLE_RECTS)";
+
+    [webView _setOverrideDeviceScaleFactor:3];
+    [webView waitForNextPresentationUpdate];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:layerTreeScript inFrame:childFrame.get()] containsString:@"(contentsScale 3.00)"];
+    }));
+
+    [webView _setOverrideDeviceScaleFactor:1];
+    [webView waitForNextPresentationUpdate];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:layerTreeScript inFrame:childFrame.get()] containsString:@"(contentsScale 1.00)"];
+    }));
+}
+
+#endif // PLATFORM(MAC)
+
 // Replies to a text checking request must go to the web process that made it. Only that process has the
 // pending request; any other process drops the reply.
 
@@ -1294,5 +1334,94 @@ TEST(SiteIsolation, DictationCaretStateInCrossOriginIframe)
 }
 
 #endif // HAVE(REDESIGNED_TEXT_CURSOR) && PLATFORM(MAC)
+
+#if PLATFORM(MAC)
+
+// The immediate-action (force-click) hit test starts in the main frame's process, which hands it to the process of a
+// cross-origin iframe under the point. That process must answer, whether or not anything in it is focused, and the
+// main frame's process must not act on the hit test it handed off. Once it answers, Look Up must be offered.
+
+static constexpr auto mainFrameWithCrossOriginIframeAtTopLeft = "<body style='margin: 0'><iframe id='iframe' style='position: absolute; left: 0; top: 0; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s;
+
+static std::pair<RetainPtr<WKWebViewForTestingImmediateActions>, RetainPtr<TestNavigationDelegate>> immediateActionWebViewWithCrossOriginIframe(const HTTPServer& server)
+{
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    RetainPtr webView = adoptNS([[WKWebViewForTestingImmediateActions alloc] initWithFrame:NSMakeRect(0, 0, 500, 500) configuration:configuration.get()]);
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    [webView setNavigationDelegate:navigationDelegate.get()];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    return { WTF::move(webView), WTF::move(navigationDelegate) };
+}
+
+// Focuses the iframe, so that its process answers the immediate-action hit test even without the fix for
+// ImmediateActionInUnfocusedCrossOriginIframe.
+static RetainPtr<WKFrameInfo> focusCrossOriginIframe(TestWKWebView *webView)
+{
+    [webView evaluateJavaScript:@"document.getElementById('iframe').focus()" completionHandler:nil];
+    RetainPtr childFrame = [webView firstChildFrame];
+    while (![childFrame _isFocused]) {
+        Util::spinRunLoop();
+        childFrame = [webView firstChildFrame];
+    }
+    return childFrame;
+}
+
+TEST(SiteIsolation, ImmediateActionInUnfocusedCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframeAtTopLeft } },
+        { "/iframe"_s, { "<body style='margin: 0'><div style='font-size: 32px;'>Foobar</div></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = immediateActionWebViewWithCrossOriginIframe(server);
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_FALSE([childFrame _isFocused]);
+
+    auto [hitTestResult, actionType] = [webView simulateImmediateAction:NSMakePoint(16, 16)];
+    EXPECT_WK_STREQ("Foobar", [hitTestResult lookupText]);
+    EXPECT_TRUE([[hitTestResult frameInfo]._handle isEqual:[childFrame _handle]]);
+}
+
+TEST(SiteIsolation, ImmediateActionInCrossOriginIframeDoesNotDispatchForceWillBeginInParent)
+{
+    static constexpr auto countForceWillBegin = "<script>window.forceWillBeginCount = 0; addEventListener('webkitmouseforcewillbegin', () => window.forceWillBeginCount++, true);</script>"_s;
+    HTTPServer server({
+        { "/mainframe"_s, { makeString(countForceWillBegin, mainFrameWithCrossOriginIframeAtTopLeft) } },
+        { "/iframe"_s, { makeString(countForceWillBegin, "<body style='margin: 0'><div style='font-size: 32px;'>Foobar</div></body>"_s) } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = immediateActionWebViewWithCrossOriginIframe(server);
+
+    RetainPtr childFrame = focusCrossOriginIframe(webView.get());
+
+    auto [hitTestResult, actionType] = [webView simulateImmediateAction:NSMakePoint(16, 16)];
+    EXPECT_WK_STREQ("Foobar", [hitTestResult lookupText]);
+
+    EXPECT_EQ(1, [[webView objectByEvaluatingJavaScript:@"window.forceWillBeginCount" inFrame:childFrame.get()] intValue]);
+    EXPECT_EQ(0, [[webView objectByEvaluatingJavaScript:@"window.forceWillBeginCount"] intValue]);
+}
+
+TEST(SiteIsolation, ImmediateActionOffersLookUpInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithCrossOriginIframeAtTopLeft } },
+        { "/iframe"_s, { "<body style='margin: 0'><div style='font-size: 32px;'>Foobar</div></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = immediateActionWebViewWithCrossOriginIframe(server);
+    focusCrossOriginIframe(webView.get());
+
+    auto [hitTestResult, actionType] = [webView simulateImmediateAction:NSMakePoint(16, 16)];
+    EXPECT_WK_STREQ("Foobar", [hitTestResult lookupText]);
+    EXPECT_NOT_NULL([webView immediateActionGesture].animationController);
+    EXPECT_EQ(actionType, _WKImmediateActionLookupText);
+}
+
+#endif // PLATFORM(MAC)
 
 } // namespace TestWebKitAPI

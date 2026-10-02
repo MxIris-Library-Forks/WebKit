@@ -786,7 +786,11 @@ editing/secure-input/reset-state-on-navigation.html [ Pass Failure ]
 
 #rdar://96912160 (REGRESSION): [ Ventura ] 3* imported/w3c/web-platform-tests/cookies* tests are constant text failures)
 imported/w3c/web-platform-tests/cookies/value/value.html [ Failure ]
-imported/w3c/web-platform-tests/cookies/encoding/charset.html [ Failure ]
+
+# rdar://187726444 CFNetwork has a bug that rejects a cookie whose name/value pair is well under
+# the 4096-byte limit once it contains enough multi-byte-encoded characters, so cookieStore.set()
+# fails here even though the size check itself is correct.
+http/tests/cookies/cookie-store-set-size-limit-with-unicode-characters.https.html [ Failure ]
 
 #rdar://92629515 (REGRESSION(Ventura): [ Ventura ] media/media-can-play-av1.html is a constant text failure)
 media/media-can-play-av1.html [ Skip ]
@@ -913,7 +917,6 @@ webkit.org/b/173931 inspector/canvas/context-attributes.html [ Pass Timeout ]
 webkit.org/b/178028 inspector/canvas/create-context-2d.html [ Pass Failure Timeout ]
 webkit.org/b/174066 inspector/canvas/create-context-webgl2.html [ Pass Failure Timeout ]
 webkit.org/b/174066 inspector/canvas/recording-offscreen-webgl2-full.html [ Slow ]
-webkit.org/b/174066 inspector/canvas/recording-webgl2-full.html [ Pass Failure Timeout ]
 webkit.org/b/174272 inspector/canvas/requestClientNodes-css.html [ Pass Failure Timeout ]
 webkit.org/b/152025 [ Debug ] inspector/console/messagesCleared.html [ Pass Timeout ]
 webkit.org/b/152452 [ Debug ] inspector/console/messageRepeatCountUpdated.html [ Pass Timeout ]
@@ -2218,9 +2221,6 @@ webkit.org/b/292986 [ X86_64 Debug ] fast/webgpu/nocrash/fuzz-284937.html [ Slow
 webkit.org/b/292986 [ X86_64 Debug ] webgl/1.0.x/conformance/textures/misc/tex-video-using-tex-unit-non-zero.html [ Slow ]
 webkit.org/b/292986 [ X86_64 Debug ] fast/css/css-parser-classifyblock-endblock-crash.html [ Slow ]
 webkit.org/b/292986 [ X86_64 Debug ] webgl/2.0.y/conformance2/misc/uninitialized-test-2.html [ Slow ]
-
-# rdar://146986685 (REGRESSION(Sequoia 15.4): fast/canvas/webgl/gl-teximage.html is a constant text failure)
-fast/canvas/webgl/gl-teximage.html [ Failure ]
 
 #rdar://145604998 (REGRESSION(iOS 18.4, macOS Sequoia 15.4 ): fast/text/international/hindi-spacing.html is a constant text failure)
 fast/text/international/hindi-spacing.html [ Failure ]

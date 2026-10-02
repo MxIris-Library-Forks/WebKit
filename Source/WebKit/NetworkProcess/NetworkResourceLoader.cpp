@@ -949,35 +949,59 @@ std::optional<ResourceError> NetworkResourceLoader::doCrossOriginOpenerHandlingO
     return std::nullopt;
 }
 
-// FIXME: Main resources are skipped entirely. Top-level navigations are exempt per the spec, but an
-// iframe navigation is in scope and has to be judged against its initiator rather than the document
-// being navigated away from. That needs NavigationRequester to carry the initiator's address space and
-// permissions-policy state. See https://bugs.webkit.org/show_bug.cgi?id=319908
 void NetworkResourceLoader::checkLocalNetworkAccess(const ResourceRequest& request, const URL& currentURL, IPAddressSpace connectionAddressSpace, CompletionHandler<void(std::optional<ResourceError>)>&& completionHandler)
 {
-    if (!WebCore::canDetermineConnectionAddressSpace() || !connectionToWebProcess().localNetworkAccessEnabled() || isMainResource())
+    if (!WebCore::canDetermineConnectionAddressSpace() || !connectionToWebProcess().localNetworkAccessEnabled() || isMainFrameLoad())
         return completionHandler(std::nullopt);
 
     CheckedPtr networkSession = protect(connectionToWebProcess())->networkSession();
     if (!networkSession)
         return completionHandler(std::nullopt);
 
+    auto clientAddressSpace = m_parameters.clientAddressSpace;
+    auto clientIsSecureContext = m_parameters.clientIsSecureContext;
+    auto localNetworkAllowedByPermissionsPolicy = m_parameters.localNetworkAllowedByPermissionsPolicy;
+    auto loopbackNetworkAllowedByPermissionsPolicy = m_parameters.loopbackNetworkAllowedByPermissionsPolicy;
     auto sourceOrigin = m_parameters.sourceOrigin ? m_parameters.sourceOrigin->data() : SecurityOriginData { };
     auto topOrigin = m_parameters.topOrigin ? m_parameters.topOrigin->data() : SecurityOriginData { };
 
-    performLocalNetworkAccessCheck(request, currentURL, connectionAddressSpace, m_parameters.clientAddressSpace,
-        m_parameters.clientIsSecureContext, ClientOrigin { topOrigin, sourceOrigin },
-        m_parameters.localNetworkAllowedByPermissionsPolicy, m_parameters.loopbackNetworkAllowedByPermissionsPolicy,
-        [networkSession](const ClientOrigin& origin, IPAddressSpace addressSpace, CompletionHandler<void(WebCore::PermissionState)>&& permissionHandler) {
-            permissionHandler(networkSession->requestLocalNetworkAccessPermission(origin, addressSpace, true));
-        }, [this, protectedThis = Ref { *this }, url = currentURL, completionHandler = WTF::move(completionHandler)](std::optional<ResourceError> error) mutable {
-            // A rejected fetch surfaces as a bare TypeError, so the reason would otherwise be invisible.
-            if (error) {
-                send(Messages::WebPage::AddConsoleMessage { frameID(), MessageSource::Security, MessageLevel::Error,
-                    makeString("Blocked a local network request to '"_s, url.stringCenterEllipsizedToLength(), "' because "_s, error->localizedDescription(), "."_s), coreIdentifier() }, pageID());
-            }
-            completionHandler(WTF::move(error));
-        });
+    // A frame navigation is judged against the document that initiated it, not the one being navigated away from.
+    if (isMainResource()) {
+        auto& requester = m_parameters.navigationRequester;
+        if (!requester) {
+            clientAddressSpace = IPAddressSpace::Public;
+            clientIsSecureContext = false;
+        } else {
+            clientAddressSpace = requester->policyContainer.ipAddressSpace;
+            clientIsSecureContext = requester->isSecureContext;
+            localNetworkAllowedByPermissionsPolicy = requester->localNetworkAllowedByPermissionsPolicy;
+            loopbackNetworkAllowedByPermissionsPolicy = requester->loopbackNetworkAllowedByPermissionsPolicy;
+            sourceOrigin = requester->securityOrigin->data();
+            topOrigin = requester->topOrigin->data();
+        }
+    }
+
+    auto clientOrigin = ClientOrigin { topOrigin, sourceOrigin };
+    auto requirement = WebCore::checkLocalNetworkAccess(request, currentURL, connectionAddressSpace, clientAddressSpace,
+        clientIsSecureContext, clientOrigin, localNetworkAllowedByPermissionsPolicy, loopbackNetworkAllowedByPermissionsPolicy);
+
+    auto finish = [this, protectedThis = Ref { *this }, url = currentURL, completionHandler = WTF::move(completionHandler)](std::optional<ResourceError> error) mutable {
+        // A rejected fetch surfaces as a bare TypeError, so the reason would otherwise be invisible.
+        if (error) {
+            send(Messages::WebPage::AddConsoleMessage { frameID(), MessageSource::Security, MessageLevel::Error,
+                makeString("Blocked a local network request to '"_s, url.stringCenterEllipsizedToLength(), "' because "_s, error->localizedDescription(), "."_s), coreIdentifier() }, pageID());
+        }
+        completionHandler(WTF::move(error));
+    };
+
+    if (!requirement)
+        return finish(WTF::move(requirement.error()));
+    if (*requirement == LocalNetworkAccessRequirement::None)
+        return finish(std::nullopt);
+
+    networkSession->requestLocalNetworkAccessPermission(webPageProxyID(), clientOrigin, connectionAddressSpace, [finish = WTF::move(finish), url = request.url()](WebCore::PermissionState state) mutable {
+        finish(localNetworkAccessPermissionError(url, state));
+    });
 }
 
 void NetworkResourceLoader::processClearSiteDataHeader(const WebCore::ResourceResponse& response, CompletionHandler<void()>&& completionHandler)

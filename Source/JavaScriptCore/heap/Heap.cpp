@@ -461,19 +461,9 @@ void Heap::shutDown()
     m_isSafeToCollect = false;
     dataLogIf(Options::logGC(), "disabled collection, ");
 
-    bool isCollecting;
-    {
-        Locker locker { *m_collector->m_threadLock };
-        isCollecting = m_collector->hasOutstandingRequest();
-    }
-    if (isCollecting) {
-        dataLogIf(Options::logGC(), "waiting for the current collection...]\n");
-        
-        // Wait for the current collection to finish.
-        waitForCollector(
-            [&] (const AbstractLocker&) -> bool {
-                return !m_collector->hasOutstandingRequest();
-            });
+    if (m_collector->hasOutstandingRequest()) {
+        dataLogIf(Options::logGC(), "waiting for outstanding collections...]\n");
+        waitForAllCollections();
         
         dataLogIf(Options::logGC(), "[GC<", RawPointer(this), ">: shutdown: ");
     }
@@ -770,10 +760,6 @@ void Heap::iterateExecutingAndCompilingCodeBlocksWithoutHoldingLocks(Visitor& vi
         func(codeBlock);
 }
 
-// Collector::runEndPhase calls this from another translation unit, which cannot instantiate a
-// definition that lives here.
-template void Heap::iterateExecutingAndCompilingCodeBlocks<SlotVisitor>(SlotVisitor&, NOESCAPE const Function<void(CodeBlock*)>&);
-
 void Heap::gatherStackRoots(ConservativeRoots& roots)
 {
     m_machineThreads->gatherConservativeRoots(roots, *m_jitStubRoutines, *m_codeBlocks, m_collector->m_conductingMutatorState, m_collector->m_conductorThread);
@@ -800,6 +786,7 @@ void Heap::gatherVMRoots(ConservativeRoots& roots)
 void Heap::beginMarking()
 {
     TimingScope timingScope(*this, "Heap::beginMarking"_s);
+    ASSERT(isInPhase(CollectorPhase::Begin));
     ASSERT(m_collectionScope);
     if (*m_collectionScope == CollectionScope::Full)
         m_mutatorMarkStack->clear();
@@ -875,26 +862,101 @@ void Heap::removeDeadHeapSnapshotNodes(HeapProfiler& heapProfiler)
     }
 }
 
-void Heap::updateObjectCounts()
+void Heap::rememberExecutingAndCompilingCodeBlocks(SlotVisitor& visitor)
+{
+    ASSERT(isInPhase(CollectorPhase::End));
+    iterateExecutingAndCompilingCodeBlocks(visitor,
+        [&] (CodeBlock* codeBlock) {
+            writeBarrier(codeBlock);
+        });
+}
+
+void Heap::recordBytesVisited(size_t bytesVisited)
 {
     if (m_collectionScope && m_collectionScope.value() == CollectionScope::Full) {
         m_totalBytesVisitedAfterLastFullCollect = m_totalBytesVisited;
         m_totalBytesVisited = 0;
     }
 
-    m_totalBytesVisitedThisCycle = m_collector->bytesVisited();
+    m_totalBytesVisitedThisCycle = bytesVisited;
     
     m_totalBytesVisited += m_totalBytesVisitedThisCycle;
 }
 
-void Heap::endMarking()
+void Heap::endMarking(size_t bytesVisited)
 {
+    ASSERT(isInPhase(CollectorPhase::End));
+    ASSERT(m_objectSpace.isMarking());
+
+    recordBytesVisited(bytesVisited);
+
     m_objectSpace.endMarking();
     setMutatorShouldBeFenced(Options::forceFencedBarrier());
 
 #if ENABLE(WEBASSEMBLY)
     releaseUnmarkedWasmCallees();
 #endif
+}
+
+void Heap::verifyMarking()
+{
+    ASSERT(isInPhase(CollectorPhase::End));
+    ASSERT(!m_objectSpace.isMarking());
+
+    if (Options::verifyGC()) [[unlikely]]
+        verifyGC();
+
+    if (m_verifier) [[unlikely]] {
+        m_verifier->gatherLiveCells(HeapVerifier::Phase::AfterMarking);
+        m_verifier->verify(HeapVerifier::Phase::AfterMarking);
+    }
+}
+
+void Heap::pruneDeadReferences()
+{
+    ASSERT(isInPhase(CollectorPhase::End));
+    ASSERT(!m_objectSpace.isMarking());
+
+    // This doesn't necessarily run on this heap's mutator thread. Clear the atom string table so that
+    // destroying an atom string here fails whichever thread it runs on.
+    auto* previous = Thread::currentSingleton().setCurrentAtomStringTable(nullptr);
+    auto scopeExit = makeScopeExit([&] {
+        Thread::currentSingleton().setCurrentAtomStringTable(previous);
+    });
+
+    if (vm().typeProfiler())
+        vm().typeProfiler()->invalidateTypeSetCache(vm());
+
+    cancelDeferredWorkIfNeeded();
+    reapWeakHandles();
+    reconcileWeakGCHashTables();
+    sweepArrayBuffers();
+    snapshotUnswept();
+    reconcileWeakReferencesAtGCEnd();
+    removeDeadCompilerWorklistEntries();
+    deleteUnmarkedCompiledCode();
+
+    m_codeBlocks->iterateCurrentlyExecuting(
+        [&] (CodeBlock* codeBlock) {
+            writeBarrier(codeBlock);
+        });
+    m_codeBlocks->clearCurrentlyExecutingAndRemoveDeadCodeBlocks(vm());
+}
+
+void Heap::prepareForAllocation()
+{
+    ASSERT(isInPhase(CollectorPhase::End));
+    ASSERT(!m_objectSpace.isMarking());
+
+    m_sweeper->startSweeping(*this);
+
+    m_objectSpace.prepareForAllocation();
+    updateAllocationLimits();
+
+    if (m_verifier) [[unlikely]] {
+        m_verifier->trimDeadCells();
+        m_verifier->verify(HeapVerifier::Phase::AfterGC);
+    }
 }
 
 size_t Heap::objectCount()
@@ -1194,16 +1256,24 @@ void Heap::collect(Synchronousness synchronousness, GCRequest request)
     if (!Options::useGC()) [[unlikely]]
         return;
 
-    switch (synchronousness) {
-    case Async: {
-        collectAsync(request);
+    if constexpr (validateDFGDoesGC)
+        vm().verifyCanGC();
+
+    if (!m_isSafeToCollect)
         return;
-    }
-    case Sync:
-        collectSync(request);
+
+    // A synchronous request needs a collection that starts after it; an asynchronous one doesn't.
+    if (synchronousness == Async && m_collector->isSubsumedByQueuedRequest(request))
         return;
-    }
-    RELEASE_ASSERT_NOT_REACHED();
+
+    ASSERT(vm().currentThreadIsHoldingAPILock());
+    RELEASE_ASSERT(vm().atomStringTable() == Thread::currentSingleton().atomStringTable());
+
+    stopIfNecessary();
+
+    GCRequest::Ticket ticket = m_collector->requestCollection(request);
+    if (synchronousness == Sync)
+        waitForCollection(ticket);
 }
 
 void Heap::collectNow(Synchronousness synchronousness, GCRequest request)
@@ -1242,43 +1312,12 @@ void Heap::collectNow(Synchronousness synchronousness, GCRequest request)
 
 void Heap::collectAsync(GCRequest request)
 {
-    if (!Options::useGC()) [[unlikely]]
-        return;
-
-    if constexpr (validateDFGDoesGC)
-        vm().verifyCanGC();
-
-    if (!m_isSafeToCollect)
-        return;
-
-    bool alreadyRequested = false;
-    {
-        Locker locker { *m_collector->m_threadLock };
-        for (const GCRequest& previousRequest : m_collector->m_requests) {
-            if (request.subsumedBy(previousRequest)) {
-                alreadyRequested = true;
-                break;
-            }
-        }
-    }
-    if (alreadyRequested)
-        return;
-
-    requestCollection(request);
+    collect(Async, request);
 }
 
 void Heap::collectSync(GCRequest request)
 {
-    if (!Options::useGC()) [[unlikely]]
-        return;
-
-    if constexpr (validateDFGDoesGC)
-        vm().verifyCanGC();
-
-    if (!m_isSafeToCollect)
-        return;
-
-    waitForCollection(requestCollection(request));
+    collect(Sync, request);
 }
 
 ALWAYS_INLINE int asInt(CollectorPhase phase)
@@ -1445,33 +1484,7 @@ bool Heap::stopIfNecessarySlow(unsigned oldState)
 NEVER_INLINE void Heap::collectInMutatorThread()
 {
     CollectingScope collectingScope(*this);
-    for (;;) {
-        Collector::RunCurrentPhaseResult result = m_collector->runCurrentPhase(GCConductor::Mutator, nullptr);
-        switch (result) {
-        case Collector::RunCurrentPhaseResult::Finished:
-            return;
-        case Collector::RunCurrentPhaseResult::Continue:
-            break;
-        case Collector::RunCurrentPhaseResult::NeedCurrentThreadState:
-            sanitizeStackForVM(vm());
-            auto lambda = [&] (CurrentThreadState& state) {
-                for (;;) {
-                    Collector::RunCurrentPhaseResult result = m_collector->runCurrentPhase(GCConductor::Mutator, &state);
-                    switch (result) {
-                    case Collector::RunCurrentPhaseResult::Finished:
-                        return;
-                    case Collector::RunCurrentPhaseResult::Continue:
-                        break;
-                    case Collector::RunCurrentPhaseResult::NeedCurrentThreadState:
-                        RELEASE_ASSERT_NOT_REACHED();
-                        break;
-                    }
-                }
-            };
-            callWithCurrentThreadState(lambda);
-            return;
-        }
-    }
+    m_collector->collectInMutatorThread(*this);
 }
 
 template<typename Func>
@@ -1596,7 +1609,7 @@ void Heap::finishRelinquishingConn()
     sanitizeStackForVM(vm());
     
     Locker locker { *m_collector->m_threadLock };
-    if (!m_collector->m_requests.isEmpty()) {
+    if (m_collector->hasOutstandingRequestWithLock()) {
         RELEASE_ASSERT(!m_collector->m_threadShouldStop);
         m_collector->m_threadCondition->notifyOne(locker);
     }
@@ -1718,21 +1731,19 @@ void Heap::runCollectionEpilogue()
     }
 }
 
-GCRequest::Ticket Heap::requestCollection(GCRequest request)
-{
-    stopIfNecessary();
-    
-    ASSERT(vm().currentThreadIsHoldingAPILock());
-    RELEASE_ASSERT(vm().atomStringTable() == Thread::currentSingleton().atomStringTable());
-
-    return m_collector->requestCollection(request);
-}
-
 void Heap::waitForCollection(GCRequest::Ticket ticket)
 {
     waitForCollector(
-        [&] (const AbstractLocker&) -> bool {
-            return m_collector->hasServedTicket(ticket);
+        [&] (const AbstractLocker&) WTF_REQUIRES_LOCK(*m_collector->m_threadLock) -> bool {
+            return m_collector->hasServedTicketWithLock(ticket);
+        });
+}
+
+void Heap::waitForAllCollections()
+{
+    waitForCollector(
+        [&] (const AbstractLocker&) WTF_REQUIRES_LOCK(*m_collector->m_threadLock) -> bool {
+            return !m_collector->hasOutstandingRequestWithLock();
         });
 }
 
@@ -1748,6 +1759,7 @@ void Heap::sweepEagerlyInEpilogue()
 
 void Heap::willStartCollection(CollectionScope scope)
 {
+    ASSERT(isInPhase(CollectorPhase::Begin));
     if (m_collectionScope) {
         dataLogLn("Collection scope already set during GC: ", *m_collectionScope);
         RELEASE_ASSERT_NOT_REACHED();
@@ -1940,13 +1952,10 @@ void Heap::updateAllocationLimits()
     dataLogIf(Options::logGC(), "=> ", currentHeapSize / 1024, "kb, ");
 }
 
-void Heap::didFinishCollection(Seconds duration)
+void Heap::didFinishCollection()
 {
+    ASSERT(isInPhase(CollectorPhase::End));
     CollectionScope scope = *m_collectionScope;
-    if (scope == CollectionScope::Full)
-        m_lastFullGCLength = duration;
-    else
-        m_lastEdenGCLength = duration;
 
 #if ENABLE(RESOURCE_USAGE)
     ASSERT(externalMemorySize() <= extraMemorySize());
@@ -1966,6 +1975,32 @@ void Heap::didFinishCollection(Seconds duration)
 
     for (auto* observer : m_observers)
         observer->didGarbageCollect(scope);
+
+    if (HeapInternal::verbose) {
+        dataLogLn(HeapInternal::verbose, "Heap state after GC:");
+        m_objectSpace.dumpBits();
+    }
+}
+
+void Heap::recordCollectionTime(Seconds duration)
+{
+    ASSERT(isInPhase(CollectorPhase::End));
+    ASSERT(!m_collectionScope);
+
+    if (m_lastCollectionScope == CollectionScope::Full)
+        m_lastFullGCLength = duration;
+    else
+        m_lastEdenGCLength = duration;
+
+    MonotonicTime now = MonotonicTime::now();
+    if (m_maxEdenSizeForRateLimiting) {
+        m_gcRateLimitingValue = projectedGCRateLimitingValue(now);
+        m_gcRateLimitingValue += 1.0;
+    }
+    m_lastGCEndTime = now;
+    m_totalGCTime += now - m_currentGCStartTime;
+    if (m_lastCollectionScope == CollectionScope::Full)
+        m_lastFullGCEndTime = m_lastGCEndTime;
 }
 
 GCActivityCallback* Heap::fullActivityCallback()
@@ -2223,7 +2258,7 @@ void Heap::collectIfNecessaryOrDefer(GCDeferralContext* deferralContext)
         bool logRequestGC = false;
         // Don't log if we already have a request pending or if we have to come back later so we don't flood dataFile.
         if (Options::logGC()) [[unlikely]]
-            logRequestGC = m_collector->m_requests.isEmpty() && !deferralContext && !isDeferred();
+            logRequestGC = !m_collector->hasOutstandingRequest() && !deferralContext && !isDeferred();
         if (Options::gcMaxHeapSize()) [[unlikely]] {
             size_t bytesAllocatedThisCycle = totalBytesAllocatedThisCycle();
             if (bytesAllocatedThisCycle <= Options::gcMaxHeapSize())
@@ -2632,11 +2667,7 @@ void Heap::preventCollection() WTF_IGNORES_THREAD_SAFETY_ANALYSIS
     // see PreventCollectionScope.
     m_collector->m_collectContinuouslyLock.lock();
     
-    // Wait for all collections to finish.
-    waitForCollector(
-        [&] (const AbstractLocker&) -> bool {
-            return !m_collector->hasOutstandingRequest();
-        });
+    waitForAllCollections();
     
     // Now a collection can only start if this thread starts it.
     RELEASE_ASSERT(!m_collectionScope);

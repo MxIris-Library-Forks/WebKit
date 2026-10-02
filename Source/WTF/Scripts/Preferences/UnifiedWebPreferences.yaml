@@ -1612,6 +1612,14 @@ ContentInsetBackgroundFillEnabled:
     default: false
     WebKit: WebKit::defaultContentInsetBackgroundFillEnabled()
 
+ContentSecurityPolicyExtensionModeAppliesToAllSchemesForTesting:
+  type: bool
+  status: internal
+  category: security
+  humanReadableName: "Apply Extension CSP Mode To All Schemes (For Testing)"
+  humanReadableDescription: "Apply the extension Content Security Policy mode to documents regardless of their scheme"
+  defaultValue: false
+
 ContextMenuQRCodeDetectionEnabled:
   type: bool
   status: embedder
@@ -1907,6 +1915,15 @@ DeviceOrientationPermissionAPIEnabled:
     WebKit: defaultDeviceOrientationPermissionAPIEnabled()
   sharedPreferenceForWebProcess: true
   richJavaScript: true
+
+DevicePostureAPIEnabled:
+  type: bool
+  status: testable
+  category: dom
+  defaultsOverridable: true
+  humanReadableName: "Device Posture API"
+  humanReadableDescription: "Enable the Device Posture API"
+  defaultValue: false
 
 DeviceWidth:
   type: uint32_t
@@ -2638,7 +2655,7 @@ HTMLEnhancedSelectEnabled:
 
 HTMLEnhancedSelectMultipleAndListBoxEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: dom
   humanReadableName: "Enhanced HTML select element for multiple and list box"
   humanReadableDescription: "Enable enhanced HTML select element for the multiple attribute and for list box rendering"
@@ -3774,6 +3791,14 @@ MathFontFamily:
   webcoreImplementation: custom
   defaultValue: '""_str'
 
+MathMLAnchorElementEnabled:
+  type: bool
+  defaultValue: false
+  status: testable
+  category: dom
+  humanReadableName: "MathML <a> element"
+  humanReadableDescription: "Enable support for the MathML <a> element and IDL interface."
+
 MathMLDisableHrefOnNonAnchorElement:
   type: bool
   status: testable
@@ -4188,6 +4213,13 @@ MockScrollbarsEnabled:
   status: embedder
   webcoreDeprecatedGlobalSettings: true
   excludeFrom: [ WebCore ]
+  defaultValue: false
+
+MockVolumetricSceneEnabled:
+  type: bool
+  status: embedder
+  condition: ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+  excludeFrom: [ WebKitLegacy, WebCore ]
   defaultValue: false
 
 ModelDocumentEnabled:
@@ -5832,7 +5864,7 @@ SpatialPortalEnabled:
   type: bool
   status: testable
   category: css
-  condition: ENABLE(SPATIAL_PORTAL)
+  condition: ENABLE(SPATIAL_PORTAL) || ENABLE(CONNECTED_VOLUMETRIC_SCENE)
   humanReadableName: "Spatial CSS Portals"
   humanReadableDescription: "Enable the spatial: portal CSS property"
   defaultValue: false

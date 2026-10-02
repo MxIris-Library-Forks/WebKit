@@ -44,6 +44,7 @@ class CSSStyleDeclaration;
 class CSSValue;
 class CSSValuePool;
 class Document;
+class ImageSizingContext;
 class RenderElement;
 class RenderObject;
 struct ResourceLoaderOptions;
@@ -87,6 +88,7 @@ public:
     virtual float imageScaleFactor() const { return 1; }
     virtual bool imageHasNaturalDimensions() const { return true; }
     virtual bool imageHasNaturalAspectRatio() const { return true; }
+    virtual NaturalDimensions naturalDimensions(const RenderElement&, const ImageSizingContext&) const = 0;
 
     // Platform Image.
     virtual RefPtr<WebCore::Image> image(const RenderElement*, const FloatSize&, const GraphicsContext& destinationContext, bool isForFirstLine = false) const = 0;
@@ -102,6 +104,10 @@ public:
     virtual void setContainerSizeForRenderer(const RenderElement&, const FloatSize&) { }
     virtual ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&, const WTF::URL& = WTF::URL()) const { return { }; }
     virtual bool knownToBeOpaque(const RenderElement&) const = 0;
+
+    // Drawing
+    ImageDrawResult drawTiled(GraphicsContext&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions = { }, const WebCore::ImageDrawingExtras* = nullptr) const;
+    ImageDrawResult drawTiled(GraphicsContext&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source, const FloatSize& tileScaleFactor, WebCore::Image::TileRule, WebCore::Image::TileRule, ImagePaintingOptions = { }, const WebCore::ImageDrawingExtras* = nullptr) const;
 
     // Derived type.
     ALWAYS_INLINE bool isCachedImage() const { return m_type == Type::CachedImage; }

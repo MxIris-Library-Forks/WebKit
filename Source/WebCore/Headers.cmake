@@ -400,6 +400,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/credentialmanagement/MediationRequirement.h
     Modules/credentialmanagement/OTPCredentialRequestOptions.h
 
+    Modules/device-posture/DevicePosture.h
+    Modules/device-posture/DevicePostureType.h
+    Modules/device-posture/NavigatorDevicePosture.h
+
     Modules/encryptedmedia/CDM.h
     Modules/encryptedmedia/CDMClient.h
     Modules/encryptedmedia/MediaKeySystemClient.h
@@ -621,6 +625,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/model-element/ModelPlayerIdentifier.h
     Modules/model-element/ModelPlayerProvider.h
     Modules/model-element/ModelPlayerTransformState.h
+    Modules/model-element/ModelPresentationMode.h
     Modules/model-element/PortalAction.h
     Modules/model-element/PortalTransform.h
     Modules/model-element/SpatialPortalController.h
@@ -1347,6 +1352,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/ElementIteratorAssertions.h
     dom/ElementIteratorInlines.h
     dom/ElementTraversal.h
+    dom/ElementVolumetricScene.h
     dom/EpochTimeStamp.h
     dom/Event.h
     dom/EventInit.h
@@ -1702,6 +1708,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     html/canvas/CanvasElementImage.h
     html/canvas/CanvasImageSource.h
+    html/canvas/PlaceholderRenderingContextIdentifier.h
+    html/canvas/PlaceholderRenderingContextSource.h
     html/canvas/PredefinedColorSpace.h
     html/canvas/WebGLAny.h
     html/canvas/WebGLBuffer.h
@@ -2711,6 +2719,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/PixelBufferConversion.h
     platform/graphics/PixelBufferFormat.h
     platform/graphics/PixelFormat.h
+    platform/graphics/PlaceholderFrameIdentifier.h
     platform/graphics/PlatformAudioTrackConfiguration.h
     platform/graphics/PlatformColorSpace.h
     platform/graphics/PlatformDisplay.h
@@ -3315,12 +3324,14 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/animations/StyleSingleAnimationTimeline.h
     style/values/animations/StyleSingleAnimationTrigger.h
 
+    style/values/backgrounds/StyleBackgroundImageSizing.h
     style/values/backgrounds/StyleBackgroundLayer.h
     style/values/backgrounds/StyleBackgroundLayers.h
     style/values/backgrounds/StyleBackgroundSize.h
     style/values/backgrounds/StyleBorderImage.h
     style/values/backgrounds/StyleBorderImageOutset.h
     style/values/backgrounds/StyleBorderImageRepeat.h
+    style/values/backgrounds/StyleBorderImageSizing.h
     style/values/backgrounds/StyleBorderImageSlice.h
     style/values/backgrounds/StyleBorderImageSource.h
     style/values/backgrounds/StyleBorderImageWidth.h
@@ -3450,6 +3461,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/lists/StyleCounterIncrement.h
     style/values/lists/StyleCounterReset.h
     style/values/lists/StyleCounterSet.h
+    style/values/lists/StyleListStyleImageSizing.h
     style/values/lists/StyleListStyleType.h
 
     style/values/masking/StyleClip.h
@@ -3457,9 +3469,11 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/masking/StyleMaskBorder.h
     style/values/masking/StyleMaskBorderOutset.h
     style/values/masking/StyleMaskBorderRepeat.h
+    style/values/masking/StyleMaskBorderSizing.h
     style/values/masking/StyleMaskBorderSlice.h
     style/values/masking/StyleMaskBorderSource.h
     style/values/masking/StyleMaskBorderWidth.h
+    style/values/masking/StyleMaskImageSizing.h
     style/values/masking/StyleMaskLayer.h
     style/values/masking/StyleMaskLayers.h
     style/values/masking/StyleMaskMode.h
@@ -3564,6 +3578,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/shapes/StyleShapeImageThreshold.h
     style/values/shapes/StyleShapeMargin.h
     style/values/shapes/StyleShapeOutside.h
+    style/values/shapes/StyleShapeOutsideSizing.h
     style/values/shapes/StyleWindRuleComputation.h
     style/values/shapes/StyleXywhFunction.h
 
@@ -3845,6 +3860,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/MathMLNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Namespace.h
     ${WebCore_DERIVED_SOURCES_DIR}/NodeName.h
+    ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDefinitions.h
+    ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorID.h
+    ${WebCore_DERIVED_SOURCES_DIR}/QuirksAccessors.h
     ${WebCore_DERIVED_SOURCES_DIR}/SVGNames.h
     ${WebCore_DERIVED_SOURCES_DIR}/Settings.h
     ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties.h

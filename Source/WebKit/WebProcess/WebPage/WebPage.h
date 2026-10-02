@@ -31,9 +31,11 @@
 #include "RemoteSnapshotIdentifier.h"
 #include "RunJavaScriptResult.h"
 #include "SandboxExtension.h"
+#include "SharedPreferencesForWebProcess.h"
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <WebCore/BoxExtents.h>
 #include <WebCore/CornerRadii.h>
+#include <WebCore/DevicePostureType.h>
 #include <WebCore/DictionaryPopupInfo.h>
 #include <WebCore/DisabledAdaptations.h>
 #include <WebCore/DragActions.h>
@@ -581,8 +583,6 @@ struct WebURLSchemeHandlerIdentifierType;
 struct WebUndoStepIDType;
 struct WebsitePoliciesData;
 
-template<typename T> class MonotonicObjectIdentifier;
-
 using ActivityStateChangeID = uint64_t;
 using ContentWorldIdentifier = WebCore::ProcessQualified<ObjectIdentifier<ContentWorldIdentifierType>>;
 using GeolocationIdentifier = ObjectIdentifier<GeolocationIdentifierType>;
@@ -667,6 +667,9 @@ public:
     bool scrollBy(WebCore::ScrollDirection, WebCore::ScrollGranularity);
 
     void centerSelectionInVisibleArea();
+
+    WebCore::DevicePostureType devicePostureType() const { return m_devicePostureType; }
+    void setDevicePostureType(WebCore::DevicePostureType);
 
 #if ENABLE(PDF_HUD)
     void createPDFHUD(PDFPluginBase&, WebCore::FrameIdentifier, const WebCore::IntRect&);
@@ -837,6 +840,8 @@ public:
 
     void didReceiveMessage(IPC::Connection&, IPC::Decoder&) override;
     void didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&) override;
+
+    std::optional<SharedPreferencesForWebProcess> sharedPreferencesForWebProcess() const;
 
     // -- InjectedBundle methods
 #if ENABLE(CONTEXT_MENUS)
@@ -1781,6 +1786,16 @@ public:
 
 #if ENABLE(MODEL_PROCESS)
     void setHasModelElement(bool);
+#endif
+
+#if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+    void enterVolumetricSceneForElement(WebCore::Element&, CompletionHandler<void(bool)>&&);
+    void exitVolumetricSceneForElement(WebCore::Element&);
+    void reconnectVolumetricSceneForElement(WebCore::Element&);
+    void dismissVolumetricScenesForDetachedElements();
+
+    void volumetricSceneDidClose(WebCore::NodeIdentifier);
+    void updateVolumetricSceneSize(WebCore::NodeIdentifier, WebCore::FloatSize volumeSizeInMeters);
 #endif
 
     WebURLSchemeHandlerProxy* urlSchemeHandlerForScheme(StringView);
@@ -3185,6 +3200,8 @@ private:
     PendingEditorStateUpdateStatus m_pendingEditorStateUpdateStatus { PendingEditorStateUpdateStatus::NotScheduled };
     bool m_needsEditorStateVisualDataUpdate { false };
 
+    WebCore::DevicePostureType m_devicePostureType { WebCore::DevicePostureType::Continuous };
+
 #if ENABLE(META_VIEWPORT)
     WebCore::ViewportConfiguration m_viewportConfiguration;
     double m_baseViewportLayoutSizeScaleFactor { 1 };
@@ -3446,6 +3463,19 @@ private:
 
     RefPtr<WebCore::NowPlayingMetadataObserver> m_nowPlayingMetadataObserver;
     std::unique_ptr<FrameInfoData> m_mainFrameNavigationInitiator;
+
+#if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+    // The volume does not exist until PresentVolumetricScene has been sent, so an exit arriving before
+    // then has nothing to dismiss and must cancel the request instead of racing it.
+    enum class VolumetricSceneState : uint8_t { Pending, CancelledWhilePending, Presented, Dismissing };
+    struct VolumetricSceneRequest {
+        WeakPtr<WebCore::Element, WebCore::WeakPtrImplWithEventTargetData> element;
+        VolumetricSceneState state { VolumetricSceneState::Pending };
+        bool needsReconnection { false };
+    };
+    // Keyed by node rather than layer: a reload changes the layer but not the node.
+    HashMap<WebCore::NodeIdentifier, VolumetricSceneRequest> m_volumetricSceneElements;
+#endif
 
     mutable RefPtr<Logger> m_logger;
 

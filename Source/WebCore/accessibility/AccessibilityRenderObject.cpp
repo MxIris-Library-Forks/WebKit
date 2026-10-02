@@ -317,10 +317,9 @@ AccessibilityObject* AccessibilityRenderObject::parentObject() const
 #endif // !USE(ATSPI)
 
     // Expose markers that are not direct children of a list item too.
-    if (m_renderer->isRenderListOutsideMarker()) {
-        for (CheckedRef listItemAncestor : ancestorsOfType<RenderListItem>(*m_renderer)) {
-            RefPtr parent = dynamicDowncast<AccessibilityRenderObject>(protect(axObjectCache())->getOrCreate(listItemAncestor));
-            if (parent && parent->markerRenderer() == m_renderer)
+    if (CheckedPtr marker = dynamicDowncast<RenderListOutsideMarker>(*m_renderer)) {
+        if (CheckedPtr listItem = marker->listItem(); listItem && listItem->markerBox() == marker) {
+            if (RefPtr parent = cache->getOrCreate(*listItem); parent && parent->isListItem())
                 return parent.unsafeGet();
         }
     }
@@ -1264,7 +1263,7 @@ bool AccessibilityRenderObject::computeIsIgnored() const
             // check whether rendered image was stretched from one-dimensional file image
             if (image->cachedImage()) {
                 float zoom = image->view().pageZoomFactor();
-                LayoutSize imageSize = CachedImage::clampForZoom(RenderImage::imageSizeAsRendered(*protect(image->cachedImage()), image, zoom), zoom);
+                LayoutSize imageSize = CachedImage::clampForZoom(RenderImage::imageSizeAsRendered(*protect(image->cachedImage()), protect(image), zoom), zoom);
                 return imageSize.height() <= 1 || imageSize.width() <= 1;
             }
         }
@@ -1630,7 +1629,7 @@ AXTextRuns AccessibilityRenderObject::textRuns()
         if (textBoxStyle->textTransform().contains(Style::TextTransformValue::FullSizeKana)) {
             // We don't want to serve transformed kana text to AT since it is a visual affordance.
             // Using the original text from the renderer provides the untransformed string.
-            text = textBox->renderer().originalText().substring(textBox->start(), textBox->length());
+            text = protect(textBox->renderer())->originalText().substring(textBox->start(), textBox->length());
         }
 
         bool collapseTabs = textBoxStyle->collapseWhiteSpace();

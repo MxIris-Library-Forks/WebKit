@@ -1088,7 +1088,7 @@ template<typename T> Vector<std::span<T>> GstMappedAudioBuffer::samples(size_t o
         auto inputSpan = unsafeMakeSpan(reinterpret_cast<T*>(m_buffer.planes[0]), planeSizeTotal * planeCount);
         for (uint32_t s = offset; s < m_buffer.n_samples; s++) {
             for (uint32_t c = 0; c < planeCount; c++)
-                result[c][s] = inputSpan[s * planeCount + c];
+                result[c][s - offset] = inputSpan[s * planeCount + c];
         }
         return result;
     }
@@ -1240,7 +1240,7 @@ GstElement* /* (transfer floating) */ createAutoAudioSink(const String& role)
         auto* role = reinterpret_cast<StringImpl*>(userData);
         auto* objectClass = G_OBJECT_GET_CLASS(object);
         if (role && g_object_class_find_property(objectClass, "stream-properties")) {
-            GUniquePtr<GstStructure> properties(gst_structure_new("stream-properties", "media.role", G_TYPE_STRING, role->utf8().legacyCStringPointer(), nullptr));
+            GUniquePtr<GstStructure> properties(gstStructureNew("stream-properties", "media.role", G_TYPE_STRING, role->utf8()));
             g_object_set(object, "stream-properties", properties.get(), nullptr);
 IGNORE_WARNINGS_BEGIN("cast-align")
             GST_DEBUG("Set media.role as %s on %" GST_PTR_FORMAT, role->utf8(), GST_ELEMENT_CAST(object));

@@ -80,15 +80,17 @@ public:
 private:
     PollResult poll(const AbstractLocker& locker) final
     {
+        assertIsHeld(*m_collector.m_threadLock);
         if (m_collector.m_threadShouldStop) {
+            m_collector.m_threadIsWorking = false;
             m_collector.m_heap.notifyThreadStopping(locker);
             return PollResult::Stop;
         }
-        if (m_collector.shouldCollectInCollectorThread(locker)) {
-            m_collector.m_collectorThreadIsRunning = true;
+        if (m_collector.shouldCollectInCollectorThread()) {
+            m_collector.m_threadIsWorking = true;
             return PollResult::Work;
         }
-        m_collector.m_collectorThreadIsRunning = false;
+        m_collector.m_threadIsWorking = false;
         return PollResult::Wait;
     }
 
@@ -105,7 +107,8 @@ private:
 
     void threadIsStopping(const AbstractLocker&) final
     {
-        m_collector.m_collectorThreadIsRunning = false;
+        assertIsHeld(*m_collector.m_threadLock);
+        ASSERT(!m_collector.m_threadIsWorking);
     }
 
     Collector& m_collector;
@@ -156,12 +159,11 @@ Collector::~Collector()
 
 void Collector::stopThread()
 {
-    RELEASE_ASSERT(m_requests.isEmpty());
-    RELEASE_ASSERT(!hasOutstandingRequest());
-
     bool stopped = false;
     {
         Locker locker { *m_threadLock };
+        RELEASE_ASSERT(m_requests.isEmpty());
+        RELEASE_ASSERT(!hasOutstandingRequestWithLock());
         stopped = m_thread->tryStop(locker);
         m_threadShouldStop = true;
         if (!stopped)
@@ -197,6 +199,16 @@ void Collector::assertMarkStacksEmpty()
     RELEASE_ASSERT(ok);
 }
 
+bool Collector::isSubsumedByQueuedRequest(const GCRequest& request)
+{
+    Locker locker { *m_threadLock };
+    for (const GCRequest& queuedRequest : m_requests) {
+        if (request.subsumedBy(queuedRequest))
+            return true;
+    }
+    return false;
+}
+
 GCRequest::Ticket Collector::requestCollection(GCRequest request)
 {
     Locker locker { *m_threadLock };
@@ -206,7 +218,7 @@ GCRequest::Ticket Collector::requestCollection(GCRequest request)
     // right now. This is an optimization that prevents the collector thread from ever starting in most
     // cases.
     ASSERT(m_lastServedTicket <= m_lastGrantedTicket);
-    if ((m_lastServedTicket == m_lastGrantedTicket) && !m_collectorThreadIsRunning) {
+    if ((m_lastServedTicket == m_lastGrantedTicket) && !m_threadIsWorking) {
         dataLogLnIf(CollectorInternal::verbose, "Taking the conn.");
         m_heap.m_worldState.exchangeOr(Heap::mutatorHasConnBit);
     }
@@ -218,7 +230,7 @@ GCRequest::Ticket Collector::requestCollection(GCRequest request)
     return m_lastGrantedTicket;
 }
 
-bool Collector::shouldCollectInCollectorThread(const AbstractLocker&)
+bool Collector::shouldCollectInCollectorThread()
 {
     RELEASE_ASSERT(m_requests.isEmpty() == (m_lastServedTicket == m_lastGrantedTicket));
     RELEASE_ASSERT(m_lastServedTicket <= m_lastGrantedTicket);
@@ -250,6 +262,39 @@ void Collector::collectInCollectorThread()
         case RunCurrentPhaseResult::NeedCurrentThreadState:
             RELEASE_ASSERT_NOT_REACHED();
             break;
+        }
+    }
+}
+
+void Collector::collectInMutatorThread(Heap& conductor)
+{
+    // For now, only a single heap is supported.
+    ASSERT(&conductor == &m_heap);
+    for (;;) {
+        RunCurrentPhaseResult result = runCurrentPhase(GCConductor::Mutator, nullptr);
+        switch (result) {
+        case RunCurrentPhaseResult::Finished:
+            return;
+        case RunCurrentPhaseResult::Continue:
+            break;
+        case RunCurrentPhaseResult::NeedCurrentThreadState:
+            sanitizeStackForVM(conductor.vm());
+            auto lambda = [&] (CurrentThreadState& state) {
+                for (;;) {
+                    RunCurrentPhaseResult result = runCurrentPhase(GCConductor::Mutator, &state);
+                    switch (result) {
+                    case RunCurrentPhaseResult::Finished:
+                        return;
+                    case RunCurrentPhaseResult::Continue:
+                        break;
+                    case RunCurrentPhaseResult::NeedCurrentThreadState:
+                        RELEASE_ASSERT_NOT_REACHED();
+                        break;
+                    }
+                }
+            };
+            callWithCurrentThreadState(lambda);
+            return;
         }
     }
 }
@@ -535,66 +580,18 @@ NEVER_INLINE bool Collector::runEndPhase(GCConductor conn)
     ASSERT(m_heap.m_mutatorMarkStack->isEmpty());
     ASSERT(m_raceMarkStack->isEmpty());
 
-    SlotVisitor& visitor = *m_collectorSlotVisitor;
-    m_heap.iterateExecutingAndCompilingCodeBlocks(visitor,
-        [&] (CodeBlock* codeBlock) {
-            m_heap.writeBarrier(codeBlock);
-        });
-
-    m_heap.updateObjectCounts();
+    // Executing CodeBlocks keep writing their profiles without barriers after this collection. Remembering
+    // them makes the next collection reconcile those profiles even if it is an Eden collection.
+    m_heap.rememberExecutingAndCompilingCodeBlocks(*m_collectorSlotVisitor);
     endMarking();
 
-    if (Options::verifyGC()) [[unlikely]]
-        m_heap.verifyGC();
+    m_heap.verifyMarking();
+    m_heap.pruneDeadReferences();
+    m_heap.prepareForAllocation();
 
-    if (m_heap.m_verifier) [[unlikely]] {
-        m_heap.m_verifier->gatherLiveCells(HeapVerifier::Phase::AfterMarking);
-        m_heap.m_verifier->verify(HeapVerifier::Phase::AfterMarking);
-    }
+    m_afterGC = MonotonicTime::now();
 
-    {
-        auto* previous = Thread::currentSingleton().setCurrentAtomStringTable(nullptr);
-        auto scopeExit = makeScopeExit([&] {
-            Thread::currentSingleton().setCurrentAtomStringTable(previous);
-        });
-
-        if (m_heap.vm().typeProfiler())
-            m_heap.vm().typeProfiler()->invalidateTypeSetCache(m_heap.vm());
-
-        m_heap.cancelDeferredWorkIfNeeded();
-        m_heap.reapWeakHandles();
-        m_heap.reconcileWeakGCHashTables();
-        m_heap.sweepArrayBuffers();
-        m_heap.snapshotUnswept();
-        m_heap.reconcileWeakReferencesAtGCEnd(); // Must precede clearCurrentlyExecuting: CodeBlock::reconcileWeakReferencesAtGCEnd queries which CodeBlocks are currently executing.
-        m_heap.removeDeadCompilerWorklistEntries();
-        m_heap.deleteUnmarkedCompiledCode();
-    }
-
-    m_heap.m_sweeper->startSweeping(m_heap);
-
-    m_heap.m_codeBlocks->iterateCurrentlyExecuting(
-        [&] (CodeBlock* codeBlock) {
-            m_heap.writeBarrier(codeBlock);
-        });
-    m_heap.m_codeBlocks->clearCurrentlyExecutingAndRemoveDeadCodeBlocks(m_heap.vm());
-
-    m_heap.m_objectSpace.prepareForAllocation();
-    m_heap.updateAllocationLimits();
-
-    if (m_heap.m_verifier) [[unlikely]] {
-        m_heap.m_verifier->trimDeadCells();
-        m_heap.m_verifier->verify(HeapVerifier::Phase::AfterGC);
-    }
-
-    auto endingCollectionScope = *m_heap.m_collectionScope;
-
-    didFinishCollection();
-
-    if (CollectorInternal::verbose) {
-        dataLogLn(CollectorInternal::verbose, "Heap state after GC:");
-        m_heap.m_objectSpace.dumpBits();
-    }
+    m_heap.didFinishCollection();
 
     if (Options::logGC()) [[unlikely]] {
         double thisPauseMS = (m_afterGC - m_stopTime).milliseconds();
@@ -616,16 +613,7 @@ NEVER_INLINE bool Collector::runEndPhase(GCConductor conn)
     }
 
     m_heap.setNeedCollectionEpilogue();
-
-    MonotonicTime now = MonotonicTime::now();
-    if (m_heap.m_maxEdenSizeForRateLimiting) {
-        m_heap.m_gcRateLimitingValue = m_heap.projectedGCRateLimitingValue(now);
-        m_heap.m_gcRateLimitingValue += 1.0;
-    }
-    m_heap.m_lastGCEndTime = now;
-    m_heap.m_totalGCTime += now - m_heap.m_currentGCStartTime;
-    if (endingCollectionScope == CollectionScope::Full)
-        m_heap.m_lastFullGCEndTime = m_heap.m_lastGCEndTime;
+    m_heap.recordCollectionTime(m_afterGC - m_beforeGC);
     return changePhase(conn, CollectorPhase::NotRunning);
 }
 
@@ -704,25 +692,15 @@ void Collector::beginMarking(CollectionScope scope)
 
 void Collector::endMarking()
 {
+    assertMarkStacksEmpty();
+    RELEASE_ASSERT(m_raceMarkStack->isEmpty());
+
+    m_heap.endMarking(bytesVisited());
+
     forEachSlotVisitor(
         [&] (SlotVisitor& visitor) {
             visitor.reset();
         });
-
-    assertMarkStacksEmpty();
-
-    RELEASE_ASSERT(m_raceMarkStack->isEmpty());
-
-    m_heap.endMarking();
-}
-
-void Collector::didFinishCollection()
-{
-    m_afterGC = MonotonicTime::now();
-
-    // m_beforeGC and m_afterGC are the cycle's own; the heap gets the duration they bound, since that
-    // is what it keeps and what its consumers ask for.
-    m_heap.didFinishCollection(m_afterGC - m_beforeGC);
 }
 
 void Collector::stopThePeriphery()

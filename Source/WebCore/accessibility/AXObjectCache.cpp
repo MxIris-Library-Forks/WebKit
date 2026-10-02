@@ -2009,6 +2009,10 @@ void AXObjectCache::initializeLiveRegionManager()
 
     m_liveRegionManagerInitialized = true;
 
+    // Walking the whole tree, and building any of it that doesn't exist yet, asks whether the same objects are
+    // ignored many times over, so cache the answers.
+    AXAttributeCacheScope enableCache(this);
+
     RefPtr current = rootWebArea();
     while ((current = current ? downcast<AccessibilityObject>(current->nextInPreOrder()) : nullptr)) {
         if (current->supportsLiveRegion())
@@ -3309,7 +3313,7 @@ void AXObjectCache::onFormSubmissionAttemptWithoutNavigation(HTMLFormElement& fo
         RefPtr document = m_document.get();
         if (!document || !document->settings().accessibilityFormErrorDetectionEnabled())
             return;
-        m_formActivityMonitor = makeUnique<AXFormActivityMonitor>(*this);
+        lazyInitialize(m_formActivityMonitor, makeUnique<AXFormActivityMonitor>(*this));
     }
 
     Ref protectedForm = form;
@@ -5112,8 +5116,8 @@ std::optional<TextMarkerData> AXObjectCache::textMarkerDataForVisiblePosition(co
             });
         };
 
-        if (isRendererReplacedElement(node->renderer()) || is<RenderLineBreak>(node->renderer()))
-            return createFromRendererAndOffset(*node->renderer(), domOffset);
+        if (isRendererReplacedElement(protect(node->renderer())) || is<RenderLineBreak>(node->renderer()))
+            return createFromRendererAndOffset(*protect(node->renderer()), domOffset);
 
         CheckedPtr<const RenderText> renderText = nullptr;
 
@@ -6522,7 +6526,7 @@ void AXObjectCache::onPaint(const RenderObject& renderer, IntRect&& paintRect) c
                 } else if (renderBox->style().border().hasBorderRadius()) {
                     auto borderRect = renderBox->borderBoxRect();
                     borderRect.inflate(shapePathInflationPx);
-                    auto borderShape = BorderShape::shapeForBorderRect(renderBox->style(), WTF::move(borderRect));
+                    auto borderShape = BorderShape::shapeForBorderRect(protect(renderBox->style()), WTF::move(borderRect));
                     auto path = borderShape.pathForOuterShape(renderer.document().deviceScaleFactor());
                     // borderBoxRect() is in local coordinates starting at (0, 0). Use the paint
                     // rect's origin to position the path, since it's already gone through
@@ -6606,7 +6610,7 @@ void AXObjectCache::deferRecomputeIsIgnoredIfNeeded(Element* element)
         m_deferredRecomputeIsIgnoredList.add(*element);
         return;
     }
-    recomputeIsIgnored(renderer);
+    recomputeIsIgnored(protect(renderer));
 }
 
 void AXObjectCache::deferRecomputeIsIgnored(Element* element)

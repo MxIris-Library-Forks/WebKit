@@ -29,9 +29,12 @@
 
 namespace WebCore {
 
+class LayoutUnit;
+
 namespace Style {
 class ComputedStyle;
 struct GridTemplateList;
+struct ZoomFactor;
 }
 
 namespace Layout {
@@ -45,10 +48,10 @@ struct GridLayoutConstraints;
 // auto-repeat mean the track lists in style are not the explicit grid's final tracks.
 class ExplicitGridResolver {
 public:
-    static ExplicitGridTrackSizes resolve(const Style::ComputedStyle& gridContainerStyle, const GridLayoutConstraints&);
+    static ExplicitGridTrackSizes resolve(const Style::ComputedStyle& gridContainerStyle, const GridLayoutConstraints&, LayoutUnit usedColumnGap, LayoutUnit usedRowGap);
 
 private:
-    static Vector<Style::GridTrackSize> resolveTrackSizes(const Style::GridTemplateList&, const AxisConstraint&);
+    static Vector<Style::GridTrackSize> resolveTrackSizes(const Style::GridTemplateList&, const AxisConstraint&, LayoutUnit usedGap, Style::ZoomFactor);
 };
 
 } // namespace Layout

@@ -58,6 +58,7 @@
 #include "RenderCombineText.h"
 #include "RenderCounter.h"
 #include "RenderDeprecatedFlexibleBox.h"
+#include "RenderDescendantIterator.h"
 #include "RenderElementStyleInlines.h"
 #include "FlexFormattingUtils.h"
 #include "RenderFlexibleBox.h"
@@ -893,6 +894,36 @@ LayoutUnit RenderBlockFlow::shiftForAlignContent(LayoutUnit intrinsicLogicalHeig
     return space;
 }
 
+static bool contentFitsWithinMaximumLines(const RenderBlockFlow& lineClampContainer)
+{
+    // The block ellipsis goes on the last formatted line of the block with the clamped line.
+    CheckedPtr<const RenderBlockFlow> blockWithClampedLine;
+    for (CheckedPtr<const RenderObject> descendant = &lineClampContainer; descendant; descendant = descendant->nextInPreOrder(&lineClampContainer)) {
+        CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(*descendant);
+        if (blockFlow && blockFlow->childrenInline() && blockFlow->inlineLayout() && blockFlow->inlineLayout()->hasEllipsisInBlockDirectionOnLastFormattedLine()) {
+            blockWithClampedLine = blockFlow;
+            break;
+        }
+    }
+    if (!blockWithClampedLine || !blockWithClampedLine->inlineLayout()->contentFitsWithinMaximumLines())
+        return false;
+    for (CheckedPtr<const RenderObject> renderer = blockWithClampedLine.get(); renderer && renderer != &lineClampContainer; renderer = renderer->parent()) {
+        CheckedPtr parent = renderer->parent();
+        if (is<RenderInline>(*parent))
+            continue;
+        if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(*parent); blockFlow && blockFlow->childrenInline()) {
+            if (!blockFlow->inlineLayout() || !blockFlow->inlineLayout()->contentFitsWithinMaximumLines())
+                return false;
+            continue;
+        }
+        // "A point between two in-flow block-level sibling boxes in the line-clamp container's block formatting context."
+        // https://drafts.csswg.org/css-overflow-4/#line-clamp-containers
+        if (renderer->nextInFlowSibling())
+            return false;
+    }
+    return true;
+}
+
 void RenderBlockFlow::layoutInFlowChildren(RelayoutChildren relayoutChildren, LayoutUnit previousHeight, LayoutUnit& repaintLogicalTop, LayoutUnit& repaintLogicalBottom, LayoutUnit& maxFloatLogicalBottom)
 {
     if (!firstChild()) {
@@ -919,7 +950,20 @@ void RenderBlockFlow::layoutInFlowChildren(RelayoutChildren relayoutChildren, La
     {
         auto textBoxTrimmer = TextBoxTrimmer { *this };
         auto lineClampUpdater = LineClampUpdater { *this };
-        childrenInline() ? layoutInlineChildren(relayoutChildren, previousHeight, repaintLogicalTop, repaintLogicalBottom) : layoutBlockChildren(relayoutChildren, maxFloatLogicalBottom);
+        auto layoutChildren = [&](RelayoutChildren relayoutChildren) {
+            childrenInline() ? layoutInlineChildren(relayoutChildren, previousHeight, repaintLogicalTop, repaintLogicalBottom) : layoutBlockChildren(relayoutChildren, maxFloatLogicalBottom);
+        };
+        layoutChildren(relayoutChildren);
+
+        if (lineClampUpdater.isLineClampRoot() && contentFitsWithinMaximumLines(*this)) {
+            // "If fewer than N line boxes exist, or if there are no possible clamp points after the Nth descendant in-flow line box, then that line-clamp container has no line-based clamp point."
+            // https://drafts.csswg.org/css-overflow-4/#max-lines
+            lineClampUpdater.resetLineClamp();
+            rebuildFloatingObjectSetFromIntrudingFloats();
+            for (CheckedRef descendant : descendantsOfType<RenderBox>(*this))
+                descendant->setNeedsLayout(MarkingBehavior::MarkOnlyThis);
+            layoutChildren(RelayoutChildren::Yes);
+        }
     }
     {
         auto applyTextBoxTrimEndIfNeeded = [&] {

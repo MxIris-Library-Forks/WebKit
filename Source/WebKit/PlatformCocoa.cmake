@@ -46,6 +46,7 @@ find_library(QUARTZ_LIBRARY Quartz)
 find_library(AVFAUDIO_LIBRARY AVFAudio HINTS ${AVFOUNDATION_LIBRARY}/Versions/*/Frameworks)
 
 add_compile_options(
+    "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-DHAVE_CORE_PREDICTION=1>"
     "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-DWK_XPC_SERVICE_SUFFIX=\".Development\">"
     "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-DWEBKIT_BUNDLE_VERSION=\"${WEBKIT_MAC_VERSION}\">"
 )
@@ -163,6 +164,8 @@ list(APPEND WebKit_SOURCES
 
     UIProcess/PDF/WKPDFPageNumberIndicator.mm
     ${WEBKIT_DIR}/UIProcess/API/Cocoa/_WKTextExtraction.swift
+
+    UIProcess/ios/fullscreen/FullscreenTouchSecheuristicParameters.cpp
 
     WebProcess/WebAuthentication/WebAuthenticatorCoordinator.cpp
 
@@ -312,10 +315,6 @@ set(WebKit_SWIFT_INCLUDE_DIRECTORIES
     "${WEBKIT_DIR}/Platform/spi/Cocoa/Modules"
     "${WEBKIT_DIR}/Platform/spi/ios"
 )
-
-file(CONFIGURE OUTPUT "${CMAKE_BINARY_DIR}/WebKit/WebPushDaemonStubs.cpp" CONTENT
-"#include \"config.h\"\n#if ENABLE(WEB_PUSH_NOTIFICATIONS)\nnamespace WebKit {\nint WebPushDaemonMain(int, char**) { return 1; }\nint WebPushToolMain(int, char**) { return 1; }\n}\n#endif\n")
-list(APPEND WebKit_SOURCES "${CMAKE_BINARY_DIR}/WebKit/WebPushDaemonStubs.cpp")
 
 set(WebKit_FORWARDING_HEADERS_FILES
     Platform/cocoa/WKCrashReporter.h
@@ -504,7 +503,11 @@ list(APPEND WebKit_SOURCES
     webpushd/PushServiceConnection.mm
     webpushd/WebClipCache.mm
     webpushd/WebPushDaemon.mm
+    webpushd/WebPushDaemonMain.mm
     webpushd/_WKMockUserNotificationCenter.mm
+
+    webpushd/webpushtool/WebPushToolConnection.mm
+    webpushd/webpushtool/WebPushToolMain.mm
 )
 
 if (WEBKIT_SDK_IS_MACOS)
@@ -563,8 +566,6 @@ list(APPEND WebKit_SOURCES
     UIProcess/ios/WebDeviceOrientationUpdateProviderProxy.mm
     UIProcess/ios/_WKCaptionStyleMenuControllerAVKit.mm
     UIProcess/ios/_WKCaptionStyleMenuControllerIOS.mm
-
-    UIProcess/ios/fullscreen/FullscreenTouchSecheuristicParameters.cpp
 
     ${WEBKIT_DIR}/Shared/EntryPointUtilities/Cocoa/ExtensionEventHandler.mm
 
@@ -717,6 +718,14 @@ target_link_options(WebKit PRIVATE
     "LINKER:-unexported_symbol,__ZTAXtlN7WebCore3CSS5RangeELdfff0000000000000ELd7ff0000000000000EEE"
     "LINKER:-unexported_symbol,_$s*3Cxx*"
 )
+
+# FIXME: Hide WebKit's Objective-C++ symbols too, as Xcode does. TestIPC needs
+# to be refactored to import WebKit's IPC serialization code.
+target_compile_options(WebKit PRIVATE "$<$<COMPILE_LANGUAGE:OBJC,OBJCXX>:-fvisibility=default>")
+
+# Like Xcode, which dead-strips WebKit in every configuration. The precompiled headers' objects
+# otherwise keep references to inline functions that call hidden WebCore and WTF symbols.
+target_link_options(WebKit PRIVATE "$<$<CONFIG:Debug>:LINKER:-dead_strip>")
 
 set(WebKit_OUTPUT_NAME WebKit)
 if (WebKit_INSTALL_NAME_DIR)
@@ -960,8 +969,8 @@ function(WEBKIT_DEFINE_AUXILIARY_PROCESSES)
         endif ()
     endfunction()
 
-    set(_sim_get_task_allow "${CMAKE_CURRENT_BINARY_DIR}/XPCService-get-task-allow.entitlements")
-    WEBKIT_WRITE_SIMULATOR_SIGNING_ENTITLEMENTS(${_sim_get_task_allow})
+    set(_get_task_allow "${CMAKE_CURRENT_BINARY_DIR}/XPCService-get-task-allow.entitlements")
+    WEBKIT_WRITE_SIMULATOR_SIGNING_ENTITLEMENTS(${_get_task_allow})
 
     if (USE_EXTENSIONKIT)
         WEBKIT_DEFINE_PROCESS_EXTENSIONS()
@@ -973,8 +982,8 @@ function(WEBKIT_DEFINE_AUXILIARY_PROCESSES)
         WEBKIT_DEFINE_MACOS_RESOURCES()
     else ()
         WEBKIT_DEFINE_IOS_RESOURCES()
-        WEBKIT_DEFINE_IOS_DAEMONS()
     endif ()
+    WEBKIT_DEFINE_DAEMONS()
 endfunction()
 
 function(WEBKIT_DEFINE_XPC_SERVICES)
@@ -1048,7 +1057,7 @@ function(WEBKIT_DEFINE_XPC_SERVICES)
                 WEBKIT_EMBED_ENTITLEMENTS(${_target} ${_default_sim_entitlements})
                 # Overrides the generated entitlements.
                 set_property(TARGET ${_target} PROPERTY
-                    CODE_SIGN_ENTITLEMENTS "${_sim_get_task_allow}")
+                    CODE_SIGN_ENTITLEMENTS "${_get_task_allow}")
             endif ()
             set_property(TARGET ${_target} PROPERTY CODE_SIGN_FLAGS
                 --timestamp=none --generate-entitlement-der)
@@ -1131,11 +1140,71 @@ function(WEBKIT_DEFINE_XPC_SERVICES)
     endif ()
 endfunction()
 
+function(WEBKIT_DEFINE_DAEMONS)
+    # ENTITLEMENTS signs with that file instead of process-entitlements.sh output.
+    function(WEBKIT_DAEMON _target _source)
+        cmake_parse_arguments(_arg "" "ENTITLEMENTS" "" ${ARGN})
+        WEBKIT_EXECUTABLE_DECLARE(${_target})
+        set(${_target}_SOURCES ${_source})
+        set(${_target}_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}
+            $<TARGET_PROPERTY:WebKit,INCLUDE_DIRECTORIES>)
+        set(${_target}_LIBRARIES WebKit)
+
+        set_target_properties(${_target} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+        target_compile_options(${_target} PRIVATE
+            -F${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
+        if (WEBKIT_SDK_IS_SIMULATOR)
+            set_property(TARGET ${_target} PROPERTY
+                CODE_SIGN_ENTITLEMENTS "${_get_task_allow}")
+        elseif (_arg_ENTITLEMENTS)
+            set_property(TARGET ${_target} PROPERTY
+                CODE_SIGN_ENTITLEMENTS "${_arg_ENTITLEMENTS}")
+        else ()
+            WEBKIT_GENERATE_ENTITLEMENTS(${_target}
+                USING Scripts/process-entitlements.sh
+                DEPENDS ${WebKit_ENTITLEMENTS_DEPENDS})
+        endif ()
+
+        WEBKIT_EXECUTABLE(${_target})
+    endfunction()
+
+    WEBKIT_DAEMON(webpushd
+        ${WEBKIT_DIR}/webpushd/webpushd.cpp)
+    if (WEBKIT_SDK_IS_MACOS AND DEVELOPER_MODE)
+        target_link_options(webpushd PRIVATE
+            "LINKER:-rpath,@executable_path/."
+            "LINKER:-dyld_env,DYLD_FRAMEWORK_PATH=@executable_path/."
+            "LINKER:-dyld_env,DYLD_LIBRARY_PATH=@executable_path/."
+        )
+    endif ()
+
+    # adattributiond doesn't have any custom entitlements on macOS.
+    if (WEBKIT_SDK_IS_MACOS AND DEVELOPER_MODE)
+        set(_adattributiond_entitlements ENTITLEMENTS "${_get_task_allow}")
+    endif ()
+    WEBKIT_DAEMON(adattributiond
+        ${WEBKIT_DIR}/Shared/EntryPointUtilities/Cocoa/Daemon/adattributiond.cpp
+        ${_adattributiond_entitlements})
+
+    # Xcode injects get-task-allow into webpushtool's CODE_SIGN_ENTITLEMENTS.
+    set(_webpushtool_entitlements ${CMAKE_CURRENT_BINARY_DIR}/webpushtool.entitlements)
+    add_custom_command(OUTPUT ${_webpushtool_entitlements}
+        COMMAND ${CMAKE_COMMAND} -E copy ${WEBKIT_DIR}/Resources/webpushtool.entitlements ${_webpushtool_entitlements}
+        COMMAND /usr/libexec/PlistBuddy -c "Add :com.apple.security.get-task-allow bool YES" ${_webpushtool_entitlements}
+        DEPENDS ${WEBKIT_DIR}/Resources/webpushtool.entitlements
+        VERBATIM)
+    add_custom_target(webpushtoolEntitlements DEPENDS ${_webpushtool_entitlements})
+    WEBKIT_DAEMON(webpushtool
+        ${WEBKIT_DIR}/webpushd/webpushtool/webpushtool.cpp
+        ENTITLEMENTS ${_webpushtool_entitlements})
+    add_dependencies(webpushtool webpushtoolEntitlements)
+endfunction()
+
 # Platform-specific configuration, selected by the target SDK.
 # FIXME: Continue merging forked iOS/Mac code here.
 if (WEBKIT_SDK_IS_IOS_FAMILY)
-
-add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-DHAVE_CORE_PREDICTION=1>")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/WebKitLegacy.h
     "#if defined(__has_include) && __has_include(<WebKitLegacy/WebKit.h>)\n"
@@ -2175,37 +2244,6 @@ function(WEBKIT_DEFINE_PROCESS_EXTENSIONS)
     endif ()
 endfunction()
 
-function(WEBKIT_DEFINE_IOS_DAEMONS)
-    function(WEBKIT_IOS_DAEMON _target _source)
-        WEBKIT_EXECUTABLE_DECLARE(${_target})
-        set(${_target}_SOURCES ${_source})
-        set(${_target}_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}
-            $<TARGET_PROPERTY:WebKit,INCLUDE_DIRECTORIES>)
-        set(${_target}_LIBRARIES WebKit)
-
-        set_target_properties(${_target} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-        target_compile_options(${_target} PRIVATE
-            -F${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-
-        if (WEBKIT_SDK_IS_SIMULATOR)
-            set_property(TARGET ${_target} PROPERTY
-                CODE_SIGN_ENTITLEMENTS "${_sim_get_task_allow}")
-        else ()
-            WEBKIT_GENERATE_ENTITLEMENTS(${_target}
-                USING Scripts/process-entitlements.sh
-                DEPENDS ${WebKit_ENTITLEMENTS_DEPENDS})
-        endif ()
-
-        WEBKIT_EXECUTABLE(${_target})
-    endfunction()
-
-    WEBKIT_IOS_DAEMON(webpushd
-        ${WEBKIT_DIR}/webpushd/webpushd.cpp)
-    WEBKIT_IOS_DAEMON(adattributiond
-        ${WEBKIT_DIR}/Shared/EntryPointUtilities/Cocoa/Daemon/adattributiond.cpp)
-endfunction()
-
 else ()
 
 list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
@@ -2369,6 +2407,7 @@ target_link_options(WebKit PRIVATE
     "LINKER:-weak_framework,WebInspectorUI"
     "LINKER:-u,_WebInspectorUIFrameworkLoad"
     "LINKER:-weak_framework,CoreML"
+    "LINKER:-weak_framework,CorePrediction"
     "LINKER:-weak_framework,NaturalLanguage"
     # for bincompat, cf. rdar://117360317
     "LINKER:-reexport-lobjc"
@@ -2427,6 +2466,12 @@ function(WEBKIT_DEFINE_MACOS_RESOURCES)
         VERBATIM)
     list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.sb)
 
+    add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.x86.sb COMMAND
+        grep -o "^[^;]*" ${WEBKIT_DIR}/WebProcess/com.apple.WebProcess.x86.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.x86.sb
+        DEPENDS ${WEBKIT_DIR}/WebProcess/com.apple.WebProcess.x86.sb.in
+        VERBATIM)
+    list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebProcess.x86.sb)
+
     add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebKit.NetworkProcess.sb COMMAND
         grep -o "^[^;]*" ${WEBKIT_DIR}/NetworkProcess/mac/com.apple.WebKit.NetworkProcess.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebKit.NetworkProcess.sb
         DEPENDS ${WEBKIT_DIR}/NetworkProcess/mac/com.apple.WebKit.NetworkProcess.sb.in
@@ -2440,13 +2485,13 @@ function(WEBKIT_DEFINE_MACOS_RESOURCES)
             VERBATIM)
         list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebKit.GPUProcess.sb)
     endif ()
-    if (ENABLE_WEB_PUSH_NOTIFICATIONS)
-        add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb COMMAND
-            grep -o "^[^;]*" ${WEBKIT_DIR}/webpushd/mac/com.apple.WebKit.webpushd.mac.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb
-            DEPENDS ${WEBKIT_DIR}/webpushd/mac/com.apple.WebKit.webpushd.mac.sb.in
-            VERBATIM)
-        list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb)
-    endif ()
+
+    add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb COMMAND
+        grep -o "^[^;]*" ${WEBKIT_DIR}/webpushd/mac/com.apple.WebKit.webpushd.mac.sb.in | clang -E -P -w -include wtf/Platform.h -I ${WTF_FRAMEWORK_HEADERS_DIR} -I ${bmalloc_FRAMEWORK_HEADERS_DIR} -I ${WEBKIT_DIR} ${_sb_extra_includes} - > ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb
+        DEPENDS ${WEBKIT_DIR}/webpushd/mac/com.apple.WebKit.webpushd.mac.sb.in
+        VERBATIM)
+    list(APPEND WebKit_SB_FILES ${WebKit_RESOURCES_DIR}/com.apple.WebKit.webpushd.mac.sb)
+
     add_custom_target(WebKitSandboxProfiles ALL DEPENDS ${WebKit_SB_FILES})
     add_dependencies(WebKit WebKitSandboxProfiles)
 
@@ -2457,11 +2502,36 @@ function(WEBKIT_DEFINE_MACOS_RESOURCES)
     # Must be in place before WebProcess links and seals the .xpc.
     add_dependencies(WebProcess WebContentProcessNib)
 
+    set(_wk_xcassets
+        ${WEBKIT_DIR}/Resources/SafeBrowsing.xcassets
+        ${WEBKIT_DIR}/HTTPSBrowsingWarning.xcassets
+    )
+    list(TRANSFORM _wk_xcassets APPEND "/*" OUTPUT_VARIABLE _wk_xcassets_globs)
+    # FIXME: GLOB isn't suitable for incremental builds (rdar://188725492)
+    file(GLOB_RECURSE _wk_xcassets_contents LIST_DIRECTORIES true ${_wk_xcassets_globs})
+    WEBKIT_XCRUN(_actool -f actool)
+    add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/Assets.car
+        COMMAND ${_actool} --compile ${WebKit_RESOURCES_DIR} --output-format human-readable-text
+            --platform macosx --target-device mac --minimum-deployment-target ${CMAKE_OSX_DEPLOYMENT_TARGET}
+            ${_wk_xcassets}
+        DEPENDS ${_wk_xcassets} ${_wk_xcassets_contents}
+        COMMENT "Compiling WebKit asset catalogs"
+        VERBATIM)
+    add_custom_target(WebKit_Assets DEPENDS ${WebKit_RESOURCES_DIR}/Assets.car)
+    add_dependencies(WebKit WebKit_Assets)
+
     add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodel COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${WEBKIT_DIR}/Resources/TextExtractionFilter.mlmodel ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodel
         VERBATIM)
     add_custom_target(WebKitTextExtractionFilterModel ALL DEPENDS ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodel)
     add_dependencies(WebKit WebKitTextExtractionFilterModel)
+
+    add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/corePrediction_model COMMAND
+        ${CMAKE_COMMAND} -E copy_if_different ${WEBKIT_DIR}/Resources/ResourceLoadStatistics/corePrediction_model ${WebKit_RESOURCES_DIR}/corePrediction_model
+        DEPENDS ${WEBKIT_DIR}/Resources/ResourceLoadStatistics/corePrediction_model
+        VERBATIM)
+    add_custom_target(WebKitCorePredictionModel ALL DEPENDS ${WebKit_RESOURCES_DIR}/corePrediction_model)
+    add_dependencies(WebKit WebKitCorePredictionModel)
 endfunction()
 
 target_link_options(WebKit PRIVATE

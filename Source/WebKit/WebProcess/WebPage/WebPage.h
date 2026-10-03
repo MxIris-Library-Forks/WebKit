@@ -1156,14 +1156,14 @@ public:
 
 #if ENABLE(TWO_PHASE_CLICKS)
     Awaitable<std::optional<WebCore::RemoteUserInputEventData>> potentialTapAtPosition(std::optional<WebCore::FrameIdentifier>, WebKit::TapIdentifier, WebCore::FloatPoint, bool shouldRequestMagnificationInformation, WebKit::WebEventInputSource);
-    Awaitable<std::optional<WebCore::FrameIdentifier>> commitPotentialTap(std::optional<WebCore::FrameIdentifier>, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebCore::PointerID);
+    Awaitable<std::optional<WebCore::FrameIdentifier>> commitPotentialTap(std::optional<WebCore::FrameIdentifier>, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebCore::PointerID, CompletesDoubleClick);
     void cancelPotentialTap();
     void cancelPotentialTapInFrame(WebFrame&);
     void commitPotentialTapFailed();
     void didHandleTapAsHover();
     void sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier, WebCore::Node*, WebCore::FloatPoint);
     void handleSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::PointerID = WebCore::mousePointerID);
-    void completeSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::SyntheticClickType, WebCore::PointerID = WebCore::mousePointerID);
+    void completeSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::SyntheticClickType, WebCore::PointerID = WebCore::mousePointerID, int clickCount = 1);
     Awaitable<std::optional<WebCore::RemoteUserInputEventData>> handleDoubleTapForDoubleClickAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebEventInputSource, WebMouseEventSyntheticClickType);
     void invokePendingSyntheticClickCallback(WebCore::SyntheticClickResult);
 #endif
@@ -1191,7 +1191,6 @@ public:
     double maximumPageScaleFactor() const;
     double maximumPageScaleFactorIgnoringAlwaysScalable() const;
     bool allowsUserScaling() const;
-    bool hasStablePageScaleFactor() const { return m_hasStablePageScaleFactor; }
 
     void attemptSyntheticClick(const WebCore::IntPoint&, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId);
     void tapHighlightAtPosition(WebKit::TapIdentifier, const WebCore::FloatPoint&);
@@ -1491,6 +1490,7 @@ public:
 
 #if ENABLE(MODEL_PROCESS)
     void requestInteractiveModelElementAtPoint(WebCore::IntPoint clientPosition);
+    void stageModeSessionDidBegin(WebCore::NodeIdentifier, const WebCore::TransformationMatrix&);
     void stageModeSessionDidUpdate(std::optional<WebCore::NodeIdentifier>, const WebCore::TransformationMatrix&);
     void stageModeSessionDidEnd(std::optional<WebCore::NodeIdentifier>);
 #endif
@@ -1640,6 +1640,9 @@ public:
 #if ENABLE(UI_SIDE_COMPOSITING)
     std::optional<float> scaleFromUIProcess(const VisibleContentRectUpdateInfo&) const;
     void updateVisibleContentRects(const VisibleContentRectUpdateInfo&, MonotonicTime oldestTimestamp);
+    bool hasStablePageScaleFactor() const { return m_hasStablePageScaleFactor; }
+    double minimumPageScaleFactorForUIProcessScale() const;
+    double maximumPageScaleFactorForUIProcessScale() const;
 #endif
 
 #if ENABLE(IOS_TOUCH_EVENTS)
@@ -2683,7 +2686,7 @@ private:
     void handleAcceptedCandidate(WebCore::TextCheckingResult);
 #endif
 
-    void performHitTestForMouseEvent(Ref<WebMouseEvent>&&, CompletionHandler<void(WebHitTestResultData&&, OptionSet<WebEventModifier>)>&&);
+    void performHitTestForModifierFlagsChangeOnMouseEvent(WebCore::FrameIdentifier, Ref<WebMouseEvent>&&, CompletionHandler<void(Variant<WebHitTestResultData, WebCore::RemoteUserInputEventData>&&, OptionSet<WebEventModifier>)>&&);
 
 #if PLATFORM(COCOA)
     void requestActiveNowPlayingSessionInfo(CompletionHandler<void(bool, WebCore::NowPlayingInfo&&)>&&);
@@ -2852,7 +2855,6 @@ private:
     void contentsToRootViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
     void contentsToRootViewPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, CompletionHandler<void(WebCore::FloatPoint)>&&);
     void contentsToMainFrameViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
-    void remoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier, WebCore::DictionaryPopupInfo, CompletionHandler<void(WebCore::DictionaryPopupInfo)>&&);
 
     void hitTestAtPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, const ContentWorldData&, CompletionHandler<void(NodeHitTestResult)>&&);
 
@@ -3214,6 +3216,17 @@ private:
     std::optional<WebCore::SimpleRange> m_initialSelection;
 #endif
 
+#if ENABLE(UI_SIDE_COMPOSITING)
+    // Visible content rect update state, shared by the iOS UIScrollView zoom and the macOS unified zoom. See
+    // WebPage::updateVisibleContentRects() in WebPageCocoa.mm.
+    bool m_hasReceivedVisibleContentRectsAfterDidCommitLoad { false };
+    bool m_scaleWasSetByUIProcess { false };
+    bool m_hasStablePageScaleFactor { true };
+    bool m_isInStableState { true };
+    MonotonicTime m_oldestNonStableUpdateVisibleContentRectsTimestamp;
+    double m_lastTransactionPageScaleFactor { 0 };
+#endif
+
 #if ENABLE(TWO_PHASE_CLICKS)
     RefPtr<WebCore::Node> m_potentialTapNode;
     WebCore::FloatPoint m_potentialTapLocation;
@@ -3248,16 +3261,11 @@ private:
     };
     BidiSelectionFlippingState m_bidiSelectionFlippingState { BidiSelectionFlippingState::NotFlipping };
 
-    bool m_hasReceivedVisibleContentRectsAfterDidCommitLoad { false };
     bool m_hasRestoredExposedContentRectAfterDidCommitLoad { false };
-    bool m_scaleWasSetByUIProcess { false };
     bool m_userHasChangedPageScaleFactor { false };
-    bool m_hasStablePageScaleFactor { true };
-    bool m_isInStableState { true };
     bool m_shouldRevealCurrentSelectionAfterInsertion { true };
     bool m_screenIsBeingCaptured { false };
     std::optional<double> m_previousViewportConfigurationMinimumScale;
-    MonotonicTime m_oldestNonStableUpdateVisibleContentRectsTimestamp;
     Seconds m_estimatedLatency { 0 };
     WebCore::FloatSize m_screenSize;
     WebCore::FloatSize m_availableScreenSize;
@@ -3270,7 +3278,6 @@ private:
     bool m_inDynamicSizeUpdate { false };
     WebCore::FloatRect m_previousExposedContentRect;
     std::optional<DynamicViewportSizeUpdateID> m_pendingDynamicViewportSizeUpdateID;
-    double m_lastTransactionPageScaleFactor { 0 };
 
     WebCore::DeferrableOneShotTimer m_updateFocusedElementInformationTimer;
 
@@ -3504,10 +3511,6 @@ inline bool WebPage::shouldAvoidComputingPostLayoutDataForEditorState() const { 
 
 #if !PLATFORM(COCOA)
 inline URL WebPage::allowedQueryParametersForAdvancedPrivacyProtections(const URL& url) { return url; }
-#endif
-
-#if PLATFORM(IOS_FAMILY)
-bool scalesAreEssentiallyEqual(float, float);
 #endif
 
 } // namespace WebKit

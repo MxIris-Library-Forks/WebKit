@@ -36,6 +36,7 @@
 #include "CrossfadeGeneratedImage.h"
 #include "DeprecatedCSSOMValue.h"
 #include "Document.h"
+#include "RenderBoxModelObject.h"
 #include "RenderElement.h"
 #include "RenderObjectDocument.h"
 #include "SVGImage.h"
@@ -221,6 +222,11 @@ bool CrossfadeImage::knownToBeOpaque(const RenderElement& renderer) const
     return true;
 }
 
+bool CrossfadeImage::canDrawAtSize(const RenderElement& renderer, const FloatSize& size) const
+{
+    return !size.isEmpty() && m_from && m_to && protect(m_from)->canDrawAtSize(renderer, size) && protect(m_to)->canDrawAtSize(renderer, size);
+}
+
 FloatSize CrossfadeImage::fixedSize(const RenderElement& renderer) const
 {
     if (!m_from || !m_to)
@@ -238,6 +244,11 @@ FloatSize CrossfadeImage::fixedSize(const RenderElement& renderer) const
     float inverseProgress = 1 - progress;
 
     return fromImageSize * inverseProgress + toImageSize * progress;
+}
+
+InterpolationQuality CrossfadeImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderBoxModelObject& renderer, const void* layer, const LayoutSize& size) const
+{
+    return renderer.chooseInterpolationQualityForBitmapOfSize(context, expandedIntSize(fixedSize(renderer)), layer, size);
 }
 
 NaturalDimensions CrossfadeImage::naturalDimensions(const RenderElement& renderer, const ImageSizingContext&) const

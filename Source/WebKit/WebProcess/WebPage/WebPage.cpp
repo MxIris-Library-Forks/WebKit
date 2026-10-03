@@ -1288,8 +1288,10 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     setAllowedQueryParametersForAdvancedPrivacyProtections(WTF::move(parameters.allowedQueryParametersForAdvancedPrivacyProtections));
 #endif
     if (parameters.windowFeatures) {
-        page->applyWindowFeatures(*parameters.windowFeatures);
-        page->chrome().show();
+        if (!parameters.remotePageParameters) {
+            page->applyWindowFeatures(*parameters.windowFeatures);
+            page->chrome().show();
+        }
         page->setOpenedByDOM();
     }
 
@@ -3156,7 +3158,7 @@ void WebPage::didScalePageRelativeToScrollPosition(double scale, const IntPoint&
     didScalePage(scale, -unscrolledOrigin);
 }
 
-#if !PLATFORM(IOS_FAMILY)
+#if !ENABLE(UI_SIDE_COMPOSITING)
 
 void WebPage::platformDidScalePage()
 {
@@ -3413,7 +3415,13 @@ void WebPage::viewportPropertiesDidChange(const ViewportArguments& viewportArgum
 
 FloatSize WebPage::screenSizeForFingerprintingProtections(const LocalFrame& frame, FloatSize defaultSize) const
 {
-    return frame.view() ? FloatSize { protect(frame.view())->unobscuredContentRectIncludingScrollbars().size() } : defaultSize;
+    RefPtr view = frame.view();
+    if (!view)
+        return defaultSize;
+
+    // The view size including scrollbars, not the zoomed unobscuredContentRectIncludingScrollbars(), since
+    // letting the zoom through would leak the value we're hiding here.
+    return FloatSize { view->frameRectShrunkByInset().size() };
 }
 
 #endif // !PLATFORM(IOS_FAMILY)
@@ -4308,15 +4316,26 @@ void WebPage::flushDeferredDidReceiveMouseEvent()
         info->completionHandler(info->handled, std::nullopt);
 }
 
-void WebPage::performHitTestForMouseEvent(Ref<WebMouseEvent>&& eventRef, CompletionHandler<void(WebHitTestResultData&&, OptionSet<WebEventModifier>)>&& completionHandler)
+void WebPage::performHitTestForModifierFlagsChangeOnMouseEvent(FrameIdentifier frameID, Ref<WebMouseEvent>&& eventRef, CompletionHandler<void(Variant<WebHitTestResultData, RemoteUserInputEventData>&&, OptionSet<WebEventModifier>)>&& completionHandler)
 {
     const auto& event = eventRef.get();
     auto modifiers = event.modifiers();
-    RefPtr localMainFrame = dynamicDowncast<WebCore::LocalFrame>(corePage()->mainFrame());
-    if (!localMainFrame || !localMainFrame->view())
+    RefPtr frame = WebFrame::webFrame(frameID);
+    RefPtr localFrame = frame ? frame->coreLocalFrame() : nullptr;
+    if (!localFrame || !localFrame->view())
         return completionHandler({ }, modifiers);
 
-    auto hitTestResult = localMainFrame->eventHandler().getHitTestResultForMouseEvent(platform(event));
+    auto hitTestResult = localFrame->eventHandler().getHitTestResultForMouseEvent(platform(event));
+
+    auto subframe = EventHandler::subframeForTargetNode(protect(hitTestResult.targetNode()).get());
+    if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe).get()) {
+        if (RefPtr remoteFrameView = remoteFrame->view()) {
+            return completionHandler(RemoteUserInputEventData {
+                remoteFrame->frameID(),
+                remoteFrameView->convertFromRootView(roundedIntPoint(event.position()))
+            }, modifiers);
+        }
+    }
 
     String toolTip;
     TextDirection toolTipDirection;
@@ -6287,6 +6306,12 @@ void WebPage::requestInteractiveModelElementAtPoint(IntPoint clientPosition)
         send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(nodeID));
     } else
         send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(std::nullopt));
+}
+
+void WebPage::stageModeSessionDidBegin(NodeIdentifier nodeID, const TransformationMatrix& transform)
+{
+    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
+        localMainFrame->eventHandler().stageModeSessionDidBegin(nodeID, transform);
 }
 
 void WebPage::stageModeSessionDidUpdate(std::optional<NodeIdentifier> nodeID, const TransformationMatrix& transform)
@@ -8411,9 +8436,14 @@ static void setUseDynamicViewportUnitsAsDefaultIfNeeded(LocalFrame* frame)
 
 void WebPage::didCommitLoad(WebFrame* frame)
 {
+#if ENABLE(UI_SIDE_COMPOSITING)
+    // Lets updateVisibleContentRects() throw away visible rect updates the UI process queued before this
+    // navigation. With UI-side compositing off at runtime there are no transactions, but there are no visible
+    // rect updates to throw away either.
+    if (RefPtr remoteLayerTreeDrawingArea = dynamicDowncast<RemoteLayerTreeDrawingArea>(protect(drawingArea())))
+        frame->setFirstLayerTreeTransactionIDAfterDidCommitLoad(remoteLayerTreeDrawingArea->nextTransactionID());
+#endif
 #if ENABLE(TWO_PHASE_CLICKS)
-    auto firstTransactionIDAfterDidCommitLoad = downcast<RemoteLayerTreeDrawingArea>(*protect(drawingArea())).nextTransactionID();
-    frame->setFirstLayerTreeTransactionIDAfterDidCommitLoad(firstTransactionIDAfterDidCommitLoad);
     cancelPotentialTapInFrame(*frame);
 #endif
 
@@ -8481,19 +8511,22 @@ void WebPage::didCommitLoad(WebFrame* frame)
 
     m_didUpdateRenderingAfterCommittingLoad = false;
 
+#if ENABLE(UI_SIDE_COMPOSITING)
+    m_hasReceivedVisibleContentRectsAfterDidCommitLoad = false;
+    m_scaleWasSetByUIProcess = false;
+    m_internals->lastTransactionIDWithScaleChange = frame->firstLayerTreeTransactionIDAfterDidCommitLoad();
+    m_internals->lastLayerTreeTransactionIdAndPageScaleBeforeScalingPage = std::nullopt;
+#endif
+
 #if PLATFORM(IOS_FAMILY)
     if (auto scope = std::exchange(m_ignoreSelectionChangeScopeForDictation, nullptr))
         scope->invalidate();
     m_sendAutocorrectionContextAfterFocusingElement = false;
-    m_hasReceivedVisibleContentRectsAfterDidCommitLoad = false;
     m_hasRestoredExposedContentRectAfterDidCommitLoad = false;
-    m_internals->lastTransactionIDWithScaleChange = firstTransactionIDAfterDidCommitLoad;
-    m_scaleWasSetByUIProcess = false;
     m_userHasChangedPageScaleFactor = false;
     m_previousViewportConfigurationMinimumScale = { };
     m_estimatedLatency = Seconds(1.0 / 60);
     m_shouldRevealCurrentSelectionAfterInsertion = true;
-    m_internals->lastLayerTreeTransactionIdAndPageScaleBeforeScalingPage = std::nullopt;
     m_lastSelectedReplacementRange = { };
     m_bidiSelectionFlippingState = BidiSelectionFlippingState::NotFlipping;
 
@@ -11010,24 +11043,6 @@ void WebPage::contentsToMainFrameViewRect(FrameIdentifier frameID, FloatRect rec
         return;
     }
     completionHandler(view->contentsToMainFrameView(rect));
-}
-
-void WebPage::remoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier frameID, WebCore::DictionaryPopupInfo popupInfo, CompletionHandler<void(WebCore::DictionaryPopupInfo)>&& completionHandler)
-{
-    RefPtr textIndicator = popupInfo.textIndicator;
-    popupInfo.origin = contentsToRootView<FloatPoint>(frameID, popupInfo.origin);
-    if (!textIndicator)
-        return completionHandler(popupInfo);
-#if PLATFORM(COCOA)
-    auto textIndicatorData = textIndicator->data();
-    textIndicatorData.selectionRectInMainFrameViewCoordinates = contentsToRootView<FloatRect>(frameID, popupInfo.textIndicator->selectionRectInMainFrameViewCoordinates());
-    textIndicatorData.textBoundingRectInRootViewCoordinates = contentsToRootView<FloatRect>(frameID, popupInfo.textIndicator->textBoundingRectInRootViewCoordinates());
-    textIndicatorData.contentImageWithoutSelectionRectInRootViewCoordinates = contentsToRootView<FloatRect>(frameID, popupInfo.textIndicator->contentImageWithoutSelectionRectInRootViewCoordinates());
-
-    for (auto& textRect : textIndicatorData.textRectsInBoundingRectCoordinates)
-        textRect = contentsToRootView<FloatRect>(frameID, textRect);
-#endif
-    completionHandler(popupInfo);
 }
 
 void WebPage::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoint point, const ContentWorldData& worldData, CompletionHandler<void(NodeHitTestResult)>&& completionHandler)

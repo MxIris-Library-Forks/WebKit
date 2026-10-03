@@ -37,8 +37,10 @@
 #include <WebCore/FrameLoaderTypes.h>
 #include <WebCore/LayoutMilestone.h>
 #include <WebCore/LoaderMalloc.h>
+#include <WebCore/NavigateEventDispatchResult.h>
 #include <WebCore/NavigationAction.h>
 #include <WebCore/NavigationHistoryBehavior.h>
+#include <WebCore/NavigationIdentifier.h>
 #include <WebCore/NavigationRequester.h>
 #include <WebCore/PageIdentifier.h>
 #include <WebCore/PendingNavigateEventIdentifier.h>
@@ -497,7 +499,7 @@ private:
 
     void updateRequestAndAddExtraFields(Frame&, ResourceRequest&, IsMainResource, FrameLoadType, ShouldUpdateAppInitiatedValue, IsServiceWorkerNavigationLoad, WillOpenInNewWindow, Document*);
 
-    bool dispatchNavigateEvent(FrameLoadType, const FrameLoadRequest&, bool isSameDocument, FormState* = nullptr, Event* = nullptr, SerializedScriptValue* classicHistoryAPIState = nullptr);
+    NavigateEventDispatchResult dispatchNavigateEvent(FrameLoadType, const FrameLoadRequest&, bool isSameDocument, FormState* = nullptr, Event* = nullptr, SerializedScriptValue* classicHistoryAPIState = nullptr);
     bool shouldDispatchNavigateEventForHistoryTraversal(const HistoryItem&, const HistoryItem* fromItem);
 
     WeakRef<LocalFrame> m_frame;
@@ -594,6 +596,8 @@ private:
     Function<bool()> m_pendingDispatchNavigateEvent;
 
     bool m_needsCancellationForContentRuleListCrossOriginRedirect { false };
+    bool m_isStoppingForCacheOnlyLoadRetry { false };
+    std::optional<NavigationIdentifier> m_navigationIDForCacheOnlyLoadRetry;
 };
 
 // This function is called by createWindow() in JSDOMWindowBase.cpp, for example, for

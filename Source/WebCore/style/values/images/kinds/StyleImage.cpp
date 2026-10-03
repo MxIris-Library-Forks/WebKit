@@ -28,6 +28,7 @@
 
 #include "GraphicsContext.h"
 #include "ImagePaintingOptions.h"
+#include "NinePieceGeometry.h"
 
 namespace WebCore {
 namespace Style {
@@ -212,6 +213,11 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
     return ImageDrawResult::DidDraw;
 }
 
+ImageDrawResult Image::draw(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
+{
+    return context.drawImage(image, concreteObjectSize, destination, source, options, extras);
+}
+
 ImageDrawResult Image::drawTiled(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
 {
     if (context.paintingDisabled())
@@ -220,15 +226,45 @@ ImageDrawResult Image::drawTiled(GraphicsContext& context, WebCore::Image& image
     return drawTiledImage(context, image, concreteObjectSize, destination, phase, tileSize, spacing, options, extras);
 }
 
-ImageDrawResult Image::drawTiled(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, const FloatSize& tileScaleFactor, WebCore::Image::TileRule hRule, WebCore::Image::TileRule vRule, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
+ImageDrawResult Image::drawNinePiece(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
 {
     if (context.paintingDisabled())
         return ImageDrawResult::DidNothing;
 
-    if (hRule == WebCore::Image::StretchTile && vRule == WebCore::Image::StretchTile)
-        return context.drawImage(image, concreteObjectSize, destination, source, options, extras);
+    auto result = ImageDrawResult::DidNothing;
+    auto updateResult = [&](auto pieceResult) {
+        if (pieceResult == ImageDrawResult::DidRequestDecoding || result == ImageDrawResult::DidRequestDecoding)
+            result = ImageDrawResult::DidRequestDecoding;
+        else if (pieceResult == ImageDrawResult::DidDraw)
+            result = ImageDrawResult::DidDraw;
+    };
 
-    return drawTiledImage(context, image, concreteObjectSize, destination, source, tileScaleFactor, hRule, vRule, { options.compositeOperator(), options.interpolationQuality() }, extras);
+    for (auto piece : allImagePieces) {
+        if (geometry.shouldSkipPiece(piece))
+            continue;
+
+        if (isCornerPiece(piece)) {
+            updateResult(context.drawImage(image, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], options, extras));
+            continue;
+        }
+
+        auto hRule = isHorizontalPiece(piece)
+            ? static_cast<WebCore::Image::TileRule>(geometry.horizontalRule)
+            : WebCore::Image::StretchTile;
+
+        auto vRule = isVerticalPiece(piece)
+            ? static_cast<WebCore::Image::TileRule>(geometry.verticalRule)
+            : WebCore::Image::StretchTile;
+
+        if (hRule == WebCore::Image::StretchTile && vRule == WebCore::Image::StretchTile) {
+            updateResult(context.drawImage(image, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], options, extras));
+            continue;
+        }
+
+        updateResult(drawTiledImage(context, image, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], geometry.tileScales[piece], hRule, vRule, { options.compositeOperator(), options.interpolationQuality() }, extras));
+    }
+
+    return result;
 }
 
 } // namespace Style

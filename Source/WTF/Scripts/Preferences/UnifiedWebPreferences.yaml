@@ -826,6 +826,14 @@ CSSBaselineSourceEnabled:
   humanReadableDescription: "Enable CSS baseline-source"
   defaultValue: false
 
+CSSBorderRadiusSideShorthandsEnabled:
+  type: bool
+  category: css
+  status: stable
+  humanReadableName: "CSS border-*-radius side shorthands"
+  humanReadableDescription: "Enable support for the border-radius side shorthand physical & logical properties"
+  defaultValue: true
+
 CSSCalcMixEnabled:
   type: bool
   category: css
@@ -837,10 +845,10 @@ CSSCalcMixEnabled:
 CSSCalcSizeFunctionEnabled:
   type: bool
   category: css
-  status: testable
+  status: stable
   humanReadableName: "CSS calc-size()"
   humanReadableDescription: "Enable support for CSS calc-size()"
-  defaultValue: false
+  defaultValue: true
 
 CSSClassPrefixSelectorEnabled:
   type: bool
@@ -6370,6 +6378,17 @@ UndoManagerAPIEnabled:
   humanReadableName: "UndoManager DOM API"
   humanReadableDescription: "Enable the UndoManager DOM API"
   defaultValue: false
+
+UnifiedMacZoomEnabled:
+  type: bool
+  status: internal
+  category: none
+  humanReadableName: "Unified Dynamic Zoom"
+  humanReadableDescription: "Use the iOS dynamic zoom mechanism on macOS, delegating page scale to the UI process"
+  condition: PLATFORM(MAC)
+  defaultValue:
+    default: true
+    WebKitLegacy: false
 
 UnifiedPDFEnabled:
   type: bool

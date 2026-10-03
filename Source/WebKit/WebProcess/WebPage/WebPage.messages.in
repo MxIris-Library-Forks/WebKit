@@ -79,7 +79,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
 #if ENABLE(TWO_PHASE_CLICKS)
     PotentialTapAtPosition(std::optional<WebCore::FrameIdentifier> frameID, WebKit::TapIdentifier requestID, WebCore::FloatPoint point, bool shouldRequestMagnificationInformation, enum:uint8_t WebKit::WebEventInputSource inputSource) -> (struct std::optional<WebCore::RemoteUserInputEventData> data)
-    CommitPotentialTap(std::optional<WebCore::FrameIdentifier> frameID, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::TransactionID lastLayerTreeTransactionId, WebCore::PointerID pointerId) -> (std::optional<WebCore::FrameIdentifier> remoteFrameID)
+    CommitPotentialTap(std::optional<WebCore::FrameIdentifier> frameID, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::TransactionID lastLayerTreeTransactionId, WebCore::PointerID pointerId, enum:bool WebKit::CompletesDoubleClick completesDoubleClick) -> (std::optional<WebCore::FrameIdentifier> remoteFrameID)
     CancelPotentialTap()
     HandleDoubleTapForDoubleClickAtPoint(std::optional<WebCore::FrameIdentifier> frameID, WebCore::IntPoint point, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::TransactionID lastLayerTreeTransactionId, enum:uint8_t WebKit::WebEventInputSource inputSource, enum:uint8_t WebKit::WebMouseEventSyntheticClickType syntheticClickType) -> (struct std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData)
 #endif
@@ -414,6 +414,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
 #if ENABLE(MODEL_PROCESS)
     RequestInteractiveModelElementAtPoint(WebCore::IntPoint clientPosition)
+    StageModeSessionDidBegin(WebCore::NodeIdentifier nodeID, WebCore::TransformationMatrix transform)
     StageModeSessionDidUpdate(std::optional<WebCore::NodeIdentifier> nodeID, WebCore::TransformationMatrix transform)
     StageModeSessionDidEnd(std::optional<WebCore::NodeIdentifier> nodeID)
 #endif
@@ -702,7 +703,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
     FlushDeferredDidReceiveMouseEvent()
 
-    PerformHitTestForMouseEvent(Ref<WebKit::WebMouseEvent> event) -> (struct WebKit::WebHitTestResultData hitTestResult, OptionSet<WebKit::WebEventModifier> modifiers)
+    PerformHitTestForModifierFlagsChangeOnMouseEvent(WebCore::FrameIdentifier frameID, Ref<WebKit::WebMouseEvent> event) -> (Variant<WebKit::WebHitTestResultData, WebCore::RemoteUserInputEventData> result, OptionSet<WebKit::WebEventModifier> modifiers)
 
     SetUseColorAppearance(bool useDarkAppearance, bool useElevatedUserInterfaceLevel)
 
@@ -967,7 +968,6 @@ messages -> WebPage WantsAsyncDispatchMessage {
     ContentsToRootViewRect(WebCore::FrameIdentifier frameID, WebCore::FloatRect rect) -> (WebCore::FloatRect rect)
     ContentsToRootViewPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoint point) -> (WebCore::FloatPoint point)
     ContentsToMainFrameViewRect(WebCore::FrameIdentifier frameID, WebCore::FloatRect rect) -> (WebCore::FloatRect rect)
-    RemoteDictionaryPopupInfoToRootView(WebCore::FrameIdentifier frameID, struct WebCore::DictionaryPopupInfo popupInfo) -> (struct WebCore::DictionaryPopupInfo popupInfo)
     HitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::FloatPoint point, struct WebKit::ContentWorldData world) -> (struct WebKit::NodeHitTestResult result)
 
 #if HAVE(SPATIAL_TRACKING_LABEL)

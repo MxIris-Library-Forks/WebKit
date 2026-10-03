@@ -45,8 +45,12 @@ class CSSValue;
 class CSSValuePool;
 class Document;
 class ImageSizingContext;
+class LayoutSize;
+class RenderBoxModelObject;
 class RenderElement;
 class RenderObject;
+struct NinePieceGeometry;
+struct PaintInfo;
 struct ResourceLoaderOptions;
 
 namespace Style {
@@ -73,6 +77,7 @@ public:
     virtual bool errorOccurred() const { return false; }
     virtual bool usesDataProtocol() const { return false; }
     virtual bool hasImage() const { return false; }
+    virtual bool hasDecodedImage() const { return true; }
     virtual URL url() const { return { }; }
 
     // Clients.
@@ -102,12 +107,18 @@ public:
     // Rendering.
     virtual bool canRender(const RenderElement*, float /*multiplier*/) const { return true; }
     virtual void setContainerSizeForRenderer(const RenderElement&, const FloatSize&) { }
-    virtual ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&, const WTF::URL& = WTF::URL()) const { return { }; }
+    virtual ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&) const { return { }; }
     virtual bool knownToBeOpaque(const RenderElement&) const = 0;
+    virtual bool canDrawAtSize(const RenderElement&, const FloatSize& size) const { return !size.isEmpty(); }
 
     // Drawing
+    ImageDrawResult draw(GraphicsContext&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions = { }, const WebCore::ImageDrawingExtras* = nullptr) const;
     ImageDrawResult drawTiled(GraphicsContext&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions = { }, const WebCore::ImageDrawingExtras* = nullptr) const;
-    ImageDrawResult drawTiled(GraphicsContext&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source, const FloatSize& tileScaleFactor, WebCore::Image::TileRule, WebCore::Image::TileRule, ImagePaintingOptions = { }, const WebCore::ImageDrawingExtras* = nullptr) const;
+    ImageDrawResult drawNinePiece(GraphicsContext&, WebCore::Image&, ConcreteObjectSize, const NinePieceGeometry&, ImagePaintingOptions = { }, const WebCore::ImageDrawingExtras* = nullptr) const;
+
+    // Drawing options
+    virtual DecodingMode decodingModeForImageDraw(const RenderBoxModelObject&, const PaintInfo&) const { return DecodingMode::Synchronous; }
+    virtual InterpolationQuality interpolationQualityForImageDraw(GraphicsContext&, const RenderBoxModelObject&, const void*, const LayoutSize&) const { return InterpolationQuality::Default; }
 
     // Derived type.
     ALWAYS_INLINE bool isCachedImage() const { return m_type == Type::CachedImage; }

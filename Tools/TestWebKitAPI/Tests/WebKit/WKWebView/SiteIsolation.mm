@@ -1089,6 +1089,68 @@ TEST(SiteIsolation, ObscuredContentInsetsSurviveWindowOpenProcessSwap)
     EXPECT_EQ([insetTop doubleValue], 100);
 }
 
+TEST(SiteIsolation, WindowFeaturesOnlyAppliedInMainFrameProcess)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<script>w = window.open('https://webkit.org/opened', '_blank', 'left=50,top=60,width=300,height=200')</script>"_s } },
+        { "/opened"_s, { "hi"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration);
+    configuration.preferences.javaScriptCanOpenWindowsAutomatically = YES;
+
+    RetainPtr openerNavigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [openerNavigationDelegate allowAnyTLSCertificate];
+    RetainPtr opener = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    [opener setNavigationDelegate:openerNavigationDelegate.get()];
+
+    __block Vector<CGRect> windowFrames;
+    RetainPtr openedUIDelegate = adoptNS([TestUIDelegate new]);
+    openedUIDelegate.get().getWindowFrameWithCompletionHandler = ^(WKWebView *, void (^completionHandler)(CGRect)) {
+        completionHandler(CGRectMake(0, 0, 800, 600));
+    };
+    openedUIDelegate.get().setWindowFrame = ^(WKWebView *, CGRect frame) {
+        windowFrames.append(frame);
+    };
+
+    RetainPtr openedNavigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [openedNavigationDelegate allowAnyTLSCertificate];
+    __block RetainPtr<TestWKWebView> opened;
+    RetainPtr openerUIDelegate = adoptNS([TestUIDelegate new]);
+    openerUIDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
+        opened = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+        opened.get().navigationDelegate = openedNavigationDelegate.get();
+        opened.get().UIDelegate = openedUIDelegate.get();
+        // Like Safari, size the web view after creating it, so pages for the opened window created in
+        // other processes during initialization have an empty view size.
+        [opened setFrame:NSMakeRect(0, 0, 800, 600)];
+        return opened.get();
+    };
+    [opener setUIDelegate:openerUIDelegate.get()];
+
+    [opener loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    while (!opened)
+        Util::spinRunLoop();
+    [openedNavigationDelegate waitForDidFinishNavigation];
+
+    checkFrameTreesInProcesses(opened.get(), { { RemoteFrame }, { "https://webkit.org"_s } });
+
+    // Make sure any window frame messages sent by either process have been received.
+    EXPECT_EQ([[opener objectByEvaluatingJavaScript:@"1"] intValue], 1);
+    EXPECT_EQ([[opener objectByEvaluatingJavaScript:@"1" inFrame:[opener firstChildFrame]] intValue], 1);
+
+    // Only the process with the local main frame can compute the window frame from the features.
+    // The example.com process, where the opened window's main frame is remote, would compute a frame
+    // based on an empty viewport size.
+    EXPECT_EQ(windowFrames.size(), 1u);
+    for (auto& frame : windowFrames) {
+        EXPECT_EQ(frame.size.width, 300);
+        EXPECT_EQ(frame.size.height, 200);
+    }
+}
+
 #endif // PLATFORM(MAC)
 
 TEST(SiteIsolation, CrossSiteIFrameWindowOpensMainFrameSite)
@@ -4224,6 +4286,58 @@ TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInCrossOriginIframe)
     EXPECT_EQ(rect.size.height, 15);
 }
 
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInCrossOriginIframeWithPageZoom)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><iframe id='iframe' style='margin: 100px; width: 400px; height: 300px; border: none;' src='https://domain2.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<body style='margin: 0; min-height: 1000px'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration);
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    webView.get().navigationDelegate = navigationDelegate.get();
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrameInfo = [webView firstChildFrame];
+
+    RetainPtr worldConfiguration = adoptNS([_WKContentWorldConfiguration new]);
+    worldConfiguration.get().allowAutofill = YES;
+    RetainPtr autofillWorld = [WKContentWorld _worldWithConfiguration:worldConfiguration.get()];
+
+    auto convertRect = [&] {
+        NSArray *result = [webView objectByEvaluatingJavaScript:@"(() => { let r = window.convertRectToMainFrameCoordinates({ x: 20, y: 30, width: 10, height: 15 }); return [r.x, r.y, r.width, r.height]; })()" inFrame:childFrameInfo.get() inContentWorld:autofillWorld.get()];
+        EXPECT_EQ(result.count, 4u);
+        return CGRectMake([result[0] doubleValue], [result[1] doubleValue], [result[2] doubleValue], [result[3] doubleValue]);
+    };
+
+    CGRect rect;
+    EXPECT_TRUE(Util::waitFor([&] {
+        rect = convertRect();
+        return rect.origin.x == 120;
+    }));
+    EXPECT_EQ(rect.origin.x, 120);
+    EXPECT_EQ(rect.origin.y, 130);
+    EXPECT_EQ(rect.size.width, 10);
+    EXPECT_EQ(rect.size.height, 15);
+
+    // Zooming the page scales both the position and the size of the rect.
+    webView.get().pageZoom = 2;
+    EXPECT_TRUE(Util::waitFor([&] {
+        rect = convertRect();
+        return rect.origin.x != 120;
+    }));
+    [webView waitForNextPresentationUpdate];
+
+    rect = convertRect();
+    EXPECT_EQ(rect.origin.x, 240);
+    EXPECT_EQ(rect.origin.y, 260);
+    EXPECT_EQ(rect.size.width, 20);
+    EXPECT_EQ(rect.size.height, 30);
+}
+
 TEST(SiteIsolation, SetFocusedFrame)
 {
     auto mainframeHTML = "<iframe id='iframe' src='https://domain2.com/subframe'></iframe>"_s;
@@ -5027,6 +5141,38 @@ TEST(SiteIsolation, CountStringMatches)
     [webView _countStringMatches:@"Hello world" options:0 maxCount:100];
     while ([findDelegate matchesCount] != 2)
         Util::spinRunLoop();
+}
+
+TEST(SiteIsolation, HideFindUIClearsTextMatchMarkersInFrame)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<p>Hello world</p><iframe src='https://domain2.com/subframe'></iframe>"_s } },
+        { "/subframe"_s, { "<p>Hello world</p>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    [configuration setWebsiteDataStore:server.httpsProxyConfiguration().websiteDataStore];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+    RetainPtr findDelegate = adoptNS([[WKWebViewFindStringFindDelegate alloc] init]);
+    [webView _setFindDelegate:findDelegate.get()];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    auto* mainFrameInfo = [webView mainFrame].info;
+    RetainPtr childFrame = [webView firstChildFrame];
+    auto textMatchMarkerCount = [&](WKFrameInfo *frame) {
+        return [[webView objectByEvaluatingJavaScript:@"internals.markerCountForNode(document.querySelector('p').firstChild, 'textmatch')" inFrame:frame] unsignedIntValue];
+    };
+
+    [webView _countStringMatches:@"Hello world" options:_WKFindOptionsShowOverlay maxCount:100];
+    while ([findDelegate matchesCount] != 2)
+        Util::spinRunLoop();
+    EXPECT_EQ(1u, textMatchMarkerCount(mainFrameInfo));
+    EXPECT_EQ(1u, textMatchMarkerCount(childFrame.get()));
+
+    [webView _hideFindUI];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !textMatchMarkerCount(mainFrameInfo) && !textMatchMarkerCount(childFrame.get());
+    }));
 }
 
 TEST(SiteIsolation, FindStringMatchIndexAcrossFrames)

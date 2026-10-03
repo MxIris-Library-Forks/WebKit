@@ -149,10 +149,10 @@ static inline InlineContentBreaker::PartialRun firstCharacterBreakRespectingLine
     while (inlineTextItem.start() + breakPosition < inlineTextItem.end()) {
         if (canBreakBefore(text[inlineTextItem.start() + breakPosition], textRun.style.lineBreak()))
             break;
-        auto nextPosition = breakPosition;
-        U16_FWD_1(text, nextPosition, inlineTextItem.end() - inlineTextItem.start());
-        breakWidth = TextUtil::width(inlineTextItem, textRun.style.fontCascade(), inlineTextItem.start(), inlineTextItem.start() + nextPosition, contentLogicalRight);
-        breakPosition = nextPosition;
+        auto nextPosition = inlineTextItem.start() + breakPosition;
+        U16_FWD_1(text, nextPosition, inlineTextItem.end());
+        breakWidth = TextUtil::width(inlineTextItem, textRun.style.fontCascade(), inlineTextItem.start(), nextPosition, contentLogicalRight);
+        breakPosition = nextPosition - inlineTextItem.start();
     }
     return { breakPosition, breakWidth };
 }
@@ -314,6 +314,11 @@ InlineContentBreaker::Result InlineContentBreaker::processOverflowingContent(con
         return { Result::Action::Wrap, IsEndOfLine::Yes };
     if (lineStatus.hasWrapOpportunityAtPreviousPosition)
         return { Result::Action::RevertToLastWrapOpportunity, IsEndOfLine::Yes };
+    if (lineStatus.hasBlockEllipsis) {
+        // "For this purpose, soft wrap opportunities added by overflow-wrap are ignored, as are those inhibited by text-wrap-mode: nowrap."
+        // https://drafts.csswg.org/css-overflow-4/#block-ellipsis
+        return { Result::Action::Wrap, IsEndOfLine::Yes };
+    }
     return { Result::Action::Keep, IsEndOfLine::No };
 }
 
@@ -531,7 +536,8 @@ std::optional<InlineContentBreaker::PartialRun> InlineContentBreaker::tryBreakin
     CheckedRef style = candidateRun.style;
     auto lineHasRoomForContent = availableWidth > 0;
 
-    auto breakRules = wordBreakBehavior(style, lineStatus.hasWrapOpportunityAtPreviousPosition);
+    // overflow-wrap (and word-break: break-word) only break when there's no earlier wrap opportunity, and they never apply to the block ellipsis.
+    auto breakRules = wordBreakBehavior(style, lineStatus.hasWrapOpportunityAtPreviousPosition || lineStatus.hasBlockEllipsis);
     if (breakRules.isEmpty())
         return { };
 

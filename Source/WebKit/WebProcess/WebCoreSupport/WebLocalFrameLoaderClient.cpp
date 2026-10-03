@@ -605,7 +605,7 @@ void WebLocalFrameLoaderClient::dispatchDidStartProvisionalLoad()
     webPage->injectedBundleLoaderClient().didStartProvisionalLoadForFrame(*webPage, m_frame, userData);
     RefPtr provisionalLoader = m_localFrame->loader().provisionalDocumentLoader();
 
-    if (!provisionalLoader || provisionalLoader->isContinuingLoadAfterProvisionalLoadStarted())
+    if (!provisionalLoader || provisionalLoader->isContinuingLoadAfterProvisionalLoadStarted() || provisionalLoader->isCacheOnlyLoadRetry())
         return;
     
     auto& url = provisionalLoader->url();
@@ -748,7 +748,8 @@ void WebLocalFrameLoaderClient::dispatchDidFailProvisionalLoad(const ResourceErr
     // the entire LocalFrameLoaderClient function was complete.
     std::optional<WebCore::NavigationIdentifier> navigationID;
     ResourceRequest request;
-    if (RefPtr documentLoader = m_localFrame->loader().provisionalDocumentLoader()) {
+    Ref frameLoader = m_localFrame->loader();
+    if (RefPtr documentLoader = frameLoader->provisionalDocumentLoader() ?: frameLoader->policyDocumentLoader()) {
         navigationID = documentLoader->navigationID();
         request = documentLoader->request();
     }
@@ -1808,7 +1809,15 @@ void WebLocalFrameLoaderClient::transitionToCommittedForNewPage(InitializingIfra
     if (isMainFrame)
         view->setDelegatedScrollingMode(drawingArea->delegatedScrollingMode());
 
-    webPage->corePage()->setDelegatesScaling(drawingArea->usesDelegatedPageScaling());
+    RefPtr corePage = webPage->corePage();
+    corePage->setDelegatesScaling(drawingArea->usesDelegatedPageScaling());
+
+#if PLATFORM(MAC)
+    // Give the tiled backing a zoomed-out grid to fall back on. With a zero zoomedOutPageScaleFactor it drops the
+    // old grid as soon as the scale changes, and a frame can present with no tiles.
+    if (isMainFrame && drawingArea->usesDelegatedPageScaling())
+        corePage->setZoomedOutPageScaleFactor(webPage->minimumPageScaleFactorForUIProcessScale());
+#endif
 #endif
 
     if (webPage->scrollPinningBehavior() != ScrollPinningBehavior::DoNotPin)

@@ -193,7 +193,11 @@ IntSize LegacyRenderSVGImage::imageContainerSize() const
 
 void LegacyRenderSVGImage::paintForeground(PaintInfo& paintInfo)
 {
-    RefPtr<Image> image = imageResource().image();
+    RefPtr styleImage = imageResource().styleImage();
+    if (!styleImage || !styleImage->canDrawAtSize(*this, m_objectBoundingBox.size()))
+        return;
+
+    RefPtr image = imageResource().image();
     if (!image)
         return;
 
@@ -207,7 +211,7 @@ void LegacyRenderSVGImage::paintForeground(PaintInfo& paintInfo)
         ImageQualityController::chooseInterpolationQualityForSVG(paintInfo.context(), *this, *image),
         settings().imageSubsamplingEnabled() ? AllowImageSubsampling::Yes : AllowImageSubsampling::No,
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
-        AXCustomColorModeController::shouldInvertSVGImage(*this) ? InvertContent::Yes : InvertContent::No,
+        AXCustomColorModeController::shouldInvertContentImage(*this, *image, destRect.size()) ? InvertContent::Yes : InvertContent::No,
 #endif
         settings().showDebugBorders() ? ShowDebugBackground::Yes : ShowDebugBackground::No,
         settings().hdrAcceleratedApplyGainMapEnabled() ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No,
@@ -221,8 +225,8 @@ void LegacyRenderSVGImage::paintForeground(PaintInfo& paintInfo)
     auto concreteObjectSize = image->drawsSVGImage()
         ? ConcreteObjectSize::fixed(containerSize / usedZoom, usedZoom)
         : ConcreteObjectSize::fixed(image->size());
-    auto extras = imageResource().drawingExtras(protect(document())->encodingParseURL(protect(imageElement())->imageSourceURL()));
-    context.drawImage(*image, concreteObjectSize, destRect, srcRect, options, &extras);
+    auto extras = imageResource().drawingExtras();
+    protect(imageResource().styleImage())->draw(context, *image, concreteObjectSize, destRect, srcRect, options, &extras);
 
     RefPtr cachedImage = imageResource().cachedImage();
     if (cachedImage && !context.paintingDisabled())

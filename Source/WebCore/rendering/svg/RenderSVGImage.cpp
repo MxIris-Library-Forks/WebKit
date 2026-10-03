@@ -153,7 +153,11 @@ ImageDrawResult RenderSVGImage::paintIntoRect(PaintInfo& paintInfo, const FloatR
     if (!imageResource().cachedImage() || rect.width() <= 0 || rect.height() <= 0)
         return ImageDrawResult::DidNothing;
 
-    RefPtr<Image> image = imageResource().image();
+    RefPtr styleImage = imageResource().styleImage();
+    if (!styleImage || !styleImage->canDrawAtSize(*this, rect.size()))
+        return ImageDrawResult::DidNothing;
+
+    RefPtr image = imageResource().image();
     if (!image || image->isNull())
         return ImageDrawResult::DidNothing;
 
@@ -164,7 +168,7 @@ ImageDrawResult RenderSVGImage::paintIntoRect(PaintInfo& paintInfo, const FloatR
         ImageQualityController::chooseInterpolationQualityForSVG(paintInfo.context(), *this, *image),
         settings().imageSubsamplingEnabled() ? AllowImageSubsampling::Yes : AllowImageSubsampling::No,
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
-        AXCustomColorModeController::shouldInvertSVGImage(*this) ? InvertContent::Yes : InvertContent::No,
+        AXCustomColorModeController::shouldInvertContentImage(*this, *image, rect.size()) ? InvertContent::Yes : InvertContent::No,
 #endif
         settings().showDebugBorders() ? ShowDebugBackground::Yes : ShowDebugBackground::No,
         settings().hdrAcceleratedApplyGainMapEnabled() ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No,
@@ -177,8 +181,8 @@ ImageDrawResult RenderSVGImage::paintIntoRect(PaintInfo& paintInfo, const FloatR
     auto concreteObjectSize = image->drawsSVGImage()
         ? ConcreteObjectSize::fixed(containerSize / usedZoom, usedZoom)
         : ConcreteObjectSize::fixed(image->size());
-    auto extras = imageDrawingExtras();
-    auto drawResult = paintInfo.context().drawImage(*image, concreteObjectSize, rect, sourceRect, options, &extras);
+    auto extras = imageResource().drawingExtras();
+    auto drawResult = protect(imageResource().styleImage())->draw(paintInfo.context(), *image, concreteObjectSize, rect, sourceRect, options, &extras);
     if (drawResult == ImageDrawResult::DidRequestDecoding)
         protect(imageResource().cachedImage())->addClientWaitingForAsyncDecoding(protect(cachedImageClient()));
 
@@ -280,11 +284,6 @@ IntSize RenderSVGImage::imageContainerSize() const
     }
 
     return enclosingIntRect(m_objectBoundingBox).size();
-}
-
-Style::ImageDrawingExtras RenderSVGImage::imageDrawingExtras() const
-{
-    return imageResource().drawingExtras(protect(document())->encodingParseURL(imageElement().imageSourceURL()));
 }
 
 bool RenderSVGImage::updateImageViewport()

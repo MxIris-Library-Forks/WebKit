@@ -120,6 +120,11 @@ bool MultiImage::errorOccurred() const
     return m_selectedImage && protect(m_selectedImage)->errorOccurred();
 }
 
+bool MultiImage::hasDecodedImage() const
+{
+    return m_selectedImage && protect(m_selectedImage)->hasDecodedImage();
+}
+
 FloatSize MultiImage::imageSize(const RenderElement* renderer, float multiplier, WebCore::CachedImage::SizeType sizeType) const
 {
     if (!m_selectedImage)
@@ -151,11 +156,11 @@ NaturalDimensions MultiImage::naturalDimensions(const RenderElement& renderer, c
     return protect(m_selectedImage)->naturalDimensions(renderer, context);
 }
 
-ImageDrawingExtras MultiImage::drawingExtrasForRenderer(const RenderElement& renderer, const WTF::URL& url) const
+ImageDrawingExtras MultiImage::drawingExtrasForRenderer(const RenderElement& renderer) const
 {
     if (!m_selectedImage)
         return { };
-    return protect(m_selectedImage)->drawingExtrasForRenderer(renderer, url);
+    return protect(m_selectedImage)->drawingExtrasForRenderer(renderer);
 }
 
 void MultiImage::setContainerSizeForRenderer(const RenderElement& renderer, const FloatSize& containerSize)
@@ -208,6 +213,25 @@ float MultiImage::imageScaleFactor() const
 bool MultiImage::knownToBeOpaque(const RenderElement& renderer) const
 {
     return m_selectedImage && protect(m_selectedImage)->knownToBeOpaque(renderer);
+}
+
+bool MultiImage::canDrawAtSize(const RenderElement& renderer, const FloatSize& size) const
+{
+    return m_selectedImage && protect(m_selectedImage)->canDrawAtSize(renderer, size);
+}
+
+DecodingMode MultiImage::decodingModeForImageDraw(const RenderBoxModelObject& renderer, const PaintInfo& paintInfo) const
+{
+    if (!m_selectedImage)
+        return Image::decodingModeForImageDraw(renderer, paintInfo);
+    return protect(m_selectedImage)->decodingModeForImageDraw(renderer, paintInfo);
+}
+
+InterpolationQuality MultiImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderBoxModelObject& renderer, const void* layer, const LayoutSize& size) const
+{
+    if (!m_selectedImage)
+        return Image::interpolationQualityForImageDraw(context, renderer, layer, size);
+    return protect(m_selectedImage)->interpolationQualityForImageDraw(context, renderer, layer, size);
 }
 
 } // namespace Style

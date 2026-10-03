@@ -28,6 +28,7 @@
 #include "CachedImage.h"
 #include "CachedResourceHandle.h"
 #include "StyleImage.h"
+#include <wtf/OptionSet.h>
 #include <wtf/TZoneMalloc.h>
 
 namespace WebCore {
@@ -43,12 +44,18 @@ class TreeScope;
 
 namespace Style {
 
+// https://svgwg.org/specs/integration/#referencing-modes
+enum class SVGReferencingMode : uint8_t {
+    AnimatedImageDocument = 1 << 0,
+    ResourceDocument = 1 << 1,
+};
+
 class CachedImage final : public Image {
     WTF_MAKE_TZONE_ALLOCATED(CachedImage);
 public:
     static Ref<CachedImage> create(URL&&, Ref<CSSImageValue>&&, float scaleFactor = 1);
     static Ref<CachedImage> create(const URL&, const Ref<CSSImageValue>&, float scaleFactor = 1);
-    static Ref<CachedImage> create(WebCore::CachedImage&, float scaleFactor = 1);
+    static Ref<CachedImage> create(WebCore::CachedImage&, WTF::URL&& authoredURL, OptionSet<SVGReferencingMode>, float scaleFactor = 1);
     static Ref<CachedImage> copyOverridingScaleFactor(CachedImage&, float scaleFactor);
     virtual ~CachedImage();
 
@@ -74,21 +81,26 @@ public:
     void computeIntrinsicDimensions(const RenderElement*, float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio) final;
     NaturalDimensions naturalDimensions(const RenderElement&, const ImageSizingContext&) const final;
     void setContainerSizeForRenderer(const RenderElement&, const FloatSize&) final;
-    ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&, const WTF::URL& = WTF::URL()) const final;
+    ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&) const final;
     void addClient(RenderElement&) final;
     void removeClient(RenderElement&) final;
     bool hasClient(RenderElement&) const final;
     bool hasImage() const final;
+    bool hasDecodedImage() const final;
     RefPtr<WebCore::Image> image(const RenderElement*, const FloatSize&, const GraphicsContext& destinationContext, bool isForFirstLine) const final;
     bool currentFrameIsComplete(const RenderElement*) const final;
     float imageScaleFactor() const final;
     bool knownToBeOpaque(const RenderElement&) const final;
+    bool canDrawAtSize(const RenderElement&, const FloatSize&) const final;
+    DecodingMode decodingModeForImageDraw(const RenderBoxModelObject&, const PaintInfo&) const final;
+    InterpolationQuality interpolationQualityForImageDraw(GraphicsContext&, const RenderBoxModelObject&, const void* layer, const LayoutSize&) const final;
     bool usesDataProtocol() const final;
 
     URL url() const final;
 
 private:
     CachedImage(URL&&, Ref<CSSImageValue>&&, float);
+    CachedImage(URL&&, Ref<CSSImageValue>&&, float, OptionSet<SVGReferencingMode>);
 
     Vector<CSS::ParamFunction> urlLinkParameters(const CSSParserContext&, StringView fragment) const;
 
@@ -100,6 +112,7 @@ private:
 
     URL m_url;
     const Ref<CSSImageValue> m_cssValue;
+    const OptionSet<SVGReferencingMode> m_referencingModes;
     bool m_isPending { true };
     mutable float m_scaleFactor { 1 };
     mutable CachedResourceHandle<WebCore::CachedImage> m_cachedImage;

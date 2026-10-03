@@ -134,6 +134,7 @@ list(APPEND TestWTF_SOURCES
     Tests/WTF/cf/VectorCF.cpp
 
     Tests/WTF/cocoa/BlockPtr.mm
+    Tests/WTF/cocoa/CStringCocoa.mm
     Tests/WTF/cocoa/ContextualizedNSString.mm
     Tests/WTF/cocoa/LoggerCocoa.mm
     Tests/WTF/cocoa/RetainPtr.mm
@@ -156,6 +157,7 @@ list(APPEND TestWTF_SOURCES
     Tests/WTF/darwin/TypeCastsOSObjectCF.cpp
     Tests/WTF/darwin/TypeCastsOSObjectCocoa.mm
     Tests/WTF/darwin/TypeCastsOSObjectCocoaARC.mm
+    Tests/WTF/darwin/WeakLinking.cpp
 )
 
 # The shared prefix header is precompiled without ARC, so these can't reuse it.
@@ -179,6 +181,11 @@ list(APPEND TestWTF_LIBRARIES
 # Tests/WTF/{cf,cocoa,darwin} include headers from Tests/WTF by name.
 list(APPEND TestWTF_PRIVATE_INCLUDE_DIRECTORIES
     ${TESTWEBKITAPI_DIR}/Tests/WTF
+)
+
+# Includes handwritten .tbd stubs needed by WeakLinking.cpp.
+list(APPEND TestWTF_LIBRARIES
+    -L${TESTWEBKITAPI_DIR}/Tests/WTF/darwin
 )
 
 # TestJavaScriptCore
@@ -382,9 +389,13 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKPage/mac/DeferredViewInWindowStateChange.mm
     Tests/WebKit/WKPage/mac/WKThumbnailView.mm
 
+    Tests/WebKit/WKWebView/AdvancedPrivacyProtections.mm
+    Tests/WebKit/WKWebView/AllowInlinePlaybackInDesktopClassBrowsing.mm
     Tests/WebKit/WKWebView/AnimationControl.mm
+    Tests/WebKit/WKWebView/DictationStreamingOpacity.mm
     Tests/WebKit/WKWebView/FullscreenLifecycle.mm
     Tests/WebKit/WKWebView/GetUserMediaNavigation.mm
+    Tests/WebKit/WKWebView/GetUserMediaReprompt.mm
     Tests/WebKit/WKWebView/InjectedBundleHitTest.mm
     Tests/WebKit/WKWebView/InstanceMethodSwizzler.mm
     Tests/WebKit/WKWebView/MSEIsTypeSupportedCaching.mm
@@ -392,6 +403,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/MediaStreamingActivitySuspended.mm
     Tests/WebKit/WKWebView/NoHistoryItemScrollToFragment.mm
     Tests/WebKit/WKWebView/NowPlayingMetadataObserver.mm
+    Tests/WebKit/WKWebView/NowPlayingSession.mm
     Tests/WebKit/WKWebView/OrthogonalFlowAvailableSize.mm
     Tests/WebKit/WKWebView/ParentalControlsContentFilteringTests.mm
     Tests/WebKit/WKWebView/SmartLists.mm
@@ -402,9 +414,12 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/WKWebViewSpatialTrackingLabels.mm
     Tests/WebKit/WKWebView/WebRTC.mm
 
+    Tests/WebKit/WKWebView/ios/FullscreenTouchSecheuristicTests.cpp
+
     Tests/WebKit/WKWebView/mac/AttributedSubstringForProposedRange.mm
     Tests/WebKit/WKWebView/mac/GrammarMarkerPrecedence.mm
     Tests/WebKit/WKWebView/mac/NSRefreshControllerTests.mm
+    Tests/WebKit/WKWebView/mac/PasteboardFileTypeBlocklist.mm
     Tests/WebKit/WKWebView/mac/RunningBoardManagement.mm
     Tests/WebKit/WKWebView/mac/WordBoundaryTypingAttributes.mm
 
@@ -586,6 +601,23 @@ if (ENABLE_WEBGPU)
         ${CARBON_LIBRARY}
         "-framework Metal"
     )
+
+    # Resources used by MetalCompilationTests and TypeCheckingTests.
+    # FIXME: Globbing is hazardous for incremental builds, tracking a
+    # workaround in rdar://188725492.
+    file(GLOB TestWGSL_SHADERS "${TESTWEBKITAPI_DIR}/Tests/WGSL/shaders/*.wgsl")
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/copied-wgsl-shaders.stamp"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TESTWEBKITAPI_DIR}/Tests/WGSL/shaders"
+            "${TESTWEBKITAPI_RUNTIME_OUTPUT_DIRECTORY}/shaders"
+        COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/copied-wgsl-shaders.stamp"
+        DEPENDS ${TestWGSL_SHADERS}
+        COMMENT "Copying WGSL test shaders")
+    set_property(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} PROPERTY
+        ADDITIONAL_CLEAN_FILES "${TESTWEBKITAPI_RUNTIME_OUTPUT_DIRECTORY}/shaders")
+    add_custom_target(TestWGSLShaders
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/copied-wgsl-shaders.stamp")
+    add_dependencies(TestWGSL TestWGSLShaders)
 endif ()
 
 # Common framework header directories needed by config.h (<wtf/Platform.h>, <WebKit/WebKit2_C.h>, etc.)
@@ -717,7 +749,12 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/WKWebExtensionAPINamespace.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIOffscreen.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIPermissions.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPITest.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIWebNavigation.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIWebRequest.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIWindows.swift
+    Tests/WebKit/WKWebView/WKWebExtensionContext.swift
+    Tests/WebKit/WKWebView/WKWebExtensionController.swift
     Tests/WebKit/WKWebView/WKWebExtensionControllerConfiguration.swift
     Tests/WebKit/WKWebView/WKWebExtensionDataRecord.swift
     Tests/WebKit/WKWebView/WKWebExtensionMatchPattern.swift
@@ -938,8 +975,44 @@ add_dependencies(TestWebKit TestWebKitAPIWebProcessPlugIn)
 # URLForResource:withExtension:@"", which requires web-extension/, *.appex/,
 # and *.mlmodelc/ to retain their layout.
 set(_resources_bundle_dir "${TESTWEBKITAPI_RUNTIME_OUTPUT_DIRECTORY}/TestWebKitAPIResources.bundle")
-set(_resources_dst_files)
+if (WEBKIT_SDK_IS_MACOS)
+    set(_resources_info_plist "${_resources_bundle_dir}/Contents/Info.plist")
+    set(_resources_dir "${_resources_bundle_dir}/Contents/Resources")
+else ()
+    set(_resources_info_plist ${_resources_bundle_dir})
+    set(_resources_dir ${_resources_bundle_dir})
+endif ()
 
+file(CONFIGURE OUTPUT ${_resources_info_plist} CONTENT [[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.apple.WebKit.TestWebKitAPIResources</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>TestWebKitAPIResources</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleSupportedPlatforms</key>
+    <array>
+        <string>@WEBKIT_PLATFORM_NAME@</string>
+    </array>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>@CMAKE_OSX_DEPLOYMENT_TARGET@</string>
+</dict>
+</plist>
+]] @ONLY)
+
+set(_resources_dst_files)
 function(_testwebkitapi_stage_resources source_root skip_pattern)
     file(GLOB_RECURSE _entries RELATIVE "${source_root}" "${source_root}/*")
     foreach (_rel IN LISTS _entries)
@@ -947,9 +1020,9 @@ function(_testwebkitapi_stage_resources source_root skip_pattern)
             continue ()
         endif ()
         set(_src "${source_root}/${_rel}")
-        set(_dst "${_resources_bundle_dir}/${_rel}")
+        set(_dst "${_resources_dir}/${_rel}")
         set(_walk "${_dst}")
-        while (NOT _walk STREQUAL "${_resources_bundle_dir}" AND NOT _walk STREQUAL "/")
+        while (NOT _walk STREQUAL "${_resources_dir}" AND NOT _walk STREQUAL "/")
             get_filename_component(_walk "${_walk}" DIRECTORY)
             if (IS_SYMLINK "${_walk}")
                 file(REMOVE "${_walk}")

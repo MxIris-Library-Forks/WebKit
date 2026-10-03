@@ -198,9 +198,6 @@ if (WEBKIT_SDK_IS_IOS_FAMILY)
     target_link_options(JavaScriptCore PRIVATE "LINKER:-weak_framework,BrowserEngineCore")
 
     target_compile_definitions(JavaScriptCore PRIVATE PAS_BMALLOC_HIDDEN=1)
-    target_compile_options(JavaScriptCore PRIVATE
-        "$<$<COMPILE_LANGUAGE:OBJC,OBJCXX>:-fvisibility=hidden>"
-    )
 
     set(BUNDLE_VERSION "${MACOSX_FRAMEWORK_BUNDLE_VERSION}")
     set(SHORT_VERSION_STRING "${WEBKIT_MAC_VERSION}")
@@ -276,6 +273,8 @@ if (WEBKIT_SDK_IS_IOS_FAMILY)
     configure_file(${JAVASCRIPTCORE_DIR}/framework.sb ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/JavaScriptCore.framework/framework.sb COPYONLY)
     configure_file(${JAVASCRIPTCORE_DIR}/JavaScriptCore.modulemap ${CMAKE_BINARY_DIR}/JavaScriptCore/Modules/module.modulemap COPYONLY)
     configure_file("${JAVASCRIPTCORE_DIR}/JavaScriptCore_Private.modulemap" ${CMAKE_BINARY_DIR}/JavaScriptCore/Modules/module.private.modulemap COPYONLY)
+elseif (WEBKIT_SDK_IS_MACOS)
+    configure_file(${JAVASCRIPTCORE_DIR}/framework.sb ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/JavaScriptCore.framework/Versions/A/Resources/framework.sb COPYONLY)
 endif ()
 
 list(APPEND JavaScriptCore_PUBLIC_FRAMEWORK_HEADERS

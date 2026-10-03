@@ -1,6 +1,9 @@
 # FIXME: Remove once source files are fixed. https://bugs.webkit.org/show_bug.cgi?id=312034
 WEBKIT_ADD_TARGET_CXX_FLAGS(WebKitLegacy -Wno-unused-parameter)
 
+# Unlike other parts of the WebKit stack, WKL's Objective-C API isn't annotated for export.
+target_compile_options(WebKitLegacy PRIVATE "$<$<COMPILE_LANGUAGE:OBJC,OBJCXX>:-fvisibility=default>")
+
 WEBKIT_ADD_PREFIX_HEADER(WebKitLegacy WebKitLegacyPrefix.h PREFIX_LANGUAGES CXX OBJC OBJCXX)
 
 find_library(UIKIT_LIBRARY UIKit)
@@ -14,6 +17,9 @@ endif ()
 if (WEBKIT_SDK_IS_MACOS)
     list(APPEND WebKitLegacy_PRIVATE_LIBRARIES ${SECURITYINTERFACE_LIBRARY})
 endif ()
+
+# FIXME: Unset for production-style CMake builds.
+list(APPEND WebKitLegacy_PRIVATE_DEFINITIONS ENABLE_WEBKIT_UNSET_DYLD_FRAMEWORK_PATH)
 
 list(APPEND WebKitLegacy_PRIVATE_INCLUDE_DIRECTORIES
     "${PAL_FRAMEWORK_HEADERS_DIR}"
@@ -1262,6 +1268,24 @@ if (WebKitLegacy_INSTALL_NAME_DIR)
         INSTALL_NAME_DIR "${WebKitLegacy_INSTALL_NAME_DIR}"
     )
 endif ()
+
+set(WebKitLegacy_XIBS
+    ${WEBKITLEGACY_DIR}/en.lproj/WebJavaScriptTextInputPanel.xib
+    ${WEBKITLEGACY_DIR}/mac/Panels/en.lproj/WebAuthenticationPanel.xib
+)
+set(_wkl_localized_resources_dir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKitLegacy.framework/Versions/A/Resources/en.lproj)
+foreach (_xib IN LISTS WebKitLegacy_XIBS)
+    get_filename_component(_nib_name ${_xib} NAME_WE)
+    set(_nib ${_wkl_localized_resources_dir}/${_nib_name}.nib)
+    add_custom_command(OUTPUT ${_nib}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${_wkl_localized_resources_dir}
+        COMMAND ibtool --compile ${_nib} ${_xib}
+        DEPENDS ${_xib}
+        VERBATIM)
+    list(APPEND WebKitLegacy_NIBS ${_nib})
+endforeach ()
+add_custom_target(WebKitLegacy_CompileXIBs DEPENDS ${WebKitLegacy_NIBS})
+add_dependencies(WebKitLegacy WebKitLegacy_CompileXIBs)
 
 
 # WebKit reexports WebKitLegacy, so the legacy ObjC API is part of WebKit's

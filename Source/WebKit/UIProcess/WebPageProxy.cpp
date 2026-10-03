@@ -1435,8 +1435,12 @@ void WebPageProxy::setResourceLoadClient(std::unique_ptr<API::ResourceLoadClient
     bool hadResourceLoadClient = !!m_resourceLoadClient;
     m_resourceLoadClient = WTF::move(client);
     bool hasResourceLoadClient = !!m_resourceLoadClient;
-    if (hadResourceLoadClient != hasResourceLoadClient)
-        send(Messages::WebPage::SetHasResourceLoadClient(hasResourceLoadClient));
+    if (hadResourceLoadClient == hasResourceLoadClient)
+        return;
+
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::SetHasResourceLoadClient(hasResourceLoadClient), pageID);
+    });
 }
 
 void WebPageProxy::handleMessage(IPC::Connection& connection, const String& messageName, const WebKit::UserData& messageBody)
@@ -3276,7 +3280,9 @@ void WebPageProxy::setControlledByAutomation(bool controlled)
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::SetControlledByAutomation(controlled));
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::SetControlledByAutomation(controlled), pageID);
+    });
     protect(protect(websiteDataStore())->networkProcess())->send(Messages::NetworkProcess::SetSessionIsControlledByAutomation(m_websiteDataStore->sessionID(), m_controlledByAutomation), 0);
 }
 
@@ -4651,6 +4657,11 @@ void WebPageProxy::requestInteractiveModelElementAtPoint(const IntPoint clientPo
     send(Messages::WebPage::RequestInteractiveModelElementAtPoint(clientPosition));
 }
 
+void WebPageProxy::stageModeSessionDidBegin(NodeIdentifier nodeID, const TransformationMatrix& transform)
+{
+    send(Messages::WebPage::StageModeSessionDidBegin(nodeID, transform));
+}
+
 void WebPageProxy::stageModeSessionDidUpdate(std::optional<NodeIdentifier> nodeID, const TransformationMatrix& transform)
 {
     send(Messages::WebPage::StageModeSessionDidUpdate(nodeID, transform));
@@ -4784,11 +4795,23 @@ void WebPageProxy::handleMouseEvent(Ref<NativeWebMouseEvent>&& event)
         WEBPAGEPROXY_RELEASE_LOG(MouseHandling, "handleMouseEvent: skipped called processNextQueuedMouseEvent 20 times, possibly stuck?");
 }
 
-void WebPageProxy::dispatchMouseDidMoveOverElementAsynchronously(Ref<NativeWebMouseEvent>&& event)
+void WebPageProxy::dispatchMouseDidMoveOverElementForModifierFlagsChange(Ref<NativeWebMouseEvent>&& event)
 {
-    sendWithAsyncReply(Messages::WebPage::PerformHitTestForMouseEvent { WTF::move(event) }, [this, protectedThis = Ref { *this }] (WebHitTestResultData&& hitTestResult, OptionSet<WebEventModifier> modifiers) {
-        if (!isClosed())
+    if (RefPtr mainFrame = m_mainFrame)
+        performHitTestForModifierFlagsChangeInFrame(mainFrame->frameID(), WTF::move(event));
+}
+
+void WebPageProxy::performHitTestForModifierFlagsChangeInFrame(FrameIdentifier frameID, Ref<WebMouseEvent>&& event)
+{
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformHitTestForModifierFlagsChangeOnMouseEvent { frameID, event }, [this, protectedThis = Ref { *this }, event] (Variant<WebHitTestResultData, RemoteUserInputEventData>&& resultOrRemoteData, OptionSet<WebEventModifier> modifiers) mutable {
+        if (isClosed())
+            return;
+        WTF::switchOn(WTF::move(resultOrRemoteData), [&] (WebHitTestResultData&& hitTestResult) {
             mouseDidMoveOverElement(WTF::move(hitTestResult), modifiers);
+        }, [&] (RemoteUserInputEventData&& remoteUserInputEventData) {
+            event->setPosition(remoteUserInputEventData.transformedPoint);
+            performHitTestForModifierFlagsChangeInFrame(remoteUserInputEventData.targetFrameID, WTF::move(event));
+        });
     });
 }
 
@@ -7061,6 +7084,18 @@ double WebPageProxy::pageScaleFactor() const
     return m_pageScaleFactor;
 }
 
+bool WebPageProxy::delegatesScalingToUIProcess() const
+{
+#if PLATFORM(IOS_FAMILY)
+    return true;
+#elif PLATFORM(MAC)
+    Ref preferences = m_preferences;
+    return preferences->unifiedMacZoomEnabled();
+#else
+    return false;
+#endif
+}
+
 void WebPageProxy::scalePage(double scale, const IntPoint& origin, CompletionHandler<void()>&& completionHandler)
 {
     ASSERT(scale > 0);
@@ -7777,7 +7812,9 @@ void WebPageProxy::indicateFindMatch(int32_t matchIndex)
 
 void WebPageProxy::hideFindUI()
 {
-    send(Messages::WebPage::HideFindUI());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::HideFindUI(), pageID);
+    });
 }
 
 void WebPageProxy::countStringMatches(const String& string, OptionSet<FindOptions> options, unsigned maxMatchCount)
@@ -12529,7 +12566,9 @@ void WebPageProxy::setMayStartMediaWhenInWindow(bool mayStartMedia)
     if (!hasRunningProcess())
         return;
 
-    send(Messages::WebPage::SetMayStartMediaWhenInWindow(mayStartMedia));
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::SetMayStartMediaWhenInWindow(mayStartMedia), pageID);
+    });
 }
 
 void WebPageProxy::resumeDownload(const API::Data& resumeData, const String& path, CompletionHandler<void(DownloadProxy*)>&& completionHandler)
@@ -13320,10 +13359,10 @@ void WebPageProxy::didShowContextMenu()
         pageClient->didShowContextMenu();
 }
 
-void WebPageProxy::didDismissContextMenu()
+void WebPageProxy::didDismissContextMenu(const FrameInfoData& frameInfo)
 {
     if (hasRunningProcess())
-        send(Messages::WebPage::DidDismissContextMenu());
+        sendToProcessContainingFrame(frameInfo.frameID, Messages::WebPage::DidDismissContextMenu());
 
     if (RefPtr pageClient = this->pageClient())
         pageClient->didDismissContextMenu();
@@ -17590,6 +17629,7 @@ void WebPageProxy::setCaretBlinkingSuspended(bool suspended)
 
 void WebPageProxy::performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier frameID, FloatPoint point)
 {
+    m_immediateActionHitTestFrameID = frameID;
     sendToProcessContainingFrame(frameID, Messages::WebPage::PerformImmediateActionHitTestAtLocation(frameID, point));
 }
 
@@ -17608,29 +17648,14 @@ void WebPageProxy::immediateActionDidComplete()
     send(Messages::WebPage::ImmediateActionDidComplete());
 }
 
-void WebPageProxy::didPerformImmediateActionHitTest(IPC::Connection& connection, WebHitTestResultData&& result, bool contentPreventsDefault, const UserData& userData)
+void WebPageProxy::didPerformImmediateActionHitTest(IPC::Connection& connection, Variant<WebHitTestResultData, RemoteUserInputEventData>&& resultOrRemoteData, bool contentPreventsDefault, const UserData& userData)
 {
-    if (protect(preferences())->siteIsolationEnabled()) {
-        if (result.remoteUserInputEventData) {
-            performImmediateActionHitTestAtLocation(result.remoteUserInputEventData->targetFrameID, FloatPoint(result.remoteUserInputEventData->transformedPoint));
-            return;
-        }
-        RefPtr frame = result.frameInfo ? WebFrameProxy::webFrame(result.frameInfo->frameID) : nullptr;
-        RefPtr parentFrame = frame ? frame->parentFrame() : nullptr;
-        if (auto parentFrameID = parentFrame ? std::optional(parentFrame->frameID()) : std::nullopt) {
-            auto dictionaryPopupInfo = WTF::move(result.dictionaryPopupInfo);
-            sendWithAsyncReplyToProcessContainingFrame(parentFrameID, Messages::WebPage::RemoteDictionaryPopupInfoToRootView(frame->frameID(), dictionaryPopupInfo), [protectedThis = Ref { *this }, userData, result = WTF::move(result), contentPreventsDefault] (IPC::Connection* connection, WebCore::DictionaryPopupInfo popupInfo) mutable {
-                result.dictionaryPopupInfo = popupInfo;
-                if (!connection)
-                    return;
-                if (RefPtr pageClient = protectedThis->pageClient())
-                    pageClient->didPerformImmediateActionHitTest(result, contentPreventsDefault, WebProcessProxy::fromConnection(*connection)->transformHandlesToObjects(protect(userData.object()).get()).get());
-            });
-            return;
-        }
-    }
-    if (RefPtr pageClient = this->pageClient())
-        pageClient->didPerformImmediateActionHitTest(result, contentPreventsDefault, WebProcessProxy::fromConnection(connection)->transformHandlesToObjects(protect(userData.object()).get()).get());
+    WTF::switchOn(WTF::move(resultOrRemoteData), [&] (WebHitTestResultData&& result) {
+        if (RefPtr pageClient = this->pageClient())
+            pageClient->didPerformImmediateActionHitTest(result, contentPreventsDefault, WebProcessProxy::fromConnection(connection)->transformHandlesToObjects(protect(userData.object()).get()).get());
+    }, [&] (RemoteUserInputEventData&& remoteUserInputEventData) {
+        performImmediateActionHitTestAtLocation(remoteUserInputEventData.targetFrameID, FloatPoint(remoteUserInputEventData.transformedPoint));
+    });
 }
 
 NSObject *WebPageProxy::immediateActionAnimationControllerForHitTestResult(RefPtr<API::HitTestResult> hitTestResult, uint64_t type, RefPtr<API::Object> userData)
@@ -18952,7 +18977,9 @@ void WebPageProxy::sendCORSDisablingPatternsToNetworkProcessIfNecessary()
 void WebPageProxy::setOverriddenMediaType(const String& mediaType)
 {
     m_overriddenMediaType = mediaType;
-    send(Messages::WebPage::SetOverriddenMediaType(mediaType));
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::SetOverriddenMediaType(mediaType), pageID);
+    });
 }
 
 void WebPageProxy::setIsTakingSnapshotsForApplicationSuspension(bool isTakingSnapshotsForApplicationSuspension)
@@ -19503,7 +19530,10 @@ void WebPageProxy::pauseAllAnimations(CompletionHandler<void()>&& completionHand
         return;
     }
 
-    sendWithAsyncReply(Messages::WebPage::PauseAllAnimations(), WTF::move(completionHandler));
+    auto aggregator = CallbackAggregator::create(WTF::move(completionHandler));
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.sendWithAsyncReply(Messages::WebPage::PauseAllAnimations(), [aggregator] { }, pageID);
+    });
 }
 
 void WebPageProxy::playAllAnimations(CompletionHandler<void()>&& completionHandler)
@@ -19513,7 +19543,10 @@ void WebPageProxy::playAllAnimations(CompletionHandler<void()>&& completionHandl
         return;
     }
 
-    sendWithAsyncReply(Messages::WebPage::PlayAllAnimations(), WTF::move(completionHandler));
+    auto aggregator = CallbackAggregator::create(WTF::move(completionHandler));
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.sendWithAsyncReply(Messages::WebPage::PlayAllAnimations(), [aggregator] { }, pageID);
+    });
 }
 #endif // ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 

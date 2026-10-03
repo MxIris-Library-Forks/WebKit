@@ -827,11 +827,10 @@ void WebPage::performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier f
     auto subframe = EventHandler::subframeForTargetNode(protect(hitTestResult.targetNode()).get());
     if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe).get()) {
         if (RefPtr remoteFrameView = remoteFrame->view()) {
-            immediateActionResult.remoteUserInputEventData = RemoteUserInputEventData {
+            send(Messages::WebPageProxy::DidPerformImmediateActionHitTest(RemoteUserInputEventData {
                 remoteFrame->frameID(),
                 remoteFrameView->convertFromRootView(roundedIntPoint(locationInViewCoordinates))
-            };
-            send(Messages::WebPageProxy::DidPerformImmediateActionHitTest(immediateActionResult, false, UserData()));
+            }, false, UserData()));
             return;
         }
     }
@@ -883,7 +882,7 @@ void WebPage::performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier f
         pageOverlayDidOverrideDataDetectors = true;
         if (RetainPtr detectedContext = actionContext->context.get())
             immediateActionResult.platformData.detectedDataActionContext = { { detectedContext.get() } };
-        immediateActionResult.platformData.detectedDataBoundingBox = view->contentsToWindow(enclosingIntRect(unitedBoundingBoxes(RenderObject::absoluteTextQuads(actionContext->range))));
+        immediateActionResult.platformData.detectedDataBoundingBox = view->contentsToMainFrameView(enclosingIntRect(unitedBoundingBoxes(RenderObject::absoluteTextQuads(actionContext->range))));
         immediateActionResult.platformData.detectedDataTextIndicator = TextIndicator::createWithRange(actionContext->range, indicatorOptions(actionContext->range), TextIndicatorPresentationTransition::FadeIn);
         immediateActionResult.platformData.detectedDataOriginatingPageOverlay = overlay->pageOverlayID();
         break;
@@ -894,7 +893,7 @@ void WebPage::performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier f
         if (auto result = DataDetection::detectItemAroundHitTestResult(hitTestResult)) {
             if (auto detectedContext = WTF::move(result->actionContext))
                 immediateActionResult.platformData.detectedDataActionContext = { { WTF::move(detectedContext) } };
-            immediateActionResult.platformData.detectedDataBoundingBox = result->boundingBox;
+            immediateActionResult.platformData.detectedDataBoundingBox = currentFrameView->convertToRootViewAcrossIsolatedFrames(result->boundingBox);
             immediateActionResult.platformData.detectedDataTextIndicator = TextIndicator::createWithRange(result->range, indicatorOptions(result->range), TextIndicatorPresentationTransition::FadeIn);
         }
     }
@@ -1001,10 +1000,6 @@ void WebPage::dataDetectorsDidHideUI(PageOverlay::PageOverlayID overlayID)
             return;
         }
     }
-}
-
-void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo&, MonotonicTime)
-{
 }
 
 #if ENABLE(WIRELESS_PLAYBACK_TARGET) && !PLATFORM(IOS_FAMILY)

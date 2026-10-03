@@ -703,6 +703,7 @@ struct RendererBufferFormat;
 #endif
 
 enum class ColorControlSupportsAlpha : bool;
+enum class CompletesDoubleClick : bool;
 enum class ContentAsStringIncludesChildFrames : bool;
 enum class DragControllerAction : uint8_t;
 enum class EnhancedSecurity : uint8_t;
@@ -1216,6 +1217,8 @@ public:
 #if ENABLE(UI_SIDE_COMPOSITING)
     void updateVisibleContentRects(const VisibleContentRectUpdateInfo&, bool sendEvenIfUnchanged);
     void updateVisibleContentRectsLocally(const VisibleContentRectUpdateInfo&);
+
+    WebCore::FloatRect updateVisibleContentRectsAndAdjustLayers(const VisibleContentRectUpdateInfo&, bool sendEvenIfUnchanged);
 #endif
         
     void adjustLayersForLayoutViewport(const WebCore::FloatPoint& scrollPosition, const WebCore::FloatRect& layoutViewport, double scale);
@@ -1244,14 +1247,7 @@ public:
     void selectTextWithGranularityAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, WebCore::TextGranularity, bool isInteractingWithFocusedElement, CompletionHandler<void()>&&);
 #endif
 
-#if PLATFORM(IOS_FAMILY)
-    void textInputContextsInRect(WebCore::FloatRect, CompletionHandler<void(const Vector<WebCore::ElementContext>&)>&&);
-    void focusTextInputContextAndPlaceCaret(const WebCore::ElementContext&, const WebCore::IntPoint&, CompletionHandler<void(bool)>&&);
-
-    void setShouldRevealCurrentSelectionAfterInsertion(bool);
-        
-    void setScreenIsBeingCaptured(bool);
-
+#if ENABLE(UI_SIDE_COMPOSITING)
     double displayedContentScale() const;
     WebCore::FloatRect exposedContentRect() const;
     WebCore::FloatRect unobscuredContentRect() const;
@@ -1259,12 +1255,22 @@ public:
     WebCore::FloatRect unobscuredContentRectRespectingInputViewBounds() const;
     // When visual viewports are enabled, this is the layout viewport rect.
     WebCore::FloatRect layoutViewportRect() const;
-    WebCore::FloatBoxExtent computedObscuredInset() const;
 
     void resendLastVisibleContentRects();
 
     WebCore::FloatRect computeLayoutViewportRect(const WebCore::FloatRect& unobscuredContentRect, const WebCore::FloatRect& unobscuredContentRectRespectingInputViewBounds, const WebCore::FloatRect& currentLayoutViewportRect, double displayedContentScale, WebCore::LayoutViewportConstraint) const;
     WebCore::FloatRect unconstrainedLayoutViewportRect() const;
+#endif
+
+#if PLATFORM(IOS_FAMILY)
+    void textInputContextsInRect(WebCore::FloatRect, CompletionHandler<void(const Vector<WebCore::ElementContext>&)>&&);
+    void focusTextInputContextAndPlaceCaret(const WebCore::ElementContext&, const WebCore::IntPoint&, CompletionHandler<void(bool)>&&);
+
+    void setShouldRevealCurrentSelectionAfterInsertion(bool);
+
+    void setScreenIsBeingCaptured(bool);
+
+    WebCore::FloatBoxExtent computedObscuredInset() const;
 
     void scrollingNodeScrollViewWillStartPanGesture(WebCore::ScrollingNodeID);
     void scrollingNodeScrollWillStartScroll(std::optional<WebCore::ScrollingNodeID>);
@@ -1363,6 +1369,7 @@ public:
 #if ENABLE(MODEL_PROCESS)
     void requestInteractiveModelElementAtPoint(WebCore::IntPoint);
     void didReceiveInteractiveModelElement(std::optional<WebCore::NodeIdentifier>);
+    void stageModeSessionDidBegin(WebCore::NodeIdentifier, const WebCore::TransformationMatrix&);
     void stageModeSessionDidUpdate(std::optional<WebCore::NodeIdentifier>, const WebCore::TransformationMatrix&);
     void stageModeSessionDidEnd(std::optional<WebCore::NodeIdentifier>);
 #endif
@@ -1384,7 +1391,12 @@ public:
     void didCommitMainFrameData(const MainFrameData&, const TransactionID&);
     void layerTreeCommitComplete();
 
+#if ENABLE(UI_SIDE_COMPOSITING)
+    // Takes the layout viewport parameters the web process sends with each main frame commit.
+    // computeLayoutViewportRect() needs them all, or the layout viewport loses its minimum size and gets clamped
+    // to the document origin, misplacing fixed and sticky layers.
     bool updateLayoutViewportParameters(const MainFrameData&);
+#endif
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void cancelComposition(const String& compositionString);
@@ -1502,7 +1514,7 @@ public:
     void sendMouseEvent(WebCore::FrameIdentifier, Ref<NativeWebMouseEvent>&&, std::optional<Vector<SandboxExtensionHandle>>&&);
     void handleMouseEvent(Ref<NativeWebMouseEvent>&&);
     void recordUIProcessUserActivation(const WebEvent&);
-    void dispatchMouseDidMoveOverElementAsynchronously(Ref<NativeWebMouseEvent>&&);
+    void dispatchMouseDidMoveOverElementForModifierFlagsChange(Ref<NativeWebMouseEvent>&&);
 
     void doAfterProcessingAllPendingMouseEvents(Function<void()>&&);
     void didFinishProcessingAllPendingMouseEvents();
@@ -1612,6 +1624,12 @@ public:
     void scalePageRelativeToScrollPosition(double scale, const WebCore::IntPoint& origin);
     double NODELETE pageScaleFactor() const;
     void pageScaleFactorDidChange();
+
+    // True when the UI process owns the page scale and applies it above the render tree. Always the case on iOS,
+    // where it's UIScrollView's zoomScale, and on macOS with unified zoom enabled. This is the UI-process side
+    // of Page::delegatesScaling().
+    bool delegatesScalingToUIProcess() const;
+
     double viewScaleFactor() const { return m_viewScaleFactor; }
     void scaleView(double scale);
     void setShouldScaleViewToFitDocument(bool);
@@ -1720,6 +1738,9 @@ public:
     void setUseColorAppearance(bool useDarkAppearance, bool useElevatedUserInterfaceLevel);
     void setUseDarkAppearanceForTesting(bool);
     void setCursorDidChangeCallbackForTesting(Function<void(const WebCore::Cursor&)>&& callback) { m_cursorDidChangeCallbackForTesting = WTF::move(callback); }
+#if PLATFORM(MAC)
+    void setDidPerformDictionaryLookupCallbackForTesting(Function<void(const WebCore::DictionaryPopupInfo&)>&& callback) { m_didPerformDictionaryLookupCallbackForTesting = WTF::move(callback); }
+#endif
 
     WebCore::DataOwnerType dataOwnerForPasteboard(PasteboardAccessIntent) const;
 
@@ -1958,7 +1979,7 @@ public:
 #if ENABLE(CONTEXT_MENUS)
     // Called by the WebContextMenuProxy.
     void didShowContextMenu();
-    void didDismissContextMenu();
+    void didDismissContextMenu(const FrameInfoData&);
     void contextMenuItemSelected(const WebContextMenuItemData&, const FrameInfoData&);
     void handleContextMenuKeyEvent();
 #endif
@@ -2071,7 +2092,7 @@ public:
 
 #if ENABLE(TWO_PHASE_CLICKS)
     void potentialTapAtPosition(std::optional<WebCore::FrameIdentifier>, const WebCore::FloatPoint&, bool shouldRequestMagnificationInformation, TapIdentifier requestID, WebEventInputSource);
-    void commitPotentialTap(std::optional<WebCore::FrameIdentifier>, OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastTouchStart, WebCore::PointerID);
+    void commitPotentialTap(std::optional<WebCore::FrameIdentifier>, OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastTouchStart, WebCore::PointerID, CompletesDoubleClick);
     void cancelPotentialTap();
     void commitPotentialTapFailed();
     void didNotHandleTapAsClick(const WebCore::IntPoint&);
@@ -2209,6 +2230,7 @@ public:
 #if PLATFORM(MAC)
     API::HitTestResult* lastMouseMoveHitTestResult() const { return m_lastMouseMoveHitTestResult.get(); }
     void performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier, WebCore::FloatPoint);
+    std::optional<WebCore::FrameIdentifier> immediateActionHitTestFrameID() const { return m_immediateActionHitTestFrameID; }
 
     void immediateActionDidUpdate();
     void immediateActionDidCancel();
@@ -3278,6 +3300,7 @@ private:
     void runJavaScriptPrompt(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, String&&, String&&, CompletionHandler<void(const String&)>&&);
     void setStatusText(const String&);
     void mouseDidMoveOverElement(WebHitTestResultData&&, OptionSet<WebEventModifier>);
+    void performHitTestForModifierFlagsChangeInFrame(WebCore::FrameIdentifier, Ref<WebMouseEvent>&&);
 
     void NODELETE getIsViewVisible(bool&);
     void setIsResizable(bool isResizable);
@@ -3603,7 +3626,7 @@ private:
     void viewDidEnterWindow();
 
 #if PLATFORM(MAC)
-    void didPerformImmediateActionHitTest(IPC::Connection&, WebHitTestResultData&&, bool contentPreventsDefault, const UserData&);
+    void didPerformImmediateActionHitTest(IPC::Connection&, Variant<WebHitTestResultData, WebCore::RemoteUserInputEventData>&&, bool contentPreventsDefault, const UserData&);
 #endif
 
     void useFixedLayoutDidChange(bool useFixedLayout) { m_useFixedLayout = useFixedLayout; }
@@ -4030,6 +4053,7 @@ private:
 
 #if PLATFORM(MAC)
     RefPtr<API::HitTestResult> m_lastMouseMoveHitTestResult;
+    std::optional<WebCore::FrameIdentifier> m_immediateActionHitTestFrameID;
 #endif
 
     RefPtr<WebOpenPanelResultListenerProxy> m_openPanelResultListener;
@@ -4064,6 +4088,9 @@ private:
     String m_toolTip;
 
     Function<void(const WebCore::Cursor&)> m_cursorDidChangeCallbackForTesting;
+#if PLATFORM(MAC)
+    Function<void(const WebCore::DictionaryPopupInfo&)> m_didPerformDictionaryLookupCallbackForTesting;
+#endif
 
     bool m_isEditable { false };
 

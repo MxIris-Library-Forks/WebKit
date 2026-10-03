@@ -42,6 +42,7 @@
 #if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
 #import "WKPortalVolumetricSceneController.h"
 #import "WebPreferences.h"
+#import <WebCore/TransformationMatrix.h>
 #import <wtf/BlockPtr.h>
 #endif
 
@@ -157,6 +158,16 @@ void PortalPresentationManagerProxy::invalidateAllModels()
 
 #if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
 
+static constexpr WebCore::FloatSize mockVolumeSizeInMeters { 1.0f, 0.5f };
+
+// Stage mode packs the drag location into a translation, in points
+static WebCore::TransformationMatrix stageModeTransformForLocation(CGPoint location)
+{
+    WebCore::TransformationMatrix transform;
+    transform.translate3d(location.x, location.y, 0);
+    return transform;
+}
+
 void PortalPresentationManagerProxy::showVolumetricScene(WebCore::NodeIdentifier nodeID, const VolumetricSceneContentContext& contentContext, CompletionHandler<void(bool)>&& completion)
 {
     RefPtr webPageProxy = m_page.get();
@@ -171,7 +182,7 @@ void PortalPresentationManagerProxy::showVolumetricScene(WebCore::NodeIdentifier
             .contentContext = contentContext.contentLayerHostingContext,
             .sceneController = nil,
         }));
-        webPageProxy->updateVolumetricSceneSize(nodeID, WebCore::FloatSize { 1.0f, 0.5f });
+        webPageProxy->updateVolumetricSceneSize(nodeID, mockVolumeSizeInMeters);
         return completion(true);
     }
 
@@ -207,6 +218,23 @@ void PortalPresentationManagerProxy::showVolumetricScene(WebCore::NodeIdentifier
         if (RefPtr page = protectedThis->m_page.get())
             page->updateVolumetricSceneSize(nodeID, volumeSizeInMeters);
 
+        [sceneController installInputSurfaceWithBegan:makeBlockPtr([weakThis, nodeID](CGPoint location) {
+            if (RefPtr protectedThis = weakThis.get()) {
+                if (RefPtr page = protectedThis->m_page.get())
+                    page->stageModeSessionDidBegin(nodeID, stageModeTransformForLocation(location));
+            }
+        }).get() changed:makeBlockPtr([weakThis, nodeID](CGPoint location) {
+            if (RefPtr protectedThis = weakThis.get()) {
+                if (RefPtr page = protectedThis->m_page.get())
+                    page->stageModeSessionDidUpdate(nodeID, stageModeTransformForLocation(location));
+            }
+        }).get() ended:makeBlockPtr([weakThis, nodeID] {
+            if (RefPtr protectedThis = weakThis.get()) {
+                if (RefPtr page = protectedThis->m_page.get())
+                    page->stageModeSessionDidEnd(nodeID);
+            }
+        }).get()];
+
         [sceneController setVolumeSizeChangedHandler:makeBlockPtr([weakThis, nodeID](WebCore::FloatSize volumeSizeInMeters) {
             RefPtr protectedThis = weakThis.get();
             if (!protectedThis)
@@ -236,8 +264,11 @@ void PortalPresentationManagerProxy::reconnectVolumetricSceneToContentContext(We
 
     presentation->contentContext = contentContext.contentLayerHostingContext;
 
-    if (protect(webPageProxy->preferences())->mockVolumetricSceneEnabled())
+    // The reloaded player doesn't have the volume size yet, so send it, as the real scene does below.
+    if (protect(webPageProxy->preferences())->mockVolumetricSceneEnabled()) {
+        webPageProxy->updateVolumetricSceneSize(nodeID, mockVolumeSizeInMeters);
         return;
+    }
 
     RetainPtr sceneController = presentation->sceneController;
     auto volumeSizeInMeters = [sceneController hostContentWithContext:contentContext.contentLayerHostingContext pid:webPageProxy->legacyMainFrameProcessID()];

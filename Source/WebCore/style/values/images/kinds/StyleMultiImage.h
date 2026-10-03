@@ -69,13 +69,14 @@ private:
     void load(CachedResourceLoader&, const ResourceLoaderOptions&) final;
     bool isLoaded(const RenderElement*) const final;
     bool errorOccurred() const final;
+    bool hasDecodedImage() const final;
     FloatSize imageSize(const RenderElement*, float multiplier, WebCore::CachedImage::SizeType = WebCore::CachedImage::UsedSize) const final;
     bool imageHasRelativeWidth() const final;
     bool imageHasRelativeHeight() const final;
     void computeIntrinsicDimensions(const RenderElement*, float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio) final;
     NaturalDimensions naturalDimensions(const RenderElement&, const ImageSizingContext&) const final;
     void setContainerSizeForRenderer(const RenderElement&, const FloatSize&) override;
-    ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&, const WTF::URL& = WTF::URL()) const override;
+    ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&) const override;
     void addClient(RenderElement&) final;
     void removeClient(RenderElement&) final;
     bool hasClient(RenderElement&) const final;
@@ -83,6 +84,9 @@ private:
     bool currentFrameIsComplete(const RenderElement*) const final;
     float imageScaleFactor() const final;
     bool knownToBeOpaque(const RenderElement&) const final;
+    bool canDrawAtSize(const RenderElement&, const FloatSize&) const final;
+    DecodingMode decodingModeForImageDraw(const RenderBoxModelObject&, const PaintInfo&) const final;
+    InterpolationQuality interpolationQualityForImageDraw(GraphicsContext&, const RenderBoxModelObject&, const void* layer, const LayoutSize&) const final;
     const Image* selectedImage() const final { return m_selectedImage.get(); }
     Image* selectedImage() final { return m_selectedImage.get(); }
 

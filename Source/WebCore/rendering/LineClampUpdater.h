@@ -29,6 +29,7 @@
 #include <WebCore/LocalFrameView.h>
 #include <WebCore/LocalFrameViewInlines.h>
 #include <WebCore/RenderView.h>
+#include <WebCore/StyleDisplay.h>
 #include <WebCore/StyleMaximumLines.h>
 #include <wtf/CheckedPtr.h>
 
@@ -39,8 +40,12 @@ public:
     LineClampUpdater(const RenderBlock& blockContainer);
     ~LineClampUpdater();
 
+    bool isLineClampRoot() const { return m_isLineClampRoot; }
+    void resetLineClamp();
+
 private:
-    CheckedPtr<const RenderBlock> m_blockContainer;
+    const CheckedRef<const RenderBlock> m_blockContainer;
+    bool m_isLineClampRoot { false };
     std::optional<RenderLayoutState::LineClamp> m_previousLineClamp { };
     std::optional<RenderLayoutState::LegacyLineClamp> m_skippedLegacyLineClampToRestore { };
 };
@@ -53,28 +58,37 @@ inline LineClampUpdater::LineClampUpdater(const RenderBlock& blockContainer)
         return;
 
     m_previousLineClamp = layoutState->lineClamp();
+    auto maximumLinesForBlockContainer = m_blockContainer->style().maxLines().tryValue();
+    // "If the box is a multicol container, the behavior is the same as continue: auto."
+    // https://drafts.csswg.org/css-overflow-4/#continue
+    if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(blockContainer); blockFlow && blockFlow->multiColumnFlow())
+        maximumLinesForBlockContainer = { };
     if (blockContainer.isFieldset() || (layoutState->legacyLineClamp() && blockContainer.isNonReplacedAtomicInlineLevelBox()) || blockContainer.isFloatingOrOutOfFlowPositioned()) {
         // Legacy line clamp does not cross into the interior of an atomic inline-level box.
         layoutState->setLineClamp({ });
 
         m_skippedLegacyLineClampToRestore = layoutState->legacyLineClamp();
         layoutState->setLegacyLineClamp({ });
-        return;
+        // The box may still clamp its own content.
+        if (!maximumLinesForBlockContainer)
+            return;
     }
 
-    if (auto maximumLinesForBlockContainer = m_blockContainer->style().maxLines().tryValue()) {
+    if (maximumLinesForBlockContainer) {
         // Ignore top level legacy line clamp for now.
         if (m_blockContainer->style().overflowContinue() == OverflowContinue::WebkitLegacy)
             return;
         // New, top level line clamp.
+        m_isLineClampRoot = true;
         layoutState->setLineClamp(RenderLayoutState::LineClamp { static_cast<size_t>(maximumLinesForBlockContainer->value), m_blockContainer->style().overflowContinue() == OverflowContinue::Discard });
         return;
     }
 
     if (m_previousLineClamp) {
         // Propagated line clamp.
-        if (blockContainer.establishesIndependentFormattingContext()) {
-            // Contents of descendants that establish independent formatting contexts are skipped over while counting line boxes.
+        if (blockContainer.establishesIndependentFormattingContext() || blockContainer.style().display() == Style::DisplayType::RubyText) {
+            // Contents of descendants that establish independent formatting contexts are skipped over while counting line boxes,
+            // and a ruby annotation belongs to the line of its base: it is clamped with that line, not line by line on its own.
             layoutState->setLineClamp({ });
             return;
         }
@@ -98,10 +112,28 @@ inline LineClampUpdater::~LineClampUpdater()
         return;
     }
 
-    size_t lineCount = 0;
+    auto lineClamp = layoutState->lineClamp();
+    if (!lineClamp || m_blockContainer->establishesIndependentFormattingContext()) {
+        // "Only line boxes in the same block formatting context are counted: the contents of descendants
+        // that establish independent formatting contexts are skipped over while counting line boxes."
+        // https://drafts.csswg.org/css-overflow-4/#max-lines
+        layoutState->setLineClamp(m_previousLineClamp);
+        return;
+    }
+
+    size_t lineCount = m_isLineClampRoot ? 0 : m_previousLineClamp->maximumLines - std::min(m_previousLineClamp->maximumLines, lineClamp->maximumLines);
     if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(m_blockContainer.get()); blockFlow && blockFlow->childrenInline())
         lineCount = blockFlow->lineCount();
     layoutState->setLineClamp(RenderLayoutState::LineClamp { m_previousLineClamp->maximumLines - std::min(m_previousLineClamp->maximumLines, lineCount), m_previousLineClamp->shouldDiscardOverflow });
+}
+
+inline void LineClampUpdater::resetLineClamp()
+{
+    ASSERT(m_isLineClampRoot);
+    auto* layoutState = m_blockContainer->view().frameView().layoutContext().layoutState();
+    if (!layoutState)
+        return;
+    layoutState->setLineClamp({ });
 }
 
 }

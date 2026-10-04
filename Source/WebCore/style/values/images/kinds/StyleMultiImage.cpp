@@ -215,9 +215,43 @@ bool MultiImage::knownToBeOpaque(const RenderElement& renderer) const
     return m_selectedImage && protect(m_selectedImage)->knownToBeOpaque(renderer);
 }
 
+bool MultiImage::canDraw(const RenderElement& renderer) const
+{
+    return m_selectedImage && protect(m_selectedImage)->canDraw(renderer);
+}
+
 bool MultiImage::canDrawAtSize(const RenderElement& renderer, const FloatSize& size) const
 {
     return m_selectedImage && protect(m_selectedImage)->canDrawAtSize(renderer, size);
+}
+
+bool MultiImage::drawsSVGImage() const
+{
+    return m_selectedImage && protect(m_selectedImage)->drawsSVGImage();
+}
+
+WTF::String MultiImage::accessibilityDescription() const
+{
+    if (!m_selectedImage)
+        return { };
+    return protect(m_selectedImage)->accessibilityDescription();
+}
+
+bool MultiImage::isAnimated() const
+{
+    return m_selectedImage && protect(m_selectedImage)->isAnimated();
+}
+
+void MultiImage::stopAnimation()
+{
+    if (m_selectedImage)
+        protect(m_selectedImage)->stopAnimation();
+}
+
+void MultiImage::resetAnimation()
+{
+    if (m_selectedImage)
+        protect(m_selectedImage)->resetAnimation();
 }
 
 DecodingMode MultiImage::decodingModeForImageDraw(const RenderBoxModelObject& renderer, const PaintInfo& paintInfo) const
@@ -227,7 +261,7 @@ DecodingMode MultiImage::decodingModeForImageDraw(const RenderBoxModelObject& re
     return protect(m_selectedImage)->decodingModeForImageDraw(renderer, paintInfo);
 }
 
-InterpolationQuality MultiImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderBoxModelObject& renderer, const void* layer, const LayoutSize& size) const
+InterpolationQuality MultiImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderElement& renderer, const void* layer, const LayoutSize& size) const
 {
     if (!m_selectedImage)
         return Image::interpolationQualityForImageDraw(context, renderer, layer, size);

@@ -84,9 +84,15 @@ private:
     bool currentFrameIsComplete(const RenderElement*) const final;
     float imageScaleFactor() const final;
     bool knownToBeOpaque(const RenderElement&) const final;
+    bool canDraw(const RenderElement&) const final;
     bool canDrawAtSize(const RenderElement&, const FloatSize&) const final;
+    bool drawsSVGImage() const final;
+    WTF::String accessibilityDescription() const final;
+    bool isAnimated() const final;
+    void stopAnimation() final;
+    void resetAnimation() final;
     DecodingMode decodingModeForImageDraw(const RenderBoxModelObject&, const PaintInfo&) const final;
-    InterpolationQuality interpolationQualityForImageDraw(GraphicsContext&, const RenderBoxModelObject&, const void* layer, const LayoutSize&) const final;
+    InterpolationQuality interpolationQualityForImageDraw(GraphicsContext&, const RenderElement&, const void* layer, const LayoutSize&) const final;
     const Image* selectedImage() const final { return m_selectedImage.get(); }
     Image* selectedImage() final { return m_selectedImage.get(); }
 

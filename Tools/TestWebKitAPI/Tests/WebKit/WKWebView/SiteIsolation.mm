@@ -35,6 +35,7 @@
 #import "Helpers/cocoa/TestCocoa.h"
 #import "Helpers/cocoa/TestDownloadDelegate.h"
 #import "Helpers/cocoa/TestNavigationDelegate.h"
+#import "Helpers/cocoa/TestPDFDocument.h"
 #import "Helpers/cocoa/TestScriptMessageHandler.h"
 #import "Helpers/cocoa/TestUIDelegate.h"
 #import "Helpers/cocoa/TestWKWebView.h"
@@ -78,6 +79,7 @@
 #import <WebKit/_WKUserInitiatedAction.h>
 #import <WebKit/_WKWebsiteDataStoreConfiguration.h>
 #import <wtf/BlockPtr.h>
+#import <wtf/HashSet.h>
 #import <wtf/StdLibExtras.h>
 #import <wtf/text/MakeString.h>
 
@@ -573,16 +575,18 @@ static RetainPtr<NSSet> frameTrees(WKWebView *webView)
     return result;
 }
 
-static RetainPtr<NSSet> frameTreesInBackForwardCacheAtIndex(WKWebView *webView, NSInteger relativeIndex)
+static void checkTopDocumentURLsInBackForwardCacheAtIndex(WKWebView *webView, NSInteger relativeIndex, NSUInteger expectedProcessCount, NSString *expectedTopDocumentURL)
 {
     __block bool done = false;
-    __block RetainPtr<NSSet> result;
-    [webView _frameTreesInBackForwardCacheAtIndex:relativeIndex completionHandler:^(NSSet<_WKFrameTreeNode *> *frameTrees) {
-        result = frameTrees;
+    __block RetainPtr<NSArray<NSURL *>> result;
+    [webView _topDocumentURLsInBackForwardCacheAtIndexForTesting:relativeIndex completionHandler:^(NSArray<NSURL *> *topDocumentURLs) {
+        result = topDocumentURLs;
         done = true;
     }];
     Util::run(&done);
-    return result;
+    EXPECT_EQ([result count], expectedProcessCount);
+    for (NSURL *url in result.get())
+        EXPECT_WK_STREQ(expectedTopDocumentURL, url.absoluteString);
 }
 
 static void checkProcessesTopDocumentURL(NSSet<_WKFrameTreeNode *> *trees, NSString *mainFrameTopDocumentURL, NSString *subframeTopDocumentURL)
@@ -6652,7 +6656,7 @@ TEST(SiteIsolation, BFCacheSameSitePageChangesTopDocumentURL)
         { RemoteFrame, { } },
     });
 
-    checkProcessesTopDocumentURL(frameTreesInBackForwardCacheAtIndex(webView.get(), -1).get(), @"https://a.com/text", @"https://a.com/text");
+    checkTopDocumentURLsInBackForwardCacheAtIndex(webView.get(), -1, 2, @"https://a.com/text");
 }
 
 TEST(SiteIsolation, BFCacheCrossSitePageKeepsTopDocumentURL)
@@ -6673,7 +6677,7 @@ TEST(SiteIsolation, BFCacheCrossSitePageKeepsTopDocumentURL)
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://c.com/text"]]];
     [navigationDelegate waitForDidFinishNavigation];
 
-    checkProcessesTopDocumentURL(frameTreesInBackForwardCacheAtIndex(webView.get(), -1).get(), @"https://a.com/withframe", @"https://a.com/withframe");
+    checkTopDocumentURLsInBackForwardCacheAtIndex(webView.get(), -1, 2, @"https://a.com/withframe");
 }
 
 TEST(SiteIsolation, NavigateNestedIframeSameOriginBackForward)
@@ -14781,6 +14785,368 @@ TEST(SiteIsolation, BrowsingContextGroupSwitchForIncompatibleCrossOriginOpenerPo
     });
 }
 
+static HTTPServer crossOriginIsolationServer()
+{
+    return HTTPServer({
+        { "/isolated"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-subframe'></iframe>"_s } },
+        { "/isolated-two-subframes"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-subframe'></iframe><iframe src='https://apple.com/isolated-subframe'></iframe>"_s } },
+        { "/isolated-nested"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-grandparent'></iframe>"_s } },
+        { "/isolated-grandparent"_s, { { { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s }, { "Cross-Origin-Resource-Policy"_s, "cross-origin"_s } }, "<iframe src='https://apple.com/isolated-subframe'></iframe>"_s } },
+        { "/isolated-opener"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<script>onload = () => { w = window.open('https://example.com/isolated'); }</script>"_s } },
+        { "/isolated-noopener-opener"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<script>onload = () => { window.open('https://example.com/shared', '_blank', 'noopener'); }</script>"_s } },
+        { "/isolated-subframe"_s, { { { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s }, { "Cross-Origin-Resource-Policy"_s, "cross-origin"_s } }, "subframe"_s } },
+        { "/shared"_s, { "<iframe src='https://webkit.org/shared-subframe'></iframe>"_s } },
+        { "/shared-two-subframes"_s, { "<iframe src='https://webkit.org/shared-subframe'></iframe><iframe src='https://apple.com/shared-subframe'></iframe>"_s } },
+        { "/shared-subframe"_s, { "subframe"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+}
+
+enum class ExpectCrossOriginIsolated : bool { No, Yes };
+
+static bool isCrossOriginIsolatedProcess(WKProcessPool *processPool, pid_t pid)
+{
+    return pid && [[processPool _crossOriginIsolatedProcessIdentifiersForTesting] containsObject:@(pid)];
+}
+
+static void expectAllProcessesCrossOriginIsolated(WKProcessPool *processPool, NSSet<_WKFrameTreeNode *> *trees, ExpectCrossOriginIsolated expected, unsigned expectedProcessCount)
+{
+    EXPECT_EQ(expectedProcessCount, static_cast<unsigned>([trees count]));
+    RetainPtr isolatedPIDs = [processPool _crossOriginIsolatedProcessIdentifiersForTesting];
+    for (_WKFrameTreeNode *root in trees) {
+        pid_t pid = root.info._processIdentifier;
+        EXPECT_NE(pid, 0);
+        EXPECT_EQ(expected == ExpectCrossOriginIsolated::Yes, !![isolatedPIDs containsObject:@(pid)]);
+    }
+}
+
+static HashSet<pid_t> processIdentifiers(NSSet<_WKFrameTreeNode *> *trees)
+{
+    HashSet<pid_t> pids;
+    for (_WKFrameTreeNode *root in trees) {
+        pid_t pid = root.info._processIdentifier;
+        EXPECT_NE(pid, 0);
+        if (pid)
+            pids.add(pid);
+    }
+    return pids;
+}
+
+static void expectSharedArrayBuffer(TestWKWebView *webView, WKFrameInfo *frame, ExpectCrossOriginIsolated expected)
+{
+    EXPECT_WK_STREQ(expected == ExpectCrossOriginIsolated::Yes ? "has-sab" : "does-not-have-sab", [webView stringByEvaluatingJavaScript:@"self.SharedArrayBuffer ? 'has-sab' : 'does-not-have-sab'" inFrame:frame]);
+}
+
+static void expectSharedArrayBuffer(TestWKWebView *webView, ExpectCrossOriginIsolated expected)
+{
+    EXPECT_WK_STREQ(expected == ExpectCrossOriginIsolated::Yes ? "has-sab" : "does-not-have-sab", [webView stringByEvaluatingJavaScript:@"self.SharedArrayBuffer ? 'has-sab' : 'does-not-have-sab'"]);
+}
+
+static void expectCrossOriginIsolated(TestWKWebView *webView, ExpectCrossOriginIsolated expected)
+{
+    EXPECT_WK_STREQ(expected == ExpectCrossOriginIsolated::Yes ? "isolated" : "not-isolated", [webView stringByEvaluatingJavaScript:@"self.crossOriginIsolated ? 'isolated' : 'not-isolated'"]);
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupUsesIsolatedProcesses)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPool = processPoolWithBackForwardCacheDisabled();
+    RetainPtr webViewConfiguration = server.httpsProxyConfiguration();
+    [webViewConfiguration setProcessPool:processPool.get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(webViewConfiguration.get());
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::No);
+
+    RetainPtr sharedTrees = frameTrees(webView.get());
+    expectAllProcessesCrossOriginIsolated(processPool.get(), sharedTrees.get(), ExpectCrossOriginIsolated::No, 2);
+    pid_t sharedMainFramePID = findFramePID(sharedTrees.get(), FrameType::Local);
+    pid_t sharedSubframePID = findFramePID(sharedTrees.get(), FrameType::Remote);
+    expectSharedArrayBuffer(webView.get(), [webView firstChildFrame], ExpectCrossOriginIsolated::No);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::Yes);
+
+    RetainPtr isolatedTrees = frameTrees(webView.get());
+    expectAllProcessesCrossOriginIsolated(processPool.get(), isolatedTrees.get(), ExpectCrossOriginIsolated::Yes, 2);
+    pid_t isolatedMainFramePID = findFramePID(isolatedTrees.get(), FrameType::Local);
+    pid_t isolatedSubframePID = findFramePID(isolatedTrees.get(), FrameType::Remote);
+
+    // Same sites, so equal PIDs would mean a reused process.
+    EXPECT_NE(sharedMainFramePID, isolatedMainFramePID);
+    EXPECT_NE(sharedSubframePID, isolatedSubframePID);
+
+    expectSharedArrayBuffer(webView.get(), [webView firstChildFrame], ExpectCrossOriginIsolated::Yes);
+    EXPECT_WK_STREQ("isolated", [webView stringByEvaluatingJavaScript:@"self.crossOriginIsolated ? 'isolated' : 'not-isolated'" inFrame:[webView firstChildFrame]]);
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupUsesIsolatedProcessesForNestedFrames)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPool = processPoolWithBackForwardCacheDisabled();
+    RetainPtr webViewConfiguration = server.httpsProxyConfiguration();
+    [webViewConfiguration setProcessPool:processPool.get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(webViewConfiguration.get());
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated-nested"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::Yes);
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(webView.get()).get(), ExpectCrossOriginIsolated::Yes, 3);
+    expectSharedArrayBuffer(webView.get(), [webView firstChildFrame], ExpectCrossOriginIsolated::Yes);
+}
+
+TEST(SiteIsolation, ProcessesAreNotReusedAfterCrossOriginIsolatedBrowsingContextGroupSwitch)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPoolConfiguration = adoptNS([[_WKProcessPoolConfiguration alloc] init]);
+    processPoolConfiguration.get().usesWebProcessCache = YES;
+    processPoolConfiguration.get().prewarmsProcessesAutomatically = YES;
+    processPoolConfiguration.get().pageCacheEnabled = NO;
+    RetainPtr processPool = adoptNS([[WKProcessPool alloc] _initWithConfiguration:processPoolConfiguration.get()]);
+    RetainPtr webViewConfiguration = server.httpsProxyConfiguration();
+    [webViewConfiguration setProcessPool:processPool.get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(webViewConfiguration.get());
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::Yes);
+
+    RetainPtr isolatedTrees = frameTrees(webView.get());
+    expectAllProcessesCrossOriginIsolated(processPool.get(), isolatedTrees.get(), ExpectCrossOriginIsolated::Yes, 2);
+    pid_t isolatedMainFramePID = findFramePID(isolatedTrees.get(), FrameType::Local);
+    pid_t isolatedSubframePID = findFramePID(isolatedTrees.get(), FrameType::Remote);
+
+    RetainPtr prewarmedPIDs = [processPool _prewarmedProcessIdentifiersForTesting];
+    EXPECT_FALSE([prewarmedPIDs containsObject:@(isolatedMainFramePID)]);
+    EXPECT_FALSE([prewarmedPIDs containsObject:@(isolatedSubframePID)]);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::No);
+
+    RetainPtr sharedTrees = frameTrees(webView.get());
+    expectAllProcessesCrossOriginIsolated(processPool.get(), sharedTrees.get(), ExpectCrossOriginIsolated::No, 2);
+    pid_t sharedMainFramePID = findFramePID(sharedTrees.get(), FrameType::Local);
+    pid_t sharedSubframePID = findFramePID(sharedTrees.get(), FrameType::Remote);
+    EXPECT_NE(isolatedMainFramePID, sharedMainFramePID);
+    EXPECT_NE(isolatedSubframePID, sharedSubframePID);
+    expectSharedArrayBuffer(webView.get(), [webView firstChildFrame], ExpectCrossOriginIsolated::No);
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupDoesNotUseSharedProcess)
+{
+    auto server = crossOriginIsolationServer();
+    auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server, EnableProcessCache::Yes);
+    RetainPtr processPool = [[webView configuration] processPool];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared-two-subframes"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    checkFrameTreesInProcesses(webView.get(), {
+        { "https://example.com"_s, { { RemoteFrame }, { RemoteFrame } } },
+        { RemoteFrame, { { "https://webkit.org"_s }, { "https://apple.com"_s } } }
+    });
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(webView.get()).get(), ExpectCrossOriginIsolated::No, 2);
+    expectSharedArrayBuffer(webView.get(), [webView firstChildFrame], ExpectCrossOriginIsolated::No);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated-two-subframes"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::Yes);
+    checkFrameTreesInProcesses(webView.get(), {
+        { "https://example.com"_s, { { RemoteFrame }, { RemoteFrame } } },
+        { RemoteFrame, { { "https://webkit.org"_s }, { RemoteFrame } } },
+        { RemoteFrame, { { RemoteFrame }, { "https://apple.com"_s } } }
+    });
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(webView.get()).get(), ExpectCrossOriginIsolated::Yes, 3);
+    expectSharedArrayBuffer(webView.get(), [webView firstChildFrame], ExpectCrossOriginIsolated::Yes);
+    expectSharedArrayBuffer(webView.get(), [webView secondChildFrame], ExpectCrossOriginIsolated::Yes);
+}
+
+TEST(SiteIsolation, RelatedWebViewDoesNotJoinCrossOriginIsolatedBrowsingContextGroup)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPool = processPoolWithBackForwardCacheDisabled();
+    RetainPtr isolatedConfiguration = server.httpsProxyConfiguration();
+    [isolatedConfiguration setProcessPool:processPool.get()];
+    auto [isolatedWebView, isolatedNavigationDelegate] = siteIsolatedViewAndDelegate(isolatedConfiguration.get());
+
+    [isolatedWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [isolatedNavigationDelegate waitForDidFinishNavigation];
+    expectCrossOriginIsolated(isolatedWebView.get(), ExpectCrossOriginIsolated::Yes);
+
+    // A related web view must use the same website data store.
+    RetainPtr relatedConfiguration = adoptNS([isolatedConfiguration copy]);
+    ALLOW_DEPRECATED_DECLARATIONS_BEGIN
+    [relatedConfiguration _setRelatedWebView:isolatedWebView.get()];
+    ALLOW_DEPRECATED_DECLARATIONS_END
+    auto [relatedWebView, relatedNavigationDelegate] = siteIsolatedViewAndDelegate(relatedConfiguration.get());
+
+    [relatedWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared"]]];
+    [relatedNavigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(relatedWebView.get(), ExpectCrossOriginIsolated::No);
+    expectSharedArrayBuffer(relatedWebView.get(), ExpectCrossOriginIsolated::No);
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(relatedWebView.get()).get(), ExpectCrossOriginIsolated::No, 2);
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupWindowOpen)
+{
+    auto server = crossOriginIsolationServer();
+    auto [openerWebView, openedWebView] = openerAndOpenedViews(server, @"https://example.com/isolated-opener");
+    RetainPtr processPool = [[openerWebView.webView configuration] processPool];
+
+    expectCrossOriginIsolated(openerWebView.webView.get(), ExpectCrossOriginIsolated::Yes);
+    expectCrossOriginIsolated(openedWebView.webView.get(), ExpectCrossOriginIsolated::Yes);
+    expectSharedArrayBuffer(openedWebView.webView.get(), ExpectCrossOriginIsolated::Yes);
+    expectSharedArrayBuffer(openedWebView.webView.get(), [openedWebView.webView firstChildFrame], ExpectCrossOriginIsolated::Yes);
+    EXPECT_TRUE(isCrossOriginIsolatedProcess(processPool.get(), [openedWebView.webView _webProcessIdentifier]));
+    EXPECT_WK_STREQ("has-opener", [openedWebView.webView stringByEvaluatingJavaScript:@"opener ? 'has-opener' : 'no-opener'"]);
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupNoopenerWindowOpen)
+{
+    auto server = crossOriginIsolationServer();
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    RetainPtr openerWebView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
+    RetainPtr openerNavigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [openerNavigationDelegate allowAnyTLSCertificate];
+    [openerWebView setNavigationDelegate:openerNavigationDelegate.get()];
+    [openerWebView configuration].preferences.javaScriptCanOpenWindowsAutomatically = YES;
+
+    __block RetainPtr<TestWKWebView> openedWebView;
+    __block RetainPtr<TestNavigationDelegate> openedNavigationDelegate;
+    __block pid_t openedCreationPID = 0;
+    RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
+    uiDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *, WKWindowFeatures *) {
+        enableSiteIsolation(configuration);
+        openedWebView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+        openedNavigationDelegate = adoptNS([TestNavigationDelegate new]);
+        [openedNavigationDelegate allowAnyTLSCertificate];
+        [openedWebView setNavigationDelegate:openedNavigationDelegate.get()];
+        openedCreationPID = [openedWebView _webProcessIdentifier];
+        return openedWebView.get();
+    };
+    [openerWebView setUIDelegate:uiDelegate.get()];
+
+    [openerWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated-noopener-opener"]]];
+    while (!openedWebView)
+        Util::spinRunLoop();
+    [openedNavigationDelegate waitForDidFinishNavigation];
+
+    RetainPtr processPool = [configuration processPool];
+    expectCrossOriginIsolated(openerWebView.get(), ExpectCrossOriginIsolated::Yes);
+    EXPECT_NE(openedCreationPID, [openerWebView _webProcessIdentifier]);
+    expectCrossOriginIsolated(openedWebView.get(), ExpectCrossOriginIsolated::No);
+    expectSharedArrayBuffer(openedWebView.get(), ExpectCrossOriginIsolated::No);
+    EXPECT_FALSE(isCrossOriginIsolatedProcess(processPool.get(), [openedWebView _webProcessIdentifier]));
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupNotAdoptedWhenNavigationIsCancelled)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPool = processPoolWithBackForwardCacheDisabled();
+    RetainPtr webViewConfiguration = server.httpsProxyConfiguration();
+    [webViewConfiguration setProcessPool:processPool.get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(webViewConfiguration.get());
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [navigationDelegate setDecidePolicyForNavigationResponse:^(WKNavigationResponse *, void (^completionHandler)(WKNavigationResponsePolicy)) {
+        completionHandler(WKNavigationResponsePolicyCancel);
+    }];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidFailProvisionalNavigation];
+    [navigationDelegate setDecidePolicyForNavigationResponse:nil];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::No);
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(webView.get()).get(), ExpectCrossOriginIsolated::No, 2);
+}
+
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupAfterCrash)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPool = processPoolWithBackForwardCacheDisabled();
+    RetainPtr webViewConfiguration = server.httpsProxyConfiguration();
+    [webViewConfiguration setProcessPool:processPool.get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(webViewConfiguration.get());
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(webView.get()).get(), ExpectCrossOriginIsolated::Yes, 2);
+
+    // The termination is reported synchronously, so the callback must be set before killing the process.
+    __block bool didTerminate = false;
+    navigationDelegate.get().webContentProcessDidTerminate = ^(WKWebView *, _WKProcessTerminationReason) {
+        didTerminate = true;
+    };
+    [webView _killWebContentProcessAndResetState];
+    Util::run(&didTerminate);
+    navigationDelegate.get().webContentProcessDidTerminate = nil;
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidStartProvisionalNavigation];
+    EXPECT_TRUE(isCrossOriginIsolatedProcess(processPool.get(), [webView _webProcessIdentifier]));
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::Yes);
+    expectAllProcessesCrossOriginIsolated(processPool.get(), frameTrees(webView.get()).get(), ExpectCrossOriginIsolated::Yes, 2);
+}
+
+// FIXME: Also test with the back/forward cache enabled, where the back/forward item's group is the only source of the mode.
+TEST(SiteIsolation, CrossOriginIsolatedBrowsingContextGroupAfterBackForwardNavigation)
+{
+    auto server = crossOriginIsolationServer();
+
+    RetainPtr processPool = processPoolWithBackForwardCacheDisabled();
+    RetainPtr webViewConfiguration = server.httpsProxyConfiguration();
+    [webViewConfiguration setProcessPool:processPool.get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(webViewConfiguration.get());
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/shared"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::No);
+
+    RetainPtr sharedTrees = frameTrees(webView.get());
+    expectAllProcessesCrossOriginIsolated(processPool.get(), sharedTrees.get(), ExpectCrossOriginIsolated::No, 2);
+    auto sharedPIDs = processIdentifiers(sharedTrees.get());
+
+    [webView goBack];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    expectCrossOriginIsolated(webView.get(), ExpectCrossOriginIsolated::Yes);
+
+    // The cross-site subframe can be restored after the main frame finishes loading, so wait for its process.
+    RetainPtr restoredTrees = frameTrees(webView.get());
+    while ([restoredTrees count] < 2) {
+        Util::spinRunLoop();
+        restoredTrees = frameTrees(webView.get());
+    }
+    expectAllProcessesCrossOriginIsolated(processPool.get(), restoredTrees.get(), ExpectCrossOriginIsolated::Yes, 2);
+    for (pid_t pid : processIdentifiers(restoredTrees.get()))
+        EXPECT_FALSE(sharedPIDs.contains(pid));
+}
+
 #if ENABLE(DEVICE_ORIENTATION) && PLATFORM(IOS_FAMILY)
 
 TEST(SiteIsolation, CrossSiteIFrameCanReceiveDeviceOrientationEvents)
@@ -17707,6 +18073,49 @@ TEST(SiteIsolation, EndPrintingIsRoutedToTheFrameThatStartedPrinting)
         return [[webView objectByEvaluatingJavaScript:@"window.printEvents.join(',')" inFrame:subframe.get()] isEqualToString:@"beforeprint,afterprint"];
     }));
 }
+
+#if HAVE(PDFKIT)
+
+// UIKit prints on the main thread and blocks it until the document has been drawn. The frames hosted in
+// other processes are asked to record by way of the UI process, including one only found by painting
+// another, so the blocked UI process still has to route those requests.
+TEST(SiteIsolation, DrawPagesToPDFSynchronouslyIncludesCrossSiteFrames)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin:0'>Mainframe<br><iframe style='border:0;width:400px;height:200px' src='https://b.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<body style='margin:0'>Subframe<br><iframe style='border:0;width:300px;height:100px' src='https://c.com/nested'></iframe></body>"_s } },
+        { "/nested"_s, { "<body style='margin:0'>Nested</body>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration.get(), @"RemoteSnapshottingEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_TRUE(Util::waitFor([&] {
+        RetainPtr<WKFrameInfo> nested = [webView mainFrame].childFrames.firstObject.childFrames.firstObject.info;
+        return nested && [[webView objectByEvaluatingJavaScript:@"document.readyState" inFrame:nested.get()] isEqualToString:@"complete"];
+    }));
+
+    RetainPtr<WKFrameInfo> mainFrame = [webView mainFrame].info;
+    __block bool computedPages = false;
+    [webView _computePagesForPrinting:[mainFrame _handle] completionHandler:^{
+        computedPages = true;
+    }];
+    Util::run(&computedPages);
+
+    RetainPtr data = [webView _drawPagesToPDFSynchronouslyForTesting:[mainFrame _handle]];
+    ASSERT_NOT_NULL(data.get());
+
+    RetainPtr document = adoptNS([[TestPDFDocument alloc] initFromData:data.get()]);
+    EXPECT_EQ([document pageCount], 1);
+    RetainPtr text = [[document pageAtIndex:0] text];
+    EXPECT_TRUE([text containsString:@"Mainframe"]);
+    EXPECT_TRUE([text containsString:@"Subframe"]);
+    EXPECT_TRUE([text containsString:@"Nested"]);
+}
+
+#endif // HAVE(PDFKIT)
 
 TEST(SiteIsolation, MultiProcessBFCacheIframeRendersAfterBackNavigation)
 {

@@ -37,6 +37,7 @@
 #include "DeprecatedCSSOMValue.h"
 #include "HostWindow.h"
 #include "ImageBuffer.h"
+#include "ImageQualityController.h"
 #include "NullGraphicsContext.h"
 #include "RenderBoxModelObject.h"
 #include "RenderElement.h"
@@ -137,11 +138,7 @@ RefPtr<WebCore::Image> FilterImage::image(const RenderElement* renderElement, co
         return nullptr;
 
     RefPtr styleImage = m_image;
-    if (!styleImage)
-        return &WebCore::Image::nullImage();
-
-    auto image = styleImage->image(renderer, size, destinationContext, isForFirstLine);
-    if (!image || image->isNull())
+    if (!styleImage || !styleImage->canDrawAtSize(*renderer, size))
         return &WebCore::Image::nullImage();
 
     auto preferredFilterRenderingModes = protect(renderer->page())->preferredFilterRenderingModes(destinationContext);
@@ -163,7 +160,7 @@ RefPtr<WebCore::Image> FilterImage::image(const RenderElement* renderElement, co
         return &WebCore::Image::nullImage();
 
     auto filteredImage = sourceImage->filteredNativeImage(*cssFilter, [&](GraphicsContext& context) {
-        context.drawImage(*image, ConcreteObjectSize::fixed(image->size()), sourceImageRect);
+        styleImage->draw(context, *renderer, ConcreteObjectSize::fixed(size), sourceImageRect, sourceImageRect, { }, isForFirstLine);
     });
     if (!filteredImage)
         return &WebCore::Image::nullImage();
@@ -187,9 +184,9 @@ DecodingMode FilterImage::decodingModeForImageDraw(const RenderBoxModelObject& r
     return protect(m_image)->decodingModeForImageDraw(renderer, paintInfo);
 }
 
-InterpolationQuality FilterImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderBoxModelObject& renderer, const void* layer, const LayoutSize& size) const
+InterpolationQuality FilterImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderElement& renderer, const void* layer, const LayoutSize& size) const
 {
-    return renderer.chooseInterpolationQualityForBitmapOfSize(context, calculateImageBufferBackendSize(size, 1), layer, size);
+    return ImageQualityController::chooseInterpolationQualityForBitmapOfSize(context, renderer, calculateImageBufferBackendSize(size, 1), layer, size);
 }
 
 FloatSize FilterImage::fixedSize(const RenderElement& renderer) const

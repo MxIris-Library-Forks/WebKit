@@ -69,6 +69,7 @@ class AccessibilityObject;
 class AccessibilityRenderObject;
 class AccessibilitySpinButton;
 class Document;
+class Event;
 class HTMLAreaElement;
 class HTMLCanvasElement;
 class HTMLDetailsElement;
@@ -206,11 +207,14 @@ struct PossibleFormValidationErrorData {
     Vector<String> unannouncedText;
     // How many of the form's fields are wrong.
     unsigned errorFieldCount { 0 };
+    // Whether the notification is posted on the button the user pressed to submit, rather than on the form or a field,
+    // so an assistive technology can offer that button alongside the fields.
+    bool targetIsSubmitter { false };
 
     String debugDescription() const
     {
         return makeString("PossibleFormValidationErrorData { unannouncedText: ["_s, makeStringByJoining(unannouncedText, ", "_s),
-            "], errorFieldCount: "_s, errorFieldCount, " }"_s);
+            "], errorFieldCount: "_s, errorFieldCount, ", targetIsSubmitter: "_s, targetIsSubmitter, " }"_s);
     }
 };
 #endif // PLATFORM(COCOA)
@@ -482,16 +486,16 @@ public:
     void onTitleChange(Document&);
     void onValidityChange(Element&);
 
-    // Fields a form-error detection pass paired with a message the author never associated (i.e. via
-    // aria-errormessage).
-    Vector<Ref<Element>> formFieldsForErrorPairing(HTMLFormElement&);
+    // The fields a form-error detection pass may pair with a message the author never associated (i.e. via
+    // aria-errormessage). That is a form's listed elements, or the fields inside an element standing in for a form.
+    Vector<Ref<Element>> fieldsForErrorPairing(Element& container);
     struct DetectedFormErrorPairing {
         Ref<Element> field;
         Ref<Element> message;
     };
     void addDetectedFormErrors(Vector<DetectedFormErrorPairing>&&);
     void clearDetectedErrorsForField(Element&);
-    void clearDetectedErrorsForForm(HTMLFormElement&);
+    void clearDetectedErrorsForContainer(Element&);
     void updateDetectedFormErrors();
     bool fieldHasDetectedError(const Element&) const;
 
@@ -503,7 +507,12 @@ public:
 #if PLATFORM(COCOA)
     void onFormSubmissionAttemptWithoutNavigation(HTMLFormElement&, HTMLFormControlElement* submitter);
     void onFormSubmissionWillNavigate(HTMLFormElement&);
+    WEBCORE_EXPORT bool isWatchingForFormErrors() const;
 #endif
+    // Called synchronously for each trusted (user-generated) click or keydown, just before the event is dispatched to the
+    // page's listeners. It must run first, because pages that validate without a real form submission typically write
+    // their error messages from inside those same listeners.
+    void onTrustedUserInputWillDispatch(Node&, Event&);
 
     void onTextCompositionChange(Node&, CompositionState, bool, const String&, size_t, bool);
     void onWidgetVisibilityChanged(RenderWidget&);
@@ -740,7 +749,7 @@ public:
     void postARIANotifyNotification(Node&, const String&, const AriaNotifyOptions&);
 #if PLATFORM(COCOA)
     void postLiveRegionNotification(AccessibilityObject&, LiveRegionStatus, const AttributedString&);
-    void postPossibleFormValidationErrorNotification(AccessibilityObject&, Vector<String>&& unannouncedText, unsigned errorFieldCount);
+    void postPossibleFormValidationErrorNotification(AccessibilityObject&, Vector<String>&& unannouncedText, unsigned errorFieldCount, bool targetIsSubmitter);
     // Records text an announcement carried, so the form-activity monitor does not report it as unannounced.
     void onAnnouncedText(const String&);
 #else

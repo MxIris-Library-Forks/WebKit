@@ -29,23 +29,64 @@
 #include "GraphicsContext.h"
 #include "ImagePaintingOptions.h"
 #include "NinePieceGeometry.h"
+#include "RenderElement.h"
+#include "StyleComputedStyle+GettersInlines.h"
 
 namespace WebCore {
 namespace Style {
 
-static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destRect, const FloatPoint& srcPoint, const FloatSize& scaledTileSize, const FloatSize& spacing, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras)
+static ConcreteObjectSize concreteObjectSizeToDrawAt(const WebCore::Image& image, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize)
 {
-    if (auto color = image.singlePixelSolidColor()) {
-        WebCore::Image::fillWithSolidColor(ctxt, destRect, *color, options.compositeOperator());
-        return ImageDrawResult::DidDraw;
-    }
+    if (!image.drawsSVGImage())
+        return ConcreteObjectSize::fixed(image.size());
+    auto zoom = renderer.style().usedZoom();
+    return ConcreteObjectSize::fixed(concreteObjectSize.size() * concreteObjectSize.zoom() / zoom, zoom);
+}
 
-    ASSERT_IMPLIES(image.isBitmapImage(), !image.hasSolidColor());
+static NaturalDimensions tileNaturalDimensions(const WebCore::Image& image)
+{
+    if (image.drawsSVGImage())
+        return NaturalDimensions::none();
+    auto size = image.size();
+    return {
+        .width = image.hasRelativeWidth() ? std::nullopt : std::optional { size.width() },
+        .height = image.hasRelativeHeight() ? std::nullopt : std::optional { size.height() },
+        .aspectRatio = std::nullopt,
+    };
+}
 
-    FloatSize intrinsicTileSize = image.drawsSVGImage() ? scaledTileSize : concreteObjectSize.size();
-    if (image.hasRelativeWidth())
+static ImageDrawResult drawImageAsPattern(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras)
+{
+    image.drawPattern(context, concreteObjectSize, destination, tile, patternTransform, phase, spacing, options, extras);
+    image.startAnimation();
+    return ImageDrawResult::DidDraw;
+}
+
+ImageDrawResult Image::drawIntoDestinationImpl(GraphicsContext& context, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions options, const ScopedLambda<DestinationPaint>& paint)
+{
+    GraphicsContextStateSaver stateSaver(context);
+    context.setCompositeOperation(options.compositeOperator(), options.blendMode());
+    if (options.interpolationQuality() != InterpolationQuality::Default)
+        context.setImageInterpolationQuality(options.interpolationQuality());
+
+    context.clip(destination);
+    context.translate(destination.location());
+
+    // An empty source would make this scale non-finite, which poisons the CTM.
+    if (destination.size() != source.size() && !source.isEmpty())
+        context.scale(destination.size() / source.size());
+
+    context.translate(-source.location());
+
+    return paint(context);
+}
+
+ImageDrawResult Image::drawTiledUsingImpl(GraphicsContext& ctxt, NaturalDimensions naturalDimensions, const ScopedLambda<TiledDraw>& draw, const ScopedLambda<TiledDrawPattern>& drawPattern, ConcreteObjectSize concreteObjectSize, const FloatRect& destRect, const FloatPoint& srcPoint, const FloatSize& scaledTileSize, const FloatSize& spacing, ImagePaintingOptions options)
+{
+    FloatSize intrinsicTileSize = concreteObjectSize.size();
+    if (!naturalDimensions.width)
         intrinsicTileSize.setWidth(scaledTileSize.width());
-    if (image.hasRelativeHeight())
+    if (!naturalDimensions.height)
         intrinsicTileSize.setHeight(scaledTileSize.height());
 
     FloatSize scale(scaledTileSize / intrinsicTileSize);
@@ -63,7 +104,7 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
         visibleSrcRect.setY((destRect.y() - oneTileRect.y()) / scale.height());
         visibleSrcRect.setWidth(destRect.width() / scale.width());
         visibleSrcRect.setHeight(destRect.height() / scale.height());
-        return ctxt.drawImage(image, concreteObjectSize, destRect, visibleSrcRect, options, extras);
+        return draw(ctxt, concreteObjectSize, destRect, visibleSrcRect);
     }
 
     // When using accelerated drawing, it's faster to stretch an image than to tile it.
@@ -74,7 +115,7 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
             visibleSrcRect.setY((destRect.y() - oneTileRect.y()) / scale.height());
             visibleSrcRect.setWidth(1);
             visibleSrcRect.setHeight(destRect.height() / scale.height());
-            return ctxt.drawImage(image, concreteObjectSize, destRect, visibleSrcRect, options, extras);
+            return draw(ctxt, concreteObjectSize, destRect, visibleSrcRect);
         }
         if (concreteObjectSize.size().height() == 1 && intersection(oneTileRect, destRect).width() == destRect.width()) {
             FloatRect visibleSrcRect;
@@ -82,7 +123,7 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
             visibleSrcRect.setY(0);
             visibleSrcRect.setWidth(destRect.width() / scale.width());
             visibleSrcRect.setHeight(1);
-            return ctxt.drawImage(image, concreteObjectSize, destRect, visibleSrcRect, options, extras);
+            return draw(ctxt, concreteObjectSize, destRect, visibleSrcRect);
         }
     }
 
@@ -113,7 +154,7 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
                 FloatRect fromRect(toFloatPoint(currentTileRect.location() - oneTileRect.location()), currentTileRect.size());
                 fromRect.scale(1 / scale.width(), 1 / scale.height());
 
-                result = ctxt.drawImage(image, concreteObjectSize, toRect, fromRect, options, extras);
+                result = draw(ctxt, concreteObjectSize, toRect, fromRect);
                 if (result == ImageDrawResult::DidRequestDecoding)
                     return result;
                 toX += currentTileRect.width();
@@ -127,18 +168,11 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
 
     AffineTransform patternTransform = AffineTransform().scaleNonUniform(scale.width(), scale.height());
     FloatRect tileRect(FloatPoint(), intrinsicTileSize);
-    image.drawPattern(ctxt, concreteObjectSize, destRect, tileRect, patternTransform, oneTileRect.location(), spacing, options, extras);
-    image.startAnimation();
-    return ImageDrawResult::DidDraw;
+    return drawPattern(ctxt, concreteObjectSize, destRect, tileRect, patternTransform, oneTileRect.location(), spacing);
 }
 
-static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& dstRect, const FloatRect& srcRect, const FloatSize& tileScaleFactor, WebCore::Image::TileRule hRule, WebCore::Image::TileRule vRule, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras)
+ImageDrawResult Image::drawTiledUsingImpl(GraphicsContext& ctxt, const ScopedLambda<TiledDrawPattern>& drawPattern, ConcreteObjectSize concreteObjectSize, const FloatRect& dstRect, const FloatRect& srcRect, const FloatSize& tileScaleFactor, WebCore::Image::TileRule hRule, WebCore::Image::TileRule vRule)
 {
-    if (auto color = image.singlePixelSolidColor()) {
-        WebCore::Image::fillWithSolidColor(ctxt, dstRect, *color, options.compositeOperator());
-        return ImageDrawResult::DidDraw;
-    }
-
     FloatSize tileScale = tileScaleFactor;
     FloatSize spacing;
 
@@ -208,29 +242,11 @@ static ImageDrawResult drawTiledImage(GraphicsContext& ctxt, WebCore::Image& ima
         vPhase -= (dstRect.height() - scaledTileHeight) / 2;
 
     FloatPoint patternPhase(dstRect.x() - hPhase, dstRect.y() - vPhase);
-    image.drawPattern(ctxt, concreteObjectSize, dstRect, srcRect, patternTransform, patternPhase, spacing, options, extras);
-    image.startAnimation();
-    return ImageDrawResult::DidDraw;
+    return drawPattern(ctxt, concreteObjectSize, dstRect, srcRect, patternTransform, patternPhase, spacing);
 }
 
-ImageDrawResult Image::draw(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
+ImageDrawResult Image::drawNinePieceUsingImpl(GraphicsContext& context, const ScopedLambda<TiledDraw>& draw, const ScopedLambda<TiledDrawPattern>& drawPattern, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry)
 {
-    return context.drawImage(image, concreteObjectSize, destination, source, options, extras);
-}
-
-ImageDrawResult Image::drawTiled(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
-{
-    if (context.paintingDisabled())
-        return ImageDrawResult::DidNothing;
-
-    return drawTiledImage(context, image, concreteObjectSize, destination, phase, tileSize, spacing, options, extras);
-}
-
-ImageDrawResult Image::drawNinePiece(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry, ImagePaintingOptions options, const WebCore::ImageDrawingExtras* extras) const
-{
-    if (context.paintingDisabled())
-        return ImageDrawResult::DidNothing;
-
     auto result = ImageDrawResult::DidNothing;
     auto updateResult = [&](auto pieceResult) {
         if (pieceResult == ImageDrawResult::DidRequestDecoding || result == ImageDrawResult::DidRequestDecoding)
@@ -244,7 +260,7 @@ ImageDrawResult Image::drawNinePiece(GraphicsContext& context, WebCore::Image& i
             continue;
 
         if (isCornerPiece(piece)) {
-            updateResult(context.drawImage(image, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], options, extras));
+            updateResult(draw(context, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece]));
             continue;
         }
 
@@ -257,14 +273,99 @@ ImageDrawResult Image::drawNinePiece(GraphicsContext& context, WebCore::Image& i
             : WebCore::Image::StretchTile;
 
         if (hRule == WebCore::Image::StretchTile && vRule == WebCore::Image::StretchTile) {
-            updateResult(context.drawImage(image, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], options, extras));
+            updateResult(draw(context, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece]));
             continue;
         }
 
-        updateResult(drawTiledImage(context, image, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], geometry.tileScales[piece], hRule, vRule, { options.compositeOperator(), options.interpolationQuality() }, extras));
+        updateResult(drawTiledUsingImpl(context, drawPattern, concreteObjectSize, geometry.destinationRects[piece], geometry.sourceRects[piece], geometry.tileScales[piece], hRule, vRule));
     }
 
     return result;
+}
+
+ImageDrawResult Image::draw(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions options, bool isForFirstLine) const
+{
+    if (isPending())
+        return ImageDrawResult::DidNothing;
+
+    RefPtr image = this->image(&renderer, flooredIntSize(destination.size()), context, isForFirstLine);
+    if (!image || image->isNull())
+        return ImageDrawResult::DidNothing;
+
+    auto imageSource = source;
+    if (!image->drawsSVGImage()) {
+        auto imageSize = image->size(options.orientation());
+        auto box = concreteObjectSize.size() * concreteObjectSize.zoom();
+        if (box.isEmpty())
+            imageSource = { { }, imageSize };
+        else {
+            auto mapX = [&](auto x) { return narrowPrecisionToFloat(static_cast<double>(x) * imageSize.width() / box.width()); };
+            auto mapY = [&](auto y) { return narrowPrecisionToFloat(static_cast<double>(y) * imageSize.height() / box.height()); };
+            auto minX = mapX(source.x());
+            auto minY = mapY(source.y());
+            imageSource = { minX, minY, mapX(source.maxX()) - minX, mapY(source.maxY()) - minY };
+        }
+    }
+
+    auto imageConcreteObjectSize = concreteObjectSizeToDrawAt(*image, renderer, concreteObjectSize);
+    auto extras = drawingExtrasForRenderer(renderer);
+    return context.drawImage(*image, imageConcreteObjectSize, destination, imageSource, options, &extras);
+}
+
+ImageDrawResult Image::drawTiled(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions options, bool isForFirstLine) const
+{
+    RefPtr image = this->image(&renderer, tileSize, context, isForFirstLine);
+    if (!image || context.paintingDisabled())
+        return ImageDrawResult::DidNothing;
+
+    if (auto color = image->singlePixelSolidColor()) {
+        WebCore::Image::fillWithSolidColor(context, destination, *color, options.compositeOperator());
+        return ImageDrawResult::DidDraw;
+    }
+    ASSERT_IMPLIES(image->isBitmapImage(), !image->hasSolidColor());
+
+    auto extras = drawingExtrasForRenderer(renderer);
+    return drawTiledUsing(context, tileNaturalDimensions(*image), [&](GraphicsContext& context, ConcreteObjectSize tileConcreteObjectSize, const FloatRect& destination, const FloatRect& source) {
+        return context.drawImage(*image, tileConcreteObjectSize, destination, source, options, &extras);
+    }, [&](GraphicsContext& context, ConcreteObjectSize tileConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing) {
+        return drawImageAsPattern(context, *image, tileConcreteObjectSize, destination, tile, patternTransform, phase, spacing, options, &extras);
+    }, concreteObjectSizeToDrawAt(*image, renderer, concreteObjectSize), destination, phase, tileSize, spacing, options);
+}
+
+ImageDrawResult Image::drawNinePiece(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry, ImagePaintingOptions options) const
+{
+    RefPtr image = this->image(&renderer, concreteObjectSize.size() * concreteObjectSize.zoom(), context);
+    if (!image || context.paintingDisabled())
+        return ImageDrawResult::DidNothing;
+
+    // FIXME: With 'border-image-repeat: space', partial tiles should be discarded so the gaps around the tiles are
+    // empty. Similarly, the whole region should be left empty if no tile fits.
+    //
+    // The previous implementation got this wrong for a single pixel image, instead filling the whole region with
+    // its color. To match that behavior, we convert NinePieceImageRule::Space to NinePieceImageRule::Repeat when
+    // dealing with a single pixel image.
+    //
+    // https://bugs.webkit.org/show_bug.cgi?id=326231
+
+    auto singlePixelSolidColor = image->singlePixelSolidColor();
+    auto pieceGeometry = geometry;
+    if (singlePixelSolidColor) {
+        if (pieceGeometry.horizontalRule == NinePieceImageRule::Space)
+            pieceGeometry.horizontalRule = NinePieceImageRule::Repeat;
+        if (pieceGeometry.verticalRule == NinePieceImageRule::Space)
+            pieceGeometry.verticalRule = NinePieceImageRule::Repeat;
+    }
+
+    auto extras = drawingExtrasForRenderer(renderer);
+    return drawNinePieceUsing(context, [&](GraphicsContext& context, ConcreteObjectSize pieceConcreteObjectSize, const FloatRect& destination, const FloatRect& source) {
+        return context.drawImage(*image, pieceConcreteObjectSize, destination, source, options, &extras);
+    }, [&](GraphicsContext& context, ConcreteObjectSize pieceConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing) {
+        if (singlePixelSolidColor) {
+            WebCore::Image::fillWithSolidColor(context, destination, *singlePixelSolidColor, options.compositeOperator());
+            return ImageDrawResult::DidDraw;
+        }
+        return drawImageAsPattern(context, *image, pieceConcreteObjectSize, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality() }, &extras);
+    }, concreteObjectSizeToDrawAt(*image, renderer, concreteObjectSize), pieceGeometry);
 }
 
 } // namespace Style

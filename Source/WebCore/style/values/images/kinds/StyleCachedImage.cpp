@@ -29,6 +29,7 @@
 #include "CachedImage.h"
 #include "ContainerNodeInlines.h"
 #include "DeprecatedCSSOMPrimitiveValue.h"
+#include "ImageQualityController.h"
 #include "ReferencedSVGResources.h"
 #include "RenderElement.h"
 #include "RenderImage.h"
@@ -398,7 +399,7 @@ bool CachedImage::knownToBeOpaque(const RenderElement&) const
     return m_cachedImage && protect(m_cachedImage)->currentFrameKnownToBeOpaque();
 }
 
-bool CachedImage::canDrawAtSize(const RenderElement& renderer, const FloatSize&) const
+bool CachedImage::canDraw(const RenderElement& renderer) const
 {
     if (m_isPending)
         return false;
@@ -408,6 +409,45 @@ bool CachedImage::canDrawAtSize(const RenderElement& renderer, const FloatSize&)
     return image && !image->isNull();
 }
 
+bool CachedImage::canDrawAtSize(const RenderElement& renderer, const FloatSize& size) const
+{
+    return !size.isEmpty() && canDraw(renderer);
+}
+
+bool CachedImage::drawsSVGImage() const
+{
+    RefPtr image = m_cachedImage ? protect(m_cachedImage)->image() : nullptr;
+    return image && image->drawsSVGImage();
+}
+
+WTF::String CachedImage::accessibilityDescription() const
+{
+    return decodedImage()->accessibilityDescription();
+}
+
+bool CachedImage::isAnimated() const
+{
+    return decodedImage()->isAnimated();
+}
+
+void CachedImage::stopAnimation()
+{
+    decodedImage()->stopAnimation();
+}
+
+void CachedImage::resetAnimation()
+{
+    decodedImage()->resetAnimation();
+}
+
+Ref<WebCore::Image> CachedImage::decodedImage() const
+{
+    RefPtr image = m_cachedImage ? protect(m_cachedImage)->image() : nullptr;
+    if (!image)
+        return WebCore::Image::nullImage();
+    return image.releaseNonNull();
+}
+
 DecodingMode CachedImage::decodingModeForImageDraw(const RenderBoxModelObject& renderer, const PaintInfo& paintInfo) const
 {
     if (!m_cachedImage || renderSVGResource(&renderer) || legacyRenderSVGResource(&renderer))
@@ -415,11 +455,11 @@ DecodingMode CachedImage::decodingModeForImageDraw(const RenderBoxModelObject& r
     return renderer.decodingModeForImageDraw(*protect(protect(m_cachedImage)->image()), paintInfo);
 }
 
-InterpolationQuality CachedImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderBoxModelObject& renderer, const void* layer, const LayoutSize& size) const
+InterpolationQuality CachedImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderElement& renderer, const void* layer, const LayoutSize& size) const
 {
     if (!m_cachedImage || renderSVGResource(&renderer) || legacyRenderSVGResource(&renderer))
         return Image::interpolationQualityForImageDraw(context, renderer, layer, size);
-    return renderer.chooseInterpolationQuality(context, *protect(protect(m_cachedImage)->image()), layer, size);
+    return ImageQualityController::chooseInterpolationQuality(context, renderer, *protect(protect(m_cachedImage)->image()), layer, size);
 }
 
 bool CachedImage::usesDataProtocol() const

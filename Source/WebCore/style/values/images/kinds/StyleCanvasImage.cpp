@@ -31,6 +31,7 @@
 #include "CSSCanvasValue.h"
 #include "DeprecatedCSSOMValue.h"
 #include "HTMLCanvasElement.h"
+#include "ImageQualityController.h"
 #include "InspectorInstrumentation.h"
 #include "RenderBoxModelObject.h"
 #include "RenderElement.h"
@@ -101,20 +102,25 @@ bool CanvasImage::knownToBeOpaque(const RenderElement&) const
     return false;
 }
 
-bool CanvasImage::canDrawAtSize(const RenderElement& renderer, const FloatSize&) const
+bool CanvasImage::canDraw(const RenderElement& renderer) const
 {
     RefPtr element = this->element(protect(renderer.document()));
     RefPtr image = element ? element->copiedImage() : nullptr;
     return image && !image->isNull();
 }
 
-InterpolationQuality CanvasImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderBoxModelObject& renderer, const void* layer, const LayoutSize& size) const
+bool CanvasImage::canDrawAtSize(const RenderElement& renderer, const FloatSize& size) const
+{
+    return !size.isEmpty() && canDraw(renderer);
+}
+
+InterpolationQuality CanvasImage::interpolationQualityForImageDraw(GraphicsContext& context, const RenderElement& renderer, const void* layer, const LayoutSize& size) const
 {
     RefPtr element = this->element(protect(renderer.document()));
     RefPtr image = element ? element->copiedImage() : nullptr;
     if (!image)
         return Image::interpolationQualityForImageDraw(context, renderer, layer, size);
-    return renderer.chooseInterpolationQuality(context, *image, layer, size);
+    return ImageQualityController::chooseInterpolationQuality(context, renderer, *image, layer, size);
 }
 
 FloatSize CanvasImage::fixedSize(const RenderElement& renderer) const

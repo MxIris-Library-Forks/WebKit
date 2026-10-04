@@ -1006,6 +1006,19 @@ ALWAYS_INLINE bool LiteralParser<CharType, reviverMode>::Lexer::tryConsumeString
     return true;
 }
 
+template<typename CharType, JSONReviverMode reviverMode>
+ALWAYS_INLINE void LiteralParser<CharType, reviverMode>::Lexer::cacheString(JSONCache& cache, JSString* string, std::span<const CharType> source)
+{
+    if constexpr (sizeof(CharType) == 1) {
+        // The token only points into the source when the string had no escapes, and then the source text
+        // from the opening quote to the closing one is exactly what a later match compares against.
+        if (m_currentToken.stringStart8 != source.data() + 1)
+            return;
+        cache.addString(source, m_ptr - source.data(), string);
+    } else
+        UNUSED_PARAM(cache), UNUSED_PARAM(string), UNUSED_PARAM(source);
+}
+
 template <>
 ALWAYS_INLINE void setParserTokenString<Latin1Character>(LiteralParserToken<Latin1Character>& token, const Latin1Character* string)
 {
@@ -1635,20 +1648,18 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
     // Structure it transitions to, so the next key's lookup does not wait on hashing that Structure's ID.
     unsigned structureNameIndex = 0;
     auto existingProperty = [&](Structure* structure, PropertyOffset offset) ALWAYS_INLINE_LAMBDA {
-        if constexpr (parserMode == StrictJSON && sizeof(CharType) == 1)
+        if constexpr (parserMode == StrictJSON)
             structureNameIndex = JSONCache::nameIndex(StructureID::encode(structure));
         return ExistingProperty { structure, offset };
     };
     auto tryConsumeTransitionPropertyName = [&](Structure* structure) ALWAYS_INLINE_LAMBDA -> std::optional<ExistingProperty> {
         if constexpr (parserMode == StrictJSON) {
             m_lexer.skipWhitespaceBeforeKey();
-            if constexpr (sizeof(CharType) == 1) {
-                if (auto* entry = jsonCache.findName(StructureID::encode(structure), structureNameIndex, m_lexer.remaining())) {
-                    m_lexer.advance(entry->textLength);
-                    consumedColon = true;
-                    structureNameIndex = entry->toNameIndex;
-                    return ExistingProperty { entry->to.unvalidatedGet(), entry->offset };
-                }
+            if (auto* entry = jsonCache.findName(StructureID::encode(structure), structureNameIndex, m_lexer.remaining())) {
+                m_lexer.advance(entry->textLength);
+                consumedColon = true;
+                structureNameIndex = entry->toNameIndex;
+                return ExistingProperty { entry->to.unvalidatedGet(), entry->offset };
             }
             if (Structure* transition = structure->trySingleTransition()) {
                 SUPPRESS_UNCOUNTED_LOCAL UniquedStringImpl* name = transition->transitionPropertyName();
@@ -1658,8 +1669,7 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
                     && name->is8Bit()
                     && m_lexer.tryConsumeStringEqualTo(name->span8())) {
                     PropertyOffset offset = transition->transitionOffset();
-                    if constexpr (sizeof(CharType) == 1)
-                        jsonCache.addName(structure, transition, offset);
+                    jsonCache.addName(structure, transition, offset);
                     return existingProperty(transition, offset);
                 }
             }
@@ -1668,7 +1678,7 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
     };
 
     Structure* structure = object->structure();
-    if constexpr (parserMode == StrictJSON && sizeof(CharType) == 1)
+    if constexpr (parserMode == StrictJSON)
         structureNameIndex = JSONCache::nameIndex(StructureID::encode(structure));
     std::optional<ExistingProperty> consumedProperty = tryConsumeTransitionPropertyName(structure);
     if (!consumedProperty) {
@@ -1726,8 +1736,7 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
                         }
                         if (transition) {
                             PropertyOffset offset = transition->transitionOffset();
-                            if constexpr (sizeof(CharType) == 1)
-                                jsonCache.addPrefixedName(originalStructure, transition, offset);
+                            jsonCache.addPrefixedName(originalStructure, transition, offset);
                             return existingProperty(transition, offset);
                         }
                     }
@@ -1743,8 +1752,7 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
                                         jsonCache.addTransition(originalStructure, newStructure, token->string8());
                                     else
                                         jsonCache.addTransition(originalStructure, newStructure, token->string16());
-                                    if constexpr (sizeof(CharType) == 1)
-                                        jsonCache.addPrefixedName(originalStructure, newStructure, offset);
+                                    jsonCache.addPrefixedName(originalStructure, newStructure, offset);
                                 }
                                 return existingProperty(newStructure, offset);
                             } else if (newStructure->transitionPropertyName() != vm.propertyNames->underscoreProto && m_visitedUnderscoreProto.isEmpty())
@@ -1767,13 +1775,24 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
             // parsePrimitiveValue would otherwise repeat on the token type.
             auto parseValue = [&, &vm = vm] ALWAYS_INLINE_LAMBDA -> JSValue {
                 switch (m_lexer.peek()) {
-                case '"':
+                case '"': {
+                    if constexpr (parserMode == StrictJSON && sizeof(CharType) == 1) {
+                        if (auto* entry = jsonCache.findString(m_lexer.remaining())) {
+                            m_lexer.advance(entry->textLength);
+                            m_lexer.nextAfterValue();
+                            return entry->string;
+                        }
+                    }
+                    auto source = m_lexer.remaining();
                     if (m_lexer.nextString() == TokString) [[likely]] {
                         JSString* result = makeJSString(vm, jsonCache, m_lexer.currentToken());
+                        if constexpr (parserMode == StrictJSON && sizeof(CharType) == 1)
+                            m_lexer.cacheString(jsonCache, result, source);
                         m_lexer.nextAfterValue();
                         return result;
                     }
                     return parsePrimitiveValue(vm);
+                }
                 case '-':
                 case '0': case '1': case '2': case '3': case '4':
                 case '5': case '6': case '7': case '8': case '9':
@@ -1859,7 +1878,7 @@ JSValue LiteralParser<CharType, reviverMode>::parseRecursively(VM& vm, uint8_t* 
                 } else
                     object->putDirect(vm, ident, value);
                 structure = object->structure();
-                if constexpr (parserMode == StrictJSON && sizeof(CharType) == 1)
+                if constexpr (parserMode == StrictJSON)
                     structureNameIndex = JSONCache::nameIndex(StructureID::encode(structure));
             }
 

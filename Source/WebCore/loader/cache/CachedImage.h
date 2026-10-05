@@ -62,10 +62,6 @@ public:
     void setAllowsOrientationOverride(bool b) { m_allowsOrientationOverride = b; }
     bool allowsOrientationOverride() const { return m_allowsOrientationOverride; }
 
-    bool imageHasNaturalAspectRatio() const { return m_image && protect(m_image)->hasNaturalAspectRatio(); }
-    bool imageHasRelativeWidth() const { return m_image && protect(m_image)->hasRelativeWidth(); }
-    bool imageHasRelativeHeight() const { return m_image && protect(m_image)->hasRelativeHeight(); }
-
     void updateBuffer(const FragmentedSharedBuffer&) override;
     void finishLoading(const FragmentedSharedBuffer*, const NetworkLoadMetrics&) override;
 
@@ -76,7 +72,6 @@ public:
     WEBCORE_EXPORT FloatSize imageSize(ImageOrientation = ImageOrientation::Orientation::FromImage, float multiplier = 1.0f, SizeType = UsedSize, float density = 1.0f) const;
     LayoutSize clampedImageSize(ImageOrientation, float multiplier, SizeType = UsedSize, float density = 1.0f) const;
     static LayoutSize clampForZoom(FloatSize, float multiplier);
-    void computeIntrinsicDimensions(float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio);
 
     NaturalDimensions naturalDimensions(ImageOrientation = ImageOrientation::Orientation::FromImage) const;
 

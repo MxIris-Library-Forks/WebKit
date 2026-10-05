@@ -149,7 +149,7 @@ static bool prefersDirectManipulation(const WebKit::InteractionInformationAtPosi
     return prefersInteraction;
 }
 
-static bool representsSecondaryClickableElement(const WebKit::InteractionInformationAtPosition& info, bool isDisplayingStandaloneImageDocument)
+static bool representsSecondaryClickableElement(const WebKit::InteractionInformationAtPosition& info)
 {
     if (prefersDirectManipulation(info))
         return false;
@@ -160,7 +160,7 @@ static bool representsSecondaryClickableElement(const WebKit::InteractionInforma
     if (info.shouldTreatLongClickAsSecondaryClickQuirk)
         return true;
 
-    if (info.isImage && isDisplayingStandaloneImageDocument)
+    if (info.isImage)
         return true;
 
     return info.isOverVideo && info.selectability != WebKit::InteractionInformationAtPosition::Selectability::UnselectableDueToFocusableElement;
@@ -1373,16 +1373,12 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
 
 - (BOOL)_secondaryClickShouldBeginAtLocation:(NSPoint)locationInViewCoordinates
 {
-    RetainPtr webView = _view.get();
-    if (!webView)
-        return NO;
-
     int radius = static_cast<int>(std::ceil([_secondaryClickGestureRecognizer allowableMovement]));
 
     const auto& information = _positionInformationManager->currentInformation();
 
     bool requestIsValid = [self _positionInformationRequestIsValidAtLocation:locationInViewCoordinates withRadius:radius];
-    bool isSecondaryClickable = representsSecondaryClickableElement(information, [webView _isDisplayingStandaloneImageDocument]);
+    bool isSecondaryClickable = representsSecondaryClickableElement(information);
     bool isOverSelectableText = information.isOverSelectableText;
 
     // The secondary click owns points that are not over selectable text (e.g. the page background
@@ -1982,7 +1978,8 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
         .gestureScale = static_cast<float>(magnification),
         .gestureRotation = 0,
         .timestamp = MonotonicTime::fromRawSeconds(GetCurrentEventTime()),
-        .allowsNativeZoom = static_cast<bool>([self magnificationGestureRecognizerCanZoom])
+        .allowsNativeZoom = static_cast<bool>([self magnificationGestureRecognizerCanZoom]),
+        .inputSource = WebKit::WebEventInputSource::Automation,
     };
     auto webEvent = WebKit::NativeWebGestureEvent::create(init, webView.getAutoreleased());
 
@@ -2035,7 +2032,8 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
         .locationInWindow = [self gestureCentroidInWindowForGesture:gesture],
         .gestureScale = 0,
         .gestureRotation = static_cast<float>([self currentRotation:gesture.rotationInDegrees atPhase:phase]),
-        .timestamp = MonotonicTime::fromRawSeconds(GetCurrentEventTime())
+        .timestamp = MonotonicTime::fromRawSeconds(GetCurrentEventTime()),
+        .inputSource = WebKit::WebEventInputSource::Automation,
     };
     if (auto webEvent = WebKit::NativeWebGestureEvent::create(init, webView.getAutoreleased()))
         [webView _protectedPage]->handleGestureEvent(*webEvent);

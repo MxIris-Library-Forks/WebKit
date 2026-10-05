@@ -510,13 +510,10 @@ void WebPage::getPlatformEditorState(LocalFrame& frame, EditorState& result) con
             for (auto& geometry : geometries)
                 geometry.setQuad(localRootView->convertToRootViewAcrossIsolatedFrames(geometry.quad()));
         };
-        convertRect(visualData.caretRectAtStart);
-        convertRect(visualData.caretRectAtEnd);
         convertRect(visualData.selectionClipRect);
         convertRect(visualData.editableRootBounds);
         convertRect(visualData.markedTextCaretRectAtStart);
         convertRect(visualData.markedTextCaretRectAtEnd);
-        convertGeometries(visualData.selectionGeometries);
         convertGeometries(visualData.markedTextRects);
     }
 }
@@ -848,7 +845,7 @@ bool WebPage::platformCanHandleRequest(const WebCore::ResourceRequest& request)
     return [NSURLConnection canHandleRequest:nsRequest.get()];
 }
 
-void WebPage::shouldDelayWindowOrderingEvent(Ref<WebKit::WebMouseEvent>&&, CompletionHandler<void(bool)>&& completionHandler)
+void WebPage::shouldDelayWindowOrderingEvent(std::optional<FrameIdentifier>, Ref<WebKit::WebMouseEvent>&&, CompletionHandler<void(Variant<bool, RemoteUserInputEventData>&&)>&& completionHandler)
 {
     notImplemented();
     completionHandler(false);

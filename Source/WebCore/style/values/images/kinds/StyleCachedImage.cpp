@@ -271,44 +271,6 @@ FloatSize CachedImage::imageSize(const RenderElement* renderer, float multiplier
     return WebCore::CachedImage::clampForZoom(RenderImage::imageSizeAsRendered(*protect(m_cachedImage), renderer, multiplier, sizeType, density), multiplier) / m_scaleFactor;
 }
 
-bool CachedImage::imageHasRelativeWidth() const
-{
-    if (!m_cachedImage)
-        return false;
-    return protect(m_cachedImage)->imageHasRelativeWidth();
-}
-
-bool CachedImage::imageHasRelativeHeight() const
-{
-    if (!m_cachedImage)
-        return false;
-    return protect(m_cachedImage)->imageHasRelativeHeight();
-}
-
-bool CachedImage::imageHasNaturalAspectRatio() const
-{
-    if (!m_cachedImage)
-        return false;
-    return m_cachedImage->imageHasNaturalAspectRatio();
-}
-
-void CachedImage::computeIntrinsicDimensions(const RenderElement* renderer, float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio)
-{
-    // In case of an SVG resource, we should return the container size.
-    if (isRenderSVGResource(renderer)) {
-        FloatSize size = floorSizeToDevicePixels(LayoutSize(m_containerSize), renderer ? protect(renderer->document())->deviceScaleFactor() : 1);
-        intrinsicWidth = size.width();
-        intrinsicHeight = size.height();
-        intrinsicRatio = size;
-        return;
-    }
-
-    if (!m_cachedImage)
-        return;
-
-    protect(m_cachedImage)->computeIntrinsicDimensions(intrinsicWidth, intrinsicHeight, intrinsicRatio);
-}
-
 NaturalDimensions CachedImage::naturalDimensions(const RenderElement& renderer, const ImageSizingContext&) const
 {
     if (isRenderSVGResource(&renderer))
@@ -382,6 +344,34 @@ RefPtr<WebCore::Image> CachedImage::image(const RenderElement* renderer, const F
         return nullptr;
 
     return protect(m_cachedImage)->image();
+}
+
+ImageDrawResult CachedImage::draw(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions options, bool isForFirstLine) const
+{
+    return drawResolving(context, renderer, concreteObjectSize, destination, source, options, [&](const FloatSize& size, const GraphicsContext& destinationContext) {
+        return image(&renderer, size, destinationContext, isForFirstLine);
+    });
+}
+
+ImageDrawResult CachedImage::drawAsPattern(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImagePaintingOptions options, bool isForFirstLine) const
+{
+    return drawAsPatternResolving(context, renderer, concreteObjectSize, destination, tile, patternTransform, phase, spacing, options, [&](const FloatSize& size, const GraphicsContext& destinationContext) {
+        return image(&renderer, size, destinationContext, isForFirstLine);
+    });
+}
+
+ImageDrawResult CachedImage::drawTiled(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions options, bool isForFirstLine) const
+{
+    return drawTiledResolving(context, renderer, concreteObjectSize, destination, phase, tileSize, spacing, options, [&](const FloatSize& size, const GraphicsContext& destinationContext) {
+        return image(&renderer, size, destinationContext, isForFirstLine);
+    });
+}
+
+ImageDrawResult CachedImage::drawNinePiece(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry, ImagePaintingOptions options) const
+{
+    return drawNinePieceResolving(context, renderer, concreteObjectSize, geometry, options, [&](const FloatSize& size, const GraphicsContext& destinationContext) {
+        return image(&renderer, size, destinationContext, false);
+    });
 }
 
 bool CachedImage::currentFrameIsComplete(const RenderElement*) const

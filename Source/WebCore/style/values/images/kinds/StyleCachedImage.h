@@ -75,10 +75,6 @@ public:
     bool isLoaded(const RenderElement*) const final;
     bool errorOccurred() const final;
     FloatSize imageSize(const RenderElement*, float multiplier, WebCore::CachedImage::SizeType = WebCore::CachedImage::UsedSize) const final;
-    bool imageHasRelativeWidth() const final;
-    bool imageHasRelativeHeight() const final;
-    bool imageHasNaturalAspectRatio() const final;
-    void computeIntrinsicDimensions(const RenderElement*, float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio) final;
     NaturalDimensions naturalDimensions(const RenderElement&, const ImageSizingContext&) const final;
     void setContainerSizeForRenderer(const RenderElement&, const FloatSize&) final;
     ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&) const final;
@@ -87,7 +83,11 @@ public:
     bool hasClient(RenderElement&) const final;
     bool hasImage() const final;
     bool hasDecodedImage() const final;
-    RefPtr<WebCore::Image> image(const RenderElement*, const FloatSize&, const GraphicsContext& destinationContext, bool isForFirstLine) const final;
+    RefPtr<WebCore::Image> image(const RenderElement*, const FloatSize&, const GraphicsContext& destinationContext, bool isForFirstLine) const;
+    ImageDrawResult draw(GraphicsContext&, const RenderElement&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions, bool isForFirstLine) const final;
+    ImageDrawResult drawAsPattern(GraphicsContext&, const RenderElement&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform&, const FloatPoint& phase, const FloatSize& spacing, ImagePaintingOptions, bool isForFirstLine) const final;
+    ImageDrawResult drawTiled(GraphicsContext&, const RenderElement&, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions, bool isForFirstLine) const final;
+    ImageDrawResult drawNinePiece(GraphicsContext&, const RenderElement&, ConcreteObjectSize, const NinePieceGeometry&, ImagePaintingOptions) const final;
     bool currentFrameIsComplete(const RenderElement*) const final;
     float imageScaleFactor() const final;
     bool knownToBeOpaque(const RenderElement&) const final;

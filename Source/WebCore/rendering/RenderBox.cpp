@@ -52,6 +52,7 @@
 #include "HTMLLegendElement.h"
 #include "HTMLNames.h"
 #include "HTMLSelectElement.h"
+#include "HTMLTableElement.h"
 #include "HTMLTextAreaElement.h"
 #include "HitTestResult.h"
 #include "InlineIteratorBoxInlines.h"
@@ -100,6 +101,7 @@
 #include "ScrollbarTheme.h"
 #include "ScrollbarsController.h"
 #include "Settings.h"
+#include "StyleBackgroundImageSizing.h"
 #include "StyleBoxShadow.h"
 #include "StyleComputedStyle+GettersInlines.h"
 #include "StyleComputedStyle+InitialInlines.h"
@@ -1538,6 +1540,7 @@ LayoutUnit RenderBox::minContentLogicalWidthContribution() const
 {
     if (hasInvalidContentLogicalWidths()) {
         SetLayoutNeededForbiddenScope layoutForbiddenScope(*this);
+        auto intrinsicWidthComputationScope = IntrinsicLogicalWidthComputationScope { view().frameView().layoutContext(), *this };
         const_cast<RenderBox&>(*this).computeIntrinsicLogicalWidthContributions();
     }
     return m_minContentLogicalWidthContribution;
@@ -1547,6 +1550,7 @@ LayoutUnit RenderBox::maxContentLogicalWidthContribution() const
 {
     if (hasInvalidContentLogicalWidths()) {
         SetLayoutNeededForbiddenScope layoutForbiddenScope(*this);
+        auto intrinsicWidthComputationScope = IntrinsicLogicalWidthComputationScope { view().frameView().layoutContext(), *this };
         const_cast<RenderBox&>(*this).computeIntrinsicLogicalWidthContributions();
     }
     return m_maxContentLogicalWidthContribution;
@@ -2129,7 +2133,7 @@ bool RenderBox::backgroundHasOpaqueTopLayer() const
     if (hasNonVisibleOverflow() && topLayer.attachment() == FillAttachment::LocalBackground)
         return false;
 
-    if (topLayer.hasOpaqueImage(*this) && topLayer.hasRepeatXY() && topLayer.image().tryStyleImage()->canRender(this, style().usedZoom()))
+    if (topLayer.hasOpaqueImage(*this) && topLayer.hasRepeatXY() && topLayer.image().tryStyleImage()->canRender(this))
         return true;
 
     // If there is only one layer and no image, check whether the background color is opaque.
@@ -2265,7 +2269,11 @@ void RenderBox::imageChanged(WrappedImagePtr image, const IntRect*)
     bool isNonEmpty;
     RefPtr styleImage = Style::findLayerUsedImage(style().backgroundLayers(), image, isNonEmpty);
     if (styleImage && isNonEmpty) {
-        incrementVisuallyNonEmptyPixelCountIfNeeded(flooredIntSize(styleImage->imageSize(this, style().usedZoom())));
+        incrementVisuallyNonEmptyPixelCountIfNeeded(flooredIntSize(calculateImageIntrinsicDimensions(*styleImage, Style::BackgroundImageSizing {
+            borderBoxRect().size(),
+            ObjectSizeNegotiation::SpecifiedSize::none(),
+            ObjectSizeNegotiation::SizingConstraint::None,
+        }, ScaleByUsedZoom::Yes)));
         if (auto styleable = Styleable::fromRenderer(*this))
             protect(document())->didLoadImage(protect(styleable->element).get(), protect(styleImage->cachedImage()));
     }
@@ -2282,11 +2290,11 @@ void RenderBox::imageChanged(WrappedImagePtr image, const IntRect*)
 
 void RenderBox::incrementVisuallyNonEmptyPixelCountIfNeeded(const IntSize& size)
 {
-    if (didContibuteToVisuallyNonEmptyPixelCount())
+    if (didContributeToVisuallyNonEmptyPixelCount())
         return;
 
     protect(view())->frameView().incrementVisuallyNonEmptyPixelCount(size);
-    setDidContibuteToVisuallyNonEmptyPixelCount();
+    setDidContributeToVisuallyNonEmptyPixelCount();
 }
 
 template<typename Layers>
@@ -2296,7 +2304,7 @@ bool RenderBox::repaintLayerRectsForImage(WrappedImagePtr image, const Layers& l
     RenderBox* layerRenderer = nullptr;
 
     for (auto& layer : layers.usedValues()) {
-        if (RefPtr layerImage = layer.image().tryStyleImage(); layerImage && layerImage->data() == image && (layerImage->isLoaded(this) || layerImage->canRender(this, style().usedZoom()))) {
+        if (RefPtr layerImage = layer.image().tryStyleImage(); layerImage && layerImage->data() == image && (layerImage->isLoaded(this) || layerImage->canRender(this))) {
             // Now that we know this image is being used, compute the renderer and the rect if we haven't already.
             bool drawingRootBackground = drawingBackground && (isDocumentElementRenderer() || (isBody() && !document().documentElement()->renderer()->hasBackground()));
             if (!layerRenderer) {
@@ -3043,8 +3051,12 @@ template<typename SizeType> LayoutUnit RenderBox::computeLogicalWidthUsingGeneri
         return adjustBorderBoxLogicalWidthForBoxSizing(Style::evaluate<LayoutUnit>(logicalWidth, availableLogicalWidth, style().usedZoomForLength()));
     }
 
-    if (logicalWidth.isIntrinsicOrStretch() || logicalWidth.isMinIntrinsic())
+    if (logicalWidth.isStretch())
         return computeSizingKeywordLogicalWidthUsing(logicalWidth, availableLogicalWidth, borderAndPaddingLogicalWidth());
+    if (logicalWidth.isIntrinsic() || logicalWidth.isMinIntrinsic()) {
+        auto intrinsicWidthComputationScope = IntrinsicLogicalWidthComputationScope { view().frameView().layoutContext(), *this };
+        return computeSizingKeywordLogicalWidthUsing(logicalWidth, availableLogicalWidth, borderAndPaddingLogicalWidth());
+    }
 
     LayoutUnit marginStart;
     LayoutUnit marginEnd;
@@ -3442,7 +3454,7 @@ RenderBox::LogicalExtentComputedValues RenderBox::computeLogicalHeight(LayoutUni
         // contribution (e.g. an orthogonal child probed by its block container),
         // its own min/max block-size must resolve per the intrinsic-size rules of
         // CSS Sizing 3 section 5.1 rather than against the not-yet-known container.
-        auto isComputingIntrinsicSize = view().frameView().layoutContext().isComputingIntrinsicLogicalHeightFor(*this) ? IsComputingIntrinsicSize::Yes : IsComputingIntrinsicSize::No;
+        auto isComputingIntrinsicSize = view().frameView().layoutContext().isInOrthogonalIntrinsicContributionLayout(*this) ? IsComputingIntrinsicSize::Yes : IsComputingIntrinsicSize::No;
         if (auto heightFromFormattingContext = usedLogicalHeightFromContext())
             return *heightFromFormattingContext;
 
@@ -3525,7 +3537,7 @@ LayoutUnit RenderBox::computeIntrinsicLogicalHeight()
 {
     // Mark the box as being measured for its intrinsic size so its own cyclic-percentage min/max block-size
     // resolves per CSS Sizing 3 section 5.1 (as none/zero) instead of against the not-yet-known container.
-    auto intrinsicSizeScope = IntrinsicLogicalHeightComputationScope { view().frameView().layoutContext(), *this };
+    auto orthogonalIntrinsicContributionLayoutScope = OrthogonalIntrinsicContributionLayoutScope { view().frameView().layoutContext(), *this };
 
     // The block-axis size of an already-laid-out box is simply its logical height.
     if (!needsLayout())
@@ -4020,8 +4032,12 @@ template<typename SizeType> std::optional<LayoutUnit> RenderBox::computePercenta
     // then we must subtract the border and padding from the cell's
     // |availableHeight| (given by |overridingLogicalHeight|) to arrive
     // at the child's computed height.
-    bool subtractBorderAndPadding = isRenderTable() || (is<RenderTableCell>(*containingBlock) && !skippedAutoHeightContainingBlock && containingBlock->overridingBorderBoxLogicalHeight() && style().boxSizing() == BoxSizing::ContentBox);
-    if (subtractBorderAndPadding) {
+    auto shouldSubtractBorderAndPadding = [&] {
+        if (isRenderTable())
+            return is<HTMLTableElement>(element()) || style().boxSizing() == BoxSizing::BorderBox;
+        return is<RenderTableCell>(*containingBlock) && !skippedAutoHeightContainingBlock && containingBlock->overridingBorderBoxLogicalHeight() && style().boxSizing() == BoxSizing::ContentBox;
+    };
+    if (shouldSubtractBorderAndPadding()) {
         result -= borderAndPaddingLogicalHeight();
         return std::max(0_lu, result);
     }
@@ -4420,6 +4436,7 @@ template<typename SizeType> LayoutUnit RenderBox::computeOutOfFlowPositionedLogi
         auto availableSpace = inlineConstraints.containingSize();
         availableSpace -= inlineConstraints.insetBeforeValue();
         availableSpace -= inlineConstraints.insetAfterValue();
+        auto intrinsicWidthComputationScope = IntrinsicLogicalWidthComputationScope { view().frameView().layoutContext(), *this };
         return std::max(0_lu, computeSizingKeywordLogicalWidthUsing(keyword, availableSpace, inlineConstraints.bordersPlusPadding()) - inlineConstraints.bordersPlusPadding());
     };
 
@@ -5472,13 +5489,16 @@ std::pair<LayoutUnit, LayoutUnit> RenderBox::computeMinMaxLogicalWidthFromAspect
     if (!aspectRatio)
         return { transferredMinSize, transferredMaxSize };
 
-    if (style().logicalMinHeight().isSpecified() || style().logicalMinHeight().isStretch()) {
-        if (LayoutUnit blockMinSize = constrainLogicalHeightByMinMax(LayoutUnit(), std::nullopt); blockMinSize > LayoutUnit())
-            transferredMinSize = inlineSizeFromAspectRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), *aspectRatio, style().boxSizingForAspectRatio(), blockMinSize, style().aspectRatio(), isRenderReplaced());
-    }
-    if (style().logicalMaxHeight().isSpecified() || style().logicalMaxHeight().isStretch()) {
-        if (LayoutUnit blockMaxSize = constrainLogicalHeightByMinMax(LayoutUnit::max(), std::nullopt); blockMaxSize != LayoutUnit::max())
-            transferredMaxSize = inlineSizeFromAspectRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), *aspectRatio, style().boxSizingForAspectRatio(), blockMaxSize, style().aspectRatio(), isRenderReplaced());
+    // Transfer the block axis's own min/max-height only (css-sizing-4 aspect-ratio-size-transfers). constrainLogicalHeightByMinMax()
+    // would also apply the min/max-width already transferred to the block axis, sending it back to the inline axis it came from.
+    auto& minHeight = style().logicalMinHeight();
+    auto& maxHeight = style().logicalMaxHeight();
+    auto blockMinSize = minHeight.isSpecified() || minHeight.isStretch() ? computeLogicalHeightUsing(minHeight, { }).value_or(0_lu) : 0_lu;
+    if (blockMinSize)
+        transferredMinSize = inlineSizeFromAspectRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), *aspectRatio, style().boxSizingForAspectRatio(), blockMinSize, style().aspectRatio(), isRenderReplaced());
+    if (maxHeight.isSpecified() || maxHeight.isStretch()) {
+        if (auto blockMaxSize = computeLogicalHeightUsing(maxHeight, { }))
+            transferredMaxSize = inlineSizeFromAspectRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), *aspectRatio, style().boxSizingForAspectRatio(), std::max(*blockMaxSize, blockMinSize), style().aspectRatio(), isRenderReplaced());
     }
     // Spec says the transferred max size should be floored by the transferred min size
     transferredMaxSize = std::max(transferredMinSize, transferredMaxSize);

@@ -642,6 +642,7 @@ void Internals::resetToConsistentState(Page& page)
     page.setResourceCachingDisabledByWebInspector(false);
     page.setConsoleMessageListenerForTesting(nullptr);
     page.setQuirksSubframeURLForTesting({ });
+    page.setQuirksTopDocumentHostForTesting({ });
 
     RefPtr localMainFrame = page.localMainFrame();
     if (!localMainFrame)
@@ -5253,7 +5254,7 @@ bool Internals::isSelectPopupVisible(HTMLSelectElement& element)
     protect(element.document())->updateLayout(LayoutOptions::IgnorePendingStylesheets);
 
 #if !PLATFORM(IOS_FAMILY)
-    return element.popupIsVisible();
+    return element.isOpen();
 #else
     return false;
 #endif
@@ -6436,6 +6437,26 @@ String Internals::documentIPAddressSpace() const
     return "unknown"_s;
 }
 
+void Internals::setDocumentIPAddressSpace(const String& addressSpace)
+{
+    RefPtr document = contextDocument();
+    if (!document)
+        return;
+
+    if (addressSpace == "public"_s)
+        document->setIPAddressSpace(IPAddressSpace::Public);
+    else if (addressSpace == "local"_s)
+        document->setIPAddressSpace(IPAddressSpace::Local);
+    else if (addressSpace == "loopback"_s)
+        document->setIPAddressSpace(IPAddressSpace::Loopback);
+}
+
+void Internals::setLoadSourceOriginOverride(const String& origin)
+{
+    if (RefPtr document = contextDocument())
+        document->setLoadSourceOriginOverrideForTesting(SecurityOrigin::createFromString(origin));
+}
+
 void Internals::queueMicroTask(int testNumber)
 {
     RefPtr document = contextDocument();
@@ -7051,6 +7072,15 @@ Internals::RequestedGPU Internals::requestedGPU(WebGLRenderingContextBase& conte
     ASSERT_NOT_REACHED();
     return RequestedGPU::Default;
 
+}
+
+Vector<int> Internals::webglMaxDrawingBufferSize(WebGLRenderingContextBase& context)
+{
+    RefPtr gl = context.graphicsContextGL();
+    if (!gl)
+        return { };
+    auto size = gl->maxDrawingBufferSize();
+    return { size[0], size[1] };
 }
 #endif
 
@@ -8954,6 +8984,17 @@ void Internals::setSubframeURLForQuirks(const String& urlString)
     Ref page = *protect(document->page());
     page->settings().setNeedsSiteSpecificQuirks(true);
     page->setQuirksSubframeURLForTesting(URL { urlString });
+}
+
+void Internals::setTopDocumentHostForQuirks(const String& host)
+{
+    RefPtr document = contextDocument();
+    if (!document || !document->page())
+        return;
+
+    Ref page = *protect(document->page());
+    page->settings().setNeedsSiteSpecificQuirks(true);
+    page->setQuirksTopDocumentHostForTesting(String { host });
 }
 
 Vector<String> Internals::activeQuirks() const

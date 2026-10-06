@@ -3419,7 +3419,13 @@ bool RenderThemeCocoa::paintMenuListButtonDecorationsForVectorBasedControls(cons
     Path glyphPath;
     FloatSize glyphSize;
 
-    if (box.isRenderMenuList() && downcast<HTMLSelectElement>(element)->multiple()) {
+#if PLATFORM(IOS_FAMILY)
+    bool paintsEllipsis = box.isRenderMenuList() && downcast<HTMLSelectElement>(element)->multiple();
+#else
+    bool paintsEllipsis = false;
+#endif
+
+    if (paintsEllipsis) {
         constexpr int length = 18;
         constexpr int count = 3;
         constexpr int padding = 12;
@@ -4081,7 +4087,7 @@ bool RenderThemeCocoa::paintSliderTrackForVectorBasedControls(const RenderElemen
         float height = trackClip.height();
         float newHeight = height * valueRatio;
         if (needsAdditionalLength)
-            newHeight += tickLength * additionalLength;
+            newHeight += additionalLength;
 
         if (box.writingMode().isHorizontal() || box.writingMode().isInlineFlipped())
             trackClip.setY(trackClip.y() + height - newHeight);

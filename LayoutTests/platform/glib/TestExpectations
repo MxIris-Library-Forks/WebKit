@@ -639,8 +639,6 @@ webkit.org/b/314179 media/media-source/media-managedmse-waiting-at-gap.html [ Fa
 
 webkit.org/b/307141 media/media-source/media-source-seek-and-play.html [ Failure Pass ]
 
-webkit.org/b/312871 media/media-source/media-source-seek-to-zero-then-play.html [ Timeout ]
-
 webkit.org/b/315030 media/media-source/media-source-webm-seek-singlekeyframe.html [ Timeout Pass ]
 
 # NOTIFICATION_EVENT tests
@@ -1911,9 +1909,6 @@ webkit.org/b/282827 media/media-video-videorange.html [ Failure ]
 webkit.org/b/282827 media/media-video-videorange-offscreen.html [ Failure ]
 webkit.org/b/305743 media/media-source/media-managedmse-video-with-poster.html [ ImageOnlyFailure Timeout Pass ]
 webkit.org/b/305743 media/media-source/media-managedmse-audible-setrate.html [ Crash Failure Timeout Pass ]
-
-webkit.org/b/283624 media/media-source/media-source-rvfc-paused.html [ Timeout ]
-webkit.org/b/283624 media/media-source/media-source-rvfc-paused-offscreen.html [ Timeout ]
 
 # GStreamer (< 1.24) doesn't set the track's id to the container's value.
 webkit.org/b/265919 media/track/media-audio-track.html [ Failure ]
@@ -4699,6 +4694,7 @@ webkit.org/b/98927 fast/dom/DeviceOrientation/ [ Skip ]
 http/tests/digital-credentials/ [ Skip ]
 http/wpt/identity/ [ Skip ]
 imported/w3c/web-platform-tests/digital-credentials/ [ Skip ]
+ipc/digital-credentials-chooser-frame-check.html [ Skip ]
 
 # We don't yet support EXIF-based resolution.
 webkit.org/b/217821 imported/w3c/web-platform-tests/density-size-correction/ [ Skip ]
@@ -5231,6 +5227,7 @@ webkit.org/b/319047 [ Debug ] imported/w3c/web-platform-tests/css/css-overflow/l
 webkit.org/b/319049 [ Debug ] http/tests/cache/cancel-multiple-post-xhrs.html [ Pass Failure ]
 webkit.org/b/319050 [ Debug ] imported/w3c/web-platform-tests/fetch/local-network-access/iframe.tentative.https.window.html [ Failure ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/address-space-overrides-apply-to-both-host-forms.html [ Skip ]
+webkit.org/b/295047 http/wpt/fetch/local-network-access/a-forged-client-is-judged-by-what-the-network-process-served.html [ Skip ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/navigating-a-frame-is-checked-against-the-initiator.html [ Skip ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/prompt-records-the-answer.html [ Skip ]
 webkit.org/b/319051 [ Debug ] imported/w3c/web-platform-tests/uievents/mouse/mouse_boundary_events_after_removing_last_over_element.html [ Failure Pass ]
@@ -5342,7 +5339,7 @@ webkit.org/b/324147 imported/w3c/web-platform-tests/dom/nodes/moveBefore/focus-p
 webkit.org/b/225407 imported/w3c/web-platform-tests/css/css-animations/nested-scale-animations.html [ ImageOnlyFailure Pass ]
 
 webkit.org/b/315615 media/media-vp8-hiddenframes.html [ ImageOnlyFailure Pass ]
-webkit.org/b/323781 [ x86_64 ] webrtc/concurrentVideoPlayback2.html [ Failure Pass Timeout ]
+webkit.org/b/323781 webrtc/concurrentVideoPlayback2.html [ Failure Pass Timeout ]
 webkit.org/b/318887 [ Release ] media/video-seek-pause.html [ Pass Failure ]
 webkit.org/b/313034 [ Release ] http/tests/resourceLoadStatistics/user-interaction-reported-after-website-data-removal.html [ Pass Failure ]
 webkit.org/b/305514 imported/w3c/web-platform-tests/fullscreen/rendering/fullscreen-root-block-scroll.html [ Failure Pass ]
@@ -5405,6 +5402,10 @@ webkit.org/b/316265 [ x86_64 ] imported/w3c/web-platform-tests/IndexedDB/get-dat
 webkit.org/b/325932 [ Debug ] http/wpt/mediastream/mediastreamtrackprocessor-mediastreamtrackhandle.html [ Failure Pass ]
 
 webkit.org/b/325933 [ Release ] imported/w3c/web-platform-tests/content-security-policy/frame-ancestors/frame-ancestors-none-block.html [ Failure Pass ]
+
+webkit.org/b/326355 [ arm64 ] fast/block/absolute-position-change-width-with-inline-container.html [ Pass Timeout ]
+
+webkit.org/b/326358 media/W3C/audio/currentSrc/currentSrc_nonempty_after_adding_source_child.html [ Pass Failure ]
 
 # End: Common failures between GTK and WPE.
 

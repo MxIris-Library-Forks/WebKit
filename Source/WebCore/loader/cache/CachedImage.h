@@ -57,7 +57,7 @@ public:
     static std::pair<WeakPtr<BitmapImage>, float> brokenImage(float deviceScaleFactor); // Returns an image and the image's resolution scale factor.
     bool NODELETE willPaintBrokenImage() const;
 
-    bool canRender(float multiplier) const { return !errorOccurred() && !clampedImageSize(ImageOrientation::Orientation::FromImage, multiplier).isEmpty(); }
+    bool canRender() const { return !errorOccurred() && m_image && !protect(m_image)->isNull(); }
 
     void setAllowsOrientationOverride(bool b) { m_allowsOrientationOverride = b; }
     bool allowsOrientationOverride() const { return m_allowsOrientationOverride; }
@@ -95,7 +95,13 @@ public:
     bool canSkipRevalidation(const CachedResourceLoader&, const CachedResourceRequest&) const;
 
     bool isVisibleInViewport(const Document&) const;
+
     bool allowsAnimation(const Image&) const;
+    bool isAnimated() const;
+    void stopAnimation();
+    void resetAnimation();
+
+    String accessibilityDescription() const;
 
 private:
     void clear();

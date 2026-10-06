@@ -171,7 +171,7 @@ template<typename Layers> void BackgroundPainter::paintFillLayersImpl(const Colo
         // and pass it down.
         if (layer.clipOccludesNextLayers()
             && layer.hasOpaqueImage(m_renderer)
-            && layer.image().tryStyleImage()->canRender(&m_renderer, m_renderer.style().usedZoom())
+            && layer.image().tryStyleImage()->canRender(&m_renderer)
             && layer.hasRepeatXY()
             && layer.blendMode() == BlendMode::Normal
             && !boxShadowShouldBeAppliedToBackground(m_renderer, rect.location(), bleedAvoidance, { }))
@@ -252,7 +252,7 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
 
     Color bgColor = color;
     RefPtr bgImage = layer.layer.image().tryStyleImage();
-    bool shouldPaintBackgroundImage = bgImage && bgImage->canRender(&m_renderer, style.usedZoom());
+    bool shouldPaintBackgroundImage = bgImage && bgImage->canRender(&m_renderer);
 
     if (context.detectingContentfulPaint()) {
         if (!context.contentfulPaintDetected() && shouldPaintBackgroundImage && bgImage->cachedImage()) {
@@ -561,12 +561,14 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
                     return m_renderer.imageOrientation();
             }();
 
+            auto concreteObjectSize = ConcreteObjectSize::fixed(geometry.tileSizeWithoutPixelSnapping);
+
             ImagePaintingOptions options = {
                 op == CompositeOperator::SourceOver ? layer.layer.compositeForPainting(layer.isLast) : op,
                 layerBlendMode,
                 bgImage->decodingModeForImageDraw(m_renderer, m_paintInfo),
                 orientation,
-                bgImage->interpolationQualityForImageDraw(context, m_renderer, &layer.layer, geometry.tileSize),
+                bgImage->interpolationQualityForImageDraw(context, m_renderer, concreteObjectSize, &layer.layer, geometry.tileSize),
                 layer.layer.maskMode() == Style::MaskMode::Luminance ? DrawLuminanceMask::Yes : DrawLuminanceMask::No,
                 document().settings().imageSubsamplingEnabled() ? AllowImageSubsampling::Yes : AllowImageSubsampling::No,
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
@@ -578,7 +580,7 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
                 style.dynamicRangeLimit().toPlatformDynamicRangeLimit()
             };
 
-            auto drawResult = bgImage->drawTiled(context, clientForBackgroundImage, ConcreteObjectSize::fixed(geometry.tileSizeWithoutPixelSnapping), geometry.destinationRect, toLayoutPoint(geometry.relativePhase()), geometry.tileSize, geometry.spaceSize, options, isFirstLine);
+            auto drawResult = bgImage->drawTiled(context, clientForBackgroundImage, concreteObjectSize, geometry.destinationRect, toLayoutPoint(geometry.relativePhase()), geometry.tileSize, geometry.spaceSize, options, isFirstLine);
             if (drawResult == ImageDrawResult::DidRequestDecoding) {
                 ASSERT(bgImage->hasCachedImage());
                 protect(bgImage->cachedImage())->addClientWaitingForAsyncDecoding(protect(m_renderer)->cachedImageClient());
@@ -1160,7 +1162,7 @@ bool BackgroundPainter::boxShadowShouldBeAppliedToBackground(const RenderBoxMode
         if (!inlineBox->nextInlineBoxLineLeftward() && !inlineBox->nextInlineBoxLineRightward())
             return true;
         auto& renderer = inlineBox->renderer();
-        bool hasFillImage = image && image->canRender(&renderer, renderer.style().usedZoom());
+        bool hasFillImage = image && image->canRender(&renderer);
         return !hasFillImage && !renderer.style().border().hasBorderRadius();
     };
 

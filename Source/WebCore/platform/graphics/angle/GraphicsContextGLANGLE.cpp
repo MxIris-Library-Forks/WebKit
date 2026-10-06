@@ -247,8 +247,8 @@ bool GraphicsContextGLANGLE::initialize()
     GL_GetIntegerv(GraphicsContextGL::MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
     GL_GetIntegerv(GraphicsContextGL::MAX_VIEWPORT_DIMS, maxViewportDims.data());
     m_maxInternalFramebufferSize = { maxViewportDims[0], maxViewportDims[1] };
-    m_maxInternalFramebufferSize.clampToMinimumSize({ maxTextureSize, maxTextureSize });
-    m_maxInternalFramebufferSize.clampToMinimumSize({ maxRenderbufferSize, maxRenderbufferSize });
+    m_maxInternalFramebufferSize.clampToMaximumSize({ maxTextureSize, maxTextureSize });
+    m_maxInternalFramebufferSize.clampToMaximumSize({ maxRenderbufferSize, maxRenderbufferSize });
 
     if (!platformInitialize())
         return false;
@@ -357,7 +357,11 @@ RefPtr<PixelBuffer> GraphicsContextGLANGLE::readPixelsForPaintResults()
         return nullptr;
     ScopedBufferBinding scopedPixelPackBufferReset(GL_PIXEL_PACK_BUFFER, 0, m_isForWebGL2);
     setPackParameters(1, 0, false);
+    updateErrors();
     GL_ReadPixelsRobustANGLE(0, 0, pixelBuffer->size().width(), pixelBuffer->size().height(), GL_RGBA, GL_UNSIGNED_BYTE, pixelBuffer->bytes().size(), nullptr, nullptr, nullptr, pixelBuffer->bytes().data());
+    // The pixel buffer is uninitialized; never return it if the read was rejected for any reason.
+    if (updateErrors())
+        return nullptr;
     return pixelBuffer;
 }
 
@@ -419,6 +423,11 @@ std::array<GCGLint, 2> GraphicsContextGLANGLE::maxViewportDims()
     std::array<GCGLint, 2> dims { 0, 0 };
     getIntegerv(GraphicsContextGL::MAX_VIEWPORT_DIMS, dims);
     return dims;
+}
+
+std::array<GCGLint, 2> GraphicsContextGLANGLE::maxDrawingBufferSize()
+{
+    return { m_maxInternalFramebufferSize.width(), m_maxInternalFramebufferSize.height() };
 }
 
 GCGLint GraphicsContextGLANGLE::maxSamples()

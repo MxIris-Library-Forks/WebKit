@@ -529,6 +529,12 @@ public:
         return WebViewTest::javascriptResultToNumber(jsResult);
     }
 
+    unsigned editableSelectionEnd()
+    {
+        auto* jsResult = runJavaScriptAndWaitUntilFinished("document.getElementById('editable').selectionEnd", nullptr);
+        return WebViewTest::javascriptResultToNumber(jsResult);
+    }
+
     void keyStrokeAndWaitForEvents(unsigned keyval, unsigned eventsCount, OptionSet<Modifiers> modifiers = OptionSet<Modifiers>())
     {
         m_eventsExpected = eventsCount;
@@ -1256,8 +1262,38 @@ static void testWebKitInputMethodContextPreeditCursor(InputMethodTest* test, gco
     // The composition starts where the input method said its caret was, one code unit in. With the
     // caret left at the end of the preedit this would be 3.
     g_assert_cmpuint(test->editableSelectionStart(), ==, 1);
+    g_assert_cmpuint(test->editableSelectionEnd(), ==, 1);
 
     test->keyStrokeAndWaitForEvents(KEY(Escape), 3);
+}
+
+static void testWebKitInputMethodContextPreeditOverSelection(InputMethodTest* test, gconstpointer)
+{
+    test->loadHtml(testHTML, nullptr);
+    test->waitUntilLoadFinished();
+
+    test->focusEditableAndWaitUntilInputMethodEnabled();
+    test->runJavaScriptAndWaitUntilFinished("window.inputTypes = []; input.addEventListener('beforeinput', event => inputTypes.push(event.inputType)); input.value = 'Hello world'; input.setSelectionRange(6, 11)", nullptr);
+
+    test->keyStrokeAndWaitForEvents(KEY(w), 4, { WebViewTest::Modifiers::Control, WebViewTest::Modifiers::Shift });
+    test->m_events.clear();
+    {
+        auto editableValue = test->editableValue();
+        g_assert_cmpstr(editableValue.get(), ==, "Hello w");
+        auto* jsResult = test->runJavaScriptAndWaitUntilFinished("JSON.stringify(inputTypes)", nullptr);
+        GUniquePtr<char> inputTypes(WebViewTest::javascriptResultToCString(jsResult));
+        g_assert_cmpstr(inputTypes.get(), ==, "[\"insertCompositionText\"]");
+    }
+
+    test->keyStrokeAndWaitForEvents(KEY(Escape), 3);
+    test->m_events.clear();
+    {
+        auto editableValue = test->editableValue();
+        g_assert_cmpstr(editableValue.get(), ==, "Hello ");
+        auto* jsResult = test->runJavaScriptAndWaitUntilFinished("JSON.stringify(inputTypes)", nullptr);
+        GUniquePtr<char> inputTypes(WebViewTest::javascriptResultToCString(jsResult));
+        g_assert_cmpstr(inputTypes.get(), ==, "[\"insertCompositionText\",\"deleteCompositionText\"]");
+    }
 }
 
 static void testWebKitInputMethodContextFocusChange(InputMethodTest* test, gconstpointer)
@@ -1484,6 +1520,42 @@ static void testWebKitInputMethodContextContentType(InputMethodTest* test, gcons
     test->unfocusEditableAndWaitUntilInputMethodDisabled();
 }
 
+static void testWebKitInputMethodContextInputMode(InputMethodTest* test, gconstpointer)
+{
+    // Focus by click, because element.focus() always adds INHIBIT_OSK and would hide inputmode="none".
+    auto checkInput = [&](const char* attributes, WebKitInputPurpose purpose, unsigned hints) {
+        GUniquePtr<char> html(g_strdup_printf("<input id='editable' spellcheck='false' %s>", attributes));
+        test->loadHtml(html.get(), nullptr);
+        test->waitUntilLoadFinished();
+        test->clickMouseButton(20, 20);
+        test->assertJavaScriptBecomesTrue("document.activeElement.id === 'editable'");
+        test->waitUntilInputMethodEnabled();
+        g_assert_cmpuint(test->purpose(), ==, purpose);
+        g_assert_cmpuint(test->hints(), ==, hints);
+        test->unfocusEditableAndWaitUntilInputMethodDisabled();
+    };
+
+    checkInput("inputmode='numeric'", WEBKIT_INPUT_PURPOSE_DIGITS, 0);
+    checkInput("inputmode='decimal'", WEBKIT_INPUT_PURPOSE_NUMBER, 0);
+    checkInput("inputmode='tel'", WEBKIT_INPUT_PURPOSE_PHONE, 0);
+    checkInput("inputmode='email'", WEBKIT_INPUT_PURPOSE_EMAIL, 0);
+    checkInput("inputmode='url'", WEBKIT_INPUT_PURPOSE_URL, 0);
+    checkInput("inputmode='search'", WEBKIT_INPUT_PURPOSE_SEARCH, 0);
+    checkInput("inputmode='text'", WEBKIT_INPUT_PURPOSE_FREE_FORM, 0);
+    checkInput("inputmode='none'", WEBKIT_INPUT_PURPOSE_FREE_FORM, WEBKIT_INPUT_HINT_INHIBIT_OSK);
+
+    // inputmode wins over the purpose derived from the type.
+    checkInput("type='email' inputmode='numeric'", WEBKIT_INPUT_PURPOSE_DIGITS, 0);
+
+    // A missing or invalid inputmode keeps the purpose derived from the type.
+    checkInput("type='tel'", WEBKIT_INPUT_PURPOSE_PHONE, 0);
+    checkInput("type='tel' inputmode='invalid'", WEBKIT_INPUT_PURPOSE_PHONE, 0);
+
+    // A password field keeps its purpose, but inputmode="none" still inhibits the keyboard.
+    checkInput("type='password' inputmode='numeric'", WEBKIT_INPUT_PURPOSE_PASSWORD, 0);
+    checkInput("type='password' inputmode='none'", WEBKIT_INPUT_PURPOSE_PASSWORD, WEBKIT_INPUT_HINT_INHIBIT_OSK);
+}
+
 void beforeAll()
 {
     InputMethodTest::add("WebKitInputMethodContext", "simple", testWebKitInputMethodContextSimple);
@@ -1496,9 +1568,11 @@ void beforeAll()
     InputMethodTest::add("WebKitInputMethodContext", "reset", testWebKitInputMethodContextReset);
     InputMethodTest::add("WebKitInputMethodContext", "cursor-area", testWebKitInputMethodContextCursorArea);
     InputMethodTest::add("WebKitInputMethodContext", "preedit-cursor", testWebKitInputMethodContextPreeditCursor);
+    InputMethodTest::add("WebKitInputMethodContext", "preedit-over-selection", testWebKitInputMethodContextPreeditOverSelection);
     InputMethodTest::add("WebKitInputMethodContext", "focus-change", testWebKitInputMethodContextFocusChange);
     InputMethodTest::add("WebKitInputMethodContext", "focus-interaction", testWebKitInputMethodContextFocusInteraction);
     InputMethodTest::add("WebKitInputMethodContext", "content-type", testWebKitInputMethodContextContentType);
+    InputMethodTest::add("WebKitInputMethodContext", "input-mode", testWebKitInputMethodContextInputMode);
 }
 
 void afterAll()

@@ -1082,19 +1082,35 @@ bool LocalFrameViewLayoutContext::isPercentHeightResolveDisabledFor(const Render
     return m_percentHeightIgnoreList.contains(flexItem);
 }
 
-void LocalFrameViewLayoutContext::addIntrinsicLogicalHeightComputationFor(const RenderBox& box)
+void LocalFrameViewLayoutContext::addOrthogonalIntrinsicContributionLayout(const RenderBox& box)
 {
-    m_intrinsicLogicalHeightComputationList.add(box);
+    m_boxesInOrthogonalIntrinsicContributionLayout.add(box);
 }
 
-void LocalFrameViewLayoutContext::removeIntrinsicLogicalHeightComputationFor(const RenderBox& box)
+void LocalFrameViewLayoutContext::removeOrthogonalIntrinsicContributionLayout(const RenderBox& box)
 {
-    m_intrinsicLogicalHeightComputationList.remove(box);
+    m_boxesInOrthogonalIntrinsicContributionLayout.remove(box);
 }
 
-bool LocalFrameViewLayoutContext::isComputingIntrinsicLogicalHeightFor(const RenderBox& box) const
+bool LocalFrameViewLayoutContext::isInOrthogonalIntrinsicContributionLayout(const RenderBox& box) const
 {
-    return m_intrinsicLogicalHeightComputationList.contains(box);
+    return m_boxesInOrthogonalIntrinsicContributionLayout.contains(box);
+}
+
+void LocalFrameViewLayoutContext::addIntrinsicLogicalWidthComputationFor(const RenderBox& box)
+{
+    ASSERT(!m_intrinsicLogicalWidthComputationList.contains(box));
+    m_intrinsicLogicalWidthComputationList.add(box);
+}
+
+void LocalFrameViewLayoutContext::removeIntrinsicLogicalWidthComputationFor(const RenderBox& box)
+{
+    m_intrinsicLogicalWidthComputationList.remove(box);
+}
+
+bool LocalFrameViewLayoutContext::isComputingIntrinsicLogicalWidthFor(const RenderBox& box) const
+{
+    return m_intrinsicLogicalWidthComputationList.contains(box);
 }
 
 #ifndef NDEBUG

@@ -222,18 +222,6 @@ void Image::drawPattern(GraphicsContext& ctxt, ConcreteObjectSize concreteObject
         observer->didDraw(*this);
 }
 
-void Image::computeIntrinsicDimensions(float& intrinsicWidth, float& intrinsicHeight, FloatSize& intrinsicRatio)
-{
-    intrinsicRatio = size();
-    intrinsicWidth = intrinsicRatio.width();
-    intrinsicHeight = intrinsicRatio.height();
-}
-
-FloatSize Image::sourceSize(ImageOrientation orientation) const
-{
-    return size(orientation);
-}
-
 void Image::startAnimationAsynchronously()
 {
     if (!m_animationStartTimer)
@@ -283,12 +271,8 @@ TextStream& operator<<(TextStream& ts, const Image& image)
 
     if (image.isBitmapImage())
         ts << "bitmap image"_s;
-    else if (image.isGradientImage())
-        ts << "gradient image"_s;
     else if (image.isSVGImage())
         ts << "svg image"_s;
-    else if (image.isSVGResourceImage())
-        ts << "svg resource image"_s;
     else if (image.isPDFDocumentImage())
         ts << "pdf image"_s;
 

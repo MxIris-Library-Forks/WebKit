@@ -3620,7 +3620,7 @@ void WebViewImpl::setContinuousSpellCheckingEnabled(bool enabled)
         return;
 
     TextChecker::setContinuousSpellCheckingEnabled(enabled);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleContinuousSpellChecking()
@@ -3628,7 +3628,7 @@ void WebViewImpl::toggleContinuousSpellChecking()
     bool spellCheckingEnabled = !TextChecker::state().contains(TextCheckerState::ContinuousSpellCheckingEnabled);
     TextChecker::setContinuousSpellCheckingEnabled(spellCheckingEnabled);
 
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 bool WebViewImpl::isGrammarCheckingEnabled()
@@ -3642,7 +3642,7 @@ void WebViewImpl::setGrammarCheckingEnabled(bool flag)
         return;
 
     TextChecker::setGrammarCheckingEnabled(flag);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleGrammarChecking()
@@ -3650,14 +3650,14 @@ void WebViewImpl::toggleGrammarChecking()
     bool grammarCheckingEnabled = !TextChecker::state().contains(TextCheckerState::GrammarCheckingEnabled);
     TextChecker::setGrammarCheckingEnabled(grammarCheckingEnabled);
 
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleAutomaticSpellingCorrection()
 {
     TextChecker::setAutomaticSpellingCorrectionEnabled(!TextChecker::state().contains(TextCheckerState::AutomaticSpellingCorrectionEnabled));
 
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::orderFrontSubstitutionsPanel(id sender)
@@ -3692,13 +3692,13 @@ void WebViewImpl::setAutomaticQuoteSubstitutionEnabled(bool flag)
         return;
 
     TextChecker::setAutomaticQuoteSubstitutionEnabled(flag);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleAutomaticQuoteSubstitution()
 {
     TextChecker::setAutomaticQuoteSubstitutionEnabled(!TextChecker::state().contains(TextCheckerState::AutomaticQuoteSubstitutionEnabled));
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 bool WebViewImpl::isAutomaticDashSubstitutionEnabled()
@@ -3712,13 +3712,13 @@ void WebViewImpl::setAutomaticDashSubstitutionEnabled(bool flag)
         return;
 
     TextChecker::setAutomaticDashSubstitutionEnabled(flag);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleAutomaticDashSubstitution()
 {
     TextChecker::setAutomaticDashSubstitutionEnabled(!TextChecker::state().contains(TextCheckerState::AutomaticDashSubstitutionEnabled));
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 bool WebViewImpl::isAutomaticLinkDetectionEnabled()
@@ -3732,13 +3732,13 @@ void WebViewImpl::setAutomaticLinkDetectionEnabled(bool flag)
         return;
 
     TextChecker::setAutomaticLinkDetectionEnabled(flag);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleAutomaticLinkDetection()
 {
     TextChecker::setAutomaticLinkDetectionEnabled(!TextChecker::state().contains(TextCheckerState::AutomaticLinkDetectionEnabled));
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 bool WebViewImpl::isAutomaticTextReplacementEnabled()
@@ -3752,13 +3752,13 @@ void WebViewImpl::setAutomaticTextReplacementEnabled(bool flag)
         return;
 
     TextChecker::setAutomaticTextReplacementEnabled(flag);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleAutomaticTextReplacement()
 {
     TextChecker::setAutomaticTextReplacementEnabled(!TextChecker::state().contains(TextCheckerState::AutomaticTextReplacementEnabled));
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 bool WebViewImpl::isSmartListsEnabled()
@@ -3778,7 +3778,7 @@ void WebViewImpl::setSmartListsEnabled(bool flag)
         return;
 
     TextChecker::setSmartListsEnabled(flag);
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::toggleSmartLists()
@@ -3787,7 +3787,7 @@ void WebViewImpl::toggleSmartLists()
         return;
 
     TextChecker::setSmartListsEnabled(!TextChecker::state().contains(TextCheckerState::SmartListsEnabled));
-    protect(m_page->legacyMainFrameProcess())->updateTextCheckerState();
+    WebProcessPool::notifyProcessPoolsTextCheckerStateChanged();
 }
 
 void WebViewImpl::uppercaseWord()
@@ -4177,11 +4177,6 @@ void WebViewImpl::setAllowsLinkPreview(bool allowsLinkPreview)
 NSObject *WebViewImpl::immediateActionAnimationControllerForHitTestResult(API::HitTestResult* hitTestResult, uint32_t type, API::Object* userData)
 {
     return [m_view.get() _web_immediateActionAnimationControllerForHitTestResultInternal:hitTestResult withType:type userData:userData];
-}
-
-void WebViewImpl::didPerformImmediateActionHitTest(const WebHitTestResultData& result, bool contentPreventsDefault, API::Object* userData)
-{
-    [m_immediateActionController didPerformImmediateActionHitTest:result contentPreventsDefault:contentPreventsDefault userData:userData];
 }
 
 void WebViewImpl::prepareForImmediateActionAnimation()
@@ -5075,6 +5070,7 @@ void WebViewImpl::startDrag(const WebCore::DragItem& item, ShareableBitmap::Hand
 
 #if HAVE(APPKIT_GESTURES_SUPPORT)
     RetainPtr gestureController = appKitGestureController();
+    [gestureController didReceiveDragStart];
     bool missingDragInitiator = !m_lastMouseDownEvent && ![gestureController activeDragGestureRecognizer];
 #else
     bool missingDragInitiator = !m_lastMouseDownEvent;

@@ -67,12 +67,14 @@
 #include "MouseEvent.h"
 #include "NodeName.h"
 #include "NodeRareData.h"
+#include "NodeTraversal.h"
 #include "PlatformRenderTheme.h"
 #include "PseudoClassChangeInvalidation.h"
 #include "RenderListBox.h"
 #include "RenderMenuList.h"
 #include "RenderTheme.h"
 #include "ScriptDisallowedScope.h"
+#include "ScriptElement.h"
 #include "ScrollIntoViewOptions.h"
 #include "SelectFallbackButtonElement.h"
 #include "SelectPopoverElement.h"
@@ -82,6 +84,7 @@
 #include "StyleAppearance.h"
 #include "StyleComputedStyle+GettersInlines.h"
 #include "StyleDisplay.h"
+#include "Text.h"
 #include "UnicodeBidi.h"
 #include <JavaScriptCore/ConsoleTypes.h>
 #include <wtf/TZoneMallocInlines.h>
@@ -122,6 +125,12 @@ static bool NODELETE usesListBoxSlot(const HTMLSelectElement& select)
 static bool NODELETE isFirstElementChildButton(const Node& child)
 {
     return is<HTMLButtonElement>(child) && !child.previousElementSibling();
+}
+
+// The options in a selectedcontent element are clones, not options of its select.
+static bool NODELETE canHoldOptionClones(const Node& node)
+{
+    return is<HTMLSelectedContentElement>(node) && node.document().settings().htmlEnhancedSelectMultipleSelectedContentEnabled();
 }
 
 class SelectSlotAssignment final : public NamedSlotAssignment {
@@ -214,9 +223,14 @@ void HTMLSelectElement::didAddUserAgentShadowRoot(ShadowRoot& root)
     buttonSlot->setAttributeWithoutSynchronization(inertAttr, emptyAtom());
     buttonSlot->setAttributeWithoutSynchronization(nameAttr, buttonSlotName());
     buttonSlot->setAttributeWithoutSynchronization(styleAttr, "text-overflow:inherit"_s);
-    buttonSlot->appendChild(SelectFallbackButtonElement::create(document));
     root.appendChild(buttonSlot);
     m_buttonSlot = WTF::move(buttonSlot);
+
+    Ref fallbackButton = SelectFallbackButtonElement::create(document);
+    ScriptDisallowedScope::EventAllowedScope fallbackButtonScope { fallbackButton };
+    fallbackButton->setAttributeWithoutSynchronization(inertAttr, emptyAtom());
+    root.appendChild(fallbackButton);
+    m_fallbackButton = WTF::move(fallbackButton);
 
     if (!document->settings().htmlEnhancedSelectEnabled()) {
         root.appendChild(HTMLSlotElement::create(slotTag, document));
@@ -256,7 +270,7 @@ HTMLSelectElement* HTMLSelectElement::findOwnerSelect(ContainerNode* startNode, 
             return nullptr;
         return findOwnerSelect(startNode->parentNode(), ExcludeOptGroup::Yes);
     }
-    if (isAnyOf<HTMLDataListElement, HTMLHRElement, HTMLOptionElement>(*startNode))
+    if (isAnyOf<HTMLDataListElement, HTMLHRElement, HTMLOptionElement>(*startNode) || canHoldOptionClones(*startNode))
         return nullptr;
     return findOwnerSelect(startNode->parentNode(), excludeOptGroup);
 }
@@ -266,6 +280,20 @@ static bool NODELETE hasBaseAppearance(const Style::ComputedStyle* style)
     return style && style->usedAppearance() == StyleAppearance::Base;
 }
 
+void HTMLSelectElement::didAttachRenderers()
+{
+    HTMLFormControlElement::didAttachRenderers();
+
+    // Switching base appearance rebuilds the renderers, and didRecalcStyle() would still see the old style.
+    closePickerIfNoLongerBaseAppearance();
+}
+
+void HTMLSelectElement::closePickerIfNoLongerBaseAppearance()
+{
+    if (pickerPopoverIsShowing() && supportsBaseAppearancePicker() && !usesBaseAppearancePicker())
+        queuePickerClose(PickerCloseReason::Appearance);
+}
+
 void HTMLSelectElement::didRecalcStyle(OptionSet<Style::Change> styleChange)
 {
     // Even though the options didn't necessarily change, we will call setOptionsChangedOnRenderer for its side effect
@@ -273,18 +301,11 @@ void HTMLSelectElement::didRecalcStyle(OptionSet<Style::Change> styleChange)
     setOptionsChangedOnRenderer();
 
     // When the select's style changes, invalidate the fallback button's style since it depends on
-    // the host's usedAppearance() to compute the padding.
+    // the host's usedAppearance() to compute the padding and whether it is rendered at all.
     if (styleChange.contains(Style::Change::NonInherited)) {
-        if (RefPtr buttonSlot = m_buttonSlot.get()) {
-            if (RefPtr fallbackButton = dynamicDowncast<SelectFallbackButtonElement>(buttonSlot->firstChild()))
-                fallbackButton->invalidateStyle();
-        }
+        if (RefPtr fallbackButton = m_fallbackButton)
+            fallbackButton->invalidateStyle();
     }
-
-    bool newIsBaseAppearance = hasBaseAppearance(existingComputedStyle());
-    if (m_wasBaseAppearance && !newIsBaseAppearance && m_popupIsVisible)
-        queuePickerClose(PickerCloseReason::Appearance);
-    m_wasBaseAppearance = newIsBaseAppearance;
 
     HTMLFormControlElement::didRecalcStyle(styleChange);
 }
@@ -412,10 +433,14 @@ bool HTMLSelectElement::valueMissing() const
 
 bool HTMLSelectElement::usesMenuList() const
 {
-#if !PLATFORM(IOS_FAMILY)
-    return !m_multiple && m_size <= 1;
-#else
+#if PLATFORM(IOS_FAMILY)
     return true;
+#elif PLATFORM(MAC)
+    if (m_multiple)
+        return m_size == 1 && document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled() && document().settings().htmlEnhancedSelectMultipleDropdownBoxEnabled();
+    return m_size <= 1;
+#else
+    return !m_multiple && m_size <= 1;
 #endif
 }
 
@@ -425,11 +450,16 @@ bool HTMLSelectElement::isSingleSelectDropdownBox() const
 }
 
 // https://html.spec.whatwg.org/multipage/form-elements.html#concept-select-size
+unsigned HTMLSelectElement::preferredSize(unsigned size, bool multiple)
+{
+    if (size >= 1)
+        return size;
+    return multiple ? 4 : 1;
+}
+
 unsigned HTMLSelectElement::preferredSize() const
 {
-    if (m_size >= 1)
-        return m_size;
-    return m_multiple ? 4 : 1;
+    return preferredSize(m_size, m_multiple);
 }
 
 auto HTMLSelectElement::boxType(const Style::ComputedStyle* style) const -> BoxType
@@ -456,12 +486,14 @@ bool HTMLSelectElement::supportsPickerPseudoElement() const
     return preferredSize() == 1;
 }
 
+bool HTMLSelectElement::supportsBaseAppearancePicker(unsigned size, bool multiple) const
+{
+    return preferredSize(size, multiple) == 1 && (!multiple || document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled());
+}
+
 bool HTMLSelectElement::usesBaseAppearancePicker() const
 {
-    if (preferredSize() != 1)
-        return false;
-
-    if (m_multiple && !document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled())
+    if (!supportsBaseAppearancePicker())
         return false;
 
     RefPtr popover = m_popover;
@@ -508,14 +540,48 @@ bool HTMLSelectElement::consumePickerOpeningPress(const MouseEvent& event)
     return dx * dx + dy * dy <= pickerOpeningPressMovementThreshold * pickerOpeningPressMovementThreshold;
 }
 
+Element* HTMLSelectElement::buttonElement() const
+{
+    auto* first = firstElementChild();
+    return is<HTMLButtonElement>(first) ? first : nullptr;
+}
+
+String HTMLSelectElement::buttonLabelText(StringView selectedContentText) const
+{
+    RefPtr button = buttonElement();
+    if (!button)
+        return { };
+
+    StringBuilder text;
+    for (RefPtr node = button->firstChild(); node;) {
+        if (!selectedContentText.isNull() && is<HTMLSelectedContentElement>(*node)) {
+            text.append(selectedContentText);
+            node = NodeTraversal::nextSkippingChildren(*node, button.get());
+            continue;
+        }
+        if (isScriptElement(*node)) {
+            node = NodeTraversal::nextSkippingChildren(*node, button.get());
+            continue;
+        }
+        if (RefPtr textNode = dynamicDowncast<Text>(*node))
+            text.append(textNode->data());
+        node = NodeTraversal::next(*node, button.get());
+    }
+    return text.toString().trim(isASCIIWhitespace).simplifyWhiteSpace(isASCIIWhitespace);
+}
+
+void HTMLSelectElement::buttonElementChildrenChanged()
+{
+    setOptionsChangedOnRenderer();
+    invalidateButtonText();
+}
+
 void HTMLSelectElement::hidePickerPopoverElement()
 {
-    RefPtr popover = m_popover;
-    if (!popover)
-        return;
-
+    // On iOS a lost close from the UI process can leave the native popup state set.
     setPopupIsVisible(false);
-    popover->hidePopover();
+    if (RefPtr popover = m_popover)
+        popover->hidePopover();
 }
 
 void HTMLSelectElement::updateOptionSlotIfNeeded(bool usedListBoxSlot)
@@ -526,12 +592,24 @@ void HTMLSelectElement::updateOptionSlotIfNeeded(bool usedListBoxSlot)
         root->didChangeSlotNamesOfShadowHostChildren();
 }
 
-void HTMLSelectElement::closePickerIfNoLongerSupported(bool hadOpenPicker)
+void HTMLSelectElement::setSizeAndMultiple(unsigned size, bool multiple)
 {
-    if (!hadOpenPicker || supportsPickerPseudoElement())
-        return;
-
-    queuePickerClose(PickerCloseReason::PickerSupport);
+    bool pickerIsShowing = pickerPopoverIsShowing();
+    bool supportsPicker = supportsBaseAppearancePicker();
+    bool willSupportPicker = supportsBaseAppearancePicker(size, multiple);
+    bool usedListBoxSlot = usesListBoxSlot(*this);
+    {
+        // An open picker only makes this match :open while the picker is supported.
+        std::optional<Style::PseudoClassChangeInvalidation> styleInvalidation;
+        if (pickerIsShowing && willSupportPicker != supportsPicker)
+            styleInvalidation.emplace(*this, CSSSelector::PseudoClass::Open, willSupportPicker);
+        m_size = size;
+        m_multiple = multiple;
+    }
+    updateValidity();
+    if (pickerIsShowing && supportsPicker && !willSupportPicker)
+        queuePickerClose(PickerCloseReason::PickerSupport);
+    updateOptionSlotIfNeeded(usedListBoxSlot);
 }
 
 void HTMLSelectElement::queuePickerClose(PickerCloseReason reason)
@@ -539,6 +617,10 @@ void HTMLSelectElement::queuePickerClose(PickerCloseReason reason)
     protect(protect(document())->eventLoop())->queueTask(TaskSource::DOMManipulation, [weakThis = WeakPtr { *this }, reason] {
         RefPtr select = weakThis.get();
         if (!select)
+            return;
+        // The picker might have closed, or become usable again, since this was queued.
+        protect(select->document())->updateStyleIfNeeded();
+        if (!select->pickerPopoverIsShowing() || select->usesBaseAppearancePicker())
             return;
         auto message = reason == PickerCloseReason::Appearance
             ? "The select element's appearance property changed while its picker was open. The picker has been closed."_s
@@ -722,12 +804,7 @@ void HTMLSelectElement::attributeChanged(const QualifiedName& name, const AtomSt
             oldSelectedOption = selectedOptionForSelectedContent();
         }
 
-        bool hadOpenPicker = m_popupIsVisible && usesBaseAppearancePicker();
-        bool usedListBoxSlot = usesListBoxSlot(*this);
-        m_size = size;
-        updateValidity();
-        closePickerIfNoLongerSupported(hadOpenPicker);
-        updateOptionSlotIfNeeded(usedListBoxSlot);
+        setSizeAndMultiple(size, m_multiple);
         if (m_size != oldSize) {
             invalidateStyleAndRenderersForSubtree();
             resetSelectedness(oldSelectedOption.get());
@@ -808,7 +885,7 @@ bool HTMLSelectElement::childShouldCreateRenderer(const Node& child) const
     if (!HTMLFormControlElement::childShouldCreateRenderer(child))
         return false;
     if (isBaseListBox())
-        return &child != m_buttonSlot.get();
+        return &child != m_buttonSlot && &child != m_fallbackButton;
     if (boxType() == BoxType::ListBox)
         return isAnyOf<HTMLOptionElement, HTMLOptGroupElement>(child) || validationMessageShadowTreeContains(child);
     if (&child == m_listBoxSlot.get())
@@ -972,6 +1049,14 @@ void HTMLSelectElement::removingSteps(RemovalType removalType, ContainerNode& ol
         protect(document())->removeElementWithPendingUserAgentShadowTreeUpdate(*this);
 }
 
+void HTMLSelectElement::finishParsingChildren()
+{
+    HTMLFormControlElement::finishParsingChildren();
+
+    if (m_multiple && isConnected())
+        cloneOptionsIntoSelectedContent();
+}
+
 void HTMLSelectElement::optionElementChildrenChanged()
 {
     setOptionsChangedOnRenderer();
@@ -986,7 +1071,7 @@ void HTMLSelectElement::updateButtonText(HTMLOptionElement* selectedOption, int 
         m_buttonTextNeedsUpdate = false;
         protect(document())->removeElementWithPendingUserAgentShadowTreeUpdate(*this);
     }
-    protect(downcast<SelectFallbackButtonElement>(*m_buttonSlot->firstChild()))->updateText(selectedOption, optionIndex);
+    protect(*m_fallbackButton)->updateText(selectedOption, optionIndex);
 }
 
 void HTMLSelectElement::invalidateButtonText()
@@ -1500,7 +1585,7 @@ void HTMLSelectElement::recalcListItems(bool updateSelectedStates, AllowStyleInv
                         optGroupIt.traverseNextSkippingChildren();
                         continue;
                     }
-                    if (isAnyOf<HTMLOptGroupElement, HTMLDataListElement, HTMLSelectElement, HTMLHRElement>(optGroupDescendant)) {
+                    if (isAnyOf<HTMLOptGroupElement, HTMLDataListElement, HTMLSelectElement, HTMLHRElement>(optGroupDescendant) || canHoldOptionClones(optGroupDescendant)) {
                         optGroupIt.traverseNextSkippingChildren();
                         continue;
                     }
@@ -1514,7 +1599,7 @@ void HTMLSelectElement::recalcListItems(bool updateSelectedStates, AllowStyleInv
                 it.traverseNextSkippingChildren();
                 continue;
             }
-            if (isAnyOf<HTMLDataListElement, HTMLSelectElement>(descendant)) {
+            if (isAnyOf<HTMLDataListElement, HTMLSelectElement>(descendant) || canHoldOptionClones(descendant)) {
                 it.traverseNextSkippingChildren();
                 continue;
             }
@@ -1750,13 +1835,8 @@ void HTMLSelectElement::parseMultipleAttribute(const AtomString& value)
 {
     auto oldBoxType = boxType();
     bool oldMultiple = m_multiple;
-    bool hadOpenPicker = m_popupIsVisible && usesBaseAppearancePicker();
-    bool usedListBoxSlot = usesListBoxSlot(*this);
     int oldSelectedIndex = selectedIndex();
-    m_multiple = !value.isNull();
-    updateValidity();
-    closePickerIfNoLongerSupported(hadOpenPicker);
-    updateOptionSlotIfNeeded(usedListBoxSlot);
+    setSizeAndMultiple(m_size, !value.isNull());
     if (oldBoxType != boxType())
         invalidateStyleAndRenderersForSubtree();
     if (oldMultiple != m_multiple) {
@@ -1768,6 +1848,8 @@ void HTMLSelectElement::parseMultipleAttribute(const AtomString& value)
             invalidateButtonText();
             updateSelectedContentIfEnabled();
         }
+        if (m_multiple)
+            cloneOptionsIntoSelectedContent();
     }
 }
 
@@ -1885,7 +1967,7 @@ void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
     auto& eventNames = WebCore::eventNames();
 
     bool isBaseSelectPicker = usesBaseAppearancePicker();
-    bool popoverOpen = isBaseSelectPicker && m_popover && m_popover->isPopoverShowing();
+    bool popoverOpen = isBaseSelectPicker && pickerPopoverIsShowing();
 
     if (event.type() == eventNames.keydownEvent) {
         RefPtr keyboardEvent = dynamicDowncast<KeyboardEvent>(event);
@@ -2006,7 +2088,7 @@ void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
             event.setDefaultHandled();
             return;
         }
-        if (m_popupIsVisible) {
+        if (isOpen()) {
             m_pickerOpeningMouseLocation = { };
             if (!usesBaseAppearancePicker()) {
 #if !PLATFORM(IOS_FAMILY)
@@ -2329,7 +2411,7 @@ void HTMLSelectElement::defaultEventHandler(Event& event)
 
     // Type-ahead moves focus where the options are focusable, which the handlers above do. A
     // dropdown box with its picker closed has none, so it still selects.
-    if (event.type() == eventNames().keypressEvent && !isBaseListBox() && !(popupIsVisible() && usesBaseAppearancePicker())) {
+    if (event.type() == eventNames().keypressEvent && !isBaseListBox() && !(usesBaseAppearancePicker() && pickerPopoverIsShowing())) {
         if (RefPtr keyboardEvent = dynamicDowncast<KeyboardEvent>(event)) {
             if (!keyboardEvent->ctrlKey() && !keyboardEvent->altKey() && !keyboardEvent->metaKey() && u_isprint(keyboardEvent->charCode())) {
                 typeAheadFind(*keyboardEvent);
@@ -2433,11 +2515,10 @@ void HTMLSelectElement::showPopup()
 #else
 void HTMLSelectElement::showPopup()
 {
-    if (m_popupIsVisible)
+    if (isOpen())
         return;
 
-    CheckedPtr renderer = this->renderer();
-    if (!renderer || !usesMenuList())
+    if (!renderer() || !usesMenuList())
         return;
 
     RefPtr frame = document().frame();
@@ -2448,12 +2529,18 @@ void HTMLSelectElement::showPopup()
     if (!frameView)
         return;
 
-    if (!m_popup)
-        m_popup = document().page()->chrome().createPopupMenu(*this);
     setPopupIsVisible(true);
 
     // Ensure layout is up-to-date before computing the element location.
     protect(document())->updateLayout();
+
+    // A :open rule can rebuild the renderer, which also hides the popup.
+    CheckedPtr renderer = this->renderer();
+    if (!renderer || !usesMenuList())
+        return;
+    setPopupIsVisible(true);
+    if (!m_popup)
+        m_popup = document().page()->chrome().createPopupMenu(*this);
 
     // Compute the top left taking transforms into account, but use
     // the actual width of the element to size the popup.
@@ -2463,7 +2550,7 @@ void HTMLSelectElement::showPopup()
     IntRect absBounds = renderer->absoluteBoundingBoxRectIgnoringTransforms();
     absBounds.setLocation(roundedIntPoint(absTopLeft));
 
-    protect(m_popup)->show(absBounds, *frameView, optionToListIndex(selectedIndex())); // May run JS.
+    protect(m_popup)->show(absBounds, *frameView, m_multiple ? -1 : optionToListIndex(selectedIndex())); // May run JS.
 }
 
 void HTMLSelectElement::hidePopup()
@@ -2475,15 +2562,22 @@ void HTMLSelectElement::hidePopup()
 
 void HTMLSelectElement::setPopupIsVisible(bool visible)
 {
-    if (!visible)
-        m_pickerOpeningMouseLocation = { };
+    if (m_popupIsVisible == visible)
+        return;
 
     Style::PseudoClassChangeInvalidation styleInvalidation(*this, CSSSelector::PseudoClass::Open, visible);
     m_popupIsVisible = visible;
 }
 
+bool HTMLSelectElement::pickerPopoverIsShowing() const
+{
+    return m_popover && m_popover->isPopoverShowing();
+}
+
 bool HTMLSelectElement::isOpen() const
 {
+    if (pickerPopoverIsShowing())
+        return supportsBaseAppearancePicker();
     return m_popupIsVisible;
 }
 
@@ -2495,10 +2589,15 @@ void HTMLSelectElement::showPickerInternal()
 #endif
         return;
     }
-    if (RefPtr popover = m_popover) {
-        setPopupIsVisible(true);
+    if (RefPtr popover = m_popover)
         popover->showPopoverInternal(this);
-    }
+    if (!pickerPopoverIsShowing())
+        return;
+
+    // Script run by hiding other popovers, or a :open rule that now matches, can rule out the picker.
+    protect(document())->updateStyleIfNeeded();
+    if (!usesBaseAppearancePicker())
+        hidePickerPopoverElement();
 }
 
 void HTMLSelectElement::openPickerForUserInteraction(std::optional<bool> focusVisible)
@@ -2510,17 +2609,8 @@ void HTMLSelectElement::openPickerForUserInteraction(std::optional<bool> focusVi
     saveLastSelection();
     showPickerInternal(); // May run JS and cause the renderer to get destroyed.
 
-    if (!usesBaseAppearancePicker())
+    if (!pickerPopoverIsShowing())
         return;
-
-    protect(document())->updateStyleIfNeeded();
-
-    // If the appearance changed due to :open (e.g., a rule switching appearance away from
-    // base-select), close the picker.
-    if (!usesBaseAppearancePicker()) {
-        hidePickerPopoverElement();
-        return;
-    }
 
     int listIndex = optionToListIndex(selectedIndex());
     if (listIndex < 0)
@@ -2620,16 +2710,7 @@ ExceptionOr<void> HTMLSelectElement::showPicker()
         return Exception { ExceptionCode::NotAllowedError, "Select showPicker() requires a user gesture."_s };
 
     protect(document())->updateStyleIfNeeded();
-    bool openedBaseAppearancePicker = usesBaseAppearancePicker();
     showPickerInternal(); // showPickerInternal() may run JS and cause the renderer to get destroyed.
-
-    // Resolve styles with :open now matching. If the appearance changed (e.g., due to a
-    // :open rule switching appearance away from base-select), close the picker immediately.
-    if (openedBaseAppearancePicker && m_popupIsVisible) {
-        protect(document())->updateStyleIfNeeded();
-        if (!usesBaseAppearancePicker())
-            hidePickerPopoverElement();
-    }
 
     return { };
 }
@@ -2650,20 +2731,20 @@ void HTMLSelectElement::updateSelectedContent(HTMLOptionElement* selectedOption)
     ASSERT(document().settings().htmlEnhancedSelectEnabled());
     ASSERT(!document().settings().mutationEventsEnabled());
 
-    if (m_multiple || !m_selectedContentDescendantCount)
+    if (!m_selectedContentDescendantCount || !updatesSelectedContent())
         return;
+
+    if (m_multiple) {
+        for (Ref selectedContent : selectedContentElements())
+            selectedContent->updateClonedOptionSelectedStates();
+        return;
+    }
 
     RefPtr selectedOptionRef = selectedOption;
     if (!selectedOptionRef)
         selectedOptionRef = firstSelectedOption();
 
-    Vector<Ref<HTMLSelectedContentElement>> selectedContentElements;
-    for (Ref selectedContent : descendantsOfType<HTMLSelectedContentElement>(*const_cast<HTMLSelectElement*>(this))) {
-        if (!selectedContent->isDisabled())
-            selectedContentElements.append(selectedContent);
-    }
-
-    for (Ref selectedContent : selectedContentElements) {
+    for (Ref selectedContent : selectedContentElements()) {
         if (!selectedOptionRef)
             selectedContent->removeChildren();
         else
@@ -2679,10 +2760,57 @@ void HTMLSelectElement::updateSelectedContent(HTMLSelectedContentElement& select
     if (selectedContent.isDisabled())
         return;
 
+    if (m_multiple && updatesSelectedContent()) {
+        cloneOptionsIntoSelectedContent(selectedContent);
+        return;
+    }
+
     if (RefPtr selectedOption = firstSelectedOption())
         selectedOption->cloneIntoSelectedContent(selectedContent);
     else
         selectedContent.removeChildren();
+}
+
+bool HTMLSelectElement::updatesSelectedContent() const
+{
+    return !m_multiple || document().settings().htmlEnhancedSelectMultipleSelectedContentEnabled();
+}
+
+Vector<Ref<HTMLSelectedContentElement>> HTMLSelectElement::selectedContentElements() const
+{
+    Vector<Ref<HTMLSelectedContentElement>> result;
+    for (Ref selectedContent : descendantsOfType<HTMLSelectedContentElement>(*const_cast<HTMLSelectElement*>(this))) {
+        if (!selectedContent->isDisabled())
+            result.append(selectedContent);
+    }
+    return result;
+}
+
+void HTMLSelectElement::cloneOptionsIntoSelectedContent() const
+{
+    ASSERT(ScriptDisallowedScope::InMainThread::isScriptAllowed());
+
+    if (!m_multiple || !m_selectedContentDescendantCount || !updatesSelectedContent())
+        return;
+
+    for (Ref selectedContent : selectedContentElements())
+        cloneOptionsIntoSelectedContent(selectedContent);
+}
+
+void HTMLSelectElement::cloneOptionsIntoSelectedContent(HTMLSelectedContentElement& selectedContent) const
+{
+    ASSERT(document().settings().htmlEnhancedSelectMultipleSelectedContentEnabled());
+
+    Vector<Ref<HTMLOptionElement>> options;
+    for (auto& item : listItems()) {
+        if (RefPtr option = dynamicDowncast<HTMLOptionElement>(item.get()))
+            options.append(option.releaseNonNull());
+    }
+
+    NodeVector clones;
+    for (auto& option : options)
+        clones.append(option->cloneForSelectedContent());
+    selectedContent.replaceChildrenWithoutValidityCheck(WTF::move(clones));
 }
 
 RefPtr<HTMLOptionElement> HTMLSelectElement::selectedOptionForSelectedContent() const
@@ -2702,7 +2830,7 @@ void HTMLSelectElement::resetSelectedness(HTMLOptionElement* oldSelectedOption)
 
 void HTMLSelectElement::queueSelectedContentUpdate()
 {
-    if (m_hasQueuedSelectedContentUpdate || m_multiple || !m_selectedContentDescendantCount)
+    if (m_hasQueuedSelectedContentUpdate || !m_selectedContentDescendantCount || !updatesSelectedContent())
         return;
 
     m_hasQueuedSelectedContentUpdate = true;
@@ -2712,7 +2840,10 @@ void HTMLSelectElement::queueSelectedContentUpdate()
         if (!select)
             return;
         select->m_hasQueuedSelectedContentUpdate = false;
-        select->updateSelectedContentIfEnabled();
+        if (select->m_multiple)
+            select->cloneOptionsIntoSelectedContent();
+        else
+            select->updateSelectedContentIfEnabled();
     });
 }
 
@@ -2745,7 +2876,7 @@ void HTMLSelectElement::valueChanged(unsigned listIndex, bool fireOnChange)
     if (!frame || &document() != frame->document())
         return;
 
-    optionSelectedByUser(listToOptionIndex(listIndex), fireOnChange);
+    optionSelectedByUser(listToOptionIndex(listIndex), fireOnChange, m_multiple);
 }
 
 String HTMLSelectElement::itemText(unsigned listIndex) const

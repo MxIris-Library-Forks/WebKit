@@ -1015,6 +1015,8 @@ public:
     String createTemporaryFile(const String& name, const String& contents);
 
     String documentIPAddressSpace() const;
+    void setDocumentIPAddressSpace(const String&);
+    void setLoadSourceOriginOverride(const String&);
 
     void queueMicroTask(int);
     bool testPreloaderSettingViewport();
@@ -1108,6 +1110,8 @@ public:
         HighPerformance
     };
     RequestedGPU NODELETE requestedGPU(WebGLRenderingContextBase&);
+    // The largest drawing buffer width and height, including the limits of the compositor buffers.
+    Vector<int> webglMaxDrawingBufferSize(WebGLRenderingContextBase&);
 #endif
 
     void setPageVisibility(bool isVisible);
@@ -1586,6 +1590,7 @@ public:
 
     void setTopDocumentURLForQuirks(const String&);
     void setSubframeURLForQuirks(const String&);
+    void setTopDocumentHostForQuirks(const String&);
     Vector<String> activeQuirks() const;
 
 #if ENABLE(APP_HIGHLIGHTS)

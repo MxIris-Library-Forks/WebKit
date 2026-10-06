@@ -42,6 +42,10 @@
 #include <wtf/text/MakeString.h>
 #include <wtf/text/WTFString.h>
 
+#if PLATFORM(COCOA)
+#include <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
+#endif
+
 namespace TestWebKitAPI {
 
 using namespace WebCore::QuirkSelectors;
@@ -254,6 +258,42 @@ TEST_F(QuirksTest, EveryMatchingRowContributesWhenSeveralSupplyTheSameBehavior)
     Vector<String> expected { "firstScript"_str, "secondScript"_str };
     EXPECT_EQ(scriptsForScriptURL(quirks, "https://first.example.com/a.js"_s), expected);
 }
+
+TEST_F(QuirksTest, IdenticalBehaviorsWithParametersAreRecordedOnce)
+{
+    using namespace WebCore::QuirkBehaviorConditions;
+    static constexpr auto anyScriptURL = WebCore::URLMatch::anyURL();
+    static constexpr auto behavior = WebCore::QuirkBehaviors::needsScriptToEvaluateBeforeRunningScriptFromURLQuirk(WebCore::QuirkParameters::fromScript("script"_s)).when(secondaryURLMatches(anyScriptURL));
+
+    WebCore::QuirksData quirks;
+    quirks.addBehavior(behavior);
+    quirks.addBehavior(behavior);
+
+    WebCore::QuirksData other;
+    other.addBehavior(behavior);
+    quirks.merge(other);
+
+    Vector<String> expected { "script"_str };
+    EXPECT_EQ(scriptsForScriptURL(quirks, "https://example.com/a.js"_s), expected);
+}
+
+#if PLATFORM(MAC)
+TEST_F(QuirksTest, RowsSplitAcrossPathAndFragmentEachApply)
+{
+    auto id = WebCore::QuirkBehaviorID::IsNeverRichlyEditableForTouchBarQuirk;
+
+    EXPECT_TRUE(resolveQuirksForTopURL("https://www.icloud.com/notes/"_s).isBehaviorEnabled(id));
+    EXPECT_TRUE(resolveQuirksForTopURL("https://www.icloud.com/#notes"_s).isBehaviorEnabled(id));
+    EXPECT_FALSE(resolveQuirksForTopURL("https://www.icloud.com/mail/"_s).isBehaviorEnabled(id));
+}
+
+TEST_F(QuirksTest, AnIdenticalBehaviorFromSeveralRowsIsRecordedOnce)
+{
+    auto id = WebCore::QuirkBehaviorID::IsNeverRichlyEditableForTouchBarQuirk;
+
+    EXPECT_EQ(resolveQuirksForTopURL("https://www.icloud.com/notes/#notes"_s).behaviorsMatching(id).size(), 1u);
+}
+#endif
 
 static Vector<String> elementSelectorsFor(const WebCore::QuirksData& quirks, WebCore::QuirkBehaviorID id)
 {
@@ -1019,6 +1059,23 @@ TEST_F(QuirksTest, NeedsCustomUserAgentOverrideHSBC)
     EXPECT_FALSE(customUserAgentFor("https://us.hsbc.com/"_s).has_value());
 }
 
+#if PLATFORM(MAC)
+TEST_F(QuirksTest, NeedsCustomUserAgentOverrideInstacartSafariWebApp)
+{
+    setApplicationBundleIdentifierOverride("com.apple.Safari.WebApp"_s);
+    auto agent = customUserAgentFor("https://www.instacart.com/"_s);
+    clearApplicationBundleIdentifierTestingOverride();
+
+    ASSERT_TRUE(agent.has_value());
+    EXPECT_TRUE(agent->contains("Chrome/152.0.0.0"_s));
+}
+
+TEST_F(QuirksTest, NeedsCustomUserAgentOverrideInstacartOutsideSafariWebApp)
+{
+    EXPECT_FALSE(customUserAgentFor("https://www.instacart.com/"_s).has_value());
+}
+#endif
+
 #if PLATFORM(IOS)
 TEST_F(QuirksTest, NeedsCustomUserAgentOverrideAmazonPrimeVideo)
 {
@@ -1194,5 +1251,33 @@ TEST_F(QuirksTest, InstagramReelsGrowToFillTheirFlexContainerOnlyWhenTheyContain
     EXPECT_EQ(elsewhere.withoutVideo, 100);
 }
 #endif // ENABLE(VIDEO)
+
+static bool hasActiveQuirk(WebCore::Document& document, ASCIILiteral quirkName)
+{
+    return document.quirks().activeQuirks().contains(String { quirkName });
+}
+
+static TestPageHarness createPageWithQuirksEnabled()
+{
+    return TestPageHarness::create({ .configureSettings = [](auto& settings) {
+        settings.setNeedsSiteSpecificQuirks(true);
+    } });
+}
+
+TEST_F(QuirksTest, SameDocumentNavigationReresolvesQuirks)
+{
+    auto page = createPageWithQuirksEnabled();
+    page.loadHTML("<!DOCTYPE html>"_s);
+
+    Ref document = page.document();
+    document->setURL(URL { "https://www.apple.com/"_s });
+    EXPECT_FALSE(hasActiveQuirk(document, "ShouldDisableScrollAnchoringQuirk"_s));
+
+    document->updateURLForPushOrReplaceState(URL { "https://www.apple.com/retail"_s });
+    EXPECT_TRUE(hasActiveQuirk(document, "ShouldDisableScrollAnchoringQuirk"_s));
+
+    document->updateURLForPushOrReplaceState(URL { "https://www.apple.com/"_s });
+    EXPECT_FALSE(hasActiveQuirk(document, "ShouldDisableScrollAnchoringQuirk"_s));
+}
 
 } // namespace TestWebKitAPI

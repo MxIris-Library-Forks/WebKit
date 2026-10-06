@@ -9,7 +9,6 @@ bindings/js/JSPaintRenderingContext2DCustom.cpp
 css/values/primitives/CSSPrimitiveData.h
 dom/CustomElementReactionQueue.h
 dom/ElementInlinesLight.h
-html/HTMLMediaElement.cpp
 layout/formattingContexts/inline/InlineFormattingContext.h
 layout/formattingContexts/inline/InlineItemsBuilder.cpp
 layout/formattingContexts/inline/InlineLine.h
@@ -19,4 +18,3 @@ rendering/RenderTextLineBoxes.h
 rendering/svg/SVGRenderingContext.h
 style/StyleBuilderState.h
 style/StyleExtractorState.h
-style/values/images/kinds/StyleCachedImage.cpp

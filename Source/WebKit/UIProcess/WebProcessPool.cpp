@@ -485,6 +485,12 @@ void WebProcessPool::textCheckerStateChanged()
     sendToAllProcesses(Messages::WebProcess::SetTextCheckerState(TextChecker::state()));
 }
 
+void WebProcessPool::notifyProcessPoolsTextCheckerStateChanged()
+{
+    for (auto& processPool : allProcessPools())
+        processPool->textCheckerStateChanged();
+}
+
 void WebProcessPool::setApplicationIsActive(bool isActive)
 {
     m_webProcessCache->setApplicationIsActive(isActive);
@@ -1297,7 +1303,7 @@ void WebProcessPool::disconnectProcess(WebProcessProxy& process)
 #endif
 }
 
-Ref<WebProcessProxy> WebProcessPool::processForSite(WebsiteDataStore& websiteDataStore, WebProcessProxy::IsolatedProcessType isolatedProcessType, const std::optional<Site>& site, const std::optional<Site>& mainFrameSite, WebProcessProxy::LockdownMode lockdownMode, EnhancedSecurity enhancedSecurity, const API::PageConfiguration& pageConfiguration, ProcessSwapDisposition processSwapDisposition, CrossOriginMode crossOriginMode, const std::optional<SecurityOriginData>& coopOrigin)
+Ref<WebProcessProxy> WebProcessPool::processForSite(WebsiteDataStore& websiteDataStore, WebProcessProxy::IsolatedProcessType isolatedProcessType, const std::optional<Site>& site, const std::optional<Site>& mainFrameSite, WebProcessProxy::LockdownMode lockdownMode, EnhancedSecurity enhancedSecurity, const API::PageConfiguration& pageConfiguration, ProcessSwapDisposition processSwapDisposition, CrossOriginMode crossOriginMode, const std::optional<SecurityOriginData>& coopOrigin, WebProcessProxy* reusableProvisionalProcess)
 {
     // Reusable processes are never isolated.
     bool canReuseAnExistingProcess = crossOriginMode == CrossOriginMode::Shared;
@@ -1349,6 +1355,12 @@ Ref<WebProcessProxy> WebProcessPool::processForSite(WebsiteDataStore& websiteDat
         else
             process.setIneligbleForWebProcessCache();
     };
+
+    if (RefPtr process = canReuseAnExistingProcess ? reusableProvisionalProcess : nullptr) {
+        WEBPROCESSPOOL_RELEASE_LOG(ProcessSwapping, "processForSite: Continuing navigation in the provisional process since it has not committed any load (process=%p, PID=%i)", process.get(), process->processID());
+        updateWebProcessCacheEligibilityForCOOPSwap(*process);
+        return process.releaseNonNull();
+    }
 
     if (RefPtr process = tryTakePrewarmedProcess(websiteDataStore, lockdownMode, enhancedSecurity, pageConfiguration, crossOriginMode)) {
         WEBPROCESSPOOL_RELEASE_LOG(ProcessSwapping, "processForSite: Using prewarmed process (process=%p, PID=%i)", process.get(), process->processID());

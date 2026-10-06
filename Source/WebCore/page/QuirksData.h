@@ -45,6 +45,11 @@ public:
         return !m_behaviorFlags.isEmpty();
     }
 
+    inline bool hasSameBehaviorFlags(const QuirksData& other) const
+    {
+        return m_behaviorFlags == other.m_behaviorFlags;
+    }
+
     inline const Vector<QuirkBehavior>& behaviors() const LIFETIME_BOUND
     {
         return m_behaviors;
@@ -79,7 +84,8 @@ public:
     inline void addBehavior(const QuirkBehavior& behavior)
     {
         m_behaviorFlags.set(static_cast<size_t>(behavior.id), true);
-        m_behaviors.append(behavior);
+        if (!m_behaviors.contains(behavior))
+            m_behaviors.append(behavior);
     }
 
     inline void removeBehaviorsMatching(QuirkBehaviorID id)
@@ -90,9 +96,8 @@ public:
 
     void merge(const QuirksData& other)
     {
-        auto& [otherBehaviorFlags, otherBehaviors] = other;
-        m_behaviorFlags.merge(otherBehaviorFlags);
-        m_behaviors.appendVector(otherBehaviors);
+        for (auto& behavior : other.m_behaviors)
+            addBehavior(behavior);
     }
 
 private:

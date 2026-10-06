@@ -1073,6 +1073,12 @@ Quirks& Document::ensureQuirks()
     return *m_quirks;
 }
 
+void Document::urlsAffectingQuirksDidChange()
+{
+    if (m_quirks)
+        m_quirks->urlsDidChange();
+}
+
 CachedResourceLoader& Document::ensureCachedResourceLoader()
 {
     ASSERT(m_constructionDidFinish);
@@ -1153,6 +1159,29 @@ SecurityOrigin& Document::topOrigin() const
         return frame->topOrigin();
 
     return SecurityOrigin::opaqueOrigin();
+}
+
+void Document::updateHasUnpartitionedStorageAccess(const DocumentLoader* loader)
+{
+    m_hasUnpartitionedStorageAccess = computeHasUnpartitionedStorageAccess(loader);
+}
+
+bool Document::computeHasUnpartitionedStorageAccess(const DocumentLoader* loader) const
+{
+    RefPtr frame = m_frame.get();
+    if (!frame || frame->isMainFrame())
+        return false;
+
+    RefPtr origin = SecurityContext::securityOrigin();
+    if (!origin || origin->isOpaque())
+        return false;
+
+    if (SecurityPolicy::shouldInheritSecurityOriginFromOwner(m_url)) {
+        RefPtr parentDocument = this->parentDocument();
+        return parentDocument && parentDocument->hasUnpartitionedStorageAccess() && protect(parentDocument->securityOrigin())->isSameOriginAs(*origin);
+    }
+
+    return loader && loader->hasUnpartitionedStorageAccess(origin->toURL());
 }
 
 inline DocumentFontLoader& Document::fontLoader()
@@ -4728,6 +4757,10 @@ void Document::setURL(URL&& url)
     m_documentURI = m_url.url();
     m_adjustedURL = adjustedURL();
     updateBaseURL();
+
+    urlsAffectingQuirksDidChange();
+    if (RefPtr page = this->page(); page && isTopDocument())
+        page->topDocumentURLDidChange();
 }
 
 const URL& Document::urlForBindings()
@@ -8541,6 +8574,7 @@ void Document::initSecurityContext()
     contentSecurityPolicy->updateSourceSelf(protect(ownerFrame->document()->securityOrigin()));
 
     setCrossOriginEmbedderPolicy(ownerFrame->document()->crossOriginEmbedderPolicy());
+    setDocumentIsolationPolicy(ownerFrame->document()->documentIsolationPolicy());
     setIsOriginKeyed(ownerFrame->document()->isOriginKeyed());
 
     // https://html.spec.whatwg.org/multipage/browsers.html#creating-a-new-browsing-context (Step 12)
@@ -8650,6 +8684,11 @@ static inline bool isDocumentSecure(const Document& document)
 }
 
 // https://w3c.github.io/webappsec-secure-contexts/#is-settings-object-contextually-secure
+void Document::setLoadSourceOriginOverrideForTesting(RefPtr<SecurityOrigin>&& origin)
+{
+    m_loadSourceOriginOverrideForTesting = WTF::move(origin);
+}
+
 bool Document::isSecureContext() const
 {
     if (!m_frame)
@@ -8673,9 +8712,14 @@ bool Document::isSecureContext() const
     return isDocumentSecure(*this);
 }
 
-bool Document::crossOriginIsolated() const
+bool Document::isInCrossOriginIsolatedAgentCluster() const
 {
     return crossOriginOpenerPolicy().value == CrossOriginOpenerPolicyValue::SameOriginPlusCOEP;
+}
+
+bool Document::crossOriginIsolated() const
+{
+    return isInCrossOriginIsolatedAgentCluster() && PermissionsPolicy::isFeatureEnabled(PermissionsPolicy::Feature::CrossOriginIsolated, *this, PermissionsPolicy::ShouldReportViolation::No);
 }
 
 String Document::agentClusterID() const
@@ -8687,7 +8731,7 @@ String Document::agentClusterID() const
         auto opaqueID = data.opaqueOriginIdentifier();
         return makeString(browsingContextGroupIdentifier, "-opaque-"_s, opaqueID ? opaqueID->toString() : String { });
     }
-    if (crossOriginIsolated())
+    if (isInCrossOriginIsolatedAgentCluster())
         return makeString(browsingContextGroupIdentifier, "-coi-"_s, data.toString());
     if (m_isOriginKeyed == OriginKeyed::Yes)
         return makeString(browsingContextGroupIdentifier, "-oac-"_s, data.toString());
@@ -8699,7 +8743,7 @@ bool Document::originAgentCluster() const
 {
     if (securityOrigin().isOpaque())
         return true;
-    if (crossOriginIsolated())
+    if (isInCrossOriginIsolatedAgentCluster())
         return true;
     return m_isOriginKeyed == OriginKeyed::Yes;
 }
@@ -12436,6 +12480,14 @@ void Document::securityOriginDidChange()
 {
     m_syncData->documentSecurityOrigin = SecurityContext::securityOrigin();
     m_permissionsPolicy = nullptr;
+    if (m_hasUnpartitionedStorageAccess) {
+        if (RefPtr origin = SecurityContext::securityOrigin(); !origin || origin->isOpaque()) {
+            m_hasUnpartitionedStorageAccess = false;
+            m_siteForCookies = { };
+            if (RefPtr frame = m_frame.get(); frame && frame->document() == this)
+                protect(frame->loader())->updateFirstPartyForCookies();
+        }
+    }
     if (m_frame && m_frame->document() == this)
         m_frame->documentURLOrOriginDidChange();
 }

@@ -38,6 +38,7 @@ public:
     static Ref<HTMLSelectedContentElement> create(const QualifiedName&, Document&);
 
     bool isDisabled() const { return m_isDisabled; }
+    void updateClonedOptionSelectedStates();
 
 private:
     HTMLSelectedContentElement(const QualifiedName&, Document&);
@@ -46,6 +47,7 @@ private:
     void postConnectionSteps() final;
     void removingSteps(RemovalType, ContainerNode&) final;
     void movingSteps(MovingType, ContainerNode&) final;
+    void childrenChanged(const ChildChange&) final;
 
     RefPtr<HTMLSelectElement> recalculateDisabledness();
 

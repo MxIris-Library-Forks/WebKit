@@ -129,6 +129,10 @@
 @interface NSMenu ()
 - (id)_menuImpl;
 @end
+
+@interface WKWebView ()
+- (void)toggleContinuousSpellChecking:(id)sender;
+@end
 #endif
 
 @interface SiteIsolationTextManipulationDelegate : NSObject <_WKTextManipulationDelegate>
@@ -3685,6 +3689,62 @@ TEST(SiteIsolation, HandleAcceptedCandidateInCrossOriginIframe)
         [webView _handleAcceptedCandidate:candidate.get()];
         Util::runFor(10_ms);
     }
+}
+
+static NSArray<NSTextCheckingResult *> *swizzledCheckStringForMisspelledWord(id, SEL, NSString *stringToCheck, NSRange, NSTextCheckingTypes types, NSDictionary *, NSInteger, NSOrthography **, NSInteger *)
+{
+    NSRange range = [stringToCheck rangeOfString:@"zzr"];
+    if (range.location == NSNotFound || !(types & NSTextCheckingTypeSpelling))
+        return @[ ];
+    return @[ [NSTextCheckingResult spellCheckingResultWithRange:range] ];
+}
+
+TEST(SiteIsolation, ToggleContinuousSpellCheckingInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe id='iframe' src='https://domain2.com/subframe'></iframe>"_s } },
+        { "/subframe"_s, { "<body contenteditable></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    RetainPtr storeConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initNonPersistentConfiguration]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+    enableSiteIsolation(configuration.get());
+    RetainPtr webView = adoptNS([[TestWKWebView<NSTextInputClient> alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    webView.get().navigationDelegate = navigationDelegate.get();
+
+    InstanceMethodSwizzler checkStringSwizzler {
+        NSSpellChecker.sharedSpellChecker.class,
+        @selector(checkString:range:types:options:inSpellDocumentWithTag:orthography:wordCount:),
+        reinterpret_cast<IMP>(swizzledCheckStringForMisspelledWord)
+    };
+
+    [webView _setContinuousSpellCheckingEnabledForTesting:NO];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    [webView evaluateJavaScript:@"document.getElementById('iframe').focus()" completionHandler:nil];
+    RetainPtr childFrame = [webView firstChildFrame];
+    while (![childFrame _isFocused])
+        childFrame = [webView firstChildFrame];
+    [webView objectByEvaluatingJavaScript:@"getSelection().setPosition(document.body)" inFrame:childFrame.get()];
+
+    auto spellingMarkerCount = [&] {
+        return [[webView objectByEvaluatingJavaScript:@"internals.markerCountForNode(document.body.firstChild, 'spelling')" inFrame:childFrame.get()] intValue];
+    };
+
+    [webView toggleContinuousSpellChecking:nil];
+    [webView insertText:@"zzr " replacementRange:NSMakeRange(0, 0)];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return spellingMarkerCount() > 0;
+    }));
+
+    [webView toggleContinuousSpellChecking:nil];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !spellingMarkerCount();
+    }));
 }
 
 TEST(SiteIsolation, SetMarkedTextInCrossOriginIframe)
@@ -14788,7 +14848,7 @@ TEST(SiteIsolation, BrowsingContextGroupSwitchForIncompatibleCrossOriginOpenerPo
 static HTTPServer crossOriginIsolationServer()
 {
     return HTTPServer({
-        { "/isolated"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-subframe'></iframe>"_s } },
+        { "/isolated"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-subframe' allow='cross-origin-isolated'></iframe>"_s } },
         { "/isolated-two-subframes"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-subframe'></iframe><iframe src='https://apple.com/isolated-subframe'></iframe>"_s } },
         { "/isolated-nested"_s, { { { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "<iframe src='https://webkit.org/isolated-grandparent'></iframe>"_s } },
         { "/isolated-grandparent"_s, { { { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s }, { "Cross-Origin-Resource-Policy"_s, "cross-origin"_s } }, "<iframe src='https://apple.com/isolated-subframe'></iframe>"_s } },

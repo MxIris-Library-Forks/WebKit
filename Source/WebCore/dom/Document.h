@@ -636,6 +636,9 @@ public:
     bool shouldPreventEnteringBackForwardCacheForTesting() const { return m_shouldPreventEnteringBackForwardCacheForTesting; }
     void preventEnteringBackForwardCacheForTesting() { m_shouldPreventEnteringBackForwardCacheForTesting = true; }
 
+    SecurityOrigin* loadSourceOriginOverrideForTesting() const { return m_loadSourceOriginOverrideForTesting.get(); }
+    WEBCORE_EXPORT void setLoadSourceOriginOverrideForTesting(RefPtr<SecurityOrigin>&&);
+
     void setXMLEncoding(const String& encoding) { m_xmlEncoding = encoding; } // read-only property, only to be set from XMLDocumentParser
     WEBCORE_EXPORT ExceptionOr<void> setXMLVersion(const String&);
     WEBCORE_EXPORT void NODELETE setXMLStandalone(bool);
@@ -751,6 +754,7 @@ public:
 
     inline Quirks& quirks(); // Defined in DocumentQuirks.h
     inline const Quirks& quirks() const; // Defined in DocumentQuirks.h
+    void urlsAffectingQuirksDidChange();
 
     WEBCORE_EXPORT float NODELETE deviceScaleFactor() const;
     float NODELETE pixelSnappingScaleFactor() const;
@@ -825,7 +829,7 @@ public:
     bool isEventLoopGroupStoppedPermanently() const final;
     GraphicsClient* graphicsClient() final;
 
-    inline const SettingsValues& settingsValues() const final; // Defined in DocumentSettingsValues.h.
+    inline const SettingsValues& NODELETE settingsValues() const final; // Defined in DocumentSettingsValues.h.
 
     const NetworkLoadPolicy& networkLoadPolicy() const final;
 
@@ -1442,7 +1446,7 @@ public:
     void inheritPolicyContainerFrom(const PolicyContainer&) final;
     void enforceSandboxFlags(SandboxFlags, SandboxFlagsSource = SandboxFlagsSource::Other) final;
 
-    void updateURLForPushOrReplaceState(const URL&);
+    WEBCORE_EXPORT void updateURLForPushOrReplaceState(const URL&);
     void statePopped(Ref<SerializedScriptValue>&&);
 
     bool processingLoadEvent() const { return m_processingLoadEvent; }
@@ -1450,7 +1454,8 @@ public:
 
     bool isContextThread() const final;
     WEBCORE_EXPORT bool isSecureContext() const final;
-    bool NODELETE crossOriginIsolated() const final;
+    bool crossOriginIsolated() const final;
+    bool NODELETE isInCrossOriginIsolatedAgentCluster() const;
     bool NODELETE originAgentCluster() const;
     String agentClusterID() const final;
     bool isJSExecutionForbidden() const final { return false; }
@@ -1694,6 +1699,8 @@ public:
 
     SecurityOrigin& securityOrigin() const { return *SecurityContext::securityOrigin(); }
     WEBCORE_EXPORT SecurityOrigin& topOrigin() const final;
+    bool hasUnpartitionedStorageAccess() const { return m_hasUnpartitionedStorageAccess; }
+    void updateHasUnpartitionedStorageAccess(const DocumentLoader*);
     URL topURL() const;
     inline ClientOrigin clientOrigin() const;
 
@@ -2313,6 +2320,7 @@ private:
     MediaProducerMediaStateFlags computeCaptureState() const;
 #endif
     void securityOriginDidChange() final;
+    bool computeHasUnpartitionedStorageAccess(const DocumentLoader*) const;
 
     inline Ref<DocumentSyncData> syncData();
     void NODELETE populateDocumentSyncDataForNewlyConstructedDocument(DocumentSyncDataType);
@@ -2715,6 +2723,7 @@ private:
     unsigned m_referencingNodeCount { 0 };
     int m_loadEventDelayCount { 0 };
     unsigned m_lastStyleUpdateSizeForTesting { 0 };
+    RefPtr<SecurityOrigin> m_loadSourceOriginOverrideForTesting;
     size_t m_styleInvalidationTraversalCountForTesting { 0 };
 
     // https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#throw-on-dynamic-markup-insertion-counter
@@ -2810,6 +2819,7 @@ private:
     bool m_isNonRenderedPlaceholder : 1 { false };
     bool m_sawElementsInKnownNamespaces : 1 { false };
     bool m_isSrcdocDocument : 1 { false };
+    bool m_hasUnpartitionedStorageAccess : 1 { false };
     bool m_hasPreparedForDestruction : 1 { false };
     bool m_hasStyleWithViewportUnits : 1 { false };
     bool m_needsDOMWindowResizeEvent : 1 { false };

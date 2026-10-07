@@ -636,6 +636,8 @@ public:
     bool shouldPreventEnteringBackForwardCacheForTesting() const { return m_shouldPreventEnteringBackForwardCacheForTesting; }
     void preventEnteringBackForwardCacheForTesting() { m_shouldPreventEnteringBackForwardCacheForTesting = true; }
 
+    void markAsInsecureContextForTesting() { m_isSecureContext = false; }
+
     SecurityOrigin* loadSourceOriginOverrideForTesting() const { return m_loadSourceOriginOverrideForTesting.get(); }
     WEBCORE_EXPORT void setLoadSourceOriginOverrideForTesting(RefPtr<SecurityOrigin>&&);
 
@@ -1463,7 +1465,9 @@ public:
     void queueTaskToDispatchEventOnWindow(LocalDOMWindow&, TaskSource, Ref<Event>&&);
     void dispatchPageshowEvent(PageshowEventPersistence);
     void dispatchPagehideEvent(PageshowEventPersistence);
-    WEBCORE_EXPORT void dispatchPageswapEvent(CanTriggerCrossDocumentViewTransition, RefPtr<NavigationActivation>&&);
+    // With proceedWithNavigation, a view transition is captured in a later rendering update, and the
+    // navigation proceeds once it has been. Without it, the capture is made before returning.
+    WEBCORE_EXPORT void dispatchPageswapEvent(CanTriggerCrossDocumentViewTransition, RefPtr<NavigationActivation>&&, CompletionHandler<void()>&& proceedWithNavigation = { });
     void transferViewTransitionParams(Document&);
     WEBCORE_EXPORT void enqueueSecurityPolicyViolationEvent(SecurityPolicyViolationEventInit&&);
     void enqueueHashchangeEvent(const String& oldURL, const String& newURL);
@@ -1544,11 +1548,11 @@ public:
     void didPaintImage(Element&, CachedImage*, FloatRect localRect) const;
     void didPaintText(const RenderBlockFlow&, FloatRect localRect, bool isOnlyTextBoxForElement) const;
 
-    int requestAnimationFrame(Ref<RequestAnimationFrameCallback>&&);
-    void cancelAnimationFrame(int id);
+    unsigned requestAnimationFrame(Ref<RequestAnimationFrameCallback>&&);
+    void cancelAnimationFrame(unsigned id);
 
-    int requestIdleCallback(Ref<IdleRequestCallback>&&, Seconds timeout);
-    void cancelIdleCallback(int id);
+    unsigned requestIdleCallback(Ref<IdleRequestCallback>&&, Seconds timeout);
+    void cancelIdleCallback(unsigned id);
     bool NODELETE hasPendingIdleCallback() const;
     IdleCallbackController* idleCallbackController() const { return m_idleCallbackController.get(); }
 
@@ -2292,6 +2296,8 @@ private:
 
     bool shouldEnforceHTTP09Sandbox() const;
 
+    bool computeIsSecureContext() const;
+
     void NODELETE platformSuspendOrStopActiveDOMObjects();
 
     void collectHighlightRangesFromRegister(Vector<WeakPtr<HighlightRange>>&, const HighlightRegistry&);
@@ -2819,6 +2825,7 @@ private:
     bool m_isNonRenderedPlaceholder : 1 { false };
     bool m_sawElementsInKnownNamespaces : 1 { false };
     bool m_isSrcdocDocument : 1 { false };
+    bool m_isSecureContext : 1 { true };
     bool m_hasUnpartitionedStorageAccess : 1 { false };
     bool m_hasPreparedForDestruction : 1 { false };
     bool m_hasStyleWithViewportUnits : 1 { false };

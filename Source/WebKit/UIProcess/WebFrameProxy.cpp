@@ -190,6 +190,10 @@ WebFrameProxy::WebFrameProxy(WebPageProxy& page, FrameProcess& process, FrameIde
         frameLoadState().setURL(WTF::move(*previousURL));
 
     updateDocumentSecurityOrigin(parent ? parent : opener, ForInitialization::Yes);
+
+    // The initial about:blank document is as secure as its creator.
+    if (RefPtr creator = parent ? parent : opener; creator && creator->m_documentSecurityPolicy)
+        m_documentSecurityPolicy = DocumentSecurityPolicy { { }, { }, creator->m_documentSecurityPolicy->isSecureContext };
 }
 
 WebFrameProxy::~WebFrameProxy()
@@ -747,10 +751,6 @@ void WebFrameProxy::getFrameInfo(CompletionHandler<void(std::optional<FrameInfoD
             RELEASE_LOG_ERROR(IPC, "WebFrameProxy::getFrameInfo: topOrigin mismatch");
             frameInfo->topOrigin = WTF::move(topOrigin);
         }
-        if (frameInfo->processID != process().processID()) {
-            RELEASE_LOG_ERROR(IPC, "WebFrameProxy::getFrameInfo: process ID mismatch");
-            frameInfo->processID = process().processID();
-        }
         if (m_page) {
             if (frameInfo->webPageProxyID != m_page->identifier()) {
                 RELEASE_LOG_ERROR(IPC, "WebFrameProxy::getFrameInfo: webPageProxyID mismatch");
@@ -782,7 +782,7 @@ void WebFrameProxy::getFrameTree(CompletionHandler<void(std::optional<FrameTreeN
             m_completionHandler(m_currentFrameData ? std::optional(FrameTreeNodeData {
                 WTF::move(*m_currentFrameData),
                 WTF::move(nonEmptyChildFrameData),
-                { }
+                { }, { }
             }) : std::nullopt);
         }
 

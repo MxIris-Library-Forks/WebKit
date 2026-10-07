@@ -8552,6 +8552,8 @@ void Document::initSecurityContext()
         setBaseURLOverride(parentDocument->baseURL());
     }
 
+    m_isSecureContext = computeIsSecureContext();
+
     if (!SecurityPolicy::shouldInheritSecurityOriginFromOwner(m_url))
         return;
 
@@ -8576,6 +8578,7 @@ void Document::initSecurityContext()
     setCrossOriginEmbedderPolicy(ownerFrame->document()->crossOriginEmbedderPolicy());
     setDocumentIsolationPolicy(ownerFrame->document()->documentIsolationPolicy());
     setIsOriginKeyed(ownerFrame->document()->isOriginKeyed());
+    m_isSecureContext = ownerFrame->document()->m_isSecureContext;
 
     // https://html.spec.whatwg.org/multipage/browsers.html#creating-a-new-browsing-context (Step 12)
     // If creator is non-null and creator's origin is same origin with creator's relevant settings object's top-level origin, then set coop
@@ -8683,33 +8686,35 @@ static inline bool isDocumentSecure(const Document& document)
     return document.securityOrigin().isPotentiallyTrustworthy();
 }
 
-// https://w3c.github.io/webappsec-secure-contexts/#is-settings-object-contextually-secure
 void Document::setLoadSourceOriginOverrideForTesting(RefPtr<SecurityOrigin>&& origin)
 {
     m_loadSourceOriginOverrideForTesting = WTF::move(origin);
 }
 
+// https://w3c.github.io/webappsec-secure-contexts/#is-settings-object-contextually-secure
+bool Document::computeIsSecureContext() const
+{
+    // A provisional frame is not in the frame tree yet.
+    RefPtr parentFrame = m_frame->tree().parent();
+    if (!parentFrame)
+        parentFrame = m_frame->loader().client().provisionalParentFrame();
+    if (!parentFrame)
+        return isDocumentSecure(*this);
+
+    auto parentSecurityPolicy = parentFrame->frameDocumentSecurityPolicy();
+    if (!parentSecurityPolicy || parentSecurityPolicy->isSecureContext == IsSecureContext::No)
+        return false;
+
+    return isDocumentSecure(*this);
+}
+
 bool Document::isSecureContext() const
 {
-    if (!m_frame)
-        return true;
     if (!settings().secureContextChecksEnabled())
         return true;
     if (page() && page()->isServiceWorkerPage())
         return true;
-
-    for (Ref frame : ancestorFrames(*m_frame)) {
-        if (RefPtr localFrame = dynamicDowncast<LocalFrame>(frame.get())) {
-            Ref<Document> ancestorDocument = *localFrame->document();
-            if (!isDocumentSecure(ancestorDocument))
-                return false;
-        } else if (RefPtr securityOrigin = frame->frameDocumentSecurityOrigin()) {
-            if (!securityOrigin->isPotentiallyTrustworthy())
-                return false;
-        }
-    }
-
-    return isDocumentSecure(*this);
+    return m_isSecureContext;
 }
 
 bool Document::isInCrossOriginIsolatedAgentCluster() const
@@ -9130,23 +9135,50 @@ void Document::transferViewTransitionParams(Document& newDocument)
     newDocument.m_inboundViewTransitionParams = std::exchange(m_inboundViewTransitionParams, nullptr);
 }
 
-void Document::dispatchPageswapEvent(CanTriggerCrossDocumentViewTransition canTriggerCrossDocumentViewTransition, RefPtr<NavigationActivation>&& activation)
+// https://html.spec.whatwg.org/multipage/browsing-the-web.html#deactivate-a-document-for-a-cross-document-navigation
+void Document::dispatchPageswapEvent(CanTriggerCrossDocumentViewTransition canTriggerCrossDocumentViewTransition, RefPtr<NavigationActivation>&& activation, CompletionHandler<void()>&& proceedWithNavigation)
 {
     RefPtr<ViewTransition> oldViewTransition;
+    bool navigationWaitsForCapture = !!proceedWithNavigation;
 
     auto startTime = MonotonicTime::now();
     PageSwapEvent::Init swapInit;
     swapInit.activation = WTF::move(activation);
     if (canTriggerCrossDocumentViewTransition == CanTriggerCrossDocumentViewTransition::Yes && globalObject()) {
-        oldViewTransition = ViewTransition::setupCrossDocumentViewTransition(*this);
+        ViewTransition::OutboundPostCaptureSteps outboundPostCaptureSteps;
+        if (navigationWaitsForCapture) {
+            outboundPostCaptureSteps = [weakThis = WeakPtr<Document, WeakPtrImplWithEventTargetData> { *this }, startTime, proceedWithNavigation = std::exchange(proceedWithNavigation, nullptr)](std::unique_ptr<ViewTransitionParams>&& params) mutable {
+                if (RefPtr protectedThis = weakThis.get(); protectedThis && params) {
+                    params->startTime = startTime;
+                    params->oldDocumentOrigin = &protectedThis->securityOrigin();
+                    // FIXME: This should set the params on the new Document, but it doesn't exist yet.
+                    // Store it on the old, and we'll call transferViewTransitionParams soon.
+                    protectedThis->m_inboundViewTransitionParams = WTF::move(params);
+                }
+                // Not from within whatever skipped or completed the capture, which may be script.
+                callOnMainThread(WTF::move(proceedWithNavigation));
+            };
+        }
+        oldViewTransition = ViewTransition::setupCrossDocumentViewTransition(*this, WTF::move(outboundPostCaptureSteps));
         swapInit.viewTransition = oldViewTransition;
     }
 
     dispatchWindowEvent(PageSwapEvent::create(eventNames().pageswapEvent, WTF::move(swapInit)), this);
 
-    // FIXME: This should actually defer the navigation, and run the setupViewTransition
-    // (capture the old state) on the next rendering update.
-    // https://html.spec.whatwg.org/multipage/browsing-the-web.html#deactivate-a-document-for-a-cross-document-navigation
+    // Proceeds from the transition's outbound post-capture steps instead, if there is one.
+    if (navigationWaitsForCapture) {
+        if (proceedWithNavigation) {
+            proceedWithNavigation();
+            return;
+        }
+        // FIXME: This should capture in the next rendering update, but there is none until the new
+        // document paints: the layer tree is frozen from when the provisional load started.
+        if (oldViewTransition && oldViewTransition->phase() == ViewTransitionPhase::PendingCapture)
+            oldViewTransition->setupViewTransition();
+        return;
+    }
+
+    // The navigation cannot wait, so capture now.
     if (oldViewTransition && oldViewTransition->phase() != ViewTransitionPhase::Done) {
         oldViewTransition->setupViewTransition();
 
@@ -9375,7 +9407,7 @@ void Document::didPaintText(const RenderBlockFlow& formattingContextRoot, FloatR
     largestContentfulPaintData().didPaintText(formattingContextRoot, localRect, isOnlyTextBoxForElement);
 }
 
-int Document::requestAnimationFrame(Ref<RequestAnimationFrameCallback>&& callback)
+unsigned Document::requestAnimationFrame(Ref<RequestAnimationFrameCallback>&& callback)
 {
     if (!m_scriptedAnimationController) {
         m_scriptedAnimationController = ScriptedAnimationController::create(*this);
@@ -9393,7 +9425,7 @@ int Document::requestAnimationFrame(Ref<RequestAnimationFrameCallback>&& callbac
     return m_scriptedAnimationController->registerCallback(WTF::move(callback));
 }
 
-void Document::cancelAnimationFrame(int id)
+void Document::cancelAnimationFrame(unsigned id)
 {
     if (!m_scriptedAnimationController)
         return;
@@ -9450,14 +9482,14 @@ void Document::processInternalResourceLinks(Element* element)
     }
 }
 
-int Document::requestIdleCallback(Ref<IdleRequestCallback>&& callback, Seconds timeout)
+unsigned Document::requestIdleCallback(Ref<IdleRequestCallback>&& callback, Seconds timeout)
 {
     if (!m_idleCallbackController)
         lazyInitialize(m_idleCallbackController, makeUnique<IdleCallbackController>(*this));
     return m_idleCallbackController->queueIdleCallback(WTF::move(callback), timeout);
 }
 
-void Document::cancelIdleCallback(int id)
+void Document::cancelIdleCallback(unsigned id)
 {
     if (!m_idleCallbackController)
         return;

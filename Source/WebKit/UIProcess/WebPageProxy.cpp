@@ -3040,6 +3040,36 @@ static bool isStaleInitialAboutBlankIframeTarget(WebBackForwardListFrameItem& to
     return toLiveFrame && !toLiveFrame->isMainFrame();
 }
 
+static Vector<RefPtr<WebBackForwardListFrameItem>> matchFromChildItems(WebBackForwardListFrameItem& fromFrame, WebBackForwardListFrameItem& toFrame)
+{
+    auto& toChildren = toFrame.children();
+    Vector<RefPtr<WebBackForwardListFrameItem>> fromChildren(toChildren.size());
+    // A from child must not be matched twice; otherwise its frame gets two
+    // traversals and the second clobbers the first.
+    HashSet<WebCore::BackForwardFrameItemIdentifier> pairedFromChildren;
+
+    // Match all children by frameID first, so the positional fallback cannot
+    // take a from child that a later sibling matches by frameID.
+    for (size_t i = 0; i < toChildren.size(); ++i) {
+        auto childFrameID = toChildren[i]->frameID();
+        RefPtr fromChild = childFrameID ? fromFrame.childItemForFrameID(*childFrameID) : nullptr;
+        if (fromChild && pairedFromChildren.add(fromChild->identifier()).isNewEntry)
+            fromChildren[i] = WTF::move(fromChild);
+    }
+
+    // Stored frameIDs can disagree across entries, or be entirely unset after
+    // a persisted session restore. Fall back to position match, which is
+    // stable across history.
+    for (size_t i = 0; i < toChildren.size(); ++i) {
+        if (fromChildren[i])
+            continue;
+        RefPtr fromChild = fromFrame.childItemAtIndex(i);
+        if (fromChild && pairedFromChildren.add(fromChild->identifier()).isNewEntry)
+            fromChildren[i] = WTF::move(fromChild);
+    }
+    return fromChildren;
+}
+
 bool WebPageProxy::dispatchPerFrameTraversals(WebBackForwardListFrameItem& fromFrame, WebBackForwardListFrameItem& toFrame, NavigationIdentifier navigationID, FrameLoadType frameLoadType, ShouldRestoreFromBackForwardCache shouldRestore, const WebCore::PublicSuffix& publicSuffix)
 {
     bool anySent = false;
@@ -3052,19 +3082,12 @@ bool WebPageProxy::dispatchPerFrameTraversals(WebBackForwardListFrameItem& fromF
         return anySent;
 
     auto& toChildren = toFrame.children();
-    HashSet<WebCore::BackForwardFrameItemIdentifier> pairedFromChildren;
+    auto fromChildren = matchFromChildItems(fromFrame, toFrame);
     for (size_t i = 0; i < toChildren.size(); ++i) {
         Ref toChild = toChildren[i];
+        RefPtr fromChild = fromChildren[i];
         auto childFrameID = toChild->frameID();
-        // Stored frameIDs can disagree across entries, or be entirely unset after a persisted session restore
-        // Fall back to position, which is stable across history, whenever ID-based lookup isn't possible or doesn't find a match.
-        RefPtr fromChild = childFrameID ? fromFrame.childItemForFrameID(*childFrameID) : nullptr;
-        // A duplicated frameID in the to tree can resolve two siblings to the same from child; pairing both
-        // would dispatch a second traversal to the same live frame and clobber the intended navigation. Fall
-        // back to position when the resolved from child is already paired.
-        if (!fromChild || pairedFromChildren.contains(fromChild->identifier()))
-            fromChild = fromFrame.childItemAtIndex(i);
-        if (!fromChild || !pairedFromChildren.add(fromChild->identifier()).isNewEntry)
+        if (!fromChild)
             continue;
 
         if (toChild->frameState().wasRestoredFromSession && !childFrameID) {
@@ -6305,6 +6328,14 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
                     return;
                 }
 
+                // The page may have been closed or reset (e.g. m_mainFrame cleared) while waiting for the reply.
+                auto currentMainFrameID = protectedThis->m_mainFrame ? std::optional<WebCore::FrameIdentifier> { protectedThis->m_mainFrame->frameID() } : std::nullopt;
+                if (protectedThis->isClosed()
+                    || !protectedThis->m_mainFrame
+                    || !protectedThis->m_navigationState->hasNavigation(navigation->navigationID())
+                    || (navigationAction->mainFrameIDBeforeNavigationActionDecision() && navigationAction->mainFrameIDBeforeNavigationActionDecision() != currentMainFrameID))
+                    cancelled = true;
+
                 if (cancelled) {
                     protectedThis->receivedPolicyDecision(PolicyAction::Ignore, navigation.ptr(), std::nullopt, WTF::move(navigationAction), WillContinueLoadInNewProcess::No, std::nullopt, WTF::move(message), WTF::move(completionHandler));
                     return;
@@ -6575,7 +6606,8 @@ void WebPageProxy::receivedNavigationResponsePolicyDecision(WebCore::PolicyActio
         Ref responseOrigin = SecurityOrigin::create(response.url());
         RefPtr mainFrame = m_mainFrame;
         auto& topLevelCreationURL = navigationResponse->frame().isMainFrame() || !mainFrame ? response.url() : mainFrame->url();
-        isOriginKeyed = protect(browsingContextGroup())->resolveAgentClusterKeying(responseOrigin->data(), obtainOriginAgentClusterPolicy(response, topLevelCreationURL, nullptr));
+        auto isSecureContext = responseOrigin->isPotentiallyTrustworthy() && SecurityOrigin::create(topLevelCreationURL)->isPotentiallyTrustworthy() ? IsSecureContext::Yes : IsSecureContext::No;
+        isOriginKeyed = protect(browsingContextGroup())->resolveAgentClusterKeying(responseOrigin->data(), obtainOriginAgentClusterPolicy(response, isSecureContext, nullptr));
     }
 
     completionHandler(PolicyDecision { isNavigatingToAppBoundDomain(), action, navigation ? std::optional { navigation->navigationID() } : std::nullopt, downloadID, { }, { }, { }, SafeBrowsingCheckOngoing::No, nullptr, isOriginKeyed });
@@ -8197,7 +8229,15 @@ void WebPageProxy::getContentsAsMHTMLData(CompletionHandler<void(API::Data*)>&& 
 
 void WebPageProxy::getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&& callback)
 {
-    sendWithAsyncReplyToFocusedOrMainFrameProcess(Messages::WebPage::GetSelectionOrContentsAsString(), WTF::move(callback));
+    RefPtr frame = focusedOrMainFrame();
+    if (!frame)
+        return callback({ });
+    getSelectionOrContentsAsString(frame->frameID(), WTF::move(callback));
+}
+
+void WebPageProxy::getSelectionOrContentsAsString(FrameIdentifier frameID, CompletionHandler<void(const String&)>&& callback)
+{
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::GetSelectionOrContentsAsString(frameID), WTF::move(callback));
 }
 
 void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::MarkupExclusionRule>& markupExclusionRules, const String& directory, const String& suggestedMainResourceName, CompletionHandler<void(std::expected<void, WebCore::ArchiveError>)>&& completionHandler)
@@ -9595,21 +9635,35 @@ void WebPageProxy::broadcastAllFrameTreeSyncData(IPC::Connection& connection, Fr
     });
 }
 
-void WebPageProxy::didNotifyUserActivation(IPC::Connection& connection, FrameIdentifier sourceFrameID, MonotonicTime activationTime)
+RefPtr<WebProcessProxy> WebPageProxy::validatedUserActivationSenderProcess(IPC::Connection& connection, FrameIdentifier sourceFrameID, std::optional<UserGestureTokenIdentifier> forcedActivationToken)
 {
     Ref senderProcess = WebProcessProxy::fromConnection(connection);
 
     RefPtr sourceFrame = WebFrameProxy::webFrame(sourceFrameID);
     if (!sourceFrame)
-        return;
+        return nullptr;
 
     if (&sourceFrame->process() != senderProcess.ptr())
+        return nullptr;
+
+    if (forcedActivationToken && forcedActivationToken->processIdentifier() != senderProcess->coreProcessIdentifier())
+        return nullptr;
+
+    return senderProcess;
+}
+
+void WebPageProxy::didNotifyUserActivation(IPC::Connection& connection, FrameIdentifier sourceFrameID, MonotonicTime activationTime, std::optional<UserGestureTokenIdentifier> forcedActivationToken)
+{
+    RefPtr senderProcess = validatedUserActivationSenderProcess(connection, sourceFrameID, forcedActivationToken);
+    if (!senderProcess)
         return;
+
+    RefPtr sourceFrame = WebFrameProxy::webFrame(sourceFrameID);
 
     HashMap<Ref<WebProcessProxy>, Vector<FrameIdentifier>> framesByProcess;
     auto addFrame = [&](WebFrameProxy& frame) {
         Ref process = frame.process();
-        if (process.ptr() == senderProcess.ptr())
+        if (process.ptr() == senderProcess.get())
             return;
         framesByProcess.add(process, Vector<FrameIdentifier> { }).iterator->value.append(frame.frameID());
     };
@@ -9625,7 +9679,7 @@ void WebPageProxy::didNotifyUserActivation(IPC::Connection& connection, FrameIde
 
     for (auto& [process, frameIDs] : framesByProcess) {
         Ref protectedProcess = process;
-        protectedProcess->send(Messages::WebPage::UpdateUserActivationState(frameIDs, activationTime), webPageIDInProcess(protectedProcess));
+        protectedProcess->send(Messages::WebPage::UpdateUserActivationState(frameIDs, activationTime, forcedActivationToken), webPageIDInProcess(protectedProcess));
     }
 }
 
@@ -9681,6 +9735,18 @@ void WebPageProxy::didConsumeUserActivation(IPC::Connection& connection, FrameId
         Ref protectedProcess = process;
         protectedProcess->send(Messages::WebPage::ConsumeUserActivations(frameIDs), webPageIDInProcess(protectedProcess));
     }
+}
+
+void WebPageProxy::didRevokeForcedUserActivation(IPC::Connection& connection, FrameIdentifier sourceFrameID, UserGestureTokenIdentifier forcedActivationToken)
+{
+    RefPtr senderProcess = validatedUserActivationSenderProcess(connection, sourceFrameID, forcedActivationToken);
+    if (!senderProcess)
+        return;
+
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        if (&process != senderProcess.get())
+            process.send(Messages::WebPage::RevokeForcedUserActivation(forcedActivationToken), pageID);
+    });
 }
 
 void WebPageProxy::didFinishLoadForFrame(IPC::Connection& connection, FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, const UserData& userData, WallTime timestamp)
@@ -13559,13 +13625,13 @@ void WebPageProxy::contextMenuItemSelected(const WebContextMenuItemData& item, c
 
     case ContextMenuItemTagAddHighlightToNewQuickNote:
 #if ENABLE(APP_HIGHLIGHTS)
-        createAppHighlightInSelectedRange(CreateNewGroupForHighlight::Yes, HighlightRequestOriginatedInApp::No);
+        createAppHighlightInSelectedRange(frameInfo.frameID, CreateNewGroupForHighlight::Yes, HighlightRequestOriginatedInApp::No);
 #endif
         return;
 
     case ContextMenuItemTagAddHighlightToCurrentQuickNote:
 #if ENABLE(APP_HIGHLIGHTS)
-        createAppHighlightInSelectedRange(CreateNewGroupForHighlight::No, HighlightRequestOriginatedInApp::No);
+        createAppHighlightInSelectedRange(frameInfo.frameID, CreateNewGroupForHighlight::No, HighlightRequestOriginatedInApp::No);
 #endif
         return;
 
@@ -13576,7 +13642,7 @@ void WebPageProxy::contextMenuItemSelected(const WebContextMenuItemData& item, c
 
 #if PLATFORM(COCOA)
     case ContextMenuItemTagStartSpeaking:
-        getSelectionOrContentsAsString([weakThis = WeakPtr { *this }](const String& selectedText) {
+        getSelectionOrContentsAsString(frameInfo.frameID, [weakThis = WeakPtr { *this }](const String& selectedText) {
             RefPtr protectedThis = weakThis.get();
             if (!protectedThis)
                 return;
@@ -15095,6 +15161,11 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.canShowWhileLocked = m_configuration->canShowWhileLocked();
     parameters.isCapturingScreen = pageClient && pageClient->isScreenBeingCaptured();
     parameters.insertionPointColor = pageClient ? pageClient->insertionPointColor() : WebCore::Color { };
+    parameters.contentSizeCategory = m_contentSizeCategory;
+#endif
+
+#if PLATFORM(IOS_FAMILY) && ENABLE(UNIFIED_PDF)
+    parameters.initialPDFDisplayMode = internals().initialPDFDisplayMode;
 #endif
 
 #if PLATFORM(VISION) && ENABLE(GAMEPAD)
@@ -20009,6 +20080,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestAd
 #if PLATFORM(MAC)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SavePDF);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::OpenPDFWithPreview);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DispatchTrackedPointerEvent);
 #endif
 #if ENABLE(MEDIA_STREAM)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UserMediaAccessWasGranted);
@@ -20016,6 +20088,9 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UserMedia
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithExtentPoint);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithExtentPointAndBoundary);
+#endif
+#if ENABLE(APP_HIGHLIGHTS)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::CreateAppHighlightInSelectedRange);
 #endif
 #undef INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME
 
@@ -20048,9 +20123,6 @@ INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::HandleAutocorrectionC
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::StartAutoscrollAtPosition);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::AddDictationAlternative);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::DictationAlternativesAtSelection);
-#endif
-#if ENABLE(APP_HIGHLIGHTS)
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::CreateAppHighlightInSelectedRange);
 #endif
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::BeginSelectionInDirection);
@@ -20397,6 +20469,33 @@ void WebPageProxy::reportMixedContentViolation(FrameIdentifier frameID, bool blo
 
     addConsoleMessage(frameID, MessageSource::Security, MessageLevel::Warning, message);
 }
+
+#if HAVE(IOSURFACE)
+
+void WebPageProxy::completeDisplayOnlyImage(RemoteSnapshotIdentifier imageIdentifier, FrameIdentifier rootFrameIdentifier, float scale, const ColorSpace& colorSpace, CompletionHandler<void(bool)>&& completionHandler)
+{
+    // Started now, so that a rendering that arrives after its process has gone or has left this page,
+    // or after this page has moved to another drawing area, finds nothing to fill and is dropped.
+    RefPtr gpuProcess = GPUProcessProxy::singletonIfCreated();
+    RefPtr drawingArea = dynamicDowncast<RemoteLayerTreeDrawingAreaProxy>(this->drawingArea());
+    if (!gpuProcess || !drawingArea || !drawingArea->startDisplayOnlyImage(imageIdentifier)) {
+        completionHandler(false);
+        return;
+    }
+
+    gpuProcess->sinkCompletedSnapshotToIOSurface(imageIdentifier, scale, colorSpace, rootFrameIdentifier, [weakDrawingArea = WeakPtr { *drawingArea }, imageIdentifier, completionHandler = WTF::move(completionHandler)](std::optional<ImageBufferBackendHandle>&& handle) mutable {
+        RefPtr drawingArea = weakDrawingArea.get();
+        completionHandler(handle && drawingArea && drawingArea->completeDisplayOnlyImage(imageIdentifier, WTF::move(*handle)));
+    });
+}
+
+void WebPageProxy::releaseDisplayOnlyImage(RemoteSnapshotIdentifier imageIdentifier)
+{
+    if (RefPtr drawingArea = dynamicDowncast<RemoteLayerTreeDrawingAreaProxy>(this->drawingArea()))
+        drawingArea->releaseDisplayOnlyImage(imageIdentifier);
+}
+
+#endif
 
 Vector<Ref<WebProcessProxy>> WebPageProxy::activeRemoteFrameProcesses() const
 {

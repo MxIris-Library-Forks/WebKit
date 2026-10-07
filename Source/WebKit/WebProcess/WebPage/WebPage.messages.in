@@ -84,6 +84,10 @@ messages -> WebPage WantsAsyncDispatchMessage {
     HandleDoubleTapForDoubleClickAtPoint(std::optional<WebCore::FrameIdentifier> frameID, WebCore::IntPoint point, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::TransactionID lastLayerTreeTransactionId, enum:uint8_t WebKit::WebEventInputSource inputSource, enum:uint8_t WebKit::WebMouseEventSyntheticClickType syntheticClickType) -> (struct std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData)
 #endif
 
+#if PLATFORM(MAC)
+    DispatchTrackedPointerEvent(std::optional<WebCore::FrameIdentifier> frameID, enum:uint8_t WebKit::WebEventPhase phase, WebCore::FloatPoint locationInRootView, OptionSet<WebKit::WebEventModifier> modifiers) -> (bool wasCanceled, struct std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData)
+#endif
+
 #if PLATFORM(IOS_FAMILY)
     SetSceneIdentifier(String sceneIdentifier)
     SetViewportConfigurationViewLayoutSize(WebCore::FloatSize size, double scaleFactor, double minimumEffectiveDeviceWidth)
@@ -232,14 +236,16 @@ messages -> WebPage WantsAsyncDispatchMessage {
     FrameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier frameID, struct WebCore::FrameTreeSyncSerializationData frameTreeSyncData)
     AllFrameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier frameID, Ref<WebCore::FrameTreeSyncData> frameTreeSyncData)
 
-    UpdateUserActivationState(Vector<WebCore::FrameIdentifier> frameIDs, MonotonicTime activationTime)
+    UpdateUserActivationState(Vector<WebCore::FrameIdentifier> frameIDs, MonotonicTime activationTime, std::optional<WebCore::UserGestureTokenIdentifier> forcedActivationToken)
     ConsumeUserActivations(Vector<WebCore::FrameIdentifier> frameIDs)
+    RevokeForcedUserActivation(WebCore::UserGestureTokenIdentifier forcedActivationToken)
     UpdateLastHandledUserGestureTimestamp(Vector<WebCore::FrameIdentifier> frameIDs, MonotonicTime gestureTime)
 
     GetPDFFirstPageSize(WebCore::FrameIdentifier frameID) -> (WebCore::FloatSize size)
 
 #if PLATFORM(IOS_FAMILY) && ENABLE(UNIFIED_PDF)
     RequestPDFDisplayMode(enum:uint8_t WebKit::PDFPluginDisplayMode mode)
+    SetInitialPDFDisplayMode(enum:uint8_t WebKit::PDFPluginDisplayMode mode)
 #endif
 
     Reload(WebCore::NavigationIdentifier navigationID, OptionSet<WebCore::ReloadOption> reloadOptions, WebKit::SandboxExtensionHandle sandboxExtensionHandle)
@@ -272,7 +278,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     GetMainResourceDataOfFrame(WebCore::FrameIdentifier frameID) -> (std::optional<IPC::SharedBufferReference> buffer)
     GetResourceDataFromFrame(WebCore::FrameIdentifier frameID, String resourceURL) -> (std::optional<IPC::SharedBufferReference> buffer)
     GetRenderTreeExternalRepresentation() -> (String string)
-    GetSelectionOrContentsAsString() -> (String string)
+    GetSelectionOrContentsAsString(WebCore::FrameIdentifier frameID) -> (String string)
     GetSourceForFrame(WebCore::FrameIdentifier frameID) -> (String string)
     GetWebArchiveOfFrameWithFileName(WebCore::FrameIdentifier frameID, Vector<WebCore::MarkupExclusionRule> markupExclusionRules, String fileName) -> (std::optional<IPC::SharedBufferReference> dataReference)
 #if PLATFORM(COCOA)
@@ -825,7 +831,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     SetCanUseCredentialStorage(bool canUse)
 
 #if ENABLE(APP_HIGHLIGHTS)
-    CreateAppHighlightInSelectedRange(enum:bool WebCore::CreateNewGroupForHighlight createNewGroup, enum:bool WebCore::HighlightRequestOriginatedInApp requestOrigin) -> (struct WebCore::AppHighlight info)
+    CreateAppHighlightInSelectedRange(WebCore::FrameIdentifier frameID, enum:bool WebCore::CreateNewGroupForHighlight createNewGroup, enum:bool WebCore::HighlightRequestOriginatedInApp requestOrigin) -> (struct WebCore::AppHighlight info)
     RestoreAppHighlightsAndScrollToIndex(Vector<WebCore::SharedMemory::Handle> memoryHandles, std::optional<unsigned> index)
     SetAppHighlightsVisibility(enum:bool WebCore::HighlightVisibility highlightVisibility)
 #endif

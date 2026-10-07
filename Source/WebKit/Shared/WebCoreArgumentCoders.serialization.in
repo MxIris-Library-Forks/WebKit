@@ -7126,6 +7126,7 @@ header: <WebCore/TrackInfo.h>
     std::optional<WebCore::PlatformVideoFieldCount> fieldCount;
     std::optional<WebCore::PlatformVideoFieldDetail> fieldDetail;
     Vector<std::pair<WebCore::FourCC, Ref<WebCore::SharedBuffer>>> extensionAtoms;
+    std::optional<uint8_t> reorderQueueMaxSize;
 
 #if PLATFORM(VISION)
     std::optional<WebCore::ImmersiveVideoMetadata> immersiveVideoMetadata;
@@ -7231,9 +7232,12 @@ enum class WebCore::ShouldGoToHistoryItem : uint8_t {
     ItemUnknown
 };
 
+enum class WebCore::IsSecureContext : bool;
+
 struct WebCore::DocumentSecurityPolicy {
     WebCore::CrossOriginEmbedderPolicy crossOriginEmbedderPolicy;
     WebCore::CrossOriginOpenerPolicy crossOriginOpenerPolicy;
+    WebCore::IsSecureContext isSecureContext;
 };
 
 header: <WebCore/ProcessSwapDisposition.h>
@@ -7546,4 +7550,5 @@ header: <WebCore/UserGestureIndicator.h>
     MonotonicTime startTime;
     WebCore::DOMPasteAccessPolicy domPasteAccessPolicy;
     WebCore::GestureScope scope;
+    bool removesTransientActivation;
 };

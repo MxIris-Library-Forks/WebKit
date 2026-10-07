@@ -1124,6 +1124,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
     page->setTextAutosizingWidth(parameters.textAutosizingWidth);
     setOverrideViewportArguments(parameters.overrideViewportArguments);
+
+    if (!parameters.contentSizeCategory.isNull())
+        contentSizeCategoryDidChange(parameters.contentSizeCategory);
 #endif
 
     platformInitialize(parameters);
@@ -1335,10 +1338,7 @@ void WebPage::createRemoteSubframe(WebCore::FrameIdentifier parentID, WebCore::F
 
 Awaitable<std::optional<FrameTreeNodeData>> WebPage::getFrameTree()
 {
-    auto data = m_mainFrame->frameTreeData();
-    if (RefPtr page = corePage())
-        data.topDocumentURLForTesting = page->mainFrameURL();
-    co_return data;
+    co_return m_mainFrame->frameTreeData();
 }
 
 Awaitable<URL> WebPage::getBackForwardCacheEntryTopDocumentURL(WebCore::BackForwardFrameItemIdentifier frameItemID)
@@ -1554,7 +1554,7 @@ void WebPage::updateChildFrameVisibleRectsFromParent(WebCore::Frame& parentCoreF
     }
 }
 
-void WebPage::updateUserActivationState(const Vector<FrameIdentifier>& frameIDs, MonotonicTime activationTime)
+void WebPage::updateUserActivationState(const Vector<FrameIdentifier>& frameIDs, MonotonicTime activationTime, std::optional<UserGestureTokenIdentifier> forcedActivationToken)
 {
     for (auto frameID : frameIDs) {
         RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
@@ -1564,7 +1564,7 @@ void WebPage::updateUserActivationState(const Vector<FrameIdentifier>& frameIDs,
         if (!localFrame)
             continue;
         if (RefPtr window = localFrame->window())
-            window->updateActivation(activationTime);
+            window->updateActivation(activationTime, forcedActivationToken);
     }
 }
 
@@ -1594,6 +1594,20 @@ void WebPage::consumeUserActivations(const Vector<FrameIdentifier>& frameIDs)
             continue;
         if (RefPtr window = localFrame->window())
             window->consumeLastActivationIfNecessary();
+    }
+}
+
+void WebPage::revokeForcedUserActivation(UserGestureTokenIdentifier forcedActivationToken)
+{
+    RefPtr page = corePage();
+    if (!page)
+        return;
+
+    for (RefPtr frame = &page->mainFrame(); frame; frame = frame->tree().traverseNext()) {
+        if (RefPtr localFrame = dynamicDowncast<LocalFrame>(frame)) {
+            if (RefPtr window = localFrame->window())
+                window->revokeForcedActivation(forcedActivationToken);
+        }
     }
 }
 
@@ -5253,13 +5267,15 @@ void WebPage::copyLinkWithHighlight()
         protect(frame->editor())->copyURL(url, { });
 }
 
-void WebPage::getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&& callback)
+void WebPage::getSelectionOrContentsAsString(FrameIdentifier frameID, CompletionHandler<void(const String&)>&& callback)
 {
-    RefPtr focusedOrMainCoreFrame = corePage()->focusController().focusedOrMainFrame();
-    RefPtr focusedOrMainFrame = focusedOrMainCoreFrame ? WebFrame::fromCoreFrame(*focusedOrMainCoreFrame) : nullptr;
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
+    RefPtr coreFrame = frame ? frame->coreLocalFrame() : nullptr;
+    if (!coreFrame)
+        return callback({ });
 
 #if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = pluginViewForFrame(focusedOrMainCoreFrame.get())) {
+    if (RefPtr pluginView = pluginViewForFrame(coreFrame.get())) {
         auto result = pluginView->selectionString();
         if (result.isEmpty())
             result = pluginView->fullDocumentString();
@@ -5267,9 +5283,9 @@ void WebPage::getSelectionOrContentsAsString(CompletionHandler<void(const String
     }
 #endif
 
-    String resultString = focusedOrMainFrame->selectionAsString();
+    String resultString = frame->selectionAsString();
     if (resultString.isEmpty())
-        resultString = focusedOrMainFrame->contentsAsString();
+        resultString = frame->contentsAsString();
     callback(resultString);
 }
 
@@ -9241,18 +9257,6 @@ void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, Co
     if (RefPtr frame = m_mainFrame->coreLocalFrame())
         frame->detachFromAllOpenedFrames();
 
-    if (!page->localMainFrame()) {
-        // Detach the current root frames instead of freezing the whole page, so a same-site navigation
-        // later reusing this WebPage for a new root frame doesn't get frozen too.
-        HashSet<WeakRef<WebCore::LocalFrame>> detachedFrames;
-        for (auto& weakFrame : copyToVector(page->rootFrames())) {
-            Ref frame = weakFrame.get();
-            detachedFrames.add(weakFrame);
-            page->removeRootFrame(frame);
-        }
-        BackForwardCache::singleton().setDetachedRootFramesForFrameItem(identifier, WTF::move(detachedFrames));
-    }
-
     m_isSuspended = true;
     WEBPAGE_RELEASE_LOG(ProcessSwapping, "suspendWithFrameItem: Successfully cached page");
     completionHandler(true);
@@ -9283,14 +9287,7 @@ void WebPage::restoreWithFrameItem(BackForwardFrameItemIdentifier identifier, st
         page->setMainFrameURLAndOrigin(mainFrameURLAndOrigin->first, mainFrameURLAndOrigin->second.securityOrigin());
 
     m_isSuspended = false;
-    auto restoredFrames = cachedPage->takeDetachedRootFrames();
     detachResidualSubframesForBackForwardCacheRestore(*page);
-
-    // Resume rendering for the frames detached in suspendWithFrameItem.
-    for (auto& weakFrame : restoredFrames) {
-        Ref frame = weakFrame.get();
-        page->addRootFrame(frame);
-    }
 
     cachedPage->restore(*page);
     completionHandler(true);
@@ -10422,7 +10419,7 @@ WebCore::HighlightRequestOriginatedInApp WebPage::highlightRequestOriginatedInAp
     return m_internals->highlightRequestOriginatedInApp;
 }
 
-void WebPage::createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighlight createNewGroup, WebCore::HighlightRequestOriginatedInApp requestOriginatedInApp, CompletionHandler<void(WebCore::AppHighlight&&)>&& completionHandler)
+void WebPage::createAppHighlightInSelectedRange(FrameIdentifier frameID, WebCore::CreateNewGroupForHighlight createNewGroup, WebCore::HighlightRequestOriginatedInApp requestOriginatedInApp, CompletionHandler<void(WebCore::AppHighlight&&)>&& completionHandler)
 {
     SetForScope highlightIsNewGroupScope { m_internals->highlightIsNewGroup, createNewGroup };
     SetForScope highlightRequestOriginScope { m_internals->highlightRequestOriginatedInApp, requestOriginatedInApp };
@@ -10432,13 +10429,13 @@ void WebPage::createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighli
         completionHandler({ WebCore::SharedBuffer::create(), std::nullopt, createNewGroup, requestOriginatedInApp });
     };
 
-    RefPtr focusedOrMainFrame = corePage()->focusController().focusedOrMainFrame();
-    if (!focusedOrMainFrame)
-        return replyWithoutHighlight();
-    RefPtr document = focusedOrMainFrame->document();
-
-    RefPtr frame = document->frame();
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    RefPtr frame = webFrame ? webFrame->coreLocalFrame() : nullptr;
     if (!frame)
+        return replyWithoutHighlight();
+
+    RefPtr document = frame->document();
+    if (!document)
         return replyWithoutHighlight();
 
     auto selectionRange = frame->selection().selection().toNormalizedRange();

@@ -515,6 +515,16 @@ static ShouldIgnoreMouseEvent dispatchPointerEventIfNeeded(Element& element, con
         UNUSED_PARAM(platformEvent);
 #endif
 
+#if PLATFORM(MAC)
+        // A tracked pointer's events are dispatched as its press happens, so the mouse events synthesized for
+        // the same press must not derive them a second time.
+        if (!isAnyClick(mouseEvent) && mouseEvent.type() != eventNames().contextmenuEvent && pointerCaptureController.mouseEventBelongsToTrackedPointer(platformEvent)) {
+            if (isCompatibilityMouseEvent(mouseEvent) && pointerCaptureController.preventsCompatibilityMouseEventsForIdentifier(platformEvent.pointerId()))
+                return ShouldIgnoreMouseEvent::Yes;
+            return ShouldIgnoreMouseEvent::No;
+        }
+#endif
+
         // FIXME: <https://webkit.org/b/314881> This early-return is using synthetic click type
         // and input source to approximate "pointer events for this interaction have already been
         // dispatched upstream by other compat paths."
@@ -1515,11 +1525,11 @@ static int adjustContentsScrollPositionOrSizeForZoom(int value, const LocalFrame
     return static_cast<int>(value / zoomFactor);
 }
 
-enum LegacyCSSOMElementMetricsRoundingStrategy { Round, Floor };
+enum class LegacyCSSOMElementMetricsRoundingStrategy : bool { Round, Floor };
 
-static int convertToNonSubpixelValue(double value, const LegacyCSSOMElementMetricsRoundingStrategy roundStrategy = Round)
+static int convertToNonSubpixelValue(double value, const LegacyCSSOMElementMetricsRoundingStrategy roundStrategy = LegacyCSSOMElementMetricsRoundingStrategy::Round)
 {
-    return roundStrategy == Round ? std::round(value) : std::floor(value);
+    return roundStrategy == LegacyCSSOMElementMetricsRoundingStrategy::Round ? std::round(value) : std::floor(value);
 }
 
 static int adjustOffsetForZoomAndSubpixelLayout(RenderBoxModelObject& renderer, const LayoutUnit& offset)
@@ -1527,8 +1537,8 @@ static int adjustOffsetForZoomAndSubpixelLayout(RenderBoxModelObject& renderer, 
     auto offsetLeft = LayoutUnit { roundToInt(offset) };
     double zoomFactor = localZoomForRenderer(renderer);
     if (zoomFactor == 1)
-        return convertToNonSubpixelValue(offsetLeft, Floor);
-    return convertToNonSubpixelValue(offsetLeft / zoomFactor, Round);
+        return convertToNonSubpixelValue(offsetLeft, LegacyCSSOMElementMetricsRoundingStrategy::Floor);
+    return convertToNonSubpixelValue(offsetLeft / zoomFactor, LegacyCSSOMElementMetricsRoundingStrategy::Round);
 }
 
 static HashSet<TreeScope*> collectAncestorTreeScopeAsHashSet(Node& node)
@@ -5317,7 +5327,7 @@ void Element::requestFullscreen(FullscreenOptions&& options, RefPtr<DeferredProm
         }
     }
 
-    protect(document())->fullscreen().requestFullscreen(*this, DocumentFullscreen::EnforceIFrameAllowFullscreenRequirement, [promise = WTF::move(promise)] (auto result) {
+    protect(document())->fullscreen().requestFullscreen(*this, DocumentFullscreen::FullscreenCheckType::EnforceIFrameAllowFullscreenRequirement, [promise = WTF::move(promise)](auto result) {
         if (!promise)
             return;
         if (result.hasException())

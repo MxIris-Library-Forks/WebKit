@@ -1053,6 +1053,17 @@ CSSMathDepthEnabled:
   humanReadableName: "CSS math-depth"
   humanReadableDescription: "Enable support for math-depth from MathML Core."
   defaultValue: true
+
+CSSModuleScriptsEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS Module Scripts"
+  humanReadableDescription: "Enable importing CSS into JavaScript using 'import'"
+  jscOptionName: useCSSModuleScripts
+  sharedPreferenceForWebProcess: true
+  defaultValue: false
+
 CSSObjectViewBoxEnabled:
   type: bool
   status: stable
@@ -6387,14 +6398,6 @@ TwoUpPDFDisplayModeSupportEnabled:
     default: true
     WebKitLegacy: false
 
-TwoUpPDFTrailingPageLeftAlignmentEnabled:
-  type: bool
-  status: internal
-  humanReadableName: "Two-Up PDF Trailing Page Left Alignment"
-  humanReadableDescription: "In two-up PDF display mode, align the trailing odd page to the same column as the first page instead of centering it"
-  condition: ENABLE(UNIFIED_PDF)
-  defaultValue: false
-
 # FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
 UndoManagerAPIEnabled:
   type: bool
@@ -6497,6 +6500,16 @@ UseAppKitGesturesForGestureEvents:
   status: internal
   humanReadableName: "AppKit gestures for gesture events"
   humanReadableDescription: "Use AppKit gestures to drive gesture event synthesis"
+  condition: PLATFORM(MAC)
+  defaultValue:
+    default: false
+    WebKit: defaultUseAppKitGestures()
+
+UseAppKitGesturesForPointerEvents:
+  type: bool
+  status: internal
+  humanReadableName: "AppKit gestures for pointer events"
+  humanReadableDescription: "Use AppKit gestures to drive DOM pointer events directly, rather than deriving them from synthesized mouse events"
   condition: PLATFORM(MAC)
   defaultValue:
     default: false

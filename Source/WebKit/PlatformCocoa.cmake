@@ -526,6 +526,7 @@ list(APPEND WebKit_SOURCES
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKDirectionalScrollLockTracker.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKFastScrollTracker.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKMouseTrackingGestureRecognizer.swift
+    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKPointerTrackingGestureRecognizer.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKPressGestureRecognizer.swift
     ${WEBKIT_DIR}/UIProcess/mac/SpatialShim.swift
     ${WEBKIT_DIR}/UIProcess/mac/WKTextSelectionController.swift
@@ -569,6 +570,8 @@ list(APPEND WebKit_SOURCES
     UIProcess/ios/_WKCaptionStyleMenuControllerAVKit.mm
     UIProcess/ios/_WKCaptionStyleMenuControllerIOS.mm
 
+    WebProcess/WebCoreSupport/WebDeviceOrientationUpdateProvider.cpp
+
     ${WEBKIT_DIR}/Shared/EntryPointUtilities/Cocoa/ExtensionEventHandler.mm
 
     ${WEBKIT_DIR}/ModelProcess/cocoa/WKUSDStageConverter.swift
@@ -609,6 +612,7 @@ find_library(CRYPTOTOKENKIT_LIBRARY CryptoTokenKit)
 find_library(USERNOTIFICATIONS_LIBRARY UserNotifications)
 find_library(WRITINGTOOLS_LIBRARY WritingTools HINTS ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks)
 find_library(APPLEPUSHSERVICE_LIBRARY ApplePushService HINTS ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks)
+find_library(APPSERVERSUPPORT_LIBRARY AppServerSupport HINTS ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks)
 list(APPEND WebKit_PRIVATE_LIBRARIES
     Accessibility
     ${CORESERVICES_LIBRARY}
@@ -616,6 +620,7 @@ list(APPEND WebKit_PRIVATE_LIBRARIES
     ${USERNOTIFICATIONS_LIBRARY}
     ${WRITINGTOOLS_LIBRARY}
     ${APPLEPUSHSERVICE_LIBRARY}
+    ${APPSERVERSUPPORT_LIBRARY}
     ${NETWORK_LIBRARY}
     ${UNIFORMTYPEIDENTIFIERS_LIBRARY}
     ${DEVICEIDENTITY_LIBRARY}

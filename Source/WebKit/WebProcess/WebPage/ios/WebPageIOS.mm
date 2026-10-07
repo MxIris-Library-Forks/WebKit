@@ -4012,6 +4012,8 @@ void WebPage::drawPrintingPagesToSnapshotiOS(RemoteSnapshotIdentifier snapshotId
 
 void WebPage::contentSizeCategoryDidChange(const String& contentSizeCategory)
 {
+    if (contentSizeCategory == String { WebCore::contentSizeCategory() })
+        return;
     setContentSizeCategory(contentSizeCategory);
     FontCache::invalidateAllFontCaches();
 }
@@ -4843,6 +4845,16 @@ void WebPage::requestPDFDisplayMode(PDFPluginDisplayMode mode)
 {
     if (RefPtr pluginView = mainFramePlugIn())
         return pluginView->setPDFDisplayMode(mode);
+}
+
+PDFPluginDisplayMode WebPage::initialPDFDisplayMode() const
+{
+    return m_internals->initialPDFDisplayMode;
+}
+
+void WebPage::setInitialPDFDisplayMode(PDFPluginDisplayMode mode)
+{
+    m_internals->initialPDFDisplayMode = mode;
 }
 
 #endif

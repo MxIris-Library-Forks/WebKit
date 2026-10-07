@@ -29,6 +29,7 @@
 // Use forward declarations and WebPageProxyInternals.h instead.
 #include "APIObject.h"
 #include "MessageReceiver.h"
+#include "RemoteSnapshotIdentifier.h"
 #include "RunJavaScriptResult.h"
 #include "TextExtractionAssertionScope.h"
 #include "Untrusted.h"
@@ -747,6 +748,7 @@ enum class UndoOrRedo : bool;
 enum class WasNavigationIntercepted : bool;
 enum class WebContentMode : uint8_t;
 enum class WebEventModifier : uint8_t;
+enum class WebEventPhase : uint8_t;
 enum class WebEventType : uint32_t;
 enum class WebEventInputSource : uint8_t;
 enum class WebMouseEventSyntheticClickType : uint8_t;
@@ -767,7 +769,6 @@ using LayerHostingContextID = uint32_t;
 using NetworkResourceLoadIdentifier = ObjectIdentifier<NetworkResourceLoadIdentifierType>;
 using PDFPluginIdentifier = ObjectIdentifier<PDFPluginIdentifierType>;
 using PlaybackSessionContextIdentifier = WebCore::ProcessQualified<WebCore::HTMLMediaElementIdentifier>;
-using RemoteSnapshotIdentifier = WTF::UUID;
 using SnapshotOptions = OptionSet<SnapshotOption>;
 using SpeechRecognitionPermissionRequestCallback = CompletionHandler<void(std::optional<WebCore::SpeechRecognitionError>&&)>;
 using SpellDocumentTag = int64_t;
@@ -801,6 +802,10 @@ public:
     WebCore::PageIdentifier identifierInSiteIsolatedProcess() const { return webPageIDInMainFrameProcess(); }
     WebCore::PageIdentifier webPageIDInProcess(const WebProcessProxy&) const;
     bool hasWebPageInProcess(const WebProcessProxy&, WebCore::PageIdentifier);
+#if HAVE(IOSURFACE)
+    void completeDisplayOnlyImage(RemoteSnapshotIdentifier, WebCore::FrameIdentifier rootFrameIdentifier, float scale, const WebCore::ColorSpace&, CompletionHandler<void(bool)>&&);
+    void releaseDisplayOnlyImage(RemoteSnapshotIdentifier);
+#endif
     WebCore::PageIdentifier webPageIDInProcessForFrame(std::optional<WebCore::FrameIdentifier>);
 
     PAL::SessionID NODELETE sessionID() const;
@@ -1542,6 +1547,10 @@ public:
     void wheelEventHandlingCompleted(bool wasHandled);
     void didEndSyntheticMomentumScrolling();
 
+#if PLATFORM(MAC)
+    void dispatchTrackedPointerEvent(std::optional<WebCore::FrameIdentifier>, WebEventPhase, const WebCore::FloatPoint& locationInRootView, OptionSet<WebEventModifier>, CompletionHandler<void(bool wasCanceled)>&&);
+#endif
+
     bool NODELETE isProcessingKeyboardEvents() const;
     void sendKeyEvent(Ref<NativeWebKeyboardEvent>&&);
     bool handleKeyboardEvent(Ref<NativeWebKeyboardEvent>&&);
@@ -1817,6 +1826,7 @@ public:
     void getResourceDataFromFrame(WebFrameProxy&, API::URL*, CompletionHandler<void(API::Data*)>&&);
     void getRenderTreeExternalRepresentation(CompletionHandler<void(const String&)>&&);
     void getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&&);
+    void getSelectionOrContentsAsString(WebCore::FrameIdentifier, CompletionHandler<void(const String&)>&&);
     void getSourceForFrame(WebFrameProxy*, CompletionHandler<void(const String&)>&&);
 #if PLATFORM(COCOA)
     void getWebArchiveData(CompletionHandler<void(API::Data*)>&&);
@@ -2656,6 +2666,7 @@ public:
     void setPDFDisplayMode(PDFPluginDisplayMode);
 
     void requestPDFDisplayMode(PDFPluginDisplayMode);
+    void setInitialPDFDisplayMode(PDFPluginDisplayMode);
 #endif
 
     Seconds mediaCaptureReportingDelay() const { return m_mediaCaptureReportingDelay; }
@@ -2677,6 +2688,7 @@ public:
 
 #if ENABLE(APP_HIGHLIGHTS)
     void createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighlight, WebCore::HighlightRequestOriginatedInApp);
+    void createAppHighlightInSelectedRange(WebCore::FrameIdentifier, WebCore::CreateNewGroupForHighlight, WebCore::HighlightRequestOriginatedInApp);
     void restoreAppHighlightsAndScrollToIndex(const Vector<Ref<WebCore::SharedMemory>>& highlights, const std::optional<unsigned> index);
     void setAppHighlightsVisibility(const WebCore::HighlightVisibility);
     bool appHighlightsVisibility();
@@ -2773,8 +2785,10 @@ public:
     void broadcastFrameTreeSyncData(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::FrameTreeSyncSerializationData&);
     void broadcastAllFrameTreeSyncData(IPC::Connection&, WebCore::FrameIdentifier,  Ref<WebCore::FrameTreeSyncData>&&);
 
-    void didNotifyUserActivation(IPC::Connection&, WebCore::FrameIdentifier, MonotonicTime);
+    void didNotifyUserActivation(IPC::Connection&, WebCore::FrameIdentifier, MonotonicTime, std::optional<WebCore::UserGestureTokenIdentifier>);
     void didConsumeUserActivation(IPC::Connection&, WebCore::FrameIdentifier);
+    void didRevokeForcedUserActivation(IPC::Connection&, WebCore::FrameIdentifier, WebCore::UserGestureTokenIdentifier);
+    RefPtr<WebProcessProxy> validatedUserActivationSenderProcess(IPC::Connection&, WebCore::FrameIdentifier sourceFrameID, std::optional<WebCore::UserGestureTokenIdentifier> forcedActivationToken);
     void didHandleFirstUserGesture(IPC::Connection&, WebCore::FrameIdentifier, MonotonicTime);
 
     void addOpenedPage(WebPageProxy&);
@@ -3991,6 +4005,7 @@ private:
 #if PLATFORM(IOS_FAMILY)
     std::optional<WebCore::InputMode> m_pendingInputModeChange;
     WebCore::IntDegrees m_deviceOrientation { 0 };
+    String m_contentSizeCategory;
     bool m_hasNetworkRequestsOnSuspended { false };
     bool m_isKeyboardAnimatingIn { false };
     bool m_isScrollingOrZooming { false };

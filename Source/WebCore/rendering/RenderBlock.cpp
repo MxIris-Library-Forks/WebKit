@@ -353,12 +353,11 @@ void RenderBlock::styleDidChange(Style::Difference diff, const Style::ComputedSt
 
     // It's possible for our border/padding to change, but for the overall logical width of the block to
     // end up being the same. We keep track of this change so in layoutBlock, we can know to set relayoutChildren=true.
-    auto shouldForceRelayoutChildren = false;
     if (oldStyle && diff == Style::DifferenceResult::Layout && needsLayout()) {
         // Out-of-flow boxes anchored to the padding box.
-        shouldForceRelayoutChildren = contentBoxLogicalWidthChanged(*oldStyle, style()) || (outOfFlowBoxes() && paddingBoxLogicalHeightChanged(*oldStyle, style()));
+        if (contentBoxLogicalWidthChanged(*oldStyle, style()) || (outOfFlowBoxes() && paddingBoxLogicalHeightChanged(*oldStyle, style())))
+            setShouldForceRelayoutChildren(true);
     }
-    setShouldForceRelayoutChildren(shouldForceRelayoutChildren);
 }
 
 bool RenderBlock::childrenPreventSelfCollapsing() const
@@ -1401,6 +1400,12 @@ bool RenderBlock::establishesIndependentFormattingContext() const
     if (establishesIndependentFormattingContextIgnoringDisplayType(style))
         return true;
 
+    // flow-root "always establishes a new block formatting context for its contents", and "unless otherwise specified,
+    // however, establishing a new formatting context creates an independent formatting context."
+    // https://drafts.csswg.org/css-display-3/#valdef-display-flow-root
+    if (style.display() == Style::DisplayType::BlockFlowRoot)
+        return true;
+
     if (isGridItem()) {
         // Grid items establish a new independent formatting context, unless they're a subgrid
         // https://drafts.csswg.org/css-grid-2/#grid-item-display
@@ -1436,7 +1441,6 @@ bool RenderBlock::createsNewFormattingContext() const
         || isRenderOrLegacyRenderSVGForeignObject()
         || style.specifiesColumns()
         || style.columnSpan() == ColumnSpan::All
-        || style.display() == Style::DisplayType::BlockFlowRoot
         || establishesIndependentFormattingContext();
 }
 

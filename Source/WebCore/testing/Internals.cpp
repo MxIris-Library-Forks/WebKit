@@ -2227,6 +2227,12 @@ Ref<DOMRect> Internals::boundingBoxInRootViewCoordinates(Element& element)
     return DOMRect::create(element.boundingBoxInRootViewCoordinates());
 }
 
+Ref<DOMRect> Internals::boundingBoxInMainFrameViewCoordinates(Element& element)
+{
+    protect(element.document())->updateLayout(LayoutOptions::IgnorePendingStylesheets);
+    return DOMRect::create(element.boundingBoxInMainFrameViewCoordinates());
+}
+
 ExceptionOr<unsigned> Internals::inspectorGridOverlayCount()
 {
     RefPtr document = contextDocument();
@@ -6920,6 +6926,7 @@ void Internals::markContextAsInsecure()
         return;
 
     document->securityOrigin().setIsPotentiallyTrustworthy(false);
+    document->markAsInsecureContextForTesting();
 }
 
 void Internals::postTask(Ref<VoidCallback>&& callback)

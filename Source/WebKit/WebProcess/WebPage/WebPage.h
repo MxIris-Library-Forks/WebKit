@@ -70,6 +70,7 @@
 #include <WebCore/SubstituteData.h>
 #include <WebCore/URLKeepingBlobAlive.h>
 #include <WebCore/UserContentTypes.h>
+#include <WebCore/UserGestureTokenIdentifier.h>
 #include <WebCore/UserScriptTypes.h>
 #include <WebCore/WebCoreKeyboardUIMode.h>
 #include <WebCore/WebKitJSHandle.h>
@@ -515,6 +516,7 @@ enum class TextInteractionSource : uint8_t;
 enum class TextRecognitionUpdateResult : uint8_t;
 enum class VisitedLinkTableIdentifierType;
 enum class WebEventModifier : uint8_t;
+enum class WebEventPhase : uint8_t;
 enum class WebEventType : uint32_t;
 enum class WebEventInputSource : uint8_t;
 enum class WebMouseEventSyntheticClickType : uint8_t;
@@ -692,6 +694,9 @@ public:
 #if PLATFORM(IOS_FAMILY) && ENABLE(UNIFIED_PDF)
     void setPDFDisplayMode(PDFPluginDisplayMode);
     void requestPDFDisplayMode(PDFPluginDisplayMode);
+
+    PDFPluginDisplayMode initialPDFDisplayMode() const;
+    void setInitialPDFDisplayMode(PDFPluginDisplayMode);
 #endif
 
 #if ENABLE(PDF_PLUGIN) && PLATFORM(MAC)
@@ -895,8 +900,9 @@ public:
 
     void updateRemoteIntersectionObservers();
 
-    void updateUserActivationState(const Vector<WebCore::FrameIdentifier>&, MonotonicTime);
+    void updateUserActivationState(const Vector<WebCore::FrameIdentifier>&, MonotonicTime, std::optional<WebCore::UserGestureTokenIdentifier>);
     void consumeUserActivations(const Vector<WebCore::FrameIdentifier>&);
+    void revokeForcedUserActivation(WebCore::UserGestureTokenIdentifier);
     void updateLastHandledUserGestureTimestamp(const Vector<WebCore::FrameIdentifier>&, MonotonicTime);
 
     std::optional<WebCore::SimpleRange> currentSelectionAsRange();
@@ -1166,6 +1172,10 @@ public:
     void completeSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::SyntheticClickType, WebCore::PointerID = WebCore::mousePointerID, int clickCount = 1);
     Awaitable<std::optional<WebCore::RemoteUserInputEventData>> handleDoubleTapForDoubleClickAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::IntPoint, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebEventInputSource, WebMouseEventSyntheticClickType);
     void invokePendingSyntheticClickCallback(WebCore::SyntheticClickResult);
+#endif
+
+#if PLATFORM(MAC)
+    void dispatchTrackedPointerEvent(std::optional<WebCore::FrameIdentifier>, WebEventPhase, WebCore::FloatPoint locationInRootView, OptionSet<WebKit::WebEventModifier>, CompletionHandler<void(bool wasCanceled, std::optional<WebCore::RemoteUserInputEventData>)>&&);
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -2059,7 +2069,7 @@ public:
     WebCore::HighlightRequestOriginatedInApp NODELETE highlightRequestOriginatedInApp() const;
     WebCore::HighlightVisibility appHighlightsVisiblility() const { return m_appHighlightsVisible; }
 
-    void createAppHighlightInSelectedRange(WebCore::CreateNewGroupForHighlight, WebCore::HighlightRequestOriginatedInApp, CompletionHandler<void(WebCore::AppHighlight&&)>&&);
+    void createAppHighlightInSelectedRange(WebCore::FrameIdentifier, WebCore::CreateNewGroupForHighlight, WebCore::HighlightRequestOriginatedInApp, CompletionHandler<void(WebCore::AppHighlight&&)>&&);
     void restoreAppHighlightsAndScrollToIndex(Vector<WebCore::SharedMemoryHandle>&&, const std::optional<unsigned> index);
     void setAppHighlightsVisibility(const WebCore::HighlightVisibility);
 #endif
@@ -2513,7 +2523,7 @@ private:
     void getMainResourceDataOfFrame(WebCore::FrameIdentifier, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
     void getResourceDataFromFrame(WebCore::FrameIdentifier, const String& resourceURL, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
     void getRenderTreeExternalRepresentation(CompletionHandler<void(const String&)>&&);
-    void getSelectionOrContentsAsString(CompletionHandler<void(const String&)>&&);
+    void getSelectionOrContentsAsString(WebCore::FrameIdentifier, CompletionHandler<void(const String&)>&&);
     void getSourceForFrame(WebCore::FrameIdentifier, CompletionHandler<void(const String&)>&&);
 #if PLATFORM(COCOA)
     void getWebArchiveData(CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
@@ -3193,6 +3203,7 @@ private:
     // require a minimum drag toward an edge before selection autoscroll engages, so a selection that merely
     // originates near an edge doesn't scroll. Persists across hot-zone enter/exit within a single drag.
     std::optional<WebCore::IntPoint> m_selectionAutoscrollDragOrigin;
+    std::optional<WebCore::FloatPoint> m_lastTrackedPointerLocation;
 #if ENABLE(SCROLL_POCKET_IN_FULLSCREEN)
     bool m_fullScreenTitlebarOverlayIsDisplayed { false };
 #endif

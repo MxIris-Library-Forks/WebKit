@@ -551,7 +551,7 @@ UIProcess/API/C/WKGeolocationManager.cpp
 UIProcess/API/C/WKGeolocationPermissionRequest.cpp
 UIProcess/API/C/WKGeolocationPosition.cpp
 UIProcess/API/C/WKHTTPCookieStoreRef.cpp
-UIProcess/API/C/WKHitTestResult.cpp
+UIProcess/API/C/WKHitTestResultRef.cpp
 UIProcess/API/C/WKIconDatabase.cpp
 UIProcess/API/C/WKInspector.cpp
 UIProcess/API/C/WKJSHandleRef.cpp
@@ -792,6 +792,7 @@ WebProcess/GPU/RemoteSharedResourceCacheProxy.cpp
 WebProcess/GPU/ShapeDetection/RemoteBarcodeDetectorProxy.cpp
 WebProcess/GPU/ShapeDetection/RemoteFaceDetectorProxy.cpp
 WebProcess/GPU/ShapeDetection/RemoteTextDetectorProxy.cpp
+WebProcess/GPU/graphics/DisplayOnlyImageProxy.cpp
 WebProcess/GPU/graphics/Model/RemoteMeshProxy.cpp
 WebProcess/GPU/graphics/Model/ModelDowncastConvertToBackingContext.cpp
 WebProcess/GPU/graphics/WebGPU/RemoteAdapterProxy.cpp

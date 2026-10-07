@@ -114,6 +114,7 @@ class PageConfiguration;
 }
 
 namespace WebCore {
+class ColorSpace;
 class DeferrableOneShotTimer;
 class ResourceRequest;
 struct CryptoKeyData;
@@ -445,6 +446,10 @@ public:
     const MachSendRight& taskNamePort() const { return m_taskNamePort; }
 #endif
 
+#if PLATFORM(IOS_FAMILY) && ENABLE(UIPROCESS_PERIODIC_MEMORY_MONITOR)
+    void didComputeAvailableMemory(uint64_t availableMemory);
+#endif
+
 #if HAVE(DISPLAY_LINK)
     DisplayLink::Client& displayLinkClient() LIFETIME_BOUND { return m_displayLinkClient; }
     std::optional<unsigned> nominalFramesPerSecondForDisplay(WebCore::PlatformDisplayID);
@@ -764,6 +769,13 @@ private:
     void createGPUProcessConnection(GPUProcessConnectionIdentifier, IPC::Connection::Handle&&);
     void gpuProcessConnectionDidBecomeUnresponsive(GPUProcessConnectionIdentifier);
     void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect&, RemoteSnapshotIdentifier, WebCore::RenderingMode);
+#endif
+
+#if HAVE(IOSURFACE)
+    // Handled here rather than by the page, so that they are answered even once it is gone.
+    void completeDisplayOnlyImage(WebCore::PageIdentifier, RemoteSnapshotIdentifier, WebCore::FrameIdentifier rootFrameIdentifier, float scale, const WebCore::ColorSpace&, CompletionHandler<void(bool)>&&);
+    void releaseDisplayOnlyImage(WebCore::PageIdentifier, RemoteSnapshotIdentifier);
+    RefPtr<WebPageProxy> pageHostedAs(WebCore::PageIdentifier);
 #endif
 
 #if ENABLE(MODEL_PROCESS)

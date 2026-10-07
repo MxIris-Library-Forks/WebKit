@@ -108,6 +108,30 @@ static Style::GridTrackSizes gridAutoTrackSizesWithPercentagesConvertedToAuto(co
     return Style::GridTrackSizes { Style::GridTrackSizeList::map(gridAutoTrackSizes, GridLayoutUtils::trackSizeWithPercentagesConvertedToAuto) };
 }
 
+static Vector<Style::GridTrackSize> trackSizesWithPercentagesConvertedToAuto(const Vector<Style::GridTrackSize>& trackSizes)
+{
+    return trackSizes.map(GridLayoutUtils::trackSizeWithPercentagesConvertedToAuto);
+}
+
+static AutoRepeatConstraint autoRepeatConstraint(const AxisConstraint& axisConstraint)
+{
+    auto containerMinimumSize = axisConstraint.containerMinimumSize();
+    auto containerMaximumSize = axisConstraint.containerMaximumSize();
+    if (axisConstraint.scenario() == AxisConstraint::FreeSpaceScenario::Definite)
+        return { axisConstraint.availableSpace(), containerMinimumSize, containerMaximumSize };
+
+    return { { }, containerMinimumSize, containerMaximumSize };
+}
+
+static ExplicitGridTrackSizes explicitGridTrackSizesForIntrinsicWidths(const Style::ComputedStyle& gridStyle, const AutoRepeatConstraint& inlineAxisAutoRepeatConstraint, const AutoRepeatConstraint& blockAxisAutoRepeatConstraint, LayoutUnit usedColumnGap, LayoutUnit usedRowGap)
+{
+    auto explicitGridTrackSizes = ExplicitGridResolver::resolve(gridStyle, inlineAxisAutoRepeatConstraint, blockAxisAutoRepeatConstraint, usedColumnGap, usedRowGap);
+    return {
+        trackSizesWithPercentagesConvertedToAuto(explicitGridTrackSizes.columnTrackSizes),
+        trackSizesWithPercentagesConvertedToAuto(explicitGridTrackSizes.rowTrackSizes)
+    };
+}
+
 static TrackSizingFunctions convertGridTrackSizeToTrackSizingFunctions(const Style::GridTrackSize& gridTrackSize, const Style::ZoomFactor& zoom)
 {
     auto minTrackSizingFunction = [&]() {
@@ -193,7 +217,7 @@ GridLayoutResult GridFormattingContext::layout(GridLayoutConstraints layoutConst
     CheckedRef gridStyle = root().style();
     auto usedColumnGap = usedGapValue(gridStyle->columnGap(), gridStyle);
     auto usedRowGap = usedGapValue(gridStyle->rowGap(), gridStyle);
-    auto explicitGridTrackSizes = ExplicitGridResolver::resolve(gridStyle, layoutConstraints, usedColumnGap, usedRowGap);
+    auto explicitGridTrackSizes = ExplicitGridResolver::resolve(gridStyle, autoRepeatConstraint(layoutConstraints.inlineAxis), autoRepeatConstraint(layoutConstraints.blockAxis), usedColumnGap, usedRowGap);
     auto leadingImplicitTracks = computeLeadingImplicitTracks(logicalGridItems, explicitGridTrackSizes);
 
     GridAutoFlowOptions autoFlowOptions {
@@ -211,6 +235,11 @@ GridLayoutResult GridFormattingContext::layout(GridLayoutConstraints layoutConst
     auto inlineAxisDependsOnTracks = layoutConstraints.inlineAxis.scenario() != AxisConstraint::FreeSpaceScenario::Definite;
     auto blockAxisDependsOnTracks = layoutConstraints.blockAxis.scenario() != AxisConstraint::FreeSpaceScenario::Definite;
 
+    if (inlineAxisDependsOnTracks)
+        explicitGridTrackSizes.columnTrackSizes = trackSizesWithPercentagesConvertedToAuto(explicitGridTrackSizes.columnTrackSizes);
+    if (blockAxisDependsOnTracks)
+        explicitGridTrackSizes.rowTrackSizes = trackSizesWithPercentagesConvertedToAuto(explicitGridTrackSizes.rowTrackSizes);
+
     auto gridAutoColumns = inlineAxisDependsOnTracks ? gridAutoTrackSizesWithPercentagesConvertedToAuto(gridStyle->gridAutoColumns()) : gridStyle->gridAutoColumns();
     auto gridAutoRows = blockAxisDependsOnTracks ? gridAutoTrackSizesWithPercentagesConvertedToAuto(gridStyle->gridAutoRows()) : gridStyle->gridAutoRows();
 
@@ -219,7 +248,7 @@ GridLayoutResult GridFormattingContext::layout(GridLayoutConstraints layoutConst
     auto usedJustifyContent = gridStyle->justifyContent().resolve();
     auto usedAlignContent = gridStyle->alignContent().resolve();
 
-    GridLayoutState layoutState { layoutConstraints, gridDefinition, usedJustifyContent, usedAlignContent, usedColumnGap, usedRowGap };
+    GridLayoutState layoutState { layoutConstraints, usedJustifyContent, usedAlignContent, usedColumnGap, usedRowGap };
 
     // https://drafts.csswg.org/css-grid-1/#layout-algorithm
     // 1. Run the Grid Item Placement Algorithm to resolve the placement of all grid items in the grid.
@@ -327,9 +356,7 @@ IntrinsicWidthSizingPath GridFormattingContext::classifyIntrinsicWidthSizingPath
 // The max-content size (min-content size) of a grid container is the sum of
 // the grid container's track sizes (including gutters) in the appropriate axis,
 // when the grid is sized under a max-content constraint (min-content constraint).
-// FIXME: Pass in the grid container's min-width and max-width so that auto-repeat can resolve its
-// number of repetitions against them. https://drafts.csswg.org/css-grid-1/#auto-repeat
-GridFormattingContext::IntrinsicWidths GridFormattingContext::computeIntrinsicWidths()
+GridFormattingContext::IntrinsicWidths GridFormattingContext::computeIntrinsicWidths(const AutoRepeatConstraint& inlineAxisAutoRepeatConstraint, const AutoRepeatConstraint& blockAxisAutoRepeatConstraint)
 {
     CheckedRef gridStyle = root().style();
     GridAutoFlowOptions autoFlowOptions {
@@ -344,7 +371,7 @@ GridFormattingContext::IntrinsicWidths GridFormattingContext::computeIntrinsicWi
     auto usedColumnGap = usedGapValue(gridStyle->columnGap(), gridStyle);
     auto usedRowGap = usedGapValue(gridStyle->rowGap(), gridStyle);
     GridDefinition gridDefinition {
-        ExplicitGridResolver::resolve(gridStyle, { AxisConstraint::minContent(), AxisConstraint::minContent() }, usedColumnGap, usedRowGap),
+        explicitGridTrackSizesForIntrinsicWidths(gridStyle, inlineAxisAutoRepeatConstraint, blockAxisAutoRepeatConstraint, usedColumnGap, usedRowGap),
         gridAutoTrackSizesWithPercentagesConvertedToAuto(gridStyle->gridAutoColumns()),
         gridAutoTrackSizesWithPercentagesConvertedToAuto(gridStyle->gridAutoRows()),
         autoFlowOptions,
@@ -367,7 +394,7 @@ GridFormattingContext::IntrinsicWidths GridFormattingContext::computeIntrinsicWi
             .inlineAxis = intrinsicConstraint,
             .blockAxis = intrinsicConstraint
         };
-        GridLayoutState layoutState { layoutConstraints, gridDefinition, usedJustifyContent, usedAlignContent, usedColumnGap, usedRowGap };
+        GridLayoutState layoutState { layoutConstraints, usedJustifyContent, usedAlignContent, usedColumnGap, usedRowGap };
 
         auto placedGridItems = constructPlacedGridItems(gridItemPlacementResult.gridAreas);
         auto columnTrackSizingFunctionsList = trackSizingFunctions(gridItemPlacementResult.columnsCount, leadingImplicitTracks.columnsCount, gridDefinition.explicitGridTrackSizes.columnTrackSizes, gridDefinition.gridAutoColumns, gridDefinition.zoom);

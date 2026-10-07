@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <WebCore/IsSecureContext.h>
+
 namespace WebCore {
 
 class ResourceResponse;
@@ -37,6 +39,6 @@ enum class DocumentIsolationPolicy : bool {
 };
 
 // https://wicg.github.io/document-isolation-policy/#obtain-dip
-DocumentIsolationPolicy obtainDocumentIsolationPolicy(const ResourceResponse&, const ScriptExecutionContext&);
+DocumentIsolationPolicy obtainDocumentIsolationPolicy(const ResourceResponse&, IsSecureContext, const ScriptExecutionContext&);
 
 } // namespace WebCore

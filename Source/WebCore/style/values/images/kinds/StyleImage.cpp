@@ -28,6 +28,7 @@
 
 #include "GraphicsContext.h"
 #include "ImagePaintingOptions.h"
+#include "ImageSizingContext.h"
 #include "NinePieceGeometry.h"
 #include "RenderElement.h"
 #include "StyleComputedStyle+GettersInlines.h"
@@ -49,8 +50,8 @@ static NaturalDimensions tileNaturalDimensions(const WebCore::Image& image)
         return NaturalDimensions::none();
     auto size = image.size();
     return {
-        .width = image.hasRelativeWidth() ? std::nullopt : std::optional { size.width() },
-        .height = image.hasRelativeHeight() ? std::nullopt : std::optional { size.height() },
+        .width = size.width(),
+        .height = size.height(),
         .aspectRatio = std::nullopt,
     };
 }
@@ -382,6 +383,11 @@ ImageDrawResult Image::drawNinePiece(GraphicsContext& context, const RenderEleme
     }, [&](GraphicsContext& context, ConcreteObjectSize pieceConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing) {
         return drawAsPattern(context, renderer, pieceConcreteObjectSize, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality() }, false);
     }, ConcreteObjectSize::fixed(size), geometry);
+}
+
+ConcreteObjectSize Image::negotiate(const RenderElement& renderer, const ImageSizingContext& context) const
+{
+    return context.resolve(naturalDimensions(renderer, context));
 }
 
 } // namespace Style

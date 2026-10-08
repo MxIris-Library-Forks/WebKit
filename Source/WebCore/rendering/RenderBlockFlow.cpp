@@ -127,7 +127,6 @@ Layout::InlineContentCache& RenderBlockFlow::ensureInlineContentCache()
 
 void RenderBlockFlow::resetInlineContentCache()
 {
-    ASSERT(m_inlineContentCache);
     m_inlineContentCache = nullptr;
 }
 
@@ -1182,6 +1181,13 @@ void RenderBlockFlow::computeAndSetLineLayoutPath()
     if (lineLayoutPath() != UndeterminedPath)
         return;
     setLineLayoutPath(LayoutIntegration::LineLayout::canUseFor(*this) ? InlinePath : SvgTextPath);
+}
+
+LayoutIntegration::LineLayout& RenderBlockFlow::ensureInlineLayout()
+{
+    if (!inlineLayout())
+        m_lineLayout = makeUnique<LayoutIntegration::LineLayout>(*this);
+    return *inlineLayout();
 }
 
 void RenderBlockFlow::layoutInlineChildren(RelayoutChildren relayoutChildren, LayoutUnit previousHeight, LayoutUnit& repaintLogicalTop, LayoutUnit& repaintLogicalBottom)

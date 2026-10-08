@@ -55,6 +55,7 @@
 #include <WebCore/MIMETypeRegistry.h>
 #include <WebCore/PointerEventTypeNames.h>
 #include <algorithm>
+#include <cmath>
 #include <wtf/Borrow.h>
 #include <wtf/CallbackAggregator.h>
 #include <wtf/FileSystem.h>
@@ -689,6 +690,17 @@ void WebAutomationSession::setWindowFrameOfBrowsingContext(const Inspector::Prot
     });
 }
 
+void WebAutomationSession::setPageZoomFactorOfBrowsingContext(const Inspector::Protocol::Automation::BrowsingContextHandle& handle, double zoomFactor, CommandCallback<void>&& callback)
+{
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!std::isfinite(zoomFactor) || zoomFactor <= 0, InvalidParameter, "The 'zoomFactor' parameter must be a positive number."_s);
+
+    auto page = webPageProxyForHandle(handle);
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
+
+    page->setPageZoomFactor(zoomFactor);
+    callback({ });
+}
+
 void WebAutomationSession::waitForNavigationToComplete(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& optionalFrameHandle, std::optional<Inspector::Protocol::Automation::PageLoadStrategy>&& optionalPageLoadStrategy, std::optional<double>&& optionalPageLoadTimeout, CommandCallback<void>&& callback)
 {
     auto page = webPageProxyForHandle(browsingContextHandle);
@@ -1117,8 +1129,7 @@ static String navigationIDToProtocolString(std::optional<WebCore::NavigationIden
     if (!navigationID)
         return nullString();
 
-    uint64_t id = navigationID->toUInt64();
-    auto uuid = WTF::UUID::tryCreate(id, id);
+    auto uuid = WTF::UUID::tryCreate(navigationID->processIdentifier().toUInt64(), navigationID->object().toUInt64());
     if (!uuid)
         return nullString();
     return uuid->toString();
@@ -1649,42 +1660,24 @@ static std::optional<CoordinateSystem> NODELETE protocolStringToCoordinateSystem
     return std::nullopt;
 }
 
-// WebAutomationSessionProxy::computeElementLayout() can't produce main-frame-relative
-// LayoutViewport coordinates for an out-of-process frame, because that frame's web process cannot
-// see where the frame sits within the page. It stops at the frame's local root and leaves the rest
-// to the UI process, since only it can traverse the whole frame tree.
-static std::optional<WebCore::FrameIdentifier> localRootFrameNeedingMainFrameConversion(std::optional<WebCore::FrameIdentifier> frameID, CoordinateSystem coordinateSystem)
+// For an element in an out-of-process iframe, WebAutomationSessionProxy::computeElementLayout()
+// reaches main frame coordinates using ancestor frame geometry that other processes sync to it
+// during their rendering updates. A scroll or layout in an ancestor that hasn't been through a
+// rendering update yet would be missed, and the reported point would not match what the main
+// frame's process hit tests when the click is dispatched. Force a presentation update in every
+// process first. Each one broadcasts its geometry before acknowledging the update, so the frame's
+// process receives it ahead of ComputeElementLayout.
+static void sendComputeElementLayout(WebPageProxy& page, std::optional<WebCore::FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, bool scrollIntoViewIfNeeded, CoordinateSystem coordinateSystem, WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)>&& completionHandler)
 {
-    if (coordinateSystem != CoordinateSystem::LayoutViewport)
-        return std::nullopt;
+    auto send = [page = protect(page), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem, completionHandler = WTF::move(completionHandler)] mutable {
+        page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::ComputeElementLayout(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem), WTF::move(completionHandler));
+    };
 
     RefPtr frame = WebFrameProxy::webFrame(frameID);
-    if (!frame)
-        return std::nullopt;
+    if (!frame || frame->rootFrame()->isMainFrame())
+        return send();
 
-    Ref localRootFrame = frame->rootFrame();
-    if (localRootFrame->isMainFrame())
-        return std::nullopt;
-
-    return localRootFrame->frameID();
-}
-
-// convertRectToMainFrameCoordinates() and convertPointToMainFrameCoordinates() produce main frame
-// *root view* coordinates, which include the obscured content inset area. The LayoutViewport space
-// the Automation protocol reports excludes it. The web process arrives at it via
-// LocalFrameView::rootViewToContents(), which subtracts the insets, and consumers add them back
-// (see viewportLocationToWindowLocation() when synthesizing events). Drop the insets here so both
-// the site-isolated and non-isolated paths report the same space.
-//
-// FIXME: https://bugs.webkit.org/show_bug.cgi?id=322023 - Element coordinates in cross-origin iframes under Site Isolation omit the page scale and layout viewport offset
-// The non-Site Isolation path also divides by Frame::frameScaleFactor()
-// and subtracts FrameView::layoutViewportRect().location(), ScrollView::headerHeight() and insetForLeftScrollbarSpace().
-// Those cancel out at frame scale 1 with no header banner or left-hand scrollbar.
-// But under pinch zoom the reported coordinates are off by roughly the page scale factor and Element Click misses the element.
-static WebCore::FloatSize obscuredContentInsetOffset(WebPageProxy& page)
-{
-    auto insets = page.obscuredContentInsets();
-    return { -insets.left(), -insets.top() };
+    page.callAfterNextPresentationUpdate(WTF::move(send));
 }
 
 void WebAutomationSession::computeElementLayout(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, std::optional<bool>&& optionalScrollIntoViewIfNeeded, Inspector::Protocol::Automation::CoordinateSystem coordinateSystemValue, CommandCallbackOf<Ref<Inspector::Protocol::Automation::Rect>, RefPtr<Inspector::Protocol::Automation::Point>, bool>&& callback)
@@ -1699,68 +1692,39 @@ void WebAutomationSession::computeElementLayout(const Inspector::Protocol::Autom
     std::optional<CoordinateSystem> coordinateSystem = protocolStringToCoordinateSystem(coordinateSystemValue);
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!coordinateSystem, InvalidParameter, "The parameter 'coordinateSystem' is invalid."_s);
 
-    WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)> completionHandler = [callback = WTF::move(callback), page = protect(*page), frameID, coordinateSystem = *coordinateSystem](std::optional<String> optionalError, WebCore::FloatRect rect, std::optional<WebCore::IntPoint> inViewCenterPoint, bool isObscured) mutable {
+    WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)> completionHandler = [callback = WTF::move(callback)](std::optional<String> optionalError, WebCore::FloatRect rect, std::optional<WebCore::IntPoint> inViewCenterPoint, bool isObscured) mutable {
         ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF_SET(optionalError);
 
-        auto buildAndRespond = [callback = WTF::move(callback)](std::optional<WebCore::FloatRect> optionalRect, std::optional<WebCore::IntPoint> inViewCenterPoint, bool isObscured) mutable {
-            ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!optionalRect, InternalError, "Failed to convert the element's layout into main frame coordinates."_s);
-            auto rect = *optionalRect;
+        auto originObject = Inspector::Protocol::Automation::Point::create()
+            .setX(rect.x())
+            .setY(rect.y())
+            .release();
 
-            auto originObject = Inspector::Protocol::Automation::Point::create()
-                .setX(rect.x())
-                .setY(rect.y())
-                .release();
+        auto sizeObject = Inspector::Protocol::Automation::Size::create()
+            .setWidth(rect.width())
+            .setHeight(rect.height())
+            .release();
 
-            auto sizeObject = Inspector::Protocol::Automation::Size::create()
-                .setWidth(rect.width())
-                .setHeight(rect.height())
-                .release();
+        auto rectObject = Inspector::Protocol::Automation::Rect::create()
+            .setOrigin(WTF::move(originObject))
+            .setSize(WTF::move(sizeObject))
+            .release();
 
-            auto rectObject = Inspector::Protocol::Automation::Rect::create()
-                .setOrigin(WTF::move(originObject))
-                .setSize(WTF::move(sizeObject))
-                .release();
+        if (!inViewCenterPoint) {
+            callback({ { WTF::move(rectObject), nullptr, isObscured } });
+            return;
+        }
 
-            if (!inViewCenterPoint) {
-                callback({ { WTF::move(rectObject), nullptr, isObscured } });
-                return;
-            }
+        auto inViewCenterPointObject = Inspector::Protocol::Automation::Point::create()
+            .setX(inViewCenterPoint.value().x())
+            .setY(inViewCenterPoint.value().y())
+            .release();
 
-            auto inViewCenterPointObject = Inspector::Protocol::Automation::Point::create()
-                .setX(inViewCenterPoint.value().x())
-                .setY(inViewCenterPoint.value().y())
-                .release();
-
-            callback({ { WTF::move(rectObject), WTF::move(inViewCenterPointObject), isObscured } });
-        };
-
-        // Under site isolation the frame's web process reports LayoutViewport coordinates relative
-        // to the frame's local root; finish walking them up to the main frame here.
-        auto localRootFrameID = localRootFrameNeedingMainFrameConversion(frameID, coordinateSystem);
-        if (!localRootFrameID)
-            return buildAndRespond(rect, inViewCenterPoint, isObscured);
-
-        page->convertRectToMainFrameCoordinates(rect, *localRootFrameID, [page, localRootFrameID = *localRootFrameID, inViewCenterPoint, isObscured, buildAndRespond = WTF::move(buildAndRespond)](std::optional<WebCore::FloatRect> convertedRect) mutable {
-            if (convertedRect)
-                convertedRect->move(obscuredContentInsetOffset(page.get()));
-
-            if (!convertedRect || !inViewCenterPoint)
-                return buildAndRespond(convertedRect, std::nullopt, isObscured);
-
-            page->convertPointToMainFrameCoordinates(WebCore::FloatPoint { *inViewCenterPoint }, localRootFrameID, [page, convertedRect, isObscured, buildAndRespond = WTF::move(buildAndRespond)](std::optional<WebCore::FloatPoint> convertedPoint) mutable {
-                // A converted rect with an unconvertible center point still describes the element,
-                // so report the rect and let the client treat the element as having no in-view
-                // center point, matching the web process's own behavior for that case.
-                if (convertedPoint)
-                    convertedPoint->move(obscuredContentInsetOffset(page.get()));
-
-                buildAndRespond(convertedRect, convertedPoint ? std::optional { WebCore::flooredIntPoint(*convertedPoint) } : std::nullopt, isObscured);
-            });
-        });
+        callback({ { WTF::move(rectObject), WTF::move(inViewCenterPointObject), isObscured } });
     };
 
     bool scrollIntoViewIfNeeded = optionalScrollIntoViewIfNeeded && *optionalScrollIntoViewIfNeeded;
-    page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::ComputeElementLayout(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem.value()), WTF::move(completionHandler));
+    sendComputeElementLayout(*page, frameID, nodeHandle, scrollIntoViewIfNeeded, *coordinateSystem, WTF::move(completionHandler));
 }
 
 void WebAutomationSession::getComputedRole(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, CommandCallback<String>&& callback)
@@ -2454,7 +2418,7 @@ SimulatedInputDispatcher& WebAutomationSession::inputDispatcherForPage(WebPagePr
 // MARK: SimulatedInputDispatcher::Client API
 void WebAutomationSession::viewportInViewCenterPointOfElement(WebPageProxy& page, std::optional<FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, Function<void(std::optional<WebCore::IntPoint>, std::optional<AutomationCommandError>)>&& completionHandler)
 {
-    WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)> didComputeElementLayoutHandler = [completionHandler = WTF::move(completionHandler), page = protect(page), frameID](std::optional<String>&& optionalError, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&& inViewCenterPoint, bool) mutable {
+    WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)> didComputeElementLayoutHandler = [completionHandler = WTF::move(completionHandler)](std::optional<String>&& optionalError, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&& inViewCenterPoint, bool) mutable {
         if (optionalError) {
             completionHandler(std::nullopt, AUTOMATION_COMMAND_ERROR_WITH_MESSAGE(*optionalError));
             return;
@@ -2466,26 +2430,12 @@ void WebAutomationSession::viewportInViewCenterPointOfElement(WebPageProxy& page
         }
 
         // This is the point synthesized pointer events are dispatched at, so it must be in main
-        // frame viewport coordinates. Under site isolation the web process could only report it
-        // relative to the frame's local root, so finish the conversion here.
-        auto localRootFrameID = localRootFrameNeedingMainFrameConversion(frameID, CoordinateSystem::LayoutViewport);
-        if (!localRootFrameID) {
-            completionHandler(inViewCenterPoint, std::nullopt);
-            return;
-        }
-
-        page->convertPointToMainFrameCoordinates(WebCore::FloatPoint { *inViewCenterPoint }, *localRootFrameID, [page, completionHandler = WTF::move(completionHandler)](std::optional<WebCore::FloatPoint> convertedPoint) mutable {
-            if (!convertedPoint) {
-                completionHandler(std::nullopt, AUTOMATION_COMMAND_ERROR_WITH_NAME(TargetOutOfBounds));
-                return;
-            }
-
-            convertedPoint->move(obscuredContentInsetOffset(page.get()));
-            completionHandler(WebCore::flooredIntPoint(*convertedPoint), std::nullopt);
-        });
+        // frame viewport coordinates. The web process already reports it in that space, even for an
+        // element inside an out-of-process iframe.
+        completionHandler(inViewCenterPoint, std::nullopt);
     };
 
-    page.sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::ComputeElementLayout(page.webPageIDInProcessForFrame(frameID), frameID, nodeHandle, false, CoordinateSystem::LayoutViewport), WTF::move(didComputeElementLayoutHandler));
+    sendComputeElementLayout(page, frameID, nodeHandle, false, CoordinateSystem::LayoutViewport, WTF::move(didComputeElementLayoutHandler));
 }
 
 #if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
@@ -3016,8 +2966,22 @@ void WebAutomationSession::performInteractionSequence(const Inspector::Protocol:
             Ref inputSource = *m_inputSources.get(sourceId);
             SimulatedInputSourceState sourceState { };
 
-            auto pressedCharKeyString = stateObject->getString("pressedCharKey"_s);
-            if (!!pressedCharKeyString) {
+            // 'pressedCharKey' is the deprecated singular form of 'pressedCharKeys'; prefer the plural
+            // form when a client sends both.
+            if (auto pressedCharKeysArray = stateObject->getArray("pressedCharKeys"_s)) {
+                for (auto& value : *pressedCharKeysArray) {
+                    auto pressedCharKeyString = value->asString();
+                    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!pressedCharKeyString, InvalidParameter, "Encountered a non-string character key value."_s);
+#if ENABLE(WEBDRIVER_KEYBOARD_GRAPHEME_CLUSTERS)
+                    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(WTF::numGraphemeClusters(pressedCharKeyString) != 1, InvalidParameter, "Invalid 'pressedCharKeys'."_s);
+                    sourceState.pressedCharKeys.add(pressedCharKeyString);
+#else
+                    auto charKey = pressedCharKey(pressedCharKeyString);
+                    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!charKey, InvalidParameter, "Invalid 'pressedCharKeys'."_s);
+                    sourceState.pressedCharKeys.add(*charKey);
+#endif
+                }
+            } else if (auto pressedCharKeyString = stateObject->getString("pressedCharKey"_s); !!pressedCharKeyString) {
 #if ENABLE(WEBDRIVER_KEYBOARD_GRAPHEME_CLUSTERS)
                 ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(WTF::numGraphemeClusters(pressedCharKeyString) != 1, InvalidParameter, "Invalid 'pressedCharKey'."_s);
                 sourceState.pressedCharKeys.add(pressedCharKeyString);
@@ -3111,7 +3075,17 @@ void WebAutomationSession::cancelInteractionSequence(const Inspector::Protocol::
     ASYNC_FAIL_WITH_PREDEFINED_ERROR(NotImplemented);
 #else
     auto page = webPageProxyForHandle(handle);
-    ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
+    if (!page) {
+        // Input state is per session and outlives the page, so reset it even though there is nowhere
+        // to dispatch release events to. Otherwise every later interaction in the session sees keys
+        // that are still held down. Modifier state has to be reset along with it: it only changes
+        // when a release is dispatched, so it would otherwise stay set with nothing left to clear it.
+        m_inputSources.clear();
+#if ENABLE(WEBDRIVER_KEYBOARD_INTERACTIONS)
+        m_currentModifiers = 0;
+#endif
+        ASYNC_FAIL_WITH_PREDEFINED_ERROR(WindowNotFound);
+    }
 
     bool frameNotFound = false;
     auto frameID = webFrameIDForHandle(frameHandle, frameNotFound);
@@ -3292,8 +3266,8 @@ void WebAutomationSession::logEntryAdded(const JSC::MessageSource& messageSource
 #if ENABLE(WEBDRIVER_BIDI)
 void WebAutomationSession::scriptRealmCreated(WebCore::FrameIdentifier frameID, RealmIdentifier realmIdentifier, IPC::Untrusted<WebCore::SecurityOriginData>&& untrustedOrigin)
 {
-    auto origin = WTF::move(untrustedOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::NeedsReview);
-
+    // Not security sensitive because it labels a realm for the automation client which already has full control of the browser.
+    auto origin = WTF::move(untrustedOrigin).unsafeExtractWithoutValidation(IPC::UnvalidatedReason::NotSecuritySensitive);
     RefPtr frame = WebFrameProxy::webFrame(frameID);
     if (!frame)
         return;

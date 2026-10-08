@@ -457,11 +457,6 @@ static void spatialPortalStyleDidChange(Element& element)
 
 void RenderBox::styleDidChange(Style::Difference diff, const Style::ComputedStyle* oldStyle)
 {
-    // Horizontal writing mode definition is updated in RenderBoxModelObject::updateFromStyle,
-    // (as part of the RenderBoxModelObject::styleDidChange call below). So, we can safely cache the horizontal
-    // writing mode value before style change here.
-    bool oldHorizontalWritingMode = isHorizontalWritingMode();
-
     RenderBoxModelObject::styleDidChange(diff, oldStyle);
 
     const Style::ComputedStyle& newStyle = style();
@@ -481,8 +476,7 @@ void RenderBox::styleDidChange(Style::Difference diff, const Style::ComputedStyl
         view().setSmartImageResizerNeedsUpdate();
 #endif
 
-    if (RenderBlock::hasPercentHeightContainerMap() && firstChild()
-        && oldHorizontalWritingMode != isHorizontalWritingMode())
+    if (RenderBlock::hasPercentHeightContainerMap() && firstChild() && oldStyle && oldStyle->writingMode().isHorizontal() != newStyle.writingMode().isHorizontal())
         RenderBlock::clearPercentHeightDescendantsFrom(*this);
 
     // If our zoom factor changes and we have a defined scrollLeft/Top, we need to adjust that value into the
@@ -516,8 +510,8 @@ void RenderBox::styleDidChange(Style::Difference diff, const Style::ComputedStyl
         if (auto value = newStyle.scrollbarColor().tryValue()) {
             Style::ColorResolver colorResolver { newStyle };
             scrollbarColor = ScrollbarColor {
-                .thumbColor = colorResolver.colorResolvingCurrentColor(value->thumb),
-                .trackColor = colorResolver.colorResolvingCurrentColor(value->track)
+                .thumbColor = colorResolver.colorResolvingCurrentColorApplyingColorFilter(value->thumb),
+                .trackColor = colorResolver.colorResolvingCurrentColorApplyingColorFilter(value->track)
             };
         }
 

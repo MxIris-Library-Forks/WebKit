@@ -721,12 +721,17 @@ webkit_target_add_swift_options(TestWebKitAPILibrary
     "-import-objc-header ${TESTWEBKITAPI_DIR}/Runner/TestWebKitAPI-Bridging-Header.h"
 )
 
+foreach (_target IN ITEMS TestWTF TestWebKit TestWebKitAPILibrary)
+    WEBKIT_RAISE_SWIFT_NINJA_PRIORITY(${_target} 6)
+endforeach ()
+
 list(APPEND TestWebKit_SOURCES
     "Tests/WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/EmbeddedAppKitGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/InactiveWindowAppKitGesturesTests.swift"
+    "Tests/WebKit/WebPage/AppKit Gesture Tests/QuirksAppKitGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/RefreshControlGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/SiteIsolationAppKitGesturesTests.swift"
 
@@ -737,7 +742,6 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationNavigationTests.swift
     Tests/WebKit/WKWebView/TextExtractionTests.swift
     Tests/WebKit/WKWebView/TextFragments.swift
-    Tests/WebKit/WKWebView/TextManipulation.swift
     Tests/WebKit/WKWebView/TextPlaceholderTests.swift
     Tests/WebKit/WKWebView/TextSize.swift
     Tests/WebKit/WKWebView/TextWidth.swift
@@ -754,12 +758,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/WKWebExtensionAPINamespace.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIOffscreen.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIPermissions.swift
-    Tests/WebKit/WKWebView/WKWebExtensionAPITest.swift
-    Tests/WebKit/WKWebView/WKWebExtensionAPIWebNavigation.swift
-    Tests/WebKit/WKWebView/WKWebExtensionAPIWebRequest.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIWindows.swift
-    Tests/WebKit/WKWebView/WKWebExtensionContext.swift
-    Tests/WebKit/WKWebView/WKWebExtensionController.swift
     Tests/WebKit/WKWebView/WKWebExtensionControllerConfiguration.swift
     Tests/WebKit/WKWebView/WKWebExtensionDataRecord.swift
     Tests/WebKit/WKWebView/WKWebExtensionMatchPattern.swift

@@ -1786,7 +1786,7 @@ std::optional<Cursor> EventHandler::selectCursor(const HitTestResult& result, bo
                 ImagePaintingOptions options;
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
                 if (renderElement)
-                    options = ImagePaintingOptions { AXCustomColorModeController::shouldInvertSVGImage(*renderElement) ? InvertContent::Yes : InvertContent::No };
+                    options = ImagePaintingOptions { AXCustomColorModeController::shouldInvertSVGImage(*renderElement, styleImage.get()) ? InvertContent::Yes : InvertContent::No };
 #endif
                 if (RefPtr nativeImage = svgImage->nativeImage(FloatSize { svgCursorSize }, ColorSpace::SRGB(), &extras, options))
                     image = BitmapImage::create(WTF::move(nativeImage));
@@ -2326,6 +2326,11 @@ HandleUserInputEventResult EventHandler::mouseMoved(const PlatformMouseEvent& ev
     hitTestResult.setToNonUserAgentShadowAncestor();
     if (!result.remoteUserInputEventData())
         page->chrome().mouseDidMoveOverElement(hitTestResult, event.modifiers());
+    else {
+        // The hover is headed for an out-of-process frame, so the inspector's agents are not told what
+        // is under the cursor and would keep drawing whatever they saw last.
+        InspectorInstrumentation::mouseDidMoveOverRemoteFrame(frame);
+    }
 
 #if ENABLE(IMAGE_ANALYSIS)
     if (event.syntheticClickType() == SyntheticClickType::NoTap && m_textRecognitionHoverTimer.isActive())
@@ -2333,6 +2338,13 @@ HandleUserInputEventResult EventHandler::mouseMoved(const PlatformMouseEvent& ev
 #endif
 
     return result;
+}
+
+void EventHandler::mouseDidLeaveLocalRoot()
+{
+    // FIXME: Dispatch mouseout and mouseleave to m_elementUnderMouse.
+    Ref frame = m_frame.get();
+    InspectorInstrumentation::mouseDidLeaveLocalRoot(frame);
 }
 
 bool EventHandler::passMouseMovedEventToScrollbars(const PlatformMouseEvent& event)
@@ -2989,7 +3001,7 @@ DragEventTargetData EventHandler::performDragAndDrop(const PlatformMouseEvent& e
 #if PLATFORM(COCOA) && ENABLE(DRAG_SUPPORT)
     if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe)) {
         if (auto remoteUserInputEventData = userInputEventDataForRemoteFrame(remoteFrame.get(), result.roundedPointInInnerNodeFrame()))
-            return remoteUserInputEventData->targetFrameID;
+            return *remoteUserInputEventData;
     }
 #endif
     if (auto [isFrameOwner, targetFrame] = contentFrameForNode(m_dragTarget.copyRef().get()); isFrameOwner) {
@@ -3000,7 +3012,7 @@ DragEventTargetData EventHandler::performDragAndDrop(const PlatformMouseEvent& e
 #if PLATFORM(COCOA) && ENABLE(DRAG_SUPPORT)
         if (RefPtr remoteTargetFrame = dynamicDowncast<RemoteFrame>(targetFrame)) {
             if (auto remoteUserInputEventData = userInputEventDataForRemoteFrame(remoteTargetFrame.get(), result.roundedPointInInnerNodeFrame()))
-                return remoteUserInputEventData->targetFrameID;
+                return *remoteUserInputEventData;
         }
 #endif
     } else if (RefPtr dragTarget = m_dragTarget) {
@@ -5679,7 +5691,7 @@ std::expected<bool, RemoteFrameGeometryTransformer> EventHandler::handleTouchEve
             RefPtr element = result.targetElement();
             ASSERT(element);
 
-            if (element && InspectorInstrumentation::handleTouchEvent(frame, *element))
+            if (element && InspectorInstrumentation::handleTouchEvent(*element))
                 return true;
 
             Ref doc = element->document();

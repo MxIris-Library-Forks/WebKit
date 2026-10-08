@@ -177,6 +177,7 @@ https://www.hulu.com/
     NeedsVideoShouldMaintainAspectRatioQuirk
 https://www.icloud.com/
     MayNeedToIgnoreContentObservation
+    ShouldTreatLongClickAsSecondaryClickQuirk
 https://www.iheart.com/
     NeedsScriptToEvaluateBeforeRunningScriptFromURLQuirk
 https://www.imdb.com/
@@ -301,6 +302,7 @@ https://www.thesaurus.com/
     NeedsAnchorToBeMouseFocusableQuirk
 https://www.tiktok.com/
     NeedsChromeCompatibilityUserAgentQuirk
+    NeedsTikTokCaptchaSliderTouchActionQuirk
     NeedsTikTokCommentsOverflowingContentQuirk
     NeedsTikTokVideoOverflowingContentQuirk
     NeedsUserAgentStringOverrideQuirk

@@ -61,6 +61,7 @@
 #include "JSFileList.h"
 #include "JSFileSystemDirectoryHandle.h"
 #include "JSFileSystemFileHandle.h"
+#include "JSFileSystemHandle.h"
 #include "JSIDBSerializationGlobalObject.h"
 #include "JSImageBitmap.h"
 #include "JSImageData.h"
@@ -69,6 +70,7 @@
 #include "JSMediaStreamTrackHandle.h"
 #include "JSMessagePort.h"
 #include "JSNavigator.h"
+#include "JSQuotaExceededError.h"
 #include "JSRTCCertificate.h"
 #include "JSRTCDataChannel.h"
 #include "JSRTCEncodedAudioFrame.h"
@@ -163,13 +165,36 @@ using namespace JSC;
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(SerializedScriptValue);
 
-static bool NODELETE isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObject, SerializationTag tag)
+static bool isAudioWorkletGlobalScope(JSC::JSGlobalObject& globalObject)
 {
 #if ENABLE(WEB_AUDIO)
-    if (!is<JSAudioWorkletGlobalScope>(globalObject))
-        return true;
+    return is<JSAudioWorkletGlobalScope>(globalObject);
+#else
+    UNUSED_PARAM(globalObject);
+    return false;
+#endif
+}
 
-    // Only built-in JS types are exposed to audio worklets.
+template<typename JSWrapper>
+static bool isInterfaceExposedInGlobalObject(JSC::JSGlobalObject& globalObject)
+{
+    auto* domGlobalObject = dynamicDowncast<JSDOMGlobalObject>(globalObject);
+    if (!domGlobalObject || !domGlobalObject->scriptExecutionContext())
+        return true;
+    return JSWrapper::isExposedInGlobalObject(*domGlobalObject);
+}
+
+template<typename JSWrapper>
+static bool isInterfaceExposed(JSC::JSGlobalObject& globalObject)
+{
+    // FIXME: Replace with isInterfaceExposedInGlobalObject() one serialization tag at a time.
+    if (!isAudioWorkletGlobalScope(globalObject))
+        return true;
+    return JSWrapper::isExposedInGlobalObject(uncheckedDowncast<JSDOMGlobalObject>(globalObject));
+}
+
+static bool isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObject, SerializationTag tag)
+{
     switch (tag) {
     case ArrayTag:
     case ObjectTag:
@@ -210,66 +235,89 @@ static bool NODELETE isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObje
     case ResizableArrayBufferTag:
     case ErrorInstanceTag:
     case ErrorTag:
-    case MessagePortReferenceTag:
         return true;
     case FileTag:
+        return isInterfaceExposed<JSFile>(globalObject);
     case FileListTag:
+        return isInterfaceExposed<JSFileList>(globalObject);
     case ImageDataTag:
+        return isInterfaceExposed<JSImageData>(globalObject);
     case BlobTag:
+        return isInterfaceExposed<JSBlob>(globalObject);
     case CryptoKeyTag:
+        return isInterfaceExposedInGlobalObject<JSCryptoKey>(globalObject);
     case DOMPointReadOnlyTag:
+        return isInterfaceExposed<JSDOMPointReadOnly>(globalObject);
     case DOMPointTag:
+        return isInterfaceExposed<JSDOMPoint>(globalObject);
     case DOMRectReadOnlyTag:
+        return isInterfaceExposed<JSDOMRectReadOnly>(globalObject);
     case DOMRectTag:
+        return isInterfaceExposed<JSDOMRect>(globalObject);
     case DOMMatrixReadOnlyTag:
+        return isInterfaceExposed<JSDOMMatrixReadOnly>(globalObject);
     case DOMMatrixTag:
+        return isInterfaceExposed<JSDOMMatrix>(globalObject);
     case DOMQuadTag:
+        return isInterfaceExposed<JSDOMQuad>(globalObject);
     case ImageBitmapTransferTag:
+    case ImageBitmapTag:
+        return isInterfaceExposed<JSImageBitmap>(globalObject);
 #if ENABLE(WEB_RTC)
     case RTCCertificateTag:
+        return isInterfaceExposed<JSRTCCertificate>(globalObject);
 #endif
-    case ImageBitmapTag:
 #if ENABLE(OFFSCREEN_CANVAS_IN_WORKERS)
     case OffscreenCanvasTransferTag:
     case InMemoryOffscreenCanvasTag:
+        return isInterfaceExposed<JSOffscreenCanvas>(globalObject);
 #endif
+    case MessagePortReferenceTag:
     case InMemoryMessagePortTag:
+        return isInterfaceExposed<JSMessagePort>(globalObject);
 #if ENABLE(WEB_RTC)
     case RTCDataChannelTransferTag:
+        return isInterfaceExposed<JSRTCDataChannel>(globalObject);
 #endif
     case DOMExceptionTag:
+        return isInterfaceExposed<JSDOMException>(globalObject);
     case QuotaExceededErrorTag:
+        return isInterfaceExposed<JSQuotaExceededError>(globalObject);
 #if ENABLE(WEB_CODECS)
     case WebCodecsEncodedVideoChunkTag:
+        return isInterfaceExposed<JSWebCodecsEncodedVideoChunk>(globalObject);
     case WebCodecsVideoFrameTag:
+        return isInterfaceExposed<JSWebCodecsVideoFrame>(globalObject);
     case WebCodecsEncodedAudioChunkTag:
+        return isInterfaceExposed<JSWebCodecsEncodedAudioChunk>(globalObject);
     case WebCodecsAudioDataTag:
+        return isInterfaceExposed<JSWebCodecsAudioData>(globalObject);
 #endif
 #if ENABLE(MEDIA_STREAM)
     case MediaStreamTrackTag:
+        return isInterfaceExposed<JSMediaStreamTrack>(globalObject);
     case MediaStreamTrackHandleTag:
+        return isInterfaceExposed<JSMediaStreamTrackHandle>(globalObject);
 #endif
 #if ENABLE(MEDIA_SOURCE_IN_WORKERS)
     case MediaSourceHandleTransferTag:
+        return isInterfaceExposed<JSMediaSourceHandle>(globalObject);
 #endif
 #if ENABLE(WEB_RTC)
     case RTCEncodedAudioFrameTag:
-#endif
-#if ENABLE(WEB_RTC)
+        return isInterfaceExposed<JSRTCEncodedAudioFrame>(globalObject);
     case RTCEncodedVideoFrameTag:
+        return isInterfaceExposed<JSRTCEncodedVideoFrame>(globalObject);
 #endif
     case ReadableStreamTag:
     case WritableStreamTag:
     case TransformStreamTag:
+        // FIXME: These are exposed everywhere, but transferring them to an AudioWorklet is untested.
+        return !isAudioWorkletGlobalScope(globalObject);
     case FileSystemHandleTag:
-        break;
+        return isInterfaceExposed<JSFileSystemHandle>(globalObject);
     }
     return false;
-#else
-    UNUSED_PARAM(globalObject);
-    UNUSED_PARAM(tag);
-    return true;
-#endif
 }
 
 enum class PredefinedColorSpaceTag : uint8_t {
@@ -1317,7 +1365,7 @@ public:
             write(handle.name());
             write(std::span<const uint8_t> { handle.globalIdentifier().span() });
             ASSERT(!context->securityOrigin()->isOpaque());
-            write(context->securityOrigin()->toString());
+            write(protect(context->securityOrigin())->toString());
             if (RefPtr connection = fileSystemStorageConnectionForContext(*context)) {
                 auto origin = clientOriginForContext(*context);
                 m_fileSystemHandleKeepAlives.append({ WTF::move(origin), handle.globalIdentifier(), connection.releaseNonNull() });
@@ -1325,9 +1373,9 @@ public:
             return true;
         };
         if (auto* fileHandle = dynamicDowncast<JSFileSystemFileHandle>(obj))
-            return serializeFileSystemHandle(fileHandle->wrapped());
+            return serializeFileSystemHandle(protect(fileHandle->wrapped()));
         if (auto* dirHandle = dynamicDowncast<JSFileSystemDirectoryHandle>(obj))
-            return serializeFileSystemHandle(dirHandle->wrapped());
+            return serializeFileSystemHandle(protect(dirHandle->wrapped()));
 
         return false;
     }
@@ -3236,7 +3284,7 @@ private:
             return JSValue();
         }
 
-        if (context->securityOrigin()->toString() != origin->string()) {
+        if (protect(context->securityOrigin())->toString() != origin->string()) {
             fail();
             return JSValue();
         }
@@ -3395,13 +3443,6 @@ public:
             return getJSValue(m_inMemoryMessagePorts[index].get());
         }
         case CryptoKeyTag: {
-            if (auto* globalObject = dynamicDowncast<JSDOMGlobalObject>(m_globalObject)) {
-                if (RefPtr context = globalObject->scriptExecutionContext(); context && !context->isSecureContext()) {
-                    SERIALIZE_TRACE("FAIL deserialize");
-                    fail();
-                    return JSValue();
-                }
-            }
             Vector<uint8_t> wrappedKey;
             if (!read(wrappedKey)) {
                 SERIALIZE_TRACE("FAIL deserialize");

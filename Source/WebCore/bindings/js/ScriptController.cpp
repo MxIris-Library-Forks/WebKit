@@ -42,7 +42,9 @@
 #include "JSDOMExceptionHandling.h"
 #include "JSDOMWindow.h"
 #include "JSDocument.h"
+#include "JSElement.h"
 #include "JSExecState.h"
+#include "JSShadowRoot.h"
 #include "LoadableModuleScript.h"
 #include "LocalFrameInlines.h"
 #include "LocalFrameLoaderClient.h"
@@ -349,7 +351,7 @@ void ScriptController::initScriptForWindowProxy(JSWindowProxy& windowProxy)
     }
 
     if (RefPtr page = m_frame->page()) {
-        windowProxy.attachDebugger(m_frame->debugger());
+        windowProxy.attachDebugger(protect(m_frame)->debugger());
         windowProxy.window()->setProfileGroup(page->group().identifier());
     }
 
@@ -524,6 +526,24 @@ void ScriptController::updateDocument()
     }
 }
 
+void ScriptController::reevaluateQuirkDependentProperties()
+{
+    // FIXME: This list has to be kept in sync by hand with the interfaces marked
+    // [QuirksCanChangeAtRuntime], because the bindings generator has no cross-IDL aggregation point to
+    // emit it from. Adding the attribute to an interface that is not listed here silently does nothing.
+    // Isolated worlds get their own prototypes, so every window proxy has to be visited, not just the
+    // normal world's.
+    for (auto& jsWindowProxy : protect(windowProxy())->jsWindowProxiesAsVector()) {
+        auto* window = jsWindowProxy->window();
+        if (!window)
+            continue;
+        JSLockHolder lock(jsWindowProxy->world().vm());
+        JSElement::reevaluateQuirkDependentPrototypeProperties(*window);
+        JSDocument::reevaluateQuirkDependentPrototypeProperties(*window);
+        JSShadowRoot::reevaluateQuirkDependentPrototypeProperties(*window);
+    }
+}
+
 Bindings::RootObject* ScriptController::cacheableBindingRootObject()
 {
     if (!canExecuteScripts(ReasonForCallingCanExecuteScripts::NotAboutToExecuteScript))
@@ -564,7 +584,7 @@ void ScriptController::collectIsolatedContexts(Vector<std::pair<JSC::JSGlobalObj
 {
     for (auto& jsWindowProxy : protect(windowProxy())->jsWindowProxiesAsVector()) {
         auto* lexicalGlobalObject = jsWindowProxy->window();
-        RefPtr origin = protect(downcast<LocalDOMWindow>(jsWindowProxy->wrapped()))->document()->securityOrigin();
+        RefPtr origin = protect(protect(downcast<LocalDOMWindow>(jsWindowProxy->wrapped()))->document())->securityOrigin();
         result.append(std::make_pair(lexicalGlobalObject, WTF::move(origin)));
     }
 }

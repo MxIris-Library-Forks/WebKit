@@ -192,7 +192,7 @@ private:
 
     static constexpr size_t initialReadBufferCapacity = 32;
     // The limit is 1 << (52 - 1) = 2251799813685248
-    static constexpr unsigned numberOfDigitsForSafeInt52 = 15;
+    static constexpr ptrdiff_t numberOfDigitsForSafeInt52 = 15;
 
     // Fields up to m_sourceURLDirective are arranged according to access frequency
     // and affinity; do not rearrange without careful analysis.

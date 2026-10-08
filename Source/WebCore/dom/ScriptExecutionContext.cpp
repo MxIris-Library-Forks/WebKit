@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2024 Apple Inc. All rights reserved.
+ * Copyright (C) 2008-2026 Apple Inc. All rights reserved.
  * Copyright (C) 2012 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 
 #include "CSSValuePool.h"
 #include "CachedScript.h"
+#include "ClientOrigin.h"
 #include "CommonVM.h"
 #include "ContentSecurityPolicy.h"
 #include "ContextDestructionObserverInlines.h"
@@ -423,6 +424,7 @@ void ScriptExecutionContext::suspendActiveDOMObjects(ReasonForSuspension why)
     }
 
     m_activeDOMObjectsAreSuspended = true;
+    m_reasonForSuspendingActiveDOMObjects = why;
 
     forEachMicrotaskGlobalObject([](auto& globalObject) {
         globalObject.setMicrotaskRunnability(JSC::QueuedTaskResult::Suspended);
@@ -432,8 +434,6 @@ void ScriptExecutionContext::suspendActiveDOMObjects(ReasonForSuspension why)
         activeDOMObject.suspend(why);
         return ShouldContinue::Yes;
     });
-
-    m_reasonForSuspendingActiveDOMObjects = why;
 }
 
 void ScriptExecutionContext::resumeActiveDOMObjects(ReasonForSuspension why)
@@ -451,6 +451,7 @@ void ScriptExecutionContext::resumeActiveDOMObjects(ReasonForSuspension why)
     vm().deferredWorkTimer->didResumeScriptExecutionOwner();
 
     m_activeDOMObjectsAreSuspended = false;
+    m_reasonForSuspendingActiveDOMObjects = std::nullopt;
 
     forEachMicrotaskGlobalObject([](auto& globalObject) {
         globalObject.setMicrotaskRunnability(JSC::QueuedTaskResult::Executed);
@@ -483,7 +484,7 @@ void ScriptExecutionContext::suspendActiveDOMObjectIfNeeded(ActiveDOMObject& act
 {
     ASSERT(m_activeDOMObjects.contains(activeDOMObject));
     if (m_activeDOMObjectsAreSuspended)
-        activeDOMObject.suspend(m_reasonForSuspendingActiveDOMObjects);
+        activeDOMObject.suspend(*m_reasonForSuspendingActiveDOMObjects);
     if (m_activeDOMObjectsAreStopped)
         activeDOMObject.stop();
 }
@@ -653,10 +654,9 @@ bool ScriptExecutionContext::dispatchErrorEvent(const String& errorMessage, int 
 
 int ScriptExecutionContext::circularSequentialID()
 {
-    ++m_circularSequentialID;
-    if (m_circularSequentialID <= 0)
-        m_circularSequentialID = 1;
-    return m_circularSequentialID;
+    if (m_circularSequentialID == std::numeric_limits<int>::max())
+        m_circularSequentialID = 0;
+    return ++m_circularSequentialID;
 }
 
 PublicURLManager& ScriptExecutionContext::publicURLManager()
@@ -938,6 +938,11 @@ void ScriptExecutionContext::postTaskToResponsibleDocument(Function<void(Documen
         callback(document.releaseNonNull());
 }
 
+ClientOrigin ScriptExecutionContext::storageClientOrigin() const
+{
+    return { storageTopOrigin().data(), securityOrigin()->data() };
+}
+
 static bool NODELETE isOriginEquivalentToLocal(const SecurityOrigin& origin)
 {
     return origin.isLocal() && !origin.needsStorageAccessFromFileURLsQuirk() && !origin.hasUniversalAccess();
@@ -964,7 +969,7 @@ ScriptExecutionContext::HasResourceAccess ScriptExecutionContext::canAccessResou
     case ResourceType::SessionStorage:
         if (m_storageBlockingPolicy == StorageBlockingPolicy::BlockAll)
             return HasResourceAccess::No;
-        if ((m_storageBlockingPolicy == StorageBlockingPolicy::BlockThirdParty) && !protect(topOrigin())->isSameOriginAs(*origin) && !origin->hasUniversalAccess())
+        if ((m_storageBlockingPolicy == StorageBlockingPolicy::BlockThirdParty) && !protect(storageTopOrigin())->isSameOriginAs(*origin) && !origin->hasUniversalAccess())
             return HasResourceAccess::DefaultForThirdParty;
         return HasResourceAccess::Yes;
     }

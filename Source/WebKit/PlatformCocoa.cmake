@@ -830,6 +830,7 @@ if (USE_APPLE_INTERNAL_SDK)
             DEPENDS
                 ${WebKitAdditions_HEADERS_DIR}/${_additions_swift_source}.swift.in
                 WebKitAdditions_CopyHeaders
+            DEPENDS_EXPLICIT_ONLY
             COMMENT "Copying ${_additions_swift_source}.swift"
             VERBATIM
         )
@@ -956,6 +957,9 @@ add_dependencies(WebKitSwift WebKit)
 # WebKit.framework's own signature does not cover this file: the
 # Frameworks/libWebKitSwift.dylib inside the bundle is a symlink to it.
 WEBKIT_LIBRARY(WebKitSwift)
+
+WEBKIT_RAISE_SWIFT_NINJA_PRIORITY(WebKit)
+WEBKIT_RAISE_SWIFT_NINJA_PRIORITY(WebKitSwift)
 
 unset(_wks_dir)
 
@@ -2551,6 +2555,12 @@ function(WEBKIT_DEFINE_MACOS_RESOURCES)
         VERBATIM)
     add_custom_target(WebKitCorePredictionModel ALL DEPENDS ${WebKit_RESOURCES_DIR}/corePrediction_model)
     add_dependencies(WebKit WebKitCorePredictionModel)
+
+    file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/Versions/A/Frameworks)
+    file(CREATE_LINK ../../../../libWebKitSwift.dylib
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/Versions/A/Frameworks/libWebKitSwift.dylib SYMBOLIC)
+    file(CREATE_LINK Versions/Current/Frameworks
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/Frameworks SYMBOLIC)
 endfunction()
 
 target_link_options(WebKit PRIVATE
@@ -2663,12 +2673,10 @@ add_custom_command(
     COMMENT "Staging WebKit.swiftmodule into WebKit.framework/${WEBKIT_FRAMEWORK_VERSION_PATH}Modules/"
     VERBATIM
 )
-# The staging command is ordered after WebKit, so this target must not be added
-# to WebKit_DEPENDENCIES; ALL is what gets it built.
+# The staging command depends on WebKit's Swift module, so this target must not
+# be added to WebKit_DEPENDENCIES; ALL is what gets it built.
 add_custom_target(WebKit_StageSwiftModule ALL DEPENDS ${_webkit_staged_swiftmodule_artifacts})
-# Ordering only; a dependency on the WebKit target would track the framework
-# binary, which code signing rewrites later.
-add_dependencies(WebKit_StageSwiftModule WebKit)
+list(APPEND WebKit_CODE_SIGN_INPUTS ${_webkit_staged_swiftmodule_artifacts})
 
 add_custom_command(
     OUTPUT "${_webkit_modules_dir}/WebKit.swiftcrossimport/SwiftUI.swiftoverlay"

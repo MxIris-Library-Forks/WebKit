@@ -56,7 +56,9 @@ Helpers/cocoa/TestWKWebView.mm @nonARC
 Helpers/cocoa/TestWKWebViewConfiguration.mm @nonARC
 Helpers/cocoa/UISideCompositingScope.mm @nonARC
 Helpers/cocoa/UserMediaCaptureUIDelegate.mm @nonARC
+Helpers/cocoa/FindCAPITester.mm @nonARC
 Helpers/cocoa/FindInPageUtilities.mm @nonARC
+Helpers/cocoa/FindInteractionTester.mm @nonARC
 Helpers/cocoa/FindStateSnapshot.mm @nonARC
 Helpers/cocoa/FindTestPage.mm @nonARC
 Helpers/cocoa/MouseSupportUIDelegate.mm @nonARC
@@ -65,6 +67,7 @@ Helpers/cocoa/PDFTestHelpers.mm @nonARC
 Helpers/cocoa/PublicFindAPITester.mm @nonARC
 Helpers/cocoa/SiteIsolationTestUtilities.mm @nonARC
 Helpers/cocoa/SiteIsolationUtilities.mm @nonARC
+Helpers/cocoa/TextFinderTester.mm @nonARC
 Helpers/ios/IOSMouseEventTestHarness.mm @nonARC
 Helpers/mac/LocalEventMonitorSwizzler.mm @nonARC
 Helpers/mac/WKWebViewForTestingImmediateActions.mm @nonARC
@@ -125,6 +128,7 @@ Tests/WebKit/WKWebView/CreateWebArchive.mm @nonARC
 Tests/WebKit/WKWebView/CustomUserAgent.mm @nonARC
 Tests/WebKit/WKWebView/DataDetection.mm @nonARC
 Tests/WebKit/WKWebView/WebAuthnRelatedOriginsFetch.mm @nonARC
+Tests/WebKit/WKWebView/WebAutomationPageZoom.mm @nonARC
 Tests/WebKit/WKWebView/WritingTools.mm @nonARC
 Tests/WebKit/WKWebView/DecidePolicyForNavigationAction.mm @nonARC
 Tests/WebKit/WKWebView/DeviceManagementRestrictions.mm @nonARC
@@ -151,9 +155,12 @@ Tests/WebKit/WKWebView/ExitFullscreenOnEnterPiP.mm @nonARC
 Tests/WebKit/WKWebView/ExitPiPOnSuspendVideoElement.mm @nonARC
 Tests/WebKit/WKWebView/FTP.mm @nonARC
 Tests/WebKit/WKWebView/FileSystemAccess.mm @nonARC
+Tests/WebKit/WKWebView/FindCAPI.mm @nonARC
 Tests/WebKit/WKWebView/FindInPage.mm @nonARC
 Tests/WebKit/WKWebView/FindInPageAPI.mm @nonARC
+Tests/WebKit/WKWebView/FindInteraction.mm @nonARC
 Tests/WebKit/WKWebView/FindPublicAPI.mm @nonARC
+Tests/WebKit/WKWebView/FindTextFinder.mm @nonARC
 Tests/WebKit/WKWebView/FirstVisuallyNonEmptyMilestone.mm @nonARC
 Tests/WebKit/WKWebView/FixedLayoutSize.mm @nonARC
 Tests/WebKit/WKWebView/FocusWebView.mm @nonARC
@@ -326,6 +333,7 @@ Tests/WebKit/WKWebView/TabOutOfWebView.mm @nonARC
 Tests/WebKit/WKWebView/TestAwakener.mm @nonARC
 Tests/WebKit/WKWebView/SOAuthorizationTests.mm @nonARC
 Tests/WebKit/WKWebView/TestURLSchemeHandler.mm @nonARC
+Tests/WebKit/WKWebView/TextManipulation.mm @nonARC
 Tests/WebKit/WKWebView/UIDelegate.mm @nonARC
 Tests/WebKit/WKWebView/UnifiedPDFTests.mm @nonARC
 Tests/WebKit/WKWebView/UploadDirectory.mm @nonARC
@@ -376,6 +384,11 @@ Tests/WebKit/WKWebView/WKWebExtensionAPIStorage.mm @nonARC
 Tests/WebKit/WKWebView/WKWebExtensionAPIRuntime.mm @nonARC
 Tests/WebKit/WKWebView/WKWebExtensionAPISidebar.mm @nonARC
 Tests/WebKit/WKWebView/WKWebExtensionAPITabs.mm @nonARC
+Tests/WebKit/WKWebView/WKWebExtensionAPITest.mm @nonARC
+Tests/WebKit/WKWebView/WKWebExtensionAPIWebNavigation.mm @nonARC
+Tests/WebKit/WKWebView/WKWebExtensionAPIWebRequest.mm @nonARC
+Tests/WebKit/WKWebView/WKWebExtensionContext.mm @nonARC
+Tests/WebKit/WKWebView/WKWebExtensionController.mm @nonARC
 Tests/WebKit/WKWebView/WKWebExtensionUnpartitionedStorage.mm @nonARC
 Tests/WebKit/WKWebView/WKWebViewAlwaysShowsScroller.mm @nonARC
 Tests/WebKit/WKWebView/WKWebViewCandidateTests.mm @nonARC

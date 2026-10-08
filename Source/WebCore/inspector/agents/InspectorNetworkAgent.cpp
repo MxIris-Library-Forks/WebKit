@@ -38,7 +38,6 @@
 #include "CachedResourceRequestInitiatorTypes.h"
 #include "CachedScript.h"
 #include "CertificateInfo.h"
-#include "CertificateSummary.h"
 #include "CookieJar.h"
 #include "DocumentInlines.h"
 #include "DocumentLoader.h"
@@ -145,54 +144,9 @@ Ref<Inspector::Protocol::Network::ResourceTiming> InspectorNetworkAgent::buildOb
     });
 }
 
-static Inspector::Protocol::Network::ReferrerPolicy NODELETE toProtocol(ReferrerPolicy referrerPolicy)
-{
-    switch (referrerPolicy) {
-    case ReferrerPolicy::EmptyString:
-        return Inspector::Protocol::Network::ReferrerPolicy::EmptyString;
-    case ReferrerPolicy::NoReferrer:
-        return Inspector::Protocol::Network::ReferrerPolicy::NoReferrer;
-    case ReferrerPolicy::NoReferrerWhenDowngrade:
-        return Inspector::Protocol::Network::ReferrerPolicy::NoReferrerWhenDowngrade;
-    case ReferrerPolicy::SameOrigin:
-        return Inspector::Protocol::Network::ReferrerPolicy::SameOrigin;
-    case ReferrerPolicy::Origin:
-        return Inspector::Protocol::Network::ReferrerPolicy::Origin;
-    case ReferrerPolicy::StrictOrigin:
-        return Inspector::Protocol::Network::ReferrerPolicy::StrictOrigin;
-    case ReferrerPolicy::OriginWhenCrossOrigin:
-        return Inspector::Protocol::Network::ReferrerPolicy::OriginWhenCrossOrigin;
-    case ReferrerPolicy::StrictOriginWhenCrossOrigin:
-        return Inspector::Protocol::Network::ReferrerPolicy::StrictOriginWhenCrossOrigin;
-    case ReferrerPolicy::UnsafeUrl:
-        return Inspector::Protocol::Network::ReferrerPolicy::UnsafeUrl;
-    }
-
-    ASSERT_NOT_REACHED();
-    return Inspector::Protocol::Network::ReferrerPolicy::EmptyString;
-}
-
 static Ref<Inspector::Protocol::Network::Request> buildObjectForResourceRequest(const ResourceRequest& request, ResourceLoader* resourceLoader)
 {
-    auto requestObject = Inspector::Protocol::Network::Request::create()
-        .setUrl(request.url().string())
-        .setMethod(request.httpMethod())
-        .setHeaders(ResourceUtilities::buildObjectForHeaders(request.httpHeaderFields()))
-        .release();
-
-    if (request.httpBody() && !request.httpBody()->isEmpty()) {
-        auto bytes = protect(request.httpBody())->flatten();
-        requestObject->setPostData(String::fromUTF8WithLatin1Fallback(bytes.span()));
-    }
-
-    if (resourceLoader) {
-        requestObject->setReferrerPolicy(toProtocol(resourceLoader->options().referrerPolicy));
-
-        if (auto integrity = resourceLoader->options().integrity; !integrity.isEmpty())
-            requestObject->setIntegrity(integrity);
-    }
-
-    return requestObject;
+    return ResourceUtilities::buildObjectForResourceRequest(request, ResourceUtilities::copyRequestExtras(request, resourceLoader));
 }
 
 static Inspector::Protocol::Network::Response::Source NODELETE responseSource(ResourceResponse::Source source)
@@ -239,39 +193,8 @@ RefPtr<Inspector::Protocol::Network::Response> InspectorNetworkAgent::buildObjec
         responseObject->setTiming(buildObjectForTiming(metrics ? *metrics : NetworkLoadMetrics::emptyMetrics(), *resourceLoader));
     }
 
-    if (auto& certificateInfo = response.certificateInfo()) {
-        auto securityPayload = Inspector::Protocol::Security::Security::create()
-            .release();
-
-        if (auto certificateSummaryInfo = certificateInfo.value().summary()) {
-            auto certificatePayload = Inspector::Protocol::Security::Certificate::create()
-                .release();
-
-            certificatePayload->setSubject(certificateSummaryInfo.value().subject);
-
-            if (auto validFrom = certificateSummaryInfo.value().validFrom)
-                certificatePayload->setValidFrom(validFrom.seconds());
-
-            if (auto validUntil = certificateSummaryInfo.value().validUntil)
-                certificatePayload->setValidUntil(validUntil.seconds());
-
-            auto dnsNamesPayload = JSON::ArrayOf<String>::create();
-            for (auto& dnsName : certificateSummaryInfo.value().dnsNames)
-                dnsNamesPayload->addItem(dnsName);
-            if (dnsNamesPayload->length())
-                certificatePayload->setDnsNames(WTF::move(dnsNamesPayload));
-
-            auto ipAddressesPayload = JSON::ArrayOf<String>::create();
-            for (auto& ipAddress : certificateSummaryInfo.value().ipAddresses)
-                ipAddressesPayload->addItem(ipAddress);
-            if (ipAddressesPayload->length())
-                certificatePayload->setIpAddresses(WTF::move(ipAddressesPayload));
-
-            securityPayload->setCertificate(WTF::move(certificatePayload));
-        }
-
-        responseObject->setSecurity(WTF::move(securityPayload));
-    }
+    if (auto& certificateInfo = response.certificateInfo())
+        responseObject->setSecurity(ResourceUtilities::buildObjectForSecurity(*certificateInfo));
 
     return responseObject;
 }

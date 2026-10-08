@@ -1945,6 +1945,14 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     if (std::exchange(_suppressNextPanScrollDelta, false))
         gestureDelta = { };
 
+    if (RefPtr page = [webView _protectedPage]; page->delegatesScalingToUIProcess()) {
+        CheckedPtr impl = [webView _impl];
+        if (RefPtr gestureController = impl->gestureController(); gestureController && gestureController->hasActiveMagnificationGesture()) {
+            gestureDelta = { };
+            gestureController->moveMagnificationOrigin(locationInView);
+        }
+    }
+
     auto pinnedState = [webView _protectedPage]->pinnedStateIncludingAncestorsAtPoint(locationInView);
     bool prefersUnlockedScroll = [self prefersUnlockedScroll:_panGestureRecognizer];
     bool canScrollHorizontally = [_panGestureRecognizer _canPanHorizontally] && !(pinnedState.left() && pinnedState.right());
@@ -2024,7 +2032,8 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     // diagonal drift; also keeps _fastScrollTracker's velocity heuristics off-axis-clean.
     auto velocity = WebCore::FloatSize { _directionalScrollLockTracker->filterVelocity(unfilteredVelocity, [self prefersUnlockedScroll:gesture]) };
 
-    static constexpr float minimumVelocityForMomentum = 20;
+    static constexpr float minimumVelocityForSwipe = 20;
+    static constexpr float minimumVelocityForMomentum = 250;
 
     auto maximumComponentMagnitude = [](WebCore::FloatSize vector) {
         return std::max(std::abs(vector.width()), std::abs(vector.height()));
@@ -2035,7 +2044,7 @@ ALLOW_NEW_API_WITHOUT_GUARDS_END
     // the tracker has to see it to consume its caughtMomentum and advance its endTime. Slower gestures
     // leave the tracker alone.
     double fastScrollMultiplier = 1;
-    if (maximumComponentMagnitude(unfilteredVelocity) >= minimumVelocityForMomentum)
+    if (maximumComponentMagnitude(unfilteredVelocity) >= minimumVelocityForSwipe)
         fastScrollMultiplier = _fastScrollTracker->update([gesture locationInView:nil], velocity, [gesture timestamp]);
 
     // Suppressing the gesture itself is judged on the filtered velocity, which can only be smaller, so

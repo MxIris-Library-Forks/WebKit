@@ -111,6 +111,7 @@ enum class ReasonForSuspension : uint8_t;
 enum class ScriptTrackingPrivacyCategory : uint8_t;
 enum class StorageBlockingPolicy : uint8_t;
 enum class TaskSource : uint8_t;
+struct ClientOrigin;
 struct CryptoKeyData;
 struct NetworkLoadPolicy;
 struct SettingsValues;
@@ -158,7 +159,7 @@ public:
 
     virtual String userAgent(const URL&) const = 0;
 
-    virtual const SettingsValues& settingsValues() const = 0;
+    virtual const SettingsValues& NODELETE settingsValues() const = 0;
 
     virtual const NetworkLoadPolicy& networkLoadPolicy() const = 0;
 
@@ -195,6 +196,9 @@ public:
     virtual void addConsoleMessage(MessageSource, MessageLevel, const String& message, unsigned long requestIdentifier = 0) = 0;
 
     virtual SecurityOrigin& topOrigin() const = 0;
+    virtual bool hasUnpartitionedStorageAccess() const { return false; }
+    SecurityOrigin& storageTopOrigin() const { return hasUnpartitionedStorageAccess() ? *securityOrigin() : topOrigin(); }
+    ClientOrigin storageClientOrigin() const;
 
     virtual bool shouldBypassMainWorldContentSecurityPolicy() const { return false; }
 
@@ -409,7 +413,7 @@ protected:
         inline AddConsoleMessageTask(MessageSource, MessageLevel, const String&);
     };
 
-    ReasonForSuspension reasonForSuspendingActiveDOMObjects() const { return m_reasonForSuspendingActiveDOMObjects; }
+    std::optional<ReasonForSuspension> reasonForSuspendingActiveDOMObjects() const { return m_reasonForSuspendingActiveDOMObjects; }
 
     bool hasPendingActivity() const;
     WEBCORE_EXPORT void addToContextsMap();
@@ -471,7 +475,7 @@ private:
     HashMap<NotificationCallbackIdentifier, CompletionHandler<void()>> m_notificationCallbacks;
 
     StorageBlockingPolicy m_storageBlockingPolicy;
-    ReasonForSuspension m_reasonForSuspendingActiveDOMObjects { static_cast<ReasonForSuspension>(-1) };
+    std::optional<ReasonForSuspension> m_reasonForSuspendingActiveDOMObjects;
 
     Type m_type;
     bool m_activeDOMObjectsAreSuspended { false };

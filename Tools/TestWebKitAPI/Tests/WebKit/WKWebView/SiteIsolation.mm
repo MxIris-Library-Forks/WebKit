@@ -81,6 +81,7 @@
 #import <wtf/BlockPtr.h>
 #import <wtf/HashSet.h>
 #import <wtf/StdLibExtras.h>
+#import <wtf/cocoa/TypeCastsCocoa.h>
 #import <wtf/text/MakeString.h>
 
 #if PLATFORM(IOS_FAMILY)
@@ -3405,6 +3406,75 @@ TEST(SiteIsolation, DragAndDropWithoutNavigation)
     TestWebKitAPI::Util::run(&done);
     EXPECT_FALSE(didDecideNavigationPolicy);
     EXPECT_EQ(windowDropCount, 1);
+}
+#endif
+
+#if ENABLE(DRAG_SUPPORT) && PLATFORM(MAC)
+TEST(SiteIsolation, DropInSameSiteGrandchildOfOffsetRemoteFrame)
+{
+    // a.com embeds b.com, which embeds a.com. The drag starts in the main frame and the drop
+    // happens in the grandchild, so the drop point is transformed into b.com's coordinates
+    // and then into the grandchild's coordinates.
+    auto mainframeHTML = "<!DOCTYPE html>"
+    "<body style='margin: 0'>"
+    "<div id='draggable' draggable='true' style='width: 100px; height: 100px; background-color: pink'>Apples</div>"
+    "<iframe src='https://b.com/child' style='position: absolute; left: 50px; top: 200px; width: 400px; height: 350px; border: 0'></iframe>"
+    "<script>"
+    "window.addEventListener('message', e => { window.grandchildLoaded = e.data == 'grandchild loaded' });"
+    "</script>"
+    "</body>"_s;
+
+    auto childHTML = "<!DOCTYPE html>"
+    "<body style='margin: 0'>"
+    "<iframe src='https://a.com/grandchild' style='position: absolute; left: 30px; top: 40px; width: 300px; height: 250px; border: 0'></iframe>"
+    "</body>"_s;
+
+    auto grandchildHTML = "<!DOCTYPE html>"
+    "<body style='margin: 0'>"
+    "<div id='dropzone' style='width: 250px; height: 150px; background-color: green'>Drop here</div>"
+    "<script>"
+    "window.events = [];"
+    "const dropzone = document.getElementById('dropzone');"
+    "dropzone.addEventListener('dragenter', e => { e.preventDefault(); window.events.push('dragenter') });"
+    "dropzone.addEventListener('dragover', e => { e.preventDefault(); if (window.events.at(-1) != 'dragover') window.events.push('dragover') });"
+    "dropzone.addEventListener('dragleave', e => window.events.push('dragleave'));"
+    "dropzone.addEventListener('drop', e => { e.preventDefault(); window.events.push(`drop:${e.clientX},${e.clientY}`) });"
+    "top.postMessage('grandchild loaded', '*');"
+    "</script>"
+    "</body>"_s;
+
+    HTTPServer server({
+        { "/mainframe"_s, { mainframeHTML } },
+        { "/child"_s, { childHTML } },
+        { "/grandchild"_s, { grandchildHTML } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    [navigationDelegate allowAnyTLSCertificate];
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
+
+    RetainPtr webView = [simulator webView];
+    [webView setNavigationDelegate:navigationDelegate.get()];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    while (![[webView objectByEvaluatingJavaScript:@"!!window.grandchildLoaded"] boolValue])
+        Util::spinRunLoop();
+    [webView waitForNextPresentationUpdate];
+
+    // (150, 300) in the main frame is (100, 100) in b.com and (70, 60) in the grandchild.
+    [simulator runFrom:CGPointMake(50, 50) to:CGPointMake(150, 300)];
+
+    __block bool done = false;
+    __block RetainPtr<WKFrameInfo> grandchildFrame;
+    [webView _frames:^(_WKFrameTreeNode *mainFrame) {
+        grandchildFrame = mainFrame.childFrames.firstObject.childFrames.firstObject.info;
+        done = true;
+    }];
+    Util::run(&done);
+
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"window.events.join(',')" inFrame:grandchildFrame.get()], "dragenter,dragover,drop:70,60");
 }
 #endif
 
@@ -8898,6 +8968,70 @@ TEST(SiteIsolation, AutoplayPolicyInRemoteFrameFollowsMainFrame)
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
     waitForBoth(@"main:autoplayed", @"iframe:autoplayed");
 }
+
+#if PLATFORM(MAC)
+TEST(SiteIsolation, RemoteFrameMediaInheritsUserGestureFromMainFrame)
+{
+    auto mainFrameHTML = "<script>"
+        "window.onmessage = (event) => window.webkit.messageHandlers.testHandler.postMessage(event.data);"
+        "function playSubframeVideo() { document.querySelector('iframe').contentWindow.postMessage('play', '*'); }"
+        "</script>"
+        "<iframe src='https://webkit.org/subframe'></iframe>"_s;
+    auto subFrameHTML = "<script>"
+        "window.onmessage = () => {"
+        "    var video = document.getElementById('video');"
+        "    video.addEventListener('play', () => window.parent.postMessage('played', '*'), { once: true });"
+        "    video.play().catch((error) => window.parent.postMessage(error.name, '*'));"
+        "};"
+        "</script>"
+        "<video id='video' webkit-playsinline preload='auto' src='/video-with-audio.mp4'"
+        "    onloadeddata='window.parent.postMessage(\"loaded\", \"*\")' onerror='window.parent.postMessage(\"error\", \"*\")'></video>"_s;
+
+    RetainPtr videoData = [NSData dataWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"video-with-audio" ofType:@"mp4"] options:0 error:NULL];
+
+    HTTPServer server({
+        { "/mainframe"_s, { { { "Content-Type"_s, "text/html"_s } }, mainFrameHTML } },
+        { "/subframe"_s, { { { "Content-Type"_s, "text/html"_s } }, subFrameHTML } },
+        { "/video-with-audio.mp4"_s, { videoData.get() } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    WKPreferencesSetMediaUserGestureInheritsFromDocument((__bridge WKPreferencesRef)[configuration preferences], true);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView _setWindowOcclusionDetectionEnabled:NO];
+    [navigationDelegate setDecidePolicyForNavigationActionWithPreferences:^(WKNavigationAction *, WKWebpagePreferences *preferences, void (^completionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {
+        [preferences _setAutoplayPolicy:_WKWebsiteAutoplayPolicyAllowWithoutSound];
+        completionHandler(WKNavigationActionPolicyAllow, preferences);
+    }];
+
+    __block RetainPtr<NSString> lastMessage;
+    [webView performAfterReceivingAnyMessage:^(NSString *message) {
+        lastMessage = message;
+    }];
+    auto waitForMessage = ^{
+        while (!lastMessage)
+            Util::spinRunLoop();
+        return std::exchange(lastMessage, nil);
+    };
+    auto playSubframeVideo = [&] {
+        [webView _evaluateJavaScriptWithoutUserGesture:@"playSubframeVideo()" completionHandler:nil];
+        return waitForMessage();
+    };
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    EXPECT_WK_STREQ(waitForMessage().get(), "loaded");
+    EXPECT_NE([webView mainFrame].info._processIdentifier, [webView firstChildFrame]._processIdentifier);
+
+    EXPECT_WK_STREQ(playSubframeVideo().get(), "NotAllowedError");
+
+    CGPoint outsideSubframe = [webView convertPoint:CGPointMake(400, 400) toView:nil];
+    [webView mouseDownAtPoint:outsideSubframe simulatePressure:NO];
+    [webView mouseUpAtPoint:outsideSubframe];
+
+    EXPECT_WK_STREQ(playSubframeVideo().get(), "played");
+}
+#endif
 
 TEST(SiteIsolation, FrameServerTrust)
 {
@@ -18193,7 +18327,7 @@ TEST(SiteIsolation, DrawPagesToPDFSynchronouslyIncludesCrossSiteFrames)
     }];
     Util::run(&computedPages);
 
-    RetainPtr data = [webView _drawPagesToPDFSynchronouslyForTesting:[mainFrame _handle]];
+    RetainPtr data = [webView _drawPagesToPDFSynchronouslyForTesting:[mainFrame _handle] pageCount:1];
     ASSERT_NOT_NULL(data.get());
 
     RetainPtr document = adoptNS([[TestPDFDocument alloc] initFromData:data.get()]);
@@ -18202,6 +18336,73 @@ TEST(SiteIsolation, DrawPagesToPDFSynchronouslyIncludesCrossSiteFrames)
     EXPECT_TRUE([text containsString:@"Mainframe"]);
     EXPECT_TRUE([text containsString:@"Subframe"]);
     EXPECT_TRUE([text containsString:@"Nested"]);
+}
+
+// Whether the pixel at a point, measured from the top left of a page, is close to an sRGB color. Unlike
+// TestPDFPage's colorAtPoint:, this can tell apart colors at different heights.
+static bool pdfPageHasColorAtPoint(NSData *data, size_t pageNumber, CGPoint point, std::array<uint8_t, 3> color)
+{
+    RetainPtr provider = adoptCF(CGDataProviderCreateWithCFData(bridge_cast(data)));
+    RetainPtr document = adoptCF(CGPDFDocumentCreateWithProvider(provider.get()));
+    CGPDFPageRef page = CGPDFDocumentGetPage(document.get(), pageNumber);
+    if (!page)
+        return false;
+    auto bounds = CGPDFPageGetBoxRect(page, kCGPDFMediaBox);
+    size_t width = bounds.size.width;
+    size_t height = bounds.size.height;
+    RetainPtr colorSpace = adoptCF(CGColorSpaceCreateWithName(kCGColorSpaceSRGB));
+    RetainPtr context = adoptCF(CGBitmapContextCreate(nullptr, width, height, 8, width * 4, colorSpace.get(), kCGImageAlphaPremultipliedLast));
+    CGContextSetRGBFillColor(context.get(), 1, 1, 1, 1);
+    CGContextFillRect(context.get(), CGRectMake(0, 0, width, height));
+    CGContextDrawPDFPage(context.get(), page);
+    auto pixels = unsafeMakeSpan(static_cast<const uint8_t*>(CGBitmapContextGetData(context.get())), width * height * 4);
+    auto pixel = pixels.subspan((static_cast<size_t>(point.y) * width + static_cast<size_t>(point.x)) * 4, 3);
+    for (size_t i = 0; i < 3; ++i) {
+        if (std::abs(pixel[i] - color[i]) > 2)
+            return false;
+    }
+    return true;
+}
+
+// An iframe taller than a page straddles the page break, so printing paints it once on each page. Its
+// process records it once, and each page shows the part of it that falls on that page.
+TEST(SiteIsolation, DrawPagesToPDFIncludesCrossSiteFrameOnEveryPageItSpans)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin:0'><iframe style='display:block;border:0;width:400px;height:1200px' src='https://b.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<body style='margin:0;print-color-adjust:exact'><div style='height:600px;background:red'></div><div style='height:600px;background:blue'></div></body>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration.get(), @"RemoteSnapshottingEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+
+    RetainPtr<WKFrameInfo> mainFrame = [webView mainFrame].info;
+    RetainPtr<WKFrameInfo> subframe = [webView mainFrame].childFrames.firstObject.info;
+    EXPECT_NE([mainFrame _processIdentifier], [subframe _processIdentifier]);
+
+    __block bool computedPages = false;
+    [webView _computePagesForPrinting:[mainFrame _handle] completionHandler:^{
+        computedPages = true;
+    }];
+    Util::run(&computedPages);
+
+    RetainPtr data = [webView _drawPagesToPDFSynchronouslyForTesting:[mainFrame _handle] pageCount:2];
+    ASSERT_NOT_NULL(data.get());
+    RetainPtr document = adoptNS([[TestPDFDocument alloc] initFromData:data.get()]);
+    EXPECT_EQ([document pageCount], 2);
+
+    // The first page ends in the blue half of the iframe, and the second shows the rest of it.
+    constexpr std::array<uint8_t, 3> red { 255, 0, 0 };
+    constexpr std::array<uint8_t, 3> blue { 0, 0, 255 };
+    constexpr std::array<uint8_t, 3> white { 255, 255, 255 };
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data.get(), 1, CGPointMake(100, 300), red));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data.get(), 1, CGPointMake(100, 700), blue));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data.get(), 2, CGPointMake(100, 100), blue));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data.get(), 2, CGPointMake(100, 500), white));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data.get(), 2, CGPointMake(500, 100), white));
 }
 
 #endif // HAVE(PDFKIT)

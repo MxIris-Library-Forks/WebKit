@@ -90,6 +90,7 @@ http/tests/site-isolation/magnify-gesture-over-cross-origin-pdf-iframe.html [ Sk
 # expectations.
 http/tests/site-isolation/magnify-gesture-coordinates.html [ Skip ]
 fast/viewport/ios [ Skip ]
+fast/quirks/ios [ Skip ]
 fast/visual-viewport/ios/ [ Skip ]
 http/tests/visual-viewport/ios/ [ Skip ]
 fast/device-orientation [ Skip ]
@@ -3323,8 +3324,6 @@ storage/indexeddb/modern/exceed-open-file-limit.html [ Skip ]
 webkit.org/b/155028 storage/indexeddb/modern/256-open-databases.html [ Skip ]
 
 webkit.org/b/208656 storage/indexeddb/modern/transactions-stop-on-navigation.html [ Pass Failure ]
-
-webkit.org/b/325521 http/tests/IndexedDB/transaction-commit-pending-requests-stop.html [ Pass Failure ]
 
 ### END OF IndexedDB failures
 ########################################

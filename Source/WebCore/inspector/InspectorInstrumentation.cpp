@@ -42,10 +42,12 @@
 #include "EventTargetInlines.h"
 #include "FrameCSSAgent.h"
 #include "FrameDOMAgent.h"
+#include "FrameDOMStorageAgent.h"
 #include "FrameDebuggerAgent.h"
 #include "FrameInspectorController.h"
 #include "FrameRuntimeAgent.h"
 #include "GPUCanvasContext.h"
+#include "HitTestResult.h"
 #include "InspectorAnimationAgent.h"
 #include "InspectorCSSAgent.h"
 #include "InspectorCanvasAgent.h"
@@ -79,6 +81,7 @@
 #include "RenderView.h"
 #include "ScriptController.h"
 #include "ScriptExecutionContext.h"
+#include "SecurityOrigin.h"
 #include "ServiceWorkerGlobalScope.h"
 #include "WebConsoleAgent.h"
 #include "WebDebuggerAgent.h"
@@ -391,10 +394,39 @@ void InspectorInstrumentation::pseudoElementDestroyedImpl(InstrumentingAgents& i
         layerTreeAgent->pseudoElementDestroyed(pseudoElement);
 }
 
+static void clearMousedOverNodes(LocalFrame& localRoot, const LocalFrame* hoveredFrame = nullptr)
+{
+    for (RefPtr<Frame> frame = &localRoot; frame; frame = frame->tree().traverseNext(&localRoot)) {
+        RefPtr localFrame = dynamicDowncast<LocalFrame>(frame);
+        if (!localFrame || localFrame == hoveredFrame || &localFrame->rootFrame() != &localRoot)
+            continue;
+        if (CheckedPtr frameDOMAgent = localFrame->inspectorController().instrumentingAgents().persistentFrameDOMAgent())
+            frameDOMAgent->mouseDidLeaveFrame();
+    }
+}
+
 void InspectorInstrumentation::mouseDidMoveOverElementImpl(InstrumentingAgents& instrumentingAgents, const HitTestResult& result, OptionSet<PlatformEventModifier> modifiers)
 {
+    // This hook arrives with the page's agents, so resolve the frame agent from the hit-tested frame.
+    if (RefPtr frame = result.innerNodeFrame()) {
+        clearMousedOverNodes(protect(frame->rootFrame()), frame.get());
+        if (CheckedPtr frameDOMAgent = frame->inspectorController().instrumentingAgents().persistentFrameDOMAgent())
+            frameDOMAgent->mouseDidMoveOverElement(result, modifiers);
+    }
     if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
         domAgent->mouseDidMoveOverElement(result, modifiers);
+}
+
+void InspectorInstrumentation::mouseDidMoveOverRemoteFrameImpl(InstrumentingAgents& instrumentingAgents, LocalFrame& frame)
+{
+    clearMousedOverNodes(protect(frame.rootFrame()));
+    if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
+        domAgent->mouseDidMoveOverRemoteFrame();
+}
+
+void InspectorInstrumentation::mouseDidLeaveLocalRootImpl(LocalFrame& localRoot)
+{
+    clearMousedOverNodes(localRoot);
 }
 
 void InspectorInstrumentation::didScrollImpl(InstrumentingAgents& instrumentingAgents)
@@ -403,15 +435,31 @@ void InspectorInstrumentation::didScrollImpl(InstrumentingAgents& instrumentingA
         pageAgent->didScroll();
 }
 
-bool InspectorInstrumentation::handleTouchEventImpl(InstrumentingAgents& instrumentingAgents, Node& node)
+bool InspectorInstrumentation::handleTouchEventImpl(Node& node)
 {
-    if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
+    // The tap's hit test descends into subframes, so use the agents of the frame the node is in.
+    RefPtr frame = node.document().frame();
+    if (!frame)
+        return false;
+    Ref instrumentingAgents = InspectorInstrumentation::instrumentingAgents(*frame);
+
+    // A frame target owns element selection for its own frame, so give it the tap first. Only one
+    // agent may consume the tap: both would call inspect() and the frontend would select twice.
+    if (CheckedPtr frameDOMAgent = instrumentingAgents->persistentFrameDOMAgent()) {
+        if (frameDOMAgent->handleTouchEvent(node))
+            return true;
+    }
+    if (CheckedPtr domAgent = instrumentingAgents->persistentDOMAgent())
         return domAgent->handleTouchEvent(node);
     return false;
 }
 
 bool InspectorInstrumentation::handleMousePressImpl(InstrumentingAgents& instrumentingAgents)
 {
+    if (CheckedPtr frameDOMAgent = instrumentingAgents.persistentFrameDOMAgent()) {
+        if (frameDOMAgent->handleMousePress())
+            return true;
+    }
     if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
         return domAgent->handleMousePress();
     return false;
@@ -720,14 +768,26 @@ void InspectorInstrumentation::applyEmulatedMediaImpl(InstrumentingAgents& instr
         pageAgent->applyEmulatedMedia(media);
 }
 
+// These resolve through renderer.frame(), so `instrumentingAgents` is the *frame's*. Both agents are
+// notified, because either may own the overlay that later reads the cache: a frame overlay reads its own
+// FrameDOMAgent, while a node highlighted from the page target draws through the page overlay and reads
+// InspectorDOMAgent. Under Site Isolation even the main frame has a FrameDOMAgent, so notifying only the
+// first match would starve the page agent's cache and silently drop main-frame flex line separators.
+// Both getters walk the frame->page fallback chain, but only the agent that owns a slot ever populates
+// it, so each call resolves to the agent that will be asked for this renderer. The caches are weak and
+// keyed by renderer, so notifying both is harmless.
 void InspectorInstrumentation::flexibleBoxRendererBeganLayoutImpl(InstrumentingAgents& instrumentingAgents, const RenderObject& renderer)
 {
+    if (CheckedPtr frameDOMAgent = instrumentingAgents.persistentFrameDOMAgent())
+        frameDOMAgent->flexibleBoxRendererBeganLayout(renderer);
     if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
         domAgent->flexibleBoxRendererBeganLayout(renderer);
 }
 
 void InspectorInstrumentation::flexibleBoxRendererWrappedToNextLineImpl(InstrumentingAgents& instrumentingAgents, const RenderObject& renderer, size_t lineStartItemIndex)
 {
+    if (CheckedPtr frameDOMAgent = instrumentingAgents.persistentFrameDOMAgent())
+        frameDOMAgent->flexibleBoxRendererWrappedToNextLine(renderer, lineStartItemIndex);
     if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
         domAgent->flexibleBoxRendererWrappedToNextLine(renderer, lineStartItemIndex);
 }
@@ -1197,8 +1257,27 @@ void InspectorInstrumentation::consoleStopRecordingCanvasImpl(InstrumentingAgent
         canvasAgent->consoleStopRecordingCanvas(device);
 }
 
-void InspectorInstrumentation::didDispatchDOMStorageEventImpl(InstrumentingAgents& instrumentingAgents, const String& key, const String& oldValue, const String& newValue, StorageType storageType, const SecurityOrigin& securityOrigin)
+void InspectorInstrumentation::didDispatchDOMStorageEventImpl(InstrumentingAgents& instrumentingAgents, Page& page, const String& key, const String& oldValue, const String& newValue, StorageType storageType, const SecurityOrigin& securityOrigin)
 {
+    // Notify at most one agent: same-origin frames share a StorageArea, and the frontend keys
+    // DOMStorageObject on the StorageId alone.
+    CheckedPtr<FrameDOMStorageAgent> frameDOMStorageAgent;
+    page.forEachLocalFrame([&](LocalFrame& frame) {
+        if (frameDOMStorageAgent)
+            return;
+
+        RefPtr document = frame.document();
+        if (!document || !document->securityOrigin().equal(securityOrigin))
+            return;
+
+        frameDOMStorageAgent = frame.inspectorController().instrumentingAgents().enabledFrameDOMStorageAgent();
+    });
+
+    if (frameDOMStorageAgent) {
+        frameDOMStorageAgent->didDispatchDOMStorageEvent(key, oldValue, newValue, storageType, securityOrigin);
+        return;
+    }
+
     if (CheckedPtr domStorageAgent = instrumentingAgents.enabledDOMStorageAgent())
         domStorageAgent->didDispatchDOMStorageEvent(key, oldValue, newValue, storageType, securityOrigin);
 }

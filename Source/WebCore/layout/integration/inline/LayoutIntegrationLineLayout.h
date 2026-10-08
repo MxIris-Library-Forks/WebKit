@@ -98,6 +98,8 @@ public:
 
     enum class ForceFullLayout : bool { No, Yes };
     std::optional<LayoutRect> layout(RenderBlockFlow::MarginInfo&, ForceFullLayout = ForceFullLayout::No);
+    // Builds the display content without line layout. Returns false when the content needs the full layout.
+    bool layoutSVGText();
     void paint(PaintInfo&, const LayoutPoint& paintOffset, const RenderBoxModelObject* layerRenderer = nullptr);
     bool hitTest(const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& accumulatedOffset, HitTestAction, const RenderBoxModelObject* layerRenderer = nullptr);
     void adjustForPagination();
@@ -164,6 +166,9 @@ private:
     void updateRenderTreePositions(const Vector<LineAdjustment>&, const Layout::InlineLayoutState&, bool didDiscardContent);
 
     InlineContent& ensureInlineContent() LIFETIME_BOUND;
+    Layout::BlockFormattingState& ensureBlockFormattingState() LIFETIME_BOUND;
+    Layout::InlineContentCache& ensureInlineContentCache() LIFETIME_BOUND;
+    const Layout::InlineItemList& inlineItemsForInvalidation() const LIFETIME_BOUND;
 
     Layout::LayoutState& layoutState() LIFETIME_BOUND { return *m_layoutState; }
     const Layout::LayoutState& layoutState() const LIFETIME_BOUND { return *m_layoutState; }
@@ -187,8 +192,9 @@ private:
     CheckedPtr<Layout::ElementBox> m_rootLayoutBox;
     CheckedPtr<Document> m_document;
     WeakPtr<Layout::LayoutState> m_layoutState;
-    Layout::BlockFormattingState& m_blockFormattingState;
-    Layout::InlineContentCache& m_inlineContentCache;
+    // Inline formatting context state, created on first use. The SVG text fast path does not need it.
+    Layout::BlockFormattingState* m_blockFormattingState { nullptr };
+    Layout::InlineContentCache* m_inlineContentCache { nullptr };
     std::optional<Layout::ConstraintsForInlineContent> m_inlineContentConstraints;
     // FIXME: This should be part of LayoutState.
     std::unique_ptr<Layout::InlineDamage> m_lineDamage;

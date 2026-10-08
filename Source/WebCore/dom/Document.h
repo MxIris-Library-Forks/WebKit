@@ -554,6 +554,14 @@ public:
     void setViewportArguments(const ViewportArguments& viewportArguments) { m_viewportArguments = viewportArguments; }
     WEBCORE_EXPORT ViewportArguments viewportArguments() const;
 
+    // Whether this document asked to lay out underneath the safe area insets, via "viewport-fit=cover"
+    // in its <meta name="viewport"> tag. Tracked while the document is parsing and frozen afterwards:
+    // rewriting the meta tag from script once loaded does not make the platform start honoring the
+    // safe area insets, so it must not change the answer here either.
+    // This is per-document, not per-page, so embedded content can opt in independently of its embedder.
+    enum class SafeAreaInsetOptIn : uint8_t { Undetermined, OptedIn, NotOptedIn };
+    SafeAreaInsetOptIn safeAreaInsetOptIn() const { return m_safeAreaInsetOptIn; }
+
     OptionSet<DisabledAdaptations> disabledAdaptations() const { return m_disabledAdaptations; }
 
     WEBCORE_EXPORT DocumentType* NODELETE doctype() const;
@@ -754,8 +762,8 @@ public:
     const Settings& settings() const { return m_settings.get(); }
     EditingBehavior NODELETE editingBehavior() const;
 
-    inline Quirks& quirks(); // Defined in DocumentQuirks.h
-    inline const Quirks& quirks() const; // Defined in DocumentQuirks.h
+    inline Quirks& NODELETE quirks(); // Defined in DocumentQuirks.h
+    inline const Quirks& NODELETE quirks() const; // Defined in DocumentQuirks.h
     void urlsAffectingQuirksDidChange();
 
     WEBCORE_EXPORT float NODELETE deviceScaleFactor() const;
@@ -963,7 +971,7 @@ public:
     ScriptableDocumentParser* scriptableDocumentParser() const;
     HTMLDocumentParser* htmlDocumentParser() const;
 
-    WEBCORE_EXPORT bool printing() const;
+    WEBCORE_EXPORT bool NODELETE printing() const;
 
     bool paginatedForScreen() const { return m_paginatedForScreen; }
     void setPaginatedForScreen(bool p) { m_paginatedForScreen = p; }
@@ -1566,6 +1574,7 @@ public:
 
     MonotonicTime lastHandledUserGestureTimestamp() const { return m_lastHandledUserGestureTimestamp; }
     bool hasHadUserInteraction() const { return static_cast<bool>(m_lastHandledUserGestureTimestamp); }
+    bool mainFrameDocumentHasHadUserInteraction() const;
     WEBCORE_EXPORT void updateLastHandledUserGestureTimestamp(MonotonicTime);
     bool processingUserGestureForMedia() const;
 
@@ -1703,7 +1712,7 @@ public:
 
     SecurityOrigin& securityOrigin() const { return *SecurityContext::securityOrigin(); }
     WEBCORE_EXPORT SecurityOrigin& topOrigin() const final;
-    bool hasUnpartitionedStorageAccess() const { return m_hasUnpartitionedStorageAccess; }
+    bool hasUnpartitionedStorageAccess() const final { return m_hasUnpartitionedStorageAccess; }
     void updateHasUnpartitionedStorageAccess(const DocumentLoader*);
     URL topURL() const;
     inline ClientOrigin clientOrigin() const;
@@ -2184,7 +2193,7 @@ private:
 
     ExceptionOr<void> write(Document* entryDocument, FixedVector<Variant<Ref<TrustedHTML>, String>>&&, ASCIILiteral lineFeed);
 
-    WEBCORE_EXPORT Quirks& ensureQuirks();
+    WEBCORE_EXPORT Quirks& NODELETE ensureQuirks();
     WEBCORE_EXPORT CachedResourceLoader& ensureCachedResourceLoader();
     WEBCORE_EXPORT ExtensionStyleSheets& ensureExtensionStyleSheets();
     WEBCORE_EXPORT DocumentMarkerController& ensureMarkers();
@@ -2207,6 +2216,11 @@ private:
 
     void createRenderTree();
     void detachParser();
+
+    // Recomputes the safe area opt-in from the current viewport arguments and, if it changed, pushes
+    // the new answer through the quirks and into the already-created bindings.
+    void updateSafeAreaInsetOptIn();
+
 
     DocumentEventTiming* documentEventTimingFromNavigationTiming();
 
@@ -2330,8 +2344,6 @@ private:
 
     inline Ref<DocumentSyncData> syncData();
     void NODELETE populateDocumentSyncDataForNewlyConstructedDocument(DocumentSyncDataType);
-
-    bool mainFrameDocumentHasHadUserInteraction() const;
 
     RegionFixedPair absoluteEventRegionForNode(Node&);
 
@@ -2542,6 +2554,7 @@ private:
     WeakHashMap<Node, std::unique_ptr<QuerySelectorAllResults>, WeakPtrImplWithEventTargetData> m_querySelectorAllResults;
 
     ViewportArguments m_viewportArguments;
+    SafeAreaInsetOptIn m_safeAreaInsetOptIn { SafeAreaInsetOptIn::Undetermined };
 
     DocumentEventTiming m_eventTiming;
     mutable std::unique_ptr<LargestContentfulPaintData> m_largestContentfulPaintData;

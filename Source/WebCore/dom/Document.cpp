@@ -784,6 +784,7 @@ void Document::populateDocumentSyncDataForNewlyConstructedDocument(DocumentSyncD
     // or are populated other ways even on newly constructed documents.
     case DocumentSyncDataType::DocumentSecurityOrigin:
     case DocumentSyncDataType::DocumentURL:
+    case DocumentSyncDataType::HasHadUserInteraction:
     case DocumentSyncDataType::HasInjectedUserScript:
     case DocumentSyncDataType::IsClosing:
     case DocumentSyncDataType::IsAutofocusProcessed:
@@ -5473,6 +5474,13 @@ void Document::processViewport(const String& features, ViewportArguments::Type o
     });
 
     updateViewportArguments();
+
+    // Follow viewport-fit for as long as the document is still parsing, and stop afterwards: a page
+    // rewriting its own meta tag once loaded does not make the platform start honoring the safe area
+    // insets. HTMLPreloadScanner calls us during tokenization, ahead of the main parser and ahead of
+    // script, so on a typical page this settles before Element.prototype even exists.
+    if (parsing())
+        updateSafeAreaInsetOptIn();
 }
 
 ViewportArguments Document::viewportArguments() const
@@ -5511,6 +5519,22 @@ void Document::updateViewportArguments()
 
     page->chrome().dispatchViewportPropertiesDidChange(viewportArguments());
     page->chrome().didReceiveDocType(protect(frame()).releaseNonNull());
+}
+
+void Document::updateSafeAreaInsetOptIn()
+{
+    auto optIn = viewportArguments().viewportFit == ViewportFit::Cover
+        ? SafeAreaInsetOptIn::OptedIn
+        : SafeAreaInsetOptIn::NotOptedIn;
+    if (optIn == m_safeAreaInsetOptIn)
+        return;
+
+    m_safeAreaInsetOptIn = optIn;
+
+    if (m_quirks)
+        m_quirks->determineRelevantQuirks();
+    if (RefPtr frame = this->frame())
+        frame->script().reevaluateQuirkDependentProperties();
 }
 
 void Document::metaElementThemeColorChanged(HTMLMetaElement& metaElement)
@@ -8361,6 +8385,10 @@ void Document::finishedParsing()
 
     Ref protectedThis { *this };
 
+    // Covers documents that never called processViewport at all, which have therefore not opted in.
+    // Runs before deferred scripts and DOMContentLoaded so script does not observe the change.
+    updateSafeAreaInsetOptIn();
+
     if (RefPtr scriptRunner = m_scriptRunner.get())
         scriptRunner->documentFinishedParsing();
 
@@ -9734,14 +9762,19 @@ void Document::updateLastHandledUserGestureTimestamp(MonotonicTime time)
     // DOM Timer alignment may depend on the user having interacted with the document.
     didChangeTimerAlignmentInterval();
 
+    if (isTopDocument()) {
+        if (RefPtr page = this->page())
+            page->setTopDocumentHasHadUserInteraction(static_cast<bool>(time));
+    }
+
     if (RefPtr element = ownerElement())
         protect(element->document())->updateLastHandledUserGestureTimestamp(time);
 }
 
 bool Document::mainFrameDocumentHasHadUserInteraction() const
 {
-    RefPtr mainFrameDocument = this->mainFrameDocument();
-    return mainFrameDocument && mainFrameDocument->hasHadUserInteraction();
+    RefPtr page = this->page();
+    return page && page->topDocumentHasHadUserInteraction();
 }
 
 bool Document::processingUserGestureForMedia() const
@@ -11763,12 +11796,12 @@ void Document::updateServiceWorkerClientData()
     if (!serviceWorkerConnection)
         return;
 
-    Ref topOrigin = this->topOrigin();
-    if (!topOrigin->isHTTPFamily() && !LegacySchemeRegistry::shouldTreatURLSchemeAsAllowingServiceWorkerClients(topOrigin->protocol()) && !(page() && page()->isServiceWorkerPage()))
+    Ref storageTopOrigin = this->storageTopOrigin();
+    if (!storageTopOrigin->isHTTPFamily() && !LegacySchemeRegistry::shouldTreatURLSchemeAsAllowingServiceWorkerClients(storageTopOrigin->protocol()) && !(page() && page()->isServiceWorkerPage()))
         return;
 
     auto controllingServiceWorkerRegistrationIdentifier = activeServiceWorker() ? std::make_optional<ServiceWorkerRegistrationIdentifier>(activeServiceWorker()->registrationIdentifier()) : std::nullopt;
-    serviceWorkerConnection->registerServiceWorkerClient(clientOrigin(), ServiceWorkerClientData::from(*this), controllingServiceWorkerRegistrationIdentifier, userAgent(url()));
+    serviceWorkerConnection->registerServiceWorkerClient(storageClientOrigin(), ServiceWorkerClientData::from(*this), controllingServiceWorkerRegistrationIdentifier, userAgent(url()));
 }
 
 void Document::navigateFromServiceWorker(const URL& url, CompletionHandler<void(ScheduleLocationChangeResult)>&& callback)

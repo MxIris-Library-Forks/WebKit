@@ -143,6 +143,7 @@ public:
     void addConsoleMessage(std::unique_ptr<Inspector::ConsoleMessage>&&) final;
 
     SecurityOrigin& topOrigin() const final { return m_topOrigin.get(); }
+    bool hasUnpartitionedStorageAccess() const final { return m_hasUnpartitionedStorageAccess; }
 
     Crypto& crypto();
     Performance& NODELETE performance() const;
@@ -161,7 +162,7 @@ public:
     RefPtr<FontLoadRequest> fontLoadRequest(const String& url, bool isSVG, bool isInitiatingElementInUserAgentShadowTree, LoadedFromOpaqueSource) final;
     void beginLoadingFontSoon(FontLoadRequest&) final;
 
-    const SettingsValues& settingsValues() const LIFETIME_BOUND final { return m_settingsValues; }
+    const SettingsValues& NODELETE settingsValues() const LIFETIME_BOUND final { return m_settingsValues; }
 
     const NetworkLoadPolicy& networkLoadPolicy() const LIFETIME_BOUND final { return m_networkLoadPolicy; }
 
@@ -233,6 +234,7 @@ private:
     bool m_isOnline;
     bool m_shouldBypassMainWorldContentSecurityPolicy;
     bool m_isSecureContext;
+    const bool m_hasUnpartitionedStorageAccess;
 
     const Ref<SecurityOrigin> m_topOrigin;
 

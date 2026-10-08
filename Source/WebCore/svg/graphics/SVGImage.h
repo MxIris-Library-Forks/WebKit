@@ -58,6 +58,8 @@ public:
 
     FloatSize size(ImageOrientation = ImageOrientation::Orientation::FromImage) const final { return m_intrinsicSize; }
 
+    bool hasSomethingToDraw() const final { return !m_intrinsicSize.isEmpty(); }
+
     bool renderingTaintsOrigin() const final;
 
     void startAnimation() final;
@@ -67,8 +69,6 @@ public:
 
     Page* internalPage() { return m_page.get(); }
     WEBCORE_EXPORT RefPtr<SVGSVGElement> rootElement() const;
-
-    FloatSize resolvedIntrinsicSize(float density = 1.0f) const;
 
     RefPtr<NativeImage> nativeImage(const FloatSize&, const ColorSpace& = ColorSpace::SRGB(), const ImageDrawingExtras* = nullptr, ImagePaintingOptions = { });
 
@@ -81,6 +81,7 @@ private:
 
     void setContainerSize(const FloatSize&);
     IntSize containerSize() const;
+
     NaturalDimensions unorientedNaturalDimensions() const final;
 
     void reportApproximateMemoryCost() const;

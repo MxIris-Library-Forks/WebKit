@@ -6058,6 +6058,8 @@ void LocalFrameView::paintContentsForSnapshot(GraphicsContext& context, const In
             if (CheckedPtr renderView = localFrame->contentRenderer())
                 renderView->selection().clear();
         }
+
+        updateLayoutAndStyleIfNeededRecursive();
     }
 
     if (coordinateSpace == DocumentCoordinates)
@@ -7378,8 +7380,8 @@ std::optional<ScrollbarColor> LocalFrameView::scrollbarColorStyle() const
         if (auto value = scrollingObject->style().scrollbarColor().tryValue()) {
             Style::ColorResolver colorResolver { scrollingObject->style() };
             return ScrollbarColor {
-                .thumbColor = colorResolver.colorResolvingCurrentColor(value->thumb),
-                .trackColor = colorResolver.colorResolvingCurrentColor(value->track)
+                .thumbColor = colorResolver.colorResolvingCurrentColorApplyingColorFilter(value->thumb),
+                .trackColor = colorResolver.colorResolvingCurrentColorApplyingColorFilter(value->track)
             };
         }
     }

@@ -57,21 +57,13 @@ public:
     static std::pair<WeakPtr<BitmapImage>, float> brokenImage(float deviceScaleFactor); // Returns an image and the image's resolution scale factor.
     bool NODELETE willPaintBrokenImage() const;
 
-    bool canRender() const { return !errorOccurred() && m_image && !protect(m_image)->isNull(); }
+    bool canRender() const { return !errorOccurred() && m_image && protect(m_image)->hasSomethingToDraw(); }
 
     void setAllowsOrientationOverride(bool b) { m_allowsOrientationOverride = b; }
     bool allowsOrientationOverride() const { return m_allowsOrientationOverride; }
 
     void updateBuffer(const FragmentedSharedBuffer&) override;
     void finishLoading(const FragmentedSharedBuffer*, const NetworkLoadMetrics&) override;
-
-    enum SizeType {
-        UsedSize,
-        IntrinsicSize
-    };
-    WEBCORE_EXPORT FloatSize imageSize(ImageOrientation = ImageOrientation::Orientation::FromImage, float multiplier = 1.0f, SizeType = UsedSize, float density = 1.0f) const;
-    LayoutSize clampedImageSize(ImageOrientation, float multiplier, SizeType = UsedSize, float density = 1.0f) const;
-    static LayoutSize clampForZoom(FloatSize, float multiplier);
 
     NaturalDimensions naturalDimensions(ImageOrientation = ImageOrientation::Orientation::FromImage) const;
 

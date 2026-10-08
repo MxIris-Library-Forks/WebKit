@@ -2461,8 +2461,6 @@ webkit.org/b/321524 [ Debug ] imported/w3c/web-platform-tests/payment-request/pa
 
 webkit.org/b/321726 imported/w3c/web-platform-tests/largest-contentful-paint/observe-svg-data-uri-image.html [ Pass Failure ]
 
-webkit.org/b/321823 [ Debug ] imported/w3c/web-platform-tests/fullscreen/model/move-to-fullscreen-iframe.html [ Pass Crash ]
-
 # webkit.org/b/321110 NEW TEST(317810@main): [iOS macOS]4 tests in imported/w3c/web-platform-tests/webtransport/idlharness are constant failure
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.html [ Failure ]
 imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.serviceworker.html [ Failure ]
@@ -2625,7 +2623,6 @@ webkit.org/b/323902 [ x86_64 ] http/tests/webgpu/webgpu/shader/execution/express
 [ GoldenGate Debug ] http/tests/workers/service/page-caching.html [ Pass Crash ]
 [ GoldenGate Debug ] imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-auto-054.html [ Pass Crash ]
 [ GoldenGate Debug ] accessibility/element-reflection-ariaowns.html [ Failure ]
-[ GoldenGate Debug ] fast/quirks/active-quirks-by-domain.html [ Failure ]
 [ GoldenGate Debug ] imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-bidi-003.html [ ImageOnlyFailure ]
 [ GoldenGate Debug ] accessibility/isolated-tree/element-reflection-ariaowns.html [ Pass Failure ]
 [ GoldenGate Debug ] fast/webgpu/nocrash/fuzz-291168.html [ Pass Failure ]
@@ -2663,3 +2660,5 @@ editing/selection/select-across-readonly-input-5.html [ Failure ]
 # represented in the integer ScrollPosition and gets rounded, which shifts the layout viewport for fixed targets.
 # iOS skips these for the same reason, see platform/ios/TestExpectations.
 webkit.org/b/322505 fast/visual-viewport/zoomed-scroll-into-view-fixed.html [ Skip ]
+
+webkit.org/b/325574 [ Sequoia x86 Debug ] media/modern-media-controls/icon-service/icon-service-bundle-load.html [ Pass Timeout ]

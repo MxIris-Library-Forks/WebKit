@@ -165,8 +165,7 @@ ImageDrawResult RenderSVGImage::paintIntoRect(PaintInfo& paintInfo, const FloatR
         styleImage->interpolationQualityForImageDraw(paintInfo.context(), *this, concreteObjectSize, styleImage.get(), LayoutSize(rect.size())),
         settings().imageSubsamplingEnabled() ? AllowImageSubsampling::Yes : AllowImageSubsampling::No,
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
-        // FIXME: Remove the Image::nullImage() parameter once AXCustomColorModeController::shouldInvertContentImage() is updated.
-        (styleImage->drawsSVGImage() && AXCustomColorModeController::shouldInvertSVGImage(*this)) || AXCustomColorModeController::shouldInvertContentImage(*this, Image::nullImage(), rect.size()) ? InvertContent::Yes : InvertContent::No,
+        AXCustomColorModeController::shouldInvertContentImage(*this, *styleImage, rect.size()) ? InvertContent::Yes : InvertContent::No,
 #endif
         settings().showDebugBorders() ? ShowDebugBackground::Yes : ShowDebugBackground::No,
         settings().hdrAcceleratedApplyGainMapEnabled() ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No,
@@ -273,7 +272,7 @@ IntSize RenderSVGImage::imageContainerSize() const
     // https://w3c.github.io/svgwg/svg2-draft/coords.html#PreserveAspectRatioAttribute
     if (imageElement().preserveAspectRatio().align() == SVGPreserveAspectRatioValue::SVG_PRESERVEASPECTRATIO_NONE) {
         if (RefPtr cachedImage = imageResource().cachedImage())
-            return roundedIntSize(cachedImage->clampedImageSize(ImageOrientation::Orientation::FromImage, style().usedZoom()));
+            return svgImageSizeForPreserveAspectRatioNone(*cachedImage, style().usedZoom());
     }
 
     return enclosingIntRect(m_objectBoundingBox).size();

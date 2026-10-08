@@ -2013,6 +2013,7 @@ inspector/InspectorInstrumentationWebKit.cpp
 inspector/InspectorNetworkIntercept.cpp
 inspector/InspectorNodeFinder.cpp
 inspector/InspectorOverlay.cpp @header:RenderStyleGetters
+inspector/InspectorOverlayConfigParser.cpp
 inspector/InspectorOverlayLabel.cpp
 inspector/InspectorResourceUtilities.cpp
 inspector/InspectorShaderProgram.cpp
@@ -2126,6 +2127,7 @@ layout/formattingContexts/inline/InlineQuirks.cpp @header:RenderStyleGetters
 layout/formattingContexts/inline/InlineTextItem.cpp @header:RenderStyleGetters
 layout/formattingContexts/inline/IntrinsicWidthHandler.cpp @header:RenderStyleGetters
 layout/formattingContexts/inline/RangeBasedLineBuilder.cpp @header:RenderStyleGetters
+layout/formattingContexts/inline/SVGTextDisplayContentBuilder.cpp @header:RenderStyleGetters
 layout/formattingContexts/inline/TextOnlySimpleLineBuilder.cpp @header:RenderStyleGetters
 layout/formattingContexts/inline/display/InlineDisplayContent.cpp
 layout/formattingContexts/inline/display/InlineDisplayContentBuilder.cpp @header:RenderStyleGetters
@@ -2384,6 +2386,7 @@ page/PointerCaptureController.cpp
 page/PointerLockController.cpp
 page/PrintContext.cpp @header:RenderStyleGetters @cost:7
 page/ProcessWarming.cpp
+page/QuirkMatchPattern.cpp
 page/QuirkTable.cpp
 page/Quirks.cpp @header:RenderStyleGetters @cost:11
 page/RemoteDOMWindow.cpp
@@ -2396,6 +2399,7 @@ page/ResizeObservation.cpp @header:RenderStyleGetters @cost:5
 page/ResizeObserver.cpp
 page/ResourceUsageOverlay.cpp
 page/ResourceUsageThread.cpp
+page/RuntimeQuirkTable.cpp
 page/Screen.cpp
 page/ScreenOrientation.cpp
 page/ScriptTrackingPrivacyCategory.cpp
@@ -2408,7 +2412,6 @@ page/ShadowRealmGlobalScope.cpp
 page/ShareDataReader.cpp
 page/SpatialNavigation.cpp @header:RenderStyleGetters @cost:6
 page/TextIndicator.cpp @header:RenderStyleGetters @cost:6
-page/URLMatch.cpp
 page/UndoItem.cpp
 page/UndoManager.cpp
 page/UserContentController.cpp

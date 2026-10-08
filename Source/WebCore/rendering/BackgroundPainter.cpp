@@ -548,7 +548,6 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
         auto geometry = calculateFillLayerImageGeometry(m_renderer, m_paintInfo.paintContainer, layer.layer, layer.zoom, paintOffset, imageRect, m_overrideOrigin);
 
         auto& clientForBackgroundImage = backgroundObject ? *backgroundObject : m_renderer;
-        bgImage->setContainerSizeForRenderer(clientForBackgroundImage, geometry.tileSizeWithoutPixelSnapping);
 
         geometry.clip(LayoutRect(pixelSnappedRect));
         bool isFirstLine = inlineBoxIterator && inlineBoxIterator->lineBox()->isFirst();
@@ -572,7 +571,7 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
                 layer.layer.maskMode() == Style::MaskMode::Luminance ? DrawLuminanceMask::Yes : DrawLuminanceMask::No,
                 document().settings().imageSubsamplingEnabled() ? AllowImageSubsampling::Yes : AllowImageSubsampling::No,
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
-                bgImage->drawsSVGImage() && AXCustomColorModeController::shouldInvertSVGImage(clientForBackgroundImage) ? InvertContent::Yes : InvertContent::No,
+                bgImage->drawsSVGImage() && AXCustomColorModeController::shouldInvertSVGImage(clientForBackgroundImage, *bgImage) ? InvertContent::Yes : InvertContent::No,
 #endif
                 document().settings().showDebugBorders() ? ShowDebugBackground::Yes : ShowDebugBackground::No,
                 document().settings().hdrAcceleratedApplyGainMapEnabled() ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No,

@@ -2030,6 +2030,12 @@ http/wpt/webcodecs/H264-422.html [ Failure ]
 
 http/wpt/webcodecs/encoder-decoder-vp9-I420.html [ Failure ]
 
+# VP9 profile 2 is not enabled in the GStreamer ports.
+http/wpt/webcodecs/vp9-codec-string-bit-depth-and-chroma.html [ Failure ]
+http/wpt/webcodecs/encoder-from-10-bit-frame.html [ Failure ]
+# Tests the libwebrtc AV1 encoder used by the Cocoa ports.
+http/wpt/webcodecs/av1-encoder-bit-depth.html [ Skip ]
+
 fast/mediacapturefromelement/CanvasCaptureMediaStream-capture-out-of-DOM-canvas-webgl.html [ Pass Failure ]
 
 webkit.org/b/298925 [ x86_64 ] fast/mediacapturefromelement/CanvasCaptureMediaStream-offscreencanvas.html [ Pass Timeout ]
@@ -3499,6 +3505,7 @@ http/wpt/site-isolation [ Skip ]
 media/audio-session-category.html [ Skip ]
 media/audio-session-category-at-most-recent-playback.html [ Skip ]
 media/audio-session-category-play-unmute-pause.html [ Skip ]
+http/tests/media/audio-session-category-cross-site-pause-resume.html [ Skip ]
 
 # This test assumes we cannot play RTSP, but we can.
 media/unsupported-rtsp.html [ WontFix Skip ]
@@ -5226,10 +5233,19 @@ webkit.org/b/319044 imported/w3c/web-platform-tests/html/rendering/widgets/shado
 webkit.org/b/319045 [ Debug ] accessibility/button-in-deep-dom.html [ Timeout ]
 webkit.org/b/319049 [ Debug ] http/tests/cache/cancel-multiple-post-xhrs.html [ Pass Failure ]
 webkit.org/b/319050 [ Debug ] imported/w3c/web-platform-tests/fetch/local-network-access/iframe.tentative.https.window.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/iframe.tentative.https.window.html?include=from-public [ Failure ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/address-space-overrides-apply-to-both-host-forms.html [ Skip ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/a-forged-client-is-judged-by-what-the-network-process-served.html [ Skip ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/navigating-a-frame-is-checked-against-the-initiator.html [ Skip ]
 webkit.org/b/295047 http/wpt/fetch/local-network-access/prompt-records-the-answer.html [ Skip ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/dedicated-worker.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/fetch.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/iframe-opener.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/service-worker-background-fetch.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/service-worker.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/shared-worker.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/websocket.tentative.https.html [ Failure ]
+webkit.org/b/295047 imported/w3c/web-platform-tests/fetch/local-network-access/webtransport.tentative.https.html [ Failure ]
 webkit.org/b/319051 [ Debug ] imported/w3c/web-platform-tests/uievents/mouse/mouse_boundary_events_after_removing_last_over_element.html [ Failure Pass ]
 webkit.org/b/319052 [ Debug ] http/tests/websocket/tests/hybi/inspector/handshake-error.html [ Pass Failure ]
 webkit.org/b/319053 [ Debug ] media/video-playback-restriction-play-before-load.html [ Failure Pass ]

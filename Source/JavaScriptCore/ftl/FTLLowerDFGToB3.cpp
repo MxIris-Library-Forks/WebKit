@@ -5600,6 +5600,17 @@ private:
             vmCall(Void, operationDefineDataPropertySymbol, weakPointer(globalObject), base, property, value, attributes);
             break;
         }
+        case Int32Use: {
+            LValue property = boxInt32(lowInt32(propertyEdge));
+            vmCall(Void, operationDefineDataProperty, weakPointer(globalObject), base, property, value, attributes);
+            break;
+        }
+        case NumberUse: {
+            LValue property = lowJSValue(propertyEdge, ManualOperandSpeculation);
+            FTL_TYPE_CHECK(jsValueValue(property), propertyEdge, SpecBytecodeNumber, isNotNumber(property, provenType(propertyEdge)));
+            vmCall(Void, operationDefineDataProperty, weakPointer(globalObject), base, property, value, attributes);
+            break;
+        }
         case UntypedUse: {
             LValue property = lowJSValue(propertyEdge);
             vmCall(Void, operationDefineDataProperty, weakPointer(globalObject), base, property, value, attributes);
@@ -5610,11 +5621,33 @@ private:
         }
     }
 
+    LValue lowEncodedPropertyKey(Edge edge)
+    {
+        switch (edge.useKind()) {
+        case StringUse:
+            return lowString(edge);
+        case SymbolUse:
+            return lowSymbol(edge);
+        case Int32Use:
+            return boxInt32(lowInt32(edge));
+        case NumberUse: {
+            LValue key = lowJSValue(edge, ManualOperandSpeculation);
+            FTL_TYPE_CHECK(jsValueValue(key), edge, SpecBytecodeNumber, isNotNumber(key, provenType(edge)));
+            return key;
+        }
+        case UntypedUse:
+            return lowJSValue(edge);
+        default:
+            RELEASE_ASSERT_NOT_REACHED();
+            return nullptr;
+        }
+    }
+
     void compileObjectDefineProperty()
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
         LValue target = lowObject(m_node->child1());
-        LValue key = lowJSValue(m_node->child2());
+        LValue key = lowEncodedPropertyKey(m_node->child2());
         LValue descriptor = lowObject(m_node->child3());
         vmCall(Void, operationObjectDefineProperty, weakPointer(globalObject), target, key, descriptor);
     }
@@ -5625,7 +5658,7 @@ private:
         ASSERT(m_node->op() == ObjectDefinePropertyFromFields);
         ASSERT(m_graph.varArgNumChildren(m_node) == 8);
         LValue target = lowObject(m_graph.varArgChild(m_node, 0));
-        LValue key = lowJSValue(m_graph.varArgChild(m_node, 1));
+        LValue key = lowEncodedPropertyKey(m_graph.varArgChild(m_node, 1));
 
         constexpr size_t scratchSize = sizeof(EncodedJSValue) * Node::numberOfDescriptorSlots;
         ScratchBuffer* scratchBuffer = vm().scratchBufferForSize(scratchSize);
@@ -5658,6 +5691,17 @@ private:
         case SymbolUse: {
             LValue property = lowSymbol(propertyEdge);
             vmCall(Void, operationDefineAccessorPropertySymbol, weakPointer(globalObject), base, property, getter, setter, attributes);
+            break;
+        }
+        case Int32Use: {
+            LValue property = boxInt32(lowInt32(propertyEdge));
+            vmCall(Void, operationDefineAccessorProperty, weakPointer(globalObject), base, property, getter, setter, attributes);
+            break;
+        }
+        case NumberUse: {
+            LValue property = lowJSValue(propertyEdge, ManualOperandSpeculation);
+            FTL_TYPE_CHECK(jsValueValue(property), propertyEdge, SpecBytecodeNumber, isNotNumber(property, provenType(propertyEdge)));
+            vmCall(Void, operationDefineAccessorProperty, weakPointer(globalObject), base, property, getter, setter, attributes);
             break;
         }
         case UntypedUse: {
@@ -18326,14 +18370,15 @@ IGNORE_CLANG_WARNINGS_END
 
         LBasicBlock notRope = m_out.newBlock();
         LBasicBlock is8BitCheck = m_out.newBlock();
+        LBasicBlock is8Bit = m_out.newBlock();
+        LBasicBlock is16Bit = m_out.newBlock();
         LBasicBlock fastChar = m_out.newBlock();
         LBasicBlock doneBlock = m_out.newBlock();
         LBasicBlock slowPath = m_out.newBlock();
         LBasicBlock continuation = m_out.newBlock();
 
-        // Inline only the resolved 8-bit single-character fast path. 8-bit characters are never
-        // surrogates, so the result is always a cached single-character string with no allocation.
-        // Ropes, 16-bit strings, and surrogate pairs fall back to operationStringIteratorNext.
+        // Inline only characters up to maxSingleCharacterString, which are cached single-character strings.
+        // Ropes and larger characters fall back to operationStringIteratorNext.
         m_out.branch(isRopeString(string, m_node->child1()), rarely(slowPath), usually(notRope));
 
         LBasicBlock lastNext = m_out.appendTo(notRope, is8BitCheck);
@@ -18342,13 +18387,23 @@ IGNORE_CLANG_WARNINGS_END
         // position >= length is an unsigned compare, which also catches position == doneIndex (-1).
         m_out.branch(m_out.aboveOrEqual(position, length), unsure(doneBlock), unsure(is8BitCheck));
 
-        m_out.appendTo(is8BitCheck, fastChar);
+        m_out.appendTo(is8BitCheck, is8Bit);
+        LValue data = m_out.loadPtr(stringImpl, m_heaps.StringImpl_data);
         m_out.branch(
             m_out.testIsZero32(m_out.load32(stringImpl, m_heaps.StringImpl_hashAndFlags), m_out.constInt32(StringImpl::flagIs8Bit())),
-            rarely(slowPath), usually(fastChar));
+            rarely(is16Bit), usually(is8Bit));
+
+        m_out.appendTo(is8Bit, is16Bit);
+        ValueFromBlock char8Bit = m_out.anchor(m_out.load8ZeroExt32(m_out.baseIndex(m_heaps.characters8, data, m_out.zeroExtPtr(position))));
+        m_out.jump(fastChar);
+
+        m_out.appendTo(is16Bit, fastChar);
+        LValue char16BitValue = m_out.load16ZeroExt32(m_out.baseIndex(m_heaps.characters16, data, m_out.zeroExtPtr(position)));
+        ValueFromBlock char16Bit = m_out.anchor(char16BitValue);
+        m_out.branch(m_out.above(char16BitValue, m_out.constInt32(maxSingleCharacterString)), rarely(slowPath), usually(fastChar));
 
         m_out.appendTo(fastChar, doneBlock);
-        LValue character = m_out.load8ZeroExt32(m_out.baseIndex(m_heaps.characters8, m_out.loadPtr(stringImpl, m_heaps.StringImpl_data), m_out.zeroExtPtr(position)));
+        LValue character = m_out.phi(Int32, char8Bit, char16Bit);
         LValue smallStrings = m_out.constIntPtr(vm().smallStrings.singleCharacterStrings());
         ValueFromBlock fastValue = m_out.anchor(m_out.loadPtr(m_out.baseIndex(m_heaps.singleCharacterStrings, smallStrings, m_out.zeroExtPtr(character))));
         ValueFromBlock fastPosition = m_out.anchor(m_out.add(position, m_out.int32One));

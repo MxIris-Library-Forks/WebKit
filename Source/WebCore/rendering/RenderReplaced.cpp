@@ -48,6 +48,7 @@
 #include "RenderBlock.h"
 #include "RenderBoxInlines.h"
 #include "RenderChildIterator.h"
+#include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderFlexibleBox.h"
 #include "RenderFragmentedFlow.h"
@@ -343,7 +344,7 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         return;
     }
 
-    if (paintInfo.phase == PaintPhase::ClippingMask && style().usedVisibility() == Visibility::Visible) {
+    if (paintInfo.phase == PaintPhase::ClippingMask && usedStyle().visibility() == UsedVisibility::Visible) {
         paintClippingMask(paintInfo, adjustedPaintOffset);
         return;
     }
@@ -432,7 +433,7 @@ bool RenderReplaced::shouldPaint(PaintInfo& paintInfo, const LayoutPoint& paintO
         return false;
 
     // if we're invisible or haven't received a layout yet, then just bail.
-    if (style().usedVisibility() != Visibility::Visible)
+    if (usedStyle().visibility() != UsedVisibility::Visible)
         return false;
 
     LayoutRect paintRect(visualOverflowRect());
@@ -780,8 +781,8 @@ LayoutUnit RenderReplaced::computeConstrainedLogicalWidth() const
         logicalWidth = containingBlock()->contentBoxLogicalWidth();
 
     // This solves above equation for 'width' (== logicalWidth).
-    auto marginStart = Style::evaluateMinimum<LayoutUnit>(style().marginStart(), logicalWidth, style().usedZoomForLength());
-    auto marginEnd = Style::evaluateMinimum<LayoutUnit>(style().marginEnd(), logicalWidth, style().usedZoomForLength());
+    auto marginStart = usedStyle().marginStart(logicalWidth).value_or(0_lu);
+    auto marginEnd = usedStyle().marginEnd(logicalWidth).value_or(0_lu);
 
     return std::max(0_lu, (logicalWidth - (marginStart + marginEnd + borderLeft() + borderRight() + paddingLeft() + paddingRight())));
 }

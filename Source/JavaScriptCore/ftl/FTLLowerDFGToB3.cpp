@@ -4295,14 +4295,14 @@ private:
             LValue cell = lowCell(m_node->child1());
 
             speculate(
-                BadConstantValue, jsValueValue(cell), m_node->child1().node(),
+                m_node->checkIsConstantExitKind(), jsValueValue(cell), m_node->child1().node(),
                 m_out.notEqual(cell, weakPointer(m_node->cellOperand()->cell())));
         } else {
             LValue value = lowJSValue(m_node->child1());
 
             ASSERT(!m_node->constant()->value().isCell() || !m_node->constant()->value());
             speculate(
-                BadConstantValue, jsValueValue(value), m_node->child1().node(),
+                m_node->checkIsConstantExitKind(), jsValueValue(value), m_node->child1().node(),
                 m_out.notEqual(value, m_out.constInt64(JSValue::encode(m_node->constant()->value()))));
         }
     }
@@ -21653,7 +21653,7 @@ IGNORE_CLANG_WARNINGS_END
             LValue hasType = isCellWithType(cell, classInfo->inheritsJSTypeRange.value(), speculationFromClassInfoInheritance(classInfo));
             LValue condition = nullptr;
             if (m_node->op() == CheckJSCast)
-                condition = m_out.bitNot(hasType);
+                condition = m_out.logicalNot(hasType);
             else
                 condition = hasType;
             speculate(BadType, jsValueValue(cell), m_node->child1().node(), condition);

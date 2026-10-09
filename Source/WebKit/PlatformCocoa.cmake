@@ -1165,7 +1165,8 @@ function(WEBKIT_DEFINE_XPC_SERVICES)
 endfunction()
 
 function(WEBKIT_DEFINE_DAEMONS)
-    # ENTITLEMENTS signs with that file instead of process-entitlements.sh output.
+    # ENTITLEMENTS signs with that file instead of process-entitlements.sh
+    # output. Build with no entitlements by setting it to a falsey value.
     function(WEBKIT_DAEMON _target _source)
         cmake_parse_arguments(_arg "" "ENTITLEMENTS" "" ${ARGN})
         WEBKIT_EXECUTABLE_DECLARE(${_target})
@@ -1185,7 +1186,7 @@ function(WEBKIT_DEFINE_DAEMONS)
         elseif (_arg_ENTITLEMENTS)
             set_property(TARGET ${_target} PROPERTY
                 CODE_SIGN_ENTITLEMENTS "${_arg_ENTITLEMENTS}")
-        else ()
+        elseif (NOT DEFINED _arg_ENTITLEMENTS)
             WEBKIT_GENERATE_ENTITLEMENTS(${_target}
                 USING Scripts/process-entitlements.sh
                 DEPENDS ${WebKit_ENTITLEMENTS_DEPENDS})
@@ -1194,8 +1195,13 @@ function(WEBKIT_DEFINE_DAEMONS)
         WEBKIT_EXECUTABLE(${_target})
     endfunction()
 
+    # webpushd doesn't have any custom entitlements on macOS.
+    if (WEBKIT_SDK_IS_MACOS AND NOT USE_APPLE_INTERNAL_SDK)
+        set(_webpushd_entitlements ENTITLEMENTS "${_get_task_allow}")
+    endif ()
     WEBKIT_DAEMON(webpushd
-        ${WEBKIT_DIR}/webpushd/webpushd.cpp)
+        ${WEBKIT_DIR}/webpushd/webpushd.cpp
+        ${_webpushd_entitlements})
     if (WEBKIT_SDK_IS_MACOS AND DEVELOPER_MODE)
         target_link_options(webpushd PRIVATE
             "LINKER:-rpath,@executable_path/."
@@ -2555,6 +2561,12 @@ function(WEBKIT_DEFINE_MACOS_RESOURCES)
         VERBATIM)
     add_custom_target(WebKitCorePredictionModel ALL DEPENDS ${WebKit_RESOURCES_DIR}/corePrediction_model)
     add_dependencies(WebKit WebKitCorePredictionModel)
+
+    WEBKIT_COPY_FILES(WebKit_CopyLocalizedResources
+        DESTINATION ${WebKit_RESOURCES_DIR}/en.lproj
+        FILES ${WEBKIT_DIR}/en.lproj/InfoPlist.strings
+        FLATTENED NO_SYMLINK)
+    add_dependencies(WebKit WebKit_CopyLocalizedResources)
 
     file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/Versions/A/Frameworks)
     file(CREATE_LINK ../../../../libWebKitSwift.dylib

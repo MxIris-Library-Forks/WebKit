@@ -33,6 +33,7 @@
 #include "LayoutRepainter.h"
 #include "LegacyRenderSVGResource.h"
 #include "PointerEventsHitRules.h"
+#include "RenderElementInlines.h"
 #include "RenderImageResource.h"
 #include "RenderLayer.h"
 #include "RenderObjectInlines.h"
@@ -145,7 +146,7 @@ void LegacyRenderSVGImage::layout()
 void LegacyRenderSVGImage::paint(PaintInfo& paintInfo, const LayoutPoint&)
 {
     if (paintInfo.phase == PaintPhase::EventRegion) {
-        if (style().usedVisibility() == Visibility::Hidden || m_objectBoundingBox.isEmpty())
+        if (usedStyle().visibility() == UsedVisibility::Hidden || m_objectBoundingBox.isEmpty())
             return;
 
         paintInfo.eventRegionContext()->unite(FloatRoundedRect(strokeBoundingBox()), *this, style(), false);
@@ -153,7 +154,7 @@ void LegacyRenderSVGImage::paint(PaintInfo& paintInfo, const LayoutPoint&)
     }
 
     if (paintInfo.context().paintingDisabled() || paintInfo.phase != PaintPhase::Foreground
-        || style().usedVisibility() == Visibility::Hidden || !imageResource().cachedImage())
+        || usedStyle().visibility() == UsedVisibility::Hidden || !imageResource().cachedImage())
         return;
 
     FloatRect boundingBox = repaintRectInLocalCoordinates();
@@ -204,12 +205,21 @@ void LegacyRenderSVGImage::paintForeground(PaintInfo& paintInfo)
 
     auto concreteObjectSize = ConcreteObjectSize::fixed(imageRenderingSize);
 
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+    auto invertContent = [&] {
+        if (styleImage->drawsSVGImage())
+            return AXCustomColorModeController::shouldInvertSVGImage(*this, *styleImage);
+
+        return AXCustomColorModeController::shouldInvertContentImage(*this, destRect.size());
+    };
+#endif
+
     ImagePaintingOptions options = {
         imageOrientation(),
         styleImage->interpolationQualityForImageDraw(paintInfo.context(), *this, concreteObjectSize, styleImage.get(), LayoutSize(destRect.size())),
         settings().imageSubsamplingEnabled() ? AllowImageSubsampling::Yes : AllowImageSubsampling::No,
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
-        AXCustomColorModeController::shouldInvertContentImage(*this, *styleImage, destRect.size()) ? InvertContent::Yes : InvertContent::No,
+        invertContent() ? InvertContent::Yes : InvertContent::No,
 #endif
         settings().showDebugBorders() ? ShowDebugBackground::Yes : ShowDebugBackground::No,
         settings().hdrAcceleratedApplyGainMapEnabled() ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No,
@@ -236,7 +246,7 @@ bool LegacyRenderSVGImage::nodeAtFloatPoint(const HitTestRequest& request, HitTe
         return false;
 
     PointerEventsHitRules hitRules(PointerEventsHitRules::HitTestingTargetType::SVGImage, request, usedPointerEvents());
-    if (request.isVisibleForStyle(style()) || !hitRules.requireVisible) {
+    if (request.isVisibleForStyle(usedStyle()) || !hitRules.requireVisible) {
         static NeverDestroyed<SVGVisitedRendererTracking::VisitedSet> s_visitedSet;
 
         SVGVisitedRendererTracking recursionTracking(s_visitedSet);

@@ -33,6 +33,7 @@
 #include "Timer.h"
 #include <JavaScriptCore/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/InspectorFrontendDispatchers.h>
+#include <WebCore/WebGPUCppAPI.h>
 #include <initializer_list>
 #include <wtf/CheckedPtr.h>
 #include <wtf/CheckedRef.h>
@@ -40,6 +41,7 @@
 #include <wtf/RobinHoodHashMap.h>
 #include <wtf/RobinHoodHashSet.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/WeakHashSet.h>
 #include <wtf/WeakPtr.h>
 #include <wtf/text/WTFString.h>
 
@@ -60,10 +62,6 @@ class ScriptExecutionContext;
 class WebGLProgram;
 class WebGLRenderingContextBase;
 #endif // ENABLE(WEBGL)
-
-namespace WebGPU {
-class RenderPipeline;
-}
 
 class InspectorCanvasAgent : public InspectorAgentBase, public Inspector::CanvasBackendDispatcherHandler, public CanvasObserver, public CanMakeCheckedPtr<InspectorCanvasAgent> {
     WTF_MAKE_NONCOPYABLE(InspectorCanvasAgent);
@@ -116,6 +114,7 @@ public:
     bool isWebGLProgramDisabled(WebGLProgram&);
     bool isWebGLProgramHighlighted(WebGLProgram&);
 #endif // ENABLE(WEBGL)
+    void didChangeCSSCanvasClientNodes(CanvasBase&);
     void didCreateWebGPUDevice(GPUDevice&);
     void willDestroyWebGPUDevice(GPUDevice&);
     void didChangeWebGPUDeviceLabel(GPUDevice&);
@@ -129,7 +128,7 @@ public:
     void didChangeWebGPURenderPipelineLabel(GPURenderPipeline&);
     bool isWebGPURenderPipelineDisabled(GPURenderPipeline&);
     void didFinishRecordingCanvasFrame(GPUDevice&, bool forceDispatch = false);
-    RefPtr<WebGPU::RenderPipeline> renderPipelineForWebGPUHighlighting(GPURenderPipeline&, unsigned canvasColorAttachmentMask);
+    RefPtr<::WebGPU::RenderPipeline> renderPipelineForWebGPUHighlighting(GPURenderPipeline&, unsigned canvasColorAttachmentMask);
 
     void recordAction(CanvasRenderingContext&, String&&, InspectorCanvasProcessedArguments&& = { });
     void recordAction(CanvasRenderingContext&, InspectorCanvasProcessedArgument&& receiver, String&&, InspectorCanvasProcessedArguments&& = { });
@@ -154,9 +153,15 @@ protected:
     virtual Ref<Inspector::Protocol::Canvas::Canvas> buildObjectForCanvas(InspectorCanvas&, bool captureBacktrace);
     virtual bool matchesCurrentContext(ScriptExecutionContext*) const = 0;
 
+    void dispatchNodesChanged(InspectorCanvas&);
+    void dispatchCSSCanvasClientNodesChanged(InspectorCanvas&);
+    void dispatchCSSCanvasNamesChanged(InspectorCanvas&);
+
     const UniqueRef<Inspector::CanvasFrontendDispatcher> m_frontendDispatcher;
 
     MemoryCompactRobinHoodHashMap<String, Ref<InspectorCanvas>> m_identifierToInspectorCanvas;
+    WeakHashSet<InspectorCanvas> m_pendingNodesChange;
+    WeakHashSet<InspectorCanvas> m_pendingCSSCanvasClientNodesChange;
 
 private:
     struct RecordingOptions {

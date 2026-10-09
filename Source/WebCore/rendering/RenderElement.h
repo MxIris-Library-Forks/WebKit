@@ -41,6 +41,7 @@ class ReferencedSVGResources;
 class RenderBlock;
 class RenderTreeBuilder;
 class SVGElement;
+class UsedStyle;
 struct ImageOrientation;
 
 struct MarginRect {
@@ -77,6 +78,7 @@ public:
     bool hasInitializedStyle() const { return m_hasInitializedStyle; }
 
     const Style::ComputedStyle& style() const LIFETIME_BOUND { return m_style; }
+    inline UsedStyle usedStyle() const LIFETIME_BOUND;
     const Style::ComputedStyle* parentStyle() const LIFETIME_BOUND { return !m_parent ? nullptr : &m_parent->style(); }
     const Style::ComputedStyle& NODELETE firstLineStyle() const LIFETIME_BOUND;
 
@@ -250,6 +252,10 @@ public:
 
     bool scrollAnchoringSuppressionStyleChanged() const { return m_scrollAnchoringSuppressionStyleChanged; }
     void setScrollAnchoringSuppressionStyleChanged(bool b) { m_scrollAnchoringSuppressionStyleChanged = b; }
+
+    // An invisible box of a line-clamp container (css-overflow-4). Its used visibility is hidden.
+    bool isHiddenByLineClamp() const { return m_isHiddenByLineClamp; }
+    void setIsHiddenByLineClamp(bool isHidden) { m_isHiddenByLineClamp = isHidden; }
 
     bool allowsAnimation() const final;
     bool repaintForPausedImageAnimationsIfNeeded(const IntRect& visibleRect, CachedImage&);
@@ -487,7 +493,8 @@ private:
     unsigned m_scrollAnchoringSuppressionStyleChanged : 1 { false };
     unsigned m_isInPendingSVGTransformAttributeUpdates : 1 { false };
     unsigned m_mayHaveNonScalingStrokeInSubtree : 1 { false };
-    // 10 bits free.
+    unsigned m_isHiddenByLineClamp : 1 { false };
+    // 9 bits free.
 
     Style::ComputedStyle m_style;
 };

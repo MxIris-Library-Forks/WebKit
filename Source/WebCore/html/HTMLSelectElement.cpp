@@ -70,6 +70,7 @@
 #include "NodeTraversal.h"
 #include "PlatformRenderTheme.h"
 #include "PseudoClassChangeInvalidation.h"
+#include "RenderElementInlines.h"
 #include "RenderListBox.h"
 #include "RenderMenuList.h"
 #include "RenderTheme.h"
@@ -1541,6 +1542,12 @@ void HTMLSelectElement::setRecalcListItems()
     }
 
     Ref document = this->document();
+    // A RenderListBox paints the list items itself, so the render tree does not report changes to them.
+    if (CheckedPtr renderListBox = dynamicDowncast<RenderListBox>(this->renderer())) {
+        if (CheckedPtr cache = document->existingAXObjectCache())
+            cache->childrenChanged(*renderListBox);
+    }
+
     if (this == document->focusedElement()) {
         if (RefPtr page = document->page())
             page->chrome().client().focusedSelectElementDidChangeOptions(*this);
@@ -2995,7 +3002,7 @@ PopupMenuStyle HTMLSelectElement::menuStyle() const
         outerStyle->visitedDependentBackgroundColorApplyingColorFilter(),
         outerStyle->fontCascade(),
         nullString(),
-        outerStyle->usedVisibility() == Visibility::Visible,
+        renderer->usedStyle().visibility() == UsedVisibility::Visible,
         outerStyle->display() == Style::DisplayType::None,
         outerStyle->hasUsedAppearance() && outerStyle->usedAppearance() == StyleAppearance::Menulist,
         outerStyle->writingMode().bidiDirection(),

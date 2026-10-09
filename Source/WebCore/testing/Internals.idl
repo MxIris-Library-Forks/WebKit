@@ -1238,6 +1238,7 @@ enum ContentsFormat {
 
     DOMString resourceLoadStatisticsForURL(DOMURL url);
     undefined setTrackingPreventionEnabled(boolean enable);
+    boolean isPrevalentDomainScriptOnStack();
 
     undefined setCanShowModalDialogOverride(boolean allow);
 
@@ -1398,8 +1399,6 @@ enum ContentsFormat {
     boolean hasSameEventLoopAs(WindowProxy windowProxy);
 
     DOMString windowLocationHost(DOMWindow window);
-
-    undefined markContextAsInsecure();
 
     undefined setMaxCanvasArea(unsigned long size);
 

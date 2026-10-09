@@ -251,8 +251,10 @@ WI.DOMManager = class DOMManager extends WI.Object
 
     _frameTargetSetChildNodes(target, parentId, payloads)
     {
-        if (!parentId && payloads.length)
-            return; // Detached root — not applicable for frame targets.
+        if (!parentId && payloads.length) {
+            new WI.DOMNode(this, null, false, payloads[0], {frameTarget: target});
+            return;
+        }
 
         let parent = this.nodeForIdInFrameTarget(parentId, target);
         if (!parent)
@@ -863,9 +865,9 @@ WI.DOMManager = class DOMManager extends WI.Object
 
     // CSSObserver
 
-    nodeLayoutFlagsChanged(nodeId, layoutFlags)
+    nodeLayoutFlagsChanged(nodeId, layoutFlags, target)
     {
-        let domNode = this._idToDOMNode[nodeId];
+        let domNode = target instanceof WI.FrameTarget ? this.nodeForIdInFrameTarget(nodeId, target) : this._idToDOMNode[nodeId];
         console.assert(domNode instanceof WI.DOMNode, domNode, nodeId);
         if (!domNode)
             return;

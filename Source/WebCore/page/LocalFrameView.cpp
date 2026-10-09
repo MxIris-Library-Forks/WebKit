@@ -97,6 +97,7 @@
 #include "Quirks.h"
 #include "RenderAncestorIterator.h"
 #include "RenderBoxInlines.h"
+#include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderEmbeddedObject.h"
 #include "RenderFlexibleBox.h"
@@ -2462,14 +2463,10 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         if (isHiddenOrNearlyTransparent(*box))
             return { };
 
-        auto& styleColor = renderer.style().backgroundColor();
-        if (!styleColor.isResolvedColor())
-            return { };
-
         if (compareWithViewportSize(side, renderer) == ViewportComparison::Smaller)
             return { };
 
-        return styleColor.resolvedColor();
+        return protect(renderer.style())->visitedDependentBackgroundColorApplyingColorFilter();
     };
 
     enum class ContainerEdgeCandidateResult : uint8_t {
@@ -5458,7 +5455,7 @@ float LocalFrameView::adjustVerticalPageScrollStepForFixedContent(float step)
     float bottomObscuredArea = 0;
     for (CheckedRef viewPositionedOutOfFlowBox : *viewPositionedOutOfFlowBoxes) {
         CheckedRef style = viewPositionedOutOfFlowBox->style();
-        if (style->position() != PositionType::Fixed || style->usedVisibility() == Visibility::Hidden || style->opacity().isTransparent())
+        if (style->position() != PositionType::Fixed || viewPositionedOutOfFlowBox->usedStyle().visibility() == UsedVisibility::Hidden || style->opacity().isTransparent())
             continue;
 
         FloatQuad contentQuad = viewPositionedOutOfFlowBox->absoluteContentQuad();
@@ -6246,7 +6243,7 @@ void LocalFrameView::checkAndDispatchDidReachVisuallyNonEmptyState()
                 return false;
             if (!element->renderer()->opacity())
                 return false;
-            return element->renderer()->style().usedVisibility() == Visibility::Visible;
+            return element->renderer()->usedStyle().visibility() == UsedVisibility::Visible;
         };
 
         if (!isVisible(documentElement.get()))

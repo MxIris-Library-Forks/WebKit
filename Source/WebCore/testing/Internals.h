@@ -1049,6 +1049,7 @@ public:
 
     String resourceLoadStatisticsForURL(const DOMURL&);
     void NODELETE setTrackingPreventionEnabled(bool);
+    bool isPrevalentDomainScriptOnStack() const;
 
     bool isReadableStreamDisturbed(ReadableStream&);
     void observeReadableStreamLifetime(ReadableStream&);
@@ -1280,8 +1281,6 @@ public:
     ExceptionOr<void> queueTask(ScriptExecutionContext&, const String& source, Ref<VoidCallback>&&);
     ExceptionOr<void> queueTaskToQueueMicrotask(Document&, const String& source, Ref<VoidCallback>&&);
     ExceptionOr<bool> hasSameEventLoopAs(WindowProxy&);
-
-    void markContextAsInsecure();
 
     bool NODELETE usingAppleInternalSDK() const;
     bool NODELETE usingGStreamer() const;

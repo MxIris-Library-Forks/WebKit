@@ -151,7 +151,6 @@ public:
     WebCore::Color usedStrokeColor() const;
     WebCore::Color usedStrokeColorApplyingColorFilter() const;
     inline PointerEvents usedPointerEvents() const;
-    inline Visibility usedVisibility() const;
     inline UserModify usedUserModify() const;
     WEBCORE_EXPORT UserSelect NODELETE usedUserSelect() const;
     Style::Contain usedContain() const;
@@ -159,8 +158,7 @@ public:
     WebCore::Color usedScrollbarThumbColor() const;
     WebCore::Color usedScrollbarTrackColor() const;
     WebCore::Color usedAccentColor(OptionSet<StyleColorOptions>) const;
-    static UsedFloat usedFloat(const RenderElement&); // Returns logical left/right (block-relative).
-    static UsedClear usedClear(const RenderElement&); // Returns logical left/right (block-relative).
+    BlendMode usedBlendMode() const;
 
     Style::LineWidth NODELETE usedColumnRuleWidth() const;
 

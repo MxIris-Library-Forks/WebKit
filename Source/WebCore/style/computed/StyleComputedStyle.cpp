@@ -467,48 +467,6 @@ Style::Contain ComputedStyle::usedContain() const
     return result;
 }
 
-UsedClear ComputedStyle::usedClear(const RenderElement& renderer)
-{
-    auto computedClear = renderer.style().clear();
-    auto writingMode = renderer.containingBlock()->writingMode();
-    switch (computedClear) {
-    case Clear::None:
-        return UsedClear::None;
-    case Clear::Both:
-        return UsedClear::Both;
-    case Clear::Left:
-        return writingMode.isLogicalLeftLineLeft() ? UsedClear::Left : UsedClear::Right;
-    case Clear::Right:
-        return writingMode.isLogicalLeftLineLeft() ? UsedClear::Right : UsedClear::Left;
-    case Clear::InlineStart:
-        return writingMode.isLogicalLeftInlineStart() ? UsedClear::Left : UsedClear::Right;
-    case Clear::InlineEnd:
-        return writingMode.isLogicalLeftInlineStart() ? UsedClear::Right : UsedClear::Left;
-    }
-
-    RELEASE_ASSERT_NOT_REACHED();
-}
-
-UsedFloat ComputedStyle::usedFloat(const RenderElement& renderer)
-{
-    auto computedFloat = renderer.style().floating();
-    auto writingMode = renderer.containingBlock()->writingMode();
-    switch (computedFloat) {
-    case Float::None:
-        return UsedFloat::None;
-    case Float::Left:
-        return writingMode.isLogicalLeftLineLeft() ? UsedFloat::Left : UsedFloat::Right;
-    case Float::Right:
-        return writingMode.isLogicalLeftLineLeft() ? UsedFloat::Right : UsedFloat::Left;
-    case Float::InlineStart:
-        return writingMode.isLogicalLeftInlineStart() ? UsedFloat::Left : UsedFloat::Right;
-    case Float::InlineEnd:
-        return writingMode.isLogicalLeftInlineStart() ? UsedFloat::Right : UsedFloat::Left;
-    }
-
-    RELEASE_ASSERT_NOT_REACHED();
-}
-
 UserSelect ComputedStyle::usedUserSelect() const
 {
     if (effectiveInert())
@@ -596,6 +554,14 @@ Style::LineWidth ComputedStyle::usedOutlineWidth() const
 float ComputedStyle::usedOutlineSize(Style::ZoomFactor zoom, float deviceScaleFactor) const
 {
     return std::max(0.0f, Style::evaluate<float>(usedOutlineWidth(), zoom, deviceScaleFactor) + Style::evaluate<float>(usedOutlineOffset(), zoom, deviceScaleFactor));
+}
+
+BlendMode ComputedStyle::usedBlendMode() const
+{
+    if (m_nonInheritedData->rareData->overrideBlendMode) [[unlikely]]
+        return *m_nonInheritedData->rareData->overrideBlendMode;
+
+    return blendMode();
 }
 
 // MARK: - Derived Values

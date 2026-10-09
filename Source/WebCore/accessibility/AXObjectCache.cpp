@@ -125,6 +125,7 @@
 #include "RenderAttachment.h"
 #include "RenderBlock.h"
 #include "RenderBox.h"
+#include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderImage.h"
 #include "RenderInline.h"
@@ -613,7 +614,7 @@ static bool isNodeAccessible(const Node* node)
         return false;
 
     CheckedPtr renderLayer = renderer->enclosingLayer();
-    if (isVisibilityHidden(style) && renderLayer && !renderLayer->hasVisibleContent())
+    if (isVisibilityHidden(*renderer) && renderLayer && !renderLayer->hasVisibleContent())
         return false;
 
     // Check whether this object or any of its ancestors has opacity 0.
@@ -2794,7 +2795,7 @@ void AXObjectCache::onFrameSelectionFocusedOrActiveStateChanged(Document& docume
 
 void AXObjectCache::onInertOrVisibilityChange(RenderElement& renderer)
 {
-    if (renderer.style().effectiveInert() || renderer.style().usedVisibility() != Visibility::Visible) {
+    if (renderer.style().effectiveInert() || renderer.usedStyle().visibility() != UsedVisibility::Visible) {
         // An element becoming inert can cause all page content to become ignored,
         // which may require overriding aria-hidden on a blocked modal to prevent
         // an empty page. Arm the check for the next modalNode() query.
@@ -3117,6 +3118,12 @@ void AXObjectCache::onStyleChange(Element& element, OptionSet<Style::Change> cha
         childrenChanged(object.get());
     }
 
+    if (oldStyle->content().altText() != newStyle->content().altText()) {
+        m_deferredTextChangedList.add(element);
+        if (!m_performCacheUpdateTimer.isActive())
+            m_performCacheUpdateTimer.startOneShot(0_s);
+    }
+
 #if ENABLE(ACCESSIBILITY_ISOLATED_TREE)
     if (oldStyle->insideLink() != newStyle->insideLink())
         postNotification(*object, AXNotification::VisitedStateChanged);
@@ -3314,7 +3321,7 @@ static bool messageIsEmpty(Element* message)
             continue;
 
         CheckedPtr renderer = text->renderer();
-        if (renderer && !isVisibilityHidden(renderer->style()) && !text->data().containsOnly<isASCIIWhitespace>())
+        if (renderer && !isVisibilityHidden(*renderer) && !text->data().containsOnly<isASCIIWhitespace>())
             return false;
     }
     return true;
@@ -5711,8 +5718,9 @@ static Node* parentEditingBoundary(Node* node)
     if (!documentElement)
         return nullptr;
 
+    bool nodeHasEditableStyle = node->hasEditableStyle();
     RefPtr boundary = node;
-    while (boundary != documentElement && boundary->nonShadowBoundaryParentNode() && node->hasEditableStyle() == protect(boundary->parentNode())->hasEditableStyle())
+    while (boundary != documentElement && boundary->nonShadowBoundaryParentNode() && nodeHasEditableStyle == protect(boundary->parentNode())->hasEditableStyle())
         boundary = boundary->nonShadowBoundaryParentNode();
 
     return boundary.unsafeGet();
@@ -7069,13 +7077,23 @@ bool isNodeFocused(Node& node)
     return is<Element>(node) && uncheckedDowncast<Element>(node).focused();
 }
 
+bool isVisibilityHidden(const RenderObject& renderer)
+{
+    return renderer.usedStyle().visibility() != UsedVisibility::Visible || isContentVisibilityHidden(renderer.style());
+}
+
 bool isVisibilityHidden(const Style::ComputedStyle& style)
 {
-    return style.usedVisibility() != Visibility::Visible || isContentVisibilityHidden(style);
+    return style.visibility() != Visibility::Visible || style.isForceHidden() || isContentVisibilityHidden(style);
 }
 
 // DOM component of hidden definition.
 // https://www.w3.org/TR/wai-aria/#dfn-hidden
+bool isRenderHidden(const RenderObject& renderer)
+{
+    return renderer.style().display() == Style::DisplayType::None || isVisibilityHidden(renderer);
+}
+
 bool isRenderHidden(const Style::ComputedStyle& style)
 {
     return style.display() == Style::DisplayType::None || isVisibilityHidden(style);

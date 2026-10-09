@@ -46,6 +46,7 @@
 #include "PointerEventsHitRules.h"
 #include "RenderBlockFlowInlines.h"
 #include "RenderBoxInlines.h"
+#include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderIterator.h"
 #include "RenderLayer.h"
@@ -504,6 +505,65 @@ bool RenderSVGText::layoutInlineChildrenWithoutLineLayout()
     return true;
 }
 
+// Lays out the text boxes of the inline box at inlineBoxIndex in the same order as layoutCharactersInTextBoxes(). A null
+// characterLayout skips them. Returns the index past the inline box content.
+static size_t layoutCharactersInDisplayBoxes(const InlineDisplay::Boxes& boxes, size_t inlineBoxIndex, SVGTextLayoutEngine* characterLayout)
+{
+    CheckedRef inlineBox = boxes[inlineBoxIndex].layoutBox();
+    auto isWithinInlineBox = [&](const InlineDisplay::Box& box) {
+        for (CheckedPtr ancestor = &box.layoutBox().parent();; ancestor = &ancestor->parent()) {
+            if (ancestor == inlineBox.ptr())
+                return true;
+            if (!ancestor->isInlineBox())
+                return false;
+        }
+    };
+    auto previousLeafRenderer = [&](size_t index) -> const RenderObject* {
+        while (index--) {
+            if (!boxes[index].isInlineBox())
+                return boxes[index].layoutBox().rendererForIntegration();
+        }
+        return nullptr;
+    };
+
+    auto index = inlineBoxIndex + 1;
+    while (index < boxes.size() && isWithinInlineBox(boxes[index])) {
+        auto& box = boxes[index];
+        CheckedRef renderer = *box.layoutBox().rendererForIntegration();
+
+        if (box.isText()) {
+            if (CheckedPtr text = dynamicDowncast<RenderSVGInlineText>(renderer.get()); text && characterLayout)
+                characterLayout->layoutInlineTextBox({ *text, static_cast<unsigned>(box.text().start()), static_cast<unsigned>(box.text().length()), index, previousLeafRenderer(index) });
+            ++index;
+            continue;
+        }
+
+        // Skip generated content.
+        if (!characterLayout || !box.isNonRootInlineBox() || !renderer->node()) {
+            index = layoutCharactersInDisplayBoxes(boxes, index, nullptr);
+            continue;
+        }
+
+        CheckedPtr textPath = dynamicDowncast<RenderSVGTextPath>(renderer.get());
+        if (textPath) {
+            // Build text chunks for all <textPath> children, using the line layout algorithm.
+            // This is needeed as text-anchor is just an additional startOffset for text paths.
+            SVGTextLayoutEngine lineLayout(characterLayout->layoutAttributes());
+            layoutCharactersInDisplayBoxes(boxes, index, &lineLayout);
+
+            characterLayout->beginTextPathLayout(*textPath, lineLayout);
+        }
+
+        auto nextIndex = layoutCharactersInDisplayBoxes(boxes, index, characterLayout);
+
+        if (textPath)
+            characterLayout->endTextPathLayout();
+
+        index = nextIndex;
+    }
+    return index;
+}
+
 void RenderSVGText::computePerCharacterLayoutInformation()
 {
     auto hasSVGContent = legacyRootBox() || (inlineLayout() && inlineLayout()->hasContentfulInlineLine());
@@ -516,26 +576,33 @@ void RenderSVGText::computePerCharacterLayoutInformation()
     if (m_needsReordering)
         reorderValueListsToLogicalOrder();
 
-    // Perform SVG text layout phase two (see SVGTextLayoutEngine for details).
-    SVGTextLayoutEngine characterLayout(m_layoutAttributes);
-
-    layoutCharactersInTextBoxes(InlineIterator::firstRootInlineBoxFor(*this), characterLayout);
-
-    // Perform SVG text layout phase three (see SVGTextChunkBuilder for details).
-    auto fragmentMap = characterLayout.finishLayout();
-
     if (legacyRootBox()) {
+        // Perform SVG text layout phase two (see SVGTextLayoutEngine for details).
+        SVGTextLayoutEngine characterLayout(m_layoutAttributes);
+        layoutCharactersInTextBoxes(InlineIterator::firstRootInlineBoxFor(*this), characterLayout);
+
+        // Perform SVG text layout phase three (see SVGTextChunkBuilder for details).
+        characterLayout.finishLayout();
+
         // Perform SVG text layout phase four
         // Position & resize all SVGInlineText/FlowBoxes in the inline box tree, resize the root box as well as the RenderSVGText parent block.
+        auto fragmentMap = characterLayout.takeFragmentMap();
         auto childRect = layoutChildBoxes(legacyRootBox(), fragmentMap);
         layoutRootBox(childRect);
         return;
     }
 
-    if (inlineLayout()) {
-        auto boundaries = inlineLayout()->applySVGTextFragments(WTF::move(fragmentMap));
-        updatePositionAndOverflow(boundaries);
-    }
+    CheckedRef lineLayout = *inlineLayout();
+    auto [boxes, fragmentsForBoxes] = lineLayout->resetSVGTextFragments();
+    ASSERT(!boxes.isEmpty() && boxes[0].isRootInlineBox());
+
+    SVGTextLayoutEngine characterLayout(m_layoutAttributes, fragmentsForBoxes);
+    auto endIndex = layoutCharactersInDisplayBoxes(boxes, 0, &characterLayout);
+    ASSERT_UNUSED(endIndex, endIndex == boxes.size());
+
+    characterLayout.finishLayout();
+
+    updatePositionAndOverflow(lineLayout->applySVGTextFragments());
 }
 
 void RenderSVGText::layoutCharactersInTextBoxes(const InlineIterator::InlineBoxIterator& parent, SVGTextLayoutEngine& characterLayout)
@@ -544,7 +611,8 @@ void RenderSVGText::layoutCharactersInTextBoxes(const InlineIterator::InlineBoxI
 
     for (auto child = descendants.begin(), end = descendants.end(); child != end; child.traverseLineRightwardOnLineSkippingChildren()) {
         if (auto* textBox = dynamicDowncast<InlineIterator::SVGTextBox>(*child)) {
-            characterLayout.layoutInlineTextBox(*textBox);
+            auto previousLeaf = textBox->nextLineLeftwardOnLine();
+            characterLayout.layoutInlineTextBox({ textBox->renderer(), textBox->start(), textBox->length(), 0, previousLeaf ? &previousLeaf->renderer() : nullptr });
             continue;
         }
 
@@ -722,7 +790,7 @@ bool RenderSVGText::nodeAtFloatPoint(const HitTestRequest& request, HitTestResul
     ASSERT(!document().settings().layerBasedSVGEngineEnabled());
 
     PointerEventsHitRules hitRules(PointerEventsHitRules::HitTestingTargetType::SVGText, request, usedPointerEvents());
-    if (request.isVisibleForStyle(style()) || !hitRules.requireVisible) {
+    if (request.isVisibleForStyle(usedStyle()) || !hitRules.requireVisible) {
         if ((hitRules.canHitStroke && (!style().stroke().isNone() || !hitRules.requireStroke))
             || (hitRules.canHitFill && (!style().fill().isNone() || !hitRules.requireFill))) {
             static NeverDestroyed<SVGVisitedRendererTracking::VisitedSet> s_visitedSet;
@@ -757,7 +825,7 @@ bool RenderSVGText::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
         return false;
 
     PointerEventsHitRules hitRules(PointerEventsHitRules::HitTestingTargetType::SVGText, request, usedPointerEvents());
-    if (request.isVisibleForStyle(style()) || !hitRules.requireVisible) {
+    if (request.isVisibleForStyle(usedStyle()) || !hitRules.requireVisible) {
         if ((hitRules.canHitStroke && (!style().stroke().isNone() || !hitRules.requireStroke))
         || (hitRules.canHitFill && (!style().fill().isNone() || !hitRules.requireFill))) {
             static NeverDestroyed<SVGVisitedRendererTracking::VisitedSet> s_visitedSet;
@@ -779,7 +847,14 @@ bool RenderSVGText::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
             if (!pointInSVGClippingArea(localLocation.point()))
                 return false;
 
-            return RenderBlock::nodeAtPoint(request, result, localLocation, accumulatedOffset + coordinateSystemOriginTranslation, hitTestAction);
+            if (RenderBlock::nodeAtPoint(request, result, localLocation, accumulatedOffset + coordinateSystemOriginTranslation, hitTestAction))
+                return true;
+
+            if (hitRules.canHitBoundingBox && objectBoundingBox().contains(localLocation.point())) {
+                updateHitTestResult(result, locationInContainer.point() - toLayoutSize(adjustedLocation));
+                if (result.addNodeToListBasedTestResult(protect(nodeForHitTest()).get(), request, locationInContainer, objectBoundingBox()) == HitTestProgress::Stop)
+                    return true;
+            }
         }
     }
 
@@ -797,7 +872,7 @@ bool RenderSVGText::hitTestInlineChildren(const HitTestRequest& request, HitTest
             PointerEventsHitRules hitRules(PointerEventsHitRules::HitTestingTargetType::SVGText, request, usedPointerEvents());
 
             auto& renderer = textBox->renderer();
-            if (!request.isVisibleForStyle(renderer.style()) && hitRules.requireVisible)
+            if (!request.isVisibleForStyle(renderer.usedStyle()) && hitRules.requireVisible)
                 continue;
 
             bool hitsStroke = hitRules.canHitStroke && (!renderer.style().stroke().isNone() || !hitRules.requireStroke);
@@ -805,8 +880,7 @@ bool RenderSVGText::hitTestInlineChildren(const HitTestRequest& request, HitTest
             if (!hitsStroke && !hitsFill)
                 continue;
 
-            FloatRect rect = textBox->logicalRectIgnoringInlineDirection();
-            rect.moveBy(accumulatedOffset);
+            auto rect = textBox->calculateBoundariesIncludingSVGTransform();
             if (!locationInContainer.intersects(rect))
                 continue;
 
@@ -927,7 +1001,7 @@ void RenderSVGText::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
     }
 
     if (paintInfo.phase == PaintPhase::EventRegion) {
-        if (style().usedVisibility() == Visibility::Hidden || m_objectBoundingBox.isEmpty())
+        if (usedStyle().visibility() == UsedVisibility::Hidden || m_objectBoundingBox.isEmpty())
             return;
 
         paintInfo.eventRegionContext()->unite(FloatRoundedRect(strokeBoundingBox()), *this, style(), false);

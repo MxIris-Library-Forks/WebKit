@@ -41,6 +41,7 @@
 #include "Event.h"
 #include "EventTargetInlines.h"
 #include "FrameCSSAgent.h"
+#include "FrameCanvasAgent.h"
 #include "FrameDOMAgent.h"
 #include "FrameDOMStorageAgent.h"
 #include "FrameDebuggerAgent.h"
@@ -213,12 +214,18 @@ void InspectorInstrumentation::didChangeRendererForDOMNodeImpl(InstrumentingAgen
 {
     if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent())
         cssAgent->didChangeRendererForDOMNode(node);
+
+    if (RefPtr frame = node.document().frame()) {
+        if (CheckedPtr frameCSSAgent = frame->inspectorController().instrumentingAgents().enabledFrameCSSAgent())
+            frameCSSAgent->didChangeRendererForDOMNode(node);
+    }
 }
 
 void InspectorInstrumentation::didAddOrRemoveScrollbarsImpl(InstrumentingAgents& instrumentingAgents, LocalFrameView& frameView)
 {
     CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent();
-    if (!cssAgent)
+    CheckedPtr frameCSSAgent = instrumentingAgents.enabledFrameCSSAgent();
+    if (!cssAgent && !frameCSSAgent)
         return;
     RefPtr document = frameView.frame().document();
     if (!document)
@@ -226,15 +233,21 @@ void InspectorInstrumentation::didAddOrRemoveScrollbarsImpl(InstrumentingAgents&
     RefPtr documentElement = document->documentElement();
     if (!documentElement)
         return;
-    cssAgent->didChangeRendererForDOMNode(*documentElement);
+    if (cssAgent)
+        cssAgent->didChangeRendererForDOMNode(*documentElement);
+    if (frameCSSAgent)
+        frameCSSAgent->didChangeRendererForDOMNode(*documentElement);
 }
 
 void InspectorInstrumentation::didAddOrRemoveScrollbarsImpl(InstrumentingAgents& instrumentingAgents, RenderObject& renderer)
 {
-    if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent()) {
-        if (RefPtr node = renderer.node())
-            cssAgent->didChangeRendererForDOMNode(*node);
-    }
+    RefPtr node = renderer.node();
+    if (!node)
+        return;
+    if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent())
+        cssAgent->didChangeRendererForDOMNode(*node);
+    if (CheckedPtr frameCSSAgent = instrumentingAgents.enabledFrameCSSAgent())
+        frameCSSAgent->didChangeRendererForDOMNode(*node);
 }
 
 void InspectorInstrumentation::willModifyDOMAttrImpl(InstrumentingAgents& instrumentingAgents, Element& element, const AtomString& oldValue, const AtomString& newValue)
@@ -354,12 +367,22 @@ void InspectorInstrumentation::didChangeAssignedSlotImpl(InstrumentingAgents& in
 {
     if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent())
         cssAgent->didChangeAssignedSlot(slotable);
+
+    if (RefPtr frame = slotable.document().frame()) {
+        if (CheckedPtr frameCSSAgent = frame->inspectorController().instrumentingAgents().enabledFrameCSSAgent())
+            frameCSSAgent->didChangeAssignedSlot(slotable);
+    }
 }
 
 void InspectorInstrumentation::didChangeAssignedNodesImpl(InstrumentingAgents& instrumentingAgents, Element& slotElement)
 {
     if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent())
         cssAgent->didChangeAssignedNodes(slotElement);
+
+    if (RefPtr frame = slotElement.document().frame()) {
+        if (CheckedPtr frameCSSAgent = frame->inspectorController().instrumentingAgents().enabledFrameCSSAgent())
+            frameCSSAgent->didChangeAssignedNodes(slotElement);
+    }
 }
 
 void InspectorInstrumentation::didChangeCustomElementStateImpl(InstrumentingAgents& instrumentingAgents, Element& element)
@@ -524,6 +547,8 @@ void InspectorInstrumentation::didAddEventListenerImpl(InstrumentingAgents& inst
         domAgent->didAddEventListener(target);
     if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent())
         cssAgent->didAddEventListener(target);
+    if (CheckedPtr frameCSSAgent = instrumentingAgents.enabledFrameCSSAgent())
+        frameCSSAgent->didAddEventListener(target);
 }
 
 void InspectorInstrumentation::willRemoveEventListenerImpl(InstrumentingAgents& instrumentingAgents, EventTarget& target, const AtomString& eventType, EventListener& listener, bool capture)
@@ -534,6 +559,8 @@ void InspectorInstrumentation::willRemoveEventListenerImpl(InstrumentingAgents& 
         domAgent->willRemoveEventListener(target, eventType, listener, capture);
     if (CheckedPtr cssAgent = instrumentingAgents.enabledCSSAgent())
         cssAgent->willRemoveEventListener(target);
+    if (CheckedPtr frameCSSAgent = instrumentingAgents.enabledFrameCSSAgent())
+        frameCSSAgent->willRemoveEventListener(target);
 }
 
 bool InspectorInstrumentation::isEventListenerDisabledImpl(InstrumentingAgents& instrumentingAgents, EventTarget& target, const AtomString& eventType, EventListener& listener, bool capture)
@@ -986,6 +1013,9 @@ void InspectorInstrumentation::didCommitLoadImpl(InstrumentingAgents& instrument
     if (CheckedPtr pageCanvasAgent = instrumentingAgents.enabledPageCanvasAgent())
         pageCanvasAgent->frameNavigated(frame);
 
+    if (CheckedPtr frameCanvasAgent = frame.inspectorController().instrumentingAgents().enabledFrameCanvasAgent())
+        frameCanvasAgent->frameNavigated(frame);
+
     if (CheckedPtr animationAgent = instrumentingAgents.enabledAnimationAgent())
         animationAgent->frameNavigated(frame);
 
@@ -1351,22 +1381,21 @@ void InspectorInstrumentation::didSendWebSocketFrameImpl(InstrumentingAgents& in
 
 void InspectorInstrumentation::didChangeCSSCanvasClientNodesImpl(InstrumentingAgents& instrumentingAgents, CanvasBase& canvasBase)
 {
-    CheckedPtr<PageCanvasAgent> pageCanvasAgent;
+    RefPtr<InstrumentingAgents> agents = &instrumentingAgents;
 
     if (RefPtr gpuCanvasContext = dynamicDowncast<GPUCanvasContext>(canvasBase.renderingContext())) {
         RefPtr device = gpuCanvasContext->device();
         if (!device)
             return;
 
-        RefPtr agents = InspectorInstrumentation::instrumentingAgents(protect(device->scriptExecutionContext()));
+        agents = InspectorInstrumentation::instrumentingAgents(protect(device->scriptExecutionContext()));
         if (!agents)
             return;
+    }
 
-        pageCanvasAgent = agents->enabledPageCanvasAgent();
-    } else
-        pageCanvasAgent = instrumentingAgents.enabledPageCanvasAgent();
-
-    if (pageCanvasAgent)
+    if (CheckedPtr frameCanvasAgent = agents->enabledFrameCanvasAgent())
+        frameCanvasAgent->didChangeCSSCanvasClientNodes(canvasBase);
+    else if (CheckedPtr pageCanvasAgent = agents->enabledPageCanvasAgent())
         pageCanvasAgent->didChangeCSSCanvasClientNodes(canvasBase);
 }
 

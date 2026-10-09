@@ -29,9 +29,11 @@
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
 #include "LayoutRepainter.h"
+#include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderIterator.h"
 #include "RenderLayer.h"
+#include "RenderObjectInlines.h"
 #include "RenderTreeBuilder.h"
 #include "RenderView.h"
 #include "SVGContainerLayout.h"
@@ -143,7 +145,7 @@ void RenderSVGContainer::paint(PaintInfo& paintInfo, const LayoutPoint& paintOff
         return;
 
     // Children can override with "visibility: visible", per SVG spec.
-    if (paintInfo.phase != PaintPhase::Foreground && style().usedVisibility() == Visibility::Hidden)
+    if (paintInfo.phase != PaintPhase::Foreground && usedStyle().visibility() == UsedVisibility::Hidden)
         return;
 
     if (paintInfo.phase == PaintPhase::ClippingMask) {
@@ -232,7 +234,9 @@ bool RenderSVGContainer::nodeAtPoint(const HitTestRequest& request, HitTestResul
 
 
     for (CheckedPtr child = lastChild(); child; child = child->previousSibling()) {
-        if (!child->hasLayer() && child->nodeAtPoint(request, result, locationInContainer, adjustedLocation, hitTestAction)) {
+        if (child->hasLayer() || (hasLayer() && child->isTransformed()))
+            continue;
+        if (child->nodeAtPoint(request, result, locationInContainer, adjustedLocation, hitTestAction)) {
             updateHitTestResult(result, locationInContainer.point() - toLayoutSize(adjustedLocation));
             if (result.addNodeToListBasedTestResult(protect(child->node()).get(), request, locationInContainer, visualOverflowRect) == HitTestProgress::Stop)
                 return true;

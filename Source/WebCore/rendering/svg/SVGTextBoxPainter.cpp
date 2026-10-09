@@ -31,6 +31,7 @@
 #include "GraphicsContextStateSaver.h"
 #include "LegacyRenderSVGResourceSolidColor.h"
 #include "OutlinePainter.h"
+#include "RenderElementInlines.h"
 #include "RenderInline.h"
 #include "RenderObjectDocument.h"
 #include "RenderSVGInlineText.h"
@@ -63,6 +64,7 @@ template<typename TextBoxPath>
 SVGTextBoxPainter<TextBoxPath>::SVGTextBoxPainter(TextBoxPath&& textBox, PaintInfo& paintInfo, const LayoutPoint& paintOffset)
     : m_textBox(WTF::move(textBox))
     , m_renderer(downcast<RenderSVGInlineText>(m_textBox.renderer()))
+    , m_parentRenderer(textBoxIterator()->parentInlineBox()->renderer())
     , m_paintInfo(paintInfo)
     , m_selectableRange(m_textBox.selectableRange())
     , m_paintOffset(paintOffset)
@@ -76,12 +78,6 @@ InlineIterator::SVGTextBoxIterator SVGTextBoxPainter<TextBoxPath>::textBoxIterat
     return { m_textBox };
 }
 
-
-template<typename TextBoxPath>
-const RenderBoxModelObject& SVGTextBoxPainter<TextBoxPath>::parentRenderer() const
-{
-    return textBoxIterator()->parentInlineBox()->renderer();
-}
 
 FloatRect selectionRectForTextFragment(const RenderSVGInlineText& renderer, TextDirection direction, const SVGTextFragment& fragment, unsigned startPosition, unsigned endPosition, const Style::ComputedStyle& style)
 {
@@ -120,7 +116,7 @@ void SVGTextBoxPainter<TextBoxPath>::paintSelectionBackground()
     ASSERT(m_paintInfo.shouldPaintWithinRoot(renderer()));
     ASSERT(m_paintInfo.phase == PaintPhase::Foreground || m_paintInfo.phase == PaintPhase::Selection);
 
-    if (renderer().style().usedVisibility() != Visibility::Visible)
+    if (renderer().usedStyle().visibility() != UsedVisibility::Visible)
         return;
 
     auto& parentRenderer = this->parentRenderer();
@@ -173,7 +169,7 @@ void SVGTextBoxPainter<TextBoxPath>::paint()
     ASSERT(m_paintInfo.shouldPaintWithinRoot(renderer()));
     ASSERT(m_paintInfo.phase == PaintPhase::Foreground || m_paintInfo.phase == PaintPhase::Selection);
 
-    if (renderer().style().usedVisibility() != Visibility::Visible)
+    if (renderer().usedStyle().visibility() != UsedVisibility::Visible)
         return;
 
     // Note: We're explicitly not supporting composition & custom underlines and custom highlighters - unlike LegacyInlineTextBox.
@@ -451,7 +447,7 @@ void SVGTextBoxPainter<TextBoxPath>::paintDecoration(Style::TextDecorationLine d
 
     const Style::ComputedStyle& decorationStyle = decorationRenderer->style();
 
-    if (decorationStyle.usedVisibility() == Visibility::Hidden)
+    if (decorationRenderer->usedStyle().visibility() == UsedVisibility::Hidden)
         return;
 
     for (auto type : renderer().style().paintOrder()) {

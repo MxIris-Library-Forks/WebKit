@@ -59,6 +59,7 @@
 #include "RenderCounter.h"
 #include "RenderDeprecatedFlexibleBox.h"
 #include "RenderDescendantIterator.h"
+#include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "FlexFormattingUtils.h"
 #include "RenderFlexibleBox.h"
@@ -738,7 +739,7 @@ void RenderBlockFlow::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit 
     // FIXME: This repaint logic should be moved into a separate helper function!
     // Repaint with our new bounds if they are different from our old bounds.
     bool didFullRepaint = repainter.repaintAfterLayout();
-    if (!didFullRepaint && repaintLogicalTop != repaintLogicalBottom && (styleToUse.usedVisibility() == Visibility::Visible || enclosingLayer()->hasVisibleContent())) {
+    if (!didFullRepaint && repaintLogicalTop != repaintLogicalBottom && (usedStyle().visibility() == UsedVisibility::Visible || enclosingLayer()->hasVisibleContent())) {
         // FIXME: We could tighten up the left and right invalidation points if we let layoutInlineChildren fill them in based off the particular lines
         // it had to lay out. We wouldn't need the hasNonVisibleOverflow() hack in that case either.
         LayoutUnit repaintLogicalLeft = logicalLeftVisualOverflow();
@@ -1674,7 +1675,7 @@ std::optional<LayoutUnit> RenderBlockFlow::selfCollapsingMarginBeforeWithClear(R
     if (!candidateBlockFlow->isSelfCollapsingBlock())
         return { };
 
-    if (Style::ComputedStyle::usedClear(*candidateBlockFlow) == UsedClear::None || !containsFloats())
+    if (candidateBlockFlow->usedStyle().clear() == UsedClear::None || !containsFloats())
         return { };
 
     auto clear = computedClearDeltaForChild(*candidateBlockFlow, candidateBlockFlow->logicalHeight());
@@ -1914,7 +1915,7 @@ void RenderBlockFlow::marginBeforeEstimateForChild(RenderBox& child, LayoutUnit&
     // If that's the case we want to be sure we estimate the correct position including margins after any floats rather
     // than use 'clearance' later which could give us the wrong position.
     auto grandchildMarginBefore = childBlock->shouldTrimChildMargin(Style::MarginTrimSide::BlockStart, *grandchildBox) ? 0_lu : childBlock->marginBeforeForChild(*grandchildBox);
-    if (Style::ComputedStyle::usedClear(*grandchildBox) != UsedClear::None && !grandchildMarginBefore)
+    if (grandchildBox->usedStyle().clear() != UsedClear::None && !grandchildMarginBefore)
         return;
 
     // Collapse the margin of the grandchild box with our own to produce an estimate.
@@ -2943,7 +2944,7 @@ void RenderBlockFlow::computeLogicalLocationForFloat(FloatingObject& floatingObj
         }
     }
 
-    if (Style::ComputedStyle::usedFloat(childBox) == UsedFloat::Left) {
+    if (childBox.usedStyle().floating() == UsedFloat::Left) {
         LayoutUnit heightRemainingLeft = 1_lu;
         LayoutUnit heightRemainingRight = 1_lu;
         floatLogicalLeft = logicalLeftOffsetForPositioningFloat(logicalTopOffset, logicalLeftOffset, &heightRemainingLeft);
@@ -3069,7 +3070,7 @@ bool RenderBlockFlow::positionNewFloats()
             continue;
 
         LayoutRect oldRect = childBox.borderBoxRectInContainer();
-        auto childBoxUsedClear = Style::ComputedStyle::usedClear(childBox);
+        auto childBoxUsedClear = childBox.usedStyle().clear();
         if (childBoxUsedClear == UsedClear::Left || childBoxUsedClear == UsedClear::Both)
             logicalTop = std::max(lowestFloatLogicalBottom(FloatingObject::FloatLeft), logicalTop);
         if (childBoxUsedClear == UsedClear::Right || childBoxUsedClear == UsedClear::Both)
@@ -3427,7 +3428,7 @@ LayoutUnit RenderBlockFlow::computedClearDeltaForChild(RenderBox& child, LayoutU
         return 0;
     
     // At least one float is present. We need to perform the clearance computation.
-    UsedClear usedClear = Style::ComputedStyle::usedClear(child);
+    UsedClear usedClear = child.usedStyle().clear();
     bool clearSet = usedClear != UsedClear::None;
     LayoutUnit logicalBottom;
     switch (usedClear) {
@@ -3764,7 +3765,7 @@ GapRects RenderBlockFlow::inlineSelectionGaps(RenderBlock& rootBlock, const Layo
                     logicalRect.move(isHorizontalWritingMode() ? offsetFromRootBlock : LayoutSize(offsetFromRootBlock.height(), offsetFromRootBlock.width()));
                     LayoutRect gapRect = rootBlock.logicalRectToPhysicalRect(rootBlockPhysicalPosition, logicalRect);
                     if (isPreviousBoxSelected && gapRect.width() > 0 && gapRect.height() > 0) {
-                        if (paintInfo && box->renderer().parent()->style().usedVisibility() == Visibility::Visible)
+                        if (paintInfo && box->renderer().parent()->usedStyle().visibility() == UsedVisibility::Visible)
                             paintInfo->context().fillRect(gapRect, box->renderer().parent()->selectionBackgroundColor());
                         // VisibleSelection may be non-contiguous, see comment above.
                         result.uniteCenter(gapRect);
@@ -3932,7 +3933,7 @@ RenderText* RenderBlockFlow::findClosestTextAtAbsolutePoint(const FloatPoint& po
     if (!block->childrenInline()) {
         // Look among our immediate children for an alternate box that contains the point.
         for (RenderBox* child = block->firstChildBox(); child; child = child->nextSiblingBox()) {
-            if (!child->borderBoxHeight() || child->style().usedVisibility() != WebCore::Visibility::Visible || child->isFloatingOrOutOfFlowPositioned())
+            if (!child->borderBoxHeight() || child->usedStyle().visibility() != UsedVisibility::Visible || child->isFloatingOrOutOfFlowPositioned())
                 continue;
             float top = child->y();
             
@@ -4697,7 +4698,7 @@ void RenderBlockFlow::adjustFontSizes(float size, float visibleWidth)
 
     unsigned lineCount = m_lineCountForTextAutosizing;
     if (lineCount == NOT_SET) {
-        if (style().usedVisibility() != Visibility::Visible)
+        if (usedStyle().visibility() != UsedVisibility::Visible)
             lineCount = NO_LINE;
         else {
             auto lineCountIgnoringBlockLevelBoxes = [](const RenderBlockFlow& blockContainer) -> size_t {
@@ -4711,7 +4712,7 @@ void RenderBlockFlow::adjustFontSizes(float size, float visibleWidth)
                 lineCountInBlock = lineCountIgnoringBlockLevelBoxes(*this);
             else {
                 for (auto& listItem : childrenOfType<RenderListItem>(*this)) {
-                    if (!listItem.childrenInline() || listItem.style().usedVisibility() != Visibility::Visible)
+                    if (!listItem.childrenInline() || listItem.usedStyle().visibility() != UsedVisibility::Visible)
                         continue;
                     lineCountInBlock += lineCountIgnoringBlockLevelBoxes(listItem);
                     if (lineCountInBlock > 1)
@@ -5340,9 +5341,9 @@ std::pair<LayoutUnit, LayoutUnit> RenderBlockFlow::computeInlineIntrinsicLogical
 
             bool clearPreviousFloat = false;
             if (box->isFloating()) {
-                auto childClearValue = Style::ComputedStyle::usedClear(*box);
+                auto childClearValue = box->usedStyle().clear();
                 if (previousFloat) {
-                    auto previousFloatValue = Style::ComputedStyle::usedFloat(*previousFloat);
+                    auto previousFloatValue = previousFloat->usedStyle().floating();
                     clearPreviousFloat =
                         (previousFloatValue == UsedFloat::Left && (childClearValue == UsedClear::Left || childClearValue == UsedClear::Both))
                         || (previousFloatValue == UsedFloat::Right && (childClearValue == UsedClear::Right || childClearValue == UsedClear::Both));

@@ -472,11 +472,6 @@ bool Element::isKeyboardFocusable(const FocusEventData&) const
         if (root->delegatesFocus())
             return false;
     }
-    // Popovers with invokers delegate focus.
-    if (auto* popover = dynamicDowncast<HTMLElement>(*this)) {
-        if (popover->isPopoverShowing() && popover->popoverData()->invoker())
-            return false;
-    }
     return true;
 }
 
@@ -5903,6 +5898,20 @@ void Element::clearSpatialPortalController()
 bool Element::establishesSpatialPortal() const
 {
     return !!spatialPortalController();
+}
+#endif
+
+#if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+bool Element::isVolumetricSceneEstablished() const
+{
+    return hasRareData() && elementRareData()->isVolumetricSceneEstablished();
+}
+
+void Element::setVolumetricSceneEstablished(bool established)
+{
+    if (!established && !hasRareData())
+        return;
+    ensureElementRareData().setVolumetricSceneEstablished(established);
 }
 #endif
 

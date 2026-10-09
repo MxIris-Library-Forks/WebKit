@@ -58,9 +58,17 @@
 #import <wtf/text/MakeString.h>
 
 #if PLATFORM(IOS_FAMILY)
+#import "Helpers/cocoa/PasteboardUtilities.h"
+#import "Helpers/ios/TestUIMenuBuilder.h"
 #import "TestInputDelegate.h"
 #import "UIKitSPIForTesting.h"
+#import <WebCore/LocalizedStrings.h>
 #import <WebKit/_WKTextInputContext.h>
+
+@interface UIView (SiteIsolationAccessibilitySelectionRects)
+- (void)_accessibilityRetrieveRectsEnclosingSelectionOffset:(NSInteger)offset withGranularity:(UITextGranularity)granularity;
+- (void)_accessibilityDidGetSelectionRects:(NSArray *)selectionRects withGranularity:(UITextGranularity)granularity atOffset:(NSInteger)offset;
+@end
 #endif
 
 #if ENABLE(MULTI_REPRESENTATION_HEIC)
@@ -751,6 +759,35 @@ TEST(SiteIsolation, ReadSelectionFromPasteboardInCrossOriginIframe)
 
 #endif // PLATFORM(MAC)
 
+#if PLATFORM(IOS_FAMILY)
+
+TEST(SiteIsolation, CopyLinkWithHighlightInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().selectAllChildren(document.body)", _WKSelectionAttributeIsRange);
+
+    RetainPtr menuBuilder = adoptNS([TestUIMenuBuilder new]);
+    [webView buildMenuWithBuilder:menuBuilder];
+    RetainPtr<UIAction> copyLinkWithHighlightAction = [menuBuilder actionWithTitle:WebCore::contextMenuItemTagCopyLinkWithHighlight().createNSString()];
+    ASSERT_NOT_NULL(copyLinkWithHighlightAction.get());
+
+    clearPasteboard();
+    [copyLinkWithHighlightAction performWithSender:nil target:nil];
+    EXPECT_TRUE(Util::waitFor([] {
+        return !!readURLFromPasteboard();
+    }));
+    RetainPtr<NSString> copiedURL = readURLFromPasteboard();
+    EXPECT_TRUE([copiedURL hasPrefix:@"https://webkit.org/iframe#:~:text="]);
+    EXPECT_TRUE([copiedURL containsString:@"subframe"]);
+}
+
+#endif // PLATFORM(IOS_FAMILY)
+
 #if ENABLE(MULTI_REPRESENTATION_HEIC)
 
 TEST(SiteIsolation, InsertAdaptiveImageGlyphInCrossOriginIframe)
@@ -1355,6 +1392,36 @@ TEST(SiteIsolation, AccessibilityRectsAtSelectionOffsetInCrossOriginIframe)
     expectRectInPositionedCrossOriginIframe([rects firstObject].CGRectValue);
 }
 
+TEST(SiteIsolation, AccessibilityRectsEnclosingSelectionOffsetInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithPositionedCrossOriginIframe } },
+        { "/iframe"_s, { editableIframeWithText } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().selectAllChildren(document.body)", _WKSelectionAttributeIsRange);
+
+    // The content view only reports these rects if it implements the accessibility callback, so give it a no-op
+    // implementation to swizzle.
+    UIView *contentView = [webView textInputContentView];
+    SEL callback = @selector(_accessibilityDidGetSelectionRects:withGranularity:atOffset:);
+    class_addMethod([contentView class], callback, imp_implementationWithBlock(^(id, NSArray *, UITextGranularity, NSInteger) { }), "v@:@qq");
+
+    __block bool done = false;
+    __block CGRect firstRect = CGRectZero;
+    InstanceMethodSwizzler swizzler { [contentView class], callback, imp_implementationWithBlock(^(id, NSArray<NSObject *> *rects, UITextGranularity, NSInteger) {
+        // The rects are WebSelectionRects, which tests can't name, so read the first one's rect through key-value coding.
+        NSValue *rect = [rects.firstObject valueForKey:@"rect"];
+        firstRect = rect.CGRectValue;
+        done = true;
+    }) };
+    [contentView _accessibilityRetrieveRectsEnclosingSelectionOffset:0 withGranularity:UITextGranularityWord];
+    Util::run(&done);
+
+    expectRectInPositionedCrossOriginIframe(firstRect);
+}
+
 #if HAVE(UI_WK_DOCUMENT_CONTEXT)
 
 TEST(SiteIsolation, DocumentEditingContextInCrossOriginIframe)
@@ -1378,6 +1445,30 @@ TEST(SiteIsolation, DocumentEditingContextInCrossOriginIframe)
     RetainPtr<NSArray<NSValue *>> characterRects = [context characterRectsForCharacterRange:NSMakeRange(0, 1)];
     ASSERT_GE([characterRects count], 1U);
     expectRectInPositionedCrossOriginIframe([characterRects firstObject].CGRectValue);
+}
+
+TEST(SiteIsolation, DocumentEditingContextForTextInputOutsideFocusedCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><input value='main field'><iframe id='iframe' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { editableIframeWithText } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+
+    // A request that names a text input has to go to that input's process, not to the focused iframe's.
+    RetainPtr textInputContexts = [webView synchronouslyRequestTextInputContextsInRect:[webView bounds]];
+    ASSERT_GE([textInputContexts count], 1U);
+
+    RetainPtr request = adoptNS([[UIWKDocumentRequest alloc] init]);
+    [request setFlags:UIWKDocumentRequestText];
+    [request setSurroundingGranularity:UITextGranularityParagraph];
+    [request setGranularityCount:1];
+    [request setInputElementIdentifier:[textInputContexts firstObject]];
+    RetainPtr context = [webView synchronouslyRequestDocumentContext:request.get()];
+
+    RetainPtr text = [NSString stringWithFormat:@"%@%@%@", [context contextBefore] ?: @"", [context selectedText] ?: @"", [context contextAfter] ?: @""];
+    EXPECT_WK_STREQ("main field", text.get());
 }
 
 #endif // HAVE(UI_WK_DOCUMENT_CONTEXT)
@@ -2009,6 +2100,81 @@ TEST(SiteIsolation, TransientActivationFromForcedUserGesturePostedToCrossOriginI
     EXPECT_FALSE(hasTransientActivationInFrame(webView.get(), nil));
 }
 
+// Loads a main frame with a cross-origin iframe, and runs a forced user gesture in the iframe that a pending timer
+// keeps alive. Its activation is also given to the main frame, which is in another process.
+static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> webViewWithPendingForcedUserGestureInCrossOriginIframe(const HTTPServer& server)
+{
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configurationWithInternals(server), CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    evaluateJavaScriptInFrame(webView.get(), @"window.pendingTimer = setTimeout(() => { }, 100000); 1", [webView firstChildFrame], YES);
+    EXPECT_TRUE(hasTransientActivationInFrame(webView.get(), nil));
+    return { webView, navigationDelegate };
+}
+
+TEST(SiteIsolation, TransientActivationFromForcedUserGestureIsRevokedWhenCrossOriginIframeIsRemoved)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "iframe text"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = webViewWithPendingForcedUserGestureInCrossOriginIframe(server);
+
+    // The main frame's process reports that the iframe was destroyed before it replies.
+    evaluateJavaScriptInFrame(webView.get(), @"document.getElementById('iframe').remove(); 1", nil, NO);
+    EXPECT_FALSE(hasTransientActivationInFrame(webView.get(), nil));
+}
+
+TEST(SiteIsolation, TransientActivationFromForcedUserGestureIsRevokedWhenCrossOriginIframeNavigatesToAnotherSite)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "iframe text"_s } },
+        { "/destination"_s, { "<script>window.webkit.messageHandlers.testHandler.postMessage('loaded')</script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = webViewWithPendingForcedUserGestureInCrossOriginIframe(server);
+    pid_t mainFrameProcessIdentifier = [webView mainFrame].info._processIdentifier;
+    EXPECT_NE(mainFrameProcessIdentifier, [webView firstChildFrame]._processIdentifier);
+
+    // Navigating to the main frame's site moves the iframe to the main frame's process. That process reports that
+    // the load committed before the new document's message.
+    __block bool loaded = false;
+    [webView performAfterReceivingMessage:@"loaded" action:^{
+        loaded = true;
+    }];
+    evaluateJavaScriptInFrame(webView.get(), @"document.getElementById('iframe').src = 'https://example.com/destination'; 1", nil, NO);
+    Util::run(&loaded);
+    EXPECT_EQ(mainFrameProcessIdentifier, [webView firstChildFrame]._processIdentifier);
+
+    EXPECT_FALSE(hasTransientActivationInFrame(webView.get(), nil));
+}
+
+TEST(SiteIsolation, TransientActivationFromForcedUserGestureIsRevokedWhenCrossOriginIframeProcessExits)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "iframe text"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = webViewWithPendingForcedUserGestureInCrossOriginIframe(server);
+    pid_t mainFrameProcessIdentifier = [webView mainFrame].info._processIdentifier;
+    pid_t iframeProcessIdentifier = [webView firstChildFrame]._processIdentifier;
+    EXPECT_NE(mainFrameProcessIdentifier, iframeProcessIdentifier);
+
+    // Nothing tells the client that a subframe's process exited, so wait for the activation to go away. Make it last
+    // much longer than the wait, so that it can't expire first.
+    evaluateJavaScriptInFrame(webView.get(), @"internals.setTransientActivationDuration(1000); 1", nil, NO);
+    kill(iframeProcessIdentifier, SIGKILL);
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !hasTransientActivationInFrame(webView.get(), nil);
+    }));
+
+    evaluateJavaScriptInFrame(webView.get(), @"internals.setTransientActivationDuration(5); 1", nil, NO);
+}
+
 #if PLATFORM(MAC)
 
 TEST(SiteIsolation, TransientActivationFromUserGestureIsPreservedAfterForcedUserGestureInCrossOriginIframe)
@@ -2108,5 +2274,42 @@ TEST(SiteIsolation, ShouldDelayWindowOrderingOverSelectionInFocusedCrossOriginIf
 }
 
 #endif // PLATFORM(MAC)
+
+TEST(SiteIsolation, AccessibilitySettingsChangeReachesCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<style>p { color: black } @media (prefers-reduced-motion: reduce) { p { color: green } }</style><p id='target'>main frame text</p><iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<style>p { color: black } @media (prefers-reduced-motion: reduce) { p { color: green } }</style><p id='target'>subframe text</p>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = configurationWithInternals(server);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    auto targetColorInFrame = [&](WKFrameInfo *frame) {
+        return [webView stringByEvaluatingJavaScript:@"getComputedStyle(document.getElementById('target')).color" inFrame:frame];
+    };
+    EXPECT_WK_STREQ("rgb(0, 0, 0)", targetColorInFrame(nil));
+    EXPECT_WK_STREQ("rgb(0, 0, 0)", targetColorInFrame(childFrame.get()));
+
+    // The forced value only takes effect once the settings change notification re-evaluates media queries.
+    [webView objectByEvaluatingJavaScript:@"internals.settings.forcedPrefersReducedMotionAccessibilityValue = 'on'"];
+    [webView objectByEvaluatingJavaScript:@"internals.settings.forcedPrefersReducedMotionAccessibilityValue = 'on'" inFrame:childFrame.get()];
+
+#if PLATFORM(MAC)
+    [[[NSWorkspace sharedWorkspace] notificationCenter] postNotificationName:NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification object:nil];
+#else
+    [[NSNotificationCenter defaultCenter] postNotificationName:UIAccessibilityReduceMotionStatusDidChangeNotification object:nil];
+#endif
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [targetColorInFrame(nil) isEqualToString:@"rgb(0, 128, 0)"];
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [targetColorInFrame(childFrame.get()) isEqualToString:@"rgb(0, 128, 0)"];
+    }));
+}
 
 } // namespace TestWebKitAPI

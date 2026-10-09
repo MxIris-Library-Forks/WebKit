@@ -644,8 +644,6 @@ public:
     bool shouldPreventEnteringBackForwardCacheForTesting() const { return m_shouldPreventEnteringBackForwardCacheForTesting; }
     void preventEnteringBackForwardCacheForTesting() { m_shouldPreventEnteringBackForwardCacheForTesting = true; }
 
-    void markAsInsecureContextForTesting() { m_isSecureContext = false; }
-
     SecurityOrigin* loadSourceOriginOverrideForTesting() const { return m_loadSourceOriginOverrideForTesting.get(); }
     WEBCORE_EXPORT void setLoadSourceOriginOverrideForTesting(RefPtr<SecurityOrigin>&&);
 
@@ -1841,6 +1839,8 @@ public:
     bool activeViewTransitionCapturedDocumentElement() const;
     void setActiveViewTransition(RefPtr<ViewTransition>&&);
 
+    Vector<Ref<ViewTransition>>& viewTransitionUpdateCallbackQueue() { return m_viewTransitionUpdateCallbackQueue; }
+
     bool hasViewTransitionPseudoElementTree() const { return m_hasViewTransitionPseudoElementTree; }
     void NODELETE setHasViewTransitionPseudoElementTree(bool);
 
@@ -2544,6 +2544,7 @@ private:
     Vector<WeakPtr<ResizeObserver>> m_resizeObservers;
 
     RefPtr<ViewTransition> m_activeViewTransition;
+    Vector<Ref<ViewTransition>> m_viewTransitionUpdateCallbackQueue;
 
     std::optional<std::pair<QualifiedName, WeakPtr<Element, WeakPtrImplWithEventTargetData>>> m_cachedFirstElementWithAttribute;
 

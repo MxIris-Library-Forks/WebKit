@@ -38,6 +38,7 @@
 #include "StochasticSpaceTimeMutatorScheduler.h"
 #include "SynchronousStopTheWorldMutatorScheduler.h"
 #include "TypeProfiler.h"
+#include "VerifierSlotVisitorInlines.h"
 #include <wtf/ListDump.h>
 #include <wtf/ParkingLot.h>
 #include <wtf/Scope.h>
@@ -370,21 +371,12 @@ NEVER_INLINE bool Collector::runBeginPhase(GCConductor conn)
         RELEASE_ASSERT(!m_requests.isEmpty());
         m_currentRequest = m_requests.first();
     }
-
-    dataLogIf(Options::logGC(), "[GC<", RawPointer(&heap()), ">: START ", gcConductorShortName(conn), " ", heap().capacity() / 1024, "kb ");
+    dataLogIf(Options::logGC(), "[GC<", *this, ">: START ", gcConductorShortName(conn), " ", capacity() / 1024, "kb ");
 
     m_beforeGC = MonotonicTime::now();
-
     CollectionScope scope = decideCollectionScope();
 
-    ++m_gcVersion;
-    if (Options::useGCSignpost()) [[unlikely]] {
-        StringPrintStream stream;
-        stream.print("GC:(", RawPointer(&heap()), "),mode:(", scope, "),version:(", m_gcVersion, "),conn:(", gcConductorShortName(conn), "),capacity(", heap().capacity() / 1024, "kb)");
-        m_signpostMessage = stream.toUTF8CString();
-        WTFBeginSignpost(this, JSCGarbageCollector, "%" PUBLIC_LOG_STRING, m_signpostMessage.isNull() ? "(nullptr)"_s : m_signpostMessage);
-    }
-
+    beginSignpost(scope, conn);
     beginCollectionInEachHeap(scope, startTime);
 
     if (scope == CollectionScope::Full) {
@@ -393,13 +385,8 @@ NEVER_INLINE bool Collector::runBeginPhase(GCConductor conn)
     }
     RELEASE_ASSERT(m_raceMarkStack->isEmpty());
 
-    // Read once the heap has begun marking, since a Full collection advances the marking version there.
-    HeapVersion markingVersion = heap().objectSpace().markingVersion();
-    HeapAnalyzer* heapAnalyzer = heap().vm().activeHeapAnalyzer();
-    forEachSlotVisitor(
-        [&](SlotVisitor& visitor) {
-            visitor.didStartMarking(scope, markingVersion, heapAnalyzer);
-        });
+    // After each heap's beginMarking has determined this collection's marking version.
+    setUpVisitors(scope);
 
     m_parallelMarkersShouldExit = false;
 
@@ -459,23 +446,27 @@ void Collector::beginCollectionInEachHeap(CollectionScope scope, MonotonicTime s
     });
 }
 
+void Collector::setUpVisitors(CollectionScope scope)
+{
+    HeapVersion markingVersion = heap().objectSpace().markingVersion();
+    HeapAnalyzer* heapAnalyzer = heap().vm().activeHeapAnalyzer();
+    forEachSlotVisitor(
+        [&](SlotVisitor& visitor) {
+            visitor.didStartMarking(scope, markingVersion, heapAnalyzer);
+        });
+    if (Options::verifyGC()) [[unlikely]] {
+        m_verifierSlotVisitor = makeUnique<VerifierSlotVisitor>(*this);
+        m_verifierSlotVisitor->didStartMarking(scope, heapAnalyzer);
+    }
+}
+
 NEVER_INLINE bool Collector::runFixpointPhase(GCConductor conn)
 {
     RELEASE_ASSERT(conn == GCConductor::Collector || m_conductingMutatorState);
 
     SlotVisitor& visitor = *m_collectorSlotVisitor;
 
-    if (Options::logGC()) [[unlikely]] {
-        UncheckedKeyHashMap<ASCIICString, size_t> visitMap;
-        forEachSlotVisitor(
-            [&] (SlotVisitor& visitor) {
-                visitMap.add(visitor.codeName(), visitor.bytesVisited() / 1024);
-            });
-
-        auto perVisitorDump = sortedMapDump(visitMap, std::less<>(), ":"_s, " "_s);
-
-        dataLog("v=", bytesVisited() / 1024, "kb (", perVisitorDump, ") o=", m_opaqueRoots.size(), " b=", heap().m_barriersExecuted, " ");
-    }
+    dataLogIf(Options::logGC(), "v=", bytesVisited() / 1024, "kb (", bytesVisitedPerVisitorDump(), ") o=", m_opaqueRoots.size(), " b=", barriersExecuted(), " ");
 
     if (visitor.didReachTermination()) {
         m_opaqueRoots.deleteOldTables();
@@ -504,7 +495,7 @@ NEVER_INLINE bool Collector::runFixpointPhase(GCConductor conn)
         m_scheduler->didExecuteConstraints();
     }
 
-    dataLogIf(Options::logGC(), visitor.collectorMarkStack().size(), "+", heap().m_mutatorMarkStack->size() + visitor.mutatorMarkStack().size(), " ");
+    dataLogIf(Options::logGC(), visitor.collectorMarkStack().size(), "+", mutatorMarkStacksSize() + visitor.mutatorMarkStack().size(), " ");
 
     {
         ParallelModeEnabler enabler(visitor);
@@ -576,7 +567,7 @@ NEVER_INLINE bool Collector::runConcurrentPhase(GCConductor conn)
 
 NEVER_INLINE bool Collector::runReloopPhase(GCConductor conn)
 {
-    dataLogIf(Options::logGC(), "[GC<", RawPointer(&heap()), ">: ", gcConductorShortName(conn), " ");
+    dataLogIf(Options::logGC(), "[GC<", *this, ">: ", gcConductorShortName(conn), " ");
 
     m_scheduler->didStop();
 
@@ -627,10 +618,7 @@ NEVER_INLINE bool Collector::runEndPhase(GCConductor conn)
     });
 
     dataLogLnIf(Options::logGC(), "GC END!");
-    if (Options::useGCSignpost()) [[unlikely]] {
-        WTFEndSignpost(this, JSCGarbageCollector, "%" PUBLIC_LOG_STRING, m_signpostMessage.isNull() ? "(nullptr)"_s : m_signpostMessage);
-        m_signpostMessage = { };
-    }
+    endSignpost();
 
     forEachHeap([&](Heap& heap) {
         heap.setNeedCollectionEpilogue();
@@ -646,9 +634,17 @@ void Collector::endCollectionInEachHeap()
 
         // Executing CodeBlocks keep writing their profiles without barriers after this collection. Remembering
         // them makes the next collection reconcile those profiles even if it is an Eden collection.
-        heap.rememberExecutingAndCompilingCodeBlocks(*m_collectorSlotVisitor);
+        heap.rememberExecutingAndCompilingCodeBlocks();
         heap.endMarking(bytesVisitedIn(heap));
-        heap.verifyMarking();
+    });
+
+    // Verify after every heap has finished marking, but before any heap prunes. Pruning applies the marking results
+    // to the heap, and the constraints would then see different heap state.
+    if (m_verifierSlotVisitor) [[unlikely]]
+        verifyGC();
+
+    forEachHeap([&](Heap& heap) {
+        heap.verifyHeapAfterMarking();
         heap.pruneDeadReferences();
         heap.prepareForAllocation();
         heap.didFinishCollection();
@@ -779,12 +775,10 @@ NEVER_INLINE void Collector::resumeThePeriphery()
 bool Collector::suspendCompilerThreads()
 {
 #if ENABLE(JIT)
-    // We ensure the worklists so that it's not possible for the mutator to start a new worklist
-    // after we have suspended the ones that he had started before. That's not very expensive since
-    // the worklists use AutomaticThreads anyway.
     if (!Options::useJIT())
         return false;
-    if (!heap().vm().numberOfActiveJITPlans())
+    // The worklist is process-wide, so one heap's active plans are enough to need every compiler thread suspended.
+    if (std::ranges::none_of(m_heaps, [](Heap* heap) { return heap->vm().numberOfActiveJITPlans(); }))
         return false;
     JITWorklist::ensureGlobalWorklist().suspendAllThreads();
     return true;
@@ -813,6 +807,16 @@ void Collector::addMarkingConstraint(ASCIICString abbreviatedName, ASCIICString 
     m_constraintSet->add(WTF::move(abbreviatedName), WTF::move(name), WTF::move(executors), volatility, concurrency, parallelism);
 }
 
+void Collector::dump(PrintStream& out) const
+{
+    // A collection of one heap is named by that heap, as in Heap's own log lines. Every set of several
+    // heaps is the set of all heaps.
+    if (m_heaps.size() == 1)
+        out.print(RawPointer(m_heaps.first()));
+    else
+        out.print("all");
+}
+
 size_t Collector::bytesVisitedIn(Heap& heap)
 {
     // FIXME: Have the visitors count bytes per heap and return this heap's count.
@@ -828,6 +832,63 @@ size_t Collector::bytesVisited()
             result += visitor.bytesVisited();
         });
     return result;
+}
+
+UTF8CString Collector::bytesVisitedPerVisitorDump()
+{
+    // Every heap's mutator visitor has the same name, so their counts are summed.
+    UncheckedKeyHashMap<ASCIICString, size_t> visitMap;
+    forEachSlotVisitor(
+        [&](SlotVisitor& visitor) {
+            visitMap.add(visitor.codeName(), 0).iterator->value += visitor.bytesVisited() / 1024;
+        });
+    return sortedMapDump(visitMap, std::less<>(), ":"_s, " "_s);
+}
+
+size_t Collector::capacity()
+{
+    size_t result = 0;
+    forEachHeap([&](Heap& heap) {
+        result += heap.capacity();
+    });
+    return result;
+}
+
+uintptr_t Collector::barriersExecuted()
+{
+    uintptr_t result = 0;
+    forEachHeap([&](Heap& heap) {
+        result += heap.m_barriersExecuted;
+    });
+    return result;
+}
+
+size_t Collector::mutatorMarkStacksSize()
+{
+    size_t result = 0;
+    forEachHeap([&](Heap& heap) {
+        result += heap.m_mutatorMarkStack->size();
+    });
+    return result;
+}
+
+void Collector::beginSignpost(CollectionScope scope, GCConductor conn)
+{
+    ++m_signpostVersion;
+    if (!Options::useGCSignpost()) [[likely]]
+        return;
+    StringPrintStream stream;
+    stream.print("GC:(", *this, "),mode:(", scope, "),version:(", m_signpostVersion, "),conn:(", gcConductorShortName(conn), "),capacity(", capacity() / 1024, "kb)");
+    m_signpostMessage = stream.toUTF8CString();
+    WTFBeginSignpost(this, JSCGarbageCollector, "%" PUBLIC_LOG_STRING, m_signpostMessage.isNull() ? "(nullptr)"_s : m_signpostMessage);
+}
+
+void Collector::endSignpost()
+{
+    if (!Options::useGCSignpost()) [[likely]]
+        return;
+    WTFEndSignpost(this, JSCGarbageCollector, "%" PUBLIC_LOG_STRING, m_signpostMessage.isNull() ? "(nullptr)"_s : m_signpostMessage);
+    m_signpostMessage = { };
 }
 
 void Collector::runTaskInParallel(RefPtr<SharedTask<void(SlotVisitor&)>> task)
@@ -850,6 +911,80 @@ void Collector::runTaskInParallel(RefPtr<SharedTask<void(SlotVisitor&)>> task)
         while (task->refCount() > initialRefCount)
             m_bonusVisitorTaskConditionVariable.wait(m_markingMutex);
     }
+}
+
+void Collector::verifyGC()
+{
+    verifierMark();
+    VerifierSlotVisitor& visitor = *m_verifierSlotVisitor;
+    RELEASE_ASSERT(visitor.doneMarking());
+
+    visitor.forEachLiveCell([&](HeapCell* cell) {
+        Heap& heap = *cell->heap();
+        if (heap.isMarked(cell))
+            return;
+
+        dataLogLn("\n" "GC Verifier: ERROR cell ", RawPointer(cell), " was not marked");
+        if (Options::verboseVerifyGC()) [[unlikely]]
+            visitor.dumpMarkerData(cell);
+        RELEASE_ASSERT(heap.isMarked(cell));
+    });
+
+    if (!m_keepVerifierSlotVisitor)
+        clearVerifierSlotVisitor();
+}
+
+void Collector::verifierMark()
+{
+    forEachHeap([](Heap& heap) {
+        RELEASE_ASSERT(!heap.m_isMarkingForGCVerifier);
+        RELEASE_ASSERT(heap.m_collectionScope);
+        heap.m_isMarkingForGCVerifier = true;
+    });
+
+    VerifierSlotVisitor& visitor = *m_verifierSlotVisitor;
+    do {
+        while (!visitor.isEmpty())
+            visitor.drain();
+        m_constraintSet->executeAllSynchronously(visitor);
+        visitor.executeConstraintTasks();
+    } while (!visitor.isEmpty());
+
+    visitor.setDoneMarking();
+
+    forEachHeap([](Heap& heap) {
+        heap.m_isMarkingForGCVerifier = false;
+    });
+}
+
+void Collector::clearVerifierSlotVisitor()
+{
+    m_verifierSlotVisitor = nullptr;
+    m_keepVerifierSlotVisitor = false;
+}
+
+void Collector::dumpVerifierMarkerData(HeapCell* cell)
+{
+    if (!Options::verifyGC())
+        return;
+
+    if (!cell->heap()->isMarked(cell)) {
+        dataLogLn("\n" "GC Verifier: cell ", RawPointer(cell), " was not marked by SlotVisitor");
+        return;
+    }
+
+    // Use VerifierSlotVisitorScope to keep it live.
+    RELEASE_ASSERT(m_verifierSlotVisitor && !cell->heap()->isMarkingForGCVerifier());
+    VerifierSlotVisitor& visitor = *m_verifierSlotVisitor;
+    RELEASE_ASSERT(visitor.doneMarking());
+
+    if (!visitor.isMarked(cell)) {
+        dataLogLn("\n" "GC Verifier: ERROR cell ", RawPointer(cell), " was not marked by VerifierSlotVisitor");
+        return;
+    }
+
+    dataLogLn("\n" "GC Verifier: Found marked cell ", RawPointer(cell), " with MarkerData:");
+    visitor.dumpMarkerData(cell);
 }
 
 void Collector::startCollectingContinuously()

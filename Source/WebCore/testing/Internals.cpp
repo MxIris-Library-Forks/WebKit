@@ -298,6 +298,7 @@
 #include <JavaScriptCore/JSCJSValue.h>
 #include <JavaScriptCore/JSCellInlines.h>
 #include <JavaScriptCore/MarkedSpaceInlines.h>
+#include <JavaScriptCore/SourceTaintedness.h>
 #include <wtf/FileHandle.h>
 #include <wtf/FileSystem.h>
 #include <wtf/HexNumber.h>
@@ -6707,6 +6708,15 @@ void Internals::setTrackingPreventionEnabled(bool enable)
     DeprecatedGlobalSettings::setTrackingPreventionEnabled(enable);
 }
 
+bool Internals::isPrevalentDomainScriptOnStack() const
+{
+    RefPtr document = contextDocument();
+    if (!document)
+        return false;
+    Ref vm = document->vm();
+    return JSC::isPrevalentDomainTaintedCodeOnStack(vm, vm->topCallFrame);
+}
+
 String Internals::composedTreeAsText(Node& node)
 {
     if (!is<ContainerNode>(node))
@@ -6918,16 +6928,6 @@ bool Internals::pageHasPointerLock() const
     return controller.element() && !controller.lockPending();
 }
 #endif
-
-void Internals::markContextAsInsecure()
-{
-    RefPtr document = contextDocument();
-    if (!document)
-        return;
-
-    document->securityOrigin().setIsPotentiallyTrustworthy(false);
-    document->markAsInsecureContextForTesting();
-}
 
 void Internals::postTask(Ref<VoidCallback>&& callback)
 {

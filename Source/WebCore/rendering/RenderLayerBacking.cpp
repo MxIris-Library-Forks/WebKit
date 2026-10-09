@@ -983,10 +983,10 @@ void RenderLayerBacking::updateBlendMode(const Style::ComputedStyle& style)
 {
     // FIXME: where is the blend mode updated when m_ancestorClippingStacks come and go?
     if (m_ancestorClippingStack) {
-        m_ancestorClippingStack->stack().first().clippingLayer->setBlendMode(style.blendMode());
+        m_ancestorClippingStack->stack().first().clippingLayer->setBlendMode(style.usedBlendMode());
         m_graphicsLayer->setBlendMode(BlendMode::Normal);
     } else
-        m_graphicsLayer->setBlendMode(style.blendMode());
+        m_graphicsLayer->setBlendMode(style.usedBlendMode());
 }
 
 #if ENABLE(VIDEO)
@@ -2025,7 +2025,7 @@ void RenderLayerBacking::updateAfterDescendants()
 
     m_graphicsLayer->setContentsVisible(m_owningLayer.hasVisibleContent() || hasVisibleNonCompositedDescendants());
     if (m_scrollContainerLayer) {
-        m_scrollContainerLayer->setContentsVisible(renderer().style().usedVisibility() == Visibility::Visible);
+        m_scrollContainerLayer->setContentsVisible(renderer().usedStyle().visibility() == UsedVisibility::Visible);
 
         bool userInteractive = renderer().visibleToHitTesting();
         m_scrollContainerLayer->setUserInteractionEnabled(userInteractive);

@@ -46,12 +46,14 @@
 namespace JSC {
 
 class Heap;
+class HeapCell;
 class MarkStackArray;
 class MarkingConstraint;
 class MarkingConstraintSet;
 struct MarkingConstraintExecutorPair;
 class MutatorScheduler;
 class SlotVisitor;
+class VerifierSlotVisitor;
 
 // State belonging to a collection cycle.
 class Collector {
@@ -75,7 +77,15 @@ public:
             func(*heap);
     }
 
+    bool hasHeap(Heap& heap) const { return m_heaps.contains(&heap); }
+
     SlotVisitor& collectorSlotVisitor() LIFETIME_BOUND { return *m_collectorSlotVisitor; }
+
+    // The GC verifier (Options::verifyGC()).
+    void setKeepVerifierSlotVisitor() { m_keepVerifierSlotVisitor = true; }
+    void clearVerifierSlotVisitor();
+    // This is a debug function for checking who marked the target cell.
+    void dumpVerifierMarkerData(HeapCell*);
 
     // Every marking worker of the cycle: this Collector's own visitors, plus each participant's.
     template<typename Func>
@@ -93,6 +103,8 @@ public:
     void addMarkingConstraint(std::unique_ptr<MarkingConstraint>);
     void addMarkingConstraint(ASCIICString abbreviatedName, ASCIICString name, MarkingConstraintExecutorPair&&,
         ConstraintVolatility, ConstraintConcurrency, ConstraintParallelism);
+
+    void dump(PrintStream&) const;
 
 private:
     class CollectorThread;
@@ -148,6 +160,7 @@ private:
 
     // The per-heap part of the Begin and End phases.
     void beginCollectionInEachHeap(CollectionScope, MonotonicTime startTime);
+    void setUpVisitors(CollectionScope);
     void endCollectionInEachHeap();
 
     void stopThePeriphery();
@@ -156,10 +169,22 @@ private:
     bool suspendCompilerThreads();
     void resumeCompilerThreads();
 
+    void verifyGC();
+    void verifierMark();
+
     void assertMarkStacksEmpty();
 
     size_t bytesVisited();
     size_t bytesVisitedIn(Heap&);
+    UTF8CString bytesVisitedPerVisitorDump();
+
+    // Summed over the heaps, for logging.
+    size_t capacity();
+    uintptr_t barriersExecuted();
+    size_t mutatorMarkStacksSize();
+
+    void beginSignpost(CollectionScope, GCConductor);
+    void endSignpost();
 
     // The heaps this Collector's collections cover.
     Vector<Heap*, 1> m_heaps;
@@ -225,15 +250,19 @@ private:
     MonotonicTime m_afterGC;
     MonotonicTime m_stopTime;
 
+    // Re-marks every heap of the collection, from the same constraints, to check that the collection marked
+    // everything it should have. Created at Begin, run in End, kept afterwards only if asked.
+    std::unique_ptr<VerifierSlotVisitor> m_verifierSlotVisitor;
+    bool m_keepVerifierSlotVisitor { false };
+
     bool m_shouldStopCollectingContinuously WTF_GUARDED_BY_LOCK(m_collectContinuouslyLock) { false };
     Lock m_collectContinuouslyLock;
     Condition m_collectContinuouslyCondition;
     RefPtr<Thread> m_collectContinuouslyThread { nullptr };
 
-    // Describes the cycle for Instruments. Built at Begin, cleared at End.
+    // Describes the cycle. Built at Begin, cleared at End.
     UTF8CString m_signpostMessage;
-    // Numbers the collections in the signpost.
-    uint64_t m_gcVersion { 0 };
+    uint64_t m_signpostVersion { 0 };
 };
 
 } // namespace JSC

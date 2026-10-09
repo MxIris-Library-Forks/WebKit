@@ -17,7 +17,6 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/Modules/ShapeDetection"
     "${WEBCORE_DIR}/Modules/ShapeDetection/Interfaces"
     "${WEBCORE_DIR}/Modules/WebGPU"
-    "${WEBCORE_DIR}/Modules/WebGPU/InternalAPI"
     "${WEBCORE_DIR}/Modules/WebGPU/Implementation"
     "${WEBCORE_DIR}/Modules/airplay"
     "${WEBCORE_DIR}/Modules/applepay"
@@ -63,6 +62,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/Modules/permissions"
     "${WEBCORE_DIR}/Modules/pictureinpicture"
     "${WEBCORE_DIR}/Modules/plugins"
+    "${WEBCORE_DIR}/Modules/proofofpossession"
     "${WEBCORE_DIR}/Modules/push-api"
     "${WEBCORE_DIR}/Modules/remoteplayback"
     "${WEBCORE_DIR}/Modules/reporting"
@@ -2879,6 +2879,15 @@ if (NOT USE_FRAMEWORK_BUNDLES)
     set(WebCore_INTERFACE_INCLUDE_DIRECTORIES ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR})
 endif ()
 
+if (NOT APPLE)
+    # The WebGPU C++ API header, <WebGPU/WebGPUCpp.h>, which ports without WebGPU.framework copy to
+    # a plain include directory. WebCore headers include it, so the users of WebCore need it too.
+    list(APPEND WebCore_PRIVATE_INCLUDE_DIRECTORIES ${WebGPU_PRIVATE_FRAMEWORK_HEADERS_DIR})
+    list(APPEND WebCore_INTERFACE_INCLUDE_DIRECTORIES ${WebGPU_PRIVATE_FRAMEWORK_HEADERS_DIR})
+    list(APPEND WebCore_DEPENDENCIES WebGPU_CopyCppAPIHeaders)
+    list(APPEND WebCore_INTERFACE_DEPENDENCIES WebGPU_CopyCppAPIHeaders)
+endif ()
+
 set(WebCoreTestSupport_INTERFACE_LIBRARIES WebCoreTestSupport)
 set(WebCoreTestSupport_INTERFACE_INCLUDE_DIRECTORIES
     ${WebCore_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebCoreTestSupport
@@ -2980,7 +2989,7 @@ endif ()
 
 # Generate CSS property names
 add_custom_command(
-    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/CSSProperties.json ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyInitialValuesGeneratedInlines.h ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.h ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.cpp ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.gperf ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyParsing.h ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyParsing.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleBuilderGenerated.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleChangedAnimatablePropertiesGenerated.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+ConstructionInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+GettersInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+InitialInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+SettersInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleExtractorGenerated.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleInterpolationWrapperMap.h ${WebCore_DERIVED_SOURCES_DIR}/StyleInterpolationWrapperMap.cpp ${WebCore_DERIVED_SOURCES_DIR}/StylePropertyShorthandFunctions.h ${WebCore_DERIVED_SOURCES_DIR}/StylePropertyShorthandFunctions.cpp ${WebCore_DERIVED_SOURCES_DIR}/CSSStyleProperties+PropertyNames.idl
+    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/CSSProperties.json ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyInitialValuesGeneratedInlines.h ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.h ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.cpp ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.gperf ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyParsing.h ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyParsing.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleBuilderGenerated.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleChangedAnimatablePropertiesGenerated.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+ConstructionInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+GettersInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+InitialInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStyleProperties+SettersInlines.h ${WebCore_DERIVED_SOURCES_DIR}/StyleExtractorGenerated.cpp ${WebCore_DERIVED_SOURCES_DIR}/StyleInterpolationWrapperMap.h ${WebCore_DERIVED_SOURCES_DIR}/StyleInterpolationWrapperMap.cpp ${WebCore_DERIVED_SOURCES_DIR}/StylePropertyShorthandFunctions.h ${WebCore_DERIVED_SOURCES_DIR}/StylePropertyShorthandFunctions.cpp ${WebCore_DERIVED_SOURCES_DIR}/UsedStyleProperties.h ${WebCore_DERIVED_SOURCES_DIR}/UsedStyleProperties.cpp ${WebCore_DERIVED_SOURCES_DIR}/CSSStyleProperties+PropertyNames.idl
     MAIN_DEPENDENCY ${WEBCORE_DIR}/css/scripts/process-css-properties.py
     DEPENDS ${WebCore_CSS_PROPERTY_NAMES} ${_platform_defines_file_dep}
     WORKING_DIRECTORY ${WebCore_DERIVED_SOURCES_DIR}
@@ -2995,6 +3004,7 @@ list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/StyleComputedStylePro
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/StyleExtractorGenerated.cpp)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/StyleInterpolationWrapperMap.cpp)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/StylePropertyShorthandFunctions.cpp)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/UsedStyleProperties.cpp)
 list(APPEND WebCore_SUPPLEMENTAL_IDL_FILES ${WebCore_DERIVED_SOURCES_DIR}/CSSStyleProperties+PropertyNames.idl)
 
 # Generate CSS value keywords
@@ -3303,7 +3313,7 @@ list(APPEND WebCore_PRIVATE_FRAMEWORK_HEADERS
     ${WebCore_DERIVED_SOURCES_DIR}/FrameTreeSyncData.serialization.in
     ${WebCore_DERIVED_SOURCES_DIR}/InspectorNativeFunctionParameters.json
 
-    Modules/WebGPU/InternalAPI/WebGPU.serialization.in
+    Modules/WebGPU/WebGPU.serialization.in
     Modules/indexeddb/IndexedDB.serialization.in
 
     page/ActivityState.serialization.in

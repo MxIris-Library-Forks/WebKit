@@ -215,7 +215,7 @@ void RenderLayerModelObject::styleDidChange(Style::Difference diff, const Style:
         }
     } else if (layer() && layer()->parent()) {
         gainedOrLostLayer = true;
-        if (oldStyle && oldStyle->blendMode() != BlendMode::Normal)
+        if (oldStyle && oldStyle->usedBlendMode() != BlendMode::Normal)
             layer()->willRemoveChildWithBlendMode();
         // For CSS renderers every transform-related property forces a layer, so reaching the
         // layer-removal branch means there is no transform and these flags can be cleared. Under
@@ -353,7 +353,7 @@ bool RenderLayerModelObject::shouldPaintSVGRenderer(const PaintInfo& paintInfo, 
     if (!paintInfo.shouldPaintWithinRoot(*this))
         return false;
 
-    if (style().usedVisibility() == Visibility::Hidden || style().display() == Style::DisplayType::None)
+    if (usedStyle().visibility() == UsedVisibility::Hidden || style().display() == Style::DisplayType::None)
         return false;
 
     return true;
@@ -940,7 +940,7 @@ void RenderLayerModelObject::paintSVGClippingMask(PaintInfo& paintInfo, const Fl
 {
     ASSERT(paintInfo.phase == PaintPhase::ClippingMask);
     auto& context = paintInfo.context();
-    if (!paintInfo.shouldPaintWithinRoot(*this) || style().usedVisibility() != Visibility::Visible || context.paintingDisabled())
+    if (!paintInfo.shouldPaintWithinRoot(*this) || usedStyle().visibility() != UsedVisibility::Visible || context.paintingDisabled())
         return;
 
     ASSERT(document().settings().layerBasedSVGEngineEnabled());
@@ -963,7 +963,7 @@ void RenderLayerModelObject::paintSVGMask(PaintInfo& paintInfo, const LayoutPoin
 void RenderLayerModelObject::paintSVGEventRegion(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
 {
     ASSERT(paintInfo.phase == PaintPhase::EventRegion);
-    if (style().usedVisibility() == Visibility::Hidden || objectBoundingBox().isEmpty())
+    if (usedStyle().visibility() == UsedVisibility::Hidden || objectBoundingBox().isEmpty())
         return;
 
     auto adjustedPaintOffset = paintOffset + currentSVGLayoutLocation();

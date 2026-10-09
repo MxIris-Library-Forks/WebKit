@@ -997,7 +997,6 @@ imported/w3c/web-platform-tests/html/rendering/widgets/button-layout/input-type-
 imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-checked-styling.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-zero-size.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-number-text-size.tentative.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/rendering/the-details-element/details-content-pseudo-attr.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option-add-label-quirks.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-fieldset-and-legend-elements/legend-painting-order.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/replaced-elements/attributes-for-embedded-content-and-images/input-image-inline-alt.html [ ImageOnlyFailure ]
@@ -1711,6 +1710,8 @@ inspector/console/console-oom.html [ Slow ]
 webkit.org/b/129639 inspector/dom/dom-search-crash.html [ Skip ]
 
 webkit.org/b/134982 inspector/debugger/setBreakpoint-dfg-and-modify-local.html [ Failure Pass ]
+
+webkit.org/b/326767 [ Debug ] http/tests/site-isolation/inspector/canvas/console-record-canvas-moved-from-iframe.html [ Crash ]
 
 # These tests are fast enough in release but quite slow in debug builds.
 [ Debug ] inspector/console/queryHolders.html [ Skip ]
@@ -2953,7 +2954,6 @@ imported/w3c/web-platform-tests/svg/text/reftests/text-multiline-003.svg [ Image
 imported/w3c/web-platform-tests/svg/text/reftests/text-shape-inside-001.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-shape-inside-002.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-xml-space-001.svg [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/text/reftests/textpath-side-001.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/text-font-face-load-image.html [ Skip ]
 
 # webkit.org/b/61855: textLength with lengthAdjust="spacing" and a list-valued
@@ -8094,8 +8094,6 @@ imported/w3c/web-platform-tests/svg/path/distance/path-length-css-property.tenta
 imported/w3c/web-platform-tests/svg/path/distance/path-length-css-zero.tentative.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/struct/reftests/use-foreignObject.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/text/reftests/textpath-pathlength-css-display-none.tentative.svg [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/svg/text/reftests/textpath-side-003.svg [ ImageOnlyFailure ]    
-imported/w3c/web-platform-tests/svg/text/reftests/textpath-side-005.svg [ ImageOnlyFailure ]
 
 webkit.org/b/312264 imported/w3c/web-platform-tests/css/cssom-view/interrupt-hidden-smooth-scroll.html [ Pass Failure ]
 

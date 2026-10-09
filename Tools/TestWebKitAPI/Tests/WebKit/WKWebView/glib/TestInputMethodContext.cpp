@@ -20,8 +20,10 @@
 #include "config.h"
 
 #include "TestMain.h"
+#include "WebKitTestServer.h"
 #include "WebViewTest.h"
 #include <algorithm>
+#include <libsoup/soup.h>
 #include <wtf/glib/GSpanExtras.h>
 #include <wtf/glib/GUniquePtr.h>
 #include <wtf/text/UTF8CStringView.h>
@@ -1251,30 +1253,25 @@ static void testWebKitInputMethodContextCursorArea(InputMethodTest* test, gconst
     test->loadHtml(testHTML, nullptr);
     test->waitUntilLoadFinished();
 
+    // Use a font small enough that one character moves the caret by less than 10 pixels.
+    test->runJavaScriptAndWaitUntilFinished("document.getElementById('editable').style.font = '8px monospace'", nullptr);
     test->focusEditableAndWaitUntilInputMethodEnabled();
+    test->waitForCursorAreaCount(1, 1000);
+    auto previousArea = test->cursorArea();
+    g_assert_cmpint(previousArea.width, >, 0);
+    g_assert_cmpint(previousArea.height, >, 0);
 
-    // One character moves the caret by less than the 10px threshold in notifyCursorRect, so type
-    // enough of them to be sure a notification is sent whatever the caret did on focus.
-    auto areaCountBeforeTyping = test->cursorAreaCount();
-    test->keyStrokeAndWaitForEvents(KEY(a), 3);
-    test->m_events.clear();
-    test->keyStrokeAndWaitForEvents(KEY(b), 3);
-    test->m_events.clear();
-    test->waitForCursorAreaCount(areaCountBeforeTyping + 1);
-    auto firstArea = test->cursorArea();
-    g_assert_cmpint(firstArea.width, >, 0);
-    g_assert_cmpint(firstArea.height, >, 0);
-    test->m_events.clear();
-
-    auto areaCountBeforeMoving = test->cursorAreaCount();
-    test->keyStrokeAndWaitForEvents(KEY(c), 3);
-    test->m_events.clear();
-    test->keyStrokeAndWaitForEvents(KEY(d), 3);
-    test->m_events.clear();
-    test->keyStrokeAndWaitForEvents(KEY(e), 3);
-    test->m_events.clear();
-    test->waitForCursorAreaCount(areaCountBeforeMoving + 1);
-    g_assert_cmpint(test->cursorArea().x, >, firstArea.x);
+    // Every caret move must be reported, however small.
+    for (unsigned key : { KEY(a), KEY(b), KEY(c) }) {
+        auto areaCountBeforeTyping = test->cursorAreaCount();
+        test->keyStrokeAndWaitForEvents(key, 3);
+        test->m_events.clear();
+        test->waitForCursorAreaCount(areaCountBeforeTyping + 1, 1000);
+        auto area = test->cursorArea();
+        g_assert_cmpint(area.x, >, previousArea.x);
+        g_assert_cmpint(area.x - previousArea.x, <, 10);
+        previousArea = area;
+    }
 
     // Focusing the same field again must send the cursor area and the surrounding text again,
     // although neither has changed.
@@ -1444,6 +1441,97 @@ static void testWebKitInputMethodContextFocusChange(InputMethodTest* test, gcons
 
     // surroundingCount() stays 0: nothing at all reaches the embedder.
     // This is a gap, not intentional behaviour.
+}
+
+static const char* navigationPageHTML = "<html><body>"
+    "<input id='editable' type='text' spellcheck='false'>"
+    "<script>addEventListener('pageshow', event => window.shownFromCache = event.persisted);</script>"
+    "</body></html>";
+
+static WebKitTestServer* kServer;
+
+static void serverCallback(SoupServer*, SoupServerMessage* message, const char*, GHashTable*, gpointer)
+{
+    if (soup_server_message_get_method(message) != SOUP_METHOD_GET) {
+        soup_server_message_set_status(message, SOUP_STATUS_NOT_IMPLEMENTED, nullptr);
+        return;
+    }
+
+    soup_server_message_set_status(message, SOUP_STATUS_OK, nullptr);
+    auto* responseBody = soup_server_message_get_response_body(message);
+    soup_message_body_append(responseBody, SOUP_MEMORY_STATIC, navigationPageHTML, strlen(navigationPageHTML));
+    soup_message_body_complete(responseBody);
+}
+
+static void testWebKitInputMethodContextFocusBackForwardCache(InputMethodTest* test, gconstpointer)
+{
+    test->loadURI(kServer->getURIForPath("/one"));
+    test->waitUntilLoadFinished();
+    test->focusEditableAndWaitUntilInputMethodEnabled();
+
+    test->loadURI(kServer->getURIForPath("/two"));
+    test->waitUntilLoadFinished();
+    test->waitUntilInputMethodDisabled();
+
+    test->clickMouseButton(20, 20);
+    test->assertJavaScriptBecomesTrue("document.activeElement.id === 'editable'");
+    test->waitUntilInputMethodEnabled();
+
+    test->clearInputMethodCounters();
+    g_assert_true(webkit_web_view_can_go_back(test->webView()));
+    test->goBack();
+    test->waitUntilLoadFinished();
+    test->assertJavaScriptBecomesTrue("window.shownFromCache");
+    test->assertJavaScriptBecomesTrue("document.activeElement.id === 'editable'");
+
+    g_assert_cmpuint(test->focusOutCount(), ==, 1);
+    g_assert_cmpuint(test->focusInCount(), ==, 1);
+    g_assert_true(test->isInputMethodEnabled());
+    g_assert_cmpuint(test->hints() & WEBKIT_INPUT_HINT_INHIBIT_OSK, ==, WEBKIT_INPUT_HINT_INHIBIT_OSK);
+}
+
+static void testWebKitInputMethodContextClickAfterScriptFocus(InputMethodTest* test, gconstpointer)
+{
+    test->loadHtml("<input id='editable' type='text' spellcheck='false'>", nullptr);
+    test->waitUntilLoadFinished();
+
+    test->focusEditableAndWaitUntilInputMethodEnabled();
+    g_assert_cmpuint(test->hints() & WEBKIT_INPUT_HINT_INHIBIT_OSK, ==, WEBKIT_INPUT_HINT_INHIBIT_OSK);
+
+    test->keyStroke(KEY(a));
+    test->assertJavaScriptBecomesTrue("document.getElementById('editable').value === 'a'");
+    g_assert_cmpuint(test->hints() & WEBKIT_INPUT_HINT_INHIBIT_OSK, ==, WEBKIT_INPUT_HINT_INHIBIT_OSK);
+
+    test->clearInputMethodCounters();
+    test->clickMouseButton(20, 20);
+    test->assertJavaScriptBecomesTrue("document.activeElement.id === 'editable'");
+
+    g_assert_cmpuint(test->hints() & WEBKIT_INPUT_HINT_INHIBIT_OSK, ==, 0);
+
+    test->clearInputMethodCounters();
+    test->runJavaScriptAndWaitUntilFinished("document.getElementById('editable').setSelectionRange(1, 1)", nullptr);
+    test->deleteSurrounding(-1, 1);
+    test->assertJavaScriptBecomesTrue("document.getElementById('editable').value === ''");
+    g_assert_cmpuint(test->hints() & WEBKIT_INPUT_HINT_INHIBIT_OSK, ==, 0);
+    g_assert_cmpuint(test->contentTypeNotificationCount(), ==, 0);
+}
+
+static void testWebKitInputMethodContextBackForwardCacheWithoutFocus(InputMethodTest* test, gconstpointer)
+{
+    test->loadURI(kServer->getURIForPath("/one"));
+    test->waitUntilLoadFinished();
+    test->loadURI(kServer->getURIForPath("/two"));
+    test->waitUntilLoadFinished();
+
+    test->clearInputMethodCounters();
+    g_assert_true(webkit_web_view_can_go_back(test->webView()));
+    test->goBack();
+    test->waitUntilLoadFinished();
+    test->assertJavaScriptBecomesTrue("window.shownFromCache");
+    test->assertJavaScriptBecomesTrue("document.activeElement === document.body");
+
+    g_assert_cmpuint(test->focusInCount(), ==, 0);
+    g_assert_false(test->isInputMethodEnabled());
 }
 
 static void testWebKitInputMethodContextFocusInteraction(InputMethodTest* test, gconstpointer)
@@ -1695,6 +1783,9 @@ static void testWebKitInputMethodContextReadOnly(InputMethodTest* test, gconstpo
 
 void beforeAll()
 {
+    kServer = new WebKitTestServer();
+    kServer->run(serverCallback);
+
     InputMethodTest::add("WebKitInputMethodContext", "simple", testWebKitInputMethodContextSimple);
     InputMethodTest::add("WebKitInputMethodContext", "sequence", testWebKitInputMethodContextSequence);
     InputMethodTest::add("WebKitInputMethodContext", "invalid-sequence", testWebKitInputMethodContextInvalidSequence);
@@ -1710,6 +1801,9 @@ void beforeAll()
     InputMethodTest::add("WebKitInputMethodContext", "preedit-underlines", testWebKitInputMethodContextPreeditUnderlines);
 #endif
     InputMethodTest::add("WebKitInputMethodContext", "focus-change", testWebKitInputMethodContextFocusChange);
+    InputMethodTest::add("WebKitInputMethodContext", "focus-back-forward-cache", testWebKitInputMethodContextFocusBackForwardCache);
+    InputMethodTest::add("WebKitInputMethodContext", "back-forward-cache-without-focus", testWebKitInputMethodContextBackForwardCacheWithoutFocus);
+    InputMethodTest::add("WebKitInputMethodContext", "click-after-script-focus", testWebKitInputMethodContextClickAfterScriptFocus);
     InputMethodTest::add("WebKitInputMethodContext", "focus-interaction", testWebKitInputMethodContextFocusInteraction);
     InputMethodTest::add("WebKitInputMethodContext", "content-type", testWebKitInputMethodContextContentType);
     InputMethodTest::add("WebKitInputMethodContext", "read-only", testWebKitInputMethodContextReadOnly);
@@ -1718,5 +1812,5 @@ void beforeAll()
 
 void afterAll()
 {
-
+    delete kServer;
 }

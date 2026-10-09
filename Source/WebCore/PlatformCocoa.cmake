@@ -810,38 +810,8 @@ list(REMOVE_ITEM WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/WebGPU/GPUVertexState.h
     Modules/WebGPU/GPUVertexStepMode.h
 
-    Modules/WebGPU/Implementation/WebGPUAPIUtilities.h
-    Modules/WebGPU/Implementation/WebGPUAdapterImpl.h
-    Modules/WebGPU/Implementation/WebGPUBindGroupImpl.h
-    Modules/WebGPU/Implementation/WebGPUBindGroupLayoutImpl.h
-    Modules/WebGPU/Implementation/WebGPUBufferImpl.h
-    Modules/WebGPU/Implementation/WebGPUCommandBufferImpl.h
-    Modules/WebGPU/Implementation/WebGPUCommandEncoderImpl.h
     Modules/WebGPU/Implementation/WebGPUCompositorIntegrationImpl.h
-    Modules/WebGPU/Implementation/WebGPUComputePassEncoderImpl.h
-    Modules/WebGPU/Implementation/WebGPUComputePipelineImpl.h
-    Modules/WebGPU/Implementation/WebGPUConvertToBackingContext.h
-    Modules/WebGPU/Implementation/WebGPUDeviceImpl.h
-    Modules/WebGPU/Implementation/WebGPUDowncastConvertToBackingContext.h
-    Modules/WebGPU/Implementation/WebGPUExternalTextureImpl.h
     Modules/WebGPU/Implementation/WebGPUImpl.h
-    Modules/WebGPU/Implementation/WebGPUPipelineLayoutImpl.h
-    Modules/WebGPU/Implementation/WebGPUPresentationContextImpl.h
-    Modules/WebGPU/Implementation/WebGPUPtr.h
-    Modules/WebGPU/Implementation/WebGPUQuerySetImpl.h
-    Modules/WebGPU/Implementation/WebGPUQueueImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderBundleEncoderImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderBundleImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderPassEncoderImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderPipelineImpl.h
-    Modules/WebGPU/Implementation/WebGPUSamplerImpl.h
-    Modules/WebGPU/Implementation/WebGPUShaderModuleImpl.h
-    Modules/WebGPU/Implementation/WebGPUTextureImpl.h
-    Modules/WebGPU/Implementation/WebGPUTextureViewImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRBindingImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRProjectionLayerImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRSubImageImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRViewImpl.h
 
     Modules/compression/CompressionStreamEncoder.h
     Modules/compression/DecompressionStreamDecoder.h
@@ -1642,10 +1612,46 @@ if (WEBKIT_SDK_IS_MACOS)
 set_target_properties(WebCore PROPERTIES
     MACOSX_FRAMEWORK_INFO_PLIST ${WEBCORE_DIR}/Info.plist)
 
-# Localizable.strings for copyLocalizedString(). Xcode copies via CopyFiles build phase.
-# Configure-time -- files rarely change, no build edge needed.
-file(COPY "${WEBCORE_DIR}/en.lproj"
-     DESTINATION "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebCore.framework/Versions/A/Resources")
+if (WEBKIT_SDK_IS_MACOS)
+    set(WebCore_LOCALIZED_RESOURCES_DIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebCore.framework/Versions/A/Resources/en.lproj")
+else ()
+    set(WebCore_LOCALIZED_RESOURCES_DIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebCore.framework/en.lproj")
+endif ()
+WEBKIT_COPY_FILES(WebCore_CopyLocalizedResources
+    DESTINATION "${WebCore_LOCALIZED_RESOURCES_DIR}"
+    FILES
+        ${WEBCORE_DIR}/en.lproj/Localizable.stringsdict
+        ${WEBCORE_DIR}/en.lproj/modern-media-controls-localized-strings.js
+    FLATTENED NO_SYMLINK)
+add_dependencies(WebCore WebCore_CopyLocalizedResources)
+
+# Localizable.strings for copyLocalizedString(), with the WebKitAdditions strings
+# appended, like Xcode's "Concatenate and Copy Localizable.strings" build phase.
+set(WebCore_LOCALIZABLE_STRINGS ${WEBCORE_DIR}/en.lproj/Localizable.strings)
+if (USE_APPLE_INTERNAL_SDK)
+    set(_localizable_additions ${WebCore_DERIVED_SOURCES_DIR}/LocalizableAdditions.strings.out)
+    add_custom_command(
+        OUTPUT ${_localizable_additions}
+        MAIN_DEPENDENCY ${WEBCORE_DIR}/preprocess-localizable-strings.pl
+        DEPENDS
+            ${WEBCORE_DIR}/bindings/scripts/preprocessor.pm
+            ${WebKitAdditions_HEADERS_DIR}/LocalizableAdditions.strings.txt
+            ${WEBKITADDITIONS_HEADERS_DEPENDENCIES}
+            ${WEBKIT_PLATFORM_FEATURE_DEFINES_FILE}
+        COMMAND ${PERL_EXECUTABLE} ${WEBCORE_DIR}/preprocess-localizable-strings.pl
+            --defines "${FEATURE_DEFINES_WITH_SPACE_SEPARATOR}" --defines-file ${WEBKIT_PLATFORM_FEATURE_DEFINES_FILE}
+            ${_localizable_additions} ${WebKitAdditions_HEADERS_DIR}/LocalizableAdditions.strings.txt
+        VERBATIM)
+    list(APPEND WebCore_LOCALIZABLE_STRINGS ${_localizable_additions})
+endif ()
+add_custom_command(
+    OUTPUT ${WebCore_LOCALIZED_RESOURCES_DIR}/Localizable.strings
+    DEPENDS ${WebCore_LOCALIZABLE_STRINGS}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${WebCore_LOCALIZED_RESOURCES_DIR}
+    COMMAND ${CMAKE_COMMAND} -E cat ${WebCore_LOCALIZABLE_STRINGS} > ${WebCore_LOCALIZED_RESOURCES_DIR}/Localizable.strings
+    VERBATIM)
+add_custom_target(WebCore_CopyLocalizableStrings DEPENDS ${WebCore_LOCALIZED_RESOURCES_DIR}/Localizable.strings)
+add_dependencies(WebCore WebCore_CopyLocalizableStrings)
 
 # Copy the proper resources over, mirroring Xcode's Resources build phase.
 # Listed explicitly (rather than globbed) so null builds stay clean.

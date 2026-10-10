@@ -220,6 +220,7 @@
 #include "RenderTreeAsText.h"
 #include "RenderView.h"
 #include "RenderedDocumentMarker.h"
+#include "RequestedGPU.h"
 #include "ResolvedStyle.h"
 #include "ResourceLoadObserver.h"
 #include "SMILTimeContainer.h"
@@ -245,6 +246,7 @@
 #include "Settings.h"
 #include "ShadowRoot.h"
 #include "ShouldPartitionCookie.h"
+#include "SimulatedWebGLContextEvent.h"
 #include "SocketProvider.h"
 #include "SourceBuffer.h"
 #include "SpeechSynthesisUtterance.h"
@@ -428,7 +430,7 @@
 #include "SystemBattery.h"
 #include "VP9UtilitiesCocoa.h"
 #include <pal/spi/cf/CoreTextSPI.h>
-#include <wtf/spi/darwin/SandboxSPI.h>
+#include <wtf/darwin/DarwinExtras.h>
 #endif
 
 #if PLATFORM(WPE)
@@ -7066,7 +7068,7 @@ void Internals::simulateEventForWebGLContext(SimulatedWebGLContextEvent event, W
     context.simulateEventForTesting(contextEvent);
 }
 
-Internals::RequestedGPU Internals::requestedGPU(WebGLRenderingContextBase& context)
+RequestedGPU Internals::requestedGPU(WebGLRenderingContextBase& context)
 {
     switch (context.creationAttributes().powerPreference) {
     case WebGLPowerPreference::Default:
@@ -8135,7 +8137,7 @@ bool Internals::hasSandboxMachLookupAccessToGlobalName(const String& process, co
     else
         RELEASE_ASSERT_NOT_REACHED();
 
-    return !sandbox_check(pid, "mach-lookup", static_cast<enum sandbox_filter_type>(SANDBOX_FILTER_GLOBAL_NAME | SANDBOX_CHECK_NO_REPORT), service.utf8().legacyCStringPointer());
+    return !sandboxCheck(pid, "mach-lookup", static_cast<enum sandbox_filter_type>(SANDBOX_FILTER_GLOBAL_NAME | SANDBOX_CHECK_NO_REPORT), service.utf8());
 #else
     UNUSED_PARAM(process);
     UNUSED_PARAM(service);
@@ -8152,7 +8154,7 @@ bool Internals::hasSandboxMachLookupAccessToXPCServiceName(const String& process
     else
         RELEASE_ASSERT_NOT_REACHED();
 
-    return !sandbox_check(pid, "mach-lookup", static_cast<enum sandbox_filter_type>(SANDBOX_FILTER_XPC_SERVICE_NAME | SANDBOX_CHECK_NO_REPORT), service.utf8().legacyCStringPointer());
+    return !sandboxCheck(pid, "mach-lookup", static_cast<enum sandbox_filter_type>(SANDBOX_FILTER_XPC_SERVICE_NAME | SANDBOX_CHECK_NO_REPORT), service.utf8());
 #else
     UNUSED_PARAM(process);
     UNUSED_PARAM(service);

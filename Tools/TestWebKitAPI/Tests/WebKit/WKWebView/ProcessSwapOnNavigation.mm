@@ -56,6 +56,7 @@
 #import <WebKit/WebKit.h>
 #import <WebKit/_WKFeature.h>
 #import <WebKit/_WKInspector.h>
+#import <WebKit/_WKInspectorPrivateForTesting.h>
 #import <WebKit/_WKProcessPoolConfiguration.h>
 #import <WebKit/_WKWebsiteDataStoreConfiguration.h>
 #import <notify.h>
@@ -4637,6 +4638,75 @@ TEST(ProcessSwap, WebInspectorDelayedProcessLaunch)
     [[webView _inspector] close];
 }
 
+TEST(ProcessSwap, WebInspectorReconnectsPageRestoredFromBackForwardCache)
+{
+    auto processPoolConfiguration = psonProcessPoolConfiguration();
+    RetainPtr processPool = adoptNS([[WKProcessPool alloc] _initWithConfiguration:processPoolConfiguration.get()]);
+
+    RetainPtr webViewConfiguration = adoptNS([[WKWebViewConfiguration alloc] init]);
+    [webViewConfiguration setProcessPool:processPool.get()];
+    webViewConfiguration.get().preferences._developerExtrasEnabled = YES;
+
+    RetainPtr handler = adoptNS([[PSONScheme alloc] init]);
+    [webViewConfiguration setURLSchemeHandler:handler.get() forURLScheme:@"PSON"];
+
+    RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration.get()]);
+    RetainPtr delegate = adoptNS([[PSONNavigationDelegate alloc] init]);
+    [webView setNavigationDelegate:delegate.get()];
+
+    if (!isUsingBackForwardCache(webView.get())) {
+        NSLog(@"ProcessSwap.WebInspectorReconnectsPageRestoredFromBackForwardCache: Test is skipped as back-forward cache is disabled");
+        return;
+    }
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"pson://www.webkit.org/main1.html"]]];
+    TestWebKitAPI::Util::run(&done);
+    done = false;
+
+    auto pid1 = [webView _webProcessIdentifier];
+
+    [[webView _inspector] show];
+    RetainPtr inspectorWebView = [[webView _inspector] inspectorWebView];
+    ASSERT_NOT_NULL(inspectorWebView.get());
+
+    auto currentPageTarget = [&] {
+        return [inspectorWebView stringByEvaluatingJavaScript:@"window.WI?.pageTarget?.identifier ?? ''"];
+    };
+
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+        return !!currentPageTarget().length;
+    }));
+    RetainPtr<NSString> originalPageTarget = currentPageTarget();
+
+    [inspectorWebView objectByEvaluatingJavaScript:@"window.unhandledRejections = []; window.addEventListener('unhandledrejection', (event) => unhandledRejections.push(String(event.reason?.message ?? event.reason))); true"];
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"pson://www.apple.com/main2.html"]]];
+    TestWebKitAPI::Util::run(&done);
+    done = false;
+
+    EXPECT_NE(pid1, [webView _webProcessIdentifier]);
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+        NSString *pageTarget = currentPageTarget();
+        return pageTarget.length && ![pageTarget isEqualToString:originalPageTarget.get()];
+    }));
+
+    [webView goBack];
+    TestWebKitAPI::Util::run(&done);
+    done = false;
+
+    EXPECT_EQ(pid1, [webView _webProcessIdentifier]);
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+        return [currentPageTarget() isEqualToString:originalPageTarget.get()];
+    }));
+
+    // Replies arrive in order, so this round trip flushes replies to the frontend's earlier commands.
+    id didReply = [inspectorWebView objectByCallingAsyncFunction:@"return await Promise.race([WI.pageTarget.RuntimeAgent.evaluate('1').then(() => true), new Promise((resolve) => setTimeout(() => resolve(false), 1000))]);" withArguments:@{ }];
+    EXPECT_TRUE([didReply boolValue]);
+    EXPECT_WK_STREQ(@"", [inspectorWebView stringByEvaluatingJavaScript:@"unhandledRejections.join(', ')"]);
+
+    [[webView _inspector] close];
+}
+
 #endif // !TARGET_OS_IPHONE
 
 TEST(ProcessSwap, DelayedProcessLaunchThenLaunchInitialProcessIfNecessary)
@@ -8737,6 +8807,97 @@ TEST(ProcessSwap, CommittedURLAfterNavigatingBackToCOOP)
 
     EXPECT_EQ([webView _webProcessIdentifier], pid2);
     EXPECT_WK_STREQ([webView _committedURL].absoluteString, server.request("/destination1.html"_s).URL.absoluteString);
+}
+
+TEST(ProcessSwap, CommittedURLAfterNavigatingBackToCrossOriginIsolated)
+{
+    using namespace TestWebKitAPI;
+
+    HTTPServer server({
+        { "/source.html"_s, { "foo"_s } },
+        { "/destination1.html"_s, { { { "Content-Type"_s, "text/html"_s }, { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "foo"_s } },
+        { "/destination2.html"_s, { { { "Content-Type"_s, "text/html"_s }, { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Cross-Origin-Embedder-Policy"_s, "require-corp"_s } }, "foo"_s } },
+    }, HTTPServer::Protocol::Https);
+
+    auto processPoolConfiguration = psonProcessPoolConfiguration();
+    RetainPtr processPool = adoptNS([[WKProcessPool alloc] _initWithConfiguration:processPoolConfiguration]);
+
+    RetainPtr webViewConfiguration = adoptNS([[WKWebViewConfiguration alloc] init]);
+    [webViewConfiguration setProcessPool:processPool];
+    for (_WKFeature *feature in [WKPreferences _features]) {
+        if ([feature.key isEqualToString:@"CrossOriginOpenerPolicyEnabled"])
+            [[webViewConfiguration preferences] _setEnabled:YES forFeature:feature];
+        else if ([feature.key isEqualToString:@"CrossOriginEmbedderPolicyEnabled"])
+            [[webViewConfiguration preferences] _setEnabled:YES forFeature:feature];
+    }
+
+    RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration]);
+    RetainPtr navigationDelegate = adoptNS([[PSONNavigationDelegate alloc] init]);
+    [webView setNavigationDelegate:navigationDelegate];
+
+    done = false;
+    [webView loadRequest:server.request("/source.html"_s)];
+    Util::run(&done);
+    done = false;
+
+    auto pid1 = [webView _webProcessIdentifier];
+
+    [webView loadRequest:server.request("/destination1.html"_s)];
+    Util::run(&done);
+    done = false;
+
+    auto pid2 = [webView _webProcessIdentifier];
+    EXPECT_NE(pid1, pid2);
+    EXPECT_TRUE([[processPool _crossOriginIsolatedProcessIdentifiersForTesting] containsObject:@(pid2)]);
+
+    [webView loadRequest:server.request("/destination2.html"_s)];
+    Util::run(&done);
+    done = false;
+
+    EXPECT_EQ([webView _webProcessIdentifier], pid2);
+
+    [webView goBack];
+    Util::run(&done);
+    done = false;
+
+    EXPECT_EQ([webView _webProcessIdentifier], pid2);
+    EXPECT_WK_STREQ([webView _committedURL].absoluteString, server.request("/destination1.html"_s).URL.absoluteString);
+    EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:@"self.crossOriginIsolated ? 'isolated' : 'not-isolated'"], "isolated");
+}
+
+TEST(ProcessSwap, OriginAgentClusterKeyingAfterCOOPSwap)
+{
+    using namespace TestWebKitAPI;
+
+    HTTPServer server({
+        { "/source.html"_s, { { { "Content-Type"_s, "text/html"_s }, { "Origin-Agent-Cluster"_s, "?0"_s } }, "foo"_s } },
+        { "/destination.html"_s, { { { "Content-Type"_s, "text/html"_s }, { "Cross-Origin-Opener-Policy"_s, "same-origin"_s }, { "Origin-Agent-Cluster"_s, "?1"_s } }, "bar"_s } },
+    }, HTTPServer::Protocol::Https);
+
+    auto processPoolConfiguration = psonProcessPoolConfiguration();
+    RetainPtr processPool = adoptNS([[WKProcessPool alloc] _initWithConfiguration:processPoolConfiguration]);
+
+    RetainPtr webViewConfiguration = adoptNS([[WKWebViewConfiguration alloc] init]);
+    [webViewConfiguration setProcessPool:processPool];
+
+    RetainPtr webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration]);
+    RetainPtr navigationDelegate = adoptNS([[PSONNavigationDelegate alloc] init]);
+    [webView setNavigationDelegate:navigationDelegate];
+
+    done = false;
+    [webView loadRequest:server.request("/source.html"_s)];
+    Util::run(&done);
+    done = false;
+
+    auto pid1 = [webView _webProcessIdentifier];
+    EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:@"String(window.originAgentCluster)"], "false");
+
+    [webView loadRequest:server.request("/destination.html"_s)];
+    Util::run(&done);
+    done = false;
+
+    EXPECT_NE(pid1, [webView _webProcessIdentifier]);
+    EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:@"String(window.originAgentCluster)"], "true");
 }
 
 TEST(ProcessSwap, CrossSiteNavigationToCOOPReusesProvisionalProcess)

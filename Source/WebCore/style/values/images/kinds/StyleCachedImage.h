@@ -89,6 +89,7 @@ public:
     float imageScaleFactor() const final;
     bool knownToBeOpaque(const RenderElement&) const final;
     bool canDraw(const RenderElement&) const final;
+    bool containsCurrentColor() const final { return false; }
     bool canDrawAtSize(const RenderElement&, const FloatSize&) const final;
     bool drawsSVGImage() const final;
     WTF::String accessibilityDescription() const final;
@@ -106,6 +107,8 @@ private:
     CachedImage(URL&&, Ref<CSSImageValue>&&, float, OptionSet<SVGReferencingMode>);
 
     RefPtr<WebCore::Image> resolvedImage() const;
+    ConcreteObjectSize concreteSizeToDrawAt(const WebCore::Image&, const RenderElement&, ConcreteObjectSize) const;
+    NaturalDimensions tileNaturalDimensions(const WebCore::Image&) const;
     Vector<CSS::ParamFunction> urlLinkParameters(const CSSParserContext&, StringView fragment) const;
 
     struct ReferencedSVGResource {

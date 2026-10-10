@@ -88,7 +88,6 @@
 #include "InlineIteratorBoxInlines.h"
 #include "InlineIteratorLogicalOrderTraversal.h"
 #include "InlineIteratorTextBoxInlines.h"
-#include "LegacyLineLayout.h"
 #include "LegacyRenderSVGRoot.h"
 #include "LegacyRenderSVGShape.h"
 #include "LineSelection.h"
@@ -1316,9 +1315,7 @@ bool AccessibilityRenderObject::computeIsIgnored() const
     // Results in a lot of useless generics being exposed, which is wasteful. We should remove this.
     WeakPtr blockFlow = dynamicDowncast<RenderBlockFlow>(*m_renderer);
     if (blockFlow && m_renderer->childrenInline() && !canSetFocusAttribute() && !blockFlow->hasBlocksInInlineLayout()) {
-        // FIXME: Do we really need to check for SVG content here?
-        auto hasInlineOrSVGContent = blockFlow->hasContentfulInlineLine() || (blockFlow->svgTextLayout() && blockFlow->svgTextLayout()->lineCount());
-        return !hasInlineOrSVGContent && !clickableSelfOrAncestor();
+        return !blockFlow->hasContentfulInlineLine() && !clickableSelfOrAncestor();
     }
 
     if (isCanvas()) {
@@ -2796,7 +2793,7 @@ AccessibilitySVGObject* AccessibilityRenderObject::remoteSVGRootElement(CreateIf
 
     RefPtr rootSVGObject = createIfNecessary == CreateIfNecessary::Yes ? cache->getOrCreate(*rendererRoot) : cache->get(rendererRoot.get());
     AX_ASSERT(createIfNecessary == CreateIfNecessary::No || rootSVGObject);
-    return dynamicDowncast<AccessibilitySVGObject>(rootSVGObject).unsafeGet();
+    return dynamicDowncast<AccessibilitySVGObject>(rootSVGObject.unsafeGet());
 }
 
 void AccessibilityRenderObject::addRemoteSVGChildren()
@@ -2924,7 +2921,7 @@ void AccessibilityRenderObject::updateAttachmentViewParents()
     // updateChildrenIfNeeded == false because this is called right after we've added children, so we know
     // they're clean and don't need updating.
     for (const auto& child : children(/* updateChildrenIfNeeded */ false))
-        downcast<AccessibilityObject>(child)->overrideAttachmentParent(this);
+        downcast<AccessibilityObject>(child).overrideAttachmentParent(this);
 }
 #endif // PLATFORM(MAC)
 

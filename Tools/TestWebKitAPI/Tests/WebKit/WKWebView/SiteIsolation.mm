@@ -27,6 +27,7 @@
 #import "FrameTreeChecks.h"
 #import "Helpers/DeprecatedGlobalValues.h"
 #import "Helpers/PlatformUtilities.h"
+#import "Helpers/TestNotificationProvider.h"
 #import "Helpers/Utilities.h"
 #import "Helpers/cocoa/DragAndDropSimulator.h"
 #import "Helpers/cocoa/FindInPageUtilities.h"
@@ -3407,6 +3408,62 @@ TEST(SiteIsolation, DragAndDropWithoutNavigation)
     EXPECT_FALSE(didDecideNavigationPolicy);
     EXPECT_EQ(windowDropCount, 1);
 }
+
+TEST(SiteIsolation, DragSecurityOriginCheck)
+{
+    auto runDragFromSubframeToMainFrame = [&](ASCIILiteral subframeDomain, bool siteIsolationEnabled, ASCIILiteral expectedEvents) {
+        auto mainframeHTML = makeString("<!DOCTYPE html>"
+        "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+        "<body style='margin: 0'>"
+        "<div id='dropzone' style='width: 400px; height: 100px; background-color: pink'></div>"
+        "<iframe src='https://"_s, subframeDomain, "/subframe' style='width: 400px; height: 200px; border: 0; display: block'></iframe>"
+        "<script>"
+        "    window.events = [];"
+        "    function addEvent(type) { if (!window.events.includes(type)) window.events.push(type) }"
+        "    dropzone.addEventListener('dragenter', e => { e.preventDefault(); addEvent('dragenter') });"
+        "    dropzone.addEventListener('dragover', e => { e.preventDefault(); addEvent('dragover') });"
+        "    dropzone.addEventListener('dragleave', e => addEvent('dragleave'));"
+        "    dropzone.addEventListener('drop', e => { e.preventDefault(); addEvent('drop') });"
+        "</script>"
+        "</body>"_s);
+
+        auto subframeHTML = "<!DOCTYPE html>"
+        "<body style='margin: 0'>"
+        "<div id='draggable' draggable='true' style='width: 100px; height: 100px; background-color: blue'></div>"
+        "<script>"
+        "    draggable.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', 'hello'));"
+        "</script>"
+        "</body>"_s;
+
+        HTTPServer server({
+            { "/mainframe"_s, { mainframeHTML } },
+            { "/subframe"_s, { subframeHTML } },
+        }, HTTPServer::Protocol::HttpsProxy);
+
+        RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+        [navigationDelegate allowAnyTLSCertificate];
+        RetainPtr configuration = server.httpsProxyConfiguration();
+        if (siteIsolationEnabled)
+            enableSiteIsolation(configuration.get());
+        RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
+        RetainPtr webView = [simulator webView];
+        [webView setNavigationDelegate:navigationDelegate.get()];
+
+        [webView loadURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]];
+        [navigationDelegate waitForDidFinishNavigation];
+        [webView waitForNextPresentationUpdate];
+
+        [simulator runFrom:CGPointMake(50, 150) to:CGPointMake(200, 50)];
+
+        EXPECT_WK_STREQ(expectedEvents.characters(), [webView stringByEvaluatingJavaScript:@"window.events.join(',')"]);
+    };
+
+    runDragFromSubframeToMainFrame("domain2.com"_s, true, ""_s);
+    runDragFromSubframeToMainFrame("domain2.com"_s, false, ""_s);
+    runDragFromSubframeToMainFrame("domain1.com"_s, true, "dragenter,dragover,drop"_s);
+    runDragFromSubframeToMainFrame("domain1.com"_s, false, "dragenter,dragover,drop"_s);
+}
+
 #endif
 
 #if ENABLE(DRAG_SUPPORT) && PLATFORM(MAC)
@@ -17577,6 +17634,48 @@ TEST(SiteIsolation, PushAndNotificationAPIPolicyInheritedByCrossSiteIframe)
     NSString *check = @"String('PushManager' in window || 'Notification' in window)";
     EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:check], "false");
     EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:check inFrame:childFrame.get()], "false");
+}
+
+TEST(SiteIsolation, NotificationFromCrossSiteIframeIsShown)
+{
+    HTTPServer server(mainAndSubframeResponses(), HTTPServer::Protocol::HttpsProxy);
+
+    // Notification permission is never granted in an ephemeral session, so this needs a persistent data store.
+    RetainPtr storeConfiguration = adoptNS([_WKWebsiteDataStoreConfiguration new]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    RetainPtr configuration = adoptNS([WKWebViewConfiguration new]);
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+    [[configuration preferences] _setNotificationsEnabled:YES];
+    setFeatureEnabled(configuration.get(), @"BuiltInNotificationsEnabled", false);
+
+    TestNotificationProvider provider({ [[configuration processPool] _notificationManagerForTesting] });
+    provider.setPermission("https://b.com"_s, true);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+    RetainPtr childFrame = loadAndWaitForCrossSiteChildFrame(webView.get(), navigationDelegate.get(), @"https://a.com/mainframe", @"b.com");
+    EXPECT_NE([webView mainFrame].info._processIdentifier, [childFrame _processIdentifier]);
+    EXPECT_WK_STREQ([webView stringByEvaluatingJavaScript:@"Notification.permission" inFrame:childFrame.get()], "granted");
+    EXPECT_FALSE(provider.hasReceivedShowNotification());
+
+    [webView objectByEvaluatingJavaScript:@"window.notificationEvent = 'none';"
+        "window.notification = new Notification('From iframe');"
+        "notification.onshow = () => { notificationEvent = 'show' };"
+        "notification.onerror = () => { notificationEvent = 'error' };"
+        "true" inFrame:childFrame.get()];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return provider.hasReceivedShowNotification();
+    }));
+    EXPECT_WK_STREQ("https://b.com", provider.lastNotificationOrigin());
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"notificationEvent" inFrame:childFrame.get()] isEqualToString:@"show"];
+    }));
+
+    EXPECT_FALSE(provider.hasReceivedCloseNotification());
+    [webView objectByEvaluatingJavaScript:@"notification.close(); true" inFrame:childFrame.get()];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return provider.hasReceivedCloseNotification();
+    }));
 }
 
 TEST(SiteIsolation, ColorSchemePreferenceInheritedByCrossSiteIframe)

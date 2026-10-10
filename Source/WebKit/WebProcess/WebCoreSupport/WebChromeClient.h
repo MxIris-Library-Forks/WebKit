@@ -303,7 +303,7 @@ private:
     RefPtr<WebCore::GraphicsContextGL> createGraphicsContextGL(const WebCore::GraphicsContextGLAttributes&) const final;
 #endif
 #if HAVE(WEBGPU_IMPLEMENTATION)
-    RefPtr<WebCore::WebGPUIntegration> createGPUForWebGPU() const final;
+    RefPtr<WebCore::WebGPU::GPU> createGPUForWebGPU() const final;
 #endif
     RefPtr<WebCore::ShapeDetection::BarcodeDetector> createBarcodeDetector(const WebCore::ShapeDetection::BarcodeDetectorOptions&) const final;
     void getBarcodeDetectorSupportedFormats(CompletionHandler<void(Vector<WebCore::ShapeDetection::BarcodeFormat>&&)>&&) const final;
@@ -371,13 +371,18 @@ private:
     void exitFullScreenForElement(WebCore::Element*, CompletionHandler<void()>&&) final;
 #endif // ENABLE(FULLSCREEN_API)
 
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
     void elementDidFocus(WebCore::Element&, const WebCore::FocusOptions&) final;
     void elementDidBlur(WebCore::Element&) final;
     void elementDidRefocus(WebCore::Element&, const WebCore::FocusOptions&) final;
     void focusedElementDidChangeInputMode(WebCore::Element&, WebCore::InputMode) final;
-    void focusedSelectElementDidChangeOptions(const WebCore::HTMLSelectElement&) final;
+#endif
 
+#if PLATFORM(IOS_FAMILY)
+    void focusedSelectElementDidChangeOptions(const WebCore::HTMLSelectElement&) final;
+#endif
+
+#if PLATFORM(COCOA)
     bool hasStablePageScaleFactor() const final;
 
     void makeFirstResponder() final;

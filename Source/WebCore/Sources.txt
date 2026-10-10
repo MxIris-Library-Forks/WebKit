@@ -107,11 +107,38 @@ Modules/WebGPU/GPUValidationError.cpp
 Modules/WebGPU/GPUVertexAttribute.cpp
 Modules/WebGPU/GPUVertexBufferLayout.cpp
 Modules/WebGPU/GPUVertexState.cpp
+Modules/WebGPU/Implementation/WebGPUAdapterImpl.cpp
+Modules/WebGPU/Implementation/WebGPUBindGroupImpl.cpp
+Modules/WebGPU/Implementation/WebGPUBindGroupLayoutImpl.cpp
+Modules/WebGPU/Implementation/WebGPUBufferImpl.cpp
+Modules/WebGPU/Implementation/WebGPUCommandBufferImpl.cpp
+Modules/WebGPU/Implementation/WebGPUCommandEncoderImpl.cpp
 Modules/WebGPU/Implementation/WebGPUCompositorIntegrationImpl.cpp
+Modules/WebGPU/Implementation/WebGPUComputePassEncoderImpl.cpp
+Modules/WebGPU/Implementation/WebGPUComputePipelineImpl.cpp
+Modules/WebGPU/Implementation/WebGPUConvertToBackingContext.cpp
 Modules/WebGPU/Implementation/WebGPUCreateImpl.cpp
+Modules/WebGPU/Implementation/WebGPUDeviceImpl.cpp
+Modules/WebGPU/Implementation/WebGPUDowncastConvertToBackingContext.cpp
+Modules/WebGPU/Implementation/WebGPUExternalTextureImpl.cpp
 Modules/WebGPU/Implementation/WebGPUImpl.cpp
+Modules/WebGPU/Implementation/WebGPUPipelineLayoutImpl.cpp
+Modules/WebGPU/Implementation/WebGPUPresentationContextImpl.cpp
+Modules/WebGPU/Implementation/WebGPUQuerySetImpl.cpp
+Modules/WebGPU/Implementation/WebGPUQueueImpl.cpp
+Modules/WebGPU/Implementation/WebGPURenderBundleEncoderImpl.cpp
+Modules/WebGPU/Implementation/WebGPURenderBundleImpl.cpp
+Modules/WebGPU/Implementation/WebGPURenderPassEncoderImpl.cpp
+Modules/WebGPU/Implementation/WebGPURenderPipelineImpl.cpp
+Modules/WebGPU/Implementation/WebGPUSamplerImpl.cpp
+Modules/WebGPU/Implementation/WebGPUShaderModuleImpl.cpp
+Modules/WebGPU/Implementation/WebGPUTextureImpl.cpp
+Modules/WebGPU/Implementation/WebGPUTextureViewImpl.cpp
+Modules/WebGPU/Implementation/WebGPUXRBindingImpl.cpp
+Modules/WebGPU/Implementation/WebGPUXRProjectionLayerImpl.cpp
+Modules/WebGPU/Implementation/WebGPUXRSubImageImpl.cpp
+Modules/WebGPU/Implementation/WebGPUXRViewImpl.cpp
 Modules/WebGPU/WGSLLanguageFeatures.cpp
-Modules/WebGPU/WebGPUXRLayerBacking.cpp
 Modules/airplay/WebKitPlaybackTargetAvailabilityEvent.cpp
 Modules/applicationmanifest/ApplicationManifestParser.cpp
 Modules/async-clipboard/Clipboard.cpp
@@ -362,6 +389,8 @@ Modules/pictureinpicture/DocumentPictureInPicture.cpp
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
 Modules/pictureinpicture/PictureInPictureEvent.cpp
 Modules/pictureinpicture/PictureInPictureWindow.cpp
+Modules/proofofpossession/ProofOfPossessionCredential.cpp
+Modules/proofofpossession/ProofOfPossessionProviderInfo.cpp
 Modules/proofofpossession/ProofOfPossessionRequest.cpp
 Modules/push-api/PushCrypto.cpp
 Modules/push-api/PushDatabase.cpp
@@ -2028,6 +2057,7 @@ inspector/agents/frame/FrameDOMAgent.cpp
 inspector/agents/frame/FrameDOMAgentStubs.cpp
 inspector/agents/frame/FrameDOMStorageAgent.cpp
 inspector/agents/frame/FrameDebuggerAgent.cpp
+inspector/agents/frame/FrameIndexedDBAgent.cpp
 inspector/agents/frame/FrameWorkerAgent.cpp
 inspector/agents/page/PageAuditAgent.cpp
 inspector/agents/page/PageCanvasAgent.cpp
@@ -2035,6 +2065,7 @@ inspector/agents/page/PageConsoleAgent.cpp
 inspector/agents/page/PageDOMDebuggerAgent.cpp
 inspector/agents/page/PageDebuggerAgent.cpp
 inspector/agents/page/PageHeapAgent.cpp
+inspector/agents/page/PageIndexedDBAgent.cpp
 inspector/agents/page/PageNetworkAgent.cpp
 inspector/agents/page/PageRuntimeAgent.cpp
 inspector/agents/page/PageTimelineAgent.cpp @header:RenderStyleGetters
@@ -3012,7 +3043,6 @@ rendering/AncestorSubgridIterator.cpp @header:RenderStyleGetters @cost:5
 rendering/AutoTableLayout.cpp @header:RenderStyleGetters @cost:6
 rendering/BackgroundPainter.cpp @header:RenderStyleGetters @cost:7
 rendering/BaselineAlignment.cpp @header:RenderStyleGetters @cost:4
-rendering/BidiRun.cpp
 rendering/BlockStepSizing.cpp @header:RenderStyleGetters @cost:4
 rendering/BorderEdge.cpp @header:RenderStyleGetters @cost:4
 rendering/BorderPainter.cpp @header:RenderStyleGetters @cost:6
@@ -3049,13 +3079,7 @@ rendering/RelayoutScopeForScrollbarChange.cpp @header:RenderStyleGetters @cost:5
 rendering/ScrollbarUpdateScope.cpp @header:RenderStyleGetters
 rendering/LayoutDisallowedScope.cpp
 rendering/LayoutRepainter.cpp
-rendering/LegacyInlineBox.cpp @header:RenderStyleGetters @cost:5
-rendering/LegacyInlineFlowBox.cpp @header:RenderStyleGetters @cost:6
-rendering/LegacyInlineIterator.cpp @header:RenderStyleGetters @cost:4
-rendering/LegacyInlineTextBox.cpp @header:RenderStyleGetters @cost:7
 rendering/LegacyLineClampUpdater.cpp
-rendering/LegacyLineLayout.cpp @header:RenderStyleGetters @cost:7
-rendering/LegacyRootInlineBox.cpp @header:RenderStyleGetters @cost:5
 rendering/LineClampUpdater.cpp
 rendering/MarkedText.cpp @header:RenderStyleGetters @cost:6
 rendering/MotionPath.cpp @header:RenderStyleGetters @cost:5
@@ -3103,7 +3127,6 @@ rendering/RenderLayerModelObject.cpp @header:RenderStyleGetters @cost:8
 rendering/RenderLayerSVGAdditions.cpp @header:RenderStyleGetters @cost:7
 rendering/RenderLayerScrollableArea.cpp @header:RenderStyleGetters @cost:8
 rendering/RenderLayoutState.cpp @header:RenderStyleGetters @cost:6
-rendering/RenderLineBoxList.cpp @header:RenderStyleGetters @cost:5
 rendering/RenderLineBreak.cpp @header:RenderStyleGetters @cost:6
 rendering/RenderListBox.cpp @header:RenderStyleGetters @cost:8
 rendering/RenderListItem.cpp @header:RenderStyleGetters @cost:7
@@ -3139,7 +3162,6 @@ rendering/RenderTextControl.cpp @header:RenderStyleGetters
 rendering/RenderTextControlMultiLine.cpp @header:RenderStyleGetters
 rendering/RenderTextControlSingleLine.cpp @header:RenderStyleGetters
 rendering/RenderTextFragment.cpp @header:RenderStyleGetters
-rendering/RenderTextLineBoxes.cpp @header:RenderStyleGetters
 rendering/RenderTheme.cpp @header:RenderStyleGetters
 rendering/RenderTreeAsText.cpp @header:RenderStyleGetters
 rendering/RenderTreeOrder.cpp
@@ -3159,10 +3181,6 @@ rendering/TextDecorationPainter.cpp @header:RenderStyleGetters
 rendering/TextPaintStyle.cpp @header:RenderStyleGetters
 rendering/TextPainter.cpp @header:RenderStyleGetters
 rendering/TransformOperationData.cpp
-rendering/line/LineBreaker.cpp @header:RenderStyleGetters
-rendering/line/LineInfo.cpp @header:RenderStyleGetters
-rendering/line/LineWidth.cpp @header:RenderStyleGetters
-rendering/line/TrailingObjects.cpp @header:RenderStyleGetters
 rendering/mathml/MathMLStyle.cpp @header:RenderStyleGetters
 rendering/mathml/MathOperator.cpp @header:RenderStyleGetters
 rendering/mathml/RenderMathMLBlock.cpp @header:RenderStyleGetters
@@ -3230,13 +3248,10 @@ rendering/svg/RenderSVGViewportContainer.cpp @header:RenderStyleGetters
 rendering/svg/SVGBoundingBoxComputation.cpp @header:RenderStyleGetters
 rendering/svg/SVGContainerLayout.cpp @header:RenderStyleGetters
 rendering/svg/SVGImageIntrinsicSizing.cpp @header:RenderStyleGetters
-rendering/svg/SVGInlineFlowBox.cpp
-rendering/svg/SVGInlineTextBox.cpp @header:RenderStyleGetters
 rendering/svg/SVGPathFromElement.cpp @header:RenderStyleGetters
 rendering/svg/SVGRenderSupport.cpp @header:RenderStyleGetters
 rendering/svg/SVGRenderTreeAsText.cpp @header:RenderStyleGetters
 rendering/svg/SVGRenderingContext.cpp @header:RenderStyleGetters
-rendering/svg/SVGRootInlineBox.cpp
 rendering/svg/SVGTextBoxPainter.cpp @header:RenderStyleGetters
 rendering/svg/SVGTextChunk.cpp @header:RenderStyleGetters
 rendering/svg/SVGTextChunkBuilder.cpp

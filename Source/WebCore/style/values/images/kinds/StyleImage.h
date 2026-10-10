@@ -107,6 +107,7 @@ public:
     virtual ImageDrawingExtras drawingExtrasForRenderer(const RenderElement&) const { return { }; }
     virtual bool knownToBeOpaque(const RenderElement&) const = 0;
     virtual bool canDraw(const RenderElement&) const { return true; }
+    virtual bool containsCurrentColor() const = 0;
     virtual bool canDrawAtSize(const RenderElement&, const FloatSize& size) const { return !size.isEmpty(); }
     virtual bool drawsSVGImage() const { return false; }
     virtual WTF::String accessibilityDescription() const { return { }; }
@@ -164,7 +165,7 @@ protected:
 
     ImageDrawResult drawResolved(GraphicsContext&, const RenderElement&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source, ImagePaintingOptions) const;
     ImageDrawResult drawResolvedAsPattern(GraphicsContext&, const RenderElement&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform&, const FloatPoint& phase, const FloatSize& spacing, ImagePaintingOptions) const;
-    ImageDrawResult drawResolvedTiled(GraphicsContext&, const RenderElement&, WebCore::Image&, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions) const;
+    ImageDrawResult drawResolvedTiled(GraphicsContext&, const RenderElement&, WebCore::Image&, NaturalDimensions tileNaturalDimensions, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImagePaintingOptions) const;
     ImageDrawResult drawResolvedNinePiece(GraphicsContext&, const RenderElement&, WebCore::Image&, ConcreteObjectSize, const NinePieceGeometry&, ImagePaintingOptions) const;
 
     using DestinationPaint = ImageDrawResult(GraphicsContext&);

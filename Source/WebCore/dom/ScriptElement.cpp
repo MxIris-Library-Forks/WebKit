@@ -124,7 +124,7 @@ void ScriptElement::finishParsingChildren()
 
 void ScriptElement::handleSourceAttribute(const String& sourceURL)
 {
-    if (ignoresLoadRequest() || sourceURL.isEmpty())
+    if (ignoresLoadRequest() || sourceURL.isNull())
         return;
 
     prepareScript(); // FIXME: Provide a real starting line number here.
@@ -380,17 +380,15 @@ bool ScriptElement::requestClassicScript(const String& sourceURL)
     ASSERT(element->isConnected());
     ASSERT(!m_loadableScript);
     Ref document = element->document();
-    if (!StringView(sourceURL).containsOnly<isASCIIWhitespace<char16_t>>()) {
+    if (!sourceURL.isEmpty()) {
         auto script = LoadableClassicScript::create(element->nonce(), element->attributeWithoutSynchronization(HTMLNames::integrityAttr), referrerPolicy(), fetchPriority(),
             element->attributeWithoutSynchronization(HTMLNames::crossoriginAttr), scriptCharset(), element->localName(), element->isInUserAgentShadowTree(), hasAsyncAttribute());
 
         auto scriptURL = document->encodingParseURL(sourceURL);
         document->willLoadScriptElement(scriptURL);
 
-        if (!protect(document->contentSecurityPolicy())->allowScriptForStrictDynamic(scriptURL, URL(), m_startPosition.m_line, element->nonce(), script->integrity(), String(), m_parserInserted))
-            return false;
-
-        if (script->load(document, scriptURL)) {
+        if (protect(document->contentSecurityPolicy())->allowScriptForStrictDynamic(scriptURL, URL(), m_startPosition.m_line, element->nonce(), script->integrity(), String(), m_parserInserted)
+            && script->load(document, scriptURL)) {
             m_loadableScript = WTF::move(script);
             m_isExternalScript = true;
         }
@@ -431,14 +429,18 @@ bool ScriptElement::requestModuleScript(const String& sourceText, const TextPosi
         ASSERT(element->isConnected());
 
         String sourceURL = sourceAttributeValue();
-        if (StringView(sourceURL).containsOnly<isASCIIWhitespace<char16_t>>()) {
-            dispatchErrorEvent();
+        if (sourceURL.isEmpty()) {
+            queueTaskKeepingObjectAlive(*this, TaskSource::DOMManipulation, [](auto& element) {
+                element.dispatchErrorEvent();
+            });
             return false;
         }
 
         auto moduleScriptRootURL = document->encodingParseURL(sourceURL);
         if (!moduleScriptRootURL.isValid()) {
-            dispatchErrorEvent();
+            queueTaskKeepingObjectAlive(*this, TaskSource::DOMManipulation, [](auto& element) {
+                element.dispatchErrorEvent();
+            });
             return false;
         }
 
@@ -450,8 +452,12 @@ bool ScriptElement::requestModuleScript(const String& sourceText, const TextPosi
             scriptCharset(), element->localName(), element->isInUserAgentShadowTree());
 
         auto effectiveParserInserted = effectiveParserInsertedForModule(document, moduleScriptRootURL);
-        if (!protect(document->contentSecurityPolicy())->allowScriptForStrictDynamic(moduleScriptRootURL, URL(), m_startPosition.m_line, nonce, String(integrity), String(), effectiveParserInserted))
+        if (!protect(document->contentSecurityPolicy())->allowScriptForStrictDynamic(moduleScriptRootURL, URL(), m_startPosition.m_line, nonce, String(integrity), String(), effectiveParserInserted)) {
+            queueTaskKeepingObjectAlive(*this, TaskSource::DOMManipulation, [](auto& element) {
+                element.dispatchErrorEvent();
+            });
             return false;
+        }
 
         m_loadableScript = script.copyRef();
         if (RefPtr frame = element->document().frame())

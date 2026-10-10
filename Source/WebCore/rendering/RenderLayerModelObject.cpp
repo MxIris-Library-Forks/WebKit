@@ -289,11 +289,6 @@ bool RenderLayerModelObject::shouldPlaceVerticalScrollbarOnLeft() const
 #endif
 }
 
-std::optional<LayoutRect> RenderLayerModelObject::cachedLayerClippedOverflowRect() const
-{
-    return hasLayer() ? layer()->cachedClippedOverflowRect() : std::nullopt;
-}
-
 bool RenderLayerModelObject::startAnimation(double timeOffset, const GraphicsLayerAnimation& animation, const BlendingKeyframes& keyframes)
 {
     if (!layer() || !layer()->backing())
@@ -920,6 +915,11 @@ static void invalidateNonScalingStrokeCachesInSubtree(RenderElement& renderer)
         if (child.mayHaveNonScalingStrokeInSubtree())
             invalidateNonScalingStrokeCachesInSubtree(child);
     }
+}
+
+bool RenderLayerModelObject::transformReferenceBoxIsSVGViewport() const
+{
+    return transformBoxToCSSBoxType(style().transformBox()) == CSSBoxType::ViewBox;
 }
 
 void RenderLayerModelObject::invalidateNonScalingStrokeCachesInSubtreeForSVG(const std::optional<AffineTransform>& oldTransform, const AffineTransform& newTransform)

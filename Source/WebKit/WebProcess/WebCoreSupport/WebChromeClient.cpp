@@ -301,7 +301,7 @@ void WebChromeClient::unfocus()
         page->send(Messages::WebPageProxy::SetFocus(false, std::nullopt));
 }
 
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) || PLATFORM(GTK) || PLATFORM(WPE)
 
 void WebChromeClient::elementDidFocus(Element& element, const FocusOptions& options)
 {
@@ -327,11 +327,19 @@ void WebChromeClient::focusedElementDidChangeInputMode(Element& element, InputMo
         page->focusedElementDidChangeInputMode(element, mode);
 }
 
+#endif
+
+#if PLATFORM(IOS_FAMILY)
+
 void WebChromeClient::focusedSelectElementDidChangeOptions(const WebCore::HTMLSelectElement& element)
 {
     if (RefPtr page = m_page.get())
         page->focusedSelectElementDidChangeOptions(element);
 }
+
+#endif
+
+#if PLATFORM(COCOA)
 
 void WebChromeClient::makeFirstResponder()
 {
@@ -1288,7 +1296,7 @@ RefPtr<GraphicsContextGL> WebChromeClient::createGraphicsContextGL(const Graphic
 #endif
 
 #if HAVE(WEBGPU_IMPLEMENTATION)
-RefPtr<WebCore::WebGPUIntegration> WebChromeClient::createGPUForWebGPU() const
+RefPtr<WebCore::WebGPU::GPU> WebChromeClient::createGPUForWebGPU() const
 {
 #if ENABLE(GPU_PROCESS)
     RefPtr page = m_page.get();
@@ -1296,7 +1304,7 @@ RefPtr<WebCore::WebGPUIntegration> WebChromeClient::createGPUForWebGPU() const
         return nullptr;
     return RemoteGPUProxy::create(WebGPU::DowncastConvertToBackingContext::create(), ModelDowncastConvertToBackingContext::create(), page.releaseNonNull());
 #else
-    return WebCore::createWebGPUIntegration([](Function<void()>&& workItem) {
+    return WebCore::WebGPU::create([](WebCore::WebGPU::WorkItem&& workItem) {
         callOnMainRunLoop(WTF::move(workItem));
     }, nullptr);
 #endif

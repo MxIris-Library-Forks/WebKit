@@ -648,6 +648,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_mainFrame(WebFrame::create(*this, parameters.mainFrameIdentifier))
     , m_pageGroup(WebProcess::singleton().webPageGroup(WTF::move(parameters.pageGroupData)))
     , m_userAgent(WTF::move(parameters.userAgent))
+    , m_hasCustomUserAgent(parameters.hasCustomUserAgent)
 #if ENABLE(TILED_CA_DRAWING_AREA)
     , m_drawingAreaType(parameters.drawingAreaType)
 #endif
@@ -4319,7 +4320,7 @@ void WebPage::performHitTestForModifierFlagsChangeOnMouseEvent(FrameIdentifier f
     auto hitTestResult = localFrame->eventHandler().getHitTestResultForMouseEvent(platform(event));
 
     auto subframe = EventHandler::subframeForTargetNode(protect(hitTestResult.targetNode()).get());
-    if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe).get()) {
+    if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe)) {
         if (RefPtr remoteFrameView = remoteFrame->view()) {
             return completionHandler(RemoteUserInputEventData {
                 remoteFrame->frameID(),
@@ -6259,7 +6260,7 @@ void WebPage::didStartDrag(std::optional<FrameIdentifier> frameID)
     m_isStartingDrag = false;
 
     if (RefPtr frame = frameID ? WebProcess::singleton().webFrame(*frameID) : &mainWebFrame()) {
-        if (auto* localFrame = frame->coreLocalFrame())
+        if (RefPtr localFrame = frame->coreLocalFrame())
             localFrame->eventHandler().didStartDrag();
     }
 }
@@ -8168,22 +8169,23 @@ void WebPage::focusedElementDidChangeInputMode(WebCore::Element& element, WebCor
         return;
 
     send(Messages::WebPageProxy::FocusedElementDidChangeInputMode(mode));
+#elif PLATFORM(GTK) || PLATFORM(WPE)
+    UNUSED_PARAM(mode);
+    setInputMethodState(&element);
 #else
     UNUSED_PARAM(mode);
 #endif
 }
 
+#if PLATFORM(IOS_FAMILY)
 void WebPage::focusedSelectElementDidChangeOptions(const WebCore::HTMLSelectElement& element)
 {
-#if PLATFORM(IOS_FAMILY)
     if (m_focusedElement != &element)
         return;
 
     m_updateFocusedElementInformationTimer.restart();
-#else
-    UNUSED_PARAM(element);
-#endif
 }
+#endif
 
 void WebPage::didUpdateComposition()
 {

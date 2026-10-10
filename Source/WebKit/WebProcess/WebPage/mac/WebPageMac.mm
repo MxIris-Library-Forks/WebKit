@@ -849,7 +849,7 @@ void WebPage::performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier f
 
     // The UI process will hit-test again in the remote frame's process, so this one must not act on the hit test.
     auto subframe = EventHandler::subframeForTargetNode(protect(hitTestResult.targetNode()).get());
-    if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe).get()) {
+    if (RefPtr remoteFrame = dynamicDowncast<RemoteFrame>(subframe)) {
         if (RefPtr remoteFrameView = remoteFrame->view()) {
             return completionHandler(RemoteUserInputEventData {
                 remoteFrame->frameID(),
@@ -1208,8 +1208,7 @@ void WebPage::updatePDFHUDLocationsAfterRemoteFrameGeometryChange()
 {
     // A remote parent's geometry changes but a cross-origin <iframe> plugin's
     // local root view transform stays unchanged, so we ask the plugin to re-report
-    // its HUD location to the UI process, which runs the main frame conversion
-    // with newer geometry.
+    // its HUD location in main frame view coordinates with newer geometry.
     for (WeakPtr weakPlugin : m_pdfPlugInsWithHUD.values()) {
         if (RefPtr plugin = weakPlugin.get())
             plugin->updateHUDLocation();

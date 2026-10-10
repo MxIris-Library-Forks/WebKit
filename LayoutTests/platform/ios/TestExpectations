@@ -20,6 +20,7 @@ editing/deleting/ios [ Pass ]
 editing/input/cocoa [ Pass ]
 editing/selection/ios [ Pass ]
 fast/page-color-sampling [ Pass ]
+http/tests/ipc/cocoa [ Pass ]
 http/tests/pdf [ Pass ]
 http/tests/quicklook [ Pass ]
 http/tests/swipe [ Pass ]
@@ -8932,7 +8933,6 @@ http/tests/cache/cancel-multiple-post-xhrs.html [ Pass Failure ] # rdar://178676
 http/tests/download/anchor-download-redirect-cross-origin.html [ Pass Crash ] # rdar://178214780
 http/tests/privateClickMeasurement/database-disabled-in-ephemeral-session.html [ Pass Timeout Crash ] # rdar://176608751, rdar://179387095
 http/tests/security/referrer-policy-header-invalid.html [ Pass Timeout ] # rdar://178168636
-http/tests/site-isolation/datalist-cross-origin-iframe.html [ Timeout ] # rdar://179387257
 http/tests/site-isolation/selection-focus.html [ ImageOnlyFailure ] # rdar://163216880
 http/tests/site-isolation/type-in-cross-origin-iframe.html [ Failure Timeout ] # rdar://178168718
 http/wpt/service-workers/persistent-modules.html [ Pass Failure ] # rdar://178676392
@@ -10313,7 +10313,11 @@ webkit.org/b/325021 imported/w3c/web-platform-tests/html/semantics/popovers/popo
 
 webkit.org/b/325022 [ Debug ] ipc/ios/pasteboard-read-disallowed-uikit-type.html [ Failure ]
 
-webkit.org/b/325023 [ Debug ] ipc/legacy-cdm-session-avcontentkeysession-destruction-race.html [ Crash ]
+webkit.org/b/325023 [ Debug ] ipc/cocoa/legacy-cdm-session-avcontentkeysession-destruction-race.html [ Crash ]
+
+webkit.org/b/293973 [ Debug ] http/tests/ipc/cocoa/gpu-load-error-empty-user-info-crssh.html [ Skip ]
+
+[ Debug ] ipc/cocoa/media-containment-bypass-create-player.html [ Crash ]
 
 webkit.org/b/325024 [ Debug ] platform/ios/media/media-element-does-not-eagerly-create-media-session-helper.html [ Failure ]
 
@@ -10363,7 +10367,6 @@ fast/media/mq-any-pointer-matchMedia.html [ Failure ]
 fast/media/mq-any-pointer-styling.html [ Failure ]
 fast/text/combining-mark-on-space-paint-offset.html [ Failure ]
 js/dom/navigator-maxtouchpoints.html [ Failure ]
-media/media-session-restrictions.html [ Failure ]
 fast/text-extraction/debug-text-extraction-autofill-button.html [ Skip ]
 fast/text-extraction/debug-text-extraction-bare-images.html [ Skip ]
 fast/text-extraction/debug-text-extraction-covered-button.html [ Skip ]

@@ -645,13 +645,15 @@ void WebFrame::removeFromTree()
         localFrame->loader().closeURL();
 
     // Instrumentation is added in createSubframe()/createProvisionalFrame() and normally removed in
-    // detachedFromParent2(). This removal path (a remote parent removing the frame ->
+    // detachedFromParent2(). This removal path (a remote ancestor removing the frame ->
     // frameWasRemovedInAnotherProcess -> removeFromTree) skips detachedFromParent2(), so tear the
     // instrumentation (incl. the paint-rect overlay) down here too; removeInstrumentationForFrame() is
     // idempotent, so the two removal paths never double-free.
     if (RefPtr backend = webPage->inspector(WebPage::LazyCreationPolicy::UseExistingOnly))
         backend->removeInstrumentationForFrame(frameID());
 
+    if (is<RemoteFrame>(*coreFrame))
+        coreFrame->disconnectOwnerElement();
     if (RefPtr parent = coreFrame->tree().parent())
         parent->tree().removeChild(*coreFrame);
     coreFrame->disconnectView();
@@ -747,11 +749,12 @@ void WebFrame::didReceivePolicyDecision(PolicyListenerIdentifier listenerID, Pol
             if (RefPtr policyDocumentLoader = loader.policyDocumentLoader()) {
                 if (policyDecision.navigationID)
                     policyDocumentLoader->setNavigationID(*policyDecision.navigationID);
-                policyDocumentLoader->setIsOriginKeyedFromUIProcess(policyDecision.isOriginKeyed);
+                policyDocumentLoader->setAgentClusterAssignment(policyDecision.agentClusterAssignment);
                 if (forNavigationAction)
                     policyDocumentLoader->setUnpartitionedStorageSite(WTF::move(policyDecision.unpartitionedStorageSite));
-            } else if (RefPtr provisionalDocumentLoader = loader.provisionalDocumentLoader()) {
-                provisionalDocumentLoader->setIsOriginKeyedFromUIProcess(policyDecision.isOriginKeyed);
+            } else if (RefPtr provisionalDocumentLoader = loader.provisionalDocumentLoader(); provisionalDocumentLoader && (!forNavigationAction || (policyDecision.navigationID && policyDecision.navigationID == provisionalDocumentLoader->navigationID()))) {
+                // A navigation action decision without a policy document loader, such as for a fragment navigation, belongs to another navigation than the provisional one, unless it is for a redirect.
+                provisionalDocumentLoader->setAgentClusterAssignment(policyDecision.agentClusterAssignment);
                 if (forNavigationAction)
                     provisionalDocumentLoader->setUnpartitionedStorageSite(WTF::move(policyDecision.unpartitionedStorageSite));
             }

@@ -678,6 +678,19 @@ public:
         m_usedVariables.resize(size);
         m_lastAddedUsedVariable = nullptr;
     }
+    void mergeIntoPreviousUsedVariables(size_t size)
+    {
+        ASSERT(size);
+        if (m_usedVariables.size() <= size)
+            return;
+        UniquedStringImplPtrSet& destinationSet = m_usedVariables[size - 1];
+        for (size_t index = size; index < m_usedVariables.size(); ++index) {
+            for (UniquedStringImpl* impl : m_usedVariables[index])
+                destinationSet.add(impl);
+        }
+        m_usedVariables.shrink(size);
+        m_lastAddedUsedVariable = nullptr;
+    }
 
     void setNeedsFullActivation() { m_needsFullActivation = true; }
     bool needsFullActivation() const { return m_needsFullActivation; }
@@ -1532,7 +1545,6 @@ private:
         VariableEnvironment varDeclarations;
         VariableEnvironment lexicalVariables;
         CodeFeatures features;
-        int numConstants;
     };
     std::expected<ParseInnerResult, String> parseInner(const Identifier&, ParsingContext, std::optional<int> functionConstructorParametersEndPosition, const FixedVector<UnlinkedFunctionExecutable::ClassElementDefinition>*, const PrivateNameEnvironment* parentScopePrivateNames);
 
@@ -2206,7 +2218,6 @@ std::unique_ptr<ParsedNode> Parser<LexerType>::parse(ParserError& error, const I
                                     parseResult.value().features,
                                     currentScope()->lexicallyScopedFeatures(),
                                     currentScope()->innerArrowFunctionFeatures(),
-                                    parseResult.value().numConstants,
                                     WTF::move(m_moduleScopeData));
         result->setStartOffset(m_lexer->currentOffset());
         result->setEndOffset(m_lexer->currentOffset());

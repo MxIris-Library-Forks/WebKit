@@ -3576,6 +3576,7 @@ struct WebCore::NavigationRequester {
     bool isSecureContext;
     bool localNetworkAllowedByPermissionsPolicy;
     bool loopbackNetworkAllowedByPermissionsPolicy;
+    std::optional<WebCore::AgentClusterIdentifier> agentClusterIdentifier;
 };
 
 struct WebCore::PolicyContainer {
@@ -6226,8 +6227,8 @@ header: <WebCore/AppleVisualEffect.h>
 #endif
 
 [CustomHeader, Nested] struct WebCore::Cursor::CustomCursorIPCData {
-    Ref<WebCore::Image> image;
-    [Validator='Ref { *image }->rect().contains(*hotSpot)'] WebCore::IntPoint hotSpot;
+    Ref<WebCore::ShareableBitmap> image;
+    [Validator='WebCore::IntRect({ }, (*image)->size()).contains(*hotSpot)'] WebCore::IntPoint hotSpot;
 #if ENABLE(MOUSE_CURSOR_SCALE)
     float scaleFactor;
 #endif
@@ -7229,6 +7230,7 @@ struct WebCore::DocumentSecurityPolicy {
     WebCore::CrossOriginEmbedderPolicy crossOriginEmbedderPolicy;
     WebCore::CrossOriginOpenerPolicy crossOriginOpenerPolicy;
     WebCore::IsSecureContext isSecureContext;
+    std::optional<WebCore::AgentClusterIdentifier> agentClusterIdentifier;
 };
 
 header: <WebCore/ProcessSwapDisposition.h>

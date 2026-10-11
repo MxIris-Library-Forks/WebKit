@@ -350,7 +350,7 @@ std::expected<typename Parser<LexerType>::ParseInnerResult, String> Parser<Lexer
     }
 #endif // ASSERT_ENABLED
 
-    return ParseInnerResult { parameters, sourceElements, scope->takeFunctionDeclarations(), scope->takeDeclaredVariables(), scope->takeLexicalEnvironment(), features, context.numConstants() };
+    return ParseInnerResult { parameters, sourceElements, scope->takeFunctionDeclarations(), scope->takeDeclaredVariables(), scope->takeLexicalEnvironment(), features };
 }
 
 template <typename LexerType>
@@ -4285,6 +4285,12 @@ template <typename TreeBuilder> TreeExpression Parser<LexerType>::parseAssignmen
         usedVariablesSize = currentScope()->currentUsedVariablesSize();
         currentScope()->pushUsedVariableSet();
     }
+    // Unless the parentheses turn out to be arrow function parameters, the uses inside them belong
+    // to this scope. Fold their set back so the number of sets stays bounded by nesting depth.
+    auto mergeParenthesizedUsedVariables = makeScopeExit([&] {
+        if (wasOpenParen)
+            currentScope()->mergeIntoPreviousUsedVariables(usedVariablesSize);
+    });
 
     TreeExpression lhs = parseConditionalExpression(context);
 

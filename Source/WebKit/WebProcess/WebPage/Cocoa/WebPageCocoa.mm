@@ -1675,7 +1675,8 @@ static void drawPDFPage(PDFDocument *pdfDocument, CFIndex pageIndex, CGContextRe
 
     CGAffineTransform transform = CGContextGetCTM(context);
 
-    for (PDFAnnotation *annotation in [pdfPage annotations]) {
+    // FIXME: Remove the suppression once https://github.com/llvm/llvm-project/pull/230818 is deployed (rdar://189710680).
+    for (SUPPRESS_UNRETAINED_LOCAL PDFAnnotation *annotation in [pdfPage annotations]) {
         if (![[annotation valueForAnnotationKey:get_PDFKit_PDFAnnotationKeySubtypeSingleton()] isEqualToString:get_PDFKit_PDFAnnotationSubtypeLinkSingleton()])
             continue;
 
@@ -4112,7 +4113,7 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
         }();
 
         auto setCorePageScaleFactor = [this, protectedThis = Ref { *this }](float scale, const auto& origin, bool inStableState) {
-            m_page->setPageScaleFactor(scale, origin, inStableState);
+            protect(m_page)->setPageScaleFactor(scale, origin, inStableState);
 #if ENABLE(PDF_PLUGIN)
             if (RefPtr pluginView = mainFramePlugIn())
                 pluginView->mainFramePageScaleFactorDidChange();

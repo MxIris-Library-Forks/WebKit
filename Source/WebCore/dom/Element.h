@@ -100,7 +100,7 @@ class AttachmentAssociatedElement;
 class SpatialPortalController;
 #endif
 
-enum CSSPropertyID : uint16_t;
+enum class CSSPropertyID : uint16_t;
 
 enum class AnimationImpact : uint8_t;
 enum class EventHandling : uint8_t;
@@ -228,6 +228,9 @@ public:
     inline const AtomString& attributeWithoutSynchronization(const QualifiedName&) const;
     inline const AtomString& attributeWithDefaultARIA(const QualifiedName&) const;
     inline String attributeTrimmedWithDefaultARIA(const QualifiedName&) const;
+
+    inline bool isDrawable() const;
+    bool isCanvasDrawable() const;
 
     enum class TopLayerElementType : bool { Other, Popover };
     RefPtr<HTMLElement> topmostPopoverAncestor(TopLayerElementType topLayerType);

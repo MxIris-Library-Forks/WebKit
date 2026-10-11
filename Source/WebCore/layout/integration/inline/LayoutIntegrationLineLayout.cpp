@@ -41,6 +41,7 @@
 #include "InlineFormattingContext.h"
 #include "InlineInvalidation.h"
 #include "InlineItemsBuilder.h"
+#include "InlineIteratorSVGTextBox.h"
 #include "LayoutBoxGeometry.h"
 #include "LayoutIntegrationCoverage.h"
 #include "LayoutIntegrationInlineContentBuilder.h"
@@ -48,6 +49,7 @@
 #include "LayoutIntegrationPagination.h"
 #include "LayoutIntegrationUtils.h"
 #include "LayoutTreeBuilder.h"
+#include "LineClampUpdater.h"
 #include "LocalFrameView.h"
 #include "LocalFrameViewLayoutContext.h"
 #include "PaintInfo.h"
@@ -766,7 +768,11 @@ void LineLayout::updateRenderTreePositions(const Vector<LineAdjustment>& lineAdj
         auto& logicalGeometry = layoutState().geometryForBox(layoutBox);
 
         if (layoutBox->isFloatingPositioned()) {
-            // FIXME: Find out what to do with discarded (see line-clamp) floats in render tree.
+            // Inline layout hid the floats it discarded with the content after the clamp point.
+            if (renderer->isForceHiddenByLineClamp()) {
+                LineClampUpdater::skipLayoutForForcedHidden(renderer);
+                continue;
+            }
             auto isInitialLetter = layoutBox->style().pseudoElementType() == PseudoElementType::FirstLetter;
             auto& floatingObject = flow().insertFloatingBox(renderer);
             auto [marginBoxVisualRect, borderBoxVisualRect] = Layout::IntegrationUtils::toMarginAndBorderBoxVisualRect(logicalGeometry, m_inlineContentConstraints->formattingRootBorderBoxSize(), placedFloatsWritingMode);
@@ -1330,7 +1336,7 @@ InlineIterator::BoxIterator LineLayout::lastBox() const
     if (!m_inlineContent || !m_inlineContent->hasContentfulInFlowBox())
         return { };
 
-    return { InlineIterator::BoxModernPath { *m_inlineContent, m_inlineContent->displayContent().boxes.size() - 1 } };
+    return { InlineIterator::BoxPath { *m_inlineContent, m_inlineContent->displayContent().boxes.size() - 1 } };
 }
 
 InlineIterator::LineBoxIterator LineLayout::firstLineBox() const
@@ -1338,7 +1344,7 @@ InlineIterator::LineBoxIterator LineLayout::firstLineBox() const
     if (!m_inlineContent || !m_inlineContent->hasContentfulInFlowBox())
         return { };
 
-    return { InlineIterator::LineBoxIteratorModernPath(*m_inlineContent, 0) };
+    return { InlineIterator::LineBoxIteratorPath(*m_inlineContent, 0) };
 }
 
 InlineIterator::LineBoxIterator LineLayout::lastLineBox() const
@@ -1346,7 +1352,7 @@ InlineIterator::LineBoxIterator LineLayout::lastLineBox() const
     if (!m_inlineContent || !m_inlineContent->hasContentfulInFlowBox())
         return { };
 
-    return { InlineIterator::LineBoxIteratorModernPath(*m_inlineContent, m_inlineContent->displayContent().lines.isEmpty() ? 0 : m_inlineContent->displayContent().lines.size() - 1) };
+    return { InlineIterator::LineBoxIteratorPath(*m_inlineContent, m_inlineContent->displayContent().lines.isEmpty() ? 0 : m_inlineContent->displayContent().lines.size() - 1) };
 }
 
 LayoutRect LineLayout::firstInlineBoxRect(const RenderBoxModelObject& inlineBox) const

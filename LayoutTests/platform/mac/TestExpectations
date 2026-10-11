@@ -254,9 +254,6 @@ http/wpt/mediarecorder/MediaRecorder-first-frame.html [ Pass Failure ]
 # DRT does not support toggling caret browsing on / off
 editing/selection/caret-mode-paragraph-keys-navigation.html
 
-# Non-premultiplied-alpha currently broken on mac.
-webkit.org/b/55509 compositing/webgl/webgl-nonpremultiplied-blend.html
-
 # DataTransferItems is not yet implemented.
 editing/pasteboard/data-transfer-items.html
 editing/pasteboard/data-transfer-items-image-png.html
@@ -910,8 +907,6 @@ webkit.org/b/229101 http/tests/media/modern-media-controls/pip-support/pip-suppo
 webkit.org/b/174066 inspector/canvas/console-record-webgl2.html [ Pass Timeout ]
 webkit.org/b/174066 inspector/canvas/console-record-offscreen-webgl2.html [ Pass Timeout ]
 webkit.org/b/173931 inspector/canvas/context-attributes.html [ Pass Timeout ]
-webkit.org/b/178028 inspector/canvas/create-context-2d.html [ Pass Failure Timeout ]
-webkit.org/b/174066 inspector/canvas/create-context-webgl2.html [ Pass Failure Timeout ]
 webkit.org/b/174066 inspector/canvas/recording-offscreen-webgl2-full.html [ Slow ]
 webkit.org/b/174272 inspector/canvas/requestClientNodes-css.html [ Pass Failure Timeout ]
 webkit.org/b/152025 [ Debug ] inspector/console/messagesCleared.html [ Pass Timeout ]
@@ -958,6 +953,7 @@ webkit.org/b/182620 inspector/console/clearMessages.html [ Pass Timeout ]
 webkit.org/b/183880 [ Debug ] inspector/console/messageAdded-from-named-evaluations.html [ Slow ]
 webkit.org/b/156634 inspector/formatting/formatting-javascript.html [ Pass Timeout ]
 webkit.org/b/158948 inspector/timeline [ Pass Timeout ]
+webkit.org/b/302413 inspector/timeline/timeline-event-TimerInstall.html [ Skip ]
 webkit.org/b/191539 http/tests/inspector/network/resource-security-connection.html [ Skip ]
 
 # Touch events are not enabled on Mac

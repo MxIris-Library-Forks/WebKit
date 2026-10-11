@@ -154,6 +154,9 @@ class DocumentSyncData;
 class DragData;
 class Exception;
 class FloatPoint;
+#if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+class FloatPoint3D;
+#endif
 class FloatQuad;
 class FloatRect;
 class FloatSize;
@@ -296,6 +299,7 @@ enum class AttachmentAssociatedElementType : uint8_t;
 struct AXDebugInfo;
 struct AccessibilityRemoteToken;
 struct AccessibilitySearchCriteriaIPC;
+struct AgentClusterAssignment;
 struct AppHighlight;
 struct ApplePayAMSUIRequest;
 struct ApplicationManifest;
@@ -1855,6 +1859,9 @@ public:
     enum class WillContinueLoadInNewProcess : bool { No, Yes };
     void receivedPolicyDecision(WebCore::PolicyAction, API::Navigation*, std::optional<std::pair<Ref<API::WebsitePolicies>, Ref<WebProcessProxy>>>&&, Ref<API::NavigationAction>&&, WillContinueLoadInNewProcess, std::optional<SandboxExtensionHandle>, std::optional<PolicyDecisionConsoleMessage>&&, CompletionHandler<void(PolicyDecision&&)>&&);
     void receivedNavigationResponsePolicyDecision(WebCore::PolicyAction, API::Navigation*, const WebCore::ResourceRequest&, Ref<API::NavigationResponse>&&, CompletionHandler<void(PolicyDecision&&)>&&);
+    URL topLevelCreationURL(const URL&, bool isMainFrame) const;
+    void recordAgentClusterKeying(const API::Navigation&);
+    void updateAgentClusterAssignmentForContinuingLoad(API::Navigation&, BrowsingContextGroup&, bool isMainFrame);
     void receivedNavigationActionPolicyDecision(WebProcessProxy&, WebCore::PolicyAction, API::Navigation&, Ref<API::NavigationAction>&&, ProcessSwapRequestedByClient, WebFrameProxy&, const FrameInfoData&, WasNavigationIntercepted, std::optional<PolicyDecisionConsoleMessage>&&, CompletionHandler<void(PolicyDecision&&)>&&);
 
     void backForwardRemovedItem(WebCore::BackForwardFrameItemIdentifier);
@@ -3091,6 +3098,7 @@ public:
     void presentVolumetricScene(WebCore::NodeIdentifier, VolumetricSceneContentContext, CompletionHandler<void(bool)>&&);
     void reconnectVolumetricSceneToContentContext(WebCore::NodeIdentifier, VolumetricSceneContentContext);
     void dismissVolumetricScene(WebCore::NodeIdentifier);
+    void updateVolumetricSceneHitSphere(WebCore::NodeIdentifier, const WebCore::FloatPoint3D& center, float radius);
 
     // To the web process, from PortalPresentationManagerProxy.
     void volumetricSceneDidClose(WebCore::NodeIdentifier);

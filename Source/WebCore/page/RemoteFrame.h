@@ -125,6 +125,7 @@ private:
     URL urlForConsoleLog() const final;
     SecurityOrigin* NODELETE frameDocumentSecurityOrigin() const final;
     std::optional<DocumentSecurityPolicy> NODELETE frameDocumentSecurityPolicy() const final;
+    std::optional<AgentClusterIdentifier> NODELETE frameAgentClusterIdentifier() const final;
     String NODELETE frameURLProtocol() const final;
     float frameScaleFactorForChild(const Frame&) const final;
 
@@ -133,6 +134,7 @@ private:
     DOMWindow* NODELETE virtualWindow() const final;
     FrameLoaderClient& NODELETE loaderClient() LIFETIME_BOUND final;
     void reinitializeDocumentSecurityContext() final { }
+    void detachLocalDescendants();
 
     const Ref<RemoteDOMWindow> m_window;
     RefPtr<RemoteFrameView> m_view;
@@ -147,6 +149,7 @@ private:
     AutoplayPolicy m_autoplayPolicy;
     ColorSchemePreference m_colorSchemePreference;
     bool m_preventsParentFromBeingComplete { true };
+    bool m_hasStartedDetaching { false };
 };
 
 } // namespace WebCore

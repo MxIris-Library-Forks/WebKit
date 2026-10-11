@@ -628,8 +628,6 @@ void WebProcessPool::modelProcessExited(ProcessID identifier, ProcessTermination
         } else if (!m_resetModelProcessCrashCountTimer.isActive())
             m_resetModelProcessCrashCountTimer.startOneShot(resetModelProcessCrashCountDelay);
     }
-
-    m_processesWithModelPlayers.clear();
 }
 
 void WebProcessPool::createModelProcessConnection(WebProcessProxy& webProcessProxy, IPC::Connection::Handle&& connectionIdentifier, WebKit::ModelProcessConnectionParameters&& parameters)
@@ -710,6 +708,13 @@ void WebProcessPool::terminateAllWebContentProcessesWithModelPlayers()
 
 bool WebProcessPool::s_useSeparateServiceWorkerProcess = false;
 
+static EnhancedSecurity defaultEnhancedSecurity(WebProcessProxy::LockdownMode lockdownMode, const WebPreferences& preferences)
+{
+    if (lockdownMode == WebProcessProxy::LockdownMode::Enabled || !preferences.enhancedSecurityEnabledByDefault())
+        return EnhancedSecurity::Disabled;
+    return EnhancedSecurity::EnabledPolicy;
+}
+
 void WebProcessPool::establishRemoteWorkerContextConnectionToNetworkProcess(RemoteWorkerType workerType, Site&& site, std::optional<WebCore::ProcessIdentifier> requestingProcessIdentifier, std::optional<ScriptExecutionContextIdentifier> serviceWorkerPageIdentifier, PAL::SessionID sessionID, WebCore::CrossOriginEmbedderPolicyValue workerCrossOriginEmbedderPolicy, CompletionHandler<void(WebCore::ProcessIdentifier)>&& completionHandler)
 {
     RefPtr websiteDataStore = WebsiteDataStore::existingDataStoreForSessionID(sessionID);
@@ -720,9 +725,9 @@ void WebProcessPool::establishRemoteWorkerContextConnectionToNetworkProcess(Remo
 
     RefPtr requestingProcess = requestingProcessIdentifier ? WebProcessProxy::processForIdentifier(*requestingProcessIdentifier) : nullptr;
     auto lockdownMode = requestingProcess ? requestingProcess->lockdownMode() : (lockdownModeEnabledBySystem() ? WebProcessProxy::LockdownMode::Enabled : WebProcessProxy::LockdownMode::Disabled);
-    auto enhancedSecurity = requestingProcess ? requestingProcess->enhancedSecurity() : EnhancedSecurity::Disabled;
     auto crossOriginMode = workerCrossOriginEmbedderPolicy == CrossOriginEmbedderPolicyValue::RequireCORP ? CrossOriginMode::Isolated : CrossOriginMode::Shared;
     Ref processPool = requestingProcess ? requestingProcess->processPool() : processPools()[0].get();
+    auto enhancedSecurity = requestingProcess ? requestingProcess->enhancedSecurity() : defaultEnhancedSecurity(lockdownMode, protect(processPool->defaultPageGroup().preferences()));
 
     RefPtr<WebProcessProxy> remoteWorkerProcessProxy;
 
@@ -1165,7 +1170,7 @@ void WebProcessPool::prewarmProcess()
     WEBPROCESSPOOL_RELEASE_LOG(PerformanceLogging, "prewarmProcess: Prewarming a WebProcess for performance");
 
     auto lockdownMode = lockdownModeEnabledBySystem() ? WebProcessProxy::LockdownMode::Enabled : WebProcessProxy::LockdownMode::Disabled;
-    auto enhancedSecurity = EnhancedSecurity::Disabled;
+    auto enhancedSecurity = defaultEnhancedSecurity(lockdownMode, protect(m_defaultPageGroup->preferences()));
     createNewWebProcess(nullptr, lockdownMode, enhancedSecurity, WebProcessProxy::EnableWebAssemblyDebugger::No, WebProcessProxy::IsPrewarmed::Yes);
 }
 
@@ -1436,7 +1441,7 @@ Ref<WebPageProxy> WebProcessPool::createWebPage(PageClient& pageClient, Ref<API:
     auto lockdownMode = pageConfiguration->lockdownModeEnabled() ? WebProcessProxy::LockdownMode::Enabled : WebProcessProxy::LockdownMode::Disabled;
 
     bool useEnhancedSecurityFallback = lockdownMode == WebProcessProxy::LockdownMode::Disabled && lockdownModeEnabledBySystem();
-    auto enhancedSecurity = (protect(pageConfiguration->preferences())->forceEnhancedSecurity() || pageConfiguration->isEnhancedSecurityEnabled() || useEnhancedSecurityFallback) ? EnhancedSecurity::EnabledPolicy : EnhancedSecurity::Disabled;
+    auto enhancedSecurity = (protect(pageConfiguration->preferences())->forceEnhancedSecurity() || pageConfiguration->isEnhancedSecurityEnabled() || pageConfiguration->isEnhancedSecurityEnabledByDefault(lockdownMode == WebProcessProxy::LockdownMode::Enabled) || useEnhancedSecurityFallback) ? EnhancedSecurity::EnabledPolicy : EnhancedSecurity::Disabled;
 
     RefPtr relatedPage = pageConfiguration->relatedPage();
     bool siteIsolationEnabled = protect(pageConfiguration->preferences())->siteIsolationEnabled();

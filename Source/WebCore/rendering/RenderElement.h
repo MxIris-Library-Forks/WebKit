@@ -39,6 +39,7 @@ class BlendingKeyframes;
 class GraphicsLayerAnimation;
 class ReferencedSVGResources;
 class RenderBlock;
+class RenderHTMLCanvas;
 class RenderTreeBuilder;
 class SVGElement;
 class UsedStyle;
@@ -110,10 +111,12 @@ public:
     const Layout::ElementBox* NODELETE layoutBox() const;
 
     // Note that even if these 2 "canContain" functions return true for a particular renderer, it does not necessarily mean the renderer is the containing block (see containingBlockForAbsolute(Fixed)Position).
+    inline bool isCanvasDrawable() const; // Defined in RenderElementStyleInlines.h.
     inline bool canContainFixedPositionObjects(const Style::ComputedStyle* styleToUse = nullptr) const; // Defined in RenderElementStyleInlines.h.
     inline bool canContainAbsolutelyPositionedObjects(const Style::ComputedStyle* styleToUse = nullptr) const; // Defined in RenderElementStyleInlines.h.
     bool canEstablishContainingBlockWithTransform() const;
     RenderBlock* nearestNonAnonymousContainingBlockIncludingSelf() const;
+    RenderHTMLCanvas* drawableCanvas() const;
 
     inline bool shouldApplyLayoutContainment() const; // Defined in RenderElementStyleInlines.h
     inline bool shouldApplySizeContainment() const; // Defined in RenderElementStyleInlines.h
@@ -195,7 +198,7 @@ public:
     // Returns true if this renderer requires a new stacking context.
     static bool createsGroupForStyle(const Style::ComputedStyle&); // Defined in RenderElementStyleInlines.h.
     static bool createsGroupForStyleExcludingClipPathAndMask(const Style::ComputedStyle&); // Defined in RenderElementStyleInlines.h.
-    bool createsGroup() const { return createsGroupForStyle(style()); }
+    inline bool createsGroup() const; // Defined in RenderElementStyleInlines.h.
 
     inline bool isTransparent() const; // FIXME: This function is incorrectly named. It's isNotOpaque, sometimes called hasOpacity, not isEntirelyTransparent. Defined in RenderElementStyleInlines.h.
     inline float opacity() const; // Defined in RenderElementStyleInlines.h.
@@ -252,8 +255,11 @@ public:
     void setScrollAnchoringSuppressionStyleChanged(bool b) { m_scrollAnchoringSuppressionStyleChanged = b; }
 
     // An invisible box of a line-clamp container (css-overflow-4). Its used visibility is hidden.
-    bool isForceHiddenByLineClamp() const { return m_isForceHiddenByLineClamp; }
-    void setIsForceHiddenByLineClamp(bool isHidden) { m_isForceHiddenByLineClamp = isHidden; }
+    bool isForceHiddenByLineClamp() const { return lineClampState() == LineClampState::ForceHidden; }
+    void setIsForceHiddenByLineClamp(bool isHidden) { setLineClampState(isHidden ? LineClampState::ForceHidden : LineClampState::None); }
+    // A float of a line-clamp container (css-overflow-4), clipped to the container's block-end content edge.
+    bool isClippedByLineClamp() const { return lineClampState() == LineClampState::Clipped; }
+    void setIsClippedByLineClamp(bool isClipped) { setLineClampState(isClipped ? LineClampState::Clipped : LineClampState::None); }
 
     bool allowsAnimation() const final;
     bool repaintForPausedImageAnimationsIfNeeded(const IntRect& visibleRect, CachedImage&);
@@ -427,6 +433,10 @@ private:
     RenderObject* firstChildSlow() const final { return firstChild(); }
     RenderObject* lastChildSlow() const final { return lastChild(); }
 
+    enum class LineClampState : uint8_t { None, ForceHidden, Clipped };
+    LineClampState lineClampState() const { return static_cast<LineClampState>(m_lineClampState); }
+    void setLineClampState(LineClampState state) { m_lineClampState = static_cast<unsigned>(state); }
+
     inline bool mayContainOutOfFlowPositionedObjects(const Style::ComputedStyle* styleToUse = nullptr) const; // Defined in RenderElementStyleInlines.h.
 
     RenderElement* NODELETE rendererForPseudoStyleAcrossShadowBoundary() const;
@@ -491,8 +501,8 @@ private:
     unsigned m_scrollAnchoringSuppressionStyleChanged : 1 { false };
     unsigned m_isInPendingSVGTransformAttributeUpdates : 1 { false };
     unsigned m_mayHaveNonScalingStrokeInSubtree : 1 { false };
-    unsigned m_isForceHiddenByLineClamp : 1 { false };
-    // 9 bits free.
+    unsigned m_lineClampState : 2 { static_cast<unsigned>(LineClampState::None) };
+    // 8 bits free.
 
     Style::ComputedStyle m_style;
 };

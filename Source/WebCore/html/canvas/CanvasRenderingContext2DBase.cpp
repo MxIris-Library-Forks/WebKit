@@ -1564,7 +1564,7 @@ static ConcreteObjectSize imageElementSize(auto& element, FloatSize outputBitmap
         return ConcreteObjectSize::zero();
 
     // Source rectangles are in image pixels, destination rectangles in CSS pixels.
-    auto density = applyImageDevicePixelRatio == ApplyImageDevicePixelRatio::Yes ? element.sourceImageDevicePixelRatio() : 1;
+    auto density = applyImageDevicePixelRatio == ApplyImageDevicePixelRatio::Yes ? element.currentPixelDensity() : 1;
     return CanvasDrawImageSizing { outputBitmapSize, density }.resolve(image->naturalDimensions(element.orientationForSourceImage()));
 }
 
@@ -2134,7 +2134,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawElementImage(CanvasElementIm
     return WTF::switchOn(source,
         [&](Ref<Element>& element) -> ExceptionOr<void> {
             if (RefPtr canvasElement = dynamicDowncast<HTMLCanvasElement>(canvasBase())) {
-                if (auto snapshot = canvasElement->drawableElementSnapshot(element))
+                if (auto snapshot = canvasElement->canvasDrawableSnapshot(element))
                     return drawSnapshot(*snapshot, srcRect, dstRect, options);
             }
             return Exception { ExceptionCode::InvalidStateError, "CanvasRenderingContext2DBase failed to get a snapshot for a drawableElement."_s };

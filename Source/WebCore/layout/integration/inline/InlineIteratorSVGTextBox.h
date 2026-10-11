@@ -37,7 +37,7 @@ namespace InlineIterator {
 
 class SVGTextBox : public TextBox {
 public:
-    SVGTextBox(PathVariant&&);
+    SVGTextBox(BoxPath&&);
 
     FloatRect calculateBoundariesIncludingSVGTransform() const;
     static FloatRect calculateBoundariesIncludingSVGTransform(const RenderSVGInlineText&, std::span<const SVGTextFragment>);
@@ -45,14 +45,12 @@ public:
     const Vector<SVGTextFragment>& textFragments() const;
 
     const RenderSVGInlineText& renderer() const { return downcast<RenderSVGInlineText>(TextBox::renderer()); }
-
-    using Key = std::pair<const RenderSVGInlineText*, unsigned>;
 };
 
 class SVGTextBoxIterator : public TextBoxIterator {
 public:
     SVGTextBoxIterator() = default;
-    SVGTextBoxIterator(Box::PathVariant&&);
+    SVGTextBoxIterator(BoxPath&&);
     SVGTextBoxIterator(const Box&);
 
     SVGTextBoxIterator& operator++() { return downcast<SVGTextBoxIterator>(traverseNextTextBox()); }
@@ -70,8 +68,6 @@ SVGTextBoxIterator svgTextBoxFor(const LayoutIntegration::InlineContent&, size_t
 
 BoxRange<BoxIterator> boxesFor(const RenderSVGText&);
 BoxIterator lastBoxFor(const RenderSVGText&);
-
-SVGTextBox::Key makeKey(const SVGTextBox&);
 
 }
 }

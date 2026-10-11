@@ -1865,9 +1865,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     layout/integration/grid/LayoutIntegrationGridLayout.h
     layout/integration/inline/InlineIteratorBox.h
-    layout/integration/inline/InlineIteratorBoxModernPath.h
+    layout/integration/inline/InlineIteratorBoxPath.h
     layout/integration/inline/InlineIteratorLineBox.h
-    layout/integration/inline/InlineIteratorLineBoxModernPath.h
+    layout/integration/inline/InlineIteratorLineBoxPath.h
     layout/integration/inline/InlineIteratorLogicalOrderTraversal.h
     layout/integration/inline/InlineIteratorTextBox.h
     layout/integration/inline/LayoutIntegrationInlineContent.h
@@ -2008,6 +2008,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/ActivityState.h
     page/ActivityStateChangeObserver.h
     page/AdjustViewSize.h
+    page/AgentClusterAssignment.h
+    page/AgentClusterIdentifier.h
     page/AlternativeTextClient.h
     page/AttachmentElementClient.h
     page/AutoplayEvent.h
@@ -3655,6 +3657,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/ui/StyleAccentColor.h
     style/values/ui/StyleCaretColor.h
     style/values/ui/StyleCursor.h
+    style/values/ui/StyleCursorSizing.h
     style/values/ui/StyleResize.h
 
     style/values/view-transitions/StyleViewTransitionClass.h

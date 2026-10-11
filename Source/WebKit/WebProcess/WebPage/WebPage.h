@@ -33,6 +33,7 @@
 #include "SandboxExtension.h"
 #include "SharedPreferencesForWebProcess.h"
 #include <JavaScriptCore/InspectorFrontendChannel.h>
+#include <WebCore/AgentClusterAssignment.h>
 #include <WebCore/BoxExtents.h>
 #include <WebCore/CornerRadii.h>
 #include <WebCore/DevicePostureType.h>
@@ -189,6 +190,9 @@ class DynamicContentScalingDisplayList;
 #endif
 class WeakPtrImplWithEventTargetData;
 class Exception;
+#if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+class FloatPoint3D;
+#endif
 class FontAttributeChanges;
 class FontChanges;
 class Frame;
@@ -216,6 +220,9 @@ class LocalFrameView;
 class MediaPlaybackTarget;
 class MediaSessionCoordinator;
 class MediaSessionManagerInterface;
+#if ENABLE(CONNECTED_VOLUMETRIC_SCENE)
+class ModelPlayer;
+#endif
 class Page;
 class PolicyDecision;
 class PrintContext;
@@ -1810,6 +1817,7 @@ public:
 
     void volumetricSceneDidClose(WebCore::NodeIdentifier);
     void updateVolumetricSceneSize(WebCore::NodeIdentifier, WebCore::FloatSize volumeSizeInMeters);
+    void updateVolumetricSceneHitSphere(WebCore::ModelPlayer&, const WebCore::FloatPoint3D& center, float radius);
 #endif
 
     WebURLSchemeHandlerProxy* urlSchemeHandlerForScheme(StringView);
@@ -3355,6 +3363,7 @@ private:
 
     Markable<WebCore::NavigationIdentifier> m_pendingNavigationID;
     std::optional<WebCore::RegistrableDomain> m_pendingUnpartitionedStorageSite;
+    std::optional<WebCore::AgentClusterAssignment> m_pendingAgentClusterAssignment;
 
     bool m_shouldConsiderEnhancedSecurityForInsecureResponseForCurrentNavigation { false };
     bool m_mainFrameProgressCompleted { false };

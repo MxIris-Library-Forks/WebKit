@@ -659,6 +659,8 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video [ ImageOnlyFail
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/2_cues_overlapping_partially_move_down.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/2_tracks.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/3_tracks.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_center_position_gt_50_size_gt_maximum_size.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_center_position_lt_50_size_gt_maximum_size.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_end.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_end_wrapped.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_start.html [ Pass ]
@@ -690,9 +692,27 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-mode
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/navigate_cue_position.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/one_line_cue_plus_wrapped_cue.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/size_50.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/bold_object/bold_background_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/bold_object/bold_background_shorthand.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/bold_object/bold_namespace.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/class_object/class_background_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/class_object/class_background_shorthand.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/class_object/class_text-decoration_line-through.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/color_hex.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/color_hsla.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/id_color.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/italic_object/italic_background_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/italic_object/italic_background_shorthand.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/italic_object/italic_namespace.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/lang_object/lang_attribute.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/lang_object/lang_color.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_background_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_background_shorthand.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_namespace.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/underline_object/underline_text-decoration_line-through.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/voice_object/voice_background_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/voice_object/voice_background_shorthand.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/voice_object/voice_text-decoration_line-through.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/white-space_normal_wrapped.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/white-space_nowrap_wrapped.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/white-space_pre.html [ Pass ]
@@ -1028,6 +1048,7 @@ imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/credentialless
 
 # Document-Isolation-Policy requires site isolation and is partially implemented.
 webkit.org/b/325516 imported/w3c/web-platform-tests/html/document-isolation-policy [ Skip ]
+webkit.org/b/325516 http/tests/document-isolation-policy [ Skip ]
 
 # Times out.
 webkit.org/b/214155 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/blob.https.html [ Skip ]
@@ -1698,6 +1719,11 @@ http/tests/inspector/page/get-cookies.html [ Failure ]
 # Debugger stepping tests can timeout if they run slowly due to a short timer scheduled in the frontend:
 webkit.org/b/161951 [ Debug ] inspector/debugger/stepping [ Skip ]
 webkit.org/b/161951 [ Release ] inspector/debugger/stepping [ Slow Pass Failure ]
+
+# Flaky again after reverting the deferred CapturingStateChanged dispatch (303033@main),
+# which had masked the flakiness at the cost of a Timeline recording regression. Skip until
+# the underlying capturing-state event ordering is fixed forward.
+webkit.org/b/302413 inspector/timeline/timeline-event-TimerInstall.html [ Skip ]
 
 # Source map tests produce a lot of output.
 inspector/formatting/source-map-css-1.html [ Slow ]
@@ -3380,7 +3406,6 @@ workers/bomb-with-v8.html [ Skip ]
 
 # Disable the SharedArrayBuffers tests
 imported/blink/fast/beacon/beacon-basic.html [ Skip ]
-js/shared-array-buffer-webgl.html [ Skip ]
 workers/sab/cascade_lock.html [ Skip ]
 workers/sab/multi-memory-multi-buffer.html [ Skip ]
 workers/sab/multi-memory.html [ Skip ]
@@ -4152,7 +4177,6 @@ imported/w3c/web-platform-tests/css/css-display/display-flow-root-002.html [ Ima
 imported/w3c/web-platform-tests/css/mediaqueries/viewport-script-dynamic.html [ ImageOnlyFailure ]
 
 # Initial failures on the initial import of css-overflow
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-auto-015.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-008.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-011.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-012.html [ ImageOnlyFailure ]
@@ -4222,11 +4246,9 @@ imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-05
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-bidi-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-033.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-auto-045.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-005.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-006.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-007.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-010.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-011.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-012.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/overflow-clip-margin-013.html [ ImageOnlyFailure ]
@@ -4297,11 +4319,6 @@ webkit.org/b/190032 compositing/layer-creation/mismatched-rotated-transform-tran
 webkit.org/b/190032 compositing/layer-creation/mismatched-transform-transition-overlap.html [ Failure ]
 webkit.org/b/190032 compositing/layer-creation/translate-scale-transition-overlap.html [ Failure ]
 webkit.org/b/190032 compositing/layer-creation/translate-transition-overlap.html [ Failure ]
-
-# FIXME: Need to implement MediaRecorder dataavailable event to support these testcases
-fast/mediacapturefromelement/CanvasCaptureMediaStream-imagebitmaprenderingcontext.html [ Skip ]
-fast/mediacapturefromelement/CanvasCaptureMediaStream-framerate-0.html [ Skip ]
-fast/mediacapturefromelement/CanvasCaptureMediaStream-capture-out-of-DOM-element.html [ Skip ]
 
 # These test ResizeObserverEntry.devicePixelContentBoxSize, which is not implemented yet.
 webkit.org/b/219005 imported/w3c/web-platform-tests/resize-observer/devicepixel.html [ Skip ]
@@ -5009,10 +5026,6 @@ webgl/2.0.y/conformance/glsl [ Slow ]
 webgl/2.0.y/conformance/uniforms [ Slow ]
 webgl/2.0.y/conformance/textures/misc [ Slow ]
 webgl/2.0.y/conformance2/glsl3 [ Slow ]
-
-# ANGLE does not support this yet. Mark as Skip since it is a long test and may time out.
-webkit.org/b/251514 webgl/1.0.x/conformance/extensions/khr-parallel-shader-compile.html [ Skip ]
-webkit.org/b/251514 webgl/2.0.y/conformance/extensions/khr-parallel-shader-compile.html [ Skip ]
 
 # https://github.com/KhronosGroup/WebGL/issues/3341
 webgl/1.0.x/conformance/textures/misc/texture-corner-case-videos.html [ Failure ]
@@ -6910,9 +6923,6 @@ webkit.org/b/290526 imported/w3c/web-platform-tests/html/canvas/element/text/2d.
 webkit.org/b/290526 imported/w3c/web-platform-tests/html/canvas/element/text/2d.text.measure.strokeTextCluster-align.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/290526 imported/w3c/web-platform-tests/html/canvas/element/text/2d.text.measure.strokeTextCluster-baseline.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/290526 imported/w3c/web-platform-tests/html/canvas/element/text/2d.text.measure.strokeTextCluster-drawing-styles-change.tentative.html [ ImageOnlyFailure ]
-
-# We only support import-attributes and do not support import-assertions.
-imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/import-assertions
 
 # webkit.org/b/260546
 [ Debug ] imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-details-element/toggleEvent.html [ Pass Failure ]

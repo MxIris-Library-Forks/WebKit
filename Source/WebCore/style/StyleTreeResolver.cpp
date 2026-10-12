@@ -58,6 +58,7 @@
 #include "PositionedLayoutConstraints.h"
 #include "RenderBoxInlines.h"
 #include "RenderElement.h"
+#include "RenderText.h"
 #include "RenderView.h"
 #include "ResolvedStyle.h"
 #include "SelectPopoverElement.h"
@@ -976,7 +977,7 @@ ElementUpdate TreeResolver::createAnimatedElementUpdate(ResolvedStyle&& resolved
             return false;
         if (unanimatedDisplay != animatedDisplay)
             return true;
-        return keyframeEffectStack->containsProperty(CSSPropertyDisplay);
+        return keyframeEffectStack->containsProperty(CSSPropertyID::Display);
     }();
 
     SUPPRESS_UNCOUNTED_ARG if (!affectsRenderedSubtree(styleable.element, *newStyle) && !animationsAffectedDisplay) {
@@ -1775,8 +1776,8 @@ std::unique_ptr<Style::ComputedStyle> TreeResolver::generatePositionOption(const
         // "If an at-rule or property defines a name that other CSS constructs can refer to it by, ... it must be defined as a tree-scoped name."
         // https://drafts.csswg.org/css-scoping-1/#shadow-names
         return Style::resolveTreeScopedReference(protect(styleable.element), *fallback.ruleAndTactics.rule, [](const Style::Scope& scope, const Style::ScopedName& scopedName) -> RefPtr<const StyleProperties> {
-            auto& ruleSet = scope.resolverIfExists()->ruleSets().authorStyle();
-            RefPtr rule = ruleSet.positionTryRuleForName(scopedName.name);
+            Ref ruleSet = scope.resolverIfExists()->ruleSets().authorStyle();
+            RefPtr rule = ruleSet->positionTryRuleForName(scopedName.name);
             if (!rule)
                 return nullptr;
             return rule->properties();

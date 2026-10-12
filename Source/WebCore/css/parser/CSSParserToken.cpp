@@ -501,14 +501,14 @@ CSSPropertyID CSSParserToken::parseAsCSSPropertyID() const
 CSSValueID CSSParserToken::id() const
 {
     if (m_type != IdentToken)
-        return CSSValueInvalid;
+        return CSSValueID::Invalid;
     return identOrFunctionId();
 }
 
 CSSValueID CSSParserToken::functionId() const
 {
     if (m_type != FunctionToken)
-        return CSSValueInvalid;
+        return CSSValueID::Invalid;
     return identOrFunctionId();
 }
 
@@ -516,7 +516,7 @@ CSSValueID CSSParserToken::identOrFunctionId() const
 {
     ASSERT(m_type == IdentToken || m_type == FunctionToken);
     if (m_id < 0)
-        m_id = cssValueKeywordID(value());
+        m_id = std::to_underlying(cssValueKeywordID(value()));
     return static_cast<CSSValueID>(m_id);
 }
 
@@ -570,7 +570,7 @@ bool CSSParserToken::tryUseStringLiteralBacking()
 
     if (!m_isBackedByStringLiteral) {
         auto valueId = identOrFunctionId();
-        if (valueId == CSSValueInvalid)
+        if (valueId == CSSValueID::Invalid)
             return false;
 
         auto literal = nameLiteral(valueId);

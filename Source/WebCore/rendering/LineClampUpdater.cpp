@@ -241,15 +241,16 @@ std::optional<LineClampUpdater::AutoClampPoint> LineClampUpdater::autoClampPoint
 }
 
 // "Any absolutely positioned box which has an invisible box within its containing block chain, and all of its descendants."
-static bool isInsideInvisibleBox(const RenderObject& renderer, const RenderBox& invisibleBox)
+static bool isInsideInvisibleBox(const RenderObject& renderer, const RenderElement& invisibleBox)
 {
     if (!renderer.isOutOfFlowPositioned())
         return true;
-    CheckedPtr containingBlock = renderer.containingBlock();
+    // The containing block may be an inline box (unlike containingBlock(), container() returns it).
+    CheckedPtr containingBlock = renderer.container();
     return containingBlock && (containingBlock == &invisibleBox || containingBlock->isDescendantOf(&invisibleBox));
 }
 
-static void setIsForceHiddenByLineClamp(RenderElement& renderer, const RenderBox& invisibleBox, bool isHidden)
+static void setIsForceHiddenByLineClamp(RenderElement& renderer, const RenderElement& invisibleBox, bool isHidden)
 {
     renderer.setIsForceHiddenByLineClamp(isHidden);
     // Invisible boxes are not laid out (see skipLayoutForForcedHidden), so a box that becomes visible again needs layout.
@@ -291,7 +292,54 @@ bool LineClampUpdater::isAfterClampPoint(const RenderObject& renderer)
     return lineClamp && lineClamp->shouldDiscardOverflow && !lineClamp->maximumLines;
 }
 
-void LineClampUpdater::setIsForcedHidden(RenderBox& renderer, bool isHidden)
+bool LineClampUpdater::isInsideLineClampContainer(const RenderObject& renderer)
+{
+    auto lineClamp = renderer.view().frameView().layoutContext().layoutState()->lineClamp();
+    return lineClamp && lineClamp->shouldDiscardOverflow;
+}
+
+std::optional<LayoutRect> LineClampUpdater::blockEndClipRect(const RenderBox& floatBox, const RenderElement& renderer)
+{
+    if (!floatBox.isClippedByLineClamp())
+        return { };
+    // The line-clamp container whose block formatting context the float is in.
+    auto lineClampContainerForFloat = [&] -> CheckedPtr<const RenderBlockFlow> {
+        CheckedPtr formattingContextRoot = floatBox.containingBlock();
+        while (formattingContextRoot && !formattingContextRoot->createsNewFormattingContext())
+            formattingContextRoot = formattingContextRoot->containingBlock();
+        CheckedPtr lineClampContainer = dynamicDowncast<RenderBlockFlow>(formattingContextRoot.get());
+        if (!lineClampContainer || !lineClampContainer->establishesLineClampContainer())
+            return nullptr;
+        return lineClampContainer;
+    };
+    CheckedPtr lineClampContainer = lineClampContainerForFloat();
+    if (!lineClampContainer)
+        return { };
+
+    // Within a line-clamp container, floats "must be visually clipped to the unshaped block-end content edge of the line-clamp container".
+    // https://drafts.csswg.org/css-overflow-4/#line-clamp-containers
+    // The renderer may be inside the line-clamp container (e.g. the float itself) or outside of it, so this maps through absolute coordinates.
+    auto contentBoxQuad = lineClampContainer->localToAbsoluteQuad(FloatQuad { FloatRect { lineClampContainer->contentBoxRect() } });
+    auto contentBoxRect = LayoutRect { renderer.absoluteToLocalQuad(contentBoxQuad).boundingBox() };
+    auto clipRect = LayoutRect::infiniteRect();
+    switch (lineClampContainer->writingMode().blockDirection()) {
+    case FlowDirection::TopToBottom:
+        clipRect.shiftMaxYEdgeTo(contentBoxRect.maxY());
+        break;
+    case FlowDirection::BottomToTop:
+        clipRect.shiftYEdgeTo(contentBoxRect.y());
+        break;
+    case FlowDirection::LeftToRight:
+        clipRect.shiftMaxXEdgeTo(contentBoxRect.maxX());
+        break;
+    case FlowDirection::RightToLeft:
+        clipRect.shiftXEdgeTo(contentBoxRect.x());
+        break;
+    }
+    return clipRect;
+}
+
+void LineClampUpdater::setIsForcedHidden(RenderElement& renderer, bool isHidden)
 {
     if (renderer.isForceHiddenByLineClamp() == isHidden)
         return;

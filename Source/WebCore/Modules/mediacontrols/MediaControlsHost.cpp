@@ -188,7 +188,7 @@ String MediaControlsHost::displayNameForTrack(const std::optional<TextOrAudioTra
         return emptyString();
 
     return WTF::visit([page](auto& track) {
-        return protect(page->group())->ensureCaptionPreferences().displayNameForTrack(track);
+        return protect(protect(page->group())->ensureCaptionPreferences())->displayNameForTrack(track);
     }, track.value());
 }
 
@@ -869,7 +869,7 @@ bool MediaControlsHost::showMediaControlsContextMenu(HTMLElement& target, String
             return;
 
         Ref mediaElement = protectedThis->m_mediaElement.get();
-        UserGestureIndicator gestureIndicator(IsProcessingUserGesture::Yes, &mediaElement->document());
+        UserGestureIndicator gestureIndicator(IsProcessingUserGesture::Yes, protect(mediaElement->document()).ptr());
 
         auto selectedItem = idMap.get(selectedItemID);
         WTF::switchOn(selectedItem,
@@ -1006,9 +1006,9 @@ void MediaControlsHost::handleCaptionVisibilityInFullscreenAndPictureInPictureQu
         return;
 
     if (protect(m_mediaElement)->isInFullscreenOrPictureInPicture())
-        textTrackContainer->setInlineStyleProperty(CSSPropertyVisibility, CSSValueVisible);
+        textTrackContainer->setInlineStyleProperty(CSSPropertyID::Visibility, CSSValueID::Visible);
     else
-        textTrackContainer->setInlineStyleProperty(CSSPropertyVisibility, CSSValueInherit);
+        textTrackContainer->setInlineStyleProperty(CSSPropertyID::Visibility, CSSValueID::Inherit);
 #endif
 }
 

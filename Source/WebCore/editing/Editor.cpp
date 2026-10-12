@@ -201,12 +201,12 @@ static String inputEventDataForEditingStyleAndAction(const StyleProperties* styl
 
     switch (action) {
     case EditAction::SetColor:
-        return style->getPropertyValue(CSSPropertyColor);
+        return style->getPropertyValue(CSSPropertyID::Color);
     case EditAction::SetBackgroundColor:
-        return style->getPropertyValue(CSSPropertyBackgroundColor);
+        return style->getPropertyValue(CSSPropertyID::BackgroundColor);
     case EditAction::SetInlineWritingDirection:
     case EditAction::SetBlockWritingDirection:
-        return style->getPropertyValue(CSSPropertyDirection);
+        return style->getPropertyValue(CSSPropertyID::Direction);
     default:
         return { };
     }
@@ -1131,7 +1131,7 @@ void Editor::applyParagraphStyleToSelection(StyleProperties* style, EditAction e
 
 bool Editor::selectionStartHasStyle(CSSPropertyID propertyID, const String& value) const
 {
-    if (auto editingStyle = EditingStyle::styleAtSelectionStart(document().selection().selection(), propertyID == CSSPropertyBackgroundColor))
+    if (auto editingStyle = EditingStyle::styleAtSelectionStart(document().selection().selection(), propertyID == CSSPropertyID::BackgroundColor))
         return editingStyle->hasStyle(propertyID, value);
     return false;
 }
@@ -1145,11 +1145,11 @@ String Editor::selectionStartCSSPropertyValue(CSSPropertyID propertyID)
 {
     Ref document = this->document();
     RefPtr<EditingStyle> selectionStyle = EditingStyle::styleAtSelectionStart(document->selection().selection(),
-        propertyID == CSSPropertyBackgroundColor);
+        propertyID == CSSPropertyID::BackgroundColor);
     if (!selectionStyle || !selectionStyle->style())
         return String();
 
-    if (propertyID == CSSPropertyFontSize)
+    if (propertyID == CSSPropertyID::FontSize)
         return String::number(selectionStyle->legacyFontSize(document));
     return protect(selectionStyle->style())->getPropertyValue(propertyID);
 }
@@ -2204,39 +2204,39 @@ void Editor::setTextAlignmentForChangedBaseWritingDirection(WritingDirection dir
     if (!selectionStyle || !selectionStyle->style())
         return;
 
-    auto value = protect(selectionStyle->style())->propertyAsValueID(CSSPropertyTextAlign);
+    auto value = protect(selectionStyle->style())->propertyAsValueID(CSSPropertyID::TextAlign);
     if (!value)
         return;
 
-    auto newValue = CSSValueInvalid;
+    auto newValue = CSSValueID::Invalid;
     switch (*value) {
-    case CSSValueStart:
-    case CSSValueEnd:
+    case CSSValueID::Start:
+    case CSSValueID::End:
         switch (direction) {
         case WritingDirection::Natural:
             return;
         case WritingDirection::LeftToRight:
-            newValue = CSSValueLeft;
+            newValue = CSSValueID::Left;
             break;
         case WritingDirection::RightToLeft:
-            newValue = CSSValueRight;
+            newValue = CSSValueID::Right;
             break;
         default:
             ASSERT_NOT_REACHED();
             return;
         }
         break;
-    case CSSValueLeft:
-    case CSSValueWebkitLeft:
-        newValue = CSSValueRight;
+    case CSSValueID::Left:
+    case CSSValueID::WebkitLeft:
+        newValue = CSSValueID::Right;
         break;
-    case CSSValueRight:
-    case CSSValueWebkitRight:
-        newValue = CSSValueLeft;
+    case CSSValueID::Right:
+    case CSSValueID::WebkitRight:
+        newValue = CSSValueID::Left;
         break;
-    case CSSValueCenter:
-    case CSSValueWebkitCenter:
-    case CSSValueJustify:
+    case CSSValueID::Center:
+    case CSSValueID::WebkitCenter:
+    case CSSValueID::Justify:
         return;
     default:
         ASSERT_NOT_REACHED();
@@ -2258,7 +2258,7 @@ void Editor::setTextAlignmentForChangedBaseWritingDirection(WritingDirection dir
     }
 
     Ref style = MutableStyleProperties::create();
-    style->setProperty(CSSPropertyTextAlign, newValue);
+    style->setProperty(CSSPropertyID::TextAlign, newValue);
     applyParagraphStyle(style.ptr());
 }
 
@@ -2287,7 +2287,7 @@ void Editor::setBaseWritingDirection(WritingDirection direction)
     }
 
     auto style = MutableStyleProperties::create();
-    style->setProperty(CSSPropertyDirection, direction == WritingDirection::LeftToRight ? "ltr"_s : direction == WritingDirection::RightToLeft ? "rtl"_s : "inherit"_s);
+    style->setProperty(CSSPropertyID::Direction, direction == WritingDirection::LeftToRight ? "ltr"_s : direction == WritingDirection::RightToLeft ? "rtl"_s : "inherit"_s);
     applyParagraphStyleToSelection(style.ptr(), EditAction::SetBlockWritingDirection);
 }
 
@@ -4096,9 +4096,9 @@ void Editor::applyEditingStyleToBodyElement() const
     RefPtr body { document().body() };
     if (!body)
         return;
-    body->setInlineStyleProperty(CSSPropertyOverflowWrap, CSSValueBreakWord);
-    body->setInlineStyleProperty(CSSPropertyWebkitNbspMode, CSSValueSpace);
-    body->setInlineStyleProperty(CSSPropertyLineBreak, CSSValueAfterWhiteSpace);
+    body->setInlineStyleProperty(CSSPropertyID::OverflowWrap, CSSValueID::BreakWord);
+    body->setInlineStyleProperty(CSSPropertyID::WebkitNbspMode, CSSValueID::Space);
+    body->setInlineStyleProperty(CSSPropertyID::LineBreak, CSSValueID::AfterWhiteSpace);
 }
 
 std::optional<SimpleRange> Editor::findString(const String& target, FindOptions options)
@@ -4861,10 +4861,10 @@ FontAttributes Editor::fontAttributesAtSelectionStart()
 
     RefPtr typingStyle { document().selection().typingStyle() };
     if (typingStyle && typingStyle->style()) {
-        if (RefPtr value = dynamicDowncast<CSSValueList>(protect(typingStyle->style())->getPropertyCSSValue(CSSPropertyWebkitTextDecorationsInEffect))) {
-            if (value->hasValue(CSSValueLineThrough))
+        if (RefPtr value = dynamicDowncast<CSSValueList>(protect(typingStyle->style())->getPropertyCSSValue(CSSPropertyID::WebkitTextDecorationsInEffect))) {
+            if (value->hasValue(CSSValueID::LineThrough))
                 attributes.hasStrikeThrough = true;
-            if (value->hasValue(CSSValueUnderline))
+            if (value->hasValue(CSSValueID::Underline))
                 attributes.hasUnderline = true;
         }
     } else {

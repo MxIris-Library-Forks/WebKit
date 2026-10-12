@@ -38,7 +38,6 @@
 
 import codecs
 import functools
-import json
 import math  # for log
 import os
 import os.path
@@ -3029,29 +3028,29 @@ def check_wtf_to_array(clean_lines, line_number, file_state, error):
 
 
 @memoized
-def _css_property_id_enumerator_names():
-    """Returns the set of CSSPropertyID enumerator names (e.g. 'BackgroundColor'), derived from CSSProperties.json."""
-    json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', '..', 'Source', 'WebCore', 'css', 'CSSProperties.json')
-    try:
-        with codecs.open(json_path, 'r', 'utf-8') as json_file:
-            properties_json = json.load(json_file)
-    except (IOError, OSError, ValueError):
-        return frozenset()
+def _css_value_id_enumerator_names():
+    """Returns the set of CSSValueID enumerator names (e.g. 'Auto'), derived from CSSValueKeywords.in and SVGCSSValueKeywords.in."""
+    css_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', '..', 'Source', 'WebCore', 'css')
+    names = {'Invalid'}
+    for file_name in ('CSSValueKeywords.in', 'SVGCSSValueKeywords.in'):
+        try:
+            with codecs.open(os.path.join(css_directory, file_name), 'r', 'utf-8') as keywords_file:
+                lines = keywords_file.readlines()
+        except (IOError, OSError):
+            continue
 
-    # Must match Name.convert_name_to_id() in Source/WebCore/css/scripts/process-css-properties.py.
-    def convert_name_to_id(name):
-        special_case_name_to_id = {'url': 'URL', '-infinity': 'NegativeInfinity'}
-        return special_case_name_to_id.get(name) or re.sub(r'(^[^-])|-(.)', lambda m: (m.group(1) or m.group(2)).upper(), name).replace('.', '_').replace('(', '').replace(')', '')
-
-    names = {'Invalid', 'Custom'}
-    names.update(convert_name_to_id(name) for name in properties_json.get('properties', {}))
-    for descriptors in properties_json.get('descriptors', {}).values():
-        names.update(convert_name_to_id(name) for name in descriptors)
+        # Must match the parsing in Source/WebCore/css/scripts/process-css-values.py.
+        for line in lines:
+            parts = line.split('//')[0].split()
+            if not parts:
+                continue
+            name = next((attribute[len('id='):] for attribute in parts[1:] if attribute.startswith('id=')), None)
+            names.add(name or re.sub(r'(^[^-])|-(.)', lambda m: (m.group(1) or m.group(2)).upper(), parts[0]))
     return frozenset(names)
 
 
-def check_css_property_id(clean_lines, line_number, file_state, error):
-    """Looks for use of the deprecated 'CSSPropertyFoo' constants, which should be replaced with 'CSSPropertyID::Foo'.
+def check_css_value_id(clean_lines, line_number, file_state, error):
+    """Looks for use of the deprecated 'CSSValueFoo' constants, which should be replaced with 'CSSValueID::Foo'.
 
     Args:
       clean_lines: A CleansedLines instance containing the file.
@@ -3067,10 +3066,10 @@ def check_css_property_id(clean_lines, line_number, file_state, error):
 
     line = clean_lines.elided[line_number]  # Get rid of comments and strings.
 
-    for matched in re.finditer(r'\bCSSProperty([A-Z]\w*)\b', line):
+    for matched in re.finditer(r'\bCSSValue([A-Z]\w*)\b', line):
         name = matched.group(1)
-        if name in _css_property_id_enumerator_names():
-            error(line_number, 'runtime/css_property_id', 4, "Use 'CSSPropertyID::%s' instead of 'CSSProperty%s'." % (name, name))
+        if name in _css_value_id_enumerator_names():
+            error(line_number, 'runtime/css_value_id', 4, "Use 'CSSValueID::%s' instead of 'CSSValue%s'." % (name, name))
 
 
 def check_utf8cstring_from_utf8(clean_lines, line_number, file_state, error):
@@ -3456,6 +3455,20 @@ _XPC_STRING_WRAPPERS = {
 }
 
 
+_ICU_STRING_WRAPPERS = {
+    'u_strToLower': 'uStrToLower',
+    'u_strToTitle': 'uStrToTitle',
+    'u_strToUpper': 'uStrToUpper',
+    'ubrk_open': 'ubrkOpen',
+    'ucal_open': 'ucalOpen',
+    'ucol_open': 'ucolOpen',
+    'udat_open': 'udatOpen',
+    'udatpg_open': 'udatpgOpen',
+    'unum_open': 'unumOpen',
+    'usearch_open': 'usearchOpen',
+}
+
+
 def _enclosing_function_call(clean_lines, line_number, position):
     """Returns the name of the function whose argument list contains the given position, or None.
 
@@ -3575,6 +3588,21 @@ def check_darwin_string_wrappers(clean_lines, line_number, file_state, error):
 
     _check_string_wrappers(clean_lines, line_number, file_state, error, _DARWIN_STRING_WRAPPERS, '<wtf/darwin/DarwinExtras.h>', 'runtime/darwin_string_wrappers', {})
     _check_string_wrappers(clean_lines, line_number, file_state, error, _XPC_STRING_WRAPPERS, '<wtf/darwin/XPCExtras.h>', 'runtime/darwin_string_wrappers', {})
+
+
+def check_icu_string_wrappers(clean_lines, line_number, file_state, error):
+    """Looks for ICU functions called with a locale from legacyCStringPointer(), which should use the wrappers in
+    wtf/text/icu/UnicodeExtras.h.
+
+    Args:
+      clean_lines: A CleansedLines instance containing the file.
+      line_number: The number of the line to check.
+      file_state: A _FileState instance which maintains information about
+                  the state of things in the file.
+      error: The function to call with any errors found.
+    """
+
+    _check_string_wrappers(clean_lines, line_number, file_state, error, _ICU_STRING_WRAPPERS, '<wtf/text/icu/UnicodeExtras.h>', 'runtime/icu_string_wrappers', {})
 
 
 def check_legacy_cstring_pointer_with_length(clean_lines, line_number, file_state, error):
@@ -4604,6 +4632,18 @@ def check_safer_cpp(clean_lines, line_number, error):
     if search(r'sqlite3_column_blob\(', line):
         error(line_number, 'safercpp/sqlite3_column_blob', 4, "Use sqliteColumnBlob() instead of sqlite3_column_blob().")
 
+    if search(r'\bsqlite3_open_v2\(', line):
+        error(line_number, 'safercpp/sqlite3_open_v2', 4, "Use sqliteOpen() instead of sqlite3_open_v2().")
+
+    if search(r'\bsqlite3_prepare_v2\(', line):
+        error(line_number, 'safercpp/sqlite3_prepare_v2', 4, "Use sqlitePrepare() instead of sqlite3_prepare_v2().")
+
+    if search(r'\bsqlite3_create_collation_v2\(', line):
+        error(line_number, 'safercpp/sqlite3_create_collation_v2', 4, "Use sqliteCreateCollation() instead of sqlite3_create_collation_v2().")
+
+    if search(r'\bsqlite3_result_error\(', line):
+        error(line_number, 'safercpp/sqlite3_result_error', 4, "Use sqliteResultError() instead of sqlite3_result_error().")
+
     # FIXME: Remove protectedFoo() check once all protectedFoo() getters are removed from WebKit.
     # See: https://github.com/WebKit/WebKit/wiki/Safer-CPP-Guidelines#do-not-call-protect-free-function-to-initialize-local-variables
     if search(r'= [a-zA-Z0-9_.(),\s\->]*(?<!\()protected[a-zA-Z0-9]+\(\)(;|\))(?!;)', line):
@@ -4694,7 +4734,7 @@ def check_style(clean_lines, line_number, file_extension, class_state, file_stat
     check_wtf_checked_size(clean_lines, line_number, file_state, error)
     check_wtf_move(clean_lines, line_number, file_state, error)
     check_wtf_to_array(clean_lines, line_number, file_state, error)
-    check_css_property_id(clean_lines, line_number, file_state, error)
+    check_css_value_id(clean_lines, line_number, file_state, error)
     check_utf8cstring_from_utf8(clean_lines, line_number, file_state, error)
     check_construct_and_append(clean_lines, line_number, file_state, error)
     check_unsafe_get(clean_lines, line_number, file_state, error)
@@ -4705,6 +4745,7 @@ def check_style(clean_lines, line_number, file_extension, class_state, file_stat
     check_glib_string_wrappers(clean_lines, line_number, file_state, error)
     check_posix_string_wrappers(clean_lines, line_number, file_state, error)
     check_darwin_string_wrappers(clean_lines, line_number, file_state, error)
+    check_icu_string_wrappers(clean_lines, line_number, file_state, error)
     check_legacy_cstring_pointer_with_length(clean_lines, line_number, file_state, error)
     check_log_string_conversions(clean_lines, line_number, file_state, error)
     check_printstream_printf(clean_lines, line_number, file_state, error)
@@ -6004,7 +6045,7 @@ class CppChecker(object):
         'runtime/bitfields',
         'runtime/callonmainthread',
         'runtime/casting',
-        'runtime/css_property_id',
+        'runtime/css_value_id',
         'runtime/construct_and_append',
         'runtime/ctype_function',
         'runtime/darwin_string_wrappers',
@@ -6013,6 +6054,7 @@ class CppChecker(object):
         'runtime/enum_bitfields',
         'runtime/explicit',
         'runtime/glib_string_wrappers',
+        'runtime/icu_string_wrappers',
         'runtime/init',
         'runtime/int',
         'runtime/invalid_increment',
@@ -6068,6 +6110,16 @@ class CppChecker(object):
         'safercpp/strncmp',
         'safercpp/printf',
         'safercpp/protected_getter_for_init',
+        'safercpp/sqlite3_bind_blob',
+        'safercpp/sqlite3_bind_text',
+        'safercpp/sqlite3_column_blob',
+        'safercpp/sqlite3_column_name',
+        'safercpp/sqlite3_column_text',
+        'safercpp/sqlite3_create_collation_v2',
+        'safercpp/sqlite3_open_v2',
+        'safercpp/sqlite3_prepare_v2',
+        'safercpp/sqlite3_result_error',
+        'safercpp/sqlite3_value_text',
         'safercpp/strchr',
         'safercpp/strstr',
         'safercpp/timer_exception',

@@ -14,4 +14,4 @@ Property values requiring vendor prefixes:
 None
 ------------------------------------------------------------------------
 List of files:
-/LayoutTests/imported/w3c/web-platform-tests/html/dom/elements/wai-aria/README.md
+/LayoutTests/imported/w3c/web-platform-tests/html/semantics/interactive-elements/commands/option/option-accesskey.html

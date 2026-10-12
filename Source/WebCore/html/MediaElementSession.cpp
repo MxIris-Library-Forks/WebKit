@@ -618,7 +618,7 @@ bool MediaElementSession::autoplayPermitted() const
         ALWAYS_LOG(LOGIDENTIFIER, "Returning FALSE because element is not visible");
         return false;
     }
-    if (renderer->view().frameView().isOffscreen()) {
+    if (protect(renderer->view().frameView())->isOffscreen()) {
         ALWAYS_LOG(LOGIDENTIFIER, "Returning FALSE because frame is offscreen");
         return false;
     }
@@ -1123,8 +1123,8 @@ bool MediaElementSession::requiresFullscreenForVideoPlayback() const
         return false;
 
     if (element->document().isMediaDocument()) {
-        const HTMLVideoElement& videoElement = downcast<const HTMLVideoElement>(*element);
-        if (element->readyState() < HTMLVideoElement::HAVE_METADATA || !videoElement.hasEverHadVideo())
+        Ref videoElement = downcast<const HTMLVideoElement>(*element);
+        if (element->readyState() < HTMLVideoElement::HAVE_METADATA || !videoElement->hasEverHadVideo())
             return false;
     }
 

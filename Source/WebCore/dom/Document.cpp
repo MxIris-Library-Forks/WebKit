@@ -688,7 +688,7 @@ Document::Document(LocalFrame* frame, const Settings& settings, const URL& url, 
     , m_creationURL(url)
     , m_domTreeVersion(++s_globalTreeVersion)
     , m_styleScope(makeUniqueRef<Style::DocumentScope>(*this))
-    , m_styleRecalcTimer([this] { Ref { *this }->updateStyleIfNeeded(); })
+    , m_styleRecalcTimer(*this, &Document::styleRecalcTimerFired)
 #if !LOG_DISABLED
     , m_documentCreationTime(MonotonicTime::now())
 #endif
@@ -1477,21 +1477,21 @@ Color Document::linkColor(const Style::ComputedStyle& style) const
 {
     if (m_linkColor.isValid())
         return m_linkColor;
-    return CSS::colorFromKeyword(CSSValueWebkitLink, styleColorOptions(&style));
+    return CSS::colorFromKeyword(CSSValueID::WebkitLink, styleColorOptions(&style));
 }
 
 Color Document::visitedLinkColor(const Style::ComputedStyle& style) const
 {
     if (m_visitedLinkColor.isValid())
         return m_visitedLinkColor;
-    return CSS::colorFromKeyword(CSSValueWebkitLink, styleColorOptions(&style) | StyleColorOptions::ForVisitedLink);
+    return CSS::colorFromKeyword(CSSValueID::WebkitLink, styleColorOptions(&style) | StyleColorOptions::ForVisitedLink);
 }
 
 Color Document::activeLinkColor(const Style::ComputedStyle& style) const
 {
     if (m_activeLinkColor.isValid())
         return m_activeLinkColor;
-    return CSS::colorFromKeyword(CSSValueWebkitActivelink, styleColorOptions(&style));
+    return CSS::colorFromKeyword(CSSValueID::WebkitActivelink, styleColorOptions(&style));
 }
 
 void Document::resetLinkColor()
@@ -3033,6 +3033,11 @@ bool Document::needsStyleRecalc() const
         return true;
 
     return false;
+}
+
+void Document::styleRecalcTimerFired()
+{
+    updateStyleIfNeeded();
 }
 
 bool Document::updateStyleIfNeeded()
@@ -11273,7 +11278,7 @@ Vector<Ref<WebAnimation>> Document::matchingAnimations(NOESCAPE const Function<b
         if (is<CustomEffect>(effect))
             return true;
 
-        if (auto* keyframeEffect = dynamicDowncast<KeyframeEffect>(effect)) {
+        if (RefPtr keyframeEffect = dynamicDowncast<KeyframeEffect>(effect)) {
             RefPtr target = keyframeEffect->target();
             return target && target->isConnected() && &target->document() == this && function(*target);
         }
@@ -11857,14 +11862,14 @@ const Style::ComputedStyle& Document::initialStyle() const
         m_cachedInitialStyle->setZoom(zoom);
 
         auto initialFontFamily = FontFamily { standardFamily, FontFamilyKind::Generic };
-        auto initialComputedFontSize = Style::fontSizeForKeyword(CSSValueMedium, false, settingsValues(), inQuirksMode());
+        auto initialComputedFontSize = Style::fontSizeForKeyword(CSSValueID::Medium, false, settingsValues(), inQuirksMode());
         auto initialUsedFontSize = Style::usedFontSizeFromComputedSize(initialComputedFontSize, false, zoomForFontDescription, Style::MinimumFontSizeRule::AbsoluteAndRelative, settingsValues());
         auto allowUserInstalledFonts = settings().shouldAllowUserInstalledFonts() ? AllowUserInstalledFonts::Yes : AllowUserInstalledFonts::No;
 
         FontCascadeDescription fontDescription;
         fontDescription.setComputedLocale(contentLanguage());
         fontDescription.setOneFamily(WTF::move(initialFontFamily));
-        fontDescription.setKeywordSizeFromIdentifier(CSSValueMedium);
+        fontDescription.setKeywordSizeFromIdentifier(CSSValueID::Medium);
         fontDescription.setComputedSize(initialComputedFontSize);
         fontDescription.setUsedSize(initialUsedFontSize, zoomForFontDescription);
         fontDescription.setShouldAllowUserInstalledFonts(allowUserInstalledFonts);

@@ -94,6 +94,7 @@
 #include "LegacyRenderSVGImage.h"
 #include "LegacyRenderSVGResourceClipper.h"
 #include "LegacyRenderSVGRoot.h"
+#include "LineClampUpdater.h"
 #include "LocalFrame.h"
 #include "LocalFrameLoaderClient.h"
 #include "LocalFrameView.h"
@@ -3094,12 +3095,12 @@ void RenderLayer::resize(const PlatformMouseEvent& evt, const LayoutSize& oldOff
     if (canResizeWidth && difference.width()) {
         if (is<HTMLFormControlElement>(*styledElement)) {
             // Make implicit margins from the theme explicit (see <http://bugs.webkit.org/show_bug.cgi?id=9547>).
-            styledElement->setInlineStyleProperty(CSSPropertyMarginLeft, renderer->marginLeft() / zoomFactor, CSSUnitType::Px);
-            styledElement->setInlineStyleProperty(CSSPropertyMarginRight, renderer->marginRight() / zoomFactor, CSSUnitType::Px);
+            styledElement->setInlineStyleProperty(CSSPropertyID::MarginLeft, renderer->marginLeft() / zoomFactor, CSSUnitType::Px);
+            styledElement->setInlineStyleProperty(CSSPropertyID::MarginRight, renderer->marginRight() / zoomFactor, CSSUnitType::Px);
         }
         LayoutUnit baseWidth = renderer->borderBoxWidth() - (isBoxSizingBorder ? 0_lu : renderer->horizontalBorderAndPaddingExtent());
         baseWidth = baseWidth / zoomFactor;
-        styledElement->setInlineStyleProperty(CSSPropertyWidth, roundToInt(baseWidth + difference.width()), CSSUnitType::Px);
+        styledElement->setInlineStyleProperty(CSSPropertyID::Width, roundToInt(baseWidth + difference.width()), CSSUnitType::Px);
 
         mutationScope.enqueueMutationRecord();
     }
@@ -3109,12 +3110,12 @@ void RenderLayer::resize(const PlatformMouseEvent& evt, const LayoutSize& oldOff
     if (canResizeHeight && difference.height()) {
         if (is<HTMLFormControlElement>(*styledElement)) {
             // Make implicit margins from the theme explicit (see <http://bugs.webkit.org/show_bug.cgi?id=9547>).
-            styledElement->setInlineStyleProperty(CSSPropertyMarginTop, renderer->marginTop() / zoomFactor, CSSUnitType::Px);
-            styledElement->setInlineStyleProperty(CSSPropertyMarginBottom, renderer->marginBottom() / zoomFactor, CSSUnitType::Px);
+            styledElement->setInlineStyleProperty(CSSPropertyID::MarginTop, renderer->marginTop() / zoomFactor, CSSUnitType::Px);
+            styledElement->setInlineStyleProperty(CSSPropertyID::MarginBottom, renderer->marginBottom() / zoomFactor, CSSUnitType::Px);
         }
         LayoutUnit baseHeight = renderer->borderBoxHeight() - (isBoxSizingBorder ? 0_lu : renderer->verticalBorderAndPaddingExtent());
         baseHeight = baseHeight / zoomFactor;
-        styledElement->setInlineStyleProperty(CSSPropertyHeight, roundToInt(baseHeight + difference.height()), CSSUnitType::Px);
+        styledElement->setInlineStyleProperty(CSSPropertyID::Height, roundToInt(baseHeight + difference.height()), CSSUnitType::Px);
 
         mutationScope.enqueueMutationRecord();
     }
@@ -3411,7 +3412,7 @@ void RenderLayer::paintLayer(GraphicsContext& context, const LayerPaintingInfo& 
         return;
     }
 
-    if (auto* recorder = canvasDrawableRecorder(*this, context)) {
+    if (RefPtr recorder = canvasDrawableRecorder(*this, context)) {
         paintLayerWithEffects(*recorder, paintingInfo, paintFlags);
         return;
     }
@@ -5370,6 +5371,15 @@ void RenderLayer::calculateClipRects(const ClipRectsContext& clipRectsContext, C
     } else if (renderer().hasNonVisibleOverflow() && transform() && renderer().style().border().hasBorderRadius())
         clipRects.setOverflowClipRectAffectedByRadius();
 
+    // A float painted as its own root layer (e.g. through its transform) is already clipped as a whole (see backgroundClipRect).
+    if (CheckedPtr box = dynamicDowncast<RenderBox>(renderer()); box && clipRectsContext.rootLayer != this) {
+        if (auto blockEndClipRect = LineClampUpdater::blockEndClipRect(*box, clipRectsContext.rootLayer->renderer())) {
+            clipRects.setPosClipRect(intersection(*blockEndClipRect, clipRects.posClipRect()));
+            clipRects.setOverflowClipRect(intersection(*blockEndClipRect, clipRects.overflowClipRect()));
+            clipRects.setFixedClipRect(intersection(*blockEndClipRect, clipRects.fixedClipRect()));
+        }
+    }
+
     LOG_WITH_STREAM(ClipRects, stream << "RenderLayer " << this << " calculateClipRects " << clipRectsContext << " computed " << clipRects);
 }
 
@@ -5421,6 +5431,10 @@ ClipRect RenderLayer::backgroundClipRect(const ClipRectsContext& clipRectsContex
         return backgroundClipRect;
     }
     backgroundClipRect = backgroundClipRectForPosition(*parentRects, renderer().style().position());
+    if (CheckedPtr box = dynamicDowncast<RenderBox>(renderer())) {
+        if (auto blockEndClipRect = LineClampUpdater::blockEndClipRect(*box, clipRectsContext.rootLayer->renderer()))
+            backgroundClipRect.intersect(*blockEndClipRect);
+    }
     RenderView& view = renderer().view();
     // Note: infinite clipRects should not be scrolled here, otherwise they will accidentally no longer be considered infinite.
     if (parentRects->fixed() && &clipRectsContext.rootLayer->renderer() == &view && !backgroundClipRect.isInfinite())

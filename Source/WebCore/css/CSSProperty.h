@@ -89,7 +89,7 @@ public:
     static bool areInSameLogicalPropertyGroupWithDifferentMappingLogic(CSSPropertyID, CSSPropertyID);
     static bool isDescriptorOnly(CSSPropertyID);
     static char16_t listValuedPropertySeparator(CSSPropertyID);
-    static bool isListValuedProperty(CSSPropertyID propertyID) { return !!listValuedPropertySeparator(propertyID) || propertyID == CSSPropertyCustom; }
+    static bool isListValuedProperty(CSSPropertyID propertyID) { return !!listValuedPropertySeparator(propertyID) || propertyID == CSSPropertyID::Custom; }
     static bool allowsNumberOrIntegerInput(CSSPropertyID);
 
     static bool animationUsesNonAdditiveOrCumulativeInterpolation(CSSPropertyID);
@@ -165,7 +165,7 @@ public:
     {
         if (!(m_metadata == other.m_metadata))
             return false;
-        return m_value->equals(other.m_value);
+        return protect(m_value)->equals(other.m_value);
     }
 
 private:

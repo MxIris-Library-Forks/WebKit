@@ -5152,6 +5152,15 @@ header: <WebCore/TextExtractionTypes.h>
 };
 
 header: <WebCore/TextExtractionTypes.h>
+[CustomHeader] enum class WebCore::TextExtraction::MediaType : bool;
+
+header: <WebCore/TextExtractionTypes.h>
+[CustomHeader] struct WebCore::TextExtraction::MediaItemData {
+    WebCore::TextExtraction::MediaType type;
+    bool hasControls;
+};
+
+header: <WebCore/TextExtractionTypes.h>
 [CustomHeader, OptionSet] enum class WebCore::TextExtraction::EventListenerCategory : uint8_t {
     Click,
     Hover,
@@ -5162,7 +5171,7 @@ header: <WebCore/TextExtractionTypes.h>
 
 header: <WebCore/TextExtractionTypes.h>
 [CustomHeader] struct WebCore::TextExtraction::Item {
-    Variant<WebCore::TextExtraction::ContainerType, WebCore::TextExtraction::TextItemData, WebCore::TextExtraction::ScrollableItemData, WebCore::TextExtraction::ImageItemData, WebCore::TextExtraction::SelectData, WebCore::TextExtraction::ContentEditableData, WebCore::TextExtraction::TextFormControlData, WebCore::TextExtraction::FormData, WebCore::TextExtraction::LinkItemData, WebCore::TextExtraction::IFrameData> data;
+    Variant<WebCore::TextExtraction::ContainerType, WebCore::TextExtraction::TextItemData, WebCore::TextExtraction::ScrollableItemData, WebCore::TextExtraction::ImageItemData, WebCore::TextExtraction::SelectData, WebCore::TextExtraction::ContentEditableData, WebCore::TextExtraction::TextFormControlData, WebCore::TextExtraction::FormData, WebCore::TextExtraction::LinkItemData, WebCore::TextExtraction::IFrameData, WebCore::TextExtraction::MediaItemData> data;
     WebCore::FloatRect rectInRootView;
     Vector<WebCore::TextExtraction::Item> children;
     String nodeName;
@@ -7261,27 +7270,27 @@ struct WebCore::FocusEventData {
     bool altKey;
 }
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXAnnouncementTypes.h>
 [CustomHeader] enum class WebCore::NotifyPriority : uint8_t {
     Normal,
     High
 };
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXAnnouncementTypes.h>
 [CustomHeader] enum class WebCore::InterruptBehavior : uint8_t {
     None,
     All,
     Pending
 };
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXAnnouncementTypes.h>
 [CustomHeader] enum class WebCore::LiveRegionStatus : uint8_t {
     Off,
     Polite,
     Assertive
 };
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXObjectTypes.h>
 [CustomHeader] enum class WebCore::AccessibilityMode : uint8_t {
     Off,
     MainThread,
@@ -7290,7 +7299,7 @@ header: <WebCore/AXObjectCache.h>
     OffWasAXThread
 };
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXObjectTypes.h>
 [CustomHeader] struct WebCore::AXDebugInfo {
     WebCore::AccessibilityMode accessibilityMode;
     String liveTree;
@@ -7300,7 +7309,7 @@ header: <WebCore/AXObjectCache.h>
     uint64_t webProcessLocalTokenHash;
 };
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXAnnouncementTypes.h>
 [CustomHeader] struct WebCore::AriaNotifyData {
     String message;
     WebCore::NotifyPriority priority;
@@ -7309,14 +7318,14 @@ header: <WebCore/AXObjectCache.h>
 };
 
 #if ENABLE(ACCESSIBILITY_LOCAL_FRAME)
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXObjectTypes.h>
 [CustomHeader] struct WebCore::InheritedFrameState {
     bool isAXHidden;
     bool isInert;
     bool isRenderHidden;
 };
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXObjectTypes.h>
 [CustomHeader] struct WebCore::AXFrameGeometry {
     WebCore::IntPoint screenPosition;
     WebCore::AffineTransform screenTransform;
@@ -7324,14 +7333,14 @@ header: <WebCore/AXObjectCache.h>
 #endif
 
 #if PLATFORM(COCOA)
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AXAnnouncementTypes.h>
 [CustomHeader] struct WebCore::LiveRegionAnnouncementData {
     WebCore::AttributedString message;
     WebCore::LiveRegionStatus status;
 };
 #endif
 
-header: <WebCore/AXObjectCache.h>
+header: <WebCore/AccessibilityRemoteToken.h>
 [CustomHeader] struct WebCore::AccessibilityRemoteToken {
 #if PLATFORM(MAC)
     Vector<uint8_t> bytes;

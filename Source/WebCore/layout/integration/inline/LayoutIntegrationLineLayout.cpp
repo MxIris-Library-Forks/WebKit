@@ -246,7 +246,8 @@ LineLayout::~LineLayout()
     m_lineDamage = { };
     m_rootLayoutBox = nullptr;
 
-    BoxTreeUpdater { rootRenderer, *m_document }.tearDown();
+    // This runs from the destructor, possibly while the document's render tree is being destroyed as part of document teardown, so don't ref the document.
+    SUPPRESS_UNCOUNTED_ARG BoxTreeUpdater { rootRenderer, *m_document }.tearDown();
 }
 
 static inline bool NODELETE isContentRenderer(const RenderObject& renderer)
@@ -773,6 +774,7 @@ void LineLayout::updateRenderTreePositions(const Vector<LineAdjustment>& lineAdj
                 LineClampUpdater::skipLayoutForForcedHidden(renderer);
                 continue;
             }
+            renderer->setIsClippedByLineClamp(LineClampUpdater::isInsideLineClampContainer(renderer));
             auto isInitialLetter = layoutBox->style().pseudoElementType() == PseudoElementType::FirstLetter;
             auto& floatingObject = flow().insertFloatingBox(renderer);
             auto [marginBoxVisualRect, borderBoxVisualRect] = Layout::IntegrationUtils::toMarginAndBorderBoxVisualRect(logicalGeometry, m_inlineContentConstraints->formattingRootBorderBoxSize(), placedFloatsWritingMode);

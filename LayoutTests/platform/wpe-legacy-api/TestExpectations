@@ -18,6 +18,8 @@
 
 fast/events/touch/touch-inside-iframe-scrolled.html [ Pass ]
 fast/events/touch/send-oncancel-event.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-grid/grid-model/grid-layout-stale-002.html [ Pass ]
+loader/go-back-to-different-window-size.html [ Pass ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of PASSING tests. See below where to put expected failures.
@@ -93,8 +95,6 @@ webkit.org/b/188509 fast/dom/Window/window-property-invalid-characters-ignored.h
 webkit.org/b/216650 fast/events/mouse-cursor-hidden-when-out-of-bounds.html [ Failure ]
 webkit.org/b/109469 fast/events/mouse-cursor-image-set.html [ Failure ]
 
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-partial.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-view-transitions/pseudo-with-classes-mismatch-wildcard.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/window-resize-aborts-transition.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/window-resize-aborts-transition-before-ready.html [ Failure ]
 
@@ -123,6 +123,8 @@ webkit.org/b/186879 fast/events/open-window-from-another-frame.html [ Timeout ]
 webkit.org/b/186879 fast/events/popup-allowed-from-gesture-initiated-event.html [ Timeout ]
 webkit.org/b/186879 fast/events/popup-blocked-from-fake-user-gesture.html [ Timeout ]
 webkit.org/b/186879 fast/events/popup-blocking-timers1.html [ Timeout ]
+
+webkit.org/b/327183 imported/w3c/web-platform-tests/html/semantics/interactive-elements/commands/option/option-accesskey.html [ Failure ]
 
 #//////////////////////////////////////////////////////////////////////////////////////////
 # End of Triaged Expectations

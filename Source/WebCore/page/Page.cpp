@@ -454,7 +454,10 @@ Page::Page(PageConfiguration&& pageConfiguration)
 #endif
     , m_isUtilityPage(isUtilityPageChromeClient(chrome().client()))
     , m_performanceMonitor(isUtilityPage() ? nullptr : makeUniqueWithoutRefCountedCheck<PerformanceMonitor>(*this))
-    , m_lowPowerModeNotifier(makeUniqueRef<LowPowerModeNotifier>([this](bool isLowPowerModeEnabled) { handleLowPowerModeChange(isLowPowerModeEnabled); }))
+    , m_lowPowerModeNotifier(makeUniqueRef<LowPowerModeNotifier>([weakThis = WeakPtr { *this }](bool isLowPowerModeEnabled) {
+        if (RefPtr protectedThis = weakThis)
+            protectedThis->handleLowPowerModeChange(isLowPowerModeEnabled);
+    }))
     , m_thermalMitigationNotifier(ThermalMitigationNotifier::create([weakThis = WeakPtr { *this }](bool thermalMitigationEnabled) {
         if (RefPtr protectedThis = weakThis)
             protectedThis->handleThermalMitigationChange(thermalMitigationEnabled);
@@ -5126,7 +5129,7 @@ void Page::setMediaSessionCoordinator(Ref<MediaSessionCoordinatorPrivate>&& medi
     RefPtr localMainFrame = this->localMainFrame();
     RefPtr window = localMainFrame ? localMainFrame->window() : nullptr;
     if (RefPtr navigator = window ? window->optionalNavigator() : nullptr)
-        NavigatorMediaSession::mediaSession(*navigator).coordinator().setMediaSessionCoordinatorPrivate(*m_mediaSessionCoordinator);
+        protect(NavigatorMediaSession::mediaSession(*navigator).coordinator())->setMediaSessionCoordinatorPrivate(*m_mediaSessionCoordinator);
 }
 
 void Page::invalidateMediaSessionCoordinator()
@@ -5141,7 +5144,7 @@ void Page::invalidateMediaSessionCoordinator()
     if (!navigator)
         return;
 
-    NavigatorMediaSession::mediaSession(*navigator).coordinator().close();
+    protect(NavigatorMediaSession::mediaSession(*navigator).coordinator())->close();
 }
 #endif
 

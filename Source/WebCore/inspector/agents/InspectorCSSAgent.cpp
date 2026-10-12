@@ -655,12 +655,12 @@ InspectorStyleSheet* InspectorCSSAgent::createInspectorStyleSheetForDocument(Doc
     auto styleElement = HTMLStyleElement::create(document);
     styleElement->setAttributeWithoutSynchronization(HTMLNames::typeAttr, cssContentTypeAtom());
 
-    ContainerNode* targetNode;
+    RefPtr<ContainerNode> targetNode;
     // HEAD is absent in ImageDocuments, for example.
-    if (auto* head = document.head())
-        targetNode = head;
-    else if (auto* body = document.bodyOrFrameset())
-        targetNode = body;
+    if (RefPtr head = document.head())
+        targetNode = WTF::move(head);
+    else if (RefPtr body = document.bodyOrFrameset())
+        targetNode = WTF::move(body);
     else
         return nullptr;
 
@@ -1228,7 +1228,7 @@ Ref<JSON::ArrayOf<Inspector::Protocol::CSS::RuleMatch>> InspectorCSSAgent::build
     SelectorChecker::CheckingContext context(SelectorChecker::Mode::CollectingRules);
     if (pseudoElementIdentifier)
         context.setRequestedPseudoElement(*pseudoElementIdentifier);
-    SelectorChecker selectorChecker(element.document());
+    SelectorChecker selectorChecker(protect(element.document()));
 
     for (auto& matchedRule : matchedRules) {
         RefPtr ruleObject = buildObjectForRule(matchedRule.ptr(), styleResolver, element);

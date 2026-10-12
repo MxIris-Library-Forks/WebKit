@@ -1096,8 +1096,8 @@ void HTMLModelElement::startLoadModelTimer()
     Ref document = this->document();
     Seconds delay = document->page() && document->page()->shouldDisableModelLoadDelaysForTesting() ? 0_s : reloadModelDelay;
     m_loadModelTimer = protect(document->eventLoop())->scheduleTask(delay, TaskSource::ModelElement, [weakThis = WeakPtr { *this }] {
-        if (weakThis)
-            weakThis->loadModelTimerFired();
+        if (RefPtr protectedThis = weakThis)
+            protectedThis->loadModelTimerFired();
     });
 }
 
@@ -2270,10 +2270,10 @@ bool HTMLModelElement::modelContainerSizeIsEmpty() const
 void HTMLModelElement::collectPresentationalHintsForAttribute(const QualifiedName& name, const AtomString& value, MutableStyleProperties& style)
 {
     if (name == widthAttr) {
-        addHTMLLengthToStyle(style, CSSPropertyWidth, value);
+        addHTMLLengthToStyle(style, CSSPropertyID::Width, value);
         applyAspectRatioFromWidthAndHeightAttributesToStyle(value, attributeWithoutSynchronization(heightAttr), style);
     } else if (name == heightAttr) {
-        addHTMLLengthToStyle(style, CSSPropertyHeight, value);
+        addHTMLLengthToStyle(style, CSSPropertyID::Height, value);
         applyAspectRatioFromWidthAndHeightAttributesToStyle(attributeWithoutSynchronization(widthAttr), value, style);
     } else
         HTMLElement::collectPresentationalHintsForAttribute(name, value, style);

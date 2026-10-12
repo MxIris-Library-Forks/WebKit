@@ -70,8 +70,11 @@ WTF_IGNORE_WARNINGS_IN_THIRD_PARTY_CODE_END
 #include <wtf/MainThread.h>
 #include <wtf/SetForScope.h>
 #include <wtf/SharedTask.h>
+#include <wtf/TZoneMallocInlines.h>
 
 namespace WebCore {
+
+WTF_MAKE_TZONE_ALLOCATED_IMPL(LibWebRTCMediaEndpoint);
 
 static void NODELETE prepareConfiguration(webrtc::PeerConnectionInterface::RTCConfiguration& configuration)
 {
@@ -301,7 +304,7 @@ webrtc::scoped_refptr<LibWebRTCStatsCollector> LibWebRTCMediaEndpoint::createSta
         if (protectedThis->isStopped())
             return;
 
-        ActiveDOMObject::queueTaskKeepingObjectAlive(protectedThis->m_peerConnectionBackend->connection(), TaskSource::Networking, [promise = WTF::move(promise), rtcReport = WTF::move(rtcReport), trackIds = protectedThis->m_peerConnectionBackend->trackIds()](auto&) mutable {
+        ActiveDOMObject::queueTaskKeepingObjectAlive(protect(protectedThis->m_peerConnectionBackend->connection()).get(), TaskSource::Networking, [promise = WTF::move(promise), rtcReport = WTF::move(rtcReport), trackIds = protectedThis->m_peerConnectionBackend->trackIds()](auto&) mutable {
             promise->resolve<IDLInterface<RTCStatsReport>>(LibWebRTCStatsCollector::createReport(WTF::move(rtcReport), WTF::move(trackIds)));
         });
     });

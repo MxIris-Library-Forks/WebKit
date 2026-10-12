@@ -74,6 +74,7 @@
 #include <wtf/text/CharacterProperties.h>
 #include <wtf/text/StringBuilder.h>
 #include <wtf/text/TextBreakIterator.h>
+#include <wtf/text/icu/UnicodeExtras.h>
 #include <wtf/unicode/CharacterNames.h>
 
 #if PLATFORM(IOS_FAMILY)
@@ -250,13 +251,13 @@ static size_t capitalizeWordWithLocale(StringView textContent, unsigned startOff
 
     Vector<char16_t, 32> titlecased(wordLength + 4);
     UErrorCode status = U_ZERO_ERROR;
-    auto realLength = u_strToTitle(titlecased.mutableSpan().data(), titlecased.size(), wordData, wordLength, nullptr, localeUTF8.legacyCStringPointer(), &status);
+    auto realLength = uStrToTitle(titlecased.mutableSpan().data(), titlecased.size(), wordData, wordLength, nullptr, localeUTF8, &status);
     if (U_FAILURE(status)) {
         if (status != U_BUFFER_OVERFLOW_ERROR)
             return 0;
         titlecased.grow(realLength);
         status = U_ZERO_ERROR;
-        u_strToTitle(titlecased.mutableSpan().data(), titlecased.size(), wordData, wordLength, nullptr, localeUTF8.legacyCStringPointer(), &status);
+        uStrToTitle(titlecased.mutableSpan().data(), titlecased.size(), wordData, wordLength, nullptr, localeUTF8, &status);
         if (U_FAILURE(status))
             return 0;
     }
@@ -293,7 +294,7 @@ String capitalize(const String& string, const AtomString& locale)
 String capitalize(const String& string, char32_t previousCharacter, const AtomString& locale)
 {
     int32_t length = string.length();
-    auto& stringImpl = *string.impl();
+    Ref stringImpl = *string.impl();
 
     static_assert(String::MaxLength < std::numeric_limits<unsigned>::max(), "Must be able to add one without overflowing unsigned");
 
@@ -306,7 +307,7 @@ String capitalize(const String& string, char32_t previousCharacter, const AtomSt
     for (int32_t i = 0; i < previousCharacterLength; ++i)
         stringWithPrevious[i] = convertNoBreakSpaceToSpace(previousCharacterUTF16[i]);
     for (int32_t i = previousCharacterLength; i < length + previousCharacterLength; ++i)
-        stringWithPrevious[i] = convertNoBreakSpaceToSpace(stringImpl[i - previousCharacterLength]);
+        stringWithPrevious[i] = convertNoBreakSpaceToSpace(stringImpl.get()[i - previousCharacterLength]);
 
     auto* breakIterator = WTF::wordBreakIterator(stringWithPrevious.span());
     if (!breakIterator)
@@ -327,18 +328,18 @@ String capitalize(const String& string, char32_t previousCharacter, const AtomSt
             auto startOffset = startOfWord - previousCharacterLength;
             auto endOffset = endOfWord - previousCharacterLength;
             size_t capitalizedContentLength;
-            if (needsLocaleAwareTitlecase(stringImpl[startOffset]))
+            if (needsLocaleAwareTitlecase(stringImpl.get()[startOffset]))
                 capitalizedContentLength = capitalizeWordWithLocale(string, startOffset, endOffset, locale, result);
             else
                 capitalizedContentLength = capitalizeCharacter(string, startOffset, result);
             for (int32_t i = startOfWord + capitalizedContentLength; i < endOfWord; ++i)
-                result.append(stringImpl[i - previousCharacterLength]);
+                result.append(stringImpl.get()[i - previousCharacterLength]);
         } else {
             // This is previous and continous non-titlecased current content. Only append current content.
             for (int32_t i = startOfWord; i < endOfWord; ++i) {
                 if (i < previousCharacterLength)
                     continue;
-                result.append(stringImpl[i - previousCharacterLength]);
+                result.append(stringImpl.get()[i - previousCharacterLength]);
             }
         }
     }

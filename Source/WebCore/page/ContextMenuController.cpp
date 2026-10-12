@@ -530,7 +530,8 @@ void ContextMenuController::contextMenuItemSelected(ContextMenuAction action, co
     case ContextMenuItemTagOpenLink:
         if (RefPtr targetFrame = m_context.hitTestResult().targetFrame()) {
             ResourceRequest resourceRequest { m_context.hitTestResult().absoluteLinkURL(), frame->loader().outgoingReferrer() };
-            FrameLoadRequest frameLoadRequest { protect(frame->document()).releaseNonNull(), protect(frame->document())->securityOrigin(), WTF::move(resourceRequest), { }, InitiatedByMainFrame::Unknown };
+            Ref document = *frame->document();
+            FrameLoadRequest frameLoadRequest { document.copyRef(), protect(document->securityOrigin()), WTF::move(resourceRequest), { }, InitiatedByMainFrame::Unknown };
             frameLoadRequest.setNewFrameOpenerPolicy(NewFrameOpenerPolicy::Suppress);
             if (targetFrame->isMainFrame())
                 frameLoadRequest.setShouldOpenExternalURLsPolicy(ShouldOpenExternalURLsPolicy::ShouldAllow);
@@ -1579,7 +1580,7 @@ void ContextMenuController::checkOrEnableIfNeeded(ContextMenuItem& item) const
         case ContextMenuItemTagLeftToRight:
         case ContextMenuItemTagRightToLeft: {
             String direction = item.action() == ContextMenuItemTagLeftToRight ? "ltr"_s : "rtl"_s;
-            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyDirection, direction) != TriState::False;
+            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyID::Direction, direction) != TriState::False;
             shouldEnable = true;
             break;
         }
@@ -1644,7 +1645,7 @@ void ContextMenuController::checkOrEnableIfNeeded(ContextMenuItem& item) const
             break;
 #endif
         case ContextMenuItemTagUnderline: {
-            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyWebkitTextDecorationsInEffect, "underline"_s) != TriState::False;
+            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyID::WebkitTextDecorationsInEffect, "underline"_s) != TriState::False;
             shouldEnable = frameEditor->canEditRichly();
             break;
         }
@@ -1657,12 +1658,12 @@ void ContextMenuController::checkOrEnableIfNeeded(ContextMenuItem& item) const
             shouldEnable = true;
             break;
         case ContextMenuItemTagItalic: {
-            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyFontStyle, "italic"_s) != TriState::False;
+            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyID::FontStyle, "italic"_s) != TriState::False;
             shouldEnable = frameEditor->canEditRichly();
             break;
         }
         case ContextMenuItemTagBold: {
-            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyFontWeight, "bold"_s) != TriState::False;
+            shouldCheck = frameEditor->selectionHasStyle(CSSPropertyID::FontWeight, "bold"_s) != TriState::False;
             shouldEnable = frameEditor->canEditRichly();
             break;
         }

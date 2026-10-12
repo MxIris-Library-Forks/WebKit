@@ -57,9 +57,11 @@
 #include "HTMLIFrameElement.h"
 #include "HTMLImageElement.h"
 #include "HTMLInputElement.h"
+#include "HTMLMediaElement.h"
 #include "HTMLNames.h"
 #include "HTMLOptionElement.h"
 #include "HTMLSelectElement.h"
+#include "HTMLVideoElement.h"
 #include "HandleUserInputEventResult.h"
 #include "HighlightRegistry.h"
 #include "HitTestResult.h"
@@ -274,7 +276,7 @@ static void addBoxShadowIfNeeded(Node& node, const String& colorAsString)
         return;
 
     auto styleValue = makeString("0 0 20px "_s, colorAsString, ", inset 0 0 8px "_s, colorAsString);
-    element->setInlineStyleProperty(CSSPropertyBoxShadow, styleValue, IsImportant::Yes);
+    element->setInlineStyleProperty(CSSPropertyID::BoxShadow, styleValue, IsImportant::Yes);
 
     auto relatedElementAttributes = std::array {
         HTMLNames::aria_labeledbyAttr.get(),
@@ -284,7 +286,7 @@ static void addBoxShadowIfNeeded(Node& node, const String& colorAsString)
 
     for (auto& attributeName : relatedElementAttributes) {
         if (RefPtr otherElement = dynamicDowncast<HTMLElement>(element->elementForAttributeInternal(attributeName).get()))
-            otherElement->setInlineStyleProperty(CSSPropertyBoxShadow, styleValue, IsImportant::Yes);
+            otherElement->setInlineStyleProperty(CSSPropertyID::BoxShadow, styleValue, IsImportant::Yes);
     }
 }
 
@@ -933,6 +935,13 @@ static inline Variant<SkipExtraction, ItemData, URL, Editable> extractItemData(N
 
     if (is<HTMLCanvasElement>(element))
         return { ItemData { ContainerType::Canvas } };
+
+    if (RefPtr media = dynamicDowncast<HTMLMediaElement>(element)) {
+        return { MediaItemData {
+            .type = is<HTMLVideoElement>(*media) ? MediaType::Video : MediaType::Audio,
+            .hasControls = media->controls(),
+        } };
+    }
 
     if (CheckedPtr box = dynamicDowncast<RenderBox>(node.renderer()); box && box->canBeScrolledAndHasScrollableArea()) {
         if (CheckedPtr layer = box->layer()) {

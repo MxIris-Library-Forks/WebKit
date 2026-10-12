@@ -379,9 +379,9 @@ UnadjustedStyle Resolver::unadjustedStyleForCachedMatchResult(Element& element, 
 static bool isAnimatedInKeyframe(CSSPropertyID property)
 {
     switch (property) {
-    case CSSPropertyAnimationTimingFunction:
-    case CSSPropertyAnimationComposition:
-    case CSSPropertyInterpolateSize:
+    case CSSPropertyID::AnimationTimingFunction:
+    case CSSPropertyID::AnimationComposition:
+    case CSSPropertyID::InterpolateSize:
         return false;
     default:
         return true;
@@ -414,7 +414,7 @@ static bool hasRevertValue(const StyleRuleKeyframe& keyframe)
 {
     for (auto propertyReference : keyframe.properties()) {
         RefPtr value = propertyReference.value();
-        if (value && isValueID(*value, CSSValueRevert))
+        if (value && isValueID(*value, CSSValueID::Revert))
             return true;
     }
     return false;
@@ -497,7 +497,7 @@ Vector<Ref<StyleRuleKeyframe>> Resolver::keyframeRulesForName(const AtomString& 
         return { };
 
     auto compositeOperationForKeyframe = [](Ref<StyleRuleKeyframe> keyframe) -> CompositeOperation {
-        if (auto compositeOperationCSSValue = keyframe->properties().getPropertyCSSValue(CSSPropertyAnimationComposition)) {
+        if (auto compositeOperationCSSValue = keyframe->properties().getPropertyCSSValue(CSSPropertyID::AnimationComposition)) {
             if (auto compositeOperation = toCompositeOperation(*compositeOperationCSSValue))
                 return *compositeOperation;
         }
@@ -505,7 +505,7 @@ Vector<Ref<StyleRuleKeyframe>> Resolver::keyframeRulesForName(const AtomString& 
     };
 
     auto timingFunctionForKeyframe = [&](Ref<StyleRuleKeyframe> keyframe) -> Ref<const TimingFunction> {
-        if (RefPtr timingFunctionCSSValue = keyframe->properties().getPropertyCSSValue(CSSPropertyAnimationTimingFunction)) {
+        if (RefPtr timingFunctionCSSValue = keyframe->properties().getPropertyCSSValue(CSSPropertyID::AnimationTimingFunction)) {
             if (RefPtr timingFunction = createTimingFunctionDeprecated(timingFunctionCSSValue.releaseNonNull()))
                 return timingFunction.releaseNonNull();
         }
@@ -557,7 +557,7 @@ Vector<Ref<StyleRuleKeyframe>> Resolver::keyframeRulesForName(const AtomString& 
             KeyframeUniqueKey uniqueKey { offsetRangeName, offsetPercentage.value / 100, timingFunction, compositeOperation };
             if (RefPtr existingStyleRuleKeyframe = keyframesMap.get(uniqueKey)) {
                 protect(existingStyleRuleKeyframe->mutableProperties())->mergeAndOverrideOnConflict(originalKeyframe->properties());
-                if (existingStyleRuleKeyframe->keys()[0].rangeName == CSSValueNormal)
+                if (existingStyleRuleKeyframe->keys()[0].rangeName == CSSValueID::Normal)
                     continue;
                 deduplicatedKeyframes.removeFirstMatching([&](const auto& styleRuleKeyframe) {
                     return styleRuleKeyframe.ptr() == existingStyleRuleKeyframe;
@@ -591,9 +591,9 @@ bool Resolver::keyframeStylesForAnimation(Element& element, const Style::Compute
             auto [offsetRangeName, offsetPercentage] = deprecatedStyleRuleKeyframeKeyToStyle(key);
             BlendingKeyframe blendingKeyframe({ offsetRangeName, offsetPercentage }, { nullptr });
             blendingKeyframe.setStyle(styleForKeyframe(element, elementStyle, context, keyframeRule.get(), blendingKeyframe));
-            if (RefPtr timingFunctionCSSValue = keyframeRule->properties().getPropertyCSSValue(CSSPropertyAnimationTimingFunction))
+            if (RefPtr timingFunctionCSSValue = keyframeRule->properties().getPropertyCSSValue(CSSPropertyID::AnimationTimingFunction))
                 blendingKeyframe.setTimingFunction(createTimingFunctionDeprecated(timingFunctionCSSValue.releaseNonNull()));
-            if (RefPtr compositeOperationCSSValue = keyframeRule->properties().getPropertyCSSValue(CSSPropertyAnimationComposition)) {
+            if (RefPtr compositeOperationCSSValue = keyframeRule->properties().getPropertyCSSValue(CSSPropertyID::AnimationComposition)) {
                 if (auto compositeOperation = toCompositeOperation(compositeOperationCSSValue.releaseNonNull()))
                     blendingKeyframe.setCompositeOperation(*compositeOperation);
             }
@@ -704,9 +704,9 @@ std::unique_ptr<Style::ComputedStyle> Resolver::defaultStyleForElement(const Ele
 
     FontCascadeDescription fontDescription;
     fontDescription.setOneFamily(WebCore::FontFamily { standardFamily, FontFamilyKind::Generic });
-    fontDescription.setKeywordSizeFromIdentifier(CSSValueMedium);
+    fontDescription.setKeywordSizeFromIdentifier(CSSValueID::Medium);
 
-    auto size = fontSizeForKeyword(CSSValueMedium, false, protect(document()));
+    auto size = fontSizeForKeyword(CSSValueID::Medium, false, protect(document()));
     fontDescription.setComputedSize(size);
     auto usedFontSize = usedFontSizeFromComputedSize(size, fontDescription.isAbsoluteSize(), is<SVGElement>(element), *style, protect(document()));
     fontDescription.setUsedSize(usedFontSize.size, usedFontSize.zoomFactor);

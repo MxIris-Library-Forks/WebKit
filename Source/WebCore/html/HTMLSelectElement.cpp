@@ -73,6 +73,7 @@
 #include "RenderElementInlines.h"
 #include "RenderListBox.h"
 #include "RenderMenuList.h"
+#include "RenderText.h"
 #include "RenderTheme.h"
 #include "ScriptDisallowedScope.h"
 #include "ScriptElement.h"
@@ -255,7 +256,7 @@ void HTMLSelectElement::didAddUserAgentShadowRoot(ShadowRoot& root)
     ScriptDisallowedScope::EventAllowedScope listBoxSlotScope { listBoxSlot };
     listBoxSlot->setAttributeWithoutSynchronization(nameAttr, listBoxSlotName());
     // Options in the picker inherit read-only from its user agent part. Match that here.
-    listBoxSlot->setInlineStyleProperty(CSSPropertyWebkitUserModify, CSSValueReadOnly);
+    listBoxSlot->setInlineStyleProperty(CSSPropertyID::WebkitUserModify, CSSValueID::ReadOnly);
     root.appendChild(listBoxSlot);
     m_listBoxSlot = WTF::move(listBoxSlot);
 }
@@ -318,18 +319,6 @@ const AtomString& HTMLSelectElement::formControlType() const
     return m_multiple ? selectMultiple : selectOne;
 }
 
-void HTMLSelectElement::optionDeselectedByUser(HTMLOptionElement& option)
-{
-    saveLastSelection();
-    option.setSelectedState(false);
-    invalidateSelectedItems();
-    invalidateButtonText();
-    updateValidity();
-    if (CheckedPtr renderer = this->renderer())
-        renderer->updateFromElement();
-    listBoxOnChange();
-}
-
 void HTMLSelectElement::optionSelectedByUser(int optionIndex, bool fireOnChangeNow, bool allowMultipleSelection)
 {
     // User interaction such as mousedown events can cause list box select elements to send change events.
@@ -360,8 +349,6 @@ void HTMLSelectElement::optionSelectedByUser(int optionIndex, bool fireOnChangeN
 // https://html.spec.whatwg.org/multipage/form-elements.html#concept-select-pick
 void HTMLSelectElement::pickOrToggleOption(HTMLOptionElement& option)
 {
-    ASSERT(!m_multiple || document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled());
-
     // Callers run script before getting here, which may have moved the option elsewhere.
     if (option.ownerSelectElement() != this)
         return;
@@ -370,19 +357,17 @@ void HTMLSelectElement::pickOrToggleOption(HTMLOptionElement& option)
         return;
 
     // That script may also have taken the renderer away, which updateListBoxSelection() needs.
-    if (!renderer())
+    if (!renderer() && !isSingleSelectDropdownBox())
         return;
 
-    option.setDirty(true);
+    // FIXME: Native appearance should set the dirtiness too, but none of its user interaction does yet.
+    if (optionsAreRenderedWithBaseAppearance())
+        option.setDirty(true);
 
-    if (!m_multiple && isBaseListBox() && option.selected())
-        optionDeselectedByUser(option);
-    else {
-        // Toggling rather than picking is not yet in the specification.
-        optionSelectedByUser(option.index(), true, m_multiple);
-    }
+    // Toggling rather than picking is not yet in the specification.
+    optionSelectedByUser(option.index(), true, m_multiple);
 
-    if (!m_multiple)
+    if (!m_multiple && usesBaseAppearancePicker())
         hidePickerPopoverElement();
 }
 
@@ -2516,32 +2501,6 @@ void HTMLSelectElement::typeAheadFind(KeyboardEvent& event)
 int HTMLSelectElement::typeAheadMatchIndex(KeyboardEvent& event)
 {
     return m_typeAhead.handleEvent(&event, TypeAhead::MatchPrefix | TypeAhead::CycleFirstChar);
-}
-
-void HTMLSelectElement::accessKeySetSelectedIndex(int index)
-{    
-    // First bring into focus the list box.
-    if (!focused())
-        accessKeyAction(false);
-
-    // If this index is already selected, unselect. otherwise update the selected index.
-    auto& items = listItems();
-    int listIndex = optionToListIndex(index);
-    if (listIndex >= 0) {
-        if (RefPtr option = dynamicDowncast<HTMLOptionElement>(*items[listIndex])) {
-            if (option->selected())
-                option->setSelectedState(false);
-            else
-                selectOption(index, { SelectOptionFlag::DispatchChangeEvent, SelectOptionFlag::UserDriven });
-        }
-    }
-
-    if (isSingleSelectDropdownBox())
-        dispatchChangeEventForMenuList();
-    else
-        listBoxOnChange();
-
-    scrollToSelection();
 }
 
 unsigned HTMLSelectElement::length() const

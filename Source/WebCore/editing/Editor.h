@@ -255,9 +255,8 @@ public:
     WEBCORE_EXPORT void copyURL(const URL&, const String& title);
     void copyURL(const URL&, const String& title, Pasteboard&);
     PasteboardWriterData::URLData pasteboardWriterURL(const URL&, const String& title);
-#if !PLATFORM(IOS_FAMILY)
+
     WEBCORE_EXPORT void copyImage(const HitTestResult&);
-#endif
 
     void renderLayerDidScroll(const RenderLayer&);
     void revealSelectionIfNeededAfterLoadingImageForElement(HTMLImageElement&);
@@ -371,13 +370,16 @@ public:
     bool isGrammarCheckingEnabled();
     void toggleGrammarChecking();
     void ignoreSpelling();
+    void ignoreSpelling(const SimpleRange&);
     void learnSpelling();
+    void learnSpelling(const SimpleRange&);
     int spellCheckerDocumentTag();
     WEBCORE_EXPORT bool isSelectionUngrammatical();
     String misspelledSelectionString() const;
     String misspelledWordAtCaretOrRange(Node* clickedNode) const;
     Vector<String> guessesForMisspelledWord(const String&) const;
     TextCheckingGuesses guessesForMisspelledOrUngrammatical();
+    TextCheckingGuesses guessesForMisspelledOrUngrammatical(const SimpleRange&);
     bool isSpellCheckingEnabledInFocusedNode() const;
     bool isSpellCheckingEnabledFor(Node*) const;
     WEBCORE_EXPORT void markMisspellingsAfterTypingToWord(const VisiblePosition& wordStart, const VisibleSelection& selectionAfterTyping, AllowTextReplacement);
@@ -621,9 +623,10 @@ public:
 
     bool canCopyExcludingStandaloneImages() const;
 
+    WEBCORE_EXPORT void writeImageToPasteboard(Pasteboard&, Element& imageElement, const URL&, const String& title);
+
 #if !PLATFORM(WIN)
     WEBCORE_EXPORT void writeSelectionToPasteboard(Pasteboard&);
-    WEBCORE_EXPORT void writeImageToPasteboard(Pasteboard&, Element& imageElement, const URL&, const String& title);
     void writeSelection(PasteboardWriterData&);
 #endif
 

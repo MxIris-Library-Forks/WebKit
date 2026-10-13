@@ -294,6 +294,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/WebGPU/InternalAPI/WebGPUTexture.h
     Modules/WebGPU/InternalAPI/WebGPUTextureAspect.h
     Modules/WebGPU/InternalAPI/WebGPUTextureBindingLayout.h
+    Modules/WebGPU/InternalAPI/WebGPUTextureComponentSwizzle.h
     Modules/WebGPU/InternalAPI/WebGPUTextureDescriptor.h
     Modules/WebGPU/InternalAPI/WebGPUTextureDimension.h
     Modules/WebGPU/InternalAPI/WebGPUTextureFormat.h
@@ -569,6 +570,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/mediasession/MediaSessionAction.h
     Modules/mediasession/MediaSessionActionDetails.h
     Modules/mediasession/MediaSessionActionHandler.h
+    Modules/mediasession/MediaSessionArtworkSizing.h
     Modules/mediasession/MediaSessionCoordinator.h
     Modules/mediasession/MediaSessionCoordinatorPrivate.h
     Modules/mediasession/MediaSessionCoordinatorState.h
@@ -660,6 +662,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/plugins/PluginReplacement.h
     Modules/plugins/YouTubePluginReplacement.h
 
+    Modules/proofofpossession/ProofOfPossessionCoordinatorClient.h
     Modules/proofofpossession/ProofOfPossessionProviderData.h
     Modules/proofofpossession/ProofOfPossessionRequest.h
     Modules/proofofpossession/ProofOfPossessionResponse.h
@@ -1784,7 +1787,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     inspector/agents/InspectorPageAgent.h
 
-    layout/FormattingState.h
     layout/LayoutState.h
     layout/LayoutUnits.h
     layout/MarginTypes.h
@@ -1793,18 +1795,10 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     layout/floats/PlacedFloats.h
 
     layout/formattingContexts/FormattingConstraints.h
-    layout/formattingContexts/FormattingContext.h
-    layout/formattingContexts/FormattingGeometry.h
-    layout/formattingContexts/FormattingQuirks.h
 
-    layout/formattingContexts/block/BlockFormattingContext.h
-    layout/formattingContexts/block/BlockFormattingGeometry.h
-    layout/formattingContexts/block/BlockFormattingQuirks.h
     layout/formattingContexts/block/BlockFormattingState.h
     layout/formattingContexts/block/BlockLayoutState.h
 
-    layout/formattingContexts/block/tablewrapper/TableWrapperBlockFormattingContext.h
-    layout/formattingContexts/block/tablewrapper/TableWrapperBlockFormattingQuirks.h
 
     layout/formattingContexts/flex/FlexFormattingContext.h
     layout/formattingContexts/flex/FlexFormattingUtils.h
@@ -1852,8 +1846,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     layout/formattingContexts/inline/text/TextBreakingPositionContext.h
     layout/formattingContexts/inline/text/TextUtil.h
 
-    layout/formattingContexts/table/TableFormattingGeometry.h
-    layout/formattingContexts/table/TableFormattingQuirks.h
 
     layout/integration/LayoutIntegrationBoxGeometryUpdater.h
     layout/integration/LayoutIntegrationBoxTreeUpdater.h
@@ -1865,9 +1857,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
 
     layout/integration/grid/LayoutIntegrationGridLayout.h
     layout/integration/inline/InlineIteratorBox.h
-    layout/integration/inline/InlineIteratorBoxPath.h
     layout/integration/inline/InlineIteratorLineBox.h
-    layout/integration/inline/InlineIteratorLineBoxPath.h
     layout/integration/inline/InlineIteratorLogicalOrderTraversal.h
     layout/integration/inline/InlineIteratorTextBox.h
     layout/integration/inline/LayoutIntegrationInlineContent.h

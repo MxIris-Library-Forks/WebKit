@@ -157,6 +157,8 @@
 #include "PointerCaptureController.h"
 #include "PointerLockController.h"
 #include "ProgressTracker.h"
+#include "ProofOfPossessionCoordinator.h"
+#include "ProofOfPossessionCoordinatorClient.h"
 #include "Quirks.h"
 #include "RTCController.h"
 #include "Range.h"
@@ -474,6 +476,9 @@ Page::Page(PageConfiguration&& pageConfiguration)
 #if ENABLE(WEB_AUTHN)
     , m_authenticatorCoordinator(makeUniqueRefWithoutRefCountedCheck<AuthenticatorCoordinator>(*this, WTF::move(pageConfiguration.authenticatorCoordinatorClient)))
     , m_credentialRequestCoordinator(CredentialRequestCoordinator::create(WTF::move(pageConfiguration.credentialRequestCoordinatorClient), *this))
+#endif
+#if ENABLE(PROOF_OF_POSSESSION)
+    , m_proofOfPossessionCoordinator(makeUniqueRefWithoutRefCountedCheck<ProofOfPossessionCoordinator>(*this, WTF::move(pageConfiguration.proofOfPossessionCoordinatorClient)))
 #endif
 #if ENABLE(APPLICATION_MANIFEST)
     , m_applicationManifest(pageConfiguration.applicationManifest)
@@ -1341,6 +1346,27 @@ auto Page::findTextMatches(const String& target, FindOptions options, unsigned l
             frameWithSelection = localFrame;
         frame = incrementFrame(frame.get(), true, CanWrap::No);
     } while (frame);
+
+    if (frameWithSelection) {
+        auto selectedRange = *frameWithSelection->selection().selection().firstRange();
+
+        bool backwards = options.contains(FindOption::Backwards);
+        int32_t indexForSelectionInFrame = backwards ? -1 : 0;
+
+        int32_t indexInFrame = 0;
+        for (auto& range : result.ranges) {
+            if (range.start.document().frame() != frameWithSelection.get())
+                continue;
+
+            bool isBeforeSelection = backwards ? is_gt(treeOrder<ComposedTree>(selectedRange.start, range.end)) : !is_lt(treeOrder<ComposedTree>(selectedRange.end, range.start));
+            if (!isBeforeSelection)
+                break;
+
+            indexForSelectionInFrame = backwards ? indexInFrame : indexInFrame + 1;
+            ++indexInFrame;
+        }
+        result.selectionInFrame = FindSelectionInFrame { frameWithSelection->frameID(), indexForSelectionInFrame };
+    }
 
     if (result.ranges.isEmpty())
         return result;

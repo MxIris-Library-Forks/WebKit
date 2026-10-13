@@ -96,7 +96,7 @@ SlotVisitor::~SlotVisitor()
     clearMarkStacks();
 }
 
-void SlotVisitor::didStartMarking(CollectionScope scope, HeapVersion markingVersion, HeapAnalyzer* analyzer)
+void SlotVisitor::didStartMarking(CollectionScope scope, HeapVersion markingVersion, bool isAnalyzingHeap)
 {
     switch (scope) {
     case CollectionScope::Eden:
@@ -106,8 +106,8 @@ void SlotVisitor::didStartMarking(CollectionScope scope, HeapVersion markingVers
         m_extraMemorySize = 0;
         break;
     }
-    // After the reset above, which clears the analyzer.
-    Base::didStartMarking(scope, analyzer);
+    // After the reset above, which clears isAnalyzingHeap.
+    Base::didStartMarking(scope, isAnalyzingHeap);
     m_markingVersion = markingVersion;
 }
 
@@ -141,6 +141,7 @@ void SlotVisitor::appendJSCellOrAuxiliary(HeapCell* heapCell)
         return;
     
     ASSERT(!m_isCheckingForDefaultMarkViolation);
+    ASSERT(m_collector.hasHeap(*heapCell->heap()));
     
     auto validateCell = [&] (JSCell* jsCell) {
         StructureID structureID = jsCell->structureID();
@@ -203,7 +204,7 @@ void SlotVisitor::appendJSCellOrAuxiliary(HeapCell* heapCell)
     
         JSCell* jsCell = static_cast<JSCell*>(heapCell);
         validateCell(jsCell);
-        Integrity::auditCell(m_collector.heap().vm(), jsCell);
+        Integrity::auditCell(jsCell->vm(), jsCell);
         
         jsCell->setCellState(CellState::PossiblyGrey);
 
@@ -219,8 +220,12 @@ void SlotVisitor::appendJSCellOrAuxiliary(HeapCell* heapCell)
 
 void SlotVisitor::appendSlow(JSCell* cell, Dependency dependency)
 {
-    if (m_heapAnalyzer) [[unlikely]]
-        m_heapAnalyzer->analyzeEdge(m_currentCell, cell, rootMarkReason());
+    if (m_isAnalyzingHeap) [[unlikely]] {
+        // FIXME: A cross-heap edge appears in neither VM's snapshot: it goes to the target cell's VM's snapshot,
+        // which has no node for the source and drops it.
+        if (HeapAnalyzer* analyzer = cell->vm().activeHeapAnalyzer())
+            analyzer->analyzeEdge(m_currentCell, cell, rootMarkReason());
+    }
 
     appendHiddenSlowImpl(cell, dependency);
 }
@@ -292,7 +297,7 @@ void SlotVisitor::markAuxiliary(const void* base)
 {
     HeapCell* cell = std::bit_cast<HeapCell*>(base);
     
-    ASSERT(cell->heap() == &m_collector.heap());
+    ASSERT(m_collector.hasHeap(*cell->heap()));
     
     if (Heap::testAndSetMarked(m_markingVersion, cell))
         return;
@@ -310,7 +315,7 @@ void SlotVisitor::noteLiveAuxiliaryCell(HeapCell* cell)
     
     CellContainer container = cell->cellContainer();
     
-    container.assertValidCell(m_collector.heap().vm(), cell);
+    container.assertValidCell(cell->vm(), cell);
     container.noteMarked();
     
     m_visitCount++;
@@ -392,9 +397,11 @@ ALWAYS_INLINE void SlotVisitor::visitChildren(const JSCell* cell)
         break;
     }
 
-    if (m_heapAnalyzer) [[unlikely]] {
-        if (m_isFirstVisit)
-            m_heapAnalyzer->analyzeNode(const_cast<JSCell*>(cell));
+    if (m_isAnalyzingHeap) [[unlikely]] {
+        if (m_isFirstVisit) {
+            if (HeapAnalyzer* analyzer = cell->vm().activeHeapAnalyzer())
+                analyzer->analyzeNode(const_cast<JSCell*>(cell));
+        }
     }
 }
 

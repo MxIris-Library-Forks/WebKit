@@ -2081,6 +2081,7 @@ $(CSS_PROPERTY_NAME_FILES_PATTERNS) : $(WEBCORE_CSS_PROPERTY_NAMES) $(WebCore)/c
 CSS_VALUE_KEYWORD_FILES = \
     CSSValueKeywords.h \
     CSSValueKeywords.cpp \
+    CSSValueKeywords.serialization.in \
 #
 CSS_VALUE_KEYWORD_FILES_PATTERNS = $(call to-pattern, $(CSS_VALUE_KEYWORD_FILES))
 
@@ -2615,9 +2616,12 @@ $(GENERATE_SETTINGS) : % : $(WebCore)/Scripts/SettingsTemplates/%.erb $(WEB_PREF
 
 QUIRK_BEHAVIORS_INPUT_FILES = \
     $(WebCore)/page/QuirkBehaviors.yaml \
+    $(WebCore)/page/QuirkBuildConditions.yaml \
 #
 
 GENERATE_QUIRK_BEHAVIORS = \
+    QuirkBehaviorDeclarations.cpp \
+    QuirkBehaviorDeclarations.h \
     QuirkBehaviorDefinitions.h \
     QuirkBehaviorID.h \
     QuirksAccessors.cpp \

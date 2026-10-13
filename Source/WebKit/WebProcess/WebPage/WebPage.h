@@ -55,6 +55,7 @@
 #include <WebCore/NodeIdentifier.h>
 #include <WebCore/NowPlayingMetadataObserver.h>
 #include <WebCore/OwnerPermissionsPolicyData.h>
+#include <WebCore/Page.h>
 #include <WebCore/PageIdentifier.h>
 #include <WebCore/PageOverlay.h>
 #include <WebCore/PendingNavigateEventIdentifier.h>
@@ -343,6 +344,7 @@ class HandleUserInputEventResult;
 struct AXFrameGeometry;
 struct InheritedFrameState;
 #endif
+struct ImageBufferParameters;
 struct InteractionRegion;
 struct KeypressCommand;
 struct LiveRegionAnnouncementData;
@@ -1091,6 +1093,7 @@ public:
     void relayAccessibilityNotification(String&&, RetainPtr<NSData>&&);
     void relayAriaNotifyNotification(WebCore::AriaNotifyData&&);
     void relayLiveRegionNotification(WebCore::LiveRegionAnnouncementData&&);
+    void didDisplayCaptions(Vector<String>&&);
 #endif
 
     RefPtr<WebImage> scaledSnapshotWithOptions(const WebCore::IntRect&, double additionalScaleFactor, SnapshotOptions);
@@ -1461,7 +1464,7 @@ public:
     String frameTextForTestingIncludingSubframes(bool includingSubframes);
 
 #if PLATFORM(COCOA)
-    bool isSpeaking() const;
+    bool isSpeaking();
 
     void performDictionaryLookupForSelection(WebCore::LocalFrame&, const WebCore::VisibleSelection&, WebCore::TextIndicatorPresentationTransition);
 #endif
@@ -2613,11 +2616,12 @@ private:
 #if ENABLE(IMAGE_ANALYSIS)
     void findStringIncludingImages(const String&, OptionSet<FindOptions>, uint32_t maxMatchCount, CompletionHandler<void(std::optional<WebCore::FrameIdentifier>, Vector<WebCore::IntRect>&&, uint32_t, int32_t, bool)>&&);
 #endif
-    void findStringMatches(const String&, OptionSet<FindOptions>, uint32_t maxMatchCount, CompletionHandler<void(Vector<Vector<WebCore::IntRect>>, int32_t)>&&);
-    void getImageForFindMatch(uint32_t matchIndex);
+    void findStringMatches(const String&, OptionSet<FindOptions>, uint32_t maxMatchCount, CompletionHandler<void(Vector<std::pair<WebCore::FrameIdentifier, Vector<Vector<WebCore::IntRect>>>>&&, std::optional<WebCore::FindSelectionInFrame>)>&&);
+    void getImageForFindMatch(uint32_t matchIndex, CompletionHandler<void(std::optional<WebCore::ImageBufferParameters>&&, std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
     void selectFindMatch(uint32_t matchIndex);
     void indicateFindMatch(uint32_t matchIndex);
     void hideFindUI();
+    void updateFindUIAfterFindingAllMatches(bool found, const String&, OptionSet<FindOptions>, uint32_t maxMatchCount, bool shouldUpdateFindIndicator);
     void countStringMatches(const String&, OptionSet<FindOptions>, uint32_t maxMatchCount, CompletionHandler<void(uint32_t)>&&);
     void replaceMatches(const Vector<uint32_t>& matchIndices, const String& replacementText, bool selectionOnly, CompletionHandler<void(uint64_t)>&&);
 
@@ -2885,8 +2889,6 @@ private:
 
     template<typename T> T contentsToRootView(WebCore::FrameIdentifier, T);
     template<typename T> T rootViewToContents(WebCore::FrameIdentifier, T);
-    void contentsToRootViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
-    void contentsToRootViewPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, CompletionHandler<void(WebCore::FloatPoint)>&&);
     void contentsToMainFrameViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
 
     void hitTestAtPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, const ContentWorldData&, CompletionHandler<void(NodeHitTestResult)>&&);

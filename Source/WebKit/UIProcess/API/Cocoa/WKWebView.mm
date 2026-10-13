@@ -911,7 +911,7 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
     if (!(self = [super initWithCoder:coder]))
         return nil;
 
-    RetainPtr configuration = [coder decodeObjectOfClass:[WKWebViewConfiguration class] forKey:@"configuration"];
+    RetainPtr configuration = checked_objc_cast<WKWebViewConfiguration>([coder decodeObjectOfClass:[WKWebViewConfiguration class] forKey:@"configuration"]);
     [self _initializeWithConfiguration:configuration.get()];
 
     self.allowsBackForwardNavigationGestures = [coder decodeBoolForKey:@"allowsBackForwardNavigationGestures"];
@@ -1148,7 +1148,7 @@ static void addBrowsingContextControllerMethodStubsIfNeeded()
     [unarchiver setDecodingFailurePolicy:NSDecodingFailurePolicyRaiseException];
     RetainPtr dictionary = [unarchiver decodeObjectOfClasses:[NSSet setWithObjects:[NSDictionary class], [NSArray class], [NSString class], [NSNumber class], [NSData class], [NSURL class], [NSURLRequest class], nil] forKey:@"NSKeyedArchiveRootObjectKey"];
     [unarchiver finishDecoding];
-    RetainPtr path = [dictionary objectForKey:@"NSURLSessionResumeInfoLocalPath"];
+    RetainPtr path = dynamic_objc_cast<NSString>([dictionary objectForKey:@"NSURLSessionResumeInfoLocalPath"]);
 
     if (!path)
         [NSException raise:NSInvalidArgumentException format:@"Invalid resume data"];
@@ -3740,6 +3740,13 @@ WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::FixedContai
 #endif
 }
 
+#if PLATFORM(MAC) && HAVE(LIQUID_GLASS_ADJUSTMENTS)
+- (void)_updateAllowsSeparatorForScrollPocket
+{
+    _impl->updateAllowsSeparatorForScrollPocket();
+}
+#endif
+
 - (void)_updateHiddenScrollPocketEdges
 {
 #if PLATFORM(IOS_FAMILY)
@@ -3929,6 +3936,8 @@ static ASCIILiteral descriptionForReason(WebKit::HideScrollPocketReason reason)
 
 #if PLATFORM(IOS_FAMILY)
     [self _updateHiddenScrollPocketEdges];
+#elif PLATFORM(MAC) && HAVE(LIQUID_GLASS_ADJUSTMENTS)
+    [self _updateAllowsSeparatorForScrollPocket];
 #endif
 }
 
@@ -3939,6 +3948,8 @@ static ASCIILiteral descriptionForReason(WebKit::HideScrollPocketReason reason)
 
 #if PLATFORM(IOS_FAMILY)
     [self _updateHiddenScrollPocketEdges];
+#elif PLATFORM(MAC) && HAVE(LIQUID_GLASS_ADJUSTMENTS)
+    [self _updateAllowsSeparatorForScrollPocket];
 #endif
 }
 
@@ -4944,15 +4955,7 @@ static RetainPtr<NSArray> wkTextManipulationErrors(NSArray<_WKTextManipulationIt
 
 - (void)_convertRect:(CGRect)rect fromFrame:(WKFrameInfo *)frame toMainFrameCoordinates:(void (^)(CGRect, NSError *error))completionHandler
 {
-    if (!frame)
-        [NSException raise:NSInternalInconsistencyException format:@"frame must be non-null"];
-
-    _page->convertRectToMainFrameCoordinates(rect, frame->_frameInfo->frameInfoData().frameID, [completionHandler = makeBlockPtr(completionHandler)] (std::optional<WebCore::FloatRect> result) {
-        if (result)
-            completionHandler(*result, nil);
-        else
-            completionHandler({ }, unknownError().get());
-    });
+    completionHandler(CGRectZero, adoptNS([[NSError alloc] initWithDomain:NSCocoaErrorDomain code:NSFeatureUnsupportedError userInfo:nil]).get());
 }
 
 - (void)_hitTestAtPoint:(CGPoint)point inFrameCoordinateSpace:(WKFrameInfo *)frame completionHandler:(void (^)(_WKJSHandle *, NSError *))completionHandler
@@ -7356,7 +7359,7 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
         WebKit::TextExtractionFilter::singleton().prewarm();
 
     if (filterUsingRules) {
-        [self _ensureTextExtractionFilterRulesWithCompletionHandler:[weakSelf = WeakObjCPtr<WKWebView>(self), string = adoptNS([string copy]), completionHandler = makeBlockPtr(completionHandler), options]() mutable {
+        [self _ensureTextExtractionFilterRulesWithCompletionHandler:[weakSelf = WeakObjCPtr<WKWebView>(self), string = checked_objc_cast<NSString>(adoptNS([string copy])), completionHandler = makeBlockPtr(completionHandler), options]() mutable {
             RetainPtr strongSelf = weakSelf.get();
             if (!strongSelf)
                 return completionHandler(string.get());

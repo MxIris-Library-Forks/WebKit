@@ -125,6 +125,7 @@ public:
     const ComputedStyle& style() const LIFETIME_BOUND { return m_style; }
 
     const ComputedStyle& parentStyle() const LIFETIME_BOUND { return *m_context.parentStyle; }
+    const ComputedStyle* parentStyleIfExists() const LIFETIME_BOUND { return m_context.parentStyle; }
 
     // The highlight pseudo-element style this one inherits from. Null for the highlight
     // pseudo-element of the root element, and for anything that isn't a highlight pseudo-element.
@@ -191,7 +192,7 @@ public:
     }
 
     CSSPropertyID NODELETE cssPropertyID() const;
-    AtomString NODELETE customPropertyName() const;
+    AtomString customPropertyName() const;
 
     bool NODELETE isCurrentPropertyInvalidAtComputedValueTime() const;
     void NODELETE setCurrentPropertyInvalidAtComputedValueTime();

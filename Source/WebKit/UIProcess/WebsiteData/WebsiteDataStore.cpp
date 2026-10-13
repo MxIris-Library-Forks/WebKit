@@ -39,7 +39,6 @@
 #include "NetworkProcessConnectionInfo.h"
 #include "NetworkProcessMessages.h"
 #include "PageLoadState.h"
-#include "RestrictedOpenerType.h"
 #include "ShouldGrandfatherStatistics.h"
 #include "StorageAccessStatus.h"
 #include "TimeBasedEvictionMode.h"
@@ -352,11 +351,6 @@ NetworkProcessProxy& WebsiteDataStore::networkProcess()
     }
 
     return *m_networkProcess;
-}
-
-NetworkProcessProxy& WebsiteDataStore::networkProcess() const
-{
-    return const_cast<WebsiteDataStore&>(*this).networkProcess();
 }
 
 void WebsiteDataStore::registerProcess(WebProcessProxy& process)
@@ -1699,17 +1693,17 @@ void WebsiteDataStore::deleteCookiesForTesting(const URL& url, bool includeHttpO
     protect(networkProcess())->deleteCookiesForTesting(m_sessionID, WebCore::RegistrableDomain { url }, includeHttpOnlyCookies, WTF::move(completionHandler));
 }
 
-void WebsiteDataStore::hasLocalStorageOrCookies(const URL& url, CompletionHandler<void(bool)>&& completionHandler) const
+void WebsiteDataStore::hasLocalStorageOrCookies(const URL& url, CompletionHandler<void(bool)>&& completionHandler)
 {
     protect(networkProcess())->hasLocalStorageOrCookies(m_sessionID, WebCore::RegistrableDomain { url }, WTF::move(completionHandler));
 }
 
-void WebsiteDataStore::hasLocalStorageForTesting(const URL& url, CompletionHandler<void(bool)>&& completionHandler) const
+void WebsiteDataStore::hasLocalStorageForTesting(const URL& url, CompletionHandler<void(bool)>&& completionHandler)
 {
     protect(networkProcess())->hasLocalStorage(m_sessionID, WebCore::RegistrableDomain { url }, WTF::move(completionHandler));
 }
 
-void WebsiteDataStore::hasIsolatedSessionForTesting(const URL& url, CompletionHandler<void(bool)>&& completionHandler) const
+void WebsiteDataStore::hasIsolatedSessionForTesting(const URL& url, CompletionHandler<void(bool)>&& completionHandler)
 {
     protect(networkProcess())->hasIsolatedSession(m_sessionID, WebCore::RegistrableDomain { url }, WTF::move(completionHandler));
 }
@@ -2053,7 +2047,7 @@ void WebsiteDataStore::setResourceLoadStatisticsDebugMode(bool enabled, Completi
     protect(networkProcess())->setResourceLoadStatisticsDebugMode(m_sessionID, enabled, WTF::move(completionHandler));
 }
 
-void WebsiteDataStore::isResourceLoadStatisticsEphemeral(CompletionHandler<void(bool)>&& completionHandler) const
+void WebsiteDataStore::isResourceLoadStatisticsEphemeral(CompletionHandler<void(bool)>&& completionHandler)
 {
     if (!trackingPreventionEnabled() || !m_sessionID.isEphemeral()) {
         completionHandler(false);
@@ -2745,7 +2739,7 @@ void WebsiteDataStore::lastPageLoadNetworkActivityCompletionCodeForTesting(WebCo
 }
 
 #if ENABLE(APP_BOUND_DOMAINS)
-void WebsiteDataStore::hasAppBoundSession(CompletionHandler<void(bool)>&& completionHandler) const
+void WebsiteDataStore::hasAppBoundSession(CompletionHandler<void(bool)>&& completionHandler)
 {
     protect(networkProcess())->hasAppBoundSession(m_sessionID, WTF::move(completionHandler));
 }
@@ -3094,28 +3088,6 @@ void WebsiteDataStore::processPushMessage(WebPushMessage&& pushMessage, Completi
     protect(networkProcess())->processPushMessage(sessionID(), WTF::move(pushMessage), WTF::move(innerHandler));
 }
 
-RestrictedOpenerType WebsiteDataStore::openerTypeForDomain(const WebCore::RegistrableDomain& domain) const
-{
-    if (!m_restrictedOpenerTypesForTesting.isEmpty()) [[unlikely]] {
-        auto it = m_restrictedOpenerTypesForTesting.find(domain);
-        return it == m_restrictedOpenerTypesForTesting.end() ? RestrictedOpenerType::Unrestricted : it->value;
-    }
-
-#if ENABLE(ADVANCED_PRIVACY_PROTECTIONS)
-    return RestrictedOpenerDomainsController::singleton().lookup(domain);
-#else
-    return RestrictedOpenerType::Unrestricted;
-#endif
-}
-
-void WebsiteDataStore::setRestrictedOpenerTypeForDomainForTesting(const WebCore::RegistrableDomain& domain, RestrictedOpenerType type)
-{
-    if (domain.isEmpty())
-        return;
-
-    m_restrictedOpenerTypesForTesting.set(domain, type);
-}
-
 void WebsiteDataStore::fetchLocalStorage(CompletionHandler<void(std::optional<HashMap<WebCore::ClientOrigin, HashMap<String, String>>>&&)>&& completionHandler)
 {
     if (RefPtr networkProcess = networkProcessIfExists())
@@ -3165,7 +3137,7 @@ void WebsiteDataStore::clearStorageAccessForTesting(CompletionHandler<void()>&& 
     protect(networkProcess())->sendWithAsyncReply(Messages::NetworkProcess::ClearStorageAccessForTesting(m_sessionID), WTF::move(completionHandler));
 }
 
-void WebsiteDataStore::isStorageSuspendedForTesting(CompletionHandler<void(bool)>&& completionHandler) const
+void WebsiteDataStore::isStorageSuspendedForTesting(CompletionHandler<void(bool)>&& completionHandler)
 {
     protect(networkProcess())->isStorageSuspendedForTesting(m_sessionID, WTF::move(completionHandler));
 }

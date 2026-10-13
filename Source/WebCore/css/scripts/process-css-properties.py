@@ -234,10 +234,6 @@ class ValueKeywordName(Name):
         return ValueKeywordName(json_value)
 
     @property
-    def id_without_scope(self):
-        return f"CSSValue{self.id_without_prefix}"
-
-    @property
     def id(self):
         return f"CSSValueID::{self.id_without_prefix}"
 
@@ -471,10 +467,6 @@ class Value:
     @property
     def id_without_prefix_with_lowercase_first_letter(self):
         return self.value_keyword_name.id_without_prefix_with_lowercase_first_letter
-
-    @property
-    def id_without_scope(self):
-        return self.value_keyword_name.id_without_scope
 
     @property
     def id(self):
@@ -5161,14 +5153,14 @@ class GenerateStyleExtractorGenerated:
     def _generate_visited_link_color_supporting_property_value_getter(self, to, property):
         to.write(f"if (extractorState.allowVisitedStyle) {{")
         with to.indent():
-            to.write(f"return extractorState.pool.createColorValue(extractorState.style.visitedDependent{property.codegen_properties.computed_style_name_for_methods}());")
+            to.write(f"return extractorState.pool.createColorValue(extractorState.style->visitedDependent{property.codegen_properties.computed_style_name_for_methods}());")
         to.write(f"}}")
         self._generate_property_value_getter(to, property)
 
     def _generate_visited_link_color_supporting_property_value_serialization_getter(self, to, property):
         to.write(f"if (extractorState.allowVisitedStyle) {{")
         with to.indent():
-            to.write(f"builder.append(WebCore::serializationForCSS(extractorState.style.visitedDependent{property.codegen_properties.computed_style_name_for_methods}()));")
+            to.write(f"builder.append(WebCore::serializationForCSS(extractorState.style->visitedDependent{property.codegen_properties.computed_style_name_for_methods}()));")
             to.write(f"return;")
         to.write(f"}}")
         self._generate_property_value_serialization_getter(to, property)
@@ -5180,22 +5172,22 @@ class GenerateStyleExtractorGenerated:
         with to.indent():
             to.write(f"return {GenerateStyleExtractorGenerated.wrap_in_converter(property, 'value')};")
         to.write(f"}};")
-        to.write(f"return extractCoordinatedValueListValue<{property.id_or_cascade_alias_id}>(extractorState, extractorState.style.{property.method_name_for_get_coordinated_value_list}(), mapper);")
+        to.write(f"return extractCoordinatedValueListValue<{property.id_or_cascade_alias_id}>(extractorState, extractorState.style->{property.method_name_for_get_coordinated_value_list}(), mapper);")
 
     def _generate_coordinated_value_list_property_value_serialization_getter(self, to, property):
         to.write(f"auto mapper = [](auto& extractorState, auto& builder, const auto& context, const auto& value, const std::optional<{property.type_name_for_coordinated_value_list}::value_type>&, const auto&) {{")
         with to.indent():
             to.write(f"{GenerateStyleExtractorGenerated.wrap_in_serializer(property, 'value')};")
         to.write(f"}};")
-        to.write(f"extractCoordinatedValueListSerialization<{property.id_or_cascade_alias_id}>(extractorState, builder, context, extractorState.style.{property.method_name_for_get_coordinated_value_list}(), mapper);")
+        to.write(f"extractCoordinatedValueListSerialization<{property.id_or_cascade_alias_id}>(extractorState, builder, context, extractorState.style->{property.method_name_for_get_coordinated_value_list}(), mapper);")
 
     # All other property value getters.
 
     def _generate_property_value_getter(self, to, property):
-        to.write(f"return {GenerateStyleExtractorGenerated.wrap_in_converter(property, f'extractorState.style.{property.codegen_properties.computed_style_getter}()')};")
+        to.write(f"return {GenerateStyleExtractorGenerated.wrap_in_converter(property, f'extractorState.style->{property.codegen_properties.computed_style_getter}()')};")
 
     def _generate_property_value_serialization_getter(self, to, property):
-        to.write(f"{GenerateStyleExtractorGenerated.wrap_in_serializer(property, f'extractorState.style.{property.codegen_properties.computed_style_getter}()')};")
+        to.write(f"{GenerateStyleExtractorGenerated.wrap_in_serializer(property, f'extractorState.style->{property.codegen_properties.computed_style_getter}()')};")
 
     # Shorthand property value getter.
 
@@ -5305,7 +5297,7 @@ class GenerateStyleExtractorGenerated:
                         to.write(f"return nullptr;")
                     elif property.codegen_properties.is_logical and not property.codegen_properties.style_extractor_custom:
                         to.write(f"// Logical properties are handled by recursing using the direction resolved property.")
-                        to.write(f"return extractValue(extractorState, CSSProperty::resolveDirectionAwareProperty(id, extractorState.style.writingMode()));")
+                        to.write(f"return extractValue(extractorState, CSSProperty::resolveDirectionAwareProperty(id, extractorState.style->writingMode()));")
                     elif property.codegen_properties.longhands:
                         to.write(f"ASSERT(isShorthand(id));")
                         to.write(f"return {scope_for_function(property)}::extract{property.id_without_prefix}Shorthand(extractorState);")
@@ -5353,7 +5345,7 @@ class GenerateStyleExtractorGenerated:
                         to.write(f"return;")
                     elif property.codegen_properties.is_logical and not property.codegen_properties.style_extractor_custom:
                         to.write(f"// Logical properties are handled by recursing using the direction resolved property.")
-                        to.write(f"extractValueSerialization(extractorState, builder, context, CSSProperty::resolveDirectionAwareProperty(id, extractorState.style.writingMode()));")
+                        to.write(f"extractValueSerialization(extractorState, builder, context, CSSProperty::resolveDirectionAwareProperty(id, extractorState.style->writingMode()));")
                         to.write(f"return;")
                     elif property.codegen_properties.longhands:
                         to.write(f"ASSERT(isShorthand(id));")
@@ -8457,7 +8449,7 @@ class GenerateUsedStyle:
                 writer.write(f"public:")
 
                 with writer.indent():
-                    writer.write(f"const Style::ComputedStyle& computedStyle() const LIFETIME_BOUND {{ return m_renderer->style(); }}")
+                    writer.write(f"const Style::ComputedStyle& computedStyle() const LIFETIME_BOUND {{ return m_computedStyle.get(); }}")
                     writer.newline()
 
                     self._generate_property_getter_declarations(
@@ -8470,9 +8462,10 @@ class GenerateUsedStyle:
                 writer.write(f"protected:")
 
                 with writer.indent():
-                    writer.write(f"explicit UsedStyleProperties(const RenderElement& renderer LIFETIME_BOUND)")
+                    writer.write(f"UsedStyleProperties(const RenderElement& renderer LIFETIME_BOUND, const Style::ComputedStyle& computedStyle LIFETIME_BOUND)")
                     with writer.indent():
                         writer.write(f": m_renderer(renderer)")
+                        writer.write(f", m_computedStyle(computedStyle)")
                     writer.write(f"{{")
                     writer.write(f"}}")
                     writer.newline()
@@ -8482,8 +8475,10 @@ class GenerateUsedStyle:
                     writer.write(f"LayoutUnit resolveReferenceSize(ReferenceSize) const;")
                     writer.newline()
 
-                    writer.write(f"// const: a UsedStyle view never rebinds its renderer, so it can be read without a stack-local guard.")
+                    writer.write(f"// const: a UsedStyle view never rebinds its members, so they can be read without a stack-local guard.")
                     writer.write(f"const CheckedRef<const RenderElement> m_renderer;")
+                    writer.write(f"// The renderer's style, or one of its pseudo-element styles.")
+                    writer.write(f"const CheckedRef<const Style::ComputedStyle> m_computedStyle;")
                 writer.write(f"}};")
                 writer.newline()
 

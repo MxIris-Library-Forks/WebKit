@@ -1625,6 +1625,12 @@ struct WebCore::ClientOrigin {
     [Validator='!clientOrigin->isNull()'] WebCore::SecurityOriginData clientOrigin;
 };
 
+header: <WebCore/Page.h>
+[CustomHeader] struct WebCore::FindSelectionInFrame {
+    WebCore::FrameIdentifier frame;
+    int32_t indexInFrame;
+};
+
 enum class WebCore::AlphaPremultiplication : uint8_t {
     Premultiplied,
     Unpremultiplied
@@ -4186,7 +4192,7 @@ struct WebCore::LinkIcon {
 };
 
 struct WebCore::CSSValueKey {
-    unsigned cssValueID;
+    WebCore::CSSValueID cssValueID;
     bool useDarkAppearance;
     bool useElevatedUserInterfaceLevel;
 };
@@ -5033,6 +5039,7 @@ header: <WebCore/TextExtractionTypes.h>
     bool includeOffscreenPasswordFields;
     bool includeTagName;
     bool includeSameOriginSubframes;
+    bool includeClippedContent;
 #if ENABLE(DATA_DETECTION)
     OptionSet<WebCore::DataDetectorType> dataDetectorTypes;
 #endif
@@ -5715,10 +5722,10 @@ struct WebCore::MediaUsageInfo {
 }
 
 header: <WebCore/NowPlayingInfo.h>
-[CustomHeader] struct WebCore::NowPlayingInfoArtwork {
+[CustomHeader, CreateUsing=fromIPCData] struct WebCore::NowPlayingInfoArtwork {
     String src;
     String mimeType;
-    RefPtr<WebCore::Image> image;
+    RefPtr<WebCore::ShareableBitmap> shareableBitmap();
 }
 
 header: <WebCore/NowPlayingInfo.h>
@@ -7545,11 +7552,11 @@ enum class WebCore::DOMPasteAccessPolicy : uint8_t {
 
 header: <WebCore/UserGestureIndicator.h>
 [CustomHeader] struct WebCore::UserGestureTokenData {
+    Markable<WTF::UUID> authorizationToken;
+    MonotonicTime startTime;
     WebCore::IsProcessingUserGesture isProcessingUserGesture;
     WebCore::UserGestureType userGestureType;
-    std::optional<WTF::UUID> authorizationToken;
     WebCore::CanRequestDOMPaste canRequestDOMPaste;
-    MonotonicTime startTime;
     WebCore::DOMPasteAccessPolicy domPasteAccessPolicy;
     WebCore::GestureScope scope;
     bool removesTransientActivation;

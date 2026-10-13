@@ -171,6 +171,7 @@ class PaymentCoordinator;
 class PerformanceLogging;
 class PerformanceLoggingClient;
 class PerformanceMonitor;
+class ProofOfPossessionCoordinator;
 class PluginData;
 class PluginInfoProvider;
 class PointerCaptureController;
@@ -389,6 +390,13 @@ constexpr auto perRootFrameRenderingUpdateSteps = OptionSet<RenderingUpdateStep>
 constexpr auto allRenderingUpdateSteps = updateRenderingSteps | perRootFrameRenderingUpdateSteps;
 
 using WeakElementEdges = RectEdges<WeakPtr<Element, WeakPtrImplWithEventTargetData>>;
+
+// indexInFrame is relative to the frame's own matches: going forward, the index of the first match
+// after the selection; going backwards, the index of the last match before it (-1 if none).
+struct FindSelectionInFrame {
+    FrameIdentifier frame;
+    int32_t indexInFrame;
+};
 
 class Page : public RefCountedAndCanMakeWeakPtr<Page>, public Supplementable<Page> {
     WTF_MAKE_TZONE_ALLOCATED_EXPORT(Page, WEBCORE_EXPORT);
@@ -611,6 +619,7 @@ public:
     struct MatchingRanges {
         Vector<SimpleRange> ranges;
         std::optional<uint32_t> indexForSelection;
+        std::optional<FindSelectionInFrame> selectionInFrame;
     };
     WEBCORE_EXPORT MatchingRanges findTextMatches(const String&, FindOptions, unsigned maxCount, bool markMatches = true);
 
@@ -811,6 +820,9 @@ public:
 #if ENABLE(WEB_AUTHN)
     AuthenticatorCoordinator& authenticatorCoordinator() LIFETIME_BOUND { return m_authenticatorCoordinator.get(); }
     CredentialRequestCoordinator& credentialRequestCoordinator() { return m_credentialRequestCoordinator.get(); }
+#if ENABLE(PROOF_OF_POSSESSION)
+    ProofOfPossessionCoordinator& proofOfPossessionCoordinator() LIFETIME_BOUND { return m_proofOfPossessionCoordinator.get(); }
+#endif
 #endif
 
 #if ENABLE(APPLICATION_MANIFEST)
@@ -965,7 +977,7 @@ public:
 
     WEBCORE_EXPORT Color themeColor() const;
     WEBCORE_EXPORT Color pageExtendedBackgroundColor() const;
-    WEBCORE_EXPORT Color NODELETE sampledPageTopColor() const;
+    WEBCORE_EXPORT Color sampledPageTopColor() const;
 
     WEBCORE_EXPORT void updateFixedContainerEdges(EnumSet<BoxSide>);
     const FixedContainerEdges& fixedContainerEdges() const LIFETIME_BOUND { return m_fixedContainerEdgesAndElements.first; }
@@ -1790,6 +1802,9 @@ private:
 #if ENABLE(WEB_AUTHN)
     const UniqueRef<AuthenticatorCoordinator> m_authenticatorCoordinator;
     const Ref<CredentialRequestCoordinator> m_credentialRequestCoordinator;
+#if ENABLE(PROOF_OF_POSSESSION)
+    const UniqueRef<ProofOfPossessionCoordinator> m_proofOfPossessionCoordinator;
+#endif
 #endif // ENABLE(WEB_AUTHN)
 
 #if ENABLE(APPLICATION_MANIFEST)

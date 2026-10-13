@@ -1012,9 +1012,9 @@ public:
     void setLinkColor(const Color& c) { m_linkColor = c; }
     void setVisitedLinkColor(const Color& c) { m_visitedLinkColor = c; }
     void setActiveLinkColor(const Color& c) { m_activeLinkColor = c; }
-    void NODELETE resetLinkColor();
-    void NODELETE resetVisitedLinkColor();
-    void NODELETE resetActiveLinkColor();
+    void resetLinkColor();
+    void resetVisitedLinkColor();
+    void resetActiveLinkColor();
     VisitedLinkState* visitedLinkStateIfExists() const { return m_visitedLinkState.get(); }
     inline VisitedLinkState& visitedLinkState() const;
 
@@ -1273,6 +1273,9 @@ public:
 
     // https://html.spec.whatwg.org/multipage/interaction.html#fully-active-descendant-of-a-top-level-traversable-with-user-attention
     bool isFullyActiveAndHasUserAttention() const;
+
+    // https://w3c.github.io/webappsec-credential-management/#same-origin-with-its-ancestors
+    bool isSameOriginWithAncestors() const;
 
     // The full URL corresponding to the "site for cookies" in the Same-Site Cookies spec.,
     // <https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00>. It is either
@@ -2137,7 +2140,7 @@ public:
 
     unsigned unloadCounter() const { return m_unloadCounter; }
 
-    WEBCORE_EXPORT FrameMemoryMonitor& NODELETE frameMemoryMonitor();
+    WEBCORE_EXPORT FrameMemoryMonitor& frameMemoryMonitor();
 
 #if ENABLE(CONTENT_EXTENSIONS)
     ResourceMonitor* NODELETE resourceMonitorIfExists();

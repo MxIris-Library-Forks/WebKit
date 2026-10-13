@@ -270,6 +270,7 @@
 #include <WebCore/HitTestResult.h>
 #include <WebCore/ImageAnalysisQueue.h>
 #include <WebCore/ImageBuffer.h>
+#include <WebCore/ImageBufferParameters.h>
 #include <WebCore/ImageOverlay.h>
 #include <WebCore/ImageUtilities.h>
 #include <WebCore/JSDOMExceptionHandling.h>
@@ -6496,7 +6497,7 @@ void WebPage::findStringIncludingImages(const String& string, OptionSet<FindOpti
 }
 #endif
 
-void WebPage::findStringMatches(const String& string, OptionSet<FindOptions> options, uint32_t maxMatchCount, CompletionHandler<void(Vector<Vector<WebCore::IntRect>>, int32_t)>&& completionHandler)
+void WebPage::findStringMatches(const String& string, OptionSet<FindOptions> options, uint32_t maxMatchCount, CompletionHandler<void(Vector<std::pair<WebCore::FrameIdentifier, Vector<Vector<WebCore::IntRect>>>>&&, std::optional<WebCore::FindSelectionInFrame>)>&& completionHandler)
 {
     findController().findStringMatches(string, options, maxMatchCount, WTF::move(completionHandler));
 }
@@ -6548,9 +6549,9 @@ void WebPage::removeLayerForFindOverlay(CompletionHandler<void()>&& completionHa
     completionHandler();
 }
 
-void WebPage::getImageForFindMatch(uint32_t matchIndex)
+void WebPage::getImageForFindMatch(uint32_t matchIndex, CompletionHandler<void(std::optional<ImageBufferParameters>&&, std::optional<ShareableBitmapHandle>&&)>&& completionHandler)
 {
-    findController().getImageForFindMatch(matchIndex);
+    findController().getImageForFindMatch(matchIndex, WTF::move(completionHandler));
 }
 
 void WebPage::selectFindMatch(uint32_t matchIndex)
@@ -6566,6 +6567,11 @@ void WebPage::indicateFindMatch(uint32_t matchIndex)
 void WebPage::hideFindUI()
 {
     findController().hideFindUI();
+}
+
+void WebPage::updateFindUIAfterFindingAllMatches(bool found, const String& string, OptionSet<FindOptions> options, uint32_t maxMatchCount, bool shouldUpdateFindIndicator)
+{
+    findController().scheduleFindUIUpdateAfterFindingAllMatches(found, string, options, maxMatchCount, shouldUpdateFindIndicator);
 }
 
 void WebPage::countStringMatches(const String& string, OptionSet<FindOptions> options, uint32_t maxMatchCount, CompletionHandler<void(uint32_t)>&& completionHandler)
@@ -10031,9 +10037,9 @@ void WebPage::dismissVolumetricScenesForDetachedElements()
             continue;
         }
 
-        // The element cannot be told, so drop the entry here rather than waiting for a reply about it.
-        m_volumetricSceneElements.remove(it);
-        send(Messages::WebPageProxy::DismissVolumetricScene(nodeID));
+        if (it->value.state == VolumetricSceneState::Presented)
+            send(Messages::WebPageProxy::DismissVolumetricScene(nodeID));
+        volumetricSceneDidClose(nodeID);
     }
 }
 
@@ -10907,19 +10913,19 @@ void WebPage::renderTreeAsTextForTesting(WebCore::FrameIdentifier frameID, uint6
     RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
     if (!webFrame) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing in web process"_s);
+        return completionHandler("Test Error - WebFrame missing in web process\n"_s);
     }
 
     RefPtr coreLocalFrame = webFrame->coreLocalFrame();
     if (!coreLocalFrame) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing LocalFrame in web process"_s);
+        return completionHandler("Test Error - WebFrame missing LocalFrame in web process\n"_s);
     }
 
     CheckedPtr renderer = coreLocalFrame->contentRenderer();
     if (!renderer) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing RenderView in web process"_s);
+        return completionHandler("Test Error - WebFrame missing RenderView in web process\n"_s);
     }
 
     auto ts = WebCore::createTextStream(*renderer);
@@ -10933,19 +10939,19 @@ void WebPage::layerTreeAsTextForTesting(WebCore::FrameIdentifier frameID, uint64
     RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
     if (!webFrame) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing in web process"_s);
+        return completionHandler("Test Error - WebFrame missing in web process\n"_s);
     }
 
     RefPtr coreLocalFrame = webFrame->coreLocalFrame();
     if (!coreLocalFrame) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing LocalFrame in web process"_s);
+        return completionHandler("Test Error - WebFrame missing LocalFrame in web process\n"_s);
     }
 
     CheckedPtr renderer = coreLocalFrame->contentRenderer();
     if (!renderer) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing RenderView in web process"_s);
+        return completionHandler("Test Error - WebFrame missing RenderView in web process\n"_s);
     }
 
     auto ts = WebCore::createTextStream(*renderer);
@@ -10958,7 +10964,7 @@ void WebPage::frameTextForTesting(WebCore::FrameIdentifier frameID, CompletionHa
     RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
     if (!webFrame) {
         ASSERT_NOT_REACHED();
-        return completionHandler("Test Error - WebFrame missing in web process"_s);
+        return completionHandler("Test Error - WebFrame missing in web process\n"_s);
     }
     constexpr bool includeSubframes { true };
     completionHandler(webFrame->frameTextForTesting(includeSubframes));
@@ -11057,16 +11063,6 @@ template<typename T> T WebPage::rootViewToContents(WebCore::FrameIdentifier fram
     }
 
     return view->rootViewToContents(geometry);
-}
-
-void WebPage::contentsToRootViewRect(FrameIdentifier frameID, FloatRect rect, CompletionHandler<void(FloatRect)>&& completionHandler)
-{
-    completionHandler(contentsToRootView(frameID, rect));
-}
-
-void WebPage::contentsToRootViewPoint(FrameIdentifier frameID, FloatPoint point, CompletionHandler<void(FloatPoint)>&& completionHandler)
-{
-    completionHandler(contentsToRootView(frameID, point));
 }
 
 void WebPage::contentsToMainFrameViewRect(FrameIdentifier frameID, FloatRect rect, CompletionHandler<void(FloatRect)>&& completionHandler)

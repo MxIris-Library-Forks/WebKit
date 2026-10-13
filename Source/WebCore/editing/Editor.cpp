@@ -1642,14 +1642,9 @@ void Editor::performCutOrCopy(EditorActionSpecifier action)
         if (action == CopyAction && !isSelectionInImageOverlay)
             imageElement = imageElementFromImageDocument(document);
 
-        if (imageElement) {
-#if !PLATFORM(WIN)
+        if (imageElement)
             writeImageToPasteboard(*Pasteboard::createForCopyAndPaste(PagePasteboardContext::create(document->pageID())), *imageElement, document->url(), document->title());
-#else
-            // FIXME: Delete after <http://webkit.org/b/177618> lands.
-            Pasteboard::createForCopyAndPaste(PagePasteboardContext::create(document->pageID()))->writeImage(*imageElement, document->url(), document->title());
-#endif
-        } else {
+        else {
 #if !PLATFORM(WIN)
             writeSelectionToPasteboard(*Pasteboard::createForCopyAndPaste(PagePasteboardContext::create(document->pageID())));
 #else
@@ -1826,8 +1821,6 @@ PasteboardWriterData::URLData Editor::pasteboardWriterURL(const URL& url, const 
     return result;
 }
 
-#if !PLATFORM(IOS_FAMILY)
-
 void Editor::copyImage(const HitTestResult& result)
 {
     RefPtr element { result.innerNonSharedElement() };
@@ -1838,15 +1831,8 @@ void Editor::copyImage(const HitTestResult& result)
     if (url.isEmpty())
         url = result.absoluteImageURL();
 
-#if !PLATFORM(WIN)
     writeImageToPasteboard(*Pasteboard::createForCopyAndPaste(PagePasteboardContext::create(document().pageID())), *element, url, result.altDisplayString());
-#else
-    // FIXME: Delete after <http://webkit.org/b/177618> lands.
-    Pasteboard::createForCopyAndPaste(PagePasteboardContext::create(document().pageID()))->writeImage(*element, url, result.altDisplayString());
-#endif
 }
-
-#endif
 
 void Editor::revealSelectionIfNeededAfterLoadingImageForElement(HTMLImageElement& element)
 {
@@ -2780,6 +2766,30 @@ void Editor::learnSpelling()
     textChecker()->learnWord(text);
 }
 
+void Editor::ignoreSpelling(const SimpleRange& range)
+{
+    if (!client())
+        return;
+
+    removeMarkers(range, DocumentMarkerType::Spelling);
+
+    String text = plainText(range);
+    ASSERT(text.length());
+    textChecker()->ignoreWordInSpellDocument(text);
+}
+
+void Editor::learnSpelling(const SimpleRange& range)
+{
+    if (!client())
+        return;
+
+    removeMarkers(range, DocumentMarkerType::Spelling);
+
+    String text = plainText(range);
+    ASSERT(text.length());
+    textChecker()->learnWord(text);
+}
+
 #if !PLATFORM(IOS_FAMILY)
 
 void Editor::advanceToNextMisspelling(bool startBeforeSelection)
@@ -3021,6 +3031,14 @@ TextCheckingGuesses Editor::guessesForMisspelledOrUngrammatical()
     if (misspelledWord.isEmpty())
         return { };
     return { guessesForMisspelledWord(misspelledWord), true, false };
+}
+
+TextCheckingGuesses Editor::guessesForMisspelledOrUngrammatical(const SimpleRange& range)
+{
+    CheckedPtr client = this->client();
+    if (!client)
+        return { };
+    return TextCheckingHelper(*client, range).guessesForMisspelledWordOrUngrammaticalPhrase(isGrammarCheckingEnabled());
 }
 
 void Editor::showSpellingGuessPanel()

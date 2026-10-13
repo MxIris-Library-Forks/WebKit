@@ -1,7 +1,6 @@
 [ macOS ] Modules/fetch/WindowOrWorkerGlobalScopeFetch.cpp
 [ macOS ] Modules/indexeddb/server/SQLiteIDBCursor.cpp
 StyleBuilderGenerated.cpp
-StyleExtractorGenerated.cpp
 [ macOS ] accessibility/AXCoreObject.cpp
 [ macOS ] accessibility/AXCrossProcessSearch.cpp
 [ macOS ] accessibility/AXGeometryManager.cpp
@@ -36,44 +35,26 @@ StyleExtractorGenerated.cpp
 [ macOS ] dom/ActiveDOMObject.cpp
 dom/Attr.cpp
 [ macOS ] dom/BroadcastChannel.cpp
-dom/CollectionIndexCacheInlines.h
-dom/ComposedTreeIterator.h
-dom/ContentVisibilityDocumentState.cpp
-dom/CurrentScriptIncrementer.h
-[ iOS ] dom/DeviceMotionController.cpp
-[ iOS ] dom/DeviceOrientationController.cpp
+[ macOS ] dom/ComposedTreeIterator.h
 dom/Document.cpp
-dom/DocumentFullscreen.cpp
 dom/Element.cpp
-dom/ElementInternals.cpp
-dom/ElementIteratorInlines.h
 [ macOS ] dom/ElementTextDirection.cpp
-dom/EventLoop.cpp
+[ macOS ] dom/EventLoop.cpp
 [ macOS ] dom/EventPath.cpp
 [ macOS ] dom/EventSender.h
 [ macOS ] dom/ExtensionStyleSheets.cpp
-dom/IdTargetObserver.cpp
-dom/InlineStyleSheetOwner.cpp
-dom/LiveNodeListInlines.h
-dom/MouseRelatedEvent.cpp
-dom/MutationObserver.cpp
-dom/MutationObserverRegistration.cpp
-dom/NamedNodeMap.cpp
-dom/Node.cpp
-[ iOS ] dom/NodeRareData.h
+[ macOS ] dom/InlineStyleSheetOwner.cpp
+[ macOS ] dom/MutationObserver.cpp
 dom/PendingScript.cpp
-dom/Position.cpp
 [ macOS ] dom/ProcessingInstruction.cpp
 [ macOS ] dom/PseudoElement.cpp
-dom/Range.cpp
-dom/ScriptElement.cpp
+[ macOS ] dom/Range.cpp
+[ macOS ] dom/ScriptElement.cpp
 [ macOS ] dom/ScriptExecutionContextInlines.h
 [ macOS ] dom/SelectorQuery.cpp
 dom/ShadowRoot.cpp
 [ macOS ] dom/StyledElement.cpp
-dom/TreeScopeOrderedMap.cpp
-dom/TypedElementDescendantIteratorInlines.h
-dom/ViewTransition.cpp
+[ macOS ] dom/ViewTransition.cpp
 [ macOS ] editing/Editor.cpp
 [ macOS ] editing/EditorCommand.cpp
 [ macOS ] editing/FrameSelection.cpp
@@ -88,11 +69,6 @@ dom/ViewTransition.cpp
 [ macOS ] inspector/agents/frame/FrameCSSAgent.cpp
 layout/floats/FloatingContext.cpp
 layout/floats/PlacedFloats.cpp
-layout/formattingContexts/FormattingGeometry.cpp
-layout/formattingContexts/block/BlockFormattingContext.cpp
-layout/formattingContexts/block/BlockFormattingQuirks.cpp
-layout/formattingContexts/block/PrecomputedBlockMarginCollapse.cpp
-layout/formattingContexts/block/tablewrapper/TableWrapperBlockFormattingContext.cpp
 layout/formattingContexts/inline/InlineContentAligner.cpp
 layout/formattingContexts/inline/InlineContentBreaker.cpp
 layout/formattingContexts/inline/InlineFormattingContext.cpp
@@ -112,11 +88,6 @@ layout/formattingContexts/inline/display/InlineDisplayContentBuilder.cpp
 layout/formattingContexts/inline/display/InlineDisplayLineBuilder.cpp
 layout/formattingContexts/inline/ruby/RubyFormattingContext.cpp
 [ macOS ] layout/formattingContexts/inline/text/TextUtil.cpp
-layout/formattingContexts/table/TableFormattingContext.cpp
-layout/formattingContexts/table/TableFormattingGeometry.cpp
-[ macOS ] layout/formattingContexts/table/TableFormattingQuirks.cpp
-layout/formattingContexts/table/TableGrid.cpp
-layout/formattingContexts/table/TableLayout.cpp
 layout/integration/LayoutIntegrationBoxGeometryUpdater.cpp
 layout/integration/LayoutIntegrationBoxTreeUpdater.cpp
 layout/integration/LayoutIntegrationFormattingContextLayout.cpp
@@ -124,7 +95,6 @@ layout/integration/LayoutIntegrationFormattingContextLayout.cpp
 layout/integration/flex/LayoutIntegrationFlexLayout.cpp
 [ macOS ] layout/integration/grid/LayoutIntegrationGridLayout.cpp
 layout/integration/inline/InlineIteratorBox.cpp
-layout/integration/inline/InlineIteratorBoxPath.h
 layout/integration/inline/InlineIteratorLineBox.cpp
 layout/integration/inline/InlineIteratorLineBox.h
 layout/integration/inline/InlineIteratorLineBoxInlines.h
@@ -136,7 +106,6 @@ layout/integration/inline/LayoutIntegrationLineLayout.cpp
 layout/integration/inline/LineSelection.h
 layout/layouttree/FormattingContextBoxIterator.h
 layout/layouttree/LayoutContainingBlockChainIterator.h
-layout/layouttree/LayoutTreeBuilder.cpp
 [ macOS ] loader/DocumentLoader.cpp
 [ macOS ] loader/FrameLoader.cpp
 [ macOS ] loader/PolicyChecker.cpp

@@ -82,8 +82,8 @@ set(WebKit_ENTITLEMENTS_DEPENDS
     ${WEBKIT_DIR}/Resources/cocoa/NotificationAllowList/NonForwardedNotifications.def
 )
 
-# The iOS process extensions build with fixed entitlements, from
-# Shared/AuxiliaryProcessExtensions.
+# The iOS process extensions generate theirs in WEBKIT_IOS_EXTENSION, where
+# their targets are created.
 if (NOT USE_EXTENSIONKIT)
     webkit_generate_entitlements(WebProcess
         USING Scripts/process-entitlements.sh
@@ -1175,7 +1175,9 @@ function(WEBKIT_DEFINE_DAEMONS)
             $<TARGET_PROPERTY:WebKit,INCLUDE_DIRECTORIES>)
         set(${_target}_LIBRARIES WebKit)
 
+        # MACOSX_BUNDLE defaults on for the embedded SDKs; daemons are bare executables.
         set_target_properties(${_target} PROPERTIES
+            MACOSX_BUNDLE FALSE
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
         target_compile_options(${_target} PRIVATE
             -F${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
@@ -2098,6 +2100,8 @@ function(WEBKIT_DEFINE_IOS_RESOURCES)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${WEBKIT_DIR}/en.lproj/InfoPlist.strings
             ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/en.lproj/InfoPlist.strings
+        # FIXME: Use the coremlc command to produce the compiled model, same as
+        # macOS.
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${WEBKIT_DIR}/Resources/ResourceLoadStatistics/corePrediction_model
             ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/WebKit.framework/corePrediction_model
@@ -2227,12 +2231,17 @@ function(WEBKIT_DEFINE_PROCESS_EXTENSIONS)
             "LINKER:-e,_NSExtensionMain"
         )
 
-        # Simulator: embed only. Device: embed and pass to codesign.
-        WEBKIT_EMBED_ENTITLEMENTS(${_name} ${_entitlements})
+        # Simulator: embed only. Device: embed and pass to codesign the
+        # per-product entitlements from process-entitlements.sh.
         if (NOT WEBKIT_SDK_IS_SIMULATOR)
-            set_property(TARGET ${_name} PROPERTY
-                CODE_SIGN_ENTITLEMENTS "${_entitlements}")
+            WEBKIT_GENERATE_ENTITLEMENTS(${_name}
+                USING Scripts/process-entitlements.sh
+                DEPENDS ${WebKit_ENTITLEMENTS_DEPENDS}
+                BUNDLE_IDENTIFIER ${_bundle_id}
+                PRODUCT_NAME ${_name})
+            get_target_property(_entitlements ${_name} CODE_SIGN_ENTITLEMENTS)
         endif ()
+        WEBKIT_EMBED_ENTITLEMENTS(${_name} ${_entitlements})
 
         WEBKIT_EXECUTABLE(${_name})
     endfunction()
@@ -2549,10 +2558,21 @@ function(WEBKIT_DEFINE_MACOS_RESOURCES)
     add_custom_target(WebKit_Assets DEPENDS ${WebKit_RESOURCES_DIR}/Assets.car)
     add_dependencies(WebKit WebKit_Assets)
 
-    add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodel COMMAND
-        ${CMAKE_COMMAND} -E copy_if_different ${WEBKIT_DIR}/Resources/TextExtractionFilter.mlmodel ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodel
+    set(_text_extraction_filter_model_outputs
+        ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodelc/analytics/coremldata.bin
+        ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodelc/coremldata.bin
+        ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodelc/metadata.json
+    )
+    WEBKIT_XCRUN(_coremlc -f coremlc)
+    add_custom_command(OUTPUT ${_text_extraction_filter_model_outputs}
+        COMMAND ${_coremlc} compile ${WEBKIT_DIR}/Resources/TextExtractionFilter.mlmodel ${WebKit_RESOURCES_DIR}
+            --deployment-target ${CMAKE_OSX_DEPLOYMENT_TARGET} --sdkroot ${CMAKE_OSX_SYSROOT} --platform macos
+            --container bundle-resources
+        DEPENDS ${WEBKIT_DIR}/Resources/TextExtractionFilter.mlmodel
+        COMMENT "Compiling TextExtractionFilter.mlmodel"
         VERBATIM)
-    add_custom_target(WebKitTextExtractionFilterModel ALL DEPENDS ${WebKit_RESOURCES_DIR}/TextExtractionFilter.mlmodel)
+    add_custom_target(WebKitTextExtractionFilterModel ALL DEPENDS
+        ${_text_extraction_filter_model_outputs})
     add_dependencies(WebKit WebKitTextExtractionFilterModel)
 
     add_custom_command(OUTPUT ${WebKit_RESOURCES_DIR}/corePrediction_model COMMAND

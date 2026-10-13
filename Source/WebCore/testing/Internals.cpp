@@ -170,6 +170,7 @@
 #include "MediaResourceLoader.h"
 #include "MediaSession.h"
 #include "MediaSessionActionDetails.h"
+#include "MediaSessionArtworkSizing.h"
 #include "MediaStrategy.h"
 #include "MediaStreamTrack.h"
 #include "MediaUsageInfo.h"
@@ -2732,6 +2733,11 @@ ExceptionOr<bool> Internals::wasLastChangeUserEdit(Element& textField)
 bool Internals::elementShouldAutoComplete(HTMLInputElement& element)
 {
     return element.shouldAutocomplete();
+}
+
+void Internals::setValueForUser(HTMLInputElement& element, const String& value)
+{
+    element.setValueForUser(value);
 }
 
 void Internals::setAutofilled(HTMLInputElement& element, bool enabled)
@@ -8483,7 +8489,7 @@ void Internals::loadArtworkImage(String&& url, ArtworkImagePromise&& promise)
             return;
 
         auto promise = std::exchange(protectedThis->m_artworkImagePromise, { });
-        RefPtr nativeImage = image ? image->nativeImage(ConcreteObjectSize::fixed(image->size())) : nullptr;
+        RefPtr nativeImage = image ? image->nativeImage(MediaSessionArtworkSizing { }.resolve(image->naturalDimensions())) : nullptr;
         if (!nativeImage) {
             promise->reject(Exception { ExceptionCode::InvalidAccessError, "No image retrieved."_s });
             return;
@@ -9242,10 +9248,8 @@ String Internals::volumetricScenePresentationMode(Element& element)
 }
 #endif
 
-// FIXME: Implement this method for iOS.
 ExceptionOr<void> Internals::copyImageAtLocation(int x, int y)
 {
-#if !PLATFORM(IOS_FAMILY)
     RefPtr document = contextDocument();
     if (!document || !document->frame())
         return Exception { ExceptionCode::InvalidAccessError };
@@ -9260,9 +9264,6 @@ ExceptionOr<void> Internals::copyImageAtLocation(int x, int y)
 
     auto hitTestResult = localFrame->eventHandler().hitTestResultAtPoint(IntPoint(x, y), hitType);
     protect(localFrame->editor())->copyImage(hitTestResult);
-#endif
-    UNUSED_PARAM(x);
-    UNUSED_PARAM(y);
     return { };
 }
 

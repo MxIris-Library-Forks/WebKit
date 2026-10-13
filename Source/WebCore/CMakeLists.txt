@@ -151,7 +151,6 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/layout"
     "${WEBCORE_DIR}/layout/formattingContexts"
     "${WEBCORE_DIR}/layout/formattingContexts/block"
-    "${WEBCORE_DIR}/layout/formattingContexts/block/tablewrapper"
     "${WEBCORE_DIR}/layout/formattingContexts/flex"
     "${WEBCORE_DIR}/layout/formattingContexts/grid"
     "${WEBCORE_DIR}/layout/floats"
@@ -165,7 +164,6 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/layout/integration/grid"
     "${WEBCORE_DIR}/layout/integration/inline"
     "${WEBCORE_DIR}/layout/layouttree"
-    "${WEBCORE_DIR}/layout/formattingContexts/table"
     "${WEBCORE_DIR}/loader"
     "${WEBCORE_DIR}/loader/archive"
     "${WEBCORE_DIR}/loader/archive/mhtml"
@@ -3005,7 +3003,7 @@ list(APPEND WebCore_SUPPLEMENTAL_IDL_FILES ${WebCore_DERIVED_SOURCES_DIR}/CSSSty
 
 # Generate CSS value keywords
 add_custom_command(
-    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.in ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.h ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.cpp ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.gperf
+    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.in ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.h ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.cpp ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.gperf ${WebCore_DERIVED_SOURCES_DIR}/CSSValueKeywords.serialization.in
     MAIN_DEPENDENCY ${WEBCORE_DIR}/css/scripts/process-css-values.py
     DEPENDS ${WebCore_CSS_VALUE_KEYWORDS} ${_platform_defines_file_dep}
     WORKING_DIRECTORY ${WebCore_DERIVED_SOURCES_DIR}
@@ -3080,20 +3078,25 @@ list(APPEND WebCoreTestSupport_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/InternalSe
 list(APPEND WebCoreTestSupport_IDL_FILES ${WebCore_DERIVED_SOURCES_DIR}/InternalSettingsGenerated.idl)
 
 set(QUIRK_BEHAVIORS_TEMPLATES
+    ${WEBCORE_DIR}/Scripts/QuirkBehaviorsTemplates/QuirkBehaviorDeclarations.cpp.erb
+    ${WEBCORE_DIR}/Scripts/QuirkBehaviorsTemplates/QuirkBehaviorDeclarations.h.erb
     ${WEBCORE_DIR}/Scripts/QuirkBehaviorsTemplates/QuirkBehaviorDefinitions.h.erb
     ${WEBCORE_DIR}/Scripts/QuirkBehaviorsTemplates/QuirkBehaviorID.h.erb
     ${WEBCORE_DIR}/Scripts/QuirkBehaviorsTemplates/QuirksAccessors.cpp.erb
     ${WEBCORE_DIR}/Scripts/QuirkBehaviorsTemplates/QuirksAccessors.h.erb)
 add_custom_command(
-    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDefinitions.h
+    OUTPUT ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDeclarations.cpp
+       ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDeclarations.h
+       ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDefinitions.h
        ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorID.h
        ${WebCore_DERIVED_SOURCES_DIR}/QuirksAccessors.cpp
        ${WebCore_DERIVED_SOURCES_DIR}/QuirksAccessors.h
     MAIN_DEPENDENCY ${WEBCORE_DIR}/page/QuirkBehaviors.yaml
-    DEPENDS ${WEBCORE_DIR}/Scripts/GenerateQuirkBehaviors.rb ${QUIRK_BEHAVIORS_TEMPLATES}
-    COMMAND ${Ruby_EXECUTABLE} ${WEBCORE_DIR}/Scripts/GenerateQuirkBehaviors.rb --outputDir ${WebCore_DERIVED_SOURCES_DIR} --template "$<JOIN:${QUIRK_BEHAVIORS_TEMPLATES},;--template;>" ${WEBCORE_DIR}/page/QuirkBehaviors.yaml
+    DEPENDS ${WEBCORE_DIR}/page/QuirkBuildConditions.yaml ${WEBCORE_DIR}/Scripts/GenerateQuirkBehaviors.rb ${QUIRK_BEHAVIORS_TEMPLATES}
+    COMMAND ${Ruby_EXECUTABLE} ${WEBCORE_DIR}/Scripts/GenerateQuirkBehaviors.rb --outputDir ${WebCore_DERIVED_SOURCES_DIR} --template "$<JOIN:${QUIRK_BEHAVIORS_TEMPLATES},;--template;>" ${WEBCORE_DIR}/page/QuirkBehaviors.yaml ${WEBCORE_DIR}/page/QuirkBuildConditions.yaml
     COMMAND_EXPAND_LISTS
     VERBATIM)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDeclarations.h)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorDefinitions.h)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/QuirkBehaviorID.h)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/QuirksAccessors.h)

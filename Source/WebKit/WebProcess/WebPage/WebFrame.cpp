@@ -324,7 +324,6 @@ FrameInfoData WebFrame::info() const
         // FIXME: This should use the full request.
         ResourceRequest(url()),
         coreFrame ? SecurityOriginData::fromFrame(*coreFrame) : SecurityOriginData { },
-        coreFrame ? coreFrame->topOrigin().data() : SecurityOriginData { },
         coreFrame ? coreFrame->tree().specifiedName().string() : String(),
         frameID(),
         page ? std::optional { page->webPageProxyIdentifier() } : std::nullopt,
@@ -1698,7 +1697,7 @@ String WebFrame::frameTextForTesting(bool includeSubframes)
             continue;
         auto frameName = makeAtomString("\n--------\nFrame: '"_s, childWebFrame->name(), "'\n--------\n"_s);
         if (is<RemoteFrame>(*child))
-            builder.append(frameName, m_page->sendSync(Messages::WebPageProxy::FrameTextForTesting(child->frameID())).takeReplyOr("Sending WebPageProxy::FrameTextForTesting failed"_s));
+            builder.append(frameName, m_page->sendSync(Messages::WebPageProxy::FrameTextForTesting(child->frameID())).takeReplyOr("Sending WebPageProxy::FrameTextForTesting failed\n"_s));
         else if (!childWebFrame->innerText().isNull())
             builder.append(frameName, childWebFrame->frameTextForTesting(includeSubframes));
     }

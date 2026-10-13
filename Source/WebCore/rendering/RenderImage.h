@@ -32,6 +32,7 @@ namespace WebCore {
 
 class HTMLAreaElement;
 class HTMLMapElement;
+class ConcreteObjectSize;
 class GraphicsContext;
 class ImageBuffer;
 class NativeImage;
@@ -107,6 +108,9 @@ public:
     // Returns an image as `paint()` would draw it. Sized and placed respecting 'object-fit', 'object-position', 'object-view-box', and orientation, and clipped to the content box.
     RefPtr<NativeImage> createNativeImageAsPainted(float deviceScaleFactor, const FloatSize& maximumSize);
 
+    // FIXME: Condense these into fewer concrete categories of sizing algorithms once we know all the different sizing rules needed.
+    ConcreteObjectSize concreteObjectSizeForPasteboard() const;
+
     FloatSize preferredAspectRatioAsSize() const final;
 
 protected:
@@ -118,6 +122,7 @@ protected:
 #endif
 
     bool shouldInvalidateContentWidths() const final;
+    NaturalDimensions zoomedNaturalDimensions() const override;
     RenderReplaced* embeddedSVGRoot() const final;
     bool foregroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect, unsigned maxDepthToTest) const override;
 

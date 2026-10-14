@@ -306,7 +306,7 @@ bool ComputedStyle::borderAndBackgroundEqual(const ComputedStyle& other) const
 {
     return border() == other.border()
         && backgroundLayers() == other.backgroundLayers()
-        && backgroundColor() == other.backgroundColor();
+        && usedBackgroundColor() == other.usedBackgroundColor();
 }
 
 float ComputedStyle::usedLineHeight() const
@@ -564,6 +564,49 @@ BlendMode ComputedStyle::usedBlendMode() const
     return blendMode();
 }
 
+// MARK: - Used background color.
+
+Color ComputedStyle::usedBackgroundColor() const
+{
+    if (auto overrideColor = m_nonInheritedData->rareData->overrideBackgroundColor) [[unlikely]]
+        return *overrideColor;
+
+    return backgroundColor();
+}
+
+WebCore::Color ComputedStyle::usedBackgroundColorResolvingCurrentColor() const
+{
+    return ColorResolver { *this }.colorResolvingCurrentColor(usedBackgroundColor());
+}
+
+WebCore::Color ComputedStyle::usedBackgroundColorResolvingCurrentColorApplyingColorFilter() const
+{
+    return ColorResolver { *this }.colorResolvingCurrentColorApplyingColorFilter(usedBackgroundColor());
+}
+
+WebCore::Color ComputedStyle::visitedDependentUsedBackgroundColor(OptionSet<PaintBehavior> paintBehavior) const
+{
+    auto colorResolver = backgroundColorResolver();
+    auto unvisitedLinkColor = usedBackgroundColorResolvingCurrentColor();
+
+    if (colorResolver.visitedDependentShouldReturnUnvisitedLinkColor(paintBehavior))
+        return unvisitedLinkColor;
+
+    auto visitedLinkColor = visitedLinkBackgroundColorResolvingCurrentColor();
+    if (ColorPropertyTraits<PropertyNameConstant<CSSPropertyID::BackgroundColor>>::excludesVisitedLinkColor(visitedLinkColor))
+        return unvisitedLinkColor;
+
+    // Take the alpha from the unvisited color, but get the RGB values from the visited color.
+    return visitedLinkColor.colorWithAlpha(unvisitedLinkColor.alphaAsFloat());
+}
+
+WebCore::Color ComputedStyle::visitedDependentUsedBackgroundColorApplyingColorFilter(OptionSet<PaintBehavior> paintBehavior) const
+{
+    auto color = visitedDependentUsedBackgroundColor(paintBehavior);
+    appleColorFilter().transformColor(color);
+    return color;
+}
+
 // MARK: - Derived Values
 
 template<typename OutsetValue>
@@ -591,12 +634,12 @@ static LayoutBoxExtent computeOutsets(const auto& outsets, const auto& borderWid
 
 LayoutBoxExtent ComputedStyle::imageOutsets(const Style::BorderImage& image, float deviceScaleFactor) const
 {
-    return computeOutsets(image.outset().values, usedBorderWidths(), usedZoomForLength(), deviceScaleFactor);
+    return computeOutsets(image.outset().values, Style::effectiveBorderWidths(*this), usedZoomForLength(), deviceScaleFactor);
 }
 
 LayoutBoxExtent ComputedStyle::imageOutsets(const Style::MaskBorder& image, float deviceScaleFactor) const
 {
-    return computeOutsets(image.outset().values, usedBorderWidths(), usedZoomForLength(), deviceScaleFactor);
+    return computeOutsets(image.outset().values, Style::effectiveBorderWidths(*this), usedZoomForLength(), deviceScaleFactor);
 }
 
 LayoutBoxExtent ComputedStyle::borderImageOutsets(float deviceScaleFactor) const

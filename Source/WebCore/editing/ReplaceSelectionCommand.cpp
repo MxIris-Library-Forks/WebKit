@@ -108,15 +108,15 @@ class ReplacementFragment {
 public:
     ReplacementFragment(RefPtr<DocumentFragment>&&, const VisibleSelection&);
 
-    DocumentFragment* NODELETE fragment() { return m_fragment.get(); }
+    DocumentFragment* LEGACY_NODELETE fragment() { return m_fragment.get(); }
 
     Node* firstChild() const;
     Node* lastChild() const;
 
     bool isEmpty() const;
     
-    bool NODELETE hasInterchangeNewlineAtStart() const { return m_hasInterchangeNewlineAtStart; }
-    bool NODELETE hasInterchangeNewlineAtEnd() const { return m_hasInterchangeNewlineAtEnd; }
+    bool LEGACY_NODELETE hasInterchangeNewlineAtStart() const { return m_hasInterchangeNewlineAtStart; }
+    bool LEGACY_NODELETE hasInterchangeNewlineAtEnd() const { return m_hasInterchangeNewlineAtEnd; }
     
     void removeNode(Node&);
     void removeNodePreservingChildren(Node&);
@@ -137,13 +137,13 @@ private:
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(ReplacementFragment);
 
-static bool NODELETE isInterchangeNewlineNode(const Node& node)
+static bool LEGACY_NODELETE isInterchangeNewlineNode(const Node& node)
 {
     auto* br = dynamicDowncast<HTMLBRElement>(node);
     return br && br->attributeWithoutSynchronization(classAttr) == AppleInterchangeNewline;
 }
 
-static bool NODELETE isInterchangeConvertedSpaceSpan(const Node& node)
+static bool LEGACY_NODELETE isInterchangeConvertedSpaceSpan(const Node& node)
 {
     auto* element = dynamicDowncast<HTMLElement>(node);
     return element && element->attributeWithoutSynchronization(classAttr) == AppleConvertedSpace;
@@ -287,12 +287,12 @@ bool ReplacementFragment::isEmpty() const
     return (!m_fragment || !m_fragment->firstChild()) && !m_hasInterchangeNewlineAtStart && !m_hasInterchangeNewlineAtEnd;
 }
 
-Node *NODELETE ReplacementFragment::firstChild() const 
+Node *LEGACY_NODELETE ReplacementFragment::firstChild() const 
 { 
     return m_fragment ? m_fragment->firstChild() : 0; 
 }
 
-Node *NODELETE ReplacementFragment::lastChild() const 
+Node *LEGACY_NODELETE ReplacementFragment::lastChild() const 
 { 
     return m_fragment ? m_fragment->lastChild() : 0; 
 }
@@ -539,7 +539,7 @@ bool ReplaceSelectionCommand::shouldMergeEnd(bool selectionEndWasEndOfParagraph)
         && shouldMerge(endOfInsertedContent, next);
 }
 
-static bool NODELETE isMailPasteAsQuotationNode(const Node& node)
+static bool LEGACY_NODELETE isMailPasteAsQuotationNode(const Node& node)
 {
     return node.hasTagName(blockquoteTag) && downcast<Element>(node).attributeWithoutSynchronization(classAttr) == ApplePasteAsQuotation;
 }
@@ -781,7 +781,7 @@ void ReplaceSelectionCommand::removeRedundantStylesAndKeepStyleSpanInline(Insert
     }
 }
 
-static bool NODELETE isProhibitedParagraphChild(const QualifiedName& name)
+static bool LEGACY_NODELETE isProhibitedParagraphChild(const QualifiedName& name)
 {
     using namespace ElementNames;
 
@@ -2050,7 +2050,7 @@ using ElementToStyleProperties = HashMap<Ref<StyledElement>, Vector<CSSPropertyI
         Vector<CSSPropertyID, 3> propertiesToRemove;
         if (auto inlineBackgroundColor = style->propertyAsColor(CSSPropertyID::BackgroundColor)) {
             bool inlineColorIsValid = inlineBackgroundColor->isValid();
-            auto backgroundColor = inlineColorIsValid ? *inlineBackgroundColor : protect(renderer->style())->visitedDependentBackgroundColor();
+            auto backgroundColor = inlineColorIsValid ? *inlineBackgroundColor : protect(renderer->style())->visitedDependentUsedBackgroundColor();
             auto compositeOperator = document->compositeOperatorForBackgroundColor(backgroundColor, *renderer);
             if (compositeOperator != CompositeOperator::DestinationIn && compositeOperator != CompositeOperator::DestinationOut) {
                 bool inlineColorIsSemantic = inlineColorIsValid && inlineBackgroundColor->isSemantic();

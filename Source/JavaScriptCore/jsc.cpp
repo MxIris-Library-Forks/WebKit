@@ -245,7 +245,7 @@ public:
     }
 
     std::span<const uint8_t> data() const { return m_data.span(); }
-    int32_t NODELETE index() const { return m_index; }
+    int32_t LEGACY_NODELETE index() const { return m_index; }
 
     // Every recipient worker gets this same Message and deserializes from it concurrently, which
     // is safe because the side channels (other than arrayBufferContents) are read-only.
@@ -282,7 +282,7 @@ public:
     
     void enqueue(const AbstractLocker&, RefPtr<Message>);
     RefPtr<Message> dequeue();
-    bool NODELETE isMain() const { return m_isMain; }
+    bool LEGACY_NODELETE isMain() const { return m_isMain; }
 
     static Worker& current();
 
@@ -507,7 +507,6 @@ static JSC_DECLARE_HOST_FUNCTION(functionDollarEvalScript);
 static JSC_DECLARE_HOST_FUNCTION(functionDollarGC);
 static JSC_DECLARE_HOST_FUNCTION(functionDollarClearKeptObjects);
 static JSC_DECLARE_HOST_FUNCTION(functionDollarGlobalObjectFor);
-static JSC_DECLARE_HOST_FUNCTION(functionDollarIsRemoteFunction);
 static JSC_DECLARE_HOST_FUNCTION(functionDollarAgentStart);
 static JSC_DECLARE_HOST_FUNCTION(functionDollarAgentReceiveBroadcast);
 static JSC_DECLARE_HOST_FUNCTION(functionDollarAgentReport);
@@ -627,7 +626,7 @@ void StopWatch::stop()
     m_stopTime = MonotonicTime::now();
 }
 
-long NODELETE StopWatch::getElapsedMS()
+long LEGACY_NODELETE StopWatch::getElapsedMS()
 {
     return (m_stopTime - m_startTime).millisecondsAs<long>();
 }
@@ -670,7 +669,7 @@ public:
         return Structure::create(vm, nullptr, prototype, TypeInfo(GlobalObjectType, StructureFlags), info());
     }
 
-    static RuntimeFlags NODELETE javaScriptRuntimeFlags(const JSGlobalObject*) { return RuntimeFlags::createAllEnabled(); }
+    static RuntimeFlags LEGACY_NODELETE javaScriptRuntimeFlags(const JSGlobalObject*) { return RuntimeFlags::createAllEnabled(); }
 
     static void getOwnPropertyNames(JSObject* object, JSGlobalObject* globalObject, PropertyNameArrayBuilder& propertyNames, DontEnumPropertiesMode mode)
     {
@@ -701,7 +700,7 @@ private:
         }
 
         bool contains(UniquedStringImpl* name) const { return m_names.contains(name); }
-        const UncheckedKeyHashSet<UniquedStringImpl*>& NODELETE names() const { return m_names; }
+        const UncheckedKeyHashSet<UniquedStringImpl*>& LEGACY_NODELETE names() const { return m_names; }
 
     private:
         Vector<AtomString> m_strings; // To keep the UniqueStringImpls alive.
@@ -900,7 +899,6 @@ private:
         addFunctionToObject(vm, dollar, "gc"_s, functionDollarGC, 0, static_cast<unsigned>(PropertyAttribute::None));
         addFunctionToObject(vm, dollar, "clearKeptObjects"_s, functionDollarClearKeptObjects, 0, static_cast<unsigned>(PropertyAttribute::None));
         addFunctionToObject(vm, dollar, "globalObjectFor"_s, functionDollarGlobalObjectFor, 1, static_cast<unsigned>(PropertyAttribute::None));
-        addFunctionToObject(vm, dollar, "isRemoteFunction"_s, functionDollarIsRemoteFunction, 1, static_cast<unsigned>(PropertyAttribute::None));
         
         dollar->putDirect(vm, Identifier::fromString(vm, "global"_s), globalThis());
         dollar->putDirectCustomAccessor(vm, Identifier::fromString(vm, "IsHTMLDDA"_s),
@@ -1066,7 +1064,7 @@ private:
 STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(GlobalObject, JSGlobalObject);
 
 static bool supportsRichSourceInfo = true;
-static bool NODELETE shellSupportsRichSourceInfo(const JSGlobalObject*)
+static bool LEGACY_NODELETE shellSupportsRichSourceInfo(const JSGlobalObject*)
 {
     return supportsRichSourceInfo;
 }
@@ -1091,7 +1089,6 @@ const GlobalObjectMethodTable GlobalObject::s_globalObjectMethodTable = {
     nullptr, // defaultLanguage
     nullptr, // compileStreaming
     nullptr, // instantinateStreaming
-    &deriveShadowRealmGlobalObject,
     &codeForEval,
     &canCompileStrings,
     &trustedScriptStructure,
@@ -1121,7 +1118,7 @@ JSC_DEFINE_CUSTOM_SETTER(testCustomValueSetter, (JSGlobalObject* lexicalGlobalOb
     return GlobalObject::testCustomSetterImpl(lexicalGlobalObject, thisObject, encodedValue, "_testCustomValueSetter"_s);
 }
 
-static char16_t NODELETE pathSeparator()
+static char16_t LEGACY_NODELETE pathSeparator()
 {
 #if OS(WINDOWS)
     return '\\';
@@ -1174,7 +1171,7 @@ static URL currentWorkingDirectory()
 // FIXME: We may wish to support module specifiers beginning with a (back)slash on Windows. We could either:
 // - align with V8 and SM:  treat '/foo' as './foo'
 // - align with PowerShell: treat '/foo' as 'C:/foo'
-static bool NODELETE isAbsolutePath(StringView path)
+static bool LEGACY_NODELETE isAbsolutePath(StringView path)
 {
 #if OS(WINDOWS)
     // Just look for local drives like C:\.
@@ -1295,7 +1292,7 @@ Identifier GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, JSMod
 }
 
 template<typename Vector>
-static void NODELETE convertShebangToJSComment(Vector& buffer)
+static void LEGACY_NODELETE convertShebangToJSComment(Vector& buffer)
 {
     if (buffer.size() >= 2) {
         if (buffer[0] == '#' && buffer[1] == '!')
@@ -1514,7 +1511,7 @@ private:
     {
     }
 
-    bool NODELETE cacheEnabled() const { return m_cacheEnabled; }
+    bool LEGACY_NODELETE cacheEnabled() const { return m_cacheEnabled; }
 
     mutable RefPtr<CachedBytecode> m_cachedBytecode;
     const bool m_cacheEnabled;
@@ -2010,7 +2007,7 @@ class JSCMemoryFootprint : public JSDestructibleObject {
     using Base = JSDestructibleObject;
 public:
     template<typename CellType, SubspaceAccess>
-    static CompleteSubspace* NODELETE subspaceFor(VM& vm)
+    static CompleteSubspace* LEGACY_NODELETE subspaceFor(VM& vm)
     {
         return &vm.destructibleObjectSpace();
     }
@@ -2397,7 +2394,7 @@ class JSFileDescriptor : public JSDestructibleObject {
     using Base = JSDestructibleObject;
 public:
     template<typename CellType, SubspaceAccess>
-    static CompleteSubspace* NODELETE subspaceFor(VM& vm)
+    static CompleteSubspace* LEGACY_NODELETE subspaceFor(VM& vm)
     {
         return &vm.destructibleObjectSpace();
     }
@@ -2428,7 +2425,7 @@ public:
         static_cast<JSFileDescriptor*>(thisObject)->~JSFileDescriptor();
     }
 
-    FILE* NODELETE descriptor() const { return m_descriptor; }
+    FILE* LEGACY_NODELETE descriptor() const { return m_descriptor; }
 
     DECLARE_INFO;
 
@@ -2712,18 +2709,6 @@ JSC_DEFINE_HOST_FUNCTION(functionDollarGlobalObjectFor, (JSGlobalObject* globalO
     }
 
     return JSValue::encode(jsUndefined());
-}
-
-JSC_DEFINE_HOST_FUNCTION(functionDollarIsRemoteFunction, (JSGlobalObject* globalObject, CallFrame* callFrame))
-{
-    VM& vm = globalObject->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
-
-    if (callFrame->argumentCount() < 1)
-        return JSValue::encode(throwException(globalObject, scope, createError(globalObject, "Not enough arguments"_s)));
-
-    JSValue arg = callFrame->argument(0);
-    return JSValue::encode(jsBoolean(isRemoteFunction(arg)));
 }
 
 JSC_DEFINE_HOST_FUNCTION(functionDollarAgentStart, (JSGlobalObject* globalObject, CallFrame* callFrame))
@@ -3732,7 +3717,7 @@ static void startTimeoutTimer(Seconds duration)
 // jsc shell test timeouts (i.e. crashDueToJSCShellTimeout is present in crash stack
 // traces) from other crashes.
 NO_RETURN_DUE_TO_CRASH NEVER_INLINE void crashDueToJSCShellTimeout();
-void NODELETE crashDueToJSCShellTimeout()
+void LEGACY_NODELETE crashDueToJSCShellTimeout()
 {
     CRASH();
 }

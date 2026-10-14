@@ -130,7 +130,7 @@ private:
     void append16(std::span<const char16_t> characters) { m_buffer16.append(characters); }
 
     static constexpr char32_t errorCodePoint = 0xFFFFFFFFu;
-    char32_t NODELETE currentCodePoint() const;
+    char32_t LEGACY_NODELETE currentCodePoint() const;
     ALWAYS_INLINE void shift();
     ALWAYS_INLINE bool atEnd() const;
     ALWAYS_INLINE T peek(int offset) const;
@@ -329,7 +329,7 @@ ALWAYS_INLINE JSTokenType Lexer<T>::scanSimpleArrayElementFollowedByComma(double
         return ERRORTOK;
 
     m_code = ptr + 1;
-    m_current = m_code < m_codeEnd ? *m_code : 0;
+    m_current = m_code < m_codeEnd ? *m_code : T { };
     m_hasLineTerminatorBeforeToken = false;
     return type;
 }

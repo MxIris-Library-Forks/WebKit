@@ -1029,14 +1029,14 @@ std::optional<BoundaryPoint> AccessibilityObject::lastBoundaryPointContainedInRe
     return lastBoundaryPointContainedInRect(boundaryPoints, startBoundary, rect, midIndex + 1, rightIndex, isFlippedWritingMode);
 }
 
-static IntPoint NODELETE textStartPoint(const IntRect& rect, bool isFlippedWritingMode)
+static IntPoint LEGACY_NODELETE textStartPoint(const IntRect& rect, bool isFlippedWritingMode)
 {
     if (!isFlippedWritingMode)
         return rect.minXMinYCorner();
     return rect.maxXMinYCorner();
 }
 
-static IntPoint NODELETE textEndPoint(const IntRect& rect, bool isFlippedWritingMode)
+static IntPoint LEGACY_NODELETE textEndPoint(const IntRect& rect, bool isFlippedWritingMode)
 {
     if (!isFlippedWritingMode)
         return rect.maxXMaxYCorner();
@@ -2201,7 +2201,7 @@ ModelPlayerAccessibilityChildren AccessibilityObject::modelElementChildren()
 #endif
 
 // Finds a RenderListItem parent given a node.
-static RenderListItem* NODELETE renderListItemContainer(Node* node)
+static RenderListItem* LEGACY_NODELETE renderListItemContainer(Node* node)
 {
     for (; node; node = node->parentNode()) {
         if (auto* listItem = dynamicDowncast<RenderListItem>(node->renderer()))
@@ -3919,7 +3919,7 @@ bool AccessibilityObject::supportsExpanded() const
     if (isColumnHeader() || isRowHeader())
         return hasValidAriaExpandedValue();
 
-    if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node()); select && select->usesMenuList())
+    if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node()); select && select->isDropdownBox())
         return true;
 
     switch (role()) {
@@ -3970,7 +3970,7 @@ bool AccessibilityObject::isExpanded() const
     }
 
     if (supportsExpanded()) {
-        if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node()); select && select->usesMenuList())
+        if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node()); select && select->isDropdownBox())
             return select->isOpen();
         if (RefPtr commandForElement = this->commandForElement())
             return commandForElement->isPopoverShowing();

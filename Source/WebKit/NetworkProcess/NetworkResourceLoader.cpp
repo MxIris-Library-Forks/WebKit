@@ -826,7 +826,7 @@ bool NetworkResourceLoader::shouldInterruptLoadForXFrameOptions(const String& xF
         auto topFrameOrigin = m_parameters.frameAncestorOrigins.last();
         if (!origin->isSameSchemeHostPort(topFrameOrigin))
             return true;
-        for (auto& ancestorOrigin : m_parameters.frameAncestorOrigins) {
+        for (auto& ancestorOrigin : borrow(m_parameters.frameAncestorOrigins)) {
             if (!origin->isSameSchemeHostPort(ancestorOrigin))
                 return true;
         }
@@ -1153,7 +1153,7 @@ void NetworkResourceLoader::processUseAsDictionaryHeader(const ResourceResponse&
             auto* matchDest = std::get_if<RFC8941::InnerList>(&value);
             if (!matchDest)
                 return;
-            for (auto& [item, parameters] : *matchDest) {
+            for (auto& [item, parameters] : borrow(*matchDest)) {
                 auto* destinationString = std::get_if<String>(&item);
                 if (!destinationString)
                     return;
@@ -1213,7 +1213,7 @@ void NetworkResourceLoader::storeCompressionDictionaryIfNeeded(const ResourceRes
     protect(m_cache)->storeCompressionDictionary(m_networkLoad ? m_networkLoad->currentRequest() : originalRequest(), response, WTF::move(body), WTF::move(*info));
 }
 
-static BrowsingContextGroupSwitchDecision NODELETE toBrowsingContextGroupSwitchDecision(const std::optional<CrossOriginOpenerPolicyEnforcementResult>& currentCoopEnforcementResult)
+static BrowsingContextGroupSwitchDecision LEGACY_NODELETE toBrowsingContextGroupSwitchDecision(const std::optional<CrossOriginOpenerPolicyEnforcementResult>& currentCoopEnforcementResult)
 {
     if (!currentCoopEnforcementResult || !currentCoopEnforcementResult->needsBrowsingContextGroupSwitch)
         return BrowsingContextGroupSwitchDecision::StayInGroup;
@@ -2071,7 +2071,7 @@ void NetworkResourceLoader::restartNetworkLoad(WebCore::ResourceRequest&& newReq
         startNetworkLoad(WTF::move(newRequest), FirstLoad::No);
 }
 
-static bool NODELETE shouldTryToMatchRegistrationOnRedirection(const FetchOptions& options, bool isServiceWorkerLoaded)
+static bool LEGACY_NODELETE shouldTryToMatchRegistrationOnRedirection(const FetchOptions& options, bool isServiceWorkerLoaded)
 {
     if (options.mode == FetchOptions::Mode::Navigate)
         return true;
@@ -2620,7 +2620,7 @@ void NetworkResourceLoader::consumeSandboxExtensions()
         }
     }
 
-    for (Ref fileReference : borrow(m_fileReferences).get())
+    for (Ref fileReference : borrow(m_fileReferences))
         fileReference->prepareForFileAccess();
 
     m_didConsumeSandboxExtensions = true;
@@ -2632,7 +2632,7 @@ void NetworkResourceLoader::invalidateSandboxExtensions()
         for (auto extension : std::exchange(m_extensionsToRevoke, { }))
             extension->revoke();
 
-        for (Ref fileReference : borrow(m_fileReferences).get())
+        for (Ref fileReference : borrow(m_fileReferences))
             fileReference->revokeFileAccess();
 
         m_didConsumeSandboxExtensions = false;
@@ -2737,7 +2737,7 @@ static void logCookieInformationInternal(NetworkConnectionToWebProcess& connecti
 
     auto size = cookies.size();
     decltype(size) count = 0;
-    for (const auto& cookie : cookies) {
+    for (const auto& cookie : borrow(cookies)) {
         auto trailingComma = ","_s;
         if (++count == size)
             trailingComma = ""_s;

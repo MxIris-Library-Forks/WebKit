@@ -50,6 +50,7 @@
 #import <pal/spi/cocoa/LaunchServicesSPI.h>
 #import <span>
 #import <wtf/BlockPtr.h>
+#import <wtf/Borrow.h>
 #import <wtf/CompletionHandler.h>
 #import <wtf/HexNumber.h>
 #import <wtf/NeverDestroyed.h>
@@ -119,7 +120,7 @@ static constexpr Seconds s_incomingPushTransactionTimeout { 10_s };
 
 #if HAVE(FULL_FEATURED_USER_NOTIFICATIONS)
 
-static bool NODELETE platformShouldPlaySound(const WebCore::NotificationData& data)
+static bool LEGACY_NODELETE platformShouldPlaySound(const WebCore::NotificationData& data)
 {
 #if PLATFORM(IOS)
     return data.silent == std::nullopt || !(*data.silent);
@@ -564,7 +565,7 @@ void WebPushDaemon::handleIncomingPushImpl(const PushSubscriptionSetIdentifier& 
 #if ENABLE(DECLARATIVE_WEB_PUSH)
     String payloadString;
     if (message.pushData)
-        payloadString = String::fromUTF8(message.pushData->span());
+        payloadString = String::fromUTF8(borrow(*message.pushData)->span());
 
     if (!payloadString.isNull()) {
         auto exceptionOrPayload = WebCore::NotificationPayload::parseJSON(payloadString);

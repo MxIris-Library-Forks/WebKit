@@ -164,17 +164,24 @@ using namespace JSC;
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(SerializedScriptValue);
 
+struct PlatformObjectSerializationTraits {
+    bool (*isExposedInGlobalObject)(JSDOMGlobalObject&);
+    bool isRestrictedToSameAgentCluster;
+};
+
 template<typename JSWrapper>
-static bool isInterfaceExposedInGlobalObject(JSC::JSGlobalObject& globalObject)
+constexpr PlatformObjectSerializationTraits platformObjectSerializationTraits { &JSWrapper::isExposedInGlobalObject, JSWrapper::isRestrictedToSameAgentCluster };
+
+static bool isInterfaceExposedInGlobalObject(JSC::JSGlobalObject& globalObject, const PlatformObjectSerializationTraits& traits)
 {
     auto* domGlobalObject = dynamicDowncast<JSDOMGlobalObject>(globalObject);
     // JSIDBSerializationGlobalObject is only used for fuzzing, so let every reader run there.
     if (!domGlobalObject || !domGlobalObject->scriptExecutionContext() || is<JSIDBSerializationGlobalObject>(*domGlobalObject))
         return true;
-    return JSWrapper::isExposedInGlobalObject(*domGlobalObject);
+    return traits.isExposedInGlobalObject(*domGlobalObject);
 }
 
-static bool isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObject, SerializationTag tag)
+static const PlatformObjectSerializationTraits* platformObjectSerializationTraitsForTag(SerializationTag tag)
 {
     switch (tag) {
     case ArrayTag:
@@ -216,90 +223,102 @@ static bool isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObject, Seria
     case ResizableArrayBufferTag:
     case ErrorInstanceTag:
     case ErrorTag:
-        return true;
+        return nullptr;
     case FileTag:
-        return isInterfaceExposedInGlobalObject<JSFile>(globalObject);
+        return &platformObjectSerializationTraits<JSFile>;
     case FileListTag:
-        return isInterfaceExposedInGlobalObject<JSFileList>(globalObject);
+        return &platformObjectSerializationTraits<JSFileList>;
     case ImageDataTag:
-        return isInterfaceExposedInGlobalObject<JSImageData>(globalObject);
+        return &platformObjectSerializationTraits<JSImageData>;
     case BlobTag:
-        return isInterfaceExposedInGlobalObject<JSBlob>(globalObject);
+        return &platformObjectSerializationTraits<JSBlob>;
     case CryptoKeyTag:
-        return isInterfaceExposedInGlobalObject<JSCryptoKey>(globalObject);
+        return &platformObjectSerializationTraits<JSCryptoKey>;
     case DOMPointReadOnlyTag:
-        return isInterfaceExposedInGlobalObject<JSDOMPointReadOnly>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMPointReadOnly>;
     case DOMPointTag:
-        return isInterfaceExposedInGlobalObject<JSDOMPoint>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMPoint>;
     case DOMRectReadOnlyTag:
-        return isInterfaceExposedInGlobalObject<JSDOMRectReadOnly>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMRectReadOnly>;
     case DOMRectTag:
-        return isInterfaceExposedInGlobalObject<JSDOMRect>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMRect>;
     case DOMMatrixReadOnlyTag:
-        return isInterfaceExposedInGlobalObject<JSDOMMatrixReadOnly>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMMatrixReadOnly>;
     case DOMMatrixTag:
-        return isInterfaceExposedInGlobalObject<JSDOMMatrix>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMMatrix>;
     case DOMQuadTag:
-        return isInterfaceExposedInGlobalObject<JSDOMQuad>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMQuad>;
     case ImageBitmapTransferTag:
     case ImageBitmapTag:
-        return isInterfaceExposedInGlobalObject<JSImageBitmap>(globalObject);
+        return &platformObjectSerializationTraits<JSImageBitmap>;
 #if ENABLE(WEB_RTC)
     case RTCCertificateTag:
-        return isInterfaceExposedInGlobalObject<JSRTCCertificate>(globalObject);
+        return &platformObjectSerializationTraits<JSRTCCertificate>;
 #endif
 #if ENABLE(OFFSCREEN_CANVAS_IN_WORKERS)
     case OffscreenCanvasTransferTag:
     case InMemoryOffscreenCanvasTag:
-        return isInterfaceExposedInGlobalObject<JSOffscreenCanvas>(globalObject);
+        return &platformObjectSerializationTraits<JSOffscreenCanvas>;
 #endif
     case MessagePortReferenceTag:
     case InMemoryMessagePortTag:
-        return isInterfaceExposedInGlobalObject<JSMessagePort>(globalObject);
+        return &platformObjectSerializationTraits<JSMessagePort>;
 #if ENABLE(WEB_RTC)
     case RTCDataChannelTransferTag:
-        return isInterfaceExposedInGlobalObject<JSRTCDataChannel>(globalObject);
+        return &platformObjectSerializationTraits<JSRTCDataChannel>;
 #endif
     case DOMExceptionTag:
-        return isInterfaceExposedInGlobalObject<JSDOMException>(globalObject);
+        return &platformObjectSerializationTraits<JSDOMException>;
     case QuotaExceededErrorTag:
-        return isInterfaceExposedInGlobalObject<JSQuotaExceededError>(globalObject);
+        return &platformObjectSerializationTraits<JSQuotaExceededError>;
 #if ENABLE(WEB_CODECS)
     case WebCodecsEncodedVideoChunkTag:
-        return isInterfaceExposedInGlobalObject<JSWebCodecsEncodedVideoChunk>(globalObject);
+        return &platformObjectSerializationTraits<JSWebCodecsEncodedVideoChunk>;
     case WebCodecsVideoFrameTag:
-        return isInterfaceExposedInGlobalObject<JSWebCodecsVideoFrame>(globalObject);
+        return &platformObjectSerializationTraits<JSWebCodecsVideoFrame>;
     case WebCodecsEncodedAudioChunkTag:
-        return isInterfaceExposedInGlobalObject<JSWebCodecsEncodedAudioChunk>(globalObject);
+        return &platformObjectSerializationTraits<JSWebCodecsEncodedAudioChunk>;
     case WebCodecsAudioDataTag:
-        return isInterfaceExposedInGlobalObject<JSWebCodecsAudioData>(globalObject);
+        return &platformObjectSerializationTraits<JSWebCodecsAudioData>;
 #endif
 #if ENABLE(MEDIA_STREAM)
     case MediaStreamTrackTag:
-        return isInterfaceExposedInGlobalObject<JSMediaStreamTrack>(globalObject);
+        return &platformObjectSerializationTraits<JSMediaStreamTrack>;
     case MediaStreamTrackHandleTag:
-        return isInterfaceExposedInGlobalObject<JSMediaStreamTrackHandle>(globalObject);
+        return &platformObjectSerializationTraits<JSMediaStreamTrackHandle>;
 #endif
 #if ENABLE(MEDIA_SOURCE_IN_WORKERS)
     case MediaSourceHandleTransferTag:
-        return isInterfaceExposedInGlobalObject<JSMediaSourceHandle>(globalObject);
+        return &platformObjectSerializationTraits<JSMediaSourceHandle>;
 #endif
 #if ENABLE(WEB_RTC)
     case RTCEncodedAudioFrameTag:
-        return isInterfaceExposedInGlobalObject<JSRTCEncodedAudioFrame>(globalObject);
+        return &platformObjectSerializationTraits<JSRTCEncodedAudioFrame>;
     case RTCEncodedVideoFrameTag:
-        return isInterfaceExposedInGlobalObject<JSRTCEncodedVideoFrame>(globalObject);
+        return &platformObjectSerializationTraits<JSRTCEncodedVideoFrame>;
 #endif
     case ReadableStreamTag:
-        return isInterfaceExposedInGlobalObject<JSReadableStream>(globalObject);
+        return &platformObjectSerializationTraits<JSReadableStream>;
     case WritableStreamTag:
-        return isInterfaceExposedInGlobalObject<JSWritableStream>(globalObject);
+        return &platformObjectSerializationTraits<JSWritableStream>;
     case TransformStreamTag:
-        return isInterfaceExposedInGlobalObject<JSTransformStream>(globalObject);
+        return &platformObjectSerializationTraits<JSTransformStream>;
     case FileSystemHandleTag:
-        return isInterfaceExposedInGlobalObject<JSFileSystemHandle>(globalObject);
+        return &platformObjectSerializationTraits<JSFileSystemHandle>;
     }
-    return false;
+    return nullptr;
+}
+
+static bool isTypeExposedToGlobalObject(JSC::JSGlobalObject& globalObject, SerializationTag tag)
+{
+    auto* traits = platformObjectSerializationTraitsForTag(tag);
+    return !traits || isInterfaceExposedInGlobalObject(globalObject, *traits);
+}
+
+static bool isTagRestrictedToSameAgentCluster(SerializationTag tag)
+{
+    auto* traits = platformObjectSerializationTraitsForTag(tag);
+    return traits && traits->isRestrictedToSameAgentCluster;
 }
 
 enum class PredefinedColorSpaceTag : uint8_t {
@@ -416,7 +435,7 @@ enum class CryptoAlgorithmIdentifierTag {
 
 const uint8_t cryptoAlgorithmIdentifierTagMaximumValue = 23;
 
-static unsigned NODELETE countUsages(CryptoKeyUsageBitmap usages)
+static unsigned LEGACY_NODELETE countUsages(CryptoKeyUsageBitmap usages)
 {
     // Fast bit count algorithm for sparse bit maps.
     unsigned count = 0;
@@ -1365,6 +1384,15 @@ public:
 private:
     using Base::write;
 
+    void write(SerializationTag tag)
+    {
+        Base::write(tag);
+        if (!isTagRestrictedToSameAgentCluster(tag))
+            return;
+        ASSERT(m_forStorage == SerializationForStorage::No);
+        write(agentClusterID());
+    }
+
     void write(ColorSpaceTag tag)
     {
         JSC::StructuredCloneInternal::writeLittleEndian<uint8_t>(m_buffer, static_cast<uint8_t>(tag));
@@ -2078,7 +2106,7 @@ private:
 
     using Base::read;
 
-    std::optional<uint32_t> NODELETE readImageDataIndex()
+    std::optional<uint32_t> LEGACY_NODELETE readImageDataIndex()
     {
         return readConstantPoolIndex(m_imageDataPool);
     }
@@ -2130,7 +2158,7 @@ private:
         return true;
     }
 
-    bool NODELETE read(PredefinedColorSpace& result)
+    bool LEGACY_NODELETE read(PredefinedColorSpace& result)
     {
         uint8_t tag;
         if (!read(tag))
@@ -2156,7 +2184,7 @@ private:
         }
     }
 
-    bool NODELETE read(ColorSpaceTag& tag)
+    bool LEGACY_NODELETE read(ColorSpaceTag& tag)
     {
         if (m_data.empty())
             return false;
@@ -2241,7 +2269,7 @@ private:
         return false;
     }
 
-    bool NODELETE read(CryptoKeyOKP::NamedCurve& result)
+    bool LEGACY_NODELETE read(CryptoKeyOKP::NamedCurve& result)
     {
         uint8_t nameTag;
         if (!read(nameTag))
@@ -2261,7 +2289,7 @@ private:
         return true;
     }
 
-    bool NODELETE read(CryptoAlgorithmIdentifier& result)
+    bool LEGACY_NODELETE read(CryptoAlgorithmIdentifier& result)
     {
         uint8_t algorithmTag;
         if (!read(algorithmTag))
@@ -2336,7 +2364,7 @@ private:
         return true;
     }
 
-    bool NODELETE read(CryptoKeyClassSubtag& result)
+    bool LEGACY_NODELETE read(CryptoKeyClassSubtag& result)
     {
         uint8_t tag;
         if (!read(tag))
@@ -2347,7 +2375,7 @@ private:
         return true;
     }
 
-    bool NODELETE read(CryptoKeyUsageTag& result)
+    bool LEGACY_NODELETE read(CryptoKeyUsageTag& result)
     {
         uint8_t tag;
         if (!read(tag))
@@ -2358,7 +2386,7 @@ private:
         return true;
     }
 
-    bool NODELETE read(CryptoKeyAsymmetricTypeSubtag& result)
+    bool LEGACY_NODELETE read(CryptoKeyAsymmetricTypeSubtag& result)
     {
         uint8_t tag;
         if (!read(tag))
@@ -2755,7 +2783,7 @@ private:
         return toJSNewlyCreated(m_lexicalGlobalObject, downcast<JSDOMGlobalObject>(m_globalObject), T::create(x, y, width, height));
     }
 
-    std::optional<DOMPointInit> NODELETE readDOMPointInit()
+    std::optional<DOMPointInit> LEGACY_NODELETE readDOMPointInit()
     {
         DOMPointInit point;
         if (!read(point.x))
@@ -3308,6 +3336,15 @@ public:
 
     JSValue readDerivedTerminal(SerializationTag tag)
     {
+        if (isTagRestrictedToSameAgentCluster(tag)) {
+            CachedStringRef restrictedAgentClusterID;
+            if (!readStringData(restrictedAgentClusterID) || !m_isDOMGlobalObject || restrictedAgentClusterID->string() != agentClusterID()) {
+                SERIALIZE_TRACE("FAIL deserialize");
+                fail();
+                return JSValue();
+            }
+        }
+
         switch (tag) {
         case FileTag: {
             RefPtr<File> file;
@@ -3573,7 +3610,7 @@ private:
     Vector<RefPtr<MediaStreamTrackHandle>> m_mediaStreamTrackHandles;
 #endif
 
-    String NODELETE blobFilePathForBlobURL(const String& blobURL)
+    String LEGACY_NODELETE blobFilePathForBlobURL(const String& blobURL)
     {
         size_t i = 0;
         for (; i < m_blobURLs.size(); ++i) {

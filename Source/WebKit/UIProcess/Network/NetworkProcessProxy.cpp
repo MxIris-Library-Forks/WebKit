@@ -136,7 +136,7 @@ using namespace WebCore;
 
 static constexpr Seconds networkProcessResponsivenessTimeout = 6_s;
 
-static WeakHashSet<NetworkProcessProxy>& NODELETE networkProcessesSet()
+static WeakHashSet<NetworkProcessProxy>& LEGACY_NODELETE networkProcessesSet()
 {
     ASSERT(RunLoop::isMain());
     static NeverDestroyed<WeakHashSet<NetworkProcessProxy>> set;
@@ -368,6 +368,7 @@ void NetworkProcessProxy::getNetworkProcessConnection(WebProcessProxy& webProces
     auto& cookiesData = webProcessProxy.allowedFirstPartiesForCookiesData();
     parameters.loadedWebArchive = cookiesData.first;
     parameters.allowedFirstPartiesForCookies = cookiesData.second;
+    parameters.hostedDomains = webProcessProxy.hostedDomains();
     sendWithAsyncReply(Messages::NetworkProcess::CreateNetworkConnectionToWebProcess { webProcessProxy.coreProcessIdentifier(), webProcessProxy.sessionID(), parameters }, [weakThis = WeakPtr { *this }, reply = WTF::move(reply)](auto&& identifier, auto cookieAcceptPolicy) mutable {
         RefPtr protectedThis = weakThis.get();
         if (!protectedThis) {

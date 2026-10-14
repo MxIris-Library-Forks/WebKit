@@ -153,7 +153,7 @@ WebAutomationSessionProxy::~WebAutomationSessionProxy()
 #endif
 }
 
-static bool NODELETE isValidNodeHandle(const String& nodeHandle)
+static bool LEGACY_NODELETE isValidNodeHandle(const String& nodeHandle)
 {
     // Node identifier has the following format:
     // node-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
@@ -386,7 +386,7 @@ JSObjectRef WebAutomationSessionProxy::scriptObjectForFrame(WebFrame& frame)
         return scriptObject;
 
     JSValueRef exception = nullptr;
-    String script = StringImpl::createWithoutCopying(WebAutomationSessionProxyScriptSource);
+    String script = StringImpl::createWithoutCopying(byteCast<Latin1Character>(std::span { WebAutomationSessionProxyScriptSource }));
     JSObjectRef scriptObjectFunction = const_cast<JSObjectRef>(JSEvaluateScript(context, OpaqueJSString::tryCreate(script).get(), nullptr, nullptr, 0, &exception));
     ASSERT(JSValueIsObject(context, scriptObjectFunction));
 

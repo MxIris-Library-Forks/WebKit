@@ -108,7 +108,7 @@ void RenderListBox::willBeDestroyed()
     RenderBlockFlow::willBeDestroyed();
 }
 
-HTMLSelectElement& NODELETE RenderListBox::selectElement() const
+HTMLSelectElement& LEGACY_NODELETE RenderListBox::selectElement() const
 {
     return downcast<HTMLSelectElement>(nodeForNonAnonymous());
 }
@@ -557,7 +557,7 @@ void RenderListBox::paintItemBackground(PaintInfo& paintInfo, const LayoutPoint&
         else
             backColor = theme().inactiveListBoxSelectionBackgroundColor(styleColorOptions());
     } else
-        backColor = itemStyle->visitedDependentBackgroundColorApplyingColorFilter();
+        backColor = itemStyle->visitedDependentUsedBackgroundColorApplyingColorFilter();
 
     // Draw the background for this list box item
     if ((itemStyle->visibility() == Visibility::Hidden || itemStyle->isForceHidden()))

@@ -2132,7 +2132,7 @@ void WebPage::updateEditorStateAfterLayoutIfEditabilityChanged()
         scheduleFullEditorStateUpdate();
 }
 
-static OptionSet<RenderAsTextFlag> NODELETE toRenderAsTextFlags(unsigned options)
+static OptionSet<RenderAsTextFlag> LEGACY_NODELETE toRenderAsTextFlags(unsigned options)
 {
     OptionSet<RenderAsTextFlag> flags;
 
@@ -4885,10 +4885,13 @@ void WebPage::updateIsInWindow(bool isInitialState)
 void WebPage::visibilityDidChange()
 {
     bool isVisible = m_activityState.contains(ActivityState::IsVisible);
-    if (!isVisible) {
+    if (!isVisible && m_page) {
         // We save the document / scroll state when backgrounding a tab so that we are able to restore it
         // if it gets terminated while in the background.
-        if (RefPtr frame = m_mainFrame->coreLocalFrame())
+        // FIXME: A cross-site iframe that hasn't navigated since the page loaded still loses its state, because the UI
+        // process gives its first back/forward item the main frame entry's identifier, which the iframe's process
+        // doesn't learn, so the UI process drops the update.
+        for (Ref frame : copyToVectorOf<Ref<LocalFrame>>(m_page->rootFrames()))
             frame->loader().history().saveDocumentAndScrollState();
     }
 }
@@ -8166,6 +8169,10 @@ void WebPage::elementDidBlur(WebCore::Element& element)
                 protectedThis->send(Messages::WebPageProxy::ElementDidBlur());
 #elif PLATFORM(MAC)
                 protectedThis->send(Messages::WebPageProxy::SetFocusedElementInputType(InputType::None));
+#elif PLATFORM(GTK) || PLATFORM(WPE)
+                // Clear it first so that setInputMethodState() does not hold the reset back again.
+                protectedThis->m_recentlyBlurredElement = nullptr;
+                protectedThis->setInputMethodState(nullptr);
 #endif
             }
             protectedThis->m_recentlyBlurredElement = nullptr;
@@ -8797,6 +8804,7 @@ void WebPage::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::option
         if (!context)
             return completionHandler(makeUnexpected<ResourceError>({ }));
 
+        context->setImageInterpolationQuality(WebCore::InterpolationQuality::High);
         context->drawNativeImage(*nativeImage, FloatRect({ }, roundedDestinationSize), FloatRect({ }, sourceSize), { CompositeOperator::Copy });
 
         completionHandler(bitmap.releaseNonNull());

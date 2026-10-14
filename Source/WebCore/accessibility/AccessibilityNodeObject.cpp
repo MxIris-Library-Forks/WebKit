@@ -886,7 +886,7 @@ void AccessibilityNodeObject::addChildren()
 #else
     // For listbox selects, use listItems() to get option elements instead of
     // composedTreeChildren which would return shadow DOM content.
-    if (RefPtr selectElement = dynamicDowncast<HTMLSelectElement>(node); selectElement && !selectElement->usesMenuList()) {
+    if (RefPtr selectElement = dynamicDowncast<HTMLSelectElement>(node); selectElement && !selectElement->isDropdownBox()) {
         for (const auto& listItem : selectElement->listItems()) {
             if (listItem)
                 addChild(protect(cache->getOrCreate(*listItem)));
@@ -977,13 +977,10 @@ AXCoreObject::AccessibilityChildrenVector AccessibilityNodeObject::visibleChildr
     }
 
     // For HTMLSelectElement with arbitrary renderer use the size attribute as approximation.
-    if (RefPtr selectElement = dynamicDowncast<HTMLSelectElement>(node()); selectElement && !selectElement->usesMenuList()) {
+    if (RefPtr selectElement = dynamicDowncast<HTMLSelectElement>(node()); selectElement && !selectElement->isDropdownBox()) {
         const auto& children = const_cast<AccessibilityNodeObject*>(this)->unignoredChildren();
         AccessibilityChildrenVector result;
-        unsigned visibleCount = selectElement->size();
-        if (!visibleCount)
-            visibleCount = 4; // Default size for multiple select is 4
-        size_t count = std::min(static_cast<size_t>(visibleCount), children.size());
+        size_t count = std::min(static_cast<size_t>(selectElement->preferredSize()), children.size());
         result.reserveInitialCapacity(count);
         for (size_t i = 0; i < count; i++)
             result.append(children[i]);
@@ -1089,7 +1086,7 @@ bool AccessibilityNodeObject::hasElementDescendant() const
     return element && childrenOfType<Element>(*element).first();
 }
 
-static bool NODELETE isFlowContent(Node& node)
+static bool LEGACY_NODELETE isFlowContent(Node& node)
 {
     if (auto* element = dynamicDowncast<HTMLElement>(node)) {
         // https://html.spec.whatwg.org/#flow-content
@@ -1625,7 +1622,7 @@ bool AccessibilityNodeObject::isHiddenUntilFoundContainer() const
     return element && element->isHiddenUntilFound();
 }
 
-static bool NODELETE isDateFieldWithStandardFocus(HTMLInputElement& input)
+static bool LEGACY_NODELETE isDateFieldWithStandardFocus(HTMLInputElement& input)
 {
     return (input.isDateField() || input.isDateTimeLocalField()) && !input.hasCustomFocusLogic();
 }
@@ -3920,7 +3917,7 @@ static void appendNameToStringBuilder(StringBuilder& builder, String&& text, boo
 }
 
 
-static bool NODELETE displayNeedsSpace(Style::Display display)
+static bool LEGACY_NODELETE displayNeedsSpace(Style::Display display)
 {
     return display == Style::DisplayType::BlockFlow
         || display == Style::DisplayType::InlineFlowRoot
@@ -4912,9 +4909,10 @@ void AccessibilityNodeObject::setSelectedChildren(const AccessibilityChildrenVec
     if (role() != AccessibilityRole::ListBox || !canSetSelectedChildren())
         return;
 
-    // Unselect any selected option.
-    for (const auto& child : selectedChildren())
-        child->setSelected(false);
+    for (const auto& child : selectedChildren()) {
+        if (!children.contains(child))
+            child->setSelected(false);
+    }
 
     for (const auto& object : children) {
         if (object->isListBoxOption())

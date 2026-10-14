@@ -479,7 +479,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/identity/DigitalCredentialPresentationProtocol.h
     Modules/identity/DigitalCredentialRequestOptions.h
     Modules/identity/DigitalCredentialsMobileDocumentRequestData.h
+    Modules/identity/DigitalCredentialsOpenID4VPRequestData.h
     Modules/identity/DigitalCredentialsRequestData.h
+    Modules/identity/DigitalCredentialsRequestDataBuilder.h
     Modules/identity/DigitalCredentialsResponseData.h
     Modules/identity/DigitalCredentialsSecurityOriginData.h
 
@@ -499,6 +501,8 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/identity/protocols/openid/OpenID4VPMultisignedRequest.h
     Modules/identity/protocols/openid/OpenID4VPSignature.h
     Modules/identity/protocols/openid/OpenID4VPSignedRequest.h
+    Modules/identity/protocols/openid/OpenID4VPUnsignedRequest.h
+    Modules/identity/protocols/openid/ValidatedOpenID4VPRequest.h
 
     Modules/indexeddb/IDBActiveDOMObject.h
     Modules/indexeddb/IDBActiveDOMObjectInlines.h
@@ -993,7 +997,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     bindings/js/JSNodeCustom.h
     bindings/js/JSNodeCustomInlines.h
     bindings/js/JSNodeListCustom.h
-    bindings/js/JSShadowRealmGlobalScopeBase.h
     bindings/js/JSStyleSheetCustom.h
     bindings/js/JSValueInWrappedObject.h
     bindings/js/JSValueInWrappedObjectInlines.h
@@ -2135,7 +2138,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/SecurityOriginHash.h
     page/SecurityPolicy.h
     page/SettingsBase.h
-    page/ShadowRealmGlobalScope.h
     page/ShareData.h
     page/SocketProvider.h
     page/SpeechRecognitionProvider.h
@@ -3053,8 +3055,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/sql/SQLiteStatementAutoResetScope.h
     platform/sql/SQLiteTransaction.h
 
-    platform/text/BidiContext.h
-    platform/text/BidiRunList.h
     platform/text/LocaleToScriptMapping.h
     platform/text/PlatformLocale.h
     platform/text/SegmentedString.h

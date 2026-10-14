@@ -367,7 +367,7 @@ void InspectorPageAgent::overridePrefersColorScheme(std::optional<Inspector::Pro
 #endif
 }
 
-static Inspector::Protocol::Page::CookieSameSitePolicy NODELETE cookieSameSitePolicyJSON(Cookie::SameSitePolicy policy)
+static Inspector::Protocol::Page::CookieSameSitePolicy LEGACY_NODELETE cookieSameSitePolicyJSON(Cookie::SameSitePolicy policy)
 {
     switch (policy) {
     case Cookie::SameSitePolicy::None:
@@ -842,7 +842,12 @@ void InspectorPageAgent::didClearWindowObjectInWorld(LocalFrame& frame, DOMWrapp
             return;
     }
 
-    protect(frame.script())->evaluateIgnoringException(ScriptSourceCode(m_bootstrapScript, JSC::SourceTaintedOrigin::Untainted, URL { "web-inspector://bootstrap.js"_str }));
+    evaluateBootstrapScript(frame, m_bootstrapScript);
+}
+
+void InspectorPageAgent::evaluateBootstrapScript(LocalFrame& frame, const String& source)
+{
+    protect(frame.script())->evaluateIgnoringException(ScriptSourceCode(source, JSC::SourceTaintedOrigin::Untainted, URL { "web-inspector://bootstrap.js"_str }));
 }
 
 void InspectorPageAgent::didPaint(RenderObject& renderer, const LayoutRect& rect)

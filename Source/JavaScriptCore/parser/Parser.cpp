@@ -205,7 +205,7 @@ void JSToken::dump(PrintStream& out) const
     out.print(*m_data.cooked);
 }
 
-static ALWAYS_INLINE bool NODELETE isPrivateFieldName(UniquedStringImpl* uid)
+static ALWAYS_INLINE bool LEGACY_NODELETE isPrivateFieldName(UniquedStringImpl* uid)
 {
     return uid->length() && uid->at(0) == '#';
 }
@@ -1217,7 +1217,7 @@ template <class TreeBuilder> TreeDestructuringPattern Parser<LexerType>::parseAs
     return createAssignmentElement(context, element, startPosition, lastTokenEndPosition());
 }
 
-static const char* NODELETE destructuringKindToVariableKindName(DestructuringKind kind)
+static const char* LEGACY_NODELETE destructuringKindToVariableKindName(DestructuringKind kind)
 {
     switch (kind) {
     case DestructuringKind::DestructureToLet:
@@ -2290,7 +2290,7 @@ template <class TreeBuilder> bool Parser<LexerType>::parseFormalParameters(TreeB
 #undef failIfDuplicateIfViolation
 }
 
-static ALWAYS_INLINE SuperBinding NODELETE adjustSuperBindingForBaseConstructor(ConstructorKind constructorKind, SuperBinding expectedSuperBinding, SourceParseMode parseMode, bool scopeNeedsSuperBinding, bool currentScopeUsesEval, InnerArrowFunctionCodeFeatures innerArrowFunctionFeatures)
+static ALWAYS_INLINE SuperBinding LEGACY_NODELETE adjustSuperBindingForBaseConstructor(ConstructorKind constructorKind, SuperBinding expectedSuperBinding, SourceParseMode parseMode, bool scopeNeedsSuperBinding, bool currentScopeUsesEval, InnerArrowFunctionCodeFeatures innerArrowFunctionFeatures)
 {
     if (expectedSuperBinding == SuperBinding::NotNeeded)
         return SuperBinding::NotNeeded;
@@ -2312,7 +2312,7 @@ static ALWAYS_INLINE SuperBinding NODELETE adjustSuperBindingForBaseConstructor(
     return SuperBinding::Needed;
 }
 
-static ALWAYS_INLINE SuperBinding NODELETE adjustSuperBindingForBaseConstructor(ConstructorKind constructorKind, SuperBinding expectedSuperBinding, SourceParseMode parseMode, Scope* functionScope)
+static ALWAYS_INLINE SuperBinding LEGACY_NODELETE adjustSuperBindingForBaseConstructor(ConstructorKind constructorKind, SuperBinding expectedSuperBinding, SourceParseMode parseMode, Scope* functionScope)
 {
     return adjustSuperBindingForBaseConstructor(constructorKind, expectedSuperBinding, parseMode, functionScope->needsSuperBinding(), functionScope->usesEval(), functionScope->innerArrowFunctionFeatures());
 }
@@ -2356,7 +2356,7 @@ template <class TreeBuilder> TreeFunctionBody Parser<LexerType>::parseFunctionBo
     return context.createFunctionMetadata(startLocation, tokenLocation(), functionStart, functionNameStart, parametersStart, implementationVisibility, lexicallyScopedFeatures(), constructorKind, functionSuperBinding, parameterCount, sourceParseMode(), isArrowFunctionBodyExpression);
 }
 
-static const char* NODELETE stringArticleForFunctionMode(SourceParseMode mode)
+static const char* LEGACY_NODELETE stringArticleForFunctionMode(SourceParseMode mode)
 {
     switch (mode) {
     case SourceParseMode::GetterMode:
@@ -2389,7 +2389,7 @@ static const char* NODELETE stringArticleForFunctionMode(SourceParseMode mode)
     return nullptr;
 }
     
-static const char* NODELETE stringForFunctionMode(SourceParseMode mode)
+static const char* LEGACY_NODELETE stringForFunctionMode(SourceParseMode mode)
 {
     switch (mode) {
     case SourceParseMode::GetterMode:
@@ -2791,7 +2791,7 @@ template <class TreeBuilder> bool Parser<LexerType>::parseFunctionInfo(TreeBuild
         RELEASE_ASSERT(SourceParseModeSet(SourceParseMode::NormalFunctionMode, SourceParseMode::MethodMode, SourceParseMode::ArrowFunctionMode, SourceParseMode::GeneratorBodyMode, SourceParseMode::GeneratorWrapperFunctionMode, SourceParseMode::ClassStaticBlockMode).contains(mode) || isAsyncFunctionOrAsyncGeneratorWrapperParseMode(mode));
         semanticFailIfTrue(m_vm.propertyNames->arguments == *functionInfo.name, "'", functionInfo.name->impl(), "' is not a valid function name in strict mode");
         semanticFailIfTrue(m_vm.propertyNames->eval == *functionInfo.name, "'", functionInfo.name->impl(), "' is not a valid function name in strict mode");
-        semanticFailIfTrue(m_vm.propertyNames->yieldKeyword == *functionInfo.name, "'", functionInfo.name->impl(), "' is not a valid function name in strict mode");
+        semanticFailIfTrue(isStrictModeReservedWord(m_vm, functionInfo.name), "'", functionInfo.name->impl(), "' is not a valid function name in strict mode");
     }
 
     JSTokenLocation location = m_token.location();
@@ -2854,8 +2854,8 @@ template <class TreeBuilder> bool Parser<LexerType>::parseFunctionInfo(TreeBuild
     return true;
 }
 
-static NO_RETURN_DUE_TO_CRASH FunctionMetadataNode* NODELETE getMetadata(ParserFunctionInfo<SyntaxChecker>&) { RELEASE_ASSERT_NOT_REACHED(); }
-static FunctionMetadataNode* NODELETE getMetadata(ParserFunctionInfo<ASTBuilder>& info) { return info.body; }
+static NO_RETURN_DUE_TO_CRASH FunctionMetadataNode* LEGACY_NODELETE getMetadata(ParserFunctionInfo<SyntaxChecker>&) { RELEASE_ASSERT_NOT_REACHED(); }
+static FunctionMetadataNode* LEGACY_NODELETE getMetadata(ParserFunctionInfo<ASTBuilder>& info) { return info.body; }
 
 template <typename LexerType>
 template <class TreeBuilder> TreeStatement Parser<LexerType>::parseFunctionDeclaration(TreeBuilder& context, FunctionDeclarationType declarationType, ExportType exportType, DeclarationDefaultContext declarationDefaultContext, std::optional<int> functionConstructorParametersEndPosition)
@@ -3506,8 +3506,11 @@ template <class TreeBuilder> TreeStatement Parser<LexerType>::parseExpressionOrL
     Scope* labelScope = currentScope();
     for (auto& label : labels)
         pushLabel(label.m_ident, isLoop);
-    m_immediateParentAllowsFunctionDeclarationInStatement = allowFunctionDeclarationAsStatement;
-    TreeStatement statement = parseStatement(context, unused);
+    TreeStatement statement = 0;
+    if (allowFunctionDeclarationAsStatement && match(FUNCTION) && !strictMode())
+        statement = parseFunctionDeclaration(context, FunctionDeclarationType::Statement);
+    else
+        statement = parseStatement(context, unused);
     for (size_t i = 0; i < labels.size(); i++)
         popLabel(labelScope);
     failIfFalse(statement, "Cannot parse statement");
@@ -3525,7 +3528,7 @@ template <class TreeBuilder> TreeStatement Parser<LexerType>::parseExpressionSta
     // https://tc39.es/ecma262/#sec-expression-statement
     // Despite the spec's requirement to fail from FUNCTION token here, Annex B.3.1
     // permits a labelled FunctionDeclaration in sloppy mode for web compatibility
-    // reasons. We implement this semantics in parseStatement().
+    // reasons. We implement this semantics in parseExpressionOrLabelStatement().
     case CLASSTOKEN:
         failWithMessage("'class' declaration is not directly within a block statement");
     case LET: {
@@ -4438,6 +4441,7 @@ template <class TreeBuilder> TreeExpression Parser<LexerType>::parseAwaitExpress
     JSTextPosition argumentStart = tokenStartPosition();
     TreeExpression argument = parseUnaryExpression(context);
     failIfFalse(argument, "Failed to parse await expression");
+    failIfTrue(match(POW), "Ambiguous unary expression in the left hand side of the exponentiation expression; parentheses must be used to disambiguate the expression");
     currentFunctionScope()->setUsesAwait();
     return context.createAwait(location, argument, divotStart, argumentStart, lastTokenEndPosition());
 }
@@ -5222,6 +5226,7 @@ template <class TreeBuilder> TreeExpression Parser<LexerType>::parsePrimaryExpre
         else if (!m_parserState.classFieldInitMasksAsync && (currentFunctionScope()->isAsyncFunctionBoundary() || isModuleParseMode(sourceParseMode())))
             return parseAwaitExpression(context);
 
+        semanticFailIfTrue(m_scriptMode == JSParserScriptMode::Module, "Cannot use 'await' as an identifier in a module");
         goto identifierExpression;
     case IDENT: {
         semanticFailIfTrue(currentScope()->isStaticBlock() && isArgumentsIdentifier(), "Cannot use 'arguments' as an identifier in static block");
@@ -5702,7 +5707,7 @@ template <class TreeBuilder> TreeExpression Parser<LexerType>::parseArrowFunctio
     return context.createArrowFunctionExpr(location, info);
 }
 
-static const char* NODELETE operatorString(bool prefix, unsigned tok)
+static const char* LEGACY_NODELETE operatorString(bool prefix, unsigned tok)
 {
     switch (tok) {
     case MINUSMINUS:

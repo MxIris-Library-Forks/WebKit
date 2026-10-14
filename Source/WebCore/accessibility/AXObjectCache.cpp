@@ -191,20 +191,20 @@ static bool isSecureFieldOrContainedBySecureField(AccessibilityObject& object)
 
 #endif // PLATFORM(COCOA)
 
-static bool NODELETE rendererNeedsDeferredUpdate(const RenderObject& renderer)
+static bool LEGACY_NODELETE rendererNeedsDeferredUpdate(const RenderObject& renderer)
 {
     AX_ASSERT(!renderer.beingDestroyed());
     auto& document = renderer.document();
     return renderer.needsLayout() || document.needsStyleRecalc() || document.inRenderTreeUpdate() || (document.view() && document.view()->layoutContext().isInRenderTreeLayout());
 }
 
-static bool NODELETE nodeRendererIsValid(Node& node)
+static bool LEGACY_NODELETE nodeRendererIsValid(Node& node)
 {
     auto* renderer = node.renderer();
     return renderer && !renderer->beingDestroyed();
 }
 
-static bool NODELETE nodeAndRendererAreValid(Node* node)
+static bool LEGACY_NODELETE nodeAndRendererAreValid(Node* node)
 {
     return node ? nodeRendererIsValid(*node) : false;
 }
@@ -992,54 +992,101 @@ RefPtr<Page> AXObjectCache::page() const
     return m_document ? m_document->page() : nullptr;
 }
 
-Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObject& renderer)
+enum class RenderObjectClass : uint8_t {
+    Generic,
+    SVG,
+#if ENABLE(MATHML)
+    MathML,
+#endif
+    MenuList,
+    ListBoxOption,
+    ProgressIndicator,
+    Slider,
+};
+
+static RenderObjectClass renderObjectClass(RenderObject& renderer)
 {
     RefPtr node = renderer.node();
-    if (RefPtr element = dynamicDowncast<Element>(node)) {
-        // Lists shouldn't fallthrough to table components, so explicitly create a render object.
-        if (AXListHelpers::isAccessibilityList(*element))
-            return AccessibilityRenderObject::create(AXID::generate(), renderer, *this);
-    }
+    // Lists shouldn't fallthrough to table components, so explicitly create a render object.
+    if (RefPtr element = dynamicDowncast<Element>(node); element && AXListHelpers::isAccessibilityList(*element))
+        return RenderObjectClass::Generic;
 
-    if (renderer.isRenderOrLegacyRenderSVGRoot())
-        return AccessibilitySVGObject::create(AXID::generate(), renderer, *this, /* isSVGRoot */ true);
+    if (renderer.isRenderOrLegacyRenderSVGRoot() || is<SVGElement>(node) || is<RenderSVGInlineText>(renderer))
+        return RenderObjectClass::SVG;
 
-    if (is<SVGElement>(node) || is<RenderSVGInlineText>(renderer))
-        return AccessibilitySVGObject::create(AXID::generate(), renderer, *this);
-
-    if (CheckedPtr renderImage = toSimpleImage(renderer))
-        return AccessibilityRenderObject::create(AXID::generate(), *renderImage, *this);
+    if (toSimpleImage(renderer))
+        return RenderObjectClass::Generic;
 
 #if ENABLE(MATHML)
     // The mfenced element creates anonymous RenderMathMLOperators which should be treated
     // as MathML elements and assigned the MathElementRole so that platform logic regarding
     // inclusion and role mapping is not bypassed.
-    bool isAnonymousOperator = renderer.isAnonymous() && is<RenderMathMLOperator>(renderer);
-    if (isAnonymousOperator || is<MathMLElement>(node))
-        return AccessibilityMathMLElement::create(AXID::generate(), renderer, *this, isAnonymousOperator);
+    if ((renderer.isAnonymous() && is<RenderMathMLOperator>(renderer)) || is<MathMLElement>(node))
+        return RenderObjectClass::MathML;
 #endif
 
-    if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node); select && select->usesMenuList() && !select->usesBaseAppearancePicker())
-        return AccessibilityMenuList::create(AXID::generate(), renderer, *this);
+    if (RefPtr select = dynamicDowncast<HTMLSelectElement>(node); select && select->isDropdownBox() && !select->usesBaseAppearancePicker())
+        return RenderObjectClass::MenuList;
 
     RefPtr optionElement = dynamicDowncast<HTMLOptionElement>(node);
     RefPtr optGroupElement = dynamicDowncast<HTMLOptGroupElement>(node);
     if (optionElement || optGroupElement) {
         RefPtr select = optionElement ? optionElement->ownerSelectElement() : optGroupElement->ownerSelectElement();
-        if (select && !select->usesMenuList())
-            return AccessibilityListBoxOption::create(AXID::generate(), downcast<HTMLElement>(*node), *this);
+        if (select && !select->isDropdownBox())
+            return RenderObjectClass::ListBoxOption;
     }
 
-    // Progress indicator.
-    if (is<RenderProgress>(renderer) || is<RenderMeter>(renderer)
-        || is<HTMLProgressElement>(node) || is<HTMLMeterElement>(node))
-        return AccessibilityProgressIndicator::create(AXID::generate(), renderer, *this);
+    if (is<RenderProgress>(renderer) || is<RenderMeter>(renderer) || is<HTMLProgressElement>(node) || is<HTMLMeterElement>(node))
+        return RenderObjectClass::ProgressIndicator;
 
-    // input type=range
     if (is<RenderSlider>(renderer))
-        return AccessibilitySlider::create(AXID::generate(), renderer, *this);
+        return RenderObjectClass::Slider;
 
-    return AccessibilityRenderObject::create(AXID::generate(), renderer, *this);
+    return RenderObjectClass::Generic;
+}
+
+static RenderObjectClass renderObjectClass(const AccessibilityRenderObject& object)
+{
+    if (object.isAccessibilitySVGObjectInstance())
+        return RenderObjectClass::SVG;
+#if ENABLE(MATHML)
+    if (is<AccessibilityMathMLElement>(object))
+        return RenderObjectClass::MathML;
+#endif
+    if (is<AccessibilityMenuList>(object))
+        return RenderObjectClass::MenuList;
+    if (object.isAccessibilityListBoxOptionInstance())
+        return RenderObjectClass::ListBoxOption;
+    if (object.isAccessibilityProgressIndicatorInstance())
+        return RenderObjectClass::ProgressIndicator;
+    if (object.isAccessibilitySliderInstance())
+        return RenderObjectClass::Slider;
+    return RenderObjectClass::Generic;
+}
+
+Ref<AccessibilityRenderObject> AXObjectCache::createObjectFromRenderer(RenderObject& renderer)
+{
+    switch (renderObjectClass(renderer)) {
+    case RenderObjectClass::Generic:
+        if (CheckedPtr renderImage = toSimpleImage(renderer))
+            return AccessibilityRenderObject::create(AXID::generate(), *renderImage, *this);
+        return AccessibilityRenderObject::create(AXID::generate(), renderer, *this);
+    case RenderObjectClass::SVG:
+        return AccessibilitySVGObject::create(AXID::generate(), renderer, *this, renderer.isRenderOrLegacyRenderSVGRoot());
+#if ENABLE(MATHML)
+    case RenderObjectClass::MathML:
+        return AccessibilityMathMLElement::create(AXID::generate(), renderer, *this, renderer.isAnonymous() && is<RenderMathMLOperator>(renderer));
+#endif
+    case RenderObjectClass::MenuList:
+        return AccessibilityMenuList::create(AXID::generate(), renderer, *this);
+    case RenderObjectClass::ListBoxOption:
+        return AccessibilityListBoxOption::create(AXID::generate(), protect(downcast<HTMLElement>(*renderer.node())), *this);
+    case RenderObjectClass::ProgressIndicator:
+        return AccessibilityProgressIndicator::create(AXID::generate(), renderer, *this);
+    case RenderObjectClass::Slider:
+        return AccessibilitySlider::create(AXID::generate(), renderer, *this);
+    }
+    RELEASE_ASSERT_NOT_REACHED();
 }
 
 Ref<AccessibilityNodeObject> AXObjectCache::createFromNode(Node& node)
@@ -1175,7 +1222,7 @@ AccessibilityObject* AXObjectCache::getOrCreateSlow(Node& node, IsPartOfRelation
         if (!select)
             return nullptr;
         RefPtr<AccessibilityObject> object;
-        if (select->usesMenuList() && !select->usesBaseAppearancePicker()) {
+        if (select->isDropdownBox() && !select->usesBaseAppearancePicker()) {
             if (!optionElement || !select->renderer())
                 return nullptr;
             object = AccessibilityMenuListOption::create(AXID::generate(), *optionElement, *this);
@@ -3085,7 +3132,7 @@ void AXObjectCache::handleRemoteFrameGainedFocus(RemoteFrame& remoteFrame, Eleme
     recomputeIsIgnored(oldFocusedElement);
 }
 
-static bool NODELETE isContentVisibilityHidden(const Style::ComputedStyle& style)
+static bool LEGACY_NODELETE isContentVisibilityHidden(const Style::ComputedStyle& style)
 {
     return style.usedContentVisibility() == ContentVisibility::Hidden;
 }
@@ -4777,7 +4824,7 @@ void AXObjectCache::updateCachedTextOfAssociatedObjects(AccessibilityObject& obj
 #endif
 }
 
-static bool NODELETE hasAnyARIALabelling(Element& element)
+static bool LEGACY_NODELETE hasAnyARIALabelling(Element& element)
 {
     return element.hasAttributeWithoutSynchronization(aria_labelAttr)
         || element.hasAttributeWithoutSynchronization(aria_labelledbyAttr)
@@ -5703,7 +5750,7 @@ char32_t AXObjectCache::characterBefore(const CharacterOffset& characterOffset)
     return characterForCharacterOffset(characterOffset);
 }
 
-static bool NODELETE characterOffsetNodeIsBR(const CharacterOffset& characterOffset)
+static bool LEGACY_NODELETE characterOffsetNodeIsBR(const CharacterOffset& characterOffset)
 {
     if (characterOffset.isNull())
         return false;
@@ -6249,11 +6296,38 @@ void AXObjectCache::performDeferredCacheUpdate(ForceLayout forceLayout)
     };
 
     AXLOGDeferredCollection("RendererChangedList"_s, m_deferredRendererChangedList);
+    Vector<Ref<Element>> elementsNeedingNewObjects;
     for (Ref object : m_deferredRendererChangedList) {
+        // An object keeps its class when the renderer of its element changes, for instance when a select
+        // switches appearance, so replace it when the new renderer calls for another class.
+        RefPtr renderObject = dynamicDowncast<AccessibilityRenderObject>(object);
+        RefPtr element = dynamicDowncast<Element>(object->node());
+        CheckedPtr renderer = object->renderer();
+        if (renderObject && element && renderer && renderObjectClass(*renderer) != renderObjectClass(*renderObject)) {
+            elementsNeedingNewObjects.append(element.releaseNonNull());
+            continue;
+        }
         object->updateRole();
         object->recomputeIsIgnored();
     }
     m_deferredRendererChangedList.clear();
+
+    for (Ref element : elementsNeedingNewObjects) {
+        RefPtr object = get(element);
+        RefPtr parent = object ? object->parentObject() : nullptr;
+        // The objects of the options and optgroups of a select depend on how the select renders.
+        if (RefPtr select = dynamicDowncast<HTMLSelectElement>(element)) {
+            for (auto& item : select->listItems()) {
+                if (RefPtr listItem = item.get(); listItem && (is<HTMLOptionElement>(*listItem) || is<HTMLOptGroupElement>(*listItem)))
+                    remove(*listItem);
+            }
+        }
+        remove(element);
+        childrenChanged(parent.get());
+        // Move assistive technology to the new object if the old one had focus.
+        if (protect(element->document())->focusedElement() == element.ptr() && !m_deferredFocusedNodeChange)
+            m_deferredFocusedNodeChange = { nullptr, element.ptr() };
+    }
 
     AXLOGDeferredCollection("RecomputeActiveSummaryList"_s, m_deferredRecomputeActiveSummaryList);
     for (Ref object : m_deferredRecomputeActiveSummaryList) {
@@ -7328,14 +7402,14 @@ AXRelation AXObjectCache::attributeToRelationType(const QualifiedName& attribute
     return AXRelation::None;
 }
 
-static bool NODELETE validRelation(void* origin, void* target, AXRelation relation)
+static bool LEGACY_NODELETE validRelation(void* origin, void* target, AXRelation relation)
 {
     if (!origin || !target || relation == AXRelation::None)
         return false;
     return origin != target || relation == AXRelation::LabeledBy;
 }
 
-static bool NODELETE validRelation(Element& origin, Element& target, AXRelation relation)
+static bool LEGACY_NODELETE validRelation(Element& origin, Element& target, AXRelation relation)
 {
     if (relation == AXRelation::None)
         return false;
@@ -7361,7 +7435,7 @@ bool AXObjectCache::addRelation(Element& origin, Element& target, AXRelation rel
     return addRelation(RefPtr { getOrCreate(origin, IsPartOfRelation::Yes) }.get(), RefPtr { getOrCreate(target, IsPartOfRelation::Yes) }.get(), relation);
 }
 
-static bool NODELETE canHaveRelations(Element& element)
+static bool LEGACY_NODELETE canHaveRelations(Element& element)
 {
     auto elementName = element.elementName();
     return !(elementName == ElementName::HTML_meta || elementName == ElementName::HTML_head || elementName == ElementName::HTML_script || elementName == ElementName::HTML_html || elementName == ElementName::HTML_style);

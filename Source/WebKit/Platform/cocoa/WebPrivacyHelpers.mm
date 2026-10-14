@@ -41,6 +41,7 @@
 #import <pal/spi/cocoa/WebPrivacySPI.h>
 #import <time.h>
 #import <wtf/BlockPtr.h>
+#import <wtf/Borrow.h>
 #import <wtf/MonotonicTime.h>
 #import <wtf/NeverDestroyed.h>
 #import <wtf/RobinHoodHashMap.h>
@@ -214,8 +215,9 @@ void requestLinkDecorationFilteringData(LinkFilteringRulesCallback&& callback)
         }
 
         auto callbacks = std::exchange(lookupCallbacks.get(), { });
-        for (int i = callbacks.size() - 1; i >= 0; --i) {
-            auto& callback = callbacks[i];
+        Borrow borrowedCallbacks = callbacks;
+        for (int i = borrowedCallbacks->size() - 1; i >= 0; --i) {
+            auto& callback = borrowedCallbacks[i];
             if (i)
                 callback(Vector { result });
             else
@@ -564,10 +566,10 @@ public:
 
     TrackerAddressLookupInfo() = default;
 
-    const UTF8CString& NODELETE owner() const { return m_owner; }
-    const UTF8CString& NODELETE host() const { return m_host; }
+    const UTF8CString& LEGACY_NODELETE owner() const { return m_owner; }
+    const UTF8CString& LEGACY_NODELETE host() const { return m_host; }
 
-    CanBlock NODELETE canBlock() const { return m_canBlock; }
+    CanBlock LEGACY_NODELETE canBlock() const { return m_canBlock; }
 
     static void populateIfNeeded()
     {
@@ -660,10 +662,11 @@ private:
             }
         }
 
-        if (list[upper].containsAddress(address))
+        Borrow borrowedList = list;
+        if (borrowedList[upper].containsAddress(address))
             return &list[upper];
 
-        if (upper != lower && list[lower].containsAddress(address))
+        if (upper != lower && borrowedList[lower].containsAddress(address))
             return &list[lower];
 
         return nullptr;
@@ -709,9 +712,9 @@ public:
 
     TrackerDomainLookupInfo() = default;
 
-    const UTF8CString& NODELETE owner() const { return m_owner; }
+    const UTF8CString& LEGACY_NODELETE owner() const { return m_owner; }
 
-    CanBlock NODELETE canBlock() const { return m_canBlock; }
+    CanBlock LEGACY_NODELETE canBlock() const { return m_canBlock; }
 
     static void populateIfNeeded()
     {
@@ -777,7 +780,7 @@ private:
         return it != list().end() ? &it->value : nullptr;
     }
 
-    static MemoryCompactRobinHoodHashMap<String, TrackerDomainLookupInfo>& NODELETE list() WTF_REQUIRES_LOCK(TrackerAddressLookupInfo::trackerLookupLock())
+    static MemoryCompactRobinHoodHashMap<String, TrackerDomainLookupInfo>& LEGACY_NODELETE list() WTF_REQUIRES_LOCK(TrackerAddressLookupInfo::trackerLookupLock())
     {
         static NeverDestroyed<MemoryCompactRobinHoodHashMap<String, TrackerDomainLookupInfo>> map;
         return map.get();

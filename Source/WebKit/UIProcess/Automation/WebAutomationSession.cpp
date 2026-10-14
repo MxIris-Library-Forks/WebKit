@@ -77,6 +77,7 @@
 #if ENABLE(WEBDRIVER_BIDI)
 #include "BidiBrowserAgent.h"
 #include "BidiEventNames.h"
+#include "BidiInputAgent.h"
 #include "BidiScriptAgent.h"
 #include "IdentifierTypes.h"
 #include "WebDriverBidiProcessor.h"
@@ -542,7 +543,7 @@ void WebAutomationSession::getBrowsingContext(const Inspector::Protocol::Automat
     });
 }
 
-static Inspector::Protocol::Automation::BrowsingContextPresentation NODELETE toProtocol(API::AutomationSessionClient::BrowsingContextPresentation value)
+static Inspector::Protocol::Automation::BrowsingContextPresentation LEGACY_NODELETE toProtocol(API::AutomationSessionClient::BrowsingContextPresentation value)
 {
     switch (value) {
     case API::AutomationSessionClient::BrowsingContextPresentation::Tab:
@@ -909,7 +910,7 @@ void WebAutomationSession::hideWindowForPage(WebPageProxy& page, WTF::Completion
 }
 
 #if ENABLE(WEBDRIVER_BIDI)
-static Inspector::Protocol::BidiBrowsingContext::UserPromptType NODELETE toProtocolUserPromptType(API::AutomationSessionClient::JavaScriptDialogType dialogType)
+static Inspector::Protocol::BidiBrowsingContext::UserPromptType LEGACY_NODELETE toProtocolUserPromptType(API::AutomationSessionClient::JavaScriptDialogType dialogType)
 {
     switch (dialogType) {
     case API::AutomationSessionClient::JavaScriptDialogType::Alert:
@@ -1446,6 +1447,7 @@ void WebAutomationSession::willClosePage(const WebPageProxy& page)
 
 #if ENABLE(WEBDRIVER_BIDI)
     contextDestroyedForPage(page);
+    m_bidiProcessor->inputAgent().willClosePage(handle);
 #endif
 
     // Cancel pending interactions on this page. By providing an error, this will cause subsequent
@@ -1645,7 +1647,7 @@ void WebAutomationSession::resolveParentFrameHandle(const Inspector::Protocol::A
     page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::ResolveParentFrame(page->webPageIDInProcessForFrame(frameID), frameID), WTF::move(completionHandler));
 }
 
-static std::optional<CoordinateSystem> NODELETE protocolStringToCoordinateSystem(Inspector::Protocol::Automation::CoordinateSystem coordinateSystem)
+static std::optional<CoordinateSystem> LEGACY_NODELETE protocolStringToCoordinateSystem(Inspector::Protocol::Automation::CoordinateSystem coordinateSystem)
 {
     switch (coordinateSystem) {
     case Inspector::Protocol::Automation::CoordinateSystem::Page:
@@ -1964,7 +1966,7 @@ void WebAutomationSession::setFilesForInputFileUpload(const Inspector::Protocol:
     page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::SetFilesForInputFileUpload(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, WTF::move(newFileList)), WTF::move(completionHandler));
 }
 
-static inline Inspector::Protocol::Automation::CookieSameSitePolicy NODELETE toProtocolSameSitePolicy(WebCore::Cookie::SameSitePolicy policy)
+static inline Inspector::Protocol::Automation::CookieSameSitePolicy LEGACY_NODELETE toProtocolSameSitePolicy(WebCore::Cookie::SameSitePolicy policy)
 {
     switch (policy) {
     case WebCore::Cookie::SameSitePolicy::None:
@@ -1977,7 +1979,7 @@ static inline Inspector::Protocol::Automation::CookieSameSitePolicy NODELETE toP
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-static inline WebCore::Cookie::SameSitePolicy NODELETE toWebCoreSameSitePolicy(Inspector::Protocol::Automation::CookieSameSitePolicy policy)
+static inline WebCore::Cookie::SameSitePolicy LEGACY_NODELETE toWebCoreSameSitePolicy(Inspector::Protocol::Automation::CookieSameSitePolicy policy)
 {
     switch (policy) {
     case Inspector::Protocol::Automation::CookieSameSitePolicy::None:
@@ -2169,7 +2171,7 @@ CommandResult<void> WebAutomationSession::setSessionPermissions(Ref<JSON::Array>
 }
 
 #if ENABLE(WEB_AUTHN)
-static WebCore::AuthenticatorTransport NODELETE toAuthenticatorTransport(Inspector::Protocol::Automation::AuthenticatorTransport transport)
+static WebCore::AuthenticatorTransport LEGACY_NODELETE toAuthenticatorTransport(Inspector::Protocol::Automation::AuthenticatorTransport transport)
 {
     switch (transport) {
     case Inspector::Protocol::Automation::AuthenticatorTransport::Usb:
@@ -2415,6 +2417,19 @@ SimulatedInputDispatcher& WebAutomationSession::inputDispatcherForPage(WebPagePr
     }).iterator->value;
 }
 
+void WebAutomationSession::runInteractionSequence(WebPageProxy& page, std::optional<FrameIdentifier> frameID, Vector<SimulatedInputKeyFrame>&& keyFrames, const HashMap<String, Ref<SimulatedInputSource>>& inputSources, AutomationCompletionHandler&& completionHandler)
+{
+    Ref inputDispatcher = inputDispatcherForPage(page);
+    if (inputDispatcher->isActive()) {
+        ASSERT_NOT_REACHED();
+        completionHandler(AUTOMATION_COMMAND_ERROR_WITH_NAME_AND_MESSAGE(InternalError, "A previous interaction is still underway."_s));
+        return;
+    }
+
+    // Delegate the rest of §17.4 Dispatching Actions to the dispatcher.
+    inputDispatcher->run(frameID, WTF::move(keyFrames), inputSources, WTF::move(completionHandler));
+}
+
 // MARK: SimulatedInputDispatcher::Client API
 void WebAutomationSession::viewportInViewCenterPointOfElement(WebPageProxy& page, std::optional<FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, Function<void(std::optional<WebCore::IntPoint>, std::optional<AutomationCommandError>)>&& completionHandler)
 {
@@ -2610,7 +2625,7 @@ void WebAutomationSession::simulateWheelInteraction(WebPageProxy& page, const We
 #endif // ENABLE(WEBDRIVER_ACTIONS_API)
 
 #if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
-static WebEventModifier NODELETE protocolModifierToWebEventModifier(Inspector::Protocol::Automation::KeyModifier modifier)
+static WebEventModifier LEGACY_NODELETE protocolModifierToWebEventModifier(Inspector::Protocol::Automation::KeyModifier modifier)
 {
     switch (modifier) {
     case Inspector::Protocol::Automation::KeyModifier::Alt:
@@ -2793,7 +2808,7 @@ void WebAutomationSession::performKeyboardInteractions(const Inspector::Protocol
 }
 
 #if ENABLE(WEBDRIVER_ACTIONS_API)
-static SimulatedInputSourceType NODELETE simulatedInputSourceTypeFromProtocolSourceType(Inspector::Protocol::Automation::InputSourceType protocolType)
+static SimulatedInputSourceType LEGACY_NODELETE simulatedInputSourceTypeFromProtocolSourceType(Inspector::Protocol::Automation::InputSourceType protocolType)
 {
     switch (protocolType) {
     case Inspector::Protocol::Automation::InputSourceType::Null:
@@ -2812,66 +2827,6 @@ static SimulatedInputSourceType NODELETE simulatedInputSourceTypeFromProtocolSou
 
     RELEASE_ASSERT_NOT_REACHED();
 }
-#endif // ENABLE(WEBDRIVER_ACTIONS_API)
-
-#if ENABLE(WEBDRIVER_ACTIONS_API)
-// §15.4.2 Keyboard actions
-// https://w3c.github.io/webdriver/#dfn-normalised-key-value
-static VirtualKey NODELETE normalizedVirtualKey(VirtualKey key)
-{
-    switch (key) {
-    case Inspector::Protocol::Automation::VirtualKey::ControlRight:
-        return Inspector::Protocol::Automation::VirtualKey::Control;
-    case Inspector::Protocol::Automation::VirtualKey::ShiftRight:
-        return Inspector::Protocol::Automation::VirtualKey::Shift;
-    case Inspector::Protocol::Automation::VirtualKey::AlternateRight:
-        return Inspector::Protocol::Automation::VirtualKey::Alternate;
-    case Inspector::Protocol::Automation::VirtualKey::MetaRight:
-        return Inspector::Protocol::Automation::VirtualKey::Meta;
-    case Inspector::Protocol::Automation::VirtualKey::CommandRight:
-        return Inspector::Protocol::Automation::VirtualKey::Command;
-    case Inspector::Protocol::Automation::VirtualKey::DownArrowRight:
-        return Inspector::Protocol::Automation::VirtualKey::DownArrow;
-    case Inspector::Protocol::Automation::VirtualKey::UpArrowRight:
-        return Inspector::Protocol::Automation::VirtualKey::UpArrow;
-    case Inspector::Protocol::Automation::VirtualKey::LeftArrowRight:
-        return Inspector::Protocol::Automation::VirtualKey::LeftArrow;
-    case Inspector::Protocol::Automation::VirtualKey::RightArrowRight:
-        return Inspector::Protocol::Automation::VirtualKey::RightArrow;
-    case Inspector::Protocol::Automation::VirtualKey::PageUpRight:
-        return Inspector::Protocol::Automation::VirtualKey::PageUp;
-    case Inspector::Protocol::Automation::VirtualKey::PageDownRight:
-        return Inspector::Protocol::Automation::VirtualKey::PageDown;
-    case Inspector::Protocol::Automation::VirtualKey::EndRight:
-        return Inspector::Protocol::Automation::VirtualKey::End;
-    case Inspector::Protocol::Automation::VirtualKey::HomeRight:
-        return Inspector::Protocol::Automation::VirtualKey::Home;
-    case Inspector::Protocol::Automation::VirtualKey::DeleteRight:
-        return Inspector::Protocol::Automation::VirtualKey::Delete;
-    case Inspector::Protocol::Automation::VirtualKey::InsertRight:
-        return Inspector::Protocol::Automation::VirtualKey::Insert;
-    default:
-        return key;
-    }
-}
-
-#if !ENABLE(WEBDRIVER_KEYBOARD_GRAPHEME_CLUSTERS)
-static std::optional<char32_t> pressedCharKey(const String& pressedCharKeyString)
-{
-    switch (pressedCharKeyString.length()) {
-    case 1:
-        return pressedCharKeyString.codeUnitAt(0);
-    case 2: {
-        auto lead = pressedCharKeyString.codeUnitAt(0);
-        auto trail = pressedCharKeyString.codeUnitAt(1);
-        if (U16_IS_LEAD(lead) && U16_IS_TRAIL(trail))
-            return U16_GET_SUPPLEMENTARY(lead, trail);
-    }
-    }
-
-    return std::nullopt;
-}
-#endif // !ENABLE(WEBDRIVER_KEYBOARD_GRAPHEME_CLUSTERS)
 #endif // ENABLE(WEBDRIVER_ACTIONS_API)
 
 void WebAutomationSession::performInteractionSequence(const Inspector::Protocol::Automation::BrowsingContextHandle& handle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, Ref<JSON::Array>&& inputSources, Ref<JSON::Array>&& steps, CommandCallback<void>&& callback)
@@ -3051,14 +3006,7 @@ void WebAutomationSession::performInteractionSequence(const Inspector::Protocol:
         keyFrames.append(SimulatedInputKeyFrame(WTF::move(entries)));
     }
 
-    Ref inputDispatcher = inputDispatcherForPage(*page);
-    if (inputDispatcher->isActive()) {
-        ASSERT_NOT_REACHED();
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS(InternalError, "A previous interaction is still underway."_s);
-    }
-
-    // Delegate the rest of §17.4 Dispatching Actions to the dispatcher.
-    inputDispatcher->run(frameID, WTF::move(keyFrames), m_inputSources, [protectedThis = Ref { *this }, callback = WTF::move(callback)](std::optional<AutomationCommandError> error) {
+    runInteractionSequence(*page, frameID, WTF::move(keyFrames), m_inputSources, [protectedThis = Ref { *this }, callback = WTF::move(callback)](std::optional<AutomationCommandError> error) {
         if (error)
             callback(makeUnexpected(error.value().toProtocolString()));
         else

@@ -293,7 +293,7 @@ public:
     inline CallFrame* topJSCallFrame() const;
 
     // Global object in which execution began.
-    JS_EXPORT_PRIVATE JSGlobalObject* NODELETE deprecatedVMEntryGlobalObject(JSGlobalObject*) const;
+    JS_EXPORT_PRIVATE JSGlobalObject* LEGACY_NODELETE deprecatedVMEntryGlobalObject(JSGlobalObject*) const;
 
     WeakRandom& random() LIFETIME_BOUND { return m_random; }
     WeakRandom& heapRandom() LIFETIME_BOUND { return m_heapRandom; }
@@ -308,7 +308,7 @@ public:
         m_hasTerminationRequest = false;
         clearEntryScopeService(ConcurrentEntryScopeService::ResetTerminationRequest);
     }
-    void NODELETE setHasTerminationRequest();
+    void LEGACY_NODELETE setHasTerminationRequest();
 
     bool executionForbidden() const { return m_executionForbidden; }
     void setExecutionForbidden() { m_executionForbidden = true; }
@@ -610,8 +610,6 @@ public:
     WriteBarrier<NativeExecutable> m_fastCanConstructBoundExecutable;
     WriteBarrier<NativeExecutable> m_slowCanConstructBoundExecutable;
 
-    Weak<NativeExecutable> m_fastRemoteFunctionExecutable;
-    Weak<NativeExecutable> m_slowRemoteFunctionExecutable;
 
     const Ref<DeferredWorkTimer> deferredWorkTimer;
 
@@ -747,7 +745,7 @@ public:
     static void computeCanUseJIT();
 
     SourceProviderCache* addSourceProviderCache(SourceProvider*);
-    void clearSourceProviderCaches();
+    void pruneUnusedSourceProviderCaches();
 
     typedef UncheckedKeyHashMap<RefPtr<SourceProvider>, RefPtr<SourceProviderCache>> SourceProviderCacheMap;
     SourceProviderCacheMap sourceProviderCacheMap;
@@ -765,7 +763,6 @@ public:
     NativeExecutable* getHostFunction(NativeFunction, ImplementationVisibility, Intrinsic, NativeFunction constructor, const DOMJIT::Signature*, unsigned length, const String& name);
 
     NativeExecutable* getBoundFunction(bool isJSFunction, SourceTaintedOrigin taintedness);
-    NativeExecutable* getRemoteFunction(bool isJSFunction);
 
     CodePtr<JSEntryPtrTag> getCTIInternalFunctionTrampolineFor(CodeSpecializationKind);
     MacroAssemblerCodeRef<JSEntryPtrTag> getCTIThrowExceptionFromCallSlowPath();
@@ -869,7 +866,7 @@ public:
     }
 
     void* lastStackTop() { return m_lastStackTop; }
-    void NODELETE setLastStackTop(const Thread&);
+    void LEGACY_NODELETE setLastStackTop(const Thread&);
     
 #if ENABLE(C_LOOP)
     ALWAYS_INLINE CLoopStack& cloopStack() { return traps().cloopStack(); }
@@ -1024,7 +1021,7 @@ public:
         DrainMicrotaskDelayScope& operator=(const DrainMicrotaskDelayScope&);
 
     private:
-        void NODELETE increment();
+        void LEGACY_NODELETE increment();
         void decrement();
 
         RefPtr<VM> m_vm;
@@ -1099,7 +1096,7 @@ public:
 
     WTF::RunLoop& runLoop() const { return m_runLoop; }
 
-    static void NODELETE setCrashOnVMCreation(bool);
+    static void LEGACY_NODELETE setCrashOnVMCreation(bool);
 
     void addLoopHintExecutionCounter(const JSInstruction*);
     uintptr_t* getLoopHintExecutionCounter(const JSInstruction*);
@@ -1128,8 +1125,8 @@ public:
     void reconcileWeakReferencesAtGCEnd();
     DECLARE_VISIT_AGGREGATE;
 
-    void NODELETE addDebugger(Debugger&);
-    void NODELETE removeDebugger(Debugger&);
+    void LEGACY_NODELETE addDebugger(Debugger&);
+    void LEGACY_NODELETE removeDebugger(Debugger&);
     template<typename Func>
     void forEachDebugger(NOESCAPE const Func&);
 
@@ -1140,7 +1137,7 @@ public:
 
     int64_t numberOfActiveJITPlans() const { return m_numberOfActiveJITPlans.load(std::memory_order_relaxed); }
 
-    Ref<Waiter> NODELETE syncWaiter();
+    Ref<Waiter> LEGACY_NODELETE syncWaiter();
 
     void notifyDebuggerHookInjected() { m_isDebuggerHookInjected = true; }
     bool isDebuggerHookInjected() const { return m_isDebuggerHookInjected; }
@@ -1148,7 +1145,7 @@ public:
 
 #if ENABLE(WEBASSEMBLY_DEBUGGER)
     Wasm::DebugState* debugStateIfExists() { return m_debugState.get(); }
-    JS_EXPORT_PRIVATE Wasm::DebugState* NODELETE debugState();
+    JS_EXPORT_PRIVATE Wasm::DebugState* LEGACY_NODELETE debugState();
 #endif
 
 private:

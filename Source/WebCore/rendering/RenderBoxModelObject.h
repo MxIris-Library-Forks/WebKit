@@ -73,7 +73,7 @@ public:
     LayoutSize relativePositionOffset() const;
 
     FloatRect constrainingRectForStickyPosition() const;
-    std::pair<const RenderBox&, const RenderLayer*> NODELETE enclosingClippingBoxForStickyPosition() const;
+    std::pair<const RenderBox&, const RenderLayer*> LEGACY_NODELETE enclosingClippingBoxForStickyPosition() const;
     void computeStickyPositionConstraints(StickyPositionViewportConstraints&, const FloatRect& constrainingRect) const;
     LayoutSize stickyPositionOffset() const;
 
@@ -126,19 +126,19 @@ public:
     virtual inline LayoutUnit paddingStart() const;
     virtual inline LayoutUnit paddingEnd() const;
 
-    virtual inline RectEdges<LayoutUnit> borderWidths() const;
-    virtual inline LayoutUnit borderTop() const;
-    virtual inline LayoutUnit borderBottom() const;
-    virtual inline LayoutUnit borderLeft() const;
-    virtual inline LayoutUnit borderRight() const;
+    virtual RectEdges<LayoutUnit> borderWidths() const;
+    virtual LayoutUnit borderTop() const;
+    virtual LayoutUnit borderBottom() const;
+    virtual LayoutUnit borderLeft() const;
+    virtual LayoutUnit borderRight() const;
 
     virtual inline LayoutUnit horizontalBorderExtent() const;
     virtual inline LayoutUnit verticalBorderExtent() const;
 
-    virtual inline LayoutUnit borderBefore() const;
-    virtual inline LayoutUnit borderAfter() const;
-    virtual inline LayoutUnit borderStart() const;
-    virtual inline LayoutUnit borderEnd() const;
+    virtual LayoutUnit borderBefore() const;
+    virtual LayoutUnit borderAfter() const;
+    virtual LayoutUnit borderStart() const;
+    virtual LayoutUnit borderEnd() const;
 
     inline LayoutUnit borderAndPaddingStart() const;
     inline LayoutUnit borderAndPaddingEnd() const;
@@ -198,13 +198,13 @@ public:
 
     void applyTransform(TransformationMatrix&, const Style::ComputedStyle&, const FloatRect& boundingBox, OptionSet<Style::TransformResolverOption>) const override;
 
-    bool NODELETE fixedBackgroundPaintsInLocalCoordinates() const;
+    bool LEGACY_NODELETE fixedBackgroundPaintsInLocalCoordinates() const;
     DecodingMode decodingModeForImageDraw(const Image&, const PaintInfo&) const;
 
     void paintMaskForTextFillBox(GraphicsContext&, const FloatRect&, const InlineIterator::InlineBoxIterator&, const LayoutRect&);
 
     // For RenderBlocks and RenderInlines with m_style->pseudoElementType() == PseudoElementType::FirstLetter, this tracks their remaining text fragments
-    RenderTextFragment* NODELETE firstLetterRemainingText() const;
+    RenderTextFragment* LEGACY_NODELETE firstLetterRemainingText() const;
     void setFirstLetterRemainingText(RenderTextFragment&);
     void clearFirstLetterRemainingText();
 

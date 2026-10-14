@@ -490,8 +490,10 @@ Ref<WebProcessProxy> WebProcessProxy::createForRemoteWorkers(RemoteWorkerType wo
 {
     Ref proxy = adoptRef(*new WebProcessProxy(processPool, &websiteDataStore, IsPrewarmed::No, crossOriginMode, lockdownMode, enhancedSecurity));
     proxy->m_committedSites.add(site);
-    proxy->m_remoteWorkerSites.add(site);
+    proxy->m_remoteWorkerDomains.add(site.domain());
     proxy->m_site = WTF::move(site);
+    // Workers are placed by top site, so this process also runs third-party workers from sites it has no record of.
+    proxy->m_hostedSiteTracking = HostedSiteTracking::AnySite;
     proxy->enableRemoteWorkers(workerType, processPool.userContentControllerForRemoteWorkers());
     proxy->didStartRunningProcess();
     proxy->connect();
@@ -604,7 +606,38 @@ void WebProcessProxy::platformDestroy()
 
 void WebProcessProxy::addSharedProcessDomain(const RegistrableDomain& domain)
 {
-    m_sharedProcessDomains.add(domain);
+    if (m_sharedProcessDomains.add(domain).isNewEntry)
+        sendHostedDomainsToNetworkProcess();
+}
+
+std::optional<HashSet<RegistrableDomain>> WebProcessProxy::hostedDomains() const
+{
+    if (m_hostedSiteTracking != HostedSiteTracking::Recorded)
+        return std::nullopt;
+
+    auto domains = m_sharedProcessDomains;
+    for (auto& site : m_committedSites) {
+        if (!site.isEmpty())
+            domains.add(site.domain());
+    }
+    return domains;
+}
+
+void WebProcessProxy::setMayHostAnySite()
+{
+    if (std::exchange(m_hostedSiteTracking, HostedSiteTracking::AnySite) == HostedSiteTracking::AnySite)
+        return;
+    sendHostedDomainsToNetworkProcess();
+}
+
+// Sent ahead of the AddAllowedFirstPartyForCookies that every load waits for, on the same connection.
+void WebProcessProxy::sendHostedDomainsToNetworkProcess()
+{
+    RefPtr dataStore = m_websiteDataStore;
+    if (!dataStore)
+        return;
+    if (RefPtr networkProcess = dataStore->networkProcessIfExists())
+        networkProcess->send(Messages::NetworkProcess::SetHostedDomains(coreProcessIdentifier(), hostedDomains()), 0);
 }
 
 void WebProcessProxy::setIsolatedProcessType(IsolatedProcessType isolatedProcessType, std::optional<WebCore::Site> mainFrameSite)
@@ -620,6 +653,18 @@ void WebProcessProxy::setIsolatedProcessType(IsolatedProcessType isolatedProcess
     m_mainFrameSite = mainFrameSite;
 }
 
+void WebProcessProxy::setCOOPCacheOrigin(const SecurityOriginData& origin)
+{
+    m_coopCacheOrigin = origin;
+    m_isCOOPCacheOriginUnconfirmed = false;
+}
+
+void WebProcessProxy::markCOOPCacheOriginAsUnconfirmed()
+{
+    ASSERT(m_coopCacheOrigin);
+    m_isCOOPCacheOriginUnconfirmed = true;
+}
+
 void WebProcessProxy::setIsInProcessCache(bool value, WillShutDown willShutDown)
 {
     WEBPROCESSPROXY_RELEASE_LOG(Process, "setIsInProcessCache(%d)", value);
@@ -628,6 +673,7 @@ void WebProcessProxy::setIsInProcessCache(bool value, WillShutDown willShutDown)
         RELEASE_ASSERT(m_suspendedPages.isEmptyIgnoringNullReferences());
         RELEASE_ASSERT(m_provisionalPages.isEmptyIgnoringNullReferences());
         m_previouslyApprovedFilePaths.clear();
+        m_isCOOPCacheOriginUnconfirmed = false;
     }
 
     ASSERT(m_isInProcessCache != value);
@@ -759,6 +805,7 @@ void WebProcessProxy::removeProvisionalPageProxy(ProvisionalPageProxy& provision
     m_provisionalPages.remove(provisionalPage);
     updateRegistrationWithDataStore();
     if (m_provisionalPages.isEmptyIgnoringNullReferences()) {
+        m_isCOOPCacheOriginUnconfirmed = false;
         if (RefPtr page = provisionalPage.page())
             reportProcessDisassociatedWithPageIfNecessary(page->identifier());
         maybeShutDown();
@@ -1231,9 +1278,10 @@ bool WebProcessProxy::hasCommittedClientOrigin(const WebCore::ClientOrigin& clie
     if (m_committedClientOrigins.contains(clientOrigin))
         return true;
 
-    // A remote-worker process is authenticated only for the top-site partitions it hosts workers
-    // for, not for those workers' own (possibly cross-site) origins, so validate the top site here.
-    return m_remoteWorkerSites.contains(Site { clientOrigin.topOrigin });
+    // A remote-worker process is authenticated only for the top-domain partitions it hosts workers
+    // for, not for those workers' own (possibly cross-site) origins, so validate the top domain here.
+    // The network process assigns workers to processes by registrable domain, regardless of scheme.
+    return m_remoteWorkerDomains.contains(RegistrableDomain { clientOrigin.topOrigin });
 }
 
 // Terminates only on positive evidence that no page this process participates in can speak for the
@@ -1291,7 +1339,7 @@ void WebProcessProxy::didCommitStorageClientOrigin(WebCore::ClientOrigin&& clien
 
 void WebProcessProxy::didBecomeRemoteWorkerHostForSite(const WebCore::Site& site)
 {
-    m_remoteWorkerSites.add(site);
+    m_remoteWorkerDomains.add(site.domain());
 }
 
 void WebProcessProxy::addVisitedLinkStoreUser(VisitedLinkStore& visitedLinkStore, WebPageProxyIdentifier pageID)
@@ -2373,7 +2421,7 @@ RefPtr<API::Object> WebProcessProxy::transformHandlesToObjects(API::Object* obje
             }
         }
 
-        WebProcessProxy& NODELETE process() const { return m_webProcessProxy; }
+        WebProcessProxy& LEGACY_NODELETE process() const { return m_webProcessProxy; }
 
         WeakRef<WebProcessProxy> m_webProcessProxy;
     };
@@ -2848,6 +2896,8 @@ void WebProcessProxy::didCommitMainFrameLoad(const URL& url)
         updateSiteForMainFrameNavigation(url);
     }
 
+    m_isCOOPCacheOriginUnconfirmed = false;
+
     if (m_coopCacheOrigin && !url.protocolIsAbout() && SecurityOriginData::fromURL(url) != *m_coopCacheOrigin) {
         WEBPROCESSPROXY_RELEASE_LOG(ProcessSwapping, "didCommitMainFrameLoad: Main frame committed a different origin, process is no longer eligible for the WebProcess cache");
         m_coopCacheOrigin = std::nullopt;
@@ -2899,11 +2949,15 @@ void WebProcessProxy::didStartUsingProcessForSiteIsolation(const std::optional<W
         m_sharedProcessDomains.clear();
         m_site = makeUnexpected(SiteState::SharedProcess);
         m_sharedProcessMainFrameSite = mainFrameSite;
+        m_hostedSiteTracking = std::max(m_hostedSiteTracking, HostedSiteTracking::Recorded);
+        sendHostedDomainsToNetworkProcess();
         return;
     }
     ASSERT(m_site ? (m_site.value().isEmpty() || m_site.value() == *site || !m_hasCommittedAnyProvisionalLoads) : (m_site.error() == SiteState::NotYetSpecified || m_site.error() == SiteState::MultipleSites));
     m_committedSites.add(*site);
     m_site = *site;
+    m_hostedSiteTracking = std::max(m_hostedSiteTracking, HostedSiteTracking::Recorded);
+    sendHostedDomainsToNetworkProcess();
 }
 
 unsigned WebProcessProxy::suspendedPageCount() const

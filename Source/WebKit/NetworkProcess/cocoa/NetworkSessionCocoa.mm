@@ -61,6 +61,7 @@
 #import <WebCore/WebCoreURLResponse.h>
 #import <pal/spi/cf/CFNetworkSPI.h>
 #import <wtf/BlockPtr.h>
+#import <wtf/Borrow.h>
 #import <wtf/MainThread.h>
 #import <wtf/NeverDestroyed.h>
 #import <wtf/ObjCRuntimeExtras.h>
@@ -139,7 +140,7 @@ static NSURLSessionResponseDisposition toNSURLSessionResponseDisposition(WebCore
     }
 }
 
-static NSURLSessionAuthChallengeDisposition NODELETE toNSURLSessionAuthChallengeDisposition(WebKit::AuthenticationChallengeDisposition disposition)
+static NSURLSessionAuthChallengeDisposition LEGACY_NODELETE toNSURLSessionAuthChallengeDisposition(WebKit::AuthenticationChallengeDisposition disposition)
 {
     switch (disposition) {
     case WebKit::AuthenticationChallengeDisposition::UseCredential:
@@ -153,7 +154,7 @@ static NSURLSessionAuthChallengeDisposition NODELETE toNSURLSessionAuthChallenge
     }
 }
 
-static WebCore::NetworkLoadPriority NODELETE toNetworkLoadPriority(float priority)
+static WebCore::NetworkLoadPriority LEGACY_NODELETE toNetworkLoadPriority(float priority)
 {
     if (priority <= NSURLSessionTaskPriorityLow)
         return WebCore::NetworkLoadPriority::Low;
@@ -162,7 +163,7 @@ static WebCore::NetworkLoadPriority NODELETE toNetworkLoadPriority(float priorit
     return WebCore::NetworkLoadPriority::Medium;
 }
 
-static WebCore::PrivacyStance NODELETE toPrivacyStance(nw_connection_privacy_stance_t stance)
+static WebCore::PrivacyStance LEGACY_NODELETE toPrivacyStance(nw_connection_privacy_stance_t stance)
 {
     switch (stance) {
     case nw_connection_privacy_stance_unknown:
@@ -1554,7 +1555,7 @@ void NetworkSessionCocoa::removeCredentialsForOrigins(const Vector<WebCore::Secu
         return;
 
     HashSet<WebCore::SecurityOriginData> originSet;
-    for (auto& origin : origins) {
+    for (auto& origin : borrow(origins)) {
         if (!origin.isNull() && !origin.isOpaque())
             originSet.add(origin);
     }
@@ -1825,84 +1826,6 @@ private:
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(NetworkSessionCocoa::BlobDataTaskClient);
 
-void NetworkSessionCocoa::loadImageForDecoding(WebCore::ResourceRequest&& request, WebPageProxyIdentifier pageID, size_t maximumBytesFromNetwork, CompletionHandler<void(std::expected<Ref<WebCore::FragmentedSharedBuffer>, WebCore::ResourceError>&&)>&& completionHandler)
-{
-    class Client : public RefCounted<Client>, public NetworkDataTaskClient {
-    public:
-        void ref() const final { RefCounted::ref(); }
-        void deref() const final { RefCounted::deref(); }
-
-        static void create(NetworkSession& networkSession, Ref<NetworkProcess>&& networkProcess, WebPageProxyIdentifier pageID, const NetworkLoadParameters& loadParameters, size_t maximumBytesFromNetwork, CompletionHandler<void(std::expected<Ref<WebCore::FragmentedSharedBuffer>, WebCore::ResourceError>&&)>&& completionHandler)
-        {
-            Ref client = adoptRef(*new Client(networkSession, WTF::move(networkProcess), pageID, loadParameters, maximumBytesFromNetwork, WTF::move(completionHandler)));
-
-            // Keep the load alive until didCompleteWithError.
-            client->m_selfReference = WTF::move(client);
-        }
-
-    private:
-        Client(NetworkSession& networkSession, Ref<NetworkProcess>&& networkProcess, WebPageProxyIdentifier pageID, const NetworkLoadParameters& loadParameters, size_t maximumBytesFromNetwork, CompletionHandler<void(std::expected<Ref<WebCore::FragmentedSharedBuffer>, WebCore::ResourceError>&&)>&& completionHandler)
-            : m_networkProcess(WTF::move(networkProcess))
-            , m_url(loadParameters.request.url())
-            , m_sessionID(networkSession.sessionID())
-            , m_pageID(pageID)
-            , m_maximumBytesFromNetwork(maximumBytesFromNetwork)
-            , m_dataTask(NetworkDataTask::create(networkSession, *this, loadParameters))
-            , m_completionHandler(WTF::move(completionHandler))
-        {
-            m_dataTask->resume();
-        }
-
-        void willPerformHTTPRedirection(WebCore::ResourceResponse&&, WebCore::ResourceRequest&& request, RedirectCompletionHandler&& completionHandler) final { completionHandler(WTF::move(request)); }
-        void didReceiveChallenge(WebCore::AuthenticationChallenge&& challenge, NegotiatedLegacyTLS negotiatedLegacyTLS, ChallengeCompletionHandler&& completionHandler) final
-        {
-            protect(m_networkProcess->authenticationManager())->didReceiveAuthenticationChallenge(m_sessionID, m_pageID, nullptr, challenge, negotiatedLegacyTLS, WTF::move(completionHandler));
-        }
-        void didReceiveResponse(WebCore::ResourceResponse&&, NegotiatedLegacyTLS, PrivateRelayed, ResponseCompletionHandler&& completionHandler) final
-        {
-            completionHandler(WebCore::PolicyAction::Use);
-        }
-        void didReceiveData(const WebCore::SharedBuffer& buffer) final
-        {
-            m_buffer.append(buffer);
-            if (m_buffer.size() > m_maximumBytesFromNetwork)
-                didCompleteWithError(WebCore::ResourceError([NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorDataLengthExceedsMaximum userInfo:nil]), WebCore::NetworkLoadMetrics { });
-        }
-        void didCompleteWithError(const WebCore::ResourceError& error, const WebCore::NetworkLoadMetrics&) final
-        {
-            if (error.isNull())
-                m_completionHandler(m_buffer.takeBuffer());
-            else
-                m_completionHandler(makeUnexpected(error));
-            m_selfReference = nullptr;
-        }
-        void didSendData(uint64_t, uint64_t) final { }
-        void wasBlocked() final { completeWithBlockedError(); }
-        void cannotShowURL() final { completeWithBlockedError(); }
-        void wasBlockedByRestrictions() final { completeWithBlockedError(); }
-        void wasBlockedByDisabledFTP() final { completeWithBlockedError(); }
-        void completeWithBlockedError()
-        {
-            didCompleteWithError(blockedError({ URL { m_url } }), WebCore::NetworkLoadMetrics { });
-        }
-
-        RefPtr<Client> m_selfReference;
-        const Ref<NetworkProcess> m_networkProcess;
-        const URL m_url;
-        const PAL::SessionID m_sessionID;
-        const WebPageProxyIdentifier m_pageID;
-        const size_t m_maximumBytesFromNetwork;
-        const Ref<NetworkDataTask> m_dataTask;
-        CompletionHandler<void(std::expected<Ref<WebCore::FragmentedSharedBuffer>, WebCore::ResourceError>&&)> m_completionHandler;
-        WebCore::SharedBufferBuilder m_buffer;
-    };
-
-    NetworkLoadParameters loadParameters;
-    loadParameters.request = WTF::move(request);
-    // Client manages its own lifetime, derefing itself when its purpose has been fulfilled.
-    Client::create(*this, networkProcess(), pageID, loadParameters, maximumBytesFromNetwork, WTF::move(completionHandler));
-}
-
 void NetworkSessionCocoa::dataTaskWithRequest(WebPageProxyIdentifier pageID, WebCore::ResourceRequest&& request, const std::optional<WebCore::SecurityOriginData>& topOrigin, CompletionHandler<void(DataTaskIdentifier)>&& completionHandler)
 {
     auto identifier = DataTaskIdentifier::generate();
@@ -2025,7 +1948,7 @@ void NetworkSessionCocoa::deleteAlternativeServicesForHostNames(const Vector<Str
 {
 #if HAVE(ALTERNATIVE_SERVICE)
     RetainPtr<_NSHTTPAlternativeServicesStorage> storage = m_defaultSessionSet->sessionWithCredentialStorage->session.get().configuration._alternativeServicesStorage;
-    for (auto& host : hosts)
+    for (auto& host : borrow(hosts))
         [storage removeHTTPAlternativeServiceEntriesWithRegistrableDomain:host.createNSString().get()];
 #else
     UNUSED_PARAM(hosts);
@@ -2093,14 +2016,14 @@ void NetworkSessionCocoa::setProxyConfigData(const Vector<std::pair<Vector<uint8
     // If any of the proxies pass the `nw_proxy_config_stack_requires_http_protocols` check,
     // then we cannot set the proxy on the live nw_context_t and instead must destroy and recreate the NSURLSession
     bool recreateSessions = false;
-    for (auto& config : proxyConfigurations) {
+    for (auto& config : borrow(proxyConfigurations)) {
         uuid_t identifier;
         if (config.second)
             memcpySpan(asMutableByteSpan(identifier), config.second->span().first(sizeof(uuid_t)));
         else
             zeroBytes(identifier);
 
-        RetainPtr nwProxyConfig = adoptNS(nw_proxy_config_create_with_agent_data(config.first.span().data(), config.first.size(), identifier));
+        RetainPtr nwProxyConfig = adoptNS(nw_proxy_config_create_with_agent_data(borrow(config.first)->span().data(), config.first.size(), identifier));
 
         if (nw_proxy_config_stack_requires_http_protocols(nwProxyConfig.get()))
             recreateSessions = true;
@@ -2127,7 +2050,7 @@ void NetworkSessionCocoa::setProxyConfigData(const Vector<std::pair<Vector<uint8
     for (SUPPRESS_UNRETAINED_LOCAL nw_context_t context in contexts.get()) {
         nw_context_clear_proxies(context);
 
-        for (auto& proxyConfig : m_nwProxyConfigs)
+        for (auto& proxyConfig : borrow(m_nwProxyConfigs))
             nw_context_add_proxy(context, proxyConfig.get());
     }
 }
@@ -2136,7 +2059,7 @@ void NetworkSessionCocoa::applyProxyConfigurationToSessionConfiguration(NSURLSes
 {
     if (!m_nwProxyConfigs.isEmpty()) {
         RetainPtr nwProxyConfigurations = adoptNS([[NSMutableArray alloc] initWithCapacity:m_nwProxyConfigs.size()]);
-        for (auto& proxyConfig : m_nwProxyConfigs)
+        for (auto& proxyConfig : borrow(m_nwProxyConfigs))
             [nwProxyConfigurations addObject:proxyConfig.get()];
 
         configuration.proxyConfigurations = nwProxyConfigurations.get();

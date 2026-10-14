@@ -50,7 +50,7 @@ public:
 
     // Returns the full content rect scaled so the view-box sub-region maps onto destRect,
     // or destRect itself when object-view-box is not set.
-    LayoutRect computePaintRectForObjectViewBox(const LayoutRect& destRect) const { return computePaintRectForObjectViewBox(destRect, intrinsicSize()); }
+    LayoutRect computePaintRectForObjectViewBox(const LayoutRect& destRect) const;
     LayoutRect computePaintRectForObjectViewBox(const LayoutRect& destRect, const LayoutSize& intrinsicSize) const;
 
     // False only when object-view-box has a negative inset, making the view box a superset
@@ -94,7 +94,7 @@ protected:
 
     virtual LayoutUnit minimumReplacedHeight() const { return 0_lu; }
 
-    bool NODELETE isSelected() const;
+    bool LEGACY_NODELETE isSelected() const;
 
     void styleDidChange(Style::Difference, const Style::ComputedStyle* oldStyle) override;
 
@@ -105,7 +105,7 @@ protected:
 
     void paint(PaintInfo&, const LayoutPoint&) override;
     bool shouldPaint(PaintInfo&, const LayoutPoint&);
-    LayoutRect NODELETE localSelectionRect(bool checkWhetherSelected = true) const; // This is in local coordinates, but it's a physical rect (so the top left corner is physical top left).
+    LayoutRect LEGACY_NODELETE localSelectionRect(bool checkWhetherSelected = true) const; // This is in local coordinates, but it's a physical rect (so the top left corner is physical top left).
 
     virtual void layoutShadowContent(const LayoutSize&);
 
@@ -118,6 +118,8 @@ protected:
     virtual NaturalDimensions zoomedNaturalDimensions() const;
 
 private:
+    std::optional<LayoutSize> zoomedNaturalSize() const;
+
     LayoutUnit computeConstrainedLogicalWidth() const;
 
     template<typename SizeType> LayoutUnit computeReplacedLogicalWidthUsing(const SizeType& logicalWidth) const;
@@ -144,7 +146,7 @@ private:
     virtual bool shouldDrawSelectionTint() const;
     
     Color calculateHighlightColor() const;
-    bool NODELETE isHighlighted(HighlightState, const RenderHighlight&) const;
+    bool LEGACY_NODELETE isHighlighted(HighlightState, const RenderHighlight&) const;
 
     bool hasReplacedLogicalHeight() const;
 

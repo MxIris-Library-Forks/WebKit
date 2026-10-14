@@ -50,9 +50,9 @@ public:
     WEBCORE_EXPORT static bool isDataDecodable(const Settings&, std::span<const uint8_t>);
 
     RenderReplaced* embeddedSVGRoot() const;
-    LocalFrameView* NODELETE frameView() const;
+    LocalFrameView* LEGACY_NODELETE frameView() const;
 
-    bool NODELETE isSVGImage() const final { return true; }
+    bool LEGACY_NODELETE isSVGImage() const final { return true; }
 
     void subresourcesAreFinished(Document*, CompletionHandler<void()>&&) final;
 
@@ -112,6 +112,7 @@ private:
         IntSize containerSize;
         URL fragmentURL;
         Style::LinkParameters linkParameters;
+        IgnoreRootPreserveAspectRatio ignoreRootPreserveAspectRatio { IgnoreRootPreserveAspectRatio::No };
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
         bool invertContent { false };
 #endif

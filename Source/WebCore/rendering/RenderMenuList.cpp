@@ -64,7 +64,7 @@ RenderMenuList::RenderMenuList(HTMLSelectElement& element, Style::ComputedStyle&
 
 RenderMenuList::~RenderMenuList() = default;
 
-HTMLSelectElement& NODELETE RenderMenuList::selectElement() const
+HTMLSelectElement& LEGACY_NODELETE RenderMenuList::selectElement() const
 {
     return downcast<HTMLSelectElement>(nodeForNonAnonymous());
 }
@@ -122,8 +122,13 @@ void RenderMenuList::updateOptionsWidth()
     // https://html.spec.whatwg.org/#width-of-the-select's-labels
     if (select->multiple()) {
         CheckedRef font = style().fontCascade();
+        // A button shows the count in place of its selectedcontent elements, see HTMLSelectElement::buttonText().
+        bool countReplacesSelectedContent = select->buttonElement() && select->updatesSelectedContent();
         auto countTextWidth = [&](unsigned count) {
-            return font->width(RenderBlock::constructTextRun(applyTextTransform(style(), htmlSelectMultipleItems(count)), style()));
+            auto text = htmlSelectMultipleItems(count);
+            if (countReplacesSelectedContent)
+                text = select->buttonLabelText(text);
+            return font->width(RenderBlock::constructTextRun(applyTextTransform(style(), text), style()));
         };
         widthWithoutOptions = countTextWidth(0);
         maxOptionWidth = std::max(maxOptionWidth, widthWithoutOptions);
@@ -246,7 +251,7 @@ void RenderMenuList::getItemBackgroundColor(unsigned listIndex, Color& itemBackg
     Ref select = selectElement();
     const auto& listItems = select->listItems();
     if (listIndex >= listItems.size()) {
-        itemBackgroundColor = style().visitedDependentBackgroundColorApplyingColorFilter();
+        itemBackgroundColor = style().visitedDependentUsedBackgroundColorApplyingColorFilter();
         itemHasCustomBackgroundColor = false;
         return;
     }
@@ -254,7 +259,7 @@ void RenderMenuList::getItemBackgroundColor(unsigned listIndex, Color& itemBackg
 
     Color backgroundColor;
     if (CheckedPtr style = element->computedStyleForEditability())
-        backgroundColor = style->visitedDependentBackgroundColorApplyingColorFilter();
+        backgroundColor = style->visitedDependentUsedBackgroundColorApplyingColorFilter();
 
     itemHasCustomBackgroundColor = backgroundColor.isValid() && backgroundColor.isVisible();
     // If the item has an opaque background color, return that.
@@ -264,7 +269,7 @@ void RenderMenuList::getItemBackgroundColor(unsigned listIndex, Color& itemBackg
     }
 
     // Otherwise, the item's background is overlayed on top of the menu background.
-    backgroundColor = blendSourceOver(style().visitedDependentBackgroundColorApplyingColorFilter(), backgroundColor);
+    backgroundColor = blendSourceOver(style().visitedDependentUsedBackgroundColorApplyingColorFilter(), backgroundColor);
     if (backgroundColor.isOpaque()) {
         itemBackgroundColor = backgroundColor;
         return;

@@ -237,7 +237,7 @@ void DragController::dragExited(LocalFrame& frame, DragData&& dragData)
         fileInput->setCanReceiveDroppedFiles(false);
 }
 
-inline static bool NODELETE dragIsHandledByDocument(DragHandlingMethod dragHandlingMethod)
+inline static bool LEGACY_NODELETE dragIsHandledByDocument(DragHandlingMethod dragHandlingMethod)
 {
     return dragHandlingMethod != DragHandlingMethod::None && dragHandlingMethod != DragHandlingMethod::PageLoad;
 }
@@ -390,13 +390,13 @@ static RefPtr<HTMLInputElement> asFileInput(Node& node)
     return inputElement && inputElement->isFileUpload() ? inputElement : nullptr;
 }
 
-static bool NODELETE isEnabledColorInput(Node& node)
+static bool LEGACY_NODELETE isEnabledColorInput(Node& node)
 {
     auto* input = dynamicDowncast<HTMLInputElement>(node);
     return input && input->isColorControl() && !input->isDisabledFormControl();
 }
 
-static bool NODELETE isInShadowTreeOfEnabledColorInput(Node& node)
+static bool LEGACY_NODELETE isInShadowTreeOfEnabledColorInput(Node& node)
 {
     auto* host = node.shadowHost();
     return host && isEnabledColorInput(*host);
@@ -470,7 +470,7 @@ DragHandlingMethod DragController::tryDocumentDrag(LocalFrame& frame, const Drag
         return DragHandlingMethod::NonDefault;
     }
 
-    if (destinationActionMask.contains(DragDestinationAction::Edit) && canProcessDrag(dragData)) {
+    if (destinationActionMask.contains(DragDestinationAction::Edit) && canProcessDrag(frame, dragData)) {
         if (dragData.containsColor()) {
             dragOperation = DragOperation::Generic;
             return DragHandlingMethod::SetColor;
@@ -628,7 +628,7 @@ bool DragController::concludeEditDrag(const DragData& dragData)
         return fileInput->receiveDroppedFiles(dragData);
     }
 
-    if (!m_page->dragController().canProcessDrag(dragData))
+    if (!canProcessDrag(*innerFrame, dragData))
         return false;
 
     VisibleSelection dragCaret = m_page->dragCaretController().caretPosition();
@@ -692,18 +692,16 @@ bool DragController::concludeEditDrag(const DragData& dragData)
     return true;
 }
 
-bool DragController::canProcessDrag(const DragData& dragData)
+bool DragController::canProcessDrag(LocalFrame& frame, const DragData& dragData)
 {
-    RefPtr localMainFrame = m_page->localMainFrame();
-    if (!localMainFrame)
-        return false;
-    IntPoint point = protect(localMainFrame->view())->windowToContents(dragData.clientPosition());
+    Ref rootFrame = frame.rootFrame();
+    IntPoint point = protect(rootFrame->view())->windowToContents(dragData.clientPosition());
     HitTestResult result = HitTestResult(point);
-    if (!localMainFrame->contentRenderer())
+    if (!rootFrame->contentRenderer())
         return false;
 
     constexpr OptionSet<HitTestRequest::Type> hitType { HitTestRequest::Type::ReadOnly, HitTestRequest::Type::Active, HitTestRequest::Type::AllowChildFrameContent };
-    result = localMainFrame->eventHandler().hitTestResultAtPoint(point, hitType);
+    result = rootFrame->eventHandler().hitTestResultAtPoint(point, hitType);
 
     RefPtr dragNode = result.innerNonSharedNode();
     if (!dragNode)
@@ -913,7 +911,7 @@ static void selectElement(Element& element)
     }
 }
 
-static IntPoint NODELETE dragLocForDHTMLDrag(const IntPoint& mouseDraggedPoint, const IntPoint& dragOrigin, const IntPoint& dragImageOffset, bool isLinkImage)
+static IntPoint LEGACY_NODELETE dragLocForDHTMLDrag(const IntPoint& mouseDraggedPoint, const IntPoint& dragOrigin, const IntPoint& dragImageOffset, bool isLinkImage)
 {
     // dragImageOffset is the cursor position relative to the lower-left corner of the image.
 #if PLATFORM(MAC)
@@ -1419,7 +1417,7 @@ void DragController::beginDrag(DragItem dragItem, LocalFrame& frame, const IntPo
     client().beginDrag(WTF::move(dragItem), frame, mouseDownPointInRootViewCoordinates, mouseDraggedPointInRootViewCoordinates, dataTransfer, dragSourceAction);
 }
 
-static RefPtr<Element> NODELETE containingLinkElement(Element& element)
+static RefPtr<Element> LEGACY_NODELETE containingLinkElement(Element& element)
 {
     for (auto& currentElement : lineageOfType<Element>(element)) {
         if (currentElement.isLink())

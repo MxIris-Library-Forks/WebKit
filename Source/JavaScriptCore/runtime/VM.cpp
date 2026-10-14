@@ -778,7 +778,7 @@ Exception* VM::ensureTerminationException()
 }
 
 #if ENABLE(JIT)
-static ThunkGenerator NODELETE thunkGeneratorForIntrinsic(Intrinsic intrinsic)
+static ThunkGenerator LEGACY_NODELETE thunkGeneratorForIntrinsic(Intrinsic intrinsic)
 {
     switch (intrinsic) {
     case CharCodeAtIntrinsic:
@@ -835,8 +835,6 @@ static ThunkGenerator NODELETE thunkGeneratorForIntrinsic(Intrinsic intrinsic)
         return objectIsThunkGenerator;
     case BoundFunctionCallIntrinsic:
         return boundFunctionCallGenerator;
-    case RemoteFunctionCallIntrinsic:
-        return remoteFunctionCallGenerator;
     case NumberConstructorIntrinsic:
         return numberConstructorCallThunkGenerator;
     case StringConstructorIntrinsic:
@@ -945,30 +943,6 @@ NativeExecutable* VM::getBoundFunction(bool isJSFunction, SourceTaintedOrigin ta
     return getOrCreate(m_fastCanConstructBoundExecutable);
 }
 
-NativeExecutable* VM::getRemoteFunction(bool isJSFunction)
-{
-    bool slowCase = !isJSFunction;
-    auto getOrCreate = [&] (Weak<NativeExecutable>& slot) -> NativeExecutable* {
-        if (auto* cached = slot.get())
-            return cached;
-
-        Intrinsic intrinsic = NoIntrinsic;
-        if (!slowCase)
-            intrinsic = RemoteFunctionCallIntrinsic;
-
-        NativeExecutable* result = getHostFunction(
-            slowCase ? remoteFunctionCallGeneric : remoteFunctionCallForJSFunction,
-            ImplementationVisibility::Public, intrinsic,
-            callHostFunctionAsConstructor, nullptr, 0, String());
-        slot = Weak<NativeExecutable>(result);
-        return result;
-    };
-
-    if (slowCase)
-        return getOrCreate(m_slowRemoteFunctionExecutable);
-    return getOrCreate(m_fastRemoteFunctionExecutable);
-}
-
 CodePtr<JSEntryPtrTag> VM::getCTIInternalFunctionTrampolineFor(CodeSpecializationKind kind)
 {
 #if ENABLE(JIT)
@@ -1064,12 +1038,15 @@ SourceProviderCache* VM::addSourceProviderCache(SourceProvider* sourceProvider)
     auto addResult = sourceProviderCacheMap.add(sourceProvider, nullptr);
     if (addResult.isNewEntry)
         addResult.iterator->value = SourceProviderCache::create(sourceProvider->source().length());
+    addResult.iterator->value->markUsed();
     return addResult.iterator->value.get();
 }
 
-void VM::clearSourceProviderCaches()
+void VM::pruneUnusedSourceProviderCaches()
 {
-    sourceProviderCacheMap.clear();
+    sourceProviderCacheMap.removeIf([](auto& entry) {
+        return !entry.value->takeUsedSinceLastPrune();
+    });
 }
 
 bool VM::hasExceptionsAfterHandlingTraps()

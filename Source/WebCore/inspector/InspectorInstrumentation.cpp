@@ -118,6 +118,17 @@ void InspectorInstrumentation::lastFrontendDeleted()
     platformStrategies()->loaderStrategy()->setCaptureExtraNetworkLoadMetricsEnabled(false);
 }
 
+static void evaluatePageProxyBootstrapScript(InstrumentingAgents& instrumentingAgents, LocalFrame& frame, DOMWrapperWorld& world)
+{
+    String bootstrapScript;
+    if (CheckedPtr pageProxy = instrumentingAgents.enabledPageProxy())
+        bootstrapScript = pageProxy->bootstrapScriptToEvaluate(world);
+
+    // Evaluate only after the CheckedPtr is gone: the script can detach the frame (e.g. `frameElement.remove()`), which destroys its per-frame page proxy.
+    if (!bootstrapScript.isEmpty())
+        InspectorPageAgent::evaluateBootstrapScript(frame, bootstrapScript);
+}
+
 void InspectorInstrumentation::didClearWindowObjectInWorldImpl(InstrumentingAgents& instrumentingAgents, LocalFrame& frame, DOMWrapperWorld& world)
 {
     // NOTE: Under site isolation, PageDebuggerAgent and FrameDebuggerAgent cannot both be enabled for
@@ -134,6 +145,7 @@ void InspectorInstrumentation::didClearWindowObjectInWorldImpl(InstrumentingAgen
         frameRuntimeAgent->didClearWindowObjectInWorld(world);
         if (CheckedPtr pageAgent = instrumentingAgents.enabledPageAgent())
             pageAgent->didClearWindowObjectInWorld(frame, world);
+        evaluatePageProxyBootstrapScript(instrumentingAgents, frame, world);
         return;
     }
 
@@ -142,6 +154,8 @@ void InspectorInstrumentation::didClearWindowObjectInWorldImpl(InstrumentingAgen
 
     if (CheckedPtr pageAgent = instrumentingAgents.enabledPageAgent())
         pageAgent->didClearWindowObjectInWorld(frame, world);
+
+    evaluatePageProxyBootstrapScript(instrumentingAgents, frame, world);
 }
 
 bool InspectorInstrumentation::isDebuggerPausedImpl(InstrumentingAgents& instrumentingAgents)
@@ -1139,7 +1153,7 @@ void InspectorInstrumentation::interceptResponseImpl(InstrumentingAgents& instru
 }
 
 // JavaScriptCore InspectorDebuggerAgent should know Console MessageTypes.
-static bool NODELETE isConsoleAssertMessage(MessageSource source, MessageType type)
+static bool LEGACY_NODELETE isConsoleAssertMessage(MessageSource source, MessageType type)
 {
     return source == MessageSource::ConsoleAPI && type == MessageType::Assert;
 }
@@ -1746,6 +1760,9 @@ InstrumentingAgents& InspectorInstrumentation::instrumentingAgents(Page& page)
 
 InstrumentingAgents* InspectorInstrumentation::instrumentingAgents(ScriptExecutionContext& context)
 {
+    if (context.isInDestructor())
+        return nullptr;
+
     // Using RefPtr makes us hit the m_inRemovedLastRefFunction assert.
     if (WeakPtr document = dynamicDowncast<Document>(context)) {
         if (auto* frame = document->frame())

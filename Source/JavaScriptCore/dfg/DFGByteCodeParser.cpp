@@ -89,6 +89,7 @@
 #include "ObjectConstructor.h"
 #include "OpcodeInlines.h"
 #include "PreciseJumpTargets.h"
+#include "PreciseJumpTargetsInlines.h"
 #include "PrivateFieldPutKind.h"
 #include "PropertyInlineCache.h"
 #include "PutByIdFlags.h"
@@ -620,8 +621,8 @@ private:
     void linkBlock(BasicBlock*, Vector<BasicBlock*>& possibleTargets);
     void linkBlocks(Vector<BasicBlock*>& unlinkedBlocks, Vector<BasicBlock*>& possibleTargets);
     
-    BytecodeIndex NODELETE nextOpcodeIndex() const { return BytecodeIndex(m_currentIndex.offset() + m_currentInstruction->size()); }
-    BytecodeIndex NODELETE nextCheckpoint() const { return m_currentIndex.withCheckpoint(m_currentIndex.checkpoint() + 1); }
+    BytecodeIndex LEGACY_NODELETE nextOpcodeIndex() const { return BytecodeIndex(m_currentIndex.offset() + m_currentInstruction->size()); }
+    BytecodeIndex LEGACY_NODELETE nextCheckpoint() const { return m_currentIndex.withCheckpoint(m_currentIndex.checkpoint() + 1); }
 
     BytecodeIndex progressToNextCheckpoint()
     {
@@ -885,7 +886,7 @@ private:
         return node;
     }
     
-    ArgumentPosition* NODELETE findArgumentPositionForArgument(int argument)
+    ArgumentPosition* LEGACY_NODELETE findArgumentPositionForArgument(int argument)
     {
         InlineStackEntry* stack = m_inlineStackTop;
         while (stack->m_inlineCallFrame)
@@ -893,7 +894,7 @@ private:
         return stack->m_argumentPositions[argument];
     }
     
-    ArgumentPosition* NODELETE findArgumentPositionForLocal(VirtualRegister operand)
+    ArgumentPosition* LEGACY_NODELETE findArgumentPositionForLocal(VirtualRegister operand)
     {
         for (InlineStackEntry* stack = m_inlineStackTop; ; stack = stack->m_caller) {
             InlineCallFrame* inlineCallFrame = stack->m_inlineCallFrame;
@@ -909,7 +910,7 @@ private:
         return nullptr;
     }
     
-    ArgumentPosition* NODELETE findArgumentPosition(Operand operand)
+    ArgumentPosition* LEGACY_NODELETE findArgumentPosition(Operand operand)
     {
         if (operand.isTmp())
             return nullptr;
@@ -1086,12 +1087,12 @@ private:
         return jsConstant(m_graph.freeze(constantValue));
     }
 
-    InlineCallFrame* NODELETE inlineCallFrame()
+    InlineCallFrame* LEGACY_NODELETE inlineCallFrame()
     {
         return m_inlineStackTop->m_inlineCallFrame;
     }
 
-    bool NODELETE allInlineFramesAreTailCalls()
+    bool LEGACY_NODELETE allInlineFramesAreTailCalls()
     {
         return !inlineCallFrame() || !inlineCallFrame()->getCallerSkippingTailCalls();
     }
@@ -1521,7 +1522,7 @@ private:
         return node;
     }
     
-    void NODELETE noticeArgumentsUse()
+    void LEGACY_NODELETE noticeArgumentsUse()
     {
         // All of the arguments in this function need to be formatted as JSValues because we will
         // load from them in a random-access fashion and we don't want to have to switch on
@@ -1583,7 +1584,7 @@ private:
         CodeBlock* const m_profiledBlock;
         InlineCallFrame* m_inlineCallFrame;
         
-        ScriptExecutable* NODELETE executable() { return m_codeBlock->ownerExecutable(); }
+        ScriptExecutable* LEGACY_NODELETE executable() { return m_codeBlock->ownerExecutable(); }
         
         QueryableExitProfile m_exitProfile;
         
@@ -1643,7 +1644,7 @@ private:
         
         ~InlineStackEntry();
         
-        Operand NODELETE remapOperand(Operand operand) const
+        Operand LEGACY_NODELETE remapOperand(Operand operand) const
         {
             if (!m_inlineCallFrame)
                 return operand;
@@ -6268,7 +6269,7 @@ bool ByteCodeParser::handleIntrinsicGetter(Operand result, SpeculatedType predic
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-static void NODELETE blessCallDOMGetter(Node* node)
+static void LEGACY_NODELETE blessCallDOMGetter(Node* node)
 {
     DOMJIT::CallDOMGetterSnippet* snippet = node->callDOMGetterData()->snippet;
     if (snippet && !snippet->effect.mustGenerate())
@@ -6740,7 +6741,7 @@ bool ByteCodeParser::handleConstantFunction(
         return true;
     }
 
-    if (function->classInfo() == RegExpConstructor::info()) {
+    if (function->classInfo() == RegExpConstructor::info() && kind == CodeSpecializationKind::CodeForConstruct) {
         Node* newTargetNode = get(virtualRegisterForArgumentIncludingThis(0, registerOffset));
         // We cannot handle the case where new.target != callee (i.e. a construct from a super call) because we
         // don't know what the prototype of the constructed object will be.
@@ -6967,7 +6968,7 @@ bool ByteCodeParser::check(const ObjectPropertyCondition& condition)
     return true;
 }
 
-bool NODELETE ByteCodeParser::needsDynamicLookup(ResolveType type, OpcodeID opcode)
+bool LEGACY_NODELETE ByteCodeParser::needsDynamicLookup(ResolveType type, OpcodeID opcode)
 {
     ASSERT(opcode == op_resolve_scope || opcode == op_get_from_scope || opcode == op_put_to_scope);
 
@@ -8150,13 +8151,13 @@ void ByteCodeParser::handlePutPrivateNameById(
     } }
 }
 
-void NODELETE ByteCodeParser::prepareToParseBlock()
+void LEGACY_NODELETE ByteCodeParser::prepareToParseBlock()
 {
     clearCaches();
     ASSERT(m_setLocalQueue.isEmpty());
 }
 
-void NODELETE ByteCodeParser::clearCaches()
+void LEGACY_NODELETE ByteCodeParser::clearCaches()
 {
     m_constants.shrink(0);
 }
@@ -8181,7 +8182,7 @@ void ByteCodeParser::parseGetById(const JSInstruction* currentInstruction, unsig
     handleGetById(bytecode.m_dst, prediction, base, identifier, identifierNumber, getByStatus, type, nextOpcodeIndex());
 }
 
-static uint64_t NODELETE makeDynamicVarOpInfo(unsigned identifierNumber, unsigned getPutInfo)
+static uint64_t LEGACY_NODELETE makeDynamicVarOpInfo(unsigned identifierNumber, unsigned getPutInfo)
 {
     static_assert(sizeof(identifierNumber) == 4,
         "We cannot fit identifierNumber into the high bits of m_opInfo");
@@ -8869,6 +8870,27 @@ void ByteCodeParser::parseBlock(unsigned limit)
         case op_instanceof: {
             auto bytecode = currentInstruction->as<OpInstanceof>();
 
+            // If a jtrue / jfalse on the result follows, each arm branches by itself instead of
+            // joining at a boolean Phi, so an arm whose result is or folds to a constant keeps it.
+            const JSInstruction* fusedBranch = nullptr;
+            unsigned fusedTaken = 0;
+            unsigned fusedNotTaken = 0;
+            unsigned fusedFallThrough = 0;
+            BytecodeIndex branchIndex = nextOpcodeIndex();
+            if (branchIndex.offset() < limit) {
+                auto next = instructions.at(branchIndex);
+                fusedFallThrough = branchIndex.offset() + next->size();
+                if (next->is<OpJtrue>() && next->as<OpJtrue>().m_condition == bytecode.m_dst) {
+                    fusedBranch = next.ptr();
+                    fusedTaken = branchIndex.offset() + jumpTargetForInstruction<OpJtrue>(codeBlock, next);
+                    fusedNotTaken = fusedFallThrough;
+                } else if (next->is<OpJfalse>() && next->as<OpJfalse>().m_condition == bytecode.m_dst) {
+                    fusedBranch = next.ptr();
+                    fusedTaken = fusedFallThrough;
+                    fusedNotTaken = branchIndex.offset() + jumpTargetForInstruction<OpJfalse>(codeBlock, next);
+                }
+            }
+
             BytecodeIndex startIndex = m_currentIndex;
             BytecodeIndex itermediateIndex = m_currentIndex;
             BasicBlock* constructorIsObjectBlock = allocateUntargetableBlock();
@@ -8877,7 +8899,25 @@ void ByteCodeParser::parseBlock(unsigned limit)
             BasicBlock* valueIsNotObjectBlock = allocateUntargetableBlock();
             BasicBlock* isCustomBlock = allocateUntargetableBlock();
             BasicBlock* isNotCustomBlock = allocateUntargetableBlock();
-            BasicBlock* continuation = allocateUntargetableBlock();
+            BasicBlock* continuation = fusedBranch ? nullptr : allocateUntargetableBlock();
+
+            auto finishArm = [&] {
+                m_currentIndex = nextOpcodeIndex();
+                m_exitOK = true;
+                processSetLocalQueue();
+
+                if (!fusedBranch) {
+                    addToGraph(Jump, OpInfo(continuation));
+                    return;
+                }
+                // The fused jump is never visited by the parse loop, so count it here.
+                if (m_graph.compilation()) [[unlikely]] {
+                    addToGraph(CountExecution, OpInfo(m_graph.compilation()->executionCounterFor(
+                        Profiler::OriginStack(*m_vm->m_perBytecodeProfiler, m_codeBlock, currentCodeOrigin()))));
+                }
+                addToGraph(Branch, OpInfo(branchData(fusedTaken, fusedNotTaken)), get(bytecode.m_dst));
+                m_inlineStackTop->m_unlinkedBlocks.append(m_currentBlock);
+            };
 
             // 1. Get hasInstance
             // 1.1 Check whether the constructor is an object.
@@ -8933,11 +8973,7 @@ void ByteCodeParser::parseBlock(unsigned limit)
 
                 set(bytecode.m_dst, addToGraph(InstanceOfCustom, get(bytecode.m_value), get(bytecode.m_constructor), get(bytecode.m_hasInstanceOrPrototype)));
 
-                m_currentIndex = nextOpcodeIndex();
-                m_exitOK = true;
-                processSetLocalQueue();
-
-                addToGraph(Jump, OpInfo(continuation));
+                finishArm();
             }
 
             m_currentIndex = itermediateIndex;
@@ -8961,11 +8997,7 @@ void ByteCodeParser::parseBlock(unsigned limit)
 
                 set(bytecode.m_dst, jsConstant(jsBoolean(false)));
 
-                m_currentIndex = nextOpcodeIndex();
-                m_exitOK = true;
-                processSetLocalQueue();
-
-                addToGraph(Jump, OpInfo(continuation));
+                finishArm();
             }
 
             m_currentIndex = itermediateIndex;
@@ -9033,11 +9065,13 @@ void ByteCodeParser::parseBlock(unsigned limit)
                     set(bytecode.m_dst, addToGraph(op, value, prototype));
                 })();
 
-                m_currentIndex = nextOpcodeIndex();
-                m_exitOK = true;
-                processSetLocalQueue();
+                finishArm();
+            }
 
-                addToGraph(Jump, OpInfo(continuation));
+            if (fusedBranch) {
+                m_currentIndex = BytecodeIndex(fusedFallThrough);
+                m_exitOK = false;
+                return;
             }
 
             m_currentIndex = startIndex;
@@ -14135,37 +14169,32 @@ auto ByteCodeParser::handleArraySort(Node* callee, Operand resultOperand, CallVa
 
 void ByteCodeParser::pruneUnreachableNodes()
 {
+    bool changed = false;
     if (m_hasAnyForceOSRExits) {
         BlockSet blocksToIgnore;
+        Vector<BasicBlock*, 16> worklist;
         for (BasicBlock* block : m_graph.blocksInNaturalOrder()) {
-            if (block->isOSRTarget && block->bytecodeBegin == m_graph.m_plan.osrEntryBytecodeIndex()) {
+            if (block->isReachable && block->isOSRTarget && block->bytecodeBegin == m_graph.m_plan.osrEntryBytecodeIndex()) {
                 blocksToIgnore.add(block);
+                worklist.append(block);
                 break;
             }
         }
 
-        {
-            bool isSafeToValidate = false;
-            auto postOrder = m_graph.blocksInPostOrder(isSafeToValidate); // This algorithm doesn't rely on the predecessors list, which is not yet built.
-            bool changed;
-            do {
-                changed = false;
-                for (BasicBlock* block : postOrder) {
-                    for (BasicBlock* successor : block->successors()) {
-                        if (blocksToIgnore.contains(successor)) {
-                            changed |= blocksToIgnore.add(block);
-                            break;
-                        }
-                    }
-                }
-            } while (changed);
+        // Preserve every block that can reach the OSR entry target.
+        while (!worklist.isEmpty()) {
+            BasicBlock* block = worklist.takeLast();
+            for (BasicBlock* predecessor : block->predecessors) {
+                if (blocksToIgnore.add(predecessor))
+                    worklist.append(predecessor);
+            }
         }
 
         InsertionSet insertionSet(m_graph);
         Operands<VariableAccessData*> mapping(OperandsLike, m_graph.block(0)->variablesAtHead);
 
         for (BasicBlock* block : m_graph.blocksInNaturalOrder()) {
-            if (blocksToIgnore.contains(block))
+            if (!block->isReachable || blocksToIgnore.contains(block))
                 continue;
 
             mapping.fill(nullptr);
@@ -14193,14 +14222,7 @@ void ByteCodeParser::pruneUnreachableNodes()
 
                 ++nodeIndex;
 
-                if (validationEnabled()) {
-                    // This verifies that we don't need to change any of the successors's predecessor
-                    // list after planting the Unreachable below. At this point in the bytecode
-                    // parser, we haven't linked up the predecessor lists yet.
-                    for (BasicBlock* successor : block->successors())
-                        RELEASE_ASSERT(successor->predecessors.isEmpty());
-                }
-
+                // Reachability and predecessor lists are recomputed after pruning removes edges.
                 block->resize(nodeIndex);
 
                 {
@@ -14229,6 +14251,7 @@ void ByteCodeParser::pruneUnreachableNodes()
 
                 insertionSet.insertNode(nodeIndex, SpecNone, Unreachable, origin);
                 insertionSet.execute(block);
+                changed = true;
 
                 break;
             }
@@ -14240,6 +14263,9 @@ void ByteCodeParser::pruneUnreachableNodes()
                 RELEASE_ASSERT(node->op() != ForceOSRExit);
         }
     }
+
+    if (changed)
+        m_graph.resetReachability();
 }
 
 #define RUN_ANALYSIS(code)                                           \
@@ -14298,6 +14324,8 @@ bool ByteCodeParser::parse()
     parseCodeBlock();
     linkBlocks(inlineStackEntry.m_unlinkedBlocks, inlineStackEntry.m_blockLinkingTargets);
 
+    m_graph.determineReachability();
+
     // We insert catch variable preservation here to show all bytecode
     // uses to the subsequent backward propagation phase.
     RUN_ANALYSIS(performLiveCatchVariablePreservationPhase(m_graph));
@@ -14311,7 +14339,6 @@ bool ByteCodeParser::parse()
 
     RUN_ANALYSIS(pruneUnreachableNodes());
 
-    m_graph.determineReachability();
     m_graph.killUnreachableBlocks();
 
 #if ASSERT_ENABLED

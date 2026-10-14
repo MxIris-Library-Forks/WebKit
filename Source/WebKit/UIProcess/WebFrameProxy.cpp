@@ -144,7 +144,7 @@ private:
     RunLoop::Timer m_expirationTimer;
 };
 
-static HashMap<FrameIdentifier, WeakRef<WebFrameProxy>>& NODELETE allFrames()
+static HashMap<FrameIdentifier, WeakRef<WebFrameProxy>>& LEGACY_NODELETE allFrames()
 {
     ASSERT(RunLoop::isMain());
     static NeverDestroyed<HashMap<FrameIdentifier, WeakRef<WebFrameProxy>>> map;
@@ -751,17 +751,6 @@ void WebFrameProxy::getFrameInfo(CompletionHandler<void(std::optional<FrameInfoD
         if (!securityOrigin.isOpaque() && frameInfo->securityOrigin != securityOrigin) {
             RELEASE_LOG_ERROR(IPC, "WebFrameProxy::getFrameInfo: security origin mismatch");
             frameInfo->securityOrigin = WTF::move(securityOrigin);
-        }
-        if (m_page) {
-            if (frameInfo->webPageProxyID != m_page->identifier()) {
-                RELEASE_LOG_ERROR(IPC, "WebFrameProxy::getFrameInfo: webPageProxyID mismatch");
-                frameInfo->webPageProxyID = m_page->identifier();
-            }
-        } else {
-            if (frameInfo->webPageProxyID) {
-                RELEASE_LOG_ERROR(IPC, "WebFrameProxy::getFrameInfo: had unexpected webPageProxyID");
-                frameInfo->webPageProxyID = std::nullopt;
-            }
         }
         completionHandler(WTF::move(*frameInfo));
     });

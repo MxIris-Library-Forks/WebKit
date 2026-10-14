@@ -166,6 +166,7 @@ add_custom_command(
 
 set(WPE_API_HEADER_TEMPLATES
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitApplicationInfo.h.in
+    ${WEBKIT_DIR}/UIProcess/API/glib/WebKitApplicationManifest.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitAuthenticationRequest.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitAutocleanups.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitAutomationSession.h.in
@@ -189,6 +190,7 @@ set(WPE_API_HEADER_TEMPLATES
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitFileChooserRequest.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitFindController.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitFormSubmissionRequest.h.in
+    ${WEBKIT_DIR}/UIProcess/API/glib/WebKitFrameInfo.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitGeolocationManager.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitGeolocationPermissionRequest.h.in
     ${WEBKIT_DIR}/UIProcess/API/glib/WebKitHitTestResult.h.in
@@ -298,6 +300,7 @@ GENERATE_GLIB_API_HEADERS(WebKit WPE_API_HEADER_TEMPLATES
     "-DWTF_PLATFORM_WPE=1"
     "-DUSE_GTK4=0"
     "-DENABLE_2022_GLIB_API=1"
+    "-DENABLE_FUTURE_GLIB_API=$<BOOL:${ENABLE_FUTURE_GLIB_API}>"
     "-DENABLE_WPE_PLATFORM=$<BOOL:${ENABLE_WPE_PLATFORM}>"
     "-DUSE_LIBWPE=$<BOOL:${USE_LIBWPE}>"
     "-DUSE_GI_FINISH_FUNC_ANNOTATION=${USE_GI_FINISH_FUNC_ANNOTATION}"
@@ -311,6 +314,7 @@ GENERATE_GLIB_API_HEADERS(WebKit WPE_WEB_PROCESS_EXTENSION_API_HEADER_TEMPLATES
     "-DWTF_PLATFORM_WPE=1"
     "-DUSE_GTK4=0"
     "-DENABLE_2022_GLIB_API=1"
+    "-DENABLE_FUTURE_GLIB_API=$<BOOL:${ENABLE_FUTURE_GLIB_API}>"
 )
 
 # To generate WebKitEnumTypes.h we want to use all installed headers, except WebKitEnumTypes.h itself.

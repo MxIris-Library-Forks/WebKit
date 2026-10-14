@@ -178,12 +178,12 @@ IntRect DragCaretController::editableElementRectInRootViewCoordinates() const
     return { };
 }
 
-static inline bool NODELETE shouldAlwaysUseDirectionalSelection(Document* document)
+static inline bool LEGACY_NODELETE shouldAlwaysUseDirectionalSelection(Document* document)
 {
     return !document || document->editingBehavior().shouldConsiderSelectionAsDirectional();
 }
 
-static inline bool NODELETE isPageActive(Document* document)
+static inline bool LEGACY_NODELETE isPageActive(Document* document)
 {
     return document && document->page() && document->page()->focusController().isActive();
 }
@@ -625,7 +625,7 @@ void DragCaretController::clearCaretPositionWithoutUpdatingStyle()
     clearCaretRect();
 }
 
-static void NODELETE setNodeContainsSelectionEndPoint(const Position& position, bool value)
+static void LEGACY_NODELETE setNodeContainsSelectionEndPoint(const Position& position, bool value)
 {
     // We use anchorNode instead of containerNode() because nodeWillBeRemoved must update position when anchored node is removed.
     for (auto* currentNode = position.anchorNode(); currentNode; currentNode = currentNode->parentOrShadowHostNode()) {
@@ -1384,7 +1384,7 @@ VisiblePosition FrameSelection::modifyMovingBackward(TextGranularity granularity
     return pos;
 }
 
-static bool NODELETE isBoundary(TextGranularity granularity)
+static bool LEGACY_NODELETE isBoundary(TextGranularity granularity)
 {
     return granularity == TextGranularity::LineBoundary || granularity == TextGranularity::ParagraphBoundary || granularity == TextGranularity::DocumentBoundary;
 }
@@ -1457,7 +1457,7 @@ AXTextStateChangeIntent FrameSelection::textSelectionIntent(Alteration alter, Se
     return intent;
 }
 
-static AXTextSelection NODELETE textSelectionWithDirectionAndGranularity(SelectionDirection direction, TextGranularity granularity)
+static AXTextSelection LEGACY_NODELETE textSelectionWithDirectionAndGranularity(SelectionDirection direction, TextGranularity granularity)
 {
     // FIXME: Account for BIDI in SelectionDirection::Right & SelectionDirection::Left. (In a RTL block, Right would map to Previous/Beginning and Left to Next/End.)
     AXTextSelectionDirection intentDirection = AXTextSelectionDirection::Unknown;
@@ -1859,7 +1859,7 @@ RenderBlock* DragCaretController::caretRenderer() const
     return rendererForCaretPainting(protect(m_position.deepEquivalent().deprecatedNode()));
 }
 
-static bool NODELETE isNonOrphanedCaret(const VisibleSelection& selection)
+static bool LEGACY_NODELETE isNonOrphanedCaret(const VisibleSelection& selection)
 {
     return selection.isCaret() && !selection.start().isOrphan() && !selection.end().isOrphan();
 }
@@ -2085,7 +2085,7 @@ Color CaretBase::computeCaretColor(const Style::ComputedStyle& elementStyle, con
 
     Color surface;
     for (CheckedPtr renderer = firstRenderer; renderer && !surface.isOpaque(); renderer = renderer->parent()) {
-        auto background = protect(renderer->style())->visitedDependentBackgroundColorApplyingColorFilter();
+        auto background = protect(renderer->style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
         if (CheckedPtr inlineBox = dynamicDowncast<RenderInline>(renderer.get())) {
             if (!background.isVisible())
                 continue;
@@ -2121,8 +2121,8 @@ Color CaretBase::computeCaretColor(const Style::ComputedStyle& elementStyle, con
     auto* parentStyle = parentElement && parentElement->renderer() ? &parentElement->renderer()->style() : nullptr;
     // CSS value "auto" is treated as an invalid color.
     if (elementStyle.caretColor().isAuto() && parentStyle) {
-        auto parentBackgroundColor = parentStyle->visitedDependentBackgroundColorApplyingColorFilter();
-        auto elementBackgroundColor = elementStyle.visitedDependentBackgroundColorApplyingColorFilter();
+        auto parentBackgroundColor = parentStyle->visitedDependentUsedBackgroundColorApplyingColorFilter();
+        auto elementBackgroundColor = elementStyle.visitedDependentUsedBackgroundColorApplyingColorFilter();
         auto disappearsIntoBackground = blendSourceOver(parentBackgroundColor, elementBackgroundColor) == parentBackgroundColor;
         if (disappearsIntoBackground)
             return parentStyle->visitedDependentCaretColorApplyingColorFilter();
@@ -2770,7 +2770,7 @@ static RefPtr<HTMLFormElement> scanForForm(Element* start)
     return nullptr;
 }
 
-static ValidatedFormListedElement* NODELETE findFormControlElementAncestor(Element& element)
+static ValidatedFormListedElement* LEGACY_NODELETE findFormControlElementAncestor(Element& element)
 {
     for (auto& ancestor : lineageOfType<Element>(element)) {
         if (auto* formControlAncestor = ancestor.asValidatedFormListedElement())
@@ -3190,7 +3190,7 @@ void FrameSelection::setCaretColor(const Color& caretColor)
 
 #endif // PLATFORM(IOS_FAMILY)
 
-static bool NODELETE containsEndpoints(const WeakPtr<Document, WeakPtrImplWithEventTargetData>& document, const std::optional<SimpleRange>& range)
+static bool LEGACY_NODELETE containsEndpoints(const WeakPtr<Document, WeakPtrImplWithEventTargetData>& document, const std::optional<SimpleRange>& range)
 {
     return document && range && document->contains(range->start.container) && document->contains(range->end.container);
 }

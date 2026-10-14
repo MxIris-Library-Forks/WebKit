@@ -158,6 +158,7 @@ NetworkConnectionToWebProcess::NetworkConnectionToWebProcess(NetworkProcess& net
     , m_schemeRegistry(NetworkSchemeRegistry::create())
     , m_originAccessPatterns(makeUniqueRef<NetworkOriginAccessPatterns>())
     , m_sharedPreferencesForWebProcess(parameters.sharedPreferencesForWebProcess)
+    , m_hostedDomains(WTF::move(parameters.hostedDomains))
 #if ENABLE(IPC_TESTING_API)
     , m_ipcTester(IPCTester::create())
 #endif
@@ -893,7 +894,7 @@ void NetworkConnectionToWebProcess::convertMainResourceLoadToDownload(std::optio
 void NetworkConnectionToWebProcess::registerURLSchemesAsCORSEnabled(Vector<String>&& schemes)
 {
     Ref registry = m_schemeRegistry;
-    for (auto&& scheme : WTF::move(schemes))
+    for (auto&& scheme : borrow(schemes))
         registry->registerURLSchemeAsCORSEnabled(connection(), WTF::move(scheme));
 }
 
@@ -909,7 +910,13 @@ static bool shouldTreatAsSameSite(const URL& firstParty, const URL& url)
 #endif
 }
 
-auto NetworkConnectionToWebProcess::validateCookieAccess(ASCIILiteral messageName, const URL& firstParty, const URL& url, const SameSiteInfo* sameSiteInfo, std::optional<WebPageProxyIdentifier> webPageProxyID) -> CookieAccess
+bool NetworkConnectionToWebProcess::hostsDomain(const RegistrableDomain& domain) const
+{
+    // A URL without a registrable domain, such as a file: URL, has no site to check.
+    return !m_hostedDomains || domain.isEmpty() || m_hostedDomains->contains(domain);
+}
+
+auto NetworkConnectionToWebProcess::validateCookieAccess(ASCIILiteral messageName, const URL& firstParty, const URL& url, const SameSiteInfo* sameSiteInfo, std::optional<WebPageProxyIdentifier> webPageProxyID, AllowUnhostedURL allowUnhostedURL) -> CookieAccess
 {
     auto allowCookieAccess = m_networkProcess->allowsFirstPartyForCookies(m_webProcessIdentifier, firstParty);
     if (allowCookieAccess == NetworkProcess::AllowCookieAccess::Terminate)
@@ -924,6 +931,13 @@ auto NetworkConnectionToWebProcess::validateCookieAccess(ASCIILiteral messageNam
 
     if (allowCookieAccess != NetworkProcess::AllowCookieAccess::Allow)
         return CookieAccess::Disallow;
+
+    // firstParty is not enough: under site isolation, a cross-site iframe's process is allowed its embedder as a
+    // first party, so it could otherwise name the embedder's URL and get the embedder's own cookies.
+    if (allowUnhostedURL == AllowUnhostedURL::No && !hostsDomain(RegistrableDomain { url })) {
+        CONNECTION_RELEASE_LOG_ERROR(IPC, "%" PUBLIC_LOG_STRING ": Rejecting cookie access for a site this process does not host", messageName.characters());
+        return CookieAccess::Disallow;
+    }
 
     if (sameSiteInfo && sameSiteInfo->isSameSite && !shouldTreatAsSameSite(firstParty, url)) {
         CONNECTION_RELEASE_LOG_ERROR(IPC, "%" PUBLIC_LOG_STRING ": Rejecting cookie access due to invalid sameSiteInfo", messageName.characters());
@@ -998,7 +1012,8 @@ void NetworkConnectionToWebProcess::cookiesEnabled(const URL& firstParty, const 
 // The only caller never passed frame, page or web page proxy identifiers, so relaxed third-party cookie blocking never applied here.
 void NetworkConnectionToWebProcess::cookieRequestHeaderFieldValueDigest(const URL& firstParty, const SameSiteInfo& sameSiteInfo, const URL& url, IncludeSecureCookies includeSecureCookies, CompletionHandler<void(std::optional<SHA1::Digest>)>&& completionHandler)
 {
-    auto access = validateCookieAccess("cookieRequestHeaderFieldValueDigest"_s, firstParty, url, &sameSiteInfo, std::nullopt);
+    // Subresources are routinely cross-site. The reply is a salted digest, which shows whether url's cookies changed but not what they are.
+    auto access = validateCookieAccess("cookieRequestHeaderFieldValueDigest"_s, firstParty, url, &sameSiteInfo, std::nullopt, AllowUnhostedURL::Yes);
     MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(std::nullopt));
     if (access != CookieAccess::Allow)
         return completionHandler(std::nullopt);
@@ -1104,18 +1119,18 @@ void NetworkConnectionToWebProcess::setCookieFromDOMAsync(const URL& firstParty,
     completionHandler(result);
 }
 
-void NetworkConnectionToWebProcess::domCookiesForHost(const URL& url, CompletionHandler<void(const Vector<WebCore::Cookie>&)>&& completionHandler)
+// Replies std::nullopt rather than an empty vector on failure, so that WebCookieCache does not cache it as "no cookies".
+void NetworkConnectionToWebProcess::domCookiesForHost(const URL& url, CompletionHandler<void(std::optional<Vector<WebCore::Cookie>>&&)>&& completionHandler)
 {
-    auto host = url.host().toString();
-    MESSAGE_CHECK_COMPLETION(HashSet<String>::isValidValue(url.host().toString()), completionHandler({ }));
+    MESSAGE_CHECK_COMPLETION(HashSet<String>::isValidValue(url.host().toString()), completionHandler(std::nullopt));
     auto access = validateCookieAccess("domCookiesForHost"_s, url, url, nullptr, std::nullopt);
-    MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler({ }));
+    MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(std::nullopt));
     if (access != CookieAccess::Allow)
-        return completionHandler({ });
+        return completionHandler(std::nullopt);
 
     CheckedPtr networkStorageSession = storageSession();
     if (!networkStorageSession)
-        return completionHandler({ });
+        return completionHandler(std::nullopt);
 
     completionHandler(networkStorageSession->domCookiesForHost(url));
 }
@@ -1339,7 +1354,7 @@ CompletionHandlerCallingScope NetworkConnectionToWebProcess::retainBlobURLsWhile
         return { };
 
     Vector<URL> retainedBlobURLs;
-    for (auto& url : blobURLs) {
+    for (auto& url : borrow(blobURLs)) {
         if (!ownsBlobURL(url) || !session->blobRegistry().blobDataFromURL(url))
             continue;
         session->blobRegistry().registerBlobURLHandle(url, std::nullopt);
@@ -1355,7 +1370,7 @@ CompletionHandlerCallingScope NetworkConnectionToWebProcess::retainBlobURLsWhile
         CheckedPtr session = protectedNetworkProcess ? protectedNetworkProcess->networkSession(sessionID) : nullptr;
         if (!session)
             return;
-        for (auto& url : retainedBlobURLs)
+        for (auto& url : borrow(retainedBlobURLs))
             session->blobRegistry().unregisterBlobURLHandle(url, std::nullopt);
     } };
 }
@@ -1381,21 +1396,21 @@ void NetworkConnectionToWebProcess::writeBlobsToTemporaryFilesForIndexedDB(const
     MESSAGE_CHECK_COMPLETION(!session->sessionID().isEphemeral(), completionHandler({ }));
 
     Vector<Ref<BlobDataFileReference>> fileReferences;
-    for (auto& url : blobURLs)
+    for (auto& url : borrow(blobURLs))
         fileReferences.appendVector(session->blobRegistry().filesInBlob({ { }, url }));
 
-    for (auto& file : fileReferences)
+    for (auto& file : borrow(fileReferences))
         file->prepareForFileAccess();
 
     session->blobRegistry().writeBlobsToTemporaryFilesForIndexedDB(blobURLs, [this, protectedThis = Ref { *this }, fileReferences = WTF::move(fileReferences), completionHandler = WTF::move(completionHandler)](Vector<String>&& filePaths) mutable {
-        for (auto& file : fileReferences)
+        for (auto& file : borrow(fileReferences))
             file->revokeFileAccess();
 
         if (CheckedPtr session = networkSession())
             session->storageManager().registerTemporaryBlobFilePaths(Ref { m_connection }, filePaths);
 
         // Web process might create Blob with these files during index key generation.
-        for (auto& path : filePaths)
+        for (auto& path : borrow(filePaths))
             allowAccessToFile(path);
 
         completionHandler(WTF::move(filePaths));
@@ -1474,7 +1489,7 @@ static bool resourceLoadStatisticsContainsOnlyObservableFields(const ResourceLoa
 
 void NetworkConnectionToWebProcess::resourceLoadStatisticsUpdated(Vector<ResourceLoadStatistics>&& statistics, CompletionHandler<void()>&& completionHandler)
 {
-    for (auto& statistic : statistics)
+    for (auto& statistic : borrow(statistics))
         MESSAGE_CHECK_COMPLETION(resourceLoadStatisticsContainsOnlyObservableFields(statistic), completionHandler());
 
     if (CheckedPtr networkSession = this->networkSession()) {
@@ -1631,7 +1646,8 @@ std::optional<NetworkActivityTracker> NetworkConnectionToWebProcess::startTracki
     ASSERT(m_networkActivityTrackers[newActivityIndex].networkActivity.getPlatformObject());
 #endif
 
-    auto& newActivityTracker = m_networkActivityTrackers[newActivityIndex];
+    Borrow borrowedActivityTrackers = m_networkActivityTrackers;
+    auto& newActivityTracker = borrowedActivityTrackers[newActivityIndex];
     newActivityTracker.networkActivity.setParent(m_networkActivityTrackers[rootActivityIndex].networkActivity);
     newActivityTracker.networkActivity.start();
     newActivityTracker.isTopResource = isTopResource;
@@ -1656,7 +1672,7 @@ void NetworkConnectionToWebProcess::stopTrackingResourceLoad(WebCore::ResourceLo
 
 void NetworkConnectionToWebProcess::stopAllNetworkActivityTracking()
 {
-    for (auto& activityTracker : borrow(m_networkActivityTrackers).get())
+    for (auto& activityTracker : borrow(m_networkActivityTrackers))
         activityTracker.networkActivity.complete(NetworkActivityTracker::CompletionCode::Cancel);
 
     m_networkActivityTrackers.clear();
@@ -1665,7 +1681,7 @@ void NetworkConnectionToWebProcess::stopAllNetworkActivityTracking()
 
 void NetworkConnectionToWebProcess::stopAllNetworkActivityTrackingForPage(PageIdentifier pageID, NetworkActivityTracker::CompletionCode rootCompletionCode)
 {
-    for (auto& activityTracker : borrow(m_networkActivityTrackers).get()) {
+    for (auto& activityTracker : borrow(m_networkActivityTrackers)) {
         if (activityTracker.pageID == pageID) {
             auto code = activityTracker.isRootActivity ? rootCompletionCode : NetworkActivityTracker::CompletionCode::Cancel;
             activityTracker.networkActivity.complete(code);
@@ -1945,8 +1961,8 @@ void NetworkConnectionToWebProcess::takeAllMessagesForPort(const MessagePortIden
         // record the destination for any ports being transferred so the receiver can entangle them.
         CheckedRef registry = m_networkProcess->messagePortChannelRegistry();
         Vector<WebCore::ImageBufferTransferIdentifier> transferIdentifiers;
-        for (auto& message : messages) {
-            for (auto& transferredPort : message.transferredPorts)
+        for (auto& message : borrow(messages)) {
+            for (auto& transferredPort : borrow(message.transferredPorts))
                 registry->recordPendingTransferDestination(transferredPort.first, m_webProcessIdentifier);
             if (RefPtr serializedValue = message.message)
                 transferIdentifiers.appendVector(serializedValue->transferredImageBufferIdentifiers());
@@ -1983,7 +1999,7 @@ void NetworkConnectionToWebProcess::postMessageToRemote(MessageWithMessagePorts&
 
     // Each transferred port must have been disentangled by this same web process.
     // It's invalid to be transfering a port this web process doesn't even own.
-    for (auto& transferredPort : message.transferredPorts)
+    for (auto& transferredPort : borrow(message.transferredPorts))
         MESSAGE_CHECK(registry->claimPendingTransferOrigin(transferredPort.first, m_webProcessIdentifier));
 
     if (registry->didPostMessageToRemote(WTF::move(message), port, retainBlobURLsWhileMessageIsInFlight(blobURLs))) {

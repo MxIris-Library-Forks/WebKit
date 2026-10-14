@@ -1968,7 +1968,9 @@ DigitalCredentialsOpenID4VPEnabled:
   humanReadableName: "OpenID4VP for Digital Credentials API"
   humanReadableDescription: "Enable the OpenID4VP presentation protocols for the Digital Credentials API"
   condition: ENABLE(WEB_AUTHN)
-  defaultValue: false
+  defaultValue:
+    "HAVE(DIGITAL_CREDENTIALS_OPENID4VP)": true
+    default: false
   disableInLockdownMode: true
 
 DirectoryUploadEnabled:
@@ -5597,17 +5599,6 @@ SessionStorageEnabled:
     WebCore: false
   sharedPreferenceForWebProcess: true
 
-ShadowRealmEnabled:
-  type: bool
-  status: testable
-  category: javascript
-  humanReadableName: "ShadowRealm"
-  humanReadableDescription: "Expose the ShadowRealm object."
-  jscOptionName: useShadowRealm
-  sharedPreferenceForWebProcess: true
-  excludeFrom: [ WebKitLegacy, WebCore ]
-  defaultValue: false
-
 ShadowRootReferenceTargetEnabled:
   type: bool
   status: testable
@@ -6979,14 +6970,6 @@ WebAPIStatisticsEnabled:
   category: dom
   humanReadableName: "Web API Statistics"
   humanReadableDescription: "Enable Web API Statistics"
-  defaultValue: false
-
-WebAPIsInShadowRealmEnabled:
-  type: bool
-  status: unstable
-  category: dom
-  humanReadableName: "Web APIs in ShadowRealm"
-  humanReadableDescription: "Enable Web APIs to be exposed in ShadowRealm"
   defaultValue: false
 
 WebAnimationsCustomEffectsEnabled:

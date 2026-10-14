@@ -260,7 +260,7 @@ bool RenderBox::hasFragmentRangeInFragmentedFlow() const
     return false;
 }
 
-static RenderBlockFlow* NODELETE outermostBlockContainingFloatingObject(RenderBox& box)
+static RenderBlockFlow* LEGACY_NODELETE outermostBlockContainingFloatingObject(RenderBox& box)
 {
     ASSERT(box.isFloating());
     RenderBlockFlow* parentBlock = nullptr;
@@ -587,7 +587,7 @@ void RenderBox::styleDidChange(Style::Difference diff, const Style::ComputedStyl
 #endif
 }
 
-static bool NODELETE hasEquivalentGridPositioningStyle(const Style::ComputedStyle& style, const Style::ComputedStyle& oldStyle)
+static bool LEGACY_NODELETE hasEquivalentGridPositioningStyle(const Style::ComputedStyle& style, const Style::ComputedStyle& oldStyle)
 {
     return oldStyle.gridItemColumnStart() == style.gridItemColumnStart()
         && oldStyle.gridItemColumnEnd() == style.gridItemColumnEnd()
@@ -1037,15 +1037,13 @@ IntRect absoluteInteractionBounds(const RenderObject& renderer)
         return box->localToAbsoluteQuad(rect).enclosingBoundingBox();
     }
 
-    auto& style = renderer.style();
-    auto zoom = style.usedZoomForLength();
-    auto deviceScaleFactor = style.deviceScaleFactor();
+    auto borderWidths = renderer.usedStyle().borderWidths<float>();
 
     FloatRect boundingBox = renderer.absoluteBoundingBoxRect(true /* use transforms*/);
     // This is wrong. It's subtracting borders after converting to absolute coords on something that probably doesn't represent a rectangular element.
-    boundingBox.move(Style::evaluate<float>(style.usedBorderLeftWidth(), zoom, deviceScaleFactor), Style::evaluate<float>(style.usedBorderTopWidth(), zoom, deviceScaleFactor));
-    boundingBox.setWidth(boundingBox.width() - Style::evaluate<float>(style.usedBorderLeftWidth(), zoom, deviceScaleFactor) - Style::evaluate<float>(style.usedBorderRightWidth(), zoom, deviceScaleFactor));
-    boundingBox.setHeight(boundingBox.height() - Style::evaluate<float>(style.usedBorderBottomWidth(), zoom, deviceScaleFactor) - Style::evaluate<float>(style.usedBorderTopWidth(), zoom, deviceScaleFactor));
+    boundingBox.move(borderWidths.left(), borderWidths.top());
+    boundingBox.setWidth(boundingBox.width() - borderWidths.left() - borderWidths.right());
+    boundingBox.setHeight(boundingBox.height() - borderWidths.bottom() - borderWidths.top());
     return enclosingIntRect(boundingBox);
 }
 
@@ -1975,7 +1973,7 @@ bool RenderBox::getBackgroundPaintedExtent(const LayoutPoint& paintOffset, Layou
     ASSERT(hasBackground());
     LayoutRect backgroundRect = snappedIntRect(borderBoxRect());
 
-    Color backgroundColor = style().visitedDependentBackgroundColorApplyingColorFilter();
+    Color backgroundColor = style().visitedDependentUsedBackgroundColorApplyingColorFilter();
     if (backgroundColor.isVisible()) {
         paintedExtent = backgroundRect;
         return true;
@@ -1997,7 +1995,7 @@ bool RenderBox::backgroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect) c
     if (!BackgroundPainter::paintsOwnBackground(*this))
         return false;
 
-    Color backgroundColor = style().visitedDependentBackgroundColorApplyingColorFilter();
+    Color backgroundColor = style().visitedDependentUsedBackgroundColorApplyingColorFilter();
     if (!backgroundColor.isOpaque())
         return false;
 
@@ -2133,7 +2131,7 @@ bool RenderBox::backgroundHasOpaqueTopLayer() const
 
     // If there is only one layer and no image, check whether the background color is opaque.
     if (style().backgroundLayers().usedLength() == 1 && !topLayer.hasImage()) {
-        Color bgColor = style().visitedDependentBackgroundColorApplyingColorFilter();
+        Color bgColor = style().visitedDependentUsedBackgroundColorApplyingColorFilter();
         if (bgColor.isOpaque())
             return true;
     }
@@ -2704,7 +2702,7 @@ static LayoutUnit inlineSizeFromAspectRatio(LayoutUnit borderPaddingInlineSum, L
     return LayoutUnit((blockSize - borderPaddingBlockSum) * aspectRatioValue) + borderPaddingInlineSum;
 }
 
-static bool NODELETE shouldMarginInlineEndContributeToScrollableOverflow(auto& renderer)
+static bool LEGACY_NODELETE shouldMarginInlineEndContributeToScrollableOverflow(auto& renderer)
 {
     auto isSupportedContent = renderer.isGridItem() || renderer.isFlexItemIncludingDeprecated() || (renderer.isInFlow() && renderer.parent()->isBlockContainer());
     if (!isSupportedContent)
@@ -2900,7 +2898,7 @@ std::pair<LayoutUnit, LayoutUnit> RenderBox::computeIntrinsicKeywordLogicalWidth
     return computeIntrinsicKeywordLogicalWidths();
 }
 
-static inline bool NODELETE isOrthogonal(const RenderBox& renderer, const RenderElement& ancestor)
+static inline bool LEGACY_NODELETE isOrthogonal(const RenderBox& renderer, const RenderElement& ancestor)
 {
     return renderer.isHorizontalWritingMode() != ancestor.isHorizontalWritingMode();
 }
@@ -3285,7 +3283,7 @@ RenderBoxFragmentInfo* RenderBox::renderBoxFragmentInfo(RenderFragmentContainer*
     return nullptr;
 }
 
-static bool NODELETE shouldFlipBeforeAfterMargins(WritingMode containingBlockWritingMode, WritingMode childWritingMode)
+static bool LEGACY_NODELETE shouldFlipBeforeAfterMargins(WritingMode containingBlockWritingMode, WritingMode childWritingMode)
 {
     ASSERT(containingBlockWritingMode.isOrthogonal(childWritingMode));
     auto childBlockFlowDirection = childWritingMode.blockDirection();
@@ -3920,7 +3918,7 @@ bool RenderBox::skipContainingBlockForPercentHeightCalculation(const RenderBox& 
     return document().inQuirksMode() && shouldSkipContainingBlockInQuirksMode();
 }
 
-static bool NODELETE tableCellShouldHaveZeroInitialSize(const RenderTableCell& tableCell, const RenderBox& child, bool scrollsOverflowY)
+static bool LEGACY_NODELETE tableCellShouldHaveZeroInitialSize(const RenderTableCell& tableCell, const RenderBox& child, bool scrollsOverflowY)
 {
     // Normally we would let the cell size intrinsically, but scrolling overflow has to be
     // treated differently, since WinIE lets scrolled overflow fragments shrink as needed.
@@ -4748,7 +4746,7 @@ void RenderBox::addVisualEffectOverflow()
 }
 
 template<typename T>
-static void NODELETE convertOutsetsToOverflowCoordinates(RectEdges<T>& outsets, WritingMode writingMode)
+static void LEGACY_NODELETE convertOutsetsToOverflowCoordinates(RectEdges<T>& outsets, WritingMode writingMode)
 {
     switch (writingMode.blockDirection()) {
     case FlowDirection::TopToBottom:
@@ -5703,7 +5701,7 @@ void RenderBox::updateFloatPainterAfterSelfPaintingLayerChange()
 }
 
 using ShapeOutsideInfoMap = SingleThreadWeakHashMap<const RenderBox, std::unique_ptr<ShapeOutsideInfo>>;
-static ShapeOutsideInfoMap& NODELETE shapeOutsideInfoMap()
+static ShapeOutsideInfoMap& LEGACY_NODELETE shapeOutsideInfoMap()
 {
     static NeverDestroyed<ShapeOutsideInfoMap> staticInfoMap;
     return staticInfoMap;

@@ -119,18 +119,18 @@ static const AtomString& listBoxSlotName()
 
 // Only attributes decide this, so that slotting does not depend on style. Where the select is not
 // rendered as the box type this implies, it is rendered natively, which does not use the slots.
-static bool NODELETE usesListBoxSlot(const HTMLSelectElement& select)
+static bool LEGACY_NODELETE usesListBoxSlot(const HTMLSelectElement& select)
 {
     return select.document().settings().htmlEnhancedSelectMultipleAndListBoxEnabled() && !select.supportsPickerPseudoElement();
 }
 
-static bool NODELETE isFirstElementChildButton(const Node& child)
+static bool LEGACY_NODELETE isFirstElementChildButton(const Node& child)
 {
     return is<HTMLButtonElement>(child) && !child.previousElementSibling();
 }
 
 // The options in a selectedcontent element are clones, not options of its select.
-static bool NODELETE canHoldOptionClones(const Node& node)
+static bool LEGACY_NODELETE canHoldOptionClones(const Node& node)
 {
     return is<HTMLSelectedContentElement>(node) && node.document().settings().htmlEnhancedSelectMultipleSelectedContentEnabled();
 }
@@ -139,10 +139,10 @@ class SelectSlotAssignment final : public NamedSlotAssignment {
 private:
     void hostChildElementDidChange(const Element&, ShadowRoot&) final;
     void didChangeSlotNamesOfShadowHostChildren(ShadowRoot&) final;
-    const AtomString& NODELETE slotNameForHostChild(const Node&) const final;
+    const AtomString& LEGACY_NODELETE slotNameForHostChild(const Node&) const final;
 };
 
-SUPPRESS_NODELETE static const AtomString& NODELETE optionSlotName(const Node* host)
+SUPPRESS_NODELETE static const AtomString& LEGACY_NODELETE optionSlotName(const Node* host)
 {
     auto* select = dynamicDowncast<HTMLSelectElement>(host);
     return select && usesListBoxSlot(*select) ? listBoxSlotName() : NamedSlotAssignment::defaultSlotName();
@@ -277,7 +277,7 @@ HTMLSelectElement* HTMLSelectElement::findOwnerSelect(ContainerNode* startNode, 
     return findOwnerSelect(startNode->parentNode(), excludeOptGroup);
 }
 
-static bool NODELETE hasBaseAppearance(const Style::ComputedStyle* style)
+static bool LEGACY_NODELETE hasBaseAppearance(const Style::ComputedStyle* style)
 {
     return style && style->usedAppearance() == StyleAppearance::Base;
 }
@@ -568,9 +568,18 @@ static size_t selectedOptionCount(const HTMLSelectElement& selectElement)
 
 String HTMLSelectElement::buttonText(ForAccessibility forAccessibility, HTMLOptionElement* selectedOption, int optionIndex) const
 {
-    if (buttonElement())
-        return buttonLabelText({ });
+    if (!buttonElement())
+        return selectedOptionsText(forAccessibility, selectedOption, optionIndex);
 
+    // Its selectedcontent elements hold a clone of every option, so the text without a button stands in for them.
+    if (m_multiple && updatesSelectedContent())
+        return buttonLabelText(selectedOptionsText(forAccessibility, selectedOption, optionIndex));
+
+    return buttonLabelText({ });
+}
+
+String HTMLSelectElement::selectedOptionsText(ForAccessibility forAccessibility, HTMLOptionElement* selectedOption, int optionIndex) const
+{
     if (m_multiple) {
         size_t count = selectedOptionCount(*this);
         if (count != 1)
@@ -3002,7 +3011,7 @@ PopupMenuStyle HTMLSelectElement::menuStyle() const
     auto popupSize = RenderTheme::singleton().popupMenuSize(outerStyle, bounds);
     return PopupMenuStyle(
         outerStyle->visitedDependentColorApplyingColorFilter(),
-        outerStyle->visitedDependentBackgroundColorApplyingColorFilter(),
+        outerStyle->visitedDependentUsedBackgroundColorApplyingColorFilter(),
         outerStyle->fontCascade(),
         nullString(),
         renderer->usedStyle().visibility() == UsedVisibility::Visible,

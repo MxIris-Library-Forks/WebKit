@@ -8990,7 +8990,6 @@ editing/caret/ios/place-caret-after-autocorrected-word.html [ Pass Failure Timeo
 editing/input/ios/typing-with-inline-predictions.html [ Pass Failure Timeout ] # webkit.org/b/318254
 imported/w3c/web-platform-tests/content-security-policy/inheritance/history.sub.html [ Failure ] # webkit.org/b/318255
 imported/w3c/web-platform-tests/content-security-policy/inheritance/blob-url-inherits-from-initiator.sub.html [ Skip ] # webkit.org/b/320543
-http/wpt/identity/formats/ISO18013/mixed-requests.https.html [ Failure ] # webkit.org/b/318256
 imported/w3c/web-platform-tests/html/semantics/forms/the-input-element/number-constraint-validation.html [ Pass Failure ] # webkit.org/b/318257
 
 # SVG-as-image renders foreignObject text one device pixel below inline SVG on HiDPI (surfaced by the iOS font-metrics convergence).
@@ -9711,7 +9710,7 @@ imported/w3c/web-platform-tests/dom/traversal/TreeWalker-acceptNode-filter-cross
 imported/w3c/web-platform-tests/css/filter-effects/idlharness.any.html [ Pass Timeout ] # rdar://178172538
 imported/w3c/web-platform-tests/css/filter-effects/idlharness.any.worker.html [ Pass Timeout ] # rdar://178172538
 
-imported/w3c/web-platform-tests/FileAPI/FileReader/Progress_event_bubbles_cancelable.html [ Pass Timeout ] # rdar://178172356
+imported/w3c/web-platform-tests/FileAPI/FileReader/progress_event_bubbles_cancelable.html [ Pass Timeout ] # rdar://178172356
 
 imported/w3c/web-platform-tests/hr-time/clamped-time-origin.html [ Pass Timeout ] # rdar://178172558
 
@@ -10015,6 +10014,8 @@ imported/w3c/web-platform-tests/gpc/sec-gpc.https.html [ Pass Failure ] # rdar:/
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/pagereveal/order-in-new-document-navigation-iframe.html [ Pass Failure ] # rdar://178674367
 
 imported/w3c/web-platform-tests/resource-timing/resource_timing.worker.html [ Pass Failure ] # rdar://178674096
+
+webkit.org/b/326716 imported/w3c/web-platform-tests/resource-timing/initiator-type/style.html [ Pass Failure ]
 
 imported/w3c/web-platform-tests/html/semantics/forms/form-submission-0/form-double-submit-input-type-change.html [ Pass Failure ] # rdar://178674298
 
@@ -10382,3 +10383,5 @@ fast/text-extraction/debug-text-extraction-ignore-autofilled-fields.html [ Pass 
 fast/text-extraction/debug-text-extraction-lightweight-discretionary.html [ Pass Timeout ]
 fast/text-extraction/debug-text-extraction-role-suppression.html [ Pass Timeout ]
 fast/visual-viewport/ios/interactive-widget/overlays-content-orientation-rotations.html  [ Pass Failure ]
+
+webkit.org/b/327433 http/wpt/background-fetch/background-fetch-click.window.html [ Pass Failure ]

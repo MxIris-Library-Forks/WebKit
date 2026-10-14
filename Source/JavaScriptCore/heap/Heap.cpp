@@ -65,7 +65,6 @@
 #include "JSPromiseCombinatorsGlobalContext.h"
 #include "JSPromiseReaction.h"
 #include "JSRawJSONObject.h"
-#include "JSRemoteFunction.h"
 #include "JSSentinel.h"
 #include "JSVirtualMachineInternal.h"
 #include "JSWeakMap.h"
@@ -134,7 +133,7 @@ static constexpr bool verboseStop = false;
 
 namespace {
 
-static GrowthMode NODELETE growthMode(size_t ramSize)
+static GrowthMode LEGACY_NODELETE growthMode(size_t ramSize)
 {
     // An Aggressive heap uses more memory to go faster.
     // We do this for machines with enough RAM.
@@ -161,7 +160,7 @@ static size_t minHeapSize(HeapType heapType, size_t ramSize)
     }
 }
 
-static size_t NODELETE maxEdenSizeForRateLimiting(GrowthMode growthMode, size_t minBytesPerCycle)
+static size_t LEGACY_NODELETE maxEdenSizeForRateLimiting(GrowthMode growthMode, size_t minBytesPerCycle)
 {
     // Only do rate limiting for Aggressive heaps.
     if (growthMode == GrowthMode::Aggressive)
@@ -213,7 +212,7 @@ static void recordType(TypeCountSet& set, JSCell* cell)
     set.add(typeName);
 }
 
-constexpr bool NODELETE measurePhaseTiming()
+constexpr bool LEGACY_NODELETE measurePhaseTiming()
 {
     return false;
 }
@@ -250,12 +249,12 @@ public:
     {
     }
     
-    void NODELETE setScope(std::optional<CollectionScope> scope)
+    void LEGACY_NODELETE setScope(std::optional<CollectionScope> scope)
     {
         m_scope = scope;
     }
     
-    void NODELETE setScope(JSC::Heap& heap)
+    void LEGACY_NODELETE setScope(JSC::Heap& heap)
     {
         setScope(heap.collectionScope());
     }
@@ -787,6 +786,7 @@ void Heap::beginMarking()
     TimingScope timingScope(*this, "Heap::beginMarking"_s);
     ASSERT(isInPhase(CollectorPhase::Begin));
     ASSERT(m_collectionScope);
+    ASSERT(!m_bytesVisitedDuringMarking.load(std::memory_order_relaxed));
     if (*m_collectionScope == CollectionScope::Full)
         m_mutatorMarkStack->clear();
     m_jitStubRoutines->clearMarks();
@@ -877,18 +877,15 @@ void Heap::recordBytesVisited(size_t bytesVisited)
         m_totalBytesVisitedAfterLastFullCollect = m_totalBytesVisited;
         m_totalBytesVisited = 0;
     }
-
-    m_totalBytesVisitedThisCycle = bytesVisited;
-    
-    m_totalBytesVisited += m_totalBytesVisitedThisCycle;
+    m_totalBytesVisited += bytesVisited;
 }
 
-void Heap::endMarking(size_t bytesVisited)
+void Heap::endMarking()
 {
     ASSERT(isInPhase(CollectorPhase::End));
     ASSERT(m_objectSpace.isMarking());
 
-    recordBytesVisited(bytesVisited);
+    recordBytesVisited(m_bytesVisitedDuringMarking.exchange(0, std::memory_order_relaxed));
 
     m_objectSpace.endMarking();
     setMutatorShouldBeFenced(Options::forceFencedBarrier());
@@ -1684,7 +1681,7 @@ void Heap::runCollectionEpilogue()
     
     {
         SweepingScope sweepingScope(*this);
-        deleteSourceProviderCaches();
+        pruneUnusedSourceProviderCaches();
         sweepEagerlyInEpilogue();
     }
 #if ENABLE(WEBASSEMBLY)
@@ -1846,10 +1843,10 @@ void Heap::snapshotUnswept()
     m_objectSpace.snapshotUnswept();
 }
 
-void Heap::deleteSourceProviderCaches()
+void Heap::pruneUnusedSourceProviderCaches()
 {
     if (m_lastCollectionScope && m_lastCollectionScope.value() == CollectionScope::Full)
-        vm().clearSourceProviderCaches();
+        vm().pruneUnusedSourceProviderCaches();
 }
 
 double Heap::projectedGCRateLimitingValue(MonotonicTime now)

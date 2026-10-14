@@ -517,7 +517,7 @@ WI.TimelineRecordingContentView = class TimelineRecordingContentView extends WI.
         if (!WI.visible)
             return;
 
-        if (WI.timelineManager.activeRecording !== this._recording)
+        if (WI.timelineManager.activeRecording !== this._recording || !WI.timelineManager.isCapturing())
             return;
 
         if (typeof startTime === "number")
@@ -989,7 +989,7 @@ WI.TimelineRecordingContentView = class TimelineRecordingContentView extends WI.
     _updateProgressView()
     {
         let isCapturing = WI.timelineManager.isCapturing();
-        this._progressView.visible = isCapturing && this.currentTimelineView && !this.currentTimelineView.showsLiveRecordingData;
+        this._progressView.visible = isCapturing && WI.timelineManager.activeRecording === this._recording && this.currentTimelineView && !this.currentTimelineView.showsLiveRecordingData;
     }
 
     _updateFilterBar()

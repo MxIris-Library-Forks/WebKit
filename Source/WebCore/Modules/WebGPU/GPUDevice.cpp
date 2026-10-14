@@ -29,6 +29,7 @@
 #include "ContextDestructionObserverInlines.h"
 #include "DOMPromiseProxy.h"
 #include "EventNames.h"
+#include "EventTargetInlines.h"
 #include "GPUAdapterInfo.h"
 #include "GPUBindGroup.h"
 #include "GPUBindGroupDescriptor.h"
@@ -142,11 +143,17 @@ GPUDevice::~GPUDevice()
     }
 }
 
-void GPUDevice::contextDestroyed()
+void GPUDevice::stop()
 {
+    // Notify the inspector here rather than in contextDestroyed(): a worker's inspector controller is
+    // destroyed before ~ScriptExecutionContext notifies destruction observers.
     InspectorInstrumentation::willDestroyWebGPUDevice(*this);
+}
 
-    ActiveDOMObject::contextDestroyed();
+bool GPUDevice::virtualHasPendingActivity() const
+{
+    // An uncapturederror listener keeps the wrapper alive so it can receive future errors.
+    return m_listeningForUncapturedErrors && !isContextStopped() && hasEventListeners(eventNames().uncapturederrorEvent);
 }
 
 String GPUDevice::label() const
@@ -420,7 +427,7 @@ ExceptionOr<Ref<GPUTexture>> GPUDevice::createTexture(GPUTextureDescriptor&& tex
     return result;
 }
 
-static WebGPU::SamplerDescriptor NODELETE convertToBacking(const std::optional<GPUSamplerDescriptor>& samplerDescriptor)
+static WebGPU::SamplerDescriptor LEGACY_NODELETE convertToBacking(const std::optional<GPUSamplerDescriptor>& samplerDescriptor)
 {
     if (!samplerDescriptor) {
         return {
@@ -496,7 +503,7 @@ private:
     {
     }
 
-    bool NODELETE hasCallback() const final { return true; }
+    bool LEGACY_NODELETE hasCallback() const final { return true; }
 
     CallbackResult<void> invoke(double, const VideoFrameMetadata&) override
     {
@@ -777,7 +784,7 @@ ExceptionOr<void> GPUDevice::createRenderPipelineAsync(UniquelyAnnotatedDescript
     return { };
 }
 
-static WebGPU::CommandEncoderDescriptor NODELETE convertToBacking(const std::optional<GPUCommandEncoderDescriptor>& commandEncoderDescriptor)
+static WebGPU::CommandEncoderDescriptor LEGACY_NODELETE convertToBacking(const std::optional<GPUCommandEncoderDescriptor>& commandEncoderDescriptor)
 {
     if (!commandEncoderDescriptor)
         return { };
@@ -877,7 +884,7 @@ void GPUDevice::listenForUncapturedErrors()
         return;
 #if PLATFORM(COCOA)
     m_listeningForUncapturedErrors = true;
-    m_backing->resolveUncapturedErrorEvent([pendingActivity = makePendingActivity(*this), weakThis = WeakPtr { *this }](bool hasUncapturedError, std::optional<WebGPU::Error>&& error) {
+    m_backing->resolveUncapturedErrorEvent([weakThis = WeakPtr { *this }](bool hasUncapturedError, std::optional<WebGPU::Error>&& error) {
         RefPtr protectedThis { weakThis };
         if (!protectedThis || !hasUncapturedError)
             return;

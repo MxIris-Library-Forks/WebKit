@@ -251,7 +251,7 @@ LineLayout::~LineLayout()
     SUPPRESS_UNCOUNTED_ARG BoxTreeUpdater { rootRenderer, *m_document }.tearDown();
 }
 
-static inline bool NODELETE isContentRenderer(const RenderObject& renderer)
+static inline bool LEGACY_NODELETE isContentRenderer(const RenderObject& renderer)
 {
     // FIXME: These fake renderers have their parent set but are not actually in the tree.
     return !renderer.isRenderReplica() && !renderer.isRenderScrollbarPart();
@@ -462,7 +462,7 @@ static inline std::optional<Layout::BlockLayoutState::LineClamp> lineClamp(const
     return { };
 }
 
-static inline Layout::BlockLayoutState::TextBoxTrim NODELETE textBoxTrim(const RenderBlockFlow& rootRenderer)
+static inline Layout::BlockLayoutState::TextBoxTrim LEGACY_NODELETE textBoxTrim(const RenderBlockFlow& rootRenderer)
 {
     auto textBoxTrim = rootRenderer.view().frameView().layoutContext().textBoxTrim();
     if (!textBoxTrim)
@@ -840,7 +840,7 @@ bool LineLayout::layoutSVGText()
 {
     ASSERT(flow().isRenderSVGText());
 
-    auto displayContent = Layout::buildSVGTextDisplayContent(rootLayoutBox());
+    auto displayContent = Layout::buildSVGTextDisplayContent(protect(rootLayoutBox()));
     if (!displayContent)
         return false;
 
@@ -857,7 +857,7 @@ bool LineLayout::layoutSVGText()
     // A previous inline layout of different content may have left the cache behind.
     if (m_inlineContentCache) {
         m_inlineContentCache = nullptr;
-        flow().resetInlineContentCache();
+        protect(flow())->resetInlineContentCache();
     }
 
     return true;
@@ -901,7 +901,7 @@ FloatRect LineLayout::applySVGTextFragments()
     };
 
     for (size_t i = 0; i < boxes.size(); ++i) {
-        popParent(&boxes[i].layoutBox().parent());
+        popParent(protect(&boxes[i].layoutBox().parent()));
 
         CheckedPtr text = boxes[i].isText() ? dynamicDowncast<RenderSVGInlineText>(boxes[i].layoutBox().rendererForIntegration()) : nullptr;
         if (!text) {
@@ -1258,7 +1258,7 @@ Vector<LineAdjustment> LineLayout::adjustContentForPagination(const Layout::Bloc
         return { };
 
     bool allowLayoutRestart = !isPartialLayout;
-    auto [adjustments, layoutRestartLine] = computeAdjustmentsForPagination(*m_inlineContent, ensureBlockFormattingState().placedFloats(), allowLayoutRestart, blockLayoutState, flow());
+    auto [adjustments, layoutRestartLine] = computeAdjustmentsForPagination(*m_inlineContent, ensureBlockFormattingState().placedFloats(), allowLayoutRestart, blockLayoutState, protect(flow()));
 
     if (!adjustments.isEmpty()) {
         adjustLinePositionsForPagination(*m_inlineContent, adjustments);
@@ -1431,7 +1431,7 @@ Vector<FloatRect> LineLayout::collectInlineBoxRects(const RenderBoxModelObject& 
     return result;
 }
 
-static LayoutPoint NODELETE flippedContentOffsetIfNeeded(const RenderBlockFlow& root, const RenderBox& childRenderer, LayoutPoint contentOffset)
+static LayoutPoint LEGACY_NODELETE flippedContentOffsetIfNeeded(const RenderBlockFlow& root, const RenderBox& childRenderer, LayoutPoint contentOffset)
 {
     if (root.writingMode().isBlockFlipped())
         return root.flipForWritingModeForChild(childRenderer, contentOffset);
@@ -1598,7 +1598,7 @@ bool LineLayout::hitTest(const HitTestRequest& request, HitTestResult& result, c
         }
 
         auto lineRect = visibleLineRectIncludingEllipsis(m_inlineContent->displayContent(), box.lineIndex());
-        auto boxRect = flippedRectForWritingMode(flow(), InlineDisplay::Box::visibleRectIgnoringBlockDirection(box, lineRect));
+        auto boxRect = flippedRectForWritingMode(protect(flow()), InlineDisplay::Box::visibleRectIgnoringBlockDirection(box, lineRect));
         boxRect.moveBy(accumulatedOffset);
 
         if (!locationInContainer.intersects(boxRect))

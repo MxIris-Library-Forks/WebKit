@@ -40,6 +40,7 @@
 #include "CSSParserObserver.h"
 #include "CSSPropertyNames.h"
 #include "CSSPropertyParser.h"
+#include "CSSPropertyParserConsumer+Animations.h"
 #include "CSSPropertySourceData.h"
 #include "CSSRule.h"
 #include "CSSRuleList.h"
@@ -93,7 +94,7 @@ enum class RuleFlatteningStrategy {
     CommitSelfThenChildren,
 };
 
-static RuleFlatteningStrategy NODELETE flatteningStrategyForStyleRuleType(StyleRuleType styleRuleType)
+static RuleFlatteningStrategy LEGACY_NODELETE flatteningStrategyForStyleRuleType(StyleRuleType styleRuleType)
 {
     switch (styleRuleType) {
     case StyleRuleType::Style:
@@ -215,14 +216,13 @@ static bool isValidRuleHeaderText(const String& headerText, StyleRuleType styleR
     case StyleRuleType::Keyframes:
         return !headerText.isEmpty() && isValidAtRuleHeaderText(makeString(atRuleIdentifierForType(styleRuleType), ' ', headerText, " {}"_s));
     case StyleRuleType::Keyframe:
-        expectedStyleRuleType = StyleRuleType::Keyframes;
-        return !headerText.isEmpty() && isValidAtRuleHeaderText(makeString("@keyframes test { "_s, headerText, " {} }"_s));
+        return !CSSPropertyParserHelpers::parseKeyframeKeyList(headerText, parserContextForDocument(document)).isEmpty();
     default:
         return false;
     }
 }
 
-static std::optional<Inspector::Protocol::CSS::Grouping::Type> NODELETE protocolGroupingTypeForStyleRuleType(StyleRuleType styleRuleType)
+static std::optional<Inspector::Protocol::CSS::Grouping::Type> LEGACY_NODELETE protocolGroupingTypeForStyleRuleType(StyleRuleType styleRuleType)
 {
     switch (styleRuleType) {
     case StyleRuleType::Style:
@@ -291,7 +291,7 @@ void ParsedStyleSheet::setSourceData(std::unique_ptr<RuleSourceDataList> sourceD
     flattenSourceData(*sourceData, *m_sourceData);
 }
 
-WebCore::CSSRuleSourceData* NODELETE ParsedStyleSheet::ruleSourceDataAt(unsigned index) const
+WebCore::CSSRuleSourceData* LEGACY_NODELETE ParsedStyleSheet::ruleSourceDataAt(unsigned index) const
 {
     if (!hasSourceData() || index >= m_sourceData->size())
         return nullptr;
@@ -343,7 +343,7 @@ void StyleSheetHandler::startRuleHeader(StyleRuleType type, unsigned offset)
     m_currentRuleDataStack.append(WTF::move(data));
 }
 
-template <typename CharacterType> inline void NODELETE StyleSheetHandler::setRuleHeaderEnd(std::span<const CharacterType> data)
+template <typename CharacterType> inline void LEGACY_NODELETE StyleSheetHandler::setRuleHeaderEnd(std::span<const CharacterType> data)
 {
     while (data.size() > m_currentRuleDataStack.last()->ruleHeaderRange.start) {
         if (isASCIIWhitespace<CharacterType>(data[data.size() - 1]))
@@ -1204,9 +1204,6 @@ ExceptionOr<String> InspectorStyleSheet::ruleHeaderText(const InspectorCSSId& id
     if (RefPtr cssStyleRule = dynamicDowncast<CSSStyleRule>(rule.get()))
         return cssStyleRule->selectorText();
 
-    if (RefPtr cssKeyframesRule = dynamicDowncast<CSSKeyframesRule>(rule.get()))
-        return String(cssKeyframesRule->name());
-
     if (RefPtr cssKeyframeRule = dynamicDowncast<CSSKeyframeRule>(rule.get()))
         return cssKeyframeRule->keyText();
 
@@ -1242,8 +1239,13 @@ ExceptionOr<void> InspectorStyleSheet::setRuleHeaderText(const InspectorCSSId& i
         useCSSOMFastPath = true;
         cssStyleRule->setSelectorText(correctedHeaderText);
     } else if (RefPtr cssKeyframesRule = dynamicDowncast<CSSKeyframesRule>(rule.get())) {
+        auto tokenizer = CSSTokenizer::tryCreate(correctedHeaderText);
+        if (!tokenizer)
+            return Exception { ExceptionCode::SyntaxError };
         useCSSOMFastPath = true;
-        cssKeyframesRule->setName(AtomString { correctedHeaderText });
+        auto tokenRange = tokenizer->tokenRange();
+        tokenRange.consumeWhitespace();
+        cssKeyframesRule->setName(tokenRange.consume().value().toAtomString());
     } else if (RefPtr cssKeyframeRule = dynamicDowncast<CSSKeyframeRule>(rule.get())) {
         useCSSOMFastPath = true;
         cssKeyframeRule->setKeyText(correctedHeaderText);

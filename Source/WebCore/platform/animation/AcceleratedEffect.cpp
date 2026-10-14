@@ -149,7 +149,7 @@ static OptionSet<AcceleratedEffectProperty> acceleratedPropertyFromCSSProperty(A
     }
 }
 
-static CSSPropertyID NODELETE cssPropertyFromAcceleratedProperty(AcceleratedEffectProperty property)
+static CSSPropertyID LEGACY_NODELETE cssPropertyFromAcceleratedProperty(AcceleratedEffectProperty property)
 {
     switch (property) {
     case AcceleratedEffectProperty::Opacity:
@@ -275,7 +275,7 @@ AcceleratedEffect::AcceleratedEffect(const KeyframeEffect& effect, const IntRect
 
         auto values = [&]() -> AcceleratedEffectValues {
             if (CheckedPtr style = srcKeyframe.style())
-                return { *style, borderBoxRect, renderLayerModelObject.get() };
+                return { *style, borderBoxRect, renderLayerModelObject.get(), animatedProperties };
             return { };
         }();
 

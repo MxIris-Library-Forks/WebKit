@@ -268,7 +268,7 @@ static LayoutUnit minimumContribution(const TrackSizingItemList& trackSizingItem
     auto& trackSizingItem = trackSizingItems[gridItemIndex];
     auto& preferredSize = trackSizingItem.computedSizes.preferredSize;
     if (GridLayoutUtils::preferredSizeBehavesAsAuto(preferredSize) || GridLayoutUtils::sizeDependsOnContainingBlockSize(preferredSize))
-        return gridItemSizingFunctions.usedMinimumSize(trackSizingItem.gridItem, trackSizingFunctions, trackSizingItem.borderAndPadding, trackSizingItem.oppositeAxisConstraint, gapSize, axisConstraint).value;
+        return gridItemSizingFunctions.usedMinimumSize(trackSizingItem.gridItem, trackSizingFunctions, trackSizingItem.borderAndPadding, trackSizingItem.usedMargins, trackSizingItem.oppositeAxisConstraint, gapSize, axisConstraint).value;
     return gridItemSizingFunctions.minContentContribution(trackSizingItem.gridItem, trackSizingItem.oppositeAxisConstraint).value;
 }
 
@@ -869,7 +869,7 @@ static double findSizeOfFr(const UnsizedTracks& tracks, const LayoutUnit availab
 
 // "... if the flexible track's flex factor is greater than one,
 // the result of dividing the track's base size by its flex factor; otherwise, the track's base size."
-static double NODELETE flexFractionFromTrackBaseSize(const FlexTrack& flexTrack)
+static double LEGACY_NODELETE flexFractionFromTrackBaseSize(const FlexTrack& flexTrack)
 {
     if (flexTrack.flexFactor.value > 1.0)
         return flexTrack.baseSize / flexTrack.flexFactor.value;

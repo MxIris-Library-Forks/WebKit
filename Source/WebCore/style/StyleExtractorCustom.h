@@ -842,28 +842,28 @@ template<> struct PropertyExtractorAdaptor<CSSPropertyID::PaddingLeft> {
 template<> struct PropertyExtractorAdaptor<CSSPropertyID::BorderTopWidth> {
     template<typename F> decltype(auto) computedValue(ExtractorState& state, NOESCAPE const F& functor) const
     {
-        return functor(state.style->usedBorderTopWidth());
+        return functor(Style::effectiveBorderWidths(state.style.get()).top());
     }
 };
 
 template<> struct PropertyExtractorAdaptor<CSSPropertyID::BorderRightWidth> {
     template<typename F> decltype(auto) computedValue(ExtractorState& state, NOESCAPE const F& functor) const
     {
-        return functor(state.style->usedBorderRightWidth());
+        return functor(Style::effectiveBorderWidths(state.style.get()).right());
     }
 };
 
 template<> struct PropertyExtractorAdaptor<CSSPropertyID::BorderBottomWidth> {
     template<typename F> decltype(auto) computedValue(ExtractorState& state, NOESCAPE const F& functor) const
     {
-        return functor(state.style->usedBorderBottomWidth());
+        return functor(Style::effectiveBorderWidths(state.style.get()).bottom());
     }
 };
 
 template<> struct PropertyExtractorAdaptor<CSSPropertyID::BorderLeftWidth> {
     template<typename F> decltype(auto) computedValue(ExtractorState& state, NOESCAPE const F& functor) const
     {
-        return functor(state.style->usedBorderLeftWidth());
+        return functor(Style::effectiveBorderWidths(state.style.get()).left());
     }
 };
 
@@ -3297,7 +3297,7 @@ inline RefPtr<CSSValue> ExtractorCustom::extractWebkitLineClampShorthand(Extract
     if (auto maxLines = state.style->maxLines().tryValue()) {
         if (state.style->overflowContinue() == OverflowContinue::WebkitLegacy && state.style->blockEllipsis().isEllipsis())
             return createCSSValue(state.pool, state.style, *maxLines);
-    } else if (state.style->overflowContinue() == OverflowContinue::Auto && state.style->blockEllipsis().isNone())
+    } else if (state.style->overflowContinue() == OverflowContinue::Normal && state.style->blockEllipsis().isNone())
         return createCSSValue(state.pool, state.style, CSS::Keyword::None { });
     return nullptr;
 }
@@ -3312,7 +3312,7 @@ inline void ExtractorCustom::extractWebkitLineClampShorthandSerialization(Extrac
     if (auto maxLines = state.style->maxLines().tryValue()) {
         if (state.style->overflowContinue() == OverflowContinue::WebkitLegacy && state.style->blockEllipsis().isEllipsis())
             serializationForCSS(builder, context, state.style, *maxLines);
-    } else if (state.style->overflowContinue() == OverflowContinue::Auto && state.style->blockEllipsis().isNone())
+    } else if (state.style->overflowContinue() == OverflowContinue::Normal && state.style->blockEllipsis().isNone())
         serializationForCSS(builder, context, state.style, CSS::Keyword::None { });
 }
 

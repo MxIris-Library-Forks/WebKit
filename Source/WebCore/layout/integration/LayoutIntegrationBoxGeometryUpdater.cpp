@@ -94,7 +94,7 @@ static inline LayoutUnit intrinsicBorder(const RenderBoxModelObject& renderer)
     return { };
 }
 
-static inline Layout::BoxGeometry::VerticalEdges NODELETE intrinsicPaddingForTableCell(const RenderBox& renderer)
+static inline Layout::BoxGeometry::VerticalEdges LEGACY_NODELETE intrinsicPaddingForTableCell(const RenderBox& renderer)
 {
     if (auto* tableCell = dynamicDowncast<RenderTableCell>(renderer))
         return { tableCell->intrinsicPaddingBefore(), tableCell->intrinsicPaddingAfter() };
@@ -204,13 +204,7 @@ Layout::BoxGeometry::VerticalEdges BoxGeometryUpdater::verticalLogicalMargin(con
 
 Layout::BoxGeometry::Edges BoxGeometryUpdater::logicalBorder(const RenderBoxModelObject& renderer, WritingMode writingMode, bool isIntrinsicWidthMode)
 {
-    CheckedRef style = renderer.style();
-    auto deviceScaleFactor = style->deviceScaleFactor();
-    auto zoom = style->usedZoomForLength();
-
-    auto borderWidths = RectEdges<LayoutUnit>::map(style->usedBorderWidths(), [&](auto width) {
-        return Style::evaluate<LayoutUnit>(width, zoom, deviceScaleFactor);
-    });
+    auto borderWidths = renderer.usedStyle().borderWidths();
 
     if (!isIntrinsicWidthMode)
         adjustBorderForTable(renderer, borderWidths);

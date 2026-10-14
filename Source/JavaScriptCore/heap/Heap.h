@@ -271,11 +271,9 @@ class Heap;
     v(proxyObjectSpace, cellHeapCellType, ProxyObject) \
     v(proxyRevokeSpace, cellHeapCellType, ProxyRevoke) \
     v(rawJSONObjectSpace, cellHeapCellType, JSRawJSONObject) \
-    v(remoteFunctionSpace, cellHeapCellType, JSRemoteFunction) \
     v(scopedArgumentsTableSpace, destructibleCellHeapCellType, ScopedArgumentsTable) \
     v(setIteratorSpace, cellHeapCellType, JSSetIterator) \
     v(setSpace, cellHeapCellType, JSSet) \
-    v(shadowRealmSpace, cellHeapCellType, ShadowRealmObject) \
     v(strictEvalActivationSpace, cellHeapCellType, StrictEvalActivation) \
     v(stringIteratorSpace, cellHeapCellType, JSStringIterator) \
     v(sourceCodeSpace, destructibleCellHeapCellType, JSSourceCode) \
@@ -422,7 +420,9 @@ public:
     void collectIfNecessaryOrDefer(GCDeferralContext* = nullptr);
 
     void completeAllJITPlans();
-    
+
+    void reportBytesVisited(size_t bytes) { m_bytesVisitedDuringMarking.exchangeAdd(bytes, std::memory_order_relaxed); }
+
     // Note that:
     // 1. Use this API to report non-GC memory referenced by GC objects. Be sure to
     // call both of these functions: Calling only one may trigger catastropic
@@ -724,7 +724,7 @@ private:
     void removeDeadCompilerWorklistEntries();
     void rememberExecutingAndCompilingCodeBlocks();
     void recordBytesVisited(size_t bytesVisited);
-    void endMarking(size_t bytesVisited);
+    void endMarking();
     void verifyHeapAfterMarking();
     void pruneDeadReferences();
     void prepareForAllocation();
@@ -734,7 +734,7 @@ private:
     void reconcileWeakGCHashTables();
     void sweepArrayBuffers();
     void snapshotUnswept();
-    void deleteSourceProviderCaches();
+    void pruneUnusedSourceProviderCaches();
     void harvestWeakReferences();
 
     template<typename CellType, typename CellSet>
@@ -817,7 +817,7 @@ private:
     size_t m_maxHeapSize;
     size_t m_totalBytesVisitedAfterLastFullCollect { 0 };
     size_t m_totalBytesVisited { 0 };
-    size_t m_totalBytesVisitedThisCycle { 0 };
+    Atomic<size_t> m_bytesVisitedDuringMarking { 0 };
     double m_incrementBalance { 0 };
     
     bool m_shouldDoOpportunisticFullCollection { false };

@@ -520,19 +520,30 @@ RefPtr<Element> LocalFrameView::rootElementForCustomScrollbarPartStyle() const
     return nullptr;
 }
 
-Ref<Scrollbar> LocalFrameView::createScrollbar(ScrollbarOrientation orientation)
+// Must answer the same question createScrollbar() decides, so that a caller cannot conclude no
+// scrollbar can take layout space and then be handed a custom one that does.
+bool LocalFrameView::usesCustomScrollbarStyle() const
 {
-    if (auto element = rootElementForCustomScrollbarPartStyle())
-        return RenderScrollbar::createCustomScrollbar(*this, orientation, element.get());
-    
+    if (rootElementForCustomScrollbarPartStyle())
+        return true;
+
     // If we have an owning iframe/frame element, then it can set the custom scrollbar also.
     // FIXME: Seems bad to do this for cross-origin frames.
     RefPtr frameRenderer = m_frame->ownerRenderer();
-    if (frameRenderer && frameRenderer->style().usesLegacyScrollbarStyle())
-        return RenderScrollbar::createCustomScrollbar(*this, orientation, nullptr, m_frame.ptr());
+    return frameRenderer && frameRenderer->style().usesLegacyScrollbarStyle();
+}
 
+Ref<Scrollbar> LocalFrameView::createScrollbar(ScrollbarOrientation orientation)
+{
     // Nobody set a custom style, so we just use a native scrollbar.
-    return Scrollbar::createNativeScrollbar(*this, orientation, scrollbarWidthStyle());
+    if (!usesCustomScrollbarStyle())
+        return Scrollbar::createNativeScrollbar(*this, orientation, scrollbarWidthStyle());
+
+    if (auto element = rootElementForCustomScrollbarPartStyle())
+        return RenderScrollbar::createCustomScrollbar(*this, orientation, element.get());
+
+    // The style came from the owning iframe/frame element instead.
+    return RenderScrollbar::createCustomScrollbar(*this, orientation, nullptr, m_frame.ptr());
 }
 
 void LocalFrameView::didRestoreFromBackForwardCache()
@@ -1679,18 +1690,7 @@ String LocalFrameView::debugDescription() const
 
 bool LocalFrameView::canShowNonOverlayScrollbars() const
 {
-    auto usesLegacyScrollbarStyle = [&] {
-        RefPtr element = rootElementForCustomScrollbarPartStyle();
-        if (!element)
-            return false;
-
-        if (auto* renderBox = dynamicDowncast<RenderBox>(element->renderer()))
-            return renderBox->style().usesLegacyScrollbarStyle();
-
-        return false;
-    }();
-
-    return canHaveScrollbars() && (usesLegacyScrollbarStyle || !ScrollbarTheme::theme().usesOverlayScrollbars());
+    return canHaveScrollbars() && (usesCustomScrollbarStyle() || !ScrollbarTheme::theme().usesOverlayScrollbars());
 }
 
 bool LocalFrameView::styleHidesScrollbarWithOrientation(ScrollbarOrientation orientation) const
@@ -2465,7 +2465,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         if (compareWithViewportSize(side, renderer) == ViewportComparison::Smaller)
             return { };
 
-        return protect(renderer.style())->visitedDependentBackgroundColorApplyingColorFilter();
+        return protect(renderer.style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
     };
 
     enum class ContainerEdgeCandidateResult : uint8_t {
@@ -3589,7 +3589,7 @@ void LocalFrameView::cancelScheduledTextFragmentIndicatorTimer()
     m_delayedTextFragmentIndicatorTimer.stop();
 }
 
-static void NODELETE adjustScrollRectToVisibleOptionsForHiddenOverflow(ScrollRectToVisibleOptions& options, const Style::ComputedStyle& style)
+static void LEGACY_NODELETE adjustScrollRectToVisibleOptionsForHiddenOverflow(ScrollRectToVisibleOptions& options, const Style::ComputedStyle& style)
 {
     if (options.allowScrollingOverflowHidden == AllowScrollingOverflowHidden::Yes)
         return;
@@ -5716,9 +5716,9 @@ Color LocalFrameView::documentBackgroundColor() const
     Color htmlBackgroundColor;
     Color bodyBackgroundColor;
     if (CheckedPtr htmlRenderer = htmlElement ? htmlElement->renderer() : nullptr)
-        htmlBackgroundColor = protect(htmlRenderer->style())->visitedDependentBackgroundColorApplyingColorFilter();
+        htmlBackgroundColor = protect(htmlRenderer->style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
     if (CheckedPtr bodyRenderer = bodyElement ? bodyElement->renderer() : nullptr)
-        bodyBackgroundColor = protect(bodyRenderer->style())->visitedDependentBackgroundColorApplyingColorFilter();
+        bodyBackgroundColor = protect(bodyRenderer->style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
 
 #if ENABLE(FULLSCREEN_API)
     Color fullscreenBackgroundColor = [&] () -> Color {
@@ -5734,7 +5734,7 @@ Color LocalFrameView::documentBackgroundColor() const
         if (!fullscreenRenderer)
             return { };
 
-        auto fullscreenElementColor = protect(fullscreenRenderer->style())->visitedDependentBackgroundColorApplyingColorFilter();
+        auto fullscreenElementColor = protect(fullscreenRenderer->style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
 
         CheckedPtr backdropRenderer = fullscreenRenderer->pseudoElementRenderer(PseudoElementType::Backdrop);
         if (!backdropRenderer)
@@ -5742,7 +5742,7 @@ Color LocalFrameView::documentBackgroundColor() const
 
         // Do not blend the fullscreenElementColor atop the backdrop color. The backdrop should
         // intentionally be visible underneath (and around) the fullscreen element.
-        return protect(backdropRenderer->style())->visitedDependentBackgroundColorApplyingColorFilter();
+        return protect(backdropRenderer->style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
     }();
 
     // Replace or blend the fullscreen background color with the body background color, if present.

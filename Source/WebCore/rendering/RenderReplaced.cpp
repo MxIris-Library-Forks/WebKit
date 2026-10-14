@@ -243,7 +243,7 @@ Color RenderReplaced::calculateHighlightColor() const
                     continue;
 
                 if (auto highlightStyle = lazyPseudoElementStyle({ PseudoElementType::Highlight, highlight.key }, &style()))
-                    return highlightStyle->backgroundColorResolvingCurrentColor();
+                    return highlightStyle->usedBackgroundColorResolvingCurrentColor();
             }
         }
     }
@@ -665,6 +665,13 @@ bool RenderReplaced::objectViewBoxIsContainedWithinNaturalSize() const
     return FloatRect({ }, FloatSize(intrinsicSize())).contains(*viewBox);
 }
 
+LayoutRect RenderReplaced::computePaintRectForObjectViewBox(const LayoutRect& destRect) const
+{
+    if (auto naturalSize = zoomedNaturalSize())
+        return computePaintRectForObjectViewBox(destRect, *naturalSize);
+    return destRect;
+}
+
 LayoutRect RenderReplaced::computePaintRectForObjectViewBox(const LayoutRect& destRect, const LayoutSize& intrinsicSize) const
 {
     if (auto viewBox = resolvedObjectViewBox(FloatSize(intrinsicSize)))
@@ -687,6 +694,14 @@ static LayoutRect placeConcreteObject(const Style::ComputedStyle& style, const L
 NaturalDimensions RenderReplaced::zoomedNaturalDimensions() const
 {
     return NaturalDimensions::fixed(FloatSize { intrinsicSize() });
+}
+
+std::optional<LayoutSize> RenderReplaced::zoomedNaturalSize() const
+{
+    auto naturalDimensions = zoomedNaturalDimensions();
+    if (!naturalDimensions.width || !naturalDimensions.height)
+        return std::nullopt;
+    return LayoutSize { FloatSize { *naturalDimensions.width, *naturalDimensions.height } };
 }
 
 LayoutRect RenderReplaced::replacedContentRect() const
@@ -773,14 +788,14 @@ LayoutUnit RenderReplaced::computeConstrainedLogicalWidth() const
     return std::max(0_lu, (logicalWidth - (marginStart + marginEnd + borderLeft() + borderRight() + paddingLeft() + paddingRight())));
 }
 
-static inline LayoutUnit NODELETE resolveWidthForRatio(LayoutUnit borderAndPaddingLogicalHeight, LayoutUnit borderAndPaddingLogicalWidth, LayoutUnit logicalHeight, double aspectRatio, BoxSizing boxSizing)
+static inline LayoutUnit LEGACY_NODELETE resolveWidthForRatio(LayoutUnit borderAndPaddingLogicalHeight, LayoutUnit borderAndPaddingLogicalWidth, LayoutUnit logicalHeight, double aspectRatio, BoxSizing boxSizing)
 {
     if (boxSizing == BoxSizing::BorderBox)
         return LayoutUnit((logicalHeight + borderAndPaddingLogicalHeight) * aspectRatio) - borderAndPaddingLogicalWidth;
     return LayoutUnit(logicalHeight * aspectRatio);
 }
 
-static inline bool NODELETE hasIntrinsicSize(const RenderReplaced* svgRoot, bool hasIntrinsicWidth, bool hasIntrinsicHeight)
+static inline bool LEGACY_NODELETE hasIntrinsicSize(const RenderReplaced* svgRoot, bool hasIntrinsicWidth, bool hasIntrinsicHeight)
 {
     return (hasIntrinsicWidth && hasIntrinsicHeight) || ((hasIntrinsicWidth || hasIntrinsicHeight) && svgRoot);
 }

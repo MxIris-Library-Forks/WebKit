@@ -255,6 +255,12 @@ public:
     void addSharedProcessDomain(const WebCore::RegistrableDomain&);
     const HashSet<WebCore::RegistrableDomain>& sharedProcessDomains() const LIFETIME_BOUND { return m_sharedProcessDomains; }
 
+    // The only registrable domains this process's cookie IPC may name: those of every site it has hosted frames
+    // for under site isolation, kept after the frames go away because their unload handlers can still use cookies.
+    // std::nullopt means any, before the process is used for site isolation or once it hosts unrecorded sites.
+    std::optional<HashSet<WebCore::RegistrableDomain>> hostedDomains() const;
+    void setMayHostAnySite();
+
     IsolatedProcessType isolatedProcessType() const { return m_isolatedProcessType; }
     void setIsolatedProcessType(IsolatedProcessType, std::optional<WebCore::Site> mainFrameSite);
     const std::optional<WebCore::Site>& mainFrameSite() const LIFETIME_BOUND { return m_mainFrameSite; }
@@ -269,12 +275,12 @@ public:
     WebsiteDataStore* websiteDataStore() const { ASSERT(m_websiteDataStore); return m_websiteDataStore.get(); }
     void setWebsiteDataStore(WebsiteDataStore&);
     
-    PAL::SessionID NODELETE sessionID() const;
+    PAL::SessionID LEGACY_NODELETE sessionID() const;
 
     static unsigned runningProcessCount();
     static bool isNearingProcessCountLimit();
     static bool hasReachedProcessCountLimit();
-    static void NODELETE setProcessCountLimit(unsigned);
+    static void LEGACY_NODELETE setProcessCountLimit(unsigned);
 
     static void reclaimProcessesIfNeeded();
     static void scheduleReclaimProcessesIfNeeded();
@@ -282,9 +288,9 @@ public:
     static RefPtr<WebProcessProxy> processForIdentifier(WebCore::ProcessIdentifier);
     static Ref<WebProcessProxy> fromConnection(const IPC::Connection&);
     static Vector<Ref<WebProcessProxy>> allProcesses();
-    static WebPageProxy* NODELETE webPage(WebPageProxyIdentifier);
-    static WebPageProxy* NODELETE webPage(WebCore::PageIdentifier);
-    static WebPageProxy* NODELETE audioCapturingWebPage();
+    static WebPageProxy* LEGACY_NODELETE webPage(WebPageProxyIdentifier);
+    static WebPageProxy* LEGACY_NODELETE webPage(WebCore::PageIdentifier);
+    static WebPageProxy* LEGACY_NODELETE audioCapturingWebPage();
 #if ENABLE(WEBXR)
     static WebPageProxy* webPageWithActiveXRSession();
 #endif
@@ -331,7 +337,7 @@ public:
     bool isRunningWorkers() const { return m_sharedWorkerInformation || m_serviceWorkerInformation; }
     std::optional<WebPageProxyIdentifier> remoteWorkerPageProxyID(RemoteWorkerType) const;
 
-    bool NODELETE isDummyProcessProxy() const;
+    bool LEGACY_NODELETE isDummyProcessProxy() const;
 
     void didCreateWebPageInProcess(WebCore::PageIdentifier);
 
@@ -350,7 +356,7 @@ public:
 
     void consumeIfNotVerifiablyFromUIProcess(WebCore::PageIdentifier, API::UserInitiatedAction&, std::optional<WTF::UUID>);
 
-    bool NODELETE isResponsive() const;
+    bool LEGACY_NODELETE isResponsive() const;
 
     VisibleWebPageToken visiblePageToken() const;
 
@@ -530,8 +536,8 @@ public:
     void unregisterRemoteWorkerClientProcess(RemoteWorkerType, WebProcessProxy&);
     void updateRemoteWorkerProcessAssertion(RemoteWorkerType);
     bool hasServiceWorkerPageProxy(WebPageProxyIdentifier pageProxyID) { return m_serviceWorkerInformation && m_serviceWorkerInformation->remoteWorkerPageProxyID == pageProxyID; }
-    bool NODELETE hasServiceWorkerForegroundActivityForTesting() const;
-    bool NODELETE hasServiceWorkerBackgroundActivityForTesting() const;
+    bool LEGACY_NODELETE hasServiceWorkerForegroundActivityForTesting() const;
+    bool LEGACY_NODELETE hasServiceWorkerBackgroundActivityForTesting() const;
     void startServiceWorkerBackgroundProcessing();
     void endServiceWorkerBackgroundProcessing();
     void setThrottleStateForTesting(ProcessThrottleState);
@@ -616,15 +622,15 @@ public:
     void hardwareConsoleStateChanged();
 #endif
 
-    const WeakHashSet<WebProcessProxy>* NODELETE serviceWorkerClientProcesses() const LIFETIME_BOUND;
-    const WeakHashSet<WebProcessProxy>* NODELETE sharedWorkerClientProcesses() const LIFETIME_BOUND;
+    const WeakHashSet<WebProcessProxy>* LEGACY_NODELETE serviceWorkerClientProcesses() const LIFETIME_BOUND;
+    const WeakHashSet<WebProcessProxy>* LEGACY_NODELETE sharedWorkerClientProcesses() const LIFETIME_BOUND;
 
     static void permissionChanged(WebCore::PermissionName, const WebCore::SecurityOriginData&);
     void processPermissionChanged(WebCore::PermissionName, const WebCore::SecurityOriginData&);
 
     Logger& logger();
 
-    void NODELETE resetState();
+    void LEGACY_NODELETE resetState();
 
     ProcessThrottleState throttleStateForStatistics() const { return m_throttleStateForStatistics; }
     Seconds totalForegroundTime() const;
@@ -662,10 +668,10 @@ public:
 #if ENABLE(WEBASSEMBLY_DEBUGGER) && ENABLE(REMOTE_INSPECTOR)
     void createWasmDebuggerTarget();
     void destroyWasmDebuggerTarget();
-    void NODELETE connectWasmDebuggerTarget(bool isAutomaticConnection, bool immediatelyPause);
-    void NODELETE disconnectWasmDebuggerTarget();
+    void LEGACY_NODELETE connectWasmDebuggerTarget(bool isAutomaticConnection, bool immediatelyPause);
+    void LEGACY_NODELETE disconnectWasmDebuggerTarget();
     void dispatchWasmDebuggerMessage(const String& message);
-    void NODELETE setWasmDebuggerTargetIndicating(bool);
+    void LEGACY_NODELETE setWasmDebuggerTargetIndicating(bool);
 
     void sendWasmDebuggerResponse(const String& response);
     void updateWasmDebuggerTarget();
@@ -688,8 +694,11 @@ public:
     void setIneligbleForWebProcessCache() { m_isEligibleForWebProcessCache = false; }
     bool isEligibleForWebProcessCache() const { return m_isEligibleForWebProcessCache; }
 
-    void setCOOPCacheOrigin(const WebCore::SecurityOriginData& origin) { m_coopCacheOrigin = origin; }
+    void setCOOPCacheOrigin(const WebCore::SecurityOriginData&);
     const std::optional<WebCore::SecurityOriginData>& coopCacheOrigin() const LIFETIME_BOUND { return m_coopCacheOrigin; }
+
+    void markCOOPCacheOriginAsUnconfirmed();
+    bool isCOOPCacheOriginUnconfirmed() const { return m_isCOOPCacheOriginUnconfirmed; }
 
     void incrementFrameProcessCount() { ++m_frameProcessCount; }
     void decrementFrameProcessCount();
@@ -709,6 +718,7 @@ private:
     WebProcessProxy(WebProcessPool&, WebsiteDataStore*, IsPrewarmed, WebCore::CrossOriginMode, LockdownMode, EnhancedSecurity);
 
     void updateSiteForMainFrameNavigation(const URL&);
+    void sendHostedDomainsToNetworkProcess();
 
     // AuxiliaryProcessProxy
     ASCIILiteral processName() const final { return "WebContent"_s; }
@@ -742,8 +752,8 @@ private:
     void wrapCryptoKey(Vector<uint8_t>&&, CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&&);
 
     using WebProcessProxyMap = HashMap<WebCore::ProcessIdentifier, CheckedRef<WebProcessProxy>>;
-    static WebProcessProxyMap& NODELETE allProcessMap();
-    static WebPageProxyMap& NODELETE globalPageMap();
+    static WebProcessProxyMap& LEGACY_NODELETE allProcessMap();
+    static WebPageProxyMap& LEGACY_NODELETE globalPageMap();
     static Vector<Ref<WebPageProxy>> globalPages();
 
     void initializePreferencesForGPUAndNetworkProcesses(const WebPageProxy&);
@@ -757,7 +767,7 @@ private:
     static void registerNotifyObservers();
 #endif
 
-    ProcessTerminationReason NODELETE terminationReason() const;
+    ProcessTerminationReason LEGACY_NODELETE terminationReason() const;
 
     // IPC message handlers.
     void didDestroyUserGestureToken(WebCore::PageIdentifier, WebCore::UserGestureTokenIdentifier);
@@ -836,7 +846,7 @@ private:
 #endif
 
 #if PLATFORM(COCOA)
-    bool NODELETE messageSourceIsValidWebContentProcess();
+    bool LEGACY_NODELETE messageSourceIsValidWebContentProcess();
 #endif
 
     bool shouldTakeNearSuspendedAssertion() const;
@@ -903,7 +913,7 @@ private:
 
     HashSet<WebCore::ClientOrigin> m_committedClientOrigins; // Only grows because WebProcess can navigate back to an old origin in a history item.
     HashSet<WebCore::ClientOrigin> m_committedStorageClientOrigins; // Storage keys of frames with unpartitioned storage access. Only grows, like m_committedClientOrigins.
-    HashSet<WebCore::Site> m_remoteWorkerSites; // Only grows so that messages sent by a remote worker that is going away remain valid.
+    HashSet<WebCore::RegistrableDomain> m_remoteWorkerDomains; // Only grows so that messages sent by a remote worker that is going away remain valid.
 
     // A single page can register with a store more than once for the same process, e.g. when a
     // ProvisionalPageProxy and a RemotePageProxy for the same page live in the same process, so
@@ -928,10 +938,15 @@ private:
     HashSet<WebCore::Site> m_committedSites;
     std::optional<WebCore::Site> m_sharedProcessMainFrameSite;
     HashSet<WebCore::RegistrableDomain> m_sharedProcessDomains;
+    // Only moves forward. m_site cannot stand in for it: m_site is also set for processes that are not site-isolated
+    // and for remote-worker processes, and it can move to MultipleSites.
+    enum class HostedSiteTracking : uint8_t { NotStarted, Recorded, AnySite };
+    HostedSiteTracking m_hostedSiteTracking { HostedSiteTracking::NotStarted };
     std::pair<LoadedWebArchive, HashSet<WebCore::RegistrableDomain>> m_allowedFirstPartiesForCookies { LoadedWebArchive::No, { } };
     bool m_isInProcessCache { false };
     bool m_isEligibleForWebProcessCache { true };
     std::optional<WebCore::SecurityOriginData> m_coopCacheOrigin;
+    bool m_isCOOPCacheOriginUnconfirmed { false };
     bool m_isShuttingDown { false };
     bool m_isRunningProcess { false };
 

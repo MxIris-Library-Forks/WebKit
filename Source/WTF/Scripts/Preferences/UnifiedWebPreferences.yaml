@@ -505,6 +505,15 @@ ApplePayEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
+ApplePayReferenceSessionEnabled:
+  type: bool
+  status: unstable
+  condition: ENABLE(APPLE_PAY_REFERENCE_SESSION)
+  humanReadableName: "Apple Pay Reference Session"
+  humanReadableDescription: "Enable the Apple Pay reference session API"
+  defaultValue: false
+  sharedPreferenceForWebProcess: true
+
 AsyncAudioSessionActivationEnabled:
   type: bool
   status: stable
@@ -776,14 +785,15 @@ BuiltInNotificationsEnabled:
   type: bool
   status: unstable
   category: dom
+  defaultsOverridable: true
   humanReadableName: "Built-In Web Notifications"
   humanReadableDescription: "Enable built-in WebKit managed notifications"
   webcoreDeprecatedGlobalSettings: true
   condition: ENABLE(WEB_PUSH_NOTIFICATIONS)
   excludeFrom: [ WebKitLegacy ]
   defaultValue:
-    default: defaultBuiltInNotificationsEnabled()
-    WebCore: false
+    "PLATFORM(IOS) && !PLATFORM(IOS_SIMULATOR)": true
+    default: false
   sharedPreferenceForWebProcess: true
 
 CSS3DTransformBackfaceVisibilityInteroperabilityEnabled:
@@ -1236,6 +1246,14 @@ CSSTextJustifyEnabled:
   category: css
   humanReadableName: "CSS text-justify property"
   humanReadableDescription: "Enable the property text-justify, defined in CSS Text 3"
+  defaultValue: false
+
+CSSTextScaleMetaEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS text-scale meta tag"
+  humanReadableDescription: "Enable parsing of the text-scale meta element, defined in CSS Fonts 5"
   defaultValue: false
 
 CSSTextSpacingTrimEnabled:
@@ -6805,6 +6823,15 @@ ViewGestureDebuggingEnabled:
   humanReadableName: "View gesture debugging"
   humanReadableDescription: "Enable view gesture debugging"
   excludeFrom: [ WebKitLegacy, WebCore ]
+  defaultValue: false
+
+ViewportSegmentsAPIEnabled:
+  type: bool
+  status: testable
+  category: dom
+  defaultsOverridable: true
+  humanReadableName: "Viewport Segments API"
+  humanReadableDescription: "Enable the Viewport Segments API"
   defaultValue: false
 
 VisibleDebugOverlayRegions:

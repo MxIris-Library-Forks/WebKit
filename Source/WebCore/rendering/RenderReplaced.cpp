@@ -286,7 +286,7 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         // shape. The children still register their precise bounds via paintReplaced.
         if (visibleToHitTesting()) {
             auto borderRect = LayoutRect(adjustedPaintOffset, borderBoxSize());
-            auto borderShape = BorderShape::shapeForBorderRect(style(), borderRect);
+            auto borderShape = BorderShape::shapeForBorderRect(usedStyle(), borderRect);
             auto contributeToInteractionRegions = (svgRootHasChildrenOrFilters && !isSkippedContentRoot(*this))
                 ? EventRegionContext::ContributeToInteractionRegions::No
                 : EventRegionContext::ContributeToInteractionRegions::Yes;
@@ -308,6 +308,9 @@ void RenderReplaced::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         paintInfo.axCustomColorBackdropContext()->recordBackdrop(*this, FloatRect { LayoutRect(adjustedPaintOffset, borderBoxSize()) }, paintInfo.paintBehavior);
         return;
     }
+
+    if (paintInfo.phase == PaintPhase::AXCustomColorComputeBackdrops)
+        paintInfo.axCustomColorBackdropContext()->updateImageBackdrop(*this, FloatRect { LayoutRect(adjustedPaintOffset, borderBoxSize()) });
 #endif
 
     SetLayoutNeededForbiddenScope scope(*this);
@@ -658,11 +661,13 @@ std::optional<FloatRect> RenderReplaced::resolvedObjectViewBox(const FloatSize& 
 
 bool RenderReplaced::objectViewBoxIsContainedWithinNaturalSize() const
 {
-    auto viewBox = resolvedObjectViewBox(FloatSize(intrinsicSize()));
+    // FIXME: Remove suppression once rdar://189998444 is fixed.
+    SUPPRESS_MEMORY_UNSAFE_CAST auto viewBox = resolvedObjectViewBox(FloatSize(intrinsicSize()));
     if (!viewBox)
         return true;
 
-    return FloatRect({ }, FloatSize(intrinsicSize())).contains(*viewBox);
+    // FIXME: Remove suppression once rdar://189998444 is fixed.
+    SUPPRESS_MEMORY_UNSAFE_CAST return FloatRect({ }, FloatSize(intrinsicSize())).contains(*viewBox);
 }
 
 LayoutRect RenderReplaced::computePaintRectForObjectViewBox(const LayoutRect& destRect) const
@@ -674,7 +679,8 @@ LayoutRect RenderReplaced::computePaintRectForObjectViewBox(const LayoutRect& de
 
 LayoutRect RenderReplaced::computePaintRectForObjectViewBox(const LayoutRect& destRect, const LayoutSize& intrinsicSize) const
 {
-    if (auto viewBox = resolvedObjectViewBox(FloatSize(intrinsicSize)))
+    // FIXME: Remove suppression once rdar://189998444 is fixed.
+    SUPPRESS_MEMORY_UNSAFE_CAST if (auto viewBox = resolvedObjectViewBox(FloatSize(intrinsicSize)))
         return LayoutRect(fullRectFromSubrectAndSize(FloatSize(intrinsicSize), *viewBox, FloatRect(destRect)));
     return destRect;
 }
@@ -1106,7 +1112,8 @@ LayoutRect RenderReplaced::selectionRectForRepaint(const RenderLayerModelObject*
     LayoutRect rect = localSelectionRect();
     if (clipToVisibleContent)
         return computeRectForRepaint(rect, repaintContainer);
-    return localToContainerQuad(FloatRect(rect), repaintContainer).enclosingBoundingBox();
+    // FIXME: Remove suppression once rdar://189998444 is fixed.
+    SUPPRESS_MEMORY_UNSAFE_CAST return localToContainerQuad(FloatRect(rect), repaintContainer).enclosingBoundingBox();
 }
 
 LayoutRect RenderReplaced::localSelectionRect(bool checkWhetherSelected) const

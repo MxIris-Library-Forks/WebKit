@@ -23,6 +23,7 @@ fast/forms/datetimelocal/datetimelocal-editable-components [ Pass ]
 fast/forms/month/month-editable-components [ Pass ]
 fast/forms/time/time-editable-components [ Pass ]
 fast/forms/select/mac-wk2 [ Pass ]
+fast/quirks/model-element-fallback-content-quirk.html [ Pass ]
 fast/sandbox/mac [ Pass ]
 fast/scrolling/mac [ Pass ]
 fast/speechsynthesis/mac [ Pass ]
@@ -2456,12 +2457,6 @@ webkit.org/b/321524 [ Debug ] imported/w3c/web-platform-tests/payment-request/pa
 
 webkit.org/b/321726 imported/w3c/web-platform-tests/largest-contentful-paint/observe-svg-data-uri-image.html [ Pass Failure ]
 
-# webkit.org/b/321110 NEW TEST(317810@main): [iOS macOS]4 tests in imported/w3c/web-platform-tests/webtransport/idlharness are constant failure
-imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.html [ Failure ]
-imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.serviceworker.html [ Failure ]
-imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.sharedworker.html [ Failure ]
-imported/w3c/web-platform-tests/webtransport/idlharness.https.sub.any.worker.html [ Failure ]
-
 webkit.org/b/322051 [ Release ] media/picture-in-picture/picture-in-picture-interruption.html [ Pass Failure ]
 
 # rdar://183487942 ([macOS 27] fast/inline/blocks-in-inline-ax-invalid.html is a flaky test failure)
@@ -2650,8 +2645,6 @@ webkit.org/b/322505 fast/visual-viewport/zoomed-scroll-into-view-fixed.html [ Sk
 webkit.org/b/326746 [ Sequoia x86_64 Debug ] media/modern-media-controls/icon-service/icon-service-bundle-load.html [ Pass Timeout ]
 
 webkit.org/b/326748 [ Debug ] media/modern-media-controls/macos-fullscreen-media-controls/macos-fullscreen-rtl-volume-button-no-overlap.html [ Pass Timeout ]
-
-webkit.org/b/326894 [ Sequoia+ ] http/tests/websocket/tests/hybi/inspector/handshake-error.html [ Pass Failure ]
 
 webkit.org/b/326895 [ Debug ] http/tests/security/registerBlobURL.html [ Skip ] 
 

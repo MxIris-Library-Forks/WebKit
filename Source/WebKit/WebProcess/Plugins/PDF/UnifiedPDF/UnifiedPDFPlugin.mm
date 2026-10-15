@@ -119,6 +119,7 @@
 #include <WebCore/WheelEventDeltaFilter.h>
 #include <algorithm>
 #include <pal/spi/cg/CoreGraphicsSPI.h>
+#include <wtf/Borrow.h>
 #include <wtf/Scope.h>
 #include <wtf/SetForScope.h>
 #include <wtf/TZoneMallocInlines.h>
@@ -802,7 +803,10 @@ void UnifiedPDFPlugin::didChangeSettings()
         propagateSettingsToLayer(*layerForScrollCorner);
 
     protect(m_presentationController)->updateDebugBorders(showDebugBorders, showRepaintCounter);
+}
 
+void UnifiedPDFPlugin::updateAccessibilityDisplayModeEligibility()
+{
     auto defaultDisplayModeState = defaultAccessibilityDisplayModeStateForCurrentSettings();
     auto isEligible = defaultDisplayModeState != PDFAccessibilityDisplayModeState::Ineligible;
     auto wasEligible = m_accessibilityDisplayModeState != PDFAccessibilityDisplayModeState::Ineligible;
@@ -815,10 +819,13 @@ void UnifiedPDFPlugin::setAccessibilityDisplayModeState(PDFAccessibilityDisplayM
     if (m_accessibilityDisplayModeState == state)
         return;
 
+    auto previousDisplayMode = accessibilityDisplayMode();
     m_accessibilityDisplayModeState = state;
 
-    RefPtr presentationController = m_presentationController;
-    presentationController->updateForAccessibilityDisplayModeChange();
+    if (accessibilityDisplayMode() != previousDisplayMode) {
+        RefPtr presentationController = m_presentationController;
+        presentationController->updateForAccessibilityDisplayModeChange();
+    }
 
     if (RefPtr rootLayer = m_rootLayer)
         rootLayer->setBackgroundColor(pluginBackgroundColor());
@@ -967,7 +974,7 @@ void UnifiedPDFPlugin::paintPDFContent(const WebCore::GraphicsLayer* layer, Grap
     auto pageCoverage = presentationController->pageCoverageAndScalesForContentsRect(clipRect, row, tilingScaleFactor);
     auto documentScale = pageCoverage.pdfDocumentScale;
 
-    for (auto& pageInfo : pageCoverage.pages) {
+    for (auto& pageInfo : borrow(pageCoverage.pages)) {
         auto page = m_documentLayout.pageAtIndex(pageInfo.pageIndex);
         if (!page)
             continue;
@@ -1068,7 +1075,7 @@ void UnifiedPDFPlugin::paintPDFSelection(const GraphicsLayer* layer, GraphicsCon
         auto& renderTheme = renderer ? renderer->theme() : RenderTheme::singleton();
         OptionSet<StyleColorOptions> styleColorOptions;
         if (renderer)
-            styleColorOptions = renderer->styleColorOptions() - WebCore::StyleColorOptions::UseDarkAppearance;
+            styleColorOptions = renderer->styleColorOptions(StyleColorOptionsPurpose::Rendering) - WebCore::StyleColorOptions::UseDarkAppearance;
         auto selectionColor = isVisibleAndActive ? renderTheme.activeSelectionBackgroundColor(styleColorOptions) : renderTheme.inactiveSelectionBackgroundColor(styleColorOptions);
         return blendSourceOver(pdfPageBackgroundColor(displayMode), selectionColor);
     }();
@@ -1079,7 +1086,7 @@ void UnifiedPDFPlugin::paintPDFSelection(const GraphicsLayer* layer, GraphicsCon
 
     auto pageCoverage = presentationController->pageCoverageAndScalesForContentsRect(clipRect, row, tilingScaleFactor);
     auto documentScale = pageCoverage.pdfDocumentScale;
-    for (auto& pageInfo : pageCoverage.pages) {
+    for (auto& pageInfo : borrow(pageCoverage.pages)) {
         auto page = m_documentLayout.pageAtIndex(pageInfo.pageIndex);
         if (!page)
             continue;
@@ -3712,7 +3719,7 @@ Vector<WebCore::FloatRect> UnifiedPDFPlugin::rectsForTextMatchesInRect(const Vec
     auto lastCoveredPage = std::ranges::max(coveredPages);
 
     PDFPageCoverage findMatchRects;
-    for (auto& match : matches) {
+    for (auto& match : borrow(matches)) {
         if (match.startPage > lastCoveredPage || firstCoveredPage > match.endPage)
             continue;
 
@@ -3742,7 +3749,7 @@ Vector<WebCore::FloatRect> UnifiedPDFPlugin::visibleRectsForFindMatchRects(const
     if (!visibleRow)
         rectsInPluginCoordinates.reserveCapacity(findMatchRects.size());
 
-    for (auto& perPageInfo : findMatchRects) {
+    for (auto& perPageInfo : borrow(findMatchRects)) {
         if (visibleRow && !visibleRow->containsPage(perPageInfo.pageIndex))
             continue;
 
@@ -5250,6 +5257,8 @@ bool UnifiedPDFPlugin::delegatesScrollingToMainFrame() const
 
 void UnifiedPDFPlugin::effectiveAppearanceDidChange()
 {
+    updateAccessibilityDisplayModeEligibility();
+
     if (!isFullMainFramePlugin())
         return;
 

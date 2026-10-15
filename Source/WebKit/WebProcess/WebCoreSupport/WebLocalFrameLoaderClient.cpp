@@ -111,6 +111,7 @@
 #include <WebCore/UIEventWithKeyState.h>
 #include <WebCore/Widget.h>
 #include <WebCore/WindowFeatures.h>
+#include <wtf/Borrow.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/ProcessID.h>
 #include <wtf/ProcessPrivilege.h>
@@ -532,6 +533,7 @@ void WebLocalFrameLoaderClient::didSameDocumentNavigationForFrameViaJS(SameDocum
         { }, /* originatorAdvancedPrivacyProtections */
 #if PLATFORM(MAC) || HAVE(UIKIT_WITH_MOUSE_SUPPORT)
         std::nullopt, /* webHitTestResultData */
+        std::nullopt, /* hitTestJSHandleInfo */
 #endif
         m_frame->info(),
         std::nullopt, /* originatingPageID */
@@ -791,7 +793,7 @@ void WebLocalFrameLoaderClient::dispatchDidFinishDocumentLoad()
 #if ASSERT_ENABLED
     if (RefPtr document = m_localFrame->document()) {
         auto& url = document->url();
-        ASSERT_WITH_MESSAGE(document->agentClusterIdentifier() || protect(document->securityOrigin())->isOpaque() || !(url.protocolIsInHTTPFamily() || url.protocolIsBlob()), "The UI process did not assign an agent cluster to %s", url.string().utf8());
+        ASSERT_WITH_MESSAGE(document->agentClusterIdentifier() || protect(document->securityOrigin())->isOpaque() || !url.protocolIsInHTTPFamilyOrBlob(), "The UI process did not assign an agent cluster to %s", url.string().utf8());
     }
 #endif
 
@@ -1048,6 +1050,9 @@ void WebLocalFrameLoaderClient::dispatchDecidePolicyForNewWindowAction(const Nav
     auto listenerID = m_frame->setUpPolicyListener(WTF::move(function), WebFrame::ForNavigationAction::No, WebFrame::PolicyCheckKind::NewWindow, initiatingDocument);
 
     auto& mouseEventData = navigationAction.mouseEventData();
+#if PLATFORM(MAC) || HAVE(UIKIT_WITH_MOUSE_SUPPORT)
+    auto hitTestJSHandleInfo = jsHandleInfoForHitTestResult(hitTestResult);
+#endif
     NavigationActionData navigationActionData {
         navigationAction.type(),
         modifiersForNavigationAction(navigationAction),
@@ -1082,6 +1087,7 @@ void WebLocalFrameLoaderClient::dispatchDecidePolicyForNewWindowAction(const Nav
         { }, /* originatorAdvancedPrivacyProtections */
 #if PLATFORM(MAC) || HAVE(UIKIT_WITH_MOUSE_SUPPORT)
         hitTestResult ? std::optional(WebKit::WebHitTestResultData(WTF::move(*hitTestResult), false)) : std::nullopt,
+        WTF::move(hitTestJSHandleInfo),
 #endif
         m_frame->info(),
         std::nullopt, /* originatingPageID */
@@ -2161,7 +2167,7 @@ void WebLocalFrameLoaderClient::getLoadDecisionForIcons(const Vector<std::pair<W
         return;
 
     HashMap<CallbackID, WebCore::LinkIcon> callbackIdIconMap;
-    for (auto& icon : icons)
+    for (auto& icon : borrow(icons))
         callbackIdIconMap.add(CallbackID::fromInteger(icon.second), icon.first);
 
     webPage->send(Messages::WebPageProxy::GetLoadDecisionForIcons(WTF::move(callbackIdIconMap)));

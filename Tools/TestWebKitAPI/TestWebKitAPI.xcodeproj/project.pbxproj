@@ -601,6 +601,7 @@
 				WebKit/WKWebView/SiteIsolationCookieTests.swift,
 				WebKit/WKWebView/SiteIsolationEditingTests.swift,
 				WebKit/WKWebView/SiteIsolationNavigationTests.swift,
+				WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift,
 				WebKit/WKWebView/SiteIsolationSessionStateTests.swift,
 				WebKit/WKWebView/SiteIsolationUIDelegateTests.swift,
 				WebKit/WKWebView/SiteIsolationUserAgentTests.swift,
@@ -628,6 +629,7 @@
 				WebKit/WKWebView/WKWebExtensionMatchPattern.swift,
 				WebKit/WKWebView/WKWebExtensionTab.swift,
 				WebKit/WKWebView/WKWebExtensionWindow.swift,
+				WebKit/WKWebView/WKWebViewHitTestTests.swift,
 				WebKit/WKWebView/WKWebViewSwiftOverlayTests.swift,
 			);
 			target = 8DD76F960486AA7600D96B5E /* TestWebKitAPI */;

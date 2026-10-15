@@ -339,6 +339,16 @@ void WebChromeClient::focusedSelectElementDidChangeOptions(const WebCore::HTMLSe
 
 #endif
 
+#if PLATFORM(GTK) || PLATFORM(WPE)
+
+void WebChromeClient::focusedElementDidChangeReadOnly(Element& element)
+{
+    if (RefPtr page = m_page.get())
+        page->focusedElementDidChangeReadOnly(element);
+}
+
+#endif
+
 #if PLATFORM(COCOA)
 
 void WebChromeClient::makeFirstResponder()
@@ -445,6 +455,7 @@ RefPtr<Page> WebChromeClient::createWindow(LocalFrame& frame, const String& open
         { }, /* originatorAdvancedPrivacyProtections */
 #if PLATFORM(MAC) || HAVE(UIKIT_WITH_MOUSE_SUPPORT)
         std::nullopt, /* webHitTestResultData */
+        std::nullopt, /* hitTestJSHandleInfo */
 #endif
         webFrame->info(), /* originatingFrameInfoData */
         webFrame->page()->webPageProxyIdentifier(),

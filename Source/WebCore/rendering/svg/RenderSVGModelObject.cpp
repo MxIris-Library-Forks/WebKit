@@ -110,8 +110,9 @@ void RenderSVGModelObject::updateFromStyle()
 void RenderSVGModelObject::updateLocalTransform()
 {
     TransformationMatrix transform;
-    auto referenceBoxRect = transformReferenceBoxRect(style());
-    applyTransform(transform, style(), referenceBoxRect, Style::TransformResolver::allTransformOperations);
+    CheckedRef style = this->style();
+    auto referenceBoxRect = transformReferenceBoxRect(style);
+    applyTransform(transform, style, referenceBoxRect, Style::TransformResolver::allTransformOperations);
 
     auto localTransform = transform.toAffineTransform();
     auto oldTransform = std::exchange(m_localTransform, localTransform);
@@ -181,10 +182,12 @@ LayoutRect RenderSVGModelObject::outlineBoundsForRepaint(const RenderLayerModelO
 
     if (repaintContainer != this) {
         FloatQuad containerRelativeQuad;
-        if (geometryMap)
+        if (geometryMap) {
             containerRelativeQuad = geometryMap->mapToContainer(outlineBounds, repaintContainer);
-        else
-            containerRelativeQuad = localToContainerQuad(FloatRect(outlineBounds), repaintContainer);
+        } else {
+            // FIXME: Remove suppression once rdar://189998444 is fixed.
+            SUPPRESS_MEMORY_UNSAFE_CAST containerRelativeQuad = localToContainerQuad(FloatRect(outlineBounds), repaintContainer);
+        }
 
         outlineBounds = LayoutRect(containerRelativeQuad.boundingBox());
     }
@@ -208,7 +211,7 @@ void RenderSVGModelObject::styleDidChange(Style::Difference diff, const Style::C
 
     // A non-layer renderer with a clip-path or a mask is an atomic paint boundary, so rebuild the
     // enclosing layer's DOM-order paint cache when either is added or removed.
-    if (oldStyle && (oldStyle->clipPath().isNone() != style().clipPath().isNone() || oldStyle->hasMask() != style().hasMask())) {
+    if (oldStyle && (oldStyle->clipPath().isNone() != style().clipPath().isNone() || oldStyle->hasMask() != protect(style())->hasMask())) {
         if (CheckedPtr layer = enclosingLayer(); layer && layer->isSVGLayer())
             layer->dirtyChildrenInDOMOrderForSVG();
     }
@@ -250,7 +253,7 @@ void RenderSVGModelObject::styleDidChange(Style::Difference diff, const Style::C
             return false;
         };
 
-        if (visualOverflowStyleChanged(style(), *oldStyle))
+        if (visualOverflowStyleChanged(protect(style()), *oldStyle))
             m_cachedVisualOverflowRect = std::nullopt;
     }
 
@@ -259,7 +262,7 @@ void RenderSVGModelObject::styleDidChange(Style::Difference diff, const Style::C
     // bool hasSVGMask = hasSVGMask();
     bool hasSVGMask = false;
     if (hasSVGMask && hasLayer() && usedStyle().visibility() != UsedVisibility::Visible)
-        layer()->setHasVisibleContent();
+        protect(layer())->setHasVisibleContent();
 }
 
 std::optional<FloatPoint3D> RenderSVGModelObject::cachedTransformOriginForReferenceBox(const Style::ComputedStyle& style, const FloatRect& referenceBox) const

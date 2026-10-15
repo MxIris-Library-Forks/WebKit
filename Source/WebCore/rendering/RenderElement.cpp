@@ -1572,8 +1572,8 @@ bool RenderElement::repaintAfterLayoutIfNeeded(SingleThreadWeakPtr<const RenderL
             // If the border radius changed, repaints at style change time will take care of that.
             // This code is attempting to detect whether border-radius constraining based on box size
             // affects the radii, using the outlineBoundsRect as a proxy for the border box.
-            auto oldShapeApproximation = BorderShape::shapeForBorderRect(style(), oldOutlineBounds);
-            auto newShapeApproximation = BorderShape::shapeForBorderRect(style(), newOutlineBounds);
+            auto oldShapeApproximation = BorderShape::shapeForBorderRect(usedStyle(), oldOutlineBounds);
+            auto newShapeApproximation = BorderShape::shapeForBorderRect(usedStyle(), newOutlineBounds);
             if (oldShapeApproximation.radii() != newShapeApproximation.radii())
                 return true;
         }
@@ -1989,8 +1989,10 @@ const Style::ComputedStyle* RenderElement::lazyPseudoElementStyle(const Style::P
         return cachedStyle;
 
     std::unique_ptr<Style::ComputedStyle> result = resolvePseudoElementStyle(pseudoElementIdentifier, parentStyle);
-    if (result)
-        return const_cast<Style::ComputedStyle&>(m_style).addPseudoElementStyle(WTF::move(result));
+    if (result) {
+        // FIXME: Remove suppression once rdar://189998365 is fixed.
+        SUPPRESS_MEMORY_UNSAFE_CAST return const_cast<Style::ComputedStyle&>(m_style).addPseudoElementStyle(WTF::move(result));
+    }
     return nullptr;
 }
 
@@ -2071,9 +2073,11 @@ Color RenderElement::selectionColor() const
         return color;
     }
 
+    auto styleColorOptions = this->styleColorOptions(StyleColorOptionsPurpose::Rendering);
+
     if (frame().selection().isFocusedAndActive())
-        return theme().activeSelectionForegroundColor(styleColorOptions());
-    return theme().inactiveSelectionForegroundColor(styleColorOptions());
+        return theme().activeSelectionForegroundColor(styleColorOptions);
+    return theme().inactiveSelectionForegroundColor(styleColorOptions);
 }
 
 const Style::ComputedStyle* RenderElement::selectionPseudoStyle() const
@@ -2096,8 +2100,10 @@ Color RenderElement::selectionBackgroundColor() const
     if (style().usedUserSelect() == UserSelect::None)
         return Color();
 
+    auto styleColorOptions = this->styleColorOptions(StyleColorOptionsPurpose::Rendering);
+
     if (frame().selection().shouldShowBlockCursor() && frame().selection().isCaret())
-        return theme().transformSelectionBackgroundColor(style().visitedDependentColorApplyingColorFilter(), styleColorOptions());
+        return theme().transformSelectionBackgroundColor(style().visitedDependentColorApplyingColorFilter(), styleColorOptions);
 
     auto pseudoStyleCandidate = this;
     if (pseudoStyleCandidate->isAnonymous())
@@ -2106,12 +2112,12 @@ Color RenderElement::selectionBackgroundColor() const
     if (pseudoStyleCandidate) {
         CheckedPtr pseudoStyle = pseudoStyleCandidate->selectionPseudoStyle();
         if (pseudoStyle && pseudoStyle->visitedDependentUsedBackgroundColorApplyingColorFilter().isValid())
-            return theme().transformSelectionBackgroundColor(pseudoStyle->visitedDependentUsedBackgroundColorApplyingColorFilter(), styleColorOptions());
+            return theme().transformSelectionBackgroundColor(pseudoStyle->visitedDependentUsedBackgroundColorApplyingColorFilter(), styleColorOptions);
     }
 
     if (frame().selection().isFocusedAndActive())
-        return theme().activeSelectionBackgroundColor(styleColorOptions());
-    return theme().inactiveSelectionBackgroundColor(styleColorOptions());
+        return theme().activeSelectionBackgroundColor(styleColorOptions);
+    return theme().inactiveSelectionBackgroundColor(styleColorOptions);
 }
 
 const Style::ComputedStyle* RenderElement::spellingErrorPseudoStyle() const
@@ -2932,7 +2938,8 @@ void RenderElement::layoutIfNeeded()
 RenderHTMLCanvas* RenderElement::drawableCanvas() const
 {
     auto* canvasRenderer = ancestorsOfType<RenderHTMLCanvas>(*this).first();
-    return canvasRenderer && canvasRenderer->hasDrawableContent() ? const_cast<RenderHTMLCanvas*>(canvasRenderer) : nullptr;
+    // FIXME: Remove suppression once rdar://189998365 is fixed.
+    SUPPRESS_MEMORY_UNSAFE_CAST return canvasRenderer && canvasRenderer->hasDrawableContent() ? const_cast<RenderHTMLCanvas*>(canvasRenderer) : nullptr;
 }
 
 }

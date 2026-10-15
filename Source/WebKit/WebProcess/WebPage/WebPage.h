@@ -75,6 +75,7 @@
 #include <WebCore/UserContentTypes.h>
 #include <WebCore/UserGestureTokenIdentifier.h>
 #include <WebCore/UserScriptTypes.h>
+#include <WebCore/ViewportSegments.h>
 #include <WebCore/WebCoreKeyboardUIMode.h>
 #include <WebCore/WebKitJSHandle.h>
 #include <memory>
@@ -1708,6 +1709,8 @@ public:
     void setViewportSizeForCSSViewportUnits(std::optional<WebCore::FloatSize>);
     std::optional<WebCore::FloatSize> viewportSizeForCSSViewportUnits() const { return m_viewportSizeForCSSViewportUnits; }
 
+    void setViewportSegments(const WebCore::ViewportSegments&);
+
     bool canShowMIMEType(const String& MIMEType) const;
     bool canShowResponse(const WebCore::ResourceResponse&) const;
 
@@ -1754,6 +1757,7 @@ public:
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void setInputMethodState(WebCore::Element*);
+    void focusedElementDidChangeReadOnly(WebCore::Element&);
 #endif
 
     void imageOrMediaDocumentSizeChanged(const WebCore::IntSize&);
@@ -2499,7 +2503,7 @@ private:
     static bool logicalScroll(WebCore::Page*, WebCore::ScrollLogicalDirection, WebCore::ScrollGranularity);
 
     void loadURLInFrame(URL&&, const String& referrer, WebCore::FrameIdentifier);
-    void loadDataInFrame(std::span<const uint8_t>, String&& MIMEType, String&& encodingName, URL&& baseURL, WebCore::FrameIdentifier);
+    void loadDataInFrame(std::span<const uint8_t>, String&& MIMEType, String&& encodingName, URL&& baseURL, WebCore::FrameIdentifier, const WebCore::AgentClusterAssignment&);
 
     void applyMonitorUnloadToIFrameElement(WebCore::FrameIdentifier, WebCore::IFrameUnloadReason);
 
@@ -2712,13 +2716,13 @@ private:
 #if PLATFORM(MAC)
     void performImmediateActionHitTestAtLocation(WebCore::FrameIdentifier, WebCore::FloatPoint, CompletionHandler<void(Variant<WebHitTestResultData, WebCore::RemoteUserInputEventData>&&, bool, UserData&&)>&&);
     std::optional<WebCore::SimpleRange> lookupTextAtLocation(WebCore::FrameIdentifier, WebCore::FloatPoint);
-    void immediateActionDidUpdate();
-    void immediateActionDidCancel();
-    void immediateActionDidComplete();
+    void immediateActionDidUpdate(WebCore::FrameIdentifier);
+    void immediateActionDidCancel(WebCore::FrameIdentifier);
+    void immediateActionDidComplete(WebCore::FrameIdentifier);
 
     void dataDetectorsDidPresentUI(WebCore::PageOverlay::PageOverlayID);
     void dataDetectorsDidChangeUI(WebCore::PageOverlay::PageOverlayID);
-    void dataDetectorsDidHideUI(WebCore::PageOverlay::PageOverlayID);
+    void dataDetectorsDidHideUI(WebCore::FrameIdentifier, WebCore::PageOverlay::PageOverlayID);
 
     void handleAcceptedCandidate(WebCore::TextCheckingResult);
 #endif
@@ -2889,6 +2893,8 @@ private:
 
     template<typename T> T contentsToRootView(WebCore::FrameIdentifier, T);
     template<typename T> T rootViewToContents(WebCore::FrameIdentifier, T);
+    void contentsToRootViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
+    void contentsToRootViewPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, CompletionHandler<void(WebCore::FloatPoint)>&&);
     void contentsToMainFrameViewRect(WebCore::FrameIdentifier, WebCore::FloatRect, CompletionHandler<void(WebCore::FloatRect)>&&);
 
     void hitTestAtPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, const ContentWorldData&, CompletionHandler<void(NodeHitTestResult)>&&);

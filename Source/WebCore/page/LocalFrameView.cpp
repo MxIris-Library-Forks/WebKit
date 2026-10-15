@@ -142,6 +142,7 @@
 #include "TiledBacking.h"
 #include "TransformState.h"
 #include "VelocityData.h"
+#include "Viewport.h"
 #include "VisualViewport.h"
 #include "WheelEventTestMonitor.h"
 #include <span>
@@ -2937,7 +2938,8 @@ ScrollPosition LocalFrameView::unscaledMaximumScrollPosition() const
         unscaledDocumentRect.expand(0, headerHeight() + footerHeight());
         // visibleSize() is zoomed, and everything else here is unscaled, so it would push the maximum too far down.
         auto viewportSize = visibleContentScaleFactor() == 1 ? visibleSize() : sizeForUnobscuredContent();
-        ScrollPosition maximumPosition = ScrollPosition(unscaledDocumentRect.maxXMaxYCorner() - viewportSize).expandedTo({ 0, 0 });
+        // FIXME: Remove suppression once rdar://189998444 is fixed.
+        SUPPRESS_MEMORY_UNSAFE_CAST ScrollPosition maximumPosition = ScrollPosition(unscaledDocumentRect.maxXMaxYCorner() - viewportSize).expandedTo({ 0, 0 });
         if (m_frame->isMainFrame() && m_scrollPinningBehavior == ScrollPinningBehavior::PinToTop)
             maximumPosition.setY(unscaledMinimumScrollPosition().y());
 
@@ -3026,14 +3028,14 @@ bool LocalFrameView::useDarkAppearance() const
     return false;
 }
 
-OptionSet<StyleColorOptions> LocalFrameView::styleColorOptions() const
+OptionSet<StyleColorOptions> LocalFrameView::styleColorOptions(StyleColorOptionsPurpose purpose) const
 {
 #if ENABLE(DARK_MODE_CSS)
     if (CheckedPtr renderer = rendererForColorScheme())
-        return renderer->styleColorOptions();
+        return renderer->styleColorOptions(purpose);
 #endif
     if (RefPtr document = m_frame->document())
-        return document->styleColorOptions(nullptr);
+        return document->styleColorOptions(nullptr, purpose);
     return { };
 }
 
@@ -4302,6 +4304,11 @@ void LocalFrameView::layoutOrVisualViewportChanged()
             scrollingCoordinator->frameViewVisualViewportChanged(*this);
     }
 
+    if (m_frame->settings().viewportSegmentsAPIEnabled()) {
+        if (RefPtr window = m_frame->window())
+            protect(window->viewport())->invalidateSegments();
+    }
+
     if (RefPtr page = m_frame->page())
         page->chrome().client().frameViewLayoutOrVisualViewportChanged(*this);
 }
@@ -4495,7 +4502,7 @@ void LocalFrameView::setBaseBackgroundColor(const Color& backgroundColor)
         return;
 
 #if ENABLE(DARK_MODE_CSS)
-    m_styleColorOptions = styleColorOptions();
+    m_styleColorOptions = styleColorOptions(StyleColorOptionsPurpose::Rendering);
 #endif
     m_baseBackgroundColor = newBaseBackgroundColor;
 
@@ -4508,7 +4515,7 @@ void LocalFrameView::setBaseBackgroundColor(const Color& backgroundColor)
 #if ENABLE(DARK_MODE_CSS)
 void LocalFrameView::updateBaseBackgroundColorIfNecessary()
 {
-    auto styleColorOptions = this->styleColorOptions();
+    auto styleColorOptions = this->styleColorOptions(StyleColorOptionsPurpose::Rendering);
     if (m_styleColorOptions == styleColorOptions)
         return;
 
@@ -4529,7 +4536,7 @@ void LocalFrameView::updateBackgroundRecursively(const std::optional<Color>& bac
 #else
         static const auto cssValueControlBackground = CSSValueID::Window;
 #endif
-        return RenderTheme::singleton().systemColor(cssValueControlBackground, view.styleColorOptions());
+        return RenderTheme::singleton().systemColor(cssValueControlBackground, view.styleColorOptions(StyleColorOptionsPurpose::Rendering));
     };
 
     for (Ref localFrame : inclusiveDescendantFrames<LocalFrame>(m_frame.get())) {

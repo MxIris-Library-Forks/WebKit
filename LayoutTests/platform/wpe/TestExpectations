@@ -586,12 +586,10 @@ Bug(WPE) security/contentSecurityPolicy/video-with-blob-url-allowed-by-media-src
 # WPT: css
 # ========
 
-imported/w3c/web-platform-tests/css/css-color/system-color-consistency.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-color/system-color-support.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-color/t32-opacity-offscreen-multiple-boxes-1-c.xht [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-color/t32-opacity-offscreen-multiple-boxes-2-c.xht [ ImageOnlyFailure ]
 
-imported/w3c/web-platform-tests/css/css-multicol/multicol-fill-balance-021.html [ Failure ]
 
 webkit.org/b/186262 imported/w3c/web-platform-tests/css/css-text/word-break/word-break-break-all-007.html [ ImageOnlyFailure ]
 webkit.org/b/186262 imported/w3c/web-platform-tests/css/css-text/word-break/word-break-normal-lo-000.html [ ImageOnlyFailure ]
@@ -814,18 +812,6 @@ webkit.org/b/309572 compositing/video/video-object-view-box-dynamic-change.html 
 webkit.org/b/309572 compositing/video/video-object-view-box-no-poster.html [ Failure ]
 webkit.org/b/309572 compositing/video/video-object-view-box-object-position-no-poster.html [ Failure ]
 webkit.org/b/309572 compositing/video/video-object-view-box-writing-mode-no-poster.html [ Failure ]
-compositing/visible-rect/2d-transformed.html [ Failure ]
-compositing/visible-rect/3d-transform-style.html [ Failure ]
-compositing/visible-rect/3d-transformed.html [ Failure ]
-compositing/visible-rect/animated-from-none.html [ Failure ]
-compositing/visible-rect/animated.html [ Failure ]
-compositing/visible-rect/clipped-visible-rect.html [ Failure ]
-compositing/visible-rect/coverage-clipped.html [ Failure ]
-compositing/visible-rect/flipped-preserve-3d.html [ Failure ]
-compositing/visible-rect/iframe-and-layers.html [ Failure ]
-compositing/visible-rect/iframe-no-layers.html [ Failure ]
-compositing/visible-rect/mask-layer-coverage.html [ Failure ]
-compositing/visible-rect/nested-transform.html [ Failure ]
 
 media/media-source/media-detachablemse-append.html [ Timeout Pass ]
 
@@ -1010,7 +996,6 @@ http/tests/media/hls/hls-audio-description-track-kind.html [ Skip ]
 webkit.org/b/306384 fast/lists/overlapping-nested-list-markers.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-scroll-snap/input/keyboard-snap-interruption.html [ Failure ]
 
-imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-margin-focus.html [ Failure ]
 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-snap-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-scroll-snap/snap-after-initial-layout/initial-snap-matches-scroll.html [ Failure ]
 
@@ -1167,7 +1152,6 @@ webkit.org/b/318034 [ x86_64 ] fast/canvas/image-potential-subsample.html [ Fail
 webkit.org/b/318345 [ x86_64 ] media/track/video-track-configuration-mp4-default-colorspace.html [ Failure Pass ]
 
 webkit.org/b/318349 [ arm64 ] imported/w3c/web-platform-tests/largest-contentful-paint/image-TAO.sub.html [ Failure Pass ]
-webkit.org/b/318350 [ arm64 ] http/tests/websocket/tests/hybi/inspector/handshake-error.html [ Failure Pass ]
 
 webkit.org/b/318889 [ arm64 ] fast/block/out-of-flow-becomes-in-flow-with-auto-width.html [ Pass Timeout ]
 webkit.org/b/318891 [ arm64 ] imported/w3c/web-platform-tests/webrtc/RTCDataChannel-send-close-string-negotiated.window.html [ Pass Failure ]

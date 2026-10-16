@@ -726,61 +726,35 @@ public:
     // in any other child order gives the first but not the second.
     void reduceAllBlocksStrengthInDominatorPreOrder()
     {
-        // Three children is the common case: a diamond head dominates both arms and the join.
-        Vector<Vector<BasicBlock*, 3>> children(m_proc.size());
-        BasicBlock* root = nullptr;
-        for (BasicBlock* block : m_proc.blocksInPostOrder() | std::views::reverse) {
-            BasicBlock* parent = m_dominators->idom(block);
-            ASSERT(parent != block);
-            if (parent)
-                children[parent->index()].append(block);
-            else {
-                ASSERT(!root);
-                root = block;
-            }
-        }
-        RELEASE_ASSERT(root);
+        m_dominators->forAllBlocksInDominatorTreePreOrder<DominatorTreeChildOrder::ReversePostOrder>(
+            [&](BasicBlock* block) {
+                m_layeredCSE.startLayer();
 
-        Vector<BasicBlock*, 16> stack;
-        stack.append(root);
-        while (!stack.isEmpty()) {
-            BasicBlock* block = stack.takeLast();
+                m_block = block;
+                m_blockState = computeBlockReachability();
 
-            // A null entry closes the layer that the block pushing it opened.
-            if (!block) {
+                if (m_trackWasmGCAccesses) {
+                    m_wasmGCMap.startLayer();
+                    beginWasmGCBlock(block);
+                }
+
+                // Every block an unreachable block dominates is unreachable too, and the whole region is
+                // deleted right after the walk, so only the Upsilons feeding Phis elsewhere matter.
+                if (m_blockState == BlockState::Unreachable)
+                    removeUpsilonsFromUnreachableBlock();
+                else
+                    reduceBlockStrength();
+
+                if (m_trackWasmGCAccesses)
+                    endWasmGCBlock(block);
+
+                finishBlock(block);
+            },
+            [&](BasicBlock*) {
                 m_layeredCSE.dropLastLayer();
                 if (m_trackWasmGCAccesses)
                     m_wasmGCMap.dropLastLayer();
-                continue;
-            }
-            stack.append(nullptr);
-
-            m_layeredCSE.startLayer();
-
-            m_block = block;
-            m_blockState = computeBlockReachability();
-
-            if (m_trackWasmGCAccesses) {
-                m_wasmGCMap.startLayer();
-                beginWasmGCBlock(block);
-            }
-
-            // Every block an unreachable block dominates is unreachable too, and the whole region is
-            // deleted right after the walk, so only the Upsilons feeding Phis elsewhere matter.
-            if (m_blockState == BlockState::Unreachable)
-                removeUpsilonsFromUnreachableBlock();
-            else
-                reduceBlockStrength();
-
-            if (m_trackWasmGCAccesses)
-                endWasmGCBlock(block);
-
-            finishBlock(block);
-
-            auto& kids = children[block->index()];
-            for (unsigned i = kids.size(); i--;)
-                stack.append(kids[i]);
-        }
+            });
     }
 
 private:
@@ -2830,7 +2804,7 @@ private:
             break;
         }
 
-        case MemoryCopy: {
+        case MemoryMove: {
             if (m_value->child(2)->hasInt()) {
                 auto* memoryCopy = m_value->as<BulkMemoryValue>();
                 uint64_t count = m_value->child(2)->asInt();
@@ -2839,7 +2813,11 @@ private:
                     int32_t offset = 0;
                     Vector<MemoryValue*, 16> loads;
 
-                    if (count >= 16 && m_proc.usesSIMD()) {
+                    // Only 64-bit accesses are known to be single-copy atomic per word on every target.
+                    if (memoryCopy->isGCSafe())
+                        RELEASE_ASSERT(!(count % sizeof(uint64_t)));
+
+                    if (count >= 16 && !memoryCopy->isGCSafe() && m_proc.usesSIMD()) {
                         while (count >= 16) {
                             MemoryValue* load = m_insertionSet.insert<MemoryValue>(m_index, Load, V128, m_value->origin(), m_value->child(1), offset);
                             load->setRange(memoryCopy->readRange());
@@ -2917,7 +2895,6 @@ private:
                 constexpr uint64_t threshold = 128;
                 if (count <= threshold) {
                     int32_t offset = 0;
-
                     if (count >= 16 && m_proc.usesSIMD()) {
                         uint64_t mask64 = target << 56 | target << 48 | target << 40 | target << 32 | target << 24 | target << 16 | target << 8 | target << 0;
                         v128_t mask { mask64, mask64 };

@@ -42,6 +42,7 @@
 #include <WebCore/DragActions.h>
 #include <WebCore/Element.h>
 #include <WebCore/FocusOptions.h>
+#include <WebCore/FrameGeometrySyncData.h>
 #include <WebCore/FrameLoaderTypes.h>
 #include <WebCore/FrameTreeSyncData.h>
 #include <WebCore/HighlightVisibility.h>
@@ -91,6 +92,7 @@
 #include <wtf/Seconds.h>
 #include <wtf/UUID.h>
 #include <wtf/WallTime.h>
+#include <wtf/WeakHashMap.h>
 #include <wtf/WeakHashSet.h>
 #include <wtf/text/WTFString.h>
 
@@ -903,7 +905,10 @@ public:
     void allTopDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&&);
 
     void frameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier, const WebCore::FrameTreeSyncSerializationData&);
+    void frameGeometryChangedInAnotherProcess(Vector<WebCore::FrameGeometryUpdate>&&);
     void allFrameTreeSyncDataChangedInAnotherProcess(WebCore::FrameIdentifier, Ref<WebCore::FrameTreeSyncData>&&);
+
+    void broadcastFrameGeometryUpdatesIfNeeded();
 
     // Updates visible rect state (e.g. windowClipRect and exposedContentRect) in this process using
     // clipping rects from a parent frame process.
@@ -1758,6 +1763,7 @@ public:
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void setInputMethodState(WebCore::Element*);
     void focusedElementDidChangeReadOnly(WebCore::Element&);
+    void focusedElementDidChangeType(WebCore::Element&);
 #endif
 
     void imageOrMediaDocumentSizeChanged(const WebCore::IntSize&);
@@ -2582,7 +2588,7 @@ private:
     void resume(CompletionHandler<void(bool)>&&);
 
 #if PLATFORM(COCOA)
-    void performDictionaryLookupAtLocation(const WebCore::FloatPoint&);
+    void performDictionaryLookupAtLocation(WebCore::FrameIdentifier, const WebCore::FloatPoint&, CompletionHandler<void(std::optional<WebCore::RemoteUserInputEventData>)>&&);
     void performDictionaryLookupForRange(WebCore::LocalFrame&, const WebCore::SimpleRange&, WebCore::TextIndicatorPresentationTransition);
     WebCore::DictionaryPopupInfo dictionaryPopupInfoForRange(WebCore::LocalFrame&, const WebCore::SimpleRange&, WebCore::TextIndicatorPresentationTransition);
 
@@ -3243,6 +3249,12 @@ private:
     };
     PendingEditorStateUpdateStatus m_pendingEditorStateUpdateStatus { PendingEditorStateUpdateStatus::NotScheduled };
     bool m_needsEditorStateVisualDataUpdate { false };
+
+    struct LastSentFrameGeometry {
+        std::optional<WebCore::FrameGeometrySyncData> geometry;
+        std::optional<WebCore::FrameViewportInfo> viewportInfo;
+    };
+    WeakHashMap<WebCore::Frame, LastSentFrameGeometry> m_lastSentFrameGeometry;
 
     WebCore::DevicePostureType m_devicePostureType { WebCore::DevicePostureType::Continuous };
 

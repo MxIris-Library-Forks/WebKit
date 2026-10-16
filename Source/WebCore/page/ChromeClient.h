@@ -475,6 +475,7 @@ public:
     virtual void focusedElementDidChangeInputMode(Element&, InputMode) { }
 #if PLATFORM(GTK) || PLATFORM(WPE)
     virtual void focusedElementDidChangeReadOnly(Element&) { }
+    virtual void focusedElementDidChangeType(Element&) { }
 #endif
     virtual void focusedSelectElementDidChangeOptions(const HTMLSelectElement&) { }
 
@@ -489,6 +490,9 @@ public:
     virtual DisplayRefreshMonitorFactory* displayRefreshMonitorFactory() const { return nullptr; }
 
     virtual RefPtr<ImageBuffer> createImageBuffer(const FloatSize&, RenderingMode, RenderingPurpose, float, const ColorSpace&, ImageBufferFormat) const { return nullptr; }
+#if HAVE(IOSURFACE)
+    virtual bool useIOSurfaceWebKitBehavior() const { return false; }
+#endif
     WEBCORE_EXPORT virtual RefPtr<WebCore::ImageBuffer> sinkIntoImageBuffer(std::unique_ptr<WebCore::SerializedImageBuffer>);
     virtual RefPtr<WebCore::ImageBuffer> createImageBufferFromTransferHandle(const ImageBufferTransferHandle&) { return nullptr; }
 
@@ -530,6 +534,7 @@ public:
     // Schedule a rendering update that coordinates with display refresh. Returns true if scheduled. (This is only used by SVGImageChromeClient.)
     virtual bool scheduleRenderingUpdate() { return false; }
     virtual void renderingUpdateFramesPerSecondChanged() { }
+    virtual void syncLocalFrameInfoToRemote() { }
 
     virtual unsigned remoteImagesCountForTesting() const { return 0; }
 

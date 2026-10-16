@@ -73,6 +73,7 @@ set(TestWTF_SOURCES
     Tests/WTF/DataMutex.cpp
     Tests/WTF/DateMath.cpp
     Tests/WTF/Deque.cpp
+    Tests/WTF/DominatorsTests.cpp
     Tests/WTF/DragonBoxTest.cpp
     Tests/WTF/EmbeddedFixedVector.cpp
     Tests/WTF/EnumSet.cpp
@@ -187,6 +188,7 @@ set(TestWTF_SOURCES
     Tests/WTF/VariantList.cpp
     Tests/WTF/Vector.cpp
     Tests/WTF/VectorBorrow.cpp
+    Tests/WTF/VersionedField.cpp
     Tests/WTF/WTFString.cpp
     Tests/WTF/WeakPtr.cpp
     Tests/WTF/WorkQueue.cpp

@@ -333,6 +333,7 @@ struct ExceptionDetails;
 struct FileChooserSettings;
 struct FocusOptions;
 struct FontAttributes;
+struct FrameGeometryUpdate;
 struct FrameIdentifierType;
 struct FrameTreeSyncSerializationData;
 struct GrammarDetail;
@@ -535,6 +536,7 @@ class BrowsingContextGroup;
 class BrowsingWarning;
 class CallbackID;
 class ContextMenuContextData;
+class DebuggerPauseCoordinator;
 class DownloadProxy;
 class DrawingAreaProxy;
 class FrameState;
@@ -907,6 +909,9 @@ public:
 #endif
 
     void sendMessageToInspectorFrontend(const String& targetId, const String& message);
+    void frameDidPauseForDebugger(IPC::Connection&, WebCore::FrameIdentifier);
+    void frameDidContinueForDebugger(IPC::Connection&, WebCore::FrameIdentifier);
+    void lastInspectorFrontendDidDisconnect();
 
     void getAllFrames(CompletionHandler<void(std::optional<FrameTreeNodeData>&&)>&&);
     void getAllFrameTreesForSiteIsolationTesting(CompletionHandler<void(Vector<FrameTreeNodeData>&&)>&&);
@@ -1858,6 +1863,7 @@ public:
 
 #if PLATFORM(COCOA)
     void performDictionaryLookupAtLocation(const WebCore::FloatPoint&);
+    void performDictionaryLookupAtLocationInFrame(WebCore::FrameIdentifier, const WebCore::FloatPoint&);
 #endif
 
     enum class WillContinueLoadInNewProcess : bool { No, Yes };
@@ -2799,6 +2805,7 @@ public:
 
     void broadcastFrameTreeSyncData(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::FrameTreeSyncSerializationData&);
     void broadcastAllFrameTreeSyncData(IPC::Connection&, WebCore::FrameIdentifier,  Ref<WebCore::FrameTreeSyncData>&&);
+    void handleFrameGeometryUpdates(IPC::Connection&, const Vector<WebCore::FrameGeometryUpdate>&);
 
     void didNotifyUserActivation(IPC::Connection&, WebCore::FrameIdentifier, MonotonicTime, std::optional<WebCore::UserGestureTokenIdentifier>);
     void didConsumeUserActivation(IPC::Connection&, WebCore::FrameIdentifier);
@@ -3280,6 +3287,7 @@ private:
     void generatePageLoadTimingSoon();
 #if PLATFORM(COCOA)
     void didGeneratePageLoadTiming(const WebPageLoadTiming&);
+    bool shouldUseRemoteSnapshotting(const WebFrameProxy* rootFrame);
 #else
     void didGeneratePageLoadTiming(const WebPageLoadTiming&) { }
 #endif
@@ -4358,6 +4366,7 @@ private:
 #endif
 
     const UniqueRef<WebPageInspectorController> m_inspectorController;
+    std::unique_ptr<DebuggerPauseCoordinator> m_debuggerPauseCoordinator;
 #if ENABLE(REMOTE_INSPECTOR)
     RefPtr<WebPageDebuggable> m_inspectorDebuggable;
 #endif

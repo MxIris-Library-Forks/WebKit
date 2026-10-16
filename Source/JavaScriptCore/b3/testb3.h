@@ -1222,6 +1222,7 @@ void testSwitchSameCaseAsDefault();
 void testSwitchChillDiv(unsigned degree, unsigned gap);
 void testSwitchTargettingSameBlock();
 void testSwitchTargettingSameBlockFoldPathConstant();
+void testBranchOnPhiOfTakenComparesFoldPathConstant();
 void testSwitchOnConstant(int64_t key, bool is64Bit);
 void testSwitchSparseI64RangeOverflow();
 void testTruncFold(int64_t value);
@@ -1411,6 +1412,13 @@ void testCSELoadAfterStoreDiamond(bool flag);
 void testCSELoadAcrossLoopBackEdge(unsigned count);
 void testCSELoopHeaderLoadFromBackEdgeStore(unsigned count);
 
+void testFixSSALocalOnly();
+void testFixSSADiamondSetInOneArm(bool flag);
+void testFixSSADiamondJoinPhi(bool flag);
+void testFixSSADominatorChain(bool flag);
+void testFixSSAGetBeforeSet(bool flag);
+void testFixSSASetFromGetInSameBlock(bool flag);
+
 bool shouldRun(const TestConfig*, UTF8CStringView testName);
 
 void testLoadPreIndex32();
@@ -1497,10 +1505,11 @@ void testMulHigh64();
 void testUMulHigh32();
 void testUMulHigh64();
 
-void testMemoryCopy();
-void testMemoryCopyConstant();
+void testMemoryMove();
+void testMemoryMoveConstant();
 void testMemoryFill();
 void testMemoryFillConstant();
+void testGCSafeMemoryMove();
 
 void testLoadImmutable();
 

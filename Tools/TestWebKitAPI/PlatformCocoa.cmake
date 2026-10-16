@@ -225,6 +225,7 @@ list(APPEND TestWebCore_SOURCES
     Tests/WebCore/cocoa/ImageRotationSessionVT.cpp
     Tests/WebCore/cocoa/MediaPlayerPrivateAVFoundationObjCTests.mm
     Tests/WebCore/cocoa/MediaRecorderPrivateWriterTests.cpp
+    Tests/WebCore/cocoa/PaymentSummaryItemsCocoa.mm
     Tests/WebCore/cocoa/PrivateClickMeasurementCocoa.mm
     Tests/WebCore/cocoa/ResourceMonitor.mm
     Tests/WebCore/cocoa/ScrollbarWidthCrash.mm
@@ -740,6 +741,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/HTTP3Server.swift
     Tests/WebKit/WKWebView/SiteIsolationCookieTests.swift
     Tests/WebKit/WKWebView/SiteIsolationEditingTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationLookUpTests.swift
     Tests/WebKit/WKWebView/SiteIsolationNavigationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift
     Tests/WebKit/WKWebView/SiteIsolationSessionStateTests.swift

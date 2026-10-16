@@ -71,6 +71,7 @@
 #include "CallbackID.h"
 #include "ColorControlSupportsAlpha.h"
 #include "Connection.h"
+#include "DebuggerPauseCoordinator.h"
 #include "DidFilterKnownLinkDecoration.h"
 #include "DigitalCredentialsCoordinatorMessages.h"
 #include "DownloadManager.h"
@@ -2037,6 +2038,7 @@ void WebPageProxy::close()
     m_inspector->invalidate();
 
     backForwardList().pageClosed();
+    m_debuggerPauseCoordinator = nullptr;
     m_inspectorController->pageClosed();
 #if ENABLE(REMOTE_INSPECTOR)
     if (RefPtr inspectorDebuggable = std::exchange(m_inspectorDebuggable, nullptr))
@@ -3341,6 +3343,38 @@ RefPtr<WebAutomationSession> WebPageProxy::activeAutomationSession() const
 void WebPageProxy::sendMessageToInspectorFrontend(const String& targetId, const String& message)
 {
     m_inspectorController->sendMessageToInspectorFrontend(targetId, message);
+}
+
+void WebPageProxy::frameDidPauseForDebugger(IPC::Connection& connection, WebCore::FrameIdentifier frameID)
+{
+    if (m_isClosed || !protect(preferences())->siteIsolationGlobalDebuggerPauseEnabled() || !m_inspectorController->hasFrontends())
+        return;
+
+    // A report can arrive after the frame is removed or leaves the sender's process, or before the commit that
+    // moves the frame into the sender's process.
+    RefPtr frame = WebFrameProxy::webFrame(frameID);
+    if (!frame)
+        return;
+    Ref process = WebProcessProxy::fromConnection(connection);
+    if (&frame->process() != process.ptr() && &frame->provisionalLoadProcess() != process.ptr())
+        return;
+    MESSAGE_CHECK_BASE(frame->page() == this, connection);
+
+    if (!m_debuggerPauseCoordinator)
+        m_debuggerPauseCoordinator = makeUnique<DebuggerPauseCoordinator>(*this);
+    m_debuggerPauseCoordinator->frameDidPause(process, frameID);
+}
+
+void WebPageProxy::frameDidContinueForDebugger(IPC::Connection& connection, WebCore::FrameIdentifier frameID)
+{
+    if (m_debuggerPauseCoordinator)
+        m_debuggerPauseCoordinator->frameDidContinue(WebProcessProxy::fromConnection(connection), frameID);
+}
+
+void WebPageProxy::lastInspectorFrontendDidDisconnect()
+{
+    if (m_debuggerPauseCoordinator)
+        m_debuggerPauseCoordinator->closeSession();
 }
 
 #if ENABLE(REMOTE_INSPECTOR)
@@ -9864,21 +9898,23 @@ void WebPageProxy::broadcastFrameTreeSyncData(IPC::Connection& connection, Frame
     if (!webFrameProxy)
         return;
 
+    auto dataType = static_cast<WebCore::FrameTreeSyncDataType>(data.value.index());
+
+    // Frame geometry is sent through handleFrameGeometryUpdates instead.
+    // FIXME: remove FrameGeometry and FrameViewportInfo as syncable data types.
+    MESSAGE_CHECK(process, dataType != WebCore::FrameTreeSyncDataType::FrameGeometry && dataType != WebCore::FrameTreeSyncDataType::FrameViewportInfo);
+
     // FIXME: This could instead be an option in FrameTreeSyncData.in to allow
     // certain properties to be mutable from non-frame-owning processes.
-    if (frameTreePropertyIsRestrictedToFrameOwningProcess(static_cast<WebCore::FrameTreeSyncDataType>(data.value.index()))) {
+    if (frameTreePropertyIsRestrictedToFrameOwningProcess(dataType)) {
         if (&webFrameProxy->process() != &process.get()) {
             // FIXME: make this a MESSAGE_CHECK.
             return;
         }
     }
 
-    if (data.value.index() == std::to_underlying(WebCore::FrameTreeSyncDataType::FrameRect))
+    if (dataType == WebCore::FrameTreeSyncDataType::FrameRect)
         webFrameProxy->setRemoteFrameRect(std::get<IntRect>(data.value));
-    else if (auto* frameGeometry = std::get_if<WebCore::FrameGeometrySyncData>(&data.value))
-        webFrameProxy->setFrameGeometry(*frameGeometry);
-    else if (auto* viewportInfo = std::get_if<WebCore::FrameViewportInfo>(&data.value))
-        webFrameProxy->setFrameViewportInfo(*viewportInfo);
 
     // The sender may not have seen site isolation being disabled yet.
     if (!protect(preferences())->siteIsolationEnabled())
@@ -9889,6 +9925,113 @@ void WebPageProxy::broadcastFrameTreeSyncData(IPC::Connection& connection, Frame
             return;
         webProcess.send(Messages::WebPage::FrameTreeSyncDataChangedInAnotherProcess(frameID, WebCore::FrameTreeSyncSerializationData { data }), pageID);
     });
+}
+
+// FIXME: modify WebFrameProxy to make it so that this doesn't require a frame tree walk.
+static bool processHostsDescendantOfFrame(const WebProcessProxy& process, const WebFrameProxy& frame)
+{
+    for (auto* descendant = frame.traverseNext(&frame); descendant; descendant = descendant->traverseNext(&frame)) {
+        if (&descendant->process() == &process)
+            return true;
+    }
+    return false;
+}
+
+static bool processHasFrameInViewport(const WebProcessProxy& process, const WebFrameProxy& mainFrame, const WebCore::LayoutRect& mainFrameLayoutViewport)
+{
+    auto& childrenFrameLayoutInfo = mainFrame.frameGeometry().childrenFrameLayoutInfo;
+    for (Ref child : mainFrame.childFrames()) {
+        RefPtr layoutInfo = childrenFrameLayoutInfo.get(child->frameID());
+        if (!layoutInfo)
+            continue;
+
+        // Use edgeInclusiveIntersect here to match the behavior of IntersectionObserver.
+        auto visibleRectInParent = layoutInfo->visibleRectInParent();
+        if (!visibleRectInParent || !visibleRectInParent->edgeInclusiveIntersect(mainFrameLayoutViewport))
+            continue;
+
+        if (&child->process() == &process || processHostsDescendantOfFrame(process, child))
+            return true;
+    }
+    return false;
+}
+
+static bool shouldSendMainFrameViewportInfo(WebFrameProxy& mainFrame, RemotePageProxy& remotePage)
+{
+    auto& viewportInfo = mainFrame.frameViewportInfo();
+    auto& lastSentViewportInfo = remotePage.lastSentMainFrameViewportInfo();
+    if (lastSentViewportInfo == viewportInfo)
+        return false;
+
+    // As a perf optimization, suppress sending the main frame's FrameViewportInfo if all remote
+    // frames in the destination process are outside of the viewport for consecutive updates.
+    Ref process = remotePage.process();
+    bool shouldSend = !lastSentViewportInfo
+        || processHasFrameInViewport(process, mainFrame, viewportInfo.layoutViewportRect)
+        || processHasFrameInViewport(process, mainFrame, lastSentViewportInfo->layoutViewportRect);
+    if (shouldSend)
+        remotePage.setLastSentMainFrameViewportInfo(viewportInfo);
+    return shouldSend;
+}
+
+void WebPageProxy::handleFrameGeometryUpdates(IPC::Connection& connection, const Vector<WebCore::FrameGeometryUpdate>& updates)
+{
+    // The sender may not have seen site isolation being disabled yet.
+    if (!protect(preferences())->siteIsolationEnabled())
+        return;
+
+    Ref process = WebProcessProxy::fromConnection(connection);
+    RefPtr mainFrame = m_mainFrame;
+
+    Vector<std::pair<Ref<WebFrameProxy>, WebCore::FrameGeometryUpdate>> updatesToRelay;
+    std::optional<WebCore::FrameGeometryUpdate> mainFrameUpdateToRelay;
+    for (auto& update : updates) {
+        RefPtr frame = WebFrameProxy::webFrame(update.frameID);
+        if (!frame || frame->page() != this || &frame->process() != process.ptr())
+            continue;
+
+        if (update.viewportInfo)
+            frame->setFrameViewportInfo(*update.viewportInfo);
+        if (update.geometry)
+            frame->setFrameGeometry(*update.geometry);
+
+        if (frame == mainFrame) {
+            mainFrameUpdateToRelay = { update.frameID, update.geometry, mainFrame->frameViewportInfo() };
+            continue;
+        }
+
+        updatesToRelay.append({ frame.releaseNonNull(), update });
+    }
+
+    auto sendFrameGeometryUpdatesToProcess = [&](WebProcessProxy& webProcess, PageIdentifier pageID, RemotePageProxy* remotePage) {
+        if (webProcess == process)
+            return;
+
+        Vector<WebCore::FrameGeometryUpdate> updatesForProcess;
+        for (auto& [frame, update] : updatesToRelay) {
+            std::optional<WebCore::FrameGeometrySyncData> geometry;
+            if (update.geometry && processHostsDescendantOfFrame(webProcess, frame))
+                geometry = update.geometry;
+            if (geometry || update.viewportInfo)
+                updatesForProcess.append({ update.frameID, WTF::move(geometry), update.viewportInfo });
+        }
+
+        if (mainFrameUpdateToRelay) {
+            auto mainFrameUpdate = *mainFrameUpdateToRelay;
+            if (remotePage && !shouldSendMainFrameViewportInfo(*mainFrame, *remotePage))
+                mainFrameUpdate.viewportInfo = std::nullopt;
+            if (mainFrameUpdate.geometry || mainFrameUpdate.viewportInfo)
+                updatesForProcess.append(WTF::move(mainFrameUpdate));
+        }
+
+        if (!updatesForProcess.isEmpty())
+            webProcess.send(Messages::WebPage::FrameGeometryChangedInAnotherProcess(updatesForProcess), pageID);
+    };
+
+    protect(browsingContextGroup())->forEachRemotePage(*this, [&](auto& remotePage) {
+        sendFrameGeometryUpdatesToProcess(remotePage.process(), remotePage.pageID(), &remotePage);
+    });
+    sendFrameGeometryUpdatesToProcess(protect(legacyMainFrameProcess()), webPageIDInMainFrameProcess(), nullptr);
 }
 
 void WebPageProxy::broadcastAllFrameTreeSyncData(IPC::Connection& connection, FrameIdentifier frameID, Ref<WebCore::FrameTreeSyncData>&& data)
@@ -17066,12 +17209,29 @@ std::optional<IPC::Connection::AsyncReplyID> WebPageProxy::computePagesForPrinti
 }
 
 #if PLATFORM(COCOA)
+bool WebPageProxy::shouldUseRemoteSnapshotting(const WebFrameProxy* rootFrame)
+{
+    Ref preferences = this->preferences();
+    if (!preferences->remoteSnapshottingEnabled() || !preferences->useGPUProcessForDOMRenderingEnabled() || !preferences->siteIsolationEnabled())
+        return false;
+
+    if (!rootFrame)
+        return false;
+
+    Ref rootProcess = rootFrame->process();
+    for (RefPtr frame = rootFrame->traverseNext(rootFrame); frame; frame = frame->traverseNext(rootFrame)) {
+        if (&frame->process() != rootProcess.ptr())
+            return true;
+    }
+
+    return false;
+}
+
 std::optional<IPC::Connection::AsyncReplyID> WebPageProxy::drawRectToImage(WebFrameProxy& frame, const PrintInfo& printInfo, const IntRect& rect, const WebCore::IntSize& imageSize, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& callback)
 {
     auto frameID = frame.frameID();
 
-    Ref preferences = this->preferences();
-    if (!(preferences->remoteSnapshottingEnabled() && preferences->useGPUProcessForDOMRenderingEnabled())) {
+    if (!shouldUseRemoteSnapshotting(&frame)) {
         if (m_isPerformingDOMPrintOperation)
             return sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawRectToImageDuringDOMPrintOperation(frameID, printInfo, rect, imageSize), WTF::move(callback), IPC::SendOption::DispatchMessageEvenWhenWaitingForUnboundedSyncReply);
         return sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawRectToImage(frameID, printInfo, rect, imageSize), WTF::move(callback));
@@ -17091,8 +17251,7 @@ std::optional<IPC::Connection::AsyncReplyID> WebPageProxy::drawPagesToPDF(WebFra
 {
     auto frameID = frame.frameID();
 
-    Ref preferences = this->preferences();
-    if (!(preferences->remoteSnapshottingEnabled() && preferences->useGPUProcessForDOMRenderingEnabled())) {
+    if (!shouldUseRemoteSnapshotting(&frame)) {
         if (m_isPerformingDOMPrintOperation)
             return sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawPagesToPDFDuringDOMPrintOperation(frameID, printInfo, first, count), toAPIDataSharedBufferCallback(WTF::move(callback)), IPC::SendOption::DispatchMessageEvenWhenWaitingForUnboundedSyncReply);
         return sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::DrawPagesToPDF(frameID, printInfo, first, count),  toAPIDataSharedBufferCallback(WTF::move(callback)));
@@ -17132,8 +17291,7 @@ void WebPageProxy::drawToPDF(const std::optional<FloatRect>& rect, bool allowTra
         callback({ });
         return;
     }
-    Ref preferences = this->preferences();
-    if (!(preferences->remoteSnapshottingEnabled() && preferences->useGPUProcessForDOMRenderingEnabled())) {
+    if (!shouldUseRemoteSnapshotting(protect(m_mainFrame).get())) {
         sendWithAsyncReply(Messages::WebPage::DrawToPDF(rect, allowTransparentBackground), WTF::move(callback));
         return;
     }
@@ -17457,8 +17615,12 @@ void WebPageProxy::setOverlayScrollbarStyle(std::optional<WebCore::ScrollbarOver
 
     m_scrollbarOverlayStyle = scrollbarStyle;
 
-    if (hasRunningProcess())
-        protect(legacyMainFrameProcess())->send(Messages::WebPage::SetScrollbarOverlayStyle(scrollbarStyle), m_webPageID);
+    if (!hasRunningProcess())
+        return;
+
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.send(Messages::WebPage::SetScrollbarOverlayStyle(scrollbarStyle), pageID);
+    });
 }
 
 void WebPageProxy::getWebCryptoMasterKey(CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&& completionHandler)
@@ -17653,8 +17815,7 @@ void WebPageProxy::takeSnapshotLegacy(const IntRect& rect, const IntSize& bitmap
 #if PLATFORM(COCOA)
 void WebPageProxy::takeSnapshot(const IntRect& rect, const IntSize& bitmapSize, SnapshotOptions options, CompletionHandler<void(CGImageRef)>&& callback)
 {
-    Ref preferences = this->preferences();
-    if (!(preferences->remoteSnapshottingEnabled() && preferences->useGPUProcessForDOMRenderingEnabled())) {
+    if (!shouldUseRemoteSnapshotting(protect(m_mainFrame).get())) {
         sendWithAsyncReply(Messages::WebPage::TakeSnapshot(rect, bitmapSize, options), [callback = WTF::move(callback)] (std::optional<ImageBufferBackendHandle>&& imageHandle, Headroom headroom) mutable {
             if (!imageHandle) {
                 callback(nullptr);
@@ -20441,6 +20602,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::Potential
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::HandleDoubleTapForDoubleClickAtPoint);
 #endif
 #if PLATFORM(COCOA)
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PerformDictionaryLookupAtLocation);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithGesture);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtPoint);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectTextWithGranularityAtPoint);

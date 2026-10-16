@@ -941,6 +941,7 @@ void run(const TestConfig* config)
 
     RUN(testSwitchTargettingSameBlock());
     RUN(testSwitchTargettingSameBlockFoldPathConstant());
+    RUN(testBranchOnPhiOfTakenComparesFoldPathConstant());
     for (bool is64Bit : { false, true }) {
         RUN(testSwitchOnConstant(3, is64Bit));
         RUN(testSwitchOnConstant(13, is64Bit));
@@ -1544,10 +1545,11 @@ void run(const TestConfig* config)
         RUN(testMulHigh64());
         RUN(testUMulHigh32());
         RUN(testUMulHigh64());
-        RUN(testMemoryCopy());
+        RUN(testMemoryMove());
         RUN(testMemoryFill());
-        RUN(testMemoryCopyConstant());
+        RUN(testMemoryMoveConstant());
         RUN(testMemoryFillConstant());
+        RUN(testGCSafeMemoryMove());
     }
 
     Lock lock;

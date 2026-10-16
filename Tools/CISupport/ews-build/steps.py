@@ -3257,26 +3257,39 @@ class CompileWebKit(shell.Compile, AddToLogMixin, ShellMixin):
         if '--cmake' in (additionalArguments or []):
             self.env['PATH'] = cmake_tools_path(self.getProperty('builddir'))
         if platform in self.APPLE_PLATFORMS:
-            # FIXME: Once WK_VALIDATE_DEPENDENCIES is set via xcconfigs, it can
-            # be removed here. We can't have build-webkit pass this by default
-            # without invalidating local builds made by Xcode, and we set it
-            # via xcconfigs until all building of Xcode-based webkit is done in
-            # workspaces (rdar://88135402).
+            use_cmake = '--cmake' in (additionalArguments or [])
             if architecture:
                 build_command += ['--architecture', f'"{architecture}"']
-            if CompileJSC.name not in self.name:
-                build_command += ['-hideShellScriptEnvironment']
-            build_command += ['WK_VALIDATE_DEPENDENCIES=YES']
-            build_command += ['WK_ENABLE_SLOW_BUILD_VERIFICATION=YES']
-            if buildOnly:
-                # For build-only bots, the expectation is that tests will be run on separate machines,
-                # so we need to package debug info as dSYMs. Only generating line tables makes
-                # this much faster than full debug info, and crash logs still have line numbers.
-                # Some projects (namely lldbWebKitTester) require full debug info, and may override this.
-                build_command += ['DEBUG_INFORMATION_FORMAT=dwarf-with-dsym', 'CLANG_DEBUG_INFORMATION_LEVEL=$(WK_OVERRIDE_DEBUG_INFORMATION_LEVEL:default=line-tables-only)']
             deployment_target = self.getProperty('deployment_target')
-            if deployment_target and platform == 'mac':
-                build_command += [f'MACOSX_DEPLOYMENT_TARGET={deployment_target}']
+            if use_cmake:
+                cmake_args = []
+                if buildOnly:
+                    # Tests run on separate machines. Package debug info as
+                    # dSYMs and only include line tables to reduce size.
+                    build_command += ['--dsym']
+                    cmake_args += [f'-DCMAKE_{lang}_FLAGS=-gline-tables-only' for lang in ('C', 'CXX', 'OBJC', 'OBJCXX')]
+                if deployment_target and platform == 'mac':
+                    cmake_args += [f'-DCMAKE_OSX_DEPLOYMENT_TARGET={deployment_target}']
+                if cmake_args:
+                    build_command += [f'--cmakeargs="{" ".join(cmake_args)}"']
+            else:
+                # FIXME: Once WK_VALIDATE_DEPENDENCIES is set via xcconfigs, it can
+                # be removed here. We can't have build-webkit pass this by default
+                # without invalidating local builds made by Xcode, and we set it
+                # via xcconfigs until all building of Xcode-based webkit is done in
+                # workspaces (rdar://88135402).
+                if CompileJSC.name not in self.name:
+                    build_command += ['-hideShellScriptEnvironment']
+                build_command += ['WK_VALIDATE_DEPENDENCIES=YES']
+                build_command += ['WK_ENABLE_SLOW_BUILD_VERIFICATION=YES']
+                if buildOnly:
+                    # For build-only bots, the expectation is that tests will be run on separate machines,
+                    # so we need to package debug info as dSYMs. Only generating line tables makes
+                    # this much faster than full debug info, and crash logs still have line numbers.
+                    # Some projects (namely lldbWebKitTester) require full debug info, and may override this.
+                    build_command += ['DEBUG_INFORMATION_FORMAT=dwarf-with-dsym', 'CLANG_DEBUG_INFORMATION_LEVEL=$(WK_OVERRIDE_DEBUG_INFORMATION_LEVEL:default=line-tables-only)']
+                if deployment_target and platform == 'mac':
+                    build_command += [f'MACOSX_DEPLOYMENT_TARGET={deployment_target}']
 
         build_command += customBuildFlag(platform, self.getProperty('fullPlatform'))
 
@@ -5850,6 +5863,9 @@ class RunAPITests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin):
         self.pre_existing_flakes_in_results_db = {}
         self.steps_to_add = []
 
+    def _should_apply_failure_limits(self):
+        return GitHub.NO_FAILURE_LIMITS_LABEL not in self.getProperty('github_labels', [])
+
     @defer.inlineCallbacks
     def run(self):
         self.log_observer_json = logobserver.BufferLogObserver()
@@ -5865,8 +5881,10 @@ class RunAPITests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin):
                            '--json-output={0}'.format(self.jsonFileName)]
         else:
             self.command = self.command + customBuildFlag(platform, self.getProperty('fullPlatform'))
-            if self.EXIT_AFTER_FAILURES is not None:
-                self.command += ['--exit-after-n-failures', f'{self.EXIT_AFTER_FAILURES}']
+            if self._should_apply_failure_limits():
+                if self.EXIT_AFTER_FAILURES is not None:
+                    self.command += ['--exit-after-n-failures', f'{self.EXIT_AFTER_FAILURES}']
+                self.command += ['--skip-failing-tests']
 
         additionalArguments = self.getProperty('additionalArguments')
         if additionalArguments:
@@ -5887,6 +5905,7 @@ class RunAPITests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin):
             rc = FAILURE
 
         if (self.EXIT_AFTER_FAILURES is not None
+                and self._should_apply_failure_limits()
                 and self.failedTestCount >= int(self.EXIT_AFTER_FAILURES)):
             self.setProperty(f'{self.suffix}_exceeded_failure_limit', True)
 
@@ -6571,6 +6590,8 @@ class RunAPITestsParallelSafety(RunAPITests):
             '--verbose',
             f'--json-output={self.jsonFileName}'
         ]
+        if self._should_apply_failure_limits():
+            self.command.append('--skip-failing-tests')
 
         self.command += customBuildFlag(platform, self.getProperty('fullPlatform'))
 

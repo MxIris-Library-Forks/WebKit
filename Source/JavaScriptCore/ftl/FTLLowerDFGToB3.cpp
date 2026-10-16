@@ -1999,6 +1999,9 @@ private:
         case DataViewSet:
             compileDataViewSet();
             break;
+        case TypedArraySet:
+            compileTypedArraySet();
+            break;
 
         case ResolvePromiseFirstResolving:
             compileResolvePromiseFirstResolving();
@@ -20715,6 +20718,9 @@ IGNORE_CLANG_WARNINGS_END
 
     LValue allocatePropertyStorage(LValue object, Structure* previousStructure)
     {
+        if (previousStructure->couldHaveIndexingHeader() && previousStructure->canAllocatePropertyStorageInJIT())
+            return allocatePropertyStorageWithIndexingHeader(object, previousStructure, initialOutOfLineCapacity);
+
         if (previousStructure->couldHaveIndexingHeader()) {
             return vmCall(
                 pointerType(),
@@ -20740,6 +20746,9 @@ IGNORE_CLANG_WARNINGS_END
 
         ASSERT_UNUSED(next, newSize == next->outOfLineCapacity());
 
+        if (previous->couldHaveIndexingHeader() && previous->canAllocatePropertyStorageInJIT())
+            return allocatePropertyStorageWithIndexingHeader(object, previous, newSize);
+
         if (previous->couldHaveIndexingHeader()) {
             LValue newAllocSize = m_out.constIntPtr(newSize);
             return vmCall(pointerType(), operationAllocateComplexPropertyStorage, m_vmValue, object, newAllocSize);
@@ -20762,6 +20771,60 @@ IGNORE_CLANG_WARNINGS_END
             m_out.int64Zero, m_heaps.properties.atAnyNumber());
 
         return result;
+    }
+
+    LValue allocatePropertyStorageWithIndexingHeader(LValue object, Structure* previousStructure, size_t newSize)
+    {
+        size_t oldSize = previousStructure->outOfLineCapacity();
+
+        LBasicBlock copyLoop = m_out.newBlock();
+        LBasicBlock copyDone = m_out.newBlock();
+        LBasicBlock slowPath = m_out.newBlock();
+        LBasicBlock continuation = m_out.newBlock();
+
+        LBasicBlock lastNext = m_out.insertNewBlocksBefore(copyLoop);
+
+        LValue oldButterfly = m_out.loadPtr(object, m_heaps.JSObject_butterfly);
+        LValue vectorLength = m_out.zeroExtPtr(m_out.load32NonNegative(oldButterfly, m_heaps.Butterfly_vectorLength));
+        size_t sizeBeforeVector = newSize * sizeof(JSValue) + sizeof(IndexingHeader);
+        LValue allocationSize = m_out.add(m_out.shl(vectorLength, m_out.constInt32(3)), m_out.constIntPtr(sizeBeforeVector));
+
+        LValue startOfStorage = allocateHeapCell(allocatorForSize(vm().auxiliarySpace(), allocationSize, slowPath), slowPath);
+        LValue fastButterfly = m_out.add(startOfStorage, m_out.constIntPtr(sizeBeforeVector));
+
+        splatWords(
+            fastButterfly,
+            m_out.constInt32(-newSize - 1), m_out.constInt32(-oldSize - 1),
+            m_out.int64Zero, m_heaps.properties.atAnyNumber());
+
+        ptrdiff_t headerSize = -sizeof(IndexingHeader) - sizeof(void*);
+        ptrdiff_t endStorage = headerSize - static_cast<ptrdiff_t>(oldSize * sizeof(JSValue));
+        for (ptrdiff_t offset = headerSize; offset > endStorage; offset -= sizeof(void*)) {
+            LValue loaded = m_out.loadPtr(m_out.address(m_heaps.properties.atAnyNumber(), oldButterfly, offset));
+            m_out.storePtr(loaded, m_out.address(m_heaps.properties.atAnyNumber(), fastButterfly, offset));
+        }
+
+        ValueFromBlock startIndex = m_out.anchor(m_out.constIntPtr(-1));
+        m_out.jump(copyLoop);
+
+        m_out.appendTo(copyLoop, copyDone);
+        LValue index = m_out.phi(pointerType(), startIndex);
+        LValue value = m_out.load64(m_out.baseIndex(m_heaps.root, oldButterfly, index, ScaleEight));
+        m_out.store64(value, m_out.baseIndex(m_heaps.root, fastButterfly, index, ScaleEight));
+        LValue nextIndex = m_out.add(index, m_out.intPtrOne);
+        m_out.addIncomingToPhi(index, m_out.anchor(nextIndex));
+        m_out.branch(m_out.notEqual(nextIndex, vectorLength), unsure(copyLoop), unsure(copyDone));
+
+        m_out.appendTo(copyDone, slowPath);
+        ValueFromBlock fastResult = m_out.anchor(fastButterfly);
+        m_out.jump(continuation);
+
+        m_out.appendTo(slowPath, continuation);
+        ValueFromBlock slowResult = m_out.anchor(vmCall(pointerType(), operationAllocateComplexPropertyStorage, m_vmValue, object, m_out.constIntPtr(newSize)));
+        m_out.jump(continuation);
+
+        m_out.appendTo(continuation, lastNext);
+        return m_out.phi(pointerType(), fastResult, slowResult);
     }
 
     LValue allocatePropertyStorageWithSizeImpl(size_t sizeInValues)
@@ -22378,6 +22441,34 @@ IGNORE_CLANG_WARNINGS_END
                 RELEASE_ASSERT_NOT_REACHED();
             }
         }
+    }
+
+    void compileTypedArraySet()
+    {
+        LValue base = lowCell(m_node->child1());
+        LValue source = lowCell(m_node->child2());
+        LValue offset = lowInt32(m_node->child3());
+
+        TypedArrayType type = m_node->typedArrayType();
+        FTL_TYPE_CHECK(jsValueValue(source), m_node->child2(), speculationFromTypedArrayType(type), isNotType(source, typeForTypedArrayType(type)));
+
+        LValue baseLength = typedArrayLength(base, false, type, m_node->child1());
+        LValue sourceLength = typedArrayLength(source, false, type, m_node->child2());
+        speculate(OutOfBounds, noValue(), nullptr, m_out.lessThan(offset, m_out.int32Zero));
+        LValue offsetPtr = m_out.zeroExtPtr(offset);
+        speculate(OutOfBounds, noValue(), nullptr, m_out.above(m_out.add(offsetPtr, sourceLength), baseLength));
+
+        LValue baseVector = m_out.loadPtr(base, m_heaps.JSArrayBufferView_vector);
+        LValue sourceVector = m_out.loadPtr(source, m_heaps.JSArrayBufferView_vector);
+        speculate(BadIndexingType, jsValueValue(base), m_node->child1().node(), m_out.isNull(baseVector));
+        speculate(BadIndexingType, jsValueValue(source), m_node->child2().node(), m_out.isNull(sourceVector));
+
+        LValue shift = m_out.constInt32(logElementSize(type));
+        LValue basePointer = m_out.add(caged(Gigacage::Primitive, baseVector, base), m_out.shl(offsetPtr, shift));
+        LValue sourcePointer = caged(Gigacage::Primitive, sourceVector, source);
+        vmCall(Void, operationTypedArraySet, basePointer, sourcePointer, m_out.shl(sourceLength, shift));
+        ensureStillAliveHere(base);
+        ensureStillAliveHere(source);
     }
 
     void compileDateNow()

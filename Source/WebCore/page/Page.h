@@ -172,7 +172,7 @@ class PaymentCoordinator;
 class PerformanceLogging;
 class PerformanceLoggingClient;
 class PerformanceMonitor;
-class ProofOfPossessionCoordinator;
+class PhoneNumberPossessionCoordinator;
 class PluginData;
 class PluginInfoProvider;
 class PointerCaptureController;
@@ -247,6 +247,8 @@ struct ClientOrigin;
 struct CueMatch;
 struct DocumentSyncSerializationData;
 struct FixedContainerEdges;
+struct FrameGeometrySyncData;
+struct FrameViewportInfo;
 struct ResolvedCaptionDisplaySettingsOptions;
 struct SystemPreviewInfo;
 struct TextRecognitionResult;
@@ -824,8 +826,8 @@ public:
 #if ENABLE(WEB_AUTHN)
     AuthenticatorCoordinator& authenticatorCoordinator() LIFETIME_BOUND { return m_authenticatorCoordinator.get(); }
     CredentialRequestCoordinator& credentialRequestCoordinator() { return m_credentialRequestCoordinator.get(); }
-#if ENABLE(PROOF_OF_POSSESSION)
-    ProofOfPossessionCoordinator& proofOfPossessionCoordinator() LIFETIME_BOUND { return m_proofOfPossessionCoordinator.get(); }
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+    PhoneNumberPossessionCoordinator& phoneNumberPossessionCoordinator() LIFETIME_BOUND { return m_phoneNumberPossessionCoordinator.get(); }
 #endif
 #endif
 
@@ -1471,7 +1473,13 @@ public:
     AcceleratedTimelinesUpdater& ensureAcceleratedTimelinesUpdater() LIFETIME_BOUND;
 #endif
 
-    void syncLocalFrameInfoToRemote();
+    WEBCORE_EXPORT void enumerateLocalFrameGeometry(NOESCAPE const Function<void(LocalFrame&, FrameViewportInfo&&, FrameGeometrySyncData&&)>&);
+
+    void didSendFrameViewportInfoForTesting() { ++m_sentFrameViewportInfoCountForTesting; }
+    void didSendFrameGeometryForTesting() { ++m_sentFrameGeometryCountForTesting; }
+    unsigned sentFrameViewportInfoCountForTesting() const { return m_sentFrameViewportInfoCountForTesting; }
+    unsigned sentFrameGeometryCountForTesting() const { return m_sentFrameGeometryCountForTesting; }
+
     RenderingUpdateScheduler& renderingUpdateScheduler() LIFETIME_BOUND;
 
 private:
@@ -1729,6 +1737,9 @@ private:
     unsigned m_renderingUpdateCount { 0 };
     bool m_isTrackingRenderingUpdates { false };
 
+    unsigned m_sentFrameViewportInfoCountForTesting { 0 };
+    unsigned m_sentFrameGeometryCountForTesting { 0 };
+
     bool m_isRestoringCachedPage { false };
 
     MediaProducerMediaStateFlags m_mediaState;
@@ -1807,8 +1818,8 @@ private:
 #if ENABLE(WEB_AUTHN)
     const UniqueRef<AuthenticatorCoordinator> m_authenticatorCoordinator;
     const Ref<CredentialRequestCoordinator> m_credentialRequestCoordinator;
-#if ENABLE(PROOF_OF_POSSESSION)
-    const UniqueRef<ProofOfPossessionCoordinator> m_proofOfPossessionCoordinator;
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+    const UniqueRef<PhoneNumberPossessionCoordinator> m_phoneNumberPossessionCoordinator;
 #endif
 #endif // ENABLE(WEB_AUTHN)
 

@@ -193,7 +193,6 @@ Shared/Cocoa/InteractionInformationRequest.cpp
 Shared/Cocoa/LibAccessibilitySoftLink.mm @nonARC
 Shared/Cocoa/LoadParametersCocoa.mm @nonARC
 Shared/Cocoa/PathsBlockedForSandboxExtensions.mm @nonARC
-Shared/Cocoa/PDFKitSoftLink.mm @nonARC
 Shared/Cocoa/RevealItem.mm @nonARC
 Shared/Cocoa/SandboxExtensionCocoa.mm @nonARC
 Shared/Cocoa/SandboxInitialiationParametersCocoa.mm @nonARC
@@ -494,6 +493,7 @@ UIProcess/Cocoa/WebProcessCacheCocoa.mm @nonARC
 UIProcess/Cocoa/WebProcessPoolCocoa.mm @nonARC @cost:5
 UIProcess/Cocoa/WebProcessProxyCocoa.mm @nonARC
 UIProcess/Cocoa/WebURLSchemeHandlerCocoa.mm @nonARC
+UIProcess/Cocoa/WKClickHighlightView.mm @nonARC
 UIProcess/Cocoa/WKColorExtensionView.mm @nonARC
 UIProcess/Cocoa/WKContactPicker.mm @nonARC
 UIProcess/Cocoa/WKEditCommand.mm @nonARC
@@ -626,7 +626,6 @@ UIProcess/ios/WKScrollViewTrackingTapGestureRecognizer.mm @nonARC
 UIProcess/ios/WKStylusDeviceObserver.mm @nonARC
 UIProcess/ios/WKSyntheticFlagsChangedWebEvent.mm @nonARC
 UIProcess/ios/WKSyntheticTapGestureRecognizer.mm @nonARC
-UIProcess/ios/WKTapHighlightView.mm @nonARC
 UIProcess/ios/WKTextInteractionWrapper.mm @nonARC
 UIProcess/ios/WKTouchActionGestureRecognizer.mm @nonARC
 UIProcess/ios/WKTouchEventsGestureRecognizer.mm @nonARC
@@ -805,7 +804,6 @@ WebProcess/Extensions/Bindings/Cocoa/JSWebExtensionWrapperCocoa.mm
 
 WebProcess/Extensions/Cocoa/_WKWebExtensionWebNavigationURLFilter.mm
 WebProcess/Extensions/Cocoa/_WKWebExtensionWebRequestFilter.mm
-WebProcess/Extensions/Cocoa/WebExtensionContextProxyCocoa.mm
 WebProcess/Extensions/Cocoa/WebExtensionControllerProxyCocoa.mm
 
 WebProcess/GPU/graphics/cocoa/ImageBufferRemoteIOSurfaceBackend.cpp

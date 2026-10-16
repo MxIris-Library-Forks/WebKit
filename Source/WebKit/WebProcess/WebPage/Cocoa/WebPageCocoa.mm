@@ -193,7 +193,7 @@
 #import <WebCore/TextEffectController.h>
 #endif
 
-#import "PDFKitSoftLink.h"
+#import <pal/cocoa/PDFKitSoftLink.h>
 
 #define WEBPAGE_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [webPageID=%" PRIu64 "] WebPage::" fmt, this, m_identifier.toUInt64(), ##__VA_ARGS__)
 
@@ -331,31 +331,35 @@ bool WebPage::shouldUsePDFPlugin(const String& contentType, StringView path) con
 }
 #endif
 
-void WebPage::performDictionaryLookupAtLocation(const FloatPoint& floatPoint)
+void WebPage::performDictionaryLookupAtLocation(FrameIdentifier frameID, const FloatPoint& floatPoint, CompletionHandler<void(std::optional<RemoteUserInputEventData>)>&& completionHandler)
 {
 #if ENABLE(PDF_PLUGIN)
     if (RefPtr pluginView = mainFramePlugIn()) {
         if (pluginView->performDictionaryLookupAtLocation(floatPoint))
-            return;
+            return completionHandler(std::nullopt);
     }
 #endif
-    
-    RefPtr localMainFrame = corePage()->localMainFrame();
-    if (!localMainFrame)
-        return;
+
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    RefPtr localFrame = webFrame ? webFrame->coreLocalFrame() : nullptr;
+    RefPtr view = localFrame ? localFrame->view() : nullptr;
+    if (!view)
+        return completionHandler(std::nullopt);
+
     // Find the frame the point is over.
     constexpr OptionSet<HitTestRequest::Type> hitType { HitTestRequest::Type::ReadOnly, HitTestRequest::Type::Active, HitTestRequest::Type::DisallowUserAgentShadowContent, HitTestRequest::Type::AllowChildFrameContent };
-    auto result = localMainFrame->eventHandler().hitTestResultAtPoint(protect(localMainFrame->view())->windowToContents(roundedIntPoint(floatPoint)), hitType);
+    auto point = roundedIntPoint(floatPoint);
+    auto result = localFrame->eventHandler().hitTestResultAtPoint(view->rootViewToContents(point), hitType);
 
-    RefPtr frame = result.innerNonSharedNode() ? result.innerNonSharedNode()->document().frame() : corePage()->focusController().focusedOrMainFrame();
-    if (!frame)
-        return;
+    if (auto remoteUserInputEventData = remoteUserInputEventDataForHitTestResult(result, *view, point))
+        return completionHandler(WTF::move(remoteUserInputEventData));
 
-    auto rangeResult = DictionaryLookup::rangeAtHitTestResult(result);
-    if (!rangeResult)
-        return;
+    if (auto rangeResult = DictionaryLookup::rangeAtHitTestResult(result)) {
+        if (RefPtr frame = rangeResult->start.document().frame())
+            performDictionaryLookupForRange(*frame, *rangeResult, TextIndicatorPresentationTransition::Bounce);
+    }
 
-    performDictionaryLookupForRange(*frame, *rangeResult, TextIndicatorPresentationTransition::Bounce);
+    completionHandler(std::nullopt);
 }
 
 void WebPage::performDictionaryLookupForSelection(LocalFrame& frame, const VisibleSelection& selection, TextIndicatorPresentationTransition presentationTransition)
@@ -1679,7 +1683,7 @@ static void drawPDFPage(PDFDocument *pdfDocument, CFIndex pageIndex, CGContextRe
 
     // FIXME: Remove the suppression once https://github.com/llvm/llvm-project/pull/230818 is deployed (rdar://189710680).
     for (SUPPRESS_UNRETAINED_LOCAL PDFAnnotation *annotation in [pdfPage annotations]) {
-        if (![[annotation valueForAnnotationKey:get_PDFKit_PDFAnnotationKeySubtypeSingleton()] isEqualToString:get_PDFKit_PDFAnnotationSubtypeLinkSingleton()])
+        if (![[annotation valueForAnnotationKey:PAL::get_PDFKit_PDFAnnotationKeySubtypeSingleton()] isEqualToString:PAL::get_PDFKit_PDFAnnotationSubtypeLinkSingleton()])
             continue;
 
         RetainPtr<NSURL> url = annotation.URL;
@@ -4058,6 +4062,17 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
     if (!localMainFrame)
         return;
     RefPtr frameView = *localMainFrame->view();
+
+#if ENABLE(PDF_PLUGIN) && PLATFORM(MAC)
+    auto updatePluginTransformsIfStable = makeScopeExit([this, protectedThis = Ref { *this }] {
+        if (!m_isInStableState)
+            return;
+        for (Ref pluginView : m_pluginViews) {
+            if (!pluginView->pluginHandlesPageScaleFactor())
+                pluginView->pageScaleFactorDidChange();
+        }
+    });
+#endif
 
     if (RefPtr scrollingCoordinator = this->scrollingCoordinator()) {
         Ref remoteScrollingCoordinator = downcast<RemoteScrollingCoordinator>(*scrollingCoordinator);

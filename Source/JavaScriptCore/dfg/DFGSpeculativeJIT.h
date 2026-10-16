@@ -1347,6 +1347,7 @@ public:
 
     void compileSameValue(Node*);
     
+    void compileAllocatePropertyStorageWithIndexingHeader(Node*);
     void compileAllocatePropertyStorage(Node*);
     void compileReallocatePropertyStorage(Node*);
     void compileNukeStructureAndSetButterfly(Node*);
@@ -1430,6 +1431,7 @@ public:
     void compileGetTypedArrayLengthAsInt52(Node*);
 #endif
     void compileDataViewGetByteLength(Node*);
+    void compileTypedArraySet(Node*);
 #if USE(LARGE_TYPED_ARRAYS)
     void compileDataViewGetByteLengthAsInt52(Node*);
 #endif

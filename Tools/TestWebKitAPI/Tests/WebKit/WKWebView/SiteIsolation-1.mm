@@ -53,6 +53,7 @@
 #import <WebKit/_WKAppHighlightDelegate.h>
 #import <WebKit/_WKAttachment.h>
 #import <WebKit/_WKFrameTreeNode.h>
+#import <WebKit/_WKOverlayScrollbarStyle.h>
 #import <WebKit/_WKResourceLoadInfo.h>
 #import <WebKit/_WKWebsiteDataStoreConfiguration.h>
 #import <pal/spi/cocoa/WritingToolsSPI.h>
@@ -1245,6 +1246,33 @@ TEST(SiteIsolation, ScrollerStyleChangeUpdatesCrossOriginIframe)
     [NSNotificationCenter.defaultCenter postNotificationName:NSPreferredScrollerStyleDidChangeNotification object:nil];
 }
 
+TEST(SiteIsolation, OverlayScrollbarStyleChangeUpdatesCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>iframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = [WKWebViewConfiguration _test_configurationWithTestPlugInClassName:@"WebProcessPlugInWithInternals" configureJSCForTesting:YES];
+    RetainPtr storeConfiguration = adoptNS([[_WKWebsiteDataStoreConfiguration alloc] initNonPersistentConfiguration]);
+    [storeConfiguration setHTTPSProxy:[NSURL URLWithString:[NSString stringWithFormat:@"https://127.0.0.1:%d/", server.port()]]];
+    [configuration setWebsiteDataStore:adoptNS([[WKWebsiteDataStore alloc] _initWithConfiguration:storeConfiguration.get()]).get()];
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrame = [webView firstChildFrame];
+
+    NSString *styleScript = @"internals.scrollbarOverlayStyle()";
+    EXPECT_WK_STREQ("default", [webView stringByEvaluatingJavaScript:styleScript inFrame:childFrame.get()]);
+
+    [webView _setOverlayScrollbarStyle:_WKOverlayScrollbarStyleLight];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:styleScript inFrame:childFrame.get()] isEqualToString:@"light"];
+    }));
+    EXPECT_WK_STREQ("light", [webView stringByEvaluatingJavaScript:styleScript]);
+}
+
 #endif // PLATFORM(MAC)
 
 // Replies to a text checking request must go to the web process that made it. Only that process has the
@@ -2147,6 +2175,45 @@ TEST(SiteIsolation, CrossSiteIFrameReceivesOrientationChangeEvent)
     EXPECT_TRUE(Util::waitFor([&] {
         return [[webView objectByEvaluatingJavaScript:@"window.gotOrientationChange === true" inFrame:childFrame.get()] boolValue];
     }));
+}
+
+TEST(SiteIsolation, ScreenOrientationChangeEventsContinueWhenFrameInAnotherProcessStopsListening)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://webkit.org/listener'></iframe><iframe src='https://example.com/listener'></iframe>"_s } },
+        { "/listener"_s, { "<script>window.gotChange = false; screen.orientation.addEventListener('change', () => { window.gotChange = true; });</script>"_s } },
+        { "/blank"_s, { ""_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    constexpr NSUInteger crossSiteFrame = 0;
+    constexpr NSUInteger sameSiteFrame = 1;
+    auto waitForValueInChildFrame = [&](NSUInteger index, NSString *script, NSString *expectedValue) {
+        return Util::waitFor([&] {
+            return [[webView stringByEvaluatingJavaScript:script inFrame:[webView mainFrame].childFrames[index].info] isEqualToString:expectedValue];
+        });
+    };
+    auto navigateChildFrame = [&](NSUInteger index, NSString *path) {
+        [webView evaluateJavaScript:[NSString stringWithFormat:@"location.href = '%@'", path] inFrame:[webView mainFrame].childFrames[index].info completionHandler:nil];
+        EXPECT_TRUE(waitForValueInChildFrame(index, @"location.pathname", path));
+    };
+
+    EXPECT_TRUE(waitForValueInChildFrame(crossSiteFrame, @"window.gotChange", @"0"));
+    EXPECT_TRUE(waitForValueInChildFrame(sameSiteFrame, @"window.gotChange", @"0"));
+
+    // A process stops listening when its last document that used screen.orientation goes away.
+    navigateChildFrame(crossSiteFrame, @"/blank");
+    [webView _setInterfaceOrientationOverride:UIInterfaceOrientationLandscapeRight];
+    EXPECT_TRUE(waitForValueInChildFrame(sameSiteFrame, @"window.gotChange", @"1"));
+
+    navigateChildFrame(crossSiteFrame, @"/listener");
+    EXPECT_TRUE(waitForValueInChildFrame(crossSiteFrame, @"window.gotChange", @"0"));
+    navigateChildFrame(sameSiteFrame, @"/blank");
+    [webView _setInterfaceOrientationOverride:UIInterfaceOrientationPortrait];
+    EXPECT_TRUE(waitForValueInChildFrame(crossSiteFrame, @"window.gotChange", @"1"));
 }
 
 #endif // ENABLE(ORIENTATION_EVENTS) && PLATFORM(IOS_FAMILY)

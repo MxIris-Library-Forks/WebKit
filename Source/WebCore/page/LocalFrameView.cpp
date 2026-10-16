@@ -557,7 +557,7 @@ void LocalFrameView::didRestoreFromBackForwardCache()
 void LocalFrameView::willDestroyRenderTree()
 {
     detachCustomScrollbars();
-    layoutContext().clearSubtreeLayoutRoot();
+    protect(layoutContext())->clearSubtreeLayoutRoot();
 }
 
 void LocalFrameView::didDestroyRenderTree()
@@ -2224,7 +2224,7 @@ LayoutPoint LocalFrameView::childFrameOwnerContentBoxLocation(const Frame& child
     ASSERT(child.tree().parent()->frameID() == m_frame->frameID());
     ASSERT(childOwnerRenderer->frame().frameID() == m_frame->frameID());
 
-    return childOwnerRenderer->contentBoxLocation();
+    return childOwnerRenderer->widgetContentLocation();
 }
 
 TransformationMatrix LocalFrameView::childFrameOwnerToRootContentTransform(const Frame& child) const
@@ -2571,7 +2571,7 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
             if (!elementRenderer)
                 return std::nullopt;
 
-            auto backdropRenderer = elementRenderer->pseudoElementRenderer(PseudoElementType::Backdrop);
+            CheckedPtr backdropRenderer = elementRenderer->pseudoElementRenderer(PseudoElementType::Backdrop);
             if (!backdropRenderer)
                 return std::nullopt;
 
@@ -3108,9 +3108,7 @@ void LocalFrameView::scrollContentsSlowPath(const IntRect& updateRect)
 
     if (!usesCompositedScrolling() && isEnclosedInCompositingLayer()) {
         if (RefPtr frameRenderer = m_frame->ownerRenderer()) {
-            LayoutRect rect(frameRenderer->borderLeft() + frameRenderer->paddingLeft(), frameRenderer->borderTop() + frameRenderer->paddingTop(),
-                visibleWidth(), visibleHeight());
-            frameRenderer->repaintRectangle(rect);
+            frameRenderer->repaintRectangle({ frameRenderer->widgetContentLocation(), LayoutSize(visibleWidth(), visibleHeight()) });
             return;
         }
     }
@@ -5384,7 +5382,7 @@ void LocalFrameView::setPagination(const Pagination& pagination)
 
     m_pagination = pagination;
 
-    m_frame->document()->styleScope().didChangeStyleSheetEnvironment();
+    protect(m_frame->document()->styleScope())->didChangeStyleSheetEnvironment();
 }
 
 IntRect LocalFrameView::windowClipRect() const

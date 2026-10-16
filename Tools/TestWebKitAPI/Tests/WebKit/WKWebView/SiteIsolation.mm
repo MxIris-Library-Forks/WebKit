@@ -4658,6 +4658,134 @@ TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInCrossOriginIframeWithPage
     EXPECT_EQ(rect.size.height, 30);
 }
 
+static CGRect convertRectToMainFrameCoordinatesInFrame(TestWKWebView *webView, WKFrameInfo *frameInfo, CGRect rect)
+{
+    RetainPtr worldConfiguration = adoptNS([_WKContentWorldConfiguration new]);
+    worldConfiguration.get().allowAutofill = YES;
+    RetainPtr autofillWorld = [WKContentWorld _worldWithConfiguration:worldConfiguration];
+
+    RetainPtr script = adoptNS([[NSString alloc] initWithFormat:@"(() => { let r = window.convertRectToMainFrameCoordinates({ x: %g, y: %g, width: %g, height: %g }); return [r.x, r.y, r.width, r.height]; })()", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height]);
+    RetainPtr<NSArray> result = [webView objectByEvaluatingJavaScript:script inFrame:frameInfo inContentWorld:autofillWorld];
+    EXPECT_EQ([result count], 4u);
+    if ([result count] != 4u)
+        return CGRectZero;
+    return CGRectMake([[result objectAtIndex:0] doubleValue], [[result objectAtIndex:1] doubleValue], [[result objectAtIndex:2] doubleValue], [[result objectAtIndex:3] doubleValue]);
+}
+
+#if PLATFORM(MAC)
+
+static void runConvertRectToMainFrameCoordinatesWithPageScaleTest(bool unifiedMacZoomEnabled, bool crossOrigin)
+{
+    auto subframeURL = crossOrigin ? "https://domain2.com/subframe"_s : "https://domain1.com/subframe"_s;
+    HTTPServer server({
+        { "/mainframe"_s, { makeString("<body style='margin: 0'><iframe id='iframe' style='margin: 100px; width: 400px; height: 300px; border: none;' src='"_s, subframeURL, "'></iframe></body>"_s) } },
+        { "/subframe"_s, { "<body style='margin: 0; min-height: 1000px'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    if (!unifiedMacZoomEnabled)
+        setFeatureEnabled(configuration.get(), @"UnifiedMacZoomEnabled", false);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrameInfo = [webView firstChildFrame];
+
+    CGRect rect;
+    EXPECT_TRUE(Util::waitFor([&] {
+        rect = convertRectToMainFrameCoordinatesInFrame(webView.get(), childFrameInfo.get(), CGRectMake(20, 30, 10, 15));
+        return rect.origin.x == 120;
+    }));
+    EXPECT_EQ(rect.origin.x, 120);
+    EXPECT_EQ(rect.origin.y, 130);
+    EXPECT_EQ(rect.size.width, 10);
+    EXPECT_EQ(rect.size.height, 15);
+
+    [webView _setPageScale:2 withOrigin:CGPointZero];
+    EXPECT_TRUE(Util::waitFor([&] {
+        rect = convertRectToMainFrameCoordinatesInFrame(webView.get(), childFrameInfo.get(), CGRectMake(20, 30, 10, 15));
+        return rect.origin.x != 120;
+    }));
+    [webView waitForNextPresentationUpdate];
+
+    rect = convertRectToMainFrameCoordinatesInFrame(webView.get(), childFrameInfo.get(), CGRectMake(20, 30, 10, 15));
+    EXPECT_NEAR(rect.origin.x, 240, 0.5);
+    EXPECT_NEAR(rect.origin.y, 260, 0.5);
+    EXPECT_NEAR(rect.size.width, 20, 0.5);
+    EXPECT_NEAR(rect.size.height, 30, 0.5);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInCrossOriginIframeWithPageScale)
+{
+    runConvertRectToMainFrameCoordinatesWithPageScaleTest(true, true);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInCrossOriginIframeWithPageScaleAndUnifiedMacZoomDisabled)
+{
+    runConvertRectToMainFrameCoordinatesWithPageScaleTest(false, true);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInSameOriginIframeWithPageScale)
+{
+    runConvertRectToMainFrameCoordinatesWithPageScaleTest(true, false);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInSameOriginIframeWithPageScaleAndUnifiedMacZoomDisabled)
+{
+    runConvertRectToMainFrameCoordinatesWithPageScaleTest(false, false);
+}
+
+#endif // PLATFORM(MAC)
+
+static void runConvertRectToMainFrameCoordinatesInNestedZoomedIframeTest(bool crossOrigin, bool sharedProcessEnabled)
+{
+    auto middleFrameURL = crossOrigin ? "https://domain2.com/middleframe"_s : "https://domain1.com/middleframe"_s;
+    auto innerFrameURL = crossOrigin ? "https://domain3.com/innerframe"_s : "https://domain1.com/innerframe"_s;
+    HTTPServer server({
+        { "/mainframe"_s, { makeString("<body style='margin: 0'><iframe style='position: absolute; left: 50px; top: 60px; width: 300px; height: 200px; border: none; zoom: 2' src='"_s, middleFrameURL, "'></iframe></body>"_s) } },
+        { "/middleframe"_s, { makeString("<body style='margin: 0'><iframe style='position: absolute; left: 10px; top: 20px; width: 100px; height: 80px; border: none' src='"_s, innerFrameURL, "'></iframe></body>"_s) } },
+        { "/innerframe"_s, { "<body style='margin: 0; min-height: 1000px'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    if (!sharedProcessEnabled)
+        setFeatureEnabled(configuration.get(), @"SiteIsolationSharedProcessEnabled", false);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    RetainPtr<WKFrameInfo> innerFrameInfo = [webView mainFrame].childFrames.firstObject.childFrames.firstObject.info;
+    ASSERT_NOT_NULL(innerFrameInfo.get());
+
+    CGRect rect;
+    EXPECT_TRUE(Util::waitFor([&] {
+        rect = convertRectToMainFrameCoordinatesInFrame(webView.get(), innerFrameInfo.get(), CGRectMake(5, 7, 10, 15));
+        return rect.origin.x > 100;
+    }));
+    [webView waitForNextPresentationUpdate];
+
+    // (15, 27) in the middle frame, doubled by the owner's zoom, plus the owner at (100, 120).
+    rect = convertRectToMainFrameCoordinatesInFrame(webView.get(), innerFrameInfo.get(), CGRectMake(5, 7, 10, 15));
+    EXPECT_EQ(rect.origin.x, 130);
+    EXPECT_EQ(rect.origin.y, 174);
+    EXPECT_EQ(rect.size.width, 20);
+    EXPECT_EQ(rect.size.height, 30);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInNestedCrossOriginZoomedIframe)
+{
+    runConvertRectToMainFrameCoordinatesInNestedZoomedIframeTest(true, false);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInNestedCrossOriginZoomedIframeInSharedProcess)
+{
+    runConvertRectToMainFrameCoordinatesInNestedZoomedIframeTest(true, true);
+}
+
+TEST(SiteIsolation, ConvertRectToMainFrameCoordinatesInNestedSameOriginZoomedIframe)
+{
+    runConvertRectToMainFrameCoordinatesInNestedZoomedIframeTest(false, true);
+}
+
 TEST(SiteIsolation, SetFocusedFrame)
 {
     auto mainframeHTML = "<iframe id='iframe' src='https://domain2.com/subframe'></iframe>"_s;
@@ -6265,6 +6393,31 @@ TEST(SiteIsolation, AlternateHTMLStringCannotAccessSameOriginFrameWithDocumentIs
     EXPECT_WK_STREQ([webView _test_waitForAlert], "null");
 }
 
+TEST(SiteIsolation, NavigationStartedByNavigateEventFromAnotherProcessGetsPolicyDecision)
+{
+    HTTPServer server({
+        { "/main"_s, { "<iframe name='child' src='https://webkit.org/frame'></iframe>"_s } },
+        { "/frame"_s, { "<script>navigation.onnavigate = event => { if (!event.hashChange) return; const link = document.createElement('a'); link.href = 'https://apple.com/target'; document.body.append(link); link.click(); }</script>"_s } },
+        { "/target"_s, { "<script>alert('target')</script>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegateWithoutSharedProcess(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    pid_t frameProcess = [webView firstChildFrame]._processIdentifier;
+
+    __block bool decidedPolicyForTarget = false;
+    navigationDelegate.get().decidePolicyForNavigationAction = ^(WKNavigationAction *action, void (^decisionHandler)(WKNavigationActionPolicy)) {
+        if ([action.request.URL.absoluteString isEqualToString:@"https://apple.com/target"])
+            decidedPolicyForTarget = true;
+        decisionHandler(WKNavigationActionPolicyAllow);
+    };
+    [webView evaluateJavaScript:@"const link = document.createElement('a'); link.target = 'child'; link.href = 'https://webkit.org/frame#fragment'; document.body.append(link); link.click()" completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "target");
+    EXPECT_TRUE(decidedPolicyForTarget);
+    EXPECT_NE([webView firstChildFrame]._processIdentifier, frameProcess);
+}
+
 TEST(SiteIsolation, WebsitePoliciesCustomUserAgentDuringSameSiteProvisionalNavigation)
 {
     auto mainframeHTML = "<iframe id='frame' src='https://domain2.com/subframe'></iframe>"_s;
@@ -7286,6 +7439,47 @@ TEST(SiteIsolation, GoBackToNestedCrossSiteIframeAfterPersistedSessionRestore)
 
     [newWebView goForward];
     EXPECT_WK_STREQ("destination", [newWebView _test_waitForAlert]);
+}
+
+static void testCrossSiteIframeReferrerAfterPersistedSessionRestore(ASCIILiteral referrerPolicy, NSString *expectedReferrer)
+{
+    // The iframe is created during the back/forward load and gets a new name on every load,
+    // so the restored item has no saved state for it.
+    HTTPServer server({
+        { "/main"_s, { makeString("<body><script>"
+            "let iframe = document.createElement('iframe');"
+            "iframe.name = 'frame' + Math.random();"
+            "iframe.referrerPolicy = '"_s, referrerPolicy, "';"
+            "iframe.src = 'https://webkit.org/frame';"
+            "document.body.appendChild(iframe);"
+            "</script></body>"_s) } },
+        { "/frame"_s, { "<script> alert(document.referrer); </script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
+    EXPECT_WK_STREQ(expectedReferrer, [webView _test_waitForAlert]);
+
+    RetainPtr persistedSessionState = adoptNS([[_WKSessionState alloc] initWithData:[[webView _sessionState] data]]);
+    auto [newWebView, newNavigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [newWebView _restoreSessionState:persistedSessionState.get() andNavigate:YES];
+    EXPECT_WK_STREQ(expectedReferrer, [newWebView _test_waitForAlert]);
+    EXPECT_NE([newWebView mainFrame].info._processIdentifier, [newWebView firstChildFrame]._processIdentifier);
+}
+
+TEST(SiteIsolation, CrossSiteIframeReferrerAfterPersistedSessionRestore)
+{
+    testCrossSiteIframeReferrerAfterPersistedSessionRestore(""_s, @"https://example.com/");
+}
+
+TEST(SiteIsolation, CrossSiteIframeNoReferrerPolicyAfterPersistedSessionRestore)
+{
+    testCrossSiteIframeReferrerAfterPersistedSessionRestore("no-referrer"_s, @"");
+}
+
+TEST(SiteIsolation, CrossSiteIframeUnsafeURLReferrerPolicyAfterPersistedSessionRestore)
+{
+    testCrossSiteIframeReferrerAfterPersistedSessionRestore("unsafe-url"_s, @"https://example.com/main");
 }
 
 TEST(SiteIsolation, AdvancedPrivacyProtectionsHideScreenMetricsFromBindings)
@@ -18816,6 +19010,36 @@ TEST(SiteIsolation, DrawPagesToPDFSynchronouslyIncludesCrossSiteFrames)
     EXPECT_TRUE([text containsString:@"Mainframe"]);
     EXPECT_TRUE([text containsString:@"Subframe"]);
     EXPECT_TRUE([text containsString:@"Nested"]);
+}
+
+TEST(SiteIsolation, DrawToPDFIncludesSameSiteFrames)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin:0'>Mainframe<br><iframe style='border:0;width:400px;height:200px' src='https://a.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<body style='margin:0'>Subframe</body>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration.get(), @"RemoteSnapshottingEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+
+    RetainPtr<WKFrameInfo> mainFrame = [webView mainFrame].info;
+    RetainPtr<WKFrameInfo> subframe = [webView mainFrame].childFrames.firstObject.info;
+    EXPECT_EQ([mainFrame _processIdentifier], [subframe _processIdentifier]);
+
+    __block bool done = false;
+    [webView createPDFWithConfiguration:nil completionHandler:^(NSData *data, NSError *error) {
+        EXPECT_NULL(error);
+        RetainPtr document = adoptNS([[TestPDFDocument alloc] initFromData:data]);
+        EXPECT_EQ([document pageCount], 1);
+        RetainPtr text = [[document pageAtIndex:0] text];
+        EXPECT_TRUE([text containsString:@"Mainframe"]);
+        EXPECT_TRUE([text containsString:@"Subframe"]);
+        done = true;
+    }];
+    Util::run(&done);
 }
 
 // Whether the pixel at a point, measured from the top left of a page, is close to an sRGB color. Unlike

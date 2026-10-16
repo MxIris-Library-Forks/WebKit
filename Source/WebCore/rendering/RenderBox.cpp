@@ -965,13 +965,12 @@ LayoutUnit RenderBox::constrainLogicalHeightByMinMax(LayoutUnit logicalHeight, s
         logicalMinHeight = Style::MinimumSize::Fixed { heightFromAspectRatio / styleToUse.usedZoomForLength().value };
         minimumSizeType = MinimumSizeIsAutomaticContentBased::Yes;
     }
-    // Both keywords behave as the initial value in the block axis.
-    // https://drafts.csswg.org/css-sizing-3/#valdef-width-min-content
-    auto keywordMinimumBehavesAsAuto = (logicalMinHeight.isMinContent() || logicalMinHeight.isMaxContent()) && !logicalMinHeight.isCalcSize();
-    if (keywordMinimumBehavesAsAuto)
-        logicalMinHeight = CSS::Keyword::Auto { };
 
     auto computedLogicalMinHeight = [&]() -> std::optional<LayoutUnit> {
+        // In the block axis min-content and max-content are the automatic size (https://drafts.csswg.org/css-sizing-3/#valdef-width-min-content),
+        // and a box whose height comes from its aspect ratio gets its automatic size through that ratio, not from its content.
+        if ((logicalMinHeight.isMinContent() || logicalMinHeight.isMaxContent()) && shouldComputeLogicalHeightFromAspectRatio() && !is<RenderReplaced>(*this))
+            return blockSizeFromAspectRatio(borderAndPaddingLogicalWidth(), borderAndPaddingLogicalHeight(), style().logicalAspectRatio(), style().boxSizingForAspectRatio(), logicalWidth(), style().aspectRatio(), isRenderReplaced());
         if (isComputingIntrinsicSize == IsComputingIntrinsicSize::Yes && logicalMinHeight.isPercentOrCalculated()) {
             // Per CSS Sizing 3, cyclic percentage min-size values resolve with the
             // percentage treated as 0 during intrinsic size contributions.
@@ -4742,7 +4741,7 @@ void RenderBox::addVisualEffectOverflow()
 {
     bool hasBoxShadow = !style().boxShadow().isNone();
     bool hasBorderImageOutsets = style().hasBorderImageOutsets();
-    bool hasOutline = outlineStyleForRepaint().hasOutlineInVisualOverflow();
+    bool hasOutline = style().hasOutlineInVisualOverflow();
     bool hasInflatingFilters = hasFilter() && !computeFilterOutsets().isZero();
 
     if (!hasBoxShadow && !hasBorderImageOutsets && !hasOutline && !hasInflatingFilters)
@@ -4802,8 +4801,8 @@ LayoutRect RenderBox::applyVisualEffectOverflow(const LayoutRect& borderBox, Enu
         overflowMaxY = std::max(overflowMaxY, borderBox.maxY() + borderOutsets.bottom());
     }
 
-    if (outlineStyleForRepaint().hasOutlineInVisualOverflow()) {
-        auto outlineSize = LayoutUnit { outlineStyleForRepaint().usedOutlineSize(outlineStyleForRepaint().usedZoomForLength(), outlineStyleForRepaint().deviceScaleFactor()) };
+    if (style().hasOutlineInVisualOverflow()) {
+        auto outlineSize = LayoutUnit { usedStyle().outlineSize() };
         overflowMinX = std::min(overflowMinX, borderBox.x() - outlineSize);
         overflowMaxX = std::max(overflowMaxX, borderBox.maxX() + outlineSize);
         overflowMinY = std::min(overflowMinY, borderBox.y() - outlineSize);

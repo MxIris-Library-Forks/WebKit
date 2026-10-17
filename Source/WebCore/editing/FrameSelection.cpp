@@ -82,7 +82,6 @@
 #include "PseudoClassChangeInvalidation.h"
 #include "Range.h"
 #include "RenderBoxModelObject.h"
-#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderLayerScrollableArea.h"
 #include "RenderObjectStyle.h"
@@ -154,7 +153,20 @@ IntRect DragCaretController::caretRectInRootViewCoordinates() const
     return { };
 }
 
-IntRect DragCaretController::editableElementRectInRootViewCoordinates() const
+IntRect DragCaretController::caretRectInMainFrameViewCoordinates() const
+{
+    if (!hasCaret())
+        return { };
+
+    if (RefPtr document = m_position.deepEquivalent().document()) {
+        if (RefPtr documentView = document->view())
+            return documentView->contentsToMainFrameView(m_position.absoluteCaretBounds());
+    }
+
+    return { };
+}
+
+IntRect DragCaretController::editableElementRectInMainFrameViewCoordinates() const
 {
     if (!hasCaret())
         return { };
@@ -173,7 +185,7 @@ IntRect DragCaretController::editableElementRectInRootViewCoordinates() const
         return { };
 
     if (RefPtr view = editableContainer->document().view())
-        return view->contentsToRootView(renderer->absoluteBoundingBoxRect()); // FIXME: Wrong for elements with visible layout overflow.
+        return view->contentsToMainFrameView(renderer->absoluteBoundingBoxRect()); // FIXME: Wrong for elements with visible layout overflow.
 
     return { };
 }
@@ -2086,12 +2098,12 @@ Color CaretBase::computeCaretColor(const Style::ComputedStyle& elementStyle, con
     Color surface;
     for (CheckedPtr renderer = firstRenderer; renderer && !surface.isOpaque(); renderer = renderer->parent()) {
         auto background = protect(renderer->style())->visitedDependentUsedBackgroundColorApplyingColorFilter();
-        if (CheckedPtr inlineBox = dynamicDowncast<RenderInline>(renderer.get())) {
+        if (renderer->isInlineBox()) {
             if (!background.isVisible())
                 continue;
             if (!caretPainter || !caretRectInPainterSpace)
                 continue;
-            if (!inlineBackgroundCoversCaret(*inlineBox, *caretPainter, *caretRectInPainterSpace))
+            if (!inlineBackgroundCoversCaret(downcast<RenderBoxModelObject>(*renderer), *caretPainter, *caretRectInPainterSpace))
                 continue;
         }
         surface = blendSourceOver(background, surface);

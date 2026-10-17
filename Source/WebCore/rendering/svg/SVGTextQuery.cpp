@@ -25,7 +25,6 @@
 #include "FontCascadeInlines.h"
 #include "RenderBlockFlow.h"
 #include "RenderElementInlines.h"
-#include "RenderInline.h"
 #include "RenderObjectStyle.h"
 #include "RenderSVGInlineText.h"
 #include "RenderSVGText.h"
@@ -81,8 +80,8 @@ static inline InlineIterator::InlineBoxIterator inlineBoxForRenderer(RenderObjec
         return InlineIterator::firstRootInlineBoxFor(*renderBlock);
     }
 
-    if (CheckedPtr renderInline = dynamicDowncast<RenderInline>(*renderer))
-        return InlineIterator::lineLeftmostInlineBoxFor(*renderInline);
+    if (renderer->isInlineBox())
+        return InlineIterator::lineLeftmostInlineBoxFor(downcast<RenderBoxModelObject>(*renderer));
 
     ASSERT_NOT_REACHED();
     return { };

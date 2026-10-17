@@ -114,7 +114,6 @@
 #include "RenderFragmentedFlow.h"
 #include "RenderHTMLCanvas.h"
 #include "RenderImage.h"
-#include "RenderInline.h"
 #include "RenderIterator.h"
 #include "RenderLayerBacking.h"
 #include "RenderLayerCompositor.h"
@@ -2164,8 +2163,8 @@ bool RenderLayer::computeHasVisibleContent() const
 
 static LayoutRect computeLayerPositionAndIntegralSize(const RenderLayerModelObject& renderer)
 {
-    if (auto* inlineRenderer = dynamicDowncast<RenderInline>(renderer); inlineRenderer && inlineRenderer->isInline())
-        return { LayoutPoint(), inlineRenderer->borderBoxRectInContainer().size() };
+    if (renderer.isInlineBox())
+        return { LayoutPoint(), downcast<RenderBoxModelObject>(renderer).borderBoxRectInContainer().size() };
 
     if (auto* boxRenderer = dynamicDowncast<RenderBox>(renderer)) {
         const auto& borderBox = boxRenderer->borderBoxRectInContainer();
@@ -4947,7 +4946,7 @@ RenderLayer::HitLayer RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLa
 #endif
 
     auto offsetFromRoot = offsetFromAncestor(rootLayer);
-    // FIXME: We need to correctly hit test the clip-path when we have a RenderInline too.
+    // FIXME: We need to correctly hit test the clip-path when we have an inline box too.
     if (auto* rendererBox = this->renderBox(); rendererBox && !rendererBox->hitTestClipPath(hitTestLocation, toLayoutPoint(offsetFromRoot - toLayoutSize(rendererLocation()))))
         return { };
 
@@ -5661,6 +5660,9 @@ void RenderLayer::repaintBlockSelectionGaps()
         rect.intersect(downcast<RenderBox>(renderer()).overflowClipRect({ }));
     if (renderer().hasClip())
         rect.intersect(downcast<RenderBox>(renderer()).clipRect({ }));
+    // m_blockSelectionGapsBounds is in physical coordinates, but repaintRectangle() expects flipped block coordinates.
+    if (CheckedPtr box = dynamicDowncast<RenderBox>(renderer()))
+        box->flipForWritingMode(rect);
     if (!rect.isEmpty())
         renderer().repaintRectangle(rect);
 }
@@ -5704,8 +5706,8 @@ LayoutRect RenderLayer::localBoundingBox(OptionSet<CalculateLayerBoundsFlag> fla
     // as part of our bounding box.  We do this because we are the responsible layer for both hit testing and painting those
     // floats.
     LayoutRect result;
-    if (CheckedPtr inlineBox = dynamicDowncast<RenderInline>(renderer()); inlineBox && renderer().isInline())
-        result = inlineBox->visualOverflowRect();
+    if (renderer().isInlineBox())
+        result = downcast<RenderBoxModelObject>(renderer()).visualOverflowRect();
     else if (CheckedPtr modelObject = dynamicDowncast<RenderSVGModelObject>(renderer()))
         result = modelObject->visualOverflowRectEquivalent();
     else if (CheckedPtr tableRow = dynamicDowncast<RenderTableRow>(renderer())) {

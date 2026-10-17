@@ -56,7 +56,6 @@
 #include "RenderElementStyleInlines.h"
 #include "RenderFlexibleBox.h"
 #include "RenderFragmentContainer.h"
-#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderLayerBacking.h"
 #include "RenderLayerCompositor.h"
@@ -132,8 +131,8 @@ static RenderObject* firstContentfulChild(const RenderBoxModelObject& renderer)
             continue;
         if (auto* text = dynamicDowncast<RenderText>(current); text && text->containsOnlyCollapsibleWhitespace())
             continue;
-        if (auto* renderInline = dynamicDowncast<RenderInline>(current)) {
-            if (auto* nested = firstContentfulChild(*renderInline))
+        if (current.isInlineBox()) {
+            if (auto* nested = firstContentfulChild(downcast<RenderBoxModelObject>(current)))
                 return nested;
             continue;
         }
@@ -187,7 +186,7 @@ void RenderBoxModelObject::setSelectionState(HighlightState state)
     else
         RenderLayerModelObject::setSelectionState(state);
 
-    // FIXME: We should consider whether it is OK propagating to ancestor RenderInlines.
+    // FIXME: We should consider whether it is OK propagating to ancestor inline boxes.
     // This is a workaround for http://webkit.org/b/32123
     // The containing block can be null in case of an orphaned tree.
     RenderBlock* containingBlock = this->containingBlock();
@@ -199,17 +198,45 @@ RenderBoxModelObject::RenderBoxModelObject(Type type, Element& element, Style::C
     : RenderLayerModelObject(type, element, WTF::move(style), baseTypeFlags | TypeFlag::IsBoxModelObject, typeSpecificFlags)
 {
     ASSERT(isRenderBoxModelObject());
+    setChildrenInline(isInlineBox());
 }
 
 RenderBoxModelObject::RenderBoxModelObject(Type type, Document& document, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderLayerModelObject(type, document, WTF::move(style), baseTypeFlags | TypeFlag::IsBoxModelObject, typeSpecificFlags)
 {
     ASSERT(isRenderBoxModelObject());
+    setChildrenInline(isInlineBox());
+}
+
+RenderBoxModelObject::RenderBoxModelObject(Type type, Element& element, Style::ComputedStyle&& style)
+    : RenderBoxModelObject(type, element, WTF::move(style), TypeFlag::IsInlineBox, { })
+{
+}
+
+RenderBoxModelObject::RenderBoxModelObject(Type type, Document& document, Style::ComputedStyle&& style)
+    : RenderBoxModelObject(type, document, WTF::move(style), TypeFlag::IsInlineBox, { })
+{
 }
 
 RenderBoxModelObject::~RenderBoxModelObject()
 {
     // Do not add any code here. Add it to willBeDestroyed() instead.
+}
+
+ASCIILiteral RenderBoxModelObject::renderName() const
+{
+    if (isInlineBox()) {
+        // FIXME: Inline boxes still report the RenderInline name to keep render tree dump based test results unchanged.
+        if (isRelativelyPositioned())
+            return "RenderInline (relative positioned)"_s;
+        if (isStickilyPositioned())
+            return "RenderInline (sticky positioned)"_s;
+        if (isPseudoElement() || isAnonymous())
+            return "RenderInline (generated)"_s;
+        return "RenderInline"_s;
+    }
+    ASSERT_NOT_REACHED();
+    return { };
 }
 
 void RenderBoxModelObject::willBeDestroyed()
@@ -807,6 +834,21 @@ LayoutSize RenderBoxModelObject::calculateImageIntrinsicDimensions(const Style::
     return { LayoutUnit::fromFloatRound(concreteObjectSize.width()), LayoutUnit::fromFloatRound(concreteObjectSize.height()) };
 }
 
+void RenderBoxModelObject::imageChanged(WrappedImagePtr image, const IntRect*)
+{
+    if (!parent())
+        return;
+
+    bool isNonEmpty;
+    RefPtr styleImage = Style::findLayerUsedImage(style().backgroundLayers(), image, isNonEmpty);
+    if (styleImage && isNonEmpty) {
+        if (auto styleable = Styleable::fromRenderer(*this))
+            protect(document())->didLoadImage(protect(styleable->element).get(), protect(styleImage->cachedImage()));
+    }
+    // FIXME: We can do better.
+    repaint();
+}
+
 bool RenderBoxModelObject::fixedBackgroundPaintsInLocalCoordinates() const
 {
     if (!isDocumentElementRenderer())
@@ -926,13 +968,13 @@ bool RenderBoxModelObject::hasRunningAcceleratedAnimations() const
 void RenderBoxModelObject::applyTransform(TransformationMatrix&, const Style::ComputedStyle&, const FloatRect&, OptionSet<Style::TransformResolverOption>) const
 {
     // applyTransform() is only used through RenderLayer*, which only invokes this for RenderBox derived renderers, thus not for
-    // RenderInline/RenderLineBreak - the other two renderers that inherit from RenderBoxModelObject.
+    // inline boxes or RenderLineBreak.
     ASSERT_NOT_REACHED();
 }
 
 bool RenderBoxModelObject::requiresLayer() const
 {
-    return isPositioned() || createsGroup() || requiresRenderingConsolidationForViewTransition() || hasRunningAcceleratedAnimations();
+    return isPositioned() || createsGroup() || requiresRenderingConsolidationForViewTransition() || hasRunningAcceleratedAnimations() || style().willChange().canCreateStackingContext();
 }
 
 void RenderBoxModelObject::removeOutOfFlowBoxesIfNeededOnStyleChange(const Style::ComputedStyle& oldStyle, const Style::ComputedStyle& newStyle)

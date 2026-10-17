@@ -34,7 +34,6 @@
 #include "RenderBoxInlines.h"
 #include "RenderElementInlines.h"
 #include "RenderGrid.h"
-#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderView.h"
 #include "StyleComputedStyle.h"
@@ -836,11 +835,10 @@ void PositionedLayoutConstraints::fixupLogicalLeftPosition(RenderBox::LogicalExt
     // of the first line box when really it should use the last line box. When
     // this is fixed elsewhere, this adjustment should be removed.
 
-    CheckedPtr renderInline = dynamicDowncast<RenderInline>(container());
-    if (!renderInline || m_containingWritingMode.isLogicalLeftInlineStart())
+    if (!container().isInlineBox() || m_containingWritingMode.isLogicalLeftInlineStart())
         return;
 
-    auto firstInlineBox = InlineIterator::lineLeftmostInlineBoxFor(*renderInline);
+    auto firstInlineBox = InlineIterator::lineLeftmostInlineBoxFor(container());
     if (!firstInlineBox)
         return;
 
@@ -852,7 +850,7 @@ void PositionedLayoutConstraints::fixupLogicalLeftPosition(RenderBox::LogicalExt
     if (firstInlineBox == lastInlineBox)
         return;
 
-    auto lastInlineBoxPaddingBoxVisualRight = lastInlineBox->logicalLeftIgnoringInlineDirection() + renderInline->borderLogicalLeft();
+    auto lastInlineBoxPaddingBoxVisualRight = lastInlineBox->logicalLeftIgnoringInlineDirection() + container().borderLogicalLeft();
     // FIXME: This does not work with decoration break clone.
     auto firstInlineBoxPaddingBoxVisualRight = firstInlineBox->logicalLeftIgnoringInlineDirection();
     auto adjustment = lastInlineBoxPaddingBoxVisualRight - firstInlineBoxPaddingBoxVisualRight;

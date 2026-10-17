@@ -129,12 +129,6 @@ static bool LEGACY_NODELETE isFirstElementChildButton(const Node& child)
     return is<HTMLButtonElement>(child) && !child.previousElementSibling();
 }
 
-// The options in a selectedcontent element are clones, not options of its select.
-static bool LEGACY_NODELETE canHoldOptionClones(const Node& node)
-{
-    return is<HTMLSelectedContentElement>(node) && node.document().settings().htmlEnhancedSelectMultipleSelectedContentEnabled();
-}
-
 class SelectSlotAssignment final : public NamedSlotAssignment {
 private:
     void hostChildElementDidChange(const Element&, ShadowRoot&) final;
@@ -272,7 +266,7 @@ HTMLSelectElement* HTMLSelectElement::findOwnerSelect(ContainerNode* startNode, 
             return nullptr;
         return findOwnerSelect(startNode->parentNode(), ExcludeOptGroup::Yes);
     }
-    if (isAnyOf<HTMLDataListElement, HTMLHRElement, HTMLOptionElement>(*startNode) || canHoldOptionClones(*startNode))
+    if (isAnyOf<HTMLDataListElement, HTMLHRElement, HTMLOptionElement, HTMLSelectedContentElement>(*startNode))
         return nullptr;
     return findOwnerSelect(startNode->parentNode(), excludeOptGroup);
 }
@@ -337,10 +331,13 @@ void HTMLSelectElement::optionSelectedByUser(int optionIndex, bool fireOnChangeN
     // autofill when there is no actual change (see https://bugs.webkit.org/show_bug.cgi?id=35256 and <rdar://7467917>).
     // The selectOption function does not behave this way, possibly because other callers need a change event even
     // in cases where the selected option is not change.
-    if (optionIndex == selectedIndex())
+    if (optionIndex == selectedIndex()) {
+        if (RefPtr option = selectedOption())
+            option->setDirty(true);
         return;
+    }
 
-    OptionSet flags = { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::UserDriven };
+    OptionSet flags = { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::UserDriven, SelectOptionFlag::MakeOptionDirty };
     if (fireOnChangeNow)
         flags.add(SelectOptionFlag::DispatchChangeEvent);
     selectOption(optionIndex, flags);
@@ -359,10 +356,6 @@ void HTMLSelectElement::pickOrToggleOption(HTMLOptionElement& option)
     // That script may also have taken the renderer away, which updateListBoxSelection() needs.
     if (!renderer() && !isSingleSelectDropdownBox())
         return;
-
-    // FIXME: Native appearance should set the dirtiness too, but none of its user interaction does yet.
-    if (optionsAreRenderedWithBaseAppearance())
-        option.setDirty(true);
 
     // Toggling rather than picking is not yet in the specification.
     optionSelectedByUser(option.index(), true, m_multiple);
@@ -810,7 +803,7 @@ void HTMLSelectElement::setValue(const String& value)
     for (auto& item : listItems()) {
         if (RefPtr option = dynamicDowncast<HTMLOptionElement>(item.get())) {
             if (option->value() == value) {
-                setSelectedIndex(optionIndex);
+                selectOption(optionIndex, { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::MakeOptionDirty });
                 return;
             }
             ++optionIndex;
@@ -1429,9 +1422,10 @@ void HTMLSelectElement::updateListBoxSelection(bool deselectOtherOptions)
         if (!element || element->isDisabledFormControl())
             continue;
 
-        if (i >= start && i <= end)
+        if (i >= start && i <= end) {
             element->setSelectedState(m_activeSelectionState);
-        else if (deselectOtherOptions || i >= m_cachedStateForActiveSelection.size())
+            element->setDirty(true);
+        } else if (deselectOtherOptions || i >= m_cachedStateForActiveSelection.size())
             element->setSelectedState(false);
         else
             element->setSelectedState(m_cachedStateForActiveSelection[i]);
@@ -1633,7 +1627,7 @@ void HTMLSelectElement::recalcListItems(bool updateSelectedStates, AllowStyleInv
                         optGroupIt.traverseNextSkippingChildren();
                         continue;
                     }
-                    if (isAnyOf<HTMLOptGroupElement, HTMLDataListElement, HTMLSelectElement, HTMLHRElement>(optGroupDescendant) || canHoldOptionClones(optGroupDescendant)) {
+                    if (isAnyOf<HTMLDataListElement, HTMLHRElement, HTMLOptGroupElement, HTMLSelectElement, HTMLSelectedContentElement>(optGroupDescendant)) {
                         optGroupIt.traverseNextSkippingChildren();
                         continue;
                     }
@@ -1647,7 +1641,7 @@ void HTMLSelectElement::recalcListItems(bool updateSelectedStates, AllowStyleInv
                 it.traverseNextSkippingChildren();
                 continue;
             }
-            if (isAnyOf<HTMLDataListElement, HTMLSelectElement>(descendant) || canHoldOptionClones(descendant)) {
+            if (isAnyOf<HTMLDataListElement, HTMLSelectElement, HTMLSelectedContentElement>(descendant)) {
                 it.traverseNextSkippingChildren();
                 continue;
             }
@@ -1695,15 +1689,31 @@ void HTMLSelectElement::setSelectedIndex(int index)
     selectOption(index, SelectOptionFlag::DeselectOtherOptions);
 }
 
+void HTMLSelectElement::setSelectedIndexForBindings(int index)
+{
+    selectOption(index, { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::MakeOptionDirty });
+}
+
 void HTMLSelectElement::optionSelectionStateChanged(HTMLOptionElement& option, bool optionIsSelected)
 {
     ASSERT(option.ownerSelectElement() == this);
-    if (optionIsSelected)
+    if (optionIsSelected) {
         selectOption(option.index());
-    else if (!isSingleSelectDropdownBox())
+        return;
+    }
+
+    if (!isSingleSelectDropdownBox()) {
         selectOption(-1);
-    else
-        selectOption(nextSelectableListIndex(-1));
+        return;
+    }
+
+    for (auto& item : listItems()) {
+        if (RefPtr candidate = dynamicDowncast<HTMLOptionElement>(item); candidate && !candidate->isDisabledFormControl()) {
+            selectOption(candidate->index());
+            return;
+        }
+    }
+    selectOption(-1);
 }
 
 void HTMLSelectElement::selectOption(int optionIndex, OptionSet<SelectOptionFlag> flags)
@@ -1727,6 +1737,8 @@ void HTMLSelectElement::selectOption(int optionIndex, OptionSet<SelectOptionFlag
         if (m_activeSelectionEndIndex < 0 || shouldDeselect)
             setActiveSelectionEndIndex(listIndex);
         option->setSelectedState(true);
+        if (flags.contains(SelectOptionFlag::MakeOptionDirty))
+            option->setDirty(true);
         selectedOption = option;
     }
 
@@ -2055,7 +2067,7 @@ void HTMLSelectElement::menuListDefaultEventHandler(Event& event)
             return;
 
         if (static_cast<size_t>(listIndex) < listItems.size())
-            selectOption(listToOptionIndex(listIndex), { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::DispatchChangeEvent, SelectOptionFlag::UserDriven });
+            selectOption(listToOptionIndex(listIndex), { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::DispatchChangeEvent, SelectOptionFlag::UserDriven, SelectOptionFlag::MakeOptionDirty });
 
         keyboardEvent->setDefaultHandled();
         return;
@@ -2506,7 +2518,7 @@ void HTMLSelectElement::typeAheadFind(KeyboardEvent& event)
     int index = typeAheadMatchIndex(event);
     if (index < 0)
         return;
-    selectOption(listToOptionIndex(index), { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::DispatchChangeEvent, SelectOptionFlag::UserDriven });
+    selectOption(listToOptionIndex(index), { SelectOptionFlag::DeselectOtherOptions, SelectOptionFlag::DispatchChangeEvent, SelectOptionFlag::UserDriven, SelectOptionFlag::MakeOptionDirty });
     if (!isSingleSelectDropdownBox())
         listBoxOnChange();
 }

@@ -47,6 +47,7 @@ find_library(COCOA_LIBRARY Cocoa)
 find_library(CORESERVICES_LIBRARY CoreServices)
 find_library(DISKARBITRATION_LIBRARY DiskArbitration)
 find_library(OPENGL_LIBRARY OpenGL)
+find_library(PDFKIT_LIBRARY PDFKit)
 find_library(QUARTZ_LIBRARY Quartz)
 find_library(LOOKUP_FRAMEWORK Lookup HINTS ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks)
 find_library(APPSUPPORT_LIBRARY AppSupport HINTS ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks)
@@ -116,6 +117,7 @@ if (WEBKIT_SDK_IS_MACOS)
         ${CORESERVICES_LIBRARY}
         ${DISKARBITRATION_LIBRARY}
         ${OPENGL_LIBRARY}
+        ${PDFKIT_LIBRARY}
         ${QUARTZ_LIBRARY}
         $<$<BOOL:${LOOKUP_FRAMEWORK}>:${LOOKUP_FRAMEWORK}>
     )
@@ -810,38 +812,8 @@ list(REMOVE_ITEM WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/WebGPU/GPUVertexState.h
     Modules/WebGPU/GPUVertexStepMode.h
 
-    Modules/WebGPU/Implementation/WebGPUAPIUtilities.h
-    Modules/WebGPU/Implementation/WebGPUAdapterImpl.h
-    Modules/WebGPU/Implementation/WebGPUBindGroupImpl.h
-    Modules/WebGPU/Implementation/WebGPUBindGroupLayoutImpl.h
-    Modules/WebGPU/Implementation/WebGPUBufferImpl.h
-    Modules/WebGPU/Implementation/WebGPUCommandBufferImpl.h
-    Modules/WebGPU/Implementation/WebGPUCommandEncoderImpl.h
     Modules/WebGPU/Implementation/WebGPUCompositorIntegrationImpl.h
-    Modules/WebGPU/Implementation/WebGPUComputePassEncoderImpl.h
-    Modules/WebGPU/Implementation/WebGPUComputePipelineImpl.h
-    Modules/WebGPU/Implementation/WebGPUConvertToBackingContext.h
-    Modules/WebGPU/Implementation/WebGPUDeviceImpl.h
-    Modules/WebGPU/Implementation/WebGPUDowncastConvertToBackingContext.h
-    Modules/WebGPU/Implementation/WebGPUExternalTextureImpl.h
     Modules/WebGPU/Implementation/WebGPUImpl.h
-    Modules/WebGPU/Implementation/WebGPUPipelineLayoutImpl.h
-    Modules/WebGPU/Implementation/WebGPUPresentationContextImpl.h
-    Modules/WebGPU/Implementation/WebGPUPtr.h
-    Modules/WebGPU/Implementation/WebGPUQuerySetImpl.h
-    Modules/WebGPU/Implementation/WebGPUQueueImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderBundleEncoderImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderBundleImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderPassEncoderImpl.h
-    Modules/WebGPU/Implementation/WebGPURenderPipelineImpl.h
-    Modules/WebGPU/Implementation/WebGPUSamplerImpl.h
-    Modules/WebGPU/Implementation/WebGPUShaderModuleImpl.h
-    Modules/WebGPU/Implementation/WebGPUTextureImpl.h
-    Modules/WebGPU/Implementation/WebGPUTextureViewImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRBindingImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRProjectionLayerImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRSubImageImpl.h
-    Modules/WebGPU/Implementation/WebGPUXRViewImpl.h
 
     Modules/compression/CompressionStreamEncoder.h
     Modules/compression/DecompressionStreamDecoder.h

@@ -50,7 +50,6 @@
 #include "Range.h"
 #include "RenderBlockFlowInlines.h"
 #include "RenderCombineText.h"
-#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderObjectInlines.h"
 #include "RenderTextInlines.h"
@@ -162,9 +161,9 @@ static HashMap<SingleThreadWeakRef<const RenderText>, String>& LEGACY_NODELETE o
     return map;
 }
 
-static HashMap<SingleThreadWeakRef<const RenderText>, SingleThreadWeakPtr<RenderInline>>& LEGACY_NODELETE inlineWrapperForDisplayContentsMap()
+static HashMap<SingleThreadWeakRef<const RenderText>, SingleThreadWeakPtr<RenderBoxModelObject>>& LEGACY_NODELETE inlineWrapperForDisplayContentsMap()
 {
-    static NeverDestroyed<HashMap<SingleThreadWeakRef<const RenderText>, SingleThreadWeakPtr<RenderInline>>> map;
+    static NeverDestroyed<HashMap<SingleThreadWeakRef<const RenderText>, SingleThreadWeakPtr<RenderBoxModelObject>>> map;
     return map;
 }
 
@@ -2258,7 +2257,7 @@ StringView RenderText::stringView(unsigned start, std::optional<unsigned> stop) 
     return StringView { text() }.substring(start, destination - start);
 }
 
-RenderInline* RenderText::inlineWrapperForDisplayContents()
+RenderBoxModelObject* RenderText::inlineWrapperForDisplayContents()
 {
     ASSERT(m_hasInlineWrapperForDisplayContents == inlineWrapperForDisplayContentsMap().contains(this));
 
@@ -2267,7 +2266,7 @@ RenderInline* RenderText::inlineWrapperForDisplayContents()
     return inlineWrapperForDisplayContentsMap().get(this);
 }
 
-void RenderText::setInlineWrapperForDisplayContents(RenderInline* wrapper)
+void RenderText::setInlineWrapperForDisplayContents(RenderBoxModelObject* wrapper)
 {
     ASSERT(m_hasInlineWrapperForDisplayContents == inlineWrapperForDisplayContentsMap().contains(this));
 

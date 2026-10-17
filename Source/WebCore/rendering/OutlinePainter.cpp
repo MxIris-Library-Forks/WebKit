@@ -47,7 +47,6 @@
 #include "RenderChildIterator.h"
 #include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
-#include "RenderInline.h"
 #include "RenderListBox.h"
 #include "RenderObjectDocument.h"
 #include "RenderSVGModelObject.h"
@@ -370,8 +369,8 @@ void OutlinePainter::collectFocusRingRects(const RenderElement& renderer, Vector
         svgRenderer->addFocusRingRects(rects, additionalOffset, paintContainer);
         return;
     }
-    if (CheckedPtr renderInline = dynamicDowncast<RenderInline>(renderer)) {
-        collectFocusRingRectsForInline(*renderInline, rects, additionalOffset, paintContainer);
+    if (renderer.isInlineBox()) {
+        collectFocusRingRectsForInline(downcast<RenderBoxModelObject>(renderer), rects, additionalOffset, paintContainer);
         return;
     }
     if (CheckedPtr listBox = dynamicDowncast<RenderListBox>(renderer)) {

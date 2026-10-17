@@ -50,7 +50,6 @@
 #include "RenderBoxInlines.h"
 #include "RenderElementInlines.h"
 #include "RenderFragmentedFlow.h"
-#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderLayerModelObject.h"
 #include "RenderObjectInlines.h"
@@ -485,11 +484,11 @@ LayoutRect ViewTransition::captureOverflowRect(RenderLayerModelObject& renderer)
 }
 
 // The computed local-to-absolute transform, and layer bounds don't include the position
-// of a RenderInline. Manually add an extra offset to adjust for it.
+// of an inline box. Manually add an extra offset to adjust for it.
 static LayoutPoint layerToLayoutOffset(const RenderLayerModelObject& renderer)
 {
-    if (const auto* renderInline = dynamicDowncast<RenderInline>(renderer)) {
-        auto boundingBox = renderInline->borderBoxRectInContainer();
+    if (renderer.isInlineBox()) {
+        auto boundingBox = downcast<RenderBoxModelObject>(renderer).borderBoxRectInContainer();
         return LayoutPoint { boundingBox.x(), boundingBox.y() };
     }
     return { };

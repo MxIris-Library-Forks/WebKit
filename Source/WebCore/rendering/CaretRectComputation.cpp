@@ -36,7 +36,6 @@
 #include "RenderBlockFlow.h"
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
-#include "RenderInline.h"
 #include "RenderLineBreak.h"
 #include "RenderObjectInlines.h"
 #include "RenderSVGInlineText.h"
@@ -324,10 +323,10 @@ static LayoutRect computeCaretRectForBlock(const RenderBlock& renderer, const In
     return computeCaretRectForEmptyElement(renderer, renderer.logicalWidth(), renderer.textIndentOffset(), caretRectMode);
 }
 
-static LayoutRect computeCaretRectForInline(const RenderInline& renderer)
+static LayoutRect computeCaretRectForInline(const RenderBoxModelObject& renderer)
 {
     if (renderer.firstChild()) {
-        // This condition is possible if the RenderInline is at an editing boundary,
+        // This condition is possible if the inline box is at an editing boundary,
         // i.e. the VisiblePosition is:
         //   <RenderInline editingBoundary=true>|<RenderText> </RenderText></RenderInline>
         // FIXME: need to figure out how to make this return a valid rect, note that
@@ -360,8 +359,8 @@ LayoutRect computeLocalCaretRect(const RenderObject& renderer, const InlineBoxAn
     if (auto* box = dynamicDowncast<RenderBox>(renderer))
         return computeCaretRectForBox(*box, boxAndOffset, caretRectMode);
 
-    if (auto* renderInline = dynamicDowncast<RenderInline>(renderer))
-        return computeCaretRectForInline(*renderInline);
+    if (renderer.isInlineBox())
+        return computeCaretRectForInline(downcast<RenderBoxModelObject>(renderer));
 
     return { };
 }

@@ -50,7 +50,6 @@
 #include "RenderBoxInlines.h"
 #include "RenderFlexibleBox.h"
 #include "RenderGrid.h"
-#include "RenderInline.h"
 #include "RenderIterator.h"
 #include "RenderLineBreak.h"
 #include "RenderObjectInlines.h"
@@ -959,8 +958,9 @@ bool Position::hasRenderedNonAnonymousDescendantsWithHeight(const RenderElement&
                 return true;
             continue;
         }
-        if (CheckedPtr renderInline = dynamicDowncast<RenderInline>(*descendant)) {
-            if ((renderInline->isFirstLetter() || isEmptyInline(*renderInline)) && boundingBoxLogicalHeight(renderInline->borderBoxRectInContainer()))
+        if (descendant->isInlineBox()) {
+            CheckedRef inlineBox = downcast<RenderBoxModelObject>(*descendant);
+            if ((inlineBox->isFirstLetter() || isEmptyInline(inlineBox.get())) && boundingBoxLogicalHeight(inlineBox->borderBoxRectInContainer()))
                 return true;
             continue;
         }

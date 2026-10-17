@@ -38,11 +38,10 @@
 #import <WebCore/GraphicsContextCG.h>
 #import <WebCore/LocalDefaultSystemAppearance.h>
 #import <WebCore/ShareableBitmap.h>
+#import <wtf/Borrow.h>
 #import <wtf/RunLoop.h>
 #import <wtf/cocoa/SpanCocoa.h>
 #import <wtf/cocoa/TypeCastsCocoa.h>
-
-#import <pal/cocoa/PDFKitSoftLink.h>
 
 NSString * const WebKitOriginalTopPrintingMarginKey = @"WebKitOriginalTopMargin";
 NSString * const WebKitOriginalBottomPrintingMarginKey = @"WebKitOriginalBottomMargin";
@@ -332,7 +331,7 @@ static void pageDidComputePageRects(const Vector<WebCore::IntRect>& pageRects, d
         if (view->_totalScaleFactorForPrinting <= 0)
             view->_totalScaleFactorForPrinting = 1;
 
-        const WebCore::IntRect& lastPrintingPageRect = view->_printingPageRects[view->_printingPageRects.size() - 1];
+        const WebCore::IntRect lastPrintingPageRect = view->_printingPageRects[view->_printingPageRects.size() - 1];
         NSRect newFrameSize = NSMakeRect(0, 0, 
             ceil(lastPrintingPageRect.maxX() * view->_totalScaleFactorForPrinting), 
             ceil(lastPrintingPageRect.maxY() * view->_totalScaleFactorForPrinting));
@@ -487,14 +486,14 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
 
     CGAffineTransform transform = CGContextGetCTM(context.get());
 
-    for (const auto& destination : _linkDestinationsPerPage[page]) {
+    for (const auto& destination : borrow(_linkDestinationsPerPage)[page]) {
         CGPoint destinationPoint = CGPointApplyAffineTransform(NSPointToCGPoint([destination point]), transform);
         CGPDFContextAddDestinationAtPoint(context.get(), bridge_cast(linkDestinationName(pdfDocument, destination.get())).get(), destinationPoint);
     }
 
     // FIXME: Remove the suppression once https://github.com/llvm/llvm-project/pull/230818 is deployed (rdar://189710680).
     for (SUPPRESS_UNRETAINED_LOCAL PDFAnnotation *annotation in [pdfPage annotations]) {
-        if (![[annotation valueForAnnotationKey:PAL::get_PDFKit_PDFAnnotationKeySubtypeSingleton()] isEqualToString:PAL::get_PDFKit_PDFAnnotationSubtypeLinkSingleton()])
+        if (![[annotation valueForAnnotationKey:PDFAnnotationKeySubtype] isEqualToString:PDFAnnotationSubtypeLink])
             continue;
 
         RetainPtr<NSURL> url = annotation.URL;
@@ -592,8 +591,8 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
     ASSERT(!_printedPagesData.isEmpty()); // Prepared by knowsPageRange:
 
     if (!_printedPagesPDFDocument) {
-        RetainPtr pdfData = toNSData(_printedPagesData.span());
-        _printedPagesPDFDocument = adoptNS([PAL::allocPDFDocumentInstance() initWithData:pdfData.get()]);
+        RetainPtr pdfData = toNSData(borrow(_printedPagesData)->span());
+        _printedPagesPDFDocument = adoptNS([[PDFDocument alloc] initWithData:pdfData.get()]);
 
         unsigned pageCount = [_printedPagesPDFDocument pageCount];
         _linkDestinationsPerPage.clear();
@@ -602,7 +601,7 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
             RetainPtr page = [_printedPagesPDFDocument pageAtIndex:i];
             // FIXME: Remove the suppression once https://github.com/llvm/llvm-project/pull/230818 is deployed (rdar://189710680).
             for (SUPPRESS_UNRETAINED_LOCAL PDFAnnotation *annotation in page.get().annotations) {
-                if (![[annotation valueForAnnotationKey:PAL::get_PDFKit_PDFAnnotationKeySubtypeSingleton()] isEqualToString:PAL::get_PDFKit_PDFAnnotationSubtypeLinkSingleton()])
+                if (![[annotation valueForAnnotationKey:PDFAnnotationKeySubtype] isEqualToString:PDFAnnotationSubtypeLink])
                     continue;
 
                 if (annotation.URL)
@@ -613,7 +612,7 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
                     continue;
 
                 unsigned destinationPageIndex = [_printedPagesPDFDocument indexForPage:retainPtr(destination.get().page).get()];
-                _linkDestinationsPerPage[destinationPageIndex].append(WTF::move(destination));
+                borrow(_linkDestinationsPerPage)[destinationPageIndex].append(WTF::move(destination));
             }
         }
     }

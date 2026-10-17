@@ -39,7 +39,6 @@
 #include "RenderBlockFlow.h"
 #include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
-#include "RenderInline.h"
 #include "RenderLayer.h"
 #include "RenderView.h"
 #include "StyleBorderImage.h"
@@ -73,8 +72,8 @@ void InlineBoxPainter::paint()
         if (renderer().usedStyle().visibility() != UsedVisibility::Visible || !renderer().hasOutline() || m_isRootInlineBox)
             return;
 
-        auto& inlineFlow = downcast<RenderInline>(renderer());
-        m_paintInfo.outlineObjects->add(inlineFlow);
+        ASSERT(renderer().isInlineBox());
+        m_paintInfo.outlineObjects->add(renderer());
 
         return;
     }
@@ -99,10 +98,10 @@ void InlineBoxPainter::paint()
 #endif
 
     if (m_paintInfo.phase == PaintPhase::Accessibility) {
-        if (auto* renderInline = dynamicDowncast<RenderInline>(m_renderer)) {
-            auto linesBoundingBox = enclosingIntRect(renderInline->visualOverflowRect());
+        if (m_renderer.isInlineBox()) {
+            auto linesBoundingBox = enclosingIntRect(m_renderer.visualOverflowRect());
             linesBoundingBox.moveBy(roundedIntPoint(m_paintOffset));
-            m_paintInfo.accessibilityRegionContext()->takeBounds(dynamicDowncast<RenderInline>(m_renderer), WTF::move(linesBoundingBox));
+            m_paintInfo.accessibilityRegionContext()->takeBoundsForInlineBox(m_renderer, WTF::move(linesBoundingBox));
         }
         return;
     }

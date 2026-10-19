@@ -39,10 +39,10 @@ public:
 
     const RenderBoxModelObject& renderer() const { return downcast<RenderBoxModelObject>(Box::renderer()); }
 
-    RectEdges<bool> closedEdges() const;
+    RectEdges<bool> LEGACY_NODELETE closedEdges() const;
 
-    InlineBoxIterator nextInlineBoxLineRightward() const;
-    InlineBoxIterator nextInlineBoxLineLeftward() const;
+    InlineBoxIterator LEGACY_NODELETE nextInlineBoxLineRightward() const;
+    InlineBoxIterator LEGACY_NODELETE nextInlineBoxLineLeftward() const;
     InlineBoxIterator iterator() const;
 
     LeafBoxIterator firstLeafBox() const;
@@ -61,8 +61,8 @@ public:
     const InlineBox& operator*() const LIFETIME_BOUND { return get(); }
     const InlineBox* operator->() const LIFETIME_BOUND { return &get(); }
 
-    InlineBoxIterator& traverseInlineBoxLineRightward();
-    InlineBoxIterator& traverseInlineBoxLineLeftward();
+    InlineBoxIterator& LEGACY_NODELETE traverseInlineBoxLineRightward();
+    InlineBoxIterator& LEGACY_NODELETE traverseInlineBoxLineLeftward();
 
 private:
     const InlineBox& get() const LIFETIME_BOUND { return downcast<InlineBox>(m_box); }

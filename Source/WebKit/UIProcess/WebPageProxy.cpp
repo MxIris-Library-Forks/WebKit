@@ -6608,12 +6608,15 @@ URL WebPageProxy::topLevelCreationURL(const URL& url, bool isMainFrame) const
 // An about:blank document is only as trustworthy as the origin it inherits from its creator, such as a popup's opener.
 bool WebPageProxy::topLevelIsSecureContext(const URL& url, bool isMainFrame) const
 {
+    auto isTrustworthy = [](const URL& url) {
+        return !url.protocolIsData() && isURLPotentiallyTrustworthy(url);
+    };
     RefPtr mainFrame = m_mainFrame;
     if (isMainFrame || !mainFrame)
-        return isURLPotentiallyTrustworthy(url);
+        return isTrustworthy(url);
     if (SecurityPolicy::shouldInheritSecurityOriginFromOwner(mainFrame->url()))
         return mainFrame->securityOrigin()->isPotentiallyTrustworthy();
-    return isURLPotentiallyTrustworthy(mainFrame->url());
+    return isTrustworthy(mainFrame->url());
 }
 
 // https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent
@@ -9894,6 +9897,25 @@ void WebPageProxy::applyDeferredTopDocumentSyncDataFromCommittedProcess(Ref<WebC
     });
 }
 
+// The UI process sends the remaining properties from its own state, and frame geometry through
+// handleFrameGeometryUpdates, so a web process must not broadcast them.
+static bool LEGACY_NODELETE frameTreePropertyCanBeBroadcastByWebProcess(WebCore::FrameTreeSyncDataType property)
+{
+    switch (property) {
+    case WebCore::FrameTreeSyncDataType::FrameDocumentIsSandboxedOrigin:
+    case WebCore::FrameTreeSyncDataType::FrameRect:
+        return true;
+    case WebCore::FrameTreeSyncDataType::FrameCanCreatePaymentSession:
+    case WebCore::FrameTreeSyncDataType::FrameDocumentSecurityOrigin:
+    case WebCore::FrameTreeSyncDataType::FrameDocumentSecurityPolicy:
+    case WebCore::FrameTreeSyncDataType::FrameURLProtocol:
+    case WebCore::FrameTreeSyncDataType::FrameGeometry:
+    case WebCore::FrameTreeSyncDataType::FrameViewportInfo:
+        return false;
+    }
+    RELEASE_ASSERT_NOT_REACHED();
+}
+
 // Given a property in FrameTreeSyncData, returns whether the property can only be changed by the
 // process that owns the frame or not.
 static bool LEGACY_NODELETE frameTreePropertyIsRestrictedToFrameOwningProcess(WebCore::FrameTreeSyncDataType property)
@@ -9917,9 +9939,8 @@ void WebPageProxy::broadcastFrameTreeSyncData(IPC::Connection& connection, Frame
 
     auto dataType = static_cast<WebCore::FrameTreeSyncDataType>(data.value.index());
 
-    // Frame geometry is sent through handleFrameGeometryUpdates instead.
     // FIXME: remove FrameGeometry and FrameViewportInfo as syncable data types.
-    MESSAGE_CHECK(process, dataType != WebCore::FrameTreeSyncDataType::FrameGeometry && dataType != WebCore::FrameTreeSyncDataType::FrameViewportInfo);
+    MESSAGE_CHECK(process, frameTreePropertyCanBeBroadcastByWebProcess(dataType));
 
     // FIXME: This could instead be an option in FrameTreeSyncData.in to allow
     // certain properties to be mutable from non-frame-owning processes.
@@ -10049,27 +10070,6 @@ void WebPageProxy::handleFrameGeometryUpdates(IPC::Connection& connection, const
         sendFrameGeometryUpdatesToProcess(remotePage.process(), remotePage.pageID(), &remotePage);
     });
     sendFrameGeometryUpdatesToProcess(protect(legacyMainFrameProcess()), webPageIDInMainFrameProcess(), nullptr);
-}
-
-void WebPageProxy::broadcastAllFrameTreeSyncData(IPC::Connection& connection, FrameIdentifier frameID, Ref<WebCore::FrameTreeSyncData>&& data)
-{
-    Ref process = WebProcessProxy::fromConnection(connection);
-
-    RefPtr webFrameProxy = WebFrameProxy::webFrame(frameID);
-    if (!webFrameProxy)
-        return;
-
-    MESSAGE_CHECK(process, &webFrameProxy->process() == &process.get());
-
-    // The sender may not have seen site isolation being disabled yet.
-    if (!protect(preferences())->siteIsolationEnabled())
-        return;
-
-    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
-        if (webProcess == process)
-            return;
-        webProcess.send(Messages::WebPage::AllFrameTreeSyncDataChangedInAnotherProcess(frameID, data), pageID);
-    });
 }
 
 RefPtr<WebProcessProxy> WebPageProxy::validatedUserActivationSenderProcess(IPC::Connection& connection, FrameIdentifier sourceFrameID, std::optional<UserGestureTokenIdentifier> forcedActivationToken)

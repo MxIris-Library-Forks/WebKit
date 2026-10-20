@@ -1610,8 +1610,6 @@ webkit.org/b/325853 [ x86_64 ] imported/w3c/web-platform-tests/xml/xslt/encoding
 # Damage Tracking-related bugs
 #////////////////////////////////////////////////////////////////////////////////////////
 
-webkit.org/b/307135 platform/glib/damage/animations-opacity-to-invisibility.html [ Failure Pass ]
-
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Damage Tracking-related bugs
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -2865,10 +2863,9 @@ imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-getStats.https.html?res
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-mandatory-getStats.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-getSynchronizationSources.https.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webrtc/transfer-datachannel.html [ Pass Failure ]
-webkit.org/b/311846 webrtc/h264-baseline.html [ Pass Crash Timeout ]
-webkit.org/b/311846 webrtc/h264-high.html [ Pass Crash Timeout ]
-webrtc/vp8-then-h264.html [ Pass Crash ]
-webkit.org/b/310095 imported/w3c/web-platform-tests/webrtc/simulcast/screenshare.https.html [ Crash Failure ]
+webkit.org/b/311846 webrtc/h264-baseline.html [ Pass Timeout ]
+webkit.org/b/311846 webrtc/h264-high.html [ Pass Timeout ]
+webkit.org/b/310095 imported/w3c/web-platform-tests/webrtc/simulcast/screenshare.https.html [ Failure ]
 
 imported/w3c/web-platform-tests/webrtc/RTCIceTransport.html?rest [ Pass Failure Slow ]
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-setRemoteDescription-offer.html?rest [ Slow ]
@@ -2898,7 +2895,7 @@ fast/mediastream/video-rotation2.html [ Failure ]
 
 http/wpt/mediastream/webrtc-vp9-colorspace.html [ Failure ]
 
-webkit.org/b/314659 webrtc/getDisplayMedia-pc-resolution.html [ Pass Crash Failure Timeout ]
+webkit.org/b/314659 webrtc/getDisplayMedia-pc-resolution.html [ Pass Failure Timeout ]
 
 # Autoplay related restrictions
 webrtc/audio-autoplay-no-renderer.html [ Skip ]
@@ -3728,6 +3725,9 @@ fast/speechsynthesis/lockdown-mode [ Skip ]
 
 # ManagedMediaSource is not supported
 imported/w3c/web-platform-tests/html/infrastructure/safe-passing-of-structured-data/transfer-mediasourcehandle.html [ Skip ]
+
+# Animation callbacks are outside GLib rendering frame records.
+inspector/timeline/timeline-event-RenderingFrame.html [ Skip ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of UNSUPPORTED tests.
@@ -4674,10 +4674,6 @@ imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_http_cookie_
 imported/w3c/web-platform-tests/cookiestore/change_eventhandler_for_document_cookie.https.window.html [ Skip ]
 imported/w3c/web-platform-tests/cookiestore/httponly_cookies.https.window.html [ Skip ]
 
-
-# Assertion failure if ASSERT_ENABLED
-webkit.org/b/298433 [ Debug ] imported/w3c/web-platform-tests/selection/caret/move-around-generated-content.html [ Skip ]
-webkit.org/b/298433 [ Release ] imported/w3c/web-platform-tests/selection/caret/move-around-generated-content.html [ Crash Pass Failure ]
 
 # Needs rebaseline.
 fast/text/glyph-display-lists [ Skip ]

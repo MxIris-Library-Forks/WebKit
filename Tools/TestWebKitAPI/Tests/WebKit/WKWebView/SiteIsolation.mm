@@ -6599,7 +6599,6 @@ TEST(SiteIsolation, PrefetchWithDocumentIsolationPolicyServesNavigation)
 TEST(SiteIsolation, NavigationJoiningPrefetchWithDifferentDocumentIsolationPolicy)
 {
     auto speculationRules = "<script type='speculationrules'>{\"prefetch\":[{\"source\":\"list\",\"urls\":[\"/destination\"]}]}</script>"_s;
-    std::optional<Connection> prefetchConnection;
     size_t destinationRequests = 0;
     HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
         while (1) {
@@ -6610,11 +6609,9 @@ TEST(SiteIsolation, NavigationJoiningPrefetchWithDifferentDocumentIsolationPolic
                 continue;
             }
             if (path == "/destination"_s) {
-                // Hold the prefetch, so the navigation finds it still loading.
-                if (!destinationRequests++) {
-                    prefetchConnection = connection;
+                // Never answer the prefetch, so the navigation finds it still loading.
+                if (!destinationRequests++)
                     continue;
-                }
                 co_await connection.awaitableSend(HTTPResponse("destination"_s).serialize());
                 continue;
             }
@@ -6628,13 +6625,13 @@ TEST(SiteIsolation, NavigationJoiningPrefetchWithDifferentDocumentIsolationPolic
     [navigationDelegate waitForDidFinishNavigation];
     pid_t isolatedProcess = [webView _webProcessIdentifier];
     EXPECT_TRUE(Util::waitFor([&] {
-        return !!prefetchConnection;
+        return destinationRequests == 1;
     }));
 
+    // The navigation makes its own request rather than waiting for the prefetch.
     [webView evaluateJavaScript:@"location.href = '/destination'" completionHandler:nil];
-    Util::runFor(0.2_s);
-    prefetchConnection->send(HTTPResponse("destination"_s).serialize());
     [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_EQ(destinationRequests, 2u);
     EXPECT_WK_STREQ([webView URL].absoluteString, "https://example.com/destination");
     EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"typeof SharedArrayBuffer"], "undefined");
     EXPECT_NE([webView _webProcessIdentifier], isolatedProcess);
@@ -6813,6 +6810,95 @@ TEST(SiteIsolation, ResetContentResponseStaysInDocumentIsolationPolicyProcess)
     testNonReplacingResponseStaysInDocumentIsolationPolicyProcess(205);
 }
 
+TEST(SiteIsolation, SameSiteNavigationStartsInDocumentIsolationPolicyProcess)
+{
+    HTTPServer server({
+        { "/isolated"_s, documentIsolationPolicyResponse("isolated"_s) },
+        { "/isolated-again"_s, documentIsolationPolicyResponse("isolated again"_s) },
+        { "/plain"_s, { "plain"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegateWithDocumentIsolationPolicy(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    pid_t isolatedProcess = [webView _webProcessIdentifier];
+
+    // A same-site navigation stays in its process until the response decides, so it moves at most once.
+    // A navigation that moved when it started would already have a provisional page in another process.
+    WKWebView *view = webView.get();
+    std::optional<pid_t> provisionalProcessAtStart;
+    std::optional<pid_t> provisionalProcessAtResponse;
+    navigationDelegate.get().didStartProvisionalNavigation = makeBlockPtr([&](WKWebView *, WKNavigation *) {
+        if (!provisionalProcessAtStart)
+            provisionalProcessAtStart = view._provisionalWebProcessIdentifier;
+    }).get();
+    navigationDelegate.get().decidePolicyForNavigationResponse = makeBlockPtr([&](WKNavigationResponse *, void (^decisionHandler)(WKNavigationResponsePolicy)) {
+        provisionalProcessAtResponse = view._provisionalWebProcessIdentifier;
+        decisionHandler(WKNavigationResponsePolicyAllow);
+    }).get();
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/isolated-again"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_EQ(provisionalProcessAtStart.value_or(-1), 0);
+    EXPECT_EQ(provisionalProcessAtResponse.value_or(-1), 0);
+    EXPECT_EQ([webView _webProcessIdentifier], isolatedProcess);
+
+    provisionalProcessAtStart = std::nullopt;
+    provisionalProcessAtResponse = std::nullopt;
+    [webView reload];
+    [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_EQ(provisionalProcessAtStart.value_or(-1), 0);
+    EXPECT_EQ(provisionalProcessAtResponse.value_or(-1), 0);
+    EXPECT_EQ([webView _webProcessIdentifier], isolatedProcess);
+
+    // Without a policy, the response moves the navigation once, before the delegate decides on it.
+    provisionalProcessAtStart = std::nullopt;
+    provisionalProcessAtResponse = std::nullopt;
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/plain"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_EQ(provisionalProcessAtStart.value_or(-1), 0);
+    pid_t plainProcess = [webView _webProcessIdentifier];
+    EXPECT_NE(plainProcess, isolatedProcess);
+    EXPECT_EQ(provisionalProcessAtResponse.value_or(-1), plainProcess);
+    EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"crossOriginIsolated"] boolValue]);
+}
+
+TEST(SiteIsolation, SameSiteSubframeNavigationStartsInDocumentIsolationPolicyProcess)
+{
+    HTTPServer server({
+        { "/main"_s, { "<iframe id='frame' src='https://example.com/isolated'></iframe>"_s } },
+        { "/isolated"_s, documentIsolationPolicyResponse("<script>alert('isolated')</script>"_s) },
+        { "/isolated-again"_s, documentIsolationPolicyResponse("<script>alert('isolated again')</script>"_s) },
+        { "/plain"_s, { "<script>alert('plain')</script>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegateWithDocumentIsolationPolicy(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    pid_t mainProcess = [webView _webProcessIdentifier];
+    pid_t isolatedProcess = [webView firstChildFrame]._processIdentifier;
+    EXPECT_NE(isolatedProcess, mainProcess);
+
+    // A provisional load that starts in the frame's process has the frame's document. One that starts in
+    // the main frame's process, where the frame is remote, has none.
+    std::optional<bool> startedInFrameProcess;
+    navigationDelegate.get().didStartProvisionalLoadWithRequestInFrame = makeBlockPtr([&](WKWebView *, NSURLRequest *, WKFrameInfo *frame) {
+        if (!frame.isMainFrame && !startedInFrameProcess)
+            startedInFrameProcess = frame._isLocalFrame;
+    }).get();
+
+    [webView evaluateJavaScript:@"document.getElementById('frame').src = '/isolated-again'" completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "isolated again");
+    EXPECT_TRUE(startedInFrameProcess.value_or(false));
+    EXPECT_EQ([webView firstChildFrame]._processIdentifier, isolatedProcess);
+
+    startedInFrameProcess = std::nullopt;
+    [webView evaluateJavaScript:@"document.getElementById('frame').src = '/plain'" completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "plain");
+    EXPECT_TRUE(startedInFrameProcess.value_or(false));
+    EXPECT_EQ([webView firstChildFrame]._processIdentifier, mainProcess);
+}
+
 TEST(SiteIsolation, AttachmentWithoutDocumentIsolationPolicyIsShown)
 {
     HTTPServer server({
@@ -6868,54 +6954,6 @@ TEST(SiteIsolation, RevalidatedNavigationStaysInDocumentIsolationPolicyProcess)
     EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"document.body.textContent"], "isolated");
     EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"crossOriginIsolated"] boolValue]);
     EXPECT_EQ([webView _webProcessIdentifier], isolatedProcess);
-}
-
-TEST(SiteIsolation, CancelledNavigateEventFromAnotherProcessLetsParentFinishLoading)
-{
-    std::optional<Connection> slowConnection;
-    HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
-        while (1) {
-            auto request = co_await connection.awaitableReceiveHTTPRequest();
-            auto path = HTTPServer::parsePath(request);
-            if (path == "/main"_s) {
-                co_await connection.awaitableSend(HTTPResponse("<script>let loadedFrames = 0; onmessage = () => { if (++loadedFrames == 2) alert('frames loaded'); }</script><iframe src='/plain'></iframe><iframe src='/isolated'></iframe><img src='/slow'>"_s).serialize());
-                continue;
-            }
-            if (path == "/plain"_s) {
-                co_await connection.awaitableSend(HTTPResponse("<script>navigation.onnavigate = event => { event.preventDefault(); setTimeout(() => alert('prevented')); }; parent.postMessage('loaded', '*');</script>"_s).serialize());
-                continue;
-            }
-            if (path == "/isolated"_s) {
-                co_await connection.awaitableSend(documentIsolationPolicyResponse("<script>parent.postMessage('loaded', '*')</script>"_s).serialize());
-                continue;
-            }
-            if (path == "/slow"_s) {
-                slowConnection = connection;
-                continue;
-            }
-            co_await connection.awaitableSend(HTTPResponse("target"_s).serialize());
-        }
-    }, HTTPServer::Protocol::HttpsProxy);
-
-    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegateWithDocumentIsolationPolicy(server);
-    __block bool finishedLoading = false;
-    navigationDelegate.get().didFinishNavigation = ^(WKWebView *, WKNavigation *) {
-        finishedLoading = true;
-    };
-
-    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
-    EXPECT_WK_STREQ([webView _test_waitForAlert], "frames loaded");
-    EXPECT_FALSE(finishedLoading);
-
-    // The navigate event fires in the main frame's process, where the parent is still loading.
-    [webView evaluateJavaScript:@"parent.frames[0].location = '/target'" inFrame:[webView secondChildFrame] inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
-    EXPECT_WK_STREQ([webView _test_waitForAlert], "prevented");
-
-    EXPECT_TRUE(Util::waitFor([&] {
-        return !!slowConnection;
-    }));
-    slowConnection->send(HTTPResponse("not an image"_s).serialize());
-    Util::run(&finishedLoading);
 }
 
 TEST(SiteIsolation, SharedProcessExcludesSiteWithDocumentIsolationPolicyProcess)
@@ -7700,6 +7738,63 @@ TEST(SiteIsolation, BFCacheRestoredIframeIsVisibleAndFiresPageShow)
 
     EXPECT_EQ(2, [[webView objectByEvaluatingJavaScript:@"window.__pageshowCount"] intValue]);
     EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"document.visibilityState"], "visible");
+}
+
+TEST(SiteIsolation, BFCacheRestoredIframeWaitsForMainFrameCommit)
+{
+    auto recordMessages = "<script>"
+        "  window.__messages = [];"
+        "  window.addEventListener('message', (event) => window.__messages.push(event.data));"
+        "</script>"_s;
+    auto iframeHTML = "<script>"
+        "  window.addEventListener('pageshow', (event) => {"
+        "    if (event.persisted)"
+        "      top.postMessage('restored', '*');"
+        "  });"
+        "</script>"_s;
+
+    HTTPServer server({
+        { "/a"_s, { makeString(recordMessages, "<iframe src='https://frame.com/frame'></iframe>"_s) } },
+        { "/b"_s, { recordMessages } },
+        { "/frame"_s, { iframeHTML } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto *configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration, @"MultiProcessBackForwardCacheEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/a"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+
+    // Same-site, so the main frame stays in its process and a.com/a goes into its back/forward cache.
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/b"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    __block BlockPtr<void(WKNavigationActionPolicy)> heldDecision;
+    navigationDelegate.get().decidePolicyForNavigationAction = ^(WKNavigationAction *action, void (^completionHandler)(WKNavigationActionPolicy)) {
+        if (action.navigationType == WKNavigationTypeBackForward && action.targetFrame.isMainFrame) {
+            heldDecision = makeBlockPtr(completionHandler);
+            return;
+        }
+        completionHandler(WKNavigationActionPolicyAllow);
+    };
+
+    [webView goBack];
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor(^{
+        return !!heldDecision;
+    }));
+
+    // While the main frame's policy decision is pending, the restored iframe must not run script.
+    TestWebKitAPI::Util::runFor(0.5_s);
+    EXPECT_EQ(0, [[webView objectByEvaluatingJavaScript:@"window.__messages.length"] intValue]);
+
+    heldDecision(WKNavigationActionPolicyAllow);
+    [navigationDelegate waitForDidFinishNavigation];
+
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"window.__messages.length"] intValue] == 1;
+    }));
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"window.__messages[0]"], "restored");
+    EXPECT_WK_STREQ([webView objectByEvaluatingJavaScript:@"location.pathname"], "/a");
 }
 
 TEST(SiteIsolation, BFCacheSameSitePageChangesTopDocumentURL)

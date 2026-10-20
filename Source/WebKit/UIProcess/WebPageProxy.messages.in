@@ -41,7 +41,6 @@ messages -> WebPageProxy {
     SetFocus(bool focused, std::optional<WebCore::UserGestureTokenIdentifier> userGestureTokenIdentifier)
     TakeFocus(enum:uint8_t WebCore::FocusDirection direction)
     FocusFromServiceWorker() -> ()
-    FocusedElementChanged(std::optional<WebCore::FrameIdentifier> frameID, struct WebCore::FocusOptions options)
     FocusedFrameChanged(std::optional<WebCore::FrameIdentifier> frameID)
     SetRenderTreeSize(uint64_t treeSize)
     SetIsResizable(bool isResizable)
@@ -171,6 +170,7 @@ messages -> WebPageProxy {
 #if PLATFORM(MAC)
     [EnabledBy=SiteIsolationEnabled] PerformAccessibilitySearchInRemoteFrame(WebCore::FrameIdentifier frameID, struct WebCore::AccessibilitySearchCriteriaIPC criteria) -> (Vector<WebCore::AccessibilityRemoteToken> results)
     [EnabledBy=SiteIsolationEnabled] ContinueAccessibilitySearchFromChildFrame(WebCore::FrameIdentifier childFrameID, struct WebCore::AccessibilitySearchCriteriaIPC criteria) -> (Vector<WebCore::AccessibilityRemoteToken> results)
+    [EnabledBy=SiteIsolationEnabled] RelayAccessibilitySelectedTextChangeToMainFrame(WebCore::FrameIdentifier frameID, struct WebCore::AXRemoteFrameSelectedTextChange change)
 #endif
 
     MainFramePluginHandlesPageScaleGestureDidChange(bool mainFramePluginHandlesPageScaleGesture, double minScale, double maxScale)

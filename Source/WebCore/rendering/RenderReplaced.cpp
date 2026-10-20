@@ -220,7 +220,8 @@ Color RenderReplaced::calculateHighlightColor() const
     if (auto appHighlightRegistry = document().appHighlightRegistryIfExists()) {
         if (appHighlightRegistry->highlightsVisibility() == HighlightVisibility::Visible) {
             for (auto& highlight : appHighlightRegistry->map()) {
-                for (auto& highlightRange : highlight.value->highlightRanges()) {
+                Ref highlightValue = highlight.value;
+                for (auto& highlightRange : highlightValue->highlightRangesFor(*this)) {
                     if (!renderHighlight.setRenderRange(highlightRange))
                         continue;
 
@@ -237,7 +238,8 @@ Color RenderReplaced::calculateHighlightColor() const
 #endif
     if (auto highlightRegistry = document().highlightRegistryIfExists()) {
         for (auto& highlight : highlightRegistry->map()) {
-            for (auto& highlightRange : highlight.value->highlightRanges()) {
+            Ref highlightValue = highlight.value;
+            for (auto& highlightRange : highlightValue->highlightRangesFor(*this)) {
                 if (!renderHighlight.setRenderRange(highlightRange))
                     continue;
 
@@ -254,7 +256,8 @@ Color RenderReplaced::calculateHighlightColor() const
     if (document().settings().scrollToTextFragmentEnabled()) {
         if (auto highlightRegistry = document().fragmentHighlightRegistryIfExists()) {
             for (auto& highlight : highlightRegistry->map()) {
-                for (auto& highlightRange : highlight.value->highlightRanges()) {
+                Ref highlightValue = highlight.value;
+                for (auto& highlightRange : highlightValue->highlightRangesFor(*this)) {
                     if (!renderHighlight.setRenderRange(highlightRange))
                         continue;
 
@@ -1085,8 +1088,8 @@ PositionWithAffinity RenderReplaced::positionForPoint(const LayoutPoint& point, 
     auto [top, bottom] = [&]() -> std::pair<float, float> {
         if (auto run = InlineIterator::boxFor(*this)) {
             auto lineBox = run->lineBox();
-            auto lineContentTop = LayoutUnit { std::min(previousLineBoxContentBottomOrBorderAndPadding(*lineBox), lineBox->contentLogicalTop()) };
-            return std::make_pair(lineContentTop, LineSelection::logicalBottom(*lineBox));
+            auto lineContentTop = LayoutUnit { std::min(previousLineBoxContentBottomOrBorderAndPadding(lineBox), lineBox.contentLogicalTop()) };
+            return std::make_pair(lineContentTop, LineSelection::logicalBottom(lineBox));
         }
         return std::make_pair(logicalTop(), logicalBottom());
     }();

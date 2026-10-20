@@ -325,6 +325,7 @@
 #include <wtf/CoroutineUtilities.h>
 #include <wtf/EnumTraits.h>
 #include <wtf/FileSystem.h>
+#include <wtf/JSONValues.h>
 #include <wtf/ListHashSet.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/NumberOfCores.h>
@@ -620,6 +621,7 @@ private:
 };
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(StorageRequests);
+WTF_MAKE_STRUCT_TZONE_ALLOCATED_IMPL(PendingBackForwardIframeRestore);
 
 #if ENABLE(GPU_PROCESS)
 WTF_MAKE_TZONE_ALLOCATED_IMPL(PendingSnapshotDrawing);
@@ -2964,6 +2966,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
     // Cross-site SuspendedPageProxy entries follow the unsuspend() path; skip them here.
     auto shouldRestoreFromBackForwardCache = ShouldRestoreFromBackForwardCache::Unspecified;
     std::optional<WebCore::ProcessIdentifier> takenBackForwardCacheMainFrameProcessIdentifier;
+    std::unique_ptr<PendingBackForwardIframeRestore> pendingIframeRestore;
     Ref preferences = this->preferences();
     if (preferences->siteIsolationEnabled() && preferences->multiProcessBackForwardCacheEnabled()) {
         RefPtr entry = item->backForwardCacheEntry();
@@ -2993,21 +2996,26 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
                         page->reload(ReloadOption::ExpiredOnly);
                     });
 
-                for (Ref iframeProcess : iframeProcesses) {
+                iframeProcesses.removeAllMatching([&](auto& iframeProcess) {
                     // Children cached in the same process as the restored main frame are local
                     // WebFrameProxys and they're reattached directly via
                     // pendingBackForwardCachedChildren/adoptChildFrames once the main frame commits.
                     if (iframeProcess.ptr() == process.ptr())
-                        continue;
+                        return true;
 
                     if (!protect(browsingContextGroup())->remotePageInProcess(*this, iframeProcess)) {
                         RELEASE_LOG_ERROR(ProcessSwapping, "WebPageProxy::goToBackForwardItem: no RemotePageProxy for pid %i, signaling failure", iframeProcess->processID());
                         aggregator->failed();
-                        continue;
+                        return true;
                     }
-                    RELEASE_LOG(ProcessSwapping, "WebPageProxy::goToBackForwardItem: dispatching RestoreWithFrameItem to pid %i", iframeProcess->processID());
-                    iframeProcess->sendWithAsyncReply(Messages::WebPage::RestoreWithFrameItem(mainFrameItemID, std::nullopt), aggregator->chain(), webPageIDInProcess(iframeProcess));
-                }
+                    return false;
+                });
+
+                for (Ref iframeProcess : iframeProcesses)
+                    iframeProcess->send(Messages::WebPage::PrepareToRestoreWithFrameItem(mainFrameItemID), webPageIDInProcess(iframeProcess));
+
+                if (!iframeProcesses.isEmpty())
+                    pendingIframeRestore = makeUnique<PendingBackForwardIframeRestore>(process->coreProcessIdentifier(), mainFrameItemID, WTF::move(iframeProcesses), WTF::move(aggregator));
             }
         }
     }
@@ -3015,6 +3023,8 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
     Ref navigation = m_navigationState->createBackForwardNavigation(process->coreProcessIdentifier(), frameItem, backForwardList().currentItem(), frameLoadType);
     if (takenBackForwardCacheMainFrameProcessIdentifier)
         navigation->setBackForwardCacheMainFrameProcessIdentifier(*takenBackForwardCacheMainFrameProcessIdentifier);
+    if (pendingIframeRestore)
+        internals().pendingBackForwardIframeRestores.set(navigation->navigationID(), WTF::move(pendingIframeRestore));
     Ref pageLoadState = internals().pageLoadState;
     auto transaction = pageLoadState->transaction();
     pageLoadState->setPendingAPIRequest(transaction, { navigation->navigationID(), URL { item->url() } });
@@ -8550,7 +8560,36 @@ void WebPageProxy::getSelectionOrContentsAsString(FrameIdentifier frameID, Compl
     sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::GetSelectionOrContentsAsString(frameID), WTF::move(callback));
 }
 
-void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::MarkupExclusionRule>& markupExclusionRules, const String& directory, const String& suggestedMainResourceName, CompletionHandler<void(std::expected<void, WebCore::ArchiveError>)>&& completionHandler)
+#if PLATFORM(COCOA)
+static void addOriginalURLs(const Archive& archive, JSON::Object& originalURLs)
+{
+    if (RefPtr mainResource = archive.mainResource())
+        originalURLs.setString(mainResource->relativeFilePath(), mainResource->url().string());
+
+    for (auto& subresource : archive.subresources())
+        originalURLs.setString(subresource->relativeFilePath(), subresource->url().string());
+
+    for (auto& subframeArchive : archive.subframeArchives())
+        addOriginalURLs(subframeArchive, originalURLs);
+}
+
+static bool saveOriginalURLsToDisk(const Archive& archive, const String& directory, const String& fileName)
+{
+    Ref originalURLs = JSON::Object::create();
+    addOriginalURLs(archive, originalURLs);
+
+    auto filePath = FileSystem::pathByAppendingComponent(directory, fileName);
+    auto fileData = originalURLs->toJSONString().utf8();
+    auto bytesWritten = FileSystem::overwriteEntireFile(filePath, byteCast<uint8_t>(fileData.span()));
+    if (bytesWritten && *bytesWritten == fileData.length())
+        return true;
+
+    FileSystem::deleteFile(filePath);
+    return false;
+}
+#endif
+
+void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::MarkupExclusionRule>& markupExclusionRules, const String& directory, const String& suggestedMainResourceName, const String& originalURLsFileName, CompletionHandler<void(std::expected<void, WebCore::ArchiveError>)>&& completionHandler)
 {
     if (!frame)
         return completionHandler(makeUnexpected(WebCore::ArchiveError::InvalidFrame));
@@ -8564,7 +8603,7 @@ void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::Mar
         mainResourceName = host.isEmpty() ? "main"_s : host.toString();
     }
 
-    sendWithAsyncReply(Messages::WebPage::GetWebArchiveOfFrameWithFileName(frame->frameID(), markupExclusionRules, mainResourceName), [directory = directory, completionHandler = WTF::move(completionHandler)](const std::optional<IPC::SharedBufferReference>& data) mutable {
+    sendWithAsyncReply(Messages::WebPage::GetWebArchiveOfFrameWithFileName(frame->frameID(), markupExclusionRules, mainResourceName), [directory = directory, originalURLsFileName = originalURLsFileName, completionHandler = WTF::move(completionHandler)](const std::optional<IPC::SharedBufferReference>& data) mutable {
 #if PLATFORM(COCOA)
         if (!data)
             return completionHandler(makeUnexpected(WebCore::ArchiveError::SerializationFailure));
@@ -8573,12 +8612,17 @@ void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::Mar
         if (!buffer)
             return completionHandler(makeUnexpected(WebCore::ArchiveError::SerializationFailure));
 
-        sharedFileQueueSingleton().dispatch([directory = directory.isolatedCopy(), buffer, completionHandler = WTF::move(completionHandler)]() mutable {
+        sharedFileQueueSingleton().dispatch([directory = directory.isolatedCopy(), originalURLsFileName = originalURLsFileName.isolatedCopy(), buffer, completionHandler = WTF::move(completionHandler)] mutable {
             RefPtr archive = LegacyWebArchive::create(*buffer);
             auto result = archive->saveResourcesToDisk(directory);
             std::optional<WebCore::ArchiveError> error;
             if (!result)
                 error = result.error();
+            else if (!originalURLsFileName.isEmpty() && !saveOriginalURLsToDisk(*archive, directory, originalURLsFileName)) {
+                for (auto& filePath : *result)
+                    FileSystem::deleteFile(filePath);
+                error = WebCore::ArchiveError::FileSystemError;
+            }
             RunLoop::mainSingleton().dispatch([completionHandler = WTF::move(completionHandler), error]() mutable {
                 if (error)
                     return completionHandler(makeUnexpected(*error));
@@ -8588,6 +8632,7 @@ void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::Mar
         });
 #else
         ASSERT_UNUSED(data, !data);
+        UNUSED_PARAM(originalURLsFileName);
         completionHandler(makeUnexpected(WebCore::ArchiveError::NotImplemented));
 #endif
     });
@@ -8963,6 +9008,20 @@ void WebPageProxy::continueAccessibilitySearchFromChildFrame(IPC::Connection& co
     // Send the continuation request to the parent frame's process.
     sendWithAsyncReplyToProcessContainingFrame(parentFrame->frameID(), Messages::WebPage::ContinueAccessibilitySearchInParentFrame(childFrameID, criteria), WTF::move(callback));
 }
+
+void WebPageProxy::relayAccessibilitySelectedTextChangeToMainFrame(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::AXRemoteFrameSelectedTextChange&& change)
+{
+    RefPtr frame = WebFrameProxy::webFrame(frameID);
+    if (!frame || !m_mainFrame)
+        return;
+
+    Ref process = WebProcessProxy::fromConnection(connection);
+    // Only the process hosting a cross-site frame may relay its selection changes, so a compromised
+    // process can't make the main frame's process post notifications for frames it doesn't own.
+    MESSAGE_CHECK(process, &frame->process() == process.ptr() && frame != m_mainFrame);
+
+    sendToProcessContainingFrame(m_mainFrame->frameID(), Messages::WebPage::PostAccessibilitySelectedTextChangeFromRemoteFrame(WTF::move(change)));
+}
 #endif
 
 void WebPageProxy::updateReferrerPolicy(IPC::Connection& connection, WebCore::FrameIdentifier frameID, WebCore::ReferrerPolicy referrerPolicy)
@@ -9040,6 +9099,10 @@ void WebPageProxy::didDestroyNavigationShared(Ref<WebProcessProxy>&& process, We
     RefPtr protectedPageClient { pageClient() };
 
     m_navigationState->didDestroyNavigation(process->coreProcessIdentifier(), navigationID);
+
+    auto it = internals().pendingBackForwardIframeRestores.find(navigationID);
+    if (it != internals().pendingBackForwardIframeRestores.end() && it->value->mainFrameProcessIdentifier == process->coreProcessIdentifier())
+        restoreOrCancelPendingBackForwardIframes(*internals().pendingBackForwardIframeRestores.take(it), RestoredFromBackForwardCache::No);
 }
 
 void WebPageProxy::didStartProvisionalLoadForFrame(IPC::Connection& connection, FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, URL&& url, URL&& unreachableURL, const UserData& userData, WallTime timestamp)
@@ -9588,6 +9651,8 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
             if (restoredFromBackForwardCache == RestoredFromBackForwardCache::Yes)
                 frame->adoptChildFrames(WTF::move(pendingChildren));
         }
+        if (auto pendingRestore = internals().pendingBackForwardIframeRestores.take(navigation->navigationID()))
+            restoreOrCancelPendingBackForwardIframes(*pendingRestore, restoredFromBackForwardCache);
     }
 
     m_hasCommittedAnyProvisionalLoads = true;
@@ -15093,22 +15158,6 @@ void WebPageProxy::logScrollingEvent(uint32_t eventType, MonotonicTime timestamp
     }
 }
 
-void WebPageProxy::focusedElementChanged(IPC::Connection& connection, const std::optional<FrameIdentifier>& frameID, FocusOptions options)
-{
-    if (!frameID)
-        return;
-
-    RefPtr frame = WebFrameProxy::webFrame(*frameID);
-    if (!frame)
-        return;
-
-    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
-        if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
-            return;
-        webProcess.send(Messages::WebPage::ElementWasFocusedInAnotherProcess(*frameID, options), pageID);
-    });
-}
-
 void WebPageProxy::focusedFrameChanged(IPC::Connection& connection, std::optional<FrameIdentifier>&& frameID)
 {
     RefPtr frame = frameID ? WebFrameProxy::webFrame(*frameID) : nullptr;
@@ -15204,6 +15253,10 @@ void WebPageProxy::resetStateAfterProcessTermination(ProcessTerminationReason re
         // If it does *during* process swapping, and the client triggers a reload, that causes bizarre WebKit re-entry.
         // FIXME: This might have to change
         m_navigationState->clearAllNavigations();
+
+        auto pendingIframeRestores = std::exchange(internals().pendingBackForwardIframeRestores, { });
+        for (auto& pendingRestore : pendingIframeRestores.values())
+            restoreOrCancelPendingBackForwardIframes(*pendingRestore, RestoredFromBackForwardCache::No);
 
         if (m_controlledByAutomation) {
             if (RefPtr automationSession = configuration().processPool().automationSession())
@@ -21293,6 +21346,26 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
     for (Ref process : iframeProcesses) {
         WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "didCacheBackForwardItem: dispatching SuspendWithFrameItem to pid %i", process->processID());
         process->sendWithAsyncReply(Messages::WebPage::SuspendWithFrameItem(mainFrameItemID), aggregator->chain(), webPageIDInProcess(process));
+    }
+}
+
+void WebPageProxy::restoreOrCancelPendingBackForwardIframes(const PendingBackForwardIframeRestore& pendingRestore, RestoredFromBackForwardCache restoredFromBackForwardCache)
+{
+    for (Ref iframeProcess : pendingRestore.iframeProcesses) {
+        if (restoredFromBackForwardCache == RestoredFromBackForwardCache::No) {
+            iframeProcess->send(Messages::WebPage::CancelRestoreWithFrameItem(pendingRestore.mainFrameItemID), webPageIDInProcess(iframeProcess));
+            continue;
+        }
+
+        if (!protect(browsingContextGroup())->remotePageInProcess(*this, iframeProcess)) {
+            WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "restoreOrCancelPendingBackForwardIframes: no RemotePageProxy for pid %i, signaling failure", iframeProcess->processID());
+            RunLoop::mainSingleton().dispatch([aggregator = pendingRestore.aggregator] {
+                aggregator->failed();
+            });
+            continue;
+        }
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "restoreOrCancelPendingBackForwardIframes: dispatching RestoreWithFrameItem to pid %i", iframeProcess->processID());
+        iframeProcess->sendWithAsyncReply(Messages::WebPage::RestoreWithFrameItem(pendingRestore.mainFrameItemID, std::nullopt), protect(pendingRestore.aggregator)->chain(), webPageIDInProcess(iframeProcess));
     }
 }
 

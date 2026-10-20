@@ -102,6 +102,7 @@
 #import <WebCore/HTMLIFrameElement.h>
 #import <WebCore/HTMLImageElement.h>
 #import <WebCore/HTMLLabelElement.h>
+#import <WebCore/HTMLMediaElement.h>
 #import <WebCore/HTMLOListElement.h>
 #import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/HTMLSelectElement.h>
@@ -739,6 +740,15 @@ void WebPage::performAccessibilitySearchInRemoteFrame(WebCore::FrameIdentifier f
     auto searchResults = WebCore::performSearchWithCrossProcessCoordination(*webArea, WTF::move(localCriteria));
 
     completionHandler(convertSearchResultsToRemoteTokens(WTF::move(searchResults)));
+}
+
+void WebPage::postAccessibilitySelectedTextChangeFromRemoteFrame(const WebCore::AXRemoteFrameSelectedTextChange& change)
+{
+    RefPtr coreFrame = m_mainFrame->coreLocalFrame();
+    RefPtr document = coreFrame ? coreFrame->document() : nullptr;
+    // This is null if accessibility isn't enabled, in which case no assistive technology is listening.
+    if (CheckedPtr cache = document ? document->axObjectCache() : nullptr)
+        cache->postSelectedTextChangeFromRemoteFrame(change);
 }
 
 void WebPage::continueAccessibilitySearchInParentFrame(WebCore::FrameIdentifier childFrameID, WebCore::AccessibilitySearchCriteriaIPC criteria, CompletionHandler<void(Vector<WebCore::AccessibilityRemoteToken>&&)>&& completionHandler)
@@ -3813,7 +3823,9 @@ void WebPage::completeSyntheticClick(std::optional<WebCore::FrameIdentifier> fra
     if (nodeRespondingToClick.document().settings().contentChangeObserverEnabled()) {
         Ref document = nodeRespondingToClick.document();
         // Dispatch mouseOut to dismiss tooltip content when tapping on the control bar buttons (cc, settings).
-        if (document->quirks().needsYouTubeMouseOutQuirk()) {
+        RefPtr mediaElement = dynamicDowncast<HTMLMediaElement>(nodeRespondingToClick);
+        bool isShowingNativeMediaControls = mediaElement && (mediaElement->controls() || mediaElement->shouldForceControlsDisplay());
+        if (document->quirks().needsYouTubeMouseOutQuirk() && !isShowingNativeMediaControls) {
             if (RefPtr frame = document->frame()) {
                 PlatformMouseEvent event { roundedAdjustedPoint, globalPoint, MouseButton::Left, PlatformEvent::Type::NoType, 0, platformModifiers, MonotonicTime::now(), 0, WebCore::SyntheticClickType::NoTap, m_potentialTapInputSource, pointerId };
                 RefPtr<Element> newHoveredNode;

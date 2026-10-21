@@ -1063,6 +1063,7 @@ public:
     inline Element* cssTarget() const; // Defined in ElementInlines.h.
 
     WEBCORE_EXPORT void scheduleFullStyleRebuild();
+    void updateStyleAfterChangeInEnvironment();
     void scheduleStyleRecalc();
     void unscheduleStyleRecalc();
     bool LEGACY_NODELETE hasPendingStyleRecalc() const;
@@ -1212,6 +1213,8 @@ public:
 
     void metaElementTextScaleChanged();
     WEBCORE_EXPORT TextScaleMeta LEGACY_NODELETE textScaleMeta() const;
+    float textScaleFactor() const;
+    bool textAutosizingEnabled() const;
 
 #if ENABLE(APPLICATION_MANIFEST)
     void processApplicationManifest(const ApplicationManifest&);
@@ -1355,6 +1358,8 @@ public:
     void setTransformSource(std::unique_ptr<TransformSource>);
     TransformSource* transformSource() const LIFETIME_BOUND { return m_transformSource.get(); }
 #endif
+
+    void logXMLExternalEntityDeprecationWarningIfNeeded();
 
     void incDOMTreeVersion() { m_domTreeVersion = ++s_globalTreeVersion; }
     uint64_t domTreeVersion() const { return m_domTreeVersion; }
@@ -2905,6 +2910,7 @@ private:
     bool m_hasPendingXSLTransforms : 1 { false };
     bool m_hasLoggedXSLTDeprecationWarning : 1 { false };
 #endif
+    bool m_hasLoggedXMLExternalEntityDeprecationWarning : 1 { false };
 #if ENABLE(MEDIA_STREAM)
     bool m_hasHadCaptureMediaStreamTrack : 1 { false };
 #endif

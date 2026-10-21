@@ -135,7 +135,6 @@
 #include "WebLocalFrameLoaderClient.h"
 #include "WebMediaKeyStorageManager.h"
 #include "WebMediaKeySystemClient.h"
-#include "WebMediaStrategy.h"
 #include "WebModelPlayerProvider.h"
 #include "WebMouseEvent.h"
 #include "WebNotificationClient.h"
@@ -204,7 +203,6 @@
 #include <WebCore/DOMPasteAccess.h>
 #include <WebCore/DOMWrapperWorld.h>
 #include <WebCore/DataTransfer.h>
-#include <WebCore/DatabaseManager.h>
 #include <WebCore/DeprecatedGlobalSettings.h>
 #include <WebCore/DisplayListRecorderImpl.h>
 #include <WebCore/Document.h>
@@ -306,7 +304,6 @@
 #include <WebCore/PointerCaptureController.h>
 #include <WebCore/PopupMenuClient.h>
 #include <WebCore/PrintContext.h>
-#include <WebCore/ProcessCapabilities.h>
 #include <WebCore/PromisedAttachmentInfo.h>
 #include <WebCore/Quirks.h>
 #include <WebCore/Range.h>
@@ -327,7 +324,6 @@
 #include <WebCore/Report.h>
 #include <WebCore/ReportingScope.h>
 #include <WebCore/ResourceLoadStatistics.h>
-#include <WebCore/ResourceMonitorChecker.h>
 #include <WebCore/ResourceRequest.h>
 #include <WebCore/ResourceResponse.h>
 #include <WebCore/ResourceTiming.h>
@@ -410,7 +406,6 @@
 #include "WebRemoteObjectRegistry.h"
 #include <WebCore/LegacyWebArchive.h>
 #include <WebCore/VP9UtilitiesCocoa.h>
-#include <pal/spi/cg/ImageIOSPI.h>
 #include <wtf/MachSendRight.h>
 #include <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
 #include <wtf/spi/darwin/SandboxSPI.h>
@@ -658,12 +653,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif
     , m_alwaysShowsHorizontalScroller { parameters.alwaysShowsHorizontalScroller }
     , m_alwaysShowsVerticalScroller { parameters.alwaysShowsVerticalScroller }
-    , m_shouldRenderCanvasInGPUProcess { parameters.shouldRenderCanvasInGPUProcess }
     , m_shouldRenderDOMInGPUProcess { parameters.shouldRenderDOMInGPUProcess }
-    , m_shouldPlayMediaInGPUProcess { parameters.shouldPlayMediaInGPUProcess }
-#if ENABLE(WEBGL)
-    , m_shouldRenderWebGLInGPUProcess { parameters.shouldRenderWebGLInGPUProcess }
-#endif
     , m_shouldSendConsoleLogsToUIProcessForTesting(parameters.shouldSendConsoleLogsToUIProcessForTesting)
 #if HAVE(NSVIEW_CORNER_CONFIGURATION)
     , m_scrollbarAvoidanceCornerRadii(parameters.scrollbarAvoidanceCornerRadii)
@@ -788,26 +778,16 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif // HAVE(SANDBOX_STATE_FLAGS)
     auto shouldBlockIOKit = m_shouldRenderDOMInGPUProcess
 #if ENABLE(WEBGL)
-        && m_shouldRenderWebGLInGPUProcess
+        && parameters.store.getBoolValueForKey(WebPreferencesKey::useGPUProcessForWebGLEnabledKey())
 #if ENABLE(TILED_CA_DRAWING_AREA)
         && m_drawingAreaType == DrawingAreaType::RemoteLayerTree
 #endif
 #endif
-        && m_shouldRenderCanvasInGPUProcess
-        && m_shouldPlayMediaInGPUProcess;
+        && parameters.store.getBoolValueForKey(WebPreferencesKey::useGPUProcessForCanvasRenderingEnabledKey())
+        && parameters.store.getBoolValueForKey(WebPreferencesKey::useGPUProcessForMediaEnabledKey());
 
-    if (shouldBlockIOKit) {
-#if HAVE(SANDBOX_STATE_FLAGS) && !ENABLE(WEBCONTENT_GPU_SANDBOX_EXTENSIONS_BLOCKING)
-        sandbox_enable_state_flag("BlockIOKitInWebContentSandbox", *auditToken);
-#endif
-        ProcessCapabilities::setHardwareAcceleratedDecodingDisabled(true);
-        ProcessCapabilities::setCanUseAcceleratedBuffers(false);
-        static bool disabled { false };
-        if (!std::exchange(disabled, true)) {
-            OSStatus ok = CGImageSourceDisableHardwareDecoding();
-            ASSERT_UNUSED(ok, ok == noErr);
-        }
-    }
+    if (shouldBlockIOKit)
+        WebProcess::singleton().blockIOKit();
 #endif
 
     auto frameType = parameters.remotePageParameters ? Frame::FrameType::Remote : Frame::FrameType::Local;
@@ -979,6 +959,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     if (parameters.shouldForceSiteIsolationAlwaysOnForTesting)
         WebPreferences::forceSiteIsolationAlwaysOnForTesting();
 
+#if ENABLE(GPU_PROCESS)
+    WebProcess::singleton().setUseGPUProcessFromPreferences(parameters.store);
+#endif
     updatePreferences(parameters.store);
     if (page->settings().siteIsolationEnabled()) {
         page->inspectorController().siteIsolationFirstEnabled();
@@ -1238,10 +1221,10 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     setNeedsScrollGeometryUpdates(parameters.needsScrollGeometryUpdates);
 
 #if ENABLE(WEB_RTC)
-    if (!parameters.iceCandidateFilteringEnabled)
+    if (!parameters.store.getBoolValueForKey(WebPreferencesKey::iceCandidateFilteringEnabledKey()))
         page->disableICECandidateFiltering();
 #if USE(LIBWEBRTC)
-    if (parameters.enumeratingAllNetworkInterfacesEnabled)
+    if (parameters.store.getBoolValueForKey(WebPreferencesKey::enumeratingAllNetworkInterfacesEnabledKey()))
         downcast<LibWebRTCProvider>(page->webRTCProvider()).enableEnumeratingAllNetworkInterfaces();
     if (parameters.store.getBoolValueForKey(WebPreferencesKey::enumeratingVisibleNetworkInterfacesEnabledKey()))
         downcast<LibWebRTCProvider>(page->webRTCProvider()).enableEnumeratingVisibleNetworkInterfaces();
@@ -1265,7 +1248,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif // HAVE(VISIBILITY_PROPAGATION_VIEW) && !HAVE(NON_HOSTING_VISIBILITY_PROPAGATION_VIEW)
 
 #if ENABLE(VP9) && PLATFORM(COCOA)
-    VP9TestingOverrides::singleton().setShouldEnableVP9Decoder(parameters.shouldEnableVP9Decoder);
+    VP9TestingOverrides::singleton().setShouldEnableVP9Decoder(parameters.store.getBoolValueForKey(WebPreferencesKey::vp9DecoderEnabledKey()));
 #endif
 
     page->setCanUseCredentialStorage(parameters.canUseCredentialStorage);
@@ -2924,7 +2907,26 @@ void WebPage::reload(WebCore::NavigationIdentifier navigationID, OptionSet<WebCo
     }
 }
 
-void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
+static bool isLoadingForNavigation(LocalFrame& frame, NavigationIdentifier navigationID)
+{
+    auto& loader = frame.loader();
+    RefPtr policyDocumentLoader = loader.policyDocumentLoader();
+    if (policyDocumentLoader && policyDocumentLoader->navigationID() == navigationID)
+        return true;
+    RefPtr provisionalDocumentLoader = loader.provisionalDocumentLoader();
+    return provisionalDocumentLoader && provisionalDocumentLoader->navigationID() == navigationID;
+}
+
+static bool didApplyTraversal(LocalFrame& frame, HistoryItem& item)
+{
+    auto& loader = frame.loader();
+    if (loader.hasDeferredTraversal())
+        return true;
+    RefPtr currentItem = loader.history().currentItem();
+    return currentItem && currentItem->itemSequenceNumber() == item.itemSequenceNumber();
+}
+
+void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters, CompletionHandler<void(FrameTraversalResult)>&& completionHandler)
 {
     WEBPAGE_RELEASE_LOG(Loading, "goToBackForwardItem: navigationID=%" PRIu64 ", backForwardItemID=%s, shouldTreatAsContinuingLoad=%u, lastNavigationWasAppInitiated=%d, existingNetworkResourceLoadIdentifierToResume=%" PRIu64, parameters.navigationID.object().toUInt64(), parameters.frameState->itemID->toString().utf8(), static_cast<unsigned>(parameters.shouldTreatAsContinuingLoad), parameters.lastNavigationWasAppInitiated, parameters.existingNetworkResourceLoadIdentifierToResume ? parameters.existingNetworkResourceLoadIdentifierToResume->toUInt64() : 0);
     SendStopResponsivenessTimer stopper;
@@ -2971,9 +2973,22 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters)
     if (RefPtr targetLocalFrame = targetFrame->provisionalFrame() ? targetFrame->provisionalFrame() : targetFrame->coreLocalFrame()) {
         if (targetFrame.ptr() == m_mainFrame.ptr())
             targetLocalFrame->loader().setNavigationUpgradeToHTTPSBehavior(item->url().protocolIs("http"_s) ? NavigationUpgradeToHTTPSBehavior::Disabled : NavigationUpgradeToHTTPSBehavior::BasedOnPolicy);
-        protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache);
-    } else
+        protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache, [weakTargetLocalFrame = WeakPtr { *targetLocalFrame }, item = Ref { *item }, navigationID = parameters.navigationID, completionHandler = WTF::move(completionHandler)] mutable {
+            RefPtr targetLocalFrame = weakTargetLocalFrame;
+            if (!targetLocalFrame) {
+                completionHandler(FrameTraversalResult::NotTaken);
+                return;
+            }
+            if (isLoadingForNavigation(*targetLocalFrame, navigationID)) {
+                completionHandler(FrameTraversalResult::StartedLoad);
+                return;
+            }
+            completionHandler(didApplyTraversal(*targetLocalFrame, item) ? FrameTraversalResult::Taken : FrameTraversalResult::NotTaken);
+        });
+    } else {
         WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "goToBackForwardItem: No target local frame found for navigationID=%" PRIu64 ", backForwardItemID=%s — navigation silently dropped", parameters.navigationID.object().toUInt64(), parameters.frameState->itemID->toString().utf8());
+        completionHandler(FrameTraversalResult::NotTaken);
+    }
 }
 
 // GoToBackForwardItemWaitingForProcessLaunch should never be sent to the WebProcess. It must always be converted to a GoToBackForwardItem message.
@@ -5576,17 +5591,13 @@ void WebPage::adjustSettingsForLockdownMode(Settings& settings, const WebPrefere
     }
 }
 
-void WebPage::updatePreferences(const WebPreferencesStore& store)
+void WebPage::updateSettings(const WebPreferencesStore& store, Settings& settings)
 {
-    updatePreferencesGenerated(store);
-
-    Settings& settings = m_page->settings();
-
     updateSettingsGenerated(store, settings);
 
 #if !PLATFORM(GTK) && !PLATFORM(WIN) && !PLATFORM(PLAYSTATION) && !PLATFORM(WPE)
     if (!settings.acceleratedCompositingEnabled()) {
-        WEBPAGE_RELEASE_LOG(Layers, "updatePreferences: acceleratedCompositingEnabled setting was false. WebKit cannot function in this mode; changing setting to true");
+        RELEASE_LOG(Layers, "updateSettings: acceleratedCompositingEnabled setting was false. WebKit cannot function in this mode; changing setting to true");
         settings.setAcceleratedCompositingEnabled(true);
     }
 #endif
@@ -5605,8 +5616,30 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
     settings.setDataDetectorTypes(static_cast<DataDetectorType>(store.getUInt32ValueForKey(WebPreferencesKey::dataDetectorTypesKey())));
 #endif
     settings.setPitchCorrectionAlgorithm(static_cast<MediaPlayerEnums::PitchCorrectionAlgorithm>(store.getUInt32ValueForKey(WebPreferencesKey::pitchCorrectionAlgorithmKey())));
+#if ENABLE(PAYMENT_REQUEST)
+    settings.setPaymentRequestEnabled(store.getBoolValueForKey(WebPreferencesKey::applePayEnabledKey()));
+#endif
+    settings.setPrivateClickMeasurementEnabled(store.getBoolValueForKey(WebPreferencesKey::privateClickMeasurementEnabledKey()));
 
-    DatabaseManager::singleton().setIsAvailable(store.getBoolValueForKey(WebPreferencesKey::databasesEnabledKey()));
+    // FIXME: This should be automated by adding a new field in WebPreferences*.yaml
+    // that indicates override state for Lockdown mode. https://webkit.org/b/233100.
+    if (WebProcess::singleton().isLockdownModeEnabled())
+        adjustSettingsForLockdownMode(settings, &store);
+    if (settings.forceLockdownFontParserEnabled())
+        settings.setDownloadableBinaryFontTrustedTypes(DownloadableBinaryFontTrustedTypes::SafeFontParser);
+
+    if (settings.developerExtrasEnabled()) {
+        settings.setShowMediaStatsContextMenuItemEnabled(true);
+        settings.setTrackConfigurationEnabled(true);
+    }
+}
+
+void WebPage::updatePreferences(const WebPreferencesStore& store)
+{
+    WebProcess::singleton().updateProcessPreferences(store);
+
+    Settings& settings = m_page->settings();
+    updateSettings(store, settings);
 
     m_tabToLinks = store.getBoolValueForKey(WebPreferencesKey::tabsToLinksKey());
 
@@ -5620,9 +5653,6 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
     m_pdfPluginEnabled = store.getBoolValueForKey(WebPreferencesKey::pdfPluginEnabledKey());
 
     m_selectionFlippingEnabled = store.getBoolValueForKey(WebPreferencesKey::selectionFlippingEnabledKey());
-#endif
-#if ENABLE(PAYMENT_REQUEST)
-    settings.setPaymentRequestEnabled(store.getBoolValueForKey(WebPreferencesKey::applePayEnabledKey()));
 #endif
 
 #if PLATFORM(IOS_FAMILY)
@@ -5647,27 +5677,10 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
     m_needsInAppBrowserPrivacyQuirks = store.getBoolValueForKey(WebPreferencesKey::needsInAppBrowserPrivacyQuirksKey());
 #endif
 
-    settings.setPrivateClickMeasurementEnabled(store.getBoolValueForKey(WebPreferencesKey::privateClickMeasurementEnabledKey()));
-
     if (RefPtr drawingArea = m_drawingArea)
         drawingArea->updatePreferences(store);
 
-    WebProcess::singleton().setChildProcessDebuggabilityEnabled(store.getBoolValueForKey(WebPreferencesKey::childProcessDebuggabilityEnabledKey()));
-
-#if ENABLE(CONTENT_EXTENSIONS)
-    if (auto threshold = store.getUInt32ValueForKey(WebPreferencesKey::iFrameResourceMonitorNetworkUsageThresholdForTestingKey()))
-        WebCore::ResourceMonitorChecker::singleton().setNetworkUsageThreshold(threshold, store.getDoubleValueForKey(WebPreferencesKey::iFrameResourceMonitorNetworkUsageThresholdRandomnessForTestingKey()));
-#endif
-
 #if ENABLE(GPU_PROCESS)
-    downcast<WebMediaStrategy>(platformStrategies()->mediaStrategy())->setUseGPUProcess(m_shouldPlayMediaInGPUProcess);
-#if ENABLE(VIDEO)
-    protect(WebProcess::singleton().remoteMediaPlayerManager())->setUseGPUProcess(m_shouldPlayMediaInGPUProcess);
-#endif
-#if HAVE(AVASSETREADER)
-    protect(WebProcess::singleton().remoteImageDecoderAVFManager())->setUseGPUProcess(m_shouldPlayMediaInGPUProcess);
-#endif
-    WebProcess::singleton().setUseGPUProcessForCanvasRendering(m_shouldRenderCanvasInGPUProcess);
     bool usingGPUProcessForDOMRendering = m_shouldRenderDOMInGPUProcess
 #if ENABLE(TILED_CA_DRAWING_AREA)
         && DrawingArea::supportsGPUProcessRendering(m_drawingAreaType);
@@ -5675,10 +5688,6 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
         && DrawingArea::supportsGPUProcessRendering();
 #endif
     WebProcess::singleton().setUseGPUProcessForDOMRendering(usingGPUProcessForDOMRendering);
-    WebProcess::singleton().setUseGPUProcessForMedia(m_shouldPlayMediaInGPUProcess);
-#if ENABLE(WEBGL)
-    WebProcess::singleton().setUseGPUProcessForWebGL(m_shouldRenderWebGLInGPUProcess);
-#endif
 #endif // ENABLE(GPU_PROCESS)
 
 #if ENABLE(IPC_TESTING_API)
@@ -5693,32 +5702,10 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 #endif // ENABLE(MODEL_PROCESS)
 #endif // ENABLE(IPC_TESTING_API)
 
-#if ENABLE(VP9) && PLATFORM(COCOA)
-    VP9TestingOverrides::singleton().setSWVPDecodersAlwaysEnabled(store.getBoolValueForKey(WebPreferencesKey::sWVPDecodersAlwaysEnabledKey()));
-#endif
-
-    // FIXME: This should be automated by adding a new field in WebPreferences*.yaml
-    // that indicates override state for Lockdown mode. https://webkit.org/b/233100.
-    if (WebProcess::singleton().isLockdownModeEnabled())
-        adjustSettingsForLockdownMode(settings, &store);
-    if (settings.forceLockdownFontParserEnabled())
-        settings.setDownloadableBinaryFontTrustedTypes(DownloadableBinaryFontTrustedTypes::SafeFontParser);
-
-    if (settings.developerExtrasEnabled()) {
-        settings.setShowMediaStatsContextMenuItemEnabled(true);
-        settings.setTrackConfigurationEnabled(true);
-    }
-
-#if ENABLE(WIRELESS_PLAYBACK_MEDIA_PLAYER)
-    platformStrategies()->mediaStrategy()->setWirelessPlaybackMediaPlayerEnabled(store.getBoolValueForKey(WebPreferencesKey::wirelessPlaybackMediaPlayerEnabledKey()));
-#endif
-
 #if ENABLE(PDF_PLUGIN)
     for (Ref pluginView : m_pluginViews)
         pluginView->didChangeSettings();
 #endif
-
-    WebProcess::singleton().updateSharedPreferencesForWebProcess(WebKit::sharedPreferencesForWebProcess(store, WebProcess::singleton().isLockdownModeEnabled()));
 
     protect(corePage())->settingsDidChange();
 
@@ -5755,8 +5742,11 @@ void WebPage::removeDataDetectedLinks(CompletionHandler<void(DataDetectionResult
     completionHandler({ });
 }
 
-static void detectDataInFrame(const Ref<Frame>& frame, OptionSet<WebCore::DataDetectorType> dataDetectorTypes, const std::optional<double>& dataDetectionReferenceDate, UniqueRef<DataDetectionResult>&& mainFrameResult, CompletionHandler<void(DataDetectionResult&&)>&& completionHandler)
+static void detectDataInFrame(RefPtr<Frame>&& frame, OptionSet<WebCore::DataDetectorType> dataDetectorTypes, const std::optional<double>& dataDetectionReferenceDate, UniqueRef<DataDetectionResult>&& mainFrameResult, CompletionHandler<void(DataDetectionResult&&)>&& completionHandler)
 {
+    while (frame && !is<LocalFrame>(*frame))
+        frame = frame->tree().traverseNext();
+
     RefPtr localFrame = dynamicDowncast<LocalFrame>(frame.get());
     if (!localFrame) {
         completionHandler(WTF::move(mainFrameResult.get()));
@@ -5768,13 +5758,7 @@ static void detectDataInFrame(const Ref<Frame>& frame, OptionSet<WebCore::DataDe
         if (localFrame->isMainFrame())
             mainFrameResult->setResults(results);
 
-        RefPtr next = localFrame->tree().traverseNext();
-        if (!next) {
-            completionHandler(WTF::move(mainFrameResult.get()));
-            return;
-        }
-
-        detectDataInFrame(Ref { *next }, dataDetectorTypes, dataDetectionReferenceDate, WTF::move(mainFrameResult), WTF::move(completionHandler));
+        detectDataInFrame(localFrame->tree().traverseNext(), dataDetectorTypes, dataDetectionReferenceDate, WTF::move(mainFrameResult), WTF::move(completionHandler));
     });
 }
 

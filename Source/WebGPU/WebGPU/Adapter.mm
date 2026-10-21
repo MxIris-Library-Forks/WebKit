@@ -104,20 +104,6 @@ WebGPU::AdapterInfo Adapter::info()
     return info;
 }
 
-void Adapter::getInfo(WGPUAdapterInfo& info)
-{
-    auto apiInfo = this->info();
-    // FIXME: What should the vendorID and deviceID be?
-    info.vendorID = 0;
-    info.deviceID = 0;
-    info.name = m_device.name.UTF8String;
-    info.driverDescription = "";
-    info.adapterType = m_device.hasUnifiedMemory ? WGPUAdapterType_IntegratedGPU : WGPUAdapterType_DiscreteGPU;
-    info.backendType = WGPUBackendType_Metal;
-    info.subgroupMinSize = apiInfo.subgroupMinSize;
-    info.subgroupMaxSize = apiInfo.subgroupMaxSize;
-}
-
 bool Adapter::hasFeature(WebGPU::FeatureName feature)
 {
     return m_capabilities.features.contains(feature);
@@ -192,17 +178,6 @@ void wgpuAdapterRelease(WGPUAdapter adapter)
     WebGPU::Metal::fromAPI(adapter).deref();
 }
 
-size_t wgpuAdapterEnumerateFeatures(WGPUAdapter adapter, WGPUFeatureName* features)
-{
-    // The caller calls this twice: once for the count, and once with space for that many features.
-    auto apiFeatures = protect(WebGPU::Metal::fromAPI(adapter))->features();
-    if (features) {
-        for (auto [i, feature] : indexedRange(apiFeatures))
-            unsafeMakeSpan(features, apiFeatures.size())[i] = WebGPU::Metal::toAPI(feature);
-    }
-    return apiFeatures.size();
-}
-
 WGPUBool wgpuAdapterGetLimits(WGPUAdapter adapter, WGPUSupportedLimits* limits)
 {
     limits->limits = WebGPU::Metal::toAPI(protect(WebGPU::Metal::fromAPI(adapter))->limits());
@@ -211,7 +186,18 @@ WGPUBool wgpuAdapterGetLimits(WGPUAdapter adapter, WGPUSupportedLimits* limits)
 
 void wgpuAdapterGetInfo(WGPUAdapter adapter, WGPUAdapterInfo* info)
 {
-    protect(WebGPU::Metal::fromAPI(adapter))->getInfo(*info);
+    Ref protectedAdapter = WebGPU::Metal::fromAPI(adapter);
+    auto apiInfo = protectedAdapter->info();
+    id<MTLDevice> device = protectedAdapter->device();
+    // FIXME: What should the vendorID and deviceID be?
+    info->vendorID = 0;
+    info->deviceID = 0;
+    info->name = device.name.UTF8String;
+    info->driverDescription = "";
+    info->adapterType = device.hasUnifiedMemory ? WGPUAdapterType_IntegratedGPU : WGPUAdapterType_DiscreteGPU;
+    info->backendType = WGPUBackendType_Metal;
+    info->subgroupMinSize = apiInfo.subgroupMinSize;
+    info->subgroupMaxSize = apiInfo.subgroupMaxSize;
 }
 
 WGPUBool wgpuAdapterHasFeature(WGPUAdapter adapter, WGPUFeatureName feature)
@@ -240,16 +226,4 @@ void wgpuAdapterRequestDevice(WGPUAdapter adapter, const WGPUDeviceDescriptor* d
     requestDevice(adapter, *descriptor, [callback, userdata](WGPURequestDeviceStatus status, WGPUDevice device, const char* message) {
         callback(status, device, message, userdata);
     });
-}
-
-void wgpuAdapterRequestDeviceWithBlock(WGPUAdapter adapter, WGPUDeviceDescriptor const * descriptor, WGPURequestDeviceBlockCallback callback)
-{
-    requestDevice(adapter, *descriptor, [callback = WebGPU::Metal::fromAPI(WTF::move(callback))](WGPURequestDeviceStatus status, WGPUDevice device, const char* message) {
-        callback(status, device, message);
-    });
-}
-
-WGPUBool wgpuAdapterXRCompatible(WGPUAdapter adapter)
-{
-    return WebGPU::Metal::fromAPI(adapter).isXRCompatible();
 }

@@ -149,6 +149,7 @@
 #include "UnloadCountIncrementer.h"
 #include "UserContentController.h"
 #include "UserGestureIndicator.h"
+#include "ViewTransition.h"
 #include "WindowFeatures.h"
 #include "XMLDocumentParser.h"
 #include <ranges>
@@ -1832,6 +1833,28 @@ SubstituteData FrameLoader::defaultSubstituteDataForURL(const URL& url)
     return SubstituteData(SharedBuffer::create(encodedSrcdoc.span()), URL(), WTF::move(response), iframeElement->srcdocSessionHistoryVisibility());
 }
 
+bool FrameLoader::isDocumentCompletelyLoaded() const
+{
+    return !m_stateMachine.committedFirstRealDocumentLoad() || !m_documentLoader || m_documentLoader->wasOnloadDispatched();
+}
+
+static bool navigationFromAnotherProcessMustReplace(const FrameLoader& frameLoader, const FrameLoadRequest& request)
+{
+    if (request.shouldTreatAsContinuingLoad() != ShouldTreatAsContinuingLoad::YesAfterNavigationPolicyDecision || request.navigationHistoryBehavior() != NavigationHistoryBehavior::Auto || frameLoader.client().isProvisionalFrame())
+        return false;
+
+    RefPtr documentLoader = frameLoader.documentLoader();
+    if (!documentLoader)
+        return false;
+
+    // https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-navigation-must-be-a-replace
+    if (documentLoader->isInitialAboutBlank() == IsInitialAboutBlank::Yes && protect(frameLoader.frame())->tree().parent())
+        return true;
+
+    // https://html.spec.whatwg.org/multipage/nav-history-apis.html#location-object-navigate
+    return request.replaceIfNotCompletelyLoaded() == ReplaceIfNotCompletelyLoaded::Yes && !frameLoader.isDocumentCompletelyLoaded();
+}
+
 void FrameLoader::load(FrameLoadRequest&& request, std::optional<NavigationRequester>&& crossSiteRequester)
 {
     FRAMELOADER_RELEASE_LOG_FORWARDABLE(FrameLoaderLoadFrameLoadRequest);
@@ -1889,6 +1912,10 @@ void FrameLoader::load(FrameLoadRequest&& request, std::optional<NavigationReque
 
     if (request.shouldTreatAsContinuingLoad() != ShouldTreatAsContinuingLoad::No) {
         loader->setClientRedirectSourceForHistory(request.clientRedirectSourceForHistory());
+        if (request.lockBackForwardList() == LockBackForwardList::No && navigationFromAnotherProcessMustReplace(*this, request)) {
+            loader->setNavigationHistoryBehavior(NavigationHistoryBehavior::Replace);
+            request.setLockBackForwardList(LockBackForwardList::Yes);
+        }
         if (request.lockBackForwardList() == LockBackForwardList::Yes) {
             loader->setIsClientRedirect(true);
             m_loadType = FrameLoadType::RedirectWithLockedBackForwardList;
@@ -4651,7 +4678,9 @@ void FrameLoader::dispatchPageswapEvent(DocumentLoader* provisionalLoader, bool 
     auto canTriggerCrossDocumentViewTransition = CanTriggerCrossDocumentViewTransition::No;
     RefPtr<NavigationActivation> activation;
     if (provisionalLoader) {
-        canTriggerCrossDocumentViewTransition = provisionalLoader->navigationCanTriggerCrossDocumentViewTransition(*document, fromBackForwardCache);
+        // A navigation that can't wait would tear down the old document, and its subframes, before the capture completes.
+        if (proceedWithNavigation)
+            canTriggerCrossDocumentViewTransition = provisionalLoader->navigationCanTriggerCrossDocumentViewTransition(*document, fromBackForwardCache);
 
         RefPtr window = document->window();
         auto navigationAPIType = provisionalLoader->triggeringAction().navigationAPIType();
@@ -4701,9 +4730,15 @@ void FrameLoader::loadProvisionalItemFromCachedPage()
     
     provisionalLoader->setCommitted(true);
     waitForOutboundViewTransitionCapture(*provisionalLoader, true, [frame = Ref { m_frame.get() }, provisionalLoader] {
-        // Another navigation may have started meanwhile.
-        if (frame->loader().provisionalDocumentLoader() != provisionalLoader.get())
+        // Another navigation may have started meanwhile. Unless it waits for a transition of its own,
+        // the current document may stay, so it stops holding its rendering for this one.
+        if (RefPtr currentLoader = frame->loader().provisionalDocumentLoader(); currentLoader != provisionalLoader.get()) {
+            RefPtr document = frame->document();
+            RefPtr viewTransition = document ? document->activeViewTransition() : nullptr;
+            if (viewTransition && (!currentLoader || !currentLoader->hasDispatchedPageswapEvent()))
+                viewTransition->skipTransition();
             return;
+        }
         protect(frame->loader())->commitProvisionalLoad();
     });
 }

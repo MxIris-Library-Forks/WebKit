@@ -185,9 +185,11 @@ TEST_F(QuirksTest, EveryCompiledPatternParses)
     }
 }
 
-#if !PLATFORM(PLAYSTATION)
 static String shippedQuirkTableJSON()
 {
+#if PLATFORM(PLAYSTATION)
+    return { };
+#else
 #if PLATFORM(COCOA)
     RetainPtr resourcesBundleURL = adoptCF(CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("TestWebKitAPIResources"), CFSTR("bundle"), nullptr));
     if (!resourcesBundleURL)
@@ -204,6 +206,7 @@ static String shippedQuirkTableJSON()
     if (!contents)
         return { };
     return String::fromUTF8(contents->span());
+#endif
 }
 
 static String describe(const WebCore::RuntimeQuirk& quirk)
@@ -216,7 +219,8 @@ static String describe(const WebCore::RuntimeQuirk& quirk)
 TEST_F(QuirksTest, ParsedQuirkTableMatchesCompiledTable)
 {
     auto json = shippedQuirkTableJSON();
-    ASSERT_FALSE(json.isNull());
+    if (json.isNull())
+        GTEST_SKIP() << "The shipped quirk table is unavailable on this platform";
 
     auto result = WebCore::parseQuirkTable(json);
     for (auto& error : result.errors)
@@ -233,14 +237,14 @@ TEST_F(QuirksTest, ParsedQuirkTableMatchesCompiledTable)
 TEST_F(QuirksTest, ShippedQuirkTableParsesWithoutErrors)
 {
     auto json = shippedQuirkTableJSON();
-    ASSERT_FALSE(json.isNull());
+    if (json.isNull())
+        GTEST_SKIP() << "The shipped quirk table is unavailable on this platform";
 
     auto result = WebCore::parseQuirkTable(json);
     for (auto& error : result.errors)
         ADD_FAILURE() << error.description();
     EXPECT_FALSE(result.table.quirks.isEmpty());
 }
-#endif
 
 static WebCore::QuirkTableParseResult parseRow(ASCIILiteral rowJSON)
 {

@@ -3529,7 +3529,7 @@ header: <WebCore/ImageTypes.h>
 };
 #endif
 
-[AdditionalEncoder=StreamConnectionEncoder] struct WebCore::ImagePaintingOptions {
+[AdditionalEncoder=StreamConnectionEncoder] struct WebCore::ImageDrawingOptions {
     WebCore::CompositeOperator compositeOperator();
     WebCore::BlendMode blendMode();
     WebCore::DecodingMode decodingMode();
@@ -7387,6 +7387,7 @@ header: <WebCore/AXObjectTypes.h>
     bool isAXHidden;
     bool isInert;
     bool isRenderHidden;
+    String hostingFrameName;
 };
 
 header: <WebCore/AXObjectTypes.h>

@@ -87,6 +87,7 @@ fast/scrolling/unfocusing-page-while-keyboard-scrolling.html [ Pass ]
 
 http/tests/security/clipboard/drag-drop-html-cross-origin-iframe-in-same-origin.html [ Pass ]
 
+http/tests/ssl/applepay/ApplePayReferenceSession.https.html [ Skip ]
 http/tests/ssl/applepay [ Pass ]
 
 fast/visual-viewport/rubberbanding-viewport-rects.html [ Pass ]
@@ -2080,6 +2081,13 @@ http/tests/webgpu/webgpu/web_platform/copyToTexture/image.html [ Pass Timeout ]
 # Very slow: 233s on Release arm64, past the 150s that Slow buys. Crashes on Intel, see below.
 [ arm64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap.html [ Skip Slow ]
 
+# Since the whole file above cannot run, this runs the part of from_ImageData which covers an
+# ImageBitmap holding unpremultiplied channels: 33s on Release arm64. Skipped on Intel for the same
+# reasons the two tests around it are.
+[ Release arm64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap-from_ImageData-unpremultiplied-flipY.html [ Slow ]
+[ Debug arm64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap-from_ImageData-unpremultiplied-flipY.html [ Skip ]
+[ x86_64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap-from_ImageData-unpremultiplied-flipY.html [ Skip ]
+
 # skip on intel for now due to small precision error differences
 [ x86_64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/video.html [ Skip ]
 [ Release x86_64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageData.html [ Skip ]
@@ -2504,10 +2512,6 @@ webkit.org/b/322051 [ Release ] media/picture-in-picture/picture-in-picture-inte
 [ Tahoe+ ] http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-iframe-from-prevalent-domain-with-user-interaction-and-access-from-right-frame.https.html [ Failure ]
 [ Tahoe+ ] http/tests/storageAccess/request-and-grant-access-cross-origin-sandboxed-iframe-from-prevalent-domain-with-user-interaction-but-access-from-wrong-frame.https.html [ Failure ]
 
-webkit.org/b/322847 [ Debug ] imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/baseline/row-grid-lanes-item-baseline-subgrid-001.html [ Crash ]
-webkit.org/b/322847 [ Debug ] imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/baseline/row-grid-lanes-item-baseline-subgrid-004.html [ Crash ]
-webkit.org/b/322847 [ Debug ] imported/w3c/web-platform-tests/css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/baseline/row-grid-lanes-item-baseline-subgrid-005.html [ Crash ]
-
 webkit.org/b/323246 [ Debug x86_64 ] accessibility/isolated-tree/canvas-fallback-content-2.html [ Timeout Pass ]
 
 webkit.org/b/323902 [ x86_64 ] http/tests/webgpu/webgpu/web_platform/copyToTexture/ImageBitmap.html [ Pass Crash Timeout ]
@@ -2677,3 +2681,4 @@ webkit.org/b/328134 [ Release ] accessibility/isolated-tree/datetime/time-input-
 webkit.org/b/328239 [ x86_64 ] imported/w3c/web-platform-tests/svg/painting/inline-svg-resize-viewport-dependent-mask.html [ Failure ]
 
 webkit.org/b/328264 [ Debug ] http/tests/ipc/createnewpage-file-body-sandbox-extension.html [ Failure ]
+webkit.org/b/328278 [ x86_64 ] imported/w3c/web-platform-tests/css/css-images/cross-fade-target-alpha.html [ ImageOnlyFailure ]

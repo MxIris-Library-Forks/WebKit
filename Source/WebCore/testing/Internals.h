@@ -1589,6 +1589,8 @@ public:
     int readPreferenceInteger(const String& domain, const String& key);
     String encodedPreferenceValue(const String& domain, const String& key);
 
+    void setPresentationIntentHTMLInterchangeEnabled(bool);
+
     bool supportsPictureInPicture();
 
     String focusRingColor();
@@ -1626,6 +1628,10 @@ public:
 
 #if ENABLE(TELEPHONE_NUMBER_DETECTION)
     unsigned telephoneNumberRangesChangedCount() const;
+#endif
+
+#if ENABLE(SERVICE_CONTROLS)
+    void setHasRelevantSelectionServicesForTesting(bool);
 #endif
 
 #if ENABLE(ATTACHMENT_ELEMENT)
@@ -1809,6 +1815,10 @@ private:
 #endif
 
     static RefPtr<SharedBuffer> pngDataForTesting();
+
+#if PLATFORM(COCOA)
+    static void resetPresentationIntentHTMLInterchangeEnabled();
+#endif
 
     CachedResource* resourceFromMemoryCache(const String& url);
 

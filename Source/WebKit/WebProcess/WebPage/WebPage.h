@@ -511,6 +511,7 @@ class WebUserContentController;
 class WebWheelEvent;
 
 enum class ContentAsStringIncludesChildFrames : bool;
+enum class ContentInversion : uint8_t;
 enum class DragControllerAction : uint8_t;
 #if ENABLE(TILED_CA_DRAWING_AREA)
 enum class DrawingAreaType : bool;
@@ -1069,6 +1070,7 @@ public:
 #endif
 
     void setUseColorAppearance(bool useDarkAppearance, bool useElevatedUserInterfaceLevel);
+    void setContentInversion(ContentInversion);
 
     bool LEGACY_NODELETE windowIsFocused() const;
     bool LEGACY_NODELETE windowAndWebPageAreFocused() const;
@@ -2547,6 +2549,7 @@ private:
     void getContentsAsString(ContentAsStringIncludesChildFrames, CompletionHandler<void(const String&)>&&);
 #if PLATFORM(COCOA)
     void getContentsAsAttributedString(CompletionHandler<void(const WebCore::AttributedString&)>&&);
+    void getSelectionAsAttributedStringForTesting(CompletionHandler<void(const WebCore::AttributedString&)>&&);
 #endif
 #if ENABLE(MHTML)
     void getContentsAsMHTMLData(CompletionHandler<void(const IPC::SharedBufferReference&)>&& callback);

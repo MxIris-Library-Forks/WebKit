@@ -651,6 +651,9 @@ void Internals::resetToConsistentState(Page& page)
     page.setConsoleMessageListenerForTesting(nullptr);
     page.setQuirksSubframeURLForTesting({ });
     page.setQuirksTopDocumentHostForTesting({ });
+#if ENABLE(SERVICE_CONTROLS)
+    page.servicesOverlayController().setHasRelevantSelectionServicesForTesting(std::nullopt);
+#endif
 
     RefPtr localMainFrame = page.localMainFrame();
     if (!localMainFrame)
@@ -707,6 +710,7 @@ void Internals::resetToConsistentState(Page& page)
     AXObjectCache::setAnnouncementTranslationTimeoutForTesting(std::nullopt);
 #if PLATFORM(COCOA)
     AXFormActivityMonitor::setSettleDelayForTesting(std::nullopt);
+    resetPresentationIntentHTMLInterchangeEnabled();
 #endif
     WebCore::setShouldMockParentSearchResultsForTesting(false);
     WebCore::setShouldMockChildFrameSearchResultsForTesting(false);
@@ -8387,6 +8391,10 @@ String Internals::encodedPreferenceValue(const String&, const String&)
     return emptyString();
 }
 
+void Internals::setPresentationIntentHTMLInterchangeEnabled(bool)
+{
+}
+
 bool Internals::isRemoteUIAppForAccessibility()
 {
     return false;
@@ -8539,6 +8547,16 @@ unsigned Internals::telephoneNumberRangesChangedCount() const
     }
 #endif
     return 0;
+}
+#endif
+
+#if ENABLE(SERVICE_CONTROLS)
+void Internals::setHasRelevantSelectionServicesForTesting(bool hasServices)
+{
+    if (RefPtr document = contextDocument()) {
+        if (RefPtr page = document->page())
+            page->servicesOverlayController().setHasRelevantSelectionServicesForTesting(hasServices);
+    }
 }
 #endif
 

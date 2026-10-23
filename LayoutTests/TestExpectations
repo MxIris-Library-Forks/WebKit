@@ -654,9 +654,6 @@ webkit.org/b/290522 imported/w3c/web-platform-tests/html/canvas/offscreen/manual
 # We need to fix our WebVTT implementation to pass most of the WebVTT rendering WPT (https://bugs.webkit.org/show_bug.cgi?id=277975).
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video [ ImageOnlyFailure ]
 
-webkit.org/b/328329 imported/w3c/web-platform-tests/webvtt/parsing/file-parsing/tests/settings-line.html [ Failure ]
-webkit.org/b/328329 imported/w3c/web-platform-tests/webvtt/parsing/file-parsing/tests/settings-position.html [ Failure ]
-
 # These are the WebVTT rendering WPT we are already passing.
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/2_cues_overlapping_partially_move_down.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/2_tracks.html [ Pass ]
@@ -668,7 +665,13 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-mode
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_start.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/align_start_wrapped.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/audio_has_no_subtitles.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/bidi_ruby.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/start_alignment.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/u05D0_first.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/u0628_first.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/u06E9_no_strong_dir.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/vertical_lr.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/vertical_rl.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/cue_too_long.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/dom_override_remove_cue_while_paused.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/embedded_style_imports_blocked.html [ Pass ]
@@ -722,6 +725,8 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-mode
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/u0041_first.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/color_rgba.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/cue_selector_single_colon.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/font_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/font_shorthand.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue/white-space_pre-line_wrapped.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/background_box.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/bold_object/bold_color.html [ Pass ]
@@ -749,6 +754,8 @@ imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-mode
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/class_object/class_with_class_object_specific_selector.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/color_rgba.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/cue_func_selector_single_colon.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/font_properties.html [ Pass ]
+imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/font_shorthand.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/italic_object/italic_color.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/italic_object/italic_font_properties.html [ Pass ]
 imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/selectors/cue_function/italic_object/italic_font_shorthand.html [ Pass ]
@@ -1763,8 +1770,6 @@ editing/spelling/grammar-text-effect-not-reapplied.html [ Skip ]
 
 # This test is somewhat heavy and better skipped for debug
 [ Debug ] fast/css/many-rules.html [ Skip ]
-
-webkit.org/b/315069 [ Debug ] fast/css/container-query-orientation-modal-dialog-crash.html [ Skip ]
 
 webkit.org/b/112521 [ Release ] webaudio/audioprocessingevent.html [ Pass Failure ]
 webkit.org/b/112521 [ Debug ] webaudio/audioprocessingevent.html [ Skip ]
@@ -4303,10 +4308,6 @@ imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-05
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-auto-063.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-text-overflow-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-035.html [ ImageOnlyFailure ]
-[ Debug ] imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-abspos-025.html [ Crash ]
-[ Release ] imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-abspos-025.html [ ImageOnlyFailure ]
-[ Debug ] imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-abspos-026.html [ Crash ]
-[ Release ] imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-abspos-026.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-bidi-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-auto-045.html [ ImageOnlyFailure ]
@@ -8273,8 +8274,6 @@ imported/w3c/web-platform-tests/svg/linking/reftests/media-fragment-spatial-perc
 
 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-on-pseudo-002.html [ ImageOnlyFailure ]
 
-imported/w3c/web-platform-tests/css/css-box/margin-trim/block-container-block-in-inline-001.html [ Crash ]
-imported/w3c/web-platform-tests/css/css-box/margin-trim/block-container-block-in-inline-006.html [ Crash ]
 imported/w3c/web-platform-tests/css/css-box/margin-trim/block-container-block-end-self-collapsing-and-border.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-box/margin-trim/multicol-spanner-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-box/margin-trim/multicol-spanner-003.html [ ImageOnlyFailure ]
@@ -8300,3 +8299,8 @@ accessibility/isolated-tree/line-clamp-text.html [ Skip ]
 
 webkit.org/b/327137 imported/w3c/web-platform-tests/resource-timing/resource-timing-failed-fetch.html [ Failure Pass ]
 webkit.org/b/328230 media/modern-media-controls/spatial-video-support/spatial-video-support-teardown-releases-context-objects.html [ Failure ]
+
+# webkit.org/b/328236 NEW TEST(323881@main): 3x media/modern-media-controls/spatial-video-support/* (layout-tests) are constant text failures.
+media/modern-media-controls/spatial-video-support/spatial-video-support-render-cubemap.html [ Failure ]
+media/modern-media-controls/spatial-video-support/spatial-video-support-render-equirect.html [ Failure ]
+media/modern-media-controls/spatial-video-support/spatial-video-support-render-fisheye.html [ Failure ]

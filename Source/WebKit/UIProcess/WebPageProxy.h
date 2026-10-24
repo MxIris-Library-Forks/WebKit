@@ -682,6 +682,8 @@ struct JSHandleInfo;
 struct KeyEventInterpretationContext;
 struct LoadParameters;
 struct MainFrameData;
+struct MediaPermissionPromptCustomization;
+struct MediaPermissionPromptResult;
 struct PageData;
 struct NavigationActionData;
 struct NetworkResourceLoadIdentifierType;
@@ -2560,6 +2562,7 @@ public:
     void LEGACY_NODELETE rotationAngleForCaptureDeviceChanged(const String&, WebCore::VideoFrameRotation);
     void microphoneMuteStatusChanged(bool isMuting);
 #if PLATFORM(COCOA)
+    void showMediaCapturePermissionPrompt(MediaPermissionPromptCustomization&&, CompletionHandler<void(MediaPermissionPromptResult&&)>&&);
     using MediaPermissionPromptHandlerForTesting = Function<void(Ref<MediaPermissionPromptForTesting>&&)>;
     const MediaPermissionPromptHandlerForTesting& mediaPermissionPromptHandlerForTesting() const LIFETIME_BOUND { return m_mediaPermissionPromptHandlerForTesting; }
     void setMediaPermissionPromptHandlerForTesting(MediaPermissionPromptHandlerForTesting&& handler) { m_mediaPermissionPromptHandlerForTesting = WTF::move(handler); }
@@ -3226,6 +3229,7 @@ private:
     template<typename M> void sendToEveryWebContentProcess();
 
     void sendCORSDisablingPatternsToNetworkProcessIfNecessary();
+    void requestTargetedElementForText(WebCore::TargetedElementRequest&&, CompletionHandler<void(const Vector<Ref<API::TargetedElementInfo>>&)>&&);
     std::optional<WebCore::RegistrableDomain> unpartitionedStorageSiteForNavigation(const WebFrameProxy&, const URL&) const;
 
     void getWebCryptoMasterKey(CompletionHandler<void(std::optional<Vector<uint8_t>>&&)>&&);
@@ -3323,6 +3327,9 @@ private:
 #if PLATFORM(COCOA)
     void didGeneratePageLoadTiming(const WebPageLoadTiming&);
     bool shouldUseRemoteSnapshotting(const WebFrameProxy* rootFrame);
+    bool shouldLaunchPrintProcess(const WebFrameProxy* rootFrame);
+    void launchPrintProcessIfNeeded(const WebFrameProxy* rootFrame);
+    CompletionHandler<void(RefPtr<WebCore::SharedBuffer>&&)> launchPrintProcessForDrawingIfNeeded(const WebFrameProxy* rootFrame, CompletionHandler<void(RefPtr<WebCore::SharedBuffer>&&)>&&);
 #else
     void didGeneratePageLoadTiming(const WebPageLoadTiming&) { }
 #endif
@@ -4021,7 +4028,7 @@ private:
     RefPtr<DrawingAreaProxy> m_drawingArea;
 #if PLATFORM(COCOA)
     std::unique_ptr<RemoteLayerTreeHost> m_frozenRemoteLayerTreeHost;
-    std::unique_ptr<RemoteScrollingCoordinatorProxy> m_scrollingCoordinatorProxy;
+    RefPtr<RemoteScrollingCoordinatorProxy> m_scrollingCoordinatorProxy;
 #endif
     Ref<WebProcessProxy> m_legacyMainFrameProcess;
     const Ref<WebPageGroup> m_pageGroup;

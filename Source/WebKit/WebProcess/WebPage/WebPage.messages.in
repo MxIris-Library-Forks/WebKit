@@ -383,6 +383,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
     # Find.
     FindString(String string, OptionSet<WebKit::FindOptions> findOptions, unsigned maxMatchCount) -> (std::optional<WebCore::FrameIdentifier> frameID, Vector<WebCore::IntRect> matchRects, uint32_t matchCount, int32_t matchIndex, bool didWrap)
+    CountStringMatchesByFrame(String string, OptionSet<WebKit::FindOptions> findOptions, unsigned maxMatchCount) -> (Vector<std::pair<WebCore::FrameIdentifier, uint32_t>> counts)
     SelectLastFoundRange(String string, OptionSet<WebKit::FindOptions> findOptions, unsigned maxMatchCount) -> (std::optional<WebCore::FrameIdentifier> frameID, Vector<WebCore::IntRect> matchRects, int32_t matchIndex, bool didWrap)
 #if ENABLE(IMAGE_ANALYSIS)
     FindStringIncludingImages(String string, OptionSet<WebKit::FindOptions> findOptions, unsigned maxMatchCount) -> (std::optional<WebCore::FrameIdentifier> frameID, Vector<WebCore::IntRect> matchRects, uint32_t matchCount, int32_t matchIndex, bool didWrap)
@@ -913,6 +914,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     RequestAllTextAndRects() -> (Vector<std::pair<String, WebCore::FloatRect>> textAndRects)
 
     RequestTargetedElement(struct WebCore::TargetedElementRequest request) -> (Vector<WebCore::TargetedElementInfo> elements)
+    RequestTargetedElementsForText(struct WebCore::TargetedElementRequest request) -> (struct WebCore::TargetedTextSearchResult result)
 
     RequestAllTargetableElements(float hitTestInterval) -> (Vector<Vector<WebCore::TargetedElementInfo>> elements)
 

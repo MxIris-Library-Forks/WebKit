@@ -1656,6 +1656,7 @@
 		448DF9DC2F60EFA700F068C3 /* TextEffectController.h in Headers */ = {isa = PBXBuildFile; fileRef = 448DF9DB2F60EFA700F068C3 /* TextEffectController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		4492DD302B0B9FB100122BF7 /* LegacyRenderSVGResourceFilterInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 4492DD2B2B0B9FB000122BF7 /* LegacyRenderSVGResourceFilterInlines.h */; };
 		4492DD332B0B9FB100122BF7 /* LegacyRenderSVGResourceFilterPrimitive.h in Headers */ = {isa = PBXBuildFile; fileRef = 4492DD2E2B0B9FB100122BF7 /* LegacyRenderSVGResourceFilterPrimitive.h */; };
+		87DDD37FE04527D7D03A60D4 /* LegacyRenderSVGResourceFEImage.h in Headers */ = {isa = PBXBuildFile; fileRef = ABB9289872CCE9297F36D9EF /* LegacyRenderSVGResourceFEImage.h */; };
 		4492DD342B0B9FB200122BF7 /* LegacyRenderSVGResourceFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4492DD2F2B0B9FB100122BF7 /* LegacyRenderSVGResourceFilter.h */; };
 		4496E39E1398136C003EE32A /* JSSVGAnimateMotionElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 4496E39C1398136C003EE32A /* JSSVGAnimateMotionElement.h */; };
 		4496E3A0139813A5003EE32A /* JSSVGMPathElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 4496E39F139813A5003EE32A /* JSSVGMPathElement.h */; };
@@ -1697,7 +1698,6 @@
 		45830D4E1679B4F800ACF8C3 /* AutoscrollController.h in Headers */ = {isa = PBXBuildFile; fileRef = 45830D4C1679B4F800ACF8C3 /* AutoscrollController.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		458FE40A1589DF0B005609E6 /* RenderSearchField.h in Headers */ = {isa = PBXBuildFile; fileRef = 458FE4081589DF0B005609E6 /* RenderSearchField.h */; };
 		45B5D8612A968620004C85A0 /* LoaderMalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 45B5D85F2A968620004C85A0 /* LoaderMalloc.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		45E434C32E74E6E5004BD91D /* IOSurfacePoolIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 45E434C22E74E18B004BD91D /* IOSurfacePoolIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		45EA87922D35D30400DD0194 /* CSSParserFastPaths.h in Headers */ = {isa = PBXBuildFile; fileRef = BC7C5E522BE2A8FB00AE645C /* CSSParserFastPaths.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		45FEA5D0156DDE8C00654101 /* Decimal.h in Headers */ = {isa = PBXBuildFile; fileRef = 45FEA5CE156DDE8C00654101 /* Decimal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		46014ACC28333F65004C0B84 /* FrameDestructionObserverInlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 46014ACB28333F52004C0B84 /* FrameDestructionObserverInlines.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -9176,7 +9176,7 @@
 		1C16B86C284D73EF00318FEC /* FontCacheCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FontCacheCocoa.mm; sourceTree = "<group>"; };
 		1C18DA56181AF6A500C4EF22 /* TextPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextPainter.cpp; sourceTree = "<group>"; };
 		1C18DA57181AF6A500C4EF22 /* TextPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextPainter.h; sourceTree = "<group>"; };
-		1C21E57A183ED1FF001C289D /* IOSurfacePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IOSurfacePool.cpp; sourceTree = "<group>"; };
+		1C21E57A183ED1FF001C289D /* IOSurfacePool.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = IOSurfacePool.mm; sourceTree = "<group>"; };
 		1C21E57B183ED1FF001C289D /* IOSurfacePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOSurfacePool.h; sourceTree = "<group>"; };
 		1C24EEA11C729B320080F8FC /* FontFaceSet.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FontFaceSet.idl; sourceTree = "<group>"; };
 		1C24EEA21C729CE40080F8FC /* FontFaceSet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontFaceSet.cpp; sourceTree = "<group>"; };
@@ -11729,6 +11729,8 @@
 		4492DD2C2B0B9FB000122BF7 /* LegacyRenderSVGResourceFilterPrimitive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyRenderSVGResourceFilterPrimitive.cpp; sourceTree = "<group>"; };
 		4492DD2D2B0B9FB000122BF7 /* LegacyRenderSVGResourceFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyRenderSVGResourceFilter.cpp; sourceTree = "<group>"; };
 		4492DD2E2B0B9FB100122BF7 /* LegacyRenderSVGResourceFilterPrimitive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LegacyRenderSVGResourceFilterPrimitive.h; sourceTree = "<group>"; };
+		23007654C2C0B81278D7F2A5 /* LegacyRenderSVGResourceFEImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyRenderSVGResourceFEImage.cpp; sourceTree = "<group>"; };
+		ABB9289872CCE9297F36D9EF /* LegacyRenderSVGResourceFEImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LegacyRenderSVGResourceFEImage.h; sourceTree = "<group>"; };
 		4492DD2F2B0B9FB100122BF7 /* LegacyRenderSVGResourceFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LegacyRenderSVGResourceFilter.h; sourceTree = "<group>"; };
 		4496E39B1398136C003EE32A /* JSSVGAnimateMotionElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSSVGAnimateMotionElement.cpp; sourceTree = "<group>"; };
 		4496E39C1398136C003EE32A /* JSSVGAnimateMotionElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSSVGAnimateMotionElement.h; sourceTree = "<group>"; };
@@ -11822,7 +11824,6 @@
 		45BA2FCA2C3C77870042DA4F /* JSWebCodecsAudioEncoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsAudioEncoderCustom.cpp; sourceTree = "<group>"; };
 		45BA2FCB2C3C77870042DA4F /* JSWebCodecsVideoEncoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoEncoderCustom.cpp; sourceTree = "<group>"; };
 		45D021E32C8B91F40089F09A /* JSStylePropertyMapReadOnlyCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSStylePropertyMapReadOnlyCustom.cpp; sourceTree = "<group>"; };
-		45E434C22E74E18B004BD91D /* IOSurfacePoolIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOSurfacePoolIdentifier.h; sourceTree = "<group>"; };
 		45F4864B2C38CCE9008B9897 /* JSWebCodecsVideoDecoderCustom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JSWebCodecsVideoDecoderCustom.cpp; sourceTree = "<group>"; };
 		45FEA5CD156DDE8C00654101 /* Decimal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Decimal.cpp; sourceTree = "<group>"; };
 		45FEA5CE156DDE8C00654101 /* Decimal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Decimal.h; sourceTree = "<group>"; };
@@ -14404,6 +14405,8 @@
 		7246F02E2A1549CB00FD74F1 /* PathCG.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathCG.h; sourceTree = "<group>"; };
 		72493F5D2C19029A00DBD707 /* RenderSVGResourceFilterPrimitive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderSVGResourceFilterPrimitive.h; sourceTree = "<group>"; };
 		72493F5E2C19029A00DBD707 /* RenderSVGResourceFilterPrimitive.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSVGResourceFilterPrimitive.cpp; sourceTree = "<group>"; };
+		E8762EF813C3A6C05E7F6E52 /* RenderSVGResourceFEImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderSVGResourceFEImage.h; sourceTree = "<group>"; };
+		0E484D7755E2A9074CE973B8 /* RenderSVGResourceFEImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSVGResourceFEImage.cpp; sourceTree = "<group>"; };
 		72493F5F2C19029A00DBD707 /* RenderSVGResourceFilterInlines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderSVGResourceFilterInlines.h; sourceTree = "<group>"; };
 		72493F602C19029A00DBD707 /* RenderSVGResourceFilter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderSVGResourceFilter.h; sourceTree = "<group>"; };
 		72493F612C19029A00DBD707 /* RenderSVGResourceFilter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSVGResourceFilter.cpp; sourceTree = "<group>"; };
@@ -18302,7 +18305,6 @@
 		AD726FE916D9F40A003A4E6D /* JSCSSRuleCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCSSRuleCustom.h; sourceTree = "<group>"; };
 		AD726FEA16D9F40B003A4E6D /* JSCSSStyleDeclarationCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCSSStyleDeclarationCustom.h; sourceTree = "<group>"; };
 		AD726FEC16D9F4B9003A4E6D /* JSStyleSheetCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSStyleSheetCustom.h; sourceTree = "<group>"; };
-		AD9FF6E01908391D003B61E0 /* IOSurfacePoolCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = IOSurfacePoolCocoa.mm; sourceTree = "<group>"; };
 		ADBAD6EC1BCDD95000381325 /* ResourceUsageOverlay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResourceUsageOverlay.cpp; sourceTree = "<group>"; };
 		ADBAD6ED1BCDD95000381325 /* ResourceUsageOverlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceUsageOverlay.h; sourceTree = "<group>"; };
 		ADDA94BF19686F8000453029 /* JSDocumentCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSDocumentCustom.h; sourceTree = "<group>"; };
@@ -24890,6 +24892,8 @@
 				448C95932AC4417600161D5A /* RenderSVGResourceClipperInlines.h */,
 				44F48A652ABC7B6E0044526B /* RenderSVGResourceContainer.cpp */,
 				44F48A662ABC7B6F0044526B /* RenderSVGResourceContainer.h */,
+				0E484D7755E2A9074CE973B8 /* RenderSVGResourceFEImage.cpp */,
+				E8762EF813C3A6C05E7F6E52 /* RenderSVGResourceFEImage.h */,
 				72493F612C19029A00DBD707 /* RenderSVGResourceFilter.cpp */,
 				72493F602C19029A00DBD707 /* RenderSVGResourceFilter.h */,
 				72493F5F2C19029A00DBD707 /* RenderSVGResourceFilterInlines.h */,
@@ -28081,6 +28085,8 @@
 				4431EABB2AB9D56000E92FFA /* LegacyRenderSVGResourceContainer.cpp */,
 				4431EAB92AB9D54300E92FFA /* LegacyRenderSVGResourceContainer.h */,
 				CD671C972F5BA9EF00B387A2 /* LegacyRenderSVGResourceContainerInlines.h */,
+				23007654C2C0B81278D7F2A5 /* LegacyRenderSVGResourceFEImage.cpp */,
+				ABB9289872CCE9297F36D9EF /* LegacyRenderSVGResourceFEImage.h */,
 				4492DD2D2B0B9FB000122BF7 /* LegacyRenderSVGResourceFilter.cpp */,
 				4492DD2F2B0B9FB100122BF7 /* LegacyRenderSVGResourceFilter.h */,
 				4492DD2B2B0B9FB000122BF7 /* LegacyRenderSVGResourceFilterInlines.h */,
@@ -36588,9 +36594,8 @@
 				B27535320B053814002CE64F /* IntPointCG.cpp */,
 				B27535330B053814002CE64F /* IntRectCG.cpp */,
 				B27535340B053814002CE64F /* IntSizeCG.cpp */,
-				1C21E57A183ED1FF001C289D /* IOSurfacePool.cpp */,
 				1C21E57B183ED1FF001C289D /* IOSurfacePool.h */,
-				45E434C22E74E18B004BD91D /* IOSurfacePoolIdentifier.h */,
+				1C21E57A183ED1FF001C289D /* IOSurfacePool.mm */,
 				377A3A8F15EFCE9A0059F5C7 /* NativeImageCG.cpp */,
 				B27535350B053814002CE64F /* PathCG.cpp */,
 				7246F02E2A1549CB00FD74F1 /* PathCG.h */,
@@ -37239,7 +37244,6 @@
 				2D0B4AA918DA1CCD00434DE1 /* IOSurface.h */,
 				2D0B4AAA18DA1CCD00434DE1 /* IOSurface.mm */,
 				7B66CFD22D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h */,
-				AD9FF6E01908391D003B61E0 /* IOSurfacePoolCocoa.mm */,
 				B588D918E3A23CFD5275BDE9 /* ISOBMFFPreParser.cpp */,
 				B588D917E3A23CFD5275BDE9 /* ISOBMFFPreParser.h */,
 				B588D931E3A23CFD5275BDE9 /* ISOBMFFTrackInfoParser.cpp */,
@@ -46462,7 +46466,6 @@
 				2D0B4AAB18DA1CCD00434DE1 /* IOSurface.h in Headers */,
 				7B66CFD52D31387D00BD6CB5 /* IOSurfaceDrawingBuffer.h in Headers */,
 				1C21E57D183ED1FF001C289D /* IOSurfacePool.h in Headers */,
-				45E434C32E74E6E5004BD91D /* IOSurfacePoolIdentifier.h in Headers */,
 				3C8D24EE2E25CF1A00D2A929 /* IPAddressSpace.h in Headers */,
 				9BAF70C12DC1C35A0027B01E /* IsImportant.h in Headers */,
 				568AF20E2FEB4DE600AF8D54 /* IsInitiatedByWorker.h in Headers */,
@@ -47414,6 +47417,7 @@
 				4442169D2AC312AD00215D06 /* LegacyRenderSVGResourceClipperInlines.h in Headers */,
 				4431EABA2AB9D54300E92FFA /* LegacyRenderSVGResourceContainer.h in Headers */,
 				CD671C982F5BA9EF00B387A2 /* LegacyRenderSVGResourceContainerInlines.h in Headers */,
+				87DDD37FE04527D7D03A60D4 /* LegacyRenderSVGResourceFEImage.h in Headers */,
 				4492DD342B0B9FB200122BF7 /* LegacyRenderSVGResourceFilter.h in Headers */,
 				4492DD302B0B9FB100122BF7 /* LegacyRenderSVGResourceFilterInlines.h in Headers */,
 				4492DD332B0B9FB100122BF7 /* LegacyRenderSVGResourceFilterPrimitive.h in Headers */,

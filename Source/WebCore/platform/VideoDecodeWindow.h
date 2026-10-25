@@ -1,6 +1,4 @@
 /*
- * <%= @warning %>
- *
  * Copyright (C) 2026 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,16 @@
 
 #pragma once
 
-#include <WebCore/QuirkBehaviors.h>
+#include <wtf/MediaTime.h>
 
-// One QuirkBehavior per QuirkBehaviorID, for use in the quirk table.
-namespace WebCore::QuirkBehaviors {
+namespace WebCore::VideoDecodeWindow {
 
-<%- @behaviors.each do |behavior| -%>
-inline constexpr QuirkBehavior <%= behavior.constantName %> <%= behavior.initializer %>;
-<%- end -%>
+// How far ahead of the current time decoded video frames are kept.
+inline constexpr MediaTime lowWaterMark { 100, 1000 };
+inline constexpr MediaTime highWaterMark { 166, 1000 };
 
-} // namespace WebCore::QuirkBehaviors
+// How many compressed samples are kept waiting to be decoded.
+inline constexpr size_t sampleQueueHighWaterMark = 30;
+inline constexpr size_t sampleQueueLowWaterMark = 15;
+
+} // namespace WebCore::VideoDecodeWindow

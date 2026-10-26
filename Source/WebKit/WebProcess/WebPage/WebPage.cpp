@@ -9793,7 +9793,7 @@ void WebPage::updateAttachmentIcon(const String& identifier, std::optional<Share
                     return;
                 }
             } else {
-                attachment->updateIconForNarrowLayout(icon->createImage(), size);
+                attachment->updateIconForNarrowLayout(BitmapImage::create(*icon), size);
                 return;
             }
         }
@@ -11365,7 +11365,7 @@ void WebPage::takeSnapshotForTargetedElement(NodeIdentifier nodeID, ScriptExecut
     if (!context)
         return completion({ });
 
-    context->drawBitmapImage(*image, FloatPoint::zero());
+    context->drawNativeImage(*image);
     completion(bitmap->createHandle(SharedMemory::Protection::ReadOnly));
 }
 

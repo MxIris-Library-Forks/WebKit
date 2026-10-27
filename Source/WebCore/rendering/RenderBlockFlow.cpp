@@ -60,6 +60,7 @@
 #include "RenderElementStyleInlines.h"
 #include "FlexFormattingUtils.h"
 #include "RenderFlexibleBox.h"
+#include "RenderGrid.h"
 #include "RenderIterator.h"
 #include "RenderLayer.h"
 #include "RenderLayerScrollableArea.h"
@@ -753,9 +754,13 @@ static bool formattingContextRootIntrinsicLogicalWidthsDependOnOwnHeight(const R
 {
     ASSERT(formattingContextRoot.createsNewFormattingContext());
 
+    if (auto* grid = dynamicDowncast<RenderGrid>(formattingContextRoot))
+        return grid->intrinsicLogicalWidthsDependOnLogicalHeight();
     if (auto* flexBox = dynamicDowncast<RenderFlexibleBox>(formattingContextRoot)) {
-        // The flex cross-size override that drives this dependency is only applied to a flex item
-        // when hasDefiniteCrossSizeForFlexItem(item) is true, which per
+        if (flexBox->intrinsicLogicalWidthsDependOnLogicalHeight())
+            return true;
+        // Otherwise, the dependency comes from the cross-size override of a stretched aspect-ratio item, which
+        // is only applied to a flex item when hasDefiniteCrossSizeForFlexItem(item) is true, which per
         // https://drafts.csswg.org/css-flexbox/#definite-sizes section 9.8.1 requires a single-line
         // flex container:
         //   "If a single-line flex container has a definite cross size, the automatic preferred outer

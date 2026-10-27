@@ -5947,9 +5947,12 @@ class RunAPITests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin):
             message = 'Passed API tests'
             if self.name == ReRunAPITests.name:
                 first_results_failing_tests = self.getProperty('api_first_run_failures', [])
-                flaky_failures_string = ', '.join(first_results_failing_tests)
-                pluralSuffix = 's' if len(first_results_failing_tests) > 1 else ''
-                message = f'Found flaky test{pluralSuffix}: {flaky_failures_string}'
+                if first_results_failing_tests:
+                    flaky_failures_string = ', '.join(first_results_failing_tests)
+                    pluralSuffix = 's' if len(first_results_failing_tests) > 1 else ''
+                    message = f'Found flaky test{pluralSuffix}: {flaky_failures_string}'
+                else:
+                    message = 'Passed API tests on re-run, the first run produced no results'
 
             self.descriptionDone = message
             if self.name != RunAPITestsWithoutChange.name:
@@ -6121,6 +6124,13 @@ class ReRunAPITests(RunAPITests):
 
     @defer.inlineCallbacks
     def doOnFailure(self) -> Generator[Any, Any, None]:
+        if not self.getProperty('api_first_run_failures') or not self.getProperty('api_second_run_failures'):
+            message = 'Unable to parse API test results'
+            yield self._addToLog('stderr', message)
+            self.descriptionDone = message
+            self.build.buildFinished([message], RETRY)
+            return
+
         if self.no_failure_repeated_across_runs():
             flaky_failures = sorted(self.failures_with_change('first') | self.failures_with_change('second'))
             pluralSuffix = 's' if len(flaky_failures) > 1 else ''
@@ -7725,6 +7735,8 @@ class Canonicalize(steps.ShellSequence, ShellMixin, AddToLogMixin):
         super().__init__(logEnviron=False, timeout=300, **kwargs)
         self.rebase_enabled = rebase_enabled
         self.contributors = {}
+        self.verify_commit_count_command = None
+        self.summary = ''
 
     def number_commits_to_canonicalize(self):
         commit_count = self.getProperty('commit_count', 1)
@@ -7746,6 +7758,8 @@ class Canonicalize(steps.ShellSequence, ShellMixin, AddToLogMixin):
         commands = [self.shell_command('rm .git/identifiers.json || {}'.format(self.shell_exit_0()))]
         if self.rebase_enabled:
             commands += [['git', 'pull', remote, base_ref, '--rebase']]
+            self.verify_commit_count_command = self.shell_command(f'test "$(git rev-list --count FETCH_HEAD..HEAD)" -eq {self.getProperty("commit_count", 1)}')
+            commands.append(self.verify_commit_count_command)
             if head_ref:
                 commands += [['git', 'branch', '-f', base_ref, head_ref]]
             commands += [['git', 'checkout', '--progress', base_ref]]
@@ -7775,9 +7789,19 @@ class Canonicalize(steps.ShellSequence, ShellMixin, AddToLogMixin):
         for command in commands:
             self.commands.append(util.ShellArg(command=command, logname='stdio', haltOnFailure=True))
         rc = yield super().run()
+
+        if rc == FAILURE and self.verify_commit_count_command and self.last_command == self.verify_commit_count_command:
+            pr_number = self.getProperty('github.number')
+            self.summary = f'Changes already landed on {base_ref}'
+            self.setProperty('build_finish_summary', self.summary)
+            self.setProperty('comment_text', f'Commits in PR #{pr_number} were dropped when rebasing onto {base_ref} because their changes have already landed, blocking PR #{pr_number}. Update the pull request to contain only unlanded changes, or close it.')
+            self.haltOnFailure = False
+            self.build.addStepsAfterCurrentStep([LeaveComment(), BlockPullRequest()])
         defer.returnValue(rc)
 
     def getResultSummary(self):
+        if self.summary:
+            return {'step': self.summary}
         commit_pluralized = "commit" if self.number_commits_to_canonicalize() == 1 else "commits"
         if self.results == SUCCESS:
             return {'step': f'Canonicalized {commit_pluralized}'}
@@ -8234,7 +8258,7 @@ class ParseStaticAnalyzerResultsWithoutChange(ParseStaticAnalyzerResults):
 class FindModifiedSaferCPPExpectations(shell.ShellCommand, AddToLogMixin):
     name = 'find-modified-safer-cpp-expectations'
     RE_FILE = r'^(\+|-)(?P<file>[^/+/-].+(?:\.cpp|\.mm|\.h|\.m|\.c))$'
-    RE_EXPECTATIONS = r'^(\+\+\+).+(Source/(?P<project>.+)/SaferCPPExpectations/(?P<checker>.+)Expectations)$'
+    RE_EXPECTATIONS = r'^(\+\+\+|---).+(Source/(?P<project>.+)/SaferCPPExpectations/(?P<checker>.+)Expectations)$'
     command = ['git', 'diff', 'HEAD~1', '--', '*Expectations']
 
     def __init__(self, **kwargs):
@@ -8258,6 +8282,7 @@ class FindModifiedSaferCPPExpectations(shell.ShellCommand, AddToLogMixin):
         yield self._addToLog('stdio', '\nLooking for changes to Safer CPP expectations...\n')
         removed_tests = []
         added_tests = []
+        project = checker = None
         for line in logText.splitlines():
             expectation_match = re.search(self.RE_EXPECTATIONS, line, re.IGNORECASE)
             if expectation_match:
@@ -8265,7 +8290,7 @@ class FindModifiedSaferCPPExpectations(shell.ShellCommand, AddToLogMixin):
                 checker = expectation_match.group('checker')
                 yield self._addToLog('stdio', f'Changes for {project}/{checker}...\n')
             file_match = re.search(self.RE_FILE, line, re.IGNORECASE)
-            if file_match:
+            if file_match and project and checker:
                 test_name = f"{project}/{file_match.group('file')}/{checker}"
                 if file_match.group(1) == '+':
                     added_tests.append(test_name)

@@ -210,6 +210,11 @@
             "behaviors": [{ "id": "ShouldOmitTouchEventDOMAttributesForDesktopWebsiteQuirk" }]
         },
         {
+            "bugs": ["rdar://190449381"],
+            "matches": ["*://*.chatgpt.com/*"],
+            "behaviors": [{ "id": "ShouldUseLayoutViewportForClientRectsQuirk" }]
+        },
+        {
             "matches": ["*://*.chess.com/*"],
             "environment": "SmallScreen",
             "available": "iOS",
@@ -239,6 +244,11 @@
                 { "id": "NeedsCNNCaptionQuirk" },
                 { "id": "ShouldDisableThreadedAnimationsQuirk", "bugs": ["rdar://176539646"] }
             ]
+        },
+        {
+            "bugs": ["rdar://190735753"],
+            "matches": ["*://*.cnn.com/*"],
+            "behaviors": [{ "id": "NeedsFormControlToBeMouseFocusableQuirk" }]
         },
         {
             "matches": ["*://codepen.io/*"],

@@ -1989,7 +1989,11 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(WebCodecsVideoFrame& f
     if (!context)
         return { };
 
-    auto internalFrame = frame.internalFrame();
+    RefPtr scriptContext = protect(canvasBase())->scriptExecutionContext();
+    if (!scriptContext)
+        return { };
+
+    RefPtr internalFrame = frame.internalFrameForRendering(*scriptContext);
     if (!internalFrame)
         return { };
 
@@ -2001,6 +2005,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(WebCodecsVideoFrame& f
         willUpdateContents(normalizedDstRect);
 
     ImageDrawingOptions options = {
+        internalFrame->orientation(),
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
         (isHDR() && usesITUR2100TF(internalFrame->colorSpace())) ? DrawsHDRContent::Yes : DrawsHDRContent::No
 #endif
@@ -2083,7 +2088,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(Document& document, Im
 
     if (rectContainsCanvas(normalizedDstRect)) {
         willUpdateEntireContents(willUpdateContentsOptions);
-        c->drawImage(*image, concreteObjectSize, normalizedDstRect, normalizedSrcRect, options);
+        image->draw(*c, concreteObjectSize, normalizedDstRect, normalizedSrcRect, options);
     } else if (isFullCanvasCompositeMode(op)) {
         willUpdateEntireContents(willUpdateContentsOptions);
         auto sizedImage = SizedImage { *image, concreteObjectSize };
@@ -2091,10 +2096,10 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(Document& document, Im
     } else if (op == CompositeOperator::Copy) {
         willUpdateEntireContents(willUpdateContentsOptions);
         clearCanvas();
-        c->drawImage(*image, concreteObjectSize, normalizedDstRect, normalizedSrcRect, options);
+        image->draw(*c, concreteObjectSize, normalizedDstRect, normalizedSrcRect, options);
     } else {
         willUpdateContents(targetSwitcher ? targetSwitcher->expandedBounds() : normalizedDstRect, willUpdateContentsOptions);
-        c->drawImage(*image, concreteObjectSize, normalizedDstRect, normalizedSrcRect, options);
+        image->draw(*c, concreteObjectSize, normalizedDstRect, normalizedSrcRect, options);
     }
 
     return { };
@@ -2461,7 +2466,7 @@ void CanvasRenderingContext2DBase::compositeBuffer(ImageBuffer& buffer, const In
 
 static void drawImageToContext(const SizedImage& sizedImage, GraphicsContext& context, const FloatRect& dest, const FloatRect& src, ImageDrawingOptions options)
 {
-    context.drawImage(sizedImage.image, sizedImage.concreteObjectSize, dest, src, options);
+    protect(sizedImage.image)->draw(context, sizedImage.concreteObjectSize, dest, src, options);
 }
 
 static void drawImageToContext(ImageBuffer& imageBuffer, GraphicsContext& context, const FloatRect& dest, const FloatRect& src, ImageDrawingOptions options)

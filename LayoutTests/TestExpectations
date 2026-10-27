@@ -1911,7 +1911,6 @@ imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intri
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-line-count-intrinsic-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/balance/balance-percentage-size-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-flexbox/gap-collapse.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-flexbox/intrinsic-size/col-wrap-dynamic.html [ ImageOnlyFailure ]
 
 # grid layout tests
 webkit.org/b/191508 fast/css-grid-layout/crash-large-positions.html [ Skip ]
@@ -8267,9 +8266,3 @@ accessibility/line-clamp-text.html [ Skip ]
 accessibility/isolated-tree/line-clamp-text.html [ Skip ]
 
 webkit.org/b/327137 imported/w3c/web-platform-tests/resource-timing/resource-timing-failed-fetch.html [ Failure Pass ]
-webkit.org/b/328230 media/modern-media-controls/spatial-video-support/spatial-video-support-teardown-releases-context-objects.html [ Failure ]
-
-# webkit.org/b/328236 NEW TEST(323881@main): 3x media/modern-media-controls/spatial-video-support/* (layout-tests) are constant text failures.
-media/modern-media-controls/spatial-video-support/spatial-video-support-render-cubemap.html [ Failure ]
-media/modern-media-controls/spatial-video-support/spatial-video-support-render-equirect.html [ Failure ]
-media/modern-media-controls/spatial-video-support/spatial-video-support-render-fisheye.html [ Failure ]

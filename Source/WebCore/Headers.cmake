@@ -1906,6 +1906,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     page/DragActions.h
     page/DragClient.h
     page/DragController.h
+    page/DragItem.h
     page/DummySpeechRecognitionProvider.h
     page/EditorClient.h
     page/ElementTargetingController.h
@@ -2135,7 +2136,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/DragData.h
     platform/DragEventTargetData.h
     platform/DragImage.h
-    platform/DragItem.h
     platform/EventTrackingRegions.h
     platform/FileChooser.h
     platform/FileMonitor.h
@@ -3065,7 +3065,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     rendering/svg/RenderSVGModelObject.h
     rendering/svg/SVGBoundingBoxComputation.h
     rendering/svg/SVGRenderSupport.h
-    rendering/svg/SVGTextLayoutAttributes.h
     rendering/svg/SVGTextMetrics.h
 
     rendering/svg/legacy/LegacyRenderSVGModelObject.h
@@ -3563,6 +3562,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     testing/MockGamepad.h
     testing/MockGamepadProvider.h
     testing/MockParentalControlsURLFilter.h
+    testing/MockPhoneNumberPossessionConfiguration.h
     testing/MockWebAuthenticationConfiguration.h
     testing/js/WebCoreTestSupport.h
 

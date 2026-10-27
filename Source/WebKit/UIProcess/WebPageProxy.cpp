@@ -3182,8 +3182,11 @@ bool WebPageProxy::sendGoToBackForwardItemForFrame(WebBackForwardListFrameItem& 
         WebCore::ProcessSwapDisposition::None,
         std::nullopt
     }), [weakThis = WeakPtr { *this }, navigationID, isMainFrame = !targetFrame.parent(), framesDidHandleTraversalAggregator = Ref { framesDidHandleTraversalAggregator }, didHandleTraversal = WTF::move(didHandleTraversal)](FrameTraversalResult result) mutable {
-        if (RefPtr protectedThis = weakThis)
+        if (RefPtr protectedThis = weakThis) {
             protectedThis->m_sessionHistoryTraversalQueue->frameDidHandleTraversal(navigationID, result, isMainFrame);
+            if (RefPtr navigation = protectedThis->m_navigationState->navigation(navigationID); navigation && result == FrameTraversalResult::Taken)
+                navigation->setBackForwardTraversalDidCommitInAnyFrame();
+        }
         didHandleTraversal(result != FrameTraversalResult::NotTaken);
     }, webPageIDInProcess(process));
     process->startResponsivenessTimer();
@@ -3205,6 +3208,27 @@ Ref<WebBackForwardListFrameItem> WebPageProxy::frameItemForLegacyTraversalRoutin
     if (childItem.get() != frameItem.ptr())
         WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "%" PUBLIC_LOG_STRING ": redirecting from mainFrameItem to child frameItem for navigatedFrameID=%" PRIu64, logTag.characters(), navigatedFrameID->toUInt64());
     return childItem.releaseNonNull();
+}
+
+void WebPageProxy::restoreBackForwardListCurrentItemAfterCanceledTraversal(API::Navigation& navigation)
+{
+    if (!protect(preferences())->shouldUseUIProcessForBackForwardItemLoading())
+        return;
+
+    if (!navigation.backForwardFrameLoadType() || navigation.backForwardTraversalDidCommitInAnyFrame())
+        return;
+
+    RefPtr fromItem = navigation.fromItem();
+    RefPtr targetItem = navigation.targetItem();
+    if (!fromItem || !targetItem || fromItem == targetItem || backForwardList().currentItem() != targetItem)
+        return;
+
+    WEBPAGEPROXY_RELEASE_LOG(Loading, "restoreBackForwardListCurrentItemAfterCanceledTraversal: navigationID=%" PRIu64, navigation.navigationID().object().toUInt64());
+#if ENABLE(BACK_FORWARD_LIST_SWIFT)
+    backForwardList().goToItem(&*fromItem);
+#else
+    backForwardList().goToItem(*fromItem);
+#endif
 }
 
 WebProcessProxy& WebPageProxy::processForTheFrameItem(WebBackForwardListFrameItem& frameItem) const
@@ -6703,6 +6727,9 @@ void WebPageProxy::receivedPolicyDecision(PolicyAction action, API::Navigation* 
     if (action == PolicyAction::Ignore && willContinueLoadInNewProcess == WillContinueLoadInNewProcess::No && navigation && navigation->navigationID() == pageLoadState->pendingAPIRequest().navigationID)
         pageLoadState->clearPendingAPIRequest(transaction);
 
+    if ((action == PolicyAction::Ignore || action == PolicyAction::Download) && willContinueLoadInNewProcess == WillContinueLoadInNewProcess::No && navigation)
+        restoreBackForwardListCurrentItemAfterCanceledTraversal(*navigation);
+
     std::optional<DownloadID> downloadID;
     if (action == PolicyAction::Download) {
         // Create a download proxy.
@@ -6932,6 +6959,19 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
     LOG_WITH_STREAM(Loading, stream << "Continuing navigation "_s << navigation.navigationID().object().toUInt64() << " '"_s << navigation.loggingString() << "' in a new web process"_s);
     RELEASE_ASSERT(!newProcess->isInProcessCache());
     ASSERT(shouldTreatAsContinuingLoad != ShouldTreatAsContinuingLoad::No);
+
+    // A process may host only one WebPage per WebPageProxy, so a provisional page navigation that comes back
+    // to the committed page's process continues in the committed page instead of creating a second WebPage.
+    if (RefPtr committedMainFrame = m_mainFrame; committedMainFrame && committedMainFrame != &frame && frame.isMainFrame() && !suspendedPage
+        && protect(m_preferences)->siteIsolationEnabled()
+        && m_provisionalPage && m_provisionalPage->mainFrame() == &frame
+        && newProcess->coreProcessIdentifier() == committedMainFrame->process().coreProcessIdentifier()
+        && &browsingContextGroup == m_browsingContextGroup.ptr()) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "continueNavigationInNewProcess: Continuing navigation in the committed page because it came back to the committed page's process");
+        frame.transferNavigationCallbackToFrame(*committedMainFrame);
+        continueNavigationInNewProcess(navigation, *committedMainFrame, nullptr, browsingContextGroup, WTF::move(newProcess), processSwapRequestedByClient, shouldTreatAsContinuingLoad, existingNetworkResourceLoadIdentifierToResume, loadedWebArchive, navigationUpgradeToHTTPSBehavior, processSwapDisposition, replacedDataStoreForWebArchiveLoad, originalNavigationStartTime);
+        return;
+    }
     navigation.setProcessID(newProcess->coreProcessIdentifier());
     updateAgentClusterAssignmentForContinuingLoad(navigation, browsingContextGroup, frame.isMainFrame());
 
@@ -9508,6 +9548,9 @@ void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& p
             automationSession->navigationOccurredForFrame(frame);
     }
 
+    if (RefPtr failedNavigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr)
+        restoreBackForwardListCurrentItemAfterCanceledTraversal(*failedNavigation);
+
     // FIXME: We should message check that navigationID is not zero here, but it's currently zero for some navigations through the back/forward cache.
     RefPtr<API::Navigation> navigation;
     if (frame.isMainFrame() && navigationID)
@@ -9720,8 +9763,10 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
 #endif
     }
 
-    if (RefPtr committedNavigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr)
+    if (RefPtr committedNavigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr) {
         recordAgentClusterKeying(*committedNavigation);
+        committedNavigation->setBackForwardTraversalDidCommitInAnyFrame();
+    }
 
     if (frame->provisionalFrame()) {
         frame->commitProvisionalFrame(connection, frameID, WTF::move(frameInfo), WTF::move(request), navigationID, WTF::move(mimeType), frameHasCustomContentProvider, frameLoadType, hasCertificateInfo, usedLegacyTLS, wasPrivateRelayed, WTF::move(proxyName), source, containsPluginDocument, hasInsecureContent, mouseEventPolicy, WTF::move(documentSecurityPolicy), WTF::move(cspOriginsThatUpgradeInsecureNavigations), userData, restoredFromBackForwardCache, WTF::move(redirectReplaceFrameState));
@@ -21422,6 +21467,16 @@ void WebPageProxy::takeSnapshotForTargetedElement(const API::TargetedElementInfo
 {
     if (!hasRunningProcess())
         return completion({ });
+
+#if PLATFORM(COCOA)
+    if (RefPtr mainFrame = m_mainFrame; shouldUseRemoteSnapshotting(mainFrame.get())) {
+        auto snapshotIdentifier = generateRemoteSnapshotIdentifier();
+        Ref gpuProcess = GPUProcessProxy::getOrCreate();
+        gpuProcess->sinkCompletedSnapshotToBitmap(snapshotIdentifier, mainFrame->frameID(), WTF::move(completion));
+        sendWithAsyncReply(Messages::WebPage::TakeRemoteSnapshotForTargetedElement(info.nodeIdentifier(), info.documentIdentifier(), snapshotIdentifier), gpuProcess->releaseSnapshotIfRootFails(snapshotIdentifier));
+        return;
+    }
+#endif
 
     sendWithAsyncReply(Messages::WebPage::TakeSnapshotForTargetedElement(info.nodeIdentifier(), info.documentIdentifier()), WTF::move(completion));
 }

@@ -37,7 +37,6 @@
 #include "APIInjectedBundlePageResourceLoadClient.h"
 #include "APIInjectedBundlePageUIClient.h"
 #include "Connection.h"
-#include "ContentAsStringIncludesChildFrames.h"
 #include "ContentInversion.h"
 #include "DragControllerAction.h"
 #include "DragEventForwardingData.h"
@@ -70,6 +69,7 @@
 #include "NotificationPermissionRequestManager.h"
 #include "PageBanner.h"
 #include "PageInspectorTarget.h"
+#include "PageScaleFactor.h"
 #include "PlaybackSessionContextIdentifier.h"
 #include "PluginView.h"
 #include "PolicyDecision.h"
@@ -1106,6 +1106,8 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
     if (parameters.openedByDOM)
         page->setOpenedByDOM();
+    if (!parameters.openedByScriptDomain.isEmpty())
+        page->setOpenedByScriptDomain(WTF::move(parameters.openedByScriptDomain));
 
     page->setGroupName(m_pageGroup->identifier());
     page->setUserInterfaceLayoutDirection(m_userInterfaceLayoutDirection);
@@ -2691,6 +2693,9 @@ void WebPage::loadRequest(LoadParameters&& loadParameters)
     if (loadParameters.originatingFrame && !loadParameters.frameIdentifier)
         m_mainFrameNavigationInitiator = makeUnique<FrameInfoData>(*loadParameters.originatingFrame);
 
+    if (RefPtr currentHistoryItem = WTF::move(loadParameters.currentHistoryItemForReattach))
+        protect(localFrame->loader())->history().setCurrentItem(toHistoryItem(m_historyItemClient, *currentHistoryItem));
+
     // Initate the load in WebCore.
     ASSERT(localFrame->document());
     FrameLoadRequest frameLoadRequest { *localFrame, WTF::move(loadParameters.request) };
@@ -3073,7 +3078,7 @@ void WebPage::didSetTextZoomFactor(double zoomFactor)
 {
 #if ENABLE(PDF_PLUGIN)
     if (RefPtr pluginView = mainFramePlugIn(); pluginView && pluginView->pluginHandlesPageScaleFactor())
-        return pluginView->setPageScaleFactor(zoomFactor, std::nullopt);
+        return pluginView->setClampedPageScaleFactor(zoomFactor);
 #endif
 
     if (!m_page)
@@ -3103,7 +3108,7 @@ void WebPage::didSetPageZoomFactor(double zoomFactor)
 #if ENABLE(PDF_PLUGIN)
     if (RefPtr pluginView = mainFramePlugIn(); pluginView && pluginView->pluginHandlesPageScaleFactor()) {
         // Note that this maps page *zoom* factor to page *scale* factor.
-        pluginView->setPageScaleFactor(zoomFactor, std::nullopt);
+        pluginView->setClampedPageScaleFactor(zoomFactor);
         return;
     }
 #endif
@@ -3277,6 +3282,12 @@ void WebPage::platformDidScalePage()
 
 void WebPage::scalePage(double scale, const IntPoint& origin)
 {
+    // WebPageProxy::didSetPageScaleFactor() terminates this process for an out-of-range scale factor.
+    if (!isValidScaleFactor(scale)) [[unlikely]] {
+        WEBPAGE_RELEASE_LOG_ERROR(ViewState, "scalePage: refusing to apply out-of-range scale factor %f", scale);
+        return;
+    }
+
     didScalePage(scale, origin);
     send(Messages::WebPageProxy::DidSetPageScaleFactor(scale));
 }
@@ -3321,6 +3332,12 @@ void WebPage::didScaleView(double scale)
 
 void WebPage::scaleView(double scale)
 {
+    // See scalePage(): WebPageProxy::viewScaleFactorDidChange() enforces the same range.
+    if (!isValidScaleFactor(scale)) [[unlikely]] {
+        WEBPAGE_RELEASE_LOG_ERROR(ViewState, "scaleView: refusing to apply out-of-range scale factor %f", scale);
+        return;
+    }
+
     if (scale == viewScaleFactor())
         return;
     didScaleView(scale);
@@ -5224,7 +5241,8 @@ void WebPage::requestFrameScreenPosition(FrameIdentifier frameID)
 
 void WebPage::scheduleAccessibilityFrameGeometryUpdate()
 {
-    send(Messages::WebPageProxy::ScheduleAccessibilityFrameGeometryUpdate());
+    if (AXObjectCache::accessibilityEnabled())
+        send(Messages::WebPageProxy::ScheduleAccessibilityFrameGeometryUpdate());
 }
 #endif
 
@@ -5352,21 +5370,25 @@ void WebPage::clearContentWorld(ContentWorldIdentifier worldIdentifier, Completi
     completionHandler();
 }
 
-void WebPage::getContentsAsString(ContentAsStringIncludesChildFrames includeChildFrames, CompletionHandler<void(const String&)>&& callback)
+void WebPage::getContentsAsString(CompletionHandler<void(const String&)>&& callback)
 {
-    switch (includeChildFrames) {
-    case ContentAsStringIncludesChildFrames::No:
-        callback(m_mainFrame->contentsAsString());
-        break;
-    case ContentAsStringIncludesChildFrames::Yes:
-        StringBuilder builder;
-        for (RefPtr<Frame> frame = m_mainFrame->coreLocalFrame(); frame; frame = frame->tree().traverseNextRendered()) {
+    callback(m_mainFrame->contentsAsString());
+}
+
+void WebPage::getContentsOfAllFramesAsString(CompletionHandler<void(HashMap<FrameIdentifier, String>&&)>&& completionHandler)
+{
+    RefPtr page = corePage();
+    if (!page)
+        return completionHandler({ });
+
+    HashMap<FrameIdentifier, String> result;
+    for (Ref rootFrame : copyToVectorOf<Ref<LocalFrame>>(page->rootFrames())) {
+        for (RefPtr<Frame> frame = rootFrame.ptr(); frame; frame = frame->tree().traverseNextRendered(rootFrame.ptr())) {
             if (RefPtr webFrame = WebFrame::fromCoreFrame(*frame))
-                builder.append(builder.isEmpty() ? ""_s : "\n\n"_s, webFrame->contentsAsString());
+                result.add(frame->frameID(), webFrame->contentsAsString());
         }
-        callback(builder.toString());
-        break;
     }
+    completionHandler(WTF::move(result));
 }
 
 #if ENABLE(MHTML)

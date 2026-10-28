@@ -177,6 +177,38 @@ struct WKWebExtensionAPIActionTests {
     }
 
     @Test
+    func popupCanCreateJSHandle() async throws {
+        let popupScript = """
+            const canCreateJSHandle = typeof window.webkit?.createJSHandle === 'function'
+            browser.test.assertTrue(canCreateJSHandle, 'createJSHandle should be available in a popup')
+
+            const handle = canCreateJSHandle ? window.webkit.createJSHandle(document.documentElement) : null
+            browser.test.assertTrue(!!handle, 'createJSHandle should return a handle for an element')
+
+            browser.test.notifyPass()
+            """
+
+        let resources: [String: Any] = [
+            "background.js": "browser.test.sendMessage('Test Popup Action')",
+            "popup.html": "<script src='popup.js'></script>",
+            "popup.js": popupScript,
+            "toolbar-16.png": makePNGData(size: CGSize(width: 16, height: 16), color: .red),
+            "toolbar-32.png": makePNGData(size: CGSize(width: 32, height: 32), color: .blue),
+        ]
+
+        let manager = try loadWebExtension(manifest: actionPopupManifest, resources: resources)
+        let context = try #require(manager.context)
+
+        try await manager.waitForTestMessage("Test Popup Action")
+
+        _ = try await manager.nextPresentedAction {
+            context.performAction(for: manager.defaultTab)
+        }
+
+        try await manager.run()
+    }
+
+    @Test
     func presentPopupForAction() async throws {
         let resources: [String: Any] = [
             "background.js": "browser.test.sendMessage('Test Popup Action')",
@@ -666,6 +698,30 @@ struct WKWebExtensionAPIActionTests {
         #expect(defaultAction.badgeText == "42")
 
         let icon = try #require(defaultAction.icon(for: CGSize(width: 48, height: 48)))
+        #expect(icon.size == CGSize(width: 48, height: 48))
+    }
+
+    @Test
+    func setIconWithWindowIdNotifiesWindowAction() async throws {
+        let backgroundScript = """
+            const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })
+
+            await browser.action.setIcon({ path: 'window-toolbar-48.png', windowId: currentTab.windowId })
+            """
+
+        let resources: [String: Any] = [
+            "background.js": backgroundScript,
+            "popup.html": "Hello World!",
+            "toolbar-32.png": makePNGData(size: CGSize(width: 32, height: 32), color: .red),
+            "window-toolbar-48.png": makePNGData(size: CGSize(width: 48, height: 48), color: .green),
+        ]
+
+        let manager = try loadWebExtension(manifest: actionPopupManifest, resources: resources)
+
+        let action = try await manager.nextUpdatedAction()
+        #expect(action.associatedTab == nil)
+
+        let icon = try #require(action.icon(for: CGSize(width: 48, height: 48)))
         #expect(icon.size == CGSize(width: 48, height: 48))
     }
 

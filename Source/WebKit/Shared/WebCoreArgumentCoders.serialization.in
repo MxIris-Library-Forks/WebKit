@@ -1757,9 +1757,9 @@ header: <WebCore/TextIndicator.h>
     WebCore::FloatRect contentImageWithoutSelectionRectInRootViewCoordinates;
     Vector<WebCore::FloatRect> textRectsInBoundingRectCoordinates;
     float contentImageScaleFactor;
-    RefPtr<WebCore::BitmapImage> contentImageWithHighlight;
-    RefPtr<WebCore::BitmapImage> contentImageWithoutSelection;
-    RefPtr<WebCore::BitmapImage> contentImage;
+    RefPtr<WebCore::NativeImage> contentImageWithHighlight;
+    RefPtr<WebCore::NativeImage> contentImageWithoutSelection;
+    RefPtr<WebCore::NativeImage> contentImage;
     WebCore::Color estimatedBackgroundColor;
     WebCore::TextIndicatorPresentationTransition presentationTransition;
     OptionSet<WebCore::TextIndicatorOption> options;
@@ -2017,7 +2017,7 @@ header: <WebCore/KeyboardScroll.h>
 
 header: <WebCore/NotificationResources.h>
 [RefCounted] class WebCore::NotificationResources {
-    RefPtr<WebCore::BitmapImage> icon();
+    RefPtr<WebCore::NativeImage> icon();
 };
 
 [RefCounted] class WebCore::IdentityTransformOperation {
@@ -6307,6 +6307,11 @@ header: <WebCore/BitmapImage.h>
     RefPtr<WebCore::ShareableBitmap> toShareableBitmap();
 };
 
+header: <WebCore/NativeImage.h>
+[RefCounted] class WebCore::NativeImage {
+    RefPtr<WebCore::ShareableBitmap> toShareableBitmap();
+};
+
 [AdditionalEncoder=StreamConnectionEncoder, RefCounted] class WebCore::FilterFunction subclasses {
     WebCore::SVGFilterRenderer
     WebCore::FEBlend
@@ -7707,6 +7712,7 @@ webkit_platform_headers: <WebCore/QuirkMatchPattern.h> <WebCore/QuirksData.h> <W
     TubularApp,
     LensApp,
     SafariWebApp,
+    HomeView,
 };
 
 [CustomHeader, WebKitPlatform] class WebCore::QuirkMatchPattern {

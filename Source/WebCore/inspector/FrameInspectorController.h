@@ -98,7 +98,7 @@ public:
     WEBCORE_EXPORT void dispatchMessageFromFrontend(const String& message);
 
     WEBCORE_EXPORT void siteIsolationFirstEnabled();
-    void inspectedFrameDestroyed();
+    void inspectedFrameDestroyed(LocalFrame&);
 
     // Selects the node in the frontend. A node chosen while no frontend is connected is selected once the
     // first one connects.
@@ -118,6 +118,7 @@ public:
     Inspector::InspectorEvaluateHandler evaluateHandler() const override;
     void frontendInitialized() override;
     WTF::Stopwatch& executionStopwatch() const final;
+    bool executionStopwatchIsSharedAcrossProcesses() const final { return m_executionStopwatchIsShared; }
     JSC::Debugger* debugger() override;
     JSC::VM& vm() override;
 
@@ -143,6 +144,7 @@ private:
 
     bool m_didCreateConsoleAgent { false };
     bool m_didCreateLazyAgents { false };
+    bool m_executionStopwatchIsShared { false };
     WeakPtr<InspectorFrontendClient> m_inspectorFrontendClient;
 
     // Non-owning; the agent is owned by m_agents. Kept so the overlay can reach the flex line-start cache.

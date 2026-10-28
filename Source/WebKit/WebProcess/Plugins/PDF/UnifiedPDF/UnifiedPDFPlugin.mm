@@ -3856,7 +3856,7 @@ RefPtr<TextIndicator> UnifiedPDFPlugin::textIndicatorForPageRect(FloatRect pageR
     auto rectInMainFrameViewCoordinates = convertFromRootViewToMainFrameView(rectInRootViewCoordinates);
 
     RefPtr textIndicator = TextIndicator::create();
-    textIndicator->setContentImage(BitmapImage::create(ImageBuffer::sinkIntoNativeImage(WTF::move(buffer))));
+    textIndicator->setContentImage(ImageBuffer::sinkIntoNativeImage(WTF::move(buffer)).get());
     textIndicator->setContentImageScaleFactor(deviceScaleFactor);
     textIndicator->setContentImageWithoutSelection(protect(textIndicator->contentImage()).get());
     textIndicator->setContentImageWithoutSelectionRectInRootViewCoordinates(rectInMainFrameViewCoordinates);
@@ -4038,9 +4038,10 @@ void UnifiedPDFPlugin::showTranslationUIForSelection(PDFSelection *selection)
     if (!page)
         return;
 
-    auto rectForSelectionInRootView = this->rectForSelectionInRootView(selection);
+    auto rectForSelectionInMainFrameView = convertFromRootViewToMainFrameView(rectForSelectionInRootView(selection));
     auto pluginFrameInRootView = convertFromPluginToRootView(IntRect { IntPoint { }, size() });
-    TranslationContextMenuInfo info { selection.string, WebCore::IntRect { rectForSelectionInRootView }, pluginFrameInRootView.location() };
+    auto pluginLocationInMainFrameView = convertFromRootViewToMainFrameView(FloatPoint { pluginFrameInRootView.location() });
+    TranslationContextMenuInfo info { selection.string, WebCore::IntRect { rectForSelectionInMainFrameView }, roundedIntPoint(pluginLocationInMainFrameView) };
     protect(page)->send(Messages::WebPageProxy::HandleContextMenuTranslation { info });
 }
 #endif

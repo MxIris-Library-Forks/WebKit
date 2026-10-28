@@ -60,6 +60,7 @@
 #import <WebKit/WKWebpagePreferencesPrivate.h>
 #import <WebKit/_WKFeature.h>
 #import <WebKit/_WKFrameTreeNode.h>
+#import <pal/cocoa/TranslationUIServicesSoftLink.h>
 #import <wtf/RetainPtr.h>
 #import <wtf/Scope.h>
 #import <wtf/cocoa/TypeCastsCocoa.h>
@@ -849,6 +850,57 @@ TEST_P(EmbeddedPDFLookUp, BoundsOnScreenMatchTheIFrame)
     EXPECT_NEAR([[bounds objectAtIndex:3] doubleValue], NSHeight(expectedBounds), 1);
 }
 
+// ContextMenuItemTag::Translate.
+static constexpr NSInteger translateContextMenuItemTag = 3;
+
+TEST_P(EmbeddedPDFLookUp, TranslatePopoverIsAnchoredToTheSelectedWord)
+{
+    auto pointInWebView = loadAndFindPointOverPDFText();
+
+    InstanceMethodSwizzler translationAvailabilitySwizzler {
+        object_getClass(PAL::getLTUITranslationViewControllerClassSingleton()),
+        @selector(isAvailable),
+        imp_implementationWithBlock(^BOOL {
+            return YES;
+        })
+    };
+
+    __block bool selectedTranslate = false;
+    InstanceMethodSwizzler popUpSwizzler {
+        object_getClass([NSMenu class]),
+        @selector(popUpContextMenu:withEvent:forView:),
+        imp_implementationWithBlock(^(id, NSMenu *menu, NSEvent *, NSView *) {
+            NSInteger index = [menu indexOfItemWithTag:translateContextMenuItemTag];
+            if (index == -1)
+                return;
+            [menu performActionForItemAtIndex:index];
+            selectedTranslate = true;
+        })
+    };
+
+    __block bool showedPopover = false;
+    __block NSRect popoverRect = NSZeroRect;
+    __block RetainPtr<NSView> popoverView;
+    InstanceMethodSwizzler popoverSwizzler {
+        NSPopover.class,
+        @selector(showRelativeToRect:ofView:preferredEdge:),
+        imp_implementationWithBlock(^(NSPopover *, NSRect rect, NSView *view, NSRectEdge) {
+            popoverRect = rect;
+            popoverView = view;
+            showedPopover = true;
+        })
+    };
+
+    // Right-clicking selects the word under the cursor, putting Translate in the menu.
+    [webView rightClickAtPoint:[webView convertPoint:pointInWebView toView:nil]];
+    EXPECT_TRUE(TestWebKitAPI::Util::runFor(&showedPopover, 5_s));
+    EXPECT_TRUE(selectedTranslate);
+
+    EXPECT_EQ(popoverView, webView);
+    EXPECT_TRUE(NSPointInRect(pointInWebView, popoverRect));
+    EXPECT_TRUE(NSContainsRect(iframeFrame, popoverRect));
+}
+
 INSTANTIATE_TEST_SUITE_P(UnifiedPDF, EmbeddedPDFLookUp, testing::ValuesIn(siteIsolationParams), &EmbeddedPDFLookUp::testNameGenerator);
 
 #if ENABLE(UNIFIED_PDF_DATA_DETECTION) && ENABLE(REVEAL)
@@ -1166,6 +1218,47 @@ TEST_P(EmbeddedPDFLookUpAfterPinch, LookUpTargetsTheSameWordAfterPinchZoom)
 }
 
 INSTANTIATE_TEST_SUITE_P(UnifiedPDF, EmbeddedPDFLookUpAfterPinch, testing::ValuesIn(pinchZoomParams), &EmbeddedPDFLookUpAfterPinch::testNameGenerator);
+
+using ZoomSetter = void (^)(WKWebView *);
+
+static void testZoomBeyondPluginMaximum(ZoomSetter setZoom)
+{
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configurationForWebViewTestingUnifiedPDF().get()]);
+    [webView loadData:testPDFData().get() MIMEType:@"application/pdf" characterEncodingName:@"" baseURL:[NSURL URLWithString:@"https://www.apple.com/testPath"]];
+    [webView _test_waitForDidFinishNavigation];
+
+    __block bool done = false;
+    __block bool webProcessTerminated = false;
+    RetainPtr navigationDelegate = adoptNS([[TestNavigationDelegate alloc] init]);
+    navigationDelegate.get().webContentProcessDidTerminate = ^(WKWebView *, _WKProcessTerminationReason) {
+        webProcessTerminated = true;
+        done = true;
+    };
+    [webView setNavigationDelegate:navigationDelegate.get()];
+
+    setZoom(webView.get());
+    [webView _doAfterNextPresentationUpdate:^{
+        done = true;
+    }];
+    TestWebKitAPI::Util::run(&done);
+
+    EXPECT_FALSE(webProcessTerminated);
+    EXPECT_DOUBLE_EQ([webView pageZoom], 6);
+}
+
+UNIFIED_PDF_TEST(PageZoomBeyondPluginMaximumDoesNotTerminateWebProcess)
+{
+    testZoomBeyondPluginMaximum(^(WKWebView *webView) {
+        webView.pageZoom = 101;
+    });
+}
+
+UNIFIED_PDF_TEST(TextZoomBeyondPluginMaximumDoesNotTerminateWebProcess)
+{
+    testZoomBeyondPluginMaximum(^(WKWebView *webView) {
+        webView._textZoomFactor = 101;
+    });
+}
 
 #endif // PLATFORM(MAC)
 

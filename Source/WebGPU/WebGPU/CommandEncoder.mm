@@ -525,7 +525,8 @@ static std::pair<id<MTLRenderPipelineState>, id<MTLDepthStencilState>> createSim
         mtlRenderPipelineDescriptor.depthAttachmentPixelFormat = (!depthAttachmentToClear || Device::isStencilOnlyFormat(t.pixelFormat)) ? MTLPixelFormatInvalid : t.pixelFormat;
         depthStencilDescriptor.depthWriteEnabled = NO;
 
-        if (stencilAttachmentToClear && (t.pixelFormat == MTLPixelFormatDepth32Float_Stencil8 || t.pixelFormat == MTLPixelFormatStencil8 || t.pixelFormat == MTLPixelFormatX32_Stencil8))
+        // The clear pass has the stencil attachment also when it clears only the depth: it loads the stencil.
+        if ((stencilAttachmentToClear || depthAttachmentToClear) && (t.pixelFormat == MTLPixelFormatDepth32Float_Stencil8 || t.pixelFormat == MTLPixelFormatStencil8 || t.pixelFormat == MTLPixelFormatX32_Stencil8))
             mtlRenderPipelineDescriptor.stencilAttachmentPixelFormat = t.pixelFormat;
     }
 
@@ -2599,7 +2600,9 @@ void wgpuCommandEncoderRelease(WGPUCommandEncoder commandEncoder)
 WGPUComputePassEncoder wgpuCommandEncoderBeginComputePass(WGPUCommandEncoder commandEncoder, const WGPUComputePassDescriptor* descriptor)
 {
     Ref protectedCommandEncoder = WebGPU::Metal::fromAPI(commandEncoder);
-    auto apiDescriptor = WebGPU::Metal::fromAPI(*descriptor);
+    // A null descriptor is the default one.
+    WGPUComputePassDescriptor defaultDescriptor = WGPU_COMPUTE_PASS_DESCRIPTOR_INIT;
+    auto apiDescriptor = WebGPU::Metal::fromAPI(descriptor ? *descriptor : defaultDescriptor);
     if (!apiDescriptor)
         return WebGPU::Metal::releaseToAPI(WebGPU::Metal::ComputePassEncoder::createInvalid(protectedCommandEncoder, protectedCommandEncoder->device(), @"GPUComputePassDescriptor has timestamp writes without a query set"));
     return WebGPU::Metal::releaseToAPI(protectedCommandEncoder->beginComputePass(*apiDescriptor));

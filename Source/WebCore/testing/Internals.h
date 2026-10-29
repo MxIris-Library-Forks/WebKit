@@ -176,6 +176,9 @@ class WebXRTest;
 
 #if ENABLE(MEDIA_SESSION)
 class MediaSession;
+#if ENABLE(MEDIA_SESSION_CALL_TO_ACTION)
+enum class CallToActionLabel : uint8_t;
+#endif
 struct MediaSessionActionDetails;
 #if ENABLE(MEDIA_SESSION_COORDINATOR)
 class MediaSessionCoordinator;
@@ -482,6 +485,7 @@ public:
     Ref<Range> subrange(Range&, unsigned rangeLocation, unsigned rangeLength);
     ExceptionOr<RefPtr<Range>> rangeForDictionaryLookupAtLocation(int x, int y);
     RefPtr<Range> rangeOfStringNearLocation(const Range&, const String&, unsigned);
+    unsigned computeNodeIndexCount() const;
 
     struct TextIteratorState {
         String text;
@@ -1653,6 +1657,9 @@ public:
 #if ENABLE(MEDIA_SESSION)
     ExceptionOr<double> currentMediaSessionPosition(const MediaSession&);
     ExceptionOr<void> sendMediaSessionAction(MediaSession&, const MediaSessionActionDetails&);
+#if ENABLE(MEDIA_SESSION_CALL_TO_ACTION)
+    std::optional<CallToActionLabel> mediaSessionCallToActionLabel(const MediaSession&);
+#endif
 
 #if ENABLE(WEB_CODECS)
     using ArtworkImagePromise = DOMPromiseDeferred<IDLInterface<WebCodecsVideoFrame>>;

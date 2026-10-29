@@ -205,6 +205,8 @@ accessibility/detected-form-error-message-replaced.html [ Pass ]
 accessibility/detected-form-error-message-rewritten.html [ Pass ]
 accessibility/detected-form-error-message-wrapper-without-a-box.html [ Pass ]
 accessibility/detected-form-error-messages-in-field-order.html [ Pass ]
+accessibility/detected-form-error-notification-lists-fields.html [ Pass ]
+accessibility/detected-form-error-notification-lists-fields-of-hidden-form.html [ Pass ]
 accessibility/detected-form-error-notification-when-submitter-replaced.html [ Pass ]
 accessibility/detected-form-error-outranks-author-saying-valid.html [ Pass ]
 accessibility/detected-form-error-pairing.html [ Pass ]
@@ -416,10 +418,20 @@ fast/scrolling/iframe-scrollable-after-back.html [ Skip ]
 fast/scrolling/overflow-scrollable-after-back.html [ Skip ]
 fast/scrolling/programmatic-scroll-to-zero-zero.html [ Skip ]
 http/tests/site-isolation/wheel-event-coordinates.html [ Skip ]
+http/tests/site-isolation/scrolling/add-root-frame.html [ Skip ]
+http/tests/site-isolation/scrolling/navigate-subframe-changes-process.html [ Skip ]
+http/tests/site-isolation/scrolling/nested-cross-site-grandchild-frame.html [ Skip ]
+http/tests/site-isolation/scrolling/resize-cross-origin-iframe.html [ Skip ]
 http/tests/site-isolation/scrolling/basic-mouse-wheel-scrolling.html [ Skip ]
 http/tests/site-isolation/scrolling/scroll-snap-in-progress-in-cross-origin-iframe.html [ Skip ]
 http/tests/site-isolation/scrolling/scrolling-after-cross-origin-navigation.html [ Skip ]
 http/tests/site-isolation/scrolling/wheel-scroll-full-size-iframe-after-content-grows.html [ Skip ]
+http/tests/site-isolation/scrolling/mouse-wheel-scroll-cross-origin-iframe.html [ Skip ]
+http/tests/site-isolation/scrolling/passive-wheel-listener-does-not-block-scroll-in-cross-origin-iframe.html [ Skip ]
+http/tests/site-isolation/scrolling/latching-stays-on-cross-origin-iframe-when-mouse-moves-to-mainframe.html [ Skip ]
+http/tests/site-isolation/scrolling/latching-stays-on-mainframe-when-mouse-moves-to-cross-origin-iframe.html [ Skip ]
+http/tests/site-isolation/scrolling/dynamically-add-remove-wheel-listener-in-cross-origin-iframe.html [ Skip ]
+http/tests/site-isolation/scrolling/latching-with-synchronous-wheel-listener-across-processes.html [ Skip ]
 
 # This test requires alpha-channel video support.
 compositing/video/video-background-color.html [ WontFix ]
@@ -1630,6 +1642,7 @@ http/tests/site-isolation/accessibility/ [ Skip ]
 # ...except these tests, which run in-process and use the iOS remote-frame placeholder (AXRemoteElement).
 http/tests/site-isolation/accessibility/heading-search-returns-remote-frame.html [ Pass ]
 http/tests/site-isolation/accessibility/remote-frame-built-during-remote-element-lookup.html [ Pass ]
+http/tests/site-isolation/accessibility/remote-frame-element-frame.html [ Pass ]
 
 ###
 # Known failures
@@ -8173,7 +8186,7 @@ webkit.org/b/290564 imported/w3c/web-platform-tests/css/css-viewport/computedSty
 
 webkit.org/b/290568 [ Debug ] fast/dynamic/link-href-change.html [ Pass Crash ]
 
-webkit.org/b/290580 webkit.org/b/328341 [ Debug ] fast/multicol/simple-line-layout-line-index-after-strut-2.html [ Pass Crash ImageOnlyFailure ]
+webkit.org/b/290580 [ Debug ] fast/multicol/simple-line-layout-line-index-after-strut-2.html [ Pass Crash ]
 
 webkit.org/b/290568 [ Debug ] compositing/child-layer-with-subpixel-gap-needs-repaint-when-parent-moves.html [ Pass Crash ]
 
@@ -10356,6 +10369,17 @@ webkit.org/b/325809 fast/scrolling/ios/overflow-scrolling-touch-enabled-stacking
 
 webkit.org/b/325810 editing/async-clipboard/clipboard-change-data-while-getting-type.html [ Pass Timeout ]
 
+# webkit.org/b/324418 Liquid glass edge colors do not include cross-site iframes with site isolation
+http/tests/site-isolation/edge-sampling-cross-site-iframe.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-indeterminate.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-clipped.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-scrolled.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-load-finish.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-main-frame-scrolled.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-color-change.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-navigated.html [ Skip ]
+http/tests/site-isolation/edge-sampling-cross-site-iframe-zoomed.html [ Skip ]
+
 # webkit.org/b/325812 NEW TEST(318573@main): [iOS] 2x tests in fast/visual-viewport/ios/interactive-widget are flaky
 fast/visual-viewport/ios/interactive-widget/resizes-content-hardware-keyboard.html [ Pass Failure ]
 fast/visual-viewport/ios/interactive-widget/resizes-content-keyboard-scroll.html [ Pass Failure ]
@@ -10421,8 +10445,6 @@ webkit.org/b/327798 [ Release ] compositing/backing/backface-visibility-flip.htm
 
 webkit.org/b/328339 compositing/hdr/hdr-basic-image-dynamic-range-limit.html [ Pass Failure ]
 
-webkit.org/b/328341 [ Release ] fast/multicol/simple-line-layout-line-index-after-strut-2.html [ Pass ImageOnlyFailure ]
-
 webkit.org/b/328343 [ Debug ] http/tests/IndexedDB/transaction-abort-pending-requests-stop.html [ Failure ]
 
 webkit.org/b/327767 svg/W3C-I18N/tspan-dirNone-ubOverride-in-rtl-context.svg [ Failure ]
@@ -10460,3 +10482,4 @@ webkit.org/b/327767 svg/text/text-text-07-t.svg [ Failure ]
 webkit.org/b/327767 svg/text/text-tspan-01-b.svg [ Failure ]
 webkit.org/b/327767 svg/text/text-vkern.svg [ Failure ]
 webkit.org/b/289121 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-mandatory-getStats.https.html [ Pass Failure ]
+webkit.org/b/329163 imported/w3c/web-platform-tests/FileAPI [ Skip ]

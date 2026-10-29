@@ -2968,6 +2968,11 @@ RefPtr<Range> Internals::rangeOfStringNearLocation(const Range& liveRange, const
     return createLiveRange(findClosestPlainText(range, text, { }, targetOffset));
 }
 
+unsigned Internals::computeNodeIndexCount() const
+{
+    return Node::computeNodeIndexCountForTesting();
+}
+
 Vector<Internals::TextIteratorState> Internals::statesOfTextIterator(const Range& liveRange)
 {
     auto simpleRange = makeSimpleRange(liveRange);
@@ -4304,7 +4309,7 @@ ExceptionOr<String> Internals::cachedGlyphDisplayListsForTextNode(Node& node, un
 
     protect(textNode->document())->updateLayout(LayoutOptions::IgnorePendingStylesheets);
 
-    if (!textNode->renderer())
+    if (!node.renderer())
         return Exception { ExceptionCode::InvalidAccessError };
 
     return TextPainter::cachedGlyphDisplayListsForTextNodeAsText(*textNode, toDisplayListFlags(flags));
@@ -8636,6 +8641,15 @@ ExceptionOr<void> Internals::sendMediaSessionAction(MediaSession& session, const
 
     return Exception { ExceptionCode::InvalidStateError };
 }
+
+#if ENABLE(MEDIA_SESSION_CALL_TO_ACTION)
+std::optional<CallToActionLabel> Internals::mediaSessionCallToActionLabel(const MediaSession& session)
+{
+    if (!session.hasActionHandler(MediaSessionAction::CallToAction))
+        return std::nullopt;
+    return session.callToActionLabel();
+}
+#endif
 
 #if ENABLE(WEB_CODECS)
 void Internals::loadArtworkImage(String&& url, ArtworkImagePromise&& promise)

@@ -138,6 +138,55 @@ static auto *externallyConnectableManifest = @{
     },
 };
 
+TEST(WKWebExtensionAPIRuntime, OnInstalledReason)
+{
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.test.assertEq(typeof browser.runtime.OnInstalledReason, 'object', 'OnInstalledReason should be an object')",
+
+        @"browser.test.assertEq(browser.runtime.OnInstalledReason.INSTALL, 'install', 'INSTALL should be defined')",
+        @"browser.test.assertEq(browser.runtime.OnInstalledReason.UPDATE, 'update', 'UPDATE should be defined')",
+        @"browser.test.assertEq(browser.runtime.OnInstalledReason.BROWSER_UPDATE, 'browser_update', 'BROWSER_UPDATE should be defined')",
+
+        @"browser.test.assertDeepEq(Object.keys(browser.runtime.OnInstalledReason).sort(), [ 'BROWSER_UPDATE', 'INSTALL', 'UPDATE' ], 'OnInstalledReason should only define the supported values')",
+
+        @"browser.test.notifyPass()"
+    ]);
+
+    Util::loadAndRunExtension(runtimeManifest, @{ @"background.js": backgroundScript });
+}
+
+TEST(WKWebExtensionAPIRuntime, PlatformArch)
+{
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.test.assertEq(typeof browser.runtime.PlatformArch, 'object', 'PlatformArch should be an object')",
+
+        @"browser.test.assertEq(browser.runtime.PlatformArch.ARM, 'arm', 'ARM should be defined')",
+        @"browser.test.assertEq(browser.runtime.PlatformArch.X86_64, 'x86-64', 'X86_64 should be defined')",
+
+        @"browser.test.assertDeepEq(Object.keys(browser.runtime.PlatformArch).sort(), [ 'ARM', 'X86_64' ], 'PlatformArch should only define the supported values')",
+
+        @"browser.test.notifyPass()"
+    ]);
+
+    Util::loadAndRunExtension(runtimeManifest, @{ @"background.js": backgroundScript });
+}
+
+TEST(WKWebExtensionAPIRuntime, PlatformOs)
+{
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.test.assertEq(typeof browser.runtime.PlatformOs, 'object', 'PlatformOs should be an object')",
+
+        @"browser.test.assertEq(browser.runtime.PlatformOs.MAC, 'mac', 'MAC should be defined')",
+        @"browser.test.assertEq(browser.runtime.PlatformOs.IOS, 'ios', 'IOS should be defined')",
+
+        @"browser.test.assertDeepEq(Object.keys(browser.runtime.PlatformOs).sort(), [ 'IOS', 'MAC' ], 'PlatformOs should only define the supported values')",
+
+        @"browser.test.notifyPass()"
+    ]);
+
+    Util::loadAndRunExtension(runtimeManifest, @{ @"background.js": backgroundScript });
+}
+
 TEST(WKWebExtensionAPIRuntime, GetURL)
 {
     auto *baseURLString = @"test-extension://76C788B8-3374-400D-8259-40E5B9DF79D3";
@@ -680,6 +729,231 @@ TEST(WKWebExtensionAPIRuntime, SendMessageWithEmptyContainers)
     [manager runUntilTestMessage:@"Load Tab"];
 
     [manager.get().defaultTab.webView loadRequest:urlRequest];
+
+    [manager run];
+}
+
+TEST(WKWebExtensionAPIRuntime, MessageSenderWindowIdFromContentScript)
+{
+    TestWebKitAPI::HTTPServer server({
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
+    }, TestWebKitAPI::HTTPServer::Protocol::Http);
+
+    auto *urlRequest = server.requestWithLocalhost();
+
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
+        @"  browser.test.assertEq(typeof sender.windowId, 'number', 'sender.windowId should be a number')",
+        @"  browser.test.assertEq(sender.windowId, sender.tab?.windowId, 'sender.windowId should match sender.tab.windowId')",
+        @"  browser.test.assertTrue(sender.windowId !== browser.windows.WINDOW_ID_NONE, 'sender.windowId should be a real window')",
+
+        @"  sendResponse({ content: 'Received' })",
+        @"})",
+
+        @"browser.test.sendMessage('Load Tab')"
+    ]);
+
+    auto *contentScript = Util::constructScript(@[
+        @"(async () => {",
+        @"  const response = await browser.runtime.sendMessage({ content: 'Hello' })",
+
+        @"  browser.test.assertEq(response?.content, 'Received', 'Should get the response from the background script')",
+
+        @"  browser.test.notifyPass()",
+        @"})()"
+    ]);
+
+    auto manager = Util::loadExtension(runtimeContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+
+    [manager runUntilTestMessage:@"Load Tab"];
+
+    [manager.get().defaultTab.webView loadRequest:urlRequest];
+
+    [manager run];
+}
+
+TEST(WKWebExtensionAPIRuntime, PortSenderWindowIdFromContentScript)
+{
+    TestWebKitAPI::HTTPServer server({
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
+    }, TestWebKitAPI::HTTPServer::Protocol::Http);
+
+    auto *urlRequest = server.requestWithLocalhost();
+
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.runtime.onConnect.addListener((port) => {",
+        @"  browser.test.assertEq(typeof port.sender.windowId, 'number', 'port.sender.windowId should be a number')",
+        @"  browser.test.assertEq(port.sender.windowId, port.sender.tab?.windowId, 'port.sender.windowId should match port.sender.tab.windowId')",
+
+        @"  browser.test.notifyPass()",
+        @"})",
+
+        @"browser.test.sendMessage('Load Tab')"
+    ]);
+
+    auto *contentScript = Util::constructScript(@[
+        @"browser.runtime.connect({ name: 'window-id' })"
+    ]);
+
+    auto manager = Util::loadExtension(runtimeContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+
+    [manager runUntilTestMessage:@"Load Tab"];
+
+    [manager.get().defaultTab.webView loadRequest:urlRequest];
+
+    [manager run];
+}
+
+TEST(WKWebExtensionAPIRuntime, MessageSenderWindowIdFromPopup)
+{
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.runtime.onMessage.addListener(async (message, sender) => {",
+        @"  if (message !== 'check-sender')",
+        @"    return",
+
+        @"  const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true })",
+
+        @"  browser.test.assertEq(sender.tab, undefined, 'sender.tab should be absent for a popup')",
+        @"  browser.test.assertEq(typeof sender.windowId, 'number', 'sender.windowId should be a number for a popup')",
+        @"  browser.test.assertEq(sender.windowId, activeTab?.windowId, 'sender.windowId should be the window of the tab the popup opened for')",
+
+        @"  browser.test.notifyPass()",
+        @"})",
+
+        @"browser.test.sendMessage('Background Ready')"
+    ]);
+
+    auto *popupScript = Util::constructScript(@[
+        @"browser.runtime.sendMessage('check-sender')"
+    ]);
+
+    auto manager = Util::loadExtension(runtimeManifest, @{
+        @"background.js": backgroundScript,
+        @"popup.html": @"<script type='module' src='popup.js'></script>",
+        @"popup.js": popupScript,
+    });
+
+    [manager runUntilTestMessage:@"Background Ready"];
+
+    manager.get().internalDelegate.presentPopupForAction = ^(WKWebExtensionAction *) { };
+
+    [manager.get().context performActionForTab:manager.get().defaultTab];
+
+    [manager run];
+}
+
+TEST(WKWebExtensionAPIRuntime, TabsSendMessageSenderWindowIdFromPopup)
+{
+    TestWebKitAPI::HTTPServer server({
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
+    }, TestWebKitAPI::HTTPServer::Protocol::Http);
+
+    auto *urlRequest = server.requestWithLocalhost();
+
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.test.sendMessage('Load Tab')"
+    ]);
+
+    auto *contentScript = Util::constructScript(@[
+        @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
+        @"  sendResponse({ tab: sender.tab, windowId: sender.windowId })",
+        @"})",
+
+        @"browser.test.sendMessage('Content Ready')"
+    ]);
+
+    auto *popupScript = Util::constructScript(@[
+        @"(async () => {",
+        @"  const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true })",
+        @"  const sender = await browser.tabs.sendMessage(activeTab.id, 'check-sender')",
+
+        @"  browser.test.assertEq(sender?.tab, undefined, 'sender.tab should be absent for a popup')",
+        @"  browser.test.assertEq(typeof sender?.windowId, 'number', 'sender.windowId should be a number for a popup')",
+        @"  browser.test.assertEq(sender?.windowId, activeTab.windowId, 'sender.windowId should be the window of the tab the popup opened for')",
+
+        @"  browser.test.notifyPass()",
+        @"})()"
+    ]);
+
+    auto manager = Util::loadExtension(runtimePopupContentScriptManifest, @{
+        @"background.js": backgroundScript,
+        @"content.js": contentScript,
+        @"popup.html": @"<script type='module' src='popup.js'></script>",
+        @"popup.js": popupScript,
+    });
+
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+
+    [manager runUntilTestMessage:@"Load Tab"];
+
+    [manager.get().defaultTab.webView loadRequest:urlRequest];
+
+    [manager runUntilTestMessage:@"Content Ready"];
+
+    manager.get().internalDelegate.presentPopupForAction = ^(WKWebExtensionAction *) { };
+
+    [manager.get().context performActionForTab:manager.get().defaultTab];
+
+    [manager run];
+}
+
+TEST(WKWebExtensionAPIRuntime, TabsConnectSenderWindowIdFromPopup)
+{
+    TestWebKitAPI::HTTPServer server({
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
+    }, TestWebKitAPI::HTTPServer::Protocol::Http);
+
+    auto *urlRequest = server.requestWithLocalhost();
+
+    auto *backgroundScript = Util::constructScript(@[
+        @"browser.test.sendMessage('Load Tab')"
+    ]);
+
+    auto *contentScript = Util::constructScript(@[
+        @"browser.runtime.onConnect.addListener((port) => {",
+        @"  port.postMessage({ tab: port.sender.tab, windowId: port.sender.windowId })",
+        @"})",
+
+        @"browser.test.sendMessage('Content Ready')"
+    ]);
+
+    auto *popupScript = Util::constructScript(@[
+        @"(async () => {",
+        @"  const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true })",
+        @"  const port = browser.tabs.connect(activeTab.id)",
+
+        @"  port.onMessage.addListener((sender) => {",
+        @"    browser.test.assertEq(sender?.tab, undefined, 'port.sender.tab should be absent for a popup')",
+        @"    browser.test.assertEq(typeof sender?.windowId, 'number', 'port.sender.windowId should be a number for a popup')",
+        @"    browser.test.assertEq(sender?.windowId, activeTab.windowId, 'port.sender.windowId should be the window of the tab the popup opened for')",
+
+        @"    browser.test.notifyPass()",
+        @"  })",
+        @"})()"
+    ]);
+
+    auto manager = Util::loadExtension(runtimePopupContentScriptManifest, @{
+        @"background.js": backgroundScript,
+        @"content.js": contentScript,
+        @"popup.html": @"<script type='module' src='popup.js'></script>",
+        @"popup.js": popupScript,
+    });
+
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+
+    [manager runUntilTestMessage:@"Load Tab"];
+
+    [manager.get().defaultTab.webView loadRequest:urlRequest];
+
+    [manager runUntilTestMessage:@"Content Ready"];
+
+    manager.get().internalDelegate.presentPopupForAction = ^(WKWebExtensionAction *) { };
+
+    [manager.get().context performActionForTab:manager.get().defaultTab];
 
     [manager run];
 }

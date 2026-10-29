@@ -2073,6 +2073,7 @@
 		A1798B4C222F1BD4000764BD /* WebPaymentCoordinatorProxyCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = A1798B4B222F1BD4000764BD /* WebPaymentCoordinatorProxyCocoa.h */; };
 		A1798B512230A10E000764BD /* PaymentAuthorizationController.h in Headers */ = {isa = PBXBuildFile; fileRef = A1798B4F2230A0FE000764BD /* PaymentAuthorizationController.h */; };
 		A181A79821ACC74B0059A316 /* WebKitAdditions.mm in Sources */ = {isa = PBXBuildFile; fileRef = A181A79721ACAC610059A316 /* WebKitAdditions.mm */; };
+		1CB0A0010000000000000002 /* WebExtensionAdditionsHook.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CB0A0010000000000000001 /* WebExtensionAdditionsHook.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A183494224EF467800BDC9A8 /* SharedBufferReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 5CC5DB9121488E16006CB8A8 /* SharedBufferReference.h */; };
 		A188D2E52B6B0F4E00E65A08 /* WKVisibilityPropagationView.h in Headers */ = {isa = PBXBuildFile; fileRef = A188D2E22B6B0F4E00E65A08 /* WKVisibilityPropagationView.h */; };
 		A190E9422F3DB703009615AD /* WKAVContentSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = A190E9412F3DB703009615AD /* WKAVContentSource.mm */; };
@@ -2445,7 +2446,6 @@
 		CE550E152283752200D28791 /* InsertTextOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = CE550E12228373C800D28791 /* InsertTextOptions.h */; };
 		CE5B4C8821B73D870022E64F /* WKSyntheticFlagsChangedWebEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5B4C8621B73D870022E64F /* WKSyntheticFlagsChangedWebEvent.h */; };
 		CE70EE5D22442BD000E0AF0F /* WKFormPeripheralBase.h in Headers */ = {isa = PBXBuildFile; fileRef = CE70EE5C22442BD000E0AF0F /* WKFormPeripheralBase.h */; };
-		CEC8F9CB1FDF5870002635E7 /* WKWebProcessPlugInNodeHandlePrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC8F9CA1FDF5870002635E7 /* WKWebProcessPlugInNodeHandlePrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		CEDA12E3152CD1B300D9E08D /* WebAlternativeTextClient.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDA12DE152CCAE800D9E08D /* WebAlternativeTextClient.h */; };
 		CEE4AE2B1A5DCF430002F49B /* UIKitSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE4AE2A1A5DCF430002F49B /* UIKitSPI.h */; };
 		D207D24EE184C36F71B22D8D /* GeneratedSerializersNetworkProcess.mm in Sources */ = {isa = PBXBuildFile; fileRef = 013F2E794503F4590384FC8A /* GeneratedSerializersNetworkProcess.mm */; };
@@ -2886,6 +2886,11 @@
 				"$(WK_WEBKITADDITIONS_WKWEBVIEW_INPUT)",
 				"$(WK_WEBKITADDITIONS_WKWEBVIEW_PRIVATE_INPUT)",
 				"$(WK_WEBKITADDITIONS_WKPREFERENCES_PRIVATE_INPUT)",
+				"$(WK_WEBKITADDITIONS_WEBKIT_PRIVATE_INPUT)",
+				"$(WK_WEBKITADDITIONS_WKWEBEXTENSIONCONTEXT_PRIVATE_INPUT)",
+				"$(WK_WEBKITADDITIONS_WKWEBEXTENSIONCONTROLLERDELEGATE_PRIVATE_INPUT)",
+				"$(WK_WEBKITADDITIONS_WKWEBEXTENSIONCONTROLLERDELEGATE_FORWARD_DECLARATIONS_INPUT)",
+				"$(WK_WEBKITADDITIONS_WKWEBEXTENSIONPERMISSION_PRIVATE_INPUT)",
 				"$(SHARED_DERIVED_FILE_DIR)/WebKit-header-postprocess-config.sh",
 			);
 			isEditable = 1;
@@ -4457,6 +4462,7 @@
 		1C5DC464290B23890061EC62 /* WebExtensionAPIRuntimeCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebExtensionAPIRuntimeCocoa.mm; sourceTree = "<group>"; };
 		1C5DC465290B23890061EC62 /* WebExtensionAPIExtensionCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WebExtensionAPIExtensionCocoa.mm; sourceTree = "<group>"; };
 		1C5DC468290B239C0061EC62 /* WebExtensionAPIExtension.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebExtensionAPIExtension.h; sourceTree = "<group>"; };
+		494E978AB6C31C2D8B82464E /* WebExtensionAPIRuntime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WebExtensionAPIRuntime.cpp; sourceTree = "<group>"; };
 		1C5DC469290B239C0061EC62 /* WebExtensionAPIRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebExtensionAPIRuntime.h; sourceTree = "<group>"; };
 		1C627477288A1DDE00CED3A2 /* WebExtensionCocoa.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebExtensionCocoa.mm; sourceTree = "<group>"; };
 		1C62747B288B4C3E00CED3A2 /* CocoaHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaHelpers.h; sourceTree = "<group>"; };
@@ -7874,6 +7880,7 @@
 		A1798B502230A0FE000764BD /* PaymentAuthorizationController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PaymentAuthorizationController.mm; sourceTree = "<group>"; };
 		A1798B5722332203000764BD /* NetworkConnectionToWebProcessIOS.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NetworkConnectionToWebProcessIOS.mm; sourceTree = "<group>"; };
 		A181A79721ACAC610059A316 /* WebKitAdditions.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebKitAdditions.mm; sourceTree = "<group>"; };
+		1CB0A0010000000000000001 /* WebExtensionAdditionsHook.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WebExtensionAdditionsHook.mm; sourceTree = "<group>"; };
 		A188D2E22B6B0F4E00E65A08 /* WKVisibilityPropagationView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKVisibilityPropagationView.h; sourceTree = "<group>"; };
 		A188D2E32B6B0F4E00E65A08 /* WKVisibilityPropagationView.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKVisibilityPropagationView.mm; sourceTree = "<group>"; };
 		A190E9402F3DB703009615AD /* WKAVContentSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKAVContentSource.h; sourceTree = "<group>"; };
@@ -8712,7 +8719,6 @@
 		CE5B4C8721B73D870022E64F /* WKSyntheticFlagsChangedWebEvent.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKSyntheticFlagsChangedWebEvent.mm; sourceTree = "<group>"; };
 		CE70EE5A22442BB300E0AF0F /* WKFormPeripheralBase.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WKFormPeripheralBase.mm; sourceTree = "<group>"; };
 		CE70EE5C22442BD000E0AF0F /* WKFormPeripheralBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKFormPeripheralBase.h; sourceTree = "<group>"; };
-		CEC8F9CA1FDF5870002635E7 /* WKWebProcessPlugInNodeHandlePrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WKWebProcessPlugInNodeHandlePrivate.h; sourceTree = "<group>"; };
 		CEDA12DE152CCAE800D9E08D /* WebAlternativeTextClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebAlternativeTextClient.h; sourceTree = "<group>"; };
 		CEDA12DF152CCAE800D9E08D /* WebAlternativeTextClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WebAlternativeTextClient.cpp; sourceTree = "<group>"; };
 		CEE4AE2A1A5DCF430002F49B /* UIKitSPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIKitSPI.h; sourceTree = "<group>"; };
@@ -11336,6 +11342,7 @@
 				3365E6723023E5C0003166AA /* WebExtensionAPIOffscreen.h */,
 				B65DA1D1294BC25300DB503A /* WebExtensionAPIPermissions.h */,
 				1C9A15C92ABDEF13002CC12A /* WebExtensionAPIPort.h */,
+				494E978AB6C31C2D8B82464E /* WebExtensionAPIRuntime.cpp */,
 				1C5DC469290B239C0061EC62 /* WebExtensionAPIRuntime.h */,
 				B62FB8622AA9180C00E61418 /* WebExtensionAPIScripting.h */,
 				029D6BAB2C4060920068CF99 /* WebExtensionAPISidebarAction.h */,
@@ -11966,7 +11973,6 @@
 				1F01816F1858DC1600F92884 /* WKWebProcessPlugInNodeHandle.h */,
 				1F0181701858DC1600F92884 /* WKWebProcessPlugInNodeHandle.mm */,
 				1F0181711858DC1600F92884 /* WKWebProcessPlugInNodeHandleInternal.h */,
-				CEC8F9CA1FDF5870002635E7 /* WKWebProcessPlugInNodeHandlePrivate.h */,
 				1FB00AC4185F76460019142E /* WKWebProcessPlugInPageGroup.h */,
 				1FB00AC5185F76460019142E /* WKWebProcessPlugInPageGroup.mm */,
 				BC04EFFB16E65AFB00E336F0 /* WKWebProcessPlugInPrivate.h */,
@@ -14252,6 +14258,7 @@
 				A1798B4A222F133A000764BD /* PaymentAuthorizationPresenter.mm */,
 				A1798B3F222D98B6000764BD /* PaymentAuthorizationViewController.h */,
 				A1798B40222D98B6000764BD /* PaymentAuthorizationViewController.mm */,
+				1CB0A0010000000000000001 /* WebExtensionAdditionsHook.mm */,
 				A181A79721ACAC610059A316 /* WebKitAdditions.mm */,
 				F4648E90296E81F500744170 /* WebPrivacyHelpers.h */,
 				F4648E91296E81F500744170 /* WebPrivacyHelpers.mm */,
@@ -20058,7 +20065,6 @@
 				1F335BC0185B84F0001A201A /* WKWebProcessPlugInLoadDelegate.h in Headers */,
 				1F7506B31859164500EC0FF7 /* WKWebProcessPlugInNodeHandle.h in Headers */,
 				1F7506B61859165700EC0FF7 /* WKWebProcessPlugInNodeHandleInternal.h in Headers */,
-				CEC8F9CB1FDF5870002635E7 /* WKWebProcessPlugInNodeHandlePrivate.h in Headers */,
 				1FB00AC7185F76460019142E /* WKWebProcessPlugInPageGroup.h in Headers */,
 				BC04EFFC16E65AFB00E336F0 /* WKWebProcessPlugInPrivate.h in Headers */,
 				3749421B1DF1F9FF0033C19F /* WKWebProcessPlugInRangeHandle.h in Headers */,
@@ -22729,6 +22735,7 @@
 				99A514682D5ACF1800937177 /* WebDriverBidiFrontendDispatchers.cpp in Sources */,
 				99A5146A2D5ACF1800937177 /* WebDriverBidiProcessor.cpp in Sources */,
 				99A514692D5ACF1800937177 /* WebDriverBidiProtocolObjects.cpp in Sources */,
+				1CB0A0010000000000000002 /* WebExtensionAdditionsHook.mm in Sources */,
 				1C974FE72AFAD17D009DE8FC /* WebExtensionCommand.cpp in Sources */,
 				1CC1A36C2B0D9A0900373759 /* WebExtensionMenuItem.cpp in Sources */,
 				C18F3A152563334300797E66 /* WebInspectorPreferenceObserver.mm in Sources */,

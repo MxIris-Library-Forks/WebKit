@@ -424,6 +424,8 @@ Node::~Node()
     ASSERT(!m_previousSibling);
     ASSERT(!m_next);
 
+    m_shadowIncludingRoot = nullptr;
+
     {
         SUPPRESS_UNCHECKED_LOCAL auto& document = this->document(); // Store document before clearing out m_treeScope.
 
@@ -1019,8 +1021,16 @@ void Node::invalidateStyle(Style::Validity validity, Style::InvalidationMode mod
         updateAncestorsForStyleRecalc();
 }
 
+static unsigned s_computeNodeIndexCountForTesting;
+
+unsigned Node::computeNodeIndexCountForTesting()
+{
+    return s_computeNodeIndexCountForTesting;
+}
+
 unsigned Node::computeNodeIndex() const
 {
+    ++s_computeNodeIndexCountForTesting;
     unsigned count = 0;
     for (Node* sibling = previousSibling(); sibling; sibling = sibling->previousSibling())
         ++count;
@@ -1479,7 +1489,7 @@ ALWAYS_INLINE void Node::updateShadowIncludingRoot()
         m_shadowIncludingRoot = parent->m_shadowIncludingRoot;
     else if (auto* shadowRoot = dynamicDowncast<ShadowRoot>(this)) [[unlikely]] {
         auto* host = shadowRoot->host();
-        auto* root = host ? host->m_shadowIncludingRoot : shadowRoot;
+        auto* root = host ? host->m_shadowIncludingRoot.get() : shadowRoot;
         shadowRoot->setShadowIncludingRoot(root);
         m_shadowIncludingRoot = root;
     } else

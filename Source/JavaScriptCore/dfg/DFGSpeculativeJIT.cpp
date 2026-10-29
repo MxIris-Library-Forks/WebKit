@@ -383,6 +383,8 @@ void SpeculativeJIT::speculationCheckOutOfMemory(JSValueSource, Node*, const Jum
     });
 }
 
+// Note that emitting the mutatorFence is the responsibility of the caller and should be
+// done after its last initializing stores and before the object escapes.
 void SpeculativeJIT::emitAllocateRawObject(GPRReg resultGPR, RegisteredStructure structure, GPRReg storageGPR, unsigned numElements, unsigned vectorLength)
 {
     ASSERT(!isCopyOnWrite(structure->indexingMode()));
@@ -453,8 +455,6 @@ void SpeculativeJIT::emitAllocateRawObject(GPRReg resultGPR, RegisteredStructure
         store32(TrustedImm32(numElements), Address(storageGPR, Butterfly::offsetOfPublicLength()));
     
     emitInitializeOutOfLineStorage(storageGPR, structure->outOfLineCapacity(), scratchGPR);
-    
-    mutatorFence(vm);
 }
 
 void SpeculativeJIT::emitGetArgumentCount(InlineCallFrame* inlineCallFrame, GPRReg lengthGPR, bool includeThis)
@@ -2741,7 +2741,7 @@ GeneratedOperandType SpeculativeJIT::checkGeneratedTypeForToInt32(Node* node)
         RELEASE_ASSERT_NOT_REACHED();
 
     case DataFormatCell:
-        terminateSpeculativeExecution(Uncountable, JSValueSource(), nullptr);
+        terminateSpeculativeExecution(BadType, JSValueSource(), nullptr);
         return GeneratedOperandTypeUnknown;
 
     case DataFormatNone:
@@ -9091,6 +9091,7 @@ void SpeculativeJIT::compileNewArray(Node* node)
                 break;
             }
         }
+        mutatorFence(vm());
 
         // Yuck, we should *really* have a way of also returning the storageGPR. But
         // that's the least of what's wrong with this code. We really shouldn't be
@@ -13954,6 +13955,7 @@ void SpeculativeJIT::compileMaterializeNewObject(Node* node)
             break;
         }
     }
+    mutatorFence(vm());
 
     cellResult(resultGPR, node);
 }
@@ -15409,10 +15411,10 @@ void SpeculativeJIT::compileArraySortCommit(Node* node)
     auto loop = label();
     auto done = branchSub32(Signed, counterGPR, TrustedImm32(1), counterGPR);
     transfer64(BaseIndex(storageGPR, counterGPR, TimesEight, JSCellButterfly::offsetOfData()), BaseIndex(butterflyGPR, counterGPR, TimesEight, 0));
+    storeTrustedValue(JSValue(), BaseIndex(storageGPR, counterGPR, TimesEight, JSCellButterfly::offsetOfData()));
     jump().linkTo(loop, this);
 
     done.link(this);
-    emitFillStorageWithJSEmpty(storageGPR, JSCellButterfly::offsetOfData(), sortScratchSlotCount, counterGPR);
     storePtr(storageGPR, &vm().m_cachedSortScratch);
     noResult(node);
 }

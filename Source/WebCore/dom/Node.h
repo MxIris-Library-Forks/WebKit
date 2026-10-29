@@ -311,7 +311,7 @@ public:
     };
     Node& LEGACY_NODELETE getRootNode(const GetRootNodeOptions&) const;
 
-    inline WebCoreOpaqueRoot opaqueRoot() const final { return WebCoreOpaqueRoot { m_shadowIncludingRoot }; }
+    inline WebCoreOpaqueRoot opaqueRoot() const final { return WebCoreOpaqueRoot { m_shadowIncludingRoot.get() }; }
 
     template<typename T, typename Task> static void queueTaskKeepingNodeAlive(T&, TaskSource, Task&&);
     void queueTaskToDispatchEvent(TaskSource, Ref<Event>&&);
@@ -406,6 +406,8 @@ public:
     inline IntRect pixelSnappedAbsoluteBoundingRect(bool* isReplaced); // Defined in NodeInlines.h
 
     WEBCORE_EXPORT unsigned LEGACY_NODELETE computeNodeIndex() const;
+
+    WEBCORE_EXPORT static unsigned computeNodeIndexCountForTesting();
 
     // Returns the DOM ownerDocument attribute. This method never returns null, except in the case
     // of a Document node.
@@ -834,7 +836,7 @@ private:
 
     CheckedPtr<ContainerNode> m_parentNode;
     TreeScope* m_treeScope { nullptr };
-    Node* m_shadowIncludingRoot { nullptr };
+    CheckedPtr<Node> m_shadowIncludingRoot;
     CheckedPtr<Node> m_previousSibling;
     CheckedPtr<Node> m_next;
     RenderObject* m_renderer { nullptr };

@@ -145,6 +145,10 @@ namespace PAL {
 class SessionID;
 }
 
+#if USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/WebExtensionContextAdditionsPrefix.h>)
+#include <WebKitAdditions/WebExtensionContextAdditionsPrefix.h>
+#endif
+
 namespace WebKit {
 
 #if ENABLE(2022_GLIB_API)
@@ -515,6 +519,7 @@ public:
     RefPtr<WebExtensionTab> getTab(WebExtensionTabIdentifier, IgnoreExtensionAccess = IgnoreExtensionAccess::No) const;
     RefPtr<WebExtensionTab> getTab(WebPageProxyIdentifier, std::optional<WebExtensionTabIdentifier> = std::nullopt, IncludeExtensionViews = IncludeExtensionViews::No, IgnoreExtensionAccess = IgnoreExtensionAccess::No) const;
     RefPtr<WebExtensionTab> getCurrentTab(WebPageProxyIdentifier, IncludeExtensionViews = IncludeExtensionViews::Yes, IgnoreExtensionAccess = IgnoreExtensionAccess::No) const;
+    std::optional<WebExtensionWindowIdentifier> windowIdentifierForPage(WebPageProxyIdentifier) const;
     std::expected<Ref<WebExtensionTab>, WebExtensionError> getTabFromIdentifiers(std::optional<WebExtensionWindowIdentifier>, std::optional<WebExtensionTabIdentifier>) const;
     void forgetTab(WebExtensionTabIdentifier) const;
 
@@ -1298,6 +1303,10 @@ private:
     RefPtr<WebExtensionStorageSQLiteStore> m_localStorageStore;
     RefPtr<WebExtensionStorageSQLiteStore> m_sessionStorageStore;
     RefPtr<WebExtensionStorageSQLiteStore> m_syncStorageStore;
+
+#if USE(APPLE_INTERNAL_SDK) && __has_include(<WebKitAdditions/WebExtensionContextAdditions.h>)
+#include <WebKitAdditions/WebExtensionContextAdditions.h>
+#endif
 
     struct TestMessage {
         String message;

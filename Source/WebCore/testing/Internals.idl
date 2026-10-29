@@ -726,6 +726,7 @@ enum ContentsFormat {
     Range subrange(Range range, unsigned long rangeLocation, unsigned long rangeLength);
     Range? rangeForDictionaryLookupAtLocation(long x, long y);
     Range? rangeOfStringNearLocation(Range range, DOMString text, long targetOffset);
+    unsigned long computeNodeIndexCount();
     sequence<TextIteratorState> statesOfTextIterator(Range range);
 
     DOMString textFragmentDirectiveForRange(Range range);
@@ -1564,6 +1565,7 @@ enum ContentsFormat {
 
     [Conditional=MEDIA_SESSION] double currentMediaSessionPosition(MediaSession session);
     [Conditional=MEDIA_SESSION] undefined sendMediaSessionAction(MediaSession session, MediaSessionActionDetails actionDetails);
+    [Conditional=MEDIA_SESSION&MEDIA_SESSION_CALL_TO_ACTION] CallToActionLabel? mediaSessionCallToActionLabel(MediaSession session);
     [Conditional=MEDIA_SESSION&WEB_CODECS] Promise<WebCodecsVideoFrame> loadArtworkImage(DOMString url);
     [Conditional=MEDIA_SESSION] sequence<DOMString> platformSupportedCommands();
 

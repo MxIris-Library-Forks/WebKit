@@ -560,12 +560,12 @@ void RenderImage::repaintOrMarkForLayout(ImageSizeChangeType imageSizeChange, co
         return;
 
     if (parent()) {
-        auto repaintRect = replacedContentRect();
+        auto repaintRect = contentBoxRect();
         if (RefPtr styleImage = imageResource().styleImage(); styleImage && rect) {
             auto concreteObjectSize = concreteObjectSizeForPainting();
             if (!concreteObjectSize.isEmpty()) {
                 auto changedRect = styleImage->mapChangedRectToSource(*this, concreteObjectSize, *rect);
-                repaintRect.intersect(enclosingIntRect(mapRect(changedRect, FloatRect { { }, concreteObjectSize.size() }, repaintRect)));
+                repaintRect.intersect(enclosingIntRect(mapRect(changedRect, FloatRect { { }, concreteObjectSize.size() }, replacedContentRect())));
             }
         }
         // FIXME: This needs to account for filter outsets: webkit.org/b/293553.
@@ -913,9 +913,8 @@ RefPtr<NativeImage> RenderImage::createNativeImageAsPainted(float deviceScaleFac
     FloatSize contentBoxSize = contentBoxRect.size();
     auto scaleFactor = deviceScaleFactor * std::min({ 1.0f, maximumSize.width() / contentBoxSize.width(), maximumSize.height() / contentBoxSize.height() });
 
-    Ref frame = this->frame();
-    auto colorSpace = screenColorSpace(protect(protect(frame->mainFrame())->virtualView()).get());
-    RefPtr imageBuffer = ImageBuffer::create(contentBoxRect.size(), RenderingMode::Unaccelerated, RenderingPurpose::Snapshot, scaleFactor, colorSpace, PixelFormat::BGRA8);
+    // FIXME: <https://webkit.org/b/329173> We should not have to hardcode the sRGB colorspace here.
+    RefPtr imageBuffer = ImageBuffer::create(contentBoxRect.size(), RenderingMode::Unaccelerated, RenderingPurpose::Snapshot, scaleFactor, ColorSpace::SRGB(), PixelFormat::BGRA8);
     if (!imageBuffer)
         return nullptr;
 

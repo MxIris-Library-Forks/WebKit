@@ -502,6 +502,10 @@ ApplePayEnabled:
   defaultValue:
     "ENABLE(APPLE_PAY_REMOTE_UI)": true
     default: false
+    WebKit:
+      "PLATFORM(APPLETV)": WebKit::defaultApplePayEnabled()
+      "ENABLE(APPLE_PAY_REMOTE_UI)": true
+      default: false
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
@@ -4115,6 +4119,15 @@ MediaResourceLoadTimeoutForTesting:
   humanReadableName: "Media Resource Load Timeout For Testing"
   humanReadableDescription: "Test override for the timeout applied to each media resource load serviced by WebKit, in milliseconds (0 means use production default)"
   defaultValue: 0
+
+MediaSessionCallToActionEnabled:
+  type: bool
+  status: internal
+  category: media
+  humanReadableName: "MediaSession call-to-action"
+  humanReadableDescription: "Enable the MediaSession call-to-action action, shown as a button in Picture-in-Picture"
+  condition: ENABLE(MEDIA_SESSION_CALL_TO_ACTION)
+  defaultValue: false
 
 MediaSessionCaptureToggleAPIEnabled:
   type: bool

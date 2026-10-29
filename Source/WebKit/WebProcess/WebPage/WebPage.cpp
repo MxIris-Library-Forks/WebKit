@@ -4078,8 +4078,8 @@ RefPtr<WebContextMenu> WebPage::contextMenuAtPointInWindow(FrameIdentifier frame
 
     // Simulate a mouse click to generate the correct menu.
     PlatformMouseEvent mousePressEvent(point, point, MouseButton::Right, PlatformEvent::Type::MousePressed, 1, { }, MonotonicTime::now(), WebCore::ForceAtClick, WebCore::SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
-    coreFrame->eventHandler().handleMousePressEvent(mousePressEvent);
-    bool handled = coreFrame->eventHandler().sendContextMenuEvent(mousePressEvent);
+    auto pressResult = coreFrame->eventHandler().handleMousePressEvent(mousePressEvent);
+    bool handled = !pressResult.wasHandledByPageOverlay() && coreFrame->eventHandler().sendContextMenuEvent(mousePressEvent);
     RefPtr menu = handled ? &contextMenu() : nullptr;
     PlatformMouseEvent mouseReleaseEvent(point, point, MouseButton::Right, PlatformEvent::Type::MouseReleased, 1, { }, MonotonicTime::now(), WebCore::ForceAtClick, WebCore::SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
     coreFrame->eventHandler().handleMouseReleaseEvent(mouseReleaseEvent);
@@ -8972,9 +8972,7 @@ void WebPage::loadAndDecodeImage(WebCore::ResourceRequest&& request, std::option
         if (!result)
             return completionHandler(makeUnexpected(WTF::move(result.error())));
 
-        Ref bitmapImage = WebCore::BitmapImage::create(nullptr);
-        bitmapImage->setData(result->ptr(), true);
-        RefPtr nativeImage = bitmapImage->primaryNativeImage();
+        RefPtr nativeImage = NativeImage::create(result->get());
         if (!nativeImage)
             return completionHandler(makeUnexpected(decodeError(url)));
 

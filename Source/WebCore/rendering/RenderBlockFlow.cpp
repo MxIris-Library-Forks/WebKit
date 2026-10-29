@@ -345,6 +345,13 @@ void RenderBlockFlow::adjustIntrinsicLogicalWidthsForColumns(LayoutUnit& minLogi
     }
 }
 
+void RenderBlockFlow::computeIntrinsicLogicalWidthContributions()
+{
+    if (auto* lineLayout = inlineLayout())
+        lineLayout->resetIntrinsicWidthConstraints();
+    RenderBlock::computeIntrinsicLogicalWidthContributions();
+}
+
 std::pair<LayoutUnit, LayoutUnit> RenderBlockFlow::computeIntrinsicLogicalWidths() const
 {
     auto minLogicalWidth = LayoutUnit { };
@@ -4222,6 +4229,12 @@ bool RenderBlockFlow::hasBlocksInInlineLayout() const
 {
     auto* inlineLayout = this->inlineLayout();
     return inlineLayout && inlineLayout->hasBlocks();
+}
+
+void RenderBlockFlow::destroyLineLayout()
+{
+    setLineLayoutPath(UndeterminedPath);
+    m_lineLayout = nullptr;
 }
 
 void RenderBlockFlow::invalidateLineLayout(InvalidationReason invalidationReason)

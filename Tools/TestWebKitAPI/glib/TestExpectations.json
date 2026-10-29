@@ -180,13 +180,6 @@
             }
         }
     },
-    "TestWebViewEditor": {
-        "subtests": {
-            "/webkit/WebKitWebView/cut-copy-paste/editable": {
-                "expected": {"gtk": {"status": ["FAIL", "PASS", "TIMEOUT"], "bug": "webkit.org/b/263417"}}
-            }
-        }
-    },
     "TestInspector": {
         "expected": {"all": {"slow": true}}
     },
@@ -441,6 +434,9 @@
         "subtests": {
             "/webkit/WebKitWebsiteData/configuration": {
                 "expected": {"all" : { "status": ["PASS", "FAIL", "TIMEOUT"], "bug": "webkit.org/b/301570"}}
+            },
+            "/webkit/WebKitWebsiteData/compression-dictionary": {
+                "expected": {"all": {"status": ["PASS", "FAIL"], "bug": "webkit.org/b/329097"}}
             }
         }
     },

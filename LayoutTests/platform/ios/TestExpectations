@@ -261,6 +261,7 @@ media/media-source/media-managedmse-video-with-poster.html [ Pass Crash ] # rdar
 media/media-source/media-source-vp8-webm-error.html [ Pass ]
 media/media-source/media-source-vp8-webm-error-offscreen.html [ Pass ]
 media/media-source/media-source-webm-seek-singlekeyframe.html [ Pass ]
+media/media-source/media-source-seek-unbuffered-readystate.html [ Pass ]
 
 webkit.org/b/269897 media/media-source/media-managedmse-poster.html [ Skip ]
 
@@ -8576,8 +8577,6 @@ webkit.org/b/289010 imported/w3c/web-platform-tests/html/semantics/disabled-elem
 fast/events/selection-clear-on-click-fractional-coordinates.html [ Skip ]
 
 webkit.org/b/261344 requestidlecallback/requestidlecallback-does-not-block-timer.html [ Pass Failure ] # rdar://178748996
-
-webkit.org/b/297669 http/tests/site-isolation/edge-sampling-viewport-constrained-object.html [ Pass Failure Crash ] # rdar://178675260
 
 webkit.org/b/295435 compositing/layer-creation/overlap-animation-container.html [ Pass Failure ]
 

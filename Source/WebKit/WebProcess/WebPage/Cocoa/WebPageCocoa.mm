@@ -338,13 +338,6 @@ bool WebPage::shouldUsePDFPlugin(const String& contentType, StringView path) con
 
 void WebPage::performDictionaryLookupAtLocation(FrameIdentifier frameID, const FloatPoint& floatPoint, CompletionHandler<void(std::optional<RemoteUserInputEventData>)>&& completionHandler)
 {
-#if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = mainFramePlugIn()) {
-        if (pluginView->performDictionaryLookupAtLocation(floatPoint))
-            return completionHandler(std::nullopt);
-    }
-#endif
-
     RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
     RefPtr localFrame = webFrame ? webFrame->coreLocalFrame() : nullptr;
     RefPtr view = localFrame ? localFrame->view() : nullptr;
@@ -358,6 +351,13 @@ void WebPage::performDictionaryLookupAtLocation(FrameIdentifier frameID, const F
 
     if (auto remoteUserInputEventData = remoteUserInputEventDataForHitTestResult(result, *view, point))
         return completionHandler(WTF::move(remoteUserInputEventData));
+
+#if ENABLE(PDF_PLUGIN)
+    if (RefPtr pluginView = result.isOverWidget() ? pluginViewForFrame(protect(result.innerNodeFrame()).get()) : nullptr) {
+        if (pluginView->performDictionaryLookupAtLocation(floatPoint))
+            return completionHandler(std::nullopt);
+    }
+#endif
 
     if (auto rangeResult = DictionaryLookup::rangeAtHitTestResult(result)) {
         if (RefPtr frame = rangeResult->start.document().frame())
@@ -540,7 +540,7 @@ void WebPage::dictationAlternativesAtSelection(CompletionHandler<void(Vector<Dic
     }
 
     auto selection = frame->selection().selection();
-    auto expandedSelectionRange = VisibleSelection { selection.visibleStart().previous(CannotCrossEditingBoundary), selection.visibleEnd().next(CannotCrossEditingBoundary) }.range();
+    auto expandedSelectionRange = VisibleSelection { selection.visibleStart().previous(EditingBoundaryCrossingRule::CannotCross), selection.visibleEnd().next(EditingBoundaryCrossingRule::CannotCross) }.range();
     if (!expandedSelectionRange) {
         completion({ });
         return;
@@ -3482,13 +3482,14 @@ Awaitable<std::optional<WebCore::RemoteUserInputEventData>> WebPage::potentialTa
         bool nodeIsPluginElement = is<WebCore::HTMLPlugInElement>(*m_potentialTapNode);
         send(Messages::WebPageProxy::HandleSmartMagnificationInformationForPotentialTap(requestID, absoluteBoundingRect, fitEntireRect, viewportMinimumScale, viewportMaximumScale, nodeIsRootLevel, nodeIsPluginElement));
     }
+#endif // PLATFORM(IOS_FAMILY)
 
     sendTapHighlightForNodeIfNecessary(requestID, m_potentialTapNode.get(), positionInRootView);
-#if ENABLE(TWO_PHASE_CLICKS)
+
+#if PLATFORM(IOS_FAMILY)
     if (RefPtr potentialTapNode = m_potentialTapNode; potentialTapNode && !potentialTapNode->allowsDoubleTapGesture())
         send(Messages::WebPageProxy::DisableDoubleTapGesturesDuringTapIfNecessary(requestID));
 #endif
-#endif // PLATFORM(IOS_FAMILY)
 
     co_return std::nullopt;
 }
@@ -3642,6 +3643,14 @@ void WebPage::sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier requestID
             localMainFrame->loader().prefetchDNSIfNeeded(element->absoluteLinkURL());
     }
 
+#if PLATFORM(MAC)
+    // FIXME: The UI process only knows the focused element's input type, not which element
+    // it is, so it can't skip highlighting the focused element like on iOS. We can move this
+    // to the UI process once ElementDidFocus is brought to macOS.
+    if (node == m_focusedElement)
+        return;
+#endif
+
     RefPtr updatedNode = node;
     if (RefPtr area = dynamicDowncast<HTMLAreaElement>(*node)) {
         updatedNode = area->imageElement();
@@ -3672,8 +3681,7 @@ void WebPage::sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier requestID
 #else
         auto highlightColor = Color::transparentBlack;
 #endif
-        if (!updatedNode->document().frame()->isMainFrame()) {
-            RefPtr view = updatedNode->document().frame()->view();
+        if (RefPtr view = updatedNode->document().frame()->view()) {
             for (auto& quad : quads)
                 quad = view->contentsToMainFrameView(quad);
         }

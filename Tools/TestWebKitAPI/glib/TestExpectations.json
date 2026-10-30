@@ -1,13 +1,4 @@
 {
-    "TestAuthentication": {
-        "subtests": {
-            "/webkit/Authentication/authentication-success": {
-                "expected": {
-                    "wpe": {"status": ["PASS", "TIMEOUT", "FAIL"], "bug": "webkit.org/b/281822"}
-                }
-            }
-        }
-    },
     "TestBackForwardList": {
         "subtests": {
             "/webkit/BackForwardList/list-limit-and-cache": {
@@ -434,9 +425,6 @@
         "subtests": {
             "/webkit/WebKitWebsiteData/configuration": {
                 "expected": {"all" : { "status": ["PASS", "FAIL", "TIMEOUT"], "bug": "webkit.org/b/301570"}}
-            },
-            "/webkit/WebKitWebsiteData/compression-dictionary": {
-                "expected": {"all": {"status": ["PASS", "FAIL"], "bug": "webkit.org/b/329097"}}
             }
         }
     },

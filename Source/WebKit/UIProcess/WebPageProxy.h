@@ -757,6 +757,7 @@ enum class PasteboardAccessIntent : bool;
 enum class ProcessSwapRequestedByClient : bool;
 enum class ProcessTerminationReason : uint8_t;
 enum class ProcessThrottlerActivityType : bool;
+enum class ProvisionalLoadIsReplaced : bool;
 enum class QuickLookPreviewActivity : uint8_t;
 enum class RespectSelectionAnchor : bool;
 enum class RotationMonitoringReason : uint8_t;
@@ -1590,7 +1591,6 @@ public:
     void interruptSyntheticMomentumScrolling();
     void continueWheelEventHandling(Ref<WebWheelEvent>&&, const WebCore::WheelEventHandlingResult&, std::optional<bool> willStartSwipe);
     void wheelEventHandlingCompleted(bool wasHandled);
-    void didEndSyntheticMomentumScrolling();
 
 #if PLATFORM(MAC)
     void dispatchTrackedPointerEvent(std::optional<WebCore::FrameIdentifier>, WebEventPhase, const WebCore::FloatPoint& locationInRootView, OptionSet<WebEventModifier>, CompletionHandler<void(bool wasCanceled)>&&);
@@ -2504,7 +2504,7 @@ public:
 
     // Logic shared between the WebPageProxy and the ProvisionalPageProxy.
     void didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, URL&&, URL&& unreachableURL, const UserData&, WallTime);
-    void didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&&, WebFrameProxy&, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& provisionalURL, WebCore::ResourceError&&, WebCore::WillContinueLoading, const UserData&, WebCore::WillInternallyHandleFailure);
+    void didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&&, WebFrameProxy&, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& provisionalURL, WebCore::ResourceError&&, WebCore::WillContinueLoading, const UserData&, WebCore::WillInternallyHandleFailure, ProvisionalLoadIsReplaced);
     void didReceiveServerRedirectForProvisionalLoadForFrameShared(Ref<WebProcessProxy>&&, WebCore::FrameIdentifier, std::optional<WebCore::NavigationIdentifier>, WebCore::ResourceRequest&&, const UserData&);
     void didPerformServerRedirectShared(Ref<WebProcessProxy>&&, String&& sourceURLString, String&& destinationURLString, WebCore::FrameIdentifier);
     void didPerformClientRedirectShared(Ref<WebProcessProxy>&&, String&& sourceURLString, String&& destinationURLString, WebCore::FrameIdentifier);
@@ -3617,7 +3617,7 @@ private:
 
     void focusedFrameChanged(IPC::Connection&, std::optional<WebCore::FrameIdentifier>&&);
 
-    void didFinishLoadingDataForCustomContentProvider(String&& suggestedFilename, std::span<const uint8_t>);
+    void didFinishLoadingDataForCustomContentProvider(IPC::Connection&, String&& suggestedFilename, std::span<const uint8_t>);
 
 #if USE(AUTOMATIC_TEXT_REPLACEMENT)
     void toggleSmartInsertDelete();
@@ -4301,6 +4301,7 @@ private:
     unsigned m_pendingLearnOrIgnoreWordMessageCount { 0 };
 
     bool m_mainFrameHasCustomContentProvider { false };
+    bool m_didFinishLoadingDataForCustomContentProvider { false };
 
 #if ENABLE(DRAG_SUPPORT)
     // Current drag destination details are delivered as an asynchronous response,

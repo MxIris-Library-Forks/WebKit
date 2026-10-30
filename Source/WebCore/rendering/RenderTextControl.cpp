@@ -209,26 +209,22 @@ std::pair<LayoutUnit, LayoutUnit> RenderTextControl::computeIntrinsicLogicalWidt
     return { minLogicalWidth, maxLogicalWidth };
 }
 
-void RenderTextControl::computeIntrinsicLogicalWidthContributions()
+std::pair<LayoutUnit, LayoutUnit> RenderTextControl::computeIntrinsicLogicalWidthContributions()
 {
     ASSERT(hasInvalidContentLogicalWidths());
-    if (style().fieldSizing() == FieldSizing::Content) {
-        RenderBlockFlow::computeIntrinsicLogicalWidthContributions();
-        return;
-    }
+    if (style().fieldSizing() == FieldSizing::Content)
+        return RenderBlockFlow::computeIntrinsicLogicalWidthContributions();
 
-    m_minContentLogicalWidthContribution = 0_lu;
-    m_maxContentLogicalWidthContribution = 0_lu;
+    auto [minContentLogicalWidth, maxContentLogicalWidth] = [&] -> std::pair<LayoutUnit, LayoutUnit> {
+        if (auto fixedLogicalWidth = style().logicalWidth().tryFixed(); fixedLogicalWidth && fixedLogicalWidth->isPositiveOrZero()) {
+            auto logicalWidth = adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalWidth);
+            return { logicalWidth, logicalWidth };
+        }
+        return computeIntrinsicLogicalWidths();
+    }();
 
-    if (auto fixedLogicalWidth = style().logicalWidth().tryFixed(); fixedLogicalWidth && fixedLogicalWidth->isPositiveOrZero()) {
-        m_maxContentLogicalWidthContribution = adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalWidth);
-        m_minContentLogicalWidthContribution = m_maxContentLogicalWidthContribution;
-    } else
-        std::tie(m_minContentLogicalWidthContribution, m_maxContentLogicalWidthContribution) = computeIntrinsicLogicalWidths();
-
-    constrainIntrinsicLogicalWidthsByMinMax(m_minContentLogicalWidthContribution, m_maxContentLogicalWidthContribution);
-
-    clearContentLogicalWidthsInvalidation();
+    constrainIntrinsicLogicalWidthsByMinMax(minContentLogicalWidth, maxContentLogicalWidth);
+    return { minContentLogicalWidth, maxContentLogicalWidth };
 }
 
 void RenderTextControl::layoutExcludedChildren(RelayoutChildren relayoutChildren)
@@ -248,7 +244,7 @@ void RenderTextControl::layoutExcludedChildren(RelayoutChildren relayoutChildren
     if (style().fieldSizing() == FieldSizing::Content) {
         // In order to take placeholder height into account while computing the size of the input box, we need to
         // layout the placeholder too (which is how excluded content normally works).
-        placeholderRenderer->setChildNeedsLayout(MarkingBehavior::MarkOnlyThis);
+        placeholderRenderer->setChildNeedsLayout(MarkingBehavior::OnlyThis);
         placeholderRenderer->layoutIfNeeded();
     }
 
@@ -256,7 +252,7 @@ void RenderTextControl::layoutExcludedChildren(RelayoutChildren relayoutChildren
         // The markParents arguments should be false because this function is
         // called from layout() of the parent and the placeholder layout doesn't
         // affect the parent layout.
-        placeholderRenderer->setChildNeedsLayout(MarkingBehavior::MarkOnlyThis);
+        placeholderRenderer->setChildNeedsLayout(MarkingBehavior::OnlyThis);
     }
 }
 

@@ -230,6 +230,7 @@
 #include <WebCore/CaptureDeviceWithCapabilities.h>
 #include <WebCore/ChromeClient.h>
 #include <WebCore/CompositionHighlight.h>
+#include <WebCore/ContentFilter.h>
 #include <WebCore/CrossSiteNavigationDataTransfer.h>
 #include <WebCore/CryptoKey.h>
 #include <WebCore/DOMPasteAccess.h>
@@ -2481,7 +2482,8 @@ void WebPageProxy::loadRequestWithNavigationShared(Ref<WebProcessProxy>&& proces
             loadParameters.sandboxExtensionHandle = WTF::move(*sandboxExtensionHandle);
         protectedThis->prepareToLoadWebPage(*process, loadParameters);
 
-        if (shouldTreatAsContinuingLoad == ShouldTreatAsContinuingLoad::No)
+        // Avoid accidentally directly preconnecting to hosts that are unreachable via private relay (see rdar://186500446).
+        if (shouldTreatAsContinuingLoad == ShouldTreatAsContinuingLoad::No && !loadParameters.request.useAdvancedPrivacyProtections())
             protectedThis->preconnectTo(ResourceRequest { loadParameters.request });
 
         navigation->setIsLoadedWithNavigationShared(true);
@@ -2757,6 +2759,7 @@ void WebPageProxy::loadAlternateHTML(Ref<WebCore::DataSegment>&& htmlData, const
 
     pageLoadState->setPendingAPIRequest(transaction, { { }, unreachableURL });
     pageLoadState->setUnreachableURL(transaction, unreachableURL);
+    pageLoadState->setBaseURL(transaction, baseURL);
 
     if (RefPtr mainFrame = m_mainFrame)
         mainFrame->setUnreachableURL(unreachableURL);
@@ -2822,7 +2825,7 @@ void WebPageProxy::stopLoading()
         process.startResponsivenessTimer();
     });
     if (RefPtr provisionalPage = m_provisionalPage) {
-        provisionalPage->cancel();
+        provisionalPage->cancel(ProvisionalLoadIsReplaced::No);
         m_provisionalPage = nullptr;
     }
 }
@@ -6441,7 +6444,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             // This navigation supersedes any pending cross-site main frame load in a provisional page. Cancel it now so that
             // the frame's provisional load process is its own process again and its DidStartProvisionalLoadForFrame isn't ignored.
             if (RefPtr provisionalPage = m_provisionalPage; preferences->siteIsolationEnabled() && frame->isMainFrame() && provisionalPage && !provisionalPage->hasActiveLoadForNavigation(navigation)) {
-                provisionalPage->cancel();
+                provisionalPage->cancel(ProvisionalLoadIsReplaced::Yes);
                 m_provisionalPage = nullptr;
             }
         }
@@ -7008,7 +7011,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
                     certificateInfo = provisionalMainFrame->provisionalCertificateInfoFromNetworkProcess(currentRequestURL);
             }
         } else
-            provisionalPage->cancel();
+            provisionalPage->cancel(ProvisionalLoadIsReplaced::Yes);
         m_provisionalPage = nullptr;
     }
 
@@ -7160,6 +7163,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         else if (navigation->currentRequest().isEmpty()) {
             WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "continueNavigationInNewProcess: Tearing down provisional load because the navigation request URL is empty");
             m_provisionalPage = nullptr;
+            m_inspectorController->mainFrameProvisionalLoadDidEnd(ProvisionalLoadIsReplaced::No);
         } else
             provisionalPage->loadRequest(navigation, ResourceRequest { navigation->currentRequest() }, nullptr, shouldTreatAsContinuingLoad, isNavigatingToAppBoundDomain(), WTF::move(websitePolicies), existingNetworkResourceLoadIdentifierToResume, navigationUpgradeToHTTPSBehavior, originalNavigationStartTime);
     };
@@ -9343,6 +9347,24 @@ static bool shouldPrewarmWebProcessOnProvisionalLoad()
 #endif
 }
 
+static bool isValidProvisionalLoadURL(const PageLoadState& pageLoadState, const URL& frameURL, const URL& provisionalURL)
+{
+    if (provisionalURL.isEmpty() || provisionalURL.isAboutBlank())
+        return true;
+
+    auto areURLsRelated = [](auto& url1, auto& url2) {
+        if (!url1.protocolIsInHTTPFamily())
+            return url1.protocol() == url2.protocol();
+        return WebCore::SecurityOriginData::fromURL(url1) == WebCore::SecurityOriginData::fromURL(url2);
+    };
+    return areURLsRelated(pageLoadState.pendingAPIRequestURL(), provisionalURL)
+        || areURLsRelated(frameURL, provisionalURL)
+#if ENABLE(CONTENT_FILTERING)
+        || areURLsRelated(WebCore::ContentFilter::blockedPageURL(), provisionalURL)
+#endif
+        || areURLsRelated(pageLoadState.baseURL(), provisionalURL);
+}
+
 void WebPageProxy::didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& process, FrameIdentifier frameID, FrameInfoData&& frameInfo, ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, URL&& url, URL&& unreachableURL, const UserData& userData, WallTime timestamp)
 {
     RefPtr protectedPageClient { pageClient() };
@@ -9381,7 +9403,7 @@ void WebPageProxy::didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& 
 
     // If the page starts a new main frame provisional load, then cancel any pending one in a provisional process.
     if (frame->isMainFrame() && m_provisionalPage && m_provisionalPage->mainFrame() != frame) {
-        protect(provisionalPageProxy())->cancel();
+        protect(provisionalPageProxy())->cancel(ProvisionalLoadIsReplaced::Yes);
         m_provisionalPage = nullptr;
     }
 
@@ -9392,6 +9414,18 @@ void WebPageProxy::didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& 
 
     if (navigation && frame->isMainFrame() && navigation->currentRequest().url().isValid())
         MESSAGE_CHECK(process, navigation->currentRequest().url() == url);
+
+    // When navigationID is null for a main frame we don't have a Navigation
+    // object to check the URL against. To avoid URL spoofing by a compromised
+    // WebProcess, validate the URL to make sure it is related to a known URL
+    // for this view.
+    bool shouldUpdatePageLoadState = true;
+    if (!navigation && frame->isMainFrame() && navigationID == std::nullopt) {
+        if (!isValidProvisionalLoadURL(protect(internals().pageLoadState), frame->url(), url)) {
+            WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "didStartProvisionalLoadForFrameShared: ignoring provisional URL from WebContent because it is unexpected");
+            shouldUpdatePageLoadState = false;
+        }
+    }
 
     LOG_WITH_STREAM(Loading, stream << "WebPageProxy "_s << identifier().toUInt64() << " in process pid "_s << process->processID() << " didStartProvisionalLoadForFrame to frameID "_s << frameID.toUInt64() << ", navigationID "_s << (navigationID ? navigationID->object().toUInt64() : 0) << ", url "_s << url.string());
     WEBPAGEPROXY_RELEASE_LOG(Loading, "didStartProvisionalLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d", frameID.toUInt64(), frame->isMainFrame());
@@ -9406,9 +9440,12 @@ void WebPageProxy::didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& 
         process->didStartProvisionalLoadForMainFrame(url);
         reportPageLoadResult(ResourceError { ResourceError::Type::Cancellation });
         internals().pageLoadStart = MonotonicTime::now();
-        pageLoadState->didStartProvisionalLoad(transaction, url, unreachableURL);
+        if (shouldUpdatePageLoadState)
+            pageLoadState->didStartProvisionalLoad(transaction, url, unreachableURL);
         protectedPageClient->didStartProvisionalLoadForMainFrame();
         closeOverlayedViews();
+        if (shouldUpdatePageLoadState)
+            m_inspectorController->mainFrameDidStartProvisionalLoad();
     }
 
     frame->setUnreachableURL(unreachableURL);
@@ -9584,10 +9621,10 @@ void WebPageProxy::didFailProvisionalLoadForFrame(IPC::Connection& connection, F
             return;
     }
 
-    didFailProvisionalLoadForFrameShared(WTF::move(process), *frame, WTF::move(frameInfo), WTF::move(request), navigationID, WTF::move(provisionalURL), WTF::move(error), willContinueLoading, userData, willInternallyHandleFailure);
+    didFailProvisionalLoadForFrameShared(WTF::move(process), *frame, WTF::move(frameInfo), WTF::move(request), navigationID, WTF::move(provisionalURL), WTF::move(error), willContinueLoading, userData, willInternallyHandleFailure, ProvisionalLoadIsReplaced::No);
 }
 
-void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& process, WebFrameProxy& frame, FrameInfoData&& frameInfo, WebCore::ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, String&& provisionalURL, ResourceError&& error, WillContinueLoading willContinueLoading, const UserData& userData, WillInternallyHandleFailure willInternallyHandleFailure)
+void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& process, WebFrameProxy& frame, FrameInfoData&& frameInfo, WebCore::ResourceRequest&& request, std::optional<WebCore::NavigationIdentifier> navigationID, String&& provisionalURL, ResourceError&& error, WillContinueLoading willContinueLoading, const UserData& userData, WillInternallyHandleFailure willInternallyHandleFailure, ProvisionalLoadIsReplaced isReplaced)
 {
     LOG_WITH_STREAM(Loading, stream << "(Loading) WebPageProxy "_s << identifier().toUInt64() << " in web process pid "_s << process->processID() << " didFailProvisionalLoadForFrame to provisionalURL "_s << provisionalURL);
     WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "didFailProvisionalLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d, domain=%s, code=%d, isMainFrame=%d, willInternallyHandleFailure=%d", frame.frameID().toUInt64(), frame.isMainFrame(), error.domain().utf8(), error.errorCode(), frame.isMainFrame(), willInternallyHandleFailure == WillInternallyHandleFailure::Yes);
@@ -9596,8 +9633,10 @@ void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& p
     MESSAGE_CHECK_URL(process, error.failingURL());
 
     // A failed main-frame provisional load also ends the traversal queue's wait for the main-frame load (nothing committed).
-    if (frame.isMainFrame())
+    if (frame.isMainFrame()) {
         m_sessionHistoryTraversalQueue->mainFrameLoadDidFinish(navigationID);
+        m_inspectorController->mainFrameProvisionalLoadDidEnd(isReplaced);
+    }
 
     RefPtr protectedPageClient { pageClient() };
 
@@ -9808,6 +9847,7 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
     // and the traversal queue can stop waiting for the main-frame load; no-op unless it is waiting.
     if (frame->isMainFrame()) {
         m_sessionHistoryTraversalQueue->mainFrameLoadDidFinish(navigationID);
+        m_inspectorController->mainFrameDidCommitLoad();
         recordFirstPartyVisit(request.url());
         m_usingOverrideHardwareConcurrency = shouldUseOverrideHardwareConcurrency(request.url());
 
@@ -9968,6 +10008,7 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
 
     if (frame->isMainFrame()) {
         m_mainFrameHasCustomContentProvider = frameHasCustomContentProvider;
+        m_didFinishLoadingDataForCustomContentProvider = false;
 
         if (m_mainFrameHasCustomContentProvider) {
             // Always assume that the main frame is pinned here, since the custom representation view will handle
@@ -10128,8 +10169,11 @@ void WebPageProxy::observeAndCreateRemoteSubframesInOtherProcesses(WebFrameProxy
         return;
     }
 
+    if (!parent->mainFrame())
+        return;
+
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
-        if (webProcess.processID() == newFrame.process().processID())
+        if (webProcess.coreProcessIdentifier() == newFrame.process().coreProcessIdentifier())
             return;
         webProcess.send(Messages::WebPage::CreateRemoteSubframe(parent->frameID(), newFrame.frameID(), frameName, newFrame.process().coreProcessIdentifier(), newFrame.calculateFrameTreeSyncData()), pageID);
     });
@@ -11607,6 +11651,7 @@ void WebPageProxy::decidePolicyForNavigationActionSync(IPC::Connection& connecti
 {
     auto frameID = data.frameInfo.frameID;
     Ref process = WebProcessProxy::fromConnection(connection);
+    MESSAGE_CHECK_COMPLETION(process, (!data.originatingPageID || process->isAssociatedWithPage(*data.originatingPageID)), reply({ }));
     RefPtr frame = WebFrameProxy::webFrame(frameID);
     if (!frame) {
         // This message should always be queued at this point, so we can pull it out with a 0 timeout.
@@ -13059,12 +13104,6 @@ void WebPageProxy::pageDidScroll(const WebCore::IntPoint& scrollOffset)
 #if !PLATFORM(IOS_FAMILY)
     closeOverlayedViews();
 #endif
-}
-
-void WebPageProxy::didEndSyntheticMomentumScrolling()
-{
-    if (RefPtr pageClient = this->pageClient())
-        pageClient->didEndSyntheticMomentumScrolling();
 }
 
 void WebPageProxy::setHasActiveAnimatedScrolls(bool isRunning)
@@ -15511,6 +15550,7 @@ void WebPageProxy::provisionalProcessDidTerminate()
     m_provisionalPage = nullptr;
     // The main-frame load that the provisional page carried will neither commit nor fail.
     m_sessionHistoryTraversalQueue->mainFrameLoadDidFinish(navigationID);
+    m_inspectorController->mainFrameProvisionalLoadDidEnd(ProvisionalLoadIsReplaced::No);
 }
 
 static bool LEGACY_NODELETE shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
@@ -15836,8 +15876,10 @@ void WebPageProxy::resetStateAfterProcessExited(ProcessTerminationReason termina
     internals().scrollPositionDuringLastEditorStateUpdate = { };
 #endif
 
-    if (terminationReason != ProcessTerminationReason::NavigationSwap)
+    if (terminationReason != ProcessTerminationReason::NavigationSwap) {
         m_provisionalPage = nullptr;
+        m_inspectorController->mainFrameProvisionalLoadDidEnd(ProvisionalLoadIsReplaced::No);
+    }
 
     if (protectedPageClient) {
         if (terminationReason == ProcessTerminationReason::NavigationSwap)
@@ -17617,8 +17659,12 @@ void WebPageProxy::hitTestAtPoint(WebCore::FrameIdentifier frameID, WebCore::Flo
     });
 }
 
-void WebPageProxy::didFinishLoadingDataForCustomContentProvider(String&& suggestedFilename, std::span<const uint8_t> dataReference)
+void WebPageProxy::didFinishLoadingDataForCustomContentProvider(IPC::Connection& connection, String&& suggestedFilename, std::span<const uint8_t> dataReference)
 {
+    // Expect main frame to be be displaying a custom content provider, and data to be delivered exactly once.
+    MESSAGE_CHECK_BASE(m_mainFrameHasCustomContentProvider, connection);
+    MESSAGE_CHECK_BASE(!std::exchange(m_didFinishLoadingDataForCustomContentProvider, true), connection);
+
     if (RefPtr pageClient = this->pageClient())
         pageClient->didFinishLoadingDataForCustomContentProvider(ResourceResponseBase::sanitizeSuggestedFilename(WTF::move(suggestedFilename)), dataReference);
 }
@@ -19779,7 +19825,7 @@ bool WebPageProxy::checkURLReceivedFromCurrentOrPreviousWebProcess(WebProcessPro
 
     String path = url.fileSystemPath();
     auto startsWithURLPath = [&path](const String& visitedPath) {
-        return path.startsWith(visitedPath);
+        return FileSystem::pathIsSameOrDescendantOf(path, visitedPath);
     };
 
     if (std::ranges::find_if(m_previouslyVisitedPaths, startsWithURLPath) != m_previouslyVisitedPaths.end())

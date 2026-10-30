@@ -646,6 +646,9 @@ static CGSize roundScrollViewContentSize(const WebKit::WebPageProxy& page, CGSiz
 - (void)_didFinishLoadingDataForCustomContentProviderWithSuggestedFilename:(const String&)suggestedFilename data:(NSData *)data
 {
     ASSERT(_customContentView);
+    if (!_customContentView)
+        return;
+
     [_customContentView web_setContentProviderData:data suggestedFilename:suggestedFilename.createNSString().get() completionHandler:^{
         _page->didLayoutForCustomContentProvider();
     }];
@@ -4853,8 +4856,8 @@ static bool isLockdownModeWarningNeeded()
 - (void)_detectDataWithTypes:(WKDataDetectorTypes)types completionHandler:(dispatch_block_t)completion
 {
 #if ENABLE(DATA_DETECTION)
-    _page->detectDataInAllFrames(fromWKDataDetectorTypes(types), [completion = makeBlockPtr(completion), page = WeakPtr { _page.get() }] (auto&& result) {
-        if (page)
+    _page->detectDataInAllFrames(fromWKDataDetectorTypes(types), [completion = makeBlockPtr(completion), weakPage = WeakPtr { _page.get() }](auto&& result) {
+        if (RefPtr page = weakPage)
             page->setDataDetectionResult(WTF::move(result));
         if (completion)
             completion();
@@ -5196,7 +5199,7 @@ static bool isLockdownModeWarningNeeded()
         CGContextScaleCTM(context.get(), imageScale, imageScale);
         [customContentView.get().layer renderInContext:context.get()];
 
-        completionHandler([protect(UIGraphicsGetImageFromCurrentImageContext()) CGImage]);
+        completionHandler(protect([protect(UIGraphicsGetImageFromCurrentImageContext()) CGImage]));
 
         UIGraphicsEndImageContext();
         return;

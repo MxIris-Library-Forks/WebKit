@@ -326,6 +326,8 @@ public:
     static JSC::Heap* heap(const HeapCell*);
 
     bool isMarked(const void*);
+    // In loops, pass markingVersion to avoid redundant loads
+    static bool isMarked(HeapVersion markingVersion, const void*);
     static bool testAndSetMarked(HeapVersion, const void*);
 
     static inline size_t cellSize(const void*);
@@ -678,8 +680,7 @@ private:
     JS_EXPORT_PRIVATE void stopIfNecessarySlow();
     void stopIfNecessarySlow(unsigned extraStateBits);
     
-    template<typename Func>
-    void waitForCollector(NOESCAPE const Func&);
+    void waitForCollector(NOESCAPE const ConstInvocable<bool()> auto& isDone);
     
     JS_EXPORT_PRIVATE void acquireAccessSlow();
     JS_EXPORT_PRIVATE void releaseAccessSlow();

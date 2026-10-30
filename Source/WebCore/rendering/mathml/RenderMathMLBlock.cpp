@@ -175,7 +175,7 @@ void RenderMathMLBlock::layoutItems(RelayoutChildren relayoutChildren)
         LayoutUnit childPreferredSize = childSize + child->horizontalBorderAndPaddingExtent();
 
         if (childPreferredSize != child->borderBoxWidth())
-            child->setChildNeedsLayout(MarkingBehavior::MarkOnlyThis);
+            child->setChildNeedsLayout(MarkingBehavior::OnlyThis);
 
         updateBlockChildDirtyBitsBeforeLayout(relayoutChildren, *child);
         child->layoutIfNeeded();
@@ -270,13 +270,6 @@ void RenderMathMLBlock::shiftInFlowChildren(LayoutUnit left, LayoutUnit top)
         child->setLocation(child->location() + shift);
 }
 
-void RenderMathMLBlock::adjustContentLogicalWidthsForBorderAndPadding()
-{
-    ASSERT(hasInvalidContentLogicalWidths());
-    m_minContentLogicalWidthContribution += borderAndPaddingLogicalWidth();
-    m_maxContentLogicalWidthContribution += borderAndPaddingLogicalWidth();
-}
-
 void RenderMathMLBlock::adjustLayoutForBorderAndPadding()
 {
     setLogicalWidth(logicalWidth() + borderAndPaddingLogicalWidth());
@@ -316,18 +309,16 @@ RenderMathMLBlock::SizeAppliedToMathContent RenderMathMLBlock::sizeAppliedToMath
     return sizes;
 }
 
+std::pair<LayoutUnit, LayoutUnit> RenderMathMLBlock::intrinsicLogicalWidthContributionsForMathContent(LayoutUnit mathContentLogicalWidth)
+{
+    ASSERT(hasInvalidContentLogicalWidths());
+    auto logicalWidth = sizeAppliedToMathContent(LayoutPhase::CalculatePreferredLogicalWidth).logicalWidth.value_or(mathContentLogicalWidth);
+    return { logicalWidth, logicalWidth };
+}
+
 LayoutUnit RenderMathMLBlock::applySizeToMathContent(LayoutPhase phase, const SizeAppliedToMathContent& sizes)
 {
-    if (phase == LayoutPhase::CalculatePreferredLogicalWidth) {
-        ASSERT(hasInvalidContentLogicalWidths());
-        if (sizes.logicalWidth) {
-            m_minContentLogicalWidthContribution = *sizes.logicalWidth;
-            m_maxContentLogicalWidthContribution = *sizes.logicalWidth;
-        }
-        return LayoutUnit();
-    }
-
-    ASSERT(phase == LayoutPhase::Layout);
+    ASSERT_UNUSED(phase, phase == LayoutPhase::Layout);
 
     LayoutUnit inlineShift;
     if (sizes.logicalWidth) {

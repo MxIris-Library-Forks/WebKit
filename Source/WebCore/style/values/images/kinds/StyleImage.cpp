@@ -30,6 +30,7 @@
 #include "ImageBuffer.h"
 #include "ImageDrawingOptions.h"
 #include "ImageSizingContext.h"
+#include "NativeImage.h"
 #include "NinePieceGeometry.h"
 #include "RenderElement.h"
 #include "StyleComputedStyle+GettersInlines.h"
@@ -37,9 +38,64 @@
 namespace WebCore {
 namespace Style {
 
+static std::optional<SourceImage> convertToLuminanceMask(GraphicsContext& context, SourceImage&& image)
+{
+    if (RefPtr imageBuffer = image.imageBufferIfExists()) {
+        imageBuffer->convertToLuminanceMask();
+        return WTF::move(image);
+    }
+
+    RefPtr nativeImage = image.nativeImageIfExists();
+    if (!nativeImage)
+        return std::nullopt;
+
+    RefPtr buffer = context.createImageBuffer(nativeImage->size());
+    if (!buffer)
+        return std::nullopt;
+
+    buffer->context().drawNativeImage(*nativeImage, FloatRect { { }, nativeImage->size() });
+    buffer->convertToLuminanceMask();
+    return SourceImage { buffer.releaseNonNull() };
+}
+
+static void drawPatternTile(GraphicsContext& context, WebCore::Image::PatternTile&& patternTile, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImageDrawingOptions options)
+{
+    auto scaledTile = tile;
+    scaledTile.scale(patternTile.scale.width(), patternTile.scale.height());
+    auto scaledPatternTransform = patternTransform;
+    scaledPatternTransform.scale(1 / patternTile.scale.width(), 1 / patternTile.scale.height());
+
+    auto tileImage = WTF::move(patternTile.image);
+    if (options.drawLuminanceMask() == DrawLuminanceMask::Yes) {
+        auto mask = convertToLuminanceMask(context, WTF::move(tileImage));
+        if (!mask)
+            return;
+        tileImage = WTF::move(*mask);
+    }
+
+    context.drawPattern(tileImage, destination, scaledTile, scaledPatternTransform, phase, spacing, options);
+}
+
+static void drawPatternTile(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImageDrawingOptions options, const WebCore::ImageDrawingExtras* extras)
+{
+    if (tile.isEmpty())
+        return;
+
+    if (options.headroom() == Headroom::FromImage && image.hasHDRContentForTesting()) {
+        WebCore::Image::fillWithSolidColor(context, destination, WebCore::Color::gold, options.compositeOperator());
+        return;
+    }
+
+    auto patternTile = image.currentPatternTile(context, concreteObjectSize, options, extras);
+    if (!patternTile)
+        return;
+
+    drawPatternTile(context, WTF::move(*patternTile), destination, tile, patternTransform, phase, spacing, options);
+}
+
 static ImageDrawResult drawImageAsPattern(GraphicsContext& context, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImageDrawingOptions options, const WebCore::ImageDrawingExtras* extras)
 {
-    image.drawPattern(context, concreteObjectSize, destination, tile, patternTransform, phase, spacing, options, extras);
+    drawPatternTile(context, image, concreteObjectSize, destination, tile, patternTransform, phase, spacing, options, extras);
     image.startAnimation();
     return ImageDrawResult::DidDraw;
 }
@@ -303,6 +359,27 @@ RefPtr<NativeImage> Image::nativeImage(const RenderElement& renderer, ConcreteOb
     return ImageBuffer::sinkIntoNativeImage(WTF::move(imageBuffer));
 }
 
+static NinePieceGeometry ninePieceGeometryForImage(const NinePieceGeometry& geometry, bool isSinglePixelSolidColor)
+{
+    // FIXME: With 'border-image-repeat: space', partial tiles should be discarded so the gaps around the tiles are
+    // empty. Similarly, the whole region should be left empty if no tile fits.
+    //
+    // The previous implementation got this wrong for a single pixel image, instead filling the whole region with
+    // its color. To match that behavior, we convert NinePieceImageRule::Space to NinePieceImageRule::Repeat when
+    // dealing with a single pixel image.
+    //
+    // https://bugs.webkit.org/show_bug.cgi?id=326231
+
+    auto pieceGeometry = geometry;
+    if (isSinglePixelSolidColor) {
+        if (pieceGeometry.horizontalRule == NinePieceImageRule::Space)
+            pieceGeometry.horizontalRule = NinePieceImageRule::Repeat;
+        if (pieceGeometry.verticalRule == NinePieceImageRule::Space)
+            pieceGeometry.verticalRule = NinePieceImageRule::Repeat;
+    }
+    return pieceGeometry;
+}
+
 ImageDrawResult Image::drawResolved(GraphicsContext& context, const RenderElement& renderer, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, ImageDrawingOptions options) const
 {
     auto extras = drawingExtrasForRenderer(renderer);
@@ -333,23 +410,8 @@ ImageDrawResult Image::drawResolvedTiled(GraphicsContext& context, const RenderE
 
 ImageDrawResult Image::drawResolvedNinePiece(GraphicsContext& context, const RenderElement& renderer, WebCore::Image& image, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry, ImageDrawingOptions options) const
 {
-    // FIXME: With 'border-image-repeat: space', partial tiles should be discarded so the gaps around the tiles are
-    // empty. Similarly, the whole region should be left empty if no tile fits.
-    //
-    // The previous implementation got this wrong for a single pixel image, instead filling the whole region with
-    // its color. To match that behavior, we convert NinePieceImageRule::Space to NinePieceImageRule::Repeat when
-    // dealing with a single pixel image.
-    //
-    // https://bugs.webkit.org/show_bug.cgi?id=326231
-
     auto singlePixelSolidColor = image.singlePixelSolidColor();
-    auto pieceGeometry = geometry;
-    if (singlePixelSolidColor) {
-        if (pieceGeometry.horizontalRule == NinePieceImageRule::Space)
-            pieceGeometry.horizontalRule = NinePieceImageRule::Repeat;
-        if (pieceGeometry.verticalRule == NinePieceImageRule::Space)
-            pieceGeometry.verticalRule = NinePieceImageRule::Repeat;
-    }
+    auto pieceGeometry = ninePieceGeometryForImage(geometry, singlePixelSolidColor.has_value());
 
     auto extras = drawingExtrasForRenderer(renderer);
     return drawNinePieceUsing(context, [&](GraphicsContext& context, ConcreteObjectSize pieceConcreteObjectSize, const FloatRect& destination, const FloatRect& source) {
@@ -359,8 +421,67 @@ ImageDrawResult Image::drawResolvedNinePiece(GraphicsContext& context, const Ren
             WebCore::Image::fillWithSolidColor(context, destination, *singlePixelSolidColor, options.compositeOperator());
             return ImageDrawResult::DidDraw;
         }
-        return drawImageAsPattern(context, image, pieceConcreteObjectSize, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality() }, &extras);
+        return drawImageAsPattern(context, image, pieceConcreteObjectSize, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality(), options.orientation() }, &extras);
     }, concreteObjectSize, pieceGeometry);
+}
+
+ImageDrawResult Image::drawResolved(GraphicsContext& context, NativeImage& image, const FloatRect& destination, const FloatRect& source, ImageDrawingOptions options)
+{
+    if (context.paintingDisabled() || destination.isEmpty() || source.isEmpty())
+        return ImageDrawResult::DidNothing;
+
+    if (auto color = image.singlePixelSolidColor()) {
+        WebCore::Image::fillWithSolidColor(context, destination, *color, options.compositeOperator());
+        return ImageDrawResult::DidDraw;
+    }
+
+    auto orientation = options.orientation();
+    if (orientation == WebCore::ImageOrientation::Orientation::FromImage)
+        orientation = WebCore::ImageOrientation::Orientation::None;
+
+    auto headroom = options.headroom();
+    if (headroom == Headroom::FromImage)
+        headroom = image.headroom();
+
+    context.drawNativeImage(image, destination, source, { options, orientation, headroom });
+    return ImageDrawResult::DidDraw;
+}
+
+ImageDrawResult Image::drawResolvedAsPattern(GraphicsContext& context, NativeImage& image, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImageDrawingOptions options)
+{
+    if (!tile.isEmpty())
+        drawPatternTile(context, { SourceImage { Ref { image } } }, destination, tile, patternTransform, phase, spacing, options);
+    return ImageDrawResult::DidDraw;
+}
+
+ImageDrawResult Image::drawResolvedTiled(GraphicsContext& context, NativeImage& image, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImageDrawingOptions options)
+{
+    if (auto color = image.singlePixelSolidColor()) {
+        WebCore::Image::fillWithSolidColor(context, destination, *color, options.compositeOperator());
+        return ImageDrawResult::DidDraw;
+    }
+
+    return drawTiledUsing(context, NaturalDimensions::fixed(image.size()), [&](GraphicsContext& context, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source) {
+        return drawResolved(context, image, destination, source, options);
+    }, [&](GraphicsContext& context, ConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing) {
+        return drawResolvedAsPattern(context, image, destination, tile, patternTransform, phase, spacing, options);
+    }, ConcreteObjectSize::fixed(image.size()), destination, phase, tileSize, spacing, options);
+}
+
+ImageDrawResult Image::drawResolvedNinePiece(GraphicsContext& context, NativeImage& image, const NinePieceGeometry& geometry, ImageDrawingOptions options)
+{
+    auto singlePixelSolidColor = image.singlePixelSolidColor();
+    auto pieceGeometry = ninePieceGeometryForImage(geometry, singlePixelSolidColor.has_value());
+
+    return drawNinePieceUsing(context, [&](GraphicsContext& context, ConcreteObjectSize, const FloatRect& destination, const FloatRect& source) {
+        return drawResolved(context, image, destination, source, options);
+    }, [&](GraphicsContext& context, ConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing) {
+        if (singlePixelSolidColor) {
+            WebCore::Image::fillWithSolidColor(context, destination, *singlePixelSolidColor, options.compositeOperator());
+            return ImageDrawResult::DidDraw;
+        }
+        return drawResolvedAsPattern(context, image, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality() });
+    }, ConcreteObjectSize::fixed(image.size()), pieceGeometry);
 }
 
 ImageDrawResult Image::drawTiled(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImageDrawingOptions options, bool isForFirstLine) const
@@ -384,7 +505,7 @@ ImageDrawResult Image::drawNinePiece(GraphicsContext& context, const RenderEleme
     return drawNinePieceUsing(context, [&](GraphicsContext& context, ConcreteObjectSize pieceConcreteObjectSize, const FloatRect& destination, const FloatRect& source) {
         return draw(context, renderer, pieceConcreteObjectSize, destination, source, options, false);
     }, [&](GraphicsContext& context, ConcreteObjectSize pieceConcreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing) {
-        return drawAsPattern(context, renderer, pieceConcreteObjectSize, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality() }, false);
+        return drawAsPattern(context, renderer, pieceConcreteObjectSize, destination, tile, patternTransform, phase, spacing, { options.compositeOperator(), options.interpolationQuality(), options.orientation() }, false);
     }, ConcreteObjectSize::fixed(size), geometry);
 }
 

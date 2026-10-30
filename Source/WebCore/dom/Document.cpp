@@ -828,6 +828,9 @@ Document::~Document()
 {
     ASSERT(activeDOMObjectsAreStopped());
 
+    // RejectedPromiseTracker holds a CheckedRef to us, so it must be destroyed while the CheckedPtr counter is still alive.
+    removeRejectedPromiseTracker();
+
     if (m_logger)
         m_logger->removeObserver(*this);
 
@@ -5752,6 +5755,7 @@ void Document::processColorScheme(const String& colorSchemeString)
         colorScheme.add(ColorScheme::Light);
 
     m_colorScheme = colorScheme;
+    m_allowsColorSchemeTransformations = allowsTransformations;
 
     if (RefPtr page = this->page())
         page->updateStyleAfterChangeInEnvironment();

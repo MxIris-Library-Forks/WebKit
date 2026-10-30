@@ -290,6 +290,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/DigitalCredentialsRequestDataBuilder.cpp
         Tests/WebCore/DisplayListRecorderTests.cpp
         Tests/WebCore/DisplayRefreshMonitorManager.cpp
+        Tests/WebCore/DocumentCheckedPtr.cpp
         Tests/WebCore/DocumentOrder.cpp
         Tests/WebCore/FidoHidMessageTest.cpp
         Tests/WebCore/FileMonitor.cpp
@@ -344,6 +345,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/PublicSuffix.cpp
         Tests/WebCore/PushDatabase.cpp
         Tests/WebCore/PushMessageCrypto.cpp
+        Tests/WebCore/PushPullFIFOTest.cpp
         Tests/WebCore/QuirkMatchPattern.cpp
         Tests/WebCore/Quirks.cpp
         Tests/WebCore/RegionTests.cpp
@@ -367,6 +369,7 @@ if (ENABLE_WEBCORE)
         Tests/WebCore/TextIterator.cpp
         Tests/WebCore/TextMeasurementCache.cpp
         Tests/WebCore/TimeRanges.cpp
+        Tests/WebCore/TrackPrivateChangedCallbacks.cpp
         Tests/WebCore/TransformationMatrix.cpp
         Tests/WebCore/U2fCommandConstructorTest.cpp
         Tests/WebCore/URLParserTextEncoding.cpp

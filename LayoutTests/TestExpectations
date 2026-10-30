@@ -279,6 +279,12 @@ fast/shapes/shape-outside-floats/shape-outside-imagedata-overflow.html [ Skip ]
 [ Debug ] security/decode-buffer-size.html [ Skip ]
 [ Debug ] security/text-decode-long-strings.html [ Skip ]
 
+# These hit debug-only assertions in UniqueIDBDatabase teardown, so we skip them there.
+# <rdar://186427316>
+[ Debug ] storage/indexeddb/clear-data-with-stalled-abort-crash.html [ Skip ]
+[ Debug ] storage/indexeddb/close-database-with-stalled-abort-crash.html [ Skip ]
+[ Debug ] storage/indexeddb/delete-database-with-stalled-abort-crash.html [ Skip ]
+
 # Only iOS supports QuickLook
 quicklook [ Skip ]
 http/tests/quicklook [ Skip ]
@@ -572,9 +578,6 @@ imported/w3c/web-platform-tests/webaudio/the-audio-api/the-mediastreamaudiosourc
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworklet-rendersizehint.https.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audiocontext-interface/audiocontext-sinkid-constructor.https.html [ Skip ] # One subtest timeout
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audiobuffersourcenode-interface/audiobuffersource-start-null-buffer.html [ Skip ] # Generate Different Results each run
-
-# This test crashes.
-webkit.org/b/321393 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audiocontext-interface/audiocontextoptions.html [ Skip ]
 
 # Webaudio tests that are flaky.
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioparam-interface/k-rate-stereo-panner.html [ Pass Failure ]
@@ -5703,10 +5706,6 @@ webanimations/transform-property-and-transform-animation-with-delay-on-forced-la
 webanimations/translate-property-and-translate-animation-with-delay-on-forced-layer.html [ Skip ]
 
 # Container queries
-imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-001.html [ ImageOnlyFailure Pass ]
-imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-002.html [ ImageOnlyFailure Pass ]
-imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-003.html [ ImageOnlyFailure Pass ]
-imported/w3c/web-platform-tests/css/css-conditional/container-queries/canvas-as-container-004.html [ ImageOnlyFailure Pass ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/custom-layout-container-001.https.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/inline-size-bfc-floats.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/query-style-color.html [ ImageOnlyFailure ]
@@ -6948,31 +6947,18 @@ imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-f
 imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-first-003.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-last-002.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/css-inline/baseline-source/baseline-source-last-003.html [ Pass Failure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/border-padding-004.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/new-fc-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/out-of-flow-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-002.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-half-leading-block-box-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-001.html?class=vlr,alphabetic [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-002.html?class=vlr,cap [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-002.html?class=vlr,ex [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-004.html?class=vlr,alphabetic [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-005.html?class=vlr,cap [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-005.html?class=vlr,ex [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=cap [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=ex [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=ideographic [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,alphabetic [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,ideographic [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,ideographic-ink [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,cap [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,ex [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,ideographic [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,text [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=ideographic [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,alphabetic [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,ideographic [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,ideographic-ink [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vrl,cap [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vrl,ideographic [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-line-clamp-001.html [ ImageOnlyFailure ]
@@ -7008,10 +6994,14 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-multi
 [ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,ideographic-ink [ Crash ]
 [ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=ideographic-ink [ ImageOnlyFailure ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=ideographic-ink [ Crash ]
+[ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,ideographic-ink [ ImageOnlyFailure ]
+[ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,ideographic-ink [ Crash ]
 [ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,ideographic-ink [ ImageOnlyFailure ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,ideographic-ink [ Crash ]
 [ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=ideographic-ink [ ImageOnlyFailure ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=ideographic-ink [ Crash ]
+[ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,ideographic-ink [ ImageOnlyFailure ]
+[ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,ideographic-ink [ Crash ]
 [ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic [ ImageOnlyFailure ]
 [ Debug ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic [ Crash ]
 [ Release ] imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic-ink [ ImageOnlyFailure ]
@@ -8362,3 +8352,7 @@ webkit.org/b/327137 imported/w3c/web-platform-tests/resource-timing/resource-tim
 
 # IPC testing is disabled in Release builds
 [ Release ] http/tests/ipc/provisional-page-forged-provisional-url-message-check.html [ Skip ]
+
+# BackgroundFetchAPI is not stable yet
+imported/w3c/web-platform-tests/background-fetch/abort.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/background-fetch/match.https.window.html [ Failure ]

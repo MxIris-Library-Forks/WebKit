@@ -85,6 +85,7 @@
 #import "WKTextSelectionController.h"
 #import "WKViewLayoutStrategy.h"
 #import "WKWebViewMac.h"
+#import "WKWebViewPrivateForTestingMac.h"
 #import "WebBackForwardList.h"
 #import <WebCore/ColorSpace.h>
 #import "WebEditCommandProxy.h"
@@ -2675,13 +2676,6 @@ void WebViewImpl::pageDidScroll(const IntPoint& scrollOffset)
     }
 }
 
-void WebViewImpl::didEndSyntheticMomentumScrolling()
-{
-#if HAVE(APPKIT_GESTURES_SUPPORT)
-    [appKitGestureController() didEndSyntheticMomentumScrolling];
-#endif
-}
-
 #if ENABLE(CONTENT_INSET_BACKGROUND_FILL)
 
 void WebViewImpl::updateScrollPocketVisibilityWhenScrolledToTopAndNonEditable()
@@ -4775,7 +4769,7 @@ static void performDragWithLegacyFiles(WebPageProxy& page, Box<Vector<String>>&&
     });
 }
 
-static bool handleLegacyFilesPromisePasteboard(id<NSDraggingInfo> draggingInfo, Box<WebCore::DragData>&& dragData, WebPageProxy& page, RetainPtr<NSView<WebViewImplDelegate>> view)
+static bool handleLegacyFilesPromisePasteboard(id<NSDraggingInfo> draggingInfo, Box<WebCore::DragData>&& dragData, WebPageProxy& page, RetainPtr<WKWebView> view)
 {
     // FIXME: legacyFilesPromisePasteboardTypeSingleton() contains UTIs, not path names. Also, it's not
     // guaranteed that the count of UTIs equals the count of files, since some clients only write
@@ -5731,6 +5725,10 @@ void WebViewImpl::scrollWheel(NSEvent *event)
 
     if (event.phase == NSEventPhaseBegan)
         dismissContentRelativeChildWindowsWithAnimation(false);
+
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    [m_appKitGestureController interruptMomentumForScrollWheelEvent];
+#endif
 
 #if HAVE(NSREFRESHCONTROLLER)
     updateRefreshControllerForWheelEvent(event);
@@ -7289,7 +7287,7 @@ void WebViewImpl::updateTouchBar()
             touchBar = [m_mediaTouchBarProvider respondsToSelector:@selector(touchBar)] ? [(id)m_mediaTouchBarProvider.get() touchBar] : [(id)m_mediaTouchBarProvider.get() touchBar];
     } else if ([m_mediaTouchBarProvider playbackControlsController]) {
         if (m_clientWantsMediaPlaybackControlsView) {
-            if ([m_view.get() respondsToSelector:@selector(_web_didRemoveMediaControlsManager)] && m_view.getAutoreleased() == protect(window()).get().firstResponder)
+            if (m_view.getAutoreleased() == protect(window()).get().firstResponder)
                 [m_view.get() _web_didRemoveMediaControlsManager];
         }
         [m_mediaTouchBarProvider setPlaybackControlsController:nil];
@@ -7647,7 +7645,7 @@ void WebViewImpl::updateMediaTouchBar()
         return;
     }
 
-    if (m_playbackControlsManager && m_view.getAutoreleased() == protect(window()).get().firstResponder && [m_view.get() respondsToSelector:@selector(_web_didAddMediaControlsManager:)])
+    if (m_playbackControlsManager && m_view.getAutoreleased() == protect(window()).get().firstResponder)
         [m_view.get() _web_didAddMediaControlsManager:m_mediaPlaybackControlsView.get()];
 #endif
 }

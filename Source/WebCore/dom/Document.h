@@ -457,13 +457,8 @@ class Document
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(Document);
 public:
     USING_CAN_MAKE_WEAKPTR(EventTarget);
-    USING_CAN_MAKE_CHECKEDPTR(ScriptExecutionContext);
 
-    void setDidBeginCheckedPtrDeletion() final
-    {
-        ContainerNode::setDidBeginCheckedPtrDeletion();
-        ScriptExecutionContext::setDidBeginCheckedPtrDeletion();
-    }
+    OVERRIDE_ABSTRACT_CAN_MAKE_CHECKEDPTR(ContainerNode);
 
     inline static Ref<Document> create(const Settings&, const URL&);
     static Ref<Document> createNonRenderedPlaceholder(LocalFrame&, const URL&);
@@ -780,6 +775,7 @@ public:
     void appearanceDidChange();
 #if ENABLE(DARK_MODE_CSS)
     OptionSet<ColorScheme> resolvedColorScheme(const Style::ComputedStyle*) const;
+    bool allowsColorSchemeTransformations() const { return m_allowsColorSchemeTransformations; }
 #endif
 
     OptionSet<StyleColorOptions> styleColorOptions(const Style::ComputedStyle*, StyleColorOptionsPurpose) const;
@@ -2818,6 +2814,7 @@ private:
 
 #if ENABLE(DARK_MODE_CSS)
     OptionSet<ColorScheme> m_colorScheme;
+    bool m_allowsColorSchemeTransformations { true };
 #endif
 
     TextScaleMeta m_textScaleMeta { TextScaleMeta::Legacy };

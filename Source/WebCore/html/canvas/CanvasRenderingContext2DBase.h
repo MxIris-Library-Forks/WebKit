@@ -422,7 +422,7 @@ protected:
 
     bool usesCSSCompatibilityParseMode() const { return m_usesCSSCompatibilityParseMode; }
 
-    void LEGACY_NODELETE updateStateTransform(const AffineTransform&);
+    void updateStateTransform(const AffineTransform&);
 
     RefPtr<ImageBuffer> allocateImageBuffer() const;
     RefPtr<ImageBuffer> createCompatibleImageBuffer(GraphicsContext&, const FloatSize&) const;
@@ -464,7 +464,7 @@ private:
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
     void setDynamicRangeLimit(PlatformDynamicRangeLimit) final;
     std::optional<double> getEffectiveDynamicRangeLimitValue() const final;
-    ImageDrawingOptions drawingOptionsForDisplay() const final;
+    RasterDrawingOptions drawingOptionsForDisplay() const final;
 #endif
 
     void realizeSavesLoop();

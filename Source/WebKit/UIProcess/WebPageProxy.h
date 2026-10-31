@@ -341,6 +341,7 @@ struct ElementContext;
 struct ExceptionData;
 struct ExceptionDetails;
 struct FileChooserSettings;
+struct FixedContainerEdges;
 struct FocusOptions;
 struct FontAttributes;
 struct FrameGeometryUpdate;
@@ -410,20 +411,14 @@ struct WrappedCryptoKey;
 
 #if ENABLE(WEB_AUTHN)
 struct MockWebAuthenticationConfiguration;
-struct DigitalCredentialsMobileDocumentRequestData;
-struct DigitalCredentialsOpenID4VPRequestData;
+struct DigitalCredentialsRequestData;
 
 struct MobileDocumentRequest;
 struct OpenID4VPMultisignedRequest;
 struct OpenID4VPSignedRequest;
 struct OpenID4VPUnsignedRequest;
 using UnvalidatedDigitalCredentialRequest = Variant<MobileDocumentRequest, OpenID4VPSignedRequest, OpenID4VPMultisignedRequest, OpenID4VPUnsignedRequest>;
-using DigitalCredentialsRequestData = Variant<
-    WebCore::DigitalCredentialsMobileDocumentRequestData,
-    WebCore::DigitalCredentialsOpenID4VPRequestData
->;
-using DigitalCredentialsRawRequests = Variant<Vector<UnvalidatedDigitalCredentialRequest>
-    >;
+using DigitalCredentialsRawRequests = Vector<UnvalidatedDigitalCredentialRequest>;
 struct DigitalCredentialsResponseData;
 struct MobileDocumentRequest;
 #endif
@@ -766,7 +761,6 @@ enum class SameDocumentNavigationType : uint8_t;
 enum class SelectionExtentAnchor : bool;
 enum class SelectionFlags : uint8_t;
 enum class SelectionTouch : uint8_t;
-enum class ShouldDelayClosingUntilFirstLayerFlush : bool;
 enum class ShouldExpectAppBoundDomainResult : bool;
 enum class ShouldExpectSafeBrowsingResult : bool;
 enum class ShouldWaitForInitialLinkDecorationFilteringData : bool;
@@ -1440,6 +1434,10 @@ public:
 #endif
     void didCommitLayerTree(const RemoteLayerTreeTransaction&, const std::optional<MainFrameData>&, const PageData&, const TransactionID&);
     void didCommitMainFrameData(const MainFrameData&, const TransactionID&);
+#if PLATFORM(COCOA)
+    void didReceiveFixedContainerEdges(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::FixedContainerEdges&);
+    void resendFixedContainerEdgeSamplingSides(WebCore::FrameIdentifier);
+#endif
     void layerTreeCommitComplete();
 
 #if ENABLE(UI_SIDE_COMPOSITING)
@@ -1973,10 +1971,11 @@ public:
     void modelProcessExited(ProcessTerminationReason);
 #endif
 
+#if !PLATFORM(COCOA)
     void enterAcceleratedCompositingMode(const LayerTreeContext&);
     void exitAcceleratedCompositingMode();
     void updateAcceleratedCompositingMode(const LayerTreeContext&);
-    void didFirstLayerFlush(const LayerTreeContext&);
+#endif
 
     void addEditCommand(WebEditCommandProxy&);
     void removeEditCommand(WebEditCommandProxy&);
@@ -2159,6 +2158,10 @@ public:
     void commitPotentialTapFailed();
     void didNotHandleTapAsClick(const WebCore::IntPoint&);
     void didHandleTapAsHover();
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    void setHoverActivatedByClickBounds(std::optional<WebCore::IntRect>&&);
+    const std::optional<WebCore::IntRect>& hoverActivatedByClickBounds() const { return m_hoverActivatedByClickBounds; }
+#endif
     void didCompleteSyntheticClick();
     void disableDoubleTapGesturesDuringTapIfNecessary(TapIdentifier);
     void handleSmartMagnificationInformationForPotentialTap(TapIdentifier, const WebCore::FloatRect& renderRect, bool fitEntireRect, double viewportMinimumScale, double viewportMaximumScale, bool nodeIsRootLevel, bool nodeIsPluginElement);
@@ -3275,7 +3278,7 @@ private:
     void updateThrottleState();
     void updateHiddenPageThrottlingAutoIncreases();
 
-    bool suspendCurrentPageIfPossible(API::Navigation&, const ProvisionalPageProxy&, RefPtr<WebFrameProxy>&& mainFrame, ShouldDelayClosingUntilFirstLayerFlush);
+    bool suspendCurrentPageIfPossible(API::Navigation&, const ProvisionalPageProxy&, RefPtr<WebFrameProxy>&& mainFrame);
 
     enum class ResetStateReason : uint8_t {
         PageInvalidated,
@@ -3346,6 +3349,11 @@ private:
     void performAccessibilitySearchInRemoteFrame(IPC::Connection&, WebCore::FrameIdentifier, WebCore::AccessibilitySearchCriteriaIPC, CompletionHandler<void(Vector<WebCore::AccessibilityRemoteToken>&&)>&&);
     void continueAccessibilitySearchFromChildFrame(IPC::Connection&, WebCore::FrameIdentifier childFrameID, WebCore::AccessibilitySearchCriteriaIPC, CompletionHandler<void(Vector<WebCore::AccessibilityRemoteToken>&&)>&&);
     void relayAccessibilitySelectedTextChangeToMainFrame(IPC::Connection&, WebCore::FrameIdentifier, WebCore::AXRemoteFrameSelectedTextChange&&);
+#endif
+#if PLATFORM(COCOA)
+    void updateFixedContainerEdgeSampling(const WebCore::FixedContainerEdges&, bool topIsLocked);
+    void resolveFixedContainerEdges();
+    void resetFixedContainerEdgeSamplingForMainFrameLoad();
 #endif
     void updateSandboxFlags(IPC::Connection&, WebCore::FrameIdentifier, WebCore::SandboxFlags);
     void updateReferrerPolicy(IPC::Connection&, WebCore::FrameIdentifier, WebCore::ReferrerPolicy);
@@ -3548,7 +3556,9 @@ private:
     void hidePopupMenu();
 
 #if ENABLE(CONTEXT_MENUS)
-    void showContextMenuFromFrame(FrameInfoData&&, ContextMenuContextData&&, UserData&&);
+    void showContextMenuFromFrame(IPC::Connection&, FrameInfoData&&, ContextMenuContextData&&, UserData&&);
+    bool contextMenuReplyReachesAskingProcess(WebCore::FrameIdentifier);
+    bool handleContextMenuSettingOrPanelAction(const WebContextMenuItemData&);
 #endif
 
 #if ENABLE(CONTEXT_MENU_EVENT)
@@ -4368,6 +4378,9 @@ private:
 #if PLATFORM(MAC)
     std::unique_ptr<ViewWindowCoordinates> m_viewWindowCoordinates;
 #endif
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    std::optional<WebCore::IntRect> m_hoverActivatedByClickBounds;
+#endif
 
     std::optional<WebCore::ScrollbarOverlayStyle> m_scrollbarOverlayStyle;
 
@@ -4439,8 +4452,6 @@ private:
     bool m_isServiceWorkerPage { false };
 
     RefPtr<ProvisionalPageProxy> m_provisionalPage;
-    RefPtr<SuspendedPageProxy> m_suspendedPageKeptToPreventFlashing;
-    WeakPtr<SuspendedPageProxy> m_lastSuspendedPage;
 
     TextManipulationItemCallback m_textManipulationItemCallback;
 

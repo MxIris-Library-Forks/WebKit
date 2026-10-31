@@ -82,6 +82,13 @@
 #include <wtf/ThreadingPrimitives.h>
 #endif
 
+#if __has_include(<WebKitAdditions/DocumentAdditionsIncludes.h>)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-modular-include-in-module"
+#include <WebKitAdditions/DocumentAdditionsIncludes.h>
+#pragma clang diagnostic pop
+#endif
+
 namespace JSC {
 class CallFrame;
 class InputCursor;
@@ -459,6 +466,12 @@ public:
     USING_CAN_MAKE_WEAKPTR(EventTarget);
 
     OVERRIDE_ABSTRACT_CAN_MAKE_CHECKEDPTR(ContainerNode);
+
+    using ContainerNode::checkedPtrCount;
+    using ContainerNode::checkedPtrCountWithoutThreadCheck;
+    using ContainerNode::decrementCheckedPtrCount;
+    using ContainerNode::incrementCheckedPtrCount;
+    using ContainerNode::setDidBeginCheckedPtrDeletion;
 
     inline static Ref<Document> create(const Settings&, const URL&);
     static Ref<Document> createNonRenderedPlaceholder(LocalFrame&, const URL&);
@@ -2679,6 +2692,13 @@ private:
     WeakHashSet<Element, WeakPtrImplWithEventTargetData> m_associatedFormControls;
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
     std::unique_ptr<AXCustomColorModeController> m_axCustomColorModeController;
+#endif
+
+#if __has_include(<WebKitAdditions/DocumentAdditions.h>)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-modular-include-in-module"
+#include <WebKitAdditions/DocumentAdditions.h>
+#pragma clang diagnostic pop
 #endif
 
     const std::unique_ptr<OrientationNotifier> m_orientationNotifier;

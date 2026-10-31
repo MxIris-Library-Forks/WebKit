@@ -2776,7 +2776,7 @@ HTMLEnhancedSelectParsingQuirkEnabled:
 
 HTMLInCanvasEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: dom
   webcoreOnChange: setNeedsRelayoutAllFrames
   humanReadableName: "HTML-in-Canvas"
@@ -3014,6 +3014,17 @@ ImageControlsEnabled:
   humanReadableDescription: "Enable image controls"
   condition: ENABLE(SERVICE_CONTROLS)
   defaultValue: false
+
+ImageElementImmersiveEnabled:
+  type: bool
+  status: unstable
+  category: javascript
+  condition: ENABLE(IMAGE_ELEMENT_IMMERSIVE)
+  humanReadableName: "Immersive <img> API"
+  humanReadableDescription: "Enable <img> element immersive API"
+  defaultValue: false
+  disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 ImportDeferEnabled:
   type: bool
@@ -7145,12 +7156,14 @@ WebAuthenticationASEnabled:
 
 WebAuthenticationCrossDeviceFallbackURLEnabled:
   type: bool
-  status: testable
+  status: embedder
   category: dom
   humanReadableName: "Web Authentication cross-device fallback URL"
   humanReadableDescription: "Enable the Web Authentication crossDeviceFallbackUrl extension"
   condition: ENABLE(WEB_AUTHN)
-  defaultValue: false
+  defaultValue:
+    default: true
+    WebKitLegacy: false
 
 # FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
 WebAuthenticationEnabled:

@@ -77,6 +77,10 @@ public:
     void onSubmittedWorkDone(CompletionHandler<void(bool)>&& callback);
     void submit(Vector<Ref<WebGPU::Metal::CommandBuffer>>&& commands);
     void writeBuffer(Buffer&, uint64_t bufferOffset, std::span<uint8_t> data);
+    // For callers whose `data` dies as soon as writeBuffer() returns: at or above
+    // WGPU_LARGE_BUFFER_SIZE the staged copy only aliases the bytes, so those callers cannot use the
+    // borrowing overload above.
+    void writeBuffer(Buffer&, uint64_t bufferOffset, Vector<uint8_t>&& data);
     void writeBuffer(id<MTLBuffer>, uint64_t bufferOffset, std::span<uint8_t> data);
     void clearBuffer(id<MTLBuffer>, NSUInteger offset = 0, NSUInteger size = NSUIntegerMax);
     void writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::span<uint8_t> data, const WebGPU::TexelCopyBufferLayout&, const WebGPU::Extent3D& writeSize, bool skipValidation = false);
@@ -109,6 +113,11 @@ public:
 
     id<MTLBlitCommandEncoder> ensureBlitCommandEncoder();
     void finalizeBlitCommandEncoder();
+
+    void addProvisionalTextureClear(Texture&, uint32_t mipLevel, uint32_t slice, uint64_t commandEncoderId);
+    void removeProvisionalTextureClears(const Texture&, uint32_t mipLevel, uint32_t slice);
+    void discardProvisionalTextureClears(uint64_t commandEncoderId);
+    void resolveProvisionalTextureClears(std::optional<uint64_t> committingCommandEncoderId = std::nullopt);
 
     // This can be called on a background thread.
     void scheduleWork(Instance::WorkItem&&);
@@ -144,6 +153,13 @@ private:
     // pixel format. Cached per format, because a copy per animation frame is the expected usage.
     id<MTLRenderPipelineState> _Nullable copyExternalImagePipelineState(MTLPixelFormat);
 
+    struct ProvisionalTextureClear {
+        ThreadSafeWeakPtr<Texture> texture;
+        uint32_t mipLevel { 0 };
+        uint32_t slice { 0 };
+        uint64_t commandEncoderId { 0 };
+    };
+
     id<MTLCommandQueue> _Nullable m_commandQueue { nil };
     id<MTLCommandBuffer> _Nullable m_commandBuffer { nil };
     id<MTLBlitCommandEncoder> _Nullable m_blitCommandEncoder { nil };
@@ -168,6 +184,11 @@ private:
     const ThreadSafeWeakPtr<Instance> m_instance;
     id<MTLBuffer> _Nullable m_temporaryBuffer;
     uint64_t m_temporaryBufferOffset;
+    // The bytes a pending staged copy aliases, waiting for finalizeBlitCommandEncoder() to attach
+    // them to the staging command buffer. Set only inside
+    // writeBuffer(Buffer&, uint64_t, Vector<uint8_t>&&).
+    Vector<uint8_t> m_noCopyStagingSource;
+    Vector<ProvisionalTextureClear> m_provisionalTextureClears;
 } DERIVED_CLASS_SWIFT_SHARED_REFERENCE(refQueue, derefQueue) SWIFT_PRIVATE_FILEID("WebGPU/Queue.swift");
 
 } // namespace WebGPU::Metal

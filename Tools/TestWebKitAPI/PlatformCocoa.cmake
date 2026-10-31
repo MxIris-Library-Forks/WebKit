@@ -655,7 +655,12 @@ if (ENABLE_WEBGPU)
     list(APPEND TestWGSL_SOURCES
         Tests/WGSL/MetalCompilationTests.mm
         Tests/WGSL/TypeCheckingTests.mm
+
+        Tests/WebGPU/UncapturedErrorCallbackTests.cpp
     )
+
+    # The tests of the WebGPU C API.
+    list(APPEND TestWGSL_FRAMEWORKS WebGPU)
 
     list(APPEND TestWGSL_PRIVATE_INCLUDE_DIRECTORIES
         ${WTF_FRAMEWORK_HEADERS_DIR}
@@ -792,6 +797,8 @@ endforeach ()
 webkit_target_add_swift_options(TestWebKit "-Xcc -I${CMAKE_SOURCE_DIR}/Source")
 
 list(APPEND TestWebKit_SOURCES
+    Tests/WebCore/cocoa/ScrollAnimationSmoothTests.swift
+
     "Tests/WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift"
@@ -816,6 +823,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationNavigationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift
     Tests/WebKit/WKWebView/SiteIsolationSessionStateTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationTextExtractionTests.swift
     Tests/WebKit/WKWebView/SiteIsolationTextFragmentTests.swift
     Tests/WebKit/WKWebView/SiteIsolationUIDelegateTests.swift
     Tests/WebKit/WKWebView/SiteIsolationUserAgentTests.swift

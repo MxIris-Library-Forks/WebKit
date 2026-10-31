@@ -145,6 +145,7 @@ public:
     void clearBlackbox();
 
     bool isPaused() const { return m_isPaused; }
+    bool isPauseAtNextOpportunityScheduled() const { return m_pauseAtNextOpportunity; }
     bool isStepping() const { return m_steppingMode == SteppingModeEnabled; }
 
     bool suppressAllPauses() const { return m_suppressAllPauses; }
@@ -207,7 +208,10 @@ public:
         int endLine { 0 };
         int endColumn { 0 };
         bool isContentScript { false };
+        bool isInternalScript { false };
     };
+
+    static bool isWebKitInjectedScript(const String& sourceURL);
 
     class Observer {
     public:
@@ -283,6 +287,7 @@ protected:
     virtual bool isPauseBlockedByAnotherDebugger() const { return false; }
 
     virtual bool isContentScript(JSGlobalObject*) const { return false; }
+    virtual bool isInternalScript(JSGlobalObject*) const { return false; }
 
     virtual URL sourceURLBase(JSGlobalObject*) const { return { }; }
 

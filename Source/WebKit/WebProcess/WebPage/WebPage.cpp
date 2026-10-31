@@ -292,6 +292,7 @@
 #include <WebCore/NotificationController.h>
 #include <WebCore/OriginAccessPatterns.h>
 #include <WebCore/Page.h>
+#include <WebCore/PageColorSampler.h>
 #include <WebCore/PageConfiguration.h>
 #include <WebCore/PageGroup.h>
 #include <WebCore/PageInspectorController.h>
@@ -649,9 +650,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     , m_pageGroup(WebProcess::singleton().webPageGroup(WTF::move(parameters.pageGroupData)))
     , m_userAgent(WTF::move(parameters.userAgent))
     , m_hasCustomUserAgent(parameters.hasCustomUserAgent)
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    , m_drawingAreaType(parameters.drawingAreaType)
-#endif
     , m_alwaysShowsHorizontalScroller { parameters.alwaysShowsHorizontalScroller }
     , m_alwaysShowsVerticalScroller { parameters.alwaysShowsVerticalScroller }
     , m_shouldRenderDOMInGPUProcess { parameters.shouldRenderDOMInGPUProcess }
@@ -780,9 +778,6 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     auto shouldBlockIOKit = m_shouldRenderDOMInGPUProcess
 #if ENABLE(WEBGL)
         && parameters.store.getBoolValueForKey(WebPreferencesKey::useGPUProcessForWebGLEnabledKey())
-#if ENABLE(TILED_CA_DRAWING_AREA)
-        && m_drawingAreaType == DrawingAreaType::RemoteLayerTree
-#endif
 #endif
         && parameters.store.getBoolValueForKey(WebPreferencesKey::useGPUProcessForCanvasRenderingEnabledKey())
         && parameters.store.getBoolValueForKey(WebPreferencesKey::useGPUProcessForMediaEnabledKey());
@@ -1302,12 +1297,6 @@ void WebPage::updateAfterDrawingAreaCreation(const WebPageCreationParameters& pa
 #if PLATFORM(COCOA)
     m_page->settings().setForceCompositingMode(true);
 #endif
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    if (parameters.drawingAreaType == DrawingAreaType::TiledCoreAnimation) {
-        if (auto viewExposedRect = parameters.viewExposedRect)
-            protect(drawingArea())->setViewExposedRect(viewExposedRect);
-    }
-#endif
 }
 
 void WebPage::constructFrameTree(WebFrame& parent, const FrameTreeCreationParameters& treeCreationParameters)
@@ -1511,6 +1500,81 @@ void WebPage::broadcastFrameGeometryUpdatesIfNeeded()
 
     if (!updates.isEmpty())
         send(Messages::WebPageProxy::HandleFrameGeometryUpdates(updates));
+}
+
+void WebPage::setFixedContainerEdgeSamplingSides(FrameIdentifier frameID, RectEdges<bool> sides)
+{
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    RefPtr coreFrame = webFrame ? webFrame->coreLocalFrame() : nullptr;
+    if (sides == RectEdges<bool> { } || !coreFrame || !coreFrame->isRootFrame() || coreFrame->isMainFrame() || webFrame->page() != this) {
+        m_fixedContainerEdgeSampling.remove(frameID);
+        return;
+    }
+
+    auto& sampling = m_fixedContainerEdgeSampling.add(frameID, FixedContainerEdgeSampling { }).iterator->value;
+    sampling.sides = sides;
+    sampling.lastSent = std::nullopt;
+    if (RefPtr drawingArea = this->drawingArea())
+        drawingArea->triggerRenderingUpdate();
+}
+
+static FloatRect fixedContainerEdgeSampleRect(LocalFrame& frame, BoxSide side)
+{
+    RefPtr view = frame.view();
+    RefPtr mainFrameView = protect(frame.mainFrame())->virtualView();
+    if (!view || !mainFrameView)
+        return { };
+
+    auto viewportRect = mainFrameView->layoutViewportRect();
+    viewportRect.contract({ PageColorSampler::fixedContainerSampleRectMargin });
+    FloatRect rect { PageColorSampler::fixedContainerSampleRect(viewportRect, side) };
+    rect.scale(protect(frame.mainFrame())->frameScaleFactor());
+    rect = view->rootViewToContentsAcrossIsolatedFrames(mainFrameView->contentsToRootView(rect));
+    rect.intersect(view->visibleContentRect());
+    return rect;
+}
+
+Vector<std::pair<FrameIdentifier, FixedContainerEdges>> WebPage::sampleFixedContainerEdges(const Vector<FrameIdentifier>& rootsWithLayerChanges)
+{
+    Vector<std::pair<FrameIdentifier, FixedContainerEdges>> results;
+    m_fixedContainerEdgeSampling.removeIf([&](auto& entry) {
+        RefPtr webFrame = WebProcess::singleton().webFrame(entry.key);
+        RefPtr frame = webFrame ? webFrame->coreLocalFrame() : nullptr;
+        if (!frame)
+            return true;
+
+        auto& sampling = entry.value;
+        if (sampling.lastSent && !rootsWithLayerChanges.contains(entry.key))
+            return false;
+
+        auto edges = sampling.lastSent.value_or(FixedContainerEdges { });
+        bool sampledAnySide = false;
+        Ref localFrame = *frame;
+        for (auto side : allBoxSides) {
+            if (!sampling.sides.at(side))
+                continue;
+
+            if (sampling.lastSent && sampling.lastSent->hasFixedEdge(side))
+                continue;
+
+            auto rect = fixedContainerEdgeSampleRect(*frame, side);
+            if (rect.isEmpty())
+                continue;
+
+            auto result = PageColorSampler::predominantColor(localFrame, LayoutRect { rect });
+            edges.colors.setAt(side, WTF::visit([](auto edge) -> FixedContainerEdge {
+                return edge;
+            }, result));
+            sampledAnySide = true;
+        }
+
+        if (sampledAnySide && sampling.lastSent != edges) {
+            sampling.lastSent = edges;
+            results.append({ entry.key, WTF::move(edges) });
+        }
+        return false;
+    });
+    return results;
 }
 
 void WebPage::updateChildFrameVisibleRectsFromParent(WebCore::Frame& parentCoreFrame)
@@ -1860,6 +1924,7 @@ WebPage::~WebPage()
     WebStorageNamespaceProvider::decrementUseCount(sessionStorageNamespaceIdentifier());
 
 #if ENABLE(GPU_PROCESS) && HAVE(VISIBILITY_PROPAGATION_VIEW)
+    assertIsMainRunLoop();
     if (RefPtr gpuProcessConnection = WebProcess::singleton().existingGPUProcessConnection())
         gpuProcessConnection->destroyVisibilityPropagationContextForPage(*this);
 #endif // ENABLE(GPU_PROCESS)
@@ -5708,11 +5773,7 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 
 #if ENABLE(GPU_PROCESS)
     bool usingGPUProcessForDOMRendering = m_shouldRenderDOMInGPUProcess
-#if ENABLE(TILED_CA_DRAWING_AREA)
-        && DrawingArea::supportsGPUProcessRendering(m_drawingAreaType);
-#else
         && DrawingArea::supportsGPUProcessRendering();
-#endif
     WebProcess::singleton().setUseGPUProcessForDOMRendering(usingGPUProcessForDOMRendering);
 #endif // ENABLE(GPU_PROCESS)
 
@@ -5720,6 +5781,7 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
     m_ipcTestingAPIEnabled = store.getBoolValueForKey(WebPreferencesKey::ipcTestingAPIEnabledKey());
 
     protect(WebProcess::singleton().parentProcessConnection())->setIgnoreInvalidMessageForTesting();
+    assertIsMainRunLoop();
     if (auto* gpuProcessConnection = WebProcess::singleton().existingGPUProcessConnection())
         gpuProcessConnection->connection().setIgnoreInvalidMessageForTesting();
 #if ENABLE(MODEL_PROCESS)
@@ -10098,6 +10160,7 @@ bool WebPage::usesEphemeralSession() const
 void WebPage::configureLoggingChannel(const String& channelName, WTFLogChannelState state, WTFLogLevel level)
 {
 #if ENABLE(GPU_PROCESS)
+    assertIsMainRunLoop();
     if (RefPtr gpuProcessConnection = WebProcess::singleton().existingGPUProcessConnection())
         gpuProcessConnection->configureLoggingChannel(channelName, state, level);
 #endif
@@ -10816,6 +10879,8 @@ void WebPage::scrollToEdge(WebCore::RectEdges<bool> edges, WebCore::ScrollIsAnim
 
     auto options = WebCore::ScrollPositionChangeOptions::createProgrammatic();
     options.animated = animated;
+    if (animated == WebCore::ScrollIsAnimated::Yes)
+        options.animationCurve = WebCore::documentEdgeScrollAnimationCurve();
 
     frameView->scrollToEdgeWithOptions(edges, options);
 }
@@ -10944,9 +11009,7 @@ void WebPage::updatePrefersNonBlinkingCursor()
 
 bool WebPage::isUsingUISideCompositing() const
 {
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    return m_drawingAreaType == DrawingAreaType::RemoteLayerTree;
-#elif PLATFORM(COCOA)
+#if PLATFORM(COCOA)
     return true;
 #else
     return false;
@@ -11212,7 +11275,9 @@ void WebPage::requestAllTextAndRects(CompletionHandler<void(Vector<std::pair<Str
     if (!page)
         return completion({ });
 
-    completion(TextExtraction::extractAllTextAndRects(*page));
+    completion(WTF::map(TextExtraction::extractAllTextAndRects(*page), [](auto&& textAndRect) {
+        return std::pair { WTF::move(textAndRect.first), textAndRect.second.raw() };
+    }));
 }
 
 void WebPage::requestTargetedElement(TargetedElementRequest&& request, CompletionHandler<void(Vector<WebCore::TargetedElementInfo>&&)>&& completion)

@@ -149,6 +149,16 @@ void Queue::finalizeBlitCommandEncoder()
     // Finalizes the queue-owned staging command buffer, whichever encoder type is
     // currently open on it (blit, or the compute staged-copy encoder).
     if (m_blitCommandEncoder || m_stagedCopyEncoder) {
+        // Hand the command buffer any bytes its copies only alias, before it is committed: Metal
+        // accepts completed handlers on uncommitted command buffers only. Nothing is parked unless a
+        // writeBuffer() staged a copy through a newBufferWithBytesNoCopy MTLBuffer, so this is a
+        // no-op for every other caller. Mirrors the noCopy tail of writeTexture().
+        if (!m_noCopyStagingSource.isEmpty()) {
+            __block Vector<uint8_t> retainedStagingSource = WTF::move(m_noCopyStagingSource);
+            [m_commandBuffer addCompletedHandler:^(id<MTLCommandBuffer>) {
+                retainedStagingSource = { };
+            }];
+        }
         id<MTLCommandEncoder> stagingEncoder = m_blitCommandEncoder;
         if (!stagingEncoder)
             stagingEncoder = m_stagedCopyEncoder;
@@ -282,6 +292,11 @@ void Queue::makeInvalid()
 
     m_onSubmittedWorkScheduledCallbacks.clear();
     m_onSubmittedWorkDoneCallbacks.clear();
+
+    for (auto& provisionalClear : std::exchange(m_provisionalTextureClears, { })) {
+        if (RefPtr texture = provisionalClear.texture.get())
+            texture->dropProvisionalClear(provisionalClear.mipLevel, provisionalClear.slice);
+    }
 
     while (m_createdNotCommittedBuffers.count)
         removeMTLCommandBuffer(m_createdNotCommittedBuffers.firstObject);
@@ -727,6 +742,26 @@ void Queue::writeBuffer(Buffer& buffer, uint64_t bufferOffset, std::span<uint8_t
     writeBuffer(buffer.buffer(), bufferOffset, data);
 }
 
+void Queue::writeBuffer(Buffer& buffer, uint64_t bufferOffset, Vector<uint8_t>&& data)
+{
+    // Below largeBufferSize newTemporaryBufferWithBytes() memcpys into a Metal-owned staging buffer,
+    // so the encoded copy no longer refers to `data` once we return.
+    if (data.size() < largeBufferSize) {
+        writeBuffer(buffer, bufferOffset, data.mutableSpan());
+        return;
+    }
+
+    // At or above it the staged copy reads straight out of `data` through a newBufferWithBytesNoCopy
+    // MTLBuffer, which aliases those bytes without owning them, and is committed without waiting. Park
+    // them where finalizeBlitCommandEncoder() can hand them to that command buffer, so they outlive
+    // the GPU's read even though `data` dies with this call.
+    ASSERT(m_noCopyStagingSource.isEmpty());
+    m_noCopyStagingSource = WTF::move(data);
+    writeBuffer(buffer, bufferOffset, m_noCopyStagingSource.mutableSpan());
+    // Still holding them means no staged copy was encoded, so nothing needs them now.
+    m_noCopyStagingSource = { };
+}
+
 static std::span<uint8_t> span(id<MTLBuffer> buffer)
 {
     return unsafeMakeSpan(static_cast<uint8_t*>(buffer.contents), buffer.length);
@@ -1030,18 +1065,20 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
     auto textureDimension = texture->dimension();
     uint32_t sliceCount = textureDimension == WebGPU::TextureDimension::_3d ? 1 : size.depthOrArrayLayers;
     bool clearWasNeeded = false;
+    const bool writeCompletelyClearsSlice = writeWillCompletelyClear(textureDimension, widthForMetal, logicalSize.width, heightForMetal, logicalSize.height, depthForMetal, logicalSize.depthOrArrayLayers);
+    auto markSliceAsCleared = [&](NSUInteger destinationSlice) {
+        if (writeCompletelyClearsSlice)
+            texture->setPreviouslyCleared(destination.mipLevel, destinationSlice);
+    };
     for (uint32_t layer = 0; layer < sliceCount; ++layer) {
         auto checkedDestinationSlice = checkedSum<uint32_t>(destination.origin.z, layer);
         if (checkedDestinationSlice.hasOverflowed())
             return;
         NSUInteger destinationSlice = textureDimension == WebGPU::TextureDimension::_3d ? 0 : checkedDestinationSlice.value();
-        if (!texture->previouslyCleared(destination.mipLevel, destinationSlice)) {
-            if (writeWillCompletelyClear(textureDimension, widthForMetal, logicalSize.width, heightForMetal, logicalSize.height, depthForMetal, logicalSize.depthOrArrayLayers))
-                texture->setPreviouslyCleared(destination.mipLevel, destinationSlice);
-            else {
-                clearWasNeeded = true;
-                clearTextureIfNeeded(destination, destinationSlice);
-            }
+        texture->discardProvisionalClear(destination.mipLevel, destinationSlice);
+        if (!texture->previouslyCleared(destination.mipLevel, destinationSlice) && !writeCompletelyClearsSlice) {
+            clearWasNeeded = true;
+            clearTextureIfNeeded(destination, destinationSlice);
         }
     }
 
@@ -1255,6 +1292,7 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
                             withBytes:byteCast<char>(data.subspan(sourceOffset).data())
                             bytesPerRow:0
                             bytesPerImage:0];
+                        markSliceAsCleared(destinationSlice);
                     }
                     break;
                 }
@@ -1285,6 +1323,7 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
                             withBytes:byteCast<char>(data.subspan(sourceOffset).data())
                             bytesPerRow:bytesPerRow
                             bytesPerImage:0];
+                        markSliceAsCleared(destinationSlice);
                     }
                     break;
                 }
@@ -1303,6 +1342,7 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
                         withBytes:byteCast<char>(data.subspan(sourceOffset).data())
                         bytesPerRow:bytesPerRow
                         bytesPerImage:bytesPerImage];
+                    markSliceAsCleared(0);
                     break;
                 }
                 }
@@ -1370,6 +1410,7 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
                 destinationLevel:destination.mipLevel
                 destinationOrigin:destinationOrigin
                 options:options];
+            markSliceAsCleared(destinationSlice);
         }
         break;
     }
@@ -1403,6 +1444,7 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
                 destinationLevel:destination.mipLevel
                 destinationOrigin:destinationOrigin
                 options:options];
+            markSliceAsCleared(destinationSlice);
         }
         break;
     }
@@ -1423,6 +1465,7 @@ void Queue::writeTexture(const WebGPU::TexelCopyTextureInfo& destination, std::s
             destinationLevel:destination.mipLevel
             destinationOrigin:destinationOrigin
             options:options];
+        markSliceAsCleared(0);
         break;
     }
     }
@@ -2191,6 +2234,69 @@ void Queue::clearTextureIfNeeded(Texture& parentTexture, uint32_t mipLevelCount,
     finalizeBlitCommandEncoder();
 }
 
+void Queue::addProvisionalTextureClear(Texture& texture, uint32_t mipLevel, uint32_t slice, uint64_t commandEncoderId)
+{
+    m_provisionalTextureClears.append(ProvisionalTextureClear { texture, mipLevel, slice, commandEncoderId });
+}
+
+void Queue::removeProvisionalTextureClears(const Texture& texture, uint32_t mipLevel, uint32_t slice)
+{
+    m_provisionalTextureClears.removeAllMatching([&](const auto& provisionalClear) {
+        return provisionalClear.texture.get() == &texture && provisionalClear.mipLevel == mipLevel && provisionalClear.slice == slice;
+    });
+}
+
+void Queue::discardProvisionalTextureClears(uint64_t commandEncoderId)
+{
+    m_provisionalTextureClears.removeAllMatching([&](const auto& provisionalClear) {
+        if (provisionalClear.commandEncoderId != commandEncoderId)
+            return false;
+        if (RefPtr texture = provisionalClear.texture.get())
+            texture->dropProvisionalClear(provisionalClear.mipLevel, provisionalClear.slice);
+        return true;
+    });
+}
+
+void Queue::resolveProvisionalTextureClears(std::optional<uint64_t> committingCommandEncoderId)
+{
+    if (m_provisionalTextureClears.isEmpty())
+        return;
+
+    auto provisionalClears = std::exchange(m_provisionalTextureClears, { });
+
+    for (auto& provisionalClear : provisionalClears) {
+        RefPtr texture = provisionalClear.texture.get();
+        if (!texture)
+            continue;
+        if (committingCommandEncoderId && provisionalClear.commandEncoderId == *committingCommandEncoderId) {
+            texture->promoteProvisionalClear(provisionalClear.mipLevel, provisionalClear.slice);
+            continue;
+        }
+
+        texture->dropProvisionalClear(provisionalClear.mipLevel, provisionalClear.slice);
+        m_provisionalTextureClears.append(provisionalClear);
+    }
+
+    RefPtr devicePtr = m_device.get();
+    if (!devicePtr)
+        return;
+
+    bool encodedAnyClear = false;
+    for (auto& provisionalClear : provisionalClears) {
+        if (committingCommandEncoderId && provisionalClear.commandEncoderId == *committingCommandEncoderId)
+            continue;
+        RefPtr texture = provisionalClear.texture.get();
+        if (!texture || texture->previouslyCleared(provisionalClear.mipLevel, provisionalClear.slice))
+            continue;
+
+        CommandEncoder::clearTextureIfNeeded(*texture, provisionalClear.mipLevel, provisionalClear.slice, *devicePtr, ensureBlitCommandEncoder());
+        encodedAnyClear = true;
+    }
+
+    if (encodedAnyClear)
+        finalizeBlitCommandEncoder();
+}
+
 id<MTLDevice> Queue::metalDevice() const
 {
     return device().device();
@@ -2243,7 +2349,7 @@ void wgpuQueueWriteBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t bufferOff
 {
     @autoreleasepool {
         auto bytes = unsafeMakeSpan(static_cast<const uint8_t*>(data), size);
-        protect(WebGPU::Metal::fromAPI(queue))->writeBuffer(protect(WebGPU::Metal::fromAPI(buffer)), bufferOffset, bytes);
+        protect(WebGPU::Metal::fromAPI(queue))->writeBuffer(protect(WebGPU::Metal::fromAPI(buffer)), bufferOffset, spanConstCast<uint8_t>(bytes));
     }
 }
 

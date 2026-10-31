@@ -343,8 +343,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     Modules/identity/DigitalCredentialGetRequest.h
     Modules/identity/DigitalCredentialPresentationProtocol.h
     Modules/identity/DigitalCredentialRequestOptions.h
-    Modules/identity/DigitalCredentialsMobileDocumentRequestData.h
-    Modules/identity/DigitalCredentialsOpenID4VPRequestData.h
     Modules/identity/DigitalCredentialsRequestData.h
     Modules/identity/DigitalCredentialsRequestDataBuilder.h
     Modules/identity/DigitalCredentialsResponseData.h
@@ -1257,6 +1255,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     dom/FullscreenOptions.h
     dom/GCReachableRef.h
     dom/ImageOverlay.h
+    dom/ImmersiveElement.h
     dom/ImportNodeOptions.h
     dom/InlineStyleSheetOwner.h
     dom/IsSecureContext.h
@@ -1871,6 +1870,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     loader/images/Image.h
     loader/images/ImageAdapter.h
     loader/images/ImageDrawingExtras.h
+    loader/images/ImageDrawingOptions.h
     loader/images/ImageObserver.h
     loader/images/SizedImage.h
 
@@ -2251,6 +2251,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/ScrollAlignment.h
     platform/ScrollAnimation.h
     platform/ScrollAnimationMomentum.h
+    platform/ScrollAnimationSmooth.h
     platform/ScrollAnimator.h
     platform/ScrollSnapAnimatorState.h
     platform/ScrollTypes.h
@@ -2532,7 +2533,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageBufferTransferIdentifier.h
     platform/graphics/ImageDecoder.h
     platform/graphics/ImageDecoderIdentifier.h
-    platform/graphics/ImageDrawingOptions.h
     platform/graphics/ImageFrame.h
     platform/graphics/ImageOrientation.h
     platform/graphics/ImageResolution.h
@@ -2617,6 +2617,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/PlatformVideoTrackConfiguration.h
     platform/graphics/PlatformVideoTransferCharacteristics.h
     platform/graphics/Polygon4D.h
+    platform/graphics/RasterDrawingOptions.h
     platform/graphics/Region.h
     platform/graphics/RenderingMode.h
     platform/graphics/RenderingResource.h
@@ -3303,7 +3304,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/grid/StyleGridTrackSizingDirection.h
 
     style/values/images/StyleGradient.h
-    style/values/images/StyleImageDrawingExtras.h
     style/values/images/StyleImageOrNone.h
     style/values/images/StyleImageOrientation.h
     style/values/images/StyleImageWrapper.h

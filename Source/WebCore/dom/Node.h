@@ -236,6 +236,7 @@ public:
 
 #if ENABLE(VIDEO)
     virtual bool isWebVTTElement() const { return false; }
+    virtual bool isTextTrackCueBox() const { return false; }
 #endif
     bool isStyledElement() const { return hasTypeFlag(TypeFlag::IsHTMLElement) || hasTypeFlag(TypeFlag::IsSVGElement) || hasTypeFlag(TypeFlag::IsMathMLElement); }
     virtual bool isHTMLFrameOwnerElement() const { return false; }
@@ -419,7 +420,7 @@ public:
     TreeScope& LEGACY_NODELETE treeScope() const
     {
         ASSERT(m_treeScope);
-        return *m_treeScope;
+        return *m_treeScope.get();
     }
     inline void setTreeScopeRecursively(TreeScope&);
     inline void setTreeScopeRecursivelyToMatch(const Node&);
@@ -835,7 +836,7 @@ private:
     mutable OptionSet<StateFlag> m_stateFlags;
 
     CheckedPtr<ContainerNode> m_parentNode;
-    TreeScope* m_treeScope { nullptr };
+    CheckedPtr<TreeScope> m_treeScope;
     CheckedPtr<Node> m_shadowIncludingRoot;
     CheckedPtr<Node> m_previousSibling;
     CheckedPtr<Node> m_next;

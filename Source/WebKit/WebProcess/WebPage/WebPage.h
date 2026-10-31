@@ -41,6 +41,7 @@
 #include <WebCore/DisabledAdaptations.h>
 #include <WebCore/DragActions.h>
 #include <WebCore/Element.h>
+#include <WebCore/FixedContainerEdges.h>
 #include <WebCore/FocusOptions.h>
 #include <WebCore/FrameGeometrySyncData.h>
 #include <WebCore/FrameLoaderTypes.h>
@@ -513,9 +514,6 @@ class WebWheelEvent;
 
 enum class ContentInversion : uint8_t;
 enum class DragControllerAction : uint8_t;
-#if ENABLE(TILED_CA_DRAWING_AREA)
-enum class DrawingAreaType : bool;
-#endif
 enum class FindOptions : uint16_t;
 enum class FindDecorationStyle : uint8_t;
 enum class FrameTraversalResult : uint8_t;
@@ -1188,7 +1186,10 @@ public:
     void cancelPotentialTap();
     void cancelPotentialTapInFrame(WebFrame&);
     void commitPotentialTapFailed();
-    void didHandleTapAsHover();
+    void didHandleTapAsHover(WebCore::Node& nodeRespondingToClick);
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    bool isHoverActivatedByClick(const WebCore::Node& hitNode, const WebCore::IntPoint& locationInRootView) const;
+#endif
     void sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier, WebCore::Node*, WebCore::FloatPoint);
     void handleSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::PointerID = WebCore::mousePointerID);
     void completeSyntheticClick(std::optional<WebCore::FrameIdentifier>, WebCore::Node& nodeRespondingToClick, const WebCore::FloatPoint& location, OptionSet<WebKit::WebEventModifier>, WebCore::SyntheticClickType, WebCore::PointerID = WebCore::mousePointerID, int clickCount = 1);
@@ -2291,6 +2292,8 @@ public:
     bool shouldSendConsoleLogsToUIProcessForTesting() const { return m_shouldSendConsoleLogsToUIProcessForTesting; }
 
     void setNeedsFixedContainerEdgesUpdate() { m_needsFixedContainerEdgesUpdate = true; }
+    bool samplesFixedContainerEdges() const { return !m_fixedContainerEdgeSampling.isEmpty(); }
+    Vector<std::pair<WebCore::FrameIdentifier, WebCore::FixedContainerEdges>> sampleFixedContainerEdges(const Vector<WebCore::FrameIdentifier>& rootsWithLayerChanges);
 
     RefPtr<WebCore::MediaSessionManagerInterface> mediaSessionManager() const;
     WebCore::MediaSessionManagerInterface* LEGACY_NODELETE mediaSessionManagerIfExists() const;
@@ -2902,6 +2905,8 @@ private:
 
     void requestAllTextAndRects(CompletionHandler<void(Vector<std::pair<String, WebCore::FloatRect>>&&)>&&);
 
+    void setFixedContainerEdgeSamplingSides(WebCore::FrameIdentifier, WebCore::RectEdges<bool>);
+
     void requestTargetedElement(WebCore::TargetedElementRequest&&, CompletionHandler<void(Vector<WebCore::TargetedElementInfo>&&)>&&);
     void requestTargetedElementsForText(WebCore::TargetedElementRequest&&, CompletionHandler<void(WebCore::TargetedTextSearchResult&&)>&&);
     void requestAllTargetableElements(float, CompletionHandler<void(Vector<Vector<WebCore::TargetedElementInfo>>&&)>&&);
@@ -2963,10 +2968,6 @@ private:
 
 #if ENABLE(VIEWPORT_RESIZING)
     int m_lastShrinkToFitLayoutWidth { 0 };
-#endif
-
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    DrawingAreaType m_drawingAreaType;
 #endif
 
     HashMap<TextCheckerRequestID, Ref<WebCore::TextCheckingRequest>> m_pendingTextCheckingRequestMap;
@@ -3303,6 +3304,9 @@ private:
     bool m_hasHandledSyntheticClick { false };
     CompletionHandler<void(WebCore::SyntheticClickResult)> m_pendingSyntheticClickCallback;
     RefPtr<WebCore::Node> m_pendingSyntheticClickNode;
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    WeakPtr<WebCore::Element, WebCore::WeakPtrImplWithEventTargetData> m_elementHoverActivatedByClick;
+#endif
     WebCore::FloatPoint m_pendingSyntheticClickLocation;
     OptionSet<WebKit::WebEventModifier> m_pendingSyntheticClickModifiers;
     WebCore::PointerID m_pendingSyntheticClickPointerId { 0 };
@@ -3456,6 +3460,11 @@ private:
     };
     std::optional<RemoteSnapshotState> m_remoteSnapshotState;
 #endif
+    struct FixedContainerEdgeSampling {
+        WebCore::RectEdges<bool> sides;
+        std::optional<WebCore::FixedContainerEdges> lastSent;
+    };
+    HashMap<WebCore::FrameIdentifier, FixedContainerEdgeSampling> m_fixedContainerEdgeSampling;
 #if PLATFORM(GTK)
     WebCore::Color m_accentColor;
 #endif

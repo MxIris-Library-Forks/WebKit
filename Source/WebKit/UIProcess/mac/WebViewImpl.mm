@@ -63,7 +63,6 @@
 #import "RemoteScrollingCoordinatorProxy.h"
 #import "TextChecker.h"
 #import "TextCheckerState.h"
-#import "TiledCoreAnimationDrawingAreaProxy.h"
 #import "TransientZoomState.h"
 #import "UIGamepadProvider.h"
 #import "UndoOrRedo.h"
@@ -1361,25 +1360,6 @@ WebViewImpl::WebViewImpl(WKWebView *view, WebProcessPool& processPool, Ref<API::
     if (isInBaseSystem())
         setWindowOcclusionDetectionEnabled(false);
 
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    auto useRemoteLayerTree = [&]() {
-        bool result = false;
-#if ENABLE(REMOTE_LAYER_TREE_ON_MAC_BY_DEFAULT)
-        result = true;
-#endif
-        if (RetainPtr<id> useRemoteLayerTreeBoolean = [[NSUserDefaults standardUserDefaults] objectForKey:@"WebKit2UseRemoteLayerTreeDrawingArea"])
-            result = [useRemoteLayerTreeBoolean boolValue];
-
-        if (protect(m_page->preferences())->siteIsolationEnabled())
-            result = true;
-
-        return result;
-    };
-
-    if (useRemoteLayerTree())
-        m_drawingAreaType = DrawingAreaType::RemoteLayerTree;
-#endif
-
     [view addTrackingArea:m_primaryTrackingArea.get()];
     [view addTrackingArea:m_flagsChangedEventMonitorTrackingArea.get()];
 
@@ -2050,25 +2030,12 @@ CGSize WebViewImpl::fixedLayoutSize() const
 
 Ref<WebKit::DrawingAreaProxy> WebViewImpl::createDrawingAreaProxy(WebProcessProxy& webProcessProxy)
 {
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    switch (m_drawingAreaType) {
-    case DrawingAreaType::TiledCoreAnimation:
-        return TiledCoreAnimationDrawingAreaProxy::create(m_page, webProcessProxy);
-    case DrawingAreaType::RemoteLayerTree:
-        return RemoteLayerTreeDrawingAreaProxyMac::create(m_page, webProcessProxy);
-    }
-    ASSERT_NOT_REACHED();
-#endif
     return RemoteLayerTreeDrawingAreaProxyMac::create(m_page, webProcessProxy);
 }
 
 bool WebViewImpl::isUsingUISideCompositing() const
 {
-#if ENABLE(TILED_CA_DRAWING_AREA)
-    return m_drawingAreaType == DrawingAreaType::RemoteLayerTree;
-#else
     return true;
-#endif
 }
 
 void WebViewImpl::setDrawingAreaSize(CGSize size)
@@ -2658,6 +2625,8 @@ void WebViewImpl::pageDidScroll(const IntPoint& scrollOffset)
     // While a selection-drag is autoscrolling, keep extending the selection toward the
     // last drag point as the content scrolls underneath it.
     [m_textSelectionController reextendSelectionForAutoscrollIfNeeded];
+
+    [m_appKitGestureController cancelClickHighlight];
 #endif
 
 #if ENABLE(HORIZONTAL_BANNER_VIEW_OVERLAYS)
@@ -3995,6 +3964,10 @@ void WebViewImpl::dismissContentRelativeChildWindowsFromViewOnly()
 #if HAVE(TRANSLATION_UI_SERVICES) && ENABLE(CONTEXT_MENUS)
     [std::exchange(m_lastContextMenuTranslationPopover, nil).get() close];
 #endif
+
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+    [m_appKitGestureController cancelClickHighlight];
+#endif
 }
 
 bool WebViewImpl::hasContentRelativeChildViews() const
@@ -4484,30 +4457,6 @@ void WebViewImpl::toolTipChanged(const String& oldToolTip, const String& newTool
         m_lastToolTipTag = [m_view.get() addToolTipRect:wideOpenRect owner:m_view.get().get() userData:NULL];
         sendToolTipMouseEntered();
     }
-}
-
-void WebViewImpl::enterAcceleratedCompositingWithRootLayer(CALayer *rootLayer)
-{
-    // This is the process-swap case. We add the new layer behind the existing root layer and mark it as hidden.
-    // This way, the new layer gets accelerated compositing but won't be visible until
-    // setAcceleratedCompositingRootLayer() is called by didFirstLayerFlush(), in order to prevent flashing.
-    if (m_rootLayer && rootLayer && m_rootLayer != rootLayer) {
-        if (m_thumbnailView)
-            return;
-
-        [rootLayer web_disableAllActions];
-
-        [CATransaction begin];
-        [CATransaction setDisableActions:YES];
-
-        rootLayer.hidden = YES;
-        [retainPtr([m_layerHostingView layer]) insertSublayer:rootLayer atIndex:0];
-
-        [CATransaction commit];
-        return;
-    }
-
-    setAcceleratedCompositingRootLayer(rootLayer);
 }
 
 void WebViewImpl::setAcceleratedCompositingRootLayer(CALayer *rootLayer)
@@ -7028,9 +6977,9 @@ void WebViewImpl::rightMouseUp(NSEvent *event)
     nativeMouseEventHandler(event, WebEventInputSource::UserDriven);
 }
 
-void WebViewImpl::mouseMovedInternal(NSEvent *event)
+void WebViewImpl::mouseMovedInternal(NSEvent *event, WebEventInputSource inputSource)
 {
-    nativeMouseEventHandlerInternal(event, WebEventInputSource::UserDriven);
+    nativeMouseEventHandlerInternal(event, inputSource);
 }
 
 void WebViewImpl::mouseDownInternal(NSEvent *event, WebEventInputSource inputSource, WebCore::PlatformMouseEvent::CanInitiateDrag canInitiateDrag)
@@ -7048,7 +6997,7 @@ void WebViewImpl::mouseDraggedInternal(NSEvent *event, WebEventInputSource input
     nativeMouseEventHandlerInternal(event, inputSource, canInitiateDrag);
 }
 
-void WebViewImpl::mouseMoved(NSEvent *event)
+void WebViewImpl::mouseMoved(NSEvent *event, WebEventInputSource inputSource)
 {
     if (m_ignoresNonWheelEvents || m_ignoresMouseMoveEvents)
         return;
@@ -7065,7 +7014,7 @@ void WebViewImpl::mouseMoved(NSEvent *event)
     if (view == [view window].firstResponder && !NSPointInRect(locationInView, [view visibleRect]))
         return;
 
-    mouseMovedInternal(event);
+    mouseMovedInternal(event, inputSource);
 }
 
 static _WKRectEdge LEGACY_NODELETE toWKRectEdge(WebCore::RectEdges<bool> edges)
@@ -8435,6 +8384,11 @@ void WebViewImpl::invalidateCachedPositionInformation()
 void WebViewImpl::positionInformationDidChange(const InteractionInformationAtPosition& info)
 {
     [m_appKitGestureController positionInformationDidChange:info];
+}
+
+void WebViewImpl::installClickHighlightView(NSView *highlightView)
+{
+    [protect(view()) addSubview:highlightView positioned:NSWindowAbove relativeTo:m_layerHostingView];
 }
 
 void WebViewImpl::beginSuppressingSingleClickGestureForTextSelection()

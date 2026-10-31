@@ -230,6 +230,17 @@ std::pair<LayoutUnit, LayoutUnit> RenderMathMLOperator::computeIntrinsicLogicalW
     return { preferredWidth, preferredWidth };
 }
 
+void RenderMathMLOperator::constrainIntrinsicLogicalWidthContributionsByMinMax(LayoutUnit& minContentLogicalWidthContribution, LayoutUnit& maxContentLogicalWidthContribution) const
+{
+    // The operator spacing goes around the operator's box, so min-width and max-width don't apply to it.
+    auto spacing = leadingSpace() + trailingSpace();
+    minContentLogicalWidthContribution -= spacing;
+    maxContentLogicalWidthContribution -= spacing;
+    RenderMathMLToken::constrainIntrinsicLogicalWidthContributionsByMinMax(minContentLogicalWidthContribution, maxContentLogicalWidthContribution);
+    minContentLogicalWidthContribution += spacing;
+    maxContentLogicalWidthContribution += spacing;
+}
+
 void RenderMathMLOperator::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit pageLogicalHeight)
 {
     ASSERT(needsLayout());

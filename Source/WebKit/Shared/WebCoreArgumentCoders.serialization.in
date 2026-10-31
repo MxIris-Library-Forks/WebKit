@@ -244,6 +244,7 @@ header: <WebCore/ScrollbarTrackCornerSystemImageMac.h>
 #endif // USE(APPKIT)
 
 header: <WebCore/ScrollTypes.h>
+enum class WebCore::ScrollAnimationCurve : bool;
 enum class WebCore::ScrollIsAnimated : bool;
 enum class WebCore::ScrollbarRevealBehavior : bool;
 
@@ -2963,6 +2964,7 @@ enum class WebCore::ScrollType : bool;
     WebCore::ScrollType scrollType;
     WebCore::ScrollClamping clamping;
     WebCore::ScrollbarRevealBehavior scrollbarRevealBehavior;
+    WebCore::ScrollAnimationCurve animationCurve;
 }
 
 using WebCore::ScrollRequestData = Vector<WebCore::RequestedScrollData, 2>;
@@ -3544,19 +3546,19 @@ header: <WebCore/ImageTypes.h>
 };
 #endif
 
-[AdditionalEncoder=StreamConnectionEncoder] struct WebCore::ImageDrawingOptions {
+[AdditionalEncoder=StreamConnectionEncoder] struct WebCore::RasterDrawingOptions {
     WebCore::CompositeOperator compositeOperator();
     WebCore::BlendMode blendMode();
-    WebCore::DecodingMode decodingMode();
     WebCore::ImageOrientation::Orientation orientation().orientation();
     WebCore::InterpolationQuality interpolationQuality();
-    WebCore::DrawsHDRContent drawsHDRContent();
 #if ENABLE(AX_CUSTOM_COLOR_MODE)
     WebCore::InvertContent invertContent();
 #endif
+    WebCore::DrawsHDRContent drawsHDRContent();
     WebCore::Headroom headroom();
     WebCore::PlatformDynamicRangeLimit dynamicRangeLimit();
 };
+
 
 [AdditionalEncoder=StreamConnectionEncoder] struct WebCore::FloatSegment {
     float begin;
@@ -7265,7 +7267,7 @@ enum class WebCore::PredominantColorType : uint8_t {
     Multiple
 };
 
-using WebCore::FixedContainerEdge = Variant<WebCore::PredominantColorType, WebCore::Color>;
+using WebCore::FixedContainerEdge = Variant<WebCore::PredominantColorType, WebCore::Color, WebCore::FrameIdentifier>;
 
 header: <WebCore/FixedContainerEdges.h>
 [Nested] class WebCore::RectEdges<WebCore::FixedContainerEdge> {

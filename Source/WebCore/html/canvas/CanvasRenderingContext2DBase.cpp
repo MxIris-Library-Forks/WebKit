@@ -788,7 +788,8 @@ void CanvasRenderingContext2DBase::restore()
     ASSERT(m_stateStack.size() >= 1);
     if (m_stateStack.size() <= 1)
         return;
-    m_path.transform(state().transform);
+    if (hasInvertibleTransform())
+        m_path.transform(state().transform);
     m_stateStack.removeLast();
     auto& state = this->state();
     m_hasInvertibleTransform = state.transformInverse.has_value();
@@ -2004,7 +2005,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(WebCodecsVideoFrame& f
     else
         willUpdateContents(normalizedDstRect);
 
-    ImageDrawingOptions options = {
+    RasterDrawingOptions options = {
         internalFrame->orientation(),
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
         (isHDR() && usesITUR2100TF(internalFrame->colorSpace())) ? DrawsHDRContent::Yes : DrawsHDRContent::No
@@ -2091,7 +2092,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(Document& document, Im
         else if (auto color = firstFrame->singlePixelSolidColor())
             Image::fillWithSolidColor(context, destination, *color, options.compositeOperator());
         else
-            context.drawNativeImage(*firstFrame, destination, normalizedSrcRect, options);
+            context.drawNativeImage(*firstFrame, destination, normalizedSrcRect, options.rasterDrawingOptions());
     };
 
     auto willUpdateContentsOptions = shouldPostProcess ? defaultWillUpdateContentsOptions() : defaultWillUpdateContentsOptionsWithoutPostProcessing();
@@ -3538,9 +3539,13 @@ Ref<TextMetrics> CanvasRenderingContext2DBase::measureTextInternal(const TextRun
 void CanvasRenderingContext2DBase::updateStateTransform(const AffineTransform& transform)
 {
     auto& state = modifiableState();
+    auto inverse = transform.inverse();
+    // m_path is kept in user space while the transform is invertible, and in device space otherwise.
+    if (m_hasInvertibleTransform && !inverse)
+        m_path.transform(state.transform);
     state.transform = transform;
-    state.transformInverse = transform.inverse();
-    m_hasInvertibleTransform = state.transformInverse.has_value();
+    state.transformInverse = inverse;
+    m_hasInvertibleTransform = inverse.has_value();
 }
 
 FloatPoint CanvasRenderingContext2DBase::textOffset(float width, TextDirection direction)
@@ -3652,7 +3657,7 @@ std::optional<double> CanvasRenderingContext2DBase::getEffectiveDynamicRangeLimi
     return effectiveDynamicRangeLimit(m_dynamicRangeLimit, displayEDRState(protect(canvasBase())).suppressEDR).value();
 }
 
-ImageDrawingOptions CanvasRenderingContext2DBase::drawingOptionsForDisplay() const
+RasterDrawingOptions CanvasRenderingContext2DBase::drawingOptionsForDisplay() const
 {
     if (!isHDR() || m_dynamicRangeLimit == PlatformDynamicRangeLimit::noLimit())
         return { };

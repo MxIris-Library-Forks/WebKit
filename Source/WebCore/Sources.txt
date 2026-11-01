@@ -1012,6 +1012,7 @@ css/CSSMaskBorderSliceValue.cpp
 css/CSSMaskBorderSourceValue.cpp
 css/CSSMaskBorderWidthValue.cpp
 css/CSSMediaRule.cpp
+css/CSSMeshGradientValue.cpp
 css/CSSNamedImageValue.cpp
 css/CSSNamespaceRule.cpp
 css/CSSNestedDeclarations.cpp
@@ -1272,7 +1273,9 @@ css/values/grid/CSSGridSubgrid.cpp
 css/values/grid/CSSGridTemplateList.cpp
 css/values/grid/CSSGridTrackSizes.cpp
 css/values/images/CSSGradient.cpp
+css/values/images/CSSGradientColorInterpolationMethod.cpp
 css/values/images/CSSImageWrapper.cpp
+css/values/images/CSSMeshGradient.cpp
 css/values/masking/CSSClip.cpp
 css/values/masking/CSSMaskBorderOutset.cpp
 css/values/masking/CSSMaskBorderRepeat.cpp
@@ -2239,7 +2242,7 @@ loader/cache/TrustedFonts.cpp
 loader/icon/IconLoader.cpp
 loader/images/Image.cpp
 loader/images/ImageAdapter.cpp
-loader/images/ImageDrawingOptions.cpp
+loader/images/ImageDrawDescriptor.cpp
 loader/images/bitmap/BitmapImage.cpp
 loader/images/bitmap/BitmapImageDescriptor.cpp
 loader/images/bitmap/BitmapImageSource.cpp
@@ -2365,6 +2368,7 @@ page/PointerCaptureController.cpp
 page/PointerLockController.cpp
 page/PrintContext.cpp @header:RenderStyleGetters @cost:7
 page/ProcessWarming.cpp
+page/QuirkBehaviors.cpp
 page/QuirkMatchPattern.cpp
 page/Quirks.cpp @header:RenderStyleGetters @cost:11
 page/RemoteDOMWindow.cpp

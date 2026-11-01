@@ -230,6 +230,7 @@ if (ENABLE_JAVASCRIPTCORE)
         Tests/JavaScriptCore/PropertySlot.cpp
         Tests/JavaScriptCore/RegularExpression.cpp
         Tests/JavaScriptCore/StrongBlock.cpp
+        Tests/JavaScriptCore/WeakSet.cpp
     )
 
     set(TestJavaScriptCore_LIBRARIES
@@ -629,6 +630,7 @@ if (ENABLE_WEBKIT)
             Tests/IPC/EventTests.cpp
             Tests/IPC/IPCEventTests.cpp
             Tests/IPC/IPCTestUtilities.cpp
+            Tests/IPC/MachMessageTests.cpp
             Tests/IPC/MessageLogEndToEndTests.cpp
             Tests/IPC/MessageLogTests.cpp
             Tests/IPC/MessageSenderTests.cpp
@@ -650,6 +652,7 @@ if (ENABLE_WEBKIT)
             ${WebKit_FRAMEWORK_HEADERS_DIR}
             ${WEBKIT_DIR}/Platform
             ${WEBKIT_DIR}/Platform/IPC
+            ${WEBKIT_DIR}/Platform/IPC/cocoa
             ${WEBKIT_DIR}/Shared
             ${WEBKIT_DIR}/Shared/API/c
             ${WebKit_DERIVED_SOURCES_DIR}

@@ -3321,10 +3321,6 @@ std::unique_ptr<Style::ComputedStyle> Document::styleForElementIgnoringPendingSt
 
     auto elementStyle = resolver->styleForElement(element, { parentStyle.get() });
     if (pseudoElementIdentifier) {
-        auto type = pseudoElementIdentifier->type;
-        if ((type == PseudoElementType::FirstLetter || type == PseudoElementType::FirstLine) && elementStyle.style && !Style::supportsFirstLineAndLetterPseudoElement(*elementStyle.style))
-            return { };
-
         auto style = resolver->styleForPseudoElement(element, { *pseudoElementIdentifier }, { parentStyle.get() });
         if (!style)
             return nullptr;
@@ -8416,6 +8412,11 @@ RefPtr<LocalFrame> Document::localMainFrame() const
     if (auto* page = this->page())
         return page->localMainFrame();
     return nullptr;
+}
+
+RefPtr<LocalFrame> Document::rootFrame() const
+{
+    return m_frame ? &m_frame->rootFrame() : nullptr;
 }
 
 ScriptRunner& Document::ensureScriptRunner()

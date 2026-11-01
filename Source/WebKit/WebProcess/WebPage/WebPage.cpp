@@ -3784,7 +3784,7 @@ RefPtr<ShareableBitmap> WebPage::shareableBitmapForNodeIncludingOffscreen(Node& 
         if (imageElement) {
             if (RefPtr cachedImage = imageElement->cachedImage()) {
                 if (RefPtr image = cachedImage->image()) {
-                    if (RefPtr nativeImage = image->currentNativeImage(DefaultSizing { }.resolve(image->naturalDimensions())))
+                    if (RefPtr nativeImage = image->currentNativeImage(ImageDrawDescriptor { DefaultSizing { }.resolve(image->naturalDimensions()) }))
                         bitmap = ShareableBitmap::createFromImageDraw(*nativeImage, ColorSpace::SRGB());
                 }
             }
@@ -7541,8 +7541,7 @@ void WebPage::computePagesForPrintingImpl(FrameIdentifier frameID, const PrintIn
         PrintContextAccessScope scope { *this };
         resultPageRects = printContext->pageRects();
         computedPageMargin = printContext->computedPageMargin(printInfo.margin);
-        auto computedPageSize = printContext->computedPageSize(FloatSize(printInfo.availablePaperWidth, printInfo.availablePaperHeight), printInfo.margin);
-        resultTotalScaleFactorForPrinting = printContext->computeAutomaticScaleFactor(computedPageSize) * printInfo.pageSetupScaleFactor;
+        resultTotalScaleFactorForPrinting = totalScaleFactorForPrinting(*printContext, printInfo);
     }
 #if PLATFORM(COCOA)
     else
@@ -7552,6 +7551,13 @@ void WebPage::computePagesForPrintingImpl(FrameIdentifier frameID, const PrintIn
     // If we're asked to print, we should actually print at least a blank page.
     if (resultPageRects.isEmpty())
         resultPageRects.append(IntRect(0, 0, 1, 1));
+}
+
+// Converts page rects from CSS px to points.
+float WebPage::totalScaleFactorForPrinting(PrintContext& printContext, const PrintInfo& printInfo)
+{
+    auto computedPageSize = printContext.computedPageSize(FloatSize(printInfo.availablePaperWidth, printInfo.availablePaperHeight), printInfo.margin);
+    return printContext.computeAutomaticScaleFactor(computedPageSize) * printInfo.pageSetupScaleFactor;
 }
 
 void WebPage::paintRemoteFrameContents(FrameIdentifier frameID, const IntRect& rect, GraphicsContext& context)
@@ -10571,8 +10577,7 @@ void WebPage::updateWithTextRecognitionResult(const TextRecognitionResult& resul
         return;
     }
 
-    RefPtr frame = htmlElementToUpdate->document().frame();
-    RefPtr localRoot = frame ? &frame->rootFrame() : nullptr;
+    RefPtr localRoot { htmlElementToUpdate->document().rootFrame() };
     RefPtr localRootView = localRoot ? localRoot->view() : nullptr;
     if (!localRootView) {
         completionHandler(TextRecognitionUpdateResult::NoText);

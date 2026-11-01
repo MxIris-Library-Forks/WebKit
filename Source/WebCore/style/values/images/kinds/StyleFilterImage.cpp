@@ -34,16 +34,17 @@
 #include "CachedImage.h"
 #include "CachedResourceLoader.h"
 #include "DeprecatedCSSOMValue.h"
+#include "FilterResults.h"
 #include "HostWindow.h"
 #include "ImageBuffer.h"
 #include "ImageQualityController.h"
-#include "NativeImage.h"
 #include "NullGraphicsContext.h"
 #include "RenderBoxModelObject.h"
 #include "RenderElement.h"
 #include "RenderObjectInlines.h"
 #include "Settings.h"
 #include "StyleFilter.h"
+#include "TransparencyLayerContextSwitcher.h"
 #include <wtf/PointerComparison.h>
 
 namespace WebCore {
@@ -128,7 +129,7 @@ void FilterImage::load(CachedResourceLoader& cachedResourceLoader, const Resourc
     m_inputImageIsReady = true;
 }
 
-RefPtr<NativeImage> FilterImage::resolvedImage(const RenderElement& renderElement, const FloatSize& size, const GraphicsContext& destinationContext, bool isForFirstLine) const
+RefPtr<ImageBuffer> FilterImage::resolvedImage(const RenderElement& renderElement, const FloatSize& size, const GraphicsContext& destinationContext, bool isForFirstLine) const
 {
     CheckedRef renderer = renderElement;
 
@@ -157,12 +158,31 @@ RefPtr<NativeImage> FilterImage::resolvedImage(const RenderElement& renderElemen
     if (!sourceImage)
         return nullptr;
 
-    return sourceImage->filteredNativeImage(*cssFilter, [&](GraphicsContext& context) {
-        styleImage->draw(context, renderer, ConcreteObjectSize::fixed(size), sourceImageRect, sourceImageRect, { }, isForFirstLine);
-    });
+    auto drawSourceImage = [&](GraphicsContext& context) {
+        styleImage->draw(context, renderer, ImageDrawDescriptor { ConcreteObjectSize::fixed(size) }, sourceImageRect, sourceImageRect, isForFirstLine);
+    };
+
+    if (cssFilter->filterRenderingModes().contains(FilterRenderingMode::GraphicsContext)) {
+        auto& context = sourceImage->context();
+        TransparencyLayerContextSwitcher switcher { context, sourceImageRect, WTF::move(cssFilter) };
+        switcher.beginDrawSourceImage(context);
+        drawSourceImage(context);
+        switcher.endDrawSourceImage(context, sourceImage->colorSpace());
+        return sourceImage;
+    }
+
+    drawSourceImage(sourceImage->context());
+
+    auto filteredImage = ImageBuffer::create(size, destinationContext.renderingMode(), RenderingPurpose::DOM, 1, ColorSpace::SRGB(), PixelFormat::BGRA8, renderer->hostWindow());
+    if (!filteredImage)
+        return nullptr;
+
+    FilterResults results;
+    filteredImage->context().drawFilteredImageBuffer(sourceImage.get(), sourceImageRect, *cssFilter, results);
+    return filteredImage;
 }
 
-ImageDrawResult FilterImage::draw(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& source, ImageDrawingOptions options, bool isForFirstLine) const
+ImageDrawResult FilterImage::draw(GraphicsContext& context, const RenderElement& renderer, const ImageDrawDescriptor& descriptor, const FloatRect& destination, const FloatRect& source, bool isForFirstLine) const
 {
     if (isPending())
         return ImageDrawResult::DidNothing;
@@ -171,34 +191,34 @@ ImageDrawResult FilterImage::draw(GraphicsContext& context, const RenderElement&
     if (!image)
         return ImageDrawResult::DidNothing;
 
-    return drawResolved(context, *image, destination, mapSourceToSize(source, concreteObjectSize, image->size()), options);
+    return drawResolved(context, *image, descriptor, destination, mapSourceToSize(source, descriptor.concreteObjectSize, image->logicalSize()));
 }
 
-ImageDrawResult FilterImage::drawAsPattern(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, ImageDrawingOptions options, bool isForFirstLine) const
+ImageDrawResult FilterImage::drawAsPattern(GraphicsContext& context, const RenderElement& renderer, const ImageDrawDescriptor& descriptor, const FloatRect& destination, const FloatRect& tile, const AffineTransform& patternTransform, const FloatPoint& phase, const FloatSize& spacing, bool isForFirstLine) const
 {
-    RefPtr image = resolvedImage(renderer, concreteObjectSize.size() * concreteObjectSize.zoom(), context, isForFirstLine);
+    RefPtr image = resolvedImage(renderer, descriptor.concreteObjectSize.size() * descriptor.concreteObjectSize.zoom(), context, isForFirstLine);
     if (!image || context.paintingDisabled())
         return ImageDrawResult::DidNothing;
 
-    return drawResolvedAsPattern(context, *image, destination, tile, patternTransform, phase, spacing, options);
+    return drawResolvedAsPattern(context, *image, descriptor, destination, tile, patternTransform, phase, spacing);
 }
 
-ImageDrawResult FilterImage::drawTiled(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, ImageDrawingOptions options, bool isForFirstLine) const
+ImageDrawResult FilterImage::drawTiled(GraphicsContext& context, const RenderElement& renderer, const ImageDrawDescriptor& descriptor, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing, bool isForFirstLine) const
 {
     RefPtr image = resolvedImage(renderer, tileSize, context, isForFirstLine);
     if (!image || context.paintingDisabled())
         return ImageDrawResult::DidNothing;
 
-    return drawResolvedTiled(context, *image, destination, phase, tileSize, spacing, options);
+    return drawResolvedTiled(context, *image, descriptor, destination, phase, tileSize, spacing);
 }
 
-ImageDrawResult FilterImage::drawNinePiece(GraphicsContext& context, const RenderElement& renderer, ConcreteObjectSize concreteObjectSize, const NinePieceGeometry& geometry, ImageDrawingOptions options) const
+ImageDrawResult FilterImage::drawNinePiece(GraphicsContext& context, const RenderElement& renderer, const ImageDrawDescriptor& descriptor, const NinePieceGeometry& geometry) const
 {
-    RefPtr image = resolvedImage(renderer, concreteObjectSize.size() * concreteObjectSize.zoom(), context, false);
+    RefPtr image = resolvedImage(renderer, descriptor.concreteObjectSize.size() * descriptor.concreteObjectSize.zoom(), context, false);
     if (!image || context.paintingDisabled())
         return ImageDrawResult::DidNothing;
 
-    return drawResolvedNinePiece(context, *image, geometry, options);
+    return drawResolvedNinePiece(context, *image, descriptor, geometry);
 }
 
 bool FilterImage::knownToBeOpaque(const RenderElement&) const

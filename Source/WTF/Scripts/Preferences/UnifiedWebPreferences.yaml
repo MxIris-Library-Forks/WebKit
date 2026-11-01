@@ -1060,6 +1060,14 @@ CSSMathDepthEnabled:
   humanReadableDescription: "Enable support for math-depth from MathML Core."
   defaultValue: true
 
+CSSMeshGradientsEnabled:
+  type: bool
+  status: unstable
+  category: css
+  humanReadableName: "CSS mesh gradients"
+  humanReadableDescription: "Enable support for CSS mesh gradients."
+  defaultValue: false
+
 CSSModuleScriptsEnabled:
   type: bool
   status: testable
@@ -1485,6 +1493,16 @@ CaptureAudioInGPUProcessEnabled:
   condition: ENABLE(MEDIA_STREAM)
   excludeFrom: [ WebKitLegacy, WebCore ]
   defaultValue: WebKit::defaultCaptureAudioInGPUProcessEnabled()
+
+CaptureDevicePreviewInPromptEnabled:
+  type: bool
+  status: internal
+  category: media
+  humanReadableName: "Capture Device Preview In Permission Prompt"
+  humanReadableDescription: "Show a live camera preview, microphone level meter, and device menus in the getUserMedia permission prompt"
+  condition: ENABLE(MEDIA_STREAM)
+  excludeFrom: [ WebKitLegacy, WebCore ]
+  defaultValue: false
 
 CaptureVideoInGPUProcessEnabled:
   type: bool

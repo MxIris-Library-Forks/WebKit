@@ -64,6 +64,7 @@ public:
     virtual ~RenderElement();
 
     // RenderObject functions that the layout box base also has.
+    using RenderObject::firstLineUsedStyle;
     using RenderObject::isAnonymous;
     using RenderObject::isDescendantOf;
     using RenderObject::isFloatingOrOutOfFlowPositioned;
@@ -79,6 +80,7 @@ public:
     using RenderObject::parent;
     using RenderObject::previousInFlowSibling;
     using RenderObject::previousSibling;
+    using RenderObject::usedStyle;
 
     // CheckedPtr to the renderer uses the RenderObject counter, CheckedPtr to the layout box the box counter. Deletion checks both.
     using RenderObject::checkedPtrCount;
@@ -104,8 +106,6 @@ public:
     bool hasInitializedStyle() const { return m_hasInitializedStyle; }
 
     const Style::ComputedStyle& style() const LIFETIME_BOUND { return Layout::ElementBox::style(); }
-    inline UsedStyle usedStyle() const LIFETIME_BOUND;
-    inline UsedStyle firstLineUsedStyle() const LIFETIME_BOUND;
     const Style::ComputedStyle* parentStyle() const LIFETIME_BOUND { return !RenderObject::m_parent ? nullptr : &RenderObject::m_parent->style(); }
     const Style::ComputedStyle& LEGACY_NODELETE firstLineStyle() const LIFETIME_BOUND;
     // False when firstLineStyle() is style().
@@ -578,16 +578,6 @@ inline RenderObject* RenderElement::lastInFlowChild() const
 inline RenderElement* RenderObject::parent() const
 {
     return m_parent.get();
-}
-
-inline bool RenderElement::mayHaveFirstLineStyle() const
-{
-    // As firstLineStyle() finds it. Anonymous blocks use the parent's, if they are its first in-flow child.
-    if (isAnonymousBlock()) {
-        SUPPRESS_UNCHECKED_LOCAL auto* parentRenderer = parent();
-        return parentRenderer && parentRenderer->style().pseudoElementStyle({ PseudoElementType::FirstLine });
-    }
-    return style().pseudoElementStyle({ PseudoElementType::FirstLine });
 }
 
 } // namespace WebCore

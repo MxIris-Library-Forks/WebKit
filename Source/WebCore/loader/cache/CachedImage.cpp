@@ -40,7 +40,6 @@
 #include "MemoryCache.h"
 #include "NativeImage.h"
 #include "SVGElementTypeHelpers.h"
-#include "SVGImage.h"
 #include "SecurityOrigin.h"
 #include "Settings.h"
 #include "SharedBuffer.h"
@@ -619,17 +618,6 @@ void CachedImage::scheduleRenderingUpdate(const Image& image)
     CachedResourceClientWalker<CachedImageClient> walker(*this);
     while (RefPtr client = walker.next())
         client->scheduleRenderingUpdateForImage(*this);
-}
-
-bool CachedImage::useSystemDarkAppearance() const
-{
-    CachedResourceClientWalker<CachedImageClient> walker(*this);
-    while (RefPtr client = walker.next()) {
-        if (client->useSystemDarkAppearance())
-            return true;
-    }
-
-    return false;
 }
 
 bool CachedImage::allowsAnimation(const Image& image) const

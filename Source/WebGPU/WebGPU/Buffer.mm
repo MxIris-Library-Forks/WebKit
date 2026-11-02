@@ -529,6 +529,9 @@ static DrawIndexCacheContainerKey makeKey(uint32_t firstIndex, uint32_t indexCou
 
 std::optional<DrawIndexCacheContainerIterator> Buffer::canSkipDrawIndexedValidation(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, int32_t baseVertex, MTLIndexType indexType, uint32_t primitiveOffset, id<MTLIndirectCommandBuffer> icb) const
 {
+    if (hasPendingRecordedIndexWrite())
+        return std::nullopt;
+
     auto containerIt = m_drawIndexedCache.find(makeKey(firstIndex, indexCount, baseVertex, indexType, primitiveOffset, icb));
     if (containerIt != m_drawIndexedCache.end() && containerIt->value.indexContentsGeneration == m_indexContentsGeneration && containerIt->value.vertexCount <= vertexCount)
         return containerIt;
@@ -538,6 +541,9 @@ std::optional<DrawIndexCacheContainerIterator> Buffer::canSkipDrawIndexedValidat
 
 void Buffer::drawIndexedValidated(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, int32_t baseVertex, MTLIndexType indexType, uint32_t primitiveOffset, uint64_t validationGeneration, id<MTLIndirectCommandBuffer> icb)
 {
+    if (hasPendingRecordedIndexWrite())
+        return;
+
     constexpr auto maxCacheSize = 1000000;
     if (m_drawIndexedCache.size() > maxCacheSize) {
         m_drawIndexedCache.clear();
@@ -588,6 +594,40 @@ static bool verifyClampedIndirectIndexBufferData(id<MTLBuffer> buffer, uint64_t 
     return true;
 }
 
+id<MTLBuffer> Buffer::snapshotRangeBeforeClear(Queue& queue, NSUInteger offset, NSUInteger size)
+{
+    if (offset >= m_buffer.length)
+        return nil;
+
+    size = std::min<NSUInteger>(size, m_buffer.length - offset);
+    if (!size)
+        return nil;
+
+    id<MTLBuffer> snapshot = m_device->safeCreateBuffer(size, MTLStorageModePrivate);
+    if (!snapshot)
+        return nil;
+
+    queue.copyBuffer(m_buffer, offset, snapshot, 0, size);
+    return snapshot;
+}
+
+void Buffer::restoreSnapshotAfterCommit(CommandBuffer& commandBuffer, Queue& queue, id<MTLBuffer> snapshot, NSUInteger offset)
+{
+    commandBuffer.addPostCommitHandler([queue = protect(queue), snapshot, offset, protectedThis = protect(*this)](id<MTLCommandBuffer> mtlCommandBuffer) mutable {
+        [mtlCommandBuffer waitUntilCompleted];
+        protectedThis->m_clearedForCommandBuffer = 0;
+        if (!snapshot)
+            return;
+
+        protectedThis->indirectBufferInvalidated();
+        if (protectedThis->isDestroyed())
+            return;
+
+        queue->copyBuffer(snapshot, 0, protectedThis->m_buffer, offset, snapshot.length);
+        queue->finalizeBlitCommandEncoder();
+    });
+}
+
 void Buffer::clearIndexBufferForCommandBuffer(CommandBuffer& commandBuffer)
 {
     auto commandBufferIdentity = reinterpret_cast<uintptr_t>(commandBuffer.commandBuffer());
@@ -595,7 +635,7 @@ void Buffer::clearIndexBufferForCommandBuffer(CommandBuffer& commandBuffer)
         return;
     m_clearedForCommandBuffer = commandBufferIdentity;
     Ref queue = m_device->getQueue();
-    SUPPRESS_UNCOUNTED_ARG Vector<uint8_t> priorData = borrow(*this)->getBufferContents();
+    id<MTLBuffer> priorData = snapshotRangeBeforeClear(queue, 0, m_buffer.length);
 
     queue->clearBuffer(m_buffer);
     queue->finalizeBlitCommandEncoder();
@@ -605,14 +645,7 @@ void Buffer::clearIndexBufferForCommandBuffer(CommandBuffer& commandBuffer)
         [m_buffer didModifyRange:NSMakeRange(0, m_buffer.length)];
     ALLOW_DEPRECATED_DECLARATIONS_END
 #endif
-    commandBuffer.addPostCommitHandler([queue, priorData = WTF::move(priorData), protectedThis = protect(*this)](id<MTLCommandBuffer> mtlCommandBuffer) mutable {
-        [mtlCommandBuffer waitUntilCompleted];
-        protectedThis->m_clearedForCommandBuffer = 0;
-        // priorData goes out of scope with this handler, but a restore this large is staged through a
-        // newBufferWithBytesNoCopy MTLBuffer the GPU reads after the commit, so hand the bytes
-        // over instead of lending them.
-        queue->writeBuffer(*protectedThis.ptr(), 0, WTF::move(priorData));
-    });
+    restoreSnapshotAfterCommit(commandBuffer, queue, priorData, 0);
 }
 
 void Buffer::takeSlowIndexValidationPath(CommandBuffer& commandBuffer, uint32_t firstIndex, uint32_t indexCount, MTLIndexType indexType, uint32_t primitiveOffset, uint32_t vertexCount)
@@ -688,12 +721,16 @@ void Buffer::indirectBufferInvalidated(CommandEncoder& commandEncoder)
 {
     indirectBufferInvalidated();
 
+    if (m_usage.containsAny({ WebGPU::BufferUsage::Indirect, WebGPU::BufferUsage::Index }))
+        CommandEncoder::trackEncoder(commandEncoder, m_pendingIndexWriteCommandEncoders);
+
     commandEncoder.addOnCommitHandler([weakThis = ThreadSafeWeakPtr { *this }, weakCommandEncoder = ThreadSafeWeakPtr { commandEncoder }](CommandBuffer&, CommandEncoder&) {
         if (!weakThis.get() || !weakCommandEncoder.get())
             return true;
 
         RefPtr protectedThis = weakThis.get();
         RefPtr commandEncoder = weakCommandEncoder.get();
+        protectedThis->m_pendingIndexWriteCommandEncoders.remove(commandEncoder->uniqueId());
         protectedThis->indirectBufferInvalidated(commandEncoder.get());
         return true;
     });
@@ -705,6 +742,11 @@ static size_t computeSize(HashSet<uint64_t, DefaultHash<uint64_t>, WTF::Unsigned
         return !device.commandEncoderFromIdentifier(encoderId);
     });
     return encoders.size();
+}
+
+bool Buffer::hasPendingRecordedIndexWrite() const
+{
+    return computeSize(m_pendingIndexWriteCommandEncoders, m_device.get());
 }
 
 bool Buffer::needsIndexValidation(uint32_t maxUnsignedIndex, uint16_t maxUshortIndex)

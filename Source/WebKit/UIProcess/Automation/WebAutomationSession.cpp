@@ -34,6 +34,7 @@
 #include "APIString.h"
 #include "AutomationProtocolObjects.h"
 #include "CoordinateSystem.h"
+#include "ImageOptions.h"
 #include "InspectorPassthroughChannel.h"
 #include "PageLoadState.h"
 #include "WebAutomationSessionMacros.h"
@@ -1912,8 +1913,7 @@ CommandResult<void> WebAutomationSession::setUserInputForCurrentJavaScriptPrompt
 
 CommandResult<void> WebAutomationSession::setFilesToSelectForFileUpload(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, Ref<JSON::Array>&& filenames, RefPtr<JSON::Array>&& fileContents)
 {
-    Vector<String> newFileList;
-    newFileList.reserveInitialCapacity(filenames->length());
+    Vector<String> newFileList(ReserveCapacityTag { }, filenames->length());
 
     bool mismatchedFileLengthsDetected = fileContents && fileContents->length() != filenames->length();
     SYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(mismatchedFileLengthsDetected, InternalError, "The parameters 'filenames' and 'fileContents' must have equal length."_s);
@@ -1949,8 +1949,7 @@ void WebAutomationSession::setFilesForInputFileUpload(const Inspector::Protocol:
     bool frameNotFound = false;
     auto frameID = webFrameIDForHandle(frameHandle, frameNotFound);
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(frameNotFound, WindowNotFound);
-    Vector<String> newFileList;
-    newFileList.reserveInitialCapacity(filenames->length());
+    Vector<String> newFileList(ReserveCapacityTag { }, filenames->length());
     for (size_t i = 0; i < filenames->length(); ++i) {
         auto filename = filenames->get(i)->asString();
         ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!filename, InternalError, "The parameter 'filenames' contains a non-string value."_s);
@@ -3118,8 +3117,28 @@ void WebAutomationSession::takeScreenshot(const Inspector::Protocol::Automation:
     // to the visible viewport), so fall back to taking the snapshot in the WebProcess whenever we need pixels outside the
     // viewport: either a specific element (which may be scrolled out of view) or a non-clipped whole-page snapshot, which
     // must expand to the full document contentsSize() rather than just the viewport. See <webkit.org/b/317220>.
-    if (!nodeHandle.isEmpty() || !clipToViewport)
+    if (!nodeHandle.isEmpty() || !clipToViewport) {
+        // With Site Isolation, a WebProcess can only paint the frames that it hosts. Get the rect from it, and let
+        // WebPageProxy::takeSnapshot() paint it, which has the frames hosted by other processes drawn too.
+        if (protect(page->preferences())->siteIsolationEnabled()) {
+            CompletionHandler<void(std::optional<String>&&, WebCore::IntRect&&)> completionHandler = [page = protect(*page), callback = WTF::move(callback)](std::optional<String>&& optionalError, WebCore::IntRect&& rect) mutable {
+                ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF_SET(optionalError);
+
+                page->takeSnapshot(rect, { }, SnapshotOption::Shareable, [callback = WTF::move(callback)](CGImageRef image) mutable {
+                    ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!image, ScreenshotError);
+
+                    std::optional<String> base64EncodedData = platformGetBase64EncodedPNGData(image);
+                    ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!base64EncodedData, InternalError);
+
+                    callback(base64EncodedData.value());
+                });
+            };
+            page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::DocumentRectForScreenshot(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, scrollIntoViewIfNeeded, clipToViewport), WTF::move(completionHandler));
+            return;
+        }
+
         return page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::TakeScreenshot(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, scrollIntoViewIfNeeded, clipToViewport), ipcCompletionHandler(WTF::move(callback)));
+    }
 #endif
 #if PLATFORM(GTK) || PLATFORM(COCOA) || PLATFORM(WPE)
     Function<void(WebPageProxy&, std::optional<WebCore::IntRect>&&, CommandCallback<String>&&)> takeViewSnapshot = [](WebPageProxy& page, std::optional<WebCore::IntRect>&& rect, CommandCallback<String>&& callback) {

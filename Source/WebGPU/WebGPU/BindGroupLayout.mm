@@ -206,8 +206,7 @@ RefPtr<WebGPU::BindGroupLayout> Device::createBindGroupLayout(const WebGPU::Bind
     if (!isValid())
         return BindGroupLayout::createInvalid(*this);
 
-    Vector<ResolvedBindGroupLayoutEntry> entries;
-    entries.reserveInitialCapacity(descriptor.entries.size());
+    Vector<ResolvedBindGroupLayoutEntry> entries(ReserveCapacityTag { }, descriptor.entries.size());
     for (auto& entry : descriptor.entries) {
         auto entryBindingLayout = bindingLayout(entry);
         if (!entryBindingLayout) {
@@ -535,7 +534,7 @@ NSString* BindGroupLayout::errorValidatingDynamicOffsets(std::span<const uint32_
 static bool LEGACY_NODELETE isEqual(const BindGroupLayout::BufferBindingLayout& entry, const BindGroupLayout::BufferBindingLayout& otherEntry)
 {
     if (entry.type > BindGroupLayout::BufferBindingType::ReadOnlyStorage || otherEntry.type > BindGroupLayout::BufferBindingType::ReadOnlyStorage)
-        return true;
+        return entry.type == otherEntry.type;
 
     return entry.type == otherEntry.type && entry.hasDynamicOffset == otherEntry.hasDynamicOffset && entry.minBindingSize == otherEntry.minBindingSize && entry.bufferSizeForBinding == otherEntry.bufferSizeForBinding;
 }

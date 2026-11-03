@@ -95,6 +95,7 @@ class ProtectionSpace;
 struct NotificationData;
 class ResourceError;
 class UserContentURLPattern;
+enum class AdvancedPrivacyProtections : uint16_t;
 enum class HTTPCookieAcceptPolicy : uint8_t;
 enum class IncludeHttpOnlyCookies : bool;
 enum class RestoredFromBackForwardCache : bool;
@@ -349,7 +350,7 @@ public:
     void setOptInCookiePartitioningEnabled(PAL::SessionID, bool) const;
 #endif
 
-    void preconnectTo(PAL::SessionID, WebPageProxyIdentifier, WebCore::PageIdentifier, WebCore::ResourceRequest&&, WebCore::StoredCredentialsPolicy, std::optional<NavigatingToAppBoundDomain>, uint64_t requiredCookiesVersion);
+    void preconnectTo(PAL::SessionID, WebPageProxyIdentifier, WebCore::PageIdentifier, WebCore::ResourceRequest&&, WebCore::StoredCredentialsPolicy, std::optional<NavigatingToAppBoundDomain>, OptionSet<WebCore::AdvancedPrivacyProtections>, uint64_t requiredCookiesVersion);
 
     void setSessionIsControlledByAutomation(PAL::SessionID, bool);
     bool LEGACY_NODELETE sessionIsControlledByAutomation(PAL::SessionID) const;
@@ -494,6 +495,10 @@ public:
     // WebPageProxyIdentifier it does not own over IPC.
     bool allowsWebPageProxyIdentifier(WebCore::ProcessIdentifier, std::optional<WebPageProxyIdentifier>) const;
     void addAllowedWebPageProxyIdentifier(WebCore::ProcessIdentifier, WebPageProxyIdentifier);
+
+    void authorizeDownloadForWebProcess(WebCore::ProcessIdentifier, DownloadID, CompletionHandler<void()>&&);
+    std::optional<WebCore::ProcessIdentifier> authorizedProcessForDownload(DownloadID) const;
+    void removeAuthorizedDownload(DownloadID);
 
     void requestBackgroundFetchPermission(PAL::SessionID, const WebCore::ClientOrigin&, CompletionHandler<void(bool)>&&);
     void setInspectionForServiceWorkersAllowed(PAL::SessionID, bool);
@@ -672,6 +677,7 @@ private:
     HashMap<WebCore::ProcessIdentifier, HashSet<String>> m_pendingAllowedFilePathsByProcess;
     const uint64_t m_cookieHeaderDigestSalt { cryptographicallyRandomNumber<uint64_t>() };
     HashMap<WebCore::ProcessIdentifier, HashSet<WebPageProxyIdentifier>> m_allowedWebPageProxyIdentifiers;
+    HashMap<DownloadID, WebCore::ProcessIdentifier> m_authorizedDownloads;
 
 #if PLATFORM(COCOA)
     void platformInitializeNetworkProcessCocoa(const NetworkProcessCreationParameters&);

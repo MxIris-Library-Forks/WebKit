@@ -4069,6 +4069,7 @@ static void cancelPotentialTapIfNecessary(WKContentView* contentView)
         _textInteractionWrapper = adoptNS([[WKTextInteractionWrapper alloc] initWithView:self]);
     else {
         // Reset the gesture recognizers in case editability has changed.
+        SetForScope isResettingGestureRecognizersScope { _isResettingTextInteractionGestureRecognizers, YES };
         [protect(_textInteractionWrapper) setGestureRecognizers];
     }
 
@@ -5773,6 +5774,13 @@ static void logTextInteraction(const char* methodName, UIGestureRecognizer *loup
 
 - (void)selectPositionAtPoint:(CGPoint)point completionHandler:(void (^)(void))completionHandler
 {
+    if (_isResettingTextInteractionGestureRecognizers) {
+        RELEASE_LOG(TextInteraction, "Ignoring request to select position at (%.0f, %.0f) while resetting text interaction gesture recognizers.", point.x, point.y);
+        if (completionHandler)
+            completionHandler();
+        return;
+    }
+
     _autocorrectionContextNeedsUpdate = YES;
     [self _selectPositionAtPoint:point stayingWithinFocusedElement:self._hasFocusedElement completionHandler:completionHandler];
 }
@@ -6697,8 +6705,7 @@ static Vector<WebCore::CompositionHighlight> compositionHighlights(NSAttributedS
 
     std::ranges::sort(highlights);
 
-    Vector<WebCore::CompositionHighlight> mergedHighlights;
-    mergedHighlights.reserveInitialCapacity(highlights.size());
+    Vector<WebCore::CompositionHighlight> mergedHighlights(ReserveCapacityTag { }, highlights.size());
     for (auto& highlight : highlights) {
         if (mergedHighlights.isEmpty() || mergedHighlights.last().backgroundColor != highlight.backgroundColor || mergedHighlights.last().foregroundColor != highlight.foregroundColor)
             mergedHighlights.append(highlight);
@@ -8620,12 +8627,14 @@ static RetainPtr<NSObject <WKFormPeripheral>> createInputPeripheralWithView(WebK
             return keyboard && !keyboard.isMinimized;
         }();
 
+        bool softwareKeyboardWillAppear = !_isChangingFocus && !UIKeyboard.isInHardwareKeyboardMode && !UIPeripheralHost.sharedInstance.isUndocked;
+
         if (page->waitingForPostLayoutEditorStateUpdateAfterFocusingElement())
             revealFocusedElementDeferralReasons.add(WebKit::RevealFocusedElementDeferralReason::EditorState);
 
         if (!self._scroller.firstResponderKeyboardAvoidanceEnabled)
             revealFocusedElementDeferralReasons.add(WebKit::RevealFocusedElementDeferralReason::KeyboardDidShow);
-        else if (_waitingForKeyboardAppearanceAnimationToStart || ignorePreviousKeyboardWillShowNotification)
+        else if (softwareKeyboardWillAppear || _waitingForKeyboardAppearanceAnimationToStart || ignorePreviousKeyboardWillShowNotification)
             revealFocusedElementDeferralReasons.add(WebKit::RevealFocusedElementDeferralReason::KeyboardWillShow);
 
         if (!revealFocusedElementDeferralReasons.isEmpty())
@@ -8670,6 +8679,8 @@ static RetainPtr<NSObject <WKFormPeripheral>> createInputPeripheralWithView(WebK
         // (e.g. when running API tests outside of the context of a UI application). In this scenario, don't bother waiting
         // for keyboard appearance notifications.
         _waitingForKeyboardAppearanceAnimationToStart = NO;
+        if (_revealFocusedElementDeferrer)
+            protect(_revealFocusedElementDeferrer)->fulfill(WebKit::RevealFocusedElementDeferralReason::KeyboardWillShow);
     }
 
     // The custom fixed position rect behavior is affected by -isFocusingElement, so if that changes we need to recompute rects.

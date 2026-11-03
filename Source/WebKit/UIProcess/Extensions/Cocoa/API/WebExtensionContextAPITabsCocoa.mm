@@ -220,8 +220,13 @@ void WebExtensionContext::tabsUpdate(WebPageProxyIdentifier webPageProxyIdentifi
     };
 
     auto updateParentTab = [this, protectedThis = Ref { *this }](WebExtensionTab& tab, const WebExtensionTabParameters& parameters, CompletionHandler<void(std::expected<void, WebExtensionError>&&)>&& stepCompletionHandler) {
+        if (!parameters.parentTabIdentifier) {
+            stepCompletionHandler({ });
+            return;
+        }
+
         auto currentParentTab = tab.parentTab();
-        auto newParentTab = parameters.parentTabIdentifier ? getTab(parameters.parentTabIdentifier.value()) : nullptr;
+        auto newParentTab = getTab(parameters.parentTabIdentifier.value());
 
         if (currentParentTab == newParentTab) {
             stepCompletionHandler({ });
@@ -616,8 +621,7 @@ void WebExtensionContext::tabsMove(Vector<WebExtensionTabIdentifier> tabIdentifi
         return;
     }
 
-    Vector<Ref<WebExtensionTab>> tabs;
-    tabs.reserveInitialCapacity(tabIdentifiers.size());
+    Vector<Ref<WebExtensionTab>> tabs(ReserveCapacityTag { }, tabIdentifiers.size());
 
     for (auto& tabIdentifier : borrow(tabIdentifiers)) {
         if (RefPtr tab = getTab(tabIdentifier))
@@ -719,8 +723,7 @@ void WebExtensionContext::tabsMove(Vector<WebExtensionTabIdentifier> tabIdentifi
 
 void WebExtensionContext::tabsRemove(Vector<WebExtensionTabIdentifier> tabIdentifiers, CompletionHandler<void(std::expected<void, WebExtensionError>&&)>&& completionHandler)
 {
-    Vector<Ref<WebExtensionTab>> tabs;
-    tabs.reserveInitialCapacity(tabIdentifiers.size());
+    Vector<Ref<WebExtensionTab>> tabs(ReserveCapacityTag { }, tabIdentifiers.size());
 
     for (auto& tabIdentifier : borrow(tabIdentifiers)) {
         if (RefPtr tab = getTab(tabIdentifier))

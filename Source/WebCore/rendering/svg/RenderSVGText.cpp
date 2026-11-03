@@ -119,17 +119,9 @@ static inline void updateFontInAllDescendants(RenderSVGText& text)
     }
 }
 
-AffineTransform RenderSVGText::computeLocalTransform() const
+void RenderSVGText::updateCachedNominalTransform()
 {
-    ASSERT(document().settings().layerBasedSVGEngineEnabled());
-    TransformationMatrix transform;
-    applyTransform(transform, style(), transformReferenceBoxRect(style()), Style::TransformResolver::allTransformOperations);
-    return transform.toAffineTransform();
-}
-
-void RenderSVGText::updateLocalTransform()
-{
-    m_localTransform = computeLocalTransform();
+    m_cachedNominalTransform = computeNominalTransform();
 }
 
 void RenderSVGText::updateTransform()
@@ -137,7 +129,7 @@ void RenderSVGText::updateTransform()
     ASSERT(document().settings().layerBasedSVGEngineEnabled());
     updateLayerTransform();
     if (!hasLayer())
-        updateLocalTransform();
+        updateCachedNominalTransform();
 }
 
 void RenderSVGText::layout()
@@ -625,7 +617,6 @@ float RenderSVGText::strokeInflation(float strokeWidth) const
 
     // vector-effect is not inherited, so a run may or may not use a non scaling stroke. SVGTextBoxPainter
     // decides per run, using the style of the run's parent renderer: do the same, and keep the widest inflation.
-    auto zoomAndDeviceScale = style().usedZoom() * document().deviceScaleFactor();
     std::optional<float> inflation;
     for (const RenderObject* descendant = this; descendant; descendant = descendant->nextInPreOrder(this)) {
         CheckedPtr inlineText = dynamicDowncast<RenderSVGInlineText>(*descendant);
@@ -634,8 +625,8 @@ float RenderSVGText::strokeInflation(float strokeWidth) const
 
         auto runInflation = strokeWidth;
         if (CheckedPtr runRenderer = inlineText->parent(); runRenderer && runRenderer->style().vectorEffect() == VectorEffect::NonScalingStroke) {
-            if (auto scalingFactor = RenderSVGInlineText::computeScalingFactorForRenderer(*runRenderer); scalingFactor > 0)
-                runInflation = strokeWidth * zoomAndDeviceScale / scalingFactor;
+            if (auto nonScalingStrokeScale = RenderSVGInlineText::computeNonScalingStrokeScaleForRenderer(*runRenderer); nonScalingStrokeScale > 0)
+                runInflation = strokeWidth / nonScalingStrokeScale;
         }
 
         inflation = std::max(inflation.value_or(runInflation), runInflation);

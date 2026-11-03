@@ -497,7 +497,7 @@ public:
 
     ALWAYS_INLINE void decrementReferencingNodeCount(unsigned count = 1)
     {
-        ASSERT_WITH_SECURITY_IMPLICATION(m_referencingNodeCount >= count);
+        RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(m_referencingNodeCount >= count);
 
         m_referencingNodeCount -= count;
         if (!m_referencingNodeCount && !refCount()) {
@@ -1714,7 +1714,7 @@ public:
     const AXCustomColorModeController* axCustomColorModeControllerIfExists() const { return m_axCustomColorModeController.get(); }
     AXCustomColorModeController& axCustomColorModeController();
 
-    bool isAXCustomColorModeActive() const;
+    WEBCORE_EXPORT bool isAXCustomColorModeActive() const;
 #endif
 
     void LEGACY_NODELETE adjustStyleColorOptionsIfNeeded(OptionSet<StyleColorOptions>&) const;

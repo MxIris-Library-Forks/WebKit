@@ -9841,7 +9841,8 @@ void Document::didAddTouchEventHandler(Node& handler)
 void Document::didRemoveTouchEventHandler(Node& handler, EventHandlerRemoval removalMode)
 {
 #if ENABLE(TOUCH_EVENTS) || ENABLE(TOUCH_EVENT_REGIONS)
-    removeHandlerFromSet(m_touchEventTargets, handler, removalMode);
+    if (!removeHandlerFromSet(m_touchEventTargets, handler, removalMode))
+        return;
 
     if (RefPtr parent = parentDocument())
         parent->didRemoveTouchEventHandler(*this, removalMode);
@@ -10511,6 +10512,9 @@ void Document::adjustStyleColorOptionsIfNeeded(OptionSet<StyleColorOptions>&) co
 
 bool Document::isAXCustomColorModeActive() const
 {
+    if (RefPtr loader = this->loader(); loader && loader->forceDisableAXCustomColorMode())
+        return false;
+
     RefPtr page = this->page();
     if (!page || !page->isAXCustomColorModeActive())
         return false;

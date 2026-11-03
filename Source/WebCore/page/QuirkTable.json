@@ -572,6 +572,17 @@
             "behaviors": [{ "id": "ShouldIgnoreInputModeNone" }]
         },
         {
+            "bugs": ["rdar://191131755"],
+            "comment": "accounts.youtube.com resolves through a CNAME to google.com. Capping the expiry of the cookies it sets on youtube.com signs users out of YouTube.",
+            "matches": ["*://*.youtube.com/*", "*://*.google.com/*"],
+            "behaviors": [
+                {
+                    "id": "NeedsSingleOwnerMainFrameCNAMECloakingCookieCapQuirk",
+                    "secondaryURL": ["*://*.youtube.com/*", "*://*.google.com/*"]
+                }
+            ]
+        },
+        {
             "bugs": ["rdar://49403416"],
             "matches": ["*://mail.google.com/*"],
             "behaviors": [{ "id": "NeedsGMailOverflowScrollQuirk" }]
@@ -716,7 +727,6 @@
             "matches": ["*://*.imdb.com/*"],
             "behaviors": [
                 { "id": "NeedsChromeMediaControlsPseudoElementQuirk", "bugs": ["rdar://137991466"] },
-                { "id": "NeedsWebKitMediaTextTrackDisplayQuirk", "bugs": ["rdar://137012134"] },
                 { "id": "NeedsZeroMaxTouchPointsQuirk", "bugs": ["rdar://162684936"] }
             ]
         },
@@ -969,10 +979,6 @@
             "behaviors": [{ "id": "ShouldSuppressHLSSubtitles" }]
         },
         {
-            "matches": ["*://*.nhl.com/*"],
-            "behaviors": [{ "id": "NeedsWebKitMediaTextTrackDisplayQuirk" }]
-        },
-        {
             "bugs": ["rdar://5976384"],
             "matches": ["*://*.nytimes.com/*"],
             "available": "iOS || vision",
@@ -1084,7 +1090,6 @@
                 { "id": "NeedsBodyScrollbarWidthNoneDisabledQuirk" },
                 { "id": "ShouldAvoidStartingSelectionOnMouseDownOverPointerCursor" },
                 { "id": "ShouldLimitHLSPlaybackRate" },
-                { "id": "NeedsWebKitMediaTextTrackDisplayQuirk" },
                 { "id": "ShouldDeferIntersectionObserversDuringResize" },
                 { "id": "ShouldBlockAudiblePlaybackWhileAudioIsPlaying" },
                 { "id": "NeedsWebKitMediaKeysTransportStreamIsTypeSupportedQuirk" }

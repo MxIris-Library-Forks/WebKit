@@ -5879,7 +5879,7 @@ void Internals::setMediaElementRestrictions(HTMLMediaElement& element, StringVie
             restrictions |= MediaElementSession::RequireUserGestureForVideoDueToAggressiveThermalMitigation;
         if (equalLettersIgnoringASCIICase(restrictionString, "requirepagevisibilitytoplayaudio"_s))
             restrictions |= MediaElementSession::RequirePageVisibilityToPlayAudio;
-#if ENABLE(REQUIRES_PAGE_VISIBILITY_FOR_NOW_PLAYING)
+#if PLATFORM(APPLETV)
         if (equalLettersIgnoringASCIICase(restrictionString, "requirepagevisibilityforvideotobenowplaying"_s))
             restrictions |= MediaElementSession::RequirePageVisibilityForVideoToBeNowPlaying;
 #endif
@@ -9581,6 +9581,14 @@ String Internals::volumetricScenePresentationMode(Element& element)
 {
     return ElementVolumetricScene::presentationModeForTesting(element);
 }
+#endif
+
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+bool Internals::isAXCustomColorModeActive(const Document& document)
+{
+    return document.isAXCustomColorModeActive();
+}
+
 #endif
 
 ExceptionOr<void> Internals::copyImageAtLocation(int x, int y)

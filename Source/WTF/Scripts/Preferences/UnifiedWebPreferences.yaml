@@ -112,7 +112,7 @@ AVExperienceControllerFullscreenEnabled:
   condition: HAVE(AVEXPERIENCECONTROLLER)
   defaultValue:
     default: false
-    WebKit: true
+    WebKit: WebKit::defaultAVExperienceControllerFullscreenEnabled()
 
 AVFoundationEnabled:
   type: bool
@@ -613,6 +613,15 @@ AttachmentWideLayoutEnabled:
   humanReadableName: "Attachment wide-layout styling"
   humanReadableDescription: "Use horizontal wide-layout attachment style, requires Attachment Element"
   condition: ENABLE(ATTACHMENT_ELEMENT)
+  defaultValue: false
+
+AudioContextSetSinkIdEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "AudioContext setSinkId"
+  humanReadableDescription: "Enable AudioContext.setSinkId() for audio output device selection"
+  condition: ENABLE(WEB_AUDIO)
   defaultValue: false
 
 AudioControlsScaleWithPageZoom:
@@ -5254,7 +5263,7 @@ RequestVideoFrameCallbackEnabled:
 RequiresPageVisibilityForVideoToBeNowPlaying:
   type: bool
   status: embedder
-  condition: ENABLE(REQUIRES_PAGE_VISIBILITY_FOR_NOW_PLAYING)
+  condition: PLATFORM(APPLETV)
   defaultValue:
     default: false
     WebKit: defaultRequiresPageVisibilityForVideoToBeNowPlaying()

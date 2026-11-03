@@ -388,8 +388,7 @@ typedef NS_ENUM(NSInteger, _WKPrintRenderingCallbackType) {
     CGFloat viewWidth = self.bounds.size.width;
     CGFloat viewHeight = self.bounds.size.height;
 
-    Vector<std::pair<CGFloat, CGFloat>> columnRanges;
-    columnRanges.reserveInitialCapacity(columns);
+    Vector<std::pair<CGFloat, CGFloat>> columnRanges(ReserveCapacityTag { }, columns);
     CGFloat xStart = 0;
     for (NSValue *value in verticalFolds.get()) {
         CGRect fold = value.CGRectValue;
@@ -398,8 +397,7 @@ typedef NS_ENUM(NSInteger, _WKPrintRenderingCallbackType) {
     }
     columnRanges.append({ xStart, viewWidth });
 
-    Vector<std::pair<CGFloat, CGFloat>> rowRanges;
-    rowRanges.reserveInitialCapacity(rows);
+    Vector<std::pair<CGFloat, CGFloat>> rowRanges(ReserveCapacityTag { }, rows);
     CGFloat yStart = 0;
     for (NSValue *value in horizontalFolds.get()) {
         CGRect fold = value.CGRectValue;
@@ -1268,9 +1266,6 @@ static void storeAccessibilityRemoteConnectionInformation(id element, pid_t pid,
 
 #if HAVE(UIKIT_PRINTING)
 
-@interface WKContentView (_WKWebViewPrintFormatter) <_WKWebViewPrintProvider>
-@end
-
 @implementation WKContentView (_WKWebViewPrintFormatter)
 
 - (std::optional<WebCore::FrameIdentifier>)_frameIdentifierForPrintFormatter:(_WKWebViewPrintFormatter *)printFormatter
@@ -1285,11 +1280,6 @@ static void storeAccessibilityRemoteConnectionInformation(id element, pid_t pid,
 
     ASSERT_NOT_REACHED();
     return std::nullopt;
-}
-
-- (BOOL)_wk_printFormatterRequiresMainThread
-{
-    return NO;
 }
 
 - (RetainPtr<_WKPrintFormattingAttributes>)_attributesForPrintFormatter:(_WKWebViewPrintFormatter *)printFormatter

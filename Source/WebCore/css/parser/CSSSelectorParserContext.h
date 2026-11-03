@@ -45,14 +45,13 @@ struct CSSSelectorParserContext {
     bool htmlEnhancedSelectEnabled : 1 { false };
     bool targetTextPseudoElementEnabled : 1 { false };
     bool cssAppearanceBaseEnabled : 1 { false };
-    bool webkitMediaTextTrackDisplayQuirkEnabled : 1 { false };
     bool openPseudoClassEnabled : 1 { false };
 
     bool isHashTableDeletedValue : 1 { false };
 
     CSSSelectorParserContext() = default;
-    CSSSelectorParserContext(const CSSParserContext&);
-    explicit CSSSelectorParserContext(const Document&);
+    NODELETE CSSSelectorParserContext(const CSSParserContext&);
+    NODELETE explicit CSSSelectorParserContext(const Document&);
 
     friend bool operator==(const CSSSelectorParserContext&, const CSSSelectorParserContext&) = default;
 };

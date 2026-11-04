@@ -653,7 +653,7 @@ void RenderImage::paintIncompleteImageOutline(PaintInfo& paintInfo, LayoutPoint 
     context.drawRect(snapRectToDevicePixels(LayoutRect({ paintOffset.x() + borderWidths.left() + padding.left(), paintOffset.y() + borderWidths.top() + padding.top() }, contentSize), document().deviceScaleFactor()), borderWidth);
 }
 
-static bool LEGACY_NODELETE isDeferredImage(Element* element)
+NODELETE static bool isDeferredImage(Element* element)
 {
     auto* image = dynamicDowncast<HTMLImageElement>(element);
     return image && image->isDeferred();
@@ -1119,7 +1119,7 @@ void RenderImage::layout()
     // https://html.spec.whatwg.org/multipage/images.html#relevant-mutations
     // "If the element allows auto-sizes: ... its concrete object size width changes"
     if (RefPtr imageElement = dynamicDowncast<HTMLImageElement>(element())) {
-        if (imageElement->hasAutoSizes() && imageElement->isLazyLoadable())
+        if (imageElement->allowsAutoSizes())
             imageElement->scheduleAutoSizesResolution();
     }
 }
@@ -1174,7 +1174,7 @@ RenderReplaced* RenderImage::embeddedSVGRoot() const
 {
     if (RefPtr cachedImage = this->cachedImage()) {
         if (RefPtr image = dynamicDowncast<SVGImage>(cachedImage->image()))
-            return image->embeddedSVGRoot();
+            return image->defaultInstanceEmbeddedSVGRoot();
     }
     return nullptr;
 }

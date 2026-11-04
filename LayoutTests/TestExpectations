@@ -5022,7 +5022,6 @@ webgl/2.0.y/conformance/textures/misc/texture-corner-case-videos.html [ Failure 
 webkit.org/b/292182 [ x86_64 ] webgl/1.0.x/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
 webkit.org/b/292182 webgl/1.0.x/conformance/textures/misc/texture-video-transparent.html [ Failure Pass ]
 webkit.org/b/292182 [ x86_64 ] webgl/2.0.y/conformance/textures/misc/copytexsubimage2d-large-partial-copy-corruption.html [ Failure Pass ]
-webkit.org/b/292182 webgl/2.0.y/conformance/textures/misc/texture-srgb-upload.html [ Failure ]
 webkit.org/b/292182 webgl/2.0.y/conformance/textures/misc/texture-video-transparent.html [ Failure Pass ]
 webkit.org/b/292182 [ x86_64 ] webgl/2.0.y/conformance2/rendering/clipping-wide-points.html [ Failure Pass ]
 
@@ -8041,9 +8040,6 @@ imported/w3c/web-platform-tests/cookies/third-party-cookies/third-party-cookie-h
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-canvas-element/canvas-descendants-focusability-006.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe_sandbox_allow_top_navigation_by_user_activation_with_user_gesture.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-object-element/object-allowed-schemas.sub.window.html [ Skip ] # Timeout
-imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video-loading-lazy-autoplay-when-visible.html [ Skip ] # Timeout
-imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video-loading-lazy-in-viewport.html [ Skip ] # Timeout
-imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video-loading-lazy-resume-on-loading-attribute-change.html [ Skip ] # Timeout
 webkit.org/b/200128 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-video-element/video_timeupdate_on_seek.html [ Skip ]
 imported/w3c/web-platform-tests/cookies/samesite/sandbox-allow-same-site-none-cookies-value.tentative.https.html [ Skip ] # Different result on each platform for subtest
 
@@ -8282,7 +8278,7 @@ imported/w3c/web-platform-tests/background-fetch/abort.https.window.html [ Skip 
 imported/w3c/web-platform-tests/background-fetch/match.https.window.html [ Failure ]
 
 # The expected results of webgl/video-formats record the correct output.
-webkit.org/b/222822 webkit.org/b/329234 webgl/video-formats/upload-path-api.html [ Failure ]
+webkit.org/b/329234 webgl/video-formats/upload-path-api.html [ Failure ]
 webkit.org/b/329237 webkit.org/b/329241 webgl/video-formats/upload-path-decoder.html [ Failure ]
 webkit.org/b/329236 webgl/video-formats/upload-path-h264-420-bt709-videorange-frag-mse.html [ Failure ]
 webkit.org/b/329237 webgl/video-formats/upload-path-h264-420-smpte240m-videorange.html [ Failure ]
@@ -8293,7 +8289,6 @@ webkit.org/b/329236 webkit.org/b/329241 webgl/video-formats/upload-path-hevcvt-a
 webkit.org/b/329238 webgl/video-formats/upload-path-prores-422-bt709-videorange.html [ Failure ]
 webkit.org/b/322966 webkit.org/b/329234 webkit.org/b/329238 webgl/video-formats/upload-path-prores-4444-alpha-bt709-videorange.html [ Failure ]
 webkit.org/b/322966 webkit.org/b/329234 webgl/video-formats/upload-path-raw-bgra.html [ Failure ]
-webkit.org/b/222822 webgl/video-formats/upload-path-srgb.html [ Failure ]
 webkit.org/b/329236 webgl/video-formats/upload-path-vp8-420-bt601-videorange-mse.html [ Failure ]
 webkit.org/b/329240 webgl/video-formats/upload-path-vp9-alpha-420-bt709-videorange.html [ Failure ]
 webkit.org/b/329236 webkit.org/b/329240 webgl/video-formats/upload-path-vp9-alpha-420-bt709-videorange-mse.html [ Failure ]

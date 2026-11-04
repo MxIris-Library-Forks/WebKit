@@ -1572,7 +1572,7 @@ public:
     void drawToSnapshot(const std::optional<WebCore::FloatRect>&, bool allowTransparentBackground, RemoteSnapshotIdentifier, CompletionHandler<void(bool)>&&);
 
     // Submessage for a frame delivered during web page snapshot draw.
-    void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect&, RemoteSnapshotIdentifier, WebCore::RenderingMode);
+    void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect& rectRelativeToVisibleContent, RemoteSnapshotIdentifier, WebCore::RenderingMode);
 
     void addResourceRequest(WebCore::ResourceLoaderIdentifier, const WebCore::ResourceRequest&, const WebCore::DocumentLoader*, WebCore::LocalFrame*);
     void removeResourceRequest(WebCore::ResourceLoaderIdentifier, WebCore::LocalFrame*);
@@ -2674,6 +2674,10 @@ private:
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
     void failedToShowPopupMenu();
+    enum class InhibitOnScreenKeyboard : bool { No, Yes };
+    void sendInputMethodState(WebCore::Element*, InhibitOnScreenKeyboard);
+    void resetInputMethodStateAfterBlur(WebCore::Element&);
+    void restoreInputMethodStateAfterPageFocus();
 #endif
 
     void didChooseFilesForOpenPanel(const Vector<String>& files, const Vector<String>& replacementFiles);
@@ -3002,7 +3006,9 @@ private:
     bool m_alwaysShowsHorizontalScroller { false };
     bool m_alwaysShowsVerticalScroller { false };
 
+#if !PLATFORM(COCOA)
     bool m_shouldRenderDOMInGPUProcess { false };
+#endif
 #if ENABLE(APP_BOUND_DOMAINS)
     bool m_needsInAppBrowserPrivacyQuirks { false };
 #endif
@@ -3414,6 +3420,7 @@ private:
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
     std::optional<InputMethodState> m_inputMethodState;
+    WeakPtr<WebCore::Element, WebCore::WeakPtrImplWithEventTargetData> m_focusedElementBeforePageBlur;
 #endif
 
 #if USE(OS_STATE)
@@ -3457,7 +3464,8 @@ private:
         RemoteSnapshotIdentifier identifier;
         UniqueRef<RemoteSnapshotRecorderProxy> recorder;
         Ref<MainRunLoopSuccessCallbackAggregator> callback;
-        // Frames hosted elsewhere that were painted into the recording, and the parts painted.
+        // Frames hosted elsewhere that were painted into the recording, and the parts painted, relative to each
+        // frame's visible content.
         HashMap<WebCore::FrameIdentifier, WebCore::IntRect> paintedFrameRects;
     };
     std::optional<RemoteSnapshotState> m_remoteSnapshotState;

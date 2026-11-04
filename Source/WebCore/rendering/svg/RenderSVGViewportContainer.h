@@ -38,7 +38,7 @@ public:
     RenderSVGViewportContainer(SVGSVGElement&, Style::ComputedStyle&&);
     virtual ~RenderSVGViewportContainer();
 
-    SVGSVGElement& LEGACY_NODELETE svgSVGElement() const;
+    NODELETE SVGSVGElement& svgSVGElement() const;
     FloatRect viewport() const { return { { }, viewportSize() }; }
     FloatSize viewportSize() const { return m_viewport.size(); }
 
@@ -60,6 +60,7 @@ private:
     FloatSize computeViewportSize() const;
 
     void applyTransform(TransformationMatrix&, const Style::ComputedStyle&, const FloatRect& boundingBox, OptionSet<Style::TransformResolverOption>) const final;
+    void updateSupplementalTransform() final;
     void updateLayerTransform() final;
     bool needsHasSVGTransformFlags() const final;
 

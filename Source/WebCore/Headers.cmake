@@ -2256,7 +2256,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/ScrollAlignment.h
     platform/ScrollAnimation.h
     platform/ScrollAnimationMomentum.h
-    platform/ScrollAnimationSmooth.h
     platform/ScrollAnimator.h
     platform/ScrollSnapAnimatorState.h
     platform/ScrollTypes.h
@@ -2695,7 +2694,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/coretext/DrawGlyphsRecorder.h
 
     platform/graphics/cv/CVUtilities.h
-    platform/graphics/cv/GraphicsContextGLCV.h
     platform/graphics/cv/ImageRotationSessionVT.h
     platform/graphics/cv/ImageTransferSessionVT.h
     platform/graphics/cv/PixelBufferConformerCV.h

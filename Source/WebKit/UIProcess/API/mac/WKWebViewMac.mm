@@ -1198,6 +1198,11 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
     return _impl->hasScrolledContentsUnderTitlebar();
 }
 
+- (void)_scrollToTopForTitlebarTap
+{
+    [self _scrollToEdge:_WKRectEdgeTop animated:YES];
+}
+
 - (BOOL)respondsToSelector:(SEL)selector
 {
 #if ENABLE(SCROLL_POCKET_IN_FULLSCREEN)
@@ -1958,7 +1963,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 - (CGSize)_sizeToContentAutoSizeMaximumSize
 {
-    return _page->minimumSizeForAutoLayout();
+    return _page->sizeToContentAutoSizeMaximumSize();
 }
 
 - (void)_setSizeToContentAutoSizeMaximumSize:(CGSize)size

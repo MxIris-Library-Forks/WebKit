@@ -2253,7 +2253,7 @@ TestWebKitAPI.ProcessSwap.TerminateProcessRightAfterSwap
 TestWebKitAPI.ProcessSwap.TerminatedSuspendedPageProcess
 TestWebKitAPI.ProcessSwap.UsePrewarmedProcessAfterTerminatingNetworkProcess
 TestWebKitAPI.ProcessSwap.WebInspectorDelayedProcessLaunch
-TestWebKitAPI.PushAPI.notificationPermissionsDelegateInvalidResponse
+TestWebKitAPI.PushAPI
 TestWebKitAPI.QuickLook.AllowResponseAfterLoadingPreview
 TestWebKitAPI.QuickLook.AllowResponseBeforeLoadingPreview
 TestWebKitAPI.QuickLook.AsyncAllowResponseAfterLoadingPreview
@@ -2445,6 +2445,8 @@ TestWebKitAPI.SampledPageTopColor.DifferentColorsWithMiddleOutlierAboveMaxDiffer
 TestWebKitAPI.SampledPageTopColor.DifferentColorsWithRightOutlierAboveMaxDifference
 TestWebKitAPI.SampledPageTopColor.DifferentColorsWithoutOutlierBelowMaxDifference
 TestWebKitAPI.SampledPageTopColor.ForcedUserGestureFromJSInjectionDoesNotPreventTopEdgeSampling
+TestWebKitAPI.SampledPageTopColor.HitTestAfterCSSAnimation
+TestWebKitAPI.SampledPageTopColor.HitTestAfterCSSTransition
 TestWebKitAPI.SampledPageTopColor.HitTestBeforeCSSAnimation
 TestWebKitAPI.SampledPageTopColor.HitTestBeforeCSSTransition
 TestWebKitAPI.SampledPageTopColor.HitTestCSSBackgroundImage
@@ -4159,7 +4161,6 @@ TestWebKitAPI.WKWebExtensionAPIPermissionsTests/requestAllURLsMatchPattern()
 TestWebKitAPI.WKWebExtensionAPIPermissionsTests/requestMatchPatternsOnly()
 TestWebKitAPI.WKWebExtensionAPIPermissionsTests/requestPermissionsOnly()
 TestWebKitAPI.WKWebExtensionAPIPermissionsTests/validMatchPatterns()
-TestWebKitAPI.WKWebExtensionAPIRuntime
 TestWebKitAPI.WKWebExtensionAPIStorage
 TestWebKitAPI.WKWebExtensionAPITabs.ConnectWithUserGesture
 TestWebKitAPI.WKWebExtensionAPITabs.ConnectWithoutUserGesture
@@ -4392,6 +4393,7 @@ TestWebKitAPI.WebKit.AddUnsupportedAndBogusImageTypes
 TestWebKitAPI.WebKit.AddUnsupportedAndBogusImageTypesTwice
 TestWebKitAPI.WebKit.AddUnsupportedImageTypes
 TestWebKitAPI.WebKit.AdditionalReadAccessAllowedURLs
+TestWebKitAPI.WebKit.AllowTempUploadDirectory
 TestWebKitAPI.WebKit.AllowsContentJavaScript
 TestWebKitAPI.WebKit.AllowsContentJavaScriptAffectsNoscriptElements
 TestWebKitAPI.WebKit.AllowsContentJavaScriptFromDefaultPreferences
@@ -4816,6 +4818,7 @@ TestWebKitAPI.WebKitLegacy.WillPerformClientRedirectToURLCrash
 TestWebKitAPI.WebKitLegacy.WillSendSubmitEvent
 TestWebKitAPI.WebProcessCache.CachedProcessSuspension
 TestWebKitAPI.WebProcessCache.ClearWhenEnteringCache
+TestWebKitAPI.WebProcessCache.ReusedCrashedBackForwardSuspendedWebProcess
 TestWebKitAPI.WebSocket
 TestWebKitAPI.WebSocket.LoadRequestWSS
 TestWebKitAPI.WebTransportHeaderValidation
@@ -6441,6 +6444,7 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.WKWebExtensionAPIPermissionsTests/clipboardWrite()
 [ ios ] TestWebKitAPI.WKWebExtensionAPIPermissionsTests/clipboardWriteWithRequest()
 [ ios ] TestWebKitAPI.WKWebExtensionAPIPermissionsTests/clipboardWriteWithoutPermission()
+[ ios ] TestWebKitAPI.WKWebExtensionAPIRuntime
 [ ios ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectFromContentScript
 [ ios ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectFromContentScriptWithImmediateMessage
 [ ios ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectFromContentScriptWithMultipleListeners
@@ -7025,6 +7029,7 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.WebKit.RestoreShouldOpenExternalURLsPolicyAfterCrash
 [ ios ] TestWebKitAPI.WebKit.SOCKS5API
 [ ios ] TestWebKitAPI.WebKit.ScrollToFoundRangeDoesNotFocusElement
+[ ios ] TestWebKitAPI.WebKit.ScrollToFoundRangeInNonScrollableIframe
 [ ios ] TestWebKitAPI.WebKit.ScrollToFoundRangeRepeated
 [ ios ] TestWebKitAPI.WebKit.ScrollToFoundRangeWithExistingSelection
 [ ios ] TestWebKitAPI.WebKit.ScrollToUserSelectNoneFoundRange
@@ -7634,14 +7639,20 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.SiteIsolation.ConvertRectToMainFrameCoordinatesInSameOriginIframeWithPageScaleAndUnifiedMacZoomDisabled
 [ mac ] TestWebKitAPI.SiteIsolation.CrossOriginIframeWithHorizontalOverflowWillHandleHorizontalScrollEvents
 [ mac ] TestWebKitAPI.SiteIsolation.CrossOriginIframeWithoutHorizontalOverflowCanShortCircuitHorizontalScrollEvents
+[ mac ] TestWebKitAPI.SiteIsolation.CrossProcessHistoryTraversalCoalesce
+[ mac ] TestWebKitAPI.SiteIsolation.CrossProcessHistoryTraversalCoalesceWithSharedProcess
+[ mac ] TestWebKitAPI.SiteIsolation.CrossProcessHistoryTraversalGoMinus2
+[ mac ] TestWebKitAPI.SiteIsolation.CrossProcessHistoryTraversalSameFrameBackTwice
 [ mac ] TestWebKitAPI.SiteIsolation.CrossSiteIframeProcessesDoNotReportMainFrameScroll
 [ mac ] TestWebKitAPI.SiteIsolation.DataListSuggestionsElementRectInCrossOriginIframe
 [ mac ] TestWebKitAPI.SiteIsolation.DataListSuggestionsElementRectInNestedCrossOriginIframes
 [ mac ] TestWebKitAPI.SiteIsolation.DeviceScaleFactorChangeUpdatesCrossOriginIframeCompositingScale
 [ mac ] TestWebKitAPI.SiteIsolation.DictationCaretStateInCrossOriginIframe
+[ mac ] TestWebKitAPI.SiteIsolation.DragSourceEndedAtCoordinateTransformationNested
 [ mac ] TestWebKitAPI.SiteIsolation.DragSourceEndedOutsideRemoteFrame
 [ mac ] TestWebKitAPI.SiteIsolation.DropInSameSiteGrandchildOfOffsetRemoteFrame
 [ mac ] TestWebKitAPI.SiteIsolation.EnhancedSecurityInheritedByCrossSiteIframeProcess
+[ mac ] TestWebKitAPI.SiteIsolation.Events
 [ mac ] TestWebKitAPI.SiteIsolation.FindStringIndicatorPositionInIsolatedIframe
 [ mac ] TestWebKitAPI.SiteIsolation.FindStringIndicatorPositionWithObscuredContentInsets
 [ mac ] TestWebKitAPI.SiteIsolation.FindStringIndicatorPositionWithObscuredContentInsetsChangedAfterLoad
@@ -7687,6 +7698,7 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.SiteIsolation.SetMarkedTextInCrossOriginIframe
 [ mac ] TestWebKitAPI.SiteIsolation.SharedProcessAfterClick
 [ mac ] TestWebKitAPI.SiteIsolation.SharedProcessAfterKeyDown
+[ mac ] TestWebKitAPI.SiteIsolation.SharedProcessMainFrameNotReusedAfterCrash
 [ mac ] TestWebKitAPI.SiteIsolation.SharedProcessWithResourceLoadStatistics
 [ mac ] TestWebKitAPI.SiteIsolation.ShouldDelayWindowOrderingOverSelectionInFocusedCrossOriginIframe
 [ mac ] TestWebKitAPI.SiteIsolation.StorageAccessUnderOpenerWithRemoteFrameOpener
@@ -7696,6 +7708,8 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.SiteIsolation.URLSchemeTask
 [ mac ] TestWebKitAPI.SiteIsolation.UndoAfterCrossOriginIframeProcessCrashesDoesNotOfferRedo
 [ mac ] TestWebKitAPI.SiteIsolation.UndoAndRedoEditInCrossOriginIframeFromPlatformUndoManager
+[ mac ] TestWebKitAPI.SiteIsolation.UnresponsiveProcessDies
+[ mac ] TestWebKitAPI.SiteIsolation.UnresponsiveProcessKeydown
 [ mac ] TestWebKitAPI.SiteIsolation.ValidateMenuItemInCrossOriginIframe
 [ mac ] TestWebKitAPI.SiteIsolation.ValidationMessageAnchorInCrossOriginIframe
 [ mac ] TestWebKitAPI.SiteIsolation.ValidationMessageAnchorInCrossOriginIframeWithScrolledMainFrame
@@ -8076,6 +8090,64 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.WKWebExtensionAPIMenus.RemoveAfterBackgroundPageReload
 [ mac ] TestWebKitAPI.WKWebExtensionAPIMenus.ToggleCheckboxMenuItems
 [ mac ] TestWebKitAPI.WKWebExtensionAPIMenus.UpdateMenuItemWithIconVariants
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectFromContentScriptInPopupSubframe
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectFromPopup
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectFromWebPageWithWrongIdentifier
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectNative
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectNativeWithInvalidMessage
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.ConnectNativeWithUndefinedMessage
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetBackgroundPageForServiceWorker
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetBackgroundPageFromBackground
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetBackgroundPageFromPopup
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetBackgroundPageFromTab
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetDocumentId
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetFrameId
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetManifest
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetPlatformInfo
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetURL
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.GetVersion
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.Id
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.InstalledEvent
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.LastError
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.LastErrorClearedAfterCallback
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.LastErrorFromContentScript
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.LastErrorNullInCallbackOnSuccess
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.LastErrorSetInCallbackOnFailure
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.MessageSenderWindowIdFromContentScript
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.MessageSenderWindowIdFromPopup
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.OnInstalledReason
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.OpenOptionsPage
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.OpenOptionsPageActivatesExistingTab
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.OpenOptionsPageMatchesExistingTabIgnoringFragment
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.PlatformArch
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.PlatformOs
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.PortDisconnectFromContentScript
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.PortMessageWithEmptyContainers
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.PortMutateListenersDuringDispatch
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.PortSenderWindowIdFromContentScript
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.Reload
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScript
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScriptInPopupSubframe
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScriptWhileBackgroundIsLoading
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScriptWithAsyncPromiseReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScriptWithAsyncReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScriptWithNoReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromContentScriptWithPromiseReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromSubframe
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromWebPage
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromWebPageWithTabFrameAndAsyncReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageFromWebPageWithWrongIdentifier
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageGestureFromContentScriptIsNotPropagated
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageGestureFromPopupIsPropagated
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageWithEmptyContainers
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageWithNaNValue
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageWithTabFrameAndAsyncReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendMessageWithoutUserGestureFromContentScript
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendNativeMessage
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SendNativeMessageWithInvalidReply
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.SetUninstallURL
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.StartupEvent
+[ mac ] TestWebKitAPI.WKWebExtensionAPIRuntime.TabsSendMessageSenderWindowIdFromPopup
 [ mac ] TestWebKitAPI.WKWebExtensionAPIScripting.CSSAuthorOrigin
 [ mac ] TestWebKitAPI.WKWebExtensionAPIScripting.CSSUserOrigin
 [ mac ] TestWebKitAPI.WKWebExtensionAPIScripting.ContentScriptsAndStyleSheetsWithManyMatchPatterns
@@ -8361,6 +8433,7 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.WebKit.AccessibilityHasNoPreferencesServiceAccessWhenPostingNotification
 [ mac ] TestWebKitAPI.WebKit.AccessibilityHasPreferencesServiceAccess
 [ mac ] TestWebKitAPI.WebKit.AccessibilityModeSyncsToAllPagesSharingAWebProcess
+[ mac ] TestWebKitAPI.WebKit.AllowUploadFromTempDirectory
 [ mac ] TestWebKitAPI.WebKit.AttrStyle
 [ mac ] TestWebKitAPI.WebKit.AttributedSubstringForProposedRangeWithAnchorWithInvalidHref
 [ mac ] TestWebKitAPI.WebKit.AttributedSubstringForProposedRangeWithImage
@@ -8480,12 +8553,10 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.WebKit.ReloadLocalFileAfterWebContentProcessTermination
 [ mac ] TestWebKitAPI.WebKit.ResponsivenessTimerDoesntFireEarly
 [ mac ] TestWebKitAPI.WebKit.ResponsivenessTimerShouldNotFireAfterTearDown
-[ mac ] TestWebKitAPI.WebKit.RestoreLocalStorageFromEphemeralDataStore
 [ mac ] TestWebKitAPI.WebKit.RestoreSessionStateContainingScrollRestorationDefault
 [ mac ] TestWebKitAPI.WebKit.RestoreSessionStateContainingScrollRestorationDefaultWithAsyncPolicyDelegates
 [ mac ] TestWebKitAPI.WebKit.RestoreSessionStateWithoutNavigation
 [ mac ] TestWebKitAPI.WebKit.RestoreSessionStateWithoutNavigationPreservesWasCreatedByJSWithoutUserInteraction
-[ mac ] TestWebKitAPI.WebKit.RestoreSessionStorageFromEphemeralDataStore
 [ mac ] TestWebKitAPI.WebKit.SOCKS5API
 [ mac ] TestWebKitAPI.WebKit.ServerTrust
 [ mac ] TestWebKitAPI.WebKit.SlowBeforeUnloadPromptAllow
@@ -8493,6 +8564,7 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.WebKit.SuggestedFilenameWithMIMEType
 [ mac ] TestWebKitAPI.WebKit.TabOutOfWebView
 [ mac ] TestWebKitAPI.WebKit.URLCanonicalization
+[ mac ] TestWebKitAPI.WebKit.UploadDirectory
 [ mac ] TestWebKitAPI.WebKit.UseSelectionAsFindString
 [ mac ] TestWebKitAPI.WebKit.ViewScaleFactorAfterShrinkToFit
 [ mac ] TestWebKitAPI.WebKit.WKPageConfigurationBasic
@@ -8555,6 +8627,7 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ mac ] TestWebKitAPI.WebPageMouseEventsTests/mouseDownUpFiresClickHandler()
 [ mac ] TestWebKitAPI.WebPageMouseEventsTests/mouseMoveFiresMouseMoveHandler()
 [ mac ] TestWebKitAPI.WebPageMouseEventsTests/sendingMouseMovedToWebViewDoesNotReachPage()
+[ mac ] TestWebKitAPI.WebProcessCache.ReusedCrashedCachedWebProcess
 [ mac ] TestWebKitAPI.WebTransport.AllowedNetworkHosts
 [ mac ] TestWebKitAPI.WebTransport.BackForwardCache
 [ mac ] TestWebKitAPI.WebTransport.CSP

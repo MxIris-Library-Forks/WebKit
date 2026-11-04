@@ -1413,6 +1413,7 @@ class RunWebDriverTests(shell.Test, CustomFlagsMixin, ShellMixin):
     def __init__(self, **kwargs):
         kwargs['timeout'] = 90 * 60
         kwargs['maxTime'] = 3 * 60 * 60
+        kwargs['sigtermTime'] = 30
         super().__init__(**kwargs)
 
     @defer.inlineCallbacks
@@ -2396,7 +2397,7 @@ class BuildSwift(steps.ShellSequence, ShellMixin):
         ]
 
         if rc != SUCCESS:
-            if self.getProperty('current_swift_tag', '') and self.getProperty('has_swift_toolchain', False):
+            if self.getProperty('has_swift_toolchain', False):
                 return WARNINGS
             self.build.buildFinished(['Failed to set up swift, retrying update'], RETRY)
         else:

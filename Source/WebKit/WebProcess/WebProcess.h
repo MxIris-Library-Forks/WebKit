@@ -493,10 +493,12 @@ public:
     // they are created, so changing the preferences later does not change the use for the existing pages.
     void setUseGPUProcessFromPreferences(const WebPreferencesStore&);
     void LEGACY_NODELETE setUseGPUProcessForCanvasRendering(bool);
+#if !PLATFORM(COCOA)
     void LEGACY_NODELETE setUseGPUProcessForDOMRendering(bool);
+#endif
     void setUseGPUProcessForMedia(bool);
     bool LEGACY_NODELETE shouldUseRemoteRenderingFor(WebCore::RenderingPurpose);
-#if ENABLE(WEBGL)
+#if ENABLE(WEBGL) && !PLATFORM(COCOA)
     void LEGACY_NODELETE setUseGPUProcessForWebGL(bool);
     bool LEGACY_NODELETE shouldUseRemoteRenderingForWebGL() const;
 #endif
@@ -644,7 +646,7 @@ private:
     void bindAccessibilityFrameWithData(WebCore::FrameIdentifier, std::span<const uint8_t>);
 
 #if ENABLE(GPU_PROCESS)
-    void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect&, RemoteSnapshotIdentifier, WebCore::RenderingMode);
+    void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect& rectRelativeToVisibleContent, RemoteSnapshotIdentifier, WebCore::RenderingMode);
 #endif
 #if ENABLE(GPU_PROCESS) && PLATFORM(COCOA)
     void prepareForPrinting(CompletionHandler<void(bool)>&&);
@@ -987,9 +989,11 @@ private:
 
 #if ENABLE(GPU_PROCESS)
     bool m_useGPUProcessForCanvasRendering { false };
+#if !PLATFORM(COCOA)
     bool m_useGPUProcessForDOMRendering { false };
+#endif
     bool m_useGPUProcessForMedia { false };
-#if ENABLE(WEBGL)
+#if ENABLE(WEBGL) && !PLATFORM(COCOA)
     bool m_useGPUProcessForWebGL { false };
 #endif
 #endif

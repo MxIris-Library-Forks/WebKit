@@ -49,7 +49,7 @@ SVGGraphicsElement& RenderSVGTransformableContainer::graphicsElement() const
     return downcast<SVGGraphicsElement>(RenderSVGContainer::element());
 }
 
-inline SVGUseElement* LEGACY_NODELETE associatedUseElement(SVGGraphicsElement& element)
+NODELETE inline SVGUseElement* associatedUseElement(SVGGraphicsElement& element)
 {
     // If we're either the renderer for a <use> element, or for any <g> element inside the shadow
     // tree, that was created during the use/symbol/svg expansion in SVGUseElement. These containers
@@ -82,11 +82,9 @@ bool RenderSVGTransformableContainer::needsHasSVGTransformFlags() const
     return graphicsElement->hasTransformRelatedAttributes() || associatedUseElement(graphicsElement);
 }
 
-void RenderSVGTransformableContainer::updateLayerTransform()
+void RenderSVGTransformableContainer::updateSupplementalTransform()
 {
     m_supplementalTransform = AffineTransform::makeTranslation(additionalContainerTranslation());
-
-    RenderSVGContainer::updateLayerTransform();
 }
 
 void RenderSVGTransformableContainer::applyTransform(TransformationMatrix& transform, const Style::ComputedStyle& style, const FloatRect& boundingBox, OptionSet<Style::TransformResolverOption> options) const

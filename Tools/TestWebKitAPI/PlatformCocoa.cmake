@@ -797,8 +797,6 @@ endforeach ()
 webkit_target_add_swift_options(TestWebKit "-Xcc -I${CMAKE_SOURCE_DIR}/Source")
 
 list(APPEND TestWebKit_SOURCES
-    Tests/WebCore/cocoa/ScrollAnimationSmoothTests.swift
-
     "Tests/WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift"
     "Tests/WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift"
@@ -809,9 +807,11 @@ list(APPEND TestWebKit_SOURCES
     "Tests/WebKit/WebPage/AppKit Gesture Tests/SiteIsolationAppKitGesturesTests.swift"
 
     Tests/WebKit/WKWebView/CodingTests.swift
+    Tests/WebKit/WKWebView/ContentAutoSizing.swift
     Tests/WebKit/WKWebView/HTTP2Server.swift
     Tests/WebKit/WKWebView/HTTP3Server.swift
     Tests/WebKit/WKWebView/PDFLookUpTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationAnimationControlTests.swift
     Tests/WebKit/WKWebView/SiteIsolationContentsOfAllFramesTests.swift
     Tests/WebKit/WKWebView/SiteIsolationCookieTests.swift
     Tests/WebKit/WKWebView/SiteIsolationDataDetectionTests.swift
@@ -823,10 +823,13 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationNavigationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift
     Tests/WebKit/WKWebView/SiteIsolationSessionStateTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationSnapshotTests.swift
     Tests/WebKit/WKWebView/SiteIsolationTextExtractionTests.swift
     Tests/WebKit/WKWebView/SiteIsolationTextFragmentTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationTextPreviewTests.swift
     Tests/WebKit/WKWebView/SiteIsolationUIDelegateTests.swift
     Tests/WebKit/WKWebView/SiteIsolationUserAgentTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationWebExtensionTests.swift
     Tests/WebKit/WKWebView/TextExtractionTests.swift
     Tests/WebKit/WKWebView/TextFragments.swift
     Tests/WebKit/WKWebView/TextManipulation.swift

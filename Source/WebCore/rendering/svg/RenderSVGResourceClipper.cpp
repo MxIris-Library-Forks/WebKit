@@ -63,7 +63,7 @@ enum class ClippingMode {
     MaskClipping
 };
 
-static ClippingMode& LEGACY_NODELETE currentClippingMode()
+NODELETE static ClippingMode& currentClippingMode()
 {
     static ClippingMode s_clippingMode { ClippingMode::NoClipping };
     return s_clippingMode;
@@ -277,7 +277,7 @@ bool RenderSVGResourceClipper::hitTestClipContent(const FloatRect& objectBoundin
 
         auto testPoint = point;
         if (svgChild->isTransformed()) {
-            auto childTransform = svgChild->hasLayer() ? svgChild->computeNominalTransform() : svgChild->nominalTransform();
+            auto childTransform = svgChild->nominalTransform();
             auto inverseTransform = childTransform.inverse();
             if (!inverseTransform)
                 continue;

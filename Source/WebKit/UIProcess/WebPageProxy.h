@@ -2943,6 +2943,7 @@ public:
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
     void pauseAllAnimations(CompletionHandler<void()>&&);
     void playAllAnimations(CompletionHandler<void()>&&);
+    void clearImageAnimationEnabledOverride() { m_imageAnimationEnabledOverride = std::nullopt; }
     bool allowsAnyAnimationToPlay() { return m_allowsAnyAnimationToPlay; }
     void isAnyAnimationAllowedToPlayDidChange(bool anyAnimationCanPlay) { m_allowsAnyAnimationToPlay = anyAnimationCanPlay; }
 #endif
@@ -3294,6 +3295,7 @@ private:
     void updateHiddenPageThrottlingAutoIncreases();
 
     bool suspendCurrentPageIfPossible(API::Navigation&, const ProvisionalPageProxy&, RefPtr<WebFrameProxy>&& mainFrame);
+    RefPtr<WebBackForwardListItem> backForwardItemForCachingOutgoingDocument(API::Navigation&);
 
     enum class ResetStateReason : uint8_t {
         PageInvalidated,
@@ -3865,7 +3867,11 @@ private:
     bool tryToSendCommandToActiveControlledVideo(WebCore::PlatformMediaSessionRemoteControlCommandType);
 #endif
 
+#if PLATFORM(COCOA)
+    bool useGPUProcessForDOMRenderingEnabled() const { return true; }
+#else
     bool useGPUProcessForDOMRenderingEnabled() const;
+#endif
 
     void dispatchLoadEventToFrameOwnerElement(WebCore::FrameIdentifier);
     void addResourceTimingFromSubframe(WebCore::FrameIdentifier parentFrameID, WebCore::ResourceTiming&&);
@@ -3919,11 +3925,13 @@ private:
 
     Vector<Ref<WebProcessProxy>> activeRemoteFrameProcesses() const;
     void discardBackForwardCacheEntry(WebCore::BackForwardItemIdentifier);
+    void suspendIframeProcessesForBackForwardCache(WebBackForwardListItem&, Vector<Ref<WebProcessProxy>>&&, CompletionHandler<void(bool)>&&);
 
     void setTextIndicatorFromFrame(WebCore::FrameIdentifier, RefPtr<WebCore::TextIndicator>&&, WebCore::TextIndicatorLifetime);
     void updateTextIndicatorFromFrame(WebCore::FrameIdentifier, RefPtr<WebCore::TextIndicator>&&);
 
     void frameNameChanged(IPC::Connection&, WebCore::FrameIdentifier, const String& frameName);
+    void setFrameNameAndNotifyOtherProcesses(IPC::Connection&, WebFrameProxy&, const String& frameName);
 
 #if ENABLE(GAMEPAD)
     void recentGamepadAccessStateChanged(PAL::HysteresisState);
@@ -4412,6 +4420,9 @@ private:
 
     // Assume animations are allowed to play by default. If this is not the case, we will be notified by the web process.
     bool m_allowsAnyAnimationToPlay { true };
+#if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
+    std::optional<bool> m_imageAnimationEnabledOverride;
+#endif
 
     // To make sure capture indicators are visible long enough, m_reportedMediaCaptureState is the same as m_mediaState except that we might delay a bit transition from capturing to not-capturing.
     static constexpr Seconds DefaultMediaCaptureReportingDelay { 3_s };

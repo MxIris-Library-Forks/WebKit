@@ -69,7 +69,7 @@ public:
 
     void destroyLayer();
 
-    bool LEGACY_NODELETE hasSelfPaintingLayer() const;
+    NODELETE bool hasSelfPaintingLayer() const;
     RenderLayer* layer() const LIFETIME_BOUND { return m_layer.get(); }
 
     void styleWillChange(Style::Difference, const Style::ComputedStyle& newStyle) override;
@@ -84,7 +84,7 @@ public:
 
     virtual bool isScrollableOrRubberbandableBox() const { return false; }
 
-    bool LEGACY_NODELETE shouldPlaceVerticalScrollbarOnLeft() const;
+    NODELETE bool shouldPlaceVerticalScrollbarOnLeft() const;
 
     bool startAnimation(double timeOffset, const GraphicsLayerAnimation&, const BlendingKeyframes&) override;
     void animationPaused(double timeOffset, const BlendingKeyframes&) override;
@@ -144,9 +144,10 @@ public:
     void paintSVGMask(PaintInfo&, const LayoutPoint& adjustedPaintOffset) const;
     void paintSVGEventRegion(PaintInfo&, const LayoutPoint& paintOffset);
 
-    TransformationMatrix* LEGACY_NODELETE layerTransform() const;
+    NODELETE TransformationMatrix* layerTransform() const;
 
     virtual void updateLayerTransform();
+    void updateTransform();
     virtual void applyTransform(TransformationMatrix&, const Style::ComputedStyle&, const FloatRect& boundingBox, OptionSet<Style::TransformResolverOption>) const = 0;
     void applyTransform(TransformationMatrix&, const Style::ComputedStyle&, const FloatRect& boundingBox) const;
 
@@ -161,7 +162,7 @@ public:
     void invalidateCachedSVGBoundingBoxesOfAncestors() const;
     void invalidateNonScalingStrokeCachesInSubtreeForSVG(const std::optional<AffineTransform>& oldTransform, const AffineTransform& newTransform);
 
-    bool LEGACY_NODELETE transformReferenceBoxIsSVGViewport() const;
+    NODELETE bool transformReferenceBoxIsSVGViewport() const;
     inline bool shouldUsePositionedClipping() const;
 
 #if ASSERT_ENABLED
@@ -170,6 +171,8 @@ public:
 
     // Nominal transform: the element's transform relative to nominalSVGLayoutLocation(), used for painting and layers.
     AffineTransform computeNominalTransform() const;
+    AffineTransform nominalTransform() const;
+    virtual void updateCachedNominalTransform() { }
 
     AffineTransform computeRendererTransform() const;
 
@@ -184,6 +187,9 @@ protected:
     void createLayer();
     void willBeDestroyed() override;
 
+    virtual std::optional<AffineTransform> cachedNominalTransform() const { return std::nullopt; }
+    virtual void updateSupplementalTransform() { }
+
     virtual void updateFromStyle() { }
 
 private:
@@ -191,7 +197,6 @@ private:
     void removeOnlyThisLayerWithRepaint();
 
     std::optional<AffineTransform> nominalTransformBeforeStyleChange(const Style::ComputedStyle& oldStyle) const;
-    AffineTransform computeNominalTransformAfterStyleChange() const;
     bool markSVGTextForRelayoutIfScaleChanged(const AffineTransform& previousTransform, const AffineTransform& currentTransform);
 
     RenderSVGResourceMarker* svgMarkerResourceFromStyle(const Style::SVGMarkerResource&) const;
@@ -210,7 +215,7 @@ private:
 };
 
 // Pixel-snapping (== 'device pixel alignment') helpers.
-bool LEGACY_NODELETE rendererNeedsPixelSnapping(const RenderLayerModelObject&);
+NODELETE bool rendererNeedsPixelSnapping(const RenderLayerModelObject&);
 FloatRect snapRectToDevicePixelsIfNeeded(const LayoutRect&, const RenderLayerModelObject&);
 FloatRect snapRectToDevicePixelsIfNeeded(const FloatRect&, const RenderLayerModelObject&);
 

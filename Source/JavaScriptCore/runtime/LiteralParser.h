@@ -217,6 +217,7 @@ private:
         TokenType next();
         TokenType nextMaybeIdentifier();
         TokenType nextAfterValue();
+        TokenType nextValueStart();
         bool consumeColon();
         CharType peek() const { return m_ptr < m_end ? *m_ptr : CharType { }; }
         TokenType nextString();
@@ -291,6 +292,7 @@ private:
         ALWAYS_INLINE const CharType* findUnsafeStringCharacter(const CharType* start, const CharType* end, CharType terminator) const;
         TokenType lexStringSlow(LiteralParserToken<CharType>&, const CharType* runStart, CharType terminator);
         ALWAYS_INLINE TokenType lexNumber(LiteralParserToken<CharType>&);
+        TokenType lexDouble(LiteralParserToken<CharType>&, const CharType* initial, const CharType* start, uint64_t integer);
         TokenType lexNumberError(LiteralParserToken<CharType>&);
 
         String m_lexErrorMessage;

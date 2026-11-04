@@ -127,6 +127,7 @@
 #import <WebCore/NetworkExtensionContentFilter.h>
 #import <WebCore/NodeDocument.h>
 #import <WebCore/NodeHTMLConverter.h>
+#import <WebCore/NodeList.h>
 #import <WebCore/NodeRenderStyle.h>
 #import <WebCore/NotImplemented.h>
 #import <WebCore/NowPlayingInfo.h>
@@ -162,11 +163,13 @@
 #import <pal/spi/cocoa/QuartzCoreSPI.h>
 #import <wtf/Borrow.h>
 #import <wtf/CoroutineUtilities.h>
+#import <wtf/MemoryPressureHandler.h>
 #import <wtf/MonotonicTime.h>
 #import <wtf/TZoneMallocInlines.h>
 #import <wtf/cf/VectorCF.h>
 #import <wtf/cocoa/SpanCocoa.h>
 #import <wtf/cocoa/TypeCastsCocoa.h>
+#import <wtf/cocoa/VectorCocoa.h>
 #import <wtf/spi/darwin/SandboxSPI.h>
 #import <wtf/text/StringToIntegerConversion.h>
 
@@ -1569,30 +1572,14 @@ static std::optional<bool> elementHasHiddenVisibility(StyledElement* styledEleme
 
 void WebPage::createTextIndicatorForElementWithID(const String& elementID, CompletionHandler<void(RefPtr<WebCore::TextIndicator>&&)>&& completionHandler)
 {
-    RefPtr frame = corePage()->focusController().focusedOrMainFrame();
-    if (!frame) {
-        ASSERT_NOT_REACHED();
-        completionHandler(nil);
-        return;
-    }
-
-    RefPtr document = frame->document();
-    if (!document) {
-        ASSERT_NOT_REACHED();
-        completionHandler(nil);
-        return;
-    }
-
-    RefPtr element = document->getElementById(elementID);
-    if (!element) {
-        ASSERT_NOT_REACHED();
-        completionHandler(nil);
-        return;
-    }
+    RefPtr<Element> element;
+    protect(corePage())->forEachDocument([&](Document& document) {
+        if (!element)
+            element = document.getElementById(elementID);
+    });
 
     RefPtr styledElement = dynamicDowncast<StyledElement>(element.get());
     if (!styledElement) {
-        ASSERT_NOT_REACHED();
         completionHandler(nil);
         return;
     }
@@ -1617,10 +1604,6 @@ void WebPage::createTextIndicatorForElementWithID(const String& elementID, Compl
     };
 
     RefPtr textIndicator = WebCore::TextIndicator::createWithRange(elementRange, textIndicatorOptions, WebCore::TextIndicatorPresentationTransition::None, { });
-    if (!textIndicator) {
-        completionHandler(nil);
-        return;
-    }
 
     // If `initialVisibility` is an empty optional, this means there was no initial inline style.
     // Ensure the state is idempotent after by removing the inline style if this is the case.
@@ -3810,6 +3793,20 @@ void WebPage::sendTapHighlightForNodeIfNecessary(WebKit::TapIdentifier requestID
         updatedNode = area->imageElement();
         if (!updatedNode)
             return;
+    }
+
+    // Pages often stack an invisible form control over a label to make the whole label clickable.
+    // Highlight the label the user sees instead of the control.
+    if (RefPtr control = dynamicDowncast<HTMLElement>(*updatedNode); control && control->isLabelable() && isTransparentOrFullyClipped(*control)) {
+        if (RefPtr labels = control->labels()) {
+            for (unsigned i = 0; i < labels->length(); ++i) {
+                RefPtr label = labels->item(i);
+                if (label->renderer() && !isTransparentOrFullyClipped(*label)) {
+                    updatedNode = WTF::move(label);
+                    break;
+                }
+            }
+        }
     }
 
 #if ENABLE(PDF_PLUGIN)

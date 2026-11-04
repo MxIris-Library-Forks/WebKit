@@ -1261,10 +1261,6 @@ webkit.org/b/320158 [ x86_64 ] fast/canvas/hdr/float16-canvas-imagedata-small-ac
 [ Sonoma+ ] compositing/images/direct-image-object-fit.html [ Skip ]
 [ Sonoma+ ] compositing/reflections/direct-image-object-fit-reflected.html [ Skip ]
 
-# rdar://107294589 ([UI-side compositing] fast/attachment/mac/attachment-element-gpu-process.html and fast/attachment/mac/wide-attachment-element-gpu-process.html fails)
-[ Sonoma+ ] fast/attachment/mac/attachment-element-gpu-process.html [ ImageOnlyFailure ]
-[ Sonoma+ ] fast/attachment/mac/wide-attachment-element-gpu-process.html [ ImageOnlyFailure ]
-
 # rdar://107294843 ([UI-side compositing] fast/events/wheel/wheel-events-become-non-cancelable.html fails)
 [ Sonoma+ ] fast/events/wheel/wheel-events-become-non-cancelable.html [ Failure ]
 
@@ -2170,8 +2166,6 @@ webkit.org/b/310853 imported/w3c/web-platform-tests/trusted-types/navigate-to-ja
 
 webkit.org/b/305673 [ Debug ] inspector/idl-extensions/CanvasRenderingContext2D/setPath.html [ Timeout ]
 
-webkit.org/b/305675 fast/animation/request-animation-frame-throttle-subframe-zero-size.html [ Pass Failure ]
-
 webkit.org/b/305947 compositing/visibility/frameset-visibility-hidden.html [ ImageOnlyFailure Pass ]
 
 webkit.org/b/305958 imported/w3c/web-platform-tests/media-source/mediasource-changetype-play.html [ Pass Failure ]
@@ -2459,14 +2453,6 @@ webkit.org/b/317857 [ Debug ] http/tests/site-isolation/frame-index.html [ Skip 
 webkit.org/b/318150 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-border-area-border-shape-overflow.html [ ImageOnlyFailure ]
 webkit.org/b/318150 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-border-area-border-shape.html [ ImageOnlyFailure ]
 
-webkit.org/b/318450 [ Debug ] accessibility/mac/input-replacevalue-userinfo.html [ Timeout ]
-
-# webkit.org/b/305671 3x fast/animation/* (layout-tests) are flaky failures.
-fast/animation/css-animation-throttling.html [ Pass Failure ]
-fast/animation/request-animation-frame-throttle-inside-overflow-scroll.html [ Pass Failure ]
-fast/animation/request-animation-frame-throttle-subframe-display-none.html [ Pass Failure ]
-webkit.org/b/319501 fast/animation/request-animation-frame-throttle-subframe.html [ Pass Timeout ]
-
 # webkit.org/b/319018 2x media/media-source/* (layout-tests) are flaky timeouts.
 media/media-source/media-source-real-play-after-eos.html [ Pass ImageOnlyFailure Timeout ]
 media/media-source/media-managedmse-webvtt-track.html [ Pass Timeout ]
@@ -2672,3 +2658,5 @@ webkit.org/b/329010 [ Tahoe+ ] compositing/filters/filter-fractional-translation
 webkit.org/b/327798 [ Release ] compositing/backing/backface-visibility-flip.html [ Pass Failure ]
 
 webkit.org/b/329900 [ Sequoia+ Debug arm64 ] http/tests/site-isolation/inspector/debugger/pause-holds-cross-process-frames-until-paused-frame-goes-away.html [ Pass Timeout ]
+
+webkit.org/b/329901 [ Sequoia+ Debug arm64 ] http/tests/security/xss-DENIED-xsl-document-securityOrigin.xml [ Pass Failure Timeout ]

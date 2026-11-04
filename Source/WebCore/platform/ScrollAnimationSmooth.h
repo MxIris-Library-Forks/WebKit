@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include <WebCore/ScrollAnimation.h>
+#include "ScrollAnimation.h"
 #include <wtf/TZoneMalloc.h>
 
 namespace WebCore {
@@ -41,15 +41,10 @@ public:
     ScrollAnimationSmooth(ScrollAnimationClient&);
     virtual ~ScrollAnimationSmooth();
 
-    bool startAnimatedScrollToDestination(const FloatPoint& fromOffset, const FloatPoint& destinationOffset, ScrollAnimationCurve = ScrollAnimationCurve::Default);
+    bool startAnimatedScrollToDestination(const FloatPoint& fromOffset, const FloatPoint& destinationOffset);
     bool retargetActiveAnimation(const FloatPoint& newOffset) final;
-    bool retargetActiveAnimation(const FloatPoint& newOffset, ScrollAnimationCurve);
 
     std::optional<FloatPoint> destinationOffset() const final { return m_destinationOffset; }
-    ScrollAnimationCurve curve() const { return m_curve; }
-
-    // Progress of the spring curve, from 0 to 1, at the given time since the start of the animation.
-    WEBCORE_EXPORT static double springProgress(Seconds elapsedTime);
 
 private:
 
@@ -57,12 +52,11 @@ private:
     void serviceAnimation(MonotonicTime) final;
     String debugDescription() const final;
 
-    Seconds LEGACY_NODELETE durationFromDistance(const FloatSize&) const;
+    NODELETE Seconds durationFromDistance(const FloatSize&) const;
 
     bool animateScroll(MonotonicTime);
 
     Seconds m_duration;
-    ScrollAnimationCurve m_curve { ScrollAnimationCurve::Default };
 
     FloatPoint m_startOffset;
     FloatPoint m_destinationOffset;

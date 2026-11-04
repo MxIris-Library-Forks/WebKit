@@ -46,7 +46,7 @@ struct InvalidatedLine;
 
 class InlineInvalidation {
 public:
-    InlineInvalidation(InlineDamage&, const InlineItemList&, const InlineDisplay::Content&);
+    NODELETE InlineInvalidation(InlineDamage&, const InlineItemList&, const InlineDisplay::Content&);
 
     bool rootStyleWillChange(const ElementBox& formattingContextRoot, const Style::ComputedStyle& newStyle);
     bool styleWillChange(const Box&, const Style::ComputedStyle& newStyle, Style::Difference);
@@ -62,9 +62,9 @@ public:
 
     static bool mayOnlyNeedPartialLayout(const InlineDamage* inlineDamage) { return inlineDamage && inlineDamage->layoutStartPosition(); }
     static void resetInlineDamage(InlineDamage&);
-    static void LEGACY_NODELETE inlineItemListWillChange(InlineDamage&);
+    NODELETE static void inlineItemListWillChange(InlineDamage&);
     // For content that was never laid out.
-    static bool LEGACY_NODELETE isSafeToRemoveWithoutFullInvalidation(const Box&);
+    NODELETE static bool isSafeToRemoveWithoutFullInvalidation(const Box&);
 
 private:
     enum class ShouldApplyRangeLayout : bool { No, Yes };

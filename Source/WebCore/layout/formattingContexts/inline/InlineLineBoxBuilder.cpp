@@ -114,12 +114,21 @@ TextUtil::FallbackFontList LineBoxBuilder::collectFallbackFonts(const InlineLeve
 {
     ASSERT(parentInlineBox.isInlineBox());
     auto& inlineTextBox = downcast<InlineTextBox>(run.layoutBox());
-    if (inlineTextBox.canUseSimplifiedContentMeasuring()) {
-        // Simplified text measuring works with primary font only.
-        return { };
+    auto fallbackFonts = [&] -> TextUtil::FallbackFontList {
+        if (inlineTextBox.canUseSimplifiedContentMeasuring()) {
+            // Simplified text measuring works with primary font only.
+            return { };
+        }
+        auto& text = run.textContent();
+        return TextUtil::fallbackFontsForText(StringView(inlineTextBox.content()).substring(text.start, text.length), style, text.needsHyphen ? TextUtil::IncludeHyphen::Yes : TextUtil::IncludeHyphen::No);
+    }();
+    if (inlineTextBox.inheritsStyleFromDisplayContentsParent()) {
+        // Text in a display: contents element can have a font of its own. Like glyphs from fallback fonts, it only stretches
+        // a parent inline box with line-height: normal (css-inline-3).
+        auto& parentStyle = isFirstFormattedLine() ? parentInlineBox.layoutBox().firstLineStyle() : parentInlineBox.layoutBox().style();
+        if (Ref primaryFont = style.fontCascade().primaryFont(); primaryFont.ptr() != &parentStyle.fontCascade().primaryFont())
+            fallbackFonts.add(primaryFont.get());
     }
-    auto& text = run.textContent();
-    auto fallbackFonts = TextUtil::fallbackFontsForText(StringView(inlineTextBox.content()).substring(text.start, text.length), style, text.needsHyphen ? TextUtil::IncludeHyphen::Yes : TextUtil::IncludeHyphen::No);
     if (fallbackFonts.isEmptyIgnoringNullReferences())
         return { };
 
@@ -133,7 +142,7 @@ TextUtil::FallbackFontList LineBoxBuilder::collectFallbackFonts(const InlineLeve
     return fallbackFonts;
 }
 
-static InlineLevelBox::AscentAndDescent LEGACY_NODELETE primaryFontMetricsForInlineBox(const InlineLevelBox& inlineBox, FontBaseline fontBaseline = FontBaseline::Alphabetic)
+NODELETE static InlineLevelBox::AscentAndDescent primaryFontMetricsForInlineBox(const InlineLevelBox& inlineBox, FontBaseline fontBaseline = FontBaseline::Alphabetic)
 {
     ASSERT(inlineBox.isInlineBox());
     auto& fontMetrics = inlineBox.primarymetricsOfPrimaryFont();
@@ -142,7 +151,7 @@ static InlineLevelBox::AscentAndDescent LEGACY_NODELETE primaryFontMetricsForInl
     return { ascent, descent };
 }
 
-static bool LEGACY_NODELETE isLineFitEdgeLeading(const InlineLevelBox& inlineBox)
+NODELETE static bool isLineFitEdgeLeading(const InlineLevelBox& inlineBox)
 {
     ASSERT(inlineBox.isInlineBox());
     return inlineBox.lineFitEdge().isLeading();

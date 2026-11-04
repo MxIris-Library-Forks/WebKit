@@ -135,6 +135,7 @@
 #include "ResourceLoadInfo.h"
 #include "RunJavaScriptParameters.h"
 #include "SandboxExtension.h"
+#include "SecurityFlags.h"
 #include "SessionHistoryTraversalQueue.h"
 #include "SharedBufferReference.h"
 #include "SpeechRecognitionPermissionManager.h"
@@ -485,7 +486,7 @@
 #include "DrawingAreaProxyCoordinatedGraphics.h"
 #endif
 
-#if ENABLE(WK_WEB_EXTENSIONS) && PLATFORM(COCOA)
+#if ENABLE(WK_WEB_EXTENSIONS)
 #include "WebExtensionController.h"
 #endif
 
@@ -1553,21 +1554,6 @@ bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, con
         return false;
     }
 
-    if (!hasCommittedAnyProvisionalLoads()) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because has not committed any load yet", m_legacyMainFrameProcess->processID());
-        return false;
-    }
-
-    if (isPageOpenedByDOMShowingInitialEmptyDocument()) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because it is showing the initial empty document", m_legacyMainFrameProcess->processID());
-        return false;
-    }
-
-    if (protect(m_browsingContextGroup)->hasMultiplePages()) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because BrowsingContextGroup has multiple pages", m_legacyMainFrameProcess->processID());
-        return false;
-    }
-
     // FIXME: The cached document would share the group's processes with the next one. Keep it in its process's WebPage
     // instead, so that it can stay in the group.
     if (protect(preferences())->siteIsolationEnabled() && &provisionalPage.browsingContextGroup() == m_browsingContextGroup.ptr()) {
@@ -1575,27 +1561,9 @@ bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, con
         return false;
     }
 
-    RefPtr fromItem = navigation.fromItem();
-
-    // If the source and the destination back / forward list items are the same, then this is a client-side redirect. In this case,
-    // there is no need to suspend the previous page as there will be no way to get back to it.
-    if (fromItem && fromItem == backForwardList().currentItem()) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because this is a client-side redirect", m_legacyMainFrameProcess->processID());
+    RefPtr fromItem = backForwardItemForCachingOutgoingDocument(navigation);
+    if (!fromItem)
         return false;
-    }
-
-    if (fromItem && fromItem->url() != pageLoadState().url()) {
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i because fromItem's URL does not match the page URL.", m_legacyMainFrameProcess->processID());
-        return false;
-    }
-
-    if (!fromItem || !shouldUseBackForwardCache()) {
-        if (!fromItem)
-            WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i there is no associated WebBackForwardListItem", m_legacyMainFrameProcess->processID());
-        else
-            WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Not suspending current page for process pid %i the back / forward cache is disabled", m_legacyMainFrameProcess->processID());
-        return false;
-    }
 
     WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendCurrentPageIfPossible: Suspending current page for process pid %i", m_legacyMainFrameProcess->processID());
     mainFrame->frameLoadState().didSuspend();
@@ -1617,6 +1585,70 @@ bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, con
     protect(backForwardCache())->addEntry(*fromItem, WTF::move(suspendedPage));
 
     return true;
+}
+
+RefPtr<WebBackForwardListItem> WebPageProxy::backForwardItemForCachingOutgoingDocument(API::Navigation& navigation)
+{
+    if (!hasCommittedAnyProvisionalLoads()) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i because has not committed any load yet", m_legacyMainFrameProcess->processID());
+        return nullptr;
+    }
+
+    if (isPageOpenedByDOMShowingInitialEmptyDocument()) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i because it is the initial empty document", m_legacyMainFrameProcess->processID());
+        return nullptr;
+    }
+
+    if (protect(m_browsingContextGroup)->hasMultiplePages()) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i because BrowsingContextGroup has multiple pages", m_legacyMainFrameProcess->processID());
+        return nullptr;
+    }
+
+    RefPtr fromItem = navigation.fromItem();
+
+    // If the source and the destination back / forward list items are the same, then this is a client-side redirect. In this case,
+    // there is no need to cache the previous document as there will be no way to get back to it.
+    if (fromItem && fromItem == backForwardList().currentItem()) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i because this is a client-side redirect", m_legacyMainFrameProcess->processID());
+        return nullptr;
+    }
+
+    if (fromItem && fromItem->url() != pageLoadState().url()) {
+        WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i because fromItem's URL does not match the page URL.", m_legacyMainFrameProcess->processID());
+        return nullptr;
+    }
+
+    if (!fromItem || !shouldUseBackForwardCache()) {
+        if (!fromItem)
+            WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i there is no associated WebBackForwardListItem", m_legacyMainFrameProcess->processID());
+        else
+            WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "backForwardItemForCachingOutgoingDocument: Not caching the document in process pid %i the back / forward cache is disabled", m_legacyMainFrameProcess->processID());
+        return nullptr;
+    }
+
+    return fromItem;
+}
+
+void WebPageProxy::suspendIframeProcessesForBackForwardCache(WebBackForwardListItem& item, Vector<Ref<WebProcessProxy>>&& iframeProcesses, CompletionHandler<void(bool)>&& completionHandler)
+{
+    if (iframeProcesses.isEmpty())
+        return completionHandler(true);
+
+    auto mainFrameItemID = item.mainFrameItem().identifier();
+
+    auto aggregator = MainRunLoopSuccessCallbackAggregator::create(
+        [weakThis = WeakPtr { *this }, itemID = item.identifier(), completionHandler = WTF::move(completionHandler)](bool success) mutable {
+            if (!success) {
+                if (RefPtr page = weakThis)
+                    page->discardBackForwardCacheEntry(itemID);
+            }
+            completionHandler(success);
+        });
+
+    for (Ref process : iframeProcesses) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "suspendIframeProcessesForBackForwardCache: dispatching SuspendWithFrameItem to pid %i", process->processID());
+        process->sendWithAsyncReply(Messages::WebPage::SuspendWithFrameItem(mainFrameItemID), aggregator->chain(), webPageIDInProcess(process));
+    }
 }
 
 WebBackForwardCache& WebPageProxy::backForwardCache() const
@@ -9943,6 +9975,10 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
 
     WEBPAGEPROXY_RELEASE_LOG(Loading, "didCommitLoadForFrame: frameID=%" PRIu64 ", isMainFrame=%d", frameID.toUInt64(), frame->isMainFrame());
 
+    // The web process may have cleared the main frame's name at commit, see shouldClearWindowName().
+    if (frame->isMainFrame() && frameInfo.frameName != frame->frameName() && protect(preferences())->siteIsolationEnabled() && &frame->process() == WebProcessProxy::fromConnection(connection).ptr())
+        setFrameNameAndNotifyOtherProcesses(connection, *frame, frameInfo.frameName);
+
     // FIXME: We should message check that navigationID is not zero here, but it's currently zero for some navigations through the back/forward cache.
     RefPtr<API::Navigation> navigation;
     if (frame->isMainFrame() && navigationID && (navigation = m_navigationState->navigation(*navigationID))) {
@@ -11246,6 +11282,19 @@ RefPtr<FrameState> WebPageProxy::frameStateForBackForwardChildFrame(WebFrameProx
     return frameState;
 }
 
+static bool isBackForwardItemIdentifierForPage(const std::optional<BackForwardItemIdentifier>& identifier, WebPageProxyIdentifier pageID)
+{
+    // The disable switch falls back to accepting whichever item the WebContent process named.
+    if (!SecurityFlags::radar183491061())
+        return true;
+
+    if (!identifier)
+        return true;
+
+    RefPtr item = WebBackForwardListItem::itemForID(*identifier);
+    return !item || item->pageID() == pageID;
+}
+
 static RefPtr<API::JSHandle> takeHitTestJSHandle(NavigationActionData& navigationActionData)
 {
 #if PLATFORM(MAC) || HAVE(UIKIT_WITH_MOUSE_SUPPORT)
@@ -11259,6 +11308,9 @@ static RefPtr<API::JSHandle> takeHitTestJSHandle(NavigationActionData& navigatio
 
 void WebPageProxy::decidePolicyForNavigationAction(Ref<WebProcessProxy>&& process, WebFrameProxy& frame, NavigationActionData&& navigationActionData, CompletionHandler<void(PolicyDecision&&)>&& originalCompletionHandler)
 {
+    MESSAGE_CHECK_COMPLETION(process, isBackForwardItemIdentifierForPage(navigationActionData.targetBackForwardItemIdentifier, identifier()), originalCompletionHandler(PolicyDecision { isNavigatingToAppBoundDomain() }));
+    MESSAGE_CHECK_COMPLETION(process, isBackForwardItemIdentifierForPage(navigationActionData.sourceBackForwardItemIdentifier, identifier()), originalCompletionHandler(PolicyDecision { isNavigatingToAppBoundDomain() }));
+
     RefPtr hitTestJSHandle = takeHitTestJSHandle(navigationActionData);
 
     RefPtr<FrameState> frameStateForBackForwardNavigation;
@@ -16204,9 +16256,7 @@ static bool shouldBlockIOKit(const WebPreferences& preferences)
         || !preferences.captureVideoInGPUProcessEnabled()
         || !preferences.captureAudioInGPUProcessEnabled()
         || !preferences.webRTCPlatformCodecsInGPUProcessEnabled()
-        || !preferences.useGPUProcessForCanvasRenderingEnabled()
-        || !preferences.useGPUProcessForDOMRenderingEnabled()
-        || !preferences.useGPUProcessForWebGLEnabled())
+        || !preferences.useGPUProcessForCanvasRenderingEnabled())
         return false;
     return true;
 }
@@ -16435,8 +16485,9 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
         parameters.webExtensionControllerParameters = weakWebExtensionController->parameters(m_configuration, process);
 #endif
 
-    // Not the same as the preference: on Cocoa, a user default, Lockdown Mode or a related page may also enable it.
+#if !PLATFORM(COCOA)
     parameters.shouldRenderDOMInGPUProcess = useGPUProcessForDOMRenderingEnabled();
+#endif
     parameters.shouldCaptureDisplayInUIProcess = m_configuration->processPool().configuration().shouldCaptureDisplayInUIProcess();
 #if ENABLE(APP_BOUND_DOMAINS)
     parameters.limitsNavigationsToAppBoundDomains = m_limitsNavigationsToAppBoundDomains;
@@ -16501,6 +16552,9 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.shouldForceSiteIsolationAlwaysOnForTesting = WebPreferences::forcedSiteIsolationAlwaysOnForTesting();
     parameters.shouldEnableNetworkInstrumentation = inspectorController().isNetworkInstrumentationEnabled();
     parameters.shouldEnablePageInstrumentation = inspectorController().isPageInstrumentationEnabled();
+#if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
+    parameters.imageAnimationEnabledOverride = m_imageAnimationEnabledOverride;
+#endif
 
     // Each SharedMemoryHandle serializes as a Mach port descriptor; the shared-memory send fallback cannot
     // reduce the descriptor count, so log when it grows large (see MACH_SEND_TOO_LARGE CreateWebPage crashes).
@@ -17912,7 +17966,7 @@ std::optional<IPC::Connection::AsyncReplyID> WebPageProxy::computePagesForPrinti
 bool WebPageProxy::shouldUseRemoteSnapshotting(const WebFrameProxy* rootFrame)
 {
     Ref preferences = this->preferences();
-    if (!preferences->remoteSnapshottingEnabled() || !preferences->useGPUProcessForDOMRenderingEnabled() || !preferences->siteIsolationEnabled())
+    if (!preferences->remoteSnapshottingEnabled() || !useGPUProcessForDOMRenderingEnabled() || !preferences->siteIsolationEnabled())
         return false;
 
     if (!rootFrame)
@@ -19505,8 +19559,12 @@ void WebPageProxy::setURLSchemeHandlerForScheme(Ref<WebURLSchemeHandler>&& handl
     ASSERT_UNUSED(handlerIdentifierResult, handlerIdentifierResult.isNewEntry);
 
     WebCore::LegacySchemeRegistry::registerURLSchemeAsHandledBySchemeHandler(scheme);
-    if (hasRunningProcess())
-        send(Messages::WebPage::RegisterURLSchemeHandler(handlerIdentifier, canonicalizedScheme.value()));
+    if (!hasRunningProcess())
+        return;
+
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::RegisterURLSchemeHandler(handlerIdentifier, canonicalizedScheme.value()), pageID);
+    });
 }
 
 WebURLSchemeHandler* WebPageProxy::urlSchemeHandlerForScheme(StringView scheme)
@@ -21002,6 +21060,7 @@ void WebPageProxy::beginEnhancedSecurityLinkCheck(const URL& url, API::Navigatio
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 void WebPageProxy::pauseAllAnimations(CompletionHandler<void()>&& completionHandler)
 {
+    m_imageAnimationEnabledOverride = false;
     if (!hasRunningProcess()) {
         completionHandler();
         return;
@@ -21015,6 +21074,7 @@ void WebPageProxy::pauseAllAnimations(CompletionHandler<void()>&& completionHand
 
 void WebPageProxy::playAllAnimations(CompletionHandler<void()>&& completionHandler)
 {
+    m_imageAnimationEnabledOverride = true;
     if (!hasRunningProcess()) {
         completionHandler();
         return;
@@ -21826,10 +21886,15 @@ void WebPageProxy::sendScrollUpdateForNode(std::optional<WebCore::FrameIdentifie
     if (!scrollingCoordinatorProxy)
         return;
 
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::RemoteScrollingCoordinator::ScrollUpdateForNode(update), [weakScrollingCoordinatorProxy = WeakPtr { *scrollingCoordinatorProxy }, isLastUpdate] {
+    auto completionHandler = [weakScrollingCoordinatorProxy = WeakPtr { *scrollingCoordinatorProxy }, isLastUpdate] {
         if (isLastUpdate && weakScrollingCoordinatorProxy)
             protect(weakScrollingCoordinatorProxy)->receivedLastScrollingTreeNodeUpdateReply();
-    });
+    };
+
+    if (processContainingFrame(frameID)->coreProcessIdentifier() != update.nodeID.processIdentifier())
+        return completionHandler();
+
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::RemoteScrollingCoordinator::ScrollUpdateForNode(update), WTF::move(completionHandler));
 }
 #endif
 
@@ -21944,9 +22009,19 @@ Vector<Ref<WebProcessProxy>> WebPageProxy::activeRemoteFrameProcesses() const
     return processes;
 }
 
+// When enabled, resolves a WebContent-supplied identifier through the page's own list.
+// When disabled, falls back to the process-global map.
+static RefPtr<WebBackForwardListItem> backForwardItemForIdentifierFromWebContent(WebBackForwardList& list, BackForwardItemIdentifier itemID)
+{
+    if (!SecurityFlags::radar183491061())
+        return WebBackForwardListItem::itemForID(itemID);
+
+    return list.itemForID(itemID);
+}
+
 void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, CompletionHandler<void(bool)>&& completionHandler)
 {
-    RefPtr item = WebBackForwardListItem::itemForID(itemID);
+    RefPtr item = backForwardItemForIdentifierFromWebContent(backForwardList(), itemID);
     if (!item) {
         WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didCacheBackForwardItem: unknown itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8());
         return completionHandler(false);
@@ -21991,24 +22066,7 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
     // and released when the entry is discarded.
     entry->setCachedChildren(mainFrame->takeChildFrames());
 
-    if (iframeProcesses.isEmpty())
-        return completionHandler(true);
-
-    auto mainFrameItemID = item->mainFrameItem().identifier();
-
-    auto aggregator = MainRunLoopSuccessCallbackAggregator::create(
-        [weakThis = WeakPtr { *this }, itemID, completionHandler = WTF::move(completionHandler)](bool success) mutable {
-            if (!success) {
-                if (RefPtr page = weakThis.get())
-                    page->discardBackForwardCacheEntry(itemID);
-            }
-            completionHandler(success);
-        });
-
-    for (Ref process : iframeProcesses) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "didCacheBackForwardItem: dispatching SuspendWithFrameItem to pid %i", process->processID());
-        process->sendWithAsyncReply(Messages::WebPage::SuspendWithFrameItem(mainFrameItemID), aggregator->chain(), webPageIDInProcess(process));
-    }
+    suspendIframeProcessesForBackForwardCache(*item, WTF::move(iframeProcesses), WTF::move(completionHandler));
 }
 
 void WebPageProxy::restoreOrCancelPendingBackForwardIframes(const PendingBackForwardIframeRestore& pendingRestore, RestoredFromBackForwardCache restoredFromBackForwardCache)
@@ -22036,7 +22094,7 @@ void WebPageProxy::didEvictBackForwardItem(BackForwardItemIdentifier itemID)
     // WP-initiated eviction (capacity / expiration). Idempotent: drop our entry
     // if any. UI→WP discard IPCs are NOT sent because the WP that informed us
     // has already evicted on its side.
-    RefPtr item = WebBackForwardListItem::itemForID(itemID);
+    RefPtr item = backForwardItemForIdentifierFromWebContent(backForwardList(), itemID);
     if (!item || !item->backForwardCacheEntry())
         return;
     protect(backForwardCache())->removeEntry(*item);
@@ -22048,7 +22106,7 @@ void WebPageProxy::didTakeBackForwardItemForRestoration(BackForwardItemIdentifie
     // immediately after BackForwardCache::take() succeeds, ahead of any
     // DidCacheBackForwardItem for the outgoing page in the same load. Drops
     // the UI-side entry.
-    RefPtr item = WebBackForwardListItem::itemForID(itemID);
+    RefPtr item = backForwardItemForIdentifierFromWebContent(backForwardList(), itemID);
     if (!item) {
         WEBPAGEPROXY_RELEASE_LOG_ERROR(ProcessSwapping, "didTakeBackForwardItemForRestoration: unknown itemID %" PUBLIC_LOG_STRING, itemID.toString().utf8());
         return;
@@ -22073,7 +22131,7 @@ void WebPageProxy::didTakeBackForwardItemForRestoration(BackForwardItemIdentifie
 
 void WebPageProxy::discardBackForwardCacheEntry(BackForwardItemIdentifier itemID)
 {
-    RefPtr item = WebBackForwardListItem::itemForID(itemID);
+    RefPtr item = backForwardItemForIdentifierFromWebContent(backForwardList(), itemID);
     if (!item || !item->backForwardCacheEntry())
         return;
     protect(backForwardCache())->removeEntry(*item);
@@ -22200,12 +22258,17 @@ void WebPageProxy::frameNameChanged(IPC::Connection& connection, WebCore::FrameI
     if (&frame->process() != WebProcessProxy::fromConnection(connection).ptr())
         return;
 
-    frame->setSpecifiedName(frameName);
+    setFrameNameAndNotifyOtherProcesses(connection, *frame, frameName);
+}
+
+void WebPageProxy::setFrameNameAndNotifyOtherProcesses(IPC::Connection& connection, WebFrameProxy& frame, const String& frameName)
+{
+    frame.setSpecifiedName(frameName);
 
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
         if (!webProcess.hasConnection() || &webProcess.connection() == &connection)
             return;
-        webProcess.send(Messages::WebPage::FrameNameWasChangedInAnotherProcess(frameID, frameName), pageID);
+        webProcess.send(Messages::WebPage::FrameNameWasChangedInAnotherProcess(frame.frameID(), frameName), pageID);
     });
 }
 

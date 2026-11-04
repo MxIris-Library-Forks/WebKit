@@ -588,6 +588,7 @@ struct TestConfig {
 void run(const TestConfig* filter);
 
 void testBitAndSExt32(int32_t value, int64_t mask);
+void testBitAndSExt32WithOtherUse(int32_t value, int64_t mask);
 void testUbfx32ShiftAnd();
 void testUbfx32AndShift();
 void testUbfx64ShiftAnd();
@@ -1001,6 +1002,7 @@ void testPhiFoldEqualConstantFromBackEdge();
 void testPhiFoldDeadLoopWithStalePredecessor();
 void testPhiFoldInBlockReachedOnlyByRetreatingEdge(bool swapArms);
 void testPhiFoldConstantInBlockReachedOnlyByRetreatingEdge(bool swapArms);
+void testPhiFoldInputFromMergedBlock(bool swapArms);
 void testPhiFoldDeadLoopHeaderEnteredFromRoot();
 void testPhiFoldLoopPhiTrivialAfterLatch();
 void testBranchNotEqualFoldPtr(intptr_t value);

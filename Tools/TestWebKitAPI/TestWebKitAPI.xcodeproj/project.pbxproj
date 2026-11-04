@@ -570,7 +570,6 @@
 		07AA27602F83C3A900FE10FC /* Exceptions for "Tests" folder in "TestWebKitAPI" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				WebCore/cocoa/ScrollAnimationSmoothTests.swift,
 				"WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift",
 				"WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift",
 				"WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift",
@@ -598,9 +597,11 @@
 				WebKit/WebPage/WebViewInspectorAttachmentTests.swift,
 				WebKit/WebPage/WebViewTests.swift,
 				WebKit/WKWebView/CodingTests.swift,
+				WebKit/WKWebView/ContentAutoSizing.swift,
 				WebKit/WKWebView/HTTP2Server.swift,
 				WebKit/WKWebView/HTTP3Server.swift,
 				WebKit/WKWebView/PDFLookUpTests.swift,
+				WebKit/WKWebView/SiteIsolationAnimationControlTests.swift,
 				WebKit/WKWebView/SiteIsolationContentsOfAllFramesTests.swift,
 				WebKit/WKWebView/SiteIsolationCookieTests.swift,
 				WebKit/WKWebView/SiteIsolationDataDetectionTests.swift,
@@ -612,10 +613,13 @@
 				WebKit/WKWebView/SiteIsolationNavigationTests.swift,
 				WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift,
 				WebKit/WKWebView/SiteIsolationSessionStateTests.swift,
+				WebKit/WKWebView/SiteIsolationSnapshotTests.swift,
 				WebKit/WKWebView/SiteIsolationTextExtractionTests.swift,
 				WebKit/WKWebView/SiteIsolationTextFragmentTests.swift,
+				WebKit/WKWebView/SiteIsolationTextPreviewTests.swift,
 				WebKit/WKWebView/SiteIsolationUIDelegateTests.swift,
 				WebKit/WKWebView/SiteIsolationUserAgentTests.swift,
+				WebKit/WKWebView/SiteIsolationWebExtensionTests.swift,
 				WebKit/WKWebView/TextExtractionTests.swift,
 				WebKit/WKWebView/TextFragments.swift,
 				WebKit/WKWebView/TextManipulation.swift,
@@ -1336,6 +1340,7 @@
 				WTF/EnumSet.cpp,
 				WTF/EnumTraits.cpp,
 				WTF/EscapableByteSpan.cpp,
+				WTF/FastFloat.cpp,
 				WTF/FileSystem.cpp,
 				WTF/FixedBitVector.cpp,
 				WTF/FixedVector.cpp,
@@ -1507,6 +1512,7 @@
 				WebKit/WebPage/WebViewInspectorAttachmentTests.swift,
 				WebKit/WebPage/WebViewTests.swift,
 				WebKit/WKWebView/CodingTests.swift,
+				WebKit/WKWebView/ContentAutoSizing.swift,
 				WebKit/WKWebView/WKWebViewSwiftOverlayTests.swift,
 			);
 			target = A17C582D2C9B3EAD009DD0B5 /* TestWebKitAPIBundle */;

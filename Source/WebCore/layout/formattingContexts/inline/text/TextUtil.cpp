@@ -184,7 +184,7 @@ static void fallbackFontsForRunWithIterator(SingleThreadWeakHashSet<const Font>&
 
         auto addFallbackFontForCharacterIfApplicable = [&](auto character) {
             if (isSmallCaps)
-                character = u_toupper(character);
+                character = fontCascade.capitalForSynthesizedSmallCaps(character).value_or(character);
 
             auto glyphData = fontCascade.glyphDataForCharacter(character, isRTL);
             if (glyphData.glyph && glyphData.font && glyphData.font != primaryFont.ptr()) {
@@ -243,7 +243,7 @@ static TextUtil::EnclosingAscentDescent enclosingGlyphBoundsForRunWithIterator(c
 
         auto computeTopAndBottomForCharacter = [&](auto character) {
             if (isSmallCaps)
-                character = u_toupper(character);
+                character = fontCascade.capitalForSynthesizedSmallCaps(character).value_or(character);
 
             auto glyphData = fontCascade.glyphDataForCharacter(character, isRTL);
             Ref font = glyphData.font ? Ref { *glyphData.font } : primaryFont;
@@ -733,14 +733,10 @@ TextDirection TextUtil::directionForTextContent(StringView content)
     return baseTextDirection(content).value_or(TextDirection::LTR);
 }
 
-AtomString TextUtil::ellipsisTextInInlineDirection(bool isHorizontal)
+AtomString TextUtil::ellipsisText()
 {
-    if (isHorizontal) {
-        static MainThreadNeverDestroyed<const AtomString> horizontalEllipsisStr(span(horizontalEllipsis));
-        return horizontalEllipsisStr;
-    }
-    static MainThreadNeverDestroyed<const AtomString> verticalEllipsisStr(span(verticalEllipsis));
-    return verticalEllipsisStr;
+    static MainThreadNeverDestroyed<const AtomString> ellipsisStr(span(horizontalEllipsis));
+    return ellipsisStr;
 }
 
 InlineLayoutUnit TextUtil::hyphenWidth(const Style::ComputedStyle& style)

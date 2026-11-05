@@ -60,6 +60,9 @@ class Manager(object):
         FAILED_UPLOAD: 'Upload failed',
     }
 
+    MAXIMUM_LOG_LENGTH = 8 * 1024
+    MAXIMUM_LOG_LENGTH_PER_UPLOAD = 256 * 1024
+
     def __init__(self, port, options, stream, status=None):
         self._port = port
         self.host = port.host
@@ -153,6 +156,31 @@ class Manager(object):
         }
         return ' '.join(text for status, text in status_to_upload_text.items() if status in expectation.expected) or None
 
+    @classmethod
+    def truncate_log(cls, log: str) -> str:
+        encoded = log.encode('utf-8')
+        if len(encoded) <= cls.MAXIMUM_LOG_LENGTH:
+            return log
+        marker = '[{:,} more bytes]\n'
+        kept = encoded[:cls.MAXIMUM_LOG_LENGTH - len(marker.format(len(encoded)))]
+        kept = kept[:kept.rfind(b'\n') + 1] or kept
+        kept_log = kept.decode('utf-8', 'ignore')
+        return kept_log + marker.format(len(encoded) - len(kept_log.encode('utf-8')))
+
+    @classmethod
+    def _upload_results_with_logs(cls, upload_results: dict[str, dict], unexpected_failures: dict[str, tuple]) -> dict[str, dict]:
+        results = dict(upload_results)
+        total = 0
+        for test, (_, output, _) in unexpected_failures.items():
+            if not output:
+                continue
+            log = cls.truncate_log(output)
+            total += len(log.encode('utf-8'))
+            if total > cls.MAXIMUM_LOG_LENGTH_PER_UPLOAD:
+                break
+            results[test] = dict(results[test], log=log)
+        return results
+
     def _collect_tests(self, args):
         available_tests = []
         specified_binaries = self._binaries_for_arguments(args)
@@ -161,7 +189,9 @@ class Manager(object):
                 continue
 
             to_be_listed = path
-            if not self._port.host.platform.is_win():
+            # An app's executable is signed as part of its bundle, so a copy of it won't launch.
+            list_from_copy = not self._port.host.platform.is_win() and '.app/Contents/MacOS/' not in path
+            if list_from_copy:
                 to_be_listed = self.host.filesystem.join(self.host.filesystem.dirname(path), 'ToBeListed')
                 self.host.filesystem.copyfile(path, to_be_listed)
                 self.host.filesystem.copymode(path, to_be_listed)
@@ -174,7 +204,7 @@ class Manager(object):
                 _log.error(f'Failed to list {canonicalized_binary} tests')
                 raise
             finally:
-                if not self._port.host.platform.is_win():
+                if list_from_copy:
                     self.host.filesystem.remove(to_be_listed)
 
         if len(args) == 0:
@@ -578,7 +608,7 @@ class Manager(object):
                     end_time=end_time,
                     tests_skipped=len(result_dictionary['Skipped']),
                 ),
-                results=upload_results,
+                results=self._upload_results_with_logs(upload_results, unexpected_failures),
             )
             for url in self._options.report_urls:
                 self._write_update(f'Uploading to {url} ...')

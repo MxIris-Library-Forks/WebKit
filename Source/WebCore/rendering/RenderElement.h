@@ -108,8 +108,6 @@ public:
     const Style::ComputedStyle& style() const LIFETIME_BOUND { return Layout::ElementBox::style(); }
     const Style::ComputedStyle* parentStyle() const LIFETIME_BOUND { return !RenderObject::m_parent ? nullptr : &RenderObject::m_parent->style(); }
     NODELETE const Style::ComputedStyle& firstLineStyle() const LIFETIME_BOUND;
-    // False when firstLineStyle() is style().
-    inline bool mayHaveFirstLineStyle() const;
 
     // FIXME: Style shouldn't be mutated.
     Style::ComputedStyle& mutableStyle() LIFETIME_BOUND { return Layout::ElementBox::mutableStyle(); }
@@ -328,7 +326,7 @@ public:
     RenderObject* attachRendererInternal(RenderPtr<RenderObject> child, RenderObject* beforeChild);
     RenderPtr<RenderObject> detachRendererInternal(RenderObject&);
 
-    virtual bool startAnimation(double /* timeOffset */, const GraphicsLayerAnimation&, const BlendingKeyframes&) { return false; }
+    virtual bool startAnimation(double /* timeOffset */, const GraphicsLayerAnimation&, const BlendingKeyframes&, const IntOutsets& /* filterAnimationOutsets */) { return false; }
     virtual void animationPaused(double /* timeOffset */, const BlendingKeyframes&) { }
     virtual void animationFinished(const BlendingKeyframes&) { }
     virtual void transformRelatedPropertyDidChange() { }

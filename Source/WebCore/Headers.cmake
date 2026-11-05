@@ -2185,6 +2185,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/LowPowerModeNotifier.h
     platform/MIMETypeRegistry.h
     platform/MainThreadSharedTimer.h
+    platform/MediaChannelLayout.h
     platform/MediaDescription.h
     platform/MediaPromiseTypes.h
     platform/MediaSample.h
@@ -2580,6 +2581,9 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/MediaSourcePrivateClient.h
     platform/graphics/MediaTimeUpdateData.h
     platform/graphics/MediaUsageInfo.h
+    platform/graphics/MeshGradient.h
+    platform/graphics/MeshGradientRenderer.h
+    platform/graphics/MeshGradientRendererCPU.h
     platform/graphics/Model.h
     platform/graphics/ModelContext.h
     platform/graphics/NativeImage.h

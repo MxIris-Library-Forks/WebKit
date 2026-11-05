@@ -61,6 +61,7 @@
 #include <WebCore/Gradient.h>
 #include <WebCore/HTMLCanvasElement.h>
 #include <WebCore/ImageBufferDisplayListBackend.h>
+#include <WebCore/MeshGradient.h>
 #include <WebCore/NullImageBufferBackend.h>
 #include <WebCore/RenderingResourceIdentifier.h>
 #include <wtf/Borrow.h>
@@ -501,9 +502,14 @@ void RemoteRenderingBackend::cacheNativeImageFromSharedNativeImage(RemoteNativeI
 {
     assertIsCurrent(workQueue());
     auto identifier = reference.identifier();
-    RefPtr image = m_sharedResourceCache->readNativeImage(WTF::move(reference), defaultRemoteSharedResourceCacheTimeout);
-    MESSAGE_CHECK(image, "Shared NativeImage not found.");
-    bool success = m_remoteResourceCache.cacheNativeImage(identifier, image.releaseNonNull());
+    // Another stream connection publishes the image, possibly on this work queue. Wait without blocking the queue.
+    auto image = m_sharedResourceCache->readNativeImage(m_streamConnection, WTF::move(reference));
+    if (!image) {
+        m_streamConnection->markCurrentlyDispatchedMessageAsDeferred();
+        return;
+    }
+    MESSAGE_CHECK(*image, "Shared NativeImage not found.");
+    bool success = m_remoteResourceCache.cacheNativeImage(identifier, image->releaseNonNull());
     MESSAGE_CHECK(success, "NativeImage already cached.");
 }
 
@@ -526,7 +532,7 @@ void RemoteRenderingBackend::cacheFont(const Font::Attributes& fontAttributes, F
 
     FontPlatformData platform = FontPlatformData::create(platformData, customPlatformData.get());
 
-    Ref font = SharedFont::create(platform, fontAttributes.origin, fontAttributes.isInterstitial, fontAttributes.visibility, fontAttributes.isTextOrientationFallback, fontAttributes.renderingResourceIdentifier);
+    Ref font = SharedFont::create(platform, fontAttributes.origin, fontAttributes.isInterstitial, fontAttributes.visibility, fontAttributes.isTextOrientationFallback, fontAttributes.isSmallCapsFace, fontAttributes.renderingResourceIdentifier);
 
     bool success = m_remoteResourceCache.cacheFont(WTF::move(font));
     MESSAGE_CHECK(success, "Font already cached.");
@@ -583,6 +589,20 @@ void RemoteRenderingBackend::releaseGradient(RemoteGradientIdentifier identifier
     assertIsCurrent(workQueue());
     bool success = m_remoteResourceCache.releaseGradient(identifier);
     MESSAGE_CHECK(success, "Gradient released before being cached.");
+}
+
+void RemoteRenderingBackend::cacheMeshGradient(Ref<MeshGradient>&& gradient, RemoteMeshGradientIdentifier identifier)
+{
+    assertIsCurrent(workQueue());
+    bool success = m_remoteResourceCache.cacheMeshGradient(identifier, WTF::move(gradient));
+    MESSAGE_CHECK(success, "Mesh gradient already cached.");
+}
+
+void RemoteRenderingBackend::releaseMeshGradient(RemoteMeshGradientIdentifier identifier)
+{
+    assertIsCurrent(workQueue());
+    bool success = m_remoteResourceCache.releaseMeshGradient(identifier);
+    MESSAGE_CHECK(success, "Mesh gradient released before being cached.");
 }
 
 

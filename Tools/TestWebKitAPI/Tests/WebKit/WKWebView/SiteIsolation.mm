@@ -32,6 +32,7 @@
 #import "Helpers/cocoa/DragAndDropSimulator.h"
 #import "Helpers/cocoa/FindInPageUtilities.h"
 #import "Helpers/cocoa/HTTPServer.h"
+#import "Helpers/cocoa/NSItemProviderAdditions.h"
 #import "Helpers/cocoa/SiteIsolationTestUtilities.h"
 #import "Helpers/cocoa/TestCocoa.h"
 #import "Helpers/cocoa/TestDownloadDelegate.h"
@@ -11997,6 +11998,64 @@ TEST(SiteIsolation, DropTextOnContentEditableInCrossOriginSubframe)
 
     EXPECT_WK_STREQ("Hello", [webView stringByEvaluatingJavaScript:@"editor.textContent" inFrame:[webView firstChildFrame]]);
 }
+
+static void checkDropPreviewForImagePlaceholderInIframe(ASCIILiteral iframeOrigin)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { makeString("<meta name='viewport' content='width=device-width, initial-scale=1'><body style='margin: 0'><iframe style='position: absolute; left: 100px; top: 150px; width: 300px; height: 300px; border: none;' src='"_s, iframeOrigin, "/subframe'></iframe></body>"_s) } },
+        { "/subframe"_s, { "<body style='margin: 0'></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 500, 500));
+    [webView _setEditable:YES];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://domain1.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    // Dropping an image with a preferred presentation size into an editable web view inserts a placeholder
+    // for it, and the drop preview is retargeted to the placeholder.
+    RetainPtr imageData = [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"400x400-green" withExtension:@"png"]];
+    RetainPtr item = adoptNS([[NSItemProvider alloc] init]);
+    [item registerDataRepresentationForTypeIdentifier:UTTypePNG.identifier withData:imageData.get() loadingDelay:0.5];
+    [item setPreferredPresentationSize:CGSizeMake(100, 100)];
+    [item setSuggestedName:@"green"];
+
+    RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebView:webView.get()]);
+    // Don't use DropAnimationShouldFinishBeforeHandlingDrop: it ends the drop animation after a round trip
+    // to the main frame's process, which can be before the placeholders' bounds arrive from the iframe's process.
+    [simulator setExternalItemProviders:@[ item.get() ]];
+    [simulator runFrom:CGPointMake(150, 200) to:CGPointMake(150, 200)];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_EQ(1, [[webView objectByEvaluatingJavaScript:@"document.querySelectorAll('img').length" inFrame:childFrame.get()] intValue]);
+    // The whole web view is editable, so a placeholder inserted in the wrong frame could end up in the main frame.
+    EXPECT_EQ(0, [[webView objectByEvaluatingJavaScript:@"document.querySelectorAll('img').length"] intValue]);
+
+    ASSERT_EQ(1U, [simulator delayedDropPreviews].count);
+    id delayedPreview = [simulator delayedDropPreviews].firstObject;
+    ASSERT_TRUE([delayedPreview isKindOfClass:UITargetedDragPreview.class]);
+
+    // The iframe is at (100, 150) in the main frame, which isn't scrolled or zoomed, so the image's bounds in
+    // the content view are its bounds in the iframe offset by that.
+    RetainPtr<NSArray> imageRectInIframe = [webView objectByEvaluatingJavaScript:@"(() => { const rect = document.querySelector('img').getBoundingClientRect(); return [rect.x, rect.y, rect.width, rect.height]; })()" inFrame:childFrame.get()];
+    auto imageRectInContentView = CGRectMake(100 + [[imageRectInIframe objectAtIndex:0] doubleValue], 150 + [[imageRectInIframe objectAtIndex:1] doubleValue], [[imageRectInIframe objectAtIndex:2] doubleValue], [[imageRectInIframe objectAtIndex:3] doubleValue]);
+    EXPECT_FALSE(CGRectIsEmpty(imageRectInContentView));
+
+    UIDragPreviewTarget *target = [(UITargetedDragPreview *)delayedPreview target];
+    EXPECT_EQ(target.container, (UIView *)[webView textInputContentView]);
+    EXPECT_NEAR(target.center.x, CGRectGetMidX(imageRectInContentView), 1);
+    EXPECT_NEAR(target.center.y, CGRectGetMidY(imageRectInContentView), 1);
+}
+
+TEST(SiteIsolation, DropPreviewForImagePlaceholderInSameSiteIframe)
+{
+    checkDropPreviewForImagePlaceholderInIframe("https://domain1.com"_s);
+}
+
+TEST(SiteIsolation, DropPreviewForImagePlaceholderInCrossOriginIframe)
+{
+    checkDropPreviewForImagePlaceholderInIframe("https://domain2.com"_s);
+}
 #endif
 
 TEST(SiteIsolation, FramesDuringProvisionalNavigation)
@@ -16971,6 +17030,91 @@ TEST(SiteIsolation, RequestRectForFoundTextRangeIOS)
     EXPECT_GT(CGRectGetHeight(receivedRect), 0);
 }
 
+static CGRect loadAndRequestRectForFoundTextRange(TestWKWebView *webView, TestNavigationDelegate *navigationDelegate, NSString *url, void (^prepare)(TestWKWebView *, WKFrameInfo *))
+{
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    if (prepare)
+        prepare(webView, [webView firstChildFrame]);
+
+    auto ranges = textRangesForQueryString(webView, @"world");
+    EXPECT_EQ([ranges count], (NSUInteger)1);
+
+    __block bool didReceiveRect = false;
+    __block CGRect receivedRect = CGRectNull;
+    [webView _requestRectForFoundTextRange:[ranges firstObject] completionHandler:^(CGRect rect) {
+        receivedRect = rect;
+        didReceiveRect = true;
+    }];
+    TestWebKitAPI::Util::run(&didReceiveRect);
+    return receivedRect;
+}
+
+static void checkRectForFoundTextRangeInCrossOriginIframe(const String& mainframeHTML, const String& subframeHTML, void (^prepare)(TestWKWebView *, WKFrameInfo *) = nil)
+{
+    HTTPServer server({
+        { "/control"_s, { makeStringByReplacingAll(mainframeHTML, "domain2.com"_s, "domain1.com"_s) } },
+        { "/mainframe"_s, { mainframeHTML } },
+        { "/subframe"_s, { subframeHTML } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+
+    // The control page uses a same-origin iframe, which is in the main frame's process.
+    CGRect controlRect = loadAndRequestRectForFoundTextRange(webView.get(), navigationDelegate.get(), @"https://domain1.com/control", prepare);
+    EXPECT_FALSE(CGRectIsEmpty(controlRect));
+
+    CGRect rect = loadAndRequestRectForFoundTextRange(webView.get(), navigationDelegate.get(), @"https://domain1.com/mainframe", prepare);
+
+    // If the rect were left in the iframe's local root-view coordinates instead of being
+    // converted to main-frame view coordinates, this would not match the control's rect.
+    EXPECT_NEAR(CGRectGetMinX(rect), CGRectGetMinX(controlRect), 1);
+    EXPECT_NEAR(CGRectGetMinY(rect), CGRectGetMinY(controlRect), 1);
+    EXPECT_NEAR(CGRectGetWidth(rect), CGRectGetWidth(controlRect), 1);
+    EXPECT_NEAR(CGRectGetHeight(rect), CGRectGetHeight(controlRect), 1);
+}
+
+static ASCIILiteral foundTextRangeSubframeHTML = "<body style='margin: 0; font-family: monospace; font-size: 24px;'><p style='margin: 0'>Hello world</p></body>"_s;
+static ASCIILiteral tallFoundTextRangeSubframeHTML = "<body style='margin: 0; padding-top: 500px; min-height: 1000px; font-family: monospace; font-size: 24px;'><p style='margin: 0'>Hello world</p></body>"_s;
+
+TEST(SiteIsolation, RequestRectForFoundTextRangeInCrossOriginIframeIOS)
+{
+    checkRectForFoundTextRangeInCrossOriginIframe(
+        "<body style='margin: 0'><iframe style='margin: 100px; width: 500px; height: 300px; border: none;' src='https://domain2.com/subframe'></iframe></body>"_s,
+        foundTextRangeSubframeHTML
+    );
+}
+
+TEST(SiteIsolation, RequestRectForFoundTextRangeInCrossOriginIframeWithScrolledMainFrameIOS)
+{
+    checkRectForFoundTextRangeInCrossOriginIframe(
+        "<body style='margin: 0; height: 2000px'><iframe style='display: block; margin-left: 100px; margin-top: 500px; width: 500px; height: 300px; border: none;' src='https://domain2.com/subframe'></iframe></body>"_s,
+        foundTextRangeSubframeHTML,
+        ^(TestWKWebView *webView, WKFrameInfo *) {
+            [webView objectByEvaluatingJavaScript:@"window.scrollTo(0, 400)"];
+            EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+                return [[webView objectByEvaluatingJavaScript:@"window.scrollY"] intValue] == 400;
+            }));
+            [webView waitForNextPresentationUpdate];
+        }
+    );
+}
+
+TEST(SiteIsolation, RequestRectForFoundTextRangeInScrolledCrossOriginIframeIOS)
+{
+    checkRectForFoundTextRangeInCrossOriginIframe(
+        "<body style='margin: 0'><iframe style='margin: 100px; width: 500px; height: 300px; border: none;' src='https://domain2.com/subframe'></iframe></body>"_s,
+        tallFoundTextRangeSubframeHTML,
+        ^(TestWKWebView *webView, WKFrameInfo *childFrameInfo) {
+            [webView objectByEvaluatingJavaScript:@"window.scrollTo(0, 500)" inFrame:childFrameInfo];
+            EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+                return [[webView objectByEvaluatingJavaScript:@"window.scrollY" inFrame:childFrameInfo] intValue] == 500;
+            }));
+            [webView waitForNextPresentationUpdate];
+        }
+    );
+}
+
 #endif
 
 TEST(SiteIsolation, MainPageNavigatesCrossOriginIframeToAboutBlank)
@@ -20662,6 +20806,51 @@ TEST(SiteIsolation, EndPrintingIsRoutedToTheFrameThatStartedPrinting)
     EXPECT_TRUE(Util::waitFor([&] {
         return [[webView objectByEvaluatingJavaScript:@"window.printEvents.join(',')" inFrame:subframe.get()] isEqualToString:@"beforeprint,afterprint"];
     }));
+}
+
+TEST(SiteIsolation, PrintingSuspendsRenderingInCrossSiteFrame)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://b.com/subframe'></iframe>"_s } },
+        { "/subframe"_s, { "subframe"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+
+    RetainPtr<WKFrameInfo> mainFrame = [webView mainFrame].info;
+    RetainPtr<WKFrameInfo> subframe = [webView mainFrame].childFrames.firstObject.info;
+    EXPECT_NE([mainFrame _processIdentifier], [subframe _processIdentifier]);
+
+    startCountingAnimationFrames(webView.get(), subframe.get());
+    expectAnimationFrameCountToIncrease(webView.get(), subframe.get());
+
+    __block bool computedPages = false;
+    [webView _computePagesForPrinting:[mainFrame _handle] completionHandler:^{
+        computedPages = true;
+    }];
+    Util::run(&computedPages);
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"window.matchMedia('print').matches" inFrame:subframe.get()] boolValue];
+    }));
+
+    // A rendering update in the subframe's process would paint the on-screen layers in print mode.
+    auto countWhilePrinting = animationFrameCount(webView.get(), subframe.get());
+    Util::runFor(0.5_s);
+    EXPECT_EQ(animationFrameCount(webView.get(), subframe.get()), countWhilePrinting);
+
+    __block bool endedPrinting = false;
+    [webView _endPrintingForTesting:^{
+        endedPrinting = true;
+    }];
+    Util::run(&endedPrinting);
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return ![[webView objectByEvaluatingJavaScript:@"window.matchMedia('print').matches" inFrame:subframe.get()] boolValue];
+    }));
+    expectAnimationFrameCountToIncrease(webView.get(), subframe.get());
 }
 
 #if HAVE(PDFKIT)

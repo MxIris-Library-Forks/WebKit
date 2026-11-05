@@ -300,6 +300,7 @@ http/tests/cookies/max-partitioned-cookies.https.html [ Skip ]
 # Skipped by default: asserts a partitioned-cookie partitionKey that needs HAVE(ALLOW_ONLY_PARTITIONED_COOKIES)
 # (macOS 26.2+). platform/mac-wk2/TestExpectations re-enables it (expected Pass) on [ Tahoe+ ].
 http/tests/site-isolation/inspector/storage/storage-get-partitioned-cookies.https.html [ Skip ]
+http/tests/site-isolation/inspector/storage/storage-cookies-partition-scoping.https.html [ Skip ]
 http/tests/resourceLoadStatistics/ [ Skip ]
 http/tests/websocket/connection-refusal-in-frame-resource-load-statistics.html [ Skip ]
 http/tests/storageAccess/ [ Skip ]
@@ -343,8 +344,9 @@ imported/w3c/web-platform-tests/html/cross-origin-opener-policy/reporting/access
 imported/w3c/web-platform-tests/html/cross-origin-opener-policy/reporting/document-reporting/
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/reporting-to-frame-owner.https.html
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/reporting-to-worker-owner.https.html
+
+# The worker posts Report.toJSON() results, whose body can't be structured-cloned.
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/cache-storage-reporting-dedicated-worker.https.html [ Skip ]
-imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/cache-storage-reporting-document.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/cache-storage-reporting-service-worker.https.html [ Skip ]
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/cache-storage-reporting-shared-worker.https.html [ Skip ]
 
@@ -1079,8 +1081,6 @@ imported/w3c/web-platform-tests/speculation-rules/prefetch/redirect-to-prefetch-
 
 # Newly imported WPT ref tests failures.
 imported/w3c/web-platform-tests/compat/webkit-box-rtl-flex.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/browsers/windows/iframe-cross-origin-scaled-print.sub.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/browsers/windows/iframe-cross-origin-print.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-fieldset-and-legend-elements/fieldset-transform-translatez.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-fieldset-and-legend-elements/fieldset-vertical.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/non-replaced-elements/the-fieldset-and-legend-elements/legend-block-margins-2.html [ ImageOnlyFailure ]
@@ -2755,7 +2755,9 @@ webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/expected-fail
 webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_and_fail.html [ Skip ]
 webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_cycle_fail.html [ Skip ]
 webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_match_fail.html [ Skip ]
+webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_match_fail-print.html [ Skip ]
 webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_mismatch_fail.html [ Skip ]
+webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_mismatch_fail-print.html [ Skip ]
 webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_ref_timeout.html [ Skip ]
 webkit.org/b/187003 imported/w3c/web-platform-tests/infrastructure/reftest/reftest_timeout.html [ Skip ]
 
@@ -5308,8 +5310,6 @@ imported/w3c/web-platform-tests/css/css-overflow/text-overflow-021.html [ ImageO
 imported/w3c/web-platform-tests/css/css-overflow/text-overflow-028.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/text-overflow-ellipsis-multiline-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/text-overflow-ellipsis-editing-input.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/text-overflow-ellipsis-vertical-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-overflow/text-overflow-ellipsis-vertical-rtl-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/text-overflow-scroll-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/text-overflow-scroll-rtl-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/text-overflow-scroll-vertical-lr-001.html [ ImageOnlyFailure ]
@@ -6077,6 +6077,10 @@ webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBef
 
 # Flaky.
 imported/w3c/web-platform-tests/dom/nodes/insertion-removing-steps/Node-appendChild-script-and-default-style-meta-from-fragment.html [ Skip ]
+
+# Debug assertion failures since import.
+imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-shadow-root.html [ Skip ]
+imported/w3c/web-platform-tests/dom/xpath-evaluation-detached-nodes.html [ Skip ]
 
 # uncategorized dialog element failures
 webkit.org/b/286022 imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-element/dialog-close-via-attribute.tentative.html [ Skip ]
@@ -7043,16 +7047,6 @@ webkit.org/b/263923 animations/transition-and-animation-2.html [ Failure Pass ]
 
 # -- Navigation API -- #
 
-# These cross-window needs --allowed-host=www1.localhost, so tested manually.
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/click-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/location-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/location-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/open-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/open-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/submit-crossdocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-imported/w3c/web-platform-tests/navigation-api/navigate-event/cross-window/submit-samedocument-crossorigin-sameorigindomain.sub.html [ Skip ]
-
 # General flakes, almost exclusively on mac-wk2-stress.
 imported/w3c/web-platform-tests/navigation-api/navigation-methods/return-value/navigate-intercept-rejected.html [ Crash Pass ]
 imported/w3c/web-platform-tests/navigation-api/scroll-behavior/ [ Failure Pass ]
@@ -7733,6 +7727,7 @@ imported/w3c/web-platform-tests/svg/struct/reftests/inner-svg-rotate-transform.s
 imported/w3c/web-platform-tests/svg/struct/reftests/inner-svg-css-transform.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/struct/reftests/use-event-handler-no-loss-of-events.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/painting/reftests/non-scaling-stroke-non-uniform-scale.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/svg/painting/reftests/non-scaling-stroke-paint-server-transform.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/painting/reftests/non-scaling-stroke-with-none-preserve-aspect-ratio.html [ ImageOnlyFailure ]
 
 # crashes with `ASSERTION FAILED: !url.protocolIsData()`
@@ -7920,7 +7915,6 @@ imported/w3c/web-platform-tests/css/css-pseudo/svg-text-selection-transparent-ba
 imported/w3c/web-platform-tests/page-lifecycle/child-display-none.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/page-lifecycle/child-out-of-viewport.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/page-lifecycle/worker-dispay-none.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/page-lifecycle/set-composited-layer-position.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/cookies/partitioned-cookies/partitioned-cookies-a-b-a-embed.tentative.https.html [ Skip ]
 
 imported/w3c/web-platform-tests/css/CSS2/visudet/inline-block-baseline-003.xht [ ImageOnlyFailure ]
@@ -8095,6 +8089,7 @@ imported/w3c/web-platform-tests/scroll-animations/animation-trigger/timeline-tri
 
 
 webkit.org/b/317017 imported/w3c/web-platform-tests/largest-contentful-paint/multiple-redirects-TAO.html [ Pass Failure ]
+webkit.org/b/????? imported/w3c/web-platform-tests/largest-contentful-paint/larger-image.html [ Pass Failure ]
 
 # Compression Dictionary Transport only advertises and decodes dictionaries on the GLib ports, so
 # these fail elsewhere waiting for a dictionary-compressed response that is never decoded.

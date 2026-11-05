@@ -415,6 +415,10 @@
 #include "PaymentCoordinator.h"
 #endif
 
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+#include <WebKitAdditions/AXCustomColorModeController.h>
+#endif
+
 #if ENABLE(WEB_CODECS)
 #include "JSWebCodecsVideoFrame.h"
 #endif
@@ -628,6 +632,12 @@ NODELETE static RefPtr<PrintContext>& printContextForTesting()
     return context;
 }
 
+static std::optional<bool>& trackingPreventionEnabledBeforeTest()
+{
+    static std::optional<bool> enabled;
+    return enabled;
+}
+
 Ref<Internals> Internals::create(Document& document)
 {
     return adoptRef(*new Internals(document));
@@ -651,6 +661,9 @@ void Internals::resetToConsistentState(Page& page)
     page.setPagination(Pagination());
 
     CachedMatchFinder::setMaximumRunCountForTesting(std::nullopt);
+
+    if (auto enabled = std::exchange(trackingPreventionEnabledBeforeTest(), std::nullopt))
+        DeprecatedGlobalSettings::setTrackingPreventionEnabled(*enabled);
 
     page.setDefersLoading(false);
     page.setResourceCachingDisabledByWebInspector(false);
@@ -1726,6 +1739,18 @@ String Internals::computedAppleColorFilter(Element& element)
 {
     return Style::Extractor::appleColorFilterSerializationForTesting(element);
 }
+
+#if ENABLE(AX_CUSTOM_COLOR_MODE)
+void Internals::setAXCustomColorModeElementQuirksForTesting(const String& forceFilterSelector, const String& preserveAuthoredColorsSelector)
+{
+    RefPtr document = contextDocument();
+    if (!document || !document->page())
+        return;
+
+    protect(document->page())->settings().setNeedsSiteSpecificQuirks(true);
+    AXCustomColorModeController::setElementQuirkSelectorsForTesting(*document, forceFilterSelector, preserveAuthoredColorsSelector);
+}
+#endif
 
 String Internals::usedBackgroundColor(Element& element)
 {
@@ -5888,7 +5913,7 @@ void Internals::setMediaElementRestrictions(HTMLMediaElement& element, StringVie
             restrictions |= MediaElementSession::RequireUserGestureForVideoDueToAggressiveThermalMitigation;
         if (equalLettersIgnoringASCIICase(restrictionString, "requirepagevisibilitytoplayaudio"_s))
             restrictions |= MediaElementSession::RequirePageVisibilityToPlayAudio;
-#if ENABLE(REQUIRES_PAGE_VISIBILITY_FOR_NOW_PLAYING)
+#if PLATFORM(APPLETV)
         if (equalLettersIgnoringASCIICase(restrictionString, "requirepagevisibilityforvideotobenowplaying"_s))
             restrictions |= MediaElementSession::RequirePageVisibilityForVideoToBeNowPlaying;
 #endif
@@ -6853,6 +6878,9 @@ String Internals::resourceLoadStatisticsForURL(const DOMURL& url)
 
 void Internals::setTrackingPreventionEnabled(bool enable)
 {
+    auto& enabledBeforeTest = trackingPreventionEnabledBeforeTest();
+    if (!enabledBeforeTest)
+        enabledBeforeTest = DeprecatedGlobalSettings::trackingPreventionEnabled();
     DeprecatedGlobalSettings::setTrackingPreventionEnabled(enable);
 }
 

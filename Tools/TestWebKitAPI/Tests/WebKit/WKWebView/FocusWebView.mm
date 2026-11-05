@@ -110,14 +110,14 @@ static auto advanceFocusRelinquishToChrome = R"FOCUSRESOURCE(
 
 static std::tuple<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>, RetainPtr<TestUIDelegate>> makeWebViewAndDelegates(RetainPtr<WKWebViewConfiguration> configuration)
 {
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration]);
 
     RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate allowAnyTLSCertificate];
-    webView.get().navigationDelegate = navigationDelegate.get();
+    webView.get().navigationDelegate = navigationDelegate;
 
     RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
-    [webView setUIDelegate:uiDelegate.get()];
+    [webView setUIDelegate:uiDelegate];
 
     return {
         WTF::move(webView),
@@ -149,11 +149,11 @@ TEST(FocusWebView, AdvanceFocusRelinquishToChrome)
     textField.get().selectable = YES;
 #if PLATFORM(MAC)
     [textField setString:@"Hello world"];
-    [[[webView window] contentView] addSubview:textField.get()];
+    [[[webView window] contentView] addSubview:textField];
     [[webView window] setFrame:newWindowFrame display:YES];
     [[webView window] makeKeyWindow];
     [NSApp _setKeyWindow:[webView window]];
-    [[webView window] makeFirstResponder:webView.get()];
+    [[webView window] makeFirstResponder:webView];
 #else
     [webView becomeFirstResponder];
 #endif
@@ -162,7 +162,7 @@ TEST(FocusWebView, AdvanceFocusRelinquishToChrome)
     uiDelegate.get().takeFocus = ^(WKWebView *view, _WKFocusDirection) {
         takeFocusCalled = true;
 #if PLATFORM(MAC)
-        [view.window makeFirstResponder:textField.get()];
+        [view.window makeFirstResponder:textField];
 #endif
     };
 
@@ -185,6 +185,18 @@ TEST(FocusWebView, AdvanceFocusRelinquishToChrome)
     EXPECT_TRUE(textField.get().didBecomeFirstResponder);
 #endif
     EXPECT_FALSE(textField.get().didSeeKeyDownEvent);
+}
+
+static void focusView(TestWKWebView *webView)
+{
+#if PLATFORM(IOS_FAMILY)
+    [webView focusInWindow];
+#else
+    [webView focus];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"document.hasFocus()"] boolValue];
+    }));
+#endif
 }
 
 TEST(FocusWebView, MultipleFrames)
@@ -217,9 +229,7 @@ TEST(FocusWebView, MultipleFrames)
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
     [navigationDelegate waitForDidFinishNavigation];
-#if PLATFORM(IOS_FAMILY)
-    [webView focusInWindow];
-#endif
+    focusView(webView);
     [webView evaluateJavaScript:@""
         "let i = document.getElementById('input');"
         "i.addEventListener('focusin', (e) => {"
@@ -268,9 +278,7 @@ static void runFocusNavigationIntoFrameWithNestedRemoteFrameTest(bool siteIsolat
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/main"]]];
     [navigationDelegate waitForDidFinishNavigation];
-#if PLATFORM(IOS_FAMILY)
-    [webView focusInWindow];
-#endif
+    focusView(webView);
 
     [webView evaluateJavaScript:@""
         "document.getElementById('mainInput').addEventListener('focusin', () => alert('mainInput focused'));"
@@ -327,9 +335,7 @@ TEST(FocusWebView, MultipleFramesSomeUnfocusable)
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
     [navigationDelegate waitForDidFinishNavigation];
-#if PLATFORM(IOS_FAMILY)
-    [webView focusInWindow];
-#endif
+    focusView(webView);
     [webView evaluateJavaScript:@""
         "let i = document.getElementById('input');"
         "i.addEventListener('focusin', (e) => {"
@@ -353,7 +359,7 @@ TEST(FocusWebView, DoNotFocusWebViewWhenUnparented)
     [webView synchronouslyLoadTestPageNamed:@"open-in-new-tab"];
 
     RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
-    [webView setUIDelegate:uiDelegate.get()];
+    [webView setUIDelegate:uiDelegate];
 
     __block bool calledFocusWebView = false;
     [uiDelegate setFocusWebView:^(WKWebView *viewToFocus) {
@@ -380,7 +386,7 @@ TEST(FocusWebView, DoNotFocusWebViewWhenUnparented)
 TEST(FocusWebView, NoFocusEventsForBackgroundWindow)
 {
     RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration]);
 
     NSString *html = @"<!DOCTYPE html>"
         "<html>"
@@ -421,7 +427,7 @@ TEST(FocusWebView, NoFocusEventsForBackgroundWindow)
 TEST(FocusWebView, FocusEventDispatchedForUserGestureInBackgroundWindow)
 {
     RetainPtr configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration]);
 
     NSString *html = @"<!DOCTYPE html>"
         "<html>"
@@ -524,10 +530,10 @@ TEST(FocusWebView, FocusInAndFocusOutEventsAccompanyFocusAndBlurWhenActiveAndFoc
 #if PLATFORM(IOS_FAMILY)
     [webView becomeFirstResponder];
 #else
-    [[webView window] makeFirstResponder:webView.get()];
+    [[webView window] makeFirstResponder:webView];
 #endif
 
-    auto count = [&](NSString *key) {
+    auto count = [&webView](NSString *key) {
         return [[webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"counts['%@'] || 0", key]] intValue];
     };
 
@@ -584,13 +590,13 @@ void CrossOriginIframeRelinquishToChromeTests::runTest()
     [[configuration preferences] _setSiteIsolationEnabled:siteIsolationEnabled()];
 
     RetainPtr focusHandler = adoptNS([[FocusEventMessageHandler alloc] init]);
-    [[configuration userContentController] addScriptMessageHandler:focusHandler.get() name:@"focusEvent"];
+    [[configuration userContentController] addScriptMessageHandler:focusHandler name:@"focusEvent"];
 
-    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration]);
 
     RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate allowAnyTLSCertificate];
-    [webView setNavigationDelegate:navigationDelegate.get()];
+    [webView setNavigationDelegate:navigationDelegate];
 
 #if PLATFORM(MAC)
     NSRect newWindowFrame = NSMakeRect(0, 0, 400, 500);
@@ -601,11 +607,11 @@ void CrossOriginIframeRelinquishToChromeTests::runTest()
     [textField setSelectable:YES];
 
 #if PLATFORM(MAC)
-    [[[webView window] contentView] addSubview:textField.get()];
+    [[[webView window] contentView] addSubview:textField];
     [[webView window] setFrame:newWindowFrame display:YES];
     [[webView window] makeKeyWindow];
     [NSApp _setKeyWindow:[webView window]];
-    [[webView window] makeFirstResponder:webView.get()];
+    [[webView window] makeFirstResponder:webView];
 #else
     [webView becomeFirstResponder];
 #endif
@@ -615,10 +621,10 @@ void CrossOriginIframeRelinquishToChromeTests::runTest()
     [uiDelegate setTakeFocus:[&takeFocusCalled, textField](WKWebView *view, _WKFocusDirection) {
         takeFocusCalled = true;
 #if PLATFORM(MAC)
-        [view.window makeFirstResponder:textField.get()];
+        [view.window makeFirstResponder:textField];
 #endif
     }];
-    [webView setUIDelegate:uiDelegate.get()];
+    [webView setUIDelegate:uiDelegate];
 
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
     [navigationDelegate waitForDidFinishNavigation];

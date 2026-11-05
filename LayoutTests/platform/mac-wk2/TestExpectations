@@ -118,8 +118,6 @@ http/tests/iframe-monitor/ [ Pass ]
 
 http/tests/ipc/write-web-archive-frame-ancestry-check.html [ Pass ]
 
-webkit.org/b/308178 [ Tahoe+ Debug arm64 ] http/tests/site-isolation/mouse-events/context-menu-event-twice.html [ Pass Timeout ]
-
 # Some of these have failing results: webkit.org/b/293983
 imported/w3c/web-platform-tests/dom/events/scrolling/iframe-chains.html [ Pass ]
 imported/w3c/web-platform-tests/dom/events/scrolling/scroll-cross-origin-iframes.html [ Pass ]
@@ -719,6 +717,7 @@ http/tests/storageAccess/grant-with-prompt-under-general-third-party-cookie-bloc
 # where opt-in cookie partitioning is compiled out. Skipped by default in the generic LayoutTests/TestExpectations;
 # this cross-file override runs it (expected Pass) on Tahoe+.
 [ Tahoe+ ] http/tests/site-isolation/inspector/storage/storage-get-partitioned-cookies.https.html [ Pass ]
+[ Tahoe+ ] http/tests/site-isolation/inspector/storage/storage-cookies-partition-scoping.https.html [ Pass ]
 
 # Enable again when fixing https://bugs.webkit.org/show_bug.cgi?id=208400.
 http/tests/storageAccess/has-storage-access-true-if-third-party-has-cookies-ephemeral.https.html [ Skip ]
@@ -2245,7 +2244,6 @@ webkit.org/b/307889 http/tests/multipart/multipart-async-image.html [ Pass Failu
 webkit.org/b/310302 imported/w3c/web-platform-tests/uievents/mouse/mouse_boundary_events_on_image_map.html [ Pass Failure ]
 
 # FIXME <https://webkit.org/b/311136>: Additional work needed to pass these tests
-http/tests/site-isolation/inspector/page/override-setting-cross-origin-iframe.html [ Pass Failure ]
 webkit.org/b/311836 http/tests/site-isolation/inspector/page/set-emulated-media-cross-origin-iframe.html [ Pass Failure ]
 
 webkit.org/b/314356 imported/w3c/web-platform-tests/websockets/constructor/013.html?default [ Pass Failure ]
@@ -2654,8 +2652,6 @@ webkit.org/b/329010 [ Tahoe+ ] compositing/filters/filter-fractional-translation
 webkit.org/b/329010 [ Tahoe+ ] compositing/filters/filter-fractional-translation-flipped.html [ ImageOnlyFailure ]
 webkit.org/b/329010 [ Tahoe+ ] compositing/filters/filter-fractional-translation-perspective.html [ ImageOnlyFailure ]
 webkit.org/b/329010 [ Tahoe+ ] compositing/filters/filter-fractional-translation-rotate-y.html [ ImageOnlyFailure ]
-
-webkit.org/b/327798 [ Release ] compositing/backing/backface-visibility-flip.html [ Pass Failure ]
 
 webkit.org/b/329900 [ Sequoia+ Debug arm64 ] http/tests/site-isolation/inspector/debugger/pause-holds-cross-process-frames-until-paused-frame-goes-away.html [ Pass Timeout ]
 

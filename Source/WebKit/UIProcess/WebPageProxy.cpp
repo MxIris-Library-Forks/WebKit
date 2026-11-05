@@ -4701,11 +4701,12 @@ void WebPageProxy::performDragControllerAction(DragControllerAction action, Drag
     if (!hasRunningProcess())
         return;
 
-    auto completionHandler = [this, protectedThis = Ref { *this }, action, dragData] (std::optional<WebCore::DragOperation> dragOperation, WebCore::DragHandlingMethod dragHandlingMethod, bool mouseIsOverFileInput, unsigned numberOfItemsToBeAccepted, const IntRect& insertionRect, const IntRect& editableElementRect, std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) mutable {
+    auto completionHandler = [this, protectedThis = Ref { *this }, action, dragData, frameID] (std::optional<WebCore::DragOperation> dragOperation, WebCore::DragHandlingMethod dragHandlingMethod, bool mouseIsOverFileInput, unsigned numberOfItemsToBeAccepted, const IntRect& insertionRect, const IntRect& editableElementRect, std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) mutable {
         if (!m_pageClient)
             return;
 
         if (!remoteUserInputEventData) {
+            internals().currentDragTargetFrameID = frameID;
             didPerformDragControllerAction(dragOperation, dragHandlingMethod, mouseIsOverFileInput, numberOfItemsToBeAccepted, insertionRect, editableElementRect);
             return;
         }
@@ -4823,6 +4824,7 @@ void WebPageProxy::resetCurrentDragInformation()
     internals().currentDragHandlingMethod = DragHandlingMethod::None;
     m_currentDragIsOverFileInput = false;
     m_currentDragNumberOfFilesToBeAccepted = 0;
+    internals().currentDragTargetFrameID = std::nullopt;
     setDragCaretRect({ });
 }
 
@@ -6430,7 +6432,18 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
     navigation.setUnpartitionedStorageSite(unpartitionedStorageSiteForNavigation(frame, navigation.currentRequest().url()));
 
     Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, processSwapRequestedByClient);
-    if (frame.isMainFrame() && shouldUseEnhancedSecurityHeuristics(preferences))
+
+    bool isFragmentOnlyMainFrameNavigation = [&] {
+        if (!frame.isMainFrame())
+            return false;
+        auto& lastNavigationAction = navigation.lastNavigationAction();
+        if (lastNavigationAction && lastNavigationAction->navigationType == WebCore::NavigationType::BackForward)
+            return false;
+        auto& requestURL = navigation.currentRequest().url();
+        return requestURL.hasFragmentIdentifier() && equalIgnoringFragmentIdentifier(requestURL, frame.url());
+    }();
+
+    if (frame.isMainFrame() && shouldUseEnhancedSecurityHeuristics(preferences) && !isFragmentOnlyMainFrameNavigation)
         internals().enhancedSecurityTracker.trackNavigation(navigation, hasOpenedPage(), internals().pageLoadState.httpFallbackInProgress());
 
     auto enhancedSecurity = securityRestrictionsSourceFrame ? securityRestrictionsSourceFrame->process().enhancedSecurity() : currentEnhancedSecurityState(websitePolicies.get());
@@ -9051,6 +9064,9 @@ void WebPageProxy::didDestroyFrame(IPC::Connection& connection, FrameIdentifier 
     if (internals().fixedContainerEdgeSamplingFrames.remove(frameID))
         resolveFixedContainerEdges();
 #endif
+
+    if (frame && frame == m_focusedFrame)
+        m_focusedFrame = nullptr;
 
     if (frame)
         frame->disconnect();
@@ -19345,8 +19361,12 @@ void WebPageProxy::didRestoreScrollPosition()
         pageClient->didRestoreScrollPosition();
 }
 
-void WebPageProxy::getLoadDecisionForIcons(const HashMap<CallbackID, WebCore::LinkIcon>& icons)
+void WebPageProxy::getLoadDecisionForIcons(IPC::Connection& connection, const Vector<std::pair<CallbackID, WebCore::LinkIcon>>& icons)
 {
+    HashSet<CallbackID> loadIdentifiers;
+    for (auto& icon : borrow(icons))
+        MESSAGE_CHECK_BASE(loadIdentifiers.add(icon.first).isNewEntry, connection);
+
 #if PLATFORM(COCOA)
     for (const auto& [loadIdentifier, icon] : icons) {
         m_iconLoadingClient->getLoadDecisionForIcon(icon, [this, protectedThis = Ref { *this }, loadIdentifier] (CompletionHandler<void(API::Data*)>&& callback) {
@@ -19370,15 +19390,14 @@ void WebPageProxy::getLoadDecisionForIcons(const HashMap<CallbackID, WebCore::Li
         });
     }
 #else
-    m_iconLoadingClient->getLoadDecisionForIcons(icons, [this, icons, protectedThis = Ref { *this }] (HashSet<CallbackID>&& iconIdentifiers) {
-        if (iconIdentifiers.isEmpty() || !hasRunningProcess())
+    m_iconLoadingClient->getLoadDecisionForIcons(icons, [this, icons = icons, protectedThis = Ref { *this }](HashSet<CallbackID>&& iconIdentifiers) mutable {
+        if (!hasRunningProcess())
             return;
 
-        for (const auto& loadIdentifier : icons.keys()) {
+        for (auto& [loadIdentifier, icon] : icons) {
             if (!iconIdentifiers.contains(loadIdentifier))
                 sendWithAsyncReply(Messages::WebPage::DidGetLoadDecisionForIcon(false, loadIdentifier), [](auto) { });
             else {
-                LinkIcon icon = icons.get(loadIdentifier);
                 sendWithAsyncReply(Messages::WebPage::DidGetLoadDecisionForIcon(true, loadIdentifier), [weakThis = WeakPtr { *this }, loadIdentifier, icon = WTF::move(icon)](const IPC::SharedBufferReference& iconData) mutable {
                     if (RefPtr protectedThis = weakThis.get())
                         protectedThis->m_iconLoadingClient->iconLoaded(loadIdentifier, icon, iconData.isNull() ? nullptr : API::Data::create(iconData.span()).ptr());
@@ -21462,6 +21481,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPos
 #if ENABLE(DRAG_SUPPORT)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestDragStart);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestAdditionalItemsForDragSession);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::InsertDroppedImagePlaceholders);
 #endif
 #endif
 #if PLATFORM(MAC)

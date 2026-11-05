@@ -64,7 +64,7 @@ Ref<CoordinatedPlatformLayer> CoordinatedPlatformLayer::create()
 CoordinatedPlatformLayer::CoordinatedPlatformLayer(Client* client)
     : m_client(client)
     , m_id(PlatformLayerIdentifier::generate())
-#if !USE(TEXTURE_MAPPER)
+#if USE(SKIA)
     , m_threadSafeGrContext(m_client ? m_client->tileManager().threadSafeGrContext() : nullptr)
 #endif
 {
@@ -706,6 +706,7 @@ void CoordinatedPlatformLayer::setReplica(CoordinatedPlatformLayer* replica)
     notifyCompositionRequired();
 }
 
+#if USE(TEXTURE_MAPPER)
 void CoordinatedPlatformLayer::setBackdrop(CoordinatedPlatformLayer* backdrop)
 {
     assertIsHeld(m_lock);
@@ -723,6 +724,19 @@ void CoordinatedPlatformLayer::notifyBackdropFiltersChanged()
     damageWholeLayer();
     notifyCompositionRequired();
 }
+#else
+void CoordinatedPlatformLayer::setBackdropFilters(const FilterOperations& filters)
+{
+    assertIsHeld(m_lock);
+    if (m_backdropFilters == filters)
+        return;
+
+    m_backdropFilters = filters;
+    m_pendingChanges.add(Change::Backdrop);
+    damageWholeLayer();
+    notifyCompositionRequired();
+}
+#endif
 
 void CoordinatedPlatformLayer::setBackdropRect(const FloatRoundedRect& backdropRect)
 {
@@ -892,8 +906,13 @@ void CoordinatedPlatformLayer::updateBackingStore()
 {
     assertIsMainThread();
 
+#if USE(CAIRO)
     if (m_dirtyRegion.isEmpty() && !m_pendingTilesCreation && !m_needsTilesUpdate)
         return;
+#else
+    if (m_dirtyRegion.isEmpty() && !m_needsTilesUpdate)
+        return;
+#endif
 
     FloatSize size;
     float contentsScale;
@@ -911,10 +930,17 @@ void CoordinatedPlatformLayer::updateBackingStore()
     }
 
     Damage damage(size, Damage::Mode::Rectangles);
-    auto updateResult = backingStoreProxy->updateIfNeeded(m_transformedVisibleRect, size, m_visibleRect, contentsScale, contentsOpaque, m_pendingTilesCreation || m_needsTilesUpdate, m_dirtyRegion, damage, *this);
+#if USE(CAIRO)
+    bool shouldCreateDestroyTiles = m_pendingTilesCreation || m_needsTilesUpdate;
+#else
+    bool shouldCreateDestroyTiles = m_needsTilesUpdate;
+#endif
+    auto updateResult = backingStoreProxy->updateIfNeeded(m_transformedVisibleRect, size, m_visibleRect, contentsScale, contentsOpaque, shouldCreateDestroyTiles, m_dirtyRegion, damage, *this);
     m_dirtyRegion.clear();
     m_needsTilesUpdate = false;
+#if USE(CAIRO)
     m_pendingTilesCreation = updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::TilesPending);
+#endif
 
     bool tilesChanged = updateResult.contains(CoordinatedBackingStoreProxy::UpdateResult::TilesChanged);
     {
@@ -961,10 +987,12 @@ void CoordinatedPlatformLayer::updateContents(bool affectedByTransformAnimation)
         }
     }
 
+#if USE(TEXTURE_MAPPER)
     if (m_backdrop) {
         Locker locker { m_backdrop->lock() };
         m_backdrop->updateContents(affectedByTransformAnimation);
     }
+#endif
 }
 
 void CoordinatedPlatformLayer::purgeBackingStores()
@@ -1012,6 +1040,15 @@ void CoordinatedPlatformLayer::didPaintTile()
     // Could be called from painting threads.
     if (m_client)
         m_client->didPaintTile();
+}
+
+void CoordinatedPlatformLayer::didPaintPreRenderedTile()
+{
+#if USE(SKIA)
+    // Called from painting threads.
+    if (m_client)
+        m_client->didPaintPreRenderedTile(*this);
+#endif
 }
 
 void CoordinatedPlatformLayer::waitUntilPaintingFinished()
@@ -1438,17 +1475,9 @@ void CoordinatedPlatformLayer::flushCompositingStateOnTarget(const OptionSet<Com
             m_pendingChanges.remove(Change::Replica);
         }
 
-        // FIXME: stop creating a layer for backdrop filters when switching to SkiaCompositingLayer.
-        if (m_pendingChanges.contains(Change::Backdrop) && !m_backdrop) {
-            layer.setBackdropFilters(FilterOperations());
+        if (m_pendingChanges.contains(Change::Backdrop)) {
+            layer.setBackdropFilters(m_backdropFilters);
             m_pendingChanges.remove(Change::Backdrop);
-        } else if (m_backdrop) {
-            Locker locker { m_backdrop->lock() };
-            if (m_pendingChanges.contains(Change::Backdrop) || m_backdrop->m_pendingChanges.contains(Change::Filters)) {
-                layer.setBackdropFilters(m_backdrop->m_filters);
-                m_pendingChanges.remove(Change::Backdrop);
-                m_backdrop->m_pendingChanges.remove(Change::Filters);
-            }
         }
 
         if (m_pendingChanges.contains(Change::BackdropRect)) {
@@ -1551,6 +1580,14 @@ void CoordinatedPlatformLayer::processPendingBackingStoreTileUpdates()
     }
 #endif
 }
+
+#if USE(SKIA)
+bool CoordinatedPlatformLayer::processPendingBackingStoreTileUpdatesIncludingPreRendered(const Function<bool()>& shouldStopProcessingTiles)
+{
+    ASSERT(!isMainThread());
+    return m_target ? m_target->processPendingTileUpdatesIncludingPreRendered(shouldStopProcessingTiles) : false;
+}
+#endif
 
 } // namespace WebCore
 

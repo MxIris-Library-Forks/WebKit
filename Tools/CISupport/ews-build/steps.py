@@ -1550,6 +1550,20 @@ class CheckChangeRelevance(AnalyzeChange):
         re.compile(rb'Tools/CISupport/safer-cpp-swift-version', re.IGNORECASE)
     ]
 
+    webdriver_path_regexes = [
+        re.compile(rb'Source/WebDriver/', re.IGNORECASE),
+        re.compile(rb'Source/WebKit/UIProcess/Automation/', re.IGNORECASE),
+        re.compile(rb'Source/WebKit/WebProcess/Automation/', re.IGNORECASE),
+        re.compile(rb'Source/WebKit/Shared/Automation/', re.IGNORECASE),
+        re.compile(rb'Source/WebCore/automation/', re.IGNORECASE),
+        re.compile(rb'Source/WebCore/Modules/webdriver/', re.IGNORECASE),
+        re.compile(rb'Tools/MiniBrowser/mac/', re.IGNORECASE),
+        re.compile(rb'Tools/MiniBrowser/MiniBrowser.xcodeproj', re.IGNORECASE),
+        re.compile(rb'WebDriverTests/', re.IGNORECASE),
+        re.compile(rb'Tools/Scripts/webkitpy/webdriver_tests/', re.IGNORECASE),
+        re.compile(rb'Tools/Scripts/run-webdriver-tests', re.IGNORECASE),
+    ]
+
     group_to_paths_mapping = {
         'bindings': bindings_path_regexes,
         'monterey-release-build': monterey_builder_path_regexes,
@@ -1558,6 +1572,7 @@ class CheckChangeRelevance(AnalyzeChange):
         'webkitpy': webkitpy_path_regexes,
         'wk1-tests': wk1_path_regexes,
         'safer-cpp': safer_cpp_path_regexes,
+        'webdriver': webdriver_path_regexes,
     }
 
     def _patch_is_relevant(self, patch, builderName, timeout=30):
@@ -5128,7 +5143,8 @@ class RunWebKitTestsRedTree(RunWebKitTests):
             message = 'Passed layout tests'
             self.descriptionDone = message
             self.build.results = SUCCESS
-            self.setProperty('build_summary', message)
+            if RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE not in self.getProperty('build_summary', ''):
+                self.setProperty('build_summary', message)
         else:
             # We have a failure return code but not a list of failed or flaky tests, so we can't run the repeat steps.
             # If we are on the last retry then run the whole layout tests without patch.
@@ -5353,8 +5369,8 @@ class AnalyzeLayoutTestsResultsRedTree(AnalyzeLayoutTestsResults):
     def report_success(self):
         self.build.results = SUCCESS
         self.descriptionDone = 'Passed layout tests'
-        message = ''
-        self.setProperty('build_summary', message)
+        if RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE not in self.getProperty('build_summary', ''):
+            self.setProperty('build_summary', '')
         return SUCCESS
 
     def report_infrastructure_issue_and_maybe_retry_build(self, message):
@@ -6031,9 +6047,12 @@ class RunAPITests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin):
     def analyze_failures_using_results_db(self, failures):
         if failures:
             yield self._addToLog(self.test_failures_log_name, '\n'.join(failures))
-            yield self.filter_api_test_failures_using_results_db(failures)
-            self.setProperty(f'{self.suffix}_failures_filtered', sorted(self.failing_tests_filtered))
-            self.setProperty(f'results-db_{self.suffix}_pre_existing', sorted(self.pre_existing_failures_in_results_db))
+            if self.getProperty(f'{self.suffix}_exceeded_failure_limit', False):
+                yield self._addToLog(self.results_db_log_name, 'This run exceeded --exit-after-n-failures, so results-db filtering is skipped\n')
+            else:
+                yield self.filter_api_test_failures_using_results_db(failures)
+                self.setProperty(f'{self.suffix}_failures_filtered', sorted(self.failing_tests_filtered))
+                self.setProperty(f'results-db_{self.suffix}_pre_existing', sorted(self.pre_existing_failures_in_results_db))
 
     def doOnFailure(self):
         self.steps_to_add += [
@@ -6103,11 +6122,17 @@ class ReRunAPITests(RunAPITests):
 
         # A test failing one of the two runs and passing the other flaked across the steps.
         if (first_run_failures := self.getProperty('api_first_run_failures', None)) is not None:
-            results = self.merged_results(set(first_run_failures) ^ set(failures), {
-                'first-run': 'api_first_run_results',
-                'second-run': 'api_second_run_results',
-            })
-            yield self.report_to_results_db(results, flaky_type='BetweenStepsDirtyTree')
+            unique_failures = set(first_run_failures) ^ set(failures)
+            if self.getProperty('api_first_run_exceeded_failure_limit', False) or self.getProperty('api_second_run_exceeded_failure_limit', False):
+                yield self._addToLog(self.results_db_log_name, 'A run exceeded the failure limit, so the two runs are not comparable\n')
+            elif len(unique_failures) > 10:
+                yield self._addToLog(self.results_db_log_name, f'{len(unique_failures)} tests failed in only one of the two runs, which is too many to attribute to flakiness; skipping BetweenStepsDirtyTree report\n')
+            else:
+                results = self.merged_results(unique_failures, {
+                    'first-run': 'api_first_run_results',
+                    'second-run': 'api_second_run_results',
+                })
+                yield self.report_to_results_db(results, flaky_type='BetweenStepsDirtyTree')
         defer.returnValue(failures)
 
     def failures_with_change(self, run: str) -> set[str]:
@@ -6128,7 +6153,15 @@ class ReRunAPITests(RunAPITests):
             return False
         if self.getProperty('api_first_run_exceeded_failure_limit', False) or self.getProperty('api_second_run_exceeded_failure_limit', False):
             return False
+        if len(self.flaky_across_dirty_runs()) > 10:
+            return False
         return not self.failures_in_both_dirty_runs()
+
+    def flaky_across_dirty_runs(self) -> set[str]:
+        """
+        Tests that failed one of the two dirty runs and passed the other.
+        """
+        return self.failures_with_change('first') ^ self.failures_with_change('second')
 
     @defer.inlineCallbacks
     def doOnFailure(self) -> Generator[Any, Any, None]:
@@ -6151,8 +6184,12 @@ class ReRunAPITests(RunAPITests):
             self.setProperty('build_summary', message)
             return
 
+        first_exceeded = self.getProperty('api_first_run_exceeded_failure_limit', False)
+        second_exceeded = self.getProperty('api_second_run_exceeded_failure_limit', False)
         is_main = self.getProperty('github.base.ref', DEFAULT_BRANCH) == DEFAULT_BRANCH
-        if is_main and (candidates := self.failures_in_both_dirty_runs()):
+        if (is_main and not first_exceeded and not second_exceeded
+                and len(self.flaky_across_dirty_runs()) <= 10
+                and (candidates := self.failures_in_both_dirty_runs())):
             # parse_and_set_failures has already reported this build's BetweenStepsDirtyTree
             # evidence, the only evidence the revert and clean-tree run would have added.
             excused = yield self.pre_existing_flakes_using_results_db(candidates)
@@ -7032,6 +7069,7 @@ class PushCommitToWebKitRepo(shell.ShellCommand):
             self.build.addStepsAfterCurrentStep(steps_to_add)
 
         else:
+            self.setProperty('build_summary', '')
             retry_count = int(self.getProperty('retry_count', 0))
             if retry_count < self.MAX_RETRY:
                 self.setProperty('retry_count', retry_count + 1)
@@ -7799,6 +7837,9 @@ class Canonicalize(steps.ShellSequence, ShellMixin, AddToLogMixin):
         for command in commands:
             self.commands.append(util.ShellArg(command=command, logname='stdio', haltOnFailure=True))
         rc = yield super().run()
+
+        if rc == FAILURE:
+            self.setProperty('build_summary', '')
 
         if rc == FAILURE and self.verify_commit_count_command and self.last_command == self.verify_commit_count_command:
             pr_number = self.getProperty('github.number')

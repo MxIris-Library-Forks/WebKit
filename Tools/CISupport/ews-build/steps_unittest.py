@@ -4025,6 +4025,16 @@ class TestFilterLayoutTestFailuresUsingResultsDB(BuildStepMixinAdditions, unitte
         self.assertEqual(self.build.results, SUCCESS)
 
     @defer.inlineCallbacks
+    def test_set_build_summary_fails_a_build_with_stress_mode_failures(self):
+        self.setup_step(SetBuildSummary())
+        self.setProperty('build_summary', RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE)
+        self.setProperty('force_build_success', True)
+        self.build.results = SUCCESS
+        self.expect_outcome(result=SUCCESS)
+        yield self.run_step()
+        self.assertEqual(self.build.results, FAILURE)
+
+    @defer.inlineCallbacks
     def test_set_build_summary_keeps_a_cancelled_build_cancelled(self):
         self.setup_step(SetBuildSummary())
         self.setProperty('build_summary', 'Passed layout tests')
@@ -4352,6 +4362,16 @@ class TestRunWebKitTestsRedTree(BuildStepMixinAdditions, unittest.TestCase):
         self.patch(self.build, 'addStepsAfterCurrentStep', lambda s: None)
         self.patch(RunWebKitTestsRedTree, 'evaluateResult', lambda s, r: r)
         step.evaluateCommand(FAILURE)
+        self.assertEqual(self.getProperty('build_summary'), RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE)
+
+    def test_success_keep_stress_mode_failure(self):
+        self.configureStep()
+        self.setProperty('first_run_failures', [])
+        self.setProperty('first_run_flakies', [])
+        self.setProperty('build_summary', RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE)
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda s: None)
+        self.patch(RunWebKitTestsRedTree, 'evaluateResult', lambda s, r: r)
+        self.get_nth_step(0).evaluateCommand(SUCCESS)
         self.assertEqual(self.getProperty('build_summary'), RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE)
 
     def test_failures_all_pre_existing_in_results_db_with_flakies_then_go_to_analyze_results(self):
@@ -5003,6 +5023,39 @@ class TestReRunAPITestsExcusesKnownFlakes(BuildStepMixinAdditions, unittest.Test
         self.assertEqual(step.steps_to_add, self.LADDER)
         self.assertEqual(self.results_db_reports, [between_steps_report])
 
+    @defer.inlineCallbacks
+    def test_a_cap_hit_run_queues_the_whole_ladder(self) -> Generator[Any, Any, None]:
+        # A cap-truncated run produces a nondeterministic subset of the real failures, so the
+        # intersection of the two dirty runs cannot be trusted as a "consistent failures" signal.
+        # Mirror the layout-tests guard at ReRunWebKitTests.evaluateCommand.
+        step = self.configureStep(['suite.flaky'], ['suite.flaky'])
+        self.setProperty('api_first_run_exceeded_failure_limit', True)
+        self.patch(ResultsDatabase, 'flaky_verdicts_for', TestAPITestFlakinessReadUsingResultsDB.fake_verdicts(
+            {'suite.flaky': FlakyVerdict(flaky_type='DirtyTree')}))
+
+        yield step.doOnFailure()
+
+        self.assertEqual(step.steps_to_add, self.LADDER)
+        self.assertIsNone(self.getProperty('build_summary'))
+        self.assertIsNone(self.getProperty('force_build_success'))
+
+    @defer.inlineCallbacks
+    def test_more_than_ten_disagreeing_tests_queues_the_whole_ladder(self) -> Generator[Any, Any, None]:
+        # 11 tests in the symmetric difference means the two runs disagree too much to be a
+        # trustworthy flakiness signal, even sub-cap. Mirror the num_flaky_failures <= 10 guard
+        # at ReRunWebKitTests.evaluateCommand:4560.
+        first_only = [f'suite.only_first_{i}' for i in range(6)]
+        second_only = [f'suite.only_second_{i}' for i in range(5)]
+        step = self.configureStep(['suite.flaky'] + first_only, ['suite.flaky'] + second_only)
+        self.patch(ResultsDatabase, 'flaky_verdicts_for', TestAPITestFlakinessReadUsingResultsDB.fake_verdicts(
+            {'suite.flaky': FlakyVerdict(flaky_type='DirtyTree')}))
+
+        yield step.doOnFailure()
+
+        self.assertEqual(step.steps_to_add, self.LADDER)
+        self.assertIsNone(self.getProperty('build_summary'))
+        self.assertIsNone(self.getProperty('force_build_success'))
+
 
 class TestReRunAPITestsSkipsCleanTreeWithoutRepeatedFailures(BuildStepMixinAdditions, unittest.TestCase):
     """A test that fails in only one of the two runs with the change is flaky, so there is no need
@@ -5057,18 +5110,33 @@ class TestReRunAPITestsSkipsCleanTreeWithoutRepeatedFailures(BuildStepMixinAddit
 
     @defer.inlineCallbacks
     def test_the_summary_lists_at_most_ten_tests(self) -> Generator[Any, Any, None]:
-        first_run = [f'suite.first{index:02}' for index in range(6)]
-        second_run = [f'suite.second{index:02}' for index in range(6)]
+        first_run = [f'suite.first{index:02}' for index in range(5)]
+        second_run = [f'suite.second{index:02}' for index in range(5)]
         step = self.configureStep(first_run, second_run)
 
         yield step.doOnFailure()
 
-        self.assertEqual(self.getProperty('build_summary'), f"Found flaky tests: {', '.join((first_run + second_run)[:10])} ...")
+        self.assertEqual(self.getProperty('build_summary'), f"Found flaky tests: {', '.join(first_run + second_run)}")
 
     @defer.inlineCallbacks
     def test_a_run_that_exceeded_the_failure_limit_queues_the_ladder(self) -> Generator[Any, Any, None]:
         step = self.configureStep(['suite.first'], ['suite.second'])
         self.setProperty('api_second_run_exceeded_failure_limit', True)
+        self.patch(ResultsDatabase, 'flaky_verdicts_for', TestAPITestFlakinessReadUsingResultsDB.fake_verdicts({}))
+
+        yield step.doOnFailure()
+
+        self.assertEqual(step.steps_to_add, self.LADDER)
+        self.assertIsNone(self.getProperty('build_summary'))
+
+    @defer.inlineCallbacks
+    def test_more_than_ten_disjoint_failures_queues_the_ladder(self) -> Generator[Any, Any, None]:
+        # 11+ tests failing in only one of the two runs signals environmental noise, not real
+        # flakiness. Mirror the num_flaky_failures <= 10 guard at
+        # ReRunWebKitTests.evaluateCommand:4560.
+        first_only = [f'suite.first_{i}' for i in range(6)]
+        second_only = [f'suite.second_{i}' for i in range(5)]
+        step = self.configureStep(first_only, second_only)
         self.patch(ResultsDatabase, 'flaky_verdicts_for', TestAPITestFlakinessReadUsingResultsDB.fake_verdicts({}))
 
         yield step.doOnFailure()
@@ -5193,6 +5261,21 @@ class TestAPITestStepsReportAsTheyRun(BuildStepMixinAdditions, unittest.TestCase
 
         # suite.both failed both runs, so it is a consistent failure rather than flakiness.
         self.assertEqual(self.reported(), [('BetweenStepsDirtyTree', ['suite.a', 'suite.b'], 'api-tests')])
+
+    @defer.inlineCallbacks
+    def test_the_rerun_skips_the_between_steps_report_when_a_run_hit_the_cap(self):
+        # A cap-truncated run makes the two runs non-comparable, so writing the symmetric
+        # difference as flake evidence would poison results-db. Mirror the layout-tests guard at
+        # ReRunWebKitTests.runCommand:4627-4633.
+        step = self.configureStep(ReRunAPITests)
+        step.log_observer_json = TestLayoutTestStepsReportAsTheyRun.FakeLogObserver(self.SECOND_RUN_JSON)
+        self.setProperty('api_first_run_failures', ['suite.a', 'suite.both'])
+        self.setProperty('api_first_run_results', {'suite.a': dict(actual='FAIL'), 'suite.both': dict(actual='FAIL')})
+        self.setProperty('api_first_run_exceeded_failure_limit', True)
+
+        yield step.parse_and_set_failures()
+
+        self.assertEqual(self.reported(), [])
 
     @defer.inlineCallbacks
     def test_the_analyze_step_reports_the_failures_it_attributes_to_the_change(self):
@@ -5886,6 +5969,21 @@ class TestAnalyzeLayoutTestsResultsRedTree(BuildStepMixinAdditions, unittest.Tes
         self.assertFalse('Test name: <a href="https://github.com/WebKit/WebKit/blob/main/LayoutTests/preexisting-test/pre-existent/failure.html">preexisting-test/pre-existent/failure.html</a>' in self._emails_list[0])
         self.assertTrue('Subject: Info about 1 pre-existent failure at' in self._emails_list[1])
         self.assertTrue('preexisting-test/pre-existent/failure.html' in self._emails_list[1])
+        return step_result
+
+    def test_pre_existent_failures_keep_stress_mode_failure(self):
+        self.configureStep()
+        self.configureCommonProperties()
+        self.setProperty('build_summary', RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE)
+        self.setProperty('first_run_failures', ["test/pre-existent/failure.html"])
+        self.setProperty('first_run_flakies', [])
+        self.setProperty('with_change_repeat_failures_results_nonflaky_failures', ["test/pre-existent/failure.html"])
+        self.setProperty('with_change_repeat_failures_results_flakies', [])
+        self.setProperty('without_change_repeat_failures_results_nonflaky_failures', ["test/pre-existent/failure.html"])
+        self.setProperty('without_change_repeat_failures_results_flakies', [])
+        self.expect_outcome(result=SUCCESS, state_string='Passed layout tests')
+        step_result = self.run_step()
+        self.assertEqual(self.getProperty('build_summary'), RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE)
         return step_result
 
     def test_pre_existent_flakies(self):
@@ -7017,6 +7115,39 @@ class TestCheckChangeRelevance(BuildStepMixinAdditions, unittest.TestCase):
             self.expect_outcome(result=FAILURE, state_string='Pull request doesn\'t have relevant changes')
             rc = self.run_step()
         return rc
+
+
+class TestCheckChangeRelevanceForWebDriver(unittest.TestCase):
+    BUILDER_NAME = 'macOS-Tahoe-Debug-WebDriver-Tests-EWS'
+
+    def test_relevant_files(self):
+        for file_name in [
+            'Source/WebDriver/Session.cpp',
+            'Source/WebKit/UIProcess/Automation/WebAutomationSession.cpp',
+            'Source/WebKit/WebProcess/Automation/WebAutomationSessionProxy.cpp',
+            'Source/WebKit/Shared/Automation/AutomationProtocolObjects.h',
+            'Source/WebCore/automation/AutomationInstrumentation.cpp',
+            'Source/WebCore/Modules/webdriver/NavigatorWebDriver.cpp',
+            'Tools/MiniBrowser/mac/AutomationConnection.m',
+            'Tools/MiniBrowser/MiniBrowser.xcodeproj/project.pbxproj',
+            'WebDriverTests/TestExpectations.json',
+            'Tools/Scripts/webkitpy/webdriver_tests/webdriver_test_runner.py',
+            'Tools/Scripts/run-webdriver-tests',
+        ]:
+            self.assertTrue(CheckChangeRelevance()._patch_is_relevant(f'Tools/ChangeLog\n{file_name}', self.BUILDER_NAME), file_name)
+
+    def test_irrelevant_files(self):
+        for file_name in [
+            'Source/WebKit/UIProcess/WebPageProxy.cpp',
+            'Source/WebCore/dom/Document.cpp',
+            'Tools/MiniBrowser/gtk/main.c',
+            'Tools/Scripts/run-webkit-tests',
+            'LayoutTests/imported/w3c/web-platform-tests/webdriver/tests/support/helpers.py',
+        ]:
+            self.assertFalse(CheckChangeRelevance()._patch_is_relevant(file_name, self.BUILDER_NAME), file_name)
+
+    def test_queues_without_a_group_still_run_on_every_change(self):
+        self.assertTrue(CheckChangeRelevance()._patch_is_relevant('Source/WebCore/dom/Document.cpp', 'macOS-Tahoe-Debug-API-Tests-EWS'))
 
 
 class TestGetTestExpectationsBaseline(BuildStepMixinAdditions, unittest.TestCase):
@@ -10143,6 +10274,26 @@ class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
         self.expect_property('comment_text', 'merge-queue failed to commit PR to repository. To retry, remove any blocking labels and re-apply merge-queue label')
         return rc
 
+    def test_failure_pr_retry_clears_build_summary(self):
+        self.setup_step(PushCommitToWebKitRepo())
+        self.setProperty('github.number', '1234')
+        self.setProperty('remote', 'origin')
+        self.setProperty('build_summary', 'Ignored pre-existing failure: test.html')
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=300,
+                        log_environ=False,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'push', 'origin', 'HEAD:main'])
+            .log('stdio', stdout='Unexpected failure')
+            .exit(2),
+        )
+        self.expect_outcome(result=FAILURE, state_string='Failed to push commit to Webkit repository')
+        self.expect_property('retry_count', 1)
+        self.expect_property('build_summary', '')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            return self.run_step()
+
 
 class TestDetermineLabelOwner(BuildStepMixinAdditions, unittest.TestCase):
     def setUp(self):
@@ -12470,6 +12621,43 @@ class TestCanonicalize(BuildStepMixinAdditions, unittest.TestCase):
             ).exit(1),
         )
         self.expect_outcome(result=FAILURE, state_string='Failed to canonicalize commit')
+        return self.run_step()
+
+    def test_failure_rebase_conflict(self):
+        self.setup_step(Canonicalize())
+        self.setProperty('github.number', '1234')
+        self.setProperty('github.base.ref', 'main')
+        self.setProperty('github.head.ref', 'eng/pull-request-branch')
+        self.setProperty('owners', ['webkit-commit-queue'])
+        self.setProperty('remote', 'origin')
+        self.setProperty('build_summary', 'Ignored pre-existing failure: test.html')
+
+        self.expectRemoteCommands(
+            ExpectShell(
+                workdir='wkdir',
+                timeout=300,
+                log_environ=False,
+                env=self.ENV,
+                command=['/bin/bash', '--posix', '-o', 'pipefail', '-c', 'rm .git/identifiers.json || true'],
+            ).exit(0),
+            ExpectShell(
+                workdir='wkdir',
+                timeout=300,
+                log_environ=False,
+                env=self.ENV,
+                command=['git', 'checkout', '--progress', 'eng/pull-request-branch'],
+            ).exit(0),
+            ExpectShell(
+                workdir='wkdir',
+                timeout=300,
+                log_environ=False,
+                env=self.ENV,
+                command=['git', 'pull', 'origin', 'main', '--rebase'],
+            ).exit(1)
+            .log('stdio', stdout='CONFLICT (content): Merge conflict in Source/WebCore/platform/ScrollingEffectsController.h\n'),
+        )
+        self.expect_outcome(result=FAILURE, state_string='Failed to canonicalize commit')
+        self.expect_property('build_summary', '')
         return self.run_step()
 
     def test_failure_changes_already_landed(self):

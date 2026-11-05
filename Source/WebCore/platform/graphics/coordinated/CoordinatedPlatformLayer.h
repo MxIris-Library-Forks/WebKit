@@ -81,6 +81,9 @@ public:
         virtual int maxTextureSize() const = 0;
         virtual void willPaintTile() = 0;
         virtual void didPaintTile() = 0;
+#if USE(SKIA)
+        virtual void didPaintPreRenderedTile(CoordinatedPlatformLayer&) = 0;
+#endif
     };
 
     static Ref<CoordinatedPlatformLayer> create();
@@ -173,8 +176,12 @@ public:
     void setMask(CoordinatedPlatformLayer*) WTF_REQUIRES_LOCK(m_lock);
     CoordinatedPlatformLayer* mask() const WTF_REQUIRES_LOCK(m_lock);
     void setReplica(CoordinatedPlatformLayer*) WTF_REQUIRES_LOCK(m_lock);
+#if USE(TEXTURE_MAPPER)
     void setBackdrop(CoordinatedPlatformLayer*) WTF_REQUIRES_LOCK(m_lock);
     void notifyBackdropFiltersChanged() WTF_REQUIRES_LOCK(m_lock);
+#else
+    void setBackdropFilters(const FilterOperations&) WTF_REQUIRES_LOCK(m_lock);
+#endif
     void setBackdropRect(const FloatRoundedRect&) WTF_REQUIRES_LOCK(m_lock);
     void setBackdropShapePath(const Path&) WTF_REQUIRES_LOCK(m_lock);
     void setIsBackdropRoot(bool) WTF_REQUIRES_LOCK(m_lock);
@@ -205,9 +212,14 @@ public:
     void flushPositionChanges(const OptionSet<CompositionReason>&);
     void flushCompositingState(const OptionSet<CompositionReason>&);
 
+#if USE(CAIRO)
     bool hasPendingTilesCreation() const { assertIsMainThread(); return m_pendingTilesCreation; }
+#endif
     bool hasPendingBackingStoreTileUpdates() const;
     void processPendingBackingStoreTileUpdates();
+#if USE(SKIA)
+    bool processPendingBackingStoreTileUpdatesIncludingPreRendered(const Function<bool()>& shouldStopProcessingTiles);
+#endif
     bool isCompositionRequiredOrOngoing() const;
     void requestComposition(CompositionReason);
     RunLoop* compositingRunLoop() const;
@@ -215,6 +227,7 @@ public:
 
     void willPaintTile();
     void didPaintTile();
+    void didPaintPreRenderedTile();
     void waitUntilPaintingFinished();
 
 private:
@@ -293,7 +306,9 @@ private:
 
     // Accessed only from the main thread.
     bool m_drawsContent WTF_GUARDED_BY_CAPABILITY(mainThread) { false };
+#if USE(CAIRO)
     bool m_pendingTilesCreation WTF_GUARDED_BY_CAPABILITY(mainThread) { false };
+#endif
     bool m_needsTilesUpdate WTF_GUARDED_BY_CAPABILITY(mainThread) { false };
     FloatRect m_visibleRect WTF_GUARDED_BY_CAPABILITY(mainThread);
     IntRect m_transformedVisibleRect WTF_GUARDED_BY_CAPABILITY(mainThread);
@@ -348,7 +363,11 @@ private:
     FilterOperations m_filters WTF_GUARDED_BY_LOCK(m_lock);
     RefPtr<CoordinatedPlatformLayer> m_mask WTF_GUARDED_BY_LOCK(m_lock);
     RefPtr<CoordinatedPlatformLayer> m_replica WTF_GUARDED_BY_LOCK(m_lock);
+#if USE(TEXTURE_MAPPER)
     RefPtr<CoordinatedPlatformLayer> m_backdrop WTF_GUARDED_BY_LOCK(m_lock);
+#else
+    FilterOperations m_backdropFilters WTF_GUARDED_BY_LOCK(m_lock);
+#endif
     FloatRoundedRect m_backdropRect WTF_GUARDED_BY_LOCK(m_lock);
     Path m_backdropShapePath WTF_GUARDED_BY_LOCK(m_lock);
     bool m_isBackdropRoot WTF_GUARDED_BY_LOCK(m_lock) { false };

@@ -1107,7 +1107,6 @@ EXTENSION_INTERFACES = \
     WebExtensionAPIDevToolsNetwork \
     WebExtensionAPIDevToolsPanels \
     WebExtensionAPIDOM \
-    WebExtensionAPIEvent \
     WebExtensionAPIExtension \
     WebExtensionAPILocalization \
     WebExtensionAPIMenus \
@@ -1136,6 +1135,7 @@ SUPPLEMENTAL_DEPENDENCY_FILE = WebExtensionSupplementalDependencies.txt
 
 CPP_EXTENSION_INTERFACES = \
 	WebExtensionAPIAlarms \
+    WebExtensionAPIEvent \
 	WebExtensionAPINamespace \
     WebExtensionAPIRuntime \
     WebExtensionAPIStorage \
@@ -1179,7 +1179,6 @@ WEBKIT_ADDITIONS_SWIFT_FILES = \
 	UIWindowScene+Extras.swift \
 	AppKitGesturesExtras.swift \
 	WKWebView+SystemTextExtraction.swift \
-	WKSExperienceController+Transitions.swift \
 #
 
 $(WEBKIT_ADDITIONS_SWIFT_FILES): %.swift : %.swift.in

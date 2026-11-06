@@ -570,6 +570,7 @@
 		07AA27602F83C3A900FE10FC /* Exceptions for "Tests" folder in "TestWebKitAPI" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				WebCore/cocoa/WebAVPlayerLayerTests.mm,
 				"WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift",
 				"WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift",
 				"WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift",
@@ -681,6 +682,7 @@
 				cocoa/JavaScriptTypes.swift,
 				cocoa/MiniTURNServer.mm,
 				cocoa/PDFTestHelpers.swift,
+				cocoa/ProcessSwapTestUtilities.swift,
 				cocoa/SafeBrowsingTestUtilities.swift,
 				cocoa/SiteIsolationTestUtilities.swift,
 				cocoa/StdLibExtras.swift,
@@ -896,6 +898,7 @@
 				WebCore/MediaConstraintsTests.cpp,
 				WebCore/MediaQueryListCapacity.cpp,
 				WebCore/MediaReorderQueue.cpp,
+				WebCore/MeshGradientRendererTests.cpp,
 				WebCore/MIMESniffer.cpp,
 				WebCore/MIMETypeRegistry.cpp,
 				WebCore/MixedContentChecker.cpp,
@@ -1308,6 +1311,7 @@
 				WTF/cocoa/RetainPtrHashingCocoaARC.mm,
 				WTF/cocoa/RetainRef.mm,
 				WTF/cocoa/RetainRefARC.mm,
+				WTF/cocoa/RunLoopCocoa.mm,
 				WTF/cocoa/TextStreamCocoa.cpp,
 				WTF/cocoa/TextStreamCocoa.mm,
 				WTF/cocoa/TypeCastsCocoa.mm,
@@ -1381,6 +1385,7 @@
 				WTF/NakedPtr.cpp,
 				WTF/NativePromise.cpp,
 				WTF/NeverDestroyed.cpp,
+				WTF/NonEscapableBorrow.cpp,
 				WTF/Observer.cpp,
 				WTF/OptionCountedSet.cpp,
 				WTF/OptionSet.cpp,

@@ -558,14 +558,14 @@ static constexpr Seconds resetRecentCrashCountDelay = 30_s;
 static constexpr unsigned maximumWebProcessRelaunchAttempts = 1;
 static constexpr Seconds tryCloseTimeoutDelay = 50_ms;
 
-static WeakListHashSet<WebPageProxy>& LEGACY_NODELETE leastRecentlyVisiblePages()
+NODELETE static WeakListHashSet<WebPageProxy>& leastRecentlyVisiblePages()
 {
     ASSERT(RunLoop::isMain());
     static NeverDestroyed<WeakListHashSet<WebPageProxy>> pages;
     return pages;
 }
 
-static WeakListHashSet<WebPageProxy>& LEGACY_NODELETE leastRecentlyHiddenPages()
+NODELETE static WeakListHashSet<WebPageProxy>& leastRecentlyHiddenPages()
 {
     ASSERT(RunLoop::isMain());
     static NeverDestroyed<WeakListHashSet<WebPageProxy>> pages;
@@ -631,7 +631,7 @@ WTF_MAKE_STRUCT_TZONE_ALLOCATED_IMPL(PendingBackForwardIframeRestore);
 WTF_MAKE_TZONE_ALLOCATED_IMPL(PendingSnapshotDrawing);
 #endif
 
-StorageRequests& LEGACY_NODELETE StorageRequests::singleton()
+NODELETE StorageRequests& StorageRequests::singleton()
 {
     static NeverDestroyed<StorageRequests> requests;
     return requests;
@@ -922,14 +922,14 @@ WebPageProxy::Internals::~Internals() = default;
 
 #if PLATFORM(MAC)
 // FIXME: Remove this once the cause of rdar://148942809 is found and fixed.
-static std::optional<API::PageConfiguration::OpenerInfo>& LEGACY_NODELETE openerInfoOfPageBeingOpened()
+NODELETE static std::optional<API::PageConfiguration::OpenerInfo>& openerInfoOfPageBeingOpened()
 {
     static NeverDestroyed<std::optional<API::PageConfiguration::OpenerInfo>> info;
     return info.get();
 }
 #endif
 
-static HashMap<WebPageProxyIdentifier, WeakPtr<WebPageProxy>>& LEGACY_NODELETE webPageProxyMap()
+NODELETE static HashMap<WebPageProxyIdentifier, WeakPtr<WebPageProxy>>& webPageProxyMap()
 {
     static MainRunLoopNeverDestroyed<HashMap<WebPageProxyIdentifier, WeakPtr<WebPageProxy>>> map;
     return map.get();
@@ -4602,6 +4602,8 @@ void WebPageProxy::propagateDragAndDrop(DragEventForwardingData&& forwardingData
     Ref targetProcess = frame->process();
     auto filenames = dragData.fileNames();
     if (!filenames.isEmpty()) {
+        for (auto& filename : borrow(filenames))
+            targetProcess->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(filename));
         Vector<SandboxExtension::Handle> freshUploadHandles;
         createSandboxExtensionsForUpload(targetProcess, filenames, freshUploadHandles);
         forwardingData.sandboxExtensionsForUpload = WTF::move(freshUploadHandles);
@@ -6135,7 +6137,7 @@ void WebPageProxy::clearServiceWorkerEntitlementOverride(CompletionHandler<void(
 #endif
 }
 
-static std::optional<std::pair<Ref<API::WebsitePolicies>, Ref<WebProcessProxy>>> LEGACY_NODELETE websitePoliciesAndProcess(API::WebsitePolicies* policies, const Ref<WebProcessProxy>& process)
+NODELETE static std::optional<std::pair<Ref<API::WebsitePolicies>, Ref<WebProcessProxy>>> websitePoliciesAndProcess(API::WebsitePolicies* policies, const Ref<WebProcessProxy>& process)
 {
     if (!policies)
         return std::nullopt;
@@ -7232,7 +7234,7 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
     }
 
     // FIXME: Assert the equality of data stores regardless of whether site isolation is enabled or not.
-    ASSERT(!siteIsolationEnabled || newProcess->websiteDataStore() == &websiteDataStore());
+    ASSERT(!siteIsolationEnabled || newProcess->websiteDataStore() == (websitePolicies && websitePolicies->websiteDataStore() ? websitePolicies->websiteDataStore() : &websiteDataStore()));
     Ref frameProcess = browsingContextGroup.ensureProcessForSite(navigationSite, Site { mainFrame()->url() }, newProcess, preferences, loadedWebArchive, BrowsingContextGroupUpdate::None);
     // Make sure we destroy any existing ProvisionalPageProxy object *before* we construct a new one.
     // It is important from the previous provisional page to unregister itself before we register a
@@ -8492,7 +8494,7 @@ void WebPageProxy::countStringMatches(const String& string, OptionSet<FindOption
     class CountStringMatchesCallbackAggregator : public RefCounted<CountStringMatchesCallbackAggregator> {
     public:
         static Ref<CountStringMatchesCallbackAggregator> create(unsigned maxMatchCount, CompletionHandler<void(uint32_t)>&& completionHandler) { return adoptRef(*new CountStringMatchesCallbackAggregator(maxMatchCount, WTF::move(completionHandler))); }
-        void LEGACY_NODELETE didCountStringMatches(uint32_t matchCount)
+        NODELETE void didCountStringMatches(uint32_t matchCount)
         {
             if (m_matchCount == moreThanMaximumMatchCount)
                 return;
@@ -9438,6 +9440,14 @@ void WebPageProxy::didDestroyNavigationShared(Ref<WebProcessProxy>&& process, We
 
     RefPtr protectedPageClient { pageClient() };
 
+    if (m_controlledByAutomation) {
+        // A navigation that ends this way reported nothing, e.g. because its policy check was cancelled by another load.
+        if (RefPtr navigation = m_navigationState->navigation(navigationID); navigation && navigation->processID() == process->coreProcessIdentifier()) {
+            if (RefPtr automationSession = process->processPool().automationSession())
+                automationSession->navigationDestroyed(*this, *navigation);
+        }
+    }
+
     m_navigationState->didDestroyNavigation(process->coreProcessIdentifier(), navigationID);
 
     auto it = internals().pendingBackForwardIframeRestores.find(navigationID);
@@ -9756,11 +9766,6 @@ void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& p
 
     RefPtr protectedPageClient { pageClient() };
 
-    if (m_controlledByAutomation && willInternallyHandleFailure == WillInternallyHandleFailure::No) {
-        if (RefPtr automationSession = process->processPool().automationSession())
-            automationSession->navigationOccurredForFrame(frame);
-    }
-
     if (RefPtr failedNavigation = navigationID ? m_navigationState->navigation(*navigationID) : nullptr)
         restoreBackForwardListCurrentItemAfterCanceledTraversal(*failedNavigation);
 
@@ -9804,6 +9809,12 @@ void WebPageProxy::didFailProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& p
             automationSession->navigationFailedForFrame(frame, navigationID);
     }
 #endif
+
+    // Emit browsingContext.navigationFailed before completing a pending navigation command (see didFinishLoadForFrame).
+    if (m_controlledByAutomation && willInternallyHandleFailure == WillInternallyHandleFailure::No) {
+        if (RefPtr automationSession = process->processPool().automationSession())
+            automationSession->navigationOccurredForFrame(frame, navigation.get());
+    }
 
     ASSERT(!m_failingProvisionalLoadURL);
     m_failingProvisionalLoadURL = WTF::move(provisionalURL);
@@ -10401,7 +10412,7 @@ void WebPageProxy::applyDeferredTopDocumentSyncDataFromCommittedProcess(Ref<WebC
 
 // The UI process sends the remaining properties from its own state, and frame geometry through
 // handleFrameGeometryUpdates, so a web process must not broadcast them.
-static bool LEGACY_NODELETE frameTreePropertyCanBeBroadcastByWebProcess(WebCore::FrameTreeSyncDataType property)
+NODELETE static bool frameTreePropertyCanBeBroadcastByWebProcess(WebCore::FrameTreeSyncDataType property)
 {
     switch (property) {
     case WebCore::FrameTreeSyncDataType::FrameDocumentIsSandboxedOrigin:
@@ -10420,7 +10431,7 @@ static bool LEGACY_NODELETE frameTreePropertyCanBeBroadcastByWebProcess(WebCore:
 
 // Given a property in FrameTreeSyncData, returns whether the property can only be changed by the
 // process that owns the frame or not.
-static bool LEGACY_NODELETE frameTreePropertyIsRestrictedToFrameOwningProcess(WebCore::FrameTreeSyncDataType property)
+NODELETE static bool frameTreePropertyIsRestrictedToFrameOwningProcess(WebCore::FrameTreeSyncDataType property)
 {
     switch (property) {
     case WebCore::FrameTreeSyncDataType::FrameRect:
@@ -10783,8 +10794,10 @@ void WebPageProxy::didFinishLoadForFrame(IPC::Connection& connection, FrameIdent
             protectedPageLoadState->didFinishLoad(transaction);
 
         if (RefPtr automationSession = activeAutomationSession()) {
-            automationSession->navigationOccurredForFrame(*frame);
+            // Emit browsingContext.load before completing a pending navigate/reload command, which must not
+            // return to the client ahead of the event it waited for.
             automationSession->loadCompletedForFrame(*frame, navigationID, WallTime::now());
+            automationSession->navigationOccurredForFrame(*frame, navigation.get());
         }
 
         frame->didFinishLoad();
@@ -10866,17 +10879,19 @@ void WebPageProxy::didFailLoadForFrame(IPC::Connection& connection, FrameIdentif
         internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = nullptr;
     }
 
-    if (m_controlledByAutomation) {
-        if (RefPtr automationSession = m_configuration->processPool().automationSession())
-            automationSession->navigationOccurredForFrame(*frame);
-    }
-
     frame->didFailLoad();
     protectedPageLoadState->commitChanges();
 #if ENABLE(WEBDRIVER_BIDI)
     if (RefPtr automationSession = activeAutomationSession())
         automationSession->navigationFailedForFrame(*frame, navigationID);
 #endif
+
+    // Emit browsingContext.navigationFailed before completing a pending navigation command (see didFinishLoadForFrame).
+    if (m_controlledByAutomation) {
+        if (RefPtr automationSession = m_configuration->processPool().automationSession())
+            automationSession->navigationOccurredForFrame(*frame, navigation.get());
+    }
+
     if (m_loaderClient)
         m_loaderClient->didFailLoadWithErrorForFrame(*this, *frame, navigation.get(), error, process->transformHandlesToObjects(protect(userData.object()).get()).get());
     else {
@@ -10933,11 +10948,6 @@ void WebPageProxy::didSameDocumentNavigationForFrame(IPC::Connection& connection
     if (isMainFrame)
         protectedPageLoadState->didSameDocumentNavigation(transaction, url);
 
-    if (m_controlledByAutomation) {
-        if (RefPtr automationSession = m_configuration->processPool().automationSession())
-            automationSession->navigationOccurredForFrame(*frame);
-    }
-
     protectedPageLoadState->clearPendingAPIRequest(transaction);
     frame->didSameDocumentNavigation(WTF::move(url));
 
@@ -10946,6 +10956,14 @@ void WebPageProxy::didSameDocumentNavigationForFrame(IPC::Connection& connection
     if (RefPtr automationSession = activeAutomationSession())
         automationSession->fragmentNavigatedForFrame(*frame, navigationID);
 #endif
+
+    // Emit browsingContext.fragmentNavigated before completing a pending navigation command (see didFinishLoadForFrame).
+    // The navigation reported here is that of the document the fragment changed in, whose load a command awaiting
+    // it has not seen end, so only waits that are not bound to a navigation are completed.
+    if (m_controlledByAutomation) {
+        if (RefPtr automationSession = m_configuration->processPool().automationSession())
+            automationSession->navigationOccurredForFrame(*frame, nullptr, WebAutomationSession::NavigationNotification::SameDocumentNavigation);
+    }
 
     if (isMainFrame)
         m_navigationClient->didSameDocumentNavigation(*this, navigation.get(), navigationType, process->transformHandlesToObjects(protect(userData.object()).get()).get());
@@ -10988,11 +11006,6 @@ void WebPageProxy::didSameDocumentNavigationForFrameViaJS(IPC::Connection& conne
     if (isMainFrame)
         protectedPageLoadState->didSameDocumentNavigation(transaction, url);
 
-    if (m_controlledByAutomation) {
-        if (RefPtr automationSession = m_configuration->processPool().automationSession())
-            automationSession->navigationOccurredForFrame(*frame);
-    }
-
     protectedPageLoadState->clearPendingAPIRequest(transaction);
     frame->didSameDocumentNavigation(WTF::move(url));
 
@@ -11001,6 +11014,12 @@ void WebPageProxy::didSameDocumentNavigationForFrameViaJS(IPC::Connection& conne
     if (RefPtr automationSession = activeAutomationSession())
         automationSession->fragmentNavigatedForFrame(*frame, navigation ? std::optional(navigation->navigationID()) : std::nullopt);
 #endif
+
+    // Emit browsingContext.fragmentNavigated before completing a pending navigation command (see didFinishLoadForFrame).
+    if (m_controlledByAutomation) {
+        if (RefPtr automationSession = m_configuration->processPool().automationSession())
+            automationSession->navigationOccurredForFrame(*frame, nullptr, WebAutomationSession::NavigationNotification::SameDocumentNavigation);
+    }
 
     if (isMainFrame)
         m_navigationClient->didSameDocumentNavigation(*this, navigation.get(), navigationType, process->transformHandlesToObjects(protect(userData.object()).get()).get());
@@ -11273,7 +11292,7 @@ void WebPageProxy::decidePolicyForNavigationActionAsync(IPC::Connection& connect
 
 #if PLATFORM(COCOA)
 // https://html.spec.whatwg.org/#hand-off-to-external-software
-static bool LEGACY_NODELETE frameSandboxAllowsOpeningExternalCustomProtocols(SandboxFlags sandboxFlags, bool hasUserGesture)
+NODELETE static bool frameSandboxAllowsOpeningExternalCustomProtocols(SandboxFlags sandboxFlags, bool hasUserGesture)
 {
     if (!sandboxFlags.contains(SandboxFlag::Popups) || !sandboxFlags.contains(SandboxFlag::TopNavigation) || !sandboxFlags.contains(SandboxFlag::TopNavigationToCustomProtocols))
         return true;
@@ -13626,7 +13645,7 @@ void WebPageProxy::setMediaVolume(float volume)
 }
 
 #if ENABLE(MEDIA_STREAM)
-static WebCore::MediaProducerMutedStateFlags LEGACY_NODELETE applyWebAppDesiredMutedKinds(WebCore::MediaProducerMutedStateFlags state, OptionSet<WebCore::MediaProducerMediaCaptureKind> desiredMutedKinds)
+NODELETE static WebCore::MediaProducerMutedStateFlags applyWebAppDesiredMutedKinds(WebCore::MediaProducerMutedStateFlags state, OptionSet<WebCore::MediaProducerMediaCaptureKind> desiredMutedKinds)
 {
     if (desiredMutedKinds.contains(WebCore::MediaProducerMediaCaptureKind::EveryKind))
         state.add(MediaProducer::MediaStreamCaptureIsMuted);
@@ -13646,7 +13665,7 @@ static WebCore::MediaProducerMutedStateFlags LEGACY_NODELETE applyWebAppDesiredM
     return state;
 }
 
-static void LEGACY_NODELETE updateMutedCaptureKindsDesiredByWebApp(OptionSet<WebCore::MediaProducerMediaCaptureKind>& mutedCaptureKindsDesiredByWebApp, WebCore::MediaProducerMutedStateFlags newState)
+NODELETE static void updateMutedCaptureKindsDesiredByWebApp(OptionSet<WebCore::MediaProducerMediaCaptureKind>& mutedCaptureKindsDesiredByWebApp, WebCore::MediaProducerMutedStateFlags newState)
 {
     if (newState.contains(WebCore::MediaProducerMutedState::AudioCaptureIsMuted))
         mutedCaptureKindsDesiredByWebApp.add(WebCore::MediaProducerMediaCaptureKind::Microphone);
@@ -13815,7 +13834,7 @@ void WebPageProxy::requestMediaPlaybackState(CompletionHandler<void(MediaPlaybac
     public:
         static Ref<MediaPlaybackStateCallbackAggregator> create(CompletionHandler<void(MediaPlaybackState)>&& completionHandler) { return adoptRef(*new MediaPlaybackStateCallbackAggregator(WTF::move(completionHandler))); }
 
-        void LEGACY_NODELETE addState(MediaPlaybackState state)
+        NODELETE void addState(MediaPlaybackState state)
         {
             if (precedence(state) > precedence(m_state))
                 m_state = state;
@@ -15820,7 +15839,7 @@ void WebPageProxy::provisionalProcessDidTerminate()
     m_inspectorController->mainFrameProvisionalLoadDidEnd(ProvisionalLoadIsReplaced::No);
 }
 
-static bool LEGACY_NODELETE shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
+NODELETE static bool shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
 {
     switch (reason) {
     case ProcessTerminationReason::ExceededMemoryLimit:
@@ -17134,7 +17153,7 @@ void WebPageProxy::beginMonitoringCaptureDevices()
     UserMediaProcessManager::singleton().beginMonitoringCaptureDevices();
 }
 
-static WebCore::MediaStreamRequest LEGACY_NODELETE toUserMediaRequest(WebCore::MediaProducerMediaCaptureKind kind, WebCore::PageIdentifier pageIdentifier)
+NODELETE static WebCore::MediaStreamRequest toUserMediaRequest(WebCore::MediaProducerMediaCaptureKind kind, WebCore::PageIdentifier pageIdentifier)
 {
     switch (kind) {
     case WebCore::MediaProducerMediaCaptureKind::Microphone:

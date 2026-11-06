@@ -137,6 +137,7 @@
 #include "ImageData.h"
 #include "ImageOverlay.h"
 #include "ImageOverlayController.h"
+#include "ImageTypes.h"
 #include "InlineIteratorLineBox.h"
 #include "InspectorBackendClient.h"
 #include "InspectorDebuggableType.h"
@@ -1311,12 +1312,12 @@ void Internals::setImageAnimationEnabled(bool enabled)
 
 void Internals::resumeImageAnimation(HTMLImageElement& element)
 {
-    element.setAllowsAnimation(true);
+    element.setAnimationOverride(ImageAnimationOverride::Play);
 }
 
 void Internals::pauseImageAnimation(HTMLImageElement& element)
 {
-    element.setAllowsAnimation(false);
+    element.setAnimationOverride(ImageAnimationOverride::Pause);
 }
 #endif // ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 
@@ -6318,6 +6319,17 @@ void Internals::elementIsActiveNowPlayingSessionInGPUProcess(HTMLMediaElement& e
 {
     platformStrategies()->mediaStrategy()->isActiveNowPlayingSessionInGPUProcessForTesting(protect(element.mediaSession())->mediaSessionIdentifier(), [promise = WTF::move(promise)](bool result) mutable {
         promise.resolve(result);
+    });
+}
+
+void Internals::hostedVideoLayerBoundsInGPUProcess(HTMLMediaElement& element, DOMPromiseDeferred<IDLInterface<DOMRect>>&& promise)
+{
+    platformStrategies()->mediaStrategy()->hostedVideoLayerBoundsInGPUProcessForTesting(element.identifier(), [promise = WTF::move(promise)](std::optional<FloatRect> bounds) mutable {
+        if (!bounds) {
+            promise.reject(ExceptionCode::NotFoundError);
+            return;
+        }
+        promise.resolve(DOMRect::create(*bounds));
     });
 }
 

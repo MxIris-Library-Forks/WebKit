@@ -2247,7 +2247,7 @@ void WebPage::updateEditorStateAfterLayoutIfEditabilityChanged()
         scheduleFullEditorStateUpdate();
 }
 
-static OptionSet<RenderAsTextFlag> LEGACY_NODELETE toRenderAsTextFlags(unsigned options)
+NODELETE static OptionSet<RenderAsTextFlag> toRenderAsTextFlags(unsigned options)
 {
     OptionSet<RenderAsTextFlag> flags;
 
@@ -2555,6 +2555,14 @@ void WebPage::close(CompletionHandler<void()>&& completionHandler)
 
     if (isRunningModal)
         RunLoop::mainSingleton().stop();
+
+    // Unloading the page may have started keepalive loads, such as a beacon sent from pagehide, which are
+    // only queued on the network process connection so far. The UI process may terminate this process as
+    // soon as it gets the reply, so make sure the network process received them first.
+    if (RefPtr networkProcessConnection = WebProcess::singleton().existingNetworkProcessConnection()) {
+        networkProcessConnection->connection().sendWithAsyncReply(Messages::NetworkConnectionToWebProcess::FlushNetworkProcessIPC(), WTF::move(completionHandler));
+        return;
+    }
 
     completionHandler();
 }
@@ -5981,8 +5989,11 @@ void WebPage::finalizeRenderingUpdate(OptionSet<FinalizeRenderingUpdateFlags> fl
     serviceCanvasPaintEvents();
 #endif
 #if ENABLE(GPU_PROCESS)
-    if (m_remoteRenderingBackendProxy)
-        m_remoteRenderingBackendProxy->finalizeRenderingUpdate();
+    if (m_remoteRenderingBackendProxy) {
+        RefPtr drawingArea = m_drawingArea;
+        bool usesBackpressure = !drawingArea || drawingArea->usesRenderingUpdateBackpressure();
+        m_remoteRenderingBackendProxy->finalizeRenderingUpdate(usesBackpressure ? UsesRenderingUpdateBackpressure::Yes : UsesRenderingUpdateBackpressure::No);
+    }
 #endif
     flushDeferredDidReceiveMouseEvent();
 
@@ -10944,6 +10955,8 @@ void WebPage::scrollToEdge(WebCore::RectEdges<bool> edges, WebCore::ScrollIsAnim
 
     auto options = WebCore::ScrollPositionChangeOptions::createProgrammatic();
     options.animated = animated;
+    if (animated == WebCore::ScrollIsAnimated::Yes)
+        options.animationCurve = WebCore::documentEdgeScrollAnimationCurve();
 
     frameView->scrollToEdgeWithOptions(edges, options);
 }

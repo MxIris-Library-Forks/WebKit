@@ -86,6 +86,7 @@
 #////////////////////////////////////////////////////////////////////////////////////////
 
 # Platform-specific directories.
+ipc/glib [ Pass ]
 scrollingcoordinator/ [ Pass ]
 scrollingcoordinator/mac/ [ Skip ]
 scrollingcoordinator/ios/ [ Skip ]
@@ -284,9 +285,6 @@ http/tests/resourceLoadStatistics/log-cross-site-load-with-filtered-link-decorat
 http/tests/resourceLoadStatistics/log-cross-site-load-with-filtered-link-decoration.html [ Skip ]
 http/tests/cookies/multiple-cookies-iframes.https.html [ Skip ]
 http/tests/cookies/multiple-cookies.https.html [ Skip ]
-
-# Failures from upgrading mixed-content
-imported/w3c/web-platform-tests/mixed-content/tentative/autoupgrades/video-upgrade.https.sub.html [ Failure ]
 
 webkit.org/b/172056 fast/text/multiglyph-characters.html [ Pass ]
 
@@ -1414,7 +1412,7 @@ compositing/repaint/not-self-painting-layer-stops-compositing.html [ ImageOnlyFa
 
 webkit.org/b/315259 [ Release ] compositing/debug-borders-dynamic.html [ Pass ImageOnlyFailure ]
 
-webkit.org/b/305740 [ Release ] compositing/backing/solid-color-with-paints-into-ancestor.html [ ImageOnlyFailure Pass ]
+webkit.org/b/305740 compositing/backing/solid-color-with-paints-into-ancestor.html [ ImageOnlyFailure Pass ]
 
 imported/w3c/web-platform-tests/css/compositing/mix-blend-mode/mix-blend-mode-plus-lighter-svg.html [ ImageOnlyFailure Pass ]
 
@@ -2017,8 +2015,6 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-canvasImageSource.html [ Pa
 imported/w3c/web-platform-tests/webcodecs/videoFrame-createImageBitmap.any.worker.html [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.html?av1_444_high [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.worker.html?av1_444_high [ Pass ]
-
-http/wpt/webrtc/peer-connection-color-space.html [ Failure ]
 
 # Alpha support
 imported/w3c/web-platform-tests/webcodecs/videoFrame-alpha-discard.any.html [ Failure ]
@@ -3121,6 +3117,7 @@ webxr [ Pass ]
 
 # ENABLE_WEBGPU is off for the GLIB ports, so XRGPUBinding is unavailable.
 webkit.org/b/327533 imported/w3c/web-platform-tests/webxr/layers/xrGPUProjectionLayer_ignoreDepthValues.https.html [ Skip ]
+webkit.org/b/327533 imported/w3c/web-platform-tests/webxr/layers/xrGPUProjectionLayer_destroy.https.html [ Skip ]
 webkit.org/b/327533 imported/w3c/web-platform-tests/webxr/layers/xrProjectionLayer_ignoreDepthValues.https.html [ Skip ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -3727,6 +3724,7 @@ media/track/in-band/track-in-band-kate-ogg-language.html [ Skip ]
 media/track/in-band/track-in-band-kate-ogg-track-order.html [ Skip ]
 
 # Skip tests that require the GPU process.
+media/media-source/media-source-real-video-layer-size-after-leaving-viewport.html [ Skip ]
 webkit.org/b/279434 fast/canvas/image-buffer-resource-limits.html [ Skip ]
 webkit.org/b/279434 webkit.org/b/267218 webgl/webgl-worker.html [ Skip ]
 webkit.org/b/279434 webgl/webgl-fail-platform-context-creation-no-crash.html [ Skip ]
@@ -5251,6 +5249,7 @@ webkit.org/b/309894 [ Release ] http/tests/inspector/target/pause-on-inline-debu
 webkit.org/b/320214 [ Debug ] inspector/debugger/async-stack-trace-truncate.html [ Failure Timeout ]
 webkit.org/b/328192 fast/canvas/draw-element-image/2d-drawElementImage-rotated-text.html [ ImageOnlyFailure Pass ]
 webkit.org/b/329532 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/moved-nested-content-drawable-canvas.tentative.html [ Crash ]
+webkit.org/b/329532 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/moved-webgl-canvas.tentative.html [ Crash ]
 webkit.org/b/329530 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/anchor-positioning.tentative.html [ ImageOnlyFailure Timeout ]
 webkit.org/b/329530 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/broken-image.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329530 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-backdrop-filter-with-mix-blend-mode-and-opacity.tentative.html [ ImageOnlyFailure ]
@@ -5298,7 +5297,7 @@ imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ideographic [ Crash ]
 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ideographic-ink [ Crash ]
 
-webkit.org/b/329247 http/tests/inspector/network/fetch-response-body-304.html [ Failure ]
+webkit.org/b/329247 webkit.org/b/330313 http/tests/inspector/network/fetch-response-body-304.html [ Crash Failure ]
 
 webkit.org/b/329572 fast/history/site-isolation/history-back-initial-vs-final-url.html [ Pass Timeout ]
 webkit.org/b/329573 http/tests/webgl/webgl-in-service-worker-separate-process.html [ Pass Timeout ]
@@ -5312,6 +5311,10 @@ webkit.org/b/329824 imported/w3c/web-platform-tests/css/css-pseudo/active-select
 webkit.org/b/329969 [ Debug ] ipc/back-forward-list-item-for-id-cross-page.html [ Failure Pass ]
 
 webkit.org/b/329971 http/wpt/service-workers/service-worker-fetch-task-cancel-on-redirect.https.html [ Failure Pass ]
+
+webkit.org/b/328193 fast/forms/select/base/select-translated-option-content-repaint.html [ ImageOnlyFailure Pass ]
+webkit.org/b/330316 media/media-source/media-source-loop-multiple-times.html [ Crash Pass ]
+webkit.org/b/330318 webaudio/audioworklet-stops-on-document-stop.html [ Failure Pass ]
 
 # End: Common failures between GTK and WPE.
 

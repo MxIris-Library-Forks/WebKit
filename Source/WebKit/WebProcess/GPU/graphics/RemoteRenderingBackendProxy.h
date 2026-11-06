@@ -85,6 +85,8 @@ class RemoteLayerBackingStore;
 class RemoteImageBufferProxyFlushState;
 class RemoteImageBufferSetProxy;
 
+enum class UsesRenderingUpdateBackpressure : bool { No, Yes };
+
 namespace ShapeDetection {
 class RemoteBarcodeDetectorProxy;
 class RemoteTextDetectorProxy;
@@ -176,19 +178,19 @@ public:
         bool requiresClearedPixels { true };
     };
 
-    void LEGACY_NODELETE startPreparingImageBufferSetsForDisplay();
+    NODELETE void startPreparingImageBufferSetsForDisplay();
     void endPreparingImageBufferSetsForDisplay();
 
     void prepareImageBufferSetForDisplay(LayerPrepareBuffersData&&);
 #endif
 
-    void finalizeRenderingUpdate();
+    void finalizeRenderingUpdate(UsesRenderingUpdateBackpressure);
     void didPaintLayers();
 
     RenderingUpdateID renderingUpdateID() const { return m_renderingUpdateID; }
     unsigned delayedRenderingUpdateCount() const { return m_renderingUpdateID - m_didRenderingUpdateID; }
 
-    RemoteRenderingBackendIdentifier LEGACY_NODELETE renderingBackendIdentifier() const;
+    NODELETE RemoteRenderingBackendIdentifier renderingBackendIdentifier() const;
 
     RemoteRenderingBackendIdentifier ensureBackendCreated();
 
@@ -203,7 +205,7 @@ public:
 
     static constexpr Seconds defaultTimeout = 15_s;
 
-    unsigned LEGACY_NODELETE nativeImageCountForTesting() const;
+    NODELETE unsigned nativeImageCountForTesting() const;
 private:
     explicit RemoteRenderingBackendProxy(SerialFunctionDispatcher&);
 
@@ -225,7 +227,7 @@ private:
     void ensureGPUProcessConnection();
 
     bool dispatchMessage(IPC::Connection&, IPC::Decoder&);
-    bool LEGACY_NODELETE dispatchSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&);
+    NODELETE bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&, UniqueRef<IPC::Encoder>&);
 
     // Returns std::nullopt if no update is needed or allocation failed.
     // Returns handle if that should be sent to the receiver process.

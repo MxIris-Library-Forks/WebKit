@@ -138,6 +138,7 @@ list(APPEND TestWTF_SOURCES
     Tests/WTF/cocoa/RetainPtrHashingCocoaARC.mm
     Tests/WTF/cocoa/RetainRef.mm
     Tests/WTF/cocoa/RetainRefARC.mm
+    Tests/WTF/cocoa/RunLoopCocoa.mm
     Tests/WTF/cocoa/TextStreamCocoa.cpp
     Tests/WTF/cocoa/TextStreamCocoa.mm
     Tests/WTF/cocoa/TypeCastsCocoa.mm
@@ -770,6 +771,7 @@ add_library(TestWebKitAPILibrary OBJECT
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/JavaScriptMessages.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/JavaScriptTypes.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/PDFTestHelpers.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/ProcessSwapTestUtilities.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/SafeBrowsingTestUtilities.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/SiteIsolationTestUtilities.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/StdLibExtras.swift

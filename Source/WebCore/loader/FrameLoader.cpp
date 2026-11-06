@@ -926,6 +926,7 @@ void FrameLoader::didBeginDocument(bool dispatch, LocalDOMWindow* previousWindow
     m_needsClear = true;
     m_isComplete = false;
     m_isWaitingForDelegatedBackForwardLoad = false;
+    m_delegatedBackForwardLoadDecision = std::nullopt;
     m_didCallImplicitClose = false;
     Ref frame = m_frame.get();
     Ref document = *frame->document();
@@ -2030,6 +2031,14 @@ void FrameLoader::loadWithNavigationAction(ResourceRequest&& request, Navigation
         loader->setNavigationID(*navigationIDForCacheOnlyLoadRetry);
         loader->markIsCacheOnlyLoadRetry();
     }
+    if (action.policyAlreadyDecided() == PolicyAlreadyDecided::Yes) {
+        if (auto decision = std::exchange(m_delegatedBackForwardLoadDecision, std::nullopt)) {
+            if (decision->navigationID)
+                loader->setNavigationID(*decision->navigationID);
+            loader->setAgentClusterAssignment(decision->agentClusterAssignment);
+            loader->setUnpartitionedStorageSite(WTF::move(decision->unpartitionedStorageSite));
+        }
+    }
     applyShouldOpenExternalURLsPolicyToNewDocumentLoader(protect(m_frame), loader, action.initiatedByMainFrame(), action.shouldOpenExternalURLsPolicy());
     loader->setIsContinuingLoad(shouldTreatAsContinuingLoad);
     loader->setIsRequestFromClientOrUserInput(action.isRequestFromClientOrUserInput());
@@ -2666,6 +2675,7 @@ void FrameLoader::clearProvisionalLoad()
 void FrameLoader::provisionalLoadFailedInAnotherProcess()
 {
     m_provisionalLoadHappeningInAnotherProcess = false;
+    m_isWaitingForDelegatedBackForwardLoad = false;
     m_isComplete = true;
 
     if (RefPtr localParent = dynamicDowncast<LocalFrame>(m_frame->tree().parent())) {
@@ -3115,6 +3125,8 @@ bool FrameLoader::subframeIsLoading() const
             continue;
         }
         Ref childLoader = localChild->loader();
+        if (childLoader->m_isWaitingForDelegatedBackForwardLoad)
+            return true;
         RefPtr documentLoader = childLoader->documentLoader();
         if (documentLoader && documentLoader->isLoadingInAPISense())
             return true;
@@ -3196,8 +3208,6 @@ void FrameLoader::dispatchDidFailProvisionalLoad(DocumentLoader& provisionalDocu
 #endif
 
     auto willContinueLoading = willInternallyHandleFailure == WillInternallyHandleFailure::Yes ? WillContinueLoading::Yes : WillContinueLoading::No;
-    if (history().provisionalItem())
-        willContinueLoading = WillContinueLoading::Yes;
 #if ENABLE(CONTENT_FILTERING)
     if (provisionalDocumentLoader.contentFilterWillHandleProvisionalLoadFailure(error)) {
         willContinueLoading = WillContinueLoading::Yes;
@@ -5172,6 +5182,7 @@ void FrameLoader::clearWaitingForDelegatedBackForwardLoad()
     if (!m_isWaitingForDelegatedBackForwardLoad)
         return;
     m_isWaitingForDelegatedBackForwardLoad = false;
+    m_delegatedBackForwardLoadDecision = std::nullopt;
     Ref frame = m_frame.get();
     if (RefPtr parentFrame = dynamicDowncast<LocalFrame>(frame->tree().parent()))
         parentFrame->loader().checkCompleted();

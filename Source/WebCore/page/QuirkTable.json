@@ -112,6 +112,11 @@
             "behaviors": [{ "id": "ReturnNullPictureInPictureElementDuringFullscreenChangeQuirk" }]
         },
         {
+            "bugs": ["rdar://162447105"],
+            "matches": ["*://*.bbc.co.uk/*", "*://*.bbc.com/*"],
+            "behaviors": [{ "id": "NeedsDarkAppearanceWithoutColorSchemeQuirk" }]
+        },
+        {
             "bugs": ["rdar://136235936"],
             "matches": ["*://*.bestbuy.com/*"],
             "behaviors": [
@@ -484,8 +489,10 @@
             "behaviors": [{ "id": "RequiresUserGestureToPauseInPictureInPictureQuirk" }]
         },
         {
+            "bugs": ["https://webkit.org/b/303622"],
+            "comment": "FIXME: Remove as soon as nvidia adjusts the site for Safari. https://webkit.org/b/303718",
             "matches": ["*://play.geforcenow.com/*"],
-            "behaviors": [{ "id": "NeedsGeforcenowWarningDisplayNoneQuirk" }]
+            "behaviors": [{ "id": "NeedsStyleSheetInjectedQuirk", "styleSheet": "div.cdk-overlay-container, div.unsupported-scenario-container { display: none !important; }" }]
         },
         {
             "bugs": ["https://webkit.org/b/319011", "rdar://181825035"],

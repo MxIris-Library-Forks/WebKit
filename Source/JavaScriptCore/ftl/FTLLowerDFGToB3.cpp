@@ -9704,7 +9704,7 @@ IGNORE_CLANG_WARNINGS_END
             Int64, operationCreateRest, weakPointer(globalObject), argumentStart, m_out.constInt32(numberOfArgumentsToSkip), arrayLength));
     }
 
-    const AbstractHeap& LEGACY_NODELETE abstractHeapForOwnPropertyKeysCache(NodeType type)
+    NODELETE const AbstractHeap& abstractHeapForOwnPropertyKeysCache(NodeType type)
     {
         switch (type) {
         case ObjectKeys:
@@ -15522,9 +15522,13 @@ IGNORE_CLANG_WARNINGS_END
     {
         JSGlobalObject* globalObject = m_graph.globalObjectFor(m_origin.semantic);
         LoadVarargsData* data = m_node->loadVarargsData();
-        LValue jsArguments = lowJSValue(m_node->argumentsChild());
 
-        LValue length = vmCall(Int32, operationSizeOfVarargs, weakPointer(globalObject), jsArguments, m_out.constInt32(data->offset));
+        LValue length;
+        if (m_node->argumentsChild().useKind() == KnownCellUse) {
+            length = m_out.load32NonNegative(toButterfly(lowCell(m_node->argumentsChild())), m_heaps.Butterfly_publicLength);
+            speculate(VarargsOverflow, noValue(), nullptr, m_out.above(length, m_out.constInt32(maxArguments)));
+        } else
+            length = vmCall(Int32, operationSizeOfVarargs, weakPointer(globalObject), lowJSValue(m_node->argumentsChild()), m_out.constInt32(data->offset));
 
         LValue lengthIncludingThis = m_out.add(length, m_out.int32One);
 
@@ -15549,6 +15553,12 @@ IGNORE_CLANG_WARNINGS_END
             // https://bugs.webkit.org/show_bug.cgi?id=141660
             LValue machineStart = m_out.lShr(m_out.sub(addressFor(data->machineStart).value(), m_callFrame), m_out.constIntPtr(3));
             vmCall(Void, operationLoadVarargs, weakPointer(globalObject), m_out.castToInt32(machineStart), jsArguments, m_out.constInt32(data->offset), lengthIncludingThis, m_out.constInt32(data->mandatoryMinimum));
+            break;
+        }
+        case KnownCellUse: {
+            speculate(VarargsOverflow, noValue(), nullptr, m_out.bitOr(m_out.isZero32(lengthIncludingThis), m_out.above(lengthIncludingThis, m_out.constInt32(data->limit))));
+            m_out.store32(lengthIncludingThis, lowWordFor(data->machineCount));
+            emitLoadVarargsFromContiguousStorage(m_heaps.indexedContiguousProperties, toButterfly(lowCell(m_node->argumentsChild())), lengthIncludingThis);
             break;
         }
         case OtherUse: {
@@ -15662,14 +15672,19 @@ IGNORE_CLANG_WARNINGS_END
         unsigned numberOfArgumentsToSkip = data->offset;
         LValue lengthIncludingThis = lowInt32(m_node->child1());
 
-        LValue length = m_out.sub(lengthIncludingThis, m_out.int32One);
         speculate(
             VarargsOverflow, noValue(), nullptr,
             m_out.above(lengthIncludingThis, m_out.constInt32(data->limit)));
 
         m_out.store32(lengthIncludingThis, lowWordFor(data->machineCount));
 
-        LValue sourceStart = getArgumentsStart(inlineCallFrame, numberOfArgumentsToSkip);
+        emitLoadVarargsFromContiguousStorage(m_heaps.variables, getArgumentsStart(inlineCallFrame, numberOfArgumentsToSkip), lengthIncludingThis);
+    }
+
+    void emitLoadVarargsFromContiguousStorage(IndexedAbstractHeap& sourceHeap, LValue sourceStart, LValue lengthIncludingThis)
+    {
+        LoadVarargsData* data = m_node->loadVarargsData();
+        LValue length = m_out.sub(lengthIncludingThis, m_out.int32One);
         LValue targetStart = addressFor(data->machineStart).value();
 
         LBasicBlock undefinedLoop = m_out.newBlock();
@@ -15702,7 +15717,7 @@ IGNORE_CLANG_WARNINGS_END
         previousIndex = m_out.phi(pointerType(), loopBound);
         currentIndex = m_out.sub(previousIndex, m_out.intPtrOne);
         LValue value = m_out.load64(
-            m_out.baseIndex(m_heaps.variables, sourceStart, currentIndex));
+            m_out.baseIndex(sourceHeap, sourceStart, currentIndex));
         m_out.store64(value, m_out.baseIndex(m_heaps.variables, targetStart, currentIndex));
         nextIndex = m_out.anchor(currentIndex);
         m_out.addIncomingToPhi(previousIndex, nextIndex);
@@ -16101,7 +16116,7 @@ IGNORE_CLANG_WARNINGS_END
         terminate(InadequateCoverage);
     }
 
-    void LEGACY_NODELETE compileCPUIntrinsic()
+    NODELETE void compileCPUIntrinsic()
     {
 #if CPU(X86_64)
         Intrinsic intrinsic = m_node->intrinsic();
@@ -24802,7 +24817,7 @@ IGNORE_CLANG_WARNINGS_END
         {
         }
 
-        bool LEGACY_NODELETE operator<(const CharacterCase& other) const
+        NODELETE bool operator<(const CharacterCase& other) const
         {
             return character < other.character;
         }
@@ -25601,7 +25616,7 @@ IGNORE_CLANG_WARNINGS_END
         didAlreadyTerminate();
     }
 
-    void LEGACY_NODELETE didAlreadyTerminate()
+    NODELETE void didAlreadyTerminate()
     {
         m_state.setIsValid(false);
     }
@@ -26403,7 +26418,7 @@ IGNORE_CLANG_WARNINGS_END
             m_out.constInt64(JSValue::ValueNull));
     }
 
-    LValue LEGACY_NODELETE isProvenValue(SpeculatedType provenType, SpeculatedType wantedType)
+    NODELETE LValue isProvenValue(SpeculatedType provenType, SpeculatedType wantedType)
     {
         if (!(provenType & ~wantedType))
             return m_out.booleanTrue;
@@ -28167,7 +28182,7 @@ IGNORE_CLANG_WARNINGS_END
     {
         m_doubleValues.set(node, LoweredNodeValue(value, m_highBlock));
     }
-    void LEGACY_NODELETE setTuple(Node* tuple, unsigned index, LValue value)
+    NODELETE void setTuple(Node* tuple, unsigned index, LValue value)
     {
         ASSERT(index < tuple->tupleSize());
         m_tupleValues.at(tuple->tupleOffset() + index) = LoweredNodeValue(value, m_highBlock);
@@ -28205,12 +28220,12 @@ IGNORE_CLANG_WARNINGS_END
     {
         setDouble(m_node, value);
     }
-    void LEGACY_NODELETE setTuple(unsigned index, LValue value)
+    NODELETE void setTuple(unsigned index, LValue value)
     {
         setTuple(m_node, index, value);
     }
 
-    bool LEGACY_NODELETE isValid(const LoweredNodeValue& value)
+    NODELETE bool isValid(const LoweredNodeValue& value)
     {
         if (!value)
             return false;
@@ -28437,10 +28452,10 @@ IGNORE_CLANG_WARNINGS_END
         return result;
     }
 
-    AvailabilityMap& LEGACY_NODELETE availabilityMap() { return m_availabilityCalculator.m_availability; }
+    NODELETE AvailabilityMap& availabilityMap() { return m_availabilityCalculator.m_availability; }
 
-    VM& LEGACY_NODELETE vm() { return m_graph.m_vm; }
-    CodeBlock* LEGACY_NODELETE codeBlock() { return m_graph.m_codeBlock; }
+    NODELETE VM& vm() { return m_graph.m_vm; }
+    NODELETE CodeBlock* codeBlock() { return m_graph.m_codeBlock; }
 
     Graph& m_graph;
     State& m_ftlState;

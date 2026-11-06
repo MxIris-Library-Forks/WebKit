@@ -33,6 +33,7 @@
 #include <memory>
 #include <span>
 #include <wtf/ArgumentCoder.h>
+#include <wtf/CanBorrow.h>
 #include <wtf/Function.h>
 #include <wtf/HashSet.h>
 #include <wtf/Markable.h>
@@ -63,7 +64,7 @@ template<typename T, typename = IsObjCObject<T>> Class getClass()
 }
 #endif
 
-class Decoder {
+class Decoder : public CanBorrow {
     WTF_MAKE_TZONE_ALLOCATED(Decoder);
 public:
     static std::unique_ptr<Decoder> create(std::span<const uint8_t> buffer, Vector<Attachment>&&);
@@ -90,18 +91,18 @@ public:
     bool isAsyncWithReplyMessage() const { return messageIsAsyncWithReply(messageName()); }
     bool isAsyncReplyMessage() const { return messageIsReplyToAsyncWithReply(messageName()); }
 
-    ShouldDispatchWhenWaitingForSyncReply LEGACY_NODELETE shouldDispatchMessageWhenWaitingForSyncReply() const;
+    NODELETE ShouldDispatchWhenWaitingForSyncReply shouldDispatchMessageWhenWaitingForSyncReply() const;
     bool isAllowedWhenWaitingForSyncReply() const { return messageAllowedWhenWaitingForSyncReply(messageName()) || m_isAllowedWhenWaitingForSyncReplyOverride; }
     bool isAllowedWhenWaitingForUnboundedSyncReply() const { return messageAllowedWhenWaitingForUnboundedSyncReply(messageName()); }
-    bool LEGACY_NODELETE shouldUseFullySynchronousModeForTesting() const;
-    bool LEGACY_NODELETE shouldMaintainOrderingWithAsyncMessages() const;
+    NODELETE bool shouldUseFullySynchronousModeForTesting() const;
+    NODELETE bool shouldMaintainOrderingWithAsyncMessages() const;
     void setIsAllowedWhenWaitingForSyncReplyOverride(bool value) { m_isAllowedWhenWaitingForSyncReplyOverride = value; }
 
     bool wasHandled() const { return m_wasHandled; }
     void markHandled() { m_wasHandled = true; }
 
 #if PLATFORM(MAC)
-    void LEGACY_NODELETE setImportanceAssertion(ImportanceAssertion&&);
+    NODELETE void setImportanceAssertion(ImportanceAssertion&&);
 #endif
 
 #if ENABLE(IPC_TESTING_API)

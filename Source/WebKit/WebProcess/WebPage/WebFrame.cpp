@@ -774,7 +774,8 @@ void WebFrame::didReceivePolicyDecision(PolicyListenerIdentifier listenerID, Pol
                 provisionalDocumentLoader->setAgentClusterAssignment(policyDecision.agentClusterAssignment);
                 if (forNavigationAction)
                     provisionalDocumentLoader->setUnpartitionedStorageSite(WTF::move(policyDecision.unpartitionedStorageSite));
-            }
+            } else if (forNavigationAction && policyDecision.policyAction == PolicyAction::Use && loader.isWaitingForDelegatedBackForwardLoad())
+                loader.setDelegatedBackForwardLoadDecision({ policyDecision.navigationID, policyDecision.agentClusterAssignment, WTF::move(policyDecision.unpartitionedStorageSite) });
         }
     }
 
@@ -1571,7 +1572,7 @@ std::optional<OptionSet<WebCore::AdvancedPrivacyProtections>> WebFrame::originat
 }
 
 #if ENABLE(CONTEXT_MENU_EVENT)
-static bool LEGACY_NODELETE isContextClick(const PlatformMouseEvent& event)
+NODELETE static bool isContextClick(const PlatformMouseEvent& event)
 {
 #if USE(APPKIT)
     return event.isContextMenuEvent();

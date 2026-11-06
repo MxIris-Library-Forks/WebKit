@@ -153,6 +153,7 @@ interaction-region [ Skip ]
 overlay-region [ Skip ]
 pdf [ Skip ]
 ipc/cocoa [ Skip ]
+ipc/glib [ Skip ]
 http/tests/ipc/cocoa [ Skip ]
 ipc/ios [ Skip ]
 ipc/mac [ Skip ]
@@ -581,7 +582,6 @@ imported/w3c/web-platform-tests/webaudio/the-audio-api/the-mediaelementaudiosour
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-mediastreamaudiosourcenode-interface/mediastreamaudiosourcenode-from-context-with-different-rate.https.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioworklet-interface/audioworklet-rendersizehint.https.html [ Skip ] # timeout
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audiocontext-interface/audiocontext-sinkid-constructor.https.html [ Skip ] # One subtest timeout
-imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audiobuffersourcenode-interface/audiobuffersource-start-null-buffer.html [ Skip ] # Generate Different Results each run
 
 # Webaudio tests that are flaky.
 imported/w3c/web-platform-tests/webaudio/the-audio-api/the-audioparam-interface/k-rate-stereo-panner.html [ Pass Failure ]
@@ -1720,6 +1720,7 @@ fast/images/animations-resume-from-last-displayed-frame.html [ Skip ]
 fast/images/individual-animation-toggle.html [ Skip ]
 fast/images/page-wide-animation-toggle.html [ Skip ]
 fast/images/pagewide-play-pause-animateTransform-svg-animation.html [ Skip ]
+fast/images/pagewide-play-pause-svg-image-sources.html [ Skip ]
 fast/images/pagewide-play-pause-offscreen-animations.html [ Skip ]
 
 # NOTIFICATION_EVENT is Ventura+
@@ -5279,7 +5280,6 @@ webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-bar-s
 webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-block-shape-text-color-001.html [ ImageOnlyFailure ]
 webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-block-shape-text-color-002.html [ ImageOnlyFailure ]
 webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-block-shape-text-color-003.html [ ImageOnlyFailure ]
-webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-block-shape-text-color-004.html [ ImageOnlyFailure ]
 webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-block-shape-text-color-005.html [ ImageOnlyFailure ]
 webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-color-underscore-shape-text-color.html [ ImageOnlyFailure ]
 webkit.org/b/319405 imported/w3c/web-platform-tests/css/css-ui/caret-eol-004.tentative.html [ ImageOnlyFailure ]
@@ -6079,7 +6079,6 @@ webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBef
 imported/w3c/web-platform-tests/dom/nodes/insertion-removing-steps/Node-appendChild-script-and-default-style-meta-from-fragment.html [ Skip ]
 
 # Debug assertion failures since import.
-imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-shadow-root.html [ Skip ]
 imported/w3c/web-platform-tests/dom/xpath-evaluation-detached-nodes.html [ Skip ]
 
 # uncategorized dialog element failures
@@ -7035,13 +7034,52 @@ webkit.org/b/283107 imported/w3c/web-platform-tests/scroll-animations/scroll-tim
 imported/w3c/web-platform-tests/scroll-animations/view-timelines/range-boundary.tentative.html [ ImageOnlyFailure ]
 
 # webkit.org/b/281482 [scroll-animations] some WPT reftests can't find their reference
-imported/w3c/web-platform-tests/scroll-animations/css/printing/animation-timeline-none-with-progress-print.tentative.html [ Skip ]
-imported/w3c/web-platform-tests/scroll-animations/css/printing/scroll-timeline-default-iframe-print.html [ Skip ]
-imported/w3c/web-platform-tests/scroll-animations/css/printing/scroll-timeline-default-print.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/scroll-animations/css/scroll-timeline-update-reversed-animation.html [ Skip ]
 imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-range-update-reversed-animation.html [ Skip ]
 imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-range-update.html [ Skip ]
 imported/w3c/web-platform-tests/scroll-animations/css/view-timeline-subject-bounds-update.html [ Skip ]
+
+# webkit.org/b/330246 Print reftests that were listed as resource files and fail
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-063-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-080-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-081a-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-081b-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-081c-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-081d-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-082a-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-082b-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-082c-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/multi-line-row-flex-fragmentation-082d-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-060-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-068a-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-068b-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-068c-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-068d-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-069a-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-069b-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-069c-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/flexbox/single-line-column-flex-fragmentation-069d-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/grid/monolithic-overflow-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/ink-overflow-001-print.html [ Skip ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/overflowed-abs-pos-with-percentage-height-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/overflowing-block-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/root-margin-001-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/table/table-fragmentation-003a-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/table/table-fragmentation-003b-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/table/table-fragmentation-003c-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/table/table-fragmentation-003d-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-break/transform-024-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-contain/content-visibility/content-visibility-auto-print.html [ Pass ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-grid/grid-fragmentation-between-rows-001-print.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-inline/text-box-trim/not-at-page-edges-001-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-multicol/auto-fill-auto-size-002-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-multicol/multicol-height-002-print.xht [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-values/viewport-page-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/css/css-values/viewport-units-001-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/html/rendering/the-details-element/details-page-break-before-1-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-object-element/object-image-only-for-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-object-element/object-svg-only-for-print.html [ ImageOnlyFailure ]
+webkit.org/b/330246 imported/w3c/web-platform-tests/scroll-animations/css/printing/scroll-timeline-default-print.tentative.html [ ImageOnlyFailure ]
 
 webkit.org/b/263923 animations/transition-and-animation-2.html [ Failure Pass ]
 
@@ -7499,6 +7537,12 @@ imported/w3c/web-platform-tests/css/css-break/chrome-bug-1289999-crash.https.htm
 imported/w3c/web-platform-tests/dom/events/non-cancelable-when-passive/passive-mousewheel-event-listener-on-div.html [ Failure ]
 imported/w3c/web-platform-tests/dom/events/non-cancelable-when-passive/passive-wheel-event-listener-on-div.html [ Failure ]
 
+# webkit.org/b/330242 css/printing tests that fail
+webkit.org/b/330242 imported/w3c/web-platform-tests/css/printing/existing-transition-in-media-print.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/330242 imported/w3c/web-platform-tests/css/printing/page-overflow-crash-print.html [ ImageOnlyFailure ]
+webkit.org/b/330242 imported/w3c/web-platform-tests/css/printing/select-combobox-print.html [ ImageOnlyFailure ]
+webkit.org/b/174412 imported/w3c/web-platform-tests/css/printing/table-in-flex-overflow-print.html [ Skip ]
+
 # tests that require wheel event synthesis:
 imported/w3c/web-platform-tests/dom/events/scrolling/iframe-chains.html [ Skip ]
 imported/w3c/web-platform-tests/dom/events/scrolling/scroll-cross-origin-iframes.html [ Skip ]
@@ -7752,6 +7796,27 @@ imported/w3c/web-platform-tests/css/cssom/adoptedstylesheets-adopt-style.tentati
 imported/w3c/web-platform-tests/wasm/webapi/esm-integration/script-src-blocks-wasm.tentative.sub.html [ Pass Failure ]
 
 http/tests/iframe-memory-monitor/video-iframe.html [ Skip ]
+
+# webkit.org/b/330245 css/CSS2/pagination print reftests that fail
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/block-page-break-inside-avoid-13-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/block-page-break-inside-avoid-15-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/block-page-break-inside-avoid-8-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/float-page-break-inside-avoid-1-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/float-page-break-inside-avoid-2-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/float-page-break-inside-avoid-3-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/float-page-break-inside-avoid-4-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/float-page-break-inside-avoid-6-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/float-page-break-inside-avoid-8-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/rowgroup-page-break-inside-avoid-1-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/rowgroup-page-break-inside-avoid-2-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/rowgroup-page-break-inside-avoid-3-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/rowgroup-page-break-inside-avoid-7-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/table-page-break-inside-avoid-1-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/table-page-break-inside-avoid-4-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/table-page-break-inside-avoid-5-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/table-page-break-inside-avoid-7-print.html [ ImageOnlyFailure ]
+webkit.org/b/330245 imported/w3c/web-platform-tests/css/CSS2/pagination/table-page-break-inside-avoid-8-print.html [ ImageOnlyFailure ]
+
 # css/CSS2/tables failures
 webkit.org/b/329821 imported/w3c/web-platform-tests/css/CSS2/tables/fixed-table-layout-027.xht [ ImageOnlyFailure ]
 webkit.org/b/288957 imported/w3c/web-platform-tests/css/CSS2/tables/border-collapse-006.html [ ImageOnlyFailure ]
@@ -8172,6 +8237,10 @@ webkit.org/b/329524 imported/w3c/web-platform-tests/html/canvas/element/manual/d
 webkit.org/b/329524 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-backdrop-filter.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-blend-mode.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-filter-image.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-cover-tall.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-cover-wide.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-fill-tall.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-fill-wide.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329528 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-nested-canvas.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-transform-on-div.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/dialog-paints-in-top-layer.tentative.html [ ImageOnlyFailure ]
@@ -8191,6 +8260,7 @@ webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/d
 webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/top-layer-not-painted-in-canvas.tentative.html [ ImageOnlyFailure ]
 
 # Results vary between runs and configurations.
+webkit.org/b/329535 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/animated-gif-pinned-to-element-image.tentative.html [ Failure Pass ]
 webkit.org/b/329527 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/nested-canvas-reset.tentative.html [ ImageOnlyFailure Pass ]
 webkit.org/b/329527 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/nested-content-drawable-canvas.tentative.html [ Failure Pass ]
 webkit.org/b/329527 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/onpaint-display-none.tentative.html [ Failure Pass ]

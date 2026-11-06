@@ -48,6 +48,9 @@ http/tests/site-isolation/ios/dblclick-in-cross-site-grandchild-of-scrolled-midd
 http/tests/site-isolation/ios/dblclick-with-element-document-window-listener-in-cross-origin-iframe.html [ Pass ]
 http/tests/site-isolation/ios/drag-selection-grabber-extends-selection-in-cross-origin-iframe.html [ Pass ]
 http/tests/site-isolation/ios/drag-selection-grabber-in-scrolled-cross-origin-iframe.html [ Pass ]
+http/tests/site-isolation/ios/drag-selection-grabber-in-same-site-frame-nested-in-cross-origin-iframe.html [ Pass ]
+http/tests/site-isolation/ios/drag-selection-grabber-in-same-site-grandchild-of-cross-origin-iframe.html [ Pass ]
+http/tests/site-isolation/ios/drag-selection-grabber-in-same-site-nested-frame.html [ Pass ]
 http/tests/site-isolation/ios/autoscroll-selection-back-up-in-cross-origin-iframe.html [ Pass ]
 http/tests/site-isolation/ios/autoscroll-selection-in-cross-origin-iframe.html [ Pass ]
 http/tests/site-isolation/ios/exposed-content-rect.html [ Pass ]
@@ -384,9 +387,6 @@ media/video-supports-fullscreen.html [ Skip ]
 
 # Encrypted Media Extensions are not enabled
 media/encrypted-media/
-
-# FIXME: <rdar://problem/6512037> LayoutTests: Enable printing tests once printing is supported on iOS
-printing
 
 # Tests that rely on custom domain names.
 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/overlapping-navigations-and-traversals/nav-cancelation-2.sub.html [ Skip ]
@@ -1206,6 +1206,7 @@ fast/events/sequential-focus-navigation-after-clicking-editable-text.html [ Fail
 fast/shadow-dom/focus-on-iframe.html [ Failure ]
 webkit.org/b/116046 fast/events/sequential-focus-navigation-starting-point.html [ Skip ]
 webkit.org/b/159240 fast/events/remove-focus-navigation-starting-point-crash.html [ Skip ]
+webkit.org/b/164888 fast/shadow-dom/focus-navigation-backward-across-empty-slot.html [ Skip ]
 webkit.org/b/164888 fast/shadow-dom/focus-navigation-out-of-slot.html [ Skip ]
 webkit.org/b/164888 fast/shadow-dom/focus-navigation-passes-shadow-host.html [ Skip ]
 webkit.org/b/311742 fast/shadow-dom/focus-navigation-many-non-focusable-shadow-hosts.html [ Skip ]
@@ -5075,6 +5076,7 @@ webkit.org/b/259157 imported/w3c/web-platform-tests/html/dom/elements/global-att
 # https://bugs.webkit.org/show_bug.cgi?id=248545 — re-enable them here.
 fast/images/animations-resume-from-last-displayed-frame.html [ Pass ]
 fast/images/pagewide-play-pause-animateTransform-svg-animation.html [ Pass ]
+fast/images/pagewide-play-pause-svg-image-sources.html [ Pass ]
 fast/images/pagewide-play-pause-offscreen-animations.html [ Pass Failure ] # rdar://178676128
 
 # Only applicable on platforms with HDR support
@@ -10342,8 +10344,6 @@ webkit.org/b/325029 [ Release ] http/wpt/user-activation/bless.html [ Pass Failu
 webkit.org/b/325029 [ Release ] http/wpt/user-activation/bless-edge-cases.sub.html [ Pass Failure ]
 webkit.org/b/325029 [ Release ] http/wpt/user-activation/bless-nested.sub.html [ Pass Failure ]
 
-webkit.org/b/325037 [ Debug ] imported/w3c/web-platform-tests/editing/crashtests/inserthtml-in-li-in-option.html [ Pass Crash ]
-
 # webkit.org/b/324372 [ EWS UAT ] [ iOS 27 ] 11X fast/text-extraction/ (layout-tests) are constant timeouts
 fast/text-extraction/debug-text-extraction-all-container-uids.html [ Timeout ]
 fast/text-extraction/debug-text-extraction-basic.html [ Timeout ]
@@ -10478,6 +10478,10 @@ webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/d
 webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-blur-filter-on-div.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-clip-path-on-div.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-mask-on-div.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-contain-tall.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-contain-wide.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-none-tall.tentative.html [ ImageOnlyFailure ]
+webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/css-object-fit-none-wide.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/draw-element-image-scale-variant.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/element-shadow.tentative.html [ ImageOnlyFailure ]
 webkit.org/b/329531 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/iframe-local.tentative.html [ ImageOnlyFailure ]

@@ -136,7 +136,7 @@ using namespace WebCore;
 
 static constexpr Seconds networkProcessResponsivenessTimeout = 6_s;
 
-static WeakHashSet<NetworkProcessProxy>& LEGACY_NODELETE networkProcessesSet()
+NODELETE static WeakHashSet<NetworkProcessProxy>& networkProcessesSet()
 {
     ASSERT(RunLoop::isMain());
     static NeverDestroyed<WeakHashSet<NetworkProcessProxy>> set;
@@ -2190,10 +2190,15 @@ void NetworkProcessProxy::addAllowedFirstPartyForCookies(WebProcessProxy& webPro
         madeChange = true;
         pair.first = LoadedWebArchive::Yes;
     }
-    if (madeChange)
-        sendWithAsyncReply(Messages::NetworkProcess::AddAllowedFirstPartyForCookies(webProcessProxy.coreProcessIdentifier(), firstPartyForCookies, loadedWebArchive), WTF::move(completionHandler));
-    else
+    if (!madeChange && !m_pendingAddAllowedFirstPartyForCookiesReplies)
+        return completionHandler();
+
+    ++m_pendingAddAllowedFirstPartyForCookiesReplies;
+    sendWithAsyncReply(Messages::NetworkProcess::AddAllowedFirstPartyForCookies(webProcessProxy.coreProcessIdentifier(), firstPartyForCookies, loadedWebArchive), [weakThis = WeakPtr { *this }, completionHandler = WTF::move(completionHandler)] mutable {
+        if (RefPtr protectedThis = weakThis)
+            --protectedThis->m_pendingAddAllowedFirstPartyForCookiesReplies;
         completionHandler();
+    });
 }
 
 void NetworkProcessProxy::addAllowedWebPageProxyIdentifier(WebProcessProxy& webProcessProxy, WebPageProxyIdentifier pageID)

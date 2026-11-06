@@ -1339,17 +1339,18 @@ static std::pair<std::optional<SimpleRange>, SelectionWasFlipped> rangeForPointI
     VisiblePosition selectionStart = existingSelection.visibleStart();
     VisiblePosition selectionEnd = existingSelection.visibleEnd();
 
-    RefPtr localMainFrame = frame.localMainFrame();
     RefPtr frameView = frame.view();
     if (!frameView)
         return { std::nullopt, SelectionWasFlipped::No };
 
     // Constrain the drag point (in this frame's root-view coordinates) to the visible viewport so the
-    // selection can't be extended outside it. For the main frame its unobscured content rect is used
-    // directly (root-view and contents coincide there). For a cross-origin subframe -- whose main
-    // frame is remote -- use this frame's own unobscured content rect converted to root-view
-    // coordinates; clamping against the contents-space rect directly would fold the frame's scroll
-    // offset into the point, which rootViewToContents would then apply a second time.
+    // selection can't be extended outside it. For a frame whose local root is the main frame, the main
+    // frame's unobscured content rect is used directly (root-view and contents coincide there). For a
+    // frame under a remote ancestor -- whose local root isn't the main frame -- use this frame's own
+    // unobscured content rect converted to root-view coordinates; clamping against the contents-space
+    // rect directly would fold the frame's scroll offset into the point, which rootViewToContents
+    // would then apply a second time.
+    RefPtr localMainFrame = frame.rootFrame().isMainFrame() ? frame.localMainFrame() : nullptr;
     auto viewportToConstrainWithin = localMainFrame ? protect(localMainFrame->view())->unobscuredContentRect() : frameView->contentsToRootView(frameView->unobscuredContentRect());
     auto pointInDocument = frameView->rootViewToContents(pointInRootViewCoordinates.constrainedWithin(viewportToConstrainWithin));
 
@@ -2585,10 +2586,10 @@ static void handleAnimationActions(Element& element, uint32_t action)
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
     if (static_cast<SheetAction>(action) == SheetAction::PlayAnimation) {
         if (RefPtr imageElement = dynamicDowncast<HTMLImageElement>(element))
-            imageElement->setAllowsAnimation(true);
+            imageElement->setAnimationOverride(ImageAnimationOverride::Play);
     } else if (static_cast<SheetAction>(action) == SheetAction::PauseAnimation) {
         if (RefPtr imageElement = dynamicDowncast<HTMLImageElement>(element))
-            imageElement->setAllowsAnimation(false);
+            imageElement->setAnimationOverride(ImageAnimationOverride::Pause);
     }
 #endif // ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 }
@@ -3766,7 +3767,7 @@ void WebPage::cancelAsynchronousTouchEvents(UniqueRef<EventDispatcher::TouchEven
 }
 #endif
 
-void WebPage::computePagesForPrintingiOS(WebCore::FrameIdentifier frameID, const PrintInfo& printInfo, CompletionHandler<void(uint64_t)>&& reply)
+void WebPage::computePagesForPrintingiOS(WebCore::FrameIdentifier frameID, const PrintInfo& printInfo, CompletionHandler<void(uint64_t, const WebCore::FloatBoxExtent&)>&& reply)
 {
     ASSERT_WITH_MESSAGE(!printInfo.snapshotFirstPage, "If we are just snapshotting the first page, we don't need a synchronous message to determine the page count, which is 1.");
 
@@ -3778,7 +3779,7 @@ void WebPage::computePagesForPrintingiOS(WebCore::FrameIdentifier frameID, const
     RELEASE_LOG(Printing, "Computing pages for printing. Page rects size = %zu", pageRects.size());
 
     ASSERT(pageRects.size() >= 1);
-    reply(pageRects.size());
+    reply(pageRects.size(), margin);
 }
 
 void WebPage::drawToImage(WebCore::FrameIdentifier frameID, const PrintInfo& printInfo, CompletionHandler<void(std::optional<WebCore::ShareableBitmap::Handle>&&)>&& reply)

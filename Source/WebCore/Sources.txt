@@ -363,10 +363,10 @@ Modules/phonenumberpossession/PhoneNumberPossessionCoordinator.cpp
 Modules/phonenumberpossession/PhoneNumberPossessionCredential.cpp
 Modules/phonenumberpossession/PhoneNumberPossessionRequest.cpp
 Modules/pictureinpicture/DocumentOrShadowRootPictureInPicture.cpp
-Modules/pictureinpicture/DocumentPictureInPicture.cpp
 Modules/pictureinpicture/HTMLVideoElementPictureInPicture.cpp
 Modules/pictureinpicture/PictureInPictureEvent.cpp
 Modules/pictureinpicture/PictureInPictureWindow.cpp
+Modules/pictureinpicture/VideoPictureInPicture.cpp
 Modules/push-api/PushCrypto.cpp
 Modules/push-api/PushDatabase.cpp
 Modules/push-api/PushEvent.cpp
@@ -2043,6 +2043,7 @@ inspector/agents/frame/FrameDOMDebuggerAgent.cpp
 inspector/agents/frame/FrameDOMStorageAgent.cpp
 inspector/agents/frame/FrameDebuggerAgent.cpp
 inspector/agents/frame/FrameIndexedDBAgent.cpp
+inspector/agents/frame/FrameTimelineAgent.cpp
 inspector/agents/frame/FrameWorkerAgent.cpp
 inspector/agents/page/PageAnimationAgent.cpp
 inspector/agents/page/PageAuditAgent.cpp
@@ -3073,7 +3074,6 @@ rendering/RenderBlockFlow.cpp @header:RenderStyleGetters @cost:8
 rendering/RenderBox.cpp @header:RenderStyleGetters @cost:10
 rendering/RenderBoxModelObject.cpp @header:RenderStyleGetters @cost:7
 rendering/RenderButton.cpp @header:RenderStyleGetters @cost:7
-rendering/RenderCombineText.cpp @header:RenderStyleGetters @cost:5
 rendering/RenderCounter.cpp @header:RenderStyleGetters @cost:6
 rendering/RenderDeprecatedFlexibleBox.cpp @header:RenderStyleGetters @cost:7
 rendering/RenderElement.cpp @header:RenderStyleGetters @cost:12

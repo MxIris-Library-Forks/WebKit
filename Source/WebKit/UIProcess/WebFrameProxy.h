@@ -210,7 +210,7 @@ public:
     void getResourceData(API::URL*, CompletionHandler<void(API::Data*)>&&);
 
     void didStartProvisionalLoad(URL&&);
-    void didExplicitOpen(URL&&, String&& mimeType);
+    void didExplicitOpen(URL&&, String&& mimeType, ShouldClearProvisionalURL);
     void didReceiveServerRedirectForProvisionalLoad(URL&&);
     void didFailProvisionalLoad();
     void didCommitLoad(const String& contentType, bool containsPluginDocument, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const WebCore::SecurityOriginData& originReportedByWebProcess, LoadedWebArchive);
@@ -264,6 +264,7 @@ public:
 
     // https://html.spec.whatwg.org/multipage/interaction.html#transient-activation
     bool hasTransientActivation() const;
+    MonotonicTime lastActivationTimestamp() const { return m_lastActivationTimestamp; }
 
     NODELETE WebProcessProxy& process() const;
     void setProcess(FrameProcess&);

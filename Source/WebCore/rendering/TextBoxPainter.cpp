@@ -46,7 +46,6 @@
 #include "PlatformRenderTheme.h"
 #include "RenderBlock.h"
 #include "RenderBoxModelObjectInlines.h"
-#include "RenderCombineText.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderElementInlines.h"
 #include "RenderGlyph.h"
@@ -197,10 +196,7 @@ TextBoxPainter::TextBoxPainter(const LayoutIntegration::InlineContent& inlineCon
     , m_paintOffset(paintOffset)
     , m_paintRect(computePaintRect(paintOffset))
     , m_isFirstLine(m_textBox.displayBox().isFirstFormattedLine())
-    , m_isCombinedText([&] {
-        auto* combineTextRenderer = dynamicDowncast<RenderCombineText>(m_renderer.get());
-        return combineTextRenderer && combineTextRenderer->isCombined();
-    }())
+    , m_isCombinedText(m_renderer->layoutBox().isCombined())
     , m_isPrinting(m_document->printing())
     , m_haveSelection(computeHaveSelection())
 {
@@ -777,7 +773,7 @@ void TextBoxPainter::paintForeground(const StyledMarkedText& markedText)
         (!markedText.style.textShadow.isNone() && !m_style->appleColorFilter().isNone()) ? m_style->appleColorFilter() : Style::AppleColorFilter::none(),
         emphasisMark,
         emphasisMarkOffset,
-        m_isCombinedText ? &downcast<RenderCombineText>(m_renderer.get()) : nullptr
+        m_isCombinedText
     };
 
     bool isTransparentMarkedText = isTransparent(markedText);
@@ -1487,22 +1483,6 @@ void TextBoxPainter::paintCompositionUnderlines()
     }
 }
 
-NODELETE static inline void mirrorRTLSegment(float logicalWidth, TextDirection direction, float& start, float width)
-{
-    if (direction == TextDirection::LTR)
-        return;
-    start = logicalWidth - width - start;
-}
-
-float TextBoxPainter::textPosition()
-{
-    // When computing the width of a text run, RenderBlock::computeInlineDirectionPositionsForLine() doesn't include the actual offset
-    // from the containing block edge in its measurement. textPosition() should be consistent so the text are rendered in the same width.
-    if (!m_logicalRect.x())
-        return 0;
-    return m_logicalRect.x() - makeIterator()->lineBox().contentLogicalLeft();
-}
-
 void TextBoxPainter::paintCompositionUnderline(const CompositionUnderline& underline, const CornerRadii& radii, bool hasLiveConversion)
 {
     float start = 0; // start of line to draw, relative to tx
@@ -1513,7 +1493,6 @@ void TextBoxPainter::paintCompositionUnderline(const CompositionUnderline& under
     if (paintStart <= underline.startOffset) {
         paintStart = underline.startOffset;
         useWholeWidth = false;
-        start = m_renderer->width(textBox().start(), paintStart - textBox().start(), textPosition(), m_isFirstLine);
     }
     if (paintEnd != underline.endOffset) {
         paintEnd = std::min(paintEnd, (unsigned)underline.endOffset);
@@ -1523,9 +1502,13 @@ void TextBoxPainter::paintCompositionUnderline(const CompositionUnderline& under
         paintEnd = std::min(paintEnd, textBox().start() + *m_selectableRange.truncation);
         useWholeWidth = false;
     }
+    if (paintEnd <= paintStart)
+        return;
     if (!useWholeWidth) {
-        width = m_renderer->width(paintStart, paintEnd - paintStart, textPosition() + start, m_isFirstLine);
-        mirrorRTLSegment(m_logicalRect.width(), textBox().direction(), start, width);
+        float widthBeforeRange;
+        float widthAfterRange;
+        width = fontCascade().widthOfTextRange(m_paintTextRun, paintStart - textBox().start(), paintEnd - textBox().start(), widthBeforeRange, widthAfterRange);
+        start = m_paintTextRun.ltr() ? widthBeforeRange : widthAfterRange;
     }
 
     fillCompositionUnderline(start, width, underline, radii, hasLiveConversion);
@@ -1757,7 +1740,7 @@ bool TextBoxPainter::computeHaveSelection() const
 const FontCascade& TextBoxPainter::fontCascade() const
 {
     if (m_isCombinedText)
-        return downcast<RenderCombineText>(m_renderer.get()).textCombineFont();
+        return m_renderer->layoutBox().combinedText().font;
 
     return m_style->fontCascade();
 }
@@ -1773,8 +1756,11 @@ FloatPoint TextBoxPainter::textOriginFromPaintRect(const FloatRect& paintRect) c
     auto textOrigin = FloatPoint { paintRect.x(), paintRect.y() + ascent };
 
     if (m_isCombinedText) {
-        if (auto newOrigin = downcast<RenderCombineText>(m_renderer.get()).computeTextOrigin(paintRect))
-            textOrigin = newOrigin.value();
+        // Visually center the combined text within the paint rect.
+        auto& textCombine = m_renderer->layoutBox().combinedText();
+        textOrigin = paintRect.minXMaxYCorner();
+        textOrigin.move((paintRect.size().transposedSize() - FloatSize { textCombine.width, textCombine.ascent + textCombine.descent }) / 2);
+        textOrigin.move(0, textCombine.ascent);
     }
 
     if (writingMode().isHorizontal())

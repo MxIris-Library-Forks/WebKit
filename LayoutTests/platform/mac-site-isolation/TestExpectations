@@ -37,6 +37,7 @@ webkit.org/b/318430 http/tests/inspector/network/clear-non-buffered-resource-dat
 http/tests/websocket/tests/hybi/inspector/handshake-error.html [ Failure ]
 http/tests/media/media-stream/speech-recognition-iframe-allow-attribute.html [ Failure ]
 webkit.org/b/311836 http/tests/site-isolation/inspector/page/set-emulated-media-cross-origin-iframe.html [ Failure ]
+webkit.org/b/325545 inspector/debugger/break-on-exception-throw-in-promise.html [ Failure ]
 http/tests/misc/will-send-request-returns-null-on-redirect.html [ Failure ]
 http/tests/navigation/cross-origin-navigation-fires-onload.html [ Failure ]
 http/tests/navigation/page-cache-xhr-in-loading-iframe.html [ Failure ]
@@ -53,7 +54,6 @@ http/tests/storageAccess/grant-storage-access-under-opener-at-popup-user-gesture
 http/tests/storageAccess/grant-storage-access-under-opener-at-popup-user-gesture.https.html [ Failure ]
 http/wpt/webrtc/third-party-frame-ice-candidate-filtering.html [ Failure ]
 imported/w3c/web-platform-tests/cookies/partitioned-cookies/partitioned-cookies.tentative.https.html [ Failure ]
-webkit.org/b/327859 imported/w3c/web-platform-tests/content-security-policy/inheritance/history-iframe.sub.html [ Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/event_pause_noautoplay.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/event_play_noautoplay.html [ Pass Failure ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/track/track-element/track-cues-pause-on-exit.html [ Pass Failure ]
@@ -70,6 +70,7 @@ imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-getSynchronizationSources.
 inspector/runtime/executionContextCreated-onEnable.html [ Failure ]
 http/tests/inspector/dom/cross-domain-inspected-node-access.html [ Failure ]
 webkit.org/b/327622 http/tests/inspector/network/intercept-request-with-response.html [ Failure ]
+webkit.org/b/330198 inspector/timeline/timeline-event-RenderingFrame.html [ Failure ]
 
 #########################
 # Tests that Image fail #

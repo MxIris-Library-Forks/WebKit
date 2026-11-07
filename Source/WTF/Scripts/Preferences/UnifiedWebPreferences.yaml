@@ -2766,7 +2766,7 @@ HTMLEnhancedSelectEnabled:
 
 HTMLEnhancedSelectMultipleAndListBoxEnabled:
   type: bool
-  status: testable
+  status: preview
   category: dom
   humanReadableName: "Enhanced HTML select element for multiple and list box"
   humanReadableDescription: "Enable enhanced HTML select element for the multiple attribute and for list box rendering"
@@ -2785,7 +2785,7 @@ HTMLEnhancedSelectMultipleDropdownBoxEnabled:
 
 HTMLEnhancedSelectMultipleSelectedContentEnabled:
   type: bool
-  status: unstable
+  status: preview
   category: dom
   humanReadableName: "Enhanced HTML select element selectedcontent for multiple"
   humanReadableDescription: "Clone every option of a select element with the multiple attribute into its selectedcontent elements"
@@ -5883,9 +5883,8 @@ ShouldRestrictBaseURLSchemes:
   type: bool
   status: embedder
   defaultValue:
-    default: false
+    default: true
     WebKitLegacy: WebKit::defaultShouldRestrictBaseURLSchemes()
-    WebCore: true
 
 ShouldSuppressTextInputFromEditingDuringProvisionalNavigation:
   type: bool
@@ -5969,14 +5968,6 @@ SiteIsolationEnabled:
   humanReadableDescription: "Put cross-origin iframes in a different process"
   defaultValue: false
   sharedPreferenceForWebProcess: true
-
-SiteIsolationGlobalDebuggerPauseEnabled:
-  type: bool
-  status: unstable
-  category: security
-  humanReadableName: "Site Isolation: hold all frames while debugging"
-  humanReadableDescription: "While Web Inspector is paused in a frame, hold the frames of the same page in other processes"
-  defaultValue: false
 
 SiteIsolationHighValueFraudTargetDomainsEnabled:
   type: bool

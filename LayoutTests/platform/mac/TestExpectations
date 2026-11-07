@@ -135,22 +135,6 @@ webkit.org/b/306558 accessibility/mac/style-range.html [ Failure ]
 http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-001.html [ Pass ]
 http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-002.html [ Pass ]
 
-# Site isolation accessibility tests using the accessibility client API:
-# Skip by default, enable tests that are stable.
-http/tests/site-isolation/accessibility/client [ Skip ]
-http/tests/site-isolation/accessibility/client/simple-iframe.html [ Pass ]
-http/tests/site-isolation/accessibility/client/iframe-bounds.html [ Pass ]
-http/tests/site-isolation/accessibility/client/absolute-position-iframe.html [ Pass ]
-http/tests/site-isolation/accessibility/client/absolute-position-iframe-in-scrolled-page.html [ Pass ]
-http/tests/site-isolation/accessibility/client/absolute-position-scrolled-iframe.html [ Pass ]
-http/tests/site-isolation/accessibility/client/absolute-position-scrolled-iframe-in-scrolled-page.html [ Pass ]
-http/tests/site-isolation/accessibility/client/absolute-position-nested-scrolled-iframes.html [ Pass ]
-http/tests/site-isolation/accessibility/client/walk-up-from-iframe-content.html [ Pass ]
-http/tests/site-isolation/accessibility/client/search-past-remote-frame-immediate-descendants.html [ Pass ]
-http/tests/site-isolation/accessibility/client/search-from-remote-frame-host.html [ Pass ]
-http/tests/site-isolation/accessibility/client/iframe-name-propagates-to-web-area.html [ Pass ]
-http/tests/site-isolation/accessibility/client/iframe-access-denied.html [ Pass ]
-
 # Shared-process site isolation accessibility tests using the accessibility client API:
 # Skip by default, enable tests that are stable.
 http/wpt/site-isolation/accessibility [ Skip ]
@@ -947,6 +931,8 @@ webkit.org/b/183880 [ Debug ] inspector/console/messageAdded-from-named-evaluati
 webkit.org/b/156634 inspector/formatting/formatting-javascript.html [ Pass Timeout ]
 webkit.org/b/158948 inspector/timeline [ Pass Timeout ]
 webkit.org/b/302413 inspector/timeline/timeline-event-TimerInstall.html [ Skip ]
+# Keep this test out of the [ Pass Timeout ] above.
+inspector/timeline/timeline-recording-multiple-targets.html [ Pass ]
 webkit.org/b/191539 http/tests/inspector/network/resource-security-connection.html [ Skip ]
 
 # Touch events are not enabled on Mac
@@ -1836,9 +1822,6 @@ webkit.org/b/243515 svg/compositing/svg-poster-circle.html [ Pass ImageOnlyFailu
 # See also webkit.org/b/252088
 webkit.org/b/243515 svg/compositing/outermost-svg-directly-composited-transformed-group-child.html [ Pass ImageOnlyFailure ]
 
-# The following test only works with LBSE activated -- text transform changes fail to repaint using the legacy engine.
-svg/repaint/text-repainting-after-modifying-transform.html [ ImageOnlyFailure ]
-
 webkit.org/b/245092 webaudio/offlineaudiocontext-gc.html [ Pass Failure ]
 
 webkit.org/b/245994 imported/w3c/web-platform-tests/streams/readable-byte-streams/construct-byob-request.any.worker.html [ Pass Failure ]
@@ -2013,8 +1996,6 @@ accessibility/prefers-non-blinking-cursor.html [ Skip ]
 imported/w3c/web-platform-tests/svg/painting/reftests/marker-path-021.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/painting/reftests/marker-path-022.svg [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/svg/painting/reftests/marker-path-023.svg [ ImageOnlyFailure ]
-
-imported/w3c/web-platform-tests/svg/path/distance/pathlength-circle-mutating.svg [ ImageOnlyFailure ]
 
 webkit.org/b/269873 imported/w3c/web-platform-tests/webrtc-extensions/transfer-datachannel-service-worker.https.html [ Pass Failure ]
 

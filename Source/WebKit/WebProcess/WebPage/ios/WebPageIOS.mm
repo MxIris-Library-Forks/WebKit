@@ -148,6 +148,7 @@
 #import <WebCore/NodeList.h>
 #import <WebCore/NodeRenderStyle.h>
 #import <WebCore/NotImplemented.h>
+#import <WebCore/PDFDocumentBuffer.h>
 #import <WebCore/Page.h>
 #import <WebCore/PagePasteboardContext.h>
 #import <WebCore/Pasteboard.h>
@@ -1640,11 +1641,13 @@ void WebPage::updateSelectionWithTouches(const IntPoint& point, SelectionTouch s
     if (!frame)
         return completionHandler(point, selectionTouch, { });
 
+    auto localPoint = mainFrameCoordinatesToRootView(point);
+
 #if ENABLE(PDF_PLUGIN)
     if (RefPtr pluginView = focusedPluginViewForFrame(*frame)) {
         OptionSet<SelectionFlags> resultFlags;
         auto startOrEnd = baseIsStart ? SelectionEndpoint::End : SelectionEndpoint::Start;
-        if (pluginView->moveSelectionEndpoint(point, startOrEnd) == SelectionWasFlipped::Yes)
+        if (pluginView->moveSelectionEndpoint(localPoint, startOrEnd) == SelectionWasFlipped::Yes)
             resultFlags.add(SelectionFlags::SelectionFlipped);
         return completionHandler(point, selectionTouch, resultFlags);
     }
@@ -1660,8 +1663,6 @@ void WebPage::updateSelectionWithTouches(const IntPoint& point, SelectionTouch s
 
     if (selectionTouch == SelectionTouch::Started)
         addTextInteractionSources(TextInteractionSource::Touch);
-
-    auto localPoint = mainFrameCoordinatesToRootView(point);
 
     IntPoint pointInDocument = RefPtr(frame->view())->rootViewToContents(localPoint);
     VisiblePosition position = frame->visiblePositionForPoint(pointInDocument);
@@ -2439,15 +2440,15 @@ bool WebPage::applyAutocorrectionInternal(const String& correction, const String
 
 WebAutocorrectionContext WebPage::autocorrectionContext()
 {
-    if (!m_focusedElement)
-        return { };
-
     RefPtr frame = m_page->focusController().focusedOrMainFrame();
     if (!frame)
         return { };
 
-    if (!frame->selection().selection().hasEditableStyle())
-        return { };
+    WebAutocorrectionContext correction;
+    correction.frameID = frame->frameID();
+
+    if (!m_focusedElement || !frame->selection().selection().hasEditableStyle())
+        return correction;
 
     String contextBefore;
     String markedText;
@@ -2507,7 +2508,6 @@ WebAutocorrectionContext WebPage::autocorrectionContext()
         }
     }
 
-    WebAutocorrectionContext correction;
     correction.contextBefore = WTF::move(contextBefore);
     correction.markedText = WTF::move(markedText);
     correction.selectedText = WTF::move(selectedText);
@@ -3937,7 +3937,7 @@ void WebPage::drawToPDFiOS(FrameIdentifier frameID, const PrintInfo& printInfo, 
 
         auto snapshotRect = IntRect { FloatRect { { }, FloatSize { printInfo.availablePaperWidth, printInfo.availablePaperHeight } } };
 
-        RefPtr buffer = ImageBuffer::create(snapshotRect.size(), RenderingMode::PDFDocument, RenderingPurpose::Snapshot, 1, ColorSpace::SRGB(), PixelFormat::BGRA8);
+        auto buffer = PDFDocumentBuffer::create(snapshotRect.size());
         if (!buffer)
             return;
 
@@ -3948,7 +3948,7 @@ void WebPage::drawToPDFiOS(FrameIdentifier frameID, const PrintInfo& printInfo, 
         pdfSnapshotAtSize(*localMainFrame, buffer->context(), snapshotRect, { });
 
         frameView->setLayoutViewportOverrideRect(originalLayoutViewportOverrideRect);
-        reply(buffer->sinkIntoPDFDocument());
+        reply(buffer->takeData());
         return;
     }
 

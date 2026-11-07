@@ -3924,7 +3924,7 @@ WebCore::DictionaryPopupInfo UnifiedPDFPlugin::dictionaryPopupInfoForSelection(P
         return selection.attributedString;
     }();
 
-    dictionaryPopupInfo.origin = rectForSelectionInRootView(selection).location();
+    dictionaryPopupInfo.origin = convertFromRootViewToMainFrameView(rectForSelectionInRootView(selection).location());
 #if ENABLE(LEGACY_PDFKIT_PLUGIN)
     dictionaryPopupInfo.platformData.attributedString = WebCore::AttributedString::fromNSAttributedString(nsAttributedString.get());
 #else
@@ -3960,15 +3960,7 @@ bool UnifiedPDFPlugin::showDefinitionForSelection(PDFSelection *selection)
     if (!page)
         return false;
 
-    auto dictionaryPopupInfo = dictionaryPopupInfoForSelection(selection, TextIndicatorPresentationTransition::Bounce);
-
-    // The text indicator is already relative to the main frame's view. The origin is converted here,
-    // not in dictionaryPopupInfoForSelection(), because the force touch path converts it separately
-    // with RemoteDictionaryPopupInfoToRootView.
-    // FIXME(https://bugs.webkit.org/show_bug.cgi?id=326008): Produce the origin in main frame view coordinates and remove RemoteDictionaryPopupInfoToRootView.
-    dictionaryPopupInfo.origin = convertFromRootViewToMainFrameView(dictionaryPopupInfo.origin);
-
-    page->send(Messages::WebPageProxy::DidPerformDictionaryLookup(dictionaryPopupInfo));
+    page->send(Messages::WebPageProxy::DidPerformDictionaryLookup(dictionaryPopupInfoForSelection(selection, TextIndicatorPresentationTransition::Bounce)));
     return true;
 }
 
@@ -4901,6 +4893,28 @@ CursorContext UnifiedPDFPlugin::cursorContext(FloatPoint pointInRootView) const
     UNUSED_PARAM(pointInRootView);
 #endif
     return context;
+}
+
+bool UnifiedPDFPlugin::hasSelectableTextAtPoint(FloatPoint pointInRootView) const
+{
+#if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
+    auto [page, pointInPage] = rootViewToPage(pointInRootView);
+    if (!page)
+        return false;
+
+    if (RetainPtr annotation = [page annotationAtPoint:pointInPage]) {
+        if (annotationIsLinkWithDestination(annotation)
+            || annotationIsOfType(annotation, AnnotationType::Text)
+            || (![annotation isReadOnly] && annotationIsWidgetOfType(annotation, WidgetType::Button)))
+            return false;
+    }
+
+    RetainPtr word = selectionAtPoint(pointInPage, page, TextGranularity::WordGranularity);
+    return FloatRect { [word boundsForPage:page] }.contains(pointInPage);
+#else
+    UNUSED_PARAM(pointInRootView);
+    return false;
+#endif
 }
 
 #if PLATFORM(IOS_FAMILY)

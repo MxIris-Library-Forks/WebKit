@@ -101,6 +101,7 @@ VPATH = \
     $(WebKit2)/UIProcess/Network/CustomProtocols \
     $(WebKit2)/UIProcess/Notifications \
     $(WebKit2)/UIProcess/PDF \
+    $(WebKit2)/UIProcess/PhoneNumberPossession \
     $(WebKit2)/UIProcess/RemoteLayerTree \
     $(WebKit2)/UIProcess/Storage \
     $(WebKit2)/UIProcess/UserContent \
@@ -206,6 +207,7 @@ MESSAGE_RECEIVERS = \
 	UIProcess/Media/RemoteMediaSessionCoordinatorProxy \
 	UIProcess/Media/RemoteMediaSessionManagerProxy \
 	UIProcess/Model/ModelProcessProxy \
+	UIProcess/PhoneNumberPossession/WebPhoneNumberPossessionCoordinatorProxy \
 	UIProcess/SpeechRecognitionRemoteRealtimeMediaSourceManager \
 	UIProcess/SpeechRecognitionServer \
 	UIProcess/XR/PlatformXRSystem \
@@ -790,6 +792,7 @@ SERIALIZATION_DESCRIPTION_FILES = \
 	Shared/Extensions/WebExtensionFrameParameters.serialization.in \
 	Shared/Extensions/WebExtensionMatchedRuleParameters.serialization.in \
 	Shared/Extensions/WebExtensionMenuItem.serialization.in \
+	Shared/Extensions/WebExtensionMessage.serialization.in \
 	Shared/Extensions/WebExtensionMessageSenderParameters.serialization.in \
 	Shared/Extensions/WebExtensionMessageTargetParameters.serialization.in \
 	Shared/Extensions/WebExtensionNotification.serialization.in \

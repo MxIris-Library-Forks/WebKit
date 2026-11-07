@@ -1811,6 +1811,69 @@ TEST(SiteIsolation, PushStateAfterSuspendingReusedMainFrame)
     checkSameDocumentNavigationAfterSuspendingReusedMainFrame(@"history.pushState(null, null, '/same_document')");
 }
 
+static void checkExplicitOpenDuringCrossSiteNavigation(TestWKWebView *webView, TestNavigationDelegate *navigationDelegate)
+{
+    // Call document.open() in the current process while the load is provisional in another one.
+    navigationDelegate.decidePolicyForNavigationResponse = ^(WKNavigationResponse *, void (^completionHandler)(WKNavigationResponsePolicy)) {
+        [webView evaluateJavaScript:@"document.open(); true" completionHandler:^(id, NSError *error) {
+            EXPECT_NULL(error);
+            completionHandler(WKNavigationResponsePolicyAllow);
+        }];
+    };
+    // A script navigation keeps an opened page in its browsing context group, so it reuses its main frame.
+    [webView evaluateJavaScript:@"location.href = 'https://apple.com/destination'" completionHandler:nil];
+    [navigationDelegate waitForDidFinishNavigation];
+    navigationDelegate.decidePolicyForNavigationResponse = nil;
+
+    EXPECT_WK_STREQ(webView.URL.absoluteString, @"https://apple.com/destination");
+    EXPECT_WK_STREQ([webView _mainFrameURL].absoluteString, @"https://apple.com/destination");
+    auto pidAfterNavigation = [webView _webProcessIdentifier];
+
+    [webView objectByEvaluatingJavaScript:@"history.replaceState(null, null, '/same_document')"];
+    EXPECT_TRUE(TestWebKitAPI::Util::waitFor([&] {
+        return [webView.URL.absoluteString isEqualToString:@"https://apple.com/same_document"];
+    }));
+    EXPECT_EQ(pidAfterNavigation, [webView _webProcessIdentifier]);
+}
+
+static HTTPServer::ResponseMap explicitOpenDuringCrossSiteNavigationResponses()
+{
+    HTTPServer::ResponseMap responses;
+    responses.add("/example"_s, HTTPResponse("<script>w = window.open('https://webkit.org/webkit')</script>"_s));
+    responses.add("/webkit"_s, HTTPResponse("webkit"_s));
+    responses.add("/destination"_s, HTTPResponse("destination"_s));
+    return responses;
+}
+
+TEST(SiteIsolation, ExplicitOpenDuringCrossSiteNavigation)
+{
+    HTTPServer server(explicitOpenDuringCrossSiteNavigationResponses(), HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/webkit"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    checkExplicitOpenDuringCrossSiteNavigation(webView.get(), navigationDelegate.get());
+}
+
+TEST(SiteIsolation, ExplicitOpenDuringCrossSiteNavigationWithoutSiteIsolation)
+{
+    HTTPServer server(explicitOpenDuringCrossSiteNavigationResponses(), HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = viewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://webkit.org/webkit"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+
+    checkExplicitOpenDuringCrossSiteNavigation(webView.get(), navigationDelegate.get());
+}
+
+TEST(SiteIsolation, ExplicitOpenDuringCrossSiteNavigationOfReusedMainFrame)
+{
+    HTTPServer server(explicitOpenDuringCrossSiteNavigationResponses(), HTTPServer::Protocol::HttpsProxy);
+    auto [opener, opened] = openerAndOpenedViews(server);
+    EXPECT_WK_STREQ([opened.webView _mainFrameURL].absoluteString, @"https://webkit.org/webkit");
+
+    checkExplicitOpenDuringCrossSiteNavigation(opened.webView.get(), opened.navigationDelegate.get());
+}
+
 void pollUntilOpenedWindowIsClosed(RetainPtr<WKWebView> webView, bool& finished)
 {
     [webView evaluateJavaScript:@"openedWindow.closed" completionHandler:makeBlockPtr([webView, &finished](id result, NSError *error) {
@@ -9385,6 +9448,35 @@ static bool waitForFirstChildFrameToLoadAboutBlank(TestWKWebView *webView)
     return waitUntilFirstChildFrameEvaluatesToTrue(webView, @"location.href == 'about:blank' && document.readyState == 'complete'");
 }
 
+TEST(SiteIsolation, AboutBlankIframeHistoryBackReturnsToInitiatorProcess)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe id='iframe1' src='https://webkit.org/webkit'></iframe>"_s } },
+        { "/webkit"_s, { "<script>alert('webkit')</script>"_s } },
+        { "/apple"_s, { "<script>alert('apple')</script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "webkit");
+
+    auto childFramePID = [webView = RetainPtr { webView }] {
+        return [webView mainFrame].childFrames.firstObject.info._processIdentifier;
+    };
+    pid_t mainFramePID = [webView mainFrame].info._processIdentifier;
+
+    [webView evaluateJavaScript:@"iframe1.src = 'about:blank'" completionHandler:nil];
+    EXPECT_TRUE(waitForFirstChildFrameToLoadAboutBlank(webView.get()));
+    EXPECT_EQ(childFramePID(), mainFramePID);
+
+    [webView evaluateJavaScript:@"location.href = 'https://apple.com/apple'" inFrame:[webView firstChildFrame] completionHandler:nil];
+    EXPECT_WK_STREQ([webView _test_waitForAlert], "apple");
+    EXPECT_NE(childFramePID(), mainFramePID);
+
+    [webView evaluateJavaScript:@"history.back()" inFrame:[webView firstChildFrame] completionHandler:nil];
+    EXPECT_TRUE(waitForFirstChildFrameToLoadAboutBlank(webView.get()));
+    EXPECT_EQ(childFramePID(), mainFramePID);
+}
+
 TEST(SiteIsolation, SelfInitiatedAboutBlankIframeHistoryBackReturnsToInitiatorProcess)
 {
     // The second webkit.org iframe keeps a webkit.org process in the browsing context group for the first one to return to.
@@ -10431,12 +10523,7 @@ static void expectPlayingAudio(WKWebView *webView, bool expected, ASCIILiteral r
     EXPECT_TRUE(success) << reason.characters();
 }
 
-// FIXME: Re-enable once the audio session is activated per web process. This GPU-activation change
-// still keys activation on the process-global AudioSession::isActive()/m_becameActive latch, so only
-// the first playing frame's process activates its audio session; a second frame in another process is
-// not independently sustained on iOS after the first pauses. Fixed by the per-process activation
-// follow-up: https://bugs.webkit.org/show_bug.cgi?id=320600
-TEST(SiteIsolation, DISABLED_PlayAudioInMultipleFrames)
+TEST(SiteIsolation, PlayAudioInMultipleFrames)
 {
     auto mainFrameHTML = "<video src='/video-with-audio.mp4' webkit-playsinline loop></video>"
     "<iframe src='https://webkit.org/subframe'></iframe>"_s;
@@ -19403,6 +19490,65 @@ TEST(SiteIsolation, ContextMenuKeyInCrossOriginFrame)
     EXPECT_FALSE([[webView objectByEvaluatingJavaScript:@"!!window.receivedContextMenu"] boolValue]);
 }
 
+// Returns the client coordinates of the contextmenu event that the context menu key dispatches in the iframe, and its
+// screen coordinates relative to the window's, so that they don't depend on where the window is.
+static Vector<double> contextMenuKeyEventLocationInCrossOriginIframe(bool siteIsolationEnabled)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0'><iframe id='iframe' style='position: absolute; left: 100px; top: 150px; width: 400px; height: 300px; border: none;' src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<body style='margin: 0'><input id='input' style='position: absolute; left: 20px; top: 30px; width: 100px; height: 20px;'>"
+            "<script>addEventListener('contextmenu', event => { event.preventDefault(); window.contextMenuEventLocation = [event.clientX, event.clientY, event.screenX, event.screenY]; })</script></body>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolationEnabled ? siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600)) : viewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    RetainPtr childFrame = [webView firstChildFrame];
+    [webView evaluateJavaScript:@"document.getElementById('iframe').focus()" completionHandler:nil];
+    while (![childFrame _isFocused]) {
+        Util::spinRunLoop();
+        childFrame = [webView firstChildFrame];
+    }
+    [webView objectByEvaluatingJavaScript:@"document.getElementById('input').focus(); true" inFrame:childFrame.get()];
+
+    // With an element focused, the context menu key dispatches a contextmenu event near that element.
+    [webView showContextMenuForSelection:nil];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"!!window.contextMenuEventLocation" inFrame:childFrame.get()] boolValue];
+    }));
+
+    // Read the window's screen position in the main frame, whose process is guaranteed to know it.
+    RetainPtr<NSArray> windowScreenPosition = [webView objectByEvaluatingJavaScript:@"[screenX, screenY]"];
+    RetainPtr<NSArray> location = [webView objectByEvaluatingJavaScript:@"window.contextMenuEventLocation" inFrame:childFrame.get()];
+    if ([location count] != 4 || [windowScreenPosition count] != 2)
+        return { };
+
+    return {
+        [[location objectAtIndex:0] doubleValue],
+        [[location objectAtIndex:1] doubleValue],
+        [[location objectAtIndex:2] doubleValue] - [[windowScreenPosition objectAtIndex:0] doubleValue],
+        [[location objectAtIndex:3] doubleValue] - [[windowScreenPosition objectAtIndex:1] doubleValue],
+    };
+}
+
+TEST(SiteIsolation, ContextMenuKeyEventScreenLocationInCrossOriginFrame)
+{
+    // Without Site Isolation, the iframe is in the main frame's process.
+    auto expected = contextMenuKeyEventLocationInCrossOriginIframe(false);
+    auto actual = contextMenuKeyEventLocationInCrossOriginIframe(true);
+    ASSERT_EQ(4U, expected.size());
+    ASSERT_EQ(4U, actual.size());
+
+    // The event's client coordinates are in the iframe, and its screen coordinates include the iframe's position.
+    EXPECT_EQ(expected[0], actual[0]);
+    EXPECT_EQ(expected[1], actual[1]);
+    EXPECT_EQ(expected[2], actual[2]);
+    EXPECT_EQ(expected[3], actual[3]);
+}
+
 TEST(SiteIsolation, ContextMenuCopyInUnfocusedCrossOriginFrame)
 {
     HTTPServer server({
@@ -21140,6 +21286,44 @@ TEST(SiteIsolation, DrawPagesToPDFDoesNotCarryTransformIntoNextPage)
 
     constexpr std::array<uint8_t, 3> green { 0, 128, 0 };
     EXPECT_TRUE(pdfPageHasColorAtPoint(data.get(), 2, CGPointMake(100, 100), green));
+}
+
+// The filter() images are drawn into GPU process image buffers, which have to hold pixels to be drawn
+// into the PDF.
+TEST(SiteIsolation, DrawToPDFIncludesFilterImagesInCrossSiteFrames)
+{
+    static constexpr auto filterImageHTML = "<div style='width:100px;height:100px;background-image:filter(linear-gradient(black, black), invert(1))'></div>"_s;
+    HTTPServer server({
+        { "/mainframe"_s, { makeString("<body style='margin:0;background:rgb(0, 255, 0);print-color-adjust:exact'>"_s, filterImageHTML,
+            "<iframe style='display:block;border:0;width:200px;height:200px' src='https://b.com/subframe'></iframe></body>"_s) } },
+        { "/subframe"_s, { makeString("<body style='margin:0;background:rgb(0, 255, 0);print-color-adjust:exact'>"_s, filterImageHTML, "</body>"_s) } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration, @"RemoteSnapshottingEnabled", true);
+    setFeatureEnabled(configuration, @"UseGPUProcessForDOMRenderingEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
+    EXPECT_NE([webView mainFrame].info._processIdentifier, [webView mainFrame].childFrames.firstObject.info._processIdentifier);
+
+    __block RetainPtr<NSData> data;
+    __block bool done = false;
+    [webView createPDFWithConfiguration:nil completionHandler:^(NSData *pdfData, NSError *error) {
+        EXPECT_NULL(error);
+        data = pdfData;
+        done = true;
+    }];
+    Util::run(&done);
+    ASSERT_NOT_NULL(data);
+
+    // The inverted black filter() images are white over the green pages.
+    constexpr std::array<uint8_t, 3> white { 255, 255, 255 };
+    constexpr std::array<uint8_t, 3> green { 0, 255, 0 };
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data, 1, CGPointMake(50, 50), white));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data, 1, CGPointMake(150, 50), green));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data, 1, CGPointMake(50, 150), white));
+    EXPECT_TRUE(pdfPageHasColorAtPoint(data, 1, CGPointMake(150, 150), green));
 }
 
 static void collectImageBitsPerComponent(CGPDFDictionaryRef resources, Vector<CGPDFInteger>& bitsPerComponent, unsigned depth = 0)

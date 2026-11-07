@@ -335,6 +335,7 @@ $(PROJECT_DIR)/Shared/Extensions/WebExtensionEventListenerType.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionFrameParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionMatchedRuleParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionMenuItem.serialization.in
+$(PROJECT_DIR)/Shared/Extensions/WebExtensionMessage.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionMessageSenderParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionMessageTargetParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionNotification.serialization.in
@@ -597,6 +598,7 @@ $(PROJECT_DIR)/UIProcess/Media/RemoteMediaSessionManagerProxy.messages.in
 $(PROJECT_DIR)/UIProcess/Model/ModelProcessProxy.messages.in
 $(PROJECT_DIR)/UIProcess/Network/CustomProtocols/LegacyCustomProtocolManagerProxy.messages.in
 $(PROJECT_DIR)/UIProcess/Network/NetworkProcessProxy.messages.in
+$(PROJECT_DIR)/UIProcess/PhoneNumberPossession/WebPhoneNumberPossessionCoordinatorProxy.messages.in
 $(PROJECT_DIR)/UIProcess/RemoteLayerTree/RemoteLayerTreeDrawingAreaProxy.messages.in
 $(PROJECT_DIR)/UIProcess/SpeechRecognitionRemoteRealtimeMediaSourceManager.messages.in
 $(PROJECT_DIR)/UIProcess/SpeechRecognitionServer.messages.in

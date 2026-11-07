@@ -52,7 +52,6 @@
 #include "RenderBlockFlowInlines.h"
 #include "RenderBlockInlines.h"
 #include "RenderBoxInlines.h"
-#include "RenderCombineText.h"
 #include "RenderCounter.h"
 #include "RenderDeprecatedFlexibleBox.h"
 #include "RenderDescendantIterator.h"
@@ -4499,11 +4498,6 @@ RenderBlockFlow::InlineContentStatus RenderBlockFlow::markInlineContentDirtyForL
         if (CheckedPtr cache = document().existingAXObjectCache())
             cache->onTextRunsChanged(renderer);
 #endif
-
-        if (CheckedPtr renderCombineText = dynamicDowncast<RenderCombineText>(renderer)) {
-            renderCombineText->combineTextIfNeeded();
-            continue;
-        }
     }
     return { hasSimpleOutOfFlowContentOnly, hasDirtyInFlowBlockLevelElement, hasInFlowBlockLevelElement ? contentNeedsNormalChildLayoutOnly : std::nullopt };
 }
@@ -4983,8 +4977,6 @@ std::pair<LayoutUnit, LayoutUnit> RenderBlockFlow::computeInlineIntrinsicLogical
             continue;
         }
         renderer->clearContentLogicalWidthsInvalidation();
-        if (auto* renderText = dynamicDowncast<RenderText>(renderer))
-            renderText->resetMinMaxWidth();
     }
     return intrinsicLogicalWidths;
 }

@@ -424,6 +424,10 @@
 #include "WebAuthenticatorCoordinatorProxy.h"
 #endif
 
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+#include "WebPhoneNumberPossessionCoordinatorProxy.h"
+#endif
+
 #if ENABLE(REMOTE_INSPECTOR)
 #include <JavaScriptCore/JSRemoteInspector.h>
 #include <JavaScriptCore/RemoteInspector.h>
@@ -1841,6 +1845,11 @@ void WebPageProxy::didAttachToRunningProcess()
 #if ENABLE(WEB_AUTHN)
     ASSERT(!m_webAuthnCredentialsMessenger);
     m_webAuthnCredentialsMessenger = WebAuthenticatorCoordinatorProxy::create(*this);
+#endif
+
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+    ASSERT(!m_phoneNumberPossessionCoordinatorProxy);
+    m_phoneNumberPossessionCoordinatorProxy = WebPhoneNumberPossessionCoordinatorProxy::create(*this);
 #endif
 
 #if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)
@@ -3466,7 +3475,7 @@ void WebPageProxy::sendMessageToInspectorFrontend(const String& targetId, const 
 
 void WebPageProxy::frameDidPauseForDebugger(IPC::Connection& connection, WebCore::FrameIdentifier frameID)
 {
-    if (m_isClosed || !protect(preferences())->siteIsolationGlobalDebuggerPauseEnabled() || !m_inspectorController->hasFrontends())
+    if (m_isClosed || !protect(preferences())->siteIsolationEnabled() || !m_inspectorController->hasFrontends())
         return;
 
     // A report can arrive after the frame is removed or leaves the sender's process, or before the commit that
@@ -7261,8 +7270,11 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, W
         if (currentItem && (navigation->lockBackForwardList() == LockBackForwardList::Yes || navigation->lockHistory() == LockHistory::Yes)) {
             // If WebCore is supposed to lock the history for this load, then the new process needs to know about the current history item so it can update
             // it instead of creating a new one. If the load doesn't replace the entry, the new process saves state to the item and sends it back, so it
-            // needs all of it.
-            Ref frameState = navigation->lockBackForwardList() == LockBackForwardList::Yes ? protect(currentItem->mainFrameItem())->copyFrameStateForReplacingDocument(navigation->currentRequest().url()) : currentItem->copyMainFrameStateWithChildren();
+            // needs the item's own state.
+            Ref mainFrameItem = currentItem->mainFrameItem();
+            Ref frameState = navigation->lockBackForwardList() == LockBackForwardList::Yes
+                ? mainFrameItem->copyFrameStateForReplacingDocument(navigation->currentRequest().url())
+                : mainFrameItem->copyFrameStateWithChildrenForProcess(*this, protect(provisionalPage->process()));
             provisionalPage->send(Messages::WebPage::SetCurrentHistoryItemForReattach(WTF::move(frameState)));
         }
 
@@ -9046,6 +9058,10 @@ void WebPageProxy::didDestroyFrame(IPC::Connection& connection, FrameIdentifier 
 #if ENABLE(WEB_AUTHN)
     protect(protect(websiteDataStore())->authenticatorManager())->cancelRequest(webPageIDInMainFrameProcess(), frameID);
 #endif
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+    if (RefPtr phoneNumberPossessionCoordinatorProxy = m_phoneNumberPossessionCoordinatorProxy)
+        phoneNumberPossessionCoordinatorProxy->cancelRequestForFrame(frameID);
+#endif
     if (RefPtr automationSession = m_configuration->processPool().automationSession())
         automationSession->didDestroyFrame(frameID);
 
@@ -9594,6 +9610,14 @@ void WebPageProxy::didStartProvisionalLoadForFrameShared(Ref<WebProcessProxy>&& 
 #if ENABLE(WEB_AUTHN)
     protect(protect(websiteDataStore())->authenticatorManager())->cancelRequest(m_webPageID, frameID);
 #endif
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+    if (RefPtr phoneNumberPossessionCoordinatorProxy = m_phoneNumberPossessionCoordinatorProxy) {
+        if (frame->isMainFrame())
+            phoneNumberPossessionCoordinatorProxy->cancelPendingRequest();
+        else
+            phoneNumberPossessionCoordinatorProxy->cancelRequestForFrame(frameID);
+    }
+#endif
 }
 
 void WebPageProxy::didExplicitOpenForFrame(IPC::Connection& connection, FrameIdentifier frameID, URL&& url, String&& mimeType)
@@ -9603,18 +9627,26 @@ void WebPageProxy::didExplicitOpenForFrame(IPC::Connection& connection, FrameIde
         return;
 
     Ref process = WebProcessProxy::fromConnection(connection);
+    if (process->coreProcessIdentifier() != frame->process().coreProcessIdentifier()) {
+        ASSERT(preferences().siteIsolationEnabled());
+        return;
+    }
+
     if (!checkURLReceivedFromCurrentOrPreviousWebProcess(process, url)) {
         WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "Ignoring WebPageProxy::DidExplicitOpenForFrame() IPC from the WebContent process because the file URL is outside the sandbox");
         return;
     }
 
+    // document.open() stops a provisional load in its own process only. A provisional load in another process will still commit.
+    auto shouldClearProvisionalURL = frame->provisionalLoadProcess().coreProcessIdentifier() == process->coreProcessIdentifier() ? ShouldClearProvisionalURL::Yes : ShouldClearProvisionalURL::No;
+
     Ref pageLoadState = internals().pageLoadState;
     auto transaction = pageLoadState->transaction();
 
     if (frame->isMainFrame())
-        pageLoadState->didExplicitOpen(transaction, url);
+        pageLoadState->didExplicitOpen(transaction, url, shouldClearProvisionalURL);
 
-    frame->didExplicitOpen(WTF::move(url), WTF::move(mimeType));
+    frame->didExplicitOpen(WTF::move(url), WTF::move(mimeType), shouldClearProvisionalURL);
 
     m_hasCommittedAnyProvisionalLoads = true;
     process->didCommitProvisionalLoad();
@@ -15839,6 +15871,11 @@ void WebPageProxy::provisionalProcessDidTerminate()
     m_inspectorController->mainFrameProvisionalLoadDidEnd(ProvisionalLoadIsReplaced::No);
 }
 
+void WebPageProxy::provisionalLoadWasCancelledBeforeStarting(WebCore::NavigationIdentifier navigationID)
+{
+    m_sessionHistoryTraversalQueue->mainFrameLoadDidFinish(navigationID);
+}
+
 NODELETE static bool shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
 {
     switch (reason) {
@@ -16049,6 +16086,10 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
 
 #if ENABLE(WEB_AUTHN)
     m_webAuthnCredentialsMessenger = nullptr;
+#endif
+
+#if ENABLE(PHONE_NUMBER_POSSESSION)
+    m_phoneNumberPossessionCoordinatorProxy = nullptr;
 #endif
 
 #if PLATFORM(IOS_FAMILY) && ENABLE(DEVICE_ORIENTATION)

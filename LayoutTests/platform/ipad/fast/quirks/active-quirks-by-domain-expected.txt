@@ -112,6 +112,7 @@ https://www.dictionary.com/
         script: (function() { let userAgent = navigator.userAgent; Object.defineProperty(navigator, 'userAgent', { get: () => { return userAgent + ' Chrome/130.0.0.0 Android/15.0'; }, configurable: true }); })();
         secondaryURL: [*://player.anyclip.com/*lre.js, *://player.anyclip.com/*lre.js?*]
 https://www.disneyplus.com/
+    NeedsZeroMaxTouchPointsQuirk
     ShouldHideCoarsePointerCharacteristicsQuirk
 https://englishtest.duolingo.com/
     NeedsChromeCompatibilityUserAgentQuirk
@@ -359,6 +360,11 @@ https://onedrive.live.com/
 https://officeapps.live.com/
     ShouldAvoidResizingWhenInputViewBoundsChangeQuirk
     ShouldDisableDataURLPaddingValidation
+https://www.openrice.com/
+    NeedsOpenRiceAdPopupHeightQuirk
+        elementSelector: .popup-ad-subview-container
+https://www.notopenrice.com/
+    (none)
 https://madisoncity.k12.al.us/
     (none)
 https://mailchimp.com/
@@ -602,6 +608,9 @@ https://news.ycombinator.com/
     ShouldIgnoreTextAutoSizingQuirk
 https://ycombinator.com/
     (none)
+https://www.yelp.com/
+    NeedsStyleSheetInjectedQuirk
+        styleSheet: div:has(button[aria-label="Share"]):has(button[aria-label="Report"]):not(:has(video)) { pointer-events: none; } button[aria-label="Share"], button[aria-label="Report"] { pointer-events: auto; }
 https://www.youtube.com/
     HasBrokenEncryptedMediaAPISupportQuirk
     NeedsScrollbarWidthThinDisabledQuirk

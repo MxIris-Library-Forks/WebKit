@@ -31,7 +31,6 @@
 #include "BufferIdentifierSet.h"
 #include "GPUConnectionToWebProcess.h"
 #include "ImageBufferRemoteDisplayListBackend.h"
-#include "ImageBufferRemotePDFDocumentBackend.h"
 #include "ImageBufferShareableBitmapBackend.h"
 #include "Logging.h"
 #include "PrepareBackingStoreBuffersData.h"
@@ -122,6 +121,7 @@ void RemoteRenderingBackendProxy::ensureGPUProcessConnection()
         Ref gpuProcessConnection = WebProcess::singleton().ensureGPUProcessConnection();
         gpuProcessConnection->createRenderingBackend(m_identifier, WTF::move(serverHandle));
         m_gpuProcessConnection = gpuProcessConnection.get();
+        m_gpuProcessIPCConnection = &gpuProcessConnection->connection();
         m_sharedResourceCache = gpuProcessConnection->sharedResourceCache();
     });
 }
@@ -253,6 +253,7 @@ void RemoteRenderingBackendProxy::disconnectGPUProcess()
     m_connection = nullptr;
     m_isResponsive = false;
     m_gpuProcessConnection = nullptr;
+    m_gpuProcessIPCConnection = nullptr;
 }
 
 RefPtr<RemoteImageBufferProxy> RemoteRenderingBackendProxy::createImageBuffer(const FloatSize& size, RenderingMode renderingMode, RenderingPurpose purpose, float resolutionScale, const ColorSpace& colorSpace, ImageBufferFormat bufferFormat)
@@ -276,13 +277,13 @@ RefPtr<RemoteImageBufferProxy> RemoteRenderingBackendProxy::createImageBuffer(co
             imageBuffer = RemoteImageBufferProxy::create<ImageBufferShareableBitmapBackend>(parameters, *this, creationContext);
         break;
 
-    case RenderingMode::PDFDocument:
-        imageBuffer = RemoteImageBufferProxy::create<ImageBufferRemotePDFDocumentBackend>(parameters, *this);
-        break;
-
     case RenderingMode::DisplayList:
         imageBuffer = RemoteImageBufferProxy::create<ImageBufferRemoteDisplayListBackend>(parameters, *this);
         break;
+
+    case RenderingMode::PDFDocument:
+        // FIXME: PDFDocument is only meaningful for a GraphicsContext. Add a type-specific rendering mode, such as ImageBufferRenderingMode, so that it cannot be passed here.
+        RELEASE_ASSERT_NOT_REACHED();
     }
 
     if (imageBuffer) {
@@ -352,10 +353,11 @@ static std::unique_ptr<ImageBufferBackend> createBackendForSerializedBuffer(cons
         if (handle && std::holds_alternative<ShareableBitmap::Handle>(*handle))
             return ImageBufferShareableBitmapBackend::create(parameters, std::get<ShareableBitmap::Handle>(WTF::move(*handle)));
         return nullptr;
-    case RenderingMode::PDFDocument:
-        return ImageBufferRemotePDFDocumentBackend::create(parameters);
     case RenderingMode::DisplayList:
         return ImageBufferRemoteDisplayListBackend::create(parameters);
+    case RenderingMode::PDFDocument:
+        // FIXME: PDFDocument is only meaningful for a GraphicsContext. Add a type-specific rendering mode, such as ImageBufferRenderingMode, so that it cannot be passed here.
+        RELEASE_ASSERT_NOT_REACHED();
     }
     return nullptr;
 }
@@ -749,6 +751,12 @@ RefPtr<IPC::StreamClientConnection> RemoteRenderingBackendProxy::connection()
         return nullptr;
 
     return m_connection;
+}
+
+RefPtr<IPC::Connection> RemoteRenderingBackendProxy::gpuProcessIPCConnection()
+{
+    ensureGPUProcessConnection();
+    return m_gpuProcessIPCConnection;
 }
 
 RefPtr<RemoteImageBufferProxy> RemoteRenderingBackendProxy::cachedImageBuffer(const ImageBuffer& imageBuffer) const

@@ -274,6 +274,7 @@
 #include <WebCore/ImageBufferParameters.h>
 #include <WebCore/ImageOverlay.h>
 #include <WebCore/ImageUtilities.h>
+#include <WebCore/InteractiveModelElementHitTestResult.h>
 #include <WebCore/JSDOMExceptionHandling.h>
 #include <WebCore/JSNode.h>
 #include <WebCore/KeyboardEvent.h>
@@ -2715,20 +2716,20 @@ void WebPage::createProvisionalFrame(ProvisionalFrameCreationParameters&& parame
     frame->createProvisionalFrame(WTF::move(parameters));
 }
 
-void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, WebCore::ProcessIdentifier hostingProcessID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier, RefPtr<WebCore::DocumentSyncData>&& topDocumentSyncData, CompletionHandler<void()>&& completionHandler)
+void WebPage::loadDidCommitInAnotherProcess(WebCore::FrameIdentifier frameID, WebCore::ProcessIdentifier hostingProcessID, std::optional<WebCore::LayerHostingContextIdentifier> layerHostingContextIdentifier, RefPtr<WebCore::DocumentSyncData>&& topDocumentSyncData, std::optional<BackForwardItemIdentifiers>&& cacheIdentifiers, CompletionHandler<void(DidCacheOutgoingDocument)>&& completionHandler)
 {
     RefPtr frame = WebProcess::singleton().webFrame(frameID);
     if (!frame || frame->page() != this)
-        return completionHandler();
+        return completionHandler(DidCacheOutgoingDocument::No);
 
-    frame->loadDidCommitInAnotherProcess(hostingProcessID, layerHostingContextIdentifier);
+    auto didCache = frame->loadDidCommitInAnotherProcess(hostingProcessID, layerHostingContextIdentifier, WTF::move(cacheIdentifiers));
 
     if (topDocumentSyncData) {
         if (RefPtr page = corePage())
             page->updateTopDocumentSyncData(topDocumentSyncData.releaseNonNull());
     }
 
-    completionHandler();
+    completionHandler(didCache);
 }
 
 void WebPage::loadRequest(LoadParameters&& loadParameters)
@@ -5823,16 +5824,16 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 #endif
 
 #if ENABLE(IPC_TESTING_API)
-    m_ipcTestingAPIEnabled = store.getBoolValueForKey(WebPreferencesKey::ipcTestingAPIEnabledKey());
-
-    protect(WebProcess::singleton().parentProcessConnection())->setIgnoreInvalidMessageForTesting();
-    assertIsMainRunLoop();
-    if (auto* gpuProcessConnection = WebProcess::singleton().existingGPUProcessConnection())
-        gpuProcessConnection->connection().setIgnoreInvalidMessageForTesting();
+    if ((m_ipcTestingAPIEnabled = store.getBoolValueForKey(WebPreferencesKey::ipcTestingAPIEnabledKey()))) {
+        protect(WebProcess::singleton().parentProcessConnection())->setIgnoreInvalidMessageForTesting();
+        assertIsMainRunLoop();
+        if (auto* gpuProcessConnection = WebProcess::singleton().existingGPUProcessConnection())
+            gpuProcessConnection->connection().setIgnoreInvalidMessageForTesting();
 #if ENABLE(MODEL_PROCESS)
-    if (auto* modelProcessConnection = WebProcess::singleton().existingModelProcessConnection())
-        modelProcessConnection->connection().setIgnoreInvalidMessageForTesting();
+        if (auto* modelProcessConnection = WebProcess::singleton().existingModelProcessConnection())
+            modelProcessConnection->connection().setIgnoreInvalidMessageForTesting();
 #endif // ENABLE(MODEL_PROCESS)
+    }
 #endif // ENABLE(IPC_TESTING_API)
 
 #if ENABLE(PDF_PLUGIN)
@@ -6541,31 +6542,31 @@ void WebPage::modelDragEnded(NodeIdentifier nodeIdentifier)
 #endif // ENABLE(DRAG_SUPPORT)
 
 #if ENABLE(MODEL_PROCESS)
-void WebPage::requestInteractiveModelElementAtPoint(IntPoint clientPosition)
+void WebPage::requestInteractiveModelElementAtPoint(std::optional<FrameIdentifier> frameID, IntPoint clientPosition, IntPoint interactionLocation, CompletionHandler<void(InteractiveModelElementHitTestResult&&)>&& completionHandler)
 {
-    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame())) {
-        auto nodeID = localMainFrame->eventHandler().requestInteractiveModelElementAtPoint(clientPosition);
-        send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(nodeID));
-    } else
-        send(Messages::WebPageProxy::DidReceiveInteractiveModelElement(std::nullopt));
+    RefPtr localRoot = localRootFrame(frameID);
+    if (!localRoot)
+        return completionHandler(std::nullopt);
+
+    completionHandler(localRoot->eventHandler().requestInteractiveModelElementAtPoint(clientPosition, interactionLocation));
 }
 
-void WebPage::stageModeSessionDidBegin(NodeIdentifier nodeID, const TransformationMatrix& transform)
+void WebPage::stageModeSessionDidBegin(std::optional<FrameIdentifier> frameID, NodeIdentifier nodeID, const TransformationMatrix& transform)
 {
-    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
-        localMainFrame->eventHandler().stageModeSessionDidBegin(nodeID, transform);
+    if (RefPtr localRoot = localRootFrame(frameID))
+        localRoot->eventHandler().stageModeSessionDidBegin(nodeID, transform);
 }
 
-void WebPage::stageModeSessionDidUpdate(std::optional<NodeIdentifier> nodeID, const TransformationMatrix& transform)
+void WebPage::stageModeSessionDidUpdate(std::optional<FrameIdentifier> frameID, std::optional<NodeIdentifier> nodeID, const TransformationMatrix& transform)
 {
-    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
-        localMainFrame->eventHandler().stageModeSessionDidUpdate(nodeID, transform);
+    if (RefPtr localRoot = localRootFrame(frameID))
+        localRoot->eventHandler().stageModeSessionDidUpdate(nodeID, transform);
 }
 
-void WebPage::stageModeSessionDidEnd(std::optional<NodeIdentifier> nodeID)
+void WebPage::stageModeSessionDidEnd(std::optional<FrameIdentifier> frameID, std::optional<NodeIdentifier> nodeID)
 {
-    if (RefPtr localMainFrame = dynamicDowncast<LocalFrame>(m_page->mainFrame()))
-        localMainFrame->eventHandler().stageModeSessionDidEnd(nodeID);
+    if (RefPtr localRoot = localRootFrame(frameID))
+        localRoot->eventHandler().stageModeSessionDidEnd(nodeID);
 }
 #endif
 
@@ -11288,6 +11289,26 @@ void WebPage::requestTargetedElementsForText(TargetedElementRequest&& request, C
         return completion({ });
 
     completion(protect(page->elementTargetingController())->searchTextInLocalFrames(WTF::move(request)));
+}
+
+void WebPage::requestTargetedFrameContent(Vector<WebCore::FrameIdentifier>&& frameIDs, CompletionHandler<void(HashMap<WebCore::FrameIdentifier, WebCore::TargetedFrameContent>&&)>&& completion)
+{
+    RefPtr page = corePage();
+    if (!page)
+        return completion({ });
+
+    HashMap<WebCore::FrameIdentifier, WebCore::TargetedFrameContent> contentByFrame;
+    for (auto frameID : frameIDs) {
+        RefPtr webFrame = WebFrame::webFrame(frameID);
+        RefPtr localFrame = webFrame ? webFrame->coreLocalFrame() : nullptr;
+        if (!localFrame || localFrame->page() != page.get())
+            continue;
+
+        if (auto content = protect(page->elementTargetingController())->contentForLocalFrame(*localFrame))
+            contentByFrame.add(frameID, WTF::move(*content));
+    }
+
+    completion(WTF::move(contentByFrame));
 }
 
 void WebPage::requestAllTargetableElements(float hitTestInterval, CompletionHandler<void(Vector<Vector<WebCore::TargetedElementInfo>>&&)>&& completion)

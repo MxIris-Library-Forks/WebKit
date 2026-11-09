@@ -29,6 +29,7 @@
 #include <WebCore/FloatSize.h>
 #include <WebCore/Image.h>
 #include <WebCore/RenderObject.h>
+#include <WebCore/StylePrimitiveNumeric.h>
 #include <WebCore/StyleURL.h>
 #include <wtf/RefCountedAndCanMakeWeakPtr.h>
 #include <wtf/RefPtr.h>
@@ -91,7 +92,7 @@ public:
     virtual bool hasClient(RenderElement&) const = 0;
 
     // Size / scale.
-    virtual float imageScaleFactor() const { return 1; }
+    virtual Resolution<> imageResolution() const { return 1; }
     virtual NaturalDimensions naturalDimensions(const RenderElement&, const ImageSizingContext&) const = 0;
 
     // https://drafts.csswg.org/css-images-3/#object-negotiation
@@ -195,7 +196,7 @@ protected:
     static ImageDrawResult drawResolvedTiled(GraphicsContext&, ImageBuffer&, const ImageDrawDescriptor&, const FloatRect& destination, const FloatPoint& phase, const FloatSize& tileSize, const FloatSize& spacing);
     static ImageDrawResult drawResolvedNinePiece(GraphicsContext&, ImageBuffer&, const ImageDrawDescriptor&, const NinePieceGeometry&);
 
-    static ImageDrawResult drawPatternBuffer(GraphicsContext&, ImageBuffer&, const ImageDrawDescriptor&, const FloatRect& destination, const FloatRect& tile, const AffineTransform&, const FloatPoint& phase, const FloatSize& spacing);
+    static ImageDrawResult drawPatternBuffer(GraphicsContext&, ImageBuffer&, const FloatSize&, const ImageDrawDescriptor&, const FloatRect& destination, const FloatRect& tile, const AffineTransform&, const FloatPoint& phase, const FloatSize& spacing);
 
     using DestinationPaint = ImageDrawResult(GraphicsContext&);
     using PatternBufferPaint = void(GraphicsContext&);

@@ -40,45 +40,11 @@ fast/events/ios/single-tap-verify-user-gesture.html [ Skip ]
 fast/events/ios/ipad [ Skip ]
 fast/forms/ios [ Pass ]
 fast/forms/ios/ipad [ Skip ]
-http/tests/site-isolation/select-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/autofill-credentials-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/open-panel-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/focus-navigation-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/dblclick-in-cross-site-grandchild-of-scrolled-middle-frame.html [ Pass ]
-http/tests/site-isolation/ios/dblclick-with-element-document-window-listener-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/drag-selection-grabber-extends-selection-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/drag-selection-grabber-in-scrolled-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/drag-selection-grabber-in-same-site-frame-nested-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/drag-selection-grabber-in-same-site-grandchild-of-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/drag-selection-grabber-in-same-site-nested-frame.html [ Pass ]
-http/tests/site-isolation/ios/autoscroll-selection-back-up-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/autoscroll-selection-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-nested.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-same-site-nested.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-scrolled-cross-site-parent.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-scrolled-cross-site-parent-cross-site-child.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-programmatic-scroll-in-cross-site-frame.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-same-site-then-cross-site-nested.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-3d-transformed.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-scrolled-same-site-parent.html [ Pass ]
-http/tests/site-isolation/ios/exposed-content-rect-scrolled-same-site-parent-paint.html [ Pass ]
-http/tests/site-isolation/ios/text-indicator-in-scrolled-cross-site-frame.html [ Pass ]
-http/tests/site-isolation/ios/select-and-drag-in-transformed-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/long-press-in-cross-origin-iframe-in-scrolled-main-frame.html [ Pass ]
-http/tests/site-isolation/ios/long-press-in-cross-site-grandchild-of-scrolled-middle-frame.html [ Pass ]
-http/tests/site-isolation/ios/long-press-moves-caret-in-editable-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/tap-highlight-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/tap-highlight-in-scrolled-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/tap-highlight-in-transformed-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/ios/tap-highlight-with-two-same-site-cross-origin-iframes.html [ Pass ]
-http/tests/site-isolation/touch-events/content-observation.html [ Pass ]
-http/tests/site-isolation/touch-events/dblclick-nested-cross-origin-frame-in-offset-subframe.html [ Pass ]
-http/tests/site-isolation/touch-events/tap-nested-cross-origin-frame-in-offset-subframe.html [ Pass ]
-http/tests/site-isolation/touch-events/tap-cross-origin-iframe-border.html [ Pass ]
-http/tests/site-isolation/touch-events/tap-near-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/touch-events/tap-screen-coordinates-in-cross-origin-iframe.html [ Pass ]
-http/tests/site-isolation/touch-events/touch-click-coordinates.html [ Pass ]
+http/tests/site-isolation [ Pass ]
+
+# These tests rely on UIScriptController.dateTimePickerRect, which is not implemented on iOS
+http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-001.html [ Skip ]
+http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-002.html [ Skip ]
 
 fast/forms/switch [ Pass ]
 fast/snapshot [ Skip ]
@@ -89,6 +55,9 @@ fast/forms/switch/pointer-tracking-there-and-back-again.html [ Skip ]
 fast/forms/switch/pointer-tracking.html [ Skip ]
 fast/forms/switch/pointer-tracking-vertical-lr.html [ Skip ]
 fast/forms/switch/pointer-tracking-transform.html [ Skip ]
+http/tests/site-isolation/magnify-gesture-coordinates.html [ Skip ]
+http/tests/site-isolation/touch-events/tap-after-adding-listener-in-idle-cross-origin-iframe.html [ Skip ]
+http/tests/site-isolation/touch-events/tap-pointer-event-screen-coordinates-in-cross-origin-iframe.html [ Skip ]
 
 # Shadow of Liquid Glass switches is different between transform and zoom.
 fast/forms/switch/zoom-approximates-transform.html [ Skip ]
@@ -4536,8 +4505,29 @@ imported/w3c/web-platform-tests/css/css-writing-modes/forms/range-input-vertical
 webkit.org/b/203451 imported/w3c/web-platform-tests/css/css-position/static-position/htb-ltr-ltr.html [ ImageOnlyFailure ]
 webkit.org/b/203451 imported/w3c/web-platform-tests/css/css-position/static-position/vlr-ltr-ltr.html [ ImageOnlyFailure ]
 
-webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-no-sink.https.html [ Pass Failure Timeout Crash ] # rdar://179387419
-webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection-no-sink.https.html [ Pass Failure Timeout Crash ] # rdar://179387419
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video&mimeType='' [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=audio&mimeType='' [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType='' [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=audio&mimeType=audio/webm;codecs=opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video&mimeType=video/webm;codecs=vp8 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/webm;codecs=vp8,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video&mimeType=video/webm;codecs=vp9 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/webm;codecs=vp9,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=avc1.64003E,mp4a.40.2 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=avc3.64003E,mp4a.40.2 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video&mimeType=video/mp4;codecs=vp9 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=audio&mimeType=audio/mp4;codecs=opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=vp9,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=av01,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=av01,mp4a.40.2 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=hvc1.1.6.L186.B0,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=hev1.1.6.L186.B0,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=hvc1.1.6.L186.B0,mp4a.40.2 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4;codecs=hev1.1.6.L186.B0,mp4a.40.2 [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/x-matroska;codecs=hvc1.1.6.L186.B0,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/x-matroska;codecs=hev1.1.6.L186.B0,opus [ Pass Failure Crash Slow ] # rdar://178676324
+webkit.org/b/244208 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-peerconnection.https.html?kinds=video,audio&mimeType=video/mp4 [ Pass Failure Crash Slow ] # rdar://178676324
 
 webkit.org/b/244501 [ Debug ] webgl/2.0.y/conformance2/state/gl-object-get-calls.html [ Pass Timeout ]
 
@@ -6917,7 +6907,6 @@ webkit.org/b/231299 [ Debug ] imported/w3c/web-platform-tests/selection/extend-0
 webkit.org/b/231299 [ Debug ] imported/w3c/web-platform-tests/selection/collapse-15.html [ Slow ]
 webkit.org/b/231299 [ Debug ] imported/w3c/web-platform-tests/selection/collapse-45.html [ Slow ]
 
-webkit.org/b/196403 imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-stop.html [ Pass Failure Slow ]
 
 webkit.org/b/219438 [ Release ] fast/canvas/canvas-overflow-hidden-animation.html [ Pass ImageOnlyFailure ]
 
@@ -8796,6 +8785,7 @@ webkit.org/b/309621 [ Debug ] imported/w3c/web-platform-tests/css/cssom-view/int
 imported/w3c/web-platform-tests/css/cssom-view/overflow-hidden-smooth-scroll-crash.html [ Pass Failure ]
 imported/w3c/web-platform-tests/css/cssom-view/scroll-behavior-smooth-navigation.html [ Failure ]
 imported/w3c/web-platform-tests/css/cssom-view/smooth-scrollIntoView-with-unrelated-gesture-scroll.html [ Skip ]
+imported/w3c/web-platform-tests/css/cssom-view/user-scroll-interrupts-smooth-scroll.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/css/cssom-view/window-scrollBy-display-change.html [ ImageOnlyFailure ]
 webkit.org/b/260310 imported/w3c/web-platform-tests/css/cssom-view/scrollIntoView-sideways-rl-writing-mode.html [ Failure ]
 webkit.org/b/260310 imported/w3c/web-platform-tests/css/cssom-view/scrollIntoView-sideways-rl-writing-mode-and-rtl-direction.html [ Failure ]

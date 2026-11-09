@@ -467,6 +467,7 @@ void EventHandler::clear()
     m_resizeLayer = nullptr;
     clearElementUnderMouse();
     m_lastElementUnderMouse = nullptr;
+    m_connectedAncestorOfRemovedLastElementUnderMouse = nullptr;
     m_lastMouseMoveEventSubframe = nullptr;
 #if PLATFORM(MAC)
     m_trackedPointerSubframe = nullptr;
@@ -528,8 +529,16 @@ void EventHandler::nodeWillBeRemoved(Node& nodeToBeRemoved)
         if (&nodeToBeRemoved != m_lastElementUnderMouse.get()) {
             RefPtr elementBeingRemoved = dynamicDowncast<Element>(nodeToBeRemoved);
             m_lastElementUnderMouse = elementBeingRemoved ? elementBeingRemoved->parentElementInComposedTree() : nullptr;
-        } else
+        } else {
+            if (m_lastElementUnderMouse->isConnected())
+                m_connectedAncestorOfRemovedLastElementUnderMouse = m_lastElementUnderMouse->parentElementInComposedTree();
             m_lastElementUnderMouse = nullptr;
+        }
+    }
+
+    if (nodeToBeRemoved.isShadowIncludingInclusiveAncestorOf(m_connectedAncestorOfRemovedLastElementUnderMouse)) {
+        RefPtr elementBeingRemoved = dynamicDowncast<Element>(nodeToBeRemoved);
+        m_connectedAncestorOfRemovedLastElementUnderMouse = elementBeingRemoved ? elementBeingRemoved->parentElementInComposedTree() : nullptr;
     }
 
     if (nodeToBeRemoved.isShadowIncludingInclusiveAncestorOf(m_clickCaptureElement.get()))
@@ -3192,16 +3201,22 @@ void EventHandler::updateMouseEventTargetNode(const AtomString& eventType, Node*
             m_lastScrollbarUnderMouse = nullptr;
         }
 
-        if (m_lastElementUnderMouse != m_elementUnderMouse) {
+        // https://w3c.github.io/pointerevents/#firing-events-using-the-pointerevent-interface
+        RefPtr connectedAncestorOfRemovedElement = std::exchange(m_connectedAncestorOfRemovedLastElementUnderMouse, nullptr);
+        bool elementUnderMouseIsDisconnected = m_elementUnderMouse && !m_elementUnderMouse->isConnected();
+        bool useConnectedAncestorForLeaveEvents = connectedAncestorOfRemovedElement && !elementUnderMouseIsDisconnected;
+        RefPtr lastElementForLeaveEvents = useConnectedAncestorForLeaveEvents ? connectedAncestorOfRemovedElement : m_lastElementUnderMouse;
+
+        if (m_lastElementUnderMouse != m_elementUnderMouse || useConnectedAncestorForLeaveEvents) {
             // mouseenter and mouseleave events are only dispatched if there is a capturing eventhandler on an ancestor
             // or a normal eventhandler on the element itself (they don't bubble).
             // This optimization is necessary since these events can cause O(n^2) capturing event-handler checks.
             auto& eventNames = WebCore::eventNames();
             bool hasCapturingMouseEnterListener = hierarchyHasCapturingEventListeners(m_elementUnderMouse, eventNames.pointerenterEvent, eventNames.mouseenterEvent);
-            bool hasCapturingMouseLeaveListener = hierarchyHasCapturingEventListeners(m_lastElementUnderMouse, eventNames.pointerleaveEvent, eventNames.mouseleaveEvent);
+            bool hasCapturingMouseLeaveListener = hierarchyHasCapturingEventListeners(lastElementForLeaveEvents, eventNames.pointerleaveEvent, eventNames.mouseleaveEvent);
 
             Vector<Ref<Element>, 32> leftElementsChain;
-            for (RefPtr element = m_lastElementUnderMouse; element; element = element->parentElementInComposedTree())
+            for (RefPtr element = lastElementForLeaveEvents; element; element = element->parentElementInComposedTree())
                 leftElementsChain.append(*element);
             Vector<WeakPtr<Element, WeakPtrImplWithEventTargetData>, 32> elementsUnderMouse;
             for (RefPtr element = m_elementUnderMouse; element; element = element->parentElementInComposedTree())
@@ -3348,7 +3363,7 @@ void EventHandler::updateMouseEventTargetAfterLayoutIfNeeded()
         // boundary event processing.
         auto modifiers = PlatformKeyboardEvent::currentStateOfModifierKeys();
         PlatformMouseEvent syntheticEvent(valueOrDefault(m_lastKnownMousePosition), m_lastKnownMouseGlobalPosition,
-            MouseButton::None, PlatformEvent::Type::NoType, 0, modifiers, MonotonicTime::now(), 0, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
+            std::unexpected { MouseButtonState::None }, PlatformEvent::Type::NoType, 0, modifiers, MonotonicTime::now(), 0, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
 
         // EventHandler updates scrollable areas when the element under the mouse changes as a result of the
         // mouse moving. In this case, the mouse did not move, but the element under the mouse still changed,
@@ -4225,7 +4240,7 @@ void EventHandler::fakeMouseMoveEventTimerFired()
         return;
 
     auto modifiers = PlatformKeyboardEvent::currentStateOfModifierKeys();
-    PlatformMouseEvent fakeMouseMoveEvent(*m_lastKnownMousePosition, m_lastKnownMouseGlobalPosition, MouseButton::None, PlatformEvent::Type::MouseMoved, 0, modifiers, MonotonicTime::now(), 0, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
+    PlatformMouseEvent fakeMouseMoveEvent(*m_lastKnownMousePosition, m_lastKnownMouseGlobalPosition, std::unexpected { MouseButtonState::None }, PlatformEvent::Type::MouseMoved, 0, modifiers, MonotonicTime::now(), 0, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
     mouseMoved(fakeMouseMoveEvent);
 }
 #endif // !ENABLE(IOS_TOUCH_EVENTS)
@@ -5893,7 +5908,7 @@ void EventHandler::mousePointerDidDisappear()
         return;
 
     auto modifiers = PlatformKeyboardEvent::currentStateOfModifierKeys();
-    PlatformMouseEvent syntheticEvent(position, globalPosition, MouseButton::None, PlatformEvent::Type::NoType, 0, modifiers, MonotonicTime::now(), 0, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
+    PlatformMouseEvent syntheticEvent(position, globalPosition, std::unexpected { MouseButtonState::None }, PlatformEvent::Type::NoType, 0, modifiers, MonotonicTime::now(), 0, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven);
     updateMouseEventTargetNode(eventNames().mousemoveEvent, nullptr, syntheticEvent, FireMouseOverOut::Yes);
     document->updateHoverActiveState(hoverTimerHitType, nullptr);
 }

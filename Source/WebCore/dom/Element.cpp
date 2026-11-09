@@ -4580,7 +4580,7 @@ bool Element::dispatchMouseForceWillBegin()
     if (!frame)
         return false;
 
-    PlatformMouseEvent platformMouseEvent { frame->eventHandler().lastKnownMousePosition(), frame->eventHandler().lastKnownMouseGlobalPosition(), MouseButton::None, PlatformEvent::Type::NoType, 1, { }, MonotonicTime::now(), ForceAtClick, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven };
+    PlatformMouseEvent platformMouseEvent { frame->eventHandler().lastKnownMousePosition(), frame->eventHandler().lastKnownMouseGlobalPosition(), std::unexpected { MouseButtonState::None }, PlatformEvent::Type::NoType, 1, { }, MonotonicTime::now(), ForceAtClick, SyntheticClickType::NoTap, MouseEventInputSource::UserDriven };
     auto mouseForceWillBeginEvent = MouseEvent::create(eventNames().webkitmouseforcewillbeginEvent, document().windowProxy(), platformMouseEvent, { }, { }, 0, nullptr);
     mouseForceWillBeginEvent->setTarget(Ref { *this });
     dispatchEvent(mouseForceWillBeginEvent);
@@ -6305,7 +6305,7 @@ String Element::resolveURLStringIfNeeded(const String& urlString, ResolveURLs re
     case ResolveURLs::YesExcludingURLsForPrivacy: {
         if (protect(document())->shouldMaskURLForBindings(completeURL))
             return maskedURLStringForBindings.get();
-#if PLATFORM(GTK)
+#if PLATFORM(GTK) || PLATFORM(WPE)
         return protect(document())->url().protocolIsFile() ? urlString : completeURL.string();
 #else
         return completeURL.string();

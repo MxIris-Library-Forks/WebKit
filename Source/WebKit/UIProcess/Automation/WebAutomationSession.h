@@ -291,6 +291,7 @@ public:
     void consumeUserActivation(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, Inspector::CommandCallback<bool>&&) override;
     void selectOptionElement(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, const Inspector::Protocol::Automation::NodeHandle&, Inspector::CommandCallback<void>&&) override;
     Inspector::CommandResult<bool> isShowingJavaScriptDialog(const Inspector::Protocol::Automation::BrowsingContextHandle&) override;
+    Inspector::CommandResult<Inspector::Protocol::Automation::JavaScriptDialogType> typeOfCurrentJavaScriptDialog(const Inspector::Protocol::Automation::BrowsingContextHandle&) override;
     Inspector::CommandResult<void> dismissCurrentJavaScriptDialog(const Inspector::Protocol::Automation::BrowsingContextHandle&) override;
     Inspector::CommandResult<void> acceptCurrentJavaScriptDialog(const Inspector::Protocol::Automation::BrowsingContextHandle&) override;
     Inspector::CommandResult<String> messageOfCurrentJavaScriptDialog(const Inspector::Protocol::Automation::BrowsingContextHandle&) override;
@@ -362,6 +363,9 @@ public:
     RefPtr<WebPageProxy> webPageProxyForHandle(const String&);
     std::optional<WebCore::FrameIdentifier> webFrameIDForHandle(const String&, bool& frameNotFound);
     String effectiveHandleForWebFrameProxy(const WebFrameProxy&);
+#if ENABLE(WEBDRIVER_BIDI)
+    HashSet<String> bidiSubscriptionScopeForFrame(const WebFrameProxy&) const;
+#endif
     String handleForWebFrameID(std::optional<WebCore::FrameIdentifier>);
     String handleForWebPageProxy(const WebPageProxy&);
 
@@ -500,6 +504,7 @@ private:
     // reference reports "no such element" again instead of "stale element reference".
     HashMap<WebCore::FrameIdentifier, ListHashSet<String>> m_knownNodeReferences;
 
+    HashMap<WebPageProxyIdentifier, Vector<Inspector::CommandCallback<void>>> m_pendingCloseBrowsingContextCallbacksPerPage;
     HashMap<WebPageProxyIdentifier, Vector<PendingPageNavigationCallback>> m_pendingNormalNavigationInBrowsingContextCallbacksPerPage;
     HashMap<WebPageProxyIdentifier, Vector<PendingPageNavigationCallback>> m_pendingEagerNavigationInBrowsingContextCallbacksPerPage;
     HashMap<WebCore::FrameIdentifier, Vector<Inspector::CommandCallback<void>>> m_pendingNormalNavigationInBrowsingContextCallbacksPerFrame;

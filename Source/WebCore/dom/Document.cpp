@@ -856,6 +856,7 @@ Document::~Document()
     ASSERT(m_backForwardCacheState != InBackForwardCache);
     ASSERT(!m_parentTreeScope);
     ASSERT(!m_disabledFieldsetElementsCount);
+    ASSERT(!m_connectedDisabledFieldsetElementsCount);
     ASSERT(m_ranges.isEmpty());
     ASSERT(m_inDocumentShadowRoots.isEmptyIgnoringNullReferences());
 
@@ -4026,8 +4027,7 @@ AXObjectCache* Document::axObjectCache() const
 void Document::setVisuallyOrdered()
 {
     m_visuallyOrdered = true;
-    if (auto* renderView = this->renderView())
-        renderView->mutableStyle().setRTLOrdering(Order::Visual);
+    scheduleFullStyleRebuild();
 }
 
 Ref<DocumentParser> Document::createParser()
@@ -5907,7 +5907,7 @@ void Document::processApplicationManifest(const ApplicationManifest& application
 
 #endif // ENABLE(APPLICATION_MANIFEST)
 
-MouseEventWithHitTestResults Document::prepareMouseEvent(const HitTestRequest& request, const DoublePoint& documentPoint, const PlatformMouseEvent& event)
+MouseEventWithHitTestResults Document::prepareMouseEvent(const HitTestRequest& request, const DoublePoint& documentPoint, const PlatformMouseEvent& event, HoverFollowsMouseCapture hoverFollowsMouseCapture)
 {
     if (renderTreeState() != RenderTreeState::Built)
         return MouseEventWithHitTestResults(event, HitTestResult(DoublePoint()));
@@ -5933,6 +5933,16 @@ MouseEventWithHitTestResults Document::prepareMouseEvent(const HitTestRequest& r
             // If we have a capture element, we must target it instead of what would normally hit-test for this event.
             if (captureElement)
                 targetElement = WTF::move(captureElement);
+            // Likewise for an element capturing the mouse for the duration of a drag (e.g. a slider thumb): the
+            // :hover chain follows it rather than whatever is under the pointer, so that containers of the control
+            // stay hovered until the drag ends.
+            else if (hoverFollowsMouseCapture == HoverFollowsMouseCapture::Yes && request.active()) {
+                // If the captured element is inside a frame, don't latch hover in this document to that frame.
+                if (RefPtr frame = this->frame()) {
+                    if (RefPtr mouseCaptureElement = frame->eventHandler().capturingMouseEventsElement(); mouseCaptureElement && !is<HTMLFrameOwnerElement>(*mouseCaptureElement))
+                        targetElement = WTF::move(mouseCaptureElement);
+                }
+            }
         }
         updateHoverActiveState(request, targetElement.get(), captureElementChanged);
     }
@@ -8783,11 +8793,10 @@ void Document::initSecurityContext()
         applyContentDispositionAttachmentSandbox();
 
     RefPtr documentLoader = m_frame->loader().documentLoader();
-    bool isSecurityOriginUnique = isSandboxed(SandboxFlag::Origin);
-    if (!isSecurityOriginUnique)
-        isSecurityOriginUnique = documentLoader && documentLoader->response().tainting() == ResourceResponse::Tainting::Opaque;
+    bool isOpaqueResponse = documentLoader && documentLoader->response().tainting() == ResourceResponse::Tainting::Opaque;
 
-    setSecurityOriginPolicy(SecurityOriginPolicy::create(isSecurityOriginUnique ? SecurityOrigin::createOpaque() : SecurityOrigin::create(m_url)));
+    // FIXME: Only ContentFilter's blocked page has an opaque response. Give it an opaque origin some other way, so that determineOrigin() alone decides.
+    setSecurityOriginPolicy(SecurityOriginPolicy::create(isOpaqueResponse ? SecurityOrigin::createOpaque() : SecurityPolicy::determineOrigin(m_url, sandboxFlags(), nullptr)));
     setContentSecurityPolicy(makeUnique<ContentSecurityPolicy>(URL { m_url }, *this));
 
     String overrideContentSecurityPolicy = m_frame->loader().client().overrideContentSecurityPolicy();
@@ -8886,7 +8895,7 @@ void Document::initSecurityContext()
     setCookieURL(ownerDocument->cookieURL());
     // We alias the SecurityOrigins to match Firefox, see Bug 15313
     // https://bugs.webkit.org/show_bug.cgi?id=15313
-    setSecurityOriginPolicy(ownerDocument->securityOriginPolicy());
+    setSecurityOriginPolicy(SecurityOriginPolicy::create(SecurityPolicy::determineOrigin(m_url, sandboxFlags(), &ownerDocument->securityOrigin())));
 }
 
 void Document::initContentSecurityPolicy()

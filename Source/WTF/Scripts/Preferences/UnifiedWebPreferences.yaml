@@ -622,7 +622,11 @@ AudioContextSetSinkIdEnabled:
   humanReadableName: "AudioContext setSinkId"
   humanReadableDescription: "Enable AudioContext.setSinkId() for audio output device selection"
   condition: ENABLE(WEB_AUDIO)
-  defaultValue: false
+  defaultValue:
+    default: false
+    WebKit:
+      "USE(GSTREAMER)": true
+      default: false
 
 AudioControlsScaleWithPageZoom:
   type: bool
@@ -2782,14 +2786,6 @@ HTMLEnhancedSelectMultipleDropdownBoxEnabled:
   defaultValue:
     default: true
     WebKitLegacy: false
-
-HTMLEnhancedSelectMultipleSelectedContentEnabled:
-  type: bool
-  status: preview
-  category: dom
-  humanReadableName: "Enhanced HTML select element selectedcontent for multiple"
-  humanReadableDescription: "Clone every option of a select element with the multiple attribute into its selectedcontent elements"
-  defaultValue: false
 
 HTMLEnhancedSelectParsingQuirkEnabled:
   type: bool
@@ -6582,6 +6578,17 @@ UnifyDamagedRegions:
     WebKit:
       "PLATFORM(GTK) || PLATFORM(WPE)": true
       default: false
+
+UnloadEventEnabled:
+  type: bool
+  status: embedder
+  category: dom
+  humanReadableName: "Unload event"
+  humanReadableDescription: "Dispatch the legacy unload event when a document is unloaded"
+  defaultValue:
+    default: WebKit::defaultUnloadEventEnabled()
+    WebKitLegacy: true
+    WebCore: true
 
 UpdateSceneGeometryEnabled:
   type: bool

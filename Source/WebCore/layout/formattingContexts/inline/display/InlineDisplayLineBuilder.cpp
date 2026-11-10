@@ -491,7 +491,7 @@ void InlineDisplayLineBuilder::addLegacyLineClampTrailingLinkBoxIfApplicable(con
         return;
     }
     auto& clampedLine = displayLines[*clampedLineIndex];
-    auto linkContentWidth = displayBoxes[displayBoxes.size() - 2].visualRectIgnoringBlockDirection().width();
+    auto linkContentWidth = displayBoxes[displayBoxes.size() - 2].blockStartRelativePhysicalRect().width();
     if (linkContentWidth >= clampedLine.lineBoxWidth()) {
         // Not enough space for "more info" content.
         return;
@@ -543,7 +543,8 @@ static AtomString textOverflowEllipsisText(const Style::ComputedStyle& style)
             return TextUtil::ellipsisText();
         },
         [&](const Style::String& string) -> AtomString {
-            return AtomString { string.value };
+            // https://drafts.csswg.org/css-overflow-4/#overflow-string
+            return TextUtil::ellipsisStringWithCollapsedForcedLineBreaks(string.value);
         }
     );
 }

@@ -939,8 +939,7 @@ void RenderObject::propagateRepaintToParentWithOutlineAutoIfNeeded(const RenderL
         if (!repaintRectNeedsConverting)
             repaintContainer.repaintRectangle(adjustedRepaintRect);
         else if (CheckedPtr rendererWithOutline = dynamicDowncast<RenderLayerModelObject>(*originalRenderer)) {
-            // FIXME: Remove suppression once rdar://189998444 is fixed.
-            SUPPRESS_MEMORY_UNSAFE_CAST adjustedRepaintRect = LayoutRect(repaintContainer.localToContainerQuad(FloatRect(adjustedRepaintRect), rendererWithOutline.get()).boundingBox());
+            adjustedRepaintRect = LayoutRect(repaintContainer.localToContainerQuad(FloatRect(adjustedRepaintRect), rendererWithOutline.get()).boundingBox());
             rendererWithOutline->repaintRectangle(adjustedRepaintRect);
         }
         return;
@@ -1647,7 +1646,7 @@ void RenderObject::mapLocalToContainer(const RenderLayerModelObject* ancestorCon
     if (auto* parentAsBox = dynamicDowncast<RenderBox>(*parent)) {
         if (mode.contains(MapCoordinatesMode::ApplyContainerFlip)) {
             if (parentAsBox->writingMode().isBlockFlipped())
-                transformState.move(parentAsBox->flipForWritingMode(LayoutPoint(transformState.mappedPoint())) - centerPoint);
+                transformState.move(parentAsBox->blockStartRelativeToPhysical(LayoutPoint(transformState.mappedPoint())) - centerPoint);
             mode.remove(MapCoordinatesMode::ApplyContainerFlip);
         }
         transformState.move(-toLayoutSize(parentAsBox->scrollPosition()));

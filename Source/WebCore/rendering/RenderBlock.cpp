@@ -570,7 +570,7 @@ void RenderBlock::computeInFlowOverflow(LayoutRect contentArea, OptionSet<Comput
     addOverflowFromInFlowChildren(options);
 
     if (hasPotentiallyScrollableOverflow() || isRenderView()) {
-        if (!flippedContentBoxRect().contains(contentArea))
+        if (!blockStartRelativeContentBoxRect().contains(contentArea))
             ensureOverflow();
         if (hasRenderOverflow()) {
             m_overflow->addContentOverflow(contentArea);
@@ -597,7 +597,20 @@ void RenderBlock::clearLayoutOverflow()
     }
 
     m_overflow->setLayoutOverflow(borderBoxRect());
-    m_overflow->setContentArea(flippedContentBoxRect());
+    m_overflow->setContentArea(blockStartRelativeContentBoxRect());
+}
+
+// The offset of one of the out-of-flow boxes of the block from the block. An out-of-flow box in an inline box is positioned relative
+// to the inline box, which is in the coordinate space of its own containing block.
+static LayoutSize offsetFromBlock(const RenderBlock& block, const RenderBox& outOfFlowBox)
+{
+    CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(outOfFlowBox.container());
+    if (!inlineBox || !inlineBox->isInlineBox() || !outOfFlowBox.isOutOfFlowPositioned())
+        return outOfFlowBox.locationOffset();
+    auto offset = outOfFlowBox.locationOffset() + toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
+    for (CheckedPtr containingBlock = inlineBox->containingBlock(); containingBlock && containingBlock != &block; containingBlock = containingBlock->containingBlock())
+        offset += containingBlock->locationOffset();
+    return offset;
 }
 
 void RenderBlock::addOverflowFromOutOfFlowBoxes()
@@ -609,7 +622,7 @@ void RenderBlock::addOverflowFromOutOfFlowBoxes()
     for (auto& outOfFlowBox : *outOfFlowDescendants) {
         // Fixed positioned elements don't contribute to layout overflow, since they don't scroll with the content.
         if (outOfFlowBox.isAbsolutelyPositioned())
-            addOverflowFromContainedBox(outOfFlowBox);
+            addOverflowWithRendererOffset(outOfFlowBox, offsetFromBlock(*this, outOfFlowBox));
     }
 }
 
@@ -722,7 +735,7 @@ bool RenderBlock::simplifiedLayout()
 
     // Recompute our overflow information.
     // FIXME: Skip recalculation if we didn't actually relayout our in-flow boxes and don't have cached overflow.
-    auto contentArea = hasRenderOverflow() ? m_overflow->contentArea() : flippedContentBoxRect();
+    auto contentArea = hasRenderOverflow() ? m_overflow->contentArea() : blockStartRelativeContentBoxRect();
     computeInFlowOverflow(contentArea, ComputeOverflowOptions::RecomputeFloats);
 
     // Lay out our positioned objects if our positioned child bit is set.
@@ -881,8 +894,10 @@ void RenderBlock::layoutOutOfFlowBox(RenderBox& outOfFlowBox, RelayoutChildren r
     }
     
     if (layoutState && layoutState->isPaginated()) {
-        if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(*this))
-            blockFlow->adjustSizeContainmentChildForPagination(outOfFlowBox, outOfFlowBox.logicalTop());
+        if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(*this)) {
+            auto offset = offsetFromBlock(*this, outOfFlowBox);
+            blockFlow->adjustSizeContainmentChildForPagination(outOfFlowBox, outOfFlowBox.isHorizontalWritingMode() ? offset.height() : offset.width());
+        }
     }
 }
 
@@ -931,7 +946,7 @@ void RenderBlock::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
             return false;
 
         auto overflowBox = visualOverflowRect();
-        flipForWritingMode(overflowBox);
+        blockStartRelativeToPhysical(overflowBox);
         overflowBox.moveBy(adjustedPaintOffset);
         return !overflowBox.intersects(paintingRect);
     };
@@ -1041,7 +1056,7 @@ bool RenderBlock::paintChild(RenderBox& child, PaintInfo& paintInfo, const Layou
         }
     }
 
-    LayoutPoint childPoint = flipForWritingModeForChild(child, paintOffset);
+    LayoutPoint childPoint = blockStartRelativeToPhysicalForChild(child, paintOffset);
     if (!child.hasSelfPaintingLayer() && !child.isFloating()) {
         if (paintType == PaintAsInlineBlock)
             child.paintAsInlineBlock(paintInfoForChild, childPoint);
@@ -1403,8 +1418,7 @@ void RenderBlock::paintSelection(PaintInfo& paintInfo, const LayoutPoint& paintO
             if (CheckedPtr layer = enclosingLayer()) {
                 gapRectsBounds.moveBy(-paintOffset);
                 if (!hasLayer()) {
-                    // FIXME: Remove suppression once rdar://189998444 is fixed.
-                    SUPPRESS_MEMORY_UNSAFE_CAST gapRectsBounds = localToContainerQuad(FloatRect(gapRectsBounds), &layer->renderer()).enclosingBoundingBox();
+                    gapRectsBounds = localToContainerQuad(FloatRect(gapRectsBounds), &layer->renderer()).enclosingBoundingBox();
                     if (layer->renderer().isRenderBox())
                         gapRectsBounds.moveBy(layer->renderBox()->scrollPosition());
                 }
@@ -1444,7 +1458,7 @@ LayoutRect RenderBlock::logicalRectToPhysicalRect(const LayoutPoint& rootBlockPh
         result = logicalRect;
     else
         result = LayoutRect(logicalRect.y(), logicalRect.x(), logicalRect.height(), logicalRect.width());
-    flipForWritingMode(result);
+    blockStartRelativeToPhysical(result);
     result.moveBy(rootBlockPhysicalPosition);
     return result;
 }
@@ -1456,10 +1470,10 @@ GapRects RenderBlock::selectionGaps(RenderBlock& rootBlock, const LayoutPoint& r
     // Clip out floating and positioned objects when painting selection gaps.
     if (paintInfo) {
         // Note that we don't clip out overflow for positioned objects.  We just stick to the border box.
-        LayoutRect flippedBlockRect(offsetFromRootBlock.width(), offsetFromRootBlock.height(), borderBoxWidth(), borderBoxHeight());
-        rootBlock.flipForWritingMode(flippedBlockRect);
-        flippedBlockRect.moveBy(rootBlockPhysicalPosition);
-        clipOutOutOfFlowBoxes(paintInfo, flippedBlockRect.location(), outOfFlowBoxes());
+        LayoutRect physicalBlockRect(offsetFromRootBlock.width(), offsetFromRootBlock.height(), borderBoxWidth(), borderBoxHeight());
+        rootBlock.blockStartRelativeToPhysical(physicalBlockRect);
+        physicalBlockRect.moveBy(rootBlockPhysicalPosition);
+        clipOutOutOfFlowBoxes(paintInfo, physicalBlockRect.location(), outOfFlowBoxes());
         if (isBody() || isDocumentElementRenderer()) { // The <body> must make sure to examine its containingBlock's positioned objects.
             for (auto* ancestor = containingBlock(); ancestor && !is<RenderView>(*ancestor); ancestor = ancestor->containingBlock())
                 clipOutOutOfFlowBoxes(paintInfo, LayoutPoint(ancestor->x(), ancestor->y()), ancestor->outOfFlowBoxes()); // FIXME: Not right for flipped writing modes.
@@ -1887,7 +1901,7 @@ bool RenderBlock::hitTestChildren(const HitTestRequest& request, HitTestResult& 
     if (hitTestAction == HitTestAction::Float && hitTestFloats(request, result, locationInContainer, toLayoutPoint(scrolledOffset)))
         return true;
     if (hitTestContents(request, result, locationInContainer, toLayoutPoint(scrolledOffset), hitTestAction)) {
-        updateHitTestResult(result, flipForWritingMode(locationInContainer.point() - localOffset));
+        updateHitTestResult(result, physicalToBlockStartRelative(locationInContainer.point() - localOffset));
         return true;
     }
     return false;
@@ -1932,7 +1946,7 @@ bool RenderBlock::nodeAtPoint(const HitTestRequest& request, HitTestResult& resu
     if (hitTestAction == HitTestAction::BlockBackground || hitTestAction == HitTestAction::ChildBlockBackground) {
         LayoutRect boundsRect(adjustedLocation, borderBoxSize());
         if (visibleToHitTesting(request) && locationInContainer.intersects(boundsRect)) {
-            updateHitTestResult(result, flipForWritingMode(locationInContainer.point() - localOffset));
+            updateHitTestResult(result, physicalToBlockStartRelative(locationInContainer.point() - localOffset));
             if (result.addNodeToListBasedTestResult(protect(nodeForHitTest()).get(), request, locationInContainer, boundsRect) == HitTestProgress::Stop)
                 return true;
         }
@@ -1954,7 +1968,7 @@ bool RenderBlock::hitTestContents(const HitTestRequest& request, HitTestResult& 
     if (hitTestAction == HitTestAction::ChildBlockBackgrounds)
         childHitTest = HitTestAction::ChildBlockBackground;
     for (auto* child = lastChildBox(); child; child = child->previousSiblingBox()) {
-        LayoutPoint childPoint = flipForWritingModeForChild(*child, accumulatedOffset);
+        LayoutPoint childPoint = blockStartRelativeToPhysicalForChild(*child, accumulatedOffset);
         if (!child->hasSelfPaintingLayer() && !child->isFloating() && child->nodeAtPoint(request, result, locationInContainer, childPoint, childHitTest))
             return true;
     }
@@ -2093,10 +2107,11 @@ PositionWithAffinity RenderBlock::positionForPoint(const LayoutPoint& point, Hit
     while (lastCandidateBox && !isChildHitTestCandidate(*lastCandidateBox, fragment, pointInLogicalContents, source))
         lastCandidateBox = lastCandidateBox->previousSiblingBox();
 
-    bool blocksAreFlipped = writingMode().isBlockFlipped();
+    // Hit testing includes a box's physical top and left edges, which are its block-end edges in vertical-rl and horizontal-bt.
+    bool boxesIncludeBlockEndEdge = writingMode().isBlockFlipped();
     if (lastCandidateBox) {
         if (pointInLogicalContents.y() > logicalTopForChild(*lastCandidateBox)
-            || (!blocksAreFlipped && pointInLogicalContents.y() == logicalTopForChild(*lastCandidateBox)))
+            || (!boxesIncludeBlockEndEdge && pointInLogicalContents.y() == logicalTopForChild(*lastCandidateBox)))
             return positionForPointRespectingEditingBoundaries(*this, *lastCandidateBox, pointInContents, source);
 
         for (auto& childBox : childrenOfType<RenderBox>(*this)) {
@@ -2106,7 +2121,7 @@ PositionWithAffinity RenderBlock::positionForPoint(const LayoutPoint& point, Hit
             if (auto* blockFlow = dynamicDowncast<RenderBlockFlow>(childBox))
                 childLogicalBottom = std::max(childLogicalBottom, blockFlow->lowestFloatLogicalBottom());
             // We hit child if our click is above the bottom of its padding box (like IE6/7 and FF3).
-            if (pointInLogicalContents.y() < childLogicalBottom || (blocksAreFlipped && pointInLogicalContents.y() == childLogicalBottom))
+            if (pointInLogicalContents.y() < childLogicalBottom || (boxesIncludeBlockEndEdge && pointInLogicalContents.y() == childLogicalBottom))
                 return positionForPointRespectingEditingBoundaries(*this, childBox, pointInContents, source);
         }
     }
@@ -2117,9 +2132,9 @@ PositionWithAffinity RenderBlock::positionForPoint(const LayoutPoint& point, Hit
 
 void RenderBlock::offsetForContents(LayoutPoint& offset) const
 {
-    offset = flipForWritingMode(offset);
+    offset = blockStartRelativeToPhysical(offset);
     offset += toLayoutSize(scrollPosition());
-    offset = flipForWritingMode(offset);
+    offset = physicalToBlockStartRelative(offset);
 }
 
 std::pair<LayoutUnit, LayoutUnit> RenderBlock::computeIntrinsicLogicalWidths() const
@@ -3336,7 +3351,7 @@ void RenderBlock::paintExcludedChildrenInBorder(PaintInfo& paintInfo, const Layo
     if (!box || !box->isExcludedFromNormalLayout() || box->hasSelfPaintingLayer())
         return;
     
-    LayoutPoint childPoint = flipForWritingModeForChild(*box, paintOffset);
+    LayoutPoint childPoint = blockStartRelativeToPhysicalForChild(*box, paintOffset);
     box->paintAsInlineBlock(paintInfo, childPoint);
 }
 
@@ -3352,7 +3367,7 @@ bool RenderBlock::hitTestExcludedChildrenInBorder(const HitTestRequest& request,
     HitTestAction childHitTest = hitTestAction;
     if (hitTestAction == HitTestAction::ChildBlockBackgrounds)
         childHitTest = HitTestAction::ChildBlockBackground;
-    LayoutPoint childPoint = flipForWritingModeForChild(*legend, accumulatedOffset);
+    LayoutPoint childPoint = blockStartRelativeToPhysicalForChild(*legend, accumulatedOffset);
     return legend->nodeAtPoint(request, result, locationInContainer, childPoint, childHitTest);
 }
 

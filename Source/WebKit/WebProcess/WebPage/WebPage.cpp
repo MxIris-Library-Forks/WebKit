@@ -3042,12 +3042,8 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters, Co
 
     ASSERT(isBackForwardLoadType(parameters.backForwardType));
 
-    RefPtr<HistoryItem> item;
-    {
-        auto ignoreHistoryItemChangesForScope = m_historyItemClient->ignoreChangesForScope();
-        ASSERT(!corePage()->settings().useUIProcessForBackForwardItemLoading() || parameters.frameState->children.isEmpty());
-        item = toHistoryItem(m_historyItemClient, protect(parameters.frameState));
-    }
+    ASSERT(!corePage()->settings().useUIProcessForBackForwardItemLoading() || parameters.frameState->children.isEmpty());
+    Ref item = toHistoryItem(m_historyItemClient, protect(parameters.frameState));
 
     LOG_WITH_STREAM(Loading, stream << "In WebProcess pid "_s << getCurrentProcessID() << ", WebPage "_s << m_identifier.toUInt64() << " is navigating to back/forward URL "_s << item->url().string());
 
@@ -3069,7 +3065,7 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters, Co
     if (RefPtr targetLocalFrame = targetFrame->provisionalFrame() ? targetFrame->provisionalFrame() : targetFrame->coreLocalFrame()) {
         if (targetFrame.ptr() == m_mainFrame.ptr())
             targetLocalFrame->loader().setNavigationUpgradeToHTTPSBehavior(item->url().protocolIs("http"_s) ? NavigationUpgradeToHTTPSBehavior::Disabled : NavigationUpgradeToHTTPSBehavior::BasedOnPolicy);
-        protect(corePage())->goToItem(*targetLocalFrame, *item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache, [weakTargetLocalFrame = WeakPtr { *targetLocalFrame }, item = Ref { *item }, navigationID = parameters.navigationID, completionHandler = WTF::move(completionHandler)] mutable {
+        protect(corePage())->goToItem(*targetLocalFrame, item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache, [weakTargetLocalFrame = WeakPtr { *targetLocalFrame }, item, navigationID = parameters.navigationID, completionHandler = WTF::move(completionHandler)] mutable {
             RefPtr targetLocalFrame = weakTargetLocalFrame;
             if (!targetLocalFrame) {
                 completionHandler(FrameTraversalResult::NotTaken);
@@ -10965,7 +10961,10 @@ void WebPage::generateTestReport(String&& message, String&& group)
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
 void WebPage::updateImageAnimationEnabled()
 {
-    protect(corePage())->setImageAnimationEnabled(WebProcess::singleton().imageAnimationEnabled());
+    Ref page = *corePage();
+    auto imageAnimationEnabled = WebProcess::singleton().imageAnimationEnabled();
+    page->setSystemImageAnimationEnabled(imageAnimationEnabled);
+    page->setImageAnimationEnabled(imageAnimationEnabled);
 }
 
 void WebPage::pauseAllAnimations(CompletionHandler<void()>&& completionHandler)
@@ -11170,6 +11169,13 @@ void WebPage::frameWasFocusedInAnotherProcess(std::optional<WebCore::FrameIdenti
         }
     }
     focusController->setFocusedFrame(coreFrame.get(), WebCore::BroadcastFocusedFrame::No);
+}
+
+void WebPage::focusedFrameProcessDidTerminate(WebCore::FrameIdentifier frameID)
+{
+    CheckedRef focusController { corePage()->focusController() };
+    if (RefPtr focusedFrame = focusController->focusedFrame(); focusedFrame && focusedFrame->frameID() == frameID)
+        focusController->setFocusedFrame(nullptr, WebCore::BroadcastFocusedFrame::No);
 }
 
 void WebPage::remotePostMessage(WebCore::FrameIdentifier source, const WebCore::SecurityOriginData& sourceOrigin, WebCore::FrameIdentifier target, std::optional<WebCore::SecurityOriginData>&& targetOrigin, const WebCore::MessageWithMessagePorts& message, std::optional<WebCore::UserGestureTokenData>&& userGestureToken)

@@ -34,7 +34,9 @@
 #include "FloatRoundedRect.h"
 #include "GeometryUtilities.h"
 #include "GraphicsContext.h"
+#include "ImageBuffer.h"
 #include "InlineIteratorInlineBox.h"
+#include "NativeImage.h"
 #include "ObjectSizeNegotiation.h"
 #include "PaintInfo.h"
 #include "RenderBoxInlines.h"
@@ -293,7 +295,7 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
             shouldPaintBackgroundImage = false;
         }
 
-        if (layerClip == FillBox::Text)
+        if (layerClip == FillBox::Text || layerClip == FillBox::BorderAreaText)
             layerClip = FillBox::BorderBox;
     }
 
@@ -364,6 +366,7 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
         switch (*clipForBorder) {
         case FillBox::BorderBox:
         case FillBox::BorderArea:
+        case FillBox::BorderAreaText:
         case FillBox::Text:
         case FillBox::NoClip: {
             auto borderShape = borderShapeRespectingBleedAvoidance(closedEdges, isBorderFill);
@@ -434,7 +437,10 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
             maskContext.translate(-transparencyLayerBounds.location());
 
             paintFunction(maskContext, borderRect, transparencyLayerBounds);
-            context.clipToImageBuffer(*maskImage, transparencyLayerBounds);
+            RefPtr maskNativeImage = ImageBuffer::sinkIntoNativeImage(WTF::move(maskImage));
+            if (!maskNativeImage)
+                return;
+            context.clipToNativeImage(*maskNativeImage, transparencyLayerBounds);
         } else {
             paintFunction(context, borderRect, transparencyLayerBounds);
             context.setCompositeOperation(CompositeOperator::SourceIn);
@@ -482,6 +488,15 @@ template<typename Layer> void BackgroundPainter::paintFillLayerImpl(const Color&
             auto borderPaintInfo = PaintInfo { context, LayoutRect { paintRect }, PaintPhase::BlockBackground, PaintBehavior::ForceBlackBorder };
             auto borderPainter = BorderPainter { m_renderer, borderPaintInfo };
             borderPainter.paintBorder(borderRect, m_renderer.usedStyle());
+        });
+        break;
+    }
+    case FillBox::BorderAreaText: {
+        setupMaskingBackgroundClip(rect, [&](GraphicsContext& context, const LayoutRect& borderRect, const FloatRect& paintRect) {
+            auto borderPaintInfo = PaintInfo { context, LayoutRect { paintRect }, PaintPhase::BlockBackground, PaintBehavior::ForceBlackBorder };
+            auto borderPainter = BorderPainter { m_renderer, borderPaintInfo };
+            borderPainter.paintBorder(borderRect, m_renderer.usedStyle());
+            m_renderer.paintMaskForTextFillBox(context, paintRect, inlineBoxIterator, scrolledPaintRect);
         });
         break;
     }
@@ -689,10 +704,10 @@ template<typename Layer> BackgroundImageGeometry BackgroundPainter::calculateFil
             positioningAreaSize = downcast<RenderBox>(renderer).borderBoxSize() - LayoutSize(left + right, top + bottom);
             positioningAreaSize = LayoutSize(snapSizeToDevicePixel(positioningAreaSize, LayoutPoint(), snappingScaleFactor));
             if (renderer.writingMode().isBlockFlipped()) {
-                LayoutRect flippedRootBorderBox = downcast<RenderBox>(renderer).borderBoxRectInContainer();
-                view.flipForWritingMode(flippedRootBorderBox);
-                left += flippedRootBorderBox.x() - borderBoxRect.x();
-                top += flippedRootBorderBox.y() - borderBoxRect.y();
+                LayoutRect physicalRootBorderBox = downcast<RenderBox>(renderer).borderBoxRectInContainer();
+                view.blockStartRelativeToPhysical(physicalRootBorderBox);
+                left += physicalRootBorderBox.x() - borderBoxRect.x();
+                top += physicalRootBorderBox.y() - borderBoxRect.y();
             }
             if (view.frameView().hasExtendedBackgroundRectForPainting()) {
                 LayoutRect extendedBackgroundRect = view.frameView().extendedBackgroundRectForPainting();

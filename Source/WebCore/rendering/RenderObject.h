@@ -139,7 +139,6 @@ public:
         FlexibleBox,
         Frame,
         FrameSet,
-        Glyph,
         Grid,
         HTMLCanvas,
         IFrame,
@@ -446,7 +445,6 @@ public:
     inline bool isNonReplacedAtomicInlineLevelBox() const;
 
     bool isRenderCounter() const { return type() == Type::Counter; }
-    bool isRenderGlyph() const { return type() == Type::Glyph; }
 
     bool isRenderEmbeddedObject() const { return type() == Type::EmbeddedObject; }
     NODELETE bool isFieldset() const;
@@ -956,7 +954,7 @@ public:
                 outlineBoundsRect->unite(*other.outlineBoundsRect);
         }
 
-        void flipForWritingMode(LayoutSize containerSize, bool isHorizontalWritingMode)
+        void blockStartRelativeToPhysical(LayoutSize containerSize, bool isHorizontalWritingMode)
         {
             if (isHorizontalWritingMode) {
                 clippedOverflowRect.setY(containerSize.height() - clippedOverflowRect.maxY());

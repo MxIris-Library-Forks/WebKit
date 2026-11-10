@@ -396,6 +396,7 @@ enum class PageshowEventPersistence : bool { NotPersisted, Persisted };
 
 enum class EventHandlerRemoval : bool { One, All };
 enum class EventHandlerRemovalReason : bool { RendererDetached, Other };
+enum class HoverFollowsMouseCapture : bool { No, Yes };
 using EventTargetSet = WeakHashCountedSet<Node, WeakPtrImplWithEventTargetData>;
 
 struct CachedSetInnerHTML {
@@ -891,7 +892,7 @@ public:
     std::optional<FrameIdentifier> frameID() const { return m_frameIdentifier; }
 
     // to get visually ordered hebrew and arabic pages right
-    NODELETE void setVisuallyOrdered();
+    void setVisuallyOrdered();
     bool visuallyOrdered() const { return m_visuallyOrdered; }
 
     NODELETE WEBCORE_EXPORT DocumentLoader* loader() const;
@@ -1032,7 +1033,7 @@ public:
     VisitedLinkState* visitedLinkStateIfExists() const { return m_visitedLinkState.get(); }
     inline VisitedLinkState& visitedLinkState() const;
 
-    MouseEventWithHitTestResults prepareMouseEvent(const HitTestRequest&, const DoublePoint&, const PlatformMouseEvent&);
+    MouseEventWithHitTestResults prepareMouseEvent(const HitTestRequest&, const DoublePoint&, const PlatformMouseEvent&, HoverFollowsMouseCapture = HoverFollowsMouseCapture::No);
     // Returns whether focus was blocked. A true value does not necessarily mean the element was focused.
     // The element could have already been focused or may not be focusable (e.g. <input disabled>).
     WEBCORE_EXPORT bool setFocusedElement(Element*, const FocusOptions& = { });
@@ -1724,6 +1725,9 @@ public:
     bool hasDisabledFieldsetElement() const { return m_disabledFieldsetElementsCount; }
     void addDisabledFieldsetElement() { m_disabledFieldsetElementsCount++; }
     void removeDisabledFieldsetElement() { ASSERT(m_disabledFieldsetElementsCount); m_disabledFieldsetElementsCount--; }
+    bool hasConnectedDisabledFieldsetElement() const { return m_connectedDisabledFieldsetElementsCount; }
+    void addConnectedDisabledFieldsetElement() { m_connectedDisabledFieldsetElementsCount++; }
+    void removeConnectedDisabledFieldsetElement() { ASSERT(m_connectedDisabledFieldsetElementsCount); m_connectedDisabledFieldsetElementsCount--; }
 
     bool hasDataListElements() const { return m_dataListElementCount; }
     void incrementDataListElementCount() { ++m_dataListElementCount; }
@@ -2792,6 +2796,7 @@ private:
     unsigned m_parserYieldTokenCount { 0 };
 
     unsigned m_disabledFieldsetElementsCount { 0 };
+    unsigned m_connectedDisabledFieldsetElementsCount { 0 };
     unsigned m_dataListElementCount { 0 };
     unsigned m_deferredLifecycleEventCount { 0 };
 

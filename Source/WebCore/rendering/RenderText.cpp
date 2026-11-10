@@ -95,9 +95,9 @@ bool isDutchLocale(const AtomString& locale)
 }
 
 struct SameSizeAsRenderText : public RenderObject, private Layout::InlineTextBox {
-    float candidateTextSize;
     String text;
-    uint32_t bitfields : 6;
+    uint32_t bitfields : 9;
+    float candidateTextSize;
 };
 
 static_assert(sizeof(RenderText) == sizeof(SameSizeAsRenderText), "RenderText should stay small");
@@ -150,6 +150,12 @@ void SecureTextTimer::fired()
 }
 
 NODELETE static HashMap<SingleThreadWeakRef<const RenderText>, String>& originalTextMap()
+{
+    static NeverDestroyed<HashMap<SingleThreadWeakRef<const RenderText>, String>> map;
+    return map;
+}
+
+NODELETE static HashMap<SingleThreadWeakRef<const RenderText>, String>& altTextMap()
 {
     static NeverDestroyed<HashMap<SingleThreadWeakRef<const RenderText>, String>> map;
     return map;
@@ -425,13 +431,13 @@ static FontCascade::CodePath computeFontCodePath(const String& text, bool contai
     return (containsOnlyASCII || text.is8Bit()) ? FontCascade::CodePath::Simple : FontCascade::characterRangeCodePath(text.span16());
 }
 
-inline RenderText::RenderText(Type type, Node& node, const String& text)
+inline RenderText::RenderText(Type type, Node& node, const String& text, std::optional<SynthesizedGlyph> contentGlyph)
     : RenderObject(type, node, TypeFlag::IsText, { })
     // The initial values of an anonymous inline box. The inherited ones come on attach, see inheritStyleFromParent().
-    , Layout::InlineTextBox(Style::ComputedStyle::create())
+    , Layout::InlineTextBox(Style::ComputedStyle::create(), contentGlyph)
     , m_text(text)
     , m_containsOnlyASCII(text.impl()->containsOnlyASCII())
-    , m_fontCodePath(computeFontCodePath(m_text, m_containsOnlyASCII))
+    , m_fontCodePath(std::to_underlying(computeFontCodePath(m_text, m_containsOnlyASCII)))
 {
     ASSERT(!m_text.isNull());
     ASSERT(isRenderText());
@@ -447,10 +453,16 @@ RenderText::RenderText(Type type, Document& document, const String& text)
 {
 }
 
+RenderText::RenderText(Document& document, SynthesizedGlyph glyph)
+    : RenderText(Type::Text, static_cast<Node&>(document), fallbackText(glyph), glyph)
+{
+}
+
 RenderText::~RenderText()
 {
     // Do not add any code here. Add it to willBeDestroyed() instead.
     ASSERT(!originalTextMap().contains(this));
+    ASSERT(!altTextMap().contains(this));
 }
 
 ASCIILiteral RenderText::renderName() const
@@ -618,6 +630,9 @@ void RenderText::willBeDestroyed()
     if (m_originalTextDiffersFromRendered)
         originalTextMap().remove(this);
 
+    if (m_hasAltText)
+        altTextMap().remove(this);
+
     RenderObject::willBeDestroyed();
 }
 
@@ -626,10 +641,29 @@ String RenderText::originalText() const
     return m_originalTextDiffersFromRendered ? originalTextMap().get(this) : m_text;
 }
 
+const String& RenderText::altText() const
+{
+    if (!m_hasAltText)
+        return nullString();
+    return altTextMap().find(this)->value;
+}
+
+void RenderText::setAltText(const String& altText)
+{
+    if (altText.isNull()) {
+        if (m_hasAltText)
+            altTextMap().remove(this);
+        m_hasAltText = false;
+        return;
+    }
+    altTextMap().set(*this, altText);
+    m_hasAltText = true;
+}
+
 void RenderText::boundingRects(Vector<LayoutRect>& rects, const LayoutPoint& accumulatedOffset) const
 {
     for (auto& run : InlineIterator::textBoxesFor(*this)) {
-        auto rect = LayoutRect { run.visualRectIgnoringBlockDirection() };
+        auto rect = LayoutRect { run.blockStartRelativePhysicalRect() };
         rect.moveBy(accumulatedOffset);
         rects.append(rect);
     }
@@ -691,8 +725,7 @@ void RenderText::collectSelectionGeometries(Vector<SelectionGeometry>& rects, un
             extentsRect.setY(leftOffset);
             extentsRect.setHeight(rightOffset - leftOffset);
         }
-        // FIXME: Remove suppression once rdar://189998444 is fixed.
-        SUPPRESS_MEMORY_UNSAFE_CAST extentsRect = localToAbsoluteQuad(FloatRect(extentsRect)).enclosingBoundingBox();
+        extentsRect = localToAbsoluteQuad(FloatRect(extentsRect)).enclosingBoundingBox();
         if (!textBox->isHorizontal())
             extentsRect = extentsRect.transposedRect();
         bool isFirstOnLine = !textBox->nextLineLeftwardOnLine();
@@ -702,8 +735,7 @@ void RenderText::collectSelectionGeometries(Vector<SelectionGeometry>& rects, un
         bool containsEnd = textBox->start() <= end && textBox->end() >= end;
 
         bool isFixed = false;
-        // FIXME: Remove suppression once rdar://189998444 is fixed.
-        SUPPRESS_MEMORY_UNSAFE_CAST auto absoluteQuad = localToAbsoluteQuad(FloatRect(rect), MapCoordinatesMode::UseTransforms, &isFixed);
+        auto absoluteQuad = localToAbsoluteQuad(FloatRect(rect), MapCoordinatesMode::UseTransforms, &isFixed);
         bool boxIsHorizontal = !textBox->isSVGText() ? textBox->isHorizontal() : !writingMode().isVertical();
 
         auto selectionGeometry = SelectionGeometry(absoluteQuad, HTMLElement::selectionRenderingBehavior(protect(textNode())), textBox->direction(), extentsRect.x(), extentsRect.maxX(), extentsRect.maxY(), 0, textBox->isLineBreak(), isFirstOnLine, isLastOnLine, containsStart, containsEnd, boxIsHorizontal, isFixed, view().pageNumberForBlockProgressionOffset(absoluteQuad.enclosingBoundingBox().x()));
@@ -741,7 +773,7 @@ static Vector<FloatQuad> collectAbsoluteQuads(const RenderText& textRenderer, bo
     Vector<FloatQuad> quads;
     for (auto& textBox : InlineIterator::textBoxesFor(textRenderer)) {
         auto* svgTextBox = dynamicDowncast<InlineIterator::SVGTextBox>(textBox);
-        auto boundaries = svgTextBox ? svgTextBox->calculateBoundariesIncludingSVGTransform() : textBox.visualRectIgnoringBlockDirection();
+        auto boundaries = svgTextBox ? svgTextBox->calculateBoundariesIncludingSVGTransform() : textBox.blockStartRelativePhysicalRect();
 
         // Shorten the width of this text box if it ends in an ellipsis.
         if (clipping == ClippingOption::ClipToEllipsis) {
@@ -776,7 +808,7 @@ static FloatRect localQuadForTextBox(const InlineIterator::TextBox& textBox, uns
     if (useSelectionHeight)
         return boxSelectionRect;
 
-    auto rect = textBox.visualRectIgnoringBlockDirection();
+    auto rect = textBox.blockStartRelativePhysicalRect();
     if (textBox.isHorizontal()) {
         boxSelectionRect.setHeight(rect.height());
         boxSelectionRect.setY(rect.y());
@@ -843,7 +875,7 @@ Vector<FloatQuad> RenderText::absoluteQuadsForRange(unsigned start, unsigned end
 
             if (!useSelectionHeight) {
                 for (auto& rect : rects) {
-                    auto visualRect = textBox.visualRectIgnoringBlockDirection();
+                    auto visualRect = textBox.blockStartRelativePhysicalRect();
                     if (textBox.isHorizontal()) {
                         rect.setHeight(visualRect.height());
                         rect.setY(visualRect.y());
@@ -863,7 +895,7 @@ Vector<FloatQuad> RenderText::absoluteQuadsForRange(unsigned start, unsigned end
 
         if (start <= textBox.start() && textBox.end() <= end) {
             auto* svgTextBox = dynamicDowncast<InlineIterator::SVGTextBox>(textBox);
-            auto boundaries = svgTextBox ? svgTextBox->calculateBoundariesIncludingSVGTransform() : textBox.visualRectIgnoringBlockDirection();
+            auto boundaries = svgTextBox ? svgTextBox->calculateBoundariesIncludingSVGTransform() : textBox.blockStartRelativePhysicalRect();
 
             if (useSelectionHeight) {
                 LayoutRect selectionRect = selectionRectForTextBox(textBox, start, end);
@@ -1031,7 +1063,8 @@ PositionWithAffinity RenderText::positionForPoint(const LayoutPoint& point, HitT
     auto logicalPoint = firstRun->isHorizontal()
         ? LayoutPoint { point.x(), point.y() }
         : LayoutPoint { point.y(), point.x() };
-    bool blocksAreFlipped = writingMode().isBlockFlipped();
+    // Hit testing includes a box's physical top and left edges, which are its block-end edges in vertical-rl and horizontal-bt.
+    bool boxesIncludeBlockEndEdge = writingMode().isBlockFlipped();
 
     InlineIterator::TextBoxIterator lastRun;
     for (auto run = firstRun; run; run.traverseNextTextBox()) {
@@ -1040,12 +1073,12 @@ PositionWithAffinity RenderText::positionForPoint(const LayoutPoint& point, HitT
 
         auto lineBox = run->lineBox();
         auto top = LayoutUnit { std::min(previousLineBoxContentBottomOrBorderAndPadding(lineBox), lineBox.contentLogicalTop()) };
-        if (logicalPoint.y() > top || (!blocksAreFlipped && logicalPoint.y() == top)) {
+        if (logicalPoint.y() > top || (!boxesIncludeBlockEndEdge && logicalPoint.y() == top)) {
             auto bottom = LayoutUnit { lineBox.contentLogicalBottomAdjustedForFollowingLineBox() };
             if (auto nextLineBox = lineBox.next())
                 bottom = std::min(bottom, LayoutUnit { nextLineBox->contentLogicalTop() });
 
-            if (logicalPoint.y() < bottom || (blocksAreFlipped && logicalPoint.y() == bottom)) {
+            if (logicalPoint.y() < bottom || (boxesIncludeBlockEndEdge && logicalPoint.y() == bottom)) {
                 ShouldAffinityBeDownstream shouldAffinityBeDownstream;
 #if PLATFORM(IOS_FAMILY)
                 if (logicalPoint.x() != run->logicalLeft() && logicalPoint.x() < run->logicalLeft() + run->logicalWidth()) {
@@ -1135,7 +1168,7 @@ IntPoint RenderText::firstRunLocation() const
     auto first = InlineIterator::lineLeftmostTextBoxFor(*this);
     if (!first)
         return { };
-    return IntPoint(first->visualRectIgnoringBlockDirection().location());
+    return IntPoint(first->blockStartRelativePhysicalRect().location());
 }
 
 void RenderText::setSelectionState(HighlightState state)
@@ -1351,7 +1384,7 @@ void RenderText::setRenderedText(const String& newText)
     }
 
     m_containsOnlyASCII = text().containsOnlyASCII();
-    m_fontCodePath = computeFontCodePath(text(), m_containsOnlyASCII);
+    m_fontCodePath = std::to_underlying(computeFontCodePath(text(), m_containsOnlyASCII));
 
     if (m_text != originalText) {
         originalTextMap().set(*this, originalText);
@@ -1492,9 +1525,9 @@ IntRect RenderText::linesBoundingBox() const
     if (!firstTextBox)
         return { };
 
-    auto boundingBox = firstTextBox->visualRectIgnoringBlockDirection();
+    auto boundingBox = firstTextBox->blockStartRelativePhysicalRect();
     for (auto textBox = firstTextBox; ++textBox;)
-        boundingBox.uniteEvenIfEmpty(textBox->visualRectIgnoringBlockDirection());
+        boundingBox.uniteEvenIfEmpty(textBox->blockStartRelativePhysicalRect());
 
     return enclosingIntRect(boundingBox);
 }
@@ -1549,16 +1582,13 @@ LayoutRect RenderText::collectSelectionGeometriesForLineBoxes(const RenderLayerM
 
         resultRect.unite(rect);
 
-        if (quads) {
-            // FIXME: Remove suppression once rdar://189998444 is fixed.
-            SUPPRESS_MEMORY_UNSAFE_CAST quads->append(localToContainerQuad(FloatRect(rect), repaintContainer));
-        }
+        if (quads)
+            quads->append(localToContainerQuad(FloatRect(rect), repaintContainer));
     }
 
     if (clipToVisibleContent)
         return computeRectForRepaint(resultRect, repaintContainer);
-    // FIXME: Remove suppression once rdar://189998444 is fixed.
-    SUPPRESS_MEMORY_UNSAFE_CAST return localToContainerQuad(FloatRect(resultRect), repaintContainer).enclosingBoundingBox();
+    return localToContainerQuad(FloatRect(resultRect), repaintContainer).enclosingBoundingBox();
 }
 
 LayoutRect RenderText::collectSelectionGeometriesForLineBoxes(const RenderLayerModelObject* repaintContainer, bool clipToVisibleContent, Vector<FloatQuad>& quads)

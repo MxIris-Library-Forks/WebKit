@@ -880,8 +880,8 @@ bool WebModelPlayer::render()
     if (++m_renderTextureIndex >= m_displayBuffers.size())
         m_renderTextureIndex = 0;
 
-    currentModel->render(textureIndex, [protectedThis = protect(*this), textureIndex] (bool result) mutable {
-        protectedThis->ensureOnMainThreadWithProtectedThis([result, textureIndex] (Ref<WebModelPlayer> protectedThis) {
+    currentModel->render(textureIndex, [protectedThis = protect(*this), textureIndex](bool result) mutable {
+        protectedThis->ensureOnMainThreadWithProtectedThis([result, textureIndex](Ref<WebModelPlayer> protectedThis) {
             protectedThis->m_isUpdating = false;
             if (!result)
                 return;

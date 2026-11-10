@@ -1141,6 +1141,7 @@ SUPPLEMENTAL_DEPENDENCY_FILE = WebExtensionSupplementalDependencies.txt
 CPP_EXTENSION_INTERFACES = \
 	WebExtensionAPIAlarms \
     WebExtensionAPIEvent \
+    WebExtensionAPIExtensionTypes \
 	WebExtensionAPINamespace \
     WebExtensionAPIRuntime \
     WebExtensionAPIStorage \
@@ -1180,7 +1181,6 @@ all : JSWebExtensionAPIUnified.mm $(EXTENSION_INTERFACES:%=JS%.h) $(EXTENSION_IN
 
 ifeq ($(USE_INTERNAL_SDK),YES)
 WEBKIT_ADDITIONS_SWIFT_FILES = \
-	TestWebKitAPILibraryAdditions.swift \
 	UIWindowScene+Extras.swift \
 	AppKitGesturesExtras.swift \
 	WKWebView+SystemTextExtraction.swift \

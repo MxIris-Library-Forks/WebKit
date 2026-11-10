@@ -2615,6 +2615,10 @@ fast/text/multiple-codeunit-vertical-upright.html [ ImageOnlyFailure ]
 fast/text/multiple-feature-properties.html [ ImageOnlyFailure ]
 fast/text/svg-font-face-with-kerning.html [ Failure ]
 fast/text/synthetic-bold-transformed.html [ ImageOnlyFailure ]
+
+# Synthetic bold is drawn as the glyphs painted twice, offset by the synthetic bold offset, only with
+# Core Text. Skia emboldens the glyph outline instead.
+webkit.org/b/330430 fast/text/synthetic-bold [ Skip ]
 fast/text/system-font-fallback-emoji.html [ Failure ]
 fast/text/system-font-weight.html [ Failure ]
 fast/text/trak-optimizeLegibility.html [ ImageOnlyFailure ]
@@ -2643,7 +2647,6 @@ animations/remove-syncing-animation.html [ Pass Failure ]
 editing/execCommand/indent-input-in-image-crash.html [ Failure ]
 
 fast/box-shadow/hidpi-box-shadow-inset-on-subpixel-position.html [ ImageOnlyFailure ]
-fast/text/otsvg-canvas.html [ ImageOnlyFailure ]
 
 fast/js-promise/js-promise-invalid-context-access.html [ Failure ]
 
@@ -4694,10 +4697,11 @@ imported/w3c/web-platform-tests/speculation-rules/speculation-tags/valid-tags.ht
 imported/w3c/web-platform-tests/speculation-rules/speculation-tags/valid-tags.https.html?tag-level=ruleset&type=prefetch [ Failure ]
 imported/w3c/web-platform-tests/speculation-rules/prefetch/no-http-cache-interference-slow-error.https.html [ Skip ] # timeout
 
-# Lockdown Mode does not apply
+# Lockdown Mode and Enhanced Security do not apply
 dom/xsl/lockdown-mode [ Skip ]
 fast/speechsynthesis/lockdown-mode [ Skip ]
 http/tests/lockdown-mode [ Skip ]
+http/tests/enhanced-security [ Skip ]
 js/dom/lockdown-mode [ Skip ]
 
 imported/w3c/web-platform-tests/pointerevents/pointerevent_fractional_coordinates.html?mouse [ Pass ]

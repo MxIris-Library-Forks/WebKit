@@ -48,7 +48,6 @@
 #include "RenderBoxModelObjectInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderElementInlines.h"
-#include "RenderGlyph.h"
 #include "RenderObjectInlines.h"
 #include "RenderText.h"
 #include "RenderTheme.h"
@@ -154,7 +153,7 @@ static void buildTextForShaping(ShapedContent& shapedContent, const InlineIterat
 
             shapedContent.text.append(text.renderedContent());
             if (text.isAtShapingBoundaryEnd()) {
-                shapedContent.visualLeft = displayBox.visualRectIgnoringBlockDirection().x();
+                shapedContent.visualLeft = displayBox.blockStartRelativePhysicalRect().x();
                 return;
             }
         }
@@ -178,7 +177,7 @@ static void buildTextForShaping(ShapedContent& shapedContent, const InlineIterat
                 return;
             auto& displayBox = shapingBoundaryIterator->displayBox();
             if (displayBox.isText())
-                shapedContent.textBoxVisualLeft += displayBox.visualRectIgnoringBlockDirection().width();
+                shapedContent.textBoxVisualLeft += displayBox.blockStartRelativePhysicalRect().width();
         }
     };
     computeVisualLeftForTextBox();
@@ -189,7 +188,7 @@ TextBoxPainter::TextBoxPainter(const LayoutIntegration::InlineContent& inlineCon
     , m_renderer(m_textBox.renderer())
     , m_document(m_renderer->document())
     , m_style(style)
-    , m_logicalRect(m_textBox.isHorizontal() ? m_textBox.visualRectIgnoringBlockDirection() : m_textBox.visualRectIgnoringBlockDirection().transposedRect())
+    , m_logicalRect(m_textBox.isHorizontal() ? m_textBox.blockStartRelativePhysicalRect() : m_textBox.blockStartRelativePhysicalRect().transposedRect())
     , m_paintTextRun(m_textBox.textRun())
     , m_paintInfo(paintInfo)
     , m_selectableRange(m_textBox.selectableRange())
@@ -312,7 +311,7 @@ void TextBoxPainter::paint()
             return content.lines.size() == 1 && content.boxes.size() == 2;
         }();
 
-        m_document->didPaintText(textBox().formattingContextRoot(), textBox().visualRectIgnoringBlockDirection(), isOnlyTextBoxForElement);
+        m_document->didPaintText(textBox().formattingContextRoot(), textBox().blockStartRelativePhysicalRect(), isOnlyTextBoxForElement);
     }
 
     if (glyphRotation) {
@@ -708,13 +707,13 @@ void TextBoxPainter::paintSynthesizedGlyph()
     context.setStrokeStyle(StrokeStyle::SolidStroke);
 
     // Check 'content' before 'list-style-type'.
-    if (CheckedPtr glyphRenderer = dynamicDowncast<RenderGlyph>(m_renderer.get())) {
+    if (auto contentGlyph = m_renderer->layoutBox().contentGlyph()) {
         auto fontSize = m_style->fontCascade().size();
         auto size = fontSize / 4;
-        FloatPoint center { glyphRenderer->advanceRatio() * fontSize / 2, fontMetrics.ascent(FontBaseline::Central) };
+        FloatPoint center { Layout::InlineTextBox::contentGlyphAdvanceRatio * fontSize / 2, fontMetrics.ascent(FontBaseline::Central) };
         center.moveBy(m_paintRect.location());
 
-        bool shouldFlip = (glyphRenderer->glyph() == SynthesizedGlyph::PickerDown) == textBox().writingMode().isLineInverted();
+        bool shouldFlip = (*contentGlyph == SynthesizedGlyph::PickerDown) == textBox().writingMode().isLineInverted();
         GraphicsContextStateSaver stateSaver(context);
         if (shouldFlip) {
             context.concatCTM(AffineTransform { }.translate(center.x(), center.y()).rotate(180).translate(-center.x(), -center.y()));
@@ -991,8 +990,7 @@ void TextBoxPainter::collectDecoratingBoxesForBackgroundPainting(DecoratingBoxLi
         // Normally text box top is aligned with the parent inline box top (i.e. textBox->logicalTop() == parentInlineBox->logicalTop()) but when inline box sides are trimmed (see: text-box property)
         // inline box gets an offset while text box does not.
         if (&inlineBox->renderer() != &parentInlineBox->renderer()) {
-            // FIXME: Remove suppression once rdar://189998444 is fixed.
-            SUPPRESS_MEMORY_UNSAFE_CAST auto decoratingBoxContentBoxTop = inlineBox->logicalTop() + (!inlineBox->isRootInlineBox() ? inlineBox->renderer().borderAndPaddingBefore() : LayoutUnit(0_lu));
+            auto decoratingBoxContentBoxTop = inlineBox->logicalTop() + (!inlineBox->isRootInlineBox() ? inlineBox->renderer().borderAndPaddingBefore() : LayoutUnit(0_lu));
             SUPPRESS_MEMORY_UNSAFE_CAST auto parentInlineBoxContentBoxTop = parentInlineBox->logicalTop() + (!parentInlineBox->isRootInlineBox() ? parentInlineBox->renderer().borderAndPaddingBefore() : LayoutUnit(0_lu));
             decoratingBoxLocation.moveBy(FloatPoint { 0.f, decoratingBoxContentBoxTop - parentInlineBoxContentBoxTop + textBoxEdgeAdjustmentForUnderline(parentInlineBox->style()) });
         } else
@@ -1700,8 +1698,8 @@ FloatRect TextBoxPainter::computePaintRect(const LayoutPoint& paintOffset)
             localPaintOffset.move(m_logicalRect.height(), m_logicalRect.width());
     }
 
-    auto visualRect = textBox().visualRectIgnoringBlockDirection();
-    textBox().formattingContextRoot().flipForWritingMode(visualRect);
+    auto visualRect = textBox().blockStartRelativePhysicalRect();
+    textBox().formattingContextRoot().blockStartRelativeToPhysical(visualRect);
 
     auto boxOrigin = visualRect.location();
 

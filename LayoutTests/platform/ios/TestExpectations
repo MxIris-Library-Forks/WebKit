@@ -484,6 +484,7 @@ webkit.org/b/318843 http/wpt/identity/formats/ISO18013/mobiledocument.https.html
 fast/events/touch [ Skip ]
 fast/forms/range/sideways-lr-dragging.html [ Skip ]
 fast/forms/range/slider-repaint-vertical-rl.html [ Skip ]
+fast/events/range-input-drag-keeps-container-hovered.html [ Skip ]
 fast/shadow-dom/touch-event-ios.html [ Skip ]
 fast/shadow-dom/touch-event-on-text-assigned-to-slot.html [ Skip ]
 http/tests/frame-throttling/timer-throttle-in-cross-origin-subframe.html [ Skip ]
@@ -7971,6 +7972,8 @@ webkit.org/b/311235 fast/scrolling/scroll-anchoring/heuristic-renabled-after-del
 imported/w3c/web-platform-tests/css/css-scroll-anchoring/fullscreen-crash.html [ Skip ]
 
 webkit.org/b/307861 fast/scrolling/scroll-anchoring/scroll-anchoring-with-page-scale.html [ Failure ]
+
+fast/scrolling/scroll-anchoring/scroll-anchoring-during-running-smooth-scroll.html [ Failure ]
 
 # webkit.org/b/277908 [ iOS ] imported/w3c/web-platform-tests/mediacapture-insertable-streams/VideoTrackGenerator-with-window-tracks.https.html is a flaky text failure
 imported/w3c/web-platform-tests/mediacapture-insertable-streams/VideoTrackGenerator-with-window-tracks.https.html [ Pass Failure ]

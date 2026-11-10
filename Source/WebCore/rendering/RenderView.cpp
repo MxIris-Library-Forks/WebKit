@@ -402,7 +402,8 @@ static inline bool rendererObscuresBackground(const RenderElement& rootElement)
     if (!rendererForBackground)
         return false;
 
-    if (rendererForBackground->style().backgroundLayers().usedFirst().clip() == FillBox::Text)
+    if (rendererForBackground->style().backgroundLayers().usedFirst().clip() == FillBox::Text
+        || rendererForBackground->style().backgroundLayers().usedFirst().clip() == FillBox::BorderAreaText)
         return false;
 
     return true;
@@ -644,9 +645,9 @@ auto RenderView::computeVisibleRectsInContainer(const RepaintRects& rects, const
 
     auto adjustedRects = rects;
     if (writingMode().isBlockFlipped()) {
-        // We have to flip by hand since the view's logical height has not been determined.  We
+        // We have to convert by hand since the view's logical height has not been determined. We
         // can use the viewport width and height.
-        adjustedRects.flipForWritingMode(LayoutSize(viewWidth(), viewHeight()), writingMode().isHorizontal());
+        adjustedRects.blockStartRelativeToPhysical(LayoutSize(viewWidth(), viewHeight()), writingMode().isHorizontal());
     }
 
     if (state.hasPositionFixedDescendant)
@@ -702,7 +703,7 @@ LayoutRect RenderView::viewRect() const
 IntRect RenderView::unscaledDocumentRect() const
 {
     LayoutRect overflowRect(layoutOverflowRect());
-    flipForWritingMode(overflowRect);
+    blockStartRelativeToPhysical(overflowRect);
     return snappedIntRect(overflowRect);
 }
 
@@ -832,11 +833,6 @@ void RenderView::setPageLogicalSize(LayoutSize size)
         m_pageLogicalHeightChanged = true;
 
     m_pageLogicalSize = size;
-}
-
-float RenderView::pageZoomFactor() const
-{
-    return frameView().frame().pageZoomFactor();
 }
 
 FloatSize RenderView::sizeForCSSSmallViewportUnits() const

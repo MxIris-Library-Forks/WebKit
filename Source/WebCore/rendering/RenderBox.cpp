@@ -436,8 +436,10 @@ static void updateSpatialPortalController(Element& element)
         notifyEnvironmentMapStyleDidChange(element);
 #endif
 
-        if (CheckedPtr layer = box->layer())
+        if (CheckedPtr layer = box->layer()) {
             layer->setNeedsCompositingConfigurationUpdate();
+            layer->setDescendantsNeedCompositingRequirementsTraversal();
+        }
     }
 }
 
@@ -1118,8 +1120,7 @@ IntRect RenderBox::absoluteContentBox() const
 FloatQuad RenderBox::absoluteContentQuad() const
 {
     LayoutRect rect = contentBoxRect();
-    // FIXME: Remove suppression once rdar://189998444 is fixed.
-    SUPPRESS_MEMORY_UNSAFE_CAST return localToAbsoluteQuad(FloatRect(rect));
+    return localToAbsoluteQuad(FloatRect(rect));
 }
 
 LayoutRect RenderBox::localOutlineBoundsRepaintRect() const
@@ -1134,12 +1135,10 @@ LayoutRect RenderBox::outlineBoundsForRepaint(const RenderLayerModelObject* repa
 
     if (repaintContainer != this) {
         FloatQuad containerRelativeQuad;
-        if (geometryMap) {
+        if (geometryMap)
             containerRelativeQuad = geometryMap->mapToContainer(box, repaintContainer);
-        } else {
-            // FIXME: Remove suppression once rdar://189998444 is fixed.
-            SUPPRESS_MEMORY_UNSAFE_CAST containerRelativeQuad = localToContainerQuad(FloatRect(box), repaintContainer);
-        }
+        else
+            containerRelativeQuad = localToContainerQuad(FloatRect(box), repaintContainer);
 
         box = LayoutRect(containerRelativeQuad.boundingBox());
     }
@@ -1498,7 +1497,7 @@ LayoutSize RenderBox::cachedSizeForOverflowClip() const
 
 bool RenderBox::applyCachedClipAndScrollPosition(RepaintRects& rects, const RenderLayerModelObject* container, const VisibleRectContext& context) const
 {
-    flipForWritingMode(rects);
+    blockStartRelativeToPhysical(rects);
 
     if (context.options.contains(VisibleRectContext::Option::ApplyCompositedContainerScrolls) || this != container || !usesCompositedScrolling())
         rects.moveBy(-scrollPosition()); // For overflow:auto/scroll/hidden.
@@ -1506,7 +1505,7 @@ bool RenderBox::applyCachedClipAndScrollPosition(RepaintRects& rects, const Rend
     // Do not clip scroll layer contents to reduce the number of repaints while scrolling.
     if ((!context.options.contains(VisibleRectContext::Option::ApplyCompositedClips) && usesCompositedScrolling())
         || (!context.options.contains(VisibleRectContext::Option::ApplyContainerClip) && this == container)) {
-        flipForWritingMode(rects);
+        physicalToBlockStartRelative(rects);
         return true;
     }
 
@@ -1532,7 +1531,7 @@ bool RenderBox::applyCachedClipAndScrollPosition(RepaintRects& rects, const Rend
     else
         intersects = rects.intersect(clipRect);
 
-    flipForWritingMode(rects);
+    physicalToBlockStartRelative(rects);
     return intersects;
 }
 
@@ -1765,7 +1764,7 @@ bool RenderBox::hitTestVisualOverflow(const HitTestLocation& hitTestLocation, co
 
     LayoutPoint adjustedLocation = accumulatedOffset + location();
     LayoutRect overflowBox = visualOverflowRect();
-    flipForWritingMode(overflowBox);
+    blockStartRelativeToPhysical(overflowBox);
     overflowBox.moveBy(adjustedLocation);
     return hitTestLocation.intersects(overflowBox);
 }
@@ -2653,11 +2652,20 @@ LayoutSize RenderBox::offsetFromContainer(const RenderElement& container, const 
 {
     auto offset = RenderBoxModelObject::offsetFromContainer(container, point, offsetDependsOnPoint);
 
+    if (isOutOfFlowPositioned() && container.isInlineBox()) {
+        // An out-of-flow box is only mapped to an inline box when the inline box is its containing block. The box is positioned relative
+        // to the border box of the inline box's first fragment, which is in the coordinate space of the inline box's own containing block.
+        auto& inlineBox = downcast<RenderBoxModelObject>(container);
+        auto borderBoxRect = LayoutRect { location() + toLayoutSize(inlineBox.blockStartRelativeFirstFragmentBorderBoxRect().location()), borderBoxSize() };
+        if (inlineBox.writingMode().isBlockFlipped()) {
+            if (CheckedPtr containingBlock = inlineBox.containingBlock())
+                containingBlock->blockStartRelativeToPhysical(borderBoxRect);
+        }
+        return offset + toLayoutSize(borderBoxRect.location());
+    }
+
     if (!isInline() || isBlockLevelReplacedOrAtomicInline())
         offset += topLeftLocationOffset();
-
-    if (isAbsolutelyPositioned() && container.isInlineBox() && container.canContainAbsolutelyPositionedObjects())
-        offset += PositionedLayoutConstraints::containingBlockOffsetForNonStaticAxes(downcast<RenderBoxModelObject>(container), style());
 
     return offset;
 }
@@ -4929,14 +4937,14 @@ bool RenderBox::hasLayoutOverflow() const
     if (!m_overflow)
         return false;
 
-    return !flippedPaddingBoxRect().contains(m_overflow->layoutOverflowRect());
+    return !blockStartRelativePaddingBoxRect().contains(m_overflow->layoutOverflowRect());
 }
 
 LayoutOptionalOutsets RenderBox::allowedLayoutOverflow() const
 {
     LayoutOptionalOutsets allowance;
 
-    // Overflow is in the block's coordinate space and thus is flipped
+    // Overflow is in the block's block-start relative coordinate space and thus is reversed
     // for horizontal-bt and vertical-rl writing modes. This means we can
     // treat horizontal-tb/bt as the same and vertical-lr/rl as the same.
 
@@ -4957,25 +4965,25 @@ LayoutOptionalOutsets RenderBox::allowedLayoutOverflow() const
     return allowance;
 }
 
-LayoutRect RenderBox::clampToAllowedLayoutOverflow(const LayoutRect& rect, const LayoutRect& flippedPaddingBoxRect)
+LayoutRect RenderBox::clampToAllowedLayoutOverflow(const LayoutRect& rect, const LayoutRect& blockStartRelativePaddingBoxRect)
 {
     LayoutOptionalOutsets allowance = allowedLayoutOverflow();
     LayoutRect clippedRect(rect);
     // Non-negative values indicate a limit, let's apply them.
     if (allowance.top())
-        clippedRect.shiftYEdgeTo(std::max(rect.y(), flippedPaddingBoxRect.y() - *allowance.top()));
+        clippedRect.shiftYEdgeTo(std::max(rect.y(), blockStartRelativePaddingBoxRect.y() - *allowance.top()));
     if (allowance.bottom())
-        clippedRect.shiftMaxYEdgeTo(std::min(rect.maxY(), flippedPaddingBoxRect.maxY() + *allowance.bottom()));
+        clippedRect.shiftMaxYEdgeTo(std::min(rect.maxY(), blockStartRelativePaddingBoxRect.maxY() + *allowance.bottom()));
     if (allowance.left())
-        clippedRect.shiftXEdgeTo(std::max(rect.x(), flippedPaddingBoxRect.x() - *allowance.left()));
+        clippedRect.shiftXEdgeTo(std::max(rect.x(), blockStartRelativePaddingBoxRect.x() - *allowance.left()));
     if (allowance.right())
-        clippedRect.shiftMaxXEdgeTo(std::min(rect.maxX(), flippedPaddingBoxRect.maxX() + *allowance.right()));
+        clippedRect.shiftMaxXEdgeTo(std::min(rect.maxX(), blockStartRelativePaddingBoxRect.maxX() + *allowance.right()));
     return clippedRect;
 }
 
 void RenderBox::addLayoutOverflow(const LayoutRect& rect)
 {
-    auto clientBox = flippedPaddingBoxRect();
+    auto clientBox = blockStartRelativePaddingBoxRect();
     if (clientBox.contains(rect) || rect.isEmpty())
         return;
 
@@ -5013,7 +5021,7 @@ void RenderBox::addMarginBoxOverflow(const RenderBox& renderer, LayoutSize offse
 
     // Some in-flow boxes (e.g. grid items) only extend the layout overflow edge.
     if (options.contains(ComputeOverflowOptions::MarginsExtendLayoutOverflow)) {
-        auto clippedChildMarginRect = clampToAllowedLayoutOverflow(childMarginRect, flippedPaddingBoxRect());
+        auto clippedChildMarginRect = clampToAllowedLayoutOverflow(childMarginRect, blockStartRelativePaddingBoxRect());
         if (!layoutOverflowRect().contains(clippedChildMarginRect))
             ensureOverflow().addLayoutOverflow(clippedChildMarginRect);
         ASSERT(!options.containsAny({ ComputeOverflowOptions::MarginsExtendContentAreaX, ComputeOverflowOptions::MarginsExtendContentAreaY })); // If you need this to work, remove the return statement.
@@ -5037,7 +5045,7 @@ void RenderBox::clearOverflow()
 RenderOverflow& RenderBox::ensureOverflow()
 {
     if (!m_overflow)
-        m_overflow = makeUnique<RenderOverflow>(flippedPaddingBoxRect(), borderBoxRect(), flippedContentBoxRect());
+        m_overflow = makeUnique<RenderOverflow>(blockStartRelativePaddingBoxRect(), borderBoxRect(), blockStartRelativeContentBoxRect());
 
     return *m_overflow;
 }
@@ -5114,7 +5122,7 @@ LayoutRect RenderBox::applyPaintGeometryTransformToRect(LayoutRect rect) const
     if (!paintGeometryAffectsOverflow)
         return rect;
 
-    flipForWritingMode(rect);
+    blockStartRelativeToPhysical(rect);
 
     LayoutSize containerOffset;
     if (isInFlowPositioned())
@@ -5128,8 +5136,8 @@ LayoutRect RenderBox::applyPaintGeometryTransformToRect(LayoutRect rect) const
     } else
         rect.move(offsetForInFlowPosition());
 
-    // Now we need to flip back.
-    flipForWritingMode(rect);
+    // Now we need to convert back.
+    physicalToBlockStartRelative(rect);
 
     return rect;
 }
@@ -5204,17 +5212,15 @@ LayoutRect RenderBox::layoutOverflowRectForPropagation(const WritingMode parentW
     return convertRectToParentWritingMode(rect, parentWritingMode);
 }
 
-LayoutRect RenderBox::flippedPaddingBoxRect() const
+LayoutRect RenderBox::blockStartRelativePaddingBoxRect() const
 {
-    // Because of the special coordinate system used for overflow rectangles (not quite logical, not
-    // quite physical), we need to flip the block progression coordinate in vertical-rl and
+    // Overflow rectangles are block-start relative, so the block axis coordinate needs converting in vertical-rl and
     // horizontal-bt writing modes. Apart from that, this method does the same as paddingBoxRect().
     auto rect = paddingBoxRectIncludingScrollbar();
-    // Flip block progression axis if writing mode is vertical-rl or horizontal-bt.
-    flipForWritingMode(rect);
+    physicalToBlockStartRelative(rect);
     if (hasNonVisibleOverflow()) {
         // Subtract space occupied by scrollbars. They are at their physical edge in this coordinate
-        // system, so order is important here: first flip, then subtract scrollbars.
+        // system, so order is important here: first convert, then subtract scrollbars.
         if (isHorizontalWritingMode() && shouldPlaceVerticalScrollbarOnLeft())
             rect.move(verticalScrollbarWidth(), 0);
         rect.contract(verticalScrollbarWidth(), horizontalScrollbarHeight());
@@ -5222,7 +5228,7 @@ LayoutRect RenderBox::flippedPaddingBoxRect() const
     return rect;
 }
 
-LayoutPoint RenderBox::flipForWritingModeForChild(const RenderBox& child, const LayoutPoint& point) const
+LayoutPoint RenderBox::blockStartRelativeToPhysicalForChild(const RenderBox& child, const LayoutPoint& point) const
 {
     if (!writingMode().isBlockFlipped())
         return point;
@@ -5234,7 +5240,7 @@ LayoutPoint RenderBox::flipForWritingModeForChild(const RenderBox& child, const 
     return LayoutPoint(point.x() + borderBoxWidth() - child.borderBoxWidth() - (2 * child.x()), point.y());
 }
 
-void RenderBox::flipForWritingMode(LayoutRect& rect) const
+void RenderBox::blockStartRelativeToPhysical(LayoutRect& rect) const
 {
     if (!writingMode().isBlockFlipped())
         return;
@@ -5245,35 +5251,35 @@ void RenderBox::flipForWritingMode(LayoutRect& rect) const
         rect.setX(borderBoxWidth() - rect.maxX());
 }
 
-LayoutUnit RenderBox::flipForWritingMode(LayoutUnit position) const
+LayoutUnit RenderBox::blockStartRelativeToPhysical(LayoutUnit position) const
 {
     if (!writingMode().isBlockFlipped())
         return position;
     return logicalHeight() - position;
 }
 
-LayoutPoint RenderBox::flipForWritingMode(const LayoutPoint& position) const
+LayoutPoint RenderBox::blockStartRelativeToPhysical(const LayoutPoint& position) const
 {
     if (!writingMode().isBlockFlipped())
         return position;
     return isHorizontalWritingMode() ? LayoutPoint(position.x(), borderBoxHeight() - position.y()) : LayoutPoint(borderBoxWidth() - position.x(), position.y());
 }
 
-LayoutSize RenderBox::flipForWritingMode(const LayoutSize& offset) const
+LayoutSize RenderBox::blockStartRelativeToPhysical(const LayoutSize& offset) const
 {
     if (!writingMode().isBlockFlipped())
         return offset;
     return isHorizontalWritingMode() ? LayoutSize(offset.width(), borderBoxHeight() - offset.height()) : LayoutSize(borderBoxWidth() - offset.width(), offset.height());
 }
 
-FloatPoint RenderBox::flipForWritingMode(const FloatPoint& position) const
+FloatPoint RenderBox::blockStartRelativeToPhysical(const FloatPoint& position) const
 {
     if (!writingMode().isBlockFlipped())
         return position;
     return isHorizontalWritingMode() ? FloatPoint(position.x(), borderBoxHeight() - position.y()) : FloatPoint(borderBoxWidth() - position.x(), position.y());
 }
 
-void RenderBox::flipForWritingMode(FloatRect& rect) const
+void RenderBox::blockStartRelativeToPhysical(FloatRect& rect) const
 {
     if (!writingMode().isBlockFlipped())
         return;
@@ -5284,22 +5290,28 @@ void RenderBox::flipForWritingMode(FloatRect& rect) const
         rect.setX(borderBoxWidth() - rect.maxX());
 }
 
-void RenderBox::flipForWritingMode(RepaintRects& rects) const
+void RenderBox::blockStartRelativeToPhysical(RepaintRects& rects) const
 {
     if (!writingMode().isBlockFlipped())
         return;
 
-    rects.flipForWritingMode(borderBoxSize(), isHorizontalWritingMode());
+    rects.blockStartRelativeToPhysical(borderBoxSize(), isHorizontalWritingMode());
 }
 
-LayoutPoint RenderBox::topLeftLocationWithFlipping() const
+LayoutPoint RenderBox::topLeftLocationFromBlockStartRelative() const
 {
     ASSERT(view().frameView().hasFlippedBlockRenderers());
+
+    if (isOutOfFlowPositioned()) {
+        // A box positioned relative to an inline box is converted within the inline box.
+        if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(container()); inlineBox && inlineBox->isInlineBox())
+            return inlineBox->blockStartRelativeToPhysicalForChild(*this, location());
+    }
 
     auto* containerBlock = containingBlock();
     if (!containerBlock || containerBlock == this)
         return location();
-    return containerBlock->flipForWritingModeForChild(*this, location());
+    return containerBlock->blockStartRelativeToPhysicalForChild(*this, location());
 }
 
 bool RenderBox::shouldIgnoreAspectRatio() const
@@ -5330,7 +5342,7 @@ static inline bool shouldComputeLogicalWidthFromAspectRatioAndInsets(const Rende
     return style.logicalHeight().isAuto();
 }
 
-static RenderBlock* containingBlockForStretchResolution(const RenderBox& box)
+static RenderBoxModelObject* containingBlockForStretchResolution(const RenderBox& box)
 {
     auto isIgnoredAsContainingBlock = [](auto& candidate) {
         // Flow threads (multicol/paged) are invisible to the DOM; their children should
@@ -5356,7 +5368,7 @@ static RenderBlock* containingBlockForStretchResolution(const RenderBox& box)
     // Walks past anonymous boxes that the CSS 2 Section 9.2.1.1 rule says to ignore
     // when resolving values that would refer to them, returning the first ancestor
     // that is a legitimate containing block for value resolution.
-    auto* ancestor = box.containingBlock();
+    RenderBoxModelObject* ancestor = box.containingBlock();
     while (ancestor && isIgnoredAsContainingBlock(*ancestor))
         ancestor = ancestor->containingBlock();
     return ancestor;
@@ -5366,9 +5378,15 @@ bool RenderBox::isBlockSizeResolvableForStretch() const
 {
     // css-sizing-4 Section 6.7 defines stretch as behaving like 100%, so stretch
     // resolution shares the percent rule from CSS 2 Section 9.2.1.1.
-    CheckedPtr containingBlock = containingBlockForStretchResolution(*this);
-    if (!containingBlock)
+    CheckedPtr containingBlockForStretch = containingBlockForStretchResolution(*this);
+    if (!containingBlockForStretch)
         return false;
+
+    // The containing block rectangle of an inline box has a definite size.
+    if (containingBlockForStretch->isInlineBox())
+        return true;
+
+    CheckedPtr containingBlock = downcast<RenderBlock>(containingBlockForStretch);
 
     // Orthogonal children's block axis maps to the parent's inline axis, which is always definite.
     if (isOrthogonal(*this, *containingBlock))
@@ -5581,8 +5599,15 @@ LayoutUnit RenderBox::offsetFromLogicalTopOfFirstPage() const
     if ((layoutState && !layoutState->isPaginated()) || (!layoutState && !enclosingFragmentedFlow()))
         return 0;
 
-    RenderBlock* containerBlock = containingBlock();
-    return containerBlock->offsetFromLogicalTopOfFirstPage() + logicalTop();
+    CheckedPtr containingBlock = this->containingBlock();
+    auto logicalTopInContainingBlock = logicalTop();
+    if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(container()); inlineBox && inlineBox->isInlineBox() && isOutOfFlowPositioned()) {
+        // The box is positioned relative to the inline box, which is positioned in its own containing block.
+        auto inlineBoxOffset = toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
+        logicalTopInContainingBlock += inlineBox->isHorizontalWritingMode() ? inlineBoxOffset.height() : inlineBoxOffset.width();
+        containingBlock = inlineBox->containingBlock();
+    }
+    return containingBlock->offsetFromLogicalTopOfFirstPage() + logicalTopInContainingBlock;
 }
 
 LayoutBoxExtent RenderBox::scrollPaddingForViewportRect(const LayoutRect& viewportRect)

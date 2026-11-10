@@ -107,7 +107,6 @@
 #include "RenderElementInlines.h"
 #include "RenderElementStyleInlines.h"
 #include "RenderFileUploadControl.h"
-#include "RenderGlyph.h"
 #include "RenderHTMLCanvas.h"
 #include "RenderImage.h"
 #include "RenderIterator.h"
@@ -413,11 +412,9 @@ Element* AccessibilityRenderObject::anchorElement() const
 // Null is distinct from empty: empty asks for the content to be ignored.
 NODELETE static const String& generatedContentAltText(const RenderText* renderText)
 {
-    if (auto* renderTextFragment = dynamicDowncast<RenderTextFragment>(renderText))
-        return renderTextFragment->altText();
-    if (auto* renderGlyph = dynamicDowncast<RenderGlyph>(renderText))
-        return renderGlyph->altText();
-    return nullString();
+    if (!renderText)
+        return nullString();
+    return renderText->altText();
 }
 
 String AccessibilityRenderObject::textUnderElement(TextUnderElementMode mode) const
@@ -851,8 +848,7 @@ Path AccessibilityRenderObject::elementPath() const
             std::optional<Path> clipPathResult;
             WTF::switchOn(renderBox->style().clipPath(),
                 [&](const Style::BasicShapePath& clipPath) {
-                    // FIXME: Remove suppression once rdar://189998444 is fixed.
-                    SUPPRESS_MEMORY_UNSAFE_CAST auto referenceBox = FloatRect(renderBox->borderBoxRect());
+                    auto referenceBox = FloatRect(renderBox->borderBoxRect());
                     auto path = Style::path(clipPath.shape(), referenceBox, renderBox->style().usedZoomForLength());
                     mapLocalPathToAbsolute(path, *renderBox);
                     clipPathResult = WTF::move(path);

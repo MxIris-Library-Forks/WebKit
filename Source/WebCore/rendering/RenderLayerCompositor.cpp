@@ -3347,6 +3347,7 @@ bool RenderLayerCompositor::requiresCompositingLayer(const RenderLayer& layer, R
         || requiresCompositingForVideo(renderer)
         || requiresCompositingForModel(renderer)
         || requiresCompositingForSpatialPortal(renderer)
+        || requiresCompositingForSpatialPortalHosting(*renderer.layer())
         || requiresCompositingForFrame(renderer, queryData)
         || requiresCompositingForPlugin(renderer, queryData)
         || requiresCompositingForOverflowScrolling(*renderer.layer(), queryData)
@@ -3434,6 +3435,7 @@ bool RenderLayerCompositor::requiresOwnBackingStore(const RenderLayer& layer, co
         || requiresCompositingForVideo(renderer)
         || requiresCompositingForModel(renderer)
         || requiresCompositingForSpatialPortal(renderer)
+        || requiresCompositingForSpatialPortalHosting(layer)
         || requiresCompositingForFrame(renderer, queryData)
         || requiresCompositingForPlugin(renderer, queryData)
         || requiresCompositingForOverflowScrolling(layer, queryData)
@@ -3516,6 +3518,9 @@ OptionSet<CompositingReason> RenderLayerCompositor::reasonsForCompositing(const 
 
     if (requiresCompositingForAnchorPositioning(*renderer.layer()))
         reasons.add(CompositingReason::AnchorPositioning);
+
+    if (requiresCompositingForSpatialPortalHosting(*renderer.layer()))
+        reasons.add(CompositingReason::SpatialPortalHosting);
 
     switch (renderer.layer()->indirectCompositingReason()) {
     case IndirectCompositingReason::None:
@@ -3614,6 +3619,7 @@ static ASCIILiteral compositingReasonToString(CompositingReason reason)
     case CompositingReason::Root: return "root"_s;
     case CompositingReason::Model: return "model"_s;
     case CompositingReason::SpatialPortal: return "spatial-portal"_s;
+    case CompositingReason::SpatialPortalHosting: return "spatial-portal-hosting"_s;
     case CompositingReason::BackdropRoot: return "backdrop root"_s;
     case CompositingReason::AnchorPositioning: return "anchor positioning"_s;
     }
@@ -4146,6 +4152,20 @@ bool RenderLayerCompositor::requiresCompositingForSpatialPortal(RenderLayerModel
 #endif
 }
 
+bool RenderLayerCompositor::requiresCompositingForSpatialPortalHosting(const RenderLayer& layer) const
+{
+#if ENABLE(SPATIAL_PORTAL)
+    if (!layer.preserves3D())
+        return false;
+
+    CheckedPtr parent = layer.parent();
+    return parent && isSpatialPortal(parent->renderer()) && layer.ancestorLayerIsDOMParent(parent.get());
+#else
+    UNUSED_PARAM(layer);
+    return false;
+#endif
+}
+
 bool RenderLayerCompositor::requiresCompositingForPlugin(RenderLayerModelObject& renderer, RequiresCompositingData& queryData) const
 {
     if (!(m_compositingTriggers & ChromeClient::PluginTrigger))
@@ -4439,8 +4459,7 @@ bool RenderLayerCompositor::fixedLayerIntersectsViewport(const RenderLayer& laye
     LayoutRect layerBounds = layer.calculateLayerBounds(&layer, LayoutSize(), { RenderLayer::UseLocalClipRectIfPossible, RenderLayer::IncludeFilterOutsets, RenderLayer::UseFragmentBoxesExcludingCompositing,
         RenderLayer::ExcludeHiddenDescendants, RenderLayer::DontConstrainForMask, RenderLayer::IncludeCompositedDescendants });
     // Map to m_renderView to ignore page scale.
-    // FIXME: Remove suppression once rdar://189998444 is fixed.
-    SUPPRESS_MEMORY_UNSAFE_CAST FloatRect absoluteBounds = layer.renderer().localToContainerQuad(FloatRect(layerBounds), &m_renderView).boundingBox();
+    FloatRect absoluteBounds = layer.renderer().localToContainerQuad(FloatRect(layerBounds), &m_renderView).boundingBox();
     return viewBounds.intersects(enclosingIntRect(absoluteBounds));
 }
 

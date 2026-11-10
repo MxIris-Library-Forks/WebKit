@@ -383,8 +383,6 @@ imported/w3c/web-platform-tests/css/css-masking/clip-path/animations/clip-path-a
 imported/w3c/web-platform-tests/css/css-masking/mask-svg-content/mask-with-filter.svg [ Pass ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-018.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-overflow/single-axis-overflow-clip-rtl.html [ Pass ]
-[ x86_64 ] imported/w3c/web-platform-tests/css/css-overflow/text-overflow-string-018.html [ Pass ]
-[ x86_64 ] imported/w3c/web-platform-tests/css/css-overflow/text-overflow-string-019.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-position/multicol/vlr-rtl-rtl-in-multicols.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-position/multicol/vrl-rtl-rtl-in-multicols.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-position/position-absolute-dynamic-overflow-002.html [ Pass ]
@@ -632,8 +630,6 @@ webkit.org/b/272225 media/media-source/media-managedmse-resume-after-stall.html 
 webkit.org/b/314179 media/media-source/media-managedmse-waiting-at-gap.html [ Failure ]
 
 webkit.org/b/307141 media/media-source/media-source-seek-and-play.html [ Failure Pass ]
-webkit.org/b/329007 media/media-source/media-source-loop-natural-playback.html [ Skip ]
-webkit.org/b/329007 media/media-source/media-source-loop-toggle-during-playback.html [ Skip ]
 
 webkit.org/b/315030 media/media-source/media-source-webm-seek-singlekeyframe.html [ Timeout Pass ]
 
@@ -3732,9 +3728,10 @@ webkit.org/b/303133 [ Debug ] fast/mediastream/video-rotation-clone.html [ Pass 
 # testRunner.webHistoryItemCount implementation is not implemented in WTR
 webkit.org/b/100238 fast/history/window-open.html [ Skip ]
 
-# Lockdown Mode does not apply
+# Lockdown Mode and Enhanced Security do not apply
 dom/xsl/lockdown-mode [ Skip ]
 http/tests/lockdown-mode [ Skip ]
+http/tests/enhanced-security [ Skip ]
 js/dom/lockdown-mode [ Skip ]
 
 # Feature disabled, see: https://bugs.webkit.org/show_bug.cgi?id=85425
@@ -3750,7 +3747,7 @@ webkit.org/b/98925 fast/viewport/viewport-legacy-xhtmlmp.html [ Skip ]
 # Expects a particular fixed size ofr layer tiles.
 fast/images/low-memory-decode.html [ Skip ]
 
-# Lockdown Mode does not apply
+# Lockdown Mode and Enhanced Security do not apply
 fast/speechsynthesis/lockdown-mode [ Skip ]
 
 # ManagedMediaSource is not supported
@@ -3918,6 +3915,10 @@ webkit.org/b/160248 fast/text/synthetic-bold-transformed.html [ ImageOnlyFailure
 # vertical offset in the port, not the mark displacement these tests were written for.
 imported/w3c/web-platform-tests/css/css-fonts/synthetic-bold-combining-mark-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-fonts/synthetic-bold-combining-mark-002.html [ ImageOnlyFailure ]
+
+# Synthetic bold is drawn as the glyphs painted twice, offset by the synthetic bold offset, only with
+# Core Text. Skia emboldens the glyph outline instead.
+webkit.org/b/330430 fast/text/synthetic-bold [ Skip ]
 webkit.org/b/160249 fast/shrink-wrap/rect-shrink-wrap.html [ ImageOnlyFailure ]
 webkit.org/b/161583 accessibility/auto-fill-types.html [ Failure ]
 webkit.org/b/162815 fast/text/variations/font-face-clamp.html [ ImageOnlyFailure ]
@@ -5075,7 +5076,6 @@ webkit.org/b/319310 [ Debug ] fast/repaint/iframe-avoid-redundant-repaint.html [
 webkit.org/b/319311 [ Debug ] fast/repaint/missing-out-of-flow-repaint-on-destroy.html [ Pass ImageOnlyFailure ]
 webkit.org/b/319312 [ Debug ] workers/bomb.html [ Skip ]
 
-[ x86_64 ] imported/w3c/web-platform-tests/css/css-overflow/text-overflow-string-023.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-028.html [ ImageOnlyFailure ]
 
 
@@ -5310,7 +5310,6 @@ webkit.org/b/329969 [ Debug ] ipc/back-forward-list-item-for-id-cross-page.html 
 webkit.org/b/329971 http/wpt/service-workers/service-worker-fetch-task-cancel-on-redirect.https.html [ Failure Pass ]
 
 webkit.org/b/328193 fast/forms/select/base/select-translated-option-content-repaint.html [ ImageOnlyFailure Pass ]
-webkit.org/b/330316 media/media-source/media-source-loop-multiple-times.html [ Crash Pass ]
 webkit.org/b/330318 webaudio/audioworklet-stops-on-document-stop.html [ Failure Pass ]
 
 webkit.org/b/330502 [ Debug ] media/video-source-error.html [ Failure Pass ]

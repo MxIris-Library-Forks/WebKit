@@ -1054,26 +1054,30 @@ bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& e
     if (event.event().button() != MouseButton::Left || !targetNode)
         return false;
 
-    CheckedPtr renderer = targetNode->renderer();
-    if (!renderer) {
-        auto* parent = targetNode->parentOrShadowHostElement();
-        if (!parent)
-            return false;
+    // The style updates below can rebuild the render tree and destroy the renderer if style is dirty (e.g. mousemove
+    // handler mutates the DOM). We scope the renderer lifetime so it isn't dangling (and CheckedPtr does not assert).
+    {
+        CheckedPtr renderer = targetNode->renderer();
+        if (!renderer) {
+            auto* parent = targetNode->parentOrShadowHostElement();
+            if (!parent)
+                return false;
 
-        renderer = parent->renderer();
-        if (!renderer || !renderer->isRenderListBox())
-            return false;
-    }
+            renderer = parent->renderer();
+            if (!renderer || !renderer->isRenderListBox())
+                return false;
+        }
 
 #if PLATFORM(COCOA) // FIXME: Why does this assertion fire on other platforms?
-    ASSERT(mouseDownMayStartSelect() || m_mouseDownMayStartAutoscroll);
+        ASSERT(mouseDownMayStartSelect() || m_mouseDownMayStartAutoscroll);
 #endif
 
-    m_mouseDownMayStartDrag = false;
+        m_mouseDownMayStartDrag = false;
 
-    if (m_mouseDownMayStartAutoscroll && !panScrollInProgress()) {
-        if (m_autoscrollController->startAutoscrollForSelection(renderer))
-            m_mouseDownMayStartAutoscroll = false;
+        if (m_mouseDownMayStartAutoscroll && !panScrollInProgress()) {
+            if (m_autoscrollController->startAutoscrollForSelection(renderer))
+                m_mouseDownMayStartAutoscroll = false;
+        }
     }
 
     if (m_selectionInitiationState != ExtendedSelection) {
@@ -3103,7 +3107,7 @@ MouseEventWithHitTestResults EventHandler::prepareMouseEvent(const HitTestReques
     m_lastPlatformMouseEvent = mouseEvent;
     Ref frame = m_frame.get();
     ASSERT(frame->document());
-    return protect(frame->document())->prepareMouseEvent(request, documentPointForWindowPoint(frame, mouseEvent.position()), mouseEvent);
+    return protect(frame->document())->prepareMouseEvent(request, documentPointForWindowPoint(frame, mouseEvent.position()), mouseEvent, HoverFollowsMouseCapture::Yes);
 }
 
 NODELETE static bool hierarchyHasCapturingEventListeners(Element* element, const AtomString& pointerEventName, const AtomString& compatibilityMouseEventName)
@@ -5785,7 +5789,7 @@ std::expected<bool, RemoteFrameGeometryTransformer> EventHandler::handleTouchEve
         // pagePoint should always be relative to the target elements containing frame.
         pagePoint = LayoutPoint(targetFrame->view()->windowToContents(flooredIntPoint(point.pos())));
 
-        float scaleFactor = targetFrame->pageZoomFactor() * targetFrame->frameScaleFactor();
+        float scaleFactor = targetFrame->effectiveZoomFactor() * targetFrame->frameScaleFactor();
 
         DoublePoint adjustedPagePoint = FloatPoint(pagePoint.x() / scaleFactor, pagePoint.y() / scaleFactor);
         DoubleSize adjustedRadius = point.radius().scaledBy(scaleFactor);

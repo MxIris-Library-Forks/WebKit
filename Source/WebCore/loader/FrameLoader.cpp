@@ -3275,10 +3275,6 @@ void FrameLoader::checkLoadCompleteForThisFrame(LoadWillContinueInAnotherProcess
         if (!provisionalDocumentLoader->isLoadingInAPISense() || provisionalDocumentLoader->isStopping()) {
             FRAMELOADER_RELEASE_LOG_FORWARDABLE(FrameLoaderCheckLoadCompleteForThisFrameFailedProvisionalLoad, error.isTimeout(), error.isCancellation(), error.errorCode(), isHTTPSFirstApplicable);
 
-            // Provisional load failed before didBeginDocument() could clear the wait state;
-            // clear it here so this frame stops blocking its parent's completion.
-            clearWaitingForDelegatedBackForwardLoad();
-
             if (loadWillContinueInAnotherProcess == LoadWillContinueInAnotherProcess::No && !m_isStoppingForCacheOnlyLoadRetry) {
                 auto willInternallyHandleFailure = (error.errorRecoveryMethod() == ResourceError::ErrorRecoveryMethod::NoRecovery || (error.errorRecoveryMethod() == ResourceError::ErrorRecoveryMethod::HTTPFallback && (!isHTTPSFirstApplicable || isHTTPFallbackInProgressOrUpgradeDisabled()))) ? WillInternallyHandleFailure::No : WillInternallyHandleFailure::Yes;
 
@@ -3305,6 +3301,11 @@ void FrameLoader::checkLoadCompleteForThisFrame(LoadWillContinueInAnotherProcess
                 if (!unreachableURL.isEmpty() && unreachableURL == provisionalDocumentLoader->request().url())
                     shouldReset = false;
             }
+
+            // Stop blocking the parent's completion, unless the load continues in another process. Only now,
+            // as this checks the parent, which checks this frame again.
+            if (loadWillContinueInAnotherProcess == LoadWillContinueInAnotherProcess::No)
+                clearWaitingForDelegatedBackForwardLoad();
         }
         if (shouldReset && item) {
             if (RefPtr page = m_frame->page())
@@ -4287,7 +4288,7 @@ void FrameLoader::dispatchUnloadEvents(UnloadEventPolicy unloadEventPolicy)
             // This takes care of firing the visibilitychange event and making sure the document is reported as hidden.
             document->setVisibilityHiddenDueToDismissal(true);
 
-            if (document->backForwardCacheState() == Document::NotInBackForwardCache) {
+            if (document->backForwardCacheState() == Document::NotInBackForwardCache && document->settings().unloadEventEnabled()) {
                 Ref unloadEvent = Event::create(eventNames().unloadEvent, Event::CanBubble::No, Event::IsCancelable::No);
                 // The DocumentLoader (and thus its DocumentLoadTiming) might get destroyed
                 // while dispatching the event, so protect it to prevent writing the end

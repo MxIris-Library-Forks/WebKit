@@ -273,15 +273,12 @@ public:
     void removeChildFrames();
     ProvisionalFrameProxy* provisionalFrame() { return m_provisionalFrame.get(); }
     RefPtr<ProvisionalFrameProxy> takeProvisionalFrame();
+    void cancelProvisionalFrame(WebProcessProxy& provisionalProcess);
     NODELETE WebProcessProxy& provisionalLoadProcess();
     std::optional<WebCore::PageIdentifier> webPageIDInCurrentProcess() const;
     void notifyParentOfLoadCompletion(WebProcessProxy&);
 
-    enum class ClearFrameTreeSyncData : bool {
-        No,
-        Yes
-    };
-    void remoteProcessDidTerminate(WebProcessProxy&, ClearFrameTreeSyncData);
+    void remoteProcessDidTerminate(WebProcessProxy&);
 
     Ref<WebCore::FrameTreeSyncData> calculateFrameTreeSyncData() const;
     void broadcastFrameTreeSyncData(Ref<WebCore::FrameTreeSyncData>&&);

@@ -848,6 +848,7 @@ public:
     Ref<WebCore::DocumentSyncData> topDocumentSyncData() const;
     WebFrameProxy* focusedFrame() const { return m_focusedFrame.get(); }
     WebFrameProxy* focusedOrMainFrame() const { return m_focusedFrame ? m_focusedFrame.get() : m_mainFrame.get(); }
+    void resetFocusedFrameIfInProcess(const WebProcessProxy&);
 
     DrawingAreaProxy* drawingArea() const { return m_drawingArea.get(); }
     NODELETE DrawingAreaProxy* provisionalDrawingArea() const;
@@ -2018,7 +2019,7 @@ public:
 
     // Grants a process this page's first-party cookie access and records that the process may reference this
     // page's WebPageProxyIdentifier over IPC. Call this for any process that begins hosting a frame of the page.
-    void addAllowedFirstPartyForCookies(WebProcessProxy&, const WebCore::RegistrableDomain&, LoadedWebArchive, CompletionHandler<void()>&&);
+    void addAllowedFirstPartyForCookies(WebProcessProxy&, const WebCore::Site&, LoadedWebArchive, CompletionHandler<void()>&&);
 
     ProcessID gpuProcessID() const;
     NODELETE ProcessID modelProcessID() const;
@@ -2942,6 +2943,7 @@ public:
     void generateTestReport(const String& message, const String& group);
 
     void didDestroyFrame(IPC::Connection&, WebCore::FrameIdentifier);
+    void frameWasRemoved(WebCore::FrameIdentifier, WebFrameProxy*, IPC::Connection* sender);
     void disconnectFramesFromPage();
 
     void didCommitLoadForFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool wasPrivateRelayed, String&& proxyName, const WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, IPC::Untrusted<HashSet<WebCore::SecurityOriginData>>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);

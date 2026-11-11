@@ -676,6 +676,9 @@ struct GeolocationIdentifierType;
 struct FocusedElementInformation;
 struct HardwareKeyboardState;
 #endif
+#if ENABLE(IMAGE_ELEMENT_IMMERSIVE)
+struct ImmersiveImageDetails;
+#endif
 struct InsertTextOptions;
 struct InteractionInformationAtPosition;
 struct InteractionInformationRequest;
@@ -797,6 +800,14 @@ using ImageBufferBackendHandle = Variant<
     , WebCore::DynamicContentScalingDisplayList
 #endif
 >;
+#if ENABLE(MODEL_ELEMENT_IMMERSIVE)
+using ImmersiveElementDetails = Variant<
+    WebCore::LayerHostingContextIdentifier
+#if ENABLE(IMAGE_ELEMENT_IMMERSIVE)
+    , ImmersiveImageDetails
+#endif
+>;
+#endif
 using LayerHostingContextID = uint32_t;
 using NetworkResourceLoadIdentifier = ObjectIdentifier<NetworkResourceLoadIdentifierType>;
 using PDFPluginIdentifier = ObjectIdentifier<PDFPluginIdentifierType>;
@@ -2110,6 +2121,7 @@ public:
     std::optional<IPC::AsyncReplyID> drawRectToImage(WebFrameProxy&, const PrintInfo&, const WebCore::IntRect&, const WebCore::IntSize&, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
     std::optional<IPC::AsyncReplyID> drawPagesToPDF(WebFrameProxy&, const PrintInfo&, uint32_t first, uint32_t count, CompletionHandler<void(API::Data*)>&&);
     void drawToPDF(const std::optional<WebCore::FloatRect>&, bool allowTransparentBackground, CompletionHandler<void(RefPtr<WebCore::SharedBuffer>&&)>&&);
+    void setAlwaysUsePrintProcessForRemoteSnapshottingForTesting(bool alwaysUse) { m_alwaysUsePrintProcessForRemoteSnapshottingForTesting = alwaysUse; }
 #if PLATFORM(IOS_FAMILY)
     PrintPageInfo computePageInfoForPrintingiOS(WebCore::FrameIdentifier, const PrintInfo&);
     std::optional<IPC::AsyncReplyID> drawToImage(WebCore::FrameIdentifier, const PrintInfo&, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
@@ -2522,7 +2534,7 @@ public:
     void updateCurrentModifierState();
 
     ProvisionalPageProxy* provisionalPageProxy() const { return m_provisionalPage.get(); }
-    void commitProvisionalPage(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool privateRelayed, String&& proxyName, WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);
+    void commitProvisionalPage(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, IPC::Untrusted<std::optional<WebCore::SecurityOriginData>>&& untrustedReportedOrigin, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool privateRelayed, String&& proxyName, WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);
     void destroyProvisionalPage();
 
     // Logic shared between the WebPageProxy and the ProvisionalPageProxy.
@@ -2946,7 +2958,7 @@ public:
     void frameWasRemoved(WebCore::FrameIdentifier, WebFrameProxy*, IPC::Connection* sender);
     void disconnectFramesFromPage();
 
-    void didCommitLoadForFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool wasPrivateRelayed, String&& proxyName, const WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, IPC::Untrusted<HashSet<WebCore::SecurityOriginData>>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);
+    void didCommitLoadForFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, IPC::Untrusted<std::optional<WebCore::SecurityOriginData>>&& untrustedReportedOrigin, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool wasPrivateRelayed, String&& proxyName, const WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, IPC::Untrusted<HashSet<WebCore::SecurityOriginData>>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);
 
     void didCreateSleepDisabler(IPC::Connection&, WebCore::SleepDisablerIdentifier, const String& reason, bool display);
     void didDestroySleepDisabler(WebCore::SleepDisablerIdentifier);
@@ -3209,6 +3221,8 @@ public:
 
 #if ENABLE(WEB_ARCHIVE)
     bool didLoadWebArchive() const { return !!m_replacedDataStoreForWebArchiveLoad; }
+    WebsiteDataStore* replacedDataStoreForWebArchiveLoad() const { return m_replacedDataStoreForWebArchiveLoad.get(); }
+    void setReplacedDataStoreForWebArchiveLoad(Ref<WebsiteDataStore>&&);
 #else
     bool didLoadWebArchive() const { return false; }
 #endif
@@ -3387,6 +3401,9 @@ private:
 #else
     void didGeneratePageLoadTiming(const WebPageLoadTiming&) { }
 #endif
+#if ENABLE(PDF_PLUGIN)
+    void setFrameHasPDFPlugin(IPC::Connection&, WebCore::FrameIdentifier, bool hasPDFPlugin);
+#endif
 
     void resolveAccessibilityHitTestForTesting(IPC::Connection&, WebCore::FrameIdentifier, WebCore::IntPoint, CompletionHandler<void(String)>&&);
 #if PLATFORM(MAC)
@@ -3523,7 +3540,7 @@ private:
 
 #if ENABLE(MODEL_ELEMENT_IMMERSIVE)
     void allowImmersiveElement(CompletionHandler<void(bool)>&&);
-    void presentImmersiveElement(const WebCore::LayerHostingContextIdentifier, CompletionHandler<void(bool)>&&);
+    void presentImmersiveElement(ImmersiveElementDetails&&, CompletionHandler<void(bool)>&&);
     void dismissImmersiveElement(CompletionHandler<void()>&&);
 #endif
 
@@ -4112,6 +4129,7 @@ private:
 #endif
 
     const Ref<VisitedLinkStore> m_visitedLinkStore;
+    // FIXME: This should be the browsing context group's data store, once web archive loads no longer switch stores before their navigation commits.
     Ref<WebsiteDataStore> m_websiteDataStore;
 #if ENABLE(WEB_ARCHIVE)
     RefPtr<WebsiteDataStore> m_replacedDataStoreForWebArchiveLoad;
@@ -4321,6 +4339,9 @@ private:
     bool m_canRunModal { false };
 
     bool m_isPerformingDOMPrintOperation { false };
+#if PLATFORM(COCOA)
+    bool m_alwaysUsePrintProcessForRemoteSnapshottingForTesting { false };
+#endif
 
     bool m_hasUpdatedRenderingAfterDidCommitLoad { true };
 
@@ -4647,6 +4668,7 @@ private:
 #if ENABLE(MODEL_ELEMENT_IMMERSIVE)
     bool m_immersive { false };
     RefPtr<API::FrameInfo> m_allowedImmersiveElementFrameInfo;
+    RefPtr<API::FrameInfo> m_presentedImmersiveElementFrameInfo;
 #endif
 
 #if HAVE(AUDIT_TOKEN)

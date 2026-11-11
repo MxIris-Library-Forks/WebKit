@@ -535,6 +535,9 @@ media/video-element-fullscreen-not-in-dom-accelerated-iphone.html [ Pass ]
 media/media-source
 http/tests/media/media-source [ Skip ]
 imported/w3c/web-platform-tests/media-source/ [ Skip ]
+# ManagedMediaSource is supported on iOS.
+imported/w3c/web-platform-tests/media-source/managed [ Pass ]
+imported/w3c/web-platform-tests/media-source/dedicated-worker/managed [ Pass ]
 fast/history/page-cache-media-source-closed-2.html [ Skip ]
 fast/history/page-cache-media-source-closed.html [ Skip ]
 fast/history/page-cache-media-source-opened.html [ Skip ]
@@ -5063,11 +5066,6 @@ webkit.org/b/259160 http/tests/privateClickMeasurement/triggering-event-with-att
 webkit.org/b/259157 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir_auto-textarea-script-mixed.html [ Pass ImageOnlyFailure ]
 webkit.org/b/259157 imported/w3c/web-platform-tests/html/dom/elements/global-attributes/dir_auto-textarea-mixed.html [ Pass ImageOnlyFailure ]
 
-# These tests require compile-time flags in WebKit that are only enabled in iOS17. They were marked as Skip in
-# https://bugs.webkit.org/show_bug.cgi?id=248545 — re-enable them here.
-fast/images/animations-resume-from-last-displayed-frame.html [ Pass ]
-fast/images/pagewide-play-pause-animateTransform-svg-animation.html [ Pass ]
-fast/images/pagewide-play-pause-svg-image-sources.html [ Pass ]
 fast/images/pagewide-play-pause-offscreen-animations.html [ Pass Failure ] # rdar://178676128
 
 # Only applicable on platforms with HDR support

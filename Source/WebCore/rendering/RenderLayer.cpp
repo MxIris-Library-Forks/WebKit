@@ -1841,6 +1841,17 @@ void RenderLayer::forceStackingContextIfNeeded()
     }
 }
 
+float RenderLayer::currentOpacity() const
+{
+    auto styleable = Styleable::fromRenderer(renderer());
+    if (styleable && styleable->isRunningAcceleratedAnimationOfProperty(CSSPropertyID::Opacity)) {
+        std::unique_ptr<Style::ComputedStyle> animatedStyle = renderer().animatedStyle();
+        return Style::evaluate<float>(animatedStyle->opacity());
+    }
+
+    return renderer().opacity();
+}
+
 TransformationMatrix RenderLayer::currentTransform(OptionSet<Style::TransformResolverOption> options) const
 {
     if (!m_transform)
@@ -2552,17 +2563,19 @@ RenderLayer* RenderLayer::enclosingCompositingLayer(IncludeSelfOrNot includeSelf
     return nullptr;
 }
 
+static RenderLayer* repaintTargetForLayer(const RenderLayer& layer)
+{
+    if (compositedWithOwnBackingStore(layer))
+        return const_cast<RenderLayer*>(&layer);
+
+    if (layer.paintsIntoProvidedBacking())
+        return layer.backingProviderLayer();
+
+    return nullptr;
+}
+
 RenderLayer::EnclosingCompositingLayerStatus RenderLayer::enclosingCompositingLayerForRepaint(IncludeSelfOrNot includeSelf) const
 {
-    auto repaintTargetForLayer = [](const RenderLayer& layer) -> RenderLayer* {
-        if (compositedWithOwnBackingStore(layer))
-            return const_cast<RenderLayer*>(&layer);
-        
-        if (layer.paintsIntoProvidedBacking())
-            return layer.backingProviderLayer();
-        
-        return nullptr;
-    };
     auto isEligibleForFullRepaintCheck = [&](const auto& layer) {
         return layer.isSelfPaintingLayer() && !layer.renderer().hasPotentiallyScrollableOverflow() && !is<RenderView>(layer.renderer());
     };
@@ -2585,16 +2598,6 @@ RenderLayer::EnclosingCompositingLayerStatus RenderLayer::enclosingCompositingLa
 
 RenderLayer* RenderLayer::enclosingRepaintTargetLayer(IncludeSelfOrNot includeSelf) const
 {
-    auto repaintTargetForLayer = [](const RenderLayer& layer) -> RenderLayer* {
-        if (compositedWithOwnBackingStore(layer))
-            return const_cast<RenderLayer*>(&layer);
-
-        if (layer.paintsIntoProvidedBacking())
-            return layer.backingProviderLayer();
-
-        return nullptr;
-    };
-
     if (includeSelf == IncludeSelf) {
         if (auto* repaintTarget = repaintTargetForLayer(*this))
             return repaintTarget;
@@ -2865,7 +2868,7 @@ void RenderLayer::beginTransparencyLayers(GraphicsContext& context, const LayerP
         m_usedTransparency = true;
         if (canPaintTransparencyWithSetOpacity()) {
             m_savedAlphaForTransparency = context.alpha();
-            context.setAlpha(context.alpha() * renderer().opacity());
+            context.setAlpha(context.alpha() * opacityForPainting(paintingInfo.paintBehavior));
             return;
         }
         context.save();
@@ -2877,7 +2880,7 @@ void RenderLayer::beginTransparencyLayers(GraphicsContext& context, const LayerP
         if (usesCompositeOperation)
             context.setCompositeOperation(context.compositeOperation(), blendMode());
 
-        context.beginTransparencyLayer(renderer().opacity());
+        context.beginTransparencyLayer(opacityForPainting(paintingInfo.paintBehavior));
 
         if (usesCompositeOperation)
             context.setCompositeOperation(context.compositeOperation(), BlendMode::Normal);
@@ -3126,8 +3129,9 @@ LayoutSize RenderLayer::minimumSizeForResizing(float zoomFactor) const
     // Use the resizer size as the strict minimum size
     auto resizerRect = overflowControlsRects().resizer;
     auto& rendererStyle = renderer().style();
-    auto minWidth = Style::evaluateMinimum<LayoutUnit>(rendererStyle.minWidth(), renderer().containingBlock()->borderBoxWidth(), rendererStyle.usedZoomForLength());
-    auto minHeight = Style::evaluateMinimum<LayoutUnit>(rendererStyle.minHeight(), renderer().containingBlock()->borderBoxHeight(), rendererStyle.usedZoomForLength());
+    auto containingBlockSize = protect(renderer().containingBlock())->borderBoundingBox().size();
+    auto minWidth = Style::evaluateMinimum<LayoutUnit>(rendererStyle.minWidth(), containingBlockSize.width(), rendererStyle.usedZoomForLength());
+    auto minHeight = Style::evaluateMinimum<LayoutUnit>(rendererStyle.minHeight(), containingBlockSize.height(), rendererStyle.usedZoomForLength());
     minWidth = std::max(LayoutUnit(minWidth / zoomFactor), LayoutUnit(resizerRect.width()));
     minHeight = std::max(LayoutUnit(minHeight / zoomFactor), LayoutUnit(resizerRect.height()));
     return LayoutSize(minWidth, minHeight);
@@ -3516,7 +3520,7 @@ void RenderLayer::paintLayerWithEffects(GraphicsContext& context, const LayerPai
         return;
 
     // If this layer is totally invisible then there is nothing to paint.
-    if (!renderer().opacity()
+    if (!opacityForPainting(paintingInfo.paintBehavior)
         && !is<AccessibilityRegionContext>(paintingInfo.regionContext)
         && !paintFlags.contains(PaintLayerFlag::CollectingEventRegion)) {
         // However, we do want to continue painting for accessibility paints, as we still need accurate
@@ -5365,8 +5369,15 @@ ClipRects* RenderLayer::clipRects(const ClipRectsContext& context) const
 
 bool RenderLayer::clipCrossesPaintingBoundary() const
 {
-    return parent()->enclosingPaginationLayer(IncludeCompositedPaginatedLayers) != enclosingPaginationLayer(IncludeCompositedPaginatedLayers)
-        || parent()->enclosingRepaintTargetLayer() != enclosingRepaintTargetLayer();
+    if (parent()->enclosingPaginationLayer(IncludeCompositedPaginatedLayers) != enclosingPaginationLayer(IncludeCompositedPaginatedLayers))
+        return true;
+
+    // In this case, enclosingRepaintTargetLayer() starts at parent() and finds the same target as
+    // parent()->enclosingRepaintTargetLayer().
+    if (paintOrderParent() == parent() && !repaintTargetForLayer(*this))
+        return false;
+
+    return parent()->enclosingRepaintTargetLayer() != enclosingRepaintTargetLayer();
 }
 
 void RenderLayer::calculateClipRects(const ClipRectsContext& clipRectsContext, ClipRects& clipRects) const
@@ -6757,10 +6768,10 @@ bool RenderLayer::isTransparentRespectingParentFrames() const
 {
     static const double minimumVisibleOpacity = 0.01;
 
-    float currentOpacity = 1;
+    float accumulatedOpacity = 1;
     for (auto* layer = this; layer; layer = parentLayerCrossFrame(*layer)) {
-        currentOpacity *= Style::evaluate<float>(layer->renderer().style().opacity());
-        if (currentOpacity < minimumVisibleOpacity)
+        accumulatedOpacity *= Style::evaluate<float>(layer->renderer().style().opacity());
+        if (accumulatedOpacity < minimumVisibleOpacity)
             return true;
     }
 

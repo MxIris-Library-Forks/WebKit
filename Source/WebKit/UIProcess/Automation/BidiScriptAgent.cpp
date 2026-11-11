@@ -335,7 +335,7 @@ void BidiScriptAgent::callFunction(const String& functionDeclaration, bool await
     }
 
     String realmID = generateRealmIdForBrowsingContext(*browsingContext);
-    session->evaluateJavaScriptFunction(topLevelContextHandle, frameHandle, functionDeclaration, WTF::move(argumentsArray), false, optionalUserActivation.value_or(false), std::nullopt, [callback = WTF::move(callback), realmID](Inspector::CommandResult<String>&& stringResult) {
+    session->evaluateJavaScriptFunctionForBidi(topLevelContextHandle, frameHandle, functionDeclaration, WTF::move(argumentsArray), optionalUserActivation.value_or(false), [callback = WTF::move(callback), realmID](Inspector::CommandResult<String>&& stringResult) {
         // FIXME: Properly serialize RemoteValue types according to WebDriver BiDi spec.
         // https://bugs.webkit.org/show_bug.cgi?id=301159
 
@@ -767,14 +767,12 @@ void BidiScriptAgent::executePreloadScriptsForContext(const String& browsingCont
             }
         }
 
-        session->evaluateJavaScriptFunction(
+        session->evaluateJavaScriptFunctionForBidi(
             browsingContext,
             frameHandle,
             scriptInfo.functionDeclaration,
             WTF::move(argumentsArray),
             false,
-            false,
-            std::nullopt,
             [](auto) { }
         );
     }
@@ -794,9 +792,13 @@ RefPtr<Inspector::Protocol::BidiScript::RealmInfo> BidiScriptAgent::createRealmI
     if (!contextHandle)
         return nullptr;
 
+    RefPtr frame = WebFrameProxy::webFrame(frameInfo.frameID);
+    if (!frame)
+        return nullptr;
+
     RealmIdentifier realmIdentifier = generateRealmIdForFrame(frameInfo);
     String realmID = makeString("realm-"_s, realmIdentifier.loggingString());
-    String origin = originStringFromSecurityOriginData(frameInfo.securityOrigin);
+    String origin = originStringFromSecurityOriginData(frame->documentSecurityOriginData());
 
     auto realmInfo = Inspector::Protocol::BidiScript::RealmInfo::create()
         .setRealm(realmID)

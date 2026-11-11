@@ -780,7 +780,7 @@ SERIALIZATION_DESCRIPTION_FILES = \
 	Shared/KeyEventInterpretationContext.serialization.in \
 	Shared/Extensions/WebExtensionActionClickBehavior.serialization.in \
 	Shared/Extensions/WebExtensionAlarmParameters.serialization.in \
-	Shared/Extensions/WebExtensionBookmarksParameters.serialization.in \
+	Shared/Extensions/WebExtensionBookmarkParameters.serialization.in \
 	Shared/Extensions/WebExtensionCommandParameters.serialization.in \
 	Shared/Extensions/WebExtensionContentWorldType.serialization.in \
 	Shared/Extensions/WebExtensionContext.serialization.in \
@@ -813,6 +813,7 @@ SERIALIZATION_DESCRIPTION_FILES = \
 	Shared/GPUProcessMediaCodecCapabilities.serialization.in \
 	Shared/GoToBackForwardItemParameters.serialization.in \
 	Shared/ImageOptions.serialization.in \
+	Shared/ImmersiveElementDetails.serialization.in \
 	Shared/InspectorExtensionTypes.serialization.in \
 	Shared/InspectorNetworkTypes.serialization.in \
 	Shared/InspectorPageTypes.serialization.in \

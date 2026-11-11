@@ -1618,9 +1618,6 @@ Ref<WebPageProxy> WebProcessPool::createWebPage(PageClient& pageClient, Ref<API:
     else if (relatedPage && !relatedPage->isClosed() && relatedPage->hasSameGPUAndNetworkProcessPreferencesAs(pageConfiguration) && !siteIsolationEnabled && protect(relatedPage->browsingContextGroup())->crossOriginMode() == crossOriginMode) {
         // Sharing processes, e.g. when creating the page via window.open().
         process = relatedPage->ensureRunningProcess();
-        // We do not support several WebsiteDataStores sharing a single process.
-        ASSERT(process->isDummyProcessProxy() || &pageConfiguration->websiteDataStore() == process->websiteDataStore());
-        ASSERT(&pageConfiguration->relatedPage()->websiteDataStore() == &pageConfiguration->websiteDataStore());
     } else if (pageConfiguration->delaysWebProcessLaunchUntilFirstLoad()) {
         WEBPROCESSPOOL_RELEASE_LOG(Process, "createWebPage: delaying WebProcess launch until first load");
         // In the common case, we delay process launch until something is actually loaded in the page.
@@ -1638,11 +1635,22 @@ Ref<WebPageProxy> WebProcessPool::createWebPage(PageClient& pageClient, Ref<API:
     Ref userContentController = pageConfiguration->userContentController();
     
     ASSERT(process);
+
+    // We do not support several WebsiteDataStores sharing a single process, so a page that starts out in another page's
+    // process, such as a popup in its opener's, uses its data store, which a WKWebpagePreferences or web archive load can
+    // have changed from the configuration's.
+    pageConfiguration->setWebsiteDataStore(process->websiteDataStore());
     
     process->setAllowTestOnlyIPC(pageConfiguration->allowTestOnlyIPC());
 
     auto page = process->createWebPage(pageClient, WTF::move(pageConfiguration));
     Ref pagePreference = page->preferences();
+
+#if ENABLE(WEB_ARCHIVE)
+    // A popup that starts out in its opener's web archive data store leaves it when its opener would.
+    if (RefPtr replacedDataStore = relatedPage && &relatedPage->websiteDataStore() == &page->websiteDataStore() ? relatedPage->replacedDataStoreForWebArchiveLoad() : nullptr)
+        page->setReplacedDataStoreForWebArchiveLoad(replacedDataStore.releaseNonNull());
+#endif
 
     if (!m_remoteWorkerPreferences) {
         m_remoteWorkerPreferences = page->preferencesStore();
@@ -2507,6 +2515,13 @@ void WebProcessPool::processForNavigation(WebPageProxy& page, WebFrameProxy& fra
                 backForwardCacheProcess = WebProcessProxy::processForIdentifier(*processIdentifier);
             if (backForwardCacheProcess && backForwardCacheProcess->state() != AuxiliaryProcessProxy::State::Terminated && browsingContextGroup.canUseProcessForCrossOriginIsolation(*backForwardCacheProcess)) {
                 ASSERT(isolatedProcessType != WebProcessProxy::IsolatedProcessType::Shared);
+                // The cached page may since have been evicted without the entry being dropped (e.g. its WebPage
+                // closed after a client redirect), letting the process enter the WebProcessCache. Take it out
+                // before using it, like the non-site-isolation path does.
+                if (backForwardCacheProcess->isInProcessCache()) {
+                    m_webProcessCache->removeProcess(*backForwardCacheProcess, WebProcessCache::ShouldShutDownProcess::No);
+                    ASSERT(!backForwardCacheProcess->isInProcessCache());
+                }
                 prepareProcessForNavigation(backForwardCacheProcess.releaseNonNull(), page, nullptr,
                     "Using target back/forward item's process (in-process BFCache)"_s, isolatedProcessType,
                     site, mainFrameSite, navigation, lockdownMode, enhancedSecurity, loadedWebArchive,
@@ -2517,14 +2532,15 @@ void WebProcessPool::processForNavigation(WebPageProxy& page, WebFrameProxy& fra
     }
 
     if (siteIsolationEnabled && !site.isEmpty()) {
-        ASSERT(frame.isMainFrame() ? site == mainFrameSite : Site(URL(protect(page.pageLoadState())->activeURL())) == mainFrameSite);
+        RefPtr mainFrame = page.mainFrame();
+        ASSERT(frame.isMainFrame() ? site == mainFrameSite : !mainFrame || Site(mainFrame->url()) == mainFrameSite);
         // Until the response arrives, a same-site navigation stays in the process for documents with a Document-Isolation-Policy.
         // Substitute data has no response to decide with and never gets a policy.
         auto crossOriginIsolation = processCrossOriginIsolationForBrowsingContextGroup(browsingContextGroup.crossOriginMode());
         if (sourceProcess->isDocumentIsolationPolicyProcess() && sourceProcess->site() == site && !navigation.substituteData())
             crossOriginIsolation = ProcessCrossOriginIsolation::DocumentIsolationPolicy;
-        if (!frame.isMainFrame() && site == mainFrameSite) {
-            Ref mainFrameProcess = Ref { page.mainFrame()->process() };
+        if (!frame.isMainFrame() && mainFrame && site == mainFrameSite) {
+            Ref mainFrameProcess = mainFrame->process();
             if (!mainFrameProcess->isInProcessCache() && mainFrameProcess->crossOriginIsolation() == crossOriginIsolation)
                 return completionHandler(mainFrameProcess.copyRef(), nullptr, "Found process for the same site as main frame"_s);
         }
@@ -2626,10 +2642,6 @@ std::tuple<Ref<WebProcessProxy>, RefPtr<SuspendedPageProxy>, ASCIILiteral> WebPr
     if (pageConfiguration->relatedPage() && page.alwaysUseRelatedPageProcess())
         return { WTF::move(sourceProcess), nullptr, "Always using related page process"_s };
 
-    // Responses decide whether navigations leave a process for documents with a Document-Isolation-Policy, but substitute data has none.
-    if (sourceProcess->crossOriginMode() != crossOriginMode && (!sourceProcess->isDocumentIsolationPolicyProcess() || navigation.substituteData()))
-        return { createNewProcess(), nullptr, "Process swap due to cross-origin isolation change"_s };
-
     if (!sourceProcess->matchesLockdownModeAndEnhancedSecurity(lockdownMode, enhancedSecurity))
         return { createNewProcess(), nullptr, "Process swap due to Lockdown mode or EnhancedSecurity change"_s };
 
@@ -2637,6 +2649,38 @@ std::tuple<Ref<WebProcessProxy>, RefPtr<SuspendedPageProxy>, ASCIILiteral> WebPr
         return { createNewProcess(), nullptr, "Process swap was requested by the client"_s };
 
     bool siteIsolationEnabled = protect(page.preferences())->siteIsolationEnabled();
+
+    // With site isolation, processForNavigation() already looked for the target back/forward item's process.
+    auto processForTargetBackForwardItem = [&] -> std::optional<std::tuple<Ref<WebProcessProxy>, RefPtr<SuspendedPageProxy>, ASCIILiteral>> {
+        RefPtr targetItem = navigation.targetItem();
+        if (!targetItem || !frame.isMainFrame() || siteIsolationEnabled)
+            return std::nullopt;
+
+        if (CheckedPtr suspendedPage = targetItem->suspendedPage()) {
+            if (suspendedPage->process().state() != AuxiliaryProcessProxy::State::Terminated && suspendedPage->process().matchesLockdownModeAndEnhancedSecurity(lockdownMode, enhancedSecurity) && browsingContextGroup.canUseProcessForCrossOriginIsolation(suspendedPage->process()))
+                return { { suspendedPage->process(), suspendedPage.get(), "Using target back/forward item's process and suspended page"_s } };
+        }
+
+        if (RefPtr process = WebProcessProxy::processForIdentifier(targetItem->lastProcessIdentifier())) {
+            if (process->state() != WebProcessProxy::State::Terminated && process->matchesLockdownModeAndEnhancedSecurity(lockdownMode, enhancedSecurity) && process->hasSameGPUAndNetworkProcessPreferencesAs(pageConfiguration) && browsingContextGroup.canUseProcessForCrossOriginIsolation(*process)) {
+                // Make sure we remove the process from the cache if it is in there since we're about to use it.
+                if (process->isInProcessCache()) {
+                    m_webProcessCache->removeProcess(*process, WebProcessCache::ShouldShutDownProcess::No);
+                    ASSERT(!process->isInProcessCache());
+                }
+
+                return { { process.releaseNonNull(), nullptr, "Using target back/forward item's process"_s } };
+            }
+        }
+        return std::nullopt;
+    };
+
+    // Responses decide whether navigations leave a process for documents with a Document-Isolation-Policy, but substitute data has none.
+    if (sourceProcess->crossOriginMode() != crossOriginMode && (!sourceProcess->isDocumentIsolationPolicyProcess() || navigation.substituteData())) {
+        if (auto targetBackForwardItemProcess = processForTargetBackForwardItem())
+            return WTF::move(*targetBackForwardItemProcess);
+        return { createNewProcess(), nullptr, "Process swap due to cross-origin isolation change"_s };
+    }
 
     if (!m_configuration->processSwapsOnNavigation() && !siteIsolationEnabled)
         return { WTF::move(sourceProcess), nullptr, "Feature is disabled"_s };
@@ -2712,24 +2756,8 @@ std::tuple<Ref<WebProcessProxy>, RefPtr<SuspendedPageProxy>, ASCIILiteral> WebPr
         && !(isRequestFromClientOrUserInput || siteIsolationEnabled))
         return { WTF::move(sourceProcess), nullptr, "Browsing context has opened other windows"_s };
 
-    if (RefPtr targetItem = navigation.targetItem(); targetItem && frame.isMainFrame() && !siteIsolationEnabled) {
-        if (CheckedPtr suspendedPage = targetItem->suspendedPage()) {
-            if (suspendedPage->process().state() != AuxiliaryProcessProxy::State::Terminated && browsingContextGroup.canUseProcessForCrossOriginIsolation(suspendedPage->process()))
-                return { suspendedPage->process(), suspendedPage.get(), "Using target back/forward item's process and suspended page"_s };
-        }
-
-        if (RefPtr process = WebProcessProxy::processForIdentifier(targetItem->lastProcessIdentifier())) {
-            if (process->state() != WebProcessProxy::State::Terminated && process->hasSameGPUAndNetworkProcessPreferencesAs(pageConfiguration) && browsingContextGroup.canUseProcessForCrossOriginIsolation(*process)) {
-                // Make sure we remove the process from the cache if it is in there since we're about to use it.
-                if (process->isInProcessCache()) {
-                    m_webProcessCache->removeProcess(*process, WebProcessCache::ShouldShutDownProcess::No);
-                    ASSERT(!process->isInProcessCache());
-                }
-
-                return { process.releaseNonNull(), nullptr, "Using target back/forward item's process"_s };
-            }
-        }
-    }
+    if (auto targetBackForwardItemProcess = processForTargetBackForwardItem())
+        return WTF::move(*targetBackForwardItemProcess);
 
     // If it is the first navigation in a DOM popup and there is no opener, then force a process swap no matter what since
     // popup windows are originally created in their opener's process.

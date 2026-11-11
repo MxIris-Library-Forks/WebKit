@@ -39,6 +39,7 @@
 #include "WebPreferences.h"
 #include "WebProcessPool.h"
 #include "WebProcessProxy.h"
+#include "WebsiteDataStore.h"
 #include <WebCore/IPAddressSpace.h>
 #include <WebCore/SecurityOrigin.h>
 
@@ -48,8 +49,9 @@ namespace WebKit {
 
 using namespace WebCore;
 
-BrowsingContextGroup::BrowsingContextGroup(CrossOriginMode crossOriginMode)
+BrowsingContextGroup::BrowsingContextGroup(CrossOriginMode crossOriginMode, WebsiteDataStore& websiteDataStore)
     : m_crossOriginMode(crossOriginMode)
+    , m_websiteDataStore(websiteDataStore)
 {
 }
 
@@ -65,6 +67,8 @@ static bool isLoopbackOrLocalNetworkSite(const Site& site, bool localNetworkAcce
 void BrowsingContextGroup::sharedProcessForSite(WebsiteDataStore& websiteDataStore, API::WebsitePolicies* websitePolicies, const WebPreferences& preferences, const WebCore::Site& site, const WebCore::Site& mainFrameSite,
     WebProcessProxy::LockdownMode lockdownMode, EnhancedSecurity enhancedSecurity, API::PageConfiguration& pageConfiguration, IsMainFrame isMainFrame, CompletionHandler<void(FrameProcess*)>&& completionHandler)
 {
+    ASSERT(&websiteDataStore == m_websiteDataStore.get());
+
     if (!preferences.siteIsolationEnabled() || !preferences.siteIsolationSharedProcessEnabled())
         return completionHandler(nullptr);
 
@@ -138,6 +142,7 @@ bool BrowsingContextGroup::canUseProcessForCrossOriginIsolation(const WebProcess
 Ref<FrameProcess> BrowsingContextGroup::ensureProcessForSite(const Site& site, const Site& mainFrameSite, WebProcessProxy& process, const WebPreferences& preferences, LoadedWebArchive loadedWebArchive, BrowsingContextGroupUpdate browsingContextGroupUpdate)
 {
     ASSERT(process.isDummyProcessProxy() || canUseProcessForCrossOriginIsolation(process));
+    ASSERT(process.isDummyProcessProxy() || process.websiteDataStore() == m_websiteDataStore.get());
 
     if (preferences.siteIsolationEnabled()) {
         RefPtr sharedProcess = liveSharedProcess();
@@ -276,10 +281,11 @@ void BrowsingContextGroup::addFrameProcessAndInjectPageContextIf(FrameProcess& p
         // Under site isolation, a same-site page should be hosted in the same process and
         // shouldn't need a remote page. Empty sites are the exception, as they can compare equal
         // for pages that are not actually co-located in the same process, and so are documents
-        // with a Document-Isolation-Policy, which have their own process.
-        bool sameSite = site == Site(URL(page->currentURL()));
+        // with a Document-Isolation-Policy, which have their own process. A pending main frame load
+        // doesn't count, as its document isn't in this process yet.
         RefPtr mainFrame = page->mainFrame();
-        if (sameSite && !site.isEmpty() && mainFrame && mainFrame->process().isDocumentIsolationPolicyProcess() == processProxy->isDocumentIsolationPolicyProcess())
+        bool sameSite = mainFrame && site == Site(mainFrame->url());
+        if (sameSite && !site.isEmpty() && mainFrame->process().isDocumentIsolationPolicyProcess() == processProxy->isDocumentIsolationPolicyProcess())
             continue;
         createRemotePageIfNeeded(page, site);
     }

@@ -522,6 +522,7 @@ set(WebKit_SERIALIZATION_IN_FILES
     Shared/GoToBackForwardItemParameters.serialization.in
     Shared/IPCTester.serialization.in
     Shared/ImageOptions.serialization.in
+    Shared/ImmersiveElementDetails.serialization.in
     Shared/InspectorExtensionTypes.serialization.in
     Shared/InspectorNetworkTypes.serialization.in
     Shared/InspectorPageTypes.serialization.in
@@ -632,7 +633,7 @@ set(WebKit_SERIALIZATION_IN_FILES
 
     Shared/Extensions/WebExtensionActionClickBehavior.serialization.in
     Shared/Extensions/WebExtensionAlarmParameters.serialization.in
-    Shared/Extensions/WebExtensionBookmarksParameters.serialization.in
+    Shared/Extensions/WebExtensionBookmarkParameters.serialization.in
     Shared/Extensions/WebExtensionCommandParameters.serialization.in
     Shared/Extensions/WebExtensionContentWorldType.serialization.in
     Shared/Extensions/WebExtensionContext.serialization.in

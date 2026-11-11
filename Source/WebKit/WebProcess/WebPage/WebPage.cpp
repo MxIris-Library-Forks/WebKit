@@ -394,6 +394,10 @@
 #include <WebCore/MHTMLArchive.h>
 #endif
 
+#if ENABLE(MODEL_ELEMENT_IMMERSIVE)
+#include "ImmersiveElementDetails.h"
+#endif
+
 #if ENABLE(POINTER_LOCK)
 #include <WebCore/PointerLockController.h>
 #endif
@@ -2205,6 +2209,25 @@ void WebPage::updateRemotePageOffsetInMainFrame(WebCore::FrameIdentifier, WebCor
 
 #endif
 
+void WebPage::rebindRemoteAccessibilityFrames(WebCore::FrameIdentifier frameID)
+{
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    RefPtr remoteSubframe = webFrame ? webFrame->coreRemoteFrame() : nullptr;
+    RefPtr parentFrame = remoteSubframe ? dynamicDowncast<WebCore::LocalFrame>(remoteSubframe->tree().parent()) : nullptr;
+    RefPtr parentDocument = parentFrame ? parentFrame->document() : nullptr;
+    if (CheckedPtr cache = parentDocument ? parentDocument->axObjectCache() : nullptr)
+        cache->remoteFrameDidChangeProcess(*remoteSubframe);
+}
+
+void WebPage::repostAccessibilityFocusInFrame(WebCore::FrameIdentifier frameID)
+{
+    RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
+    RefPtr subframe = webFrame ? webFrame->coreLocalFrame() : nullptr;
+    RefPtr subframeDocument = subframe ? subframe->document() : nullptr;
+    if (CheckedPtr cache = subframeDocument ? subframeDocument->axObjectCache() : nullptr)
+        cache->repostFocusedUIElementChanged();
+}
+
 #if ENABLE(ACCESSIBILITY_LOCAL_FRAME)
 void WebPage::updateRemotePageAccessibilityInheritedState(WebCore::FrameIdentifier frameID, const WebCore::InheritedFrameState& state)
 {
@@ -2513,6 +2536,10 @@ void WebPage::close(CompletionHandler<void()>&& completionHandler)
     m_printContext = nullptr;
     if (RefPtr localFrame = m_mainFrame->coreLocalFrame())
         localFrame->loader().detachFromParent();
+    else {
+        for (Ref rootFrame : copyToVectorOf<Ref<LocalFrame>>(m_page->rootFrames()))
+            rootFrame->loader().detachFromParent();
+    }
 
     if (RefPtr provisionalFrame = m_mainFrame->provisionalFrame())
         provisionalFrame->loader().detachFromParent();
@@ -2631,7 +2658,7 @@ bool WebPage::suspendForProcessSwap()
     if (!currentHistoryItem)
         return false;
 
-    if (!BackForwardCache::singleton().addIfCacheable(currentHistoryItem->frameItemID(), *page))
+    if (!BackForwardCache::singleton().addIfCacheable(currentHistoryItem->frameItemID(), *page, LoadWillContinueInAnotherProcess::Yes))
         return false;
 
     // Back/forward cache does not break the opener link for the main frame (only does so for the subframes) because the
@@ -5120,9 +5147,8 @@ void WebPage::visibilityDidChange()
     if (!isVisible && m_page) {
         // We save the document / scroll state when backgrounding a tab so that we are able to restore it
         // if it gets terminated while in the background.
-        // FIXME: A cross-site iframe that hasn't navigated since the page loaded still loses its state, because the UI
-        // process gives its first back/forward item the main frame entry's identifier, which the iframe's process
-        // doesn't learn, so the UI process drops the update.
+        // FIXME: A frame in another process keeps the identifier of the back/forward item it was added to, so its state
+        // is saved into that item rather than the current one once another frame adds an item.
         for (Ref frame : copyToVectorOf<Ref<LocalFrame>>(m_page->rootFrames()))
             frame->loader().history().saveDocumentAndScrollState();
     }
@@ -5822,9 +5848,12 @@ void WebPage::updatePreferences(const WebPreferencesStore& store)
 #if ENABLE(IPC_TESTING_API)
     if ((m_ipcTestingAPIEnabled = store.getBoolValueForKey(WebPreferencesKey::ipcTestingAPIEnabledKey()))) {
         protect(WebProcess::singleton().parentProcessConnection())->setIgnoreInvalidMessageForTesting();
+#if ENABLE(GPU_PROCESS)
         assertIsMainRunLoop();
         if (auto* gpuProcessConnection = WebProcess::singleton().existingGPUProcessConnection())
             gpuProcessConnection->connection().setIgnoreInvalidMessageForTesting();
+#endif // ENABLE(GPU_PROCESS)
+
 #if ENABLE(MODEL_PROCESS)
         if (auto* modelProcessConnection = WebProcess::singleton().existingModelProcessConnection())
             modelProcessConnection->connection().setIgnoreInvalidMessageForTesting();
@@ -7178,12 +7207,37 @@ void WebPage::addPluginView(PluginView& pluginView)
 {
     ASSERT(!m_pluginViews.contains(pluginView));
     m_pluginViews.add(pluginView);
+    updateFrameHasPDFPlugin(pluginView.frameID());
 }
 
 void WebPage::removePluginView(PluginView& pluginView)
 {
     ASSERT(m_pluginViews.contains(pluginView));
     m_pluginViews.remove(pluginView);
+    updateFrameHasPDFPlugin(pluginView.frameID());
+}
+
+bool WebPage::frameHasPDFPlugin(LocalFrame& frame) const
+{
+    RefPtr document = frame.document();
+    if (!document)
+        return false;
+
+    for (auto& pluginView : m_pluginViews) {
+        if (&pluginView.pluginElement().document() == document)
+            return true;
+    }
+    return false;
+}
+
+void WebPage::updateFrameHasPDFPlugin(FrameIdentifier frameID)
+{
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
+    if (!frame)
+        return;
+
+    RefPtr localFrame = frame->coreLocalFrame();
+    send(Messages::WebPageProxy::SetFrameHasPDFPlugin(frameID, localFrame && frameHasPDFPlugin(*localFrame)));
 }
 
 #endif // ENABLE(PDF_PLUGIN)
@@ -8741,6 +8795,16 @@ void WebPage::didCommitLoad(WebFrame* frame)
     else if (m_textManipulationIncludesSubframes)
         startTextManipulationForFrame(*protect(frame->coreLocalFrame()));
 
+#if ENABLE(PDF_PLUGIN)
+    if (RefPtr coreFrame = frame->coreLocalFrame()) {
+        for (RefPtr<Frame> descendant = coreFrame; descendant; descendant = descendant->tree().traverseNext(coreFrame.get())) {
+            RefPtr localDescendant = dynamicDowncast<LocalFrame>(*descendant);
+            if (localDescendant && frameHasPDFPlugin(*localDescendant))
+                send(Messages::WebPageProxy::SetFrameHasPDFPlugin(localDescendant->frameID(), true));
+        }
+    }
+#endif
+
     if (!frame->isRootFrame())
         return;
 
@@ -9092,9 +9156,46 @@ void WebPage::allowImmersiveElement(CompletionHandler<void(bool)>&& completion)
     sendWithAsyncReply(Messages::WebPageProxy::AllowImmersiveElement(), WTF::move(completion));
 }
 
-void WebPage::presentImmersiveElement(const LayerHostingContextIdentifier contextID, CompletionHandler<void(bool)>&& completion)
+static std::optional<ImmersiveElementDetails> immersiveElementDetails(ImmersiveElement& element)
 {
-    sendWithAsyncReply(Messages::WebPageProxy::PresentImmersiveElement(contextID), WTF::move(completion));
+    Ref htmlElement = element.asHTMLElement();
+    if (RefPtr modelElement = dynamicDowncast<HTMLModelElement>(htmlElement)) {
+        auto contextID = modelElement->immersiveContextID();
+        if (!contextID)
+            return std::nullopt;
+
+        return ImmersiveElementDetails { *contextID };
+    }
+
+#if ENABLE(IMAGE_ELEMENT_IMMERSIVE)
+    if (RefPtr imageElement = dynamicDowncast<HTMLImageElement>(htmlElement)) {
+        CheckedPtr renderImage = dynamicDowncast<RenderImage>(imageElement->renderer());
+        if (!renderImage)
+            return std::nullopt;
+
+        RefPtr bitmap = renderImage->createShareableBitmapForFullScreen();
+        if (!bitmap)
+            return std::nullopt;
+
+        auto imageHandle = bitmap->createReadOnlyHandle();
+        if (!imageHandle)
+            return std::nullopt;
+
+        RefPtr image = imageElement->image();
+        return ImmersiveElementDetails { ImmersiveImageDetails { WTF::move(*imageHandle), image ? image->focalLengthIn35mm() : std::nullopt } };
+    }
+#endif
+
+    return std::nullopt;
+}
+
+void WebPage::presentImmersiveElement(ImmersiveElement& element, CompletionHandler<void(bool)>&& completion)
+{
+    auto details = immersiveElementDetails(element);
+    if (!details)
+        return completion(false);
+
+    sendWithAsyncReply(Messages::WebPageProxy::PresentImmersiveElement(WTF::move(*details)), WTF::move(completion));
 }
 
 void WebPage::dismissImmersiveElement(CompletionHandler<void()>&& completion)
@@ -9316,6 +9417,12 @@ void WebPage::addUserStyleSheet(const String& source, WebCore::UserContentInject
     WebCore::UserStyleSheet userStyleSheet { source, aboutBlankURL(), Vector<String>(), Vector<String>(), injectedFrames };
 
     Ref { m_userContentController }->addUserStyleSheet(InjectedBundleScriptWorld::normalWorldSingleton(), WTF::move(userStyleSheet));
+}
+
+void WebPage::injectUserStyleSheetsScopedToThisPage()
+{
+    if (RefPtr page = corePage())
+        Ref { m_userContentController }->injectUserStyleSheetsScopedToPage(*page, m_identifier);
 }
 
 void WebPage::removeAllUserContent()
@@ -9542,7 +9649,7 @@ void WebPage::suspendWithFrameItem(BackForwardFrameItemIdentifier identifier, Co
     unfreezeLayerTree(LayerTreeFreezeReason::BackgroundApplication);
     flushDeferredDidReceiveMouseEvent();
 
-    if (!BackForwardCache::singleton().addIfCacheable(identifier, *page)) {
+    if (!BackForwardCache::singleton().addIfCacheable(identifier, *page, LoadWillContinueInAnotherProcess::Yes)) {
         WEBPAGE_RELEASE_LOG_ERROR(ProcessSwapping, "suspendWithFrameItem: addIfCacheable failed");
         return completionHandler(false);
     }

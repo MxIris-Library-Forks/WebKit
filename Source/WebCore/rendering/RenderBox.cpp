@@ -3225,7 +3225,7 @@ bool RenderBox::sizesLogicalWidthToFitContent() const
     return false;
 }
 
-void RenderBox::computeInlineDirectionMargins(const RenderBlock& containingBlock, LayoutUnit containerWidth, std::optional<LayoutUnit> availableSpaceAdjustedWithFloats, LayoutUnit childWidth, LayoutUnit& marginStart, LayoutUnit& marginEnd) const
+void RenderBox::computeInlineDirectionMargins(const RenderBoxModelObject& containingBlock, LayoutUnit containerWidth, std::optional<LayoutUnit> availableSpaceAdjustedWithFloats, LayoutUnit childWidth, LayoutUnit& marginStart, LayoutUnit& marginEnd) const
 {
     auto& containingBlockStyle = containingBlock.style();
     auto marginStartLength = style().marginStart(containingBlockStyle.writingMode());
@@ -3455,6 +3455,12 @@ RenderBox::LogicalExtentComputedValues RenderBox::computeLogicalHeight(LayoutUni
                 return replaced->computeReplacedLogicalHeight() + borderAndPaddingLogicalHeight();
 
             return { };
+        }
+
+        // Shadow content of a replaced element, sized by RenderReplaced::layoutShadowContent().
+        if (is<RenderReplaced>(parent)) {
+            if (auto overridingLogicalHeight = this->overridingBorderBoxLogicalHeight())
+                return *overridingLogicalHeight;
         }
 
         if (CheckedPtr replaced = dynamicDowncast<RenderReplaced>(*this))
@@ -3940,6 +3946,8 @@ bool RenderBox::skipContainingBlockForPercentHeightCalculation(const RenderBox& 
         if (containingBlock.isFlexibleBoxIncludingDeprecated())
             return false;
         if (is<RenderView>(containingBlock))
+            return false;
+        if (is<RenderReplaced>(containingBlock.parent()) && containingBlock.overridingBorderBoxLogicalHeight())
             return false;
         if (!containingBlock.style().logicalHeight().isAuto())
             return false;

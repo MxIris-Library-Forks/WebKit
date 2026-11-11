@@ -267,6 +267,23 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 #undef STRINGIFY_CIPHER
 }
 
+static bool isProxyTypeTCPOnly(nw_proxy_config_t proxyConfig)
+{
+    switch (nw_proxy_config_get_type(proxyConfig)) {
+    case nw_proxy_type_http:
+    case nw_proxy_type_https:
+    case nw_proxy_type_socksv4:
+    case nw_proxy_type_socksv5:
+    case nw_proxy_type_shoes:
+    case nw_proxy_type_http_connect:
+    case nw_proxy_type_https_transparent:
+    case nw_proxy_type_http_connect_over_tls:
+        return true;
+    default:
+        return false;
+    }
+}
+
 @interface WKNetworkSessionDelegate : NSObject <NSURLSessionDataDelegate, NSURLSessionWebSocketDelegate> {
     WeakPtr<WebKit::NetworkSessionCocoa> _session;
     WeakPtr<WebKit::SessionWrapper> _sessionWrapper;
@@ -506,6 +523,19 @@ static void updateIgnoreStrictTransportSecuritySetting(RetainPtr<NSURLRequest>& 
         LOG(NetworkSession, "%zu _schemeUpgraded completionHandler (nil)", taskIdentifier);
         completionHandler(nil);
     }
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task _needsCompressionDictionaryWithSHA256:(NSData *)sha256 completionHandler:(void (^)(NSData *dictionaryData))completionHandler
+{
+    RefPtr networkDataTask = [self existingTask:task];
+    if (!networkDataTask) {
+        completionHandler(nil);
+        return;
+    }
+
+    networkDataTask->needsCompressionDictionary(span(sha256), [completionHandler = makeBlockPtr(completionHandler)](RefPtr<WebCore::SharedBuffer>&& buffer) {
+        completionHandler(buffer ? buffer->createNSData().get() : nil);
+    });
 }
 
 static inline void processServerTrustEvaluation(NetworkSessionCocoa& session, SessionWrapper& sessionWrapper, NSURLAuthenticationChallenge *challenge, NegotiatedLegacyTLS negotiatedLegacyTLS, NetworkDataTaskCocoa::TaskIdentifier taskIdentifier, NetworkDataTaskCocoa* networkDataTask, CompletionHandler<void(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential)>&& completionHandler)
@@ -2115,12 +2145,36 @@ void NetworkSessionCocoa::applyProxyConfigurationToSessionConfiguration(NSURLSes
         configuration.proxyConfigurations = @[ ];
 }
 
+bool NetworkSessionCocoa::hasCompressionDictionarySupport() const
+{
+    static SEL sel = NSSelectorFromString(@"_supportsCompressionDictionary");
+    return [NSURLSession.class respondsToSelector:sel];
+}
+
+bool NetworkSessionCocoa::proxyConfigurationRequiresTCPProtocols() const
+{
+    if (m_nwProxyConfigs.isEmpty())
+        return false;
+    return std::ranges::all_of(m_nwProxyConfigs, [](auto& proxyConfig) {
+        return isProxyTypeTCPOnly(proxyConfig.get());
+    });
+}
+
+void NetworkSessionCocoa::applyProxyConfigurationToNWParametersForWebTransport(nw_parameters_t parameters)
+{
+    if (!m_nwProxyConfigs.isEmpty()) {
+        for (auto& proxyConfig : m_nwProxyConfigs) {
+            if (!isProxyTypeTCPOnly(proxyConfig.get()))
+                nw_parameters_add_custom_proxy_config(parameters, proxyConfig.get());
+        }
+    } else
+        nw_parameters_clear_custom_proxy_configs(parameters);
+}
+
 bool NetworkSessionCocoa::canPrefetchDNS() const
 {
-#if HAVE(NW_PROXY_CONFIG)
     if (!m_nwProxyConfigs.isEmpty())
         return false;
-#endif
     return true;
 }
 

@@ -160,6 +160,10 @@ class GraphicsContextGL;
 struct GraphicsContextGLAttributes;
 #endif
 
+#if ENABLE(MODEL_ELEMENT_IMMERSIVE)
+class ImmersiveElement;
+#endif
+
 struct AppHighlight;
 struct AXRemoteFrameSelectedTextChange;
 struct AccessibilityRemoteToken;
@@ -372,10 +376,7 @@ public:
 
 #if ENABLE(MODEL_ELEMENT_IMMERSIVE)
     virtual void allowImmersiveElement(CompletionHandler<void(bool)>&& completion) const { completion(false); }
-    virtual void presentImmersiveElement(const LayerHostingContextIdentifier, CompletionHandler<void(bool)>&& completion) const { completion(false); }
-#if ENABLE(IMAGE_ELEMENT_IMMERSIVE)
-    virtual void presentImmersiveImageElement(HTMLImageElement&, CompletionHandler<void(bool)>&& completion) const { completion(false); }
-#endif
+    virtual void presentImmersiveElement(ImmersiveElement&, CompletionHandler<void(bool)>&& completion) const { completion(false); }
     virtual void dismissImmersiveElement(CompletionHandler<void()>&& completion) const { completion(); }
     virtual bool supportsImmersiveElement() const { return false; }
 #endif
@@ -673,9 +674,7 @@ public:
 
     virtual void frameViewLayoutOrVisualViewportChanged(const LocalFrameView&) { }
 
-#if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
     virtual void isAnyAnimationAllowedToPlayDidChange(bool /* anyAnimationCanPlay */) { };
-#endif
     virtual void resolveAccessibilityHitTestForTesting(WebCore::FrameIdentifier, const IntPoint&, CompletionHandler<void(String)>&& callback) { callback(""_s); };
 #if PLATFORM(MAC)
     WEBCORE_EXPORT virtual void performAccessibilitySearchInRemoteFrame(FrameIdentifier, const AccessibilitySearchCriteriaIPC&, CompletionHandler<void(Vector<AccessibilityRemoteToken>&&)>&&);

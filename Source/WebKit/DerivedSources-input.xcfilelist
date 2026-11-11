@@ -322,7 +322,7 @@ $(PROJECT_DIR)/Shared/EditingRange.serialization.in
 $(PROJECT_DIR)/Shared/EditorState.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionActionClickBehavior.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionAlarmParameters.serialization.in
-$(PROJECT_DIR)/Shared/Extensions/WebExtensionBookmarksParameters.serialization.in
+$(PROJECT_DIR)/Shared/Extensions/WebExtensionBookmarkParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionCommandParameters.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionContentWorldType.serialization.in
 $(PROJECT_DIR)/Shared/Extensions/WebExtensionContext.serialization.in
@@ -362,6 +362,7 @@ $(PROJECT_DIR)/Shared/IPCTester.messages.in
 $(PROJECT_DIR)/Shared/IPCTester.serialization.in
 $(PROJECT_DIR)/Shared/IPCTesterReceiver.messages.in
 $(PROJECT_DIR)/Shared/ImageOptions.serialization.in
+$(PROJECT_DIR)/Shared/ImmersiveElementDetails.serialization.in
 $(PROJECT_DIR)/Shared/InspectorExtensionTypes.serialization.in
 $(PROJECT_DIR)/Shared/InspectorNetworkTypes.serialization.in
 $(PROJECT_DIR)/Shared/InspectorPageTypes.serialization.in

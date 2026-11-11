@@ -62,18 +62,6 @@
 - (void)expectMinimumUpcomingSampleBufferPresentationTime:(CMTime)minimumUpcomingPresentationTime;
 @end
 
-#if ENABLE(LINEAR_MEDIA_PLAYER)
-@interface AVSampleBufferVideoRenderer (Staging_127455709)
-- (void)removeAllVideoTargets;
-@end
-#endif
-
-#if HAVE(RECOMMENDED_PIXEL_ATTRIBUTES_API)
-@interface AVSampleBufferVideoRenderer (Staging_152246223)
-@property (readonly, nonnull) NSDictionary<NSString*, NS_SWIFT_SENDABLE id> *recommendedPixelBufferAttributes;
-@end
-#endif
-
 namespace WebCore {
 
 NODELETE static bool isRendererThreadSafe(WebSampleBufferVideoRendering *renderering)
@@ -745,6 +733,7 @@ void VideoMediaSampleRenderer::initializeDecompressionSession()
 #endif
         if (!m_decompressionSession)
             m_decompressionSession = WebCoreDecompressionSession::createOpenGL(m_rendererIsThreadSafe ? dispatcher().ptr() : nullptr);
+        protect(m_decompressionSession)->setResourceOwner(m_resourceOwner);
         m_isUsingDecompressionSession = true;
     }
     if (!m_startupTime)
@@ -1246,6 +1235,8 @@ std::optional<VideoPlaybackQualityMetrics> VideoMediaSampleRenderer::videoPlayba
 void VideoMediaSampleRenderer::setResourceOwner(const ProcessIdentity& resourceOwner)
 {
     m_resourceOwner = resourceOwner;
+    if (RefPtr decompressionSession = this->decompressionSession())
+        decompressionSession->setResourceOwner(resourceOwner);
 }
 
 void VideoMediaSampleRenderer::invalidateDecompressionSession()

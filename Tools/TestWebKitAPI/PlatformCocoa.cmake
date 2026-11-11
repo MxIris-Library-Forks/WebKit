@@ -749,6 +749,7 @@ add_library(TestWebKitAPILibrary OBJECT
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/AppKit+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/Bundle+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/CocoaTypes.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/DragLiftPreview.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/Foundation+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPSProxyFramer.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServer.swift
@@ -814,6 +815,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/HTTP2Server.swift
     Tests/WebKit/WKWebView/HTTP3Server.swift
     Tests/WebKit/WKWebView/PDFLookUpTests.swift
+    Tests/WebKit/WKWebView/ProcessSwapBackForwardTests.swift
     Tests/WebKit/WKWebView/ProcessSwapStaleNavigationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationAnimationControlTests.swift
     Tests/WebKit/WKWebView/SiteIsolationAutocorrectionTests.swift
@@ -828,6 +830,8 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationLinkIndicatorTests.swift
     Tests/WebKit/WKWebView/SiteIsolationLookUpTests.swift
     Tests/WebKit/WKWebView/SiteIsolationNavigationTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationPolicyDecisionTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationPositionInformationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationProvisionalPageTests.swift
     Tests/WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift
     Tests/WebKit/WKWebView/SiteIsolationSessionStateTests.swift

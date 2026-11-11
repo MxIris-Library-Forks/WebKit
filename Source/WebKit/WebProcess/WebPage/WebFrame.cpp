@@ -103,6 +103,8 @@
 #include <WebCore/HTMLSelectElement.h>
 #include <WebCore/HTMLTextAreaElement.h>
 #include <WebCore/HandleUserInputEventResult.h>
+#include <WebCore/HistoryController.h>
+#include <WebCore/HistoryItem.h>
 #include <WebCore/ImageBuffer.h>
 #include <WebCore/ImageData.h>
 #include <WebCore/JSCSSStyleDeclaration.h>
@@ -317,7 +319,6 @@ FrameInfoData WebFrame::info() const
     return {
         // FIXME: This should use the full request.
         ResourceRequest(url()),
-        coreFrame ? SecurityOriginData::fromFrame(*coreFrame) : SecurityOriginData { },
         coreFrame ? coreFrame->tree().specifiedName().string() : String(),
         frameID(),
         document ? std::optional { document->identifier() } : std::nullopt,
@@ -443,7 +444,7 @@ DidCacheOutgoingDocument WebFrame::loadDidCommitInAnotherProcess(WebCore::Proces
     bool didCache = false;
     if (!parent) {
         if (cacheIdentifiers)
-            didCache = BackForwardCache::singleton().addIfCacheable(cacheIdentifiers->mainFrameItemID, *corePage, cacheIdentifiers->itemID);
+            didCache = BackForwardCache::singleton().addIfCacheable(cacheIdentifiers->mainFrameItemID, *corePage, LoadWillContinueInAnotherProcess::Yes, cacheIdentifiers->itemID);
         if (!didCache) {
             // Tearing down the uncached document detaches this frame from the page, so pages cached
             // earlier in it can no longer be restored.
@@ -588,6 +589,28 @@ static bool shouldClearWindowNameOnReplacement(const WebCore::RemoteFrame& remot
 
     RefPtr document = localFrame.document();
     return !document || !protect(document->securityOrigin())->isSameOriginAs(protect(remoteFrame.frameDocumentSecurityOriginOrOpaque()));
+}
+
+NODELETE static void setBackForwardItemIdentifier(HistoryItem& item, BackForwardItemIdentifier itemID)
+{
+    item.setItemID(itemID);
+    for (auto& child : item.children())
+        setBackForwardItemIdentifier(child, itemID);
+}
+
+void WebFrame::didAddHistoryItemToBackForwardItem(BackForwardFrameItemIdentifier frameItemID, BackForwardItemIdentifier itemID)
+{
+    RefPtr localFrame = coreLocalFrame();
+    if (!localFrame)
+        return;
+
+    RefPtr currentItem = localFrame->loader().history().currentItem();
+    if (!currentItem || currentItem->frameItemID() != frameItemID)
+        return;
+
+    // The UI process looks up the items by the identifier of the back/forward item they belong to, so updates have to
+    // carry it.
+    setBackForwardItemIdentifier(*currentItem, itemID);
 }
 
 void WebFrame::commitProvisionalFrame()

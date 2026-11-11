@@ -204,6 +204,10 @@ public:
     bool isDisplayingStandaloneMediaDocument() const;
     bool isDisplayingMarkupDocument() const;
     bool isDisplayingPDFDocument() const;
+#if ENABLE(PDF_PLUGIN)
+    bool hasPDFPlugin() const { return m_hasPDFPlugin; }
+    void setHasPDFPlugin(bool hasPDFPlugin) { m_hasPDFPlugin = hasPDFPlugin; }
+#endif
 
     void getWebArchive(CompletionHandler<void(API::Data*)>&&);
     void getMainResourceData(CompletionHandler<void(API::Data*)>&&);
@@ -213,7 +217,7 @@ public:
     void didExplicitOpen(URL&&, String&& mimeType, ShouldClearProvisionalURL);
     void didReceiveServerRedirectForProvisionalLoad(URL&&);
     void didFailProvisionalLoad();
-    void didCommitLoad(const String& contentType, bool containsPluginDocument, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const WebCore::SecurityOriginData& originReportedByWebProcess, LoadedWebArchive);
+    void didCommitLoad(const String& contentType, bool containsPluginDocument, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, std::optional<WebCore::SecurityOriginData>&& webArchiveMainFrameOrigin, std::optional<WebCore::ProcessQualified<WebCore::OpaqueOriginIdentifier>>&& reportedOpaqueOriginIdentifier);
     void didFinishLoad();
     void didFailLoad();
     void didSameDocumentNavigation(URL&&); // eg. anchor navigation, session state change.
@@ -245,7 +249,7 @@ public:
     NODELETE ProcessID processID() const;
     void prepareForProvisionalLoadInProcess(WebProcessProxy&, API::Navigation&, BrowsingContextGroup&, std::optional<WebCore::Site>, CompletionHandler<void(std::optional<WebCore::PageIdentifier>)>&&);
 
-    void commitProvisionalFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool privateRelayed, String&& proxyName, WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);
+    void commitProvisionalFrame(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, IPC::Untrusted<std::optional<WebCore::SecurityOriginData>>&& untrustedReportedOrigin, WebCore::ResourceRequest&&, std::optional<WebCore::NavigationIdentifier>, String&& mimeType, bool frameHasCustomContentProvider, WebCore::FrameLoadType, bool hasCertificateInfo, bool usedLegacyTLS, bool privateRelayed, String&& proxyName, WebCore::ResourceResponseSource, bool containsPluginDocument, WebCore::HasInsecureContent, WebCore::MouseEventPolicy, WebCore::DocumentSecurityPolicy&&, HashSet<WebCore::SecurityOriginData>&& cspOriginsThatUpgradeInsecureNavigations, const UserData&, WebCore::RestoredFromBackForwardCache, RefPtr<FrameState>&& redirectReplaceFrameState);
 
     void getFrameTree(CompletionHandler<void(std::optional<FrameTreeNodeData>&&)>&&);
     void getFrameInfo(CompletionHandler<void(std::optional<FrameInfoData>&&)>&&);
@@ -366,7 +370,7 @@ private:
 
     NODELETE std::optional<SharedPreferencesForWebProcess> sharedPreferencesForWebProcess() const;
 
-    void updateDocumentSecurityOrigin(WebFrameProxy*);
+    void updateDocumentSecurityOrigin();
     WebCore::SecurityOriginData committedDocumentSecurityOriginData() const;
 
     RefPtr<WebFrameProxy> deepLastChild();
@@ -388,6 +392,9 @@ private:
     String m_title;
     String m_frameName;
     bool m_containsPluginDocument { false };
+#if ENABLE(PDF_PLUGIN)
+    bool m_hasPDFPlugin { false };
+#endif
     WebCore::CertificateInfo m_certificateInfo;
     HashMap<String, WebCore::CertificateInfo> m_hostAndPortToCertificateInfo;
     RefPtr<WebFramePolicyListenerProxy> m_activeListener;
@@ -413,9 +420,6 @@ private:
     WebCore::ScrollbarMode m_scrollingMode;
     std::optional<WebCore::DocumentSecurityPolicy> m_documentSecurityPolicy;
     RefPtr<WebCore::SecurityOrigin> m_documentSecurityOrigin;
-    // Only for recording what this frame claims to have committed; not a substitute for
-    // m_documentSecurityOrigin, which the UI process derives itself and so can trust.
-    std::optional<WebCore::SecurityOriginData> m_committedOriginReportedByWebProcess;
     HashSet<WebCore::SecurityOriginData> m_cspOriginsThatUpgradeInsecureNavigations;
 } DERIVED_CLASS_SWIFT_SHARED_REFERENCE(refWebFrameProxy, derefWebFrameProxy);
 

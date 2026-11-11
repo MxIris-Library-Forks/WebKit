@@ -216,6 +216,9 @@ class HandleUserInputEventResult;
 class HistoryItem;
 class IgnoreSelectionChangeForScope;
 class ImageBuffer;
+#if ENABLE(MODEL_ELEMENT_IMMERSIVE)
+class ImmersiveElement;
+#endif
 class IntPoint;
 class IntRect;
 class KeyboardEvent;
@@ -1789,6 +1792,7 @@ public:
 
     void addUserScript(String&& source, InjectedBundleScriptWorld&, WebCore::UserContentInjectedFrames = WebCore::UserContentInjectedFrames::InjectInAllFrames, WebCore::UserScriptInjectionTime = WebCore::UserScriptInjectionTime::DocumentStart, WebCore::UserContentMatchParentFrame = WebCore::UserContentMatchParentFrame::Never);
     void addUserStyleSheet(const String& source, WebCore::UserContentInjectedFrames);
+    void injectUserStyleSheetsScopedToThisPage();
     void removeAllUserContent();
 
     void dispatchDidReachLayoutMilestone(OptionSet<WebCore::LayoutMilestone>);
@@ -1874,7 +1878,7 @@ public:
 
 #if ENABLE(MODEL_ELEMENT_IMMERSIVE)
     void allowImmersiveElement(CompletionHandler<void(bool)>&&);
-    void presentImmersiveElement(const WebCore::LayerHostingContextIdentifier, CompletionHandler<void(bool)>&&);
+    void presentImmersiveElement(WebCore::ImmersiveElement&, CompletionHandler<void(bool)>&&);
     void dismissImmersiveElement(CompletionHandler<void()>&&);
     void exitImmersive(CompletionHandler<void()>&&);
     bool allowsImmersiveEnvironments() const;
@@ -2349,6 +2353,10 @@ private:
     WebPage(WebCore::PageIdentifier, WebPageCreationParameters&&);
 
     void constructFrameTree(WebFrame& parent, const FrameTreeCreationParameters&);
+#if ENABLE(PDF_PLUGIN)
+    bool frameHasPDFPlugin(WebCore::LocalFrame&) const;
+    void updateFrameHasPDFPlugin(WebCore::FrameIdentifier);
+#endif
 
     void stopLoadingInRootFrames(WebCore::AbortOngoingNavigation);
 
@@ -2903,6 +2911,8 @@ private:
     void layerTreeAsTextForTesting(WebCore::FrameIdentifier, uint64_t baseIndent, OptionSet<WebCore::LayerTreeAsTextOptions>, CompletionHandler<void(String&&)>&&);
     void frameTextForTesting(WebCore::FrameIdentifier, CompletionHandler<void(String&&)>&&);
     void bindRemoteAccessibilityFrames(int processIdentifier, WebCore::FrameIdentifier, WebCore::AccessibilityRemoteToken, CompletionHandler<void(WebCore::AccessibilityRemoteToken, int)>&&);
+    void rebindRemoteAccessibilityFrames(WebCore::FrameIdentifier);
+    void repostAccessibilityFocusInFrame(WebCore::FrameIdentifier);
     void updateRemotePageOffsetInMainFrame(WebCore::FrameIdentifier, WebCore::IntPoint);
 #if ENABLE(ACCESSIBILITY_LOCAL_FRAME)
     void updateRemotePageAccessibilityInheritedState(WebCore::FrameIdentifier, const WebCore::InheritedFrameState&);

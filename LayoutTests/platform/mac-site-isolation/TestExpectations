@@ -8,12 +8,8 @@ http/tests/security/referrer-policy-header-no-referrer-when-downgrade.html [ Cra
 http/tests/security/referrer-policy-header-no-referrer.html [ Crash ]
 http/tests/security/referrer-policy-header-origin.html [ Crash ]
 http/tests/security/referrer-policy-header-strict-origin.html [ Crash ]
-
-# Debug ASSERT: about:blank loads in its initiator's process, but the UI process gives it its parent's or opener's origin.
-imported/w3c/web-platform-tests/html/browsers/origin/inheritance/about-blank-iframe-navigated-by-ancestor.window.html?cross-site&5-last [ Skip ]
-imported/w3c/web-platform-tests/html/browsers/origin/inheritance/about-blank-iframe-navigated-by-itself.window.html?cross-site&5-last [ Skip ]
-imported/w3c/web-platform-tests/html/browsers/origin/inheritance/about-blank-popup-navigated-by-non-opener.window.html?cross-site&1-4 [ Skip ]
-imported/w3c/web-platform-tests/html/browsers/origin/inheritance/about-blank-popup-navigated-by-non-opener.window.html?cross-site&5-last [ Skip ]
+webkit.org/b/330942 [ Debug ] imported/w3c/web-platform-tests/shadow-dom/declarative/declarative-parser-interaction.html [ Pass Crash ]
+webkit.org/b/331032 [ Debug ] imported/w3c/web-platform-tests/html/canvas/offscreen/text/2d.text.measure.width.space.worker.html [ Pass Crash ]
 
 #######################
 # Tests that time out #
@@ -37,6 +33,10 @@ webkit.org/b/329361 inspector/timeline/timeline-layout-events-iframe.html [ Time
 webkit.org/b/320122 inspector/network/clear-resource-data-on-navigate.html [ Timeout ]
 webkit.org/b/327494 http/tests/inspector/network/intercept-request-with-error.html [ Timeout ]
 
+# The opener still counts the popup's old child frames after the popup navigates within its own process.
+imported/w3c/web-platform-tests/html/browsers/origin/inheritance/about-blank-popup-navigated-by-non-opener.window.html?cross-site&1-4 [ Skip ]
+imported/w3c/web-platform-tests/html/browsers/origin/inheritance/about-blank-popup-navigated-by-non-opener.window.html?cross-site&5-last [ Skip ]
+
 ########################
 # Tests that Text fail #
 ########################
@@ -46,7 +46,6 @@ webkit.org/b/318430 http/tests/inspector/network/clear-non-buffered-resource-dat
 http/tests/websocket/tests/hybi/inspector/handshake-error.html [ Failure ]
 http/tests/media/media-stream/speech-recognition-iframe-allow-attribute.html [ Failure ]
 webkit.org/b/311836 http/tests/site-isolation/inspector/page/set-emulated-media-cross-origin-iframe.html [ Failure ]
-webkit.org/b/325545 inspector/debugger/break-on-exception-throw-in-promise.html [ Failure ]
 http/tests/misc/will-send-request-returns-null-on-redirect.html [ Failure ]
 http/tests/navigation/cross-origin-navigation-fires-onload.html [ Failure ]
 http/tests/navigation/page-cache-xhr-in-loading-iframe.html [ Failure ]
@@ -81,6 +80,14 @@ webkit.org/b/316732 http/tests/inspector/dom/cross-domain-inspected-node-access.
 webkit.org/b/327622 http/tests/inspector/network/intercept-request-with-response.html [ Failure ]
 webkit.org/b/330198 inspector/timeline/timeline-event-RenderingFrame.html [ Failure ]
 webkit.org/b/330867 http/tests/inspector/network/set-extra-http-headers.html [ Failure ]
+webkit.org/b/330879 fast/history/redirect-via-iframe.html [ Failure ]
+webkit.org/b/330879 fast/history/same-document-iframes-changing-fragment.html [ Failure ]
+webkit.org/b/330879 fast/history/same-document-iframes-changing-pushstate.html [ Failure ]
+webkit.org/b/330882 http/tests/inspector/network/fetch-network-data.html [ Failure ]
+webkit.org/b/330882 http/tests/inspector/network/har/har-page.html [ Failure ]
+webkit.org/b/330882 http/tests/inspector/network/har/har-page-aggressive-gc.html [ Failure ]
+webkit.org/b/330883 http/tests/inspector/worker/blob-script-with-cross-domain-imported-scripts.html [ Failure ]
+webkit.org/b/330956 [ Debug ] imported/w3c/web-platform-tests/content-security-policy/inheritance/history.sub.html [ Pass Failure ]
 webkit.org/b/312828 http/tests/inspector/network/resource-mime-type.html [ Failure Timeout ]
 webkit.org/b/327494 http/tests/inspector/network/intercept-request-fragment.html [ Failure ]
 webkit.org/b/327494 http/tests/inspector/network/intercept-request-main-resource-with-response.html [ Failure ]

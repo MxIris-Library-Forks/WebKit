@@ -300,7 +300,6 @@ TestWebKitAPI.AudioStreamDescriptionCocoa/EachSampleTypeTest/0
 TestWebKitAPI.AudioStreamDescriptionCocoa/EachSampleTypeTest/1
 TestWebKitAPI.AudioStreamDescriptionCocoa/EachSampleTypeTest/2
 TestWebKitAPI.AudioStreamDescriptionCocoa/EachSampleTypeTest/3
-TestWebKitAPI.AutocorrectionTests
 TestWebKitAPI.AutomationControlledByExternalAgentTests/flagDefaultsToFalseWhenUnset()
 TestWebKitAPI.AutomationControlledByExternalAgentTests/flagRoundTripsThroughSessionWhenSet()
 TestWebKitAPI.AutomationControlledByExternalAgentTests/flagSurvivesCopyWithZone()
@@ -2246,6 +2245,10 @@ TestWebKitAPI.ProcessSwap.TerminateProcessRightAfterSwap
 TestWebKitAPI.ProcessSwap.TerminatedSuspendedPageProcess
 TestWebKitAPI.ProcessSwap.UsePrewarmedProcessAfterTerminatingNetworkProcess
 TestWebKitAPI.ProcessSwap.WebInspectorDelayedProcessLaunch
+TestWebKitAPI.ProcessSwapBackForwardTests/inProcessBackForwardCacheProcessInWebProcessCache()
+TestWebKitAPI.ProcessSwapBackForwardTests/navigateBackAcrossCrossOriginIsolationIntoLockdownModeUsesNewProcess()
+TestWebKitAPI.ProcessSwapBackForwardTests/navigateBackAndForwardAcrossCrossOriginIsolationUsesBackForwardCache()
+TestWebKitAPI.ProcessSwapBackForwardTests/navigateBackInLockdownModeAvoidsProcessWithoutLockdownMode(acrossCrossOriginIsolation:)
 TestWebKitAPI.ProcessSwapStaleNavigationTests/goingBackToAnotherSiteWhileCrossSiteNavigationWaitsForItsResponse(siteIsolationEnabled:)
 TestWebKitAPI.ProcessSwapStaleNavigationTests/goingBackWhileCrossSiteNavigationWaitsForItsResponse(siteIsolationEnabled:)
 TestWebKitAPI.PushAPI
@@ -3473,6 +3476,9 @@ TestWebKitAPI.SiteIsolation.PartitionWebProcessCache
 TestWebKitAPI.SiteIsolation.PauseAllAnimationsAfterCrossOriginIframeLoads
 TestWebKitAPI.SiteIsolation.PauseAllMediaPlaybackPausesCrossSiteIframe
 TestWebKitAPI.SiteIsolation.PlayAudioInRemoteFrameThenRemove
+TestWebKitAPI.SiteIsolation.PopupNavigationWithWebsiteDataStoreOfOpenerKeepsOpener
+TestWebKitAPI.SiteIsolation.PopupUsesWebsiteDataStoreOfOpener
+TestWebKitAPI.SiteIsolation.PopupUsesWebsiteDataStoreOfOpenerWithoutSiteIsolation
 TestWebKitAPI.SiteIsolation.PostMessageToIFrameWithOpaqueOrigin
 TestWebKitAPI.SiteIsolation.PostMessageWithMessagePortsFromIFrameToMainFrame
 TestWebKitAPI.SiteIsolation.PostMessageWithNotAllowedTargetOrigin
@@ -3613,13 +3619,16 @@ TestWebKitAPI.SiteIsolation.WebsitePoliciesCustomUserAgent
 TestWebKitAPI.SiteIsolation.WebsitePoliciesCustomUserAgentDuringCrossSiteProvisionalNavigation
 TestWebKitAPI.SiteIsolation.WebsitePoliciesCustomUserAgentDuringSameSiteProvisionalNavigation
 TestWebKitAPI.SiteIsolation.WindowOpenRedirect
+TestWebKitAPI.SiteIsolationBrowsingContextGroupTests/iframeNavigationToSiteOfPendingMainFrameLoad()
 TestWebKitAPI.SiteIsolationBrowsingContextGroupTests/openedPageReturningToGroupLoadsIframeInSharedProcess()
+TestWebKitAPI.SiteIsolationBrowsingContextGroupTests/removedIframeNavigationAllowedAfterWebContentProcessIsKilled()
 TestWebKitAPI.SiteIsolationCookieTests/crossSiteIframeReadsOwnCookies(siteIsolationEnabled:)
 TestWebKitAPI.SiteIsolationCookieTests/sameSiteSubdomainIframeReadsOwnCookies()
 TestWebKitAPI.SiteIsolationEditingTests/listCommandsInCrossOriginIframe()
 TestWebKitAPI.SiteIsolationNavigationTests/grandchildIframeSameOriginAsGrandparent()
 TestWebKitAPI.SiteIsolationNavigationTests/parentNavigatingCrossOriginIframeToSameOrigin()
 TestWebKitAPI.SiteIsolationNavigationTests/shutDownFrameProcessesAfterNavigation()
+TestWebKitAPI.SiteIsolationPolicyDecisionTests/childFrameDecisionAfterChildFrameProcessClosesPage()
 TestWebKitAPI.SiteIsolationProvisionalPageTests/cancelledNavigationToNewBrowsingContextGroupClosesItsPage()
 TestWebKitAPI.SiteIsolationServiceWorkerTests/windowClientNavigateResolvesToNavigatedClientInControlledCrossSiteIframe()
 TestWebKitAPI.SiteIsolationSessionStateTests/crossSiteIframeFormStateSavedWhenViewIsHiddenIsRestoredFromSessionState()
@@ -4993,9 +5002,10 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.ApplicationStateTracking.NavigatingFromPDFDoesNotLeaveWebViewInactive
 [ ios ] TestWebKitAPI.ApplicationStateTracking.WindowDeallocDoesNotPermanentlyFreezeLayerTree
 [ ios ] TestWebKitAPI.AutocorrectionTests.AutocorrectionContextBeforeAndAfterEditing
-[ ios ] TestWebKitAPI.AutocorrectionTests.AutocorrectionContextDoesNotIncludeNewlineInTextField
+[ ios ] TestWebKitAPI.AutocorrectionTests.AutocorrectionIndicatorsDismissAfterNextWord
 [ ios ] TestWebKitAPI.AutocorrectionTests.AutocorrectionIndicatorsMultiWord
 [ ios ] TestWebKitAPI.AutocorrectionTests.AvoidDeadlockWithGPUProcessCreationInEmptyView
+[ ios ] TestWebKitAPI.AutocorrectionTests.DoNotLearnCorrectionsAfterChangingInputTypeFromPassword
 [ ios ] TestWebKitAPI.AutocorrectionTests.FontAtCaretWhenUsingUICTFontTextStyle
 [ ios ] TestWebKitAPI.AutocorrectionTests.MultiWordAutocorrectionFromStartOfText
 [ ios ] TestWebKitAPI.AutocorrectionTests.RequestAutocorrectionContextAfterClosingPage
@@ -5046,15 +5056,16 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.ContextMenuTests.HitTestResultLinkSuggestedFilename
 [ ios ] TestWebKitAPI.ContextMenuTests.SharePopoverDoesNotClearSelection
 [ ios ] TestWebKitAPI.ContextMenuTests.ShowSharePopoverForImage
-[ ios ] TestWebKitAPI.CopyHTML
 [ ios ] TestWebKitAPI.CopyHTML.CopySelectedTextInTextDocument
-[ ios ] TestWebKitAPI.CopyHTML.EmojiImgWithNonSVGSourcePreserved
+[ ios ] TestWebKitAPI.CopyHTML.CopyingRightToLeftTextPreservesDirection
 [ ios ] TestWebKitAPI.CopyHTML.EmojiImgWithSVGSourceReplacedWithAltText
+[ ios ] TestWebKitAPI.CopyHTML.FramesetSelectionIframeWrapperUsesSinglePercent
 [ ios ] TestWebKitAPI.CopyHTML.ItemTypesWhenCopyingWebContent
 [ ios ] TestWebKitAPI.CopyHTML.NonEmojiImgWithSVGSourcePreserved
 [ ios ] TestWebKitAPI.CopyHTML.SanitizationPreservesCharacterSet
 [ ios ] TestWebKitAPI.CopyHTML.SanitizationPreservesCharacterSetInSelectedText
 [ ios ] TestWebKitAPI.CopyHTML.SanitizationPreservesRelativeURLInAttributedString
+[ ios ] TestWebKitAPI.CopyHTML.Sanitizes
 [ ios ] TestWebKitAPI.CopyRTF
 [ ios ] TestWebKitAPI.CopyRTF.DoesNotCrashWithDirectoryFileWrapperFromImageSrcset
 [ ios ] TestWebKitAPI.CopyRTF.StripsDataDetectorsLinks
@@ -5561,16 +5572,18 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.OverflowScrollViewTests.ContentChangeMaintainsScrollbars
 [ ios ] TestWebKitAPI.PageVisibilityStateWithWindowChanges.WebKit
 [ ios ] TestWebKitAPI.PageVisibilityStateWithWindowChanges.WebKit2
-[ ios ] TestWebKitAPI.PasteHTML
 [ ios ] TestWebKitAPI.PasteHTML.DoesNotAddStandardFontFamily
 [ ios ] TestWebKitAPI.PasteHTML.DoesNotSanitizeHTMLWhenCustomPasteboardDataIsDisabled
 [ ios ] TestWebKitAPI.PasteHTML.DoesNotStripFileURLsWhenCustomPasteboardDataIsDisabled
 [ ios ] TestWebKitAPI.PasteHTML.DoesNotTransformColorsOfLightContent
+[ ios ] TestWebKitAPI.PasteHTML.DropsCanvasLikeBackgroundWhenPastingIntoPunchOutEditor
 [ ios ] TestWebKitAPI.PasteHTML.ExposesHTMLTypeInDataTransfer
 [ ios ] TestWebKitAPI.PasteHTML.KeepsHTTPURLs
+[ ios ] TestWebKitAPI.PasteHTML.PasteDarkTextOnWhiteBackgroundIntoDarkModeEditor
 [ ios ] TestWebKitAPI.PasteHTML.PreservesMSOList
 [ ios ] TestWebKitAPI.PasteHTML.PreservesMSOListInCompatibilityMode
 [ ios ] TestWebKitAPI.PasteHTML.PreservesMSOListOnH4
+[ ios ] TestWebKitAPI.PasteHTML.QuotedContentOnPunchedOutBackgroundRemainsLegible
 [ ios ] TestWebKitAPI.PasteHTML.ReadSelectionFromPasteboard
 [ ios ] TestWebKitAPI.PasteHTML.SanitizesHTML
 [ ios ] TestWebKitAPI.PasteHTML.StripsFileAndJavaScriptURLs
@@ -5587,7 +5600,6 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.PasteImage.PasteTIFFFile
 [ ios ] TestWebKitAPI.PasteImage.PasteTIFFImage
 [ ios ] TestWebKitAPI.PasteImage.RevealSelectionAfterPastingImage
-[ ios ] TestWebKitAPI.PasteMixedContent
 [ ios ] TestWebKitAPI.PasteMixedContent.ImageDataAndPlainText
 [ ios ] TestWebKitAPI.PasteMixedContent.ImageDataAndPlainTextAndURL
 [ ios ] TestWebKitAPI.PasteMixedContent.ImageDataAndPlainTextAndURLAndHTML
@@ -5600,7 +5612,11 @@ TestWebKitAPI._WKDownload.SystemPreviewUSDZBlobNaming
 [ ios ] TestWebKitAPI.PasteMixedContent.PasteOneOrMoreURLs
 [ ios ] TestWebKitAPI.PasteMixedContent.PasteURLWrittenToPasteboardUsingWriteObjects
 [ ios ] TestWebKitAPI.PasteRTF
-[ ios ] TestWebKitAPI.PasteRTFD
+[ ios ] TestWebKitAPI.PasteRTFD.EmptyRTFD
+[ ios ] TestWebKitAPI.PasteRTFD.ExposesHTMLTypeInDataTransfer
+[ ios ] TestWebKitAPI.PasteRTFD.ImageElementUsesBlobURL
+[ ios ] TestWebKitAPI.PasteRTFD.ImageElementUsesBlobURLInHTML
+[ ios ] TestWebKitAPI.PasteRTFD.TransformColorsOfDarkContent
 [ ios ] TestWebKitAPI.PasteWebArchive.DestinationUsesDarkMode
 [ ios ] TestWebKitAPI.PasteWebArchive.ExposesHTMLTypeInDataTransfer
 [ ios ] TestWebKitAPI.PasteWebArchive.PreservesMSOList

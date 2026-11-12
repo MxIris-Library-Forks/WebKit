@@ -844,6 +844,9 @@ public:
     WebCore::PageIdentifier webPageIDInMainFrameProcess() const { return m_webPageID; }
     WebCore::PageIdentifier identifierInSiteIsolatedProcess() const { return webPageIDInMainFrameProcess(); }
     WebCore::PageIdentifier webPageIDInProcess(const WebProcessProxy&) const;
+    void addDomainWithPageLevelStorageAccess(const WebCore::RegistrableDomain& topLevelDomain, const WebCore::RegistrableDomain& resourceDomain);
+    void sendPageLevelStorageAccessToProcess(WebProcessProxy&, WebCore::PageIdentifier);
+    void clearPageLevelStorageAccess() { m_domainsWithPageLevelStorageAccess.clear(); }
     bool hasWebPageInProcess(const WebProcessProxy&, WebCore::PageIdentifier);
 #if HAVE(IOSURFACE)
     void completeDisplayOnlyImage(RemoteSnapshotIdentifier, WebCore::FrameIdentifier rootFrameIdentifier, float scale, const WebCore::ColorSpace&, CompletionHandler<void(bool)>&&);
@@ -3754,7 +3757,7 @@ private:
 
     void handleWheelEvent(Ref<WebWheelEvent>&&);
     void sendWheelEvent(WebCore::FrameIdentifier, Ref<WebWheelEvent>&&, OptionSet<WebCore::WheelEventProcessingSteps>, WebCore::RectEdges<WebCore::RubberBandingBehavior> rubberBandableEdges, std::optional<bool> willStartSwipe, bool wasHandledForScrolling);
-    void handleWheelEventReply(IPC::Connection*, const WebWheelEvent&, std::optional<WebCore::ScrollingNodeID>, std::optional<WebCore::WheelScrollGestureState>, bool wasHandledForScrolling, bool wasHandledByWebProcess);
+    void handleWheelEventReply(IPC::Connection*, const WebWheelEvent&, std::optional<WebCore::FrameIdentifier> defaultHandlingFrameID, std::optional<WebCore::ScrollingNodeID>, std::optional<WebCore::WheelScrollGestureState>, bool wasHandledForScrolling, bool wasHandledByWebProcess);
 
     void cacheWheelEventScrollingAccelerationCurve(const NativeWebWheelEvent&);
     void sendWheelEventScrollingAccelerationCurveIfNecessary(WebCore::FrameIdentifier, const WebWheelEvent&);
@@ -3787,6 +3790,8 @@ private:
 #endif
 
     void tryReloadAfterProcessTermination();
+    void maybeReloadAfterCrashWhenVisible();
+    bool hasMainFrameNavigationInFlight() const;
     void resetRecentCrashCountSoon();
     NODELETE void resetRecentCrashCount();
 
@@ -4532,6 +4537,7 @@ private:
     unsigned m_recentCrashCount { 0 };
 
     bool m_needsFontAttributes { false };
+    HashMap<WebCore::RegistrableDomain, HashSet<WebCore::RegistrableDomain>> m_domainsWithPageLevelStorageAccess;
     bool m_mayHaveUniversalFileReadSandboxExtension { false };
     bool m_isServiceWorkerPage { false };
 

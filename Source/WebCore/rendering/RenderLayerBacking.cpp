@@ -93,6 +93,7 @@
 #include "RenderModel.h"
 #include "RenderSVGHiddenContainer.h"
 #include "RenderSVGModelObject.h"
+#include "RenderTextControlSingleLine.h"
 #include "RenderTheme.h"
 #include "RenderVideo.h"
 #include "RenderView.h"
@@ -709,6 +710,7 @@ void RenderLayerBacking::createPrimaryGraphicsLayer()
     updateAppleVisualEffect(style);
 #endif
     updateBackdropRoot();
+    updateScreenCaptureProtection();
     updateBlendMode(style);
 #if ENABLE(VIDEO)
     updateVideoGravity(style);
@@ -1087,6 +1089,12 @@ bool RenderLayerBacking::updateBackdropRoot()
     return true;
 }
 
+void RenderLayerBacking::updateScreenCaptureProtection()
+{
+    CheckedPtr innerBlock = dynamicDowncast<RenderTextControlInnerBlock>(renderer());
+    m_graphicsLayer->setHidesFromScreenCapture(innerBlock && innerBlock->shouldHideFromScreenCapture());
+}
+
 void RenderLayerBacking::updateBlendMode(const Style::ComputedStyle& style)
 {
     // FIXME: where is the blend mode updated when m_ancestorClippingStacks come and go?
@@ -1370,6 +1378,7 @@ void RenderLayerBacking::updateConfigurationAfterStyleChange()
     updateAppleVisualEffect(style);
 #endif
     updateBackdropRoot();
+    updateScreenCaptureProtection();
     updateBlendMode(style);
     updateContentsScalingFilters(style);
 
@@ -1585,6 +1594,8 @@ bool RenderLayerBacking::updateConfiguration(const RenderLayer* compositingAnces
     if (updateBackdropRoot())
         layerConfigChanged = true;
 
+    updateScreenCaptureProtection();
+
     if (layerConfigChanged)
         updatePaintingPhases();
 
@@ -1796,6 +1807,7 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
     updateAppleVisualEffect(style);
 #endif
     updateBackdropRoot();
+    updateScreenCaptureProtection();
     updateBlendMode(style);
     updateContentsScalingFilters(style);
 
@@ -2474,7 +2486,7 @@ bool RenderLayerBacking::maintainsEventRegion() const
         return true;
 #endif
 #if ENABLE(WHEEL_EVENT_REGIONS)
-    if (renderer().document().hasWheelEventHandlers())
+    if (renderer().document().hasWheelEventHandlers() || renderer().document().mayHaveListBoxes())
         return true;
 #endif
 #if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
@@ -2529,10 +2541,10 @@ void RenderLayerBacking::updateEventRegion()
         EventRegion eventRegion;
         auto eventRegionContext = eventRegion.makeContext();
         if (visibleToHitTesting)
-            eventRegionContext.unite(FloatRoundedRect(FloatRect({ }, graphicsLayer->size())), renderer(), renderer().style());
+            eventRegionContext->unite(FloatRoundedRect(FloatRect({ }, graphicsLayer->size())), renderer(), renderer().style());
 
 #if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
-        eventRegionContext.copyInteractionRegionsToEventRegion(renderer().document().settings().interactionRegionMinimumCornerRadius());
+        eventRegionContext->copyInteractionRegionsToEventRegion(renderer().document().settings().interactionRegionMinimumCornerRadius());
 #endif
         graphicsLayer->setEventRegion(WTF::move(eventRegion));
     };
@@ -2546,7 +2558,7 @@ void RenderLayerBacking::updateEventRegion()
 #endif
         auto eventRegionContext = eventRegion.makeContext();
 #if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
-        eventRegionContext.reserveCapacityForInteractionRegions(graphicsLayer.eventRegion().interactionRegions().size());
+        eventRegionContext->reserveCapacityForInteractionRegions(graphicsLayer.eventRegion().interactionRegions().size());
 #endif
         auto layerOffset = graphicsLayer.scrollOffset() - graphicsLayer.offsetFromRenderer();
         auto layerBounds = FloatRoundedRect(FloatRect(-layerOffset, graphicsLayer.size()));
@@ -2555,20 +2567,20 @@ void RenderLayerBacking::updateEventRegion()
             if (&graphicsLayer == m_scrolledContentsLayer) {
                 // Initialize scrolled contents layer with layer-sized event region as it can all used for scrolling.
                 // This avoids generating unnecessarily complex event regions. We still need to to do the paint to capture touch-action regions.
-                eventRegionContext.unite(layerBounds, renderer(), renderer().style());
+                eventRegionContext->unite(layerBounds, renderer(), renderer().style());
             }
         }
 
         if (m_owningLayer.isRenderViewLayer() && (&graphicsLayer == m_graphicsLayer || &graphicsLayer == m_foregroundLayer)) {
             // Event handlers on the root cover the entire layer.
-            eventRegionContext.unite(layerBounds, renderer(), renderer().style());
+            eventRegionContext->unite(layerBounds, renderer(), renderer().style());
         }
 
         auto dirtyRect = enclosingIntRect(FloatRect(FloatPoint(graphicsLayer.offsetFromRenderer()), graphicsLayer.size()));
-        paintIntoLayer(&graphicsLayer, nullContext, dirtyRect, { }, &eventRegionContext);
+        paintIntoLayer(&graphicsLayer, nullContext, dirtyRect, { }, eventRegionContext.ptr());
 
 #if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
-        eventRegionContext.copyInteractionRegionsToEventRegion(renderer().document().settings().interactionRegionMinimumCornerRadius());
+        eventRegionContext->copyInteractionRegionsToEventRegion(renderer().document().settings().interactionRegionMinimumCornerRadius());
 #endif
         eventRegion.translate(toIntSize(roundedIntPoint(layerOffset)));
         graphicsLayer.setEventRegion(WTF::move(eventRegion));
@@ -2607,9 +2619,9 @@ void RenderLayerBacking::updateEventRegion()
         EventRegion eventRegion;
         auto eventRegionContext = eventRegion.makeContext();
         if (visibleToHitTesting)
-            eventRegionContext.unite(FloatRoundedRect(badgeRect, CornerRadii(badgeDimension / 2.0f)), renderer(), renderer().style());
-        eventRegionContext.uniteInteractionRegions(renderer(), badgeRect, { }, std::nullopt);
-        eventRegionContext.copyInteractionRegionsToEventRegion(renderer().document().settings().interactionRegionMinimumCornerRadius());
+            eventRegionContext->unite(FloatRoundedRect(badgeRect, CornerRadii(badgeDimension / 2.0f)), renderer(), renderer().style());
+        eventRegionContext->uniteInteractionRegions(renderer(), badgeRect, { }, std::nullopt);
+        eventRegionContext->copyInteractionRegionsToEventRegion(renderer().document().settings().interactionRegionMinimumCornerRadius());
         m_systemPreviewBadgeLayer->setEventRegion(WTF::move(eventRegion));
     }
 #endif

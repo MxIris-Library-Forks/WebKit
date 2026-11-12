@@ -55,6 +55,7 @@
 #import <WebCore/IntRect.h>
 #import <WebCore/SQLiteDatabase.h>
 #import <WebCore/SQLiteStatement.h>
+#import <WebKit/WKBackForwardListPrivate.h>
 #import <WebKit/WKContentWorldPrivate.h>
 #import <WebKit/WKFrameInfoPrivate.h>
 #import <WebKit/WKMediaKeySystemPermissionCallback.h>
@@ -5110,7 +5111,7 @@ static void runConvertRectToMainFrameCoordinatesInNestedZoomedIframeTest(bool cr
     CGRect rect;
     EXPECT_TRUE(Util::waitFor([&] {
         rect = convertRectToMainFrameCoordinatesInFrame(webView.get(), innerFrameInfo.get(), CGRectMake(5, 7, 10, 15));
-        return rect.origin.x > 100;
+        return rect.origin.x == 130 && rect.origin.y == 174;
     }));
     [webView waitForNextPresentationUpdate];
 
@@ -7837,6 +7838,52 @@ TEST(SiteIsolation, CancelledChildAsyncBackForwardNotifiesParent)
 
     [webView goBack];
     EXPECT_WK_STREQ([webView _test_waitForAlert], "page0-loaded");
+}
+
+TEST(SiteIsolation, CrossSiteIframeReplaceKeepsItemURLBeforeCommit)
+{
+    HTTPServer server({
+        { "/example"_s, { "<iframe src='https://webkit.org/a'></iframe><iframe src='https://example.com/b'></iframe>"_s } },
+        { "/a"_s, { "a"_s } },
+        { "/b"_s, { "b"_s } },
+        { "/c"_s, { HTTPResponse::Behavior::NeverSendResponse } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr webKitFrame = [webView firstChildFrame];
+
+    __block bool startedProvisionalLoad = false;
+    navigationDelegate.get().didStartProvisionalLoadWithRequestInFrame = ^(WKWebView *, NSURLRequest *request, WKFrameInfo *) {
+        if ([request.URL.path isEqualToString:@"/c"])
+            startedProvisionalLoad = true;
+    };
+    [webView evaluateJavaScript:@"frames[1].location.replace('https://webkit.org/c')" completionHandler:nil];
+    Util::run(&startedProvisionalLoad);
+
+    __block BlockPtr<void()> dismissAlert;
+    RetainPtr uiDelegate = adoptNS([TestUIDelegate new]);
+    uiDelegate.get().runJavaScriptAlertPanelWithMessage = ^(WKWebView *, NSString *, WKFrameInfo *, void (^completionHandler)(void)) {
+        dismissAlert = makeBlockPtr(completionHandler);
+    };
+    [webView setUIDelegate:uiDelegate.get()];
+
+    // Hiding the view makes both processes save state to the frame's history item. Hold the webkit.org process in
+    // an alert so it does so after the example.com process, which still has the frame's document.
+    [webView evaluateJavaScript:@"alert()" inFrame:webKitFrame.get() inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
+    while (!dismissAlert)
+        Util::spinRunLoop();
+    [webView setHidden:YES];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"document.visibilityState"] isEqualToString:@"hidden"];
+    }));
+    dismissAlert();
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"document.visibilityState" inFrame:webKitFrame.get()] isEqualToString:@"hidden"];
+    }));
+
+    EXPECT_TRUE([[[webView backForwardList] _loggingStringForTesting] containsString:@"URL:https://example.com/b,"]);
 }
 
 TEST(SiteIsolation, ValidateSessionRestoreWithoutNavigating)
@@ -19924,6 +19971,166 @@ TEST(SiteIsolation, NonMainFrameProcessCrash)
     NSString *iframeProcessPort = [webView _test_waitForAlert];
     kill([iframeProcessPort intValue], 9);
     Util::runFor(0.1_s);
+}
+
+enum class KillIframeProcess : bool { WhileHiddenBeforeNavigation, DuringNavigation };
+enum class MainFrameNavigation : bool { ProvisionalFromAPI, AwaitingPolicyFromWebProcess };
+static void runMainFrameNavigationCancelsCrashReloadTest(KillIframeProcess killIframeProcess, MainFrameNavigation mainFrameNavigation)
+{
+    size_t exampleRequests { 0 };
+    bool receivedDelayedRequest { false };
+    HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
+        while (1) {
+            auto request = co_await connection.awaitableReceiveHTTPRequest();
+            auto path = HTTPServer::parsePath(request);
+            if (path == "/example"_s) {
+                ++exampleRequests;
+                co_await connection.awaitableSend(HTTPResponse("<!DOCTYPE html><iframe src='https://webkit.org/webkit'></iframe>"_s).serialize());
+                continue;
+            }
+            if (path == "/webkit"_s) {
+                co_await connection.awaitableSend(HTTPResponse("webkit"_s).serialize());
+                continue;
+            }
+            if (path == "/delayed"_s) {
+                // Never answered, so the main frame navigation stays provisional.
+                receivedDelayedRequest = true;
+                continue;
+            }
+            EXPECT_FALSE(true);
+        }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    disableSharedProcess(configuration.get());
+    RetainPtr navigationDelegate = adoptNS([[CrashCountingNavigationDelegate alloc] initWithCrashHandler:NO]);
+    [navigationDelegate allowAnyTLSCertificate];
+    __block BlockPtr<void(WKNavigationActionPolicy)> delayedNavigationDecisionHandler;
+    if (mainFrameNavigation == MainFrameNavigation::AwaitingPolicyFromWebProcess) {
+        navigationDelegate.get().decidePolicyForNavigationAction = ^(WKNavigationAction *action, void (^decisionHandler)(WKNavigationActionPolicy)) {
+            if ([action.request.URL.path isEqualToString:@"/delayed"] && !delayedNavigationDecisionHandler) {
+                delayedNavigationDecisionHandler = makeBlockPtr(decisionHandler);
+                return;
+            }
+            decisionHandler(WKNavigationActionPolicyAllow);
+        };
+    }
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
+    [webView setNavigationDelegate:navigationDelegate.get()];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_EQ(exampleRequests, 1u);
+
+    auto killIframeProcessForMemoryLimit = [&] {
+        EXPECT_TRUE([[webView configuration].processPool _requestWebProcessTerminationForTesting:[webView firstChildFrame]._processIdentifier reason:_WKProcessTerminationReasonExceededMemoryLimit]);
+        Util::runFor(0.1_s);
+    };
+    if (killIframeProcess == KillIframeProcess::WhileHiddenBeforeNavigation) {
+        [webView removeFromSuperview];
+        killIframeProcessForMemoryLimit();
+        EXPECT_EQ(exampleRequests, 1u);
+    }
+
+    auto showViewOrKillIframeProcess = [&] {
+        if (killIframeProcess == KillIframeProcess::WhileHiddenBeforeNavigation)
+            [webView addToTestWindow];
+        else
+            killIframeProcessForMemoryLimit();
+        Util::runFor(0.5_s);
+        EXPECT_EQ(exampleRequests, 1u);
+    };
+
+    switch (mainFrameNavigation) {
+    case MainFrameNavigation::ProvisionalFromAPI:
+        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/delayed"]]];
+        while (!receivedDelayedRequest)
+            Util::spinRunLoop();
+        showViewOrKillIframeProcess();
+        break;
+    case MainFrameNavigation::AwaitingPolicyFromWebProcess:
+        [webView evaluateJavaScript:@"location.href = '/delayed'" completionHandler:nil];
+        while (!delayedNavigationDecisionHandler)
+            Util::spinRunLoop();
+        showViewOrKillIframeProcess();
+        delayedNavigationDecisionHandler(WKNavigationActionPolicyAllow);
+        while (!receivedDelayedRequest)
+            Util::spinRunLoop();
+        Util::runFor(0.1_s);
+        EXPECT_EQ(exampleRequests, 1u);
+        break;
+    }
+
+    [webView stopLoading];
+    Util::runFor(0.5_s);
+    EXPECT_EQ(exampleRequests, 1u);
+
+    [webView removeFromSuperview];
+    Util::runFor(0.1_s);
+    [webView addToTestWindow];
+    Util::runFor(0.5_s);
+    EXPECT_EQ(exampleRequests, 1u);
+    EXPECT_EQ([navigationDelegate didStartProvisionalNavigationCount], 2u);
+}
+
+TEST(SiteIsolation, MainFrameNavigationCancelsDeferredCrashReload)
+{
+    runMainFrameNavigationCancelsCrashReloadTest(KillIframeProcess::WhileHiddenBeforeNavigation, MainFrameNavigation::ProvisionalFromAPI);
+}
+
+TEST(SiteIsolation, MainFrameNavigationAwaitingPolicyCancelsDeferredCrashReload)
+{
+    runMainFrameNavigationCancelsCrashReloadTest(KillIframeProcess::WhileHiddenBeforeNavigation, MainFrameNavigation::AwaitingPolicyFromWebProcess);
+}
+
+TEST(SiteIsolation, SubframeCrashDuringMainFrameNavigationDoesNotReload)
+{
+    runMainFrameNavigationCancelsCrashReloadTest(KillIframeProcess::DuringNavigation, MainFrameNavigation::ProvisionalFromAPI);
+}
+
+TEST(SiteIsolation, SubframeCrashWhileMainFrameNavigationAwaitsPolicyDoesNotReload)
+{
+    runMainFrameNavigationCancelsCrashReloadTest(KillIframeProcess::DuringNavigation, MainFrameNavigation::AwaitingPolicyFromWebProcess);
+}
+
+TEST(SiteIsolation, DeferredCrashReloadHappensAfterFragmentNavigation)
+{
+    size_t exampleRequests { 0 };
+    HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
+        while (1) {
+            auto request = co_await connection.awaitableReceiveHTTPRequest();
+            auto path = HTTPServer::parsePath(request);
+            if (path == "/example"_s) {
+                ++exampleRequests;
+                co_await connection.awaitableSend(HTTPResponse("<!DOCTYPE html><iframe src='https://webkit.org/webkit'></iframe>"_s).serialize());
+                continue;
+            }
+            if (path == "/webkit"_s) {
+                co_await connection.awaitableSend(HTTPResponse("webkit"_s).serialize());
+                continue;
+            }
+            EXPECT_FALSE(true);
+        }
+    }, HTTPServer::Protocol::HttpsProxy);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    disableSharedProcess(configuration.get());
+    RetainPtr navigationDelegate = adoptNS([[CrashCountingNavigationDelegate alloc] initWithCrashHandler:NO]);
+    [navigationDelegate allowAnyTLSCertificate];
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
+    [webView setNavigationDelegate:navigationDelegate.get()];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    EXPECT_EQ(exampleRequests, 1u);
+
+    [webView removeFromSuperview];
+    EXPECT_TRUE([[webView configuration].processPool _requestWebProcessTerminationForTesting:[webView firstChildFrame]._processIdentifier reason:_WKProcessTerminationReasonExceededMemoryLimit]);
+    Util::runFor(0.1_s);
+    EXPECT_EQ(exampleRequests, 1u);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example#fragment"]]];
+    [webView addToTestWindow];
+    while (exampleRequests < 2)
+        Util::spinRunLoop();
 }
 
 TEST(SiteIsolation, PasteboardReading)

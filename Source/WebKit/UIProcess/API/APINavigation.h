@@ -36,13 +36,16 @@
 #include "WebContentMode.h"
 #include <WebCore/AdvancedPrivacyProtections.h>
 #include <WebCore/AgentClusterAssignment.h>
+#include <WebCore/FrameLoaderTypes.h>
 #include <WebCore/NavigationIdentifier.h>
 #include <WebCore/PrivateClickMeasurement.h>
 #include <WebCore/ProcessIdentifier.h>
 #include <WebCore/RegistrableDomain.h>
 #include <WebCore/ResourceRequest.h>
+#include <WebCore/SandboxFlags.h>
 #include <WebCore/SecurityOriginData.h>
 #include <WebCore/SubstituteData.h>
+#include <wtf/HashMap.h>
 #include <wtf/ListHashSet.h>
 #include <wtf/MonotonicTime.h>
 #include <wtf/Ref.h>
@@ -212,11 +215,18 @@ public:
     void setUnpartitionedStorageSite(std::optional<WebCore::RegistrableDomain>&& site) { m_unpartitionedStorageSite = WTF::move(site); }
     const std::optional<WebCore::RegistrableDomain>& unpartitionedStorageSite() const LIFETIME_BOUND { return m_unpartitionedStorageSite; }
 
+    void setBrowsingContextGroupSwitchDecisionForEmptyDocument(WebCore::BrowsingContextGroupSwitchDecision decision) { m_browsingContextGroupSwitchDecisionForEmptyDocument = decision; }
+    WebCore::BrowsingContextGroupSwitchDecision browsingContextGroupSwitchDecisionForEmptyDocument() const { return m_browsingContextGroupSwitchDecisionForEmptyDocument; }
+
     // The most recent assignment handed out for this navigation, and the origin it was computed for.
     void setAgentClusterAssignment(const WebCore::SecurityOriginData&, const WebCore::AgentClusterAssignment&, RefPtr<WebKit::AgentClusterKeyingReservation>&& = nullptr);
     void clearAgentClusterKeyingReservation();
     const WebCore::SecurityOriginData& agentClusterOrigin() const LIFETIME_BOUND { return m_agentClusterOrigin; }
     const std::optional<WebCore::AgentClusterAssignment>& agentClusterAssignment() const LIFETIME_BOUND { return m_agentClusterAssignment; }
+
+    void setResponseSandboxFlags(WebCore::FrameIdentifier frameID, WebCore::SandboxFlags sandboxFlags) { m_responseSandboxFlags.set(frameID, sandboxFlags); }
+    WebCore::SandboxFlags responseSandboxFlags(WebCore::FrameIdentifier frameID) const { return m_responseSandboxFlags.getOptional(frameID).value_or(WebCore::SandboxFlags { }); }
+
     void setSafeBrowsingCheckOngoing(size_t, bool);
     NODELETE bool safeBrowsingCheckOngoing(size_t);
     NODELETE bool safeBrowsingCheckOngoing();
@@ -288,10 +298,12 @@ private:
     RefPtr<API::WebsitePolicies> m_websitePolicies;
     std::optional<OptionSet<WebCore::AdvancedPrivacyProtections>> m_originatorAdvancedPrivacyProtections;
     std::optional<WebCore::RegistrableDomain> m_unpartitionedStorageSite;
+    WebCore::BrowsingContextGroupSwitchDecision m_browsingContextGroupSwitchDecisionForEmptyDocument { WebCore::BrowsingContextGroupSwitchDecision::StayInGroup };
     WebCore::SecurityOriginData m_agentClusterOrigin;
     std::optional<WebCore::AgentClusterAssignment> m_agentClusterAssignment;
     RefPtr<WebKit::AgentClusterKeyingReservation> m_agentClusterKeyingReservation;
     bool m_canHoldAgentClusterKeyingReservation { true };
+    HashMap<WebCore::FrameIdentifier, WebCore::SandboxFlags> m_responseSandboxFlags;
     MonotonicTime m_requestStart { MonotonicTime::now() };
     RefPtr<WebKit::BrowsingWarning> m_safeBrowsingWarning;
     ListHashSet<size_t> m_ongoingSafeBrowsingChecks;

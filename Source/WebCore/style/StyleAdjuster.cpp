@@ -78,6 +78,7 @@
 #include "StylePrimitiveNumericTypes+Evaluation.h"
 #include "StyleSelfAlignmentData.h"
 #include "StyleTextDecorationLine.h"
+#include "StyleTouchAction.h"
 #include "StyleUpdate.h"
 #include "Styleable.h"
 #include "Text.h"
@@ -99,13 +100,6 @@
 
 #if USE(APPLE_INTERNAL_SDK)
 #include <WebKitAdditions/StyleAdjusterAdditions.cpp>
-#else
-namespace WebCore {
-namespace Style {
-NODELETE static inline void adjustForManipulationSurfaceQuirk(ComputedStyle&) { }
-NODELETE static inline void adjustForBoxAnnotationQuirk(ComputedStyle&) { }
-} // namespace Style
-} // namespace WebCore
 #endif
 
 namespace WebCore {
@@ -389,7 +383,7 @@ NODELETE static UnicodeBidi forceBidiIsolationForRuby(UnicodeBidi unicodeBidi)
     return UnicodeBidi::Isolate;
 }
 
-static bool shouldTreatAutoZIndexAsZero(const Style::ComputedStyle& style)
+bool Adjuster::shouldTreatAutoZIndexAsZero(const Style::ComputedStyle& style)
 {
     return !style.opacity().isOpaque()
         || style.hasTransformRelatedProperty()
@@ -570,7 +564,7 @@ void Adjuster::adjust(Style::ComputedStyle& style) const
         // must be positioned for z-index to apply to them.
         if (element && element->document().settings().layerBasedSVGEngineEnabled()) {
             if (auto* svgElement = dynamicDowncast<SVGElement>(*element); svgElement && svgElement->isOutermostSVGSVGElement())
-                return style.position() == PositionType::Static;
+                return style.position() == PositionType::Static && !parentBoxStyle.display().isFlexibleBoxIncludingDeprecatedOrGridFormattingContextBox();
 
             return false;
         }
@@ -1074,6 +1068,22 @@ void Adjuster::adjustThemeStyle(Style::ComputedStyle& style, const Style::Comput
         }
     }
 }
+
+#if HAVE(APPKIT_GESTURES_SUPPORT)
+static inline void adjustForManipulationSurfaceQuirk(ComputedStyle& style)
+{
+    if (toPlatform(style.usedTouchAction()) == OptionSet { WebCore::TouchAction::PanX, WebCore::TouchAction::PanY })
+        style.setUsedTouchAction(CSS::Keyword::None { });
+}
+
+static inline void adjustForBoxAnnotationQuirk(ComputedStyle& style)
+{
+    style.setUsedTouchAction(CSS::Keyword::Auto { });
+}
+#else
+NODELETE static inline void adjustForManipulationSurfaceQuirk(ComputedStyle&) { }
+NODELETE static inline void adjustForBoxAnnotationQuirk(ComputedStyle&) { }
+#endif
 
 void Adjuster::adjustForSiteSpecificQuirks(Style::ComputedStyle& style) const
 {

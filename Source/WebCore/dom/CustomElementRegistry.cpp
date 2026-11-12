@@ -26,6 +26,7 @@
 #include "config.h"
 #include "CustomElementRegistry.h"
 
+#include "ContextDestructionObserverInlines.h"
 #include "CustomElementReactionQueue.h"
 #include "Document.h"
 #include "DocumentQuirks.h"
@@ -34,7 +35,6 @@
 #include "HTMLElementFactory.h"
 #include "JSCustomElementInterface.h"
 #include "JSDOMPromiseDeferred.h"
-#include "LocalDOMWindow.h"
 #include "MathMLNames.h"
 #include "QualifiedName.h"
 #include "ShadowRoot.h"
@@ -44,24 +44,19 @@
 
 namespace WebCore {
 
-Ref<CustomElementRegistry> CustomElementRegistry::create(ScriptExecutionContext& scriptExecutionContext, LocalDOMWindow& window)
+Ref<CustomElementRegistry> CustomElementRegistry::createGlobal(Document& document)
 {
-    return adoptRef(*new CustomElementRegistry(scriptExecutionContext, window));
+    return adoptRef(*new CustomElementRegistry(document, IsScoped::No));
 }
 
 Ref<CustomElementRegistry> CustomElementRegistry::create(ScriptExecutionContext& scriptExecutionContext)
 {
-    return adoptRef(*new CustomElementRegistry(scriptExecutionContext));
+    return adoptRef(*new CustomElementRegistry(scriptExecutionContext, IsScoped::Yes));
 }
 
-CustomElementRegistry::CustomElementRegistry(ScriptExecutionContext& scriptExecutionContext, LocalDOMWindow& window)
+CustomElementRegistry::CustomElementRegistry(ScriptExecutionContext& scriptExecutionContext, IsScoped isScoped)
     : ContextDestructionObserver(&scriptExecutionContext)
-    , m_window(window)
-{
-}
-
-CustomElementRegistry::CustomElementRegistry(ScriptExecutionContext& scriptExecutionContext)
-    : ContextDestructionObserver(&scriptExecutionContext)
+    , m_isScoped(isScoped == IsScoped::Yes)
 {
 }
 
@@ -69,7 +64,8 @@ CustomElementRegistry::~CustomElementRegistry() = default;
 
 Document* CustomElementRegistry::document() const
 {
-    return m_window ? m_window->document() : nullptr;
+    auto* document = m_isScoped ? nullptr : downcast<Document>(scriptExecutionContext());
+    return document && document->window() ? document : nullptr;
 }
 
 void CustomElementRegistry::didAssociateWithDocument(Document& document)
@@ -220,7 +216,6 @@ ExceptionOr<void> CustomElementRegistry::initialize(Node& root)
         document->clearUsesNullCustomElementRegistry();
         document->setCustomElementRegistry(*this);
     } else if (RefPtr shadowRoot = dynamicDowncast<ShadowRoot>(*containerRoot); shadowRoot && shadowRoot->usesNullCustomElementRegistry()) {
-        ASSERT(shadowRoot->hasScopedCustomElementRegistry());
         shadowRoot->clearUsesNullCustomElementRegistry();
         shadowRoot->setCustomElementRegistry(*this);
         if (shadowRoot->isConnected())

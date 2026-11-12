@@ -130,7 +130,6 @@
 #include "ResourceLoadObserver.h"
 #include "ScheduledAction.h"
 #include "Screen.h"
-#include "ScriptDisallowedScope.h"
 #include "ScrollAnimator.h"
 #include "ScrollToOptions.h"
 #include "SecurityOrigin.h"
@@ -487,7 +486,6 @@ void LocalDOMWindow::didSecureTransitionTo(Document& document)
     m_crypto = nullptr;
     m_navigator = nullptr;
     m_performance = nullptr;
-    m_customElementRegistry = nullptr;
 }
 
 void LocalDOMWindow::prewarmLocalStorageIfNecessary()
@@ -667,21 +665,9 @@ void LocalDOMWindow::resumeFromBackForwardCache()
     m_suspendedForDocumentSuspension = false;
 }
 
-CustomElementRegistry& LocalDOMWindow::ensureCustomElementRegistry()
+CustomElementRegistry& LocalDOMWindow::customElementRegistry()
 {
-    if (!m_customElementRegistry) {
-        m_customElementRegistry = CustomElementRegistry::create(protect(*scriptExecutionContext()), *this);
-        ScriptDisallowedScope::InMainThread scriptDisallowedScope;
-        for (Ref shadowRoot : document()->inDocumentShadowRoots()) {
-            if (shadowRoot->mode() == ShadowRootMode::UserAgent || shadowRoot->hasScopedCustomElementRegistry())
-                continue;
-            const_cast<ShadowRoot&>(shadowRoot.get()).setCustomElementRegistry(*m_customElementRegistry);
-        }
-        protect(document())->setCustomElementRegistry(*m_customElementRegistry);
-    }
-    ASSERT(!m_customElementRegistry->isScoped());
-    ASSERT(m_customElementRegistry->scriptExecutionContext() == document());
-    return *m_customElementRegistry;
+    return *document()->customElementRegistry();
 }
 
 static ExceptionOr<SelectorQuery&> selectorQueryInFrame(LocalFrame* frame, const String& selectors)
@@ -1884,8 +1870,7 @@ double LocalDOMWindow::devicePixelRatio() const
         return 0.0;
 
     // Page zoom applies to all frames synchronously, so include it in devicePixelRatio
-    // for both main frame and iframes. frameScaleFactor() doesn't include page zoom
-    // since page zoom is applied globally for rendering.
+    // for both main frame and iframes, along with the owner's CSS zoom for an iframe.
     auto frameScaleRatio = frame->frameScaleFactor() * frame->effectiveZoomFactor();
     return page->deviceScaleFactor() * frameScaleRatio;
 }

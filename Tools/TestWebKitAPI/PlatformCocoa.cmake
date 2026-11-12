@@ -593,6 +593,9 @@ else ()
     if (NOT WEBKIT_SDK_IS_MACCATALYST)
         list(APPEND TestWebKit_LIBRARIES "-framework BrowserEngineKit")
     endif ()
+    if (WEBKIT_SDK_IS_IOS OR WEBKIT_SDK_IS_XROS)
+        list(APPEND TestWebKit_LIBRARIES "-framework AppServerSupport")
+    endif ()
     target_link_options(TestWebKit PRIVATE "LINKER:-delay_framework,CoreTelephony")
 endif ()
 
@@ -750,6 +753,7 @@ add_library(TestWebKitAPILibrary OBJECT
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/Bundle+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/CocoaTypes.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/DragLiftPreview.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/ExternalDrag.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/Foundation+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPSProxyFramer.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/HTTPServer/HTTPServer.swift
@@ -801,19 +805,21 @@ endforeach ()
 webkit_target_add_swift_options(TestWebKit "-Xcc -I${CMAKE_SOURCE_DIR}/Source")
 
 list(APPEND TestWebKit_SOURCES
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/AppKitGesturesTestsSupport.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/BasicAppKitGesturesTests.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/DoubleClickGesturesTests.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/EmbeddedAppKitGesturesTests.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/InactiveWindowAppKitGesturesTests.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/QuirksAppKitGesturesTests.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/RefreshControlGesturesTests.swift"
-    "Tests/WebKit/WebPage/AppKit Gesture Tests/SiteIsolationAppKitGesturesTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/BasicMacTouchSupportTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/DoubleTapMacTouchSupportTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/EmbeddedMacTouchSupportTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/InactiveWindowMacTouchSupportTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/MacTouchSupportTestUtilities.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/QuirksMacTouchSupportTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/RefreshControlMacTouchSupportTests.swift"
+    "Tests/WebKit/WebPage/Mac Touch Support Tests/SiteIsolationMacTouchSupportTests.swift"
 
     Tests/WebKit/WKWebView/CodingTests.swift
     Tests/WebKit/WKWebView/ContentAutoSizing.swift
+    Tests/WebKit/WKWebView/CrossOriginOpenerPolicyAboutBlankTests.swift
     Tests/WebKit/WKWebView/HTTP2Server.swift
     Tests/WebKit/WKWebView/HTTP3Server.swift
+    Tests/WebKit/WKWebView/NavigationResponseProcessSwapTests.swift
     Tests/WebKit/WKWebView/PDFLookUpTests.swift
     Tests/WebKit/WKWebView/ProcessSwapBackForwardTests.swift
     Tests/WebKit/WKWebView/ProcessSwapStaleNavigationTests.swift
@@ -824,8 +830,10 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationContentsOfAllFramesTests.swift
     Tests/WebKit/WKWebView/SiteIsolationCookieTests.swift
     Tests/WebKit/WKWebView/SiteIsolationDataDetectionTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationDragPreviewTests.swift
     Tests/WebKit/WKWebView/SiteIsolationEditableRegionTests.swift
     Tests/WebKit/WKWebView/SiteIsolationEditingTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationElementsFindTests.swift
     Tests/WebKit/WKWebView/SiteIsolationFullscreenTests.swift
     Tests/WebKit/WKWebView/SiteIsolationLinkIndicatorTests.swift
     Tests/WebKit/WKWebView/SiteIsolationLookUpTests.swift
@@ -849,6 +857,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/TextSize.swift
     Tests/WebKit/WKWebView/TextWidth.swift
     Tests/WebKit/WKWebView/TimeZoneOverride.swift
+    Tests/WebKit/WKWebView/ViewportFitEdges.swift
     Tests/WebKit/WKWebView/WKBackForwardListTests.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIAction.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIAlarms.swift
@@ -888,12 +897,6 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WebPage/WebViewInspectorAttachmentTests.swift
     Tests/WebKit/WebPage/WebViewTests.swift
 )
-
-# FIXME: Needs the Swift overlay in WKUserContentController.swift, which the iOS
-# WebKit module can't build yet: it needs the C++ interop the macOS build uses.
-if (NOT WEBKIT_PLATFORM_MAC)
-    list(REMOVE_ITEM TestWebKit_SOURCES Tests/WebKit/WebPage/UserContentControllerTests.swift)
-endif ()
 
 # Tests importing both WebKit and SwiftUI load the _WebKit_SwiftUI cross-import
 # overlay; ensure it builds first.

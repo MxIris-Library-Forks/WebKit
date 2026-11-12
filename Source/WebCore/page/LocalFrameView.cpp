@@ -205,7 +205,7 @@ Pagination::Mode paginationModeForRenderStyle(const Style::ComputedStyle& style)
 
 LocalFrameView::LocalFrameView(LocalFrame& frame)
     : m_frame(frame)
-    , m_layoutContext(*this)
+    , m_layoutContext(makeUniqueRef<LocalFrameViewLayoutContext>(*this))
     , m_updateEmbeddedObjectsTimer(*this, &LocalFrameView::updateEmbeddedObjectsTimerFired)
     , m_updateWidgetPositionsTimer(*this, &LocalFrameView::updateWidgetPositionsTimerFired)
     , m_delayedScrollEventTimer(*this, &LocalFrameView::scheduleScrollEvent)
@@ -5836,8 +5836,8 @@ void LocalFrameView::updateAccessibilityObjectRegions()
         return;
 
     NullGraphicsContext graphicsContext;
-    AccessibilityRegionContext accessibilityRegionContext;
-    paint(graphicsContext, frameRect(), SecurityOriginPaintPolicy::AnyOrigin, &accessibilityRegionContext);
+    auto accessibilityRegionContext = makeUniqueRef<AccessibilityRegionContext>();
+    paint(graphicsContext, frameRect(), SecurityOriginPaintPolicy::AnyOrigin, accessibilityRegionContext.ptr());
 #endif
 }
 
@@ -6983,6 +6983,7 @@ RenderView* LocalFrameView::renderView() const
 
 int LocalFrameView::mapFromLayoutToCSSUnits(LayoutUnit value) const
 {
+    // FIXME: Round like unapplyingZoom() instead of dropping the fraction. https://webkit.org/b/331029
     Ref frame = m_frame;
     return value / (frame->effectiveZoomFactor() * frame->frameScaleFactor());
 }

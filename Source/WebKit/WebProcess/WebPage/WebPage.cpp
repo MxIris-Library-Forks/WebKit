@@ -1123,6 +1123,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     page->didUpdateHardwareKeyboardAttachment(m_keyboardIsAttached);
 
     page->setTextAutosizingWidth(parameters.textAutosizingWidth);
+    page->setUnobscuredSafeAreaInsets(parameters.unobscuredSafeAreaInsets);
     setOverrideViewportArguments(parameters.overrideViewportArguments);
 
     if (!parameters.contentSizeCategory.isNull())
@@ -1425,7 +1426,7 @@ void WebPage::frameGeometryChangedInAnotherProcess(Vector<FrameGeometryUpdate>&&
     ASSERT(m_page->settings().siteIsolationEnabled());
 
     bool didApplyUpdate = false;
-    for (auto& update : updates) {
+    for (auto& update : borrow(updates)) {
         RefPtr frame = webFrameInPage(*this, update.frameID);
         RefPtr coreFrame = frame ? frame->coreFrame() : nullptr;
         if (!coreFrame)
@@ -1860,6 +1861,9 @@ void WebPage::reinitializeWebPage(WebPageCreationParameters&& parameters)
     setSizeToContentAutoSizeMaximumSize(parameters.sizeToContentAutoSizeMaximumSize);
 
     setObscuredContentInsets(parameters.obscuredContentInsets);
+#if PLATFORM(IOS_FAMILY)
+    protect(m_page)->setUnobscuredSafeAreaInsets(parameters.unobscuredSafeAreaInsets);
+#endif
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
     if (parameters.imageAnimationEnabledOverride)
         protect(m_page)->setImageAnimationEnabled(*parameters.imageAnimationEnabledOverride);
@@ -3319,10 +3323,12 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
             platformDidScalePage();
     });
 
-#if PLATFORM(IOS_FAMILY)
+#if ENABLE(UI_SIDE_COMPOSITING)
     if (willChangeScaleFactor) {
+#if PLATFORM(IOS_FAMILY)
         if (!m_inDynamicSizeUpdate)
             m_internals->dynamicSizeUpdateHistory.clear();
+#endif
         m_scaleWasSetByUIProcess = false;
     }
 #endif
@@ -3336,6 +3342,22 @@ void WebPage::didScalePage(double scale, const IntPoint& origin)
             page->setPageScaleFactor(1, origin);
         pluginView->setPageScaleFactor(totalScale, { origin });
         return;
+    }
+#endif
+
+#if PLATFORM(MAC) && ENABLE(UI_SIDE_COMPOSITING)
+    if (willChangeScaleFactor && page->delegatesScaling()) {
+        if (RefPtr frameView = localMainFrameView()) {
+            if (m_hasReceivedVisibleContentRectsAfterDidCommitLoad) {
+                auto unobscuredContentSize = frameView->unobscuredContentSize();
+                if (!unobscuredContentSize.isEmpty()) {
+                    unobscuredContentSize.scale(totalScaleFactor() / totalScale);
+                    frameView->setUnobscuredContentSize(unobscuredContentSize);
+                }
+            }
+            frameView->setVisualViewportOverrideRect(std::nullopt);
+            frameView->setLayoutViewportOverrideRect(std::nullopt, LocalFrameView::TriggerLayoutOrNot::No);
+        }
     }
 #endif
 
@@ -4092,33 +4114,9 @@ RefPtr<WebImage> WebPage::snapshotAtSize(const IntRect& rect, const IntSize& bit
     return snapshot;
 }
 
-RefPtr<WebImage> WebPage::cssPageBoxesSnapshotForTesting(const IntSize& defaultPageBoxSize, const IntBoxExtent& defaultPageMargin)
-{
-    RefPtr coreFrame = m_mainFrame->coreLocalFrame();
-    if (!coreFrame)
-        return nullptr;
-
-    auto snapshotSize = PrintContext::cssPageBoxesSize(*coreFrame, defaultPageBoxSize, defaultPageMargin);
-    if (snapshotSize.isEmpty())
-        return nullptr;
-
-    auto snapshot = WebImage::create(snapshotSize, ImageOption::Shareable, ColorSpace::SRGB(), &m_page->chrome().client());
-    if (!snapshot->context())
-        return nullptr;
-
-    // FIXME: Paint remote frames, as drawPrintingPagesToSnapshot() does (rdar://191464084). Cross-site iframes are blank under site isolation.
-    // FIXME: Dispatch beforeprint and afterprint, as beginPrinting() does, and wait for loads that printing starts (rdar://191464243).
-    PrintContext::spoolAllCSSPageBoxes(*coreFrame, *snapshot->context(), defaultPageBoxSize, defaultPageMargin);
-    return snapshot;
-}
-
 RefPtr<WebImage> WebPage::snapshotNode(WebCore::Node& node, SnapshotOptions options, unsigned maximumPixelCount)
 {
-    RefPtr coreFrame = m_mainFrame->coreLocalFrame();
-    if (!coreFrame)
-        return nullptr;
-
-    RefPtr frameView = coreFrame->view();
+    RefPtr frameView = protect(node.document())->view();
     if (!frameView)
         return nullptr;
 
@@ -10899,6 +10897,8 @@ void WebPage::restoreAppHighlightsAndScrollToIndex(Vector<SharedMemory::Handle>&
     if (!focusedOrMainFrame)
         return;
     RefPtr document = focusedOrMainFrame->document();
+    if (!document)
+        return;
 
     unsigned i = 0;
     for (auto&& handle : borrow(memoryHandles)) {
@@ -11627,6 +11627,56 @@ void WebPage::takeRemoteSnapshotForTargetedElement(NodeIdentifier nodeID, Script
 #else
     UNUSED_PARAM(nodeID);
     UNUSED_PARAM(documentID);
+    UNUSED_PARAM(snapshotIdentifier);
+    completionHandler(false);
+#endif
+}
+
+void WebPage::snapshotCSSPageBoxesForTesting(const IntSize& defaultPageBoxSize, int defaultPageMargin, CompletionHandler<void(std::optional<ShareableBitmapHandle>&&)>&& completionHandler)
+{
+    RefPtr coreFrame = m_mainFrame->coreLocalFrame();
+    if (!coreFrame)
+        return completionHandler({ });
+
+    // FIXME: Dispatch beforeprint and afterprint, as beginPrinting() does, and wait for loads that printing starts (rdar://191464243).
+    Ref printContext = PrintContext::create(coreFrame.get());
+    auto snapshotSize = printContext->beginCSSPageBoxes(defaultPageBoxSize, defaultPageMargin);
+    if (snapshotSize.isEmpty())
+        return completionHandler({ });
+
+    auto snapshot = WebImage::create(snapshotSize, ImageOption::Shareable, ColorSpace::SRGB(), &m_page->chrome().client());
+    if (!snapshot->context())
+        return completionHandler({ });
+
+    printContext->spoolCSSPageBoxes(*snapshot->context());
+    printContext->end();
+    completionHandler(snapshot->createHandle(SharedMemory::Protection::ReadOnly));
+}
+
+void WebPage::remoteSnapshotCSSPageBoxesForTesting(const IntSize& defaultPageBoxSize, int defaultPageMargin, RemoteSnapshotIdentifier snapshotIdentifier, CompletionHandler<void(bool)>&& completionHandler)
+{
+#if ENABLE(GPU_PROCESS)
+    ASSERT(m_page->settings().remoteSnapshottingEnabled());
+    completionHandler = failRemoteSnapshotIfRootFails(snapshotIdentifier, WTF::move(completionHandler));
+
+    RefPtr coreFrame = m_mainFrame->coreLocalFrame();
+    if (!coreFrame)
+        return completionHandler(false);
+
+    // FIXME: Dispatch beforeprint and afterprint, as beginPrinting() does, and wait for loads that printing starts (rdar://191464243).
+    Ref printContext = PrintContext::create(coreFrame.get());
+    auto snapshotSize = printContext->beginCSSPageBoxes(defaultPageBoxSize, defaultPageMargin);
+    if (snapshotSize.isEmpty())
+        return completionHandler(false);
+
+    recordRemoteSnapshot(snapshotIdentifier, coreFrame->frameID(), RemoteSnapshotRole::Root, RenderingMode::DisplayList, IntRect { { }, snapshotSize }, snapshotSize, MainRunLoopSuccessCallbackAggregator::create(WTF::move(completionHandler)), [&](GraphicsContext& context) {
+        printContext->spoolCSSPageBoxes(context);
+    });
+    // Frames in other processes record themselves after recordRemoteSnapshot() asks them to, so they must still be printing then.
+    printContext->end();
+#else
+    UNUSED_PARAM(defaultPageBoxSize);
+    UNUSED_PARAM(defaultPageMargin);
     UNUSED_PARAM(snapshotIdentifier);
     completionHandler(false);
 #endif

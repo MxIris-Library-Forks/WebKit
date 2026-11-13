@@ -128,6 +128,12 @@
 #include <WebCore/ResourceMonitorThrottlerHolder.h>
 #endif
 
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
+#include <WebCore/DigitalCredentialsRequestData.h>
+#include <WebCore/DigitalCredentialsResponseData.h>
+#include <WebCore/ExceptionData.h>
+#endif
+
 #define CONNECTION_RELEASE_LOG(channel, fmt, ...) RELEASE_LOG(channel, "%p - [webProcessIdentifier=%" PRIu64 "] NetworkConnectionToWebProcess::" fmt, this, this->webProcessIdentifier().toUInt64(), ##__VA_ARGS__)
 #define CONNECTION_RELEASE_LOG_ERROR(channel, fmt, ...) RELEASE_LOG_ERROR(channel, "%p - [webProcessIdentifier=%" PRIu64 "] NetworkConnectionToWebProcess::" fmt, this, this->webProcessIdentifier().toUInt64(), ##__VA_ARGS__)
 
@@ -688,6 +694,24 @@ void NetworkConnectionToWebProcess::completeQueuedExistingLoaderResume(Ref<Netwo
     loader->transferToNewWebProcess(*this, loadParameters);
 }
 
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
+void NetworkConnectionToWebProcess::presentDigitalCredentialRequest(WebPageProxyIdentifier webPageProxyID, WebCore::DigitalCredentialsRequestData&& requestData, Vector<WebCore::UnvalidatedDigitalCredentialRequest>&& rawRequests, CompletionHandler<void(std::expected<WebCore::DigitalCredentialsResponseData, WebCore::ExceptionData>&&)>&& completionHandler)
+{
+    auto notAllowed = [&] {
+        completionHandler(makeUnexpected(WebCore::ExceptionData { WebCore::ExceptionCode::NotAllowedError, "Digital credentials request is not allowed."_s }));
+    };
+    MESSAGE_CHECK_COMPLETION(m_sharedPreferencesForWebProcess.digitalCredentialsEnabled, notAllowed());
+    MESSAGE_CHECK_COMPLETION(rawRequests.size() == requestData.requests.size(), notAllowed());
+    MESSAGE_CHECK_COMPLETION(NetworkProcess::singleton().allowsWebPageProxyIdentifier(m_webProcessIdentifier, webPageProxyID), notAllowed());
+    MESSAGE_CHECK_COMPLETION(NetworkProcess::singleton().allowsFirstPartyForCookies(m_webProcessIdentifier, WebCore::RegistrableDomain { requestData.topOrigin }), notAllowed());
+
+    CONNECTION_RELEASE_LOG(Loading, "presentDigitalCredentialRequest: %zu requests", requestData.requests.size());
+
+    // FIXME: Present the request once there is platform support.
+    completionHandler(makeUnexpected(WebCore::ExceptionData { WebCore::ExceptionCode::NotSupportedError, "Digital credentials are not available in this app."_s }));
+}
+#endif
+
 void NetworkConnectionToWebProcess::terminateForInvalidLoaderResumeClaim()
 {
     RELEASE_LOG_FAULT(IPC, "NetworkConnectionToWebProcess::terminateForInvalidLoaderResumeClaim: WebContent process %" PRIu64 " queued a resume for a parked NetworkResourceLoader assigned to a different process; requesting termination", m_webProcessIdentifier.toUInt64());
@@ -1173,7 +1197,6 @@ void NetworkConnectionToWebProcess::domCookiesForHost(const URL& url, Completion
 {
     MESSAGE_CHECK_COMPLETION(HashSet<String>::isValidValue(url.host().toString()), completionHandler(std::nullopt));
     auto access = validateCookieAccess("domCookiesForHost"_s, url, url, nullptr, std::nullopt);
-    MESSAGE_CHECK_COMPLETION(access != CookieAccess::Terminate, completionHandler(std::nullopt));
     if (access != CookieAccess::Allow || RegistrableDomain(url).isEmpty())
         return completionHandler(std::nullopt);
 
@@ -2220,6 +2243,14 @@ void NetworkConnectionToWebProcess::clearFrameLoadRecordsForStorageAccess(WebCor
 bool NetworkConnectionToWebProcess::isAlwaysOnLoggingAllowed() const
 {
     return m_sessionID.isAlwaysOnLoggingAllowed() || m_sharedPreferencesForWebProcess.allowPrivacySensitiveOperationsInNonPersistentDataStores;
+}
+
+bool NetworkConnectionToWebProcess::compressionDictionaryEnabled()
+{
+    if (!m_sharedPreferencesForWebProcess.compressionDictionaryEnabled)
+        return false;
+    CheckedPtr networkSession = this->networkSession();
+    return networkSession && networkSession->hasCompressionDictionarySupport();
 }
 
 void NetworkConnectionToWebProcess::updateSharedPreferencesForWebProcess(SharedPreferencesForWebProcess&& sharedPreferencesForWebProcess)

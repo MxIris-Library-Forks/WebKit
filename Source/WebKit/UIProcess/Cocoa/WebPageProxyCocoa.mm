@@ -511,7 +511,7 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL& url, API::Navigation& navig
 #if HAVE(SAFE_BROWSING)
 void WebPageProxy::completeSafeBrowsingCheckForModals(bool userProceeded)
 {
-    ASSERT(isMainRunLoop());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
 
     m_isSafeBrowsingCheckInProgress = false;
 
@@ -523,7 +523,7 @@ void WebPageProxy::completeSafeBrowsingCheckForModals(bool userProceeded)
 
 void WebPageProxy::drainDeferredModalsForNewNavigation()
 {
-    ASSERT(isMainRunLoop());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
     purgeQueuedModalDialogs();
 
     if (m_isSafeBrowsingCheckInProgress) {
@@ -621,7 +621,7 @@ void WebPageProxy::startDrag(IPC::Connection& connection, const DragItem& dragIt
 #if ENABLE(ATTACHMENT_ELEMENT)
     MESSAGE_CHECK(promisedAttachmentInfo.attachmentIdentifier.isEmpty() || protect(preferences())->attachmentElementEnabled(), connection);
 #endif
-    for (auto& [type, data] : promisedAttachmentInfo.additionalTypesAndData) {
+    for (auto& [type, data] : borrow(promisedAttachmentInfo.additionalTypesAndData)) {
         // These are written to the platform drag pasteboard verbatim, so hold them to the same
         // standard as any other pasteboard write coming from the web process: it must never be able
         // to plant a file reference on the drag pasteboard. Editor::getPasteboardTypesAndDataForAttachment
@@ -1129,7 +1129,7 @@ void WebPageProxy::restoreAppHighlightsAndScrollToIndex(const Vector<Ref<SharedM
     
     setUpHighlightsObserver();
 
-    protect(legacyMainFrameProcess())->send(Messages::WebPage::RestoreAppHighlightsAndScrollToIndex(WTF::move(memoryHandles), index), webPageIDInMainFrameProcess());
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::RestoreAppHighlightsAndScrollToIndex(WTF::move(memoryHandles), index));
 }
 
 void WebPageProxy::setAppHighlightsVisibility(WebCore::HighlightVisibility appHighlightsVisibility)
@@ -2545,6 +2545,9 @@ void WebPageProxy::updateVisibleContentRects(const VisibleContentRectUpdateInfo&
         return;
 
     internals().lastVisibleContentRectUpdate = visibleContentRectUpdate;
+#if PLATFORM(IOS_FAMILY)
+    updateUnobscuredSafeAreaInsets(visibleContentRectUpdate.unobscuredSafeAreaInsets());
+#endif
 
     if (!hasRunningProcess())
         return;

@@ -598,6 +598,9 @@ JS_BINDING_IDLS := \
     $(WebCore)/Modules/permissions/PermissionStatus.idl \
     $(WebCore)/Modules/permissions/Permissions.idl \
     $(WebCore)/Modules/permissions/WorkerNavigator+Permissions.idl \
+    $(WebCore)/Modules/phonenumberpossession/PhoneNumberPossessionCredential.idl \
+    $(WebCore)/Modules/phonenumberpossession/PhoneNumberPossessionRequestOptions.idl \
+    $(WebCore)/Modules/phonenumberpossession/PhoneNumberPossessionResponseType.idl \
     $(WebCore)/Modules/pictureinpicture/DocumentOrShadowRoot+PictureInPicture.idl \
     $(WebCore)/Modules/pictureinpicture/Document+PictureInPicture.idl \
     $(WebCore)/Modules/pictureinpicture/HTMLVideoElement+PictureInPicture.idl \
@@ -1472,6 +1475,8 @@ JS_BINDING_IDLS := \
     $(WebCore)/html/canvas/CanvasText.idl \
     $(WebCore)/html/canvas/CanvasTextAlign.idl \
     $(WebCore)/html/canvas/CanvasTextBaseline.idl \
+    $(WebCore)/html/canvas/CanvasToneMapping.idl \
+    $(WebCore)/html/canvas/CanvasToneMappingMode.idl \
     $(WebCore)/html/canvas/CanvasTextDrawingStyles.idl \
     $(WebCore)/html/canvas/CanvasTextRendering.idl \
     $(WebCore)/html/canvas/CanvasTransform.idl \
@@ -2201,6 +2206,9 @@ LocalizableAdditions.strings.out : $(WebCore)/preprocess-localizable-strings.pl 
 
 # modern media controls
 
+# The style sheets below are concatenated into one sheet that every media element shares through
+# the style sheet contents cache. Do not use CSS nesting in them: one nested rule makes the whole
+# sheet uncacheable, and each media element would parse its own copy.
 MODERN_MEDIA_CONTROLS_STYLE_SHEETS = \
     $(WebCore)/Modules/modern-media-controls/controls/activity-indicator.css \
     $(WebCore)/Modules/modern-media-controls/controls/airplay-button.css \

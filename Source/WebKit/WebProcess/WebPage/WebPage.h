@@ -1113,7 +1113,6 @@ public:
 #endif
 
     RefPtr<WebImage> scaledSnapshotWithOptions(const WebCore::IntRect&, double additionalScaleFactor, SnapshotOptions);
-    RefPtr<WebImage> cssPageBoxesSnapshotForTesting(const WebCore::IntSize& defaultPageBoxSize, const WebCore::IntBoxExtent& defaultPageMargin);
 
     NODELETE static const WebEvent* currentEvent();
 
@@ -1635,6 +1634,7 @@ public:
 #if PLATFORM(IOS_FAMILY)
     void setDeviceOrientation(WebCore::IntDegrees);
     void dynamicViewportSizeUpdate(const DynamicViewportSizeUpdate&);
+    void setUnobscuredSafeAreaInsets(const WebCore::FloatBoxExtent&);
     bool scaleWasSetByUIProcess() const { return m_scaleWasSetByUIProcess; }
     void willStartUserTriggeredZooming();
     void didEndUserTriggeredZooming();
@@ -2260,6 +2260,8 @@ public:
 
     void takeSnapshotForTargetedElement(WebCore::NodeIdentifier, WebCore::ScriptExecutionContextIdentifier, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
     void takeRemoteSnapshotForTargetedElement(WebCore::NodeIdentifier, WebCore::ScriptExecutionContextIdentifier, RemoteSnapshotIdentifier, CompletionHandler<void(bool)>&&);
+    void snapshotCSSPageBoxesForTesting(const WebCore::IntSize& defaultPageBoxSize, int defaultPageMargin, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
+    void remoteSnapshotCSSPageBoxesForTesting(const WebCore::IntSize& defaultPageBoxSize, int defaultPageMargin, RemoteSnapshotIdentifier, CompletionHandler<void(bool)>&&);
 
     OptionSet<LayerTreeFreezeReason> layerTreeFreezeReasons() const { return m_layerTreeFreezeReasons; }
 

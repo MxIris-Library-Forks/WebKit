@@ -49,11 +49,9 @@ https://tieba.baidu.com/
 https://www.notbaidu.com/
     (none)
 https://www.bbc.co.uk/
-    NeedsDarkAppearanceWithoutColorSchemeQuirk
     NeedsPerDocumentAutoplayBehaviorQuirk
     ReturnNullPictureInPictureElementDuringFullscreenChangeQuirk
 https://www.bbc.com/
-    NeedsDarkAppearanceWithoutColorSchemeQuirk
     NeedsPerDocumentAutoplayBehaviorQuirk
     ReturnNullPictureInPictureElementDuringFullscreenChangeQuirk
 https://codepen.io/
@@ -141,6 +139,9 @@ https://gizmodo.com/
     (none)
 https://play.geforcenow.com/
     (none)
+https://www.goodreads.com/
+    NeedsStyleSheetInjectedQuirk
+        styleSheet: .TruncatedContent:focus-visible, .TruncatedContent__text:focus-visible { outline-offset: inset; }
 https://www.google.com/
     NeedsSingleOwnerMainFrameCNAMECloakingCookieCapQuirk
         secondaryURL: [*://*.youtube.com/*, *://*.google.com/*]
@@ -208,6 +209,8 @@ https://docs.google.com/
     InputMethodMustUseCompositionEvents
     InputMethodUsesCorrectKeyEventOrder
     IsTouchBarUpdateSuppressedForHiddenContentEditableQuirk
+    MayNeedToIgnoreContentObservation
+        elementSelector: .navigation-item-list, .navigation-item-list *
     NeedsGoogleDocsNavigationWidgetScrollQuirk
     NeedsSingleOwnerMainFrameCNAMECloakingCookieCapQuirk
         secondaryURL: [*://*.youtube.com/*, *://*.google.com/*]

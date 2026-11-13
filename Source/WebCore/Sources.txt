@@ -2024,7 +2024,6 @@ inspector/agents/InspectorDOMDebuggerAgent.cpp
 inspector/agents/InspectorDOMStorageAgent.cpp
 inspector/agents/InspectorIndexedDBAgent.cpp
 inspector/agents/InspectorLayerTreeAgent.cpp @header:RenderStyleGetters
-inspector/agents/InspectorMediaEventTracker.cpp
 inspector/agents/InspectorMemoryAgent.cpp
 inspector/agents/InspectorNetworkAgent.cpp @header:RenderStyleGetters
 inspector/agents/InspectorPageAgent.cpp @header:RenderStyleGetters
@@ -4134,6 +4133,8 @@ JSCanvasState.cpp
 JSCanvasText.cpp
 JSCanvasTextAlign.cpp
 JSCanvasTextBaseline.cpp
+JSCanvasToneMapping.cpp
+JSCanvasToneMappingMode.cpp
 JSCanvasTextDrawingStyles.cpp
 JSCanvasTextRendering.cpp
 JSCanvasTransform.cpp
@@ -4891,6 +4892,9 @@ JSPermissionName.cpp
 JSPermissionState.cpp
 JSPermissionStatus.cpp
 JSPermissions.cpp
+JSPhoneNumberPossessionCredential.cpp
+JSPhoneNumberPossessionRequestOptions.cpp
+JSPhoneNumberPossessionResponseType.cpp
 JSPhotoCapabilities.cpp
 JSPhotoSettings.cpp
 JSPictureInPictureEvent.cpp

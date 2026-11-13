@@ -492,7 +492,7 @@ public:
     // pointer without introducing reference cycles.
     ALWAYS_INLINE void incrementReferencingNodeCount(unsigned count = 1)
     {
-        ASSERT(!deletionHasBegun());
+        ASSERT_WITH_SECURITY_IMPLICATION(!deletionHasBegun());
         m_referencingNodeCount += count;
     }
 
@@ -505,7 +505,7 @@ public:
             // Restore the the final overlooking ref that deref() maintains.
             m_refCountAndParentBit = s_refCountIncrement;
 
-#if ASSERT_ENABLED
+#if ASSERT_ENABLED || ENABLE(SECURITY_ASSERTIONS)
             m_deletionHasBegun = true;
 #endif
             delete this;
@@ -608,9 +608,6 @@ public:
 
     NODELETE CustomElementRegistry* effectiveGlobalCustomElementRegistry();
     static CustomElementNameValidationStatus validateCustomElementName(const AtomString&);
-    CustomElementRegistry* activeCustomElementConstructorRegistry(JSC::JSObject* constructor);
-    void addToActiveCustomElementConstructorMap(JSC::JSObject* constructor, CustomElementRegistry&);
-    void removeFromActiveCustomElementConstructorMap(JSC::JSObject* constructor);
     void addCustomElementUpgradeCandidateLocalName(const AtomString& localName) { m_customElementUpgradeCandidateLocalNames.add(localName); }
     void removeCustomElementUpgradeCandidateLocalName(const AtomString& localName) { m_customElementUpgradeCandidateLocalNames.remove(localName); }
     bool mayHaveCustomElementUpgradeCandidate(const AtomString& localName) const { return m_customElementUpgradeCandidateLocalNames.contains(localName); }
@@ -860,8 +857,13 @@ public:
 
     const NetworkLoadPolicy& networkLoadPolicy() const final;
 
+#if ENABLE(DEVICE_ORIENTATION) && PLATFORM(IOS_FAMILY)
+    void suspendDeviceMotionAndOrientationUpdates();
+    void resumeDeviceMotionAndOrientationUpdates();
+#else
     NODELETE void suspendDeviceMotionAndOrientationUpdates();
     NODELETE void resumeDeviceMotionAndOrientationUpdates();
+#endif
 
     void suspendFontLoading();
 
@@ -1470,7 +1472,11 @@ public:
     void updateAXCustomColorModeTextBackdrops();
 #endif
 
+#if PLATFORM(IOS_FAMILY)
+    void invalidateRenderingDependentRegions();
+#else
     NODELETE void invalidateRenderingDependentRegions();
+#endif
     void invalidateEventRegionsForFrame(HTMLFrameOwnerElement&);
 
     void invalidateEventListenerRegions();
@@ -1648,8 +1654,13 @@ public:
     bool mayHaveRenderedSVGForeignObjects() const { return m_mayHaveRenderedSVGForeignObjects; }
     void setMayHaveRenderedSVGForeignObjects() { m_mayHaveRenderedSVGForeignObjects = true; }
 
+#if ENABLE(TOUCH_EVENTS) || ENABLE(TOUCH_EVENT_REGIONS)
+    void didAddTouchEventHandler(Node&);
+    void didRemoveTouchEventHandler(Node&, EventHandlerRemoval = EventHandlerRemoval::One);
+#else
     NODELETE void didAddTouchEventHandler(Node&);
     NODELETE void didRemoveTouchEventHandler(Node&, EventHandlerRemoval = EventHandlerRemoval::One);
+#endif
 
     void didRemoveEventTargetNode(Node&);
 
@@ -2298,7 +2309,7 @@ private:
     void updateTitle(const StringWithDirection&);
     void updateBaseURL();
 
-    WeakPtr<HTMLMetaElement, WeakPtrImplWithEventTargetData> determineActiveThemeColorMetaElement();
+    RefPtr<HTMLMetaElement> determineActiveThemeColorMetaElement();
     void themeColorChanged();
 
     void invalidateAccessKeyCacheSlowCase();
@@ -2366,7 +2377,11 @@ private:
 
     bool computeIsSecureContext() const;
 
+#if ENABLE(CONTENT_CHANGE_OBSERVER)
+    void platformSuspendOrStopActiveDOMObjects();
+#else
     NODELETE void platformSuspendOrStopActiveDOMObjects();
+#endif
 
     void collectHighlightRangesFromRegister(Vector<WeakPtr<HighlightRange>>&, const HighlightRegistry&);
 
@@ -2676,7 +2691,6 @@ private:
 
     WeakListHashSet<ShadowRoot, WeakPtrImplWithEventTargetData> m_inDocumentShadowRoots;
 
-    HashMap<uintptr_t, RefPtr<CustomElementRegistry>> m_activeCustomElementConstructorMap;
     HashSet<AtomString> m_customElementUpgradeCandidateLocalNames;
 
 #if ENABLE(WIRELESS_PLAYBACK_TARGET)

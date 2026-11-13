@@ -386,7 +386,7 @@ void RemoteLayerTreeDrawingAreaProxy::commitLayerTree(IPC::Connection& connectio
     Borrow borrowedTransactions = bundle.transactions;
     for (auto& transaction : borrowedTransactions) {
         // commitLayerTreeTransaction consumes the incoming buffers, so we need to grab them first.
-        CheckedRef removeLayerTreeTransaction = transaction.first;
+        CheckedRef removeLayerTreeTransaction = transaction.first.get();
         for (auto& [layerID, properties] : removeLayerTreeTransaction->changedLayerProperties()) {
             auto* backingStoreProperties = properties->backingStoreOrProperties.properties.get();
             if (!backingStoreProperties)
@@ -443,13 +443,13 @@ void RemoteLayerTreeDrawingAreaProxy::commitLayerTree(IPC::Connection& connectio
             page->didReachLayoutMilestone(milestones, WallTime::now());
     }
 
-    for (auto& [frameID, edges] : bundle.fixedContainerEdges)
+    for (auto& [frameID, edges] : borrow(bundle.fixedContainerEdges))
         page->didReceiveFixedContainerEdges(connection, frameID, edges);
 
     WeakPtr weakThis { *this };
 
     for (auto& transaction : borrowedTransactions) {
-        commitLayerTreeTransaction(connection, CheckedRef { transaction.first }.get(), transaction.second,  transaction.first.remoteContextHostedIdentifier() ? std::nullopt : bundle.mainFrameData, bundle.pageData, bundle.transactionID);
+        commitLayerTreeTransaction(connection, CheckedRef { transaction.first.get() }.get(), transaction.second,  transaction.first->remoteContextHostedIdentifier() ? std::nullopt : bundle.mainFrameData, bundle.pageData, bundle.transactionID);
         if (!weakThis)
             return;
     }

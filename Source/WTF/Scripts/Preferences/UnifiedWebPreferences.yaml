@@ -647,6 +647,15 @@ AudioControlsScaleWithPageZoom:
     "PLATFORM(IOS_FAMILY)": false
     default: true
 
+AudioDecodingInContentProcessEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "Audio decoding in content process"
+  humanReadableDescription: "Decode audio in software in the content process and send the decoded samples to the GPU process"
+  defaultValue: false
+  sharedPreferenceForWebProcess: true
+
 AudioDescriptionsEnabled:
   type: bool
   status: stable
@@ -1242,6 +1251,14 @@ CSSSizeShorthandEnabled:
   humanReadableDescription: "Enable the size, min-size and max-size shorthands for the width, height, min-width, min-height, max-width and max-height properties"
   defaultValue: true
 
+CSSStretchFunctionEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS stretch() sizing function"
+  humanReadableDescription: "Enable support for CSS stretch() in the sizing properties"
+  defaultValue: false
+
 CSSSymbolsFunctionEnabled:
   type: bool
   status: stable
@@ -1354,11 +1371,11 @@ CSSTypedOMColorEnabled:
 
 CSSURLIntegrityModifierEnabled:
   type: bool
-  status: testable
+  status: stable
   category: css
   humanReadableName: "CSS URL Modifiers: integrity()"
   humanReadableDescription: "Enable support for CSS Values and Units Module Level 5 URL integrity() modifier"
-  defaultValue: false
+  defaultValue: true
 
 CSSURLModifiersEnabled:
   type: bool

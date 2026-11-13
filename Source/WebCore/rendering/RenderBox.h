@@ -405,13 +405,18 @@ public:
 
     LayoutUnit adjustBorderBoxLogicalWidthForBoxSizing(const Style::Length<CSS::NonnegativeLayoutUnitClamped, float>& logicalWidth) const;
     LayoutUnit adjustBorderBoxLogicalWidthForBoxSizing(LayoutUnit computedLogicalWidth) const;
+    template<typename SizeType> LayoutUnit adjustBorderBoxLogicalWidthForBoxSizing(const SizeType& logicalWidth, LayoutUnit computedLogicalWidth, std::optional<LayoutUnit> containingBlockLogicalWidth) const;
     LayoutUnit adjustContentBoxLogicalWidthForBoxSizing(const Style::Length<CSS::NonnegativeLayoutUnitClamped, float>& logicalWidth) const;
     LayoutUnit adjustContentBoxLogicalWidthForBoxSizing(LayoutUnit computedLogicalWidth) const;
+    template<typename SizeType> LayoutUnit adjustContentBoxLogicalWidthForBoxSizing(const SizeType& logicalWidth, LayoutUnit computedLogicalWidth, std::optional<LayoutUnit> containingBlockLogicalWidth) const;
 
     // Overridden by fieldsets to subtract out the intrinsic border.
     virtual LayoutUnit adjustBorderBoxLogicalHeightForBoxSizing(LayoutUnit height) const;
     virtual LayoutUnit adjustContentBoxLogicalHeightForBoxSizing(std::optional<LayoutUnit> height) const;
     virtual LayoutUnit adjustIntrinsicLogicalHeightForBoxSizing(LayoutUnit height) const;
+    template<typename SizeType> LayoutUnit adjustBorderBoxLogicalHeightForBoxSizing(const SizeType& logicalHeight, LayoutUnit computedLogicalHeight, std::optional<LayoutUnit> containingBlockLogicalWidth) const;
+    template<typename SizeType> LayoutUnit adjustContentBoxLogicalHeightForBoxSizing(const SizeType& logicalHeight, LayoutUnit computedLogicalHeight, std::optional<LayoutUnit> containingBlockLogicalWidth) const;
+    template<typename SizeType> std::optional<LayoutUnit> containingBlockLogicalWidthForBoxSizing(const SizeType&) const;
 
     NODELETE std::optional<LayoutUnit> overridingBorderBoxLogicalWidth() const;
     NODELETE std::optional<LayoutUnit> overridingBorderBoxLogicalHeight() const;

@@ -4454,7 +4454,6 @@
 		A5B81CA81FAA44620037D1E6 /* InspectorCanvasAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C911FAA44260037D1E6 /* InspectorCanvasAgent.h */; };
 		A5B81CA91FAA44620037D1E6 /* InspectorCSSAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CA11FAA44270037D1E6 /* InspectorCSSAgent.h */; };
 		A5B81CAB1FAA44620037D1E6 /* InspectorDOMAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C861FAA44260037D1E6 /* InspectorDOMAgent.h */; };
-		5E9A1C032FC0000000A1B2C3 /* InspectorMediaEventTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 5E9A1C012FC0000000A1B2C3 /* InspectorMediaEventTracker.h */; };
 		A5B81CAC1FAA44620037D1E6 /* InspectorDOMDebuggerAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81CA31FAA44270037D1E6 /* InspectorDOMDebuggerAgent.h */; };
 		A5B81CAD1FAA44620037D1E6 /* InspectorDOMStorageAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C8C1FAA44260037D1E6 /* InspectorDOMStorageAgent.h */; };
 		A5B81CAE1FAA44620037D1E6 /* InspectorIndexedDBAgent.h in Headers */ = {isa = PBXBuildFile; fileRef = A5B81C9E1FAA44260037D1E6 /* InspectorIndexedDBAgent.h */; };
@@ -14386,6 +14385,10 @@
 		7224293C301ABB3600856621 /* CanvasElementImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CanvasElementImage.cpp; sourceTree = "<group>"; };
 		7224293D301ACFD400856621 /* GPUDrawElementImageDestination.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUDrawElementImageDestination.idl; sourceTree = "<group>"; };
 		7224293E301ACFD400856621 /* GPUDrawElementImageSource.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = GPUDrawElementImageSource.idl; sourceTree = "<group>"; };
+		7224293D301ABB3600856621 /* CanvasToneMapping.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasToneMapping.h; sourceTree = "<group>"; };
+		7224293E301ABB3600856621 /* CanvasToneMapping.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CanvasToneMapping.idl; sourceTree = "<group>"; };
+		7224293F301ABB3600856621 /* CanvasToneMappingMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CanvasToneMappingMode.h; sourceTree = "<group>"; };
+		72242940301ABB3600856621 /* CanvasToneMappingMode.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = CanvasToneMappingMode.idl; sourceTree = "<group>"; };
 		72242943301ADA9800856621 /* WebGLCopyElementImageConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebGLCopyElementImageConfig.h; sourceTree = "<group>"; };
 		7224ABCF2C0174EE00D85362 /* BitmapImageDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapImageDescriptor.h; sourceTree = "<group>"; };
 		7225E8062A3E298C00947EBF /* RotationDirection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RotationDirection.cpp; sourceTree = "<group>"; };
@@ -17698,8 +17701,6 @@
 		A5B342852E77F755009BFF3F /* PlacedGridItem.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PlacedGridItem.cpp; sourceTree = "<group>"; };
 		A5B81C851FAA44260037D1E6 /* InspectorMemoryAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InspectorMemoryAgent.cpp; path = inspector/agents/InspectorMemoryAgent.cpp; sourceTree = SOURCE_ROOT; };
 		A5B81C861FAA44260037D1E6 /* InspectorDOMAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InspectorDOMAgent.h; path = inspector/agents/InspectorDOMAgent.h; sourceTree = SOURCE_ROOT; };
-		5E9A1C022FC0000000A1B2C3 /* InspectorMediaEventTracker.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = InspectorMediaEventTracker.cpp; path = inspector/agents/InspectorMediaEventTracker.cpp; sourceTree = SOURCE_ROOT; };
-		5E9A1C012FC0000000A1B2C3 /* InspectorMediaEventTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = InspectorMediaEventTracker.h; path = inspector/agents/InspectorMediaEventTracker.h; sourceTree = SOURCE_ROOT; };
 		A5B81C871FAA44260037D1E6 /* WebHeapAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebHeapAgent.cpp; path = inspector/agents/WebHeapAgent.cpp; sourceTree = SOURCE_ROOT; };
 		A5B81C881FAA44260037D1E6 /* InspectorDOMDebuggerAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InspectorDOMDebuggerAgent.cpp; path = inspector/agents/InspectorDOMDebuggerAgent.cpp; sourceTree = SOURCE_ROOT; };
 		A5B81C891FAA44260037D1E6 /* InspectorPageAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InspectorPageAgent.h; path = inspector/agents/InspectorPageAgent.h; sourceTree = SOURCE_ROOT; };
@@ -24168,6 +24169,9 @@
 		E0BA4176CB20FD04A40E4570 /* ImageRenditionOptions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ImageRenditionOptions.cpp; sourceTree = "<group>"; };
 		61D2ED4C387044AEAE6FA67C /* PageAnimationAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PageAnimationAgent.h; sourceTree = "<group>"; };
 		9829198B5E944BBE98399502 /* PageAnimationAgent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PageAnimationAgent.cpp; sourceTree = "<group>"; };
+		5A7412589C2DEB7ECD1E4602 /* PhoneNumberPossessionCredential.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PhoneNumberPossessionCredential.idl; sourceTree = "<group>"; };
+		4C6BB275821A2CA61EB618CC /* PhoneNumberPossessionRequestOptions.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PhoneNumberPossessionRequestOptions.idl; sourceTree = "<group>"; };
+		559364CAA330B1AA490DE2CC /* PhoneNumberPossessionResponseType.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = PhoneNumberPossessionResponseType.idl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -28395,6 +28399,10 @@
 				7C193BA91F5E0EB00088F3E6 /* CanvasTextDrawingStyles.idl */,
 				1122BD67258C35412D4C6D79 /* CanvasTextRendering.h */,
 				D9B38DDDE3AFC8883410E7B5 /* CanvasTextRendering.idl */,
+				7224293D301ABB3600856621 /* CanvasToneMapping.h */,
+				7224293E301ABB3600856621 /* CanvasToneMapping.idl */,
+				7224293F301ABB3600856621 /* CanvasToneMappingMode.h */,
+				72242940301ABB3600856621 /* CanvasToneMappingMode.idl */,
 				7C193BB51F5E0EB80088F3E6 /* CanvasTransform.idl */,
 				7C193BB81F5E0EBA0088F3E6 /* CanvasUserInterface.idl */,
 				724ED3291A3A7E5400F5F13C /* EXTBlendMinMax.cpp */,
@@ -34710,8 +34718,6 @@
 				A5B81C9E1FAA44260037D1E6 /* InspectorIndexedDBAgent.h */,
 				A5B81CA41FAA44270037D1E6 /* InspectorLayerTreeAgent.cpp */,
 				A5B81C8F1FAA44260037D1E6 /* InspectorLayerTreeAgent.h */,
-				5E9A1C022FC0000000A1B2C3 /* InspectorMediaEventTracker.cpp */,
-				5E9A1C012FC0000000A1B2C3 /* InspectorMediaEventTracker.h */,
 				A5B81C851FAA44260037D1E6 /* InspectorMemoryAgent.cpp */,
 				A5B81C8D1FAA44260037D1E6 /* InspectorMemoryAgent.h */,
 				A5B81C9C1FAA44260037D1E6 /* InspectorNetworkAgent.cpp */,
@@ -44143,10 +44149,13 @@
 				9B5E23EE1515E7CBFCAF1C81 /* PhoneNumberPossessionCoordinatorClient.h */,
 				5730C2E5A2794FD7C14E0734 /* PhoneNumberPossessionCredential.cpp */,
 				F6EF1185B9BFEAED5D815C1E /* PhoneNumberPossessionCredential.h */,
+				5A7412589C2DEB7ECD1E4602 /* PhoneNumberPossessionCredential.idl */,
 				72F9298930D273388DAE57C3 /* PhoneNumberPossessionRequest.cpp */,
 				79387C77602AF736321E16F6 /* PhoneNumberPossessionRequest.h */,
+				4C6BB275821A2CA61EB618CC /* PhoneNumberPossessionRequestOptions.idl */,
 				02235505DADB0D826D6C1822 /* PhoneNumberPossessionResponse.h */,
 				FA9AC1967DFE9A22161E6BD4 /* PhoneNumberPossessionResponseType.h */,
+				559364CAA330B1AA490DE2CC /* PhoneNumberPossessionResponseType.idl */,
 			);
 			name = phonenumberpossession;
 			path = Modules/phonenumberpossession;
@@ -46585,7 +46594,6 @@
 				A5860E6D230DE30300461AAE /* InspectorInstrumentationPublic.h in Headers */,
 				A5860E6E230DE30A00461AAE /* InspectorInstrumentationWebKit.h in Headers */,
 				A5B81CAF1FAA44620037D1E6 /* InspectorLayerTreeAgent.h in Headers */,
-				5E9A1C032FC0000000A1B2C3 /* InspectorMediaEventTracker.h in Headers */,
 				A5B81CB01FAA44620037D1E6 /* InspectorMemoryAgent.h in Headers */,
 				DD14265D2F81000000C1D6A8 /* InspectorNativeFunctionParameters.json in Headers */,
 				A5B81CB11FAA44620037D1E6 /* InspectorNetworkAgent.h in Headers */,

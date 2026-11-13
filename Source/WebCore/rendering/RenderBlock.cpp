@@ -2216,7 +2216,8 @@ std::optional<LayoutUnit> RenderBlock::fixedLogicalWidthContribution(const Style
     // deprecated flex item still flexes, so its 0 is not a usable fixed width either.
     if (isRenderTableCell() || (isDeprecatedFlexItem() && !static_cast<int>(fixedLogicalWidth->resolveZoom(style().usedZoomForLength()))))
         return { };
-    return adjustContentBoxLogicalWidthForBoxSizing(*fixedLogicalWidth);
+    // A stretch() takes its margins off, resolved against zero as intrinsicLogicalMarginStartAndEnd() resolves them when adding them back.
+    return adjustContentBoxLogicalWidthForBoxSizing(logicalWidth, LayoutUnit { fixedLogicalWidth->resolveZoom(style().usedZoomForLength()) }, 0_lu);
 }
 
 std::pair<LayoutUnit, LayoutUnit> RenderBlock::logicalWidthContributionsForSize(const Style::PreferredSize& logicalWidth, LayoutUnit minContentLogicalWidth, LayoutUnit maxContentLogicalWidth) const
@@ -3022,7 +3023,7 @@ std::optional<LayoutUnit> RenderBlock::availableLogicalHeightForPercentageComput
                 return !style.flexBasis().isAuto() && FlexFormattingUtils::isHorizontalFlow(flexContainer) != isHorizontalWritingMode();
             };
             if (!flexBasisOverridesHeight()) {
-                auto contentBoxHeight = adjustContentBoxLogicalHeightForBoxSizing(LayoutUnit { fixedLogicalHeight->resolveZoom(style.usedZoomForLength()) });
+                auto contentBoxHeight = adjustContentBoxLogicalHeightForBoxSizing(style.logicalHeight(), LayoutUnit { fixedLogicalHeight->resolveZoom(style.usedZoomForLength()) }, containingBlockLogicalWidthForBoxSizing(style.logicalHeight()));
                 return std::max(0_lu, constrainContentBoxLogicalHeightByMinMax(contentBoxHeight - scrollbarLogicalHeight(), { }));
             }
         }
@@ -3057,7 +3058,7 @@ std::optional<LayoutUnit> RenderBlock::availableLogicalHeightForPercentageComput
 
         if (style.logicalHeight().isPercentOrCalculated()) {
             if (auto heightWithScrollbar = computePercentageLogicalHeight(style.logicalHeight())) {
-                auto contentBoxHeightWithScrollbar = adjustContentBoxLogicalHeightForBoxSizing(*heightWithScrollbar);
+                auto contentBoxHeightWithScrollbar = adjustContentBoxLogicalHeightForBoxSizing(style.logicalHeight(), *heightWithScrollbar, containingBlockLogicalWidthForContent());
                 // We need to adjust for min/max height because this method does not handle the min/max of the current block, its caller does.
                 // So the return value from the recursive call will not have been adjusted yet.
                 return std::max(0_lu, constrainContentBoxLogicalHeightByMinMax(contentBoxHeightWithScrollbar - scrollbarLogicalHeight(), { }));

@@ -760,6 +760,7 @@ enum class PDFPluginDisplayMode : uint8_t;
 enum class PasteboardAccessIntent : bool;
 enum class ProcessSwapRequestedByClient : bool;
 enum class ProcessTerminationReason : uint8_t;
+enum class ProcessTerminationScope : uint8_t;
 enum class ProcessThrottlerActivityType : bool;
 enum class ProvisionalLoadIsReplaced : bool;
 enum class QuickLookPreviewActivity : uint8_t;
@@ -1966,7 +1967,10 @@ public:
     void resetStateAfterProcessTermination(ProcessTerminationReason);
     void provisionalProcessDidTerminate();
     void provisionalLoadWasCancelledBeforeStarting(WebCore::NavigationIdentifier);
-    void dispatchProcessDidTerminate(WebProcessProxy&, ProcessTerminationReason);
+    void mainFrameProcessDidTerminate(WebProcessProxy&);
+    void nonMainFrameProcessDidTerminate(WebProcessProxy&);
+    void dispatchProcessDidTerminate(ProcessID, ProcessTerminationScope, ProcessTerminationReason);
+    bool hasCommittedFrameInProcess(const WebProcessProxy&) const;
     void willChangeProcessIsResponsive();
     void didChangeProcessIsResponsive();
 
@@ -2634,7 +2638,9 @@ public:
     void dismissDigitalCredentialsChooser(IPC::Connection&, CompletionHandler<void(bool)>&&);
     void fetchRawDigitalCredentialRequests(CompletionHandler<void(WebCore::DigitalCredentialsRawRequests)>&&);
     void showDigitalCredentialsChooser(IPC::Connection&, std::optional<WebCore::FrameIdentifier>&&, const WebCore::DigitalCredentialsRequestData&, CompletionHandler<void(std::expected<WebCore::DigitalCredentialsResponseData, WebCore::ExceptionData>&&)>&&);
+    void hasVirtualWalletForDigitalCredentials(std::optional<WebCore::FrameIdentifier>&&, CompletionHandler<void(bool)>&&);
 #if ENABLE(WEBDRIVER_BIDI)
+    String digitalCredentialsAutomationContextID(WebAutomationSession&, const std::optional<WebCore::FrameIdentifier>&);
     // Test-only wallet actuation for run-webkit-tests (no automation session); webkit.org/b/306292.
     void setVirtualWalletBehaviorForTesting(const String& action, const String& protocol, const String& responseJSON);
     void settlePendingTestingDigitalCredentialHandler(ASCIILiteral rejectionMessage);
@@ -3020,6 +3026,7 @@ public:
     void requestTargetedElement(const API::TargetedElementRequest&, CompletionHandler<void(const Vector<Ref<API::TargetedElementInfo>>&)>&&);
     void requestAllTargetableElements(float, CompletionHandler<void(Vector<Vector<Ref<API::TargetedElementInfo>>>&&)>&&);
     void takeSnapshotForTargetedElement(const API::TargetedElementInfo&, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
+    void cssPageBoxesSnapshotForTesting(const WebCore::IntSize& defaultPageBoxSize, int defaultPageMargin, CompletionHandler<void(std::optional<WebCore::ShareableBitmapHandle>&&)>&&);
 
     void hasTextExtractionFilterRules(CompletionHandler<void(bool)>&&);
     void updateTextExtractionFilterRules(Vector<WebCore::TextExtraction::FilterRuleData>&&);
@@ -3727,6 +3734,7 @@ private:
     WebCore::FloatSize screenSize();
     WebCore::FloatSize availableScreenSize();
     float textAutosizingWidth();
+    void updateUnobscuredSafeAreaInsets(const WebCore::FloatBoxExtent&);
 
     void couldNotRestorePageState();
     void restorePageState(IPC::Connection&, std::optional<WebCore::FloatPoint> scrollPosition, const WebCore::FloatPoint& scrollOrigin, const WebCore::FloatBoxExtent& obscuredInsetsOnSave, double scale);
@@ -3749,7 +3757,9 @@ private:
     void didReleaseAllTouchPoints() { }
 #endif // PLATFORM(IOS_FAMILY)
 
-    void performDragControllerAction(DragControllerAction, WebCore::DragData&, const std::optional<WebCore::FrameIdentifier>& = std::nullopt);
+    void performDragControllerAction(DragControllerAction, WebCore::DragData&, uint64_t dragEventNumber, const std::optional<WebCore::FrameIdentifier>& = std::nullopt);
+    void dragWasHandledInFrame(uint64_t dragEventNumber, const std::optional<WebCore::FrameIdentifier>&, const WebCore::DragData&);
+    void sendDragExitedToFrame(const std::optional<WebCore::FrameIdentifier>&, const WebCore::IntPoint& clientPosition, const WebCore::DragData&);
 
     void updateBackingStoreDiscardableState();
 
@@ -3789,6 +3799,7 @@ private:
     void contentFilterDidBlockLoadForFrame(IPC::Connection&, const WebCore::ContentFilterUnblockHandler&, WebCore::FrameIdentifier);
 #endif
 
+    void clearStateForTerminatedProcess(WebProcessProxy&);
     void tryReloadAfterProcessTermination();
     void maybeReloadAfterCrashWhenVisible();
     bool hasMainFrameNavigationInFlight() const;
@@ -4049,7 +4060,8 @@ private:
     void beginSiteHasStorageCheck(const URL&, API::Navigation&, WebFramePolicyListenerProxy&);
     void beginEnhancedSecurityLinkCheck(const URL&, API::Navigation&, WebFramePolicyListenerProxy&);
 
-    Ref<BrowsingContextGroup> browsingContextGroupForNavigation(WebFrameProxy&, API::Navigation&, WebsiteDataStore&, ProcessSwapRequestedByClient);
+    enum class IsEnhancedSecurityExplicitlySet : bool { No, Yes };
+    Ref<BrowsingContextGroup> browsingContextGroupForNavigation(WebFrameProxy&, API::Navigation&, WebsiteDataStore&, EnhancedSecurity, IsEnhancedSecurityExplicitlySet, ProcessSwapRequestedByClient);
     Ref<BrowsingContextGroup> browsingContextGroupForCommittingNavigation(const API::Navigation*) const;
 
     WebProcessProxy& processForTheFrameItem(WebBackForwardListFrameItem&) const;

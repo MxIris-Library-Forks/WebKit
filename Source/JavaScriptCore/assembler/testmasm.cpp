@@ -1434,6 +1434,34 @@ void testLoad64ExtendedAddress()
         CHECK_EQ(invoke<uint64_t>(test, i), table[i]);
 }
 
+void testBranchTest16ExtendedAddress()
+{
+    static constexpr std::array<uint16_t, 5> nonZeroTable { 0x0100, 0, 0x0100, 0, 0x0100 };
+    static constexpr std::array<uint16_t, 5> negativeTable { 0x8000, 0, 0x8000, 0, 0x8000 };
+
+    auto makeTest = [](CCallHelpers::ResultCondition condition, const uint16_t* table) {
+        return compile([=](CCallHelpers& jit) {
+            emitFunctionPrologue(jit);
+            auto taken = jit.branchTest16(condition, CCallHelpers::ExtendedAddress(GPRInfo::argumentGPR0, std::bit_cast<intptr_t>(table)));
+            jit.move(CCallHelpers::TrustedImm32(0), GPRInfo::returnValueGPR);
+            auto done = jit.jump();
+            taken.link(&jit);
+            jit.move(CCallHelpers::TrustedImm32(1), GPRInfo::returnValueGPR);
+            done.link(&jit);
+            emitFunctionEpilogue(jit);
+            jit.ret();
+        });
+    };
+
+    auto nonZero = makeTest(CCallHelpers::NonZero, nonZeroTable.data());
+    for (size_t i = 0; i < nonZeroTable.size(); ++i)
+        CHECK_EQ(invoke<uint32_t>(nonZero, i), nonZeroTable[i] > 0);
+
+    auto negative = makeTest(CCallHelpers::Signed, negativeTable.data());
+    for (size_t i = 0; i < negativeTable.size(); ++i)
+        CHECK_EQ(invoke<uint32_t>(negative, i), static_cast<int16_t>(negativeTable[i]) < 0);
+}
+
 void testAdd32Imm()
 {
     for (auto immediate : int32Operands()) {
@@ -1863,17 +1891,16 @@ static bool expectedBranchArithTaken(BranchArith op, MacroAssembler::ResultCondi
         int32_t result32 = 0;
         overflow = isAdd ? __builtin_add_overflow(lhs, imm, &result32) : __builtin_sub_overflow(lhs, imm, &result32);
         uint32_t unsignedResult = 0;
-        carry = __builtin_add_overflow(static_cast<uint32_t>(lhs), static_cast<uint32_t>(imm), &unsignedResult);
+        carry = isAdd ? __builtin_add_overflow(static_cast<uint32_t>(lhs), static_cast<uint32_t>(imm), &unsignedResult) : __builtin_sub_overflow(static_cast<uint32_t>(lhs), static_cast<uint32_t>(imm), &unsignedResult);
         result = result32;
     } else {
         int64_t lhs = static_cast<int64_t>(value);
         overflow = isAdd ? __builtin_add_overflow(lhs, static_cast<int64_t>(imm), &result) : __builtin_sub_overflow(lhs, static_cast<int64_t>(imm), &result);
         uint64_t unsignedResult = 0;
-        carry = __builtin_add_overflow(static_cast<uint64_t>(lhs), static_cast<uint64_t>(static_cast<int64_t>(imm)), &unsignedResult);
+        carry = isAdd ? __builtin_add_overflow(static_cast<uint64_t>(lhs), static_cast<uint64_t>(static_cast<int64_t>(imm)), &unsignedResult) : __builtin_sub_overflow(static_cast<uint64_t>(lhs), static_cast<uint64_t>(static_cast<int64_t>(imm)), &unsignedResult);
     }
     switch (cond) {
     case MacroAssembler::Carry:
-        RELEASE_ASSERT(isAdd);
         return carry;
     case MacroAssembler::Overflow:
         return overflow;
@@ -1928,17 +1955,81 @@ static void checkBranchArithImmediate(BranchArith op, int32_t imm, MacroAssemble
 
 void testBranchAddSubImmediateSetsFlags()
 {
-    // Carry after a subtraction means "no borrow" on ARM64 but "borrow" on x86, so it is only checked for additions.
-    const MacroAssembler::ResultCondition addConditions[] = { MacroAssembler::Carry, MacroAssembler::Overflow, MacroAssembler::Signed, MacroAssembler::PositiveOrZero, MacroAssembler::Zero, MacroAssembler::NonZero };
-    const MacroAssembler::ResultCondition subConditions[] = { MacroAssembler::Overflow, MacroAssembler::Signed, MacroAssembler::PositiveOrZero, MacroAssembler::Zero, MacroAssembler::NonZero };
+    const MacroAssembler::ResultCondition conditions[] = { MacroAssembler::Carry, MacroAssembler::Overflow, MacroAssembler::Signed, MacroAssembler::PositiveOrZero, MacroAssembler::Zero, MacroAssembler::NonZero };
 
     for (auto op : { BranchArith::Add32, BranchArith::Sub32, BranchArith::Add64, BranchArith::Sub64 }) {
-        bool isAdd = op == BranchArith::Add32 || op == BranchArith::Add64;
-        auto conditions = isAdd ? std::span<const MacroAssembler::ResultCondition> { addConditions } : std::span<const MacroAssembler::ResultCondition> { subConditions };
         for (int32_t imm : { 0, 1, -1 }) {
             for (auto cond : conditions) {
                 for (int32_t flagsPreset : { 0, 1 })
                     checkBranchArithImmediate(op, imm, cond, flagsPreset);
+            }
+        }
+    }
+}
+
+enum class BranchSubForm { Sub32TwoOperand, Sub32ThreeOperand, Sub64TwoOperand, Sub64ThreeOperand, Neg32, Neg64 };
+
+void testBranchSubAndNegCarryIsBorrow()
+{
+    const uint64_t values[] = { 0, 1, 2, ~0ULL, 0xffffffffULL, 0x7fffffffULL, 0x80000000ULL, 0x7fffffffffffffffULL, 0x8000000000000000ULL, 0x123456789abcdef0ULL };
+
+    for (auto form : { BranchSubForm::Sub32TwoOperand, BranchSubForm::Sub32ThreeOperand, BranchSubForm::Sub64TwoOperand, BranchSubForm::Sub64ThreeOperand, BranchSubForm::Neg32, BranchSubForm::Neg64 }) {
+        for (int32_t flagsPreset : { 0, 1 }) {
+            auto code = compile([=](CCallHelpers& jit) {
+                emitFunctionPrologue(jit);
+                jit.move(CCallHelpers::TrustedImm32(0), GPRInfo::argumentGPR2);
+                jit.compare32(MacroAssembler::Equal, GPRInfo::argumentGPR2, CCallHelpers::TrustedImm32(flagsPreset), GPRInfo::argumentGPR2);
+                CCallHelpers::Jump taken;
+                switch (form) {
+                case BranchSubForm::Sub32TwoOperand:
+                    taken = jit.branchSub32(MacroAssembler::Carry, GPRInfo::argumentGPR1, GPRInfo::argumentGPR0);
+                    break;
+                case BranchSubForm::Sub32ThreeOperand:
+                    taken = jit.branchSub32(MacroAssembler::Carry, GPRInfo::argumentGPR0, GPRInfo::argumentGPR1, GPRInfo::argumentGPR2);
+                    break;
+                case BranchSubForm::Sub64TwoOperand:
+                    taken = jit.branchSub64(MacroAssembler::Carry, GPRInfo::argumentGPR1, GPRInfo::argumentGPR0);
+                    break;
+                case BranchSubForm::Sub64ThreeOperand:
+                    taken = jit.branchSub64(MacroAssembler::Carry, GPRInfo::argumentGPR0, GPRInfo::argumentGPR1, GPRInfo::argumentGPR2);
+                    break;
+                case BranchSubForm::Neg32:
+                    taken = jit.branchNeg32(MacroAssembler::Carry, GPRInfo::argumentGPR0);
+                    break;
+                case BranchSubForm::Neg64:
+                    taken = jit.branchNeg64(MacroAssembler::Carry, GPRInfo::argumentGPR0);
+                    break;
+                }
+                jit.move(CCallHelpers::TrustedImm32(0), GPRInfo::returnValueGPR);
+                auto done = jit.jump();
+                taken.link(&jit);
+                jit.move(CCallHelpers::TrustedImm32(1), GPRInfo::returnValueGPR);
+                done.link(&jit);
+                emitFunctionEpilogue(jit);
+                jit.ret();
+            });
+
+            for (uint64_t a : values) {
+                for (uint64_t b : values) {
+                    bool expected = false;
+                    switch (form) {
+                    case BranchSubForm::Sub32TwoOperand:
+                    case BranchSubForm::Sub32ThreeOperand:
+                        expected = static_cast<uint32_t>(a) < static_cast<uint32_t>(b);
+                        break;
+                    case BranchSubForm::Sub64TwoOperand:
+                    case BranchSubForm::Sub64ThreeOperand:
+                        expected = a < b;
+                        break;
+                    case BranchSubForm::Neg32:
+                        expected = !!static_cast<uint32_t>(a);
+                        break;
+                    case BranchSubForm::Neg64:
+                        expected = !!a;
+                        break;
+                    }
+                    CHECK_EQ(invoke<int>(code, a, b), static_cast<int>(expected));
+                }
             }
         }
     }
@@ -5449,6 +5540,64 @@ static void testTestBitBranchCompaction()
     for (auto& code : { nearCode, farCode }) {
         CHECK_EQ(invoke<int>(code, 1 << 3), 1);
         CHECK_EQ(invoke<int>(code, 0), 0);
+    }
+}
+
+static void testConditionalBranchCompactionAtDirectRangeBoundary()
+{
+    // computeJumpType must not classify a record whose exact displacement falls one instruction
+    // past the Direct form's immediate: the encoder masks the immediate, so the branch silently
+    // goes to a wrapped-around target. The move after the branch plus the nops put the target
+    // 8 + 4 * nops bytes away from the branch once the Direct form compacts away the trailing
+    // nop, so nops can be chosen to hit each form's boundary exactly. A sled at least as long
+    // precedes the branch and returns 2, so a target wrapped backwards fails the check
+    // deterministically instead of running whatever precedes the function in JIT memory.
+    auto compileWithNops = [](auto emitBranch, unsigned nops) {
+        CCallHelpers jit;
+        emitFunctionPrologue(jit);
+        jit.move(CCallHelpers::TrustedImm32(1), GPRInfo::argumentGPR1);
+        auto skipSled = jit.jump();
+        for (unsigned i = 0; i < nops; ++i)
+            jit.nop();
+        jit.move(CCallHelpers::TrustedImm32(2), GPRInfo::argumentGPR1);
+        auto sledDone = jit.jump();
+        skipSled.link(&jit);
+        auto jump = emitBranch(jit);
+        jit.move(CCallHelpers::TrustedImm32(0), GPRInfo::argumentGPR1);
+        for (unsigned i = 0; i < nops; ++i)
+            jit.nop();
+        jump.link(&jit);
+        sledDone.link(&jit);
+        jit.move(GPRInfo::argumentGPR1, GPRInfo::returnValueGPR);
+        emitFunctionEpilogue(jit);
+        jit.ret();
+        LinkBuffer linkBuffer(jit, nullptr);
+        return FINALIZE_CODE(linkBuffer, JSEntryPtrTag, nullptr, "testmasm compilation");
+    };
+
+    auto checkBehavior = [](auto code) {
+        CHECK_EQ(invoke<int>(code, 1), 1);
+        CHECK_EQ(invoke<int>(code, 0), 0);
+    };
+
+    {
+        // TBZ / TBNZ hold a signed 14-bit immediate, so 32 KB is one instruction past its range.
+        constexpr unsigned boundaryNops = (32 * KB - 8) / sizeof(uint32_t);
+        auto emitTestBitBranch = [](CCallHelpers& jit) {
+            return jit.branchTest32(CCallHelpers::NonZero, GPRInfo::argumentGPR0, CCallHelpers::TrustedImm32(1));
+        };
+        checkBehavior(compileWithNops(emitTestBitBranch, boundaryNops));
+        checkBehavior(compileWithNops(emitTestBitBranch, boundaryNops - 1));
+    }
+
+    {
+        // b.cond holds a signed 19-bit immediate, so 1 MB is one instruction past its range.
+        constexpr unsigned boundaryNops = (MB - 8) / sizeof(uint32_t);
+        auto emitConditionBranch = [](CCallHelpers& jit) {
+            return jit.branch32(CCallHelpers::Equal, GPRInfo::argumentGPR0, CCallHelpers::TrustedImm32(1));
+        };
+        checkBehavior(compileWithNops(emitConditionBranch, boundaryNops));
+        checkBehavior(compileWithNops(emitConditionBranch, boundaryNops - 1));
     }
 }
 
@@ -9878,6 +10027,77 @@ static void testCanEmitJumpMatchesBranchEncoding()
     CHECK_EQ(Assembler::canEmitJump(from, std::bit_cast<void*>(std::bit_cast<intptr_t>(from) - nearJumpRange)), true);
     CHECK_EQ(Assembler::canEmitJump(from, std::bit_cast<void*>(std::bit_cast<intptr_t>(from) - nearJumpRange - instructionSize)), false);
 }
+
+static void testComputeJumpTypeMatchesBranchEncoding()
+{
+    // The conditional branch forms hold a signed immediate in instruction units: imm19 for
+    // b.cond and cbz / cbnz, imm14 for tbz / tbnz. computeJumpType receives the record's
+    // label, one instruction after the branch on the trailing nop. For a forward target the
+    // record's own compaction shifts the target back by the same instruction, so the direct
+    // linker encodes exactly (target - label), and a Direct classification must match. For a
+    // backward target the displacement is measured from the branch instruction, one
+    // instruction before the label, so a Direct classification only has to stay encodable.
+    auto isRepresentable = [](intptr_t branchDisplacement, unsigned immediateBits) -> bool {
+        if (branchDisplacement & 3)
+            return false;
+        int32_t immediate = static_cast<int32_t>(branchDisplacement >> 2) & ((1 << immediateBits) - 1);
+        intptr_t signExtended = static_cast<intptr_t>(immediate << (32 - immediateBits)) >> (32 - immediateBits);
+        return (signExtended << 2) == branchDisplacement;
+    };
+
+    struct BranchForm {
+        Assembler::JumpType jumpType;
+        Assembler::JumpLinkType directLinkType;
+        unsigned immediateBits;
+    };
+
+    constexpr BranchForm forms[] = {
+        { Assembler::JumpCondition, Assembler::LinkJumpConditionDirect, 19 },
+        { Assembler::JumpCompareAndBranch, Assembler::LinkJumpCompareAndBranchDirect, 19 },
+        { Assembler::JumpTestBit, Assembler::LinkJumpTestBitDirect, 14 },
+    };
+
+    constexpr intptr_t instructionSize = sizeof(uint32_t);
+
+    Assembler assembler;
+    for (const BranchForm& form : forms) {
+        const intptr_t range = static_cast<intptr_t>(1) << (form.immediateBits + 1);
+        const intptr_t displacements[] = {
+            0,
+            instructionSize,
+            -instructionSize,
+            range - 2 * instructionSize,
+            range - instructionSize, // Largest forward branch the immediate encodes.
+            range, // One instruction past it: the encoder would wrap the immediate.
+            range + instructionSize,
+            -range, // Encodable from the branch instruction.
+            -range + instructionSize,
+            -range - instructionSize,
+            -2 * range,
+        };
+
+        for (intptr_t displacement : displacements) {
+            Assembler::LinkRecord record(&assembler, 0, 0, form.jumpType, Assembler::ConditionEQ, Assembler::ThunkOrNot::NotThunk);
+            constexpr intptr_t label = 0x100000000;
+            uint8_t* from = std::bit_cast<uint8_t*>(label);
+            uint8_t* to = std::bit_cast<uint8_t*>(label + displacement);
+            auto linkType = MacroAssembler::computeJumpType(record, from, to);
+            bool classifiedDirect = linkType == form.directLinkType;
+
+            if (displacement >= 0) {
+                bool representable = isRepresentable(displacement, form.immediateBits);
+                if (classifiedDirect != representable)
+                    dataLogLn("computeJumpType classifies a ", displacement, "-byte forward branch as ", classifiedDirect ? "Direct" : "Indirect", " but its ", form.immediateBits, "-bit immediate ", representable ? "encodes it" : "does not encode it");
+                CHECK_EQ(classifiedDirect, representable);
+            } else {
+                bool representable = isRepresentable(displacement + instructionSize, form.immediateBits);
+                if (classifiedDirect && !representable)
+                    dataLogLn("computeJumpType classifies a ", displacement, "-byte backward branch as Direct but its ", form.immediateBits, "-bit immediate does not encode it");
+                CHECK_EQ(!classifiedDirect || representable, true);
+            }
+        }
+    }
+}
 #endif
 
 // Comprehensive tests for x64 constant materialization
@@ -10315,8 +10535,10 @@ void run(const char* filter) WTF_IGNORES_THREAD_SAFETY_ANALYSIS
     RUN(testShiftAndAdd());
     RUN(testLogicalAndShiftImmediates());
     RUN(testBranchAddSubImmediateSetsFlags());
+    RUN(testBranchSubAndNegCarryIsBorrow());
     RUN(testStore64Imm64AddressPointer());
     RUN(testLoad64ExtendedAddress());
+    RUN(testBranchTest16ExtendedAddress());
 
     RUN(testAdd32Imm());
     RUN(testAdd32ArgImm());
@@ -10467,6 +10689,7 @@ void run(const char* filter) WTF_IGNORES_THREAD_SAFETY_ANALYSIS
     RUN(testPushToSaveAddress());
     RUN(testRepatchConditionalJump());
     RUN(testTestBitBranchCompaction());
+    RUN(testConditionalBranchCompactionAtDirectRangeBoundary());
     RUN(testProbePCIsFirstInstructionAfterProbe());
 #endif
 
@@ -10575,6 +10798,7 @@ void run(const char* filter) WTF_IGNORES_THREAD_SAFETY_ANALYSIS
     RUN(testMove16ToFloat16Comprehensive());
     RUN(testFMovHalfPrecisionEncoding());
     RUN(testCanEmitJumpMatchesBranchEncoding());
+    RUN(testComputeJumpTypeMatchesBranchEncoding());
     RUN(testCachedTempRegisterImm32Normalization());
     RUN(testARM64ZeroRegisterEncoding());
     RUN(testARM64FmovTopEncoding());

@@ -660,8 +660,10 @@ void Internals::resetToConsistentState(Page& page)
     page.setPageScaleFactor(1, IntPoint(0, 0));
     LayoutIntegration::LineLayout::setCollectsLayoutInfoForTesting(false);
     page.setPagination(Pagination());
+    page.setUserInterfaceLayoutDirection(WebCore::UserInterfaceLayoutDirection::LTR);
 
     CachedMatchFinder::setMaximumRunCountForTesting(std::nullopt);
+    UserGestureToken::setMaximumIntervalForUserGestureForwardingForFetchForTesting(std::nullopt);
 
     if (auto enabled = std::exchange(trackingPreventionEnabledBeforeTest(), std::nullopt))
         DeprecatedGlobalSettings::setTrackingPreventionEnabled(*enabled);
@@ -761,6 +763,9 @@ void Internals::resetToConsistentState(Page& page)
     page.setLowPowerModeEnabledOverrideForTesting(std::nullopt);
     page.setAggressiveThermalMitigationEnabledForTesting(std::nullopt);
     page.setOutsideViewportThrottlingEnabledForTesting(false);
+#if ENABLE(ACCESSIBILITY_VIDEO_AUTOPLAY_CONTROL)
+    page.setVideoAutoplayPreviewsEnabled(true);
+#endif
 
 #if USE(QUICK_LOOK)
     MockPreviewLoaderClient::singleton().setPassword(emptyString());
@@ -788,6 +793,11 @@ void Internals::resetToConsistentState(Page& page)
 
     page.setFullscreenAutoHideDuration(0_s);
     page.setFullscreenInsets({ });
+
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    if (PlatformScreen::singleton()->screenContentsFormatsForTesting())
+        PlatformScreen::updateSingletonContentsFormatsForTesting({ });
+#endif
 
     PlatformMediaEngineConfigurationFactory::disableMock();
 
@@ -1770,7 +1780,21 @@ Node* Internals::shadowRoot(Element& host)
         host.updateUserAgentShadowTree();
         protect(host.document())->removeElementWithPendingUserAgentShadowTreeUpdate(host);
     }
+#if ENABLE(VIDEO)
+    if (RefPtr mediaElement = dynamicDowncast<HTMLMediaElement>(host))
+        mediaElement->ensureDeferredMediaControls();
+#endif
     return host.shadowRoot();
+}
+
+void Internals::scheduleDeferredMediaControlsBuild(Element& host)
+{
+#if ENABLE(VIDEO)
+    if (RefPtr mediaElement = dynamicDowncast<HTMLMediaElement>(host))
+        mediaElement->scheduleEnsureDeferredMediaControls();
+#else
+    UNUSED_PARAM(host);
+#endif
 }
 
 ExceptionOr<String> Internals::shadowRootType(const Node& root) const

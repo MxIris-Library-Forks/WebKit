@@ -6985,6 +6985,13 @@ public:
         return Jump(m_assembler.jCC(x86Condition(cond)));
     }
 
+    Jump branchSub64(ResultCondition cond, RegisterID src1, RegisterID src2, RegisterID dest)
+    {
+        ASSERT(src1 == dest || src2 != dest);
+        move(src1, dest);
+        return branchSub64(cond, src2, dest);
+    }
+
     Jump branchSub64(ResultCondition cond, RegisterID src1, TrustedImm32 src2, RegisterID dest)
     {
         move(src1, dest);
@@ -7247,7 +7254,7 @@ public:
         TrustedImm32 mask16(static_cast<int16_t>(mask.m_value));
         TrustedImmPtr addr(reinterpret_cast<void*>(address.offset));
         move(addr, scratchRegister());
-        return branchTest16(cond, BaseIndex(scratchRegister(), address.base, TimesOne), mask16);
+        return branchTest16(cond, BaseIndex(scratchRegister(), address.base, TimesTwo), mask16);
     }
 
     Jump branchTest16(ResultCondition cond, AbsoluteAddress address, TrustedImm32 mask = TrustedImm32(-1))

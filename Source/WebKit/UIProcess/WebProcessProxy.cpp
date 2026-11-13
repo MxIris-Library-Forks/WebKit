@@ -270,7 +270,7 @@ static bool isMainThreadOrCheckDisabled()
 
 WebProcessProxy::WebProcessProxyMap& WebProcessProxy::allProcessMap()
 {
-    ASSERT(isMainThreadOrCheckDisabled());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThreadOrCheckDisabled());
     static NeverDestroyed<WebProcessProxy::WebProcessProxyMap> map;
     return map;
 }
@@ -305,7 +305,7 @@ Ref<WebProcessProxy> WebProcessProxy::fromConnection(const IPC::Connection& conn
 
 auto WebProcessProxy::globalPageMap() -> WebPageProxyMap&
 {
-    ASSERT(isMainThreadOrCheckDisabled());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThreadOrCheckDisabled());
     static NeverDestroyed<WebPageProxyMap> pageMap;
     return pageMap;
 }
@@ -1867,6 +1867,53 @@ void WebProcessProxy::didClose(IPC::Connection& connection)
     processDidTerminateOrFailedToLaunch(terminationReason());
 }
 
+struct PageProcessTermination {
+    Ref<WebPageProxy> page;
+    ProcessTerminationScope scope;
+    Vector<Ref<RemotePageProxy>> remotePages;
+};
+
+// Must run before shutDown(), which disconnects the frames and remote pages that this inspects.
+// Pages whose main frame was in this process come first, so their clients are notified first.
+Vector<PageProcessTermination> WebProcessProxy::classifyAffectedPagesUponTermination() const
+{
+    auto affectedPages = WTF::map(mainPages(), [](auto&& page) {
+        return PageProcessTermination { WTF::move(page), ProcessTerminationScope::MainFrame, { } };
+    });
+
+    auto ensurePage = [&](Ref<WebPageProxy>&& page) -> PageProcessTermination& {
+        auto index = affectedPages.findIf([&](auto& termination) {
+            return termination.page.ptr() == page.ptr();
+        });
+        if (index != notFound)
+            return affectedPages[index];
+        affectedPages.append(PageProcessTermination { WTF::move(page), ProcessTerminationScope::NoFrames, { } });
+        return affectedPages.last();
+    };
+
+    for (Ref remotePage : m_remotePages) {
+        RefPtr page = remotePage->page();
+        if (!page || page->isClosed())
+            continue;
+        if (auto& termination = ensurePage(page.releaseNonNull()); termination.scope != ProcessTerminationScope::MainFrame)
+            termination.remotePages.append(WTF::move(remotePage));
+    }
+
+    // A provisional main frame load that took over the page's RemotePageProxy in this process
+    // removed it from m_remotePages, so look for the page's committed frames here too.
+    for (Ref provisionalPage : m_provisionalPages) {
+        if (RefPtr page = provisionalPage->page(); page && !page->isClosed() && page->hasCommittedFrameInProcess(*this))
+            ensurePage(page.releaseNonNull());
+    }
+
+    for (auto& termination : borrow(affectedPages)) {
+        if (termination.scope != ProcessTerminationScope::MainFrame && protect(termination.page)->hasCommittedFrameInProcess(*this))
+            termination.scope = ProcessTerminationScope::Subframes;
+    }
+
+    return affectedPages;
+}
+
 void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReason reason)
 {
     WEBPROCESSPROXY_RELEASE_LOG_ERROR(Process, "processDidTerminateOrFailedToLaunch: reason=%" PUBLIC_LOG_STRING, processTerminationReasonToString(reason).characters());
@@ -1874,6 +1921,8 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
     // Protect ourselves, as the call to shutDown() below may otherwise cause us
     // to be deleted before we can finish our work.
     Ref protectedThis { *this };
+
+    auto pid = processID();
 
     const Vector pages = mainPages();
 
@@ -1885,7 +1934,7 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
         return provisionalPages;
     }();
 
-    const auto remotePages = copyToVectorOf<Ref<RemotePageProxy>>(m_remotePages);
+    auto affectedPages = classifyAffectedPagesUponTermination();
 
     auto isResponsiveCallbacks = std::exchange(m_isResponsiveCallbacks, { });
     for (auto& callback : borrow(isResponsiveCallbacks))
@@ -1909,7 +1958,7 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
         routingArbitrator->processDidTerminate();
 #endif
 
-    // There is a nested transaction in WebPageProxy::resetStateAfterProcessExited() that we don't want to commit before the client call below (dispatchProcessDidTerminate).
+    // There is a nested transaction in WebPageProxy::resetStateAfterProcessExited() that we don't want to commit before the client calls below.
     auto pageLoadStateTransactions = WTF::map(pages, [&](auto& page) {
         auto transaction = protect(page->pageLoadState())->transaction();
         page->resetStateAfterProcessTermination(reason);
@@ -1919,16 +1968,23 @@ void WebProcessProxy::processDidTerminateOrFailedToLaunch(ProcessTerminationReas
     for (auto& provisionalPage : provisionalPages)
         provisionalPage->processDidTerminate();
 
-    for (auto& page : pages)
-        page->dispatchProcessDidTerminate(*this, reason);
-
-    for (auto& remotePage : remotePages) {
-        if (remotePage->isDisconnected())
+    for (const auto& termination : borrow(affectedPages)) {
+        Ref page = termination.page;
+        if (termination.scope == ProcessTerminationScope::MainFrame) {
+            page->mainFrameProcessDidTerminate(*this);
             continue;
-        if (RefPtr page = remotePage->page(); !page || page->isClosed())
-            continue;
-        remotePage->processDidTerminate(*this, reason);
+        }
+        for (Ref remotePage : termination.remotePages) {
+            if (!remotePage->isDisconnected())
+                remotePage->processDidTerminate();
+        }
+        page->nonMainFrameProcessDidTerminate(*this);
     }
+
+    // Notify clients only after updating every affected page, because a callback can reload or
+    // close other pages.
+    for (const auto& termination : borrow(affectedPages))
+        protect(termination.page)->dispatchProcessDidTerminate(pid, termination.scope, reason);
 }
 
 void WebProcessProxy::didReceiveInvalidMessage(IPC::Connection& connection, IPC::MessageName messageName, const Vector<uint32_t>& indexOfObjectFailingDecoding)
@@ -4062,7 +4118,7 @@ static void releasePendingFrames(const Vector<UniqueRef<OffscreenCanvasPlacehold
 // any process the canvas was transferred to.
 static HashMap<WebCore::PlaceholderRenderingContextIdentifier, UniqueRef<OffscreenCanvasPlaceholder>>& offscreenCanvasPlaceholders()
 {
-    ASSERT(isMainThreadOrCheckDisabled());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThreadOrCheckDisabled());
     static NeverDestroyed<HashMap<WebCore::PlaceholderRenderingContextIdentifier, UniqueRef<OffscreenCanvasPlaceholder>>> placeholders;
     return placeholders;
 }
@@ -4180,7 +4236,7 @@ WTF_MAKE_STRUCT_TZONE_ALLOCATED_IMPL(CommittedOffscreenCanvasPlaceholderFrame);
 
 static HashMap<WebCore::PlaceholderRenderingContextIdentifier, UniqueRef<CommittedOffscreenCanvasPlaceholderFrame>>& offscreenCanvasPlaceholderFramesAwaitingOwner()
 {
-    ASSERT(isMainThreadOrCheckDisabled());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThreadOrCheckDisabled());
     static NeverDestroyed<HashMap<WebCore::PlaceholderRenderingContextIdentifier, UniqueRef<CommittedOffscreenCanvasPlaceholderFrame>>> frames;
     return frames;
 }

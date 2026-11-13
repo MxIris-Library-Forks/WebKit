@@ -47,6 +47,7 @@ view-gestures [ Pass ]
 http/tests/swipe [ Pass ]
 http/tests/ipc/cocoa [ Pass ]
 http/tests/pdf [ Pass ]
+[ GoldenGate+ ] http/wpt/phone-number-possession [ Pass ]
 pdf [ Pass ]
 tiled-drawing [ Pass ]
 ipc/cocoa [ Pass ]
@@ -1239,6 +1240,10 @@ webkit.org/b/320158 [ x86_64 ] fast/canvas/hdr/float16-canvas-imagedata-small-ac
 [ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-accelerated-no-gpu-process.html [ Skip ]
 [ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-unaccelerated.html [ Skip ]
 [ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-unaccelerated-no-gpu-process.html [ Skip ]
+[ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-tone-mapping-extended-accelerated.html [ Skip ]
+[ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-tone-mapping-extended-unaccelerated.html [ Skip ]
+[ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-tone-mapping-standard-accelerated.html [ Skip ]
+[ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-image-tone-mapping-standard-unaccelerated.html [ Skip ]
 [ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-imagebitmap-image-accelerated.html [ Skip ]
 [ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-imagebitmap-image-accelerated-display-p3.html [ Skip ]
 [ Sequoia ] fast/canvas/hdr/float16-canvas-drawimage-imagebitmap-image-accelerated-no-gpu-process.html [ Skip ]
@@ -2637,19 +2642,6 @@ webkit.org/b/330805 [ GoldenGate ] tiled-drawing/scrolling/scroll-snap/scroll-sn
 [ GoldenGate ] webgl/video-formats/upload-path-av1-420-bt709-videorange.html [ Failure ]
 [ GoldenGate ] fast/scrolling/mac/rubberband-overflow-in-wheel-region.html [ Timeout ]
 
-# webkit.org/b/318157 11x imported/w3c/web-platform-tests/IndexedDB/* (layout-tests) are constant text failures.
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/interleaved-cursors-small.any.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/interleaved-cursors-small.any.sharedworker.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/interleaved-cursors-small.any.worker.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.any.html [ Failure Timeout ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.any.serviceworker.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.any.sharedworker.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large-multiple.any.worker.html [ Failure ]
-[ Debug x86_64 ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large.any.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large.any.serviceworker.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large.any.sharedworker.html [ Failure ]
-[ Debug ] imported/w3c/web-platform-tests/IndexedDB/nested-cloning-large.any.worker.html [ Failure ]
-
 # webkit.org/b/304362 REGRESSION(Tahoe): editing/selection/select-across-readonly-input* broken by Liquid Glass
 editing/selection/select-across-readonly-input-2.html [ Failure ]
 editing/selection/select-across-readonly-input-3.html [ Failure ]
@@ -2700,3 +2692,9 @@ webkit.org/b/329010 [ Tahoe+ ] compositing/filters/filter-fractional-translation
 webkit.org/b/329900 [ Sequoia+ Debug arm64 ] http/tests/site-isolation/inspector/debugger/pause-holds-cross-process-frames-until-paused-frame-goes-away.html [ Pass Timeout ]
 
 webkit.org/b/329901 [ Sequoia+ Debug arm64 ] http/tests/security/xss-DENIED-xsl-document-securityOrigin.xml [ Pass Failure Timeout ]
+
+webkit.org/b/331276 [ Debug arm64 ] http/tests/security/contentSecurityPolicy/blob-url-inherits-multiple-csp-policies.html [ Pass Failure ]
+
+webkit.org/b/331277 [ Sequoia+ arm64 ] fast/forms/datetimelocal/datetimelocal-editable-components/datetimelocal-editable-components-focus-and-blur-events.html [ Pass Failure ]
+
+webkit.org/b/298476 [ GoldenGate Debug arm64 ] http/tests/canvas/color-fonts/ctm-sbix-2.html [ Pass Crash ]

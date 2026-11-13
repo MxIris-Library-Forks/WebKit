@@ -572,14 +572,14 @@ static constexpr Seconds tryCloseTimeoutDelay = 50_ms;
 
 NODELETE static WeakListHashSet<WebPageProxy>& leastRecentlyVisiblePages()
 {
-    ASSERT(RunLoop::isMain());
+    ASSERT_WITH_SECURITY_IMPLICATION(RunLoop::isMain());
     static NeverDestroyed<WeakListHashSet<WebPageProxy>> pages;
     return pages;
 }
 
 NODELETE static WeakListHashSet<WebPageProxy>& leastRecentlyHiddenPages()
 {
-    ASSERT(RunLoop::isMain());
+    ASSERT_WITH_SECURITY_IMPLICATION(RunLoop::isMain());
     static NeverDestroyed<WeakListHashSet<WebPageProxy>> pages;
     return pages;
 }
@@ -952,13 +952,13 @@ WebPageProxy* WebPageProxy::fromIdentifier(std::optional<WebPageProxyIdentifier>
     return identifier ? webPageProxyMap().get(*identifier) : nullptr;
 }
 
-static Ref<BrowsingContextGroup> getOrCreateBrowsingContextGroup(const API::PageConfiguration& configuration)
+static Ref<BrowsingContextGroup> getOrCreateBrowsingContextGroup(const API::PageConfiguration& configuration, const WebProcessProxy& process)
 {
     Ref websiteDataStore = configuration.websiteDataStore();
-    if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup(); preferredBrowsingContextGroup && preferredBrowsingContextGroup->websiteDataStore() == websiteDataStore.ptr())
+    if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup(); preferredBrowsingContextGroup && preferredBrowsingContextGroup->websiteDataStore() == websiteDataStore.ptr() && enhancedSecurityStatesAreConsistent(preferredBrowsingContextGroup->enhancedSecurity(), process.enhancedSecurity()))
         return *preferredBrowsingContextGroup;
 
-    return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore);
+    return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, process.enhancedSecurity());
 }
 
 WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref<API::PageConfiguration>&& configuration)
@@ -1018,7 +1018,7 @@ WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref
     , m_ignoresAppBoundDomains(m_configuration->ignoresAppBoundDomains())
     , m_limitsNavigationsToAppBoundDomains(m_configuration->limitsNavigationsToAppBoundDomains())
 #endif
-    , m_browsingContextGroup(getOrCreateBrowsingContextGroup(m_configuration))
+    , m_browsingContextGroup(getOrCreateBrowsingContextGroup(m_configuration, process))
     , m_openerFrameIdentifier(configuration->openerInfo() ? std::optional(configuration->openerInfo()->frameID) : std::nullopt)
 #if HAVE(AUDIT_TOKEN)
     , m_presentingApplicationAuditToken(process.processPool().configuration().presentingApplicationProcessToken())
@@ -1533,7 +1533,7 @@ void WebPageProxy::launchProcess(const Site& site, ProcessLaunchReason reason)
         m_legacyMainFrameProcess = relatedPage->ensureRunningProcess();
         WEBPAGEPROXY_RELEASE_LOG(Loading, "launchProcess: Using process (process=%p, PID=%i) from related page", m_legacyMainFrameProcess.ptr(), m_legacyMainFrameProcess->processID());
     } else
-        m_legacyMainFrameProcess = processPool->processForSite(protect(websiteDataStore()), WebProcessProxy::IsolatedProcessType::MainFrame, site, site, shouldEnableLockdownMode() ? WebProcessProxy::LockdownMode::Enabled : WebProcessProxy::LockdownMode::Disabled, currentEnhancedSecurityState(), m_configuration, WebCore::ProcessSwapDisposition::None, processCrossOriginIsolationForBrowsingContextGroup(crossOriginMode));
+        m_legacyMainFrameProcess = processPool->processForSite(protect(websiteDataStore()), WebProcessProxy::IsolatedProcessType::MainFrame, site, site, shouldEnableLockdownMode() ? WebProcessProxy::LockdownMode::Enabled : WebProcessProxy::LockdownMode::Disabled, protect(browsingContextGroup())->enhancedSecurity(), m_configuration, WebCore::ProcessSwapDisposition::None, processCrossOriginIsolationForBrowsingContextGroup(crossOriginMode));
 
     m_shouldReloadDueToCrashWhenVisible = false;
     m_isLockdownModeExplicitlySet = m_configuration->isLockdownModeExplicitlySet();
@@ -1582,7 +1582,7 @@ bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, con
     mainFrame->frameLoadState().didSuspend();
 
     // The page stays in its current process until swapToProvisionalPage().
-    Ref placeholderBrowsingContextGroup = BrowsingContextGroup::create(protect(m_browsingContextGroup)->crossOriginMode(), *protect(protect(m_browsingContextGroup)->websiteDataStore()));
+    Ref placeholderBrowsingContextGroup = BrowsingContextGroup::create(protect(m_browsingContextGroup)->crossOriginMode(), *protect(protect(m_browsingContextGroup)->websiteDataStore()), protect(m_browsingContextGroup)->enhancedSecurity());
     Ref suspendedPage = SuspendedPageProxy::create(*this, protect(legacyMainFrameProcess()), mainFrame.releaseNonNull(), std::exchange(m_browsingContextGroup, WTF::move(placeholderBrowsingContextGroup)));
     std::optional<BackForwardFrameItemIdentifier> mainFrameItemID;
     Ref preferences = this->preferences();
@@ -4656,7 +4656,7 @@ void WebPageProxy::dragEntered(DragData& dragData, const String& dragStorageName
     WebPasteboardProxy::singleton().grantAccessToCurrentTypes(protect(m_legacyMainFrameProcess), dragStorageName);
 #endif
     launchInitialProcessIfNecessary();
-    performDragControllerAction(DragControllerAction::Entered, dragData);
+    performDragControllerAction(DragControllerAction::Entered, dragData, ++internals().lastDragEventNumber);
 }
 
 void WebPageProxy::dragUpdated(DragData& dragData, const String& dragStorageName)
@@ -4664,12 +4664,22 @@ void WebPageProxy::dragUpdated(DragData& dragData, const String& dragStorageName
 #if PLATFORM(COCOA)
     WebPasteboardProxy::singleton().grantAccessToCurrentTypes(protect(m_legacyMainFrameProcess), dragStorageName);
 #endif
-    performDragControllerAction(DragControllerAction::Updated, dragData);
+    performDragControllerAction(DragControllerAction::Updated, dragData, ++internals().lastDragEventNumber);
 }
 
 void WebPageProxy::dragExited(DragData& dragData)
 {
-    performDragControllerAction(DragControllerAction::Exited, dragData);
+    auto dragEventNumber = ++internals().lastDragEventNumber;
+    auto targets = std::exchange(internals().outdatedDragTargets, { });
+    if (auto lastTarget = std::exchange(internals().lastDragTarget, std::nullopt))
+        targets.append(*lastTarget);
+    internals().lastResolvedDragEventNumber = dragEventNumber;
+
+    for (auto& target : borrow(targets)) {
+        if (target.frameID)
+            sendDragExitedToFrame(target.frameID, target.clientPosition, dragData);
+    }
+    performDragControllerAction(DragControllerAction::Exited, dragData, dragEventNumber);
 }
 
 #if PLATFORM(COCOA)
@@ -4736,6 +4746,10 @@ void WebPageProxy::performDragOperation(DragData& dragData, const String& dragSt
     if (!hasRunningProcess())
         return;
 
+    // FIXME: A drop isn't resolved like Entered and Updated, so a frame that replies to an older event after it, or is still in
+    // outdatedDragTargets, isn't sent Exited.
+    ++internals().lastDragEventNumber;
+
     for (auto& fileName : dragData.fileNames())
         protect(legacyMainFrameProcess())->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(fileName));
 
@@ -4746,7 +4760,7 @@ void WebPageProxy::performDragOperation(DragData& dragData, const String& dragSt
     else if (!dragData.fileNames().isEmpty())
         protect(protect(websiteDataStore())->networkProcess())->sendWithAsyncReply(Messages::NetworkProcess::AllowFilesAccessFromWebProcess(siteIsolatedProcess().coreProcessIdentifier(), dragData.fileNames()), [] { });
 
-    performDragControllerAction(DragControllerAction::PerformDragOperation, dragData);
+    performDragControllerAction(DragControllerAction::PerformDragOperation, dragData, internals().lastDragEventNumber);
 #elif PLATFORM(COCOA)
     grantAccessToCurrentPasteboardData(dragStorageName, [weakThis = WeakPtr { *this }, dragStorageName, dragData = WTF::move(dragData), sandboxExtensionHandle = WTF::move(sandboxExtensionHandle), sandboxExtensionsForUpload = WTF::move(sandboxExtensionsForUpload)] () mutable {
         RefPtr protectedThis = weakThis.get();
@@ -4782,22 +4796,24 @@ void WebPageProxy::performDragOperation(DragData& dragData, const String& dragSt
 #endif
 }
 
-void WebPageProxy::performDragControllerAction(DragControllerAction action, DragData& dragData, const std::optional<WebCore::FrameIdentifier>& frameID)
+void WebPageProxy::performDragControllerAction(DragControllerAction action, DragData& dragData, uint64_t dragEventNumber, const std::optional<WebCore::FrameIdentifier>& frameID)
 {
     if (!hasRunningProcess())
         return;
 
-    auto completionHandler = [this, protectedThis = Ref { *this }, action, dragData, frameID] (std::optional<WebCore::DragOperation> dragOperation, WebCore::DragHandlingMethod dragHandlingMethod, bool mouseIsOverFileInput, unsigned numberOfItemsToBeAccepted, const IntRect& insertionRect, const IntRect& editableElementRect, std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) mutable {
+    auto completionHandler = [this, protectedThis = Ref { *this }, action, dragData, dragEventNumber, frameID](std::optional<WebCore::DragOperation> dragOperation, WebCore::DragHandlingMethod dragHandlingMethod, bool mouseIsOverFileInput, unsigned numberOfItemsToBeAccepted, const IntRect& insertionRect, const IntRect& editableElementRect, std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) mutable {
         if (!m_pageClient)
             return;
 
         if (!remoteUserInputEventData) {
             internals().currentDragTargetFrameID = frameID;
+            if (action == DragControllerAction::Entered || action == DragControllerAction::Updated)
+                dragWasHandledInFrame(dragEventNumber, frameID, dragData);
             didPerformDragControllerAction(dragOperation, dragHandlingMethod, mouseIsOverFileInput, numberOfItemsToBeAccepted, insertionRect, editableElementRect);
             return;
         }
         dragData.setClientPosition(roundedIntPoint(remoteUserInputEventData->transformedPoint));
-        performDragControllerAction(action, dragData, remoteUserInputEventData->targetFrameID);
+        performDragControllerAction(action, dragData, dragEventNumber, remoteUserInputEventData->targetFrameID);
     };
 #if PLATFORM(GTK) || PLATFORM(WPE)
     ASSERT(dragData.platformData());
@@ -4839,6 +4855,57 @@ void WebPageProxy::didPerformDragControllerAction(std::optional<WebCore::DragOpe
     setDragCaretRect(insertionRect);
     if (RefPtr pageClient = this->pageClient())
         pageClient->didPerformDragControllerAction();
+}
+
+void WebPageProxy::dragWasHandledInFrame(uint64_t dragEventNumber, const std::optional<FrameIdentifier>& frameID, const DragData& dragData)
+{
+    Internals::DragTarget target { frameID, dragData.clientPosition() };
+    Ref process = processContainingFrame(frameID);
+
+    // A forwarded event replies after more round trips, so replies can arrive out of order. Only the newest event's reply
+    // sets the target; a frame that handled an older one gets Exited once the target is known to be in another process.
+    if (dragEventNumber == internals().lastDragEventNumber) {
+        auto previousTargets = std::exchange(internals().outdatedDragTargets, { });
+        if (auto previousTarget = std::exchange(internals().lastDragTarget, WTF::move(target)))
+            previousTargets.append(*previousTarget);
+        internals().lastResolvedDragEventNumber = dragEventNumber;
+
+        // FIXME: A frame the drag left in the same process doesn't get dragleave, but Exited would also reset the drag caret
+        // and file input state of the frame the drag is now over.
+        for (auto& previousTarget : borrow(previousTargets)) {
+            if (processContainingFrame(previousTarget.frameID).ptr() != process.ptr())
+                sendDragExitedToFrame(previousTarget.frameID, previousTarget.clientPosition, dragData);
+        }
+        return;
+    }
+
+    auto& lastTarget = internals().lastDragTarget;
+    if (internals().lastResolvedDragEventNumber == internals().lastDragEventNumber) {
+        if (frameID && (!lastTarget || processContainingFrame(lastTarget->frameID).ptr() != process.ptr()))
+            sendDragExitedToFrame(frameID, target.clientPosition, dragData);
+        return;
+    }
+
+    if (lastTarget && lastTarget->frameID == frameID)
+        return;
+    if (!internals().outdatedDragTargets.containsIf([&](auto& outdatedTarget) { return outdatedTarget.frameID == frameID; }))
+        internals().outdatedDragTargets.append(WTF::move(target));
+}
+
+void WebPageProxy::sendDragExitedToFrame(const std::optional<FrameIdentifier>& frameID, const IntPoint& clientPosition, const DragData& dragData)
+{
+#if PLATFORM(GTK) || PLATFORM(WPE)
+    UNUSED_PARAM(frameID);
+    UNUSED_PARAM(clientPosition);
+    UNUSED_PARAM(dragData);
+#else
+    if (frameID && !WebFrameProxy::webFrame(frameID))
+        return;
+
+    DragData exitedDragData { dragData };
+    exitedDragData.setClientPosition(clientPosition);
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformDragControllerAction(frameID, DragControllerAction::Exited, exitedDragData), [](std::optional<WebCore::DragOperation>, WebCore::DragHandlingMethod, bool, unsigned, const IntRect&, const IntRect&, std::optional<WebCore::RemoteUserInputEventData>) { });
+#endif
 }
 
 #if PLATFORM(GTK) || PLATFORM(WPE)
@@ -4911,6 +4978,8 @@ void WebPageProxy::resetCurrentDragInformation()
     m_currentDragIsOverFileInput = false;
     m_currentDragNumberOfFilesToBeAccepted = 0;
     internals().currentDragTargetFrameID = std::nullopt;
+    internals().lastDragTarget = std::nullopt;
+    internals().outdatedDragTargets.clear();
     setDragCaretRect({ });
 }
 
@@ -5166,7 +5235,7 @@ void WebPageProxy::processNextQueuedMouseEvent()
     if (!m_mainFrame)
         return;
 
-    ASSERT(!internals().mouseEventQueue.isEmpty());
+    ASSERT_WITH_SECURITY_IMPLICATION(!internals().mouseEventQueue.isEmpty());
     m_deferredMouseEvents = 0;
 
     const Ref event = internals().mouseEventQueue.first();
@@ -5219,7 +5288,7 @@ void WebPageProxy::processNextQueuedGestureEvent()
     if (!m_mainFrame)
         return;
 
-    ASSERT(!internals().gestureEventQueue.isEmpty());
+    ASSERT_WITH_SECURITY_IMPLICATION(!internals().gestureEventQueue.isEmpty());
     m_deferredGestureEvents = 0;
 
     const Ref event = internals().gestureEventQueue.first();
@@ -6380,7 +6449,7 @@ static BrowsingContextGroupSwitchDecision browsingContextGroupSwitchDecisionForE
     return responseCOOP.value == CrossOriginOpenerPolicyValue::SameOriginPlusCOEP ? BrowsingContextGroupSwitchDecision::NewIsolatedGroup : BrowsingContextGroupSwitchDecision::NewSharedGroup;
 }
 
-Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFrameProxy& frame, API::Navigation& navigation, WebsiteDataStore& websiteDataStore, ProcessSwapRequestedByClient processSwapRequestedByClient)
+Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFrameProxy& frame, API::Navigation& navigation, WebsiteDataStore& websiteDataStore, EnhancedSecurity enhancedSecurity, IsEnhancedSecurityExplicitlySet isEnhancedSecurityExplicitlySet, ProcessSwapRequestedByClient processSwapRequestedByClient)
 {
     // Browsing context group can only be changed for main frame navigation.
     if (!frame.isMainFrame())
@@ -6397,7 +6466,10 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
     bool skipsCrossOriginOpenerPolicyEnforcement = navigation.substituteData() || isLoadedByURLSchemeHandler;
     auto carriedOverGroup = [&](Ref<BrowsingContextGroup>&& group) -> Ref<BrowsingContextGroup> {
         if (skipsCrossOriginOpenerPolicyEnforcement && group->crossOriginMode() == CrossOriginMode::Isolated)
-            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore);
+            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
+        // A heuristic Enhanced Security change doesn't leave a group with other pages, as that would cut this page off from them.
+        if (!enhancedSecurityStatesAreConsistent(group->enhancedSecurity(), enhancedSecurity) && (isEnhancedSecurityExplicitlySet == IsEnhancedSecurityExplicitlySet::Yes || !group->hasPageOtherThan(*this)))
+            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
         return WTF::move(group);
     };
 
@@ -6405,7 +6477,7 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
         return carriedOverGroup(Ref { *targetBackForwardItem->browsingContextGroup() });
 
     if (processSwapRequestedByClient == ProcessSwapRequestedByClient::Yes || !usesSameWebsiteDataStore || (navigation.isRequestFromClientOrUserInput() && !navigation.isFromLoadData() && mainFrameSiteChanges))
-        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore);
+        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
 
     // Under Site Isolation, keeping the current group for a site-changing, non-back/forward main-frame
     // navigation would let the incoming document share a group with the outgoing page once that page enters
@@ -6415,10 +6487,10 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
     // it should get a fresh group here too.
     Ref preferences = this->preferences();
     if (preferences->siteIsolationEnabled() && !preferences->siteIsolationInPlaceBackForwardCacheEnabled() && !navigation.targetItem() && m_mainFrame && mainFrameSiteChanges && !requestedSite.isEmpty() && !protect(m_browsingContextGroup)->hasMultiplePages())
-        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore);
+        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
 
     if (auto decision = navigation.browsingContextGroupSwitchDecisionForEmptyDocument(); decision != BrowsingContextGroupSwitchDecision::StayInGroup)
-        return BrowsingContextGroup::create(decision == BrowsingContextGroupSwitchDecision::NewIsolatedGroup ? CrossOriginMode::Isolated : CrossOriginMode::Shared, websiteDataStore);
+        return BrowsingContextGroup::create(decision == BrowsingContextGroupSwitchDecision::NewIsolatedGroup ? CrossOriginMode::Isolated : CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
 
     return carriedOverGroup(m_browsingContextGroup.copyRef());
 }
@@ -6646,23 +6718,24 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
         emptyDocumentSwitchDecision = browsingContextGroupSwitchDecisionForEmptyDocument(*mainFrame, navigation);
     navigation.setBrowsingContextGroupSwitchDecisionForEmptyDocument(emptyDocumentSwitchDecision);
 
-    Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, processSwapRequestedByClient);
-
     bool isFragmentOnlyMainFrameNavigation = frame.isMainFrame() && isFragmentOnlyNavigation(frame, navigation.currentRequest().url(), navigationAction->navigationType());
 
     if (frame.isMainFrame() && shouldUseEnhancedSecurityHeuristics(preferences) && !isFragmentOnlyMainFrameNavigation)
         internals().enhancedSecurityTracker.trackNavigation(navigation, hasOpenedPage(), internals().pageLoadState.httpFallbackInProgress());
 
     auto enhancedSecurity = securityRestrictionsSourceFrame ? securityRestrictionsSourceFrame->process().enhancedSecurity() : currentEnhancedSecurityState(websitePolicies.get());
+    bool enhancedSecurityExplicitlySet = (websitePolicies && websitePolicies->isEnhancedSecurityExplicitlySet()) || preferences->enhancedSecurityForceDisabled();
+    if (preferences->enhancedSecurityForceDisabled())
+        enhancedSecurity = EnhancedSecurity::Disabled;
 
-    bool enhancedSecurityExplicitlySet = websitePolicies && websitePolicies->isEnhancedSecurityExplicitlySet();
+    Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, enhancedSecurity, enhancedSecurityExplicitlySet ? IsEnhancedSecurityExplicitlySet::Yes : IsEnhancedSecurityExplicitlySet::No, processSwapRequestedByClient);
+
     if (!enhancedSecurityExplicitlySet) {
         if (RefPtr process = browsingContextGroup->processForSite(Site { navigation.currentRequest().url() }))
             enhancedSecurity = process->process().enhancedSecurity();
+        else if (frame.isMainFrame() && !enhancedSecurityStatesAreConsistent(enhancedSecurity, browsingContextGroup->enhancedSecurity()))
+            enhancedSecurity = browsingContextGroup->enhancedSecurity();
     }
-
-    if (preferences->enhancedSecurityForceDisabled())
-        enhancedSecurity = EnhancedSecurity::Disabled;
 
     if (shouldUseEnhancedSecurityHeuristics(preferences) && enhancedSecurity != EnhancedSecurity::EnabledPolicy)
         protect(this->websiteDataStore())->trackEnhancedSecurityForDomain(RegistrableDomain { navigation.currentRequest().url() }, enhancedSecurity);
@@ -6828,7 +6901,7 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             // If re-using the same process for navigation and the site is changing, call ensureProcessForSite for the new site, but don't InjectBrowsingContextIntoProcess
             // since BrowsingContextGroup is already keeping track of the process under the previous site.
             if (frameProcessSite != site)
-                frame->setProcess(protect(this->browsingContextGroup())->ensureProcessForSite(site, mainFrameSite, protect(frame->frameProcess().process()), preferences, LoadedWebArchive::No, BrowsingContextGroupUpdate::AddProcess));
+                frame->setProcess(browsingContextGroupForCommittingNavigation(navigation.ptr())->ensureProcessForSite(site, mainFrameSite, protect(frame->frameProcess().process()), preferences, LoadedWebArchive::No, BrowsingContextGroupUpdate::AddProcess));
         }
 
         if (loadContinuingInNonInitiatingProcess) {
@@ -7836,6 +7909,9 @@ void WebPageProxy::scalePage(double scale, const IntPoint& origin, CompletionHan
         return;
     }
 
+    if (RefPtr drawingArea = m_drawingArea)
+        drawingArea->pageScaleWillChangeOutsideOfZoomGesture();
+
     m_pageScaleFactor = scale;
     pageScaleFactorDidChange();
 
@@ -7859,6 +7935,9 @@ void WebPageProxy::scalePageInViewCoordinates(double scale, const IntPoint& cent
         WEBPAGEPROXY_RELEASE_LOG_ERROR(ViewState, "scalePageInViewCoordinates: ignoring out-of-range scale factor %f", scale);
         return;
     }
+
+    if (RefPtr drawingArea = m_drawingArea)
+        drawingArea->pageScaleWillChangeOutsideOfZoomGesture();
 
     m_pageScaleFactor = scale;
     pageScaleFactorDidChange();
@@ -9157,7 +9236,7 @@ void WebPageProxy::saveResources(WebFrameProxy* frame, const Vector<WebCore::Mar
             if (!result)
                 error = result.error();
             else if (!originalURLsFileName.isEmpty() && !saveOriginalURLsToDisk(*archive, directory, originalURLsFileName)) {
-                for (auto& filePath : *result)
+                for (auto& filePath : borrow(*result))
                     FileSystem::deleteFile(filePath);
                 error = WebCore::ArchiveError::FileSystemError;
             }
@@ -10386,6 +10465,8 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
             internals().firstLayerTreeTransactionIdAfterDidCommitLoad = drawingAreaProxy->nextMainFrameLayerTreeTransactionID();
         resetFixedContainerEdgeSamplingForMainFrameLoad();
 #endif
+        if (RefPtr drawingArea = m_drawingArea)
+            drawingArea->pageScaleWillChangeOutsideOfZoomGesture();
         internals().pageAllowedToRunInTheBackgroundActivityDueToTitleChanges = nullptr;
         internals().pageAllowedToRunInTheBackgroundActivityDueToNotifications = nullptr;
         internals().didCommitLoadForMainFrameTimestamp = MonotonicTime::now();
@@ -10861,7 +10942,7 @@ void WebPageProxy::handleFrameGeometryUpdates(IPC::Connection& connection, const
 
     Vector<std::pair<Ref<WebFrameProxy>, WebCore::FrameGeometryUpdate>> updatesToRelay;
     std::optional<WebCore::FrameGeometryUpdate> mainFrameUpdateToRelay;
-    for (auto& update : updates) {
+    for (auto& update : borrow(updates)) {
         RefPtr frame = WebFrameProxy::webFrame(update.frameID);
         if (!frame || frame->page() != this || &frame->process() != process.ptr())
             continue;
@@ -10884,7 +10965,7 @@ void WebPageProxy::handleFrameGeometryUpdates(IPC::Connection& connection, const
             return;
 
         Vector<WebCore::FrameGeometryUpdate> updatesForProcess;
-        for (auto& [frame, update] : updatesToRelay) {
+        for (auto& [frame, update] : borrow(updatesToRelay)) {
             std::optional<WebCore::FrameGeometrySyncData> geometry;
             if (update.geometry && processHostsDescendantOfFrame(webProcess, frame))
                 geometry = update.geometry;
@@ -12632,7 +12713,7 @@ void WebPageProxy::triggerBrowsingContextGroupSwitchForNavigation(WebCore::Navig
     Ref dataStore = websiteDataStoreOfLoad(*processLoadingNavigation, protect(websiteDataStore()));
 
     // Adopted in swapToProvisionalPage(), so a navigation that does not commit leaves the page's group alone.
-    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(crossOriginMode, dataStore);
+    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(crossOriginMode, dataStore, processLoadingNavigation->enhancedSecurity());
 
     m_openedMainFrameName = { };
     m_openedByScriptDomain = { };
@@ -12652,31 +12733,6 @@ void WebPageProxy::triggerBrowsingContextGroupSwitchForNavigation(WebCore::Navig
     Ref processForNavigation = protect(m_configuration->processPool())->processForSite(dataStore, WebProcessProxy::IsolatedProcessType::MainFrame, responseSite, responseSite, lockdownMode, enhancedSecurity, m_configuration, WebCore::ProcessSwapDisposition::COOP, processCrossOriginIsolation, coopOrigin, reusableProvisionalProcess.get());
 
     performProcessSwapForNavigationResponse(*navigation, WTF::move(browsingContextGroupForSwap), WTF::move(processForNavigation), WebCore::ProcessSwapDisposition::COOP, loadingWebProcess, existingNetworkResourceLoadIdentifierToResume, originalNavigationStartTime, WTF::move(completionHandler));
-}
-
-// A Site maps to at most one FrameProcess in a BrowsingContextGroup. Moving a site into an enhanced
-// security process is therefore only possible when the process it uses now is used solely by the frame
-// this navigation replaces, so that process is gone by the time the navigation commits. Anything else
-// still using it - a frame in another page of this browsing context group, or the other sites in the
-// shared process - would be stranded in a process the site no longer maps to.
-static bool canMoveSiteToEnhancedSecurityProcess(BrowsingContextGroup& browsingContextGroup, const Site& site, WebFrameProxy* mainFrame, ProvisionalPageProxy* provisionalPage)
-{
-    RefPtr existingFrameProcess = browsingContextGroup.processForSite(site);
-    if (!existingFrameProcess)
-        return true;
-
-    if (existingFrameProcess->isSharedProcess())
-        return false;
-
-    if (!existingFrameProcess->frameCount())
-        return true;
-    if (existingFrameProcess->frameCount() > 1)
-        return false;
-
-    auto usesExistingFrameProcess = [&](WebFrameProxy* frame) {
-        return frame && &frame->frameProcess() == existingFrameProcess.get();
-    };
-    return usesExistingFrameProcess(mainFrame) || usesExistingFrameProcess(provisionalPage ? provisionalPage->mainFrame() : nullptr);
 }
 
 bool WebPageProxy::needsDocumentIsolationPolicyProcess(const URL& url, WebCore::DocumentIsolationPolicyValue headerPolicy, bool isMainFrame) const
@@ -12741,18 +12797,17 @@ void WebPageProxy::triggerProcessSwapForEnhancedSecurity(WebCore::NavigationIden
         || !internals().enhancedSecurityTracker.shouldEnableForInsecureResponse(*navigation, hasOpenedPage()))
         return completionHandler(NavigationResponseWithoutProcessSwap::ResumeLoad);
 
-    Ref browsingContextGroupForSwap = browsingContextGroupForCommittingNavigation(navigation);
-
-    RefPtr provisionalPage = m_provisionalPage;
-
-    if (!canMoveSiteToEnhancedSecurityProcess(browsingContextGroupForSwap, responseSite, mainFrame.get(), provisionalPage.get())) {
-        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "triggerProcessSwapForEnhancedSecurity: declining swap because the site's process is used by frames that outlive this navigation");
+    Ref committingBrowsingContextGroup = browsingContextGroupForCommittingNavigation(navigation);
+    if (committingBrowsingContextGroup->hasPageOtherThan(*this)) {
+        WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "triggerProcessSwapForEnhancedSecurity: declining swap because other pages share the browsing context group");
         return completionHandler(NavigationResponseWithoutProcessSwap::ResumeLoad);
     }
 
     internals().enhancedSecurityTracker.enableFor(EnhancedSecurityReason::InsecureProvisional, *navigation);
 
-    Ref processForNavigation = protect(m_configuration->processPool())->processForSite(websiteDataStoreOfLoad(*processLoadingNavigation, protect(websiteDataStore())), WebProcessProxy::IsolatedProcessType::MainFrame, responseSite, responseSite, processLoadingNavigation->lockdownMode(), EnhancedSecurity::EnabledInsecure, m_configuration, WebCore::ProcessSwapDisposition::None, processCrossOriginIsolationForBrowsingContextGroup(browsingContextGroupForSwap->crossOriginMode()));
+    Ref dataStore = websiteDataStoreOfLoad(*processLoadingNavigation, protect(websiteDataStore()));
+    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(committingBrowsingContextGroup->crossOriginMode(), dataStore, EnhancedSecurity::EnabledInsecure);
+    Ref processForNavigation = protect(m_configuration->processPool())->processForSite(dataStore, WebProcessProxy::IsolatedProcessType::MainFrame, responseSite, responseSite, processLoadingNavigation->lockdownMode(), EnhancedSecurity::EnabledInsecure, m_configuration, WebCore::ProcessSwapDisposition::None, processCrossOriginIsolationForBrowsingContextGroup(browsingContextGroupForSwap->crossOriginMode()));
 
     performProcessSwapForNavigationResponse(*navigation, WTF::move(browsingContextGroupForSwap), WTF::move(processForNavigation), WebCore::ProcessSwapDisposition::None, loadingWebProcess, existingNetworkResourceLoadIdentifierToResume, originalNavigationStartTime, WTF::move(completionHandler));
 }
@@ -13781,6 +13836,38 @@ static VirtualWalletDisposition applyVirtualWalletBehavior(const VirtualWalletBe
 #endif
 
 #if ENABLE(WEB_AUTHN)
+#if ENABLE(WEBDRIVER_BIDI)
+String WebPageProxy::digitalCredentialsAutomationContextID(WebAutomationSession& automationSession, const std::optional<WebCore::FrameIdentifier>& frameID)
+{
+    if (!frameID)
+        return automationSession.handleForWebPageProxy(*this);
+    if (RefPtr frame = WebFrameProxy::webFrame(*frameID); frame && frame->page() == this)
+        return automationSession.effectiveHandleForWebFrameProxy(*frame);
+    return { };
+}
+#endif
+
+void WebPageProxy::hasVirtualWalletForDigitalCredentials(std::optional<WebCore::FrameIdentifier>&& frameID, CompletionHandler<void(bool)>&& completionHandler)
+{
+#if ENABLE(WEBDRIVER_BIDI)
+    using VirtualWalletAction = Inspector::Protocol::BidiDigitalCredentials::VirtualWalletAction;
+    auto willAnswer = [](const std::optional<VirtualWalletBehavior>& behavior) {
+        return behavior && behavior->action != VirtualWalletAction::Clear;
+    };
+    if (isControlledByAutomation()) {
+        if (RefPtr automationSession = configuration().processPool().automationSession()) {
+            if (willAnswer(automationSession->bidiProcessor().digitalCredentialsAgent().behaviorForContext(digitalCredentialsAutomationContextID(*automationSession, frameID))))
+                return completionHandler(true);
+        }
+    }
+    if (willAnswer(internals().testingVirtualWalletBehavior))
+        return completionHandler(true);
+#else
+    UNUSED_PARAM(frameID);
+#endif
+    completionHandler(false);
+}
+
 void WebPageProxy::showDigitalCredentialsChooser(IPC::Connection& connection, std::optional<WebCore::FrameIdentifier>&& frameID, const WebCore::DigitalCredentialsRequestData& requestData, CompletionHandler<void(std::expected<WebCore::DigitalCredentialsResponseData, WebCore::ExceptionData>&&)>&& completionHandler)
 {
     LOG_WITH_STREAM(DigitalCredentials, stream << "WebPageProxy::showDigitalCredentialsChooser() - UIProcess: received IPC from WebProcess for origin: "_s << requestData.topOrigin.toString());
@@ -13811,12 +13898,7 @@ void WebPageProxy::showDigitalCredentialsChooser(IPC::Connection& connection, st
             // BiDi browsing-context id; this matches the id-space SET uses. The
             // end-to-end iframe-scoped test lands with the WKTR actuation bridge
             // (webkit.org/b/306292).
-            String contextID;
-            if (frameID) {
-                if (RefPtr frame = WebFrameProxy::webFrame(*frameID); frame && frame->page() == this)
-                    contextID = automationSession->effectiveHandleForWebFrameProxy(*frame);
-            } else
-                contextID = automationSession->handleForWebPageProxy(*this);
+            String contextID = digitalCredentialsAutomationContextID(*automationSession, frameID);
             const auto walletBehavior = agent.behaviorForContext(contextID);
             if (walletBehavior) {
                 switch (applyVirtualWalletBehavior(*walletBehavior, completionHandler)) {
@@ -15350,7 +15432,7 @@ void WebPageProxy::didChooseFilesForOpenPanelWithDisplayStringAndIcon(const Vect
         if (!protectedThis)
             return;
         if (RefPtr process = openPanelResultListener->process()) {
-            for (auto& fileURL : fileURLs)
+            for (auto& fileURL : borrow(fileURLs))
                 process->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(fileURL));
 #if ENABLE(SANDBOX_EXTENSIONS)
             auto sandboxExtensionHandles = SandboxExtension::createReadOnlyHandlesForFiles("WebPageProxy::didChooseFilesForOpenPanelWithDisplayStringAndIcon"_s, fileURLs);
@@ -16232,18 +16314,56 @@ NODELETE static bool shouldReloadAfterProcessTermination(ProcessTerminationReaso
     return false;
 }
 
-void WebPageProxy::dispatchProcessDidTerminate(WebProcessProxy& process, ProcessTerminationReason reason)
+void WebPageProxy::clearStateForTerminatedProcess(WebProcessProxy& process)
 {
-    WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: reason=%" PUBLIC_LOG_STRING, processTerminationReasonToString(reason).characters());
-
     revokeOutstandingForcedUserActivationsForProcess(process);
 
     m_inspectorController->processDidTerminate(process);
 
-    if (protect(preferences())->siteIsolationEnabled()) {
+    if (protect(preferences())->siteIsolationEnabled())
         processDidBecomeResponsive(process); // Check if all other processes are responsive.
+}
+
+void WebPageProxy::mainFrameProcessDidTerminate(WebProcessProxy& process)
+{
+    clearStateForTerminatedProcess(process);
+
+    if (protect(preferences())->siteIsolationEnabled())
         protect(browsingContextGroup())->processDidTerminate(*this, process);
+}
+
+void WebPageProxy::nonMainFrameProcessDidTerminate(WebProcessProxy& process)
+{
+    stopAllURLSchemeTasks(&process);
+    resetFocusedFrameIfInProcess(process);
+    if (RefPtr drawingArea = m_drawingArea)
+        drawingArea->remotePageProcessDidTerminate(process.coreProcessIdentifier());
+    if (RefPtr mainFrame = m_mainFrame)
+        mainFrame->remoteProcessDidTerminate(process);
+    clearStateForTerminatedProcess(process);
+}
+
+bool WebPageProxy::hasCommittedFrameInProcess(const WebProcessProxy& process) const
+{
+    for (RefPtr frame = m_mainFrame; frame; frame = frame->traverseNext().frame) {
+        if (&frame->process() == &process)
+            return true;
     }
+    return false;
+}
+
+void WebPageProxy::dispatchProcessDidTerminate(ProcessID processID, ProcessTerminationScope scope, ProcessTerminationReason reason)
+{
+    // FIXME: Other reasons, e.g. ExceededMemoryLimit, still report a subframe process kill as a
+    // termination of the page's process, and reload the page if the client doesn't handle it. Tell
+    // the client the actual reason and whether the main frame was affected.
+    if (scope != ProcessTerminationScope::MainFrame && reason == ProcessTerminationReason::Crash)
+        reason = ProcessTerminationReason::NonMainFrameWebContentProcessCrash;
+
+    WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: terminatedPID=%d (%" PUBLIC_LOG_STRING "), reason=%" PUBLIC_LOG_STRING, processID, processTerminationScopeToString(scope).characters(), processTerminationReasonToString(reason).characters());
+
+    if (m_isClosed || scope == ProcessTerminationScope::NoFrames)
+        return;
 
     bool handledByClient = false;
     if (m_loaderClient)
@@ -16252,7 +16372,7 @@ void WebPageProxy::dispatchProcessDidTerminate(WebProcessProxy& process, Process
         handledByClient = m_navigationClient->processDidTerminate(*this, reason);
 
     if (!handledByClient && shouldReloadAfterProcessTermination(reason)) {
-        if (&process != &siteIsolatedProcess() && hasMainFrameNavigationInFlight()) {
+        if (hasMainFrameNavigationInFlight()) {
             WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: Not reloading the page because a main frame navigation is in progress");
             return;
         }
@@ -16292,14 +16412,16 @@ void WebPageProxy::maybeReloadAfterCrashWhenVisible()
 
 bool WebPageProxy::hasMainFrameNavigationInFlight() const
 {
-    if (m_provisionalPage || pageLoadState().isProvisional())
+    // This can be called while handling a process termination, which keeps a PageLoadState
+    // transaction open. So read the uncommitted state, which is the latest one.
+    if (m_provisionalPage || pageLoadState().hasUncommittedProvisionalLoad())
         return true;
 
     if (m_mainFrame && m_mainFrame->hasActiveNavigationPolicyListener())
         return true;
 
     // pendingAPIRequest is not cleared when a load becomes a download, so also check m_navigationState.
-    auto navigationID = pageLoadState().pendingAPIRequest().navigationID;
+    auto navigationID = pageLoadState().uncommittedPendingAPIRequest().navigationID;
     if (!navigationID)
         return false;
     RefPtr navigation = m_navigationState->navigation(*navigationID);
@@ -16843,6 +16965,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.textAutosizingWidth = textAutosizingWidth();
     parameters.mimeTypesWithCustomContentProviders = pageClient ? pageClient->mimeTypesWithCustomContentProviders() : Vector<String> { };
     parameters.deviceOrientation = m_deviceOrientation;
+    parameters.unobscuredSafeAreaInsets = internals().unobscuredSafeAreaInsets;
     parameters.hardwareKeyboardState = protect(protect(m_configuration)->processPool())->cachedHardwareKeyboardState();
     parameters.canShowWhileLocked = m_configuration->canShowWhileLocked();
     parameters.isCapturingScreen = pageClient && pageClient->isScreenBeingCaptured();
@@ -19872,7 +19995,7 @@ void WebPageProxy::getLoadDecisionForIcons(IPC::Connection& connection, const Ve
         MESSAGE_CHECK_BASE(loadIdentifiers.add(icon.first).isNewEntry, connection);
 
 #if PLATFORM(COCOA)
-    for (const auto& [loadIdentifier, icon] : icons) {
+    for (const auto& [loadIdentifier, icon] : borrow(icons)) {
         m_iconLoadingClient->getLoadDecisionForIcon(icon, [this, protectedThis = Ref { *this }, loadIdentifier] (CompletionHandler<void(API::Data*)>&& callback) {
             if (!hasRunningProcess()) {
                 if (callback)
@@ -22027,6 +22150,9 @@ INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::WillInsertFinalDictat
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::DidInsertFinalDictationResult);
 INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::HandleAutocorrectionContextRequest);
 #endif
+#if ENABLE(APP_HIGHLIGHTS)
+INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(WebPage::RestoreAppHighlightsAndScrollToIndex);
+#endif
 #undef INSTANTIATE_SEND_TO_FOCUSED_OR_MAIN_FRAME_PROCESS
 
 #define INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_FOCUSED_OR_MAIN_FRAME_PROCESS(message) \
@@ -22244,7 +22370,7 @@ void WebPageProxy::requestAllTextAndRects(CompletionHandler<void(Vector<Ref<API:
 
         Vector<Ref<API::TextRun>> textRuns;
         for (auto& textAndRects : *textAndRectsByProcess) {
-            for (auto& [text, rect] : textAndRects)
+            for (auto& [text, rect] : borrow(textAndRects))
                 textRuns.append(API::TextRun::create(*protectedThis, WTF::move(text), WTF::move(rect)));
         }
         completion(WTF::move(textRuns));
@@ -22303,7 +22429,7 @@ void WebPageProxy::completeTargetedElementRequest(Vector<WebCore::TargetedElemen
 void WebPageProxy::mergeContentFromRemoteFrames(Vector<WebCore::TargetedElementInfo>&& elements, CompletionHandler<void(Vector<WebCore::TargetedElementInfo>&&)>&& completion)
 {
     HashSet<WebCore::FrameIdentifier> remoteFrameIDs;
-    for (auto& element : elements)
+    for (auto& element : borrow(elements))
         remoteFrameIDs.addAll(element.remoteFrameIdentifiers);
 
     if (remoteFrameIDs.isEmpty())
@@ -22311,7 +22437,7 @@ void WebPageProxy::mergeContentFromRemoteFrames(Vector<WebCore::TargetedElementI
 
     auto contentByFrame = Box<HashMap<WebCore::FrameIdentifier, WebCore::TargetedFrameContent>>::create();
     Ref aggregator = CallbackAggregator::create([elements = WTF::move(elements), contentByFrame, completion = WTF::move(completion)] mutable {
-        for (auto& element : elements) {
+        for (auto& element : borrow(elements)) {
             for (auto frameID : element.remoteFrameIdentifiers) {
                 if (auto iterator = contentByFrame->find(frameID); iterator != contentByFrame->end())
                     WebCore::mergeRemoteFrameContent(element, iterator->value);
@@ -22436,6 +22562,24 @@ void WebPageProxy::takeSnapshotForTargetedElement(const API::TargetedElementInfo
 #endif
 
     sendWithAsyncReply(Messages::WebPage::TakeSnapshotForTargetedElement(info.nodeIdentifier(), info.documentIdentifier()), WTF::move(completion));
+}
+
+void WebPageProxy::cssPageBoxesSnapshotForTesting(const IntSize& defaultPageBoxSize, int defaultPageMargin, CompletionHandler<void(std::optional<ShareableBitmapHandle>&&)>&& completion)
+{
+    if (!hasRunningProcess())
+        return completion({ });
+
+#if PLATFORM(COCOA)
+    if (RefPtr mainFrame = m_mainFrame; shouldUseRemoteSnapshotting(mainFrame.get())) {
+        auto snapshotIdentifier = generateRemoteSnapshotIdentifier();
+        Ref gpuProcess = GPUProcessProxy::getOrCreate();
+        gpuProcess->sinkCompletedSnapshotToBitmap(snapshotIdentifier, mainFrame->frameID(), WTF::move(completion));
+        sendWithAsyncReply(Messages::WebPage::RemoteSnapshotCSSPageBoxesForTesting(defaultPageBoxSize, defaultPageMargin, snapshotIdentifier), gpuProcess->releaseSnapshotIfRootFails(snapshotIdentifier));
+        return;
+    }
+#endif
+
+    sendWithAsyncReply(Messages::WebPage::SnapshotCSSPageBoxesForTesting(defaultPageBoxSize, defaultPageMargin), WTF::move(completion));
 }
 
 void WebPageProxy::hasTextExtractionFilterRules(CompletionHandler<void(bool)>&& completion)

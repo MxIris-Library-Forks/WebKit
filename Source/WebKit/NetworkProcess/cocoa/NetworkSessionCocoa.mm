@@ -882,7 +882,7 @@ static NSDictionary<NSString *, id> *extractResolutionReport(NSError *error)
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveInformationalResponse:(NSHTTPURLResponse *)response
 {
     if (auto networkDataTask = [self existingTask:task]) {
-        ASSERT(RunLoop::isMain());
+        ASSERT_WITH_SECURITY_IMPLICATION(RunLoop::isMain());
 
         // Capture the timestamp when the first interim (1xx) response is received.
         // https://github.com/w3c/resource-timing/pull/408
@@ -907,7 +907,7 @@ static NSDictionary<NSString *, id> *extractResolutionReport(NSError *error)
     auto taskIdentifier = dataTask.taskIdentifier;
     LOG(NetworkSession, "%zu didReceiveResponse", taskIdentifier);
     if (auto networkDataTask = [self existingTask:dataTask]) {
-        ASSERT(RunLoop::isMain());
+        ASSERT_WITH_SECURITY_IMPLICATION(RunLoop::isMain());
 
         NegotiatedLegacyTLS negotiatedLegacyTLS = NegotiatedLegacyTLS::No;
         RetainPtr<NSURLSessionTaskMetrics> taskMetrics = dataTask._incompleteTaskMetrics;
@@ -1570,7 +1570,7 @@ void NetworkSessionCocoa::invalidateAndCancel()
     for (auto& sessionSet : m_perPageSessionSets.values())
         invalidateAndCancelSessionSet(sessionSet.get());
 
-    for (auto& sessionWrapper : m_replacedSessionWrappers) {
+    for (auto& sessionWrapper : borrow(m_replacedSessionWrappers)) {
         [sessionWrapper->session invalidateAndCancel];
         [sessionWrapper->delegate sessionInvalidated];
     }
@@ -1715,10 +1715,17 @@ DMFWebsitePolicyMonitor *NetworkSessionCocoa::deviceManagementPolicyMonitor()
 #endif
 }
 
+bool NetworkSessionCocoa::allowsLegacyCookieAccessFromFileURL(const WebCore::ResourceRequest& request)
+{
+    if (linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::ForbidCookieUseFromFileURLs))
+        return false;
+    return request.firstPartyForCookies().protocolIsFile();
+}
+
 RefPtr<WebSocketTask> NetworkSessionCocoa::createWebSocketTask(WebPageProxyIdentifier webPageProxyID, std::optional<WebCore::FrameIdentifier> frameID, std::optional<WebCore::PageIdentifier> pageID, NetworkSocketChannel& channel, const WebCore::ResourceRequest& originalRequest, const String& protocol, const WebCore::ClientOrigin& clientOrigin, bool hadMainFrameMainResourcePrivateRelayed, bool allowPrivacyProxy, OptionSet<WebCore::AdvancedPrivacyProtections> advancedPrivacyProtections, WebCore::StoredCredentialsPolicy storedCredentialsPolicy, WebCore::IsInitiatedByWorker isInitiatedByWorker)
 {
     auto request = originalRequest;
-    if (WebCore::RegistrableDomain(request.firstPartyForCookies()).isEmpty())
+    if (WebCore::RegistrableDomain(request.firstPartyForCookies()).isEmpty() && !allowsLegacyCookieAccessFromFileURL(request))
         request.setAllowCookies(false);
 
     ASSERT(!request.hasHTTPHeaderField(WebCore::HTTPHeaderName::SecWebSocketProtocol));
@@ -2170,7 +2177,7 @@ bool NetworkSessionCocoa::proxyConfigurationRequiresTCPProtocols() const
 void NetworkSessionCocoa::applyProxyConfigurationToNWParametersForWebTransport(nw_parameters_t parameters)
 {
     if (!m_nwProxyConfigs.isEmpty()) {
-        for (auto& proxyConfig : m_nwProxyConfigs) {
+        for (auto& proxyConfig : borrow(m_nwProxyConfigs)) {
             if (!isProxyTypeTCPOnly(proxyConfig.get()))
                 nw_parameters_add_custom_proxy_config(parameters, proxyConfig.get());
         }

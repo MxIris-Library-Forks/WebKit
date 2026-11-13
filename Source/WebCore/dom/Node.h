@@ -137,7 +137,7 @@ public:
 
     // DOM methods & attributes for Node
 
-    bool hasTagName(const HTMLQualifiedName&) const;
+    NODELETE bool hasTagName(const HTMLQualifiedName&) const;
     bool hasTagName(const MathMLQualifiedName&) const;
     inline bool hasTagName(const SVGQualifiedName&) const;
     virtual String nodeName() const = 0;
@@ -618,7 +618,7 @@ public:
     static auto flagIsParsingChildren() { return std::to_underlying(StateFlag::IsParsingChildren); }
 #endif // ENABLE(JIT)
 
-#if ASSERT_ENABLED
+#if ASSERT_ENABLED || ENABLE(SECURITY_ASSERTIONS)
     bool deletionHasBegun() const { return m_deletionHasBegun; }
 #endif
 
@@ -722,7 +722,7 @@ protected:
     void setIsParsingChildrenFinished() { clearStateFlag(StateFlag::IsParsingChildren); }
     void clearIsParsingChildrenFinished() { setStateFlag(StateFlag::IsParsingChildren); }
 
-    Node(Document&, NodeType, OptionSet<TypeFlag>);
+    NODELETE Node(Document&, NodeType, OptionSet<TypeFlag>);
 
     static constexpr uint32_t s_refCountIncrement = 2;
     static constexpr uint32_t s_refCountMask = ~static_cast<uint32_t>(1);
@@ -792,7 +792,7 @@ protected:
     ExceptionOr<NodeVector> convertNodesOrStringsIntoNodeVector(FixedVector<NodeOrString>&&);
 
 private:
-    Node(ClangVTableWorkaroundTag, Document&);
+    NODELETE Node(ClangVTableWorkaroundTag, Document&);
 
     WEBCORE_EXPORT void removedLastRef();
 
@@ -825,7 +825,7 @@ private:
 
     WEBCORE_EXPORT void notifyInspectorOfRendererChange();
 
-#if ASSERT_ENABLED
+#if ASSERT_ENABLED || ENABLE(SECURITY_ASSERTIONS)
     mutable bool m_inRemovedLastRefFunction { false };
     bool m_deletionHasBegun { false };
 #endif
@@ -857,14 +857,14 @@ NODELETE bool isTouchRelatedEventType(const EventTypeInfo&, const EventTarget&);
 
 ALWAYS_INLINE void Node::ref() const
 {
-    ASSERT(isMainThread());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThread());
     applyRefDuringDestructionCheck();
     m_refCountAndParentBit += s_refCountIncrement;
 }
 
 inline void Node::applyRefDuringDestructionCheck() const
 {
-#if ASSERT_ENABLED
+#if ASSERT_ENABLED || ENABLE(SECURITY_ASSERTIONS)
     if (!deletionHasBegun())
         return;
     WTF::RefCountDebuggerBase::logRefDuringDestruction(this);
@@ -873,13 +873,13 @@ inline void Node::applyRefDuringDestructionCheck() const
 
 ALWAYS_INLINE void Node::deref() const
 {
-    ASSERT(isMainThread());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThread());
 
     ASSERT_WITH_SECURITY_IMPLICATION(refCount());
     auto updatedRefCount = m_refCountAndParentBit - s_refCountIncrement;
     if (!updatedRefCount) {
-        ASSERT(!deletionHasBegun());
-#if ASSERT_ENABLED
+        ASSERT_WITH_SECURITY_IMPLICATION(!deletionHasBegun());
+#if ASSERT_ENABLED || ENABLE(SECURITY_ASSERTIONS)
         m_inRemovedLastRefFunction = true;
 #endif
         const_cast<Node&>(*this).removedLastRef();
@@ -895,7 +895,7 @@ ALWAYS_INLINE unsigned Node::refCount() const
 
 inline ContainerNode* Node::parentNode() const
 {
-    ASSERT(isMainThreadOrGCThread());
+    ASSERT_WITH_SECURITY_IMPLICATION(isMainThreadOrGCThread());
     return m_parentNode.get();
 }
 

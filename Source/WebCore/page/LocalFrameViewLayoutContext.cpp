@@ -102,7 +102,8 @@ public :
         checkAndReportNeedsLayoutError(m_renderView);
 
         // Style-interleaved layout doesn't lay out the content of query containers with unresolved descendants (see RenderBlock::layout()).
-        CheckedRef styleScope = m_renderView.document().styleScope();
+        Ref document = m_renderView.document();
+        CheckedRef styleScope = document->styleScope();
         for (auto* descendant = m_renderView.firstChild(); descendant;) {
             checkAndReportNeedsLayoutError(*descendant);
             if (styleScope->isQueryContainerWithUnresolvedDescendants(dynamicDowncast<Element>(descendant->node()))) {
@@ -218,8 +219,8 @@ void LocalFrameViewLayoutContext::performLayout(bool canDeferUpdateLayerPosition
 {
     Ref frame = this->frame();
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(!document()->inRenderTreeUpdate());
-    ASSERT(LayoutDisallowedScope::isLayoutAllowed());
-    ASSERT(!view().isPainting());
+    ASSERT_WITH_SECURITY_IMPLICATION(LayoutDisallowedScope::isLayoutAllowed());
+    ASSERT_WITH_SECURITY_IMPLICATION(!view().isPainting());
     ASSERT(frame->view() == &view());
     ASSERT(document());
     ASSERT(document()->backForwardCacheState() == Document::NotInBackForwardCache
@@ -1022,7 +1023,7 @@ void LocalFrameViewLayoutContext::popLayoutState()
 bool LocalFrameViewLayoutContext::DetachedRendererList::append(RenderPtr<RenderObject>&& detachedRenderer)
 {
     ASSERT(!detachedRenderer->parent());
-    ASSERT(!detachedRenderer->beingDestroyed());
+    ASSERT_WITH_SECURITY_IMPLICATION(!detachedRenderer->beingDestroyed());
 
     if (detachedRenderer->renderTreeBeingDestroyed())
         return false;

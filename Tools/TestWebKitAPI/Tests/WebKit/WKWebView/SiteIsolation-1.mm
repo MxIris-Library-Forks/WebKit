@@ -44,6 +44,7 @@
 #import "InstanceMethodSwizzler.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <WebCore/Color.h>
+#import <WebKit/WKContentWorldPrivate.h>
 #import <WebKit/WKFrameInfoPrivate.h>
 #import <WebKit/WKHitTestResult.h>
 #import <WebKit/WKJSHandle.h>
@@ -57,6 +58,7 @@
 #import <WebKit/_WKAppHighlight.h>
 #import <WebKit/_WKAppHighlightDelegate.h>
 #import <WebKit/_WKAttachment.h>
+#import <WebKit/_WKContentWorldConfiguration.h>
 #import <WebKit/_WKFrameTreeNode.h>
 #import <WebKit/_WKOverlayScrollbarStyle.h>
 #import <WebKit/_WKResourceLoadInfo.h>
@@ -1620,6 +1622,35 @@ TEST(SiteIsolation, AddAppHighlightWithoutSelectionDoesNotCrashWhenWebProcessesE
     EXPECT_EQ(0U, [delegate storedHighlights].count);
 }
 
+TEST(SiteIsolation, RestoreAppHighlightInFocusedCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr<_WKAppHighlight> highlight;
+    {
+        auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+        RetainPtr delegate = adoptNS([SiteIsolationAppHighlightDelegate new]);
+        [webView _setAppHighlightDelegate:delegate.get()];
+        setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().selectAllChildren(document.body)", _WKSelectionAttributeIsRange);
+        [webView _addAppHighlight];
+        EXPECT_TRUE(Util::waitFor([&] {
+            return [delegate storedHighlights].count == 1;
+        }));
+        highlight = [delegate storedHighlights].firstObject;
+    }
+    ASSERT_NOT_NULL(highlight);
+    EXPECT_WK_STREQ("subframe text", [highlight text]);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server, configurationWithInternals(server).get());
+    [webView _restoreAppHighlights:@[ [highlight highlight] ]];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"internals.numberOfAppHighlights()" inFrame:childFrame.get()] unsignedIntegerValue] == 1;
+    }));
+}
+
 #if PLATFORM(MAC)
 TEST(SiteIsolation, ContextMenuQuickNoteInCrossOriginIframe)
 {
@@ -3085,6 +3116,44 @@ TEST(SiteIsolation, TakeSnapshotOfCrossOriginIframeElement)
     EXPECT_EQ(reader.at(reader.width() / 2, reader.height() / 2), WebCore::Color::green);
 }
 
+TEST(SiteIsolation, TakeSnapshotOfNodeInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<div id='box' style='width: 100px; height: 100px; background: rgb(255, 0, 0);'></div>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_NE([webView mainFrame].info._processIdentifier, [childFrame _processIdentifier]);
+
+    RetainPtr worldConfiguration = adoptNS([_WKContentWorldConfiguration new]);
+    [worldConfiguration setAllowJSHandleCreation:YES];
+    RetainPtr world = [WKContentWorld _worldWithConfiguration:worldConfiguration.get()];
+    RetainPtr<_WKJSHandle> box;
+    EXPECT_TRUE(Util::waitFor([&] {
+        box = [webView querySelector:@"#box" frame:childFrame.get() world:world.get()];
+        return !!box;
+    }));
+
+    __block RetainPtr<CGImageRef> image;
+    __block RetainPtr<NSError> snapshotError;
+    __block bool done = false;
+    [webView _takeSnapshotOfNode:box.get() completionHandler:^(Util::PlatformImage *snapshotImage, NSError *error) {
+        if (snapshotImage)
+            image = Util::convertToCGImage(snapshotImage);
+        snapshotError = error;
+        done = true;
+    }];
+    Util::run(&done);
+    EXPECT_NULL(snapshotError.get());
+    ASSERT_NOT_NULL(image.get());
+    CGImagePixelReader reader { image.get() };
+    EXPECT_WK_STREQ("rgb(255, 0, 0)", reader.cssColorAt(reader.width() / 2, reader.height() / 2));
+}
+
 static RetainPtr<_WKTargetedElementInfo> targetedElementInfoForIframe(TestWKWebView *webView)
 {
     RetainPtr targets = synchronouslyRequestTargetedElementInfoWithSelectors(webView, @[ [NSSet setWithObject:@"#frame"] ]);
@@ -3254,6 +3323,71 @@ TEST(SiteIsolation, TargetedElementInfoOfCrossOriginIframeWithoutMediaOrReplaced
     RetainPtr target = targetedElementInfoForIframe(webView);
     EXPECT_FALSE([target hasAudibleMedia]);
     EXPECT_FALSE([target hasLargeReplacedDescendant]);
+}
+
+TEST(SiteIsolation, TargetedElementInfoOfCrossOriginIframeIncludesMediaAndLinkURLs)
+{
+    RetainPtr<NSData> videoData = [NSData dataWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"video-with-audio" ofType:@"mp4"] options:0 error:NULL];
+    HTTPServer server({
+        { "/mainframe"_s, { "<p>main frame text</p><a href='/main-frame-destination'>main frame link</a><iframe id='frame' src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<p>iframe with video</p><a href='/destination'>link</a><video src='/video-with-audio.mp4' webkit-playsinline loop></video>"_s } },
+        { "/video-with-audio.mp4"_s, { videoData.get() } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    waitForFrameText(webView, { 0 }, @"link");
+    EXPECT_NE([webView firstChildFrame]._processIdentifier, [webView mainFrame].info._processIdentifier);
+
+    RetainPtr target = targetedElementInfoForIframe(webView);
+    EXPECT_EQ(2U, [[target mediaAndLinkURLs] count]);
+    EXPECT_TRUE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://webkit.org/destination"]]);
+    EXPECT_TRUE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://webkit.org/video-with-audio.mp4"]]);
+    EXPECT_FALSE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://example.com/main-frame-destination"]]);
+}
+
+TEST(SiteIsolation, TargetedElementInfoOfNestedCrossOriginIframeIncludesMediaAndLinkURLs)
+{
+    RetainPtr<NSData> videoData = [NSData dataWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"video-with-audio" ofType:@"mp4"] options:0 error:NULL];
+    HTTPServer server({
+        { "/mainframe"_s, { "<p>main frame text</p><iframe id='frame' src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<p>middle frame text</p><iframe src='https://apple.com/nested'></iframe>"_s } },
+        { "/nested"_s, { "<p>nested frame with video</p><a href='/destination'>link</a><video src='/video-with-audio.mp4' webkit-playsinline loop></video>"_s } },
+        { "/video-with-audio.mp4"_s, { videoData.get() } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    waitForFrameText(webView, { 0 }, @"middle frame text");
+    RetainPtr nestedFrame = waitForFrameText(webView, { 0, 0 }, @"nested frame with video");
+    EXPECT_NE([nestedFrame info]._processIdentifier, [webView mainFrame].info._processIdentifier);
+
+    RetainPtr target = targetedElementInfoForIframe(webView);
+    EXPECT_TRUE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://apple.com/destination"]]);
+    EXPECT_TRUE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://apple.com/video-with-audio.mp4"]]);
+}
+
+TEST(SiteIsolation, TargetedElementInfoOfCrossOriginIframeIgnoresMediaAndLinkURLsInOtherIframe)
+{
+    RetainPtr<NSData> videoData = [NSData dataWithContentsOfFile:[NSBundle.test_resourcesBundle pathForResource:@"video-with-audio" ofType:@"mp4"] options:0 error:NULL];
+    HTTPServer server({
+        { "/mainframe"_s, { "<p>main frame text</p><iframe id='frame' src='https://webkit.org/iframe'></iframe><iframe id='other' src='https://apple.com/other'></iframe>"_s } },
+        { "/iframe"_s, { "<p>target iframe without media or links</p>"_s } },
+        { "/other"_s, { "<p>other iframe with video</p><a href='/destination'>link</a><video src='/video-with-audio.mp4' webkit-playsinline loop></video>"_s } },
+        { "/video-with-audio.mp4"_s, { videoData.get() } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    waitForFrameText(webView, { 0 }, @"target iframe without media or links");
+    waitForFrameText(webView, { 1 }, @"link");
+
+    RetainPtr target = targetedElementInfoForIframe(webView);
+    EXPECT_FALSE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://apple.com/destination"]]);
+    EXPECT_FALSE([[target mediaAndLinkURLs] containsObject:[NSURL URLWithString:@"https://apple.com/video-with-audio.mp4"]]);
 }
 
 #if PLATFORM(MAC) && ENABLE(MEDIA_CONTROLS_CONTEXT_MENUS)

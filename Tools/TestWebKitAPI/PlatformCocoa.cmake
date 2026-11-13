@@ -817,6 +817,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/CodingTests.swift
     Tests/WebKit/WKWebView/ContentAutoSizing.swift
     Tests/WebKit/WKWebView/CrossOriginOpenerPolicyAboutBlankTests.swift
+    Tests/WebKit/WKWebView/DigitalCredentialsNetworkProcess.swift
     Tests/WebKit/WKWebView/HTTP2Server.swift
     Tests/WebKit/WKWebView/HTTP3Server.swift
     Tests/WebKit/WKWebView/NavigationResponseProcessSwapTests.swift
@@ -830,6 +831,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationContentsOfAllFramesTests.swift
     Tests/WebKit/WKWebView/SiteIsolationCookieTests.swift
     Tests/WebKit/WKWebView/SiteIsolationDataDetectionTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationDragAndDropTests.swift
     Tests/WebKit/WKWebView/SiteIsolationDragPreviewTests.swift
     Tests/WebKit/WKWebView/SiteIsolationEditableRegionTests.swift
     Tests/WebKit/WKWebView/SiteIsolationEditingTests.swift
@@ -841,6 +843,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/SiteIsolationPolicyDecisionTests.swift
     Tests/WebKit/WKWebView/SiteIsolationPositionInformationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationProvisionalPageTests.swift
+    Tests/WebKit/WKWebView/SiteIsolationSafeAreaInsetsTests.swift
     Tests/WebKit/WKWebView/SiteIsolationServiceWorkerTests.swift
     Tests/WebKit/WKWebView/SiteIsolationSessionStateTests.swift
     Tests/WebKit/WKWebView/SiteIsolationSnapshotTests.swift

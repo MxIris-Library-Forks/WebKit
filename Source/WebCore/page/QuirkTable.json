@@ -115,11 +115,6 @@
             ]
         },
         {
-            "bugs": ["rdar://162447105"],
-            "matches": ["*://*.bbc.co.uk/*", "*://*.bbc.com/*"],
-            "behaviors": [{ "id": "NeedsDarkAppearanceWithoutColorSchemeQuirk" }]
-        },
-        {
             "bugs": ["rdar://136235936"],
             "matches": ["*://*.bestbuy.com/*"],
             "behaviors": [
@@ -517,6 +512,12 @@
             "behaviors": [{ "id": "NeedsFullscreenDisplayNoneQuirk" }]
         },
         {
+            "bugs": ["rdar://162717044"],
+            "comment": "The author bio sits flush against an overflow:hidden column, which clips the auto focus ring drawn outside the border box.",
+            "matches": ["*://*.goodreads.com/*"],
+            "behaviors": [{ "id": "NeedsStyleSheetInjectedQuirk", "styleSheet": ".TruncatedContent:focus-visible, .TruncatedContent__text:focus-visible { outline-offset: inset; }" }]
+        },
+        {
             "bugs": ["rdar://57670064", "rdar://59893415"],
             "comment": "Deliberately not limited to docs.google.com, because of hosted G Suite apps.",
             "matches": ["*://*.google.*/*"],
@@ -564,6 +565,11 @@
                 {
                     "id": "IsTouchBarUpdateSuppressedForHiddenContentEditableQuirk",
                     "bugs": ["https://webkit.org/b/161984"]
+                },
+                {
+                    "id": "MayNeedToIgnoreContentObservation",
+                    "elementSelector": ".navigation-item-list, .navigation-item-list *",
+                    "bugs": ["rdar://54102411"]
                 },
                 {
                     "id": "NeedsGoogleDocsNavigationWidgetScrollQuirk",

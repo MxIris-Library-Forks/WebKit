@@ -524,10 +524,7 @@ void NetworkResourceLoader::startNetworkLoad(ResourceRequest&& request, FirstLoa
 // To be added with https://github.com/whatwg/fetch/pull/1854
 bool NetworkResourceLoader::shouldFetchWithCompressionDictionary(const ResourceRequest& request) const
 {
-    CheckedPtr networkSession = protect(connectionToWebProcess())->networkSession();
-    if (!networkSession || !networkSession->hasCompressionDictionarySupport())
-        return false;
-    if (!connectionToWebProcess().compressionDictionaryEnabled() || !canUseCache(request))
+    if (!protect(connectionToWebProcess())->compressionDictionaryEnabled() || !canUseCache(request))
         return false;
 
     // 3. If request's mode is "no-cors", then return the result of running fallback.
@@ -694,7 +691,7 @@ ResourceLoadInfo NetworkResourceLoader::resourceLoadInfo()
 
 void NetworkResourceLoader::cleanup(LoadResult result)
 {
-    ASSERT(RunLoop::isMain());
+    ASSERT_WITH_SECURITY_IMPLICATION(RunLoop::isMain());
     LOADER_RELEASE_LOG("cleanup: (result=%u)", static_cast<unsigned>(result));
 
     m_isDone = true;
@@ -1472,7 +1469,7 @@ void NetworkResourceLoader::didReceiveResponse(ResourceResponse&& receivedRespon
         LOADER_RELEASE_LOG("didReceiveResponse: Received revalidation response (validationSucceeded=%d, wasOriginalRequestConditional=%d)", validationSucceeded, originalRequest().isConditional());
         if (validationSucceeded) {
             m_cacheEntryForValidation = protect(m_cache)->update(originalRequest(), *m_cacheEntryForValidation, m_response, m_privateRelayed);
-            if (connectionToWebProcess().compressionDictionaryEnabled()) {
+            if (protect(connectionToWebProcess())->compressionDictionaryEnabled()) {
                 processUseAsDictionaryHeader(m_cacheEntryForValidation->response());
                 storeCompressionDictionaryIfNeeded(m_cacheEntryForValidation->response(), m_cacheEntryForValidation->buffer());
             }
@@ -1577,7 +1574,7 @@ void NetworkResourceLoader::continueDidReceiveResponseAfterLocalNetworkAccessChe
     }
 
     processClearSiteDataHeader(m_response, [this, protectedThis = Ref { *this }, privateRelayed, resourceLoadInfo = WTF::move(resourceLoadInfo), completionHandler = WTF::move(completionHandler)] () mutable {
-        if (connectionToWebProcess().compressionDictionaryEnabled())
+        if (protect(connectionToWebProcess())->compressionDictionaryEnabled())
             processUseAsDictionaryHeader(m_response);
 
         auto response = sanitizeResponseIfPossible(ResourceResponse { m_response }, ResourceResponse::SanitizationType::CrossOriginSafe);
@@ -2022,11 +2019,6 @@ void NetworkResourceLoader::continueWillSendRedirectedRequestAfterLocalNetworkAc
         auto maxAgeCap = validateCacheEntryForMaxAgeCapValidation(request, redirectRequest, redirectResponse);
         if (redirectResponse.source() == ResourceResponse::Source::Network && canUseCachedRedirect(request))
             protect(m_cache)->storeRedirect(request, redirectResponse, redirectRequest, maxAgeCap);
-    }
-
-    if (isMainResource() && shouldInterruptNavigationForCrossOriginEmbedderPolicy(redirectResponse)) {
-        this->didFailLoading(ResourceError { errorDomainWebKitInternal, 0, redirectRequest.url(), "Redirection was blocked by Cross-Origin-Embedder-Policy"_s, ResourceError::Type::AccessControl });
-        return completionHandler({ });
     }
 
     if (auto error = doCrossOriginOpenerHandlingOfResponse(redirectResponse)) {
@@ -2565,7 +2557,7 @@ void NetworkResourceLoader::didRetrieveCacheEntry(std::unique_ptr<NetworkCache::
 
     // A cached response still carries Use-As-Dictionary, and re-fetching a dictionary is how a page
     // renews its registration, so a cache hit has to register it just as a network response does.
-    if (connectionToWebProcess().compressionDictionaryEnabled()) {
+    if (protect(connectionToWebProcess())->compressionDictionaryEnabled()) {
         processUseAsDictionaryHeader(response);
         storeCompressionDictionaryIfNeeded(response, RefPtr { entry->buffer() });
     }

@@ -667,6 +667,10 @@ set(WebCore_NON_SVG_IDL_FILES
     Modules/permissions/PermissionStatus.idl
     Modules/permissions/Permissions.idl
 
+    Modules/phonenumberpossession/PhoneNumberPossessionCredential.idl
+    Modules/phonenumberpossession/PhoneNumberPossessionRequestOptions.idl
+    Modules/phonenumberpossession/PhoneNumberPossessionResponseType.idl
+
     Modules/pictureinpicture/PictureInPictureEvent.idl
     Modules/pictureinpicture/PictureInPictureWindow.idl
 
@@ -1396,6 +1400,8 @@ set(WebCore_NON_SVG_IDL_FILES
     html/canvas/CanvasRenderingContext2DSettings.idl
     html/canvas/CanvasTextAlign.idl
     html/canvas/CanvasTextBaseline.idl
+    html/canvas/CanvasToneMapping.idl
+    html/canvas/CanvasToneMappingMode.idl
     html/canvas/ImageBitmapRenderingContext.idl
     html/canvas/ImageBitmapRenderingContextSettings.idl
     html/canvas/ImageSmoothingQuality.idl
@@ -2686,6 +2692,9 @@ if (ENABLE_WEBXR)
     )
 endif ()
 
+# The style sheets below are concatenated into one sheet that every media element shares through
+# the style sheet contents cache. Do not use CSS nesting in them: one nested rule makes the whole
+# sheet uncacheable, and each media element would parse its own copy.
 set(MODERN_MEDIA_CONTROLS_STYLE_SHEETS
     "${WEBCORE_DIR}/Modules/modern-media-controls/controls/activity-indicator.css"
     "${WEBCORE_DIR}/Modules/modern-media-controls/controls/airplay-button.css"

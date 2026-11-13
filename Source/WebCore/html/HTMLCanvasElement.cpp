@@ -466,7 +466,7 @@ CanvasRenderingContext2D* HTMLCanvasElement::createContext2d(const String& type,
         return nullptr;
 
 #if ENABLE(PIXEL_FORMAT_RGBA16F) && HAVE(SUPPORT_HDR_DISPLAY)
-    if (protect(m_context.get())->pixelFormat() == PixelFormat::RGBA16F)
+    if (protect(m_context.get())->isHDR())
         protect(document())->setHasHDRContent();
 #endif
 
@@ -897,7 +897,7 @@ RefPtr<VideoFrame> HTMLCanvasElement::toVideoFrame()
         return nullptr;
 
     // FIXME: Set color space.
-    return VideoFrame::createFromPixelBuffer(pixelBuffer.releaseNonNull());
+    return VideoFrame::createFromPixelBuffer(pixelBuffer.releaseNonNull(), { });
 #else
     return nullptr;
 #endif

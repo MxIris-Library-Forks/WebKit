@@ -1601,6 +1601,8 @@ bool TestController::resetStateToConsistentValues(const TestOptions& options, Re
     resetMockMediaDevices();
     WKPageSetMediaCaptureReportingDelayForTesting(m_mainWebView->page(), 0);
 
+    WKPageSetVirtualWalletBehaviorForTesting(m_mainWebView->page(), toWK("clear").get(), nullptr, nullptr);
+
     WKWebsiteDataStoreResetResourceMonitorThrottler(websiteDataStore(), nullptr, nullptr);
 
     WKURLRequestSetDefaultTimeoutInterval((60_s).value());
@@ -1645,6 +1647,7 @@ bool TestController::resetStateToConsistentValues(const TestOptions& options, Re
     m_isGeolocationPermissionSet = false;
     m_isGeolocationPermissionAllowed = false;
     m_geolocationPermissionQueryOrigins.clear();
+    m_geolocationProvider->reset();
 
     // Reset Screen Wake Lock permission.
     m_screenWakeLockPermission = std::nullopt;
